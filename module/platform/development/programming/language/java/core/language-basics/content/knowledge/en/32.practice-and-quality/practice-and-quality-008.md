@@ -1,82 +1,82 @@
-# Thực hành thống kê mảng và tách thành phương thức trong Java
+# Practice: Array Statistics and Method Decomposition in Java
 
-## 1. Mục tiêu và yêu cầu bài thực hành
+## 1. Goal and practice requirements
 
-Với một mảng số nguyên `int[]`, hãy xây dựng chương trình Java 17+ thống kê:
+Given an integer array `int[]`, build a Java 17+ program that computes the following statistics:
 
-1. **Độ dài mảng**: tổng số phần tử.
-2. **Số lượng số dương, số âm và số 0**: số dương thỏa `x > 0`, số âm thỏa `x < 0`, còn số 0 là `x == 0`.
-3. **Tổng các phần tử**: dùng kiểu `long` để tránh tràn `int` ở những trường hợp cộng nhiều số nguyên.
-4. **Giá trị nhỏ nhất (`min`) và lớn nhất (`max`)** khi mảng không rỗng.
-5. **Trung bình cộng** khi mảng có ít nhất một phần tử; dùng phép chia số thực để không mất phần thập phân.
+1. **Array length**: total number of elements.
+2. **Counts of positive, negative, and zero values**: positive satisfies `x > 0`, negative satisfies `x < 0`, and zero is `x == 0`.
+3. **Sum of all elements**: use `long` to avoid `int` overflow when adding many integers.
+4. **Minimum (`min`) and maximum (`max`) values** when the array is non-empty.
+5. **Arithmetic average** when the array has at least one element; use floating-point division so fractional digits are preserved.
 
-Yêu cầu chất lượng: **không dồn toàn bộ logic vào `main`**. Hãy tách phần tính toán, tổng hợp và trình bày thành các phương thức có tên rõ ràng. Phương thức thống kê không được sửa các phần tử của mảng đầu vào.
+Quality requirement: **do not cram all logic into `main`**. Separate calculation, aggregation, and presentation into clearly named methods. Statistical methods must not modify the elements of the input array.
 
-Với đầu vào mẫu:
+Given the sample input:
 
 ```text
 [8, -3, 0, 7, -2, 8]
 ```
 
-kết quả mong đợi là:
+the expected results are:
 
-| Chỉ tiêu | Giá trị | Lý do |
+| Metric | Value | Reason |
 | --- | ---: | --- |
-| Độ dài | 6 | Có sáu phần tử |
-| Số dương | 3 | `8, 7, 8` |
-| Số âm | 2 | `-3, -2` |
-| Số 0 | 1 | Một số `0` |
-| Tổng | 18 | `8 - 3 + 0 + 7 - 2 + 8 = 18` |
-| Nhỏ nhất | -3 | Số nhỏ nhất trong toàn bộ mảng |
-| Lớn nhất | 8 | Số lớn nhất trong toàn bộ mảng |
-| Trung bình | 3.00 | `18 / 6 = 3.0` |
+| Length | 6 | Six elements |
+| Positive count | 3 | `8, 7, 8` |
+| Negative count | 2 | `-3, -2` |
+| Zero count | 1 | One `0` |
+| Sum | 18 | `8 - 3 + 0 + 7 - 2 + 8 = 18` |
+| Minimum | -3 | Smallest number in the entire array |
+| Maximum | 8 | Largest number in the entire array |
+| Average | 3.00 | `18 / 6 = 3.0` |
 
-Lưu ý: **tổng, min, max và trung bình ở đây áp dụng cho toàn bộ mảng**, không chỉ các số dương. Bộ đếm dương/âm/0 là những thống kê bổ sung. Phải phân biệt rõ điều đó khi đọc yêu cầu để không tính ra giá trị sai.
+Note: **sum, min, max, and average apply to the entire array here**, not just positive numbers. Positive/negative/zero counts are additional statistics. Read the requirement carefully to distinguish those so you do not compute the wrong numbers.
 
-## 2. Chia bài toán thành những phương thức nhỏ
+## 2. Breaking the problem into small methods
 
-Thay vì viết một `main` dài với nhiều vòng lặp, có thể thiết kế các phương thức độc lập:
+Instead of writing a long `main` with many loops, design independent methods:
 
-| Phương thức | Đầu vào | Kết quả / trách nhiệm |
+| Method | Input | Return value / responsibility |
 | --- | --- | --- |
-| `sum(int[] values)` | Mảng số nguyên | Tổng dưới dạng `long` |
-| `countPositive(int[] values)` | Mảng số nguyên | Số phần tử `> 0` |
-| `countNegative(int[] values)` | Mảng số nguyên | Số phần tử `< 0` |
-| `findMin(int[] values)` | Mảng số nguyên | `OptionalInt`: giá trị nhỏ nhất, hoặc rỗng |
-| `findMax(int[] values)` | Mảng số nguyên | `OptionalInt`: giá trị lớn nhất, hoặc rỗng |
-| `average(long sum, int count)` | Tổng và số lượng | `OptionalDouble`: trung bình, hoặc rỗng nếu không có phần tử |
-| `analyze(int[] values)` | Mảng số nguyên | Ghép các kết quả trên thành một đối tượng `Stats` |
-| `printReport(String title, int[] values)` | Tiêu đề và mảng | In kết quả rõ ràng, không tự tính lại công thức trong code in |
-| `main(String[] args)` | Điểm vào ứng dụng | Chuẩn bị dữ liệu, gọi các phương thức, kiểm tra kết quả |
+| `sum(int[] values)` | Integer array | Sum as `long` |
+| `countPositive(int[] values)` | Integer array | Count of elements `> 0` |
+| `countNegative(int[] values)` | Integer array | Count of elements `< 0` |
+| `findMin(int[] values)` | Integer array | `OptionalInt`: minimum value, or empty |
+| `findMax(int[] values)` | Integer array | `OptionalInt`: maximum value, or empty |
+| `average(long sum, int count)` | Sum and element count | `OptionalDouble`: average, or empty if no elements |
+| `analyze(int[] values)` | Integer array | Combines the results above into a `Stats` object |
+| `printReport(String title, int[] values)` | Title and array | Prints results clearly without recomputing formulas inside print code |
+| `main(String[] args)` | Application entry point | Prepares data, invokes methods, verifies results |
 
-Cách phân chia này dựa trên **một trách nhiệm chính cho mỗi phương thức**:
+This decomposition follows **one primary responsibility per method**:
 
-- Các hàm `sum`, `countPositive`, `countNegative`, `findMin`, `findMax` tập trung vào phép tính, không in màn hình.
-- `analyze` là nơi **phối hợp** các phép tính và xác nhận tiền điều kiện của đầu vào.
-- `printReport` chỉ quyết định **cách hiển thị** các thống kê đã được tính.
-- `main` giữ vai trò tổ chức tình huống chạy, thay vì chứa toàn bộ thuật toán.
+- `sum`, `countPositive`, `countNegative`, `findMin`, and `findMax` focus solely on computation and never print to the screen.
+- `analyze` **coordinates** the computations and enforces the input precondition.
+- `printReport` decides only **how to display** the computed statistics.
+- `main` orchestrates test scenarios instead of housing the entire algorithm.
 
-Khi một bước hoạt động sai, biết chính xác phương thức nào cần kiểm tra. Các phương thức chỉ tính toán và trả về giá trị còn có thể được **kiểm thử riêng** mà không cần đọc văn bản in trên console.
+When a step fails, you know exactly which method to inspect. Methods that only compute and return values can also be **unit tested independently** without parsing console text.
 
-### Hợp đồng (contract) của phương thức
+### Method contract
 
-Trước khi viết Java, xác định rõ:
+Before writing Java, define clearly:
 
-- **Tiền điều kiện:** đầu vào `values` phải khác `null`. Mảng rỗng `new int[0]` **được phép**.
-- **Hậu điều kiện:** `sum` là tổng mọi phần tử; `countPositive + countNegative + countZero == values.length`.
-- **Không tác dụng phụ:** các phép tính không sửa `values[i]`, không in ra màn hình, không phụ thuộc biến toàn cục có thể thay đổi.
-- **Đầu vào rỗng:** tổng và các bộ đếm bằng `0`; `min`, `max` và `average` **không có giá trị**, không được tự gán `0` làm kết quả cực trị/trung bình.
-- **Đầu vào `null`:** phương thức tổng hợp `analyze` từ chối rõ ràng bằng `Objects.requireNonNull`, thay vì coi `null` như mảng rỗng.
+- **Precondition:** input `values` must not be `null`. An empty array `new int[0]` **is allowed**.
+- **Postcondition:** `sum` is the sum of all elements; `countPositive + countNegative + countZero == values.length`.
+- **No side effects:** calculations do not mutate `values[i]`, do not print to the console, and do not depend on mutable global state.
+- **Empty input:** sum and all counts equal `0`; `min`, `max`, and `average` **have no value** and must never default to `0` as an extremum or average result.
+- **`null` input:** the coordinating method `analyze` rejects it explicitly via `Objects.requireNonNull`, rather than treating `null` as an empty array.
 
-Các helper nội bộ trong bài được gọi từ `analyze` sau bước kiểm tra `null`; nếu tái sử dụng chúng thành API công khai, cần xác định và thực thi tiền điều kiện riêng cho từng helper.
+Internal helpers in this lesson are called by `analyze` after the `null` check; if reused as public APIs, each helper should declare and enforce its own preconditions.
 
-## 3. Mã giả trước khi triển khai
+## 3. Pseudocode before implementation
 
-Đây là mô tả thuật toán; **không phải mã Java để biên dịch**.
+This is an algorithm description; **not Java code to compile**.
 
 ```text
 FUNCTION SUM(values):
-    total ← 0 (dùng số nguyên 64-bit)
+    total ← 0 (using 64-bit integer)
     FOR EACH x IN values:
         total ← total + x
     RETURN total
@@ -96,25 +96,25 @@ FUNCTION COUNT_NEGATIVE(values):
     RETURN count
 
 FUNCTION MIN(values):
-    IF values rỗng: RETURN không có giá trị
+    IF values is empty: RETURN no value
     result ← values[0]
-    FOR EACH phần tử còn lại x:
+    FOR EACH remaining element x:
         IF x < result: result ← x
     RETURN result
 
 FUNCTION MAX(values):
-    IF values rỗng: RETURN không có giá trị
+    IF values is empty: RETURN no value
     result ← values[0]
-    FOR EACH phần tử còn lại x:
+    FOR EACH remaining element x:
         IF x > result: result ← x
     RETURN result
 
 FUNCTION AVERAGE(total, count):
-    IF count = 0: RETURN không có giá trị
-    RETURN (số thực) total / count
+    IF count = 0: RETURN no value
+    RETURN (floating-point) total / count
 
 FUNCTION ANALYZE(values):
-    IF values = null: báo lỗi đầu vào
+    IF values = null: report input error
     positives ← COUNT_POSITIVE(values)
     negatives ← COUNT_NEGATIVE(values)
     zeros ← LENGTH(values) - positives - negatives
@@ -122,20 +122,20 @@ FUNCTION ANALYZE(values):
     minimum ← MIN(values)
     maximum ← MAX(values)
     mean ← AVERAGE(total, LENGTH(values))
-    RETURN tất cả kết quả thống kê
+    RETURN all statistical results
 ```
 
-**Vì sao đếm số 0 bằng phép trừ được?** Mỗi số nguyên thuộc đúng một trong ba nhóm `> 0`, `< 0`, `== 0`. Ba nhóm không chồng lấn và bao phủ toàn bộ mảng; do đó `zeros = length - positives - negatives` đúng.
+**Why can zeros be counted by subtraction?** Every integer belongs to exactly one of three groups: `> 0`, `< 0`, or `== 0`. These three groups are disjoint and cover the entire array; hence `zeros = length - positives - negatives` holds.
 
-**Vì sao `min` và `max` cần xử lý mảng rỗng?** Không thể truy cập `values[0]` khi `values.length == 0`. Cũng không thể nói giá trị nhỏ nhất của một mảng rỗng bằng `0`: `0` có thể là dữ liệu hợp lệ, nhưng mảng rỗng không có phần tử nào cả.
+**Why must `min` and `max` handle empty arrays?** You cannot access `values[0]` when `values.length == 0`. Nor can you say the minimum of an empty array is `0`: `0` can be valid data, whereas an empty array has no elements at all.
 
-## 4. Dự đoán bằng bảng theo dõi
+## 4. Predicting behavior with a trace table
 
-Với `[8, -3, 0, 7, -2, 8]`, có thể theo dõi bộ đếm và tổng trong một lượt **chạy tay theo từng phần tử** như sau:
+For `[8, -3, 0, 7, -2, 8]`, you can trace counts and sum in a single **element-by-element dry run** as follows:
 
-| Bước | Phần tử `x` | Dương | Âm | Bằng 0 | Tổng sau bước |
+| Step | Element `x` | Positive | Negative | Zero | Sum after step |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Khởi tạo | — | 0 | 0 | 0 | 0 |
+| Init | — | 0 | 0 | 0 | 0 |
 | 1 | 8 | 1 | 0 | 0 | 8 |
 | 2 | -3 | 1 | 1 | 0 | 5 |
 | 3 | 0 | 1 | 1 | 1 | 5 |
@@ -143,15 +143,15 @@ Với `[8, -3, 0, 7, -2, 8]`, có thể theo dõi bộ đếm và tổng trong m
 | 5 | -2 | 2 | 2 | 1 | 10 |
 | 6 | 8 | 3 | 2 | 1 | 18 |
 
-Bảng mô tả **trạng thái tổng hợp giả lập sau mỗi phần tử**, hữu ích để kiểm tra logic; chương trình tách hàm ở phần sau thực hiện các phép tính bằng **những lượt duyệt độc lập** và cuối cùng thu được cùng kết quả.
+The table models **a combined state after each element**, useful for verifying logic; the decomposed program below computes the metrics using **independent passes** and arrives at the exact same final values.
 
-Khi tính `min` và `max`, bắt đầu từ phần tử đầu tiên `8`. Sau khi gặp `-3`, `min = -3`; không có phần tử nào nhỏ hơn, nên kết quả cuối là `-3`. `max` luôn là `8` với mảng này. Kết quả trung bình: `18 / 6 = 3.0`.
+When finding `min` and `max`, start with the first element `8`. After encountering `-3`, `min = -3`; no later element is smaller, so the final minimum is `-3`. `max` stays `8` for this array. Average result: `18 / 6 = 3.0`.
 
-Một bảng như vậy giúp kiểm tra bước **đầu tiên** khiến tổng hoặc bộ đếm khác dự đoán. Khi thực hành, có thể đặt breakpoint trong từng phương thức và so sánh kết quả thực tế với bảng.
+Such a table helps pinpoint the **first** step where a sum or count diverges from expectations. During practice, you can set breakpoints in each method and compare actual values against the table.
 
-## 5. Java 17+: chương trình hoàn chỉnh được tách thành phương thức
+## 5. Java 17+: complete program decomposed into methods
 
-Tạo đúng một tệp **`ArrayStatisticsPractice.java`**:
+Create a single file **`ArrayStatisticsPractice.java`**:
 
 ```java
 import java.util.Arrays;
@@ -311,14 +311,14 @@ public class ArrayStatisticsPractice {
 }
 ```
 
-Chương trình không cần thư viện bên ngoài. Dùng **JDK 17 trở lên** và mở terminal tại thư mục chứa `ArrayStatisticsPractice.java`:
+The program requires no external libraries. Use **JDK 17 or later** and open a terminal in the directory containing `ArrayStatisticsPractice.java`:
 
 ```bash
 javac -encoding UTF-8 ArrayStatisticsPractice.java
 java ArrayStatisticsPractice
 ```
 
-Lệnh `javac` thành công không in thông báo. **Stdout chính xác** của `java`:
+A successful `javac` command prints no output. **Exact stdout** of `java`:
 
 ```text
 Case A
@@ -366,50 +366,50 @@ test empty: PASS
 test large sum: PASS
 ```
 
-### Giải thích bốn bộ dữ liệu
+### Explaining the four datasets
 
-- **Case A**: đủ số dương, âm, số 0; trung bình của toàn mảng là `3.00`.
-- **Case B**: mảng rỗng; bộ đếm và tổng bằng 0, còn `min`, `max` và `average` là `N/A`, tránh truy cập `values[0]` hoặc chia 0.
-- **Case C**: chỉ có số âm; `max = -1` (không phải 0) và trung bình `-11 / 3` được in thành `-3.67`.
-- **Case D**: hai giá trị `Integer.MAX_VALUE`. Tổng toán học bằng `4294967294` vượt phạm vi `int`, nhưng `long sum` giữ được kết quả chính xác trong trường hợp này.
+- **Case A**: includes positive, negative, and zero values; the array-wide average is `3.00`.
+- **Case B**: empty array; counts and sum are 0, while `min`, `max`, and `average` are `N/A`, avoiding accessing `values[0]` or dividing by 0.
+- **Case C**: negative numbers only; `max = -1` (not 0) and average `-11 / 3` prints as `-3.67`.
+- **Case D**: two `Integer.MAX_VALUE` entries. The mathematical sum `4294967294` exceeds `int` range, while `long sum` holds the exact result here.
 
-Ba phép kiểm tra cuối dùng phương thức `check`: nếu điều kiện sai thì ném `AssertionError`, thay vì luôn in `PASS` dù thuật toán sai. Không phải test framework đầy đủ, nhưng đủ để thực hành cách kiểm tra đầu ra theo kỳ vọng.
+The last three checks use `check`: if a condition fails, it throws `AssertionError`, rather than always printing `PASS` even when the algorithm is wrong. It is not a full test framework, but it works well for practicing output assertions against expected values.
 
-## 6. Tại sao dùng `OptionalInt` và `OptionalDouble`?
+## 6. Why use `OptionalInt` and `OptionalDouble`?
 
-Một sai lầm phổ biến là để `min = 0`, `max = 0` khi mảng rỗng rồi in ra như thể đó là thống kê hợp lệ.
+A common mistake is defaulting to `min = 0` and `max = 0` for an empty array and printing them as if they were valid statistics.
 
-Ví dụ đối với mảng `{-5, -1, -5}`, `max` thật sự là `-1`, **không phải 0**. Nếu khởi tạo `max = 0` và chỉ cập nhật khi phần tử lớn hơn `max`, thuật toán sẽ giữ kết quả sai là `0`.
+For example, for `{-5, -1, -5}`, the true `max` is `-1`, **not 0**. Initializing `max = 0` and updating only when an element is greater than `max` keeps the wrong answer `0`.
 
-Trong chương trình này:
+In this program:
 
-- `OptionalInt.of(value)` biểu diễn **có một giá trị `int`**.
-- `OptionalInt.empty()` biểu diễn **không tồn tại giá trị** để trả về.
-- `OptionalDouble` có ý nghĩa tương tự cho trung bình số thực.
+- `OptionalInt.of(value)` represents **the presence of an `int` value**.
+- `OptionalInt.empty()` represents **no value exists** to return.
+- `OptionalDouble` serves the same purpose for the floating-point average.
 
-Phần in kết quả chỉ gọi `getAsInt()` sau khi `isPresent()` là `true`; chỉ gọi `getAsDouble()` khi `average` có giá trị. Nếu truy cập `getAsInt()` trên `OptionalInt.empty()`, Java ném `NoSuchElementException`.
+The printing code calls `getAsInt()` only after `isPresent()` is `true`, and calls `getAsDouble()` only when `average` is present. Calling `getAsInt()` on `OptionalInt.empty()` throws `NoSuchElementException`.
 
-`OptionalInt`/`OptionalDouble` phù hợp để **thể hiện một kết quả có thể vắng mặt**; đây không phải cách duy nhất. Với bài nhỏ, cũng có thể dùng điều kiện `values.length == 0` trước khi tính hoặc in min/max. Quan trọng nhất là **đừng lẫn “không có kết quả” với kết quả bằng 0**.
+`OptionalInt`/`OptionalDouble` is well suited for **representing an optionally absent result**, though it is not the only approach. In tiny exercises, you can also check `values.length == 0` before computing or printing min/max. Most importantly, **never confuse "no result" with a result of 0**.
 
-## 7. `record Stats`: gom kết quả mà không dồn logic tính toán
+## 7. `record Stats`: bundling results without cramming computation logic
 
-Java 17 hỗ trợ **`record`**, thuận tiện để biểu diễn một nhóm dữ liệu trả về cùng nhau:
+Java 17 supports **`record`**, convenient for representing a group of related values returned together:
 
 ```java
 record Stats(int length, int positive, int negative) {}
 ```
 
-Đây chỉ là **minh họa cú pháp**, còn chương trình đầy đủ đã định nghĩa một `Stats` với tám trường. Record tự cung cấp constructor, các phương thức truy cập tên như `length()`, `positive()` và các thành phần phù hợp khác.
+This is only a **syntax illustration**; the complete program defines `Stats` with eight fields. A record automatically generates a constructor, accessor methods such as `length()` and `positive()`, and other standard members.
 
-Tách bước trả kết quả thành `Stats` giúp tránh dùng biến toàn cục hoặc những tham số truyền đi truyền lại chỉ để cập nhật kết quả. Vì phương thức `analyze` trả một giá trị tổng hợp, nhiều nơi khác nhau có thể sử dụng thống kê theo nhu cầu (in báo cáo, kiểm thử, lưu dữ liệu...) mà không phải chạy lại từng phương thức thủ công.
+Returning `Stats` avoids global variables or passing mutable parameters back and forth just to update results. Because `analyze` returns an aggregate value, different callers can use the statistics as needed (printing reports, testing, saving data, etc.) without manually invoking each helper again.
 
-**Không nhầm record với bất biến tuyệt đối của mọi tham chiếu.** Record giữ trạng thái các thành phần dưới dạng field `final`, nhưng nếu chứa một đối tượng có thể sửa được thì đối tượng đó vẫn có thể thay đổi. Ở đây `Stats` giữ kiểu nguyên thủy và các đối tượng `OptionalInt`/`OptionalDouble` bất biến, nên không có mảng đầu vào nào được đặt vào bản ghi để bị chỉnh sửa qua kết quả.
+**Do not confuse a record with deep immutability of every reference.** A record stores its components as `final` fields, but if a component holds a mutable object, that object's contents can still change. Here `Stats` stores primitives and immutable `OptionalInt`/`OptionalDouble` objects, so no input array is placed in the record to be mutated through the result.
 
-## 8. Kiểm thử từng phương thức và trường hợp biên
+## 8. Testing individual methods and edge cases
 
-Tách phương thức có ích nhất khi mỗi phương thức có **hợp đồng và ca kiểm tra** riêng:
+Method decomposition pays off most when each method has its own **contract and test cases**:
 
-| Phương thức | Ca kiểm tra | Kết quả mong đợi |
+| Method | Test case | Expected result |
 | --- | --- | --- |
 | `sum` | `[8, -3, 0, 7, -2, 8]` | `18L` |
 | `sum` | `[]` | `0L` |
@@ -418,48 +418,48 @@ Tách phương thức có ích nhất khi mỗi phương thức có **hợp đ�
 | `countNegative` | `[-1, 0, 4, 4]` | `1` |
 | `findMin` | `[-5, -1, -5]` | `OptionalInt.of(-5)` |
 | `findMax` | `[-5, -1, -5]` | `OptionalInt.of(-1)` |
-| `findMin` / `findMax` | `[]` | Cả hai rỗng |
+| `findMin` / `findMax` | `[]` | Both empty |
 | `average` | `(18L, 6)` | `OptionalDouble.of(3.0)` |
 | `average` | `(0L, 0)` | `OptionalDouble.empty()` |
 
-Các ca này là **kỳ vọng kiểm thử**, không phải thêm đoạn mã chạy độc lập. Có thể tự viết các lệnh `check(...)` hoặc dùng JUnit trong dự án có cấu hình thư viện kiểm thử.
+These cases represent **test expectations**, not additional standalone snippets. You can write `check(...)` calls yourself or use JUnit in projects configured with a testing library.
 
-Đặc biệt nên kiểm tra:
+In particular, be sure to test:
 
-1. **Mảng rỗng** để tránh truy cập chỉ số 0 và chia cho 0.
-2. **Chỉ số âm** và **chỉ số 0** để xác định điều kiện `> 0`, `< 0`, `== 0` rõ ràng.
-3. **Mảng chỉ chứa số âm** để phát hiện cách khởi tạo max sai.
-4. **Mảng nhiều phần tử bằng nhau** để kiểm tra cập nhật min/max.
-5. **Tổng vượt phạm vi `int`** để xác nhận dùng `long`.
-6. **`null`** để xác nhận hợp đồng đầu vào được thực thi nhất quán.
-7. **Mảng một phần tử**: min và max phải đều là phần tử đó; average đúng bằng giá trị ấy.
-8. **Không thay đổi đầu vào**: so sánh mảng trước và sau khi gọi `analyze` nếu cần kiểm chứng tính không tác dụng phụ.
+1. **Empty array** to avoid indexing `0` and dividing by `0`.
+2. **Negative numbers** and **zero** to verify `> 0`, `< 0`, and `== 0` clearly.
+3. **All-negative array** to catch wrong `max` initialization.
+4. **Array with duplicate values** to verify `min`/`max` updates.
+5. **Sum exceeding `int` range** to confirm `long` is used.
+6. **`null`** to verify the input contract is enforced consistently.
+7. **Single-element array**: `min` and `max` must both equal that element; `average` equals that exact value.
+8. **Input unchanged**: compare array elements before and after calling `analyze` if verifying no side effects.
 
-Một phép kiểm thử không nên chỉ khẳng định `sum` đúng rồi cho rằng các hàm đếm hoặc tìm cực trị cũng chắc chắn đúng; mỗi trách nhiệm cần ít nhất một ca kiểm tra phù hợp.
+A test suite must not assert only that `sum` is right and assume counting or extremum methods are right too; each responsibility needs its own test coverage.
 
-## 9. Những lỗi thường gặp khi tách phương thức
+## 9. Common mistakes when decomposing into methods
 
-### Lỗi 1: Tính trung bình bằng chia nguyên
+### Mistake 1: Computing average with integer division
 
 ```java
 long sum = 14;
 int count = 3;
-double wrong = sum / count;         // 4.0: chia nguyên trước
-double right = (double) sum / count; // khoảng 4.6667
+double wrong = sum / count;         // 4.0: integer division first
+double right = (double) sum / count; // approximately 4.6667
 ```
 
-Đây là đoạn minh họa bên trong một phương thức. Việc gán sang `double` **sau** khi chia nguyên không phục hồi phần lẻ đã mất. Dùng phép ép hoặc một toán hạng dạng số thực trước khi chia.
+This is an illustrative snippet inside a method. Assigning to `double` **after** integer division cannot restore the lost fractional part. Cast or make one operand floating-point before dividing.
 
-### Lỗi 2: Dùng `int` cho tổng có thể lớn
+### Mistake 2: Using `int` for sums that can grow large
 
 ```java
 int wrongSum = Integer.MAX_VALUE + Integer.MAX_VALUE;
-// wrongSum == -2 do tràn int.
+// wrongSum == -2 due to int overflow.
 ```
 
-Biểu thức cộng hai giá trị `int` được tính bằng `int`, nên có thể tràn **trước khi gán**, kể cả nếu biến đích là `long`. Trong chương trình hoàn chỉnh, `total` được khai báo `long`, nên khi dùng `total += value`, phép cộng có ngữ cảnh phù hợp với kiểu `long`.
+Adding two `int` values evaluates in `int` arithmetic, so it can overflow **before assignment**, even if the target variable is `long`. In the complete program, `total` is declared `long`, so `total += value` evaluates in `long` context.
 
-### Lỗi 3: Đếm luôn số 0 vào nhóm dương/âm
+### Mistake 3: Counting zero as positive or negative
 
 ```java
 if (value >= 0) {
@@ -467,32 +467,32 @@ if (value >= 0) {
 }
 ```
 
-Đoạn minh họa trên **sai** nếu yêu cầu “dương” nghĩa là `> 0`. Số `0` phải thuộc nhóm riêng. Một bất biến hữu ích để tự kiểm tra là `positive + negative + zero == length`.
+The snippet above is **wrong** when "positive" means `> 0`. `0` must be counted in its own group. A useful invariant to double-check is `positive + negative + zero == length`.
 
-### Lỗi 4: Hàm vừa tính vừa in vừa thay đổi dữ liệu
+### Mistake 4: One method computing, printing, and mutating data
 
-Ví dụ một `sum` mà vừa cộng, vừa sửa `values[i]`, vừa in kết quả sẽ khó tái sử dụng và khó test. Với bài này, helper tính toán **chỉ trả kết quả**. Tầng `printReport` chịu trách nhiệm xuất console; `main` chọn tình huống và kiểm tra.
+For example, a `sum` method that adds, modifies `values[i]`, and prints results is hard to reuse and hard to test. Here, calculation helpers **only return results**. `printReport` handles console output; `main` selects scenarios and checks assertions.
 
-### Lỗi 5: Dồn nhiều việc không liên quan vào một phương thức
+### Mistake 5: Packing unrelated tasks into one method
 
-Nếu `main` chứa tất cả các vòng lặp, định dạng số, xử lý mảng rỗng và kiểm thử, khi cần thay cách in bảng phải đọc lại cả thuật toán. Tách theo **trách nhiệm** tốt hơn tách chỉ để mỗi hàm có vài dòng.
+If `main` holds every loop, number formatting, empty-array handling, and test assertion, changing report formatting forces you to read through the entire algorithm. Decomposing by **responsibility** is far better than splitting just to keep functions a few lines long.
 
-### Lỗi 6: Tạo quá nhiều lượt duyệt mà không nhận ra đánh đổi
+### Mistake 6: Adding extra passes without recognizing the trade-off
 
-Thiết kế ở mục 5 dùng nhiều lượt duyệt: mỗi hàm như `sum`, `countPositive`, `countNegative`, `findMin`, `findMax` xử lý một phần mảng hoặc toàn mảng. Với một mảng độ dài `n`, tổng số phép duyệt vẫn tỷ lệ với `n` do số hàm là hằng số: **thời gian O(n)**, bộ nhớ bổ sung cho phần tính toán **O(1)**. Phần `Arrays.toString` tạo chuỗi để hiển thị nên có thêm chi phí bộ nhớ theo kích thước mảng.
+The design in section 5 uses multiple passes: `sum`, `countPositive`, `countNegative`, `findMin`, and `findMax` each scan part or all of the array. For an array of length `n`, total work still scales linearly with `n` because the number of methods is constant: **O(n) time** and **O(1) auxiliary memory** for computation. `Arrays.toString` builds a display string, which adds memory proportional to array size.
 
-Nếu ứng dụng cần hiệu năng hơn trên mảng cực lớn, có thể gom các phép cập nhật vào một vòng lặp duy nhất nhưng vẫn giữ phương thức `analyze` tách riêng khỏi `printReport` và `main`. Không nên tối ưu hóa quá sớm nếu đánh đổi làm bài học khó hiểu, nhưng cũng không nên hiểu “tách phương thức” đồng nghĩa với “bắt buộc duyệt dữ liệu nhiều lần”.
+If an application needs higher throughput on huge arrays, you can combine updates into a single loop while still keeping `analyze` separate from `printReport` and `main`. Do not optimize prematurely at the expense of clarity in a learning example, yet do not equate "method decomposition" with "requiring multiple passes over the data."
 
-## 10. Bài tập mở rộng có định hướng
+## 10. Guided extension exercises
 
-Sau khi chạy đúng chương trình:
+After getting the program running cleanly:
 
-1. Bổ sung `countEven(int[] values)` đếm số chẵn bằng `value % 2 == 0`, bao gồm `0` và số âm chẵn. Thêm trường tương ứng vào `Stats` và một ca kiểm thử.
-2. Bổ sung tổng **chỉ các số dương** bằng helper độc lập `sumPositive`; đừng nhầm với tổng toàn bộ mảng hiện tại.
-3. Viết thêm `findFirstIndexOfMax` trả chỉ số xuất hiện **đầu tiên** của giá trị lớn nhất; quy định hành vi cho mảng rỗng.
-4. Thử phiên bản `analyze` chỉ duyệt mảng **một lần**, rồi so sánh kết quả với phiên bản nhiều helper trên cùng bộ test.
-5. Viết một bộ kiểm thử gồm ít nhất mảng rỗng, một phần tử, toàn âm, toàn dương, lặp giá trị, số 0 và tổng vượt `int`.
+1. Add `countEven(int[] values)` counting even numbers with `value % 2 == 0`, including `0` and negative even numbers. Add a corresponding field to `Stats` and a test case.
+2. Add a helper `sumPositive` computing the sum of **positive numbers only**; do not confuse it with the total sum of the entire array.
+3. Add `findFirstIndexOfMax` returning the **first** index of the maximum value; define its behavior for empty arrays.
+4. Try writing a **single-pass** version of `analyze` and compare its results against the multi-helper version on the same test suite.
+5. Write a test suite covering at least an empty array, single element, all-negative, all-positive, duplicate values, zeros, and a sum exceeding `int`.
 
-Các yêu cầu mở rộng là bài luyện tập thêm, không làm thay đổi kết quả chạy chính của chương trình ở mục 5.
+These extensions are extra practice and do not change the main outputs of the program in section 5.
 
-**Ghi nhớ:** Thống kê mảng không chỉ là viết vòng lặp, mà còn là xác định đúng nghĩa từng chỉ tiêu, xử lý trường hợp biên và chia trách nhiệm rõ ràng. Các phương thức nhỏ, không tác dụng phụ và có đầu ra xác định sẽ giúp Java code **dễ đọc, dễ gỡ lỗi, dễ kiểm thử và dễ tái sử dụng**.
+**Remember:** Array statistics are not just about writing loops—they are about defining each metric accurately, handling edge cases, and separating responsibilities cleanly. Small, side-effect-free, deterministic methods make Java code **easier to read, debug, test, and reuse**.

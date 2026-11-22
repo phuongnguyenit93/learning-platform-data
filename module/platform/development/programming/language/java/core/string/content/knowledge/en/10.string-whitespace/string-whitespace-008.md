@@ -1,46 +1,46 @@
-# Vì sao không tự động xóa mọi khoảng trắng trong dữ liệu người dùng?
+# Why Not Automatically Remove All Whitespace from User Data?
 
-Khi nhận văn bản từ người dùng, lập trình viên thường muốn “làm sạch” bằng cách bỏ khoảng trắng ở đầu, cuối hoặc gộp nhiều dấu cách liên tiếp thành một dấu cách. Tuy nhiên, **khoảng trắng cũng là dữ liệu**: có trường hợp nó chỉ là lỗi nhập liệu, nhưng có trường hợp nó là một phần của nội dung mà người dùng cố ý cung cấp. Nếu tự động xóa hoặc thay đổi mọi khoảng trắng trước khi hiểu ý nghĩa của trường nhập, chương trình có thể **làm sai dữ liệu, thay đổi kết quả so sánh hoặc phá hỏng một định dạng cần giữ nguyên**.
+When receiving text from users, developers often want to “clean” it by removing leading and trailing whitespace or collapsing consecutive spaces into a single space. However, **whitespace is also data**: in some cases it is merely a typing mistake, while in other cases it is part of the content the user intentionally provided. If you automatically delete or modify all whitespace before understanding the meaning of an input field, a program can **corrupt data, alter comparison results, or break a format that must be preserved**.
 
-Trong Java, `String.trim()`, `String.strip()`, `String.isBlank()` hay `replaceAll(...)` giải quyết những câu hỏi khác nhau. Bài học này giải thích cách xác định **khi nào chỉ nên kiểm tra chuỗi trắng, khi nào được chuẩn hóa, khi nào phải giữ nguyên**, và cách triển khai quy tắc rõ ràng theo từng loại dữ liệu.
+In Java, `String.trim()`, `String.strip()`, `String.isBlank()`, and `replaceAll(...)` solve different questions. This lesson explains how to decide **when to only check for blank strings, when normalization is allowed, when to preserve input as-is**, and how to implement clear rules for each kind of data.
 
-## 1. Khoảng trắng trong chuỗi gồm những gì?
+## 1. What does whitespace in a string include?
 
-Từ “khoảng trắng” trong giao tiếp thường chỉ dấu cách giữa các từ. Trong dữ liệu văn bản, nó có thể gồm nhiều loại ký tự:
+In everyday speech, “whitespace” usually refers to spaces between words. In text data, it can include many kinds of characters:
 
-- **Dấu cách thường** (SPACE, `U+0020`): ví dụ `"Mai Anh"`.
-- **Tab** (`\t`, `U+0009`): thường dùng để thụt lề hoặc ngăn cột.
-- **Xuống dòng** (`\n`, `U+000A`), carriage return (`\r`, `U+000D`): dùng trong văn bản nhiều dòng.
-- **Một số dấu cách Unicode**: ví dụ EM SPACE (`U+2003`), NO-BREAK SPACE (`U+00A0`), vốn có hành vi và ý nghĩa hiển thị riêng.
-- **Một số ký tự định dạng vô hình**: ví dụ ZERO WIDTH SPACE (`U+200B`). Ký tự này không nhất thiết được coi là “whitespace” bởi các phương thức Java, dù người dùng có thể khó nhìn thấy.
+- **Regular space** (SPACE, `U+0020`): for example `"Mai Anh"`.
+- **Tab** (`\t`, `U+0009`): commonly used for indentation or column separation.
+- **Line feed** (`\n`, `U+000A`), carriage return (`\r`, `U+000D`): used in multi-line text.
+- **Certain Unicode spaces**: for example EM SPACE (`U+2003`), NO-BREAK SPACE (`U+00A0`), which have distinct behavior and visual semantics.
+- **Certain invisible formatting characters**: for example ZERO WIDTH SPACE (`U+200B`). This character is not necessarily treated as “whitespace” by Java methods, even though it can be hard for users to see.
 
-Vì các tập hợp ký tự này không đồng nhất, câu “xóa tất cả khoảng trắng” **chưa đủ là một yêu cầu kỹ thuật**. Cần nói rõ loại ký tự nào, ở vị trí nào và với mục đích gì. Chẳng hạn, bỏ hai dấu cách đầu tên hiển thị khác hoàn toàn với xóa dấu cách nằm giữa các từ của một đoạn văn.
+Because these character sets are not uniform, “remove all whitespace” is **not yet a complete technical requirement**. You must specify which character types, at which positions, and for what purpose. For instance, removing two leading spaces from a display name is completely different from deleting spaces between words in a paragraph.
 
-### Ba khái niệm cần tách biệt
+### Three concepts to keep separate
 
-1. **Chuỗi rỗng (empty)**: `""`, không có UTF-16 code unit nào; `length() == 0`, `isEmpty() == true`.
-2. **Chuỗi trắng (blank)**: chuỗi rỗng hoặc chỉ có các code point được `Character.isWhitespace(int)` xem là khoảng trắng; `isBlank() == true` trên Java 11+.
-3. **Chuỗi có dữ liệu văn bản**: có ít nhất một ký tự không thuộc tập được `isBlank()` coi là whitespace. Chuỗi này vẫn có thể bắt đầu hoặc kết thúc bằng khoảng trắng.
+1. **Empty string (empty)**: `""`, with zero UTF-16 code units; `length() == 0`, `isEmpty() == true`.
+2. **Blank string (blank)**: empty or containing only code points that `Character.isWhitespace(int)` treats as whitespace; `isBlank() == true` on Java 11+.
+3. **Text-bearing string**: contains at least one character outside the set `isBlank()` treats as whitespace. Such a string can still begin or end with whitespace.
 
-`"   "` không rỗng nhưng được xem là blank; `"  A  "` không blank mặc dù có dấu cách ở hai đầu; `null` là tham chiếu không có đối tượng `String` nên phải được kiểm tra riêng trước khi gọi các phương thức trên.
+`"   "` is not empty yet is considered blank; `"  A  "` is not blank despite having spaces at both ends; `null` is a reference with no `String` object and must be checked separately before calling any of these methods.
 
-## 2. Vì sao tự động xóa mọi khoảng trắng có thể làm hỏng dữ liệu?
+## 2. Why can automatically removing all whitespace corrupt data?
 
-| Loại dữ liệu | Ví dụ | Nguy cơ khi tự ý xóa/gộp khoảng trắng |
+| Data type | Example | Risk when arbitrarily deleting/collapsing whitespace |
 | --- | --- | --- |
-| Mật khẩu hoặc cụm mật khẩu | `" xanh lá "` | Khoảng trắng đầu, giữa hoặc cuối có thể thuộc bí mật người dùng đã chọn; thay đổi làm giá trị nhập khác giá trị ban đầu |
-| Tên hiển thị, biệt danh | `"  Mai   Anh  "` | Gộp dấu cách có thể khác ý định định dạng; cần quy tắc sản phẩm rõ ràng trước khi chuẩn hóa |
-| Địa chỉ, ghi chú giao hàng | Văn bản có xuống dòng và thụt lề | Gộp xuống dòng có thể làm mất ranh giới phần địa chỉ hoặc chỉ dẫn |
-| Đoạn mã, cấu hình, YAML, Markdown | Dòng thụt lề, code fence, hai dấu cách cuối dòng | Thay đổi whitespace có thể làm đổi cấu trúc hoặc cách hiển thị |
-| Dữ liệu CSV/TSV hoặc nội dung được trích dẫn | Trường chứa dấu cách, tab hoặc xuống dòng | Thao tác không hiểu định dạng có thể làm sai giá trị và vị trí trường |
-| Mã định danh, khóa hoặc dữ liệu ký số | Chuỗi cần so khớp chính xác từng ký tự | Kết quả xác thực, kiểm tra chữ ký hoặc tra cứu có thể khác |
-| Nội dung soạn thảo tự do | Thơ, danh sách, tin nhắn nhiều dòng | Mất nhịp dòng, bố cục và khoảng cách mà tác giả chủ ý tạo ra |
+| Passwords or passphrases | `" green tea "` | Leading, middle, or trailing spaces may belong to the user's chosen secret; altering them changes the entered value from the original |
+| Display names, nicknames | `"  Mai   Anh  "` | Collapsing spaces may differ from formatting intent; requires a clear product rule before normalizing |
+| Addresses, delivery notes | Text with newlines and indentation | Collapsing newlines can erase boundaries between address parts or instructions |
+| Code snippets, configs, YAML, Markdown | Indented lines, code fences, two trailing spaces for line breaks | Changing whitespace can alter structure or rendering |
+| CSV/TSV data or quoted content | Fields containing spaces, tabs, or newlines | Format-unaware manipulation can corrupt field values and positions |
+| Identifiers, keys, or signed data | Strings requiring exact character-by-character matching | Authentication, signature verification, or lookup results can change |
+| Free-form edited content | Poetry, lists, multi-line messages | Loses line breaks, layout, and spacing intentionally created by the author |
 
-Không phải tất cả các ví dụ đều cần **bảo toàn mọi dấu cách trong mọi hệ thống**. Điều quan trọng là **quy tắc của từng trường dữ liệu phải được xác định trước**. Ví dụ, ứng dụng có thể chủ động cấm khoảng trắng trong một mã người dùng và báo lỗi; đó là chính sách hợp lệ nếu được công bố và áp dụng nhất quán. Việc âm thầm xóa các ký tự đó rồi lưu một giá trị khác dễ gây nhầm lẫn.
+Not all examples require **preserving every space in every system**. What matters is that **each field's rule must be defined upfront**. For instance, an application may explicitly disallow spaces in a user code and return an error; that is a valid policy if published and applied consistently. Silently deleting those characters and saving a modified value easily causes confusion.
 
-### Phân biệt kiểm tra với biến đổi
+### Distinguishing checking from transforming
 
-Một chương trình có thể **kiểm tra** xem tên hiển thị có rỗng/trắng hay không mà **không tự động viết đè** lên giá trị người dùng nhập:
+A program can **check** whether a display name is empty/blank **without automatically overwriting** what the user entered:
 
 ```java
 String displayName = "  Mai   Anh  ";
@@ -48,15 +48,15 @@ String displayName = "  Mai   Anh  ";
 boolean missingMeaningfulText = displayName.isBlank();
 String suggested = displayName.strip();
 
-// displayName vẫn là "  Mai   Anh  ".
-// suggested là "Mai   Anh"; chỉ bỏ whitespace ở hai đầu.
+// displayName is still "  Mai   Anh  ".
+// suggested is "Mai   Anh"; only leading/trailing whitespace is removed.
 ```
 
-Đây là đoạn minh họa để đặt bên trong phương thức Java. Bởi `String` là bất biến, `strip()` trả về một giá trị `String` mới hoặc giá trị tương đương, chứ không sửa nội dung bên trong `displayName`. Tuy nhiên, nếu ứng dụng ghi đè biến hoặc cơ sở dữ liệu bằng kết quả này thì **giá trị nghiệp vụ được lưu đã thay đổi**. Tính bất biến của `String` không bảo đảm dữ liệu người dùng được bảo toàn qua các bước xử lý ứng dụng.
+This is an illustrative snippet meant to be placed inside a Java method. Because `String` is immutable, `strip()` returns a new or equivalent `String` value rather than mutating the contents inside `displayName`. However, if the application overwrites the variable or database column with that result, **the stored business value has changed**. The immutability of `String` does not guarantee user data is preserved across application processing steps.
 
-## 3. Một phép kiểm tra và hai mức thay đổi dữ liệu
+## 3. One check and two levels of data modification
 
-`isBlank()` chỉ **kiểm tra** chuỗi (rỗng hoặc chỉ có Java whitespace), không thay nội dung. `trim()` cắt `char <= U+0020` ở hai đầu; `strip()` cắt `Character.isWhitespace` ở hai đầu. Trong khi đó, `replaceAll("\\s+", " ")` có thể **thay đổi cả bên trong** văn bản: biểu thức `\s` ở chế độ regex mặc định nhận diện tab, xuống dòng và các whitespace ASCII phổ biến, không tự có nghĩa “mọi Unicode space”.
+`isBlank()` only **checks** the string (empty or Java whitespace only) without altering content. `trim()` trims `char <= U+0020` at both ends; `strip()` trims `Character.isWhitespace` at both ends. Meanwhile, `replaceAll("\\s+", " ")` can **modify the interior** of the text as well: in default regex mode, `\s` matches tabs, newlines, and common ASCII whitespace, which does not automatically mean “every Unicode space.”
 
 ~~~java
 String raw = "  Mai   Anh  ";
@@ -65,11 +65,11 @@ String collapsed = edges.replaceAll("\\s+", " "); // "Mai Anh"
 System.out.println(raw.isBlank());          // false
 ~~~
 
-Dù đầu ra `edges` và `collapsed` trông gọn hơn, chúng là **hai giá trị khác nhau**. Chỉ chọn bước gộp bên trong khi hợp đồng của trường cho phép; với Markdown, YAML, CSV trích dẫn hay nội dung nhiều dòng, việc gộp có thể làm mất cấu trúc. Ví dụ dưới đây cho thấy cả ba giá trị bên cạnh nhau.
+Even though `edges` and `collapsed` look cleaner, they are **two different values**. Only choose the internal-collapsing step when the field's contract permits it; for Markdown, YAML, quoted CSV, or multi-line content, collapsing can destroy structure. The example below shows all three values side by side.
 
-## 4. Ví dụ chạy được: giữ nguyên, strip và gộp khoảng trắng
+## 4. Runnable example: preserve, strip, and collapse whitespace
 
-Tạo tệp `WhitespacePolicyDemo.java`:
+Create file `WhitespacePolicyDemo.java`:
 
 ```java
 public class WhitespacePolicyDemo {
@@ -96,14 +96,14 @@ public class WhitespacePolicyDemo {
 }
 ```
 
-Biên dịch/chạy với Java 17 trở lên:
+Compile/run with Java 17 or later:
 
 ```bash
 javac -encoding UTF-8 WhitespacePolicyDemo.java
 java WhitespacePolicyDemo
 ```
 
-Kết quả chính xác:
+Exact output:
 
 ```text
 original=[  Mai   Anh  ], length=13
@@ -114,19 +114,19 @@ blank.isBlank=true
 passphrase changed by strip=true
 ```
 
-Giải thích:
+Explanation:
 
-- `original` giữ đủ **hai dấu cách đầu, ba dấu cách giữa, hai dấu cách cuối**.
-- `strip` loại bỏ khoảng trắng ở hai đầu, nhưng vẫn để **ba dấu cách giữa tên**.
-- `collapse` còn gộp cụm dấu cách giữa hai từ thành một dấu cách.
-- `blank` chứa dấu cách, tab và xuống dòng nên độ dài lớn hơn 0 nhưng `isBlank()` là `true`.
-- `passphrase` bị thay đổi nếu gọi `strip()` rồi dùng kết quả để kiểm tra hoặc lưu. Với mật khẩu/cụm mật khẩu, không được thay đổi giá trị người dùng gửi mà chưa có một đặc tả xác thực nhất quán; tránh ghi giá trị bí mật ra log.
+- `original` preserves all **two leading spaces, three middle spaces, and two trailing spaces**.
+- `strip` removes whitespace at both ends while keeping the **three spaces in the middle of the name**.
+- `collapse` also collapses the run of spaces between the two words into a single space.
+- `blank` contains spaces, a tab, and a newline, so its length is greater than 0 while `isBlank()` is `true`.
+- `passphrase` is altered if you call `strip()` and use the result for verification or storage. For passwords/passphrases, never alter the user-submitted value without a consistent authentication specification; avoid logging secret values.
 
-Ba kết quả `original`, `strip` và `collapse` có thể đều phù hợp **trong ba mục đích khác nhau**. Không thể chọn một dạng làm “sạch nhất” cho mọi kiểu dữ liệu.
+All three results—`original`, `strip`, and `collapse`—can be appropriate **for three different purposes**. You cannot pick one as the “cleanest” form for every kind of data.
 
-## 5. Unicode làm thay đổi ranh giới của việc “làm sạch”
+## 5. Unicode changes the boundaries of “cleaning”
 
-Không phải ký tự nào nhìn như khoảng trắng cũng thuộc `Character.isWhitespace`. EM SPACE (`U+2003`) được `strip()` cắt ở biên, nhưng NO-BREAK SPACE (`U+00A0`) được giữ lại; `isBlank()` cũng trả `false` cho chuỗi chỉ có NBSP. Vì thế, một trường dữ liệu “trông trống” vẫn có thể vượt qua phép kiểm tra `!isBlank()`.
+Not every character that looks like whitespace belongs to `Character.isWhitespace`. EM SPACE (`U+2003`) is stripped at the edges by `strip()`, whereas NO-BREAK SPACE (`U+00A0`) is preserved; `isBlank()` also returns `false` for a string containing only NBSP. Thus, a field that “looks empty” can still pass a `!isBlank()` check.
 
 ~~~java
 System.out.println("\u2003".isBlank()); // true
@@ -134,13 +134,13 @@ System.out.println("\u00A0".isBlank()); // false
 System.out.println("\u00A0A\u00A0".strip().length()); // 3
 ~~~
 
-Nếu biểu mẫu cần từ chối NBSP, FIGURE SPACE, ký tự zero-width hoặc nhóm ký tự riêng, hãy đưa chúng vào **validation của trường đó** và kiểm thử theo code point. Không tự thay thế tất cả Unicode space hoặc ký tự vô hình trước khi biết vai trò của chúng; NBSP có thể giữ số và đơn vị trên cùng một dòng, còn ký tự định dạng có thể quan trọng với ngôn ngữ hay emoji.
+If a form needs to reject NBSP, FIGURE SPACE, zero-width characters, or a specific character group, include them in **that field's validation** and test by code point. Do not blindly replace all Unicode spaces or invisible characters before knowing their role; NBSP may keep numbers and units on the same line, while formatting characters can be important for languages or emojis.
 
-## 6. Các trường dữ liệu nên được xử lý khác nhau
+## 6. Different data fields should be handled differently
 
-### Trường bắt buộc có nội dung: kiểm tra trước khi sửa
+### Required text fields: validate before modifying
 
-Với một nội dung văn bản bắt buộc, thường chỉ cần biết chuỗi **không phải `null` và không chỉ chứa whitespace theo định nghĩa ứng dụng**:
+For a required text field, you often only need to know that the string **is not `null` and does not consist solely of whitespace as defined by the application**:
 
 ```java
 static boolean hasMeaningfulText(String value) {
@@ -148,56 +148,56 @@ static boolean hasMeaningfulText(String value) {
 }
 ```
 
-Đây là phương thức minh họa nằm trong một lớp Java. Nó không thay đổi dữ liệu. Sau khi xác thực, ứng dụng có thể giữ nguyên nội dung để lưu hoặc hiển thị.
+This is an illustrative method inside a Java class. It does not modify data. After validation, the application can keep the original content for storage or display.
 
-Nếu mục tiêu cụ thể là loại bỏ dấu cách thừa ở hai đầu một trường tên tìm kiếm, hãy tạo giá trị chuẩn hóa **sau khi chính sách cho phép**. Không nên tự động gán mọi trường vào một hàm “cleanAllStrings”.
+If the specific goal is to remove extra leading/trailing spaces in a search name field, produce a normalized value **when the policy permits it**. Do not automatically run every field through a “cleanAllStrings” helper.
 
-### Mật khẩu, cụm mật khẩu và token bí mật: giữ đúng đầu vào theo chính sách
+### Passwords, passphrases, and secret tokens: preserve input per policy
 
-Khoảng trắng có thể thuộc một bí mật hợp lệ. Việc âm thầm dùng `strip()`, `trim()` hoặc `replaceAll(...)` trước khi xác thực có thể làm thay đổi bí mật. Một trường hợp đặc biệt nguy hiểm là phía đăng ký và phía đăng nhập dùng **hai quy tắc khác nhau**, khiến người dùng không thể đăng nhập bằng giá trị họ đã chọn.
+Whitespace can be part of a valid secret. Silently calling `strip()`, `trim()`, or `replaceAll(...)` before verification can alter the secret. A particularly dangerous bug occurs when registration and login apply **two different rules**, preventing users from logging in with the value they chose.
 
-Nếu sản phẩm đặt quy định cấm ký tự nào đó, phải **thông báo và từ chối đầu vào không hợp lệ** hoặc áp dụng quy tắc chuẩn hóa được thiết kế chính thức cho cả hai phía; không được tùy tiện xóa ký tự rồi coi giá trị đã biến đổi là giá trị người dùng gửi. Không in mật khẩu, token hoặc nội dung bí mật vào log khi thử nghiệm cách xử lý chuỗi.
+If the product forbids certain characters, you must **inform the user and reject invalid input** or apply an officially designed normalization rule on both sides; never arbitrarily strip characters and treat the transformed value as what the user submitted. Do not log passwords, tokens, or secrets when testing string-handling code.
 
-### Ghi chú nhiều dòng, Markdown và đoạn mã: bảo toàn cấu trúc
+### Multi-line notes, Markdown, and code snippets: preserve structure
 
-Ví dụ văn bản:
+Example text:
 
 ```text
-Mục 1:
-    Việc đầu tiên
+Item 1:
+    First task
 
-Mục 2:
-    Việc tiếp theo
+Item 2:
+    Next task
 ```
 
-Tab, dấu cách thụt lề và xuống dòng có thể thể hiện phân cấp, định dạng hoặc ranh giới đoạn văn. Nếu áp dụng `replaceAll("\\s+", " ")` cho toàn bộ nội dung, văn bản trên mất xuống dòng và khoảng cách thụt lề.
+Tabs, indentation spaces, and newlines can express hierarchy, formatting, or paragraph boundaries. If you apply `replaceAll("\\s+", " ")` to the entire content, the text above loses its line breaks and indentation.
 
-Trong Markdown, khoảng trắng đầu dòng tạo cấu trúc danh sách/code block; hai dấu cách cuối dòng có thể mang ý nghĩa ngắt dòng. Với YAML hay một số ngôn ngữ lập trình, indentation thậm chí quyết định cách phân tích cú pháp. **Không có một phép xóa whitespace chung** nào an toàn cho mọi định dạng.
+In Markdown, leading spaces create list/code block structure; two trailing spaces at the end of a line can signify a line break. In YAML or some programming languages, indentation even determines how syntax is parsed. **There is no single generic whitespace-removal operation** that is safe for every format.
 
-### Tên người, địa chỉ, thông tin hiển thị: tôn trọng ý định nhập liệu
+### Personal names, addresses, display info: respect input intent
 
-Việc xóa dấu cách đầu/cuối có thể được xem là hợp lý trong một mẫu nhập tên đơn giản, nhưng vẫn là **quyết định về dữ liệu của sản phẩm**, không phải mặc định ngôn ngữ Java.
+Removing leading/trailing spaces may be reasonable in a simple name input form, yet it remains a **product data decision**, not a Java language default.
 
-- Không tự động gộp mọi khoảng trắng giữa các thành phần tên nếu chưa biết quy tắc nhập tên.
-- Với địa chỉ nhiều dòng, xuống dòng có thể giúp giữ cấu trúc.
-- Với nội dung tự do như tiểu sử, bình luận hoặc thơ, khoảng trắng là một phần trải nghiệm hiển thị.
+- Do not automatically collapse all spaces between name parts without knowing naming conventions.
+- For multi-line addresses, line breaks can help preserve structure.
+- For free-form content such as bios, comments, or poetry, whitespace is part of the display experience.
 
-Nếu UI muốn đề xuất bản đã chuẩn hóa, có thể hiển thị cho người dùng xem lại trước khi lưu, đặc biệt khi thay đổi có thể ảnh hưởng ý nghĩa.
+If the UI wants to suggest a normalized version, it can show it to the user for review before saving, especially when changes could affect meaning.
 
-### Mã định danh và trường có cú pháp chặt chẽ: xác thực có chủ đích
+### Identifiers and strict-syntax fields: validate intentionally
 
-Một trường như mã phiếu hoặc mã khách hàng có thể được đặc tả **không cho phép dấu cách**. Khi đó, điều kiện hợp lệ phải được định nghĩa (ký tự nào cho phép, có phân biệt chữ hoa/thường không, xử lý Unicode thế nào), rồi kiểm tra đầu vào theo đặc tả. Tự động xóa mọi dấu cách có thể khiến hai mã khác nhau bị nhập nhằng hoặc khiến lỗi nhập liệu không được phát hiện.
+A field such as an invoice code or customer ID may be specified to **disallow spaces**. In that case, define the validity conditions (which characters are allowed, case sensitivity, Unicode handling), then validate input against the specification. Automatically deleting all spaces can conflate two distinct codes or let typing mistakes go undetected.
 
-## 7. Phân biệt bảo toàn dữ liệu gốc và tạo giá trị phục vụ tìm kiếm
+## 7. Distinguishing preserving raw data from deriving search values
 
-Một kiến trúc rõ ràng có thể giữ **hai giá trị** với mục đích khác nhau:
+A clean architecture can keep **two values** for different purposes:
 
-- **Giá trị gốc (raw/original)**: nội dung đúng như người dùng cung cấp, dùng khi cần chỉnh sửa lại, hiển thị hoặc đối chiếu.
-- **Giá trị dẫn xuất (search/display key)**: phiên bản có thể được bỏ whitespace biên, chuẩn hóa chữ hoa/thường hoặc áp dụng quy tắc khác để tìm kiếm, so sánh hay lập chỉ mục.
+- **Original value (raw/original)**: the exact content the user provided, used when re-editing, displaying, or auditing.
+- **Derived value (search/display key)**: a version that may have boundary whitespace stripped, case folded, or other rules applied for searching, matching, or indexing.
 
-Không nên thay thế dữ liệu gốc bằng khóa tìm kiếm trừ khi chính sách sản phẩm cho phép. Quy tắc dẫn xuất cần được xác định rõ và sử dụng nhất quán.
+Do not replace raw data with a search key unless product policy permits it. Derivation rules must be clearly specified and used consistently.
 
-Tệp `PreserveAndSearchDemo.java`:
+File `PreserveAndSearchDemo.java`:
 
 ```java
 import java.util.Locale;
@@ -223,14 +223,14 @@ public class PreserveAndSearchDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 PreserveAndSearchDemo.java
 java PreserveAndSearchDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 original=[  Java CORE  ]
@@ -239,62 +239,62 @@ stillOriginal=true
 matches=true
 ```
 
-Trong ví dụ này, sản phẩm **cố ý** bỏ whitespace hai đầu và chuyển chữ thường cho mục tiêu tìm kiếm không phân biệt hoa/thường đơn giản. Đây là minh họa chính sách, không phải một thuật toán so khớp ngôn ngữ tự nhiên hoàn chỉnh. Không áp dụng hàm `searchKey` cho mật khẩu, dữ liệu ký số hoặc nội dung tự do rồi lưu đè.
+In this example, the product **intentionally** strips leading/trailing whitespace and lowercases for simple case-insensitive search. This is a policy illustration, not a complete natural-language matching algorithm. Do not apply `searchKey` to passwords, signed data, or free-form content and overwrite the stored value.
 
-Nếu dữ liệu cần tìm kiếm có Unicode phức tạp, quy tắc chuẩn hóa và so khớp còn cần cân nhắc locale, normalization và nhu cầu đặc thù. `Locale.ROOT` giúp tránh phụ thuộc mặc định hệ thống, nhưng không tự biến cách so sánh này thành một giải pháp ngôn ngữ học đầy đủ.
+If searchable data involves complex Unicode, normalization and matching rules also need to consider locale, normalization forms, and domain requirements. `Locale.ROOT` avoids dependence on the system default, but does not by itself turn this comparison into a full linguistic solution.
 
-## 8. Thứ tự xử lý đúng: hiểu dữ liệu, xác thực, rồi mới biến đổi nếu được phép
+## 8. The right processing order: understand data, validate, then transform if allowed
 
-Một quy trình thiết kế thường có các bước:
+A design workflow typically follows these steps:
 
-1. **Xác định ý nghĩa từng trường.** Đây là mật khẩu, tên hiển thị, nội dung văn bản, địa chỉ, mã định danh hay truy vấn tìm kiếm?
-2. **Xác định điều kiện hợp lệ.** Cho phép `null` không? Cho phép chuỗi rỗng không? Có cấm whitespace ở một số vị trí không? Unicode nào được chấp nhận?
-3. **Tách xác thực khỏi biến đổi.** `isBlank()` và `isEmpty()` chủ yếu giúp đặt câu hỏi; `strip()` hoặc `replaceAll(...)` tạo giá trị đã thay đổi.
-4. **Biến đổi đúng phạm vi được phép.** Chỉ bỏ biên nếu chính sách cho phép bỏ biên; chỉ gộp whitespace nội bộ nếu nghiệp vụ thực sự muốn.
-5. **Bảo toàn nội dung gốc khi cần.** Đặc biệt với văn bản tự do, dữ liệu cần sửa lại và dữ liệu có ý nghĩa pháp lý/kỹ thuật.
-6. **Áp dụng nhất quán ở các thành phần.** UI, API, bước xác thực, lưu trữ và tìm kiếm không nên âm thầm dùng các quy tắc khác nhau.
-7. **Kiểm thử dữ liệu biên.** Bao gồm chuỗi rỗng, toàn dấu cách, tab/xuống dòng, dấu cách Unicode, khoảng trắng nội bộ, input `null` và văn bản nhiều dòng.
+1. **Identify each field's meaning.** Is this a password, display name, text body, address, identifier, or search query?
+2. **Define validity rules.** Is `null` allowed? Is an empty string allowed? Is whitespace forbidden in certain positions? Which Unicode characters are accepted?
+3. **Separate validation from transformation.** `isBlank()` and `isEmpty()` primarily ask questions; `strip()` or `replaceAll(...)` produce modified values.
+4. **Transform only within the permitted scope.** Strip edges only if policy allows edge stripping; collapse internal whitespace only if business logic genuinely wants it.
+5. **Preserve original content when needed.** Especially for free-form text, editable data, and legally or technically significant records.
+6. **Apply consistently across components.** UI, API, validation, storage, and search should not silently use conflicting rules.
+7. **Test boundary data.** Include empty strings, all-space strings, tabs/newlines, Unicode spaces, internal whitespace, `null` inputs, and multi-line text.
 
-Không nhất thiết phải lưu hai phiên bản cho tất cả trường dữ liệu. Điều cần bảo đảm là mọi phép biến đổi đều có **lý do, phạm vi và hợp đồng rõ ràng**.
+You do not necessarily need to store two versions for every field. What must be ensured is that every transformation has a **clear reason, scope, and contract**.
 
-## 9. Lỗi thường gặp
+## 9. Common mistakes
 
-**1. Cứ nhận chuỗi là gọi `trim()` hoặc `strip()`.** Các phương thức này thay đổi nội dung ở biên. Chỉ gọi khi sản phẩm cho phép làm vậy đối với chính trường đó.
+**1. Automatically calling `trim()` or `strip()` on every incoming string.** These methods change boundary content. Call them only when the product permits doing so for that specific field.
 
-**2. Dùng `replaceAll("\\s+", "")` để “làm sạch”.** Biểu thức này xóa toàn bộ các khoảng trắng được regex nhận diện, kể cả dấu cách giữa từ, tab và xuống dòng. Nội dung tự do và dữ liệu mang định dạng có thể mất ý nghĩa.
+**2. Using `replaceAll("\\s+", "")` to “clean.”** That expression deletes all regex-recognized whitespace, including spaces between words, tabs, and newlines. Free-form content and formatted data can lose their meaning.
 
-**3. Nhầm `isBlank()` với `isEmpty()`.** `"   ".isBlank()` là `true` nhưng `"   ".isEmpty()` là `false`. Chọn theo mục tiêu xác thực.
+**3. Confusing `isBlank()` with `isEmpty()`.** `"   ".isBlank()` is `true` whereas `"   ".isEmpty()` is `false`. Choose according to the validation goal.
 
-**4. Xem mọi ký tự vô hình là whitespace Java.** Một số ký tự trông như dấu cách (ví dụ NBSP) không thuộc tập `Character.isWhitespace`. Thiết kế chính sách Unicode cụ thể nếu yêu cầu kiểm tra nghiêm ngặt.
+**4. Treating every invisible character as Java whitespace.** Some space-like characters (such as NBSP) are not in `Character.isWhitespace`. Design an explicit Unicode policy if strict checking is required.
 
-**5. Thay đổi bí mật người dùng cung cấp.** Không cắt đầu/cuối, thay chữ hoa/thường hay gộp dấu cách của mật khẩu chỉ vì muốn “tiện” xử lý.
+**5. Altering user-supplied secrets.** Never strip edges, fold case, or collapse spaces in passwords just for “convenience.”
 
-**6. Tự động loại bỏ khoảng trắng để sửa lỗi mã định danh.** Việc sửa thầm có thể che giấu input không hợp lệ; đôi khi cần trả thông báo lỗi hoặc yêu cầu xác nhận.
+**6. Automatically removing spaces to fix malformed identifiers.** Silent fixes can hide invalid input; sometimes you need to return an error message or ask for confirmation.
 
-**7. Chỉ chuẩn hóa ở một phía của hệ thống.** Nếu lưu với một cách, tra cứu hoặc xác thực với cách khác, chương trình có thể không tìm ra dữ liệu dù người dùng nhập như họ được hướng dẫn.
+**7. Normalizing on only one side of the system.** If you store with one rule and look up or authenticate with another, the program may fail to find data even when users enter what they were instructed to enter.
 
-**8. Dùng giá trị đã chuẩn hóa để hiển thị lại mà không giữ bản người dùng nhập.** Điều này có thể khiến người dùng mất định dạng mong muốn hoặc không thể khôi phục nội dung ban đầu.
+**8. Displaying the normalized value without keeping what the user entered.** This can strip the user's intended formatting or make it impossible to recover the original content.
 
-## 10. Câu hỏi tự kiểm tra
+## 10. Self-check questions
 
-**Câu 1.** Vì sao không nên tự động gọi `strip()` với tất cả trường `String` nhận từ người dùng?
+**Question 1.** Why shouldn't you automatically call `strip()` on every `String` field received from users?
 
-**Đáp án:** Bởi whitespace có thể là thành phần có ý nghĩa trong mật khẩu, văn bản, địa chỉ hoặc dữ liệu cần so khớp chính xác. `strip()` sẽ bỏ một số ký tự ở hai đầu, tức là thay đổi giá trị nếu ứng dụng sử dụng kết quả của nó.
+**Answer:** Because whitespace can be meaningful content in passwords, prose, addresses, or exact-match data. `strip()` removes certain characters at both ends, changing the value if the application uses its result.
 
-**Câu 2.** `"  Mai   Anh  ".strip()` có xóa ba dấu cách giữa `Mai` và `Anh` không?
+**Question 2.** Does `"  Mai   Anh  ".strip()` remove the three spaces between `Mai` and `Anh`?
 
-**Đáp án:** Không. `strip()` chỉ bỏ whitespace theo định nghĩa Java ở đầu/cuối chuỗi; ba dấu cách nằm giữa được giữ nguyên.
+**Answer:** No. `strip()` removes only Java-defined whitespace at the start and end of the string; the three middle spaces are preserved.
 
-**Câu 3.** Chuỗi `" \t\n"` rỗng hay blank?
+**Question 3.** Is the string `" \t\n"` empty or blank?
 
-**Đáp án:** Không rỗng vì có ký tự nên `isEmpty()` là `false`; nó là blank theo `Character.isWhitespace` nên `isBlank()` là `true`.
+**Answer:** It is not empty because it has characters, so `isEmpty()` is `false`; it is blank per `Character.isWhitespace`, so `isBlank()` is `true`.
 
-**Câu 4.** Vì sao `"\u00A0"` có thể trông giống một dấu cách nhưng `isBlank()` vẫn trả `false`?
+**Question 4.** Why can `"\u00A0"` look like a space while `isBlank()` still returns `false`?
 
-**Đáp án:** `U+00A0` là NO-BREAK SPACE, được `Character.isSpaceChar` nhận diện nhưng không được `Character.isWhitespace` nhận diện; `String.isBlank()` dựa trên `Character.isWhitespace`.
+**Answer:** `U+00A0` is NO-BREAK SPACE, which is recognized by `Character.isSpaceChar` but not by `Character.isWhitespace`; `String.isBlank()` is based on `Character.isWhitespace`.
 
-**Câu 5.** Khi chỉ muốn tìm kiếm không phân biệt chữ hoa và khoảng trắng hai đầu, có nhất thiết thay đổi giá trị gốc đã lưu không?
+**Question 5.** When you only want case-insensitive search that ignores leading/trailing whitespace, is it necessary to alter the stored original value?
 
-**Đáp án:** Không. Có thể tạo một khóa tìm kiếm dẫn xuất với quy tắc đã xác định trong khi vẫn bảo toàn giá trị người dùng nhập để hiển thị và chỉnh sửa.
+**Answer:** No. You can generate a derived search key using defined rules while preserving the user-entered value for display and editing.
 
-**Ghi nhớ:** Đừng coi whitespace là “rác” mặc định. Hãy **xác định ngữ nghĩa của trường dữ liệu trước**, phân biệt **kiểm tra** với **biến đổi**, chỉ xóa/gộp ký tự khi chính sách cho phép, và giữ dữ liệu gốc khi khoảng trắng có thể mang ý nghĩa.
+**Key takeaway:** Do not treat whitespace as “junk” by default. **Define the semantics of the data field first**, separate **checking** from **transforming**, remove/collapse characters only when policy permits, and keep original data whenever whitespace can carry meaning.

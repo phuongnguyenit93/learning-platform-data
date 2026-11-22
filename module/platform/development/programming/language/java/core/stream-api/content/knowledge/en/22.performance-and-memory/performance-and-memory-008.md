@@ -1,14 +1,14 @@
-# Đo hiệu năng bằng JMH: warmup, fork và chống loại bỏ mã
+# Benchmarking Performance with JMH: Warmup, Forks, and Preventing Code Elimination
 
-Khi so sánh vòng lặp `for` với Java Stream API, một đoạn đo kiểu `System.nanoTime()` chạy một lần rất dễ tạo kết luận sai. Lần đầu một phương thức chạy, JVM có thể đang nạp lớp, xác minh bytecode, cấp phát bộ nhớ và biên dịch Just-in-Time (JIT). Sau vài nghìn lần gọi, bộ tối ưu có thể inlining, khử cấp phát, loại bỏ phép tính không dùng kết quả hoặc thay đổi cách biên dịch theo dữ liệu thực thi. Kết quả của lần chạy đầu **không đại diện** cho giai đoạn hoạt động ổn định.
+When comparing a `for` loop against the Java Stream API, a one-off `System.nanoTime()` timing snippet very easily leads to wrong conclusions. The first time a method runs, the JVM may be loading classes, verifying bytecode, allocating memory, and performing Just-in-Time (JIT) compilation. After a few thousand invocations, the optimizer can inline calls, eliminate allocations, remove unused computations, or recompile based on runtime profiles. A first-run timing **does not represent** steady-state execution.
 
-**JMH (Java Microbenchmark Harness)** là bộ công cụ chuyên dụng trong hệ sinh thái OpenJDK để thiết kế và chạy *microbenchmark* cho Java. Nó giúp điều phối **warmup** (làm nóng), **measurement** (đo), **fork** (tách tiến trình JVM), thời gian đo, số luồng, cơ chế tiêu thụ kết quả, định dạng báo cáo và profiler. JMH **không bảo đảm** mọi benchmark đều đúng: người viết vẫn phải chọn workload đại diện và ngăn các tối ưu hóa làm phép đo trở nên vô nghĩa.
+**JMH (Java Microbenchmark Harness)** is the dedicated toolkit in the OpenJDK ecosystem for designing and running Java *microbenchmarks*. It orchestrates **warmup**, **measurement**, **forks** (separate JVM processes), run durations, threads, result consumption, report formats, and profilers. JMH **does not guarantee** every benchmark is valid: the author must still choose a representative workload and prevent optimizations from making the measurement meaningless.
 
-Bài học thuộc chương **Hiệu năng và bộ nhớ** của mô-đun **JAVA_STREAM_API**. Ta sẽ học cách đo pipeline lazy, `filter`, `map`, `reduce` và `collect`; phân biệt chi phí boxing, cấp phát, `Spliterator` và xử lý song song; thực hành thiết kế benchmark công bằng, đọc kết quả có sai số, dùng `Blackhole` hoặc giá trị trả về để chống **dead-code elimination**, và nhận diện khi nào nên chuyển từ microbenchmark sang đo hiệu năng toàn hệ thống. Các ví dụ cơ bản dùng Java 17 trở lên; không cần Stream Gatherers của Java 24 để học JMH.
+This lesson belongs to the **Performance and Memory** chapter of the **JAVA_STREAM_API** module. We will learn how to measure lazy pipelines, `filter`, `map`, `reduce`, and `collect`; distinguish boxing, allocation, `Spliterator`, and parallel overhead; design fair benchmarks, read scores with error margins, use `Blackhole` or return values to prevent **dead-code elimination**, and recognize when to move from microbenchmarks to system-level benchmarking. Core examples use Java 17 or later; Java 24 Stream Gatherers are not required to learn JMH.
 
-## 1. Vì sao đo một lần bằng `System.nanoTime()` không đủ?
+## 1. Why is a single `System.nanoTime()` measurement insufficient?
 
-Ví dụ ngắn sau **không phải benchmark đáng tin**:
+The short snippet below is **not a reliable benchmark**:
 
 ```java
 import java.util.stream.IntStream;
@@ -30,57 +30,57 @@ public class NaiveTiming {
 }
 ```
 
-Đoạn mã cho một khoảng thời gian thực tế của **lần chạy cụ thể đó**, nhưng khoảng thời gian ấy có thể bao gồm các yếu tố không thuộc mục tiêu so sánh:
+This code prints a real duration for **that specific run**, yet that interval can include factors unrelated to the comparison goal:
 
-- Nạp lớp Stream/JDK và khởi tạo cấu trúc lần đầu.
-- Biên dịch JIT chưa diễn ra hoặc đang diễn ra.
-- JVM chọn mức tối ưu khác nhau qua các lần chạy.
-- GC, cấp phát, cache CPU, tần số CPU và scheduling của hệ điều hành.
-- Kích thước dữ liệu và nhánh điều kiện quá đơn giản so với workload thực tế.
-- Sai số của phương pháp đo, nhất là khi thao tác rất ngắn.
+- Stream/JDK class loading and one-time initialization.
+- Missing or ongoing JIT compilation.
+- Different JVM optimization tiers across runs.
+- GC, allocations, CPU caches, CPU frequency scaling, and OS scheduling.
+- Data size and branch patterns too trivial compared to real workloads.
+- Measurement timer resolution and overhead, especially for very short operations.
 
-Nếu lặp phép đo thủ công trong một vòng `for`, vẫn còn những vấn đề như **đo cả chi phí vòng lặp**, **không cô lập tiến trình JVM** và **để compiler tối ưu bỏ việc**. JMH không thay thế tư duy thí nghiệm, nhưng giúp chuẩn hóa phần lớn cơ chế đo này.
+Even wrapping measurements manually in a `for` loop still suffers from **measuring loop overhead**, **not isolating JVM processes**, and **letting the compiler optimize away the work**. JMH does not replace experimental thinking, yet it standardizes most of this measurement machinery.
 
-### 1.1. Phải biết chính xác mình đang đo gì
+### 1.1. Know precisely what you are measuring
 
-Trước khi viết benchmark, hãy hoàn thành câu:
+Before writing a benchmark, complete this sentence:
 
-> “Tôi muốn so sánh **thời gian hoặc throughput của việc tính tổng bình phương số chẵn** trên cùng một mảng `int[]`, giữa vòng lặp, `IntStream` tuần tự và `IntStream` song song.”
+> “I want to compare **the time or throughput of summing squares of even numbers** on the same `int[]` array, between a `for` loop, a sequential `IntStream`, and a parallel `IntStream`.”
 
-Đây là mục tiêu cụ thể. Nó khác hẳn với những câu mơ hồ như “Stream chậm hơn vòng lặp không?” hoặc “Parallel Stream nhanh không?”.
+That is a concrete objective. It is very different from vague questions like “Are Streams slower than loops?” or “Are parallel Streams fast?”.
 
-Một kết quả chỉ có ý nghĩa trong phạm vi:
+A measurement result is meaningful only within the scope of:
 
-- Dữ liệu đầu vào đã chọn.
-- Phiên bản Java, JVM và cấu hình chạy.
-- Định nghĩa chính xác của thao tác.
-- Benchmark mode và cách báo cáo đơn vị.
-- Điều kiện đo (CPU, GC, contention, fork, warmup).
+- The chosen input data.
+- The Java version, JVM, and runtime flags.
+- The exact operation definition.
+- The benchmark mode and reporting unit.
+- The measurement conditions (CPU, GC, contention, forks, warmup).
 
-## 2. JMH là gì và không phải là gì?
+## 2. What JMH is—and what it is not
 
-JMH tổ chức thực thi những phương thức được đánh dấu `@Benchmark` bằng một harness riêng. Harness có thể chạy warmup trước khi ghi số liệu, thực hiện nhiều iteration, tạo nhiều JVM fork và tổng hợp điểm số.
+JMH executes methods annotated with `@Benchmark` via a dedicated harness. The harness can run warmup before recording metrics, execute multiple iterations, launch multiple JVM forks, and aggregate scores.
 
-| JMH hỗ trợ | JMH không tự giải quyết |
+| What JMH helps with | What JMH does not solve automatically |
 | --- | --- |
-| Khung chạy benchmark có thống kê | Chọn workload có thực sự đại diện cho sản phẩm không |
-| Warmup và measurement có cấu hình | Logic thuật toán có đúng không |
-| Fork ra các JVM độc lập | Máy có bị tiến trình khác cạnh tranh CPU không |
-| Nhiều benchmark mode và đơn vị | Lựa chọn metric có phù hợp mục tiêu kinh doanh không |
-| Tiêu thụ giá trị trả về, `Blackhole` | Mọi cách constant folding hoặc tính toán giả có ý nghĩa thực |
-| `@State`, `@Param` và `@Setup` | Trạng thái dùng chung có bị thiết kế sai không |
-| `-prof gc` và tích hợp profiler | Kết luận tự động về heap retention hoặc rò rỉ bộ nhớ |
+| Statistical benchmark execution harness | Whether the workload truly represents production |
+| Configurable warmup and measurement | Whether the algorithm logic is correct |
+| Forking isolated JVMs | Whether other processes compete for CPU on the machine |
+| Multiple benchmark modes and units | Whether the chosen metric fits business goals |
+| Consuming return values, `Blackhole` | Whether constant folding or synthetic math makes sense |
+| `@State`, `@Param`, and `@Setup` | Whether shared state is designed incorrectly |
+| `-prof gc` and profiler integration | Automatic conclusions about heap retention or memory leaks |
 
-**Microbenchmark** thường đo một thao tác hoặc nhóm thao tác nhỏ trong môi trường có kiểm soát. Nó **không tương đương** với đo độ trễ HTTP end-to-end, throughput của hệ thống có database hoặc thời gian xử lý tệp lớn trên đĩa thật.
+A **microbenchmark** typically measures a small operation or pipeline in a controlled setting. It is **not equivalent** to measuring end-to-end HTTP latency, database-backed system throughput, or large-file processing on real disks.
 
-JMH được duy trì trong dự án OpenJDK; các tài liệu tham khảo chính thức được ghi ở cuối bài. Với dự án Java mới, nên sử dụng một bản JMH tương thích JDK đang dùng và **khóa phiên bản dependency** để bảo đảm chạy lại được phép đo.
+JMH is maintained under OpenJDK; official references are listed at the end. For new Java projects, use a JMH version compatible with your JDK and **pin the dependency version** so measurements remain reproducible.
 
-## 3. Ba tầng quan trọng: warmup, measurement, fork
+## 3. Three key layers: warmup, measurement, fork
 
 ```text
 JMH Runner
     |
-    +-- Fork #1: JVM mới
+    +-- Fork #1: Fresh JVM
     |      |
     |      +-- @Setup(Level.Trial)
     |      +-- Warmup iteration 1
@@ -90,34 +90,34 @@ JMH Runner
     |      +-- Measurement iteration 2
     |      +-- Measurement iteration 3 ...
     |
-    +-- Fork #2: JVM mới
+    +-- Fork #2: Fresh JVM
            |
            +-- @Setup(Level.Trial)
            +-- Warmup iterations
            +-- Measurement iterations
 
-        => JMH tổng hợp các phép đo và sai số
+        => JMH aggregates measurements and error margins
 ```
 
-Ba khái niệm không thay thế nhau:
+Three concepts that do not substitute for each other:
 
-- **Warmup**: cho workload chạy trước giai đoạn ghi điểm để JVM có cơ hội tối ưu và trạng thái chương trình ổn định hơn.
-- **Measurement**: các khoảng chạy được JMH dùng để tính điểm benchmark.
-- **Fork**: một **tiến trình JVM mới**, với heap/JIT/runtime state độc lập, để giảm lệ thuộc một lần khởi động và một trạng thái tối ưu cụ thể.
+- **Warmup**: runs the workload before recording scores so the JVM can optimize and program state stabilizes.
+- **Measurement**: the timed intervals JMH uses to compute the benchmark score.
+- **Fork**: a **fresh JVM process** with independent heap/JIT/runtime state, reducing dependence on a single startup and one optimization profile.
 
-**Một fork không phải là một thread.** Bên trong mỗi fork có thể có một hoặc nhiều worker thread của JMH. Một pipeline `parallel()` lại có chiến lược phân chia tác vụ riêng; phải phân biệt **số worker JMH** với **số tác vụ song song bên trong Stream**.
+**One fork is not one thread.** Inside each fork there can be one or more JMH worker threads. A `parallel()` pipeline also has its own internal task-splitting strategy; distinguish **JMH worker threads** from **parallel tasks inside the Stream**.
 
-## 4. Warmup: JVM cần thời gian tối ưu, nhưng không có “con số thần kỳ”
+## 4. Warmup: the JVM needs time to optimize, yet there is no “magic number”
 
-JVM HotSpot thường thực thi bytecode với sự kết hợp giữa interpreter và các tầng compiler JIT, đồng thời thu thập thông tin về mức độ “nóng” của phương thức và những dạng dữ liệu đi qua. Trong quá trình chạy, JVM có thể:
+The HotSpot JVM typically runs bytecode through a mix of interpreter and tiered JIT compilers while profiling method “hotness” and data shapes. During execution, the JVM can:
 
-- Inline lời gọi phương thức, kể cả nhiều lambda được compiler biểu diễn qua `invokedynamic`.
-- Chuyên biệt hóa đường thực thi dựa trên profile.
-- Tối ưu phạm vi cấp phát thông qua escape analysis khi điều kiện cho phép.
-- Thực hiện constant folding và dead-code elimination.
-- Biên dịch lại hoặc deoptimize khi giả định tối ưu không còn phù hợp.
+- Inline method calls, including many lambdas expressed via `invokedynamic`.
+- Specialize execution paths from runtime profiles.
+- Eliminate or scalar-replace allocations via escape analysis when conditions permit.
+- Perform constant folding and dead-code elimination.
+- Recompile or deoptimize when optimization assumptions stop holding.
 
-JMH có thể cấu hình warmup bằng annotation:
+JMH configures warmup using annotations:
 
 ```java
 import java.util.concurrent.TimeUnit;
@@ -130,31 +130,31 @@ import org.openjdk.jmh.annotations.Warmup;
 )
 ```
 
-Tức là **ba iteration warmup**, mỗi iteration khoảng một giây. Dữ liệu warmup **không được tính như các iteration đo chính** trong thống kê kết quả thông thường.
+This specifies **three warmup iterations**, each lasting roughly one second. Warmup data is **excluded from the main measurement statistics** in standard reporting.
 
-### 4.1. Warmup bao nhiêu là đủ?
+### 4.1. How much warmup is enough?
 
-Không có một cấu hình warmup đúng cho mọi bài toán. Một phép cộng vài nanosecond có yêu cầu khác pipeline tạo nhiều đối tượng, thuật toán có cache, hoặc dịch vụ có giai đoạn khởi tạo dài.
+There is no single warmup setting right for every problem. A nanosecond-scale addition differs from an object-allocating pipeline, a cached algorithm, or a service with long startup initialization.
 
-Cách lựa chọn:
+How to choose:
 
-1. Bắt đầu với cấu hình rõ ràng, ví dụ `3–5` warmup iterations.
-2. Quan sát độ ổn định của các iteration và các JVM fork.
-3. Tăng warmup khi thấy quá trình đo vẫn còn xu hướng thay đổi mạnh.
-4. Nếu mục tiêu là **cold start**, thiết kế một thí nghiệm riêng; không gọi warmup dài là phép đo cold start.
-5. Ghi lại cấu hình để lần sau có thể tái lập.
+1. Start with a clear baseline, such as `3–5` warmup iterations.
+2. Inspect stability across iterations and JVM forks.
+3. Increase warmup if measurements still drift strongly over time.
+4. If the goal is **cold start**, design a separate experiment; never call a long warmup a cold-start measurement.
+5. Record the configuration so runs can be reproduced later.
 
-**Cảnh báo:** Warmup không phải cách sửa một benchmark sai về dead-code elimination, dữ liệu hoặc trạng thái. Nếu phép tính đã bị tối ưu bỏ, chạy warmup lâu hơn không khiến kết quả đáng tin hơn.
+**Warning:** Warmup cannot fix a benchmark broken by dead-code elimination, bad data, or corrupted state. If the computation was optimized away, warming up longer does not make the result valid.
 
-### 4.2. Warmup và dữ liệu có trạng thái
+### 4.2. Warmup and stateful data
 
-Nếu benchmark mutate một collection hoặc làm cạn một iterator qua nhiều invocation, warmup có thể thay đổi chính dữ liệu đầu vào. Measurement lúc đó không còn đo cùng bài toán với những iteration ban đầu.
+If a benchmark mutates a collection or exhausts an iterator across invocations, warmup can alter the input data itself. Measurement then no longer benchmarks the same problem as earlier iterations.
 
-Chẳng hạn, không nên dùng một `Iterator` được tạo một lần rồi duyệt hết trong benchmark mà không thiết lập lại đúng vòng đời. Với dữ liệu bất biến hoặc mảng chỉ đọc, rủi ro này nhỏ hơn.
+For example, do not create a single `Iterator` once and drain it in the benchmark without proper lifecycle resets. With immutable data or read-only arrays, this risk is much lower.
 
-## 5. Fork: tách tiến trình JVM để giảm lệ thuộc trạng thái trước đó
+## 5. Fork: isolating JVM processes to reduce dependence on prior state
 
-Ví dụ:
+Example:
 
 ```java
 import org.openjdk.jmh.annotations.Fork;
@@ -162,24 +162,24 @@ import org.openjdk.jmh.annotations.Fork;
 @Fork(2)
 ```
 
-JMH sẽ thực hiện benchmark với **hai JVM fork** theo cấu hình. Mỗi fork có quá trình khởi động, warmup, JIT và measurement riêng.
+JMH runs the benchmark across **two JVM forks** per configuration. Each fork gets its own startup, warmup, JIT compilation, and measurement.
 
-Vì sao cần nhiều fork?
+Why are multiple forks needed?
 
-- Các quyết định JIT và profile có thể khác giữa các tiến trình.
-- Trạng thái runtime, layout bộ nhớ và nhiễu nền không hoàn toàn giống nhau.
-- Một fork duy nhất có thể vô tình là trường hợp bất thường.
-- Kết quả nhiều fork giúp quan sát tính lặp lại thay vì suy luận từ một phiên chạy.
+- JIT compilation and profiling decisions can vary between processes.
+- Runtime state, memory layout, and background noise are never identical.
+- A single fork might happen to hit an outlier profile.
+- Multi-fork results show repeatability rather than extrapolating from one process.
 
-### 5.1. Fork bằng 0 có được không?
+### 5.1. Is zero forks (`@Fork(0)`) okay?
 
-JMH có chế độ chạy không fork để phục vụ một số tình huống phát triển/debug, nhưng **không nên dùng làm mặc định cho phép so sánh hiệu năng đáng tin**. Khi không fork, benchmark có thể chịu ảnh hưởng từ JVM đang chạy harness và benchmark khác.
+JMH offers a no-fork mode for certain development/debugging situations, yet **it should not be used as the default for trustworthy performance comparisons**. Without forking, the benchmark can be affected by the JVM hosting the harness and other benchmarks.
 
-Trong các kết quả cần ra quyết định, nên chọn ít nhất một fork phù hợp, thường thử nhiều hơn một fork nếu thời gian và tài nguyên cho phép.
+For decision-grade results, use at least one proper fork, and usually more than one fork when time and resources allow.
 
-### 5.2. Fork và JVM arguments
+### 5.2. Forks and JVM arguments
 
-Nếu so sánh trên hai cấu hình JVM, cần cố định hoặc ghi lại các tham số như:
+When comparing across two JVM configurations, fix or record flags such as:
 
 ```text
 -Xms
@@ -188,23 +188,23 @@ Nếu so sánh trên hai cấu hình JVM, cần cố định hoặc ghi lại c�
 -XX:ActiveProcessorCount=...
 ```
 
-Đây là ví dụ tham số có thể ảnh hưởng môi trường, **không phải khuyến nghị bật tất cả**. Chỉ thay đổi những tham số thực sự thuộc câu hỏi thí nghiệm, và khi so sánh hai thuật toán hãy giữ JVM options tương đương.
+These are example flags that can affect the environment, **not a recommendation to enable them all**. Change only the flags relevant to your experimental question, and keep JVM options identical when comparing two algorithms.
 
-Đừng dùng một phép đo trên máy phát triển rồi một phép đo trên máy CI bận và gán mọi khác biệt cho `Stream`.
+Never take one measurement on a dev machine and another on a busy CI machine and blame all differences on `Stream`.
 
-## 6. Measurement: iteration, thời gian chạy và benchmark mode
+## 6. Measurement: iterations, duration, and benchmark modes
 
-JMH có nhiều cách ghi điểm:
+JMH supports multiple scoring modes:
 
-| Mode | Chỉ số điển hình | Câu hỏi |
+| Mode | Typical metric | Question answered |
 | --- | --- | --- |
-| `Mode.Throughput` | operations/second | Làm được bao nhiêu lần gọi benchmark trong một đơn vị thời gian? |
-| `Mode.AverageTime` | ns/op, µs/op, ms/op | Thời gian trung bình của một invocation là bao nhiêu? |
-| `Mode.SampleTime` | Phân bố thời gian từ mẫu | Độ trễ của các phép gọi có hình dạng ra sao? |
-| `Mode.SingleShotTime` | Thời gian mỗi lần gọi đơn lẻ | Workload rất dài hoặc trường hợp cần cách đo đặc thù |
-| `Mode.All` | Nhiều mode | Cần đo đủ nhưng chi phí chạy lớn hơn |
+| `Mode.Throughput` | operations/second | How many benchmark calls complete per unit of time? |
+| `Mode.AverageTime` | ns/op, µs/op, ms/op | What is the average time per invocation? |
+| `Mode.SampleTime` | Sampled latency distribution | What does the call latency distribution look like? |
+| `Mode.SingleShotTime` | Time per single invocation | Very long workloads or special single-shot measurements |
+| `Mode.All` | Multiple modes | Comprehensive view, though longer total run time |
 
-Với một pipeline tính toán dữ liệu cố định trong mảng, `Mode.AverageTime` thường dễ giải thích:
+For a pipeline computing over a fixed array, `Mode.AverageTime` is usually straightforward to interpret:
 
 ```java
 import java.util.concurrent.TimeUnit;
@@ -222,33 +222,33 @@ import org.openjdk.jmh.annotations.OutputTimeUnit;
 )
 ```
 
-Khi report ghi `us/op`, “op” là **một lời gọi phương thức `@Benchmark`**, không mặc nhiên là một phần tử trong Stream.
+When the report prints `us/op`, “op” means **one invocation of the `@Benchmark` method**, not automatically one element in the Stream.
 
-### 6.1. Phân biệt `ns/op` và `ns/element`
+### 6.1. Distinguishing `ns/op` from `ns/element`
 
-Giả sử **ví dụ minh họa giả định**, không phải kết quả đo thật:
+Consider a **hypothetical illustrative example**, not real measured output:
 
 ```text
-Benchmark: tính tổng trên mảng gồm 10.000 phần tử
-AverageTime: 80.000 ns/op
+Benchmark: summing an array of 10,000 elements
+AverageTime: 80,000 ns/op
 ```
 
-Một invocation xử lý **toàn bộ mảng**. Ta có thể tính chỉ số quy đổi:
+One invocation processes **the entire array**. We can compute a derived figure:
 
 \[
-\text{ns/phần tử} = \frac{80.000\ \text{ns/op}}{10.000\ \text{phần tử/op}}
-= 8\ \text{ns/phần tử}.
+\text{ns/element} = \frac{80,000\ \text{ns/op}}{10,000\ \text{elements/op}}
+= 8\ \text{ns/element}.
 \]
 
-Nhưng phép chia này chỉ là **quy đổi kế toán**: nó không chứng minh từng phần tử được xử lý độc lập trong 8 ns, cũng không loại được overhead cố định, cache effects hoặc scheduling.
+Yet that division is only an **accounting conversion**: it does not prove each element took 8 ns independently, nor does it separate fixed overhead, cache effects, or scheduling.
 
-Nếu so sánh một benchmark xử lý `N` phần tử với một benchmark xử lý `1` phần tử nhưng cả hai đều báo `ns/op`, cần chuẩn hóa đơn vị và mục tiêu trước khi kết luận.
+If comparing a benchmark processing `N` elements against one processing `1` element where both report `ns/op`, normalize units and goals before drawing conclusions.
 
-## 7. Dead-code elimination: phép tính có thể biến mất
+## 7. Dead-code elimination: computations can vanish
 
-**Dead-code elimination (DCE)** là tối ưu hợp lệ của compiler/JIT: nếu phép tính không có tác dụng quan sát được và kết quả không được sử dụng, compiler có thể bỏ nó.
+**Dead-code elimination (DCE)** is a legal compiler/JIT optimization: if a computation has no observable effect and its result is unused, the compiler may remove it.
 
-Benchmark dễ sai:
+An easily broken benchmark:
 
 ```java
 import org.openjdk.jmh.annotations.Benchmark;
@@ -261,14 +261,14 @@ public void wrongIgnoredResult() {
         .mapToLong(v -> (long) v * v)
         .sum();
 
-    // total không được trả về, không truyền đi, không được dùng.
-    // JIT có thể loại một phần hoặc toàn bộ công việc.
+    // total is never returned, passed out, or used.
+    // The JIT may eliminate part or all of the work.
 }
 ```
 
-Giả sử `data` là một mảng đã chuẩn bị trong state. Phương thức hợp lệ về cú pháp Java, nhưng **không phải thiết kế đo đáng tin** cho mục tiêu tính tổng.
+Assume `data` is an array prepared in state. The method is valid Java syntax, yet **not a reliable measurement design** for summing.
 
-Một lỗi khác xảy ra riêng với Stream API:
+Another error specific to the Stream API:
 
 ```java
 @Benchmark
@@ -277,22 +277,22 @@ public void wrongNoTerminalOperation() {
         .filter(v -> (v & 1) == 0)
         .map(v -> v * v);
 
-    // Không có terminal operation: pipeline chưa thực hiện
-    // phép lọc và biến đổi toàn bộ dữ liệu.
+    // No terminal operation: the pipeline never executes
+    // filtering and mapping across the data.
 }
 ```
 
-Ở đây còn có **tính lazy** của Stream: tạo pipeline không tự duyệt dữ liệu. Benchmark có thể chỉ đo việc dựng pipeline (và thậm chí phần dựng đó cũng có thể bị tối ưu), **không** đo phép lọc và tính bình phương mà người viết tưởng tượng.
+Here **laziness** of Streams also intervenes: building a pipeline does not traverse data. The benchmark may measure only pipeline construction (and even that may be optimized away), **not** the filtering and squaring the author imagined.
 
-### 7.1. Kết quả không quan sát được có thể biến phép đo thành một con số “đẹp”
+### 7.1. Unobserved results can turn a benchmark into a “great-looking” number
 
-Nếu benchmark không dùng kết quả, một phương án có thể trông “nhanh vượt trội” chỉ vì JIT loại được nhiều công việc hơn. Không so sánh theo con số đó mà chưa kiểm tra *có thật cùng một công việc được thực hiện không*.
+If a benchmark discards its result, one variant may look “dramatically faster” simply because the JIT eliminated more of its work. Never compare numbers without verifying *both variants actually executed the same work*.
 
-**Quy tắc:** Phép đo phải có một đầu ra hoặc tác dụng quan sát đúng với mục tiêu, và harness phải giữ đầu ra đó sống đủ lâu để JIT không thể xem toàn bộ công việc là thừa.
+**Rule:** A measurement must produce an output or observable effect matching the goal, and the harness must keep that output alive so the JIT cannot treat the work as dead code.
 
-## 8. Cách chống DCE 1: trả về kết quả từ `@Benchmark`
+## 8. Preventing DCE #1: return the result from `@Benchmark`
 
-Đây thường là cách đơn giản và nên ưu tiên:
+This is usually the simplest and preferred approach:
 
 ```java
 import org.openjdk.jmh.annotations.Benchmark;
@@ -306,20 +306,20 @@ public long streamFilteredSum() {
 }
 ```
 
-JMH có cơ chế tiêu thụ giá trị trả về của benchmark để tránh việc toàn bộ kết quả bị xem là không có người dùng.
+JMH consumes the benchmark's return value so the final result is not treated as unused.
 
-Tại sao trả về `long`?
+Why return `long`?
 
-- Chỉ số tổng hợp cuối là một **giá trị quan sát được**.
-- Phù hợp mục tiêu “tính tổng bình phương số chẵn”.
-- Không làm nhiễu phép đo bằng việc in log hoặc ghi tệp.
-- Không cần tự cập nhật một biến mutable toàn cục.
+- The final aggregate is an **observable value**.
+- It matches the goal “compute the sum of squares of even numbers”.
+- It does not pollute timing with printing logs or file writes.
+- It avoids manually updating a shared mutable field.
 
-Trả về kết quả không có nghĩa mọi nhánh tính toán bên trong đều bắt buộc được thực thi y nguyên code nguồn; JIT vẫn được phép tối ưu **giữ nguyên ngữ nghĩa kết quả**. Đó là điều tốt: ta muốn đo mã được JVM tối ưu như khi chạy thực, miễn là công việc và đầu ra đúng.
+Returning the result does not force every internal branch to execute literally as written in source; the JIT is still allowed to optimize **while preserving semantic output**. That is desirable: we want to measure JVM-optimized code just as in production, as long as the work and output are genuine.
 
-### 8.1. Không `System.out.println` trong mỗi invocation
+### 8.1. Do not call `System.out.println` inside invocations
 
-Ví dụ không phù hợp:
+Unsuitable example:
 
 ```java
 @Benchmark
@@ -328,13 +328,13 @@ public void printResult() {
 }
 ```
 
-Thời gian đo bị chi phối bởi thao tác in, đồng bộ, buffer và thiết bị đầu ra. Phương pháp này không trả lời câu hỏi về hiệu năng tính tổng Stream.
+Measured time is dominated by printing, synchronization, buffering, and output devices. This method does not answer questions about Stream summation performance.
 
-Không dùng việc “có in ra số đúng” làm cách chống DCE trong benchmark; dùng `return` hoặc `Blackhole`.
+Never use “printing the right number” to defeat DCE in benchmarks; use `return` or `Blackhole`.
 
-## 9. Cách chống DCE 2: dùng `Blackhole`
+## 9. Preventing DCE #2: using `Blackhole`
 
-JMH cung cấp `org.openjdk.jmh.infra.Blackhole`, một kênh tiêu thụ giá trị được thiết kế cho benchmark. Harness có thể truyền nó làm tham số của phương thức `@Benchmark`:
+JMH provides `org.openjdk.jmh.infra.Blackhole`, a value sink designed for benchmarks. The harness can inject it as a parameter to `@Benchmark`:
 
 ```java
 import java.util.Arrays;
@@ -352,11 +352,11 @@ public void consumeWithBlackhole(Blackhole blackhole) {
 }
 ```
 
-Dùng `Blackhole` khi benchmark có một hoặc nhiều giá trị cần tiêu thụ nhưng không phù hợp trả về một đối tượng kết quả duy nhất. Với ví dụ chỉ có `long total`, **trả về `long` đơn giản hơn**.
+Use `Blackhole` when a benchmark produces one or more values to consume without naturally returning a single result object. When you only have `long total`, **returning `long` is simpler**.
 
-### 9.1. Không vô tình đo chi phí tiêu thụ cho từng phần tử
+### 9.1. Do not accidentally measure per-element consumption overhead
 
-Giả sử đang so sánh:
+Suppose you compare:
 
 ```java
 @Benchmark
@@ -367,21 +367,21 @@ public void perElementConsume(Blackhole blackhole) {
 }
 ```
 
-Đây là phép đo có **một lần `consume` cho mỗi phần tử**, không phải benchmark cộng tổng bình phương số chẵn. Nếu phương án thứ hai chỉ `consume` một giá trị tổng cuối, hai bên đã khác lượng công việc đo.
+This measures **one `consume` per element**, not summing squares of even numbers. If the second variant only calls `consume` once on the final total, the two variants do different measured work.
 
-Để so sánh công bằng:
+For a fair comparison:
 
-- Giữ **cùng kết quả nghiệp vụ** cho mỗi phương án.
-- Tiêu thụ kết quả cuối theo cách tương đương.
-- Tránh thêm `Blackhole.consume` trong một nhánh nhiều hơn nhánh khác nếu chi phí đó không phải đối tượng nghiên cứu.
+- Keep **the same business result** for each variant.
+- Consume final results in an equivalent way.
+- Avoid adding extra `Blackhole.consume` calls in one branch over another unless that cost is what you intend to measure.
 
-### 9.2. `Blackhole` không thay thế kiểm tra dữ liệu
+### 9.2. `Blackhole` does not replace input/result verification
 
-Một phép tính vô nghĩa nhưng được đưa vào `Blackhole` vẫn có thể là benchmark **không đại diện**. `Blackhole` chỉ giúp giữ kết quả có thể quan sát; nó không chứng minh đầu vào, hành vi, số lượng và tính đúng của thuật toán.
+A meaningless computation fed into `Blackhole` is still a **non-representative** benchmark. `Blackhole` only keeps values observable; it does not prove inputs, behavior, counts, or algorithm correctness.
 
-## 10. Constant folding và công việc giả
+## 10. Constant folding and synthetic work
 
-DCE không phải vấn đề tối ưu duy nhất. **Constant folding** có thể biến một biểu thức bất biến thành một hằng:
+DCE is not the only optimization pitfall. **Constant folding** can collapse an invariant expression into a constant:
 
 ```java
 @Benchmark
@@ -390,9 +390,9 @@ public double suspiciousConstant() {
 }
 ```
 
-Nếu mục tiêu là đo phép căn bậc hai trên dữ liệu runtime, đoạn này không phù hợp: compiler có thể biết ngay kết quả là `12.0` hoặc áp dụng các tối ưu đặc thù.
+If the goal is measuring square roots on runtime data, this is unsuitable: the compiler may immediately fold the result to `12.0` or apply constant-specific optimizations.
 
-Một phiên bản dùng dữ liệu do JMH cung cấp:
+A version using JMH-supplied data:
 
 ```java
 import org.openjdk.jmh.annotations.Benchmark;
@@ -412,13 +412,13 @@ public class SquareRootBench {
 }
 ```
 
-`@Param` cho JMH tạo các trường hợp đầu vào và gán giá trị từ ngoài phương thức benchmark. Điều này giúp tránh một số dạng tính toán hằng hoàn toàn ở code nguồn, đồng thời giúp so sánh nhiều trường hợp.
+`@Param` lets JMH generate input cases and inject values from outside the benchmark method. This prevents naive source-level constant folding and makes multi-case testing convenient.
 
-**Nhưng `@Param` không tạo ngẫu nhiên dữ liệu và không bảo đảm loại mọi tối ưu.** Nếu sản phẩm xử lý nhiều loại giá trị, hãy chọn bộ dữ liệu và cách phân bố phản ánh tình huống thực tế.
+**However, `@Param` does not randomize data or guarantee eliminating every optimization.** If production processes diverse distributions, select datasets and distributions reflecting real conditions.
 
-## 11. `@State`: quản lý dữ liệu đầu vào theo vòng đời benchmark
+## 11. `@State`: managing input data along the benchmark lifecycle
 
-`@State` xác định đối tượng chứa dữ liệu hoặc trạng thái mà các benchmark method sử dụng.
+`@State` defines objects holding data or state used by benchmark methods.
 
 ```java
 import org.openjdk.jmh.annotations.Scope;
@@ -426,36 +426,36 @@ import org.openjdk.jmh.annotations.State;
 
 @State(Scope.Thread)
 public class StreamPipelineBenchmark {
-    // Mỗi worker benchmark có một instance state riêng.
+    // Each benchmark worker gets its own state instance.
 }
 ```
 
-Các scope thường gặp:
+Common scopes:
 
-| Scope | Ý nghĩa | Khi nào phù hợp |
+| Scope | Meaning | When appropriate |
 | --- | --- | --- |
-| `Scope.Thread` | Mỗi JMH worker thread có một state instance riêng | Đo thuật toán trên dữ liệu độc lập, tránh contention ngoài ý muốn |
-| `Scope.Benchmark` | State được chia sẻ giữa các worker trong benchmark tương ứng | Muốn đo tranh chấp, synchronization hoặc trạng thái chia sẻ thực sự |
-| `Scope.Group` | State chia sẻ trong một group benchmark theo hợp đồng JMH | Mô phỏng một số tình huống nhiều vai trò/luồng trong group |
+| `Scope.Thread` | Each JMH worker thread gets its own state instance | Measuring algorithms on independent data without unintended contention |
+| `Scope.Benchmark` | State is shared across workers in that benchmark | Measuring contention, synchronization, or genuinely shared state |
+| `Scope.Group` | State shared within a JMH benchmark group per contract | Modeling multi-role/multi-thread group scenarios |
 
-Với bài so sánh thuật toán tính tổng trên mảng đọc-only, `Scope.Thread` là điểm bắt đầu hợp lý. Nếu chuyển sang `Scope.Benchmark` cùng một `ArrayList` mutable rồi cho nhiều worker ghi vào, bạn có thể đang đo một lỗi race, không phải hiệu năng Stream.
+When comparing summation algorithms on a read-only array, `Scope.Thread` is a sensible default. Switching to `Scope.Benchmark` with a mutable `ArrayList` written by multiple workers could measure a race condition rather than Stream performance.
 
-### 11.1. `@Param` giúp thử nhiều kích thước
+### 11.1. `@Param` helps test multiple sizes
 
 ```java
 @Param({"1000", "100000", "1000000"})
 public int size;
 ```
 
-JMH chạy các tổ hợp benchmark và giá trị `size`. Vì kích thước nguồn ảnh hưởng rất mạnh tới tỷ lệ **chi phí khởi tạo pipeline / chi phí duyệt dữ liệu**, đây là một chiều tham số cần có khi so sánh Stream và vòng lặp.
+JMH runs every combination of benchmark and `size`. Because source size strongly affects the ratio of **pipeline setup cost / traversal cost**, this is an essential parameter when comparing Streams and loops.
 
-Thay vì một câu tuyệt đối “vòng lặp nhanh hơn Stream”, ta có thể có kết luận có điều kiện:
+Instead of a blanket claim like “loops are faster than Streams”, you can state a qualified finding:
 
-> “Ở tập dữ liệu N và cấu hình JDK được đo, phương án A có thời gian trung bình thấp hơn B trong cùng workload.”
+> “For dataset size N and the measured JDK configuration, approach A achieved lower average time than B under the same workload.”
 
-## 12. `@Setup`: chuẩn bị dữ liệu ngoài phần việc định đo
+## 12. `@Setup`: preparing data outside the measured work
 
-Khi muốn so sánh **thuần chi phí xử lý một mảng đã có sẵn**, phải tạo mảng ở thời điểm setup, không tạo lại trong mỗi benchmark invocation.
+When comparing **pure processing cost on an existing array**, allocate and fill the array during setup, not inside every benchmark invocation.
 
 ```java
 import org.openjdk.jmh.annotations.Level;
@@ -473,29 +473,29 @@ public void setUp() {
 }
 ```
 
-Với `Level.Trial`, dữ liệu được chuẩn bị cho một lượt thử JMH theo lifecycle của state, không được tạo lại trong thân phép đo.
+With `Level.Trial`, data is prepared once for a JMH trial according to the state's lifecycle, rather than recreated inside the measurement body.
 
-### 12.1. Ba mức setup/teardown
+### 12.1. Three setup/teardown levels
 
-| Level | Khi chạy | Cẩn trọng |
+| Level | When it runs | Caution |
 | --- | --- | --- |
-| `Level.Trial` | Một lần trong vòng đời trial/state tương ứng | Dữ liệu có thể bị benchmark mutate về sau |
-| `Level.Iteration` | Trước mỗi warmup/measurement iteration | Cần thiết nếu phải reset trạng thái giữa iteration |
-| `Level.Invocation` | Trước từng invocation | Có thể làm sai mục tiêu đo và phát sinh chi phí/điều phối rất lớn |
+| `Level.Trial` | Once per trial/state lifecycle | Data could be mutated later by benchmark runs |
+| `Level.Iteration` | Before each warmup/measurement iteration | Needed if state must reset between iterations |
+| `Level.Invocation` | Before each invocation | Can distort measurement targets and add huge coordination overhead |
 
-**Không dùng `Level.Invocation` một cách máy móc** để reset dữ liệu khi benchmark cực ngắn. Nó có thể làm thay đổi mô hình thực thi và độ chính xác phép đo. Nếu cần khôi phục state giữa từng invocation, hãy cân nhắc thiết kế thí nghiệm khác hoặc chọn workload bất biến để tránh chi phí này.
+**Do not use `Level.Invocation` mechanically** to reset data on very short benchmarks. It can change the execution model and ruin measurement accuracy. If state must be restored between calls, reconsider the experiment design or use immutable workloads to avoid this cost.
 
-### 12.2. Nếu muốn đo cả khởi tạo?
+### 12.2. What if you want to include initialization?
 
-Khi sản phẩm thật sự cần đo **tạo nguồn + xây collection + chạy Stream** trong cùng một request, hãy tạo một benchmark **khác** bao gồm chi phí cấp phát đó. Đừng vô tình đưa phần chuẩn bị vào một phương án còn loại khỏi phương án khác.
+When production genuinely needs to measure **source creation + collection construction + Stream execution** in one request, write a **separate** benchmark including that allocation cost. Never accidentally include setup in one variant while excluding it from another.
 
-**Câu hỏi quyết định:** Đang đo *thao tác trên dữ liệu đã có* hay *toàn bộ pipeline gồm chuẩn bị nguồn*? Cần đặt tên hai thí nghiệm khác nhau nếu đó là hai câu hỏi.
+**Key question:** Are you measuring *operations on existing data* or *the whole pipeline including source preparation*? Name them as two separate experiments if they are two different questions.
 
-## 13. Benchmark JMH hoàn chỉnh: vòng lặp, Stream và parallel Stream
+## 13. Complete JMH benchmark: loop, Stream, and parallel Stream
 
-Bài toán: từ một mảng `int[]`, **chỉ chọn số chẵn**, tính **bình phương ở kiểu `long`**, rồi cộng tổng ở kiểu `long`. Ba phương án phải nhận **chính xác cùng dữ liệu** và trả **cùng giá trị**.
+Problem: from an `int[]` array, **keep only even numbers**, compute **squares as `long`**, and sum them as `long`. All three variants must receive **the exact same data** and return **the exact same value**.
 
-Tệp ví dụ: `StreamPipelineBenchmark.java`
+Example file: `StreamPipelineBenchmark.java`
 
 ```java
 package vn.example.bench;
@@ -533,7 +533,7 @@ public class StreamPipelineBenchmark {
     public void setUp() {
         data = new int[size];
 
-        // Cùng dữ liệu xác định cho cả ba phương án.
+        // Identical deterministic data for all three variants.
         for (int i = 0; i < size; i++) {
             data[i] = (i * 31 + 7) & 1023;
         }
@@ -571,37 +571,37 @@ public class StreamPipelineBenchmark {
 }
 ```
 
-### Vì sao ba phương án có thể so sánh?
+### Why are the three variants comparable?
 
-- Cùng mảng `int[]` và cùng phân bố dữ liệu.
-- Cùng điều kiện chọn số chẵn: `(value & 1) == 0`.
-- Cùng công thức bình phương sau khi chuyển sang `long`, tránh tràn `int` ở phép nhân.
-- Cùng kết quả tổng: `long` trả về và được harness tiêu thụ.
-- Không in log, không cấp phát lại mảng trong thân benchmark.
-- Có cả trường hợp mảng nhỏ, vừa và lớn.
-- Cấu hình warmup, measurement và fork được áp dụng nhất quán.
+- Same `int[]` array and same value distribution.
+- Same even-number filter condition: `(value & 1) == 0`.
+- Same squaring formula after widening to `long`, preventing `int` overflow during multiplication.
+- Same sum output: `long` returned and consumed by the harness.
+- No logging, no array reallocation inside benchmark bodies.
+- Covers small, medium, and large array sizes.
+- Consistent warmup, measurement, and fork configuration.
 
-Ví dụ này **không chứng minh** `parallel()` nhanh hơn. Với mảng nhỏ, overhead chia tác vụ có thể lớn hơn lợi ích; với mảng lớn, kết quả còn tùy số core, bandwidth, công việc trên mỗi phần tử và môi trường. Mục tiêu của benchmark là **đo thay vì đoán**.
+This example **does not prove** `parallel()` is faster. On small arrays, task-splitting overhead can exceed any gain; on large arrays, results depend on core count, memory bandwidth, per-element work, and environment. The benchmark's purpose is to **measure instead of guessing**.
 
-### 13.1. Một phép tính phải có kết quả đúng trước khi đo
+### 13.1. A calculation must be verified correct before benchmarking
 
-Trước khi tin vào số JMH, hãy xác định kết quả của ba triển khai là tương đương trên dữ liệu nhỏ.
+Before trusting JMH numbers, confirm that all three implementations return identical results on small inputs.
 
-Với `[1, 2, 3, 4, 5]`, phần tử chẵn là `2` và `4`, nên:
+For `[1, 2, 3, 4, 5]`, even elements are `2` and `4`, so:
 
 \[
 2^2 + 4^2 = 4+16 = 20.
 \]
 
-Nếu một phương án cộng tất cả giá trị, dùng `map(value -> value * value)` gây tràn `int`, hoặc biến đổi thứ tự phép tính khiến kết quả khác nghiệp vụ, thì **so sánh thời gian không còn công bằng**.
+If one variant sums all values, uses `map(value -> value * value)` causing `int` overflow, or changes operation order in a way that alters business results, **timing comparisons are no longer fair**.
 
-Khi benchmark nghiệp vụ tài chính dùng số thập phân, tính đúng có thể cần `BigDecimal` và quy tắc rounding; khi benchmark tổng trên `double`, sai số và thứ tự phép cộng song song cần được đánh giá bằng dung sai phù hợp, không đòi bình đẳng bit trong mọi trường hợp.
+When benchmarking financial calculations using decimals, correctness may require `BigDecimal` and rounding rules; when benchmarking `double` sums, rounding error and parallel addition order should be checked with an appropriate tolerance rather than requiring exact bitwise equality in every case.
 
-## 14. Tạo dự án JMH riêng và chạy từ command line
+## 14. Creating a standalone JMH project and running from the command line
 
-JMH thường được dùng qua một **dự án benchmark riêng**, với dependencies và annotation processor của JMH. Một cách thuận tiện là sử dụng Maven archetype do JMH cung cấp.
+JMH is typically run in a **dedicated benchmark project** with JMH dependencies and annotation processors. A convenient approach is the Maven archetype provided by JMH.
 
-Ví dụ lệnh tạo dự án (chạy trong môi trường đã cài Maven/JDK thích hợp):
+Example project creation command (run in an environment with Maven and an appropriate JDK):
 
 ```bash
 mvn archetype:generate \
@@ -614,25 +614,25 @@ mvn archetype:generate \
   -Dversion=1.0-SNAPSHOT
 ```
 
-Đây là **ví dụ cấu hình JMH 1.37**, không phải tuyên bố rằng nó luôn là bản mới nhất. Với dự án thật, kiểm tra bản JMH phù hợp toolchain và chính sách dependency trước khi dùng.
+This is an **example configuration for JMH 1.37**, not a claim that it is always the latest release. For real projects, check the JMH version matching your toolchain and dependency policy first.
 
-Sau khi tạo dự án, đặt class benchmark ở package phù hợp, ví dụ `src/main/java/vn/example/bench/StreamPipelineBenchmark.java`. Khởi tạo build:
+After generating the project, place the benchmark class in its package, e.g. `src/main/java/vn/example/bench/StreamPipelineBenchmark.java`. Build it:
 
 ```bash
 mvn clean verify
 ```
 
-Archetype JMH thông dụng tạo một JAR chạy độc lập, thường là `target/benchmarks.jar`. Từ thư mục dự án, chạy:
+Standard JMH archetypes build an executable uber-JAR, usually `target/benchmarks.jar`. From the project directory, run:
 
 ```bash
 java -jar target/benchmarks.jar StreamPipelineBenchmark
 ```
 
-Nếu file JAR được đặt tên khác theo cấu hình build, phải dùng đúng artifact mà Maven đã tạo; không giả định mọi dự án dùng một đường dẫn giống nhau.
+If the JAR is named differently by your build config, use the exact artifact produced by Maven; do not assume every project uses the exact same path.
 
-### 14.1. Chạy với tham số JMH qua CLI
+### 14.1. Running with JMH CLI arguments
 
-Có thể chỉ định rõ số warmup/measurement iterations, fork và số JMH worker threads:
+You can explicitly override warmup/measurement iterations, forks, and JMH worker threads:
 
 ```bash
 java -jar target/benchmarks.jar StreamPipelineBenchmark \
@@ -640,58 +640,58 @@ java -jar target/benchmarks.jar StreamPipelineBenchmark \
   -bm avgt -tu us
 ```
 
-Ý nghĩa:
+Meaning:
 
-| Tham số | Công dụng |
+| Flag | Purpose |
 | --- | --- |
-| `-wi 3` | Ba warmup iterations |
-| `-i 5` | Năm measurement iterations |
-| `-w 1s` | Mỗi warmup iteration một giây |
-| `-r 1s` | Mỗi measurement iteration một giây |
-| `-f 2` | Hai fork JVM |
-| `-t 1` | Một JMH worker thread thực thi benchmark; không quyết định số tác vụ nội bộ của parallel Stream |
+| `-wi 3` | Three warmup iterations |
+| `-i 5` | Five measurement iterations |
+| `-w 1s` | One second per warmup iteration |
+| `-r 1s` | One second per measurement iteration |
+| `-f 2` | Two JVM forks |
+| `-t 1` | One JMH worker thread executing the benchmark; does not govern internal tasks of a parallel Stream |
 | `-bm avgt` | Average Time |
-| `-tu us` | Đơn vị microsecond |
+| `-tu us` | Microsecond time unit |
 
-Tùy chọn CLI có thể ghi đè annotation tương ứng. Cần ghi lại **lệnh thực tế đã chạy**, không chỉ annotation có trong source.
+CLI options can override matching annotations. Record the **actual command executed**, not just annotations in source files.
 
-### 14.2. Đo cấp phát bằng GC profiler
+### 14.2. Measuring allocations with the GC profiler
 
 ```bash
 java -jar target/benchmarks.jar StreamPipelineBenchmark \
   -wi 3 -i 5 -f 2 -t 1 -prof gc
 ```
 
-Profiler có thể cung cấp các chỉ số như:
+The profiler can report metrics such as:
 
-- `gc.alloc.rate`: tốc độ cấp phát ước tính.
-- `gc.alloc.rate.norm`: số byte cấp phát chuẩn hóa theo một operation.
-- `gc.count`: số đợt GC quan sát được.
-- `gc.time`: thời gian GC quan sát được.
+- `gc.alloc.rate`: estimated allocation rate.
+- `gc.alloc.rate.norm`: allocated bytes normalized per operation.
+- `gc.count`: observed GC cycles.
+- `gc.time`: observed GC time.
 
-Các chỉ số khả dụng và độ chính xác còn phụ thuộc JVM, JMH và môi trường. **Bộ nhớ cấp phát (allocation)** không đồng nghĩa **bộ nhớ còn sống (retained heap)** hay rò rỉ bộ nhớ. Benchmark có thể cấp phát nhiều object ngắn hạn nhưng không làm heap sau GC tăng dài hạn.
+Available metrics and accuracy also depend on the JVM, JMH, and environment. **Allocated memory (allocation)** does not equal **retained heap** or a memory leak. A benchmark can allocate many short-lived objects without increasing post-GC heap over time.
 
-### 14.3. Xuất báo cáo để so sánh sau này
+### 14.3. Exporting reports for later comparison
 
 ```bash
 java -jar target/benchmarks.jar StreamPipelineBenchmark \
   -wi 3 -i 5 -f 2 -rf json -rff stream-results.json
 ```
 
-Lưu cùng kết quả:
+Save alongside the results:
 
-- Phiên bản JDK và vendor JVM.
-- Version JMH và dependency build.
-- Số core, CPU, hệ điều hành và tải nền.
-- JVM arguments, GC, heap sizing.
-- Các tùy chọn `@Param`, warmup, iterations, fork và threads.
-- Hash/phiên bản mã benchmark và dữ liệu được dùng.
+- JDK version and JVM vendor.
+- JMH version and build dependencies.
+- CPU model, core count, OS, and background load.
+- JVM flags, GC, and heap sizing.
+- `@Param` settings, warmup, iterations, forks, and threads.
+- Commit hash/version of benchmark code and dataset used.
 
-Không nên chỉ lưu ảnh chụp một dòng kết quả rồi không biết lần sau có đang so sánh cùng workload hay không.
+Do not save just a screenshot of one result line and lose track later of whether you are comparing the same workload.
 
-## 15. Đọc output JMH: Score, Error, Units, Params
+## 15. Reading JMH output: Score, Error, Units, Params
 
-Một kết quả JMH thường có các cột như:
+JMH output typically includes columns like:
 
 ```text
 Benchmark                         (size)     Mode  Cnt    Score    Error  Units
@@ -700,70 +700,70 @@ StreamPipelineBenchmark.sequentialIntStream ...
 StreamPipelineBenchmark.parallelIntStream   ...
 ```
 
-Ý nghĩa:
+Meaning:
 
-- **Benchmark**: phương thức được đo.
-- **Params**: bộ tham số của lần chạy, ví dụ kích thước `size`.
-- **Mode**: phương pháp tổng hợp, ví dụ `avgt`.
-- **Cnt**: số mẫu/iteration được tổng hợp theo dạng báo cáo.
-- **Score**: ước lượng giá trị trung tâm của phép đo.
-- **Error**: ước lượng sai số thống kê do JMH trình bày; không phải bảo đảm tuyệt đối của độ chính xác ngoài đời.
-- **Units**: đơn vị, ví dụ `us/op` hay `ops/s`.
+- **Benchmark**: the measured method.
+- **Params**: parameter values for that run, e.g. `size`.
+- **Mode**: aggregation mode, e.g. `avgt`.
+- **Cnt**: number of samples/iterations aggregated into the report row.
+- **Score**: central estimate of the measurement.
+- **Error**: statistical error margin reported by JMH; not an absolute guarantee of real-world precision.
+- **Units**: reporting unit, such as `us/op` or `ops/s`.
 
-### 15.1. Thấp hơn hay cao hơn là tốt?
+### 15.1. Is lower or higher better?
 
-| Mode | Khi Score thấp hơn | Khi Score cao hơn |
+| Mode | Lower Score | Higher Score |
 | --- | --- | --- |
-| `AverageTime` | Thường nhanh hơn trên mỗi invocation | Thường chậm hơn |
-| `Throughput` | Ít operations/giây hơn | Nhiều operations/giây hơn |
+| `AverageTime` | Usually faster per invocation | Usually slower |
+| `Throughput` | Fewer operations/second | More operations/second |
 
-Đừng so sánh trực tiếp `ns/op` với `ops/s` bằng việc nhìn số lớn nhỏ. Chúng đo những chiều khác nhau, với điều kiện benchmark có thể khác.
+Never compare `ns/op` directly against `ops/s` just by looking at which number is larger. They measure opposite directions under potentially different setups.
 
-### 15.2. Sai số chồng lấn và biến động giữa fork
+### 15.2. Overlapping errors and fork-to-fork variance
 
-Nếu hai Score gần nhau và Error lớn, rất khó nói chắc phương án nào tốt hơn trên cơ sở đo hiện tại. Hãy nhìn:
+If two Scores are close and Error margins are large, it is hard to say with confidence which is better from the current run. Inspect:
 
-1. Dữ liệu từng fork và từng iteration.
-2. Mức dao động và xu hướng theo thời gian.
-3. Chênh lệch có lặp lại qua lần chạy mới không.
-4. Benchmark có bị ảnh hưởng GC, scheduling, CPU throttling hay contention không.
-5. Mức chênh lệch có **ý nghĩa thực tiễn** đối với sản phẩm không.
+1. Per-fork and per-iteration raw data.
+2. Variance and drift over time.
+3. Whether the gap repeats in fresh runs.
+4. Whether the benchmark was affected by GC, scheduling, CPU throttling, or contention.
+5. Whether the difference has **practical significance** for the product.
 
-**Không kết luận chỉ từ một Score thấp hơn vài phần trăm** khi benchmark dao động mạnh. Sai số thống kê không bao phủ toàn bộ sai lệch có hệ thống từ workload không đại diện.
+**Never draw conclusions from a Score differing by a few percent** when the benchmark fluctuates widely. Statistical error margins do not capture systematic bias from an unrepresentative workload.
 
-## 16. So sánh Stream với vòng lặp: những điều phải giữ công bằng
+## 16. Comparing Streams with loops: keeping the comparison fair
 
-Một phép so sánh có giá trị phải giữ cùng:
+A valid comparison must keep identical:
 
-| Thành phần | Ví dụ kiểm tra |
+| Aspect | Verification example |
 | --- | --- |
-| Nguồn | Cùng `int[]`; không so `ArrayList<Integer>` với `int[]` rồi gán mọi khác biệt cho API |
-| Số phần tử | Cùng kích thước và phân bố giá trị |
-| Công thức | Cùng điều kiện số chẵn, cùng kiểu `long` cho bình phương/tổng |
-| Kết quả quan sát | Cả hai trả cùng `long` hoặc tiêu thụ theo cách tương đương |
-| Thứ tự | Nếu nghiệp vụ cần thứ tự, cả hai giữ cùng ràng buộc |
-| Chuẩn bị dữ liệu | Cả hai dùng dữ liệu đã tạo trong `@Setup` |
-| Trạng thái | Không để một bên tái sử dụng cache còn bên kia làm mới cache ngoài ý muốn |
-| JVM | Cùng JDK/vendor/JVM flags, heap, GC |
-| Môi trường | Cùng phần cứng, tải nền và chính sách CPU |
-| Cấu hình JMH | Cùng warmup, measurement, fork, thread và mode |
+| Source | Same `int[]`; do not compare `ArrayList<Integer>` against `int[]` and blame everything on the API |
+| Element count | Same size and value distribution |
+| Formula | Same even check, same `long` arithmetic for squares/sums |
+| Observed output | Both return the same `long` or consume equivalently |
+| Ordering | If business rules require order, both enforce the same constraint |
+| Data setup | Both use data prepared in `@Setup` |
+| State | Do not let one variant hit a warm cache while the other cold-misses unintentionally |
+| JVM | Same JDK/vendor/JVM flags, heap, and GC |
+| Environment | Same hardware, background load, and CPU governor |
+| JMH config | Same warmup, measurement, forks, threads, and mode |
 
-### 16.1. Boxing là một biến thực nghiệm, không phải chi phí bắt buộc của mọi Stream
+### 16.1. Boxing is an experimental variable, not mandatory for every Stream
 
-So sánh:
+Compare:
 
 ```java
-// Primitive path: IntStream -> LongStream, tránh boxing trong phần chính.
+// Primitive path: IntStream -> LongStream, avoiding boxing in the core loop.
 long primitiveSum = Arrays.stream(data)
     .filter(v -> (v & 1) == 0)
     .mapToLong(v -> (long) v * v)
     .sum();
 ```
 
-với:
+with:
 
 ```java
-// Object path: boxing, tạo Stream<Integer>.
+// Object path: boxing, creating Stream<Integer>.
 long boxedSum = Arrays.stream(data)
     .boxed()
     .filter(v -> (v & 1) == 0)
@@ -771,11 +771,11 @@ long boxedSum = Arrays.stream(data)
     .sum();
 ```
 
-Hai pipeline có thể cho cùng giá trị nhưng khác chi phí cấp phát và tối ưu. Nếu câu hỏi là “`IntStream` so với vòng lặp”, dùng primitive Stream. Nếu câu hỏi là “boxing ảnh hưởng thế nào?”, đây mới là hai phương án cần benchmark riêng.
+Both pipelines compute the same value yet differ in allocation and optimization opportunities. If the question is “`IntStream` vs. loop”, use the primitive Stream. If the question is “how much does boxing cost?”, those two are the exact variants to benchmark separately.
 
-JIT có thể loại bớt một số cấp phát trong các tình huống nhất định; không được tự suy rằng mỗi phần tử chắc chắn cấp phát một `Integer` mới hoặc toàn bộ boxing đều biến mất. Dùng `-prof gc` và công cụ profiler phù hợp để tìm bằng chứng.
+The JIT can eliminate some allocations in specific situations; never assume every element definitely allocates a new `Integer` or that all boxing disappears. Use `-prof gc` and proper profilers for evidence.
 
-### 16.2. `collect(toList())` là công việc khác `sum()`
+### 16.2. `collect(toList())` is different work from `sum()`
 
 ```java
 var list = Arrays.stream(data)
@@ -784,45 +784,45 @@ var list = Arrays.stream(data)
     .toList();
 ```
 
-Pipeline này tạo **một collection kết quả**. Nó không thể được so với `forLoop()` chỉ trả `long total` rồi kết luận “collect chậm hơn vòng lặp”: hai chương trình **không cùng chức năng**.
+This pipeline builds **a result collection**. It cannot be compared against `forLoop()` returning just `long total` to conclude “collect is slower than a loop”: the two programs **do not perform the same function**.
 
-Nếu so sánh khả năng xây danh sách, cả nhánh vòng lặp và nhánh Stream đều phải trả một danh sách có cùng nội dung và chính sách thứ tự/mutability phù hợp với mục tiêu.
+If comparing list-building performance, both the loop branch and the Stream branch must return lists with identical elements and matching ordering/mutability contracts.
 
-## 17. Parallel Stream: điều gì phải đo thêm?
+## 17. Parallel Streams: what else must be measured?
 
-`parallel()` có thể giúp khi:
+`parallel()` can help when:
 
-- Nguồn đủ lớn và `Spliterator` chia việc hiệu quả.
-- Mỗi phần tử có đủ công việc tính toán độc lập.
-- Có nhiều tài nguyên CPU thực sự khả dụng.
-- Phép `reduce`/`collect` có cách kết hợp đúng và chi phí hợp lý.
-- Không có synchronized/atomic contention lớn hoặc ràng buộc thứ tự quá đắt.
+- The source is large enough and `Spliterator` splits work efficiently.
+- Each element has enough independent computation.
+- Multiple CPU cores are genuinely available.
+- `reduce`/`collect` combines accurately at reasonable cost.
+- There is no heavy synchronized/atomic contention or costly ordering constraint.
 
-Nhưng `parallel()` có thể **chậm hơn** vì:
+Yet `parallel()` can be **slower** because of:
 
-- Tạo và lập lịch các tác vụ song song.
-- Phân chia nguồn và gộp các kết quả từng phần.
-- Tranh chấp memory bandwidth/cache.
-- Ràng buộc encounter order (`forEachOrdered`, một số `limit`/`distinct`).
-- Các thao tác có trạng thái như `sorted`, cửa sổ hoặc grouping theo khóa nóng.
-- Các workload quá nhỏ so với overhead.
+- Creating and scheduling parallel tasks.
+- Splitting the source and merging partial results.
+- Memory bandwidth/cache contention.
+- Encounter order constraints (`forEachOrdered`, certain `limit`/`distinct` calls).
+- Stateful operations like `sorted`, windows, or grouping on hot keys.
+- Workloads too small relative to overhead.
 
-### 17.1. `-t 1` không biến `parallelStream()` thành tuần tự
+### 17.1. `-t 1` does not make `parallelStream()` sequential
 
-Trong lệnh JMH, `-t 1` xác định **một JMH worker thread gọi benchmark** tại một thời điểm. Bên trong phương thức đó, `parallelStream()` vẫn có thể sử dụng nhiều tác vụ/worker theo runtime.
+In JMH CLI flags, `-t 1` sets **one JMH worker thread calling the benchmark** at a time. Inside that method, `parallelStream()` can still use multiple runtime worker tasks.
 
-Vì vậy cần nhìn:
+Thus inspect:
 
-- **Bậc song song nội bộ của Stream**.
-- **Số lời gọi benchmark diễn ra đồng thời do JMH**.
-- **Số core CPU khả dụng** và tải nền.
-- Có workload khác cùng tranh tài nguyên hay không.
+- **Internal parallelism of the Stream**.
+- **Concurrent benchmark calls launched by JMH**.
+- **Available CPU cores** and background load.
+- Whether other workloads compete for resources.
 
-Nếu đo throughput của dịch vụ có nhiều request đồng thời, nên có thí nghiệm riêng với nhiều JMH worker và mô hình concurrency đúng. Đừng dùng kết quả một worker để kết luận tất cả tình huống tải nhiều người dùng.
+If measuring service throughput across many concurrent requests, design a separate experiment with multiple JMH workers and an accurate concurrency model. Never extrapolate single-worker results to all multi-user load scenarios.
 
-### 17.2. Không dùng shared mutable accumulator để “làm nhanh”
+### 17.2. Never use a shared mutable accumulator to “go faster”
 
-Ví dụ sai:
+Wrong example:
 
 ```java
 import java.util.ArrayList;
@@ -833,137 +833,137 @@ List<Integer> shared = new ArrayList<>();
 Arrays.stream(data)
     .parallel()
     .filter(v -> (v & 1) == 0)
-    .forEach(shared::add); // Không thread-safe!
+    .forEach(shared::add); // Not thread-safe!
 ```
 
-Đoạn này có thể mất phần tử hoặc hỏng trạng thái. Một benchmark chạy nhanh do **không bảo đảm tính đúng** không phải kết quả đáng tin.
+This can lose elements or corrupt state. A benchmark that runs fast by **violating correctness** is not a credible result.
 
-Dùng một terminal operation/collector được thiết kế đúng, ví dụ `toArray`, `sum` hoặc `collect`; nếu cần cấu trúc concurrent, xác định rõ hợp đồng và đo contention.
+Use a properly designed terminal operation/collector such as `toArray`, `sum`, or `collect`; if a concurrent structure is needed, specify its contract clearly and measure contention.
 
-## 18. `Spliterator` và hình dạng nguồn tác động hiệu năng
+## 18. `Spliterator` and source shape affect performance
 
-Stream API không tự đảm bảo mọi nguồn có thể chia hiệu quả. Một phần đáng kể khả năng xử lý song song dựa vào `Spliterator`:
+The Stream API does not guarantee every source splits efficiently. Much of parallel performance rests on `Spliterator`:
 
-- `trySplit()` có thể tách phần tử thành các phần độc lập.
-- `SIZED` cho phép biết kích thước ước lượng chính xác theo hợp đồng.
-- `SUBSIZED` nói rằng các Spliterator con vẫn đáp ứng hợp đồng kích thước.
-- `ORDERED` quy định encounter order; bảo toàn thứ tự có thể làm tăng điều phối.
-- `CONCURRENT` có ý nghĩa riêng về khả năng nguồn bị sửa đồng thời.
+- `trySplit()` can divide elements into independent chunks.
+- `SIZED` provides an exact size estimate under contract.
+- `SUBSIZED` means child Spliterators also honor size contracts.
+- `ORDERED` defines encounter order; preserving order can increase coordination.
+- `CONCURRENT` carries specific guarantees regarding concurrent source modification.
 
-Khi benchmark `List.stream().parallel()` với một nguồn `StreamSupport.stream(customSpliterator, true)`, có thể đang so sánh **đặc điểm Spliterator** chứ không đơn thuần so sánh lambdas.
+When benchmarking `List.stream().parallel()` against `StreamSupport.stream(customSpliterator, true)`, you may be comparing **Spliterator characteristics** rather than just lambdas.
 
-### 18.1. Benchmark nguồn và pipeline riêng khi cần
+### 18.1. Benchmark source and pipeline separately when needed
 
-Nếu mục tiêu là hiệu năng **chuyển đổi dữ liệu** trên một nguồn đã có sẵn, chuẩn bị nguồn trước và giữ cách tạo Stream phù hợp. Nếu mục tiêu là hiệu năng **đọc nguồn I/O hoặc sinh dữ liệu**, bài toán đã khác, cần benchmark bao gồm chi phí nguồn.
+If the goal is **data transformation performance** on an existing source, prepare the source beforehand and keep stream creation uniform. If the goal is **I/O reading or data generation performance**, that is a different problem requiring source costs inside the benchmark.
 
-Đừng sắp xếp dữ liệu ở một nhánh rồi không sắp xếp ở nhánh còn lại trừ khi đó chính là biến muốn thử.
+Never sort data in one branch and leave it unsorted in the other unless sorting is the variable under test.
 
-## 19. Phân biệt allocation, heap usage và memory leak
+## 19. Distinguishing allocation, heap usage, and memory leaks
 
-Trong Java, ba câu hỏi khác nhau thường bị gộp thành “tốn bộ nhớ”:
+In Java, three distinct questions are often lumped into “uses lots of memory”:
 
-| Câu hỏi | Chỉ số/phương pháp phù hợp |
+| Question | Appropriate metric/method |
 | --- | --- |
-| Mỗi invocation cấp phát bao nhiêu byte mới? | JMH `-prof gc`, nhất là `gc.alloc.rate.norm` |
-| Sau GC, bao nhiêu object vẫn còn được giữ? | Heap profiling, heap dump, retained size |
-| Qua nhiều giờ, bộ nhớ tiến triển thế nào? | Application monitoring, GC logs, long-running tests |
+| How many new bytes does each invocation allocate? | JMH `-prof gc`, especially `gc.alloc.rate.norm` |
+| After GC, how many objects remain alive? | Heap profiling, heap dump, retained size |
+| Over many hours, how does memory evolve? | Application monitoring, GC logs, long-running soak tests |
 
-Ví dụ `windowSliding(k)` tạo danh sách cửa sổ và `toList` giữ mọi cửa sổ có thể khiến lượng object còn sống tăng theo `N` và `k`; một custom Gatherer tính tổng trượt có thể giữ ít dữ liệu hơn. Nhưng JMH microbenchmark chỉ chạy trong một phạm vi xác định và **không thể tự chứng minh hoặc bác bỏ memory leak của hệ thống lâu dài**.
+For example, `windowSliding(k)` creating window lists and `toList` keeping every window can scale live objects with `N` and `k`; a custom Gatherer computing a sliding sum can retain far less data. Yet a JMH microbenchmark runs within a bounded window and **cannot by itself prove or disprove a long-term system memory leak**.
 
-### 19.1. Một kết quả cấp phát bằng 0 không có nghĩa “không bao giờ tốn bộ nhớ”
+### 19.1. Zero allocation in a measurement does not mean “never uses memory”
 
-Nếu `gc.alloc.rate.norm` rất thấp hoặc bằng 0 trong phép đo, có thể do tối ưu bỏ cấp phát, escape analysis, hoặc một đặc tính cụ thể của workload. Cần xác nhận benchmark còn thực hiện đúng công việc và kết quả có được tiêu thụ không.
+If `gc.alloc.rate.norm` is tiny or zero in a run, it may stem from allocation elimination, escape analysis, or a special workload property. Confirm the benchmark still performs the real work and consumes the result.
 
-Một class `record`, lambda hoặc Stream object không nhất thiết tương ứng một allocation sống lâu; JVM được phép tối ưu nếu ngữ nghĩa cho phép. Ngược lại, số phần tử lớn, boxing và materialization có thể làm allocation tăng mạnh.
+A `record`, lambda, or Stream object does not necessarily become a long-lived allocation; the JVM may optimize it away when semantics allow. Conversely, large element counts, boxing, and materialization can push allocations up sharply.
 
-## 20. Benchmark mức thao tác và benchmark mức hệ thống
+## 20. Operation-level benchmarks vs. system-level benchmarks
 
-Không nên dùng JMH để trả lời mọi câu hỏi hiệu năng.
+Do not use JMH to answer every performance question.
 
-| Câu hỏi | Phương pháp |
+| Question | Method |
 | --- | --- |
-| `IntStream` có nhanh hơn một vòng lặp trong phép tổng mảng này? | JMH microbenchmark |
-| `groupingBy` hay `groupingByConcurrent` nhanh hơn với phân bố khóa này? | JMH workload đại diện, kiểm tra đúng result |
-| Công cụ đọc file log và tạo báo cáo mất bao lâu? | Benchmark luồng xử lý thật, đo I/O và GC |
-| API xử lý 10.000 request/phút có ổn định không? | Load test/service benchmark |
-| P99 latency của giao dịch có bị ảnh hưởng do contention? | Load test, tracing, profiler, metrics |
-| Có memory leak sau hai ngày chạy không? | Soak test, heap analysis, GC monitoring |
+| Is `IntStream` faster than a loop for summing this array? | JMH microbenchmark |
+| Is `groupingBy` or `groupingByConcurrent` faster for this key distribution? | JMH with representative workload, verifying output correctness |
+| How long does the log-reading tool take to generate a report? | Realistic end-to-end pipeline benchmark measuring I/O and GC |
+| Does the API stay stable at 10,000 requests/minute? | Load test / service benchmark |
+| Is transaction P99 latency hurt by contention? | Load test, tracing, profilers, metrics |
+| Is there a memory leak after two days of uptime? | Soak test, heap analysis, GC monitoring |
 
-JMH thường là **một tầng bằng chứng**, hữu ích để thu hẹp nguyên nhân và xác định lựa chọn thuật toán. Quyết định tối ưu hệ thống cần thêm chỉ số ở cấp workload cuối cùng.
+JMH is usually **one layer of evidence**, helpful for narrowing down causes and algorithm choices. System optimization decisions also need metrics on the end-to-end workload.
 
-### 20.1. Cẩn trọng với benchmark I/O
+### 20.1. Be careful with I/O benchmarks
 
-Nếu benchmark đọc `Files.lines(path)`, kết quả phụ thuộc cache hệ điều hành, filesystem, tốc độ đĩa, dữ liệu tệp và cách đóng stream.
+If a benchmark reads `Files.lines(path)`, results depend on OS page cache, filesystem, disk speed, file contents, and stream closing.
 
-Nếu muốn đo **chi phí xử lý chuỗi đã có trong bộ nhớ**, hãy chuẩn bị `List<String>` trong `@Setup`. Nếu muốn đo **pipeline đọc và xử lý tệp thực**, hãy bao gồm `Files.lines` và `try-with-resources` trong đúng phạm vi công việc được đo. Hai thí nghiệm này không được nhập làm một.
+To measure **in-memory string processing cost**, prepare `List<String>` in `@Setup`. To measure **actual file reading and processing**, include `Files.lines` and `try-with-resources` inside the measured scope. Never conflate these two experiments into one.
 
-## 21. Thiết kế một thí nghiệm Stream có thể kiểm chứng
+## 21. Designing a verifiable Stream experiment
 
-Một quy trình thực tế:
+A practical workflow:
 
-### Bước 1 — Phát biểu giả thuyết có thể bác bỏ
+### Step 1 — State a falsifiable hypothesis
 
-Ví dụ: “Trên dữ liệu một triệu `int`, một `IntStream` tuần tự sẽ có độ trễ khác vòng lặp ở mức đủ lớn để đo được, còn parallel Stream phụ thuộc số core và overhead chia việc.”
+Example: “On one million `int`s, a sequential `IntStream` will have measurably different latency from a loop, while parallel Stream speed depends on core count and splitting overhead.”
 
-Đây là câu hỏi để **đo**, chưa phải kết luận.
+That is a question to **measure**, not a foregone conclusion.
 
-### Bước 2 — Viết thuật toán đúng trước
+### Step 2 — Write a correct algorithm first
 
-Kiểm thử trên đầu vào nhỏ, rỗng, âm, gần giới hạn kiểu số, phân bố chẵn/lẻ khác nhau. Đảm bảo cả ba phương án tính cùng hàm toán học.
+Test on small, empty, negative, boundary-value, and varied even/odd distributions. Ensure all variants compute the exact same mathematical function.
 
-### Bước 3 — Kiểm soát dữ liệu và trạng thái
+### Step 3 — Control data and state
 
-Dùng `@Param` cho `size`, `@Setup(Level.Trial)` tạo dữ liệu, tránh mutation giữa invocation trừ khi đó là mục tiêu đo.
+Use `@Param` for `size`, `@Setup(Level.Trial)` to build data, and avoid cross-invocation mutation unless mutation is what you are testing.
 
-### Bước 4 — Chống DCE và constant folding
+### Step 4 — Prevent DCE and constant folding
 
-Trả về kết quả thật từ `@Benchmark`, hoặc dùng `Blackhole.consume` khi cần. Không tạo pipeline lazy rồi không có terminal operation.
+Return the real result from `@Benchmark`, or use `Blackhole.consume` when needed. Never build a lazy pipeline without a terminal operation.
 
-### Bước 5 — Cấu hình warmup, measurement và fork
+### Step 5 — Configure warmup, measurement, and forks
 
-Chọn cấu hình đo đủ dài để bớt nhiễu, sau đó kiểm tra dao động giữa fork. Ghi lệnh CLI và các lựa chọn JVM.
+Pick run lengths long enough to reduce noise, then inspect variance across forks. Record CLI commands and JVM options.
 
-### Bước 6 — Đọc đúng đơn vị và độ bất định
+### Step 6 — Read units and uncertainty accurately
 
-Phân biệt `us/op` với `ops/s`, xem Error, raw iteration và mức chênh lặp lại. Không suy ra tốc độ mỗi phần tử nếu một invocation gồm nhiều phần tử mà chưa quy đổi.
+Distinguish `us/op` from `ops/s`, inspect Error, raw iterations, and repeatability across runs. Never report per-element speed for a multi-element invocation without explicit conversion.
 
-### Bước 7 — Đo thêm allocation và contention
+### Step 7 — Measure allocations and contention too
 
-Dùng `-prof gc`, CPU/heap profiler hoặc công cụ hệ thống phù hợp. Nếu một phương án nhanh hơn nhưng cấp phát hoặc tranh tài nguyên lớn hơn, cần xem mức ưu tiên của hệ thống.
+Use `-prof gc`, CPU/heap profilers, or system tools. If one variant is faster yet allocates far more or contends heavily, weigh system priorities.
 
-### Bước 8 — Kiểm tra trên workload thật
+### Step 8 — Validate on the real workload
 
-Một phép đo thuật toán nhanh hơn 10% có thể không làm dịch vụ nhanh hơn 10% nếu phần lớn thời gian nằm ở database hoặc network. Dùng profiling toàn hệ thống trước khi tối ưu quá mức.
+A 10% speedup on an algorithm microbenchmark may not speed up the service by 10% if most time sits in database or network calls. Use whole-system profiling before over-optimizing.
 
-## 22. Các kiểu benchmark sai thường gặp
+## 22. Common benchmark mistakes
 
-| Sai lầm | Vì sao làm số đo không đáng tin | Cách sửa |
+| Mistake | Why it invalidates numbers | Fix |
 | --- | --- | --- |
-| Gọi `System.nanoTime()` một lần | JIT, GC và noise chi phối | Dùng JMH có warmup/iterations/forks |
-| Gọi `stream().map(...)` nhưng không có terminal | Pipeline lazy chưa thực hiện phép xử lý | Thêm terminal đúng nghiệp vụ và tiêu thụ kết quả |
-| Tính `sum()` nhưng bỏ kết quả | Có nguy cơ dead-code elimination | Trả về `long` hoặc `Blackhole.consume` |
-| Benchmark `Math.sqrt(144.0)` để kết luận tốc độ căn bậc hai chung | Constant folding | Dùng dữ liệu runtime có kiểm soát |
-| Mỗi invocation tạo bộ dữ liệu mới trong một nhánh | Đo cả allocation mà nhánh kia không có | Dùng `@Setup` hoặc thiết kế benchmark riêng |
-| Đo phép tính chỉ vài ns kèm `println` | Đo I/O và synchronization | Không in trong benchmark |
-| Dùng một fork rồi kết luận tuyệt đối | Phụ thuộc một trạng thái JIT | Chạy nhiều fork nếu phép đo quan trọng |
-| Warmup bằng 0 rồi gọi kết quả “steady state” | JIT chưa ổn định | Warmup phù hợp; cold start đo riêng |
-| Cho Stream dùng `int[]` còn vòng lặp dùng `List<Integer>` | Khác nguồn/boxing/cache | Giữ cùng nguồn khi so sánh API |
-| Một nhánh dùng `collect(toList())`, nhánh kia tính tổng | Công việc không tương đương | Đo hai chức năng như hai câu hỏi khác |
-| Tăng `-t` nhưng không xét `parallelStream` đã có worker nội bộ | Oversubscription/contending CPU | Phân biệt threads JMH và mức song song Stream |
-| Dùng `ArrayList` chung trong `parallel().forEach` | Data race, kết quả sai | Dùng terminal/collector an toàn |
-| `@State(Scope.Benchmark)` chia sẻ mutable state vô tình | Đo contention ngoài ý muốn | Chọn Scope phù hợp |
-| Benchmark sửa source qua nhiều invocation | Workload đổi dần qua thời gian | Dùng input bất biến hoặc reset đúng |
-| Không kiểm thử kết quả | Có thể đo thuật toán sai nhanh hơn | Test trước khi benchmark |
-| So Score khi units khác nhau | Không cùng đại lượng | Chuẩn hóa mode, đơn vị và workload |
-| Chỉ nhìn Score, bỏ Error và fork | Dễ kết luận từ nhiễu | Xem phân bố và chạy lại |
-| Gọi allocation thấp là “không có leak” | Nhầm cấp phát với retained heap | Heap profiling/soak test |
-| Kết luận JMH nhanh hơn tương đương hệ thống nhanh hơn | Microbenchmark bỏ qua các bottleneck khác | Xác nhận bằng benchmark/load test tổng thể |
+| Calling `System.nanoTime()` once | Dominated by JIT, GC, and noise | Use JMH with warmup/iterations/forks |
+| Calling `stream().map(...)` with no terminal operation | Lazy pipeline never runs processing | Add the intended terminal operation and consume output |
+| Computing `sum()` and discarding the result | Risks dead-code elimination | Return `long` or use `Blackhole.consume` |
+| Benchmarking `Math.sqrt(144.0)` for general sqrt speed | Constant folding | Use controlled runtime inputs |
+| Rebuilding inputs inside every invocation in one branch | Measures allocation absent from the other branch | Use `@Setup` or separate benchmarks |
+| Timing a few-ns op with `println` | Measures I/O and synchronization | Never print inside benchmarks |
+| Using one fork to draw absolute conclusions | Tied to a single JIT state | Run multiple forks for important measurements |
+| Zero warmup called “steady state” | JIT has not stabilized | Warm up properly; measure cold start separately |
+| Giving Stream `int[]` and loop `List<Integer>` | Mixes source/boxing/cache differences | Keep identical sources when comparing APIs |
+| One branch calls `collect(toList())`, the other sums | Non-equivalent work | Measure two distinct functions separately |
+| Increasing `-t` without accounting for `parallelStream` workers | CPU oversubscription/contention | Separate JMH threads from Stream parallelism |
+| Using shared `ArrayList` in `parallel().forEach` | Data race, wrong results | Use thread-safe terminals/collectors |
+| Accidentally sharing mutable `@State(Scope.Benchmark)` | Measures unintended contention | Choose the right Scope |
+| Mutating source across invocations | Workload changes over time | Use immutable inputs or proper resets |
+| Skipping correctness tests | May benchmark a faster buggy algorithm | Test before benchmarking |
+| Comparing Scores with mismatched units | Incomparable quantities | Standardize mode, unit, and workload |
+| Looking only at Score, ignoring Error and forks | Easy to mistake noise for signal | Inspect distributions and re-run |
+| Calling low allocation “no memory leak” | Confuses allocation with retained heap | Heap profiling / soak tests |
+| Concluding faster JMH equals faster system | Microbenchmarks omit other bottlenecks | Validate with system benchmarks / load tests |
 
-## 23. Bài tập thực hành
+## 23. Practice exercises
 
-### Bài 1 — Nhận diện lỗi DCE
+### Exercise 1 — Spot the DCE bug
 
-Một benchmark có nội dung:
+A benchmark has:
 
 ```java
 @Benchmark
@@ -972,11 +972,11 @@ public void ignored() {
 }
 ```
 
-Giải thích hai rủi ro: bỏ giá trị `total` và việc compiler có thể loại bỏ tính toán. Viết lại phương thức trả `long` và một phiên bản dùng `Blackhole`.
+Explain two risks: discarding `total` and the compiler potentially eliminating the computation. Rewrite the method returning `long` and also write a `Blackhole` version.
 
-### Bài 2 — Phân biệt lazy pipeline với tính toán đã thực hiện
+### Exercise 2 — Distinguish a lazy pipeline from executed work
 
-So sánh:
+Compare:
 
 ```java
 @Benchmark
@@ -985,7 +985,7 @@ public void buildOnly() {
 }
 ```
 
-với:
+with:
 
 ```java
 @Benchmark
@@ -997,90 +997,90 @@ public long withTerminal() {
 }
 ```
 
-Bài nào thật sự mô tả việc tính tổng bình phương của các phần tử dương? Vì sao không được gọi đây là hai implementation tương đương?
+Which actually models summing squares of positive elements? Why cannot these be called two equivalent implementations?
 
-### Bài 3 — Thiết kế warmup/fork
+### Exercise 3 — Designing warmup and forks
 
-Đề xuất cấu hình warmup, measurement và fork cho một phép tính có thời gian khoảng microsecond/invocation. Nêu tại sao phải xem tính ổn định kết quả trước khi kết luận, thay vì coi một cấu hình cố định là luôn đúng.
+Propose a warmup, measurement, and fork configuration for an operation taking around microseconds per invocation. Explain why you must inspect result stability before concluding rather than trusting fixed magic numbers.
 
-### Bài 4 — Chạy nhiều kích thước dữ liệu
+### Exercise 4 — Sweeping data sizes
 
-Bổ sung `@Param({"100", "1000", "100000", "1000000"})` vào benchmark. Phân tích dự đoán về tỷ lệ overhead cố định của Stream khi `N` nhỏ, và kiểm tra dự đoán bằng đo thực tế.
+Add `@Param({"100", "1000", "100000", "1000000"})` to a benchmark. Predict how Stream's fixed setup overhead ratio behaves when `N` is small, and test your prediction with actual measurements.
 
-### Bài 5 — So sánh primitive Stream và boxed Stream
+### Exercise 5 — Comparing primitive vs. boxed Streams
 
-Viết hai benchmark cùng tính tổng bình phương số chẵn: một dùng `Arrays.stream(data)` trực tiếp, một dùng `boxed()`. Mỗi benchmark trả cùng `long`. Dùng `-prof gc` để xem có sự khác biệt trong allocation không.
+Write two benchmarks computing the sum of squares of even numbers: one using `Arrays.stream(data)` directly, one using `boxed()`. Both return the same `long`. Use `-prof gc` to check whether allocations differ.
 
-### Bài 6 — Thay `sum()` bằng `collect()` có công bằng không?
+### Exercise 6 — Is replacing `sum()` with `collect()` fair?
 
-Một người so sánh `IntStream.sum()` với `Stream<Integer>.collect(toList())` rồi kết luận rằng collect kém hiệu quả. Chỉ ra sự khác biệt về **đầu ra cần tạo** và thiết kế một phép so sánh công bằng hơn.
+Someone compares `IntStream.sum()` against `Stream<Integer>.collect(toList())` and concludes `collect` is inefficient. Point out the difference in **required output** and design a fairer comparison.
 
-### Bài 7 — Đọc kết quả JMH giả định
+### Exercise 7 — Reading hypothetical JMH results
 
-Hai phép đo **giả định** có điểm:
+Two **hypothetical** measurements score:
 
 ```text
 A: 100 ± 15 us/op
 B: 105 ± 16 us/op
 ```
 
-Có thể kết luận B chậm hơn A chắc chắn không? Cần xem thêm những thông tin nào (fork, iteration, workload, environment) trước khi đề xuất thay đổi production?
+Can you conclude with certainty that B is slower than A? What additional details (forks, iterations, workload, environment) should you check before proposing a production change?
 
-### Bài 8 — Đo `parallel()` trên dữ liệu nhỏ và lớn
+### Exercise 8 — Measuring `parallel()` on small and large inputs
 
-Với mảng `int[]` gồm 1.000 và 1.000.000 phần tử, chạy benchmark sequential và parallel. Trình bày lý do vì sao kết quả có thể đảo chiều theo kích thước; giải thích vai trò Spliterator, điều phối task và băng thông bộ nhớ.
+For `int[]` arrays of 1,000 and 1,000,000 elements, benchmark sequential and parallel runs. Explain why results can invert with size; discuss Spliterator roles, task coordination, and memory bandwidth.
 
-### Bài 9 — Mục tiêu là throughput nhiều request
+### Exercise 9 — Multi-request throughput goal
 
-Nếu hệ thống có 32 request đồng thời, liệu `-t 1` có phản ánh đúng điều kiện tải không? Đề xuất benchmark bổ sung với nhiều JMH workers, nói rõ dữ liệu có được chia sẻ hay không và cân nhắc oversubscription từ parallel Stream.
+If a system serves 32 concurrent requests, does `-t 1` reflect real load conditions? Propose a follow-up benchmark with multiple JMH workers, specifying whether data is shared and considering parallel Stream oversubscription.
 
-### Bài 10 — Phân biệt allocation và memory leak
+### Exercise 10 — Distinguishing allocation from memory leaks
 
-Một báo cáo có `gc.alloc.rate.norm` cao nhưng heap sau GC ổn định. Có đủ chứng cứ kết luận ứng dụng rò rỉ bộ nhớ không? Cần thêm loại thí nghiệm hoặc số liệu nào?
+A report shows high `gc.alloc.rate.norm` while post-GC heap remains flat. Is that enough evidence to conclude a memory leak? What additional tests or metrics are needed?
 
-### Bài 11 — Giữ kết quả kiểm chứng được
+### Exercise 11 — Keeping results verifiable
 
-Tạo một hàm Java 17 thuần có đầu vào `int[]`, trả tổng bình phương số chẵn. Viết test đơn giản trên `[1,2,3,4,5]` mong `20L`. Dùng chính hàm đó hoặc cùng quy tắc trong JMH để kiểm chứng hai phiên bản Stream/loop trả cùng kết quả.
+Write a pure Java 17 function taking `int[]` and returning the sum of squares of even numbers. Write a simple test on `[1,2,3,4,5]` expecting `20L`. Use that same function or rule in JMH to verify Stream and loop variants return identical results.
 
-### Bài 12 — Thiết kế benchmark cho `groupingBy`
+### Exercise 12 — Designing a benchmark for `groupingBy`
 
-Cho một triệu giao dịch và các khóa vùng phân bố không đều. Đề xuất benchmark so sánh `groupingBy` với `groupingByConcurrent` và cả hai trong pipeline parallel. Cần kiểm tra điều gì về tính đúng, số khóa nóng, thứ tự, chi phí merge và contention?
+Given one million transactions with skewed region keys, propose a benchmark comparing `groupingBy` and `groupingByConcurrent`, including both in parallel pipelines. What must you verify regarding correctness, hot keys, order, merge cost, and contention?
 
-### Bài 13 — Benchmark đọc tệp
+### Exercise 13 — File-reading benchmarks
 
-Một benchmark tạo `Files.lines(path)` và đọc tệp đã nằm trong cache OS. Liệu kết quả này có đại diện cho một máy chủ đọc tệp lạnh từ đĩa thật không? Hãy tách các câu hỏi: xử lý chuỗi trong bộ nhớ, đọc từ page cache, đọc qua thiết bị thực.
+A benchmark calls `Files.lines(path)` on a file already cached in the OS. Does this represent a server reading cold files from physical disk? Separate the questions: in-memory string processing, reading from page cache, and reading from actual storage hardware.
 
-## 24. Câu hỏi tự kiểm tra kiến thức
+## 24. Self-check knowledge questions
 
-- Tại sao phép đo một lần bằng `System.nanoTime()` khó đáng tin cho JIT?
-- Khác nhau giữa warmup, measurement iteration và fork JVM là gì?
-- Fork có giống tăng số thread `-t` không?
-- Tại sao warmup không tự sửa được một benchmark bị DCE?
-- `@Benchmark` cần trả về kết quả khi nào?
-- `Blackhole.consume` bảo vệ điều gì và có hạn chế nào?
-- Vì sao việc gọi `stream().map(...)` mà không có terminal không đo phép biến đổi toàn bộ nguồn?
-- Constant folding có thể làm sai ý định của phép đo bằng cách nào?
-- Vai trò của `@State`, `@Param` và `@Setup(Level.Trial)` là gì?
-- Khi nào dùng `Scope.Thread`, khi nào dùng `Scope.Benchmark`?
-- Trong JMH, một `op` là một phần tử Stream hay một invocation?
-- `avgt` và `thrpt` khác nhau như thế nào? Score tốt hơn theo hướng nào?
-- Vì sao phải xét `Error` và kết quả nhiều fork?
-- Cách so sánh `IntStream` với vòng lặp để tránh khác biệt nguồn/boxing là gì?
-- `-prof gc` giúp nhìn allocation như thế nào? Vì sao không đủ kết luận leak?
-- Vì sao `parallelStream()` có thể chậm hơn tuần tự?
-- Việc thêm `-t 1` có làm code `parallel()` chạy tuần tự không?
-- Khi nào một benchmark Stream nhỏ không đủ bằng chứng để tối ưu toàn bộ dịch vụ?
-- Tại sao phải kiểm thử tính đúng trước khi đo hiệu năng?
+- Why is a single `System.nanoTime()` timing unreliable under JIT compilation?
+- What is the difference between warmup iterations, measurement iterations, and JVM forks?
+- Is increasing forks the same as increasing thread count `-t`?
+- Why can warmup not automatically fix a benchmark broken by DCE?
+- When should a `@Benchmark` return its result?
+- What does `Blackhole.consume` protect against and what are its limits?
+- Why does calling `stream().map(...)` without a terminal operation fail to measure full-source transformation?
+- How can constant folding distort a measurement's intent?
+- What are the roles of `@State`, `@Param`, and `@Setup(Level.Trial)`?
+- When do you use `Scope.Thread` vs. `Scope.Benchmark`?
+- In JMH, is one `op` one Stream element or one method invocation?
+- How do `avgt` and `thrpt` differ? Which direction is better for each?
+- Why inspect `Error` and multi-fork results?
+- How do you compare `IntStream` with a loop without mixing source/boxing differences?
+- How does `-prof gc` reveal allocations, and why is it insufficient to prove a leak?
+- Why can `parallelStream()` be slower than sequential execution?
+- Does `-t 1` force `parallel()` code to run sequentially?
+- When is a small Stream microbenchmark insufficient evidence to optimize an entire service?
+- Why verify correctness before measuring performance?
 
-## 25. Tài liệu tham khảo
+## 25. References
 
-- [OpenJDK — JMH](https://github.com/openjdk/jmh): mã nguồn, hướng dẫn sử dụng harness, Maven archetype và các tùy chọn chạy.
-- [JMH Samples](https://github.com/openjdk/jmh/tree/master/jmh-samples/src/main/java/org/openjdk/jmh/samples): ví dụ chính thức về dead-code elimination, Blackhole, state, forks, warmup, benchmark modes và measurement.
-- [JMH `JMHSample_08_DeadCode`](https://github.com/openjdk/jmh/blob/master/jmh-samples/src/main/java/org/openjdk/jmh/samples/JMHSample_08_DeadCode.java): minh họa giá trị không dùng có thể bị JIT loại bỏ.
-- [JMH `JMHSample_09_Blackholes`](https://github.com/openjdk/jmh/blob/master/jmh-samples/src/main/java/org/openjdk/jmh/samples/JMHSample_09_Blackholes.java): minh họa kết quả trả về và Blackhole.
-- [JMH `JMHSample_10_ConstantFold`](https://github.com/openjdk/jmh/blob/master/jmh-samples/src/main/java/org/openjdk/jmh/samples/JMHSample_10_ConstantFold.java): minh họa constant folding.
-- [Java SE 17 — `Stream`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/stream/Stream.html): tính lazy, đặc tính pipeline, side effect và các terminal operation.
-- [Java SE 17 — `IntStream`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/stream/IntStream.html): xử lý primitive và các terminal operation `sum`, `average`, `summaryStatistics`.
-- [Java SE 17 — `Spliterator`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Spliterator.html): cơ chế chia nguồn và characteristic phục vụ parallel Stream.
+- [OpenJDK — JMH](https://github.com/openjdk/jmh): source code, harness usage guide, Maven archetypes, and runner options.
+- [JMH Samples](https://github.com/openjdk/jmh/tree/master/jmh-samples/src/main/java/org/openjdk/jmh/samples): official examples on dead-code elimination, Blackhole, state, forks, warmup, benchmark modes, and measurement.
+- [JMH `JMHSample_08_DeadCode`](https://github.com/openjdk/jmh/blob/master/jmh-samples/src/main/java/org/openjdk/jmh/samples/JMHSample_08_DeadCode.java): demonstrates how unused values can be eliminated by the JIT.
+- [JMH `JMHSample_09_Blackholes`](https://github.com/openjdk/jmh/blob/master/jmh-samples/src/main/java/org/openjdk/jmh/samples/JMHSample_09_Blackholes.java): demonstrates return values and Blackhole consumption.
+- [JMH `JMHSample_10_ConstantFold`](https://github.com/openjdk/jmh/blob/master/jmh-samples/src/main/java/org/openjdk/jmh/samples/JMHSample_10_ConstantFold.java): demonstrates constant folding.
+- [Java SE 17 — `Stream`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/stream/Stream.html): laziness, pipeline characteristics, side effects, and terminal operations.
+- [Java SE 17 — `IntStream`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/stream/IntStream.html): primitive processing and terminal operations `sum`, `average`, `summaryStatistics`.
+- [Java SE 17 — `Spliterator`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Spliterator.html): splitting mechanics and characteristics supporting parallel Streams.
 
-**Ghi nhớ:** Một phép đo JMH tốt phải **đo đúng công việc**, **giữ kết quả quan sát được**, **cho JVM warmup**, **lặp lại trên nhiều iteration và fork**, và **giữ cùng điều kiện so sánh**. Với Java Stream API, đặc biệt phải nhớ **intermediate operation là lazy**, `map`/`filter` không tự chạy khi thiếu terminal, boxing/`collect` có thể đổi workload, và `parallel()` có overhead. Trả kết quả hoặc dùng `Blackhole` để chống DCE, đọc đúng `Score/Error/Units`, kiểm tra allocation/GC khi cần và chỉ dùng microbenchmark như một nguồn bằng chứng cho quyết định hiệu năng.
+**Key takeaway:** A solid JMH benchmark must **measure the right work**, **keep results observable**, **warm up the JVM**, **repeat across multiple iterations and forks**, and **hold comparison conditions constant**. With the Java Stream API, especially remember that **intermediate operations are lazy**, `map`/`filter` do not run without a terminal operation, boxing/`collect` change the workload, and `parallel()` carries overhead. Return results or use `Blackhole` to prevent DCE, read `Score/Error/Units` accurately, inspect allocations/GC when needed, and treat microbenchmarks as just one source of evidence for performance decisions.

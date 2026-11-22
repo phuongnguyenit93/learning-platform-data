@@ -1,11 +1,11 @@
-# Vì sao phép toán dấu phẩy động không bảo đảm tính kết hợp của số thực toán học trong Java
+# Why Floating-Point Arithmetic Does Not Guarantee Real-Number Associativity in Java
 
-> **Java core – numbers · Phép toán dấu phẩy động**  
-> **Mục tiêu:** Hiểu chính xác vì sao các phép cộng/nhân trên `float` và `double` có thể cho kết quả khác nhau khi đổi ngoặc; phân biệt tính kết hợp của đại số với cách nhóm cú pháp và thứ tự đánh giá trong Java; biết cách thiết kế phép tính tổng ổn định hơn, kiểm thử và xử lý sai số.
+> **Java core – numbers · Floating-Point Arithmetic**  
+> **Goal:** Understand precisely why addition/multiplication on `float` and `double` can yield different results when parentheses are moved; distinguish algebraic associativity from syntactic grouping and evaluation order in Java; know how to design more stable summations, test, and handle rounding error.
 
-## 1. Tính kết hợp trong toán học nói gì?
+## 1. What Does Associativity Mean in Mathematics?
 
-Với các số thực toán học và phép cộng, phép nhân chính xác, ta có:
+For mathematical real numbers with exact addition and multiplication, we have:
 
 \[
 (a+b)+c=a+(b+c)
@@ -14,26 +14,26 @@ Với các số thực toán học và phép cộng, phép nhân chính xác, ta
 (a\times b)\times c=a\times(b\times c)
 \]
 
-Đây là **tính kết hợp** (*associativity*). Nó cho phép đổi ngoặc trong một chuỗi cộng hoặc nhân số thực mà không đổi giá trị cuối cùng.
+This is **associativity**. It allows re-parenthesizing a chain of real-number additions or multiplications without changing the final value.
 
-Nhưng các giá trị `float` và `double` trong Java không phải tập số thực có độ chính xác vô hạn. Chúng lưu một **tập hữu hạn các mẫu bit** của chuẩn dấu phẩy động nhị phân IEEE 754. Sau nhiều phép toán, kết quả toán học phải **làm tròn** về một giá trị mà kiểu dữ liệu biểu diễn được.
+However, `float` and `double` values in Java are not an infinite-precision set of real numbers. They store a **finite set of bit patterns** in the IEEE 754 binary floating-point standard. After many operations, the mathematical result must be **rounded** to a value the data type can represent.
 
-Do đó các phép toán dấu phẩy động **không được bảo đảm có tính kết hợp như phép cộng và phép nhân trên tập số thực toán học**. Đây không phải lỗi Java hay lỗi CPU: việc tính trong miền có độ chính xác hữu hạn và làm tròn ở mỗi bước chính là nguồn gốc của sự khác biệt.
+Therefore, floating-point operations are **not guaranteed to be associative like addition and multiplication on mathematical real numbers**. This is not a Java bug or CPU bug: computing in finite precision and rounding at every step is the root cause of the difference.
 
-Điểm cần tránh: **phép trừ và phép chia trên số thực toán học vốn không có tính kết hợp**, nên các ví dụ `(a-b)-c` khác `a-(b-c)` không phải bằng chứng riêng về mất tính kết hợp do IEEE 754. Ta dùng **cộng** và **nhân** để minh họa hiện tượng đúng trọng tâm.
+Pitfall to avoid: **subtraction and division on mathematical real numbers are inherently non-associative**, so examples like `(a-b)-c` differing from `a-(b-c)` are not specific evidence of losing associativity due to IEEE 754. We use **addition** and **multiplication** to illustrate the phenomenon accurately.
 
-## 2. Mô hình đúng: cộng rồi làm tròn, không phải cộng số thực vô hạn
+## 2. The Right Model: Add Then Round, Not Infinite Real Addition
 
-Đối với phép toán `op`, có thể hình dung:
+For an operation `op`, we can picture:
 
 \[
 \mathrm{fl}(a\ \mathrm{op}\ b)
  = \mathrm{round}_{\mathrm{format}}(a\ \mathrm{op}\ b)
 \]
 
-Trong đó `fl` là kết quả được biểu diễn bằng `float` hoặc `double` sau khi phép toán được làm tròn. Với các phép cộng thông thường trên các giá trị hữu hạn, Java 17+ dùng ngữ nghĩa IEEE 754 xác định; chế độ làm tròn áp dụng cho các toán tử số học tiêu chuẩn là **làm tròn đến giá trị gần nhất, hòa thì chọn bit cuối chẵn** (*round to nearest, ties to even*).
+Where `fl` is the result represented in `float` or `double` after the operation is rounded. For ordinary operations on finite values, Java 17+ uses deterministic IEEE 754 semantics; the rounding mode applied to standard arithmetic operators is **round to nearest, ties to even**.
 
-Bởi vậy hai cách nhóm tính hai chuỗi làm tròn khác nhau:
+Consequently, two ways of grouping compute two different rounding sequences:
 
 \[
 \mathrm{fl}\big(\mathrm{fl}(a+b)+c\big)
@@ -42,20 +42,20 @@ Bởi vậy hai cách nhóm tính hai chuỗi làm tròn khác nhau:
 \mathrm{fl}\big(a+\mathrm{fl}(b+c)\big)
 \]
 
-Khi `fl(a+b)` hoặc `fl(b+c)` đã khác giá trị toán học chính xác, phép toán tiếp theo không thể tự khôi phục tất cả bit bị bỏ đi. Hai chuỗi có thể cho **hai kết quả cuối cùng khác nhau**, mặc dù cả hai biểu thức đều hợp lệ và tuân thủ Java.
+Once `fl(a+b)` or `fl(b+c)` already differs from the exact mathematical value, the next operation cannot automatically recover any discarded bits. The two chains can produce **two different final results**, even though both expressions are valid and conform to Java.
 
-### Độ chính xác hữu hạn
+### Finite Precision
 
-| Kiểu | Độ rộng | Bit chính xác hiệu dụng của số normal | Khoảng chữ số thập phân có nghĩa |
+| Type | Width | Effective Precision Bits (normal) | Approximate Significant Decimal Digits |
 | --- | ---: | ---: | --- |
-| `float` | 32 | 24 bit | Khoảng 6–9 |
-| `double` | 64 | 53 bit | Khoảng 15–17 |
+| `float` | 32 | 24 bits | About 6–9 |
+| `double` | 64 | 53 bits | About 15–17 |
 
-Các bit này không được phân bổ đồng đều trên trục số thực: khoảng cách giữa các giá trị biểu diễn được thường **lớn hơn khi độ lớn của số lớn hơn**. Từ đây nảy sinh hiện tượng một số nhỏ cộng vào số rất lớn có thể **không làm thay đổi** số lớn.
+These bits are not distributed uniformly along the real number line: the spacing between representable values is generally **larger when the magnitude of the number is larger**. From this arises the phenomenon where a small number added to a very large number may **fail to change** the large number.
 
-## 3. Phản ví dụ kinh điển: cùng ba số, đổi ngoặc đổi kết quả
+## 3. Classic Counterexample: Same Three Numbers, Moving Parentheses Changes the Result
 
-Chọn:
+Choose:
 
 ```java
 double a = 1.0e16;  // 10^16
@@ -63,7 +63,7 @@ double b = -1.0e16; // -10^16
 double c = 1.0;
 ```
 
-Trên số thực toán học:
+Over mathematical real numbers:
 
 \[
 (a+b)+c=(10^{16}-10^{16})+1=1
@@ -72,7 +72,7 @@ Trên số thực toán học:
 a+(b+c)=10^{16}+(-10^{16}+1)=1
 \]
 
-Trong `double` Java:
+In Java `double`:
 
 ```java
 double left = (a + b) + c;
@@ -83,42 +83,42 @@ System.out.println(right);         // 0.0
 System.out.println(left == right); // false
 ```
 
-**Vì sao vế trái ra 1.0?**
+**Why does the left-hand side give 1.0?**
 
-1. `a+b`: hai số có cùng độ lớn và trái dấu triệt tiêu nhau, tạo ra `0.0` chính xác.
-2. Cộng tiếp `c=1.0`, được `1.0` chính xác.
+1. `a+b`: the two numbers of equal magnitude and opposite sign cancel out, producing `0.0` exactly.
+2. Adding `c=1.0` next gives `1.0` exactly.
 
-**Vì sao vế phải ra 0.0?**
+**Why does the right-hand side give 0.0?**
 
-1. Trong `b+c`, ta thử cộng `1.0` vào `-10^16`.
-2. Ở độ lớn quanh `10^16`, hai số `double` liên tiếp cách nhau **2.0**. Giá trị toán học `-10^16+1` nằm đúng giữa những giá trị có thể biểu diễn, và quy tắc *ties to even* làm tròn về `-10^16`.
-3. Sau đó `a + b` trở thành `10^16 + (-10^16)`, cho `0.0`.
+1. In `b+c`, we attempt to add `1.0` to `-10^16`.
+2. At magnitudes around `10^16`, two consecutive `double` numbers are spaced **2.0** apart. The mathematical value `-10^16+1` lies exactly halfway between representable values, and the *ties to even* rule rounds it to `-10^16`.
+3. Then `a + b` becomes `10^16 + (-10^16)`, yielding `0.0`.
 
-Có thể kiểm tra trực tiếp:
+You can verify directly:
 
 ```java
 System.out.println(Math.ulp(1.0e16)); // 2.0
 System.out.println(-1.0e16 + 1.0 == -1.0e16); // true
 ```
 
-`Math.ulp(x)` cho biết kích cỡ một đơn vị ở vị trí bit có nghĩa cuối (*unit in the last place*) quanh `x`. Ở đây độ lệch 1.0 nhỏ hơn khả năng phân giải cần để tạo ra một giá trị `double` mới quanh `10^16`.
+`Math.ulp(x)` gives the size of one unit in the last significant bit position (*unit in the last place*) around `x`. Here an offset of 1.0 is smaller than the resolution needed to produce a new `double` value around `10^16`.
 
-| Phép tính | Giá trị trung gian sau làm tròn | Kết quả |
+| Expression | Intermediate Value After Rounding | Result |
 | --- | --- | --- |
 | `(a+b)+c` | `a+b = 0.0` | **1.0** |
 | `a+(b+c)` | `b+c = -1.0E16` | **0.0** |
 
-**Kết luận từ phản ví dụ:** Java không bảo đảm `(a+b)+c == a+(b+c)` khi các biến là `float`/`double`. Chỉ một trường hợp hợp lệ trả khác nhau đã đủ bác bỏ giả thiết luôn có tính kết hợp.
+**Takeaway from the counterexample:** Java does not guarantee `(a+b)+c == a+(b+c)` when variables are `float`/`double`. Just one valid case returning different results suffices to refute the assumption of universal associativity.
 
-## 4. Cách nhóm cú pháp khác thứ tự đánh giá toán hạng
+## 4. Syntactic Grouping Differs from Operand Evaluation Order
 
-Cần phân biệt ba vấn đề liên quan nhưng khác nhau:
+Three related but distinct concepts must be separated:
 
-- **Độ ưu tiên** (*precedence*): `*` gắn toán hạng chặt hơn `+`.
-- **Tính kết hợp của cú pháp** (*syntactic associativity*): chuỗi `a+b+c` được nhóm theo bên trái, tức `(a+b)+c`.
-- **Thứ tự đánh giá** (*evaluation order*): Java đánh giá các toán hạng theo quy tắc từ trái sang phải, bao gồm tác dụng phụ quan sát được của lời gọi phương thức.
+- **Precedence:** `*` binds operands more tightly than `+`.
+- **Syntactic associativity:** the chain `a+b+c` is grouped left-to-right, i.e. `(a+b)+c`.
+- **Evaluation order:** Java evaluates operands left-to-right, including observable side effects of method calls.
 
-Ví dụ:
+Example:
 
 ```java
 double a = 1.0e16, b = -1.0e16, c = 1.0;
@@ -127,21 +127,21 @@ double defaultGroup = a + b + c;    // (a + b) + c -> 1.0
 double otherGroup   = a + (b + c);  // 0.0
 ```
 
-Dấu ngoặc thứ hai **thay đổi cây phép tính**, do đó thay đổi chỗ thực hiện làm tròn. Nhưng ngoặc ở vế phải không có nghĩa Java tự ý gọi những hàm ở bên phải trước những hàm đứng bên trái.
+The second set of parentheses **changes the expression tree**, thereby changing where rounding occurs. However, parentheses on the right do not mean Java arbitrarily invokes methods on the right before methods standing on the left.
 
-Ví dụ:
+Example:
 
 ```java
 double result = first() + (second() + third());
 ```
 
-Java vẫn đánh giá các toán hạng theo thứ tự: `first()`, rồi `second()`, rồi `third()` (nếu không có ngoại lệ ngắt quá trình). **Các kết quả đã nhận** được kết hợp theo dấu ngoặc: `second+third` trước, sau đó mới cộng với `first`.
+Java still evaluates the operands in order: `first()`, then `second()`, then `third()` (unless an exception interrupts execution). **The obtained results** are then combined according to the parentheses: `second+third` first, and only afterward added to `first`.
 
-Trong Java 17+, biểu thức dấu phẩy động có ngữ nghĩa **always-strict**. Compiler/JVM không được tùy tiện đổi `(a+b)+c` thành `a+(b+c)` nếu điều đó có thể đổi hành vi được Java quy định. Việc tối ưu phải bảo toàn ngữ nghĩa quan sát được; lập trình viên không được tự giả định hai cách nhóm bằng nhau để “tối ưu đại số”.
+In Java 17+, floating-point expressions have **always-strict** semantics. The compiler/JVM must not arbitrarily rewrite `(a+b)+c` into `a+(b+c)` if doing so could alter Java-specified behavior. Optimizations must preserve observable semantics; developers must not assume two groupings are equal for "algebraic optimization".
 
-## 5. Vì sao bit thấp có thể biến mất: độ lớn, ULP và hấp thụ
+## 5. Why Low Bits Can Vanish: Magnitude, ULP, and Absorption
 
-Một số nguyên nhỏ có thể biểu diễn chính xác riêng lẻ, nhưng không đủ lớn để thay đổi một số `double` đã có độ lớn cao:
+A small integer may be exactly representable on its own, yet not large enough to alter a `double` that already has a large magnitude:
 
 ```java
 double big = 1.0e16;
@@ -151,15 +151,15 @@ System.out.println(big + small == big); // true
 System.out.println(Math.ulp(big));      // 2.0
 ```
 
-Hiện tượng này thường gọi là **hấp thụ số hạng nhỏ** (*absorption*) trong phép cộng dấu phẩy động. Không phải số 1 “không tồn tại”; nó tồn tại, nhưng khi cộng với `10^16`, kết quả toán học rơi giữa các điểm có thể biểu diễn bằng 53 bit chính xác của `double`.
+This phenomenon is often called **absorption** of the small term in floating-point addition. It is not that the number 1 "does not exist"; it exists, but when added to `10^16`, the mathematical result falls between the points representable with `double`'s 53 bits of precision.
 
-Mấu chốt là **độ chính xác tương đối**, không chỉ phạm vi lớn/nhỏ của kiểu:
+The crux is **relative precision**, not merely the large/small range of the type:
 
-- `double` có thể biểu diễn các số đến gần `1.8×10^308`.
-- Điều đó không có nghĩa mọi số nguyên cách nhau 1 đều biểu diễn chính xác ở gần `10^308` hay `10^16`.
-- Trong miền số nguyên của `double`, mọi số nguyên đến `2^53` đều có thể biểu diễn chính xác, nhưng ngoài đó **không còn bảo đảm** khoảng cách 1.
+- `double` can represent numbers up to nearly `1.8×10^308`.
+- That does not mean every integer spaced by 1 is exactly representable near `10^308` or `10^16`.
+- Within `double`'s integer range, every integer up to `2^53` is exactly representable, but beyond that a spacing of 1 is **no longer guaranteed**.
 
-Ở kiểu `float`, hiệu ứng đến sớm hơn:
+In `float`, this effect arrives sooner:
 
 ```java
 float bigFloat = 100_000_000f;
@@ -169,15 +169,15 @@ System.out.println(bigFloat + smallFloat == bigFloat); // true
 System.out.println(Math.ulp(bigFloat)); // 8.0
 ```
 
-Vì `float` có 24 bit chính xác hiệu dụng, độ phân giải quanh một trăm triệu là **8.0**. Tăng 1.0 không đủ để chuyển sang giá trị khác.
+Because `float` has 24 effective bits of precision, the resolution around one hundred million is **8.0**. An increment of 1.0 is not enough to move to a different value.
 
-**Không dùng** `Float.MIN_VALUE` hoặc `Double.MIN_VALUE` như “bước giữa hai số” trên toàn trục số. Hai hằng này chỉ là số dương subnormal nhỏ nhất; bước ULP quanh 1, quanh một triệu và quanh một giá trị rất lớn là khác nhau.
+**Do not use** `Float.MIN_VALUE` or `Double.MIN_VALUE` as "the step between two numbers" across the entire number line. Those two constants are only the smallest positive subnormal numbers; the ULP step around 1, around one million, and around a very large value are all different.
 
-## 6. Sai số do triệt tiêu: mất thông tin trước khi trừ/cộng
+## 6. Cancellation Error: Losing Information Before Subtracting/Adding
 
-*Cộng hai số gần bằng nhau nhưng trái dấu* có thể tạo ra **cancellation** (*triệt tiêu*). Việc triệt tiêu **không tự nó luôn gây sai số lớn**: nếu hai toán hạng được lưu chính xác và phép cộng là chính xác, kết quả vẫn có thể đúng. Vấn đề là khi các toán hạng **đã có sai số làm tròn**, phép trừ gần bằng nhau có thể làm sai số tương đối của kết quả tăng lên.
+*Adding two numbers that are close in magnitude but opposite in sign* can cause **cancellation**. Cancellation **by itself does not always cause huge error**: if both operands are stored exactly and the addition is exact, the result can still be exact. The problem arises when the operands **already carry rounding error**, where subtracting nearly equal values can blow up the relative error of the result.
 
-Xét biểu thức:
+Consider the expression:
 
 ```java
 double a = 1.0e16;
@@ -188,26 +188,26 @@ double computed = (a + b) + c;
 System.out.println(computed); // 0.0
 ```
 
-Giá trị toán học mong muốn là 1, nhưng `a+b` được làm tròn về `a` rồi cộng `c` nên ra 0. **Phép cộng cuối không sai trong bản thân đầu vào đã được làm tròn**; thông tin “+1” đã bị bỏ ở bước trước.
+The intended mathematical value is 1, yet `a+b` rounds to `a` and then adding `c` yields 0. **The final addition is not wrong given the already-rounded inputs**; the "+1" information was discarded in the previous step.
 
-Một cách nhóm khác:
+A different grouping:
 
 ```java
 double betterForThisCase = (a + c) + b;
 System.out.println(betterForThisCase); // 1.0
 ```
 
-Cho bộ dữ liệu này, cộng hai số lớn trái dấu trước làm kết quả nhỏ 0 rồi mới cộng 1, giữ lại phần nhỏ. Nhưng **không có một thứ tự nhóm chung tốt nhất cho mọi dữ liệu**; việc chọn thuật toán tổng phải xét miền giá trị, dấu, điều kiện số và yêu cầu tái lập.
+For this dataset, adding the two large opposite-sign numbers first brings the partial result down to 0 before adding 1, preserving the small term. However, **there is no single best grouping order for all datasets**; choosing a summation algorithm requires examining value ranges, signs, numerical conditioning, and reproducibility requirements.
 
-## 7. Nhân cũng không có bảo đảm kết hợp: overflow trung gian
+## 7. Multiplication Also Has No Associativity Guarantee: Intermediate Overflow
 
-Tính kết hợp toán học cho phép:
+Mathematical associativity allows:
 
 \[
 (a\times b)\times c=a\times(b\times c).
 \]
 
-Tuy nhiên, trong `double`:
+However, in `double`:
 
 ```java
 double a = 1.0e308;
@@ -218,18 +218,18 @@ System.out.println((a * b) * c); // Infinity
 System.out.println(a * (b * c)); // 1.0E308
 ```
 
-Phân tích:
+Analysis:
 
-1. Vế trái tính `a*b = 2×10^308`, vượt giá trị hữu hạn lớn nhất của `double`, nên sau làm tròn thành `+Infinity`. Nhân `Infinity*0.5` vẫn là `Infinity`.
-2. Vế phải tính `b*c = 1.0` trước, rồi `a*1.0 = 1.0E308`, vẫn hữu hạn.
+1. The left-hand side computes `a*b = 2×10^308`, exceeding the largest finite `double` value, so after rounding it becomes `+Infinity`. Multiplying `Infinity*0.5` remains `Infinity`.
+2. The right-hand side computes `b*c = 1.0` first, then `a*1.0 = 1.0E308`, which stays finite.
 
-Dưới số thực toán học, hai vế đều bằng `10^308`. Với số dấu phẩy động có giới hạn exponent, **đổi ngoặc có thể quyết định có overflow trung gian hay không**.
+Over mathematical real numbers, both sides equal `10^308`. With floating-point numbers having a limited exponent range, **changing parentheses can determine whether intermediate overflow occurs**.
 
-Không nên suy ra rằng luôn phải nhân các toán hạng nhỏ trước; trong bài toán khác, phương án đó có thể gây **underflow**, tăng sai số hoặc thay đổi nhu cầu xử lý các giá trị đặc biệt.
+You should not conclude that smaller operands must always be multiplied first; in a different problem, that strategy can cause **underflow**, increase rounding error, or change how special values need to be handled.
 
-## 8. Underflow trung gian cũng làm kết quả khác nhau
+## 8. Intermediate Underflow Also Produces Different Results
 
-Ngược lại với overflow, kết quả trung gian quá gần 0 có thể bị làm tròn về 0 dù kết quả toán học cuối sau nhân các hệ số tiếp theo khác 0.
+Conversely to overflow, an intermediate result too close to 0 can be rounded to 0 even though the final mathematical result after multiplying subsequent factors is non-zero.
 
 ```java
 double tiny = Double.MIN_VALUE;
@@ -240,15 +240,15 @@ System.out.println((tiny * half) * two); // 0.0
 System.out.println(tiny * (half * two)); // 4.9E-324
 ```
 
-`Double.MIN_VALUE` là số dương `double` nhỏ nhất khác 0, tương đương `2^-1074`. Giá trị toán học `tiny*0.5 = 2^-1075` nằm giữa 0 và giá trị dương nhỏ nhất có thể biểu diễn. Theo quy tắc làm tròn đến gần nhất, hòa thì chọn chẵn, nó làm tròn về `+0.0`. Nhân tiếp với 2 không thể phục hồi giá trị đã mất.
+`Double.MIN_VALUE` is the smallest positive non-zero `double`, equal to `2^-1074`. The mathematical value `tiny*0.5 = 2^-1075` lies halfway between 0 and the smallest positive representable value. Under round-to-nearest, ties-to-even, it rounds to `+0.0`. Multiplying by 2 afterward cannot recover the lost value.
 
-Vế phải tính `0.5*2.0=1.0` trước, nên `tiny*1.0` vẫn bằng `Double.MIN_VALUE`.
+The right-hand side computes `0.5*2.0=1.0` first, so `tiny*1.0` remains `Double.MIN_VALUE`.
 
-Đây là **underflow ở bước trung gian**, không phải lỗi cú pháp hay chương trình ném ngoại lệ. Phép toán dấu phẩy động với underflow/overflow thường tạo giá trị theo IEEE 754 thay vì ném `ArithmeticException` như chia nguyên cho 0.
+This is **underflow at an intermediate step**, not a syntax error or an exception thrown by the program. Floating-point operations experiencing underflow/overflow typically produce IEEE 754 values rather than throwing `ArithmeticException` like integer division by 0.
 
-## 9. Biểu diễn thập phân không chính xác là một nguyên nhân liên quan, nhưng không phải nguyên nhân duy nhất
+## 9. Inexact Decimal Representation Is a Related Cause, Not the Only Cause
 
-`0.1` không có biểu diễn nhị phân hữu hạn. Khi gõ:
+`0.1` has no finite binary representation. When you write:
 
 ```java
 double tenth = 0.1;
@@ -256,58 +256,58 @@ System.out.println(Double.toHexString(tenth));
 // 0x1.999999999999ap-4
 ```
 
-Java lưu **giá trị `double` gần 0.1**, không phải chính xác phân số toán học 1/10. Các phép toán tiếp theo dùng giá trị đã được lưu đó, rồi lại làm tròn trung gian.
+Java stores the **`double` value closest to 0.1**, not the exact mathematical fraction 1/10. Subsequent operations use that stored value, then round intermediates again.
 
-Tuy nhiên, ví dụ phản chứng chính ở phần 3 **không cần** literal `0.1`: các giá trị `10^16`, `-10^16` và `1` đều có thể biểu diễn chính xác bằng `double`, nhưng **phép cộng trung gian** vẫn gây mất số hạng nhỏ. Vì vậy không đúng nếu kết luận rằng chỉ các số thập phân có biểu diễn nhị phân vô hạn mới bị ảnh hưởng.
+However, the main counterexample in Section 3 **does not need** a `0.1` literal: the values `10^16`, `-10^16`, and `1` are all exactly representable in `double`, yet **intermediate addition** still causes the small term to vanish. Thus it is incorrect to conclude that only decimal numbers with infinite binary expansions are affected.
 
-Một ví dụ dễ thấy về làm tròn:
+An easy-to-see example of rounding:
 
 ```java
 System.out.println(0.1 + 0.2);        // 0.30000000000000004
 System.out.println(0.1 + 0.2 == 0.3); // false
 ```
 
-Đây là ví dụ về sai số biểu diễn và cộng/làm tròn, **không tự nó chứng minh tính không kết hợp** vì không so sánh hai cách đặt ngoặc khác nhau.
+This is an example of representation and addition/rounding error; it **does not by itself demonstrate non-associativity** because it does not compare two different ways of parenthesizing.
 
-## 10. Java 17+, strictfp, Math.fma và khả năng tái lập
+## 10. Java 17+, `strictfp`, `Math.fma`, and Reproducibility
 
-Kể từ Java 17, JEP 306 khôi phục ngữ nghĩa dấu phẩy động **luôn nghiêm ngặt** (*always-strict floating-point semantics*); từ khóa `strictfp` không còn cần để yêu cầu cùng quy tắc chính xác đó cho các biểu thức số thực.
+Starting in Java 17, JEP 306 restored **always-strict floating-point semantics**; the `strictfp` keyword is no longer needed to request those exact same rules for floating-point expressions.
 
-Điều này giúp hành vi phép toán ổn định theo đặc tả Java, nhưng **không làm phép cộng/nhân trở thành kết hợp**. “Kết quả tuân theo chuẩn và có thể dự đoán” hoàn toàn khác với “có thể đổi ngoặc tùy ý”.
+This makes arithmetic behavior consistent with the Java specification, but **does not make addition/multiplication associative**. "Results follow the standard and are predictable" is completely different from "parentheses can be moved arbitrarily".
 
-### Fused multiply-add
+### Fused Multiply-Add
 
-`Math.fma(a, b, c)` tính tích chính xác lý tưởng `a*b` rồi cộng `c` trước khi làm tròn **một lần** về `float`/`double`; khác với biểu thức `a*b+c` thông thường, vốn có thể làm tròn sau phép nhân rồi sau phép cộng.
+`Math.fma(a, b, c)` computes the idealized exact product `a*b` and adds `c` before rounding **once** to `float`/`double`; unlike the ordinary expression `a*b+c`, which rounds after the multiplication and then again after the addition.
 
 ```java
 double fused = Math.fma(a, b, c);
 double separate = a * b + c;
 ```
 
-Ở đây giá trị của các biến phụ thuộc ngữ cảnh đoạn code; đây là **minh họa API**, không phải chương trình độc lập. Dùng `fma` khi thuật toán được thiết kế để tận dụng phép nhân-cộng hợp nhất. **Nó không khiến mọi tổng hay mọi phép nhân tự động có tính kết hợp** và không thay thế việc kiểm soát overflow, underflow trong toàn thuật toán.
+Here variable values depend on the code context; this is an **API illustration**, not a standalone program. Use `fma` when an algorithm is designed to leverage fused multiply-add. **It does not make every sum or every multiplication automatically associative**, nor does it replace overflow and underflow control across the whole algorithm.
 
-### Không tự cho phép trình biên dịch đổi ngoặc
+### Do Not Assume Compilers May Re-associate
 
-Các phép biến đổi đại số như:
+Algebraic transformations such as:
 
 ```java
-// Không tự coi hai vế tương đương cho mọi float/double!
+// Do not assume both sides are equivalent for all float/double!
 double left = (a + b) + c;
 double right = a + (b + c);
 ```
 
-không được áp dụng vô điều kiện. Một biểu thức có thể khác do sai số làm tròn, giá trị vô cực, `NaN` và số 0 có dấu. Khi cần cải thiện hiệu năng hoặc tính ổn định, đánh giá **kết quả tính được của dữ liệu thực**, không chỉ biến đổi đại số trên giấy.
+must not be applied unconditionally. Expressions can differ due to rounding error, infinities, `NaN`, and signed zero. When performance or stability improvements are needed, evaluate **computed results on actual data**, not just algebraic manipulations on paper.
 
-## 11. Tổng nhiều số: thứ tự lặp và giảm song song có thể đổi kết quả
+## 11. Summing Many Numbers: Iteration Order and Parallel Reduction Can Change Results
 
-Trong chương trình tính tổng mảng, tổng từng phần (*partial sums*) có thể thay đổi theo:
+In a program summing an array, partial sums can vary with:
 
-- thứ tự duyệt phần tử;
-- cách chia mảng thành các nhóm;
-- cách kết hợp kết quả từ những luồng tính khác nhau;
-- thuật toán cộng thường, ghép cặp hoặc cộng có bù sai số.
+- element traversal order;
+- how the array is partitioned into chunks;
+- how results from different threads are combined;
+- naive sequential summation, pairwise summation, or compensated summation algorithms.
 
-Dù dữ liệu đầu vào giống nhau, đổi cây cộng có thể đổi các bước làm tròn. Ví dụ:
+Even with identical input data, changing the summation tree can change the rounding steps. For example:
 
 ```java
 double[] values = {1.0e16, -1.0e16, 1.0};
@@ -319,37 +319,37 @@ for (double value : values) {
 // firstOrder = 1.0
 ```
 
-Nếu đổi thứ tự thành `{1.0e16, 1.0, -1.0e16}`, phép cộng tuần tự cho `0.0`. Nếu một phép **parallel reduction** nhóm các phần tử theo cách khác, kết quả có thể khác. Điều này không có nghĩa mọi lần chạy song song đều khác nhau: một lịch gộp xác định có thể ổn định; vấn đề là **không được hứa thứ tự ghép mà API/thuật toán không cam kết**.
+If the order is changed to `{1.0e16, 1.0, -1.0e16}`, sequential addition gives `0.0`. If a **parallel reduction** groups elements differently, the result can differ. That does not mean every parallel run differs from run to run: a deterministic reduction schedule can be consistent; the point is **never to promise an association order that the API/algorithm does not guarantee**.
 
-Trong phân tích dữ liệu, tài chính, tính điểm hay phép tổng trên nhiều máy, cần xác định mục tiêu:
+In data analysis, finance, scoring, or distributed sums across machines, you must define the goal:
 
-1. **Gần đúng đủ tốt** theo dung sai nghiệp vụ.
-2. **Tái lập bit-for-bit** theo một thuật toán và thứ tự cố định.
-3. **Tổng đúng theo quy tắc số học cụ thể** (ví dụ số thập phân chính xác, phép tổng bù sai số, hoặc tích lũy độ chính xác cao).
+1. **Good enough approximation** within business tolerance.
+2. **Bit-for-bit reproducibility** under a fixed algorithm and ordering.
+3. **Exact sum under a specific arithmetic rule** (e.g., exact decimals, compensated summation, or high-precision accumulation).
 
-Ba mục tiêu trên đòi hỏi chiến lược triển khai và kiểm thử khác nhau.
+These three goals demand different implementation and testing strategies.
 
-## 12. Giảm sai số khi cộng nhiều giá trị
+## 12. Reducing Error When Summing Many Values
 
-### 12.1. Chọn thứ tự cộng phù hợp dữ liệu
+### 12.1. Choosing an Addition Order Suited to the Data
 
-Trong một số trường hợp, cộng các số nhỏ với nhau trước khi ghép với số lớn có thể giảm hấp thụ. Cộng hai số lớn trái dấu trước cũng có thể giữ lại số nhỏ, như phản ví dụ phần 6.
+In some cases, summing small numbers together before combining with large numbers can reduce absorption. Adding two large opposite-sign numbers first can also preserve small terms, as in the Section 6 counterexample.
 
-Tuy nhiên, **sắp xếp theo trị tuyệt đối không phải định lý bảo đảm kết quả tốt nhất cho mọi chuỗi số**, đặc biệt khi có nhiều giá trị khác dấu hoặc gần biên. Không thay đổi thứ tự theo cảm tính nếu hệ thống đòi kết quả tái lập theo quy trình cố định.
+However, **sorting by absolute magnitude is not a theorem guaranteeing the best result for every sequence**, especially when there are many mixed-sign values or boundary cases. Do not change ordering ad hoc if the system requires reproducible results under a fixed pipeline.
 
-### 12.2. Pairwise summation
+### 12.2. Pairwise Summation
 
-*Pairwise summation* cộng theo cây cân bằng thay vì cộng lần lượt vào một accumulator. Đối với nhiều tập dữ liệu, cách này có thể giảm sự tích lũy sai số và phù hợp phép tính song song.
+*Pairwise summation* adds along a balanced binary tree instead of sequentially into a single accumulator. For many datasets, this can reduce error accumulation and fits parallel execution well.
 
-Nhưng thay đổi cây tổng **thay đổi các bước làm tròn**, nên kết quả có thể khác tổng tuần tự. Khi đặt mục tiêu reproducibility, ghi rõ thuật toán giảm và thứ tự ghép.
+However, changing the summation tree **changes the rounding steps**, so the result can differ from a sequential sum. When reproducibility is a goal, document the reduction algorithm and combination order.
 
-### 12.3. Kahan và các thuật toán compensated summation
+### 12.3. Kahan and Compensated Summation Algorithms
 
-*Compensated summation* (chẳng hạn Kahan hoặc Neumaier) giữ thêm thông tin về phần sai số bị bỏ trong một số bước cộng. Nó có thể cải thiện độ chính xác đáng kể so với cộng tuần tự đơn giản.
+*Compensated summation* (such as Kahan or Neumaier) maintains an extra compensation variable tracking the low-order error lost in one addition step. It can substantially improve accuracy compared to naive sequential addition.
 
-Không nên khẳng định “Kahan trả lời đúng cho mọi bộ số”: ví dụ có số lớn trái dấu, triệt tiêu và số nhỏ ở giữa có thể đòi biến thể bù sai số khác; Kahan không bảo đảm mọi biểu thức đại số trở thành kết hợp.
+You should not claim "Kahan gives the exact answer for every dataset": for example, large numbers of opposite sign, cancellation, and small numbers in between can require other compensated variants; Kahan does not guarantee every algebraic expression becomes associative.
 
-Một minh họa thuật toán **Neumaier summation** bằng Java:
+An illustration of **Neumaier summation** in Java:
 
 ```java
 static double neumaierSum(double[] values) {
@@ -370,11 +370,11 @@ static double neumaierSum(double[] values) {
 }
 ```
 
-Đây là **phương thức minh họa** cần nằm trong một lớp Java. Với mảng `{1.0e16, 1.0, -1.0e16}`, thuật toán giữ số hạng nhỏ trong biến bù và trả `1.0`. Nó vẫn dùng `double`, không phải phép tính chính xác tùy ý cho mọi trường hợp, và vẫn cần kiểm thử với infinities, NaN, overflow và giới hạn tài nguyên.
+This is an **illustrative method** that belongs inside a Java class. With the array `{1.0e16, 1.0, -1.0e16}`, the algorithm retains the small term in the correction variable and returns `1.0`. It still uses `double`, is not arbitrary-precision arithmetic for all cases, and still needs testing with infinities, NaN, overflow, and resource limits.
 
-### 12.4. Khi cần số thập phân chính xác, dùng BigDecimal có chủ đích
+### 12.4. When Exact Decimals Are Required, Use `BigDecimal` Intentionally
 
-Đối với tính tiền, các giá trị thập phân có quy tắc làm tròn cụ thể, cân nhắc `BigDecimal` tạo từ **chuỗi**:
+For currency and decimal values with specific rounding rules, consider `BigDecimal` created from **strings**:
 
 ```java
 import java.math.BigDecimal;
@@ -387,13 +387,13 @@ BigDecimal exact = a.add(b).add(c);
 System.out.println(exact); // 1
 ```
 
-Các phép cộng `BigDecimal` không dùng `MathContext` giới hạn độ chính xác được thực hiện chính xác theo số thập phân của các toán hạng (giả sử đủ tài nguyên). Nếu áp dụng `MathContext` với độ chính xác giới hạn hoặc làm tròn từng bước, **thứ tự ghép vẫn có thể ảnh hưởng kết quả**. `BigDecimal` không tự chữa một dữ liệu `double` đã làm tròn trước đó; `new BigDecimal("0.1")` biểu diễn 0.1 thập phân chính xác, còn `new BigDecimal(0.1)` phản ánh giá trị nhị phân của `double 0.1`.
+`BigDecimal` additions without a precision-limiting `MathContext` are performed exactly according to the decimal digits of the operands (assuming sufficient resources). If a `MathContext` with bounded precision is applied or rounding happens at each step, **grouping order can still affect the result**. `BigDecimal` does not automatically fix `double` data that was already rounded earlier; `new BigDecimal("0.1")` represents decimal 0.1 exactly, whereas `new BigDecimal(0.1)` reflects the binary value of `double 0.1`.
 
-## 13. Cẩn trọng khi kiểm thử so sánh gần bằng
+## 13. Be Careful When Testing Approximate Equality
 
-Vì `double` có sai số, nhiều thuật toán không nên so sánh kết quả gần đúng với `==` nếu chúng được tạo qua các chuỗi phép tính khác nhau. Nhưng **không có một epsilon cố định phù hợp mọi bài toán**.
+Because `double` has rounding error, many algorithms should not compare approximate results using `==` if they were computed via different operation chains. However, **there is no single fixed epsilon suitable for every problem**.
 
-Một phép kiểm tra bằng dung sai tuyệt đối + tương đối có dạng:
+An absolute + relative tolerance check has the form:
 
 ```java
 static boolean nearlyEqual(double a, double b,
@@ -402,7 +402,7 @@ static boolean nearlyEqual(double a, double b,
         return false;
     }
     if (a == b) {
-        return true; // kể cả hai vô cực cùng dấu hoặc +0.0 == -0.0
+        return true; // includes two infinities of the same sign or +0.0 == -0.0
     }
     if (!Double.isFinite(a) || !Double.isFinite(b)) {
         return false;
@@ -414,19 +414,19 @@ static boolean nearlyEqual(double a, double b,
 }
 ```
 
-Đây là **phương thức minh họa**, cần đặt trong một lớp. Các ngưỡng dung sai phải **không âm, hữu hạn và phù hợp bài toán**; trong code nghiệp vụ phải validate chúng. Công thức này là mẫu kiểm tra cơ bản, không phải giải pháp tổng quát cho mọi miền độ lớn vì chính phép trừ/trị tuyệt đối/nhân dung sai cũng có thể chịu ảnh hưởng của tràn, underflow và làm tròn.
+This is an **illustrative method** that must be placed inside a class. Tolerance thresholds must be **non-negative, finite, and suited to the problem**; production code must validate them. This formula is a basic check pattern, not a universal solution for all magnitude ranges because subtraction, absolute value, and tolerance multiplication themselves can be affected by overflow, underflow, and rounding.
 
-Trong kiểm thử, phân biệt:
+In testing, distinguish:
 
-- **Tính đúng theo bit**: yêu cầu kết quả đúng chính xác như đặc tả thuật toán/quy trình tính, kể cả dấu số 0 khi có ý nghĩa.
-- **Tính gần đúng số học**: sai khác có thể chấp nhận trong dung sai được chọn.
-- **Tính đúng nghiệp vụ**: chẳng hạn số tiền cần làm tròn thập phân theo quy tắc cố định, tốt hơn là thiết kế với `BigDecimal` ngay từ đầu.
+- **Bitwise correctness:** requires the exact bit pattern specified by the algorithm/pipeline, including zero's sign when meaningful.
+- **Numerical approximation:** discrepancies acceptable within a chosen tolerance.
+- **Business correctness:** e.g. monetary amounts needing fixed decimal rounding rules, better designed with `BigDecimal` from the start.
 
-Không dùng `Double.MIN_VALUE` làm epsilon chung: đó là số dương subnormal nhỏ nhất, không phản ánh sai số gần 1, 100 hay `10^16`.
+Do not use `Double.MIN_VALUE` as a generic epsilon: it is the smallest positive subnormal number, not a reflection of error near 1, 100, or `10^16`.
 
-## 14. Chương trình Java 17+ chạy độc lập
+## 14. Standalone Java 17+ Program
 
-Tạo tệp **`FloatingPointAssociativityDemo.java`**:
+Create the file **`FloatingPointAssociativityDemo.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -483,14 +483,14 @@ public class FloatingPointAssociativityDemo {
 }
 ```
 
-Biên dịch/chạy trong thư mục chứa tệp:
+Compile/run in the directory containing the file:
 
 ```bash
 javac FloatingPointAssociativityDemo.java
 java FloatingPointAssociativityDemo
 ```
 
-**Đầu ra chuẩn với Java 17+:**
+**Standard output on Java 17+:**
 
 ```text
 (a+b)+c = 1.0
@@ -507,68 +507,68 @@ compensated sum = 1.0
 decimal exact = 1
 ```
 
-**Đọc kết quả:**
+**Reading the output:**
 
-1. Vế trái của phép cộng làm triệt tiêu hai số lớn trước, giữ lại 1; vế phải làm tròn mất số hạng +1 trước khi triệt tiêu.
-2. `Math.ulp(1e16)` bằng 2.0 giải thích vì sao cộng 1.0 vào số có độ lớn `10^16` không thay đổi kết quả.
-3. Trong phép nhân, overflow trung gian biến vế trái thành Infinity dù vế phải còn hữu hạn.
-4. Trong ví dụ underflow, nhân với 0.5 trước làm mất `Double.MIN_VALUE`, trong khi nhân các hệ số 0.5 và 2.0 trước bảo toàn nó.
-5. Tổng tuần tự của mảng `{1e16,1,-1e16}` mất số 1; tổng có bù theo Neumaier giữ lại trong trường hợp này. `BigDecimal` với đầu vào thập phân được định nghĩa chính xác cũng cho 1.
+1. The left grouping of addition cancels the two large numbers first, keeping 1; the right grouping rounds away the +1 term before cancellation.
+2. `Math.ulp(1e16)` equal to 2.0 explains why adding 1.0 to a number of magnitude `10^16` does not change the result.
+3. In multiplication, intermediate overflow turns the left grouping into Infinity even though the right grouping stays finite.
+4. In the underflow example, multiplying by 0.5 first loses `Double.MIN_VALUE`, whereas multiplying the factors 0.5 and 2.0 first preserves it.
+5. The sequential sum of `{1e16,1,-1e16}` loses the 1; Neumaier compensated summation retains it in this case. `BigDecimal` with exact decimal inputs also produces 1.
 
-## 15. Sai lầm phổ biến
+## 15. Common Mistakes
 
-| Nhầm lẫn | Điều đúng |
+| Misconception | Reality |
 | --- | --- |
-| “Cộng và nhân trên `double` cũng luôn kết hợp vì toán học nói vậy” | Các phép toán `double` có làm tròn trung gian nên không bảo đảm tính kết hợp |
-| “Chỉ số thập phân như 0.1 mới gây sai số” | Ngay các số `1e16` và `1.0` có thể lưu chính xác vẫn gặp hấp thụ khi cộng |
-| “Dấu ngoặc chỉ để dễ đọc” | Với `float`/`double`, đổi ngoặc có thể đổi giá trị cuối |
-| “Associativity cú pháp bằng tính kết hợp toán học” | `a+b+c` nhóm trái theo cú pháp; điều này không bảo đảm `a+(b+c)` cùng kết quả |
-| “Phép `*` ưu tiên cao nên hàm tạo toán hạng phải chạy trước hàm bên trái” | Ưu tiên là cách nhóm; Java quy định thứ tự đánh giá toán hạng riêng |
-| “`double` có miền lớn nên mọi số nguyên đều cách nhau 1” | Khoảng cách ULP tăng theo độ lớn; quanh `1e16` khoảng cách là 2 |
-| “Overflow luôn ném exception như chia nguyên cho 0” | IEEE 754 có thể trả ±Infinity; underflow có thể trả subnormal hoặc ±0 |
-| “`Math.fma` khiến tất cả phép tính thành chính xác vô hạn” | FMA chỉ làm tròn một lần cho phép nhân-cộng riêng, không loại bỏ mọi sai số |
-| “Kahan/Neumaier luôn cho đáp án toán học chính xác” | Chúng giảm sai số nhiều trường hợp nhưng không phải số học chính xác vô hạn |
-| “BigDecimal luôn kết hợp dù giới hạn precision” | Khi làm tròn từng bước bằng `MathContext`, các cách nhóm có thể khác |
-| “`Double.MIN_VALUE` dùng làm epsilon cho mọi so sánh” | Đây là subnormal nhỏ nhất, không phải ngưỡng sai số chung |
-| “Parallel sum luôn cho đúng cùng bit như sequential sum” | Nhóm phép cộng khác có thể cho kết quả khác, trừ khi thuật toán cam kết quy tắc gộp phù hợp |
+| "Addition and multiplication on `double` are always associative because math says so" | `double` operations perform intermediate rounding, so associativity is not guaranteed |
+| "Only decimal numbers like 0.1 cause errors" | Even exact numbers like `1e16` and `1.0` suffer absorption when added |
+| "Parentheses are just for readability" | For `float`/`double`, changing parentheses can change the final value |
+| "Syntactic associativity equals mathematical associativity" | `a+b+c` groups left syntactically; that does not guarantee `a+(b+c)` yields the same result |
+| "`*` has higher precedence so methods producing its operands run before the left-hand method" | Precedence is grouping; Java specifies operand evaluation order separately |
+| "`double` has a huge range so all integers are spaced by 1" | ULP spacing grows with magnitude; around `1e16` the spacing is 2 |
+| "Overflow always throws an exception like integer division by 0" | IEEE 754 can return ±Infinity; underflow can return subnormals or ±0 |
+| "`Math.fma` makes all calculations infinitely exact" | FMA only rounds once for a single multiply-add; it does not eliminate all error |
+| "Kahan/Neumaier always give the exact mathematical answer" | They reduce error in many cases, but are not infinite-precision arithmetic |
+| "`BigDecimal` is always associative even with bounded precision" | When rounding at each step with `MathContext`, different groupings can differ |
+| "`Double.MIN_VALUE` works as epsilon for all comparisons" | It is the smallest subnormal, not a general error threshold |
+| "Parallel sum always produces the exact same bits as sequential sum" | Different addition groupings can yield different results unless the algorithm commits to a matching reduction rule |
 
-## 16. Bài tập tự kiểm tra và lời giải
+## 16. Self-Check Exercises and Solutions
 
-**Bài 1.** Với `a=1e16`, `b=-1e16`, `c=1.0` kiểu `double`, tính `(a+b)+c` và `a+(b+c)`.  
-**Đáp án:** `1.0` và `0.0`. `b+c` được làm tròn về `b` do khoảng cách hai `double` kề nhau quanh `1e16` là 2.
+**Exercise 1.** With `a=1e16`, `b=-1e16`, `c=1.0` of type `double`, compute `(a+b)+c` and `a+(b+c)`.  
+**Answer:** `1.0` and `0.0`. `b+c` rounds to `b` because the gap between adjacent `double` numbers around `1e16` is 2.
 
-**Bài 2.** Vì sao `double x=1e16; x+1.0 == x` cho `true`?  
-**Đáp án:** `Math.ulp(1e16) == 2.0`, cộng thêm 1 rơi đúng điểm giữa hai số biểu diễn được và làm tròn về `x` theo ties-to-even.
+**Exercise 2.** Why does `double x=1e16; x+1.0 == x` evaluate to `true`?  
+**Answer:** `Math.ulp(1e16) == 2.0`, so adding 1 falls right at the midpoint between two representable numbers and rounds back to `x` by ties-to-even.
 
-**Bài 3.** `(1e308*2.0)*0.5` và `1e308*(2.0*0.5)` in gì?  
-**Đáp án:** `Infinity` và `1.0E308`. Vế trái overflow trung gian, vế phải nhân 2 với 0.5 trước tạo 1.
+**Exercise 3.** What do `(1e308*2.0)*0.5` and `1e308*(2.0*0.5)` print?  
+**Answer:** `Infinity` and `1.0E308`. The left expression suffers intermediate overflow; the right expression multiplies 2 and 0.5 first to produce 1.
 
-**Bài 4.** `(Double.MIN_VALUE*0.5)*2` có giữ được `Double.MIN_VALUE` không?  
-**Đáp án:** Không, ra `0.0` do underflow ở phép nhân đầu. `Double.MIN_VALUE*(0.5*2)` vẫn bằng `Double.MIN_VALUE`.
+**Exercise 4.** Does `(Double.MIN_VALUE*0.5)*2` preserve `Double.MIN_VALUE`?  
+**Answer:** No, it produces `0.0` due to underflow in the first multiplication. `Double.MIN_VALUE*(0.5*2)` stays equal to `Double.MIN_VALUE`.
 
-**Bài 5.** Vì sao `0.1+0.2 == 0.3` cho `false` chưa tự chứng minh mất tính kết hợp?  
-**Đáp án:** Vì đó là một phép cộng và một phép so sánh, chưa so sánh hai cách nhóm **cùng ba số hạng**. Nó minh họa sai số biểu diễn/làm tròn.
+**Exercise 5.** Why does `0.1+0.2 == 0.3` returning `false` not by itself prove non-associativity?  
+**Answer:** Because it is one addition and one comparison, not a comparison of two different groupings of **the same three operands**. It illustrates representation/rounding error.
 
-**Bài 6.** `a+b+c` trên Java được nhóm như thế nào? Nó có tự động tương đương `a+(b+c)` không?  
-**Đáp án:** Nhóm `(a+b)+c` theo kết hợp cú pháp trái. Với dấu phẩy động, **không bảo đảm** cho cùng giá trị với nhóm phải.
+**Exercise 6.** How is `a+b+c` grouped in Java? Is it automatically equivalent to `a+(b+c)`?  
+**Answer:** Grouped as `(a+b)+c` by left-associative syntax. For floating-point numbers, it is **not guaranteed** to give the same value as right-associative grouping.
 
-**Bài 7.** Nếu thứ tự cộng mảng ảnh hưởng kết quả, cần làm gì để một báo cáo có thể tái lập?  
-**Đáp án:** Quy định thuật toán cộng, thứ tự đầu vào/cách phân nhóm và quy tắc kiểm thử; khi cần độ chính xác tốt hơn có thể dùng tổng có bù hoặc phương pháp phù hợp miền nghiệp vụ. Nếu cần số thập phân chính xác, cân nhắc `BigDecimal` có quy tắc precision/rounding rõ ràng.
+**Exercise 7.** If array summation order affects the result, what is needed to make a report reproducible?  
+**Answer:** Specify the summation algorithm, input order/chunking scheme, and testing rules; when higher accuracy is needed, use compensated summation or a method suited to the domain. If exact decimals are required, consider `BigDecimal` with clear precision/rounding rules.
 
-**Bài 8.** Dùng `BigDecimal` có bảo đảm nhóm nào cũng giống nhau không?  
-**Đáp án:** Với các toán hạng thập phân chính xác và các phép cộng không làm tròn theo precision giới hạn, tính kết hợp của cộng được bảo toàn (khi phép tính hoàn tất). Nhưng đặt `MathContext` giới hạn độ chính xác và làm tròn ở từng bước có thể làm kết quả phụ thuộc thứ tự.
+**Exercise 8.** Does using `BigDecimal` guarantee any grouping yields the same result?  
+**Answer:** With exact decimal operands and additions that do not round under bounded precision, associativity of addition is preserved (when operations complete). However, setting a bounded-precision `MathContext` and rounding at each step can make the result order-dependent.
 
-## 17. Checklist khi thiết kế phép tính dấu phẩy động
+## 17. Checklist When Designing Floating-Point Calculations
 
-1. **Ghi rõ kiểu:** `float` hay `double`? Có chuyển kiểu, literal hậu tố `f`, hoặc chuyển dữ liệu từ decimal không?
-2. **Xem cách nhóm:** `(a+b)+c` khác `a+(b+c)` không chỉ trên giấy mà có thể khác kết quả runtime.
-3. **Xác định tỷ lệ độ lớn:** có cộng giá trị cực nhỏ vào accumulator lớn? Dùng `Math.ulp` để đánh giá độ phân giải quanh giá trị thực tế.
-4. **Theo dõi overflow/underflow:** kết quả trung gian có thể thành vô cực hoặc 0 trước khi các hệ số khác được nhân vào.
-5. **Chú ý dấu và special values:** `NaN`, ±Infinity, ±0.0 có các quy tắc riêng; kiểm tra `isFinite`/`isNaN` khi cần.
-6. **Đừng đổi ngoặc vô điều kiện:** compiler cũng không được biến đổi làm sai ngữ nghĩa Java; phép biến đổi đại số cần chứng minh an toàn với miền dữ liệu.
-7. **Chọn thuật toán tổng:** tuần tự, pairwise, compensated hoặc phương thức đáp ứng yêu cầu bit-level reproducibility.
-8. **Định rõ sai số chấp nhận:** kiểm thử dung sai theo đơn vị và độ lớn nghiệp vụ; không dùng `MIN_VALUE` như epsilon dùng chung.
-9. **Dùng BigDecimal khi phù hợp:** nhất là dữ liệu tiền/decimal có quy tắc làm tròn; tạo giá trị từ chuỗi và hiểu ảnh hưởng của `MathContext`.
-10. **Kiểm tra bằng ví dụ phản chứng:** dùng `1e16`, `-1e16`, `1.0`, trường hợp overflow/underflow để chứng minh trực tiếp khi cần giải thích code.
+1. **Specify the type:** `float` or `double`? Are there casts, `f`-suffixed literals, or conversions from decimals?
+2. **Inspect the grouping:** `(a+b)+c` differs from `a+(b+c)` not only on paper, but potentially at runtime too.
+3. **Check magnitude ratios:** is a tiny value being added to a large accumulator? Use `Math.ulp` to assess resolution around real values.
+4. **Watch for overflow/underflow:** intermediate results can become infinity or 0 before remaining factors are applied.
+5. **Mind signs and special values:** `NaN`, ±Infinity, ±0.0 have their own rules; check `isFinite`/`isNaN` when needed.
+6. **Do not re-parenthesize unconditionally:** even compilers must not apply transformations that violate Java semantics; algebraic rewrites must be proven safe for the data domain.
+7. **Pick the summation algorithm:** sequential, pairwise, compensated, or a method matching bit-level reproducibility needs.
+8. **Define acceptable error:** test tolerances according to business units and magnitudes; do not use `MIN_VALUE` as a generic epsilon.
+9. **Use `BigDecimal` when appropriate:** especially for money/decimal data with rounding rules; construct values from strings and understand `MathContext`'s impact.
+10. **Verify with counterexamples:** use `1e16`, `-1e16`, `1.0`, and overflow/underflow cases to demonstrate behavior directly when explaining code.
 
-**Ghi nhớ:** Số thực toán học có phép cộng và phép nhân kết hợp, nhưng `float`/`double` thực hiện **phép toán rồi làm tròn ở từng bước**. Đổi ngoặc làm đổi vị trí làm tròn, nên kết quả có thể đổi. Lập trình Java đúng cần tôn trọng **cách nhóm**, **thứ tự đánh giá**, **giới hạn biểu diễn** và **thuật toán tổng** thay vì giả định mọi biến đổi đại số đều giữ nguyên kết quả.
+**Remember:** Mathematical real numbers have associative addition and multiplication, whereas `float`/`double` perform **each operation and round at every step**. Changing parentheses moves where rounding happens, so the result can change. Correct Java programming respects **grouping**, **evaluation order**, **representation limits**, and **summation algorithms** instead of assuming every algebraic rewrite preserves the result.

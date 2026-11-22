@@ -1,23 +1,23 @@
-# Không suy ra kiểu phần tử chỉ bằng việc xem các phần tử đang có
+# Do Not Infer Element Types Solely by Inspecting Present Elements
 
-Trong Java Reflection và **phân giải generic**, việc duyệt một `List`, `Set` hay `Collection` và quan sát `element.getClass()` chỉ cho biết **kiểu runtime của những đối tượng đã được nhìn thấy**. Nó **không chứng minh được** kiểu tham số generic mà tập hợp được khai báo, cũng không bảo đảm tập hợp sẽ chỉ nhận đúng những kiểu đó trong tương lai.
+In Java Reflection and **generic resolution**, iterating through a `List`, `Set`, or `Collection` and observing `element.getClass()` only tells you the **runtime types of the objects seen so far**. It **does not prove** the generic type parameter the collection was declared with, nor does it guarantee the collection will only accept those exact types in the future.
 
-Ví dụ, một `List<Number>` hoàn toàn hợp lệ khi chứa `Integer` và `Double`. Việc thấy phần tử đầu là `Integer` không biến danh sách thành `List<Integer>`. Tương tự, một `List<Object>` có thể tình cờ chỉ chứa `String`; danh sách rỗng không cung cấp phần tử để quan sát; và phần tử `null` không có `getClass()`.
+For example, a `List<Number>` is completely valid when holding `Integer` and `Double`. Seeing that the first element is `Integer` does not turn the list into `List<Integer>`. Similarly, a `List<Object>` may happen to contain only `String`s; an empty list provides no elements to observe; and a `null` element has no `getClass()`.
 
-**Nguyên tắc:** muốn biết *kiểu khai báo* của generic, hãy tìm **thông tin kiểu từ khai báo/metadata**, hoặc yêu cầu caller truyền một **type contract** tường minh. Đừng đoán chữ ký generic chỉ từ sample dữ liệu.
+**Rule:** to know the *declared type* of a generic, look for **type information from declarations/metadata**, or require the caller to pass an explicit **type contract**. Do not guess generic signatures solely from sample data.
 
-## 1. Phân biệt bốn lớp thông tin về kiểu
+## 1. Distinguishing four layers of type information
 
-| Câu hỏi | Ví dụ | Điều có thể xác định |
+| Question | Example | What can be determined |
 |---|---|---|
-| **Kiểu runtime của collection object?** | `list.getClass()` | Chẳng hạn `java.util.ArrayList`; thường **không** có đối số kiểu `String`/`Number` |
-| **Kiểu runtime của phần tử đang có?** | `list.get(0).getClass()` | Chẳng hạn `Integer.class`, nếu có phần tử khác `null` |
-| **Kiểu generic được khai báo ở field/method?** | `Field.getGenericType()`, `Method.getGenericReturnType()` | Có thể là `List<Number>`, `List<? extends Number>`, `List<T>`... |
-| **Hợp đồng kiểu mà ứng dụng muốn áp dụng?** | `Class<E>`, `Type`/type token, schema | Kiểu đích do API hoặc schema quy định, không nhất thiết có thể phục hồi từ giá trị hiện tại |
+| **Runtime type of the collection object?** | `list.getClass()` | For instance `java.util.ArrayList`; usually **lacks** the `String`/`Number` type argument |
+| **Runtime type of a present element?** | `list.get(0).getClass()` | For instance `Integer.class`, if a non-`null` element exists |
+| **Generic type declared on a field/method?** | `Field.getGenericType()`, `Method.getGenericReturnType()` | May be `List<Number>`, `List<? extends Number>`, `List<T>`... |
+| **Type contract the application intends to enforce?** | `Class<E>`, `Type`/type token, schema | Target type specified by an API or schema, not necessarily recoverable from current values |
 
-Hai kiểu đầu là **runtime observations**. Kiểu thứ ba là **thông tin khai báo có trong metadata** nếu nơi bạn đang xét lưu đủ chữ ký generic. Kiểu thứ tư là **yêu cầu do thiết kế ứng dụng cung cấp**.
+The first two are **runtime observations**. The third is **declaration information stored in metadata** if the site being inspected retains generic signatures. The fourth is a **requirement supplied by application design**.
 
-Một danh sách cụ thể có thể thỏa đồng thời:
+A single list can simultaneously satisfy:
 
 ```java
 List<Number> prices = new ArrayList<>();
@@ -25,53 +25,53 @@ prices.add(Integer.valueOf(7));
 prices.add(Double.valueOf(2.5));
 ```
 
-- Kiểu khai báo của biến `prices`: `List<Number>`.
-- Kiểu runtime của object: `ArrayList`.
-- Kiểu runtime của hai phần tử: `Integer` và `Double`.
-- Không có mâu thuẫn: `Integer` và `Double` đều là lớp con của `Number`.
+- Declared type of variable `prices`: `List<Number>`.
+- Runtime type of the object: `ArrayList`.
+- Runtime types of the two elements: `Integer` and `Double`.
+- No contradiction: both `Integer` and `Double` are subclasses of `Number`.
 
-Đoạn mã trên là minh họa riêng, không có `main`. Nếu chỉ quan sát phần tử đầu, ta thậm chí còn **không thấy được** phần tử `Double` phía sau.
+The snippet above is illustrative only, without `main`. If you only observe the first element, you would not even **see** the subsequent `Double` element.
 
-## 2. Tại sao xem phần tử không đủ để suy ra `List<T>`?
+## 2. Why isn't inspecting elements enough to infer `List<T>`?
 
-### 2.1. Có thể quan sát sai vì dữ liệu chưa đại diện
+### 2.1. Observations can be wrong because data is unrepresentative
 
-Một danh sách ban đầu chỉ chứa `Integer` nhưng sau đó được thêm `Double` nếu chữ ký của nó là `List<Number>`. Việc quan sát tập hợp tại một thời điểm chỉ phản ánh **trạng thái dữ liệu tại thời điểm đó**, không phản ánh mọi giá trị hợp lệ.
+A list initially containing only `Integer`s can later have a `Double` added if its signature is `List<Number>`. Observing a collection at one point in time only reflects the **data state at that moment**, not all valid values.
 
-Tương tự, một `List<Object>` có thể chứa toàn `String` hôm nay, nhưng ngày mai chứa một `LocalDate`. Trong trường hợp này, tìm lớp chung gần nhất giữa các phần tử (nếu cố làm) cũng chỉ là một phép xấp xỉ trên **mẫu**, không phải **kiểu tham số được khai báo**.
+Likewise, a `List<Object>` may contain all `String`s today, yet contain a `LocalDate` tomorrow. In this case, finding the nearest common superclass among elements (if attempted) is still only an approximation over a **sample**, not the **declared type parameter**.
 
-### 2.2. Danh sách rỗng: không có thông tin runtime về phần tử
+### 2.2. Empty lists: no runtime information about elements
 
 ```java
 List<String> names = new ArrayList<>();
 List<Integer> ids = new ArrayList<>();
 ```
 
-Cả `names` và `ids` đều rỗng. Việc gọi `getClass()` trên hai object này cho cùng lớp `ArrayList`; không thể lấy một phần tử để nhận diện generic argument. Thậm chí khi danh sách không rỗng, `getClass()` của container vẫn không phục hồi được tham số `String` hoặc `Integer` cho một `ArrayList` thông thường.
+Both `names` and `ids` are empty. Calling `getClass()` on these two objects yields the same `ArrayList` class; you cannot pull an element to identify the generic argument. Even when a list is non-empty, `getClass()` of the container still cannot recover the `String` or `Integer` parameter of an ordinary `ArrayList`.
 
-### 2.3. Phần tử `null` không có runtime class
+### 2.3. `null` elements have no runtime class
 
 ```java
 List<String> names = new ArrayList<>();
 names.add(null);
 ```
 
-`null` hợp lệ với kiểu phần tử tham chiếu, nhưng `names.get(0).getClass()` ném `NullPointerException`. Ngay cả khi bỏ qua các phần tử `null`, dữ liệu còn lại vẫn không đủ để kết luận chữ ký generic.
+`null` is valid for a reference element type, yet `names.get(0).getClass()` throws `NullPointerException`. Even if `null` elements are skipped, the remaining data is still insufficient to conclude the generic signature.
 
-### 2.4. Kiểu phần tử runtime thường cụ thể hơn kiểu khai báo
+### 2.4. Runtime element types are often more specific than the declared type
 
 ```java
 List<CharSequence> texts = new ArrayList<>();
 texts.add("abc");
 ```
 
-Một phần tử `String` là `CharSequence`. Đọc `texts.get(0).getClass()` cho `String.class`, nhưng **kiểu generic khai báo là `CharSequence`**, không phải `String`.
+A `String` element is a `CharSequence`. Reading `texts.get(0).getClass()` yields `String.class`, yet the **declared generic type is `CharSequence`**, not `String`.
 
-Tương tự: field `List<? extends Number>` có thể cung cấp các phần tử `Integer`, nhưng không thể kết luận đối số kiểu gốc là `Integer`. Wildcard chỉ công bố **ràng buộc**, không công bố nhất thiết một concrete type.
+Similarly: a field `List<? extends Number>` can supply `Integer` elements, yet you cannot conclude the original type argument is `Integer`. A wildcard only states a **bound**, not necessarily a single concrete type.
 
-### 2.5. Raw types/unchecked operations có thể làm bẩn dữ liệu
+### 2.5. Raw types/unchecked operations can pollute data
 
-Java generic chủ yếu bảo vệ kiểu ở compile time. Code sử dụng raw type, unchecked cast hoặc interop với thư viện cũ có thể tạo **heap pollution**:
+Java generics primarily enforce type safety at compile time. Code using raw types, unchecked casts, or interop with legacy libraries can introduce **heap pollution**:
 
 ```java
 @SuppressWarnings({"rawtypes", "unchecked"})
@@ -81,34 +81,34 @@ static void corrupt(List<String> strings) {
 }
 ```
 
-Đây là **đoạn phương thức minh họa**, không nên dùng trong ứng dụng thực. Sau thao tác ấy, metadata khai báo vẫn có thể nói `List<String>`, nhưng nội dung thực tế lại chứa `Integer`. Khi code Java bình thường lấy phần tử như `String`, có thể gặp `ClassCastException`.
+This is an **illustrative method snippet**, not meant for real applications. After that operation, declaration metadata may still say `List<String>`, while the actual contents contain an `Integer`. When normal Java code retrieves the element as `String`, a `ClassCastException` can occur.
 
-Kết luận hai chiều: **không suy ra kiểu khai báo từ phần tử**, đồng thời **không dùng metadata khai báo để khẳng định dữ liệu runtime không bao giờ bị vi phạm** nếu có unchecked/raw operations.
+Two-way conclusion: **do not infer declared types from elements**, and at the same time **do not use declaration metadata to guarantee runtime data can never be violated** if unchecked/raw operations exist.
 
-## 3. Vì sao dữ liệu quan sát khác thông tin generic?
+## 3. Why does observed data differ from generic information?
 
-Một đối tượng `new ArrayList<String>()` thông thường có runtime class `ArrayList.class`, giống đối tượng tạo với `new ArrayList<Integer>()`. Cơ chế **type erasure** không lưu đối số `String` hay `Integer` riêng trên mỗi instance. Nếu duyệt một danh sách chứa toàn chuỗi, đó vẫn chỉ là dữ liệu hiện tại: kiểu khai báo hoàn toàn có thể là `List<Object>` hoặc `List<CharSequence>`.
+An ordinary `new ArrayList<String>()` object has runtime class `ArrayList.class`, the same as an object created with `new ArrayList<Integer>()`. The **type erasure** mechanism does not store `String` or `Integer` separately on each instance. Iterating through a list full of strings still only shows current data: the declared type could easily be `List<Object>` or `List<CharSequence>`.
 
-Ngược lại, class file có thể giữ *generic signature* của **nơi khai báo**: một field `List<Number> prices`, return type `List<String>` hoặc quan hệ `extends ArrayList<Long>`. Reflection có API đọc metadata đó, nhưng không tự gắn ngược metadata của một biến local bất kỳ vào object mà biến trỏ tới.
+Conversely, class files can retain the *generic signature* of the **declaration site**: a field `List<Number> prices`, return type `List<String>`, or `extends ArrayList<Long>` relationship. Reflection has APIs to read that metadata, but it does not automatically attach an arbitrary local variable's metadata onto the object it references.
 
-| Muốn biết | Đọc bằng | Giới hạn cần giữ rõ |
+| What you want to know | Read via | Limitation to keep clear |
 | --- | --- | --- |
-| Collection đang dùng implementation nào | `object.getClass()` | Không tiết lộ generic argument |
-| Giá trị hiện có thuộc class nào | `element.getClass()` | Có thể rỗng, `null`, subtype hoặc bị thay đổi |
-| Kiểu đã khai báo trên field | `Field.getGenericType()` | Mô tả khai báo; không chứng minh nội dung runtime |
-| Kiểu đã khai báo trên method | `Method.getGenericReturnType()` / `getGenericParameterTypes()` | Không tự lưu type argument suy diễn của từng lời gọi |
-| Supertype generic đã khai báo | `Class.getGenericSuperclass()` / `getGenericInterfaces()` | Nếu còn `TypeVariable` thì cần ngữ cảnh phân giải |
+| Which implementation the collection uses | `object.getClass()` | Does not reveal generic arguments |
+| Which class a present value belongs to | `element.getClass()` | May be empty, `null`, a subtype, or mutated |
+| Declared type on a field | `Field.getGenericType()` | Describes declaration; does not prove runtime contents |
+| Declared type on a method | `Method.getGenericReturnType()` / `getGenericParameterTypes()` | Does not store inferred type arguments per call |
+| Declared generic supertype | `Class.getGenericSuperclass()` / `getGenericInterfaces()` | If a `TypeVariable` remains, resolution context is needed |
 
-## 4. Đọc chữ ký phần tử từ đúng declaration
+## 4. Reading element signatures from the right declaration
 
-Với field bên dưới, Reflection đọc được `Number` vì thông tin nằm trong **khai báo field**, không phải do lấy `getClass()` của phần tử đầu tiên:
+For the field below, Reflection can read `Number` because the information resides in the **field declaration**, not from calling `getClass()` on the first element:
 
 ~~~java
 class Catalog {
     java.util.List<Number> prices = new java.util.ArrayList<>();
 }
 
-// Đặt trong method có xử lý NoSuchFieldException:
+// Place inside a method handling NoSuchFieldException:
 java.lang.reflect.Field field = Catalog.class.getDeclaredField("prices");
 java.lang.reflect.Type declared = field.getGenericType();
 if (declared instanceof java.lang.reflect.ParameterizedType p) {
@@ -117,17 +117,17 @@ if (declared instanceof java.lang.reflect.ParameterizedType p) {
 }
 ~~~
 
-Nếu chỉ có tham chiếu `Object unknown` tới một list được tạo thông thường, không có phép Reflection tổng quát nào xác định **field hoặc biến nguồn** từng dùng để tham chiếu object đó. Bài thí nghiệm tiếp theo đặt runtime observations cạnh metadata từ field để thấy sự khác biệt này.
+If you only hold an `Object unknown` reference to an ordinarily constructed list, no general Reflection operation can determine the **source field or variable** used to reference that object. The next experiment places runtime observations side by side with field metadata to highlight this difference.
 
-## 5. Khi đối số generic chưa phải một Class cụ thể
+## 5. When the generic argument is not yet a concrete Class
 
-`Field.getGenericType()` trả `Type`; một argument trực tiếp của `List<E>` có thể là `Class<?>` (như `Number`), `TypeVariable<?>` (như `T` trong `Holder<T>`), `WildcardType` (như `? extends Number`) hoặc một `ParameterizedType` lồng nhau (như `List<Integer>` trong `List<List<Integer>>`). Với `List<String>[]`, lớp bao ngoài có thể là `GenericArrayType`; component là một `ParameterizedType`.
+`Field.getGenericType()` returns `Type`; a direct argument of `List<E>` may be a `Class<?>` (such as `Number`), a `TypeVariable<?>` (such as `T` in `Holder<T>`), a `WildcardType` (such as `? extends Number`), or a nested `ParameterizedType` (such as `List<Integer>` in `List<List<Integer>>`). For `List<String>[]`, the outer layer may be a `GenericArrayType`; the component is a `ParameterizedType`.
 
-Vì thế, phép lấy `getActualTypeArguments()[0]` phải đặt trong ngữ cảnh **raw type** đang phân tích. `Map<K,V>` có hai arguments, và `List<? extends Number>` mang wildcard bound chứ không công bố chính xác `Number` như đối số cụ thể. Nếu argument còn là biến kiểu `T` của superclass, cần ánh xạ theo khai báo và quan hệ kế thừa; tuyệt đối không thay bằng `Object` hoặc upper bound một cách tùy ý.
+Therefore, extracting `getActualTypeArguments()[0]` must be placed in the context of the **raw type** being analyzed. `Map<K,V>` has two arguments, and `List<? extends Number>` carries a wildcard bound rather than declaring `Number` itself as a concrete argument. If the argument is still a superclass's type variable `T`, you must map it by declaration and inheritance relationship; never replace it with `Object` or its upper bound arbitrarily.
 
-## 6. Thí nghiệm Java 17+ hoàn chỉnh: kiểu quan sát khác kiểu khai báo
+## 6. Complete Java 17+ experiment: observed types vs. declared types
 
-Lưu thành tệp **`GenericElementDemo.java`**:
+Save as file **`GenericElementDemo.java`**:
 
 ```java
 import java.lang.reflect.Field;
@@ -223,14 +223,14 @@ public class GenericElementDemo {
 }
 ```
 
-Chạy từ thư mục chứa tệp bằng JDK 17+:
+Run from the directory containing the file with JDK 17+:
 
 ```bash
 javac GenericElementDemo.java
 java GenericElementDemo
 ```
 
-**Stdout đã kiểm tra trên JDK 21:**
+**Verified stdout on JDK 21:**
 
 ```text
 observed: Integer, Double
@@ -250,21 +250,21 @@ specialized subclass: java.lang.Long
 same erased class: true
 ```
 
-### Vì sao những dòng này quan trọng?
+### Why do these lines matter?
 
-1. Hai phần tử của `prices` có kiểu runtime khác nhau (`Integer`, `Double`); chữ ký khai báo vẫn là `List<Number>`.
-2. `prices.getClass()` chỉ cho biết container là `ArrayList`, không biết `Number`.
-3. Với `emptyNames`, không có phần tử để suy đoán. Với `nullableNames`, phần tử đầu là `null`; gọi `getClass()` trực tiếp trên nó sẽ lỗi.
-4. `Field.getType()` trả `java.util.List` do erasure; `Field.getGenericType()` đọc signature khai báo `List<Number>`. Đây là lý do Reflection có thể biết kiểu phần tử **từ metadata**, chứ không phải từ nội dung.
-5. Argument đầu của `matrix` là `List<Integer>` (một nested `ParameterizedType`); chưa phải bản thân `Integer`.
-6. Hai wildcard công bố bounds, không công bố chính xác một actual type argument đơn lẻ.
-7. Field `Holder.items` có argument `T`, vì bối cảnh `Holder<T>` vẫn trừu tượng; `IntegerHolder` mang binding `Integer` ở superclass, nhưng phải **tự kết hợp ngữ cảnh** khi phân giải field kế thừa.
-8. `LongList` bảo tồn `Long` ở chữ ký **generic superclass** vì chính class được khai báo là `extends ArrayList<Long>`.
-9. Hai object `new ArrayList<String>()` và `new ArrayList<Integer>()` có cùng `Class` runtime; type erasure không tạo một `ArrayList` class riêng cho từng đối số generic.
+1. The two elements of `prices` have different runtime types (`Integer`, `Double`); the declared signature is still `List<Number>`.
+2. `prices.getClass()` only reveals that the container is `ArrayList`, not `Number`.
+3. With `emptyNames`, there are no elements to guess from. With `nullableNames`, the first element is `null`; calling `getClass()` directly on it would fail.
+4. `Field.getType()` returns `java.util.List` due to erasure; `Field.getGenericType()` reads the declared signature `List<Number>`. This is why Reflection can know element types **from metadata**, not from contents.
+5. The first argument of `matrix` is `List<Integer>` (a nested `ParameterizedType`); not `Integer` itself yet.
+6. Both wildcards declare bounds, not a single exact actual type argument.
+7. Field `Holder.items` has argument `T`, because the `Holder<T>` context is still abstract; `IntegerHolder` carries the `Integer` binding on its superclass, yet you must **combine contexts yourself** when resolving an inherited field.
+8. `LongList` retains `Long` in its **generic superclass** signature because the class itself is declared as `extends ArrayList<Long>`.
+9. Two objects `new ArrayList<String>()` and `new ArrayList<Integer>()` share the same runtime `Class`; type erasure does not create a separate `ArrayList` class per generic argument.
 
-## 7. Tra cứu generic từ method và superclass/interface
+## 7. Looking up generics from methods and superclasses/interfaces
 
-Không phải thông tin generic nào cũng nằm trên field. Một API thường công bố dữ liệu qua return type của getter hoặc parameter type của setter:
+Not all generic information sits on fields. An API often exposes data via a getter's return type or a setter's parameter type:
 
 ```java
 import java.lang.reflect.Method;
@@ -281,30 +281,30 @@ class Service {
     }
 }
 
-// Đoạn minh họa dùng trong phương thức có xử lý NoSuchMethodException:
+// Illustrative snippet used inside a method handling NoSuchMethodException:
 Method getter = Service.class.getMethod("findNames");
 Type returnSignature = getter.getGenericReturnType();
-// returnSignature mô tả List<String>
+// returnSignature describes List<String>
 
 Method setter = Service.class.getMethod("replaceNames", List.class);
 Type parameterSignature = setter.getGenericParameterTypes()[0];
-// parameterSignature mô tả List<String>
+// parameterSignature describes List<String>
 ```
 
-Đây là **đoạn minh họa gồm class và các lệnh Reflection**, không phải chương trình độc lập có `main`. Chữ ký `getMethod("replaceNames", List.class)` dùng **raw runtime parameter class** vì lookup method diễn ra sau erasure; sau khi tìm xong mới đọc `getGenericParameterTypes()` để biết `String`.
+This is an **illustrative snippet containing a class and Reflection statements**, not a standalone program with `main`. The call `getMethod("replaceNames", List.class)` uses the **raw runtime parameter class** because method lookup operates after erasure; only after finding the method do you read `getGenericParameterTypes()` to discover `String`.
 
-Bạn cũng có thể đọc:
+You can also read:
 
-- `SomeClass.class.getGenericSuperclass()` để xem superclass được khai báo với type arguments nào.
-- `SomeClass.class.getGenericInterfaces()` để xem các generic interfaces được triển khai.
-- `field.getGenericType()` để xem field signature được khai báo.
-- `method.getGenericReturnType()` và `getGenericParameterTypes()` để xem return/parameter signatures.
+- `SomeClass.class.getGenericSuperclass()` to see with which type arguments the superclass was declared.
+- `SomeClass.class.getGenericInterfaces()` to see implemented generic interfaces.
+- `field.getGenericType()` to see the declared field signature.
+- `method.getGenericReturnType()` and `getGenericParameterTypes()` to see return/parameter signatures.
 
-**Không được suy từ method body:** `findNames()` có thể trả một `List.of()` rỗng, hoặc mọi phần tử là `null` trong các triển khai khác. Điều hữu ích cho Reflection là **return type khai báo** `List<String>`, chứ không phải runtime sample trong từng lần gọi.
+**Do not infer from a method body:** `findNames()` might return an empty `List.of()`, or all elements might be `null` in other implementations. What is useful to Reflection is the **declared return type** `List<String>`, not a runtime sample from a given call.
 
-### Cần ngữ cảnh khi type variable đi qua nhiều cấp kế thừa
+### Context is needed when a type variable spans multiple inheritance levels
 
-Ví dụ:
+Example:
 
 ```java
 class Base<T> {
@@ -318,26 +318,26 @@ class Concrete extends Middle<Long> {
 }
 ```
 
-Field `values` được khai báo ở `Base` với `T`, trong khi `Concrete` cung cấp binding `U -> Long` và `Middle<U>` cung cấp `T -> U`. Để kết luận `values` ứng với `List<Long>` khi xét `Concrete`, bộ phân giải generic phải **đi qua các generic superclass signatures** và thay thế type variables nhất quán.
+Field `values` is declared in `Base` with `T`, while `Concrete` supplies binding `U -> Long` and `Middle<U>` supplies `T -> U`. To conclude `values` corresponds to `List<Long>` when inspecting `Concrete`, the generic resolver must **walk the generic superclass signatures** and substitute type variables consistently.
 
-Chỉ gọi `Concrete.class.getDeclaredField("values")` còn thất bại vì field **không được khai báo trực tiếp** trong `Concrete`. Phải tìm field ở lớp khai báo hoặc duyệt hierarchy, rồi phân giải theo ngữ cảnh class cụ thể.
+Calling `Concrete.class.getDeclaredField("values")` alone will even fail because the field **is not declared directly** in `Concrete`. You must look up the field on the declaring class or walk the hierarchy, then resolve using the concrete class's context.
 
-Khi thiết kế resolver, đừng luôn coi `TypeVariable.getBounds()[0]` là actual type. Bound chỉ giới hạn các kiểu hợp lệ; không phải giá trị thay thế thực tế.
+When designing a resolver, do not always treat `TypeVariable.getBounds()[0]` as the actual type. A bound only constrains valid types; it is not the actual substituted value.
 
-## 8. Khi không có generic metadata: yêu cầu hợp đồng kiểu tường minh
+## 8. When generic metadata is absent: require an explicit type contract
 
-Nhiều API nhận trực tiếp một object:
+Many APIs accept an object directly:
 
 ```java
 void process(List<?> items) {
-    // Không có field/method declaration của danh sách ban đầu
-    // để khôi phục chắc chắn actual element type E.
+    // No field/method declaration of the original list
+    // to reliably recover the actual element type E.
 }
 ```
 
-Tại đây `items.getClass()` thường chỉ cho lớp collection. Nếu API cần bảo đảm kiểu phần tử, hãy chuyển kiểu mong đợi vào theo một trong các cách:
+Here `items.getClass()` usually only gives the collection class. If the API must guarantee element types, pass the expected type using one of these approaches:
 
-**Lựa chọn A — truyền `Class<E>` cho phần tử không generic lồng nhau:**
+**Option A — pass `Class<E>` for non-nested-generic elements:**
 
 ```java
 static <E> void validate(List<?> items, Class<E> elementClass) {
@@ -349,13 +349,13 @@ static <E> void validate(List<?> items, Class<E> elementClass) {
     }
 }
 
-// Ví dụ trong một phương thức khác:
+// Example inside another method:
 validate(List.of("a", "b"), String.class);
 ```
 
-Đây là đoạn phương thức minh họa, đã giả định import `java.util.List`. Logic này **kiểm tra dữ liệu theo kiểu do caller cung cấp**, không *suy ra* generic type. Với `null`, code minh họa đang chấp nhận; nếu domain cấm null thì cần thêm nhánh từ chối riêng. `Class.isInstance` kiểm tra runtime assignability; không làm được kiểm tra đầy đủ với nested type `List<List<String>>`. Đối với generic `List<Integer>`, hãy truyền `Integer.class`, không phải `int.class`.
+This is an illustrative method snippet, assuming `import java.util.List`. This logic **validates data against a caller-supplied type**, rather than *inferring* a generic type. For `null`, the sample code accepts it; if the domain forbids nulls, add a separate rejection branch. `Class.isInstance` checks runtime assignability; it cannot perform full checks on nested types like `List<List<String>>`. For generic `List<Integer>`, pass `Integer.class`, not `int.class`.
 
-**Lựa chọn B — truyền một `Type` hoặc type token cho cấu trúc nested:**
+**Option B — pass a `Type` or type token for nested structures:**
 
 ```java
 abstract class TypeRef<T> {
@@ -371,96 +371,96 @@ abstract class TypeRef<T> {
     }
 }
 
-// Khi tạo anonymous subclass của TypeRef:
+// When creating an anonymous subclass of TypeRef:
 java.lang.reflect.Type target =
         new TypeRef<java.util.List<java.util.Map<String, Integer>>>() { }
                 .type;
 ```
 
-Đây là đoạn **mẫu type token tối giản**, đặt các khai báo ở phạm vi class và câu lệnh `target` trong một phương thức phù hợp; nó dựa vào generic superclass signature được compiler ghi cho anonymous subclass. Không tự động kiểm tra dữ liệu hoặc chuyển JSON thành Java object: nó chỉ giữ cấu trúc `Type` để thư viện/bộ xử lý tiếp tục sử dụng. Với type variable chưa được giải trong anonymous subclass, vẫn phải xem ngữ cảnh phù hợp.
+This is a **minimal type token pattern** snippet, placing the declarations at class scope and the `target` statement inside an appropriate method; it relies on the generic superclass signature recorded by the compiler for the anonymous subclass. It does not automatically validate data or convert JSON into Java objects: it merely preserves the `Type` structure for a library/processor to use downstream. With unresolved type variables inside an anonymous subclass, appropriate context is still required.
 
-**Lựa chọn C — định nghĩa schema hoặc API rõ ràng:** nếu dữ liệu đến từ JSON, database, message queue hay plugin, hợp đồng bên ngoài (schema, serializer configuration hoặc type descriptor) thường đáng tin hơn việc xem phần tử đầu tiên. Những dữ liệu rỗng hay có null vẫn cần được parse/validate đúng kiểu.
+**Option C — define an explicit schema or API:** if data arrives from JSON, a database, a message queue, or a plugin, an external contract (schema, serializer configuration, or type descriptor) is far more reliable than inspecting the first element. Empty or null-containing data still needs to be parsed/validated with the right type.
 
-## 9. Vì sao không thể luôn lấy “kiểu chung” của tất cả phần tử?
+## 9. Why can't you always take the "common type" of all elements?
 
-Giả sử danh sách có `Integer` và `Double`. Ta có thể nhận thấy chúng đều mở rộng `Number`, nhưng:
+Suppose a list contains `Integer` and `Double`. You might notice both extend `Number`, yet:
 
-- Kiểu khai báo có thể là `List<Number>`, `List<Object>`, `List<? extends Number>` hoặc một view/kiểu khác.
-- Nhiều loại Java có chung interface như `Serializable`, `Comparable<?>...`; “kiểu chung gần nhất” không nhất thiết là một class duy nhất có ý nghĩa làm type argument.
-- Với dữ liệu thiếu, null hoặc collection rỗng, không có đủ chứng cứ để suy ra type.
-- Type variable và wildcard diễn đạt **quan hệ/ràng buộc**, không thể được phục hồi đầy đủ từ một tập hữu hạn object đang tồn tại.
-- Type erasure cho phép nhiều generic instantiations dùng cùng runtime class; class của container không chứa đủ dữ liệu để đảo ngược erasure.
+- The declared type could be `List<Number>`, `List<Object>`, `List<? extends Number>`, or another view/type.
+- Many Java types share interfaces such as `Serializable`, `Comparable<?>...`; the "nearest common type" is not necessarily a single meaningful class to serve as a type argument.
+- With missing data, nulls, or empty collections, there is insufficient evidence to infer a type.
+- Type variables and wildcards express **relationships/constraints**, which cannot be fully reconstructed from a finite set of existing objects.
+- Type erasure lets multiple generic instantiations share the same runtime class; the container's class lacks enough information to reverse erasure.
 
-Một heuristic tính common superclass có thể hữu ích để **phân tích dữ liệu** hoặc đề xuất schema, nhưng phải được gọi đúng là **suy đoán dựa trên sample**. Đừng trình bày heuristic ấy như kết quả của generic type resolution, và đừng đưa nó vào cast/deserialize quan trọng mà không kiểm tra hoặc không có schema chính thức.
+A heuristic computing a common superclass can be useful for **data profiling** or suggesting a schema, yet it must be labeled honestly as **sample-based guesswork**. Do not present that heuristic as the result of generic type resolution, and do not feed it into critical casts/deserialization without validation or a formal schema.
 
-## 10. Ứng dụng thực tế
+## 10. Practical applications
 
 ### Serialization / deserialization
 
-Một JSON array `[]` không có phần tử nào để suy kiểu; JSON `[null]` cũng không có runtime class có thể dùng. Nếu mục tiêu là `List<Order>`, serializer cần nhận thông tin kiểu từ field/getter signature hoặc type descriptor, chứ không thể chỉ xem từng giá trị của array.
+A JSON array `[]` has no elements to infer types from; JSON `[null]` likewise has no usable runtime class. If the target is `List<Order>`, the serializer must receive type information from a field/getter signature or a type descriptor rather than merely inspecting individual array values.
 
-Ví dụ với nested type `List<Map<String, List<Order>>>`, `Class<List>` không mô tả đủ cấu trúc. Cần `Type`/type token hoặc mô tả kiểu tương đương để bảo toàn nested generic arguments.
+For example, with nested type `List<Map<String, List<Order>>>`, `Class<List>` does not describe the structure adequately. A `Type`/type token or equivalent type descriptor is needed to preserve nested generic arguments.
 
 ### ORM / database mapping
 
-Một quan hệ `List<User>` có thể hiện tại chưa load bản ghi nào. Khung ORM không thể nhìn tập hợp trống để suy entity type, mà cần field/association metadata, annotation, schema hoặc mapping được khai báo.
+A `List<User>` association may currently have zero loaded records. An ORM framework cannot inspect an empty collection to infer the entity type; it needs field/association metadata, annotations, a schema, or declared mappings.
 
 ### Plugin / event processing
 
-Một `List<Event>` có thể chứa nhiều subtype `LoginEvent`, `PurchaseEvent`; đó là polymorphism hợp lệ. Đừng dùng class của event đầu tiên để suy rằng mọi event thuộc subtype đó. Hợp đồng handler cần nói rõ event base type hoặc registry/type descriptor.
+A `List<Event>` can contain multiple subtypes like `LoginEvent` and `PurchaseEvent`; that is valid polymorphism. Do not use the class of the first event to assume every event belongs to that subtype. The handler contract must specify the event base type or a registry/type descriptor.
 
 ### Validation
 
-Nếu hệ thống nhận `List<?>` từ dữ liệu không tin cậy, phải validate từng phần tử theo schema/type đã biết; việc quan sát một phần tử hợp lệ không chứng minh toàn bộ danh sách hợp lệ. Nếu type có nested generics, validation phải đi sâu vào từng tầng dữ liệu theo hợp đồng, không chỉ kiểm tra raw `List.class`.
+If a system receives `List<?>` from untrusted data, it must validate every element against a known schema/type; observing one valid element does not prove the entire list is valid. If the type has nested generics, validation must descend into every data layer per the contract, not just check raw `List.class`.
 
-## 11. Các lỗi tư duy phổ biến
+## 11. Common thinking errors
 
-1. **“Phần tử đầu là `Integer` nên list có kiểu `List<Integer>`.”** Sai. Có thể là `List<Number>`, `List<Object>` hoặc kiểu khác.
-2. **“Mọi phần tử hiện có đều là `String` nên generic chắc chắn là `String`.”** Sai. Mẫu dữ liệu không chứng minh chữ ký khai báo.
-3. **“Danh sách rỗng có thể suy phần tử từ `getClass()`.”** Sai với `ArrayList` thông thường do erasure.
-4. **“Đọc `getClass()` trên một phần tử `null` vẫn biết được kiểu.”** Sai: gây `NullPointerException`.
-5. **“Java xóa hết generic metadata nên Reflection không thể đọc bất kỳ generic type nào.”** Sai. Signature của field, method, superclass/interface có thể vẫn chứa cấu trúc generic.
-6. **“`getType()` và `getGenericType()` luôn giống nhau.”** Sai. Với `List<String>`, một bên có thể trả `List.class`, bên kia trả `ParameterizedType` mô tả `List<String>`.
-7. **“Mọi `Type` có thể cast thành `Class<?>`.”** Sai. `ParameterizedType`, `TypeVariable`, `WildcardType` và `GenericArrayType` cần xử lý riêng.
-8. **“`List<? extends Number>` có actual argument đúng `Number`.”** Sai. Nó là wildcard có upper bound `Number`, không phải `Number.class`.
-9. **“Field `List<T>` trong base class tự trở thành `List<Integer>` khi gọi `getGenericType()` ở base.”** Sai. Phải phân giải type variable theo generic bindings trên đường kế thừa.
-10. **“Type token kiểm tra mọi phần tử runtime đã đúng kiểu.”** Sai. Type token chỉ mang metadata kiểu; validation/deserialization là bước khác.
-11. **“`List<Integer>` là subtype của `List<Number>` vì `Integer extends Number`.”** Sai. Java generic ở đây **invariant**; có thể dùng `List<? extends Number>` cho read-only view phù hợp.
-12. **“Đã biết `List<String>` từ field metadata thì runtime không thể có phần tử `Integer`.”** Không bảo đảm tuyệt đối khi tồn tại raw/unchecked operations; cần validation nếu input không tin cậy.
-13. **“Mảng `List<String>[]` có component là `String`.”** Sai. Component là **`List<String>`**; từng List mới có element type `String`.
+1. **"The first element is `Integer`, so the list has type `List<Integer>`."** False. It could be `List<Number>`, `List<Object>`, or another type.
+2. **"Every current element is a `String`, so the generic type must be `String`."** False. Sample data does not prove the declared signature.
+3. **"An empty list can infer its element type from `getClass()`."** False for an ordinary `ArrayList` due to erasure.
+4. **"Calling `getClass()` on a `null` element still reveals the type."** False: throws `NullPointerException`.
+5. **"Java erases all generic metadata, so Reflection cannot read any generic types."** False. Field, method, and superclass/interface signatures can still hold generic structure.
+6. **"`getType()` and `getGenericType()` are always identical."** False. For `List<String>`, one may return `List.class` while the other returns a `ParameterizedType` describing `List<String>`.
+7. **"Every `Type` can be cast to `Class<?>`."** False. `ParameterizedType`, `TypeVariable`, `WildcardType`, and `GenericArrayType` require separate handling.
+8. **"`List<? extends Number>` has exact actual argument `Number`."** False. It is a wildcard with upper bound `Number`, not `Number.class`.
+9. **"A `List<T>` field in a base class automatically becomes `List<Integer>` when calling `getGenericType()` on the base."** False. You must resolve type variables using generic bindings along the inheritance path.
+10. **"A type token checks that all runtime elements match the type."** False. A type token only carries type metadata; validation/deserialization is a separate step.
+11. **"`List<Integer>` is a subtype of `List<Number>` because `Integer extends Number`."** False. Java generics here are **invariant**; `List<? extends Number>` can be used for an appropriate read-only view.
+12. **"Knowing `List<String>` from field metadata means runtime cannot contain an `Integer` element."** Not strictly guaranteed when raw/unchecked operations exist; validation is needed for untrusted inputs.
+13. **"Array `List<String>[]` has component `String`."** False. Its component is **`List<String>`**; each List then has element type `String`.
 
-## 12. Tự kiểm tra
+## 12. Self-check
 
-**Câu 1.** Một `List<Number>` hiện chỉ chứa `Integer(1)`. `list.get(0).getClass()` cho biết điều gì?
+**Question 1.** A `List<Number>` currently contains only `Integer(1)`. What does `list.get(0).getClass()` tell you?
 
-**Đáp án:** Chỉ cho biết object được quan sát có runtime class `Integer`; không đổi hay xác định được kiểu khai báo `List<Number>`.
+**Answer:** It only tells you the observed object has runtime class `Integer`; it neither changes nor identifies the declared type `List<Number>`.
 
-**Câu 2.** Một list rỗng có thể là `List<String>` hay `List<Integer>`. Vì sao `list.getClass()` không đủ?
+**Question 2.** An empty list could be `List<String>` or `List<Integer>`. Why is `list.getClass()` insufficient?
 
-**Đáp án:** Với `ArrayList` thông thường, generic type arguments đã bị erasure ở runtime; cả hai object đều có class `ArrayList`. Không có phần tử để suy thêm và sample inference cũng không chứng minh declaration.
+**Answer:** For an ordinary `ArrayList`, generic type arguments have been erased at runtime; both objects have class `ArrayList`. There are no elements to inspect further, and sample inference still does not prove a declaration.
 
-**Câu 3.** Field `List<? extends Number> values` có `getGenericType()` thuộc dạng gì và argument đầu thuộc dạng gì?
+**Question 3.** For field `List<? extends Number> values`, what kind is `getGenericType()` and what kind is its first argument?
 
-**Đáp án:** `getGenericType()` có thể là `ParameterizedType` cho `List<? extends Number>`; argument đầu là `WildcardType` có upper bound `Number`, không phải trực tiếp `Number.class`.
+**Answer:** `getGenericType()` can be a `ParameterizedType` for `List<? extends Number>`; its first argument is a `WildcardType` with upper bound `Number`, not directly `Number.class`.
 
-**Câu 4.** Khi field được khai báo `Map<String, List<Integer>>`, có thể luôn lấy `getActualTypeArguments()[0]` làm kiểu phần tử của một List không?
+**Question 4.** When a field is declared `Map<String, List<Integer>>`, can you always take `getActualTypeArguments()[0]` as the element type of a List?
 
-**Đáp án:** Không. Raw type là `Map` với hai tham số `K,V`, trong đó phần tử cần phân tích thuộc **value argument** `List<Integer>`. Phải hiểu cấu trúc generic đúng loại.
+**Answer:** No. The raw type is `Map` with two parameters `K,V`, where the type to analyze sits in the **value argument** `List<Integer>`. You must understand the generic structure for the exact kind.
 
-**Câu 5.** `Holder<T>` khai báo `List<T> items`, `IntHolder extends Holder<Integer>`. Vì sao chỉ đọc field ở `Holder.class` vẫn thấy `T`?
+**Question 5.** `Holder<T>` declares `List<T> items`, `IntHolder extends Holder<Integer>`. Why does reading the field on `Holder.class` alone still show `T`?
 
-**Đáp án:** Vì field được khai báo bằng type variable `T`. Binding `T -> Integer` thuộc bối cảnh `IntHolder` và phải được áp dụng khi phân giải.
+**Answer:** Because the field is declared using the type variable `T`. The `T -> Integer` binding belongs to `IntHolder`'s context and must be applied during resolution.
 
-**Câu 6.** API nhận `List<?>` có thể bảo đảm tất cả phần tử là `User` chỉ bằng kiểm tra phần tử đầu không?
+**Question 6.** Can an API accepting `List<?>` guarantee all elements are `User` solely by checking the first element?
 
-**Đáp án:** Không. Cần hợp đồng `User.class`/schema/type token rõ ràng và validate mọi phần tử cần thiết; dữ liệu còn có thể rỗng, null, hỗn hợp hoặc bị thêm sau khi kiểm tra.
+**Answer:** No. You need an explicit `User.class`/schema/type token contract and must validate every required element; data may also be empty, null, mixed, or appended after checking.
 
-## Tài liệu chuẩn
+## Official references
 
 - Java SE API — `java.lang.reflect.Field.getType()`, `Field.getGenericType()`; `Method.getGenericReturnType()`, `Method.getGenericParameterTypes()`.
 - Java SE API — `java.lang.reflect.Type`, `ParameterizedType`, `TypeVariable`, `WildcardType`, `GenericArrayType`.
 - Java SE API — `java.lang.Class.getGenericSuperclass()`, `Class.getGenericInterfaces()`, `Class.isInstance(Object)`.
 - Java Language Specification — §4.5 *Parameterized Types*; §4.6 *Type Erasure*; §4.8 *Raw Types*; §4.12.2 *Variables of Reference Type*; §5.1.10 *Capture Conversion*.
-- Java Language Specification — §10.5 *Array Store Exception* và các quy tắc generic arrays/reifiable types khi phân tích mảng.
+- Java Language Specification — §10.5 *Array Store Exception* and generic array/reifiable type rules when analyzing arrays.
 
-**Ghi nhớ:** phần tử đang có chỉ cho biết **runtime class của mẫu dữ liệu**, không xác nhận **kiểu generic được khai báo**. Để phân giải generic, hãy dùng **metadata ở đúng vị trí khai báo và đúng ngữ cảnh kế thừa**, hoặc **hợp đồng kiểu tường minh**. Với dữ liệu không tin cậy, kiểm tra phần tử theo hợp đồng, không suy kiểu từ phần tử đầu tiên.
+**Remember:** present elements only tell you the **runtime class of a data sample**, not the **declared generic type**. To resolve generics, use **metadata at the right declaration site and inheritance context**, or an **explicit type contract**. For untrusted data, validate elements against the contract rather than inferring types from the first element.

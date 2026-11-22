@@ -1,10 +1,10 @@
-# AccessibleObject và trạng thái bỏ qua kiểm tra truy cập trong Java Reflection
+# AccessibleObject and bypassing access checks in Java Reflection
 
-Reflection cho phép tìm `Field`, `Method` và `Constructor` ngay cả khi thành viên không phải `public`. Tuy nhiên, **tìm thấy metadata không đồng nghĩa được phép đọc trường, gọi phương thức hay tạo đối tượng**. `java.lang.reflect.AccessibleObject` là lớp cha của ba loại đối tượng Reflection trên, cung cấp API kiểm tra quyền truy cập và, khi được phép, bật trạng thái **bỏ qua kiểm tra truy cập của ngôn ngữ Java** (suppress access checks).
+Reflection allows finding `Field`, `Method`, and `Constructor` even when the member is not `public`. However, **finding metadata does not mean being permitted to read a field, invoke a method, or create an object**. `java.lang.reflect.AccessibleObject` is the superclass of those three Reflection object types, providing APIs to check access permission and, when allowed, enable **suppressing Java language access checks**.
 
-Chủ đề này thuộc nhóm **Quyền truy cập**. Mục tiêu là hiểu chính xác accessible flag, biết khi nào dùng `canAccess`, `setAccessible`, `trySetAccessible`, và vì sao ranh giới module của Java 9+ có thể chặn việc bật flag. Các ví dụ dùng Java 17+.
+This topic belongs to the **Access control** group. The goal is to understand the accessible flag accurately, know when to use `canAccess`, `setAccessible`, and `trySetAccessible`, and understand why Java 9+ module boundaries can block enabling the flag. The examples use Java 17+.
 
-## 1. Vai trò và các API chính
+## 1. Role and main APIs
 
 ```text
 java.lang.reflect.AccessibleObject
@@ -14,34 +14,34 @@ java.lang.reflect.AccessibleObject
         └── java.lang.reflect.Constructor
 ```
 
-| API | Ý nghĩa |
+| API | Meaning |
 | --- | --- |
-| `boolean canAccess(Object obj)` | Cho biết caller hiện tại có thể truy cập thành viên được biểu diễn hay không, xét receiver và trạng thái hiện có |
-| `void setAccessible(boolean flag)` | Đặt flag yêu cầu bỏ qua kiểm tra truy cập; bật `true` chỉ thành công nếu quy tắc Java/module cho phép |
-| `boolean trySetAccessible()` | Thử bật flag; trả `true` nếu thành công, `false` nếu không thể bật vì quyền truy cập |
-| `boolean isAccessible()` | API cũ, deprecated từ Java 9; **chỉ** phản ánh flag bỏ qua kiểm tra, không trả lời đầy đủ câu hỏi caller có thể truy cập không |
-| `static void setAccessible(AccessibleObject[] array, boolean flag)` | Đặt flag cho nhiều đối tượng Reflection, vẫn chịu kiểm tra quyền/module |
+| `boolean canAccess(Object obj)` | Reports whether the current caller can access the represented member, considering the receiver and current state |
+| `void setAccessible(boolean flag)` | Sets the flag requesting access checks to be suppressed; enabling `true` succeeds only if Java/module rules allow it |
+| `boolean trySetAccessible()` | Attempts to enable the flag; returns `true` if successful, `false` if it cannot be enabled due to access restrictions |
+| `boolean isAccessible()` | Legacy API, deprecated since Java 9; **only** reflects the access-check suppression flag, and does not fully answer whether the caller can access the member |
+| `static void setAccessible(AccessibleObject[] array, boolean flag)` | Sets the flag for multiple Reflection objects, still subject to permission/module checks |
 
-Các phương thức `Class.getDeclaredField`, `getDeclaredMethod` và `getDeclaredConstructor` có thể trả về member `private`, `protected` hoặc package-private của chính lớp đó, nhưng **không tự bật flag**. Các API `getField`, `getMethod`, `getConstructor` tìm các thành viên `public` thuộc phạm vi tương ứng; ngay cả với member `public`, module hoặc lớp khai báo vẫn ảnh hưởng khả năng truy cập từ caller.
+The methods `Class.getDeclaredField`, `getDeclaredMethod`, and `getDeclaredConstructor` can return `private`, `protected`, or package-private members of that class itself, but **do not automatically enable the flag**. The APIs `getField`, `getMethod`, and `getConstructor` look up `public` members within their respective scopes; even for a `public` member, the module or declaring class still affects accessibility from the caller.
 
-## 2. Phân biệt ba điều thường bị nhập nhằng
+## 2. Distinguishing three commonly conflated concepts
 
-**Visibility của thành viên** là `public`, `protected`, package-private hoặc `private` trong mã nguồn và bytecode. Reflection không đổi visibility này.
+**Member visibility** is `public`, `protected`, package-private, or `private` in source code and bytecode. Reflection does not change this visibility.
 
-**Trạng thái accessible flag** là lựa chọn trên đối tượng `Field`, `Method` hoặc `Constructor` cụ thể nhằm bỏ qua kiểm tra truy cập khi dùng chính đối tượng Reflection ấy. Mặc định flag là `false`. `setAccessible(true)` hoặc `trySetAccessible()` thành công sẽ bật flag; `setAccessible(false)` tắt flag.
+**Accessible flag state** is an option on a specific `Field`, `Method`, or `Constructor` object to suppress access checks when using that very Reflection object. By default, the flag is `false`. A successful `setAccessible(true)` or `trySetAccessible()` enables the flag; `setAccessible(false)` disables it.
 
-**Quyền truy cập thực tế** được kiểm tra theo caller, loại thành viên, receiver, flag và ranh giới module. Đây là ý nghĩa của `canAccess(obj)`. Một phương thức `public` có thể có flag `false` mà `canAccess(receiver) == true`, vì caller đã có quyền theo quy tắc thông thường. Ngược lại, tìm được member `private` bằng `getDeclaredMethod` không có nghĩa `invoke` sẽ được cho phép.
+**Actual access permission** is checked based on the caller, member kind, receiver, flag, and module boundaries. This is the meaning of `canAccess(obj)`. A `public` method can have the flag set to `false` while `canAccess(receiver) == true`, because the caller already has permission under normal rules. Conversely, finding a `private` member with `getDeclaredMethod` does not mean `invoke` will be allowed.
 
-Do vậy:
+Therefore:
 
-- `isAccessible() == false` **không** có nghĩa “thành viên không thể truy cập”.
-- `canAccess(obj)` không bật quyền truy cập; nó chỉ kiểm tra.
-- `setAccessible(true)` không đổi member thành `public` và không vượt qua mọi giới hạn Java Platform Module System (JPMS).
-- `setAccessible(false)` không cấm caller sử dụng member mà caller vốn đã có quyền truy cập.
+- `isAccessible() == false` does **not** mean "the member is inaccessible".
+- `canAccess(obj)` does not enable access permission; it only checks it.
+- `setAccessible(true)` does not turn a member into `public` and does not bypass all Java Platform Module System (JPMS) limits.
+- `setAccessible(false)` does not forbid a caller from using a member the caller already has permission to access.
 
-## 3. Ví dụ Java 17+ có thể biên dịch và chạy
+## 3. Compilable and runnable Java 17+ example
 
-Tạo đúng một tệp `AccessibleObjectDemo.java` như sau. `Vault` là lớp **top-level riêng**, nằm trong cùng tệp/package với lớp demo nhưng không phải nested class. Cách tổ chức này tránh hiệu ứng **nestmates**: các nested class cùng nest có thể truy cập thành viên `private` của nhau theo quy tắc Java hiện đại, làm sai kỳ vọng khi minh họa thiếu quyền.
+Create a single file `AccessibleObjectDemo.java` as follows. `Vault` is a **separate top-level class**, in the same file/package as the demo class, not a nested class. This layout avoids the **nestmates** effect: nested classes in the same nest can access each other's `private` members under modern Java rules, which would distort expectations when demonstrating a lack of access permission.
 
 ```java
 import java.lang.reflect.Constructor;
@@ -102,14 +102,14 @@ class Vault {
 }
 ```
 
-Dùng terminal tại thư mục chứa tệp:
+In a terminal in the directory containing the file:
 
 ```bash
 javac AccessibleObjectDemo.java
 java AccessibleObjectDemo
 ```
 
-Kết quả chuẩn trong ví dụ chạy trên classpath (unnamed module):
+Standard output in the example running on the classpath (unnamed module):
 
 ```text
 constructor.before=false
@@ -126,65 +126,65 @@ method.result=key=s3
 public.canAccess=true
 ```
 
-**Giải thích:**
+**Explanation:**
 
-1. `Vault()` là constructor `private`. `getDeclaredConstructor()` vẫn tìm được metadata nhưng `canAccess(null)` ban đầu bằng `false` đối với caller `AccessibleObjectDemo`. Sau khi `trySetAccessible()` trả `true`, `newInstance()` tạo được đối tượng.
-2. `secret` là trường `private final`. `getDeclaredField` tìm thấy nó nhưng `Field.get` bị chặn trước khi bật override, nên ném `IllegalAccessException`.
-3. `setAccessible(true)` bật flag trên đối tượng `Field secret`, cho phép **đọc** giá trị `s3`. Ví dụ không thử sửa một trường `final`.
-4. `setAccessible(false)` tắt override; vì caller khác class khai báo, `canAccess(vault)` trở về `false`.
-5. Phương thức `reveal(String)` là `private`, cần bật flag trước khi gọi `invoke`. Phương thức `status()` là `public`, và hai lớp nằm cùng package, nên có thể truy cập bình thường mà không bật flag.
+1. `Vault()` is a `private` constructor. `getDeclaredConstructor()` still finds its metadata, but `canAccess(null)` is initially `false` for caller `AccessibleObjectDemo`. After `trySetAccessible()` returns `true`, `newInstance()` can create the object.
+2. `secret` is a `private final` field. `getDeclaredField` finds it, but `Field.get` is blocked before enabling the override, throwing `IllegalAccessException`.
+3. `setAccessible(true)` enables the flag on the `Field secret` object, allowing **reading** the value `s3`. The example does not attempt to modify a `final` field.
+4. `setAccessible(false)` disables the override; because the caller is in a different class from the declaring class, `canAccess(vault)` returns to `false`.
+5. Method `reveal(String)` is `private` and needs the flag enabled before calling `invoke`. Method `status()` is `public`, and the two classes are in the same package, so it can be accessed normally without enabling the flag.
 
-Lưu ý: hành vi chính xác phụ thuộc quan hệ class, package, module và caller. Không lấy kết quả của ví dụ chạy trên classpath để kết luận mọi member `private` trong module khác đều mở được.
+Note: exact behavior depends on class, package, module, and caller relationships. Do not use the result of an example running on the classpath to conclude that every `private` member in another module can be opened.
 
-## 4. setAccessible, trySetAccessible và việc hoàn nguyên flag
+## 4. setAccessible, trySetAccessible, and resetting the flag
 
 ### setAccessible(true)
 
-`member.setAccessible(true)` yêu cầu bỏ qua kiểm tra truy cập Java khi thao tác qua **member đó**. Nếu được phép, lần thao tác sau như `Field.get`, `Method.invoke` hay `Constructor.newInstance` có thể sử dụng override; nếu bị JPMS chặn, thường nhận `java.lang.reflect.InaccessibleObjectException`, một **unchecked exception**.
+`member.setAccessible(true)` requests skipping Java access checks when operating via **that member**. If permitted, subsequent operations such as `Field.get`, `Method.invoke`, or `Constructor.newInstance` can use the override; if blocked by JPMS, it typically throws `java.lang.reflect.InaccessibleObjectException`, an **unchecked exception**.
 
 ```java
-// Đoạn minh họa, giả định method và receiver đã được khai báo,
-// method không nhận tham số, và code nằm trong ngữ cảnh xử lý exception.
+// Illustrative snippet, assuming method and receiver are already declared,
+// method takes no parameters, and code is in an exception-handling context.
 try {
     method.setAccessible(true);
     Object result = method.invoke(receiver);
 } catch (java.lang.reflect.InaccessibleObjectException e) {
-    System.out.println("Package/module không mở cho deep reflection");
+    System.out.println("Package/module is not open for deep reflection");
 } catch (ReflectiveOperationException e) {
-    System.out.println("Thao tác Reflection thất bại: " + e);
+    System.out.println("Reflection operation failed: " + e);
 }
 ```
 
-Đoạn trên không phải chương trình chạy độc lập. `invoke` còn có thể ném `IllegalArgumentException` khi receiver/tham số không hợp lệ; `InvocationTargetException` bọc exception do phương thức đích ném ra. Không nên xem mọi lỗi tại `invoke` là lỗi permission.
+The snippet above is not a standalone runnable program. `invoke` can also throw `IllegalArgumentException` when the receiver/arguments are invalid; `InvocationTargetException` wraps exceptions thrown by the target method. Do not treat every error at `invoke` as a permission error.
 
 ### trySetAccessible()
 
-`trySetAccessible()` phù hợp khi ứng dụng muốn fallback có kiểm soát:
+`trySetAccessible()` is suitable when an application wants controlled fallback:
 
 ```java
-// Minh họa trong method có xử lý các ngoại lệ của invoke.
+// Illustration inside a method that handles invoke's exceptions.
 if (method.trySetAccessible()) {
     Object result = method.invoke(receiver);
     System.out.println(result);
 } else {
-    System.out.println("Không thể bật quyền truy cập Reflection");
+    System.out.println("Could not enable Reflection access");
 }
 ```
 
-Kết quả `true` nghĩa là bật flag thành công hoặc flag đã bật. Kết quả `false` nghĩa là không thể bật theo điều kiện truy cập hiện tại, chẳng hạn package của module khác không mở cho caller. `trySetAccessible()` **vẫn có thể ném `SecurityException`** trong môi trường có kiểm soát bảo mật tương ứng; không nên diễn giải nó thành API “không bao giờ ném lỗi”.
+Returning `true` means the flag was enabled successfully or was already enabled. Returning `false` means it could not be enabled under current access conditions, for example when a package of another module is not open to the caller. `trySetAccessible()` **can still throw `SecurityException`** in an environment with corresponding security controls; it should not be interpreted as an API that "never throws".
 
 ### setAccessible(false)
 
-Gọi `member.setAccessible(false)` tắt flag override trên đối tượng Reflection đó. Khi tiếp tục thao tác, các quy tắc kiểm tra truy cập bình thường lại áp dụng. Member `public` vốn truy cập được thì vẫn có thể truy cập được. Không nên kỳ vọng thao tác này đổi visibility hay thu hồi quyền của mã khác.
+Calling `member.setAccessible(false)` disables the override flag on that Reflection object. On subsequent operations, normal access-check rules apply again. A `public` member that was already accessible remains accessible. You should not expect this operation to change visibility or revoke permissions of other code.
 
-### isAccessible() đã deprecated
+### isAccessible() is deprecated
 
-`isAccessible()` chỉ trả về trạng thái **suppress access checks flag**, vì thế tên phương thức dễ gây hiểu lầm. Nó đã deprecated kể từ Java 9. Dùng `canAccess(receiver)` để hỏi caller hiện tại có thể truy cập hay không; dùng `trySetAccessible()` để hỏi và thử bật flag khi cần. Một member `public` với `isAccessible() == false` vẫn có thể có `canAccess(receiver) == true`.
+`isAccessible()` only returns the state of the **suppress access checks flag**, which makes the method name misleading. It has been deprecated since Java 9. Use `canAccess(receiver)` to ask whether the current caller can access it; use `trySetAccessible()` to check and attempt enabling the flag when needed. A `public` member with `isAccessible() == false` can still have `canAccess(receiver) == true`.
 
-## 5. Ranh giới của accessible flag trong ứng dụng
+## 5. Boundaries of the accessible flag in applications
 
-Cờ bỏ qua kiểm tra truy cập chỉ áp dụng cho đối tượng Reflection cụ thể; nó không đổi modifier của lớp hoặc mở package trên phạm vi toàn JVM. Nếu caller thuộc một named module khác và package không mở đúng phạm vi, `trySetAccessible()` có thể trả `false` còn `setAccessible(true)` có thể ném `InaccessibleObjectException`. `exports` cho public API khác `opens` cho deep reflection.
+The access-check suppression flag applies only to a specific Reflection object; it does not change the class's modifiers or open a package JVM-wide. If the caller belongs to another named module and the package is not opened with the right scope, `trySetAccessible()` can return `false` and `setAccessible(true)` can throw `InaccessibleObjectException`. `exports` for public APIs differs from `opens` for deep reflection.
 
-Việc đã bật cờ cũng không giải quyết lỗi receiver, kiểu đối số, logic method hoặc giới hạn ghi của field `final`. Với nhu cầu thông thường, ưu tiên public API. Khi cần deep reflection, xác định package/module sở hữu và xử lý nhánh bị từ chối có chủ đích.
+Having the flag enabled also does not resolve receiver errors, argument type errors, method logic errors, or write restrictions on `final` fields. For normal needs, prefer public APIs. When deep reflection is necessary, identify the owning package/module and handle the denied branch intentionally.
 
-**Tự kiểm tra:** Vì sao một method `public` có thể `canAccess(receiver) == true` khi accessible flag vẫn `false`? Vì sao `setAccessible(false)` không làm method public trở thành private? Vì sao đọc được private final field chưa chứng minh rằng bạn có thể sửa nó?
+**Self-check:** Why can a `public` method have `canAccess(receiver) == true` while the accessible flag is still `false`? Why does `setAccessible(false)` not turn a public method into a private one? Why does being able to read a private final field not prove that you can modify it?

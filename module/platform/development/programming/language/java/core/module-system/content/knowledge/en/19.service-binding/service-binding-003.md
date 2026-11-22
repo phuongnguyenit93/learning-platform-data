@@ -1,17 +1,17 @@
-# Root service consumer ảnh hưởng graph trong JPMS
+# How root service consumers affect the graph in JPMS
 
-Trong Java Platform Module System (JPMS), một module có thể sử dụng service mà không khai báo dependency trực tiếp vào từng implementation. Module tiêu thụ khai báo `uses`, module cung cấp khai báo `provides ... with ...`. Cơ chế **service binding** dùng những khai báo đó để mở rộng tập module được resolve: khi một module trong graph cần một service, các module provider phù hợp có thể được đưa vào configuration cùng dependency của chúng.
+In the Java Platform Module System (JPMS), a module can use a service without declaring direct dependencies on each implementation. The consuming module declares `uses`, and the supplying module declares `provides ... with ...`. The **service binding** mechanism uses those declarations to expand the set of resolved modules: when a module in the graph needs a service, matching provider modules can be brought into the configuration along with their dependencies.
 
-Điểm khởi đầu của quá trình này là **root modules**. Vì vậy, nếu một root module là service consumer, các service mà nó khai báo có thể làm graph lớn hơn. Cần hiểu rõ quan hệ giữa root, `requires`, `uses`, `provides` và tùy chọn `--bind-services` để dự đoán chính xác module nào sẽ có mặt trong runtime image.
+The starting point of this process is the **root modules**. Therefore, if a root module is a service consumer, the services it declares can make the graph larger. Understanding the relationship between roots, `requires`, `uses`, `provides`, and the `--bind-services` option is essential to accurately predict which modules will be present in the runtime image.
 
-## 1. Bốn khái niệm cần phân biệt
+## 1. Four concepts to distinguish
 
-- **Root module**: module được chọn làm điểm bắt đầu khi resolve. Với `jlink`, root thường được chỉ định bằng `--add-modules`.
-- **Service consumer**: module cần một abstraction/service và khai báo `uses ten.day.du.ServiceType` trong `module-info.java`.
-- **Service provider**: module triển khai service và khai báo `provides ten.day.du.ServiceType with ten.day.du.ProviderClass`.
-- **Service binding**: bước resolve bổ sung các module provider có thể quan sát được cho những service được các module trong graph sử dụng, sau đó resolve dependency của các provider đó.
+- **Root module**: a module chosen as a starting point during resolution. With `jlink`, roots are typically specified with `--add-modules`.
+- **Service consumer**: a module that needs an abstraction/service and declares `uses fully.qualified.ServiceType` in `module-info.java`.
+- **Service provider**: a module that implements a service and declares `provides fully.qualified.ServiceType with fully.qualified.ProviderClass`.
+- **Service binding**: the resolution step that adds observable provider modules for services used by modules in the graph, and then resolves the dependencies of those providers.
 
-Ví dụ, ứng dụng `com.acme.app` gọi service `Codec`. Ứng dụng chỉ phụ thuộc vào API `com.acme.codec.api`; nó không cần biết implementation JSON nằm trong module `com.acme.codec.json`.
+For example, the `com.acme.app` application calls the `Codec` service. The application only depends on the `com.acme.codec.api` API; it does not need to know that the JSON implementation lives in the `com.acme.codec.json` module.
 
 ~~~text
 Root: com.acme.app
@@ -20,26 +20,26 @@ Root: com.acme.app
     |
     +-- uses Codec
              |
-             +-- service binding tìm thấy provider
+             +-- service binding locates provider
                          |
                          +--> com.acme.codec.json
                                   |
                                   +-- requires --> com.acme.codec.api
 ~~~
 
-Quan hệ `requires` và quan hệ service binding có ý nghĩa khác nhau. `requires` tạo readability dependency theo quy tắc JPMS. `uses` ghi nhận nhu cầu service để quá trình binding tìm provider; nó không có nghĩa consumer phải `requires` từng module provider, cũng không tự làm package implementation được export cho consumer.
+The `requires` relationship and the service binding relationship have different meanings. `requires` creates a readability dependency according to JPMS rules. `uses` records a service need so that the binding process locates providers; it does not mean the consumer must `requires` each provider module, nor does it cause implementation packages to be exported to the consumer.
 
-## 2. Khai báo service consumer và provider
+## 2. Declaring the service consumer and provider
 
-Giả sử dự án có ba module:
+Suppose the project has three modules:
 
-1. `com.acme.codec.api` chứa interface service.
-2. `com.acme.codec.json` cung cấp implementation JSON.
-3. `com.acme.app` sử dụng service.
+1. `com.acme.codec.api` containing the service interface.
+2. `com.acme.codec.json` supplying the JSON implementation.
+3. `com.acme.app` using the service.
 
-### Module API
+### API module
 
-Cấu trúc:
+Structure:
 
 ~~~text
 modules/
@@ -56,7 +56,7 @@ module com.acme.codec.api {
 }
 ~~~
 
-Interface service:
+Service interface:
 
 ~~~java
 package com.acme.codec.spi;
@@ -67,11 +67,11 @@ public interface Codec {
 }
 ~~~
 
-Module API export package chứa interface để consumer và provider có thể đọc và triển khai kiểu service.
+The API module exports the package containing the interface so consumers and providers can read and implement the service type.
 
-### Module provider
+### Provider module
 
-`module-info.java` của provider:
+`module-info.java` of the provider:
 
 ~~~java
 module com.acme.codec.json {
@@ -105,9 +105,9 @@ public final class JsonCodec implements Codec {
 }
 ~~~
 
-Provider module cần đọc module API để tham chiếu interface. Package implementation không cần export chỉ để ServiceLoader tìm provider được khai báo trong descriptor. Với cách triển khai thông thường ở ví dụ này, provider class là public và có public no-argument constructor.
+The provider module needs to read the API module to reference the interface. The implementation package does not need to be exported merely for `ServiceLoader` to locate the provider declared in the descriptor. In the standard implementation shown in this example, the provider class is public and has a public no-argument constructor.
 
-### Module consumer
+### Consumer module
 
 `module-info.java`:
 
@@ -119,7 +119,7 @@ module com.acme.app {
 }
 ~~~
 
-Mã sử dụng:
+Consumer code:
 
 ~~~java
 package com.acme.app;
@@ -137,51 +137,51 @@ public class Main {
 }
 ~~~
 
-Consumer chỉ phụ thuộc vào module API. Nó không khai báo `requires com.acme.codec.json`. Chính metadata `uses` và `provides` cho phép quá trình service binding tìm provider phù hợp.
+The consumer only depends on the API module. It does not declare `requires com.acme.codec.json`. It is the `uses` and `provides` metadata that allows the service binding process to locate matching providers.
 
-## 3. Root module làm thay đổi graph như thế nào?
+## 3. How do root modules change the graph?
 
-Quá trình resolve bắt đầu từ một tập root. Từ các root, JPMS tìm dependency được khai báo bằng `requires` và tiếp tục mở rộng graph theo các quy tắc resolve. Khi thực hiện service binding, hệ thống xét các service được khai báo bởi những module đã nằm trong graph, tìm các provider module có thể quan sát được, thêm chúng vào configuration và resolve dependency của chúng.
+The resolution process starts from a set of roots. From the roots, JPMS finds dependencies declared via `requires` and continues expanding the graph according to resolution rules. When performing service binding, the system inspects services declared by modules already in the graph, finds observable provider modules, adds them to the configuration, and resolves their dependencies.
 
-Với ví dụ trên, nếu `com.acme.app` là root:
+With the example above, if `com.acme.app` is the root:
 
-1. `com.acme.app` được đưa vào graph.
-2. Dependency `com.acme.codec.api` được resolve qua `requires`.
-3. Consumer khai báo `uses com.acme.codec.spi.Codec`.
-4. Service binding tìm module quan sát được khai báo `provides com.acme.codec.spi.Codec`.
-5. `com.acme.codec.json` được thêm vào graph.
-6. Dependency của provider, bao gồm `com.acme.codec.api`, được resolve.
-7. Nếu provider module lại khai báo `uses` một service khác, quá trình binding có thể tiếp tục mở rộng graph.
+1. `com.acme.app` is placed into the graph.
+2. The `com.acme.codec.api` dependency is resolved via `requires`.
+3. The consumer declares `uses com.acme.codec.spi.Codec`.
+4. Service binding locates observable modules declaring `provides com.acme.codec.spi.Codec`.
+5. `com.acme.codec.json` is added to the graph.
+6. The provider's dependencies, including `com.acme.codec.api`, are resolved.
+7. If the provider module also declares `uses` for another service, the binding process can continue expanding the graph.
 
-Điều này tạo ra hiệu ứng dây chuyền. Một root service consumer có thể kéo theo provider, dependency của provider và provider của các service tiếp theo. Quá trình lặp lại cho đến khi không còn provider phù hợp nào cần được thêm.
+This creates a chain effect. A root service consumer can pull in providers, the providers' dependencies, and providers of subsequent services. The process repeats until no more matching providers need to be added.
 
-Cần nhớ ba trường hợp:
+Remember three cases:
 
-- **Consumer nằm trong graph**: service mà module đó khai báo có thể kích hoạt việc tìm provider.
-- **Consumer không nằm trong graph**: các chỉ thị `uses` của module đó không làm graph hiện tại phát sinh provider.
-- **Provider được chỉ định làm root hoặc được yêu cầu trực tiếp**: provider được resolve do root/`requires`, ngay cả khi không có service binding.
+- **Consumer is in the graph**: services declared by that module can trigger provider lookup.
+- **Consumer is not in the graph**: that module's `uses` directives do not cause the current graph to pull in providers.
+- **Provider is specified as a root or directly required**: the provider is resolved via root/`requires`, even without service binding.
 
-Do đó, một provider có thể xuất hiện trong graph vì nhiều lý do: được chọn làm root, là dependency qua `requires`, hoặc được thêm qua service binding. Khi phân tích graph, hãy xác định đường đi khiến module xuất hiện thay vì chỉ nhìn thấy tên module trong kết quả cuối.
+Therefore, a provider can appear in the graph for several reasons: chosen as a root, being a dependency via `requires`, or added via service binding. When analyzing a graph, determine the path that caused a module to appear rather than only looking at the module name in the final output.
 
-## 4. Service binding trong jlink
+## 4. Service binding in jlink
 
-`jlink` tạo runtime image từ một tập module đã resolve. Tùy chọn `--add-modules` xác định các root module. Tùy chọn `--bind-services` yêu cầu công cụ liên kết các service provider module và dependency của chúng.
+`jlink` creates a runtime image from a set of resolved modules. The `--add-modules` option specifies the root modules. The `--bind-services` option instructs the tool to link service provider modules and their dependencies.
 
-Ví dụ tạo runtime image cho ứng dụng:
+Example of creating a runtime image for an application:
 
 ~~~bash
 jlink --module-path "$JAVA_HOME/jmods:mods" --add-modules com.acme.app --bind-services --output runtime-app
 ~~~
 
-Trong đó:
+Where:
 
-- `$JAVA_HOME/jmods` chứa JMOD của JDK đang dùng.
-- `mods` chứa các module ứng dụng đã biên dịch, chẳng hạn modular JAR hoặc exploded module.
-- `--add-modules com.acme.app` chọn consumer làm root.
-- `--bind-services` cho phép provider của service mà graph sử dụng được thêm cùng dependency của provider.
-- `--output runtime-app` là thư mục runtime image được tạo.
+- `$JAVA_HOME/jmods` contains the JMODs of the JDK being used.
+- `mods` contains the compiled application modules, such as modular JARs or exploded modules.
+- `--add-modules com.acme.app` selects the consumer as the root.
+- `--bind-services` allows providers of services used by the graph to be added along with the providers' dependencies.
+- `--output runtime-app` is the output runtime image directory being created.
 
-Với ba module ví dụ, graph liên kết có thể bao gồm:
+With the three example modules, the linked graph may include:
 
 ~~~text
 com.acme.app
@@ -191,84 +191,84 @@ java.base
 ...
 ~~~
 
-Các module nền tảng khác sẽ phụ thuộc vào dependency thực tế của ứng dụng và provider.
+Other platform modules will depend on the actual dependencies of the application and providers.
 
-### So sánh khi bỏ --bind-services
+### Comparison when omitting --bind-services
 
-Nếu chạy:
+If you run:
 
 ~~~bash
 jlink --module-path "$JAVA_HOME/jmods:mods" --add-modules com.acme.app --output runtime-app
 ~~~
 
-`jlink` vẫn resolve root và dependency theo `requires`. Nhưng provider không tự động được đưa vào chỉ vì consumer có `uses`. Nếu provider không phải root và cũng không được yêu cầu qua dependency thông thường, provider có thể vắng mặt trong image.
+`jlink` still resolves the roots and `requires` dependencies. However, providers are not automatically included merely because the consumer has `uses`. If the provider is neither a root nor required via normal dependencies, the provider may be absent from the image.
 
-Khi ứng dụng gọi `ServiceLoader.load(Codec.class)`, không có provider trong runtime image thì ServiceLoader không thể tìm thấy implementation đó. Vì vậy, nếu ứng dụng dựa vào provider được phát hiện qua service binding, hãy xác nhận provider đã được đưa vào image.
+When the application calls `ServiceLoader.load(Codec.class)`, without the provider in the runtime image `ServiceLoader` cannot find that implementation. Therefore, if an application relies on providers discovered via service binding, verify that the providers have been included in the image.
 
-Một cách khác là chỉ định provider như root:
+Another approach is to specify the provider as a root:
 
 ~~~bash
 jlink --module-path "$JAVA_HOME/jmods:mods" --add-modules com.acme.app,com.acme.codec.json --output runtime-app
 ~~~
 
-Lúc này provider được đưa vào do được chọn rõ ràng, không cần service binding để thêm chính provider đó. Tuy nhiên cách này buộc cấu hình triển khai phải biết tên implementation. Service binding phù hợp hơn khi muốn giữ consumer phụ thuộc vào API và để metadata provider quyết định implementation nào có thể tham gia.
+In this case, the provider is included because it was explicitly selected, without needing service binding to add that provider itself. However, this approach forces the deployment configuration to know the implementation names. Service binding is better suited when you want to keep the consumer dependent on the API and let provider metadata decide which implementations can participate.
 
-## 5. Provider nào có thể được thêm vào?
+## 5. Which providers can be added?
 
-Service binding chỉ có thể chọn provider mà công cụ resolve có thể quan sát được. Một module có khai báo `provides` nhưng nằm ngoài các module finder hoặc ngoài phạm vi module được phép quan sát thì không thể được thêm vào graph.
+Service binding can only select providers that the resolution tool can observe. A module declaring `provides` that lies outside the module finders or outside the observable module scope cannot be added to the graph.
 
-Các yếu tố cần kiểm tra:
+Factors to check:
 
-- **Module path**: thư mục chứa modular JAR hoặc exploded module provider phải có trong `--module-path`.
-- **Module descriptor**: provider phải khai báo đúng service type trong `provides`.
-- **Service type**: consumer và provider phải tham chiếu cùng tên service type, đúng package và module API.
-- **Root set**: phải có ít nhất một module trong graph khai báo `uses` service đó, trừ khi provider được đưa vào vì root hoặc dependency khác.
-- **Module universe**: các giới hạn như `--limit-modules` có thể làm module provider không còn nằm trong tập module được phép resolve.
-- **Dependency của provider**: các module cần thiết bởi `requires` trong provider cũng phải resolve được.
+- **Module path**: the directory containing the provider's modular JAR or exploded module must be on `--module-path`.
+- **Module descriptor**: the provider must declare the exact service type in `provides`.
+- **Service type**: the consumer and provider must reference the exact same service type name, in the right package and API module.
+- **Root set**: at least one module in the graph must declare `uses` for that service, unless the provider is brought in as a root or other dependency.
+- **Module universe**: restrictions such as `--limit-modules` can exclude a provider module from the set of resolvable modules.
+- **Provider dependencies**: modules needed by `requires` in the provider must also be resolvable.
 
-Nếu có nhiều module cùng cung cấp một service, service binding có thể thêm nhiều provider phù hợp vào graph. Cơ chế này không chọn một implementation duy nhất thay cho ứng dụng. Nếu nghiệp vụ cần ưu tiên provider cụ thể, hãy thiết kế chính sách chọn provider trong ứng dụng hoặc cấu hình tập module triển khai rõ ràng; đừng dựa vào thứ tự tình cờ của module.
+If multiple modules provide the same service, service binding can add multiple matching providers to the graph. This mechanism does not choose a single implementation on behalf of the application. If business logic needs to prioritize a specific provider, design a provider selection policy in the application or explicitly configure the set of deployed modules; do not rely on incidental module ordering.
 
-## 6. Quan sát graph bằng công cụ JDK
+## 6. Observing the graph with JDK tools
 
-Trước tiên, có thể yêu cầu jlink gợi ý provider cho một service type:
+First, you can ask `jlink` to suggest providers for a service type:
 
 ~~~bash
 jlink --module-path "$JAVA_HOME/jmods:mods" --suggest-providers com.acme.codec.spi.Codec
 ~~~
 
-Lệnh này giúp kiểm tra các module trên module path có provider cho service được hỏi hay không. Nó là bước khảo sát; việc gợi ý không đồng nghĩa provider đã được đưa vào runtime image.
+This command checks whether modules on the module path contain providers for the queried service. It is an exploratory step; suggesting providers does not mean they have already been included in a runtime image.
 
-Sau khi tạo image, liệt kê module có trong runtime:
+After creating the image, list the modules in the runtime:
 
 ~~~bash
 runtime-app/bin/java --list-modules
 ~~~
 
-Trên Windows:
+On Windows:
 
 ~~~powershell
 runtime-app/bin/java.exe --list-modules
 ~~~
 
-Tìm module provider trong danh sách để xác nhận image có chứa nó. Có thể chạy ứng dụng bằng runtime image mới:
+Look for the provider module in the list to confirm the image contains it. You can run the application using the new runtime image:
 
 ~~~bash
 runtime-app/bin/java -m com.acme.app
 ~~~
 
-Nếu cần xem module resolution khi khởi chạy một ứng dụng module path trong một runtime có sẵn các module tương ứng, dùng:
+If you need to inspect module resolution when launching a module-path application in an existing runtime that has the corresponding modules, use:
 
 ~~~bash
 java --show-module-resolution --module-path mods -m com.acme.app
 ~~~
 
-Đầu ra giúp quan sát root và dependency được resolve. Để kết luận một provider được thêm do service binding hay do `requires`, vẫn cần đối chiếu descriptor của consumer/provider và cách tạo runtime image.
+The output helps observe the resolved roots and dependencies. To conclude whether a provider was added by service binding or by `requires`, you still need to cross-check the consumer/provider descriptors and how the runtime image was built.
 
-## 7. So sánh resolve() và resolveAndBind() bằng Java API
+## 7. Comparing resolve() and resolveAndBind() via the Java API
 
-Java API trong `java.lang.module` cho phép tạo configuration từ root module. Điểm khác biệt chính là `resolveAndBind()` thực hiện thêm bước service binding.
+The Java API in `java.lang.module` lets you create a configuration from root modules. The main difference is that `resolveAndBind()` performs the additional service binding step.
 
-Ví dụ:
+Example:
 
 ~~~java
 import java.lang.module.Configuration;
@@ -317,37 +317,37 @@ public class CompareResolution {
 }
 ~~~
 
-Chạy chương trình từ một classpath phù hợp, với thư mục `mods` chứa các module ví dụ. Kết quả phụ thuộc module thực tế có trong module finder:
+Run the program from a suitable classpath, with the `mods` directory containing the example modules. The output depends on the actual modules present in the module finder:
 
-- `resolve()` resolve root và dependency theo `requires`.
-- `resolveAndBind()` thực hiện resolve cùng service binding, vì vậy có thể xuất hiện thêm `com.acme.codec.json` và dependency của provider.
+- `resolve()` resolves the roots and dependencies via `requires`.
+- `resolveAndBind()` performs resolution along with service binding, so `com.acme.codec.json` and the provider's dependencies can also appear.
 
-`configuration.modules()` trả về các module trong configuration vừa tạo; các module thuộc parent configuration không được liệt kê như module mới của configuration con. Đây là lý do danh sách in ra có thể không chứa toàn bộ module nền tảng đang chạy trong boot layer.
+`configuration.modules()` returns the modules in the newly created configuration; modules belonging to the parent configuration are not listed as new modules of the child configuration. This is why the printed list may not contain all platform modules running in the boot layer.
 
-Hai phương thức không thay đổi file JAR hoặc descriptor. Chúng tạo kết quả resolve trong bộ nhớ để ứng dụng có thể xây dựng hoặc kiểm tra `ModuleLayer`.
+Neither method modifies JAR files or descriptors. They produce a resolution result in memory so the application can construct or inspect a `ModuleLayer`.
 
-## 8. Các lỗi thường gặp
+## 8. Common mistakes
 
-**Consumer có `uses` nhưng provider không xuất hiện.** Kiểm tra bạn đang dùng `jlink --bind-services` hay chưa; provider có nằm trong module path không; descriptor có khai báo đúng service type không; và module consumer có thực sự nằm trong graph không.
+**The consumer has `uses` but the provider does not appear.** Check whether you used `jlink --bind-services`, whether the provider is on the module path, whether the descriptor declares the right service type, and whether the consumer module is actually in the graph.
 
-**Đã dùng `--bind-services` nhưng vẫn không tìm thấy provider.** `--bind-services` không tự tìm module ở mọi thư mục trên máy. Kiểm tra module path, tên module và phạm vi module được phép quan sát. Kiểm tra thêm provider có được đóng gói thành modular JAR hoặc exploded module hợp lệ hay không.
+**`--bind-services` was used, yet the provider is still not found.** `--bind-services` does not automatically search every directory on the machine for modules. Check the module path, module names, and the observable module scope. Also check whether the provider is packaged as a valid modular JAR or exploded module.
 
-**Provider xuất hiện dù không được dùng trực tiếp.** Provider có thể là root, là dependency của module khác hoặc được thêm bởi một consumer khác trong graph. Tìm tất cả root, các chỉ thị `requires`, `uses` và `provides` trước khi kết luận.
+**A provider appears even though it is not directly used.** The provider could be a root, a dependency of another module, or added by another consumer in the graph. Inspect all roots, `requires`, `uses`, and `provides` directives before drawing conclusions.
 
-**Runtime image lớn hơn dự kiến.** Service binding có thể thêm nhiều provider cho cùng service, dependency của các provider và provider của service tiếp theo. Kiểm tra module nào đang khai báo `uses`, thu hẹp root set và module path, sau đó so sánh danh sách module trước/sau khi bật binding.
+**The runtime image is larger than expected.** Service binding can add multiple providers for the same service, dependencies of those providers, and providers of subsequent services. Check which modules declare `uses`, narrow the root set and module path, and then compare the module lists before and after enabling binding.
 
-**Ứng dụng tìm thấy nhiều provider.** Đây là kết quả hợp lệ nếu nhiều module cùng cung cấp service. Dùng thuộc tính hoặc chính sách chọn provider ở tầng ứng dụng nếu chỉ một implementation được phép sử dụng.
+**The application finds multiple providers.** This is valid if multiple modules provide the service. Use properties or a provider selection policy at the application layer if only one implementation is allowed.
 
-**Nhầm `uses` với `requires`.** `uses` không tạo dependency compile-time vào implementation. Consumer cần `requires` module chứa service API; provider cần `requires` module API và khai báo `provides`. Service binding là cơ chế resolve provider vào configuration.
+**Confusing `uses` with `requires`.** `uses` does not create a compile-time dependency on an implementation. The consumer needs to `requires` the module containing the service API; the provider needs to `requires` the API module and declare `provides`. Service binding is the mechanism that resolves providers into the configuration.
 
-## 9. Thực hành
+## 9. Practice
 
-1. Tạo ba module `com.acme.codec.api`, `com.acme.codec.json` và `com.acme.app` theo ví dụ.
-2. Đóng gói các module thành modular JAR hoặc chuẩn bị exploded module trong thư mục `mods`.
-3. Chạy `jlink` với root `com.acme.app` và bật `--bind-services`. Dùng `java --list-modules` của runtime mới để xác nhận provider có trong image.
-4. Tạo image thứ hai nhưng bỏ `--bind-services`. So sánh danh sách module và kết quả gọi `ServiceLoader`.
-5. Tạo image thứ ba bằng cách thêm provider trực tiếp vào `--add-modules`. So sánh vì sao provider xuất hiện trong graph ở trường hợp này.
-6. Dùng `--suggest-providers` để khảo sát provider có sẵn trên module path.
-7. Chạy ví dụ `CompareResolution` để so sánh tập module giữa `resolve()` và `resolveAndBind()`.
+1. Create the three modules `com.acme.codec.api`, `com.acme.codec.json`, and `com.acme.app` following the example.
+2. Package the modules as modular JARs or prepare exploded modules in the `mods` directory.
+3. Run `jlink` with root `com.acme.app` and enable `--bind-services`. Use `java --list-modules` from the new runtime to verify the provider is in the image.
+4. Build a second image but omit `--bind-services`. Compare the module list and the result of calling `ServiceLoader`.
+5. Build a third image by adding the provider directly to `--add-modules`. Compare why the provider appears in the graph in this case.
+6. Use `--suggest-providers` to inspect available providers on the module path.
+7. Run the `CompareResolution` example to compare the module sets between `resolve()` and `resolveAndBind()`.
 
-Khi phân tích một graph có service binding, hãy bắt đầu từ root modules, theo các cạnh `requires`, rồi xét những service được các module trong graph khai báo bằng `uses`. Provider chỉ có thể được thêm nếu nằm trong tập module quan sát được. Với `jlink`, `--bind-services` biến các quan hệ service đó thành module được liên kết vào runtime image, vì vậy một root service consumer có thể quyết định đáng kể kích thước và thành phần của runtime được tạo.
+When analyzing a graph with service binding, start from the root modules, follow `requires` edges, and then examine the services declared by modules in the graph via `uses`. A provider can only be added if it lies within the observable module set. With `jlink`, `--bind-services` turns those service relationships into modules linked into the runtime image, so a root service consumer can significantly determine the size and composition of the generated runtime.

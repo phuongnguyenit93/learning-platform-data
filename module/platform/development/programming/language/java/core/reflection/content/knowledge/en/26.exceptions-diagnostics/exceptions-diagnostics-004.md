@@ -1,31 +1,31 @@
-# `IllegalArgumentException` do receiver hoặc đối số không hợp lệ trong Java Reflection
+# `IllegalArgumentException` from Invalid Receiver or Arguments in Java Reflection
 
-## 1. Bản chất lỗi: thất bại ở bước áp dụng lời gọi phản chiếu
+## 1. Nature of the Error: Failure When Applying a Reflective Call
 
-Khi dùng Java Reflection, chương trình thường tìm được một đối tượng `java.lang.reflect.Method`, `Constructor<?>` hoặc `Field` rồi mới thao tác trên object cụ thể. **Tìm thấy metadata không bảo đảm có thể áp dụng thành viên đó cho mọi receiver hoặc mọi danh sách đối số.**
+When using Java Reflection, a program usually looks up a `java.lang.reflect.Method`, `Constructor<?>`, or `Field` object before operating on a concrete object. **Finding metadata does not guarantee that the member can be applied to every receiver or every argument list.**
 
-`IllegalArgumentException` là ngoại lệ *unchecked* thường báo rằng lời gọi API reflection được đưa dữ liệu không đúng hợp đồng: receiver không thuộc kiểu được phép, sai số lượng tham số, không thể chuyển kiểu đối số, hoặc giá trị ghi vào field không phù hợp. Lỗi này có thể xuất hiện **trước khi mã của phương thức/constructor đích chạy**.
+`IllegalArgumentException` is an *unchecked* exception generally reporting that a reflection API call received data violating its contract: a receiver not of an allowed type, wrong argument count, unconvertible argument types, or an unsuitable value written to a field. This error can occur **before the target method/constructor code runs**.
 
-Ví dụ `Method` đại diện cho `Service.sum(int, long)` chỉ biết phương thức nào cần gọi. Để `Method.invoke` thành công, còn cần receiver là một instance thích hợp của `Service` và **hai đối số** lần lượt tương thích với `int`, `long`.
+For example, a `Method` representing `Service.sum(int, long)` only knows which method to invoke. For `Method.invoke` to succeed, it also needs a receiver that is a suitable instance of `Service` and **two arguments** compatible with `int` and `long`, respectively.
 
-Quan trọng: **`IllegalArgumentException` do reflection kiểm tra đầu vào** khác với **`IllegalArgumentException` được chính phương thức đích ném ra**. Khi gọi qua `Method.invoke`, ngoại lệ từ phương thức đích được bọc trong `InvocationTargetException`. Phải phân biệt hai nhánh để xử lý và chẩn đoán đúng.
+Important: **`IllegalArgumentException` from reflection input validation** differs from **`IllegalArgumentException` thrown by the target method itself**. When invoked via `Method.invoke`, an exception from the target method is wrapped in `InvocationTargetException`. You must distinguish both branches to handle and diagnose accurately.
 
-## 2. `Method.invoke` kiểm tra receiver ra sao?
+## 2. How Does `Method.invoke` Check the Receiver?
 
-Chữ ký cơ bản:
+Basic signature:
 
 ```java
 Object result = method.invoke(receiver, arguments);
 ```
 
-Đây là fragment minh họa; `method` đã được tìm trước đó. `receiver` còn gọi là *target object*:
+This is an illustrative snippet; `method` has already been looked up. `receiver` is also called the *target object*:
 
-- Với **instance method**, receiver phải là đối tượng của declaring class hoặc lớp con/implementation phù hợp. Truyền đối tượng không liên quan sẽ dẫn đến `IllegalArgumentException`.
-- Với **instance method**, truyền `null` làm receiver sẽ dẫn đến **`NullPointerException`**, không phải `IllegalArgumentException`. Không nên gom hai tình huống này thành một loại lỗi.
-- Với **static method**, `Method.invoke` **bỏ qua đối số receiver**; truyền `null` là cách diễn đạt rõ ràng. Không kết luận một static method sẽ lỗi chỉ vì receiver không phải object của declaring class.
-- Nếu receiver có kiểu hợp lệ nhưng quyền truy cập bị từ chối, đó là một nhóm lỗi khác, thường `IllegalAccessException`.
+- For an **instance method**, the receiver must be an object of the declaring class or an appropriate subclass/implementation. Passing an unrelated object results in `IllegalArgumentException`.
+- For an **instance method**, passing `null` as the receiver results in **`NullPointerException`**, not `IllegalArgumentException`. Do not lump these two situations into a single error type.
+- For a **static method**, `Method.invoke` **ignores the receiver argument**; passing `null` is the clearest way to express this. Do not conclude a static method will fail merely because the receiver is not an object of the declaring class.
+- If the receiver has a valid type but access permission is denied, that is a different error group, usually `IllegalAccessException`.
 
-Ví dụ fragment:
+Example snippet:
 
 ```java
 class Parent {
@@ -34,7 +34,7 @@ class Parent {
 class Child extends Parent {}
 class Unrelated {}
 
-// Đặt trong một method có throws ReflectiveOperationException:
+// Place inside a method with throws ReflectiveOperationException:
 java.lang.reflect.Method m = Parent.class.getMethod("name");
 
 System.out.println(m.invoke(new Parent())); // parent
@@ -43,51 +43,51 @@ System.out.println(m.invoke(new Child()));  // parent
 // m.invoke(null);                           // NullPointerException
 ```
 
-`m.getDeclaringClass()` cho biết lớp khai báo method, còn `m.getModifiers()` cho biết method có `static` hay không. Một bước kiểm tra hữu ích trước khi gọi instance method là:
+`m.getDeclaringClass()` tells you the class declaring the method, while `m.getModifiers()` tells you whether the method is `static`. A useful check before invoking an instance method is:
 
 ```java
 if (!java.lang.reflect.Modifier.isStatic(m.getModifiers())) {
     if (receiver == null) {
-        throw new IllegalArgumentException("Receiver phải khác null");
+        throw new IllegalArgumentException("Receiver must be non-null");
     }
     if (!m.getDeclaringClass().isInstance(receiver)) {
         throw new IllegalArgumentException(
-                "Receiver không tương thích với " + m.getDeclaringClass().getName());
+                "Receiver is incompatible with " + m.getDeclaringClass().getName());
     }
 }
 ```
 
-Đây là **validation do ứng dụng chủ động thiết kế**, nên chính đoạn `throw new IllegalArgumentException(...)` có thể thay đổi cách phân loại lỗi `null` ở tầng ứng dụng. Nó không làm thay đổi hợp đồng chuẩn của `Method.invoke(null, ...)` đối với instance method.
+This is **validation intentionally designed by the application**, so that explicit `throw new IllegalArgumentException(...)` can change how `null` errors are classified at the application layer. It does not alter the standard contract of `Method.invoke(null, ...)` for instance methods.
 
-## 3. Đối số: sai số lượng, sai thứ tự, sai kiểu
+## 3. Arguments: Wrong Count, Wrong Order, Wrong Type
 
-Để chẩn đoán một `Method.invoke` bị `IllegalArgumentException`, kiểm tra theo thứ tự:
+To diagnose a `Method.invoke` failing with `IllegalArgumentException`, check in order:
 
-1. **Số lượng tham số:** `method.getParameterCount()` phải khớp số lượng đối số thực tế mà reflection nhận. Không được mặc định rằng phương thức có `varargs` thì `Method.invoke` tự gom mọi đối số rời thành array.
-2. **Kiểu khai báo:** dùng `method.getParameterTypes()` để biết các loại kiểu ở runtime; với generic, `getGenericParameterTypes()` giúp xem metadata khai báo, nhưng kiểm tra gọi thông thường diễn ra trên kiểu đã erasure.
-3. **Giá trị `null`:** có thể truyền vào tham số reference; không hợp lệ cho tham số primitive như `int` hay `boolean`.
-4. **Primitive conversion:** reflection hỗ trợ unboxing wrapper và **widening primitive** thích hợp (chẳng hạn `Short` sang `int`, `Integer` sang `long`); không tự làm narrowing (`Long` sang `int`) hoặc chuyển tùy tiện từ `String` sang số.
-5. **Reference conversion:** một đối tượng cần tương thích với kiểu tham số reference. Không được nhầm `Object[]` (container chứa danh sách đối số của reflection) với `String[]` (một đối số được khai báo của method đích).
+1. **Parameter count:** `method.getParameterCount()` must match the actual number of arguments reflection receives. Do not assume that if a method has `varargs`, `Method.invoke` automatically packs loose arguments into an array.
+2. **Declared types:** use `method.getParameterTypes()` to inspect runtime parameter types; for generics, `getGenericParameterTypes()` helps inspect declared metadata, though normal invocation checks happen on erased types.
+3. **`null` values:** can be passed to reference parameters; invalid for primitive parameters such as `int` or `boolean`.
+4. **Primitive conversions:** reflection supports wrapper unboxing and appropriate **primitive widening** (such as `Short` to `int`, `Integer` to `long`); it does not perform automatic narrowing (`Long` to `int`) or arbitrary conversion from `String` to a number.
+5. **Reference conversions:** an object must be compatible with the reference parameter type. Do not confuse `Object[]` (the container holding reflection's argument list) with `String[]` (a single declared parameter of the target method).
 
-Ví dụ `sum(int, long)`:
+Example `sum(int, long)`:
 
-| Lời gọi qua `Method.invoke` | Kết quả |
+| Call via `Method.invoke` | Result |
 | --- | --- |
-| `sum.invoke(service, 2, 3L)` | Hợp lệ; `Integer` unbox thành `int`, `Long` thành `long` |
-| `sum.invoke(service, Short.valueOf((short) 2), Integer.valueOf(3))` | Hợp lệ; unbox rồi widening primitive |
-| `sum.invoke(service, 2)` | `IllegalArgumentException` vì thiếu đối số |
-| `sum.invoke(service, 2, 3L, 4)` | `IllegalArgumentException` vì thừa đối số |
-| `sum.invoke(service, 2L, 3L)` | `IllegalArgumentException` vì `long` không narrowing thành `int` |
-| `sum.invoke(service, null, 3L)` | `IllegalArgumentException` vì `int` không nhận `null` |
-| `sum.invoke(service, "2", 3L)` | `IllegalArgumentException` vì không tự parse `String` thành `int` |
+| `sum.invoke(service, 2, 3L)` | Valid; `Integer` unboxes to `int`, `Long` to `long` |
+| `sum.invoke(service, Short.valueOf((short) 2), Integer.valueOf(3))` | Valid; unboxes then widens primitive |
+| `sum.invoke(service, 2)` | `IllegalArgumentException` due to missing argument |
+| `sum.invoke(service, 2, 3L, 4)` | `IllegalArgumentException` due to extra argument |
+| `sum.invoke(service, 2L, 3L)` | `IllegalArgumentException` because `long` does not narrow to `int` |
+| `sum.invoke(service, null, 3L)` | `IllegalArgumentException` because `int` does not accept `null` |
+| `sum.invoke(service, "2", 3L)` | `IllegalArgumentException` because `String` is not auto-parsed into `int` |
 
-Reflection không thực hiện overload resolution như khi biên dịch lời gọi Java thông thường. Ví dụ nếu một class có `f(int)` và `f(long)`, `getMethod("f", int.class)` xác định **đúng một overload**; sau đó `invoke` không tự chọn lại overload khác chỉ vì nhận đối số `Long`. Chọn đúng chữ ký ngay lúc tra cứu.
+Reflection does not perform overload resolution as happens when compiling normal Java calls. For instance, if a class has `f(int)` and `f(long)`, `getMethod("f", int.class)` identifies **one specific overload**; afterward `invoke` does not re-select another overload just because it receives a `Long` argument. Pick the right signature right at lookup time.
 
-## 4. Bẫy `Object...`: truyền tham số dạng mảng và varargs
+## 4. The `Object...` Trap: Passing Array Parameters and Varargs
 
-`Method.invoke` có chữ ký `invoke(Object obj, Object... args)`. Dấu `...` này thuộc **API reflection**, không có nghĩa tham số varargs của *method đích* được đóng gói tự động.
+`Method.invoke` has the signature `invoke(Object obj, Object... args)`. That `...` belongs to the **reflection API**; it does not mean the *target method's* varargs parameter is packed automatically.
 
-Giả sử method đích:
+Suppose the target method is:
 
 ```java
 public String join(String... items) {
@@ -95,47 +95,47 @@ public String join(String... items) {
 }
 ```
 
-Tại runtime, chữ ký thật của nó là `join(String[])`. Do đó:
+At runtime, its actual signature is `join(String[])`. Therefore:
 
 ```java
 Method join = Service.class.getMethod("join", String[].class);
 
-// Đúng: mảng String[] là MỘT đối số của method đích.
+// Correct: the String[] array is ONE argument of the target method.
 Object ok = join.invoke(service, (Object) new String[] {"a", "b"});
 System.out.println(ok); // a|b
 
-// Sai: đưa HAI đối số String riêng lẻ vào reflection.
+// Wrong: passing TWO separate String arguments to reflection.
 // join.invoke(service, "a", "b"); // IllegalArgumentException
 ```
 
-Fragment ở trên cần import `java.lang.reflect.Method`, đồng thời `Service` và `service` đã được khai báo ở ngữ cảnh phù hợp. Ép sang `(Object)` ngăn Java compiler trải `String[]` thành nhiều phần tử cho varargs `Object...` của `Method.invoke`. Cách tương đương, tường minh hơn là:
+The snippet above needs `import java.lang.reflect.Method`, and `Service` and `service` must already be declared in the appropriate context. Casting to `(Object)` prevents the Java compiler from spreading `String[]` as multiple elements for `Method.invoke`'s `Object...` varargs. An equivalent, more explicit way is:
 
 ```java
 join.invoke(service, new Object[] {new String[] {"a", "b"}});
 ```
 
-Khi gọi method có đúng **một tham số reference** bằng giá trị `null`, viết rõ `(Object) null` hoặc `new Object[]{null}`. Truyền một `null` không ép kiểu vào vị trí varargs có thể bị diễn giải là **mảng đối số `Object[]` bằng `null`**, tức không mang cùng ý nghĩa với một đối số `null`.
+When invoking a method that has exactly **one reference parameter** with a `null` value, explicitly write `(Object) null` or `new Object[]{null}`. Passing an uncast `null` into the varargs position can be interpreted as a **`null` `Object[]` argument array**, which does not carry the same meaning as a single `null` argument.
 
-## 5. `Constructor.newInstance` và `Field.get/set` cũng có ràng buộc đầu vào
+## 5. `Constructor.newInstance` and `Field.get/set` Also Have Input Constraints
 
-Không chỉ `Method.invoke`. Các API reflection khác có thể ném `IllegalArgumentException` do giá trị đưa vào không khớp:
+It is not only `Method.invoke`. Other reflection APIs can throw `IllegalArgumentException` due to mismatched input values:
 
-| API | Trường hợp có thể gây `IllegalArgumentException` | Phân biệt |
+| API | Cases that can cause `IllegalArgumentException` | Distinction |
 | --- | --- | --- |
-| `Constructor.newInstance(args)` | Sai số lượng/kiểu đối số so với constructor đã tìm | Không có receiver; exception bên trong constructor được bọc `InvocationTargetException` |
-| `Field.get(receiver)` | Receiver không phù hợp cho instance field | Receiver `null` cho instance field dẫn đến `NullPointerException` |
-| `Field.set(receiver, value)` | Receiver sai kiểu hoặc giá trị ghi không thể chuyển sang kiểu field | Field `final`/không đủ quyền còn chịu quy tắc riêng, có thể `IllegalAccessException` |
-| `Field.setInt(receiver, value)` | Receiver không phù hợp hoặc field không chấp nhận giá trị kiểu `int` theo quy tắc chuyển đổi của API | Không dùng `setInt` để ghi tùy ý vào mọi field |
+| `Constructor.newInstance(args)` | Wrong argument count/types for the looked-up constructor | Has no receiver; exceptions inside the constructor are wrapped in `InvocationTargetException` |
+| `Field.get(receiver)` | Unsuitable receiver for an instance field | `null` receiver for an instance field causes `NullPointerException` |
+| `Field.set(receiver, value)` | Wrong receiver type or written value cannot convert to field type | `final` fields / insufficient access also have separate rules, potentially `IllegalAccessException` |
+| `Field.setInt(receiver, value)` | Unsuitable receiver or field does not accept an `int` value per API conversion rules | Do not use `setInt` to write arbitrarily to every field |
 
-Với field `static`, receiver bị bỏ qua theo hợp đồng của `Field.get/set`. Với instance field, phải truyền instance phù hợp. `Field#getType()` hữu ích để đọc kiểu field trước khi ghi.
+For `static` fields, the receiver is ignored per the `Field.get/set` contract. For instance fields, a suitable instance must be passed. `Field#getType()` is helpful for reading the field type before writing.
 
-`Constructor.newInstance` nhận arguments tương ứng với chữ ký constructor được tra cứu, ví dụ `getConstructor(int.class)`. Nếu một constructor có tham số `int`, truyền chuỗi `"3"` không khiến reflection tự gọi `Integer.parseInt`.
+`Constructor.newInstance` accepts arguments matching the looked-up constructor signature, e.g. `getConstructor(int.class)`. If a constructor takes an `int` parameter, passing the string `"3"` does not make reflection call `Integer.parseInt` automatically.
 
-Chú ý `IllegalArgumentException` cũng có thể xuất hiện ở bước **tra cứu hoặc tạo lời gọi động** trong những API khác, nhưng bài này tập trung vào đầu vào của core reflection và cách chẩn đoán receiver/arguments.
+Note that `IllegalArgumentException` can also appear during **lookup or dynamic call creation** in other APIs, though this article focuses on core reflection inputs and diagnosing receivers/arguments.
 
-## 6. Ví dụ Java 17+ hoàn chỉnh: 12 tình huống và kết quả
+## 6. Complete Java 17+ Example: 12 Scenarios and Results
 
-Tạo file **`ReflectArgumentDiagnostics.java`**:
+Create the file **`ReflectArgumentDiagnostics.java`**:
 
 ```java
 import java.lang.reflect.Constructor;
@@ -209,14 +209,14 @@ public class ReflectArgumentDiagnostics {
 }
 ```
 
-Biên dịch và chạy tại thư mục chứa file:
+Compile and run in the directory containing the file:
 
 ```bash
 javac --release 17 ReflectArgumentDiagnostics.java
 java ReflectArgumentDiagnostics
 ```
 
-Output chính xác (đã kiểm chứng bằng OpenJDK 21):
+Exact output (verified on OpenJDK 21):
 
 ```text
 valid widening => 5
@@ -233,23 +233,23 @@ varargs packed => a|b
 varargs spread => IllegalArgumentException
 ```
 
-Các dòng `wrong receiver`, `wrong arity`, `narrowing` và `null primitive` cho thấy lỗi **áp dụng lời gọi**. Dòng `null receiver` chứng minh cần phân biệt `NullPointerException`. Dòng `target threw IllegalArgumentException` cho thấy chương trình đích thật sự chạy rồi ném lỗi nghiệp vụ; vì vậy bên ngoài nhận `InvocationTargetException`. Hai dòng varargs kiểm tra sự khác nhau giữa một mảng `String[]` với hai chuỗi riêng lẻ.
+The lines `wrong receiver`, `wrong arity`, `narrowing`, and `null primitive` show **call-application** errors. The `null receiver` line proves you must distinguish `NullPointerException`. The `target threw IllegalArgumentException` line shows that the target program actually executed and threw a business error; hence the outside receives `InvocationTargetException`. The two varargs lines test the difference between a single `String[]` array and two individual strings.
 
-Trong chương trình demo, `probe` bắt `Throwable` ở nhánh cuối chỉ để in tên lỗi của các trường hợp thử nghiệm. Trong code sản phẩm, nên bắt các loại lỗi liên quan một cách có chủ đích, không tự động nuốt mọi `Error` hay `Throwable`.
+In the demo program, `probe` catches `Throwable` in the last branch solely to print the error name for test cases. In production code, catch relevant error types intentionally rather than automatically swallowing every `Error` or `Throwable`.
 
-## 7. Quy trình chẩn đoán từng bước
+## 7. Step-by-Step Diagnostic Workflow
 
-Khi stack trace trỏ vào `Method.invoke` hoặc `Field.get/set`:
+When a stack trace points to `Method.invoke` or `Field.get/set`:
 
-1. **Xác định vị trí ném lỗi:** exception là `IllegalArgumentException` trực tiếp từ API reflection hay `InvocationTargetException` với `getCause()` là `IllegalArgumentException` do code đích?
-2. **Ghi nhận metadata thành viên:** `method.toGenericString()`, `getDeclaringClass().getName()`, `getParameterTypes()`, `Modifier.isStatic(method.getModifiers())`. Với constructor, ghi chữ ký constructor; với field, ghi `field.getType()`.
-3. **Kiểm tra receiver:** instance hay static? Nếu instance, có khác `null` và `getDeclaringClass().isInstance(receiver)` trả `true` không? Không dùng `receiver.getClass()` trước khi bảo đảm receiver không null.
-4. **Kiểm tra số lượng và thứ tự đối số:** so `getParameterCount()` với số phần tử thực sự trong `Object[]` mà reflection nhận. Với parameter varargs của method đích, nhớ truyền *một mảng* vào vị trí cuối.
-5. **Kiểm tra kiểu từng đối số:** nếu là `null`, parameter có primitive không? Nếu là wrapper, có unboxing/widening hợp lệ không? Nếu là reference, có assignable không?
-6. **Tách lỗi truy cập:** `IllegalAccessException`, `InaccessibleObjectException` hoặc `ExceptionInInitializerError` cần cách xử lý khác. Không sửa bằng cách đổi receiver/ép kiểu nếu nguyên nhân là JPMS hoặc khởi tạo class.
-7. **Đánh giá xử lý lỗi:** lỗi đầu vào từ framework/plugin thường cần sửa mapping/validation; lỗi từ code đích cần hiển thị hoặc xử lý `getCause()` với ngữ cảnh thích hợp.
+1. **Identify where the error is thrown:** is the exception an `IllegalArgumentException` directly from the reflection API, or an `InvocationTargetException` whose `getCause()` is an `IllegalArgumentException` from the target code?
+2. **Record member metadata:** `method.toGenericString()`, `getDeclaringClass().getName()`, `getParameterTypes()`, `Modifier.isStatic(method.getModifiers())`. For constructors, record the constructor signature; for fields, record `field.getType()`.
+3. **Check the receiver:** instance or static? If instance, is it non-`null` and does `getDeclaringClass().isInstance(receiver)` return `true`? Do not call `receiver.getClass()` before ensuring the receiver is non-null.
+4. **Check argument count and order:** compare `getParameterCount()` with the actual number of elements in the `Object[]` reflection receives. For a target method's varargs parameter, remember to pass *an array* in the final position.
+5. **Check each argument's type:** if `null`, is the parameter primitive? If a wrapper, is unboxing/widening valid? If a reference, is it assignable?
+6. **Separate access errors:** `IllegalAccessException`, `InaccessibleObjectException`, or `ExceptionInInitializerError` need different handling. Do not try to fix them by swapping receivers/casting if the root cause is JPMS or class initialization.
+7. **Evaluate error handling:** input errors from a framework/plugin usually require fixing mapping/validation; errors from target code require surfacing or handling `getCause()` with appropriate context.
 
-Gợi ý log chẩn đoán khi xử lý input tin cậy, tránh log dữ liệu nhạy cảm:
+Diagnostic logging suggestion when handling trusted input, avoiding logging sensitive data:
 
 ```java
 System.out.println("method = " + method.toGenericString());
@@ -265,37 +265,37 @@ System.out.println("argumentTypes = " + java.util.Arrays.toString(
                 .toArray(String[]::new)));
 ```
 
-Đây là fragment cần đặt trong method nơi `method`, `receiver`, `args` (mảng `Object[]` **khác null**) đã tồn tại. Nếu `args == null`, phải xử lý riêng trước khi gọi `Arrays.stream(args)`. Với dữ liệu do bên ngoài cung cấp, ghi kiểu và số lượng thường đủ để debug; không log toàn bộ giá trị argument hoặc stack trace ra kênh công khai.
+This is a snippet to place inside a method where `method`, `receiver`, and `args` (a **non-null** `Object[]` array) already exist. If `args == null`, handle it separately before calling `Arrays.stream(args)`. For externally supplied data, logging types and counts is usually enough to debug; do not log full argument values or stack traces to public channels.
 
-## 8. Không nhầm với các ngoại lệ reflection khác
+## 8. Do Not Confuse with Other Reflection Exceptions
 
-| Ngoại lệ | Tín hiệu chính | Hướng xử lý |
+| Exception | Primary signal | Resolution direction |
 | --- | --- | --- |
-| `IllegalArgumentException` trực tiếp | Receiver không phù hợp, sai argument count/type, giá trị field không hợp lệ | Kiểm tra chữ ký, receiver và conversion |
-| `NullPointerException` từ instance invocation | Receiver `null` cho instance method/field | Kiểm tra receiver trước khi gọi |
-| `InvocationTargetException` | Method/constructor đích ném ngoại lệ | Xem `getCause()`; phân tích code đích |
-| `NoSuchMethodException` / `NoSuchFieldException` | Không tìm được thành viên đúng tên/chữ ký | Kiểm tra overload, visibility và declaring class |
-| `IllegalAccessException` | Không đủ quyền gọi/truy cập thành viên | Xem modifier, package/module và quyền truy cập |
-| `InaccessibleObjectException` | Không thể bật deep reflection access qua `setAccessible` | Xem cấu hình `opens`/module, tránh lạm dụng workaround |
-| `ExceptionInInitializerError` | Khởi tạo class (ví dụ trước khi gọi static member) thất bại | Phân tích static initializer và cause |
+| Direct `IllegalArgumentException` | Unsuitable receiver, wrong argument count/types, invalid field value | Check signature, receiver, and conversions |
+| `NullPointerException` from instance invocation | `null` receiver for an instance method/field | Check receiver before calling |
+| `InvocationTargetException` | Target method/constructor threw an exception | Inspect `getCause()`; analyze target code |
+| `NoSuchMethodException` / `NoSuchFieldException` | Could not find a member with matching name/signature | Check overloads, visibility, and declaring class |
+| `IllegalAccessException` | Insufficient permission to call/access the member | Check modifiers, package/module, and access permissions |
+| `InaccessibleObjectException` | Cannot enable deep reflection access via `setAccessible` | Check `opens`/module configuration, avoid abusing workarounds |
+| `ExceptionInInitializerError` | Class initialization (e.g., before invoking a static member) failed | Analyze static initializer and cause |
 
-`Method.invoke` **không** có cơ chế tự dò tên overload, tự parse chuỗi, tự ép kiểu narrowing hay tự bỏ qua kiểm tra receiver cho instance method. Việc sửa các lỗi này thường nằm tại code xây dựng lời gọi reflection, không nằm trong logic của method đích.
+`Method.invoke` has **no** mechanism to auto-discover overload names, auto-parse strings, auto-cast narrowing types, or skip receiver checks for instance methods. Fixing these errors usually belongs in the code constructing the reflection call, not in the target method's logic.
 
-## 9. Lỗi thường gặp và câu hỏi tự kiểm tra
+## 9. Common Pitfalls and Self-Check Questions
 
-- **Bắt mọi `IllegalArgumentException` và cho rằng method đích từ chối dữ liệu:** sai; nếu qua `Method.invoke` thì lỗi từ method đích thường được bọc `InvocationTargetException`.
-- **Dùng sai receiver nhưng method tên giống nhau:** không đủ; receiver phải thuộc đúng declaring class hoặc subtype được phép.
-- **Truyền `Long` vì nghĩ Java sẽ “tự ép” xuống `int`:** không; narrowing bị từ chối.
-- **Gọi reflection method có `String...` bằng nhiều chuỗi rời:** không tự đóng gói; phải truyền một `String[]` ở vị trí đối số cuối.
-- **Xem mọi trường hợp receiver sai đều là `IllegalArgumentException`:** receiver `null` cho instance method/field là `NullPointerException`.
-- **Cố sửa `IllegalAccessException` bằng đổi kiểu argument:** không giải quyết vấn đề quyền truy cập.
+- **Catching every `IllegalArgumentException` and assuming the target method rejected data:** wrong; if called via `Method.invoke`, errors from the target method are typically wrapped in `InvocationTargetException`.
+- **Using the wrong receiver that happens to have a method with the same name:** insufficient; the receiver must belong to the exact declaring class or an allowed subtype.
+- **Passing a `Long` thinking Java will “auto-cast” down to `int`:** no; narrowing is rejected.
+- **Calling a reflection method taking `String...` with multiple separate strings:** not auto-packed; you must pass a `String[]` in the final argument slot.
+- **Treating every wrong-receiver case as `IllegalArgumentException`:** a `null` receiver for an instance method/field is `NullPointerException`.
+- **Trying to fix `IllegalAccessException` by changing argument types:** does not solve the access-permission problem.
 
-Tự kiểm tra:
+Self-check:
 
-1. `m` biểu diễn instance method của `User`, nhưng `m.invoke(new Order())`: lỗi nào? **`IllegalArgumentException` do receiver không phù hợp**.
-2. `m` biểu diễn `void f(int x)`. Gọi `m.invoke(user, null, 1)` có hợp lệ không? **Không**, vì reflection nhận hai đối số cho method có một tham số (dù từng tham số trông như thế nào).
-3. `m` biểu diễn `void f(long x)`. Truyền `Integer.valueOf(1)` có hợp lệ không? **Có**, thông qua unboxing `int` rồi widening thành `long`.
-4. `f` đích tự ném `IllegalArgumentException("bad")`. Caller gọi `Method.invoke` bắt gì? **`InvocationTargetException`** và có thể lấy nguyên nhân `IllegalArgumentException` bằng `getCause()`.
-5. `m` biểu diễn `void f(String[] words)`. Muốn truyền `String[]` như một argument qua `invoke(Object, Object...)`? **Ép `(Object) stringArray` hoặc bọc trong `new Object[]{stringArray}`**.
+1. `m` represents an instance method of `User`, but `m.invoke(new Order())`: which error? **`IllegalArgumentException` due to an incompatible receiver**.
+2. `m` represents `void f(int x)`. Is calling `m.invoke(user, null, 1)` valid? **No**, because reflection receives two arguments for a one-parameter method (regardless of what each argument looks like).
+3. `m` represents `void f(long x)`. Is passing `Integer.valueOf(1)` valid? **Yes**, via unboxing to `int` then widening to `long`.
+4. Target `f` itself throws `IllegalArgumentException("bad")`. What does a caller using `Method.invoke` catch? **`InvocationTargetException`** and can retrieve the `IllegalArgumentException` cause via `getCause()`.
+5. `m` represents `void f(String[] words)`. How to pass a `String[]` as a single argument via `invoke(Object, Object...)`? **Cast `(Object) stringArray` or wrap in `new Object[]{stringArray}`**.
 
-Tài liệu chuẩn: [`Method.invoke` (Java 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html#invoke(java.lang.Object,java.lang.Object...)), [`Constructor.newInstance`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Constructor.html#newInstance(java.lang.Object...)), [`Field`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html), [`InvocationTargetException`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/InvocationTargetException.html).
+Standard references: [`Method.invoke` (Java 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html#invoke(java.lang.Object,java.lang.Object...)), [`Constructor.newInstance`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Constructor.html#newInstance(java.lang.Object...)), [`Field`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html), [`InvocationTargetException`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/InvocationTargetException.html).

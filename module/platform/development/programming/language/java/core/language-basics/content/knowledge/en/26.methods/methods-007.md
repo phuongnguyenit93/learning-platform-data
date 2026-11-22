@@ -1,12 +1,12 @@
-# Thay đổi nội dung mảng khác với gán lại tham số mảng trong Java
+# Mutating Array Contents vs. Reassigning an Array Parameter in Java
 
-> **Java core — language-basics / Phương thức**  
-> **Môi trường:** JDK 17+, một file Java tự chứa, không dùng thư viện ngoài.  
-> **Mục tiêu:** Hiểu Java **truyền đối số theo giá trị**, kể cả khi đối số là tham chiếu mảng; phân biệt sửa phần tử của mảng, gán lại biến tham số, trả về mảng mới và gán lại biến ở phía gọi.
+> **Java core — language-basics / Methods**  
+> **Environment:** JDK 17+, self-contained single Java file, no external libraries.  
+> **Objective:** Understand that Java **passes arguments by value**, even when the argument is an array reference; distinguish mutating array elements, reassigning the parameter variable, returning a new array, and reassigning the variable on the caller side.
 
-## 1. Quy tắc cốt lõi: tham số nhận bản sao của tham chiếu
+## 1. Core Rule: The Parameter Receives a Copy of the Reference
 
-Khi truyền một biến mảng vào phương thức, Java **không sao chép toàn bộ các phần tử** và cũng không cho phương thức nắm quyền gán lại biến của bên gọi. Thay vào đó, giá trị tham chiếu tới mảng được **sao chép** sang biến tham số.
+When passing an array variable into a method, Java **does not copy all elements** and also does not give the method authority to reassign the caller's variable. Instead, the reference value pointing to the array is **copied** into the parameter variable.
 
 ~~~java
 static void changeFirst(int[] values) {
@@ -15,81 +15,81 @@ static void changeFirst(int[] values) {
 
 int[] numbers = {1, 2, 3};
 changeFirst(numbers);
-// numbers hiện là [99, 2, 3].
+// numbers is now [99, 2, 3].
 ~~~
 
-Tại lúc vào phương thức, `numbers` và `values` là **hai biến khác nhau** đang trỏ tới **cùng một đối tượng mảng**:
+Upon entering the method, `numbers` and `values` are **two distinct variables** pointing to the **same array object**:
 
 ~~~text
-Trong phương thức:
-Bên gọi                       Phương thức
+Inside the method:
+Caller                        Method
 numbers ─────────┐          values ─────────┐
                  ▼                          ▼
-               [ 1, 2, 3 ]   (CÙNG MỘT MẢNG)
+               [ 1, 2, 3 ]   (THE SAME ARRAY)
 ~~~
 
-`values[0] = 99` sửa một phần tử **trong đối tượng mảng dùng chung**. Vì bên gọi vẫn trỏ tới mảng ấy, sau khi phương thức trở về, `numbers[0]` là `99`.
+`values[0] = 99` modifies an element **inside the shared array object**. Because the caller still points to that array, after the method returns, `numbers[0]` is `99`.
 
-**Thuật ngữ chính xác:** Java dùng *pass-by-value* (truyền theo giá trị), **không** dùng *pass-by-reference* theo nghĩa phương thức có thể gán lại biến `numbers` của bên gọi. Giá trị được sao chép ở đây tình cờ là **tham chiếu đối tượng**, nên các thao tác qua tham chiếu có thể làm thay đổi đối tượng chung.
+**Exact terminology:** Java uses *pass-by-value*, **not** *pass-by-reference* in the sense that a method could reassign the caller's `numbers` variable. The copied value here happens to be an **object reference**, so operations through the reference can mutate the shared object.
 
-## 2. Gán lại tham số chỉ đổi biến cục bộ của phương thức
+## 2. Reassigning the Parameter Only Changes the Method's Local Variable
 
-So sánh với lời gọi sau:
+Compare with the following call:
 
 ~~~java
 static void replaceLocal(int[] values) {
-    values = new int[] {7, 8}; // values trỏ tới mảng mới.
-    values[0] = 70;            // Chỉ sửa mảng mới này.
+    values = new int[] {7, 8}; // values points to a new array.
+    values[0] = 70;            // Only mutates this new array.
 }
 
 int[] numbers = {1, 2, 3};
 replaceLocal(numbers);
-// numbers vẫn là [1, 2, 3].
+// numbers is still [1, 2, 3].
 ~~~
 
-Sau phép `values = new int[] {7, 8}`:
+After `values = new int[] {7, 8}`:
 
 ~~~text
-numbers ────────> [1, 2, 3]    (mảng gốc bên gọi)
+numbers ────────> [1, 2, 3]    (caller's original array)
 
-values  ────────> [7, 8]       (mảng mới của phương thức)
-                          └── sửa thành [70, 8]
+values  ────────> [7, 8]       (method's new array)
+                          └── mutated to [70, 8]
 ~~~
 
-Phép gán thay **giá trị tham chiếu được giữ trong tham số `values`**, không thay đổi tham chiếu lưu trong biến `numbers` bên ngoài. Vì vậy bên gọi không tự chuyển sang mảng mới.
+The assignment changes **the reference value held in parameter `values`**, without changing the reference stored in the outer variable `numbers`. Therefore the caller does not automatically switch to the new array.
 
-| Câu lệnh trong phương thức | Thay đổi gì? | Bên gọi có quan sát được? |
+| Statement in method | What changes? | Observable by caller? |
 | --- | --- | --- |
-| `values[0] = 99;` | Giá trị một phần tử của mảng đang trỏ tới | Có, nếu cùng tham chiếu mảng |
-| `values[0]++;` | Tăng phần tử mảng đang trỏ tới | Có, nếu cùng mảng |
-| `values = new int[] {7, 8};` | Tham chiếu **cục bộ** trong `values` | Không đổi biến tham chiếu của bên gọi |
-| `values = null;` | Chỉ đặt **tham số** thành `null` | Không tự làm biến mảng bên gọi thành `null` |
-| `values = values.clone();` | Tham số trỏ sang mảng mới được clone | Không tự thay tham chiếu của bên gọi |
-| `return new int[] {...};` | Trả tham chiếu mảng mới | Bên gọi chỉ đổi biến nếu tự gán kết quả |
+| `values[0] = 99;` | Value of an element in the referenced array | Yes, if sharing the array reference |
+| `values[0]++;` | Increments an element of the referenced array | Yes, if same array |
+| `values = new int[] {7, 8};` | **Local** reference in `values` | Does not change caller's reference variable |
+| `values = null;` | Only sets **parameter** to `null` | Does not automatically make caller's array variable `null` |
+| `values = values.clone();` | Parameter points to a newly cloned array | Does not automatically change caller's reference |
+| `return new int[] {...};` | Returns a new array reference | Caller's variable changes only if it assigns the result |
 
-Quan trọng: Nếu vừa sửa mảng gốc rồi mới gán lại tham số, **phần sửa trước đó vẫn còn** trong mảng gốc.
+Important: If you mutate the original array first and then reassign the parameter, **the earlier mutation remains** in the original array.
 
-## 3. Kết hợp sửa nội dung và gán lại tham số
+## 3. Combining Content Mutation and Parameter Reassignment
 
 ~~~java
 static void mutateThenRebind(int[] data) {
-    data[1] = 22;               // Sửa mảng gốc.
-    data = new int[] {3, 4};    // Chỉ đổi tham số cục bộ.
-    data[0] = 30;               // Sửa mảng mới, không phải mảng gốc.
+    data[1] = 22;               // Mutates original array.
+    data = new int[] {3, 4};    // Only changes local parameter.
+    data[0] = 30;               // Mutates new array, not original array.
 }
 
 int[] original = {11, 2, 3};
 mutateThenRebind(original);
-// original == [11, 22, 3] theo nội dung.
+// original == [11, 22, 3] by contents.
 ~~~
 
-Trình tự rất quan trọng: `data[1] = 22` xảy ra **trước** lúc `data` bị gán sang mảng khác, nên kết quả bên gọi nhìn thấy là `[11, 22, 3]`. Còn `data[0] = 30` diễn ra sau phép gán lại, không ảnh hưởng mảng gốc.
+Order matters: `data[1] = 22` happens **before** `data` is assigned to a different array, so the result seen by the caller is `[11, 22, 3]`. Meanwhile `data[0] = 30` happens after the reassignment and does not affect the original array.
 
-**Không nhầm phép so sánh:** `original == other` trên hai biến mảng kiểm tra chúng có cùng tham chiếu không. Để so sánh nội dung mảng một chiều `int[]`, dùng `java.util.Arrays.equals(original, other)`.
+**Do not confuse comparison operations:** `original == other` on two array variables checks whether they share the same reference. To compare contents of 1D `int[]` arrays, use `java.util.Arrays.equals(original, other)`.
 
-## 4. Muốn bên gọi dùng mảng khác: trả về rồi nhận kết quả
+## 4. When the Caller Needs Another Array: Return and Receive the Result
 
-Nếu mục tiêu là thay **mảng mà biến ở phía gọi trỏ tới**, cách rõ ràng là phương thức trả về mảng mong muốn và bên gọi tự gán:
+If the goal is to change **which array the caller's variable points to**, the clear approach is for the method to return the desired array and for the caller to assign it:
 
 ~~~java
 static int[] replacement(int[] old) {
@@ -97,19 +97,19 @@ static int[] replacement(int[] old) {
 }
 
 int[] numbers = {1, 2, 3};
-int[] newer = replacement(numbers); // numbers vẫn giữ mảng cũ.
-numbers = newer;                    // Bên gọi chủ động gán lại biến.
+int[] newer = replacement(numbers); // numbers still keeps the old array.
+numbers = newer;                    // Caller explicitly reassigns its variable.
 ~~~
 
-Cũng có thể viết trực tiếp:
+You can also write directly:
 
 ~~~java
 numbers = replacement(numbers);
 ~~~
 
-Sau phép gán đó, chính **mã bên gọi** thay giá trị của biến `numbers`. Phương thức `replacement` chỉ trả về một tham chiếu; nó không có khả năng truy cập phép gán tới biến local `numbers` của caller.
+After that assignment, the **caller code itself** changes the value of variable `numbers`. The `replacement` method only returns a reference; it has no way to perform an assignment to the caller's local `numbers` variable.
 
-Nếu muốn tạo mảng mới **dựa trên dữ liệu cũ** mà không sửa nguồn, dùng `Arrays.copyOf`:
+If you want to create a new array **based on old data** without modifying the source, use `Arrays.copyOf`:
 
 ~~~java
 static int[] withAppended(int[] source, int value) {
@@ -119,11 +119,11 @@ static int[] withAppended(int[] source, int value) {
 }
 ~~~
 
-`withAppended(new int[] {1, 2}, 3)` trả mảng nội dung `[1, 2, 3]`, còn mảng nguồn `[1, 2]` không bị thay đổi. `Arrays.copyOf` có thể ném ngoại lệ nếu `source == null`; cần xác định hợp đồng đầu vào trước khi gọi.
+`withAppended(new int[] {1, 2}, 3)` returns an array with contents `[1, 2, 3]`, while the source array `[1, 2]` is unchanged. `Arrays.copyOf` can throw an exception if `source == null`; establish the input contract before calling.
 
-## 5. Alias, `clone()` và từ khóa `final`
+## 5. Aliasing, `clone()`, and the `final` Keyword
 
-Hai biến tham chiếu tới cùng mảng được gọi là **alias**. Sửa qua alias cũng là sửa dữ liệu được quan sát qua biến còn lại:
+Two variables referencing the same array are called **aliases**. Mutating through one alias mutates the data observed through the other variable:
 
 ~~~java
 int[] first = {3, 4};
@@ -134,7 +134,7 @@ System.out.println(first[0]);   // 10
 System.out.println(alias == first); // true
 ~~~
 
-Còn `clone()` trên mảng `int[]` tạo **đối tượng mảng mới**:
+Meanwhile `clone()` on an `int[]` array creates a **new array object**:
 
 ~~~java
 int[] copy = first.clone();
@@ -145,53 +145,53 @@ System.out.println(copy[0]);       // 99
 System.out.println(copy == first); // false
 ~~~
 
-Đối với `int[]`, clone sao chép các giá trị nguyên thủy. Với mảng `String[]` hoặc `Object[]`, clone chỉ sao chép **tham chiếu phần tử** chứ không tự nhân bản các đối tượng được tham chiếu. Với `int[][]`, clone mảng ngoài vẫn chia sẻ các mảng con.
+For `int[]`, clone copies the primitive values. For `String[]` or `Object[]`, clone only copies **element references** without cloning the referenced objects themselves. For `int[][]`, cloning the outer array still shares the subarrays.
 
-`final` trên một tham số mảng **cấm gán lại biến tham số**, nhưng không tự cấm thay đổi phần tử:
+`final` on an array parameter **forbids reassigning the parameter variable**, but does not forbid mutating elements:
 
 ~~~java
 static void increment(final int[] values) {
-    values[0]++;                  // Hợp lệ.
-    // values = new int[] {5};   // LỖI biên dịch vì values là final.
+    values[0]++;                  // Valid.
+    // values = new int[] {5};   // Compile ERROR because values is final.
 }
 ~~~
 
-Mảng Java vẫn là đối tượng mutable, kể cả khi tham chiếu tới nó nằm trong biến `final`.
+Java arrays remain mutable objects even when their reference sits in a `final` variable.
 
-## 6. Mảng tham chiếu và mảng nhiều chiều tuân theo cùng nguyên lý
+## 6. Reference Arrays and Multidimensional Arrays Follow the Same Principle
 
-Nguyên tắc không chỉ áp dụng cho `int[]`:
+The principle does not apply only to `int[]`:
 
 ~~~java
 static void changeLabel(String[] labels) {
-    labels[0] = "X";                 // Sửa phần tử của mảng gốc.
+    labels[0] = "X";                 // Mutates element of original array.
 }
 
 static void rebindLabels(String[] labels) {
-    labels = new String[] {"LOCAL"}; // Chỉ đổi tham số.
+    labels = new String[] {"LOCAL"}; // Only changes parameter.
 }
 ~~~
 
-Với mảng nhiều chiều, cần phân biệt **thay phần tử của mảng ngoài** với **gán lại biến tham số mảng ngoài**:
+With multidimensional arrays, distinguish **replacing an element of the outer array** from **reassigning the outer array parameter variable**:
 
 ~~~java
 static void changeRows(int[][] matrix) {
-    matrix[0][1] = 9;         // Sửa phần tử trong mảng con hiện tại.
-    matrix[1] = new int[] {8}; // Sửa phần tử của mảng NGOÀI: thay hàng 1.
+    matrix[0][1] = 9;         // Mutates element in existing subarray.
+    matrix[1] = new int[] {8}; // Mutates element of OUTER array: replaces row 1.
 }
 
 static void replaceMatrixLocally(int[][] matrix) {
-    matrix = new int[][] {{100}}; // Chỉ gán lại tham số cục bộ.
+    matrix = new int[][] {{100}}; // Only reassigns local parameter.
 }
 ~~~
 
-Cả `matrix[0][1] = 9` và `matrix[1] = new int[] {8}` đều thay đổi đối tượng có thể được bên gọi quan sát. Nhưng `matrix = new int[][] {{100}}` **không** thay mảng ngoài mà biến của bên gọi đang giữ.
+Both `matrix[0][1] = 9` and `matrix[1] = new int[] {8}` change objects observable by the caller. However, `matrix = new int[][] {{100}}` **does not** replace the outer array held by the caller's variable.
 
-Tương tự, nếu phần tử của `Person[]` là tham chiếu tới đối tượng mutable, cần phân biệt thay `people[0] = new Person(...)` (thay phần tử mảng) với `people[0].setName(...)` (thay trạng thái của đối tượng mà phần tử trỏ tới). Đó là hai thao tác khác nhau, dù cả hai có thể được bên gọi quan sát qua tham chiếu phù hợp.
+Similarly, if elements of `Person[]` are references to mutable objects, distinguish `people[0] = new Person(...)` (replacing an array element) from `people[0].setName(...)` (changing the state of the object the element points to). Those are two different operations, even though both can be observed by the caller through an appropriate reference.
 
-## 7. `null`, chỉ số và hợp đồng của phương thức
+## 7. `null`, Indices, and Method Contracts
 
-Ví dụ đơn giản thường giả định tham số có mảng khác `null` và đủ phần tử:
+Simple examples often assume the parameter receives a non-`null` array with enough elements:
 
 ~~~java
 static void increaseFirst(int[] numbers) {
@@ -199,11 +199,11 @@ static void increaseFirst(int[] numbers) {
 }
 ~~~
 
-- Nếu `numbers == null`, phép truy cập `numbers[0]` gây `NullPointerException`.
-- Nếu `numbers.length == 0`, chỉ số 0 không tồn tại và gây `ArrayIndexOutOfBoundsException`.
-- Nếu người dùng chỉ muốn gán lại tham số `numbers = new int[3]`, thao tác này **không** tạo/thay mảng bên caller.
+- If `numbers == null`, accessing `numbers[0]` causes `NullPointerException`.
+- If `numbers.length == 0`, index 0 does not exist and causes `ArrayIndexOutOfBoundsException`.
+- If someone only tries to reassign the parameter `numbers = new int[3]`, that operation **does not** create/replace the array in the caller.
 
-Có thể chọn một hợp đồng an toàn và rõ ràng:
+You can choose a safe and explicit contract:
 
 ~~~java
 static boolean tryIncreaseFirst(int[] numbers) {
@@ -215,13 +215,13 @@ static boolean tryIncreaseFirst(int[] numbers) {
 }
 ~~~
 
-Nếu cần tạo mảng mới cho bên gọi trong trường hợp null, **trả mảng mới** rồi caller gán kết quả. Không thể biến tham số `null` thành mảng mới ở caller bằng một phép `numbers = new int[3]` nằm trong phương thức `void`.
+If a new array needs to be created for the caller when null, **return the new array** and have the caller assign the result. You cannot turn a `null` argument into a new array in the caller via `numbers = new int[3]` inside a `void` method.
 
-Trong API thực tế, hãy ghi rõ phương thức có **sửa mảng đầu vào** hay trả về bản sao không sửa nguồn. Chọn tên như `sortInPlace`, `fill`, `copyAndAppend` hoặc tài liệu tương ứng để người gọi không nhầm tác dụng.
+In real APIs, document clearly whether a method **mutates the input array** or returns a copy without touching the source. Choose names like `sortInPlace`, `fill`, `copyAndAppend`, or matching documentation so callers do not mistake the effect.
 
-## 8. Chương trình Java 17+ độc lập, chạy và xem kết quả
+## 8. Standalone Java 17+ Program: Run and Inspect Output
 
-Tạo file **ArrayParameterSemanticsDemo.java**:
+Create the file **ArrayParameterSemanticsDemo.java**:
 
 ~~~java
 import java.util.Arrays;
@@ -334,14 +334,14 @@ public final class ArrayParameterSemanticsDemo {
 }
 ~~~
 
-Từ thư mục chứa file, chạy trong PowerShell, Command Prompt hoặc Bash:
+From the directory containing the file, run in PowerShell, Command Prompt, or Bash:
 
 ~~~bash
 javac -encoding UTF-8 ArrayParameterSemanticsDemo.java
 java ArrayParameterSemanticsDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 start=[1, 2, 3]
@@ -371,34 +371,34 @@ afterMatrixRebind=[[1, 9], [8]]
 nullMutation=NullPointerException
 ~~~
 
-Các dòng `afterElement`, `afterCombined` và `afterNestedMutation` chứng minh sửa **đối tượng mảng** vẫn được thấy sau lời gọi. Các dòng `afterRebind`, `afterLabelRebind` và `afterMatrixRebind` chứng minh thay **tham chiếu của biến tham số** không thay biến của caller. `callerAfterAssign` là trường hợp duy nhất trong ví dụ bên gọi chủ động gán mảng được trả về.
+The lines `afterElement`, `afterCombined`, and `afterNestedMutation` prove that mutating the **array object** remains visible after the call. The lines `afterRebind`, `afterLabelRebind`, and `afterMatrixRebind` prove that changing **the parameter variable's reference** does not change the caller's variable. `callerAfterAssign` is the only case in the example where the caller explicitly assigns the returned array.
 
-## 9. Lỗi thường gặp và bài tập
+## 9. Common Mistakes and Exercises
 
-| Hiểu nhầm | Cách sửa cách nghĩ |
+| Misconception | How to correct the mental model |
 | --- | --- |
-| “Java truyền mảng theo tham chiếu” có nghĩa hàm thay được biến caller | Java truyền **bản sao giá trị tham chiếu**; gán lại tham số không gán lại caller |
-| Hàm `void` viết `values = new int[3]` sẽ thay mảng bên gọi | Không; hãy trả mảng hoặc dùng kiểu dữ liệu bao trạng thái nếu thiết kế cần |
-| `values[0] = ...` chỉ đổi biến tham số | Không; đó là sửa phần tử của **đối tượng mảng** |
-| Thay `matrix[0] = new int[] {...}` cũng không thấy ngoài caller | Sai: đây là gán **phần tử của mảng ngoài**, thấy được qua alias |
-| `clone()` luôn sao chép sâu mọi đối tượng | Không; với mảng tham chiếu, phần tử được sao chép dưới dạng tham chiếu |
-| Gán `values = null` làm caller thành `null` | Không; chỉ tham số bên trong phương thức đổi |
-| Tham số `final int[]` biến mảng thành bất biến | Không; vẫn có thể đổi `values[i]` |
-| `Arrays.equals(a,b)` kiểm tra cùng đối tượng | Không; so sánh **nội dung** một chiều, còn `a == b` so sánh cùng tham chiếu |
-| Gọi `array[0]` khi mảng `null` hoặc rỗng | Cần kiểm tra null và độ dài trước khi truy cập |
+| “Java passes arrays by reference” means a method can change the caller's variable | Java passes **a copy of the reference value**; reassigning the parameter does not reassign the caller |
+| A `void` method writing `values = new int[3]` replaces the caller's array | No; return an array or use a state-wrapper type if design requires |
+| `values[0] = ...` only changes the parameter variable | No; it modifies an element of the **array object** |
+| Replacing `matrix[0] = new int[] {...}` is also invisible outside the caller | Wrong: this assigns an **element of the outer array**, visible via aliases |
+| `clone()` always deep-copies every object | No; for reference arrays, elements are copied as references |
+| Assigning `values = null` makes the caller's variable `null` | No; only the parameter inside the method changes |
+| A `final int[]` parameter makes the array immutable | No; `values[i]` can still be modified |
+| `Arrays.equals(a,b)` checks for the same object | No; it compares 1D **contents**, whereas `a == b` compares reference equality |
+| Calling `array[0]` when the array is `null` or empty | Check null and length before accessing |
 
-**Bài 1.** Viết `static void doubleFirst(int[] values)` nhân đôi phần tử đầu. Dự đoán giá trị ở bên gọi sau khi chạy với `int[] numbers = {3, 5}`.
+**Exercise 1.** Write `static void doubleFirst(int[] values)` that doubles the first element. Predict the value on the caller side after running with `int[] numbers = {3, 5}`.
 
-**Bài 2.** Viết `static void reset(int[] values) { values = new int[values.length]; }`. Vì sao mảng cũ vẫn giữ giá trị? Sửa bằng `Arrays.fill(values, 0)` nếu muốn thay đổi mảng gốc.
+**Exercise 2.** Write `static void reset(int[] values) { values = new int[values.length]; }`. Why does the old array keep its values? Fix with `Arrays.fill(values, 0)` if you want to mutate the original array.
 
-**Bài 3.** Viết `static int[] resized(int[] source)` tạo mảng lớn hơn một phần tử, rồi dùng `source = resized(source)` trong **mã bên gọi**. So sánh trước và sau phép gán.
+**Exercise 3.** Write `static int[] resized(int[] source)` that creates an array one element larger, then use `source = resized(source)` in **caller code**. Compare before and after the assignment.
 
-**Bài 4.** Truyền `String[]` vào phương thức đổi `values[0]`, sau đó thử gán `values = new String[] {...}`. So sánh kết quả trên mảng gốc.
+**Exercise 4.** Pass `String[]` into a method that changes `values[0]`, then try assigning `values = new String[] {...}`. Compare the results on the original array.
 
-**Bài 5.** Với `int[][]`, so sánh `matrix[0] = new int[] {9}` với `matrix = new int[][] {{9}}` trong phương thức. Lệnh nào thay được hàng của mảng caller?
+**Exercise 5.** With `int[][]`, compare `matrix[0] = new int[] {9}` with `matrix = new int[][] {{9}}` inside a method. Which statement changes a row of the caller's array?
 
-**Bài 6.** Thử `final int[] data` trong tham số: biên dịch trường hợp thay `data[0]` và trường hợp `data = new int[1]`; giải thích vì sao chỉ một trường hợp hợp lệ.
+**Exercise 6.** Try `final int[] data` as a parameter: compile the case changing `data[0]` and the case `data = new int[1]`; explain why only one case is valid.
 
-### Ghi nhớ
+### Key Takeaway
 
-**Java luôn truyền đối số theo giá trị.** Khi đối số là mảng, giá trị được sao chép là **tham chiếu tới mảng**: sửa `values[i]` thay đổi mảng dùng chung, còn `values = anotherArray` chỉ thay tham chiếu **cục bộ**. Muốn caller trỏ tới mảng mới, hãy **trả tham chiếu mới và gán ở phía gọi**; muốn giữ cùng mảng thì sửa các phần tử có chủ đích và nêu rõ hợp đồng phương thức.
+**Java always passes arguments by value.** When the argument is an array, the copied value is the **reference to the array**: modifying `values[i]` changes the shared array, whereas `values = anotherArray` only changes the **local** reference. To make the caller point to a new array, **return the new reference and assign on the caller side**; to keep the same array, mutate elements intentionally and state the method contract clearly.

@@ -1,20 +1,20 @@
-# Provider bị lỗi và ServiceConfigurationError
+# Failing providers and ServiceConfigurationError
 
-## 1. Mục tiêu
+## 1. Objectives
 
-Trong Java Service Provider Interface (SPI), ứng dụng biết đến một kiểu dịch vụ (service), còn các thư viện hoặc module khác cung cấp những lớp triển khai (provider). **ServiceLoader** tìm và khởi tạo các provider tại thời điểm chạy. Cơ chế này giúp ứng dụng mở rộng bằng plugin mà không phải phụ thuộc trực tiếp vào từng lớp triển khai.
+In Java's Service Provider Interface (SPI), an application knows about a service type, while other libraries or modules supply implementation classes (providers). **ServiceLoader** discovers and instantiates providers at runtime. This mechanism allows an application to be extended with plugins without depending directly on individual implementation classes.
 
-Bài này giải thích điều gì xảy ra khi provider được khai báo sai, không thể nạp hoặc không thể khởi tạo; cách **ServiceConfigurationError** xuất hiện; và cách tìm nguyên nhân trong ứng dụng dùng classpath hoặc Java Platform Module System (JPMS).
+This lesson explains what happens when a provider is misdeclared, cannot be loaded, or cannot be instantiated; how **ServiceConfigurationError** arises; and how to trace the cause in applications using the classpath or the Java Platform Module System (JPMS).
 
-Sau bài học, bạn có thể:
-- Phân biệt trường hợp không tìm thấy provider với trường hợp provider bị lỗi.
-- Nhận biết thời điểm ServiceLoader thực sự tìm và khởi tạo provider.
-- Tìm lỗi trong file cấu hình SPI, module-info.java, classpath, module path và class loader.
-- Bắt và xử lý ServiceConfigurationError ở đúng ranh giới của ứng dụng.
+After this lesson, you will be able to:
+- Distinguish between the case where no provider is found and the case where a provider fails.
+- Identify when ServiceLoader actually locates and instantiates providers.
+- Find errors in SPI configuration files, module-info.java, classpath, module path, and class loaders.
+- Catch and handle ServiceConfigurationError at the right application boundary.
 
-## 2. ServiceLoader tìm provider như thế nào?
+## 2. How does ServiceLoader locate providers?
 
-Một service thường là interface hoặc abstract class. Provider là lớp cụ thể triển khai hoặc kế thừa service đó. Ví dụ, ứng dụng khai báo service Codec; các thư viện khác có thể cung cấp GzipCodec, ZipCodec hoặc một codec khác.
+A service is usually an interface or an abstract class. A provider is a concrete class implementing or extending that service. For example, an application declares a Codec service; other libraries may supply GzipCodec, ZipCodec, or another codec.
 
 ~~~java
 package com.example.spi;
@@ -25,7 +25,7 @@ public interface Codec {
 }
 ~~~
 
-Ứng dụng yêu cầu ServiceLoader tìm các provider:
+The application asks ServiceLoader to find providers:
 
 ~~~java
 ServiceLoader<Codec> codecs = ServiceLoader.load(Codec.class);
@@ -35,20 +35,20 @@ for (Codec codec : codecs) {
 }
 ~~~
 
-Lời gọi **ServiceLoader.load(...)** tạo một ServiceLoader. Nó thường chưa đọc hết cấu hình và chưa khởi tạo tất cả provider ngay tại dòng này. Việc tìm, nạp lớp và tạo đối tượng diễn ra lười (lazy), khi ứng dụng duyệt iterator hoặc xử lý stream.
+The **ServiceLoader.load(...)** call creates a ServiceLoader. It typically does not read all configuration or instantiate all providers right at this line. Discovery, class loading, and object creation happen lazily as the application iterates the iterator or processes the stream.
 
-Vì vậy, lỗi có thể xuất hiện ở vòng lặp, tại **hasNext()** hoặc **next()**, dù dòng gọi **load()** đã chạy bình thường. Với stream, lỗi có thể xuất hiện ở thao tác nào khiến provider được tìm hoặc nạp; gọi **Provider.get()** sẽ khởi tạo provider.
+Therefore, an error can occur in the loop, at **hasNext()** or **next()**, even though the line calling **load()** succeeded normally. With streams, an error can occur at whichever operation causes a provider to be located or loaded; calling **Provider.get()** instantiates the provider.
 
-Cần phân biệt hai tình huống:
+Two situations must be distinguished:
 
-- **Không có provider:** đây là kết quả hợp lệ. Iterator hết phần tử; **findFirst()** trả về **Optional.empty()**. Không có ServiceConfigurationError chỉ vì không tìm thấy provider.
-- **Có khai báo provider nhưng không thể xử lý khai báo đó:** đây là lỗi cấu hình, nạp hoặc khởi tạo. ServiceLoader có thể ném ServiceConfigurationError.
+- **No providers:** this is a valid outcome. The iterator has no elements; **findFirst()** returns **Optional.empty()**. No ServiceConfigurationError is thrown merely because no provider was found.
+- **A provider declaration exists but cannot be processed:** this is a configuration, loading, or instantiation error. ServiceLoader can throw ServiceConfigurationError.
 
-## 3. ServiceConfigurationError là gì?
+## 3. What is ServiceConfigurationError?
 
-**java.util.ServiceConfigurationError** là một lớp con của **java.lang.Error**. JDK ném lỗi này khi có vấn đề trong quá trình tìm, nạp hoặc khởi tạo service provider.
+**java.util.ServiceConfigurationError** is a subclass of **java.lang.Error**. The JDK throws this error when there is a problem locating, loading, or instantiating a service provider.
 
-Vì nó kế thừa **Error**, đoạn mã chỉ bắt **Exception** sẽ không bắt được ServiceConfigurationError. Khi ứng dụng cần xử lý lỗi SPI tại một ranh giới rõ ràng, hãy bắt chính xác loại lỗi này:
+Because it extends **Error**, code that only catches **Exception** will not catch ServiceConfigurationError. When an application needs to handle SPI errors at a clear boundary, catch this exact error type:
 
 ~~~java
 try {
@@ -58,44 +58,44 @@ try {
 } catch (ServiceConfigurationError error) {
     error.printStackTrace();
     throw new IllegalStateException(
-        "Không thể nạp một Codec provider", error
+        "Unable to load a Codec provider", error
     );
 }
 ~~~
 
-Không nên bắt mọi **Error** hoặc **Throwable** chỉ để bỏ qua lỗi. Một provider lỗi có thể làm ứng dụng thiếu chức năng quan trọng hoặc khiến kết quả chạy không đáng tin cậy. Hãy quyết định rõ ứng dụng sẽ dừng, dùng implementation mặc định, hay vô hiệu hóa một plugin tùy chọn.
+Do not catch every **Error** or **Throwable** just to ignore failures. A broken provider can leave the application missing critical functionality or produce unreliable results. Decide explicitly whether the application should stop, fall back to a default implementation, or disable an optional plugin.
 
-ServiceConfigurationError có constructor nhận message và constructor nhận cả message lẫn cause. Khi lỗi có nguyên nhân gốc, hãy giữ lại exception chain bằng cách log toàn bộ stack trace hoặc kiểm tra **getCause()**. Message thường giúp nhận ra tên service/provider, nhưng cause mới có thể chỉ ra lỗi cụ thể như constructor ném exception hoặc thiếu dependency.
+ServiceConfigurationError has a constructor taking a message and a constructor taking both a message and a cause. When the error has an underlying cause, preserve the exception chain by logging the full stack trace or inspecting **getCause()**. The message often helps identify the service/provider name, while the cause can pinpoint a specific failure such as a constructor throwing an exception or a missing dependency.
 
-## 4. Các nguyên nhân thường gặp trên classpath
+## 4. Common causes on the classpath
 
-Với ứng dụng dùng classpath, provider được đăng ký bằng một provider-configuration file trong thư mục **META-INF/services**.
+For applications using the classpath, providers are registered via a provider-configuration file in the **META-INF/services** directory.
 
-Tên file là tên đầy đủ của service. Mỗi dòng chứa tên lớp provider đầy đủ (binary name), ví dụ:
+The file name is the fully qualified name of the service. Each line contains a fully qualified provider class name (binary name), for example:
 
 ~~~text
 META-INF/services/com.example.spi.Codec
 ~~~
 
-Nội dung:
+Contents:
 
 ~~~text
 com.example.impl.GzipCodec
 com.example.impl.ZipCodec
 ~~~
 
-Provider có thể nằm trong cùng JAR với file cấu hình hoặc trong một JAR khác, miễn là class loader được dùng để tìm provider có thể nhìn thấy lớp đó.
+A provider can reside in the same JAR as the configuration file or in another JAR, as long as the class loader used to locate providers can see that class.
 
-Các lỗi phổ biến:
+Common mistakes:
 
-1. **Sai tên hoặc sai vị trí file cấu hình.** Tên file phải khớp tên đầy đủ của service, và file phải nằm dưới META-INF/services ở gốc tài nguyên của JAR.
-2. **Sai tên lớp provider.** Dòng cấu hình phải là tên lớp đầy đủ, phân biệt chữ hoa/chữ thường; không ghi tên file .java hay đường dẫn thư mục.
-3. **File cấu hình sai định dạng.** File phải dùng UTF-8. Mỗi provider nằm trên một dòng; khoảng trắng/tab ở đầu và cuối dòng, dòng trống và phần comment bắt đầu bằng # được bỏ qua. Khai báo trùng lặp được bỏ qua.
-4. **Không nạp được lớp provider.** JAR chứa provider không có trên runtime classpath, tên lớp sai, hoặc một dependency mà provider cần bị thiếu.
-5. **Provider không triển khai service.** Lớp được khai báo phải thực sự assignable với kiểu service mà ServiceLoader đang dùng.
-6. **Không có provider constructor hợp lệ.** Provider trên classpath phải là lớp public, không phải inner class, và có public constructor không tham số để ServiceLoader tạo instance.
+1. **Wrong configuration file name or location.** The file name must match the fully qualified name of the service, and the file must live under META-INF/services at the JAR's resource root.
+2. **Wrong provider class name.** The configuration line must be the fully qualified class name, case-sensitive; do not write a .java file name or directory path.
+3. **Malformed configuration file.** The file must use UTF-8. Each provider sits on one line; leading and trailing spaces/tabs, blank lines, and comments starting with # are ignored. Duplicate declarations are ignored.
+4. **Unable to load provider class.** The JAR containing the provider is missing from the runtime classpath, the class name is wrong, or a dependency required by the provider is missing.
+5. **Provider does not implement the service.** The declared class must actually be assignable to the service type ServiceLoader is using.
+6. **No valid provider constructor.** A provider on the classpath must be a public class, not an inner class, and have a public no-argument constructor so ServiceLoader can instantiate it.
 
-Ví dụ implementation hợp lệ:
+Example of a valid implementation:
 
 ~~~java
 package com.example.impl;
@@ -104,7 +104,7 @@ import com.example.spi.Codec;
 
 public final class GzipCodec implements Codec {
     public GzipCodec() {
-        // Khởi tạo trạng thái cần thiết của provider.
+        // Initialize necessary provider state.
     }
 
     @Override
@@ -114,21 +114,21 @@ public final class GzipCodec implements Codec {
 
     @Override
     public byte[] encode(byte[] input) {
-        // Phần minh họa: triển khai thuật toán nén tại đây.
+        // Illustration: implement the compression algorithm here.
         return input;
     }
 }
 ~~~
 
-Nếu file cấu hình ghi **com.example.impl.GzipCodec** nhưng lớp thực tế nằm trong package khác, ServiceLoader không thể nạp provider. Nếu lớp được tìm thấy nhưng không triển khai đúng interface Codec, ServiceLoader cũng báo lỗi.
+If the configuration file lists **com.example.impl.GzipCodec** but the class actually resides in another package, ServiceLoader cannot load the provider. If the class is found but does not implement the Codec interface properly, ServiceLoader also reports an error.
 
-Một lỗi khó nhận ra là ứng dụng đóng gói hai bản service API trong các class loader khác nhau. Hai lớp có cùng tên đầy đủ vẫn có thể là hai kiểu khác nhau nếu được định nghĩa bởi hai class loader khác nhau. Provider có thể triển khai bản Codec mà nó nhìn thấy, trong khi ứng dụng yêu cầu một bản Codec khác; khi đó phép kiểm tra kiểu không thành công. Hãy bảo đảm service API được chia sẻ nhất quán giữa ứng dụng và plugin.
+A subtle error is when an application packages two copies of the service API in different class loaders. Two classes with the same fully qualified name are still two distinct types if defined by two different class loaders. The provider may implement the Codec copy it sees, while the application expects another Codec copy; the type check then fails. Ensure the service API is shared consistently between the application and plugins.
 
-## 5. Các nguyên nhân thường gặp trên module path
+## 5. Common causes on the module path
 
-Với JPMS, module khai báo quan hệ service bằng hai directive: **uses** ở phía ứng dụng tiêu thụ service và **provides ... with ...** ở phía module cung cấp provider.
+With JPMS, modules declare service relationships using two directives: **uses** on the application consuming the service and **provides ... with ...** on the module supplying the provider.
 
-Ví dụ module ứng dụng:
+Example application module:
 
 ~~~java
 module com.example.app {
@@ -137,7 +137,7 @@ module com.example.app {
 }
 ~~~
 
-Ví dụ module provider:
+Example provider module:
 
 ~~~java
 module com.example.codec.gzip {
@@ -147,18 +147,18 @@ module com.example.codec.gzip {
 }
 ~~~
 
-Trong ví dụ này:
-- Module ứng dụng cần đọc được module xuất bản service API và khai báo **uses** cho service mà nó nạp bằng ServiceLoader.
-- Module provider cần đọc được module chứa service API và khai báo provider trong **provides**.
-- Module provider phải được đưa vào cấu hình triển khai/module path phù hợp để runtime có thể tìm thấy nó.
+In this example:
+- The application module needs to read the module publishing the service API and declare **uses** for the service it loads via ServiceLoader.
+- The provider module needs to read the module containing the service API and declare the provider in **provides**.
+- The provider module must be included in the appropriate deployment configuration/module path so the runtime can find it.
 
-Nếu ứng dụng nằm trong named module nhưng thiếu directive **uses**, lời gọi ServiceLoader có thể ném ServiceConfigurationError ngay khi tạo loader. Đây là trường hợp lỗi có thể xuất hiện sớm hơn lỗi do constructor của provider.
+If the application is in a named module but lacks the **uses** directive, calling ServiceLoader can throw ServiceConfigurationError right when creating the loader. This is a case where the error can appear earlier than errors from a provider's constructor.
 
-### Provider constructor và provider method
+### Provider constructor and provider method
 
-Provider trong named module có hai cách được ServiceLoader khởi tạo.
+A provider in a named module has two ways to be instantiated by ServiceLoader.
 
-**Cách 1: provider class triển khai service và có public constructor không tham số.**
+**Option 1: the provider class implements the service and has a public no-argument constructor.**
 
 ~~~java
 package com.example.codec.gzip;
@@ -180,14 +180,14 @@ public final class GzipCodec implements Codec {
 }
 ~~~
 
-Khai báo module:
+Module declaration:
 
 ~~~java
 provides com.example.spi.Codec
     with com.example.codec.gzip.GzipCodec;
 ~~~
 
-**Cách 2: provider class có public static provider() method.**
+**Option 2: the provider class has a public static provider() method.**
 
 ~~~java
 package com.example.codec.gzip;
@@ -201,29 +201,29 @@ public final class GzipCodecProvider {
 }
 ~~~
 
-Khai báo module:
+Module declaration:
 
 ~~~java
 provides com.example.spi.Codec
     with com.example.codec.gzip.GzipCodecProvider;
 ~~~
 
-Với provider method, lớp provider không cần tự triển khai Codec; phương thức **provider()** phải public, static, không có tham số và trả về một kiểu có thể gán cho Codec. ServiceLoader gọi phương thức đó để lấy instance. Nếu phương thức trả về null hoặc ném exception, ServiceConfigurationError có thể được phát sinh.
+With a provider method, the provider class does not need to implement Codec itself; the **provider()** method must be public, static, parameterless, and return a type assignable to Codec. ServiceLoader calls that method to obtain an instance. If the method returns null or throws an exception, ServiceConfigurationError can be raised.
 
-Các lỗi module thường gặp gồm: provider class không nạp được; lớp provider không triển khai service và cũng không có provider method hợp lệ; provider method trả về kiểu không tương thích; có nhiều public static method không tham số cùng tên provider; hoặc constructor/provider method ném exception.
+Common module errors include: the provider class cannot be loaded; the provider class neither implements the service nor has a valid provider method; the provider method returns an incompatible type; there are multiple public static no-arg methods named provider; or the constructor/provider method throws an exception.
 
-Lưu ý: provider được đóng gói dưới dạng automatic module trên module path phải có provider constructor; cách đăng ký bằng provider method không được hỗ trợ cho automatic module.
+Note: a provider packaged as an automatic module on the module path must have a provider constructor; registration via a provider method is not supported for automatic modules.
 
-## 6. Vì sao lỗi chỉ xuất hiện khi duyệt iterator hoặc stream?
+## 6. Why do errors only appear when iterating an iterator or stream?
 
-ServiceLoader cố ý trì hoãn công việc để không phải nạp và khởi tạo mọi provider khi ứng dụng vừa gọi **load()**.
+ServiceLoader deliberately defers work so it does not have to load and instantiate every provider as soon as the application calls **load()**.
 
-Với iterator, cả **hasNext()** và **next()** đều có thể ném ServiceConfigurationError. Vòng lặp enhanced-for cũng gọi các phương thức này ở bên dưới, vì vậy lỗi thường xuất hiện ngay tại dòng vòng lặp.
+With an iterator, both **hasNext()** and **next()** can throw ServiceConfigurationError. An enhanced-for loop calls these methods under the hood as well, so the error often surfaces right at the loop line.
 
 ~~~java
 ServiceLoader<Codec> loader = ServiceLoader.load(Codec.class);
 
-// Dòng này tạo loader, chưa có nghĩa mọi provider đã được khởi tạo.
+// This line creates the loader; it does not mean all providers are instantiated yet.
 Iterator<Codec> iterator = loader.iterator();
 
 while (iterator.hasNext()) {
@@ -232,7 +232,7 @@ while (iterator.hasNext()) {
 }
 ~~~
 
-Với stream, các thao tác trung gian thường vẫn lazy. Lỗi được ném khi một thao tác xử lý khiến ServiceLoader phải tìm hoặc nạp provider. Trong ví dụ sau, **Provider.get()** tạo instance:
+With a stream, intermediate operations generally remain lazy. Errors are thrown when a processing operation causes ServiceLoader to locate or load providers. In the following example, **Provider.get()** creates the instance:
 
 ~~~java
 ServiceLoader<Codec> loader = ServiceLoader.load(Codec.class);
@@ -242,13 +242,13 @@ loader.stream()
     .forEach(codec -> System.out.println(codec.name()));
 ~~~
 
-Stream cho phép xem kiểu provider qua **Provider.type()** trước khi tạo instance. Điều này hữu ích khi ứng dụng cần lọc provider theo annotation hoặc metadata. Tuy nhiên, stream không loại bỏ lỗi cấu hình: thao tác tìm/nạp provider hoặc gọi **get()** vẫn có thể ném ServiceConfigurationError.
+Streams allow inspecting the provider type via **Provider.type()** before creating an instance. This is useful when the application needs to filter providers by annotation or metadata. However, streams do not eliminate configuration errors: locating/loading a provider or calling **get()** can still throw ServiceConfigurationError.
 
-Nếu iterator đã ném lỗi, các lần gọi tiếp theo sẽ cố gắng tìm provider kế tiếp ở mức best-effort; việc phục hồi không được bảo đảm. Không nên giả định rằng bỏ qua một lỗi là có thể tiếp tục an toàn với mọi provider còn lại.
+Once an iterator has thrown an error, subsequent calls will make a best-effort attempt to locate the next provider; recovery is not guaranteed. Do not assume that skipping one error lets you safely continue with all remaining providers.
 
-## 7. Cách xử lý lỗi trong ứng dụng
+## 7. How to handle errors in an application
 
-Với ứng dụng cần tất cả provider để hoạt động, cách an toàn thường là ghi log đầy đủ rồi dừng khởi tạo thành phần phụ thuộc vào SPI:
+For an application that requires all providers to function, the safe approach is usually to log completely and halt initialization of the component depending on the SPI:
 
 ~~~java
 public static List<Codec> loadCodecs() {
@@ -259,10 +259,10 @@ public static List<Codec> loadCodecs() {
             result.add(codec);
         }
     } catch (ServiceConfigurationError error) {
-        // Giữ nguyên stack trace và cause để tìm provider bị lỗi.
+        // Preserve the stack trace and cause to locate the failing provider.
         error.printStackTrace();
         throw new IllegalStateException(
-            "Codec SPI không thể khởi tạo đầy đủ", error
+            "Codec SPI failed to initialize completely", error
         );
     }
 
@@ -270,44 +270,44 @@ public static List<Codec> loadCodecs() {
 }
 ~~~
 
-Với ứng dụng có plugin tùy chọn, hãy xác định rõ chính sách khi một provider lỗi: vô hiệu hóa plugin đó, hiển thị trạng thái lỗi cho người vận hành, hoặc dừng ứng dụng nếu plugin là bắt buộc. Không nên âm thầm coi provider lỗi như thể không tồn tại, vì việc đó có thể làm ứng dụng chạy với tập chức năng thiếu mà không ai nhận ra.
+For applications with optional plugins, define a clear policy when a provider fails: disable that plugin, show the error status to the operator, or stop the application if the plugin is mandatory. Do not silently treat a failing provider as nonexistent, as that can leave the application running with missing features without anyone noticing.
 
-Nếu cần chẩn đoán lỗi khởi tạo, hãy log provider đang được xử lý, message, stack trace và cause. Nếu dùng **ServiceLoader.stream()**, có thể kiểm tra **Provider.type()** trước khi gọi **Provider.get()**; nhớ rằng cả quá trình tìm provider và việc tạo instance đều có thể phát sinh lỗi.
+If you need to diagnose instantiation failures, log the provider being processed, the message, stack trace, and cause. If using **ServiceLoader.stream()**, you can inspect **Provider.type()** before calling **Provider.get()**; keep in mind that both provider lookup and instance creation can raise errors.
 
-## 8. Quy trình chẩn đoán
+## 8. Diagnostic workflow
 
-Khi gặp ServiceConfigurationError, hãy đi theo thứ tự sau:
+When encountering ServiceConfigurationError, follow this sequence:
 
-1. **Đọc message và stack trace.** Xác định service nào đang được nạp, provider nào được nhắc tới, và lỗi xảy ra ở bước tìm lớp hay khởi tạo instance.
-2. **Kiểm tra cause.** Nếu cause là exception do constructor/provider method ném ra, sửa lỗi khởi tạo bên trong provider trước.
-3. **Xác định cách triển khai.** Ứng dụng đang chạy provider từ classpath, automatic module hay named module? Mỗi cách có quy tắc đăng ký và khởi tạo khác nhau.
-4. **Kiểm tra cấu hình classpath.** Mở JAR và xác nhận có đúng file META-INF/services/<tên đầy đủ của service>; kiểm tra từng dòng provider và bảo đảm các lớp cùng dependency có mặt lúc chạy.
-5. **Kiểm tra module-info.java.** Ứng dụng phải có uses; module provider phải có provides ... with ...; các module phải đọc được service API.
-6. **Kiểm tra constructor/provider method.** Với constructor, xác nhận lớp provider public, không phải inner class, triển khai đúng service và có public constructor không tham số. Với provider method, xác nhận chỉ có một phương thức public static tên provider, không có tham số và trả về kiểu tương thích.
-7. **Kiểm tra class loader.** ServiceLoader.load(Service.class) sử dụng context class loader của thread hiện tại. Trong ứng dụng plugin, application server hoặc môi trường test, hãy xác nhận loader đó nhìn thấy đúng service API và provider.
-8. **Thử khởi tạo provider độc lập.** Nếu đã xác định được lớp provider, chạy constructor hoặc provider method trong một bài kiểm tra nhỏ để tách lỗi khởi tạo khỏi lỗi tìm kiếm SPI.
+1. **Read the message and stack trace.** Identify which service is being loaded, which provider is mentioned, and whether the failure occurs during class lookup or instance creation.
+2. **Check the cause.** If the cause is an exception thrown by the constructor/provider method, fix the initialization bug inside the provider first.
+3. **Identify the deployment mode.** Is the application running providers from the classpath, an automatic module, or a named module? Each mode has different registration and instantiation rules.
+4. **Inspect classpath configuration.** Open the JAR and confirm the exact file META-INF/services/<fully qualified service name> exists; verify each provider line and ensure the classes and their dependencies are present at runtime.
+5. **Inspect module-info.java.** The application must have uses; the provider module must have provides ... with ...; modules must be able to read the service API.
+6. **Check the constructor/provider method.** For a constructor, verify the provider class is public, not an inner class, implements the service properly, and has a public no-argument constructor. For a provider method, verify there is only one public static method named provider, with no parameters and a compatible return type.
+7. **Check the class loader.** ServiceLoader.load(Service.class) uses the current thread's context class loader. In plugin applications, application servers, or test environments, confirm that loader can see both the service API and the provider.
+8. **Try instantiating the provider independently.** Once the provider class is identified, run its constructor or provider method in a small test to separate initialization bugs from SPI discovery bugs.
 
-Một số dấu hiệu và hướng kiểm tra:
+Some symptoms and checks:
 
-| Dấu hiệu | Nguyên nhân có thể | Hướng xử lý |
+| Symptom | Possible cause | Resolution |
 |---|---|---|
-| Không tìm thấy provider class | Sai tên lớp, thiếu JAR hoặc sai runtime classpath/module path | Kiểm tra tên đầy đủ, artifact triển khai và dependency |
-| Provider không phải subtype của service | Khai báo nhầm lớp hoặc hai bản service API do class loader khác nhau định nghĩa | Kiểm tra implements/extends và nguồn nạp service API |
-| Thiếu provider constructor | Không có public constructor không tham số | Thêm constructor phù hợp hoặc dùng provider method trong named module |
-| Module không khai báo uses | Consumer module gọi ServiceLoader nhưng thiếu directive | Thêm uses cho đúng service |
-| Provider method lỗi | Sai kiểu trả về, trả null hoặc ném exception | Sửa phương thức provider() và phần khởi tạo |
-| Lỗi xuất hiện ở iterator.hasNext()/next() | Provider discovery diễn ra lazy | Đọc stack trace tại điểm duyệt; kiểm tra file cấu hình và lớp provider |
-| Chạy trong IDE nhưng lỗi khi đóng gói | Tài nguyên SPI hoặc JAR không được đưa vào artifact runtime | Kiểm tra nội dung JAR cuối cùng và runtime classpath/module path |
+| Provider class not found | Wrong class name, missing JAR, or wrong runtime classpath/module path | Check fully qualified name, deployed artifacts, and dependencies |
+| Provider is not a subtype of service | Wrong class declared or two copies of the service API defined by different class loaders | Check implements/extends and where the service API is loaded from |
+| Missing provider constructor | No public no-argument constructor | Add an appropriate constructor or use a provider method in a named module |
+| Module does not declare uses | Consumer module calls ServiceLoader but lacks the directive | Add uses for the right service |
+| Provider method error | Wrong return type, returns null, or throws an exception | Fix the provider() method and its initialization logic |
+| Error appears at iterator.hasNext()/next() | Provider discovery is lazy | Read the stack trace at the iteration point; inspect config files and provider classes |
+| Works in IDE but fails when packaged | SPI resource or JAR was not included in the runtime artifact | Inspect the final JAR contents and runtime classpath/module path |
 
-## 9. Class loader và một số lưu ý quan trọng
+## 9. Class loaders and important notes
 
-Lời gọi:
+The call:
 
 ~~~java
 ServiceLoader.load(Codec.class)
 ~~~
 
-tương đương với việc dùng context class loader của thread hiện tại:
+is equivalent to using the current thread's context class loader:
 
 ~~~java
 ServiceLoader.load(
@@ -316,7 +316,7 @@ ServiceLoader.load(
 );
 ~~~
 
-Nếu môi trường triển khai có nhiều class loader, loader mặc định có thể không nhìn thấy provider mà ứng dụng mong đợi. Có thể truyền loader tường minh:
+If the deployment environment has multiple class loaders, the default loader might not see the providers the application expects. You can pass a loader explicitly:
 
 ~~~java
 ClassLoader providerLoader = Thread.currentThread().getContextClassLoader();
@@ -324,45 +324,45 @@ ServiceLoader<Codec> loader =
     ServiceLoader.load(Codec.class, providerLoader);
 ~~~
 
-Hãy chọn class loader thực sự có thể nhìn thấy cả service API và provider. Không mặc định rằng **Codec.class.getClassLoader()** luôn đúng: provider có thể nằm trong child class loader, còn service API phải được chia sẻ từ loader cha.
+Choose a class loader that can actually see both the service API and the provider. Do not assume **Codec.class.getClassLoader()** is always right: providers might live in a child class loader, while the service API must be shared from a parent loader.
 
-**ServiceLoader.loadInstalled(...)** sử dụng platform class loader. Nó dành cho provider đã cài đặt trong runtime và sẽ bỏ qua provider chỉ có trên application classpath/module path; vì vậy không dùng nó như cách thay thế chung cho **load(...)**.
+**ServiceLoader.loadInstalled(...)** uses the platform class loader. It is meant for providers installed in the runtime and will ignore providers only on the application classpath/module path; therefore, do not use it as a general replacement for **load(...)**.
 
-ServiceLoader có cache các provider đã nạp. **reload()** xóa cache để những lần duyệt tiếp theo tìm lại provider; nó không sửa file cấu hình sai, không bổ sung JAR thiếu và không khắc phục constructor lỗi. Mỗi instance ServiceLoader cũng không an toàn khi nhiều thread sử dụng đồng thời.
+ServiceLoader caches loaded providers. **reload()** clears the cache so subsequent iterations locate providers again; it does not fix broken configuration files, add missing JARs, or repair faulty constructors. A ServiceLoader instance is also not safe for concurrent use by multiple threads.
 
-## 10. Những nhầm lẫn cần tránh
+## 10. Pitfalls to avoid
 
-- **Nhầm không có provider với provider lỗi:** không có provider là trường hợp hợp lệ; khai báo provider sai hoặc không thể khởi tạo mới tạo lỗi.
-- **Cho rằng load() đã khởi tạo xong provider:** provider được tìm và khởi tạo lazy; lỗi thường xuất hiện khi duyệt iterator hoặc xử lý stream.
-- **Chỉ bắt Exception:** ServiceConfigurationError kế thừa Error, nên catch Exception không bắt được nó.
-- **Bắt mọi Error để bỏ qua:** điều này có thể che giấu lỗi triển khai nghiêm trọng. Chỉ bắt ServiceConfigurationError tại nơi có chính sách phục hồi rõ ràng.
-- **Chỉ kiểm tra mã nguồn:** file META-INF/services, module-info.java và nội dung JAR ở runtime đều quan trọng.
-- **Dùng reload() để sửa lỗi cấu hình:** reload chỉ xóa cache, không sửa nguyên nhân gốc.
-- **Quên class loader:** cùng tên service không đồng nghĩa cùng một Class nếu hai loader định nghĩa hai bản khác nhau.
+- **Confusing no providers with a broken provider:** having no providers is a valid case; a misdeclared or uninstantiable provider produces an error.
+- **Assuming load() has already finished instantiating providers:** providers are located and instantiated lazily; errors often surface while iterating an iterator or processing a stream.
+- **Catching only Exception:** ServiceConfigurationError extends Error, so catch Exception will not catch it.
+- **Catching all Errors to ignore them:** this can hide severe deployment bugs. Only catch ServiceConfigurationError where there is a clear recovery policy.
+- **Checking only source code:** META-INF/services files, module-info.java, and runtime JAR contents all matter.
+- **Using reload() to fix configuration bugs:** reload only clears the cache; it does not fix the root cause.
+- **Forgetting about class loaders:** the same service name does not mean the same Class if two loaders define two separate copies.
 
-## 11. Tự kiểm tra
+## 11. Self-check
 
-**1. ServiceLoader.load(Codec.class) chạy thành công nhưng vòng lặp for-each ném ServiceConfigurationError. Vì sao?**
+**1. ServiceLoader.load(Codec.class) succeeds, but the for-each loop throws ServiceConfigurationError. Why?**
 
-Vì việc tìm và khởi tạo provider diễn ra lazy. Lỗi có thể chỉ xuất hiện khi iterator gọi hasNext() hoặc next() trong lúc duyệt.
+Because provider discovery and instantiation are lazy. The error may only appear when the iterator calls hasNext() or next() during iteration.
 
-**2. Không có file META-INF/services cho một service có nhất thiết là lỗi không?**
+**2. Is the absence of a META-INF/services file for a service necessarily an error?**
 
-Không. Nếu không tìm thấy provider nào, iterator có thể rỗng và findFirst() trả về Optional.empty(). Lỗi xảy ra khi có cấu hình/provider nhưng không thể đọc, nạp hoặc khởi tạo hợp lệ.
+No. If no provider is found, the iterator can be empty and findFirst() returns Optional.empty(). An error occurs when configuration/providers exist but cannot be validly read, loaded, or instantiated.
 
-**3. Vì sao catch (Exception e) không bắt được ServiceConfigurationError?**
+**3. Why does catch (Exception e) fail to catch ServiceConfigurationError?**
 
-Vì ServiceConfigurationError kế thừa java.lang.Error, không kế thừa Exception. Nếu cần xử lý lỗi SPI, hãy catch ServiceConfigurationError cụ thể.
+Because ServiceConfigurationError extends java.lang.Error, not Exception. If you need to handle SPI errors, catch ServiceConfigurationError specifically.
 
-**4. Ứng dụng chạy trong named module gọi ServiceLoader nhưng thiếu uses. Cần sửa ở đâu?**
+**4. An application running in a named module calls ServiceLoader but lacks uses. Where must the fix be made?**
 
-Thêm directive uses cho service vào module-info.java của module tiêu thụ. Đồng thời bảo đảm module đó đọc được module xuất bản service API.
+Add the uses directive for the service to module-info.java of the consuming module. Also ensure that module can read the module publishing the service API.
 
-## 12. Ghi nhớ
+## 12. Key takeaways
 
-ServiceConfigurationError báo hiệu ServiceLoader không thể hoàn thành việc tìm, nạp hoặc khởi tạo một provider. Hãy xác định provider và bước phát sinh lỗi trước, sau đó kiểm tra cấu hình classpath hoặc module path, kiểu service, constructor/provider method và class loader. Không có provider là một kết quả hợp lệ; provider được khai báo nhưng bị lỗi là một vấn đề cần xử lý rõ ràng.
+ServiceConfigurationError signals that ServiceLoader could not complete locating, loading, or instantiating a provider. Identify the provider and the failing step first, then check the classpath or module path configuration, service type, constructor/provider method, and class loader. Having no providers is a valid outcome; a declared but broken provider is a problem that needs explicit handling.
 
-## Tài liệu tham khảo
+## References
 
 - [ServiceLoader — Java SE 21 API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/ServiceLoader.html)
 - [ServiceConfigurationError — Java SE 21 API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/ServiceConfigurationError.html)

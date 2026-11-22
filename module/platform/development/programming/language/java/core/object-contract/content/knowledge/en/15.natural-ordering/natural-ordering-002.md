@@ -1,18 +1,18 @@
-# Thứ tự tự nhiên: compareTo() trả về dấu âm, bằng không hoặc dấu dương
+# Natural Ordering: compareTo() Returns Negative Sign, Zero, or Positive Sign
 
-## 1. Ý nghĩa chính xác của kết quả compareTo
+## 1. Exact meaning of the compareTo result
 
-Trong Java, một lớp triển khai **Comparable<T>** khi muốn xác định thứ tự tự nhiên (natural ordering) cho các đối tượng cùng kiểu. Phương thức compareTo(T other) trả về một giá trị kiểu int, nhưng **dấu** của kết quả mới biểu thị quan hệ:
+In Java, a class implements **Comparable<T>** when it wants to define a natural ordering for objects of the same type. The compareTo(T other) method returns an int value, yet it is the **sign** of the result that represents the relationship:
 
-| Giá trị x.compareTo(y) | Ý nghĩa | Sắp xếp tăng dần |
+| Value of x.compareTo(y) | Meaning | Ascending sort |
 | --- | --- | --- |
-| Âm, nhỏ hơn 0 | x đứng trước y | x đứng trước |
-| Bằng 0 | x và y tương đương theo thứ tự | Cùng vị trí logic theo so sánh |
-| Dương, lớn hơn 0 | x đứng sau y | x đứng sau |
+| Negative, less than 0 | x comes before y | x comes first |
+| Equal to 0 | x and y are equivalent in ordering | Same logical position by comparison |
+| Positive, greater than 0 | x comes after y | x comes later |
 
-Đặc biệt, **compareTo không bắt buộc trả đúng -1, 0 hoặc 1**. Các giá trị -25, -4, 7, 25 đều hợp lệ khi phù hợp quan hệ thứ tự. Không diễn giải độ lớn của số trả về là khoảng cách giữa hai đối tượng.
+In particular, **compareTo is not required to return exactly -1, 0, or 1**. Values like -25, -4, 7, 25 are all valid when they match the ordering relation. Do not interpret the magnitude of the returned number as the distance between two objects.
 
-Ví dụ với String:
+Example with String:
 
 ~~~java
 System.out.println("a".compareTo("z")); // -25
@@ -20,45 +20,45 @@ System.out.println("a".compareTo("a")); // 0
 System.out.println("z".compareTo("a")); // 25
 ~~~
 
-Với hai ký tự Latin đơn giản này, String.compareTo trả hiệu của giá trị ký tự UTF-16 đầu tiên khác nhau, nên có kết quả âm/dương với độ lớn 25.
+With these two simple Latin characters, String.compareTo returns the difference of the first differing UTF-16 character values, yielding negative/positive results with magnitude 25.
 
-Cách kiểm tra nên dùng:
+Recommended check to use:
 
 ~~~java
 int result = x.compareTo(y);
 if (result < 0) {
-    System.out.println("x đứng trước y");
+    System.out.println("x comes before y");
 } else if (result > 0) {
-    System.out.println("x đứng sau y");
+    System.out.println("x comes after y");
 } else {
-    System.out.println("x tương đương y theo thứ tự");
+    System.out.println("x is equivalent to y in ordering");
 }
 ~~~
 
-Đây là mã minh họa trong ngữ cảnh đã khai báo x và y tương thích; chưa phải một chương trình chạy độc lập. **Không kiểm tra result == -1 để hiểu là nhỏ hơn**, vì kết quả -2 hoặc -25 cũng có cùng ý nghĩa. Có thể dùng Integer.signum(result) khi cần chuẩn hóa thành -1/0/1, nhưng điều đó không bắt buộc cho các nhánh điều kiện.
+This is an illustrative snippet in a context where compatible x and y have already been declared; it is not a standalone runnable program. **Do not check result == -1 to mean less than**, because results like -2 or -25 carry the same meaning. You can use Integer.signum(result) when normalizing to -1/0/1 is needed, though that is not required for conditional branches.
 
-## 2. Comparable và Comparator cùng trả về dấu
+## 2. Comparable and Comparator both return a sign
 
-`Comparable<T>` đặt quy tắc thứ tự tự nhiên trong kiểu dữ liệu; `Comparator<T>` xác định một thứ tự có thể truyền từ bên ngoài, chẳng hạn sắp theo ngày giảm dần hoặc theo điểm. Cả hai đều dùng **dấu âm/0/dương**, nên đoạn kiểm tra `result < 0` áp dụng cho cả `x.compareTo(y)` lẫn `comparator.compare(x, y)`.
+`Comparable<T>` places the natural ordering rule inside the data type; `Comparator<T>` defines an ordering that can be passed externally, such as sorting by descending date or by score. Both use **negative/0/positive sign**, so the `result < 0` check applies to both `x.compareTo(y)` and `comparator.compare(x, y)`.
 
-Khi dùng `TreeSet` hoặc `TreeMap` với comparator riêng, `0` còn quyết định hai phần tử/khóa có cùng vị trí logic trong cấu trúc cây. Bài đầu chương giải thích đầy đủ khi nào chọn natural ordering hay comparator.
+When using `TreeSet` or `TreeMap` with a custom comparator, `0` also determines whether two elements/keys share the same logical position in the tree structure. The first lesson in the chapter thoroughly explains when to choose natural ordering versus a comparator.
 
-## 3. Dấu sai khi phép trừ bị tràn số
+## 3. Wrong sign when subtraction overflows
 
-Dấu trả về chỉ hữu ích khi phép so sánh tính đúng: `return a - b` với hai `int` có thể tràn số và làm đảo chiều quan hệ.
+The returned sign is only useful when the comparison computes correctly: `return a - b` with two `int`s can overflow and reverse the relationship direction.
 
 ~~~java
 int low = Integer.MIN_VALUE;
 int high = Integer.MAX_VALUE;
-System.out.println(low - high);                  // 1 (sai dấu để so sánh)
+System.out.println(low - high);                  // 1 (wrong sign for comparison)
 System.out.println(Integer.compare(low, high)); // -1
 ~~~
 
-Dùng `Integer.compare`, `Long.compare` và các helper tương ứng. Bài về **tràn số trong compareTo** sẽ kiểm tra các biên `MIN_VALUE`/`MAX_VALUE`, ép `long` xuống `int` và tác động tới tính bắc cầu.
+Use `Integer.compare`, `Long.compare`, and corresponding helpers. The lesson on **overflow in compareTo** will examine `MIN_VALUE`/`MAX_VALUE` boundaries, casting `long` to `int`, and the impact on transitivity.
 
-## 4. Java 17+: ví dụ đầy đủ, chạy được
+## 4. Java 17+: complete, runnable example
 
-Lưu thành tệp **CompareToSignDemo.java**:
+Save as file **CompareToSignDemo.java**:
 
 ~~~java
 import java.math.BigDecimal;
@@ -129,14 +129,14 @@ public class CompareToSignDemo {
 }
 ~~~
 
-Chạy lệnh từ thư mục chứa tệp:
+Run commands from the directory containing the file:
 
 ~~~bash
 javac -encoding UTF-8 CompareToSignDemo.java
 java CompareToSignDemo
 ~~~
 
-Kết quả stdout:
+Stdout result:
 
 ~~~text
 first vs second: 1
@@ -153,35 +153,35 @@ TreeSet<BigDecimal> size: 1
 HashSet<BigDecimal> size: 2
 ~~~
 
-**Giải thích:** first và second có priority bằng 3, code "B" đứng sau "A" nên compareTo dương. Khi đảo chiều, kết quả âm. Hai Job cùng priority và code trả 0. Sau khi sort, Job có priority 1 đứng đầu; các Job priority 3 sắp theo code A rồi B. Record Job được sinh equals/hashCode dựa trên cả hai component, phù hợp với cặp trường mà compareTo dùng.
+**Explanation:** first and second both have priority 3, and code "B" comes after "A", so compareTo is positive. When reversed, the result is negative. Two Jobs with the same priority and code return 0. After sorting, the Job with priority 1 comes first; the Jobs with priority 3 are ordered by code A then B. Record Job has equals/hashCode generated from both components, matching the pair of fields that compareTo uses.
 
-Hai số nguyên cực trị cho thấy phép trừ tràn số trả 1 còn Integer.compare trả -1. "z".compareTo("a") trả 25, minh chứng compareTo không bị giới hạn -1/0/1. Hai BigDecimal biểu diễn cùng giá trị nhưng khác scale dẫn đến khác biệt giữa compareTo và equals, phân tích ở phần tiếp theo.
+The two extreme integers show that overflowing subtraction returns 1 while Integer.compare returns -1. "z".compareTo("a") returns 25, proving compareTo is not limited to -1/0/1. Two BigDecimals representing the same value with different scales lead to a difference between compareTo and equals, analyzed in the next section.
 
-## 5. Đọc dấu đúng trong toàn bộ hợp đồng
+## 5. Interpreting the sign properly across the entire contract
 
-Ngoài dấu âm/0/dương, một `compareTo` hợp lệ còn giữ các tính chất sau trên miền đối tượng có thể so sánh:
+Beyond negative/0/positive sign, a valid `compareTo` also preserves the following properties over the domain of comparable objects:
 
-| Quy tắc | Cần kiểm tra |
+| Rule | What to check |
 | --- | --- |
-| Đảo dấu | `Integer.signum(x.compareTo(y)) == -Integer.signum(y.compareTo(x))` |
-| Bắc cầu | Nếu `x > y` và `y > z` thì `x > z` |
-| Giá trị tương đương | Nếu `x.compareTo(y) == 0`, dấu khi so `x` và `y` với bất kỳ `z` hợp lệ phải giống nhau |
-| `null` | `x.compareTo(null)` ném `NullPointerException` |
+| Sign reversal | `Integer.signum(x.compareTo(y)) == -Integer.signum(y.compareTo(x))` |
+| Transitivity | If `x > y` and `y > z` then `x > z` |
+| Equivalent values | If `x.compareTo(y) == 0`, the signs when comparing `x` and `y` against any valid `z` must be identical |
+| `null` | `x.compareTo(null)` throws `NullPointerException` |
 
-Quy tắc đảo dấu chỉ nói về **dấu**, không yêu cầu hai kết quả có cùng trị tuyệt đối. Ví dụ `-3` và `8` vẫn trái dấu hợp lệ nếu các tính chất khác cũng được giữ. Các bài tiếp theo kiểm tra từng điều kiện bằng các cặp và bộ ba cụ thể.
+The sign-reversal rule speaks only of **sign**, not requiring the two results to have the same absolute value. For example, `-3` and `8` are still validly opposite in sign if the other properties also hold. Subsequent lessons test each condition with concrete pairs and triples.
 
-## 6. Dấu 0 là tương đương theo thứ tự, không tự động là equals
+## 6. Sign 0 means equivalent in ordering, not automatically equals
 
-`compareTo == 0` xác định hai giá trị **cùng vị trí theo thứ tự**. `equals == true` lại là bình đẳng logic của đối tượng. Java khuyến nghị mạnh hai quan hệ này nhất quán nhưng cho phép khác nhau có chủ đích.
+`compareTo == 0` determines that two values have the **same position in ordering**. `equals == true` is logical object equality. Java strongly recommends that these two relations be consistent, yet permits intentional differences.
 
-Ví dụ, `new BigDecimal("1.0").compareTo(new BigDecimal("1.00")) == 0` trong khi `equals` trả `false` do khác `scale`. Vì vậy `TreeSet<BigDecimal>` chỉ giữ một phần tử tương đương theo thứ tự, còn `HashSet<BigDecimal>` giữ hai phần tử theo `equals/hashCode`. Chương trình ở mục 4 quan sát cùng sự khác biệt này; bài về `equals` và `compareTo` phía sau hướng dẫn chọn hợp đồng đúng.
+For example, `new BigDecimal("1.0").compareTo(new BigDecimal("1.00")) == 0` while `equals` returns `false` due to differing `scale`. Therefore `TreeSet<BigDecimal>` retains only one ordering-equivalent element, whereas `HashSet<BigDecimal>` retains two elements based on `equals/hashCode`. The program in section 4 observes this exact difference; the later lesson on `equals` and `compareTo` guides choosing the right contract.
 
-## 7. So sánh nhiều trường: xử lý hòa đúng cách
+## 7. Multi-field comparison: breaking ties properly
 
-Mẫu chuẩn để so theo trường đầu, sau đó đến trường thứ hai:
+Standard pattern for comparing by the first field, then the second field:
 
 ~~~java
-// Trích đoạn trong lớp Person có lastName, firstName là String không null.
+// Excerpt in class Person having non-null String lastName, firstName.
 @Override
 public int compareTo(Person other) {
     int byLast = lastName.compareTo(other.lastName);
@@ -192,67 +192,67 @@ public int compareTo(Person other) {
 }
 ~~~
 
-Nếu so sánh khóa trước trả **bất kỳ giá trị khác 0 nào**, hãy trả luôn; chỉ so khóa tiếp theo khi bằng 0. Không kiểm tra byLast == -1 hoặc byLast == 1. Nếu trường có thể null, dùng Comparator.nullsFirst/nullsLast hoặc xử lý rõ ràng, tránh gọi compareTo trực tiếp trên null.
+If the earlier key comparison returns **any non-zero value**, return it immediately; only compare the next key when equal to 0. Do not check byLast == -1 or byLast == 1. If a field can be null, use Comparator.nullsFirst/nullsLast or handle it explicitly, avoiding calling compareTo directly on null.
 
-Một Comparator thay thế có thể viết:
+An alternative Comparator can be written as:
 
 ~~~java
-// Minh họa trong ngữ cảnh có lớp Person và import java.util.Comparator.
+// Illustration in a context with class Person and import java.util.Comparator.
 Comparator<Person> byName =
         Comparator.comparing(Person::lastName)
                   .thenComparing(Person::firstName);
 ~~~
 
-Với số nguyên nguyên thủy, Comparator.comparingInt và comparingLong giúp viết code gọn và tránh boxing không cần thiết. Nếu comparator được dùng trong TreeSet/TreeMap, hãy cân nhắc tác động của compare == 0 đến việc phân biệt khóa.
+For primitive integers, Comparator.comparingInt and comparingLong make code concise and avoid unnecessary boxing. If the comparator is used in TreeSet/TreeMap, consider the impact of compare == 0 on key distinction.
 
-## 8. Những lỗi thường gặp
+## 8. Common mistakes
 
-| Sai lầm | Vì sao sai | Cách khắc phục |
+| Mistake | Why it is wrong | How to fix |
 | --- | --- | --- |
-| compareTo chỉ được trả -1/0/1 | Hợp đồng chỉ yêu cầu dấu | Kiểm tra < 0, == 0, > 0 |
-| Dùng == -1 để nhận biết đứng trước | Bỏ sót -2, -25, ... | Kiểm tra < 0 |
-| Lấy hiệu hai int hoặc long | Có thể tràn số | Integer.compare, Long.compare |
-| Ép hiệu long về int | Có thể mất thông tin và đảo dấu | Long.compare |
-| Coi độ lớn compareTo là khoảng cách | compareTo diễn tả thứ tự, không phải metric | Định nghĩa thước đo riêng |
-| compareTo == 0 luôn đồng nghĩa equals | Không đúng với BigDecimal | Kiểm tra hợp đồng của kiểu |
-| Chỉ so một khóa không đủ phân biệt | TreeSet có thể gộp giá trị khác nhau | Thêm khóa phá hòa nếu cần |
-| Thiếu đối xứng hoặc bắc cầu | Sắp xếp và collection có thể sai kỳ vọng | Kiểm thử quan hệ thứ tự |
-| Gọi compareTo của một trường null | Có thể NullPointerException | Chính sách null rõ ràng |
-| Xem toán tử < trên float/double luôn đủ | Không xử lý đúng NaN và signed zero theo wrapper | Float.compare/Double.compare khi phù hợp |
+| Thinking compareTo may only return -1/0/1 | The contract only requires sign | Check < 0, == 0, > 0 |
+| Using == -1 to detect coming before | Misses -2, -25, ... | Check < 0 |
+| Taking the difference of two ints or longs | Can overflow | Integer.compare, Long.compare |
+| Casting a long difference to int | Can lose information and invert sign | Long.compare |
+| Treating compareTo magnitude as distance | compareTo expresses order, not a metric | Define a separate metric |
+| Assuming compareTo == 0 always implies equals | False for BigDecimal | Check the type's contract |
+| Comparing only one non-distinguishing key | TreeSet may merge distinct values | Add tie-breaker keys if needed |
+| Lacking symmetry or transitivity | Sorting and collections may fail expectations | Test the ordering relation |
+| Calling compareTo on a null field | Can throw NullPointerException | Explicit null policy |
+| Assuming < on float/double is always enough | Does not handle NaN and signed zero per wrapper | Float.compare/Double.compare when appropriate |
 
-## 9. Checklist và kiểm thử
+## 9. Checklist and testing
 
-- **Dấu:** nhỏ hơn trả âm, bằng theo thứ tự trả 0, lớn hơn trả dương.
-- **Đảo chiều:** đổi thứ tự x/y thì dấu phải đảo.
-- **Tự so sánh:** x.compareTo(x) == 0.
-- **Bắc cầu:** các bộ ba x, y, z phải giữ thứ tự nhất quán.
-- **Tương đương:** nếu x.compareTo(y) == 0, dấu khi so với cùng z phải khớp.
-- **Biên số học:** thử Integer.MIN_VALUE, Integer.MAX_VALUE và long cực trị.
-- **Phá hòa:** các trường trước trùng nhau phải được so bằng trường kế tiếp.
-- **Null:** xác nhận chính sách xử lý null mong muốn.
-- **Collections:** kiểm tra List.sort, TreeSet/TreeMap với các khóa tương đương.
-- **Equals:** nếu tài liệu lớp tuyên bố thứ tự tương thích equals, kiểm tra compareTo == 0 **khi và chỉ khi** equals true.
+- **Sign:** less returns negative, equal in ordering returns 0, greater returns positive.
+- **Sign reversal:** swapping x/y must invert the sign.
+- **Self-comparison:** x.compareTo(x) == 0.
+- **Transitivity:** triples x, y, z must maintain consistent order.
+- **Equivalence:** if x.compareTo(y) == 0, signs when compared to the same z must match.
+- **Numeric boundaries:** test Integer.MIN_VALUE, Integer.MAX_VALUE, and extreme longs.
+- **Tie-breaking:** matching earlier fields must be compared by subsequent fields.
+- **Null:** verify the intended null-handling policy.
+- **Collections:** test List.sort, TreeSet/TreeMap with equivalent keys.
+- **Equals:** if the class documentation states ordering is compatible with equals, verify compareTo == 0 **if and only if** equals is true.
 
-Ví dụ assertion ngắn đặt trong ngữ cảnh đã khai báo ba đối tượng a, b, c:
+Short assertion snippet placed in a context where three objects a, b, c are already declared:
 
 ~~~java
 if (a.compareTo(b) >= 0) {
-    throw new AssertionError("a phải đứng trước b");
+    throw new AssertionError("a must come before b");
 }
 if (b.compareTo(a) <= 0) {
-    throw new AssertionError("b phải đứng sau a");
+    throw new AssertionError("b must come after a");
 }
 if (c.compareTo(c) != 0) {
-    throw new AssertionError("Tự so sánh phải trả 0");
+    throw new AssertionError("Self-comparison must return 0");
 }
 ~~~
 
-Những assertion này là đoạn minh họa, không phải chương trình đứng riêng; dữ liệu kiểm thử phải được chọn theo quy tắc so sánh của lớp.
+These assertions are illustrative snippets, not a standalone program; test data must be chosen according to the class's comparison rules.
 
-## 10. Ghi nhớ
+## 10. Key takeaways
 
-- **Âm:** đối tượng hiện tại đứng trước đối số.
-- **Không:** hai đối tượng tương đương theo thứ tự.
-- **Dương:** đối tượng hiện tại đứng sau đối số.
+- **Negative:** current object comes before the argument.
+- **Zero:** both objects are equivalent in ordering.
+- **Positive:** current object comes after the argument.
 
-Điều cần nhớ là **dấu của compareTo**, không phải độ lớn. Dùng phương thức so sánh chuẩn thay phép trừ, tuân thủ đối xứng về dấu và tính bắc cầu, xử lý đúng nhiều khóa và hiểu rõ quan hệ compareTo == 0 với equals khi làm việc với TreeSet/TreeMap.
+What to remember is the **sign of compareTo**, not its magnitude. Use standard comparison methods instead of subtraction, adhere to sign symmetry and transitivity, handle multiple keys properly, and clearly understand the relationship between compareTo == 0 and equals when working with TreeSet/TreeMap.

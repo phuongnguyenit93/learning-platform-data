@@ -1,89 +1,89 @@
-# Chọn phạm vi sao chép theo quyền sở hữu dữ liệu trong Java
+# Choosing Copy Scope Based on Data Ownership in Java
 
-**Bối cảnh:** Java core → object-contract → sao chép và độc lập. Khi tạo bản sao của một đối tượng, câu hỏi quyết định không phải “sao chép nông hay sâu?” ngay lập tức, mà là **ai sở hữu dữ liệu nào, ai được phép thay đổi dữ liệu đó, và sau khi sao chép những thay đổi nào phải độc lập?** Quyền sở hữu ở đây là **quy ước thiết kế/API**, không phải cơ chế ownership được trình biên dịch Java thực thi.
+**Context:** Java core → object-contract → copying and independence. When creating a copy of an object, the deciding question is not immediately “shallow or deep copy?”, but rather **who owns which data, who is allowed to change that data, and after copying, which changes must be independent?** Ownership here is a **design/API convention**, not an ownership mechanism enforced by the Java compiler.
 
-## 1. Sao chép để bảo vệ ranh giới sở hữu
+## 1. Copying to Protect Ownership Boundaries
 
-Biến tham chiếu Java trỏ tới đối tượng; phép gán chỉ sao chép giá trị tham chiếu. Hai biến có thể cùng trỏ tới một đối tượng và cùng quan sát được thay đổi của nó (*aliasing*). Ví dụ:
+Java reference variables point to objects; assignment only copies the reference value. Two variables can point to the same object and observe its mutations (*aliasing*). Example:
 
 ~~~java
 List<String> input = new ArrayList<>(List.of("A"));
-List<String> alias = input;                 // Cùng một danh sách
-List<String> separate = new ArrayList<>(input); // Danh sách khác
+List<String> alias = input;                 // Same list
+List<String> separate = new ArrayList<>(input); // Different list
 input.add("B");
-// alias thấy ["A", "B"]; separate vẫn ["A"].
+// alias sees ["A", "B"]; separate is still ["A"].
 ~~~
 
-Ví dụ trên độc lập ở **cấu trúc danh sách** vì phần tử `String` bất biến. Nếu danh sách chứa các đối tượng có thể thay đổi, `new ArrayList<>(input)` chỉ sao chép danh sách, **vẫn chia sẻ từng phần tử**.
+The example above is independent in **list structure** because the `String` elements are immutable. If the list contains mutable objects, `new ArrayList<>(input)` only copies the list, **still sharing each element**.
 
-Có thể mô tả một đối tượng như một đồ thị: nút gốc tham chiếu tới các đối tượng con; đối tượng con có thể tiếp tục tham chiếu tới đối tượng khác. **Phạm vi sao chép** là tập các nút cần tạo mới để bảo đảm đúng hợp đồng độc lập, không nhất thiết là toàn bộ đồ thị có thể đi tới được.
+An object can be described as a graph: a root node references child objects; child objects can continue referencing other objects. **Copy scope** is the set of nodes that must be newly created to ensure the right independence contract, not necessarily the entire reachable graph.
 
-Ba kết quả thường gặp:
+Three common outcomes:
 
-- **Chia sẻ có chủ đích:** hai bên cùng dùng một giá trị bất biến hoặc tài nguyên chung; không cần bản sao.
-- **Sao chép chọn lọc:** tạo mới các nút mutable thuộc sở hữu riêng, đồng thời chia sẻ các giá trị bất biến hoặc các phụ thuộc dùng chung.
-- **Snapshot:** tạo ảnh chụp của trạng thái tại một thời điểm; cần xác định snapshot chỉ cố định cấu trúc hay cố định cả trạng thái các phần tử.
+- **Intentional sharing:** both sides use an immutable value or shared resource; no copy needed.
+- **Selective copying:** recreate privately owned mutable nodes while sharing immutable values or shared dependencies.
+- **Snapshot:** capture state at a point in time; you must specify whether the snapshot fixes only structure or also element states.
 
-Một bản sao có thể bằng nhau theo `equals()` nhưng khác nhau về identity (`original != copy`). Nếu chính identity là ý nghĩa nghiệp vụ (ví dụ một entity đang được ORM quản lý), tự tạo bản sao như một entity mới có thể sai, dù trường dữ liệu giống nhau.
+A copy can be equal under `equals()` yet differ in identity (`original != copy`). If identity itself carries business meaning (for example an entity managed by an ORM), creating a copy as a new entity on your own may be wrong, even if the data fields match.
 
-## 2. Xác định quyền sở hữu trước khi chọn kỹ thuật
+## 2. Determine Ownership Before Choosing a Technique
 
-Với từng trường, tham số và giá trị trả về, cần trả lời:
+For each field, parameter, and return value, answer:
 
-1. **Ai tạo, ai quản lý vòng đời?** Đối tượng đang được lưu nội bộ, được caller cung cấp tạm thời, hay do framework/tài nguyên ngoài quản lý?
-2. **Ai có quyền ghi?** Caller có thể sửa sau khi truyền vào không? Người nhận kết quả có thể sửa không?
-3. **Thay đổi nào phải bị cô lập?** Chỉ thêm/xóa phần tử danh sách, hay cả sửa thuộc tính của mỗi phần tử?
-4. **Đối tượng có thật sự bất biến?** Không chỉ trường `final`; mọi trạng thái có thể quan sát qua đối tượng đó cũng phải không thể thay đổi bằng các đường tham chiếu được cấp.
-5. **Đồ thị có chia sẻ/cycle/identity quan trọng không?** Hai đường dẫn trỏ chung tới một nút có phải vẫn trỏ chung trong bản sao không?
-6. **Chi phí có phù hợp không?** Đối tượng lớn, dữ liệu nhị phân, tải cao và luồng đồng thời có thể cần snapshot, immutable value hoặc copy-on-write thay vì deep copy tất cả.
+1. **Who creates it, who manages its lifecycle?** Is the object stored internally, supplied temporarily by the caller, or managed by a framework/external resource?
+2. **Who has write permission?** Can the caller mutate it after passing it in? Can the recipient of the return value mutate it?
+3. **Which changes must be isolated?** Only adding/removing list elements, or also modifying attributes of each element?
+4. **Is the object truly immutable?** Not just `final` fields; all observable state through that object must also be unmodifiable via any exposed reference paths.
+5. **Do graph sharing/cycles/identity matter?** Must two paths pointing to the same node still point to the same node in the copy?
+6. **Is the cost acceptable?** Large objects, binary data, high load, and concurrent threads may need snapshots, immutable values, or copy-on-write instead of deep copying everything.
 
-### Ma trận quyết định theo ownership
+### Ownership-Based Decision Matrix
 
-| Dữ liệu tại ranh giới | Chính sách thường phù hợp | Vì sao |
+| Data at the boundary | Usually suitable policy | Why |
 | --- | --- | --- |
-| `String`, `BigInteger`, `LocalDate`, value object bất biến đúng nghĩa | Chia sẻ tham chiếu | Không có mutation quan sát được để rò rỉ |
-| `byte[]`, mảng mutable do caller đưa vào và đối tượng cần sở hữu | `array.clone()` hoặc `Arrays.copyOf()` | Tách vùng lưu trữ mảng; nếu mảng đa chiều thì cần xét phần tử bên trong |
-| `List<String>` thuộc trạng thái nội bộ | `List.copyOf(input)` hoặc bản sao cấu trúc tương đương | Tách cấu trúc danh sách; `String` bất biến nên phần tử có thể dùng chung |
-| `List<MutableItem>` do đối tượng sở hữu | Tạo danh sách mới **và sao chép từng phần tử** | Chỉ sao chép list vẫn làm lọt mutable item |
-| Đồ thị nút mutable thuộc sở hữu riêng | Copy constructor/factory có ánh xạ nút đã sao chép | Bảo đảm độc lập, bảo toàn alias/cycle khi hợp đồng đòi hỏi |
-| Repository, logger, service, pool, socket, file handle | Giữ tham chiếu chung theo hợp đồng hoặc quản lý vòng đời riêng | Đây là phụ thuộc/tài nguyên, không phải dữ liệu value có thể deep-copy tùy tiện |
-| Thực thể JPA/ORM, aggregate có identity nghiệp vụ | Dùng DTO/value snapshot hoặc thao tác qua API quản lý entity | Tạo bản sao object không tự tạo ra entity nghiệp vụ hợp lệ |
-| Cache hay cấu trúc chia sẻ chủ đích | Định nghĩa rõ quyền ghi và tính nhất quán | Copy vô điều kiện có thể làm mất semantics chia sẻ |
+| `String`, `BigInteger`, `LocalDate`, genuine immutable value objects | Share reference | No observable mutation to leak |
+| `byte[]`, mutable arrays passed in by caller that the object must own | `array.clone()` or `Arrays.copyOf()` | Separates array storage; if multidimensional, examine inner elements |
+| `List<String>` belonging to internal state | `List.copyOf(input)` or equivalent structural copy | Separates list structure; `String` is immutable so elements can be shared |
+| `List<MutableItem>` owned by the object | Create a new list **and copy each element** | Copying only the list leaks mutable items |
+| Graph of privately owned mutable nodes | Copy constructor/factory with a map of already-copied nodes | Ensures independence, preserves aliases/cycles when contract requires |
+| Repository, logger, service, pool, socket, file handle | Keep shared reference per contract or manage lifecycle separately | These are dependencies/resources, not value data to deep-copy arbitrarily |
+| JPA/ORM entity, aggregate with business identity | Use DTO/value snapshot or operate via entity-management APIs | Copying an object does not automatically create a valid business entity |
+| Intentionally shared cache or state structure | Clearly define write permissions and consistency | Unconditional copying can break sharing semantics |
 
-**Quy tắc hữu ích:** chỉ cần tạo bản sao của các đối tượng **mutable mà ranh giới mới phải sở hữu độc lập**; còn immutable có thể chia sẻ an toàn. Với mutable được chia sẻ có chủ đích, hợp đồng phải chỉ ra bên nào được sửa và khi nào.
+**Useful rule:** only create copies of **mutable objects that the new boundary must own independently**; immutables can be shared safely. For intentionally shared mutables, the contract must specify which side may mutate and when.
 
-## 3. Ba mức độc lập dễ bị nhầm
+## 3. Three Commonly Confused Levels of Independence
 
-Giả sử `Order` chứa một `List<Line>`, mỗi `Line` chứa một `Price`:
+Suppose `Order` contains a `List<Line>`, and each `Line` contains a `Price`:
 
-- **Sao chép tham chiếu:** `Order second = first`. Cả hai biến chỉ đến cùng một đối tượng.
-- **Shallow copy:** có `Order` mới và `List` mới, nhưng vẫn tham chiếu tới các `Line` cũ. Sửa danh sách (thêm/xóa) của bản này không trực tiếp thay đổi cấu trúc danh sách bản kia; sửa một `Line` có thể hiện ở cả hai.
-- **Deep/ownership copy:** có `Order`, `List` và các `Line` thuộc sở hữu riêng; `Price` chỉ cần copy nếu mutable. Nếu `Price` là value bất biến thì chia sẻ vẫn cho mức độc lập mong muốn.
+- **Reference copy:** `Order second = first`. Both variables point to the same object.
+- **Shallow copy:** has a new `Order` and a new `List`, yet still references the old `Line`s. Modifying one list (add/remove) does not directly change the other's list structure; mutating a `Line` can appear in both.
+- **Deep/ownership copy:** has privately owned `Order`, `List`, and `Line`s; `Price` only needs copying if mutable. If `Price` is an immutable value, sharing still gives the desired independence.
 
-Đừng gọi một giải pháp là “deep copy” nếu chưa xác định **deep tới đâu**. Một cây mutable, một đồ thị có vòng lặp và một tập object chứa resource sống là ba trường hợp khác nhau. Kết quả đúng được đo bằng invariant và tình huống sửa dữ liệu, không bởi số lần gọi `clone()`.
+Do not call a solution “deep copy” without specifying **how deep**. A mutable tree, a cyclic graph, and a set of objects holding live resources are three different cases. Correctness is measured by invariants and mutation scenarios, not by the number of `clone()` calls.
 
-Sao chép theo ownership thường cần ở hai hướng:
+Ownership-based copying is usually needed in two directions:
 
-- **Defensive copy đầu vào:** constructor/setter nhận mutable từ caller, tạo phần thuộc sở hữu riêng để caller không thể lén sửa trạng thái nội bộ sau đó.
-- **Defensive copy đầu ra:** getter/API trả dữ liệu mutable phải trả bản copy/snapshot hoặc giao diện chỉ đọc phù hợp để bên ngoài không sửa trạng thái thuộc sở hữu nội bộ.
+- **Input defensive copy:** constructors/setters receiving mutables from callers create privately owned parts so callers cannot silently mutate internal state afterward.
+- **Output defensive copy:** getters/APIs returning mutable data must return a copy/snapshot or appropriate read-only interface so outsiders cannot mutate internally owned state.
 
-Chỉ copy đầu vào mà trả trực tiếp mutable ra ngoài vẫn có lỗ hổng. Chỉ copy đầu ra mà giữ tham chiếu đầu vào cũng vậy.
+Copying only on input while returning mutables directly still leaves a hole. Copying only on output while retaining the input reference does too.
 
-## 4. Quy trình chọn phạm vi sao chép
+## 4. Process for Choosing Copy Scope
 
-**Bước 1 — Viết hợp đồng độc lập.** Chẳng hạn: “Sau khi tạo `Team` từ danh sách thành viên, caller được sửa danh sách, sửa thành viên và địa chỉ ban đầu mà không làm đổi `Team`. Caller được sửa snapshot trả về mà không làm đổi `Team`.”
+**Step 1 — Write the independence contract.** For example: “After creating `Team` from a member list, the caller can mutate the list, members, and original addresses without altering `Team`. The caller can mutate the returned snapshot without altering `Team`.”
 
-**Bước 2 — Vẽ những cạnh tham chiếu quan trọng.** Ví dụ: `Team → List<Member> → Member → Address`. Đánh dấu `List`, `Member`, `Address` là mutable; `String` là immutable.
+**Step 2 — Sketch the important reference edges.** For example: `Team → List<Member> → Member → Address`. Mark `List`, `Member`, `Address` as mutable; `String` as immutable.
 
-**Bước 3 — Đánh dấu chủ sở hữu.** `Team` sở hữu danh sách, các phần tử và địa chỉ riêng. Caller tiếp tục sở hữu các object đã truyền vào. Hai phía không được giữ chung mutable node.
+**Step 3 — Mark the owners.** `Team` owns its own list, elements, and addresses. The caller continues to own the objects passed in. Both sides must not hold shared mutable nodes.
 
-**Bước 4 — Chỉ định hành vi ở từng ranh giới.** Constructor `Team` sao chép list, mỗi member và address. Method xuất snapshot lặp lại chính sách ấy. Các phương thức vận hành nội bộ được quyền sửa object mà `Team` sở hữu.
+**Step 4 — Specify behavior at each boundary.** The `Team` constructor copies the list, each member, and address. The snapshot export method repeats that policy. Internal operations are allowed to mutate objects that `Team` owns.
 
-**Bước 5 — Kiểm chứng hai chiều.** Sửa dữ liệu gốc rồi quan sát bản sao; sửa bản sao rồi quan sát dữ liệu gốc. Kiểm tra cả cấu trúc và các phần tử lồng nhau, vì kiểm tra mỗi `==` hoặc size danh sách là chưa đủ.
+**Step 5 — Verify in both directions.** Mutate original data then observe the copy; mutate the copy then observe original data. Check both structure and nested elements, because checking only `==` or list size is not enough.
 
-## 5. Ví dụ Java 17 chạy độc lập: copy theo quyền sở hữu
+## 5. Standalone Java 17 Example: Copying by Ownership
 
-Lưu thành tệp **OwnershipCopyDemo.java**. `Team` sở hữu độc lập cây `List<Member> → Member → Address`. Dữ liệu chuỗi được chia sẻ an toàn vì `String` bất biến. Snapshot trả về có cấu trúc danh sách không sửa được và các member tách biệt; **member trong snapshot vẫn mutable**, nên snapshot này là dữ liệu tách rời chứ chưa phải immutable value.
+Save to **`OwnershipCopyDemo.java`**. `Team` independently owns the `List<Member> → Member → Address` tree. String data is shared safely because `String` is immutable. The returned snapshot has an unmodifiable list structure and separated members; **members inside the snapshot are still mutable**, so this snapshot is detached data rather than an immutable value yet.
 
 ~~~java
 import java.util.ArrayList;
@@ -205,14 +205,14 @@ public class OwnershipCopyDemo {
 }
 ~~~
 
-Biên dịch và chạy từ thư mục chứa tệp:
+Compile and run from the directory containing the file:
 
 ~~~bash
 javac OwnershipCopyDemo.java
 java OwnershipCopyDemo
 ~~~
 
-Stdout chính xác:
+Exact stdout:
 
 ~~~text
 Team after caller changes: Lan@Ha Noi
@@ -223,27 +223,27 @@ Team now: Hoa@Ha Noi
 Old snapshot remains: Minh@Can Tho
 ~~~
 
-**Vì sao ví dụ hoạt động?**
+**Why does the example work?**
 
-1. Constructor `Member(String, Address)` copy `Address`, nên sửa `originalAddress` không tác động tới thành viên.
-2. Constructor `Team(List<Member>)` copy từng `Member`, và constructor `Member(Member)` lại copy `Address`. Vì vậy sửa `originalMember` hoặc xóa phần tử trong danh sách input không tác động tới `Team`.
-3. `List.copyOf(copies)` ngăn thêm/xóa phần tử thông qua list được lưu, nhưng **không khóa trạng thái Member**; `Team.renameFirst()` vẫn đổi member nội bộ được.
-4. `membersSnapshot()` tạo bản sao mọi phần tử mutable trước khi trả về. Caller sửa snapshot không ảnh hưởng tới `Team`; `Team` thay đổi sau đó cũng không ảnh hưởng snapshot cũ.
-5. Nếu chỉ viết `List.copyOf(suppliedMembers)` ở constructor, cấu trúc list sẽ riêng nhưng phần tử vẫn là object caller sở hữu — vi phạm yêu cầu độc lập.
+1. The constructor `Member(String, Address)` copies `Address`, so mutating `originalAddress` does not affect the member.
+2. The constructor `Team(List<Member>)` copies each `Member`, and the `Member(Member)` constructor in turn copies `Address`. Therefore mutating `originalMember` or clearing elements in the input list does not affect `Team`.
+3. `List.copyOf(copies)` prevents adding/removing elements through the stored list, but **does not lock Member state**; `Team.renameFirst()` can still change the internal member.
+4. `membersSnapshot()` creates copies of all mutable elements before returning. The caller mutating the snapshot does not affect `Team`; `Team` changing later does not affect the old snapshot either.
+5. If only `List.copyOf(suppliedMembers)` were written in the constructor, the list structure would be separate yet elements would still be objects owned by the caller — violating the independence requirement.
 
-Đây là ví dụ dùng một luồng thực thi. Các thao tác copy/rename/move không tự mang lại thread safety; mục về concurrency bên dưới chỉ ra cách có snapshot nhất quán.
+This example uses a single execution thread. Copy/rename/move operations do not automatically provide thread safety; the concurrency section below shows how to obtain a consistent snapshot.
 
-## 6. Hiểu đúng công cụ trong Java
+## 6. Understanding Tools in Java Accurately
 
-### Copy constructor hoặc static factory
+### Copy Constructor or Static Factory
 
-Với mutable value có quy tắc sở hữu rõ, copy constructor như `new Member(source)` hoặc factory như `Member.copyOf(source)` là nơi dễ mô tả chính sách copy cho từng field. Nên triển khai rõ ở lớp quản lý dữ liệu, kiểm tra tham số và invariant, để caller không phải biết cấu trúc nội bộ. Copy constructor tự viết **không đương nhiên deep**: nếu nó gán tham chiếu của field mutable thì vẫn là shallow copy.
+For mutable values with clear ownership rules, a copy constructor like `new Member(source)` or a factory like `Member.copyOf(source)` is an easy place to express the copy policy for each field. Implement this explicitly in the data-managing class, validating parameters and invariants so callers do not need to know internal structure. A hand-written copy constructor **is not automatically deep**: if it assigns references of mutable fields, it is still a shallow copy.
 
 ### Arrays
 
-- `byte[] result = input.clone();` sao chép các byte sang mảng mới — đủ để độc lập vì byte là primitive.
-- `Address[] result = input.clone();` chỉ sao chép mảng chứa tham chiếu; từng `Address` vẫn dùng chung.
-- `int[][] result = input.clone();` chỉ sao chép mảng ngoài; các mảng hàng vẫn dùng chung. Muốn độc lập dữ liệu hai chiều phải sao chép từng hàng và quy định xử lý hàng `null` nếu cho phép.
+- `byte[] result = input.clone();` copies bytes into a new array — enough for independence because `byte` is primitive.
+- `Address[] result = input.clone();` only copies the array holding references; each `Address` is still shared.
+- `int[][] result = input.clone();` only copies the outer array; the row arrays are still shared. To make two-dimensional data independent, copy each row and specify how `null` rows are handled if permitted.
 
 ### Collections
 
@@ -255,20 +255,20 @@ List<StringBuilder> structuralCopy = new ArrayList<>(source);
 List<StringBuilder> unmodifiableStructure = List.copyOf(source);
 
 source.get(0).append("B");
-// Cả structuralCopy.get(0) và unmodifiableStructure.get(0) đều là "AB".
+// Both structuralCopy.get(0) and unmodifiableStructure.get(0) are "AB".
 ~~~
 
-- `new ArrayList<>(source)` tách cấu trúc, không sao chép phần tử.
-- `List.copyOf(source)` tạo danh sách **không hỗ trợ thao tác thay đổi cấu trúc**, nhưng phần tử mutable vẫn có thể bị sửa; API này từ chối `null` và có thể trả lại cùng instance nếu input đã là danh sách không sửa được phù hợp.
-- `Collections.unmodifiableList(source)` tạo **view** không cho sửa qua view, nhưng nếu `source` thay đổi thì view phản ánh thay đổi; không phải snapshot.
-- `Stream.toList()` cho danh sách không hỗ trợ thao tác thay đổi cấu trúc, nhưng cũng không sao chép mutable item bên trong.
-- `Map.copyOf()`, `Set.copyOf()` cũng không tự deep-copy key/value/element. Nếu key mutable ảnh hưởng `equals()/hashCode()`, sửa key sau khi cho vào map có thể làm hỏng khả năng tra cứu.
+- `new ArrayList<>(source)` separates structure, without copying elements.
+- `List.copyOf(source)` creates a list **not supporting structural mutation operations**, yet mutable elements can still be modified; this API rejects `null` and may return the same instance if the input is already a suitable unmodifiable list.
+- `Collections.unmodifiableList(source)` creates a **view** disallowing edits through the view, yet if `source` changes then the view reflects those changes; it is not a snapshot.
+- `Stream.toList()` yields a list not supporting structural mutation operations, yet also does not copy mutable items inside.
+- `Map.copyOf()`, `Set.copyOf()` likewise do not automatically deep-copy keys/values/elements. If a mutable key affects `equals()/hashCode()`, mutating the key after inserting it into a map can break lookups.
 
-Nếu muốn snapshot thực sự bất biến, hãy **chuyển từng phần tử thành immutable DTO/value** (ví dụ record chỉ chứa `String`, `int`, `LocalDate` hay immutable value đúng nghĩa) rồi dùng danh sách bất biến.
+If you want a truly immutable snapshot, **convert each element into an immutable DTO/value** (for example a record containing only `String`, `int`, `LocalDate`, or genuine immutable values) and then use an immutable list.
 
-### Java records không tự deep-copy
+### Java Records Do Not Automatically Deep-Copy
 
-Record làm component reference trở thành `private final` và sinh accessor, nhưng không biến đối tượng được tham chiếu thành bất biến. Ví dụ sau **chỉ bảo vệ cấu trúc danh sách** khi element là `String` (bất biến):
+A record makes component references `private final` and generates accessors, but does not make referenced objects immutable. The following example **only protects list structure** when elements are `String` (immutable):
 
 ~~~java
 import java.util.List;
@@ -281,88 +281,88 @@ record Tags(List<String> values) {
 }
 ~~~
 
-Đây là khai báo record minh họa, không phải chương trình chạy độc lập có `main`. Trong compact canonical constructor, gán lại tham số `values` khiến giá trị sau kiểm tra được dùng để gán field tương ứng khi constructor kết thúc. Nếu component là `List<MutableItem>`, phải copy sâu các item hoặc đổi sang immutable snapshot. Với mảng mutable, accessor mặc định của record còn trả ra chính mảng bên trong; cần override accessor để trả bản sao khi muốn bảo vệ trạng thái.
+This is an illustrative record declaration, not a standalone runnable program with `main`. In a compact canonical constructor, reassigning the `values` parameter causes the validated value to be used for assigning the corresponding field when the constructor finishes. If the component is `List<MutableItem>`, items must be deep-copied or converted to immutable snapshots. For mutable arrays, a record's default accessor even returns the internal array itself; override the accessor to return a copy when protecting state.
 
-### `Object.clone()` không phải giải pháp tự động
+### `Object.clone()` Is Not an Automatic Solution
 
-Cài đặt `Object.clone()` mặc định tạo bản sao **shallow** ở mức field. `Cloneable` là marker interface; nó không định nghĩa public `clone()` cho caller. Kế thừa, field `final`, mutable nested state và invariant làm quy tắc clone khó bảo trì; các lớp không hỗ trợ clone có thể ném `CloneNotSupportedException`. Đối với ownership copy có hợp đồng cụ thể, constructor/factory rõ ràng thường dễ đọc và dễ kiểm chứng hơn. Không gọi `clone()` trên resource/ORM object với kỳ vọng hệ thống ngoài cũng được copy.
+The default `Object.clone()` implementation creates a **shallow** copy at the field level. `Cloneable` is a marker interface; it does not define a public `clone()` for callers. Inheritance, `final` fields, mutable nested state, and invariants make clone rules hard to maintain; classes not supporting cloning can throw `CloneNotSupportedException`. For ownership copies with concrete contracts, explicit constructors/factories are usually easier to read and verify. Do not call `clone()` on resource/ORM objects expecting external systems to be copied too.
 
-## 7. Khi không nên deep-copy
+## 7. When Not to Deep-Copy
 
-**Dữ liệu bất biến:** `String`, `UUID`, `LocalDate`, `BigDecimal` và immutable domain values có thể được chia sẻ vì sửa một instance là không thể theo API của chúng. Lưu ý một lớp tự khai báo “immutable” vẫn không bất biến nếu nó trả mảng, collection view có backing mutable, hoặc chứa mutable child truy cập được.
+**Immutable data:** `String`, `UUID`, `LocalDate`, `BigDecimal`, and immutable domain values can be shared because mutating an instance is impossible via their APIs. Note that a self-proclaimed “immutable” class is still not immutable if it returns arrays, collection views backed by mutables, or holds accessible mutable children.
 
-**Dịch vụ hoặc tài nguyên chia sẻ:** logger, executor, kết nối mạng, stream mở, transaction và repository có vòng đời/quyền truy cập riêng. Sao chép field reference có thể đúng khi hai bên cố ý cùng dùng một dependency; “deep-copy” tài nguyên thường không được định nghĩa. Đừng biến dependency thành một phần của cây dữ liệu cần clone.
+**Shared services or resources:** loggers, executors, network connections, open streams, transactions, and repositories have their own lifecycles/access rights. Copying a field reference can be right when both sides intentionally share a dependency; “deep-copying” resources is usually undefined. Do not turn a dependency into part of the data tree to be cloned.
 
-**Entity và identity nghiệp vụ:** bản sao của một entity có ID cũ không tự trở thành bản ghi độc lập trong database. Tách DTO immutable/snapshot khi cần chuyển dữ liệu qua API hoặc event; thay đổi entity nên đi qua lifecycle/transaction theo hợp đồng hệ thống.
+**Entities and business identity:** a copy of an entity with an old ID does not automatically become an independent record in the database. Separate immutable DTOs/snapshots when transferring data across APIs or events; entity mutations should go through lifecycle/transactions per the system contract.
 
-**Chia sẻ mutable có chủ đích:** hai component có thể cùng sở hữu một cache hoặc state store. Khi đó sự phụ thuộc là điều được thiết kế; copy tự tiện làm hai bên không còn quan sát cùng trạng thái. Ghi rõ owner của mutation, đồng bộ, thời gian sống và mức nhất quán.
+**Intentional mutable sharing:** two components may co-own a cache or state store. In that case dependency is by design; arbitrary copying makes the two sides stop observing the same state. Document the mutation owner, synchronization, lifetime, and consistency level.
 
-### Đồ thị có alias hoặc chu trình
+### Graphs with Aliases or Cycles
 
-Ví dụ `left.child == right.child` trước copy. Nếu tạo riêng hai bản copy cho hai đường đi, invariant “hai cạnh cùng trỏ một nút” bị mất. Với đồ thị có cycle, đệ quy naïve còn có thể lặp vô hạn. Khi hợp đồng yêu cầu clone toàn đồ thị và **bảo toàn topology**, sử dụng bảng ánh xạ dựa trên identity, chẳng hạn `IdentityHashMap<OriginalNode, CopiedNode>`: tạo node copy, ghi vào map **trước** khi đệ quy copy các cạnh, và tái dùng copy đã có khi gặp lại node. Không áp dụng cách này như công thức chung nếu business semantics muốn tách các node logic khác nhau hoặc giữ reference tới resource ngoài.
+For example `left.child == right.child` before copying. If two separate copies are created along the two paths, the invariant “both edges point to the same node” is lost. For graphs with cycles, naive recursion can even loop infinitely. When the contract requires cloning an entire graph and **preserving topology**, use an identity-based mapping table, such as `IdentityHashMap<OriginalNode, CopiedNode>`: create the copy node, record it in the map **before** recursively copying edges, and reuse the existing copy when encountering the node again. Do not apply this as a universal formula if business semantics want to split distinct logical nodes or preserve references to external resources.
 
-## 8. Snapshot, hiệu năng và concurrency
+## 8. Snapshots, Performance, and Concurrency
 
-Sao chép tốn thời gian và bộ nhớ tỷ lệ với lượng dữ liệu được tạo mới. Chọn phạm vi đúng giúp tránh clone toàn bộ đồ thị không cần thiết:
+Copying costs time and memory proportional to the amount of newly created data. Choosing the right scope helps avoid cloning the entire graph unnecessarily:
 
-- Với read-only dữ liệu lớn, ưu tiên immutable value/immutable aggregate và chia sẻ chúng.
-- Với mutable state ít được sửa nhưng đọc nhiều, cân nhắc **copy-on-write** hoặc thay thế snapshot immutable nguyên khối khi cập nhật. Đánh giá chi phí ghi và phân bổ bộ nhớ.
-- Với dữ liệu trao đổi qua API, cân nhắc DTO snapshot chỉ chứa các trường caller thật sự cần; đừng serialize/deserialize toàn bộ object graph chỉ để tạo bản sao nếu có cách rõ ràng hơn.
-- Với mảng lớn như `byte[]`, copy tại ranh giới trust/ownership khi cần chống mutation từ caller; nếu cố tình cho phép zero-copy, ghi rõ lifetime và quyền ghi.
+- For large read-only data, prefer immutable values/immutable aggregates and share them.
+- For rarely modified but frequently read mutable state, consider **copy-on-write** or replacing an entire immutable snapshot upon updates. Evaluate write cost and memory allocation.
+- For data exchanged across APIs, consider a DTO snapshot holding only the fields the caller actually needs; do not serialize/deserialize the entire object graph just to make a copy if a clearer approach exists.
+- For large arrays such as `byte[]`, copy at trust/ownership boundaries when needed to prevent caller mutation; if zero-copy is intentionally permitted, document lifetime and write permissions.
 
-**Thread safety là một yêu cầu khác với ownership independence.** Nếu thread A sửa `Member` đúng lúc thread B copy nó, snapshot có thể quan sát dữ liệu tại nhiều thời điểm khác nhau (đặc biệt khi có nhiều field). Hai bản sao độc lập sau khi tạo **không bảo đảm** snapshot được tạo ra một cách nhất quán.
+**Thread safety is a different requirement from ownership independence.** If thread A mutates `Member` right while thread B copies it, the snapshot may observe data from different points in time (especially with multiple fields). Two copies being independent after creation **does not guarantee** the snapshot was created consistently.
 
-Để snapshot nhất quán, chọn một cơ chế mà toàn bộ các thread liên quan đều tuân thủ: khóa khi ghi và khi đọc/sao chép, immutable snapshots được phát hành qua cơ chế đồng bộ thích hợp, hoặc một protocol versioning/snapshot có chứng minh nhất quán. `final` bảo vệ việc gán lại tham chiếu field, không làm những object lồng bên trong trở nên thread-safe. Copy một danh sách trong lúc một thread khác sửa danh sách đó mà không đồng bộ còn có thể gặp kết quả không nhất quán hoặc lỗi.
+For a consistent snapshot, choose a mechanism adhered to by all participating threads: locking during writes and reads/copies, immutable snapshots published via appropriate synchronization, or a versioning/snapshot protocol with proven consistency. `final` protects against reassigning the field reference, without making nested objects thread-safe. Copying a list while another thread mutates that list without synchronization can also lead to inconsistent results or errors.
 
-## 9. Lỗi phổ biến và cách nhận diện
+## 9. Common Bugs and How to Spot Them
 
-| Lỗi | Dấu hiệu | Cách sửa |
+| Bug | Symptom | Fix |
 | --- | --- | --- |
-| Gán `this.items = input` khi cần ownership riêng | Caller sửa input, object nội bộ đổi theo | Copy cấu trúc và mọi phần tử mutable cần tách |
-| Chỉ dùng `new ArrayList<>(input)` với mutable elements | Sửa thuộc tính item từ caller ảnh hưởng bản sao | Copy từng item hoặc chuyển thành immutable item |
-| Trả trực tiếp mảng/list mutable qua getter | Caller sửa kết quả, trạng thái nội bộ đổi | Defensive copy đầu ra hoặc immutable representation |
-| Nghĩ `List.copyOf()` làm mọi phần tử immutable | List không thêm được nhưng item vẫn bị sửa | Tách hoặc đóng băng element |
-| Nghĩ `Collections.unmodifiableList()` là snapshot | Backing list sửa thì view đổi | Copy dữ liệu trước khi tạo view |
-| Deep-copy luôn mọi field | Tốn kém, sai semantics với service/resource/identity | Phân loại theo ownership và mutability |
-| Clone đệ quy mà không xử lý alias/cycle | Mất cấu trúc chia sẻ hoặc lặp vô hạn | Identity memoization nếu cần giữ graph topology |
-| Chỉ test `original != copy` | Root khác nhưng nested state vẫn chung | Test thay đổi ở cả hai hướng và mọi lớp mutable |
-| Copy khi có concurrent writes mà không điều phối | Snapshot chứa trạng thái trộn thời điểm | Đồng bộ writers/readers hoặc immutable snapshot protocol |
+| Assigning `this.items = input` when separate ownership is needed | Caller mutates input, internal object changes along | Copy the structure and all mutable elements needing separation |
+| Using only `new ArrayList<>(input)` with mutable elements | Mutating item properties from caller affects copy | Copy each item or convert to immutable items |
+| Returning mutable arrays/lists directly via getters | Caller mutates result, internal state changes | Output defensive copy or immutable representation |
+| Thinking `List.copyOf()` makes all elements immutable | List cannot be appended to, yet items are still mutated | Separate or freeze elements |
+| Thinking `Collections.unmodifiableList()` is a snapshot | Backing list mutates and view changes | Copy data before creating view |
+| Always deep-copying every field | Costly, wrong semantics for services/resources/identities | Classify by ownership and mutability |
+| Recursing clone without handling aliases/cycles | Loses sharing structure or loops infinitely | Identity memoization if graph topology must be preserved |
+| Only testing `original != copy` | Root differs while nested state is still shared | Test mutations in both directions and across all mutable layers |
+| Copying during concurrent writes without coordination | Snapshot holds mixed-time state | Synchronize writers/readers or use an immutable snapshot protocol |
 
-## 10. Checklist review hợp đồng sao chép
+## 10. Copy Contract Review Checklist
 
-Khi thiết kế một constructor, factory hoặc API trả snapshot, hãy kiểm tra:
+When designing a constructor, factory, or snapshot-returning API, check:
 
-1. **Định nghĩa ownership:** Sau lời gọi, mỗi mutable object trong graph do ai kiểm soát? Có chỗ nào chủ đích chia sẻ mutable state không?
-2. **Đầu vào:** Nếu caller sửa list, array, từng phần tử, object nested hoặc alias sau lời gọi, trạng thái bên nhận có còn đúng không?
-3. **Đầu ra:** Caller có thể sửa kết quả và vô tình thay đổi object gốc không? Nếu chỉ trả view, có hợp đồng live-view rõ ràng không?
-4. **Identity & invariant:** Object copy phải có identity mới, identity nghiệp vụ giữ nguyên trong DTO, hay phải bảo toàn alias/cycle? `equals()/hashCode()` còn đúng không?
-5. **Dữ liệu đặc biệt:** Có `null`, collections chứa `null`, generic mutable object, resource bên ngoài, cache, JPA entity hoặc class kế thừa không?
-6. **Concurrency:** Có mutation trong lúc copy không? Tại đâu bảo đảm snapshot nhất quán và visibility giữa thread?
-7. **Chi phí:** Lượng dữ liệu cần copy bao nhiêu? Có thể chia sẻ immutable value hoặc chỉ copy đúng phần caller sở hữu không?
-8. **Kiểm thử:** Sửa sau khi copy theo cả hai hướng; kiểm tra nested state, các đường alias, danh sách/mảng, snapshot cũ sau khi object gốc thay đổi.
+1. **Ownership definition:** After the call, who controls each mutable object in the graph? Is any mutable state intentionally shared?
+2. **Input:** If the caller mutates the list, array, individual elements, nested objects, or aliases after the call, does the recipient's state remain correct?
+3. **Output:** Can the caller mutate the result and accidentally alter the original object? If only returning a view, is there a clear live-view contract?
+4. **Identity & invariants:** Must the copied object have a new identity, keep business identity in a DTO, or preserve aliases/cycles? Do `equals()/hashCode()` remain valid?
+5. **Special data:** Are there `null`s, collections containing `null`, generic mutable objects, external resources, caches, JPA entities, or subclasses?
+6. **Concurrency:** Are there mutations during copying? Where are snapshot consistency and cross-thread visibility guaranteed?
+7. **Cost:** How much data needs copying? Can immutable values be shared or only the parts the caller owns be copied?
+8. **Testing:** Mutate after copying in both directions; check nested state, alias paths, lists/arrays, and old snapshots after the original object changes.
 
-### Tình huống áp dụng nhanh
+### Quick Application Scenarios
 
-**Tình huống A:** Constructor nhận `List<LocalDate>`, về sau caller được thay đổi list. Copy cấu trúc một lần bằng `List.copyOf(input)` (nếu không có `null`) là đủ; không cần copy từng `LocalDate`.
+**Scenario A:** Constructor receives `List<LocalDate>`, and later the caller may mutate the list. Copying the structure once with `List.copyOf(input)` (if `null` is absent) is enough; no need to copy each `LocalDate`.
 
-**Tình huống B:** Constructor nhận `List<MutableAddress>` và cần dữ liệu độc lập. Tạo list mới và copy mỗi address; chỉ dùng `List.copyOf(input)` thì chưa đạt hợp đồng.
+**Scenario B:** Constructor receives `List<MutableAddress>` and needs independent data. Create a new list and copy each address; using only `List.copyOf(input)` does not meet the contract.
 
-**Tình huống C:** Một getter trả `byte[]` dùng để giữ bí mật trong object. Trả `data.clone()`; constructor cũng copy mảng caller cấp. Nếu không, hai phía có thể sửa trực tiếp cùng bộ nhớ.
+**Scenario C:** A getter returns `byte[]` used to hold a secret inside the object. Return `data.clone()`; the constructor also copies the caller-supplied array. Otherwise, both sides can directly mutate the same memory.
 
-**Tình huống D:** Có hai object cùng trỏ tới một `ExecutorService` được truyền từ bên ngoài. Chia sẻ theo hợp đồng và quyết định rõ bên nào chịu trách nhiệm `shutdown()`; không clone executor như dữ liệu domain.
+**Scenario D:** Two objects point to an externally passed `ExecutorService`. Share per the contract and clearly decide which side is responsible for `shutdown()`; do not clone the executor like domain data.
 
-## 11. Tự kiểm tra
+## 11. Self-Check
 
-**Câu 1.** Sau khi chạy `List.copyOf(mutableList)`, sửa một object mutable vốn là phần tử của `mutableList` có thể hiện trong kết quả không?  
-**Đáp án:** Có. Chỉ cấu trúc collection bị ngăn sửa; object phần tử vẫn dùng chung nếu không được copy riêng.
+**Question 1.** After running `List.copyOf(mutableList)`, does mutating a mutable object that was an element of `mutableList` show up in the result?  
+**Answer:** Yes. Only the collection structure is blocked from mutation; element objects remain shared unless copied separately.
 
-**Câu 2.** Copy constructor phải sao chép tất cả field mới là “đúng”?  
-**Đáp án:** Không. Copy những mutable value mà bản sao phải sở hữu riêng; immutable value và shared dependency có thể giữ cùng reference theo hợp đồng.
+**Question 2.** Must a copy constructor copy all fields to be “correct”?  
+**Answer:** No. Copy the mutable values that the copy must own separately; immutable values and shared dependencies can keep the same references per the contract.
 
-**Câu 3.** Hai object có `equals() == true` và `a != b` là bằng chứng deep copy đã thành công?  
-**Đáp án:** Không. Chúng có thể chia sẻ nested mutable state. Phải thử mutation theo từng ranh giới ownership; với đồ thị, còn phải xem alias/cycle.
+**Question 3.** Are two objects having `equals() == true` and `a != b` proof that a deep copy succeeded?  
+**Answer:** No. They may share nested mutable state. Mutations must be tested across every ownership boundary; for graphs, aliases/cycles must also be checked.
 
-**Câu 4.** Vì sao một snapshot deep-copy sau khi tạo vẫn có thể sai trong chương trình đa luồng?  
-**Đáp án:** Vì quá trình đọc để copy có thể chồng lấn với thread đang ghi, tạo dữ liệu không nhất quán. Cần protocol đồng bộ cho **thời điểm chụp**, ngoài việc tách alias sau khi chụp.
+**Question 4.** Why can a deep-copied snapshot still be wrong after creation in a multithreaded program?  
+**Answer:** Because the reading process for copying can overlap with a writing thread, producing inconsistent data. A synchronization protocol is needed for the **snapshot point in time**, in addition to detaching aliases afterward.
 
-**Nguyên tắc kết thúc:** Hãy chọn phạm vi sao chép dựa trên **quyền sở hữu, tính mutable và hợp đồng độc lập có thể kiểm chứng**. Deep copy mọi thứ thường thừa hoặc sai; shallow copy mặc định thường thiếu. Thiết kế tốt chỉ sao chép đúng phần trạng thái mutable cần tách và làm rõ mọi phần được chia sẻ.
+**Closing principle:** Choose copy scope based on **ownership, mutability, and a verifiable independence contract**. Deep-copying everything is often redundant or wrong; default shallow copying is often insufficient. A good design copies just the mutable state needing separation and makes all shared parts explicit.

@@ -1,70 +1,70 @@
-# Đối tượng giá trị của java.time và yêu cầu đọc đúng hợp đồng từng kiểu
+# Value objects in java.time and the requirement to read each type's contract carefully
 
-## 1. Vì sao không thể đánh đồng mọi phép “bằng nhau” trong java.time?
+## 1. Why can't all "equality" operations in java.time be treated the same?
 
-Các kiểu quen thuộc trong **java.time** như **LocalDate**, **LocalTime**, **LocalDateTime**, **Instant**, **OffsetDateTime**, **ZonedDateTime**, **Duration**, **Period**, **YearMonth** được thiết kế để mô tả **giá trị thời gian**. Nhiều kiểu trong số này là **value-based classes**: hai instance bằng nhau theo hợp đồng của kiểu có thể được sử dụng thay thế nhau. Không dựa vào danh tính object bằng toán tử **==**, **System.identityHashCode** hay dùng một instance làm khóa đồng bộ **synchronized**. Hãy dùng **equals** và **hashCode** theo đúng tài liệu của kiểu.
+Familiar types in **java.time** such as **LocalDate**, **LocalTime**, **LocalDateTime**, **Instant**, **OffsetDateTime**, **ZonedDateTime**, **Duration**, **Period**, and **YearMonth** are designed to describe **temporal values**. Many of these types are **value-based classes**: two instances that are equal under the type's contract can be used interchangeably. Do not rely on object identity with the **==** operator, **System.identityHashCode**, or using an instance as a **synchronized** lock. Use **equals** and **hashCode** strictly according to the type's documentation.
 
-Điều khó nhất không nằm ở việc gọi equals, mà là xác định **“cùng giá trị” nghĩa là gì**:
+The hardest part is not calling equals, but determining **what "same value" means**:
 
-- **Cùng ngày lịch**: 2026-10-23 có bằng 2026-10-23 không? **LocalDate.equals** giải quyết.
-- **Cùng thời điểm tuyệt đối**: 09:00 tại UTC+07 có phải 02:00 UTC không? **Instant.equals** hoặc phép so dòng thời gian **isEqual** trên kiểu có offset/zone giải quyết.
-- **Cùng biểu diễn ngày giờ và offset**: 09:00+07 có bằng 02:00Z không? **OffsetDateTime.equals** trả false, dù hai giá trị chỉ cùng một thời điểm.
-- **Cùng vùng múi giờ có tên**: **Europe/Paris** và **UTC** không phải cùng **ZoneId**, kể cả khi một mốc thời gian cụ thể có thể có cùng offset.
-- **Cùng khoảng thời lượng** hay **cùng số lượng đơn vị lịch**: **Duration** tính trên giây/nanogiây, **Period** tính trên năm/tháng/ngày; chúng là hai mô hình khác nhau.
+- **Same calendar date**: does 2026-10-23 equal 2026-10-23? **LocalDate.equals** answers this.
+- **Same absolute point in time**: is 09:00 at UTC+07 the same as 02:00 UTC? **Instant.equals** or the timeline comparison **isEqual** on offset/zoned types answers this.
+- **Same date-time and offset representation**: does 09:00+07 equal 02:00Z? **OffsetDateTime.equals** returns false, even though both values refer to the same instant.
+- **Same named time zone region**: **Europe/Paris** and **UTC** are not the same **ZoneId**, even when a specific point in time may share the same offset.
+- **Same time-based amount** or **same calendar unit counts**: **Duration** measures seconds/nanoseconds, while **Period** measures years/months/days; they are two different models.
 
-**Quy tắc chung từ Object** vẫn áp dụng:
+**General rules from Object** still apply:
 
-1. **Phản xạ:** a.equals(a) là true.
-2. **Đối xứng:** a.equals(b) có kết quả như b.equals(a).
-3. **Bắc cầu:** a bằng b và b bằng c thì a bằng c.
-4. **Nhất quán:** cùng trạng thái giá trị thì kết quả không thay đổi.
-5. **Khác null:** a.equals(null) là false.
-6. **Liên hệ hash:** nếu a.equals(b) true thì a.hashCode() phải bằng b.hashCode(); hash bằng nhau chưa đủ để kết luận equals.
+1. **Reflexive:** a.equals(a) is true.
+2. **Symmetric:** a.equals(b) yields the same result as b.equals(a).
+3. **Transitive:** if a equals b and b equals c, then a equals c.
+4. **Consistent:** given the same value state, the result does not change.
+5. **Non-null:** a.equals(null) is false.
+6. **Hash relation:** if a.equals(b) is true then a.hashCode() must equal b.hashCode(); equal hashes alone are not sufficient to conclude equals.
 
-Một so sánh như **isEqual**, **isBefore** hoặc **isAfter** có thể trả về kết quả khác **equals** mà hoàn toàn không vi phạm hợp đồng. Chúng trả lời **câu hỏi khác**.
+A comparison such as **isEqual**, **isBefore**, or **isAfter** may return a different result from **equals** without violating any contract whatsoever. They answer **different questions**.
 
-## 2. Bảng đọc hợp đồng theo từng loại giá trị
+## 2. Contract lookup table by value type
 
-| Kiểu java.time | Giá trị mà equals xem xét | Điều không nên suy diễn |
+| java.time type | Values examined by equals | What should not be inferred |
 | --- | --- | --- |
-| **LocalDate** | Ngày ISO: năm, tháng, ngày | Không gắn múi giờ và không xác định riêng một Instant |
-| **LocalTime** | Giờ, phút, giây, nano trong ngày | Không phải thời điểm toàn cầu |
-| **LocalDateTime** | Ngày và giờ địa phương, đến nano | Không có offset/zone, nên không đủ để nhận diện một thời điểm |
-| **Instant** | Vị trí trên dòng thời gian UTC (giây epoch và nano) | Không lưu múi giờ địa phương hay định dạng người dùng |
-| **OffsetDateTime** | Ngày-giờ địa phương **và UTC offset** | Cùng Instant chưa chắc equals |
-| **OffsetTime** | Giờ địa phương **và UTC offset** | Không mang ngày; **isEqual** dựa trên giờ tính tương ứng theo UTC trong ngày chuẩn |
-| **ZonedDateTime** | Ngày-giờ địa phương, offset và **ZoneId** | Cùng Instant chưa chắc equals; cùng offset chưa chắc cùng zone |
-| **ZoneId** | ID múi giờ (ví dụ Europe/Paris) | Hai ID có quy tắc/offset hiện tại giống nhau vẫn có thể khác giá trị |
-| **ZoneOffset** | Độ lệch cố định so với UTC, tính bằng giây | Không mô tả toàn bộ quy tắc chuyển giờ mùa hè của region |
-| **Duration** | Độ dài theo giây và nanogiây | Không phải số ngày lịch/tháng lịch |
-| **Period** | Số năm, tháng và ngày theo hệ ISO | Không đại diện cho một số giây cố định |
-| **Year**, **YearMonth**, **MonthDay** | Các thành phần lịch đúng như tên gọi | Không tự đại diện cho ngày-giờ đầy đủ |
+| **LocalDate** | ISO date: year, month, day | Carries no time zone and does not uniquely identify an Instant |
+| **LocalTime** | Hour, minute, second, nano of day | Not a global point in time |
+| **LocalDateTime** | Local date and time, down to nano | Has no offset/zone, so insufficient to identify an instant |
+| **Instant** | Position on the UTC timeline (epoch seconds and nanos) | Does not store local time zone or user formatting |
+| **OffsetDateTime** | Local date-time **and UTC offset** | Same Instant does not guarantee equals |
+| **OffsetTime** | Local time **and UTC offset** | Carries no date; **isEqual** is based on corresponding UTC time on a standard day |
+| **ZonedDateTime** | Local date-time, offset, and **ZoneId** | Same Instant does not guarantee equals; same offset does not guarantee same zone |
+| **ZoneId** | Time zone ID (e.g., Europe/Paris) | Two IDs with identical current rules/offsets can still be different values |
+| **ZoneOffset** | Fixed offset from UTC, measured in seconds | Does not describe a region's full daylight saving rules |
+| **Duration** | Length in seconds and nanoseconds | Not a count of calendar days/months |
+| **Period** | Number of years, months, and days in ISO | Does not represent a fixed number of seconds |
+| **Year**, **YearMonth**, **MonthDay** | Calendar components as named | Do not by themselves represent a complete date-time |
 
-**Đọc đúng từng kiểu trước khi chọn làm khóa.** Với **LocalDateTime**, một lần tăng đồng hồ địa phương lúc đổi giờ có thể tạo các biểu diễn giống nhau tại hai Instant khác nhau. Với **OffsetDateTime**, offset là một phần của equals. Với **ZonedDateTime**, ZoneId cũng là một phần của equals. Với **Instant**, biểu diễn theo múi giờ đã bị loại bỏ, chỉ còn mốc tuyệt đối.
+**Read each type accurately before choosing it as a key.** With **LocalDateTime**, turning a local clock back during a time change can produce identical representations at two different Instants. With **OffsetDateTime**, the offset is part of equals. With **ZonedDateTime**, ZoneId is also part of equals. With **Instant**, time-zone representation has been stripped away, leaving only the absolute point.
 
-Phép so sánh **equals** của các kiểu này không tự động chuyển đổi một kiểu thành kiểu khác: **Instant** và **OffsetDateTime** có thể nói về cùng thời điểm nhưng không phải hai giá trị cùng kiểu theo Object.equals. Muốn so cùng thời điểm, chuyển thành **Instant** trước khi so.
+The **equals** comparison of these types does not automatically convert one type into another: **Instant** and **OffsetDateTime** can refer to the same point in time, yet they are not two values of the same type under Object.equals. To compare whether two values represent the same instant, convert them to **Instant** before comparing.
 
-## 3. Value-based: dùng giá trị, không phụ thuộc danh tính
+## 3. Value-based: use value, do not rely on identity
 
-Java có thể tạo ra nhiều instance mang cùng giá trị. Với các lớp value-based, **không có bảo đảm về danh tính object** mà chương trình nên dựa vào. Vì vậy:
+Java may create multiple instances carrying the same value. For value-based classes, there is **no object identity guarantee** that a program should rely on. Therefore:
 
 ~~~java
 LocalDate a = LocalDate.of(2026, 10, 23);
 LocalDate b = LocalDate.parse("2026-10-23");
 
-// Đúng: so giá trị ngày.
+// Correct: compare date values.
 boolean sameDate = a.equals(b);
 
-// Sai về mặt ý nghĩa: == hỏi danh tính tham chiếu;
-// không phải tiêu chí so giá trị java.time.
+// Semantically wrong: == asks about reference identity;
+// not the value comparison criterion for java.time.
 // boolean sameDate = (a == b);
 ~~~
 
-Đây chỉ là **đoạn mã minh họa** đặt trong phương thức có import **java.time.LocalDate**, không phải file độc lập. Dù **==** tình cờ true trong một trường hợp nào đó, chương trình vẫn không được dựa vào điều này.
+This is only an **illustrative code snippet** placed in a method with **java.time.LocalDate** imported, not a standalone file. Even if **==** happens to be true in some case, the program must never rely on it.
 
-### Ví dụ đầy đủ: các đối tượng cùng giá trị trong tập hợp hash
+### Full example: objects with equal values in a hash collection
 
-Tạo file **BasicTimeValueDemo.java**:
+Create the file **BasicTimeValueDemo.java**:
 
 ~~~java
 import java.time.Instant;
@@ -102,14 +102,14 @@ public class BasicTimeValueDemo {
 }
 ~~~
 
-Chạy bằng JDK 17 trở lên:
+Run with JDK 17 or later:
 
 ~~~bash
 javac BasicTimeValueDemo.java
 java BasicTimeValueDemo
 ~~~
 
-Kết quả chính xác:
+Exact output:
 
 ~~~text
 date equals: true
@@ -119,22 +119,22 @@ date equals date-time: false
 same instant: true
 ~~~
 
-**Giải thích:** LocalDate.of và LocalDate.parse tạo cùng ngày ISO; equals true, hashCode bằng nhau và HashSet chỉ lưu một giá trị logic. Nhưng **LocalDate** không thể bằng **LocalDateTime** bằng Object.equals, dù LocalDateTime diễn tả nửa đêm của chính ngày đó. **OffsetDateTime.toInstant()** chuyển ngày-giờ có offset sang mốc tuyệt đối, nên so với Instant.parse trả true.
+**Explanation:** LocalDate.of and LocalDate.parse construct the same ISO date; equals is true, hashCode matches, and HashSet stores only one logical value. However, **LocalDate** cannot equal **LocalDateTime** via Object.equals, even though LocalDateTime represents midnight on that exact date. **OffsetDateTime.toInstant()** converts an offset date-time to an absolute point on the timeline, so comparing with Instant.parse returns true.
 
-Các lớp java.time chuẩn đã cài đặt equals/hashCode phù hợp. Khi dùng trực tiếp làm khóa HashMap hoặc phần tử HashSet, thường **không cần tự cài lại equals/hashCode cho chúng**.
+Standard java.time classes already implement appropriate equals/hashCode. When using them directly as HashMap keys or HashSet elements, you usually **do not need to reimplement equals/hashCode for them**.
 
-## 4. Cùng Instant nhưng không equals: OffsetDateTime
+## 4. Same Instant yet not equals: OffsetDateTime
 
-**OffsetDateTime** mang cả **local date-time** và **ZoneOffset**. Hai biểu diễn sau cùng chỉ một thời điểm:
+**OffsetDateTime** carries both a **local date-time** and a **ZoneOffset**. The following two representations refer to the same point in time:
 
 ~~~text
 2026-10-23T09:00:00+07:00
 2026-10-23T02:00:00Z
 ~~~
 
-Trong phép **equals**, chúng khác nhau: giờ địa phương khác và offset khác. Nhưng **isEqual** trả true khi hai giá trị biểu diễn cùng mốc trên dòng thời gian. **toInstant()** cũng cho hai Instant bằng nhau.
+Under **equals**, they differ: the local time differs and the offset differs. However, **isEqual** returns true when two values represent the same point on the timeline. **toInstant()** also yields two equal Instants.
 
-Tạo file **OffsetEqualityDemo.java**:
+Create the file **OffsetEqualityDemo.java**:
 
 ~~~java
 import java.time.OffsetDateTime;
@@ -170,14 +170,14 @@ public class OffsetEqualityDemo {
 }
 ~~~
 
-Lệnh:
+Commands:
 
 ~~~bash
 javac OffsetEqualityDemo.java
 java OffsetEqualityDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 equals: false
@@ -188,15 +188,15 @@ offset keys: 2
 instant keys: 1
 ~~~
 
-**Điểm quan trọng về compareTo:** **OffsetDateTime.compareTo** trước hết so mốc trên dòng thời gian; nếu mốc giống nhau, nó xét thêm ngày-giờ địa phương để giữ thứ tự **nhất quán với equals**. Vì vậy, **compareTo == 0** không đồng nghĩa với **isEqual** trong trường hợp hai offset khác nhau. Nếu chỉ muốn hỏi “cùng mốc tuyệt đối?”, dùng **isEqual** hoặc so **toInstant()**.
+**Important point about compareTo:** **OffsetDateTime.compareTo** first compares the position on the timeline; if the instants match, it additionally examines the local date-time to keep the ordering **consistent with equals**. Therefore, **compareTo == 0** is not synonymous with **isEqual** when two offsets differ. If you only want to ask "same absolute point in time?", use **isEqual** or compare **toInstant()**.
 
-Nếu dùng **HashSet<OffsetDateTime>**, cả hai biểu diễn được giữ vì equals false. Nếu nghiệp vụ muốn loại trùng theo mốc sự kiện tuyệt đối, dùng **HashSet<Instant>** hoặc khóa được chuyển đổi về Instant.
+If using **HashSet<OffsetDateTime>**, both representations are retained because equals is false. If business logic wants to deduplicate by absolute event time, use **HashSet<Instant>** or keys converted to Instant.
 
-## 5. ZonedDateTime: cùng lúc vẫn có thể khác ZoneId
+## 5. ZonedDateTime: same instant can still have a different ZoneId
 
-**ZonedDateTime** chứa đủ **LocalDateTime + ZoneOffset + ZoneId**. ZoneId thường là tên vùng có quy tắc lịch sử và chuyển giờ, ví dụ **Europe/Paris**. Hai ZonedDateTime có cùng Instant nhưng khác ZoneId không được coi bằng nhau theo equals.
+**ZonedDateTime** holds the full **LocalDateTime + ZoneOffset + ZoneId**. ZoneId is typically a region name with historical and transition rules, such as **Europe/Paris**. Two ZonedDateTime values with the same Instant but different ZoneIds are not considered equal under equals.
 
-Ví dụ đầy đủ **ZonedEqualityDemo.java**:
+Full example **ZonedEqualityDemo.java**:
 
 ~~~java
 import java.time.ZoneId;
@@ -230,14 +230,14 @@ public class ZonedEqualityDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac ZonedEqualityDemo.java
 java ZonedEqualityDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 instant version equals: false
@@ -247,36 +247,36 @@ local version same wall time: true
 local version same instant: false
 ~~~
 
-**withZoneSameInstant(zone)** chuyển vùng múi giờ nhưng **giữ nguyên thời điểm tuyệt đối**, điều chỉnh đồng hồ địa phương. **withZoneSameLocal(zone)** giữ **ngày-giờ nhìn trên đồng hồ** trong khả năng có thể, rồi xác định lại offset/mốc tuyệt đối theo zone mới. Trường hợp không có chuyển đổi DST như giờ UTC ở ví dụ thì ngày-giờ địa phương được giữ chính xác. Hai phương thức phục vụ **hai yêu cầu khác nhau**.
+**withZoneSameInstant(zone)** changes the time zone while **preserving the absolute instant**, adjusting the local clock. **withZoneSameLocal(zone)** keeps the **wall-clock date-time** as far as possible, then recomputes the offset/absolute instant for the new zone. In a case with no DST transition like UTC in this example, the local date-time is preserved exactly. The two methods serve **two different requirements**.
 
-**ZonedDateTime.compareTo** cũng đưa các tiêu chí bổ sung vào thứ tự để kết quả bằng 0 nhất quán với equals; cùng Instant không bảo đảm compareTo trả 0. Không dùng compareTo == 0 thay **isEqual** khi tiêu chí nghiệp vụ chỉ là cùng thời điểm.
+**ZonedDateTime.compareTo** also includes additional criteria in its ordering so that a 0 result stays consistent with equals; having the same Instant does not guarantee compareTo returns 0. Never use compareTo == 0 in place of **isEqual** when the business criterion is solely the same point in time.
 
-### ZoneId và ZoneOffset là hai loại thông tin
+### ZoneId and ZoneOffset are two kinds of information
 
-- **ZoneOffset** là một độ lệch cố định, ví dụ +07:00, +01:00 hoặc Z.
-- **ZoneId** có thể là một vùng như Europe/Paris, có quy tắc offset thay đổi theo thời gian, hoặc một ID mang ý nghĩa offset cố định.
-- Hai ZoneId có thể có cùng offset tại một Instant nhưng **khác ID** và khác chính sách thời gian ở những mốc khác.
+- **ZoneOffset** is a fixed offset, such as +07:00, +01:00, or Z.
+- **ZoneId** can be a region like Europe/Paris with offset rules that change over time, or an ID representing a fixed offset.
+- Two ZoneIds may have the same offset at one Instant yet **have different IDs** and different time policies at other instants.
 
-Ví dụ:
+Example:
 
 ~~~java
 ZoneId named = ZoneId.of("UTC");
 ZoneId numeric = ZoneOffset.UTC;
 
-// named.equals(numeric) là false: "UTC" khác ID "Z".
+// named.equals(numeric) is false: "UTC" differs from ID "Z".
 // named.getRules().getOffset(Instant.EPOCH)
-//     .equals(ZoneOffset.UTC) là true.
+//     .equals(ZoneOffset.UTC) is true.
 ~~~
 
-Đây là **đoạn minh họa**, cần import **java.time.ZoneId**, **java.time.ZoneOffset**, **java.time.Instant** nếu đặt vào file Java riêng.
+This is an **illustrative snippet**, requiring imports for **java.time.ZoneId**, **java.time.ZoneOffset**, and **java.time.Instant** if placed in a separate Java file.
 
-Nếu nghiệp vụ cần lưu **múi giờ do người dùng chọn** để hiển thị hoặc lịch họp tương lai, giữ **ZoneId**. Nếu chỉ cần so thứ tự/cùng mốc sự kiện đã xảy ra, **Instant** thường là khóa phù hợp hơn.
+If business logic needs to store the **user-selected time zone** for display or future meeting schedules, keep **ZoneId**. If you only need to compare ordering or whether historical events occurred at the same moment, **Instant** is usually the better key.
 
-## 6. LocalDate, LocalTime, LocalDateTime không tự mang thời điểm tuyệt đối
+## 6. LocalDate, LocalTime, and LocalDateTime do not carry an absolute instant
 
-**LocalDate** biểu diễn ngày trên lịch ISO; **LocalTime** biểu diễn giờ trong một ngày; **LocalDateTime** kết hợp hai phần. Không kiểu nào tự chứa ZoneId hay offset.
+**LocalDate** represents a date on the ISO calendar; **LocalTime** represents a time of day; **LocalDateTime** combines both. Neither type inherently contains a ZoneId or an offset.
 
-Ví dụ **2026-10-23T09:00** có thể được hiểu là 09:00 tại Hà Nội, Tokyo hoặc London, tương ứng các Instant khác nhau. Vì vậy:
+For example, **2026-10-23T09:00** can be interpreted as 09:00 in Hanoi, Tokyo, or London, corresponding to different Instants. Therefore:
 
 ~~~java
 import java.time.Instant;
@@ -303,31 +303,31 @@ public class LocalTimeMeaningDemo {
 }
 ~~~
 
-Lưu vào file **LocalTimeMeaningDemo.java**, chạy:
+Save to **LocalTimeMeaningDemo.java** and run:
 
 ~~~bash
 javac LocalTimeMeaningDemo.java
 java LocalTimeMeaningDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 same local datetime: true
 same instant: false
 ~~~
 
-**Cẩn trọng vào thời điểm chuyển DST:** Một LocalDateTime có thể **không tồn tại** tại một zone (giờ đồng hồ bị nhảy qua) hoặc **xuất hiện hai lần** (giờ đồng hồ bị lặp lại). **LocalDateTime.atZone(zone)** có quy tắc mặc định để giải quyết gap/overlap; quy tắc mặc định đó chưa chắc phù hợp nghiệp vụ. Nếu yêu cầu phân biệt hai lần diễn ra cùng giờ đồng hồ, cần lưu offset hoặc Instant đã được xác định rõ.
+**Be cautious around DST transitions:** A LocalDateTime may **not exist** in a zone (when the clock skips forward) or **occur twice** (when the clock repeats an hour). **LocalDateTime.atZone(zone)** has default rules to resolve gaps/overlaps; those default rules may not match business requirements. If you need to distinguish two occurrences of the same wall-clock time, store the resolved offset or Instant explicitly.
 
-**Không dùng LocalDateTime.equals để nhận diện duy nhất một sự kiện toàn cầu** trừ khi miền dữ liệu đã cố ý quy định local date-time và zone theo một chính sách duy nhất, nhất quán.
+**Do not use LocalDateTime.equals to uniquely identify a global event** unless the data domain intentionally standardizes local date-time and zone under one consistent policy.
 
-## 7. isEqual trên kiểu theo lịch và khác hệ lịch
+## 7. isEqual on calendar types and across calendar systems
 
-Ngoài khác biệt về offset/zone, java.time còn có các hệ lịch (chronology) khác ngoài ISO. **LocalDate** là ngày ISO, trong khi **JapaneseDate**, **HijrahDate**, **ThaiBuddhistDate** thuộc các chronology khác nhau.
+Beyond offset/zone differences, java.time also includes calendar systems (chronologies) other than ISO. **LocalDate** is an ISO date, whereas **JapaneseDate**, **HijrahDate**, and **ThaiBuddhistDate** belong to different chronologies.
 
-Với giao diện **ChronoLocalDate**, phương thức **isEqual(ChronoLocalDate)** hỏi liệu hai giá trị đại diện cùng ngày trên dòng ngày (epoch day) hay không. Trong khi đó equals vẫn bao gồm **ngữ nghĩa hệ lịch** của kiểu cụ thể.
+On the **ChronoLocalDate** interface, the **isEqual(ChronoLocalDate)** method asks whether two values represent the same day on the epoch-day line. Meanwhile, equals still includes the **calendar system semantics** of the concrete type.
 
-Ví dụ **ChronologyEqualityDemo.java**:
+Example **ChronologyEqualityDemo.java**:
 
 ~~~java
 import java.time.LocalDate;
@@ -346,14 +346,14 @@ public class ChronologyEqualityDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac ChronologyEqualityDemo.java
 java ChronologyEqualityDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 equals: false
@@ -361,19 +361,19 @@ isEqual: true
 same epoch day: true
 ~~~
 
-**Ý nghĩa:** Hai giá trị cùng ngày vật lý nhưng biểu diễn trong **hai hệ lịch khác nhau**. Muốn tìm cùng ngày bất kể chronology, so **toEpochDay()**, hoặc dùng **ChronoLocalDate.isEqual**. Muốn giữ giá trị theo đúng chronology thì không đổi equals thành “cùng epoch day” một cách tùy tiện.
+**Meaning:** Both values represent the same physical day, yet in **two different calendar systems**. To find the same day regardless of chronology, compare **toEpochDay()**, or use **ChronoLocalDate.isEqual**. To preserve values under their specific chronology, do not arbitrarily change equals to "same epoch day."
 
-Nếu dựng khóa Map hoặc Set từ nhiều chronology, hãy quyết định trước muốn phân nhóm theo **cùng chronology + ngày** hay **cùng epoch day**. Với mục tiêu thứ hai, dùng khóa canonical dạng **long epochDay** sẽ rõ ràng và nhất quán hơn.
+If building Map or Set keys across multiple chronologies, decide upfront whether to group by **same chronology + date** or **same epoch day**. For the second goal, using a canonical key of type **long epochDay** is clearer and more consistent.
 
-## 8. Duration và Period: hai hợp đồng cho hai khái niệm khác nhau
+## 8. Duration and Period: two contracts for two different concepts
 
-**Duration** biểu diễn lượng thời gian theo giây/nanogiây; **Period** biểu diễn các thành phần lịch năm, tháng, ngày theo ISO. Phép equals phản ánh **cấu trúc giá trị** của mỗi loại:
+**Duration** represents a quantity of time in seconds/nanoseconds; **Period** represents ISO calendar components of years, months, and days. Their equals implementations reflect the **value structure** of each type:
 
-- **Duration.ofMinutes(60)** bằng **Duration.ofHours(1)** vì cả hai biểu diễn cùng 3600 giây.
-- **Period.ofMonths(12)** **không equals** **Period.ofYears(1)**: một giá trị có 0 năm/12 tháng, giá trị kia có 1 năm/0 tháng. **normalized()** có thể chuẩn hóa phần tháng về năm.
-- **Period.ofDays(1)** không thể mặc định coi tương đương **Duration.ofDays(1)** vì một ngày lịch đi qua vùng đổi giờ có thể dài 23 hoặc 25 giờ; Duration một ngày là 86400 giây.
+- **Duration.ofMinutes(60)** equals **Duration.ofHours(1)** because both represent the same 3600 seconds.
+- **Period.ofMonths(12)** **does not equal** **Period.ofYears(1)**: one value has 0 years/12 months, and the other has 1 year/0 months. **normalized()** can normalize months into years.
+- **Period.ofDays(1)** cannot be assumed equivalent to **Duration.ofDays(1)** because a calendar day crossing a DST transition can be 23 or 25 hours long; a Duration of one day is always 86400 seconds.
 
-Tạo file **DurationPeriodDemo.java**:
+Create the file **DurationPeriodDemo.java**:
 
 ~~~java
 import java.time.Duration;
@@ -411,14 +411,14 @@ public class DurationPeriodDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac DurationPeriodDemo.java
 java DurationPeriodDemo
 ~~~
 
-Kết quả với quy tắc múi giờ Europe/Paris cho ngày chuyển sang giờ mùa hè năm 2026:
+Output under Europe/Paris time zone rules for the 2026 daylight saving transition date:
 
 ~~~text
 duration equal: true
@@ -430,13 +430,13 @@ calendar elapsed hours: 23
 fixed elapsed hours: 24
 ~~~
 
-Ở Paris, ngày 29/03/2026 chuyển sang giờ mùa hè. Cộng **Period.ofDays(1)** đi tới 12 giờ trưa ngày lịch kế tiếp, với thời gian thực trôi qua là 23 giờ. Cộng **Duration.ofDays(1)** giữ 24 giờ tuyệt đối, dẫn đến 13 giờ địa phương ngày kế tiếp. Kết quả không mâu thuẫn: hai đối tượng đại diện **hai loại đại lượng khác nhau**.
+In Paris, March 29, 2026 switches to daylight saving time. Adding **Period.ofDays(1)** lands at 12:00 noon on the next calendar day, with 23 hours of actual elapsed time. Adding **Duration.ofDays(1)** preserves 24 absolute hours, resulting in 13:00 local time on the next day. The results are not contradictory: the two objects represent **two different kinds of quantities**.
 
-**Không dùng Period để biểu diễn timeout, thời lượng phiên chạy hoặc số giây xử lý.** Dùng Duration cho thời lượng máy đo được. Dùng Period cho chính sách năm/tháng/ngày lịch, ví dụ “gia hạn một tháng” hoặc “ngày tiếp theo tại địa phương”. **Không đổi Duration sang Period hoặc ngược lại** nếu chưa cung cấp đầy đủ điểm bắt đầu, zone và quy tắc nghiệp vụ.
+**Do not use Period to represent timeouts, session lifetimes, or processing durations.** Use Duration for machine-measured elapsed time. Use Period for calendar year/month/day policies, such as "renew for one month" or "next local day." **Do not convert Duration to Period or vice versa** without providing a complete starting point, zone, and business rules.
 
-## 9. Độ chính xác, chuẩn hóa và biểu diễn văn bản
+## 9. Precision, normalization, and text representation
 
-Các giá trị thời gian thường có phần nano. **Instant.equals** và **LocalDateTime.equals** xem xét phần nano chính xác; hai mốc cách nhau 1 nanogiây không bằng nhau.
+Temporal values often have a nanosecond component. **Instant.equals** and **LocalDateTime.equals** examine exact nanoseconds; two timestamps 1 nanosecond apart are not equal.
 
 ~~~java
 import java.time.Instant;
@@ -455,45 +455,45 @@ public class PrecisionDemo {
 }
 ~~~
 
-Lưu file **PrecisionDemo.java** và chạy:
+Save the file **PrecisionDemo.java** and run:
 
 ~~~bash
 javac PrecisionDemo.java
 java PrecisionDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 raw equals: false
 same whole second: true
 ~~~
 
-**Ràng buộc thiết kế:** Nếu dữ liệu từ database chỉ lưu tới mili giây, còn nguồn khác tới nano giây, phải định nghĩa trước **độ chính xác chuẩn**. Hãy chuẩn hóa giá trị **trước khi lưu và trước khi làm khóa**, với quy tắc cắt hoặc làm tròn phù hợp. Không viết equals tùy biến coi hai mốc “gần nhau” là bằng nhau theo ngưỡng sai số, ví dụ cách nhau dưới 1 giây: quan hệ kiểu đó có thể **không bắc cầu**.
+**Design constraint:** If database storage only keeps millisecond precision while another source provides nanoseconds, you must define a **canonical precision** beforehand. Normalize values **before storing and before using as keys**, with an appropriate truncation or rounding rule. Never write custom equals treating two timestamps as equal within an error threshold, such as less than 1 second apart: such a relation can be **non-transitive**.
 
-### Định dạng chuỗi không phải giá trị
+### String formatting is not the value
 
-**toString()**, **DateTimeFormatter** và **parse** liên quan tới biểu diễn văn bản. Hai chuỗi khác nhau có thể biểu diễn cùng Instant, ví dụ có offset khác nhau. Nếu muốn so **Instant**, parse đúng kiểu rồi chuẩn hóa. Không so chuỗi đã định dạng như một cách thay thế cho equals, đặc biệt khi định dạng có thể bỏ qua offset, zone hoặc phần giây.
+**toString()**, **DateTimeFormatter**, and **parse** deal with textual representation. Two different strings can represent the same Instant, for instance with different offsets. To compare **Instants**, parse into the proper type and then normalize. Do not compare formatted strings as a substitute for equals, especially when formatting may omit offset, zone, or fractional seconds.
 
-Không suy ra **equals** từ kết quả **format(...)** trừ khi quy tắc nghiệp vụ cố ý chọn một biểu diễn văn bản chuẩn duy nhất, không mất dữ liệu cần thiết.
+Do not infer **equals** from **format(...)** output unless business rules intentionally choose a single canonical text representation without losing required data.
 
-## 10. Chọn khóa cho HashMap, HashSet và record
+## 10. Choosing keys for HashMap, HashSet, and records
 
-Các kiểu java.time bất biến thường là **khóa tốt** vì equals/hashCode của chúng ổn định theo giá trị. Nhưng chọn **đúng kiểu khóa** quyết định thế nào là một phần tử trùng.
+Immutable java.time types generally make **good keys** because their equals/hashCode are stable by value. However, choosing **the right key type** defines what counts as a duplicate element.
 
-| Bài toán | Khóa phù hợp | Vì sao |
+| Problem | Suitable key | Why |
 | --- | --- | --- |
-| Sự kiện toàn cầu cùng thời điểm | **Instant** | Bỏ qua offset và zone hiển thị |
-| Ngày nghỉ địa phương không kèm giờ | **LocalDate** cùng quy ước lịch/zone | Giá trị là ngày, không phải Instant |
-| Bản ghi giữ nguyên offset ban đầu | **OffsetDateTime** | Offset là thành phần của giá trị |
-| Lịch họp phải nhớ zone được chọn | **ZonedDateTime** hoặc cấu trúc chứa **LocalDateTime + ZoneId + chính sách DST** | Phải phân biệt quy tắc vùng và cách diễn giải giờ địa phương |
-| Khoảng thời gian máy đo được | **Duration** | Theo giây và nano |
-| Chu kỳ tính theo ngày/tháng/năm lịch | **Period** | Theo đơn vị lịch |
-| Thống kê theo tháng | **YearMonth** | Chỉ cần năm và tháng |
+| Global events at the same moment | **Instant** | Ignores display offset and zone |
+| Local holiday without time of day | **LocalDate** with calendar/zone convention | The value is a date, not an Instant |
+| Record preserving the original offset | **OffsetDateTime** | Offset is a component of the value |
+| Meeting schedule that must remember the chosen zone | **ZonedDateTime** or a structure with **LocalDateTime + ZoneId + DST policy** | Must distinguish zone rules and local time interpretation |
+| Machine-measured time span | **Duration** | Based on seconds and nanos |
+| Cycle defined by calendar days/months/years | **Period** | Based on calendar units |
+| Monthly statistics | **YearMonth** | Needs only year and month |
 
-### Ví dụ đầy đủ: khóa sự kiện dùng Instant chuẩn hóa
+### Full example: event key using normalized Instant
 
-Tạo file **EventKeyDemo.java**:
+Create the file **EventKeyDemo.java**:
 
 ~~~java
 import java.time.Instant;
@@ -523,14 +523,14 @@ public class EventKeyDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac EventKeyDemo.java
 java EventKeyDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 same key: true
@@ -538,57 +538,57 @@ lookup: confirmed
 size: 1
 ~~~
 
-Record **EventKey** tự sinh equals/hashCode theo các component, trong đó **String** và **Instant** đều có hợp đồng giá trị ổn định. Hai OffsetDateTime khác biểu diễn được chuẩn hóa thành cùng Instant, nên hai khóa bằng nhau.
+The **EventKey** record auto-generates equals/hashCode from its components, where both **String** and **Instant** have stable value contracts. Two OffsetDateTimes with different representations are normalized to the same Instant, so the two keys are equal.
 
-**Tuy nhiên, nếu business cần phân biệt offset ban đầu**, khóa chỉ chứa Instant đã cố ý **làm mất thông tin đó**. Lúc này cần lưu riêng offset, zone hoặc biểu diễn ban đầu. Việc chuẩn hóa phải theo đúng tiêu chí của bài toán, không phải lúc nào cũng chuyển hết sang UTC là đủ.
+**However, if business logic needs to distinguish the original offset**, a key containing only Instant has intentionally **discarded that information**. In that case, store the offset, zone, or original representation separately. Normalization must match the problem's exact criteria; converting everything to UTC is not always enough.
 
-### Trường hợp record chứa java.time
+### Records containing java.time components
 
-Record có component **LocalDate**, **Instant**, **ZoneId**, **Duration**... thường dùng được equals/hashCode sinh tự động. Nhưng phải tự hỏi record đang mô tả **cùng bản ghi dữ liệu** hay **cùng thời điểm**. Ví dụ record gồm **Instant** và **ZoneId** sẽ coi hai record có cùng Instant nhưng zone khác nhau là **khác giá trị**, vì tất cả component đều tham gia so sánh.
+A record with **LocalDate**, **Instant**, **ZoneId**, or **Duration** components can usually rely on its auto-generated equals/hashCode. Yet you must ask whether the record describes **the same data record** or **the same point in time**. For example, a record containing **Instant** and **ZoneId** will treat two records with the same Instant but different zones as **different values**, because all components participate in comparison.
 
-## 11. Các sai lầm thường gặp
+## 11. Common pitfalls
 
-### 11.1. Dùng == thay equals
+### 11.1. Using == instead of equals
 
-Không dựa vào identity với value-based classes. Kể cả khi hai biến tình cờ trỏ cùng object, **==** không biểu diễn tiêu chí tương đương theo hợp đồng thời gian.
+Do not rely on identity with value-based classes. Even when two variables happen to point to the same object, **==** does not express the equivalence criterion of the temporal contract.
 
-### 11.2. Xem isEqual và equals là đồng nghĩa
+### 11.2. Treating isEqual and equals as synonymous
 
-**OffsetDateTime** và **ZonedDateTime** có thể **isEqual true** nhưng **equals false**. Một bên xét cùng Instant, bên kia xét đầy đủ giá trị chứa offset/zone. Khi chọn cấu trúc dữ liệu, HashMap/HashSet dùng **equals/hashCode**, không âm thầm dùng isEqual.
+**OffsetDateTime** and **ZonedDateTime** can have **isEqual true** while **equals is false**. One checks for the same Instant, while the other checks the full value including offset/zone. When picking data structures, HashMap/HashSet use **equals/hashCode**, not silently isEqual.
 
-### 11.3. Tưởng mọi compareTo == 0 chỉ dựa vào Instant
+### 11.3. Assuming every compareTo == 0 is based solely on Instant
 
-**OffsetDateTime.compareTo** và **ZonedDateTime.compareTo** giữ thứ tự nhất quán với equals; nếu hai giá trị biểu diễn cùng Instant nhưng có offset/zone khác nhau, compareTo có thể khác 0. Đừng dùng TreeSet theo thứ tự tự nhiên để suy ra nó loại trùng chỉ theo cùng Instant.
+**OffsetDateTime.compareTo** and **ZonedDateTime.compareTo** maintain an ordering consistent with equals; if two values represent the same Instant yet have different offsets/zones, compareTo may be non-zero. Do not use a naturally ordered TreeSet and assume it deduplicates strictly by Instant.
 
-### 11.4. Xem LocalDateTime là Instant
+### 11.4. Treating LocalDateTime as an Instant
 
-LocalDateTime không lưu zone, nên không thể biết mốc UTC nếu chưa xác định zone/offset và xử lý gap/overlap. Một ngày-giờ địa phương không đủ cho việc định danh sự kiện tuyệt đối xuyên múi giờ.
+LocalDateTime does not store a zone, so its UTC instant cannot be known without specifying a zone/offset and handling gaps/overlaps. A local date-time is insufficient to uniquely identify an absolute event across time zones.
 
-### 11.5. Dùng ZoneOffset thay ZoneId khi cần quy tắc tương lai
+### 11.5. Using ZoneOffset instead of ZoneId when future rules are needed
 
-Offset +07:00 chỉ là độ lệch cố định. Một vùng có thể đổi offset theo mùa hoặc theo quyết định pháp luật. Với lịch hẹn tương lai theo giờ địa phương của vùng, lưu ZoneId và chính sách giải quyết DST; khi cần mốc tuyệt đối, xác định Instant theo quy tắc thời gian tương ứng.
+An offset like +07:00 is only a fixed displacement. A region may change offsets seasonally or by legal decree. For future appointments in a region's local time, store ZoneId and a DST resolution policy; when an absolute moment is needed, compute the Instant using the corresponding time-zone rules.
 
-### 11.6. Cho rằng Period một ngày luôn bằng Duration 24 giờ
+### 11.6. Assuming a one-day Period always equals a 24-hour Duration
 
-Qua DST, ngày lịch có thể dài 23 hoặc 25 giờ. Tùy yêu cầu, chọn cộng bằng Period hoặc Duration.
+Across DST, a calendar day can be 23 or 25 hours long. Depending on requirements, choose whether to add by Period or Duration.
 
-### 11.7. Bỏ qua nano khi gom dữ liệu
+### 11.7. Ignoring nanoseconds when aggregating data
 
-Một số nguồn lưu thời gian tới giây, mili hoặc micro, nguồn khác tới nano. Equals vẫn phân biệt phần nano; nếu muốn gom theo giây cần **chuẩn hóa rõ ràng** trước.
+Some sources store timestamps to seconds, milliseconds, or microseconds, while others go down to nanoseconds. Equals still distinguishes the nanosecond part; if you want to group by second, **normalize explicitly** beforehand.
 
-### 11.8. Tự cài equals theo sai tiêu chí
+### 11.8. Writing custom equals with the wrong criterion
 
-Đối với kiểu domain chứa Instant, OffsetDateTime hay ZoneId, **record equals tự động** có thể là đúng nếu mọi component đều thuộc giá trị. Nếu domain muốn so khác, ví dụ chỉ theo eventId, cần mô hình khóa domain riêng. Tránh sửa equals dựa vào phép “xấp xỉ thời gian” không bắc cầu.
+For domain types containing Instant, OffsetDateTime, or ZoneId, **automatic record equals** may already be right if every component belongs to the value. If the domain wants to compare differently, such as by eventId alone, model a separate domain key. Avoid modifying equals based on non-transitive "approximate time" checks.
 
-## 12. Checklist kiểm tra khi làm việc với java.time
+## 12. Checklist when working with java.time
 
-1. **Xác định chính xác loại đại lượng:** ngày, giờ địa phương, mốc tuyệt đối, offset, zone, thời lượng hay kỳ lịch.
-2. **Đọc hợp đồng của đúng kiểu:** những trường nào tham gia equals/hashCode? Có API khác như isEqual hoặc toInstant đáp ứng tiêu chí thật sự không?
-3. **Kiểm tra phân biệt kiểu:** LocalDate khác LocalDateTime; Instant khác OffsetDateTime; Duration khác Period; dữ liệu cùng ý nghĩa trừu tượng chưa chắc là cùng giá trị kiểu Java.
-4. **Định nghĩa khóa trước khi đưa vào HashMap/HashSet:** cùng bản ghi có cần giữ offset, ZoneId, chronology, độ chính xác nano và zone do người dùng chọn không?
-5. **Xử lý zone và DST:** một local date-time không tồn tại hoặc tồn tại hai lần thì quy tắc chọn Instant là gì? Có cần lưu offset được chọn không?
-6. **Thống nhất precision và chronology:** nếu dùng nhiều nguồn/hệ lịch, chuyển đổi về khóa canonical có chủ đích.
-7. **Kiểm tra bằng dữ liệu đối chứng:** hai OffsetDateTime cùng Instant khác offset; hai ZonedDateTime cùng Instant khác zone; hai LocalDateTime cùng giờ ở hai vùng; Duration và Period qua ngày DST; hai Instant lệch 1 nano.
-8. **Xác minh hợp đồng hash:** các khóa equals true phải có hash bằng nhau, nhưng hai hash bằng nhau không chứng minh equals true.
+1. **Identify the exact kind of quantity:** date, local time, absolute instant, offset, zone, duration, or calendar period.
+2. **Read the exact type's contract:** which fields participate in equals/hashCode? Does another API like isEqual or toInstant satisfy the real criterion?
+3. **Check type distinctions:** LocalDate differs from LocalDateTime; Instant differs from OffsetDateTime; Duration differs from Period; data with the same abstract meaning is not necessarily the same Java type value.
+4. **Define the key before inserting into HashMap/HashSet:** does the same record need to preserve offset, ZoneId, chronology, nanosecond precision, and user-chosen zone?
+5. **Handle zones and DST:** if a local date-time does not exist or occurs twice, what is the rule for choosing an Instant? Do you need to store the resolved offset?
+6. **Standardize precision and chronology:** when integrating multiple sources/calendar systems, convert intentionally to a canonical key.
+7. **Test with adversarial cases:** two OffsetDateTimes with the same Instant and different offsets; two ZonedDateTimes with the same Instant and different zones; two LocalDateTimes with the same wall time in two zones; Duration and Period across a DST day; two Instants differing by 1 nanosecond.
+8. **Verify the hash contract:** keys where equals is true must have equal hashes, yet equal hashes do not prove equals is true.
 
-**Ghi nhớ cốt lõi:** Các kiểu **java.time là giá trị theo những hợp đồng khác nhau**. **equals/hashCode** trả lời liệu hai object có cùng **giá trị của đúng kiểu đó** hay không. **isEqual** trên kiểu phù hợp hoặc **toInstant()** trả lời liệu chúng có cùng **mốc trên dòng thời gian** hay không. **LocalDateTime** chưa có mốc tuyệt đối; **Period** không phải **Duration**; **ZoneId** không phải **ZoneOffset**. Chọn kiểu và phép so khớp với ý nghĩa nghiệp vụ trước khi gom nhóm, tra cứu hay loại trùng.
+**Core takeaway:** **java.time types are values with distinct contracts**. **equals/hashCode** answers whether two objects have the same **value of that exact type**. **isEqual** on appropriate types or **toInstant()** answers whether they share the same **position on the timeline**. **LocalDateTime** has no absolute instant; **Period** is not **Duration**; **ZoneId** is not **ZoneOffset**. Match the type and comparison operation to the business meaning before grouping, looking up, or deduplicating.

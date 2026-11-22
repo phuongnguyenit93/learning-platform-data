@@ -1,47 +1,47 @@
-# Xử lý reflection, service loader và resource lookup
+# Handling Reflection, ServiceLoader, and Resource Lookup
 
-## 1. Vì sao ba cơ chế này cần được xem lại khi modular hóa?
+## 1. Why Should These Three Mechanisms Be Reviewed During Modularization?
 
-Khi chuyển một ứng dụng từ classpath sang Java Platform Module System (JPMS), mã nguồn có thể vẫn biên dịch được nhưng một số chức năng khám phá hoặc truy cập tài nguyên lại thay đổi hành vi. Những điểm dễ bị ảnh hưởng gồm:
+When migrating an application from the classpath to the Java Platform Module System (JPMS), source code may still compile while several discovery or resource-access behaviors change. Areas commonly affected include:
 
-- Framework dùng reflection để đọc field private, gọi constructor hoặc tạo proxy.
-- Ứng dụng tìm plugin hoặc implementation bằng **ServiceLoader**.
-- Mã nguồn đọc file cấu hình, template, schema hoặc metadata nằm bên trong JAR.
-- Thư viện quét package bằng cách liệt kê tài nguyên qua classloader.
-- Ứng dụng nạp class hoặc module theo tên lấy từ cấu hình.
+- Frameworks using reflection to read private fields, invoke constructors, or create proxies.
+- Applications discovering plugins or implementations using **ServiceLoader**.
+- Code reading configuration files, templates, schemas, or metadata packaged inside JARs.
+- Libraries scanning packages by enumerating resources through a classloader.
+- Applications loading classes or modules by names read from configuration.
 
-Trên classpath truyền thống, nhiều thư viện giả định rằng mọi JAR đều nằm trong một không gian tìm kiếm tương đối phẳng. Với named module, JPMS bổ sung ranh giới readability, exports, opens và module layer. Vì vậy, việc một class hoặc resource tồn tại trong JAR không đảm bảo mọi module khác đều có thể tìm thấy hoặc truy cập nó.
+On the traditional classpath, many libraries assume all JARs reside in a relatively flat search space. With named modules, JPMS introduces readability boundaries, exports, opens, and module layers. Therefore, a class or resource existing inside a JAR does not guarantee other modules can locate or access it.
 
-Cần phân biệt ba việc:
+Three activities must be distinguished:
 
-1. **Discovery:** tìm implementation, class hoặc resource.
-2. **Loading:** nạp class hoặc tạo instance.
-3. **Access:** được phép gọi API, đọc thành viên hoặc mở nội dung resource.
+1. **Discovery:** finding implementations, classes, or resources.
+2. **Loading:** loading classes or creating instances.
+3. **Access:** being permitted to call APIs, read members, or open resource contents.
 
-Một lỗi ở bước này không nhất thiết được sửa bằng cách mở quyền ở bước khác. Ví dụ, **opens** có thể cho phép deep reflection nhưng không tự đăng ký provider cho ServiceLoader; **uses** giúp khai báo service consumer nhưng không làm package của provider trở thành API public.
+An error in one step is not necessarily fixed by granting permissions in another. For example, **opens** can allow deep reflection but does not register providers for ServiceLoader; **uses** declares a service consumer but does not turn a provider's package into a public API.
 
-## 2. Kiểm kê các điểm phụ thuộc trước khi chuyển đổi
+## 2. Inventorying Dependency Points Before Migration
 
-Trước khi thêm module descriptor, hãy tìm các cơ chế động trong ứng dụng và thư viện:
+Before adding module descriptors, locate dynamic mechanisms across the application and its libraries:
 
-- Các lệnh **Class.forName**, **getDeclaredField**, **getDeclaredMethod**, **setAccessible** hoặc **trySetAccessible**.
-- Các lời gọi **ServiceLoader.load** và file **META-INF/services**.
-- Các lời gọi **Class.getResource**, **getResourceAsStream**, **ClassLoader.getResource** hoặc **getResourceAsStream**.
-- Framework có package scanning, annotation scanning, plugin registry hoặc cấu hình tên class.
-- Tên class, tên module và đường dẫn resource được tạo từ chuỗi cấu hình.
-- Plugin được nạp trong module layer riêng hoặc classloader tùy chỉnh.
+- Calls to **Class.forName**, **getDeclaredField**, **getDeclaredMethod**, **setAccessible**, or **trySetAccessible**.
+- Calls to **ServiceLoader.load** and **META-INF/services** files.
+- Calls to **Class.getResource**, **getResourceAsStream**, **ClassLoader.getResource**, or **getResourceAsStream**.
+- Frameworks doing package scanning, annotation scanning, plugin registries, or class-name configuration.
+- Class names, module names, and resource paths constructed from configuration strings.
+- Plugins loaded in separate module layers or custom classloaders.
 
-Phân loại từng điểm theo mục đích. Nếu tìm implementation của một SPI, ServiceLoader thường là cơ chế phù hợp. Nếu framework cần truy cập field private, hãy xác định package cần mở. Nếu chỉ đọc file cấu hình, hãy dùng API resource đúng với module chứa file đó.
+Classify each point by purpose. If discovering an SPI implementation, ServiceLoader is usually the right mechanism. If a framework needs access to private fields, identify the packages that must be opened. If simply reading configuration files, use resource APIs appropriate for the module holding those files.
 
-Công cụ phân tích bytecode như **jdeps** có thể hỗ trợ tìm phụ thuộc tĩnh và một số tham chiếu tới API nội bộ, nhưng không thể suy ra đầy đủ tên class được tạo động, resource path lấy từ cấu hình hoặc mọi hành vi reflection. Các điểm này cần được xác nhận qua mã nguồn, cấu hình và kiểm thử.
+Bytecode analysis tools like **jdeps** can help find static dependencies and some references to internal APIs, but cannot fully infer dynamically constructed class names, resource paths read from configuration, or all reflection behaviors. Confirm these points via source inspection, configuration review, and testing.
 
-## 3. Reflection trong named module
+## 3. Reflection in Named Modules
 
-Reflection vẫn hoạt động trong JPMS, nhưng quyền truy cập phụ thuộc vào ranh giới module.
+Reflection still works in JPMS, but access permissions depend on module boundaries.
 
-### Truy cập API public
+### Public API Access
 
-Nếu module thư viện muốn công khai kiểu cho module khác, nó cần export package:
+If a library module wants to expose types to other modules, it must export the package:
 
 ~~~java
 module com.example.model {
@@ -49,7 +49,7 @@ module com.example.model {
 }
 ~~~
 
-Module framework cần đọc module đó:
+The framework module needs to read that module:
 
 ~~~java
 module com.example.framework {
@@ -57,11 +57,11 @@ module com.example.framework {
 }
 ~~~
 
-Framework có thể gọi các phương thức public được export. Đây là truy cập Java thông thường và không yêu cầu mở package cho deep reflection.
+The framework can invoke exported public methods. This is normal Java access and does not require opening packages for deep reflection.
 
-### Deep reflection vào thành viên private
+### Deep Reflection into Private Members
 
-Giả sử framework cần đọc field private trong entity:
+Suppose a framework needs to read a private field on an entity:
 
 ~~~java
 Field field = Customer.class.getDeclaredField("email");
@@ -75,9 +75,9 @@ if (!field.trySetAccessible()) {
 String email = (String) field.get(customer);
 ~~~
 
-Nếu package chứa **Customer** chưa mở cho module framework, **trySetAccessible()** có thể trả về false. Nếu gọi **setAccessible(true)** trực tiếp, JVM có thể ném **InaccessibleObjectException**.
+If the package containing **Customer** is not open to the framework module, **trySetAccessible()** may return false. If **setAccessible(true)** is called directly, the JVM may throw **InaccessibleObjectException**.
 
-Module sở hữu entity có thể mở đúng package cho framework:
+The module owning the entity can open the specific package to the framework:
 
 ~~~java
 module com.example.model {
@@ -88,9 +88,9 @@ module com.example.model {
 }
 ~~~
 
-**exports** cho phép truy cập các kiểu public; **opens** cho phép reflection sâu vào package. Mở package có mục tiêu giúp giữ các package implementation khác được đóng gói.
+**exports** permits access to public types; **opens** permits deep reflection into the package. Targeted package opening keeps other implementation packages encapsulated.
 
-Nếu framework chạy từ classpath và thuộc unnamed module, có thể mở package khi khởi chạy:
+If the framework runs from the classpath and belongs to the unnamed module, you can open the package at launch:
 
 ~~~bash
 java \
@@ -98,31 +98,31 @@ java \
   -jar app.jar
 ~~~
 
-Nếu framework là named module, thay **ALL-UNNAMED** bằng tên module cụ thể. **--add-opens** là tùy chọn của Java launcher tại runtime; nó không thay thế khai báo API và không phải tùy chọn sửa lỗi cho javac.
+If the framework is a named module, replace **ALL-UNNAMED** with the specific module name. **--add-opens** is a Java launcher runtime option; it does not replace API declarations and is not a javac fix option.
 
-### MethodHandles và proxy
+### MethodHandles and Proxies
 
-Một số framework dùng **MethodHandles.privateLookupIn** để tạo quyền truy cập vào thành viên không public. Cơ chế này cũng chịu quy tắc đóng gói module. Package của class đích cần được mở phù hợp cho module chứa lookup caller.
+Some frameworks use **MethodHandles.privateLookupIn** to gain access to non-public members. This mechanism is also subject to module encapsulation rules. The target class's package must be appropriately open to the module containing the lookup caller.
 
-Với proxy và reflection, hãy kiểm tra framework đang tạo proxy qua interface public, subclass hay truy cập implementation private. Không phải mọi lỗi proxy đều cần mở toàn bộ module. Có thể chỉ cần export API interface hoặc mở một package model cụ thể.
+With proxies and reflection, check whether the framework generates proxies via public interfaces, subclassing, or accessing private implementations. Not every proxy failure requires opening an entire module. Exporting an API interface or opening a specific model package may suffice.
 
-### Không dùng reflection để truy cập API nội bộ của JDK
+### Do Not Use Reflection to Access JDK Internal APIs
 
-Nếu thư viện truy cập package nội bộ như **sun.*** hoặc field private trong module JDK, ưu tiên nâng cấp thư viện và chuyển sang API công khai. Strong encapsulation của các module JDK bảo vệ implementation nội bộ khỏi việc phụ thuộc không ổn định.
+If a library accesses internal packages like **sun.*** or private fields inside JDK modules, prioritize upgrading the library and switching to public APIs. Strong encapsulation of JDK modules protects internal implementations from unstable dependencies.
 
-Có thể dùng:
+You can use:
 
 ~~~bash
 jdeps --jdk-internals path/to/library.jar
 ~~~
 
-để tìm một số tham chiếu tĩnh tới API nội bộ. Kết quả không thay thế việc kiểm tra các đường gọi reflection động.
+to locate some static references to internal APIs. Its output does not replace checking dynamic reflection call paths.
 
-## 4. ServiceLoader trong JPMS
+## 4. ServiceLoader in JPMS
 
-ServiceLoader cung cấp cơ chế tìm implementation theo một hợp đồng service đã khai báo. Cơ chế này phù hợp với SPI, plugin và các extension point mà consumer không muốn phụ thuộc trực tiếp vào từng implementation.
+ServiceLoader provides a mechanism to discover implementations against a declared service contract. It fits SPIs, plugins, and extension points where consumers do not want direct dependencies on each implementation.
 
-Giả sử module API cung cấp service interface:
+Suppose an API module provides a service interface:
 
 ~~~java
 package com.example.spi;
@@ -133,7 +133,7 @@ public interface PaymentProvider {
 }
 ~~~
 
-Module API export package chứa interface:
+The API module exports the package containing the interface:
 
 ~~~java
 module com.example.payment.api {
@@ -141,7 +141,7 @@ module com.example.payment.api {
 }
 ~~~
 
-Module consumer khai báo **uses**:
+The consumer module declares **uses**:
 
 ~~~java
 module com.example.payment.app {
@@ -151,7 +151,7 @@ module com.example.payment.app {
 }
 ~~~
 
-Module provider khai báo implementation:
+The provider module declares the implementation:
 
 ~~~java
 module com.example.payment.card {
@@ -162,7 +162,7 @@ module com.example.payment.card {
 }
 ~~~
 
-Sau đó consumer tìm provider:
+Then the consumer locates providers:
 
 ~~~java
 ServiceLoader<PaymentProvider> providers =
@@ -173,63 +173,63 @@ for (PaymentProvider provider : providers) {
 }
 ~~~
 
-Trong named module, module gọi ServiceLoader phải khai báo **uses** cho service. Module provider khai báo **provides ... with ...** trong module descriptor. Service interface cần được export để consumer có thể đọc và sử dụng kiểu đó.
+In a named module, the module calling ServiceLoader must declare **uses** for the service. The provider module declares **provides ... with ...** in its module descriptor. The service interface must be exported so consumers can read and use that type.
 
-Nếu ứng dụng sử dụng một **ModuleLayer** riêng để nạp plugin, có thể tìm provider trong layer đó:
+If the application uses a separate **ModuleLayer** to load plugins, it can look up providers in that layer:
 
 ~~~java
 ServiceLoader<PaymentProvider> providers =
     ServiceLoader.load(pluginLayer, PaymentProvider.class);
 ~~~
 
-Điều này quan trọng với ứng dụng có plugin module được nạp động. Gọi **ServiceLoader.load(PaymentProvider.class)** và tìm provider trong một layer riêng là hai phạm vi khác nhau; hãy dùng layer đúng với nơi plugin được định nghĩa.
+This matters for applications with dynamically loaded plugin modules. Calling **ServiceLoader.load(PaymentProvider.class)** and loading providers in a separate layer have different scopes; use the layer matching where plugins are defined.
 
-### Provider trên classpath
+### Providers on the Classpath
 
-Ứng dụng chưa modular vẫn có thể dùng ServiceLoader. Provider trên classpath được đăng ký trong file:
+Unmodularized applications can still use ServiceLoader. Providers on the classpath are registered in a file:
 
 ~~~text
 META-INF/services/com.example.spi.PaymentProvider
 ~~~
 
-File chứa tên đầy đủ của từng provider, mỗi dòng một class:
+The file contains the fully qualified name of each provider, one class per line:
 
 ~~~text
 com.example.payment.card.CardPaymentProvider
 com.example.payment.wallet.WalletPaymentProvider
 ~~~
 
-Khi chuyển provider thành named module, metadata này thường được chuyển thành khai báo **provides** trong **module-info.java**. Không nên vừa duy trì hai cách đăng ký cho cùng một provider nếu không có nhu cầu tương thích rõ ràng.
+When converting a provider into a named module, this metadata is typically converted into a **provides** declaration in **module-info.java**. Do not maintain both registration mechanisms for the same provider unless there is an explicit compatibility need.
 
-### Kiểm tra provider không được tìm thấy
+### Troubleshooting Undiscovered Providers
 
-Nếu ServiceLoader không trả về provider, kiểm tra lần lượt:
+If ServiceLoader returns no providers, check in order:
 
-1. Consumer có khai báo **uses** đúng service type không?
-2. Provider module có khai báo **provides** đúng interface không?
-3. Provider module có nằm trong module path hoặc module layer đang được tìm kiếm không?
-4. Service interface có cùng tên module và package mà consumer/provider cùng tham chiếu không?
-5. Nếu provider nằm trên classpath, file **META-INF/services** có đúng đường dẫn và tên class không?
-6. Nếu dùng layer tùy chỉnh, lời gọi ServiceLoader có sử dụng đúng layer không?
+1. Does the consumer declare **uses** for the exact service type?
+2. Does the provider module declare **provides** for the exact interface?
+3. Is the provider module on the module path or inside the module layer being searched?
+4. Do the service interface module name and package match what both consumer and provider reference?
+5. If the provider is on the classpath, are the **META-INF/services** path and class names accurate?
+6. If using a custom layer, does the ServiceLoader call pass the right layer?
 
-ServiceLoader không quét mọi class có annotation hoặc mọi class implement một interface. Nó sử dụng metadata service đã đăng ký. Nếu ứng dụng đang dùng package scanning để tìm plugin, hãy quyết định rõ có thể chuyển sang SPI/ServiceLoader hay framework vẫn cần scanner riêng.
+ServiceLoader does not scan every annotated class or every class implementing an interface. It uses registered service metadata. If the application uses package scanning to locate plugins, decide clearly whether to migrate to SPI/ServiceLoader or keep a framework-specific scanner.
 
-## 5. Resource lookup trong named module
+## 5. Resource Lookup in Named Modules
 
-Resource có thể là file properties, XML, JSON, template, schema, ảnh hoặc metadata nằm trong JAR. Khi chuyển sang module, cần xác định resource thuộc package nào và module nào sẽ đọc nó.
+Resources can be properties, XML, JSON, templates, schemas, images, or metadata packaged in JARs. When moving to modules, determine which package owns the resource and which module reads it.
 
-### Dùng Class.getResourceAsStream
+### Using Class.getResourceAsStream
 
-Nếu resource nằm cùng package với class, dùng đường dẫn tương đối:
+If the resource sits in the same package as the class, use a relative path:
 
 ~~~java
 InputStream input =
     ConfigReader.class.getResourceAsStream("config.properties");
 ~~~
 
-Tên resource không có dấu **/** ở đầu nên được hiểu tương đối với package của class.
+A resource name without a leading **/** is interpreted relative to the class's package.
 
-Có thể dùng đường dẫn tuyệt đối từ gốc module:
+You can use an absolute path from the module root:
 
 ~~~java
 InputStream input =
@@ -238,11 +238,11 @@ InputStream input =
     );
 ~~~
 
-Cách này gắn việc tìm resource với class cụ thể, hữu ích khi resource thuộc cùng module với code sử dụng nó.
+This ties resource lookup to a specific class, useful when the resource belongs to the same module as the code consuming it.
 
-### Dùng Module.getResourceAsStream
+### Using Module.getResourceAsStream
 
-Có thể truy cập trực tiếp module chứa class:
+You can access the module containing the class directly:
 
 ~~~java
 Module module = ConfigReader.class.getModule();
@@ -257,9 +257,9 @@ try (InputStream input =
 }
 ~~~
 
-Tên resource được truyền theo dạng đường dẫn từ gốc module, phân tách bằng dấu gạch chéo. API module giúp code xác định rõ resource được tìm trong module nào.
+The resource name is passed as a path from the module root, separated by forward slashes. The Module API helps code specify unambiguously which module a resource is searched in.
 
-Trong named module, resource nằm trong package không được mở có thể bị đóng gói đối với module khác. Nếu một module framework cần đọc resource nội bộ của module ứng dụng, hãy mở package chứa resource cho caller phù hợp:
+In a named module, resources inside an unopened package may be encapsulated against other modules. If a framework module needs to read internal resources of an application module, open the package containing the resources to the appropriate caller:
 
 ~~~java
 module com.example.app {
@@ -268,11 +268,11 @@ module com.example.app {
 }
 ~~~
 
-Mở package cũng ảnh hưởng đến quyền deep reflection vào package đó. Vì vậy, hãy đặt resource trong package phù hợp và chỉ mở cho module cần đọc.
+Opening a package also affects deep reflection access into that package. Therefore, place resources in dedicated packages and open them only to modules that need to read them.
 
-### Dùng ClassLoader
+### Using ClassLoader
 
-Ứng dụng trên classpath thường dùng:
+Classpath applications often use:
 
 ~~~java
 InputStream input =
@@ -281,44 +281,44 @@ InputStream input =
           .getResourceAsStream("config/app.properties");
 ~~~
 
-Cách này vẫn hữu ích với thư viện cần tôn trọng context classloader của ứng dụng hoặc container. Tuy nhiên, không nên giả định rằng classloader lookup sẽ liệt kê được mọi resource được đóng gói trong named module. Resource trong named module chịu quy tắc đóng gói của JPMS; hành vi tìm kiếm còn phụ thuộc vị trí resource và module.
+This remains useful for libraries that need to respect an application or container's context classloader. However, do not assume classloader lookups will enumerate every resource packaged inside named modules. Resources in named modules are subject to JPMS encapsulation rules; lookup behavior depends on the resource location and module.
 
-Nếu resource thuộc module cụ thể, ưu tiên **Class.getResourceAsStream** hoặc **Module.getResourceAsStream** để xác định rõ module sở hữu resource.
+If a resource belongs to a specific module, prefer **Class.getResourceAsStream** or **Module.getResourceAsStream** to identify the owning module clearly.
 
-### Resource không nên được đóng gói như cấu hình triển khai
+### Resources Should Not Package Deployment Configuration
 
-File cấu hình có thể cần thay đổi giữa development, staging và production. Nếu file phải được vận hành viên chỉnh sửa sau khi build, hãy cân nhắc đọc từ filesystem, biến môi trường hoặc hệ thống cấu hình triển khai thay vì đóng gói cố định bên trong module.
+Configuration files may need to change across development, staging, and production. If a file must be edited by operators after build, consider reading from the filesystem, environment variables, or a deployment configuration service instead of hard-packaging it inside a module.
 
-Resource nội bộ phù hợp với dữ liệu mặc định, template hoặc schema được phân phối cùng ứng dụng. Cấu hình bí mật và thông tin môi trường không nên được nhúng trong JAR.
+Internal resources are suitable for defaults, templates, or schemas shipped with the application. Secrets and environment-specific settings should not be embedded inside JARs.
 
-## 6. Package scanning và giới hạn của classloader
+## 6. Package Scanning and ClassLoader Limitations
 
-Một số framework tìm class bằng cách gọi **ClassLoader.getResources("com/example/plugins")**, duyệt URL trả về rồi liệt kê file class trong thư mục hoặc JAR. Cách này thường hoạt động trên classpath nhưng không phải là mô hình discovery tổng quát cho named module.
+Some frameworks discover classes by calling **ClassLoader.getResources("com/example/plugins")**, iterating over the returned URLs, and listing class files in directories or JARs. This often works on the classpath, but is not a general discovery model for named modules.
 
-Trên module path:
+On the module path:
 
-- Module có thể không được biểu diễn như một thư mục/JAR có thể duyệt theo cách scanner classpath giả định.
-- Resource và package trong named module có thể bị đóng gói.
-- Một classloader có thể không đại diện cho tất cả module layer.
-- Plugin có thể được nạp từ layer riêng hoặc ModuleFinder riêng.
-- Tên class được tạo từ cấu hình có thể không xuất hiện trong kết quả quét tĩnh.
+- Modules may not be represented as directories/JARs traversable the way classpath scanners assume.
+- Resources and packages inside named modules may be encapsulated.
+- A single classloader may not represent all module layers.
+- Plugins may be loaded from separate layers or custom ModuleFinders.
+- Class names constructed from configuration may not appear in static scan results.
 
-Nếu framework cần package scanning, hãy chọn phiên bản có hỗ trợ JPMS và kiểm tra cách framework duyệt module. Framework có thể dùng API module, module layer hoặc **ModuleReader** để đọc nội dung module. Không nên tự giả định rằng liệt kê URL của system classloader là đủ.
+If a framework requires package scanning, pick a version with JPMS support and verify how it inspects modules. Frameworks may use Module APIs, module layers, or **ModuleReader** to read module contents. Do not assume enumerating system classloader URLs is sufficient.
 
-Khi xây dựng một hệ thống plugin mới, ServiceLoader thường dễ tích hợp với JPMS hơn nếu mỗi plugin cung cấp một SPI rõ ràng. Nếu framework cần quét annotation cho nhiều loại component, hãy kiểm tra tài liệu framework về module path, opens và resource scanning.
+When building a new plugin system, ServiceLoader is usually easier to integrate with JPMS if each plugin supplies a clear SPI. If a framework needs annotation scanning across many component types, consult the framework documentation regarding the module path, opens, and resource scanning.
 
-## 7. Kết hợp reflection, ServiceLoader và resource lookup
+## 7. Combining Reflection, ServiceLoader, and Resource Lookup
 
-Một plugin modular có thể dùng cả ba cơ chế theo một quy trình rõ ràng:
+A modular plugin can combine all three mechanisms in a clear flow:
 
-1. Module consumer khai báo **uses** cho SPI.
-2. Module provider khai báo **provides** với implementation.
-3. ServiceLoader tìm provider trong module layer thích hợp.
-4. Framework đọc metadata hoặc resource của provider bằng API module-aware.
-5. Nếu cần deep reflection vào implementation, provider module mở đúng package cho framework.
-6. Các resource cần truy cập từ bên ngoài được mở có mục tiêu hoặc được cung cấp qua API public.
+1. The consumer module declares **uses** for the SPI.
+2. The provider module declares **provides** with the implementation.
+3. ServiceLoader discovers the provider in the appropriate module layer.
+4. The framework reads provider metadata or resources via module-aware APIs.
+5. If deep reflection into the implementation is required, the provider module opens the specific package to the framework.
+6. Resources needing external access are opened in a targeted manner or exposed via public APIs.
 
-Ví dụ consumer:
+Consumer example:
 
 ~~~java
 module com.example.host {
@@ -342,61 +342,61 @@ module com.example.plugin.csv {
 }
 ~~~
 
-Trong ví dụ này, ServiceLoader tìm **CsvPlugin** theo khai báo provider. Framework có thể đọc cấu hình trong package **com.example.plugin.csv.config** nếu resource được đặt ở đó và quyền mở package phù hợp. Nếu framework chỉ gọi các phương thức public của Plugin, không cần mở package implementation cho deep reflection.
+In this example, ServiceLoader finds **CsvPlugin** according to the provider declaration. The framework can read configuration in package **com.example.plugin.csv.config** if resources reside there and package opening permits it. If the framework only invokes public methods of Plugin, there is no need to open the implementation package for deep reflection.
 
-Không nên dùng reflection scan thay cho ServiceLoader nếu chỉ cần tìm provider đã đăng ký. Cũng không nên thêm **opens** cho toàn bộ module nếu framework chỉ cần đọc một package cấu hình.
+Do not use reflection scanning instead of ServiceLoader if you only need to locate registered providers. Likewise, do not add **opens** to an entire module if the framework only needs to read a single configuration package.
 
-## 8. Quy trình chuyển đổi từ classpath sang JPMS
+## 8. Migration Workflow from Classpath to JPMS
 
-Có thể thực hiện theo các bước:
+You can proceed along these steps:
 
-1. **Kiểm kê:** tìm mọi điểm reflection, ServiceLoader, resource lookup, package scan và dynamic class loading.
-2. **Phân loại:** xác định điểm nào là SPI, điểm nào cần deep reflection và điểm nào chỉ đọc resource.
-3. **Tách API:** đưa service interface vào module API có package được export.
-4. **Đăng ký provider:** thêm **uses** vào consumer và **provides ... with ...** vào provider module.
-5. **Giới hạn reflection:** dùng API public khi có thể; nếu cần deep reflection, mở đúng package cho đúng framework module.
-6. **Chuyển resource:** dùng Class hoặc Module API cho resource nội bộ; dùng filesystem/configuration service cho cấu hình triển khai.
-7. **Kiểm tra framework:** xác nhận scanner và classloader có hỗ trợ named module và module layer.
-8. **Kiểm tra module graph:** xác nhận tất cả module và service provider có mặt trên module path hoặc layer cần thiết.
-9. **Kiểm thử artifact đã đóng gói:** chạy từ modular JAR hoặc runtime image, không chỉ chạy từ IDE.
-10. **Kiểm thử đường chạy động:** thử plugin, reflection, resource, cấu hình và các tính năng chỉ được kích hoạt trong môi trường triển khai.
+1. **Inventory:** locate all reflection, ServiceLoader, resource lookup, package scanning, and dynamic class loading sites.
+2. **Classify:** identify which sites are SPIs, which require deep reflection, and which only read resources.
+3. **Separate APIs:** move service interfaces into an API module with exported packages.
+4. **Register providers:** add **uses** to consumers and **provides ... with ...** to provider modules.
+5. **Limit reflection:** use public APIs when possible; if deep reflection is needed, open the specific package to the specific framework module.
+6. **Migrate resources:** use Class or Module APIs for internal resources; use the filesystem or a configuration service for deployment settings.
+7. **Check frameworks:** confirm scanners and classloaders support named modules and module layers.
+8. **Verify the module graph:** confirm all modules and service providers are present on the required module path or layer.
+9. **Test packaged artifacts:** run from modular JARs or runtime images, not solely from an IDE.
+10. **Test dynamic code paths:** test plugins, reflection, resources, configurations, and features activated only in deployment environments.
 
-Có thể giữ một số thư viện cũ trên classpath trong giai đoạn chuyển đổi, nhưng cần xác định rõ module nào thuộc unnamed module và module nào là named module. Khi đã chuyển thư viện sang module path, hãy kiểm tra lại resource scanning và quyền truy cập vì hành vi có thể thay đổi.
+You may keep some legacy libraries on the classpath during transition, but clearly track which belong to the unnamed module and which are named modules. Once libraries move to the module path, re-test resource scanning and access permissions because behavior can change.
 
-## 9. Các lỗi thường gặp
+## 9. Common Errors
 
-**Class được tìm thấy nhưng setAccessible thất bại**
+**Class is found but setAccessible fails**
 
-Kiểm tra module sở hữu class và package đang chứa thành viên private. Dùng **opens package to framework.module** hoặc **--add-opens** ở runtime nếu cần deep reflection.
+Check the module owning the class and the package containing the private member. Use **opens package to framework.module** or runtime **--add-opens** if deep reflection is needed.
 
-**ServiceLoader không tìm thấy provider**
+**ServiceLoader does not find providers**
 
-Kiểm tra **uses**, **provides**, module path và module layer. Nếu provider ở classpath, kiểm tra file **META-INF/services**.
+Check **uses**, **provides**, the module path, and the module layer. If the provider is on the classpath, check the **META-INF/services** file.
 
-**Resource tồn tại trong JAR nhưng getResourceAsStream trả về null**
+**Resource exists in the JAR but getResourceAsStream returns null**
 
-Kiểm tra tên resource, đường dẫn tương đối hay tuyệt đối, module sở hữu resource và package encapsulation. Nếu caller ở module khác, package có thể cần được mở cho caller.
+Check the resource name, relative vs. absolute path, the module owning the resource, and package encapsulation. If the caller is in another module, the package may need to be opened to the caller.
 
-**Package scanner không thấy class trong named module**
+**Package scanner does not see classes in a named module**
 
-Kiểm tra framework có hỗ trợ JPMS/module layer hay chỉ quét URL của classpath. Có thể chuyển extension point sang ServiceLoader hoặc dùng scanner module-aware.
+Check whether the framework supports JPMS/module layers or only scans classpath URLs. You can switch extension points to ServiceLoader or use a module-aware scanner.
 
-**Hoạt động trong IDE nhưng thất bại khi chạy JAR**
+**Works in the IDE but fails when running the JAR**
 
-IDE có thể chạy ứng dụng bằng classpath hoặc thêm các quyền truy cập riêng. Hãy kiểm thử bằng đúng lệnh module path và module descriptor sẽ dùng khi triển khai.
+The IDE may run the application using the classpath or add extra access flags. Test using the exact module path command and module descriptors used in deployment.
 
-**Plugin chạy trên module path nhưng không chạy trong runtime image**
+**Plugin works on the module path but not in a runtime image**
 
-Module provider có thể chưa được đưa vào image, hoặc provider được tìm bằng cấu hình/reflection thay vì metadata service. Kiểm tra **jlink --bind-services**, **--add-modules** và module layer khi khởi chạy.
+The provider module may not have been included in the image, or the provider is discovered via configuration/reflection instead of service metadata. Check **jlink --bind-services**, **--add-modules**, and module layers at launch.
 
-## 10. Ghi nhớ
+## 10. Takeaways
 
-- **Reflection** cần phân biệt truy cập public với deep reflection; **exports** và **opens** có mục đích khác nhau.
-- **ServiceLoader** dựa trên **uses** và **provides** trong named module, hoặc **META-INF/services** trên classpath.
-- **ModuleLayer** quan trọng khi plugin được nạp động trong layer riêng.
-- **Class.getResourceAsStream** và **Module.getResourceAsStream** giúp xác định rõ module chứa resource.
-- Resource trong package của named module có thể bị đóng gói; mở package có mục tiêu khi module khác cần đọc.
-- Classpath package scanning không tự động tương đương với scanning trên module path.
-- Kiểm thử phải bao gồm artifact modular và các đường chạy động thực tế.
+- **Reflection** must distinguish public access from deep reflection; **exports** and **opens** serve different purposes.
+- **ServiceLoader** relies on **uses** and **provides** in named modules, or **META-INF/services** on the classpath.
+- **ModuleLayer** matters when plugins are loaded dynamically into separate layers.
+- **Class.getResourceAsStream** and **Module.getResourceAsStream** clearly identify the module holding a resource.
+- Resources in a named module's packages may be encapsulated; open packages selectively when another module needs to read them.
+- Classpath package scanning is not automatically equivalent to scanning on the module path.
+- Testing must include modular artifacts and real dynamic execution paths.
 
-Khi chuyển sang JPMS, hãy mô tả rõ provider bằng service metadata, cấp quyền reflection theo package và chọn API resource phù hợp với module sở hữu file. Ba thay đổi này giúp ứng dụng giữ được chức năng plugin, framework và cấu hình mà vẫn tôn trọng ranh giới đóng gói của module.
+When migrating to JPMS, describe providers clearly with service metadata, grant reflection access per package, and pick resource APIs matching the owning module. These three changes help applications retain plugin, framework, and configuration functionality while respecting module encapsulation boundaries.

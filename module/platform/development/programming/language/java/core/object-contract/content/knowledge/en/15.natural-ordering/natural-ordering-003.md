@@ -1,58 +1,58 @@
-# Quy tắc đảo dấu khi đổi vị trí hai đối tượng trong thứ tự tự nhiên của Java
+# The Sign-Reversal Rule When Swapping Two Objects in Java's Natural Ordering
 
-## 1. Phát biểu quy tắc: đổi vị trí thì đổi **dấu** kết quả so sánh
+## 1. Statement of the rule: swapping positions inverts the **sign** of the comparison result
 
-Trong Java, một lớp triển khai `Comparable<T>` để định nghĩa **thứ tự tự nhiên** (*natural ordering*) giữa những đối tượng có thể so sánh với nhau. Phương thức cốt lõi là:
+In Java, a class implements `Comparable<T>` to define a **natural ordering** among objects that can be compared with each other. The core method is:
 
 ```java
 public int compareTo(T other)
 ```
 
-Giá trị trả về là một số `int` có ý nghĩa qua **dấu**, không phải độ lớn tuyệt đối:
+The return value is an `int` whose meaning lies in its **sign**, not its absolute magnitude:
 
-| `a.compareTo(b)` | Diễn giải |
+| `a.compareTo(b)` | Interpretation |
 | --- | --- |
-| Nhỏ hơn `0` | `a` đứng trước `b` trong thứ tự tự nhiên |
-| Bằng `0` | Hai đối tượng **tương đương theo thứ tự** (*compare-equivalent*) |
-| Lớn hơn `0` | `a` đứng sau `b` trong thứ tự tự nhiên |
+| Less than `0` | `a` comes before `b` in natural ordering |
+| Equal to `0` | Both objects are **equivalent in ordering** (*compare-equivalent*) |
+| Greater than `0` | `a` comes after `b` in natural ordering |
 
-Một quy tắc bắt buộc của hợp đồng `Comparable` là **đảo dấu khi đổi vị trí hai đối tượng**:
+A mandatory rule of the `Comparable` contract is **sign reversal when swapping the two objects**:
 
 ```text
 sgn(a.compareTo(b)) == -sgn(b.compareTo(a))
 ```
 
-Trong đó `sgn(n)` bằng `-1` nếu `n < 0`, `0` nếu `n == 0`, `1` nếu `n > 0`. Trong Java dùng `Integer.signum(n)` để lấy dấu một cách rõ ràng.
+Where `sgn(n)` equals `-1` if `n < 0`, `0` if `n == 0`, and `1` if `n > 0`. In Java, use `Integer.signum(n)` to obtain the sign explicitly.
 
-Ví dụ, nếu `a.compareTo(b)` là số âm thì `b.compareTo(a)` phải là số dương; nếu một chiều trả về `0` thì chiều còn lại **cũng phải trả về `0`**. Quy tắc này có thể gọi là **tính phản đối xứng theo dấu** (*sign antisymmetry*), khác với khái niệm phản đối xứng của quan hệ `≤` trong toán học và khác với tính đối xứng của `equals()`.
+For example, if `a.compareTo(b)` is negative, then `b.compareTo(a)` must be positive; if one direction returns `0`, then the opposite direction **must also return `0`**. This rule can be called **sign antisymmetry**, which differs from the antisymmetry concept of the `≤` relation in mathematics and differs from the symmetry of `equals()`.
 
-**Điểm hay bị nhầm:** hợp đồng yêu cầu *đổi dấu*, **không bắt buộc đổi đúng trị số**. Nếu `a.compareTo(b) == -8`, chiều ngược lại được phép trả về `1`, `7` hoặc bất kỳ số dương nào khác; nó không nhất thiết phải bằng `8`.
+**Common point of confusion:** the contract requires *sign reversal*, **not flipping to the exact negated magnitude**. If `a.compareTo(b) == -8`, the reverse direction is allowed to return `1`, `7`, or any other positive number; it does not have to equal `8`.
 
-Trong các ví dụ và công thức ở đây, `a` và `b` là những đối tượng khác `null` thuộc miền so sánh mà kiểu dữ liệu đã công bố. Nếu lớp không hỗ trợ so sánh với một loại đối tượng khác, cách xử lý ngoại lệ cũng phải tương thích với hợp đồng của `Comparable`. Một đối tượng `null` không phải giá trị hợp lệ của thứ tự tự nhiên thông thường; lời gọi `someObject.compareTo(null)` theo hợp đồng phải ném `NullPointerException`.
+In the examples and formulas here, `a` and `b` are non-`null` objects belonging to the comparison domain declared by the data type. If the class does not support comparison with another object type, exception handling must also comply with the `Comparable` contract. A `null` object is not a valid value in standard natural ordering; calling `someObject.compareTo(null)` must throw `NullPointerException` by contract.
 
-## 2. Vì sao quy tắc này quan trọng?
+## 2. Why is this rule important?
 
-Giả sử hai điểm số: `low = 5` và `high = 10`. Ta kỳ vọng:
+Suppose two scores: `low = 5` and `high = 10`. We expect:
 
 ```text
 low.compareTo(high)  < 0
 high.compareTo(low)  > 0
 ```
 
-Nếu **cả hai** đều trả về giá trị âm, thuật toán sắp xếp sẽ nhận được thông tin mâu thuẫn: `low` đứng trước `high`, nhưng `high` cũng đứng trước `low`. Kết quả có thể là thứ tự không nhất quán, tìm kiếm sai kỳ vọng hoặc lỗi từ các thuật toán sắp xếp khi hợp đồng `Comparator/Comparable` bị vi phạm.
+If **both** return negative values, the sorting algorithm receives contradictory information: `low` comes before `high`, yet `high` also comes before `low`. The result can be inconsistent ordering, unexpected search failures, or errors thrown by sorting algorithms when the `Comparator/Comparable` contract is violated.
 
-Điều này ảnh hưởng trực tiếp đến:
+This directly affects:
 
-- `Collections.sort`, `List.sort` và `Arrays.sort` khi dùng thứ tự tự nhiên;
-- `TreeSet` và `TreeMap`, vì cây cân bằng cần kết quả so sánh nhất quán để xác định vị trí khóa/phần tử;
-- Các thuật toán tìm kiếm nhị phân hoặc quy tắc chọn phần tử nhỏ nhất/lớn nhất dựa trên thứ tự;
-- Bất kỳ phép so sánh nào được triển khai lại ở cả hai hướng.
+- `Collections.sort`, `List.sort`, and `Arrays.sort` when using natural ordering;
+- `TreeSet` and `TreeMap`, because balanced trees need consistent comparison results to determine key/element positions;
+- Binary search algorithms or rules for selecting the minimum/maximum element based on ordering;
+- Any comparison implemented redundantly in both directions.
 
-Một bộ so sánh đúng phải giữ đồng thời ba nhóm quy tắc: **đảo dấu**, **bắc cầu**, và **nhất quán của kết quả so sánh bằng 0 với các đối tượng thứ ba** (giải thích tại mục 5). Chỉ chứng minh được quy tắc đảo dấu chưa đủ để đảm bảo toàn bộ hợp đồng.
+A valid comparator must simultaneously satisfy three groups of rules: **sign reversal**, **transitivity**, and **consistency of zero-comparison results with third objects** (explained in section 5). Proving the sign-reversal rule alone is not enough to guarantee the full contract.
 
-## 3. Cách triển khai an toàn: `Integer.compare`, `Long.compare`, `Comparator.comparing`
+## 3. Safe implementation patterns: `Integer.compare`, `Long.compare`, `Comparator.comparing`
 
-Với trường số nguyên, cách thông dụng và an toàn nhất là dùng phương thức so sánh chuẩn:
+For integer fields, the most common and safest way is to use standard comparison methods:
 
 ```java
 @Override
@@ -62,9 +62,9 @@ public int compareTo(Score other) {
 }
 ```
 
-Đây là **phương thức nằm trong lớp `Score` có trường `int points`**, chưa phải chương trình Java độc lập. `Integer.compare` so sánh dựa trên thứ tự số nguyên đúng nghĩa và trả về `-1`, `0` hoặc `1`. Nó không gặp lỗi tràn do tự lấy hiệu.
+This is **a method inside class `Score` having field `int points`**, not a standalone Java program. `Integer.compare` compares based on true integer order and returns `-1`, `0`, or `1`. It does not suffer from overflow caused by manual subtraction.
 
-Nếu so sánh nhiều trường, ví dụ xếp hạng theo điểm tăng dần, sau đó theo mã học viên, có thể dùng bộ so sánh có thứ tự ưu tiên rõ ràng:
+When comparing multiple fields, such as ranking by ascending score and then by student ID, you can use a comparator with a clear priority order:
 
 ```java
 record Student(int points, String id) implements Comparable<Student> {
@@ -78,9 +78,9 @@ record Student(int points, String id) implements Comparable<Student> {
 }
 ```
 
-Đây là **khai báo record minh họa**, có thể đặt độc lập trong tệp thích hợp nếu bổ sung import `java.util.Objects`. Với `id` là chuỗi không null và không thay đổi, so sánh theo điểm trước, rồi theo `id` giúp tạo thứ tự từ điển: mọi trường hợp đối tượng có điểm bằng nhau đều được phân định nhất quán theo mã. `String.compareTo` có thể trả về số có độ lớn lớn hơn 1, nhưng dấu vẫn có đúng ý nghĩa.
+This is an **illustrative record declaration**, which can be placed standalone in an appropriate file if `import java.util.Objects;` is added. With `id` being a non-null immutable string, comparing by points first and then by `id` creates a lexicographical order: every case of objects with equal points is consistently broken by ID. `String.compareTo` may return numbers with magnitude greater than 1, yet the sign still carries the right meaning.
 
-Trong API chuyên dùng cho `Comparator`, cũng có thể viết:
+In the dedicated `Comparator` API, you can also write:
 
 ```java
 Comparator<Student> byPointsThenId =
@@ -88,57 +88,57 @@ Comparator<Student> byPointsThenId =
                   .thenComparing(Student::id);
 ```
 
-Đây là một biểu thức tạo `Comparator` cho `Student`, cần `import java.util.Comparator`. `Comparator` có quy tắc đảo dấu tương ứng đối với `compare(a,b)` và `compare(b,a)`, dù không cần thay đổi thứ tự tự nhiên mặc định của lớp.
+This is an expression creating a `Comparator` for `Student`, requiring `import java.util.Comparator`. `Comparator` has the corresponding sign-reversal rule for `compare(a,b)` and `compare(b,a)`, without needing to change the class's default natural ordering.
 
-Nếu sắp xếp giảm dần, ưu tiên `Comparator.reversed()` hoặc đổi **thứ tự đối số của phương thức compare chuẩn** thay vì tự đảo dấu một số nguyên tùy ý:
+For descending sort, prefer `Comparator.reversed()` or swapping **the argument order of the standard compare method** rather than manually negating an arbitrary integer:
 
 ```java
 int descending = Integer.compare(other.points, this.points);
 ```
 
-Đoạn này nằm trong ngữ cảnh có hai giá trị `points`. Việc viết `-someCompareResult` chỉ luôn an toàn khi biết chắc kết quả không thể bằng `Integer.MIN_VALUE`. Với một phương thức `compareTo` tùy ý có quyền trả về số âm đó, phủ định có thể tràn số nguyên và **không đổi dấu**.
+This snippet assumes a context with two `points` values. Writing `-someCompareResult` is only guaranteed safe when you are certain the result cannot equal `Integer.MIN_VALUE`. For an arbitrary `compareTo` method that is permitted to return that negative number, negation can overflow the integer and **fail to invert the sign**.
 
-## 4. Ví dụ sai: dùng phép trừ để cài đặt `compareTo()`
+## 4. Bad example: using subtraction to implement `compareTo()`
 
-Một lỗi thường gặp là:
+A common mistake is:
 
 ```java
 @Override
 public int compareTo(BrokenScore other) {
-    return points - other.points; // Không an toàn khi int tràn!
+    return points - other.points; // Unsafe when int overflows!
 }
 ```
 
-Đây là **phương thức trong lớp `BrokenScore`** của chương trình hoàn chỉnh ở mục 6. Khi hiệu toán học vượt giới hạn của `int`, phép trừ Java bị tràn theo số nguyên 32 bit và kết quả có thể sai dấu.
+This is **a method in class `BrokenScore`** from the complete program in section 6. When the mathematical difference exceeds the limits of `int`, Java subtraction overflows in 32-bit integer arithmetic and the result can have the wrong sign.
 
-Hãy xét hai đối tượng có giá trị `0` và `Integer.MIN_VALUE`, tức `-2147483648`:
+Consider two objects with values `0` and `Integer.MIN_VALUE`, i.e. `-2147483648`:
 
-- Về mặt toán học, `0 > -2147483648` nên so `0` với số nhỏ nhất phải cho **dấu dương**.
-- Nhưng phép tính `0 - Integer.MIN_VALUE` trên `int` tràn và cho `-2147483648`, tức **dấu âm**.
-- Chiều ngược lại, `Integer.MIN_VALUE - 0` cũng bằng `-2147483648`, **vẫn dấu âm**.
-- Như vậy `sgn(a.compareTo(b)) == -sgn(b.compareTo(a))` bị vi phạm: cùng một cặp lại cho hai số âm ở cả hai hướng.
+- Mathematically, `0 > -2147483648`, so comparing `0` against the minimum value must yield a **positive sign**.
+- However, `0 - Integer.MIN_VALUE` in `int` overflows and yields `-2147483648`, i.e. a **negative sign**.
+- In the reverse direction, `Integer.MIN_VALUE - 0` also equals `-2147483648`, **still negative**.
+- Thus `sgn(a.compareTo(b)) == -sgn(b.compareTo(a))` is violated: the same pair yields two negative numbers in both directions.
 
-Một lựa chọn chính xác là thay biểu thức trừ bằng `Integer.compare(points, other.points)`. Với `long` dùng `Long.compare`; với `double` và `float`, dùng `Double.compare`/`Float.compare` để có quy tắc chuẩn cho `NaN`, vô cực và `-0.0` thay vì tự viết biểu thức trừ hoặc chuỗi điều kiện đơn giản. So sánh số thực cần hiểu thứ tự do API định nghĩa, vì nó có thể khác phép toán `<`, `>` thông thường ở các giá trị đặc biệt.
+A correct choice is replacing the subtraction expression with `Integer.compare(points, other.points)`. For `long`, use `Long.compare`; for `double` and `float`, use `Double.compare`/`Float.compare` to get standard rules for `NaN`, infinity, and `-0.0` instead of writing manual subtraction or simple conditional chains. Floating-point comparison requires understanding the API-defined ordering, as it can differ from ordinary `<`, `>` operators on special values.
 
-Một lỗi khác là viết:
+Another mistake is writing:
 
 ```java
 return points > other.points ? 1 : -1;
 ```
 
-Dòng này trả về `-1` kể cả khi hai điểm bằng nhau, làm mất trường hợp `0`. Nếu dùng cùng hai giá trị bằng nhau ở cả hai chiều, cả hai kết quả là `-1` nên quy tắc đảo dấu cũng sai. Khi thực hiện so sánh nhiều trường, luôn xử lý trường hợp bằng nhau rồi mới xét khóa so sánh tiếp theo.
+This line returns `-1` even when both scores are equal, losing the `0` case. If the same equal values are compared in both directions, both results are `-1`, so the sign-reversal rule is broken as well. When performing multi-field comparisons, always handle the equality case before evaluating the next comparison key.
 
-## 5. Quy tắc đảo dấu nằm trong một hợp đồng lớn hơn
+## 5. The sign-reversal rule sits within a larger contract
 
-Đảo dấu là điều kiện bắt buộc nhưng chưa đủ để có thứ tự hợp lệ. Cần bảo đảm **tính bắc cầu** (`a > b` và `b > c` thì `a > c`) và **tính nhất quán của nhóm tương đương** (khi `a.compareTo(b) == 0`, hai giá trị phải có cùng dấu khi so với mọi `c` hợp lệ). Một comparator có thể đối dấu đúng theo từng cặp nhưng vẫn tạo vòng `a < b < c < a`.
+Sign reversal is a necessary condition, yet not sufficient for a valid ordering. You must ensure **transitivity** (`a > b` and `b > c` implies `a > c`) and **equivalence-class consistency** (when `a.compareTo(b) == 0`, both values must have the same sign when compared to any valid `c`). A comparator can reverse signs properly per pair while still creating a cycle `a < b < c < a`.
 
-Khác với `equals` (hai chiều cho cùng boolean), `compareTo` dùng **hai dấu ngược nhau** khi đổi vị trí, ngoại trừ trường hợp cùng trả `0`. Java khuyến nghị `compareTo == 0` nhất quán với `equals`, nhưng đây là yêu cầu thiết kế bổ sung, không phải nội dung của quy tắc đảo dấu. Ví dụ `BigDecimal("2.0")` và `BigDecimal("2.00")` cùng vị trí thứ tự nhưng khác `equals`; điều này tự nó không vi phạm quy tắc đảo dấu.
+Unlike `equals` (both directions give the same boolean), `compareTo` uses **opposite signs** when swapping positions, except when both return `0`. Java recommends `compareTo == 0` be consistent with `equals`, but this is an additional design guideline, not the content of the sign-reversal rule. For instance, `BigDecimal("2.0")` and `BigDecimal("2.00")` share the same ordering position yet differ under `equals`; this alone does not violate the sign-reversal rule.
 
-Để phép so sánh đáng tin cậy qua nhiều lượt, giữ các trường dùng xác định thứ tự ổn định khi đối tượng nằm trong `TreeSet`/`TreeMap`. Phần này định vị các quy tắc liên quan; bài về **bắc cầu**, **giá trị thứ ba** và **equals** phân tích riêng phản ví dụ cùng phép kiểm thử.
+To keep comparisons reliable across multiple passes, keep the fields used to determine ordering stable while the object is inside a `TreeSet`/`TreeMap`. This section situates the related rules; the lessons on **transitivity**, **the third value**, and **equals** analyze counterexamples and tests separately.
 
-## 6. Chương trình Java 17+ hoàn chỉnh để kiểm chứng
+## 6. Complete Java 17+ program for verification
 
-Lưu toàn bộ tệp dưới tên **`CompareSignDemo.java`**. Chương trình dùng `record Score` để triển khai `Comparable<Score>` an toàn bằng `Integer.compare`, dùng `BrokenScore` cố ý minh họa phép trừ tràn, và kiểm thử mọi cặp trong một tập giá trị biên.
+Save the entire file as **`CompareSignDemo.java`**. The program uses `record Score` to implement `Comparable<Score>` safely via `Integer.compare`, uses `BrokenScore` to deliberately illustrate overflowing subtraction, and tests all pairs across a set of boundary values.
 
 ```java
 import java.util.*;
@@ -161,7 +161,7 @@ public class CompareSignDemo {
 
         @Override
         public int compareTo(BrokenScore other) {
-            return points - other.points; // Lỗi cố ý: overflow.
+            return points - other.points; // Intentional bug: overflow.
         }
     }
 
@@ -213,14 +213,14 @@ public class CompareSignDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17 hoặc mới hơn:
+Compile and run with JDK 17 or newer:
 
 ```bash
 javac CompareSignDemo.java
 java CompareSignDemo
 ```
 
-Kết quả chính xác của chương trình:
+Exact output of the program:
 
 ```text
 low vs zero = -1
@@ -233,47 +233,47 @@ broken sign rule = false
 sorted set = [Score[points=-2], Score[points=4]]
 ```
 
-Giải thích:
+Explanation:
 
-1. `low.compareTo(zero)` trả `-1` vì `Integer.MIN_VALUE < 0`; đảo thứ tự thành `zero.compareTo(low)` trả `1`. Hai dấu đối nhau.
-2. `zero.compareTo(equal)` trả `0` vì cùng điểm số. Đảo thứ tự vẫn cho `0`.
-3. `checkSignRule` duyệt **toàn bộ 25 cặp** trong 5 giá trị, bao gồm cặp có cùng tham chiếu, cùng giá trị, âm/dương, và các biên `Integer.MIN_VALUE` / `Integer.MAX_VALUE`. Nếu có cặp sai quy tắc, hàm ném `AssertionError`; vì không có lỗi nên in `PASS`.
-4. `BrokenScore` dùng phép trừ. `0 - Integer.MIN_VALUE` bị tràn thành `-2147483648`, trong khi chiều ngược lại cũng cho cùng số âm. Do đó `broken sign rule = false`. Đây là ví dụ có kết quả xác định, không phụ thuộc ngẫu nhiên.
-5. `TreeSet` chứa các `Score` theo thứ tự tăng dần. Hai đối tượng có `points == 4` được `compareTo` đánh giá bằng 0, nên cây chỉ giữ một phần tử tương đương theo thứ tự. `record` sinh `toString` hiển thị dạng `Score[points=...]`.
+1. `low.compareTo(zero)` returns `-1` because `Integer.MIN_VALUE < 0`; swapping the order to `zero.compareTo(low)` returns `1`. The two signs are opposite.
+2. `zero.compareTo(equal)` returns `0` because the scores are equal. Swapping still gives `0`.
+3. `checkSignRule` iterates over **all 25 pairs** among 5 values, including pairs with the same reference, same value, negative/positive, and `Integer.MIN_VALUE` / `Integer.MAX_VALUE` boundaries. If any pair violates the rule, the function throws `AssertionError`; because there are no errors, it prints `PASS`.
+4. `BrokenScore` uses subtraction. `0 - Integer.MIN_VALUE` overflows to `-2147483648`, while the reverse direction also produces the same negative number. Hence `broken sign rule = false`. This is a deterministic example, not dependent on randomness.
+5. `TreeSet` stores `Score` objects in ascending order. The two objects with `points == 4` evaluate to 0 under `compareTo`, so the tree keeps only one ordering-equivalent element. `record` generates `toString` displaying `Score[points=...]`.
 
-**Lưu ý khi kiểm thử:** Đừng viết khẳng định `left.compareTo(right) == -right.compareTo(left)` cho một implementation tổng quát, vì việc phủ định `Integer.MIN_VALUE` bị tràn và hợp đồng chỉ quy định dấu. Cách đúng là so `Integer.signum(left.compareTo(right))` với `-Integer.signum(right.compareTo(left))`. `Integer.signum` chỉ cho giá trị trong {-1, 0, 1} nên phủ định an toàn.
+**Testing note:** Do not write an assertion `left.compareTo(right) == -right.compareTo(left)` for a general implementation, because negating `Integer.MIN_VALUE` overflows and the contract only specifies the sign. The right way is comparing `Integer.signum(left.compareTo(right))` with `-Integer.signum(right.compareTo(left))`. `Integer.signum` only yields values in {-1, 0, 1}, so negation is safe.
 
-## 7. Những lỗi phổ biến khi viết và sử dụng `compareTo()`
+## 7. Common mistakes when writing and using `compareTo()`
 
-| Lỗi | Hệ quả | Cách khắc phục |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| `return this.x - other.x;` với `int` | Tràn số nguyên làm sai dấu, có thể vi phạm đảo dấu | `Integer.compare(this.x, other.x)` |
-| Dùng `-compareResult` với kết quả có thể bằng `Integer.MIN_VALUE` | Không đổi được dấu vì tràn | Dùng `Integer.signum` để kiểm tra; đổi thứ tự tham số `compare` hoặc `Comparator.reversed` để đảo thứ tự |
-| Chỉ trả `1` hoặc `-1`, không có trường hợp `0` | Hai giá trị bằng nhau vẫn bị đặt trước nhau ở cả hai chiều | Xử lý trường hợp bằng nhau; dùng API compare chuẩn |
-| Giả sử kết quả chỉ là `-1`, `0`, `1` | Sai với các bộ so sánh hợp lệ trả `-8`, `42`,... | Chỉ kiểm tra dấu: `< 0`, `== 0`, `> 0` |
-| `compareTo` phụ thuộc dữ liệu thay đổi khi đã đưa vào `TreeSet` | Vị trí lưu trong cây không còn phù hợp thứ tự mới | Dùng khóa bất biến hoặc xóa và thêm lại |
-| Dùng cùng kiểu dữ liệu nhưng tiêu chí so sánh không bắc cầu | Thuật toán sắp xếp nhận thứ tự mâu thuẫn | Kiểm thử cả bộ ba và đặt tiêu chí từ điển nhất quán |
-| `compareTo` trả `0` cho hai đối tượng mà `equals` coi là khác | `TreeSet/TreeMap` có thể gộp chúng theo thứ tự | Cố gắng nhất quán với `equals` hoặc ghi rõ ngoại lệ |
-| Không xử lý `null` hoặc kiểu không thể so sánh | Có thể ném ngoại lệ sai loại hoặc hành vi khó đoán | Theo hợp đồng `Comparable`: `NullPointerException` khi so với null; loại không tương thích có thể gây `ClassCastException` |
+| `return this.x - other.x;` with `int` | Integer overflow produces wrong sign, potentially breaking sign reversal | `Integer.compare(this.x, other.x)` |
+| Using `-compareResult` when result can be `Integer.MIN_VALUE` | Fails to invert sign due to overflow | Use `Integer.signum` for checking; swap `compare` parameter order or `Comparator.reversed` to invert order |
+| Returning only `1` or `-1`, omitting the `0` case | Two equal values are placed before each other in both directions | Handle the equality case; use standard compare APIs |
+| Assuming results are only `-1`, `0`, `1` | Fails with valid comparators returning `-8`, `42`,... | Check only the sign: `< 0`, `== 0`, `> 0` |
+| `compareTo` depends on data modified after insertion into `TreeSet` | Stored position in the tree no longer matches the new order | Use immutable keys or remove and re-insert |
+| Same data type but non-transitive comparison criteria | Sorting algorithms receive contradictory ordering | Test triples and define consistent lexicographical criteria |
+| `compareTo` returns `0` for two objects that `equals` considers distinct | `TreeSet/TreeMap` may merge them by ordering | Strive for consistency with `equals` or document exceptions clearly |
+| Failing to handle `null` or incomparable types | May throw wrong exception type or show unpredictable behavior | Per `Comparable` contract: `NullPointerException` when comparing with null; incompatible types may cause `ClassCastException` |
 
-## 8. Bài tự kiểm tra và quy trình rà soát
+## 8. Self-check scenarios and review checklist
 
-**Tình huống A.** `a.compareTo(b)` trả `-12`. Chiều đảo `b.compareTo(a)` có bắt buộc trả `12` không?
+**Scenario A.** `a.compareTo(b)` returns `-12`. Must the reverse `b.compareTo(a)` return `12`?
 
-Không. Nó chỉ phải **dương**, ví dụ `1` hoặc `12`, miễn là toàn bộ các quy tắc còn lại của thứ tự cũng được tuân thủ.
+No. It only has to be **positive**, such as `1` or `12`, provided all remaining ordering rules are also respected.
 
-**Tình huống B.** Với `a = 0` và `b = Integer.MIN_VALUE`, code `return a - b;` cho kết quả nào?
+**Scenario B.** With `a = 0` and `b = Integer.MIN_VALUE`, what result does `return a - b;` produce?
 
-Kết quả `int` bị tràn thành `Integer.MIN_VALUE` (âm), dù 0 lớn hơn giá trị nhỏ nhất. Chiều ngược lại cũng âm, trực tiếp vi phạm quy tắc đảo dấu.
+The `int` result overflows to `Integer.MIN_VALUE` (negative), even though 0 is greater than the minimum value. The reverse direction is also negative, directly violating the sign-reversal rule.
 
-**Tình huống C.** Nếu `a.compareTo(b) == 0` và `b.compareTo(c) > 0`, điều kiện nhất quán với giá trị 0 suy ra điều gì?
+**Scenario C.** If `a.compareTo(b) == 0` and `b.compareTo(c) > 0`, what does consistency with zero imply?
 
-`a.compareTo(c)` cũng phải có **dấu dương**. Hai phần tử tương đương theo thứ tự phải so sánh với bên thứ ba theo cùng cách. Nếu kết quả lại âm hoặc bằng 0, implementation vi phạm hợp đồng.
+`a.compareTo(c)` must also have a **positive sign**. Two elements equivalent in ordering must compare against a third party in the same way. If the result is negative or zero, the implementation violates the contract.
 
-**Tình huống D.** Nếu `a.compareTo(b) == 0` nhưng `a.equals(b)` là `false`, có tự động làm sai quy tắc đảo dấu không?
+**Scenario D.** If `a.compareTo(b) == 0` yet `a.equals(b)` is `false`, does that automatically break the sign-reversal rule?
 
-Không. Quy tắc đảo dấu vẫn có thể được giữ. Nhưng thứ tự đó **không nhất quán với `equals`**, điều thường gây bất ngờ ở `TreeSet` và `TreeMap`.
+No. The sign-reversal rule can still hold. However, that ordering is **inconsistent with `equals`**, which often causes surprises in `TreeSet` and `TreeMap`.
 
-Khi review một implementation `compareTo`, hãy làm lần lượt: xác định tất cả trường và thứ tự ưu tiên khi so; dùng `Integer.compare`/`Long.compare` hoặc API có hợp đồng rõ; kiểm tra trường hợp 0; kiểm thử **hai chiều cho mọi cặp**; kiểm thử **bắc cầu với bộ ba**; kiểm thử các giá trị biên và tình huống dữ liệu có thể thay đổi; cuối cùng xác nhận quan hệ giữa `compareTo == 0` và `equals` có đúng với thiết kế khóa/tập hay không.
+When reviewing a `compareTo` implementation, go step by step: identify all fields and their priority order during comparison; use `Integer.compare`/`Long.compare` or APIs with clear contracts; check the zero case; test **both directions for all pairs**; test **transitivity with triples**; test boundary values and mutable data scenarios; finally verify whether the relationship between `compareTo == 0` and `equals` matches the key/set design.
 
-**Ghi nhớ:** `Comparable.compareTo` trả về một **dấu thứ tự**, không phải khoảng cách giữa hai giá trị. Đổi vị trí đối tượng phải đổi dấu kết quả; dùng phép so sánh chuẩn và kiểm tra toàn bộ hợp đồng để giữ thứ tự tự nhiên nhất quán.
+**Remember:** `Comparable.compareTo` returns an **ordering sign**, not the distance between two values. Swapping the objects must invert the result sign; use standard comparison functions and verify the entire contract to keep natural ordering consistent.

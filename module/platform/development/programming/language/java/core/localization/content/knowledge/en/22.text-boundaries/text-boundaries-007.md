@@ -1,81 +1,81 @@
-# Ngắt dòng theo ngôn ngữ và bố trí theo chiều rộng giao diện trong Java
+# Language-Aware Line Breaking and UI Width Layout in Java
 
-## 1. Hai câu hỏi khác nhau khi văn bản phải xuống dòng
+## 1. Two Different Questions When Text Must Wrap
 
-Một đoạn văn dài cần được chia thành nhiều dòng để hiển thị trong card, cửa sổ, hộp thoại, tài liệu hoặc báo cáo. Nhưng “xuống dòng” thực ra bao gồm **hai quyết định không giống nhau**:
+A long paragraph needs to be split into multiple lines to display inside a card, window, dialog, document, or report. Yet "line wrapping" actually involves **two distinct decisions**:
 
-1. **Ngữ nghĩa/ngôn ngữ:** Những vị trí nào trong chuỗi là **ranh giới được phép ngắt dòng** theo quy tắc ngôn ngữ và Unicode? Có được ngắt ở khoảng trắng, giữa hai chữ Hán, trước dấu câu, giữa các phần của emoji hoặc trong một từ tiếng Thái không?
-2. **Bố trí giao diện:** Với **độ rộng thực tế**, font, cỡ chữ, kerning, shaping, khoảng cách, direction và không gian sẵn có, **nên chọn vị trí ngắt nào** để dòng vừa vùng vẽ?
+1. **Linguistic/semantic:** Which positions in the string are **allowed line-break boundaries** according to language and Unicode rules? Can a line break at a space, between two CJK characters, before punctuation, inside an emoji, or inside a Thai word?
+2. **UI layout:** Given the **actual width**, font, font size, kerning, shaping, spacing, direction, and available space, **which break position should be chosen** so the line fits the drawing area?
 
-Trong Java, hai API thường biểu diễn hai vai trò này:
+In Java, two APIs typically represent these two roles:
 
-- `java.text.BreakIterator.getLineInstance(Locale)`: xác định **các vị trí có thể ngắt dòng** trong một chuỗi theo locale, **không nhận chiều rộng của vùng hiển thị**.
-- `java.awt.font.LineBreakMeasurer`: tạo các đoạn `TextLayout` **vừa một wrapping width**, có cân nhắc phép đo chữ của Java 2D và những điểm ngắt. Nó cần font/attributes và `FontRenderContext`, và có thể nhận `BreakIterator` do ứng dụng chỉ định.
+- `java.text.BreakIterator.getLineInstance(Locale)`: identifies **potential line-break positions** in a string for a locale, **without taking a display area width**.
+- `java.awt.font.LineBreakMeasurer`: produces `TextLayout` segments that **fit within a wrapping width**, taking Java 2D text metrics and break points into account. It needs font/attributes and a `FontRenderContext`, and can accept an application-specified `BreakIterator`.
 
-**Điểm cốt lõi:** `BreakIterator` không thể biết một hộp rộng 120 px hay 480 px. Ngược lại, tính toán chiều rộng mà bỏ qua quy tắc ngắt theo ngôn ngữ có thể xé từ, tách cụm ký tự hoặc đặt dấu câu sai chỗ.
+**Core point:** `BreakIterator` cannot know whether a box is 120 px or 480 px wide. Conversely, computing width while ignoring language line-breaking rules can split words, break character clusters, or misplace punctuation.
 
-### Mục tiêu học tập
+### Learning Objectives
 
-Sau bài này, bạn có thể phân biệt ranh giới ngắt “hợp lệ” với quyết định “vừa độ rộng”, sử dụng `BreakIterator.getLineInstance(locale)`, hiểu cách `LineBreakMeasurer` và `TextLayout` làm việc, chọn nơi nên xử lý wrapping trong Swing/Java 2D hoặc frontend, và tránh nhầm `String.length()` với độ rộng hiển thị.
+After this lesson, you will be able to distinguish "valid" break boundaries from "fits the width" layout decisions, use `BreakIterator.getLineInstance(locale)`, understand how `LineBreakMeasurer` and `TextLayout` work, choose where wrapping should be handled in Swing/Java 2D or a frontend, and avoid confusing `String.length()` with display width.
 
-## 2. Bốn mức ranh giới trong văn bản
+## 2. Four Boundary Levels in Text
 
-Java có `BreakIterator` cho nhiều loại phân đoạn, mỗi loại phục vụ một câu hỏi riêng:
+Java provides `BreakIterator` for multiple segmentation types, each answering a different question:
 
-| Factory | Câu hỏi | Dùng khi |
+| Factory | Question | Use When |
 | --- | --- | --- |
-| `BreakIterator.getCharacterInstance(locale)` | Ranh giới cụm ký tự để thao tác con trỏ/cắt theo ký tự | Di chuyển caret, chọn text; cần kiểm thử Unicode mới |
-| `BreakIterator.getWordInstance(locale)` | Ranh giới từ/đơn vị được bộ tách từ nhận biết | Highlight, thao tác theo từ, tìm kiếm sơ bộ |
-| `BreakIterator.getLineInstance(locale)` | Những điểm **có thể ngắt dòng** | Line wrapping theo ngôn ngữ |
-| `BreakIterator.getSentenceInstance(locale)` | Ranh giới câu | Phân tích/trình bày theo câu |
+| `BreakIterator.getCharacterInstance(locale)` | Character cluster boundaries for cursor movement / character slicing | Moving the caret, selecting text; test newer Unicode |
+| `BreakIterator.getWordInstance(locale)` | Word / segment-unit boundaries recognized by the segmenter | Highlighting, word-level actions, basic search |
+| `BreakIterator.getLineInstance(locale)` | Positions **where lines may break** | Language-aware line wrapping |
+| `BreakIterator.getSentenceInstance(locale)` | Sentence boundaries | Sentence-level analysis/presentation |
 
-Không hoán đổi những factory này:
+Do not interchange these factories:
 
-- **Word boundary** không đồng nghĩa **line-break opportunity**.
-- **Character boundary** không có nghĩa được phép xuống dòng ở đó trong một đoạn văn.
-- **Sentence boundary** không có nghĩa UI phải tạo một dòng mới ở cuối mọi câu.
-- **Line-break boundary** không quyết định UI thực sự xuống dòng ở vị trí ấy.
+- A **word boundary** does not equal a **line-break opportunity**.
+- A **character boundary** does not mean a line break is allowed there in a paragraph.
+- A **sentence boundary** does not mean the UI must start a new line at the end of every sentence.
+- A **line-break boundary** does not dictate that the UI actually breaks a line at that position.
 
-Bốn thao tác đều liên quan văn bản nhưng chúng có ý nghĩa khác nhau. Một ứng dụng muốn làm nổi bật từng từ không nên dùng line-break iterator để thay thế bộ xử lý từ; một ứng dụng muốn xuống dòng tự nhiên không nên cứ sau mỗi code point là tạo dòng mới.
+All four operations involve text, yet they carry different meanings. An application wanting to highlight individual words should not use a line-break iterator in place of a word processor; an application wanting natural wrapping should not start a new line after every code point.
 
-### Thuật ngữ: opportunity, soft wrap, hard break
+### Terminology: Opportunity, Soft Wrap, Hard Break
 
-- **Line-break opportunity:** một vị trí có thể dùng để ngắt theo quy tắc ngôn ngữ.
-- **Soft wrap:** xuống dòng do **thiếu chiều rộng**; không nhất thiết chèn ký tự newline vào chuỗi dữ liệu gốc.
-- **Hard break/explicit break:** người viết dữ liệu đã chèn newline hoặc separator với ý định tạo dòng/đoạn mới.
-- **Overflow:** đoạn không thể chia phù hợp nhưng cũng không vừa width; UI phải có chính sách cuộn, cắt, ngắt cưỡng bức hoặc hiển thị khác.
-- **Hyphenation:** ngắt một từ tại vị trí hợp lệ và có thể chèn dấu nối; là một khả năng ngôn ngữ riêng, không mặc nhiên được mọi formatter Java xử lý đầy đủ.
+- **Line-break opportunity:** a position eligible for breaking under linguistic rules.
+- **Soft wrap:** wrapping caused by **insufficient width**; does not necessarily insert newline characters into the underlying data string.
+- **Hard break / explicit break:** the data author inserted a newline or separator intending a new line or paragraph.
+- **Overflow:** a segment that cannot be split cleanly yet still exceeds the width; the UI needs a scrolling, truncation, forced-break, or alternate display policy.
+- **Hyphenation:** breaking a word at a valid position and optionally inserting a hyphen; a distinct linguistic capability not handled completely out-of-the-box by every Java formatter.
 
-Một line-break iterator có thể trả nhiều điểm cho phép ngắt trong khi UI chọn **không** ngắt điểm nào vì toàn bộ dòng vẫn vừa.
+A line-break iterator can return many allowed break points while the UI chooses **not** to break at any of them because the entire line fits.
 
-## 3. Vì sao ngắt dòng phụ thuộc ngôn ngữ?
+## 3. Why Does Line Breaking Depend on Language?
 
-Mỗi ngôn ngữ và hệ chữ có quy ước khác nhau:
+Each language and script has different conventions:
 
-| Ngữ cảnh | Điều thường phải cân nhắc |
+| Context | Typical Considerations |
 | --- | --- |
-| Tiếng Anh và nhiều ngôn ngữ dùng khoảng trắng | Ưu tiên ngắt giữa các từ, tránh đặt dấu câu sát sai vị trí |
-| Tiếng Việt | Khoảng trắng thường ngăn cách âm tiết; tách dòng đúng chưa chắc tương đương tách từ về mặt ngữ nghĩa |
-| Tiếng Nhật | Có thể ngắt giữa các ký tự nhất định, nhưng nhiều cặp dấu/cụm nhỏ bị quy tắc kinsoku ràng buộc |
-| Tiếng Trung | Thường không dùng khoảng trắng giữa từ; quy tắc dấu câu và loại ký tự quan trọng |
-| Tiếng Thái và Khmer | Có thể viết nhiều từ không có khoảng trắng; cần thuật toán/từ điển hoặc dữ liệu ngôn ngữ phù hợp |
-| Tiếng Ả Rập/Hebrew | Ngoài điểm ngắt còn cần xử lý text direction và shaping |
-| Emoji/chuỗi có dấu kết hợp | Tránh xé đôi grapheme cluster, surrogate pair hoặc emoji ghép |
-| URL/đường dẫn/tên định danh dài | Có thể cần policy cho chuỗi khó tìm chỗ ngắt hợp lệ |
+| English and many space-delimited languages | Prefer breaking between words; avoid stranding punctuation incorrectly |
+| Vietnamese | Spaces usually separate syllables; a visually valid line break does not necessarily match semantic word splitting |
+| Japanese | Can break between certain characters, though many punctuation/small-kana pairs are constrained by *kinsoku* rules |
+| Chinese | Usually omits spaces between words; punctuation and character-class rules matter |
+| Thai and Khmer | Can write multiple words without spaces; require dictionary/model-based segmentation or appropriate language data |
+| Arabic / Hebrew | Beyond break points, text direction and shaping must be handled |
+| Emojis / combining-mark sequences | Avoid splitting a grapheme cluster, surrogate pair, or composite emoji |
+| URLs / file paths / long identifiers | May need a policy for strings lacking ordinary break opportunities |
 
-**Không phải mọi khoảng trắng đều cho phép ngắt.** Ví dụ U+00A0 NO-BREAK SPACE nhằm ngăn cách một số thành phần nhưng không cho tách tại chỗ ấy theo quy tắc thông thường. Ngược lại, U+200B ZERO WIDTH SPACE có thể đánh dấu cơ hội ngắt mà không hiện khoảng trắng.
+**Not every space permits a break.** For example, U+00A0 NO-BREAK SPACE separates components visually while forbidding a line break there under normal rules. Conversely, U+200B ZERO WIDTH SPACE can mark a break opportunity without displaying whitespace.
 
-**Không phải mọi dấu gạch nối đều bắt buộc xuống dòng.** Dấu nối thông thường có thể ảnh hưởng cơ hội ngắt; soft hyphen U+00AD là gợi ý có điều kiện, và hiển thị dấu nối khi ngắt phụ thuộc engine. Không nên giả định `BreakIterator` của JDK tự cung cấp hyphenation chuẩn cho mọi ngôn ngữ hay tự chèn ký tự dấu nối vào text.
+**Not every hyphen forces a line break.** Ordinary hyphens can influence break opportunities; soft hyphen U+00AD is a conditional hint, and whether a hyphen is rendered when breaking depends on the engine. Do not assume the JDK's `BreakIterator` provides standard hyphenation for every language or inserts hyphen characters into text automatically.
 
-### Quy tắc Unicode không phải nguyên lý “sau mỗi code point đều được ngắt”
+### Unicode Rules Are Not "Break After Every Code Point"
 
-Unicode Standard Annex #14 định nghĩa Unicode Line Breaking Algorithm, gồm các lớp line-breaking và nhiều quy tắc cho phép/cấm ngắt. Các engine có thể áp dụng thêm tailoring theo locale hoặc dữ liệu từ điển. Điều này giải thích vì sao dùng một regex kiểu `"\\s+"` hoặc `String.split(" ")` thường không đủ cho tiếng Trung, tiếng Nhật, tiếng Thái và ký tự đặc biệt.
+Unicode Standard Annex #14 defines the Unicode Line Breaking Algorithm, consisting of line-breaking classes and many rules permitting or forbidding breaks. Engines may additionally apply locale tailoring or dictionary data. This explains why a regex such as `"\\s+"` or `String.split(" ")` is usually insufficient for Chinese, Japanese, Thai, and special characters.
 
-Các thuật toán/bộ dữ liệu của Java có thể thay đổi theo phiên bản JDK, CLDR/provider và hỗ trợ locale. Vì vậy, khi một sản phẩm yêu cầu dòng xuống ở chính xác từng chỗ cho một ngôn ngữ cụ thể, cần kiểm thử **trên runtime và rendering engine thực tế**.
+Java's algorithms and datasets can change across JDK versions, CLDR/providers, and locale support. Therefore, when a product requires exact line breaks for a specific language, test **on the actual runtime and rendering engine**.
 
-## 4. BreakIterator.getLineInstance(Locale): tìm điểm được phép ngắt
+## 4. `BreakIterator.getLineInstance(Locale)`: Finding Allowed Break Points
 
-API cơ bản:
+Basic API:
 
 ```java
 Locale locale = Locale.forLanguageTag("vi-VN");
@@ -86,9 +86,9 @@ BreakIterator breaker =
 breaker.setText("Một đoạn văn tiếng Việt để kiểm tra ngắt dòng.");
 ```
 
-`BreakIterator` dùng **offset trong chuỗi UTF-16**. Gọi `first()` lấy điểm đầu, `next()` lần lượt lấy các ranh giới và trả `BreakIterator.DONE` khi hết. `last()` cho ranh giới cuối của phạm vi.
+`BreakIterator` uses **offsets in a UTF-16 string**. Calling `first()` gets the start point, `next()` returns each boundary in turn and `BreakIterator.DONE` at the end. `last()` gives the final boundary of the range.
 
-Một vòng duyệt điển hình:
+A typical traversal loop:
 
 ```java
 int start = breaker.first();
@@ -98,32 +98,32 @@ for (int end = breaker.next();
         start = end, end = breaker.next()) {
 
     String segment = text.substring(start, end);
-    // Một đoạn giữa hai cơ hội ngắt liên tiếp.
-    // CHƯA phải một dòng sau khi bố trí theo chiều rộng.
+    // A segment between two consecutive break opportunities.
+    // NOT YET a width-laid-out line.
 }
 ```
 
-Đây là đoạn minh họa trong method với `text` và `breaker` đã được khai báo. Những `segment` được trả về là các vùng giữa các ranh giới, **không** phải “các dòng” mà UI chắc chắn sẽ hiển thị.
+This is an illustrative snippet inside a method with `text` and `breaker` already declared. The returned `segment`s are regions between boundaries, **not** "the lines" the UI will necessarily display.
 
-### Các phương thức hữu ích
+### Useful Methods
 
-| Phương thức | Vai trò |
+| Method | Role |
 | --- | --- |
-| `getLineInstance(locale)` | Tạo line-break iterator theo locale |
-| `setText(String)` | Gán đoạn text cần phân tích |
-| `first()` / `last()` | Về ranh giới đầu/cuối |
-| `next()` / `previous()` | Duyệt qua các ranh giới |
-| `following(offset)` | Ranh giới đầu tiên **sau** offset |
-| `preceding(offset)` | Ranh giới cuối cùng **trước** offset |
-| `isBoundary(offset)` | Kiểm tra offset có là ranh giới không |
-| `current()` | Vị trí hiện tại, có thể thay đổi khi gọi API |
-| `BreakIterator.DONE` | Giá trị báo đã hết ranh giới |
+| `getLineInstance(locale)` | Creates a locale-specific line-break iterator |
+| `setText(String)` | Assigns the text to analyze |
+| `first()` / `last()` | Moves to the first/last boundary |
+| `next()` / `previous()` | Traverses across boundaries |
+| `following(offset)` | First boundary **after** `offset` |
+| `preceding(offset)` | Last boundary **before** `offset` |
+| `isBoundary(offset)` | Checks whether `offset` is a boundary |
+| `current()` | Current position, which can change when calling APIs |
+| `BreakIterator.DONE` | Sentinel value indicating no more boundaries |
 
-**Lưu ý:** `isBoundary` và các phép tìm ranh giới có thể thay đổi vị trí duyệt nội bộ. Nếu cần lưu vị trí của vòng lặp, quản lý riêng start/end hoặc tạo iterator/clone phù hợp.
+**Note:** `isBoundary` and boundary-lookup calls can mutate the internal traversal position. If you need to preserve loop positions, manage `start`/`end` separately or create an appropriate iterator/clone.
 
-### 4.1. Java 17 runnable: chứng minh line boundaries không phải viewport lines
+### 4.1. Runnable Java 17: Proving Line Boundaries Are Not Viewport Lines
 
-Tệp `LineBoundaryDemo.java`:
+File `LineBoundaryDemo.java`:
 
 ```java
 import java.text.BreakIterator;
@@ -170,14 +170,14 @@ public class LineBoundaryDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17+:
+Compile and run with JDK 17+:
 
 ```bash
 javac -encoding UTF-8 LineBoundaryDemo.java
 java LineBoundaryDemo
 ```
 
-Stdout ổn định:
+Stable stdout:
 
 ```text
 startAtZero=true
@@ -189,58 +189,58 @@ hasEndBoundary=true
 hasOpportunities=true
 ```
 
-Chương trình chỉ kiểm tra **đặc trưng chung của ranh giới**, không hard-code danh sách vị trí ngắt của một locale provider cụ thể. Đầu ra không hề có một biến `viewportWidth` — vì `BreakIterator` **không có tham số chiều rộng**.
+The program checks only **general boundary invariants**, without hardcoding a specific locale provider's list of break positions. The output has no `viewportWidth` variable at all — because `BreakIterator` **takes no width parameter**.
 
-Nếu muốn quan sát các candidate boundaries thật, có thể in từng `next`, `substring(previous, next)` và mã UTF-16; kết quả chi tiết có thể khác giữa JDK/provider/locale. Trong một chương trình trình bày nội dung, các candidate này cần được kết hợp tiếp với phép đo chữ, không nên chèn `"\n"` sau mọi candidate.
+If you want to observe the actual candidate boundaries, you can print each `next`, `substring(previous, next)`, and UTF-16 codes; exact results can vary across JDK/provider/locale. In a content-rendering program, these candidates must be combined with text measurement rather than inserting `"\n"` after every candidate.
 
-## 5. Chiều rộng giao diện thuộc một tầng khác
+## 5. UI Width Belongs to a Different Layer
 
-Một textbox rộng 160 đơn vị và một panel rộng 480 đơn vị chứa **cùng chuỗi**. Những cơ hội ngắt ngôn ngữ có thể giống nhau, nhưng số dòng hiển thị thường khác.
+A 160-unit-wide textbox and a 480-unit-wide panel contain **the same string**. The linguistic break opportunities may be identical, yet the displayed line count typically differs.
 
 ```text
-VĂN BẢN GỐC
+ORIGINAL TEXT
 "Internationalization needs careful line breaking."
 
        |
        +--> BreakIterator(locale)
-       |       └── Ranh giới có thể ngắt theo ngôn ngữ
+       |       └── Linguistically allowed break boundaries
        |
        +--> Layout context
                 font + size + shaping + text direction
                 + available width + padding + scaling
                         |
-                        ├── vùng hẹp  → nhiều soft-wrapped lines
-                        └── vùng rộng → ít soft-wrapped lines
+                        ├── narrow region → more soft-wrapped lines
+                        └── wide region   → fewer soft-wrapped lines
 ```
 
-Không tính chiều rộng bằng `String.length()`, `codePointCount()` hoặc “trung bình mỗi chữ là 8 px”. Font có glyph rộng/hẹp khác nhau, kerning, ligatures, emoji, combining marks và phông thay thế. Cùng số Unicode code points có thể chiếm các độ rộng khác nhau.
+Do not compute width using `String.length()`, `codePointCount()`, or "average 8 px per letter". Fonts have varying narrow/wide glyphs, kerning, ligatures, emojis, combining marks, and fallback fonts. The same count of Unicode code points can occupy very different widths.
 
-### So sánh từng loại kích thước
+### Comparing Different Kinds of Sizes
 
-| Thước đo | Ví dụ API | Dùng để làm gì? |
+| Measurement | Example API | What Is It For? |
 | --- | --- | --- |
-| Số UTF-16 units | `s.length()` | Index trong `String`; **không** phải chiều rộng |
-| Số Unicode code points | `s.codePointCount(0, s.length())` | Đếm code points; **không** phải chiều rộng |
-| Số grapheme clusters | Regex `\X` hoặc segmenter phù hợp | Đếm cụm ký tự người dùng cảm nhận; **không** phải pixel width |
-| Font advances/glyph metrics | `TextLayout`, `FontRenderContext` | Đo cần thiết cho bố trí chữ |
-| Wrapping width | Kích thước vùng bố trí trong hệ tọa độ rendering | Giới hạn chiều ngang thực tế |
-| Số dòng hiển thị | Kết quả text layout | Phụ thuộc cả điểm ngắt và width/font |
+| UTF-16 unit count | `s.length()` | Indexing inside `String`; **not** width |
+| Unicode code point count | `s.codePointCount(0, s.length())` | Counting code points; **not** width |
+| Grapheme cluster count | Regex `\X` or an appropriate segmenter | Counting user-perceived character clusters; **not** pixel width |
+| Font advances / glyph metrics | `TextLayout`, `FontRenderContext` | Measurements needed for text layout |
+| Wrapping width | Layout region size in rendering coordinate space | Actual horizontal limit |
+| Displayed line count | Text layout result | Depends on both break points and width/font |
 
-Ví dụ các chuỗi `"WWWW"` và `"iiii"` đều dài 4 UTF-16 units, nhưng với nhiều font tỷ lệ, độ rộng thực tế rất khác. Đừng tính line wrapping bằng cách cắt sau mỗi 20 `char` nếu mục tiêu là giữ chiều rộng hiển thị chính xác.
+For example, `"WWWW"` and `"iiii"` are both 4 UTF-16 units long, yet in many proportional fonts their actual widths differ dramatically. Do not implement line wrapping by slicing after every 20 `char`s when the goal is maintaining accurate visual width.
 
-### Width không chỉ là số pixel CSS
+### Width Is Not Just CSS Pixels
 
-Trong Java 2D, `LineBreakMeasurer.nextLayout(float wrappingWidth)` nhận độ rộng theo **hệ tọa độ của text layout/render context**, thường dùng cùng tọa độ user space của thao tác vẽ. Nếu hiển thị trên màn hình HiDPI, có transform, scaling hoặc font rendering khác, phải quản lý phép đo theo cùng render context với khi vẽ. Không tự giả định con số `100f` luôn là 100 device pixels độc lập mọi transform.
+In Java 2D, `LineBreakMeasurer.nextLayout(float wrappingWidth)` takes width in **the coordinate space of the text layout / render context**, typically matching the user-space coordinates of the drawing operation. If displaying on a HiDPI screen, with transforms, scaling, or different font rendering, manage measurements using the same render context as drawing. Do not assume `100f` is always 100 device pixels independent of all transforms.
 
-## 6. LineBreakMeasurer: đưa ranh giới ngôn ngữ vào phép bố trí
+## 6. `LineBreakMeasurer`: Bringing Language Boundaries into Layout
 
-Java 2D có `java.awt.font.LineBreakMeasurer`. Nó nhận:
+Java 2D provides `java.awt.font.LineBreakMeasurer`. It accepts:
 
-- `AttributedCharacterIterator` cho **một đoạn văn** có thuộc tính font/format;
-- `FontRenderContext` để đo glyphs trong môi trường rendering;
-- tùy chọn `BreakIterator` cho các line-break opportunities.
+- an `AttributedCharacterIterator` for **one paragraph** with font/formatting attributes;
+- a `FontRenderContext` to measure glyphs in the rendering environment;
+- an optional `BreakIterator` for line-break opportunities.
 
-Ví dụ tạo object:
+Example object creation:
 
 ```java
 AttributedString attributed = new AttributedString(text);
@@ -256,26 +256,26 @@ LineBreakMeasurer measurer = new LineBreakMeasurer(
         frc);
 ```
 
-Đây là đoạn minh họa trong một method, cần import từ `java.awt.Font`, `java.awt.font.*`, `java.awt.geom.AffineTransform`, `java.text.*` và `java.util.Locale`.
+This is an illustrative snippet inside a method, requiring imports from `java.awt.Font`, `java.awt.font.*`, `java.awt.geom.AffineTransform`, `java.text.*`, and `java.util.Locale`.
 
-`nextLayout(width)` trả `TextLayout` đại diện cho đoạn ký tự vừa trong một dòng với chiều rộng yêu cầu, rồi **nâng vị trí** bên trong measurer. Có thể duyệt đến `getPosition() == iterator.getEndIndex()`.
+`nextLayout(width)` returns a `TextLayout` representing the slice of characters that fits on one line within the requested width, and **advances the position** inside the measurer. You can iterate until `getPosition() == iterator.getEndIndex()`.
 
-Nếu một từ quá dài để vừa ngay đầu dòng, chính sách mặc định của `LineBreakMeasurer` có thể lấy một phần từ để đảm bảo tiến độ. Do đó, **không được khẳng định mọi dòng tuyệt đối chỉ ngắt ở word boundary**. Tài liệu Oracle mô tả nó ưu tiên từ trọn vẹn khi vừa, nhưng khi từ đầu quá dài có thể buộc chia để đặt được ký tự vào dòng.
+If a word is too long to fit even at the start of a line, `LineBreakMeasurer`'s default policy can take a partial word to guarantee forward progress. Therefore, **do not assert that every line breaks strictly at a word boundary**. Oracle documentation notes that it prefers whole words when they fit, yet when the first word is too long it can force a split so characters can be placed on the line.
 
-### Đối chiếu API
+### API Comparison
 
-| API | Có nhận width? | Có đo glyph/font? | Có trả dòng đã bố trí? |
+| API | Takes width? | Measures glyphs/fonts? | Returns laid-out lines? |
 | --- | --- | --- | --- |
-| `BreakIterator.getLineInstance(locale)` | Không | Không | Không; trả boundaries |
-| `LineBreakMeasurer.nextLayout(width)` | **Có** | **Có** | **Có**, `TextLayout` |
-| `TextLayout.getAdvance()` | Không phải thuật toán wrap | Đại diện độ tiến theo trục dòng | Thước đo của một layout đã tạo |
-| `String.length()` | Không | Không | Không |
-| `String.split("\\R")` | Không | Không | Chỉ tách **dấu xuống dòng đã có** |
-| `JTextArea`/Swing UI | Kích thước thành phần | Qua engine UI | Có thể tự wrap tùy cấu hình |
+| `BreakIterator.getLineInstance(locale)` | No | No | No; returns boundaries |
+| `LineBreakMeasurer.nextLayout(width)` | **Yes** | **Yes** | **Yes**, `TextLayout` |
+| `TextLayout.getAdvance()` | Not a wrap algorithm | Represents advance along the line axis | Metric of an already-created layout |
+| `String.length()` | No | No | No |
+| `String.split("\\R")` | No | No | Splits only **existing newline markers** |
+| `JTextArea`/Swing UI | Component size | Via UI engine | Can auto-wrap depending on configuration |
 
-### 6.1. Chương trình Java 17 chạy được: width thay đổi số dòng
+### 6.1. Runnable Java 17 Program: Width Changes Line Count
 
-Tệp `WidthLayoutDemo.java`:
+File `WidthLayoutDemo.java`:
 
 ```java
 import java.awt.Font;
@@ -347,14 +347,14 @@ public class WidthLayoutDemo {
 }
 ```
 
-Lưu mã nguồn với UTF-8, biên dịch và chạy trong môi trường JDK 17 có module `java.desktop`:
+Save source as UTF-8, compile and run in a JDK 17 environment containing the `java.desktop` module:
 
 ```bash
 javac -encoding UTF-8 WidthLayoutDemo.java
 java WidthLayoutDemo
 ```
 
-Stdout dự kiến:
+Expected stdout:
 
 ```text
 narrowPreserved=true
@@ -363,20 +363,20 @@ narrowHasLines=true
 wideHasLines=true
 ```
 
-Cả hai phép bố trí **không sửa văn bản gốc**, vì `reconstructed` ghép lại các đoạn cắt theo offset của measurer. Số dòng thực tế có thể khác theo font và render environment; demo cố ý không hard-code `narrow.lines()` hay `wide.lines()`. Để quan sát chúng, thêm:
+Neither layout **modifies the original text**, because `reconstructed` joins the slices cut at the measurer's offsets. Actual line counts can vary by font and rendering environment; the demo intentionally does not hardcode `narrow.lines()` or `wide.lines()`. To observe them, add:
 
 ```java
 System.out.println("narrowLines=" + narrow.lines());
 System.out.println("wideLines=" + wide.lines());
 ```
 
-Đó là đoạn bổ sung **bên trong `main`**. Thông thường vùng 100 units tạo nhiều dòng hơn vùng 400 units, nhưng giá trị cụ thể phụ thuộc font và phép đo. Trong UI production, phải dùng **đúng width thực** sau khi trừ padding/insets/scrollbars, và render bằng cùng `FontRenderContext` mà bạn dùng để đo.
+That is an addition **inside `main`**. Typically a 100-unit region produces more lines than a 400-unit region, though exact values depend on the font and metrics. In a production UI, use the **exact actual width** after subtracting padding/insets/scrollbars, and render with the same `FontRenderContext` you used to measure.
 
-### 6.2. TextLayout không tự vẽ mọi thứ
+### 6.2. `TextLayout` Does Not Draw Everything Automatically
 
-`LineBreakMeasurer.nextLayout` trả layout, nhưng client vẫn cần sắp xếp vị trí từng dòng, chiều cao, baseline, ascent/descent/leading và vẽ `layout.draw(Graphics2D, x, y)` ở vị trí phù hợp. Cũng cần xử lý alignment, tabs, paragraph spacing, clipping và text direction theo yêu cầu.
+`LineBreakMeasurer.nextLayout` returns a layout, yet the client still must position each line, handle height, baseline, ascent/descent/leading, and draw `layout.draw(Graphics2D, x, y)` at the right coordinates. You also need to handle alignment, tabs, paragraph spacing, clipping, and text direction as required.
 
-Đối với một đoạn có nhiều dòng, thuật toán dàn trang có thể cộng:
+For a multi-line paragraph, a layout loop can accumulate:
 
 ```java
 baseline += layout.getAscent();
@@ -384,33 +384,33 @@ layout.draw(g2d, x, baseline);
 baseline += layout.getDescent() + layout.getLeading();
 ```
 
-Đây là đoạn minh họa trong method vẽ, `layout`, `g2d`, `baseline`, `x` phải có sẵn. Không phải chương trình `main` độc lập.
+This is an illustrative snippet inside a paint method; `layout`, `g2d`, `baseline`, and `x` must already exist. It is not a standalone `main` program.
 
-## 7. Newline chủ động khác soft wrapping
+## 7. Explicit Newlines Differ from Soft Wrapping
 
-Xét văn bản:
+Consider the text:
 
 ```text
 Hello world.
 Next paragraph.
 ```
 
-Nếu giữa hai câu có ký tự `\n`, đây là **quyết định của người viết dữ liệu**. Nếu không có newline mà UI hẹp đến mức phải đưa chữ “Next” xuống dòng, đó là **soft wrap**.
+If there is a `\n` character between the two sentences, that is **the data author's decision**. If there is no newline and the UI is narrow enough that the word "Next" wraps to the next line, that is a **soft wrap**.
 
-**Không tự chèn newline vào model khi chỉ muốn cho responsive layout.** Khi kích thước cửa sổ thay đổi, newline được chèn sẵn sẽ trở thành hard break và có thể phá cấu trúc bố cục trên màn hình rộng.
+**Do not insert newlines into the model when you only want responsive layout.** When the window resizes, pre-inserted newlines become hard breaks and can ruin layout on wide screens.
 
-Một số dấu kết thúc dòng tồn tại trong Unicode hoặc quy tắc platform:
+Several line-ending markers exist in Unicode or platform conventions:
 
 - LF: `\n` (U+000A);
 - CR: `\r` (U+000D);
-- CRLF: hai code units `\r\n`, thường nên xử lý như một sequence;
-- U+0085 NEXT LINE, U+2028 LINE SEPARATOR, U+2029 PARAGRAPH SEPARATOR có thể cần chính sách riêng tùy nguồn dữ liệu.
+- CRLF: two code units `\r\n`, which should usually be treated as one sequence;
+- U+0085 NEXT LINE, U+2028 LINE SEPARATOR, U+2029 PARAGRAPH SEPARATOR may need explicit policies depending on the data source.
 
-Không dùng `String.split("\n")` rồi kết luận đã xử lý tất cả các quy ước newline. Java regex `\R` nhận một Unicode linebreak sequence theo định nghĩa của `Pattern`, trong đó có CRLF.
+Do not call `String.split("\n")` and conclude you have handled every newline convention. Java regex `\R` matches any Unicode linebreak sequence as defined by `Pattern`, including CRLF.
 
-### Java 17 runnable: tách hard breaks
+### Runnable Java 17: Splitting Hard Breaks
 
-Tệp `ExplicitLineBreakDemo.java`:
+File `ExplicitLineBreakDemo.java`:
 
 ```java
 public class ExplicitLineBreakDemo {
@@ -441,96 +441,96 @@ second=Second
 third=Third
 ```
 
-`split("\\R", -1)` tách các dấu kết thúc dòng đã tồn tại, **không** dàn trang theo width. Nó cũng **không giữ lại chính các ký tự dấu xuống dòng** trong mảng kết quả; nếu cần round-trip nguyên văn, phải bảo quản separators hoặc lưu text gốc.
+`split("\\R", -1)` splits on already-present line terminators; it does **not** lay out lines by width. Nor does it **preserve the line-break characters themselves** in the resulting array; if you need verbatim round-tripping, preserve the separators or keep the original text.
 
-Khi dùng `LineBreakMeasurer`, tài liệu API yêu cầu iterator đại diện **một paragraph**. Vì thế cần phân đoạn theo hard breaks trước, rồi dàn trang **riêng mỗi paragraph**. Với dòng trống liên tiếp, phần hiển thị cần giữ dòng trống theo chính sách giao diện, không để một thư viện tự loại bỏ chúng.
+When using `LineBreakMeasurer`, the API documentation requires the iterator to represent **a single paragraph**. Therefore, split on hard breaks first, then lay out **each paragraph separately**. For consecutive blank lines, rendering should preserve blank lines per UI policy rather than letting a library silently drop them.
 
-## 8. Vì sao số ký tự không thể thay thế đo chiều rộng?
+## 8. Why Can't Character Count Replace Width Measurement?
 
-Phương án sai phổ biến:
+Common flawed approach:
 
 ```java
 int columns = 20;
 for (int i = 0; i < text.length(); i += columns) {
     String line = text.substring(
             i, Math.min(i + columns, text.length()));
-    // Hiển thị line ...
+    // Display line ...
 }
 ```
 
-Đây là đoạn minh họa trong method, **không phải thuật toán wrap UI phù hợp** vì:
+This is an illustrative snippet inside a method, **not an appropriate UI wrapping algorithm** because:
 
-1. `String.length()` đếm UTF-16 code units chứ không đếm glyph width.
-2. Một emoji U+1F600 chiếm hai units; cắt giữa pair tạo UTF-16 ill-formed.
-3. Chữ dùng dấu kết hợp hoặc emoji ZWJ có thể chiếm nhiều code points nhưng một grapheme cluster.
-4. Font proportional khiến chữ `W` và `i` rộng khác nhau; font fallback làm metric thay đổi.
-5. Tiếng Nhật, Trung, Thái không tuân quy tắc “cứ đủ N ký tự là ngắt”.
-6. Dấu câu không phải lúc nào cũng được phép xuất hiện ở đầu/cuối dòng.
-7. Văn bản hai chiều có thứ tự hiển thị khác thứ tự code units.
-8. Kích cỡ chữ, letter spacing, kerning, zoom và DPI ảnh hưởng thực tế.
+1. `String.length()` counts UTF-16 code units, not glyph widths.
+2. An emoji `U+1F600` takes two units; slicing mid-pair creates ill-formed UTF-16.
+3. Letters with combining marks or ZWJ emojis can span multiple code points yet form one grapheme cluster.
+4. Proportional fonts give `W` and `i` different widths; font fallback changes metrics.
+5. Japanese, Chinese, and Thai do not obey "break every N characters".
+6. Punctuation is not always allowed at the start or end of a line.
+7. Bidirectional text has a visual display order different from code unit order.
+8. Font size, letter spacing, kerning, zoom, and DPI affect actual layout.
 
-Một biến thể “đếm code points rồi cắt” tránh vấn đề surrogate pair, nhưng **vẫn không thay thế** layout theo font và language rules.
+A variant that "counts code points and slices" avoids the surrogate-pair bug, yet **still does not replace** font- and language-rule-based layout.
 
-### Khi nào cắt theo số ký tự là hợp lệ?
+### When Is Slicing by Character Count Valid?
 
-Nếu contract quy định một hệ thống **terminal monospace** có cột ký tự, cũng cần xét East Asian width, combining marks, control characters và emoji width. Thậm chí “mỗi code point chiếm một cột” cũng không luôn đúng. Với ô hiển thị đồ họa, cách đúng là dùng text layout theo pixel/user-space metrics.
+If a contract specifies a **monospace terminal** with character columns, you still need to consider East Asian width, combining marks, control characters, and emoji widths. Even "one code point per column" is not always true. For graphical display boxes, the right approach is text layout using pixel/user-space metrics.
 
-## 9. Ngôn ngữ không có khoảng trắng giữa từ
+## 9. Languages Without Spaces Between Words
 
-### 9.1. Tiếng Trung và tiếng Nhật
+### 9.1. Chinese and Japanese
 
-Nhiều câu tiếng Trung/Nhật không có khoảng trắng giữa các từ. Một thuật toán chỉ tìm dấu space sẽ xem cả câu như một token và có thể tràn width hoặc cắt tùy tiện.
+Many Chinese/Japanese sentences have no spaces between words. An algorithm looking only for space characters treats the whole sentence as one token and either overflows width or splits arbitrarily.
 
-Một line-break iterator có thể đưa ra ranh giới dựa trên Unicode line breaking, bao gồm những điểm giữa các ký tự CJK được phép. Nhưng còn các quy tắc về dấu ngoặc, dấu câu, ký tự nhỏ, dấu kéo dài âm hoặc cặp ký tự không nên tách. Cần dùng dữ liệu locale/provider phù hợp và test câu thật.
+A line-break iterator can yield boundaries based on Unicode line breaking, including allowed points between CJK characters. Yet there are also rules for brackets, punctuation, small kana, prolonged sound marks, or pairs that should not be separated. Use appropriate locale/provider data and test with real sentences.
 
-Ví dụ không nên đưa một dấu đóng ngoặc hoặc dấu câu vốn phải đứng cùng từ trước sang đầu dòng chỉ để lấp đầy width.
+For example, do not move a closing parenthesis or punctuation mark that belongs with the preceding word onto the start of the next line just to fill width.
 
-### 9.2. Tiếng Thái và Khmer
+### 9.2. Thai and Khmer
 
-Văn bản có thể gồm các từ liền nhau không có khoảng trắng. Ranh giới word/line đôi khi cần segmentation dựa trên từ điển hoặc model. `BreakIterator.getLineInstance(Locale)` của Java là API cấp cao, nhưng kết quả phụ thuộc khả năng hỗ trợ ngôn ngữ của runtime. Không giả định mọi JDK có hiệu quả phân đoạn giống nhau cho tiếng Thái, Khmer và Lào.
+Text can consist of adjacent words with no spaces. Word/line boundaries sometimes require dictionary- or model-based segmentation. Java's `BreakIterator.getLineInstance(Locale)` is a high-level API, yet results depend on the runtime's language support. Do not assume every JDK segments Thai, Khmer, and Lao with equal effectiveness.
 
-Với sản phẩm yêu cầu chính xác cao, hãy so sánh kết quả với dữ liệu kiểm thử bản địa và cân nhắc ICU4J hoặc segmentation engine phù hợp. Đừng thay bằng regex chỉ ngắt ở dấu cách rồi chấp nhận cả câu chạy ra ngoài màn hình.
+For products requiring high accuracy, compare results against native test data and consider ICU4J or an appropriate segmentation engine. Do not fall back to a space-only regex and accept whole sentences running off the screen.
 
-### 9.3. Tiếng Việt: khoảng trắng chưa chắc là ranh giới từ
+### 9.3. Vietnamese: Spaces Are Not Necessarily Word Boundaries
 
-Tiếng Việt thường có khoảng trắng giữa âm tiết. Một từ nhiều âm tiết như “công nghệ” có thể được viết thành hai khối cách nhau bởi space. Một line break hợp lệ về mặt hiển thị không có nghĩa đã phân tích chính xác “từ” ngôn ngữ cho tìm kiếm hay NLP. Vì vậy `getLineInstance` và `getWordInstance` có mục đích khác nhau, và việc xác định word semantics sâu hơn cần bộ xử lý riêng.
+Vietnamese usually has spaces between syllables. A multi-syllable word like `"công nghệ"` is written as two space-separated blocks. A visually valid line break does not mean linguistic "words" have been accurately analyzed for search or NLP. Thus `getLineInstance` and `getWordInstance` serve different purposes, and deeper word semantics require a separate processor.
 
-## 10. Emoji, combining marks và grapheme clusters
+## 10. Emojis, Combining Marks, and Grapheme Clusters
 
-Unicode không tương đương “mỗi code point là một ký tự nhìn thấy”:
+Unicode does not equate to "one code point is one visible character":
 
-- `e\u0301` là chữ e và combining acute accent, có thể hiển thị thành một grapheme.
-- `😀` là một supplementary code point, được biểu diễn bằng **surrogate pair** trong Java UTF-16.
-- Emoji có skin tone modifier gồm nhiều code points.
-- Emoji gia đình có thể dùng ZWJ U+200D nối nhiều người/biểu tượng thành một grapheme cluster.
-- Lá cờ emoji có thể là cặp regional indicators.
+- `e\u0301` is `e` plus a combining acute accent, which can display as one grapheme.
+- `😀` is a supplementary code point, represented by a **surrogate pair** in Java UTF-16.
+- Emojis with skin-tone modifiers consist of multiple code points.
+- Family emojis can use ZWJ `U+200D` to join multiple people/symbols into one grapheme cluster.
+- Flag emojis can be pairs of regional indicators.
 
-Nếu bộ dàn trang rơi vào tình huống “không có từ nào vừa width”, phải cẩn thận khi fallback sang chia ký tự: **đừng cắt giữa high và low surrogate** hoặc trong một grapheme cluster. Một engine text layout hiện đại thường xử lý shaping/cluster, nhưng phạm vi Unicode/emoji hỗ trợ phải kiểm thử với chính runtime và font được triển khai.
+If a layout engine hits a "no word fits the width" fallback and splits by character, be careful: **do not slice between high and low surrogates** or inside a grapheme cluster. A modern text-layout engine normally handles shaping/clusters, yet the supported Unicode/emoji scope must be tested on the exact deployed runtime and fonts.
 
-Java có `BreakIterator.getCharacterInstance(locale)` cho character boundaries, và từ Java 9 regex `\X` có nghĩa Unicode extended grapheme cluster theo khả năng thư viện. Tuy nhiên, segmentation mới nhất, ZWJ sequences và hành vi font rendering có thể thay đổi theo Unicode/JDK.
+Java has `BreakIterator.getCharacterInstance(locale)` for character boundaries, and since Java 9 the regex `\X` means Unicode extended grapheme cluster within library capabilities. Still, the latest segmentation, ZWJ sequences, and font rendering behavior can vary by Unicode/JDK version.
 
-**Gợi ý:** Nếu UI cắt/ẩn bớt chuỗi ở một độ rộng cụ thể, ưu tiên engine layout thực tế có khả năng xử lý grapheme clusters và overflow. Đừng tùy tiện chạy `substring(0, 10)` để cắt tên người hoặc emoji.
+**Tip:** If the UI truncates or ellipsizes a string at a specific width, prefer a real layout engine capable of handling grapheme clusters and overflow. Do not arbitrarily run `substring(0, 10)` to truncate person names or emojis.
 
-## 11. Văn bản hai chiều và bố trí glyph
+## 11. Bidirectional Text and Glyph Layout
 
-Với tiếng Ả Rập, tiếng Hebrew và chuỗi trộn Latin/số:
+For Arabic, Hebrew, and mixed Latin/digit strings:
 
-- **Logical order** là thứ tự ký tự trong `String`.
-- **Visual order** là thứ tự glyph sau khi áp Unicode Bidirectional Algorithm và shaping.
-- **Line break** chia đoạn thành các vùng hiển thị, có thể ảnh hưởng cách xử lý bidi theo từng dòng.
-- **Alignment** là quyết định của UI: left/right/start/end, có thể khác tùy hướng văn bản.
+- **Logical order** is the character order in `String`.
+- **Visual order** is the glyph order after applying the Unicode Bidirectional Algorithm and shaping.
+- **Line break** splits a paragraph into display spans, which can affect per-line bidi processing.
+- **Alignment** is a UI decision: left/right/start/end, which can vary with text direction.
 
-`BreakIterator` chỉ cung cấp ranh giới, **không làm đầy đủ việc định hướng và vẽ glyph**. `TextLayout`/Java 2D có chức năng layout glyph và hỗ trợ văn bản phức tạp ở mức hệ thống rendering. Trường hợp cần kiểm soát bidi, Java có thêm `java.text.Bidi`.
+`BreakIterator` provides only boundaries; it **does not perform full directionality and glyph drawing**. `TextLayout` / Java 2D handles glyph layout and complex text support at the rendering system level. When bidi control is needed, Java also provides `java.text.Bidi`.
 
-Đừng đảo `String` bằng `reverse()` để làm RTL. Đó không phải cách render tiếng Ả Rập; cũng có thể phá surrogate pair/combining marks hoặc thứ tự ngữ nghĩa. Hãy dùng bidi-aware rendering, font hỗ trợ và test chuỗi trộn tiếng Ả Rập với số, dấu câu, URL.
+Do not reverse a `String` with `reverse()` to produce RTL. That is not how Arabic is rendered; it can also corrupt surrogate pairs, combining marks, or semantic order. Use bidi-aware rendering, supporting fonts, and test strings mixing Arabic with numbers, punctuation, and URLs.
 
-Một giao diện có direction RTL vẫn phải chọn các line-break opportunities theo ngôn ngữ; chiều chữ và khả năng ngắt là **hai chiều dữ liệu khác nhau**.
+An RTL UI still must select line-break opportunities according to the language; text direction and breakability are **two distinct data dimensions**.
 
-## 12. Swing, Java 2D, web và server: chọn tầng chịu trách nhiệm
+## 12. Swing, Java 2D, Web, and Server: Choosing the Responsible Layer
 
-### 12.1. Swing components
+### 12.1. Swing Components
 
-Với `JTextArea`, Java có:
+For `JTextArea`, Java provides:
 
 ```java
 JTextArea area = new JTextArea(text);
@@ -538,227 +538,227 @@ area.setLineWrap(true);
 area.setWrapStyleWord(true);
 ```
 
-Đây là đoạn minh họa trong UI method với import `javax.swing.JTextArea`. `setLineWrap(true)` cho phép wrap khi chiều rộng bị giới hạn; `setWrapStyleWord(true)` yêu cầu ưu tiên ranh giới từ. Đừng hiểu “word” ở đây là thuật toán phân tích từ chính xác cho mọi ngôn ngữ và mọi trường hợp; vẫn cần test với text quốc tế và UI thật.
+This is an illustrative snippet inside a UI method requiring `import javax.swing.JTextArea`. `setLineWrap(true)` enables wrapping when width is constrained; `setWrapStyleWord(true)` requests preferring word boundaries. Do not treat "word" here as an exact linguistic word analyzer for all languages and cases; still test with international text and the real UI.
 
-Một số Swing components như `JLabel` hoặc `JTextPane` có cơ chế layout khác nhau; không coi tất cả nhận cùng hai cờ này. Với vẽ custom vào `Graphics2D`, `LineBreakMeasurer` là API có ý nghĩa trực tiếp.
+Other Swing components like `JLabel` or `JTextPane` have different layout mechanisms; do not assume they all take the same two flags. For custom painting onto `Graphics2D`, `LineBreakMeasurer` is the directly relevant API.
 
-### 12.2. Java 2D custom painting
+### 12.2. Java 2D Custom Painting
 
-Với PDF preview, canvas drawing, custom editor hay in ấn bằng Java 2D, ứng dụng có thể phải tự xử lý paragraph breaks, font attributes, `LineBreakMeasurer`, `TextLayout`, margins, alignment và painting. `BreakIterator` cung cấp ranh giới được phép, còn `LineBreakMeasurer` chọn đoạn vừa width.
+For PDF previews, canvas drawing, custom editors, or printing with Java 2D, an application may have to manage paragraph breaks, font attributes, `LineBreakMeasurer`, `TextLayout`, margins, alignment, and painting itself. `BreakIterator` supplies allowed boundaries, while `LineBreakMeasurer` picks segments fitting the width.
 
-### 12.3. Frontend web và CSS
+### 12.3. Web Frontends and CSS
 
-Khi backend Java gửi văn bản sang browser, browser đã có layout engine, font metrics, CSS và width thật. Thông thường **không** nên để Java chèn newline vào nội dung chỉ để vừa với độ rộng màn hình đã đoán. Browser có thể wrap theo Unicode/CSS và kích thước thực.
+When a Java backend sends text to a browser, the browser already has a layout engine, font metrics, CSS, and actual width. Usually you should **not** have Java insert newlines into content merely to fit a guessed screen width. The browser can wrap according to Unicode/CSS and real dimensions.
 
-Các thuộc tính CSS như `white-space`, `overflow-wrap`, `word-break`, `line-break` và `hyphens` tác động khác nhau đến xử lý wrap, khoảng trắng, phân đoạn hoặc hyphenation. Chúng cần được chọn theo thiết kế và test từng ngôn ngữ, không dùng `word-break: break-all` như giải pháp mặc định cho mọi nội dung quốc tế.
+CSS properties such as `white-space`, `overflow-wrap`, `word-break`, `line-break`, and `hyphens` affect wrapping, whitespace handling, segmentation, or hyphenation differently. Choose them deliberately by design and test each language rather than using `word-break: break-all` as a default blanket fix for all international content.
 
-Nếu có nội dung đặc biệt như URL cực dài, code inline hoặc identifier, có thể cần policy overflow riêng để không phá layout; đó là **quyết định hiển thị**, không có nghĩa thay đổi chuỗi dữ liệu gốc.
+For special content like ultra-long URLs, inline code, or identifiers, a specific overflow policy may be needed to prevent breaking layout; that is a **display decision**, not a reason to alter the underlying data string.
 
-### 12.4. Server tạo email/plain text có độ rộng cố định
+### 12.4. Server Generating Fixed-Width Email / Plain Text
 
-Một email text/plain hoặc báo cáo terminal có thể yêu cầu giới hạn cột. Nhưng cần xem contract yêu cầu **cột monospace**, byte limit hay width thực. Trong bối cảnh không có cùng font/viewport với người nhận, server khó tạo kết quả line wrapping đúng mọi thiết bị. Ưu tiên để client hiển thị tự ngắt, trừ khi chuẩn giao thức yêu cầu hard wrap.
+A `text/plain` email or terminal report may require a column limit. Check whether the contract specifies **monospace columns**, a byte limit, or actual visual width. Without knowing the recipient's exact font and viewport, a server struggles to produce line wrapping that looks right on every device. Prefer letting the client wrap on display unless a protocol standard requires hard wrapping.
 
-### 12.5. PDF và in ấn
+### 12.5. PDF and Printing
 
-Khổ trang, lề, cột, font, rendering context và dấu ngắt trang làm width cố định hơn web responsive. Khi đó server-side text layout có thể hợp lý, nhưng phải dùng đúng font và kích thước sẽ vẽ ra PDF/giấy. Nếu render PDF bằng một thư viện riêng, không giả định kết quả đo từ Java 2D luôn trùng tuyệt đối với thư viện PDF khác.
+Page size, margins, columns, fonts, rendering context, and page breaks make width more fixed than in responsive web UIs. In those cases server-side text layout can make sense, provided you use the exact fonts and sizes that will be drawn to the PDF/paper. When rendering PDF with a separate library, do not assume Java 2D measurements match another PDF library identically.
 
-## 13. Line break và hard break trong nội dung dữ liệu
+## 13. Line Breaks and Hard Breaks in Data Content
 
-Không nên gộp ba hành vi:
+Do not conflate three behaviors:
 
-| Hành vi | Dấu trong dữ liệu | Phụ thuộc width? | Ví dụ |
+| Behavior | Marker in Data | Depends on Width? | Example |
 | --- | --- | --- | --- |
-| Người viết chèn newline | `\n`, `\r\n` hoặc separator khác | Không | Xuống dòng thủ công |
-| Renderer soft-wrap | Thường không chèn ký tự vào chuỗi | Có | Textbox bị hẹp |
-| Layout engine phân đoạn theo điểm được phép | Dựa ranh giới được ngôn ngữ cho phép | Gián tiếp khi renderer chọn điểm | Chọn xuống dòng tại space |
+| Author inserts newline | `\n`, `\r\n`, or another separator | No | Manual line break |
+| Renderer soft-wrap | Usually inserts no characters into the string | Yes | Narrow textbox |
+| Layout engine breaks at allowed points | Based on linguistically allowed boundaries | Indirectly when renderer picks a point | Breaking at a space |
 
-Nếu ứng dụng lưu text có soft breaks thành newline cứng trong DB, việc copy/paste có thể mang newline dư, tìm kiếm/so sánh có thể thay đổi và text sẽ không tự bố trí lại khi resize. Tách **data model** khỏi **layout model**.
+If an application saves soft breaks as hard newlines in the database, copy/paste can carry extra newlines, search/comparison can break, and text will not reflow when resized. Separate the **data model** from the **layout model**.
 
-Trường hợp thực sự cần lưu hard breaks, giữ đúng quyết định của người nhập. Nếu normalize line endings theo `\n`, đó là một bước biến đổi có contract, phải tách khỏi soft wrapping.
+When hard breaks genuinely need to be saved, preserve the user's explicit choices. If normalizing line endings to `\n`, treat that as a contractual transformation step separate from soft wrapping.
 
-### Ranh giới thuộc UTF-16 indexes
+### Boundaries Belong to UTF-16 Indexes
 
-`BreakIterator` trả các offsets để dùng với `String.substring` và `java.text.CharacterIterator`; trong Java, đây là **UTF-16 code unit positions**. Điều này khác số code points và width. Nếu dùng `String.codePoints()`, phải chuyển đổi index đúng cách; không coi offset từ BreakIterator là vị trí thứ n của `IntStream` code points.
+`BreakIterator` returns offsets for use with `String.substring` and `java.text.CharacterIterator`; in Java, these are **UTF-16 code unit positions**. This differs from code point counts and width. If using `String.codePoints()`, convert indexes properly; do not treat `BreakIterator` offsets as the n-th index of a code point `IntStream`.
 
-## 14. Sự khác nhau giữa “được phép” và “nên”
+## 14. Difference Between "Allowed" and "Should"
 
-Một ví dụ tiếng Anh có các cơ hội ngắt giữa các từ:
+An English example has break opportunities between words:
 
 ```text
-Đoạn: "A quick brown fox jumps over the lazy dog."
+Paragraph: "A quick brown fox jumps over the lazy dog."
 
-Candidates: nhiều chỗ giữa các từ và ở cuối đoạn
+Candidates: many positions between words and at the end of the paragraph
 
-Vùng rất rộng:
+Very wide region:
 "A quick brown fox jumps over the lazy dog."
 
-Vùng hẹp:
+Narrow region:
 "A quick brown"
 "fox jumps over"
 "the lazy dog."
 ```
 
-Đây là **minh họa ý tưởng**, không phải output chuẩn của `LineBreakMeasurer` cho một font và width cụ thể. Engine thực tế có thể chia thành dòng khác theo font, cỡ chữ và cách đo.
+This is a **conceptual illustration**, not the exact output of `LineBreakMeasurer` for a specific font and width. An actual engine may break lines differently depending on font, font size, and measurement.
 
-Một renderer thường cố giữ nhiều từ vừa nhất trong một dòng. Nhưng một thuật toán dàn trang xuất bản có thể chọn ngắt khác để cân bằng độ dài dòng, tránh widow/orphan, xử lý hyphenation hoặc justification. `BreakIterator` không quyết định những tiêu chí mỹ thuật ấy; `LineBreakMeasurer` cung cấp chính sách thông dụng cho text layout, không phải engine typography vạn năng.
+A renderer typically tries to fit as many words as possible on one line. Yet a publishing typesetting algorithm might pick different breaks to balance line lengths, avoid widows/orphans, or handle hyphenation and justification. `BreakIterator` does not decide those typographic aesthetics; `LineBreakMeasurer` provides a standard policy for text layout, not a universal typography engine.
 
-## 15. Tùy chỉnh và giới hạn của LineBreakMeasurer
+## 15. Customization and Limits of `LineBreakMeasurer`
 
-### 15.1. nextLayout và nextOffset
+### 15.1. `nextLayout` and `nextOffset`
 
-- `nextLayout(width)`: trả `TextLayout` kế tiếp và **tiến position**.
-- `nextOffset(width)`: ước tính offset kết thúc của layout kế tiếp nhưng **không cập nhật position**.
-- `setPosition(index)`: đặt điểm bắt đầu tiếp theo trong phạm vi iterator.
-- `nextLayout(width, offsetLimit, requireNextWord)`: cho giới hạn offset và chính sách yêu cầu một từ trọn vẹn khi đang thêm text vào một dòng đã có nội dung.
-- `insertChar` / `deleteChar`: cập nhật một trường hợp thay đổi text đơn lẻ với iterator mới; không phải phép mutate nội dung text bên trong measurer tự động.
+- `nextLayout(width)`: returns the next `TextLayout` and **advances `position`**.
+- `nextOffset(width)`: estimates the ending offset of the next layout **without updating `position`**.
+- `setPosition(index)`: sets the next starting point within the iterator's range.
+- `nextLayout(width, offsetLimit, requireNextWord)`: supplies an offset limit and a policy requiring a whole word when appending text to an existing line.
+- `insertChar` / `deleteChar`: updates for a single text edit with a new iterator; not an automatic mutation of internal text inside the measurer.
 
-Theo tài liệu, `nextLayout(width, limit, true)` có thể trả `null` khi cả từ tiếp theo không vừa phần width còn lại; cần xử lý `null` thay vì lấy `getPosition()` rồi lặp vô tận.
+Per the documentation, `nextLayout(width, limit, true)` can return `null` when the entire next word does not fit the remaining width; handle `null` rather than reading `getPosition()` and looping forever.
 
-### 15.2. Với tab và custom line policy
+### 15.2. Tabs and Custom Line Policies
 
-`LineBreakMeasurer` xem tab theo chính sách riêng, và ứng dụng có tab stops có thể phải giới hạn offset cho mỗi đoạn. Không mặc định một ký tự `\t` luôn chiếm đúng 4 dấu cách hoặc cùng width ở mọi font/render. Nếu UI dùng rich text và tabs, cần thiết kế tab handling riêng.
+`LineBreakMeasurer` treats tabs under its own policy, and an application with tab stops may need to bound the offset per segment. Do not assume `\t` always equals 4 spaces or the same width across all fonts/renderers. If a UI supports rich text and tabs, design tab handling explicitly.
 
-### 15.3. Khi độ rộng bằng 0 hoặc âm
+### 15.3. When Width Is Zero or Negative
 
-Một vùng vẽ không có width dùng được phải được xử lý tại tầng layout trước khi gọi measurer. Tránh vòng lặp không tiến position hoặc sử dụng giá trị bất hợp lệ. Có thể kiểm tra `width > 0`, layout empty paragraph theo policy của UI, và hiển thị placeholder/scroll khi vùng quá nhỏ.
+A drawing region with no usable width must be handled at the layout layer before invoking the measurer. Avoid loops that fail to advance `position` or pass invalid values. You can check `width > 0`, lay out empty paragraphs per UI policy, and show a placeholder/scrollbar when the region is too small.
 
-### 15.4. Rich text: nhiều font trên cùng dòng
+### 15.4. Rich Text: Multiple Fonts on the Same Line
 
-`AttributedString` có thể chứa nhiều đoạn font khác nhau. Khi nhiều font, font size và glyph metrics thay đổi trong một paragraph, độ rộng không còn là một hàm đơn giản của số ký tự. `TextLayout` cần các thuộc tính đúng, và việc chia dòng có thể thay đổi nếu người dùng bôi đậm một từ.
+`AttributedString` can contain spans with different fonts. When fonts, font sizes, and glyph metrics vary within one paragraph, width is no longer a simple function of character count. `TextLayout` needs accurate attributes, and line breaks can shift if a user bolds a word.
 
-### 15.5. Không phải mọi hệ thống đều có java.desktop
+### 15.5. Not Every System Has `java.desktop`
 
-`BreakIterator` thuộc module `java.base`. `LineBreakMeasurer`, `TextLayout` và `FontRenderContext` thuộc `java.desktop`. Nếu ứng dụng chạy trong runtime được tạo bằng `jlink` chỉ có một số module, phần Java 2D có thể không hiện diện. Hãy xác định nhu cầu text layout trên server hay client; không tự kéo thêm phần graphics nếu backend chỉ cần ngữ nghĩa ranh giới văn bản.
+`BreakIterator` belongs to the `java.base` module. `LineBreakMeasurer`, `TextLayout`, and `FontRenderContext` belong to `java.desktop`. If an application runs on a `jlink` custom runtime containing only selected modules, the Java 2D portion may be absent. Determine whether text layout is needed on the server or client; do not pull in graphics modules if the backend only needs text-boundary semantics.
 
-## 16. Hiệu năng, caching và thread safety
+## 16. Performance, Caching, and Thread Safety
 
-Cả boundary analysis lẫn glyph layout đều có chi phí. Với UI lớn hoặc text thay đổi liên tục, tối ưu cần dựa trên profile:
+Both boundary analysis and glyph layout have a cost. For large UIs or rapidly changing text, base optimizations on profiling:
 
-- `BreakIterator` có trạng thái vị trí và text đang phân tích. Không chia sẻ một instance rồi gọi `setText` cho nhiều request đồng thời.
-- `LineBreakMeasurer` là iterator/trạng thái bố trí của **một paragraph**; không dùng một instance đồng thời cho nhiều paragraph hoặc đổi text mà không làm mới/áp dụng API update được hỗ trợ.
-- `FontRenderContext` và font attributes phải thống nhất với render; cache layout theo width nếu width/font/text/locale không đổi, và invalidate khi có thay đổi.
-- Khi text/locale/provider khác nhau, các boundaries có thể thay đổi; không dùng cache key chỉ dựa trên chuỗi văn bản.
-- Đừng hard-code một mảng newline đã wrap để dùng cho cả mobile và desktop.
-- Không đo performance bằng một lần gọi có JIT warm-up chưa ổn; với workload lớn có thể dùng JMH hoặc đo UI thật.
+- `BreakIterator` holds mutable position and analyzed text state. Do not share one instance and call `setText` across concurrent requests.
+- `LineBreakMeasurer` is a stateful iterator/layout helper for **one paragraph**; do not use a single instance concurrently across multiple paragraphs or change text without refreshing or using supported update APIs.
+- `FontRenderContext` and font attributes must match rendering; cache layouts by width when width/font/text/locale are unchanged, and invalidate on changes.
+- When text/locale/provider differ, boundaries can change; do not use a cache key based solely on the text string.
+- Do not hardcode one pre-wrapped newline array for both mobile and desktop.
+- Do not benchmark with a single un-warmed call; for heavy workloads use JMH or real UI profiling.
 
-Nếu dùng `BreakIterator.getLineInstance()` không tham số, nó dùng default locale của môi trường. Trong app đa người dùng, truyền locale được chọn tường minh; **không** đổi `Locale.setDefault` theo từng HTTP request vì default là state JVM dùng chung.
+Calling zero-arg `BreakIterator.getLineInstance()` uses the environment's default locale. In multi-user apps, pass the chosen locale explicitly; do **not** call `Locale.setDefault` per HTTP request because the default is shared JVM state.
 
-## 17. Lỗi thường gặp
+## 17. Common Pitfalls
 
-| Nhận định sai | Cách hiểu đúng |
+| Misconception | Correct Understanding |
 | --- | --- |
-| “`BreakIterator.getLineInstance` tự chia paragraph thành dòng vừa 200 px.” | Nó chỉ trả các cơ hội ngắt; không nhận width |
-| “Cứ mỗi boundary trả về là một dòng.” | Một dòng có thể chứa nhiều đoạn giữa các boundaries |
-| “Cứ 20 `char` là vừa 20 cột.” | `char` là UTF-16 code unit, không phải glyph width |
-| “Dùng `String.split(" ")` là ngắt dòng đúng mọi ngôn ngữ.” | Nhiều hệ chữ không có space giữa từ; dấu câu/Unicode còn quy tắc |
-| “Word boundary luôn bằng line boundary.” | Hai loại segmentation khác mục đích |
-| “Dấu xuống dòng trong model và soft wrap của UI là một.” | Hard break có trong data; soft wrap phụ thuộc layout |
-| “Ngắt giữa surrogate pair là ổn nếu không có exception.” | Có thể tạo UTF-16 ill-formed |
-| “Một code point là một ký tự nhìn thấy.” | Grapheme cluster có thể chứa nhiều code points |
-| “Chọn Locale là đủ để biết chiều rộng của chữ.” | Width cần font, size, shaping, render context |
-| “Dùng layout tiếng Anh cho tiếng Thái sẽ luôn đúng.” | Phải có segmentation/locale/data phù hợp |
-| “Các glyph RTL chỉ cần đảo String.” | Cần bidi-aware shaping và rendering |
-| “Tự wrap backend là hợp lý cho responsive web.” | Thường nên để browser/layout engine quyết định bằng width thực |
-| “`LineBreakMeasurer` không bao giờ chia một từ.” | Có thể chia khi từ đầu không vừa width |
-| “`LineBreakMeasurer` tự quản lý mọi hard paragraph breaks.” | Nên tách paragraphs và bố trí từng đoạn theo contract |
-| “Thay đổi font không ảnh hưởng cách chia dòng.” | Glyph metrics thay đổi, điểm xuống dòng có thể khác |
-| “Cứ có cơ hội ngắt hợp lệ là UI nhất thiết ngắt.” | Ngắt thực tế còn phụ thuộc width và bố trí |
+| "`BreakIterator.getLineInstance` automatically splits a paragraph into 200-px lines." | It returns only break opportunities; it takes no width |
+| "Every returned boundary is one line." | One line can span many segments between boundaries |
+| "20 `char`s always fit 20 columns." | `char` is a UTF-16 code unit, not glyph width |
+| "`String.split(" ")` wraps lines correctly for all languages." | Many scripts have no spaces between words; punctuation/Unicode have rules |
+| "Word boundaries always equal line boundaries." | The two segmentations serve different purposes |
+| "Newlines in the model and UI soft wraps are the same." | Hard breaks live in data; soft wraps depend on layout |
+| "Breaking inside a surrogate pair is fine if no exception occurs." | It can produce ill-formed UTF-16 |
+| "One code point is one visible character." | A grapheme cluster can contain multiple code points |
+| "Picking a `Locale` is enough to know character width." | Width requires font, size, shaping, and render context |
+| "Using English layout for Thai will always work." | Appropriate segmentation/locale/data is needed |
+| "RTL glyphs only need `String.reverse()`." | Bidi-aware shaping and rendering are required |
+| "Backend wrapping makes sense for responsive web." | Usually the browser/layout engine should decide using actual width |
+| "`LineBreakMeasurer` never splits a word." | It can split when the first word exceeds the width |
+| "`LineBreakMeasurer` handles all hard paragraph breaks itself." | Split paragraphs and lay out each segment per contract |
+| "Changing fonts does not affect line breaks." | Glyph metrics change, so break points can shift |
+| "Whenever a valid break opportunity exists, the UI must break." | Actual breaking also depends on width and layout |
 
-## 18. Kiểm thử thực tế
+## 18. Practical Testing
 
-### 18.1. Tầng ranh giới ngôn ngữ
+### 18.1. Linguistic Boundary Layer
 
-- Chạy `BreakIterator.getLineInstance` với `en-US`, `vi-VN`, `ja-JP`, `zh-CN`, `th-TH` trên dữ liệu bản địa.
-- Kiểm tra offsets tăng dần, nằm trong phạm vi UTF-16, và iterator đến cuối đoạn đúng.
-- Kiểm tra cụm dấu câu, khoảng trắng không ngắt, zero-width space, dấu nối và chuỗi không có khoảng trắng.
-- Kiểm tra surrogate pair, dấu kết hợp và emoji ZWJ không bị cắt trái với quy tắc/khả năng runtime được cam kết.
-- Pin runtime/provider hoặc chấp nhận các biến thể boundary khi dữ liệu Unicode/locale thay đổi.
-- Khi cần segmentation có dictionary, test với corpus thực; không suy từ một câu tiếng Anh.
+- Run `BreakIterator.getLineInstance` with `en-US`, `vi-VN`, `ja-JP`, `zh-CN`, and `th-TH` on native data.
+- Verify offsets strictly increase, stay within UTF-16 bounds, and reach the end of the text cleanly.
+- Test punctuation clusters, non-breaking spaces, zero-width spaces, hyphens, and spaceless strings.
+- Verify surrogate pairs, combining marks, and ZWJ emojis are not split contrary to committed runtime rules/capabilities.
+- Pin the runtime/provider or allow for boundary variations when Unicode/locale data updates.
+- When dictionary-based segmentation is needed, test with a real corpus; do not extrapolate from one English sentence.
 
-### 18.2. Tầng bố trí
+### 18.2. Layout Layer
 
-- Với **cùng text/locale/font**, đo số dòng ở các width khác nhau.
-- Đổi font, font size, rich text hoặc DPI/scale rồi kiểm tra wrap lại.
-- Kiểm tra nhãn dài, URL, emoji, từ rất dài, space và NBSP.
-- Đảm bảo layout không tiến ra ngoài paragraph và không bị vòng lặp vô hạn khi vùng quá hẹp.
-- Nếu cắt/ellipsis, kiểm tra không xé grapheme hoặc che mất nội dung quan trọng.
-- Kiểm tra LTR/RTL và hỗn hợp chữ với số/dấu câu.
-- Kiểm tra height, baseline, ascent/descent và clipping; dòng đủ width nhưng không đủ height vẫn bị cắt.
+- With **the same text/locale/font**, measure line counts across different widths.
+- Change font, font size, rich text, or DPI/scale and verify re-wrapping.
+- Test long labels, URLs, emojis, very long words, spaces, and NBSP.
+- Ensure layout never advances past the paragraph or enters an infinite loop when the region is too narrow.
+- If truncating/ellipsizing, verify graphemes are not torn or important content hidden unexpectedly.
+- Test LTR/RTL and mixed letters with digits/punctuation.
+- Verify height, baseline, ascent/descent, and clipping; a line that fits width can still clip if height is insufficient.
 
-### 18.3. Tầng dữ liệu
+### 18.3. Data Layer
 
-- Text soft-wrapped có thể tái bố trí khi resize mà **không đổi text gốc**.
-- Hard breaks được giữ theo yêu cầu; CRLF không biến thành hai dòng trống vô ý.
-- Copy/paste không mang newline do soft-wrap nếu thiết kế chỉ wrap khi render.
-- API/DB lưu văn bản canonical; UI layout không chèn fragment ngoài ý muốn vào dữ liệu.
-- Kiểm tra khi client browser và backend khác font/rendering engine: không kỳ vọng line count chính xác giống nhau.
+- Soft-wrapped text can reflow on resize **without altering the original text**.
+- Hard breaks are preserved as required; CRLF does not turn into two accidental blank lines.
+- Copy/paste does not include soft-wrap newlines if the design wraps only at render time.
+- APIs/DB store canonical text; UI layout does not inject unintended fragments into data.
+- Account for client browser and backend having different font/rendering engines: do not expect identical exact line counts.
 
-### 18.4. Tầng accessibility và đa ngôn ngữ
+### 18.4. Accessibility and Multilingual Layer
 
-- Với screen reader, thứ tự đọc dựa trên logical text, không bị thay đổi bởi thao tác đảo visual order.
-- Không dùng ký tự newline cưỡng bức làm mất ngữ nghĩa một câu dài.
-- Kiểm tra bản dịch dài hơn tiếng Anh làm UI co giãn đúng.
-- Với người dùng phóng to chữ, wrapping đổi nhưng thông tin vẫn không bị che.
-- Kiểm tra ngôn ngữ trộn trong cùng paragraph và direction của đoạn.
+- For screen readers, reading order follows logical text, unaffected by visual reordering.
+- Do not insert forced newlines that break the meaning of a long sentence.
+- Test translations longer than English so the UI scales properly.
+- When users enlarge text size, wrapping adjusts while keeping information unclipped.
+- Test mixed languages within the same paragraph and paragraph direction.
 
-## 19. Bài tập tự luyện và đáp án
+## 19. Self-Practice Exercises and Answers
 
-**Bài 1.** `BreakIterator.getLineInstance(Locale.US)` nhận đoạn text và trả nhiều ranh giới. Liệu đó có phải số dòng hiển thị khi một textbox rộng 250 px không?
+**Exercise 1.** `BreakIterator.getLineInstance(Locale.US)` receives text and returns multiple boundaries. Is that the number of lines displayed in a 250-px-wide textbox?
 
-**Đáp án:** Không. Nó chỉ cung cấp các vị trí có thể ngắt. Số dòng cần width, font, shaping và engine layout.
+**Answer:** No. It provides only candidate break positions. Line count requires width, font, shaping, and a layout engine.
 
-**Bài 2.** Cùng một đoạn text, khi width tăng từ 160 lên 480 đơn vị, bộ candidate boundaries có nhất thiết thay đổi không?
+**Exercise 2.** For the same text, when width increases from 160 to 480 units, does the set of candidate boundaries necessarily change?
 
-**Đáp án:** Không. Nếu text/locale/thuật toán segmentation không đổi, boundary opportunities không phụ thuộc width. Các điểm **được chọn** để wrap mới có thể đổi.
+**Answer:** No. If text/locale/segmentation algorithm stay unchanged, boundary opportunities do not depend on width. Only the points **chosen** for wrapping can change.
 
-**Bài 3.** Vì sao `text.substring(i, i + 20)` không phải phương án wrapping tốt?
+**Exercise 3.** Why isn't `text.substring(i, i + 20)` a good wrapping strategy?
 
-**Đáp án:** Vì đếm UTF-16 units không phải glyph width; còn có nguy cơ cắt surrogate pair, grapheme cluster, dấu câu hoặc từ không nên chia.
+**Answer:** Because counting UTF-16 units is not glyph width; it also risks splitting surrogate pairs, grapheme clusters, punctuation, or words that should not be broken.
 
-**Bài 4.** Muốn bố trí đoạn văn trong Java 2D theo một chiều rộng cụ thể, dùng gì?
+**Exercise 4.** To lay out a paragraph in Java 2D for a specific width, what should you use?
 
-**Đáp án:** Dùng `AttributedCharacterIterator` có font attributes, `FontRenderContext`, `LineBreakMeasurer` và `TextLayout`; có thể truyền `BreakIterator.getLineInstance(locale)`.
+**Answer:** Use `AttributedCharacterIterator` with font attributes, `FontRenderContext`, `LineBreakMeasurer`, and `TextLayout`; you can pass `BreakIterator.getLineInstance(locale)`.
 
-**Bài 5.** Có một chuỗi với `\r\n`. `BreakIterator` và wrapping có nên xem nó giống soft break của UI không?
+**Exercise 5.** Suppose a string contains `\r\n`. Should `BreakIterator` and wrapping treat it the same as a UI soft break?
 
-**Đáp án:** Không. `\r\n` là hard break trong dữ liệu. Tách và bảo quản paragraph/line semantics trước khi soft-wrap từng phần.
+**Answer:** No. `\r\n` is a hard break in the data. Split and preserve paragraph/line semantics before soft-wrapping each part.
 
-**Bài 6.** Một từ tiếng Thái không có space, và thuật toán `split(" ")` cho một chuỗi rất dài. Có nên chèn newline sau mỗi 10 ký tự?
+**Exercise 6.** A Thai text has no spaces, and `split(" ")` produces one very long string. Should you insert a newline every 10 characters?
 
-**Đáp án:** Không. Cần segmentation theo ngôn ngữ và layout thực tế; ép theo số char có thể xé cụm ký tự và không tuân width.
+**Answer:** No. You need language-aware segmentation and actual layout; forcing by character count can tear character clusters and ignores width.
 
-**Bài 7.** Vì sao `LineBreakMeasurer` có thể phải tách một từ dù đã có BreakIterator?
+**Exercise 7.** Why might `LineBreakMeasurer` have to split a word even when given a `BreakIterator`?
 
-**Đáp án:** Khi từ đầu dòng không vừa trong width yêu cầu; chính sách layout thường phải tạo một đoạn để đảm bảo tiến độ. Cần xử lý trường hợp token dài, overflow và ngữ nghĩa ứng dụng.
+**Answer:** When the word at the start of a line does not fit within the requested width; layout policy normally must produce a segment to ensure forward progress. Long tokens, overflow, and application semantics must be handled.
 
-**Bài 8.** Backend Java sinh text để render trong mobile browser. Nên chèn newline dựa trên width giả định của máy desktop hay để client wrap?
+**Exercise 8.** A Java backend generates text for rendering in a mobile browser. Should it insert newlines based on an assumed desktop width or let the client wrap?
 
-**Đáp án:** Thông thường để browser dùng width/font thực và CSS thích hợp. Backend giữ text và hard breaks có ý nghĩa, không lưu soft-wrap.
+**Answer:** Usually let the browser use actual width/fonts and appropriate CSS. The backend preserves text and meaningful hard breaks without storing soft wraps.
 
-**Bài 9.** `BreakIterator` trả UTF-16 index, còn UI cần cắt theo grapheme cluster. Có thể lấy index và cắt luôn bất kỳ nơi nào không?
+**Exercise 9.** `BreakIterator` returns UTF-16 indexes, while the UI needs to slice by grapheme cluster. Can you take any returned index and slice anywhere?
 
-**Đáp án:** Không. Cần xem đây có phải boundary phù hợp với yêu cầu grapheme và runtime không; không cắt giữa surrogate pair hoặc cụm ký tự của người dùng.
+**Answer:** No. Check whether that boundary matches grapheme requirements and runtime behavior; do not cut inside a surrogate pair or user character cluster.
 
-**Bài 10.** Nếu đổi font hoặc tăng kích cỡ chữ, có cần tính lại `LineBreakMeasurer` không?
+**Exercise 10.** If you change the font or increase font size, do you need to recompute `LineBreakMeasurer`?
 
-**Đáp án:** Có, vì glyph metrics đã thay đổi. Bộ điểm ngắt ngôn ngữ có thể tương tự, nhưng số dòng và vị trí được chọn để xuống dòng có thể khác.
+**Answer:** Yes, because glyph metrics changed. The set of linguistic break points may remain similar, yet the line count and chosen wrap positions can differ.
 
-## 20. Ghi nhớ
+## 20. Key Takeaways
 
-- **Ngắt dòng theo ngôn ngữ** trả lời **“được phép ngắt ở đâu?”**; **bố trí theo chiều rộng** trả lời **“nên ngắt ở đâu để dòng vừa?”**.
-- `BreakIterator.getLineInstance(locale)` cung cấp candidate boundaries và **không nhận width**. Đừng xem các đoạn giữa boundaries là những dòng UI.
-- `LineBreakMeasurer` kết hợp paragraph text, font/render context và wrapping width để tạo `TextLayout` cho mỗi dòng. Có thể truyền `BreakIterator` theo locale.
-- Dấu newline có sẵn là **hard break**; xuống dòng do vùng hẹp là **soft wrap** và không nên làm thay đổi text canonical.
-- `String.length()`, code point count và số grapheme clusters **không phải** chiều rộng glyph. Tránh cắt text theo số `char` để giả lập wrapping.
-- CJK, Thái/Khmer, dấu câu, NBSP/ZWSP, emoji và RTL cần kiểm thử phù hợp ngôn ngữ và rendering engine.
-- Với frontend responsive, thường để UI engine bố trí theo width thực; với Java 2D/PDF/in ấn, đo đúng font, width và metrics.
-- **Không trộn ranh giới văn bản, ngôn ngữ, mã Unicode và chiều rộng giao diện thành một phép tính.** Chọn công cụ theo đúng câu hỏi.
+- **Language-aware line breaking** answers **"where is breaking allowed?"**; **width-based layout** answers **"where should we break so the line fits?"**.
+- `BreakIterator.getLineInstance(locale)` provides candidate boundaries and **takes no width**. Do not treat segments between boundaries as UI lines.
+- `LineBreakMeasurer` combines paragraph text, font/render context, and wrapping width to build a `TextLayout` per line. A locale-specific `BreakIterator` can be passed in.
+- Existing newlines are **hard breaks**; wrapping caused by a narrow region is a **soft wrap** and should not mutate canonical text.
+- `String.length()`, code point counts, and grapheme cluster counts are **not** glyph width. Avoid slicing text by `char` count to simulate wrapping.
+- CJK, Thai/Khmer, punctuation, NBSP/ZWSP, emojis, and RTL require testing appropriate to the language and rendering engine.
+- For responsive frontends, usually let the UI engine lay out text using actual width; for Java 2D/PDF/printing, measure with the exact font, width, and metrics.
+- **Do not collapse text boundaries, language rules, Unicode encoding, and UI width into a single calculation.** Pick the tool matching the exact question.
 
-### Tham khảo Java 17 và Unicode
+### Java 17 and Unicode References
 
 - [BreakIterator — Oracle Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/BreakIterator.html)
 - [LineBreakMeasurer — Oracle Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/java/awt/font/LineBreakMeasurer.html)
 - [TextLayout — Oracle Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/java/awt/font/TextLayout.html)
 - [FontRenderContext — Oracle Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/java/awt/font/FontRenderContext.html)
-- [Pattern — Java regex `\R` và `\X`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html)
+- [Pattern — Java regex `\R` and `\X`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html)
 - [Unicode Line Breaking Algorithm — UAX #14](https://www.unicode.org/reports/tr14/)

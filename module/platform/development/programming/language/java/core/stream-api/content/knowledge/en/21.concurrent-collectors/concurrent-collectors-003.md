@@ -1,18 +1,18 @@
-# Tạo ConcurrentMap bằng Collectors.toConcurrentMap
+# Creating a ConcurrentMap with Collectors.toConcurrentMap
 
-## 1. Vì sao cần một Collector trả ConcurrentMap?
+## 1. Why Do We Need a Collector That Returns a ConcurrentMap?
 
-Trong **JAVA_STREAM_API**, ta thường bắt đầu từ nguồn dữ liệu, nối các bước `filter`, `map`, `flatMap`, rồi sử dụng terminal operation `collect` để thu kết quả. Khi muốn ánh xạ từng phần tử thành một cặp **khóa – giá trị** và có thể hợp nhất các phần tử trùng khóa, `Collectors.toMap` là công cụ quen thuộc. Tuy nhiên, đối với một số pipeline xử lý song song, ta muốn collector có khả năng **tích lũy đồng thời vào một ConcurrentMap**.
+In **JAVA_STREAM_API**, we typically start from a data source, chain steps like `filter`, `map`, `flatMap`, and then use the terminal operation `collect` to gather the results. When mapping each element to a **key–value** pair and optionally merging elements with duplicate keys, `Collectors.toMap` is a familiar tool. However, for some parallel processing pipelines, we want a collector capable of **accumulating concurrently into a ConcurrentMap**.
 
-`Collectors.toConcurrentMap` là họ collector dành cho nhu cầu đó. Nó:
+`Collectors.toConcurrentMap` is the family of collectors built for that need. It:
 
-- Chuyển các phần tử `T` thành cặp khóa `K` và giá trị `U`.
-- Thu kết quả thành một `ConcurrentMap<K, U>`.
-- Có overload để lựa chọn **chính sách khi khóa trùng**.
-- Có overload để lựa chọn **loại ConcurrentMap** bằng `mapFactory`.
-- Là collector có đặc tính **`CONCURRENT` và `UNORDERED`**; có thể tận dụng xử lý song song khi đáp ứng các điều kiện của Collector API.
+- Converts elements `T` into key `K` and value `U` pairs.
+- Collects the results into a `ConcurrentMap<K, U>`.
+- Provides overloads to choose the **policy when keys collide**.
+- Provides an overload to choose the **type of ConcurrentMap** via `mapFactory`.
+- Is a collector with **`CONCURRENT` and `UNORDERED`** characteristics; it can leverage parallel processing when the Collector API conditions are met.
 
-Ví dụ hệ thống nhập dòng đơn hàng. Nhiều dòng có thể cùng mã sản phẩm (`sku`), và ta chỉ cần biết **tổng số đơn vị theo từng SKU**:
+For example, consider an order-line ingestion system. Multiple lines may share the same product code (`sku`), and we only need the **total units per SKU**:
 
 ~~~text
 Stream<OrderLine>
@@ -35,26 +35,26 @@ ConcurrentMap<String, Integer>
     ├─ "PEN"  → 3
     └─ "PAD"  → 4
 
-Thứ tự duyệt các khóa không được bảo đảm ở collector mặc định.
+Key iteration order is not guaranteed in the default collector.
 ~~~
 
-**Điểm cần hiểu:** `ConcurrentMap` là **kiểu dữ liệu kết quả** có giao thức thao tác đồng thời, còn `CONCURRENT` là **đặc tính của Collector**. Hai khái niệm liên quan nhưng không đồng nghĩa với việc mọi code bên ngoài pipeline hay mọi đối tượng đặt bên trong Map đều tự động thread-safe.
+**Key point to understand:** `ConcurrentMap` is a **result data type** with a concurrent operations protocol, whereas `CONCURRENT` is a **Collector characteristic**. The two concepts are related, but they do not mean that all code outside the pipeline or all objects placed inside the Map automatically become thread-safe.
 
-Bài thuộc chương **Thu thập đồng thời** của Java Stream API, dùng ví dụ Java 17+, kết hợp ngữ nghĩa lazy pipeline, nguồn có thể chia bằng Spliterator, hợp đồng của phép gộp, an toàn trạng thái và những giới hạn về hiệu năng.
+This lesson belongs to the **Concurrent Collection** chapter of the Java Stream API, using Java 17+ examples and combining lazy pipeline semantics, Spliterator-splittable sources, merge contracts, state safety, and performance limits.
 
-## 2. Ba overload của toConcurrentMap
+## 2. The Three Overloads of toConcurrentMap
 
-Các chữ ký khái niệm trong `java.util.stream.Collectors`:
+Conceptual signatures in `java.util.stream.Collectors`:
 
 ~~~java
-// 1. Khóa được yêu cầu không trùng.
+// 1. Keys are required to be unique.
 static <T, K, U>
 Collector<T, ?, ConcurrentMap<K, U>> toConcurrentMap(
     Function<? super T, ? extends K> keyMapper,
     Function<? super T, ? extends U> valueMapper
 );
 
-// 2. Có chính sách gộp khi khóa trùng.
+// 2. Includes a merge policy when keys collide.
 static <T, K, U>
 Collector<T, ?, ConcurrentMap<K, U>> toConcurrentMap(
     Function<? super T, ? extends K> keyMapper,
@@ -62,7 +62,7 @@ Collector<T, ?, ConcurrentMap<K, U>> toConcurrentMap(
     BinaryOperator<U> mergeFunction
 );
 
-// 3. Có chính sách gộp và factory tạo ConcurrentMap.
+// 3. Includes a merge policy and a factory for creating the ConcurrentMap.
 static <T, K, U, M extends ConcurrentMap<K, U>>
 Collector<T, ?, M> toConcurrentMap(
     Function<? super T, ? extends K> keyMapper,
@@ -72,28 +72,28 @@ Collector<T, ?, M> toConcurrentMap(
 );
 ~~~
 
-Bảng đối chiếu:
+Comparison table:
 
-| Thành phần | Chức năng | Ví dụ |
+| Component | Function | Example |
 | --- | --- | --- |
-| `keyMapper` | Chuyển mỗi `T` thành khóa `K` | `Item::sku` |
-| `valueMapper` | Chuyển mỗi `T` thành giá trị `U` | `Item::quantity` |
-| `mergeFunction` | Hợp nhất hai giá trị `U` có cùng khóa | `Integer::sum` |
-| `mapFactory` | Cung cấp một ConcurrentMap rỗng mới | `ConcurrentSkipListMap::new` |
+| `keyMapper` | Converts each `T` into key `K` | `Item::sku` |
+| `valueMapper` | Converts each `T` into value `U` | `Item::quantity` |
+| `mergeFunction` | Merges two values `U` with the same key | `Integer::sum` |
+| `mapFactory` | Supplies a new empty ConcurrentMap | `ConcurrentSkipListMap::new` |
 
-Kết quả của cả ba overload đều là một **Collector**, không phải một Map được tạo ngay lúc gọi phương thức. Map được xây dựng khi terminal `collect(...)` thực thi.
+The return value of all three overloads is a **Collector**, not a Map created immediately when the method is called. The Map is constructed when the terminal `collect(...)` executes.
 
-**Đặc điểm then chốt:**
+**Key characteristics:**
 
-- Dạng **hai tham số** từ chối khóa trùng và ném `IllegalStateException` nếu phát sinh va chạm.
-- Dạng **ba tham số** cho phép khóa trùng, áp dụng `mergeFunction`.
-- Dạng **bốn tham số** còn cho phép chọn loại Map cụ thể, nhưng factory phải trả một loại **`ConcurrentMap`**, không phải `HashMap` hoặc `LinkedHashMap` thông thường.
+- The **two-parameter** form rejects duplicate keys and throws `IllegalStateException` if a collision occurs.
+- The **three-parameter** form allows duplicate keys, applying `mergeFunction`.
+- The **four-parameter** form also allows choosing a specific Map type, but the factory must return a **`ConcurrentMap`** type, not a regular `HashMap` or `LinkedHashMap`.
 
-`Collectors.toConcurrentMap` không cam kết chính xác lớp Map trả về nếu không truyền factory. Trong các JDK phổ biến, Map mặc định thường là `ConcurrentHashMap`; **không nên dựa vào lớp triển khai đó như hợp đồng API** nếu ứng dụng cần một lớp cụ thể.
+`Collectors.toConcurrentMap` does not guarantee the exact Map class returned if no factory is passed. In common JDKs, the default Map is typically `ConcurrentHashMap`; **you should not rely on that implementation class as an API contract** if the application requires a specific class.
 
-## 3. Ví dụ 1: ánh xạ khóa duy nhất bằng overload hai tham số
+## 3. Example 1: Mapping Unique Keys with the Two-Parameter Overload
 
-Giả sử danh sách người dùng có mã định danh duy nhất, muốn lập bảng tra cứu từ mã tới tên:
+Suppose a list of users has unique identifiers, and we want to build a lookup table from id to name:
 
 ~~~java
 import java.util.List;
@@ -123,16 +123,16 @@ public class UsersToConcurrentMap {
 }
 ~~~
 
-Giải thích:
+Explanation:
 
-1. `users.parallelStream()` yêu cầu pipeline có thể xử lý song song.
-2. `keyMapper` là `User::id`, trả khóa `String`.
-3. `valueMapper` là `User::name`, trả giá trị `String`.
-4. `collect` tạo `ConcurrentMap<String, String>`.
+1. `users.parallelStream()` requests a pipeline that can be processed in parallel.
+2. `keyMapper` is `User::id`, returning a `String` key.
+3. `valueMapper` is `User::name`, returning a `String` value.
+4. `collect` produces a `ConcurrentMap<String, String>`.
 
-Đây là trường hợp thích hợp cho overload hai tham số **khi mã định danh thật sự duy nhất**.
+This is an appropriate case for the two-parameter overload **when identifiers are genuinely unique**.
 
-### Nếu khóa bị trùng thì sao?
+### What If Keys Are Duplicated?
 
 ~~~java
 import java.util.List;
@@ -142,22 +142,22 @@ record User(String id, String name) {}
 
 List<User> duplicates = List.of(
     new User("U01", "An"),
-    new User("U01", "An phiên bản khác")
+    new User("U01", "An alternate version")
 );
 
-// Ném IllegalStateException vì hai phần tử có cùng khóa "U01":
+// Throws IllegalStateException because two elements have the same key "U01":
 duplicates.stream().collect(
     Collectors.toConcurrentMap(User::id, User::name)
 );
 ~~~
 
-Không có cơ chế mặc định “lấy giá trị cuối cùng”. Lỗi khóa trùng là hành vi được thiết kế để tránh việc mất dữ liệu ngoài ý muốn.
+There is no default “take the last value” mechanism. Failing on duplicate keys is designed to prevent accidental data loss.
 
-Nếu khóa trùng là dữ liệu **không hợp lệ**, hãy giữ overload hai tham số và xử lý ngoại lệ theo chính sách nhập dữ liệu. Nếu khóa trùng là **bình thường**, phải chọn một `mergeFunction` tường minh.
+If duplicate keys represent **invalid data**, keep the two-parameter overload and handle the exception according to your data ingestion policy. If duplicate keys are **normal**, you must choose an explicit `mergeFunction`.
 
-## 4. Ví dụ 2: hợp nhất các dòng trùng khóa bằng mergeFunction
+## 4. Example 2: Merging Duplicate-Key Rows with mergeFunction
 
-Một SKU có thể xuất hiện ở nhiều đơn hàng. Mục tiêu là tổng số lượng theo SKU, không phải một bản ghi đại diện bất kỳ.
+One SKU can appear in many orders. The goal is the total quantity by SKU, not an arbitrary representative record.
 
 ~~~java
 import java.util.List;
@@ -190,7 +190,7 @@ public class SumUnitsBySku {
 }
 ~~~
 
-`Long::sum` nhận hai giá trị của **cùng khóa** rồi cộng chúng. Có thể hình dung:
+`Long::sum` takes two values for **the same key** and adds them. You can picture it as:
 
 ~~~text
 BOOK -> 2
@@ -202,13 +202,13 @@ PEN -> 3
 PAD -> 4
 ~~~
 
-Trong parallel stream, hai giá trị cùng khóa có thể đến từ những nhánh xử lý khác nhau; **không được giả định thứ tự gọi `mergeFunction`**. Với phép cộng số nguyên không cần xác định “giá trị nào đến trước”, kết quả ổn định theo ngữ nghĩa số học Java nếu miền đầu vào phù hợp.
+In a parallel stream, two values with the same key may come from different processing branches; **you must not assume the call order of `mergeFunction`**. For integer addition that does not care “which value came first”, the result is stable under Java arithmetic semantics if the input range fits.
 
-**Giới hạn:** `Long::sum` có thể tràn `long`. Nếu kết quả phải là tổng toán học không tràn, hãy xác định miền giá trị hoặc dùng kiểu số phù hợp (ví dụ `BigInteger`); không coi `ConcurrentMap` là cơ chế tự phát hiện overflow.
+**Limitation:** `Long::sum` can overflow `long`. If the result must be an overflow-free mathematical sum, constrain the value range or use an appropriate numeric type (such as `BigInteger`); do not treat `ConcurrentMap` as an automatic overflow detector.
 
-### 4.1. Tổng BigDecimal cho dữ liệu tiền tệ
+### 4.1. BigDecimal Totals for Monetary Data
 
-Khi số tiền cần chính xác ở miền thập phân và mọi giá trị cùng đơn vị tiền tệ, `BigDecimal::add` là một merge function thường hợp lý:
+When monetary amounts require exact decimal precision and all values share the same currency, `BigDecimal::add` is typically a reasonable merge function:
 
 ~~~java
 import java.math.BigDecimal;
@@ -239,26 +239,26 @@ public class RevenueBySku {
 }
 ~~~
 
-`BigDecimal.add` không làm tròn khi không truyền `MathContext`. Dù vậy, một báo cáo tài chính vẫn cần chính sách về tiền tệ, scale, tỷ giá và trường hợp giá trị null; phép cộng không tự biết hai khoản tiền có cùng đơn vị hay không.
+`BigDecimal.add` does not round when no `MathContext` is passed. Even so, a financial report still needs policies for currency, scale, exchange rates, and null values; addition does not automatically know whether two amounts are in the same currency.
 
-## 5. Merge function phải thỏa những tính chất nào?
+## 5. What Properties Must a Merge Function Satisfy?
 
-`mergeFunction` là phần rất dễ viết sai khi xử lý đồng thời. Nó phải **không can thiệp nguồn**, không dựa vào mutable shared state, và phù hợp với việc các phần tử được kết hợp theo những cách khác nhau.
+`mergeFunction` is a part very easy to get wrong under concurrent execution. It must be **non-interfering with the source**, must not rely on shared mutable state, and must work properly as elements are combined in varying ways.
 
-### 5.1. Tính kết hợp
+### 5.1. Associativity
 
-Với các giá trị `a`, `b` và `c`:
+For values `a`, `b`, and `c`:
 
 ~~~text
 merge(merge(a, b), c) = merge(a, merge(b, c))
 ~~~
 
-Nếu điều kiện trên không đúng, cách ghép các nhánh khác nhau có thể cho kết quả khác nhau.
+If this condition fails, different ways of merging branches can yield different results.
 
-Ví dụ **không nên dùng phép trừ** để tổng hợp:
+For example, **you should not use subtraction** to aggregate:
 
 ~~~java
-// Không phù hợp cho phép tổng hợp song song cần kết quả ổn định:
+// Unsuitable for parallel aggregation requiring a stable result:
 ConcurrentMap<String, Integer> result = rows.parallelStream()
     .collect(Collectors.toConcurrentMap(
         Row::key,
@@ -267,45 +267,45 @@ ConcurrentMap<String, Integer> result = rows.parallelStream()
     ));
 ~~~
 
-Trong snippet, `Row` và `rows` là model và danh sách do ứng dụng cung cấp. Phép trừ không có tính kết hợp: `(10 - 3) - 2` khác `10 - (3 - 2)`.
+In this snippet, `Row` and `rows` are an application-provided model and list. Subtraction is not associative: `(10 - 3) - 2` differs from `10 - (3 - 2)`.
 
-### 5.2. Tính giao hoán giúp kết quả không phụ thuộc thứ tự
+### 5.2. Commutativity Helps Keep Results Order-Independent
 
-Vì `toConcurrentMap` là collector **UNORDERED**, thứ tự hai giá trị được đưa vào merge không nhất thiết theo encounter order. Nếu yêu cầu cùng một kết quả **bất kể lịch chạy**, nên chọn phép gộp còn có tính giao hoán:
+Because `toConcurrentMap` is an **UNORDERED** collector, the order in which two values are passed to merge does not necessarily follow encounter order. If the same result is required **regardless of execution schedule**, choose a merge operation that is also commutative:
 
 ~~~text
 merge(a, b) = merge(b, a)
 ~~~
 
-Ví dụ phù hợp về ý định:
+Examples matching intent:
 
-| Phép gộp | Kết hợp? | Giao hoán? | Nhận xét |
+| Merge Operation | Associative? | Commutative? | Notes |
 | --- | --- | --- | --- |
-| `Long::sum` | Có theo ngữ nghĩa cộng `long` của Java | Có | Lưu ý tràn số nếu cần miền toán học không tràn |
-| `BigDecimal::add` không `MathContext` | Có về giá trị số | Có về giá trị số | Scale có thể ảnh hưởng `equals` hoặc hiển thị |
-| `Integer::max` | Có | Có | Lấy giá trị lớn nhất |
-| Nối chuỗi `left + right` | Có theo thứ tự chuỗi | **Không** | Thứ tự kết quả không xác định khi unordered |
-| `(a,b) -> b` | Có | **Không** | “Giá trị cuối” phụ thuộc lịch thực thi |
-| Phép trừ | **Không** | Không | Không phù hợp cho reduction cần ổn định |
+| `Long::sum` | Yes under Java `long` addition | Yes | Watch for overflow if an unbounded mathematical range is needed |
+| `BigDecimal::add` without `MathContext` | Yes numerically | Yes numerically | Scale can affect `equals` or display |
+| `Integer::max` | Yes | Yes | Takes the maximum value |
+| String concatenation `left + right` | Yes by string grouping | **No** | Result order is nondeterministic when unordered |
+| `(a,b) -> b` | Yes | **No** | “Last value” depends on execution schedule |
+| Subtraction | **No** | No | Unsuitable for reductions needing stability |
 
-**Lưu ý BigDecimal:** Về mặt *giá trị số*, phép cộng không làm tròn có tính kết hợp và giao hoán. Nhưng `BigDecimal.equals` còn xét `scale`; nếu nghiệp vụ quan tâm biểu diễn/scale chính xác, hãy chuẩn hóa dữ liệu hoặc chọn chính sách rõ ràng thay vì chỉ suy từ giá trị toán học.
+**BigDecimal note:** In terms of *numerical value*, unrounded addition is associative and commutative. However, `BigDecimal.equals` also considers `scale`; if the business cares about exact representation/scale, normalize the data or choose an explicit policy instead of reasoning solely from mathematical value.
 
-### 5.3. Không có nghĩa là phải luôn giao hoán
+### 5.3. Does Not Mean It Must Always Be Commutative
 
-Collector API đặt trọng tâm vào việc tích lũy và kết hợp đúng hợp đồng. `toConcurrentMap` không bảo đảm thứ tự; nếu phép gộp nhạy với thứ tự, chương trình vẫn có thể chạy, nhưng kết quả có thể không còn **xác định theo encounter order**. Khi yêu cầu “giữ bản ghi đầu tiên” hoặc “ghép văn bản đúng trình tự nguồn”, hãy chọn collector có hợp đồng thứ tự phù hợp hoặc xác định thứ tự bằng khóa nghiệp vụ, chứ không kỳ vọng `toConcurrentMap` giữ thứ tự.
+The Collector API focuses on contract-compliant accumulation and combination. `toConcurrentMap` does not guarantee ordering; if a merge operation is order-sensitive, the program may still run, yet the result may no longer be **deterministic with respect to encounter order**. When the requirement is “keep the first record” or “concatenate text in source sequence”, choose an ordered collector or define order using a business key rather than expecting `toConcurrentMap` to preserve order.
 
-## 6. Phân biệt “bản ghi mới nhất” với “đến cuối cùng”
+## 6. Distinguishing “Latest Record” from “Last to Arrive”
 
-Một lỗi hay gặp là dùng:
+A common mistake is using:
 
 ~~~java
-// Không bảo đảm chọn bản ghi mới nhất theo nghiệp vụ:
+// Does not guarantee selecting the latest record by business logic:
 (left, right) -> right
 ~~~
 
-Trên parallel stream, `right` chỉ là đối số thứ hai của **một lần gộp**, không nhất thiết là phần tử có thời gian lớn nhất hoặc vị trí muộn nhất trong nguồn.
+On a parallel stream, `right` is merely the second argument of **one merge call**, not necessarily the element with the largest timestamp or the latest position in the source.
 
-Đúng hơn là chọn bản ghi bằng **trường phiên bản/thời gian**, với quy tắc phá hòa đủ rõ:
+It is better to select the record using a **version/time field**, with a clear enough tie-breaker rule:
 
 ~~~java
 import java.util.Comparator;
@@ -342,13 +342,13 @@ public class LatestEvents {
 }
 ~~~
 
-Với quy tắc so sánh này, mọi Event trùng khóa được chọn theo **version lớn nhất**, rồi tới `payload` để phá hòa. Nếu có hai Event có cùng version và payload nhưng khác những thuộc tính nghiệp vụ khác, phải xác định thêm tiêu chí nếu việc chọn đại diện cụ thể là quan trọng.
+With this comparison rule, any Events sharing a key are selected by **highest version**, then `payload` to break ties. If two Events can share the same version and payload while differing in other business attributes, define additional criteria if picking a specific representative matters.
 
-Đây là một nguyên tắc thiết kế chung: **thứ tự xử lý trên thread không phải thứ tự nghiệp vụ**. Khi cần “mới nhất”, phải lưu timestamp/sequence/version đủ tin cậy và đưa phép so sánh đó vào thuật toán.
+This is a general design principle: **thread processing order is not business order**. When you need the “latest”, store a reliable timestamp/sequence/version and encode that comparison directly into the algorithm.
 
-## 7. Chọn loại ConcurrentMap bằng mapFactory
+## 7. Choosing the ConcurrentMap Type via mapFactory
 
-Nếu cần một kiểu Map cụ thể, dùng overload bốn tham số:
+If you need a specific Map type, use the four-parameter overload:
 
 ~~~java
 toConcurrentMap(
@@ -359,11 +359,11 @@ toConcurrentMap(
 )
 ~~~
 
-`mapFactory` là `Supplier<M>` với `M extends ConcurrentMap<K,U>`. Nó phải cung cấp một container phù hợp, thông thường là **một Map mới và rỗng** cho mỗi lần thu thập.
+`mapFactory` is a `Supplier<M>` where `M extends ConcurrentMap<K,U>`. It must supply a suitable container, typically **a new and empty Map** for each collection run.
 
-### 7.1. ConcurrentSkipListMap: sắp xếp theo khóa
+### 7.1. ConcurrentSkipListMap: Sorted by Key
 
-`ConcurrentSkipListMap` vừa hỗ trợ thao tác đồng thời vừa duyệt khóa theo thứ tự so sánh:
+`ConcurrentSkipListMap` supports both concurrent operations and iterating keys in comparison order:
 
 ~~~java
 import java.util.List;
@@ -395,14 +395,14 @@ public class SortedConcurrentMap {
 }
 ~~~
 
-`ConcurrentSkipListMap` được sắp theo **khóa**. Điều đó không có nghĩa collector lưu các bản ghi theo encounter order hay gọi `mergeFunction` theo thứ tự nguồn. Hai thuộc tính khác nhau:
+`ConcurrentSkipListMap` is sorted by **key**. That does not mean the collector stores records in encounter order or calls `mergeFunction` in source order. Two different properties:
 
-- **Thứ tự duyệt khóa:** do Map triển khai cung cấp.
-- **Thứ tự giá trị được gộp:** collector UNORDERED không cam kết theo thứ tự nguồn.
+- **Key iteration order:** provided by the Map implementation.
+- **Order in which values are merged:** the UNORDERED collector makes no guarantee regarding source order.
 
-Nếu comparator coi hai khóa khác nhau là tương đương (so sánh trả 0), Map có thể xem chúng là cùng một khóa; cần quy định comparator phù hợp với định nghĩa khóa nghiệp vụ.
+If the comparator treats two distinct keys as equivalent (comparison returns 0), the Map may consider them the same key; configure a comparator consistent with your business key definition.
 
-### 7.2. ConcurrentHashMap: lựa chọn khi không cần sắp khóa
+### 7.2. ConcurrentHashMap: Choice When Key Sorting Is Not Needed
 
 ~~~java
 import java.util.concurrent.ConcurrentHashMap;
@@ -416,28 +416,28 @@ ConcurrentHashMap<String, Long> units = items.parallelStream()
     ));
 ~~~
 
-Đoạn trên giả định `Item` và `items` từ ví dụ trước. Dùng `ConcurrentHashMap::new` nếu yêu cầu cụ thể là loại Map này. `ConcurrentHashMap` không bảo đảm thứ tự duyệt khóa.
+This snippet assumes `Item` and `items` from the previous example. Use `ConcurrentHashMap::new` if that specific Map class is required. `ConcurrentHashMap` does not guarantee key iteration order.
 
-### 7.3. Không dùng một HashMap thông thường làm factory
+### 7.3. Do Not Use a Regular HashMap as the Factory
 
 ~~~java
-// Không khớp ràng buộc kiểu M extends ConcurrentMap<K, U>:
+// Does not satisfy the type bound M extends ConcurrentMap<K, U>:
 // Collectors.toConcurrentMap(
 //     Item::sku, Item::quantity, Long::sum, HashMap::new
 // );
 ~~~
 
-`HashMap` và `LinkedHashMap` không triển khai `ConcurrentMap`. Nếu yêu cầu là Map giữ thứ tự chèn và không cần collector concurrent, hãy xem `Collectors.toMap(..., LinkedHashMap::new)` thay vì cố ép factory cho `toConcurrentMap`.
+`HashMap` and `LinkedHashMap` do not implement `ConcurrentMap`. If the requirement is a Map that preserves insertion order and does not need a concurrent collector, consider `Collectors.toMap(..., LinkedHashMap::new)` instead of trying to force a factory into `toConcurrentMap`.
 
-## 8. CONCURRENT và UNORDERED: đặc tính của collector
+## 8. CONCURRENT and UNORDERED: Characteristics of the Collector
 
-`Collector.Characteristics` mô tả cách một collector có thể được sử dụng. `Collectors.toConcurrentMap` là collector **concurrent** và **unordered**.
+`Collector.Characteristics` describes how a collector can be used. `Collectors.toConcurrentMap` is a **concurrent** and **unordered** collector.
 
-- `CONCURRENT` cho phép framework gọi accumulator đồng thời từ nhiều thread **trên cùng một kết quả container**, theo hợp đồng.
-- `UNORDERED` thông báo việc tích lũy không cần giữ thứ tự nguồn.
-- Kết quả collector dạng này có thể được dùng trực tiếp làm Map mà không cần biến đổi kiểu cuối phức tạp; tuy nhiên không nên xây logic dựa vào danh tính Map hay thứ tự thực thi callback.
+- `CONCURRENT` permits the framework to call the accumulator concurrently from multiple threads **on the same result container**, per the contract.
+- `UNORDERED` indicates that accumulation does not need to preserve source order.
+- Results from this kind of collector can be used directly as a Map without complex final type conversion; however, do not build logic depending on Map identity or callback execution order.
 
-### 8.1. Kiểm tra collector characteristics
+### 8.1. Inspecting Collector Characteristics
 
 ~~~java
 import java.util.List;
@@ -467,14 +467,14 @@ System.out.println(
 ); // true
 ~~~
 
-Có `CONCURRENT` **không** nghĩa là terminal `collect` chạy song song khi nguồn Stream đang tuần tự. Một Stream tuần tự vẫn có thể dùng `toConcurrentMap`; chỉ là kết quả có giao diện ConcurrentMap và collector có khả năng tích lũy đồng thời nếu hệ thống sử dụng theo cách phù hợp.
+Having `CONCURRENT` **does not** mean terminal `collect` runs in parallel when the Stream source is sequential. A sequential Stream can still use `toConcurrentMap`; it just means the result has a ConcurrentMap interface and the collector is capable of concurrent accumulation if the system uses it accordingly.
 
-### 8.2. Parallel stream làm việc thế nào?
+### 8.2. How Does a Parallel Stream Work?
 
-Với collector concurrent, unordered, một triển khai parallel stream có thể cho các nhánh **tích lũy trực tiếp vào một container đồng thời** thay vì bắt buộc tạo nhiều Map riêng rồi hợp nhất theo encounter order. API cho phép chiến lược phù hợp, nhưng không cam kết số thread, số lần gộp, thời điểm gọi hàm hoặc mức tăng tốc cụ thể.
+With a concurrent, unordered collector, a parallel stream implementation can have branches **accumulate directly into one concurrent container** rather than being forced to create multiple separate Maps and merge them in encounter order. The API permits the appropriate strategy, but does not guarantee a specific thread count, merge count, callback timing, or speedup.
 
 ~~~text
-            Các nhánh xử lý Stream song song
+            Parallel Stream processing branches
                 │         │         │
                 ▼         ▼         ▼
            accumulator accumulator accumulator
@@ -483,23 +483,23 @@ Với collector concurrent, unordered, một triển khai parallel stream có th
                           ▼
                     ConcurrentMap
 
-             (Sơ đồ khái niệm; không phải lịch thread bắt buộc)
+             (Conceptual diagram; not a mandatory thread schedule)
 ~~~
 
-Với nguồn có thứ tự như `List`, collector `UNORDERED` vẫn được phép không quan tâm encounter order. Do đó nó không phù hợp khi giá trị cuối phụ thuộc việc các bản ghi đến trước/sau.
+Even with an ordered source like `List`, an `UNORDERED` collector is still allowed to ignore encounter order. Thus, it is unsuitable when the final value depends on which records arrive earlier or later.
 
-## 9. Chính sách null: phải kiểm soát cả khóa lẫn giá trị
+## 9. Null Policy: Must Control Both Keys and Values
 
-Một `ConcurrentMap` phổ biến như `ConcurrentHashMap` **không chấp nhận khóa `null` hoặc giá trị `null`**. `ConcurrentSkipListMap` cũng không chấp nhận giá trị null và không chấp nhận khóa null trong cách dùng thông thường.
+A common `ConcurrentMap` like `ConcurrentHashMap` **does not accept `null` keys or `null` values**. `ConcurrentSkipListMap` also rejects null values and rejects null keys in standard usage.
 
-Vì vậy, khi dùng `toConcurrentMap`:
+Therefore, when using `toConcurrentMap`:
 
-- Không cho `keyMapper` trả null.
-- Không cho `valueMapper` trả null.
-- Không trả null từ `mergeFunction` để “đại diện cho giá trị vắng mặt” mà không hiểu rõ ngữ nghĩa `Map.merge`.
-- Chọn chính sách nghiệp vụ trước: **lọc**, **chuẩn hóa thành giá trị hợp lệ**, hoặc **báo lỗi**.
+- Do not let `keyMapper` return null.
+- Do not let `valueMapper` return null.
+- Do not return null from `mergeFunction` to “represent an absent value” without fully understanding `Map.merge` semantics.
+- Choose a business policy upfront: **filter out**, **normalize to a valid value**, or **report an error**.
 
-Ví dụ làm sạch dữ liệu trước khi collect:
+Example sanitizing data before collect:
 
 ~~~java
 import java.util.Arrays;
@@ -513,8 +513,8 @@ public class NullSafeConcurrentMap {
 
     public static void main(String[] args) {
         List<Product> raw = Arrays.asList(
-            new Product("P01", "Bút"),
-            new Product(null, "Chưa có mã"),
+            new Product("P01", "Pen"),
+            new Product(null, "Missing code"),
             new Product("P02", null)
         );
 
@@ -526,36 +526,36 @@ public class NullSafeConcurrentMap {
             ));
 
         System.out.println(names.size()); // 1
-        System.out.println(names.get("P01")); // Bút
+        System.out.println(names.get("P01")); // Pen
     }
 }
 ~~~
 
-Đoạn trên chọn chính sách **bỏ bản ghi không đầy đủ**. Nếu dữ liệu thiếu phải được ghi nhận hoặc báo lỗi, cần trả một kiểu kết quả có trạng thái lỗi, thu thập báo cáo sai lệch hoặc ném exception. Không được xem việc bỏ qua dữ liệu là mặc định hợp lý trong mọi nghiệp vụ.
+The snippet above chooses the policy of **dropping incomplete records**. If missing data must be recorded or flagged as an error, return a result type with an error status, collect a discrepancy report, or throw an exception. Dropping data must not be treated as the default in every business domain.
 
-### 9.1. Vì sao mergeFunction trả null là nguy hiểm?
+### 9.1. Why Is a mergeFunction Returning Null Dangerous?
 
-Các implementation phổ biến dựa vào ngữ nghĩa `Map.merge`: nếu remapping function trả `null`, ánh xạ khóa có thể bị **xóa** khỏi Map. Do đó:
+Common implementations rely on `Map.merge` semantics: if the remapping function returns `null`, the key mapping can be **removed** from the Map. Thus:
 
 ~~~java
-// Không dùng null như một kết quả tổng hợp hợp lệ:
+// Do not use null as a valid aggregated result:
 (left, right) -> null
 ~~~
 
-Đoạn này không có nghĩa “giữ khóa nhưng giá trị rỗng”. Khi gộp nhiều dòng cùng khóa, nó có thể khiến kết quả bị xóa, rồi một dòng đến sau tạo lại khóa, làm kết quả khó dự đoán. Hãy dùng một value object chứa trạng thái hoặc một chính sách gộp tường minh, không dựa vào null.
+This does not mean “keep the key with an empty value”. When merging multiple lines with the same key, it can cause the entry to be deleted, and then a later line recreates the key, making results unpredictable. Use a value object holding state or an explicit merge policy instead of relying on null.
 
-## 10. An toàn luồng: Map an toàn không đồng nghĩa callback an toàn
+## 10. Thread Safety: A Safe Map Does Not Mean Safe Callbacks
 
-`ConcurrentMap` cung cấp các thao tác đồng thời ở cấp Map. Nhưng nếu `keyMapper`, `valueMapper` hay `mergeFunction` truy cập hoặc sửa dữ liệu mutable dùng chung, chúng vẫn có thể gây race condition hoặc cho kết quả không xác định.
+`ConcurrentMap` provides concurrent operations at the Map level. However, if `keyMapper`, `valueMapper`, or `mergeFunction` accesses or mutates shared mutable data, they can still cause race conditions or nondeterministic results.
 
-### 10.1. Ví dụ sai: bộ đếm dùng chung trong mapper
+### 10.1. Incorrect Example: Shared Counter Inside the Mapper
 
 ~~~java
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import java.util.stream.Collectors;
 
-// Chống chỉ định nếu muốn thứ tự khóa theo thứ tự input.
+// Contraindicated if you want key order to match input order.
 AtomicInteger counter = new AtomicInteger();
 
 var result = IntStream.range(0, 1000)
@@ -567,9 +567,9 @@ var result = IntStream.range(0, 1000)
     ));
 ~~~
 
-`AtomicInteger` giúp thao tác tăng là nguyên tử, nhưng **số thứ tự gắn vào mỗi phần tử phụ thuộc lịch xử lý**. Nếu muốn các khóa `K0`, `K1` ... tương ứng với chỉ số nguồn, dùng trực tiếp `n -> "K" + n`. Đây là lỗi về **ngữ nghĩa nghiệp vụ**, ngay cả khi không có data race ở phép tăng.
+`AtomicInteger` makes the increment operation atomic, but **the sequence number attached to each element depends on scheduling**. If you want keys `K0`, `K1` ... to correspond to source indices, use `n -> "K" + n` directly. This is a **business semantics** bug, even though there is no data race on the increment itself.
 
-### 10.2. Ví dụ sai: merge bằng cách sửa một ArrayList được chia sẻ
+### 10.2. Incorrect Example: Merging by Mutating a Shared ArrayList
 
 ~~~java
 import java.util.ArrayList;
@@ -583,21 +583,21 @@ List<Row> rows = List.of(
     new Row("A", "y")
 );
 
-// Không nên dùng mutable list như một giá trị có thể bị
-// đọc/ghi đồng thời bên ngoài pipeline mà không có đồng bộ phù hợp.
+// Do not use a mutable list as a value that may be
+// read/written concurrently outside the pipeline without proper synchronization.
 var map = rows.parallelStream().collect(
     Collectors.toConcurrentMap(
         Row::key,
         row -> new ArrayList<>(List.of(row.value())),
         (left, right) -> {
-            left.addAll(right); // Gộp kiểu mutation: khó dùng an toàn ngoài phạm vi collector.
+            left.addAll(right); // Mutation-style merge: hard to use safely outside collector scope.
             return left;
         }
     )
 );
 ~~~
 
-Việc thao tác vào List có thể được thực hiện dưới cơ chế đồng bộ theo khóa của ConcurrentMap triển khai, nhưng **các List kết quả không tự thread-safe** khi có tác vụ khác truy cập/sửa đồng thời. Hơn nữa, mutation trong merge làm tăng độ phức tạp của chứng minh tính kết hợp và khả năng tái sử dụng reducer. Nếu mục tiêu là **gom một danh sách bản ghi theo khóa**, dùng `groupingByConcurrent` với downstream được quản lý bởi collector sẽ diễn đạt rõ hơn.
+Operations on the List may execute under per-key synchronization of the ConcurrentMap implementation, yet **the resulting Lists are not inherently thread-safe** when other tasks access or mutate them concurrently. Moreover, mutation inside merge increases the complexity of proving associativity and reusing the reducer. If the goal is to **collect a list of records per key**, using `groupingByConcurrent` with a collector-managed downstream expresses the intent far more clearly.
 
 ~~~java
 import java.util.concurrent.ConcurrentMap;
@@ -610,30 +610,30 @@ ConcurrentMap<String, List<Row>> grouped = rows.parallelStream()
     ));
 ~~~
 
-**Chú ý:** Giá trị `List<Row>` bên trong `ConcurrentMap` không được bảo đảm là một danh sách an toàn cho các sửa đổi đồng thời tùy ý **sau** khi collect. `groupingByConcurrent` quản lý việc tích lũy theo hợp đồng Collector trong giai đoạn thu thập; nó không biến tất cả các giá trị lồng nhau thành collection concurrent.
+**Note:** Each `List<Row>` value inside the `ConcurrentMap` is not guaranteed to be safe for arbitrary concurrent modifications **after** collect. `groupingByConcurrent` manages accumulation according to the Collector contract during collection; it does not turn all nested values into concurrent collections.
 
-### 10.3. Nên làm gì với mergeFunction?
+### 10.3. What Should You Do with mergeFunction?
 
-- Ưu tiên hàm **thuần**, không can thiệp nguồn và không giữ trạng thái mutable bên ngoài.
-- Đảm bảo **kết hợp được**, và nếu cần kết quả ổn định không phụ thuộc thứ tự thì chọn phép **giao hoán** hoặc quy tắc chọn đại diện xác định.
-- Không dùng merge function để gửi email, ghi log nghiệp vụ bắt buộc, gọi dịch vụ ngoài hoặc sửa một Map khác.
-- Với phép tính có chi phí lớn, cân nhắc mức độ tranh chấp tại các khóa nóng và kiểm thử thực tế.
+- Prefer **pure** functions that do not interfere with the source and hold no external mutable state.
+- Ensure **associativity**, and if order-independent stability is required, choose a **commutative** operation or a deterministic representative selection rule.
+- Do not use merge functions to send emails, write mandatory business audit logs, call external services, or mutate another Map.
+- For expensive computations, consider contention levels on hot keys and test realistically.
 
-## 11. So sánh toMap, toConcurrentMap và groupingByConcurrent
+## 11. Comparing toMap, toConcurrentMap, and groupingByConcurrent
 
-Ba collector này có điểm chung là trả một Map, nhưng giải quyết ba nhu cầu khác nhau.
+These three collectors share the fact that they return a Map, but they solve three different needs.
 
-| Tiêu chí | `toMap` | `toConcurrentMap` | `groupingByConcurrent` |
+| Criterion | `toMap` | `toConcurrentMap` | `groupingByConcurrent` |
 | --- | --- | --- | --- |
-| Dạng đầu ra | `Map<K,U>` | `ConcurrentMap<K,U>` | `ConcurrentMap<K,D>` |
-| Collector có `CONCURRENT`? | Không | Có | Có |
-| Collector `UNORDERED`? | Không mặc định | Có | Có |
-| Khóa trùng | Lỗi hoặc dùng merge function | Lỗi hoặc dùng merge function | Nhiều phần tử được đưa vào **cùng nhóm** |
-| Giá trị nhóm | Một `U` sau ánh xạ/gộp | Một `U` sau ánh xạ/gộp | Kết quả của downstream collector |
-| Tùy chọn Map | `mapFactory`, cần `Map` | `mapFactory`, cần `ConcurrentMap` | `mapFactory`, cần `ConcurrentMap` |
-| Cần giữ ngữ nghĩa encounter order | Có thể cân nhắc `toMap` cùng Map/merge phù hợp | Không | Không |
+| Output type | `Map<K,U>` | `ConcurrentMap<K,U>` | `ConcurrentMap<K,D>` |
+| Collector has `CONCURRENT`? | No | Yes | Yes |
+| Collector `UNORDERED`? | Not by default | Yes | Yes |
+| Duplicate keys | Error or uses merge function | Error or uses merge function | Multiple elements are placed into **the same group** |
+| Group value | A single `U` after mapping/merging | A single `U` after mapping/merging | Result of the downstream collector |
+| Map customization | `mapFactory`, requires `Map` | `mapFactory`, requires `ConcurrentMap` | `mapFactory`, requires `ConcurrentMap` |
+| Need to preserve encounter order semantics | Can consider `toMap` with suitable Map/merge | No | No |
 
-### 11.1. Khi chỉ cần một giá trị tổng hợp theo khóa
+### 11.1. When Only One Aggregated Value Per Key Is Needed
 
 ~~~java
 ConcurrentMap<String, Long> units = lines.parallelStream()
@@ -644,9 +644,9 @@ ConcurrentMap<String, Long> units = lines.parallelStream()
     ));
 ~~~
 
-`toConcurrentMap` rõ ràng khi mỗi khóa ánh xạ tới **một giá trị cuối**, được tạo bằng phép merge có ý nghĩa.
+`toConcurrentMap` is clear when each key maps to **one final value**, produced by a meaningful merge operation.
 
-### 11.2. Khi cần danh sách đầy đủ theo mỗi khóa
+### 11.2. When a Full List Per Key Is Needed
 
 ~~~java
 ConcurrentMap<String, List<OrderLine>> linesBySku =
@@ -655,11 +655,11 @@ ConcurrentMap<String, List<OrderLine>> linesBySku =
     );
 ~~~
 
-`groupingByConcurrent` tự quản lý việc tích lũy nhiều phần tử vào mỗi nhóm. Lưu ý `groupingByConcurrent` không cam kết thứ tự encounter order trong danh sách nhóm.
+`groupingByConcurrent` automatically manages accumulating multiple elements into each group. Note that `groupingByConcurrent` does not guarantee encounter order within each group's list.
 
-### 11.3. Khi cần giữ thứ tự gặp đầu tiên hoặc Map có thứ tự chèn
+### 11.3. When First-Seen Order or an Insertion-Ordered Map Is Needed
 
-Nếu yêu cầu đầu ra là Map duyệt khóa theo lần xuất hiện đầu tiên trong nguồn, `toConcurrentMap` không phải lựa chọn chính xác. Dùng collector ordered và factory thích hợp:
+If the output requirement is a Map that iterates keys in order of first appearance in the source, `toConcurrentMap` is not the right choice. Use an ordered collector and an appropriate factory:
 
 ~~~java
 import java.util.LinkedHashMap;
@@ -675,11 +675,11 @@ Map<String, Long> ordered = lines.stream()
     ));
 ~~~
 
-`LinkedHashMap` lưu thứ tự chèn của khóa, thích hợp cho pipeline tuần tự có encounter order. Nó **không phải ConcurrentMap**. Nếu chỉ cần thứ tự **sắp theo khóa**, có thể dùng `ConcurrentSkipListMap` với `toConcurrentMap` như ở mục 7.
+`LinkedHashMap` stores key insertion order, suited for sequential pipelines with encounter order. It **is not a ConcurrentMap**. If you only need **key-sorted** order, you can use `ConcurrentSkipListMap` with `toConcurrentMap` as shown in section 7.
 
-## 12. Kết hợp toConcurrentMap với collector nhiều tầng
+## 12. Combining toConcurrentMap with Multi-Level Collectors
 
-Ta cũng có thể sử dụng `toConcurrentMap` làm **downstream** của một collector nhóm. Đây là cách xây một báo cáo phân cấp gồm Map khu vực, bên trong là Map SKU và tổng số lượng.
+We can also use `toConcurrentMap` as a **downstream** of a grouping collector. This is a way to build a hierarchical report consisting of a region Map containing inner Maps of SKU and total quantity.
 
 ~~~java
 import java.util.List;
@@ -691,10 +691,10 @@ public class NestedConcurrentReport {
 
     public static void main(String[] args) {
         List<OrderLine> lines = List.of(
-            new OrderLine("Nam", "BOOK", 2),
-            new OrderLine("Nam", "BOOK", 1),
-            new OrderLine("Nam", "PEN",  1),
-            new OrderLine("Bắc", "PEN",  4)
+            new OrderLine("South", "BOOK", 2),
+            new OrderLine("South", "BOOK", 1),
+            new OrderLine("South", "PEN",  1),
+            new OrderLine("North", "PEN",  4)
         );
 
         ConcurrentMap<String, ConcurrentMap<String, Integer>> report =
@@ -709,64 +709,64 @@ public class NestedConcurrentReport {
                 )
             );
 
-        System.out.println(report.get("Nam").get("BOOK")); // 3
-        System.out.println(report.get("Nam").get("PEN"));  // 1
-        System.out.println(report.get("Bắc").get("PEN"));  // 4
+        System.out.println(report.get("South").get("BOOK")); // 3
+        System.out.println(report.get("South").get("PEN"));  // 1
+        System.out.println(report.get("North").get("PEN"));  // 4
     }
 }
 ~~~
 
-Có hai mức khóa:
+There are two key levels:
 
-- `region` là khóa của `ConcurrentMap` bên ngoài.
-- `sku` là khóa của `ConcurrentMap` bên trong.
-- `Integer::sum` hợp nhất số lượng của những dòng cùng region và SKU.
+- `region` is the key of the outer `ConcurrentMap`.
+- `sku` is the key of the inner `ConcurrentMap`.
+- `Integer::sum` merges quantities of lines sharing the same region and SKU.
 
-Kiểu dữ liệu trả về là `ConcurrentMap<String, ConcurrentMap<String, Integer>>`. Cấu trúc này hữu ích khi hệ thống cần tra cứu nhanh hai cấp, nhưng cũng có chi phí tạo Map và đối tượng; nếu chỉ cần một báo cáo nhỏ chạy một lần, `groupingBy` tuần tự hoặc một record khóa tổng hợp có thể đơn giản hơn.
+The return type is `ConcurrentMap<String, ConcurrentMap<String, Integer>>`. This structure is useful when the system needs fast two-level lookups, though it also carries Map and object allocation costs; if you only need a small one-off report, sequential `groupingBy` or a composite key record may be simpler.
 
-## 13. Null, khóa nóng, hiệu năng và giới hạn tài nguyên
+## 13. Nulls, Hot Keys, Performance, and Resource Limits
 
-### 13.1. Khóa nóng làm giảm mức song song hữu ích
+### 13.1. Hot Keys Reduce Useful Parallelism
 
-Giả sử hàng triệu bản ghi đều thuộc một SKU `"BOOK"`. Dù nhiều thread đọc nguồn cùng lúc, các cập nhật lên **một khóa** phải được phối hợp để tránh mất dữ liệu.
+Suppose millions of records all belong to a single SKU `"BOOK"`. Even though multiple threads read the source concurrently, updates to **one key** must be coordinated to prevent lost data.
 
 ~~~text
-Nhiều nhánh parallel ─────► cùng key "BOOK"
+Multiple parallel branches ─────► same key "BOOK"
                                 │
                                 ▼
-                      Cập nhật/merge có phối hợp
+                      Coordinated update/merge
                                 │
                                 ▼
-                          Một giá trị cuối
+                           One final value
 ~~~
 
-Vì vậy, tính concurrent của collector không đảm bảo mọi tác vụ merge có thể mở rộng tuyến tính theo số lõi. Khi số nhóm rất ít và phân bố lệch, contention có thể trở thành nút thắt.
+Thus, collector concurrency does not guarantee that every merge workload scales linearly with core count. When the number of groups is very small and distribution is skewed, contention can become a bottleneck.
 
-### 13.2. Số nhóm lớn tiêu tốn bộ nhớ
+### 13.2. Large Group Counts Consume Memory
 
-Mỗi khóa phân biệt tạo một entry trong Map. Nếu khóa được tạo bằng dữ liệu gần như duy nhất, ví dụ UUID cho mỗi bản ghi, `toConcurrentMap` có thể tạo một Map rất lớn, dù không có khóa nào cần merge. `ConcurrentMap` không phải kho lưu trữ vô hạn; cần tính đến giới hạn RAM, áp lực GC và chiến lược xử lý dữ liệu theo lô nếu đầu ra lớn.
+Each distinct key creates an entry in the Map. If keys are generated from nearly unique data, such as a UUID per record, `toConcurrentMap` can create a huge Map, even when no keys need merging. `ConcurrentMap` is not infinite storage; account for RAM limits, GC pressure, and batch processing strategies if output size is large.
 
-### 13.3. Đừng đo hiệu năng bằng một lần chạy
+### 13.3. Do Not Measure Performance with a Single Run
 
-Để so sánh `toMap` và `toConcurrentMap`:
+To compare `toMap` and `toConcurrentMap`:
 
-1. Dùng cùng dữ liệu và cùng yêu cầu đầu ra, không chuyển từ “giữ thứ tự” sang “bất kỳ thứ tự” mà không ghi nhận.
-2. Kiểm tra kết quả đúng trước bằng `Map.equals` hoặc các bất biến nghiệp vụ.
-3. Đo tuần tự và song song, nhiều lần và trong điều kiện đủ ổn định.
-4. Thay đổi kích thước nguồn, số khóa phân biệt, mức độ trùng khóa và chi phí mapper.
-5. Đo thời gian, cấp phát/GC và mức sử dụng CPU khi cần.
+1. Use the same data and the same output requirements, without silently switching from “ordered” to “any order”.
+2. Verify correctness first using `Map.equals` or business invariants.
+3. Measure both sequential and parallel modes, across multiple runs and under stable conditions.
+4. Vary source size, distinct key count, key collision rate, and mapper cost.
+5. Measure elapsed time, allocations/GC, and CPU utilization when needed.
 
-Không có một ngưỡng cố định mà “vượt n phần tử thì toConcurrentMap luôn nhanh”. Hiệu quả phụ thuộc `Spliterator`, các bước trước collect, hàm băm và so sánh khóa, phân bố dữ liệu, merge function và tài nguyên máy.
+There is no fixed threshold where “above n elements, toConcurrentMap is always faster”. Effectiveness depends on `Spliterator`, pre-collect steps, hash functions and key comparisons, data distribution, merge function, and machine resources.
 
-### 13.4. Nguồn I/O và side effect vẫn cần quản lý riêng
+### 13.4. I/O Sources and Side Effects Still Require Separate Management
 
-Nếu nguồn Stream được xây từ `Files.lines` hoặc socket, cần quản lý tài nguyên qua `try-with-resources`; `collect` không tự đóng mọi nguồn gắn với tài nguyên. Parallel stream có thể thực hiện callback trên nhiều thread, nên các lời gọi HTTP hay ghi DB trong mapper cần thiết kế retry/timeout/backpressure và tính idempotent, không dựa đơn thuần vào `toConcurrentMap`.
+If the Stream source is built from `Files.lines` or sockets, manage resources via `try-with-resources`; `collect` does not automatically close resource-backed sources. Parallel streams may execute callbacks on multiple threads, so HTTP calls or DB writes inside mappers require retry/timeout/backpressure and idempotency designs rather than relying merely on `toConcurrentMap`.
 
-## 14. Kiểm thử: kết quả không phụ thuộc lịch chạy
+## 14. Testing: Results Independent of Execution Schedule
 
-Một kiểm thử tốt không so sánh chuỗi in ra từ `ConcurrentMap.toString()` vì thứ tự duyệt mặc định không được cam kết. Hãy so sánh nội dung khóa và giá trị.
+A good test does not compare the string printed by `ConcurrentMap.toString()` because default iteration order is not guaranteed. Compare key and value contents instead.
 
-Ví dụ độc lập sau xác minh tổng 10 nhóm, mỗi nhóm có 1.000 phần tử từ dải 0 đến 9.999:
+The following standalone example verifies totals across 10 groups, each with 1,000 elements from the range 0 to 9,999:
 
 ~~~java
 import java.util.concurrent.ConcurrentMap;
@@ -795,16 +795,16 @@ public class ConcurrentMapChecks {
             countByRemainder(true);
 
         if (!serial.equals(parallel)) {
-            throw new AssertionError("Hai chế độ cho kết quả khác nhau");
+            throw new AssertionError("Both modes produced different results");
         }
 
         if (parallel.size() != 10) {
-            throw new AssertionError("Thiếu hoặc thừa nhóm");
+            throw new AssertionError("Missing or extra groups");
         }
 
         for (int key = 0; key < 10; key++) {
             if (parallel.get(key) != 1000L) {
-                throw new AssertionError("Sai số đếm của nhóm " + key);
+                throw new AssertionError("Wrong count for group " + key);
             }
         }
 
@@ -813,22 +813,22 @@ public class ConcurrentMapChecks {
 }
 ~~~
 
-Kiểm tra này chứng minh đúng với **bộ dữ liệu thử**, không tự chứng minh mọi merge function có tính kết hợp hay mọi workload đều nhanh. Nên bổ sung test trường hợp:
+This check proves correctness for **the test dataset**, not that every merge function is associative or every workload is fast. Additional test cases should include:
 
-- Stream rỗng: kết quả Map rỗng.
-- Một khóa duy nhất xuất hiện nhiều lần.
-- Nhiều khóa phân biệt, phân bố đều và phân bố lệch.
-- Khóa trùng trong overload hai tham số: có lỗi đúng kỳ vọng.
-- Null ở key/value: bị xử lý theo chính sách.
-- Trường hợp tràn số, tie của comparator và phiên bản bản ghi.
-- Nhiều lần chạy tuần tự/song song để phát hiện sự phụ thuộc vào lịch xử lý.
+- Empty stream: empty Map result.
+- A single key appearing many times.
+- Many distinct keys, both uniform and skewed distributions.
+- Duplicate keys in the two-parameter overload: throws as expected.
+- Null in key/value: handled according to policy.
+- Numeric overflow, comparator ties, and record versions.
+- Repeated sequential/parallel runs to catch schedule sensitivity.
 
-## 15. Những lỗi thường gặp
+## 15. Common Mistakes
 
-### Lỗi 1: dùng overload hai tham số khi khóa có thể trùng
+### Mistake 1: Using the Two-Parameter Overload When Keys Can Collide
 
 ~~~java
-// Có thể ném IllegalStateException:
+// May throw IllegalStateException:
 lines.parallelStream().collect(
     Collectors.toConcurrentMap(
         OrderLine::sku,
@@ -837,57 +837,57 @@ lines.parallelStream().collect(
 );
 ~~~
 
-Nếu mục tiêu là tổng số lượng, phải thêm `Long::sum`; nếu khóa đáng lẽ duy nhất, giữ cách viết và coi trùng khóa là dữ liệu lỗi.
+If the goal is total quantity, add `Long::sum`; if keys are supposed to be unique, keep this form and treat duplicate keys as bad data.
 
-### Lỗi 2: dùng (left, right) -> right để chọn “dòng cuối”
+### Mistake 2: Using (left, right) -> right to Pick the “Latest Row”
 
 ~~~java
-// Không đáng tin nếu muốn dòng có timestamp/version mới nhất:
+// Unreliable if you want the row with the latest timestamp/version:
 (left, right) -> right
 ~~~
 
-Vì collector unordered, thứ tự merge không cam kết theo nguồn. Chọn bằng comparator theo trường nghiệp vụ như `version` hoặc `timestamp`.
+Because the collector is unordered, merge order is not guaranteed to follow source order. Select using a comparator on a business field like `version` or `timestamp`.
 
-### Lỗi 3: dùng HashMap::new làm factory
+### Mistake 3: Using HashMap::new as the Factory
 
 ~~~java
-// Không biên dịch do yêu cầu M extends ConcurrentMap<K,U>:
+// Does not compile due to the bound M extends ConcurrentMap<K,U>:
 // toConcurrentMap(keyMapper, valueMapper, mergeFn, HashMap::new)
 ~~~
 
-Chọn `ConcurrentHashMap::new` hoặc `ConcurrentSkipListMap::new` nếu cần một loại ConcurrentMap cụ thể.
+Choose `ConcurrentHashMap::new` or `ConcurrentSkipListMap::new` when a specific ConcurrentMap type is needed.
 
-### Lỗi 4: coi giá trị List bên trong Map là thread-safe
+### Mistake 4: Treating List Values Inside the Map as Thread-Safe
 
 ~~~java
-// ConcurrentMap<String, List<String>> không làm từng List<String>
-// trở thành collection an toàn cho sửa đổi đồng thời.
+// ConcurrentMap<String, List<String>> does not make each List<String>
+// a thread-safe collection for concurrent modification.
 ~~~
 
-Dùng collector phù hợp để gom list, chỉ công bố dữ liệu sau khi collect hoàn tất, và có chính sách đồng bộ nếu tiếp tục sửa các List sau đó.
+Use an appropriate collector to gather lists, publish the data only after collect completes, and establish a synchronization policy if the Lists will be mutated later.
 
-### Lỗi 5: bỏ qua null
+### Mistake 5: Ignoring Nulls
 
 ~~~java
-// Không để keyMapper/valueMapper trả null khi thu vào
-// các ConcurrentMap phổ biến như ConcurrentHashMap.
+// Do not let keyMapper/valueMapper return null when collecting into
+// common ConcurrentMaps like ConcurrentHashMap.
 ~~~
 
-Phải lọc hoặc chuyển null thành trạng thái hợp lệ trước terminal. Nếu null là lỗi nghiệp vụ, báo lỗi thay vì âm thầm bỏ dữ liệu.
+Filter or convert null into a valid state before the terminal operation. If null is a business error, raise an error instead of silently dropping data.
 
-### Lỗi 6: merge function có tác dụng phụ
+### Mistake 6: Merge Function with Side Effects
 
 ~~~java
-// Sai ý tưởng: cập nhật biến dùng chung hoặc gửi request trong merge.
-// merge có thể chạy trên nhiều thread và theo thứ tự không dự đoán.
+// Bad idea: updating shared variables or sending requests inside merge.
+// merge can run on multiple threads and in unpredictable order.
 ~~~
 
-Hãy viết hàm hợp nhất thuần; thực hiện side effect sau khi thu thập và xác nhận kết quả.
+Write a pure merge function; perform side effects after collecting and verifying the result.
 
-### Lỗi 7: nghĩ collector concurrent tự bật parallel
+### Mistake 7: Thinking a Concurrent Collector Automatically Enables Parallel
 
 ~~~java
-// Stream vẫn tuần tự, dù collector có CONCURRENT:
+// The Stream remains sequential, even though the collector has CONCURRENT:
 var serial = lines.stream().collect(
     Collectors.toConcurrentMap(
         OrderLine::sku,
@@ -897,55 +897,55 @@ var serial = lines.stream().collect(
 );
 ~~~
 
-Chế độ xử lý do `stream()`, `parallelStream()`, `parallel()` và `sequential()` quyết định. Tính concurrent của collector chỉ mô tả khả năng tích lũy, không tự đổi mode.
+Execution mode is determined by `stream()`, `parallelStream()`, `parallel()`, and `sequential()`. Collector concurrency only describes accumulation capability, without switching modes automatically.
 
-### Lỗi 8: mặc định ConcurrentMap là không sửa đổi được
+### Mistake 8: Assuming the ConcurrentMap Is Unmodifiable
 
-Kết quả là một ConcurrentMap có thể hỗ trợ `put`, `remove`, `compute`, `merge`. Nó **không phải** một snapshot bất biến. Nếu API chỉ nên trả view không sửa đổi được, hãy xác định cách tạo bản sao công bố:
+The result is a ConcurrentMap that can support `put`, `remove`, `compute`, `merge`. It is **not** an immutable snapshot. If the API should only return an unmodifiable view, decide how to create a published copy:
 
 ~~~java
 import java.util.Map;
 
-// Đã hoàn tất collect, không có thread khác tiếp tục sửa values:
+// Collection has finished, no other threads are mutating values:
 Map<String, Long> snapshot = Map.copyOf(units);
 ~~~
 
-`Map.copyOf` trả Map không sửa đổi được và cấm null ở khóa/giá trị, nhưng **không** cam kết giữ thứ tự duyệt khóa của `ConcurrentSkipListMap`. Các value object mutable đặt trong Map vẫn có thể thay đổi; muốn snapshot bất biến sâu phải sao chép/chuẩn hóa cả các đối tượng con.
+`Map.copyOf` returns an unmodifiable Map and forbids null keys/values, though it does **not** guarantee preserving `ConcurrentSkipListMap`'s key iteration order. Mutable value objects inside the Map can still be modified; for a deeply immutable snapshot, copy/normalize child objects as well.
 
-## 16. Cách lựa chọn nhanh
+## 16. Quick Selection Guide
 
-| Yêu cầu | Lựa chọn gợi ý | Lý do |
+| Requirement | Recommended Choice | Reason |
 | --- | --- | --- |
-| Chuyển các bản ghi có key duy nhất thành lookup Map | `toConcurrentMap(key, value)` nếu cần ConcurrentMap | Lỗi khi key trùng |
-| Cộng số lượng theo SKU trên parallel stream | `toConcurrentMap(key, value, Long::sum)` | Merge kết hợp, không phụ thuộc thứ tự |
-| Chọn bản ghi mới nhất theo version | `toConcurrentMap(key, event, maxBy(comparator))` | Quy tắc xác định theo khóa nghiệp vụ |
-| Cần Map sắp theo khóa và hỗ trợ đồng thời | `toConcurrentMap(..., ConcurrentSkipListMap::new)` | Có thứ tự so sánh khóa |
-| Cần Map theo thứ tự chèn | `toMap(..., LinkedHashMap::new)` | Không phải concurrent collector |
-| Cần nhiều bản ghi trong mỗi nhóm | `groupingByConcurrent(key)` | Downstream tích lũy nhóm |
-| Cần tổng hoặc thống kê theo nhóm và không có yêu cầu ConcurrentMap | `groupingBy(key, summingX(...))` | Có thể gọn hơn cho báo cáo tuần tự |
-| Có key/value null | Lọc, chuẩn hóa hoặc báo lỗi trước collect | Tránh kết quả sai và NPE |
-| Chỉ cần tập giá trị bất biến sau tính toán | Thu thập rồi `Map.copyOf` nếu phù hợp | Tách trạng thái xử lý với API công bố |
-| Dữ liệu lớn, nhiều khóa nóng | Benchmark và xem xét phân bố | Contention có thể giới hạn tốc độ |
+| Convert records with unique keys into a lookup Map | `toConcurrentMap(key, value)` if a ConcurrentMap is needed | Fails on duplicate keys |
+| Sum quantities by SKU on a parallel stream | `toConcurrentMap(key, value, Long::sum)` | Associative merge, order-independent |
+| Pick the latest record by version | `toConcurrentMap(key, event, maxBy(comparator))` | Deterministic rule by business key |
+| Need a Map sorted by key with concurrency support | `toConcurrentMap(..., ConcurrentSkipListMap::new)` | Ordered by key comparison |
+| Need an insertion-ordered Map | `toMap(..., LinkedHashMap::new)` | Not a concurrent collector |
+| Need multiple records per group | `groupingByConcurrent(key)` | Downstream group accumulation |
+| Need totals or stats by group without needing ConcurrentMap | `groupingBy(key, summingX(...))` | Can be cleaner for sequential reports |
+| Null keys/values possible | Filter, normalize, or fail before collect | Prevents wrong results and NPEs |
+| Only need an immutable set of values after computation | Collect then `Map.copyOf` if suitable | Separates processing state from published API |
+| Large data, many hot keys | Benchmark and inspect distribution | Contention may limit speed |
 
-## 17. Câu hỏi tự kiểm tra
+## 17. Self-Check Questions
 
-1. **`Collectors.toConcurrentMap` trả về ngay một ConcurrentMap hay một Collector?** Trả một Collector; Map được tạo khi terminal `collect` thực thi.
-2. **Overload hai tham số làm gì khi hai phần tử cùng khóa?** Ném `IllegalStateException`.
-3. **Khi nào cần overload ba tham số?** Khi có thể trùng khóa và muốn quy định cách hợp nhất các giá trị.
-4. **Tham số thứ tư dùng để làm gì?** `mapFactory` chọn một triển khai `ConcurrentMap` cụ thể.
-5. **Có thể dùng `LinkedHashMap::new` làm factory không?** Không; Map đó không triển khai `ConcurrentMap`.
-6. **Hai Collector characteristics quan trọng của `toConcurrentMap` là gì?** `CONCURRENT` và `UNORDERED`.
-7. **`UNORDERED` có bảo đảm thứ tự khóa lộn xộn/ngẫu nhiên không?** Không; nó chỉ bỏ ràng buộc encounter order.
-8. **`ConcurrentSkipListMap` sắp thứ tự gì?** Thứ tự **khóa** theo comparator/natural ordering, không phải thứ tự xử lý các bản ghi.
-9. **Vì sao `(a,b) -> b` không đại diện chính xác cho “bản ghi mới nhất”?** Merge có thể xảy ra theo lịch thread và cách chia nguồn; cần so sánh trường version/timestamp.
-10. **`ConcurrentMap<String,List<T>>` có khiến List bên trong an toàn khi nhiều thread cùng sửa không?** Không.
-11. **Nếu keyMapper trả null, nên xử lý thế nào?** Lọc, thay khóa bằng trạng thái hợp lệ hoặc báo lỗi trước khi collect.
-12. **Có thể cho mergeFunction trả null để giữ khóa nhưng giá trị thiếu không?** Không. Ngữ nghĩa `Map.merge` có thể xóa ánh xạ.
-13. **Collector concurrent có tự biến `stream()` thành parallel stream không?** Không; chế độ do Stream quyết định.
-14. **Tại sao `Long::sum` thường phù hợp hơn nối chuỗi khi merge trong unordered collector?** Phép cộng không phụ thuộc thứ tự, còn nối chuỗi thay đổi kết quả nếu đảo thứ tự.
-15. **Khi nào dùng `groupingByConcurrent` thay vì `toConcurrentMap`?** Khi mỗi khóa cần tích lũy một nhóm/danh sách hoặc downstream collector riêng.
-16. **Có thể so sánh hai kết quả ConcurrentMap bằng `Map.equals` không?** Có, khi mục tiêu là cùng tập cặp khóa–giá trị và giá trị có `equals` phù hợp; không so sánh thứ tự in.
-17. **Nếu một SKU chiếm phần lớn dữ liệu thì điều gì có thể xảy ra?** Các cập nhật cùng khóa tạo contention và giảm lợi ích của xử lý song song.
-18. **Tại sao Map trả về không tự là bất biến?** `ConcurrentMap` hỗ trợ mutation; nếu cần snapshot công bố, tạo bản sao hoặc view phù hợp sau collect.
+1. **Does `Collectors.toConcurrentMap` immediately return a ConcurrentMap or a Collector?** It returns a Collector; the Map is created when terminal `collect` executes.
+2. **What does the two-parameter overload do when two elements share a key?** Throws `IllegalStateException`.
+3. **When do you need the three-parameter overload?** When keys can collide and you want to specify how to merge values.
+4. **What is the fourth parameter used for?** `mapFactory` selects a specific `ConcurrentMap` implementation.
+5. **Can `LinkedHashMap::new` be used as the factory?** No; that Map does not implement `ConcurrentMap`.
+6. **What are the two key Collector characteristics of `toConcurrentMap`?** `CONCURRENT` and `UNORDERED`.
+7. **Does `UNORDERED` guarantee shuffled/randomized key order?** No; it only drops the encounter order constraint.
+8. **What does `ConcurrentSkipListMap` order?** **Key** order via comparator/natural ordering, not record processing order.
+9. **Why doesn't `(a,b) -> b` accurately represent the “latest record”?** Merges can happen according to thread scheduling and source splitting; compare version/timestamp fields instead.
+10. **Does `ConcurrentMap<String,List<T>>` make inner Lists safe when multiple threads mutate them together?** No.
+11. **If keyMapper returns null, how should it be handled?** Filter, replace the key with a valid state, or fail before collect.
+12. **Can mergeFunction return null to keep the key with a missing value?** No. `Map.merge` semantics can remove the mapping.
+13. **Does a concurrent collector automatically turn `stream()` into a parallel stream?** No; execution mode is determined by the Stream.
+14. **Why is `Long::sum` usually better suited than string concatenation for merging in an unordered collector?** Addition is order-independent, whereas concatenation changes the result if order is reversed.
+15. **When should you use `groupingByConcurrent` instead of `toConcurrentMap`?** When each key needs to accumulate a group/list or its own downstream collector.
+16. **Can two ConcurrentMap results be compared with `Map.equals`?** Yes, when the goal is the same set of key–value pairs and values implement `equals` properly; do not compare print order.
+17. **If one SKU accounts for most of the data, what can happen?** Updates to the same key create contention and reduce the benefits of parallel execution.
+18. **Why isn't the returned Map automatically immutable?** `ConcurrentMap` supports mutation; if a published snapshot is needed, create a copy or appropriate view after collect.
 
-**Ghi nhớ:** `Collectors.toConcurrentMap` tạo một **ConcurrentMap** từ các phần tử của Stream, với tùy chọn phát hiện khóa trùng, hợp nhất giá trị và chọn loại ConcurrentMap cụ thể. Collector này có đặc tính **CONCURRENT** và **UNORDERED**, nên không dùng encounter order làm quy tắc chọn “giá trị đầu/cuối”. Hãy thiết kế `mergeFunction` kết hợp được và không phụ thuộc trạng thái dùng chung, kiểm soát null, dùng đúng mapFactory, rồi đánh giá phân bố khóa và hiệu năng thực tế trước khi chọn thu thập song song.
+**Remember:** `Collectors.toConcurrentMap` creates a **ConcurrentMap** from Stream elements, with options to detect duplicate keys, merge values, and select a specific ConcurrentMap type. This collector has **CONCURRENT** and **UNORDERED** characteristics, so do not use encounter order as the rule for picking “first/last value”. Design an associative `mergeFunction` free of shared state, control nulls, use the proper mapFactory, and evaluate key distribution and real performance before choosing parallel collection.

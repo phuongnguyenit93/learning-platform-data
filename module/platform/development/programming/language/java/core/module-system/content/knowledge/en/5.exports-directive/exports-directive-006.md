@@ -1,17 +1,17 @@
-# Export package API và package implementation
+# Exporting API Packages and Implementation Packages
 
-Trong Java Platform Module System (JPMS), một module có thể chứa nhiều package nhưng không phải package nào cũng được phép sử dụng từ module khác. Chỉ thị **exports** trong file **module-info.java** xác định package nào được công khai qua ranh giới module. Đây là cách module phân biệt phần API ổn định mà người dùng được phép gọi với phần implementation nội bộ có thể thay đổi theo nhu cầu triển khai.
+In the Java Platform Module System (JPMS), a module can contain many packages, yet not every package is meant to be used from other modules. The **exports** directive in **module-info.java** specifies which packages are exposed across the module boundary. This is how a module separates the stable API portion that users are allowed to call from the internal implementation portion that may change according to implementation needs.
 
-Thiết kế ranh giới này giúp giảm phụ thuộc giữa các module, hạn chế việc code bên ngoài truy cập chi tiết nội bộ và tạo điều kiện thay đổi implementation mà không làm ảnh hưởng người dùng API.
+Designing this boundary reduces coupling between modules, limits external code from accessing internal details, and makes it possible to change implementations without impacting API users.
 
-## 1. Package API và package implementation
+## 1. API Packages and Implementation Packages
 
-Một module thường có hai nhóm package:
+A module typically has two groups of packages:
 
-- **Package API** chứa các kiểu mà module khác cần sử dụng, chẳng hạn interface, class, exception và kiểu dữ liệu công khai.
-- **Package implementation** chứa logic nội bộ, helper, adapter, repository cụ thể hoặc các class chỉ phục vụ việc triển khai bên trong module.
+- **API packages** contain types that other modules need to use, such as public interfaces, classes, exceptions, and data types.
+- **Implementation packages** contain internal logic, helpers, adapters, concrete repositories, or classes that only serve internal implementation within the module.
 
-Ví dụ module thanh toán:
+Payment module example:
 
 ~~~text
 com.example.payment
@@ -27,11 +27,11 @@ com.example.payment
             └── GatewayClient.java
 ~~~
 
-Package API là nơi các module khác cần biết để gọi chức năng thanh toán. Package internal chỉ phục vụ logic bên trong module payment. Cách phân chia này là quy ước thiết kế; JPMS thực thi ranh giới truy cập thông qua module descriptor.
+The API package is where other modules look to invoke payment functionality. The internal package only serves logic inside the payment module. This division is a design convention; JPMS enforces the access boundary through the module descriptor.
 
-## 2. Dùng exports để công khai package API
+## 2. Using exports to Expose the API Package
 
-Giả sử module có tên **com.example.payment**. File **module-info.java** chỉ export package API:
+Suppose the module is named **com.example.payment**. The **module-info.java** file exports only the API package:
 
 ~~~java
 module com.example.payment {
@@ -39,7 +39,7 @@ module com.example.payment {
 }
 ~~~
 
-Module khác có thể khai báo phụ thuộc:
+Another module can declare a dependency:
 
 ~~~java
 module com.example.order {
@@ -47,7 +47,7 @@ module com.example.order {
 }
 ~~~
 
-Sau đó code trong module order có thể import các kiểu public thuộc package đã export:
+Then code in the order module can import public types belonging to the exported package:
 
 ~~~java
 package com.example.order;
@@ -69,13 +69,13 @@ public class OrderCheckout {
 }
 ~~~
 
-Chỉ thị **exports com.example.payment.api;** làm cho các kiểu public trong package API có thể được module đọc truy cập theo quy tắc Java. Module sử dụng vẫn phải có quan hệ đọc, thường được khai báo bằng **requires**.
+The directive **exports com.example.payment.api;** makes public types in the API package accessible to reading modules under Java rules. The consuming module must still have a readability relationship, typically declared with **requires**.
 
-**exports** áp dụng cho cả package, không chọn riêng từng class. Nếu một package chứa nhiều class public, các class public trong package đó đều nằm trong bề mặt API được export. Vì vậy, hãy tổ chức package sao cho những kiểu cần công khai nằm cùng package API, còn helper và chi tiết nội bộ nằm ở package riêng.
+**exports** applies to the whole package, not selectively to individual classes. If a package contains multiple public classes, all public classes in that package are part of the exported API surface. Therefore, organize packages so that types intended to be public reside together in the API package, while helpers and internal details reside in separate packages.
 
-## 3. Package không export là implementation nội bộ
+## 3. Unexported Packages Are Internal Implementation
 
-Giả sử module payment có implementation:
+Suppose the payment module has an implementation:
 
 ~~~java
 package com.example.payment.internal;
@@ -87,29 +87,29 @@ import com.example.payment.api.PaymentService;
 public class DefaultPaymentService implements PaymentService {
     @Override
     public PaymentResult pay(PaymentRequest request) {
-        // Thực hiện xử lý thanh toán nội bộ.
+        // Perform internal payment processing.
         return PaymentResult.success();
     }
 }
 ~~~
 
-Package **com.example.payment.internal** không được khai báo trong **exports**. Vì vậy, dù class **DefaultPaymentService** là public, module khác không thể truy cập nó qua ranh giới JPMS theo cách thông thường.
+The package **com.example.payment.internal** is not declared in **exports**. Therefore, even though the **DefaultPaymentService** class is public, other modules cannot access it across the JPMS boundary in the normal way.
 
-Điều này khác với modifier **public** của Java:
+This differs from Java's **public** modifier:
 
-- **public** quyết định mức truy cập của kiểu hoặc thành viên theo ngôn ngữ Java.
-- **exports** quyết định package có được công khai cho module khác hay không.
-- Để sử dụng một kiểu public từ module khác, package chứa kiểu đó phải được export phù hợp và module gọi phải đọc module cung cấp.
+- **public** determines the access level of a type or member under the Java language.
+- **exports** determines whether a package is exposed to other modules.
+- To use a public type from another module, the package containing that type must be appropriately exported and the calling module must read the providing module.
 
-Một class public nằm trong package không export vẫn có thể được sử dụng bên trong chính module sở hữu nó. Các package implementation có thể gọi lẫn nhau theo các quy tắc truy cập Java thông thường, nhưng module bên ngoài không được coi chúng là API.
+A public class located in an unexported package can still be used inside the module that owns it. Implementation packages can call one another under normal Java access rules, while external modules cannot treat them as API.
 
-Nếu module order cố import **com.example.payment.internal.DefaultPaymentService**, trình biên dịch sẽ báo package hoặc kiểu không được truy cập do package không được export. Việc thêm **requires com.example.payment** không giải quyết được lỗi này; cần dùng API được export hoặc thay đổi thiết kế cung cấp chức năng.
+If the order module tries to import **com.example.payment.internal.DefaultPaymentService**, the compiler will report that the package or type is not accessible because the package is not exported. Adding **requires com.example.payment** does not solve this error; it is necessary to use the exported API or adjust the design providing the functionality.
 
-## 4. API nên công khai abstraction, không công khai class triển khai
+## 4. APIs Should Expose Abstractions, Not Implementation Classes
 
-Một thiết kế phổ biến là export interface hoặc abstraction, sau đó giữ class triển khai trong package internal.
+A common design is to export interfaces or abstractions, then keep implementation classes in internal packages.
 
-Ví dụ API:
+API example:
 
 ~~~java
 package com.example.payment.api;
@@ -119,7 +119,7 @@ public interface PaymentService {
 }
 ~~~
 
-Module payment có thể tạo implementation bên trong:
+The payment module can create an internal implementation:
 
 ~~~java
 package com.example.payment.internal;
@@ -136,16 +136,16 @@ public final class DefaultPaymentService implements PaymentService {
 }
 ~~~
 
-Module bên ngoài chỉ phụ thuộc vào **PaymentService**, **PaymentRequest** và **PaymentResult**. Nó không cần biết implementation hiện tại là **DefaultPaymentService**, **RemotePaymentService** hay một class khác.
+External modules only depend on **PaymentService**, **PaymentRequest**, and **PaymentResult**. They do not need to know whether the current implementation is **DefaultPaymentService**, **RemotePaymentService**, or another class.
 
-Cách thiết kế này đem lại một số lợi ích:
+This design brings several benefits:
 
-- Có thể thay implementation mà không bắt module sử dụng sửa import hoặc khởi tạo class cụ thể.
-- Giảm nguy cơ code bên ngoài phụ thuộc vào helper hoặc cấu trúc dữ liệu nội bộ.
-- Giữ bề mặt API nhỏ, dễ tài liệu hóa và kiểm thử.
-- Cho phép module sở hữu kiểm soát cách tạo và cấu hình implementation.
+- Implementations can be swapped without forcing consuming modules to change imports or instantiate concrete classes.
+- Reduces the risk of external code depending on helpers or internal data structures.
+- Keeps the API surface small, easier to document, and easier to test.
+- Allows the owning module to control how implementations are created and configured.
 
-Một cách cung cấp implementation là factory method nằm trong package API:
+One way to provide implementations is a factory method located in the API package:
 
 ~~~java
 package com.example.payment.api;
@@ -160,13 +160,13 @@ public final class Payments {
 }
 ~~~
 
-Trong thiết kế thực tế, factory có thể ủy quyền cho package nội bộ hoặc dùng cơ chế Service Provider Interface. Điều quan trọng là module bên ngoài chỉ cần biết kiểu API mà module đã export.
+In real-world designs, a factory can delegate to an internal package or use the Service Provider Interface mechanism. The key point is that external modules only need to know the API types that the module has exported.
 
-## 5. Qualified exports: chỉ công khai cho module được chọn
+## 5. Qualified Exports: Exposing Only to Selected Modules
 
-Không phải package API nào cũng cần mở cho tất cả module. JPMS hỗ trợ **qualified exports**, tức là chỉ export package cho danh sách module đích.
+Not every API package needs to be opened to all modules. JPMS supports **qualified exports**, meaning exporting a package only to a target module list.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.example.payment {
@@ -176,28 +176,28 @@ module com.example.payment {
 }
 ~~~
 
-Trong ví dụ này:
+In this example:
 
-- **com.example.payment.api** được export không giới hạn cho các module đọc module payment.
-- **com.example.payment.integration** chỉ được export cho **com.example.order** và **com.example.billing**.
-- Module khác không nằm trong danh sách không thể truy cập package integration qua ranh giới module.
+- **com.example.payment.api** is exported unconditionally to modules reading the payment module.
+- **com.example.payment.integration** is exported only to **com.example.order** and **com.example.billing**.
+- Other modules not on the list cannot access the integration package across the module boundary.
 
-Qualified exports phù hợp khi module có API dùng chung và một số package tích hợp chỉ dành cho các module cộng tác cụ thể. Tuy nhiên, danh sách module đích tạo thêm liên kết giữa module cung cấp và module tiêu thụ. Nếu danh sách thay đổi thường xuyên, hãy cân nhắc tách chức năng tích hợp thành module riêng hoặc thiết kế API chung phù hợp hơn.
+Qualified exports are suitable when a module has a shared API and certain integration packages intended only for specific collaborating modules. However, the target module list creates extra coupling between the providing module and consuming modules. If the list changes frequently, consider extracting the integration functionality into a separate module or designing a more suitable general API.
 
-Qualified exports vẫn là export cho truy cập thông thường của Java; nó không tương đương với **opens** cho reflection sâu.
+Qualified exports are still exports for normal Java access; they are not equivalent to **opens** for deep reflection.
 
-## 6. exports khác opens như thế nào?
+## 6. How Does exports Differ from opens?
 
-**exports** và **opens** đều xuất hiện trong **module-info.java**, nhưng giải quyết hai nhu cầu khác nhau:
+Both **exports** and **opens** appear in **module-info.java**, yet they address two different needs:
 
-| Chỉ thị | Mục đích | Truy cập được cấp |
+| Directive | Purpose | Access Granted |
 |---|---|---|
-| **exports package.name;** | Công khai API của package | Truy cập các kiểu public theo quy tắc Java |
-| **exports package.name to module.name;** | Công khai API cho module được chọn | Truy cập thông thường trong phạm vi module đích |
-| **opens package.name;** | Cho phép reflection sâu ở runtime | Reflection vào các thành viên kể cả private theo cơ chế JPMS |
-| **opens package.name to module.name;** | Mở package cho framework/module cụ thể | Reflection sâu trong phạm vi module đích |
+| **exports package.name;** | Expose the package's API | Access to public types under Java rules |
+| **exports package.name to module.name;** | Expose API to selected modules | Normal access within the scope of target modules |
+| **opens package.name;** | Allow deep reflection at runtime | Reflection into members including private ones under JPMS rules |
+| **opens package.name to module.name;** | Open package to a specific framework/module | Deep reflection within the scope of target modules |
 
-Ví dụ framework ánh xạ object cần truy cập field private:
+Example of an object-mapping framework needing to access private fields:
 
 ~~~java
 module com.example.payment {
@@ -206,13 +206,13 @@ module com.example.payment {
 }
 ~~~
 
-Package **com.example.payment.model** được mở cho module mapper để framework có thể dùng reflection sâu. Chỉ thị này không làm package model trở thành API Java công khai thông thường. Nếu module khác cần import kiểu public trong package model, cần một directive exports thích hợp.
+Package **com.example.payment.model** is opened to the mapper module so the framework can use deep reflection. This directive does not turn the model package into a normal public Java API. If other modules need to import public types in the model package, an appropriate exports directive is needed.
 
-Không nên thêm **opens** chỉ để sửa lỗi import package hoặc truy cập API thông thường. Trường hợp đó cần xem lại **exports** và **requires**. Ngược lại, thêm **exports** không tự động giải quyết lỗi reflection vào private field hoặc constructor.
+Do not add **opens** just to fix a package import error or normal API access. In that case, review **exports** and **requires**. Conversely, adding **exports** does not automatically solve reflection errors on private fields or constructors.
 
-## 7. Ví dụ đầy đủ với hai module
+## 7. Complete Example with Two Modules
 
-Giả sử có hai module:
+Suppose there are two modules:
 
 ~~~text
 src/
@@ -230,7 +230,7 @@ src/
         └── Main.java
 ~~~
 
-Module payment export duy nhất package API:
+The payment module exports only the API package:
 
 ~~~java
 module com.example.payment {
@@ -263,7 +263,7 @@ public final class DefaultPaymentService implements PaymentService {
 }
 ~~~
 
-Module checkout khai báo dependency:
+The checkout module declares the dependency:
 
 ~~~java
 module com.example.checkout {
@@ -271,7 +271,7 @@ module com.example.checkout {
 }
 ~~~
 
-Code checkout có thể sử dụng interface API:
+Checkout code can use the API interface:
 
 ~~~java
 package com.example.checkout;
@@ -286,67 +286,67 @@ public class Main {
 }
 ~~~
 
-Code checkout không thể import **com.example.payment.internal.DefaultPaymentService**, bởi package internal không được export. Trong ví dụ tối giản, module checkout cần nhận một instance PaymentService qua factory, dependency injection hoặc ServiceLoader khi chạy thật. Cách khởi tạo implementation không làm thay đổi nguyên tắc: module tiêu thụ chỉ phụ thuộc vào API đã export.
+Checkout code cannot import **com.example.payment.internal.DefaultPaymentService**, because the internal package is not exported. In this minimal example, the checkout module needs to receive a PaymentService instance via a factory, dependency injection, or ServiceLoader when running for real. How the implementation is instantiated does not change the principle: the consuming module depends only on the exported API.
 
-Biên dịch các module theo module source path:
+Compile the modules using the module source path:
 
 ~~~bash
 javac --module-source-path src -d out -m com.example.payment,com.example.checkout
 ~~~
 
-Khi biên dịch, nếu checkout import class trong package internal, compiler sẽ từ chối truy cập package đó. Đây là kiểm tra hữu ích để bảo vệ ranh giới API ngay từ thời điểm biên dịch.
+During compilation, if checkout imports a class in the internal package, the compiler will deny access to that package. This is a useful check to protect the API boundary right at compile time.
 
-## 8. Tổ chức package để ranh giới API rõ ràng
+## 8. Organizing Packages for Clear API Boundaries
 
-Khi thiết kế module mới, có thể áp dụng các nguyên tắc sau:
+When designing a new module, the following principles can be applied:
 
-1. Đặt interface, DTO, exception và kiểu công khai trong các package API có tên rõ ràng.
-2. Đặt implementation cụ thể, helper và adapter nội bộ trong package riêng như **internal**, **impl** hoặc package chuyên trách.
-3. Chỉ export package mà module tiêu thụ thực sự cần.
-4. Hạn chế qualified exports cho những tích hợp có quan hệ module rõ ràng.
-5. Dùng **opens** riêng cho nhu cầu reflection đã xác định, thường là cho framework cụ thể.
-6. Tránh đưa class implementation vào cùng package với API nếu không muốn chúng cùng nằm trong bề mặt export.
-7. Xem các kiểu public trong package đã export là cam kết API; thay đổi chữ ký của chúng có thể ảnh hưởng module tiêu thụ.
+1. Place interfaces, DTOs, exceptions, and public types in clearly named API packages.
+2. Place concrete implementations, helpers, and internal adapters in separate packages such as **internal**, **impl**, or dedicated packages.
+3. Export only packages that consuming modules genuinely need.
+4. Limit qualified exports to integrations with clear module relationships.
+5. Use **opens** separately for identified reflection needs, typically for specific frameworks.
+6. Avoid putting implementation classes in the same package as the API if you do not want them included in the exported surface.
+7. Treat public types in exported packages as API commitments; changing their signatures can affect consuming modules.
 
-Tên **internal** hay **impl** tự nó không tạo ra bảo vệ. Ranh giới được JPMS thực thi nhờ việc không export package đó. Nếu module descriptor export nhầm package internal, package đó trở thành một phần API bất kể tên package.
+Names like **internal** or **impl** do not create protection on their own. The boundary is enforced by JPMS through not exporting those packages. If the module descriptor accidentally exports an internal package, that package becomes part of the API regardless of its package name.
 
-Cũng cần lưu ý rằng export package không đồng nghĩa mọi dependency của module tự động được công khai lại. Nếu API public của module payment sử dụng kiểu thuộc module khác, module cung cấp có thể cần khai báo **requires transitive** cho dependency phù hợp để module tiêu thụ API nhận được khả năng đọc cần thiết theo thiết kế. Việc export package và việc truyền tiếp quan hệ đọc là hai quyết định độc lập.
+It is also worth noting that exporting a package does not automatically re-expose all of the module's dependencies. If the payment module's public API uses types belonging to another module, the providing module may need to declare **requires transitive** for the appropriate dependency so that modules consuming the API receive the readability needed by design. Exporting packages and propagating readability are two independent decisions.
 
-## 9. Lỗi thường gặp và cách xử lý
+## 9. Common Errors and How to Handle Them
 
-**Module đã requires nhưng không truy cập được class public**
+**Module has requires, yet cannot access public class**
 
-Kiểm tra package chứa class đã được export chưa. Modifier public không vượt qua ranh giới module khi package không được export.
+Check whether the package containing the class is exported. The public modifier does not cross the module boundary when the package is unexported.
 
-**Implementation class bị module khác import trực tiếp**
+**Implementation class is imported directly by another module**
 
-Nếu class nằm trong package internal chưa export, compiler sẽ từ chối. Module tiêu thụ nên gọi abstraction trong API; module sở hữu có thể cung cấp factory hoặc cơ chế tạo implementation.
+If the class resides in an unexported internal package, the compiler will reject it. The consuming module should call the abstraction in the API; the owning module can provide a factory or implementation creation mechanism.
 
-**Đã export package nhưng framework vẫn không truy cập được private field**
+**Package exported, yet framework still cannot access private fields**
 
-Exports chỉ công khai API thông thường. Nếu cần reflection sâu, mở đúng package bằng opens hoặc qualified opens cho module framework.
+Exports only expose normal APIs. If deep reflection is needed, open the exact package using opens or qualified opens for the framework module.
 
-**Module ngoài truy cập được nhiều package không nên công khai**
+**External modules can access too many packages that should not be public**
 
-Kiểm tra module-info.java và bỏ các directive exports không cần thiết. Sau đó chuyển class nội bộ sang package không export và cập nhật các điểm sử dụng hợp lệ trong module sở hữu.
+Inspect module-info.java and remove unnecessary exports directives. Then move internal classes into unexported packages and update valid usages within the owning module.
 
-**Qualified exports làm module mới không biên dịch được**
+**Qualified exports break compilation of a new module**
 
-Kiểm tra tên module đích có khớp với tên module thực tế hay không. Chỉ các module được liệt kê mới có quyền truy cập package được qualified export.
+Check whether the target module name matches the actual module name. Only listed modules have access to a qualified-exported package.
 
-**API public phụ thuộc vào kiểu từ module khác nhưng module tiêu thụ không đọc được dependency**
+**Public API depends on a type from another module, yet consuming module cannot read the dependency**
 
-Xem xét quan hệ **requires transitive** trong module cung cấp API. Không nên thêm transitive một cách máy móc; chỉ dùng khi dependency thực sự là một phần của hợp đồng API cần module tiêu thụ đọc được.
+Consider a **requires transitive** relationship in the module providing the API. Do not add transitive mechanically; use it only when the dependency is genuinely part of the API contract that consuming modules must be able to read.
 
-## 10. Ghi nhớ
+## 10. Key Takeaways
 
-- **exports** công khai package cho module khác; package không export vẫn là implementation nội bộ theo ranh giới JPMS.
-- **public** là modifier của Java, còn **exports** là quyền truy cập package qua ranh giới module.
-- Không thể export riêng từng class; exports áp dụng cho toàn bộ package.
-- Qualified exports giới hạn package API cho các module đích được chỉ định.
-- **opens** dành cho reflection sâu ở runtime, không thay thế exports.
-- Nên công khai abstraction ổn định và giữ class triển khai trong package không export.
-- Chỉ thị **requires transitive** điều khiển việc truyền tiếp khả năng đọc dependency; nó độc lập với exports.
-- Tên package **internal** không tự bảo vệ implementation; module descriptor mới quyết định package có được công khai hay không.
+- **exports** exposes packages to other modules; unexported packages remain internal implementations under JPMS boundaries.
+- **public** is a Java modifier, whereas **exports** is package access permission across module boundaries.
+- Individual classes cannot be exported separately; exports applies to the entire package.
+- Qualified exports restrict an API package to specified target modules.
+- **opens** is for deep reflection at runtime and does not replace exports.
+- Expose stable abstractions and keep implementation classes in unexported packages.
+- The **requires transitive** directive controls propagation of dependency readability; it is independent of exports.
+- The package name **internal** does not protect an implementation by itself; the module descriptor determines whether a package is exposed.
 
-Khi review một module, hãy nhìn vào danh sách exports trong module-info.java và xác định từng package có thực sự là API cần hỗ trợ module bên ngoài hay không. Một bề mặt API nhỏ và có chủ đích giúp module dễ thay đổi implementation, giảm phụ thuộc và giữ hợp đồng giữa các module rõ ràng.
+When reviewing a module, look at the exports list in module-info.java and verify whether each package is genuinely an API that needs to support external modules. A small, intentional API surface makes it easy to change implementations, reduces coupling, and keeps contracts between modules clear.

@@ -1,36 +1,36 @@
-# Sai lầm: định dạng rồi parse lại để thực hiện làm tròn tính toán
+# Mistake: Formatting Then Parsing Back to Perform Arithmetic Rounding
 
-## 1. Vấn đề cốt lõi
+## 1. The Core Problem
 
-Một anti-pattern trong Java là **format số thành chuỗi với N chữ số thập phân, parse lại chuỗi đó thành số, rồi dùng kết quả để tính toán tiếp**. Ví dụ:
+An anti-pattern in Java is **formatting a number into a string with N decimal places, parsing that string back into a number, and using the result for further calculations**. For example:
 
 ~~~java
-// Chỉ là đoạn minh họa, không phải chương trình độc lập.
+// Illustrative snippet only, not a standalone program.
 String text = String.format(java.util.Locale.US, "%.2f", amount);
 double rounded = Double.parseDouble(text);
 ~~~
 
-Cách làm này có vẻ giống việc làm tròn nhưng đã trộn ba nhiệm vụ: **trình bày**, **đọc chuỗi**, **biến đổi số học**. Chuỗi hiển thị có thể chứa dấu nhóm hàng nghìn, dấu thập phân theo locale, ký hiệu tiền tệ, số 0 thêm vào, hoặc chữ số đã bị loại. Parse lại còn phụ thuộc loại parser và trạng thái cấu hình, có thể trả số kiểu `double` với sai số nhị phân.
+This looks like rounding, yet it mixes three distinct responsibilities: **presentation**, **text parsing**, and **arithmetic transformation**. A formatted display string can contain thousands separators, locale-specific decimal separators, currency symbols, padded zeros, or dropped digits. Parsing it back also depends on parser type and configuration, and can return a `double` carrying binary rounding error.
 
-Nếu nghiệp vụ cần làm tròn giá trị BigDecimal, dùng **`setScale(scale, RoundingMode)`** hoặc **`round(MathContext)`**; nếu cần làm tròn thương, dùng overload `divide` có scale/MathContext và rounding mode. Chỉ format sau khi đã xác định giá trị cần trình bày. Nếu nghiệp vụ cần giữ giá trị nguyên gốc, format bản gốc để hiển thị và không dùng chuỗi đó tính toán ngược lại.
+If business logic needs to round a `BigDecimal` value, use **`setScale(scale, RoundingMode)`** or **`round(MathContext)`**; if rounding a quotient, use a `divide` overload with scale/`MathContext` and a rounding mode. Format only after the final value to display has been determined. If business logic must preserve the original unrounded value, format the original for display and never feed that string back into calculations.
 
-## 2. Ba thao tác có mục đích khác nhau
+## 2. Three Operations with Different Purposes
 
-| Thao tác | Mục tiêu | Ví dụ | Đặc điểm |
+| Operation | Goal | Example | Characteristics |
 | --- | --- | --- | --- |
-| **Format** | Hiển thị số cho người dùng | `NumberFormat.format(value)` | Có locale, grouping, ký hiệu tiền, số 0 và có thể làm tròn chuỗi |
-| **Parse** | Đọc văn bản vào dạng số | `DecimalFormat.parse(text)` | Phụ thuộc cú pháp/locale, có thể chấp nhận tiền tố hợp lệ |
-| **Round** | Áp dụng quy tắc số học lên giá trị | `value.setScale(2, HALF_EVEN)` | Không cần chuyển sang String, chính sách rõ ràng |
+| **Format** | Display a number to users | `NumberFormat.format(value)` | Involves locale, grouping, currency symbols, zero padding, and may round the text |
+| **Parse** | Read text into a numeric type | `DecimalFormat.parse(text)` | Depends on syntax/locale; may accept only a valid prefix |
+| **Round** | Apply an arithmetic rule to a value | `value.setScale(2, HALF_EVEN)` | Requires no String conversion; explicit policy |
 
-Ví dụ số chính xác `1234.567` có thể được formatter US hiển thị là `1,234.57`. Phần nghìn đã bị bỏ: parse ngược lại **không thể tái tạo `1234.567`**. Format là thao tác ở ranh giới hiển thị; không tự xác lập chính sách làm tròn cho toàn bộ phép tính.
+For example, the exact number `1234.567` may be formatted by a US formatter as `1,234.57`. The thousandths digit has been dropped: parsing it back **cannot reconstruct `1234.567`**. Formatting is a presentation-boundary operation; it does not establish a rounding policy for an entire calculation.
 
-`BigDecimal` là immutable: `setScale`, `round` và các phép cộng/trừ/nhân trả kết quả BigDecimal mà không sửa đối tượng gốc. Locale cũng không phải thuộc tính của BigDecimal. Số được tính nên có ý nghĩa nhất quán trước khi hiển thị theo US, Đức hay Việt Nam.
+`BigDecimal` is immutable: `setScale`, `round`, and add/subtract/multiply operations return a new `BigDecimal` without mutating the original object. Locale is not a property of `BigDecimal` either. Computed numbers should have consistent meaning before being displayed for the US, Germany, or Vietnam.
 
-## 3. Minh họa anti-pattern: mất precision dù parse thành công
+## 3. Illustrating the Anti-Pattern: Precision Lost Even When Parsing Succeeds
 
-Đoạn chương trình sau cố ý làm format→parse để chứng minh dữ liệu bị đổi. Pattern `#,##0.00` của US thêm dấu nhóm và giữ đúng hai chữ số lẻ. Parser được cấu hình trả BigDecimal để không phát sinh thêm sai số `double`, nhưng **chữ số đã mất tại bước format vẫn không quay lại**.
+The following program intentionally performs format→parse to demonstrate how data changes. The US pattern `#,##0.00` adds grouping separators and keeps two fractional digits. The parser is configured to return `BigDecimal` so no extra `double` error is introduced, yet **digits lost during formatting still never come back**.
 
-Lưu thành `FormatParseTrapDemo.java`:
+Save as `FormatParseTrapDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -65,14 +65,14 @@ public class FormatParseTrapDemo {
 }
 ~~~
 
-Chạy bằng JDK 17 trở lên:
+Run with JDK 17 or later:
 
 ~~~bash
 javac FormatParseTrapDemo.java
 java FormatParseTrapDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 original = 1234.567
@@ -82,19 +82,19 @@ fully parsed = true
 same value = false
 ~~~
 
-Parser tiêu thụ hết chuỗi và trả BigDecimal, nhưng giá trị đã bị làm tròn theo yêu cầu **hiển thị**. Nếu đem `parsed` cộng vào báo cáo, tính phí hoặc làm tròn lần nữa, chương trình đã thay đổi đầu vào cho các phép tính tiếp theo mà không có chính sách số học rõ ràng.
+The parser consumes the entire string and returns a `BigDecimal`, yet the value was already rounded for **display** requirements. If `parsed` is then summed into a report, used to calculate fees, or rounded again, the program has altered the input to downstream math without an explicit arithmetic policy.
 
-Ngoài ra, `new BigDecimal("1,234.57")` sẽ ném `NumberFormatException`, vì constructor BigDecimal không hiểu dấu nhóm theo locale. Vì vậy chuỗi định dạng để hiển thị không phải chuỗi decimal chuẩn để lưu hoặc parse bằng constructor.
+Moreover, `new BigDecimal("1,234.57")` throws `NumberFormatException`, because `BigDecimal`'s constructor does not understand locale grouping separators. Thus a display-formatted string is not a canonical decimal string for storage or constructor parsing.
 
-## 4. Locale: cùng chuỗi có thể có nghĩa khác
+## 4. Locale: The Same String Can Have Different Meanings
 
-Dấu thập phân và dấu nhóm phụ thuộc locale. `1,234` thường biểu thị một nghìn hai trăm ba mươi bốn theo US, còn theo Germany lại là một phẩy hai ba bốn. Đức thường hiển thị `1234.57` dưới dạng `1.234,57`.
+Decimal and grouping separators depend on locale. `1,234` normally means one thousand two hundred thirty-four in the US, whereas in Germany it is one point two three four. Germany typically displays `1234.57` as `1.234,57`.
 
-Các locale có thể dùng khoảng trắng Unicode, ký tự số khác, hoặc cách hiển thị tiền tệ riêng. Đừng dùng `replace(",", ".")` một cách máy móc, vì có thể biến dấu nhóm thành dấu thập phân. Không format theo `Locale.getDefault()` rồi parse bằng một locale khác; cấu hình hệ điều hành và JVM có thể thay đổi giữa máy phát triển và triển khai.
+Locales can also use Unicode spaces, different digit characters, or distinct currency layouts. Never blindly run `replace(",", ".")`, as that can turn a grouping separator into a decimal point. Never format with `Locale.getDefault()` and parse with another locale; OS and JVM settings can differ between development and deployment machines.
 
-### Ví dụ Java 17: hai giá trị từ cùng một chuỗi
+### Java 17 Example: Two Values from the Same String
 
-Lưu thành `LocaleNumberDemo.java`:
+Save as `LocaleNumberDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -136,46 +136,46 @@ javac LocaleNumberDemo.java
 java LocaleNumberDemo
 ~~~
 
-Kết quả với dữ liệu locale chuẩn của JDK 17:
+Output with standard JDK 17 locale data:
 
 ~~~text
 US = 1234
 DE = 1.234
 ~~~
 
-`NumberFormat.parse` có thể trả `Long` hoặc `Double` theo cấu hình mặc định; không cast thẳng về BigDecimal nếu chưa bật `DecimalFormat.setParseBigDecimal(true)` và kiểm tra kiểu. `DecimalFormat` vẫn có thể parse tương đối dễ dãi, nhất là dấu nhóm. Kiểm tra `ParsePosition.getIndex() == text.length()` chỉ xác nhận đã tiêu thụ toàn chuỗi, **không xác thực cấu trúc grouping nghiêm ngặt**. Nếu giao diện yêu cầu cú pháp chặt chẽ, phải có validation bổ sung phù hợp locale. Java 17 chưa có API `DecimalFormat.setStrict`.
+`NumberFormat.parse` can return `Long` or `Double` under default configuration; do not cast directly to `BigDecimal` without enabling `DecimalFormat.setParseBigDecimal(true)` and checking the type. `DecimalFormat` can still parse fairly leniently, especially with grouping separators. Checking `ParsePosition.getIndex() == text.length()` only confirms the entire string was consumed—**it does not enforce strict grouping structure**. If a UI requires strict syntax, add locale-appropriate validation. Java 17 does not yet have a `DecimalFormat.setStrict` API.
 
-Đặc biệt, BigDecimal không biểu diễn `NaN` hoặc vô cực; luôn kiểm tra kết quả parse và xử lý input ngoại lệ theo hợp đồng dữ liệu.
+In particular, `BigDecimal` cannot represent `NaN` or infinity; always inspect parse results and handle exceptional inputs according to the data contract.
 
-## 5. Dùng setScale để làm tròn số học
+## 5. Use setScale for Arithmetic Rounding
 
-Khi yêu cầu là **làm tròn về hai chữ số thập phân**, thao tác đúng:
+When the requirement is **rounding to two decimal places**, the right operation is:
 
 ~~~java
-// Ví dụ minh họa; value cần được khai báo trước.
+// Illustrative example; value must be declared beforehand.
 BigDecimal rounded = value.setScale(2, RoundingMode.HALF_EVEN);
 ~~~
 
-`setScale(2, ...)` giữ đúng hai chữ số sau dấu thập phân. Khi giảm scale làm mất chữ số có giá trị, Java dùng chế độ làm tròn được truyền vào. Nếu tăng scale, nó bổ sung số 0 mà không làm đổi giá trị toán học.
+`setScale(2, ...)` retains exactly two digits after the decimal point. When reducing scale discards significant digits, Java applies the provided rounding mode. When increasing scale, it appends zeros without changing the mathematical value.
 
-Các chế độ:
+Modes:
 
-| RoundingMode | Ý nghĩa |
+| RoundingMode | Meaning |
 | --- | --- |
-| `HALF_UP` | Chọn gần nhất; nếu hòa thì xa 0 |
-| `HALF_DOWN` | Chọn gần nhất; nếu hòa thì gần 0 |
-| `HALF_EVEN` | Chọn gần nhất; nếu hòa thì chữ số cuối giữ lại chẵn |
-| `UP` | Xa 0 mỗi khi phần bỏ khác 0 |
-| `DOWN` | Về 0 mỗi khi phần bỏ khác 0 |
-| `CEILING` | Hướng dương vô cực |
-| `FLOOR` | Hướng âm vô cực |
-| `UNNECESSARY` | Cấm bỏ phần có giá trị; cần làm tròn thì ném `ArithmeticException` |
+| `HALF_UP` | Nearest neighbor; ties round away from 0 |
+| `HALF_DOWN` | Nearest neighbor; ties round toward 0 |
+| `HALF_EVEN` | Nearest neighbor; ties round toward even last kept digit |
+| `UP` | Away from 0 whenever discarded part is nonzero |
+| `DOWN` | Toward 0 whenever discarded part is nonzero |
+| `CEILING` | Toward positive infinity |
+| `FLOOR` | Toward negative infinity |
+| `UNNECESSARY` | Forbids discarding nonzero digits; throws `ArithmeticException` if rounding is needed |
 
-Chọn chế độ theo yêu cầu nghiệp vụ; `UP` không đồng nghĩa `HALF_UP`. Đối với số âm, `CEILING` và `FLOOR` không giống quy tắc gần hoặc xa zero. Trong tiền tệ, thuế và hóa đơn, chính sách làm tròn nên được ghi rõ, không phụ thuộc mặc định của formatter.
+Choose the mode per business requirements; `UP` is not synonymous with `HALF_UP`. For negative numbers, `CEILING` and `FLOOR` differ from away-from-zero or toward-zero rules. In currency, tax, and billing, rounding policies must be explicitly specified rather than relying on a formatter's default.
 
-### Ví dụ Java 17: round rồi format
+### Java 17 Example: Round Then Format
 
-Lưu thành `RoundThenFormatDemo.java`:
+Save as `RoundThenFormatDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -208,7 +208,7 @@ javac RoundThenFormatDemo.java
 java RoundThenFormatDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 original = 1234.567
@@ -217,20 +217,20 @@ display = 1,234.57
 source remains = 1234.567
 ~~~
 
-Nếu nghiệp vụ thật sự yêu cầu giá trị hai chữ số lẻ, tiếp tục tính bằng `rounded`. Nếu chỉ muốn giao diện **hiển thị** hai chữ số trong khi phép tính vẫn phải giữ `1234.567`, tiếp tục dùng `original` và chỉ format khi xuất giao diện. Việc chọn bên nào không được do formatter tự quyết định.
+If business rules truly require the two-decimal-place value, continue computing with `rounded`. If the UI only needs to **display** two digits while calculations must still keep `1234.567`, continue using `original` and format only at UI output. Which one to use must never be decided implicitly by a formatter.
 
-## 6. MathContext: precision không phải scale
+## 6. MathContext: Precision Is Not Scale
 
-Một nguồn hiểu lầm nữa là `MathContext`. `setScale(2, HALF_EVEN)` giữ hai chữ số **sau dấu thập phân**; `round(new MathContext(4, HALF_EVEN))` giữ tối đa bốn chữ số **có nghĩa**.
+Another source of confusion is `MathContext`. `setScale(2, HALF_EVEN)` keeps two digits **after the decimal point**; `round(new MathContext(4, HALF_EVEN))` keeps at most four **significant digits**.
 
-Ví dụ với `123.45`:
+Example with `123.45`:
 
 - `setScale(2, HALF_EVEN)` ⇒ `123.45`.
 - `round(MathContext(4, HALF_EVEN))` ⇒ `123.4`.
 
-### Ví dụ Java 17: hai khái niệm khác nhau
+### Java 17 Example: Two Different Concepts
 
-Lưu thành `ScalePrecisionDemo.java`:
+Save as `ScalePrecisionDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -254,7 +254,7 @@ javac ScalePrecisionDemo.java
 java ScalePrecisionDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 source = 123.45
@@ -262,17 +262,17 @@ scale 2 = 123.45
 precision 4 = 123.4
 ~~~
 
-Nếu phép chia decimal là vô hạn, như `1/3`, `BigDecimal.divide(divisor)` chính xác có thể ném `ArithmeticException`. Dùng `divide(divisor, 2, RoundingMode.HALF_UP)` cho hai chữ số lẻ hoặc `divide(divisor, MathContext)` cho precision có nghĩa. **Không format rồi parse thương** để né yêu cầu phải chọn chế độ làm tròn.
+If a decimal division is non-terminating, like `1/3`, exact `BigDecimal.divide(divisor)` throws `ArithmeticException`. Use `divide(divisor, 2, RoundingMode.HALF_UP)` for two decimal places or `divide(divisor, MathContext)` for significant-digit precision. **Do not format and parse the quotient** to dodge choosing a rounding mode.
 
-## 7. Parse về double tái xuất sai số nhị phân
+## 7. Parsing Back to double Reintroduces Binary Error
 
-`double` là số nhị phân có số bit hữu hạn. Nhiều số thập phân như `0.1` không được biểu diễn hoàn toàn chính xác. Vì thế định dạng chuỗi hai số lẻ rồi `Double.parseDouble` **không tạo một số thập phân chính xác có hai số lẻ**. Nó tạo giá trị nhị phân gần nhất có thể tiếp tục sinh sai số khi cộng nhân.
+`double` is a binary floating-point type with finite bits. Many decimal numbers like `0.1` are not represented exactly. Therefore, formatting a two-decimal string and calling `Double.parseDouble` **does not create an exact decimal number with two decimal places**. It creates the nearest binary value, which can keep introducing error in subsequent additions and multiplications.
 
-Ngay cả phép chuyển BigDecimal từ double cũng có bẫy: `new BigDecimal(2.675)` biểu diễn chính xác giá trị double đã nhận, vốn hơi nhỏ hơn số thập phân lý tưởng 2.675. `new BigDecimal("2.675")` biểu diễn chính xác số decimal 2.675.
+Even constructing `BigDecimal` from `double` has a trap: `new BigDecimal(2.675)` represents the exact `double` passed in, which is slightly less than the ideal decimal 2.675. `new BigDecimal("2.675")` represents the exact decimal 2.675.
 
-### Ví dụ Java 17: sai khác ở ranh giới làm tròn
+### Java 17 Example: Divergence at a Rounding Boundary
 
-Lưu thành `DoubleSourceTrapDemo.java`:
+Save as `DoubleSourceTrapDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -297,7 +297,7 @@ javac DoubleSourceTrapDemo.java
 java DoubleSourceTrapDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 decimal = 2.68
@@ -305,15 +305,15 @@ from double = 2.67
 double sum = 0.30000000000000004
 ~~~
 
-Giá trị decimal đúng 2.675 nằm giữa 2.67 và 2.68; HALF_EVEN chọn chữ số cuối 8 chẵn. Giá trị xuất phát từ double hơi nhỏ hơn điểm giữa nên làm tròn về 2.67. `BigDecimal.valueOf(double)` dùng biểu diễn chuỗi chuẩn của double và có thể là lựa chọn tốt hơn `new BigDecimal(double)` khi buộc phải nhận double, nhưng **không phục hồi** precision đã mất ở những phép tính trước đó.
+The exact decimal 2.675 lies halfway between 2.67 and 2.68; `HALF_EVEN` picks the even last digit 8. The value originating from `double` is slightly below the midpoint, so it rounds down to 2.67. `BigDecimal.valueOf(double)` uses the canonical string representation of `double` and can be a better choice than `new BigDecimal(double)` when forced to accept a `double`, yet it **cannot recover** precision already lost in earlier calculations.
 
-## 8. Format rồi parse có thể thay đổi scale mà không thay đổi giá trị
+## 8. Formatting Then Parsing Can Change Scale Without Changing Value
 
-BigDecimal lưu cả giá trị và scale. `2.0` có scale 1, trong khi `2.00` có scale 2. Hai số bằng nhau về giá trị theo `compareTo`, nhưng khác nhau theo `equals`. Formatter có thể thêm số 0 cuối do `minimumFractionDigits` hoặc bỏ chữ số/zero do `maximumFractionDigits`, nên round-trip có thể làm thay đổi scale ngay cả khi không làm thay đổi giá trị toán học.
+`BigDecimal` stores both value and scale. `2.0` has scale 1, whereas `2.00` has scale 2. Both are numerically equal under `compareTo`, yet distinct under `equals`. A formatter can append trailing zeros due to `minimumFractionDigits` or drop digits/zeros due to `maximumFractionDigits`, so a round-trip can alter scale even when mathematical value stays unchanged.
 
-### Ví dụ Java 17: hai giá trị numeric bằng nhau nhưng equals khác
+### Java 17 Example: Two Numerically Equal Values Differing Under equals
 
-Lưu thành `FormatScaleDemo.java`:
+Save as `FormatScaleDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -350,7 +350,7 @@ javac FormatScaleDemo.java
 java FormatScaleDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 source = 2.0
@@ -362,18 +362,18 @@ numeric equal = true
 equals = false
 ~~~
 
-Nếu muốn cố ý chuẩn hóa scale thành 2, dùng `source.setScale(2, roundingMode)`. Việc đổi scale có thể ảnh hưởng `equals/hashCode` và những khóa BigDecimal trong `HashMap`, nên đây là quyết định dữ liệu chứ không phải mẹo format vô hại.
+If you intentionally want to normalize scale to 2, use `source.setScale(2, roundingMode)`. Changing scale can affect `equals`/`hashCode` and `BigDecimal` keys in a `HashMap`, so it is a data decision rather than a harmless formatting trick.
 
-## 9. Làm tròn vào thời điểm nào?
+## 9. At Which Stage Should Rounding Happen?
 
-Làm tròn **từng dòng** rồi cộng có thể khác cộng **giá trị chính xác** rồi làm tròn một lần ở cuối. Giả sử ba giá trị `1.005` và dùng HALF_EVEN để giữ hai chữ số lẻ:
+Rounding **each line** and summing can differ from summing **exact values** and rounding once at the end. Suppose three values of `1.005` use `HALF_EVEN` to keep two fractional digits:
 
-- Mỗi giá trị làm tròn trước: `1.00`, tổng `3.00`.
-- Tổng chính xác: `3.015`, làm tròn sau: `3.02`.
+- Each value rounded first: `1.00`, sum `3.00`.
+- Exact sum: `3.015`, rounded afterward: `3.02`.
 
-### Ví dụ Java 17: hai chính sách tính tổng
+### Java 17 Example: Two Summation Policies
 
-Lưu thành `RoundingStageDemo.java`:
+Save as `RoundingStageDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -408,7 +408,7 @@ javac RoundingStageDemo.java
 java RoundingStageDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 exact total = 3.015
@@ -416,15 +416,15 @@ sum rounded lines = 3.00
 round after sum = 3.02
 ~~~
 
-Cả hai phép làm tròn đều tuân theo HALF_EVEN. Khác biệt đến từ **thời điểm** áp dụng. Trong tiền tệ, thuế, hóa đơn, báo cáo, phải xác định nghiệp vụ yêu cầu làm tròn từng khoản, từng giao dịch hay tổng. Không để hành vi hiển thị hai chữ số lẻ làm thay đổi dữ liệu tính toán trung gian một cách âm thầm.
+Both rounding steps follow `HALF_EVEN`. The difference comes from **when** it is applied. In currency, taxes, invoices, and reports, you must specify whether business rules require rounding per line, per transaction, or on the total. Never let two-decimal display formatting silently alter intermediate calculation data.
 
-## 10. Khi nào phải từ chối thay vì làm tròn?
+## 10. When Should You Reject Instead of Rounding?
 
-Đôi khi quy định không cho phép làm tròn tự động; dữ liệu vượt quá số chữ số lẻ có giá trị phải bị từ chối. `RoundingMode.UNNECESSARY` hỗ trợ xác minh BigDecimal có thể chuyển về scale mong muốn **mà không mất thông tin số học** hay không.
+Sometimes rules forbid automatic rounding; data exceeding the allowed significant decimal places must be rejected. `RoundingMode.UNNECESSARY` helps verify whether a `BigDecimal` can be converted to the desired scale **without losing numeric information**.
 
-### Ví dụ Java 17: kiểm tra cents chính xác
+### Java 17 Example: Checking Exact Cents
 
-Lưu thành `RequireExactScaleDemo.java`:
+Save as `RequireExactScaleDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -453,7 +453,7 @@ javac RequireExactScaleDemo.java
 java RequireExactScaleDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 12.50
@@ -461,70 +461,70 @@ Kết quả:
 Rejected: rounding required
 ~~~
 
-`12.5000` có bốn chữ số lẻ trong **chuỗi đầu vào**, nhưng giá trị có thể chuyển chính xác thành `12.50` vì phần bỏ chỉ gồm số 0. Nếu yêu cầu cấm cả input có hơn hai chữ số lẻ, kể cả zero, phải kiểm tra **cú pháp đầu vào**, không chỉ kiểm tra khả năng biểu diễn số học.
+`12.5000` has four fractional digits in the **input string**, yet its value converts cleanly to `12.50` because the dropped digits are only zeros. If requirements forbid inputs with more than two fractional digits even when trailing zeros, validate **input syntax**, not just numeric representability.
 
-## 11. Luồng dữ liệu rõ ràng cho ứng dụng
+## 11. A Clean Data Flow for Applications
 
-Một luồng xử lý thập phân đáng tin nên tách biệt các bước:
+A reliable decimal processing pipeline separates these steps:
 
-1. **Xác định kiểu đầu vào:** chuỗi decimal chuẩn của máy hay chuỗi người dùng theo locale? Với input locale, dùng parser theo đúng locale và kiểm tra toàn chuỗi cùng các quy tắc được phép.
-2. **Giữ giá trị số trong BigDecimal** nếu nghiệp vụ cần decimal chính xác. Tránh trung gian double hoặc chuỗi đã format để trình bày.
-3. **Kiểm tra ràng buộc** min/max, dấu âm, precision, scale, mã tiền tệ và yêu cầu từ chối hay làm tròn.
-4. **Tính toán trên số gốc** bằng API BigDecimal. Nếu phép tính đòi MathContext hoặc RoundingMode, cung cấp chính sách tường minh.
-5. **Làm tròn ở đúng ranh giới nghiệp vụ** bằng setScale hoặc MathContext, không bị điều khiển bởi formatter.
-6. **Chỉ format tại ranh giới đầu ra** theo locale và yêu cầu giao diện. Lưu/trao đổi bằng dạng decimal machine-readable có hợp đồng rõ ràng.
+1. **Identify input format:** machine-readable canonical decimal string or locale-specific user input? For locale input, use a locale-matching parser and validate the entire string plus allowed rules.
+2. **Keep numeric values in `BigDecimal`** if business logic requires exact decimals. Avoid intermediate `double`s or display-formatted strings.
+3. **Validate constraints:** min/max, negative signs, precision, scale, currency codes, and whether to reject or round.
+4. **Compute on the source numbers** using `BigDecimal` APIs. If an operation requires `MathContext` or `RoundingMode`, provide an explicit policy.
+5. **Round at the exact business boundary** using `setScale` or `MathContext`, never driven by a formatter.
+6. **Format only at the output boundary** per locale and UI requirements. Persist and exchange values in a machine-readable decimal format with a clear contract.
 
-`NumberFormat` và `DecimalFormat` có trạng thái mutable, không mặc định thread-safe. Không chia sẻ cùng một instance formatter mutable giữa nhiều luồng mà thiếu đồng bộ phù hợp. Với phần tính toán, tránh lệ thuộc `Locale.getDefault()` khi kết quả phải nhất quán trên nhiều máy.
+`NumberFormat` and `DecimalFormat` hold mutable state and are not thread-safe by default. Do not share a mutable formatter instance across threads without proper synchronization. For computation logic, avoid depending on `Locale.getDefault()` when results must be consistent across machines.
 
-## 12. Sai lầm thường gặp
+## 12. Common Mistakes
 
-1. **Format→parse làm tròn số học:** biến logic tính toán thành logic trình bày.
-2. **Parse bằng BigDecimal(String) chuỗi có grouping:** `"1,234.57"` không phải literal decimal hợp lệ.
-3. **Format và parse ở locale khác nhau:** dấu phẩy/chấm có thể được hiểu ngược, parse sai hoặc thất bại.
-4. **Cast NumberFormat.parse sang BigDecimal trực tiếp:** chưa có `setParseBigDecimal(true)` có thể nhận Long/Double.
-5. **Cho rằng parse thành công nghĩa là chuỗi hợp lệ hoàn toàn:** parser có thể chỉ đọc tiền tố hoặc chấp nhận grouping lỏng; dùng ParsePosition và validation.
-6. **Dùng double sau khi format BigDecimal:** vẫn còn xấp xỉ nhị phân; có thể làm mất precision.
-7. **Nhầm format tối đa 2 chữ số lẻ với setScale(2):** cái đầu điều khiển chuỗi, cái sau tạo kết quả số học.
-8. **Nhầm precision và scale:** MathContext đếm chữ số có nghĩa; setScale đếm chữ số sau dấu thập phân.
-9. **Không truyền RoundingMode:** phụ thuộc mặc định hoặc có thể gặp ArithmeticException.
-10. **Round-trip làm đổi scale:** `2.0` và `2.00` khác nhau theo equals/hashCode.
-11. **Làm tròn từng bước theo yêu cầu UI:** có thể đổi tổng hoặc công thức nghiệp vụ.
-12. **Dùng UNNECESSARY để kiểm tra số chữ số người dùng gõ:** nó chỉ kiểm tra không mất giá trị, không kiểm tra số zero ở cuối văn bản.
-13. **Dùng formatter static chung trong xử lý song song:** DecimalFormat không thread-safe.
-14. **Lưu chuỗi định dạng cho người đọc vào API/database làm số:** phụ thuộc locale và có thể mất thông tin.
+1. **Format→parse for arithmetic rounding:** mixes calculation logic with presentation logic.
+2. **Parsing grouped strings with `BigDecimal(String)`:** `"1,234.57"` is not a valid decimal literal.
+3. **Formatting and parsing in different locales:** commas and dots can be swapped, misparsed, or rejected.
+4. **Casting `NumberFormat.parse` directly to `BigDecimal`:** without `setParseBigDecimal(true)`, it can return `Long`/`Double`.
+5. **Assuming parse success means the whole string was valid:** parsers can stop after a prefix or accept loose grouping; use `ParsePosition` and validation.
+6. **Using `double` after formatting `BigDecimal`:** binary approximation remains and can lose precision.
+7. **Confusing formatting max 2 fractional digits with `setScale(2)`:** the former controls text output, the latter produces an arithmetic result.
+8. **Confusing precision and scale:** `MathContext` counts significant digits; `setScale` counts digits after the decimal point.
+9. **Omitting `RoundingMode`:** relies on defaults or triggers `ArithmeticException`.
+10. **Round-trip changing scale:** `2.0` and `2.00` differ under `equals`/`hashCode`.
+11. **Rounding intermediate steps to match UI display:** can alter totals or business formulas.
+12. **Using `UNNECESSARY` to count digits typed by the user:** it only checks for value loss, not trailing zeros in text.
+13. **Sharing a static formatter across concurrent threads:** `DecimalFormat` is not thread-safe.
+14. **Storing human-readable formatted strings in APIs/databases as numbers:** locale-dependent and lossy.
 
-## 13. Bài tập tự kiểm tra
+## 13. Self-Check Exercises
 
-**Câu 1.** `1234.567` format thành `"1,234.57"` rồi parse có còn bằng giá trị nguồn không?
+**Question 1.** If `1234.567` is formatted to `"1,234.57"` and parsed back, does it still equal the source value?
 
-**Đáp án:** Không. Chữ số hàng phần nghìn đã bị loại ở bước format; giá trị parse là `1234.57`.
+**Answer:** No. The thousandths digit was dropped during formatting; the parsed value is `1234.57`.
 
-**Câu 2.** Muốn làm tròn `1234.567` đến hai chữ số lẻ theo HALF_UP phải làm gì?
+**Question 2.** What should you do to round `1234.567` to two decimal places using `HALF_UP`?
 
-**Đáp án:** `new BigDecimal("1234.567").setScale(2, RoundingMode.HALF_UP)` cho `1234.57`. Không cần chuỗi trung gian và độc lập locale.
+**Answer:** `new BigDecimal("1234.567").setScale(2, RoundingMode.HALF_UP)` gives `1234.57`. No intermediate string is needed, and it is locale-independent.
 
-**Câu 3.** Vì sao `"1,234"` có hai cách hiểu?
+**Question 3.** Why can `"1,234"` have two meanings?
 
-**Đáp án:** US thường dùng dấu phẩy cho grouping ⇒ 1234; Germany dùng dấu phẩy làm decimal ⇒ 1.234.
+**Answer:** The US uses comma as a grouping separator ⇒ 1234; Germany uses comma as the decimal separator ⇒ 1.234.
 
-**Câu 4.** Tại sao `2.0` format thành `2.00` rồi parse BigDecimal có thể làm `equals` false?
+**Question 4.** Why can formatting `2.0` as `2.00` and parsing back to `BigDecimal` make `equals` return false?
 
-**Đáp án:** Source có scale 1, parse được scale 2; `compareTo` vẫn coi bằng về giá trị.
+**Answer:** The source has scale 1 while the parsed value has scale 2; `compareTo` still treats them as numerically equal.
 
-**Câu 5.** Ba giá trị `1.005` làm tròn từng khoản cho tổng nào, và nếu cộng trước thì cho tổng nào?
+**Question 5.** Three values of `1.005` rounded per line give what total, and summed first give what total?
 
-**Đáp án:** HALF_EVEN scale 2: tổng từng khoản đã làm tròn là `3.00`, cộng chính xác rồi làm tròn là `3.02`.
+**Answer:** With `HALF_EVEN` scale 2: sum of rounded lines is `3.00`; exact sum then rounded is `3.02`.
 
-**Câu 6.** Vì sao `12.5000.setScale(2, UNNECESSARY)` không bị từ chối?
+**Question 6.** Why is `12.5000.setScale(2, UNNECESSARY)` not rejected?
 
-**Đáp án:** Chỉ bỏ zero nên không mất giá trị. Nếu muốn cấm nhập hơn hai chữ số lẻ phải kiểm tra chuỗi input.
+**Answer:** Only zeros are dropped, so no value is lost. To forbid entering more than two fractional digits, validate the input string.
 
-## 14. Ghi nhớ
+## 14. Key Takeaways
 
-- **Format là trình bày; parse là đọc văn bản; round là biến đổi số học.** Không nên format rồi parse lại chỉ để làm tròn cho phép tính.
-- Dùng `BigDecimal.setScale` cho số chữ số thập phân, `MathContext` cho chữ số có nghĩa và overload `divide` cho thương cần làm tròn.
-- Luôn xác định `RoundingMode` và **thời điểm làm tròn** theo nghiệp vụ, độc lập locale giao diện.
-- Giữ BigDecimal gốc nếu cần precision đầy đủ; format ở bước xuất, parse đúng một lần khi nhận đầu vào.
-- Cẩn thận với `double`, grouping, parser nhận một phần chuỗi, thay đổi scale và formatter dùng chung đa luồng.
+- **Format is presentation; parse is reading text; round is arithmetic transformation.** Never format and parse back just to round for a calculation.
+- Use `BigDecimal.setScale` for decimal places, `MathContext` for significant digits, and `divide` overloads for quotients requiring rounding.
+- Always specify `RoundingMode` and **the stage of rounding** per business rules, independent of UI locale.
+- Keep the original `BigDecimal` when full precision is needed; format at output and parse once at input.
+- Watch out for `double`, grouping separators, partial-string parsing, scale changes, and formatters shared across threads.
 
-Tham khảo Java SE 17 API: `java.math.BigDecimal`, `java.math.MathContext`, `java.math.RoundingMode`, `java.text.DecimalFormat`, `java.text.NumberFormat` và `java.text.ParsePosition`.
+Java SE 17 API references: `java.math.BigDecimal`, `java.math.MathContext`, `java.math.RoundingMode`, `java.text.DecimalFormat`, `java.text.NumberFormat`, and `java.text.ParsePosition`.

@@ -1,49 +1,49 @@
-# Danh sách locale được ứng dụng hỗ trợ
+# Application-Supported Locales List
 
-Một ứng dụng đa ngôn ngữ cần công bố rõ **những locale mà chính ứng dụng hỗ trợ**. Danh sách này khác với danh sách locale mà Java/JDK có thể xử lý. Ví dụ, JDK có thể định dạng số theo `fr-FR`, nhưng nếu sản phẩm chưa dịch màn hình và thông báo sang tiếng Pháp thì không nên tự động đưa `fr-FR` vào bộ lựa chọn ngôn ngữ của ứng dụng.
+A multilingual application must clearly declare **the locales that the application itself supports**. This list differs from the list of locales that Java/JDK can handle. For example, the JDK can format numbers for `fr-FR`, but if the product has not translated its screens and messages into French, `fr-FR` should not automatically be added to the application's language selector.
 
-Trong ngữ cảnh **chọn locale**, “được hỗ trợ” là một **cam kết của sản phẩm**: ứng dụng biết cách phục vụ người dùng bằng ngôn ngữ, quy ước hiển thị và tài nguyên tương ứng ở mức đã định nghĩa. `java.util.Locale` chỉ mô tả ngôn ngữ/vùng; đối tượng đó không tự chứng minh mức độ hoàn thiện của ứng dụng.
+In the context of **locale selection**, “supported” is a **product commitment**: the application knows how to serve users in the corresponding language, display conventions, and resources at a defined level. `java.util.Locale` only describes a language/region; that object does not by itself prove the completeness of the application.
 
-## 1. Ba khái niệm cần phân biệt
+## 1. Three Concepts to Distinguish
 
-| Khái niệm | Ý nghĩa | Ai quyết định? |
+| Concept | Meaning | Who Decides? |
 | --- | --- | --- |
-| Locale có thể biểu diễn | Mã ngôn ngữ/vùng hợp lệ được mô tả bằng `Locale`, ví dụ `vi-VN`, `en-US` hoặc `zh-Hant-TW` | Cú pháp language tag và API `Locale` |
-| Locale mà JDK/provider có dữ liệu | Locale có dữ liệu định dạng cho những dịch vụ mà runtime hỗ trợ; ví dụ số, ngày, tên tháng hoặc ký hiệu | JDK, các locale service provider và dữ liệu CLDR/khác |
-| **Locale ứng dụng hỗ trợ** | Tập locale sản phẩm đã chọn phát hành, có quy tắc chọn/fallback, bản dịch và kiểm thử phù hợp | **Chính ứng dụng/đội phát triển** |
+| Representable locale | A valid language/region code described by `Locale`, such as `vi-VN`, `en-US`, or `zh-Hant-TW` | Language tag syntax and the `Locale` API |
+| Locale with JDK/provider data | A locale that has formatting data for services supported by the runtime; for example, numbers, dates, month names, or symbols | The JDK, locale service providers, and CLDR/other data |
+| **Application-supported locale** | The set of locales the product has chosen to release, with appropriate selection/fallback rules, translations, and testing | **The application/development team itself** |
 
-Ví dụ: một website chỉ phát hành giao diện tiếng Việt và tiếng Anh Mỹ có thể khai báo `vi-VN` và `en-US` là hai locale được hỗ trợ, dù `Locale.getAvailableLocales()` trả về nhiều locale khác. Việc runtime biết định dạng ngày Pháp **không tạo ra bản dịch** “Đăng nhập”, thông báo lỗi hoặc email bằng tiếng Pháp cho website.
+For example: a website that only releases Vietnamese and US English interfaces can declare `vi-VN` and `en-US` as its two supported locales, even though `Locale.getAvailableLocales()` returns many other locales. The fact that the runtime knows how to format French dates **does not create translations** for “Sign in”, error messages, or emails in French for the website.
 
-Một sản phẩm có thể định nghĩa rõ những mức độ hỗ trợ khác nhau, chẳng hạn hỗ trợ đầy đủ giao diện và định dạng, hoặc chỉ hỗ trợ định dạng. Khi nói “danh sách locale được hỗ trợ” cho bộ chọn ngôn ngữ, cần chọn một **hợp đồng nhất quán**, tránh đưa vào danh sách những locale chỉ có một phần tính năng mà không thông báo cho người dùng.
+A product can clearly define different levels of support, such as full UI and formatting support, or formatting-only support. When referring to the “supported locales list” for a language selector, choose a **consistent contract**, avoiding listing locales that only have partial features without informing the user.
 
-## 2. `Locale.getAvailableLocales()` không phải danh sách lựa chọn của ứng dụng
+## 2. `Locale.getAvailableLocales()` Is Not the Application's Selection List
 
-Java cung cấp:
+Java provides:
 
 ~~~java
 Locale[] runtimeLocales = Locale.getAvailableLocales();
 ~~~
 
-Phương thức trên trả về các locale mà môi trường chạy có dữ liệu cho **các dịch vụ phụ thuộc locale của Java**. Kết quả phụ thuộc phiên bản JDK và cấu hình locale provider; nó không phải danh mục “ngôn ngữ đã dịch” của ứng dụng.
+This method returns the locales for which the runtime environment has data for **Java's locale-sensitive services**. The result depends on the JDK version and locale provider configuration; it is not the application's catalog of “translated languages”.
 
-Những API chuyên biệt, ví dụ `NumberFormat.getAvailableLocales()` hoặc `DateFormat.getAvailableLocales()`, cho biết phạm vi locale được các dịch vụ đó hỗ trợ. Chúng cũng **không chứng minh** rằng mọi màn hình hay nội dung nghiệp vụ của ứng dụng đã có bản dịch.
+Specialized APIs, such as `NumberFormat.getAvailableLocales()` or `DateFormat.getAvailableLocales()`, indicate the scope of locales supported by those services. They also **do not prove** that every screen or business content of the application has translations.
 
-Hãy tránh cách xây menu sau:
+Avoid building a menu like this:
 
 ~~~java
-// KHÔNG dùng làm nguồn duy nhất cho menu ngôn ngữ của sản phẩm.
+// Do NOT use as the sole source for a product's language menu.
 Locale[] choices = Locale.getAvailableLocales();
 ~~~
 
-Nếu làm vậy, người dùng có thể chọn một locale mà phần định dạng số hoạt động nhưng giao diện lại chuyển sang ngôn ngữ mặc định vì không có bản dịch. Danh sách còn có thể thay đổi khi nâng cấp runtime, trong khi cam kết hỗ trợ sản phẩm chưa thay đổi.
+If you do that, users could select a locale where number formatting works, yet the UI falls back to the default language because no translations exist. The list can also change when upgrading the runtime, even though the product's support commitment has not changed.
 
-**Nguyên tắc:** runtime có thể hỗ trợ **nhiều hơn** ứng dụng; ứng dụng cũng cần tự kiểm soát các locale mà mình công bố, kể cả khi một số định dạng được xử lý bởi thư viện khác JDK.
+**Principle:** the runtime may support **more** than the application; the application must also control the locales it publishes itself, even when some formatting is handled by libraries other than the JDK.
 
-## 3. Khai báo danh sách hỗ trợ tường minh
+## 3. Declaring an Explicit Support List
 
-Với một hệ thống nhỏ, có thể cấu hình locale được hỗ trợ ngay trong mã hoặc đọc từ cấu hình triển khai. Hãy dùng mã **BCP 47 language tag** làm định danh ổn định, ví dụ `vi-VN`, `en-US` và `en-GB`. Không dùng tên hiển thị như “English”, “Tiếng Việt” làm khóa: tên hiển thị có thể được dịch hoặc thay đổi theo locale.
+For a small system, supported locales can be configured directly in code or read from deployment configuration. Use **BCP 47 language tags** as stable identifiers, such as `vi-VN`, `en-US`, and `en-GB`. Do not use display names like “English” or “Tiếng Việt” as keys: display names can be translated or vary by locale.
 
-Tạo tệp `SupportedLocalesDemo.java`:
+Create the file `SupportedLocalesDemo.java`:
 
 ~~~java
 import java.util.List;
@@ -76,14 +76,14 @@ public class SupportedLocalesDemo {
 }
 ~~~
 
-Biên dịch và chạy với JDK 17+:
+Compile and run with JDK 17+:
 
 ~~~bash
 javac SupportedLocalesDemo.java
 java SupportedLocalesDemo
 ~~~
 
-Kết quả chính xác:
+Exact output:
 
 ~~~text
 Supported locales:
@@ -94,12 +94,12 @@ Default: vi-VN
 fr-FR supported: false
 ~~~
 
-Ở đây, `List` giữ **thứ tự hiển thị** trong menu, còn `Set` hỗ trợ tra cứu thành viên. Không duyệt `Set.copyOf(...)` để mong có thứ tự ổn định; thứ tự duyệt của set này không được bảo đảm. `DEFAULT_LOCALE` phải nằm trong danh sách hỗ trợ, và có thể kiểm tra điều đó khi khởi động ứng dụng.
+Here, `List` preserves **display order** in the menu, while `Set` supports membership lookup. Do not iterate over `Set.copyOf(...)` expecting a stable order; the iteration order of this set is not guaranteed. `DEFAULT_LOCALE` must be in the supported list, and that can be verified at application startup.
 
-Danh sách có thể nằm trong cấu hình thay vì mã nguồn, chẳng hạn:
+The list can live in configuration instead of source code, for example:
 
 ~~~yaml
-# Ví dụ cấu hình của ứng dụng; không phải cú pháp cấu hình tự động của JDK.
+# Application configuration example; not automatic JDK configuration syntax.
 localization:
   default-locale: vi-VN
   supported-locales:
@@ -108,28 +108,28 @@ localization:
     - en-GB
 ~~~
 
-Ứng dụng phải tự đọc, kiểm tra và chuyển các chuỗi này thành `Locale`. Java không tự phát hiện danh sách sản phẩm hỗ trợ chỉ từ khóa `supported-locales` trong YAML. Khi triển khai, nên xác minh không có locale trùng nhau sau chuẩn hóa, mọi locale có dữ liệu cần thiết và locale mặc định là một phần của tập hỗ trợ.
+The application must read, validate, and convert these strings into `Locale` instances itself. Java does not automatically detect the product's supported list merely from a `supported-locales` key in YAML. At deployment, you should verify there are no duplicate locales after normalization, that every locale has the required data, and that the default locale is part of the supported set.
 
-### Vì sao vừa dùng `List` vừa dùng `Set`?
+### Why Use Both `List` and `Set`?
 
-- `List<Locale>`: dùng khi cần thứ tự cụ thể (ví dụ tiếng Việt trước, tiếng Anh Mỹ sau).
-- `Set<Locale>`: dùng khi kiểm tra liệu một lựa chọn chính xác có thuộc danh sách.
-- `Map<String, Locale>`: hữu ích nếu dữ liệu đến từ language tag trong cấu hình/API; khóa có thể dùng dạng chuẩn hóa từ `toLanguageTag()`.
+- `List<Locale>`: used when a specific order is needed (for example, Vietnamese first, US English second).
+- `Set<Locale>`: used when checking whether an exact choice belongs to the list.
+- `Map<String, Locale>`: useful if data comes from language tags in configuration/APIs; keys can use the normalized form from `toLanguageTag()`.
 
-Nếu menu cần tên hiển thị, có thể dùng `locale.getDisplayName(displayLocale)`, nhưng đây là tên do dữ liệu runtime cung cấp. Để đạt văn phong sản phẩm nhất quán, ứng dụng vẫn có thể khai báo nhãn do mình biên tập như “Tiếng Việt” hoặc “English (US)”. Không dùng nhãn làm định danh hoặc thay thế language tag.
+If a menu needs display names, you can use `locale.getDisplayName(displayLocale)`, though this is a name provided by runtime data. To achieve a consistent product tone, the application can still declare editorially curated labels like “Tiếng Việt” or “English (US)”. Do not use labels as identifiers or replacements for language tags.
 
-## 4. Kiểm tra một locale do người dùng chọn
+## 4. Validating a User-Selected Locale
 
-Ứng dụng thường nhận locale từ hồ sơ người dùng, URL, cookie, truy vấn hoặc bộ chọn trên giao diện. Không nên chuyển thẳng mọi chuỗi nhận được thành “được hỗ trợ”.
+Applications often receive a locale from user profiles, URLs, cookies, queries, or UI selectors. You should not blindly treat every received string as “supported”.
 
-Hai vấn đề phải được tách ra:
+Two concerns must be separated:
 
-1. **Cú pháp:** đầu vào có phải language tag phù hợp không?
-2. **Chính sách:** locale hợp lệ đó có nằm trong danh sách mà ứng dụng công bố không?
+1. **Syntax:** is the input a well-formed language tag?
+2. **Policy:** is that valid locale in the list published by the application?
 
-`Locale.forLanguageTag(...)` có cách xử lý khoan dung với một số đầu vào sai định dạng: nó có thể bỏ qua phần không hợp lệ thay vì luôn báo lỗi. Khi cần kiểm tra nghiêm ngặt, dùng `Locale.Builder.setLanguageTag(...)` và bắt `IllformedLocaleException`.
+`Locale.forLanguageTag(...)` handles some malformed inputs leniently: it may ignore invalid parts instead of always throwing an error. When strict validation is needed, use `Locale.Builder.setLanguageTag(...)` and catch `IllformedLocaleException`.
 
-Tạo `LocaleSelectionDemo.java`:
+Create `LocaleSelectionDemo.java`:
 
 ~~~java
 import java.util.IllformedLocaleException;
@@ -177,7 +177,7 @@ javac LocaleSelectionDemo.java
 java LocaleSelectionDemo
 ~~~
 
-Kết quả chính xác:
+Exact output:
 
 ~~~text
 en-US
@@ -185,45 +185,45 @@ vi-VN
 vi-VN
 ~~~
 
-- `en-US` hợp lệ và được công bố hỗ trợ nên được giữ nguyên.
-- `fr-FR` là locale có thể biểu diễn nhưng chưa được sản phẩm hỗ trợ; chính sách ví dụ chọn `vi-VN`.
-- `en_US` dùng dấu gạch dưới không đúng dạng BCP 47 mà ví dụ chấp nhận; builder báo lỗi và ứng dụng fallback.
+- `en-US` is valid and declared supported, so it is kept as is.
+- `fr-FR` is a representable locale but not yet supported by the product; the example policy chooses `vi-VN`.
+- `en_US` uses an underscore that does not match the BCP 47 format accepted by the example; the builder reports an error and the application falls back.
 
-Đây là **chính sách khớp chính xác (exact match)**. Nó phù hợp với lựa chọn cụ thể trong menu. Nó chưa làm thương lượng ngôn ngữ nâng cao và không tự xem `en`, `en-US`, `en-GB` là một lựa chọn tương đương.
+This is an **exact match policy**. It is suitable for explicit selections from a menu. It does not perform advanced language negotiation and does not automatically treat `en`, `en-US`, and `en-GB` as equivalent choices.
 
-Để API phân biệt rõ “đầu vào sai” với “locale hợp lệ nhưng chưa được hỗ trợ”, trong ứng dụng thực tế có thể trả về một kiểu kết quả có trạng thái hoặc lỗi xác thực riêng, thay vì luôn âm thầm fallback. Lựa chọn này phụ thuộc hợp đồng API và trải nghiệm người dùng.
+For an API to clearly distinguish “invalid input” from “valid but unsupported locale”, a real-world application can return a result type with status or a dedicated validation error, rather than always falling back silently. This choice depends on the API contract and user experience.
 
-## 5. Chuẩn hóa tag, vùng, script và extensions
+## 5. Tag Normalization, Region, Script, and Extensions
 
-`Locale` bao gồm ngôn ngữ, vùng, script, variant và Unicode extensions. Một vài ví dụ:
+`Locale` includes language, region, script, variant, and Unicode extensions. A few examples:
 
-| Tag | Ý nghĩa |
+| Tag | Meaning |
 | --- | --- |
-| `en` | Tiếng Anh, chưa chỉ định vùng |
-| `en-US` | Tiếng Anh trong ngữ cảnh Mỹ |
-| `en-GB` | Tiếng Anh trong ngữ cảnh Anh |
-| `zh-Hans-CN` | Tiếng Trung, chữ giản thể, vùng Trung Quốc |
-| `zh-Hant-TW` | Tiếng Trung, chữ phồn thể, vùng Đài Loan |
-| `sr-Latn-RS` | Tiếng Serbia, chữ Latin, vùng Serbia |
-| `en-US-u-nu-arab` | Tiếng Anh/Mỹ kèm extension đề nghị hệ chữ số Ả Rập |
+| `en` | English, no region specified |
+| `en-US` | English in a US context |
+| `en-GB` | English in a UK context |
+| `zh-Hans-CN` | Chinese, Simplified script, China region |
+| `zh-Hant-TW` | Chinese, Traditional script, Taiwan region |
+| `sr-Latn-RS` | Serbian, Latin script, Serbia region |
+| `en-US-u-nu-arab` | English/US with an extension requesting the Arabic-Indic numbering system |
 
-**Cần tránh hai cực đoan:** đòi mọi request giống hệt tag cấu hình trong mọi trường hợp, hoặc tự động gộp mọi tag có cùng ngôn ngữ. Đối với một ứng dụng cần phân biệt `zh-Hans` và `zh-Hant`, bỏ script có thể chọn sai hệ chữ. Đối với tiếng Anh, người dùng có thể kỳ vọng mẫu ngày khác giữa `en-GB` và `en-US`.
+**Avoid two extremes:** requiring every request to match the configured tag identically in all cases, or automatically merging all tags with the same language. For an application that needs to distinguish `zh-Hans` and `zh-Hant`, dropping the script can select the wrong writing system. For English, users may expect different date patterns between `en-GB` and `en-US`.
 
-`Locale.equals(...)` so sánh cả các thành phần liên quan, bao gồm extensions. Vì vậy `en-US-u-nu-arab` không nhất thiết là phần tử bằng `en-US` trong `Set<Locale>`. Nếu sản phẩm muốn cho phép “ngôn ngữ giao diện en-US nhưng bộ chữ số khác”, nên tách **locale nội dung được hỗ trợ** khỏi **tùy chọn định dạng**, kiểm tra extension được phép và cấu hình formatter riêng. Không tự bỏ mọi extension hoặc tự nhận hỗ trợ mọi tùy chọn.
+`Locale.equals(...)` compares all relevant components, including extensions. Therefore, `en-US-u-nu-arab` is not necessarily equal to `en-US` in a `Set<Locale>`. If the product wants to allow “UI language en-US with a different numbering system”, separate the **supported content locale** from **formatting preferences**, validate permitted extensions, and configure the formatter separately. Do not blindly strip all extensions or claim to support all preferences.
 
-Lưu tag theo dạng chuẩn do `toLanguageTag()` tạo ra; sử dụng `Locale.Builder` để kiểm tra cú pháp đầu vào có yêu cầu chặt chẽ. Nếu cần giới hạn đúng danh sách công bố, hãy so với tập tag/`Locale` đã được chuẩn hóa, không so trực tiếp với tên hiển thị.
+Store tags in the canonical form produced by `toLanguageTag()`; use `Locale.Builder` to validate input syntax when strict checks are required. If you need to restrict to the exact published list, compare against the normalized set of tags/`Locale` objects, not directly against display names.
 
-## 6. Chọn locale từ HTTP `Accept-Language`
+## 6. Selecting a Locale from HTTP `Accept-Language`
 
-Trình duyệt có thể gửi header như:
+Browsers can send a header such as:
 
 ~~~http
 Accept-Language: fr-CA, en-GB;q=0.9, en-US;q=0.8
 ~~~
 
-Đây là **danh sách ưu tiên** có trọng số `q` (mặc định là `1.0`), không phải một locale duy nhất. Java cung cấp `Locale.LanguageRange.parse(...)` và `Locale.lookup(...)` dựa trên cơ chế language range/lookup của RFC 4647 để chọn ứng viên phù hợp trong tập hỗ trợ.
+This is a **priority list** with quality weights `q` (defaulting to `1.0`), not a single locale. Java provides `Locale.LanguageRange.parse(...)` and `Locale.lookup(...)` based on the RFC 4647 language range/lookup mechanism to select a matching candidate from the supported set.
 
-Tạo `LocaleNegotiationDemo.java`:
+Create `LocaleNegotiationDemo.java`:
 
 ~~~java
 import java.util.List;
@@ -269,58 +269,58 @@ javac LocaleNegotiationDemo.java
 java LocaleNegotiationDemo
 ~~~
 
-Kết quả chính xác:
+Exact output:
 
 ~~~text
 en-GB
 vi-VN
 ~~~
 
-Trong request đầu, `fr-CA` có mức ưu tiên cao nhất nhưng không có trong tập hỗ trợ; `en-GB` là lựa chọn tiếp theo phù hợp. Trong request thứ hai không có ứng viên phù hợp, `Locale.lookup(...)` trả về `null` và ứng dụng áp dụng `DEFAULT_LOCALE`.
+In the first request, `fr-CA` has the highest priority but is not in the supported set; `en-GB` is the next matching choice. In the second request there is no matching candidate, so `Locale.lookup(...)` returns `null` and the application applies `DEFAULT_LOCALE`.
 
-### `lookup` không phải phép chọn locale “gần nhất” bất kỳ
+### `lookup` Does Not Pick Any Arbitrary “Closest” Locale
 
-Cơ chế lookup tìm theo dải ngôn ngữ và quy tắc thu hẹp language range của RFC 4647. Đừng mặc định rằng khi chỉ hỗ trợ `en-GB` thì request `en-US` chắc chắn sẽ tự được đổi thành `en-GB`. Nếu sản phẩm muốn fallback rõ ràng theo cùng ngôn ngữ, cần thiết kế chính sách và kiểm thử cụ thể.
+The lookup mechanism searches by language range and the RFC 4647 language range truncation rules. Do not assume that when only `en-GB` is supported, a request for `en-US` will definitely be switched to `en-GB` automatically. If the product wants explicit fallback within the same language, you must design a specific policy and write tests for it.
 
-Java còn có `Locale.filter(...)` để lấy **nhiều** locale phù hợp với language ranges. Khi ứng dụng cần **một** locale cho request, `lookup` thường gần mục đích hơn. Sự khác nhau giữa lọc danh sách và chọn một mục là một quyết định sản phẩm, không phải hai tên khác nhau cho cùng thao tác.
+Java also has `Locale.filter(...)` to retrieve **multiple** locales matching language ranges. When an application needs **one** locale for a request, `lookup` is usually closer to the goal. The difference between filtering a list and picking a single item is a product decision, not two different names for the same operation.
 
-Header là dữ liệu do client cung cấp; hệ thống production nên giới hạn độ dài, số mục và xử lý trường hợp malformed. Đoạn mẫu tập trung minh họa API lookup, chưa triển khai các giới hạn đầu vào hay chính sách bảo vệ tài nguyên đó.
+Headers are client-supplied data; production systems should limit length, entry count, and handle malformed cases. The sample snippet focuses on demonstrating the lookup API and does not implement those input limits or resource-protection policies.
 
-## 7. Chính sách thứ tự ưu tiên và fallback của ứng dụng
+## 7. Application Priority Order and Fallback Policy
 
-Một chính sách lựa chọn thực tế có thể được mô tả như sau:
+A practical selection policy can be described as follows:
 
-1. **Lựa chọn tường minh hiện tại** của người dùng, nếu hợp lệ và thuộc tập hỗ trợ.
-2. **Ngôn ngữ đã lưu trong hồ sơ**, nếu người dùng đã đăng nhập và vẫn được hỗ trợ.
-3. **Thương lượng từ `Accept-Language`** khi chưa có lựa chọn rõ ràng.
-4. **Locale mặc định của ứng dụng** đã khai báo, ví dụ `vi-VN`.
+1. **Current explicit choice** from the user, if valid and in the supported set.
+2. **Language saved in the profile**, if the user is logged in and it is still supported.
+3. **Negotiation from `Accept-Language`** when no explicit choice exists.
+4. **Declared application default locale**, such as `vi-VN`.
 
-Thứ tự này chỉ là một ví dụ: ứng dụng có thể chọn thứ tự khác tùy hợp đồng sản phẩm, nhưng cần nhất quán. Đừng dùng `Locale.getDefault()` của JVM như lựa chọn ngôn ngữ cho mọi khách truy cập trên một server dùng chung; JVM default phản ánh môi trường chạy và có thể thay đổi, không nhất thiết phản ánh sở thích của từng người dùng.
+This order is only an example: an application may choose a different order depending on the product contract, but it must be consistent. Do not use the JVM's `Locale.getDefault()` as the language choice for all visitors on a shared server; the JVM default reflects the runtime environment and can change, and does not necessarily reflect each user's preference.
 
-Một sơ đồ logic phù hợp:
+A suitable logic diagram:
 
 ~~~text
-Request / cấu hình người dùng
+Request / user configuration
     |
-    +-- Có lựa chọn tường minh hợp lệ, được hỗ trợ? --> Dùng lựa chọn đó
+    +-- Valid, supported explicit choice? -----------> Use that choice
     |
-    +-- Có lựa chọn đã lưu, được hỗ trợ? ------------> Dùng lựa chọn đã lưu
+    +-- Supported saved choice? ---------------------> Use saved choice
     |
-    +-- Accept-Language có ứng viên phù hợp? --------> Dùng locale được lookup
+    +-- Accept-Language has a matching candidate? ---> Use looked-up locale
     |
-    +-- Không ---------------------------------------> Locale mặc định sản phẩm
+    +-- No ------------------------------------------> Product default locale
     |
     v
-Dùng locale đã chọn để lấy bản dịch và định dạng đầu ra
+Use the selected locale to fetch translations and format output
 ~~~
 
-**Không đồng nhất fallback** của ứng dụng với fallback nội bộ của `ResourceBundle` hay locale provider của formatter. Nếu không kiểm soát, màn hình có thể hiển thị bản dịch ở một ngôn ngữ nhưng định dạng ngày ở một locale khác. Hãy quyết định locale hiệu lực tại một lớp chính sách rõ ràng và truyền nó qua các thành phần liên quan.
+**Do not conflate** the application's fallback with the internal fallback of `ResourceBundle` or a formatter's locale provider. Without control, a screen could display translations in one language while formatting dates in another locale. Decide the effective locale in a clear policy layer and pass it through the relevant components.
 
-Ví dụ cần fallback đặc biệt `fr-CA → fr-FR` nếu thiếu bản dịch Canada? Hãy khai báo một quy tắc có chủ ý, đánh giá ảnh hưởng tới ngôn ngữ, ngày tháng và tiền tệ. Không nên suy ra từ chữ `fr` rằng mọi quy ước vùng của Pháp đều phù hợp với Canada. Có thể dùng **locale giao diện** riêng cho ngôn ngữ bản dịch và **locale định dạng** riêng theo vùng/sở thích người dùng khi sản phẩm cần phân biệt.
+For example, do you need a special fallback `fr-CA → fr-FR` if Canadian translations are missing? Declare an intentional rule and evaluate its impact on language, dates, and currency. You should not infer from the prefix `fr` that all regional conventions of France are appropriate for Canada. A separate **UI locale** for translation language and a separate **formatting locale** based on user region/preferences can be used when the product needs to distinguish them.
 
-## 8. Danh sách hỗ trợ và `ResourceBundle`: kiểm chứng bản dịch
+## 8. Supported List and `ResourceBundle`: Verifying Translations
 
-Nếu sản phẩm công bố `vi-VN`, `en-US`, `en-GB`, các bundle có thể được tổ chức như sau:
+If a product publishes `vi-VN`, `en-US`, and `en-GB`, bundles might be organized like this:
 
 ~~~text
 src/main/resources/
@@ -330,26 +330,26 @@ src/main/resources/
   Messages_en_GB.properties
 ~~~
 
-Tên bundle này là **ví dụ tổ chức tài nguyên**, không có nghĩa mọi tổ hợp tag đều cần một file trùng chính xác. `ResourceBundle` tìm ứng viên dựa trên locale và có cơ chế fallback. Chẳng hạn yêu cầu `en-GB` có thể lấy khóa từ `Messages_en_GB.properties`, từ `Messages_en.properties`, hoặc bundle gốc nếu không có bản dịch đặc thù cho vùng.
+These bundle names are an **example of resource organization**, and do not mean every tag combination requires an exact matching file. `ResourceBundle` searches for candidates based on the locale and has a fallback mechanism. For instance, a request for `en-GB` can retrieve keys from `Messages_en_GB.properties`, from `Messages_en.properties`, or from the base bundle if there is no region-specific translation.
 
-Điều này tiện cho tái sử dụng bản dịch, nhưng cũng có thể **che giấu thiếu sót**. Nếu `Messages_en_GB.properties` có ít khóa, ứng dụng vẫn có thể trả ra chuỗi từ bundle cấp cao hơn. Nếu sản phẩm yêu cầu mọi nội dung tiếng Anh Anh được rà soát, việc `ResourceBundle.getBundle(...)` trả về thành công chưa đủ chứng minh chất lượng.
+This is convenient for reusing translations, but it can also **hide omissions**. If `Messages_en_GB.properties` has few keys, the application can still return strings from a higher-level bundle. If the product requires all British English content to be reviewed, `ResourceBundle.getBundle(...)` returning successfully is not enough to prove quality.
 
-Khi kiểm tra sẵn sàng phát hành từng locale, nên có tiêu chí rõ:
+When verifying release readiness for each locale, there should be clear criteria:
 
-- Các thông điệp giao diện, lỗi, biểu mẫu, email và luồng quan trọng đã có bản dịch hoặc fallback được duyệt.
-- Các khóa thông điệp, placeholders (ví dụ `{0}`), biểu thức số nhiều/giới tính nếu có được kiểm tra phù hợp với cơ chế i18n đang dùng.
-- Định dạng ngày, số, tiền, tên riêng và nội dung nghiệp vụ hiển thị đúng ngữ cảnh người dùng.
-- Giao diện đáp ứng độ dài chuỗi khác nhau; có kiểm thử bố cục khi ngôn ngữ thay đổi.
-- Bộ chọn ngôn ngữ và URL/route lưu lựa chọn theo tag ổn định.
-- Nếu một bản dịch chưa sẵn sàng, locale đó không được công bố như hỗ trợ đầy đủ.
+- UI messages, errors, forms, emails, and critical flows have approved translations or fallbacks.
+- Message keys, placeholders (such as `{0}`), and plural/gender expressions if any are verified against the i18n mechanism in use.
+- Formatting of dates, numbers, currency, proper names, and business content renders appropriately for the user's context.
+- The UI accommodates varying string lengths; layout testing is performed when the language changes.
+- The language selector and URLs/routes store the selection using stable tags.
+- If a translation is not ready, that locale is not advertised as fully supported.
 
-**Lưu ý:** `Locale`, `ResourceBundle` và `NumberFormat` giải quyết các nhu cầu khác nhau. Có bản dịch giao diện không đồng nghĩa mọi loại tiền hay cách diễn đạt nghiệp vụ đều tự được xử lý; ngược lại, có định dạng số theo locale không đồng nghĩa có bản dịch giao diện.
+**Note:** `Locale`, `ResourceBundle`, and `NumberFormat` address different needs. Having UI translations does not mean every currency or business phrasing is automatically handled; conversely, having locale-based number formatting does not mean UI translations exist.
 
-## 9. Duy trì danh sách hỗ trợ trong hệ thống thực tế
+## 9. Maintaining the Supported List in Production Systems
 
-### Dữ liệu cấu hình và giao diện API
+### Configuration Data and API Interfaces
 
-Nếu frontend và backend cùng tham gia chọn locale, nên có một nguồn cấu hình sản phẩm rõ ràng: chẳng hạn endpoint công bố danh sách locale hỗ trợ, locale mặc định, nhãn hiển thị và trạng thái hỗ trợ. Có thể biểu diễn dưới dạng dữ liệu:
+If both frontend and backend participate in locale selection, there should be a single clear source of product configuration: for example, an endpoint publishing the supported locales list, default locale, display labels, and support status. It can be represented as data:
 
 ~~~json
 {
@@ -362,64 +362,64 @@ Nếu frontend và backend cùng tham gia chọn locale, nên có một nguồn 
 }
 ~~~
 
-Đây là **ví dụ thiết kế API**, không phải định dạng trả về có sẵn của JDK. Nếu dùng danh sách từ cấu hình, cả backend và frontend nên áp dụng cùng chính sách về locale hiệu lực để tránh giao diện chọn một giá trị nhưng server lại dùng giá trị khác.
+This is an **API design example**, not a built-in JDK return format. If using a list from configuration, both backend and frontend should apply the same effective-locale policy to avoid the UI selecting one value while the server uses another.
 
-Với ứng dụng web lưu bản dịch hoặc kết quả HTML vào cache, locale hiệu lực thường phải là một phần khóa cache; nếu cache công khai thay đổi nội dung theo `Accept-Language`, cần xem xét header `Vary: Accept-Language` theo thiết kế HTTP của dịch vụ. Lựa chọn ngôn ngữ của người dùng qua cookie/hồ sơ có thể cần chiến lược cache riêng để tránh phục vụ nhầm nội dung giữa người dùng.
+For web applications that cache translations or HTML output, the effective locale usually must be part of the cache key; if a public cache varies content by `Accept-Language`, consider the `Vary: Accept-Language` header according to the service's HTTP design. User language choices via cookies/profiles may require a separate caching strategy to avoid serving the wrong content between users.
 
-### Kiểm thử danh sách và lựa chọn
+### Testing the List and Selection
 
-Một ma trận kiểm thử tối thiểu cho ví dụ hỗ trợ `vi-VN`, `en-US`, `en-GB`:
+A minimal test matrix for the example supporting `vi-VN`, `en-US`, and `en-GB`:
 
-| Tình huống | Kết quả kỳ vọng |
+| Scenario | Expected Result |
 | --- | --- |
-| Chọn chính xác `en-US` | Giữ `en-US` |
-| Chọn chính xác `en-GB` | Giữ `en-GB` |
-| Chọn `fr-FR` nhưng không hỗ trợ | Fallback hoặc lỗi xác thực theo hợp đồng, không âm thầm công bố là hỗ trợ |
-| Tag sai định dạng `en_US` | Xử lý như đầu vào không hợp lệ |
-| Không có lựa chọn và không có header | Dùng `vi-VN` mặc định |
-| Header `fr-CA, en-GB;q=0.9` | Với tập ví dụ, lookup chọn `en-GB` |
-| Header chỉ có ngôn ngữ không hỗ trợ | Dùng chính sách fallback |
-| Đổi phiên bản JDK | Danh sách sản phẩm không tự mở rộng theo runtime |
-| Tài nguyên một locale bị thiếu khóa | Kiểm thử phát hiện hoặc fallback đã được phê duyệt |
+| Exact selection `en-US` | Keep `en-US` |
+| Exact selection `en-GB` | Keep `en-GB` |
+| Select `fr-FR` when unsupported | Fallback or validation error per contract, never silently claim as supported |
+| Malformed tag `en_US` | Handle as invalid input |
+| No selection and no header | Use default `vi-VN` |
+| Header `fr-CA, en-GB;q=0.9` | With the example set, lookup selects `en-GB` |
+| Header contains only unsupported languages | Apply fallback policy |
+| Change JDK version | Product list does not automatically expand with the runtime |
+| Resources for a locale are missing keys | Tests detect it or apply approved fallback |
 
-Có thể thêm kiểm thử để chắc chắn các locale không trùng nhau sau chuẩn hóa, locale mặc định luôn thuộc danh sách hỗ trợ, tất cả tag hợp lệ theo BCP 47 và các trang quan trọng có bản dịch thích hợp.
+You can add tests to ensure locales are not duplicated after normalization, the default locale is always in the supported list, all tags are valid BCP 47, and key pages have appropriate translations.
 
-### Thay đổi danh sách theo thời gian
+### Changing the List Over Time
 
-Khi bổ sung locale mới, cần phát hành bản dịch và kiểm thử trước khi bật tùy chọn trên UI; khi gỡ locale, cần xử lý những hồ sơ người dùng trước đây đã lưu tag đó. Hãy chọn fallback có chủ đích, giải thích trong UX nếu cần, thay vì để ứng dụng ngẫu nhiên hiển thị bản dịch theo JVM default.
+When adding a new locale, release translations and run tests before enabling the option in the UI; when removing a locale, handle user profiles that previously saved that tag. Choose an intentional fallback and explain it in the UX if needed, instead of letting the application randomly display translations based on the JVM default.
 
-Nếu hỗ trợ ngôn ngữ ở một mức độ giới hạn (beta, chỉ một khu vực, chỉ trang đọc), nên biểu diễn rõ phạm vi công bố để danh sách hỗ trợ không hứa vượt khả năng thực tế.
+If a language is supported at a limited level (beta, single region, read-only pages), clearly represent the published scope so the supported list does not promise beyond actual capability.
 
-## 10. Lỗi thường gặp
+## 10. Common Pitfalls
 
-1. **Đưa toàn bộ `Locale.getAvailableLocales()` vào menu.** Dữ liệu runtime không chứng minh ứng dụng có bản dịch và kiểm thử tương ứng.
-2. **Đếm số bundle và coi đó là số locale hỗ trợ.** Một bundle cấp ngôn ngữ có thể phục vụ nhiều tag vùng; một số bundle lại mới được dịch một phần.
-3. **So sánh trực tiếp chuỗi đầu vào với tên hiển thị.** Tên “English (United States)” có thể thay đổi theo ngôn ngữ hiển thị; hãy dùng language tag chuẩn.
-4. **Cho rằng `en` và `en-US` luôn bằng nhau.** Chúng khác mức cụ thể; chỉ gộp khi chính sách hỗ trợ cho phép.
-5. **Bỏ script khi khớp locale.** Có thể chọn sai hệ chữ, nhất là với ngôn ngữ có nhiều cách viết.
-6. **Coi `Locale.lookup(...)` là thuật toán chuyển mọi ngôn ngữ sang locale cùng ngôn ngữ gần nhất.** Nó tuân quy tắc language range/lookup, và có thể trả về `null`.
-7. **Dùng `Locale.setDefault(...)` theo từng request.** Đó là trạng thái mặc định chia sẻ trong JVM, không thích hợp để điều khiển ngôn ngữ riêng cho nhiều người dùng đồng thời.
-8. **Mặc định rằng bản dịch fallback là đầy đủ.** Bundle gốc có thể khiến chương trình không lỗi nhưng trộn ngôn ngữ; cần chính sách và kiểm thử chất lượng.
-9. **Coi `Accept-Language` mạnh hơn lựa chọn tường minh.** Header có thể chỉ là cài đặt mặc định của trình duyệt, không phản ánh lựa chọn mới nhất của người dùng.
-10. **Không đồng bộ frontend/backend.** Người dùng nhìn thấy một locale trong menu nhưng phản hồi API hoặc thông báo lỗi lại dùng locale khác.
+1. **Putting all of `Locale.getAvailableLocales()` into a menu.** Runtime data does not prove the application has corresponding translations and testing.
+2. **Counting bundles and treating that as the number of supported locales.** A language-level bundle can serve multiple region tags; some bundles may only be partially translated.
+3. **Comparing input strings directly with display names.** The name “English (United States)” can change depending on the display language; use canonical language tags.
+4. **Assuming `en` and `en-US` are always equal.** They differ in specificity; only merge them when the support policy permits.
+5. **Dropping the script when matching locales.** This can select the wrong writing system, especially for languages with multiple scripts.
+6. **Treating `Locale.lookup(...)` as an algorithm that converts every language to the closest same-language locale.** It follows language range/lookup rules, and can return `null`.
+7. **Calling `Locale.setDefault(...)` per request.** That is shared default state within the JVM, unsuitable for controlling individual languages across multiple concurrent users.
+8. **Assuming fallback translations are complete.** The base bundle may prevent errors while mixing languages; a quality policy and testing are required.
+9. **Treating `Accept-Language` as stronger than an explicit choice.** The header may just be a default browser setting and not reflect the user's latest choice.
+10. **Frontend/backend mismatch.** The user sees one locale in the menu, but API responses or error messages use a different locale.
 
-## 11. Áp dụng từng bước trong một dự án Java
+## 11. Step-by-Step Application in a Java Project
 
-Khi xây tính năng chọn ngôn ngữ, có thể dùng quy trình:
+When building a language selection feature, you can follow this process:
 
-1. **Xác định phạm vi hỗ trợ sản phẩm**: ngôn ngữ UI, định dạng, thông báo email, trợ giúp và những luồng bắt buộc.
-2. **Khai báo danh sách có thứ tự và locale mặc định**: dùng BCP 47 language tag; không sinh trực tiếp từ locale có sẵn của JDK.
-3. **Xác thực cấu hình khi khởi động**: tag hợp lệ, không trùng, locale mặc định có trong danh sách và tài nguyên thiết yếu sẵn sàng.
-4. **Xây một hàm chọn locale có thể kiểm thử**: ưu tiên lựa chọn tường minh và hồ sơ, dùng thương lượng header khi cần, fallback rõ ràng.
-5. **Truyền locale hiệu lực tới lớp trình bày**: formatter nhận locale cụ thể; dịch câu chữ lấy từ nguồn i18n; múi giờ và tiền tệ xử lý theo yêu cầu riêng.
-6. **Kiểm thử khi phát hành và khi nâng JDK**: chú ý dấu phân cách, khoảng trắng Unicode, mẫu ngày, bản dịch thiếu, tính nhất quán của UI và API.
+1. **Define product support scope**: UI language, formatting, email notifications, help content, and required flows.
+2. **Declare an ordered list and default locale**: use BCP 47 language tags; do not generate directly from JDK available locales.
+3. **Validate configuration at startup**: valid tags, no duplicates, default locale present in the list, and essential resources ready.
+4. **Build a testable locale selection function**: prioritize explicit and profile choices, use header negotiation when needed, and fall back clearly.
+5. **Pass the effective locale to the presentation layer**: formatters receive the specific locale; message translations come from the i18n source; time zones and currencies are handled per separate requirements.
+6. **Test at release and upon JDK upgrades**: pay attention to separators, Unicode whitespace, date patterns, missing translations, and UI/API consistency.
 
-**Tự kiểm tra:**
+**Self-check:**
 
-- Tại sao một ứng dụng chỉ có tiếng Việt và tiếng Anh không nên đưa mọi locale từ `Locale.getAvailableLocales()` vào menu? — Vì khả năng định dạng của runtime không chứng minh ứng dụng đã hỗ trợ ngôn ngữ giao diện đó.
-- Khi người dùng chọn `fr-FR` nhưng danh sách chỉ có `vi-VN` và `en-US`, ứng dụng nên làm gì? — Áp dụng chính sách rõ ràng: báo không hỗ trợ hoặc chọn fallback được công bố.
-- `Locale.lookup(...)` trả về `null` nói lên điều gì? — Không tìm được ứng viên trong danh sách theo language ranges; ứng dụng phải quyết định bước tiếp theo.
-- Vì sao `ResourceBundle.getBundle(...)` thành công vẫn chưa chứng minh bản dịch đầy đủ? — Do fallback có thể lấy khóa từ bundle chung hoặc gốc.
-- Vì sao nên có một tập locale hỗ trợ riêng thay vì phụ thuộc phiên bản JDK? — Để cam kết sản phẩm, menu và kiểm thử không biến động ngoài ý muốn khi đổi runtime.
+- Why shouldn't an application that only has Vietnamese and English put every locale from `Locale.getAvailableLocales()` into its menu? — Because the runtime's formatting capability does not prove the application supports that UI language.
+- When a user selects `fr-FR` but the list only contains `vi-VN` and `en-US`, what should the application do? — Apply a clear policy: report unsupported or choose a published fallback.
+- What does `Locale.lookup(...)` returning `null` indicate? — No candidate was found in the list matching the language ranges; the application must decide the next step.
+- Why does `ResourceBundle.getBundle(...)` succeeding still not prove translations are complete? — Because fallback can fetch keys from a parent or base bundle.
+- Why should you maintain a dedicated supported locales set instead of relying on the JDK version? — So the product commitment, menu, and tests do not fluctuate unexpectedly when the runtime changes.
 
-**Ghi nhớ:** **Danh sách locale được ứng dụng hỗ trợ là quyết định có chủ đích của sản phẩm.** Dùng `Locale` để biểu diễn tag, dùng danh sách đã khai báo để kiểm tra lựa chọn, dùng lookup khi cần thương lượng ngôn ngữ, và xác thực rằng bản dịch/định dạng thực sự đáp ứng phạm vi hỗ trợ đã hứa.
+**Remember:** **The application's supported locales list is an intentional product decision.** Use `Locale` to represent tags, use the declared list to validate choices, use lookup when language negotiation is needed, and verify that translations/formatting truly meet the promised scope of support.

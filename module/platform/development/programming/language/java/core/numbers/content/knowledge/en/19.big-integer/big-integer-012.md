@@ -1,52 +1,52 @@
-# BigInteger: `intValue`, `longValue` khác `intValueExact`, `longValueExact` như thế nào?
+# BigInteger: How `intValue` and `longValue` Differ from `intValueExact` and `longValueExact`
 
-Trong Java Core, `java.math.BigInteger` biểu diễn **số nguyên có dấu với độ chính xác tùy ý**, có thể lớn hơn rất nhiều so với giới hạn 32 bit của `int` và 64 bit của `long`. Khi đưa một giá trị `BigInteger` vào API chỉ chấp nhận kiểu nguyên thủy, người học phải chọn rõ **có cho phép mất dữ liệu hay không**.
+In Java Core, `java.math.BigInteger` represents **arbitrary-precision signed integers**, which can be far larger than the 32-bit limit of `int` and the 64-bit limit of `long`. When passing a `BigInteger` value into an API that accepts only primitives, you must explicitly choose **whether data loss is allowed or not**.
 
-Cặp phương thức dễ nhầm:
+The easily confused method pairs:
 
-- **`intValue()` / `longValue()`:** chuyển về kiểu hẹp bằng cách **giữ các bit thấp**. Nếu giá trị quá lớn hoặc quá nhỏ, kết quả có thể bị mất bit cao, đổi dấu, hoặc về 0; phương thức **không thông báo lỗi tràn phạm vi**.
-- **`intValueExact()` / `longValueExact()`:** yêu cầu giá trị số nguyên **phải nằm trọn trong phạm vi** của kiểu đích. Nếu không thể biểu diễn chính xác, chúng ném **`ArithmeticException`**, không âm thầm cắt bit.
+- **`intValue()` / `longValue()`:** convert to the narrower type by **keeping the low bits**. If the value is too large or too small, the result can lose high bits, flip sign, or wrap to 0; these methods **do not report out-of-range overflow**.
+- **`intValueExact()` / `longValueExact()`:** require the integer value **to fit completely within the range** of the target type. If it cannot be represented exactly, they throw **`ArithmeticException`** rather than silently truncating bits.
 
-Ví dụ quan trọng:
+Key example:
 
 ```java
 BigInteger n = new BigInteger("4294967296"); // 2^32.
-int unsafe = n.intValue();           // 0: 32 bit thấp đều bằng 0.
-long safeLong = n.longValueExact();  // 4294967296L: vẫn nằm trong long.
-// int impossible = n.intValueExact(); // Ném ArithmeticException.
+int unsafe = n.intValue();           // 0: all 32 low bits are 0.
+long safeLong = n.longValueExact();  // 4294967296L: still fits in long.
+// int impossible = n.intValueExact(); // Throws ArithmeticException.
 ```
 
-Đây là mảnh mã có thể đặt trong phương thức của một lớp đã import `java.math.BigInteger`. Bài học đi sâu cơ chế **thu hẹp bit theo bù hai**, biên `Integer.MIN_VALUE/MAX_VALUE`, `Long.MIN_VALUE/MAX_VALUE`, số âm, `2^32`, `2^64`, cách dùng các phương thức `Exact` và cách thiết kế API không âm thầm mất dữ liệu.
+This is a snippet that can be placed inside a method of a class importing `java.math.BigInteger`. This lesson covers **two's complement bit narrowing**, boundaries `Integer.MIN_VALUE/MAX_VALUE` and `Long.MIN_VALUE/MAX_VALUE`, negative numbers, `2^32`, `2^64`, using `Exact` methods, and designing APIs that do not silently drop data.
 
-## 1. Vì sao phải chuyển `BigInteger` sang `int` hoặc `long`?
+## 1. Why Convert `BigInteger` to `int` or `long`?
 
-`BigInteger` cung cấp phép tính nguyên có độ chính xác tùy ý như `add`, `subtract`, `multiply`, `pow`, `shiftLeft` và hỗ trợ các số vượt xa `long`. Nhưng nhiều API Java khác nhận `int` hoặc `long`:
+`BigInteger` provides arbitrary-precision integer arithmetic like `add`, `subtract`, `multiply`, `pow`, `shiftLeft`, and supports numbers far beyond `long`. Yet many other Java APIs accept `int` or `long`:
 
-- Chỉ số, số lượng, kích thước, tham số của một số thư viện yêu cầu `int`.
-- Thời gian, giá trị đếm hoặc số byte với miền đủ rộng thường dùng `long`.
-- Các giao thức có trường 32 bit hoặc 64 bit cố định bắt buộc chọn một kiểu, phạm vi và quy tắc overflow.
-- Cơ sở dữ liệu có cột `INTEGER`/`BIGINT` có giới hạn mà bạn phải tuân thủ.
+- Indices, counts, sizes, and parameters in several libraries require `int`.
+- Timestamps, counters, or byte counts with a broad enough range typically use `long`.
+- Protocols with fixed 32-bit or 64-bit fields require choosing a type, range, and overflow policy.
+- Databases have `INTEGER`/`BIGINT` columns with limits you must obey.
 
-**Chuyển kiểu không làm thay đổi giá trị trong đối tượng `BigInteger` gốc.** Nó chỉ tạo một kết quả nguyên thủy. Nếu kết quả bị mất bit, dữ liệu chính xác vẫn còn trong đối tượng `BigInteger`, nhưng biến `int`/`long` nhận kết quả sẽ mang **giá trị khác**.
+**Converting does not change the value inside the original `BigInteger` object.** It only produces a primitive result. If bits are lost in conversion, the exact data still remains in the `BigInteger` object, while the `int`/`long` variable holding the result carries a **different value**.
 
 ```java
 BigInteger big = BigInteger.ONE.shiftLeft(64);
 long narrowed = big.longValue(); // 0L
-System.out.println(big);         // 18446744073709551616: đối tượng không đổi.
+System.out.println(big);         // 18446744073709551616: object unchanged.
 ```
 
-Đừng coi việc “chuyển thành công” là bằng chứng số vừa phạm vi. Hai phương thức `intValue()` và `longValue()` được thiết kế để có thể **cắt ngắn có chủ ý**, không phải parser hoặc validator phạm vi.
+Do not treat a "successful conversion" as proof that the number fits in range. Both `intValue()` and `longValue()` are designed to support **intentional truncation**, not range parsing or validation.
 
-## 2. Bốn phương thức quan trọng và hợp đồng
+## 2. Four Key Methods and Their Contracts
 
-| Phương thức | Kết quả | Ngoài phạm vi kiểu đích | Dùng khi |
+| Method | Result | Outside target type range | Use when |
 | --- | --- | --- | --- |
-| `BigInteger.intValue()` | `int` 32 bit | Giữ **32 bit thấp**, có thể đổi giá trị và dấu; không báo tràn | Chủ ý lấy low 32 bits |
-| `BigInteger.longValue()` | `long` 64 bit | Giữ **64 bit thấp**, có thể đổi giá trị và dấu; không báo tràn | Chủ ý lấy low 64 bits |
-| `BigInteger.intValueExact()` | `int` 32 bit | Ném **`ArithmeticException`** | Cần chuyển đúng từng đơn vị trong phạm vi signed int |
-| `BigInteger.longValueExact()` | `long` 64 bit | Ném **`ArithmeticException`** | Cần chuyển đúng từng đơn vị trong phạm vi signed long |
+| `BigInteger.intValue()` | 32-bit `int` | Keeps **low 32 bits**, may change value and sign; no overflow error | Intentionally extracting low 32 bits |
+| `BigInteger.longValue()` | 64-bit `long` | Keeps **low 64 bits**, may change value and sign; no overflow error | Intentionally extracting low 64 bits |
+| `BigInteger.intValueExact()` | 32-bit `int` | Throws **`ArithmeticException`** | Needing exact conversion within signed `int` range |
+| `BigInteger.longValueExact()` | 64-bit `long` | Throws **`ArithmeticException`** | Needing exact conversion within signed `long` range |
 
-Tất cả là **phương thức thực thể** gọi trên đối tượng `BigInteger`. Hai phương thức có hậu tố `Exact` là API của lớp `BigInteger`, không phải phương thức có sẵn của mọi biến khai báo kiểu `Number`.
+All are **instance methods** called on a `BigInteger` object. The two methods with the `Exact` suffix belong to the `BigInteger` class API, not methods available on every variable typed as `Number`.
 
 ```java
 BigInteger value = BigInteger.valueOf(42);
@@ -56,53 +56,53 @@ long c = value.longValue();        // 42L
 long d = value.longValueExact();   // 42L
 ```
 
-**Trong miền biểu diễn được**, cả hai biến thể của cùng kiểu trả **cùng một kết quả**. Sự khác biệt bộc lộ khi giá trị vượt giới hạn signed 32/64 bit.
+**Within the representable range**, both variants for the same type return **the exact same result**. The difference emerges once values exceed signed 32/64-bit limits.
 
-## 3. Phạm vi số nguyên có dấu phải thuộc lòng
+## 3. Signed Integer Ranges to Know by Heart
 
-Các giới hạn cố định trong Java:
+Fixed limits in Java:
 
-| Kiểu | Số bit | Giá trị nhỏ nhất | Giá trị lớn nhất |
+| Type | Bits | Minimum value | Maximum value |
 | --- | ---: | ---: | ---: |
 | `int` | 32 | `-2^31 = -2147483648` | `2^31 - 1 = 2147483647` |
 | `long` | 64 | `-2^63 = -9223372036854775808` | `2^63 - 1 = 9223372036854775807` |
-| `BigInteger` | Tùy ý | Không có giới hạn `int`/`long` | Chỉ giới hạn tài nguyên và giới hạn triển khai liên quan |
+| `BigInteger` | Arbitrary | No `int`/`long` limit | Only resource and relevant implementation limits |
 
-Với `intValueExact()`, điều kiện hợp lệ là:
+For `intValueExact()`, the validity condition is:
 
 ```text
 Integer.MIN_VALUE <= value <= Integer.MAX_VALUE
 ```
 
-Với `longValueExact()`:
+For `longValueExact()`:
 
 ```text
 Long.MIN_VALUE <= value <= Long.MAX_VALUE
 ```
 
-Nếu một `BigInteger` vượt **chỉ phạm vi int** mà vẫn thuộc phạm vi `long`, thì `intValueExact()` thất bại nhưng **`longValueExact()` vẫn thành công**. Ví dụ `2^31` hoặc `2^32` là các số `long` hợp lệ, nhưng không phải `int` có dấu hợp lệ.
+If a `BigInteger` exceeds **only the `int` range** while still fitting in `long`, then `intValueExact()` fails while **`longValueExact()` succeeds**. For instance, `2^31` or `2^32` are valid `long` numbers, but not valid signed `int`s.
 
-Tránh dùng `Integer.MAX_VALUE` và `Long.MAX_VALUE` như thể đó là giá trị dương có độ lớn lớn nhất mà Java nói chung lưu được. Chúng là giới hạn **của kiểu primitive có dấu tương ứng**.
+Avoid treating `Integer.MAX_VALUE` and `Long.MAX_VALUE` as if they were the largest positive magnitudes Java in general can store. They are limits **of their corresponding signed primitive types**.
 
-## 4. `intValue()`: 32 bit thấp, không kiểm tra tràn
+## 4. `intValue()`: Low 32 Bits, No Overflow Check
 
-Ý nghĩa của `intValue()` có thể hiểu theo **bù hai 32 bit**: lấy phần còn lại của giá trị nguyên theo `2^32`, rồi diễn giải mẫu bit theo kiểu `int` signed.
+The meaning of `intValue()` can be understood via **32-bit two's complement**: take the integer value modulo `2^32`, then interpret that bit pattern as signed `int`.
 
-Đặt:
+Let:
 
 ```text
-r = value mod 2^32, với 0 <= r < 2^32
+r = value mod 2^32, with 0 <= r < 2^32
 ```
 
-Khi đó:
+Then:
 
 ```text
 intValue(value) =
-    r                 nếu 0 <= r < 2^31
-    r - 2^32          nếu 2^31 <= r < 2^32
+    r                 if 0 <= r < 2^31
+    r - 2^32          if 2^31 <= r < 2^32
 ```
 
-Ví dụ:
+Examples:
 
 ```java
 BigInteger a = BigInteger.valueOf(Integer.MAX_VALUE).add(BigInteger.ONE);
@@ -114,11 +114,11 @@ BigInteger b = BigInteger.ONE.shiftLeft(32);
 int narrowedB = b.intValue(); // 0.
 ```
 
-Tại `2^31`, 32 bit thấp là `0x80000000`, được `int` xem là số âm nhỏ nhất. Tại `2^32`, 32 bit thấp toàn 0, nên kết quả là 0. **Đây không phải phép bão hòa về `Integer.MAX_VALUE` hay một exception**.
+At `2^31`, the low 32 bits are `0x80000000`, which `int` reads as the smallest negative number. At `2^32`, all 32 low bits are 0, so the result is 0. **This is not saturation to `Integer.MAX_VALUE` or an exception**.
 
-Bảng minh họa:
+Illustrative table:
 
-| `BigInteger` gốc | `intValue()` | `intValueExact()` |
+| Original `BigInteger` | `intValue()` | `intValueExact()` |
 | ---: | ---: | --- |
 | 123 | 123 | 123 |
 | 2147483647 | 2147483647 | 2147483647 |
@@ -129,21 +129,21 @@ Bảng minh họa:
 | 4294967296 | **0** | `ArithmeticException` |
 | -4294967296 | **0** | `ArithmeticException` |
 
-Dòng `-2147483649 → 2147483647` cho thấy **giá trị âm nhỏ hơn `Integer.MIN_VALUE`** cũng có thể đổi thành dương sau khi giữ bit thấp.
+The row `-2147483649 → 2147483647` shows that **negative values smaller than `Integer.MIN_VALUE`** can also turn positive after keeping only low bits.
 
-## 5. `longValue()`: giữ 64 bit thấp, quy tắc tương tự
+## 5. `longValue()`: Keeps Low 64 Bits, Same Rule
 
-Với `long`, thay 32 bằng 64:
+For `long`, replace 32 with 64:
 
 ```text
-r = value mod 2^64, với 0 <= r < 2^64
+r = value mod 2^64, with 0 <= r < 2^64
 
 longValue(value) =
-    r                 nếu 0 <= r < 2^63
-    r - 2^64          nếu 2^63 <= r < 2^64
+    r                 if 0 <= r < 2^63
+    r - 2^64          if 2^63 <= r < 2^64
 ```
 
-Đây là mô hình toán học của việc giữ **64 bit thấp**, rồi diễn giải theo bù hai signed `long`.
+This is the mathematical model of keeping the **low 64 bits**, then interpreting them as signed `long` two's complement.
 
 ```java
 BigInteger a = BigInteger.valueOf(Long.MAX_VALUE).add(BigInteger.ONE);
@@ -155,9 +155,9 @@ BigInteger b = BigInteger.ONE.shiftLeft(64);
 long narrowedB = b.longValue(); // 0L.
 ```
 
-Hai biến thể `longValue` và `longValueExact` cũng khác nhau ở biên âm. `Long.MIN_VALUE - 1` trở thành `Long.MAX_VALUE` khi cắt 64 bit thấp, chứ không gây lỗi khi gọi `longValue()`.
+The `longValue` and `longValueExact` variants also differ at the negative boundary. `Long.MIN_VALUE - 1` becomes `Long.MAX_VALUE` when keeping the low 64 bits, rather than throwing on `longValue()`.
 
-| `BigInteger` gốc | `longValue()` | `longValueExact()` |
+| Original `BigInteger` | `longValue()` | `longValueExact()` |
 | ---: | ---: | --- |
 | 9223372036854775807 | 9223372036854775807 | 9223372036854775807 |
 | 9223372036854775808 | **-9223372036854775808** | `ArithmeticException` |
@@ -166,28 +166,28 @@ Hai biến thể `longValue` và `longValueExact` cũng khác nhau ở biên âm
 | 18446744073709551615 | **-1** | `ArithmeticException` |
 | 18446744073709551616 | **0** | `ArithmeticException` |
 
-**Điều cần nhớ:** `longValue()` không phải cách an toàn để chuyển một số nguyên quá lớn thành đại diện gần nhất trong miền `long`. Nó là chuyển đổi **low 64 bits**, có thể làm thay đổi hẳn giá trị.
+**Remember:** `longValue()` is not a safe way to clamp an oversized integer to the nearest `long` representative. It is a **low 64 bits** conversion that can completely alter the value.
 
-## 6. Một số vừa `long` nhưng không vừa `int`
+## 6. A Number Fitting `long` but Not `int`
 
-Xét `4294967296 = 2^32`:
+Consider `4294967296 = 2^32`:
 
 ```java
 BigInteger n = new BigInteger("4294967296");
 
-int a = n.intValue();           // 0: mất toàn bộ bit có nghĩa phía trên 32 bit.
+int a = n.intValue();           // 0: loses all significant bits above 32 bits.
 long b = n.longValue();         // 4294967296L.
 long c = n.longValueExact();    // 4294967296L.
 // n.intValueExact();           // ArithmeticException.
 ```
 
-Vì số này có thể lưu chính xác trong `long`, **không cần chuyển nó thành 0 chỉ để ép vào `int`**. Nếu API nhận `long`, dùng `longValueExact()`. Nếu API bắt buộc `int`, cần một **chính sách rõ**: từ chối, chia nhỏ công việc, hoặc phân trang; không âm thầm truyền 0.
+Because this number fits exactly in `long`, **there is no reason to turn it into 0 just to squeeze it into `int`**. If the API accepts `long`, use `longValueExact()`. If the API strictly requires `int`, apply an **explicit policy**: reject, split work into chunks, or paginate; never silently pass 0.
 
-Kết quả âm thầm về 0 đặc biệt nguy hiểm với các trường như **số bản ghi cần xử lý**, **giới hạn bộ nhớ**, **độ dài file**, **số lượng đơn hàng** hoặc **định danh**. Một giá trị cực lớn sau cắt bit có thể trở thành 0, âm hoặc số nhỏ nhưng trông hợp lệ.
+Silently returning 0 is especially dangerous for fields like **record counts to process**, **memory limits**, **file lengths**, **order quantities**, or **identifiers**. A huge value after bit truncation can become 0, negative, or a small plausible-looking number.
 
-## 7. `intValueExact()`: chuyển có kiểm tra signed 32 bit
+## 7. `intValueExact()`: Checked Signed 32-Bit Conversion
 
-`BigInteger.intValueExact()` chỉ thành công khi giá trị đã nằm trong **`[-2^31, 2^31-1]`**. Nếu ngoài miền, ném `ArithmeticException`.
+`BigInteger.intValueExact()` succeeds only when the value already lies in **`[-2^31, 2^31-1]`**. If out of range, it throws `ArithmeticException`.
 
 ```java
 BigInteger a = BigInteger.valueOf(123);
@@ -197,11 +197,11 @@ BigInteger b = BigInteger.valueOf(Integer.MAX_VALUE).add(BigInteger.ONE);
 // int wrong = b.intValueExact(); // ArithmeticException.
 ```
 
-Điều này bao gồm **tràn dương lẫn tràn âm**. Không phải chỉ số dương lớn mới gây lỗi: `Integer.MIN_VALUE - 1` cũng vượt phạm vi `int`.
+This includes **both positive and negative overflow**. Not only huge positive numbers fail: `Integer.MIN_VALUE - 1` also exceeds `int` range.
 
-Hãy dùng khi việc có một giá trị sai dù chỉ một đơn vị là không thể chấp nhận, ví dụ nhập `BigInteger` vào trường `int` của một thư viện hoặc chuyển kết quả tính chính xác sang hệ thống giới hạn 32 bit.
+Use it whenever being off by even a single unit is unacceptable, such as passing a `BigInteger` into a library's `int` field or handing an exact calculation result to a 32-bit-bounded system.
 
-Có thể xử lý ngoại lệ:
+Exceptions can be handled:
 
 ```java
 static int requireInt(BigInteger value) {
@@ -214,11 +214,11 @@ static int requireInt(BigInteger value) {
 }
 ```
 
-Đây là **phương thức ví dụ** đặt bên trong lớp có import `BigInteger`. Tùy hệ thống, bạn có thể giữ nguyên `ArithmeticException`, chuyển thành exception của nghiệp vụ hoặc trả một kiểu kết quả có mã lỗi. Đừng bắt exception rồi **quay về `intValue()`**, vì như vậy mất toàn bộ lợi ích kiểm tra tràn.
+This is an **example method** placed inside a class importing `BigInteger`. Depending on the system, you can keep `ArithmeticException`, translate it into a domain exception, or return a result type with an error code. Never catch the exception and **fall back to `intValue()`**, as that defeats all overflow checking.
 
-## 8. `longValueExact()`: chuyển có kiểm tra signed 64 bit
+## 8. `longValueExact()`: Checked Signed 64-Bit Conversion
 
-`BigInteger.longValueExact()` tương tự nhưng kiểm tra miền lớn hơn: **`[-2^63, 2^63-1]`**.
+`BigInteger.longValueExact()` works similarly but checks the wider range: **`[-2^63, 2^63-1]`**.
 
 ```java
 BigInteger x = BigInteger.valueOf(Long.MAX_VALUE);
@@ -228,13 +228,13 @@ BigInteger tooLarge = BigInteger.ONE.shiftLeft(63);
 // long broken = tooLarge.longValueExact(); // ArithmeticException.
 ```
 
-Đối với `2^63`, `longValue()` sẽ trả `Long.MIN_VALUE`; `longValueExact()` ném ngoại lệ. Với `-2^63` (chính `Long.MIN_VALUE`) thì phiên bản exact **vẫn thành công**, vì đó là biên dưới hợp lệ.
+For `2^63`, `longValue()` returns `Long.MIN_VALUE`; `longValueExact()` throws an exception. For `-2^63` (`Long.MIN_VALUE` itself), the exact version **succeeds**, since that is a valid lower bound.
 
-Nếu giá trị lớn hơn cả 64 bit và hệ thống thực sự cần giữ **số nguyên chính xác**, hãy tiếp tục giữ kiểu `BigInteger` trong API, dùng thư viện/cột dữ liệu phù hợp hoặc thiết kế cách lưu nhiều phần. Không nên giả định `long` đủ rộng chỉ vì dữ liệu “hiếm khi lớn”.
+If values exceed 64 bits and the system genuinely needs **exact integers**, keep `BigInteger` in the API, use suitable libraries/database columns, or design multi-part storage. Do not assume `long` is wide enough just because data is "rarely large."
 
-## 9. Phương thức `Exact` kiểm tra giá trị, không kiểm tra chuỗi biểu diễn
+## 9. `Exact` Methods Check Value, Not String Representation
 
-`BigInteger` lưu **giá trị số nguyên**, không giữ lại nguyên văn chuỗi đầu vào. Hai chuỗi như `"+00042"` và `"42"` khi được parse hợp lệ đều tạo giá trị 42; `intValueExact()` trả 42 trong cả hai trường hợp.
+`BigInteger` stores an **integer value**, not the verbatim input string. Two strings such as `"+00042"` and `"42"` parse to the same value 42; `intValueExact()` returns 42 in both cases.
 
 ```java
 BigInteger a = new BigInteger("42");
@@ -243,35 +243,35 @@ System.out.println(a.equals(b)); // true.
 System.out.println(b.intValueExact()); // 42.
 ```
 
-Do đó `intValueExact()` **không phải** validator format đầu vào, và nó cũng không phát hiện được số 0 đầu, dấu cộng dư hoặc vi phạm quy tắc của một mã định danh. Nếu đầu vào phải giữ chính xác những ký tự như số 0 đầu, có thể đó là **mã** chứ không phải số cần tính toán; hãy giữ `String` và kiểm tra schema riêng.
+Hence `intValueExact()` is **not** an input format validator, nor can it detect leading zeros, extra plus signs, or rule violations in an identifier. If an input must preserve exact characters like leading zeros, it is likely a **code/identifier** rather than an arithmetic number; keep `String` and validate its schema separately.
 
-Tương tự, chữ `Exact` không có nghĩa phương thức sẽ tự kiểm tra điều kiện nghiệp vụ “số phải không âm” hoặc “số lượng <= 1000”: một `int` âm vẫn có thể biểu diễn chính xác và được trả về bình thường.
+Likewise, the word `Exact` does not mean the method checks business rules like "must be non-negative" or "quantity <= 1000": a negative `int` is still exactly representable and returned normally.
 
-## 10. `intValue()` không giống ép `BigInteger` bằng toán tử cast
+## 10. `intValue()` Is Not Casting `BigInteger` with a Cast Operator
 
-Trong Java, `BigInteger` là **đối tượng**, không phải primitive `long` hoặc `int`. Bạn không thể viết:
+In Java, `BigInteger` is an **object**, not a `long` or `int` primitive. You cannot write:
 
 ```java
 BigInteger big = BigInteger.ONE.shiftLeft(32);
-// int value = (int) big; // Không biên dịch: BigInteger không thể cast trực tiếp sang int.
+// int value = (int) big; // Does not compile: BigInteger cannot be cast directly to int.
 ```
 
-Cần gọi một trong các phương thức chuyển đổi:
+You must call one of the conversion methods:
 
 ```java
-int lowBits = big.intValue(); // Chủ ý mất bit cao.
-long checked = big.longValueExact(); // Yêu cầu chính xác.
+int lowBits = big.intValue(); // Intentionally drops high bits.
+long checked = big.longValueExact(); // Requires exact fit.
 ```
 
-Mô hình cắt bit của `BigInteger.intValue()` giống **ép hẹp số nguyên nguyên thủy** theo low-order bits về mặt kết quả, nhưng cú pháp và kiểu nguồn hoàn toàn khác. Đừng coi `BigInteger` là lớp bọc cho `long` có thể ép bằng cast thông thường.
+The bit-truncation model of `BigInteger.intValue()` matches **primitive narrowing conversion** on low-order bits in outcome, yet the syntax and source type are completely different. Do not treat `BigInteger` as a `long` wrapper that can be cast normally.
 
-Ngoài ra, phương thức `BigInteger.longValue()` **không tự gọi `intValueExact()` hay `longValueExact()`**. Nếu bạn muốn phát hiện mất dữ liệu, phải chọn **phiên bản Exact** một cách tường minh.
+Moreover, `BigInteger.longValue()` **does not call `intValueExact()` or `longValueExact()`**. If you want to catch data loss, you must explicitly pick the **Exact variant**.
 
-## 11. Số âm và cách hoạt động của các bit thấp
+## 11. Negative Numbers and How Low Bits Behave
 
-Số âm BigInteger có ngữ nghĩa bù hai khi thực hiện các phép toán bit. Khi ép hẹp về 32/64 bit, **không lấy trị tuyệt đối rồi cắt**, mà lấy mẫu bit thấp của **giá trị signed**.
+Negative `BigInteger`s have two's complement semantics during bitwise operations. When narrowing to 32/64 bits, it **does not take absolute value and truncate**, but takes the low bits of the **signed value**.
 
-Ví dụ:
+Example:
 
 ```java
 BigInteger a = BigInteger.ONE.shiftLeft(32).negate(); // -4294967296.
@@ -279,9 +279,9 @@ int bits32 = a.intValue(); // 0.
 long whole64 = a.longValueExact(); // -4294967296.
 ```
 
-Vì `-2^32` chia hết cho `2^32`, 32 bit thấp đều bằng 0. Điều này không biến giá trị gốc thành zero; chỉ có **phần thông tin được chuyển vào `int`** là zero.
+Because `-2^32` is divisible by `2^32`, all low 32 bits are 0. This does not turn the original value into zero; only the **information transferred into `int`** is zero.
 
-Một ví dụ sát cận âm:
+An example near the negative boundary:
 
 ```java
 BigInteger x = BigInteger.valueOf(Integer.MIN_VALUE)
@@ -289,20 +289,20 @@ BigInteger x = BigInteger.valueOf(Integer.MIN_VALUE)
 int narrowed = x.intValue(); // 2147483647.
 ```
 
-Bản `int` cho một số dương lớn mặc dù gốc âm. Điều này có thể phá logic nghiệp vụ như:
+The `int` version produces a large positive number even though the original was negative. This can break business logic such as:
 
 ```java
 int amount = someBigInteger.intValue();
 if (amount > 0) {
-    // Có thể vào nhánh dù giá trị BigInteger gốc âm và quá nhỏ.
+    // Can enter this branch even when the original BigInteger was negative and very small.
 }
 ```
 
-Khi giá trị đóng vai trò **độ dài, số lượng, số tiền hoặc giá trị không âm**, nên dùng `intValueExact()` kết hợp kiểm tra **điều kiện >= 0** trước hoặc sau (vì exact chỉ kiểm tra phạm vi, không kiểm tra domain).
+When a value serves as a **length, count, monetary amount, or non-negative quantity**, use `intValueExact()` combined with checking **the `>= 0` condition** before or after (since exact only checks range, not domain).
 
-## 12. `2^32`, `2^64` và quy luật “về 0”
+## 12. `2^32`, `2^64`, and the "Wraps to 0" Rule
 
-Hai mốc biên trực quan nhất cho chuyển đổi low bits:
+Two clearest boundary landmarks for low-bits conversion:
 
 ```java
 BigInteger p32 = BigInteger.ONE.shiftLeft(32);
@@ -315,9 +315,9 @@ System.out.println(p64.intValue());  // 0.
 System.out.println(p64.longValue()); // 0.
 ```
 
-Tại `2^32`, **32 bit thấp** đều bằng 0, trong khi 64 bit thấp vẫn mang thông tin của `2^32`. Tại `2^64`, cả hai phần thấp 32/64 bit đều bằng 0.
+At `2^32`, all **low 32 bits** are 0, while the low 64 bits still carry `2^32`. At `2^64`, both low 32-bit and low 64-bit portions are 0.
 
-Ngược lại:
+Conversely:
 
 ```java
 BigInteger p64MinusOne = BigInteger.ONE.shiftLeft(64)
@@ -326,11 +326,11 @@ BigInteger p64MinusOne = BigInteger.ONE.shiftLeft(64)
 System.out.println(p64MinusOne.longValue()); // -1.
 ```
 
-Mẫu 64 bit thấp toàn 1 được kiểu `long` **có dấu** hiểu là -1. Dù một số nguyên dương có thể in `longValue() == -1`, nó không có nghĩa BigInteger “mất dấu” trong phép tính gốc; đây là **cách diễn giải signed của một mẫu bit**.
+An all-1s low 64-bit pattern is read by **signed** `long` as -1. Even though a positive integer can print `longValue() == -1`, that does not mean `BigInteger` "lost its sign" in the original calculation; it is **the signed interpretation of a bit pattern**.
 
-## 13. Giá trị cực lớn vẫn có thể tạo một kết quả nhỏ
+## 13. Huge Values Can Still Yield Small Results
 
-Một BigInteger có thể cực kỳ lớn nhưng khi cắt lấy low 32/64 bits lại thành số nhỏ. Ví dụ:
+A `BigInteger` can be enormous yet become a small number when truncated to its low 32/64 bits. Example:
 
 ```java
 BigInteger huge = BigInteger.ONE.shiftLeft(100)
@@ -340,48 +340,48 @@ System.out.println(huge.intValue());  // 123.
 System.out.println(huge.longValue()); // 123.
 ```
 
-Lý do: `2^100` chia hết cho `2^64`, nên **64 bit thấp** của `2^100 + 123` chỉ còn 123. Đây là minh họa mạnh cho thấy kết quả `intValue()` hoặc `longValue()` **trông hợp lý** không chứng minh chúng phản ánh giá trị thật.
+Reason: `2^100` is divisible by `2^64`, so the **low 64 bits** of `2^100 + 123` leave only 123. This strongly illustrates that a **plausible-looking** `intValue()` or `longValue()` result does not prove it reflects the real value.
 
-Nếu sau chuyển đổi chương trình kiểm tra `result <= limit` mà không kiểm tra phạm vi **trước đó**, một đầu vào cực lớn có thể trở thành một số nhỏ nằm dưới hạn mức. Dùng phiên bản `Exact` khi **giá trị cần được bảo toàn**, đặc biệt ở các đường đi kiểm tra giới hạn, cấp phát và định tuyến công việc.
+If after conversion the program checks `result <= limit` without checking range **beforehand**, an oversized input can turn into a small number below the limit. Use the `Exact` variant whenever **value preservation is required**, especially on limit-checking, allocation, and work-routing paths.
 
-## 14. So với `Math.toIntExact(long)`
+## 14. Comparison with `Math.toIntExact(long)`
 
-JDK có phương thức:
+The JDK has the method:
 
 ```java
 int narrowed = Math.toIntExact(someLong);
 ```
 
-Nó dùng để kiểm tra một giá trị **đã là `long`** có vừa signed `int` không. Không thể truyền trực tiếp `BigInteger` vào `Math.toIntExact`.
+It checks whether a value **that is already a `long`** fits in signed `int`. You cannot pass a `BigInteger` directly to `Math.toIntExact`.
 
-Hai cách sau có ý nghĩa khác nhau:
+These two approaches have different meanings:
 
 ```java
 BigInteger big = new BigInteger("4294967296");
 
-// Cách đúng nếu cần BigInteger -> int exact:
+// Right way when needing BigInteger -> exact int:
 // int safe = big.intValueExact(); // ArithmeticException.
 
-// Cách vòng qua long với kiểm tra:
-// long first = big.longValueExact(); // Thành công vì 2^32 vừa long.
+// Roundabout via long with checking:
+// long first = big.longValueExact(); // Succeeds because 2^32 fits in long.
 // int second = Math.toIntExact(first); // ArithmeticException.
 ```
 
-Với giá trị ngoài signed 64 bit, **phải gọi `longValueExact()`** ở bước đầu. Nếu thay `longValueExact()` bằng `longValue()`, dữ liệu đã bị cắt, và `Math.toIntExact` chỉ kiểm tra giá trị **sau khi bị hỏng**, không khôi phục được giá trị gốc.
+For values outside signed 64 bits, **you must call `longValueExact()`** in the first step. If `longValueExact()` is replaced with `longValue()`, data is already truncated, and `Math.toIntExact` checks only the **corrupted post-truncation value**, unable to recover the original value.
 
-Ví dụ nguy hiểm:
+Dangerous example:
 
 ```java
 BigInteger p64 = BigInteger.ONE.shiftLeft(64);
 long brokenLong = p64.longValue(); // 0.
-int seemsFine = Math.toIntExact(brokenLong); // 0, KHÔNG có exception.
+int seemsFine = Math.toIntExact(brokenLong); // 0, NO exception.
 ```
 
-`Math.toIntExact` đúng với đầu vào `long 0`, nhưng đó đã là dữ liệu sai nếu mục tiêu là biểu diễn chính xác `BigInteger 2^64`. Khi nguồn vốn là `BigInteger`, dùng **`intValueExact()` trực tiếp** vừa rõ vừa an toàn.
+`Math.toIntExact` is correct for input `long 0`, yet that was already wrong data if the goal was to represent `BigInteger 2^64` accurately. When the source is `BigInteger`, calling **`intValueExact()` directly** is both clearer and safer.
 
-## 15. So với `byteValueExact()` và `shortValueExact()`
+## 15. Comparison with `byteValueExact()` and `shortValueExact()`
 
-Bên cạnh signed int/long, `BigInteger` cũng có các phương thức chuyển hẹp:
+Alongside signed `int`/`long`, `BigInteger` also has narrowing methods:
 
 ```java
 byte a = BigInteger.valueOf(127).byteValueExact(); // 127.
@@ -391,27 +391,27 @@ short b = BigInteger.valueOf(32767).shortValueExact(); // 32767.
 // BigInteger.valueOf(32768).shortValueExact(); // ArithmeticException.
 ```
 
-Các giới hạn áp dụng:
+Applicable bounds:
 
-| Kiểu | Miền signed |
+| Type | Signed range |
 | --- | --- |
 | `byte` | -128..127 |
 | `short` | -32768..32767 |
 | `int` | -2147483648..2147483647 |
 | `long` | -9223372036854775808..9223372036854775807 |
 
-Ngược lại, `byteValue()` và `shortValue()` cũng có thể cắt bit khi thu hẹp. Nếu đang parse một trường giao thức có độ rộng cố định, cần phân biệt:
+Conversely, `byteValue()` and `shortValue()` can also truncate bits when narrowing. When parsing a fixed-width protocol field, distinguish:
 
-- **Giá trị có dấu** theo phạm vi của kiểu primitive Java.
-- **Mẫu bit unsigned** của trường, ví dụ unsigned byte 0..255 hoặc unsigned int 0..2^32-1.
+- **Signed value** within Java's primitive type range.
+- **Unsigned bit pattern** of the field, e.g., unsigned byte 0..255 or unsigned int 0..2^32-1.
 
-Một giá trị `BigInteger 255` **không vừa signed byte**, nên `byteValueExact()` phải ném exception. Nếu protocol thật sự muốn ghi byte `FF` với ý nghĩa **unsigned 255**, đó là phép **mã hóa unsigned có kiểm tra dải khác**, không phải chuyển exact sang signed `byte`.
+A `BigInteger` value `255` **does not fit in a signed byte**, so `byteValueExact()` must throw an exception. If the protocol genuinely expects writing byte `FF` meaning **unsigned 255**, that is an **unsigned encoding with a different range check**, not an exact conversion to signed `byte`.
 
-## 16. Trường hợp dữ liệu unsigned: không nhầm với signed exact
+## 16. Unsigned Data Case: Do Not Confuse with Signed Exact
 
-Java `int` và `long` là kiểu nguyên **có dấu**. `BigInteger.intValueExact()` không có nhiệm vụ cho phép unsigned 32 bit đến `2^32-1`; nó chỉ cho phép signed int tới `2^31-1`.
+Java `int` and `long` are **signed** integer types. `BigInteger.intValueExact()` is not meant to accept 32-bit unsigned values up to `2^32-1`; it only allows signed `int` up to `2^31-1`.
 
-Ví dụ:
+Example:
 
 ```java
 BigInteger unsigned32Max = new BigInteger("4294967295");
@@ -419,17 +419,17 @@ int lowBits = unsigned32Max.intValue(); // -1.
 long positive = unsigned32Max.longValueExact(); // 4294967295L.
 ```
 
-Ở đây:
+Here:
 
-- Nếu cần **giá trị dương chính xác**, giữ BigInteger hoặc chuyển sang `long` bằng `longValueExact()`.
-- Nếu cần **mẫu 32 bit** của một trường unsigned, có thể dùng `intValue()` **sau khi xác thực** rằng giá trị nằm trong `0..2^32-1`; phía nhận phải dùng API unsigned như `Integer.toUnsignedLong` hoặc `Integer.toUnsignedString` để diễn giải.
-- **Không** dùng `intValueExact()` làm bộ kiểm tra phạm vi unsigned 32 bit, vì +4294967295 hợp lệ unsigned nhưng không vừa signed int.
+- If you need the **exact positive value**, keep `BigInteger` or convert to `long` via `longValueExact()`.
+- If you need the **32-bit pattern** of an unsigned field, you may use `intValue()` **after verifying** the value lies in `0..2^32-1`; the receiver must use unsigned APIs such as `Integer.toUnsignedLong` or `Integer.toUnsignedString` to interpret it.
+- **Do not** use `intValueExact()` as an unsigned 32-bit range validator, because +4294967295 is unsigned-valid yet does not fit signed `int`.
 
-Tương tự, BigInteger `2^64-1` khi gọi `longValue()` trả -1, nhưng `longValueExact()` ném lỗi, bởi đó không phải signed `long` hợp lệ. Nếu một protocol lưu unsigned 64 bit, cần kiểm tra riêng `0..2^64-1` và định nghĩa rõ cách xử lý **bit pattern long** hoặc giữ kiểu `BigInteger`.
+Similarly, `BigInteger` `2^64-1` returns -1 from `longValue()`, while `longValueExact()` throws an error because it is not a valid signed `long`. If a protocol stores unsigned 64-bit values, validate `0..2^64-1` separately and clearly define how to handle the **`long` bit pattern** or keep `BigInteger`.
 
-## 17. Đoạn mã kiểm tra signed/unsigned rõ ràng
+## 17. Clear Signed/Unsigned Validation Snippets
 
-Với giá trị signed `BigInteger` cần đưa vào `int`:
+For a signed `BigInteger` value needing to go into `int`:
 
 ```java
 static int requireSignedInt(BigInteger value) {
@@ -437,7 +437,7 @@ static int requireSignedInt(BigInteger value) {
 }
 ```
 
-Với một trường **unsigned 32 bit** cần giữ mẫu bit trong `int`:
+For an **unsigned 32-bit** field needing to hold its bit pattern in `int`:
 
 ```java
 static int requireUnsignedIntBits(BigInteger value) {
@@ -445,23 +445,23 @@ static int requireUnsignedIntBits(BigInteger value) {
     if (value.signum() < 0 || value.compareTo(max) > 0) {
         throw new ArithmeticException("outside unsigned 32-bit range");
     }
-    return value.intValue(); // Có chủ đích: chỉ lấy 32 bit thấp.
+    return value.intValue(); // Intentional: only extract the low 32 bits.
 }
 ```
 
-Hai phương thức này là **mảnh mã trong lớp Java**, không phải API có sẵn. Bản unsigned **kiểm tra trước khi cắt bit**, vì sau khi cắt sẽ không còn đủ thông tin để biết giá trị ban đầu có quá lớn hay quá nhỏ không.
+These two methods are **code snippets inside a Java class**, not built-in APIs. The unsigned version **validates before truncating bits**, because after truncation there is no longer enough information to tell whether the original value was too large or too small.
 
-Đây là trường hợp điển hình mà `intValue()` **đúng** nếu và chỉ nếu:
+This is a classic case where `intValue()` is **right** if and only if:
 
-1. Mục tiêu thật sự là biểu diễn **32 bit** chứ không phải giá trị signed int.
-2. Miền unsigned đã được kiểm tra rõ ràng.
-3. Hệ thống sử dụng kết quả theo **ngữ nghĩa unsigned**, không vô tình so sánh với 0 bằng cách signed.
+1. The goal is genuinely a **32-bit representation** rather than a signed `int` value.
+2. The unsigned range has been explicitly checked.
+3. Downstream code consumes the result with **unsigned semantics**, never accidentally comparing against 0 as signed.
 
-Không nên áp dụng chiến lược unsigned cho số lượng công việc, chỉ số mảng hoặc số tiền chỉ vì muốn tránh exception — những miền đó thường yêu cầu **giá trị signed không âm và vừa phạm vi cụ thể**.
+Do not apply the unsigned strategy to task counts, array indices, or money just to avoid exceptions—those domains usually require **non-negative signed values within specific ranges**.
 
-## 18. Kiểm tra trước bằng `compareTo` khi cần thông báo nghiệp vụ
+## 18. Pre-Checking with `compareTo` When Business Messages Are Needed
 
-Nếu muốn phân biệt “quá nhỏ” và “quá lớn”, thay vì bắt `ArithmeticException` có thể kiểm tra trực tiếp:
+If you want to distinguish "too small" from "too large," instead of catching `ArithmeticException` you can check directly:
 
 ```java
 static int requireIntWithMessage(BigInteger value) {
@@ -477,39 +477,39 @@ static int requireIntWithMessage(BigInteger value) {
 }
 ```
 
-Đây là một phương thức minh họa, có thể đặt trong lớp đã import `BigInteger`. Trong ứng dụng thực, có thể lưu `min`/`max` thành hằng số static final để tái sử dụng.
+This is an illustrative method that can be placed inside a class importing `BigInteger`. In production code, `min`/`max` can be stored as reusable `static final` constants.
 
-**Vì sao vẫn dùng `intValueExact()` sau kiểm tra?** Nó thể hiện rõ tính bất biến cần giữ: phương thức chỉ trả về một `int` nếu giá trị phù hợp. Sau khi đã kiểm tra bằng `compareTo`, `intValue()` cũng cho cùng kết quả, nhưng dùng `Exact` là cách diễn đạt ngữ nghĩa API ít gây nhầm.
+**Why still call `intValueExact()` after checking?** It clearly expresses the invariant being maintained: the method returns an `int` only if the value fits. After checking with `compareTo`, `intValue()` gives the same result, yet using `Exact` communicates API semantics with less ambiguity.
 
-Đừng thay điều kiện range bằng `value.bitLength() <= 31` mà chưa phân tích số âm và biên, bởi `BigInteger.bitLength()` có quy tắc riêng đối với giá trị âm. So sánh trực tiếp với `Integer.MIN_VALUE/MAX_VALUE` rõ ràng và khó sai hơn.
+Do not replace the range condition with `value.bitLength() <= 31` without analyzing negative numbers and boundaries, because `BigInteger.bitLength()` has specific rules for negative values. Comparing directly against `Integer.MIN_VALUE/MAX_VALUE` is clearer and less error-prone.
 
-## 19. Exception không phải lúc nào cũng là lỗi cần sửa bằng cách bỏ kiểm tra
+## 19. An Exception Is Not Always a Bug to "Fix" by Removing Checks
 
-Hai phương thức `Exact` **ném `ArithmeticException` một cách có chủ đích**. Khi điều đó xảy ra, bạn nên xem lại:
+The two `Exact` methods **throw `ArithmeticException` intentionally**. When that happens, review:
 
-- **Nguồn dữ liệu:** dữ liệu nhập có đúng miền bài toán không?
-- **Kiểu đích:** yêu cầu `int`/ `long` là bắt buộc hay có thể giữ `BigInteger`?
-- **Giới hạn nghiệp vụ:** một số nguyên tuy vừa `long` nhưng có thể vẫn vượt quota/tài nguyên.
-- **Cách biểu diễn:** dữ liệu là số signed hay unsigned bit pattern?
-- **Phản hồi cho caller:** nên trả mã lỗi, exception nghiệp vụ hay yêu cầu cung cấp giá trị nhỏ hơn?
+- **Data source:** is the input within the problem's domain?
+- **Target type:** is `int`/`long` mandatory or can `BigInteger` be kept?
+- **Business limit:** an integer fitting in `long` might still exceed quotas/resources.
+- **Representation:** is the data a signed number or an unsigned bit pattern?
+- **Caller response:** should you return an error code, a domain exception, or require a smaller value?
 
-Mã tránh dùng:
+Code to avoid:
 
 ```java
 static int dangerousFallback(BigInteger x) {
     try {
         return x.intValueExact();
     } catch (ArithmeticException ex) {
-        return x.intValue(); // SAI nếu yêu cầu là chuyển chính xác.
+        return x.intValue(); // WRONG if exact conversion is required.
     }
 }
 ```
 
-Nếu nghiệp vụ có chủ đích cần **wrap modulo 2^32**, hãy chọn `intValue()` ngay từ đầu và giải thích. Nếu nghiệp vụ muốn **clamp/saturate** vào `Integer.MIN_VALUE/MAX_VALUE`, hãy viết chính sách giới hạn riêng sau so sánh; `intValue()` **không thực hiện saturation**.
+If business logic intentionally needs **wrap modulo 2^32**, choose `intValue()` from the outset and document why. If business logic wants to **clamp/saturate** to `Integer.MIN_VALUE/MAX_VALUE`, write a separate clamping policy after comparison; `intValue()` **does not perform saturation**.
 
-## 20. Chương trình Java 17+ chạy độc lập
+## 20. Standalone Runnable Java 17+ Program
 
-Tạo tệp **`BigIntegerConversionDemo.java`**:
+Create file **`BigIntegerConversionDemo.java`**:
 
 ```java
 import java.math.BigInteger;
@@ -573,14 +573,14 @@ public class BigIntegerConversionDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --release 17 -encoding UTF-8 BigIntegerConversionDemo.java
 java BigIntegerConversionDemo
 ```
 
-Stdout chính xác (đã biên dịch và chạy với Java 17):
+Exact stdout (compiled and run on Java 17):
 
 ```text
 small value=123
@@ -624,74 +624,74 @@ mathToIntExactError=ArithmeticException
 bigIntegerUnchanged=true
 ```
 
-Các dòng đáng chú ý:
+Notable lines:
 
-1. **`small` và `intMax`**: trong miền signed int, cả bốn phương thức trả giá trị tương thích với kích thước kiểu đích.
-2. **`intOver`**: +2147483648 trở thành -2147483648 với `intValue()`, nhưng `intValueExact()` báo lỗi; `longValueExact()` vẫn thành công.
-3. **`intUnder`**: -2147483649 trở thành +2147483647 khi bị cắt xuống int; phương thức exact từ chối.
-4. **`twoPow32`, `minusTwoPow32`**: giá trị gốc ±4294967296 cho `intValue() == 0`, dù vẫn vừa signed long.
-5. **`longOver`, `longUnder`**: một bước ngoài giới hạn 64 bit gây chuyển đổi wrap-around ở `longValue()`, trong khi `longValueExact()` ném exception.
-6. **`twoPow64`**: BigInteger (2^{64}) có `intValue() == 0` và `longValue() == 0`, không phải vì số gốc là zero.
-7. **`twoPow64MinusOne`**: giá trị unsigned 64 bit tối đa cho `longValue() == -1`; phương thức exact từ chối vì ngoài signed long.
-8. **`twoPow100Plus123`**: một BigInteger hơn 30 chữ số có `intValue()` và `longValue()` đều bằng 123, cho thấy kết quả bị cắt có thể trông hợp lệ.
-9. **`fitsInt=false`**, **`mathToIntExactError=ArithmeticException`** và **`bigIntegerUnchanged=true`**: minh họa range check, API `Math.toIntExact` và tính bất biến của BigInteger.
+1. **`small` and `intMax`**: within signed `int` range, all four methods return values compatible with target type sizes.
+2. **`intOver`**: +2147483648 becomes -2147483648 with `intValue()`, whereas `intValueExact()` throws; `longValueExact()` still succeeds.
+3. **`intUnder`**: -2147483649 becomes +2147483647 when truncated to `int`; exact method rejects it.
+4. **`twoPow32`, `minusTwoPow32`**: original values ±4294967296 produce `intValue() == 0`, even though they fit signed `long`.
+5. **`longOver`, `longUnder`**: one step past 64-bit bounds causes wrap-around conversion in `longValue()`, whereas `longValueExact()` throws an exception.
+6. **`twoPow64`**: `BigInteger` (`2^{64}`) has `intValue() == 0` and `longValue() == 0`, not because the original number is zero.
+7. **`twoPow64MinusOne`**: maximum 64-bit unsigned value yields `longValue() == -1`; exact method rejects it because it exceeds signed `long`.
+8. **`twoPow100Plus123`**: a `BigInteger` with over 30 digits has both `intValue()` and `longValue()` equal to 123, showing how truncated results can look valid.
+9. **`fitsInt=false`**, **`mathToIntExactError=ArithmeticException`**, and **`bigIntegerUnchanged=true`**: demonstrate range checking, `Math.toIntExact`, and `BigInteger` immutability.
 
-Trong ví dụ, hàm `exactInt` và `exactLong` **bắt ArithmeticException để in kết quả kiểm thử**. Ứng dụng thật thường cần truyền lỗi hoặc xử lý nó theo quy tắc nghiệp vụ thay vì biến thành chuỗi. Cả chương trình chỉ dùng thư viện chuẩn JDK 17.
+In the example, `exactInt` and `exactLong` **catch `ArithmeticException` to print test output**. Real applications typically propagate the error or handle it per business rules instead of turning it into a string. The entire program uses only the JDK 17 standard library.
 
-## 21. Phân biệt những phương thức khác có chữ “Exact”
+## 21. Distinguishing Other Methods with "Exact" in Their Names
 
-Java có nhiều API gắn hậu tố `Exact`, nhưng không nên gộp chúng thành cùng một hành vi:
+Java has multiple APIs with the `Exact` suffix, which should not be lumped into a single behavior:
 
-| API | Nhiệm vụ |
+| API | Job |
 | --- | --- |
-| `BigInteger.intValueExact()` | Chuyển BigInteger sang signed int **có kiểm tra dải** |
-| `BigInteger.longValueExact()` | Chuyển BigInteger sang signed long **có kiểm tra dải** |
-| `Math.toIntExact(long)` | Chuyển **long** sang int với kiểm tra dải |
-| `Math.addExact(int,long...)` | Nhóm phương thức cộng primitive có kiểm tra overflow theo overload cụ thể |
-| `Math.multiplyExact(...)` | Nhân primitive có kiểm tra overflow |
-| `BigDecimal.intValueExact()` | Chuyển **số thập phân** sang int, kiểm tra cả khả năng biểu diễn nguyên chính xác và dải |
-| `BigDecimal.longValueExact()` | Chuyển số thập phân sang long, cũng không cho mất phần lẻ |
+| `BigInteger.intValueExact()` | Converts `BigInteger` to signed `int` **with range checking** |
+| `BigInteger.longValueExact()` | Converts `BigInteger` to signed `long` **with range checking** |
+| `Math.toIntExact(long)` | Converts **`long`** to `int` with range checking |
+| `Math.addExact(int,long...)` | Group of primitive addition methods checking overflow per overload |
+| `Math.multiplyExact(...)` | Primitive multiplication with overflow checking |
+| `BigDecimal.intValueExact()` | Converts **decimal** to `int`, checking both exact integer representability and range |
+| `BigDecimal.longValueExact()` | Converts decimal to `long`, also disallowing loss of fractional part |
 
-Với `BigInteger`, **không tồn tại phần thập phân** để phải làm tròn khi chuyển sang `int` hoặc `long`; chỉ cần kiểm tra miền giá trị. Với `BigDecimal`, `intValueExact` còn có thể lỗi khi giá trị như `1.5` không phải số nguyên, dù trị tuyệt đối rất nhỏ. Đây là một khác biệt quan trọng nếu hệ thống dùng biến kiểu `Number` hoặc hoán đổi giữa BigInteger và BigDecimal.
+For `BigInteger`, **there is no fractional part** to round when converting to `int` or `long`; only value range needs checking. For `BigDecimal`, `intValueExact` can also fail when a value like `1.5` is not an integer, even though its magnitude is tiny. This is an important distinction if a system uses `Number`-typed variables or mixes `BigInteger` and `BigDecimal`.
 
-Ví dụ:
+Example:
 
 ```java
 BigInteger a = new BigInteger("1");
-int x = a.intValueExact(); // 1, hợp lệ.
+int x = a.intValueExact(); // 1, valid.
 
 java.math.BigDecimal b = new java.math.BigDecimal("1.5");
-// b.intValueExact() ném ArithmeticException vì không thể bỏ .5 một cách exact.
+// b.intValueExact() throws ArithmeticException because .5 cannot be dropped exactly.
 ```
 
-Hậu tố `Exact` cần được hiểu theo **hợp đồng của từng API**, không phải như lời hứa rằng mọi phép toán phía sau cũng chính xác.
+The `Exact` suffix must be understood according to **each API's contract**, not as a blanket promise that every downstream operation is also exact.
 
-## 22. Kiểm thử biên cần có
+## 22. Essential Boundary Tests
 
-Để chắc rằng chương trình không cắt dữ liệu ngoài ý muốn, nên kiểm thử ít nhất:
+To ensure your program does not truncate data unintentionally, test at least:
 
-| Test value | Kỳ vọng `intValueExact` | Kỳ vọng `longValueExact` |
+| Test value | Expected `intValueExact` | Expected `longValueExact` |
 | --- | --- | --- |
-| 0, 1, -1 | Thành công | Thành công |
-| `Integer.MAX_VALUE` | Thành công | Thành công |
-| `Integer.MAX_VALUE + 1` | **Lỗi** | Thành công |
-| `Integer.MIN_VALUE` | Thành công | Thành công |
-| `Integer.MIN_VALUE - 1` | **Lỗi** | Thành công |
-| `Long.MAX_VALUE` | **Lỗi** | Thành công |
-| `Long.MAX_VALUE + 1` | **Lỗi** | **Lỗi** |
-| `Long.MIN_VALUE` | **Lỗi** | Thành công |
-| `Long.MIN_VALUE - 1` | **Lỗi** | **Lỗi** |
-| `2^64`, `2^100+123` | **Lỗi** | **Lỗi** |
+| 0, 1, -1 | Succeeds | Succeeds |
+| `Integer.MAX_VALUE` | Succeeds | Succeeds |
+| `Integer.MAX_VALUE + 1` | **Error** | Succeeds |
+| `Integer.MIN_VALUE` | Succeeds | Succeeds |
+| `Integer.MIN_VALUE - 1` | **Error** | Succeeds |
+| `Long.MAX_VALUE` | **Error** | Succeeds |
+| `Long.MAX_VALUE + 1` | **Error** | **Error** |
+| `Long.MIN_VALUE` | **Error** | Succeeds |
+| `Long.MIN_VALUE - 1` | **Error** | **Error** |
+| `2^64`, `2^100+123` | **Error** | **Error** |
 
-Sau đó test hành vi **`intValue()`/`longValue()` cắt bit** theo đúng policy. Không cần khẳng định nó “gần” giá trị gốc; phép chuyển là modulo theo số bit chứ không phải phép lấy gần nhất.
+Then test the bit-truncation behavior of **`intValue()`/`longValue()`** according to your policy. Do not claim it is "close" to the original value; conversion is modulo bit-width, not nearest-value approximation.
 
-Với dữ liệu từ giao thức unsigned, thêm test **trường signed dương/âm** và **trường bit pattern unsigned**, ví dụ `2^32-1` hoặc `2^64-1`. Đảm bảo các tầng nhận và gửi thống nhất về độ rộng bit và cách diễn giải dấu.
+For unsigned protocol data, add tests for **positive/negative signed fields** and **unsigned bit-pattern fields**, e.g., `2^32-1` or `2^64-1`. Ensure sending and receiving layers agree on bit width and sign interpretation.
 
-## 23. Một số tình huống ứng dụng
+## 23. Several Application Scenarios
 
-### A. Số lượng hoặc kích thước
+### A. Counts or Sizes
 
-Một endpoint nhận `BigInteger` cho số bản ghi. Nếu gọi `intValue()` trên `2^32`, kết quả 0 có thể khiến chương trình tưởng không có bản ghi để xử lý. Với yêu cầu một số lượng vừa signed `int` và không âm:
+An endpoint receives a `BigInteger` for a record count. Calling `intValue()` on `2^32` gives 0, which could trick the program into thinking there are no records to process. When requiring a non-negative count fitting in signed `int`:
 
 ```java
 static int validCount(BigInteger number) {
@@ -702,61 +702,61 @@ static int validCount(BigInteger number) {
 }
 ```
 
-**Hai kiểm tra** có hai trách nhiệm: `signum() >= 0` cho ngữ nghĩa số lượng; `intValueExact()` cho khả năng lưu vào kiểu đích.
+**Two checks** carry two responsibilities: `signum() >= 0` for count semantics; `intValueExact()` for storage capability in the target type.
 
-### B. ID và số nguyên độ dài lớn
+### B. IDs and Long-Length Integers
 
-Nếu ID lớn hơn signed 64 bit, ép bằng `longValue()` có thể làm hai ID **khác nhau** có cùng 64 bit thấp, tạo va chạm sau chuyển đổi. Nếu ID phải duy nhất, không được dùng phép cắt bit; giữ **`BigInteger`** hoặc dùng `String`/kiểu cơ sở dữ liệu đủ rộng theo thiết kế. Khi giới hạn API chỉ cho `long`, dùng `longValueExact()` để từ chối giá trị không phù hợp.
+If IDs exceed signed 64 bits, narrowing with `longValue()` can cause two **distinct** IDs to share the same low 64 bits, creating collisions after conversion. If IDs must be unique, never truncate bits; keep **`BigInteger`** or use `String`/a sufficiently wide database type by design. When an API strictly allows only `long`, use `longValueExact()` to reject unsuitable values.
 
-### C. Mã hóa trường 32 bit unsigned
+### C. Encoding an Unsigned 32-Bit Field
 
-Một giao thức mô tả trường 32 bit không dấu. Giá trị `4294967295` hợp lệ, nhưng `intValueExact()` không thể biểu diễn thành signed int dương. Có thể chủ động tạo mẫu 32 bit với `intValue()` **sau khi kiểm tra miền unsigned** và khi ghi/đọc phải dùng API unsigned. Sự chuyển đổi này không giống chuyển kiểu số nguyên có dấu exact.
+A protocol specifies a 32-bit unsigned field. The value `4294967295` is valid, yet `intValueExact()` cannot represent it as a positive signed `int`. You can deliberately create the 32-bit pattern with `intValue()` **after checking the unsigned range**, and read/write using unsigned APIs. This conversion differs from exact signed-integer conversion.
 
-### D. Tính toán nhiều bước
+### D. Multi-Step Calculations
 
-Nếu đang tính một tích có thể vượt `long`:
+If computing a product that may exceed `long`:
 
 ```java
 BigInteger result = BigInteger.valueOf(Long.MAX_VALUE)
         .multiply(BigInteger.valueOf(2));
-// Giữ BigInteger trong toàn bộ chuỗi tính toán.
+// Keep BigInteger throughout the entire calculation chain.
 ```
 
-Hãy **trì hoãn việc thu hẹp** cho tới boundary thật sự cần primitive, rồi chọn `longValueExact()` nếu không chấp nhận mất dữ liệu. Chuyển sớm sang `longValue()` có thể hủy kết quả chính xác mà BigInteger đã giúp duy trì.
+**Defer narrowing** until the boundary that genuinely requires a primitive, then choose `longValueExact()` if data loss is unacceptable. Converting early to `longValue()` can destroy exact results that `BigInteger` preserved.
 
-## 24. Những nhầm lẫn thường gặp
+## 24. Common Misconceptions
 
-| Nhầm lẫn | Sự thật | Cách làm đúng |
+| Misconception | Reality | Right approach |
 | --- | --- | --- |
-| `intValue()` tự kiểm tra quá phạm vi | Nó chỉ lấy **32 bit thấp**, không ném lỗi tràn | Dùng `intValueExact()` nếu cần bảo toàn |
-| `longValue()` đủ lớn cho mọi BigInteger | Long chỉ 64 bit có dấu | Dùng `longValueExact()` hoặc giữ BigInteger |
-| Cắt số lớn sẽ lấy `Integer.MAX_VALUE` | Không có saturation; có thể trả âm/0 | Dùng chính sách clamp riêng nếu cần |
-| `2^32` chuyển thành int vẫn là số lớn dương | 32 bit thấp là 0 | Dùng long/BigInteger |
-| `2^64` chuyển thành long được 2^64 | 64 bit thấp bằng 0 | `longValueExact()` ném lỗi |
-| `intValueExact()` kiểm tra số không âm | Nó chỉ kiểm tra signed range | Kết hợp `signum()` cho miền không âm |
-| Chỉ số dương mới bị wrap | Số âm ngoài miền cũng đổi thành số dương hoặc 0 | Test cả hai biên signed |
-| `Math.toIntExact(big.longValue())` luôn đủ an toàn | `longValue()` có thể đã cắt bit | Dùng `big.intValueExact()` trực tiếp |
-| `intValue()` trả 123 nghĩa BigInteger bằng 123 | Có thể là `2^100+123` | Phân biệt giá trị gốc với low bits |
-| `intValueExact()` bảo đảm số chữ số/format input | Nó chỉ kiểm tra giá trị | Validate `String` đầu vào riêng |
-| `longValueExact()` thích hợp cho unsigned `2^64-1` | Signed long không chứa được giá trị này | Xác thực unsigned và dùng quy ước bit-pattern |
-| Chuyển sang `double` rồi ép int/long sẽ chính xác hơn | Double còn có sai số làm tròn và giới hạn | Tránh floating-point khi cần số nguyên exact |
-| Catch `ArithmeticException` rồi gọi `intValue()` | Âm thầm bỏ qua lỗi quan trọng | Trả lỗi có nghĩa hoặc đổi kiểu đích |
+| `intValue()` checks for out-of-range automatically | It only takes **low 32 bits**, never throws overflow | Use `intValueExact()` when preservation is needed |
+| `longValue()` is big enough for every `BigInteger` | `long` is only 64-bit signed | Use `longValueExact()` or keep `BigInteger` |
+| Truncating large numbers gives `Integer.MAX_VALUE` | No saturation; can return negative/0 | Write a separate clamp policy if needed |
+| `2^32` converted to `int` stays a large positive number | Low 32 bits are 0 | Use `long`/`BigInteger` |
+| `2^64` converted to `long` yields `2^64` | Low 64 bits are 0 | `longValueExact()` throws |
+| `intValueExact()` checks for non-negative numbers | It checks only signed range | Combine with `signum()` for non-negative domain |
+| Only positive numbers wrap around | Out-of-range negative numbers also turn positive or 0 | Test both signed boundaries |
+| `Math.toIntExact(big.longValue())` is always safe enough | `longValue()` may already have dropped bits | Call `big.intValueExact()` directly |
+| `intValue()` returning 123 means `BigInteger` equals 123 | Could be `2^100+123` | Distinguish original value from low bits |
+| `intValueExact()` validates input digit count/format | It checks value only | Validate input `String` separately |
+| `longValueExact()` works for unsigned `2^64-1` | Signed `long` cannot hold that value | Validate unsigned and use bit-pattern convention |
+| Converting to `double` then casting to `int`/`long` is more accurate | `double` has rounding error and limits | Avoid floating-point for exact integers |
+| Catch `ArithmeticException` and call `intValue()` | Silently ignores critical error | Return meaningful error or change target type |
 
-## 25. Tự kiểm tra kiến thức
+## 25. Knowledge Self-Check
 
-1. **Sự khác biệt ngắn gọn giữa `intValue()` và `intValueExact()` là gì?** Bản thường giữ 32 bit thấp, có thể mất dữ liệu; bản exact từ chối số ngoài signed int bằng `ArithmeticException`.
-2. **`BigInteger("4294967296").intValue()` trả gì?** 0, vì `2^32` có 32 bit thấp bằng 0.
-3. **Với cùng BigInteger `2^32`, `longValueExact()` có thành công không?** Có, trả `4294967296L` vì số này vừa signed long.
-4. **`BigInteger.valueOf(Integer.MAX_VALUE).add(BigInteger.ONE).intValue()` trả gì?** `Integer.MIN_VALUE`, tức `-2147483648`.
-5. **`BigInteger.valueOf(Integer.MIN_VALUE).subtract(BigInteger.ONE).intValue()` trả gì?** `Integer.MAX_VALUE`, tức `2147483647`.
-6. **`BigInteger.ONE.shiftLeft(64).longValue()` trả gì?** 0, vì `2^64` có 64 bit thấp bằng 0.
-7. **`BigInteger.ONE.shiftLeft(64).longValueExact()` ra sao?** Ném `ArithmeticException` vì `2^64` vượt signed long.
-8. **`BigInteger("18446744073709551615").longValue()` cho gì?** -1, vì 64 bit thấp toàn 1.
-9. **`longValueExact()` có ném lỗi với `Long.MIN_VALUE` không?** Không. Đây là giới hạn dưới hợp lệ của signed long.
-10. **Có thể dùng `intValueExact()` để kiểm tra giá trị thuộc `0..2^32-1` không?** Không; nó chỉ kiểm tra signed int. Unsigned cần validator miền riêng.
-11. **Một số cực lớn có `intValue() == 123` có nghĩa nó bằng 123 không?** Không. `2^100+123` cũng trả 123 khi chỉ lấy 32 bit thấp.
-12. **`Math.toIntExact(big.longValue())` có luôn an toàn cho BigInteger không?** Không; bước `longValue()` có thể mất dữ liệu trước khi `Math.toIntExact` nhìn thấy kết quả.
-13. **Để giảm nguy cơ mất dữ liệu khi chuyển BigInteger cho API nhận long, nên dùng gì?** `longValueExact()`; nếu lỗi, xử lý hoặc thay đổi thiết kế để giữ BigInteger.
-14. **Exact chỉ đảm bảo phạm vi hay cả quy tắc nghiệp vụ?** Chỉ bảo đảm giá trị số nằm trong phạm vi signed của kiểu đích. Số không âm, quota và cú pháp input phải kiểm tra riêng.
+1. **What is the short difference between `intValue()` and `intValueExact()`?** The regular one keeps low 32 bits and may lose data; the exact one rejects numbers outside signed `int` with `ArithmeticException`.
+2. **What does `BigInteger("4294967296").intValue()` return?** 0, because `2^32` has all low 32 bits equal to 0.
+3. **For that same `BigInteger` `2^32`, does `longValueExact()` succeed?** Yes, returning `4294967296L` because it fits in signed `long`.
+4. **What does `BigInteger.valueOf(Integer.MAX_VALUE).add(BigInteger.ONE).intValue()` return?** `Integer.MIN_VALUE`, i.e. `-2147483648`.
+5. **What does `BigInteger.valueOf(Integer.MIN_VALUE).subtract(BigInteger.ONE).intValue()` return?** `Integer.MAX_VALUE`, i.e. `2147483647`.
+6. **What does `BigInteger.ONE.shiftLeft(64).longValue()` return?** 0, because `2^64` has all low 64 bits equal to 0.
+7. **What happens with `BigInteger.ONE.shiftLeft(64).longValueExact()`?** Throws `ArithmeticException` because `2^64` exceeds signed `long`.
+8. **What does `BigInteger("18446744073709551615").longValue()` give?** -1, because all low 64 bits are 1.
+9. **Does `longValueExact()` throw an error on `Long.MIN_VALUE`?** No. That is the valid lower bound of signed `long`.
+10. **Can `intValueExact()` be used to check whether a value lies in `0..2^32-1`?** No; it checks only signed `int`. Unsigned requires a separate range validator.
+11. **Does an enormous number with `intValue() == 123` mean it equals 123?** No. `2^100+123` also returns 123 when keeping only low 32 bits.
+12. **Is `Math.toIntExact(big.longValue())` always safe for `BigInteger`?** No; the `longValue()` step can lose data before `Math.toIntExact` ever sees the result.
+13. **To reduce data loss risk when passing `BigInteger` to an API accepting `long`, what should be used?** `longValueExact()`; on error, handle it or change the design to keep `BigInteger`.
+14. **Does `Exact` guarantee only range or also business rules?** It only guarantees the numeric value fits within the target type's signed range. Non-negativity, quotas, and input syntax must be validated separately.
 
-**Ghi nhớ:** với `BigInteger`, **`intValue()` và `longValue()` là phép lấy các bit thấp**; nếu số quá phạm vi, kết quả có thể thay đổi mạnh mà **không có ngoại lệ**. Ngược lại, **`intValueExact()` và `longValueExact()` yêu cầu biểu diễn chính xác toàn bộ giá trị trong signed 32/64 bit**, nếu không sẽ **ném `ArithmeticException`**. Khi cần bảo toàn giá trị của số nguyên lớn trong hệ thống thật, ưu tiên API `Exact`, kiểm tra phạm vi nghiệp vụ và chỉ cố ý cắt bit khi chính hợp đồng dữ liệu yêu cầu.
+**Key takeaway:** For `BigInteger`, **`intValue()` and `longValue()` extract low-order bits**; if the number exceeds range, results can change dramatically **without any exception**. Conversely, **`intValueExact()` and `longValueExact()` require exact representation of the entire value in signed 32/64 bits**, otherwise **throwing `ArithmeticException`**. When values of large integers must be preserved in real systems, prefer the `Exact` APIs, check business ranges, and truncate bits intentionally only when the data contract itself demands it.

@@ -1,10 +1,10 @@
-# Đọc kiểu `Collector<T, A, R>` và kiểu trạng thái tích lũy
+# Reading the `Collector<T, A, R>` Type and Accumulation State Type
 
-## 1. Vì sao `collect` cần một kiểu trạng thái riêng?
+## 1. Why does `collect` need a separate state type?
 
-Trong **JAVA_STREAM_API**, các phép `filter`, `map` và `flatMap` mô tả cách chọn hoặc biến đổi phần tử của pipeline; phép toán kết thúc `collect` biến nhiều phần tử thành một kết quả có cấu trúc. Kết quả có thể là danh sách, tập hợp, bản đồ theo nhóm, thống kê hoặc một đối tượng nghiệp vụ.
+In **JAVA_STREAM_API**, operations like `filter`, `map`, and `flatMap` describe how to select or transform pipeline elements; the terminal operation `collect` turns many elements into a structured result. That result can be a list, set, grouped map, statistics, or a domain object.
 
-Chẳng hạn, muốn tính tổng tiền theo vùng từ một `Stream<Order>`:
+For instance, suppose we want total amount by region from a `Stream<Order>`:
 
 ```java
 Map<String, Long> revenueByRegion = orders.stream()
@@ -14,32 +14,32 @@ Map<String, Long> revenueByRegion = orders.stream()
     ));
 ```
 
-Ở đây, phần tử đầu vào là `Order`, nhưng kết quả là `Map<String, Long>`. Trong lúc thực hiện, collector có thể cần một vùng nhớ để ghi nhận các nhóm và tổng tạm thời. **Kiểu vùng nhớ đó không nhất thiết trùng với kiểu phần tử hoặc kiểu kết quả cuối.**
+Here, the input element is `Order`, while the result is `Map<String, Long>`. During execution, the collector may need a storage area to track groups and temporary sums. **That storage type does not have to match the element type or the final result type.**
 
-Đây là lý do interface `Collector` có **ba tham số kiểu**:
+This is why the `Collector` interface has **three type parameters**:
 
 ```java
 Collector<T, A, R>
 ```
 
-- **`T` (input)**: kiểu phần tử mà collector nhận từ stream.
-- **`A` (accumulation)**: kiểu *trạng thái tích lũy có thể thay đổi* trong quá trình thu thập.
-- **`R` (result)**: kiểu kết quả mà terminal operation trả về.
+- **`T` (input)**: the element type the collector receives from the stream.
+- **`A` (accumulation)**: the *mutable accumulation state* type used during collection.
+- **`R` (result)**: the result type returned by the terminal operation.
 
-Mục tiêu sau bài học:
+Goals after this lesson:
 
-1. Đọc chính xác `Collector<T, A, R>` và chữ ký `Stream.collect`.
-2. Hiểu năm thành phần `supplier`, `accumulator`, `combiner`, `finisher` và `characteristics`.
-3. Phân biệt **`A` là trạng thái nội bộ** với **`R` là kết quả công khai**.
-4. Đọc kiểu của `Collectors.toList`, `groupingBy`, `mapping` và downstream collector.
-5. Tự xây collector có kết quả bất biến và phép gộp hợp lệ.
-6. Phân tích điều kiện đúng đắn khi stream được phân chia để xử lý song song, cũng như các giới hạn về tài nguyên, trạng thái và hiệu năng.
+1. Read `Collector<T, A, R>` and `Stream.collect` signatures accurately.
+2. Understand the five components: `supplier`, `accumulator`, `combiner`, `finisher`, and `characteristics`.
+3. Distinguish **`A` as internal state** from **`R` as public result**.
+4. Read the types of `Collectors.toList`, `groupingBy`, `mapping`, and downstream collectors.
+5. Build a custom collector with an immutable result and valid merging.
+6. Analyze correctness conditions when the stream is split for parallel processing, as well as limits on resources, state, and performance.
 
-Các ví dụ đầy đủ trong bài dùng **Java 17+**, vì có `record` và `Stream.toList()`. Phần lớn cơ chế `Collector` đã có từ Java 8; hãy kiểm tra mục `Since` của API nếu dự án dùng JDK cũ.
+The complete examples in this lesson use **Java 17+**, due to `record` and `Stream.toList()`. Most of the `Collector` mechanism has existed since Java 8; check the API `Since` section if your project uses an older JDK.
 
-## 2. Giải mã chữ ký `Collector<T, A, R>`
+## 2. Decoding the `Collector<T, A, R>` signature
 
-Interface được khai báo trong `java.util.stream`:
+The interface is declared in `java.util.stream`:
 
 ```java
 public interface Collector<T, A, R> {
@@ -51,60 +51,60 @@ public interface Collector<T, A, R> {
 }
 ```
 
-Chữ ký trên được rút gọn để dễ học, nhưng thể hiện đúng vai trò của các phương thức. Các functional interface `Supplier`, `BiConsumer`, `BinaryOperator`, `Function` thuộc `java.util.function`.
+The signature above is simplified for learning, yet accurately reflects the roles of the methods. The functional interfaces `Supplier`, `BiConsumer`, `BinaryOperator`, and `Function` belong to `java.util.function`.
 
-| Ký hiệu | Được dùng ở đâu? | Đọc như thế nào? |
+| Symbol | Where is it used? | How to read it? |
 | --- | --- | --- |
-| `T` | `BiConsumer<A,T>` | Mỗi phần tử đầu vào, ví dụ `Order` |
-| `A` | `Supplier<A>`, `BiConsumer<A,T>`, `BinaryOperator<A>` | Trạng thái mà collector tạo, cập nhật và gộp |
-| `R` | `Function<A,R>` | Dữ liệu cuối cùng đưa cho người gọi |
-| `Supplier<A>` | `supplier()` | Tạo một trạng thái tích lũy mới, ban đầu rỗng |
-| `BiConsumer<A,T>` | `accumulator()` | Nhập một `T` vào trạng thái `A` |
-| `BinaryOperator<A>` | `combiner()` | Gộp hai trạng thái `A` thành một `A` |
-| `Function<A,R>` | `finisher()` | Chuyển trạng thái cuối `A` thành kết quả `R` |
+| `T` | `BiConsumer<A,T>` | Each input element, e.g., `Order` |
+| `A` | `Supplier<A>`, `BiConsumer<A,T>`, `BinaryOperator<A>` | State that the collector creates, updates, and merges |
+| `R` | `Function<A,R>` | Final data handed to the caller |
+| `Supplier<A>` | `supplier()` | Creates a new, initially empty accumulation state |
+| `BiConsumer<A,T>` | `accumulator()` | Incorporates one `T` into state `A` |
+| `BinaryOperator<A>` | `combiner()` | Merges two `A` states into one `A` |
+| `Function<A,R>` | `finisher()` | Transforms final state `A` into result `R` |
 
-Một collector có thể dùng object mutable để tích lũy rồi trả object bất biến:
+A collector can use a mutable object to accumulate and then return an immutable object:
 
 ```text
                   supplier()
                       │
                       ▼
-              A: trạng thái rỗng
+               A: empty state
                       │
-          accumulator(A, T)
+           accumulator(A, T)
                       │
-                  nhiều lần
+                  many times
                       ▼
-              A: trạng thái đầy
+               A: full state
                       │
-             combiner(A, A)
-         (khi cần gộp các phần)
+              combiner(A, A)
+          (when merging parts)
                       │
                       ▼
                  finisher(A)
                       │
                       ▼
-                 R: kết quả
+                  R: result
 ```
 
-**Điểm cần nhớ:** `A` là kiểu **bộ tích lũy**, không phải “mảng dữ liệu”, “kiểu của phần tử sau `map`”, hay “kiểu trả về của `collect`”. Nó có thể là `ArrayList<T>`, `HashMap<K,V>`, một object chứa nhiều bộ đếm, hoặc một kiểu nội bộ khác. Người gọi thường **không cần biết `A` cụ thể là gì**.
+**Point to remember:** `A` is the **accumulator** type, not "data array", "element type after `map`", or "return type of `collect`". It can be `ArrayList<T>`, `HashMap<K,V>`, an object holding multiple counters, or another internal type. Callers generally **do not need to know what `A` specifically is**.
 
-## 3. Đọc `Stream.collect(Collector)` từ ngoài vào trong
+## 3. Reading `Stream.collect(Collector)` from outside in
 
-Overload nhận một collector trên `Stream<T>` có chữ ký:
+The overload taking a collector on `Stream<T>` has the signature:
 
 ```java
 <R, A> R collect(Collector<? super T, A, R> collector)
 ```
 
-Lấy ví dụ `Stream<Order>`:
+Take `Stream<Order>` as an example:
 
-- `T = Order` do stream xác định.
-- `Collector<? super T, A, R>` được phép nhận phần tử `Order` (hoặc kiểu cha tương thích).
-- `A` xác định trạng thái tích lũy nội bộ.
-- `R` là **kiểu trả về của chính `collect`**.
+- `T = Order` is determined by the stream.
+- `Collector<? super T, A, R>` is allowed to accept `Order` elements (or a compatible supertype).
+- `A` specifies the internal accumulation state.
+- `R` is **the return type of `collect` itself**.
 
-Một cách đọc thực tế:
+A practical reading:
 
 ```java
 Stream<Order> source = orders.stream();
@@ -116,22 +116,22 @@ Map<String, Long> result = source.collect(
 );
 ```
 
-Ở dòng `result`, compiler suy ra `R = Map<String, Long>`. Kiểu `A` không hiện ra trong biến kết quả; nó được suy luận từ collector được truyền vào.
+On the `result` line, the compiler infers `R = Map<String, Long>`. Type `A` does not appear in the result variable; it is inferred from the passed-in collector.
 
-Không nhầm `collect` với `map`: `map` là **intermediate operation**, trả về stream mới và được thực thi lười. `collect` là **terminal operation**, tiêu thụ pipeline để trả một `R`. Muốn có hai kết quả từ cùng collection, cần mở hai stream mới; không thể gọi terminal operation lần hai trên stream đã tiêu thụ.
+Do not confuse `collect` with `map`: `map` is an **intermediate operation**, returning a new stream and executing lazily. `collect` is a **terminal operation**, consuming the pipeline to return an `R`. To get two results from the same collection, open two new streams; you cannot call a terminal operation a second time on a consumed stream.
 
-Tài liệu cần tra:
+Reference documentation:
 
-- [`Collector<T,A,R>` — Javadoc Java 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/Collector.html)
-- [`Stream.collect` — Javadoc Java 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/Stream.html#collect(java.util.stream.Collector))
-- [`Collectors` — các factory collector](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/Collectors.html)
-- [Package `java.util.stream` — reduction và parallelism](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/package-summary.html)
+- [`Collector<T,A,R>` — Java 21 Javadoc](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/Collector.html)
+- [`Stream.collect` — Java 21 Javadoc](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/Stream.html#collect(java.util.stream.Collector))
+- [`Collectors` — collector factories](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/Collectors.html)
+- [Package `java.util.stream` — reduction and parallelism](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/package-summary.html)
 
-## 4. Vòng đời của trạng thái `A`
+## 4. Lifecycle of state `A`
 
-### 4.1. `supplier` tạo bộ tích lũy
+### 4.1. `supplier` creates the accumulator
 
-`Supplier<A>` trả một `A` mới ở trạng thái ban đầu. Thường là một container rỗng, chẳng hạn:
+`Supplier<A>` returns a fresh `A` in its initial state. Usually this is an empty container, for example:
 
 ```java
 Supplier<ArrayList<String>> supplier = ArrayList::new;
@@ -139,11 +139,11 @@ ArrayList<String> left = supplier.get();
 ArrayList<String> right = supplier.get();
 ```
 
-`left` và `right` là **hai trạng thái độc lập**; trong xử lý song song, thư viện có thể tạo nhiều trạng thái rồi gộp lại. Supplier không nên trả cùng một `ArrayList` mutable toàn cục cho mọi lời gọi.
+`left` and `right` are **two independent states**; during parallel processing, the library can create many states and merge them. A supplier should never return the same global mutable `ArrayList` across every call.
 
-### 4.2. `accumulator` đưa một phần tử vào `A`
+### 4.2. `accumulator` puts an element into `A`
 
-`BiConsumer<A,T>` nhận trạng thái `A` và phần tử `T`; kiểu trả về là `void`. Khi tích lũy danh sách:
+`BiConsumer<A,T>` receives state `A` and element `T`; its return type is `void`. When accumulating a list:
 
 ```java
 BiConsumer<ArrayList<String>, String> accumulator =
@@ -154,11 +154,11 @@ accumulator.accept(left, "Stream");
 // left = ["Java", "Stream"]
 ```
 
-Collector thông thường được thiết kế theo kiểu **mutable reduction**: accumulator cập nhật container đang được quản lý, tránh phải tạo lại toàn bộ container cho mỗi phần tử. Dù trạng thái mutable, phần `filter`/`map` trước đó vẫn nên không can thiệp vào nguồn và không phụ thuộc trạng thái thay đổi.
+Standard collectors are designed around **mutable reduction**: the accumulator updates the managed container, avoiding recreating the entire container for each element. Even though the state is mutable, preceding `filter`/`map` steps must still be non-interfering with the source and stateless.
 
-### 4.3. `combiner` gộp các trạng thái
+### 4.3. `combiner` merges states
 
-`BinaryOperator<A>` nhận **hai `A`** và trả **một `A`** biểu diễn kết quả đã gộp:
+`BinaryOperator<A>` takes **two `A`s** and returns **one `A`** representing the merged result:
 
 ```java
 BinaryOperator<ArrayList<String>> combiner = (a, b) -> {
@@ -169,11 +169,11 @@ BinaryOperator<ArrayList<String>> combiner = (a, b) -> {
 ArrayList<String> combined = combiner.apply(left, right);
 ```
 
-Việc gộp không được làm mất dữ liệu; điều kiện kết hợp và tương thích với accumulator rất quan trọng khi pipeline bị phân chia nhiều nhánh. Collector có thể được chạy với nhiều `A` ngay cả khi lập trình viên chỉ nhìn thấy một lời gọi `collect`.
+Merging must not drop data; associativity and compatibility with the accumulator are crucial when the pipeline splits into multiple branches. A collector can be executed with multiple `A` instances even when the programmer sees only one `collect` call.
 
-### 4.4. `finisher` tạo `R`
+### 4.4. `finisher` produces `R`
 
-Một collector có thể giữ `ArrayList<T>` trong lúc xử lý rồi trả một bản sao không thể sửa đổi:
+A collector can maintain an `ArrayList<T>` during processing and then return an unmodifiable copy:
 
 ```java
 Function<ArrayList<String>, List<String>> finisher = List::copyOf;
@@ -181,7 +181,7 @@ Function<ArrayList<String>, List<String>> finisher = List::copyOf;
 List<String> result = finisher.apply(combined);
 ```
 
-Trong ví dụ này:
+In this example:
 
 ```text
 T = String
@@ -189,18 +189,18 @@ A = ArrayList<String>
 R = List<String>
 ```
 
-`List.copyOf` không cho phép phần tử `null`. Đây là một quyết định về hợp đồng dữ liệu, không phải thuộc tính mặc định của mọi collector. Nếu `A` và `R` cùng kiểu, finisher vẫn có thể làm công việc thực như sao chép; chỉ khi finisher **đúng là phép đồng nhất theo hợp đồng** mới có thể gắn đặc tính `IDENTITY_FINISH`.
+`List.copyOf` disallows `null` elements. This is a data-contract decision, not a default property of every collector. Even if `A` and `R` are the same type, the finisher can still perform real work such as copying; only when the finisher **is truly the identity operation by contract** can the `IDENTITY_FINISH` characteristic be attached.
 
-### 4.5. `characteristics` mô tả bảo đảm của collector
+### 4.5. `characteristics` describes the collector's guarantees
 
-Đặc tính nằm trong `Collector.Characteristics` và ảnh hưởng đến cách Stream framework có thể thực hiện thu thập. Ba giá trị chính là `CONCURRENT`, `UNORDERED` và `IDENTITY_FINISH`; chúng sẽ được phân tích ở mục 10.
+Characteristics belong to `Collector.Characteristics` and affect how the Stream framework may perform collection. The three key values are `CONCURRENT`, `UNORDERED`, and `IDENTITY_FINISH`; they will be analyzed in section 10.
 
-## 5. Tại sao `A` thường xuất hiện dưới dạng `?`?
+## 5. Why does `A` often appear as `?`?
 
-Những collector dựng sẵn thường **che kiểu tích lũy** trong chữ ký công khai. Ví dụ:
+Built-in collectors usually **hide the accumulation type** in their public signatures. For example:
 
 ```java
-// Chữ ký rút gọn của factory method:
+// Simplified factory method signatures:
 <T> Collector<T, ?, List<T>> toList()
 
 <T> Collector<T, ?, Set<T>> toSet()
@@ -208,33 +208,33 @@ Những collector dựng sẵn thường **che kiểu tích lũy** trong chữ k
 <T> Collector<T, ?, Long> counting()
 ```
 
-Ký hiệu `?` ở vị trí thứ hai không có nghĩa collector “không cần trạng thái”. Nó có nghĩa **người gọi không biết và không cần phụ thuộc vào kiểu `A` thực tế**. Trong lúc thực hiện, thư viện vẫn có thể tạo bộ tích lũy, cập nhật, gộp và hoàn thiện.
+The `?` symbol in the second position does not mean the collector "needs no state". It means **the caller does not know and does not need to depend on the actual `A` type**. During execution, the library can still create an accumulator, update it, merge it, and finish it.
 
-Ví dụ:
+Example:
 
 ```java
 List<String> names = Stream.of("An", "Bình", "Chi")
     .collect(Collectors.toList());
 ```
 
-Ta biết `T = String` và `R = List<String>`. Không nên giả định từ chữ ký rằng `A` chắc chắn là `ArrayList<String>`, hay kết quả là một `ArrayList` có thể sửa đổi. Javadoc của `Collectors.toList()` **không cam kết** loại collection, khả năng sửa đổi, khả năng tuần tự hóa hoặc tính an toàn luồng của danh sách trả về.
+We know `T = String` and `R = List<String>`. You should not infer from the signature that `A` is definitely `ArrayList<String>`, or that the result is a mutable `ArrayList`. The Javadoc of `Collectors.toList()` makes **no guarantees** on the collection type, mutability, serializability, or thread-safety of the returned list.
 
-So sánh:
+Comparison:
 
-| Cách thu kết quả | Hợp đồng |
+| Collection method | Contract |
 | --- | --- |
-| `stream.toList()` (JDK 16+) | Danh sách không thể sửa đổi; không cam kết loại triển khai |
-| `stream.collect(Collectors.toList())` | Không cam kết tính có thể sửa đổi và loại triển khai |
-| `stream.collect(Collectors.toUnmodifiableList())` (JDK 10+) | Danh sách không thể sửa đổi; từ chối phần tử `null` |
-| `stream.collect(Collectors.toCollection(ArrayList::new))` | Tạo một `ArrayList` mới theo supplier được chỉ định |
+| `stream.toList()` (JDK 16+) | Unmodifiable list; no guarantee on implementation class |
+| `stream.collect(Collectors.toList())` | No guarantee on mutability or implementation class |
+| `stream.collect(Collectors.toUnmodifiableList())` (JDK 10+) | Unmodifiable list; rejects `null` elements |
+| `stream.collect(Collectors.toCollection(ArrayList::new))` | Creates a new `ArrayList` via the specified supplier |
 
-Lựa chọn phương thức dựa trên hợp đồng mong muốn, thay vì dựa vào loại `A` mà ta đoán bên trong.
+Choose the method based on the desired contract, rather than guessing the internal type `A`.
 
-## 6. Ví dụ đầy đủ: collector tùy chỉnh `Order → RevenueAccumulator → Summary`
+## 6. Complete example: custom collector `Order → RevenueAccumulator → Summary`
 
-Giả sử ứng dụng cần thống kê **số đơn** và **tổng doanh thu** trong một lần thu thập. Kết quả công khai sẽ là một `record Summary` bất biến; trạng thái trung gian dùng một object mutable để cộng dồn.
+Suppose an application needs **order count** and **total revenue** in a single collection pass. The public result will be an immutable `record Summary`; the intermediate state uses a mutable object to accumulate.
 
-Sơ đồ:
+Diagram:
 
 ```text
 T = Order
@@ -251,7 +251,7 @@ A = RevenueAccumulator
 R = Summary(count=3, totalVnd=300_000)
 ```
 
-Mã hoàn chỉnh chạy với **JDK 17+**:
+Complete code running on **JDK 17+**:
 
 ```java
 import java.util.List;
@@ -264,14 +264,14 @@ public class RevenueCollectorDemo {
         public Order {
             Objects.requireNonNull(region, "region");
             if (region.isBlank() || amountVnd < 0) {
-                throw new IllegalArgumentException("Order không hợp lệ");
+                throw new IllegalArgumentException("Invalid Order");
             }
         }
     }
 
     public record Summary(long count, long totalVnd) {}
 
-    // A: trạng thái nội bộ; caller không cần biết class này.
+    // A: internal state; callers do not need to know this class.
     private static final class RevenueAccumulator {
         long count;
         long totalVnd;
@@ -325,36 +325,36 @@ public class RevenueCollectorDemo {
 }
 ```
 
-### 6.1. Theo dõi chính xác `T`, `A`, `R`
+### 6.1. Tracking `T`, `A`, `R` accurately
 
-| Thành phần | Kiểu trong ví dụ | Vai trò |
+| Component | Type in example | Role |
 | --- | --- | --- |
-| Phần tử nguồn | `Order` | `T` |
-| `RevenueAccumulator::new` | `Supplier<RevenueAccumulator>` | Tạo `A` rỗng |
-| `RevenueAccumulator::add` | `BiConsumer<RevenueAccumulator,Order>` | Cập nhật `A` bằng `T` |
-| `RevenueAccumulator::merge` | `BinaryOperator<RevenueAccumulator>` | Gộp hai `A` |
-| `RevenueAccumulator::finish` | `Function<RevenueAccumulator,Summary>` | Chuyển `A` thành `R` |
-| Kết quả cuối | `Summary` | `R` |
+| Source element | `Order` | `T` |
+| `RevenueAccumulator::new` | `Supplier<RevenueAccumulator>` | Creates empty `A` |
+| `RevenueAccumulator::add` | `BiConsumer<RevenueAccumulator,Order>` | Updates `A` with `T` |
+| `RevenueAccumulator::merge` | `BinaryOperator<RevenueAccumulator>` | Merges two `A`s |
+| `RevenueAccumulator::finish` | `Function<RevenueAccumulator,Summary>` | Converts `A` to `R` |
+| Final result | `Summary` | `R` |
 
-Phương thức `revenueCollector()` có kiểu trả về công khai là `Collector<Order, ?, Summary>`. Dấu `?` giúp **giấu class `RevenueAccumulator` là chi tiết triển khai**, trong khi lời gọi `collect(revenueCollector())` vẫn được compiler kiểm tra kiểu và trả về `Summary`.
+The `revenueCollector()` method has public return type `Collector<Order, ?, Summary>`. The `?` **hides the `RevenueAccumulator` class as an implementation detail**, while the `collect(revenueCollector())` call is still type-checked by the compiler and returns `Summary`.
 
-### 6.2. Vì sao trạng thái mutable ở đây vẫn phù hợp với `parallelStream`?
+### 6.2. Why does mutable state here still work with `parallelStream`?
 
-Ở collector trên, mỗi trạng thái `RevenueAccumulator` được tạo mới bằng supplier và được Stream framework quản lý. Collector **không khai báo `CONCURRENT`**, nên framework không được tích lũy đồng thời từ nhiều luồng lên **cùng một container `A`**. Các container riêng có thể được xử lý đồng thời, rồi combiner gộp chúng.
+In the collector above, each `RevenueAccumulator` state is created fresh by the supplier and managed by the Stream framework. The collector **does not declare `CONCURRENT`**, so the framework will not accumulate concurrently from multiple threads onto **the same container `A`**. Separate containers can be processed concurrently, then merged by the combiner.
 
-Điều đó khác với việc khai báo một biến mutable dùng chung và sửa nó ngay trong `map` hoặc `forEach`. Việc chia/gộp của collector là một phần của giao thức `collect`.
+That differs from declaring a shared mutable variable and mutating it inside `map` or `forEach`. Collector splitting/merging is part of the `collect` protocol.
 
-`Math.addExact` giúp phát hiện tràn `long`; do ví dụ chỉ nhận số tiền không âm, mọi tổng từng phần đều không vượt tổng thực của nguồn, và nếu tổng thực nằm trong miền `long` thì không có phép cộng từng phần hợp lệ nào tràn. Với nguồn có thể có số âm hoặc quy tắc làm tròn, cần xem xét thêm tính kết hợp và tính độc lập của kết quả đối với thứ tự gộp.
+`Math.addExact` helps detect `long` overflow; since the example only accepts non-negative amounts, every partial sum never exceeds the true source total, and if the true total fits within `long`, no valid partial addition overflows. With sources that can contain negative numbers or rounding rules, associativity and order-independence of the result must be examined further.
 
-### 6.3. Vì sao không gắn `IDENTITY_FINISH`?
+### 6.3. Why not attach `IDENTITY_FINISH`?
 
-`RevenueAccumulator` và `Summary` là **hai kiểu khác nhau**; hàm `finish()` còn phải tạo một record. Việc gắn `IDENTITY_FINISH` sẽ nói sai hợp đồng, có thể cho phép framework bỏ qua finisher và dẫn tới kiểu kết quả không hợp lệ. Collector ở trên không truyền characteristic nào, nên finisher phải được dùng để tạo `Summary`.
+`RevenueAccumulator` and `Summary` are **two different types**; `finish()` also constructs a record. Attaching `IDENTITY_FINISH` would misstate the contract, potentially allowing the framework to skip the finisher and cause an invalid result type. The collector above passes no characteristics, so the finisher must be invoked to create `Summary`.
 
-## 7. Hai overload của `Collector.of`
+## 7. Two overloads of `Collector.of`
 
-`Collector.of` có hai dạng factory quan trọng:
+`Collector.of` has two key factory forms:
 
-**Dạng identity finish:**
+**Identity finish form:**
 
 ```java
 static <T, R> Collector<T, R, R> of(
@@ -365,9 +365,9 @@ static <T, R> Collector<T, R, R> of(
 )
 ```
 
-Ở dạng này, **`A = R`**, và kết quả là chính container tích lũy theo hợp đồng identity finish. Factory khai báo `IDENTITY_FINISH` cho dạng này.
+In this form, **`A = R`**, and the result is the accumulation container itself under the identity-finish contract. The factory adds `IDENTITY_FINISH` for this form.
 
-**Dạng có finisher riêng:**
+**Form with separate finisher:**
 
 ```java
 static <T, A, R> Collector<T, A, R> of(
@@ -379,9 +379,9 @@ static <T, A, R> Collector<T, A, R> of(
 )
 ```
 
-Ở dạng thứ hai, `A` và `R` có thể khác nhau; phải cung cấp hàm hoàn thiện. Đây là overload được dùng trong ví dụ thống kê doanh thu.
+In the second form, `A` and `R` can differ; a finisher function must be provided. This is the overload used in the revenue statistics example.
 
-Ví dụ tạo list có thể sửa đổi bằng overload đầu tiên:
+Example creating a modifiable list with the first overload:
 
 ```java
 import java.util.ArrayList;
@@ -401,10 +401,10 @@ Collector<String, ArrayList<String>, ArrayList<String>> mutableListCollector =
 
 ArrayList<String> names = Stream.of("An", "Bình")
     .collect(mutableListCollector);
-names.add("Chi"); // Hợp lệ.
+names.add("Chi"); // Valid.
 ```
 
-Ví dụ tạo danh sách bất biến bằng overload có finisher:
+Example creating an immutable list with the finisher overload:
 
 ```java
 Collector<String, ArrayList<String>, List<String>> immutableListCollector =
@@ -423,13 +423,13 @@ List<String> immutableNames = Stream.of("An", "Bình")
 // immutableNames.add("Chi"); // UnsupportedOperationException.
 ```
 
-Trong ví dụ thứ hai `A = ArrayList<String>`, `R = List<String>`. Dù cả hai cùng chứa chuỗi, container tích lũy được phân biệt với kết quả cuối để caller không thể tiếp tục chỉnh sửa bằng các phương thức của danh sách mutable.
+In the second example `A = ArrayList<String>`, `R = List<String>`. Although both hold strings, the accumulation container is kept distinct from the final result so callers cannot continue modifying it through mutable list methods.
 
-Với nghiệp vụ chỉ cần danh sách không thể sửa đổi, các API như `Stream.toList()` hoặc `Collectors.toUnmodifiableList()` thường đơn giản hơn. Tự viết collector là hợp lý khi cần một phép tích lũy hoặc kiểu kết quả đặc biệt mà các collector chuẩn không mô tả tốt.
+For business logic needing only an unmodifiable list, APIs such as `Stream.toList()` or `Collectors.toUnmodifiableList()` are usually simpler. Writing a custom collector makes sense when you need a specialized accumulation or result type that standard collectors do not express well.
 
-## 8. Đọc collector lồng trong `groupingBy`
+## 8. Reading nested collectors in `groupingBy`
 
-Để hiểu generic của `groupingBy` có downstream collector, hãy xem chữ ký rút gọn:
+To understand generics of `groupingBy` with a downstream collector, look at the simplified signature:
 
 ```java
 <T, K, A, D> Collector<T, ?, Map<K, D>> groupingBy(
@@ -438,16 +438,16 @@ Với nghiệp vụ chỉ cần danh sách không thể sửa đổi, các API n
 )
 ```
 
-Đọc các kiểu:
+Reading the types:
 
-- `T`: phần tử đầu vào của **toàn bộ** pipeline.
-- `K`: kiểu khóa nhóm do `classifier` tạo.
-- `A`: trạng thái tích lũy **của downstream collector**.
-- `D`: kết quả do downstream collector tạo ra **cho mỗi nhóm**.
-- `Map<K,D>`: kiểu kết quả chung của collector grouping.
-- `?` ở `Collector<T, ?, Map<K,D>>`: kiểu bộ tích lũy **của chính grouping collector** được che đi; không nhất thiết bằng `A` của downstream.
+- `T`: input element of the **entire** pipeline.
+- `K`: group key type produced by `classifier`.
+- `A`: accumulation state **of the downstream collector**.
+- `D`: result produced by the downstream collector **for each group**.
+- `Map<K,D>`: overall result type of the grouping collector.
+- `?` in `Collector<T, ?, Map<K,D>>`: the accumulator type **of the grouping collector itself** is hidden; it does not necessarily equal the downstream's `A`.
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.List;
@@ -472,9 +472,9 @@ System.out.println(totals.get("HN"));  // 220000
 System.out.println(totals.get("HCM")); // 80000
 ```
 
-Ta suy ra `T = Order`, `K = String`, `D = Long`, nên kiểu trả về là `Map<String,Long>`. Không cần suy đoán collector đã dùng kiểu gì để lưu tổng tạm thời. Bên trong, grouping có thể quản lý một map gồm các **trạng thái downstream chưa hoàn thiện**, rồi hoàn thiện từng nhóm để tạo `Map<K,D>`.
+We deduce `T = Order`, `K = String`, `D = Long`, so the return type is `Map<String,Long>`. There is no need to guess what type the collector used to hold temporary sums. Internally, grouping may manage a map of **unfinished downstream states**, then finish each group to produce `Map<K,D>`.
 
-Nếu cần kết quả `Map<String, List<Order>>`, không cung cấp downstream cũng được:
+If you need a `Map<String, List<Order>>` result, omitting the downstream collector works too:
 
 ```java
 Map<String, List<RevenueCollectorDemo.Order>> byRegion = orders.stream()
@@ -483,9 +483,9 @@ Map<String, List<RevenueCollectorDemo.Order>> byRegion = orders.stream()
     ));
 ```
 
-### 8.1. Kết hợp collector tùy chỉnh với grouping
+### 8.1. Combining custom collector with grouping
 
-Collector `revenueCollector()` ở mục 6 có đầu ra `Summary`, nên có thể tái sử dụng trực tiếp làm downstream:
+The `revenueCollector()` collector in section 6 outputs `Summary`, so it can be reused directly as a downstream collector:
 
 ```java
 Map<String, RevenueCollectorDemo.Summary> summaryByRegion =
@@ -498,20 +498,20 @@ System.out.println(summaryByRegion.get("HN"));
 // Summary[count=2, totalVnd=220000]
 ```
 
-Ví dụ này minh họa rõ **hai tầng tích lũy**: collector ngoài gom theo `K = String`; collector trong tích lũy các `Order` thành `Summary` của từng nhóm. Kiểu `A` của downstream không cần lộ ra ngoài.
+This example clearly illustrates **two layers of accumulation**: the outer collector groups by `K = String`; the inner collector accumulates `Order`s into a `Summary` for each group. The downstream's `A` type never needs to leak outside.
 
-### 8.2. `mapping`, `filtering` và `collectingAndThen`
+### 8.2. `mapping`, `filtering`, and `collectingAndThen`
 
-Những factory khác cũng nhận downstream collector:
+Other factories also accept a downstream collector:
 
 ```java
-// Rút gọn ý nghĩa:
+// Simplified meaning:
 Collectors.mapping(mapper, downstream)
 Collectors.filtering(predicate, downstream) // JDK 9+
 Collectors.collectingAndThen(downstream, finisher)
 ```
 
-Ví dụ cần danh sách **số tiền** của từng vùng, thay vì danh sách nguyên đơn hàng:
+For example, needing a list of **amounts** per region instead of full order lists:
 
 ```java
 Map<String, List<Long>> amountsByRegion = orders.stream()
@@ -524,13 +524,13 @@ Map<String, List<Long>> amountsByRegion = orders.stream()
     ));
 ```
 
-`mapping` thay đổi dữ liệu đưa vào downstream: collector ngoài vẫn nhận `Order`, nhưng downstream lúc này nhận `Long`. Đây là tình huống rất dễ nhầm `T` của collector bên ngoài với kiểu phần tử sau mapper bên trong.
+`mapping` changes the data fed into the downstream: the outer collector still receives `Order`, while the downstream now receives `Long`. This is a spot where it is very easy to confuse the outer collector's `T` with the element type after the inner mapper.
 
-**Ranh giới cần nhớ:** `Collectors.filtering` khác `Stream.filter` khi đặt trong `groupingBy`. Lọc trước grouping có thể làm mất hoàn toàn một nhóm; downstream filtering có thể giữ khóa nhóm với một kết quả tích lũy rỗng nếu nhóm có phần tử nhưng không phần tử nào qua điều kiện downstream.
+**Boundary to remember:** `Collectors.filtering` differs from `Stream.filter` when placed inside `groupingBy`. Filtering before grouping can eliminate a group completely; downstream filtering can keep the group key with an empty accumulated result if the group had elements but none passed the downstream predicate.
 
-## 9. Khác biệt giữa hai overload `Stream.collect`
+## 9. Difference between the two `Stream.collect` overloads
 
-Ngoài overload nhận một `Collector`, `Stream<T>` còn có dạng ba tham số:
+Besides the overload taking a `Collector`, `Stream<T>` also has a three-parameter form:
 
 ```java
 <R> R collect(
@@ -540,7 +540,7 @@ Ngoài overload nhận một `Collector`, `Stream<T>` còn có dạng ba tham s�
 )
 ```
 
-Ví dụ thu thập vào một `ArrayList`:
+Example collecting into an `ArrayList`:
 
 ```java
 import java.util.ArrayList;
@@ -557,115 +557,115 @@ ArrayList<String> names = Stream.of("An", "Bình", "Chi")
 System.out.println(names); // [An, Bình, Chi]
 ```
 
-Với overload này, **kiểu container `R` là kết quả luôn**; không có tham số kiểu `A` hay finisher riêng. Hàm combiner có dạng `BiConsumer<R,R>` và trả `void`, khác `BinaryOperator<A>` của interface `Collector` trả một `A`.
+With this overload, **container type `R` is already the result**; there is no separate type parameter `A` or finisher. The combiner has type `BiConsumer<R,R>` and returns `void`, unlike `BinaryOperator<A>` on the `Collector` interface which returns an `A`.
 
-So sánh:
+Comparison:
 
-| Phần | `collect(Collector)` | `collect(supplier, accumulator, combiner)` |
+| Part | `collect(Collector)` | `collect(supplier, accumulator, combiner)` |
 | --- | --- | --- |
 | Input type | `T` | `T` |
 | Accumulation type | `A` | `R` |
 | Result type | `R` | `R` |
-| Combiner | `BinaryOperator<A>` trả `A` | `BiConsumer<R,R>` trả `void` |
-| Finisher | Có thể có `Function<A,R>` | Không có finisher riêng |
-| Characteristics | Có thể khai báo qua collector | Không có tham số characteristics |
-| Khi dùng | Collector chuẩn, collector tùy chỉnh, kết quả tổng hợp | Mutable reduction trực tiếp khi container chính là kết quả |
+| Combiner | `BinaryOperator<A>` returns `A` | `BiConsumer<R,R>` returns `void` |
+| Finisher | Can have `Function<A,R>` | No separate finisher |
+| Characteristics | Can be declared via collector | No characteristics parameter |
+| When to use | Standard collectors, custom collectors, aggregated results | Direct mutable reduction when container is the result |
 
-Các primitive stream như `IntStream` có overload `collect(supplier, ObjIntConsumer, combiner)` phù hợp với dữ liệu nguyên thủy. Chúng không cung cấp overload `collect(Collector<T,A,R>)` tương tự `Stream<T>`; khi cần dùng `Collectors` với wrapper, có thể chuyển bằng `boxed()` hoặc tạo object bằng `mapToObj`.
+Primitive streams such as `IntStream` have an overload `collect(supplier, ObjIntConsumer, combiner)` suited to primitive data. They do not provide a `collect(Collector<T,A,R>)` overload like `Stream<T>`; when you need to use `Collectors` with wrappers, you can convert via `boxed()` or create objects with `mapToObj`.
 
-## 10. Ba đặc tính của collector
+## 10. Three collector characteristics
 
-`Collector.Characteristics` cung cấp các đặc tính để Stream framework biết những tối ưu hóa nào **hợp lệ**. Không gắn đặc tính chỉ vì muốn tăng tốc.
+`Collector.Characteristics` provides characteristics so the Stream framework knows which optimizations are **valid**. Do not attach characteristics just to chase speedups.
 
-| Đặc tính | Cam kết | Điều dễ hiểu sai |
+| Characteristic | Commitment | Common misconception |
 | --- | --- | --- |
-| `IDENTITY_FINISH` | Hàm finisher có thể bỏ qua; `A` có thể được sử dụng trực tiếp như `R` | Không phải chỉ cần `A` và `R` cùng tên kiểu |
-| `UNORDERED` | Kết quả không phụ thuộc encounter order | Không đồng nghĩa phần tử nguồn đã được sắp xếp |
-| `CONCURRENT` | Có thể gọi accumulator từ nhiều luồng trên **cùng container `A`** | Không thể gắn cho `ArrayList`/`HashMap` mutable thông thường mà không có cơ chế an toàn |
+| `IDENTITY_FINISH` | Finisher can be skipped; `A` can be used directly as `R` | Not just because `A` and `R` have the same type name |
+| `UNORDERED` | Result does not depend on encounter order | Does not mean source elements are already sorted |
+| `CONCURRENT` | Accumulator can be called from multiple threads on **the same `A` container** | Cannot be attached to plain mutable `ArrayList`/`HashMap` without a safety mechanism |
 
 ### 10.1. `IDENTITY_FINISH`
 
-Ví dụ một collector tạo `ArrayList<String>` và trả đúng list tích lũy có thể có `IDENTITY_FINISH`. Với `RevenueAccumulator → Summary`, finisher tạo record mới nên **không** có đặc tính này.
+For example, a collector creating an `ArrayList<String>` and returning that exact accumulated list can have `IDENTITY_FINISH`. With `RevenueAccumulator → Summary`, the finisher creates a new record, so it does **not** have this characteristic.
 
-Theo hợp đồng, nếu khai báo `IDENTITY_FINISH`, framework có thể thực hiện phép ép kiểu `A → R` mà không gọi finisher; khai báo sai có thể gây `ClassCastException` hoặc kết quả không đúng. `Collector.of(supplier, accumulator, combiner)` tự cung cấp đặc tính này.
+By contract, if `IDENTITY_FINISH` is declared, the framework may perform a cast `A → R` without calling the finisher; declaring it wrongly can cause a `ClassCastException` or wrong results. `Collector.of(supplier, accumulator, combiner)` supplies this characteristic automatically.
 
 ### 10.2. `UNORDERED`
 
-Ví dụ, tập hợp phần tử không trùng có thể không quan tâm đến thứ tự gặp phần tử, nên một collector kiểu `toSet` là unordered. Ngược lại, collector tạo danh sách theo thứ tự nguồn không nên khai báo `UNORDERED` nếu vị trí các phần tử là một phần của kết quả cần bảo đảm.
+For instance, a set of unique elements may not care about encounter order, so a `toSet`-style collector is unordered. Conversely, a collector building a list in source order should not declare `UNORDERED` if element positions are part of the guaranteed result.
 
-`UNORDERED` nói về **tính tương đương của kết quả collector**, không phải việc nguồn chắc chắn là unordered; kết quả `Map` vẫn không tự được cam kết thứ tự khóa.
+`UNORDERED` speaks to **equivalence of collector results**, not whether the source itself is unordered; a `Map` result still does not automatically guarantee key order.
 
 ### 10.3. `CONCURRENT`
 
-Collector concurrent cho phép nhiều luồng cập nhật **cùng một trạng thái** theo hợp đồng của nó. Cơ chế tích lũy phải thật sự an toàn đồng thời. Ví dụ `Collectors.toConcurrentMap` hoặc `groupingByConcurrent` có hợp đồng riêng cần đọc kỹ.
+A concurrent collector allows multiple threads to update **the same state** per its contract. The accumulation mechanism must be genuinely thread-safe. For example, `Collectors.toConcurrentMap` or `groupingByConcurrent` have specific contracts that must be read carefully.
 
-Ngay cả khi collector có `CONCURRENT`, việc cùng tích lũy vào một container còn phụ thuộc stream có encounter order hay không và collector có `UNORDERED` hay không. Trong môi trường song song, framework có thể vẫn dùng nhiều trạng thái và gộp chúng theo cách phù hợp. Đừng dựa vào số lần supplier/combiner được gọi để xác định tính đúng.
+Even when a collector has `CONCURRENT`, accumulating together into one container also depends on whether the stream has an encounter order and whether the collector has `UNORDERED`. In parallel environments, the framework may still use multiple states and merge them appropriately. Do not rely on how many times supplier/combiner are called to judge correctness.
 
-## 11. Các luật đúng đắn của collector
+## 11. Collector correctness laws
 
-Các luật được mô tả trong Javadoc `Collector`, đặc biệt quan trọng khi xử lý song song.
+The laws are described in the `Collector` Javadoc, and are especially critical in parallel processing.
 
 ### 11.1. Identity
 
-Với một trạng thái tích lũy `a`, gộp với một container rỗng mới từ supplier phải **tương đương** trạng thái ban đầu:
+Given an accumulated state `a`, merging with a fresh empty container from the supplier must be **equivalent** to the initial state:
 
 ```text
 combiner(a, supplier()) ≈ a
 ```
 
-“Tương đương” không nhất thiết là cùng một tham chiếu object; điều cần giữ là kết quả có cùng ý nghĩa theo hợp đồng collector.
+"Equivalent" does not necessarily mean the same object reference; what must hold is that the result has the same meaning per the collector contract.
 
-Ví dụ khi tổng hợp doanh thu: trạng thái rỗng có count và total bằng 0. Gộp với trạng thái rỗng không làm thay đổi hai giá trị đó.
+For example, when aggregating revenue: an empty state has count and total equal to 0. Merging with an empty state does not change either value.
 
 ### 11.2. Associativity
 
-Việc chia đầu vào thành nhiều phần và gộp theo các cách khác nhau phải tạo **kết quả tương đương**:
+Splitting input into multiple parts and merging in different ways must yield **equivalent results**:
 
 ```text
 accumulate(all elements sequentially)
     ≈ combine(accumulate(left), accumulate(right))
 ```
 
-Phép cộng số nguyên chính xác, phép đếm và phép hợp nhất nhóm được thiết kế phù hợp có thể đáp ứng yêu cầu này. Phép trừ thường **không kết hợp được**:
+Exact integer addition, counting, and properly designed group merging can satisfy this requirement. Subtraction is usually **not associative**:
 
 ```text
 (10 - 3) - 2 = 5
 10 - (3 - 2) = 9
 ```
 
-Không dùng phép trừ làm combiner nếu yêu cầu kết quả bất biến theo cách chia/gộp. Với số thực `double`, phép cộng chịu sai số làm tròn và có thể khác nhau giữa các cách nhóm; khi cần tính toán chính xác hoặc kết quả tái lập tuyệt đối, hãy xác định chiến lược số học phù hợp.
+Do not use subtraction as a combiner if the result must be invariant under splitting/merging. For floating-point `double`, addition suffers rounding error and can differ across groupings; when exact math or strictly reproducible results are required, define an appropriate arithmetic strategy.
 
-### 11.3. Combiner phải phù hợp accumulator
+### 11.3. Combiner must be consistent with accumulator
 
-Nếu accumulator chèn phần tử vào danh sách theo thứ tự, combiner cần gộp hai đoạn theo thứ tự tương ứng (trừ khi collector khai báo và thực sự bảo đảm `UNORDERED`).
+If the accumulator inserts elements into a list in order, the combiner must merge two segments in the corresponding order (unless the collector declares and truly enforces `UNORDERED`).
 
-Một phản ví dụ:
+A counter-example:
 
 ```java
-// Sai về ý nghĩa: combiner bỏ mất container bên phải.
+// Semantically wrong: combiner discards the right container.
 (left, right) -> left
 ```
 
-Khi pipeline tuần tự tạo một container duy nhất, lỗi có thể không xuất hiện. Khi xử lý song song, dữ liệu ở các nhánh khác bị mất. Vì vậy, **thử chạy tuần tự thành công chưa chứng minh collector đúng**.
+When a sequential pipeline creates a single container, the bug may not appear. During parallel execution, data from other branches is lost. Therefore, **a passing sequential test does not prove a collector is correct**.
 
-### 11.4. Ràng buộc về container và ownership
+### 11.4. Container and ownership constraints
 
-Một collector đúng không được phát tán các tham chiếu tích lũy mutable để các phần khác của chương trình sửa chúng trong lúc đang chạy. Sau khi một container được đưa vào combiner, việc dùng tiếp container ấy phải tuân theo ràng buộc của giao thức collector và cách framework quản lý nó.
+A proper collector must not leak mutable accumulation references for other parts of the program to modify while running. Once a container has been passed to the combiner, further use of that container must follow the collector protocol constraints and how the framework manages it.
 
-`Supplier<A>` thường tạo container độc lập; `accumulator` và `combiner` phải chỉ thao tác trên trạng thái của collector, tránh phụ thuộc biến toàn cục hoặc sửa nguồn đang duyệt. Collector không khai báo `CONCURRENT` có thể hợp lệ khi chạy song song nhờ cơ chế phân tách container, **không đòi hỏi từng `A` tự an toàn luồng**.
+`Supplier<A>` typically creates an independent container; `accumulator` and `combiner` must operate solely on collector state, avoiding global variables or mutating the source being traversed. A collector without `CONCURRENT` can still be valid in parallel execution thanks to container partitioning, **without requiring each `A` to be thread-safe itself**.
 
-## 12. Các phản mẫu quan trọng
+## 12. Important anti-patterns
 
-### 12.1. Dùng `reduce` để sửa danh sách mutable
+### 12.1. Using `reduce` to mutate a mutable list
 
-`reduce` phục vụ phép gộp thỏa luật kết hợp và không nên dùng accumulator mutable kiểu này:
+`reduce` serves associative value merging and should not use a mutable accumulator like this:
 
 ```java
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-// Tránh: cùng identity List có thể bị chia sẻ khi giảm gọn song song.
+// Avoid: the same identity List may be shared in parallel reduction.
 List<String> wrong = Stream.of("A", "B", "C").reduce(
     new ArrayList<>(),
     (list, value) -> {
@@ -678,14 +678,14 @@ List<String> wrong = Stream.of("A", "B", "C").reduce(
     }
 );
 
-// Đúng: dùng collect cho phép tích lũy mutable.
+// Right: use collect for mutable accumulation.
 List<String> right = Stream.of("A", "B", "C")
     .collect(java.util.stream.Collectors.toList());
 ```
 
-Đây là lỗi phân biệt giữa **immutable reduction** (`reduce`) và **mutable reduction** (`collect`). Với `reduce`, identity phải là giá trị trung hòa và accumulator/combiner tương thích, không dựa vào một object mutable có thể bị chia sẻ.
+This is a failure to distinguish **immutable reduction** (`reduce`) from **mutable reduction** (`collect`). With `reduce`, the identity must be a neutral value and the accumulator/combiner must be compatible, not relying on a mutable object that might be shared.
 
-### 12.2. Supplier trả cùng một container dùng chung
+### 12.2. Supplier returns the same shared container
 
 ```java
 import java.util.ArrayList;
@@ -694,7 +694,7 @@ import java.util.stream.Collector;
 
 List<String> shared = new ArrayList<>();
 
-// Sai: mọi lời gọi supplier đều trả đúng đối tượng shared.
+// Wrong: every supplier call returns the exact same shared object.
 Collector<String, List<String>, List<String>> unsafe = Collector.of(
     () -> shared,
     List::add,
@@ -705,25 +705,25 @@ Collector<String, List<String>, List<String>> unsafe = Collector.of(
 );
 ```
 
-Collector này có nguy cơ trộn dữ liệu từ các lần chạy khác nhau, cập nhật đồng thời cùng list hoặc gộp một list với chính nó. Supplier phải tạo một vùng tích lũy mới theo đúng hợp đồng, ví dụ `ArrayList::new`.
+This collector risks mixing data across different runs, concurrently updating the same list, or merging a list with itself. The supplier must create a fresh accumulation container per contract, e.g., `ArrayList::new`.
 
-### 12.3. Gắn `CONCURRENT` cho accumulator không an toàn
+### 12.3. Attaching `CONCURRENT` to an unsafe accumulator
 
-Một `ArrayList` thông thường không hỗ trợ nhiều luồng gọi `add` đồng thời trên cùng instance. Việc thêm `Collector.Characteristics.CONCURRENT` không biến nó thành thread-safe. Cần dùng cơ chế tích lũy phù hợp, hoặc để framework phân chia trạng thái rồi gộp mà **không** khai báo concurrent.
+A regular `ArrayList` does not support multiple threads calling `add` concurrently on the same instance. Adding `Collector.Characteristics.CONCURRENT` does not make it thread-safe. Use an appropriate accumulation mechanism, or let the framework partition state and merge **without** declaring concurrent.
 
-### 12.4. Quên xử lý nguồn rỗng, `null` và lỗi dữ liệu
+### 12.4. Forgetting empty sources, `null`, and invalid data
 
-`supplier()` phải cung cấp trạng thái cho phép thu thập nguồn rỗng. Trong ví dụ `RevenueCollectorDemo`, kết quả là `Summary(0,0)`; trong `groupingBy` thông thường là `Map` rỗng.
+`supplier()` must provide a state that allows collecting an empty source. In `RevenueCollectorDemo`, the result is `Summary(0,0)`; in normal `groupingBy`, it is an empty `Map`.
 
-Đối với phần tử `null`, collector không tự có một chính sách chung: `ArrayList` có thể chứa `null`, `List.copyOf` và `Collectors.toUnmodifiableList` từ chối `null`, trong khi một classifier của `groupingBy` trả khóa `null` sẽ gây lỗi theo hợp đồng triển khai. Hãy xác định trước cần **từ chối, bỏ qua hay thay thế** dữ liệu thiếu. Đừng tự biến lỗi dữ liệu thành kết quả rỗng khiến báo cáo thiếu số liệu.
+For `null` elements, collectors do not share one universal policy: `ArrayList` can hold `null`, `List.copyOf` and `Collectors.toUnmodifiableList` reject `null`, while a `groupingBy` classifier returning a `null` key throws an error per the implementation contract. Decide up front whether to **reject, skip, or substitute** missing data. Do not silently turn data errors into empty results that underreport metrics.
 
-### 12.5. Gắn `UNORDERED` dù kết quả cần thứ tự
+### 12.5. Attaching `UNORDERED` when the result needs ordering
 
-Nếu kết quả là danh sách biểu diễn lịch sử sự kiện, thứ tự có thể là thông tin nghiệp vụ. Gắn `UNORDERED` làm mất một ràng buộc quan trọng và có thể cho phép framework tạo kết quả khác yêu cầu. Chỉ khai báo khi các thứ tự gặp phần tử khác nhau đều cho kết quả tương đương.
+If the result is a list representing event history, order may be business-critical information. Attaching `UNORDERED` removes an important constraint and can allow the framework to produce results differing from requirements. Only declare it when different element encounter orders yield equivalent results.
 
-## 13. Kiểm thử collector: nguồn rỗng, chia/gộp và song song
+## 13. Testing a collector: empty source, splitting/merging, and parallel
 
-Các kiểm thử JUnit 5 dưới đây dùng lớp `RevenueCollectorDemo` ở mục 6. Chúng kiểm tra tính đúng đắn của kết quả, không phụ thuộc số lần gọi supplier/combiner:
+The JUnit 5 tests below use the `RevenueCollectorDemo` class from section 6. They verify result correctness without depending on supplier/combiner call counts:
 
 ```java
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -805,21 +805,21 @@ class RevenueCollectorDemoTest {
 }
 ```
 
-Kiểm tra thêm các **luật gộp** khi tự viết collector phức tạp: chia một danh sách thành nhiều đoạn, tích lũy riêng và gộp theo các cấu trúc nhóm khác nhau, rồi so sánh kết quả cuối. Với collector có thứ tự, phải bảo toàn thứ tự mong đợi; với collector `UNORDERED`, so sánh theo tập hợp hoặc giá trị không phụ thuộc thứ tự.
+Additionally test **merging laws** when writing complex collectors: split a list into several segments, accumulate separately and merge under different grouping trees, then compare the final results. For ordered collectors, preserve expected order; for `UNORDERED` collectors, compare as sets or order-independent values.
 
-## 14. Hiệu năng, tài nguyên và lựa chọn collector phù hợp
+## 14. Performance, resources, and choosing the right collector
 
-Collector không tự làm mọi pipeline nhanh hơn. Những quyết định sau ảnh hưởng đáng kể tới hiệu năng:
+A Collector does not automatically make every pipeline faster. The following choices significantly impact performance:
 
-**Dung lượng `A`.** Collector tạo danh sách đầy đủ cần giữ nhiều phần tử trong bộ nhớ. Collector chỉ giữ count và sum có trạng thái nhỏ, thường phù hợp hơn nếu chỉ cần thống kê. Khi khối lượng dữ liệu rất lớn, cân nhắc đưa phép tổng hợp xuống hệ thống nguồn (ví dụ database) nếu đúng bài toán và mô hình dữ liệu.
+**Size of `A`.** A collector building a full list must hold many elements in memory. A collector holding only count and sum has small state, usually preferable when only statistics are needed. When data volume is massive, consider pushing aggregation down to the source system (e.g., database) if appropriate for the problem and data model.
 
-**Chi phí finisher.** `List.copyOf` tạo hoặc chọn biểu diễn danh sách không thể sửa đổi, có thể cần thêm thời gian và bộ nhớ. Một finisher chuyển từ các map tạm thời sang DTO cũng tạo thêm công việc. Đổi lại, kết quả cuối có hợp đồng rõ và ít nguy cơ bị sửa ngoài ý muốn.
+**Finisher cost.** `List.copyOf` creates or selects an unmodifiable list representation, which may take extra time and memory. A finisher converting temporary maps into DTOs also adds work. In return, the final result has a clear contract and lower risk of accidental mutation.
 
-**Thứ tự và song song.** Collector cần giữ thứ tự đôi khi phải phối hợp/gộp kết quả theo thứ tự nguồn. `groupingByConcurrent` có thể hữu ích khi nghiệp vụ cho phép unordered accumulation, nhưng không tự bảo đảm thứ tự danh sách con. Đo trên dữ liệu thực trước khi chuyển sang `parallel()`.
+**Ordering and parallelism.** Collectors that must preserve order sometimes have to coordinate/merge results in source order. `groupingByConcurrent` can be useful when business logic permits unordered accumulation, though it does not automatically guarantee sublist order. Measure on real data before switching to `parallel()`.
 
-**Tác dụng phụ.** Tránh gọi I/O, ghi log có ý nghĩa nghiệp vụ hoặc truy cập mạng từ accumulator/combiner. Một lần thu thập có thể tạo nhiều trạng thái và combiner được gọi theo cách khác giữa các phiên bản JVM hoặc cấu hình song song; những side effect bên ngoài có thể bị lặp hoặc chạy khác thứ tự dự kiến.
+**Side effects.** Avoid I/O calls, business-significant logging, or network access from accumulator/combiner. A single collection may create multiple states and call the combiner differently across JVM versions or parallel configurations; external side effects may be duplicated or run out of expected order.
 
-**Nguồn stream có tài nguyên.** `Files.lines(path)` và các stream liên quan I/O cần đóng bằng `try-with-resources`, dù terminal operation là `collect`. Ví dụ:
+**Streams backed by resources.** `Files.lines(path)` and I/O-related streams must be closed with `try-with-resources`, even when the terminal operation is `collect`. Example:
 
 ```java
 import java.io.IOException;
@@ -838,15 +838,15 @@ static List<String> readNonBlankLines(Path file) throws IOException {
 }
 ```
 
-Nếu dòng dữ liệu có thể quá lớn, việc `toList()` lưu toàn bộ dữ liệu cũng cần được cân nhắc; có thể thay bằng collector thống kê gọn hơn. Việc đóng nguồn I/O và quản lý bộ nhớ kết quả là **hai vấn đề độc lập**.
+If the data stream could be too large, keeping everything in memory via `toList()` should also be reconsidered; a leaner statistics collector might be used instead. Closing the I/O source and managing result memory are **two independent concerns**.
 
-**Khi nào dùng collector chuẩn?** Với `toList`, `toSet`, `joining`, `counting`, `summingLong`, `groupingBy`, `partitioningBy`, `mapping`, `filtering` hoặc `collectingAndThen`, hãy ưu tiên API chuẩn nếu thể hiện đúng nghiệp vụ. Chỉ dùng `Collector.of` khi cần một trạng thái `A` và phép tổng hợp riêng.
+**When to use standard collectors?** With `toList`, `toSet`, `joining`, `counting`, `summingLong`, `groupingBy`, `partitioningBy`, `mapping`, `filtering`, or `collectingAndThen`, prefer the standard API if it expresses the business logic accurately. Only use `Collector.of` when you need a custom state `A` and aggregation logic.
 
-## 15. Bài tập áp dụng
+## 15. Applied exercises
 
-### Bài 1 — Xác định `T`, `A` và `R`
+### Exercise 1 — Identify `T`, `A`, and `R`
 
-Với ba collector:
+Given three collectors:
 
 ```java
 Collectors.toList()
@@ -855,48 +855,48 @@ Collectors.groupingBy(Order::region,
     Collectors.summingLong(Order::amountVnd))
 ```
 
-Giả sử nguồn là `Stream<Order>`. Xác định `T`, `R`, và giải thích tại sao không nên suy đoán `A` chỉ từ kiểu kết quả. Phân biệt `A` của downstream và `A` bị che trong collector ngoài.
+Assume the source is `Stream<Order>`. Identify `T`, `R`, and explain why you should not guess `A` solely from the result type. Distinguish the downstream's `A` from the hidden `A` in the outer collector.
 
-### Bài 2 — Gộp các trạng thái đếm
+### Exercise 2 — Merging counting states
 
-Thiết kế collector đếm số phần tử mà `T = String`, `A` là một object mutable chứa `long count` và `R = Long`. Viết supplier, accumulator, combiner, finisher. Kiểm thử nguồn rỗng và so sánh `stream()` với `parallelStream()`.
+Design an element-counting collector where `T = String`, `A` is a mutable object holding `long count`, and `R = Long`. Write supplier, accumulator, combiner, and finisher. Test with an empty source and compare `stream()` against `parallelStream()`.
 
-### Bài 3 — Kết quả bất biến
+### Exercise 3 — Immutable result
 
-Viết `Collector<String, ArrayList<String>, List<String>>` sao cho finisher dùng `List.copyOf`. So sánh với overload `Collector.of` identity finish và với `Collectors.toList()`. Dự đoán chuyện gì xảy ra nếu input có `null`, rồi chọn chính sách xử lý.
+Write `Collector<String, ArrayList<String>, List<String>>` whose finisher uses `List.copyOf`. Compare with the identity-finish overload of `Collector.of` and with `Collectors.toList()`. Predict what happens if the input contains `null`, then choose a handling policy.
 
-### Bài 4 — Downstream collector
+### Exercise 4 — Downstream collector
 
-Dùng `groupingBy` để tạo `Map<String, Summary>` theo vùng từ ví dụ `RevenueCollectorDemo`. Xác định `K = String`, `D = Summary`, và vị trí `Collector<Order, ?, Summary>` được truyền vào. Thêm một vùng mới và kiểm tra kết quả.
+Use `groupingBy` to create `Map<String, Summary>` by region from `RevenueCollectorDemo`. Identify `K = String`, `D = Summary`, and where `Collector<Order, ?, Summary>` is passed. Add a new region and verify the result.
 
-### Bài 5 — Tìm lỗi combiner
+### Exercise 5 — Finding a combiner bug
 
-Một collector có supplier tạo `ArrayList` mới, accumulator thêm phần tử, nhưng combiner trả nguyên `left` mà không gộp `right`. Hãy giải thích vì sao chạy tuần tự có thể “trông đúng” nhưng chạy song song có thể mất phần tử. Viết lại combiner và kiểm thử trên một danh sách lớn.
+A collector has a supplier creating a new `ArrayList` and an accumulator adding elements, but its combiner returns `left` unchanged without merging `right`. Explain why sequential runs can "look right" while parallel runs can drop elements. Rewrite the combiner and test on a large list.
 
-### Bài 6 — Tính trung bình an toàn với nguồn rỗng
+### Exercise 6 — Safe average with empty sources
 
-Viết một collector tự giữ `count` và `sum` (kiểu số phù hợp), sau đó trả một kiểu kết quả có trạng thái rõ ràng: không có mẫu thì `OptionalDouble.empty()`, có mẫu thì trung bình. So sánh cách này với `Collectors.averagingLong` khi nghiệp vụ cần phân biệt “không có mẫu” và “trung bình bằng 0”.
+Write a collector that tracks `count` and `sum` (with an appropriate numeric type), then returns a result type with an explicit empty state: `OptionalDouble.empty()` when there are no samples, and the average when samples exist. Compare this approach with `Collectors.averagingLong` when business logic must distinguish "no samples" from "average of 0".
 
-### Bài 7 — Đặc tính nào là hợp lệ?
+### Exercise 7 — Which characteristics are valid?
 
-Với collector `RevenueAccumulator → Summary`, đánh giá có nên gắn `IDENTITY_FINISH`, `UNORDERED` và `CONCURRENT` không. Giải thích trên cơ sở **hợp đồng thực tế**, không dựa vào mong muốn tăng tốc.
+For the `RevenueAccumulator → Summary` collector, evaluate whether `IDENTITY_FINISH`, `UNORDERED`, and `CONCURRENT` should be attached. Explain based on **actual contracts**, not a wish for speedup.
 
-## 16. Bảng ghi nhớ về `Collector<T, A, R>`
+## 16. Reference cheat sheet for `Collector<T, A, R>`
 
-| Câu hỏi | Hướng suy luận |
+| Question | Line of reasoning |
 | --- | --- |
-| Phần tử stream đang là kiểu gì? | Đó là `T` |
-| Collector tích lũy bằng cấu trúc nào? | Đó là `A` |
-| `collect` phải trả kiểu gì? | Đó là `R` |
-| Ai tạo trạng thái rỗng? | `supplier()` |
-| Ai đưa một phần tử vào trạng thái? | `accumulator()` |
-| Ai gộp các trạng thái khi chia pipeline? | `combiner()` |
-| Ai biến trạng thái thành kết quả công khai? | `finisher()` |
-| Khi nào `A` và `R` có thể dùng đồng nhất? | Khi hợp đồng thật sự đáp ứng `IDENTITY_FINISH` |
-| Tại sao `Collector<T, ?, R>` có dấu `?`? | Kiểu trạng thái nội bộ được che khỏi người gọi |
-| Khi nào collector dùng được với stream song song? | Supplier/accumulator/combiner tuân luật identity, associativity, ownership và characteristics |
-| Collector thường dùng mặc định có phải concurrent không? | Không tự suy luận; xem `characteristics()` và hợp đồng |
-| Cần nhóm dữ liệu theo khóa và gom mỗi nhóm? | `groupingBy(classifier, downstream)` |
-| Chỉ cần tổng, count hoặc danh sách? | Ưu tiên collector chuẩn hoặc terminal operation tương ứng |
+| What type are the stream elements? | That is `T` |
+| What structure does the collector accumulate into? | That is `A` |
+| What type must `collect` return? | That is `R` |
+| Who creates the empty state? | `supplier()` |
+| Who puts one element into the state? | `accumulator()` |
+| Who merges states when the pipeline splits? | `combiner()` |
+| Who converts the state into the public result? | `finisher()` |
+| When can `A` and `R` be used identically? | When the contract truly satisfies `IDENTITY_FINISH` |
+| Why does `Collector<T, ?, R>` have `?`? | The internal state type is hidden from callers |
+| When does a collector work with parallel streams? | Supplier/accumulator/combiner obey identity, associativity, ownership, and characteristics laws |
+| Are standard collectors concurrent by default? | Do not assume; check `characteristics()` and the contract |
+| Need to group data by key and aggregate each group? | `groupingBy(classifier, downstream)` |
+| Only need a sum, count, or list? | Prefer standard collectors or the corresponding terminal operation |
 
-`Collector<T,A,R>` là hợp đồng nối **phần tử đầu vào** với **trạng thái tích lũy** và **kết quả cuối**. Đọc đúng ba kiểu này giúp bạn hiểu vì sao `collect` có thể tạo `Map`, DTO hay báo cáo từ một `Stream<Order>`, vì sao nhiều collector che `A` bằng wildcard, và vì sao combiner phải đúng khi chạy song song. Khi cần collector tùy chỉnh, hãy xác định rõ vòng đời trạng thái, luật gộp, cách xử lý nguồn rỗng và tính bất biến của kết quả trước khi tối ưu hiệu năng.
+`Collector<T,A,R>` is the contract connecting **input elements** to **accumulation state** and **final result**. Reading these three types correctly helps you understand why `collect` can produce a `Map`, DTO, or report from a `Stream<Order>`, why many collectors hide `A` behind a wildcard, and why the combiner must be right when running in parallel. When you need a custom collector, clearly define state lifecycle, merging laws, empty-source handling, and result immutability before optimizing performance.

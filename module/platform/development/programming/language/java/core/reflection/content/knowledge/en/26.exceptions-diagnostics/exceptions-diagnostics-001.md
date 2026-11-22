@@ -1,46 +1,46 @@
-# ClassNotFoundException và NoClassDefFoundError: phân biệt và chẩn đoán trong Java
+# ClassNotFoundException and NoClassDefFoundError: Distinguishing and Diagnosing in Java
 
-## 1. Hiểu đúng bản chất hai lỗi
+## 1. Understanding the True Nature of Both Errors
 
-Khi Java dùng reflection, tải plugin, khởi tạo class hoặc giải quyết phụ thuộc runtime, hai tên lỗi thường gặp là `ClassNotFoundException` và `NoClassDefFoundError`. Cùng liên quan đến kiểu không thể sử dụng, nhưng **chúng thuộc hai nhánh ngoại lệ khác nhau và được phát sinh trong các tình huống khác nhau**:
+When Java uses reflection, loads plugins, instantiates classes, or resolves runtime dependencies, two commonly encountered error names are `ClassNotFoundException` and `NoClassDefFoundError`. Both relate to an unusable type, but **they belong to different exception branches and arise in different situations**:
 
-- **`ClassNotFoundException` (CNFE)** là checked exception, được khai báo bởi các API chủ động tìm lớp qua tên ở runtime như `Class.forName(String)` và `ClassLoader.loadClass(String)`. Người gọi phải bắt hoặc khai báo `throws`. Nó thường báo rằng loader được yêu cầu không tìm thấy định nghĩa lớp theo tên đã cho.
-- **`NoClassDefFoundError` (NCDFE)** là `Error`, con của `LinkageError`. JVM không thể có được một định nghĩa lớp hợp lệ khi cần liên kết/sử dụng một tham chiếu kiểu, hoặc lớp đã bị đánh dấu lỗi sau khi khởi tạo thất bại. Chương trình có thể biên dịch thành công rồi mới gặp lỗi này lúc chạy.
+- **`ClassNotFoundException` (CNFE)** is a checked exception declared by APIs that actively look up a class by name at runtime, such as `Class.forName(String)` and `ClassLoader.loadClass(String)`. Callers must catch it or declare `throws`. It generally indicates that the requested loader could not find the class definition for the given name.
+- **`NoClassDefFoundError` (NCDFE)** is an `Error`, a subclass of `LinkageError`. The JVM cannot obtain a valid class definition when it needs to link/use a type reference, or the class has already been marked erroneous after a failed initialization. A program can compile successfully and only encounter this error at runtime.
 
-Đừng ghi nhớ mẹo quá mức rằng “CNFE là chưa từng tìm, NCDFE là đã từng load”. **NCDFE có thể xuất hiện ngay trong lần đầu JVM phải giải quyết một dependency không hiện diện**, và cũng có thể xuất hiện sau lần khởi tạo static lỗi. Cùng một stack trace NCDFE đôi khi có `Caused by: ClassNotFoundException` ở phía dưới, phản ánh việc loader không tìm được lớp gây lỗi liên kết.
+Do not over-memorize the shortcut rule that "CNFE means never searched, NCDFE means previously loaded." **NCDFE can appear on the very first time the JVM must resolve a missing dependency**, and it can also appear after a failed static initialization. The same NCDFE stack trace sometimes has `Caused by: ClassNotFoundException` underneath, reflecting that the loader could not find the class causing the linkage failure.
 
-| Khía cạnh | `ClassNotFoundException` | `NoClassDefFoundError` |
+| Aspect | `ClassNotFoundException` | `NoClassDefFoundError` |
 | --- | --- | --- |
-| Phân cấp | `ReflectiveOperationException` → `Exception` | `LinkageError` → `Error` |
-| Kiểm tra lúc compile | Checked: xử lý hoặc khai báo | Unchecked (`Error`) |
-| Điểm phát sinh điển hình | Gọi API tìm class bằng tên, ví dụ `Class.forName("pkg.Plugin")` | JVM resolve class mà bytecode cần, hoặc class bị hỏng trạng thái khởi tạo |
-| Mã đã biên dịch thành công? | Có thể | Thường có; runtime có thể thiếu class đã dùng lúc build |
-| Luôn do thiếu JAR? | Không: có thể sai tên, loader, module | Không: có thể do lỗi initializer hoặc linkage |
-| Cách chẩn đoán | Kiểm tra tên nhị phân, class loader và runtime classpath/module path | Kiểm tra dependency tại runtime, thông điệp lỗi và cause đầu tiên |
+| Hierarchy | `ReflectiveOperationException` → `Exception` | `LinkageError` → `Error` |
+| Compile-time check | Checked: handle or declare | Unchecked (`Error`) |
+| Typical origin | Calling an API that looks up a class by name, e.g., `Class.forName("pkg.Plugin")` | JVM resolves a class needed by bytecode, or the class is in a broken initialization state |
+| Did the code compile successfully? | Possible | Usually yes; runtime may be missing a class used at build time |
+| Always caused by a missing JAR? | No: could be wrong name, loader, or module | No: could be caused by initializer or linkage failure |
+| How to diagnose | Check binary name, class loader, and runtime classpath/module path | Check runtime dependencies, error message, and the first cause |
 
-Với lỗi triển khai thực tế, **mục tiêu là sửa tên lớp, dependency, loader hoặc initializer gốc**, không chỉ tìm cách bắt exception để ứng dụng tiếp tục.
+For real deployment failures, **the goal is to fix the root class name, dependency, loader, or initializer**, not merely find a way to catch the exception so the application keeps running.
 
-## 2. Loading, linking và initialization khác nhau
+## 2. How Loading, Linking, and Initialization Differ
 
-JVM xử lý một kiểu qua những giai đoạn có liên quan:
+The JVM processes a type through related phases:
 
-1. **Loading**: class loader tìm định nghĩa class (bytecode), tạo đối tượng `Class` tương ứng. Định danh runtime của một class còn phụ thuộc loader định nghĩa nó.
-2. **Linking**: JVM xác minh class, chuẩn bị các trường static và giải quyết những tham chiếu ký hiệu cần thiết. Resolution có thể diễn ra theo từng thời điểm; không phải mọi dependency đều resolve ngay lúc class ngoài được load.
-3. **Initialization**: JVM chạy static initializer và các biểu thức khởi tạo trường static khi class cần được khởi tạo theo quy tắc của Java.
+1. **Loading**: a class loader locates the class definition (bytecode) and creates the corresponding `Class` object. A class's runtime identity also depends on the loader that defines it.
+2. **Linking**: the JVM verifies the class, prepares static fields, and resolves required symbolic references. Resolution may occur lazily/at different times; not every dependency is resolved immediately when the outer class is loaded.
+3. **Initialization**: the JVM executes the static initializer and static field initialization expressions when the class needs to be initialized according to Java rules.
 
-Sự khác biệt ảnh hưởng trực tiếp đến reflection:
+These differences directly affect reflection:
 
-- `Class.forName("demo.Plugin")` (dạng một tham số) tìm class theo tên và yêu cầu khởi tạo class khi thành công. Nếu loader không tìm ra tên đã yêu cầu, nó khai báo `ClassNotFoundException`.
-- `Class.forName(name, false, loader)` cho phép tìm class mà **không yêu cầu khởi tạo ngay**; nhưng không bảo đảm toàn bộ phụ thuộc, lần resolve hoặc lần initialization sau sẽ thành công.
-- `ClassLoader.loadClass(name)` thông thường tải class mà không chủ động khởi tạo nó. Loader nào được dùng có thể quyết định có tìm ra class hay không.
-- Code đã biên dịch như `new Dependency()` hay `Dependency.call()` có thể buộc JVM resolve `Dependency` tại runtime; khi định nghĩa vắng mặt có thể xuất hiện NCDFE.
-- Khi static initializer lần đầu ném exception thông thường, thường phát sinh `ExceptionInInitializerError`; lần sử dụng tiếp theo của cùng class ở trạng thái khởi tạo lỗi có thể gây NCDFE với thông điệp “Could not initialize class ...”.
+- `Class.forName("demo.Plugin")` (single-parameter form) looks up the class by name and requests class initialization upon success. If the loader cannot find the requested name, it declares `ClassNotFoundException`.
+- `Class.forName(name, false, loader)` allows looking up a class **without requiring immediate initialization**; however, this does not guarantee that all dependencies, subsequent resolution, or later initialization will succeed.
+- `ClassLoader.loadClass(name)` normally loads the class without actively initializing it. Which loader is used can determine whether the class is found.
+- Compiled code such as `new Dependency()` or `Dependency.call()` can force the JVM to resolve `Dependency` at runtime; when its definition is absent, NCDFE can occur.
+- When a static initializer throws a normal exception the first time, `ExceptionInInitializerError` is typically thrown; subsequent uses of the same class in its failed initialization state can cause NCDFE with the message “Could not initialize class ...”.
 
-Một đối tượng `Class<?>` được lấy thành công không chứng minh tất cả method, field, superclass, generic metadata và các dependency còn lại đã hoàn toàn dùng được. Lỗi liên kết có thể chỉ xuất hiện khi framework thực hiện `getDeclaredMethods()`, tạo đối tượng hoặc gọi method.
+Successfully obtaining a `Class<?>` object does not prove that all methods, fields, superclasses, generic metadata, and remaining dependencies are completely usable. Linkage errors may only surface when a framework calls `getDeclaredMethods()`, instantiates an object, or invokes a method.
 
-## 3. Ví dụ độc lập: CNFE và class khởi tạo hỏng
+## 3. Standalone Example: CNFE and a Broken Class Initializer
 
-Tạo tệp `ClassLoadingDemo.java`:
+Create the file `ClassLoadingDemo.java`:
 
 ```java
 public class ClassLoadingDemo {
@@ -72,14 +72,14 @@ public class ClassLoadingDemo {
 }
 ```
 
-Lệnh JDK 17+:
+JDK 17+ commands:
 
 ```bash
 javac -encoding UTF-8 ClassLoadingDemo.java
 java ClassLoadingDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Class.forName: ClassNotFoundException
@@ -87,20 +87,20 @@ init 1: ExceptionInInitializerError
 init 2: NoClassDefFoundError
 ```
 
-**Vì sao như vậy?**
+**Why does this happen?**
 
-1. Tên `demo.feature.MissingPlugin` cố ý không có trong classpath của bài thử. Đây là lỗi lookup chủ động bằng `Class.forName`, nên code nhận checked exception CNFE.
-2. `Broken.VALUE` tính bằng lời gọi `fail()`, vì vậy không phải hằng compile-time được nhúng trực tiếp vào bytecode nơi dùng. Lần truy cập đầu phải khởi tạo `Broken`, gọi `fail()` và gặp `IllegalStateException`; JVM bọc exception từ initializer trong `ExceptionInInitializerError`.
-3. JVM đánh dấu class đã lỗi trong giai đoạn initialization. Lần thử tiếp theo ở cùng trạng thái runtime tạo `NoClassDefFoundError`. Lúc này **class file của `Broken` vẫn tồn tại**, chứng tỏ NCDFE không luôn đồng nghĩa thiếu file.
-4. `catch (LinkageError)` trong ví dụ nhằm hiển thị hai tình trạng khởi tạo, không phải lời khuyên bắt và bỏ qua `Error` trong sản phẩm.
+1. The name `demo.feature.MissingPlugin` is intentionally absent from the test classpath. This is an explicit lookup failure using `Class.forName`, so the code receives the checked exception CNFE.
+2. `Broken.VALUE` is computed by calling `fail()`, so it is not a compile-time constant inlined directly into the caller's bytecode. The first access must initialize `Broken`, which calls `fail()` and hits `IllegalStateException`; the JVM wraps the exception from the initializer in `ExceptionInInitializerError`.
+3. The JVM marks the class as failed during the initialization phase. The next attempt in the same runtime state produces `NoClassDefFoundError`. At this point **the `Broken` class file still exists**, proving that NCDFE is not always synonymous with a missing file.
+4. `catch (LinkageError)` in the example is meant to display the two initialization states, not as advice to catch and ignore `Error` in production.
 
-Đặc biệt, nếu bạn chỉ thấy NCDFE “Could not initialize class ...”, hãy tìm trong log **lần khởi tạo thất bại đầu tiên** và cause gốc của nó, có thể xảy ra sớm hơn nhiều trong quá trình khởi động.
+In particular, if you only see NCDFE “Could not initialize class ...”, search the logs for **the first failed initialization** and its root cause, which may have occurred much earlier during startup.
 
-## 4. Ví dụ độc lập: compile có phụ thuộc, runtime lại thiếu
+## 4. Standalone Example: Compiled with Dependency, Missing at Runtime
 
-Trường hợp thứ hai tái hiện lỗi deployment kinh điển: lớp ứng dụng có mặt, nhưng lớp mà bytecode cần lại bị bỏ khỏi runtime.
+The second case reproduces a classic deployment bug: the application class is present, but a class needed by its bytecode was omitted at runtime.
 
-Tạo `Plugin.java`:
+Create `Plugin.java`:
 
 ```java
 public class Plugin {
@@ -110,7 +110,7 @@ public class Plugin {
 }
 ```
 
-Tạo `MissingDependencyDemo.java`:
+Create `MissingDependencyDemo.java`:
 
 ```java
 public class MissingDependencyDemo {
@@ -125,61 +125,61 @@ public class MissingDependencyDemo {
 }
 ```
 
-Biên dịch cả hai tệp từ cùng thư mục, không khai báo `package`:
+Compile both files from the same directory, without a `package` declaration:
 
 ```bash
 javac -encoding UTF-8 Plugin.java MissingDependencyDemo.java
 java MissingDependencyDemo
 ```
 
-Output khi cả hai class đều còn:
+Output when both classes are present:
 
 ```text
 ok
 ```
 
-Tiếp theo, đổi tên `Plugin.class` thành `Plugin.class.bak` để class không còn được tìm thấy; **không biên dịch lại**:
+Next, rename `Plugin.class` to `Plugin.class.bak` so the class can no longer be found; **do not recompile**:
 
 - **PowerShell (Windows):** `Rename-Item Plugin.class Plugin.class.bak`
 - **Linux/macOS:** `mv Plugin.class Plugin.class.bak`
 
-Chạy lại `java MissingDependencyDemo`. Output:
+Run `java MissingDependencyDemo` again. Output:
 
 ```text
 Runtime dependency: NoClassDefFoundError
 ```
 
-Dù `MissingDependencyDemo.class` vẫn tồn tại và được biên dịch hợp lệ, lệnh `new Plugin()` cần JVM resolve định nghĩa `Plugin`. Khi thiếu class file ở runtime, JVM có thể ném NCDFE. Một số stack trace có thêm cause CNFE bên trong; ví dụ này chỉ in tên lỗi ngoài cùng để kết quả ổn định trên những JDK tương thích.
+Even though `MissingDependencyDemo.class` still exists and was validly compiled, `new Plugin()` requires the JVM to resolve the `Plugin` definition. When the class file is missing at runtime, the JVM can throw NCDFE. Some stack traces include an inner CNFE cause; this example prints only the outermost error name so the output remains stable across compatible JDKs.
 
-Sau thực nghiệm, khôi phục `Plugin.class` hoặc biên dịch lại. Trong hệ thống thật, lỗi tương tự đến từ JAR phụ thuộc thiếu, đóng gói container không đủ, scope dependency sai hoặc môi trường triển khai dùng classpath khác môi trường build.
+After the experiment, restore `Plugin.class` or recompile. In real systems, similar errors stem from missing dependency JARs, incomplete container packaging, wrong dependency scopes, or a deployment environment using a different classpath than the build environment.
 
-## 5. Reflection và plugin: bẫy thường gặp
+## 5. Reflection and Plugins: Common Pitfalls
 
-### 5.1. Tên lớp không phải đường dẫn tệp
+### 5.1. A Class Name Is Not a File Path
 
-`Class.forName` yêu cầu **tên nhị phân** của class, thường là `com.example.Plugin`. Với lớp lồng, tên nhị phân có dấu `$`, ví dụ `java.util.Map$Entry`, trong khi mã nguồn viết `Map.Entry`. Sai package, dấu câu hoặc thay đổi tên lớp trong cấu hình có thể dẫn tới CNFE.
+`Class.forName` requires the **binary name** of the class, typically `com.example.Plugin`. For nested classes, the binary name uses `$`, such as `java.util.Map$Entry`, whereas source code writes `Map.Entry`. A wrong package, punctuation typo, or renamed class in configuration can lead to CNFE.
 
-### 5.2. Phụ thuộc của class có thể thiếu dù chính class đó hiện diện
+### 5.2. A Class's Dependencies Can Be Missing Even When the Class Itself Is Present
 
-Giả sử `Plugin.class` tồn tại, nhưng superclass, interface, trường hoặc chữ ký method của nó tham chiếu đến một class vắng mặt. JVM có thể phát sinh NCDFE khi linking, method inspection hoặc invocation, dù lệnh tìm tên `Plugin` không phải vấn đề duy nhất.
+Suppose `Plugin.class` exists, but its superclass, interface, field, or method signature references an absent class. The JVM can throw NCDFE during linking, method inspection, or invocation, even though looking up the name `Plugin` is not the only issue.
 
-`Class.forName` cũng có thể phát sinh `LinkageError` hoặc `ExceptionInInitializerError`, nên không nên khẳng định mọi lỗi từ `Class.forName` đều là CNFE. Class không tương thích phiên bản bytecode có thể gây `UnsupportedClassVersionError`; không đủ quyền phản chiếu vào thành viên của module có thể gây `InaccessibleObjectException`. Đây là các nguyên nhân khác nhau, đòi hỏi xử lý khác nhau.
+`Class.forName` can also throw `LinkageError` or `ExceptionInInitializerError`, so you should not assume every error from `Class.forName` is CNFE. A class with an incompatible bytecode version can cause `UnsupportedClassVersionError`; insufficient reflection access to a module's member can cause `InaccessibleObjectException`. These are distinct causes requiring different fixes.
 
-### 5.3. Class loader và module path ảnh hưởng kết quả
+### 5.3. Class Loaders and Module Paths Affect Results
 
-Một JAR có thể tồn tại nhưng không được nhìn thấy bởi loader mà code đang sử dụng. Ví dụ plugin container dùng loader con; gọi `Class.forName(name)` với loader không thích hợp có thể tìm sai nơi. Kiểm tra class loader của plugin và quan hệ giữa các loader trước khi đổi tên lớp hoặc tải thêm JAR.
+A JAR may exist yet not be visible to the loader your code is using. For example, a plugin container uses a child loader; calling `Class.forName(name)` with an inappropriate loader may search in the wrong place. Check the plugin's class loader and the relationship between loaders before renaming classes or loading additional JARs.
 
-Với Java Platform Module System (JPMS), cần phân biệt module chưa được resolve/đọc thấy với quyền truy cập thành viên: `exports` và `opens` xử lý ranh giới truy cập; chúng không tự làm xuất hiện dependency bị thiếu. Đừng dùng `--add-opens` để “chữa” thiếu class.
+With the Java Platform Module System (JPMS), distinguish an unresolved/unreadable module from member access permissions: `exports` and `opens` handle access boundaries; they do not make a missing dependency appear on their own. Do not use `--add-opens` to “fix” a missing class.
 
-### 5.4. Lỗi liên kết khác không phải hai lỗi này
+### 5.4. Other Linkage Errors That Are Not These Two
 
-Nếu JAR bị xung đột phiên bản, JVM có thể ném `NoSuchMethodError`, `NoSuchFieldError`, `IllegalAccessError` hoặc `IncompatibleClassChangeError`. Chúng cũng thuộc bối cảnh linkage nhưng không đồng nghĩa NCDFE. Hãy bám sát đúng class, method và cause in ra trong stack trace.
+If JAR versions conflict, the JVM may throw `NoSuchMethodError`, `NoSuchFieldError`, `IllegalAccessError`, or `IncompatibleClassChangeError`. They also occur in a linkage context, but they are not synonymous with NCDFE. Follow the exact class, method, and cause printed in the stack trace.
 
-## 6. Quy trình chẩn đoán có hệ thống
+## 6. Systematic Diagnostic Workflow
 
-**Bước 1 — Xác định thứ xuất hiện trên cùng và cause đầu tiên.** Với CNFE, tìm code dùng `Class.forName` hoặc `loadClass` và tên đã được yêu cầu. Với NCDFE “wrong name” hoặc tên class dùng dấu `/`, xem cấu trúc class/package và metadata; với “Could not initialize class”, tìm initializer thất bại trước đó. Không suy ra nguyên nhân chỉ từ chữ “ClassNotFound” xuất hiện ở một dòng sâu trong cause chain.
+**Step 1 — Identify what appears at the top and the first cause.** For CNFE, locate the code using `Class.forName` or `loadClass` and the requested name. For NCDFE “wrong name” or class names using `/`, inspect the class/package structure and metadata; for “Could not initialize class”, find the earlier failed initializer. Do not infer the root cause solely from the word “ClassNotFound” appearing deep inside a cause chain.
 
-**Bước 2 — Kiểm tra artifact.** Dùng các lệnh JDK sau (đổi `app.jar`, `lib` và tên class theo ứng dụng):
+**Step 2 — Inspect the artifacts.** Use the following JDK commands (replacing `app.jar`, `lib`, and the class name to match your application):
 
 ```bash
 jar tf app.jar
@@ -187,49 +187,49 @@ javap -classpath "lib/*" com.example.Plugin
 java -Xlog:class+load=info -cp "app.jar:lib/*" com.example.Main
 ```
 
-`jar tf` xác nhận entry đã đóng gói; `javap` thử tìm class qua classpath; `-Xlog:class+load=info` của JDK 17 giúp quan sát class thực sự được tải từ đâu. Trên Windows, `classpath` dùng dấu `;` thay dấu `:` trong mẫu lệnh; trên các lệnh demo không có `package`, nên chạy từ thư mục chứa file .class.
+`jar tf` confirms the packaged entries; `javap` attempts to locate the class via the classpath; `-Xlog:class+load=info` on JDK 17 lets you observe where classes are actually loaded from. On Windows, `classpath` uses `;` instead of `:` in the sample commands; on demo commands without a `package`, run from the directory containing the `.class` files.
 
-Nếu ứng dụng dùng **Spring Boot executable fat JAR**, class và dependency có thể nằm ở `BOOT-INF/classes` và `BOOT-INF/lib`; cần launcher phù hợp. Không giả định `java -cp app.jar Main` sẽ hoạt động như JAR phẳng cho mọi package.
+If the application uses a **Spring Boot executable fat JAR**, classes and dependencies may live under `BOOT-INF/classes` and `BOOT-INF/lib`; the appropriate launcher is required. Do not assume `java -cp app.jar Main` will behave like a flat JAR for every package.
 
-**Bước 3 — Đối chiếu cấu hình build với runtime.** Kiểm tra danh sách phụ thuộc runtime (Gradle `runtimeClasspath` hoặc cây Maven), scope/exclusion, phiên bản thực tế, dependency transitively bị thiếu, container image, đường dẫn JAR và phiên bản JDK. Class tồn tại ở test classpath không có nghĩa được đóng gói vào artifact production.
+**Step 3 — Compare build configuration against runtime.** Check the runtime dependency list (Gradle `runtimeClasspath` or Maven dependency tree), scopes/exclusions, actual resolved versions, missing transitive dependencies, container image, JAR paths, and JDK version. A class existing on the test classpath does not mean it was packaged into the production artifact.
 
-**Bước 4 — Tái hiện tách từng giai đoạn.** Kiểm tra lần lượt tên class → loader được chọn → tìm `Class<?>` → đọc metadata → khởi tạo → gọi method. Ghi rõ class, loader và lỗi gốc để biết vị trí thất bại. Một kiểm thử chạy trên artifact đã deploy thường có giá trị hơn kiểm thử chỉ chạy trong IDE.
+**Step 4 — Reproduce by isolating each stage.** Check in sequence: class name → chosen loader → finding `Class<?>` → reading metadata → initialization → invoking the method. Log the class, loader, and root error explicitly to pinpoint where failure occurs. A test run against the deployed artifact is often more valuable than one run only inside an IDE.
 
-**Bước 5 — Sửa tận gốc và xác minh.** Nếu class thiếu, bổ sung đúng dependency và rebuild/redeploy; nếu sai loader, sửa cơ chế nạp plugin; nếu initializer lỗi, sửa cấu hình hoặc code chạy static; nếu phiên bản JAR xung đột, giải quyết sự không tương thích. Chạy lại trên cùng loại runtime để xác minh.
+**Step 5 — Fix the root cause and verify.** If a class is missing, add the proper dependency and rebuild/redeploy; if the wrong loader is used, fix the plugin loading mechanism; if the initializer failed, fix the configuration or static initialization code; if JAR versions conflict, resolve the incompatibility. Re-run on the same runtime environment to verify.
 
-## 7. Các lỗi chẩn đoán cần tránh
+## 7. Diagnostic Mistakes to Avoid
 
-| Nhận định sai | Vì sao sai | Cách làm đúng |
+| Misconception | Why it is wrong | Correct approach |
 | --- | --- | --- |
-| “NCDFE nghĩa là class trước đó đã load thành công” | NCDFE cũng có thể xảy ra khi resolution lần đầu không tìm ra class | Phân biệt missing definition với failed initialization |
-| “CNFE và NCDFE đều catch bằng `Exception`” | NCDFE là `Error`, không là `Exception` | Phân loại theo hierarchy; sửa nguyên nhân NCDFE |
-| “`Class.forName` chỉ có CNFE” | Initializer/linkage có thể ném các loại `Error` | Kiểm tra chain và giai đoạn lỗi |
-| “Có class file thì không thể NCDFE” | Static initialization có thể đã thất bại | Xem thông điệp “Could not initialize class” và log gốc |
-| “Đổi `--add-opens` sẽ sửa classpath” | Mở quyền truy cập không thêm định nghĩa class | Sửa artifact/loader/module configuration |
-| “Catch `Throwable` và bỏ qua sẽ ổn” | JVM hoặc ứng dụng có thể đã ở trạng thái không nhất quán | Không nuốt lỗi; thiết kế fallback chỉ cho plugin tùy chọn, có ranh giới rõ |
+| “NCDFE means the class was previously loaded successfully” | NCDFE can also occur when first-time resolution cannot find a class | Distinguish missing definition from failed initialization |
+| “Both CNFE and NCDFE can be caught with `Exception`” | NCDFE is an `Error`, not an `Exception` | Classify by hierarchy; fix the root cause of NCDFE |
+| “`Class.forName` only throws CNFE” | Initializer/linkage can throw various `Error` types | Inspect the exception chain and failure stage |
+| “If the class file exists, NCDFE is impossible” | Static initialization may have failed | Check the “Could not initialize class” message and original log |
+| “Changing `--add-opens` fixes the classpath” | Opening access permissions does not add class definitions | Fix artifact/loader/module configuration |
+| “Catching `Throwable` and ignoring it is fine” | The JVM or application may already be in an inconsistent state | Do not swallow errors; design fallbacks only for optional plugins with clear boundaries |
 
-Với **plugin tùy chọn**, bắt `ClassNotFoundException` tại điểm lookup và chọn fallback đã thiết kế là hợp lý. Với **`NoClassDefFoundError` trong đường thực thi thiết yếu**, thường cần sửa build/config và dừng hoặc báo lỗi rõ thay vì tiếp tục âm thầm. Việc catch NCDFE trong các ví dụ học tập chỉ để quan sát, không phải một cách chữa lỗi production.
+For **optional plugins**, catching `ClassNotFoundException` at the lookup point and choosing a designed fallback is reasonable. For **`NoClassDefFoundError` on an essential execution path**, you typically need to fix the build/config and fail or report the error clearly rather than continuing silently. Catching NCDFE in learning examples is purely for observation, not a production fix.
 
-## 8. Tự kiểm tra
+## 8. Self-Check
 
-**Câu 1.** `Class.forName("missing.OptionalDriver")` không tìm thấy class theo loader đã chọn. Kết quả thường là gì?
+**Question 1.** `Class.forName("missing.OptionalDriver")` does not find the class under the selected loader. What is the typical result?
 
-**Đáp án:** `ClassNotFoundException` — một lời gọi tìm class chủ động bằng tên không thành công.
+**Answer:** `ClassNotFoundException` — an explicit lookup of a class by name failed.
 
-**Câu 2.** Ứng dụng compile thành công nhưng container thiếu JAR định nghĩa class được gọi bằng `new MissingDep()`. Lỗi điển hình?
+**Question 2.** The application compiles successfully, but the container is missing the JAR defining a class invoked via `new MissingDep()`. Typical error?
 
-**Đáp án:** `NoClassDefFoundError` ở thời điểm JVM resolve kiểu đó, dù cause đôi khi có CNFE.
+**Answer:** `NoClassDefFoundError` at the time the JVM resolves that type, even though the cause may sometimes include CNFE.
 
-**Câu 3.** Vì sao chạy lại một class có static initializer từng ném exception có thể thấy NCDFE mặc dù class file vẫn có?
+**Question 3.** Why can re-running a class whose static initializer previously threw an exception produce NCDFE even though the class file is still present?
 
-**Đáp án:** JVM đánh dấu class ở trạng thái initialization lỗi. Lần đầu có thể nhận `ExceptionInInitializerError`; lần sau nhận NCDFE.
+**Answer:** The JVM marks the class in a failed initialization state. The first attempt may produce `ExceptionInInitializerError`; subsequent attempts produce NCDFE.
 
-**Câu 4.** `Class.forName(name, false, loader)` đã trả về `Class<?>`. Có chắc constructor và mọi dependency dùng được không?
+**Question 4.** `Class.forName(name, false, loader)` returned a `Class<?>`. Is it guaranteed that the constructor and all dependencies are usable?
 
-**Đáp án:** Không. Class chưa bị yêu cầu khởi tạo, và lỗi linkage/initialization có thể xuất hiện về sau.
+**Answer:** No. The class has not yet been requested to initialize, and linkage/initialization errors can surface later.
 
-**Câu 5.** Nếu thấy NCDFE “Could not initialize class”, nên xem đâu trước?
+**Question 5.** If you see NCDFE “Could not initialize class”, where should you look first?
 
-**Đáp án:** Lần dùng đầu tiên khiến initializer thất bại và cause nguyên thủy của nó, cùng các điều kiện cấu hình/runtime gây lỗi.
+**Answer:** The first use that caused the initializer to fail and its original cause, along with the configuration/runtime conditions that triggered the error.
 
-**Ghi nhớ:** `ClassNotFoundException` phản ánh thất bại của API tìm class theo tên; `NoClassDefFoundError` là lỗi JVM không thể dùng định nghĩa lớp trong quá trình liên kết hoặc khởi tạo. Chẩn đoán bằng **stack trace + class loader + artifact runtime + lịch sử khởi tạo**, thay vì chỉ dựa trên tên ngoại lệ.
+**Takeaway:** `ClassNotFoundException` reflects a failure of an API looking up a class by name; `NoClassDefFoundError` is a JVM error when it cannot use a class definition during linking or initialization. Diagnose using **stack trace + class loader + runtime artifacts + initialization history**, rather than relying on the exception name alone.

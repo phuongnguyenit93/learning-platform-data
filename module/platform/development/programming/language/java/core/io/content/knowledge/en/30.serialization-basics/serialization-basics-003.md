@@ -1,18 +1,18 @@
-# writeObject, readObject và định dạng stream trong Java Object Serialization
+# writeObject, readObject, and Stream Format in Java Object Serialization
 
-## 1. Từ đối tượng trong bộ nhớ tới luồng byte
+## 1. From Objects in Memory to a Byte Stream
 
-**Java Object Serialization** là cơ chế biến trạng thái của một đối tượng Java và các đối tượng có thể đi tới qua các trường tham chiếu của nó thành **một luồng byte có cấu trúc**; quá trình ngược lại khôi phục một đồ thị đối tượng từ luồng đó.
+**Java Object Serialization** is the mechanism that converts the state of a Java object and the objects reachable through its reference fields into **a structured byte stream**; the reverse process restores an object graph from that stream.
 
-Hai điểm vào thường gặp:
+Two common entry points:
 
-- `ObjectOutputStream.writeObject(obj)`: ghi biểu diễn tuần tự hóa của đối tượng vào `OutputStream`.
-- `ObjectInputStream.readObject()`: đọc **đối tượng tiếp theo** trong stream, khôi phục dữ liệu/quan hệ tham chiếu, rồi trả một `Object`.
+- `ObjectOutputStream.writeObject(obj)`: writes the serialized representation of the object to an `OutputStream`.
+- `ObjectInputStream.readObject()`: reads the **next object** in the stream, restores data/reference relationships, and returns an `Object`.
 
-Hai phương thức không chuyển đối tượng thành JSON hay văn bản. Kết quả là **định dạng nhị phân Java Object Serialization Stream Protocol**, bao gồm header, type tags, class descriptors, field values, object references và dữ liệu bổ sung khi cần.
+These two methods do not convert objects into JSON or plain text. The result is the **binary Java Object Serialization Stream Protocol format**, consisting of a header, type tags, class descriptors, field values, object references, and additional data when needed.
 
 ```text
-Đối tượng Java                   LUỒNG NHỊ PHÂN                  Đối tượng Java
+Java Object                      BINARY STREAM                     Java Object
 Message("HELLO", 7) ──writeObject──▶ AC ED 00 05 ... ──readObject──▶ Message("HELLO", 7)
                                 ▲                   │
                         ObjectOutputStream     ObjectInputStream
@@ -20,25 +20,25 @@ Message("HELLO", 7) ──writeObject──▶ AC ED 00 05 ... ──readObject�
                            OutputStream          InputStream
 ```
 
-Mục tiêu bài: sử dụng chính xác `writeObject`/`readObject`; hiểu những gì được lưu vào stream và cách đọc lại theo đúng thứ tự; phân biệt object data với stream header/class descriptor; nhận biết handle/reference sharing, `serialVersionUID`, `transient`, ngoại lệ và các rủi ro bảo mật của `readObject` trên dữ liệu không tin cậy.
+Lesson goal: use `writeObject`/`readObject` properly; understand what is saved into the stream and how to read it back in the exact order; distinguish object data from the stream header/class descriptors; recognize handles/reference sharing, `serialVersionUID`, `transient`, exceptions, and the security risks of `readObject` on untrusted data.
 
-**Lưu ý bảo mật quan trọng:** tuyệt đối không mặc định rằng byte nhận qua mạng, file tải từ bên ngoài hoặc blob người dùng gửi là an toàn để đưa vào `ObjectInputStream`. Giải tuần tự hóa Java có thể kích hoạt các cơ chế khôi phục đối tượng và callback trong classpath; phải ưu tiên giao thức dữ liệu an toàn hơn hoặc áp dụng giới hạn/kiểm soát nghiêm ngặt khi thực sự cần dùng.
+**Important security note:** never assume that bytes received over a network, files downloaded externally, or user-submitted blobs are safe to pass into `ObjectInputStream`. Java deserialization can trigger object restoration mechanisms and callbacks on the classpath; prefer safer data protocols or apply strict limits/controls when it must be used.
 
-## 2. Các lớp và giao diện cần biết
+## 2. Classes and Interfaces to Know
 
-| Thành phần | Vai trò |
+| Component | Role |
 |---|---|
-| `java.io.Serializable` | Marker interface báo class cho phép Java serialization mặc định |
-| `ObjectOutputStream` | Viết đối tượng và dữ liệu primitive thành Object Serialization Stream |
-| `ObjectInputStream` | Đọc đối tượng và primitive theo cùng quy tắc stream |
-| `ObjectStreamConstants` | Header magic, version và các byte đánh dấu protocol (`TC_*`) |
-| `ObjectStreamClass` | Mô tả class serializable; có thể xem `serialVersionUID` và field descriptors |
-| `serialVersionUID` | Định danh phiên bản phục vụ kiểm tra tương thích class khi deserialize |
-| `transient` | Loại field instance khỏi quá trình lưu mặc định |
-| `ObjectInputFilter` | Cơ chế lọc/giới hạn class, độ sâu, tham chiếu, array và bytes khi đọc |
-| `Externalizable` | Chế độ mà class tự định nghĩa toàn bộ cách ghi/đọc bằng `writeExternal`/`readExternal` |
+| `java.io.Serializable` | Marker interface indicating a class permits default Java serialization |
+| `ObjectOutputStream` | Writes objects and primitive data into an Object Serialization Stream |
+| `ObjectInputStream` | Reads objects and primitives according to the same stream rules |
+| `ObjectStreamConstants` | Magic header, version, and protocol marker bytes (`TC_*`) |
+| `ObjectStreamClass` | Describes a serializable class; can inspect `serialVersionUID` and field descriptors |
+| `serialVersionUID` | Version identifier used for class compatibility checking during deserialization |
+| `transient` | Excludes an instance field from default persistence |
+| `ObjectInputFilter` | Mechanism to filter/limit classes, depth, references, arrays, and bytes when reading |
+| `Externalizable` | Mode where a class defines its entire write/read behavior using `writeExternal`/`readExternal` |
 
-Ở mức cơ bản, một class triển khai `Serializable` là đủ để cơ chế mặc định có thể ghi các field phù hợp:
+At a basic level, a class implementing `Serializable` is enough for the default mechanism to write eligible fields:
 
 ```java
 import java.io.Serializable;
@@ -56,11 +56,11 @@ public final class Student implements Serializable {
 }
 ```
 
-Đây là class độc lập có thể biên dịch trong `Student.java`, **không có `main`**. Vì `String` serializable và `int` là primitive, trạng thái của instance `Student` này có thể được tuần tự hóa theo cơ chế mặc định. `serialVersionUID` ở đây là field `static final long` mang ý nghĩa kiểm tra phiên bản class, **không** phải dữ liệu instance ghi như một field thông thường.
+This is a standalone compilable class in `Student.java`, **without `main`**. Because `String` is serializable and `int` is a primitive, the state of this `Student` instance can be serialized by the default mechanism. `serialVersionUID` here is a `static final long` field meant for class version checking, **not** instance data written as a regular field.
 
-### 2.1. Serializable không phải một method cần override
+### 2.1. Serializable Is Not a Method to Override
 
-`Serializable` là **marker interface**: nó không khai báo `serialize()` hay `deserialize()`. Vì thế:
+`Serializable` is a **marker interface**: it does not declare `serialize()` or `deserialize()`. Therefore:
 
 ```java
 class Entry implements java.io.Serializable {
@@ -69,13 +69,13 @@ class Entry implements java.io.Serializable {
 }
 ```
 
-đã đáp ứng điều kiện cơ bản cho object serialization. Bạn **không bắt buộc** override `writeObject`/`readObject` trong mọi class; API `ObjectOutputStream` sẽ thực hiện cơ chế mặc định.
+already meets the basic requirement for object serialization. You are **not required** to override `writeObject`/`readObject` in every class; the `ObjectOutputStream` API executes the default mechanism.
 
-Nếu có một field tham chiếu đến object không serializable, việc ghi cả đồ thị có thể ném `NotSerializableException`, dù class gốc đã triển khai `Serializable`.
+If a field references a non-serializable object, writing the entire graph can throw `NotSerializableException`, even though the root class implements `Serializable`.
 
-## 3. Tạo ObjectOutputStream và ghi đối tượng
+## 3. Creating ObjectOutputStream and Writing Objects
 
-Một `ObjectOutputStream` bọc bên ngoài `OutputStream` bất kỳ như `FileOutputStream`, `ByteArrayOutputStream` hoặc stream của socket:
+An `ObjectOutputStream` wraps any `OutputStream` such as `FileOutputStream`, `ByteArrayOutputStream`, or a socket stream:
 
 ```java
 try (ObjectOutputStream out =
@@ -86,21 +86,21 @@ try (ObjectOutputStream out =
 }
 ```
 
-Đây là đoạn minh họa trong method xử lý `IOException` và đã có class `Student`. Cần import `java.io.ObjectOutputStream`, `java.io.FileOutputStream`.
+This is an illustrative snippet inside a method handling `IOException` with the `Student` class already defined. Requires importing `java.io.ObjectOutputStream`, `java.io.FileOutputStream`.
 
-Quy trình:
+Workflow:
 
-1. Tạo `ObjectOutputStream`. Constructor **ghi stream header** vào output bên dưới.
-2. Gọi `writeObject(obj)` để lưu đối tượng.
-3. Encoder duyệt đồ thị object có thể tới được qua các field serializable, ghi mô tả class và các giá trị cần thiết.
-4. Luồng giữ bảng **handles** để nhận biết những tham chiếu đã được ghi trong stream hiện tại.
-5. Khi đóng `ObjectOutputStream`, stream bên dưới cũng được đóng; dùng `try-with-resources` để hạn chế rò rỉ tài nguyên.
+1. Create `ObjectOutputStream`. The constructor **writes the stream header** to the underlying output.
+2. Call `writeObject(obj)` to persist the object.
+3. The encoder traverses the object graph reachable through serializable fields, writing class descriptors and necessary values.
+4. The stream maintains a **handles** table to recognize references already written in the current stream.
+5. When closing `ObjectOutputStream`, the underlying stream is also closed; use `try-with-resources` to prevent resource leaks.
 
-Bạn có thể ghi nhiều đối tượng **liên tiếp** trên cùng một `ObjectOutputStream`, sau đó phải đọc lại theo đúng trình tự. Không nên tạo `ObjectOutputStream` mới mỗi lần ghi thêm một đối tượng trên cùng một file rồi hy vọng mỗi header nối tiếp đều được một `ObjectInputStream` duy nhất hiểu như một danh sách object đơn giản.
+You can write multiple objects **consecutively** to the same `ObjectOutputStream`, and then read them back in the exact same order. You should not create a new `ObjectOutputStream` each time you append an object to the same file and expect a single `ObjectInputStream` to treat every consecutive header as a simple list of objects.
 
-### 3.1. `writeObject` có thể ghi cả đồ thị
+### 3.1. `writeObject` Can Write an Entire Graph
 
-Giả sử:
+Suppose:
 
 ```java
 final class Address implements java.io.Serializable {
@@ -113,13 +113,13 @@ final class Person implements java.io.Serializable {
 }
 ```
 
-Hai class là mã minh họa đặt ở top level trong file Java (không `public`) hoặc nơi hợp lệ tương đương. Khi `out.writeObject(new Person())`, đối tượng `Address` được tham chiếu qua field `address` cũng được ghi, **không cần** gọi `writeObject(address)` riêng.
+The two classes are illustrative code placed at top level in a Java file (non-`public`) or an equivalent valid location. When calling `out.writeObject(new Person())`, the `Address` object referenced through the `address` field is also written, **without needing** a separate `writeObject(address)` call.
 
-Nếu `Address` không hỗ trợ serialization và field `address` không transient, việc ghi `Person` có thể thất bại bằng `NotSerializableException`. Cơ chế này không tự chấp nhận mọi object trong graph.
+If `Address` does not support serialization and the `address` field is not transient, writing `Person` can fail with `NotSerializableException`. This mechanism does not automatically accept every object in the graph.
 
-### 3.2. Ghi primitive và đối tượng trong cùng stream
+### 3.2. Writing Primitives and Objects in the Same Stream
 
-`ObjectOutputStream` còn triển khai `DataOutput`:
+`ObjectOutputStream` also implements `DataOutput`:
 
 ```java
 out.writeInt(7);
@@ -127,7 +127,7 @@ out.writeUTF("xin chao");
 out.writeObject(student);
 ```
 
-Đây là snippet trong phạm vi đã khai báo `out` và `student`. Phía đọc phải đi theo **đúng thứ tự**:
+This is a snippet in a scope where `out` and `student` are already declared. The reading side must follow the **exact same order**:
 
 ```java
 int version = in.readInt();
@@ -135,11 +135,11 @@ String title = in.readUTF();
 Student student = (Student) in.readObject();
 ```
 
-`readObject()` **không** được dùng thay `readInt()` để nhận một primitive được ghi bằng `writeInt()`. Trình tự dữ liệu và kiểu đọc không khớp có thể gây `OptionalDataException`, `StreamCorruptedException` hoặc lỗi khác tùy trạng thái stream. Lưu ý `writeUTF` có format *modified UTF-8* thuộc `DataOutput`, không phải cách mã hóa UTF-8 thông thường của mọi byte văn bản.
+`readObject()` **cannot** be used in place of `readInt()` to receive a primitive written with `writeInt()`. Mismatched data sequences and read types can cause `OptionalDataException`, `StreamCorruptedException`, or other errors depending on the stream state. Note that `writeUTF` uses the *modified UTF-8* format from `DataOutput`, not standard UTF-8 encoding for arbitrary text bytes.
 
-## 4. ObjectInputStream và cách đọc đối tượng
+## 4. ObjectInputStream and How to Read Objects
 
-Ví dụ đọc lại file đã được viết:
+Example reading back the file that was written:
 
 ```java
 try (ObjectInputStream in =
@@ -151,37 +151,37 @@ try (ObjectInputStream in =
 }
 ```
 
-Đây là snippet nằm trong method khai báo hoặc xử lý `IOException` và `ClassNotFoundException`, đồng thời có class `Student` tương thích trên classpath. `readObject()` trả kiểu tĩnh `Object` vì dữ liệu đầu vào có thể đại diện nhiều class khác nhau; Java không thể dựa vào generic để bảo đảm class được trả về.
+This is a snippet inside a method declaring or handling `IOException` and `ClassNotFoundException`, with a compatible `Student` class on the classpath. `readObject()` has static return type `Object` because input data can represent many different classes; Java cannot rely on generics to guarantee the returned class.
 
-**Các bước khi đọc:**
+**Steps when reading:**
 
-1. Constructor `ObjectInputStream` đọc và kiểm tra header stream.
-2. `readObject` đọc type tags và descriptors, giải mã object graph với class phù hợp trong JVM.
-3. Với class Serializable mặc định, trạng thái instance được khôi phục theo quy tắc field serialization.
-4. Stream duy trì bảng handles ở phía đọc để các reference lặp/cycle được dựng thành quan hệ thích hợp.
-5. Caller phải kiểm tra kiểu và **xác minh tính hợp lệ nghiệp vụ** của đối tượng khôi phục; kiểu Java hợp lệ không có nghĩa giá trị luôn đáng tin.
+1. The `ObjectInputStream` constructor reads and validates the stream header.
+2. `readObject` reads type tags and descriptors, decoding the object graph with matching classes in the JVM.
+3. For a default Serializable class, instance state is restored according to field serialization rules.
+4. The stream maintains a handles table on the reading side so that repeated/cyclic references are built into the appropriate relationships.
+5. The caller must check the type and **verify business validity** of the restored object; a valid Java type does not mean the values are always trustworthy.
 
-`ObjectInputStream` phải được dùng với dữ liệu thực sự tuân theo Java Object Serialization Stream Protocol. Một file JSON, ZIP hoặc file UTF-8 bất kỳ không thể tự nhiên đọc bằng `ObjectInputStream`.
+`ObjectInputStream` must be used with data that actually follows the Java Object Serialization Stream Protocol. An arbitrary JSON, ZIP, or UTF-8 file cannot naturally be read with `ObjectInputStream`.
 
-### 4.1. Constructor có thể chờ header nếu đọc từ socket
+### 4.1. Constructor May Block Waiting for the Header When Reading from a Socket
 
-`new ObjectInputStream(input)` **có thể block chờ bytes header**. Nếu hai bên của một socket đều tạo `ObjectInputStream` và đợi header trước khi bên nào tạo/flush `ObjectOutputStream`, chương trình có thể bị **deadlock**.
+`new ObjectInputStream(input)` **can block waiting for header bytes**. If both sides of a socket create `ObjectInputStream` and wait for the header before either side creates/flushes `ObjectOutputStream`, the program can **deadlock**.
 
-Pattern khi trao đổi giữa hai phía phải được thiết kế cho phù hợp:
+The exchange pattern between both sides must be designed accordingly:
 
 ```java
 ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-out.flush(); // Đẩy header.
+out.flush(); // Push the header.
 ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
 ```
 
-Đây là snippet với `socket` hợp lệ; không phải chương trình TCP hoàn chỉnh. `flush()` làm cho bytes header do output stream tạo có cơ hội được bên kia nhận, nhưng hai phía vẫn phải thống nhất thứ tự thiết lập và giao thức thông điệp, timeout và vòng đời socket.
+This is a snippet with a valid `socket`; it is not a complete TCP program. `flush()` gives the header bytes generated by the output stream a chance to reach the other side, but both sides must still agree on setup order, message protocol, timeouts, and socket lifecycle.
 
-## 5. Ví dụ Java 17+ hoàn chỉnh: header, tham chiếu lặp, reset và transient
+## 5. Complete Java 17+ Example: Header, Repeated References, Reset, and Transient
 
-Ví dụ sau dùng `ByteArrayOutputStream`/`ByteArrayInputStream` để không phụ thuộc file hệ thống. Nó kiểm chứng các khía cạnh quan trọng nhất của `writeObject` và `readObject`: header nhị phân; cùng một object được ghi hai lần; `reset()` tạo ranh giới bảng handle mới; field `transient` không nằm trong trạng thái mặc định.
+The following example uses `ByteArrayOutputStream`/`ByteArrayInputStream` to avoid filesystem dependencies. It verifies the most important aspects of `writeObject` and `readObject`: the binary header; the same object written twice; `reset()` creating a new handle table boundary; and a `transient` field excluded from default state.
 
-**Tệp:** `ObjectStreamDemo.java`
+**File:** `ObjectStreamDemo.java`
 
 ```java
 import java.io.ByteArrayInputStream;
@@ -212,9 +212,9 @@ public class ObjectStreamDemo {
 
         try (ObjectOutputStream out = new ObjectOutputStream(sink)) {
             out.writeObject(original);
-            out.writeObject(original); // Bảng handle: đã ghi instance này.
-            out.reset();              // Xóa các handle đã nhớ.
-            out.writeObject(original); // Ghi một biểu diễn object mới.
+            out.writeObject(original); // Handle table: this instance has already been written.
+            out.reset();              // Clear remembered handles.
+            out.writeObject(original); // Write a new object representation.
         }
 
         byte[] wire = sink.toByteArray();
@@ -242,14 +242,14 @@ public class ObjectStreamDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17+:
+Compile and run with JDK 17+:
 
 ```bash
 javac ObjectStreamDemo.java
 java ObjectStreamDemo
 ```
 
-**Stdout chính xác của ví dụ:**
+**Exact stdout of the example:**
 
 ```text
 header: AC ED 00 05
@@ -259,27 +259,27 @@ first==third: false
 transient restored: null
 ```
 
-**Vì sao có kết quả đó?**
+**Why does it produce this result?**
 
-1. Java serialization stream mặc định bắt đầu bằng magic `AC ED` và version `00 05`, tức `STREAM_MAGIC=0xACED` và `STREAM_VERSION=5`.
-2. Lần `writeObject(original)` đầu lưu thông tin class và object; lần thứ hai trên **cùng instance** trong **cùng handle table** sử dụng tham chiếu tới object đã ghi. Vì thế hai lần `readObject` đầu trả về **cùng một instance** phía đọc (`== true`).
-3. `out.reset()` xóa trạng thái handles của stream theo contract và ghi token reset. Lần ghi thứ ba tạo biểu diễn mới; phía đọc cũng đặt lại context, nên object thứ ba **khác reference** (`== false`).
-4. Field `secret` được khai báo `transient`, do đó cơ chế mặc định **không lưu giá trị `"TOKEN"`**. Sau khi deserialize, field tham chiếu có giá trị mặc định `null`. 
-5. `text` và `sequence` được khôi phục vì là các field instance serializable thông thường, class tương thích và có dữ liệu hợp lệ.
+1. A default Java serialization stream starts with magic `AC ED` and version `00 05`, meaning `STREAM_MAGIC=0xACED` and `STREAM_VERSION=5`.
+2. The first `writeObject(original)` stores class and object information; the second call on the **same instance** within the **same handle table** uses a reference to the already-written object. Therefore, the first two `readObject` calls return the **same instance** on the reading side (`== true`).
+3. `out.reset()` clears the stream's handles state per contract and writes a reset token. The third write produces a new representation; the reading side also resets its context, so the third object has a **different reference** (`== false`).
+4. The `secret` field is declared `transient`, so the default mechanism **does not store the value `"TOKEN"`**. After deserialization, the reference field has the default value `null`.
+5. `text` and `sequence` are restored because they are ordinary serializable instance fields, the class is compatible, and the data is valid.
 
-Mã đã được chạy kiểm chứng trên JDK. File nguồn trong ví dụ dùng văn bản ASCII để output ổn định cả trên terminal không hỗ trợ Unicode; bài học không hàm ý Java serialization chỉ xử lý ASCII.
+The code has been compiled and verified on the JDK. The source file in the example uses ASCII text so that output remains stable even on terminals without Unicode support; the lesson does not imply Java serialization only handles ASCII.
 
-## 6. Định dạng Object Serialization Stream Protocol
+## 6. Object Serialization Stream Protocol Format
 
-### 6.1. Stream header: `AC ED 00 05`
+### 6.1. Stream Header: `AC ED 00 05`
 
-Luồng được tạo bởi `ObjectOutputStream` thường có cấu trúc cấp cao:
+A stream produced by `ObjectOutputStream` typically has this high-level structure:
 
 ```text
 +------------------------------+
-| STREAM_MAGIC                 | 2 byte: AC ED
+| STREAM_MAGIC                 | 2 bytes: AC ED
 +------------------------------+
-| STREAM_VERSION               | 2 byte: 00 05
+| STREAM_VERSION               | 2 bytes: 00 05
 +------------------------------+
 | Contents                     |
 | - object/string/array tokens |
@@ -290,60 +290,60 @@ Luồng được tạo bởi `ObjectOutputStream` thường có cấu trúc cấ
 +------------------------------+
 ```
 
-`ObjectInputStream` dùng header này để nhận diện định dạng. Nếu bốn byte đầu không đúng, constructor có thể ném `StreamCorruptedException`, ví dụ khi bạn vô tình dùng nó đọc file text hay JSON.
+`ObjectInputStream` uses this header to recognize the format. If the first four bytes are incorrect, the constructor can throw `StreamCorruptedException`, for example when you accidentally use it to read a text or JSON file.
 
-**Đừng nhầm:** “version 5” trong stream header là **phiên bản protocol stream**, không phải Java 5, không phải JDK 17/21 và không phải `serialVersionUID` của class. Một stream vẫn có version 5 dù ứng dụng biên dịch bằng JDK hiện đại.
+**Do not confuse:** "version 5" in the stream header is the **stream protocol version**, not Java 5, not JDK 17/21, and not the class's `serialVersionUID`. A stream still has version 5 even when the application is compiled with a modern JDK.
 
-### 6.2. Type tags chính
+### 6.2. Main Type Tags
 
-Các token nằm trong `ObjectStreamConstants`; khi đọc hex, bạn có thể nhận ra:
+The tokens are defined in `ObjectStreamConstants`; when inspecting hex, you can recognize:
 
-| Token | Giá trị hex | Ý nghĩa khái quát |
+| Token | Hex value | General meaning |
 |---|---|---|
-| `TC_NULL` | `70` | Tham chiếu null |
-| `TC_REFERENCE` | `71` | Tham chiếu tới object/descriptor đã có handle |
-| `TC_CLASSDESC` | `72` | Class descriptor mới |
-| `TC_OBJECT` | `73` | Instance object mới |
-| `TC_STRING` | `74` | String mới |
-| `TC_ARRAY` | `75` | Array mới |
+| `TC_NULL` | `70` | Null reference |
+| `TC_REFERENCE` | `71` | Reference to an object/descriptor that already has a handle |
+| `TC_CLASSDESC` | `72` | New class descriptor |
+| `TC_OBJECT` | `73` | New object instance |
+| `TC_STRING` | `74` | New String |
+| `TC_ARRAY` | `75` | New array |
 | `TC_CLASS` | `76` | Class object |
-| `TC_BLOCKDATA` | `77` | Khối dữ liệu primitive/optional ngắn |
-| `TC_ENDBLOCKDATA` | `78` | Kết thúc một phần optional block data |
+| `TC_BLOCKDATA` | `77` | Short primitive/optional data block |
+| `TC_ENDBLOCKDATA` | `78` | End of an optional block data section |
 | `TC_RESET` | `79` | Reset context/handles |
-| `TC_BLOCKDATALONG` | `7A` | Khối data có độ dài lớn |
-| `TC_EXCEPTION` | `7B` | Thông tin exception trong protocol |
-| `TC_LONGSTRING` | `7C` | String dài |
-| `TC_PROXYCLASSDESC` | `7D` | Descriptor cho proxy class |
+| `TC_BLOCKDATALONG` | `7A` | Long data block |
+| `TC_EXCEPTION` | `7B` | Exception information in the protocol |
+| `TC_LONGSTRING` | `7C` | Long String |
+| `TC_PROXYCLASSDESC` | `7D` | Descriptor for a proxy class |
 | `TC_ENUM` | `7E` | Enum constant |
 
-Chúng là **marker trong một protocol có cấu trúc**, không phải “mỗi byte bằng `73` ở file đều là object mới”. Byte giá trị `73` có thể xuất hiện **bên trong một payload hoặc tên class**; parser phải đọc theo grammar, length và ngữ cảnh thay vì tìm byte tùy tiện.
+These are **markers in a structured protocol**, not "every byte equal to `73` in a file is a new object." A byte with value `73` can appear **inside a payload or class name**; a parser must read according to grammar, length, and context rather than scanning for arbitrary bytes.
 
-### 6.3. Class descriptor chứa gì?
+### 6.3. What Does a Class Descriptor Contain?
 
-Khi lần đầu gặp một serializable class trong stream, một descriptor có thể chứa:
+When encountering a serializable class for the first time in a stream, a descriptor can contain:
 
-- Tên binary của class.
+- The binary name of the class.
 - `serialVersionUID`.
-- Cờ biểu diễn cách serialization của class.
-- Danh sách các field được lưu với tên và kiểu.
-- Mô tả superclass và những phần dữ liệu tùy biến nếu có.
+- Flags representing how the class is serialized.
+- The list of persisted fields with their names and types.
+- Superclass description and optional custom data parts if present.
 
-Ví dụ, với `Message` ở trên, descriptor sẽ mô tả các field được lưu như `sequence` và `text`; field `secret` bị loại vì `transient`. Đây chỉ là mô tả logic, **không** phải mã byte hex đầy đủ cho tất cả JDK/đường dẫn class. Byte stream thực tế còn có tên nested class, handle, string descriptor, annotation và những phần protocol khác.
+For example, for `Message` above, the descriptor describes the persisted fields such as `sequence` and `text`; the `secret` field is excluded because it is `transient`. This is only a logical description, **not** a complete hex byte layout for all JDKs/class paths. The actual byte stream also contains nested class names, handles, string descriptors, annotations, and other protocol parts.
 
-**Không ghi raw byte stream bằng tay** trừ khi bạn đang xây parser/encoder đúng Java Object Serialization Specification. `writeObject`/`readObject` được thiết kế để xử lý descriptor, đồ thị tham chiếu, block data và class matching thay bạn.
+**Do not write raw stream bytes by hand** unless you are building a parser/encoder strictly compliant with the Java Object Serialization Specification. `writeObject`/`readObject` are designed to handle descriptors, reference graphs, block data, and class matching for you.
 
-### 6.4. Object handles giữ reference identity
+### 6.4. Object Handles Preserve Reference Identity
 
-Java serialization không đơn giản là “dump mọi field của mỗi lần gọi”. Nó duy trì một bảng handle để:
+Java serialization is not simply "dump every field on each call." It maintains a handle table to:
 
-- Không lặp lại toàn bộ object đã được ghi khi gặp **cùng reference** lần sau.
-- Bảo toàn quan hệ các field cùng trỏ một object sau khi đọc.
-- Tái tạo các đồ thị có **chu trình** (cyclic reference) mà không đệ quy vô hạn.
-- Có thể chia sẻ instance sau deserialize trong phạm vi stream context tương ứng.
+- Avoid repeating an entire already-written object when encountering the **same reference** again.
+- Preserve relationships where fields point to the same object after reading.
+- Reconstruct graphs with **cycles** (cyclic references) without infinite recursion.
+- Allow sharing instances after deserialization within the corresponding stream context.
 
-Trong protocol, handle được cấp từ giá trị base `0x7E0000` theo spec và token `TC_REFERENCE` trỏ về handle đã cấp. Không nên dùng con số handle như ID nghiệp vụ ổn định; nó là dữ liệu nội bộ của một stream.
+In the protocol, handles are assigned starting from base value `0x7E0000` per spec, and the `TC_REFERENCE` token points to an assigned handle. Do not use handle numbers as stable business IDs; they are internal data of a single stream.
 
-**Ví dụ đồ thị có chu trình**:
+**Cyclic graph example**:
 
 ```java
 final class Node implements java.io.Serializable {
@@ -359,9 +359,9 @@ b.next = a;
 out.writeObject(a);
 ```
 
-Đây là snippet trong method có `ObjectOutputStream out`; hai Node được ghi với cơ chế handle cho tham chiếu quay về. Đọc lại một `Node restored = (Node) in.readObject()` từ stream tương ứng sẽ giữ quan hệ `restored.next.next == restored`, nếu classes tương thích và không có custom replacement phá cấu trúc.
+This is a snippet inside a method with `ObjectOutputStream out`; the two `Node` instances are written using handles for the back-reference. Reading back `Node restored = (Node) in.readObject()` from the corresponding stream preserves the relationship `restored.next.next == restored`, provided classes are compatible and no custom replacement breaks the structure.
 
-### 6.5. `writeObject` ghi lặp cùng reference không đồng nghĩa snapshot mới
+### 6.5. Repeated `writeObject` on the Same Reference Does Not Mean a New Snapshot
 
 ```java
 Entry entry = new Entry();
@@ -369,16 +369,16 @@ entry.number = 1;
 out.writeObject(entry);
 
 entry.number = 2;
-out.writeObject(entry); // Thường chỉ viết reference cho instance đã thấy.
+out.writeObject(entry); // Usually only writes a reference to the already-seen instance.
 ```
 
-Đây là snippet với `Entry` là class Serializable ở trên, `out` đang mở. Lần đọc thứ hai **không bắt buộc** đem lại field `number=2`; với đối tượng đã ghi vào handle table, stream dùng handle cho cùng object đã serialize lần đầu. Dùng `out.reset()` giữa hai lần ghi nếu bạn thật sự cần ghi lại trạng thái object hiện tại, và hiểu rằng reset ảnh hưởng toàn bộ bảng handle của stream.
+This is a snippet with `Entry` as the Serializable class above and `out` open. The second read **does not necessarily** yield `number=2`; for an object already recorded in the handle table, the stream uses a handle to the same object serialized the first time. Use `out.reset()` between the two writes if you truly need to write the object's current state again, and understand that reset affects the stream's entire handle table.
 
-## 7. `reset()`, `writeUnshared()` và `readUnshared()`
+## 7. `reset()`, `writeUnshared()`, and `readUnshared()`
 
-### 7.1. Khi nào dùng `ObjectOutputStream.reset()`?
+### 7.1. When to Use `ObjectOutputStream.reset()`?
 
-`reset()` yêu cầu ObjectOutputStream loại bỏ các handles đã lưu; những object ghi tiếp sẽ có context tham chiếu mới. Nó cũng đặt một marker `TC_RESET` trong stream để ObjectInputStream đồng bộ hóa.
+`reset()` instructs `ObjectOutputStream` to discard remembered handles; objects written subsequently will have a new reference context. It also places a `TC_RESET` marker in the stream so `ObjectInputStream` stays synchronized.
 
 ```java
 out.writeObject(state);
@@ -386,43 +386,43 @@ out.reset();
 out.writeObject(state);
 ```
 
-Đây là mã minh họa khi `out` mở và `state` Serializable. Có hai ý nghĩa:
+This is illustrative code when `out` is open and `state` is Serializable. There are two implications:
 
-1. Có thể gửi **snapshot mới** của cùng instance khi dữ liệu đã thay đổi giữa hai lần ghi.
-2. Giảm số object references tích lũy trong bảng handles của một stream chạy lâu, với cái giá phải ghi lại descriptors/objects sau reset.
+1. You can send a **new snapshot** of the same instance when data has mutated between two writes.
+2. You can reduce the number of object references accumulated in the handle table of a long-running stream, at the cost of re-writing descriptors/objects after reset.
 
-Không gọi `reset()` từ bên trong quá trình `writeObject` đang serialize một object graph; API không cho phép reset lúc đang ở giữa việc ghi graph và có thể ném `IOException`. Thực hiện tại **ranh giới giữa các lần ghi hoàn chỉnh**.
+Do not call `reset()` from inside an ongoing `writeObject` serializing an object graph; the API does not allow resetting mid-graph and may throw `IOException`. Perform it at **boundaries between complete writes**.
 
-### 7.2. `writeUnshared` và `readUnshared` có phải deep copy?
+### 7.2. Are `writeUnshared` and `readUnshared` a Deep Copy?
 
-Không. `writeUnshared(obj)` có semantics đặc biệt về cách **base-level object** được xem là unshared; `readUnshared()` yêu cầu đầu vào đáp ứng các điều kiện không chia sẻ tương ứng. Nhưng chúng **không bảo đảm deep copy toàn bộ object graph**, vì các object được tham chiếu trong những field con vẫn có thể được chia sẻ theo protocol.
+No. `writeUnshared(obj)` has special semantics regarding how the **base-level object** is treated as unshared; `readUnshared()` requires the input to meet the corresponding unshared conditions. However, they **do not guarantee a deep copy of the entire object graph**, because objects referenced in child fields can still be shared according to the protocol.
 
-Do đó, nếu mục tiêu là tạo **bản sao độc lập hoàn toàn**, Java serialization không phải câu trả lời ngầm định. Cần một quy trình copy với ownership và policy rõ ràng. Không dùng `writeUnshared` để giả định đã loại hết alias reference ở các object con.
+Therefore, if the goal is to create a **completely independent copy**, Java serialization is not the implicit answer. You need a copy process with explicit ownership and policy. Do not use `writeUnshared` assuming all reference aliases in child objects have been eliminated.
 
-## 8. Những field nào được tuần tự hóa?
+## 8. Which Fields Are Serialized?
 
-Với Serializable mặc định, **các instance field không static và không transient** là các trường được cơ chế serialization xử lý, trong giới hạn class hierarchy và cách khai báo.
+With default Serializable behavior, **non-static and non-transient instance fields** are the fields processed by the serialization mechanism, within the limits of class hierarchy and declarations.
 
-| Loại field | Có trong default serialized state? | Ví dụ |
+| Field kind | Included in default serialized state? | Example |
 |---|---|---|
-| `private int count` | Có | Primitive giá trị 7 |
-| `private String name` | Có | Reference tới String Serializable |
-| `private Address address` | Có nếu đồ thị object tương ứng serializable | Một object graph khác |
-| `private transient String password` | Không | Sau deserialize thường null |
-| `private static int total` | Không | Field thuộc class/JVM, không thuộc instance |
-| `private static final long serialVersionUID` | Không phải field instance; dùng trong descriptor | Kiểm tra tương thích |
-| Field tham chiếu object không Serializable | Ghi có thể thất bại nếu không được loại/đổi | `NotSerializableException` |
+| `private int count` | Yes | Primitive value 7 |
+| `private String name` | Yes | Reference to a Serializable String |
+| `private Address address` | Yes if the corresponding object graph is serializable | Another object graph |
+| `private transient String password` | No | Usually null after deserialization |
+| `private static int total` | No | Field belongs to class/JVM, not instance |
+| `private static final long serialVersionUID` | Not an instance field; used in descriptor | Compatibility check |
+| Field referencing a non-Serializable object | Writing can fail if not excluded/changed | `NotSerializableException` |
 
-### 8.1. `transient` không phải cơ chế mã hóa hoặc xóa bảo mật
+### 8.1. `transient` Is Not Encryption or Secure Erasure
 
-Một field đánh dấu `transient` không được lưu **theo cơ chế mặc định**. Nó không tự động:
+A field marked `transient` is not persisted **by the default mechanism**. It does not automatically:
 
-- Xóa giá trị đang tồn tại trong RAM.
-- Ngăn custom `writeObject` chủ động ghi giá trị ấy bằng lệnh khác.
-- Ngăn thông tin nhạy cảm bị lộ qua các field khác trong graph.
-- Mã hóa dữ liệu đã được ghi.
+- Erase values currently existing in RAM.
+- Prevent a custom `writeObject` from actively writing that value via another call.
+- Prevent sensitive information from leaking through other fields in the graph.
+- Encrypt the written data.
 
-Ví dụ:
+Example:
 
 ```java
 class Account implements java.io.Serializable {
@@ -432,24 +432,24 @@ class Account implements java.io.Serializable {
 }
 ```
 
-Nếu caller đặt `sessionToken="abc"` rồi serialize bằng default mechanism, giá trị đó không có trong serialized fields của Account. Nhưng object nào khác chứa cùng token trong field **không transient** vẫn có thể khiến token xuất hiện trong stream. Không xem Java serialization là kho bí mật hay một định dạng an toàn cho credentials.
+If the caller sets `sessionToken="abc"` and serializes using the default mechanism, that value is absent from `Account`'s serialized fields. However, another object holding the same token in a **non-transient** field can still cause the token to appear in the stream. Do not treat Java serialization as a secret store or a secure format for credentials.
 
-### 8.2. Phân biệt constructor thường và quá trình deserialize
+### 8.2. Distinguishing Normal Constructors from Deserialization
 
-Với một serializable class bình thường, quá trình deserialize **không gọi constructor của chính serializable class** theo cách khởi tạo `new` thông thường. Field được khôi phục bằng cơ chế serialization; constructor không tham số của **superclass đầu tiên không Serializable** được gọi theo quy tắc tương ứng.
+For a regular serializable class, deserialization **does not invoke the constructor of the serializable class itself** the way normal `new` initialization does. Fields are restored by the serialization mechanism; the no-argument constructor of the **first non-Serializable superclass** is invoked according to the corresponding rules.
 
-Điều này có hệ quả:
+This has consequences:
 
-- Những invariant chỉ được thiết lập trong constructor của serializable class có thể không được chạy khi khôi phục.
-- Các field transient sẽ có giá trị mặc định (trừ khi code khôi phục chúng chủ động), không tự được gán giá trị bởi constructor class đó.
-- Không thể dựa vào constructor để bảo vệ mọi đối tượng tạo ra bởi deserialize.
-- Với dữ liệu quan trọng, cần validation và kiểm soát nguồn; hook `readObject` có thể tự kiểm tra invariant nhưng cũng là lý do deserialization dữ liệu không tin cậy nguy hiểm.
+- Invariants established only in the serializable class's constructor may not run during restoration.
+- Transient fields receive default values (unless code actively restores them), and are not automatically assigned values by that class's constructor.
+- You cannot rely on constructors to guard every object created by deserialization.
+- For critical data, validation and source control are required; a `readObject` hook can check invariants itself, which is also why deserializing untrusted data is dangerous.
 
-## 9. `serialVersionUID` và tương thích giữa các phiên bản class
+## 9. `serialVersionUID` and Compatibility Between Class Versions
 
-### 9.1. Vì sao Java kiểm tra serialVersionUID?
+### 9.1. Why Does Java Check serialVersionUID?
 
-Khi serialize, thông tin class trong stream gắn với `serialVersionUID`. Khi deserialize, Java kiểm tra class tương ứng trong JVM có phiên bản được cho phép để khôi phục stream này không.
+When serializing, class information in the stream is tagged with `serialVersionUID`. When deserializing, Java checks whether the corresponding class in the JVM has an allowed version to restore this stream.
 
 ```java
 public final class UserProfile implements java.io.Serializable {
@@ -458,30 +458,30 @@ public final class UserProfile implements java.io.Serializable {
 }
 ```
 
-Đây là class biên dịch độc lập `UserProfile.java`. Nếu class triển khai Serializable **không khai báo** `serialVersionUID`, Java tính giá trị mặc định dựa trên chi tiết class theo specification. Giá trị mặc định có thể thay đổi khi bạn chỉnh định nghĩa class; do đó nên khai báo tường minh để quản lý chính sách tương thích thay vì phụ thuộc vào tính toán ngầm.
+This is a standalone compilable class `UserProfile.java`. If a class implementing `Serializable` **does not declare** `serialVersionUID`, Java computes a default value based on class details per the specification. That default value can change when you edit the class definition; therefore, you should declare it explicitly to manage compatibility policy rather than relying on implicit calculation.
 
-Nếu stream và class local có serialVersionUID không khớp, một lỗi thường gặp là `InvalidClassException`:
+If the stream and local class have mismatched `serialVersionUID` values, a common error is `InvalidClassException`:
 
 ```text
 java.io.InvalidClassException: ... local class incompatible:
 stream classdesc serialVersionUID = ..., local class serialVersionUID = ...
 ```
 
-Đây là ví dụ dạng thông báo lỗi **minh họa**, không phải stdout cố định. Nó xuất hiện khi class metadata trong stream không tương thích theo kiểm tra phiên bản.
+This is an **illustrative** error message format, not fixed stdout. It occurs when class metadata in the stream is incompatible under version checking.
 
-### 9.2. Cùng serialVersionUID chưa đủ để bảo đảm mọi thay đổi class tương thích
+### 9.2. The Same serialVersionUID Is Not Enough to Guarantee Every Class Change Is Compatible
 
-Giữ nguyên `serialVersionUID` có thể hỗ trợ **một số thay đổi** về field. Nhưng không có nghĩa bạn có thể:
+Keeping the same `serialVersionUID` can support **certain changes** to fields. However, it does not mean you can:
 
-- Đổi kiểu một field tùy ý.
-- Chuyển class từ Serializable sang Externalizable mà không đổi contract.
-- Thay đổi hierarchy hoặc cấu trúc class theo cách không tương thích.
-- Xóa/đổi tên class mà không có class tương ứng lúc đọc.
-- Tự do đổi `writeObject`/`readObject` custom format mà không versioning.
+- Arbitrarily change a field's type.
+- Switch a class from `Serializable` to `Externalizable` without changing the contract.
+- Alter class hierarchy or structure in incompatible ways.
+- Delete/rename a class without having the corresponding class available at read time.
+- Freely change a custom `writeObject`/`readObject` format without versioning.
 
-Các quy tắc thay đổi class được định nghĩa trong *Java Object Serialization Specification – Versioning of Serializable Objects*. Khi cần lưu tệp nhiều năm hoặc chuyển qua các bản phát hành, hãy version dữ liệu ở tầng ứng dụng, kiểm tra compatibility thực tế bằng test các file mẫu của phiên bản cũ và cân nhắc dùng định dạng dữ liệu rõ schema.
+Class evolution rules are defined in the *Java Object Serialization Specification – Versioning of Serializable Objects*. When files must be stored for years or passed across releases, version data at the application layer, test real compatibility with sample files from older versions, and consider using an explicit-schema data format.
 
-### 9.3. Tự kiểm tra serialVersionUID bằng ObjectStreamClass
+### 9.3. Inspecting serialVersionUID Yourself with ObjectStreamClass
 
 ```java
 long uid = java.io.ObjectStreamClass
@@ -490,17 +490,17 @@ long uid = java.io.ObjectStreamClass
 System.out.println(uid);
 ```
 
-Đây là snippet khi class `UserProfile` phía trên có sẵn. Giá trị in là `3`, không phụ thuộc một thể hiện UserProfile cụ thể. `ObjectStreamClass.lookup` dành cho serializable class; đừng giả định mọi loại class đều có descriptor hữu dụng.
+This is a snippet when the `UserProfile` class above is available. The printed value is `3`, independent of any specific `UserProfile` instance. `ObjectStreamClass.lookup` is for serializable classes; do not assume every kind of class has a useful descriptor.
 
-## 10. Tùy biến dữ liệu bằng private `writeObject` và `readObject` trong class
+## 10. Customizing Data with Private `writeObject` and `readObject` in a Class
 
-Đừng nhầm:
+Do not confuse:
 
-- `out.writeObject(obj)`: phương thức **public** thuộc `ObjectOutputStream`, do caller gọi để serialize object.
-- `private void writeObject(ObjectOutputStream out)`: **hook đặc biệt trong chính class Serializable**, được serialization runtime nhận diện theo chữ ký.
-- `private void readObject(ObjectInputStream in)`: hook khôi phục tùy biến trong chính class Serializable.
+- `out.writeObject(obj)`: the **public** method on `ObjectOutputStream`, called by the caller to serialize an object.
+- `private void writeObject(ObjectOutputStream out)`: a **special hook inside the Serializable class itself**, recognized by the serialization runtime by signature.
+- `private void readObject(ObjectInputStream in)`: custom restoration hook inside the Serializable class itself.
 
-Nếu class cần thêm dữ liệu có cấu trúc hoặc kiểm tra invariant khi khôi phục, có thể khai báo:
+If a class needs additional structured data or invariant checks during restoration, it can declare:
 
 ```java
 import java.io.IOException;
@@ -537,37 +537,37 @@ public final class PositiveCount implements Serializable {
 }
 ```
 
-Đây là class **biên dịch được** (`PositiveCount.java`) nhưng không có `main`/stdout. `defaultWriteObject()` ghi các field được chọn theo cơ chế mặc định của class; `defaultReadObject()` khôi phục chúng. Sau đó `readObject` kiểm tra `count >= 0` vì constructor của serializable class không bảo đảm được gọi khi deserialize.
+This is a **compilable class** (`PositiveCount.java`) without `main`/stdout. `defaultWriteObject()` writes the fields selected by the class's default mechanism; `defaultReadObject()` restores them. Then `readObject` verifies `count >= 0` because the constructor of a serializable class is not guaranteed to be called during deserialization.
 
-### 10.1. Tùy biến stream format phải có kỷ luật
+### 10.1. Customizing the Stream Format Requires Discipline
 
-Nếu hook `writeObject` ghi thêm:
+If the `writeObject` hook writes extra data:
 
 ```java
 out.defaultWriteObject();
 out.writeInt(42);
 ```
 
-thì hook `readObject` tương ứng phải tiêu thụ theo đúng trình tự:
+then the corresponding `readObject` hook must consume it in the exact same order:
 
 ```java
 in.defaultReadObject();
 int extra = in.readInt();
 ```
 
-Hai đoạn trên là snippets trong hooks tương ứng, không phải chương trình độc lập. Với custom serialization, Java có cơ chế optional data/block data trong protocol. Nếu muốn tương thích giữa các phiên bản, cần versioning rõ, không tự tiện đổi thứ tự hay số field tùy biến mà không có đọc tương thích.
+The two snippets above are inside their respective hooks, not standalone programs. With custom serialization, Java provides optional data/block data in the protocol. To maintain cross-version compatibility, explicit versioning is needed—do not arbitrarily change the order or number of custom fields without compatible reading logic.
 
-Các hooks này không cho phép bỏ qua kiểm tra kiểu, security filter hoặc contract của ObjectInputStream. Ngoài `writeObject`/`readObject`, `writeReplace`/`readResolve` có thể thay thế object khi serialize/deserialize; đó là công cụ nâng cao và cũng tăng nguy cơ khi đọc dữ liệu không tin cậy.
+These hooks do not bypass type checks, security filters, or the `ObjectInputStream` contract. Besides `writeObject`/`readObject`, `writeReplace`/`readResolve` can substitute objects during serialization/deserialization; those are advanced tools and also increase risk when reading untrusted data.
 
-### 10.2. `Externalizable` không phải cùng đường đi mặc định
+### 10.2. `Externalizable` Does Not Follow the Default Path
 
-`Externalizable` mở rộng `Serializable` và yêu cầu class định nghĩa `writeExternal(ObjectOutput)` / `readExternal(ObjectInput)`. Với Externalizable, class chủ động chịu trách nhiệm ghi/đọc phần nội dung object, có các yêu cầu constructor riêng (bao gồm public no-argument constructor) khi khôi phục.
+`Externalizable` extends `Serializable` and requires the class to define `writeExternal(ObjectOutput)` / `readExternal(ObjectInput)`. With `Externalizable`, the class actively takes responsibility for writing/reading the object's contents, with its own constructor requirements (including a public no-argument constructor) upon restoration.
 
-Đừng coi `Externalizable` chỉ là “Serializable có thêm một method”. Nó thay đổi trách nhiệm định dạng, phiên bản và tính hợp lệ dữ liệu, nên chỉ dùng khi cần kiểm soát cấu trúc chi tiết và có test tương thích.
+Do not treat `Externalizable` as merely "`Serializable` with one extra method." It changes responsibilities for formatting, versioning, and data validity, so use it only when fine-grained structural control is needed and compatibility tests are in place.
 
-## 11. Stream chứa primitive block data và không phải JSON
+## 11. Streams Contain Primitive Block Data and Are Not JSON
 
-Trong file hex, bạn có thể thấy header, token và các khối dữ liệu đan xen. Ví dụ:
+In a hex file, you can see headers, tokens, and data blocks interleaved. For example:
 
 ```java
 ByteArrayOutputStream buffer = new ByteArrayOutputStream();
@@ -578,23 +578,23 @@ try (ObjectOutputStream out = new ObjectOutputStream(buffer)) {
 }
 ```
 
-Đây là đoạn minh họa trong method xử lý `IOException`, có import tương ứng. Trong stream, `writeInt(42)` sẽ được trình bày qua cơ chế **block data** của ObjectOutputStream, rồi tiếp theo mới đến serialized String. Bạn **không** thể đọc 4 byte đầu file và giả định đó là số `42`, vì bốn byte đầu là header `AC ED 00 05`.
+This is an illustrative snippet inside a method handling `IOException`, with appropriate imports. In the stream, `writeInt(42)` is represented via `ObjectOutputStream`'s **block data** mechanism, followed by the serialized `String`. You **cannot** read the first 4 bytes of the file and assume they are the number `42`, because the first four bytes are the `AC ED 00 05` header.
 
-### 11.1. Định dạng stream có tính cấu trúc, không phải bản dump bộ nhớ JVM
+### 11.1. The Stream Format Is Structural, Not a JVM Memory Dump
 
-Serialization ghi **logic object graph** theo specification chứ không copy raw memory address/địa chỉ con trỏ từ JVM.
+Serialization records a **logical object graph** per the specification rather than copying raw memory addresses/pointers from the JVM.
 
-- Địa chỉ bộ nhớ của object trong process không được giữ nguyên khi đọc từ stream.
-- References giữa các object được mô tả bằng handles tương ứng.
-- Dữ liệu phụ thuộc serializable class schema và các hook custom, không phải layout memory cố định của HotSpot.
-- Một process/JVM khác có thể deserialize khi có classes tương thích, nhưng điều đó **không** giúp đối tượng trở nên an toàn nếu bytes đến từ nguồn không tin cậy.
-- Không thể dùng stream này làm chuẩn trao đổi độc lập ngôn ngữ theo cách JSON/Protocol Buffers được thiết kế.
+- An object's memory address in a process is not preserved when reading from a stream.
+- References between objects are represented using corresponding handles.
+- Data depends on the serializable class schema and custom hooks, not HotSpot's fixed memory layout.
+- Another process/JVM can deserialize when compatible classes are available, yet that **does not** make the object safe if bytes come from an untrusted source.
+- This stream cannot be used as a language-independent exchange standard the way JSON or Protocol Buffers are designed.
 
-### 11.2. Không phải tất cả field values được lặp trong mỗi lần writeObject
+### 11.2. Not All Field Values Are Repeated on Every writeObject
 
-Trong một stream đang giữ handle table, Java có thể ghi `TC_REFERENCE` thay vì serialize lại object. Vì thế kích thước bytes sinh ra sau từng `writeObject` phụ thuộc lịch sử stream, object graph, cách gọi `reset`, và các hook, không chỉ phụ thuộc `toString()` hoặc số field hiện tại.
+In a stream maintaining a handle table, Java may write `TC_REFERENCE` instead of re-serializing an object. Therefore, the byte size produced after each `writeObject` depends on stream history, object graph, `reset` calls, and hooks—not merely `toString()` or the current field count.
 
-Nếu muốn đo kích thước serialized bytes:
+If you want to measure serialized byte size:
 
 ```java
 ByteArrayOutputStream sink = new ByteArrayOutputStream();
@@ -604,25 +604,25 @@ try (ObjectOutputStream out = new ObjectOutputStream(sink)) {
 int byteCount = sink.toByteArray().length;
 ```
 
-Đây là snippet với `obj` serializable và đã import các lớp tương ứng. Kết quả `byteCount` là số byte **được ghi cho object và overhead của stream**, bao gồm header/descriptors; không phải kích thước bộ nhớ heap của object.
+This is a snippet with a serializable `obj` and the corresponding classes imported. The resulting `byteCount` is the number of bytes **written for the object and stream overhead**, including header/descriptors; it is not the object's heap memory size.
 
-## 12. Lỗi và ngoại lệ thường gặp
+## 12. Common Errors and Exceptions
 
-| Ngoại lệ | Khi nào gặp | Hướng xử lý |
+| Exception | When encountered | How to handle |
 |---|---|---|
-| `NotSerializableException` | Trong graph có object thuộc class không serializable | Chỉ serialize DTO được thiết kế cho mục đích này, dùng `transient` khi phù hợp |
-| `InvalidClassException` | Class stream/local không tương thích, thường UID khác hoặc vi phạm serialization constraints | Quản lý `serialVersionUID` và test schema/version |
-| `StreamCorruptedException` | Header/control bytes không tuân theo protocol, hoặc stream bị hỏng | Kiểm tra nguồn/định dạng, tránh trộn nhiều header |
-| `ClassNotFoundException` | JVM không tìm được class cần dựng lại | Đảm bảo classpath/module, tránh storage phụ thuộc class không ổn định |
-| `EOFException` | Không còn đủ bytes để đọc tiếp theo yêu cầu | Quản lý framing/count, tránh dựa vào EOF làm mọi logic cấu trúc |
-| `OptionalDataException` | Đọc object tại vị trí dữ liệu primitive hoặc tình huống optional data đặc biệt | Đọc cùng thứ tự và format bên ghi |
-| `InvalidObjectException` | Hook validation chủ động báo object state không hợp lệ | Kiểm tra schema và dữ liệu, không bỏ qua lỗi |
-| `IOException` | File/socket/stream có sự cố I/O | Đóng stream, báo lỗi; không coi bytes đã ghi/đọc là hoàn chỉnh |
-| `ClassCastException` | Ép object đọc được sang class mong đợi nhưng sai type | Kiểm tra instance/type, filter, schema |
+| `NotSerializableException` | The graph contains an object of a non-serializable class | Only serialize DTOs designed for this purpose; use `transient` when appropriate |
+| `InvalidClassException` | Stream/local class incompatible, often differing UID or violated serialization constraints | Manage `serialVersionUID` and test schema/versioning |
+| `StreamCorruptedException` | Header/control bytes violate the protocol, or stream is corrupted | Check source/format; avoid mixing multiple headers |
+| `ClassNotFoundException` | JVM cannot find the class needed for reconstruction | Ensure classpath/modules; avoid storage coupled to unstable classes |
+| `EOFException` | Not enough bytes remain to continue reading as requested | Manage framing/counts; avoid relying on EOF for all structural logic |
+| `OptionalDataException` | Reading an object at a primitive data position or special optional data cases | Read in the same order and format as the writing side |
+| `InvalidObjectException` | Validation hook actively reports invalid object state | Check schema and data; do not ignore the error |
+| `IOException` | File/socket/stream has an I/O failure | Close stream, report error; do not treat partial bytes written/read as complete |
+| `ClassCastException` | Casting a read object to an expected class of the wrong type | Check instance/type, filters, schema |
 
-**Không cố tiếp tục đọc một ObjectInputStream đã gặp lỗi serialization nghiêm trọng và giả định offset vẫn hợp lệ.** Java API có thể để stream ở trạng thái không xác định. Khi phát hiện dữ liệu hỏng hoặc không đáng tin, thường nên đóng stream, báo lỗi và thực hiện recovery cấp ứng dụng thay vì cố gắng tìm token tiếp theo trong mảng bytes.
+**Do not try to keep reading an `ObjectInputStream` that has hit a serious serialization error and assume the offset is still valid.** The Java API may leave the stream in an indeterminate state. When corrupted or untrusted data is detected, generally close the stream, report the error, and perform application-level recovery rather than trying to find the next token in the byte array.
 
-### 12.1. Ví dụ `NotSerializableException`
+### 12.1. `NotSerializableException` Example
 
 ```java
 final class NotSerializableHelper {
@@ -634,28 +634,28 @@ final class Container implements java.io.Serializable {
 }
 ```
 
-Đây là hai class minh họa. `out.writeObject(new Container())` sẽ thất bại vì `helper` trỏ tới class không triển khai Serializable/Externalizable. Việc đổi field sang `transient` chỉ phù hợp nếu trạng thái đó không cần trong dữ liệu khôi phục; không được “sửa” bằng cách bỏ dữ liệu quan trọng mà không thiết kế cơ chế rebuild.
+These are two illustrative classes. `out.writeObject(new Container())` will fail because `helper` points to a class that does not implement `Serializable`/`Externalizable`. Changing the field to `transient` is only appropriate if that state is not needed in the restored data; do not "fix" it by dropping important data without designing a rebuild mechanism.
 
-### 12.2. Không dùng `toString()` để đối chiếu bytes hay identity
+### 12.2. Do Not Use `toString()` to Verify Bytes or Identity
 
-Khi đọc một object, `System.out.println(obj)` có thể in chuỗi dễ hiểu nếu class override `toString()`, hoặc giá trị identity hash string nếu không. Nó không chứng minh object graph được khôi phục chính xác. Để kiểm thử, so sánh field cụ thể, reference identity khi cần, invariant và behavior ứng dụng; dùng `==` trong test reference sharing như ví dụ `ObjectStreamDemo`.
+When reading an object, `System.out.println(obj)` may print a readable string if the class overrides `toString()`, or an identity hash string if not. It does not prove the object graph was restored accurately. For testing, compare specific fields, reference identity when needed, invariants, and application behavior; use `==` when testing reference sharing as in the `ObjectStreamDemo` example.
 
-## 13. Rủi ro bảo mật của `readObject`
+## 13. Security Risks of `readObject`
 
-Java Object Deserialization được tài liệu JDK cảnh báo là **nguy hiểm nếu dữ liệu đến từ nguồn không tin cậy**. Khi đọc, runtime có thể nạp class, khởi tạo object theo cơ chế đặc thù và kích hoạt hook/deserialization logic trong những class có mặt trên classpath. Một chuỗi byte do đối phương điều khiển có thể cố tạo object graph rất sâu, array rất lớn hoặc kích hoạt chuỗi class/hook nguy hiểm.
+Java Object Deserialization is warned against in JDK documentation as **dangerous if data comes from an untrusted source**. When reading, the runtime can load classes, instantiate objects via special mechanisms, and trigger hooks/deserialization logic in classes present on the classpath. An adversary-controlled byte sequence can attempt to create a deeply nested object graph, huge arrays, or dangerous class/hook gadget chains.
 
-**Nguyên tắc ưu tiên:**
+**Priority principles:**
 
-1. Không nhận Java serialized object stream trực tiếp từ Internet/người dùng không đáng tin khi có thể dùng JSON/CBOR/Protocol Buffers có schema/validation rõ.
-2. Nếu buộc dùng, **giới hạn class được phép** và các tài nguyên liên quan bằng `ObjectInputFilter`, filter factory/hệ thống theo chính sách deploy, và kiểm soát classpath.
-3. Áp giới hạn kích thước byte toàn bộ trước khi đọc nếu giao thức cho phép; dùng timeouts/limits ở tầng transport.
-4. Sau deserialize vẫn xác minh object type, cấu trúc, trường bắt buộc và bất biến nghiệp vụ.
-5. Dùng cập nhật JDK/thư viện và tránh đưa các lớp không cần thiết vào classpath của tiến trình giải tuần tự hóa.
-6. Không tin tưởng `instanceof` **sau khi** đọc như một cơ chế duy nhất, bởi các bước tạo/khôi phục đối tượng đã diễn ra trong `readObject()`.
+1. Do not accept Java serialized object streams directly from the Internet/untrusted users when JSON/CBOR/Protocol Buffers with clear schemas/validation can be used.
+2. If you must use it, **restrict allowed classes** and related resources using `ObjectInputFilter`, a system/deployment-policy filter factory, and classpath control.
+3. Enforce a total byte size limit before reading if the protocol allows; apply timeouts/limits at the transport layer.
+4. After deserialization, still verify object type, structure, required fields, and business invariants.
+5. Keep the JDK/libraries updated and avoid putting unnecessary classes on the classpath of the deserializing process.
+6. Do not rely on `instanceof` **after** reading as the sole defense, because object creation/restoration steps have already run inside `readObject()`.
 
-### 13.1. `ObjectInputFilter` và các giới hạn
+### 13.1. `ObjectInputFilter` and Limits
 
-Từ các phiên bản Java hiện đại, `ObjectInputStream` có thể dùng filter kiểm tra class, array length, graph depth, số references và lượng byte tiêu thụ. Ví dụ policy mang tính **minh họa**:
+In modern Java versions, `ObjectInputStream` can use a filter to inspect classes, array lengths, graph depth, reference counts, and bytes consumed. **Illustrative** policy example:
 
 ```java
 ObjectInputFilter filter = ObjectInputFilter.Config.createFilter(
@@ -663,34 +663,34 @@ ObjectInputFilter filter = ObjectInputFilter.Config.createFilter(
       + "com.example.dto.*;!*");
 
 try (ObjectInputStream in = new ObjectInputStream(source)) {
-    in.setObjectInputFilter(filter); // Phải trước readObject().
+    in.setObjectInputFilter(filter); // Must be before readObject().
     Object value = in.readObject();
-    // Tiếp tục validate type/schema/invariant.
+    // Continue validating type/schema/invariants.
 }
 ```
 
-Đây là **đoạn minh họa**, không phải chương trình độc lập: cần import `ObjectInputFilter`, `ObjectInputStream`; `source` là InputStream; caller xử lý `IOException`/`ClassNotFoundException`. Tên `com.example.dto.*` phải được thay bằng những class thực tế được phép theo kiến trúc của ứng dụng; các loại container, arrays, hoặc class phụ thuộc hợp lệ cũng cần kiểm tra chính sách tương ứng. `!*` cuối là chặn class chưa được allowlist. Một số giá trị string/primitive có ngoại lệ trong cơ chế gọi filter, nên filter **không phải validator nội dung**.
+This is an **illustrative snippet**, not a standalone program: it requires importing `ObjectInputFilter`, `ObjectInputStream`; `source` is an `InputStream`; the caller handles `IOException`/`ClassNotFoundException`. `com.example.dto.*` must be replaced with the actual classes permitted by the application architecture; valid container types, arrays, or dependent classes also need corresponding policy checks. The trailing `!*` blocks classes not on the allowlist. Certain string/primitive values have exceptions in how the filter is invoked, so the filter **is not a content validator**.
 
-`setObjectInputFilter` được gọi **một lần** trước khi đọc object; nó không phải cấu hình được thay đi thay lại tùy item sau khi stream đã bắt đầu đọc. Còn có policy toàn JVM thông qua filter factory/JVM properties; cách kết hợp được quy định bởi JDK và yêu cầu cấu hình thực tế.
+`setObjectInputFilter` is called **once** before reading objects; it is not a configuration to swap back and forth per item after the stream has started reading. There is also JVM-wide policy via filter factories/JVM properties; how they combine is defined by the JDK and actual configuration requirements.
 
-**Filter giảm rủi ro nhưng không bảo đảm stream “đã an toàn”.** Hãy coi việc giải tuần tự hóa từ nguồn không tin cậy là một boundary bảo mật, áp dụng nhiều lớp kiểm soát và ưu tiên format được thiết kế cho trao đổi dữ liệu.
+**Filters reduce risk but do not guarantee the stream is "safe."** Treat deserialization from untrusted sources as a security boundary, apply defense in depth, and prefer formats designed for data exchange.
 
-### 13.2. Không nên log/deserialise bytes chưa kiểm tra chỉ để xem chúng là gì
+### 13.2. Do Not Log/Deserialize Unchecked Bytes Just to See What They Are
 
-Một antipattern:
+An antipattern:
 
 ```java
 Object object = new ObjectInputStream(untrustedInput).readObject();
-// Sau đó mới kiểm tra object thuộc class nào.
+// Only check which class the object belongs to afterward.
 ```
 
-Đây là code minh họa **không an toàn**, không nên dùng với dữ liệu không đáng tin. Rủi ro nằm **trong quá trình deserialize**, trước khi code kiểm tra class của object trả về. Dùng schema-driven parsing và giới hạn bytes/class graph trước khi tiếp nhận nội dung.
+This is **unsafe** illustrative code and should not be used with untrusted data. The risk lies **during deserialization**, before your code checks the returned object's class. Use schema-driven parsing and limit bytes/class graphs before accepting content.
 
-## 14. Lưu object vào file và độ bền dữ liệu
+## 14. Persisting Objects to Files and Data Durability
 
-### 14.1. `flush()` không đồng nghĩa `fsync`
+### 14.1. `flush()` Does Not Mean `fsync`
 
-`out.flush()` đẩy dữ liệu đang buffer xuống OutputStream kế tiếp; `out.close()` đóng stream và xử lý flush theo contract. Cả hai **không tự tạo cam kết** rằng dữ liệu đã được ghi bền qua sự cố mất điện trên mọi filesystem.
+`out.flush()` pushes buffered data down to the underlying `OutputStream`; `out.close()` closes the stream and handles flushing per contract. Neither **automatically guarantees** that data is durably persisted across a power loss on every filesystem.
 
 ```java
 try (FileOutputStream file = new FileOutputStream("state.bin");
@@ -698,27 +698,27 @@ try (FileOutputStream file = new FileOutputStream("state.bin");
 
     out.writeObject(state);
     out.flush();
-    file.getFD().sync(); // Yêu cầu sync file descriptor theo contract.
+    file.getFD().sync(); // Request file descriptor sync per contract.
 }
 ```
 
-Đây là đoạn minh họa trong method có `state` Serializable, import `FileOutputStream`/`ObjectOutputStream`. `FileDescriptor.sync()` là thao tác yêu cầu đồng bộ nội dung file qua descriptor; nó có chi phí và ràng buộc phụ thuộc thiết bị/provider. Nếu ứng dụng cần cập nhật file trạng thái nguyên tử, nên ghi vào file tạm rồi công bố bằng rename với những yêu cầu độ bền filesystem phù hợp — **không phải vì có `writeObject` nên tự động đạt durability**.
+This is an illustrative snippet in a method with a Serializable `state`, importing `FileOutputStream`/`ObjectOutputStream`. `FileDescriptor.sync()` requests syncing file contents via the descriptor; it has overhead and device/provider-dependent constraints. If an application needs atomic state file updates, write to a temporary file and publish via rename with appropriate filesystem durability requirements—**calling `writeObject` does not automatically provide durability**.
 
-### 14.2. Đọc lại file lưu dài hạn không phải lúc nào cũng thành công
+### 14.2. Reading Long-Term Stored Files Does Not Always Succeed
 
-Một `ObjectOutputStream` có thể tạo bytes đúng ở phiên bản ứng dụng hiện tại, nhưng sau vài năm:
+An `ObjectOutputStream` may produce valid bytes in the current application version, but after a few years:
 
-- Package/class đã đổi tên.
-- `serialVersionUID` khác.
-- Một số fields/classes của object graph đã biến mất.
-- Bộ lọc deserialization policy mới từ chối class cũ.
-- Class mới có invariant khác và không còn chấp nhận data cũ.
+- Packages/classes have been renamed.
+- `serialVersionUID` differs.
+- Some fields/classes in the object graph have disappeared.
+- A new deserialization filter policy rejects old classes.
+- The new class has different invariants and no longer accepts old data.
 
-Vì vậy Java serialization thường phù hợp khi **cả bên ghi và bên đọc cùng nằm trong hệ sinh thái Java được quản lý chặt** và phiên bản tương thích được kiểm thử; không phải lựa chọn mặc định để lưu dữ liệu nghiệp vụ cần schema ổn định xuyên năm/thế hệ triển khai.
+Therefore, Java serialization is generally suitable when **both writer and reader live within a tightly managed Java ecosystem** and version compatibility is tested; it is not the default choice for persisting business data that needs a stable schema across years or deployment generations.
 
-## 15. Thứ tự đọc/ghi và protocol framing
+## 15. Read/Write Order and Protocol Framing
 
-Giả sử bên ghi:
+Suppose the writer does:
 
 ```java
 out.writeObject(user);
@@ -726,7 +726,7 @@ out.writeObject(order);
 out.writeInt(2026);
 ```
 
-Bên đọc đúng:
+Correct reading side:
 
 ```java
 User user = (User) in.readObject();
@@ -734,138 +734,138 @@ Order order = (Order) in.readObject();
 int year = in.readInt();
 ```
 
-Hai snippets giả định các class `User`/`Order` serializable, output/input stream cùng format, và có xử lý checked exceptions. `ObjectInputStream` không tự biết “message number 1 là User, message number 2 là Order” ngoài dữ liệu class descriptor của chính stream. Caller phải thống nhất **sequence/protocol**.
+Both snippets assume `User`/`Order` are serializable, output/input streams share the same format, and checked exceptions are handled. `ObjectInputStream` does not inherently know "message number 1 is User, message number 2 is Order" beyond the stream's own class descriptors. Callers must agree on the **sequence/protocol**.
 
-Một thiết kế ổn định nên xác định:
+A solid design should specify:
 
-- Phiên bản giao thức ứng dụng ở tầng ngoài, tách với `STREAM_VERSION` của Java.
-- Kiểu record được phép và phạm vi của từng message.
-- Số lượng message, điều kiện kết thúc và các giới hạn byte.
-- Cách xử lý disconnect/stream truncated.
-- Cách chuyển đổi phiên bản class và chính sách allowlist.
-- Khi nào được `reset()` để tránh reference alias qua những message logic.
-- Điều kiện tin cậy của nguồn bytes và đối tượng được tái dựng.
+- An outer application protocol version, separate from Java's `STREAM_VERSION`.
+- Allowed record types and the scope of each message.
+- Message count, termination conditions, and byte limits.
+- How to handle disconnects/truncated streams.
+- Class version evolution and allowlist policies.
+- When `reset()` is allowed to avoid reference aliasing across logical messages.
+- Trust conditions for the byte source and reconstructed objects.
 
-### 15.1. Không nối stream headers tùy tiện
+### 15.1. Do Not Concatenate Stream Headers Arbitrarily
 
-Nếu một process mở file với chế độ append rồi khởi tạo **ObjectOutputStream mới** và ghi object:
+If a process opens a file in append mode and constructs a **new `ObjectOutputStream`** to write an object:
 
 ```java
 new ObjectOutputStream(new FileOutputStream("data.bin", true))
         .writeObject(obj);
 ```
 
-Đây là snippet minh họa **lỗi thiết kế**, còn không đóng stream nên cũng rò rỉ tài nguyên. Constructor tạo một **header mới** giữa file; khi đọc bằng một `ObjectInputStream` duy nhất và gọi `readObject` liên tiếp, header đó có thể bị xem là thông tin protocol không hợp lệ.
+This snippet illustrates a **design bug** and also leaks resources because it never closes the stream. The constructor writes a **new header** in the middle of the file; when reading with a single `ObjectInputStream` and calling `readObject` repeatedly, that header may be treated as invalid protocol data.
 
-Giải pháp: giữ **một ObjectOutputStream sống trong phạm vi ghi tương ứng**, hoặc thiết kế framing rõ cho nhiều serialized streams độc lập và đọc từng frame bằng ObjectInputStream riêng. Một số kỹ thuật subclass để suppress header khi append rất dễ sai với handles/protocol, cần chứng minh correctness; không nên sao chép mẹo bỏ header vào production mà thiếu kiểm thử.
+Solution: keep **one `ObjectOutputStream` open for the corresponding write scope**, or design explicit framing for multiple independent serialized streams and read each frame with a separate `ObjectInputStream`. Techniques that subclass to suppress headers on append are very error-prone with handles/protocol and require proving correctness; do not copy header-suppression tricks into production without testing.
 
-## 16. Phân biệt với định dạng lưu trữ khác
+## 16. Comparison with Other Storage Formats
 
-| Mục tiêu | Java Object Serialization | Lựa chọn đáng cân nhắc |
+| Goal | Java Object Serialization | Alternatives Worth Considering |
 |---|---|---|
-| Truyền object graph Java giữa các thành phần tin cậy | Có thể phù hợp khi version/class được kiểm soát | Giao thức binary có schema nếu muốn ổn định hơn |
-| JSON API giữa nhiều ngôn ngữ | Không phù hợp: định dạng nhị phân Java-specific | JSON + validation |
-| Lưu config người dùng có thể sửa tay | Khó đọc/sửa | Properties, JSON, YAML/TOML với parser an toàn |
-| Dữ liệu nhị phân có cấu trúc schema lâu dài | Phụ thuộc class và UID | Protocol Buffers, Avro, CBOR/schema |
-| Lưu một mảng byte/ảnh/file thô | Không cần overhead object graph | `Files.readAllBytes`/`Files.write` hoặc streams/channels |
-| Lưu secret/credential | Không có encryption mặc định | Kho bí mật/keystore/encryption phù hợp |
-| Nhận bytes chưa tin cậy | Rủi ro lớn khi `readObject` | Định dạng dữ liệu có parser/allowlist/schema |
+| Passing Java object graphs between trusted components | Can fit when versions/classes are controlled | Schema-backed binary protocol if more stability is desired |
+| JSON API across multiple languages | Unsuitable: Java-specific binary format | JSON + validation |
+| Storing human-editable user configuration | Hard to read/edit | Properties, JSON, YAML/TOML with a safe parser |
+| Structured binary data with long-term schema | Coupled to classes and UID | Protocol Buffers, Avro, CBOR/schema |
+| Storing raw byte arrays/images/files | No need for object graph overhead | `Files.readAllBytes`/`Files.write` or streams/channels |
+| Storing secrets/credentials | No default encryption | Secret store/keystore/appropriate encryption |
+| Receiving untrusted bytes | Major risk on `readObject` | Data format with safe parser/allowlist/schema |
 
-Nếu cần Java serialization, dùng nó do **yêu cầu tương thích/lifecycle rõ ràng**, không chỉ vì hai dòng code tiện hơn.
+If you need Java serialization, use it for **clear compatibility/lifecycle requirements**, not just because two lines of code feel convenient.
 
-## 17. Những lỗi thường gặp
+## 17. Common Mistakes
 
-1. **Quên implements `Serializable`** ở class hoặc object con được tham chiếu. Có thể ném `NotSerializableException`.
-2. **Cho rằng mọi field đều được ghi.** `static` và `transient` không nằm trong trạng thái mặc định.
-3. **Nghĩ `transient` là mã hóa.** Nó không lưu theo cơ chế mặc định nhưng không tự bảo vệ các field/alias khác.
-4. **Nhầm `writeObject` của stream với hook private của class.** Chúng khác vai trò và chữ ký.
-5. **Đổi class rồi không kiểm tra serialVersionUID.** `InvalidClassException` có thể xảy ra.
-6. **Giữ UID bằng nhau rồi giả định mọi schema đều tương thích.** Một số thay đổi field/hierarchy/custom data vẫn phá format.
-7. **Đọc primitive bằng `readObject`.** Phải dùng `readInt`/`readUTF`... theo thứ tự bên ghi.
-8. **Đọc số object khác với số đã ghi.** Có thể gặp `EOFException` hoặc lỗi protocol.
-9. **Nhầm header `AC ED 00 05` với dữ liệu object.** Đó là metadata bắt đầu stream, không phải field của object.
-10. **Nghĩ lần thứ hai `writeObject(sameInstance)` gửi trạng thái mới.** Handle table có thể ghi reference tới lần đầu.
-11. **Thay đổi object giữa hai lần write nhưng không `reset()` khi cần snapshot mới.** Phía đọc vẫn tham chiếu state cũ.
-12. **Nghĩ `writeUnshared` deep-copy toàn bộ object graph.** Nó không bảo đảm alias-free nested references.
-13. **Cố parse hex stream bằng cách tìm byte `TC_OBJECT` tùy tiện.** Token cần được hiểu theo grammar và length.
-14. **Tạo ObjectOutputStream mới mỗi lần append cùng file.** Header lặp giữa stream phá việc đọc liên tục.
-15. **Hai đầu socket cùng tạo ObjectInputStream trước khi có output header.** Có thể deadlock do constructor đợi bytes header.
-16. **Đóng ObjectOutputStream rồi tiếp tục dùng OutputStream bên dưới.** Close truyền xuống stream bên dưới.
-17. **Chỉ `flush()` rồi khẳng định file durable qua mất điện.** Flush Java khác filesystem persistence.
-18. **Dùng `readObject` cho JSON/text/ZIP.** Không cùng định dạng; có thể lỗi header.
-19. **Dựa vào constructor của Serializable class để validate mọi object deserialize.** Constructor của chính class có thể không được gọi.
-20. **Chỉ kiểm tra `instanceof` sau `readObject` và coi dữ liệu bên ngoài an toàn.** Lúc ấy quá trình deserialize đã diễn ra.
-21. **Không có ObjectInputFilter/resource limits khi đọc data không tin cậy.** Có nguy cơ tải đồ thị nguy hiểm/quá lớn.
-22. **Bắt mọi `IOException` rồi cố đọc tiếp stream hỏng.** Trạng thái object stream có thể không xác định.
-23. **Dùng `toString()` làm bằng chứng deep equality.** Cần test fields, references và invariant.
-24. **Nghĩ version stream `00 05` là serialVersionUID của class.** Hai khái niệm độc lập.
-25. **Cho rằng String luôn được mã hóa như UTF-8 bytes raw trong toàn bộ stream.** Protocol có quy tắc mã hóa và markers riêng; không đồng nhất với `"abc".getBytes(UTF_8)`.
-26. **Coi serialization như sao chép raw memory.** Java lưu trạng thái logic theo protocol và class descriptors.
-27. **Không xử lý class không còn trên classpath.** `ClassNotFoundException` có thể làm dữ liệu cũ không đọc được.
-28. **Tin bản đọc lại luôn có invariant hợp lệ.** Cần validation và quản lý phiên bản class.
-29. **Không quản lý số byte/file size tối đa trước khi deserialize.** Filter và giới hạn tài nguyên nên được thiết kế ở nhiều tầng.
-30. **Dùng object serialization làm cơ chế lưu dữ liệu dài hạn mà không có test compatibility.** File hôm nay chưa chắc đọc được ở deployment tương lai.
+1. **Forgetting to implement `Serializable`** on the class or a referenced child object. Can throw `NotSerializableException`.
+2. **Assuming every field is written.** `static` and `transient` are not included in default state.
+3. **Thinking `transient` means encryption.** It omits the field from the default mechanism but does not automatically protect other fields/aliases.
+4. **Confusing the stream's `writeObject` with the class's private hook.** They have different roles and signatures.
+5. **Changing a class without checking `serialVersionUID`.** `InvalidClassException` may occur.
+6. **Keeping the same UID and assuming every schema change is compatible.** Some field/hierarchy/custom-data changes still break the format.
+7. **Reading primitives with `readObject`.** Must use `readInt`/`readUTF`... in the writer's order.
+8. **Reading a different number of objects than written.** Can hit `EOFException` or protocol errors.
+9. **Confusing the `AC ED 00 05` header with object data.** That is stream-start metadata, not an object field.
+10. **Thinking a second `writeObject(sameInstance)` sends new state.** The handle table may write a reference to the first occurrence.
+11. **Mutating an object between two writes without calling `reset()` when a fresh snapshot is needed.** The reader still references the old state.
+12. **Thinking `writeUnshared` deep-copies the whole object graph.** It does not guarantee alias-free nested references.
+13. **Trying to parse a hex stream by scanning for arbitrary `TC_OBJECT` bytes.** Tokens must be interpreted according to grammar and lengths.
+14. **Creating a new `ObjectOutputStream` each time while appending to the same file.** Repeated headers mid-stream break continuous reading.
+15. **Both sides of a socket creating `ObjectInputStream` before any output header is sent.** Can deadlock because the constructor waits for header bytes.
+16. **Closing `ObjectOutputStream` and then continuing to use the underlying `OutputStream`.** Close propagates to the underlying stream.
+17. **Calling only `flush()` and claiming the file is durable across power loss.** Java flushing differs from filesystem persistence.
+18. **Using `readObject` on JSON/text/ZIP.** Incompatible format; likely header error.
+19. **Relying on the `Serializable` class constructor to validate every deserialized object.** That class's constructor may not be invoked.
+20. **Only checking `instanceof` after `readObject` and treating external data as safe.** By then deserialization has already occurred.
+21. **Omitting `ObjectInputFilter`/resource limits when reading untrusted data.** Risks loading dangerous/oversized graphs.
+22. **Catching every `IOException` and trying to keep reading a corrupted stream.** Object stream state may be undefined.
+23. **Using `toString()` as proof of deep equality.** Must test fields, references, and invariants.
+24. **Thinking stream version `00 05` is the class's `serialVersionUID`.** The two concepts are independent.
+25. **Assuming `String` is always encoded as raw UTF-8 bytes throughout the stream.** The protocol has its own encoding rules and markers; it is not identical to `"abc".getBytes(UTF_8)`.
+26. **Treating serialization as raw memory copying.** Java persists logical state using the protocol and class descriptors.
+27. **Not handling classes missing from the classpath.** `ClassNotFoundException` can make old data unreadable.
+28. **Trusting restored objects to always have valid invariants.** Validation and class version management are needed.
+29. **Not enforcing maximum byte/file size before deserializing.** Filters and resource limits should be layered.
+30. **Using object serialization as long-term storage without compatibility tests.** Today's file might not be readable in a future deployment.
 
-## 18. Tự kiểm tra kiến thức
+## 18. Self-Check Quiz
 
-**Câu 1.** `writeObject` tạo JSON hay một định dạng binary riêng?  
-**Trả lời:** Binary Java Object Serialization Stream Protocol, có header/descriptors/tokens/handles.
+**Question 1.** Does `writeObject` produce JSON or a dedicated binary format?  
+**Answer:** The binary Java Object Serialization Stream Protocol, containing headers/descriptors/tokens/handles.
 
-**Câu 2.** Bốn byte đầu của ObjectOutputStream thông thường là gì?  
-**Trả lời:** `AC ED 00 05` (magic và stream version).
+**Question 2.** What are the first four bytes of a typical `ObjectOutputStream`?  
+**Answer:** `AC ED 00 05` (magic and stream version).
 
-**Câu 3.** Class `Serializable` có cần override `writeObject` không?  
-**Không.** Serializable là marker interface, cơ chế mặc định có thể tự ghi các field phù hợp.
+**Question 3.** Does a `Serializable` class need to override `writeObject`?  
+**No.** `Serializable` is a marker interface; the default mechanism can write eligible fields automatically.
 
-**Câu 4.** Nếu class Serializable có field non-transient trỏ tới class không Serializable thì sao?  
-**Trả lời:** Ghi graph có thể ném `NotSerializableException`.
+**Question 4.** What happens if a `Serializable` class has a non-transient field pointing to a non-Serializable class?  
+**Answer:** Writing the graph can throw `NotSerializableException`.
 
-**Câu 5.** `readObject` trả kiểu tĩnh nào và nên làm gì sau đó?  
-**Trả lời:** `Object`; kiểm tra/ép kiểu hợp lệ và xác minh dữ liệu, nhưng không coi kiểm tra sau đọc là bảo vệ đầy đủ trước untrusted input.
+**Question 5.** What is the static return type of `readObject`, and what should you do afterward?  
+**Answer:** `Object`; validate/cast appropriately and verify data, but do not treat post-read checks as full protection against untrusted input.
 
-**Câu 6.** Vì sao hai lần `writeObject(sameObj)` rồi đọc hai lần có thể tạo cùng reference?  
-**Vì** ObjectOutputStream duy trì handle table và có thể ghi `TC_REFERENCE` cho object đã ghi.
+**Question 6.** Why can calling `writeObject(sameObj)` twice and reading twice produce the same reference?  
+**Because** `ObjectOutputStream` maintains a handle table and can write `TC_REFERENCE` for an already-written object.
 
-**Câu 7.** `out.reset()` giữa hai lần ghi có tác dụng gì?  
-**Trả lời:** Xóa handles đã nhớ và ghi reset marker; object ghi sau được serialize lại trong context mới.
+**Question 7.** What does `out.reset()` between two writes do?  
+**Answer:** Clears remembered handles and writes a reset marker; objects written afterward are serialized anew in a fresh context.
 
-**Câu 8.** `transient String token` được khôi phục thành gì với cơ chế mặc định?  
-**Trả lời:** Thường là `null` nếu không có custom logic thay đổi nó.
+**Question 8.** What is `transient String token` restored to under the default mechanism?  
+**Answer:** Typically `null` unless custom logic modifies it.
 
-**Câu 9.** `serialVersionUID` khác `STREAM_VERSION` ở đâu?  
-**Trả lời:** UID xác định phiên bản tương thích của class; STREAM_VERSION mô tả phiên bản serialization wire protocol.
+**Question 9.** How does `serialVersionUID` differ from `STREAM_VERSION`?  
+**Answer:** UID identifies a class's compatible version; `STREAM_VERSION` describes the serialization wire protocol version.
 
-**Câu 10.** Một ObjectInputStream có thể đọc file UTF-8 thông thường không?  
-**Không.** Stream phải đúng Java object serialization protocol; file text không có header/class descriptors thích hợp.
+**Question 10.** Can an `ObjectInputStream` read an ordinary UTF-8 text file?  
+**No.** The stream must follow the Java object serialization protocol; text files lack appropriate headers/class descriptors.
 
-**Câu 11.** Có thể đọc dữ liệu không tin cậy rồi mới kiểm tra type để loại bỏ mọi rủi ro không?  
-**Không.** Deserialization đã khởi động trước lúc kiểm tra. Ưu tiên format có schema, filter và giới hạn tài nguyên khi bắt buộc dùng object stream.
+**Question 11.** Can you read untrusted data first and then check the type afterward to eliminate all risk?  
+**No.** Deserialization has already started before the check. Prefer schema-based formats, or filters and resource limits when an object stream is unavoidable.
 
-**Câu 12.** Nếu class đổi package hoặc biến mất, nhưng byte file vẫn nguyên, deserialize có chắc thành công?  
-**Không.** JVM vẫn cần giải quyết tên class và các quy tắc tương thích.
+**Question 12.** If a class changes package or disappears while the file bytes remain intact, is deserialization guaranteed to succeed?  
+**No.** The JVM still needs to resolve the class name and compatibility rules.
 
-**Câu 13.** `out.flush()` có bảo đảm tệp vẫn nguyên sau mất điện không?  
-**Không.** Flush ở tầng Java không đồng nghĩa độ bền của thiết bị/file system.
+**Question 13.** Does `out.flush()` guarantee a file survives a power loss intact?  
+**No.** Java-level flushing is not equivalent to device/filesystem durability.
 
-**Câu 14.** `writeUnshared` có bảo đảm mọi nested object đều được deep clone không?  
-**Không.** Nó chỉ thay semantics chia sẻ ở cấp được API định nghĩa; nested references có thể vẫn chia sẻ.
+**Question 14.** Does `writeUnshared` guarantee that all nested objects are deep-cloned?  
+**No.** It only changes sharing semantics at the API-defined level; nested references can still be shared.
 
-**Câu 15.** Làm sao kiểm tra file stream chứa toàn graph object, chứ không chỉ trùng chuỗi in ra?  
-**Trả lời:** Test giá trị fields, reference identity, chu trình, invariants, serialization hooks và khả năng đọc qua phiên bản tương thích.
+**Question 15.** How do you verify a stream file preserves the full object graph rather than just matching printed strings?  
+**Answer:** Test field values, reference identity, cycles, invariants, serialization hooks, and compatibility across versions.
 
-## 19. Tổng kết và tài liệu chính thức
+## 19. Summary and Official Documentation
 
-**Bản chất:** `ObjectOutputStream.writeObject` ghi một **đồ thị đối tượng** vào Java Object Serialization Stream Protocol. `ObjectInputStream.readObject` đọc lại **đối tượng kế tiếp** và khôi phục các tham chiếu. Stream có header `AC ED 00 05`, class descriptors, type tags, handles và block data; nó không phải JSON hay mảng các object độc lập. `Serializable`, `serialVersionUID`, `transient`, `reset` và các hooks custom quyết định cách dữ liệu được lưu và khôi phục.
+**Essence:** `ObjectOutputStream.writeObject` writes an **object graph** into the Java Object Serialization Stream Protocol. `ObjectInputStream.readObject` reads back the **next object** and restores references. A stream has the `AC ED 00 05` header, class descriptors, type tags, handles, and block data; it is not JSON or an array of independent objects. `Serializable`, `serialVersionUID`, `transient`, `reset`, and custom hooks determine how data is saved and restored.
 
-**Quy tắc an toàn:** chỉ deserialize nguồn tin cậy hoặc dùng chính sách lọc/giới hạn nghiêm ngặt khi buộc phải đọc Java object stream. Đừng xem byte Java serialization là định dạng lưu trữ mặc định cho hệ thống cần khả năng tương thích lâu dài, đa ngôn ngữ hoặc mức phòng vệ mạnh trước dữ liệu do đối phương kiểm soát.
+**Safety rule:** only deserialize trusted sources, or enforce strict filtering/limits when reading Java object streams is unavoidable. Do not treat Java serialization bytes as the default storage format for systems requiring long-term compatibility, cross-language support, or strong defense against adversary-controlled data.
 
-Nguồn Java chính thức:
+Official Java resources:
 
 - `ObjectOutputStream` — `writeObject`, `reset`, `writeUnshared`, stream header: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/ObjectOutputStream.html
-- `ObjectInputStream` — `readObject`, `readUnshared`, `setObjectInputFilter` và security warnings: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/ObjectInputStream.html
-- `Serializable` — marker interface và custom hooks: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/Serializable.html
+- `ObjectInputStream` — `readObject`, `readUnshared`, `setObjectInputFilter`, and security warnings: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/ObjectInputStream.html
+- `Serializable` — marker interface and custom hooks: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/Serializable.html
 - `ObjectInputFilter` — deserialization filtering: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/ObjectInputFilter.html
 - `ObjectStreamConstants` — STREAM_MAGIC/STREAM_VERSION/TC_*: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/ObjectStreamConstants.html
-- `ObjectStreamClass` — serialVersionUID và class descriptors: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/ObjectStreamClass.html
+- `ObjectStreamClass` — serialVersionUID and class descriptors: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/ObjectStreamClass.html
 - Java Object Serialization Specification, Stream Protocol: https://docs.oracle.com/en/java/javase/21/docs/specs/serialization/protocol.html
 - Java Object Serialization Specification, Versioning: https://docs.oracle.com/en/java/javase/21/docs/specs/serialization/version.html

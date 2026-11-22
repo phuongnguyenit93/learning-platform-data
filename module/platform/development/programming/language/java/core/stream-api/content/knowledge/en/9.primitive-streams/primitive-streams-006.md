@@ -1,21 +1,21 @@
-# Chuyển sang Stream đối tượng bằng `boxed` và `mapToObj`
+# Converting to Object Streams with `boxed` and `mapToObj`
 
-## 1. Khi nào cần rời khỏi primitive stream?
+## 1. When do you need to leave a primitive stream?
 
-Java Stream API có ba loại luồng chuyên biệt để xử lý số nguyên thủy:
+The Java Stream API provides three specialized stream types for processing primitive numbers:
 
-- `IntStream` chứa giá trị `int`.
-- `LongStream` chứa giá trị `long`.
-- `DoubleStream` chứa giá trị `double`.
+- `IntStream` holds `int` values.
+- `LongStream` holds `long` values.
+- `DoubleStream` holds `double` values.
 
-Các primitive stream cho phép viết pipeline khai báo với `filter`, `map`, `reduce`, `sum`, `average`, `summaryStatistics` mà thường không phải đóng gói mỗi số vào một object. Tuy vậy, nhiều bước xử lý lại cần **kiểu đối tượng**: đưa số vào `List<Integer>`, tạo bản ghi DTO, chuyển từng số thành chuỗi, hoặc dùng các `Collector` như `groupingBy`.
+Primitive streams let you write declarative pipelines with `filter`, `map`, `reduce`, `sum`, `average`, and `summaryStatistics` without typically wrapping every number in an object. Even so, many processing steps require **object types**: putting numbers into a `List<Integer>`, building DTO records, formatting each number as a string, or using `Collector`s such as `groupingBy`.
 
-Khi ấy, hai phương thức quan trọng là:
+In those cases, two essential methods are:
 
-- **`boxed()`**: đóng gói mỗi giá trị nguyên thủy thành wrapper tương ứng (`Integer`, `Long`, `Double`).
-- **`mapToObj(mapper)`**: dùng một hàm biến từng giá trị nguyên thủy thành **một đối tượng thuộc kiểu tùy chọn**.
+- **`boxed()`**: wraps each primitive value into its corresponding wrapper (`Integer`, `Long`, `Double`).
+- **`mapToObj(mapper)`**: uses a function to transform each primitive value into **an object of a chosen type**.
 
-Ví dụ đầu tiên:
+First example:
 
 ```java
 import java.util.List;
@@ -27,26 +27,26 @@ List<Integer> numbers = IntStream.rangeClosed(1, 4)
 // [1, 2, 3, 4]
 
 List<String> labels = IntStream.rangeClosed(1, 4)
-    .mapToObj(number -> "Mã-" + number)
+    .mapToObj(number -> "Code-" + number)
     .toList();
-// [Mã-1, Mã-2, Mã-3, Mã-4]
+// [Code-1, Code-2, Code-3, Code-4]
 ```
 
-Hai pipeline bắt đầu từ `IntStream`, nhưng kết thúc bằng `Stream<Integer>` và `Stream<String>` trước khi gọi `toList()`.
+Both pipelines start from `IntStream`, yet end up as `Stream<Integer>` and `Stream<String>` before `toList()` is called.
 
-Sau bài này, bạn sẽ đọc được chữ ký của các phép chuyển, lựa chọn đúng điểm chuyển kiểu, kết hợp với `collect` và grouping, đồng thời nhận diện chi phí boxing, tính lười, trạng thái và các giới hạn về số học hoặc hiệu năng.
+After this lesson, you will be able to read the signatures of these conversion operations, choose the right point to switch types, combine them with `collect` and grouping, and recognize boxing costs, laziness, state, and arithmetic or performance limits.
 
-## 2. Nhận diện kiểu của pipeline trước và sau khi chuyển
+## 2. Identifying pipeline types before and after conversion
 
-Các kiểu luồng thường gặp trong chương **Stream kiểu nguyên thủy**:
+Common stream types in the **Primitive Streams** chapter:
 
-| Luồng ban đầu | Kiểu phần tử | Sau `boxed()` | Ví dụ `mapToObj` |
+| Initial stream | Element type | After `boxed()` | `mapToObj` examples |
 | --- | --- | --- | --- |
 | `IntStream` | `int` | `Stream<Integer>` | `Stream<String>`, `Stream<Item>` |
 | `LongStream` | `long` | `Stream<Long>` | `Stream<BigInteger>`, `Stream<Invoice>` |
 | `DoubleStream` | `double` | `Stream<Double>` | `Stream<String>`, `Stream<Measurement>` |
 
-Sơ đồ:
+Diagram:
 
 ```text
 IntStream (int)
@@ -60,14 +60,14 @@ IntStream (int)
                                   └── collect(...), toList(), groupingBy(...)
 ```
 
-Hãy lưu ý:
+Keep in mind:
 
-1. `boxed()` **không** trả về `List<Integer>`; nó trả về một `Stream<Integer>` còn cần terminal operation.
-2. `mapToObj` **không** tự thu thập kết quả vào collection; nó tạo một `Stream<U>`.
-3. `IntStream` có `toArray()` trả `int[]` nhưng **không có** phương thức `toList()`. Để có `List<Integer>`, thường dùng `boxed().toList()`.
-4. Sau khi chuyển thành object stream, các phép `map`, `filter`, `flatMap`, `collect(Collector)` của `Stream<T>` hoạt động theo kiểu đối tượng.
+1. `boxed()` **does not** return `List<Integer>`; it returns a `Stream<Integer>` that still needs a terminal operation.
+2. `mapToObj` **does not** automatically collect results into a collection; it produces a `Stream<U>`.
+3. `IntStream` has `toArray()` returning `int[]` yet **lacks** a `toList()` method. To get a `List<Integer>`, you typically use `boxed().toList()`.
+4. After converting to an object stream, `map`, `filter`, `flatMap`, and `collect(Collector)` on `Stream<T>` operate on objects.
 
-Ví dụ theo dõi kiểu ngay trong code:
+Example tracking types directly in code:
 
 ```java
 import java.util.stream.IntStream;
@@ -77,29 +77,29 @@ IntStream source = IntStream.range(0, 3); // int: 0, 1, 2
 Stream<Integer> objects = source.boxed(); // Integer: 0, 1, 2
 
 System.out.println(objects.toList());    // [0, 1, 2]
-// Không thể dùng lại source: pipeline đã được tiêu thụ.
+// Cannot reuse source: the pipeline has already been consumed.
 ```
 
-`IntStream.range(startInclusive, endExclusive)` lấy đầu và loại cuối; `rangeClosed(a, b)` bao gồm cả hai đầu khi có phần tử trong phạm vi.
+`IntStream.range(startInclusive, endExclusive)` includes the start and excludes the end; `rangeClosed(a, b)` includes both endpoints when elements exist in the range.
 
-## 3. `boxed()`: đóng gói giá trị, không đổi ý nghĩa dữ liệu
+## 3. `boxed()`: wrapping values without changing data meaning
 
-Chữ ký của các phương thức:
+Method signatures:
 
 ```java
-// Trên IntStream:
+// On IntStream:
 Stream<Integer> boxed()
 
-// Trên LongStream:
+// On LongStream:
 Stream<Long> boxed()
 
-// Trên DoubleStream:
+// On DoubleStream:
 Stream<Double> boxed()
 ```
 
-`boxed()` là **intermediate operation** (phép toán trung gian) dùng để tạo object stream chứa wrapper của các giá trị nguyên thủy.
+`boxed()` is an **intermediate operation** used to create an object stream containing wrappers of the primitive values.
 
-### 3.1. Từ `IntStream` thành `List<Integer>`
+### 3.1. From `IntStream` to `List<Integer>`
 
 ```java
 import java.util.List;
@@ -112,7 +112,7 @@ List<Integer> scores = IntStream.of(70, 90, 80)
 System.out.println(scores); // [70, 90, 80]
 ```
 
-Ở JDK 16 trở lên, `Stream.toList()` tạo danh sách **không thể sửa đổi**; gọi `scores.add(100)` ném `UnsupportedOperationException`. Nếu cần collection có thể sửa đổi theo hợp đồng riêng, chỉ rõ loại collection:
+In JDK 16 and later, `Stream.toList()` creates an **unmodifiable** list; calling `scores.add(100)` throws `UnsupportedOperationException`. If you need a modifiable collection under an explicit contract, specify the collection type:
 
 ```java
 import java.util.ArrayList;
@@ -122,12 +122,12 @@ ArrayList<Integer> mutableScores = IntStream.of(70, 90, 80)
     .boxed()
     .collect(Collectors.toCollection(ArrayList::new));
 
-mutableScores.add(100); // Hợp lệ.
+mutableScores.add(100); // Valid.
 ```
 
-`Collectors.toList()` cũng là một lựa chọn để thu thập nhưng **không cam kết** loại danh sách, tính có thể sửa đổi hoặc khả năng tuần tự hóa. Đừng dựa vào triển khai hiện tại của nó để thiết kế hợp đồng API.
+`Collectors.toList()` is also an option for collecting, yet it **makes no guarantees** on the list type, mutability, or serializability. Do not rely on its current implementation when designing API contracts.
 
-### 3.2. Từ `LongStream` và `DoubleStream`
+### 3.2. From `LongStream` and `DoubleStream`
 
 ```java
 import java.util.List;
@@ -146,11 +146,11 @@ System.out.println(ids);          // [10, 20, 30]
 System.out.println(temperatures); // [21.5, 23.0, 20.75]
 ```
 
-`boxed()` giữ **giá trị số** và chuyển cách biểu diễn sang wrapper; nó không định dạng theo locale, không làm tròn, không gắn đơn vị và không kiểm tra miền giá trị. Nếu bài toán cần các thao tác đó, hãy dùng một mapper tường minh bằng `mapToObj` hoặc một bước biến đổi trước đó.
+`boxed()` preserves the **numeric value** and changes its representation to a wrapper; it does not format by locale, round, attach units, or validate value domains. If your problem requires those operations, use an explicit mapper with `mapToObj` or an earlier transformation step.
 
-### 3.3. Vì sao gọi là boxing?
+### 3.3. Why is it called boxing?
 
-`int` là kiểu nguyên thủy, trong khi `Integer` là object wrapper. Việc chuyển:
+`int` is a primitive type, whereas `Integer` is a wrapper object. Converting:
 
 ```java
 int primitive = 42;
@@ -158,13 +158,13 @@ Integer wrapper = Integer.valueOf(primitive);
 int again = wrapper.intValue();
 ```
 
-được gọi lần lượt là **boxing** và **unboxing**. Java có thể thực hiện tự động (autoboxing/unboxing) ở vị trí cần thiết. `IntStream.boxed()` là cách chuyển *trên cả dòng dữ liệu* được định nghĩa rõ trong API.
+is called **boxing** and **unboxing**, respectively. Java can perform these automatically (autoboxing/unboxing) where needed. `IntStream.boxed()` is the API-defined way to perform this conversion *across an entire data stream*.
 
-Không nên so sánh wrapper bằng `==` để kiểm tra bằng giá trị: `==` giữa hai object so sánh tham chiếu và có thể chịu ảnh hưởng cơ chế cache. Hãy dùng `equals` hoặc unbox để so sánh giá trị; với dữ liệu có thể bằng `null`, xem xét chính sách null trước khi unbox.
+Do not compare wrappers with `==` to test value equality: `==` between two objects compares references and can be affected by caching mechanisms. Use `equals` or unbox to compare values; for data that could be `null`, establish a null policy before unboxing.
 
-## 4. `mapToObj`: ánh xạ số thành đối tượng tùy ý
+## 4. `mapToObj`: mapping numbers to arbitrary objects
 
-Chữ ký tương ứng:
+Corresponding signatures:
 
 ```java
 // IntStream:
@@ -177,33 +177,33 @@ Chữ ký tương ứng:
 <U> Stream<U> mapToObj(DoubleFunction<? extends U> mapper)
 ```
 
-`U` là kiểu đối tượng mới do trình biên dịch suy luận. `IntFunction<U>` nhận một `int` và trả đối tượng `U`, `LongFunction<U>` nhận `long`, còn `DoubleFunction<U>` nhận `double`. Khi mapper được đánh giá, mỗi phần tử nguồn tạo **một giá trị kết quả**, kể cả khi giá trị ấy là `null`.
+`U` is the new object type inferred by the compiler. `IntFunction<U>` takes an `int` and returns an object `U`, `LongFunction<U>` takes `long`, and `DoubleFunction<U>` takes `double`. When the mapper is evaluated, each source element produces **one result value**, even if that value is `null`.
 
-### 4.1. Biến số thành chuỗi có ý nghĩa
+### 4.1. Turning numbers into meaningful strings
 
 ```java
 import java.util.List;
 import java.util.stream.IntStream;
 
 List<String> labels = IntStream.rangeClosed(1, 3)
-    .mapToObj(index -> "Trang " + index)
+    .mapToObj(index -> "Page " + index)
     .toList();
 
-System.out.println(labels); // [Trang 1, Trang 2, Trang 3]
+System.out.println(labels); // [Page 1, Page 2, Page 3]
 ```
 
-Nếu dùng `boxed().map(...)`, ta vẫn tạo được kết quả nhưng việc chuyển sang wrapper chỉ là bước trung gian:
+If you use `boxed().map(...)`, you still produce the result, yet converting to a wrapper is merely an intermediate step:
 
 ```java
 List<String> alsoLabels = IntStream.rangeClosed(1, 3)
     .boxed()
-    .map(index -> "Trang " + index)
+    .map(index -> "Page " + index)
     .toList();
 ```
 
-Về ý nghĩa, hai cách có cùng kết quả. `mapToObj` thể hiện trực tiếp phép `int → String` và không đòi hỏi boxing thành `Integer` như một bước API riêng. Điều này có thể giảm chi phí trung gian, dù mức tối ưu thực tế tùy JDK và JVM.
+Semantically, both approaches yield the same result. `mapToObj` directly expresses the `int → String` mapping without requiring boxing to `Integer` as a separate API step. This can reduce intermediate overhead, though actual optimization depends on the JDK and JVM.
 
-### 4.2. Biến số thành record/DTO
+### 4.2. Turning numbers into records/DTOs
 
 ```java
 import java.util.List;
@@ -219,9 +219,9 @@ System.out.println(links.get(1));
 // PageLink[pageNumber=2, path=/catalog?page=2]
 ```
 
-Điểm mạnh của `mapToObj` là **kiểu kết quả do nghiệp vụ quyết định**. Thay vì bọc số rồi tự phân tích chúng ở nhiều nơi, có thể tạo đối tượng được đặt tên, có trường hợp lệ và thuận tiện cho xử lý phía sau.
+The strength of `mapToObj` is that **the result type is determined by the business domain**. Instead of wrapping numbers and parsing them in multiple places, you can construct named objects with valid fields convenient for downstream processing.
 
-### 4.3. Ánh xạ `long` và `double`
+### 4.3. Mapping `long` and `double`
 
 ```java
 import java.util.List;
@@ -246,11 +246,11 @@ List<String> formatted = DoubleStream.of(2.5, 3.25)
 // [2.50 m, 3.25 m]
 ```
 
-Ví dụ định dạng dùng `Locale.ROOT` để đầu ra có dấu thập phân nhất quán. Với giá tiền, số thập phân nhị phân `double` có thể gây sai số; cân nhắc lưu số tiền nguyên đơn vị nhỏ nhất (`long` cent/VND đồng) hoặc dùng `BigDecimal` và quy tắc làm tròn rõ ràng.
+The formatting example uses `Locale.ROOT` so output has a consistent decimal separator. For prices, binary floating-point `double` can introduce rounding errors; consider storing monetary amounts as integer minor units (`long` cents/VND) or using `BigDecimal` with explicit rounding rules.
 
-### 4.4. Tham chiếu phương thức
+### 4.4. Method references
 
-Khi có một phương thức nhận số nguyên thủy và trả đối tượng, `mapToObj` có thể nhận method reference:
+When you have a method taking a primitive number and returning an object, `mapToObj` can accept a method reference:
 
 ```java
 import java.util.List;
@@ -265,27 +265,27 @@ List<String> tickets = IntStream.rangeClosed(1, 3)
     .toList();
 ```
 
-Đoạn trên là ví dụ **đặt bên trong lớp** có tên `YourClass` chứa phương thức `formatTicket`. Khi viết mã thực tế, thay tên lớp cho đúng. Nếu method reference gây khó đọc do overload hoặc suy luận generic, một lambda ngắn như `number -> formatTicket(number)` thường rõ ý hơn.
+The snippet above is an example **placed inside a class** named `YourClass` containing the `formatTicket` method. In real code, substitute the actual class name. If a method reference hurts readability due to overloads or generic inference, a short lambda such as `number -> formatTicket(number)` is often clearer.
 
-## 5. Chọn `boxed` hay `mapToObj`?
+## 5. Choosing `boxed` or `mapToObj`?
 
-| Tiêu chí | `boxed()` | `mapToObj(...)` |
+| Criterion | `boxed()` | `mapToObj(...)` |
 | --- | --- | --- |
-| Mục tiêu | Đưa giá trị primitive vào wrapper | Chuyển giá trị primitive thành đối tượng theo quy tắc |
-| Có phải cung cấp mapper? | Không | Có |
-| Kiểu trả về từ `IntStream` | `Stream<Integer>` | `Stream<U>` do mapper quyết định |
-| Có đổi ý nghĩa giá trị không? | Không; chỉ đổi cách biểu diễn | Có thể đổi, gắn nhãn, xây DTO, áp quy tắc |
-| Ví dụ | `IntStream.range(1, 5).boxed()` | `IntStream.range(1, 5).mapToObj(n -> "P" + n)` |
-| Khi cần grouping theo chính giá trị số | Tiện lợi | Có thể làm được, nhưng không cần mapper riêng |
-| Khi cần object nghiệp vụ | Phải thêm `map(...)` sau `boxed()` | Ánh xạ trực tiếp |
+| Goal | Put primitive values into wrappers | Transform primitive values into objects by a rule |
+| Must supply a mapper? | No | Yes |
+| Return type from `IntStream` | `Stream<Integer>` | `Stream<U>` determined by the mapper |
+| Changes value meaning? | No; only changes representation | Can transform, label, build DTOs, apply rules |
+| Example | `IntStream.range(1, 5).boxed()` | `IntStream.range(1, 5).mapToObj(n -> "P" + n)` |
+| Grouping by the numeric value itself | Convenient | Possible, though no custom mapper is needed |
+| Needing a business object | Requires adding `map(...)` after `boxed()` | Direct mapping |
 
-Một quy tắc thực hành:
+A practical rule of thumb:
 
-- **Cần `List<Integer>`, `Set<Long>` hoặc muốn dùng `Collectors` trên wrapper:** thường chọn `boxed()`.
-- **Cần `String`, DTO, entity bất biến, giá trị gắn đơn vị hoặc đối tượng phức tạp:** chọn `mapToObj(...)`.
-- **Chỉ cần tính tổng, trung bình, min/max hoặc thống kê số:** hãy **giữ primitive stream** và dùng các terminal operation chuyên dụng.
+- **Need `List<Integer>`, `Set<Long>`, or want to use `Collectors` on wrappers:** usually choose `boxed()`.
+- **Need `String`, DTOs, immutable entities, values with units, or complex objects:** choose `mapToObj(...)`.
+- **Only need sum, average, min/max, or numeric statistics:** **keep the primitive stream** and use dedicated terminal operations.
 
-Ví dụ không cần boxing:
+Example needing no boxing:
 
 ```java
 int total = java.util.stream.IntStream.of(10, 20, 30)
@@ -296,13 +296,13 @@ double mean = java.util.stream.IntStream.of(10, 20, 30)
     .orElseThrow(); // 20.0
 ```
 
-Không chuyển sang object stream chỉ để quay lại phép cộng số nếu đã có `sum()` trên primitive stream.
+Do not switch to an object stream only to return to numeric addition when `sum()` is already available on the primitive stream.
 
-## 6. Ghép `boxed` với `Collectors`, grouping và loại trùng
+## 6. Combining `boxed` with `Collectors`, grouping, and deduplication
 
-`IntStream` có phương thức `collect(Supplier<R>, ObjIntConsumer<R>, BiConsumer<R,R>)` riêng, nhưng không nhận `Collector<T,A,R>` giống `Stream<T>`. Nếu cần factory collector trong `java.util.stream.Collectors`, thường phải chuyển sang object stream.
+`IntStream` has its own `collect(Supplier<R>, ObjIntConsumer<R>, BiConsumer<R,R>)` method, yet does not accept `Collector<T,A,R>` like `Stream<T>`. If you need factory collectors from `java.util.stream.Collectors`, you usually have to convert to an object stream.
 
-Ví dụ nhóm số chẵn và lẻ:
+Example grouping even and odd numbers:
 
 ```java
 import java.util.List;
@@ -320,9 +320,9 @@ System.out.println(groups.get("even")); // [2, 4, 6, 8]
 System.out.println(groups.get("odd"));  // [1, 3, 5, 7]
 ```
 
-`Collectors.groupingBy` không cam kết loại `Map` hay thứ tự duyệt **khóa**. Với stream có encounter order như `IntStream.rangeClosed`, các `List<Integer>` thu bằng collector mặc định giữ thứ tự phần tử trong nhóm theo hợp đồng collector trên ordered stream.
+`Collectors.groupingBy` does not guarantee the `Map` implementation type or **key** iteration order. On a stream with an encounter order like `IntStream.rangeClosed`, the `List<Integer>` values collected by the default downstream collector preserve element order within each group per the collector contract on ordered streams.
 
-Ví dụ tạo `Set<Integer>`:
+Example building a `Set<Integer>`:
 
 ```java
 import java.util.Set;
@@ -337,7 +337,7 @@ Set<Integer> unique = IntStream.of(3, 1, 3, 2, 1)
 System.out.println(unique.containsAll(Set.of(1, 2, 3))); // true
 ```
 
-`Collectors.toSet()` không bảo đảm thứ tự duyệt hoặc loại triển khai. Nếu mục tiêu chỉ loại giá trị trùng trước khi tổng hợp số, `distinct()` ngay trên primitive stream tránh boxing sớm:
+`Collectors.toSet()` does not guarantee iteration order or implementation type. If the goal is merely removing duplicates before numeric aggregation, calling `distinct()` directly on the primitive stream avoids early boxing:
 
 ```java
 int sumUnique = IntStream.of(3, 1, 3, 2, 1)
@@ -345,9 +345,9 @@ int sumUnique = IntStream.of(3, 1, 3, 2, 1)
     .sum(); // 6
 ```
 
-### 6.1. Vì sao `boxed` cần thiết cho một số kiểu collector?
+### 6.1. Why is `boxed` required for certain collectors?
 
-Chẳng hạn muốn gom các số vào danh sách bằng `Collectors.toList()`:
+Suppose you want to collect numbers into a list with `Collectors.toList()`:
 
 ```java
 List<Integer> values = IntStream.rangeClosed(1, 4)
@@ -355,15 +355,15 @@ List<Integer> values = IntStream.rangeClosed(1, 4)
     .collect(Collectors.toList());
 ```
 
-Không thể viết `IntStream.rangeClosed(1, 4).collect(Collectors.toList())` vì chữ ký `IntStream.collect` không có overload nhận `Collector`. Trình biên dịch sẽ báo không phù hợp tham số.
+You cannot write `IntStream.rangeClosed(1, 4).collect(Collectors.toList())` because `IntStream.collect` has no overload taking a `Collector`. The compiler will report incompatible parameter types.
 
-Nếu JDK hỗ trợ `Stream.toList()` và không cần collector đặc biệt, `IntStream.rangeClosed(1,4).boxed().toList()` ngắn gọn hơn.
+If your JDK supports `Stream.toList()` and no special collector is needed, `IntStream.rangeClosed(1,4).boxed().toList()` is more concise.
 
-## 7. Ví dụ thực tế: dùng chỉ số số nguyên để tạo DTO và tổng hợp
+## 7. Practical example: using integer indices to build DTOs and aggregate
 
-Một ứng dụng có hai mảng dữ liệu song song: danh sách mã hàng và số tiền ở đơn vị đồng. Cần tạo từng dòng báo cáo có số thứ tự, mã hàng và giá trị, sau đó tính doanh thu theo mã hàng.
+An application has two parallel data sources: a list of product SKUs and amounts in VND. It needs to build report lines with sequence number, SKU, and amount, and then aggregate revenue by SKU.
 
-Ở đây `IntStream.range` cung cấp **chỉ số**, `mapToObj` tạo **đối tượng báo cáo**, và `collect(groupingBy(...))` tổng hợp:
+Here `IntStream.range` supplies **indices**, `mapToObj` builds **report objects**, and `collect(groupingBy(...))` aggregates:
 
 ```java
 import java.util.List;
@@ -380,7 +380,7 @@ public class PrimitiveToObjectReport {
         long[] amountsVnd = {12_000L, 85_000L, 8_000L, 150_000L};
 
         if (skus.size() != amountsVnd.length) {
-            throw new IllegalArgumentException("Số phần tử nguồn không khớp");
+            throw new IllegalArgumentException("Source element counts do not match");
         }
 
         List<SaleLine> report = IntStream.range(0, skus.size())
@@ -391,7 +391,7 @@ public class PrimitiveToObjectReport {
             ))
             .toList();
 
-        // Trên JDK 17+, toList() tạo List không thể sửa đổi.
+        // On JDK 17+, toList() produces an unmodifiable List.
         System.out.println(report.get(0));
         // SaleLine[lineNo=1, sku=PEN, amountVnd=12000]
 
@@ -413,29 +413,29 @@ public class PrimitiveToObjectReport {
 }
 ```
 
-Theo dõi kiểu:
+Type tracking:
 
-| Bước | Kiểu kết quả | Ý nghĩa |
+| Step | Result type | Meaning |
 | --- | --- | --- |
-| `IntStream.range(0, skus.size())` | `IntStream` | Chỉ số nguyên thủy từ 0 đến n − 1 |
-| `.mapToObj(i -> new SaleLine(...))` | `Stream<SaleLine>` | Tạo một DTO cho từng chỉ số |
-| `.toList()` | `List<SaleLine>` | Thu kết quả, kích hoạt pipeline |
-| `report.stream()` | `Stream<SaleLine>` | Mở pipeline mới từ dữ liệu kết quả |
-| `.mapToLong(SaleLine::amountVnd)` | `LongStream` | Quay về primitive stream để tính tổng |
-| `.sum()` | `long` | Terminal operation tính tổng |
+| `IntStream.range(0, skus.size())` | `IntStream` | Primitive indices from 0 to n − 1 |
+| `.mapToObj(i -> new SaleLine(...))` | `Stream<SaleLine>` | Creates one DTO per index |
+| `.toList()` | `List<SaleLine>` | Collects results, triggering pipeline |
+| `report.stream()` | `Stream<SaleLine>` | Opens a new pipeline from resulting data |
+| `.mapToLong(SaleLine::amountVnd)` | `LongStream` | Returns to primitive stream for summing |
+| `.sum()` | `long` | Terminal operation computing sum |
 
-Mẫu `IntStream.range(...).mapToObj(...)` đặc biệt hữu ích khi cần tạo bản ghi có **index**, nhưng cũng có giới hạn:
+The `IntStream.range(...).mapToObj(...)` pattern is especially useful when constructing records with an **index**, though it has limitations:
 
-- Hai nguồn `skus` và `amountsVnd` phải cùng kích thước, được kiểm tra trước.
-- Nếu nguồn bị sửa đồng thời, chỉ số có thể không còn khớp dữ liệu. Trong ứng dụng thật, cân nhắc snapshot bất biến hoặc một model thống nhất cho mỗi dòng.
-- `long` tránh sai số thập phân khi biểu diễn số tiền nguyên đơn vị nhỏ nhất nhưng vẫn có thể **tràn số**. `Collectors.summingLong` và `LongStream.sum()` không tự phát hiện tràn; đối với số tiền có thể vượt giới hạn, sử dụng kiểu phù hợp hoặc kiểm tra miền dữ liệu.
-- Không dùng `parallel()` tùy tiện nếu mapper đọc dữ liệu có thể thay đổi từ nơi khác; độ an toàn của việc đọc phụ thuộc nguồn và toàn bộ pipeline.
+- Both `skus` and `amountsVnd` must have the same size, which is checked beforehand.
+- If a source is mutated concurrently, indices may no longer match the data. In real applications, consider immutable snapshots or a unified model per line.
+- `long` avoids decimal rounding errors when representing whole minor-unit currency amounts, yet can still **overflow**. `Collectors.summingLong` and `LongStream.sum()` do not detect overflow automatically; for amounts that could exceed the limit, use an appropriate type or validate the data range.
+- Do not enable `parallel()` casually if the mapper reads data that might be modified elsewhere; read safety depends on the source and the whole pipeline.
 
-## 8. Đi từ object stream về primitive stream
+## 8. Returning from an object stream to a primitive stream
 
-Trong nhiều pipeline, chuyển sang object stream chỉ là một giai đoạn. Sau khi tạo DTO, ta có thể **chuyển ngược** sang primitive stream để tính số học.
+In many pipelines, switching to an object stream is only one stage. After creating DTOs, you can **convert back** to a primitive stream for arithmetic calculations.
 
-### 8.1. Từ `Stream<Integer>` sang `IntStream`
+### 8.1. From `Stream<Integer>` to `IntStream`
 
 ```java
 import java.util.List;
@@ -449,37 +449,37 @@ int sum = values.stream()
 System.out.println(sum); // 15
 ```
 
-Các phương thức chuyên biệt trên `Stream<T>`:
+Specialized methods on `Stream<T>`:
 
-| Phương thức | Đầu vào mapper | Kết quả |
+| Method | Mapper input | Result |
 | --- | --- | --- |
 | `mapToInt(ToIntFunction<? super T>)` | `T → int` | `IntStream` |
 | `mapToLong(ToLongFunction<? super T>)` | `T → long` | `LongStream` |
 | `mapToDouble(ToDoubleFunction<? super T>)` | `T → double` | `DoubleStream` |
 
-Nếu một `Stream<Integer>` chứa giá trị `null`, `Integer::intValue` sẽ ném `NullPointerException` khi gặp phần tử đó. Cần xác định chính sách dữ liệu null, ví dụ `filter(Objects::nonNull)` nếu được phép bỏ giá trị, hoặc kiểm tra hợp lệ trước.
+If a `Stream<Integer>` contains `null`, `Integer::intValue` throws `NullPointerException` when it encounters that element. Define a null data policy, such as `filter(Objects::nonNull)` if skipping values is allowed, or validate beforehand.
 
-### 8.2. Không phải mọi chuyển đổi là boxing
+### 8.2. Not every conversion is boxing
 
-Các chuyển đổi như `IntStream.asLongStream()` hoặc `IntStream.asDoubleStream()` vẫn tạo **primitive stream** với kiểu số khác, không tạo wrapper object. Đừng nhầm chúng với `boxed()`:
+Conversions like `IntStream.asLongStream()` or `IntStream.asDoubleStream()` still produce a **primitive stream** with a different numeric type, not wrapper objects. Do not confuse them with `boxed()`:
 
 ```java
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
 LongStream widened = IntStream.of(1, 2, 3)
-    .asLongStream(); // int -> long, vẫn là primitive.
+    .asLongStream(); // int -> long, still primitive.
 
 System.out.println(widened.sum()); // 6
 ```
 
-Với tính toán cần chính xác hơn miền số `int`, nên cân nhắc mở rộng kiểu trước khi cộng hoặc nhân; boxing thành `Integer` **không** làm tăng miền giá trị.
+For calculations requiring a range larger than `int`, consider widening the type before adding or multiplying; boxing to `Integer` **does not** expand the value range.
 
-## 9. Mảng, danh sách, generic và suy luận kiểu
+## 9. Arrays, lists, generics, and type inference
 
-### 9.1. `int[]` khác `Integer[]` và `List<Integer>`
+### 9.1. `int[]` differs from `Integer[]` and `List<Integer>`
 
-Một nguồn mảng nguyên thủy có thể trở thành `IntStream`:
+A primitive array source can become an `IntStream`:
 
 ```java
 import java.util.Arrays;
@@ -499,19 +499,19 @@ List<Integer> list = Arrays.stream(source)
     .toList(); // List<Integer>
 ```
 
-Các cấu trúc có đặc tính khác nhau:
+The structures have distinct characteristics:
 
-| Cấu trúc | Phần tử | Có thể chứa `null`? | Có phải collection generic? |
+| Structure | Elements | Can contain `null`? | Is a generic collection? |
 | --- | --- | --- | --- |
-| `int[]` | `int` | Không | Không |
-| `Integer[]` | `Integer` | Có | Không phải `Collection` |
-| `List<Integer>` | `Integer` | Tùy implementation/cách tạo | Có |
+| `int[]` | `int` | No | No |
+| `Integer[]` | `Integer` | Yes | Not a `Collection` |
+| `List<Integer>` | `Integer` | Depends on implementation/factory | Yes |
 
-Lưu ý đặc biệt: `Stream.of(source)` khi `source` có kiểu `int[]` tạo stream chứa **một phần tử là chính mảng `int[]`** (kiểu `Stream<int[]>`), chứ không phải dãy các số trong mảng. Để duyệt từng số, dùng `Arrays.stream(source)` hoặc `IntStream.of(source)`.
+Special note: `Stream.of(source)` when `source` has type `int[]` creates a stream containing **one element which is the `int[]` array itself** (of type `Stream<int[]>`), not the sequence of numbers inside the array. To traverse each number, use `Arrays.stream(source)` or `IntStream.of(source)`.
 
-### 9.2. Kiểu generic `U` được suy ra thế nào?
+### 9.2. How is the generic type `U` inferred?
 
-Với `mapToObj`, `U` đến từ biểu thức trong mapper:
+With `mapToObj`, `U` comes from the expression inside the mapper:
 
 ```java
 import java.util.stream.IntStream;
@@ -524,9 +524,9 @@ Stream<Integer> boxedEquivalent = IntStream.of(1, 2, 3)
     .mapToObj(Integer::valueOf);
 ```
 
-Ví dụ thứ hai cho ra cùng kiểu `Stream<Integer>` như `boxed()`, nhưng `boxed()` là cách rõ ràng hơn khi yêu cầu chỉ là bọc wrapper.
+The second example yields the same `Stream<Integer>` type as `boxed()`, yet `boxed()` is clearer when the only goal is wrapping primitives.
 
-Đôi khi cần chú thích generic tường minh để tránh compiler suy ra kiểu quá rộng:
+Sometimes an explicit type witness is needed to keep the compiler from inferring an overly broad type:
 
 ```java
 import java.util.stream.IntStream;
@@ -536,11 +536,11 @@ Stream<Number> numericObjects = IntStream.of(1, 2, 3)
     .<Number>mapToObj(Integer::valueOf);
 ```
 
-`<Number>mapToObj` chỉ định kiểu `U` là `Number`; mapper trả `Integer` là một kiểu con nên phù hợp. Việc chọn kiểu quá rộng như `Object` ở mọi bước thường làm mất thông tin và gây khó khăn khi sử dụng kết quả. Hãy giữ kiểu cụ thể cho đến khi yêu cầu thật sự cần đa hình.
+`<Number>mapToObj` specifies `U` as `Number`; the mapper returns `Integer`, which is a valid subtype. Choosing overly broad types like `Object` everywhere discards type information and makes results harder to use. Keep concrete types until polymorphism is genuinely needed.
 
-### 9.3. `mapToObj` không tự làm phẳng
+### 9.3. `mapToObj` does not flatten automatically
 
-Nếu mapper trả về một `List<String>` thì kết quả là `Stream<List<String>>`, vì mỗi phần tử vẫn tạo **một đối tượng List**. Khi cần trộn phần tử bên trong:
+If a mapper returns a `List<String>`, the result is `Stream<List<String>>`, because each element still yields **one List object**. When you need to flatten inner elements:
 
 ```java
 import java.util.List;
@@ -554,11 +554,11 @@ List<String> flattened = IntStream.rangeClosed(1, 2)
 System.out.println(flattened); // [A1, B1, A2, B2]
 ```
 
-`flatMap` là bước riêng trên object stream để làm phẳng cấu trúc; `mapToObj` chỉ xác định cách ánh xạ mỗi primitive sang đối tượng.
+`flatMap` is a separate step on the object stream to flatten the structure; `mapToObj` only specifies how to map each primitive to an object.
 
-## 10. Tính lười, side effects và vòng đời stream
+## 10. Laziness, side effects, and stream lifecycle
 
-`boxed()` và `mapToObj` đều là intermediate operations **lazy**. Mapper được đánh giá khi terminal operation cần phần tử, và số lần mapper chạy không nên được xem là hợp đồng nghiệp vụ.
+Both `boxed()` and `mapToObj` are **lazy** intermediate operations. The mapper is evaluated only when a terminal operation requests elements, and the number of times the mapper executes should not be relied upon as a business contract.
 
 ```java
 import java.util.List;
@@ -571,7 +571,7 @@ List<String> ids = pipeline.toList();
 System.out.println(ids); // [ID-1, ID-2, ID-3, ID-4]
 ```
 
-Một ví dụ không nên dựa vào side effect:
+An example that should not rely on side effects:
 
 ```java
 import java.util.concurrent.atomic.AtomicInteger;
@@ -587,34 +587,34 @@ long count = IntStream.range(0, 10)
     .count();
 
 System.out.println(count); // 10
-// Không dựa vào việc calls.get() chắc chắn bằng 10.
+// Do not rely on calls.get() definitely equaling 10.
 ```
 
-Với một nguồn biết trước số phần tử như `IntStream.range`, các tối ưu hóa của Stream có thể xác định `count()` mà không cần chạy mapper. Vì vậy, nếu cần ghi nhận số bản ghi thực sự được xử lý, hãy gắn phép đếm với kết quả nghiệp vụ hoặc một cơ chế quan sát có thiết kế rõ ràng.
+With a sized source like `IntStream.range`, Stream optimizations may determine `count()` without executing the mapper. Thus, if you need to record the actual number of processed records, tie the count to the business result or a properly designed observation mechanism.
 
-Các mapper nên **non-interfering** và **stateless**: không sửa dữ liệu nguồn đang duyệt, không phụ thuộc biến đếm hoặc collection mutable dùng chung. Ví dụ:
+Mappers should be **non-interfering** and **stateless**: do not modify the source data being traversed, and do not depend on shared counters or mutable collections. Example:
 
 ```java
-// Mapper có thể kiểm thử độc lập:
+// Mapper that can be tested independently:
 record Code(int value, String label) {}
 
 static Code toCode(int value) {
     return new Code(value, "C-" + value);
 }
 
-// Trong một phương thức khác:
+// Inside another method:
 // List<Code> codes = IntStream.range(0, 3)
 //     .mapToObj(YourClass::toCode)
 //     .toList();
 ```
 
-`boxed()` hoặc `mapToObj` không tự mở tài nguyên. Nhưng primitive stream có thể xuất phát từ I/O hoặc được tạo qua một nguồn có handler đóng; khi nguồn nắm giữ tài nguyên, cần đóng stream theo hợp đồng của nguồn (thường bằng `try-with-resources`). Đừng dùng lại stream đã được terminal operation tiêu thụ; hãy tạo pipeline mới từ nguồn có thể duyệt lại.
+`boxed()` or `mapToObj` do not open resources themselves. However, a primitive stream can originate from I/O or a closeable source; when the source holds resources, close the stream according to the source's contract (typically via `try-with-resources`). Do not reuse a stream already consumed by a terminal operation; create a new pipeline from a re-traversable source.
 
-## 11. Hiệu năng: boxing lúc cần, không quá sớm
+## 11. Performance: box when needed, not prematurely
 
-Primitive stream thường hữu ích cho khối lượng xử lý số lớn vì tránh chi phí wrapper trong nhiều bước. Khi dùng `boxed()`, mỗi số được biểu diễn dưới dạng wrapper ở phần object stream; việc này có thể làm tăng áp lực cấp phát, sử dụng bộ nhớ và garbage collection, dù JVM có thể tối ưu hóa hoặc tái sử dụng một số wrapper.
+Primitive streams are often helpful for heavy numeric workloads because they avoid wrapper overhead across multiple steps. When `boxed()` is used, each number is represented as a wrapper in the object stream segment; this can increase allocation pressure, memory usage, and garbage collection, though the JVM may optimize or cache certain wrappers.
 
-So sánh ba cách tính tổng:
+Comparing three ways to compute a sum:
 
 ```java
 import java.util.stream.IntStream;
@@ -637,25 +637,25 @@ System.out.println(boxedSum);     // 500000500000
 System.out.println(mappedSum);    // 500000500000
 ```
 
-Ba cách cho cùng kết quả ở dữ liệu này. Hai cách `asLongStream` và `mapToLong` giữ kiểu nguyên thủy suốt quá trình tính tổng, diễn đạt nhu cầu rõ hơn và có thể tránh các bước boxing/unboxing. `boxedSum` minh họa bước chuyển đối tượng không cần thiết.
+All three produce the same result on this dataset. `asLongStream` and `mapToLong` keep primitive types throughout the summation, express intent more clearly, and can avoid boxing/unboxing steps. `boxedSum` illustrates an unnecessary object conversion step.
 
-**Lưu ý tràn số:** tổng từ 1 đến 1.000.000 vượt miền `int`, nên ví dụ chuyển sang `long` **trước** khi tính. `IntStream.sum()` trả `int` và có thể tràn; việc `boxed()` không khắc phục điều đó.
+**Overflow note:** the sum from 1 to 1,000,000 exceeds `int` range, so the example widens to `long` **before** summing. `IntStream.sum()` returns `int` and would overflow; calling `boxed()` does not fix that.
 
-### 11.1. Đo hiệu năng đúng cách
+### 11.1. Measuring performance properly
 
-Không kết luận `mapToObj` luôn nhanh hơn `boxed().map(...)` hoặc ngược lại chỉ từ cấu trúc code. Hiệu quả còn phụ thuộc:
+Do not conclude `mapToObj` is always faster than `boxed().map(...)` or vice versa from code structure alone. Efficiency also depends on:
 
-- Số phần tử và chi phí tạo object đầu ra.
-- Mức độ tối ưu của JIT, kiểu mapper và khả năng loại bỏ allocation.
-- Có terminal operation nào khiến những bước trung gian được bỏ qua hay không.
-- Nguồn có thứ tự, chi phí `sorted`/`distinct`/`limit`, collector và GC.
-- Chế độ tuần tự hay `parallel()`; overhead phân chia/gộp kết quả.
+- Element count and output object creation cost.
+- Degree of JIT optimization, mapper shape, and allocation elimination.
+- Whether a terminal operation allows intermediate steps to be elided.
+- Ordered sources, `sorted`/`distinct`/`limit` costs, collectors, and GC.
+- Sequential vs. `parallel()` mode; splitting and combining overhead.
 
-Để đánh giá thực tế, dùng benchmark được warm-up và kiểm soát kết quả (ví dụ JMH trong quy trình tối ưu ở bước khác). Một phép đo thời gian bằng `System.nanoTime()` cho một lần chạy dễ gây kết luận sai do JIT, GC và nhiễu hệ thống. Ở bài này, nguyên tắc là **giữ primitive khi đang tính số, chuyển sang object tại điểm cần dữ liệu đối tượng**.
+For realistic evaluation, use a warmed-up, controlled benchmark (e.g., JMH in a dedicated optimization workflow). A single `System.nanoTime()` timing run easily misleads due to JIT, GC, and system noise. In this lesson, the rule is **keep primitives while doing numeric math, and switch to objects at the point object data is needed**.
 
-### 11.2. Stream song song
+### 11.2. Parallel streams
 
-`IntStream.range(...).parallel().mapToObj(...)` vẫn hợp lệ nếu mapper không dùng trạng thái mutable chia sẻ và nguồn hỗ trợ duyệt an toàn. Nhưng parallel stream không mặc nhiên nhanh hơn:
+`IntStream.range(...).parallel().mapToObj(...)` is valid if the mapper uses no shared mutable state and the source supports safe traversal. Yet parallel streams are not automatically faster:
 
 ```java
 import java.util.List;
@@ -669,26 +669,26 @@ List<String> codes = IntStream.range(0, 1_000)
 System.out.println(codes.get(0)); // C-0
 ```
 
-Với `IntStream.range` có encounter order, `toList()` giữ thứ tự đó trong kết quả dù thời gian xử lý phần tử có thể khác nhau. Không được dùng thứ tự thực thi lambda làm bằng chứng thứ tự gặp phần tử.
+Because `IntStream.range` has an encounter order, `toList()` preserves that order in the output even though element processing times may vary. Never treat lambda execution order as proof of encounter order.
 
-## 12. Những bẫy cụ thể khi chuyển sang object stream
+## 12. Specific pitfalls when converting to object streams
 
-| Bẫy | Vì sao sai hoặc khó bảo trì | Cách xử lý |
+| Pitfall | Why it is wrong or hard to maintain | Fix |
 | --- | --- | --- |
-| Gọi `.toList()` trực tiếp trên `IntStream` | `IntStream` không có API này | `.boxed().toList()` hoặc `.toArray()` nếu cần `int[]` |
-| Dùng `Stream.of(intArray)` để duyệt số | Tạo `Stream<int[]>` với một phần tử mảng | `Arrays.stream(intArray)` |
-| Dùng `boxed()` để chuyển thành `Stream<String>` | `boxed()` trả wrapper, không định dạng chuỗi | `mapToObj(n -> "...")` |
-| Box số rồi lại unbox để `sum()` | Tăng bước chuyển không cần thiết | Giữ `IntStream`/`LongStream` |
-| Dùng `Integer` như thể luôn khác `null` | Object stream có thể chứa null | Xác định chính sách null trước unboxing |
-| So sánh wrapper bằng `==` | Có thể so sánh tham chiếu object | `equals` hoặc so sánh primitive |
-| Cho rằng `toList()` luôn sửa được | `Stream.toList()` là unmodifiable | Dùng collector tạo collection mutable khi cần |
-| Tưởng `mapToObj` tạo nhiều kết quả cho một phần tử | Một primitive được ánh xạ thành một giá trị object | Dùng `flatMap`/`mapMulti` trong bài toán 0–n |
-| Coi `mapToObj` là terminal operation | Đây vẫn là một bước lazy | Dùng `toList`, `collect`, `count`,... để tiêu thụ |
-| Dùng `int` cho tổng có thể vượt `Integer.MAX_VALUE` | `IntStream.sum()` có thể tràn | Mở rộng sang `long` trước phép cộng hoặc dùng kiểu chính xác hơn |
+| Calling `.toList()` directly on `IntStream` | `IntStream` lacks this API | `.boxed().toList()` or `.toArray()` if `int[]` is needed |
+| Using `Stream.of(intArray)` to iterate numbers | Creates `Stream<int[]>` with a single array element | `Arrays.stream(intArray)` |
+| Using `boxed()` to convert to `Stream<String>` | `boxed()` returns wrappers, not formatted strings | `mapToObj(n -> "...")` |
+| Boxing numbers then immediately unboxing to `sum()` | Adds unnecessary conversion steps | Stay on `IntStream`/`LongStream` |
+| Treating `Integer` as if never `null` | Object streams can contain null | Define a null policy before unboxing |
+| Comparing wrappers with `==` | May compare object references | `equals` or primitive comparison |
+| Assuming `toList()` is always modifiable | `Stream.toList()` is unmodifiable | Use a collector creating a mutable collection when needed |
+| Expecting `mapToObj` to emit multiple results per element | Each primitive maps to one object value | Use `flatMap`/`mapMulti` for 0–n problems |
+| Treating `mapToObj` as a terminal operation | It is still a lazy step | Use `toList`, `collect`, `count`, etc. to consume |
+| Using `int` for a sum that may exceed `Integer.MAX_VALUE` | `IntStream.sum()` can overflow | Widen to `long` before summing or use a more precise type |
 
-### 12.1. Dữ liệu null và kết quả mapper
+### 12.1. Null data and mapper results
 
-`IntStream`, `LongStream` và `DoubleStream` **không chứa null**. Nhưng mapper `mapToObj` có thể trả `null` vì đầu ra là object:
+`IntStream`, `LongStream`, and `DoubleStream` **cannot contain null**. However, a `mapToObj` mapper can return `null` because the output is an object:
 
 ```java
 import java.util.List;
@@ -703,11 +703,11 @@ List<String> nonNullLabels = IntStream.rangeClosed(1, 4)
 System.out.println(nonNullLabels); // [N-1, N-3]
 ```
 
-Ví dụ chỉ minh họa ranh giới kiểu. Nếu “không có nhãn” là trạng thái hợp lệ, có thể dùng mapper tạo `Optional<String>` rồi `flatMap(Optional::stream)`; nếu việc thiếu nhãn là lỗi nghiệp vụ, nên ném lỗi rõ ràng ở bước xác thực.
+This example merely illustrates the type boundary. If “no label” is a valid state, the mapper can produce `Optional<String>` followed by `flatMap(Optional::stream)`; if a missing label is a business error, throw an explicit error during validation.
 
-### 12.2. `DoubleStream` và các giá trị đặc biệt
+### 12.2. `DoubleStream` and special values
 
-`double` hỗ trợ `NaN`, `Infinity`, `-Infinity` và phân biệt `0.0` với `-0.0` ở cấp bit. `DoubleStream.boxed()` giữ nguyên kiểu số dưới dạng `Double`, không xóa những giá trị này:
+`double` supports `NaN`, `Infinity`, `-Infinity`, and distinguishes `0.0` from `-0.0` at the bit level. `DoubleStream.boxed()` preserves numeric values as `Double` without removing these values:
 
 ```java
 import java.util.List;
@@ -721,11 +721,11 @@ System.out.println(values);
 // [0.0, -0.0, NaN, Infinity]
 ```
 
-Khi dùng wrapper `Double` làm khóa `Map` hoặc phần tử `Set`, cần đọc quy tắc `Double.equals` và `hashCode`: `NaN` được coi bằng `NaN` theo wrapper; `0.0` và `-0.0` không `equals`. Những quy tắc này có thể khác ý nghĩa toán học của phép so sánh primitive bằng `==`. Nếu dữ liệu yêu cầu giá trị hữu hạn, kiểm tra `Double.isFinite(value)` trước khi xây DTO hoặc dùng collector.
+When using boxed `Double` as a `Map` key or `Set` element, check the rules of `Double.equals` and `hashCode`: `NaN` equals `NaN` on the wrapper; `0.0` and `-0.0` are not `equals`. These rules differ from the mathematical semantics of primitive `==`. If the data requires finite values, check `Double.isFinite(value)` before building DTOs or invoking collectors.
 
-## 13. Kiểm thử giá trị sau khi chuyển
+## 13. Testing converted values
 
-Với JUnit 5 và JDK 17+, có thể kiểm thử trực tiếp kết quả của hai phương thức:
+With JUnit 5 and JDK 17+, you can directly test the output of both methods:
 
 ```java
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -786,39 +786,39 @@ class PrimitiveObjectConversionTest {
 }
 ```
 
-Những kiểm thử hữu ích khác gồm: một phần tử, dữ liệu có số âm, giá trị biên `Integer.MIN_VALUE`/`MAX_VALUE`, `Long.MAX_VALUE`, mảng rỗng, kiểu `Double` đặc biệt, mapper trả `null`, và thao tác group theo giá trị đã boxing. Kiểm thử **giá trị và kiểu mong muốn**, không ràng buộc số lần lambda được gọi nếu API không bảo đảm.
+Other useful tests include: single element, data with negative numbers, boundary values `Integer.MIN_VALUE`/`MAX_VALUE`, `Long.MAX_VALUE`, empty arrays, special `Double` values, a mapper returning `null`, and grouping by boxed values. Test **expected values and types**, without asserting how many times a lambda runs unless guaranteed by the API.
 
-## 14. Bài tập áp dụng
+## 14. Practice exercises
 
-**Bài 1 — Wrapper và collection.** Tạo `List<Long>` từ các số `5, 6, 7, 8` bằng `LongStream.rangeClosed` và `boxed()`. Sau đó tạo `ArrayList<Long>` có thể chỉnh sửa bằng `Collectors.toCollection`. Giải thích vì sao `Stream.toList()` không thích hợp nếu muốn `add()`.
+**Exercise 1 — Wrappers and collections.** Create a `List<Long>` from the numbers `5, 6, 7, 8` using `LongStream.rangeClosed` and `boxed()`. Then create a modifiable `ArrayList<Long>` using `Collectors.toCollection`. Explain why `Stream.toList()` is unsuitable if you want to call `add()`.
 
-**Bài 2 — Ánh xạ nhãn.** Dùng `IntStream.rangeClosed(1, 5)` và `mapToObj` để tạo `List<String>` gồm `"Chapter-1"` đến `"Chapter-5"`. Viết một phiên bản khác bằng `boxed().map(...)` và xác định kiểu stream ở từng bước.
+**Exercise 2 — Mapping labels.** Use `IntStream.rangeClosed(1, 5)` and `mapToObj` to build a `List<String>` containing `"Chapter-1"` through `"Chapter-5"`. Write an alternative version using `boxed().map(...)` and identify the stream type at each step.
 
-**Bài 3 — Tạo DTO.** Định nghĩa `record ProductId(long value, String label)`. Dùng `LongStream.of(101, 102, 103)` với `mapToObj` để tạo các đối tượng có label `"PRD-101"`, `"PRD-102"`, `"PRD-103"`. Từ danh sách kết quả, dùng `mapToLong(ProductId::value).sum()` để cộng ID.
+**Exercise 3 — Creating DTOs.** Define `record ProductId(long value, String label)`. Use `LongStream.of(101, 102, 103)` with `mapToObj` to create objects with labels `"PRD-101"`, `"PRD-102"`, `"PRD-103"`. From the resulting list, use `mapToLong(ProductId::value).sum()` to sum the IDs.
 
-**Bài 4 — Grouping chẵn/lẻ.** Từ `IntStream.rangeClosed(1, 12)`, phân nhóm thành `Map<String, List<Integer>>` có hai khóa `"even"` và `"odd"`. Giải thích vì sao cần `boxed()` trước `Collectors.groupingBy`. Nếu chỉ cần tổng các số chẵn, hãy viết một pipeline giữ kiểu nguyên thủy.
+**Exercise 4 — Even/odd grouping.** From `IntStream.rangeClosed(1, 12)`, group into a `Map<String, List<Integer>>` with two keys `"even"` and `"odd"`. Explain why `boxed()` is needed before `Collectors.groupingBy`. If only the sum of even numbers is needed, write a pipeline that stays primitive.
 
-**Bài 5 — Phân biệt mảng.** Từ `int[] numbers = {2, 4, 6}`, tạo một `int[]` mới và một `List<Integer>`. So sánh kết quả của `Stream.of(numbers)` với `Arrays.stream(numbers)` bằng kiểu biên dịch.
+**Exercise 5 — Distinguishing arrays.** From `int[] numbers = {2, 4, 6}`, create a new `int[]` and a `List<Integer>`. Compare the result of `Stream.of(numbers)` with `Arrays.stream(numbers)` via compile-time types.
 
-**Bài 6 — Tổng lớn.** Tính tổng số từ `1` đến `1_000_000`. So sánh kiểu trả về của `IntStream.sum()` với `IntStream.asLongStream().sum()`, chỉ ra trường hợp tràn và viết unit test cho giá trị đúng `500000500000L`.
+**Exercise 6 — Large sum.** Compute the sum of numbers from `1` to `1_000_000`. Compare the return type of `IntStream.sum()` with `IntStream.asLongStream().sum()`, point out the overflow case, and write a unit test for the exact value `500000500000L`.
 
-**Bài 7 — Trạng thái và tối ưu hóa.** Một lập trình viên tạo `AtomicInteger counter = new AtomicInteger()` rồi viết `IntStream.range(0, 100).mapToObj(n -> { counter.incrementAndGet(); return n; }).count()` và kỳ vọng bộ đếm bằng 100. Phân tích lý do kỳ vọng này không thuộc hợp đồng Stream và viết lại bằng pipeline không có side effect. Nếu đổi sang biến cục bộ `int counter` với phép `counter++` trong lambda, trình biên dịch còn từ chối vì biến được capture phải là `final` hoặc *effectively final*.
+**Exercise 7 — State and optimization.** A developer creates `AtomicInteger counter = new AtomicInteger()` and writes `IntStream.range(0, 100).mapToObj(n -> { counter.incrementAndGet(); return n; }).count()`, expecting the counter to equal 100. Analyze why this expectation is not part of the Stream contract and rewrite it with a side-effect-free pipeline. If changed to a local `int counter` variable with `counter++` inside the lambda, the compiler also rejects it because captured variables must be `final` or *effectively final*.
 
-## 15. Bảng ghi nhớ khi thiết kế pipeline
+## 15. Cheat sheet for pipeline design
 
-| Cần làm | API thường chọn | Kiểu đầu ra |
+| Task | Typical API choice | Output type |
 | --- | --- | --- |
-| Tạo object wrapper từ `int` | `IntStream.boxed()` | `Stream<Integer>` |
-| Tạo object wrapper từ `long` | `LongStream.boxed()` | `Stream<Long>` |
-| Tạo object wrapper từ `double` | `DoubleStream.boxed()` | `Stream<Double>` |
-| Tạo nhãn/DTO từ `int` | `IntStream.mapToObj(IntFunction)` | `Stream<U>` |
-| Tạo nhãn/DTO từ `long` | `LongStream.mapToObj(LongFunction)` | `Stream<U>` |
-| Tạo nhãn/DTO từ `double` | `DoubleStream.mapToObj(DoubleFunction)` | `Stream<U>` |
-| Thu vào `List<Integer>` (JDK 16+) | `intStream.boxed().toList()` | `List<Integer>` |
-| Dùng `Collectors.groupingBy` trên số | `intStream.boxed().collect(...)` | `Map<K, V>` |
-| Lấy `int[]` | `intStream.toArray()` | `int[]` |
-| Tính tổng `int` có thể vượt miền `int` | `intStream.asLongStream().sum()` | `long` |
-| Tính tổng trường `long` trên DTO | `stream.mapToLong(Dto::amount).sum()` | `long` |
-| Đổi số thành đối tượng rồi làm phẳng collection | `mapToObj(...).flatMap(...)` | `Stream<R>` |
+| Create wrapper objects from `int` | `IntStream.boxed()` | `Stream<Integer>` |
+| Create wrapper objects from `long` | `LongStream.boxed()` | `Stream<Long>` |
+| Create wrapper objects from `double` | `DoubleStream.boxed()` | `Stream<Double>` |
+| Create labels/DTOs from `int` | `IntStream.mapToObj(IntFunction)` | `Stream<U>` |
+| Create labels/DTOs from `long` | `LongStream.mapToObj(LongFunction)` | `Stream<U>` |
+| Create labels/DTOs from `double` | `DoubleStream.mapToObj(DoubleFunction)` | `Stream<U>` |
+| Collect into `List<Integer>` (JDK 16+) | `intStream.boxed().toList()` | `List<Integer>` |
+| Use `Collectors.groupingBy` on numbers | `intStream.boxed().collect(...)` | `Map<K, V>` |
+| Obtain `int[]` | `intStream.toArray()` | `int[]` |
+| Sum `int` values that may exceed `int` range | `intStream.asLongStream().sum()` | `long` |
+| Sum a `long` field on DTOs | `stream.mapToLong(Dto::amount).sum()` | `long` |
+| Turn numbers into objects then flatten collections | `mapToObj(...).flatMap(...)` | `Stream<R>` |
 
-`boxed()` và `mapToObj()` là cầu nối giữa xử lý số nguyên thủy và hệ kiểu đối tượng của Java Stream API. Chọn `boxed()` khi chỉ cần wrapper, chọn `mapToObj()` khi cần tạo một giá trị đối tượng mới, và giữ primitive stream khi các phép tính số chưa yêu cầu collection hoặc DTO. Cách quyết định này giúp pipeline `JAVA_STREAM_API` dễ đọc, dễ kiểm thử và kiểm soát được chi phí boxing, trạng thái và hiệu năng trước khi mở rộng sang `filter`, `reduce`, `collect`, grouping hay xử lý song song.
+`boxed()` and `mapToObj()` bridge primitive numeric processing and the object type system of the Java Stream API. Choose `boxed()` when only wrappers are needed, choose `mapToObj()` when constructing a new object value, and stay on primitive streams while numeric computations do not yet require collections or DTOs. This decision process keeps `JAVA_STREAM_API` pipelines readable, testable, and controlled in boxing cost, state, and performance before expanding to `filter`, `reduce`, `collect`, grouping, or parallel processing.

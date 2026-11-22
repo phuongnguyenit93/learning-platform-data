@@ -1,23 +1,23 @@
-# Giới hạn của equalsIgnoreCase và so sánh không phân biệt hoa–thường trong Java
+# Limits of equalsIgnoreCase and Case-Insensitive Comparison in Java
 
-## Mục tiêu
+## Objectives
 
-`"Hello".equalsIgnoreCase("hello")` trả `true`, nhưng điều đó **không có nghĩa `equalsIgnoreCase` là bộ so sánh chữ đúng cho mọi ngôn ngữ, mọi kiểu định danh và mọi nhu cầu tìm kiếm**. Unicode có chữ cái chuyển hoa/thường theo ngữ cảnh hoặc locale; một số ký tự chuyển thành nhiều ký tự; cùng một chữ có dấu có thể được lưu ở nhiều dạng chuẩn hóa. Vì vậy, khái niệm “không phân biệt hoa–thường” cần được định nghĩa theo bài toán.
+`"Hello".equalsIgnoreCase("hello")` returns `true`, yet that **does not mean `equalsIgnoreCase` is the right character comparator for every language, every type of identifier, and every search requirement**. Unicode has letters whose casing depends on context or locale; some characters expand into multiple characters; the same accented letter can be stored in multiple normalization forms. Therefore, the concept of "case-insensitive" must be defined per problem.
 
-Sau bài, bạn sẽ:
+After this lesson, you will:
 
-- Hiểu hợp đồng `String.equalsIgnoreCase`, khác biệt với `equals`, `compareToIgnoreCase` và `String.CASE_INSENSITIVE_ORDER`.
-- Giải thích vì sao API này **không phụ thuộc `Locale`**, nhưng cũng không thực hiện **Unicode full case folding** hay chuẩn hóa `NFC/NFD`.
-- Phân tích các trường hợp tiếng Thổ Nhĩ Kỳ (`I/i/İ/ı`), tiếng Đức (`ß/ẞ/SS`), tiếng Hy Lạp (`Σ/σ/ς`), tiếng Việt có dấu và các code point ngoài BMP.
-- Biết khi nào dùng `String.toLowerCase(Locale.ROOT)`, `java.text.Normalizer` hoặc `java.text.Collator`.
-- Thiết kế quy tắc riêng cho mã kỹ thuật, văn bản hiển thị, tìm kiếm không dấu, tên người và dữ liệu nhạy cảm.
-- Kiểm thử ví dụ Java 17+ và tránh lỗi khi dùng case-insensitive comparator làm khóa collection.
+- Understand the `String.equalsIgnoreCase` contract and how it differs from `equals`, `compareToIgnoreCase`, and `String.CASE_INSENSITIVE_ORDER`.
+- Explain why this API is **independent of `Locale`**, yet does not perform **Unicode full case folding** or `NFC/NFD` normalization.
+- Analyze cases in Turkish (`I/i/İ/ı`), German (`ß/ẞ/SS`), Greek (`Σ/σ/ς`), accented Vietnamese, and code points outside the BMP.
+- Know when to use `String.toLowerCase(Locale.ROOT)`, `java.text.Normalizer`, or `java.text.Collator`.
+- Design distinct rules for technical codes, display text, accent-insensitive search, personal names, and sensitive data.
+- Test Java 17+ examples and avoid bugs when using a case-insensitive comparator as collection keys.
 
-**Trọng tâm:** giới hạn của các phép so sánh không phân biệt chữ hoa–thường, không phải khẳng định rằng mọi ứng dụng cần cùng một quy tắc.
+**Focus:** the limits of case-insensitive comparisons, rather than claiming every application needs the same rule.
 
-## 1. So sánh chính xác và so sánh không phân biệt case
+## 1. Exact comparison vs. case-insensitive comparison
 
-`String.equals` xét nội dung chuỗi chính xác; `String.equalsIgnoreCase` cho phép các chữ tương ứng khác hoa–thường theo thuật toán Java:
+`String.equals` checks exact string content; `String.equalsIgnoreCase` allows corresponding letters to differ in case per Java's algorithm:
 
 ```java
 System.out.println("Java".equals("java"));
@@ -35,37 +35,37 @@ false
 false
 ```
 
-Đây là các lệnh minh họa trong một phương thức Java. Không cần truyền `Locale` cho `equalsIgnoreCase`; phương thức không có overload nhận locale.
+These are illustrative statements inside a Java method. No `Locale` needs to be passed to `equalsIgnoreCase`; the method has no overload accepting a locale.
 
-Những giới hạn quan trọng:
+Important limitations:
 
-1. Phép so sánh **không tự gọi `Normalizer.normalize`**.
-2. Nó không coi mọi ký tự có cùng hình dạng hoặc cùng âm đọc là tương đương.
-3. Nó không bỏ dấu thanh của tiếng Việt.
-4. Nó không áp dụng quy tắc riêng của locale hiện tại.
-5. Nó không thực hiện đầy đủ các phép mở rộng một ký tự thành nhiều ký tự trong Unicode case folding.
-6. Nó không có nghĩa hai dữ liệu thuộc cùng một danh tính hay có thể dùng thay nhau trong giao thức bảo mật.
+1. The comparison **does not automatically call `Normalizer.normalize`**.
+2. It does not treat every character with the same visual shape or pronunciation as equivalent.
+3. It does not strip Vietnamese tone marks.
+4. It does not apply rules specific to the current locale.
+5. It does not perform full one-to-many character expansions from Unicode case folding.
+6. It does not imply that two values belong to the same identity or are interchangeable in a security protocol.
 
-Độ dài và cấu trúc chuỗi quan trọng: chuyển `ß` thành `SS` là phép chuyển đổi một ký tự thành hai ký tự, khác hẳn việc so sánh một cặp chữ hoa/thường đơn giản.
+String length and structure matter: converting `ß` to `SS` is a one-character-to-two-character transformation, completely different from comparing a simple uppercase/lowercase pair.
 
-### Không nên đánh đồng “ký tự” với “một char”
+### Do not equate "character" with "one char"
 
-Trong Java, `String` sử dụng UTF-16; `length()` đếm code unit, còn `codePointCount` đếm code point. Một số chữ hoa/thường ở ngoài BMP có hai code unit. Java hiện đại có khả năng nhận diện một số cặp case của chúng trong `equalsIgnoreCase`; không nên nói phương thức này chỉ làm việc với bảng chữ ASCII.
+In Java, `String` uses UTF-16; `length()` counts code units, while `codePointCount` counts code points. Some uppercase/lowercase letters outside the BMP take two code units. Modern Java can recognize some of their case pairs in `equalsIgnoreCase`; one should not claim this method works only on the ASCII alphabet.
 
-Tuy nhiên, việc nhận ra cặp chữ ở supplementary plane **không biến equalsIgnoreCase thành bộ xử lý toàn diện mọi quy tắc Unicode và ngôn ngữ**.
+However, recognizing case pairs in the supplementary planes **does not turn `equalsIgnoreCase` into a comprehensive processor of all Unicode and linguistic rules**.
 
-## 2. Turkish I: không theo ngôn ngữ người dùng
+## 2. Turkish I: does not follow the user's language
 
-Tiếng Thổ Nhĩ Kỳ là ví dụ đặc biệt nổi tiếng:
+Turkish is a particularly famous example:
 
-| Ký tự | Code point | Ý nghĩa |
+| Character | Code point | Meaning |
 | --- | --- | --- |
 | `I` | `U+0049` | Latin capital letter I |
 | `i` | `U+0069` | Latin small letter i |
 | `İ` | `U+0130` | Latin capital I with dot |
 | `ı` | `U+0131` | Latin small dotless i |
 
-Quy tắc tiếng Thổ Nhĩ Kỳ ghép cặp `I↔ı` và `i↔İ`. Nhưng `equalsIgnoreCase` áp dụng phép so sánh độc lập locale.
+Turkish rules pair `I↔ı` and `i↔İ`. Yet `equalsIgnoreCase` applies a locale-independent comparison.
 
 ```java
 String dottedCapital = "\u0130";
@@ -77,7 +77,7 @@ System.out.println("i".equalsIgnoreCase(dottedCapital));
 System.out.println(dottedCapital.equalsIgnoreCase(dotlessSmall));
 ```
 
-Stdout trên Java 17+:
+Stdout on Java 17+:
 
 ```text
 true
@@ -86,11 +86,11 @@ true
 true
 ```
 
-Cả bốn cặp trên được phương thức nhận như tương đương khi bỏ qua case, dù không thể xem đó là phép đối chiếu chính xác theo riêng tiếng Thổ Nhĩ Kỳ.
+All four pairs above are treated as equivalent by the method when ignoring case, even though that cannot be considered an accurate match specifically under Turkish rules.
 
-**Bài học:** `equalsIgnoreCase` không có khái niệm “ngôn ngữ của người đọc”. Nếu người dùng cần so sánh/sắp xếp từ theo một locale, phải chọn giải pháp có tham số locale và kiểm thử quy tắc đó.
+**Lesson:** `equalsIgnoreCase` has no concept of "the reader's language". If users need word comparison/sorting according to a locale, choose a solution with a locale parameter and test those rules.
 
-### toLowerCase còn có vấn đề default locale
+### toLowerCase also has the default locale problem
 
 ```java
 Locale tr = Locale.forLanguageTag("tr-TR");
@@ -98,13 +98,13 @@ System.out.println("I".toLowerCase(tr).codePointAt(0) == 0x0131);
 System.out.println("I".toLowerCase(Locale.ROOT).equals("i"));
 ```
 
-Đoạn minh họa trong phương thức có `import java.util.Locale;`, và cả hai dòng in `true`. Nghĩa là cùng chữ `I` nhưng kết quả chuyển chữ thường theo locale Turkic có thể khác ROOT. Đừng dùng `toLowerCase()` không tham số rồi kỳ vọng giống nhau trên mọi máy: overload này phụ thuộc default locale của JVM.
+This illustrative snippet inside a method has `import java.util.Locale;`, and both lines print `true`. That means for the same letter `I`, lowercasing under a Turkic locale can differ from ROOT. Do not call parameterless `toLowerCase()` and expect identical behavior on every machine: this overload depends on the JVM's default locale.
 
-Không gọi `Locale.setDefault` theo từng request để “sửa” vấn đề; default là trạng thái chung cấp JVM. Truyền locale cụ thể khi cần.
+Do not call `Locale.setDefault` per request to "fix" the issue; default is JVM-wide shared state. Pass a specific locale when needed.
 
-## 3. German sharp S: chuyển case có thể đổi số ký tự
+## 3. German sharp S: case conversion can change character count
 
-Chữ `ß` (`U+00DF`) và chữ hoa `ẞ` (`U+1E9E`) minh họa một trường hợp khác:
+The letter `ß` (`U+00DF`) and capital `ẞ` (`U+1E9E`) illustrate another case:
 
 ```java
 String smallSharp = "\u00DF";
@@ -123,38 +123,38 @@ true
 SS
 ```
 
-`"ß".equalsIgnoreCase("SS")` trả `false`, nhưng khi `toUpperCase(Locale.ROOT)` xử lý toàn chuỗi `ß` lại có thể tạo `SS`. Lý do: phép chuyển đổi hoa/thường **toàn chuỗi** có thể mở rộng chiều dài, trong khi `equalsIgnoreCase` không triển khai đầy đủ Unicode full case folding nhiều ký tự.
+`"ß".equalsIgnoreCase("SS")` returns `false`, yet when `toUpperCase(Locale.ROOT)` processes the whole string, `ß` can produce `SS`. Reason: **whole-string** case conversion can expand length, whereas `equalsIgnoreCase` does not implement full multi-character Unicode case folding.
 
-Đây là lý do **không thể thay một cách vô điều kiện**:
+This is why **you cannot unconditionally replace**:
 
 ```java
 a.equalsIgnoreCase(b)
 ```
 
-bằng:
+with:
 
 ```java
 a.toUpperCase(Locale.ROOT)
         .equals(b.toUpperCase(Locale.ROOT))
 ```
 
-Hai biểu thức có thể cho kết quả khác với `ß` và `SS`. Không nên dùng kết quả viết hoa như một khóa canonical vĩnh viễn nếu nghiệp vụ yêu cầu phân biệt những giá trị có thể bị gộp khi mở rộng case.
+The two expressions can yield different results for `ß` and `SS`. Do not use the uppercased result as a permanent canonical key if business logic requires distinguishing values that could merge upon case expansion.
 
-### Full case folding là một hợp đồng khác
+### Full case folding is a different contract
 
-Unicode có các quy tắc case folding, bao gồm ánh xạ có thể tạo nhiều code point, cùng những lựa chọn riêng cho Turkic. `equalsIgnoreCase` **không công bố một profile Unicode full case folding** để ứng dụng điều chỉnh. Nếu một hệ thống cần full folding theo một chuẩn xác định, phải chọn thư viện/profile thích hợp, ghi nhận phiên bản Unicode và chính sách normalization, không tự tuyên bố `equalsIgnoreCase` là tương đương.
+Unicode has case-folding rules, including mappings that can produce multiple code points, along with Turkic-specific options. `equalsIgnoreCase` **does not publish a configurable Unicode full case folding profile** for applications to tune. If a system requires full folding per a defined standard, choose an appropriate library/profile, document the Unicode version and normalization policy, and do not claim `equalsIgnoreCase` is equivalent.
 
-`String.toUpperCase(Locale.ROOT)` cũng không phải tên khác của full case folding: nó thực hiện **chuyển chữ hoa toàn chuỗi** theo quy tắc riêng. Khi so sánh ID, các phép biến đổi làm thay đổi độ dài có thể tạo collision.
+`String.toUpperCase(Locale.ROOT)` is not another name for full case folding either: it performs **whole-string uppercasing** under its own rules. When comparing IDs, length-changing transformations can create collisions.
 
-## 4. Greek sigma và case theo ngữ cảnh
+## 4. Greek sigma and context-dependent casing
 
-Tiếng Hy Lạp có:
+Greek has:
 
-- `Σ` (`U+03A3`): sigma viết hoa.
-- `σ` (`U+03C3`): sigma viết thường.
-- `ς` (`U+03C2`): sigma viết thường dạng cuối từ.
+- `Σ` (`U+03A3`): uppercase sigma.
+- `σ` (`U+03C3`): lowercase sigma.
+- `ς` (`U+03C2`): word-final lowercase sigma.
 
-`equalsIgnoreCase` có thể coi `Σ` và `ς` bằng nhau:
+`equalsIgnoreCase` can treat `Σ` and `ς` as equal:
 
 ```java
 System.out.println("\u03A3".equalsIgnoreCase("\u03C2"));
@@ -166,29 +166,29 @@ Stdout:
 true
 ```
 
-Trong khi đó, việc đổi hoa/thường **một từ hoàn chỉnh** có thể cần xét vị trí chữ trong từ. Đó là hành vi ngôn ngữ theo ngữ cảnh, không chỉ ánh xạ từng ký tự riêng rẽ. Khi ứng dụng xử lý văn bản đa ngôn ngữ, cần phân biệt so sánh bỏ qua case, chuyển đổi case để hiển thị và chuẩn hóa cho tìm kiếm.
+Meanwhile, changing case on **an entire word** may need to inspect the letter's position in the word. That is context-dependent linguistic behavior, not merely per-character mapping. When an application processes multilingual text, distinguish case-ignoring comparison, case conversion for display, and normalization for search.
 
-## 5. Tiếng Việt: dấu thanh không phải khác biệt hoa–thường
+## 5. Vietnamese: tone marks are not case differences
 
-Với chữ tiếng Việt ghép sẵn, so sánh case đơn giản có thể đúng:
+For precomposed Vietnamese letters, simple case comparison can return true:
 
 ```java
 System.out.println("ĐẮK".equalsIgnoreCase("đắk"));
 System.out.println("ma".equalsIgnoreCase("má"));
 ```
 
-Thông thường cho:
+Typically outputs:
 
 ```text
 true
 false
 ```
 
-Dấu sắc trong `má` không phải một biến thể chữ hoa của `a`. `ma`, `má`, `mà`, `mã`... có khác biệt ngôn ngữ. Khi thiết kế hệ thống, không được coi “so sánh không phân biệt hoa–thường” là “so sánh không dấu”.
+The acute accent in `má` is not an uppercase variant of `a`. `ma`, `má`, `mà`, `mã`... carry linguistic differences. When designing systems, never equate "case-insensitive comparison" with "accent-insensitive comparison".
 
-### NFC/NFD: hai biểu diễn có thể nhìn giống nhau
+### NFC/NFD: two representations can look identical
 
-Một chữ có dấu có thể là code point ghép sẵn hoặc chữ cơ sở cộng dấu kết hợp:
+An accented letter can be a precomposed code point or a base letter plus a combining mark:
 
 ```java
 String composed = "\u00E9"; // é
@@ -203,9 +203,9 @@ Stdout:
 false
 ```
 
-Hai chuỗi có thể hiển thị giống hệt nhưng cấu trúc UTF-16 và số code point khác nhau; `equalsIgnoreCase` không tự gộp chúng.
+Two strings can look identical yet have different UTF-16 structures and code point counts; `equalsIgnoreCase` does not merge them automatically.
 
-Nếu hợp đồng hệ thống yêu cầu **các biểu diễn tương đương chuẩn tắc được xem như nhau**, nên áp dụng cùng một dạng chuẩn hóa Unicode cho hai phía, ví dụ `NFC`:
+If the system contract requires **canonically equivalent representations to be treated as equal**, apply the same Unicode normalization form on both sides, such as `NFC`:
 
 ```java
 import java.text.Normalizer;
@@ -224,25 +224,25 @@ Stdout:
 true
 ```
 
-NFC là **canonical normalization**; không phải quy tắc loại bỏ dấu và không kiểm tra chính tả. Cần phân biệt với `NFKC` có thể gộp các ký tự tương thích như `①` và `1`.
+NFC is **canonical normalization**; it is not a diacritic-stripping rule and does not validate spelling. Distinguish it from `NFKC`, which can merge compatibility characters such as `①` and `1`.
 
-### Chữ đ không tự biến thành d
+### The letter đ does not automatically turn into d
 
-`Normalizer.Form.NFD` không phân rã `đ` thành `d`. Vì vậy không được giả định dùng NFD rồi xóa các Unicode combining mark sẽ tự coi `đ` và `d` là cùng chữ.
+`Normalizer.Form.NFD` does not decompose `đ` into `d`. Therefore, never assume that running NFD and removing Unicode combining marks will automatically treat `đ` and `d` as the same letter.
 
-Nếu chức năng tìm kiếm không dấu muốn hỗ trợ `đ → d`, phải thêm quy tắc chuyển đổi riêng của sản phẩm. Nhưng kết quả đã bỏ dấu chỉ là **search key xấp xỉ**, không thay thế dữ liệu gốc hay ID có yêu cầu chính xác.
+If accent-insensitive search wants to support `đ → d`, you must add a custom product-level mapping rule. Even then, the stripped result is only an **approximate search key**, not a replacement for original data or IDs requiring exactness.
 
-## 6. equalsIgnoreCase và toLowerCase(Locale.ROOT) không đồng nghĩa
+## 6. equalsIgnoreCase and toLowerCase(Locale.ROOT) are not synonymous
 
-Một chiến lược thường gặp:
+A common strategy:
 
 ```java
 String key = input.toLowerCase(Locale.ROOT);
 ```
 
-`Locale.ROOT` giúp tránh default locale của JVM, đặc biệt phù hợp với **mã kỹ thuật có bảng chữ giới hạn**, như tên lệnh ASCII. Nhưng phép chuyển chữ thường toàn chuỗi không có hợp đồng giống `equalsIgnoreCase`.
+`Locale.ROOT` avoids the JVM default locale, making it especially suitable for **technical codes with a restricted alphabet**, such as ASCII command names. Yet whole-string lowercasing does not share the same contract as `equalsIgnoreCase`.
 
-Ví dụ:
+Example:
 
 ```java
 String dottedI = "\u0130";
@@ -261,11 +261,11 @@ false
 2
 ```
 
-Ở đây chữ `İ` có thể được lower-case ROOT thành **`i + combining dot above`** — hai code point. `equalsIgnoreCase` với `i` lại trả true. Đó là hai tiêu chí khác nhau.
+Here `İ` can be ROOT-lowercased into **`i + combining dot above`** — two code points. `equalsIgnoreCase` against `i` returns true. Those are two different criteria.
 
-### Một chính sách tốt cho mã ASCII
+### A good policy for ASCII codes
 
-Nếu một protocol chỉ cho phép chữ ASCII, hãy kiểm tra **bộ ký tự hợp lệ** trước, rồi chuyển case:
+If a protocol allows only ASCII characters, validate the **allowed character set** first, then convert case:
 
 ```java
 String canonicalCommand(String input) {
@@ -276,16 +276,16 @@ String canonicalCommand(String input) {
 }
 ```
 
-Đây là phương thức minh họa nằm trong một lớp đã import `Locale`. Nó không phù hợp làm validation tên người vì sẽ loại chữ tiếng Việt có dấu hoặc chữ từ các hệ chữ khác.
+This is an illustrative method inside a class that has imported `Locale`. It is unsuitable for validating personal names because it rejects accented Vietnamese letters and characters from other scripts.
 
-Nếu chỉ viết `"LOGIN".equalsIgnoreCase(userInput)` mà không kiểm tra phạm vi ký tự, những ký tự Unicode có quan hệ case đặc biệt có thể được chấp nhận dù giao thức dự định chỉ dùng ASCII.
+If you simply write `"LOGIN".equalsIgnoreCase(userInput)` without checking the character range, Unicode characters with special case relationships may be accepted even though the protocol intended ASCII only.
 
-## 7. compareToIgnoreCase và CASE_INSENSITIVE_ORDER
+## 7. compareToIgnoreCase and CASE_INSENSITIVE_ORDER
 
-Ngoài kiểm tra bằng nhau, Java có:
+Beyond equality checks, Java provides:
 
-- `String.compareToIgnoreCase(other)`: so sánh thứ tự chuỗi bỏ qua case theo quy tắc String, không phải thứ tự từ điển của một locale.
-- `String.CASE_INSENSITIVE_ORDER`: comparator có thể truyền cho `TreeSet`, `TreeMap` hoặc sắp xếp.
+- `String.compareToIgnoreCase(other)`: compares string order ignoring case per String rules, not a locale's dictionary order.
+- `String.CASE_INSENSITIVE_ORDER`: a comparator that can be passed to `TreeSet`, `TreeMap`, or sorting.
 
 ```java
 import java.util.Set;
@@ -305,21 +305,21 @@ Stdout:
 1
 ```
 
-Một `TreeSet` xem hai phần tử có comparator trả 0 là tương đương về khóa, nên chỉ giữ một phần tử. Nhưng `"File".equals("file")` là `false`.
+A `TreeSet` considers two elements whose comparator returns 0 to be equivalent keys, so it keeps only one element. Yet `"File".equals("file")` is `false`.
 
-Đây là ví dụ **comparator không nhất quán với `equals`**. Vì vậy:
+This is an example of a **comparator inconsistent with `equals`**. Therefore:
 
-- `HashSet`/`HashMap` dựa vào `equals/hashCode`.
-- `TreeSet`/`TreeMap` dựa vào comparator để quyết định thứ tự và tính trùng khóa.
-- Hai loại collection có thể chứa số entry khác nhau từ cùng dữ liệu.
+- `HashSet`/`HashMap` rely on `equals/hashCode`.
+- `TreeSet`/`TreeMap` rely on the comparator to determine order and key uniqueness.
+- The two collection types can hold different numbers of entries from the same data.
 
-Nếu thiết kế yêu cầu tên tệp, tên người hoặc mã định danh phải giữ khác biệt case, dùng `CASE_INSENSITIVE_ORDER` có thể làm mất entry. Nếu muốn trường hợp “File” và “file” là một key, phải ghi rõ đó là chính sách và xử lý collision theo nghiệp vụ.
+If the design requires filenames, personal names, or identifiers to preserve case distinctions, using `CASE_INSENSITIVE_ORDER` can drop entries. If you want `"File"` and `"file"` to be one key, document that explicitly as policy and handle collisions per business rules.
 
-`compareToIgnoreCase` cũng không phải API sắp xếp theo locale, vì thế không mặc nhiên phù hợp cho danh bạ tiếng Việt hay danh sách từ tiếng Thổ Nhĩ Kỳ.
+`compareToIgnoreCase` is not a locale-based sorting API either, so it is not automatically suitable for Vietnamese directories or Turkish word lists.
 
-## 8. Collator cho so sánh và sắp xếp theo locale
+## 8. Collator for locale-aware comparison and sorting
 
-`java.text.Collator` được thiết kế để so sánh chuỗi theo quy ước của một locale. Ví dụ:
+`java.text.Collator` is designed to compare strings according to a locale's conventions. Example:
 
 ```java
 import java.text.Collator;
@@ -332,16 +332,16 @@ collator.setDecomposition(
         Collator.CANONICAL_DECOMPOSITION);
 ```
 
-`Collator` có các cấp strength:
+`Collator` has strength levels:
 
-| Strength | Khác biệt được xem xét | Điều cần thận trọng |
+| Strength | Differences considered | What to be cautious about |
 | --- | --- | --- |
-| `PRIMARY` | Các khác biệt chữ cơ bản | Có thể gộp một số khác biệt dấu/case |
-| `SECONDARY` | Bổ sung những khác biệt thứ cấp như dấu | Thường bỏ qua case nhưng xét nhiều dấu |
-| `TERTIARY` | Bổ sung khác biệt về case/biến thể | Thứ tự theo locale/provider |
-| `IDENTICAL` | Phân biệt rất chặt ở cấp collation | Không nên tự coi là equality theo byte |
+| `PRIMARY` | Base letter differences | May merge some accent/case differences |
+| `SECONDARY` | Adds secondary differences such as accents | Often ignores case while distinguishing many accents |
+| `TERTIARY` | Adds case/variant differences | Ordering depends on locale/provider |
+| `IDENTICAL` | Very strict distinction at collation level | Should not automatically be treated as byte-level equality |
 
-Ở ví dụ sử dụng provider/JDK đã kiểm tra:
+In the example using the tested provider/JDK:
 
 ```java
 System.out.println(collator.compare("Mai", "mai") == 0);
@@ -355,19 +355,19 @@ true
 false
 ```
 
-Ở strength `SECONDARY`, case của `Mai/mai` không làm hai chuỗi khác nhau trong ví dụ, nhưng dấu sắc của `ma/má` vẫn được phân biệt.
+At `SECONDARY` strength, the case of `Mai/mai` does not separate the two strings in this example, while the acute accent of `ma/má` is still distinguished.
 
-**Lưu ý:** dữ liệu collation và các chi tiết so sánh có thể phụ thuộc locale/provider/JDK. Khi hệ thống cần thứ tự từ điển đúng theo một thị trường, hãy kiểm tra trên cấu hình thực tế và tập dữ liệu phù hợp. `Collator` có trạng thái cấu hình nên không tùy tiện chia sẻ rồi thay `setStrength` giữa các request đồng thời.
+**Note:** collation data and comparison details can depend on locale/provider/JDK. When a system requires accurate dictionary ordering for a market, test on the actual configuration and an appropriate dataset. `Collator` holds mutable configuration state, so do not arbitrarily share one and mutate `setStrength` across concurrent requests.
 
-### Collator không phải full case folding hay xác thực
+### Collator is neither full case folding nor authentication
 
-`Collator.PRIMARY` có thể cho kết quả “bằng nhau” ở những từ khác nhau về dấu. Mức so sánh đó có thể hữu ích cho tìm kiếm, nhưng không đủ để quyết định hai tài khoản hay hai cá nhân là cùng một.
+`Collator.PRIMARY` can report "equal" for words differing in accents. That level of comparison may be helpful for search, yet insufficient for deciding whether two accounts or two individuals are the same.
 
-`CollationKey` cũng không nên được xem là chuỗi ID vĩnh viễn xuyên phiên bản JDK hoặc provider. Nó phục vụ so sánh theo cấu hình collation cụ thể.
+`CollationKey` should also not be treated as a permanent string ID across JDK or provider versions. It serves comparisons under a specific collation configuration.
 
-## 9. Chuẩn hóa NFC rồi so sánh: một policy có giới hạn rõ ràng
+## 9. Normalizing to NFC then comparing: a policy with clear boundaries
 
-Nếu hệ thống muốn **canonical equivalence + bỏ qua case đơn giản**, có thể xây helper:
+If a system wants **canonical equivalence + simple case ignoring**, you can build a helper:
 
 ```java
 import java.text.Normalizer;
@@ -390,48 +390,48 @@ public final class TextEquality {
 }
 ```
 
-Đây là lớp biên dịch được thành `TextEquality.java`, không có `main` để chạy. Hàm áp dụng **một chính sách cụ thể**: hai null được xem bằng nhau; mọi chuỗi còn lại được chuẩn hóa NFC rồi gọi `equalsIgnoreCase`.
+This is a class compilable as `TextEquality.java`, without a `main` method to run. The function enforces **a specific policy**: two nulls are treated as equal; all other strings are normalized to NFC and then passed to `equalsIgnoreCase`.
 
-Hạn chế:
+Limitations:
 
-- Nó giúp so sánh hai dạng chuẩn tắc `é` và `e + ◌́`.
-- Nó **không** tự gộp `ß` với `SS`.
-- Nó không thực hiện Unicode full case folding.
-- Nó không áp dụng riêng quy tắc Turkic.
-- Nó không bỏ dấu thanh của tiếng Việt hay map `đ` sang `d`.
-- Nó không làm input an toàn, đúng chính tả hay hợp lệ với một schema.
+- It helps compare canonically equivalent forms `é` and `e + ◌́`.
+- It **does not** automatically merge `ß` with `SS`.
+- It does not perform Unicode full case folding.
+- It does not apply Turkic-specific rules.
+- It does not strip Vietnamese tone marks or map `đ` to `d`.
+- It does not make input safe, spelled correctly, or valid against a schema.
 
-Nếu dữ liệu được dùng làm khóa cache, DB hoặc tìm kiếm, phải áp dụng cùng một policy ở **mọi đường tạo và đọc khóa**. Khi thêm normalization vào hệ thống đã có dữ liệu, hai giá trị khác nhau ở dạng raw có thể trùng sau NFC; cần lên kế hoạch xử lý collision trước migration.
+If the data is used as cache, DB, or search keys, apply the exact same policy on **every key-generation and key-lookup path**. When adding normalization to a system with existing data, two raw-distinct values may collide after NFC; plan collision handling before migration.
 
-## 10. Từng nhu cầu nên chọn công cụ nào?
+## 10. Which tool to choose for each requirement?
 
-### Mã lệnh và giao thức ASCII
+### Command codes and ASCII protocols
 
-Cho phép một alphabet rõ ràng, validate trước, rồi dùng chuyển case `Locale.ROOT` nếu protocol không phân biệt case. Nếu protocol phân biệt case thì dùng `equals` và giữ nguyên.
+Permit an explicit alphabet, validate first, and then apply `Locale.ROOT` case conversion if the protocol is case-insensitive. If the protocol is case-sensitive, use `equals` and preserve verbatim.
 
-### Văn bản người dùng, tên và nội dung đa ngôn ngữ
+### User text, names, and multilingual content
 
-Giữ nguyên giá trị gốc theo yêu cầu nghiệp vụ. Cân nhắc NFC để hợp nhất hai cách biểu diễn **tương đương chuẩn tắc**, nhưng không tự xóa dấu hoặc chuyển toàn bộ tên sang ASCII. `equalsIgnoreCase` không phải kiểm tra danh tính người thật.
+Preserve the original value per business requirements. Consider NFC to unify **canonically equivalent** representations, but do not strip accents or convert entire names to ASCII. `equalsIgnoreCase` is not a real-world identity check.
 
-### Tìm kiếm linh hoạt
+### Flexible search
 
-Một tìm kiếm có thể muốn `ca phe` tìm `cà phê`. Có thể tạo chỉ mục tìm kiếm phụ theo policy bỏ dấu, case folding hoặc collation. Tuy nhiên, nhiều từ khác nghĩa có thể gộp thành cùng search key. **Giữ trường gốc** và không dùng search key làm ID duy nhất nếu không có quy tắc chấp nhận collision.
+A search may want `ca phe` to find `cà phê`. You can build a secondary search index using an accent-stripping, case-folding, or collation policy. However, multiple words with different meanings can collapse to the same search key. **Keep the original field** and do not use the search key as a unique ID without rules accepting collisions.
 
-### Sắp xếp theo ngôn ngữ
+### Linguistic sorting
 
-Dùng `Collator` với locale, strength/decomposition phù hợp thay vì `compareToIgnoreCase` hoặc `CASE_INSENSITIVE_ORDER` khi thứ tự từ điển tự nhiên có ý nghĩa với người dùng.
+Use `Collator` with the appropriate locale and strength/decomposition instead of `compareToIgnoreCase` or `CASE_INSENSITIVE_ORDER` when natural dictionary order matters to users.
 
-### Mật khẩu, API token và dữ liệu bí mật
+### Passwords, API tokens, and secret data
 
-Không dùng `equalsIgnoreCase` chỉ để “dễ nhập hơn”. Điều đó có thể làm các giá trị bí mật vốn khác nhau bị xem như nhau. Với mật khẩu, dùng quy trình xác thực dựa trên password hash có salt và thuật toán chuyên dụng; với token hoặc chữ ký, dùng quy tắc byte/schema và cơ chế so sánh phù hợp, bao gồm xem xét timing khi cần. Chỉ chuẩn hóa Unicode nếu giao thức xác thực đã quy định chính sách đó một cách nhất quán.
+Do not use `equalsIgnoreCase` merely to make typing "easier". Doing so can treat distinct secret values as equal. For passwords, use an authentication flow based on salted password hashing and dedicated algorithms; for tokens or signatures, use byte/schema rules and appropriate comparison mechanisms, including timing considerations where needed. Only normalize Unicode if the authentication protocol consistently specifies that policy.
 
-### Các loại username hoặc identifier Unicode
+### Unicode usernames or identifiers
 
-Một hệ thống cho phép ID Unicode phải **công bố profile cụ thể**: tập ký tự được phép, normalization, case folding, quy tắc confusable, xử lý collision, độ dài và phiên bản Unicode. `equalsIgnoreCase` đơn lẻ không thể giải quyết các vấn đề này.
+A system allowing Unicode IDs must **publish a specific profile**: allowed character set, normalization, case folding, confusable rules, collision handling, length, and Unicode version. `equalsIgnoreCase` alone cannot solve these issues.
 
-## 11. Ví dụ Java 17+ chạy độc lập
+## 11. Standalone runnable Java 17+ example
 
-Tạo tệp `CaseComparisonDemo.java`. Ví dụ dùng Unicode escapes để không phụ thuộc khả năng hiển thị ký tự đặc biệt của source editor hoặc terminal.
+Create the file `CaseComparisonDemo.java`. The example uses Unicode escapes to avoid depending on a source editor's or terminal's ability to display special characters.
 
 ```java
 import java.text.Collator;
@@ -496,14 +496,14 @@ public class CaseComparisonDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 CaseComparisonDemo.java
 java CaseComparisonDemo
 ```
 
-Stdout theo môi trường JDK kiểm tra, với hai phép Collator phụ thuộc provider như đã lưu ý:
+Stdout under the tested JDK environment, with the two Collator checks depending on the provider as noted:
 
 ```text
 HELLO: true
@@ -520,55 +520,55 @@ collator accent: false
 set size: 1
 ```
 
-Giải thích: các dòng `I` cho thấy bỏ qua case không theo riêng tiếng Thổ Nhĩ Kỳ; `sharp/SS` và `uppercased sharp` cho thấy sự khác biệt giữa so sánh đơn giản và chuyển cả chuỗi; NFC giúp đưa hai dãy code point tương đương chuẩn tắc về cùng dạng; `Collator` minh họa việc tách case và dấu ở strength phù hợp; `TreeSet` thể hiện comparator có thể gộp hai key.
+Explanation: the `I` lines show that ignoring case does not follow Turkish rules specifically; `sharp/SS` and `uppercased sharp` show the difference between simple comparison and whole-string conversion; NFC brings canonically equivalent code point sequences to the same form; `Collator` illustrates separating case and accents at an appropriate strength; `TreeSet` shows that the comparator can merge two keys.
 
-Ví dụ dùng `Locale` tường minh, không thay `Locale.setDefault` và không phụ thuộc ngày giờ hệ thống. Với yêu cầu cụ thể về thứ tự collation, hãy test JDK/provider của môi trường triển khai.
+The example uses an explicit `Locale`, does not call `Locale.setDefault`, and does not depend on system date/time. For specific collation ordering requirements, test the deployment environment's JDK/provider.
 
-## 12. Các lỗi phổ biến
+## 12. Common pitfalls
 
-| Nhầm lẫn | Hệ quả | Cách khắc phục |
+| Misconception | Consequence | Fix |
 | --- | --- | --- |
-| `equalsIgnoreCase` phù hợp mọi ngôn ngữ | Turkish I và những ánh xạ đặc biệt có thể sai mong muốn | Chọn policy/locale rõ ràng |
-| `equalsIgnoreCase` giống lowercase cả hai | Whole-string mapping có thể đổi độ dài | Kiểm tra case mapping và folding khác nhau |
-| `ß` chắc chắn bằng `SS` | Simple comparison trả false | Dùng profile full folding nếu nghiệp vụ cần |
-| Dùng `toLowerCase()` không tham số cho key kỹ thuật | Default locale có thể đổi kết quả | Dùng `Locale.ROOT` và validate alphabet |
-| So sánh case tự xử lý NFC/NFD | Hai dãy code point vẫn khác | Chuẩn hóa cả hai phía khi cần |
-| Bỏ case cũng là bỏ dấu tiếng Việt | `ma`/`má` không chỉ khác case | Không xóa dấu nếu không có yêu cầu |
-| NFC sẽ biến `đ` thành `d` | Không có tương đương chuẩn tắc đó | Mapping riêng chỉ cho search khi cần |
-| NFKC luôn tốt hơn NFC | Có thể gộp những ký tự tương thích ngoài ý muốn | Chọn dạng theo hợp đồng dữ liệu |
-| `TreeSet` dùng CASE_INSENSITIVE_ORDER giữ mọi giá trị khác nhau | Comparator trả 0 có thể làm mất entry | Xác định chính sách key/collision |
-| `compareToIgnoreCase` sắp xếp đúng mọi locale | Không có tham số locale | Dùng `Collator` khi cần |
-| Collator PRIMARY chứng minh hai tài khoản là một | Có thể bỏ qua dấu/case | Không dùng collation linh hoạt làm định danh |
-| Mật khẩu không phân biệt case là “tiện” | Làm yếu hoặc sai hợp đồng bí mật | Dùng cơ chế xác thực phù hợp |
-| Chỉ test ABC/abc | Bỏ lỡ Unicode đặc biệt | Test Turkic, German, NFC/NFD, dấu tiếng Việt |
+| `equalsIgnoreCase` fits every language | Turkish I and special mappings can behave unexpectedly | Choose an explicit policy/locale |
+| `equalsIgnoreCase` equals lowercasing both sides | Whole-string mapping can change length | Check how case mapping and folding differ |
+| `ß` definitely equals `SS` | Simple comparison returns false | Use a full-folding profile if business logic needs it |
+| Calling parameterless `toLowerCase()` for technical keys | Default locale can alter output | Use `Locale.ROOT` and validate alphabet |
+| Case comparison handles NFC/NFD automatically | Two code point sequences still differ | Normalize both sides when needed |
+| Ignoring case also ignores Vietnamese accents | `ma`/`má` differ by more than case | Do not strip accents unless required |
+| NFC turns `đ` into `d` | No such canonical equivalence exists | Separate mapping only for search when needed |
+| NFKC is always better than NFC | Can merge compatibility characters unintentionally | Pick form per data contract |
+| `TreeSet` with CASE_INSENSITIVE_ORDER keeps all distinct values | Comparator returning 0 can drop entries | Define key/collision policy |
+| `compareToIgnoreCase` sorts accurately for every locale | Has no locale parameter | Use `Collator` when needed |
+| Collator PRIMARY proves two accounts are one | Can ignore accents/case | Do not use flexible collation as identity |
+| Case-insensitive passwords are "convenient" | Weakens or breaks secret contract | Use proper authentication mechanisms |
+| Testing only ABC/abc | Misses special Unicode cases | Test Turkic, German, NFC/NFD, Vietnamese diacritics |
 
-## 13. Bài tập tự kiểm tra
+## 13. Self-check exercises
 
-**Bài 1 — ASCII và Unicode.** So sánh `HELLO/hello` và `I/ı`. Tại sao cả hai có thể bằng theo `equalsIgnoreCase` dù trường hợp thứ hai có ngữ nghĩa khác khi xét locale?
+**Exercise 1 — ASCII and Unicode.** Compare `HELLO/hello` and `I/ı`. Why can both be equal under `equalsIgnoreCase` even though the second case has different semantics when considering locale?
 
-**Bài 2 — German sharp S.** Với `ß`, `ẞ`, `SS`, hãy in kết quả `equalsIgnoreCase` và `toUpperCase(Locale.ROOT)`. Điều gì thay đổi khi một ký tự mở rộng thành hai ký tự?
+**Exercise 2 — German sharp S.** For `ß`, `ẞ`, and `SS`, print the results of `equalsIgnoreCase` and `toUpperCase(Locale.ROOT)`. What changes when one character expands into two characters?
 
-**Bài 3 — NFC/NFD.** Tạo `"\u00E9"` và `"e\u0301"`, gọi `equalsIgnoreCase` trước và sau NFC. Vì sao normalization và case mapping là hai cơ chế độc lập?
+**Exercise 3 — NFC/NFD.** Create `"\u00E9"` and `"e\u0301"`, calling `equalsIgnoreCase` before and after NFC. Why are normalization and case mapping two independent mechanisms?
 
-**Bài 4 — tiếng Việt.** So sánh `"ma"`, `"má"` và `"MA"` theo nhu cầu: tên gốc, key tìm kiếm không dấu, và hiển thị. Những phép biến đổi nào có thể làm mất thông tin?
+**Exercise 4 — Vietnamese.** Compare `"ma"`, `"má"`, and `"MA"` across needs: original name, accent-free search key, and display. Which transformations can lose information?
 
-**Bài 5 — Collator.** Dùng `vi-VN` với strength SECONDARY để so sánh `Mai/mai` và `ma/má`. Thay strength thành PRIMARY rồi kiểm tra lại. Vì sao không dùng kết quả này để xác thực danh tính?
+**Exercise 5 — Collator.** Use `vi-VN` with strength SECONDARY to compare `Mai/mai` and `ma/má`. Change strength to PRIMARY and recheck. Why should this result not be used for identity verification?
 
-**Bài 6 — TreeSet.** Thêm `File` và `file` vào `HashSet` và `TreeSet<>(String.CASE_INSENSITIVE_ORDER)`. Vì sao kích thước có thể khác? Đây là lỗi hay tính năng tùy hợp đồng?
+**Exercise 6 — TreeSet.** Add `File` and `file` to a `HashSet` and a `TreeSet<>(String.CASE_INSENSITIVE_ORDER)`. Why can the sizes differ? Is this a bug or a feature depending on the contract?
 
-**Bài 7 — mã giao thức.** Một API cho phép ID ASCII không phân biệt case. Thiết kế bước validation rồi chuyển `Locale.ROOT`. Những ký tự Unicode nào cần bị từ chối để không mở rộng phạm vi ngoài mong muốn?
+**Exercise 7 — protocol codes.** An API permits case-insensitive ASCII IDs. Design a validation step followed by `Locale.ROOT` conversion. Which Unicode characters must be rejected to avoid expanding scope unintentionally?
 
-**Bài 8 — bảo mật.** Tại sao không nên dùng `equalsIgnoreCase` cho token hoặc mật khẩu? Nếu hệ thống cho phép username Unicode, cần công bố thêm những quy tắc nào về chuẩn hóa, case folding và xử lý collision?
+**Exercise 8 — security.** Why should `equalsIgnoreCase` not be used for tokens or passwords? If a system allows Unicode usernames, what additional rules must be published regarding normalization, case folding, and collision handling?
 
-## 14. Kết luận
+## 14. Conclusion
 
-`String.equalsIgnoreCase` hữu ích cho **so sánh hoa–thường đơn giản**, nhưng **không có tham số `Locale`**, không thực hiện đầy đủ Unicode full case folding, không tự chuẩn hóa NFC/NFD, không bỏ dấu tiếng Việt và không thay thế collation theo ngôn ngữ hay logic nhận dạng an toàn.
+`String.equalsIgnoreCase` is useful for **simple case-insensitive comparison**, yet **has no `Locale` parameter**, does not perform full Unicode case folding, does not automatically normalize NFC/NFD, does not strip Vietnamese diacritics, and does not replace language-aware collation or secure identity logic.
 
-Hãy chọn giải pháp dựa trên mục tiêu: `equals` cho dữ liệu chính xác; validate ASCII + `Locale.ROOT` cho giao thức có bảng chữ giới hạn; `Normalizer` cho canonical equivalence; `Collator` cho so sánh theo ngôn ngữ; search index riêng cho tìm kiếm xấp xỉ. Đối với ID hoặc dữ liệu bí mật, quy tắc chuẩn hóa và so sánh phải được thiết kế như một phần của hợp đồng, không phải một tiện ích được thêm tùy hứng.
+Choose the solution based on your goal: `equals` for exact data; ASCII validation + `Locale.ROOT` for restricted-alphabet protocols; `Normalizer` for canonical equivalence; `Collator` for linguistic comparison; separate search indices for approximate search. For IDs or secret data, normalization and comparison rules must be designed as part of the contract, not added as an ad-hoc utility.
 
-**Ghi nhớ:** *“Không phân biệt hoa–thường” là yêu cầu phải được định nghĩa, không phải một nút bật duy nhất đúng cho mọi ngôn ngữ.*
+**Takeaway:** *"Case-insensitive" is a requirement that must be defined, not a single toggle switch valid for all languages.*
 
-### Tài liệu tham khảo
+### References
 
 - [`String` – Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html)
 - [`Collator` – Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Collator.html)

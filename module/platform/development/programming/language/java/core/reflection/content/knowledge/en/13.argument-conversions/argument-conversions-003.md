@@ -1,10 +1,10 @@
-# Vì sao Reflection không tự narrowing hay đổi String thành số?
+# Why Doesn't Reflection Automatically Narrow or Convert String to a Number?
 
-## 1. Vấn đề: Reflection gọi phương thức, không phải bộ chuyển đổi dữ liệu tùy ý
+## 1. The problem: Reflection invokes methods, it is not an arbitrary data converter
 
-Trong Java Reflection, lời gọi `Method.invoke(receiver, args...)` phải truyền các đối số phù hợp với **kiểu tham số đã khai báo** của phương thức đích. Reflection hỗ trợ một tập chuyển đổi cụ thể, gồm **unboxing** từ wrapper tương ứng và **widening primitive conversion** được phép. Nó **không tự thực hiện narrowing primitive conversion** (ví dụ `long → int` hoặc `int → short`) và **không parse `String` thành số** (ví dụ `"42" → 42`).
+In Java Reflection, calling `Method.invoke(receiver, args...)` must pass arguments compatible with the **declared parameter types** of the target method. Reflection supports a specific set of conversions, consisting of **unboxing** from the corresponding wrapper and permitted **widening primitive conversion**. It **does not automatically perform narrowing primitive conversion** (e.g., `long → int` or `int → short`) and **does not parse `String` into numbers** (e.g., `"42" → 42`).
 
-Ví dụ, nếu phương thức đích có chữ ký:
+For example, if the target method has the signature:
 
 ~~~java
 public static int doubleIt(int number) {
@@ -12,42 +12,42 @@ public static int doubleIt(int number) {
 }
 ~~~
 
-thì `Method.invoke(null, Integer.valueOf(7))` có thể gọi phương thức với tham số `int` bằng cách unbox `Integer`; `Method.invoke(null, Byte.valueOf((byte) 7))` cũng có thể gọi bằng cách unbox `byte` rồi widening `byte → int`. Nhưng truyền `Long.valueOf(7L)` hoặc `"7"` tới tham số `int` sẽ không tự chuyển thành số nguyên; lời gọi thất bại với `IllegalArgumentException`.
+then `Method.invoke(null, Integer.valueOf(7))` can invoke the method with an `int` parameter by unboxing `Integer`; `Method.invoke(null, Byte.valueOf((byte) 7))` can also invoke it by unboxing `byte` and widening `byte → int`. However, passing `Long.valueOf(7L)` or `"7"` to an `int` parameter will not automatically convert to an integer; the call fails with `IllegalArgumentException`.
 
-Đây là **thiết kế kiểm tra kiểu**, tránh suy đoán giá trị hoặc tự ý thực hiện chuyển đổi có thể gây mất dữ liệu, sai ý nghĩa hay phụ thuộc định dạng chuỗi.
+This is a **type-checking design**, avoiding guessing values or arbitrarily performing conversions that could cause data loss, alter meaning, or depend on string formatting.
 
-## 2. Java cho phép những chuyển đổi nào khi `Method.invoke()`?
+## 2. Which conversions does Java allow during `Method.invoke()`?
 
-Chữ ký Reflection:
+Reflection signature:
 
 ~~~java
 Object Method.invoke(Object obj, Object... args)
         throws IllegalAccessException, InvocationTargetException
 ~~~
 
-Trong runtime, các đối số truyền vào `Object... args` là tham chiếu: khi viết `method.invoke(null, 7)`, trình biên dịch Java sẽ boxing literal `7` thành `Integer` để truyền qua varargs. Reflection sau đó đối chiếu **giá trị runtime** với kiểu tham số method đích.
+At runtime, arguments passed to `Object... args` are references: when writing `method.invoke(null, 7)`, the Java compiler boxes the literal `7` into `Integer` to pass via varargs. Reflection then matches the **runtime value** against the target method's parameter type.
 
-Đối với tham số **primitive**, Reflection có thể unbox từ wrapper thích hợp rồi widening primitive nếu cần. Nó không narrow giá trị primitive. Đối với tham số **reference**, giá trị phải tương thích về quan hệ kiểu tham chiếu; Reflection không tự “biến” một `Integer` thành `Long` wrapper và không chuyển chuỗi chữ số thành bất cứ kiểu số nào.
+For **primitive** parameters, Reflection can unbox from an appropriate wrapper and then widen the primitive if needed. It does not narrow primitive values. For **reference** parameters, the value must be compatible in the reference type relationship; Reflection does not automatically "turn" an `Integer` into a `Long` wrapper and does not convert digit strings into any numeric type.
 
-| Tham số đích | Giá trị truyền cho `invoke()` | Kết quả | Lý do |
+| Target parameter | Value passed to `invoke()` | Result | Reason |
 | --- | --- | --- | --- |
-| `int` | `Integer.valueOf(7)` | Được | Unboxing `Integer → int`. |
-| `int` | `Byte.valueOf((byte) 7)` | Được | Unbox `Byte → byte`, widening `byte → int`. |
-| `int` | `Character.valueOf('A')` | Được | Unbox `char`, widening `char → int` (mã Unicode UTF-16 của `'A'` là 65). |
-| `long` | `Integer.valueOf(7)` | Được | Unbox `int`, widening `int → long`. |
-| `int` | `Long.valueOf(7L)` | **Không** | Cần narrowing `long → int`. |
-| `short` | `Integer.valueOf(7)` | **Không** | Cần narrowing `int → short`, kể cả giá trị 7 có thể biểu diễn bằng short. |
-| `int` | `"7"` | **Không** | `String` không phải wrapper số; không có tự động parse. |
-| `int` | `null` | **Không** | Không thể unbox `null` thành primitive. |
-| `Long` (reference) | `Integer.valueOf(7)` | **Không** | `Integer` không phải subtype của `Long`; không tự unbox–widen–rebox. |
-| `Number` (reference) | `Integer.valueOf(7)` | Được | `Integer extends Number`: widening reference. |
-| `String` | `"7"` | Được | Đã là `String`, không cần chuyển kiểu. |
+| `int` | `Integer.valueOf(7)` | Allowed | Unboxing `Integer → int`. |
+| `int` | `Byte.valueOf((byte) 7)` | Allowed | Unbox `Byte → byte`, widening `byte → int`. |
+| `int` | `Character.valueOf('A')` | Allowed | Unbox `char`, widening `char → int` (UTF-16 Unicode code of `'A'` is 65). |
+| `long` | `Integer.valueOf(7)` | Allowed | Unbox `int`, widening `int → long`. |
+| `int` | `Long.valueOf(7L)` | **Not allowed** | Requires narrowing `long → int`. |
+| `short` | `Integer.valueOf(7)` | **Not allowed** | Requires narrowing `int → short`, even though 7 is representable as a short. |
+| `int` | `"7"` | **Not allowed** | `String` is not a numeric wrapper; no automatic parsing. |
+| `int` | `null` | **Not allowed** | Cannot unbox `null` to a primitive. |
+| `Long` (reference) | `Integer.valueOf(7)` | **Not allowed** | `Integer` is not a subtype of `Long`; no automatic unbox–widen–rebox. |
+| `Number` (reference) | `Integer.valueOf(7)` | Allowed | `Integer extends Number`: widening reference. |
+| `String` | `"7"` | Allowed | Already a `String`, no type conversion needed. |
 
-Với widening, có thể mất **độ chính xác số học** trong một vài chuyển đổi (chẳng hạn `long → float`); “widening” mô tả quan hệ kiểu/miền biểu diễn, **không phải lời hứa rằng mọi giá trị được giữ nguyên từng bit**. Điểm chính là Java có quy tắc widening được định nghĩa sẵn, còn narrowing đòi hỏi quyết định tường minh của người viết.
+With widening, **numeric precision** can be lost in some conversions (for example, `long → float`); "widening" describes a type/representation-range relationship, **not a promise that every value is preserved bit-for-bit**. The key point is that Java has predefined widening rules, whereas narrowing requires an explicit decision from the author.
 
-## 3. Ví dụ độc lập Java 17+: các trường hợp thành công và thất bại
+## 3. Standalone Java 17+ example: success and failure cases
 
-Tạo file `ReflectionConversionDemo.java`:
+Create the file `ReflectionConversionDemo.java`:
 
 ~~~java
 import java.lang.reflect.Method;
@@ -96,14 +96,14 @@ public class ReflectionConversionDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac --release 17 ReflectionConversionDemo.java
 java ReflectionConversionDemo
 ~~~
 
-Stdout, đã chạy và xác nhận bằng JDK biên dịch tương thích Java 17:
+Stdout, executed and verified with a Java 17-compatible JDK compiler:
 
 ~~~text
 Integer -> int => 14
@@ -118,28 +118,28 @@ explicit parse => 14
 explicit narrow => 7
 ~~~
 
-**Cách đọc chương trình:**
+**How to read the program:**
 
-- `getMethod("acceptInt", int.class)` tra cứu **chữ ký khai báo**, không gọi method; kiểu mong đợi là `int.class`.
-- `test(...)` nhận `Object arg`; tại `method.invoke(null, arg)`, Reflection xét **kiểu runtime của arg**. Ví dụ `Byte.valueOf((byte) 3)` mang primitive nguồn `byte` khi unbox, có thể widening thành `int`; `acceptInt(3)` trả `6`.
-- `Character.valueOf('A')` unbox thành `char`; widening sang `int` tạo `65`; method nhân đôi nên trả `130`. Đây là xử lý mã ký tự, **không phải parse chuỗi**.
-- `Long.valueOf(7)` bị từ chối đối với `int` mặc dù `7L` đủ nhỏ để vừa `int`. Reflection không tự narrowing theo giá trị.
-- `"7"` là `String`. Reflection không biết người viết muốn hệ cơ số 10, 16, cách xử lý khoảng trắng, số âm hay lỗi input, nên phải parse trước khi invoke.
-- `null` không thể trở thành primitive `int`; ví dụ bắt `IllegalArgumentException` từ việc truyền đối số không hợp lệ.
-- `Integer.parseInt("7")` thực hiện chuyển đổi có **quy tắc parsing rõ ràng** trước khi gọi; kết quả `int 7` khi đưa vào `Object...` sẽ boxing thành `Integer` rồi Reflection unbox khi gọi.
-- `(short) 7` là narrowing tường minh trong Java source; sau khi boxing thành `Short`, Reflection có thể gọi `acceptShort(short)`. Lưu ý cast với số vượt phạm vi có thể làm mất dữ liệu.
+- `getMethod("acceptInt", int.class)` looks up the **declared signature**, without calling the method; the expected type is `int.class`.
+- `test(...)` accepts `Object arg`; at `method.invoke(null, arg)`, Reflection checks the **runtime type of arg**. For instance, `Byte.valueOf((byte) 3)` carries source primitive `byte` when unboxed, which can widen to `int`; `acceptInt(3)` returns `6`.
+- `Character.valueOf('A')` unboxes to `char`; widening to `int` produces `65`; the method doubles it and returns `130`. This processes the character code, **not string parsing**.
+- `Long.valueOf(7)` is rejected for `int` even though `7L` is small enough to fit in `int`. Reflection does not automatically narrow by value.
+- `"7"` is a `String`. Reflection does not know whether the author wants base 10, base 16, how to handle whitespace, negative numbers, or input errors, so it must be parsed before invoking.
+- `null` cannot become primitive `int`; the example catches `IllegalArgumentException` from passing an invalid argument.
+- `Integer.parseInt("7")` performs conversion with **explicit parsing rules** before the call; the resulting `int 7` passed into `Object...` is boxed into `Integer` and then unboxed by Reflection on invocation.
+- `(short) 7` is an explicit narrowing in Java source; after boxing to `Short`, Reflection can invoke `acceptShort(short)`. Note that casting out-of-range numbers can cause data loss.
 
-## 4. Tại sao `String` không tự động thành số?
+## 4. Why doesn't `String` automatically become a number?
 
-Chuỗi chỉ lưu **ký tự**. Dữ liệu người dùng, dòng CSV, tham số HTTP và nội dung JSON có thể chứa các giá trị như `"15"`, `" 15 "`, `"1,500"`, `"0xFF"`, `""` hoặc `"abc"`. Chúng có ý nghĩa số hay không tùy quy ước dữ liệu:
+Strings only store **characters**. User input, CSV lines, HTTP parameters, and JSON content can contain values like `"15"`, `" 15 "`, `"1,500"`, `"0xFF"`, `""`, or `"abc"`. Whether they have numeric meaning depends on data conventions:
 
-- `"15"` có thể parse theo hệ 10 thành `15`.
-- `" 15 "` cần quyết định có `trim()` hay `strip()` trước không; `Integer.parseInt` thuần không chấp nhận dấu cách ở hai đầu.
-- `"1,500"` có thể là một nghìn năm trăm hoặc một phẩy năm tùy locale; không thể đoán bằng Reflection.
-- `"0xFF"` có thể muốn hiểu là hệ 16 nhưng `Integer.parseInt(text)` mặc định parse hệ 10; muốn hệ 16 phải chỉ định xử lý thích hợp.
-- `"abc"` hoặc giá trị vượt miền `int` phải được xử lý như dữ liệu không hợp lệ.
+- `"15"` can be parsed in base 10 to `15`.
+- `" 15 "` requires deciding whether to `trim()` or `strip()` first; plain `Integer.parseInt` does not accept leading/trailing spaces.
+- `"1,500"` could mean one thousand five hundred or one point five depending on locale; Reflection cannot guess.
+- `"0xFF"` might be intended as base 16, while `Integer.parseInt(text)` defaults to base 10; base 16 requires specifying the appropriate handling.
+- `"abc"` or out-of-range `int` values must be handled as invalid data.
 
-Reflection không phải parser hoặc data-binding framework. Để gọi method nhận `int`, mã của bạn phải có **quy tắc chuyển String thành int** được chọn rõ ràng:
+Reflection is not a parser or data-binding framework. To call a method accepting `int`, your code must have an explicitly chosen **rule for converting String to int**:
 
 ~~~java
 String input = " 42 ";
@@ -147,57 +147,57 @@ int parsed = Integer.parseInt(input.strip());
 Object result = intMethod.invoke(null, parsed);
 ~~~
 
-Đoạn này phụ thuộc biến `intMethod` từ phần 3 và không phải chương trình độc lập. `parsed` là `int`; khi truyền vào `Object...` của `invoke`, trình biên dịch boxing rồi Reflection tự unbox theo API. Kết quả method `acceptInt` sẽ là `Integer(84)`.
+This snippet depends on the `intMethod` variable from section 3 and is not a standalone program. `parsed` is an `int`; when passed into `invoke`'s `Object...`, the compiler boxes it and Reflection automatically unboxes it per the API. The result of `acceptInt` will be `Integer(84)`.
 
-Các API parse phổ biến:
+Common parsing APIs:
 
-| Kiểu cần tạo | Ví dụ chuyển đổi tường minh | Sai dữ liệu |
+| Type to produce | Explicit conversion example | Invalid data |
 | --- | --- | --- |
 | `int` | `Integer.parseInt(text)` | `NumberFormatException` |
 | `long` | `Long.parseLong(text)` | `NumberFormatException` |
-| `double` | `Double.parseDouble(text)` | `NumberFormatException` với cú pháp không hợp lệ; có giá trị đặc biệt như `NaN` nếu cú pháp hỗ trợ. |
-| `BigDecimal` | `new BigDecimal(text)` | `NumberFormatException`; phù hợp hơn binary floating-point khi cần biểu diễn thập phân chính xác. |
-| `short` | `Short.parseShort(text)` | `NumberFormatException` nếu không parse được hoặc ngoài miền `short`. |
+| `double` | `Double.parseDouble(text)` | `NumberFormatException` for invalid syntax; special values like `NaN` exist if syntax supports them. |
+| `BigDecimal` | `new BigDecimal(text)` | `NumberFormatException`; better suited than binary floating-point when exact decimal representation is needed. |
+| `short` | `Short.parseShort(text)` | `NumberFormatException` if unparseable or outside `short` range. |
 
-Với dữ liệu phân biệt locale, dùng parser phù hợp như `NumberFormat` và quản lý `ParsePosition`/kiểm tra chuỗi đã được tiêu thụ hết nếu yêu cầu nghiêm ngặt. Đừng gọi `Double.parseDouble` rồi cast `int` để parse mã định danh hay số nguyên: có nguy cơ mất phần thập phân và vượt miền.
+For locale-sensitive data, use an appropriate parser like `NumberFormat` and manage `ParsePosition`/check that the entire string was consumed if strictness is required. Do not call `Double.parseDouble` and cast to `int` to parse identifiers or integers: there is a risk of losing fractional parts and overflowing the range.
 
-## 5. Khi bắt buộc narrowing, hãy quyết định rõ về mất dữ liệu
+## 5. When narrowing is mandatory, decide explicitly about data loss
 
-Narrowing primitive là chuyển sang kiểu có miền biểu diễn nhỏ hơn, ví dụ:
-
-~~~java
-long source = 3_000_000_000L;
-int narrowed = (int) source; // Có thể mất dữ liệu
-~~~
-
-Cú pháp cast ở trên hợp lệ trong Java source, nhưng kết quả không nhất thiết bằng giá trị ban đầu. Nếu muốn **từ chối overflow** thay vì làm mất dữ liệu, dùng:
+Narrowing primitive conversion is converting to a type with a smaller representation range, for example:
 
 ~~~java
 long source = 3_000_000_000L;
-int safe = Math.toIntExact(source); // Ném ArithmeticException nếu ngoài miền int
+int narrowed = (int) source; // May lose data
 ~~~
 
-Với giá trị thực sự thuộc miền, chẳng hạn `long source = 7L;`, `Math.toIntExact(source)` trả `int 7`; đem số `int` này truyền cho method có tham số `int` là hợp lệ.
+The cast syntax above is valid in Java source, but the result does not necessarily equal the original value. If you want to **reject overflow** instead of losing data, use:
 
-Cân nhắc hai cách:
+~~~java
+long source = 3_000_000_000L;
+int safe = Math.toIntExact(source); // Throws ArithmeticException if outside int range
+~~~
 
-- **Chấp nhận mất dữ liệu có chủ đích:** dùng cast `(int) someLong`, `(short) someInt` theo thiết kế dữ liệu và giải thích giới hạn.
-- **Không chấp nhận mất dữ liệu:** kiểm tra miền bằng `Math.toIntExact` hoặc điều kiện `Short.MIN_VALUE <= n && n <= Short.MAX_VALUE` trước khi cast.
+For a value genuinely in range, such as `long source = 7L;`, `Math.toIntExact(source)` returns `int 7`; passing this `int` to a method with an `int` parameter is valid.
 
-Reflection không thể chọn hộ giữa hai chính sách này; caller phải quyết định trước khi đưa đối số cho `invoke()`.
+Consider two approaches:
 
-## 6. Quy trình chuyển đổi dữ liệu an toàn trước khi gọi Reflection
+- **Intentional data-loss acceptance:** use a cast `(int) someLong`, `(short) someInt` per data design and document the limits.
+- **No data loss accepted:** check the range with `Math.toIntExact` or the condition `Short.MIN_VALUE <= n && n <= Short.MAX_VALUE` before casting.
 
-Khi xây hệ thống đọc cấu hình, CLI, HTTP request hay CSV và gọi các phương thức động:
+Reflection cannot choose between these two policies for you; the caller must decide before passing arguments to `invoke()`.
 
-1. **Xác định signature:** Dùng `Method.getParameterTypes()` hoặc `getGenericParameterTypes()` khi có generic; hiểu rõ method yêu cầu `int`, `Long`, `String` hay một kiểu khác.
-2. **Xác định schema input:** Biết định dạng, locale, khả năng null, giới hạn miền, đơn vị, và cách báo lỗi. Đừng suy kiểu số chỉ từ chuỗi hiển thị.
-3. **Parse nếu dữ liệu dạng text:** Dùng parser đúng kiểu. Xử lý `NumberFormatException`, chuỗi trống, khoảng trắng, overflow và giá trị không hợp lệ.
-4. **Chuyển số tường minh khi cần narrowing:** Cân nhắc cast có chủ đích hoặc kiểm tra miền bằng hàm/điều kiện phù hợp. Đừng truyền `Long` vào `int` rồi mong Reflection tự xử lý.
-5. **Kiểm tra null và kiểu tham chiếu:** Primitive không nhận null; reference có thể nhận null nếu logic method cho phép. Không có phép “chuyển thành null hợp lệ” cho primitive.
-6. **Chỉ sau đó gọi `invoke(...)`:** Truyền đúng receiver và đối số theo thứ tự. Xử lý `IllegalArgumentException` cho lỗi đối số; `InvocationTargetException.getCause()` cho lỗi phát sinh từ method đích.
+## 6. Safe data conversion workflow before calling Reflection
 
-Ví dụ xử lý một chuỗi số trước khi gọi phương thức nhận `int`:
+When building a system that reads config, CLI, HTTP requests, or CSV and invokes methods dynamically:
+
+1. **Identify signature:** Use `Method.getParameterTypes()` or `getGenericParameterTypes()` when generics are present; clearly understand whether the method expects `int`, `Long`, `String`, or another type.
+2. **Define input schema:** Know the format, locale, nullability, range limits, units, and error reporting. Do not infer numeric types solely from display strings.
+3. **Parse if data is text:** Use the right parser for the type. Handle `NumberFormatException`, empty strings, whitespace, overflow, and invalid values.
+4. **Convert numbers explicitly when narrowing is needed:** Consider intentional casting or range checking with an appropriate function/condition. Do not pass `Long` into `int` hoping Reflection will handle it automatically.
+5. **Check null and reference types:** Primitives do not accept null; references can accept null if the method's logic allows it. There is no "valid conversion to null" for primitives.
+6. **Only then call `invoke(...)`:** Pass the right receiver and arguments in order. Handle `IllegalArgumentException` for argument errors; `InvocationTargetException.getCause()` for errors thrown by the target method.
+
+Example of handling a numeric string before calling a method accepting `int`:
 
 ~~~java
 static Object invokeIntFromText(Method method, Object target, String text)
@@ -207,20 +207,20 @@ static Object invokeIntFromText(Method method, Object target, String text)
 }
 ~~~
 
-Đây là **method minh họa** phải đặt trong class có import `java.lang.reflect.Method`. Nó dành cho tình huống đã biết chắc method đích nhận đúng một `int`. `Integer.parseInt` có thể ném `NumberFormatException` (unchecked) khi input sai; chữ ký trên không thay thế validation ở biên hệ thống. Với kiểu mục tiêu khác, phải chọn parser/converter tương ứng.
+This is an **illustrative method** that must be placed in a class importing `java.lang.reflect.Method`. It is intended for situations where it is known for certain that the target method takes exactly one `int`. `Integer.parseInt` can throw `NumberFormatException` (unchecked) on bad input; the signature above does not replace validation at system boundaries. For other target types, an appropriate parser/converter must be chosen.
 
-## 7. Tự luyện và kiểm tra
+## 7. Self-practice and verification
 
-1. `acceptInt(int)` nhận `Short.valueOf((short) 4)` qua Reflection hay không? Dự đoán output nếu logic method nhân đôi.
-2. `acceptInt(int)` nhận `Float.valueOf(4.0f)` không? Dù giá trị bằng một số nguyên, lý do từ chối là gì?
-3. Với `acceptLong(long)`, truyền `Long.valueOf(9)` và `Integer.valueOf(9)` có khác nhau không? Trường hợp nào phải widening?
-4. Nếu dữ liệu text là `" 2147483648 "` và đích là `int`, cần xử lý điều gì ngoài `strip()`? Có nên cast trực tiếp từ `long`?
-5. Nếu đích là `Long` reference (không phải `long` primitive), vì sao truyền `Integer.valueOf(9)` không được?
-6. Hãy sửa code ở phần 3 để sau khi `Long -> int` bị từ chối, dùng `Math.toIntExact(7L)` và gọi lại. Giải thích vì sao giờ tham số đã phù hợp.
+1. Does `acceptInt(int)` accept `Short.valueOf((short) 4)` via Reflection? Predict the output if the method logic doubles it.
+2. Does `acceptInt(int)` accept `Float.valueOf(4.0f)`? Even though the value equals an integer, what is the reason for rejection?
+3. With `acceptLong(long)`, is there a difference between passing `Long.valueOf(9)` and `Integer.valueOf(9)`? Which case requires widening?
+4. If the text data is `" 2147483648 "` and the target is `int`, what must be handled besides `strip()`? Should you cast directly from `long`?
+5. If the target is a `Long` reference (not primitive `long`), why does passing `Integer.valueOf(9)` not work?
+6. Modify the code in section 3 so that after `Long -> int` is rejected, it uses `Math.toIntExact(7L)` and calls it again. Explain why the argument is now compatible.
 
-**Ghi nhớ:** Reflection giữ quy tắc chuyển đổi **có định nghĩa rõ**: nhận unboxing và widening thích hợp, nhưng **không đoán parsing String, không tự narrowing, không đổi wrapper này sang wrapper khác tùy ý**. Caller chịu trách nhiệm chọn cách chuyển và xác thực input trước khi gọi.
+**Takeaway:** Reflection enforces **well-defined conversion rules**: it accepts appropriate unboxing and widening, but **does not guess String parsing, does not automatically narrow, and does not arbitrarily convert one wrapper to another**. The caller is responsible for choosing how to convert and validating input before invoking.
 
-## Tài liệu chuẩn
+## Official references
 
 - [Java SE 17 — `Method.invoke()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html#invoke(java.lang.Object,java.lang.Object...))
 - [Java SE 17 — `Constructor.newInstance()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Constructor.html#newInstance(java.lang.Object...))

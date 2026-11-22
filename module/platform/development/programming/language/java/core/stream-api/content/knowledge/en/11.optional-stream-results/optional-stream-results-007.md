@@ -1,21 +1,21 @@
-# Kết hợp kết quả tìm kiếm với pipeline tiếp theo
+# Combining Search Results With Subsequent Pipelines
 
-> **Chương:** Optional trong kết quả Stream  
-> **Module:** `JAVA_STREAM_API` — học cách xử lý dữ liệu khai báo bằng Java Stream API qua pipeline lazy, `filter`, `map`, `reduce`, `collect`, cùng các kỹ thuật grouping, collector tùy chỉnh, `Spliterator`, xử lý song song và Stream Gatherers. Khi xây dựng pipeline cần lưu ý trạng thái, tài nguyên và hiệu năng.
+> **Chapter:** Optional in Stream Results  
+> **Module:** `JAVA_STREAM_API` — learn declarative data processing with the Java Stream API via lazy pipelines, `filter`, `map`, `reduce`, `collect`, along with grouping techniques, custom collectors, `Spliterator`, parallel processing, and Stream Gatherers. Pay attention to state, resources, and performance when building pipelines.
 
-Một câu hỏi rất thường gặp khi xử lý dữ liệu là: **Sau khi tìm được một đối tượng bằng Stream, làm thế nào tiếp tục lọc, biến đổi hoặc duyệt dữ liệu liên quan đến đối tượng đó?** Ví dụ, ta tìm một đơn hàng đã thanh toán, sau đó tìm khách hàng tương ứng; hoặc tìm một đơn hàng rồi lập danh sách mã sản phẩm từ các dòng hàng của nó.
+A very common question when processing data is: **After finding an object with a Stream, how do we continue filtering, transforming, or traversing data related to that object?** For example, we find a paid order and then look up the corresponding customer; or we find an order and list the product codes from its line items.
 
-Các thao tác tìm kiếm của Stream thường trả về `Optional<T>`, vì không thể bảo đảm sẽ có kết quả. Để nối tiếp một cách an toàn, cần phân biệt ba tình huống:
+Stream search operations typically return `Optional<T>`, because a result cannot be guaranteed. To chain safely, distinguish three situations:
 
-1. **Biến đổi một kết quả có thể vắng mặt:** dùng `Optional.map`.
-2. **Chuyển từ một kết quả tìm kiếm sang một kết quả tìm kiếm khác:** dùng `Optional.flatMap`.
-3. **Đưa kết quả có thể vắng mặt trở lại pipeline Stream:** dùng `Optional.stream()` (Java 9+).
+1. **Transforming a potentially absent result:** use `Optional.map`.
+2. **Transitioning from one search result to another search result:** use `Optional.flatMap`.
+3. **Bringing a potentially absent result back into a Stream pipeline:** use `Optional.stream()` (Java 9+).
 
-Bài học sử dụng cú pháp Java 17+, đồng thời giải thích cách xử lý nguồn rỗng, giá trị `null`, các phép toán `findFirst`/`findAny`, `min`/`max`, và chi phí khi tìm kiếm lồng nhau.
+This lesson uses Java 17+ syntax, and explains how to handle empty sources, `null` values, `findFirst`/`findAny`, `min`/`max`, and the cost of nested searches.
 
-## 1. Vì sao kết quả tìm kiếm là `Optional`?
+## 1. Why Is a Search Result an `Optional`?
 
-Xét ví dụ tìm sản phẩm theo mã:
+Consider an example finding a product by code:
 
 ```java
 import java.util.List;
@@ -24,9 +24,9 @@ import java.util.Optional;
 record Product(String code, String name, int price) {}
 
 List<Product> products = List.of(
-        new Product("P-01", "Sổ tay", 40_000),
-        new Product("P-02", "Bút", 15_000),
-        new Product("P-03", "Cặp tài liệu", 180_000)
+        new Product("P-01", "Notebook", 40_000),
+        new Product("P-02", "Pen", 15_000),
+        new Product("P-03", "Briefcase", 180_000)
 );
 
 Optional<Product> found = products.stream()
@@ -34,33 +34,33 @@ Optional<Product> found = products.stream()
         .findFirst();
 ```
 
-Sau `filter`, Stream có thể còn một hoặc nhiều phần tử, cũng có thể không còn phần tử nào. `findFirst()` là **terminal operation**: nó kết thúc pipeline và trả về một `Optional<Product>`, có thể chứa sản phẩm được tìm thấy hoặc rỗng nếu không có sản phẩm phù hợp.
+After `filter`, the Stream may have one or more elements left, or no elements left at all. `findFirst()` is a **terminal operation**: it ends the pipeline and returns an `Optional<Product>`, which may contain the found product or be empty if no product matches.
 
-| Terminal operation trên `Stream<T>` | Kiểu kết quả | Ý nghĩa |
+| Terminal operation on `Stream<T>` | Result type | Meaning |
 | --- | --- | --- |
-| `findFirst()` | `Optional<T>` | Lấy phần tử đầu tiên theo encounter order, nếu tồn tại. |
-| `findAny()` | `Optional<T>` | Lấy một phần tử bất kỳ; có thể khác nhau khi xử lý song song. |
-| `min(comparator)` | `Optional<T>` | Lấy một phần tử nhỏ nhất theo comparator. |
-| `max(comparator)` | `Optional<T>` | Lấy một phần tử lớn nhất theo comparator. |
+| `findFirst()` | `Optional<T>` | Gets the first element in encounter order, if present. |
+| `findAny()` | `Optional<T>` | Gets any element; may differ during parallel processing. |
+| `min(comparator)` | `Optional<T>` | Gets a smallest element according to the comparator. |
+| `max(comparator)` | `Optional<T>` | Gets a largest element according to the comparator. |
 
-Với primitive stream, các phép tìm kiếm/cực trị tương ứng trả `OptionalInt`, `OptionalLong` hoặc `OptionalDouble`, chứ không phải `Optional<Integer>`, `Optional<Long>` hay `Optional<Double>`.
+For primitive streams, the corresponding search/extremum operations return `OptionalInt`, `OptionalLong`, or `OptionalDouble`, rather than `Optional<Integer>`, `Optional<Long>`, or `Optional<Double>`.
 
-**Phân biệt đối tượng Stream và Optional:** `Stream<T>` có thể chứa nhiều phần tử và thường xử lý lazy; `Optional<T>` chỉ biểu diễn **không hoặc một giá trị**. `Optional.map` hoặc `Optional.flatMap` áp dụng ngay cho giá trị đang có nếu không rỗng; chúng không phải phép toán trung gian lazy của Stream.
+**Distinguishing Stream and Optional objects:** `Stream<T>` can hold multiple elements and usually processes lazily; `Optional<T>` represents only **zero or one value**. `Optional.map` or `Optional.flatMap` applies immediately to the held value if non-empty; they are not lazy intermediate Stream operations.
 
-## 2. `Optional.map`: biến đổi một kết quả tìm kiếm
+## 2. `Optional.map`: Transforming a Search Result
 
-Nếu tìm được một sản phẩm nhưng chỉ cần tên, hãy dùng `map` trên kết quả `Optional<Product>`:
+If a product is found but you only need its name, use `map` on the `Optional<Product>` result:
 
 ```java
 Optional<String> productName = found.map(Product::name);
 
-System.out.println(productName.orElse("Không tìm thấy"));
-// Bút
+System.out.println(productName.orElse("Not found"));
+// Pen
 ```
 
-Nếu `found` là `Optional.empty()`, `Product::name` **không được gọi** và `productName` cũng rỗng. Không cần gọi `get()` hoặc viết `if (found.isPresent())` để truy cập thủ công.
+If `found` is `Optional.empty()`, `Product::name` **is not called** and `productName` is also empty. There is no need to call `get()` or write `if (found.isPresent())` for manual access.
 
-Một chuỗi phép biến đổi có thể viết trực tiếp:
+A chain of transformations can be written directly:
 
 ```java
 String label = products.stream()
@@ -68,39 +68,39 @@ String label = products.stream()
         .findFirst()                       // Optional<Product>
         .map(Product::name)               // Optional<String>
         .map(name -> name.toUpperCase())  // Optional<String>
-        .orElse("KHÔNG TÌM THẤY");       // String
+        .orElse("NOT FOUND");             // String
 
-System.out.println(label); // BÚT
+System.out.println(label); // PEN
 ```
 
-Kiểu trả về thay đổi tại mỗi bước là điều quan trọng: `findFirst` không trả `Product`, `map(Product::name)` không trả `String`, và `orElse(...)` mới là bước giải nén thành `String`.
+Notice how the return type changes at each step: `findFirst` does not return `Product`, `map(Product::name)` does not return `String`, and `orElse(...)` is the step that unwraps into `String`.
 
-Với `Optional.map`, nếu mapper trả về `null` thì kết quả trở thành `Optional.empty()`. Tuy nhiên, nên định nghĩa rõ chính sách dữ liệu thiếu thay vì âm thầm dựa vào hành vi này khi `null` là lỗi dữ liệu.
+With `Optional.map`, if the mapper returns `null`, the result becomes `Optional.empty()`. However, you should define a clear missing-data policy rather than silently relying on this behavior when `null` is a data error.
 
-### Thêm điều kiện bằng `Optional.filter`
+### Adding a Condition With `Optional.filter`
 
-Khi đã có một ứng viên và cần xét thêm điều kiện:
+When you already have a candidate and need to check an additional condition:
 
 ```java
 Optional<Product> affordable = found
         .filter(p -> p.price() <= 20_000);
 
-System.out.println(affordable.map(Product::code).orElse("không đạt"));
+System.out.println(affordable.map(Product::code).orElse("not qualified"));
 // P-02
 ```
 
-`Optional.filter(predicate)` chỉ kiểm tra **tối đa một** giá trị đang chứa. Nếu predicate sai, kết quả là `Optional.empty()`. Nó khác `Stream.filter(predicate)`, vốn có thể kiểm tra nhiều phần tử trong một nguồn dữ liệu.
+`Optional.filter(predicate)` checks **at most one** held value. If the predicate is false, the result is `Optional.empty()`. It differs from `Stream.filter(predicate)`, which can check many elements in a data source.
 
-## 3. `Optional.flatMap`: nối hai bước tìm kiếm
+## 3. `Optional.flatMap`: Chaining Two Search Steps
 
-Giả sử đã tìm thấy một đơn hàng. Mỗi đơn hàng có `customerId`; bước tiếp theo cần tìm đối tượng khách hàng tương ứng.
+Suppose an order has been found. Each order has a `customerId`; the next step is to find the corresponding customer object.
 
 ```java
 Optional<Order> order = orders.stream()
         .filter(o -> o.id().equals(requestedId))
         .findFirst();
 
-// Tìm khách hàng tạo ra một Optional<Customer> khác.
+// Finding the customer produces another Optional<Customer>.
 Optional<Customer> customer = order.flatMap(o ->
         customers.stream()
                 .filter(c -> c.id().equals(o.customerId()))
@@ -108,19 +108,19 @@ Optional<Customer> customer = order.flatMap(o ->
 );
 ```
 
-Đoạn trên sử dụng `Order`, `Customer`, `orders`, `customers` và `requestedId` được định nghĩa đầy đủ trong chương trình ở mục 5.
+The snippet above uses `Order`, `Customer`, `orders`, `customers`, and `requestedId`, which are fully defined in the program in section 5.
 
-Tại sao dùng `flatMap` thay vì `map`? Vì callback của lần tìm kiếm thứ hai **đã trả về `Optional<Customer>`**:
+Why use `flatMap` instead of `map`? Because the callback for the second search **already returns `Optional<Customer>`**:
 
 ```java
-// map tạo Optional lồng trong Optional:
+// map creates an Optional nested inside an Optional:
 Optional<Optional<Customer>> nested = order.map(o ->
         customers.stream()
                 .filter(c -> c.id().equals(o.customerId()))
                 .findFirst()
 );
 
-// flatMap làm phẳng còn một lớp Optional:
+// flatMap flattens it down to a single Optional layer:
 Optional<Customer> flattened = order.flatMap(o ->
         customers.stream()
                 .filter(c -> c.id().equals(o.customerId()))
@@ -128,25 +128,25 @@ Optional<Customer> flattened = order.flatMap(o ->
 );
 ```
 
-Quy tắc lựa chọn:
+Selection rules:
 
-| Tình huống | Phép toán | Kiểu kết quả |
+| Situation | Operation | Result type |
 | --- | --- | --- |
-| Hàm `T -> U` | `Optional<T>.map(...)` | `Optional<U>` |
-| Hàm `T -> Optional<U>` | `Optional<T>.flatMap(...)` | `Optional<U>` |
-| Hàm `T -> boolean` | `Optional<T>.filter(...)` | `Optional<T>` |
+| Function `T -> U` | `Optional<T>.map(...)` | `Optional<U>` |
+| Function `T -> Optional<U>` | `Optional<T>.flatMap(...)` | `Optional<U>` |
+| Function `T -> boolean` | `Optional<T>.filter(...)` | `Optional<T>` |
 
-Nếu `order` rỗng, lambda bên trong `flatMap` không chạy, vì thế không phát sinh lần tìm khách hàng. Nếu có đơn hàng nhưng không tìm thấy khách hàng, `flatMap` trả `Optional.empty()`. `Optional.flatMap` yêu cầu mapper trả về một đối tượng `Optional` **không null**; mapper trả `null` sẽ gây `NullPointerException`.
+If `order` is empty, the lambda inside `flatMap` does not run, so no customer search occurs. If the order exists but the customer is not found, `flatMap` returns `Optional.empty()`. `Optional.flatMap` requires the mapper to return a **non-null** `Optional` object; a mapper returning `null` causes `NullPointerException`.
 
-## 4. `Optional.stream()`: chuyển về pipeline có 0 hoặc 1 phần tử
+## 4. `Optional.stream()`: Converting Back to a 0-or-1-Element Pipeline
 
-Từ Java 9, `Optional<T>` có phương thức:
+Since Java 9, `Optional<T>` has the method:
 
 ```java
 Stream<T> stream()
 ```
 
-Nó tạo Stream chứa **một phần tử** nếu Optional có giá trị, hoặc Stream **rỗng** nếu Optional rỗng. Đây là cầu nối để tiếp tục dùng các thao tác Stream như `flatMap`, `filter`, `map`, `distinct`, `sorted` và `toList`.
+It creates a Stream containing **one element** if the Optional has a value, or an **empty** Stream if the Optional is empty. This serves as a bridge to continue using Stream operations such as `flatMap`, `filter`, `map`, `distinct`, `sorted`, and `toList`.
 
 ```java
 import java.util.Optional;
@@ -162,13 +162,13 @@ List<String> absent = Optional.<String>empty().stream()
 // []
 ```
 
-Hãy phân biệt `optional.stream()` với `collection.stream()`:
+Distinguish `optional.stream()` from `collection.stream()`:
 
-- `collection.stream()` có thể chứa mọi phần tử của collection.
-- `optional.stream()` có tối đa một phần tử, chính là giá trị đang được chứa trong Optional.
-- Khi giá trị chứa trong Optional **là một collection**, phải gọi thêm `flatMap` hoặc các bước khác để duyệt **các phần tử của collection đó**.
+- `collection.stream()` can contain all elements of the collection.
+- `optional.stream()` has at most one element, which is the value held inside the Optional.
+- When the value held inside the Optional **is a collection**, you must call an additional `flatMap` or other steps to traverse **the elements of that collection**.
 
-Ví dụ:
+Example:
 
 ```java
 Optional<List<Integer>> maybeNumbers = Optional.of(List.of(5, 3, 8));
@@ -182,11 +182,11 @@ List<Integer> values = maybeNumbers.stream()   // Stream<List<Integer>>
 // [5, 8]
 ```
 
-Nếu viết `maybeNumbers.stream().map(List::size)`, ta sẽ chỉ nhận kích thước của danh sách đang được chứa, thay vì duyệt các số bên trong.
+If you write `maybeNumbers.stream().map(List::size)`, you only get the size of the held list, instead of traversing the numbers inside.
 
-## 5. Ví dụ hoàn chỉnh: tìm đơn hàng, tìm khách và xử lý các dòng hàng
+## 5. Complete Example: Finding an Order, Finding the Customer, and Processing Line Items
 
-Ví dụ Java 17+ sau minh họa **hai hướng đi tiếp từ cùng một `Optional<Order>`**: tra cứu khách hàng bằng `flatMap`, và chuyển về Stream để xử lý nhiều dòng hàng bằng `Optional.stream()`. Lưu thành `OptionalPipelineDemo.java`:
+The Java 17+ example below illustrates **two continuation paths from the same `Optional<Order>`**: looking up the customer with `flatMap`, and converting back to a Stream to process multiple line items with `Optional.stream()`. Save as `OptionalPipelineDemo.java`:
 
 ```java
 import java.util.List;
@@ -243,7 +243,7 @@ public class OptionalPipelineDemo {
                 .sorted()
                 .toList();
 
-        // Trường hợp không tìm thấy đơn hàng nào.
+        // Case where no order is found.
         Optional<Order> missing = orders.stream()
                 .filter(o -> o.id().equals("OD-999"))
                 .findFirst();
@@ -252,34 +252,34 @@ public class OptionalPipelineDemo {
                 .map(LineItem::sku)
                 .toList();
 
-        System.out.println("Khách hàng: "
-                + customerName.orElse("Không tìm thấy khách đang hoạt động"));
-        System.out.println("Mã hàng: " + skus);
-        System.out.println("Không có đơn: " + skusWhenMissing);
+        System.out.println("Customer: "
+                + customerName.orElse("No active customer found"));
+        System.out.println("SKUs: " + skus);
+        System.out.println("No order: " + skusWhenMissing);
     }
 }
 ```
 
-Kết quả:
+Output:
 
 ```text
-Khách hàng: An
-Mã hàng: [BOOK, PEN]
-Không có đơn: []
+Customer: An
+SKUs: [BOOK, PEN]
+No order: []
 ```
 
-Dòng chảy dữ liệu của ví dụ:
+Data flow of the example:
 
 ```text
 orders.stream()
      │
-     └── filter(mã + đã thanh toán)
+     └── filter(id + paid)
                     │
                     └── findFirst() ──► Optional<Order>
                                              │
                       ┌──────────────────────┴────────────────────────┐
                       │                                               │
-             flatMap(tìm khách)                                stream()
+             flatMap(find customer)                            stream()
                       │                                               │
               Optional<Customer>                             Stream<Order> (0..1)
                       │                                               │
@@ -292,13 +292,13 @@ orders.stream()
                     "An"                                        [BOOK, PEN]
 ```
 
-Lưu ý `foundPaidOrder` là một **Optional**, có thể dùng `map` hoặc gọi `stream()` nhiều lần. Mỗi lần gọi `foundPaidOrder.stream()` tạo một Stream mới; từng Stream vẫn là **đối tượng dùng một lần**, không được tái sử dụng sau terminal operation.
+Note that `foundPaidOrder` is an **Optional**, so you can call `map` or `stream()` on it multiple times. Each call to `foundPaidOrder.stream()` creates a new Stream; each individual Stream remains a **single-use object** that must not be reused after a terminal operation.
 
-Nếu `requestedId` không tồn tại, `foundPaidOrder` sẽ rỗng: đường tra cứu khách hàng không gọi các hàm bên trong và đường duyệt các dòng hàng trả danh sách rỗng. Nhờ vậy, ta tránh phải tạo đối tượng `Order` giả hoặc viết các nhánh kiểm tra `null` thủ công.
+If `requestedId` does not exist, `foundPaidOrder` is empty: the customer lookup path does not invoke the inner functions, and the line-item traversal path returns an empty list. This avoids creating a dummy `Order` object or writing manual `null` checks.
 
-## 6. Nối nhiều kết quả tìm kiếm bằng `Stream<Optional<T>>`
+## 6. Combining Multiple Search Results With `Stream<Optional<T>>`
 
-Đôi khi cần tra cứu **nhiều mã đầu vào** nhưng không phải mã nào cũng tồn tại. Một cách diễn đạt rõ ràng là `map` mỗi mã thành `Optional<Order>`, sau đó dùng `flatMap(Optional::stream)` để bỏ những kết quả rỗng và giữ các đối tượng tìm thấy:
+Sometimes you need to look up **multiple input IDs**, not all of which exist. A clear way to express this is to `map` each ID to `Optional<Order>`, then use `flatMap(Optional::stream)` to discard empty results and keep the found objects:
 
 ```java
 List<String> requestedIds = List.of("OD-101", "OD-999", "OD-103");
@@ -316,28 +316,28 @@ System.out.println(paidOrderIds);
 // [OD-101, OD-103]
 ```
 
-**`flatMap(Optional::stream)` hoạt động ra sao?** Với từng Optional, nó nhận Stream có 0 hoặc 1 phần tử và nối các Stream con lại. Kết quả là Stream chỉ chứa các đơn hàng được tìm thấy.
+**How does `flatMap(Optional::stream)` work?** For each Optional, it gets a Stream of 0 or 1 element and concatenates the sub-Streams. The result is a Stream containing only the found orders.
 
-| Mã tìm kiếm | Kết quả `findFirst()` | Sau `Optional.stream()` |
+| Search ID | `findFirst()` result | After `Optional.stream()` |
 | --- | --- | --- |
-| OD-101 | `Optional[Order(...)]` | Một `Order` |
-| OD-999 | `Optional.empty()` | Không có phần tử |
-| OD-103 | `Optional[Order(...)]` | Một `Order` |
+| OD-101 | `Optional[Order(...)]` | One `Order` |
+| OD-999 | `Optional.empty()` | No element |
+| OD-103 | `Optional[Order(...)]` | One `Order` |
 
-Trong các đoạn ví dụ này, `orders` và các `record` là dữ liệu của chương trình ở mục 5. Việc viết `orders.stream()` **bên trong** lambda tạo Stream tra cứu mới cho mỗi mã. Điều này hợp lệ khi `orders` là một `List`, nhưng có thể tốn thời gian khi lượng dữ liệu lớn.
+In these snippets, `orders` and the `record` types are the data from the program in section 5. Writing `orders.stream()` **inside** the lambda creates a new lookup Stream for each ID. This is valid when `orders` is a `List`, yet can be slow when the data volume is large.
 
-### Chi phí khi tra cứu nhiều lần
+### Cost of Repeated Lookups
 
-Nếu có `m` mã và `n` đơn, mỗi lần gọi `orders.stream().filter(...).findFirst()` có thể duyệt tối đa `n` đơn. Tổng chi phí trong trường hợp xấu có thể gần **O(m × n)**.
+If there are `m` IDs and `n` orders, each call to `orders.stream().filter(...).findFirst()` may scan up to `n` orders. The total worst-case cost can approach **O(m × n)**.
 
-Với số mã lớn, xây dựng chỉ mục trước để tra cứu gần O(1) trung bình theo mã là một hướng phù hợp hơn:
+For a large number of IDs, building an index beforehand for roughly O(1) average lookup by ID is a better approach:
 
 ```java
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-// Yêu cầu id của Order là duy nhất.
+// Requires Order ids to be unique.
 Map<String, Order> orderById = orders.stream()
         .collect(Collectors.toMap(Order::id, Function.identity()));
 
@@ -351,41 +351,41 @@ List<String> ids = requestedIds.stream()
 // [OD-101, OD-103]
 ```
 
-`Collectors.toMap` ở đây ném `IllegalStateException` nếu có mã đơn hàng trùng nhau; cần chọn chính sách xử lý trùng mã nếu nguồn thực tế không bảo đảm duy nhất. Khi chỉ tra cứu một vài mã, cách dùng `findFirst()` trực tiếp thường dễ đọc hơn và không cần tạo chỉ mục.
+`Collectors.toMap` here throws `IllegalStateException` if there are duplicate order IDs; choose a duplicate-key policy if the real source does not guarantee uniqueness. When looking up only a few IDs, using `findFirst()` directly is usually easier to read and requires no index creation.
 
-## 7. Xử lý Optional rỗng và chiến lược dự phòng
+## 7. Handling Empty Optionals and Fallback Strategies
 
-Để nối pipeline an toàn, nên **trì hoãn việc giải nén Optional** cho tới nơi nghiệp vụ thực sự cần giá trị không bọc. Các phương thức thường dùng:
+To chain pipelines safely, **defer unwrapping the Optional** until the point where business logic genuinely needs the unwrapped value. Commonly used methods:
 
-| Phương thức | Khi Optional có giá trị | Khi Optional rỗng |
+| Method | When Optional has a value | When Optional is empty |
 | --- | --- | --- |
-| `map(f)` | Biến đổi giá trị bằng `f` | Trả Optional rỗng |
-| `flatMap(f)` | Gọi `f` và nhận Optional mới | Trả Optional rỗng |
-| `filter(p)` | Giữ khi `p` đúng | Trả Optional rỗng |
-| `stream()` | Trả Stream có một phần tử | Trả Stream rỗng |
-| `ifPresent(action)` | Thực hiện action | Không thực hiện action |
-| `orElse(value)` | Lấy giá trị có sẵn | Lấy `value` |
-| `orElseGet(supplier)` | Lấy giá trị có sẵn | Gọi supplier để lấy giá trị |
-| `or(supplier)` | Giữ Optional hiện tại | Gọi supplier trả về Optional thay thế (Java 9+) |
-| `orElseThrow(...)` | Lấy giá trị | Ném ngoại lệ |
+| `map(f)` | Transforms the value using `f` | Returns an empty Optional |
+| `flatMap(f)` | Calls `f` and receives a new Optional | Returns an empty Optional |
+| `filter(p)` | Keeps the value when `p` is true | Returns an empty Optional |
+| `stream()` | Returns a Stream with one element | Returns an empty Stream |
+| `ifPresent(action)` | Executes action | Does not execute action |
+| `orElse(value)` | Gets the present value | Gets `value` |
+| `orElseGet(supplier)` | Gets the present value | Calls supplier to get the value |
+| `or(supplier)` | Keeps the current Optional | Calls supplier returning a replacement Optional (Java 9+) |
+| `orElseThrow(...)` | Gets the value | Throws an exception |
 
-Ví dụ dùng giá trị mặc định:
+Example using a default value:
 
 ```java
-String name = customerName.orElse("Khách chưa xác định");
+String name = customerName.orElse("Unknown customer");
 ```
 
-### `orElse` khác `orElseGet`
+### `orElse` Differs From `orElseGet`
 
-`orElse` nhận **giá trị được tính trước** khi gọi phương thức, ngay cả khi Optional đã có giá trị. `orElseGet` chỉ gọi supplier khi Optional rỗng:
+`orElse` accepts **a value evaluated before** calling the method, even when the Optional already has a value. `orElseGet` only invokes the supplier when the Optional is empty:
 
 ```java
 String label = customerName.orElseGet(() -> createFallbackLabel());
 ```
 
-Ở đây, `createFallbackLabel()` là tên hàm minh họa do ứng dụng cung cấp. Nếu việc tính nhãn dự phòng tốn tài nguyên hoặc có side effect, `orElseGet` giúp tránh gọi không cần thiết. Nếu chỉ là chuỗi cố định, `orElse("...")` là đủ.
+Here, `createFallbackLabel()` is an illustrative method name supplied by the application. If computing the fallback label consumes resources or has side effects, `orElseGet` avoids unnecessary calls. If it is just a fixed string, `orElse("...")` is enough.
 
-Nếu muốn **tìm ở nguồn dự phòng**, `Optional.or` (Java 9+) giữ kiểu Optional mà chưa cần ép về giá trị:
+If you want to **search a fallback source**, `Optional.or` (Java 9+) preserves the Optional type without forcing a value yet:
 
 ```java
 Optional<Product> result = products.stream()
@@ -395,26 +395,26 @@ Optional<Product> result = products.stream()
                 .filter(p -> p.price() <= 20_000)
                 .findFirst());
 
-// Optional chứa P-02 từ phép tìm dự phòng.
+// Optional containing P-02 from the fallback search.
 ```
 
-Supplier của `or` chỉ chạy khi phép tìm chính trả Optional rỗng. Đây là cách nối hai nguồn tìm kiếm hợp lý khi nguồn thứ hai là dự phòng, không phải là phép biến đổi kết quả từ nguồn thứ nhất.
+The supplier of `or` runs only when the primary search returns an empty Optional. This is a clean way to chain two search sources when the second source is a fallback, rather than a transformation of the result from the first source.
 
-### Khi nào nên ném ngoại lệ?
+### When Should You Throw an Exception?
 
 ```java
 Order required = orders.stream()
         .filter(o -> o.id().equals(requestedId))
         .findFirst()
         .orElseThrow(() -> new IllegalArgumentException(
-                "Đơn hàng không tồn tại: " + requestedId));
+                "Order does not exist: " + requestedId));
 ```
 
-Dùng `orElseThrow` khi thiếu dữ liệu là lỗi cần báo ngay. Nếu thiếu dữ liệu là tình huống bình thường (ví dụ người dùng tìm mã không tồn tại), tiếp tục trả `Optional`, danh sách rỗng hoặc thông báo dự phòng phù hợp hơn. Tránh gọi `get()` không kiểm tra, vì nó ném `NoSuchElementException` khi Optional rỗng.
+Use `orElseThrow` when missing data is an error that must be reported immediately. If missing data is a normal situation (such as a user searching for a nonexistent code), continuing to return `Optional`, an empty list, or a fallback message is more appropriate. Avoid calling `get()` unchecked, as it throws `NoSuchElementException` when the Optional is empty.
 
-## 8. `OptionalInt`, `OptionalLong`, `OptionalDouble` kết nối như thế nào?
+## 8. How Do `OptionalInt`, `OptionalLong`, and `OptionalDouble` Connect?
 
-`IntStream.findFirst()`, `IntStream.max()` và `IntStream.min()` trả `OptionalInt`; `LongStream` và `DoubleStream` có các Optional chuyên biệt tương ứng.
+`IntStream.findFirst()`, `IntStream.max()`, and `IntStream.min()` return `OptionalInt`; `LongStream` and `DoubleStream` have their respective specialized Optionals.
 
 ```java
 import java.util.OptionalInt;
@@ -430,9 +430,9 @@ int doubled = largest.stream()
 System.out.println(doubled); // 16
 ```
 
-Từ Java 9, `OptionalInt.stream()` tạo `IntStream` chứa 0 hoặc 1 phần tử; `OptionalLong.stream()` và `OptionalDouble.stream()` tương tự. Các Optional nguyên thủy **không có toàn bộ API như `Optional<T>`**: ví dụ trong Java 17, `OptionalInt` không có `map` và `flatMap` kiểu tổng quát. Nếu cần pipeline biến đổi, chuyển về primitive stream bằng `.stream()` rồi gọi `IntStream.map` hoặc các phép khác.
+Since Java 9, `OptionalInt.stream()` creates an `IntStream` containing 0 or 1 element; `OptionalLong.stream()` and `OptionalDouble.stream()` behave similarly. Primitive Optionals **do not have the full API of `Optional<T>`**: for instance, in Java 17, `OptionalInt` has no generic `map` and `flatMap`. If you need a transformation pipeline, convert to a primitive stream with `.stream()` and then call `IntStream.map` or other operations.
 
-Khi kết quả đầu vào là `Stream<OptionalInt>`, có thể làm phẳng sang primitive stream:
+When the input is a `Stream<OptionalInt>`, you can flatten it into a primitive stream:
 
 ```java
 List<OptionalInt> matches = List.of(
@@ -448,29 +448,29 @@ int sum = matches.stream()
 System.out.println(sum); // 11
 ```
 
-Cách này tránh boxing khi cần tính tổng. Nếu bài toán chỉ cần giá trị thay thế, `largest.orElse(0)` thường ngắn hơn.
+This avoids boxing when computing a sum. If the problem only needs a replacement value, `largest.orElse(0)` is usually shorter.
 
-## 9. Những hiểu lầm dễ gặp về vòng đời, thứ tự và `null`
+## 9. Common Misconceptions About Lifecycle, Order, and `null`
 
-### Terminal operation đã kết thúc Stream cũ
+### The Terminal Operation Has Already Ended the Old Stream
 
 ```java
 // Stream<Order> pipeline = orders.stream().filter(Order::paid);
 // Optional<Order> first = pipeline.findFirst();
-// pipeline.filter(o -> o.id().startsWith("OD-")); // Không hợp lệ
+// pipeline.filter(o -> o.id().startsWith("OD-")); // Invalid
 ```
 
-Sau `findFirst`, biến `pipeline` đã bị tiêu thụ; không được gọi thêm phép toán trên **cùng đối tượng Stream**. Muốn xử lý tiếp phần tử tìm được, dùng `first.map(...)`, `first.flatMap(...)` hoặc `first.stream()`. Muốn duyệt lại **nguồn**, tạo Stream mới nếu nguồn hỗ trợ. Với nguồn I/O chỉ đọc được một lần, cần lập kế hoạch khác và đóng tài nguyên theo đúng vòng đời.
+After `findFirst`, `pipeline` has been consumed; you must not call further operations on **the same Stream object**. To continue processing the found element, use `first.map(...)`, `first.flatMap(...)`, or `first.stream()`. To traverse the **source** again, create a new Stream if the source supports it. For single-read I/O sources, plan differently and close resources according to their lifecycle.
 
-### `findFirst` và `findAny` có hợp đồng khác nhau
+### `findFirst` and `findAny` Have Different Contracts
 
-Trên `List` có thứ tự, `findFirst` trả phần tử phù hợp đầu tiên theo encounter order. `findAny` được phép trả **bất kỳ phần tử phù hợp nào**, hữu ích khi ứng dụng không cần ưu tiên vị trí và đặc biệt khi chạy song song. Không dùng `findAny` nếu kết quả nghiệp vụ phụ thuộc vào bản ghi đầu tiên.
+On an ordered `List`, `findFirst` returns the first matching element in encounter order. `findAny` is allowed to return **any matching element**, which is useful when the application has no positional preference and especially when running in parallel. Do not use `findAny` if business results depend on the first record.
 
-Nếu sau đó `flatMap` tiếp sang tìm kiếm khác, sự lựa chọn khác nhau ở bước đầu có thể dẫn đến kết quả cuối khác nhau. Hãy quyết định rõ việc chọn bản ghi đầu tiên hay bất kỳ bản ghi nào.
+If you subsequently `flatMap` into another search, choosing differently in the first step can lead to a different final result. Decide clearly whether to pick the first record or any record.
 
-### Optional không tự giải quyết dữ liệu `null`
+### Optional Does Not Automatically Fix `null` Data
 
-Đừng xem `Optional` là cơ chế tự sửa dữ liệu nguồn lỗi:
+Do not treat `Optional` as a mechanism that automatically repairs broken source data:
 
 ```java
 import java.util.Objects;
@@ -483,40 +483,40 @@ Optional<String> firstValid = namesWithNull.stream()
         .findFirst();
 ```
 
-`findFirst`/`findAny` có thể ném `NullPointerException` nếu phần tử được chọn là `null`; ở ví dụ trên, `Objects::nonNull` loại các giá trị đó trước khi tìm kiếm. `Optional.of(null)` cũng ném `NullPointerException`, trong khi `Optional.ofNullable(null)` tạo `Optional.empty()`. Tại ranh giới dữ liệu thiếu có chủ đích, `ofNullable` phù hợp hơn.
+`findFirst`/`findAny` can throw `NullPointerException` if the selected element is `null`; in the example above, `Objects::nonNull` removes those values before searching. `Optional.of(null)` also throws `NullPointerException`, while `Optional.ofNullable(null)` creates `Optional.empty()`. At boundaries where missing data is intentional, `ofNullable` is more appropriate.
 
-### `Optional` không có nghĩa là được phép làm mọi thứ với side effect
+### `Optional` Does Not Mean Anything Goes With Side Effects
 
-Những phép toán `map`/`flatMap` trong Optional hoạt động trên giá trị hiện có; nhưng nếu callback của chúng mở nguồn I/O, sửa dữ liệu dùng chung hoặc phụ thuộc thời gian, việc lặp nhiều lần có thể tạo kết quả khác nhau. Trong các Stream lồng nhau, lambda nên không can thiệp vào nguồn và hạn chế trạng thái biến đổi, nhất là khi có `parallelStream()`.
+The `map`/`flatMap` operations on Optional work on the present value; however, if their callbacks open I/O sources, mutate shared data, or depend on time, repeating them can yield different results. Within nested Streams, lambdas should not interfere with the source and should avoid mutable state, especially with `parallelStream()`.
 
-## 10. Chọn hình thức nối pipeline phù hợp
+## 10. Choosing the Right Way to Chain Pipelines
 
-| Nhu cầu | Cách diễn đạt thường phù hợp | Lý do |
+| Need | Usually suitable expression | Reason |
 | --- | --- | --- |
-| Tìm đơn hàng rồi lấy mã khách | `findFirst().map(Order::customerId)` | Hàm biến đổi trả giá trị trực tiếp. |
-| Tìm đơn hàng rồi tìm đối tượng khách | `findFirst().flatMap(o -> customers.stream()...findFirst())` | Hàm tra cứu thứ hai trả Optional. |
-| Tìm đơn hàng rồi duyệt các dòng hàng | `findFirst().stream().flatMap(o -> o.items().stream())` | Trở lại Stream 0 hoặc 1 đơn, sau đó mở rộng thành 0 hoặc nhiều dòng hàng. |
-| Tìm nhiều mã, bỏ qua mã không tồn tại | `map(id -> lookup(id)).flatMap(Optional::stream)` | Làm phẳng Stream chứa nhiều Optional. |
-| Tìm dự phòng khi không có kết quả | `findFirst().or(() -> alternativeFind())` | Vẫn giữ kiểu Optional; tìm dự phòng khi cần. |
-| Chỉ cần một giá trị hiển thị, có mặc định | `findFirst().map(...).orElse("N/A")` | Chuyển về kiểu thường ở ranh giới hiển thị. |
-| Thiếu dữ liệu là lỗi | `findFirst().orElseThrow(...)` | Làm rõ tiền điều kiện bắt buộc. |
+| Find an order then get customer ID | `findFirst().map(Order::customerId)` | Transformation function returns a direct value. |
+| Find an order then find the customer object | `findFirst().flatMap(o -> customers.stream()...findFirst())` | Second lookup function returns Optional. |
+| Find an order then iterate its line items | `findFirst().stream().flatMap(o -> o.items().stream())` | Back to a Stream of 0 or 1 order, then expand into 0 or more line items. |
+| Look up many IDs, skipping nonexistent ones | `map(id -> lookup(id)).flatMap(Optional::stream)` | Flattens a Stream containing many Optionals. |
+| Search a fallback when no result is found | `findFirst().or(() -> alternativeFind())` | Keeps Optional type; runs fallback search when needed. |
+| Need only a display value, with default | `findFirst().map(...).orElse("N/A")` | Converts to a regular type at the display boundary. |
+| Missing data is an error | `findFirst().orElseThrow(...)` | Makes mandatory preconditions explicit. |
 
-Chọn phương án dựa trên **kiểu trả về của bước kế tiếp** và số lượng phần tử cần xử lý; không nên mặc định giải nén Optional ngay khi tìm thấy kết quả.
+Choose the approach based on **the return type of the next step** and the number of elements to process; do not unwrap the Optional immediately upon finding a result by default.
 
-## 11. Bài tập tự kiểm tra
+## 11. Self-Check Exercises
 
-**Bài 1 — Biến đổi kết quả tìm kiếm.** Cho `Optional<String> value = Optional.of("java")`. Viết biểu thức tạo `Optional<Integer>` chứa độ dài chuỗi.
+**Exercise 1 — Transforming a search result.** Given `Optional<String> value = Optional.of("java")`. Write an expression producing an `Optional<Integer>` containing the string length.
 
 ```java
 Optional<Integer> length = value.map(String::length);
 // Optional[4]
 ```
 
-**Bài 2 — Kết quả tìm kiếm lồng nhau.** Vì sao `order.map(o -> customers.stream().filter(...).findFirst())` có kiểu `Optional<Optional<Customer>>`?
+**Exercise 2 — Nested search results.** Why does `order.map(o -> customers.stream().filter(...).findFirst())` have type `Optional<Optional<Customer>>`?
 
-**Đáp án:** `findFirst` của Stream thứ hai đã trả `Optional<Customer>`. `Optional.map` lại bọc kết quả đó trong một Optional khác. Dùng `flatMap` nếu muốn thu được `Optional<Customer>` trực tiếp.
+**Answer:** `findFirst` on the second Stream already returns `Optional<Customer>`. `Optional.map` wraps that result in another Optional. Use `flatMap` if you want to obtain `Optional<Customer>` directly.
 
-**Bài 3 — Optional không có dữ liệu.** Kết quả của đoạn sau là gì?
+**Exercise 3 — Optional with no data.** What is the result of the following snippet?
 
 ```java
 List<Integer> result = Optional.<Integer>empty()
@@ -525,9 +525,9 @@ List<Integer> result = Optional.<Integer>empty()
         .toList();
 ```
 
-**Đáp án:** Danh sách rỗng `[]`. Pipeline không gọi mapper vì Stream không có phần tử.
+**Answer:** An empty list `[]`. The pipeline does not invoke the mapper because the Stream has no elements.
 
-**Bài 4 — Nhiều Optional.** Với `[Optional.of(2), Optional.empty(), Optional.of(5)]`, làm sao lấy tổng `7` mà không gọi `get()`?
+**Exercise 4 — Multiple Optionals.** Given `[Optional.of(2), Optional.empty(), Optional.of(5)]`, how do you get the sum `7` without calling `get()`?
 
 ```java
 int total = List.of(Optional.of(2), Optional.<Integer>empty(), Optional.of(5))
@@ -538,7 +538,7 @@ int total = List.of(Optional.of(2), Optional.<Integer>empty(), Optional.of(5))
 // 7
 ```
 
-**Bài 5 — Phân biệt Stream và Optional.** Đoạn dưới có hợp lệ không?
+**Exercise 5 — Distinguishing Stream and Optional.** Is the snippet below valid?
 
 ```java
 // Stream<String> s = List.of("An", "Bình").stream();
@@ -546,12 +546,12 @@ int total = List.of(Optional.of(2), Optional.<Integer>empty(), Optional.of(5))
 // List<String> names = s.map(String::toUpperCase).toList();
 ```
 
-**Đáp án:** Không. `findFirst` đã tiêu thụ `s`. Nếu muốn tạo luồng chỉ từ kết quả đã tìm được, dùng `first.stream().map(String::toUpperCase).toList()`; nếu muốn duyệt toàn bộ danh sách ban đầu, tạo Stream mới từ danh sách.
+**Answer:** No. `findFirst` has already consumed `s`. If you want to create a stream from only the found result, use `first.stream().map(String::toUpperCase).toList()`; if you want to traverse the entire original list, create a new Stream from the list.
 
-## Ghi nhớ
+## Takeaways
 
-- `findFirst`, `findAny`, `min`, `max` là terminal operations trả `Optional<T>` vì có thể không tìm thấy phần tử.
-- Dùng **`Optional.map`** khi bước tiếp theo trả giá trị thường; dùng **`Optional.flatMap`** khi bước tiếp theo đã trả Optional.
-- Dùng **`Optional.stream()`** (Java 9+) để chuyển kết quả tìm kiếm thành Stream 0 hoặc 1 phần tử, rồi tiếp tục `filter`, `map`, `flatMap` hay `collect`.
-- Dùng `Stream<Optional<T>>.flatMap(Optional::stream)` để bỏ các kết quả rỗng khi tìm kiếm nhiều mã; dùng `flatMapToInt(OptionalInt::stream)` khi dữ liệu là Optional nguyên thủy.
-- Không dùng lại Stream sau terminal operation; xử lý thiếu dữ liệu có chủ đích bằng `orElse`, `orElseGet`, `or` hoặc `orElseThrow`, và cân nhắc chỉ mục để tránh tìm kiếm lồng nhau tốn chi phí.
+- `findFirst`, `findAny`, `min`, and `max` are terminal operations returning `Optional<T>` because an element might not be found.
+- Use **`Optional.map`** when the next step returns a regular value; use **`Optional.flatMap`** when the next step already returns an Optional.
+- Use **`Optional.stream()`** (Java 9+) to turn a search result into a Stream of 0 or 1 element, then continue with `filter`, `map`, `flatMap`, or `collect`.
+- Use `Stream<Optional<T>>.flatMap(Optional::stream)` to drop empty results when searching multiple IDs; use `flatMapToInt(OptionalInt::stream)` when the data consists of primitive Optionals.
+- Do not reuse a Stream after a terminal operation; handle missing data intentionally with `orElse`, `orElseGet`, `or`, or `orElseThrow`, and consider indexing to avoid expensive nested searches.

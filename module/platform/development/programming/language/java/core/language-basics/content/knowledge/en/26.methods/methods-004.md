@@ -1,12 +1,12 @@
-# Phương thức `static` cho các chương trình nhập môn Java
+# `static` Methods for Introductory Java Programs
 
-> **Java core — language-basics / Phương thức**  
-> **Môi trường:** JDK 17+, một file Java độc lập, không cần thư viện ngoài.  
-> **Mục tiêu:** Tạo và gọi phương thức `static` từ `main`; sử dụng tham số, giá trị trả về hoặc `void`; hiểu vì sao `static` thuộc về lớp, khác phương thức instance và khi nào không nên lạm dụng trạng thái static.
+> **Java core — language-basics / Methods**  
+> **Environment:** JDK 17+, single standalone Java file, no external libraries needed.  
+> **Objective:** Create and call `static` methods from `main`; use parameters, return values, or `void`; understand why `static` belongs to a class, how it differs from instance methods, and when not to overuse static state.
 
-## 1. `static` nghĩa là phương thức thuộc về lớp
+## 1. `static` Means the Method Belongs to the Class
 
-Phương thức có từ khóa `static` được gắn với **lớp**, không cần tạo đối tượng của lớp mới gọi được:
+A method with the `static` keyword is attached to the **class**, and can be called without creating an instance of the class:
 
 ~~~java
 public final class MathHelper {
@@ -15,26 +15,26 @@ public final class MathHelper {
     }
 }
 
-// Có thể gọi MathHelper.add(3, 4), trả 7.
+// Can be called as MathHelper.add(3, 4), returning 7.
 ~~~
 
-Các thành phần chính:
+Main parts:
 
-| Phần khai báo | Trong ví dụ | Vai trò |
+| Declaration part | In the example | Role |
 | --- | --- | --- |
-| Bộ điều chỉnh | `public static` | Cho phép gọi từ nơi có quyền truy cập mà không cần đối tượng |
-| Kiểu trả về | `int` | Kết quả phép cộng |
-| Tên phương thức | `add` | Tên dùng ở lời gọi |
-| Tham số | `int left, int right` | Nhận hai đối số kiểu int |
-| Thân | `{ return left + right; }` | Lệnh thực thi và trả kết quả |
+| Modifiers | `public static` | Allows calling from accessible places without an object |
+| Return type | `int` | Result of the addition |
+| Method name | `add` | Name used at the call site |
+| Parameters | `int left, int right` | Accepts two arguments of type int |
+| Body | `{ return left + right; }` | Statements executed and result returned |
 
-Dạng tổng quát: `[access] static ReturnType name(Type parameter, ...) { ... }`. Dấu `[...]` trong dòng mô tả chỉ biểu thị thành phần tùy chọn, **không phải cú pháp Java** phải gõ.
+General form: `[access] static ReturnType name(Type parameter, ...) { ... }`. The `[...]` markers in the descriptive line only denote optional parts, **not Java syntax** to type.
 
-Không nên hiểu “static” nghĩa là phương thức chỉ chạy một lần hoặc không thể nhận tham số: mỗi lần gọi vẫn thực thi thân với đối số được cung cấp. `static` chỉ xác định **cách phương thức thuộc về lớp và truy cập thành viên**.
+Do not assume “static” means a method only runs once or cannot take parameters: every call executes the body with the supplied arguments. `static` only determines **how the method belongs to the class and accesses members**.
 
-## 2. `main` là phương thức `static` quen thuộc nhất
+## 2. `main` Is the Most Familiar `static` Method
 
-Với chương trình Java 17 chạy trực tiếp từ CLI, điểm bắt đầu thông thường:
+For a Java 17 program run directly from the CLI, the standard entry point:
 
 ~~~java
 public static void main(String[] args) {
@@ -42,15 +42,15 @@ public static void main(String[] args) {
 }
 ~~~
 
-Ý nghĩa:
+Meaning:
 
-- `public`: cho phép Java launcher truy cập điểm vào.
-- `static`: launcher gọi `main` **không cần tạo một đối tượng** của lớp chứa nó.
-- `void`: phương thức không trả giá trị cho nơi gọi; kết quả chương trình được quan sát qua in ra hoặc tác động khác.
-- `main`: tên phương thức điểm vào trong dạng chuẩn này.
-- `String[] args`: mảng nhận các đối số CLI; tên biến có thể khác `args`.
+- `public`: allows the Java launcher to access the entry point.
+- `static`: the launcher calls `main` **without creating an object** of the enclosing class.
+- `void`: the method does not return a value to the caller; program output is observed via printing or other effects.
+- `main`: the entry-point method name in this standard form.
+- `String[] args`: array receiving CLI arguments; the variable name can differ from `args`.
 
-Khi `add` là một phương thức static hợp lệ nằm trong cùng lớp, có thể gọi ngay bằng `add(2, 3)`. Cách viết tường minh hơn là `ClassName.add(2, 3)`; thường nên dùng tên lớp khi gọi static từ bên ngoài.
+When `add` is a valid static method in the same class, you can call it directly as `add(2, 3)`. The more explicit form is `ClassName.add(2, 3)`; using the class name is generally recommended when calling static methods from outside.
 
 ~~~java
 public final class Starter {
@@ -65,11 +65,11 @@ public final class Starter {
 }
 ~~~
 
-Biên dịch/lệnh chạy với lớp `Starter` phải dùng file `Starter.java` khi lớp là `public`. Dòng `main` không tự chạy khi chỉ có khai báo; nó được launcher gọi khi thực thi `java Starter`.
+Compiling/running with class `Starter` requires the file `Starter.java` when the class is `public`. `main` does not run automatically from merely being declared; it is invoked by the launcher when executing `java Starter`.
 
-## 3. Tham số, kiểu trả về và `void` hoạt động như bình thường
+## 3. Parameters, Return Types, and `void` Work as Normal
 
-`static` không làm thay đổi quy tắc tham số và giá trị trả về:
+`static` does not change parameter and return-value rules:
 
 ~~~java
 static double average(int a, int b) {
@@ -83,22 +83,22 @@ static boolean isEven(int number) {
 static void greet(String name) {
     if (name == null || name.isBlank()) {
         System.out.println("hello=guest");
-        return; // Kết thúc sớm vì phương thức trả void.
+        return; // Ends early because the method returns void.
     }
     System.out.println("hello=" + name.trim());
 }
 ~~~
 
-- `average(5, 2)` trả `3.5`. Ép `(double) a` trước khi cộng/chia giữ phần thập phân và tránh cộng hai `int` trước khi chuyển kiểu.
-- `isEven(8)` trả `true`; `isEven(7)` trả `false`.
-- `greet(" Lan ")` in `hello=Lan`; `greet(null)` in `hello=guest`.
-- Phương thức có kiểu trả về khác `void` cần cung cấp giá trị phù hợp trên tất cả các đường đi hoàn tất bình thường. Phương thức `void` có thể dùng `return;`, nhưng không thể trả một giá trị như `return 5;`.
+- `average(5, 2)` returns `3.5`. Casting `(double) a` before adding/dividing preserves the fractional part and avoids adding two `int`s before converting types.
+- `isEven(8)` returns `true`; `isEven(7)` returns `false`.
+- `greet(" Lan ")` prints `hello=Lan`; `greet(null)` prints `hello=guest`.
+- A method with a non-`void` return type must provide an appropriate value on all normally completing paths. A `void` method can use `return;`, but cannot return a value such as `return 5;`.
 
-**Phân biệt:** Các số, chuỗi hay biến đặt trong dấu ngoặc **lúc gọi** là *đối số* (*arguments*); biến có kiểu được khai báo **trong định nghĩa phương thức** là *tham số* (*parameters*). Java truyền đối số **theo giá trị**, kể cả khi giá trị đó là tham chiếu đối tượng.
+**Distinction:** Numbers, strings, or variables placed in parentheses **at the call site** are *arguments*; typed variables declared **in the method definition** are *parameters*. Java passes arguments **by value**, even when that value is an object reference.
 
-## 4. Gọi phương thức `static` trong cùng lớp hoặc lớp khác
+## 4. Calling a `static` Method in the Same Class or Another Class
 
-Trong cùng lớp, gọi không kèm tên lớp thường dễ đọc:
+Within the same class, calling without the class name is often easier to read:
 
 ~~~java
 static int square(int n) {
@@ -106,24 +106,24 @@ static int square(int n) {
 }
 
 static int squarePlusOne(int n) {
-    return square(n) + 1; // Gọi một phương thức static khác.
+    return square(n) + 1; // Calls another static method.
 }
 ~~~
 
-Khi gọi phương thức static của **lớp khác**, dùng tên lớp. Ví dụ quen thuộc trong JDK:
+When calling a static method of **another class**, use the class name. Familiar examples in the JDK:
 
 ~~~java
 int bigger = Math.max(4, 9);           // 9
 String text = Integer.toString(42);   // "42"
 ~~~
 
-`Math.max` và `Integer.toString` là phương thức static: không cần `new Math()` hay `new Integer(...)`. Java có cơ chế `static import` cho phép rút gọn tên lớp, nhưng trong bài nhập môn nên giữ `Math.max(...)` để thấy nguồn gốc phương thức.
+`Math.max` and `Integer.toString` are static methods: no need for `new Math()` or `new Integer(...)`. Java has a `static import` mechanism to omit the class name, but in introductory lessons it is better to keep `Math.max(...)` so the method's origin is clear.
 
-Không bắt buộc mọi phương thức trong ứng dụng đều phải static. Chọn static khi hành vi có thể làm việc chỉ qua các tham số hoặc các tài nguyên lớp phù hợp, không phụ thuộc trạng thái riêng của một đối tượng.
+Not every method in an application has to be static. Choose static when the behavior can work solely through parameters or appropriate class resources, without depending on the state of a specific object.
 
-## 5. Hạn chế: không có `this` và không truy cập instance trực tiếp
+## 5. Limitation: No `this` and No Direct Instance Access
 
-Một phương thức instance chạy với một đối tượng hiện tại, có thể dùng `this`. Một phương thức static **không có đối tượng `this` ngầm định**:
+An instance method runs with a current object and can use `this`. A static method **has no implicit `this` object**:
 
 ~~~java
 public final class Multiplier {
@@ -143,7 +143,7 @@ public final class Multiplier {
 }
 ~~~
 
-Lời gọi hợp lệ:
+Valid calls:
 
 ~~~java
 Multiplier item = new Multiplier(4);
@@ -151,34 +151,34 @@ System.out.println(item.multiply(3));       // 12.
 System.out.println(Multiplier.triple(3));   // 9.
 ~~~
 
-Trong phương thức static, không thể sử dụng `this.factor` hoặc gọi `multiply(3)` trực tiếp khi chưa có đối tượng phù hợp:
+Inside a static method, you cannot use `this.factor` or call `multiply(3)` directly when there is no suitable object:
 
 ~~~java
-// KHÔNG BIÊN DỊCH:
+// DOES NOT COMPILE:
 // static int wrong(int n) {
-//     return factor * n; // factor là instance field.
+//     return factor * n; // factor is an instance field.
 // }
 // static int wrongThis(int n) {
-//     return this.factor * n; // 'this' không tồn tại trong static context.
+//     return this.factor * n; // 'this' does not exist in a static context.
 // }
 ~~~
 
-Nếu thật sự cần gọi phương thức instance từ một phương thức static, phải **có đối tượng** (ví dụ nhận đối tượng qua tham số hoặc tạo bằng `new`), rồi gọi `item.multiply(3)`.
+If you genuinely need to call an instance method from a static method, you must **have an object** (for example, receive it via a parameter or create one with `new`), then call `item.multiply(3)`.
 
-| Tiêu chí | Phương thức `static` | Phương thức instance |
+| Criterion | `static` method | Instance method |
 | --- | --- | --- |
-| Thuộc về | Lớp | Đối tượng |
-| Cách gọi nên dùng | `Type.method(args)` | `object.method(args)` |
-| Cần đối tượng của lớp khi gọi? | Không | Có |
-| Sử dụng `this` trực tiếp? | Không | Có |
-| Truy cập trường instance trực tiếp? | Không | Có, trên đối tượng hiện tại |
-| Gọi thành viên static khác? | Có | Có |
+| Belongs to | Class | Object |
+| Recommended call form | `Type.method(args)` | `object.method(args)` |
+| Requires an instance of the class to call? | No | Yes |
+| Can use `this` directly? | No | Yes |
+| Accesses instance fields directly? | No | Yes, on the current object |
+| Calls other static members? | Yes | Yes |
 
-Constructor là cơ chế tạo/khởi tạo đối tượng, **không phải phương thức static**, và không khai báo kiểu trả về.
+A constructor is an object creation/initialization mechanism, **not a static method**, and declares no return type.
 
-## 6. Trường `static`: trạng thái chung và nguy cơ khi học lập trình
+## 6. `static` Fields: Shared State and Pitfalls While Learning
 
-Có thể khai báo một trường thuộc lớp để nhiều lần gọi phương thức static dùng chung:
+You can declare a class-level field shared across multiple static method calls:
 
 ~~~java
 static int callCount = 0;
@@ -189,9 +189,9 @@ static int recordCall() {
 }
 ~~~
 
-Trong một lần chạy chương trình thông thường, hai lần gọi liên tiếp `recordCall()` sẽ trả `1` rồi `2`. Trạng thái **không reset về 0 ở mỗi lần gọi** vì `callCount` là trường của lớp chứ không phải biến cục bộ của phương thức.
+In a normal program run, two consecutive calls to `recordCall()` return `1` then `2`. The state **does not reset to 0 on each call** because `callCount` is a class field, not a local variable of the method.
 
-Tuy nhiên, trạng thái static mutable làm cho kết quả phụ thuộc vào lịch sử lời gọi và gây khó kiểm thử. Khi nhiều luồng cùng sửa `callCount++`, thao tác này **không tự bảo đảm an toàn luồng**. Với bài nhập môn, ưu tiên các hàm static nhận tham số và trả kết quả rõ ràng:
+However, mutable static state makes results depend on call history and makes testing harder. When multiple threads modify `callCount++`, this operation **is not automatically thread-safe**. For introductory programs, prefer static methods that take parameters and return clear results:
 
 ~~~java
 static int calculateTotal(int price, int quantity) {
@@ -199,11 +199,11 @@ static int calculateTotal(int price, int quantity) {
 }
 ~~~
 
-Phép tính trên vẫn có nguy cơ tràn `int` nếu giá trị lớn; cần kiểu hoặc kiểm tra thích hợp trong ứng dụng thực. `static final` phù hợp cho **hằng số bất biến theo hợp đồng** (ví dụ `static final int MAX_RETRIES = 3;`), nhưng `final` trên tham chiếu tới một đối tượng mutable không tự làm đối tượng bất biến.
+That calculation still risks `int` overflow for large values; appropriate types or checks are needed in real applications. `static final` is suitable for **immutable constants by contract** (for example, `static final int MAX_RETRIES = 3;`), though `final` on a reference to a mutable object does not make the object itself immutable.
 
-## 7. Chương trình Java 17+ chạy độc lập
+## 7. Standalone Runnable Java 17+ Program
 
-Tạo file **StaticMethodsIntroDemo.java**:
+Create the file **StaticMethodsIntroDemo.java**:
 
 ~~~java
 public final class StaticMethodsIntroDemo {
@@ -282,14 +282,14 @@ public final class StaticMethodsIntroDemo {
 }
 ~~~
 
-Biên dịch và chạy tại thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Compile and run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 StaticMethodsIntroDemo.java
 java StaticMethodsIntroDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 add=7
@@ -310,33 +310,33 @@ instanceTwo=20
 classCounter=2
 ~~~
 
-Hai lời gọi `add` cho thấy static có thể gọi trực tiếp hoặc qua tên lớp. `instanceOne` và `instanceTwo` khác nhau vì hai đối tượng có `factor` khác nhau. `callOne`/`callTwo` và `classCounter` minh họa một trường static dùng chung trong cùng lần chạy.
+The two `add` calls show that static methods can be called directly or via the class name. `instanceOne` and `instanceTwo` differ because the two objects have different `factor` values. `callOne`/`callTwo` and `classCounter` illustrate a shared static field within the same run.
 
-## 8. Lỗi thường gặp, bài tập và checklist
+## 8. Common Mistakes, Exercises, and Checklist
 
-| Lỗi / hiểu lầm | Cách xử lý |
+| Mistake / misconception | How to handle |
 | --- | --- |
-| Cho rằng phải `new` mới gọi được static | Gọi `Type.method(...)` hoặc trực tiếp trong cùng lớp |
-| Dùng `this` trong phương thức static | Không có `this`; cần đối tượng nếu truy cập state instance |
-| Gọi phương thức instance từ `main` không qua đối tượng | Tạo/nhận đối tượng rồi gọi `object.method(...)` |
-| Nghĩ static chạy chỉ một lần | Mỗi lần gọi đều thực thi thân phương thức |
-| Nghĩ biến cục bộ trong static tồn tại mãi giữa các lần gọi | Biến cục bộ được tạo theo mỗi lần gọi; trường static thuộc lớp |
-| Dùng static mutable field cho mọi kết quả trung gian | Ưu tiên tham số + return để tránh state dùng chung |
-| Quên `return value;` trong hàm static trả `int` | Các nhánh hoàn tất bình thường phải trả giá trị đúng kiểu |
-| Dùng `void` rồi cố lấy kết quả từ biểu thức gọi | `void` không cung cấp giá trị để gán |
+| Thinking `new` is required to call a static method | Call `Type.method(...)` or directly within the same class |
+| Using `this` inside a static method | There is no `this`; an object is needed to access instance state |
+| Calling an instance method from `main` without an object | Create/obtain an object then call `object.method(...)` |
+| Thinking static runs only once | Every call executes the method body |
+| Thinking a local variable inside static persists across calls | Local variables are created per call; static fields belong to the class |
+| Using mutable static fields for every intermediate result | Prefer parameters + return to avoid shared state |
+| Forgetting `return value;` in an `int`-returning static method | All normally completing branches must return a value of the right type |
+| Using `void` and trying to read a result from the call expression | `void` provides no value to assign |
 
-**Bài 1.** Viết `static int cube(int n)` rồi gọi từ `main` với `n = 3`. Dự đoán kết quả.
+**Exercise 1.** Write `static int cube(int n)` and call it from `main` with `n = 3`. Predict the result.
 
-**Bài 2.** Viết `static boolean isAdult(int age)` trả true khi `age >= 18`. In kết quả với tuổi 17, 18 và 21.
+**Exercise 2.** Write `static boolean isAdult(int age)` returning true when `age >= 18`. Print results for ages 17, 18, and 21.
 
-**Bài 3.** Viết `static void printIfPresent(String value)`: bỏ qua null hoặc chuỗi trắng bằng `return;`, in nếu có nội dung.
+**Exercise 3.** Write `static void printIfPresent(String value)`: skip null or blank strings with `return;`, and print if it has content.
 
-**Bài 4.** Tạo lớp có trường `factor` và phương thức instance `multiply`. Thử gọi từ `main` trước/sau khi tạo đối tượng; xác định lỗi biên dịch.
+**Exercise 4.** Create a class with a `factor` field and an instance method `multiply`. Try calling it from `main` before/after creating an object; identify the compile error.
 
-**Bài 5.** So sánh biến cục bộ `int calls = 0` khai báo trong hàm với trường `static int callCount` sau hai lần gọi. Vì sao kết quả khác nhau?
+**Exercise 5.** Compare a local variable `int calls = 0` declared inside a method with a `static int callCount` field after two calls. Why do the results differ?
 
-**Checklist:** Phương thức có thực sự không cần `this` hoặc trạng thái của một đối tượng không? Tham số/kiểu trả về/`void` đã đúng chưa? Tên lớp/file và lệnh CLI có khớp không? Có state static mutable gây phụ thuộc giữa các lần gọi không?
+**Checklist:** Does the method genuinely not need `this` or an object's state? Are parameters/return type/`void` right? Do the class/file name and CLI commands match? Is there mutable static state causing coupling between calls?
 
-### Ghi nhớ
+### Key Takeaway
 
-**`static` đặt phương thức ở cấp lớp**: rất phù hợp cho `main` và các hàm tiện ích nhỏ nhận tham số rồi trả kết quả. Phương thức static không có `this`, không trực tiếp truy cập thành viên instance nếu thiếu đối tượng. Khi cần trạng thái riêng cho từng đối tượng, dùng phương thức instance. Đừng nhầm `static method` với `static field`: trường static có thể giữ trạng thái **chung**, nên cần dùng có chủ đích.
+**`static` places a method at the class level**: well suited for `main` and small utility functions that take parameters and return results. Static methods have no `this` and cannot directly access instance members without an object. When per-object state is needed, use instance methods. Do not confuse a `static method` with a `static field`: static fields can hold **shared** state, so use them intentionally.

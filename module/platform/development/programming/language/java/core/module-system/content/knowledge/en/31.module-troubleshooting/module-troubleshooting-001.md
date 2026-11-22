@@ -1,61 +1,61 @@
-# ModuleNotFoundException và module path sai
+# ModuleNotFoundException and Wrong Module Path
 
-Trong Java Platform Module System (JPMS), một lỗi phổ biến khi biên dịch hoặc chạy ứng dụng modular là **“module not found”**: chương trình yêu cầu một named module nhưng công cụ không tìm thấy module đó trong các nguồn module đang xét. Lỗi có thể xảy ra vì `--module-path` sai, JAR được đặt trên classpath thay vì module path, tên trong `requires` khác tên module thực tế, hoặc cấu hình runtime không giống cấu hình lúc compile.
+In the Java Platform Module System (JPMS), a common error when compiling or running a modular application is **"module not found"**: the program requires a named module, but the tool cannot find that module in the module sources under consideration. The error can occur because `--module-path` is wrong, the JAR was placed on the classpath instead of the module path, the name in `requires` differs from the actual module name, or the runtime configuration does not match the compile-time configuration.
 
-**Lưu ý về tên lỗi:** `ModuleNotFoundException` thường là cách gọi mô tả hoặc tên exception tự định nghĩa của thư viện; đây **không phải tên một exception chuẩn của JPMS trong `java.base`**. Trong Java chuẩn, khi chạy ứng dụng modular bạn thường thấy `java.lang.module.FindException` kèm thông điệp `Module ... not found`. Khi dùng `javac`, thông báo thường là `error: module not found: ...`, không nhất thiết là exception được ném ra từ chương trình.
+**Note on the error name:** `ModuleNotFoundException` is often a descriptive term or a custom exception name defined by a library; it is **not the name of a standard JPMS exception in `java.base`**. In standard Java, when running a modular application you typically see `java.lang.module.FindException` with the message `Module ... not found`. When using `javac`, the message is usually `error: module not found: ...`, not necessarily an exception thrown by the program.
 
-Bài này tập trung vào cách xác định **module nào thực sự thiếu, thiếu ở giai đoạn nào, và đường dẫn nào phải sửa**, thay vì thêm các tùy chọn JVM theo cảm tính.
+This lesson focuses on how to identify **which module is actually missing, at which stage it is missing, and which path must be fixed**, rather than adding JVM options by guesswork.
 
-## 1. Phân biệt module name, package name và tên JAR
+## 1. Distinguishing module name, package name, and JAR name
 
-Ba tên sau không nhất thiết giống nhau:
+The following three names are not necessarily the same:
 
     JAR filename: money-utils-2.3.0.jar
     Module name:  com.example.money
     Package:      com.example.money.api
 
-Descriptor của thư viện có thể khai báo:
+The library's descriptor may declare:
 
     module com.example.money {
         exports com.example.money.api;
     }
 
-Ứng dụng cần thư viện này thì khai báo:
+An application that needs this library declares:
 
     module com.example.app {
         requires com.example.money;
     }
 
-`requires` nhận **module name**, không nhận tên file JAR, Maven artifactId hay package name. Ví dụ sau là sai nếu không tồn tại module có đúng tên `money-utils`:
+`requires` takes a **module name**, not a JAR filename, Maven artifactId, or package name. The following example is wrong if no module with the exact name `money.utils` exists:
 
     module com.example.app {
         requires money.utils;
     }
 
-Dấu gạch nối trong filename thường không được dùng trực tiếp trong tên module; với automatic module, JDK có quy tắc suy ra tên riêng. Luôn xác định tên thực tế bằng descriptor thay vì đoán từ artifact filename.
+Hyphens in a filename are generally not used directly in a module name; for an automatic module, the JDK has its own name-derivation rules. Always determine the actual name from the descriptor rather than guessing from the artifact filename.
 
-## 2. Lỗi xảy ra ở compile time hay runtime?
+## 2. Does the error occur at compile time or runtime?
 
-| Tình huống | Thông báo thường gặp | Kiểm tra đầu tiên |
+| Scenario | Common message | First thing to check |
 |---|---|---|
-| `javac` không tìm thấy module trong `requires` | `error: module not found: com.example.money` | Module path của compiler, tên module |
-| Java launcher không tìm thấy module gốc hoặc dependency | `java.lang.module.FindException: Module ... not found` | Module path của launcher, root module và dependency |
-| Chương trình gọi `ModuleFinder.find(name)` nhưng không có module | `Optional.empty()` | Finder đã trỏ vào đúng thư mục/JAR chưa? |
-| Module có nhưng package chưa export | `package ... is not visible`, hoặc lỗi access tại runtime | `requires`, `exports`, module readability |
-| Class không tìm thấy sau khi module đã resolve | `ClassNotFoundException` hoặc `NoClassDefFoundError` | Class loader, class/package thật, classpath/module path |
+| `javac` cannot find a module in `requires` | `error: module not found: com.example.money` | Compiler module path, module name |
+| Java launcher cannot find the root module or a dependency | `java.lang.module.FindException: Module ... not found` | Launcher module path, root module, and dependencies |
+| Program calls `ModuleFinder.find(name)` but the module is absent | `Optional.empty()` | Does the finder point to the right directory/JAR? |
+| Module exists, but the package is not exported | `package ... is not visible`, or an access error at runtime | `requires`, `exports`, module readability |
+| Class not found after the module has been resolved | `ClassNotFoundException` or `NoClassDefFoundError` | Class loader, actual class/package, classpath/module path |
 
-Không gộp tất cả thành `ModuleNotFoundException`. Ví dụ, `ClassNotFoundException` nói về **class**, còn `FindException` trong quá trình resolve thường nói về **module**.
+Do not lump all of these together as `ModuleNotFoundException`. For example, `ClassNotFoundException` is about a **class**, whereas `FindException` during resolution is usually about a **module**.
 
-## 3. Module path là gì?
+## 3. What is the module path?
 
-**Module path** là nguồn các module mà compiler, launcher hoặc API `ModuleFinder` có thể quan sát. Nó có thể chứa:
+The **module path** is the source of modules observable by the compiler, launcher, or `ModuleFinder` API. It can contain:
 
-- Một thư mục chứa các **modular JAR**.
-- Một thư mục chứa nhiều **exploded modules** (thư mục module đã biên dịch, mỗi module có `module-info.class`).
-- Đường dẫn trực tiếp tới một modular JAR hoặc automatic-module JAR, tùy cách dùng công cụ.
-- Nhiều vị trí được phân cách theo quy tắc path separator của hệ điều hành.
+- A directory containing **modular JARs**.
+- A directory containing multiple **exploded modules** (compiled module directories, each having `module-info.class`).
+- A direct path to a modular JAR or automatic-module JAR, depending on how the tool is used.
+- Multiple locations separated according to the operating system's path separator rules.
 
-Ví dụ cấu trúc:
+Example structure:
 
     project/
       libs/
@@ -65,21 +65,21 @@ Ví dụ cấu trúc:
           module-info.class
           com/example/app/Main.class
 
-Lệnh chạy có thể là:
+The launch command can be:
 
     java --module-path "out;libs" -m com.example.app/com.example.app.Main
 
-Trên **Windows**, dấu phân cách đường dẫn là `;`; trên **Linux/macOS**, dùng `:`:
+On **Windows**, the path separator is `;`; on **Linux/macOS**, use `:`:
 
     java --module-path "out:libs" -m com.example.app/com.example.app.Main
 
-Tùy hệ điều hành và shell, hãy đặt toàn bộ module path trong dấu ngoặc kép nếu có khoảng trắng hoặc dấu phân cách dễ bị shell diễn giải.
+Depending on the operating system and shell, wrap the entire module path in quotes if it contains spaces or separators that the shell might interpret.
 
-`--module-path` (viết ngắn `-p`) **khác** `--class-path` (hoặc `-cp`). JAR nằm trên classpath thường được nạp vào unnamed module, không trở thành named module có thể được nhắc đến bằng `requires`.
+`--module-path` (short form `-p`) is **different** from `--class-path` (or `-cp`). JARs placed on the classpath are normally loaded into the unnamed module and do not become named modules that can be referenced with `requires`.
 
-## 4. Ví dụ dự án hai module chạy đúng
+## 4. A working two-module project example
 
-Giả sử có hai source modules:
+Suppose there are two source modules:
 
     src/
       com.example.money/
@@ -125,79 +125,79 @@ Giả sử có hai source modules:
         }
     }
 
-Biên dịch các module từ thư mục dự án:
+Compile the modules from the project directory:
 
     javac --module-source-path src -d out -m com.example.money,com.example.app
 
-Chạy ứng dụng:
+Run the application:
 
     java --module-path out -m com.example.app/com.example.app.Main
 
-Kết quả:
+Output:
 
     VND
 
-Vì `out` chứa hai exploded modules, Java launcher có thể tìm `com.example.app` và dependency `com.example.money`.
+Because `out` contains both exploded modules, the Java launcher can find `com.example.app` and its dependency `com.example.money`.
 
-Nếu lệnh chạy dùng đường dẫn sai:
+If the launch command uses a wrong path:
 
     java --module-path wrong-directory -m com.example.app/com.example.app.Main
 
-launcher không tìm được module gốc và có thể báo:
+the launcher cannot find the root module and may report:
 
     java.lang.module.FindException:
         Module com.example.app not found
 
-Nếu chỉ cung cấp module app mà thiếu module money, launcher có thể báo thiếu module phụ thuộc:
+If only the app module is provided while the money module is missing, the launcher may report the missing dependent module:
 
     java.lang.module.FindException:
         Module com.example.money not found, required by com.example.app
 
-Hai thông báo cùng nhóm nhưng chỉ ra hai vị trí cần kiểm tra khác nhau: **module gốc** hoặc **dependency**.
+Both messages belong to the same group, yet they point to two different places to check: the **root module** or a **dependency**.
 
-## 5. Vì sao compile thành công nhưng chạy thất bại?
+## 5. Why does compilation succeed while running fails?
 
-Compiler và Java launcher là hai công cụ có cấu hình riêng. Ví dụ compile dùng:
+The compiler and the Java launcher are two tools with separate configurations. For example, compilation uses:
 
     javac --module-path libs -d out ...
 
-nhưng runtime lại chạy:
+but runtime executes:
 
     java --module-path out -m com.example.app/com.example.app.Main
 
-Nếu `com.example.money` chỉ nằm trong `libs` mà không có trong `out`, runtime không có đủ nguồn module để resolve dependency. Việc class files đã được biên dịch trước đó không làm thư viện xuất hiện trong module path của launcher.
+If `com.example.money` only resides in `libs` and not in `out`, runtime does not have sufficient module sources to resolve the dependency. Having compiled the class files earlier does not make the library appear on the launcher's module path.
 
-Một lỗi quen thuộc khác:
+Other common mistakes:
 
-- IDE cấu hình module path tự động khi chạy trong IDE.
-- Script shell chỉ đưa application JAR vào runtime path.
-- CI hoặc Docker image bỏ sót một thư mục `libs`.
-- Test runner chạy với classpath/module path khác production.
-- Dùng đường dẫn tương đối nhưng thư mục làm việc khi chạy khác thư mục lúc build.
+- The IDE automatically configures the module path when running inside the IDE.
+- A shell script puts only the application JAR onto the runtime path.
+- A CI pipeline or Docker image omits a `libs` directory.
+- The test runner executes with a different classpath/module path than production.
+- Relative paths are used, but the working directory at runtime differs from the working directory at build time.
 
-Cách sửa là xác định **module path thực tế của đúng tiến trình đang lỗi**, không chỉ nhìn vào dependency khai báo trong build file.
+The fix is to determine the **actual module path of the exact failing process**, rather than only looking at the dependencies declared in the build file.
 
-## 6. Dùng jar --describe-module để xác định tên thật
+## 6. Using jar --describe-module to determine the real name
 
-Lệnh quan trọng nhất khi nghi ngờ tên module:
+The most important command when suspecting a module name mismatch:
 
     jar --describe-module --file libs/money-utils-2.3.0.jar
 
-Với explicit modular JAR, công cụ mô tả descriptor, gồm module name, `requires`, `exports` và metadata khác.
+For an explicit modular JAR, the tool describes the descriptor, including the module name, `requires`, `exports`, and other metadata.
 
-Nếu JAR chưa có `module-info.class`, khi đặt trên module path nó có thể trở thành **automatic module**. Tên của automatic module được lấy từ manifest `Automatic-Module-Name` nếu có, hoặc suy ra từ tên JAR theo quy tắc JDK.
+If the JAR does not have `module-info.class`, when placed on the module path it can become an **automatic module**. The name of an automatic module is taken from the `Automatic-Module-Name` manifest attribute if present, or derived from the JAR filename according to JDK rules.
 
-Vì thế, đừng mặc định:
+Therefore, do not assume:
 
     requires money.utils;
 
-chỉ vì file tên `money-utils-2.3.0.jar`. Hãy xem tên mà công cụ báo rồi dùng đúng tên đó trong `requires`.
+just because the file is named `money-utils-2.3.0.jar`. Check the name reported by the tool and use that exact name in `requires`.
 
-Nếu artifact có nhiều phiên bản trên module path, kiểm tra xem chúng có tạo **trùng module name** hoặc làm module resolution không rõ ràng. Đừng giải quyết bằng cách đổi bừa `requires` sang package name.
+If an artifact has multiple versions on the module path, check whether they create **duplicate module names** or make module resolution ambiguous. Do not try to fix it by randomly changing `requires` to a package name.
 
-## 7. Module path trỏ sai thư mục cấp cha/cấp con
+## 7. Module path pointing to the wrong parent/child directory
 
-Cấu trúc exploded modules thường là:
+An exploded modules structure usually looks like:
 
     out/
       com.example.money/
@@ -207,116 +207,116 @@ Cấu trúc exploded modules thường là:
         module-info.class
         com/example/app/Main.class
 
-Trong cấu trúc này, module path thường trỏ đến **`out`**, nơi chứa các thư mục module:
+In this structure, the module path normally points to **`out`**, which contains the module directories:
 
     java --module-path out -m com.example.app/com.example.app.Main
 
-Nếu bạn trỏ nhầm module path tới một thư mục con không đúng ngữ cảnh của lệnh đang chạy, module gốc hoặc dependency có thể không được tìm theo cách mong muốn.
+If you mistakenly point the module path to a subdirectory that is inappropriate for the command being run, the root module or dependencies may not be found as expected.
 
-Với các JAR đặt trong:
+For JARs placed in:
 
     libs/
       money-utils-2.3.0.jar
       logging-api.jar
 
-module path thường trỏ đến **`libs`**:
+the module path normally points to **`libs`**:
 
     java --module-path libs ...
 
-Không nên giả định tùy chọn module path tìm đệ quy trong mọi thư mục con. Nếu cấu trúc có nhiều tầng `libs/vendor/...`, hãy đưa đúng vị trí chứa các module vào module path.
+Do not assume that the module path option searches recursively through all subdirectories. If the layout has nested levels such as `libs/vendor/...`, pass the exact locations containing the modules to the module path.
 
-## 8. Đừng nhầm classpath với module path
+## 8. Do not confuse classpath with module path
 
-Một lỗi cấu hình:
+A configuration error:
 
     java --module-path out --class-path libs/money-utils-2.3.0.jar -m com.example.app/com.example.app.Main
 
-Nếu `com.example.app` khai báo `requires com.example.money`, JAR `money-utils-2.3.0.jar` trên classpath không thỏa mãn dependency named module đó.
+If `com.example.app` declares `requires com.example.money`, the JAR `money-utils-2.3.0.jar` on the classpath does not satisfy that named module dependency.
 
-Cấu hình cần xét:
+The configuration to consider instead:
 
     java --module-path "out;libs" -m com.example.app/com.example.app.Main
 
-Dùng `out:libs` trên Linux/macOS.
+Use `out:libs` on Linux/macOS.
 
-Đối với ứng dụng legacy chưa modularize, chạy toàn bộ bằng classpath có thể hợp lệ:
+For a legacy non-modularized application, running entirely with the classpath can be valid:
 
     java -cp "app.jar;libs/*" com.example.app.Main
 
-Nhưng khi khởi chạy theo `-m`, Java dùng module system để resolve named modules. Hai mô hình không phải lúc nào cũng hoán đổi bằng cách chuyển một dấu `-cp` sang `-p`.
+However, when launching with `-m`, Java uses the module system to resolve named modules. The two models are not always interchangeable simply by swapping `-cp` for `-p`.
 
-## 9. Khi JAR chưa có module-info.java
+## 9. When a JAR does not yet have module-info.java
 
-JAR cũ được đặt trên classpath thường thuộc unnamed module. Khi chuyển chính JAR đó lên module path, nó có thể được coi là **automatic module**.
+A legacy JAR placed on the classpath normally belongs to the unnamed module. When moving that same JAR onto the module path, it can be treated as an **automatic module**.
 
-Ví dụ:
+Example:
 
     libs/
       legacy-money-1.0.jar
 
-Đặt trên module path:
+Placed on the module path:
 
     java --module-path "out;libs" -m com.example.app/com.example.app.Main
 
-Nếu source app khai báo:
+If the app source declares:
 
     module com.example.app {
         requires legacy.money;
     }
 
-tên `legacy.money` chỉ đúng nếu JDK thực sự gán tên đó cho JAR. Dùng:
+the name `legacy.money` is only right if the JDK actually assigns that name to the JAR. Use:
 
     jar --describe-module --file libs/legacy-money-1.0.jar
 
-để kiểm tra.
+to check.
 
-Automatic module giúp chuyển đổi từng bước, nhưng không xử lý mọi vấn đề: package trùng giữa các named modules, thiếu dependency, version artifact hoặc class loader vẫn có thể gây lỗi riêng. Khi có thể, hãy cung cấp tên module ổn định bằng explicit descriptor hoặc `Automatic-Module-Name`.
+Automatic modules help with incremental migration, but they do not solve every issue: duplicate packages across named modules, missing dependencies, artifact versions, or class loaders can still cause separate errors. Whenever possible, provide a stable module name via an explicit descriptor or `Automatic-Module-Name`.
 
-## 10. Module có mặt nhưng chưa được resolve
+## 10. A module is present but not yet resolved
 
-Một module xuất hiện trên module path không phải lúc nào cũng tham gia runtime module graph.
+A module appearing on the module path does not always participate in the runtime module graph.
 
-Ví dụ một plugin module nằm trong `plugins`, nhưng ứng dụng không có dependency tĩnh và không đưa plugin vào root set. Module có thể được tìm thấy trên module path nhưng chưa được resolve vào layer mà chương trình đang sử dụng.
+For example, a plugin module sits in `plugins`, but the application has no static dependency on it and does not include the plugin in the root set. The module can be found on the module path, yet it has not been resolved into the layer the program is using.
 
-Có thể bổ sung root module trong những trường hợp phù hợp:
+Additional root modules can be added in appropriate cases:
 
     java --module-path "out;plugins" --add-modules com.example.plugin -m com.example.app/com.example.app.Main
 
-`--add-modules` yêu cầu module được đưa vào root set của quá trình resolve. Nó không tạo ra module đang thiếu; module `com.example.plugin` vẫn phải có trên module path hoặc nguồn module phù hợp.
+`--add-modules` requests that the module be added to the root set of resolution. It does not create a missing module; the `com.example.plugin` module must still exist on the module path or an appropriate module source.
 
-Nếu plugin được nạp vào **module layer riêng**, cần kiểm tra `ModuleFinder`, configuration và cách layer được định nghĩa; chỉ sửa module path của launcher không nhất thiết đủ cho loader riêng.
+If the plugin is loaded into a **custom module layer**, check `ModuleFinder`, the configuration, and how the layer is defined; fixing only the launcher's module path is not necessarily sufficient for a custom loader.
 
-## 11. Công cụ chẩn đoán của JDK
+## 11. JDK diagnostic tools
 
-Một số lệnh hữu ích:
+Several useful commands:
 
-**Xem module descriptor của JAR:**
+**Inspect a JAR's module descriptor:**
 
     jar --describe-module --file libs/money-utils-2.3.0.jar
 
-**Liệt kê các module có thể quan sát với cấu hình đường dẫn:**
+**List modules observable with the path configuration:**
 
     java --module-path libs --list-modules
 
-**Kiểm tra module path theo khả năng xác minh của launcher:**
+**Validate the module path using the launcher's verification capabilities:**
 
     java --module-path libs --validate-modules
 
-**Hiển thị quá trình module resolution:**
+**Display the module resolution process:**
 
     java --module-path "out;libs" --show-module-resolution -m com.example.app/com.example.app.Main
 
-**Xem dependency của một JAR:**
+**Inspect a JAR's dependencies:**
 
     jdeps --module-path libs --print-module-deps app.jar
 
-Trong thực tế, `jdeps` cần dependency đúng để phân tích hoàn chỉnh. Đừng dùng tùy chọn bỏ qua dependency thiếu rồi kết luận mọi dependency đã đủ.
+In practice, `jdeps` needs the right dependencies for a complete analysis. Do not use an option that ignores missing dependencies and then conclude that all dependencies are satisfied.
 
-Ngoài ra, nên chạy lệnh từ **thư mục làm việc thực tế của CI hoặc container**. Một đường dẫn tương đối như `libs` có thể hợp lệ trên máy phát triển nhưng không tồn tại ở runtime image.
+In addition, run commands from the **actual working directory of CI or the container**. A relative path like `libs` may be valid on a development machine yet not exist in the runtime image.
 
-## 12. ModuleFinder: tìm module bằng Java code
+## 12. ModuleFinder: finding modules via Java code
 
-Nếu cần kiểm tra module path bằng chương trình Java, dùng `java.lang.module.ModuleFinder`:
+If you need to inspect the module path programmatically in Java, use `java.lang.module.ModuleFinder`:
 
     import java.lang.module.ModuleFinder;
     import java.lang.module.ModuleReference;
@@ -342,61 +342,61 @@ Nếu cần kiểm tra module path bằng chương trình Java, dùng `java.lang
         }
     }
 
-`find(...)` trả về `Optional.empty()` nếu không tìm thấy module mang tên được yêu cầu. Nó không tự ném một exception tên `ModuleNotFoundException` chỉ vì `Optional` rỗng.
+`find(...)` returns `Optional.empty()` if no module with the requested name is found. It does not throw an exception named `ModuleNotFoundException` merely because the `Optional` is empty.
 
-Một finder có thể ném `FindException` trong các tình huống lỗi khi tìm hoặc xử lý module content, chẳng hạn artifact trên module path không hợp lệ. Vì vậy, hãy phân biệt “không có module với tên này” và “không thể xử lý một module artifact”.
+A finder may throw `FindException` in error situations while finding or reading module content, such as an invalid artifact on the module path. Therefore, distinguish between "no module with this name exists" and "cannot process a module artifact".
 
-`ModuleFinder.of(Path.of("libs"))` chỉ tìm trong nguồn mà bạn chỉ định; nó không tự quét mọi dependency của Maven, mọi classpath hoặc mọi plugin directory của ứng dụng.
+`ModuleFinder.of(Path.of("libs"))` searches only in the source you specify; it does not automatically scan all Maven dependencies, every classpath, or all plugin directories of an application.
 
-## 13. FindException, ResolutionException và lỗi package
+## 13. FindException, ResolutionException, and package errors
 
-Ba nhóm lỗi khác nhau:
+Three distinct error groups:
 
-- `FindException`: lỗi tìm module hoặc resolve module vì module bắt buộc không tìm thấy, hoặc vấn đề về module content.
-- `ResolutionException`: một cấu hình module không thể resolve hợp lệ, chẳng hạn các quan hệ package/readability không tương thích.
-- `LayerInstantiationException`: lỗi khi định nghĩa module layer theo class loader mapping, có thể liên quan việc nhiều module chia package trên cùng class loader.
+- `FindException`: failure to find or resolve a module because a required module is not found, or an issue with module content.
+- `ResolutionException`: a module configuration cannot be validly resolved, such as incompatible package/readability relationships.
+- `LayerInstantiationException`: failure when defining a module layer according to a class loader mapping, potentially involving multiple modules sharing a package on the same class loader.
 
-Nếu thông báo nêu `Module com.example.money not found`, tập trung vào module path và tên module.
+If the message states `Module com.example.money not found`, focus on the module path and module name.
 
-Nếu thông báo nêu một package vừa xuất hiện trong module này vừa trong module khác, vấn đề có thể là **split package** hoặc xung đột module graph; thêm module path không phải là giải pháp đủ.
+If the message states that a package appears in both one module and another, the issue may be a **split package** or a module graph conflict; adding to the module path is not a sufficient solution.
 
-Nếu module đã tồn tại nhưng một package không được export cho caller, cần kiểm tra `requires`, `exports`, `opens` tùy tình huống. `--add-opens` không biến module đang thiếu thành module hiện hữu.
+If the module exists but a package is not exported to the caller, check `requires`, `exports`, and `opens` depending on the situation. `--add-opens` does not turn a missing module into an existing one.
 
-## 14. Tại sao --add-exports và --add-opens không sửa module thiếu?
+## 14. Why --add-exports and --add-opens do not fix a missing module
 
-Các tùy chọn sau giải quyết các vấn đề về **quyền truy cập**:
+The following options address **access permission** issues:
 
     --add-reads
     --add-exports
     --add-opens
 
-Chúng không tải JAR từ repository, không đổi đường dẫn tương đối sai thành đúng, không tự giải quyết tên module không tồn tại.
+They do not download JARs from a repository, fix an incorrect relative path, or resolve a nonexistent module name.
 
-Ví dụ lỗi:
+Example error:
 
     java.lang.module.FindException:
         Module com.example.money not found,
         required by com.example.app
 
-Không nên sửa bằng:
+Do not attempt to fix it with:
 
     --add-opens=com.example.money/com.example.money.internal=ALL-UNNAMED
 
-Tùy chọn này giả định đã có module `com.example.money`; nó chỉ điều chỉnh khả năng reflection cho một package thuộc module nguồn.
+This option assumes `com.example.money` already exists; it only adjusts reflection capability for a package belonging to the source module.
 
-Thứ tự đúng là:
+The right order is:
 
-1. Bảo đảm artifact `com.example.money` tồn tại.
-2. Đưa đúng artifact/module vào module path.
-3. Xác nhận tên module được JVM nhận diện.
-4. Resolve module graph thành công.
-5. Chỉ sau đó xử lý lỗi exports/opens nếu còn.
+1. Ensure the `com.example.money` artifact exists.
+2. Place the right artifact/module onto the module path.
+3. Confirm the module name is recognized by the JVM.
+4. Resolve the module graph successfully.
+5. Only afterward address exports/opens errors if any remain.
 
-## 15. Với Maven: kiểm tra compile và runtime dependency
+## 15. With Maven: checking compile and runtime dependencies
 
-Trong dự án Maven, một dependency có thể nằm trong cấu hình compile nhưng không có ở runtime vì scope, profile hoặc cách đóng gói distribution.
+In a Maven project, a dependency may be present in the compile configuration yet absent at runtime because of scope, profiles, or how the distribution is packaged.
 
-Ví dụ dependency thư viện:
+Example library dependency:
 
     <dependency>
       <groupId>com.example</groupId>
@@ -404,25 +404,25 @@ Ví dụ dependency thư viện:
       <version>2.3.0</version>
     </dependency>
 
-Dependency này không tự bảo đảm mọi script chạy bằng `java -m` đều đưa JAR vào `--module-path`. Khi chạy JAR bằng lệnh tự viết, phải quản lý đường dẫn đến các JAR thực tế.
+This dependency does not guarantee that every script launched with `java -m` puts the JAR onto `--module-path`. When running a JAR with a custom command, you must manage the paths to the actual JARs.
 
-Cần kiểm tra:
+Items to check:
 
-- Phiên bản JDK được dùng bởi Maven compiler/test/runtime.
-- Tên module thực tế trong JAR và `requires`.
-- Scope `provided`, `runtime`, `test` và ảnh hưởng lên bộ artifact được đóng gói.
-- Plugin đóng gói application distribution có copy đủ JAR vào thư mục runtime không.
-- Maven Surefire/Failsafe chạy test trên classpath hay module path và có khác sản phẩm không.
+- The JDK version used by Maven compiler/test/runtime.
+- The actual module name inside the JAR and `requires`.
+- The `provided`, `runtime`, and `test` scopes and their impact on the packaged artifact set.
+- Whether the distribution-packaging plugin copies all necessary JARs into the runtime directory.
+- Whether Maven Surefire/Failsafe runs tests on the classpath or module path and whether that differs from production.
 
-Có thể xem dependency tree của Maven trong môi trường có plugin phù hợp:
+You can inspect Maven's dependency tree in an environment with the appropriate plugin:
 
     mvn dependency:tree
 
-Nhưng dependency tree chỉ cho biết Maven resolve artifact nào; để chứng minh runtime module path đúng, vẫn cần xem lệnh launcher hoặc log của tiến trình Java thực tế.
+However, the dependency tree only shows which artifacts Maven resolves; to prove the runtime module path is right, you still need to inspect the actual launcher command or logs of the running Java process.
 
-## 16. Với Gradle: tách module dependencies và launcher args
+## 16. With Gradle: separating module dependencies and launcher args
 
-Gradle Java plugin có thể suy luận module path cho source có module descriptor khi được cấu hình:
+The Gradle Java plugin can infer the module path for sources that have a module descriptor when configured:
 
     plugins {
         id 'java'
@@ -432,112 +432,112 @@ Gradle Java plugin có thể suy luận module path cho source có module descri
         modularity.inferModulePath = true
     }
 
-Dependency ví dụ:
+Example dependency:
 
     dependencies {
         implementation 'com.example:money-utils:2.3.0'
     }
 
-Cấu hình trên hữu ích trong build, nhưng nếu deploy bằng script Java riêng thì script phải có module path tương ứng.
+The configuration above is useful during the build, but if deploying with a separate Java script, the script must specify the corresponding module path.
 
-Với Gradle Application plugin, nên xem main module, main class và tập runtime dependencies mà task khởi chạy được cấu hình để dùng. Một task test có thể chạy theo cấu hình khác task ứng dụng.
+With the Gradle Application plugin, check the main module, main class, and the set of runtime dependencies that the launch task is configured to use. A test task may run with a different configuration than the application task.
 
-Đừng đoán rằng bật `modularity.inferModulePath` sẽ tự sửa một Docker entrypoint hoặc CI shell script đã ghi cố định `-p out`.
+Do not assume that enabling `modularity.inferModulePath` will automatically fix a Docker entrypoint or CI shell script that has hardcoded `-p out`.
 
-## 17. Kiểm tra đường dẫn tương đối và môi trường triển khai
+## 17. Checking relative paths and deployment environments
 
-Nhiều lỗi không nằm ở Java source mà ở filesystem:
+Many errors lie not in Java source code but in the filesystem:
 
-- Người chạy đứng sai working directory.
-- Dùng dấu `;` trên Linux/macOS hoặc dấu `:` trên Windows.
-- Tên thư mục trong script khác với tên thư mục sau khi build.
-- JAR bị bỏ sót khi đóng gói container.
-- File JAR có phiên bản khác với file dùng lúc compile.
-- Thư mục được mount ở đường dẫn khác.
-- Module nằm trong archive chưa giải nén ở hình thức mà launcher không hỗ trợ như mong muốn.
-- Một wildcard hoặc biến môi trường không được shell diễn giải như người viết kỳ vọng.
+- The runner is in the wrong working directory.
+- Using `;` on Linux/macOS or `:` on Windows.
+- The directory name in the script differs from the directory name after building.
+- A JAR was omitted when building the container image.
+- The JAR file has a different version than the file used at compile time.
+- A directory is mounted at a different path.
+- Modules are inside an unextracted archive in a form that the launcher does not support as expected.
+- A wildcard or environment variable is not expanded by the shell as the author expected.
 
-Để khắc phục, trước tiên in đường dẫn mà quy trình triển khai thực sự dùng. Sau đó kiểm tra xem thư mục hoặc JAR còn tồn tại và chứa đúng `module-info.class` hoặc automatic module được JVM nhận diện.
+To troubleshoot, first print the exact path that the deployment process actually uses. Then verify that the directory or JAR exists and contains the right `module-info.class` or an automatic module recognized by the JVM.
 
-Khi script sử dụng `--module-path "out:libs"`, hãy xác nhận các thư mục `out` và `libs` là tương đối so với working directory hiện tại, không phải mặc định tương đối với vị trí file `.jar`.
+When a script uses `--module-path "out:libs"`, confirm that the `out` and `libs` directories are relative to the current working directory, not implicitly relative to the `.jar` file location.
 
-## 18. Trường hợp --limit-modules và module hệ thống
+## 18. The case of --limit-modules and system modules
 
-Một module có thể có mặt trong JDK hoặc module path nhưng bị loại khỏi tập module quan sát được do cấu hình giới hạn.
+A module may exist in the JDK or on the module path yet be excluded from the observable module set due to limiting configurations.
 
-Ví dụ `--limit-modules` giới hạn các module mà quá trình resolution có thể quan sát, tùy theo tập module được chỉ định và closure dependency. Nếu cấu hình giới hạn vô tình loại module cần thiết, chương trình có thể gặp lỗi giống như module bị thiếu.
+For example, `--limit-modules` restricts the modules that resolution can observe, depending on the specified module set and dependency closure. If a limiting configuration accidentally excludes a required module, the program can fail with an error that looks just like a missing module.
 
-Điều này cũng có thể xảy ra khi chạy một runtime image tùy biến được tạo bằng `jlink` mà thiếu module nền tảng cần dùng.
+This can also happen when running a custom runtime image created with `jlink` that omits a needed platform module.
 
-Do đó, nếu lỗi liên quan module JDK như `java.sql`, `java.xml` hoặc một module chuẩn khác, đừng lập tức tìm JAR bên thứ ba. Hãy kiểm tra phiên bản JDK/runtime image, danh sách module thực sự hiện diện và các tùy chọn giới hạn module của launcher.
+Therefore, if the error involves a JDK module such as `java.sql`, `java.xml`, or another standard module, do not immediately search for a third-party JAR. Check the JDK/runtime image version, the list of actually present modules, and any launcher options that limit modules.
 
-## 19. Quy trình chẩn đoán ngắn theo từng bước
+## 19. Short step-by-step diagnostic workflow
 
-Khi gặp lỗi module not found, thực hiện theo trình tự:
+When encountering a module not found error, proceed in order:
 
-**Bước 1 — Ghi lại lỗi chính xác.**
+**Step 1 — Record the exact error.**
 
-Ví dụ:
+Example:
 
     java.lang.module.FindException:
         Module com.example.money not found,
         required by com.example.app
 
-Ghi module thiếu (`com.example.money`) và module yêu cầu (`com.example.app`). Nếu compiler nêu `error: module not found`, ghi thêm lệnh `javac` đã chạy.
+Record the missing module (`com.example.money`) and the requiring module (`com.example.app`). If the compiler reports `error: module not found`, also record the `javac` command that was run.
 
-**Bước 2 — Xác nhận artifact thực sự có mặt.**
+**Step 2 — Verify the artifact is actually present.**
 
-Kiểm tra JAR/đường dẫn trong build output, distribution, container hoặc môi trường CI.
+Check the JAR/path in the build output, distribution, container, or CI environment.
 
-**Bước 3 — Xác nhận tên module.**
+**Step 3 — Verify the module name.**
 
-Chạy:
+Run:
 
     jar --describe-module --file libs/money-utils-2.3.0.jar
 
-Đối chiếu tên module với `requires` và tùy chọn `-m`.
+Compare the module name against `requires` and the `-m` option.
 
-**Bước 4 — Xác nhận module path của đúng công cụ.**
+**Step 4 — Verify the module path of the exact tool.**
 
-Đừng trộn lệnh `javac`, JVM chạy test và JVM production. Chỉ sửa module path của tiến trình đang lỗi.
+Do not mix up the `javac` command, test JVM, and production JVM. Fix only the module path of the failing process.
 
-**Bước 5 — Quan sát resolution.**
+**Step 5 — Observe resolution.**
 
-Dùng:
+Use:
 
     java --module-path "out;libs" --show-module-resolution -m com.example.app/com.example.app.Main
 
-Thay path separator cho đúng hệ điều hành.
+Adjust the path separator for your operating system.
 
-**Bước 6 — Phân loại lỗi tiếp theo.**
+**Step 6 — Classify any subsequent error.**
 
-Nếu lỗi chuyển thành package not visible, split package, service provider không thấy hoặc classloader mismatch, xử lý theo loại mới. Không tiếp tục thêm JAR một cách vô hạn.
+If the error turns into package not visible, split package, missing service provider, or classloader mismatch, handle it according to the new category. Do not keep adding JARs endlessly.
 
-**Bước 7 — Chạy lại bằng chính cấu hình triển khai.**
+**Step 7 — Re-run with the exact deployment configuration.**
 
-Trên CI/Docker hoặc hệ thống vận hành, lệnh chạy cuối cùng mới là bằng chứng cấu hình module path đã được sửa.
+On CI/Docker or in production systems, the final launch command is the proof that the module path configuration has been fixed.
 
-## 20. Những nhầm lẫn thường gặp
+## 20. Common misconceptions
 
-- **Tưởng `ModuleNotFoundException` là exception chuẩn của JPMS.** Thông báo chuẩn thường là `FindException` hoặc lỗi compile `module not found`; tên `ModuleNotFoundException` có thể đến từ thư viện khác.
-- **Tưởng module name và tên JAR giống nhau.** Cần đọc descriptor hoặc tên automatic module thực tế.
-- **Tưởng JAR trên classpath thỏa mãn `requires`.** Named module được tìm trên module path, không phải từ unnamed module của classpath.
-- **Tưởng module có mặt trên module path là chắc chắn đã resolve.** Resolution phụ thuộc root module, dependency và cấu hình.
-- **Tưởng compile thành công đồng nghĩa runtime tìm được module.** Compiler và launcher có thể dùng đường dẫn khác nhau.
-- **Tưởng mọi lỗi thiếu class là lỗi thiếu module.** `ClassNotFoundException` là lỗi ở cấp class/class loader.
-- **Tưởng `--add-opens` có thể sửa `FindException: Module not found`.** Đây là tùy chọn reflection, không cấp module content.
-- **Tưởng module path quét đệ quy mọi thư mục con.** Phải đưa vào đúng vị trí được công cụ nhận diện.
-- **Tưởng path separator giống nhau trên mọi hệ điều hành.** Windows dùng dấu chấm phẩy; Linux/macOS dùng dấu hai chấm.
-- **Tưởng `--list-modules` chứng minh module đã là dependency của app.** Nó giúp quan sát module, còn app có resolve module đó hay không phải xem module graph.
-- **Tưởng có thể lờ đi `--limit-modules` hoặc custom runtime image.** Chúng có thể ảnh hưởng tập module quan sát được.
+- **Assuming `ModuleNotFoundException` is a standard JPMS exception.** Standard messages are typically `FindException` or the compile error `module not found`; the name `ModuleNotFoundException` may come from another library.
+- **Assuming the module name and JAR filename are identical.** You need to read the descriptor or the actual automatic module name.
+- **Assuming a JAR on the classpath satisfies `requires`.** Named modules are looked up on the module path, not from the unnamed module of the classpath.
+- **Assuming a module on the module path is guaranteed to be resolved.** Resolution depends on root modules, dependencies, and configuration.
+- **Assuming compile success guarantees runtime will find the module.** The compiler and launcher can use different paths.
+- **Assuming every missing-class error is a missing-module error.** `ClassNotFoundException` is an error at the class/class loader level.
+- **Assuming `--add-opens` can fix `FindException: Module not found`.** It is a reflection option and does not supply module content.
+- **Assuming the module path scans all subdirectories recursively.** You must pass the exact locations recognized by the tool.
+- **Assuming the path separator is identical across all operating systems.** Windows uses a semicolon; Linux/macOS use a colon.
+- **Assuming `--list-modules` proves a module is an app dependency.** It helps observe modules, whereas whether the app resolves that module requires checking the module graph.
+- **Assuming `--limit-modules` or a custom runtime image can be ignored.** They can affect the set of observable modules.
 
-## Ghi nhớ
+## Key takeaways
 
-- Trong JPMS chuẩn, lỗi “module not found” thường xuất hiện qua `java.lang.module.FindException` ở runtime hoặc thông báo `error: module not found` của compiler.
-- `requires` dùng **module name**; xác nhận bằng `jar --describe-module`.
-- `--module-path` khác `--class-path`; một JAR trên classpath không tự trở thành named module.
-- Chạy đúng đường dẫn cho **cả compilation lẫn runtime**; kiểm tra path separator và working directory.
-- Dùng `java --show-module-resolution`, `java --validate-modules` và `ModuleFinder` để phân loại vấn đề.
-- Khi module đã được tìm thấy, lỗi tiếp theo có thể là readability, exports/opens, split package hoặc class loading; hãy chẩn đoán lại theo thông báo mới.
+- In standard JPMS, a "module not found" error usually appears via `java.lang.module.FindException` at runtime or the compiler message `error: module not found`.
+- `requires` uses the **module name**; confirm it with `jar --describe-module`.
+- `--module-path` differs from `--class-path`; a JAR on the classpath does not automatically become a named module.
+- Use the right paths for **both compilation and runtime**; check the path separator and working directory.
+- Use `java --show-module-resolution`, `java --validate-modules`, and `ModuleFinder` to classify the issue.
+- Once the module is found, the next error may be readability, exports/opens, split package, or class loading; re-diagnose based on the new message.
 
-Cách xử lý đáng tin cậy là xác nhận **tên module**, **artifact**, **vị trí**, **module graph** và **tiến trình thực sự bị lỗi**, theo đúng thứ tự. Khi module path được cấu hình nhất quán, lỗi “module not found” thường có thể được giải quyết mà không phải mở rộng quyền truy cập của các package hay sửa những phần code không liên quan.
+A reliable approach is to verify **the module name**, **the artifact**, **its location**, **the module graph**, and **the exact failing process**, in that order. When the module path is configured consistently, "module not found" errors can usually be resolved without widening package access permissions or modifying unrelated code.

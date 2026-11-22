@@ -1,77 +1,77 @@
-# Duy trì test và plugin build trong giai đoạn chuyển đổi
+# Maintaining Tests and Plugin Builds During Migration
 
-Khi chuyển một dự án Java từ **classpath** sang **Java Platform Module System (JPMS)**, mục tiêu không chỉ là biên dịch thành công `module-info.java`. Hệ thống còn phải giữ được các bài **unit test**, **integration test**, **plugin test**, tác vụ build bằng Maven/Gradle và cơ chế tìm plugin ở runtime.
+When migrating a Java project from the **classpath** to the **Java Platform Module System (JPMS)**, the goal is not merely getting `module-info.java` to compile. The system must also keep its **unit tests**, **integration tests**, **plugin tests**, Maven/Gradle build tasks, and runtime plugin discovery working.
 
-Quá trình migration nên diễn ra theo từng bước, với một đường build đang hoạt động làm mốc đối chiếu. Nếu chuyển đồng thời toàn bộ dependency, test runner và plugin loader sang module path, khi xảy ra lỗi sẽ rất khó xác định nguyên nhân. Cách thực tế hơn là kiểm soát riêng ba luồng: **compile ứng dụng**, **chạy test** và **đóng gói/nạp plugin**.
+Migration should proceed step by step, using a working build pipeline as a reference baseline. If all dependencies, test runners, and plugin loaders are moved to the module path simultaneously, pinpointing root causes when errors arise becomes very difficult. A more practical approach is controlling three tracks separately: **application compilation**, **test execution**, and **plugin packaging/loading**.
 
-## 1. Vì sao test và plugin dễ hỏng khi modularize?
+## 1. Why Do Tests and Plugins Break Easily When Modularizing?
 
-Trên classpath, các class thường thuộc unnamed module của class loader. Một framework test hoặc plugin có thể dùng reflection để tìm constructor, gọi method không public và quét classpath hoặc file `META-INF/services`.
+On the classpath, classes typically belong to the class loader's unnamed module. A test framework or plugin can use reflection to find constructors, call non-public methods, and scan the classpath or `META-INF/services` files.
 
-Trong named module, JPMS bổ sung các ràng buộc:
+In named modules, JPMS adds constraints:
 
-- Module muốn sử dụng API của module khác cần có **readability**, thường qua `requires`.
-- Package muốn cho module khác truy cập kiểu public cần `exports`.
-- Package muốn framework sử dụng **deep reflection** cần `opens` phù hợp.
-- Provider trong named module phải được khai báo bằng `provides ... with ...` khi dùng cơ chế module service.
-- Module trên module path phải được **resolve**; chỉ đặt JAR trong một thư mục chưa đảm bảo nó đã trở thành module tham gia cấu hình chạy.
-- Một package không thể tùy tiện bị chia giữa nhiều named modules trong cùng cấu hình.
+- A module wanting to use another module's API needs **readability**, usually via `requires`.
+- A package wanting other modules to access its public types needs `exports`.
+- A package wanting frameworks to use **deep reflection** needs appropriate `opens`.
+- A provider in a named module must be declared with `provides ... with ...` when using the module service mechanism.
+- A module on the module path must be **resolved**; merely placing a JAR in a directory does not guarantee it participates in the runtime configuration.
+- A package cannot arbitrarily be split across multiple named modules in the same configuration.
 
-Vì vậy, cùng một test có thể chạy khi mọi JAR ở classpath nhưng thất bại sau khi chuyển thư viện chính sang module path.
+Therefore, the same test can pass when every JAR is on the classpath yet fail after moving core libraries onto the module path.
 
-## 2. Phân loại ba phạm vi cần giữ hoạt động
+## 2. Classifying the Three Scopes to Keep Running
 
-| Phạm vi | Ví dụ | Điều cần kiểm tra |
+| Scope | Example | What to check |
 |---|---|---|
-| Build ứng dụng | `javac`, Maven Compiler, Gradle Java plugin | Module path, descriptor, dependency, tên module |
-| Chạy test | JUnit, Mockito, integration tests | Test classpath/module path, quyền reflection, test fixtures |
-| Plugin build và plugin runtime | Maven/Gradle plugins, service providers, plugin JAR | Class loader của build tool, metadata đóng gói, `ServiceLoader` và module layer |
+| Application build | `javac`, Maven Compiler, Gradle Java plugin | Module path, descriptors, dependencies, module names |
+| Test execution | JUnit, Mockito, integration tests | Test classpath/module path, reflection permissions, test fixtures |
+| Build plugins and runtime plugins | Maven/Gradle plugins, service providers, plugin JARs | Build tool class loader, packaging metadata, `ServiceLoader`, and module layers |
 
-“Plugin build” có thể chỉ **plugin thực thi trong công cụ build** như Maven/Gradle plugin, hoặc **plugin artifact do ứng dụng xây dựng và nạp khi chạy**. Hai trường hợp có vòng đời khác nhau.
+"Plugin build" can refer to **plugins executing inside the build tool** such as Maven/Gradle plugins, or **plugin artifacts built by the application and loaded at runtime**. These two cases have different lifecycles.
 
-Plugin của Maven/Gradle thường thực thi trong môi trường riêng của build tool, không tự động trở thành module mà ứng dụng đọc. Ngược lại, plugin runtime dùng JPMS có thể cần `uses`, `provides`, module path, service binding hoặc module layer.
+Maven/Gradle plugins usually execute inside the build tool's own environment and do not automatically become modules read by the application. Conversely, runtime plugins using JPMS may need `uses`, `provides`, the module path, service binding, or module layers.
 
-## 3. Đặt baseline trước khi chuyển đổi
+## 3. Setting a Pre-Migration Baseline
 
-Trước khi thêm `module-info.java`, nên xác định một trạng thái build ổn định:
+Before adding `module-info.java`, establish a stable build state:
 
-1. Build ứng dụng từ clean workspace.
-2. Chạy đầy đủ unit tests và integration tests đang có.
-3. Đóng gói các JAR được ứng dụng phân phối.
-4. Chạy một kịch bản tải plugin thực tế.
-5. Ghi lại các module/JAR, JDK, dependency và công cụ build đang sử dụng.
+1. Build the application from a clean workspace.
+2. Run all existing unit tests and integration tests.
+3. Package the JARs distributed by the application.
+4. Run a real plugin-loading scenario.
+5. Record the modules/JARs, JDK, dependencies, and build tools in use.
 
-Ví dụ với Maven:
+Example with Maven:
 
     mvn clean verify
 
-Ví dụ với Gradle:
+Example with Gradle:
 
     ./gradlew clean build
 
-Nếu dự án có tác vụ kiểm thử riêng hoặc integration test không thuộc pipeline mặc định, bổ sung các tác vụ đó vào baseline. Không giả định `build` hoặc `verify` luôn bao gồm mọi test của mọi dự án.
+If the project has custom test tasks or integration tests outside the default pipeline, include them in the baseline. Do not assume `build` or `verify` always includes every test in every project.
 
-Một baseline hữu ích không chỉ ghi “BUILD SUCCESS”, mà còn ghi test nào đã chạy và plugin nào thực sự được phát hiện, khởi tạo.
+A useful baseline records not just "BUILD SUCCESS", but also which tests actually ran and which plugins were actually discovered and instantiated.
 
-## 4. Chuyển đổi theo tầng, không đổi toàn bộ một lần
+## 4. Migrating in Layers Rather Than All at Once
 
-Có thể chia migration thành các bước:
+You can divide migration into steps:
 
-**Bước A — Chuẩn hóa dependency.** Xác định thư viện nào đã có explicit module, thư viện nào trở thành automatic module và thư viện nào còn ở classpath. Kiểm tra package trùng tên giữa các artifact.
+**Step A — Standardize dependencies.** Identify which libraries already have explicit modules, which become automatic modules, and which remain on the classpath. Check for overlapping package names across artifacts.
 
-**Bước B — Modularize phần lõi.** Thêm `module-info.java` cho module API hoặc module core có ranh giới rõ. Tránh export package internal chỉ để làm toàn bộ test chạy nhanh.
+**Step B — Modularize the core.** Add `module-info.java` for well-bounded API or core modules. Avoid exporting internal packages just to make all tests pass quickly.
 
-**Bước C — Giữ test hiện hữu.** Tạm dùng cấu hình test classpath hoặc thêm các tùy chọn runtime dành riêng cho test, rồi từng bước chuyển sang kiểm thử trong named module nếu cần.
+**Step C — Keep existing tests running.** Temporarily use a test classpath configuration or add test-specific runtime options, then incrementally move toward testing inside named modules if needed.
 
-**Bước D — Chuyển plugin.** Chuẩn hóa service API, service provider, cách đóng gói JAR và cách module được resolve. Có thể giữ plugin cũ ở classpath trong giai đoạn trung gian nếu kiến trúc hỗ trợ.
+**Step D — Migrate plugins.** Standardize service APIs, service providers, JAR packaging, and module resolution. Legacy plugins can stay on the classpath during an intermediate phase if the architecture supports it.
 
-**Bước E — Thu hẹp ngoại lệ.** Khi test và plugin đã chạy ổn định, giảm `--add-opens`, `--add-exports` và `--add-reads` không còn cần thiết.
+**Step E — Narrow exceptions.** Once tests and plugins run reliably, reduce `--add-opens`, `--add-exports`, and `--add-reads` flags that are no longer needed.
 
-Mỗi bước nên có một lệnh build/test có thể lặp lại. Việc có hai cách khởi chạy trong thời gian chuyển tiếp là hợp lý nếu được kiểm soát và có mục tiêu kết thúc rõ ràng.
+Each step should have a repeatable build/test command. Having two launch modes during the transition is reasonable as long as it is controlled and has a clear end goal.
 
-## 5. Ví dụ một ứng dụng modular tối thiểu
+## 5. Minimal Modular Application Example
 
-Giả sử ứng dụng có module core:
+Suppose an application has a core module:
 
     src/
       com.example.core/
@@ -82,13 +82,13 @@ Giả sử ứng dụng có module core:
         module-info.java
         com/example/app/Main.java
 
-Module core:
+Core module:
 
     module com.example.core {
         exports com.example.core.api;
     }
 
-API của core:
+Core API:
 
     package com.example.core.api;
 
@@ -96,99 +96,99 @@ API của core:
         int add(int a, int b);
     }
 
-Module app:
+App module:
 
     module com.example.app {
         requires com.example.core;
     }
 
-Biên dịch theo module source path:
+Compile using module source path:
 
     javac --module-source-path src -d out -m com.example.core,com.example.app
 
-Chạy:
+Run:
 
     java --module-path out -m com.example.app/com.example.app.Main
 
-Khi bước này hoạt động, mới cần đưa test runner và plugin vào cấu hình tương ứng. Đừng thay đổi tất cả đường dẫn build/test trước khi xác nhận module graph của ứng dụng.
+Only after this step works should you adjust the test runner and plugin configurations accordingly. Do not change all build/test paths before verifying the application's module graph.
 
-## 6. Giữ unit test chạy khi test vẫn ở classpath
+## 6. Keeping Unit Tests Running While Tests Stay on the Classpath
 
-Nhiều dự án có test nằm dưới `src/test/java` và được framework test nạp qua classpath. Trong giai đoạn đầu, có thể giữ test ở unnamed module trong khi production code đã trở thành named module.
+Many projects place tests under `src/test/java` and load them via the test framework on the classpath. Early on, you can keep tests in the unnamed module while production code becomes a named module.
 
-Đây là một phương án chuyển tiếp, không phải trạng thái tự động tương đương với chạy test đúng quy tắc JPMS.
+This is a transitional option, not automatically equivalent to running tests under full JPMS rules.
 
-Ví dụ, code test có thể gọi API public của core nếu package được export:
+For example, test code can call the core's public API if the package is exported:
 
     module com.example.core {
         exports com.example.core.api;
     }
 
-Nếu test cố truy cập field private trong package internal, việc `exports` API public không đủ để cho phép deep reflection. Cấu hình riêng cho JVM kiểm thử có thể cần:
+If tests try to access private fields in an internal package, exporting the public API is not enough to permit deep reflection. The test JVM configuration may need:
 
     --add-opens=com.example.core/com.example.core.internal=ALL-UNNAMED
 
-Lệnh trên mở package internal của `com.example.core` cho code trong unnamed modules, chẳng hạn một test framework đang chạy trên classpath.
+That option opens the internal package of `com.example.core` to code in unnamed modules, such as a test framework running on the classpath.
 
-Nếu framework test nằm trong **named module**, `ALL-UNNAMED` không cấp quyền cho nó. Khi đó target phải là module name thực tế của framework gọi reflection.
+If the test framework resides in a **named module**, `ALL-UNNAMED` does not grant it permission. In that case, the target must be the actual module name of the framework invoking reflection.
 
-Chỉ thêm quyền vào JVM test đang cần, không nhất thiết thêm vào JVM production.
+Only add these permissions to the test JVM that needs them, not necessarily to the production JVM.
 
-## 7. Khi nào dùng --patch-module cho test?
+## 7. When to Use --patch-module for Tests?
 
-Một số test cần truy cập các thành viên package-private của code production. Khi code nằm trong named module, việc đặt test ở cùng tên package nhưng trong unnamed module không biến hai bên thành cùng runtime package.
+Some tests need access to package-private members of production code. When production code resides in a named module, placing tests in the same package name inside the unnamed module does not put them in the same runtime package.
 
-JPMS hỗ trợ tùy chọn `--patch-module` để bổ sung class/resource vào một module cho quá trình biên dịch hoặc chạy:
+JPMS supports `--patch-module` to inject classes/resources into a module during compilation or execution:
 
     --patch-module com.example.core=path/to/test-classes
 
-Ý tưởng là cho test class trở thành một phần được patch của module `com.example.core` trong môi trường test. Điều này có thể giúp các test cùng package truy cập package-private member mà không phải export package cho toàn bộ ứng dụng.
+The idea is to make test classes part of the patched `com.example.core` module in the test environment. This can allow same-package tests to access package-private members without exporting the package to the entire application.
 
-Tuy nhiên, cần phân biệt:
+However, distinguish:
 
-- `--patch-module` tác động đến nội dung module được patch.
-- `--add-reads` bổ sung quan hệ đọc giữa module.
-- `--add-opens` mở package cho deep reflection.
-- `--add-exports` bổ sung quyền truy cập kiểu public của package.
+- `--patch-module` alters the contents of the patched module.
+- `--add-reads` adds readability between modules.
+- `--add-opens` opens a package for deep reflection.
+- `--add-exports` grants access to public types of a package.
 
-Nếu test class được patch vào named module nhưng JUnit hoặc test framework đang nằm trên classpath, test module có thể cần readability tới unnamed modules trong JVM test:
+If test classes are patched into a named module while JUnit or the test framework remains on the classpath, the test module may need readability to unnamed modules in the test JVM:
 
     --add-reads=com.example.core=ALL-UNNAMED
 
-Các flag này chỉ áp dụng khi cấu trúc test thực sự yêu cầu. Nên để Maven Surefire, Gradle Test hoặc test runner quản lý chúng khi công cụ đã hỗ trợ mô hình modular test; tránh sao chép một bộ flag chung không xét module path và class loader thực tế.
+Only apply these flags when the test structure truly demands them. Let Maven Surefire, Gradle Test, or your test runner manage them when the tool already supports modular testing; avoid copying a generic set of flags without considering the actual module path and class loaders.
 
-## 8. Reflection trong test: exports không thay thế opens
+## 8. Reflection in Tests: exports Does Not Replace opens
 
-Unit test và framework có thể dùng reflection để gọi constructor hoặc đọc field private:
+Unit tests and frameworks may use reflection to invoke constructors or read private fields:
 
     Field field = target.getClass()
             .getDeclaredField("id");
 
     field.setAccessible(true);
 
-Nếu class thuộc package chưa được mở cho module của code reflection, chương trình có thể ném:
+If the class belongs to a package not opened to the reflecting code's module, the program may throw:
 
     java.lang.reflect.InaccessibleObjectException
 
-Cách khắc phục là mở package phù hợp:
+The fix is opening the appropriate package:
 
     --add-opens=com.example.core/com.example.core.internal=ALL-UNNAMED
 
-Hoặc, nếu dự án chủ động cho phép framework ở named module `com.example.test.framework` truy cập:
+Or, if the project intentionally allows a framework in named module `com.example.test.framework` to access it:
 
     opens com.example.core.internal to com.example.test.framework;
 
-trong `module-info.java` của module nguồn.
+in the source module's `module-info.java`.
 
-Nếu quyền này chỉ phục vụ kiểm thử, ưu tiên cấu hình tại JVM test thay vì mở rộng hợp đồng module production.
+If this permission is solely for testing, prefer configuring it on the test JVM rather than broadening the production module contract.
 
-Không dùng `--add-opens` để sửa một lỗi compile-time `package ... is not visible` khi test import kiểu public: trường hợp đó phải kiểm tra readability và `exports`.
+Do not use `--add-opens` to fix a compile-time `package ... is not visible` error when a test imports a public type: in that case, check readability and `exports`.
 
-## 9. Cấu hình Maven trong giai đoạn chuyển tiếp
+## 9. Configuring Maven During Transition
 
-Với Maven, dự án có `module-info.java` thường được Maven Compiler Plugin và Maven Surefire Plugin xử lý theo cấu hình module phù hợp với phiên bản plugin và JDK.
+With Maven, projects containing `module-info.java` are usually handled by the Maven Compiler Plugin and Maven Surefire Plugin according to module configurations appropriate for the plugin and JDK versions.
 
-Một số dự án chọn tạm chạy test trên classpath trong quá trình migration. Ví dụ cấu hình Surefire:
+Some projects choose to temporarily keep tests running on the classpath during migration. Example Surefire configuration:
 
     <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -198,11 +198,11 @@ Một số dự án chọn tạm chạy test trên classpath trong quá trình m
         </configuration>
     </plugin>
 
-Đây chỉ là **một lựa chọn chuyển tiếp**: test có thể chạy trong môi trường classpath mà không kiểm tra đầy đủ các ràng buộc module path của production.
+This is only **a transitional choice**: tests may run in a classpath environment without fully checking production module-path constraints.
 
-Khi cần chạy test với JPMS nghiêm ngặt hơn, có thể để Surefire dùng module path và thiết lập cấu hình patch/reads/opens thích hợp cho cấu trúc test. Các tùy chọn phụ thuộc vào cách test được biên dịch, việc test có `module-info.java` riêng hay không và phiên bản plugin.
+When stricter JPMS testing is needed, Surefire can use the module path with appropriate patch/reads/opens settings for the test layout. Options depend on how tests are compiled, whether tests have their own `module-info.java`, and the plugin version.
 
-Có thể truyền VM options dành riêng cho test qua cấu hình `argLine` trong những trường hợp phù hợp:
+Test-specific VM options can be passed via `argLine` where appropriate:
 
     <configuration>
         <argLine>
@@ -210,20 +210,20 @@ Có thể truyền VM options dành riêng cho test qua cấu hình `argLine` tr
         </argLine>
     </configuration>
 
-Chỉ sử dụng ví dụ này nếu code reflection thực sự chạy trong unnamed module. Không nên thay `argLine` sẵn có chứa tùy chọn Java agent, JaCoCo hoặc cấu hình khác mà không hợp nhất chúng.
+Only use this example if the reflection code actually runs in the unnamed module. Do not overwrite an existing `argLine` containing Java agent, JaCoCo, or other flags without merging them.
 
-Khi vận hành Maven, hãy phân biệt:
+When operating Maven, distinguish:
 
-- `maven-compiler-plugin`: biên dịch source/module.
-- `maven-surefire-plugin`: thường chạy unit tests.
-- `maven-failsafe-plugin`: thường chạy integration tests khi dự án đã cấu hình.
-- Các plugin đóng gói: tạo JAR, distribution, image hoặc artifact plugin.
+- `maven-compiler-plugin`: compiles sources/modules.
+- `maven-surefire-plugin`: typically runs unit tests.
+- `maven-failsafe-plugin`: typically runs integration tests when configured.
+- Packaging plugins: produce JARs, distributions, images, or plugin artifacts.
 
-Một bản build có thể biên dịch thành công nhưng test runner hoặc bản JAR xuất ra vẫn cần sửa riêng.
+A build can compile cleanly while the test runner or produced JAR still needs separate adjustments.
 
-## 10. Cấu hình Gradle trong giai đoạn chuyển tiếp
+## 10. Configuring Gradle During Transition
 
-Với Gradle và Java plugin, có thể bật cơ chế suy luận module path cho code có module descriptor:
+With Gradle and the Java plugin, you can enable module-path inference for code with module descriptors:
 
     plugins {
         id 'java'
@@ -233,13 +233,13 @@ Với Gradle và Java plugin, có thể bật cơ chế suy luận module path c
         modularity.inferModulePath = true
     }
 
-Cấu hình kiểm thử dùng JUnit Platform, nếu dự án đang dùng JUnit Jupiter:
+Configure test execution with JUnit Platform if using JUnit Jupiter:
 
     tasks.withType(Test).configureEach {
         useJUnitPlatform()
     }
 
-Nếu test framework chạy trên classpath và cần deep reflection, có thể thêm flag chỉ cho test:
+If a test framework runs on the classpath and needs deep reflection, add test-only flags:
 
     tasks.withType(Test).configureEach {
         useJUnitPlatform()
@@ -248,27 +248,27 @@ Nếu test framework chạy trên classpath và cần deep reflection, có thể
         )
     }
 
-Tùy vào Gradle, JDK, source set và cách module được biên dịch, test có thể cần cấu hình patch module hoặc module path bổ sung. Không nên giả định riêng `inferModulePath = true` tự cấu hình chính xác mọi test framework và plugin.
+Depending on Gradle, JDK, source sets, and how modules are compiled, tests may need additional patch-module or module-path configuration. Do not assume `inferModulePath = true` alone automatically configures every test framework and plugin accurately.
 
-Các Gradle plugins thực thi trong quá trình build có class loader và dependencies riêng do Gradle quản lý. Đừng nhầm plugin classpath của Gradle với module path của ứng dụng mà task Java đang biên dịch/chạy.
+Gradle plugins executing during the build have their own class loaders and dependencies managed by Gradle. Do not confuse Gradle's plugin classpath with the application's module path compiled/executed by Java tasks.
 
-## 11. Tách build plugin của công cụ và runtime plugin
+## 11. Separating Build-Tool Plugins from Runtime Plugins
 
-Có hai loại “plugin” thường bị gộp chung khi migration:
+Two types of "plugins" are often conflated during migration:
 
-**Build-tool plugin** chạy trong Maven hoặc Gradle để làm việc như compile, generate source, test, package, publish. Ví dụ Maven Compiler/Surefire hoặc Gradle Java/Application plugin. Chúng phụ thuộc vào API và runtime của công cụ build.
+**Build-tool plugins** run inside Maven or Gradle to perform tasks like compiling, generating sources, testing, packaging, and publishing—for example, Maven Compiler/Surefire or Gradle Java/Application plugins. They depend on the build tool's API and runtime.
 
-**Runtime plugin** là một thành phần ứng dụng tìm và nạp lúc chạy, ví dụ qua `ServiceLoader` hoặc `ModuleLayer`.
+**Runtime plugins** are components discovered and loaded by the application at runtime, for example via `ServiceLoader` or `ModuleLayer`.
 
-Chuyển ứng dụng sang JPMS không yêu cầu mọi build-tool plugin đều có module-info riêng trong dự án. Nhưng plugin phải hỗ trợ JDK/build tool đang sử dụng và truyền đúng compiler/test VM options nếu có task modular.
+Migrating an application to JPMS does not require every build-tool plugin to have its own module-info in your project. However, plugins must support your JDK/build tool and pass the right compiler/test VM options for modular tasks.
 
-Đối với runtime plugin, cần quản lý service API, cách đăng ký provider, module path hoặc plugin class loader. Hai công việc này có thể được thực hiện theo hai nhánh riêng trong kế hoạch migration.
+For runtime plugins, you must manage service APIs, provider registration, the module path, or plugin class loaders. These two concerns can be handled on two separate tracks in the migration plan.
 
-## 12. Ví dụ ServiceLoader để giữ cơ chế plugin
+## 12. ServiceLoader Example for Preserving a Plugin Mechanism
 
-Giả sử ứng dụng hỗ trợ plugin xuất báo cáo.
+Suppose an application supports report-export plugins.
 
-Service interface trong module API:
+Service interface in the API module:
 
     package com.example.spi;
 
@@ -277,13 +277,13 @@ Service interface trong module API:
         byte[] export(String content);
     }
 
-Descriptor API:
+API descriptor:
 
     module com.example.spi {
         exports com.example.spi;
     }
 
-Một provider plugin triển khai service:
+A plugin provider implementing the service:
 
     package com.example.csv;
 
@@ -304,7 +304,7 @@ Một provider plugin triển khai service:
         }
     }
 
-Descriptor provider:
+Provider descriptor:
 
     module com.example.csv.provider {
         requires com.example.spi;
@@ -312,14 +312,14 @@ Descriptor provider:
             with com.example.csv.CsvExporter;
     }
 
-Descriptor ứng dụng:
+Application descriptor:
 
     module com.example.app {
         requires com.example.spi;
         uses com.example.spi.ReportExporter;
     }
 
-Ứng dụng tìm plugin:
+Application discovering plugins:
 
     ServiceLoader<ReportExporter> exporters =
             ServiceLoader.load(ReportExporter.class);
@@ -328,46 +328,46 @@ Descriptor ứng dụng:
         System.out.println(exporter.format());
     }
 
-Ở cách này, app không cần `requires com.example.csv.provider;` chỉ để gọi service theo `ServiceLoader`. Tuy nhiên, provider module phải có mặt trong module graph mà ServiceLoader đang xét.
+This way, the app does not need `requires com.example.csv.provider;` just to call the service via `ServiceLoader`. However, the provider module must be present in the module graph examined by ServiceLoader.
 
-Khi chạy demo, có thể đưa provider vào root set:
+When running the demo, you can add the provider to the root set:
 
     java --module-path mods --add-modules com.example.csv.provider -m com.example.app/com.example.app.Main
 
-Nếu provider chỉ được đặt trên module path nhưng không được resolve, việc phát hiện provider có thể khác kỳ vọng. Đối với plugin được đặt trong module layer riêng, có thể dùng overload theo layer như phần tiếp theo.
+If the provider is merely placed on the module path without being resolved, provider discovery may behave unexpectedly. For plugins placed in a separate module layer, use the layer-based overload as shown next.
 
-## 13. Plugin trên classpath và module path khác nhau
+## 13. Differences Between Classpath and Module-Path Plugins
 
-Trong hệ thống cũ, provider trên classpath thường đăng ký bằng file:
+In legacy systems, classpath providers are usually registered via a file:
 
     META-INF/services/com.example.spi.ReportExporter
 
-Nội dung:
+Contents:
 
     com.example.csv.CsvExporter
 
-Khi đóng gói thành named module, cơ chế khai báo provider thường chuyển sang `provides ... with ...` trong `module-info.java`.
+When packaged as a named module, provider declaration typically moves to `provides ... with ...` in `module-info.java`.
 
-Không xóa file `META-INF/services` khỏi bản artifact legacy nếu ứng dụng classpath cũ vẫn cần đọc nó trong giai đoạn chuyển tiếp. Đồng thời, phải tránh đăng ký sai kiểu provider hoặc chứa nhiều bản service API làm class identity không còn tương thích.
+Do not delete `META-INF/services` from legacy artifacts if older classpath applications still need to read it during the transition. At the same time, avoid registering the wrong provider type or carrying multiple copies of the service API that break class identity compatibility.
 
-Named-module provider có thể dùng public no-arg constructor hoặc provider method theo quy tắc của `ServiceLoader`. Provider kiểu classpath được liệt kê trong `META-INF/services` phải đáp ứng hợp đồng constructor tương ứng.
+Named-module providers can use a public no-arg constructor or a provider method per `ServiceLoader` rules. Classpath providers listed in `META-INF/services` must satisfy the corresponding constructor contract.
 
-Trong một giai đoạn migration, có thể cần duy trì hai cách đóng gói hoặc hai biến thể artifact, miễn là phạm vi, dependency và test tương ứng được quản lý rõ ràng.
+During a migration phase, you may need to maintain two packaging modes or two artifact variants, provided their scopes, dependencies, and tests are clearly managed.
 
-## 14. ModuleLayer cho plugin động
+## 14. ModuleLayer for Dynamic Plugins
 
-Nếu ứng dụng tự phát hiện JAR plugin từ thư mục và nạp động, việc chỉ gọi `ServiceLoader.load(service)` trên class loader hiện tại không phải lúc nào cũng nhìn thấy plugin nằm trong module layer mới.
+If the application discovers plugin JARs from a directory and loads them dynamically, simply calling `ServiceLoader.load(service)` on the current class loader will not always see plugins placed in a new module layer.
 
-Với named-module plugins, có thể tạo module configuration và module layer riêng, rồi tìm provider qua overload nhận layer:
+With named-module plugins, you can create a separate module configuration and module layer, then look up providers via the overload taking a layer:
 
     ServiceLoader<ReportExporter> exporters =
             ServiceLoader.load(pluginLayer, ReportExporter.class);
 
-Overload này tìm provider trong layer được chỉ định và các layer tổ tiên. Nó phù hợp với plugin system tự quản lý vòng đời module layer.
+This overload searches for providers in the specified layer and its ancestor layers. It fits plugin systems that manage module layer lifecycles directly.
 
-Plugin cần có module descriptor và khai báo `provides` phù hợp. Module layer phải được định nghĩa dựa trên một configuration đã resolve, cùng class loader strategy phù hợp.
+Plugins need a module descriptor and an appropriate `provides` declaration. The module layer must be defined from a resolved configuration with an appropriate class loader strategy.
 
-Nếu plugin vẫn là JAR legacy ở classpath hoặc URLClassLoader riêng, có thể dùng overload nhận class loader:
+If plugins remain legacy JARs on the classpath or a separate `URLClassLoader`, you can use the overload taking a class loader:
 
     ServiceLoader<ReportExporter> exporters =
             ServiceLoader.load(
@@ -375,20 +375,20 @@ Nếu plugin vẫn là JAR legacy ở classpath hoặc URLClassLoader riêng, c�
                 pluginClassLoader
             );
 
-Chọn overload theo kiến trúc plugin thực tế; không đổi bừa sang `ModuleLayer` chỉ vì ứng dụng đã bắt đầu modularize.
+Choose the overload matching your actual plugin architecture; do not arbitrarily switch to `ModuleLayer` just because the application began modularizing.
 
-## 15. Kiểm thử plugin theo hợp đồng
+## 15. Contract Testing for Plugins
 
-Một test plugin hiệu quả không chỉ xác nhận JAR được build. Nó cần kiểm tra cả hợp đồng runtime:
+An effective plugin test does more than verify the JAR builds. It needs to verify the runtime contract:
 
-1. **API compatibility:** provider có triển khai đúng service interface của ứng dụng không?
-2. **Provider discovery:** `ServiceLoader` có tìm thấy provider trong cấu hình triển khai thực tế không?
-3. **Construction:** provider có khởi tạo được, không ném `ServiceConfigurationError` không?
-4. **Behavior:** provider trả về kết quả đúng với dữ liệu thử không?
-5. **Isolation:** nhiều plugin có tên package và service giống nhau không gây class-loader conflict không?
-6. **Cleanup:** URLClassLoader, resource và các đối tượng plugin có được giải phóng phù hợp không?
+1. **API compatibility:** does the provider implement the application's exact service interface?
+2. **Provider discovery:** does `ServiceLoader` find the provider in the actual deployment configuration?
+3. **Construction:** can the provider be instantiated without throwing `ServiceConfigurationError`?
+4. **Behavior:** does the provider return expected results for test data?
+5. **Isolation:** do multiple plugins with similar package and service names avoid class-loader conflicts?
+6. **Cleanup:** are `URLClassLoader` instances, resources, and plugin objects released properly?
 
-Ví dụ kiểm tra tối thiểu:
+Example minimal check:
 
     ServiceLoader<ReportExporter> loader =
             ServiceLoader.load(ReportExporter.class);
@@ -401,91 +401,91 @@ Ví dụ kiểm tra tối thiểu:
         throw new AssertionError("CSV plugin not discovered");
     }
 
-Test phải chạy trong cùng kiểu cấu hình service discovery mà production dùng. Một provider được phát hiện trong classpath test có thể không được phát hiện trong named-module runtime nếu module provider chưa được resolve.
+Tests must run in the same kind of service discovery setup that production uses. A provider discovered in classpath tests may go undiscovered in a named-module runtime if the provider module is not resolved.
 
-## 16. Cấu trúc bộ test trong migration
+## 16. Structuring the Test Suite During Migration
 
-Có thể phân nhóm test theo mục đích:
+Tests can be grouped by purpose:
 
-| Nhóm test | Cấu hình gợi ý | Mục tiêu |
+| Test group | Recommended setup | Goal |
 |---|---|---|
-| Unit tests nhanh | Classpath hoặc modular test, tùy giai đoạn | Giữ hành vi nghiệp vụ cũ |
-| Module boundary tests | Chạy với module path thật | Xác minh `requires`, `exports`, `opens` và package ownership |
-| Service/Plugin tests | Khởi chạy với đúng provider module hoặc layer | Xác minh discovery và tạo provider |
-| Integration tests | Runtime packaging gần production | Phát hiện khác biệt test/production |
-| Packaging checks | Kiểm tra modular JAR và descriptor | Xác minh `module-info.class`, service metadata, main class |
+| Fast unit tests | Classpath or modular tests, depending on phase | Preserve legacy business behavior |
+| Module boundary tests | Run with real module path | Verify `requires`, `exports`, `opens`, and package ownership |
+| Service/Plugin tests | Launch with exact provider modules or layers | Verify discovery and provider instantiation |
+| Integration tests | Production-like runtime packaging | Catch test/production differences |
+| Packaging checks | Inspect modular JARs and descriptors | Verify `module-info.class`, service metadata, main class |
 
-Không nên thay thế toàn bộ integration tests bằng unit tests chỉ vì bước compile đã thành công. Lỗi module resolution, service discovery hoặc reflection thường chỉ xuất hiện khi JVM thực sự khởi chạy cấu hình module cuối cùng.
+Do not replace all integration tests with unit tests just because compilation succeeds. Module resolution, service discovery, or reflection failures often surface only when the JVM actually boots the final module configuration.
 
-## 17. CI: giữ đường build cũ và đường build mới
+## 17. CI: Maintaining Both Old and New Build Lanes
 
-Trong migration, có thể chạy hai lane trong CI:
+During migration, you can run two lanes in CI:
 
-**Legacy lane:** build/test theo cấu hình classpath hiện tại, bảo đảm hành vi cũ không bị hỏng.
+**Legacy lane:** builds/tests with the current classpath configuration, ensuring existing behavior does not break.
 
-**JPMS lane:** biên dịch và chạy ứng dụng/test hoặc plugin bằng module path, xác minh ranh giới module và service discovery.
+**JPMS lane:** compiles and runs the application/tests or plugins on the module path, verifying module boundaries and service discovery.
 
-Ví dụ với một dự án có profile Maven `jpms` được định nghĩa trước:
+Example for a project with a predefined Maven `jpms` profile:
 
     mvn clean verify
 
     mvn -Pjpms clean verify
 
-Lưu ý: `-Pjpms` chỉ có ý nghĩa nếu project thực sự khai báo profile `jpms` trong POM hoặc cấu hình Maven. Đây là minh họa mô hình hai lane, không phải profile mặc định do Maven cung cấp.
+Note: `-Pjpms` is only meaningful if the project actually defines a `jpms` profile in its POM or Maven configuration. This illustrates a two-lane model, not a built-in default Maven profile.
 
-Với Gradle, có thể tạo task hoặc property để lựa chọn cấu hình phù hợp, sau đó đưa cả hai vào CI. Dù dùng build tool nào, hai lane cần chạy trên JDK/version tương ứng với mục tiêu triển khai.
+With Gradle, you can create tasks or properties to select the right configuration, then run both in CI. Regardless of build tool, both lanes should run on the JDK/version matching the deployment target.
 
-Sau mỗi bước migration, hãy cập nhật checklist theo lỗi thực tế thay vì tắt hàng loạt test đang thất bại. Tắt test hoặc bỏ qua test suite có thể làm mất bằng chứng rằng migration vẫn giữ được hành vi.
+After each migration step, update your checklist based on actual failures rather than disabling failing tests en masse. Disabling tests or skipping test suites destroys evidence that migration preserves behavior.
 
-## 18. Chẩn đoán lỗi thường gặp
+## 18. Diagnosing Common Errors
 
-| Lỗi/triệu chứng | Nguyên nhân thường thấy | Hướng xử lý |
+| Error/symptom | Common cause | Remediation |
 |---|---|---|
-| `module not found` hoặc `FindException` | Module path thiếu JAR, tên module sai | Kiểm tra artifact, descriptor, module path |
-| `package ... is not visible` | Thiếu readability hoặc package chưa export | Kiểm tra `requires`, `exports` |
-| `InaccessibleObjectException` | Test/framework truy cập private member trong package chưa open | Kiểm tra module gọi reflection, dùng `opens` hoặc `--add-opens` phù hợp |
-| `ServiceConfigurationError` | Provider khai báo sai hoặc không khởi tạo được | Kiểm tra `provides`, `META-INF/services`, constructor/provider method |
-| Test không được phát hiện | Test runner/source set/module path chưa khớp | Kiểm tra plugin test, test runtime, test engine |
-| Plugin JAR build thành công nhưng không được nạp | Provider module chưa resolve hoặc layer không đúng | Kiểm tra root modules, `ServiceLoader` overload, plugin layer |
-| `ClassCastException` khi dùng plugin | Service API bị nạp bởi nhiều class loader | Chia sẻ API qua loader cha hoặc cấu hình loader thống nhất |
-| Split package / resolution conflict | Nhiều named modules chứa cùng package | Gộp package về một module hoặc đổi package theo trách nhiệm |
+| `module not found` or `FindException` | Module path missing JAR, wrong module name | Check artifact, descriptor, module path |
+| `package ... is not visible` | Missing readability or unexported package | Check `requires`, `exports` |
+| `InaccessibleObjectException` | Test/framework accesses private member in an unopened package | Check reflecting module, use `opens` or `--add-opens` appropriately |
+| `ServiceConfigurationError` | Invalid provider declaration or instantiation failure | Check `provides`, `META-INF/services`, constructor/provider method |
+| Tests not discovered | Mismatched test runner/source set/module path | Check test plugin, test runtime, test engine |
+| Plugin JAR builds cleanly but is not loaded | Provider module unresolved or wrong layer | Check root modules, `ServiceLoader` overload, plugin layer |
+| `ClassCastException` using plugin | Service API loaded by multiple class loaders | Share API via parent loader or unify loader setup |
+| Split package / resolution conflict | Multiple named modules contain the same package | Consolidate package into one module or rename packages by responsibility |
 
-Đừng dùng `--add-opens` để sửa một class thực sự bị thiếu, và đừng dùng `--add-exports` để thay thế `provides` trong ServiceLoader. Mỗi cơ chế của JPMS giải quyết một loại vấn đề riêng.
+Do not use `--add-opens` to fix a genuinely missing class, and do not use `--add-exports` as a substitute for `provides` in ServiceLoader. Each JPMS mechanism solves a distinct category of problem.
 
-## 19. Giảm phụ thuộc vào workaround theo thời gian
+## 19. Reducing Reliance on Workarounds Over Time
 
-Các tùy chọn như `--add-reads`, `--add-exports`, `--add-opens` và `--patch-module` có thể hữu ích trong quá trình chuyển đổi. Nhưng chúng nên được ghi lại cùng lý do sử dụng và nơi áp dụng.
+Options such as `--add-reads`, `--add-exports`, `--add-opens`, and `--patch-module` can be helpful during transition. However, document them alongside their rationale and where they apply.
 
-Một cách quản lý là lưu thông tin:
+One way to manage them is tracking:
 
-- Module/package được mở hoặc bổ sung quyền đọc.
-- Test framework hoặc plugin cần quyền đó.
-- Chỉ sử dụng ở test JVM hay cả production JVM.
-- Phần code hoặc dependency nào sẽ được sửa để loại bỏ workaround.
-- Test nào xác nhận có thể bỏ flag trong tương lai.
+- The module/package being opened or granted readability.
+- The test framework or plugin requiring that access.
+- Whether it applies only to the test JVM or also the production JVM.
+- Which code or dependency will be updated to remove the workaround.
+- Which test confirms the flag can be dropped in the future.
 
-Khi nâng version build tool, test framework hoặc plugin, hãy thử loại bỏ các flag không còn cần thiết theo từng bước. Không mở tất cả package của module chỉ để giải quyết một test.
+When upgrading build tools, test frameworks, or plugins, try removing unneeded flags step by step. Do not open all packages of a module just to make a single test pass.
 
-## 20. Các nhầm lẫn thường gặp
+## 20. Common Misconceptions
 
-- **Tưởng thêm `module-info.java` là migration hoàn tất.** Runtime packaging, test runner và plugin discovery vẫn cần kiểm tra.
-- **Tưởng test chạy trên classpath chứng minh module boundaries đúng.** Classpath test không nhất thiết áp dụng cùng cơ chế truy cập như production module path.
-- **Tưởng `--add-opens` và `--add-exports` giống nhau.** Một tùy chọn phục vụ deep reflection, tùy chọn còn lại phục vụ truy cập kiểu public.
-- **Tưởng build-tool plugin và runtime plugin là một.** Maven/Gradle plugin chạy trong build tool, còn plugin runtime do ứng dụng nạp.
-- **Tưởng plugin JAR nằm trên module path sẽ tự được ServiceLoader phát hiện.** Provider module cần được resolve vào cấu hình có hiệu lực hoặc nạp qua layer phù hợp.
-- **Tưởng API service cùng tên ở hai loader là cùng kiểu.** Class identity còn phụ thuộc vào class loader định nghĩa class.
-- **Tưởng chỉ cần `--patch-module` cho mọi test.** Cấu hình test còn phụ thuộc readability, classpath/module path của framework và mức truy cập cần thiết.
-- **Tưởng cấu hình JVM của ứng dụng áp dụng cho JVM test.** Mỗi JVM có VM options riêng.
-- **Tưởng có thể bỏ toàn bộ test thất bại để đẩy nhanh migration.** Điều đó làm mất cơ chế phát hiện regression khi chuyển sang JPMS.
+- **Assuming adding `module-info.java` completes migration.** Runtime packaging, test runners, and plugin discovery still require verification.
+- **Assuming tests passing on the classpath prove module boundaries are right.** Classpath tests do not necessarily enforce the same access mechanisms as the production module path.
+- **Assuming `--add-opens` and `--add-exports` are the same.** One serves deep reflection, while the other serves public type access.
+- **Assuming build-tool plugins and runtime plugins are identical.** Maven/Gradle plugins run inside the build tool, whereas runtime plugins are loaded by the application.
+- **Assuming a plugin JAR on the module path is automatically discovered by ServiceLoader.** Provider modules must be resolved into the effective configuration or loaded via an appropriate layer.
+- **Assuming a service API with the same name in two loaders is the same type.** Class identity also depends on the defining class loader.
+- **Assuming `--patch-module` alone suffices for all tests.** Test configuration also depends on readability, the framework's classpath/module path, and required access levels.
+- **Assuming the application's JVM configuration applies to the test JVM.** Each JVM has its own VM options.
+- **Assuming you can skip all failing tests to speed up migration.** Doing so removes the mechanism that catches regressions when moving to JPMS.
 
-## Ghi nhớ
+## Takeaways
 
-- Duy trì **compile, test, plugin build và runtime discovery** như các luồng cần kiểm chứng riêng trong migration.
-- Có thể giữ một lane classpath ổn định bên cạnh một lane JPMS, rồi giảm dần sự phụ thuộc vào cấu hình legacy.
-- Test dùng reflection có thể cần `--add-opens`; test cùng package với production có thể cần `--patch-module` tùy kiến trúc.
-- Với Maven/Gradle, hãy phân biệt các plugin chạy build với module path của ứng dụng.
-- Plugin runtime qua `ServiceLoader` phải có metadata provider phù hợp, class identity thống nhất và module/layer được resolve đúng.
-- Đừng coi build thành công là đủ: test discovery, plugin discovery và packaging phải được chạy trong cấu hình gần production.
-- Những flag mở rộng quyền nên có phạm vi nhỏ, lý do rõ và được loại bỏ khi kiến trúc đã hoàn tất migration.
+- Maintain **compilation, testing, plugin builds, and runtime discovery** as separate tracks requiring verification during migration.
+- You can keep a stable classpath lane alongside a JPMS lane, then gradually phase out reliance on legacy setups.
+- Tests using reflection may need `--add-opens`; tests sharing a package with production code may need `--patch-module` depending on layout.
+- With Maven/Gradle, distinguish build-executing plugins from the application's module path.
+- Runtime plugins via `ServiceLoader` must have proper provider metadata, consistent class identity, and properly resolved modules/layers.
+- Do not treat a green compile as sufficient: test discovery, plugin discovery, and packaging must run in a production-like configuration.
+- Permission-widening flags should be narrowly scoped, clearly justified, and removed once architectural migration finishes.
 
-Khi từng bước chuyển sang JPMS, mục tiêu là giữ các kiểm thử và plugin hoạt động liên tục trong lúc dần thu hẹp ranh giới phụ thuộc cũ. Thiết kế hai lane build, quản lý rõ module path/classpath và test trực tiếp các luồng ServiceLoader sẽ giúp quá trình chuyển đổi có thể kiểm soát, phục hồi và hoàn tất mà không đánh mất hành vi của hệ thống.
+As you move incrementally toward JPMS, the goal is keeping tests and plugins working continuously while narrowing legacy dependency boundaries. Designing a two-lane build, explicitly managing module path/classpath, and directly testing ServiceLoader flows makes the transition controllable, recoverable, and completable without losing system behavior.

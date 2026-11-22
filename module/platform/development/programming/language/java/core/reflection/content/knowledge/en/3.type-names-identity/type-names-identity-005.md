@@ -1,55 +1,55 @@
-# Class.getClassLoader() và ý nghĩa kết quả null trong Java Reflection
+# Class.getClassLoader() and the Meaning of null Results in Java Reflection
 
-## 1. Bài toán và mục tiêu
+## 1. Problem and Objectives
 
-Trong Java Reflection, đối tượng `Class<?>` mô tả một kiểu ở runtime. Phương thức `Class.getClassLoader()` giúp tìm **class loader định nghĩa kiểu đó**. Kết quả có thể là một đối tượng `ClassLoader` hoặc `null`. Hiểu đúng `null` rất quan trọng khi chẩn đoán lỗi nạp lớp, thiết kế plugin, tra cứu tài nguyên hoặc sử dụng `Class.forName(...)`.
+In Java Reflection, a `Class<?>` object describes a type at runtime. The `Class.getClassLoader()` method helps find **the class loader that defined that type**. The result can be a `ClassLoader` object or `null`. Understanding `null` accurately is important when diagnosing class-loading errors, designing plugins, looking up resources, or using `Class.forName(...)`.
 
-Sau bài này, bạn có thể:
-- Phân biệt class loader của một kiểu với system class loader và context class loader của luồng.
-- Giải thích `null` đối với lớp do bootstrap loader định nghĩa, primitive, `void` và kiểu mảng.
-- Viết mã không phát sinh `NullPointerException` khi gặp `null`, đồng thời chọn đúng loader cho nhu cầu thực tế.
-- Nhận diện các kết luận sai khi chỉ dựa vào giá trị trả về của `getClassLoader()`.
+After this lesson, you will be able to:
+- Distinguish a type's class loader from the system class loader and a thread's context class loader.
+- Explain `null` for classes defined by the bootstrap loader, primitives, `void`, and array types.
+- Write code that does not throw `NullPointerException` when encountering `null`, while choosing the right loader for practical needs.
+- Identify false conclusions drawn when relying solely on the return value of `getClassLoader()`.
 
-## 2. Phương thức hoạt động thế nào?
+## 2. How Does the Method Work?
 
-Khai báo API:
+API declaration:
 
 ~~~java
 public ClassLoader getClassLoader()
 ~~~
 
-Đây là phương thức của `java.lang.Class`, thường gọi như sau:
+This is a method of `java.lang.Class`, typically called as follows:
 
 ~~~java
 Class<?> type = String.class;
 ClassLoader loader = type.getClassLoader();
 ~~~
 
-Mỗi kiểu tham chiếu do JVM định nghĩa được gắn với *defining class loader* (loader đã định nghĩa lớp bằng bytecode hoặc cơ chế tương ứng). Khi có đối tượng `Class<?>`, `getClassLoader()` cho biết loader gắn với kiểu. Nó **không trực tiếp nạp lại lớp**, không tạo class loader mới và không trả về loader đang được luồng sử dụng theo ngữ cảnh.
+Every reference type defined by the JVM is associated with a *defining class loader* (the loader that defined the class from bytecode or a corresponding mechanism). Given a `Class<?>` object, `getClassLoader()` indicates the loader associated with the type. It **does not directly reload the class**, does not create a new class loader, and does not return the contextual loader currently used by the thread.
 
-Java thường tổ chức các loader theo cơ chế ủy quyền cho loader cha:
-- **Bootstrap class loader**: tầng nạp lớp nền tảng của JVM; trong các triển khai thông dụng, Java API biểu diễn nó bằng `null`.
-- **Platform class loader**: nạp một số lớp thuộc các module/platform API; có thể lấy qua `ClassLoader.getPlatformClassLoader()` (Java 9+).
-- **Application/System class loader**: thường nạp ứng dụng chạy trên classpath và được lấy qua `ClassLoader.getSystemClassLoader()`.
+Java typically organizes loaders using a parent-delegation mechanism:
+- **Bootstrap class loader**: the foundational class-loading tier of the JVM; in common implementations, the Java API represents it as `null`.
+- **Platform class loader**: loads certain module/platform API classes; obtainable via `ClassLoader.getPlatformClassLoader()` (Java 9+).
+- **Application/System class loader**: usually loads the application running on the classpath and is obtained via `ClassLoader.getSystemClassLoader()`.
 
-Đây là mô hình thường gặp; ứng dụng có thể dùng loader tùy biến và cây ủy quyền khác. Không suy ra rằng **mọi lớp trong package `java.*` đều do bootstrap loader nạp**, hoặc class loader của mọi lớp ứng dụng luôn đúng bằng system loader.
+This is a common model; applications can use custom loaders and different delegation trees. Do not deduce that **every class in package `java.*` is loaded by the bootstrap loader**, or that the class loader of every application class is always identical to the system loader.
 
-### 2.1. Bảng diễn giải kết quả
+### 2.1. Result Interpretation Table
 
-| Kiểu được hỏi | `getClassLoader()` thường trả về | Cách hiểu đúng |
+| Queried type | `getClassLoader()` typically returns | Correct interpretation |
 | --- | --- | --- |
-| `String.class` trên OpenJDK/HotSpot | `null` | `String` là lớp nền tảng do bootstrap loader định nghĩa. |
-| `int.class`, `boolean.class`, `void.class` | `null` | Primitive và `void` không có defining class loader theo API; **không** diễn giải là một class file được bootstrap nạp. |
-| `int[].class` | `null` | Mảng có phần tử cơ sở là primitive; mảng là kiểu tham chiếu nhưng không có defining loader được trả về. |
-| `String[].class` | `null` trên các JDK nói trên | Mảng dùng defining loader của kiểu phần tử cơ sở `String`, vốn là bootstrap. |
-| `MyType.class` chạy bằng `java` thông thường | một `ClassLoader` khác `null` | Thường là application loader; có thể khác trong container, IDE hoặc ứng dụng có loader tùy biến. |
-| `MyType[][].class` | cùng loader với `MyType.class` | Mảng nhiều chiều gắn với loader của kiểu phần tử cơ sở. |
+| `String.class` on OpenJDK/HotSpot | `null` | `String` is a core platform class defined by the bootstrap loader. |
+| `int.class`, `boolean.class`, `void.class` | `null` | Primitives and `void` have no defining class loader per the API; **do not** interpret this as a class file loaded by bootstrap. |
+| `int[].class` | `null` | An array with a primitive base element; the array is a reference type, but no defining loader is returned. |
+| `String[].class` | `null` on the JDKs mentioned above | An array uses the defining loader of its base element type `String`, which is bootstrap. |
+| `MyType.class` run with standard `java` | a non-`null` `ClassLoader` | Usually the application loader; may differ in a container, IDE, or application with custom loaders. |
+| `MyType[][].class` | same loader as `MyType.class` | Multidimensional arrays are tied to the loader of the base element type. |
 
-**Phân biệt quan trọng:** `null` không có một cách diễn giải duy nhất. Với kiểu tham chiếu *không phải mảng*, `null` thường biểu thị bootstrap loader. Với primitive/`void`, `null` là quy định riêng của API; với mảng, phải kiểm tra kiểu phần tử cơ sở trước khi kết luận.
+**Important distinction:** `null` does not have a single interpretation. For *non-array* reference types, `null` usually indicates the bootstrap loader. For primitives/`void`, `null` is a specific API convention; for arrays, you must inspect the base element type before drawing conclusions.
 
-## 3. Thí nghiệm Java 17+ chạy độc lập
+## 3. Standalone Runnable Java 17+ Experiment
 
-Tạo file `GetClassLoaderDemo.java`:
+Create the file `GetClassLoaderDemo.java`:
 
 ~~~java
 public class GetClassLoaderDemo {
@@ -84,14 +84,14 @@ public class GetClassLoaderDemo {
 }
 ~~~
 
-Biên dịch và chạy với JDK 17+ trên classpath thông thường:
+Compile and run with JDK 17+ on the standard classpath:
 
 ~~~bash
 javac GetClassLoaderDemo.java
 java GetClassLoaderDemo
 ~~~
 
-Kết quả trên môi trường OpenJDK/HotSpot thông thường:
+Output on a standard OpenJDK/HotSpot environment:
 
 ~~~text
 String -> null
@@ -105,17 +105,17 @@ same loader -> true
 bootstrap lookup -> true
 ~~~
 
-Giải thích:
-1. `String` được bootstrap loader định nghĩa. `int` và `void` trả về `null` theo quy tắc của `Class.getClassLoader()`; không nên gom ba trường hợp thành một nguyên nhân.
-2. `int[]` là một lớp mảng, không phải primitive (`int[].class.isPrimitive()` là `false`), nhưng loader trả về vẫn là `null` vì phần tử cơ sở `int` là primitive.
-3. `String[]` có cùng loader với `String`. `MyType[][]` có cùng loader với `MyType`; mặc định `MyType` được nạp qua application loader nên khác `null`.
-4. Đối số loader bằng `null` trong `Class.forName(String, boolean, ClassLoader)` có ý nghĩa **dùng bootstrap class loader**, không có nghĩa dùng loader mặc định của ứng dụng. Vì vậy tên `java.lang.String` tìm được.
+Explanation:
+1. `String` is defined by the bootstrap loader. `int` and `void` return `null` according to the rules of `Class.getClassLoader()`; do not lump all three cases into a single cause.
+2. `int[]` is an array class, not a primitive (`int[].class.isPrimitive()` is `false`), yet the returned loader is still `null` because the base element `int` is primitive.
+3. `String[]` has the same loader as `String`. `MyType[][]` has the same loader as `MyType`; by default `MyType` is loaded via the application loader, so it is non-`null`.
+4. A `null` loader argument in `Class.forName(String, boolean, ClassLoader)` means **use the bootstrap class loader**, not the application's default loader. Thus, the name `java.lang.String` is found.
 
-Tên lớp cụ thể của application loader và chuỗi từ `loader.toString()` phụ thuộc JVM/cấu hình. Ví dụ cố ý chỉ in `null`/`non-null` để không nhầm chi tiết triển khai với hợp đồng API.
+The concrete class name of the application loader and the string from `loader.toString()` depend on the JVM/configuration. The example intentionally prints only `null`/`non-null` so implementation details are not confused with the API contract.
 
-## 4. Nhận diện chính xác trường hợp null
+## 4. Accurately Identifying the null Case
 
-Nếu cần một thông báo giải thích khi khảo sát lớp bất kỳ, hãy đi từ kiểu đầu vào:
+If you need an explanatory message when inspecting an arbitrary class, start from the input type:
 
 ~~~java
 static String classify(Class<?> type) {
@@ -125,31 +125,31 @@ static String classify(Class<?> type) {
     }
 
     if (base.isPrimitive()) {
-        return "primitive/void hoặc mảng của primitive";
+        return "primitive/void or array of primitives";
     }
 
     return type.getClassLoader() == null
-            ? "kiểu tham chiếu do bootstrap loader định nghĩa"
-            : "kiểu tham chiếu do loader khác định nghĩa";
+            ? "reference type defined by bootstrap loader"
+            : "reference type defined by another loader";
 }
 ~~~
 
-Đoạn trên là **phương thức minh họa**, đặt bên trong một lớp Java; đây không phải chương trình có `main` độc lập. `getComponentType()` trả về kiểu thành phần của mảng một chiều và `null` nếu không phải mảng. Vòng lặp lần tới kiểu phần tử cơ sở, nhờ đó xử lý được `int[][]`, `String[][]` và các mảng nhiều chiều khác.
+The snippet above is an **illustrative method**, placed inside a Java class; it is not a standalone program with `main`. `getComponentType()` returns the component type of a one-dimensional array and `null` if not an array. The loop walks down to the base element type, thereby handling `int[][]`, `String[][]`, and other multidimensional arrays.
 
-Với primitive/`void`, `Class.isPrimitive()` trả về `true` (bao gồm `void.class`). Với lớp tham chiếu thông thường, một kết quả loader `null` có thể được diễn giải là bootstrap trong các triển khai dùng `null` để biểu diễn bootstrap loader. Không dùng riêng biểu thức `loader == null` như một kiểm tra lỗi hay bằng chứng rằng kiểu chưa được nạp.
+For primitives/`void`, `Class.isPrimitive()` returns `true` (including `void.class`). For ordinary reference classes, a `null` loader result can be interpreted as bootstrap in implementations that use `null` to represent the bootstrap loader. Do not use the expression `loader == null` on its own as an error check or proof that a type has not been loaded.
 
-## 5. Dùng kết quả vào công việc thực tế
+## 5. Putting the Result to Practical Use
 
-### 5.1. Tránh NullPointerException khi gọi phương thức của loader
+### 5.1. Avoiding NullPointerException When Calling Loader Methods
 
-Mã dễ lỗi:
+Error-prone code:
 
 ~~~java
 ClassLoader loader = String.class.getClassLoader();
-loader.loadClass("java.lang.Integer"); // NullPointerException nếu loader == null
+loader.loadClass("java.lang.Integer"); // NullPointerException if loader == null
 ~~~
 
-Nếu mục tiêu là nạp một tên lớp qua **chính loader của lớp mốc**, dùng API chấp nhận `null` rõ ràng:
+If the goal is to load a class name through **the exact loader of an anchor class**, use an API that explicitly accepts `null`:
 
 ~~~java
 static Class<?> findFromSameLoader(
@@ -160,76 +160,76 @@ static Class<?> findFromSameLoader(
 }
 ~~~
 
-Ví dụ `findFromSameLoader("java.lang.Integer", String.class)` hoạt động với bootstrap loader trên OpenJDK thông thường. Tham số `false` yêu cầu không khởi tạo lớp chỉ vì lệnh `forName` này; nó không cấm việc liên kết/nạp lớp cần thiết. Lưu ý tên truyền vào phải theo quy tắc tên mà `Class.forName` yêu cầu; tên primitive như `"int"` không được xử lý như `int.class`.
+For example, `findFromSameLoader("java.lang.Integer", String.class)` works with the bootstrap loader on standard OpenJDK. The `false` argument requests not to initialize the class merely because of this `forName` call; it does not forbid necessary linking/loading. Note that the passed name must follow the naming rules required by `Class.forName`; primitive names like `"int"` are not resolved to `int.class`.
 
-Không tự động đổi `null` thành `ClassLoader.getSystemClassLoader()`: hai loader có thể nhìn thấy **những tập lớp khác nhau**. Đặc biệt trong plugin, application server hay môi trường nhiều module, fallback tùy tiện có thể nạp sai bản lớp hoặc ném `ClassNotFoundException`.
+Do not automatically replace `null` with `ClassLoader.getSystemClassLoader()`: two loaders can see **different sets of classes**. Especially in plugins, application servers, or multi-module environments, an arbitrary fallback can load the wrong version of a class or throw `ClassNotFoundException`.
 
-### 5.2. Đọc tài nguyên mà không cần gọi loader trực tiếp
+### 5.2. Reading Resources Without Calling the Loader Directly
 
-Khi tài nguyên gắn với một lớp mốc, có thể dùng `Class.getResourceAsStream(...)`:
+When a resource is associated with an anchor class, you can use `Class.getResourceAsStream(...)`:
 
 ~~~java
 try (java.io.InputStream input =
         String.class.getResourceAsStream("/example/data.txt")) {
     if (input == null) {
-        System.out.println("Không tìm thấy resource");
+        System.out.println("Resource not found");
     } else {
-        // Đọc nội dung từ input ở đây.
+        // Read content from input here.
     }
 }
 ~~~
 
-Đây là **đoạn minh họa đặt trong một phương thức có thể ném IOException**; `/example/data.txt` chỉ là đường dẫn mẫu và thường không tồn tại. Khi tên bắt đầu bằng `/`, nó được hiểu từ gốc tài nguyên mà API `Class` sử dụng. Phương thức trả về `null` khi không tìm thấy resource; kiểm tra `input == null` là kiểm tra **resource**, khác hoàn toàn với `type.getClassLoader() == null`.
+This is an **illustrative snippet placed inside a method that can throw IOException**; `/example/data.txt` is just a sample path and typically does not exist. When a name starts with `/`, it is resolved from the resource root used by the `Class` API. The method returns `null` when the resource is not found; checking `input == null` checks the **resource**, which is completely different from `type.getClassLoader() == null`.
 
-### 5.3. Chọn đúng loader cho class discovery và plugin
+### 5.3. Choosing the Right Loader for Class Discovery and Plugins
 
-Ba biểu thức dễ bị dùng thay thế cho nhau nhưng khác mục đích:
+Three expressions that are easily used interchangeably but serve different purposes:
 
-| Biểu thức | Ý nghĩa |
+| Expression | Meaning |
 | --- | --- |
-| `SomeType.class.getClassLoader()` | Defining loader của `SomeType`; phù hợp khi cần thao tác theo đúng không gian lớp chứa kiểu mốc. |
-| `ClassLoader.getSystemClassLoader()` | System loader của JVM; thường dùng với classpath ứng dụng thông thường, không bảo đảm định nghĩa `SomeType`. |
-| `Thread.currentThread().getContextClassLoader()` | Context class loader do môi trường/luồng thiết lập; thường có ích cho SPI, discovery hoặc framework cần tìm lớp do ứng dụng cung cấp. |
+| `SomeType.class.getClassLoader()` | Defining loader of `SomeType`; suitable when you need to operate in the exact class space containing the anchor type. |
+| `ClassLoader.getSystemClassLoader()` | System loader of the JVM; usually used for the standard application classpath, not guaranteed to define `SomeType`. |
+| `Thread.currentThread().getContextClassLoader()` | Context class loader set by the environment/thread; often useful for SPI, discovery, or frameworks needing to find application-provided classes. |
 
-Với plugin có loader riêng, có thể có hai kiểu **cùng binary name** nhưng do hai defining loader khác nhau định nghĩa: chúng là hai lớp khác nhau đối với JVM. Vì vậy chỉ so tên lớp qua `Class.getName()` chưa đủ để xác định cùng kiểu; `Class<?>` và loader cũng là những manh mối quan trọng. Tùy hợp đồng của framework, bạn cần chính loader đã nạp plugin hoặc context loader phù hợp, thay vì cố đoán từ tên lớp.
+With plugins having their own loaders, there can be two types with the **same binary name** defined by two different defining loaders: they are two distinct classes to the JVM. Therefore, comparing class names via `Class.getName()` alone is not enough to determine the same type; `Class<?>` and the loader are also important clues. Depending on the framework contract, you need the exact loader that loaded the plugin or the appropriate context loader, rather than trying to guess from the class name.
 
-### 5.4. Chẩn đoán khi kết quả bất ngờ
+### 5.4. Diagnosing Unexpected Results
 
-Thứ tự kiểm tra hữu ích:
-1. In `type.getName()`, `type.isPrimitive()` và `type.isArray()`; với mảng, lần theo `getComponentType()` tới kiểu phần tử cơ sở.
-2. Đọc `type.getClassLoader()` bằng cách kiểm tra `null` trước khi gọi bất kỳ phương thức nào trên nó.
-3. Nếu loader khác `null`, có thể xem `loader.getClass().getName()` và chuỗi loader cha để chẩn đoán; đừng dùng tên lớp loader làm điều kiện nghiệp vụ cố định.
-4. So sánh với loader của lớp mốc mong muốn và context loader nếu bài toán liên quan discovery/framework.
-5. Khi gặp `ClassNotFoundException` hoặc `NoClassDefFoundError`, kiểm tra **loader đã được dùng tại vị trí nạp** và tính sẵn có của dependency; chỉ nhìn kết quả loader của một lớp khác thường chưa đủ.
+A useful inspection order:
+1. Print `type.getName()`, `type.isPrimitive()`, and `type.isArray()`; for arrays, follow `getComponentType()` down to the base element type.
+2. Read `type.getClassLoader()`, checking for `null` before calling any methods on it.
+3. If the loader is non-`null`, you can inspect `loader.getClass().getName()` and the parent loader chain for diagnosis; do not use loader class names as fixed business conditions.
+4. Compare with the loader of the desired anchor class and the context loader if the problem involves discovery/frameworks.
+5. When encountering `ClassNotFoundException` or `NoClassDefFoundError`, inspect **the loader used at the loading site** and dependency availability; looking only at the loader result of another class is usually insufficient.
 
-## 6. Câu hỏi thường gặp và lỗi dễ mắc
+## 6. Frequently Asked Questions and Common Pitfalls
 
-**`String.class.getClassLoader() == null` có nghĩa là lỗi?** Không. Trên JVM thông dụng, đây là kết quả bình thường vì lớp `String` thuộc nhóm lớp được bootstrap loader định nghĩa.
+**Does `String.class.getClassLoader() == null` mean an error?** No. On standard JVMs, this is normal behavior because `String` belongs to the classes defined by the bootstrap loader.
 
-**`int.class.getClassLoader() == null` có chứng minh JVM tìm thấy file `int.class` qua bootstrap?** Không. Primitive và `void` không có class file nạp như lớp Java thông thường; `null` là quy định của API cho các đối tượng `Class` mô tả những kiểu ấy.
+**Does `int.class.getClassLoader() == null` prove the JVM found an `int.class` file via bootstrap?** No. Primitives and `void` do not have class files loaded like ordinary Java classes; `null` is an API convention for the `Class` objects describing those types.
 
-**Mảng luôn có loader riêng?** Không. `getClassLoader()` của lớp mảng phản ánh loader của kiểu phần tử cơ sở; mảng primitive trả về `null`. Điều này không có nghĩa bản thân mảng là primitive.
+**Do arrays always have their own loader?** No. `getClassLoader()` of an array class reflects the loader of its base element type; primitive arrays return `null`. This does not mean the array itself is primitive.
 
-**Có thể gọi `getClassLoader()` để biết lớp có tồn tại không?** Không. Bạn đã có đối tượng `Class<?>` thì kiểu đã được biểu diễn ở runtime. Giá trị `null` chỉ cho biết đặc điểm loader hoặc loại kiểu, không phải trạng thái tìm thấy lớp.
+**Can you call `getClassLoader()` to check whether a class exists?** No. If you already have a `Class<?>` object, the type is already represented at runtime. A `null` value only indicates loader characteristics or the type kind, not whether the class was found.
 
-**Nếu `getClassLoader()` khác `null` thì có phải application loader?** Không. Nó có thể là platform loader, custom loader hoặc loader framework. Hãy kiểm tra môi trường và hợp đồng nạp lớp.
+**If `getClassLoader()` is non-`null`, must it be the application loader?** No. It could be the platform loader, a custom loader, or a framework loader. Check the environment and class-loading contract.
 
-**Nên thay loader `null` bằng system loader để tránh NPE?** Chỉ khi bài toán **thực sự yêu cầu** system loader. Với bootstrap lookup, `Class.forName(name, false, null)` có ý nghĩa rõ ràng; với tài nguyên gắn với lớp, ưu tiên API `Class.getResource...` nếu phù hợp.
+**Should a `null` loader be replaced with the system loader to avoid NPE?** Only when the problem **genuinely requires** the system loader. For bootstrap lookup, `Class.forName(name, false, null)` has a clear meaning; for class-associated resources, prefer `Class.getResource...` APIs when appropriate.
 
-## 7. Ghi nhớ
+## 7. Takeaways
 
-- `Class.getClassLoader()` mô tả loader gắn với **kiểu** được phản ánh, không nhất thiết là loader của luồng hay system loader.
-- `null` có thể đại diện bootstrap loader, hoặc là kết quả bắt buộc đối với primitive/`void` và các mảng có phần tử cơ sở primitive.
-- Để suy luận đúng với mảng, xác định **kiểu phần tử cơ sở** trước.
-- Khi truyền `null` cho overload `Class.forName(name, initialize, loader)`, yêu cầu là nạp bằng **bootstrap loader**.
-- Chọn loader theo nhu cầu nạp lớp/resource; kiểm tra `null` trước khi gọi phương thức instance của loader.
+- `Class.getClassLoader()` describes the loader associated with the reflected **type**, not necessarily the thread's loader or the system loader.
+- `null` can represent the bootstrap loader, or be the mandatory result for primitives/`void` and arrays with primitive base elements.
+- To reason correctly about arrays, identify the **base element type** first.
+- When passing `null` to the `Class.forName(name, initialize, loader)` overload, the request is to load using the **bootstrap loader**.
+- Choose the loader according to the class/resource loading need; check for `null` before calling instance methods on a loader.
 
-### Tự kiểm tra
+### Self-Check
 
-1. Vì sao `int[].class.isPrimitive()` là `false` nhưng `int[].class.getClassLoader()` là `null`?
-2. Dưới classpath thông thường, `MyType[].class.getClassLoader() == MyType.class.getClassLoader()` có đúng không, và vì sao?
-3. Nếu một plugin class được nạp bởi custom loader, tại sao thay `pluginClass.getClassLoader()` bằng `ClassLoader.getSystemClassLoader()` có thể làm lỗi việc tìm lớp phụ thuộc?
+1. Why is `int[].class.isPrimitive()` `false`, while `int[].class.getClassLoader()` is `null`?
+2. Under a standard classpath, is `MyType[].class.getClassLoader() == MyType.class.getClassLoader()` true, and why?
+3. If a plugin class is loaded by a custom loader, why can replacing `pluginClass.getClassLoader()` with `ClassLoader.getSystemClassLoader()` break looking up dependent classes?
 
-**Đáp án gợi ý:** (1) Mảng là kiểu tham chiếu nhưng loader của nó theo kiểu phần tử cơ sở `int`, thuộc primitive; (2) đúng, vì mảng dùng defining loader của kiểu phần tử cơ sở; (3) system loader có thể không nhìn thấy các lớp chỉ tồn tại trong không gian của custom loader.
+**Suggested answers:** (1) An array is a reference type, but its loader follows the base element type `int`, which is primitive; (2) true, because an array uses the defining loader of its base element type; (3) the system loader may not be able to see classes that exist only within the custom loader's space.
 
-**Tài liệu API:** Java SE `java.lang.Class#getClassLoader()`, `Class#forName(String, boolean, ClassLoader)`, `Class#getComponentType()` và `java.lang.ClassLoader`.
+**API Documentation:** Java SE `java.lang.Class#getClassLoader()`, `Class#forName(String, boolean, ClassLoader)`, `Class#getComponentType()`, and `java.lang.ClassLoader`.

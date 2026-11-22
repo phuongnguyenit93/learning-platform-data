@@ -1,12 +1,12 @@
-# Giá trị mặc định của phần tử nguyên thủy và tham chiếu trong mảng Java
+# Default Values of Primitive and Reference Elements in Java Arrays
 
-> **Java core — language-basics / Mảng một chiều**  
-> **Áp dụng:** Java 17+ (JDK); một chương trình chạy độc lập bằng `javac`/`java`.  
-> **Mục tiêu:** Biết chính xác giá trị mà mỗi phần tử nhận được sau `new Type[length]`; phân biệt mảng của kiểu nguyên thủy với mảng của kiểu tham chiếu; nhận ra `null`, phần tử chưa gán tường minh và biến cục bộ chưa khởi tạo.
+> **Java core — language-basics / One-Dimensional Arrays**  
+> **Applies to:** Java 17+ (JDK); a standalone program run with `javac`/`java`.  
+> **Goal:** Know the exact value each element receives after `new Type[length]`; distinguish primitive-type arrays from reference-type arrays; recognize `null`, explicitly unassigned elements, and uninitialized local variables.
 
-## 1. Khi tạo mảng, các phần tử được khởi tạo tự động
+## 1. When creating an array, elements are initialized automatically
 
-Một mảng Java là **đối tượng có độ dài cố định** và chứa các phần tử cùng kiểu thành phần. Khi tạo mảng bằng `new` có độ dài, mọi phần tử đều được khởi tạo về **giá trị mặc định của kiểu thành phần** trước khi chương trình đọc chúng:
+A Java array is a **fixed-length object** containing elements of the same component type. When an array is created with `new` and a length, every element is initialized to **the default value of its component type** before the program reads it:
 
 ~~~java
 int[] numbers = new int[3];
@@ -16,26 +16,26 @@ System.out.println(numbers[1]);     // 0
 System.out.println(numbers[2]);     // 0
 ~~~
 
-Câu lệnh `new int[3]` tạo ba phần tử được đánh chỉ số `0`, `1` và `2`. Không cần viết vòng lặp để gán từng phần tử bằng 0. Đây là **bảo đảm của ngôn ngữ Java**, không phải hành vi may rủi của bộ nhớ.
+The statement `new int[3]` creates three elements indexed `0`, `1`, and `2`. There is no need to write a loop to assign each element to 0. This is a **guarantee of the Java language**, not accidental memory behavior.
 
-**Lưu ý:** Giá trị mặc định phụ thuộc vào **kiểu của phần tử**, không phụ thuộc vào tên mảng, tên biến hoặc kiểu dữ liệu mà bạn dự định gán vào sau này. Việc dùng `new` ở đây tạo mảng mới; việc khai báo một biến tham chiếu mảng **chưa tạo mảng** là tình huống khác.
+**Note:** Default values depend on **the element type**, not on the array name, variable name, or the data type you plan to assign later. Using `new` here creates a new array; declaring an array reference variable **without creating an array yet** is a different situation.
 
-## 2. Bảng giá trị mặc định của tám kiểu nguyên thủy
+## 2. Default value table for the eight primitive types
 
-Nếu kiểu thành phần của mảng là kiểu nguyên thủy (*primitive*), phần tử ban đầu có giá trị sau:
+If the array's component type is a *primitive* type, each element initially has the following value:
 
-| Kiểu phần tử | Ví dụ tạo mảng | Giá trị mặc định mỗi phần tử |
+| Element type | Creation example | Default value of each element |
 | --- | --- | --- |
 | `byte` | `new byte[2]` | `0` |
 | `short` | `new short[2]` | `0` |
 | `int` | `new int[2]` | `0` |
-| `long` | `new long[2]` | `0L` (số 0 kiểu `long`) |
-| `float` | `new float[2]` | `0.0f` (dương không) |
-| `double` | `new double[2]` | `0.0d` (dương không) |
-| `char` | `new char[2]` | ký tự có mã Unicode **0**, thường biểu diễn bằng `'\0'` |
+| `long` | `new long[2]` | `0L` (the number 0 of type `long`) |
+| `float` | `new float[2]` | `0.0f` (positive zero) |
+| `double` | `new double[2]` | `0.0d` (positive zero) |
+| `char` | `new char[2]` | character with Unicode code **0**, usually written as `'\0'` |
 | `boolean` | `new boolean[2]` | `false` |
 
-Những ký hiệu `0L`, `0.0f`, `0.0d` mô tả **giá trị và kiểu**, không phải chuỗi văn bản tự chứa trong mảng. Các giá trị số 0.0 mặc định là **dương không** (`+0.0`), không phải `NaN`.
+The notations `0L`, `0.0f`, `0.0d` describe **the value and type**, not text strings stored in the array. The default floating-point 0.0 values are **positive zero** (`+0.0`), not `NaN`.
 
 ~~~java
 long[] counts = new long[2];
@@ -48,13 +48,13 @@ System.out.println((int) letters[0]);  // 0
 System.out.println(letters[0] == '\0'); // true
 ~~~
 
-**Đặc biệt với `char`:** mặc định là ký tự NUL mang mã 0, **không** phải ký tự số '0' (mã Unicode 48), **không** phải dấu cách (mã 32) và **không** phải chữ `null`. Nếu in trực tiếp ký tự NUL, mắt người có thể không thấy gì; hãy dùng ép kiểu `(int) letters[0]` để quan sát giá trị mã.
+**Specifically for `char`:** the default is the NUL character with code 0, **not** the digit character `'0'` (Unicode code 48), **not** a space (code 32), and **not** the word `null`. If you print the NUL character directly, human eyes may see nothing; cast with `(int) letters[0]` to observe the code value.
 
-`boolean[]` nhận `false`; `false` không đồng nghĩa số nguyên 0 và Java không cho đổi qua lại trực tiếp giữa `boolean` và `int` như một số ngôn ngữ khác.
+`boolean[]` receives `false`; `false` is not equivalent to integer 0, and Java does not allow converting directly between `boolean` and `int` as some other languages do.
 
-## 3. Mảng kiểu tham chiếu: mỗi phần tử mặc định là `null`
+## 3. Reference-type arrays: each element defaults to `null`
 
-Với kiểu thành phần là **tham chiếu** như `String`, `Integer` hoặc lớp tự định nghĩa, phần tử mặc định là `null`:
+When the component type is a **reference** type such as `String`, `Integer`, or a user-defined class, the default value of each element is `null`:
 
 ~~~java
 String[] names = new String[3];
@@ -64,14 +64,14 @@ System.out.println(names[0] == null);  // true
 System.out.println(scores[0] == null); // true
 ~~~
 
-Điều này có nghĩa:
+This means:
 
-- **Bản thân mảng** `names` đã tồn tại vì đã thực hiện `new String[3]`, nên `names.length` bằng 3.
-- Nhưng từng **phần tử tham chiếu** như `names[0]` vẫn là `null` cho đến khi được gán tham chiếu phù hợp.
-- `new String[3]` **không tự tạo ba đối tượng `String` rỗng**, cũng không đặt các phần tử thành `""`.
-- `new Student[2]` **không tự gọi constructor `Student` hai lần**; nó tạo mảng chứa hai tham chiếu `null`.
+- **The array itself** `names` exists because `new String[3]` was executed, so `names.length` is 3.
+- However, each **reference element** such as `names[0]` remains `null` until an appropriate reference is assigned.
+- `new String[3]` **does not automatically create three empty `String` objects**, nor does it set the elements to `""`.
+- `new Student[2]` **does not automatically call the `Student` constructor twice**; it creates an array holding two `null` references.
 
-Ví dụ khác biệt giữa kiểu nguyên thủy và *wrapper*:
+Example of the difference between primitive types and *wrapper* classes:
 
 ~~~java
 int[] primitive = new int[2];
@@ -85,17 +85,17 @@ System.out.println(primitiveFlags[0]);   // false
 System.out.println(boxedFlags[0]);       // null
 ~~~
 
-`Integer` và `Boolean` là **lớp tham chiếu**, không phải `int` và `boolean`. Vì vậy không được giả định phần tử `Integer[]` mặc định bằng 0 hoặc phần tử `Boolean[]` mặc định bằng `false`.
+`Integer` and `Boolean` are **reference classes**, not `int` and `boolean`. Therefore, you must not assume an `Integer[]` element defaults to 0 or a `Boolean[]` element defaults to `false`.
 
-Nếu cố *unbox* một phần tử `Integer[]` đang `null` thành `int`, Java sẽ ném `NullPointerException`.
+If you try to *unbox* a `null` element of `Integer[]` into an `int`, Java throws `NullPointerException`.
 
-## 4. Đọc, gán phần tử và xử lý `null` đúng cách
+## 4. Reading, assigning elements, and handling `null` properly
 
-Sau khi tạo mảng, phần tử đã có giá trị mặc định và có thể **đọc** ngay nếu chỉ số hợp lệ:
+After creating an array, its elements already have default values and can be **read** immediately if the index is valid:
 
 ~~~java
 String[] words = new String[3];
-System.out.println(words[0]); // In dòng chữ null.
+System.out.println(words[0]); // Prints the text null.
 
 words[1] = "Java";
 words[2] = "";
@@ -103,20 +103,20 @@ System.out.println(words[1].length()); // 4
 System.out.println(words[2].length()); // 0
 ~~~
 
-`null` và chuỗi rỗng `""` khác nhau: chuỗi rỗng là **một đối tượng `String` có độ dài 0**, còn `null` biểu thị không có đối tượng được tham chiếu.
+`null` and the empty string `""` are different: the empty string is **a `String` object of length 0**, whereas `null` indicates that no object is referenced.
 
-Đọc trực tiếp `words[0]` hoặc so sánh `words[0] == null` là hợp lệ. Nhưng gọi phương thức instance như `words[0].length()` khi phần tử đó `null` sẽ gây `NullPointerException`.
+Reading `words[0]` directly or comparing `words[0] == null` is valid. However, calling an instance method such as `words[0].length()` when that element is `null` causes `NullPointerException`.
 
 ~~~java
 static int safeLength(String[] words, int index) {
-    String value = words[index]; // Yêu cầu words khác null và index hợp lệ.
+    String value = words[index]; // Requires words non-null and index valid.
     return value == null ? -1 : value.length();
 }
 ~~~
 
-Hàm `safeLength` trả `-1` để biểu thị phần tử `null` theo hợp đồng ví dụ; nó **không** xử lý mảng `words == null` hoặc chỉ số ngoài phạm vi. Trong ứng dụng, hãy xác định rõ cần phân biệt null, chuỗi rỗng và lỗi chỉ số như thế nào.
+The method `safeLength` returns `-1` to represent a `null` element according to the example's contract; it **does not** handle a `null` `words` array or an out-of-range index. In an application, clearly define how `null`, empty strings, and index errors should be distinguished.
 
-**Gán giá trị tường minh** thay thế mặc định tại vị trí đó:
+**Explicit assignment** replaces the default at that slot:
 
 ~~~java
 int[] numbers = new int[3];       // [0, 0, 0]
@@ -126,81 +126,81 @@ String[] words = new String[3];   // [null, null, null]
 words[1] = "Java";                // [null, Java, null]
 ~~~
 
-Việc gán `numbers[1]` không thay đổi `numbers[0]` hay `numbers[2]`. Những phần tử chưa được gán tường minh tiếp tục giữ giá trị mặc định cho đến khi có thao tác thay đổi.
+Assigning `numbers[1]` does not change `numbers[0]` or `numbers[2]`. Elements that have not been explicitly assigned continue to hold their default values until modified.
 
-## 5. Khởi tạo theo danh sách, `Arrays.fill` và mảng rỗng
+## 5. List initialization, `Arrays.fill`, and empty arrays
 
-Nếu đã biết toàn bộ giá trị ngay lúc tạo, có thể khởi tạo bằng **danh sách**:
+If all values are known at creation time, you can initialize using a **list**:
 
 ~~~java
 int[] points = {4, 5, 6};
 String[] labels = {"A", null, "C"};
 ~~~
 
-Ở đây các phần tử lần lượt nhận **giá trị từ danh sách**, không phải chỉ còn giá trị mặc định. Cú pháp thay thế hợp lệ trong biểu thức là `new int[] {4, 5, 6}`.
+Here the elements receive **the values from the list** in order, rather than remaining only default values. The alternative valid syntax in expressions is `new int[] {4, 5, 6}`.
 
-Nếu muốn mọi phần tử có **cùng giá trị khác mặc định**, có thể dùng `java.util.Arrays.fill`:
+If you want every element to have **the same non-default value**, you can use `java.util.Arrays.fill`:
 
 ~~~java
-int[] offsets = new int[3]; // Ban đầu [0, 0, 0].
+int[] offsets = new int[3]; // Initially [0, 0, 0].
 java.util.Arrays.fill(offsets, -1);
-// Bây giờ [-1, -1, -1].
+// Now [-1, -1, -1].
 ~~~
 
-`Arrays.fill` là thao tác gán **sau khi mảng được tạo**, không làm thay đổi quy tắc giá trị mặc định của Java.
+`Arrays.fill` is an assignment operation performed **after the array is created**; it does not change Java's default value rules.
 
-**Mảng độ dài 0** cũng là một đối tượng mảng hợp lệ:
+**A zero-length array** is also a valid array object:
 
 ~~~java
 int[] empty = new int[0];
 System.out.println(empty.length);  // 0
 System.out.println(empty == null); // false
-// System.out.println(empty[0]);    // Nếu chạy: ArrayIndexOutOfBoundsException.
+// System.out.println(empty[0]);    // At runtime: ArrayIndexOutOfBoundsException.
 ~~~
 
-Mảng độ dài 0 **không có phần tử**, nên không có giá trị mặc định nào để đọc ở chỉ số 0; khác với một biến tham chiếu mảng bằng `null`.
+A zero-length array **has no elements**, so there is no default value to read at index 0; this differs from an array reference variable equal to `null`.
 
-## 6. Không nhầm phần tử mảng với biến cục bộ chưa khởi tạo
+## 6. Do not confuse array elements with uninitialized local variables
 
-Đây là khác biệt quan trọng trong Java:
+This is an important distinction in Java:
 
 ~~~java
 static void valid() {
-    int[] data = new int[2]; // Biến data được gán một tham chiếu mảng mới.
-    System.out.println(data[0]); // 0: phần tử mảng đã có mặc định.
+    int[] data = new int[2]; // The data variable is assigned a new array reference.
+    System.out.println(data[0]); // 0: the array element already has a default.
 }
 ~~~
 
-Trong khi đó, một **biến cục bộ** không tự được gán giá trị mặc định để có thể đọc ngay:
+In contrast, a **local variable** is not automatically assigned a default value so that it can be read immediately:
 
 ~~~java
-// KHÔNG BIÊN DỊCH nếu bỏ comment:
+// DOES NOT COMPILE if uncommented:
 // static void invalid() {
 //     int number;
-//     System.out.println(number); // Biến local chưa được gán.
+//     System.out.println(number); // Local variable has not been assigned.
 //
 //     String[] names;
-//     System.out.println(names);  // Biến local names chưa được gán.
+//     System.out.println(names);  // Local variable names has not been assigned.
 // }
 ~~~
 
-Chú ý hai tầng:
+Pay attention to the two levels:
 
-| Tình huống | Có giá trị đọc ngay? | Giải thích |
+| Situation | Has a value to read immediately? | Explanation |
 | --- | --- | --- |
-| `int[] data = new int[2]; data[0]` | Có: `0` | Phần tử mảng được mặc định hóa |
-| `String[] data = new String[2]; data[0]` | Có: `null` | Phần tử là tham chiếu |
-| `int n;` trong phương thức, đọc `n` ngay | Không | Local chưa đạt *definite assignment* |
-| `int[] data;` trong phương thức, đọc `data` ngay | Không | Biến tham chiếu local chưa được gán |
-| `int[] data = null; data.length` | Không chạy thành công | `data` được gán `null`, gọi `length` gây `NullPointerException` |
-| Trường `int number;` trong đối tượng | Có: `0` | Field cũng có giá trị mặc định |
-| Trường `String text;` trong đối tượng | Có: `null` | Field tham chiếu mặc định `null` |
+| `int[] data = new int[2]; data[0]` | Yes: `0` | Array elements are defaulted |
+| `String[] data = new String[2]; data[0]` | Yes: `null` | Element is a reference |
+| `int n;` inside a method, read `n` immediately | No | Local variable has not achieved *definite assignment* |
+| `int[] data;` inside a method, read `data` immediately | No | Local reference variable has not been assigned |
+| `int[] data = null; data.length` | Does not succeed at runtime | `data` is assigned `null`; accessing `length` causes `NullPointerException` |
+| Field `int number;` in an object | Yes: `0` | Fields also have default values |
+| Field `String text;` in an object | Yes: `null` | Reference fields default to `null` |
 
-**Scope** chỉ xác định tên dùng được ở đâu; **definite assignment** mới xác định biến cục bộ đã được gán chắc chắn trước khi đọc chưa. Giá trị mặc định của **phần tử trong một mảng đã tạo** không thể được dùng để biện minh cho việc đọc một **biến cục bộ chưa khởi tạo**.
+**Scope** only determines where a name can be used; **definite assignment** determines whether a local variable has definitely been assigned before being read. The default value of **an element in a created array** cannot be used to justify reading an **uninitialized local variable**.
 
-## 7. Chương trình Java 17+ độc lập và stdout chính xác
+## 7. Standalone Java 17+ program and exact stdout
 
-Tạo file **ArrayDefaultValuesDemo.java**:
+Create the file **ArrayDefaultValuesDemo.java**:
 
 ~~~java
 import java.util.Arrays;
@@ -290,14 +290,14 @@ public final class ArrayDefaultValuesDemo {
 }
 ~~~
 
-Biên dịch rồi chạy tại thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Compile and run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 ArrayDefaultValuesDemo.java
 java ArrayDefaultValuesDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 byte=[0, 0]
@@ -329,37 +329,37 @@ emptyIndex=ArrayIndexOutOfBoundsException
 missingArrayNull=true
 ~~~
 
-Ví dụ dùng `Arrays.toString(...)` để nhìn rõ các phần tử. Riêng `char[]` được in dưới dạng **mã số** để ký tự NUL không bị nhầm là chuỗi rỗng. `Student[]` bắt đầu bằng hai `null`; chỉ khi gán `new Student("Lan")` vào vị trí 0 thì một đối tượng `Student` mới xuất hiện.
+The example uses `Arrays.toString(...)` to clearly view the elements. Specifically, `char[]` is printed as **numeric codes** so that the NUL character is not mistaken for an empty string. `Student[]` starts with two `null` values; only when `new Student("Lan")` is assigned at position 0 does a `Student` object appear.
 
-Hai `catch` có đầu ra cố định minh họa **lỗi truy cập phần tử null** và **lỗi chỉ số trên mảng rỗng**, không phụ thuộc vào nội dung thông báo ngoại lệ của JVM.
+The two `catch` blocks have fixed output demonstrating **accessing a null element** and **an index error on an empty array**, without depending on the JVM's exception message text.
 
-## 8. Lỗi thường gặp, cách kiểm tra và bài tập
+## 8. Common pitfalls, verification, and exercises
 
-| Hiểu nhầm hoặc lỗi | Cách hiểu đúng |
+| Misconception or error | Correct understanding |
 | --- | --- |
-| `new String[3]` tạo 3 chuỗi rỗng | Sai: tạo 3 phần tử tham chiếu `null` |
-| `new Integer[3]` tạo 3 số nguyên bằng 0 | Sai: `Integer` là lớp, phần tử là `null` |
-| `new boolean[2]` có `null` | Sai: `boolean` nguyên thủy, mặc định `false` |
-| `new char[2]` có ký tự `'0'` | Sai: mặc định ký tự NUL có mã 0 |
-| Truy cập phần tử `null` qua `.length()` | Có thể gây `NullPointerException` |
-| Mảng mới nhưng có độ dài 0 thì bằng `null` | Sai: vẫn là đối tượng, nhưng không có phần tử |
-| Local `int number;` tự mặc định thành 0 | Sai: phải gán trước khi đọc |
-| `new Student[2]` gọi constructor cho từng `Student` | Sai: chỉ tạo mảng tham chiếu, chưa tạo từng đối tượng |
-| Cần giá trị ban đầu khác mặc định cho mọi phần tử | Dùng vòng lặp, danh sách khởi tạo hoặc `Arrays.fill` phù hợp |
-| Đọc `data[0]` khi `data == null` | Không có mảng để đánh chỉ số; gây `NullPointerException` |
+| `new String[3]` creates 3 empty strings | False: it creates 3 `null` reference elements |
+| `new Integer[3]` creates 3 integers equal to 0 | False: `Integer` is a class, so elements are `null` |
+| `new boolean[2]` contains `null` | False: `boolean` is primitive, defaulting to `false` |
+| `new char[2]` contains the character `'0'` | False: it defaults to the NUL character with code 0 |
+| Accessing a `null` element via `.length()` | Can cause `NullPointerException` |
+| A new array of length 0 equals `null` | False: it is still an object, just with no elements |
+| Local `int number;` automatically defaults to 0 | False: it must be assigned before reading |
+| `new Student[2]` calls the constructor for each `Student` | False: it only creates an array of references, without creating each object |
+| Need a non-default initial value for every element | Use a loop, an initializer list, or `Arrays.fill` as appropriate |
+| Reading `data[0]` when `data == null` | There is no array to index; causes `NullPointerException` |
 
-**Bài 1.** Tạo `double[] temperatures = new double[4]`, in từng phần tử và giải thích vì sao chúng là `0.0`.
+**Exercise 1.** Create `double[] temperatures = new double[4]`, print each element, and explain why they are `0.0`.
 
-**Bài 2.** Tạo `char[] symbols = new char[3]`, in `(int) symbols[0]` và so sánh `symbols[0] == '0'` với `symbols[0] == '\0'`.
+**Exercise 2.** Create `char[] symbols = new char[3]`, print `(int) symbols[0]`, and compare `symbols[0] == '0'` with `symbols[0] == '\0'`.
 
-**Bài 3.** Tạo `Integer[] ids = new Integer[2]` và `int[] indexes = new int[2]`. Dự đoán `ids[0]` và `indexes[0]`; thử gán `ids[0] = 9` rồi in lại.
+**Exercise 3.** Create `Integer[] ids = new Integer[2]` and `int[] indexes = new int[2]`. Predict `ids[0]` and `indexes[0]`; try assigning `ids[0] = 9` and printing again.
 
-**Bài 4.** Tạo lớp `Book` có constructor nhận tiêu đề; khai báo `Book[] books = new Book[2]`. Tại sao `books[0].title()` chưa gọi được trước khi `books[0] = new Book("Java")`?
+**Exercise 4.** Create a `Book` class with a constructor taking a title; declare `Book[] books = new Book[2]`. Why can `books[0].title()` not be called before `books[0] = new Book("Java")`?
 
-**Bài 5.** So sánh `int[] a = new int[0]`, `int[] b = null` và `int[] c = new int[1]` về `length`, `== null` và khả năng đọc `[0]`.
+**Exercise 5.** Compare `int[] a = new int[0]`, `int[] b = null`, and `int[] c = new int[1]` in terms of `length`, `== null`, and whether `[0]` can be read.
 
-**Bài 6.** Tạo `int[] values = new int[5]`, dùng `Arrays.fill(values, -1)` rồi cập nhật riêng `values[2] = 10`. Dự đoán toàn bộ mảng.
+**Exercise 6.** Create `int[] values = new int[5]`, use `Arrays.fill(values, -1)`, and then update only `values[2] = 10`. Predict the entire array.
 
-### Ghi nhớ
+### Key takeaways
 
-**Mỗi phần tử của mảng vừa tạo bằng `new Type[length]` đều có giá trị mặc định theo kiểu thành phần:** số nguyên là 0, số thực là +0.0, `char` là NUL (mã 0), `boolean` là `false` và **mọi kiểu tham chiếu là `null`**. Mặc định của **phần tử mảng** không phải quy tắc tự gán cho **biến cục bộ chưa khởi tạo**. Muốn đối tượng ở một phần tử tham chiếu, phải gán một tham chiếu đối tượng thích hợp.
+**Every element of an array newly created with `new Type[length]` has a default value according to its component type:** integer types are 0, floating-point types are +0.0, `char` is NUL (code 0), `boolean` is `false`, and **all reference types are `null`**. The default of an **array element** is not an automatic assignment rule for **uninitialized local variables**. To have an object at a reference element, you must assign a suitable object reference.

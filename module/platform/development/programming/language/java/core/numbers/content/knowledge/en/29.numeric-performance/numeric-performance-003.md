@@ -1,8 +1,8 @@
-# Chi phí số học BigInteger theo độ dài toán hạng
+# BigInteger Arithmetic Cost by Operand Length
 
-## 1. Vì sao cùng một phép toán nhưng thời gian chạy khác nhau?
+## 1. Why Does the Same Operation Have Different Runtimes?
 
-`int` và `long` có độ rộng cố định (32 và 64 bit); còn `java.math.BigInteger` lưu số nguyên có độ chính xác tùy ý, miễn là đủ bộ nhớ và nằm trong giới hạn biểu diễn của thư viện. Hai lời gọi:
+`int` and `long` have fixed widths (32 and 64 bits), whereas `java.math.BigInteger` stores arbitrary-precision integers, as long as there is enough memory and they stay within the library's representation limits. Two calls:
 
 ~~~java
 BigInteger small = BigInteger.valueOf(123);
@@ -11,17 +11,17 @@ BigInteger a = small.multiply(small);
 BigInteger b = large.multiply(large);
 ~~~
 
-cùng gọi `multiply` nhưng **lượng dữ liệu phải xử lý hoàn toàn khác nhau**. Số thứ nhất chỉ cần ít bit, số thứ hai có hơn một triệu bit; tích của số thứ hai có khoảng hai triệu bit. Ngoài phép nhân, JVM còn cần lưu và quản lý dữ liệu kết quả, vùng tạm, cấp phát và thu gom rác.
+both call `multiply`, yet **the amount of data to process is completely different**. The first number needs only a few bits, while the second has over one million bits; the product of the second has roughly two million bits. Beyond multiplication, the JVM also needs to store and manage the result data, temporary buffers, allocations, and garbage collection.
 
-Do vậy “mỗi phép cộng/nhân/chia BigInteger tốn O(1)” là sai nếu đầu vào có độ dài thay đổi. Chi phí phụ thuộc vào **số bit hoặc số từ (limb) biểu diễn độ lớn toán hạng**, loại phép toán, hình dạng toán hạng (một bên ngắn hay hai bên dài), thuật toán được chọn và môi trường chạy.
+Therefore, saying "every BigInteger addition/multiplication/division takes O(1)" is false when inputs have varying lengths. The cost depends on **the number of bits or machine words (limbs) representing operand magnitude**, the operation type, operand shapes (one short vs. both long), the selected algorithm, and the runtime environment.
 
-**Mục tiêu:** biết ước lượng bậc tăng chi phí theo độ dài, phân biệt số bit với giá trị số học, tránh kết quả trung gian phình to, và đo bằng benchmark phù hợp trước khi tối ưu.
+**Goal:** learn to estimate cost growth order by length, distinguish bit count from arithmetic value, avoid intermediate result bloat, and measure with proper benchmarks before optimizing.
 
-## 2. Độ dài toán hạng: bitLength và số limb
+## 2. Operand Length: `bitLength` and Limb Count
 
-Với số nguyên dương `x`, `x.bitLength()` là số bit tối thiểu cần để biểu diễn độ lớn theo nhị phân. Ví dụ:
+For a positive integer `x`, `x.bitLength()` is the minimum number of bits required to represent its magnitude in binary. For example:
 
-| Giá trị | Dạng nhị phân (rút gọn) | `bitLength()` |
+| Value | Binary form (shortened) | `bitLength()` |
 |---|---|---:|
 | `0` | `0` | 0 |
 | `1` | `1` | 1 |
@@ -30,58 +30,58 @@ Với số nguyên dương `x`, `x.bitLength()` là số bit tối thiểu cần
 | `255` | `11111111` | 8 |
 | `256` | `100000000` | 9 |
 
-Với **số âm**, `BigInteger.bitLength()` có định nghĩa phù hợp biểu diễn two's complement, không đơn giản luôn là số bit của trị tuyệt đối. Chẳng hạn `BigInteger.valueOf(-1).bitLength() == 0`, trong khi `abs().bitLength() == 1`. Khi phân tích **chi phí phụ thuộc độ lớn toán hạng**, dùng `x.abs().bitLength()` cho cả số âm và dương nếu đang muốn đo số bit của trị tuyệt đối.
+For **negative numbers**, `BigInteger.bitLength()` is defined to match two's complement representation, not simply the bit count of the absolute value. For example, `BigInteger.valueOf(-1).bitLength() == 0`, whereas `abs().bitLength() == 1`. When analyzing **cost depending on operand magnitude**, use `x.abs().bitLength()` for both negative and positive numbers if you want to measure the bit count of the absolute value.
 
-Trong OpenJDK, độ lớn BigInteger được giữ bằng các nhóm từ máy (limb, hiện thường là các phần tử `int` 32 bit) cùng dấu. Với giá trị khác 0 và `n` bit độ lớn, số limb xấp xỉ:
+In OpenJDK, BigInteger magnitude is held in groups of machine words (limbs, currently typically 32-bit `int` elements) along with a sign. For a nonzero value with `n` magnitude bits, the number of limbs is approximately:
 
 ~~~text
 L = ceil(n / 32)
 ~~~
 
-Đây là **mô hình giải thích chi phí trên triển khai OpenJDK**, không phải hợp đồng công khai yêu cầu mọi JVM phải lưu bằng mảng `int[]` 32 bit. Thuật toán có thể làm việc với dữ liệu tạm, mảng khác và các đường xử lý riêng cho trường hợp đặc biệt.
+This is an **explanatory cost model for the OpenJDK implementation**, not a public contract requiring every JVM to store values in a 32-bit `int[]` array. Algorithms may work with temporary data, other arrays, and specialized code paths for special cases.
 
-Điểm quan trọng là phân biệt hai thước đo:
+An important distinction is between two measures:
 
-- **Giá trị số học:** `10^1000` lớn hơn `10^100` theo phép so sánh.
-- **Kích thước biểu diễn:** `10^1000` cần xấp xỉ `1000 × log2(10) ≈ 3322` bit. Thuật toán xử lý dữ liệu theo độ dài biểu diễn này.
+- **Arithmetic value:** `10^1000` is greater than `10^100` under comparison.
+- **Representation size:** `10^1000` needs approximately `1000 × log2(10) ≈ 3322` bits. Algorithms process data according to this representation length.
 
-Một số có một triệu chữ số thập phân không chỉ “lớn hơn” số có mười chữ số; nó đòi nhiều thao tác trên các từ máy và bộ nhớ hơn rất nhiều.
+A number with one million decimal digits is not merely "larger" than a ten-digit number; it demands vastly more operations over machine words and memory.
 
-## 3. Ước lượng độ phức tạp theo số từ máy
+## 3. Estimating Complexity by Machine Words
 
-Đặt `n`, `m` là số limb (hoặc tương đương số bit theo hệ số hằng) của hai toán hạng, với `n ≥ m ≥ 1`. Bảng sau mô tả **bậc chi phí điển hình**, không hứa hẹn thời gian chính xác của mọi phiên bản JDK:
+Let `n` and `m` be the number of limbs (or bit counts up to a constant factor) of two operands, with `n ≥ m ≥ 1`. The following table describes **typical cost orders**, without promising exact timings across every JDK version:
 
-| Phép toán | Quy mô chi phí thường gặp | Điều cần nhớ |
+| Operation | Typical cost scale | Things to remember |
 |---|---|---|
-| `signum()`, một vài truy vấn metadata | Thường O(1) | Phụ thuộc dữ liệu đã lưu/được cache |
-| `compareTo(b)`, `equals(b)` | Tối đa O(n) trong trường hợp kích thước tương đương | Có thể kết luận sớm nhờ dấu, độ dài hoặc limb khác đầu tiên |
-| `add(b)`, `subtract(b)` | O(max(n, m)) trong trường hợp thông thường | Phải xử lý carry/borrow qua các limb |
-| `negate()`, `abs()` | Có đường xử lý nhẹ; không suy ra luôn sao chép toàn bộ | BigInteger bất biến, tối ưu nội bộ tùy triển khai |
-| `shiftLeft(k)`, `shiftRight(k)` | Phụ thuộc số limb của đầu vào/kết quả và lượng dịch | Dịch trái lớn có thể tạo số và vùng nhớ rất lớn |
-| `and`, `or`, `xor`, `not` | Thường tỉ lệ độ dài dữ liệu cần xử lý | Ngữ nghĩa bitwise với dấu âm là two's complement |
-| `multiply(b)` kiểu nhân từng chữ số | O(nm), nếu n≈m thì O(n²) | Thuật toán nhanh hơn có thể được chọn cho số lớn |
-| `pow(exponent)` | Phụ thuộc exponent, độ dài kết quả và chi phí nhân | Kết quả có thể tăng rất nhanh |
-| `divide`, `remainder` | Phụ thuộc cả số bị chia và số chia; thường nặng hơn phép cộng | Có nhiều thuật toán và trường hợp đặc biệt |
-| `gcd`, `modInverse` | Nhiều bước chia/biến đổi tùy giá trị | Không cố định chỉ bởi một độ dài chung |
-| `modPow` | Phụ thuộc độ dài modulus, exponent và số phép nhân/rút gọn môđun | Tránh tạo trực tiếp `base.pow(e)` cực lớn |
+| `signum()`, some metadata queries | Usually O(1) | Depends on stored/cached data |
+| `compareTo(b)`, `equals(b)` | At most O(n) for comparable sizes | Can finish early based on sign, length, or first differing limb |
+| `add(b)`, `subtract(b)` | O(max(n, m)) in typical cases | Must propagate carry/borrow across limbs |
+| `negate()`, `abs()` | Has lightweight paths; do not assume full copy always | BigInteger is immutable; internal optimizations vary by implementation |
+| `shiftLeft(k)`, `shiftRight(k)` | Depends on input/result limb counts and shift amount | Large left shifts can create very large numbers and memory regions |
+| `and`, `or`, `xor`, `not` | Usually proportional to data length to process | Bitwise semantics for negatives follow two's complement |
+| `multiply(b)` grade-school multiplication | O(nm), or O(n²) if n≈m | Faster algorithms may be chosen for large numbers |
+| `pow(exponent)` | Depends on exponent, result length, and multiplication cost | Result can grow very rapidly |
+| `divide`, `remainder` | Depends on both dividend and divisor; usually heavier than addition | Has multiple algorithms and special cases |
+| `gcd`, `modInverse` | Many division/transformation steps depending on values | Not fixed solely by one common length |
+| `modPow` | Depends on modulus length, exponent, and modular multiplications/reductions | Avoid creating a huge `base.pow(e)` directly |
 
-Đây là các quy luật để **xác định điểm nóng tiềm năng**, không phải bảng đo latency. Đầu vào có cấu trúc đặc biệt (0, 1, lũy thừa của 2, một toán hạng rất ngắn) và đường tối ưu của JDK có thể làm kết quả thực tế khác mô hình trung bình.
+These are rules of thumb to **identify potential hotspots**, not a latency lookup table. Inputs with special structure (0, 1, powers of 2, one very short operand) and JDK fast paths can make actual results differ from the average model.
 
-**Phân biệt n và m:** nhân một số 4096 bit với số 8 bit có bài toán khác nhân hai số đều 4096 bit. Không đánh đồng cả hai là “phép nhân số 4096 bit” mà quên độ dài toán hạng thứ hai.
+**Distinguish `n` and `m`:** multiplying a 4096-bit number by an 8-bit number is a different problem from multiplying two 4096-bit numbers. Do not lump both together as "4096-bit multiplication" while forgetting the second operand's length.
 
-## 4. Cộng và trừ: gần tuyến tính theo độ dài
+## 4. Addition and Subtraction: Nearly Linear in Length
 
-Cộng hai số lớn có thể được hình dung như cộng theo từng limb, mang theo bit nhớ:
+Adding two large numbers can be visualized as limb-by-limb addition carrying the carry bit:
 
 ~~~text
 A = [a0, a1, a2, ..., an-1]
 B = [b0, b1, b2, ..., bm-1]
-=> cộng các limb tương ứng và truyền carry
+=> add corresponding limbs and propagate carry
 ~~~
 
-Nếu hai số có khoảng `n` limb, trường hợp thông thường tốn công việc tuyến tính theo `n`. Các tình huống có carry chạy dài (ví dụ cộng 1 vào số toàn bit 1) cần chạm tới nhiều limb.
+If two numbers have roughly `n` limbs, the typical case takes work linear in `n`. Cases with long carry chains (for example, adding 1 to an all-1-bits number) must touch many limbs.
 
-Ví dụ:
+Example:
 
 ~~~java
 BigInteger allOnes = BigInteger.ONE.shiftLeft(256)
@@ -92,46 +92,46 @@ System.out.println(allOnes.bitLength());      // 256
 System.out.println(nextPowerOfTwo.bitLength()); // 257
 ~~~
 
-Dù chỉ cộng **1**, kết quả thay đổi 256 bit thấp và tạo thêm một bit ở đầu. Không thể suy từ toán hạng `BigInteger.ONE` rất ngắn rằng phép cộng luôn có chi phí hằng số, hoặc số kết quả không tăng độ dài.
+Even when adding only **1**, the result changes all 256 low bits and adds a leading bit. You cannot infer from the very short operand `BigInteger.ONE` that addition always has constant cost, or that the result will not grow in length.
 
-Với các phép `add/subtract` lặp hàng triệu lần trên số ngày càng lớn, mỗi bước có thể đắt hơn bước trước, dù vòng lặp không đổi câu lệnh Java. Nếu chỉ cần đếm giá trị nằm trong `long`, `long` thường đơn giản và nhẹ hơn; chỉ dùng `BigInteger` khi phạm vi số thực sự đòi hỏi.
+With `add/subtract` repeated millions of times on increasingly large numbers, each step can become more expensive than the previous one, even though the Java statement in the loop does not change. If you only need to count values that fit in `long`, `long` is usually simpler and lighter; only use `BigInteger` when the numeric range truly demands it.
 
-## 5. Nhân: từ O(n²) đến Karatsuba và Toom-Cook
+## 5. Multiplication: From O(n²) to Karatsuba and Toom-Cook
 
-Nhân theo cách phổ thông từng limb của số thứ nhất với từng limb của số thứ hai có chi phí **O(nm)**; khi hai độ dài xấp xỉ nhau là **O(n²)**. Nếu tăng gấp đôi số limb của cả hai toán hạng, mô hình nhân phổ thông có thể tăng số phép xử lý cặp limb khoảng bốn lần. Đây là **ước lượng bậc độ phức tạp**, không khẳng định runtime thực tế luôn đúng 4×.
+Grade-school multiplication of each limb of the first number by each limb of the second costs **O(nm)**; when the two lengths are comparable, that is **O(n²)**. If you double the limb count of both operands, the grade-school model can increase the number of limb-pair operations roughly fourfold. This is an **order-of-complexity estimate**, not a claim that actual runtime is always exactly 4×.
 
-Các thuật toán cho số lớn có thể giảm số phép nhân con:
+Large-number algorithms can reduce the number of sub-multiplications:
 
-- **Karatsuba:** tách đôi toán hạng, dùng ba tích con thay vì bốn, độ phức tạp với toán hạng cân bằng xấp xỉ **O(n^log₂3) ≈ O(n^1.585)**.
-- **Toom-Cook ba phần:** có thể đạt khoảng **O(n^log₃5) ≈ O(n^1.465)** cho cách phân chia phù hợp.
-- **Nhân phổ thông:** có ít overhead, thường có lợi cho số nhỏ.
+- **Karatsuba:** splits operands in half and uses three sub-products instead of four, giving balanced-operand complexity around **O(n^log₂3) ≈ O(n^1.585)**.
+- **3-way Toom-Cook:** can reach roughly **O(n^log₃5) ≈ O(n^1.465)** with suitable splitting.
+- **Grade-school multiplication:** has low overhead and is typically favorable for small numbers.
 
-OpenJDK 17 có các đường xử lý nhân phổ thông, Karatsuba và Toom-Cook, cùng ngưỡng thực nghiệm để lựa chọn. **Ngưỡng và cách lựa chọn là chi tiết triển khai**, có thể thay đổi theo phiên bản và distribution JDK; không thiết kế tính đúng của chương trình dựa vào một ngưỡng hard-code hoặc đảm bảo 4×/2× khi tăng số bit.
+OpenJDK 17 includes grade-school, Karatsuba, and Toom-Cook multiplication paths along with empirical selection thresholds. **Thresholds and selection logic are implementation details** that can change across JDK versions and distributions; do not build program correctness on a hard-coded threshold or guarantee a 4×/2× scaling ratio when increasing bit count.
 
-Với hai số dương khác 0 có độ dài bit `a` và `b`, tích có bit length thuộc khoảng:
+For two nonzero positive numbers with bit lengths `a` and `b`, the product's bit length lies in the range:
 
 ~~~text
 a + b - 1 <= product.bitLength() <= a + b
 ~~~
 
-Ví dụ nhân số 256 bit với số 257 bit thường cần tới 513 bit; đó là **độ dài kết quả**, không phải số phép toán CPU. Ngay cả khi thuật toán nhân nhanh hơn, bộ nhớ để chứa kết quả vẫn tăng theo độ dài của tích.
+For example, multiplying a 256-bit number by a 257-bit number usually requires up to 513 bits; that is the **result length**, not the number of CPU instructions. Even with faster multiplication algorithms, memory to hold the result still grows with the product's length.
 
-### Bình phương không nhất thiết tốn như nhân hai toán hạng độc lập
+### Squaring does not necessarily cost the same as multiplying two independent operands
 
-`x.multiply(x)` có thể được tối ưu bởi thuật toán bình phương chuyên biệt trong OpenJDK. Vì nhiều tích con trùng nhau khi hai toán hạng giống nhau, mã thư viện có thể giảm overhead. Tuy nhiên, không viết một giả định về tỷ lệ tốc độ không được đo trên JDK triển khai thực tế. Kết quả `x.pow(2)` và `x.multiply(x)` giống nhau về mặt số học, nhưng đường code, trường hợp đặc biệt và chi phí có thể khác.
+`x.multiply(x)` can be optimized by a dedicated squaring algorithm in OpenJDK. Because many sub-products repeat when both operands are identical, library code can reduce overhead. However, do not state an assumed speed ratio that has not been measured on the actual deployed JDK. The results of `x.pow(2)` and `x.multiply(x)` are arithmetically identical, but code paths, special cases, and costs may differ.
 
-## 6. Chia, remainder và gcd: không thể đánh giá chỉ bằng số bit số bị chia
+## 6. Division, Remainder, and `gcd`: Cannot Be Judged Solely by Dividend Bit Length
 
-Chia một `BigInteger` lớn cho số nhỏ khác chia cho một số gần bằng độ lớn của nó. Thuật toán chia theo limb có thể phải ước lượng thương, nhân trừ và sửa phần dư nhiều lần. OpenJDK 17 có các đường xử lý chia kiểu truyền thống và Burnikel–Ziegler cho trường hợp toán hạng đủ dài.
+Dividing a large `BigInteger` by a small number differs from dividing by a number close to its magnitude. Limb-based division algorithms may have to estimate quotient digits, multiply-subtract, and correct remainders repeatedly. OpenJDK 17 has classic and Burnikel–Ziegler division paths for sufficiently long operands.
 
-Với:
+With:
 
 ~~~java
 BigInteger quotient = dividend.divide(divisor);
 BigInteger remainder = dividend.remainder(divisor);
 ~~~
 
-hai phép gọi độc lập có thể gây công việc trùng lặp. Khi cần **cả thương và dư**, dùng:
+two independent calls can cause duplicated work. When **both quotient and remainder** are needed, use:
 
 ~~~java
 BigInteger[] qr = dividend.divideAndRemainder(divisor);
@@ -139,22 +139,22 @@ BigInteger quotient = qr[0];
 BigInteger remainder = qr[1];
 ~~~
 
-Đây là đoạn dùng bên trong phương thức, với `dividend`/`divisor` là `BigInteger` và divisor khác 0. `divideAndRemainder` cho phép thư viện tính chung hai kết quả, có thể giảm công việc so với hai lời gọi độc lập; không suy ra luôn nhanh hơn bao nhiêu phần trăm.
+This is a snippet used inside a method, where `dividend`/`divisor` are `BigInteger` and divisor is nonzero. `divideAndRemainder` allows the library to compute both results together, potentially reducing work compared to two independent calls; do not infer a fixed percentage speedup.
 
-Một số điều cần nhớ:
+Several things to keep in mind:
 
-1. Chia cho **0** ném `ArithmeticException`; tính hiệu năng không có ý nghĩa khi tiền điều kiện không được thỏa.
-2. `divide` chia số nguyên, làm tròn thương **về 0**; `remainder` giữ dấu tương ứng với số bị chia (khác `mod`, vốn yêu cầu môđun dương và cho dư không âm).
-3. Nếu divisor có độ dài lớn hơn dividend về trị tuyệt đối thì thương nguyên bằng 0; có thể là đường xử lý rẻ.
-4. `gcd` thường liên quan nhiều bước biến đổi theo các giá trị trung gian. Số bit đầu vào quan trọng, nhưng cấu trúc số và số vòng thuật toán cũng ảnh hưởng runtime.
+1. Dividing by **0** throws `ArithmeticException`; performance analysis is meaningless when preconditions are unmet.
+2. `divide` performs integer division, rounding the quotient **toward 0**; `remainder` keeps the sign matching the dividend (unlike `mod`, which requires a positive modulus and returns a non-negative remainder).
+3. If the divisor is larger than the dividend in absolute value, the integer quotient is 0; this can be a cheap path.
+4. `gcd` typically involves multiple transformation steps depending on intermediate values. Input bit lengths matter, but numeric structure and algorithm loop counts also affect runtime.
 
-Không thay `divide(x)` bằng `shiftRight(k)` trừ khi **bạn đã chứng minh** x là lũy thừa 2 và kiểm tra ngữ nghĩa số âm: `shiftRight` mang hành vi dịch số có dấu, trong khi `divide` làm tròn về 0. Ví dụ `-3 >> 1` là `-2`, còn `-3 / 2` là `-1`.
+Do not replace `divide(x)` with `shiftRight(k)` unless **you have proven** `x` is a power of 2 and checked negative-number semantics: `shiftRight` performs signed arithmetic shift, whereas `divide` rounds toward 0. For example, `-3 >> 1` is `-2`, whereas `-3 / 2` is `-1`.
 
-## 7. Lũy thừa làm độ dài kết quả bùng nổ
+## 7. Exponentiation Explodes Result Length
 
-Nếu `a` có độ lớn lớn hơn 1, phép `a.pow(e)` có thể làm số bit kết quả tăng theo **e × log₂|a|**. Với trường hợp `a = 2^k`, kết quả là `2^(ke)`, có bit length `ke + 1`. Một số phép nhân có thể sử dụng lũy thừa bằng bình phương liên tiếp, nhưng **không thể bỏ qua kích thước kết quả khổng lồ** nếu mục đích là giữ toàn bộ lũy thừa.
+If `a` has magnitude greater than 1, `a.pow(e)` can make the result bit count grow as **e × log₂|a|**. In the case `a = 2^k`, the result is `2^(ke)`, with bit length `ke + 1`. Multiplications may use exponentiation by squaring, yet **the massive result size cannot be avoided** if the goal is to retain the entire power.
 
-Ví dụ:
+Example:
 
 ~~~java
 BigInteger two = BigInteger.TWO;
@@ -162,17 +162,17 @@ BigInteger huge = two.pow(1_000_000);
 System.out.println(huge.bitLength()); // 1000001
 ~~~
 
-Số có khoảng một triệu bit này yêu cầu chừng 125 KB chỉ để chứa các bit độ lớn tối thiểu, chưa kể mảng, object, kết quả tạm và việc cấp phát/copy. Đây là ước lượng dung lượng bit, **không phải kích thước chính xác trên heap**.
+This roughly one-million-bit number requires about 125 KB just to hold the minimum magnitude bits, not counting array, object, temporary results, and allocation/copying overhead. That is a bit-capacity estimate, **not an exact heap size**.
 
-Với bài toán chỉ cần **phần dư** của `base^exponent mod modulus`, tránh xây dựng toàn bộ `base.pow(exponent)` rồi `mod(modulus)`. Dùng:
+For problems needing only the **remainder** of `base^exponent mod modulus`, avoid building the full `base.pow(exponent)` and then calling `mod(modulus)`. Use:
 
 ~~~java
 BigInteger result = base.modPow(exponent, modulus);
 ~~~
 
-`modPow` tính lũy thừa môđun qua các bước tối ưu, trong đó giá trị trung gian được giảm theo modulus thay vì nhất thiết phải chứa toàn bộ số mũ khổng lồ. Chi phí vẫn phụ thuộc lớn vào số bit của modulus, số bit exponent và cơ chế nhân/rút gọn môđun. Không nói `modPow` là O(1) chỉ vì **độ dài kết quả** bị chặn bởi modulus.
+`modPow` computes modular exponentiation through optimized steps in which intermediate values are reduced modulo `modulus` instead of necessarily holding the entire colossal power. Cost still depends heavily on the bit count of `modulus`, the bit count of `exponent`, and the modular multiplication/reduction mechanism. Do not call `modPow` O(1) just because **result length** is bounded by `modulus`.
 
-Ví dụ toán học với exponent dương và modulus dương:
+Mathematical example with positive exponent and positive modulus:
 
 ~~~java
 BigInteger base = BigInteger.TWO;
@@ -184,11 +184,11 @@ boolean same = base.modPow(e, modulus)
 System.out.println(same); // true
 ~~~
 
-Đoạn này chỉ để đối chiếu kết quả với exponent **nhỏ đủ để minh họa**. Trong chương trình thật nếu exponent cực lớn, việc tạo `pow` rồi lấy `mod` có thể tiêu tốn thời gian/bộ nhớ nghiêm trọng.
+This snippet is only for cross-checking results with an exponent **small enough for illustration**. In a real program with an extremely large exponent, computing `pow` and then `mod` can consume severe time and memory.
 
-## 8. Chương trình Java 17+ quan sát kích thước kết quả
+## 8. Java 17+ Program to Observe Result Sizes
 
-Lưu thành **`BigIntegerLengthDemo.java`**:
+Save as **`BigIntegerLengthDemo.java`**:
 
 ~~~java
 import java.math.BigInteger;
@@ -224,14 +224,14 @@ public class BigIntegerLengthDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac BigIntegerLengthDemo.java
 java BigIntegerLengthDemo
 ~~~
 
-Stdout đã kiểm chứng:
+Verified stdout:
 
 ~~~text
 a bits = 256
@@ -244,19 +244,19 @@ negative -1 magnitude bits = 1
 negative -1 bitLength = 0
 ~~~
 
-Vì `a = 2^256 - 1` và `b = 2^257 - 1`, tích có bit length 513. Bình phương/cubing số gần lũy thừa 2 cũng cho kết quả có số bit tăng gần tuyến tính theo số mũ. Chương trình **không đo thời gian**; nó minh họa kích thước dữ liệu mà các thuật toán số học phải xử lý.
+Since `a = 2^256 - 1` and `b = 2^257 - 1`, the product has bit length 513. Squaring/cubing numbers near powers of 2 also produces results whose bit count grows roughly linearly with the exponent. This program **does not measure time**; it illustrates the size of data that arithmetic algorithms must process.
 
-## 9. Immutable BigInteger, allocation và memory pressure
+## 9. Immutable `BigInteger`, Allocation, and Memory Pressure
 
-`BigInteger` là bất biến. Phần lớn phép toán sinh giá trị kết quả mới; JVM có thể sử dụng lại hằng, trả lại cùng tham chiếu trong một số nhánh hoặc tối ưu cấp phát, nên đừng khẳng định **mỗi lời gọi chắc chắn cấp phát đúng một đối tượng mới**. Dù vậy, vòng lặp tạo giá trị lớn liên tục có thể dẫn đến:
+`BigInteger` is immutable. Most operations generate new result values; the JVM may reuse constants, return the same reference in certain branches, or optimize allocations, so do not claim **every call is guaranteed to allocate exactly one new object**. Even so, a loop continuously creating large values can lead to:
 
-- Nhiều vùng dữ liệu kết quả và mảng limb tạm.
-- Sao chép/ghi các limb dù phép toán nhìn như một dòng Java.
-- Allocation rate tăng, heap chiếm nhiều chỗ hơn và tần suất GC tăng.
-- Áp lực cache/băng thông bộ nhớ khi toán hạng dài.
-- Sự chênh lệch thời gian do JIT compiler, CPU, GC và phân phối kích thước đầu vào.
+- Many result data buffers and temporary limb arrays.
+- Copying/writing limbs even when the operation looks like a single line of Java.
+- Increased allocation rate, greater heap occupancy, and higher GC frequency.
+- Cache/memory bandwidth pressure when operands are long.
+- Timing variance due to the JIT compiler, CPU, GC, and input size distribution.
 
-Ví dụ cộng dồn:
+Accumulation example:
 
 ~~~java
 BigInteger sum = BigInteger.ZERO;
@@ -265,66 +265,66 @@ for (int i = 1; i <= 1_000_000; i++) {
 }
 ~~~
 
-Đây là đoạn minh họa trong phương thức (import `java.math.BigInteger`). `sum` được cập nhật qua nhiều giá trị bất biến, có thể tạo nhiều object tạm. Nếu tổng bảo đảm vừa `long`, cộng bằng `long` rồi chuyển thành BigInteger ở biên có thể giảm chi phí; **chỉ được làm vậy khi chứng minh không overflow** và yêu cầu domain cho phép.
+This is an illustrative snippet inside a method (`import java.math.BigInteger`). `sum` is updated through many immutable values, potentially creating many temporary objects. If the sum is guaranteed to fit in `long`, summing with `long` and converting to BigInteger at the boundary can reduce cost; **only do so when non-overflow is proven** and domain requirements permit it.
 
-Ví dụ khi chỉ đếm số lượng request (không cần số nguyên vô hạn), `long` hoặc primitive/atomic tương ứng có thể phù hợp hơn. Khi tính giai thừa, tổ hợp hoặc mật mã nơi kích thước số vượt `long`, BigInteger có giá trị vì giữ kết quả chính xác, nhưng phải kiểm soát số bước và kích thước trung gian.
+For instance, when merely counting requests (not needing unbounded integers), `long` or corresponding primitive/atomic types may be more appropriate. When computing factorials, combinatorics, or cryptography where numbers exceed `long`, BigInteger is valuable for keeping exact results, but step counts and intermediate sizes must be controlled.
 
-### Tránh chuyển đổi chuỗi trong vòng lặp nóng
+### Avoid string conversions inside hot loops
 
 ~~~java
-// Không nên parse lại cùng một hằng thập phân trong hot loop:
+// Avoid re-parsing the same decimal constant in a hot loop:
 BigInteger a = new BigInteger("123456789012345678901234567890");
 
-// Khi đối số vừa long, biểu diễn đơn giản hơn:
+// When the argument fits in long, representation is simpler:
 BigInteger b = BigInteger.valueOf(42L);
 ~~~
 
-Chuyển từ chuỗi thập phân dài sang số nhị phân/limb có chi phí xử lý dữ liệu. Chuyển ngược qua `toString()` cũng tốn thời gian và có thể tạo chuỗi cực lớn. Đừng dùng `toString().length()` để “đo độ lớn” bên trong vòng lặp; dùng `abs().bitLength()` khi cần thước đo nhị phân, và tránh gọi các thao tác đo không cần thiết trong đoạn code tính toán hiệu năng.
+Converting a long decimal string to binary/limbs carries data-processing cost. Converting back via `toString()` also takes time and can produce an enormous string. Do not use `toString().length()` to "measure magnitude" inside a loop; use `abs().bitLength()` when a binary measure is needed, and avoid unnecessary measurement calls inside performance-critical computation code.
 
-Không để `System.out.println(hugeBigInteger)` trở thành một phần của benchmark nhân/chia: lúc đó thời gian format và ghi console có thể áp đảo phép toán mà bạn định đo.
+Do not let `System.out.println(hugeBigInteger)` become part of a multiplication/division benchmark: formatting and console output time can then dominate the operation you intended to measure.
 
-## 10. Chi phí biểu diễn kết quả và giữ trung gian ở độ dài hợp lý
+## 10. Result Representation Cost and Keeping Intermediates at Reasonable Lengths
 
-Một số quy tắc gần đúng khi toán hạng dương:
+Some approximate rules when operands are positive:
 
-| Phép toán | Độ dài kết quả |
+| Operation | Result length |
 |---|---|
-| `a.add(b)` | Tối đa `max(bits(a), bits(b)) + 1` |
-| `a.subtract(b)` | Trị tuyệt đối kết quả có thể nhỏ hoặc gần bằng toán hạng lớn nhất |
-| `a.multiply(b)` với a,b khác 0 | Từ `bits(a) + bits(b) - 1` đến `bits(a) + bits(b)` |
-| `a.shiftLeft(k)` với a dương khác 0, k≥0 | `bits(a) + k` |
-| `a.mod(m)` với m dương | Kết quả từ 0 đến `m - 1`, nên bit length không vượt `bits(m)` |
-| `a.pow(e)` với e không âm | Có thể có độ dài tăng tỉ lệ với e |
+| `a.add(b)` | At most `max(bits(a), bits(b)) + 1` |
+| `a.subtract(b)` | Absolute value of result can be small or close to the largest operand |
+| `a.multiply(b)` with nonzero a, b | From `bits(a) + bits(b) - 1` to `bits(a) + bits(b)` |
+| `a.shiftLeft(k)` with positive nonzero a, k≥0 | `bits(a) + k` |
+| `a.mod(m)` with positive m | Result from 0 to `m - 1`, so bit length does not exceed `bits(m)` |
+| `a.pow(e)` with non-negative e | Length can grow proportionally to e |
 
-Các công thức theo `bits()` ở bảng dùng **độ dài bit của trị tuyệt đối**. Trường hợp 0, 1, số âm và các tối ưu đặc biệt cần xét riêng. `BigInteger` có giới hạn triển khai và bộ nhớ thực tế; cụm “arbitrary precision” không có nghĩa cho phép cấp phát vô hạn.
+The `bits()` formulas in the table use **the bit length of the absolute value**. Cases involving 0, 1, negative numbers, and special optimizations must be considered separately. `BigInteger` has practical implementation and memory limits; the phrase "arbitrary precision" does not mean unlimited allocation is possible.
 
-Khi xử lý nhiều bước, cần nghĩ tới **giá trị trung gian lớn nhất**, không chỉ giá trị đầu vào/đầu ra. Ví dụ để tính `(a × b) mod m`, nếu `a` và `b` đều gần độ dài modulus, một tích trung gian có thể dài gần gấp đôi modulus trước khi giảm. Các thuật toán modular chuyên dụng có thể sử dụng cách biểu diễn và giảm trung gian hiệu quả hơn cho nhiều phép lặp.
+When processing multiple steps, think about the **largest intermediate value**, not just input/output values. For example, to compute `(a × b) mod m`, if both `a` and `b` are near the modulus length, an intermediate product can be nearly twice as long as the modulus before reduction. Specialized modular algorithms can represent and reduce intermediates more efficiently across many iterations.
 
-Khi số bit tăng theo từng vòng lặp, tổng chi phí của cả quá trình là tổng chi phí từng bước:
+When bit count grows across loop iterations, the total cost of the process is the sum of each step's cost:
 
 ~~~text
 TotalCost = Cost(size_1) + Cost(size_2) + ... + Cost(size_k)
 ~~~
 
-Không chỉ lấy số vòng lặp nhân với một hằng số nếu kích thước toán hạng thay đổi. Ví dụ giai thừa `n!` tăng số chữ số theo n; dùng cùng một phép nhân nhưng độ dài một toán hạng tiếp tục tăng theo n.
+Do not simply multiply the loop count by a constant if operand sizes are growing. For instance, factorial `n!` grows in digit count with `n`; it uses the same multiplication call while one operand's length keeps growing with `n`.
 
-## 11. Đo hiệu năng thực tế: JMH và những bẫy benchmark
+## 11. Measuring Real Performance: JMH and Benchmark Pitfalls
 
-Phân tích O(n) và O(n²) là mô hình bậc tăng, **không thay thế đo trên tải thực tế**. JVM có JIT, tối ưu nội tuyến, escape analysis, cấp phát theo vùng, GC và các đường xử lý nội bộ dựa vào kích thước. Để so sánh đáng tin, nên dùng **Java Microbenchmark Harness (JMH)** với fork, warmup, measurement và `Blackhole` đúng cách.
+O(n) and O(n²) analyses are growth-order models, **not a substitute for measuring on real workloads**. The JVM has JIT, inlining, escape analysis, region-based allocation, GC, and internal size-dependent code paths. For reliable comparisons, use **Java Microbenchmark Harness (JMH)** with proper forks, warmup, measurement, and `Blackhole`.
 
-Một thiết kế benchmark tốt:
+A good benchmark design:
 
-1. **Giữ cả hai toán hạng:** ví dụ 64/64, 256/256, 1024/1024, 4096/4096 bit; thêm 4096/64 để so sánh trường hợp một toán hạng ngắn.
-2. **Kiểm soát nội dung:** các số cùng bit length nhưng có cấu trúc rất khác (toàn bit 1, số ngẫu nhiên, lũy thừa 2) có thể chạy theo đường xử lý khác nhau. Không lấy một số 0 hoặc 1 để thay cho số lớn ngẫu nhiên.
-3. **Tách từng phép toán:** benchmark add, multiply, divide, modPow ở các nhóm riêng; không để dựng BigInteger, parse chuỗi, random, format số hay ghi console trong phần đo nếu mục tiêu là phép toán.
-4. **Không cho JIT loại bỏ kết quả:** tiêu thụ kết quả qua `Blackhole` hoặc sink được thiết kế phù hợp; không viết vòng lặp với kết quả không dùng.
-5. **Tránh phụ thuộc vòng trước:** nếu mỗi iteration cập nhật kết quả ngày càng dài, bạn đang đo một **thuật toán tăng kích thước**, không so chi phí một phép nhân của các kích thước cố định. Cả hai loại đều có ích nhưng trả lời câu hỏi khác nhau.
-6. **Ghi môi trường:** phiên bản JDK, CPU, heap, GC, JMH version, fork/iteration, số phép đo, phân phối input, nguồn dữ liệu và ngưỡng thuật toán.
-7. **Báo kết quả có biến thiên:** ns/op hoặc ops/s cùng sai số/độ phân tán; không dùng một lần `System.nanoTime()` để cam kết “phép nhân số 4096 bit mất đúng X ns”.
+1. **Control both operands:** e.g., 64/64, 256/256, 1024/1024, 4096/4096 bits; include 4096/64 to compare the case with one short operand.
+2. **Control content:** numbers with the same bit length yet very different structure (all 1 bits, random numbers, powers of 2) may follow different paths. Do not use 0 or 1 to stand in for large random numbers.
+3. **Separate operations:** benchmark add, multiply, divide, and modPow in separate groups; exclude BigInteger construction, string parsing, random generation, formatting, or console output from the measured region if the target is the arithmetic operation.
+4. **Prevent the JIT from eliminating results:** consume results via `Blackhole` or an appropriately designed sink; do not write loops with unused results.
+5. **Avoid cross-iteration growth dependency:** if each iteration updates an ever-growing result, you are measuring a **size-growing algorithm**, not comparing the cost of a single multiplication at fixed sizes. Both kinds are useful, but they answer different questions.
+6. **Record the environment:** JDK version, CPU, heap, GC, JMH version, forks/iterations, measurement counts, input distribution, data source, and algorithm thresholds.
+7. **Report results with variance:** ns/op or ops/s along with error/dispersion; do not use a single `System.nanoTime()` call to promise "4096-bit multiplication takes exactly X ns".
 
-### Ví dụ JMH minh họa ý tưởng
+### Conceptual JMH example
 
-Đây là **đoạn benchmark cần JMH dependency và JMH annotation processor**, không thể biên dịch chỉ với JDK nếu chưa thêm JMH vào dự án. Lưu trong file `BigIntegerMultiplyBenchmark.java` thuộc mã benchmark của dự án:
+This is a **benchmark snippet requiring the JMH dependency and JMH annotation processor**; it cannot compile with only the JDK unless JMH is added to the project. Save in `BigIntegerMultiplyBenchmark.java` within the project's benchmark sources:
 
 ~~~java
 import java.math.BigInteger;
@@ -357,68 +357,68 @@ public class BigIntegerMultiplyBenchmark {
 }
 ~~~
 
-`@Param` khiến JMH chạy các cấu hình kích thước riêng, `@Setup` loại việc sinh dữ liệu khỏi đoạn đo, và `Blackhole` tiêu thụ kết quả. Với kích thước khác nhau, throughput có thể thay đổi không trơn vì JDK đổi chiến lược thuật toán, tối ưu CPU/JVM và hoạt động GC. Đây chỉ là một benchmark minh họa **nhân hai toán hạng có cùng bit length**, chưa bao phủ chia, modular exponentiation hay phép nhân lệch kích thước. Không so sánh JDK/CPU bằng một số đo lấy từ máy khác.
+`@Param` makes JMH run separate size configurations, `@Setup` excludes data generation from the measured section, and `Blackhole` consumes the result. Across different sizes, throughput may change non-smoothly as the JDK switches algorithmic strategies, CPU/JVM optimizations, and GC activity. This is only an illustrative benchmark **multiplying two operands of equal bit length**; it does not cover division, modular exponentiation, or skewed-size multiplication. Do not compare JDKs/CPUs using measurements taken from different machines.
 
-Để benchmark JMH thật sự chạy, dự án cần cấu hình thư viện `org.openjdk.jmh:jmh-core` và annotation processor `jmh-generator-annprocess`, sau đó chạy bằng launcher JMH phù hợp build tool. Không khẳng định lớp trên chạy độc lập bằng `javac` chỉ với JDK tiêu chuẩn.
+To actually run the JMH benchmark, the project needs `org.openjdk.jmh:jmh-core` and the `jmh-generator-annprocess` annotation processor configured, then run with an appropriate build-tool JMH launcher. Do not claim the class above runs standalone via `javac` with only the standard JDK.
 
-## 12. Chiến lược tối ưu theo đúng nguồn chi phí
+## 12. Optimization Strategies Matched to the Real Cost Source
 
-**Giữ phạm vi giá trị thực sự cần thiết.** Nếu yêu cầu chỉ tới `long`, dùng primitive khi có kiểm tra overflow. Nếu nghiệp vụ có thể vượt `long`, dùng BigInteger; đừng đổi sang `double` để tăng tốc khi cần số nguyên chính xác vì `double` không biểu diễn chính xác mọi số nguyên lớn.
+**Keep the value range actually required.** If requirements only reach `long`, use primitives with overflow checks. If the domain can exceed `long`, use BigInteger; do not switch to `double` for speed when exact integers are needed because `double` cannot represent all large integers accurately.
 
-**Ưu tiên thuật toán thay vì mẹo cục bộ.** Tránh triển khai nhân BigInteger lặp quá nhiều khi có biểu thức toán học tốt hơn: ví dụ thuật toán lũy thừa theo bình phương, divide-and-conquer, tính tổ hợp có khử ước chung, giảm sớm qua modulus khi đúng về mặt toán học. Tuy nhiên, giữ đúng semantics phép toán (đặc biệt số âm, chia nguyên, dư và overflow nếu chuyển kiểu).
+**Prefer better algorithms over local micro-tricks.** Avoid repeated BigInteger multiplications when a better mathematical expression exists: for example, exponentiation by squaring, divide-and-conquer, computing combinations with common-factor cancellation, or reducing early via modulus when mathematically valid. However, preserve exact operation semantics (especially negative numbers, integer division, remainders, and overflow if converting types).
 
-**Tái sử dụng hằng và tránh parse thừa.** Dùng `BigInteger.ZERO`, `ONE`, `TWO` và `valueOf(long)`; xây dữ liệu lớn một lần ngoài hot loop nếu nó không đổi. Tránh chuyển qua chuỗi khi thao tác toán học có API trực tiếp.
+**Reuse constants and avoid redundant parsing.** Use `BigInteger.ZERO`, `ONE`, `TWO`, and `valueOf(long)`; construct large data once outside the hot loop if it does not change. Avoid going through strings when direct mathematical APIs exist.
 
-**Đọc đúng chi phí của số trung gian.** Bài toán đầu ra ngắn không đồng nghĩa đường tính tự động rẻ; `base.pow(hugeExponent).mod(modulus)` có thể tạo kết quả khổng lồ trước khi rút gọn, trong khi `modPow` là cách thiết kế đúng cho lũy thừa môđun.
+**Assess intermediate number costs properly.** A problem with a short output does not automatically mean a cheap computation path; `base.pow(hugeExponent).mod(modulus)` can build a massive result before reduction, whereas `modPow` is the proper design for modular exponentiation.
 
-**Tách ứng dụng đồng thời và thuật toán số học.** Nếu nhiều thread cùng cập nhật một `BigInteger` qua biến chia sẻ, tính immutable của đối tượng không khiến thao tác `current = current.add(ONE)` trở thành atomic. Cần đồng bộ hoặc thao tác atomic với cập nhật điều kiện phù hợp; chi phí tranh chấp lock/GC và việc tăng bit length đều ảnh hưởng tổng throughput.
+**Separate concurrency from arithmetic algorithms.** If multiple threads update a `BigInteger` via a shared variable, object immutability does not make `current = current.add(ONE)` atomic. Synchronization or atomic operations with appropriate conditional updates are needed; lock/GC contention and growing bit lengths both affect overall throughput.
 
-**Chú ý an toàn tài nguyên.** Với dữ liệu bên ngoài, giới hạn độ dài input/bit, số vòng lặp, exponent và các phép toán có thể làm kết quả tăng cực nhanh. Với dịch trái số bit rất lớn, lũy thừa lớn hoặc chuỗi decimal hàng triệu ký tự, nguy cơ dùng quá nhiều bộ nhớ/time không phải do kết quả sai. Kiểm tra bounds trước khi cấp phát và dùng timeout/quota ở cấp hệ thống nếu cần.
+**Pay attention to resource safety.** With external inputs, limit input/bit lengths, loop counts, exponents, and operations that can make results explode. With huge left shifts, large powers, or million-character decimal strings, the risk of exhausting memory/time is not caused by wrong arithmetic. Check bounds before allocating and apply system-level timeouts/quotas if needed.
 
-**Đối với mật mã:** BigInteger phục vụ số học chính xác nhưng thời gian của nhiều phép toán phụ thuộc kích thước và nội dung toán hạng; không coi các phép toán thông thường là constant-time. Khi xử lý bí mật, chọn thư viện/triển khai mật mã đã được xem xét về timing side channel và các yêu cầu an toàn khác; hiệu năng đơn thuần không đủ làm tiêu chí.
+**For cryptography:** BigInteger serves exact arithmetic, yet the runtime of many operations depends on operand size and content; do not assume regular operations are constant-time. When handling secrets, choose cryptographic libraries/implementations vetted for timing side channels and other security requirements; raw performance alone is insufficient as a criterion.
 
-## 13. Lỗi phổ biến
+## 13. Common Mistakes
 
-- **Coi BigInteger như int có độ dài vô hạn nhưng chi phí O(1):** toán hạng lớn làm tăng số limb và cấp phát.
-- **So thời gian với input 0/1 rồi suy ra cho mọi số dài:** giá trị đặc biệt có đường tối ưu khác.
-- **Cho rằng nhân luôn O(n²):** đó là nhân phổ thông; JDK có thể đổi sang thuật toán nhanh hơn ở kích thước lớn.
-- **Khẳng định Karatsuba bắt đầu ở đúng một bit length cố định:** ngưỡng nằm trong triển khai, tính theo limb và các điều kiện khác, không phải API contract.
-- **Chỉ xét một toán hạng:** phép nhân/chia phụ thuộc hình dạng cả hai toán hạng.
-- **Tính `pow` cực lớn chỉ để lấy modulo:** thiếu kiểm soát kết quả trung gian; xem `modPow`.
-- **Gọi `divide` và `remainder` riêng khi cần cả hai:** có thể trùng công việc; xem `divideAndRemainder`.
-- **Benchmark bao gồm `new BigInteger(String)`, `toString` hoặc `println`:** đo nhầm chi phí chuyển đổi và I/O.
-- **Dùng `System.nanoTime` một lần để kết luận phức tạp thuật toán:** JIT, GC, noise và thay đổi đường code có thể chi phối mẫu.
-- **Quên bộ nhớ:** kết quả và vùng tạm có thể rất lớn dù một API chỉ trả một biến.
-- **Lấy `bitLength()` trực tiếp trên số âm để đo bit trị tuyệt đối:** ví dụ -1 cho bitLength 0; dùng `abs().bitLength()` khi đó là thước đo mong muốn.
-- **Thay chia số âm cho lũy thừa 2 bằng shiftRight:** khác hướng làm tròn.
+- **Treating BigInteger as an infinite-length `int` with O(1) cost:** large operands increase limb counts and allocations.
+- **Timing 0/1 inputs and generalizing to all long numbers:** special values take different fast paths.
+- **Assuming multiplication is always O(n²):** that is grade-school multiplication; the JDK may switch to faster algorithms at large sizes.
+- **Claiming Karatsuba starts at one exact fixed bit length:** thresholds live inside the implementation, measured in limbs and other conditions, not as an API contract.
+- **Considering only one operand:** multiplication/division depend on the shape of both operands.
+- **Computing an enormous `pow` just to take modulo:** lack of intermediate result control; see `modPow`.
+- **Calling `divide` and `remainder` separately when both are needed:** may duplicate work; see `divideAndRemainder`.
+- **Benchmarking `new BigInteger(String)`, `toString`, or `println` inside the loop:** accidentally measuring conversion and I/O costs.
+- **Using a single `System.nanoTime()` call to conclude algorithm complexity:** JIT, GC, noise, and code-path switches can dominate the sample.
+- **Forgetting memory:** results and temporary buffers can be huge even when an API returns a single variable.
+- **Taking `bitLength()` directly on negative numbers to measure absolute-value bits:** e.g., -1 gives bitLength 0; use `abs().bitLength()` when that is the desired measure.
+- **Replacing negative division by a power of 2 with `shiftRight`:** different rounding direction.
 
-## 14. Bài tập và gợi ý
+## 14. Exercises and Hints
 
-**Bài 1.** Hai số dương đều 1024 bit, rồi tăng mỗi số lên 2048 bit. Nếu chỉ xét phép nhân kiểu phổ thông O(n²) với hai toán hạng cân bằng, lượng công việc tương đối thay đổi khoảng bao nhiêu? Vì sao không được biến tỷ lệ đó thành cam kết đo thực tế?
+**Exercise 1.** Two positive numbers are both 1024 bits, and then each is increased to 2048 bits. Considering only grade-school O(n²) multiplication for balanced operands, roughly how much does the relative work change? Why must that ratio not be turned into an actual measured guarantee?
 
-**Bài 2.** Vì sao phép cộng `(2^256 - 1) + 1` có thể cần xử lý nhiều limb, dù toán hạng thứ hai rất ngắn? Bit length kết quả là bao nhiêu?
+**Exercise 2.** Why can adding `(2^256 - 1) + 1` require touching many limbs even though the second operand is very short? What is the result's bit length?
 
-**Bài 3.** Muốn tính `2^100000000 mod 97`, nên dùng `pow().mod()` hay `modPow()`? Giải thích theo kích thước dữ liệu trung gian.
+**Exercise 3.** To compute `2^100000000 mod 97`, should you use `pow().mod()` or `modPow()`? Explain in terms of intermediate data size.
 
-**Bài 4.** Với phép nhân một toán hạng 4096 bit và một toán hạng 32 bit, vì sao không nên so trực tiếp với nhân hai số 4096 bit rồi kết luận mọi phép nhân “4096 bit” đều giống nhau?
+**Exercise 4.** For multiplying a 4096-bit operand and a 32-bit operand, why should you not directly compare it with multiplying two 4096-bit numbers and conclude all "4096-bit" multiplications behave the same?
 
-**Bài 5.** `BigInteger.valueOf(-1).bitLength()` bằng bao nhiêu? Nếu muốn ước lượng độ dài của độ lớn toán hạng, viết biểu thức nào?
+**Exercise 5.** What is `BigInteger.valueOf(-1).bitLength()`? If you want to estimate the bit length of operand magnitude, what expression should you write?
 
-**Bài 6.** Thiết kế benchmark JMH đo thời gian phép nhân các cặp 128×128, 1024×1024 và 4096×64 bit. Những thứ gì cần loại khỏi phần đo để đảm bảo đo gần đúng riêng phép nhân?
+**Exercise 6.** Design a JMH benchmark measuring multiplication times for 128×128, 1024×1024, and 4096×64 bit pairs. What must be excluded from the measured section to isolate multiplication as closely as possible?
 
-**Gợi ý đáp án:**
+**Answer hints:**
 
-1. Mô hình O(n²) dự đoán khoảng **4 lần** khi cả hai độ dài tăng gấp đôi; triển khai có thể dùng Karatsuba/Toom-Cook, cache và GC khác nhau, nên cần benchmark để biết tỷ lệ thực tế.
-2. Carry có thể lan qua chuỗi limb; kết quả bằng `2^256`, có **257 bit**.
-3. Dùng `modPow` để tránh tạo và giữ số `2^100000000` đầy đủ khi chỉ cần số dư.
-4. Nhân phổ thông có chi phí O(nm), nên cả hai toán hạng ảnh hưởng; đường tối ưu thực tế cũng có thể khác.
-5. `-1.bitLength()` theo ý nghĩa đối tượng là **0**; dùng `x.abs().bitLength()` để đo magnitude (trả 1 cho -1).
-6. Sinh toán hạng trước trong `@Setup`, tiêu thụ kết quả qua `Blackhole`, có warmup/fork, không parse/format/log trong phần đo; ghi rõ JDK/CPU/config.
+1. The O(n²) model predicts roughly **4×** when both lengths double; the implementation may use Karatsuba/Toom-Cook, different caches, and GC, so benchmarking is needed for the real ratio.
+2. Carry can propagate across the limb chain; the result equals `2^256`, which has **257 bits**.
+3. Use `modPow` to avoid constructing and holding the full `2^100000000` number when only the remainder is needed.
+4. Grade-school multiplication costs O(nm), so both operands matter; real optimization paths may also differ.
+5. `-1.bitLength()` by object semantics is **0**; use `x.abs().bitLength()` to measure magnitude (returns 1 for -1).
+6. Pre-generate operands in `@Setup`, consume results via `Blackhole`, configure warmups/forks, and avoid parsing/formatting/logging in the measured region; document JDK/CPU/config.
 
-## Tài liệu tham khảo
+## References
 
 - Java SE 17, BigInteger API: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html
-- OpenJDK 17, mã nguồn BigInteger (các đường nhân/chia và ngưỡng lựa chọn): https://github.com/openjdk/jdk17/blob/master/src/java.base/share/classes/java/math/BigInteger.java
+- OpenJDK 17, BigInteger source code (multiplication/division paths and selection thresholds): https://github.com/openjdk/jdk17/blob/master/src/java.base/share/classes/java/math/BigInteger.java
 - OpenJDK JMH project: https://github.com/openjdk/jmh
 
-**Ghi nhớ:** độ dài của **cả hai toán hạng và kết quả trung gian** quyết định rất nhiều tới chi phí BigInteger. Ước lượng bằng số bit/limb để chọn thuật toán, và đo bằng benchmark chuẩn trên tải thực để ra quyết định tối ưu.
+**Takeaway:** the length of **both operands and intermediate results** heavily dictates `BigInteger` cost. Estimate using bit/limb counts to choose algorithms, and measure with proper benchmarks on real workloads to make optimization decisions.

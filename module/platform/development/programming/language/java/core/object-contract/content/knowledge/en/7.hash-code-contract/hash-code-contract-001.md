@@ -1,52 +1,52 @@
-# `hashCode()` trả về `int` để hỗ trợ cấu trúc dữ liệu băm
+# `hashCode()` Returns `int` to Support Hash-Based Data Structures
 
-## 1. `hashCode()` là gì và vì sao kiểu trả về là `int`?
+## 1. What Is `hashCode()` and Why Is Its Return Type `int`?
 
-Trong Java, mọi lớp kế thừa phương thức `public int hashCode()` từ `java.lang.Object` (có thể ghi đè). Phương thức trả về một **giá trị băm 32-bit có dấu** để các cấu trúc dữ liệu dựa trên bảng băm, như `HashMap` và `HashSet`, tổ chức và tra cứu phần tử hiệu quả.
+In Java, every class inherits the `public int hashCode()` method from `java.lang.Object` (which can be overridden). The method returns a **signed 32-bit hash value** so that hash-table-based data structures, such as `HashMap` and `HashSet`, can organize and look up elements efficiently.
 
-- **Kiểu `int` là một phần của chữ ký phương thức theo Java**, không phải lựa chọn tuỳ ý ở lớp con. Miền giá trị là từ `-2_147_483_648` đến `2_147_483_647` (tổng cộng `2^32` mẫu bit). Số âm, số 0 và số dương đều là kết quả hợp lệ.
-- **Hash code không phải ID duy nhất.** Không gian 32-bit hữu hạn, nên những đối tượng khác nhau hoàn toàn có thể cùng hash code (collision, hay đụng độ băm).
-- **Hash code không phải chỉ số ngăn (bucket) trực tiếp.** Cấu trúc băm còn phải chuyển đổi giá trị băm sang vị trí trong vùng lưu trữ hiện tại. Thuật toán chuyển đổi và số bucket phụ thuộc cách triển khai; chúng có thể thay đổi khi cấu trúc mở rộng.
-- **Hash code cũng không phải địa chỉ bộ nhớ được bảo đảm.** `Object.hashCode()` mặc định gắn với sự bằng nhau theo danh tính đối tượng, nhưng Java không cam kết nó là địa chỉ, duy nhất hay giữ nguyên giữa những lần chạy JVM.
+- **The `int` type is part of the method signature in Java**, not an arbitrary choice in subclasses. Its range is from `-2_147_483_648` to `2_147_483_647` (a total of `2^32` bit patterns). Negative numbers, 0, and positive numbers are all valid results.
+- **A hash code is not a unique ID.** The 32-bit space is finite, so completely different objects can share the same hash code (a hash collision).
+- **A hash code is not a direct bucket index.** The hash structure still has to map the hash value to a position in its current storage area. The mapping algorithm and bucket count depend on the implementation; they can change when the structure resizes.
+- **A hash code is also not a guaranteed memory address.** The default `Object.hashCode()` is tied to object identity equality, but Java does not guarantee that it is an address, unique, or constant across JVM runs.
 
-Trả về một `int` tạo ra giao diện chung để các thư viện Java có thể băm mọi đối tượng. Giá trị này giúp *thu hẹp phạm vi ứng viên cần kiểm tra*; việc xác định hai khoá có thực sự bằng nhau vẫn dựa trên `equals()`.
+Returning an `int` creates a common interface so Java libraries can hash any object. This value helps *narrow down the candidates to check*; determining whether two keys are actually equal still relies on `equals()`.
 
-## 2. `HashMap` và `HashSet` sử dụng giá trị băm như thế nào?
+## 2. How Do `HashMap` and `HashSet` Use the Hash Value?
 
-Khi thêm và tìm một khoá khác `null` trong `HashMap`, có thể hiểu ở mức khái niệm như sau:
+Adding and looking up a non-`null` key in `HashMap` can be understood conceptually as follows:
 
-1. Gọi `hashCode()` của khoá để lấy số nguyên băm; triển khai có thể trộn thêm các bit.
-2. Chuyển giá trị băm thành vị trí bucket trong bảng đang dùng.
-3. Tìm trong bucket các mục ứng viên. Khi gặp hash tương ứng, so sánh tính bằng nhau của khoá, thường qua `equals()`; nếu nhiều khoá rơi vào cùng bucket, cấu trúc phải phân biệt chúng.
-4. Nếu tìm thấy khoá tương đương theo `equals()`, `put` cập nhật giá trị; nếu chưa có, thêm mục mới. Khi `get`, chỉ trả về giá trị ứng với khoá phù hợp.
+1. Call `hashCode()` on the key to obtain the hash integer; the implementation may further mix the bits.
+2. Convert the hash value into a bucket position in the current table.
+3. Search the bucket for candidate entries. When a matching hash is encountered, compare key equality, usually via `equals()`; if multiple keys land in the same bucket, the structure must distinguish them.
+4. If an equivalent key according to `equals()` is found, `put` updates the value; if not found, it adds a new entry. On `get`, it returns only the value corresponding to the matching key.
 
-`HashSet` có ý tưởng tương tự để quyết định phần tử đã có trong tập hợp hay chưa; triển khai chuẩn dựa trên một `HashMap` nội bộ. Đặc biệt, **trùng hash code không đồng nghĩa trùng phần tử**. Hai khoá khác nhau có cùng hash vẫn được lưu riêng nếu `equals()` trả `false`.
+`HashSet` uses a similar idea to decide whether an element is already in the set; the standard implementation is backed by an internal `HashMap`. In particular, **identical hash codes do not mean identical elements**. Two different keys with the same hash are still stored separately if `equals()` returns `false`.
 
-Chi tiết bucket, cơ chế xử lý va chạm và chính sách mở rộng là vấn đề triển khai; không nên dựa vào công thức bucket cụ thể, thứ tự duyệt hay vị trí cố định của phần tử trong chương trình.
+Bucket details, collision-handling mechanisms, and resizing policies are implementation matters; programs should not rely on a specific bucket formula, iteration order, or fixed element positions.
 
-Với hàm băm phân phối hợp lý và mức tải thích hợp, thao tác thông thường của bảng băm có chi phí trung bình gần `O(1)`. Nếu quá nhiều khoá va chạm hoặc phân phối kém, chi phí xử lý trong bucket tăng; `hashCode()` không bảo đảm mỗi thao tác luôn `O(1)`.
+With a reasonable hash distribution and appropriate load factor, typical hash table operations have an average cost close to `O(1)`. If too many keys collide or distribution is poor, the cost of processing within a bucket increases; `hashCode()` does not guarantee every operation is always `O(1)`.
 
-## 3. Hợp đồng bắt buộc giữa `equals()` và `hashCode()`
+## 3. The Mandatory Contract Between `equals()` and `hashCode()`
 
-Theo hợp đồng của `Object`:
+According to the `Object` contract:
 
-- Trong một lần thực thi ứng dụng Java, khi dữ liệu dùng để xác định `equals()` của một đối tượng không thay đổi, các lần gọi `hashCode()` trên đối tượng đó phải trả về cùng kết quả.
-- **Nếu `a.equals(b)` là `true`, thì `a.hashCode() == b.hashCode()` phải là `true`** (giả sử `a`, `b` khác `null`).
-- Nếu `a.equals(b)` là `false`, **không có yêu cầu** hai hash code phải khác nhau. Va chạm hợp lệ.
-- Hai lần chạy độc lập của cùng chương trình không nhất thiết tạo cùng hash code cho mọi đối tượng.
+- During a single execution of a Java application, when the data used to determine `equals()` on an object does not change, repeated calls to `hashCode()` on that object must return the same result.
+- **If `a.equals(b)` is `true`, then `a.hashCode() == b.hashCode()` must be `true`** (assuming `a` and `b` are non-`null`).
+- If `a.equals(b)` is `false`, **there is no requirement** that the two hash codes be different. Collisions are valid.
+- Two independent runs of the same program do not necessarily produce the same hash code for every object.
 
-Vì vậy, **lớp ghi đè `equals()` cần ghi đè `hashCode()` nhất quán**. Nếu hai khoá được xem là bằng nhau nhưng cho hash khác nhau, `HashMap.get()` hoặc `HashSet.contains()` có thể không tìm thấy phần tử đã lưu.
+Therefore, **a class that overrides `equals()` needs to override `hashCode()` consistently**. If two keys are considered equal but produce different hashes, `HashMap.get()` or `HashSet.contains()` may fail to find the stored element.
 
-Chiều ngược lại không đúng:
+The reverse direction is not true:
 
 ```text
 a.equals(b) == true  =>  a.hashCode() == b.hashCode()
 a.hashCode() == b.hashCode()  =/=>  a.equals(b) == true
 ```
 
-## 4. Chương trình Java 17+ chứng minh va chạm băm
+## 4. A Java 17+ Program Demonstrating a Hash Collision
 
-Lưu chương trình hoàn chỉnh dưới tên `HashCodeDemo.java`:
+Save the complete program as `HashCodeDemo.java`:
 
 ```java
 import java.util.HashMap;
@@ -92,14 +92,14 @@ public class HashCodeDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac HashCodeDemo.java
 java HashCodeDemo
 ```
 
-Kết quả chính xác:
+Exact output:
 
 ```text
 hash(FB): 2236
@@ -110,16 +110,16 @@ lookup new FB: first
 lookup new Ea: second
 ```
 
-Giải thích:
+Explanation:
 
-- Trong Java, `String.hashCode()` tính theo công thức tích luỹ `31 * h + ký_tự`. `"FB"` và `"Ea"` đều cho `2236`: `70 * 31 + 66 = 2236`, `69 * 31 + 97 = 2236`.
-- Hai `Key` dùng `value.hashCode()` nên cũng cho cùng hash code. Tuy nhiên `value.equals(...)` trả `false` vì `"FB"` khác `"Ea"`.
-- `HashMap` giữ **hai** khoá riêng. Một khoá `new Key("FB")` mới có cùng ý nghĩa với `first` theo `equals()` và có cùng hash code, nên tìm lại được giá trị `"first"`.
-- Không có gì trong ví dụ yêu cầu biết bucket nội bộ của `HashMap`; kết quả chỉ chứng minh hash code dùng để tìm ứng viên còn `equals()` quyết định tính bằng nhau.
+- In Java, `String.hashCode()` is computed using the accumulation formula `31 * h + char`. `"FB"` and `"Ea"` both yield `2236`: `70 * 31 + 66 = 2236`, `69 * 31 + 97 = 2236`.
+- Both `Key` instances use `value.hashCode()`, so they also produce the same hash code. However, `value.equals(...)` returns `false` because `"FB"` differs from `"Ea"`.
+- `HashMap` keeps **two** separate keys. A new `new Key("FB")` key has the same meaning as `first` according to `equals()` and has the same hash code, so it retrieves the value `"first"`.
+- Nothing in the example requires knowing the internal buckets of `HashMap`; the output simply demonstrates that the hash code is used to find candidates while `equals()` determines equality.
 
-## 5. Thiết kế `hashCode()` cho lớp tự định nghĩa
+## 5. Designing `hashCode()` for a Custom Class
 
-Để giữ đúng hợp đồng, chọn các trường dữ liệu tham gia `equals()` làm cơ sở tính băm. Ví dụ dưới đây là một đoạn lớp minh hoạ độc lập về mặt cú pháp lớp (không có `main`):
+To uphold the contract, choose the data fields that participate in `equals()` as the basis for computing the hash. The example below is a standalone class-syntax snippet for illustration (without `main`):
 
 ```java
 import java.util.Objects;
@@ -148,34 +148,34 @@ final class ProductKey {
 }
 ```
 
-Trong ví dụ, `equals()` xét `sku` và `version`; `hashCode()` cũng xét cả hai. Phép nhân/cộng `int` có thể tràn số theo quy tắc số nguyên Java, điều đó **được phép** đối với hash code. Đây là công thức kết hợp thông dụng, không phải công thức duy nhất.
+In the example, `equals()` inspects `sku` and `version`; `hashCode()` also inspects both. `int` multiplication/addition can overflow according to Java integer rules, which is **allowed** for hash codes. This is a common combination formula, not the only one.
 
-Các công cụ hỗ trợ:
+Helper tools:
 
-- `Objects.hash(sku, version)` giúp kết hợp nhiều trường; có tạo mảng varargs và thao tác đóng hộp trong một số trường hợp, vì vậy cân nhắc khi ở đường xử lý hiệu năng cao.
-- `Objects.hashCode(reference)` trả về `0` nếu đối số là `null`, còn khác `null` thì gọi `reference.hashCode()`.
-- Nếu trường là mảng và muốn so sánh theo **nội dung mảng**, dùng cặp `Arrays.equals(...)` / `Arrays.hashCode(...)` (hoặc biến thể sâu phù hợp với mảng lồng nhau); bản thân mảng không tự so sánh nội dung bằng `Object.equals()`.
-- Java `record` tự sinh `equals()` và `hashCode()` phù hợp dựa trên các thành phần record. Có thể ưu tiên record cho đối tượng giá trị khi đáp ứng yêu cầu thiết kế.
+- `Objects.hash(sku, version)` helps combine multiple fields; it allocates a varargs array and performs boxing in some cases, so weigh that in high-performance paths.
+- `Objects.hashCode(reference)` returns `0` if the argument is `null`, otherwise it calls `reference.hashCode()`.
+- If a field is an array and you want to compare by **array contents**, use the pair `Arrays.equals(...)` / `Arrays.hashCode(...)` (or the appropriate deep variant for nested arrays); arrays themselves do not compare contents via `Object.equals()`.
+- A Java `record` automatically generates appropriate `equals()` and `hashCode()` based on the record components. You can prefer records for value objects when they fit your design requirements.
 
-## 6. Các lỗi phổ biến và cách tránh
+## 6. Common Mistakes and How to Avoid Them
 
-| Sai lầm | Hậu quả hoặc cách hiểu đúng |
+| Mistake | Consequence or Correct Understanding |
 | --- | --- |
-| Chỉ ghi đè `equals()`, bỏ `hashCode()` | Hai đối tượng bằng nhau có thể có hash khác nhau; tra cứu trong cấu trúc băm sai |
-| Nghĩ hash trùng nghĩa là đối tượng bằng nhau | Hash trùng là va chạm bình thường; vẫn cần `equals()` để phân biệt |
-| Dùng số băm làm ID toàn cục hoặc khoá cơ sở dữ liệu duy nhất | `int` hữu hạn, va chạm được phép, không bảo đảm ổn định qua nhiều lần chạy |
-| Luôn trả về cùng một số (chẳng hạn `1`) | Không nhất thiết vi phạm hợp đồng nhưng làm phân phối rất kém và giảm hiệu suất |
-| Thay đổi trường tham gia `equals()` / `hashCode()` sau khi đưa khoá vào `HashMap` | Khoá có thể được tìm ở bucket khác với lúc lưu, khiến `get`/`containsKey` thất bại |
-| Cho rằng hash code luôn không âm | Hash code `int` có dấu; thư viện băm phải xử lý cả giá trị âm |
-| Giả định thứ tự duyệt `HashMap` do hash quyết định ổn định | `HashMap` không cam kết thứ tự duyệt, kể cả sau khi thêm/xoá hoặc resize |
+| Overriding only `equals()` and omitting `hashCode()` | Two equal objects may have different hashes; lookups in hash structures fail |
+| Thinking matching hashes mean equal objects | Matching hashes are a normal collision; `equals()` is still needed to distinguish them |
+| Using a hash number as a global ID or unique database key | `int` is finite, collisions are allowed, and stability across runs is not guaranteed |
+| Always returning the same number (such as `1`) | Does not necessarily violate the contract, but gives very poor distribution and hurts performance |
+| Mutating fields used in `equals()` / `hashCode()` after placing the key into a `HashMap` | The key may be looked up in a different bucket than where it was stored, causing `get`/`containsKey` to fail |
+| Assuming hash codes are always non-negative | `int` hash codes are signed; hash libraries must handle negative values as well |
+| Assuming `HashMap` iteration order determined by hashes is stable | `HashMap` does not guarantee iteration order, including after additions/removals or resizing |
 
-**Khuyến nghị:** Dùng khoá bất biến (các trường tham gia so sánh là `final` và các giá trị thành phần không bị thay đổi). Kiểm thử hai chiều: các đối tượng bằng nhau phải có cùng hash; các đối tượng khác nhau vẫn được cấu trúc băm quản lý đúng ngay cả khi vô tình trùng hash.
+**Recommendation:** Use immutable keys (fields involved in comparison are `final` and component values are not mutated). Test in both directions: equal objects must have the same hash; distinct objects must still be managed properly by hash structures even when they accidentally collide.
 
-## 7. Tự kiểm tra kiến thức
+## 7. Self-Check Questions
 
-1. Hai đối tượng khác nhau cùng trả về hash `42`. `HashSet` có bắt buộc chỉ giữ một đối tượng? **Không**; nó phải xét `equals()` để xác định phần tử bằng nhau.
-2. Hai đối tượng được `equals()` xem là bằng nhau nhưng có hash khác nhau. Có hợp lệ? **Không**; đó là vi phạm hợp đồng và có thể làm hỏng logic tra cứu.
-3. Có thể nhận hash âm từ một đối tượng hợp lệ? **Có**; `hashCode()` trả về kiểu `int` có dấu.
-4. Có thể suy ra bucket từ chính `hashCode()` để lưu ngoài `HashMap`? **Không nên**; bucket phụ thuộc dung lượng và cách triển khai, không phải phần của hợp đồng `Object.hashCode()`.
+1. Two different objects both return hash `42`. Must `HashSet` keep only one object? **No**; it must inspect `equals()` to determine whether elements are equal.
+2. Two objects are considered equal by `equals()` but have different hashes. Is that valid? **No**; that is a contract violation and can break lookup logic.
+3. Can a valid object return a negative hash? **Yes**; `hashCode()` returns a signed `int`.
+4. Can you derive the bucket directly from `hashCode()` to store outside `HashMap`? **You should not**; the bucket depends on capacity and implementation, and is not part of the `Object.hashCode()` contract.
 
-**Ghi nhớ:** `hashCode()` trả `int` để hỗ trợ ánh xạ nhanh từ khoá tới nhóm ứng viên; `equals()` xác định khoá có thực sự bằng nhau. **Bằng nhau ⇒ cùng hash; cùng hash ⇏ bằng nhau.**
+**Takeaway:** `hashCode()` returns an `int` to support fast mapping from a key to a group of candidates; `equals()` determines whether keys are actually equal. **Equal ⇒ same hash; same hash ⇏ equal.**

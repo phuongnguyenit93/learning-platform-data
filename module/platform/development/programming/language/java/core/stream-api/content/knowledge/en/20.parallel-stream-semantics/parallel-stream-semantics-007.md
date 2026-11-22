@@ -1,14 +1,14 @@
-# Trạng thái dùng chung, thread confinement và an toàn luồng
+# Shared State, Thread Confinement, and Thread Safety
 
-Khi đổi một pipeline Java Stream API từ `stream()` sang `parallelStream()`, Java có thể xử lý các phần tử trong nhiều tác vụ đồng thời. Nếu lambda chỉ đọc dữ liệu bất biến và trả về giá trị mới, chương trình thường vẫn dễ hiểu. Nhưng nếu lambda **ghi vào một `ArrayList`, `HashMap`, bộ đếm hoặc đối tượng dùng chung**, kết quả có thể thiếu, trùng, sai thứ tự hoặc phụ thuộc lịch chạy của các luồng.
+When switching a Java Stream API pipeline from `stream()` to `parallelStream()`, Java may process elements across multiple concurrent tasks. If lambdas only read immutable data and return new values, the program usually remains straightforward. However, if lambdas **write to a shared `ArrayList`, `HashMap`, counter, or object**, results can suffer from missing elements, duplicates, wrong ordering, or dependence on thread scheduling.
 
-Bài học thuộc chương **Ngữ nghĩa xử lý song song** của mô-đun **JAVA_STREAM_API**. Mục tiêu là hiểu ba ý tưởng liên quan nhưng không đồng nhất: **shared mutable state** (trạng thái có thể thay đổi được chia sẻ), **thread confinement** (giới hạn quyền truy cập trạng thái trong một phạm vi thực thi) và **thread safety** (tính đúng khi có truy cập đồng thời). Chúng ta sẽ vận dụng các quy tắc này vào `filter`, `map`, `reduce`, `collect`, `groupingBy`, collector tùy chỉnh, `Spliterator`, nguồn I/O, xử lý song song và đánh giá hiệu năng.
+This lesson belongs to the **Parallel Processing Semantics** chapter of the **JAVA_STREAM_API** module. The goal is to understand three related yet distinct ideas: **shared mutable state**, **thread confinement** (restricting state access within an execution scope), and **thread safety** (correctness under concurrent access). We will apply these rules to `filter`, `map`, `reduce`, `collect`, `groupingBy`, custom collectors, `Spliterator`, I/O sources, parallel execution, and performance evaluation.
 
-## 1. Vì sao pipeline tuần tự có vẻ đúng nhưng song song lại sai?
+## 1. Why does a sequential pipeline seem right yet fail in parallel?
 
-Xét một danh sách số nguyên, cần lấy các số chẵn rồi trả về một danh sách mới.
+Consider a list of integers where we want to extract even numbers into a new list.
 
-Cách viết nguy hiểm:
+Dangerous approach:
 
 ```java
 import java.util.ArrayList;
@@ -20,14 +20,14 @@ List<Integer> result = new ArrayList<>();
 IntStream.range(0, 10_000)
     .parallel()
     .filter(n -> n % 2 == 0)
-    .forEach(result::add); // Không an toàn!
+    .forEach(result::add); // Unsafe!
 
 System.out.println(result.size());
 ```
 
-Về toán học, có **5.000** số chẵn trong khoảng `[0, 10_000)`. Nhưng `ArrayList.add` không được thiết kế để nhiều luồng cập nhật đồng thời trên cùng một danh sách. Việc ghi vào mảng nội bộ và cập nhật số lượng phần tử có thể tranh chấp, khiến kết quả không đáng tin cậy; lỗi cũng có thể không xuất hiện ở mọi lần chạy.
+Mathematically, there are **5,000** even numbers in `[0, 10_000)`. Yet `ArrayList.add` is not designed for concurrent updates by multiple threads on the same list. Writing to the internal array and updating the element count can race, making the result unreliable; bugs may also not surface on every run.
 
-Cách sửa bằng cơ chế thu thập của Stream:
+Fix using Stream's collection mechanism:
 
 ```java
 List<Integer> evenNumbers = IntStream.range(0, 10_000)
@@ -39,50 +39,50 @@ List<Integer> evenNumbers = IntStream.range(0, 10_000)
 System.out.println(evenNumbers.size()); // 5000
 ```
 
-Pipeline này giao việc quản lý kết quả cho `toList()`. Với nguồn có thứ tự như `IntStream.range`, kết quả `toList()` giữ thứ tự gặp; danh sách kết quả không thể chỉnh sửa bằng `add`/`remove`. Ta không cần tự điều phối nhiều lời gọi `add` vào một `ArrayList` toàn cục.
+This pipeline delegates result management to `toList()`. With an ordered source like `IntStream.range`, `toList()` preserves encounter order; the returned list cannot be mutated via `add`/`remove`. We do not need to coordinate concurrent `add` calls into a global `ArrayList`.
 
-**Nguyên tắc đầu tiên:** Hãy mô tả **kết quả cần nhận** bằng `reduce` hoặc `collect`, thay vì biến các lambda thành một vòng lặp cập nhật trạng thái bên ngoài.
+**First principle:** Describe the **desired result** using `reduce` or `collect`, instead of turning lambdas into a loop mutating external state.
 
-## 2. Ba khái niệm cần phân biệt
+## 2. Three concepts to distinguish
 
-| Khái niệm | Ý nghĩa | Ví dụ |
+| Concept | Meaning | Example |
 | --- | --- | --- |
-| **Shared mutable state** | Có từ hai tác vụ trở lên có thể truy cập cùng một đối tượng/trường và ít nhất một tác vụ có thể ghi | Nhiều lambda gọi `sharedList.add(...)` |
-| **Thread confinement** | Trạng thái chỉ được một luồng hoặc một phạm vi tác vụ sở hữu tại một thời điểm, không bị nhiều tác vụ sửa đồng thời | Container tích lũy riêng của một nhánh `collect` |
-| **Thread safety** | Các thao tác trên trạng thái duy trì hợp đồng đúng khi nhiều luồng có thể truy cập đồng thời | `ConcurrentHashMap` với các phương thức cập nhật phù hợp |
+| **Shared mutable state** | Two or more tasks can access the same object/field and at least one task can write to it | Multiple lambdas calling `sharedList.add(...)` |
+| **Thread confinement** | State is owned by only one thread or task scope at a time, never mutated concurrently by multiple tasks | A private accumulation container for one `collect` branch |
+| **Thread safety** | Operations on state uphold their contract when multiple threads access it concurrently | `ConcurrentHashMap` with appropriate update methods |
 
-**Thread-safe không có nghĩa toàn bộ thuật toán đúng.** Ví dụ, `AtomicInteger.incrementAndGet()` bảo đảm một phép tăng đơn lẻ là nguyên tử, nhưng không bảo đảm lambda sẽ được gọi đúng một lần cho mỗi phần tử đầu vào; các thao tác Stream có thể dừng sớm hoặc bỏ qua công việc không cần thiết.
+**Thread-safe does not mean the whole algorithm is correct.** For example, `AtomicInteger.incrementAndGet()` guarantees a single increment is atomic, yet it does not guarantee the lambda is called exactly once per input element; Stream operations may short-circuit or skip unnecessary work.
 
-**Thread confinement cũng không đồng nghĩa một đối tượng phải gắn mãi với cùng một Java thread.** Với collector không concurrent, trạng thái tích lũy được quản lý sao cho không phải chịu các lời gọi accumulator đồng thời trên cùng container. Khi kết hợp, container có thể được chuyển qua các tác vụ theo cách do framework quản lý. Điều cần giữ là **không có quyền sở hữu ghi đồng thời không được bảo vệ**, chứ không phải ghi nhớ thread ID.
+**Thread confinement also does not mean an object is permanently pinned to the same Java thread.** In a non-concurrent collector, accumulation state is managed so it never experiences concurrent accumulator calls on the same container. During combining, a container may be handed across tasks in a framework-managed way. What must hold is **no unprotected concurrent write ownership**, not memorizing thread IDs.
 
-### Sơ đồ trực quan
+### Visual diagram
 
 ```text
-Sai: trạng thái dùng chung không đồng bộ
+Wrong: unsynchronized shared state
 
  task A ---- add ----\
- task B ---- add -----+----> ArrayList dùng chung (race)
+ task B ---- add -----+----> shared ArrayList (race)
  task C ---- add ----/
 
-Đúng: trạng thái tích lũy thuộc các phần xử lý
+Right: accumulation state owned by processing chunks
 
  task A --> container A --\
-                           +--> combiner --> kết quả
+                           +--> combiner --> result
  task B --> container B --/
 ```
 
-Trong cách thứ hai, `supplier`, `accumulator` và `combiner` thể hiện ranh giới quản lý trạng thái. Đây là lý do một collector có thể sử dụng container mutable bên trong mà không yêu cầu container đó tự nó là concurrent.
+In the second approach, `supplier`, `accumulator`, and `combiner` express the state-management boundaries. This is why a collector can use a mutable internal container without requiring that container itself to be concurrent.
 
-## 3. Vì sao `ArrayList` và `HashMap` chia sẻ dễ tạo data race?
+## 3. Why do shared `ArrayList` and `HashMap` easily cause data races?
 
-Một **data race** xuất hiện khi các tác vụ truy cập một trạng thái thông thường mà không có cơ chế đồng bộ phù hợp, trong đó có ghi. Hệ quả không chỉ là “mất một lần tăng”:
+A **data race** occurs when tasks access ordinary state without proper synchronization, including at least one write. The consequences go beyond "losing one increment":
 
-- Một phần cập nhật có thể ghi đè cập nhật khác.
-- Cấu trúc nội bộ có thể ở trạng thái không nhất quán trong lúc một tác vụ khác đang đọc/ghi.
-- Thứ tự quan sát và khả năng nhìn thấy giá trị giữa các luồng có thể khác mong đợi.
-- Kết quả có thể thay đổi giữa các lần chạy dù đầu vào giống nhau.
+- One update can overwrite another update.
+- Internal structure can be left inconsistent while another task reads or writes.
+- Observed order and value visibility across threads can diverge from expectations.
+- Results can vary between runs even on identical inputs.
 
-Ví dụ đếm theo khu vực bằng `HashMap` ngoài pipeline:
+Example counting by region using an external `HashMap`:
 
 ```java
 import java.util.HashMap;
@@ -92,12 +92,12 @@ Map<String, Long> totals = new HashMap<>();
 
 orders.parallelStream().forEach(order ->
     totals.merge(order.region(), order.amountVnd(), Long::sum)
-); // Sai: HashMap không an toàn cho các cập nhật đồng thời.
+); // Wrong: HashMap is not safe for concurrent updates.
 ```
 
-Ngay cả khi mỗi phần tử chỉ có một vùng, hai tác vụ vẫn có thể cập nhật cùng khóa hoặc gây tranh chấp cấu trúc Map. Việc `Map.merge` là một phương thức tiện lợi **không biến `HashMap` thành concurrent Map**.
+Even if every element belonged to a distinct region, two tasks can still collide or corrupt Map structure. The fact that `Map.merge` is a convenient method **does not turn `HashMap` into a concurrent Map**.
 
-Cách viết theo ý định tổng hợp:
+Writing according to aggregation intent:
 
 ```java
 import java.util.Map;
@@ -110,16 +110,16 @@ Map<String, Long> totalsByRegion = orders.parallelStream()
     ));
 ```
 
-`groupingBy` kết hợp với `summingLong` để framework quản lý bộ tích lũy và cách hợp nhất các kết quả từng phần.
+`groupingBy` combined with `summingLong` lets the framework manage accumulators and merge partial results.
 
-## 4. Yêu cầu đối với lambda: non-interfering và stateless
+## 4. Requirements for lambdas: non-interfering and stateless
 
-Các hàm truyền cho nhiều thao tác Stream như `filter`, `map`, `mapToLong` phải tuân thủ những điều kiện quan trọng:
+Functions passed to many Stream operations such as `filter`, `map`, and `mapToLong` must satisfy key requirements:
 
-- **Non-interfering:** không can thiệp vào nguồn đang được Stream duyệt, trừ trường hợp nguồn được thiết kế hỗ trợ can thiệp đồng thời theo hợp đồng.
-- **Stateless:** kết quả không phụ thuộc vào trạng thái có thể thay đổi trong quá trình thực thi pipeline.
+- **Non-interfering:** must not interfere with the source being traversed by the Stream, unless the source is contractually designed to support concurrent modification.
+- **Stateless:** the result must not depend on state that can change during pipeline execution.
 
-Lambda phù hợp:
+Well-behaved lambdas:
 
 ```java
 List<String> names = List.of("An", "Bình", "Chi");
@@ -132,9 +132,9 @@ List<Integer> lengths = names.parallelStream()
 System.out.println(lengths); // [2, 4, 3]
 ```
 
-`String::length` chỉ đọc đối tượng đầu vào và trả về một số; `filter` không sửa nguồn. Do đó, các thao tác có thể được đánh giá mà không cần cập nhật biến chung.
+`String::length` only reads the input object and returns a number; `filter` does not mutate the source. Thus operations can be evaluated without updating shared variables.
 
-Lambda không phù hợp:
+Improper lambdas:
 
 ```java
 import java.util.ArrayList;
@@ -144,17 +144,17 @@ List<Integer> source = new ArrayList<>(List.of(1, 2, 3, 4));
 
 source.parallelStream()
     .map(n -> {
-        source.add(n * 10); // Can thiệp chính collection đang duyệt!
+        source.add(n * 10); // Interfering with the collection being traversed!
         return n * n;
     })
     .toList();
 ```
 
-Đoạn trên có thể gây `ConcurrentModificationException` hoặc hành vi không được bảo đảm, kể cả trước khi bàn tới tính đúng của kết quả. Không sửa cấu trúc nguồn được duyệt trong các behavioral functions thông thường.
+This snippet can throw `ConcurrentModificationException` or exhibit undefined behavior, even before considering result correctness. Do not modify the traversed source structure inside ordinary behavioral functions.
 
-### 4.1. Đối tượng đầu vào cũng có thể bị chia sẻ
+### 4.1. Input elements themselves can also be shared
 
-Ngay cả khi `List` nguồn không đổi, từng phần tử trong danh sách có thể là **đối tượng mutable**, và nhiều mục trong nguồn có thể cùng tham chiếu tới một đối tượng. Khi lambda sửa phần tử, các tác vụ có thể ghi vào cùng đối tượng đó.
+Even when the source `List` is unmodifiable, individual elements in the list may be **mutable objects**, and multiple entries in the source may reference the same object. When a lambda mutates an element, tasks can write to that same object concurrently.
 
 ```java
 final class Counter {
@@ -167,13 +167,13 @@ List<Counter> input = List.of(shared, shared);
 input.parallelStream().forEach(counter -> counter.value++);
 ```
 
-Mỗi phần tử ở đây trỏ đến **cùng Counter**. Phép `value++` không nguyên tử; việc nguồn là `List.of(...)` không làm đối tượng `Counter` bất biến. Muốn xử lý song song an toàn, hãy ưu tiên xây **giá trị kết quả mới** hoặc áp dụng cơ chế đồng bộ/giới hạn quyền sở hữu đúng với mô hình dữ liệu.
+Both entries here point to **the same Counter**. `value++` is not atomic; having `List.of(...)` as the source does not make `Counter` immutable. To process safely in parallel, prefer constructing **new result values** or applying synchronization/ownership rules suited to the data model.
 
-## 5. Shared mutable accumulator và điều gì làm `reduce` sai
+## 5. Shared mutable accumulators and what breaks `reduce`
 
-`reduce(identity, accumulator)` được thiết kế cho một phép kết hợp có **identity hợp lệ**, **tính kết hợp** (*associativity*) và không dựa vào side effect bên ngoài.
+`reduce(identity, accumulator)` is designed for a combining operation with a **valid identity**, **associativity**, and no reliance on external side effects.
 
-Ví dụ an toàn:
+Safe example:
 
 ```java
 import java.util.stream.LongStream;
@@ -185,9 +185,9 @@ long sum = LongStream.rangeClosed(1, 1_000)
 System.out.println(sum); // 500500
 ```
 
-`Long::sum` kết hợp hai giá trị và trả về một giá trị `long`; nó không sửa biến dùng chung. Với miền số trong ví dụ, tổng không tràn. Tuy nhiên, `parallel()` không làm kiểu `long` miễn nhiễm tràn số, và phép cộng `double` có thể khác ở chữ số cuối do làm tròn.
+`Long::sum` combines two values and returns a `long`; it does not mutate shared variables. Within the example's range, the sum does not overflow. However, `parallel()` does not make `long` immune to overflow, and `double` addition can still differ in the last digits due to rounding.
 
-Ví dụ sai về side effect:
+Wrong example with side effects:
 
 ```java
 import java.util.concurrent.atomic.AtomicLong;
@@ -197,27 +197,27 @@ AtomicLong runningTotal = new AtomicLong();
 long reduced = LongStream.rangeClosed(1, 1_000)
     .parallel()
     .reduce(0L, (left, right) -> {
-        runningTotal.addAndGet(right); // Side effect bên ngoài reduce!
+        runningTotal.addAndGet(right); // External side effect inside reduce!
         return left + right;
     });
 ```
 
-`runningTotal` là thread-safe ở mức cập nhật đơn, nhưng chương trình đang duy trì **hai kết quả** với ngữ nghĩa khác nhau. Trong giảm song song, accumulator có thể nhận kết quả từng phần chứ không chỉ nhận từng phần tử nguồn, nên `runningTotal` không có hợp đồng tương đương với phép tổng. Cách đúng là **dùng chính giá trị `reduced` trả về** và loại side effect.
+`runningTotal` is thread-safe at the single-update level, yet the program maintains **two results** with different semantics. In parallel reduction, the accumulator can receive partial results rather than only raw source elements, so `runningTotal` has no contract equivalent to the sum. The right approach is **using the returned `reduced` value directly** and removing the side effect.
 
-### 5.1. Tính kết hợp quan trọng hơn thứ tự tác vụ
+### 5.1. Associativity matters more than task order
 
-Phép trừ không kết hợp:
+Subtraction is not associative:
 
 ```text
 (10 - 3) - 2 = 5
 10 - (3 - 2) = 9
 ```
 
-Vì vậy không nên coi `reduce(0, (a, b) -> a - b)` là một phép tổng hợp song song hợp lệ. Thay đổi cách chia và gộp có thể làm kết quả khác nhau. Các thuật toán phụ thuộc trạng thái trước đó hoặc thứ tự từng bước có thể phù hợp hơn với vòng lặp tuần tự hoặc một cấu trúc xử lý trạng thái chuyên dụng.
+Therefore, do not treat `reduce(0, (a, b) -> a - b)` as a valid parallel aggregation. Changing how elements are split and merged can change the result. Algorithms that depend on previous state or step-by-step order may fit a sequential loop or a dedicated stateful construct better.
 
-## 6. Thread confinement qua `collect`: mutable bên trong, kết quả đúng
+## 6. Thread confinement via `collect`: mutable inside, right result
 
-Collector không concurrent có thể sử dụng một `ArrayList` mutable làm trạng thái tích lũy vì framework quản lý việc tạo container và kết hợp. Đây là ví dụ cụ thể cho **confinement theo phạm vi tích lũy**.
+A non-concurrent collector can use a mutable `ArrayList` as its accumulation state because the framework manages container creation and merging. This is a concrete example of **confinement within an accumulation scope**.
 
 ```java
 import java.util.ArrayList;
@@ -228,13 +228,13 @@ record Product(String sku, long priceVnd) {}
 
 Collector<Product, ArrayList<String>, List<String>> skuCollector =
     Collector.of(
-        ArrayList::new,                      // supplier: container riêng
+        ArrayList::new,                      // supplier: dedicated container
         (list, product) -> list.add(product.sku()),
-        (left, right) -> {                   // combiner: gộp hai container
+        (left, right) -> {                   // combiner: merges two containers
             left.addAll(right);
             return left;
         },
-        List::copyOf                         // finisher: kết quả không sửa được
+        List::copyOf                         // finisher: unmodifiable result
     );
 
 List<Product> products = List.of(
@@ -249,9 +249,9 @@ List<String> skus = products.parallelStream()
 System.out.println(skus); // [P-01, P-02, P-03]
 ```
 
-Mặc dù `ArrayList` không thread-safe để nhiều luồng gọi `add` đồng thời, collector trên **không khai báo `CONCURRENT`** và dựa vào hợp đồng collector để các container tạm thời không bị tích lũy đồng thời theo cách nguy hiểm. Combiner gộp các container và finisher tạo bản sao kết quả.
+Although `ArrayList` is not thread-safe for concurrent `add` calls from multiple threads, the collector above **does not declare `CONCURRENT`** and relies on the collector contract so temporary containers are never concurrently accumulated into unsafely. The combiner merges containers and the finisher produces an immutable copy.
 
-Với ví dụ chỉ lấy SKU, có thể viết ngắn và rõ hơn bằng collector có sẵn:
+For the simple case of extracting SKUs, a built-in collector is shorter and clearer:
 
 ```java
 List<String> skus = products.parallelStream()
@@ -259,22 +259,22 @@ List<String> skus = products.parallelStream()
     .toList();
 ```
 
-**Điều cần học:** Không phải mọi trạng thái mutable đều sai. Trạng thái mutable **do framework sở hữu, có ranh giới rõ, kết hợp được đúng cách** là một mô hình hợp lệ. Trạng thái mutable **bên ngoài pipeline được nhiều tác vụ sửa trực tiếp** mới là nguồn lỗi thường gặp.
+**Lesson to learn:** Not all mutable state is wrong. Mutable state **owned by the framework, clearly scoped, and combined properly** is a valid pattern. Mutable state **outside the pipeline mutated directly by multiple tasks** is the common source of bugs.
 
-### 6.1. Vai trò của bốn thành phần Collector
+### 6.1. Roles of the four Collector components
 
-| Thành phần | Ý nghĩa trong song song | Rủi ro khi viết sai |
+| Component | Role in parallel execution | Risk if written incorrectly |
 | --- | --- | --- |
-| `supplier` | Tạo container khởi đầu; nhiều container có thể được tạo | Trả về một singleton mutable dùng chung |
-| `accumulator` | Thêm một phần tử vào container được giao | Ghi đồng thời vào container khác hoặc biến ngoài |
-| `combiner` | Hợp nhất các kết quả từng phần | Bỏ sót phần tử, gộp hai lần hoặc sai thứ tự |
-| `finisher` | Chuyển container thành kiểu kết quả cuối | Làm lộ tham chiếu mutable khi kết quả cần bất biến |
+| `supplier` | Creates an initial container; multiple containers may be created | Returning a shared mutable singleton |
+| `accumulator` | Adds an element to the assigned container | Concurrently writing to another container or external variable |
+| `combiner` | Merges partial results | Dropping elements, double-merging, or wrong order |
+| `finisher` | Converts container into the final result type | Exposing a mutable reference when an immutable result is expected |
 
-Không đặt phụ phí cố định, giá trị đếm khởi đầu khác 0 hoặc dữ liệu ngoại lai vào supplier một cách tùy tiện: trong pipeline song song, container có thể được tạo nhiều lần, khiến giá trị khởi đầu bị tính lặp lại.
+Do not arbitrarily put a fixed surcharge, non-zero initial counter, or external data inside the supplier: in a parallel pipeline, containers can be created multiple times, causing the initial value to be counted repeatedly.
 
-## 7. `groupingBy` và `groupingByConcurrent`: cùng mục tiêu, hợp đồng khác nhau
+## 7. `groupingBy` and `groupingByConcurrent`: same goal, different contracts
 
-Đếm và tính tổng theo vùng là ví dụ thường gặp của trạng thái tích lũy theo nhóm.
+Counting and summing by region is a common example of grouped accumulation state.
 
 ```java
 import java.util.Map;
@@ -296,29 +296,29 @@ ConcurrentMap<String, Long> concurrentGrouped = orders.parallelStream()
     ));
 ```
 
-| Collector | Cách nhìn về trạng thái | Thứ tự |
+| Collector | View of state | Ordering |
 | --- | --- | --- |
-| `groupingBy` | Có thể tạo nhiều Map/container từng phần rồi ghép | Không mặc định bảo đảm thứ tự duyệt khóa Map; downstream có thể cần giữ thứ tự giá trị |
-| `groupingByConcurrent` | Là collector `CONCURRENT` và `UNORDERED`; hỗ trợ tích lũy đồng thời vào `ConcurrentMap` khi phù hợp | Không duy trì encounter order như một yêu cầu kết quả |
+| `groupingBy` | May create multiple partial Maps/containers and merge them | Does not guarantee Map key iteration order by default; downstream may still preserve value order |
+| `groupingByConcurrent` | A `CONCURRENT` and `UNORDERED` collector; supports concurrent accumulation into a `ConcurrentMap` when applicable | Does not maintain encounter order as a result requirement |
 
-Một điểm dễ nhầm: `Collectors.summingLong(...)` hoặc `Collectors.toList()` **không phải concurrent collector độc lập**. Nhưng khi làm downstream của `groupingByConcurrent`, implementation phải phối hợp các lần tích lũy cần thiết để bảo đảm hợp đồng của collector kết hợp; không được tự suy rằng downstream sẽ bị gọi đồng thời không bảo vệ trên cùng một `ArrayList`.
+A common misconception: `Collectors.summingLong(...)` or `Collectors.toList()` **are not standalone concurrent collectors**. Yet when used as a downstream of `groupingByConcurrent`, the implementation must coordinate accumulation calls as needed to uphold the combined collector's contract; do not assume downstream will be invoked concurrently without protection on the same `ArrayList`.
 
-Tuy nhiên, không vì thế mà thay toàn bộ `groupingBy` bằng `groupingByConcurrent`. Nếu dữ liệu tập trung vào rất ít khóa, contention có thể cao; nếu thứ tự phần tử trong từng nhóm có ý nghĩa, collector unordered có thể không phù hợp.
+Still, do not replace all `groupingBy` calls with `groupingByConcurrent`. If data concentrates on very few keys, contention can be high; if element order inside each group matters, an unordered collector may be unsuitable.
 
-### 7.1. `Spliterator.CONCURRENT` khác `Collector.Characteristics.CONCURRENT`
+### 7.1. `Spliterator.CONCURRENT` differs from `Collector.Characteristics.CONCURRENT`
 
-- `Spliterator.CONCURRENT` nói rằng **nguồn** hỗ trợ sửa đổi đồng thời trong khi duyệt theo một hợp đồng nhất định.
-- `Collector.Characteristics.CONCURRENT` nói rằng **bộ tích lũy** có thể được gọi đồng thời trên **cùng container kết quả** theo hợp đồng của collector.
+- `Spliterator.CONCURRENT` states that the **source** supports concurrent modification during traversal under a specific contract.
+- `Collector.Characteristics.CONCURRENT` states that the **accumulator** may be called concurrently on **the same result container** under the collector's contract.
 
-Hai cờ thuộc hai lớp trách nhiệm khác nhau. Một nguồn concurrent không làm `ArrayList` dùng chung trong `forEach` trở nên an toàn; một collector concurrent cũng không tự bảo đảm mọi nguồn tùy chỉnh có thể bị sửa trong lúc duyệt.
+The two flags belong to two different layers of responsibility. A concurrent source does not make a shared `ArrayList` in `forEach` safe; a concurrent collector does not automatically make any custom source safe to mutate during traversal.
 
-## 8. Có nên dùng `AtomicInteger`, `LongAdder` hoặc khóa?
+## 8. Should you use `AtomicInteger`, `LongAdder`, or locks?
 
-Các primitive đồng bộ hữu ích khi bài toán **thực sự cần trạng thái dùng chung**. Nhưng trong pipeline Stream, chúng thường không phải lựa chọn đầu tiên cho phép đếm/tổng.
+Synchronization primitives are useful when a problem **genuinely needs shared state**. In Stream pipelines, however, they are rarely the first choice for counting or summing.
 
-### 8.1. `AtomicInteger` và `AtomicLong`
+### 8.1. `AtomicInteger` and `AtomicLong`
 
-`AtomicInteger.incrementAndGet()` là phép tăng nguyên tử. Ví dụ sau không có data race ở phép tăng:
+`AtomicInteger.incrementAndGet()` is an atomic increment. The following example has no data race on the increment itself:
 
 ```java
 import java.util.concurrent.atomic.AtomicInteger;
@@ -333,7 +333,7 @@ IntStream.range(0, 1_000)
 System.out.println(counter.get()); // 1000
 ```
 
-Trong ví dụ đơn giản, terminal `forEach` xử lý từng phần tử và cập nhật đồng bộ. Nhưng nếu mục tiêu **chỉ là đếm**, code gọn hơn:
+In this simple example, terminal `forEach` processes each element and updates atomically. Yet if the goal is **only counting**, the code is cleaner as:
 
 ```java
 long count = IntStream.range(0, 1_000)
@@ -343,11 +343,11 @@ long count = IntStream.range(0, 1_000)
 System.out.println(count); // 1000
 ```
 
-`AtomicInteger` giải quyết **atomicity của một thao tác**, không tự bảo đảm toàn bộ nghiệp vụ. Đặc biệt, khi đồng thời cập nhật nhiều trường (ví dụ `count` và `total`), hai `AtomicLong` riêng lẻ không tạo ra một **snapshot nhất quán** của cả hai trường nếu người đọc quan sát trong lúc cập nhật.
+`AtomicInteger` solves **atomicity of a single operation**, not correctness of an entire business flow. Specifically, when concurrently updating multiple fields (e.g., `count` and `total`), two separate `AtomicLong` instances do not form a **consistent snapshot** of both fields if a reader observes them mid-update.
 
-### 8.2. `LongAdder`: giảm contention không đồng nghĩa thay thế Collector
+### 8.2. `LongAdder`: reducing contention does not mean replacing a Collector
 
-`LongAdder` hữu ích cho bộ đếm chịu nhiều cập nhật đồng thời. Ví dụ:
+`LongAdder` is useful for counters under heavy concurrent updates. Example:
 
 ```java
 import java.util.concurrent.atomic.LongAdder;
@@ -355,20 +355,20 @@ import java.util.concurrent.atomic.LongAdder;
 LongAdder processed = new LongAdder();
 
 orders.parallelStream().forEach(order -> {
-    // Giả sử có tác vụ xử lý thực sự cần bộ đếm telemetry:
+    // Suppose real work needs a telemetry counter:
     processed.increment();
 });
 
 System.out.println(processed.sum());
 ```
 
-`LongAdder.sum()` không phải snapshot nguyên tử trong khi các luồng vẫn đang cập nhật. Sau khi một terminal operation đồng bộ hoàn tất, có thể đọc kết quả cho mục đích quan sát; nhưng với các thống kê nghiệp vụ trực tiếp từ Stream, `count()` hoặc collector tương ứng dễ kiểm chứng hơn.
+`LongAdder.sum()` is not an atomic snapshot while threads are still updating. Once a synchronous terminal operation finishes, you can read it for observability; for direct business statistics from a Stream, `count()` or an appropriate collector is easier to verify.
 
-Một bộ đếm telemetry là khác biệt về mục đích so với **sản phẩm đầu ra của pipeline**. Đừng dựa vào bộ đếm dùng chung để quyết định logic phê duyệt khi kết quả có thể mô tả thuần bằng Stream.
+A telemetry counter differs in purpose from **the pipeline's output product**. Do not rely on a shared counter for approval logic when the result can be expressed purely with Streams.
 
 ### 8.3. `Collections.synchronizedList`
 
-Một danh sách có đồng bộ có thể khiến lời gọi `add` riêng lẻ an toàn hơn:
+A synchronized list can make individual `add` calls safer:
 
 ```java
 import java.util.ArrayList;
@@ -385,15 +385,15 @@ IntStream.range(0, 1_000)
 System.out.println(synchronizedResult.size()); // 1000
 ```
 
-Nhưng **thứ tự phần tử trong danh sách không còn đồng nghĩa encounter order**: những tác vụ xử lý các chỉ số nhỏ hơn có thể gọi `add` sau các tác vụ khác. Ngoài ra, các thao tác phối hợp như vừa kiểm tra vừa thêm có thể cần đồng bộ bổ sung, và mọi luồng cạnh tranh cùng khóa sẽ tăng chi phí.
+However, **element order in the list is no longer encounter order**: tasks processing smaller indices may call `add` after other tasks. Furthermore, compound operations like check-then-add need extra synchronization, and all threads contending on the same lock add overhead.
 
-Nếu cần `List<Integer>` theo encounter order, dùng `boxed().toList()` hoặc collector có sẵn; chỉ dùng danh sách đồng bộ ngoài pipeline khi có yêu cầu cụ thể không biểu diễn tốt bằng phép thu thập.
+If you need a `List<Integer>` in encounter order, use `boxed().toList()` or a built-in collector; only use a synchronized list outside the pipeline when a specific requirement cannot be expressed cleanly as a collection step.
 
-## 9. `ThreadLocal`: không phải phép tổng hợp dữ liệu
+## 9. `ThreadLocal`: not a data aggregation mechanism
 
-`ThreadLocal<T>` cung cấp một giá trị riêng theo **luồng thực thi**. Nó có ích trong một số ngữ cảnh quản lý trạng thái gắn với từng thread, nhưng rất dễ bị hiểu sai khi áp dụng vào parallel Stream.
+`ThreadLocal<T>` provides a separate value per **execution thread**. It is helpful in certain per-thread state contexts, yet easily misused in parallel Streams.
 
-Ví dụ tư duy sai:
+Wrong mental model example:
 
 ```java
 import java.util.concurrent.atomic.AtomicInteger;
@@ -404,19 +404,19 @@ orders.parallelStream().forEach(order ->
     localCount.set(localCount.get() + 1)
 );
 
-// localCount.get() ở thread gọi phía ngoài KHÔNG phải tổng mọi thread.
+// localCount.get() on the outer calling thread is NOT the sum across all threads.
 System.out.println(localCount.get());
 ```
 
-Mỗi worker thread có một giá trị riêng. `ThreadLocal` **không có cơ chế tự ghép các giá trị** thành tổng cuối; thậm chí các tác vụ khác nhau có thể được lập lịch lên cùng một thread theo cách không do ứng dụng kiểm soát.
+Each worker thread has its own value. `ThreadLocal` **has no mechanism to automatically merge values** into a final total; furthermore, different tasks may be scheduled onto the same thread in ways the application does not control.
 
-Còn một rủi ro vòng đời: các luồng thuộc pool có thể được **tái sử dụng cho công việc khác**. Nếu trạng thái `ThreadLocal` bị giữ lại không đúng cách, nó có thể rò rỉ dữ liệu hoặc ảnh hưởng tác vụ tiếp theo. Khi thật sự phải dùng `ThreadLocal`, hãy xác định điểm thiết lập và xóa bằng `remove()` trong `finally`, song tránh lạm dụng như phương tiện truyền dữ liệu giữa các giai đoạn của Stream.
+There is also a lifecycle risk: pool threads can be **reused for other work**. If `ThreadLocal` state is retained improperly, it can leak data or affect subsequent tasks. When you genuinely must use `ThreadLocal`, establish clear setup and cleanup with `remove()` in `finally`, and avoid misusing it to pass data across Stream stages.
 
-Một phương án phù hợp hơn để tổng hợp dữ liệu là **collector có trạng thái tách biệt theo phạm vi tích lũy**, không phải đếm theo mã thread. Collector biết cách tạo container, kết hợp và hoàn tất kết quả; `ThreadLocal` không thay thế các hợp đồng đó.
+A better approach for aggregating data is a **collector with state isolated per accumulation scope**, not counting by thread ID. Collectors know how to create containers, combine, and finish results; `ThreadLocal` does not replace those contracts.
 
-## 10. `forEach`, `forEachOrdered` và các bảo đảm về thứ tự
+## 10. `forEach`, `forEachOrdered`, and ordering guarantees
 
-Nguồn có encounter order không có nghĩa mọi side effect đều chạy theo thứ tự đó khi song song.
+A source having encounter order does not mean all side effects run in that order when parallel.
 
 ```java
 import java.util.stream.IntStream;
@@ -425,39 +425,39 @@ IntStream.rangeClosed(1, 5)
     .parallel()
     .forEach(System.out::print);
 
-// Có thể in các chữ số theo thứ tự khác 12345.
+// May print digits in an order other than 12345.
 ```
 
-`forEach` cố ý không bảo đảm thứ tự xử lý phần tử. Nếu cần thực thi action theo encounter order:
+`forEach` intentionally does not guarantee element processing order. If you need actions to execute in encounter order:
 
 ```java
 IntStream.rangeClosed(1, 5)
     .parallel()
     .forEachOrdered(System.out::print);
 
-// In 12345 đối với nguồn có thứ tự.
+// Prints 12345 for an ordered source.
 ```
 
-`forEachOrdered` bảo đảm các action được thực hiện theo encounter order của Stream có thứ tự, và action xử lý một phần tử xảy ra trước action phần tử kế tiếp theo ngữ nghĩa phương thức. Nhưng **không bảo đảm mọi action chạy trên cùng một thread**; nó cũng không làm nguồn mutable hoặc các side effect nằm trước action trở nên thread-safe.
+`forEachOrdered` guarantees actions execute in encounter order on an ordered Stream, and the action for one element happens-before the action for the next element per method semantics. However, **it does not guarantee every action runs on the same thread**; nor does it make a mutable source or prior side effects thread-safe.
 
-Điều quan trọng hơn: nếu mục tiêu là **tạo danh sách có thứ tự**, đừng dùng `forEachOrdered` để thêm phần tử vào container ngoài khi `toList()` đã giải quyết trực tiếp bài toán. `forEachOrdered` có thể cần thêm điều phối và giảm lợi ích song song khi thực thi side effect bắt buộc tuần tự.
+More importantly: if the goal is **creating an ordered list**, do not use `forEachOrdered` to add elements to an external container when `toList()` solves the problem directly. `forEachOrdered` can require extra coordination and reduce parallel benefits when executing mandatory sequential side effects.
 
-### 10.1. `findAny` khác `findFirst`
+### 10.1. `findAny` vs. `findFirst`
 
-`findAny()` có thể trả một phần tử bất kỳ; điều này đặc biệt hữu ích khi không cần thứ tự và muốn cho phép tối ưu song song. `findFirst()` phải tuân thủ encounter order nếu nguồn có thứ tự, nên có thể có thêm chi phí phối hợp.
+`findAny()` may return any matching element; this is especially helpful when order is unnecessary and you want to permit parallel optimization. `findFirst()` must obey encounter order if the source is ordered, which can incur coordination overhead.
 
-Không được dùng kết quả `findAny()` để khẳng định “bản ghi đầu tiên” của tập dữ liệu có thứ tự.
+Do not use the result of `findAny()` to assert "the first record" of an ordered dataset.
 
-## 11. Short-circuit và tối ưu Stream làm side effect khó dự đoán
+## 11. Short-circuiting and Stream optimizations make side effects unpredictable
 
-Một số thao tác không cần duyệt hết nguồn:
+Some operations do not need to traverse the entire source:
 
-- `anyMatch` dừng khi tìm được một phần tử thỏa predicate.
-- `allMatch` dừng khi có phần tử không thỏa.
-- `findFirst` hoặc `findAny` dừng khi đã có phần tử đáp ứng điều kiện.
-- `limit(n)` có thể chỉ chuyển tối đa `n` phần tử cho downstream.
+- `anyMatch` stops once a matching element is found.
+- `allMatch` stops once a non-matching element is found.
+- `findFirst` or `findAny` stops once a qualifying element is available.
+- `limit(n)` may forward at most `n` elements downstream.
 
-Ngoài ra, implementation được phép tối ưu các giai đoạn trung gian khi kết quả terminal operation vẫn đúng. Ví dụ `count()` trên một nguồn đã biết kích thước có thể **không cần gọi `peek`**:
+Additionally, implementations may optimize away intermediate stages when the terminal operation's result remains valid. For example, `count()` on a sized source may **skip calling `peek` altogether**:
 
 ```java
 import java.util.concurrent.atomic.AtomicInteger;
@@ -472,20 +472,20 @@ long size = IntStream.range(0, 1_000)
 
 System.out.println(size); // 1000
 
-// Không bảo đảm visits == 1000; peek có thể không được gọi.
+// visits == 1000 is not guaranteed; peek may never be called.
 ```
 
-`AtomicInteger` làm bộ đếm an toàn khi `peek` được gọi, nhưng **không buộc Stream phải gọi peek**. `peek` thích hợp để quan sát/debug trong giới hạn phù hợp, không phải để thực hiện bước nghiệp vụ bắt buộc.
+`AtomicInteger` makes the counter safe if `peek` is called, yet **does not force Stream to call peek**. `peek` is suited for debugging observation within appropriate limits, not for executing mandatory business steps.
 
-Tương tự, một `Predicate` có tác dụng phụ có thể được gọi với số lần và thứ tự khác nhau trên Stream song song. Nếu cần đếm thực sự có bao nhiêu bản ghi thỏa điều kiện, hãy dùng `filter(predicate).count()` với predicate thuần.
+Similarly, a `Predicate` with side effects may be called a different number of times and in a different order on a parallel Stream. If you need to count how many records truly match a condition, use `filter(predicate).count()` with a pure predicate.
 
-## 12. Ví dụ Java 17 hoàn chỉnh: báo cáo đơn hàng an toàn khi song song
+## 12. Complete Java 17 example: parallel-safe order report
 
-Ví dụ dưới đây sử dụng `record` và các API Java 17+. Nó minh họa ba kết quả độc lập được tạo **không sửa trạng thái ngoài pipeline**:
+The example below uses `record` and Java 17+ APIs. It demonstrates three independent results produced **without mutating state outside the pipeline**:
 
-1. Tổng doanh thu đã thanh toán bằng `mapToLong(...).sum()`.
-2. Tổng doanh thu theo khu vực bằng `groupingBy(..., summingLong(...))`.
-3. Danh sách mã đơn đã thanh toán theo encounter order bằng `map(...).toList()`.
+1. Total paid revenue via `mapToLong(...).sum()`.
+2. Total revenue by region via `groupingBy(..., summingLong(...))`.
+3. List of paid order IDs in encounter order via `map(...).toList()`.
 
 ```java
 import java.util.List;
@@ -546,40 +546,40 @@ public class ParallelStreamStateDemo {
 }
 ```
 
-Mỗi lời gọi `orders.parallelStream()` tạo **một Stream mới**. Không thể dùng lại Stream sau terminal operation. Trong ví dụ, `Order` có các trường bất biến theo cấu trúc record; các lambda chỉ đọc dữ liệu và tổng hợp. Không có `ArrayList` hoặc `HashMap` ngoài pipeline bị nhiều tác vụ sửa đồng thời.
+Each call to `orders.parallelStream()` creates **a new Stream**. A Stream cannot be reused after a terminal operation. In this example, `Order` has immutable fields via its record structure; lambdas only read data and aggregate. No `ArrayList` or `HashMap` outside the pipeline is concurrently mutated by multiple tasks.
 
-Hai kết quả Map có cùng số tiền theo nhóm, nhưng **không có bảo đảm giống nhau về kiểu Map và thứ tự duyệt khóa**. Không dựa vào `Map.toString()` hay `keySet()` mặc định để kiểm tra thứ tự. `paidIds` giữ encounter order của nguồn `List`, vì `Stream.toList()` trả các phần tử theo thứ tự gặp nếu Stream có thứ tự.
+Both Map results contain the same totals per group, yet **there is no guarantee they share the same Map implementation type or key iteration order**. Do not rely on `Map.toString()` or default `keySet()` ordering in tests. `paidIds` preserves the `List` source's encounter order, because `Stream.toList()` returns elements in encounter order when the Stream is ordered.
 
-**Giới hạn số học:** `summingLong` và `sum()` vẫn có thể tràn kiểu `long` nếu tổng vượt miền 64 bit. Khi cần tổng nguyên chính xác không bị giới hạn bởi `long`, chuyển sang `BigInteger` và giảm với `BigInteger::add`; xử lý song song không tự mở rộng miền giá trị.
+**Arithmetic limits:** `summingLong` and `sum()` can still overflow `long` if the sum exceeds 64-bit range. When exact integer sums unbounded by `long` are needed, switch to `BigInteger` and reduce with `BigInteger::add`; parallel processing does not automatically widen numeric ranges.
 
-## 13. Hiệu năng: tránh biến đồng bộ thành điểm nghẽn
+## 13. Performance: avoid turning synchronization into a bottleneck
 
-Một pipeline có thể thread-safe nhưng chậm hơn xử lý tuần tự vì:
+A pipeline can be thread-safe yet slower than sequential execution because:
 
-- Tạo tác vụ và chia nguồn qua `Spliterator` tốn chi phí.
-- Nhiều tác vụ cập nhật cùng `AtomicLong`, `synchronizedList` hoặc cùng một khóa trong `ConcurrentHashMap` gây tranh chấp.
-- `forEachOrdered` cần duy trì encounter order.
-- `groupingBy` cần combiner để gộp các Map; `groupingByConcurrent` có thể tranh chấp các khóa nóng.
-- Boxing từ `int` sang `Integer` có thể tăng chi phí khi không cần thiết.
-- Nguồn I/O hoặc dữ liệu nhỏ không đủ công việc tính toán để bù overhead của song song.
+- Creating tasks and splitting via `Spliterator` incurs overhead.
+- Multiple tasks updating the same `AtomicLong`, `synchronizedList`, or hot key in `ConcurrentHashMap` cause contention.
+- `forEachOrdered` must maintain encounter order.
+- `groupingBy` needs a combiner to merge Maps; `groupingByConcurrent` can suffer contention on hot keys.
+- Boxing from `int` to `Integer` can add unnecessary cost.
+- I/O sources or small datasets lack enough compute work to offset parallel overhead.
 
-Có thể dùng `IntStream`, `LongStream` và `DoubleStream` để tránh boxing khi bài toán thuần số học. Với nguồn tùy chỉnh, chất lượng `trySplit()` và các characteristic `SIZED`, `SUBSIZED`, `ORDERED` quyết định nhiều đến khả năng chia hiệu quả. Nhưng không vì thế mà tự viết Spliterator phức tạp khi nguồn chuẩn đã đủ.
+You can use `IntStream`, `LongStream`, and `DoubleStream` to avoid boxing on pure numeric tasks. For custom sources, `trySplit()` quality and characteristics `SIZED`, `SUBSIZED`, and `ORDERED` heavily shape splittability. Still, do not write a complex custom Spliterator when standard sources suffice.
 
-### Cách đánh giá hiệu năng hợp lý
+### How to evaluate performance sensibly
 
-1. Trước hết kiểm chứng kết quả tuần tự và song song **bằng cùng dữ liệu và cùng quy tắc nghiệp vụ**.
-2. Dùng dữ liệu đại diện, nhiều lần chạy và công cụ benchmark phù hợp như JMH.
-3. Xem phân bố khóa nhóm, số phần tử, chi phí mapper/accumulator và tỷ lệ tác vụ chờ đồng bộ.
-4. Đo cả thời gian, throughput, CPU, bộ nhớ và mức cấp phát khi cần.
-5. Chỉ chọn song song nếu cải thiện đủ lớn và không làm phức tạp tính đúng hoặc việc vận hành.
+1. First verify sequential and parallel outputs **using the same data and business rules**.
+2. Use representative data, multiple runs, and an appropriate benchmark tool such as JMH.
+3. Inspect group key distribution, element count, mapper/accumulator cost, and synchronization wait ratios.
+4. Measure time, throughput, CPU, memory, and allocation rate as needed.
+5. Choose parallel only if the improvement is substantial and does not complicate correctness or operations.
 
-**Thread safety là điều kiện cần, không phải bảo đảm về tốc độ.**
+**Thread safety is a necessary condition, not a guarantee of speed.**
 
-## 14. Trường hợp đặc biệt: nguồn concurrent, I/O và tài nguyên
+## 14. Special cases: concurrent sources, I/O, and resources
 
-Một số nguồn hỗ trợ đọc đồng thời hoặc cập nhật trong lúc duyệt theo hợp đồng riêng, chẳng hạn các cấu trúc concurrent collection. Nhưng đặc tính đó không chuyển thành giấy phép sửa nguồn tùy ý trong `map` hoặc `filter`.
+Some sources support concurrent reads or updates during traversal under specific contracts, such as concurrent collections. Yet that property does not grant permission to arbitrarily mutate the source inside `map` or `filter`.
 
-Đối với nguồn từ `Files.lines(path)`, `Files.walk(path)` hoặc API giữ tài nguyên ngoài, trách nhiệm đóng vẫn thuộc bên sở hữu Stream/tài nguyên, **dù chạy tuần tự hay song song**:
+For sources from `Files.lines(path)`, `Files.walk(path)`, or APIs holding external resources, closing responsibility remains with the Stream/resource owner, **whether running sequentially or in parallel**:
 
 ```java
 import java.io.IOException;
@@ -596,80 +596,80 @@ public static long countErrors(Path path) throws IOException {
 }
 ```
 
-`count()` không tự thay `close()`; `try-with-resources` bảo đảm đóng tài nguyên khi rời khối, kể cả khi pipeline gặp lỗi. Không dùng xử lý song song chỉ vì tệp có nhiều dòng: I/O, chia nguồn, giải mã và tranh chấp có thể khiến nó chậm hơn.
+`count()` does not replace `close()`; `try-with-resources` guarantees resource closure upon leaving the block, even if the pipeline throws an exception. Do not enable parallel execution just because a file has many lines: I/O, splitting, decoding, and contention can make it slower.
 
-Nếu nguồn là một `Spliterator` tự định nghĩa, cần xác định rõ nó có được chia an toàn không, các phần sau `trySplit()` có cùng tham chiếu mutable nào không và đặc tính `CONCURRENT`/`IMMUTABLE` có được khai báo chính xác không.
+If the source is a custom `Spliterator`, clearly determine whether it is safe to split, whether sub-parts after `trySplit()` share any mutable references, and whether `CONCURRENT`/`IMMUTABLE` characteristics are declared accurately.
 
-## 15. Những lỗi thường gặp
+## 15. Common pitfalls
 
-| Sai lầm | Hệ quả | Cách sửa |
+| Mistake | Consequence | How to fix |
 | --- | --- | --- |
-| `parallelStream().forEach(sharedArrayList::add)` | Data race, thiếu/sai phần tử | `map(...).toList()` hoặc `collect(...)` |
-| `parallelStream().forEach(n -> hashMap.merge(...))` | `HashMap` không an toàn khi cập nhật đồng thời | `groupingBy` hoặc `groupingByConcurrent` |
-| Cho rằng `AtomicInteger` làm mọi lambda có side effect hợp lệ | Chỉ an toàn cho thao tác nguyên tử, không bảo đảm số lần lambda chạy | Dùng `count()`/`sum()`/collector đúng mục đích |
-| Dùng `peek` để tăng bộ đếm bắt buộc | Stage có thể bị bỏ qua khi terminal operation được tối ưu | Không đặt logic nghiệp vụ vào `peek` |
-| Dùng `ThreadLocal` để tính tổng từ các worker | Các giá trị không tự được hợp nhất; thread có thể tái sử dụng | Dùng collector với supplier/combiner |
-| Dùng một `ArrayList` singleton trong supplier của collector | Nhiều nhánh chia sẻ cùng trạng thái, mất an toàn | Supplier trả container mới mỗi lần |
-| Dùng `reduce` sửa một container mutable là identity chung | Vi phạm hợp đồng giảm và có thể chia sẻ giữa các tác vụ | Dùng phép kết hợp bất biến hoặc `collect` |
-| Dùng phép trừ làm accumulator cho parallel reduce | Không kết hợp, phụ thuộc cách gom | Dùng phép kết hợp có tính kết hợp hoặc thuật toán khác |
-| Giả định `forEach` giữ encounter order | Side effect có thứ tự bất định | Dùng `forEachOrdered` nếu bắt buộc làm action có thứ tự; ưu tiên `toList` |
-| Giả định `forEachOrdered` buộc mọi action chạy cùng thread | Nhầm bảo đảm về thứ tự với thread affinity | Không gắn trạng thái với thread ID |
-| Cho rằng `groupingByConcurrent` giữ thứ tự phần tử từng nhóm | Collector unordered | Chọn phương án giữ thứ tự nếu nghiệp vụ yêu cầu |
-| Cho rằng nguồn có `Spliterator.CONCURRENT` làm collector tự an toàn | Nhầm hợp đồng nguồn và hợp đồng bộ tích lũy | Xem xét mỗi hợp đồng riêng |
-| Cho rằng `parallel()` tăng tốc và sửa tràn số | Overhead có thể lớn; miền số không đổi | Đo hiệu năng, chọn kiểu số hợp lệ |
-| Quên đóng nguồn I/O sau terminal operation | Rò rỉ tài nguyên | `try-with-resources` ở chủ sở hữu nguồn |
-| Sửa đối tượng mutable được nhiều phần tử cùng tham chiếu | Data race dù collection nguồn bất biến | Biến đổi thành giá trị mới hoặc bảo vệ quyền sở hữu |
+| `parallelStream().forEach(sharedArrayList::add)` | Data race, missing/corrupted elements | `map(...).toList()` or `collect(...)` |
+| `parallelStream().forEach(n -> hashMap.merge(...))` | `HashMap` is unsafe under concurrent updates | `groupingBy` or `groupingByConcurrent` |
+| Thinking `AtomicInteger` makes any side-effecting lambda valid | Only safe per atomic op, does not guarantee lambda invocation count | Use `count()`/`sum()`/collectors for their intended purpose |
+| Using `peek` to increment a mandatory counter | Stage may be skipped when terminal operation optimizes | Do not put business logic in `peek` |
+| Using `ThreadLocal` to sum across workers | Values are never merged automatically; threads can be reused | Use a collector with supplier/combiner |
+| Returning a shared singleton `ArrayList` in collector supplier | Multiple branches share state unsafely | Supplier must return a fresh container each call |
+| Using `reduce` mutating a shared mutable identity container | Violates reduction contract and may share across tasks | Use immutable combining or `collect` |
+| Using subtraction as accumulator for parallel reduce | Not associative, depends on grouping | Use an associative operation or a different algorithm |
+| Assuming `forEach` preserves encounter order | Side effects occur in non-deterministic order | Use `forEachOrdered` when ordered actions are required; prefer `toList` |
+| Assuming `forEachOrdered` forces all actions onto one thread | Confuses ordering guarantee with thread affinity | Do not tie state to thread ID |
+| Thinking `groupingByConcurrent` preserves per-group element order | Unordered collector | Choose an order-preserving approach if business requires order |
+| Thinking `Spliterator.CONCURRENT` makes any collector safe | Confuses source contract and accumulator contract | Evaluate each contract separately |
+| Thinking `parallel()` speeds up and prevents overflow | Overhead can be high; numeric range does not widen | Measure performance, choose valid numeric types |
+| Forgetting to close I/O sources after terminal operation | Resource leak | `try-with-resources` at the resource owner |
+| Mutating a mutable object referenced by multiple elements | Data race even with an immutable source collection | Transform into new values or protect ownership |
 
-## 16. Bài tập thực hành
+## 16. Practice exercises
 
-### Bài 1: Sửa shared mutable list
+### Exercise 1: Fixing a shared mutable list
 
-Cho một `ArrayList<Integer>` bên ngoài pipeline, mã dùng `IntStream.range(0, 100_000).parallel().forEach(list::add)`. Hãy viết lại thành `List<Integer>` bằng `boxed().toList()` và giải thích vì sao không cần `synchronizedList`.
+Given an `ArrayList<Integer>` outside the pipeline, the code uses `IntStream.range(0, 100_000).parallel().forEach(list::add)`. Rewrite it into a `List<Integer>` using `boxed().toList()` and explain why `synchronizedList` is unnecessary.
 
-### Bài 2: Đếm và tổng hợp theo vùng
+### Exercise 2: Counting and summing by region
 
-Cho danh sách `Order(region, amountVnd, paid)`. Viết hai pipeline tạo `Map<String, Long>` tổng doanh thu đã thanh toán bằng `groupingBy` và `groupingByConcurrent`. So sánh kết quả các khóa, không so sánh thứ tự in Map.
+Given a list of `Order(region, amountVnd, paid)`. Write two pipelines producing `Map<String, Long>` of total paid revenue using `groupingBy` and `groupingByConcurrent`. Compare key results, not Map print order.
 
-### Bài 3: Khi nào dùng `AtomicInteger`?
+### Exercise 3: When to use `AtomicInteger`?
 
-Tạo hai chương trình đếm từ 0 đến 1 triệu: một chương trình dùng `AtomicInteger` trong `parallel().forEach`, một chương trình dùng `count()`. Nêu sự khác nhau giữa tính an toàn nguyên tử, ý định nghiệp vụ và chi phí tranh chấp.
+Create two programs counting from 0 to 1 million: one using `AtomicInteger` inside `parallel().forEach`, and one using `count()`. State the differences in atomic safety, business intent, and contention cost.
 
-### Bài 4: Bắt lỗi `peek`
+### Exercise 4: Catching a `peek` bug
 
-Dùng `IntStream.range(0, 100).peek(...)` với bộ đếm Atomic và terminal `count()`. Có được giả định `peek` luôn chạy 100 lần không? Giải thích tại sao tối ưu được phép thay đổi số lần thực hiện stage trung gian.
+Use `IntStream.range(0, 100).peek(...)` with an Atomic counter and terminal `count()`. May you assume `peek` always runs 100 times? Explain why optimizations are permitted to alter intermediate stage invocation counts.
 
-### Bài 5: Collector có trạng thái nhưng an toàn
+### Exercise 5: Stateful yet safe Collector
 
-Viết `Collector<Product, ArrayList<String>, List<String>>` gồm supplier `ArrayList::new`, accumulator thêm SKU, combiner nối danh sách và finisher `List.copyOf`. Chạy tuần tự và song song trên nguồn có thứ tự; giải thích vì sao không cần `ArrayList` tự thread-safe trong thiết kế này.
+Write a `Collector<Product, ArrayList<String>, List<String>>` with supplier `ArrayList::new`, accumulator adding SKU, combiner concatenating lists, and finisher `List.copyOf`. Run sequentially and in parallel on an ordered source; explain why `ArrayList` itself does not need to be thread-safe in this design.
 
-### Bài 6: `ThreadLocal` không tự gộp
+### Exercise 6: `ThreadLocal` does not auto-merge
 
-Mô tả một pipeline `parallelStream` sử dụng `ThreadLocal<Integer>` làm bộ đếm. Vì sao đọc `threadLocal.get()` tại thread gọi bên ngoài không cho tổng? Những rủi ro nào phát sinh khi worker thread được pool tái sử dụng?
+Describe a `parallelStream` pipeline using `ThreadLocal<Integer>` as a counter. Why does reading `threadLocal.get()` on the outer calling thread not give the total? What risks arise when worker threads are reused by a pool?
 
-### Bài 7: Thứ tự và hiệu năng
+### Exercise 7: Ordering and performance
 
-So sánh `forEach`, `forEachOrdered` và `toList` trên `IntStream.range(0, 100).parallel()`. Với mục tiêu xây một danh sách theo thứ tự tăng dần, cách nào trực tiếp và an toàn nhất? Khi nào `forEachOrdered` là lựa chọn cần thiết?
+Compare `forEach`, `forEachOrdered`, and `toList` on `IntStream.range(0, 100).parallel()`. For building an ascending list, which approach is most direct and safe? When is `forEachOrdered` the necessary choice?
 
-### Bài 8: Nguồn dữ liệu dùng chung
+### Exercise 8: Shared data inside the source
 
-Cho một `List<Counter>` chứa hai vị trí tham chiếu cùng một đối tượng `Counter` mutable. Nếu mỗi tác vụ thực hiện `counter.value++`, kết quả có đáng tin không? Viết lại thành pipeline chỉ đọc giá trị và tổng hợp bằng `mapToInt(...).sum()`, nêu yêu cầu dữ liệu đầu vào phải ổn định trong lúc đọc.
+Given a `List<Counter>` containing two positions referencing the same mutable `Counter` object. If each task executes `counter.value++`, is the result reliable? Rewrite into a read-only pipeline summed with `mapToInt(...).sum()`, noting the requirement that input data remain stable during reading.
 
-### Bài 9: Tính đúng trước khi tối ưu
+### Exercise 9: Correctness before optimization
 
-Tạo tập dữ liệu có rất nhiều đơn nhưng chỉ hai khóa nhóm. Dự đoán sự khác nhau giữa `groupingBy` và `groupingByConcurrent` về chi phí gộp Map và contention; thiết kế benchmark JMH thay vì đo một lần rồi kết luận.
+Create a dataset with many orders but only two group keys. Predict the difference between `groupingBy` and `groupingByConcurrent` regarding Map merge cost and contention; design a JMH benchmark instead of measuring once and concluding.
 
-## 17. Tự kiểm tra kiến thức
+## 17. Knowledge self-check
 
-- Vì sao `ArrayList.add` hoặc `HashMap.merge` trên một container bên ngoài pipeline không an toàn với `parallelStream`?
-- Khác nhau giữa data race, thread confinement và thread safety là gì?
-- Tại sao trạng thái mutable bên trong collector không concurrent vẫn có thể dùng được khi xử lý song song?
-- Vì sao Supplier của Collector không được trả lại một singleton mutable dùng chung?
-- `AtomicInteger` có làm `peek` trở thành bước nghiệp vụ chắc chắn phải chạy không?
-- `ThreadLocal` có tự tổng hợp dữ liệu của nhiều tác vụ thành một kết quả không?
-- `forEachOrdered` bảo đảm điều gì và **không** bảo đảm điều gì về thread?
-- Vì sao `groupingByConcurrent` không nhất thiết nhanh hơn `groupingBy` khi có ít khóa nhóm?
-- `Spliterator.CONCURRENT` khác `Collector.Characteristics.CONCURRENT` ra sao?
-- Khi nào một phép `reduce` có side effect có thể sai dù side effect dùng lớp atomic?
-- Vì sao phải kiểm tra cả tính đúng, thứ tự, tài nguyên I/O và độ chính xác số học trước khi bật `parallel()`?
+- Why are `ArrayList.add` or `HashMap.merge` on a container outside the pipeline unsafe with `parallelStream`?
+- What are the differences between data race, thread confinement, and thread safety?
+- Why can mutable state inside a non-concurrent collector still be used safely in parallel execution?
+- Why must a Collector's Supplier never return a shared mutable singleton?
+- Does `AtomicInteger` make `peek` a guaranteed business step that must execute?
+- Does `ThreadLocal` automatically aggregate data across multiple tasks into one result?
+- What does `forEachOrdered` guarantee, and what does it **not** guarantee about threads?
+- Why is `groupingByConcurrent` not necessarily faster than `groupingBy` when there are few group keys?
+- How does `Spliterator.CONCURRENT` differ from `Collector.Characteristics.CONCURRENT`?
+- When can a `reduce` with a side effect fail even when the side effect uses an atomic class?
+- Why must you verify correctness, ordering, I/O resources, and numeric precision before enabling `parallel()`?
 
-**Ghi nhớ:** Với parallel Stream, hãy **giữ các lambda xử lý phần tử stateless và non-interfering**, tránh ghi vào trạng thái mutable dùng chung và để **`reduce`/`collect` quản lý việc tổng hợp**. Thread confinement của các container tạm trong collector và thread safety của cấu trúc concurrent là hai cơ chế khác nhau; cả hai cần được dùng đúng hợp đồng. Các công cụ `AtomicInteger`, `LongAdder`, `ThreadLocal` và `forEachOrdered` không thay thế khả năng diễn đạt kết quả thuần của Stream, và không tự bảo đảm hiệu năng tốt hơn.
+**Takeaway:** With parallel Streams, **keep element-processing lambdas stateless and non-interfering**, avoid writing to shared mutable state, and let **`reduce`/`collect` manage aggregation**. Thread confinement of temporary collector containers and thread safety of concurrent structures are two distinct mechanisms; both must be used according to their contracts. Tools like `AtomicInteger`, `LongAdder`, `ThreadLocal`, and `forEachOrdered` do not replace Stream's pure result-expressing power, nor do they automatically guarantee better performance.

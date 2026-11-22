@@ -1,26 +1,26 @@
-# Số nguyên có dấu và biểu diễn bù hai trong Java
+# Signed Integers and Two's Complement Representation in Java
 
-> **Java core — language-basics / Kiểu nguyên thủy**  
-> **Môi trường:** JDK 17 trở lên; không cần thư viện ngoài.  
-> **Mục tiêu:** Hiểu bit dấu và quy tắc **bù hai (two's complement)** của `byte`, `short`, `int`, `long`; tự đọc một mẫu bit thành số dương/âm; nhận ra tràn số, mở rộng dấu và sự khác nhau giữa dịch phải có dấu/không dấu.
+> **Java core — language-basics / Primitive Types**  
+> **Environment:** JDK 17 or later; no external libraries required.  
+> **Goal:** Understand the sign bit and the **two's complement** rule of `byte`, `short`, `int`, and `long`; manually read a bit pattern as a positive/negative number; recognize overflow, sign extension, and the difference between signed and unsigned right shifts.
 
 
-## 1. Vì sao cùng mẫu bit có thể mang số âm?
+## 1. Why Can the Same Bit Pattern Represent a Negative Number?
 
-Bốn kiểu số nguyên có dấu của Java có độ rộng cố định: `byte` **8 bit**, `short` **16 bit**, `int` **32 bit**, `long` **64 bit**. Với `n` bit, miền giá trị là `-2^(n-1)` đến `2^(n-1)-1`. Bài trước đã dùng những miền này để chọn kiểu và nhận biết phép chuyển kiểu; ở đây ta tìm hiểu **vì sao** bù hai tạo ra chúng.
+Java's four signed integer types have fixed widths: `byte` **8 bits**, `short` **16 bits**, `int` **32 bits**, `long` **64 bits**. With `n` bits, the value range is `-2^(n-1)` to `2^(n-1)-1`. The previous lesson used these ranges to choose types and recognize conversions; here we explore **why** two's complement produces them.
 
-Ở độ rộng xác định, bit cao nhất bằng 1 báo một giá trị âm theo **bù hai**. Tuy nhiên không được đọc bảy bit còn lại như độ lớn rồi đặt dấu trừ (*sign-magnitude*). Chẳng hạn, mẫu `1000_0000` của `byte` mang giá trị **-128**, trong khi `0111_1111` là **127**. `char` cũng rộng 16 bit nhưng là **code unit UTF-16 không dấu**, không theo miền của `short`.
+At a fixed width, a highest bit of 1 indicates a negative value in **two's complement**. However, you must not read the remaining seven bits as magnitude and prepend a minus sign (*sign-magnitude*). For example, the `byte` pattern `1000_0000` has the value **-128**, whereas `0111_1111` is **127**. `char` is also 16 bits wide, but it is an **unsigned UTF-16 code unit**, not following the range of `short`.
 
-## 2. Cách đọc mẫu bit bù hai
+## 2. How to Read a Two's Complement Bit Pattern
 
-Đừng chỉ xem bit cao nhất là dấu rồi cộng độ lớn của các bit còn lại như cách *sign-magnitude*. Với bù hai `n` bit, ta có quy tắc đọc mẫu bit:
+Do not merely treat the highest bit as a sign and add the magnitude of the remaining bits as in *sign-magnitude*. For `n`-bit two's complement, the rule for reading a bit pattern is:
 
-- Nếu bit cao nhất là **0**, giá trị bằng số không dấu của mẫu bit.
-- Nếu bit cao nhất là **1**, lấy giá trị **không dấu** của mẫu bit rồi **trừ 2^n**.
+- If the highest bit is **0**, the value equals the unsigned value of the bit pattern.
+- If the highest bit is **1**, take the **unsigned** value of the bit pattern and **subtract 2^n**.
 
-Ví dụ ở độ rộng **8 bit**:
+Example at **8-bit** width:
 
-| Bit pattern | Giá trị không dấu | Giá trị `byte` có dấu |
+| Bit pattern | Unsigned value | Signed `byte` value |
 | --- | ---: | ---: |
 | `0000_0000` | 0 | 0 |
 | `0000_0101` | 5 | 5 |
@@ -29,25 +29,25 @@ Ví dụ ở độ rộng **8 bit**:
 | `1111_1011` | 251 | -5 |
 | `1111_1111` | 255 | -1 |
 
-Ví dụ `1111_1011` là 251 theo cách hiểu không dấu; dưới dạng `byte` 8-bit có dấu, giá trị là **251 - 256 = -5**.
+For example, `1111_1011` is 251 when interpreted as unsigned; as an 8-bit signed `byte`, the value is **251 - 256 = -5**.
 
-### Tạo biểu diễn âm bằng đảo bit rồi cộng 1
+### Forming a Negative Representation by Inverting Bits and Adding 1
 
-Để tìm mẫu bit của **-5** từ **+5** trong 8 bit:
+To find the bit pattern of **-5** from **+5** in 8 bits:
 
 ~~~text
 +5:                  0000 0101
-Đảo từng bit:        1111 1010
-Cộng 1:              1111 1011    => -5
+Invert each bit:     1111 1010
+Add 1:               1111 1011    => -5
 ~~~
 
-Phép đảo bit rồi cộng một là cách minh họa bù hai khi độ rộng bit **được cố định**. Java có **một biểu diễn số 0** duy nhất trong bù hai: `0000_0000`; không có dạng “âm không” riêng cho số nguyên.
+Inverting bits and adding one illustrates two's complement when the bit width **is fixed**. Java has a **single representation of 0** in two's complement: `0000_0000`; there is no separate "negative zero" for integers.
 
-Do chia đôi không gian mẫu bit, kiểu 8-bit có giá trị nhỏ nhất **-128** nhưng giá trị lớn nhất chỉ **127**. Không có số `+128` kiểu `byte`. Vì vậy `-Byte.MIN_VALUE` khi được tính ở độ rộng `int` cho ra 128; việc ép kết quả trở lại `byte` sẽ cho -128.
+Because the bit pattern space is split in half, an 8-bit type has a minimum value of **-128** while its maximum value is only **127**. There is no `+128` of type `byte`. Therefore, `-Byte.MIN_VALUE` computed at `int` width yields 128; casting the result back to `byte` yields -128.
 
-## 3. Chương trình Java 17+ kiểm chứng
+## 3. Verification Java 17+ Program
 
-Tạo tệp **TwosComplementDemo.java**:
+Create the file **TwosComplementDemo.java**:
 
 ~~~java
 public final class TwosComplementDemo {
@@ -92,14 +92,14 @@ public final class TwosComplementDemo {
 }
 ~~~
 
-Biên dịch và chạy trong Bash, PowerShell hoặc Command Prompt từ thư mục chứa tệp:
+Compile and run in Bash, PowerShell, or Command Prompt from the directory containing the file:
 
 ~~~bash
 javac -encoding UTF-8 TwosComplementDemo.java
 java TwosComplementDemo
 ~~~
 
-**Expected output (chính xác):**
+**Expected output (exact):**
 
 ~~~text
 five=00000101
@@ -118,38 +118,38 @@ unsignedShift=2147483644
 intMinusOneHex=ffffffff
 ~~~
 
-Hàm `bits8` lấy **8 bit thấp** bằng `& 0xFF` rồi thêm các số 0 ở đầu. Cách này quan trọng vì `Integer.toBinaryString(-5)` không trả chuỗi 8 bit: tham số là `int`, nên biểu diễn của -5 có **32 bit**.
+The `bits8` method takes the **low 8 bits** using `& 0xFF` and pads leading zeros. This is important because `Integer.toBinaryString(-5)` does not return an 8-bit string: the parameter is an `int`, so the representation of -5 has **32 bits**.
 
-## 4. Mở rộng dấu, ép kiểu và mẫu bit
+## 4. Sign Extension, Casting, and Bit Patterns
 
-Khi chuyển một số nguyên âm từ kiểu hẹp sang kiểu rộng hơn, Java **mở rộng dấu** (*sign extension*): những bit mới ở đầu được điền bằng bit dấu.
+When converting a negative integer from a narrower type to a wider type, Java performs **sign extension**: the new leading bits are filled with the sign bit.
 
-Ví dụ:
+Example:
 
 ~~~java
-byte b = (byte) 0x80; // 1000_0000, có dấu là -128.
-int n = b;             // n vẫn là -128.
+byte b = (byte) 0x80; // 1000_0000, signed is -128.
+int n = b;             // n is still -128.
 ~~~
 
-Ở `byte`, `b` có mẫu 8 bit `1000_0000`. Sau khi gán sang `int`, `n` có mẫu 32 bit `0xFFFF_FF80` (hệ 16: `ffffff80` khi in qua `Integer.toHexString`).
+In `byte`, `b` has the 8-bit pattern `1000_0000`. After assigning to `int`, `n` has the 32-bit pattern `0xFFFF_FF80` (hex: `ffffff80` when printed via `Integer.toHexString`).
 
-Ngược lại, `b & 0xFF` cho giá trị `int` **128**, vì mặt nạ chỉ giữ 8 bit thấp và các bit cao của kết quả được xóa. Đó là cách xem mẫu 8 bit dưới góc nhìn không dấu; nó **không đổi kiểu `byte` thành unsigned**.
+Conversely, `b & 0xFF` produces the `int` value **128**, because the mask keeps only the low 8 bits and clears the higher bits of the result. That is how to view an 8-bit pattern from an unsigned perspective; it **does not turn the `byte` type into unsigned**.
 
-| Biểu thức Java | Giá trị / kết quả | Vì sao |
+| Java expression | Value / result | Why |
 | --- | --- | --- |
-| `(byte) 0xFF` | -1 | Giữ 8 bit thấp: `11111111` |
-| `(byte) 0x80` | -128 | Bit dấu 8-bit bằng 1 |
-| `((byte) 0xFF) & 0xFF` | 255 | Thao tác `&` diễn ra ở `int` và dùng mask |
-| `Byte.toUnsignedInt((byte) 0xFF)` | 255 | Diễn giải 8 bit dưới dạng không dấu |
-| `Integer.toHexString(-1)` | `ffffffff` | Biểu diễn toàn bộ 32 bit của `int` -1 |
+| `(byte) 0xFF` | -1 | Keeps low 8 bits: `11111111` |
+| `(byte) 0x80` | -128 | 8-bit sign bit is 1 |
+| `((byte) 0xFF) & 0xFF` | 255 | The `&` operation occurs in `int` and applies the mask |
+| `Byte.toUnsignedInt((byte) 0xFF)` | 255 | Interprets the 8 bits as unsigned |
+| `Integer.toHexString(-1)` | `ffffffff` | Full 32-bit representation of `int` -1 |
 
-**Lưu ý về literal:** `0xFF` trong Java tự nó là một literal `int` có giá trị **255**, không phải `byte` -1. Chỉ sau phép ép kiểu `(byte) 0xFF`, 8 bit thấp mới được diễn giải thành -1. Tương tự, literal `0xFFFF_FFFF` là giá trị `int` -1 vì chiếm đủ 32 bit với bit dấu 1.
+**Note on literals:** `0xFF` in Java is by itself an `int` literal with the value **255**, not `byte` -1. Only after the cast `(byte) 0xFF` are the low 8 bits interpreted as -1. Similarly, the literal `0xFFFF_FFFF` is the `int` value -1 because it fills all 32 bits with sign bit 1.
 
-## 5. Phép toán, tràn số và đổi dấu
+## 5. Arithmetic, Overflow, and Negation
 
-Với số nguyên Java, kết quả của các phép tính `int`/`long` có độ rộng cố định. Nếu vượt giới hạn, phép tính số nguyên thông thường **quay vòng theo 2^n**; Java không tự ném exception chỉ vì phép cộng bị tràn.
+For Java integers, the results of `int`/`long` operations have a fixed width. If a limit is exceeded, ordinary integer arithmetic **wraps around modulo 2^n**; Java does not automatically throw an exception just because addition overflows.
 
-Ví dụ:
+Example:
 
 ~~~java
 int max = Integer.MAX_VALUE;  // 2147483647
@@ -157,59 +157,59 @@ int wrapped = max + 1;
 System.out.println(wrapped);  // -2147483648
 ~~~
 
-Trước phép cộng, bit pattern của `max` là `0x7FFF_FFFF`. Cộng 1 cho `0x8000_0000`, được đọc là **Integer.MIN_VALUE** theo bù hai.
+Before addition, the bit pattern of `max` is `0x7FFF_FFFF`. Adding 1 gives `0x8000_0000`, which is read as **Integer.MIN_VALUE** in two's complement.
 
-Muốn **phát hiện** tràn đối với phép cộng/trừ/nhân `int`/`long`, dùng `Math.addExact`, `Math.subtractExact`, `Math.multiplyExact`: các hàm này ném `ArithmeticException` khi vượt miền biểu diễn.
+To **detect** overflow for `int`/`long` addition, subtraction, or multiplication, use `Math.addExact`, `Math.subtractExact`, `Math.multiplyExact`: these methods throw `ArithmeticException` when the representable range is exceeded.
 
-### Hai trường hợp đáng chú ý
+### Two Notable Cases
 
-- `-Integer.MIN_VALUE` vẫn là **Integer.MIN_VALUE** khi tính dưới dạng `int`: giá trị dương tương ứng `2147483648` nằm ngoài phạm vi `int`. `Math.negateExact(Integer.MIN_VALUE)` ném `ArithmeticException`.
-- `Math.abs(Integer.MIN_VALUE)` cũng cho ra **giá trị âm** Integer.MIN_VALUE. Không giả định `abs` luôn cho số không âm ở biên nhỏ nhất của kiểu nguyên.
+- `-Integer.MIN_VALUE` is still **Integer.MIN_VALUE** when computed as `int`: the corresponding positive value `2147483648` is outside the `int` range. `Math.negateExact(Integer.MIN_VALUE)` throws `ArithmeticException`.
+- `Math.abs(Integer.MIN_VALUE)` also produces the **negative value** Integer.MIN_VALUE. Do not assume `abs` always returns a non-negative number at the minimum boundary of an integer type.
 
-Trong các biểu thức có `byte` hoặc `short`, nhiều toán tử số học sẽ **nâng kiểu về `int`** trước khi tính. Vì thế `-Byte.MIN_VALUE` (trong biểu thức số học thông thường) là `int` **128**, không phải một `byte` bị tràn; chỉ sau ép `(byte)` mới còn 8 bit và thành -128.
+In expressions containing `byte` or `short`, many arithmetic operators **promote to `int`** before computing. Thus `-Byte.MIN_VALUE` (in an ordinary arithmetic expression) is `int` **128**, not an overflowed `byte`; only after casting `(byte)` are 8 bits kept, becoming -128.
 
-## 6. Dịch bit `>>` và `>>>`
+## 6. Bit Shifts `>>` and `>>>`
 
-Với số âm:
+For negative numbers:
 
-- `x >> k`: **dịch phải số học**, thêm các bit 1 vào phía trái để **giữ bit dấu**.
-- `x >>> k`: **dịch phải logic**, thêm các bit 0 vào phía trái; với số âm, kết quả có thể là số dương lớn.
+- `x >> k`: **arithmetic right shift**, filling 1 bits on the left to **preserve the sign bit**.
+- `x >>> k`: **logical right shift**, filling 0 bits on the left; for negative numbers, the result can be a large positive number.
 
-Ví dụ từ `TwosComplementDemo`:
+Example from `TwosComplementDemo`:
 
 ~~~java
 System.out.println(-8 >> 1);  // -4
 System.out.println(-8 >>> 1); // 2147483644
 ~~~
 
-`-8` trong `int` là `0xFFFF_FFF8`. Dịch số học một bit cho `0xFFFF_FFFC` (-4); dịch logic một bit cho `0x7FFF_FFFC` (2147483644).
+`-8` in `int` is `0xFFFF_FFF8`. Arithmetic shift by one bit gives `0xFFFF_FFFC` (-4); logical shift by one bit gives `0x7FFF_FFFC` (2147483644).
 
-Hai toán tử làm việc theo **độ rộng toán hạng sau quy tắc nâng kiểu**. Nếu dịch một `byte`, biểu thức trước tiên dùng `int`; đừng suy luận kết quả `>>>` có độ rộng 8 bit.
+Both operators work on the **operand width after promotion rules**. If you shift a `byte`, the expression uses `int` first; do not assume the result of `>>>` has an 8-bit width.
 
-## 7. Bẫy phổ biến và hướng sửa
+## 7. Common Traps and Fixes
 
-| Cách hiểu hoặc hiện tượng | Điều đúng |
+| Misconception or symptom | The truth |
 | --- | --- |
-| “Bit cao nhất bằng 1 nên lấy 7 bit còn lại rồi thêm dấu trừ.” | Sai: Java dùng **bù hai**, không dùng sign-magnitude |
-| “`0xFF` là `byte` -1.” | Sai: literal này là `int` 255; `(byte) 0xFF` mới là -1 |
-| “Biến `byte` âm mở rộng thành `int` có giá trị dương.” | Sai: phép mở rộng kiểu giữ giá trị có dấu bằng **sign extension** |
-| “`Integer.MAX_VALUE + 1` ném lỗi tự động.” | Sai: phép cộng `int` thông thường bị tràn, cho Integer.MIN_VALUE |
-| “`Math.abs` luôn không âm.” | Sai tại Integer.MIN_VALUE/Long.MIN_VALUE |
-| “`>>` và `>>>` cho kết quả giống nhau trên số âm.” | Sai: một bên điền bit dấu, một bên điền 0 |
-| “`char` là signed 16-bit giống `short`.” | Sai: `char` là đơn vị mã UTF-16 **không dấu** |
+| "The highest bit is 1, so take the remaining 7 bits and add a minus sign." | False: Java uses **two's complement**, not sign-magnitude |
+| "`0xFF` is `byte` -1." | False: this literal is `int` 255; `(byte) 0xFF` is -1 |
+| "A negative `byte` variable widens to a positive `int`." | False: widening preserves the signed value via **sign extension** |
+| "`Integer.MAX_VALUE + 1` throws an error automatically." | False: ordinary `int` addition overflows, giving Integer.MIN_VALUE |
+| "`Math.abs` is always non-negative." | False at Integer.MIN_VALUE/Long.MIN_VALUE |
+| "`>>` and `>>>` produce the same result on negative numbers." | False: one fills the sign bit, the other fills 0 |
+| "`char` is signed 16-bit like `short`." | False: `char` is an **unsigned** UTF-16 code unit |
 
-## 8. Bài tập tự luyện
+## 8. Practice Exercises
 
-**Bài 1:** Dùng quy tắc 8 bit để tìm biểu diễn bù hai của -6. Kiểm tra bằng `Integer.toBinaryString((-6) & 0xFF)`; nếu muốn đúng 8 ký tự, cần thêm bao nhiêu số 0 ở đầu?
+**Exercise 1:** Use the 8-bit rule to find the two's complement representation of -6. Check with `Integer.toBinaryString((-6) & 0xFF)`; if you want exactly 8 characters, how many leading zeros do you need to add?
 
-**Bài 2:** Phân loại `0x7F`, `0x80` và `0xFF` khi dùng dạng `int`, rồi dự đoán kết quả của từng biểu thức sau ép `(byte)`.
+**Exercise 2:** Classify `0x7F`, `0x80`, and `0xFF` when used as `int`, then predict the result of each expression after casting `(byte)`.
 
-**Bài 3:** Vì sao `int n = (byte) 0xFF;` cho `n = -1`, nhưng `int n = 0xFF;` cho `n = 255`? Mô tả bước ép xuống 8 bit và mở rộng dấu về 32 bit.
+**Exercise 3:** Why does `int n = (byte) 0xFF;` give `n = -1`, whereas `int n = 0xFF;` gives `n = 255`? Describe the step of narrowing to 8 bits and sign-extending back to 32 bits.
 
-**Bài 4:** Tính `Integer.MAX_VALUE + 1` và `Math.addExact(Integer.MAX_VALUE, 1)`. Cách nào cho giá trị, cách nào báo lỗi?
+**Exercise 4:** Evaluate `Integer.MAX_VALUE + 1` and `Math.addExact(Integer.MAX_VALUE, 1)`. Which one yields a value, and which one throws an error?
 
-**Bài 5:** Với số `-8`, vẽ bốn byte của `int` rồi thực hiện `>> 1` và `>>> 1`; lý giải hai đầu ra khác nhau.
+**Exercise 5:** For the number `-8`, draw the four bytes of `int`, then perform `>> 1` and `>>> 1`; explain the two different outputs.
 
-### Ghi nhớ
+### Key Takeaways
 
-**Java `byte`/`short`/`int`/`long` đều có dấu và biểu diễn bằng bù hai.** Với `n` bit, mẫu có bit cao nhất 1 được đọc là **giá trị không dấu trừ 2^n**; miền là **-2^(n-1) đến 2^(n-1)-1**. Mở rộng kiểu âm giữ nguyên dấu; ép hẹp giữ các bit thấp; phép tính số nguyên có thể tràn mà không báo lỗi nếu không dùng API kiểm tra; `>>` và `>>>` khác nhau ở cách điền bit khi dịch phải.
+**Java's `byte`/`short`/`int`/`long` are all signed and represented in two's complement.** With `n` bits, a pattern with highest bit 1 is read as the **unsigned value minus 2^n**; the range is **-2^(n-1) to 2^(n-1)-1**. Widening negative types preserves the sign; narrowing keeps the low bits; integer operations can overflow without throwing an error unless checked APIs are used; `>>` and `>>>` differ in how they fill bits during a right shift.

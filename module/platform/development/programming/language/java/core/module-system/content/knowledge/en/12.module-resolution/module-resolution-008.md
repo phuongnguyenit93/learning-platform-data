@@ -1,41 +1,41 @@
-# JPMS: Phân biệt tìm descriptor với định nghĩa class
+# JPMS: Distinguishing Descriptor Discovery from Class Definition
 
-Trong Java Platform Module System (JPMS), **tìm được module descriptor** chỉ có nghĩa là hệ thống đã tìm được thông tin mô tả một module. Điều đó **không đồng nghĩa** với việc JVM đã tìm, nạp hoặc định nghĩa bất kỳ class cụ thể nào trong module ấy. Đây là ranh giới quan trọng khi đọc luồng **module resolution** và khi chẩn đoán lỗi ở thời điểm chạy.
+In the Java Platform Module System (JPMS), **finding a module descriptor** only means the system has located metadata describing a module. It **is not equivalent** to the JVM having found, loaded, or defined any specific class inside that module. This is an important boundary when reading the **module resolution** flow and diagnosing runtime errors.
 
-## 1. Hai câu hỏi hoàn toàn khác nhau
+## 1. Two Completely Different Questions
 
-**Câu hỏi A — “Module này có descriptor không?”**
+**Question A — “Does this module have a descriptor?”**
 
-JPMS dùng các module finder để khám phá module có thể quan sát được. Từ một tên module, phương thức **ModuleFinder.find(String)** có thể trả về **ModuleReference**; từ reference đó có thể lấy **ModuleDescriptor**. Descriptor mô tả tên module, phụ thuộc requires, các package exports/opens, uses/provides, version và những thuộc tính khác.
+JPMS uses module finders to discover observable modules. Given a module name, **ModuleFinder.find(String)** can return a **ModuleReference**; from that reference, you can obtain a **ModuleDescriptor**. The descriptor describes the module's name, requires dependencies, exports/opens packages, uses/provides, version, and other attributes.
 
-Đây là thao tác ở **mức module và metadata**. Nó không yêu cầu tạo ra đối tượng **Class<?>**, không thực thi static initializer và không chứng minh rằng một tên class tùy ý có mặt.
+This is an operation at the **module and metadata level**. It does not require creating a **Class<?>** object, does not execute static initializers, and does not prove that an arbitrary class name exists.
 
-**Câu hỏi B — “JVM đã định nghĩa class này chưa, hoặc có thể nạp nó không?”**
+**Question B — “Has the JVM defined this class, or can it load it?”**
 
-Ở mức class, JVM phối hợp với **ClassLoader** để tìm bytecode, kiểm tra định dạng, định nghĩa class và thực hiện các bước liên kết/khởi tạo khi được yêu cầu. Kết quả là đối tượng **Class<?>** gắn với một class loader và một module cụ thể. Một descriptor hợp lệ không bảo đảm rằng mọi class được chương trình nhắc đến sẽ nạp thành công.
+At the class level, the JVM coordinates with a **ClassLoader** to locate bytecode, verify its format, define the class, and perform linking/initialization steps when requested. The result is a **Class<?>** object associated with a specific class loader and a specific module. A valid descriptor does not guarantee that every class mentioned by the program will load successfully.
 
-Ví dụ: module **demo.catalog** có descriptor và export package **demo.catalog.api**; lời gọi nạp **demo.catalog.api.Missing** vẫn có thể thất bại vì file class không tồn tại.
+For example: module **demo.catalog** has a descriptor and exports package **demo.catalog.api**; an attempt to load **demo.catalog.api.Missing** can still fail because the class file does not exist.
 
-## 2. Các khái niệm và API cần phân biệt
+## 2. Concepts and APIs to Distinguish
 
-| Thành phần | Trả lời câu hỏi gì? | Kết quả điển hình | Có định nghĩa class không? |
+| Component | What Question Does It Answer? | Typical Result | Does It Define Classes? |
 |---|---|---|---|
-| **ModuleFinder** | Có thể tìm module tên X từ nguồn đang xét không? | **Optional<ModuleReference>** | Không |
-| **ModuleReference** | Module tìm được nằm ở nguồn nào, có descriptor nào? | Descriptor, location (nếu có), **ModuleReader** | Không |
-| **ModuleDescriptor** | Module khai báo tên, requires, exports, opens, uses, provides, packages ra sao? | Metadata bất biến | Không |
-| **Configuration** | Có thể giải quyết đồ thị phụ thuộc module theo các finder đã cho không? | Tập module đã resolve và các quan hệ readability | Không |
-| **ModuleLayer** | Những module nào đã được định nghĩa vào một layer? | Các đối tượng **Module** và ánh xạ sang class loader | Không tự nạp tất cả class |
-| **ClassLoader / JVM** | Có thể nạp, định nghĩa và liên kết class có tên xác định không? | **Class<?>** hoặc lỗi khi nạp/liên kết | Có, khi thực sự nạp |
-| **Class.forName(Module, String)** | Có class tên Y được nạp từ module X không? | **Class<?>** hoặc **null** nếu không tìm được trong module đó | Có thể kích hoạt nạp class; không khởi tạo class |
+| **ModuleFinder** | Can module named X be found from the source under consideration? | **Optional<ModuleReference>** | No |
+| **ModuleReference** | Which source is the found module in, and what descriptor does it have? | Descriptor, location (if available), **ModuleReader** | No |
+| **ModuleDescriptor** | How does the module declare name, requires, exports, opens, uses, provides, packages? | Immutable metadata | No |
+| **Configuration** | Can the module dependency graph be resolved from the given finders? | Set of resolved modules and readability relationships | No |
+| **ModuleLayer** | Which modules have been defined into a layer? | **Module** objects and mappings to class loaders | Does not load all classes automatically |
+| **ClassLoader / JVM** | Can a class with a specific name be loaded, defined, and linked? | **Class<?>** or an error during loading/linking | Yes, when actually loaded |
+| **Class.forName(Module, String)** | Is there a class named Y loaded from module X? | **Class<?>** or **null** if not found in that module | May trigger class loading; does not initialize the class |
 
-Lưu ý: **exports** là quy tắc truy cập package cho module khác; **opens** phục vụ truy cập phản chiếu sâu. Cả hai đều không phải danh sách class. **ModuleDescriptor.packages()** là tập tên package, không phải danh mục đầy đủ các class thuộc package.
+Note: **exports** is a package access rule for other modules; **opens** serves deep reflective access. Neither is a list of classes. **ModuleDescriptor.packages()** is a set of package names, not a complete catalog of classes inside the packages.
 
-## 3. Vị trí của từng bước trong module resolution
+## 3. Position of Each Step in Module Resolution
 
-Luồng khái quát của một ứng dụng modular:
+Overview flow of a modular application:
 
 ~~~text
-Nguồn module: runtime image, module path, ModuleFinder tùy biến
+Module sources: runtime image, module path, custom ModuleFinder
     |
     v
 ModuleFinder.find("demo.catalog")
@@ -45,32 +45,32 @@ ModuleReference -> ModuleDescriptor
     |
     v
 Configuration.resolve(...) / resolveAndBind(...)
-    |  Kiểm tra các module cần thiết và quan hệ phụ thuộc
+    |  Checks required modules and dependency relationships
     v
-ModuleLayer được tạo hoặc boot layer đã được JVM thiết lập
-    |  Liên kết module với class loader tương ứng
+ModuleLayer created, or boot layer already set up by the JVM
+    |  Associates modules with the corresponding class loaders
     v
-Mã chương trình tham chiếu một class hoặc yêu cầu nạp class
+Program code references a class or requests class loading
     |
     v
-ClassLoader / JVM tìm bytecode, define class, link, initialize khi cần
+ClassLoader / JVM finds bytecode, defines class, links, initializes when needed
 ~~~
 
-Các điểm cần nhớ:
+Points to remember:
 
-1. **Discovery**: ModuleFinder tìm một module có thể quan sát được từ nguồn được cấu hình. Nó có thể thấy một module mà ứng dụng hiện tại chưa resolve.
-2. **Resolution**: bộ giải quyết dựa trên descriptor để tạo đồ thị module, xử lý requires và những ràng buộc ở mức module. Tìm được descriptor là điều kiện đầu vào, nhưng chưa đủ để khẳng định resolve thành công.
-3. **Layer definition**: một configuration được dùng để định nghĩa module trong layer, lựa chọn class loader và thiết lập quan hệ module.
-4. **Class loading**: class cụ thể thường chỉ được JVM nạp theo nhu cầu. Không có quy tắc rằng resolve xong module phải nạp toàn bộ class của module.
-5. **Initialization**: kể cả sau khi class đã được nạp/định nghĩa, static initializer có thể vẫn chưa chạy. Khởi tạo là một thời điểm khác với việc tìm descriptor.
+1. **Discovery**: ModuleFinder locates an observable module from configured sources. It may see a module that the current application has not resolved.
+2. **Resolution**: the resolver relies on descriptors to build the module graph, handling requires and module-level constraints. Finding a descriptor is an input condition, not yet sufficient to confirm resolution succeeds.
+3. **Layer definition**: a configuration is used to define modules in a layer, select class loaders, and establish module relationships.
+4. **Class loading**: specific classes are normally loaded by the JVM on demand. There is no rule that resolving a module must load all classes in the module.
+5. **Initialization**: even after a class has been loaded/defined, its static initializer may not have run yet. Initialization is a separate point in time from finding the descriptor.
 
-**ModuleFinder.ofSystem()** quan sát các module trong runtime image; **ModuleFinder.of(Path...)** quan sát module trên các đường dẫn được cung cấp. Việc finder tìm được tên module không chứng minh module đó nằm trong **ModuleLayer.boot()**.
+**ModuleFinder.ofSystem()** observes modules in the runtime image; **ModuleFinder.of(Path...)** observes modules on the supplied paths. A finder locating a module name does not prove that module is in **ModuleLayer.boot()**.
 
-## 4. Ví dụ Java có thể chạy
+## 4. Runnable Java Example
 
-Ví dụ gồm hai module. Module thư viện có class **Widget** nhưng không có class **Missing**; module ứng dụng bắt buộc phụ thuộc vào thư viện.
+The example consists of two modules. The library module has the class **Widget** but does not have the class **Missing**; the application module requires the library.
 
-Cấu trúc thư mục:
+Directory structure:
 
 ~~~text
 src/
@@ -122,60 +122,60 @@ import java.nio.file.Path;
 
 public class Main {
     public static void main(String[] args) {
-        // (1) Tìm metadata ở đường dẫn chứa các module đã biên dịch.
+        // (1) Find metadata at the path containing compiled modules.
         ModuleFinder finder = ModuleFinder.of(Path.of("mods"));
         ModuleReference reference =
                 finder.find("demo.catalog").orElseThrow();
         ModuleDescriptor descriptor = reference.descriptor();
 
-        System.out.println("Finder thấy: " + descriptor.name());
-        System.out.println("Package có trong descriptor: "
+        System.out.println("Finder sees: " + descriptor.name());
+        System.out.println("Package in descriptor: "
                 + descriptor.packages().contains("demo.catalog.api"));
 
-        // (2) Ứng dụng cần demo.catalog nên module có trong boot layer.
+        // (2) The application requires demo.catalog so the module is in the boot layer.
         Module catalog = ModuleLayer.boot()
                 .findModule("demo.catalog").orElseThrow();
-        System.out.println("Layer có: " + catalog.getName());
+        System.out.println("Layer contains: " + catalog.getName());
 
-        // (3) Kiểm tra hai tên class bên trong cùng một module.
+        // (3) Check two class names inside the same module.
         Class<?> existing =
                 Class.forName(catalog, "demo.catalog.api.Widget");
         Class<?> absent =
                 Class.forName(catalog, "demo.catalog.api.Missing");
 
-        System.out.println("Widget nạp được: " + (existing != null));
-        System.out.println("Missing nạp được: " + (absent != null));
-        System.out.println("Module sở hữu Widget: "
+        System.out.println("Widget loaded: " + (existing != null));
+        System.out.println("Missing loaded: " + (absent != null));
+        System.out.println("Module owning Widget: "
                 + existing.getModule().getName());
     }
 }
 ~~~
 
-Từ thư mục chứa **src**, biên dịch và chạy với JDK 9 trở lên:
+From the directory containing **src**, compile and run with JDK 9 or later:
 
 ~~~sh
 javac --module-source-path src -d mods -m demo.catalog,demo.app
 java --module-path mods -m demo.app/demo.app.Main
 ~~~
 
-Kết quả dự kiến:
+Expected output:
 
 ~~~text
-Finder thấy: demo.catalog
-Package có trong descriptor: true
-Layer có: demo.catalog
-Widget nạp được: true
-Missing nạp được: false
-Module sở hữu Widget: demo.catalog
+Finder sees: demo.catalog
+Package in descriptor: true
+Layer contains: demo.catalog
+Widget loaded: true
+Missing loaded: false
+Module owning Widget: demo.catalog
 ~~~
 
-**Giải thích:** ModuleFinder tìm được descriptor **demo.catalog**. Configuration đã resolve module vì **demo.app requires demo.catalog**. Khi chương trình yêu cầu nạp **Widget**, JVM tìm được class. Với **Missing**, **Class.forName(Module, String)** trả về **null**; descriptor vẫn tồn tại và graph resolution vẫn hợp lệ.
+**Explanation:** ModuleFinder found the **demo.catalog** descriptor. Configuration resolved the module because **demo.app requires demo.catalog**. When the program requests loading **Widget**, the JVM finds the class. For **Missing**, **Class.forName(Module, String)** returns **null**; the descriptor still exists and graph resolution remains valid.
 
-Nếu xóa class **Widget** và sửa mã Main để không phụ thuộc trực tiếp vào class đó tại biên dịch, metadata của module vẫn có thể được tìm thấy; nhưng lúc chạy, yêu cầu nạp tên Widget sẽ không thành công. Ngược lại, một class có file bytecode trên đĩa cũng không mặc nhiên truy cập được từ mọi module.
+If you delete the **Widget** class and modify Main so it does not depend directly on that class at compile time, the module's metadata can still be found; yet at runtime, requesting to load the name Widget will not succeed. Conversely, a class having a bytecode file on disk is not automatically accessible from every module either.
 
-## 5. Descriptor còn khác với kiểm tra tài nguyên .class
+## 5. Descriptor Also Differs from Checking a .class Resource
 
-Từ **ModuleReference**, API **ModuleReader** cho phép kiểm tra tài nguyên của một module:
+From **ModuleReference**, the **ModuleReader** API allows inspecting the resources of a module:
 
 ~~~java
 import java.lang.module.ModuleFinder;
@@ -190,82 +190,82 @@ try (ModuleReader reader = ref.open()) {
     boolean hasBytes = reader
             .find("demo/catalog/api/Widget.class")
             .isPresent();
-    System.out.println("Có resource Widget.class: " + hasBytes);
+    System.out.println("Has resource Widget.class: " + hasBytes);
 }
 ~~~
 
-Ba mức chứng cứ cần tách rõ:
+Three levels of evidence must be separated:
 
-- **Tìm được ModuleDescriptor**: có metadata mô tả module.
-- **Tìm được resource Widget.class**: nguồn module cung cấp một resource với đường dẫn tương ứng; bước này chưa chứng minh nội dung bytecode hợp lệ hoặc class đã được định nghĩa.
-- **Có được Class<?>**: runtime đã nạp class qua cơ chế class loading; việc dùng class vẫn có thể phát sinh lỗi liên kết, truy cập hoặc khởi tạo tùy thời điểm.
+- **ModuleDescriptor found**: there is metadata describing the module.
+- **Widget.class resource found**: the module source provides a resource at the corresponding path; this step does not yet prove the bytecode content is valid or that the class has been defined.
+- **Class<?> obtained**: the runtime has loaded the class through the class loading mechanism; using the class can still produce linking, access, or initialization errors depending on the moment.
 
-Không nên dùng **descriptor.packages().contains("demo.catalog.api")** làm phép thử sự tồn tại của **demo.catalog.api.Widget**. Nó chỉ kiểm tra tên package.
+Do not use **descriptor.packages().contains("demo.catalog.api")** as a test for the existence of **demo.catalog.api.Widget**. It only checks the package name.
 
-## 6. Vì sao “descriptor tìm được” nhưng “class không nạp được”?
+## 6. Why Can a “Descriptor Be Found” Yet a “Class Fails to Load”?
 
-| Hiện tượng | Nguyên nhân có thể | Cách phân tích |
+| Symptom | Possible Cause | How to Analyze |
 |---|---|---|
-| Finder có ModuleReference, layer không có module | Module được quan sát nhưng không nằm trong đồ thị đã resolve/layer đang xét | Phân biệt tập observable modules với tập resolved modules |
-| Descriptor có exports của package, tên class không có | Module không đóng gói class đó, tên sai hoặc class nằm ở nơi khác | Kiểm tra tên fully qualified và nội dung module |
-| Resource .class có mặt, nạp class lỗi | Bytecode lỗi, phụ thuộc lúc liên kết thiếu, hoặc vấn đề loader | Xem loại exception/error và chuỗi nguyên nhân |
-| Class có mặt nhưng code từ module khác không truy cập được | Thiếu exports, readability hoặc điều kiện truy cập Java | Kiểm tra requires/exports/opens và mức truy cập |
-| Module đúng tên nhưng class được định nghĩa bởi module/loader khác | Dùng sai loader, sai layer hoặc môi trường có nhiều bản phân phối | Kiểm tra **clazz.getModule()** và **clazz.getClassLoader()** |
-| Class nạp được nhưng lỗi khi dùng lần đầu | Lỗi khởi tạo hoặc lỗi phát sinh khi liên kết/thực thi | Phân biệt class loading, linking và initialization |
+| Finder has ModuleReference, layer lacks module | The module is observable but not in the resolved graph / layer under inspection | Distinguish the set of observable modules from the set of resolved modules |
+| Descriptor has exports for package, class name absent | The module does not package that class, the name is wrong, or the class is elsewhere | Check the fully qualified name and the module contents |
+| .class resource is present, class loading fails | Corrupt bytecode, missing dependencies during linking, or loader issues | Inspect the exception/error type and cause chain |
+| Class is present, yet code from another module cannot access it | Missing exports, readability, or Java access conditions | Check requires/exports/opens and access levels |
+| Right module name, yet class is defined by another module/loader | Wrong loader, wrong layer, or environment with multiple distributions | Check **clazz.getModule()** and **clazz.getClassLoader()** |
+| Class loads, yet fails on first use | Initialization error or error during linking/execution | Distinguish class loading, linking, and initialization |
 
-Một số loại lỗi thường gặp ở những giai đoạn khác nhau:
+Several common error types at different stages:
 
-- **FindException** hoặc **ResolutionException**: lỗi liên quan đến tìm hoặc giải quyết cấu hình module; tùy trường hợp có thể xảy ra trước khi chạy mã ứng dụng.
-- **ClassNotFoundException**: thường gặp với **Class.forName(String)** hoặc thao tác nạp class theo tên thông qua class loader.
-- **NoClassDefFoundError**: runtime cần một định nghĩa class nhưng không thể tìm/hoàn tất định nghĩa đó (hoặc class trước đó không khởi tạo thành công).
-- **IllegalAccessError** và những lỗi liên kết khác: class tồn tại nhưng quy tắc truy cập hoặc liên kết không thỏa mãn.
-- **ExceptionInInitializerError**: lỗi xảy ra trong quá trình khởi tạo class; không phải là kết quả của việc đọc descriptor.
+- **FindException** or **ResolutionException**: errors related to finding or resolving a module configuration; depending on the case, these can happen before application code runs.
+- **ClassNotFoundException**: commonly seen with **Class.forName(String)** or name-based class loading through a class loader.
+- **NoClassDefFoundError**: the runtime needs a class definition but cannot find/complete that definition (or the class previously failed to initialize).
+- **IllegalAccessError** and other linkage errors: the class exists, yet access or linkage rules are not satisfied.
+- **ExceptionInInitializerError**: an error occurring during class initialization; not a result of reading the descriptor.
 
-Đừng đánh đồng hai overload **Class.forName**:
+Do not equate the two overloads of **Class.forName**:
 
 ~~~java
 Class<?> a = Class.forName("demo.catalog.api.Widget");
-// Tìm theo loader của caller và mặc định khởi tạo class nếu thành công.
+// Looks up using the caller's loader and initializes the class by default if found.
 
 Module module = ModuleLayer.boot()
         .findModule("demo.catalog").orElseThrow();
 Class<?> b = Class.forName(module, "demo.catalog.api.Widget");
-// Tìm class trong module đã chỉ định; không khởi tạo class.
-// Trả về null nếu không tìm được class trong module đó.
+// Looks up the class in the specified module; does not initialize the class.
+// Returns null if the class is not found in that module.
 ~~~
 
-Việc tìm class theo module không tự động chứng minh caller được phép truy cập mọi thành viên của class đó. Quy tắc access của Java và JPMS vẫn được áp dụng khi sử dụng class.
+Finding a class by module does not automatically prove the caller is allowed to access all members of that class. Java and JPMS access rules still apply when using the class.
 
-## 7. Cách tự kiểm tra khi chẩn đoán module
+## 7. How to Self-Check When Diagnosing Modules
 
-Trước tiên xác định đang thất bại ở cấp nào:
+First determine which level is failing:
 
-1. **Quan sát module**: dùng ModuleFinder phù hợp và kiểm tra **find(name)**; với JAR modular có thể dùng **jar --describe-module --file path/to/library.jar** để đọc descriptor.
-2. **Resolve module**: chạy ứng dụng với **--show-module-resolution** để quan sát đồ thị module được giải quyết. Kiểm tra requires, tên module trên module path và layer thực tế.
-3. **Tìm class/resource**: kiểm tra đúng đường dẫn class trong artifact, đúng package và đúng tên fully qualified; nếu phù hợp, thử ModuleReader.
-4. **Nạp class**: dùng **Class.forName(module, fqcn)** khi đã có đối tượng Module đích và cần biết class có nạp được từ chính module đó không. Nếu thành công, kiểm tra **getModule()** và **getClassLoader()**.
-5. **Truy cập/khởi tạo**: nếu class đã nạp nhưng chương trình vẫn lỗi, xem yêu cầu readability/exports/opens, kiểm tra lỗi liên kết và static initializer.
+1. **Observe the module**: use the appropriate ModuleFinder and check **find(name)**; for modular JARs, you can use **jar --describe-module --file path/to/library.jar** to read the descriptor.
+2. **Resolve the module**: run the application with **--show-module-resolution** to observe the resolved module graph. Check requires, module names on the module path, and the actual layer.
+3. **Locate the class/resource**: check the exact class path inside the artifact, the exact package, and the exact fully qualified name; if appropriate, try ModuleReader.
+4. **Load the class**: use **Class.forName(module, fqcn)** when you already have the target Module object and need to know whether the class can be loaded from that exact module. If successful, check **getModule()** and **getClassLoader()**.
+5. **Access/initialize**: if the class loaded yet the program still fails, inspect readability/exports/opens requirements, linkage errors, and static initializers.
 
-Lệnh quan sát resolution của ví dụ:
+Command to observe resolution for the example:
 
 ~~~sh
 java --show-module-resolution --module-path mods -m demo.app/demo.app.Main
 ~~~
 
-Những phép kiểm tra này trả lời các câu hỏi ở **các tầng khác nhau**; không thay phép kiểm tra class bằng phép kiểm tra descriptor.
+These checks answer questions at **different layers**; do not substitute a descriptor check for a class check.
 
-## 8. Kết luận cần ghi nhớ
+## 8. Key Takeaways
 
-**Module resolution giải quyết đồ thị module dựa trên descriptor; class loading định nghĩa class cụ thể khi runtime cần.** Descriptor xác nhận thông tin của module, không phải bảo đảm rằng một tên class tồn tại, truy cập được, liên kết được hoặc đã được khởi tạo.
+**Module resolution resolves the module graph based on descriptors; class loading defines specific classes when needed at runtime.** A descriptor confirms a module's metadata; it is not a guarantee that a class name exists, is accessible, can be linked, or has been initialized.
 
-Công thức suy luận đúng:
+The right mental formula:
 
 ~~~text
-Finder tìm thấy descriptor
-    != module đã được resolve vào layer hiện tại
-    != class cụ thể đã tồn tại hoặc được nạp
-    != class truy cập được từ mọi module
-    != class đã được khởi tạo thành công
+Finder finds descriptor
+    != module is resolved into the current layer
+    != specific class exists or is loaded
+    != class is accessible from every module
+    != class has been initialized successfully
 ~~~
 
-Khi debug JPMS, hãy xác định rõ mình đang hỏi về **module metadata**, **module graph**, **class file**, **Class<?>**, hay **quyền truy cập/khởi tạo**.
+When debugging JPMS, clearly identify whether you are asking about **module metadata**, the **module graph**, a **class file**, a **Class<?>**, or **access/initialization permissions**.

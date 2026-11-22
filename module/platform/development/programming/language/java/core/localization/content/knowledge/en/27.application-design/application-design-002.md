@@ -1,26 +1,26 @@
-# Truyền Locale và ZoneId qua ngữ cảnh xử lý tường minh trong Java
+# Passing Locale and ZoneId Through Explicit Processing Context in Java
 
-## 1. Bài toán: người dùng khác nhau, ngôn ngữ và múi giờ khác nhau
+## 1. The Problem: Different Users, Different Languages and Time Zones
 
-Một dịch vụ Java có thể phục vụ đồng thời người dùng ở Việt Nam, Mỹ và Pháp. Cùng một sự kiện diễn ra tại thời điểm UTC `2026-10-28T03:30:00Z`, nhưng người dùng muốn nhìn thấy thông tin theo **ngôn ngữ** và **múi giờ** riêng:
+A Java service may simultaneously serve users in Vietnam, the United States, and France. The same event occurred at UTC instant `2026-10-28T03:30:00Z`, yet users want to see information in their own **language** and **time zone**:
 
-| Người xem | Locale dùng trình bày | ZoneId dùng quy đổi thời gian | Cách nhìn cùng Instant |
+| Viewer | Locale for presentation | ZoneId for time conversion | View of the same Instant |
 | --- | --- | --- | --- |
-| Người xem ở Việt Nam | `vi-VN` | `Asia/Ho_Chi_Minh` | 10:30 ngày 28/10/2026 |
-| Người xem ở New York | `en-US` | `America/New_York` | 23:30 ngày 27/10/2026 |
-| Người dùng tiếng Pháp ở Việt Nam | `fr-FR` | `Asia/Ho_Chi_Minh` | 10:30, dùng chữ và mẫu ngày theo tiếng Pháp |
+| Viewer in Vietnam | `vi-VN` | `Asia/Ho_Chi_Minh` | 10:30 on 28/10/2026 |
+| Viewer in New York | `en-US` | `America/New_York` | 23:30 on 27/10/2026 |
+| French-speaking user in Vietnam | `fr-FR` | `Asia/Ho_Chi_Minh` | 10:30, using French text and date pattern |
 
-Một ứng dụng có thể “chạy được” nhưng hiển thị sai nếu vô tình sử dụng `Locale.getDefault()`, `ZoneId.systemDefault()` hoặc thay default của JVM trong từng request. Cả hai default đều là **trạng thái môi trường**, không phải đặc tính riêng của từng người dùng.
+An application may appear to "work" yet display wrong results if it inadvertently relies on `Locale.getDefault()`, `ZoneId.systemDefault()`, or mutates JVM defaults per request. Both defaults are **environment state**, not per-user properties.
 
-Giải pháp là **truyền `Locale` và `ZoneId` tường minh trong ngữ cảnh xử lý** (*explicit processing context*), giống như ta truyền ID bản ghi hoặc tham số nghiệp vụ. Context được tạo ở ranh giới đầu vào, kiểm tra tính hợp lệ, sau đó chuyển qua controller → service → formatter → tác vụ bất đồng bộ mà không phụ thuộc trạng thái ẩn.
+The solution is **passing `Locale` and `ZoneId` explicitly in a processing context** (*explicit processing context*), just as you pass a record ID or business parameter. The context is created at the entry boundary, validated, and then passed through controller → service → formatter → asynchronous tasks without relying on hidden state.
 
-**Mục tiêu bài học:** thiết kế request context bất biến; phân biệt locale với zone; truyền context qua API, service và async; xử lý lịch địa phương và DST; xác định default hợp lý; kiểm thử kết quả tái lập; nhận diện bẫy toàn cục, `ThreadLocal` và dữ liệu sai.
+**Lesson goals:** design an immutable request context; distinguish locale from zone; pass context across APIs, services, and async tasks; handle local calendar schedules and DST; define sensible defaults; write reproducible tests; and spot traps involving globals, `ThreadLocal`, and invalid inputs.
 
-## 2. Locale và ZoneId thực sự quyết định điều gì?
+## 2. What Do Locale and ZoneId Actually Determine?
 
-### 2.1. Locale: ngôn ngữ, vùng và quy tắc trình bày
+### 2.1. Locale: Language, Region, and Presentation Rules
 
-`java.util.Locale` biểu diễn một lựa chọn ngôn ngữ/vùng/script/extension cho hoạt động bản địa hóa. Ví dụ:
+`java.util.Locale` represents a language/region/script/extension selection for localization operations. For example:
 
 ~~~java
 Locale vi = Locale.forLanguageTag("vi-VN");
@@ -28,18 +28,18 @@ Locale en = Locale.US;
 Locale fr = Locale.FRANCE;
 ~~~
 
-Những đối tượng này thường dùng khi:
+These objects are typically used when:
 
-- Format tên tháng, tên thứ và bố cục ngày thông qua `DateTimeFormatter`.
-- Format số, phần trăm và tiền bằng `NumberFormat`.
-- Tra cứu tài nguyên giao diện và thông điệp theo ngôn ngữ.
-- Chọn quy tắc so sánh/sắp xếp ngôn ngữ nếu API hỗ trợ.
+- Formatting month names, weekday names, and date layouts via `DateTimeFormatter`.
+- Formatting numbers, percentages, and currency via `NumberFormat`.
+- Looking up UI resources and messages by language.
+- Choosing linguistic comparison/sorting rules when supported by an API.
 
-**Locale không xác định thời điểm hoặc múi giờ.** `Locale.forLanguageTag("vi-VN")` không tự chuyển một `Instant` sang giờ Việt Nam. Một người chọn giao diện tiếng Việt nhưng đang ở Paris có thể cần locale `vi-VN` cùng `Europe/Paris`.
+**Locale does not determine an instant or a time zone.** `Locale.forLanguageTag("vi-VN")` does not automatically convert an `Instant` to Vietnam time. A person who chooses a Vietnamese UI while in Paris may need locale `vi-VN` together with `Europe/Paris`.
 
-### 2.2. ZoneId: quy tắc quy đổi thời gian theo địa lý
+### 2.2. ZoneId: Geographic Time Conversion Rules
 
-`java.time.ZoneId` là ID vùng giờ, ví dụ:
+`java.time.ZoneId` is a time zone ID, for example:
 
 ~~~java
 ZoneId hcm = ZoneId.of("Asia/Ho_Chi_Minh");
@@ -47,44 +47,44 @@ ZoneId ny = ZoneId.of("America/New_York");
 ZoneId utc = ZoneOffset.UTC;
 ~~~
 
-ZoneId vùng (*region ID*) gắn với quy tắc chuyển đổi UTC offset theo thời gian, bao gồm những nơi có thay đổi giờ mùa hè (*daylight saving time*). `America/New_York` không phải offset `-05:00` cố định: nó có thể là `-04:00` vào một giai đoạn của năm.
+A region `ZoneId` (*region ID*) is tied to rules that change UTC offsets over time, including places that observe *daylight saving time* (DST). `America/New_York` is not a fixed `-05:00` offset: it can be `-04:00` during part of the year.
 
-`ZoneOffset` chỉ mô tả offset cố định; `ZoneId` dạng vùng còn mang **quy tắc lịch sử/tương lai** từ time-zone database của runtime. Không thể thay `ZoneId` của một khu vực có DST bằng một offset tính từ “hôm nay” rồi áp dụng mãi.
+`ZoneOffset` only describes a fixed offset; a region `ZoneId` also carries **historical/future rules** from the runtime's time-zone database. You cannot replace the `ZoneId` of a DST-observing region with an offset computed "today" and apply it forever.
 
-**ZoneId không xác định ngôn ngữ.** Vùng `Asia/Ho_Chi_Minh` không buộc hệ thống in “Thứ Tư” thay vì “Wednesday”. Ngôn ngữ do `Locale` của người xem quyết định.
+**ZoneId does not determine language.** The zone `Asia/Ho_Chi_Minh` does not force the system to print `"Thứ Tư"` instead of `"Wednesday"`. Language is determined by the viewer's `Locale`.
 
-### 2.3. Đừng trộn lẫn giá trị thời gian với cách trình bày
+### 2.3. Do Not Mix Temporal Values with Presentation
 
-| Đối tượng | Có ngày? | Có giờ? | Có zone/offset? | Vai trò thường gặp |
+| Object | Has date? | Has time? | Has zone/offset? | Typical role |
 | --- | --- | --- | --- | --- |
-| `LocalDate` | Có | Không | Không | Sinh nhật, ngày theo lịch |
-| `LocalTime` | Không | Có | Không | Giờ mở cửa theo quy tắc địa phương |
-| `LocalDateTime` | Có | Có | Không | Lịch hẹn địa phương trước khi chọn zone |
-| `Instant` | Mốc thời gian toàn cầu | Có | Không lưu zone hiển thị | Sự kiện, thời điểm tạo bản ghi |
-| `OffsetDateTime` | Có | Có | Có offset | Thời gian với offset cụ thể |
-| `ZonedDateTime` | Có | Có | Có ZoneId | Ngày giờ vùng cụ thể, DST-aware |
+| `LocalDate` | Yes | No | No | Birthdays, calendar dates |
+| `LocalTime` | No | Yes | No | Opening hours under local rules |
+| `LocalDateTime` | Yes | Yes | No | Local schedule before picking a zone |
+| `Instant` | Global point in time | Yes | Does not store display zone | Events, record creation timestamps |
+| `OffsetDateTime` | Yes | Yes | Has offset | Time with a specific offset |
+| `ZonedDateTime` | Yes | Yes | Has ZoneId | Specific regional date-time, DST-aware |
 
-Đối với một sự kiện đã xảy ra, thường lưu `Instant` (hoặc thời điểm có offset đúng) và chuyển sang zone hiển thị ở tầng trình bày. Với lịch hẹn “9 giờ sáng ngày 28/10 ở địa phương”, phải biết **zone của lịch hẹn** để xác định mốc UTC. Đây là hai mô hình khác nhau.
+For an event that has already occurred, typically store an `Instant` (or a timestamp with the proper offset) and convert to the display zone in the presentation layer. For an appointment "9:00 AM on Oct 28 locally", you must know **the appointment's zone** to determine the UTC instant. These are two distinct models.
 
-## 3. Vì sao default locale/time zone nguy hiểm trong ứng dụng nhiều người dùng?
+## 3. Why Are Default Locale/Time Zone Dangerous in Multi-User Applications?
 
-Một chương trình desktop đơn người dùng có thể dựa trên `Locale.getDefault()` hoặc `ZoneId.systemDefault()` trong những tình huống đơn giản. Nhưng server thường chạy trong container hoặc máy chủ có cấu hình khác máy khách, và nhiều request hoạt động đồng thời.
+A single-user desktop program may rely on `Locale.getDefault()` or `ZoneId.systemDefault()` in simple scenarios. However, servers typically run in containers or hosts configured differently from clients, with many requests executing concurrently.
 
-**Không nên** chọn ngôn ngữ từng request theo cách sau:
+**Do not** choose a per-request language like this:
 
 ~~~java
-Locale.setDefault(userLocale); // Anti-pattern trong web server.
+Locale.setDefault(userLocale); // Anti-pattern in a web server.
 ~~~
 
-Và cũng không nên đổi timezone toàn bộ runtime cho từng request:
+And do not change the entire runtime's time zone per request either:
 
 ~~~java
 TimeZone.setDefault(TimeZone.getTimeZone(userZone)); // Anti-pattern.
 ~~~
 
-Hai đoạn trên là **minh họa cách làm cần tránh trong phương thức**, với `userLocale` và `userZone` là các biến ngữ cảnh; không phải chương trình độc lập. Những thao tác đó thay trạng thái dùng chung của JVM, làm một request có thể ảnh hưởng request khác và các thư viện liên quan.
+The two snippets above **illustrate what to avoid inside a method**, where `userLocale` and `userZone` are context variables; they are not standalone programs. Those operations mutate shared JVM state, allowing one request to affect other requests and third-party libraries.
 
-Thay vào đó, ưu tiên:
+Instead, prefer:
 
 ~~~java
 DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm XXX", locale)
@@ -92,13 +92,13 @@ DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm XXX", locale)
         .format(instant);
 ~~~
 
-Đoạn minh họa này yêu cầu `locale`, `zone`, `instant` cùng import `java.time.format.DateTimeFormatter`. `DateTimeFormatter` immutable và thread-safe: `withZone` tạo formatter mới, không chỉnh cấu hình toàn hệ thống.
+This snippet assumes `locale`, `zone`, and `instant` along with `import java.time.format.DateTimeFormatter`. `DateTimeFormatter` is immutable and thread-safe: `withZone` returns a new formatter without modifying global configuration.
 
-**Không đoán ngữ cảnh từ máy chủ.** `ZoneId.systemDefault()` phản ánh múi giờ của quá trình Java, thường là UTC trong container; nó không thể thay cho zone tài khoản/người xem hoặc vùng diễn ra sự kiện.
+**Do not guess context from the server.** `ZoneId.systemDefault()` reflects the Java process's time zone, often UTC inside a container; it cannot substitute for the account/viewer's zone or the event's venue zone.
 
-## 4. Thiết kế RequestContext bất biến
+## 4. Designing an Immutable RequestContext
 
-Một cấu trúc đơn giản trong Java 17+ dùng `record` để giữ `Locale` và `ZoneId`:
+A simple Java 17+ structure uses a `record` to hold `Locale` and `ZoneId`:
 
 ~~~java
 import java.time.ZoneId;
@@ -113,29 +113,29 @@ public record RequestContext(Locale locale, ZoneId zone) {
 }
 ~~~
 
-Lưu file `RequestContext.java` và biên dịch:
+Save `RequestContext.java` and compile:
 
 ~~~bash
 javac -encoding UTF-8 RequestContext.java
 ~~~
 
-Đây là một **record khai báo kiểu dữ liệu**, không có `main` và không có stdout. Có thể dùng từ controller và service.
+This is a **data-type declaration record**, with no `main` and no stdout. It can be used from controllers and services.
 
-Tại sao hợp lý?
+Why is this reasonable?
 
-- **Tường minh:** chữ ký method cho thấy một chức năng phụ thuộc ngôn ngữ và múi giờ.
-- **Bất biến:** hai thành phần record không bị gán lại sau khi tạo; `Locale` và `ZoneId` cũng được thiết kế để dùng an toàn giữa luồng.
-- **Không có global state:** request A dùng `vi-VN` không đổi ngữ cảnh request B dùng `fr-FR`.
-- **Dễ kiểm thử:** test tự cung cấp context và thời điểm cố định.
-- **Dễ truyền qua async:** tham số được capture rõ ràng trong tác vụ, không dựa vào `ThreadLocal` của thread xử lý ban đầu.
+- **Explicit:** method signatures make it clear that an operation depends on language and time zone.
+- **Immutable:** the two record components cannot be reassigned after creation; `Locale` and `ZoneId` are also designed to be thread-safe.
+- **No global state:** request A using `vi-VN` does not alter request B's `fr-FR` context.
+- **Easy to test:** tests supply a fixed context and a fixed instant directly.
+- **Easy to propagate across async:** parameters are captured explicitly in tasks, without relying on the originating thread's `ThreadLocal`.
 
-Có thể đặt tên `FormattingContext`, `UserPresentationContext` hoặc `RequestContext` tùy phạm vi. Nếu đối tượng chỉ phục vụ hiển thị, tên `FormattingContext` giúp tránh nhầm nó chứa quyền truy cập hay mọi metadata của HTTP request.
+You may name it `FormattingContext`, `UserPresentationContext`, or `RequestContext` depending on scope. If the object serves display only, naming it `FormattingContext` avoids the misconception that it holds authorization permissions or all HTTP request metadata.
 
-**Không biến context thành một túi mọi thông tin.** Những dữ liệu như authentication token, tenant privilege hoặc dữ liệu cá nhân không nên được nhét vào đây chỉ vì tiện truyền qua service. Locale và ZoneId là **sở thích/ngữ cảnh trình bày**, không phải thông tin xác thực.
+**Do not turn the context into a grab-bag for everything.** Data such as authentication tokens, tenant privileges, or personal user data should not be stuffed here just for convenience in passing across services. `Locale` and `ZoneId` are **presentation preferences/context**, not authentication credentials.
 
-## 5. Chương trình hoàn chỉnh: hai người dùng, cùng một Instant
+## 5. Complete Program: Two Users, Same Instant
 
-Tạo file `ExplicitContextDemo.java`. Chương trình chỉ sử dụng một thời điểm cố định, truyền context vào hàm và không gọi default locale/timezone:
+Create `ExplicitContextDemo.java`. The program uses a single fixed instant, passes the context into a function, and never invokes default locale or time zone:
 
 ~~~java
 import java.time.Instant;
@@ -177,29 +177,29 @@ public class ExplicitContextDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 ExplicitContextDemo.java
 java ExplicitContextDemo
 ~~~
 
-Stdout đã kiểm tra trên OpenJDK 24:
+Stdout verified on OpenJDK 24:
 
 ~~~text
 VN=2026-10-28 10:30 +07:00
 US=2026-10-27 23:30 -04:00
 ~~~
 
-Giải thích: đầu vào `Instant` hoàn toàn giống nhau. Ở TP. Hồ Chí Minh vào ngày đó, offset là `+07:00`; ở New York, offset là `-04:00` do quy tắc DST của vùng. Vì thế ngày địa phương của New York là **27/10**, trong khi ngày tại Việt Nam là **28/10**.
+Explanation: the input `Instant` is identical. In Ho Chi Minh City on that date, the offset is `+07:00`; in New York, the offset is `-04:00` due to the region's DST rules. Consequently, the local date in New York is **Oct 27**, while in Vietnam it is **Oct 28**.
 
-Pattern trong ví dụ chủ đích dùng trường số và offset để stdout ổn định. Trong UI thực tế, hãy dùng `ofLocalizedDateTime(FormatStyle.MEDIUM).withLocale(locale).withZone(zone)` hoặc pattern riêng theo yêu cầu, để tên tháng và bố cục ngày được bản địa hóa khi thích hợp.
+The pattern in the example intentionally uses numeric fields and offsets for stable stdout. In a real UI, use `ofLocalizedDateTime(FormatStyle.MEDIUM).withLocale(locale).withZone(zone)` or a custom pattern as required, so month names and date layouts are localized appropriately.
 
-`withLocale` và `withZone` xử lý **hai vấn đề độc lập**. Đổi Locale sang tiếng Pháp vẫn giữ cùng giờ địa phương nếu giữ ZoneId, nhưng tên tháng và bố cục có thể chuyển sang tiếng Pháp. Đổi ZoneId lại làm thay đổi giờ/phút/ngày địa phương được tính từ cùng `Instant`.
+`withLocale` and `withZone` handle **two independent concerns**. Changing `Locale` to French keeps the same local time as long as `ZoneId` stays the same, while month names and layouts can switch to French. Changing `ZoneId` alters the local hour/minute/date computed from the same `Instant`.
 
-## 6. Luồng xử lý: xác định context một lần rồi truyền xuống
+## 6. Processing Flow: Resolve Context Once, Then Pass It Down
 
-Một thiết kế có thể nhìn như:
+A design can look like:
 
 ~~~text
 HTTP request / event / scheduled job
@@ -214,20 +214,20 @@ RequestContext { Locale, ZoneId }
           |                         |
           |                         +----> Asynchronous task (capture context)
           |
-          +----> Audit/log layer (UTC/ISO theo chính sách log)
+          +----> Audit/log layer (UTC/ISO per log policy)
 ~~~
 
-**Tại biên ứng dụng:**
+**At the application boundary:**
 
-- Đọc locale từ thiết lập ngôn ngữ đã lưu, lựa chọn UI hoặc `Accept-Language` nếu phù hợp.
-- Đọc ZoneId từ thiết lập múi giờ đã lưu, yêu cầu giao diện có kiểm tra hoặc từ chính thực thể nghiệp vụ (ví dụ zone của cửa hàng).
-- Áp dụng whitelist/chính sách fallback rõ ràng.
-- Tạo `RequestContext` một lần cho operation.
-- Chuyển context **bằng tham số** tới những hàm thực sự cần bản địa hóa hoặc quy đổi thời gian.
+- Read locale from saved language settings, UI selection, or `Accept-Language` when appropriate.
+- Read `ZoneId` from saved time zone settings, validated UI input, or the business entity itself (e.g., a store's zone).
+- Apply an explicit allowlist/fallback policy.
+- Create `RequestContext` once per operation.
+- Pass the context **as a parameter** to functions that genuinely need localization or time conversion.
 
-**Ở service domain:** các phép tính nghiệp vụ không cần ngôn ngữ thì không phải nhận `Locale` chỉ để “đủ chữ ký”. Ngược lại, formatter hoặc function tạo thông báo phụ thuộc ngôn ngữ phải nhận thông tin tương ứng, tránh đọc default một cách ẩn.
+**In domain services:** business calculations that do not depend on language do not need to accept `Locale` just "to match signatures". Conversely, formatters or functions constructing language-dependent messages must receive the relevant information rather than reading defaults implicitly.
 
-Ví dụ phương thức minh họa (không phải chương trình độc lập):
+Illustrative method example (not a standalone program):
 
 ~~~java
 ReceiptView buildReceipt(
@@ -241,47 +241,47 @@ ReceiptView buildReceipt(
 }
 ~~~
 
-Ở đây `Order`, `ReceiptView`, `renderTime`, `renderAmount` thuộc tầng nghiệp vụ giả định. Điều quan trọng là **phụ thuộc được thể hiện rõ ở chữ ký method**; không có cuộc gọi ngầm đến `Locale.getDefault` hay `ZoneId.systemDefault`.
+Here `Order`, `ReceiptView`, `renderTime`, and `renderAmount` belong to a hypothetical business layer. The key point is that **dependencies are explicit in the method signature**; there are no hidden calls to `Locale.getDefault` or `ZoneId.systemDefault`.
 
-## 7. Chọn Locale từ yêu cầu mà không tin mọi chuỗi người dùng gửi
+## 7. Choosing Locale from Requests Without Trusting Arbitrary User Strings
 
-Một `Accept-Language` header có thể là:
+An `Accept-Language` header might look like:
 
 ~~~text
 fr-CA,fr;q=0.8,en-US;q=0.6
 ~~~
 
-Đây **không phải một language tag duy nhất** để truyền nguyên vào `Locale.forLanguageTag`. Nó là danh sách ưu tiên cùng trọng số; nếu dùng header này, hãy xử lý bằng cơ chế thương lượng ngôn ngữ, ví dụ `Locale.LanguageRange.parse(...)` rồi lựa chọn trong tập locale được hỗ trợ.
+This is **not a single language tag** to pass directly into `Locale.forLanguageTag`. It is a weighted preference list; if you use this header, handle it through language negotiation, such as `Locale.LanguageRange.parse(...)`, and select from your supported locales.
 
-Trong nhiều sản phẩm, thứ tự chính sách có thể là:
+In many products, the policy order is:
 
-1. Locale do người dùng xác nhận trong tài khoản.
-2. Locale người dùng chọn trong request hợp lệ.
-3. Thương lượng từ `Accept-Language` trên tập được hỗ trợ.
-4. Locale mặc định **do sản phẩm định nghĩa** khi không có lựa chọn phù hợp.
+1. Locale confirmed by the user in their account.
+2. Validated locale selected by the user in the request.
+3. Negotiation from `Accept-Language` against the supported set.
+4. A **product-defined default locale** when no match is found.
 
-Không sử dụng máy chủ làm nguồn sự thật cho locale của người dùng. Ngoài ra, `Locale.forLanguageTag` có thể xử lý tag sai theo cách *lenient* và không nhất thiết ném lỗi cho mọi chuỗi không hợp lệ. Nếu hệ thống yêu cầu một tập locale cụ thể, hãy **đối chiếu với allowlist** sau khi canonicalize hoặc parse.
+Do not use the server as the source of truth for the user's locale. Moreover, `Locale.forLanguageTag` treats malformed tags *leniently* and does not necessarily throw on invalid strings. If the system requires a specific set of locales, **check against an allowlist** after canonicalization or parsing.
 
-**Cần phân biệt:** locale của UI không quyết định loại tiền của một giao dịch hoặc vùng giờ của một lịch hẹn. Một người nói tiếng Pháp vẫn có thể đặt lịch tại Việt Nam và thanh toán bằng USD; những trường nghiệp vụ này cần lưu độc lập.
+**Important distinction:** UI locale does not decide the currency of a transaction or the time zone of an appointment. A French speaker can still book an appointment in Vietnam and pay in USD; these business fields must be stored independently.
 
-## 8. ZoneId: nguồn gốc, xác thực và fallback
+## 8. ZoneId: Origin, Validation, and Fallback
 
-ZoneId nên đến từ **nguồn có ý nghĩa**, ví dụ:
+`ZoneId` should come from a **meaningful source**, such as:
 
-- Múi giờ người dùng đã chọn trong tài khoản cho lịch hiển thị cá nhân.
-- Múi giờ cửa hàng/địa điểm cho các hoạt động mở cửa, lịch hẹn tại chỗ.
-- Múi giờ được chỉ rõ trong lịch hoặc sự kiện.
-- Quy tắc sản phẩm, ví dụ báo cáo toàn công ty chạy theo UTC.
+- The user's account time zone for personal display calendars.
+- The store/venue's time zone for opening hours and on-site appointments.
+- The time zone explicitly specified on a schedule or event.
+- Product rules, such as company-wide reports running in UTC.
 
-Không suy múi giờ từ locale: `en-US` bao phủ nhiều vùng giờ; `vi-VN` không chứng minh người đang ở Việt Nam. Địa chỉ IP và vị trí trình duyệt cũng có thể không ổn định; khi nhận loại dữ liệu đó, chỉ dùng theo chính sách và cho người dùng quyền xác nhận.
+Do not infer time zone from locale: `en-US` spans many time zones; `vi-VN` does not prove someone is currently in Vietnam. IP addresses and browser locations can also be unreliable; if used, apply them only per policy and let the user confirm.
 
-`ZoneId.of(id)` có thể ném `DateTimeException` nếu id không hợp lệ hoặc không được time-zone database hỗ trợ. Không nên bắt lỗi rồi âm thầm chọn máy chủ mà không log/định nghĩa fallback. Đối với hệ thống hạn chế tập vùng giờ, có thể kiểm tra allowlist `Set<String>` gồm những ID được hỗ trợ.
+`ZoneId.of(id)` can throw `DateTimeException` if the ID is invalid or unsupported by the time-zone database. Do not catch the exception and silently fall back to the server zone without logging or defining an explicit fallback policy. For systems restricting supported zones, validate against an allowlist `Set<String>` of supported IDs.
 
-**Chọn `ZoneId` vùng thay vì offset cố định** khi nghiệp vụ phụ thuộc quy tắc DST. `America/New_York` có lịch sử và các quy tắc chuyển offset; `ZoneOffset.of("-05:00")` không có khả năng theo DST.
+**Prefer a region `ZoneId` over a fixed offset** when business logic depends on DST rules. `America/New_York` carries historical and transition rules; `ZoneOffset.of("-05:00")` cannot track DST.
 
-### Ví dụ Java 17+: resolver kiểm soát tập locale và zone
+### Java 17+ Example: Resolver Constraining Locale and Zone Sets
 
-Tạo file `ContextResolverDemo.java`:
+Create `ContextResolverDemo.java`:
 
 ~~~java
 import java.time.ZoneId;
@@ -326,7 +326,7 @@ public class ContextResolverDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 ContextResolverDemo.java
@@ -340,13 +340,13 @@ vi-VN
 Asia/Ho_Chi_Minh
 ~~~
 
-Đây là một chính sách **minh họa**. Một ứng dụng có thể cho phép nhiều locale và zone hơn, cần xử lý `null`/chuỗi rỗng, canonicalization, alias và fallback theo cấu hình thực. `resolve` trong ví dụ cố tình từ chối locale/zone ngoài tập, không đoán default của máy chủ.
+This is an **illustrative** policy. A production application may support more locales and zones, and must handle `null`/empty strings, canonicalization, aliases, and configuration-driven fallbacks. `resolve` in this example intentionally rejects out-of-set locales/zones instead of guessing a server default.
 
-Không suy quyền truy cập của người dùng từ `RequestContext`: locale và zone chỉ phục vụ trình bày/lịch, không phải authorization. Dù một người gửi `en-US` hoặc `America/New_York`, họ không có thêm quyền truy cập tài nguyên nào.
+Do not derive user permissions from `RequestContext`: locale and zone serve presentation and scheduling only, never authorization. Sending `en-US` or `America/New_York` grants no additional resource access.
 
-## 9. Locale để định dạng số và thông điệp, ZoneId để quy đổi Instant
+## 9. Locale Formats Numbers and Messages, ZoneId Converts Instants
 
-Đối với số lượng hoặc phần trăm:
+For quantities or percentages:
 
 ~~~java
 NumberFormat number = NumberFormat.getNumberInstance(
@@ -354,9 +354,9 @@ NumberFormat number = NumberFormat.getNumberInstance(
 String amount = number.format(value);
 ~~~
 
-Đây là đoạn mã **trong phương thức**, với `context` mang locale, `value` là số và import `java.text.NumberFormat`. `ZoneId` không có tác dụng trong định dạng số.
+This is a snippet **inside a method**, with `context` holding the locale, `value` as a number, and `import java.text.NumberFormat`. `ZoneId` plays no role in number formatting.
 
-Đối với thời điểm:
+For instants:
 
 ~~~java
 DateTimeFormatter formatter =
@@ -368,26 +368,26 @@ DateTimeFormatter formatter =
 String time = formatter.format(instant);
 ~~~
 
-Đoạn này yêu cầu `instant` kiểu `Instant`, import `java.time.format.*`. **Locale** định hướng cách viết; **ZoneId** định hướng giờ địa phương.
+This snippet requires `instant` of type `Instant` and `import java.time.format.*`. **Locale** governs spelling and layout; **ZoneId** governs local wall-clock time.
 
-Ví dụ dùng `Locale.FRANCE` và `Asia/Ho_Chi_Minh` có thể cho ngày tháng bằng tiếng Pháp nhưng giờ theo Việt Nam. Đây là cấu hình hợp lệ và có thể được yêu cầu bởi người dùng sống ở một quốc gia nhưng chọn ngôn ngữ khác.
+For example, using `Locale.FRANCE` and `Asia/Ho_Chi_Minh` produces dates in French using Vietnam time. This is a valid configuration and may be requested by a user living in one country while choosing another language.
 
-Trong các thành phần tạo message (“Đơn hàng được giao lúc …”), nên dùng **toàn câu được dịch** từ tài nguyên ứng dụng, rồi chèn thời gian đã định dạng vào placeholder phù hợp; không nối mảnh tiếng Anh với mảnh ngày đã format. Một locale context có thể được dùng cho tra cứu ResourceBundle, nhưng **ResourceBundle không tự biết ZoneId**.
+When building messages ("Order delivered at ..."), use **a full translated sentence** from application resources, then insert the formatted time into the proper placeholder; do not concatenate English fragments with formatted date fragments. A locale context can drive `ResourceBundle` lookup, but **`ResourceBundle` knows nothing about `ZoneId`**.
 
-## 10. Truyền context qua xử lý bất đồng bộ
+## 10. Passing Context Across Asynchronous Processing
 
-Một lỗi phổ biến của ứng dụng Java là đặt locale/zone vào `ThreadLocal` của HTTP thread rồi khởi chạy tác vụ trên executor:
+A common mistake in Java applications is storing locale/zone in an HTTP thread's `ThreadLocal` and then launching work on an executor:
 
 ~~~java
 CompletableFuture.supplyAsync(
         () -> renderForCurrentUser(event));
 ~~~
 
-Đây chỉ là **anti-pattern minh họa**: `renderForCurrentUser` là hàm giả định sử dụng ngữ cảnh ẩn. Thread của executor không nhất thiết là thread HTTP; `ThreadLocal` mặc định không tự truyền đúng dữ liệu; task khác có thể dùng lại thread. `InheritableThreadLocal` cũng không phải giải pháp tổng quát cho thread pools vì thread có thể được tạo trước hoặc tái sử dụng.
+This is only an **illustrative anti-pattern**: `renderForCurrentUser` is a hypothetical method reading hidden context. Executor threads are not necessarily HTTP threads; `ThreadLocal` does not propagate automatically by default; another task can reuse the thread. Nor is `InheritableThreadLocal` a general solution for thread pools because threads may be pre-created or reused.
 
-**Giải pháp rõ ràng:** truyền context bằng tham số hoặc capture một đối tượng bất biến trong lambda. Nó giúp người đọc code và bộ kiểm thử nhìn ra phụ thuộc.
+**Clear solution:** pass context as an argument or capture an immutable object in the lambda. This makes dependencies visible to code readers and test suites.
 
-### Ví dụ Java 17+ chạy được với CompletableFuture
+### Runnable Java 17+ Example with CompletableFuture
 
 ~~~java
 import java.time.Instant;
@@ -434,7 +434,7 @@ public class AsyncContextDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 AsyncContextDemo.java
@@ -448,13 +448,13 @@ VN 2026-10-28 10:30 +07:00
 US 2026-10-27 23:30 -04:00
 ~~~
 
-Hai task có thể chạy theo thứ tự bất kỳ, nhưng **các dòng được in từ main sau `join()` theo thứ tự cố định**. Context được capture thành hai giá trị bất biến khác nhau. Đừng dựa vào việc worker thread tình cờ có đúng default JVM.
+The two tasks may execute in any order, while **the lines printed from `main` after `join()` appear in a fixed order**. The context is captured as two distinct immutable values. Do not rely on a worker thread happening to have the right JVM default.
 
-Khi dùng `ExecutorService`, reactive pipeline, message queue hoặc scheduled jobs, vẫn áp dụng nguyên tắc tương tự: đính kèm dữ liệu context hợp lệ với work item và truyền tới các hàm cần nó. Với job chạy sau khi request đã kết thúc, cần cân nhắc **snapshot** ngôn ngữ/múi giờ tại thời điểm tạo job hay đọc lại sở thích người dùng ở thời điểm thực thi. Đó là quyết định nghiệp vụ, không phải hành vi mặc định của Java.
+When using `ExecutorService`, reactive pipelines, message queues, or scheduled jobs, apply the same rule: attach validated context data to the work item and pass it to the functions that need it. For jobs running after a request ends, decide whether to **snapshot** language/time zone when scheduling the job or reload user preferences at execution time. That is a business decision, not a Java default behavior.
 
-## 11. Lịch địa phương: cùng 09:00 có thể là hai Instant khác nhau
+## 11. Local Schedules: The Same 09:00 Can Be Two Different Instants
 
-Khi người dùng nhập “09:00 ngày 28/10/2026”, ta chưa biết một thời điểm UTC duy nhất nếu thiếu `ZoneId`. Cùng `LocalDateTime` có thể đại diện những `Instant` khác nhau theo vùng:
+When a user enters "09:00 on 28/10/2026", we do not yet know a unique UTC instant without a `ZoneId`. The same `LocalDateTime` can represent different `Instant` values depending on region:
 
 ~~~java
 LocalDateTime local =
@@ -469,27 +469,27 @@ Instant ny =
                 .toInstant();
 ~~~
 
-Đây là mã **minh họa trong một phương thức**, cần import `java.time.*`. Với dữ liệu ngày đã cho, `hcm` là `2026-10-28T02:00:00Z` và `ny` là `2026-10-28T13:00:00Z` theo time-zone rules đã kiểm chứng.
+This snippet **illustrates logic inside a method** and requires `import java.time.*`. For the given date, `hcm` is `2026-10-28T02:00:00Z` and `ny` is `2026-10-28T13:00:00Z` per verified time-zone rules.
 
-Vì thế nên lưu **zone của lịch hẹn hoặc địa điểm** trong model khi nghiệp vụ dựa trên giờ địa phương. Không chỉ lưu `LocalDateTime` nếu downstream phải gửi lời nhắc ở một mốc UTC chính xác. Đối với sự kiện tương lai, hãy quyết định quy tắc khi luật giờ mùa hè thay đổi, thời điểm tính mốc UTC và cách thông báo đến người dùng.
+Therefore, store **the appointment or venue's zone** in the model when business logic relies on local time. Do not store only `LocalDateTime` if downstream systems must send reminders at an exact UTC instant. For future events, define policies for DST law changes, when UTC instants are computed, and how users are notified.
 
-Đừng tự lấy `ZoneId` từ locale. Một khách chọn `Locale.US` nhưng đặt lịch dịch vụ ở Việt Nam thường cần `Asia/Ho_Chi_Minh` **cho lịch hẹn**; khi hiển thị trên thiết bị cá nhân, người xem có thể lựa chọn zone riêng để quy đổi.
+Never derive `ZoneId` from locale. A customer choosing `Locale.US` who books a service in Vietnam generally needs `Asia/Ho_Chi_Minh` **for the appointment**; when viewing on a personal device, the viewer can pick their own zone for conversion.
 
-## 12. DST: không phải LocalDateTime nào cũng hợp lệ hoặc duy nhất
+## 12. DST: Not Every LocalDateTime Is Valid or Unique
 
-Đối với vùng thay đổi giờ mùa hè, có thể tồn tại ba trạng thái tại một `LocalDateTime`:
+For regions observing daylight saving time, three states can occur at a given `LocalDateTime`:
 
-| Số offset hợp lệ | Ý nghĩa | Chính sách cần có |
+| Valid offset count | Meaning | Required policy |
 | ---: | --- | --- |
-| 0 | **Gap**: giờ địa phương không tồn tại | Từ chối, yêu cầu chọn lại hoặc dịch theo quy tắc rõ |
-| 1 | Giờ địa phương có một offset hợp lệ | Có thể xác định một Instant |
-| 2 | **Overlap**: giờ địa phương xảy ra hai lần | Chọn offset trước/sau hoặc yêu cầu người dùng quyết định |
+| 0 | **Gap**: local time does not exist | Reject, ask user to pick again, or shift per explicit rule |
+| 1 | Local time has one valid offset | Determines a single Instant |
+| 2 | **Overlap**: local time occurs twice | Choose earlier/later offset or ask user to decide |
 
-`LocalDateTime.atZone(zone)` có cách xử lý mặc định khi gặp gap/overlap. Điều đó thuận tiện nhưng **không có nghĩa đã phản ánh đúng quy tắc đặt lịch của sản phẩm**. Nếu yêu cầu sự rõ ràng, dùng `ZoneRules.getValidOffsets(localDateTime)` để kiểm tra trước.
+`LocalDateTime.atZone(zone)` has default behavior for gaps and overlaps. That is convenient, but **it does not necessarily match your product's scheduling rules**. When precision is required, check first using `ZoneRules.getValidOffsets(localDateTime)`.
 
-### Ví dụ Java 17+: kiểm tra DST ở New York
+### Java 17+ Example: Checking DST in New York
 
-Tạo `DstValidityDemo.java`:
+Create `DstValidityDemo.java`:
 
 ~~~java
 import java.time.LocalDateTime;
@@ -522,14 +522,14 @@ public class DstValidityDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 DstValidityDemo.java
 java DstValidityDemo
 ~~~
 
-Stdout trên dữ liệu múi giờ JDK được kiểm tra:
+Stdout on the tested JDK time-zone data:
 
 ~~~text
 2026-03-08T02:30 offsetCount=0 offsets=[]
@@ -537,35 +537,35 @@ Stdout trên dữ liệu múi giờ JDK được kiểm tra:
 2026-11-01T01:30 offsetCount=2 offsets=[-04:00, -05:00]
 ~~~
 
-Ngày **8/3/2026** tại New York, 02:30 rơi vào khoảng giờ không tồn tại do chuyển sang DST. Ngày **1/11/2026**, 01:30 xuất hiện hai lần với hai offset khác nhau khi quay lại giờ chuẩn. Với lịch hẹn, tạo mốc UTC từ local+zone mà không xét hai trường hợp này có thể đặt nhầm giờ.
+On **2026-03-08** in New York, 02:30 falls in a non-existent hour due to springing forward into DST. On **2026-11-01**, 01:30 occurs twice with two different offsets when falling back to standard time. For appointments, deriving a UTC instant from local+zone without accounting for these two cases can schedule the wrong hour.
 
-**Quan trọng:** ví dụ dùng dữ liệu quy tắc vùng của JDK; ở các bản tzdb khác hoặc nếu pháp luật thay đổi, quy tắc tương lai có thể khác. Kiểm thử trên runtime triển khai và version database thời gian đúng cho hệ thống.
+**Important:** the example uses the JDK's zone rule data; in other tzdb versions or if laws change, future rules may differ. Test on your deployment runtime and the proper time-zone database version for your system.
 
-## 13. Phân biệt ZoneId trình bày với ZoneId nghiệp vụ
+## 13. Distinguish Presentation ZoneId from Business ZoneId
 
-Không nhất thiết chỉ có **một** ZoneId cho mọi việc trong một request. Ví dụ:
+There does not have to be only **one** `ZoneId` for everything in a request. For example:
 
-- `viewerZone`: vùng giờ mà người dùng muốn xem trên màn hình.
-- `eventZone`: vùng giờ của địa điểm tổ chức.
-- `reportZone`: vùng giờ quy định chốt kỳ báo cáo.
-- `systemLogZone`: thường dùng UTC để log/sắp xếp sự kiện.
+- `viewerZone`: the time zone the user wants to see on screen.
+- `eventZone`: the time zone of the venue where the event takes place.
+- `reportZone`: the time zone governing reporting cutoff periods.
+- `systemLogZone`: typically UTC for logging and ordering events.
 
-Nếu các vùng này khác nhau, **đặt tên rõ** hoặc dùng các value objects riêng, thay vì dùng một `context.zone()` cho mọi bước một cách máy móc.
+When these zones differ, **name them clearly** or use separate value objects rather than mechanically passing one `context.zone()` to every step.
 
-Một `RequestContext` kiểu `locale + viewerZone` rất hữu ích cho **presentation layer**. Nhưng việc xác định một lịch họp tại New York có thể phải lấy `event.zoneId` từ bản ghi sự kiện; không được âm thầm thay bằng zone của người xem.
+A `RequestContext` with `locale + viewerZone` is very useful for the **presentation layer**. However, scheduling a meeting in New York may need `event.zoneId` from the event record; it must not silently be replaced by the viewer's zone.
 
-Tương tự, chọn locale hiển thị không được làm thay đổi currency code của đơn hàng, định dạng ID kỹ thuật hoặc timezone chính thức của kỳ kế toán. **Ngữ cảnh trình bày** và **nguồn sự thật nghiệp vụ** là hai tầng khác nhau.
+Similarly, choosing a display locale must not alter an order's currency code, technical ID formatting, or the official time zone of an accounting period. **Presentation context** and **business source of truth** are separate layers.
 
-## 14. Job nền và gửi thông báo: snapshot hay lấy sở thích mới?
+## 14. Background Jobs and Notifications: Snapshot or Reload Preferences?
 
-Giả sử người dùng đăng ký nhận email nhắc hẹn sau ba ngày. Có hai thiết kế hợp lệ:
+Suppose a user signs up to receive an appointment reminder email three days later. There are two valid designs:
 
-1. **Snapshot tại thời điểm lên lịch:** lưu locale và ZoneId đã được chọn khi tạo nhắc hẹn. Thông báo thể hiện cùng cách hiểu mà người dùng đã xác nhận lúc đặt lịch.
-2. **Resolve lại tại thời điểm gửi:** tải locale và vùng giờ từ tài khoản khi job chạy. Thông báo theo sở thích mới, nhưng phải bảo đảm sự kiện vẫn dùng zone nghiệp vụ đúng.
+1. **Snapshot at scheduling time:** store the locale and `ZoneId` chosen when creating the reminder. The notification reflects the exact interpretation the user confirmed when booking.
+2. **Re-resolve at send time:** load the locale and time zone from the account when the job runs. The notification honors updated preferences, while ensuring the event still uses the right business zone.
 
-Chọn theo kỳ vọng sản phẩm, bảo đảm có dấu vết/version khi cần. Một job không thể dựa vào request-scoped object đã hết vòng đời; dữ liệu cần thiết phải đi kèm work item hoặc có thể đọc lại có kiểm soát.
+Choose based on product expectations, keeping an audit trail/version where needed. A job cannot depend on an expired request-scoped object; required data must accompany the work item or be re-read in a controlled way.
 
-Ví dụ payload ý tưởng:
+Conceptual payload example:
 
 ~~~text
 notificationId: 1729
@@ -575,19 +575,19 @@ locale: vi-VN
 viewerZone: Asia/Ho_Chi_Minh
 ~~~
 
-Đây là **ví dụ cấu trúc**, không phải Java code hoặc lời khuyên lưu mọi thông tin người dùng vào queue. Dữ liệu nhạy cảm cần được tối thiểu hóa và bảo vệ; dùng ID để tham chiếu và giữ snapshot chỉ khi nghiệp vụ cần.
+This is a **structural example**, not Java code or advice to store all user data in a queue. Sensitive data should be minimized and protected; reference by ID and keep snapshots only when business rules require them.
 
-Khi chạy job, tạo lại `RequestContext` từ dữ liệu đã kiểm tra và tiếp tục truyền tường minh. Không mong `ThreadLocal` của HTTP request tồn tại trong scheduler.
+When running the job, reconstruct `RequestContext` from validated data and continue passing it explicitly. Never expect an HTTP request's `ThreadLocal` to exist inside a scheduler.
 
-## 15. Clock tường minh để kiểm thử và ngăn phụ thuộc thời gian hiện tại
+## 15. Explicit Clock for Testing and Avoiding Dependency on Current Time
 
-Ngữ cảnh locale/zone không giải quyết toàn bộ tính tái lập nếu code vẫn gọi `Instant.now()` rải rác. Khi một chức năng cần “thời điểm hiện tại”, cân nhắc truyền `Clock` như một phụ thuộc riêng:
+Locale/zone context does not guarantee full reproducibility if code still scatters calls to `Instant.now()`. When a feature needs "the current instant", consider injecting `Clock` as a separate dependency:
 
 ~~~java
 Instant now = clock.instant();
 ~~~
 
-Đây là đoạn mã minh họa trong phương thức có `Clock clock`. Trong test:
+This snippet illustrates code inside a method accepting `Clock clock`. In tests:
 
 ~~~java
 Clock fixed = Clock.fixed(
@@ -595,16 +595,16 @@ Clock fixed = Clock.fixed(
         ZoneOffset.UTC);
 ~~~
 
-Đoạn minh họa này cần import `java.time.*`. `Clock.fixed` cung cấp thời điểm cố định. Có thể truyền `Clock` qua constructor/service và `RequestContext` qua operation, vì chúng giải quyết **hai câu hỏi khác nhau**:
+This snippet requires `import java.time.*`. `Clock.fixed` supplies a fixed point in time. You can pass `Clock` via constructor/service and `RequestContext` per operation, because they answer **two different questions**:
 
-- `Clock`: “hiện tại là lúc nào?”
-- `RequestContext`: “hiển thị theo ngôn ngữ và múi giờ của ai?”
+- `Clock`: "what instant is it right now?"
+- `RequestContext`: "whose language and time zone should be used for display?"
 
-Nếu tạo `Clock.systemUTC()` trong production, đó là nguồn thời gian chủ đích, không phải timezone của người xem. Với lịch hẹn từ `LocalDateTime`, zone phải đến từ dữ liệu lịch chứ không nhất thiết từ clock.
+Creating `Clock.systemUTC()` in production provides an intentional time source, not the viewer's time zone. For schedules from `LocalDateTime`, the zone must come from the schedule data rather than from the clock.
 
-## 16. Tính an toàn luồng và vòng đời của formatter
+## 16. Thread Safety and Formatter Lifecycle
 
-`DateTimeFormatter` là immutable và thread-safe. `withLocale` và `withZone` trả về formatter mới; có thể tạo formatter base dùng chung và áp dụng context tại từng lần hiển thị.
+`DateTimeFormatter` is immutable and thread-safe. `withLocale` and `withZone` return new formatters; you can share a base formatter and apply context per render call.
 
 ~~~java
 private static final DateTimeFormatter BASE =
@@ -619,76 +619,76 @@ static String format(Instant instant,
 }
 ~~~
 
-Đây là **mã minh họa trong class**, yêu cầu import và kiểu `RequestContext` được khai báo trước. Pattern chủ yếu gồm ký hiệu số; với định dạng tên tháng nên dùng localized style hoặc formatter có locale thích hợp.
+This is **illustrative code inside a class**, requiring imports and a previously declared `RequestContext` type. The pattern mainly contains numeric fields; when formatting month names, use a localized style or a formatter with the appropriate locale.
 
-Ngược lại, `NumberFormat` và `DecimalFormat` là những formatter **có thể thay đổi trạng thái** và nói chung không nên chia sẻ một instance mutable rồi `setCurrency`/`setMaximumFractionDigits` theo request đồng thời. Tạo instance riêng hoặc quản lý concurrency phù hợp.
+By contrast, `NumberFormat` and `DecimalFormat` are **mutable** formatters and should generally not be shared across concurrent requests calling `setCurrency`/`setMaximumFractionDigits`. Create separate instances or manage concurrency properly.
 
-`Locale`, `ZoneId` và record context có thể được truyền giữa các thread khi bản thân đối tượng được giữ bất biến. Nhưng đừng gắn mọi thông tin phụ thuộc request vào singleton mutable; một context mới cho request/job sẽ dễ suy luận và an toàn hơn.
+`Locale`, `ZoneId`, and context records can be passed across threads safely as long as the objects themselves remain immutable. Never attach request-scoped info to a mutable singleton; a fresh context per request/job is easier to reason about and safer.
 
-## 17. Các lỗi phổ biến
+## 17. Common Pitfalls
 
-| Lỗi | Hệ quả | Cách xử lý |
+| Pitfall | Consequence | Remedy |
 | --- | --- | --- |
-| Dùng `Locale.setDefault` theo request | Request này có thể ảnh hưởng request khác | Truyền Locale tường minh |
-| Dùng `TimeZone.setDefault` theo request | Timezone toàn JVM bị đổi | Truyền ZoneId tường minh |
-| Dùng `ZoneId.systemDefault()` cho người xem | Lấy múi giờ container/server | Lấy user preference/venue zone |
-| Cho rằng `vi-VN` luôn là `Asia/Ho_Chi_Minh` | Sai với người dùng khác vùng | Tách locale và zone |
-| Cho rằng `en-US` suy ra một timezone | Mỹ có nhiều timezone | Yêu cầu zone phù hợp |
-| Đưa `Accept-Language` nguyên chuỗi vào `forLanguageTag` | Không đúng cấu trúc header | Parse/negotiation và allowlist |
-| Dùng `Locale.forLanguageTag` làm strict validator | Tag sai có thể được xử lý lenient | Kiểm tra locale được hỗ trợ |
-| Nhận ZoneId tùy ý nhưng không bắt lỗi | Có thể `DateTimeException` | Validate và xử lý fallback rõ |
-| Sử dụng `ThreadLocal` làm context qua async | Worker thread thiếu/sai dữ liệu | Capture và truyền context |
-| Chỉ lưu `LocalDateTime` cho cuộc hẹn toàn cầu | Không xác định một Instant | Lưu zone và xử lý DST |
-| Thay `ZoneId` bằng offset cố định | Sai khi chuyển DST | Giữ region-based ZoneId |
-| Bỏ qua gap/overlap DST | Lịch hẹn sai một giờ hoặc không tồn tại | `getValidOffsets` và chính sách |
-| Dùng viewer zone cho giờ đóng sổ địa điểm | Sai timezone nghiệp vụ | Phân biệt eventZone/reportZone |
-| Dùng local date format trong log/ID | Khó đối chiếu khi locale đổi | Dùng UTC/ISO theo hợp đồng |
-| Test phụ thuộc `now()` và default | Không tái lập giữa môi trường | Inject Clock, Locale, ZoneId |
-| Dùng chung NumberFormat mutable | Race condition | Tạo formatter riêng cho mỗi ngữ cảnh |
+| Calling `Locale.setDefault` per request | One request affects other requests | Pass `Locale` explicitly |
+| Calling `TimeZone.setDefault` per request | Changes time zone for the whole JVM | Pass `ZoneId` explicitly |
+| Using `ZoneId.systemDefault()` for viewers | Uses container/server time zone | Read user preference or venue zone |
+| Assuming `vi-VN` always means `Asia/Ho_Chi_Minh` | Wrong for users in other regions | Separate locale and zone |
+| Assuming `en-US` implies one time zone | The US spans multiple time zones | Require an explicit zone |
+| Passing raw `Accept-Language` to `forLanguageTag` | Invalid for header syntax | Parse/negotiate and check allowlist |
+| Using `Locale.forLanguageTag` as a strict validator | Malformed tags may be handled leniently | Check against supported locales |
+| Accepting arbitrary ZoneId without catching errors | Can throw `DateTimeException` | Validate and define clear fallback |
+| Using `ThreadLocal` for context across async | Worker threads lack or leak data | Capture and pass context explicitly |
+| Storing only `LocalDateTime` for global appointments | Does not identify a unique `Instant` | Store zone and handle DST |
+| Replacing `ZoneId` with a fixed offset | Breaks across DST transitions | Keep region-based `ZoneId` |
+| Ignoring DST gaps/overlaps | Appointment off by an hour or nonexistent | Use `getValidOffsets` and policy |
+| Using viewer zone for venue closing time | Wrong business time zone | Separate `eventZone`/`reportZone` |
+| Using local date formats in logs/IDs | Hard to correlate across locales | Use UTC/ISO per contract |
+| Tests depending on `now()` and defaults | Non-reproducible across environments | Inject `Clock`, `Locale`, `ZoneId` |
+| Sharing mutable `NumberFormat` | Race conditions | Create per-context formatters |
 
-## 18. Checklist triển khai và kiểm thử
+## 18. Implementation and Testing Checklist
 
-1. **Context type:** có `Locale` và `ZoneId` với chính sách null rõ ràng.
-2. **Nguồn dữ liệu:** locale và zone được chọn từ tài khoản, lựa chọn UI hay ngữ cảnh nghiệp vụ, không suy từ server.
-3. **Validation:** hỗ trợ language tag/zone ID hợp lệ theo tập locale/zone của sản phẩm.
-4. **Fallback:** nếu thiếu lựa chọn, dùng mặc định **được sản phẩm định nghĩa**, không dùng ngầm system default.
-5. **Controller/service:** context được truyền tường minh tới nơi cần.
-6. **Async:** tác vụ dùng context đã capture/đọc lại có chủ đích, không dựa vào `ThreadLocal`.
-7. **Formatting:** `DateTimeFormatter.withLocale` cho ngôn ngữ, `withZone` cho vùng giờ.
-8. **Numbers/currency:** formatter số nhận locale; currency thuộc dữ liệu giao dịch, không phụ thuộc viewer zone.
-9. **Instant:** cùng mốc UTC được hiển thị khác nhau theo vùng, nhưng không đổi bản chất thời điểm.
-10. **Calendar semantics:** local date/time không bị quy đổi thành Instant khi chưa có zone nghiệp vụ.
-11. **DST:** có test cho gap 0 offset, normal 1 offset và overlap 2 offset.
-12. **Clock:** thời điểm hiện tại được cố định trong test.
-13. **Default state:** không gọi `Locale.setDefault` hoặc `TimeZone.setDefault` theo request.
-14. **Parallel requests:** gửi đồng thời context `vi-VN` và `en-US`, xác nhận không rò dữ liệu.
-15. **Time zone DB:** kiểm tra version runtime/tzdb khi lịch tương lai có thể chịu thay đổi chính sách DST.
-16. **Presentation vs domain:** phân biệt viewer zone với event/venue/report zone.
-17. **Localization data:** kết quả ngôn ngữ phụ thuộc dữ liệu locale JDK; kiểm thử runtime phát hành.
-18. **Logging:** ghi timestamp rõ ràng (thường UTC/ISO) và truyền zone khi cần theo chính sách log.
-19. **Privacy/security:** context không được dùng để cấp quyền hoặc lưu dữ liệu nhạy cảm không cần thiết.
-20. **Contract tests:** API truyền locale/zone theo quy định; message/jobs có chiến lược snapshot/resolve.
+1. **Context type:** holds `Locale` and `ZoneId` with an explicit null policy.
+2. **Data source:** locale and zone come from account settings, UI selection, or business context, never inferred from the server.
+3. **Validation:** language tags and zone IDs are validated against the product's supported sets.
+4. **Fallback:** when missing, use a **product-defined** default, not an implicit system default.
+5. **Controller/service:** context is passed explicitly wherever needed.
+6. **Async:** tasks use intentionally captured or reloaded context, never `ThreadLocal`.
+7. **Formatting:** `DateTimeFormatter.withLocale` for language, `withZone` for time zone.
+8. **Numbers/currency:** number formatters receive locale; currency belongs to transaction data, independent of viewer zone.
+9. **Instant:** the same UTC instant renders differently by region without changing the underlying instant.
+10. **Calendar semantics:** local dates/times are not converted to `Instant` without a business zone.
+11. **DST:** tests cover 0-offset gaps, 1-offset normal times, and 2-offset overlaps.
+12. **Clock:** current time is fixed in tests.
+13. **Default state:** `Locale.setDefault` and `TimeZone.setDefault` are never called per request.
+14. **Parallel requests:** send `vi-VN` and `en-US` contexts concurrently and verify no data leakage.
+15. **Time zone DB:** verify runtime/tzdb version when future schedules may experience DST policy changes.
+16. **Presentation vs domain:** distinguish viewer zone from event/venue/report zone.
+17. **Localization data:** language output depends on JDK locale data; test on the release runtime.
+18. **Logging:** log timestamps unambiguously (usually UTC/ISO) and include zone if required by log policy.
+19. **Privacy/security:** context is never used for authorization or carrying unnecessary sensitive data.
+20. **Contract tests:** APIs pass locale/zone as specified; messages/jobs have a defined snapshot/resolve strategy.
 
-### Bài tập thực hành
+### Practice Exercises
 
-1. Chạy `ExplicitContextDemo`; giữ `ZoneId` Việt Nam nhưng đổi `Locale` từ `vi-VN` sang `fr-FR` và dùng pattern có `MMMM`. Giải thích vì sao tên tháng đổi nhưng giờ địa phương không đổi.
-2. Chạy `AsyncContextDemo` với ba request song song. Đảm bảo mọi task vẫn có locale/zone của chính mình dù executor thực thi thứ tự khác.
-3. Viết một `ContextResolver` hỗ trợ locale `vi-VN`, `fr-FR` và zone `Asia/Ho_Chi_Minh`, `Europe/Paris`; viết test cho giá trị bị từ chối.
-4. Tạo `LocalDateTime.of(2026,3,8,2,30)` ở `America/New_York`, dùng `ZoneRules.getValidOffsets` rồi đề xuất chính sách đặt lịch khi `offsetCount == 0`.
-5. Tạo hai `Instant` từ cùng local `2026-11-01T01:30` ở New York với hai offset hợp lệ; tính chênh lệch giữa chúng.
-6. Viết test dạng table-driven cho 2026-10-28T03:30Z với context VN/US/France, không dùng `Instant.now()` hoặc default JVM.
-7. Thiết kế payload của một job gửi email sau ba ngày: xác định locale và zone cần snapshot hay đọc lại, phân biệt zone hiển thị với zone địa điểm.
-8. Thêm một `Clock.fixed(...)` cho service tạo nhãn “đã cập nhật X phút trước”, và truyền `Locale` cho thông điệp bản địa hóa; giải thích vì sao cần cả Clock lẫn locale.
+1. Run `ExplicitContextDemo`; keep Vietnam `ZoneId` while changing `Locale` from `vi-VN` to `fr-FR` and using a pattern with `MMMM`. Explain why the month name changes while the local hour does not.
+2. Run `AsyncContextDemo` with three parallel requests. Verify every task retains its own locale/zone even if the executor runs them out of order.
+3. Write a `ContextResolver` supporting locales `vi-VN`, `fr-FR` and zones `Asia/Ho_Chi_Minh`, `Europe/Paris`; write tests for rejected values.
+4. Construct `LocalDateTime.of(2026,3,8,2,30)` in `America/New_York`, call `ZoneRules.getValidOffsets`, and propose a scheduling policy when `offsetCount == 0`.
+5. Create two `Instant` values from the same local `2026-11-01T01:30` in New York using the two valid offsets; compute the difference between them.
+6. Write table-driven tests for `2026-10-28T03:30Z` across VN/US/France contexts without calling `Instant.now()` or JVM defaults.
+7. Design the payload for a job sending an email three days later: decide whether locale and zone should be snapshotted or reloaded, and distinguish display zone from venue zone.
+8. Add a `Clock.fixed(...)` to a service producing an "updated X minutes ago" label, and pass `Locale` for the localized message; explain why both `Clock` and `Locale` are required.
 
-## 19. Kết luận
+## 19. Conclusion
 
-**Locale** quyết định ngôn ngữ/quy ước hiển thị; **ZoneId** quyết định cách một mốc thời gian được quy đổi sang ngày giờ địa phương. Hai đối tượng có thể độc lập hoàn toàn: người nói tiếng Việt sống tại Pháp, một hội nghị ở New York có khách từ nhiều quốc gia, hoặc báo cáo UTC hiển thị theo ngôn ngữ riêng của người đọc.
+**Locale** governs language and display conventions; **ZoneId** governs how an instant maps to local date and time. The two can be completely independent: a Vietnamese speaker living in France, a conference in New York with international attendees, or a UTC report displayed in each reader's preferred language.
 
-Thiết kế bền vững là **tạo context bất biến từ nguồn được kiểm tra ngay tại ranh giới ứng dụng**, truyền nó bằng tham số qua các tầng và capture rõ khi chạy bất đồng bộ. Tránh thay global defaults hoặc dựa vào `ThreadLocal` qua thread pools. Đối với thời điểm đã xảy ra, giữ `Instant`; đối với lịch địa phương, giữ ZoneId nghiệp vụ và xử lý DST; đối với test, dùng `Clock.fixed` và dữ liệu cố định.
+A resilient design **constructs an immutable context from validated sources right at the application boundary**, passes it explicitly as a parameter across layers, and captures it explicitly for asynchronous work. Avoid mutating global defaults or relying on `ThreadLocal` across thread pools. For events that already happened, keep `Instant`; for local schedules, keep the business `ZoneId` and handle DST; for tests, use `Clock.fixed` and fixed inputs.
 
-Một API rõ ràng như `format(Instant when, RequestContext context)` giúp ứng dụng đa người dùng **không rò locale, không nhầm múi giờ và có kết quả kiểm thử tái lập**.
+A clean API such as `format(Instant when, RequestContext context)` keeps multi-user applications **free of locale leaks, free of time-zone mix-ups, and deterministically testable**.
 
-## Tài liệu tham khảo
+## References
 
 - [Oracle Java 21 — Locale](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Locale.html)
 - [Oracle Java 21 — ZoneId](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/ZoneId.html)

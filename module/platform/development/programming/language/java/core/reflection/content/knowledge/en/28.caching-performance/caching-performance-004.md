@@ -1,33 +1,33 @@
-# ClassValue: lưu dữ liệu tính toán riêng cho từng Class trong Java
+# ClassValue: Storing Computed Data Per Class in Java
 
-## 1. Bài toán: cache metadata gắn với runtime class
+## 1. The Problem: Caching Metadata Attached to a Runtime Class
 
-Với Java Reflection, các thao tác như `getDeclaredMethods()`, `getDeclaredFields()`, đọc annotation hoặc phân tích cấu trúc lớp có thể lặp lại rất nhiều lần. Nếu mỗi request đều dựng lại danh sách metadata và bảng ánh xạ từ tên method sang `Method`, chương trình tốn công tính toán và cấp phát bộ nhớ.
+In Java Reflection, operations such as `getDeclaredMethods()`, `getDeclaredFields()`, reading annotations, or analyzing class structure may be repeated many times. If every request rebuilds the metadata list and the lookup table from method names to `Method` objects, the program wastes computation and memory allocations.
 
-Một lựa chọn thường gặp là tạo `Map<Class<?>, Metadata>`:
+A common option is creating a `Map<Class<?>, Metadata>`:
 
 ```java
-// Ví dụ minh họa, chưa phải lời giải đầy đủ:
+// Illustrative example, not a complete solution:
 // private static final Map<Class<?>, Metadata> CACHE = ...
 Metadata metadata = CACHE.get(type);
 ```
 
-Tuy nhiên, với map dùng **strong key** tồn tại suốt vòng đời ứng dụng, khóa `Class<?>` có thể giữ tham chiếu tới class và class loader của plugin/module mà chương trình đã ngừng sử dụng. Việc đồng bộ hóa tính toán, tránh xây dữ liệu nhiều lần và xử lý class unloading cũng trở thành trách nhiệm riêng của người viết cache.
+However, with a map using **strong keys** that lives for the lifetime of the application, the `Class<?>` key can retain references to classes and classloaders of plugins/modules that the program has stopped using. Synchronizing computation, avoiding duplicate builds, and handling class unloading also become the cache author's responsibility.
 
-**`java.lang.ClassValue<T>`** được thiết kế cho trường hợp **một giá trị kiểu `T` gắn với từng đối tượng `Class<?>`**. Chúng ta mô tả cách tính giá trị bằng `computeValue(Class<?> type)` rồi lấy nó bằng `get(type)`. JVM/JDK quản lý mối liên kết từ mỗi `Class` tới giá trị tương ứng của từng `ClassValue`.
+**`java.lang.ClassValue<T>`** is designed for associating **one value of type `T` with each `Class<?>` object**. You define how to compute the value via `computeValue(Class<?> type)` and retrieve it via `get(type)`. The JVM/JDK manages the association from each `Class` to its corresponding value for each `ClassValue`.
 
-Ví dụ ứng dụng:
+Example use cases:
 
-- Cache danh sách method hoặc field của mỗi class phục vụ cơ chế serialize/binding/dispatch.
-- Lưu metadata đã phân tích từ annotation của từng kiểu.
-- Lưu codec, descriptor hoặc thông tin cấu hình được suy ra **chỉ từ class**, không từ object cụ thể.
-- Giảm số lần phân tích Reflection trong thư viện/framework có thể gặp nhiều class và class loader khác nhau.
+- Caching the list of methods or fields per class for serialization/binding/dispatch.
+- Storing parsed annotation metadata per type.
+- Storing codecs, descriptors, or configuration derived **solely from the class**, not from a specific object.
+- Reducing repeated Reflection analysis in libraries/frameworks that encounter many classes and classloaders.
 
-`ClassValue` không tạo ra field thật trong bytecode của class, không thay đổi `Class<?>`, không tự gọi method nghiệp vụ và không phải cơ chế lưu trạng thái **riêng cho từng object instance**.
+`ClassValue` does not create an actual field in class bytecode, does not modify `Class<?>`, does not invoke business methods on its own, and is not a mechanism for storing state **per object instance**.
 
-## 2. API cốt lõi và phạm vi khóa
+## 2. Core API and Key Scope
 
-Phác thảo chữ ký các thành viên quan trọng của `ClassValue<T>`:
+Outline of the key members of `ClassValue<T>`:
 
 ```java
 public abstract class ClassValue<T> {
@@ -38,16 +38,16 @@ public abstract class ClassValue<T> {
 }
 ```
 
-Đây là phần **chữ ký minh họa**, không phải một class người học tự định nghĩa; sử dụng implementation của JDK qua `java.lang.ClassValue`.
+This is an **illustrative signature**, not a user-defined class; use the JDK implementation via `java.lang.ClassValue`.
 
-| API | Vai trò | Lưu ý |
+| API | Role | Notes |
 |---|---|---|
-| `new ClassValue<T>() { ... }` | Tạo một đối tượng cache với hàm tính giá trị cụ thể | Phải override `computeValue` |
-| `computeValue(Class<?> type)` | Tính dữ liệu ứng với một class khi cần | Có thể được gọi hơn một lần cho cùng class trong tình huống cạnh tranh |
-| `get(Class<?> type)` | Trả giá trị hiện gắn với cặp `(ClassValue instance, Class<?>)`; khi chưa có sẽ yêu cầu tính | Không cần tự quản lý `Map<Class<?>,T>` |
-| `remove(Class<?> type)` | Loại giá trị đang gắn cho class cụ thể để lần đọc tiếp theo có thể tính lại | Chỉ ảnh hưởng **một class trong một ClassValue**; không có thao tác xóa toàn bộ cache tương đương `Map.clear()` |
+| `new ClassValue<T>() { ... }` | Creates a cache instance with a specific computation function | Must override `computeValue` |
+| `computeValue(Class<?> type)` | Computes data for a class when needed | May be called more than once for the same class under contention |
+| `get(Class<?> type)` | Returns the value currently bound to `(ClassValue instance, Class<?>)`; triggers computation if absent | Avoids manually managing a `Map<Class<?>,T>` |
+| `remove(Class<?> type)` | Removes the value bound to a specific class so subsequent reads can recompute | Affects only **one class in one ClassValue**; there is no whole-cache clear operation like `Map.clear()` |
 
-Ví dụ gọi:
+Example call:
 
 ```java
 ClassValue<String> simpleNames = new ClassValue<>() {
@@ -61,30 +61,30 @@ System.out.println(simpleNames.get(String.class)); // String
 System.out.println(simpleNames.get(Integer.class)); // Integer
 ```
 
-Đây là đoạn chạy được khi đặt vào thân một phương thức Java; không cần tạo instance `String` hoặc `Integer` vì khóa là **runtime class**, không phải object.
+This snippet is runnable inside a Java method body; there is no need to instantiate `String` or `Integer` because the key is the **runtime class**, not an object.
 
-### Cặp khóa thực tế gồm hai identity
+### The Effective Key Pair Consists of Two Identities
 
-Hãy hình dung một bảng tra cứu logic:
+Picture a logical lookup table:
 
 ```text
-(ClassValue A, Alpha.class) --> giá trị A/Alpha
-(ClassValue A, Beta.class)  --> giá trị A/Beta
-(ClassValue B, Alpha.class) --> giá trị B/Alpha
+(ClassValue A, Alpha.class) --> value A/Alpha
+(ClassValue A, Beta.class)  --> value A/Beta
+(ClassValue B, Alpha.class) --> value B/Alpha
 ```
 
-Mỗi instance `ClassValue` có một không gian giá trị độc lập. `get(Alpha.class)` ở `ClassValue A` không dùng chung kết quả với cùng lời gọi ở `ClassValue B`. Đồng thời, hai đối tượng của cùng một class `Alpha` đều có chung **class key** nếu lấy metadata qua cùng một `ClassValue`.
+Each `ClassValue` instance has an independent value space. Calling `get(Alpha.class)` on `ClassValue A` does not share a result with calling the same on `ClassValue B`. At the same time, two instances of the same class `Alpha` share the **class key** when fetching metadata through the same `ClassValue`.
 
-## 3. Vòng đời: tính lười, đọc lại, xóa rồi tính lại
+## 3. Lifecycle: Lazy Computation, Reuse, Removal, and Recomputation
 
-Ở luồng đơn, cơ chế cơ bản là:
+On a single thread, the basic flow is:
 
-1. Khởi tạo instance `ClassValue<T>` cùng cài đặt `computeValue`.
-2. `get(Alpha.class)` lần đầu chưa có dữ liệu: gọi `computeValue(Alpha.class)` để tạo ứng viên giá trị và gắn giá trị được chọn.
-3. `get(Alpha.class)` lần sau, nếu dữ liệu vẫn còn hợp lệ: trả lại giá trị cache; không cần phân tích Reflection lần nữa.
-4. `get(Beta.class)` là khóa class khác: tính giá trị riêng cho `Beta`.
-5. `remove(Alpha.class)` loại bỏ liên kết hiện có của `Alpha` trong **chính** instance `ClassValue` đó.
-6. `get(Alpha.class)` sau khi xóa sẽ có thể chạy `computeValue` và cài đặt giá trị mới; giá trị của `Beta` không bị xóa.
+1. Create a `ClassValue<T>` instance with a `computeValue` implementation.
+2. The first `get(Alpha.class)` has no cached value: calls `computeValue(Alpha.class)` to produce a candidate value and binds the selected value.
+3. Subsequent `get(Alpha.class)` calls, while the entry remains valid, return the cached value without repeating Reflection analysis.
+4. `get(Beta.class)` uses a different class key: computes a separate value for `Beta`.
+5. `remove(Alpha.class)` removes the existing association for `Alpha` in **that** `ClassValue` instance.
+6. `get(Alpha.class)` after removal can run `computeValue` again and install a new value; `Beta`'s value is unaffected.
 
 ```text
                         ClassValue<List<String>>
@@ -97,18 +97,18 @@ Mỗi instance `ClassValue` có một không gian giá trị độc lập. `get(
                  |                               |
           [hello, reset]                        [size]
                  |                               |
-       get(Alpha) dùng lại               get(Beta) dùng lại
+       get(Alpha) reuse                  get(Beta) reuse
                  |
           remove(Alpha)
                  |
-         get(Alpha) tính lại
+         get(Alpha) recompute
 ```
 
-Điểm khác `Map.computeIfAbsent` là `ClassValue` có cách gắn dữ liệu gắn liền với đối tượng `Class` và được thiết kế cho vòng đời class/class loader. Nó không cung cấp các thao tác map như `entrySet()`, `keySet()`, `put()` hay `clear()`.
+Unlike `Map.computeIfAbsent`, `ClassValue` attaches data alongside the `Class` object and is designed around class/classloader lifecycles. It does not expose map operations such as `entrySet()`, `keySet()`, `put()`, or `clear()`.
 
-## 4. Ví dụ Java 17+ chạy độc lập, kết quả chính xác
+## 4. Standalone Runnable Java 17+ Example, Deterministic Output
 
-Tạo file **`ClassValueDemo.java`**:
+Create the file **`ClassValueDemo.java`**:
 
 ```java
 import java.lang.reflect.Method;
@@ -166,14 +166,14 @@ public class ClassValueDemo {
 }
 ```
 
-Biên dịch bằng Java 17 trở lên (cờ `--release 17` xác nhận mã chỉ cần các API có trong Java 17):
+Compile with Java 17 or newer (the `--release 17` flag confirms the code only needs APIs available in Java 17):
 
 ```bash
 javac --release 17 ClassValueDemo.java
 java ClassValueDemo
 ```
 
-Stdout xác minh:
+Verified stdout:
 
 ```text
 Alpha: [hello, reset]
@@ -186,58 +186,58 @@ computeValue calls after remove: 3
 another ClassValue: Alpha
 ```
 
-**Phân tích từng dòng:**
+**Line-by-line analysis:**
 
-- `computeValue` nhận đúng `Class<?>` được yêu cầu và gọi `getDeclaredMethods()` để lấy các method khai báo trực tiếp (gồm private method). Kết quả được sắp xếp tên bằng `sorted()` trước khi in; không phụ thuộc thứ tự Reflection vốn không được đảm bảo.
-- Hai lần `METHOD_NAMES.get(Alpha.class)` liên tiếp trả **cùng tham chiếu `List`** trong ví dụ đơn luồng, nên phép so sánh `first == again` là `true`.
-- Khóa `Beta.class` khác khóa `Alpha.class` nên tính thêm một lần. Tổng số lời gọi `computeValue` lúc đó là `2`.
-- Sau `remove(Alpha.class)`, `get(Alpha.class)` tính danh sách mới. Nội dung có thể bằng nhau, nhưng đây là **hai instance list khác nhau**, nên kết quả `first == refreshed` là `false`.
-- Lần tính lại tăng bộ đếm từ `2` lên `3`; `Beta` vẫn có giá trị của nó.
-- `CLASS_NAMES` là instance `ClassValue` khác, quản lý chuỗi tên lớp; nó không chia sẻ nội dung với `METHOD_NAMES` dù cùng khóa `Alpha.class`.
+- `computeValue` receives the requested `Class<?>` and calls `getDeclaredMethods()` to get directly declared methods (including private ones). Results are sorted by name with `sorted()` before printing, avoiding reliance on Reflection order, which is not guaranteed.
+- Two consecutive `METHOD_NAMES.get(Alpha.class)` calls return **the same `List` reference** in this single-threaded example, so `first == again` is `true`.
+- `Beta.class` is a different key from `Alpha.class`, so it is computed separately. Total `computeValue` calls reach `2`.
+- After `remove(Alpha.class)`, `get(Alpha.class)` computes a new list. Even though the contents match, they are **two distinct list instances**, so `first == refreshed` is `false`.
+- Recomputation increments the counter from `2` to `3`; `Beta` retains its value.
+- `CLASS_NAMES` is a different `ClassValue` instance managing class name strings; it shares nothing with `METHOD_NAMES` even for the same `Alpha.class` key.
 
-Ví dụ cố tình chạy một luồng. **Không sử dụng tổng số lần `computeValue` của ví dụ này làm cam kết rằng trong chương trình nhiều luồng mỗi class luôn chỉ tính đúng một lần.** Phần tiếp theo giải thích khác biệt.
+This example intentionally runs single-threaded. **Do not treat the `computeValue` call count in this example as a guarantee that in a multi-threaded program each class is always computed only once.** The next section explains the difference.
 
-## 5. Đồng thời: không mặc định computeValue chạy đúng một lần
+## 5. Concurrency: Do Not Assume `computeValue` Runs Exactly Once
 
-Khi nhiều thread cùng gọi `get(type)` lúc cache chưa có giá trị, **có thể có nhiều lần chạy `computeValue(type)` đồng thời**. JDK chỉ cài đặt/giữ một giá trị được chọn cho class tại một thời điểm cache ổn định; một số kết quả tính toán cạnh tranh có thể bị bỏ đi. Vì vậy, `ClassValue` loại bớt nhu cầu quản lý khóa cho phép tra cứu cache, nhưng **không biến `computeValue` thành “exactly once initializer”**.
+When multiple threads call `get(type)` concurrently before a value is cached, **multiple concurrent invocations of `computeValue(type)` can occur**. The JDK installs/retains only one winning value for the class in steady state; competing computations may be discarded. Thus, `ClassValue` eliminates manual locking around cache lookup, but **does not turn `computeValue` into an “exactly-once initializer”**.
 
-Từ đó có các nguyên tắc:
+This leads to several principles:
 
-- Làm `computeValue` **độc lập, xác định được** theo `type` và lý tưởng là không có side effect. Việc scan metadata và dựng một descriptor mới phù hợp hơn việc tạo kết nối, ghi file hoặc cộng tiền.
-- Nếu `computeValue` có side effect hoặc tài nguyên ngoại vi, không dựa vào `ClassValue` để đảm bảo chỉ thực hiện một lần. Phải dùng cơ chế quản lý tài nguyên/idempotency riêng.
-- Nếu cache trả một đối tượng **có thể thay đổi**, tính an toàn thread của chính đối tượng đó vẫn là trách nhiệm ứng dụng. `ClassValue` không tự biến `HashMap` được cache thành thread-safe.
-- Với metadata bất biến, ưu tiên `List.copyOf(...)`, `Map.copyOf(...)` hoặc immutable record/value object. Ví dụ `Stream.toList()` từ Java 16 cho một danh sách không thể sửa bằng `add/remove/set`.
-- Nếu có nhu cầu tính toán cực nặng và nhiều thread cùng tranh chấp một class, đo đạc và thiết kế chiến lược đồng bộ ở tầng tính toán riêng; không suy từ thao tác `get` rằng phép tính chỉ chạy một lần.
+- Make `computeValue` **self-contained and deterministic** for `type`, ideally side-effect-free. Scanning metadata and building a new descriptor fits better than opening connections, writing files, or charging money.
+- If `computeValue` has side effects or external resources, do not rely on `ClassValue` to ensure single execution. Use dedicated resource-management/idempotency mechanisms.
+- If the cache returns a **mutable** object, thread safety of that object itself remains the application's responsibility. `ClassValue` does not automatically make a cached `HashMap` thread-safe.
+- For immutable metadata, prefer `List.copyOf(...)`, `Map.copyOf(...)`, or immutable records/value objects. For instance, `Stream.toList()` since Java 16 produces a list that cannot be modified with `add/remove/set`.
+- If computation is extremely heavy and many threads contend on one class, measure and design synchronization in a dedicated computation layer; do not infer from `get` that computation only runs once.
 
-Khi `computeValue` ném exception, `get` đang thực hiện tính toán có thể ném theo exception đó; đừng coi kết quả lỗi là một descriptor hợp lệ đã được cache. Hãy xác định chính sách retry/diagnostics thay vì che giấu lỗi bằng giá trị placeholder không chính xác.
+When `computeValue` throws an exception, the `get` call performing that computation propagates it; do not treat an error outcome as a cached valid descriptor. Define clear retry/diagnostic policies instead of masking failures with invalid placeholder values.
 
-**Không gọi lại `sameClassValue.get(type)` trên chính khóa đó từ bên trong `computeValue(type)`.** Đây là cách rất dễ tạo đệ quy vô hạn hoặc vòng phụ thuộc, vì kết quả cho khóa đó còn chưa được xác lập.
+**Do not recursively call `sameClassValue.get(type)` for the same key from inside `computeValue(type)`.** That easily causes infinite recursion or cyclic dependencies, because the result for that key has not yet been established.
 
-## 6. Class identity, class loader và giải phóng class
+## 6. Class Identity, Classloaders, and Class Unloading
 
-Ở JVM, identity của một class phụ thuộc **binary name và defining class loader**. Có thể có hai class khác nhau cùng tên như `example.Plugin`, được định nghĩa bởi hai class loader khác nhau. Khi đó:
+In the JVM, a class's identity depends on **its binary name and defining classloader**. Two distinct classes can share the same name, such as `example.Plugin`, when defined by two different classloaders:
 
 ```text
 Loader 1 -> example.Plugin (Class object A)
 Loader 2 -> example.Plugin (Class object B)
 ```
 
-`ClassValue.get(Class object A)` và `ClassValue.get(Class object B)` dùng **hai khóa khác nhau**. Điều này cần thiết cho Reflection: methods, fields, annotations và module access trên hai class có thể khác nhau dù `getName()` giống nhau.
+`ClassValue.get(Class object A)` and `ClassValue.get(Class object B)` use **two distinct keys**. This is necessary for Reflection: methods, fields, annotations, and module access on the two classes may differ even though `getName()` is identical.
 
-**Vì sao có ích cho môi trường plugin/redeploy?**
+**Why is this helpful in plugin/redeploy environments?**
 
-Một cấu trúc như `static ConcurrentHashMap<Class<?>, Metadata>` có **khóa mạnh**. Khi map sống lâu và chưa xóa entry, nó có thể giữ class và class loader của plugin cũ không được thu gom. `ClassValue` được thiết kế để gắn dữ liệu với lifecycle của `Class` mà không cần đặt mọi đối tượng `Class` làm key mạnh trong một map toàn cục do ứng dụng quản lý.
+A structure such as `static ConcurrentHashMap<Class<?>, Metadata>` uses **strong keys**. When the map is long-lived and entries are not evicted, it can keep old plugin classes and classloaders from being garbage collected. `ClassValue` is designed to associate data with a `Class`'s lifecycle without making every `Class` a strong key in an application-managed global map.
 
-Điều này **không bảo đảm class unloading sẽ xảy ra**: nếu ứng dụng/framework vẫn giữ tham chiếu mạnh tới class, class loader, object, thread hay metadata, chúng vẫn có thể ngăn giải phóng. Một `ClassValue` có giá trị liên kết với class không thay thế được việc đóng resource, dừng thread hoặc xóa các cache khác vốn giữ class loader.
+This **does not guarantee class unloading will occur**: if the application or framework still holds strong references to the class, classloader, objects, threads, or metadata, they can still block collection. A `ClassValue` holding class-associated values cannot replace closing resources, stopping threads, or clearing other caches that retain the classloader.
 
-Không tự tạo key bằng `type.getName()` để thay cho `Class<?>`: cùng tên nhưng loader khác có thể đại diện hai runtime type khác nhau. Khi cache metadata Reflection, việc phân biệt đúng identity là yêu cầu về **tính đúng đắn**, không chỉ về bộ nhớ.
+Do not build keys using `type.getName()` in place of `Class<?>`: the same name in different loaders can represent two distinct runtime types. When caching Reflection metadata, preserving true identity is a **correctness** requirement, not just a memory concern.
 
-## 7. Gắn dữ liệu Reflection có cấu trúc với từng class
+## 7. Attaching Structured Reflection Data to Each Class
 
-`ClassValue` thường chứa **metadata đã được phân tích**, không chỉ danh sách tên method. Ví dụ cache các `Method` được khai báo trực tiếp của một class:
+`ClassValue` often stores **parsed metadata**, not just method-name lists. For example, caching a class's directly declared `Method`s:
 
 ```java
-// Mảnh code minh họa đặt trong class có sử dụng Reflection.
+// Illustrative snippet placed inside a class that uses Reflection.
 private static final ClassValue<List<java.lang.reflect.Method>> METHODS =
         new ClassValue<>() {
             @Override
@@ -250,96 +250,96 @@ private static final ClassValue<List<java.lang.reflect.Method>> METHODS =
         };
 ```
 
-`METHODS.get(SomeType.class)` trả danh sách `Method` gắn với `SomeType.class`. Đoạn này chỉ định nghĩa field/cache; để chạy độc lập cần class bao quanh có `SomeType`. Mọi phép chọn overload phải dựa vào **tên và parameter types** thật sự: không lấy đại phần tử đầu tiên cùng tên, vì class có thể chứa nhiều overload, bridge hoặc synthetic method.
+`METHODS.get(SomeType.class)` returns the `Method` list associated with `SomeType.class`. This snippet only defines the field/cache; running it standalone requires an enclosing class providing `SomeType`. Any overload selection must check **both name and actual parameter types**: never blindly pick the first element with a matching name, because a class may contain multiple overloads, bridge methods, or synthetic methods.
 
-Một logic tra cứu mảnh:
+A minimal lookup snippet:
 
 ```java
-// Giả định biến 'type' là Class<?> và 'methodName' là String.
+// Assumes variable 'type' is Class<?> and 'methodName' is String.
 for (java.lang.reflect.Method method : METHODS.get(type)) {
     if (method.getName().equals(methodName) &&
             java.util.Arrays.equals(
                     method.getParameterTypes(),
                     new Class<?>[]{String.class})) {
-        // Tìm được method nhận chính xác một String.
-        // Cần kiểm tra access trước khi invoke.
+        // Found a method accepting exactly one String.
+        // Access must be checked before invoking.
         break;
     }
 }
 ```
 
-**Lưu ý Reflection:** caching một `Method` không đồng nghĩa method đó gọi được. `getDeclaredMethods()` có thể trả method private; `Method.invoke` vẫn phải tuân thủ visibility và ranh giới module. `setAccessible(true)` cũng có thể bị từ chối nếu module/package không mở phù hợp. Cache metadata **không tạo thêm quyền truy cập**.
+**Reflection note:** caching a `Method` does not mean that method is callable. `getDeclaredMethods()` can return private methods; `Method.invoke` still enforces visibility and module boundaries. `setAccessible(true)` can also be rejected if the module/package is not suitably opened. Metadata caching **grants no extra access permissions**.
 
-Nếu kết quả phụ thuộc vào những tham số khác ngoài class, chẳng hạn schema version, locale, quyền người dùng hoặc cấu hình tenant, hãy thiết kế key/value thích hợp. Chỉ dùng `ClassValue` khi dữ liệu được gắn với class; không nhét trạng thái người dùng có vòng đời ngắn vào một giá trị dùng chung giữa các request.
+If results depend on parameters other than the class—such as schema version, locale, user permissions, or tenant configuration—design keys/values accordingly. Use `ClassValue` only when the data belongs to the class; do not put short-lived user state into a value shared across requests.
 
-## 8. Làm mới cache, thay đổi cấu hình và remove()
+## 8. Refreshing Caches, Configuration Changes, and `remove()`
 
-`ClassValue.remove(Class<?> type)` xóa liên kết cache cho **một class** trong instance `ClassValue` cụ thể. Phương thức trả về `void`; nó không trả giá trị cũ và không phải thao tác xóa cả cache.
+`ClassValue.remove(Class<?> type)` deletes the cached association for **one class** in a specific `ClassValue` instance. The method returns `void`; it neither returns the previous value nor clears the entire cache.
 
-Ví dụ:
+Example:
 
 ```java
-// Nếu metadata được tính bởi CACHED_METADATA:
+// Suppose metadata is computed by CACHED_METADATA:
 CACHED_METADATA.remove(type);
-// Lần get(type) tiếp theo có thể tính lại:
+// The next get(type) call can recompute:
 Metadata refreshed = CACHED_METADATA.get(type);
 ```
 
-Đây là **mảnh code minh họa**, trong đó `CACHED_METADATA`, `type` và `Metadata` do ứng dụng định nghĩa. Gọi `remove` hợp lý khi chính sách cache nhận biết dữ liệu cần tính lại. Với nhiều luồng, phải xem các guarantee của ứng dụng về việc đồng bộ cập nhật và truy vấn; các lời gọi `get` đang diễn ra có thể cạnh tranh với `remove`. Không coi `remove` là rào chắn giao dịch đảm bảo toàn bộ thread lập tức dùng chung một version dữ liệu mới.
+This is an **illustrative snippet**, where `CACHED_METADATA`, `type`, and `Metadata` are application-defined. Calling `remove` makes sense when the cache policy detects that data must be recomputed. With multiple threads, check your application's synchronization guarantees for updates and queries; concurrent `get` calls can race with `remove`. Do not treat `remove` as a transactional barrier ensuring every thread immediately sees a single new data version.
 
-Nếu metadata là hàm của **cấu hình thay đổi trong runtime**, một bản cache được tạo từ cấu hình cũ có thể lỗi thời. Có ba lựa chọn thiết kế cần cân nhắc:
+If metadata is a function of **runtime-mutable configuration**, a cached entry built under old configuration can become stale. Consider three design options:
 
-1. Bảo đảm dữ liệu chỉ phụ thuộc vào class và bất biến trong suốt vòng đời liên kết, khi đó `ClassValue` phù hợp trực tiếp.
-2. Gọi `remove` cho những class cần làm mới khi biết có cập nhật, đồng thời dùng cơ chế đồng bộ ở tầng ứng dụng để quản lý lần đọc/ghi cạnh tranh.
-3. Nếu config/version thay đổi độc lập với class và cần nhiều version cùng lúc, tổ chức **giá trị bên trong** thành map/versioned descriptor hoặc chọn cache với composite key. `ClassValue` đơn lẻ chỉ có một chiều khóa `Class<?>`.
+1. Ensure the data depends solely on the class and stays immutable throughout the association's lifetime, in which case `ClassValue` fits directly.
+2. Call `remove` for classes needing refresh when an update occurs, while using application-level synchronization to coordinate concurrent reads/writes.
+3. If config/version changes independently of the class and multiple versions are needed simultaneously, structure the **inner value** as a map/versioned descriptor or choose a cache with a composite key. A single `ClassValue` only has a one-dimensional `Class<?>` key.
 
-Không có API để duyệt tất cả `Class<?>` hiện được lưu và gọi `remove` hàng loạt trên một `ClassValue`. Nếu cần quản lý từng tập khóa, ứng dụng phải có registry riêng, cùng cân nhắc khả năng giữ class loader sống lâu ngoài ý muốn.
+There is no API to iterate over all currently stored `Class<?>` entries and call `remove` in bulk on a `ClassValue`. If you must manage sets of keys, the application needs its own registry, along with considering the risk of unintentionally keeping classloaders alive.
 
-## 9. So sánh lựa chọn cache
+## 9. Comparing Caching Options
 
-| Lựa chọn | Khi thích hợp | Điểm cần cẩn thận |
+| Option | When Appropriate | Points of Caution |
 |---|---|---|
-| `ClassValue<T>` | Một giá trị tính lười trên mỗi runtime `Class<?>`, chẳng hạn metadata Reflection | Không có API duyệt key, không bảo đảm `computeValue` chỉ chạy một lần dưới concurrency |
-| `ConcurrentHashMap<Class<?>, T>` | Cần duyệt key, eviction tùy ý, cache policy cụ thể; class set có vòng đời được kiểm soát | Khóa mạnh có thể giữ class/class loader; phải dọn dẹp và thiết kế compute policy |
-| `WeakHashMap<Class<?>, T>` | Cần key yếu với chính sách synchronization do ứng dụng quản lý | Không thread-safe mặc định; value tham chiếu ngược tới class có thể vô hiệu hóa lợi ích weak key |
-| Tính lại bằng Reflection mỗi lần | Gọi hiếm, metadata nhỏ, chưa có bằng chứng bottleneck | Trả chi phí tra cứu/khởi tạo dữ liệu mỗi lần |
-| Cache gắn với instance object | Kết quả phụ thuộc trạng thái từng object | Không phải cache **theo Class**; `ClassValue` sẽ chia sẻ theo runtime class |
+| `ClassValue<T>` | One lazily computed value per runtime `Class<?>`, such as Reflection metadata | No key-iteration API; does not guarantee `computeValue` runs only once under concurrency |
+| `ConcurrentHashMap<Class<?>, T>` | Need key iteration, custom eviction, specific cache policies; controlled class-set lifecycle | Strong keys can retain classes/classloaders; requires cleanup and compute policy design |
+| `WeakHashMap<Class<?>, T>` | Need weak keys with application-managed synchronization | Not thread-safe by default; values referencing back to the class can defeat weak keys |
+| Recompute with Reflection every time | Infrequent calls, small metadata, no evidence of bottleneck | Pays lookup/allocation cost on every call |
+| Cache attached to object instance | Result depends on per-object state | Not a **per-Class** cache; `ClassValue` shares across the runtime class |
 
-`ClassValue` thường là lựa chọn gọn cho thư viện phân tích type metadata trong môi trường nhiều class loader. Nhưng không mặc định rằng nó nhanh hơn mọi map trong mọi workload. Hãy đo bằng benchmark tương ứng với số class, số lần đọc, mức độ tranh chấp, chi phí `computeValue` và yêu cầu giải phóng lớp.
+`ClassValue` is often a clean choice for libraries analyzing type metadata in multi-classloader environments. Still, do not assume it outperforms every map on every workload. Measure with benchmarks reflecting your class count, read frequency, contention, `computeValue` cost, and class-unloading requirements.
 
-## 10. Lỗi thiết kế thường gặp
+## 10. Common Design Mistakes
 
-**1. Nhầm mỗi class với mỗi object.** Nếu hai object `a` và `b` có cùng `a.getClass() == b.getClass()`, cùng `ClassValue` sẽ trả cùng giá trị đã gắn cho class đó. Không đặt data per-request/per-instance vào đây.
+**1. Confusing per-class with per-object.** If two objects `a` and `b` have `a.getClass() == b.getClass()`, the same `ClassValue` returns the same value bound to that class. Do not store per-request/per-instance data here.
 
-**2. Nghĩ computeValue chạy đúng một lần.** Dưới contention, có thể có nhiều computation ứng viên. Side effects cần được kiểm soát độc lập.
+**2. Assuming `computeValue` runs exactly once.** Under contention, multiple candidate computations can run. Side effects must be controlled independently.
 
-**3. Giữ dữ liệu mutable không an toàn.** Cache trả `ArrayList` hoặc `HashMap` bị sửa từ nhiều request sẽ gây race/corruption. Dựng immutable snapshot hoặc dùng cấu trúc concurrent có chủ đích.
+**3. Storing unsafe mutable data.** A cache returning an `ArrayList` or `HashMap` mutated across requests will cause races/corruption. Build immutable snapshots or deliberately use concurrent structures.
 
-**4. Tính dữ liệu theo trạng thái bên ngoài nhưng không invalidation.** Giá trị có thể lỗi thời khi config, feature flags, schema hoặc plugin registration thay đổi. Xác định rõ chính sách cập nhật.
+**4. Computing from external state without invalidation.** Values become stale when config, feature flags, schemas, or plugin registrations change. Define an explicit update policy.
 
-**5. Gọi `get` đệ quy cho cùng khóa từ `computeValue`.** Kết quả chưa được cache; có thể dẫn tới vòng lặp/`StackOverflowError`.
+**5. Calling `get` recursively for the same key from `computeValue`.** The result is not cached yet; this can lead to infinite loops/`StackOverflowError`.
 
-**6. Giả định remove xóa “mọi class”.** `remove(type)` chỉ xóa entry của cặp `(ClassValue instance, type)`, không tác động giá trị của class hoặc `ClassValue` khác.
+**6. Assuming `remove` clears “all classes.”** `remove(type)` only removes the entry for `(ClassValue instance, type)` without affecting other classes or other `ClassValue` instances.
 
-**7. Cache metadata để “né” quy tắc accessibility.** `ClassValue` không thay đổi `private`, module openness hoặc các exception khi invoke.
+**7. Caching metadata to “bypass” accessibility rules.** `ClassValue` does not alter `private`, module openness, or exceptions thrown during invocation.
 
-**8. Dùng tên lớp string làm identity.** Class loader khác nhau có thể định nghĩa hai kiểu cùng tên; cache từ `getName()` đơn thuần dễ trả sai metadata.
+**8. Using string class names as identity.** Different classloaders can define two types with the same name; caching by `getName()` alone easily returns wrong metadata.
 
-**9. Xem cache là giải pháp cho memory leak từ mọi nguồn.** ClassValue không tự dừng thread/plugin loader còn bị giữ bởi cache khác, thread-local hay static reference.
+**9. Treating `ClassValue` as a cure-all for leaks from every source.** `ClassValue` does not automatically stop threads or free plugin loaders still held by other caches, thread-locals, or static references.
 
-## 11. Câu hỏi tự kiểm tra
+## 11. Self-Check Questions
 
-1. Hai lần `cache.get(String.class)` liên tiếp trong một luồng, chưa xóa cache, có phải chạy `computeValue` lần hai không? — Thông thường **không**, vì giá trị đã được gắn và tái sử dụng.
-2. Hai instance `ClassValue` khác nhau cùng gọi `get(String.class)` có chia sẻ giá trị không? — **Không**; mỗi `ClassValue` quản lý liên kết riêng.
-3. Có thể mặc định `computeValue` chạy chính xác một lần cho mỗi class trong hệ nhiều thread không? — **Không**; nhiều computation cạnh tranh có thể xảy ra.
-4. `remove(Alpha.class)` có làm mất entry `Beta.class` không? — **Không**, nếu đó là hai class khác nhau trong cùng `ClassValue`.
-5. Hai plugin định nghĩa hai `Class` cùng binary name dưới hai defining loader khác nhau có dùng chung key không? — **Không**; runtime class identity khác nhau.
-6. `ClassValue<List<Method>>` có cho phép gọi mọi private method của lớp đó không? — **Không**; vẫn phải tuân thủ Java access control và module boundaries.
+1. Will two consecutive `cache.get(String.class)` calls on one thread, without removing the entry, run `computeValue` a second time? — Normally **no**, because the value is already bound and reused.
+2. Do two different `ClassValue` instances calling `get(String.class)` share the same value? — **No**; each `ClassValue` manages its own associations.
+3. Can you assume `computeValue` runs strictly once per class in a multi-threaded system? — **No**; multiple concurrent computations can occur.
+4. Does `remove(Alpha.class)` delete the `Beta.class` entry? — **No**, as long as they are two distinct classes in the same `ClassValue`.
+5. Do two plugins defining two `Class` objects with the same binary name under two different defining loaders share a key? — **No**; runtime class identity differs.
+6. Does `ClassValue<List<Method>>` allow calling every private method of that class? — **No**; Java access control and module boundaries still apply.
 
-## 12. Ghi nhớ
+## 12. Key Takeaways
 
-- **`ClassValue<T>`** gắn dữ liệu tính lười với từng `Class<?>` và từng instance `ClassValue`; phù hợp để cache metadata Reflection.
-- **`get` tái sử dụng giá trị**, `computeValue` tạo giá trị khi cần, còn `remove(type)` yêu cầu bỏ liên kết cho đúng class đó.
-- **Thread-safe ở cơ chế ánh xạ không có nghĩa compute exactly once**, cũng không làm các đối tượng mutable được cache trở nên thread-safe.
-- **Class loader là phần của identity**: ClassValue phân biệt đúng những class cùng tên do loader khác nhau định nghĩa và hỗ trợ kiến trúc tương thích class unloading.
-- **Cache không thay thế thiết kế vòng đời, invalidation hay bảo mật truy cập**: chỉ cache dữ liệu đúng scope và xử lý thay đổi cấu hình, resource và quyền truy cập tại tầng phù hợp.
+- **`ClassValue<T>`** binds lazily computed data to each `Class<?>` and each `ClassValue` instance; well suited for caching Reflection metadata.
+- **`get` reuses values**, `computeValue` produces values on demand, and `remove(type)` drops the binding for that exact class.
+- **Thread-safety in the mapping mechanism does not mean compute-once**, nor does it make cached mutable objects thread-safe.
+- **The classloader is part of identity**: `ClassValue` properly distinguishes same-named classes defined by different loaders and supports architectures compatible with class unloading.
+- **Caching does not replace lifecycle design, invalidation, or access security**: cache only properly scoped data and handle config changes, resources, and access checks at the appropriate layer.

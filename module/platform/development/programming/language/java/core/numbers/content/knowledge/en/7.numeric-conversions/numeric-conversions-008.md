@@ -1,8 +1,8 @@
-# Chuyển đổi qua Number.intValue(), longValue() và doubleValue() trong Java
+# Converting via Number.intValue(), longValue(), and doubleValue() in Java
 
-## 1. Vì sao Java có các phương thức chuyển đổi này?
+## 1. Why does Java have these conversion methods?
 
-Trong Java, `java.lang.Number` là **lớp trừu tượng** chung cho các lớp biểu diễn giá trị số, chẳng hạn `Byte`, `Short`, `Integer`, `Long`, `Float`, `Double`, `BigInteger` và `BigDecimal`. `Number` cho phép chương trình làm việc với nhiều loại số qua cùng một kiểu tham chiếu:
+In Java, `java.lang.Number` is the common **abstract class** for classes representing numeric values, such as `Byte`, `Short`, `Integer`, `Long`, `Float`, `Double`, `BigInteger`, and `BigDecimal`. `Number` allows programs to work with many kinds of numbers through a single reference type:
 
 ~~~java
 Number quantity = Integer.valueOf(42);
@@ -11,21 +11,21 @@ long total = quantity.longValue();
 double measured = quantity.doubleValue();
 ~~~
 
-Đoạn trên là mã minh họa nằm trong một phương thức. Tại thời điểm chạy, biến `quantity` trỏ đến một đối tượng `Integer`, nên các lệnh gọi được thực hiện theo cài đặt của `Integer`. Nếu thay đối tượng bằng `Double` hoặc `BigDecimal`, **kiểu trả về vẫn cố định**, nhưng quy tắc chuyển đổi cụ thể có thể dẫn đến giá trị khác, mất độ chính xác, hoặc mất các bit cao.
+The snippet above is illustrative code inside a method. At runtime, `quantity` points to an `Integer` object, so the calls execute according to `Integer`'s implementation. If the object is replaced with `Double` or `BigDecimal`, **the return types remain fixed**, yet the specific conversion rules can lead to a different value, precision loss, or loss of high bits.
 
-Ba API cốt lõi:
+Three core APIs:
 
-| Phương thức của `Number` | Kiểu trả về | Ý nghĩa |
+| `Number` method | Return type | Meaning |
 | --- | --- | --- |
-| `intValue()` | `int` có dấu, 32 bit | Lấy giá trị ở dạng số nguyên 32 bit |
-| `longValue()` | `long` có dấu, 64 bit | Lấy giá trị ở dạng số nguyên 64 bit |
-| `doubleValue()` | `double`, IEEE 754 binary64 | Lấy giá trị ở dạng số thực dấu phẩy động 64 bit |
+| `intValue()` | Signed 32-bit `int` | Get value as a 32-bit integer |
+| `longValue()` | Signed 64-bit `long` | Get value as a 64-bit integer |
+| `doubleValue()` | IEEE 754 binary64 `double` | Get value as a 64-bit floating-point number |
 
-Những lời gọi này **không tạo ra đối tượng `Integer`, `Long` hay `Double`**: chúng trả về giá trị **primitive**. Nếu gán vào biến wrapper tương ứng, Java có thể tự boxing kết quả, ví dụ `Integer boxed = quantity.intValue();`.
+These calls **do not create `Integer`, `Long`, or `Double` objects**: they return **primitive** values. If assigned to a corresponding wrapper variable, Java may auto-box the result, such as `Integer boxed = quantity.intValue();`.
 
-## 2. Lớp Number: kiểu chung, đối tượng thực tế quyết định hành vi
+## 2. The Number class: a common type, where the actual object decides behavior
 
-`Number` khai báo bốn phương thức trừu tượng `intValue()`, `longValue()`, `floatValue()` và `doubleValue()`. Ngoài ra, `byteValue()` và `shortValue()` là phương thức cụ thể mặc định, chuyển qua `intValue()` rồi ép kiểu về `byte` hoặc `short`. Các lớp số chuẩn cài đặt hành vi chuyển đổi phù hợp với cách lưu dữ liệu của từng lớp.
+`Number` declares four abstract methods: `intValue()`, `longValue()`, `floatValue()`, and `doubleValue()`. Additionally, `byteValue()` and `shortValue()` are concrete default methods that convert via `intValue()` and then cast to `byte` or `short`. Standard numeric classes implement conversion behavior suited to how each class stores data.
 
 ~~~java
 Number first = Long.valueOf(20L);
@@ -37,17 +37,17 @@ System.out.println(second.intValue()); // 20
 System.out.println(third.intValue());  // 20
 ~~~
 
-Dù ba kết quả giống nhau, nguyên nhân không hoàn toàn giống: `Long` chuyển số nguyên sang `int`; `Double` chuyển số thực sang số nguyên theo quy tắc Java cho floating point; `BigDecimal` loại bỏ phần thập phân rồi lấy phần số nguyên có thể biểu diễn bởi 32 bit. Với những giá trị ngoài giới hạn, sự khác nhau rõ rệt hơn.
+Although all three results look the same, the reasons are not identical: `Long` converts an integer to `int`; `Double` converts a floating-point number to an integer under Java's floating-point rules; `BigDecimal` drops the fractional part and takes the integer part representable in 32 bits. For out-of-bounds values, the differences become much more pronounced.
 
-`Number` là **lớp**, không phải interface. Vì một tham chiếu `Number` có thể trỏ đến nhiều lớp con, không nên suy đoán mọi `Number` đều chính xác, đều hữu hạn hoặc đều nằm trong khoảng của `int`. Mã dùng `Number` cũng phải xử lý khả năng giá trị bằng `null`.
+`Number` is a **class**, not an interface. Because a `Number` reference can point to many subclasses, do not assume every `Number` is exact, finite, or within the `int` range. Code using `Number` must also handle the possibility of `null`.
 
-## 3. intValue(): chuyển sang int 32 bit
+## 3. intValue(): converting to 32-bit int
 
-`intValue()` trả về `int` trong khoảng từ −2.147.483.648 đến 2.147.483.647.
+`intValue()` returns an `int` in the range from −2,147,483,648 to 2,147,483,647.
 
-### 3.1. Nguồn là Integer, Short hoặc Byte
+### 3.1. When the source is Integer, Short, or Byte
 
-Khi nguồn vốn là `Integer`, kết quả giữ nguyên. `Byte` và `Short` có miền nhỏ hơn `int` nên mọi giá trị đều biểu diễn chính xác khi mở rộng lên `int`.
+When the source is already `Integer`, the value is preserved. `Byte` and `Short` have smaller ranges than `int`, so every value is represented exactly when widened to `int`.
 
 ~~~java
 Number a = Byte.valueOf((byte) -7);
@@ -59,9 +59,9 @@ System.out.println(b.intValue()); // 32000
 System.out.println(c.intValue()); // 100000
 ~~~
 
-### 3.2. Nguồn là Long: giữ 32 bit thấp
+### 3.2. When the source is Long: keeping the low 32 bits
 
-`Long.intValue()` tương đương chuyển thu hẹp `(int) longValue`: Java giữ **32 bit thấp** và diễn giải chúng là `int` có dấu. Đây không phải phép chuyển đổi có kiểm tra tràn; giá trị có thể thay đổi mạnh.
+`Long.intValue()` is equivalent to the narrowing conversion `(int) longValue`: Java keeps the **low 32 bits** and interprets them as a signed `int`. This is not an overflow-checked conversion; the value can change drastically.
 
 ~~~java
 Number n = Long.valueOf(3_000_000_000L);
@@ -70,9 +70,9 @@ System.out.println(n.intValue());  // -1294967296
 System.out.println(n.longValue()); // 3000000000
 ~~~
 
-Vì 3.000.000.000 lớn hơn `Integer.MAX_VALUE`, 32 bit thấp có bit dấu bằng 1; cùng mẫu bit đó được biểu diễn bởi `-1294967296` khi đọc dưới dạng `int`.
+Because 3,000,000,000 is greater than `Integer.MAX_VALUE`, the low 32 bits have their sign bit set to 1; that same bit pattern is represented as `-1294967296` when read as an `int`.
 
-Nếu yêu cầu phải bảo toàn giá trị trong miền `int`, với nguồn `long` cụ thể hãy dùng `Math.toIntExact(long)`; API này ném `ArithmeticException` khi giá trị ngoài miền:
+If you must preserve values within the `int` range, for a specific `long` source use `Math.toIntExact(long)`; this API throws `ArithmeticException` when out of range:
 
 ~~~java
 long raw = 3_000_000_000L;
@@ -80,18 +80,18 @@ try {
     int safe = Math.toIntExact(raw);
     System.out.println(safe);
 } catch (ArithmeticException ex) {
-    System.out.println("Vượt giới hạn int");
+    System.out.println("Exceeds int range");
 }
 ~~~
 
-### 3.3. Nguồn là Double hoặc Float: bỏ phần lẻ, có quy tắc cho giá trị đặc biệt
+### 3.3. When the source is Double or Float: dropping fractions, with rules for special values
 
-Với nguồn `Double`/`Float`, `intValue()` thực hiện quy tắc ép từ floating point về `int` của Java:
+For a `Double`/`Float` source, `intValue()` follows Java's floating-point-to-`int` cast rules:
 
-- Phần thập phân bị **cắt về phía 0**, không làm tròn gần nhất: `12.9 → 12`; `-12.9 → -12`.
+- Fractional parts are **truncated toward zero**, not rounded to nearest: `12.9 → 12`; `-12.9 → -12`.
 - `NaN → 0`.
-- Số dương quá lớn hoặc `+Infinity → Integer.MAX_VALUE`.
-- Số âm quá nhỏ hoặc `-Infinity → Integer.MIN_VALUE`.
+- Overly large positive numbers or `+Infinity → Integer.MAX_VALUE`.
+- Overly small negative numbers or `-Infinity → Integer.MIN_VALUE`.
 
 ~~~java
 System.out.println(Double.valueOf(12.9).intValue());                // 12
@@ -101,11 +101,11 @@ System.out.println(Double.valueOf(Double.POSITIVE_INFINITY).intValue()); // 2147
 System.out.println(Double.valueOf(Double.NEGATIVE_INFINITY).intValue()); // -2147483648
 ~~~
 
-Quy tắc này thường gọi là **saturation** ở trường hợp vượt giới hạn đối với chuyển đổi floating point sang integral. Đừng áp dụng nó cho `Long.intValue()` hoặc `BigInteger.intValue()`; hai loại đó có thể lấy các bit thấp và quay vòng, không chặn ở `Integer.MAX_VALUE`.
+This rule is often called **saturation** in out-of-range cases for floating-point-to-integral conversions. Do not apply it to `Long.intValue()` or `BigInteger.intValue()`; those two types take the low bits and wrap around rather than clamping at `Integer.MAX_VALUE`.
 
-### 3.4. Nguồn là BigInteger hoặc BigDecimal
+### 3.4. When the source is BigInteger or BigDecimal
 
-`BigInteger.intValue()` chỉ giữ 32 bit thấp của số nguyên lớn. `BigDecimal.intValue()` trước hết loại phần thập phân, sau đó kết quả cuối có thể chỉ giữ 32 bit thấp. Vì vậy **không thể coi `intValue()` là phép chuyển đổi kiểm tra miền hoặc kiểm tra phần lẻ**.
+`BigInteger.intValue()` keeps only the low 32 bits of the large integer. `BigDecimal.intValue()` first discards the fractional part, and then the final result may keep only the low 32 bits. Therefore, **`intValue()` cannot be treated as a range-checked or fraction-checked conversion**.
 
 ~~~java
 Number huge = new java.math.BigInteger("4294967303"); // 2^32 + 7
@@ -115,16 +115,16 @@ System.out.println(huge.intValue());    // 7
 System.out.println(decimal.intValue()); // -12
 ~~~
 
-Nếu nguồn là `BigInteger` hoặc `BigDecimal` và yêu cầu giá trị nguyên chính xác, dùng `intValueExact()` của chính lớp đó. `BigDecimal.intValueExact()` còn báo lỗi nếu phần lẻ khác 0.
+If the source is `BigInteger` or `BigDecimal` and an exact integer value is required, use `intValueExact()` on that class itself. `BigDecimal.intValueExact()` also fails if the fractional part is nonzero.
 
-## 4. longValue(): chuyển sang long 64 bit
+## 4. longValue(): converting to 64-bit long
 
-`longValue()` trả về `long` trong khoảng từ −9.223.372.036.854.775.808 đến 9.223.372.036.854.775.807.
+`longValue()` returns a `long` in the range from −9,223,372,036,854,775,808 to 9,223,372,036,854,775,807.
 
-- Từ `Byte`, `Short`, `Integer` hoặc `Long`: giá trị số nguyên được bảo toàn vì tất cả nằm trong miền `long`.
-- Từ `Double`/`Float`: bỏ phần lẻ về phía 0, `NaN → 0L`, vượt giới hạn dương/`+Infinity → Long.MAX_VALUE`, vượt giới hạn âm/`-Infinity → Long.MIN_VALUE`.
-- Từ `BigInteger`: chỉ giữ **64 bit thấp**, kể cả khi số gốc lớn hơn `Long.MAX_VALUE`.
-- Từ `BigDecimal`: bỏ phần lẻ rồi có thể mất các bit cao khi nằm ngoài miền `long`.
+- From `Byte`, `Short`, `Integer`, or `Long`: the integer value is preserved because all fit inside `long`.
+- From `Double`/`Float`: drops the fractional part toward 0, `NaN → 0L`, positive overflow/`+Infinity → Long.MAX_VALUE`, negative overflow/`-Infinity → Long.MIN_VALUE`.
+- From `BigInteger`: keeps only the **low 64 bits**, even when the original number exceeds `Long.MAX_VALUE`.
+- From `BigDecimal`: drops the fractional part and can then lose high bits when outside the `long` range.
 
 ~~~java
 Number fromInt = Integer.valueOf(-150);
@@ -136,11 +136,11 @@ System.out.println(fromDouble.longValue()); // 98
 System.out.println(fromHuge.longValue());   // 1
 ~~~
 
-Ở ví dụ cuối, `18446744073709551617 = 2^64 + 1`. Khi chỉ còn 64 bit thấp, mẫu bit bằng 1. Dùng `BigInteger.longValueExact()` hoặc `BigDecimal.longValueExact()` để phát hiện chuyển đổi mất giá trị, nếu loại nguồn tương ứng hỗ trợ.
+In the last example, `18446744073709551617 = 2^64 + 1`. Keeping only the low 64 bits yields a bit pattern equal to 1. Use `BigInteger.longValueExact()` or `BigDecimal.longValueExact()` to detect lossy conversions if the source type supports them.
 
-### Vì sao intValue và longValue không có cùng kết quả?
+### Why don't intValue and longValue produce the same result?
 
-Cùng một `Number` có thể cho kết quả khác nhau theo số bit đích:
+The same `Number` can give different results depending on the target bit width:
 
 ~~~java
 Number n = Long.valueOf(4_294_967_296L); // 2^32
@@ -149,16 +149,16 @@ System.out.println(n.intValue());  // 0
 System.out.println(n.longValue()); // 4294967296
 ~~~
 
-`intValue()` giữ 32 bit thấp toàn số 0; `longValue()` giữ đủ số nguyên 64 bit.
+`intValue()` keeps the low 32 bits, which are all zeros; `longValue()` keeps the full 64-bit integer.
 
-## 5. doubleValue(): chuyển sang double 64 bit nhưng chỉ có 53 bit chính xác cho số nguyên
+## 5. doubleValue(): converting to 64-bit double with only 53 bits of integer precision
 
-`double` sử dụng chuẩn IEEE 754 binary64: 1 bit dấu, 11 bit số mũ và 52 bit phần trị được lưu (thêm 1 bit dẫn đầu ngầm định cho số hữu hạn thông thường). Vì vậy độ chính xác hiệu dụng khoảng **53 bit nhị phân**, tương đương khoảng 15–17 chữ số thập phân có nghĩa.
+`double` uses IEEE 754 binary64: 1 sign bit, 11 exponent bits, and 52 stored significand bits (plus 1 implicit leading bit for normal finite numbers). Thus its effective precision is **53 binary bits**, roughly equivalent to 15–17 significant decimal digits.
 
-Điều này có hai hệ quả:
+This has two consequences:
 
-1. Mọi số nguyên có độ lớn không quá **2^53 = 9.007.199.254.740.992** đều chuyển sang `double` **chính xác**. Một số lớn hơn vẫn có thể chính xác nếu biểu diễn được, nhưng **không còn bảo đảm cho mọi số nguyên liên tiếp**.
-2. Số nguyên lớn như `long` và `BigInteger` hoặc số thập phân như `BigDecimal` có thể bị **làm tròn**. `doubleValue()` không báo lỗi vì mất độ chính xác.
+1. Every integer with magnitude at most **2^53 = 9,007,199,254,740,992** converts to `double` **exactly**. Larger numbers may still be exact if representable, but **consecutive integers are no longer guaranteed to be distinct**.
+2. Large integers like `long` and `BigInteger` or decimals like `BigDecimal` can be **rounded**. `doubleValue()` does not throw an error for precision loss.
 
 ~~~java
 Number exact = Long.valueOf(9_007_199_254_740_992L); // 2^53
@@ -167,9 +167,9 @@ Number next = Long.valueOf(9_007_199_254_740_993L);  // 2^53 + 1
 System.out.println(exact.doubleValue() == next.doubleValue()); // true
 ~~~
 
-Hai số `long` liền nhau nhưng cùng được làm tròn về một giá trị `double`. Đây là lý do không dùng `doubleValue()` làm phép chuyển đổi không mất dữ liệu cho ID lớn, số đếm tuyệt đối lớn, hoặc khóa so sánh chính xác.
+Two adjacent `long` numbers round to the exact same `double` value. That is why you must not use `doubleValue()` as a lossless conversion for large IDs, large exact counters, or exact comparison keys.
 
-### BigDecimal và số thập phân không thể biểu diễn chính xác
+### BigDecimal and decimals that cannot be represented exactly
 
 ~~~java
 java.math.BigDecimal price = new java.math.BigDecimal("0.1");
@@ -177,13 +177,13 @@ double approximated = price.doubleValue();
 System.out.println(approximated); // 0.1
 ~~~
 
-Kết quả in là `0.1` vì `Double.toString` chọn biểu diễn thập phân ngắn có thể round-trip về cùng bit, **không có nghĩa 0,1 được lưu chính xác trong hệ nhị phân**. Nếu phải cộng tiền, tính thuế, kiểm tra sự bằng nhau chính xác theo đơn vị thập phân, giữ phép tính trong `BigDecimal` và quy định scale/rounding thích hợp.
+The printed output is `0.1` because `Double.toString` picks a short decimal representation that round-trips to the same bits, **which does not mean 0.1 is stored exactly in binary**. If you must add money, compute taxes, or check exact decimal equality, keep calculations in `BigDecimal` and specify appropriate scale/rounding.
 
-Với `BigDecimal` hoặc `BigInteger` cực lớn, `doubleValue()` có thể tạo `Double.POSITIVE_INFINITY` hoặc `Double.NEGATIVE_INFINITY`; số khác 0 nhưng quá gần 0 cũng có thể bị làm tròn về `0.0` hoặc `-0.0` khi chuyển từ `BigDecimal` sang `double`. `double` không có miền hữu hạn hoặc độ chính xác để chứa mọi số thập phân.
+For extremely large `BigDecimal` or `BigInteger` values, `doubleValue()` can return `Double.POSITIVE_INFINITY` or `Double.NEGATIVE_INFINITY`; nonzero values very close to 0 can also round to `0.0` or `-0.0` when converting from `BigDecimal` to `double`. `double` does not have unlimited range or precision to hold every decimal number.
 
-## 6. Chương trình Java 17+ chạy đầy đủ
+## 6. Complete runnable Java 17+ program
 
-Tạo tệp `NumberConversionsDemo.java`:
+Create the file `NumberConversionsDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -227,14 +227,14 @@ public class NumberConversionsDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac NumberConversionsDemo.java
 java NumberConversionsDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Integer -> 42, 42, 42.0
@@ -248,36 +248,36 @@ Decimal exact -> ArithmeticException
 53-bit boundary -> 9007199254740993 / 9007199254740992
 ~~~
 
-Cần quan sát:
+Notice:
 
-- Giá trị 3 tỷ chuyển sang `int` cho ra số âm vì bị giới hạn 32 bit.
-- `-12.75` thành `-12` ở kiểu nguyên vì cắt về phía 0.
-- `BigDecimal("123.99").intValue()` bỏ phần lẻ trong khi `intValueExact()` phát hiện mất dữ liệu.
-- `2^32 + 7` chuyển sang `int` còn 7.
-- `2^53 + 1` không thể giữ chính xác trong `double`; cách in cuối đối chiếu giá trị số nguyên gốc với giá trị đã được làm tròn khi đổi qua `double`.
+- The value 3 billion converted to `int` yields a negative number due to the 32-bit limit.
+- `-12.75` becomes `-12` in integer types because of truncation toward 0.
+- `BigDecimal("123.99").intValue()` drops the fraction while `intValueExact()` detects the data loss.
+- `2^32 + 7` converted to `int` leaves 7.
+- `2^53 + 1` cannot be preserved exactly in `double`; the final printed line contrasts the original integer value with the rounded value obtained when converting through `double`.
 
-## 7. Bảng tổng hợp quy tắc theo loại đối tượng
+## 7. Summary table of rules by object type
 
-| Nguồn thực tế | `intValue()` | `longValue()` | `doubleValue()` |
+| Actual source | `intValue()` | `longValue()` | `doubleValue()` |
 | --- | --- | --- | --- |
-| `Byte` / `Short` / `Integer` | Chính xác nếu nằm trong miền `int`; các lớp này đều thỏa | Chính xác | Chính xác cho tất cả giá trị `int` |
-| `Long` | Giữ 32 bit thấp; có thể đổi giá trị | Chính xác | Có thể làm tròn với số nguyên lớn |
-| `Float` / `Double` | Cắt phần lẻ; NaN → 0; tràn thì chặn biên `int` | Cắt phần lẻ; NaN → 0; tràn thì chặn biên `long` | `Double` giữ nguyên giá trị; `Float` mở rộng chính xác mẫu floating point đã lưu sang `double` |
-| `BigInteger` | Giữ 32 bit thấp | Giữ 64 bit thấp | Có thể làm tròn hoặc thành ±Infinity |
-| `BigDecimal` | Bỏ phần lẻ, có thể mất bit cao | Bỏ phần lẻ, có thể mất bit cao | Có thể làm tròn, underflow hoặc overflow |
+| `Byte` / `Short` / `Integer` | Exact if within `int` range; all these classes satisfy this | Exact | Exact for all `int` values |
+| `Long` | Keeps low 32 bits; value may change | Exact | Can round for large integers |
+| `Float` / `Double` | Truncates fraction; NaN → 0; overflow clamps to `int` bounds | Truncates fraction; NaN → 0; overflow clamps to `long` bounds | `Double` preserves value; `Float` widens the stored floating-point pattern to `double` exactly |
+| `BigInteger` | Keeps low 32 bits | Keeps low 64 bits | Can round or become ±Infinity |
+| `BigDecimal` | Drops fraction, can lose high bits | Drops fraction, can lose high bits | Can round, underflow, or overflow |
 
-**Ghi chú về `Float.doubleValue()`:** Phép mở rộng từ `float` sang `double` bảo toàn chính xác **giá trị nhị phân của `float`**, nhưng không phục hồi độ chính xác thập phân đã mất khi số ban đầu được lưu dưới `float`. Ví dụ:
+**Note on `Float.doubleValue()`:** Widening from `float` to `double` preserves the **binary value of the `float`** exactly, but does not recover decimal precision already lost when the number was stored as a `float`. For example:
 
 ~~~java
 Number n = Float.valueOf(0.1f);
 System.out.println(n.doubleValue()); // 0.10000000149011612
 ~~~
 
-## 8. Cách chuyển đổi có kiểm tra mất dữ liệu
+## 8. How to convert with data-loss checking
 
-### Với nguồn long
+### With a long source
 
-`Math.toIntExact(long)` trả `int` nếu trong giới hạn, ngược lại ném `ArithmeticException`:
+`Math.toIntExact(long)` returns `int` if within limits, otherwise throws `ArithmeticException`:
 
 ~~~java
 long value = 50_000L;
@@ -285,9 +285,9 @@ int safe = Math.toIntExact(value);
 System.out.println(safe); // 50000
 ~~~
 
-### Với nguồn BigInteger hoặc BigDecimal
+### With a BigInteger or BigDecimal source
 
-Dùng các phương thức `intValueExact()` và `longValueExact()` thay cho `intValue()`/`longValue()` khi không thể chấp nhận bị cắt giá trị:
+Use `intValueExact()` and `longValueExact()` instead of `intValue()`/`longValue()` when value truncation cannot be tolerated:
 
 ~~~java
 java.math.BigDecimal amount = new java.math.BigDecimal("19.00");
@@ -297,35 +297,35 @@ java.math.BigDecimal bad = new java.math.BigDecimal("19.01");
 try {
     System.out.println(bad.longValueExact());
 } catch (ArithmeticException ex) {
-    System.out.println("Có phần thập phân");
+    System.out.println("Has fractional part");
 }
 ~~~
 
-`19.00` có phần biểu diễn thập phân nhưng **giá trị toán học là số nguyên** nên `intValueExact()` thành công. Ngược lại, `19.01` không thể chuyển thành `long` chính xác.
+`19.00` has decimal digits in its representation, yet its **mathematical value is an integer**, so `intValueExact()` succeeds. Conversely, `19.01` cannot be converted to an exact `long`.
 
-### Với Double và Float
+### With Double and Float
 
-`Number` không có `intValueExact()` chung. Nếu thực sự cần chuyển từ `double` sang số nguyên **đúng giá trị và trong giới hạn**, hãy kiểm tra `Double.isFinite`, phần lẻ, miền giá trị và những điều kiện chính xác theo yêu cầu trước khi chuyển. Cần đặc biệt cẩn thận tại biên `long`: `(double) Long.MAX_VALUE` được làm tròn lên thành 2^63 và không còn đại diện chính xác cho `Long.MAX_VALUE`.
+`Number` has no generic `intValueExact()`. If you truly must convert from `double` to an integer **with exact value and within limits**, check `Double.isFinite`, fractional part, range, and required exactness conditions before converting. Be especially careful at the `long` boundary: `(double) Long.MAX_VALUE` rounds up to 2^63 and no longer represents `Long.MAX_VALUE` exactly.
 
-Một cách tường minh cho các giá trị `double` hữu hạn là dùng `BigDecimal.valueOf(d).toBigIntegerExact()` để kiểm tra tính nguyên của **biểu diễn thập phân round-trip của `double`**, sau đó `longValueExact()`/`intValueExact()` để kiểm tra miền. Tuy nhiên, cách này **không phục hồi chữ số đã mất trước đó** khi dữ liệu được chuyển thành `double`. Nếu đầu vào gốc có tính chính xác thập phân (như tiền), nên parse/lưu nó bằng `BigDecimal` ngay từ đầu.
+An explicit approach for finite `double` values is using `BigDecimal.valueOf(d).toBigIntegerExact()` to verify integrality of the **`double`'s round-trip decimal representation**, followed by `longValueExact()`/`intValueExact()` to check range. However, this approach **does not recover digits previously lost** when the data was converted into `double`. If the original input has decimal exactness (such as money), parse/store it as `BigDecimal` from the start.
 
-## 9. Khi nào chọn intValue, longValue hay doubleValue?
+## 9. When to pick intValue, longValue, or doubleValue?
 
-| Nhu cầu | Lựa chọn hợp lý | Điều cần xác minh |
+| Need | Reasonable choice | What to verify |
 | --- | --- | --- |
-| Lấy số đếm nhỏ từ `Number` | `intValue()` | Có thể bị cắt phần lẻ/tràn? |
-| Lấy timestamp/ID nguyên theo miền `long` | `longValue()` | Đối tượng nguồn có thực sự là số nguyên và trong miền `long`? |
-| Dùng tính toán số thực hoặc phép đo chấp nhận sai số | `doubleValue()` | Độ chính xác floating point có đủ không? |
-| Chuyển `BigDecimal` sang số nguyên không mất dữ liệu | `intValueExact()`/`longValueExact()` | Ném `ArithmeticException` nếu không biểu diễn chính xác |
-| Chuyển `long` thành `int` mà không tràn | `Math.toIntExact()` | Xử lý `ArithmeticException` |
-| Tính toán tiền tệ và cần chính xác số thập phân | Giữ `BigDecimal` | Scale, quy tắc làm tròn, phép so sánh |
-| Tính toán số nguyên lớn hơn 64 bit | Giữ `BigInteger` | Không cắt xuống `int` hoặc `long` nếu chưa kiểm tra |
+| Get a small count from `Number` | `intValue()` | Could fraction truncation or overflow occur? |
+| Get a timestamp/integer ID in `long` range | `longValue()` | Is the source object truly an integer and within `long` range? |
+| Perform floating-point math or measurements accepting error | `doubleValue()` | Is floating-point precision sufficient? |
+| Convert `BigDecimal` to integer without data loss | `intValueExact()`/`longValueExact()` | Throws `ArithmeticException` if not exact |
+| Convert `long` to `int` without overflow | `Math.toIntExact()` | Handle `ArithmeticException` |
+| Monetary calculations needing exact decimals | Keep `BigDecimal` | Scale, rounding rules, comparisons |
+| Integer calculations exceeding 64 bits | Keep `BigInteger` | Do not narrow to `int` or `long` unchecked |
 
-Đừng nhầm **chuyển giá trị** với **parse chuỗi**. `number.intValue()` chỉ áp dụng khi đã có một đối tượng `Number`. Đầu vào `"123.45"` là `String`, cần parse phù hợp trước (chẳng hạn `new BigDecimal("123.45")`); `Number` không khai báo phương thức static `parse` hay `valueOf` dùng chung.
+Do not confuse **converting values** with **parsing strings**. `number.intValue()` applies only when you already have a `Number` object. An input `"123.45"` is a `String` and must be parsed appropriately first (such as `new BigDecimal("123.45")`); `Number` does not declare shared static `parse` or `valueOf` methods.
 
-## 10. Đa hình, null và lớp Number tùy biến
+## 10. Polymorphism, null, and custom Number subclasses
 
-Một API có thể nhận `Number` để làm việc với các lớp con:
+An API may accept `Number` to work with multiple subclasses:
 
 ~~~java
 static double twice(Number n) {
@@ -336,45 +336,45 @@ static double twice(Number n) {
 }
 ~~~
 
-Đoạn trên là phương thức minh họa; không phải chương trình độc lập. Việc chuyển sang `double` phù hợp nếu hợp đồng của API **cho phép sai số**. Nếu API yêu cầu chính xác với `BigDecimal` hoặc `BigInteger`, giao diện nhận `Number` quá rộng và việc tự gọi `doubleValue()` có thể làm mất dữ liệu. Khi đó nên chọn một kiểu tham số cụ thể hoặc mô tả rõ giới hạn và chính sách chuyển đổi.
+The snippet above is an illustrative method, not a standalone program. Converting to `double` is appropriate if the API contract **permits approximation error**. If the API requires exactness for `BigDecimal` or `BigInteger`, an interface taking `Number` is too broad and calling `doubleValue()` blindly can lose data. In that case, choose a specific parameter type or document limits and conversion policies clearly.
 
-Một lớp kế thừa `Number` tùy biến phải cài đặt bốn phương thức abstract; vì thế các quy tắc chung phía trên mô tả **các lớp Number chuẩn**, không bảo đảm mọi lớp con do bên thứ ba tự viết tuân theo cùng cách làm tròn, tràn hoặc chuyển đổi.
+A custom subclass extending `Number` must implement the four abstract methods; thus the general rules above describe **the standard `Number` classes**, and do not guarantee that every third-party subclass follows the same rounding, overflow, or conversion behavior.
 
-## 11. Lỗi thường gặp
+## 11. Common mistakes
 
-1. **Cho rằng `intValue()` có kiểm tra tràn.** Sai với `Long`, `BigInteger` và `BigDecimal`. Khi cần chính xác, dùng API `Exact` tương ứng.
-2. **Cho rằng bỏ phần lẻ là làm tròn.** `12.9` trở thành `12` và `-12.9` trở thành `-12`; hãy dùng quy tắc làm tròn rõ ràng trước khi chuyển nếu nghiệp vụ cần.
-3. **Dùng `doubleValue()` cho số tiền hoặc khóa số nguyên rất lớn.** `double` có thể mất chữ số; ưu tiên `BigDecimal`/`BigInteger`.
-4. **Giả định NaN hoặc Infinity sẽ gây lỗi khi chuyển sang nguyên.** Với `Double` và `Float`, phép chuyển theo quy tắc Java tạo 0 hoặc giá trị biên.
-5. **Ép `Number` về lớp cụ thể vô điều kiện.** `(BigDecimal) number` sẽ ném `ClassCastException` nếu đối tượng thực tế là `Integer`, `Long` hoặc `Double`; hãy kiểm tra loại hoặc thiết kế API chặt hơn.
-6. **Nhầm `Number` với cơ chế chuyển chuỗi.** Dùng parser/phương thức khởi tạo phù hợp để tạo đối tượng số trước.
-7. **Quên null.** Gọi `n.intValue()` khi `n == null` sẽ ném `NullPointerException`.
+1. **Assuming `intValue()` checks for overflow.** False for `Long`, `BigInteger`, and `BigDecimal`. When exactness is required, use the corresponding `Exact` API.
+2. **Assuming dropping the fraction is rounding.** `12.9` becomes `12` and `-12.9` becomes `-12`; apply an explicit rounding rule before converting if business logic requires it.
+3. **Using `doubleValue()` for money or very large integer keys.** `double` can lose digits; prefer `BigDecimal`/`BigInteger`.
+4. **Assuming NaN or Infinity throws an error when converted to integer.** For `Double` and `Float`, Java's conversion rules produce 0 or boundary values.
+5. **Casting `Number` to a concrete class unconditionally.** `(BigDecimal) number` throws `ClassCastException` if the actual object is `Integer`, `Long`, or `Double`; check the type or design a stricter API.
+6. **Confusing `Number` with string parsing.** Use an appropriate parser or constructor to create the numeric object first.
+7. **Forgetting null.** Calling `n.intValue()` when `n == null` throws `NullPointerException`.
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-check questions
 
-**1.** Vì sao `Long.valueOf(4294967296L).intValue()` trả `0`?
+**1.** Why does `Long.valueOf(4294967296L).intValue()` return `0`?
 
-Vì chuyển từ 64 bit xuống 32 bit chỉ giữ 32 bit thấp. `4294967296 = 2^32` có 32 bit thấp bằng 0.
+Because converting from 64 bits down to 32 bits keeps only the low 32 bits. `4294967296 = 2^32` has all-zero low 32 bits.
 
-**2.** `Double.valueOf(-3.9).longValue()` trả bao nhiêu?
+**2.** What does `Double.valueOf(-3.9).longValue()` return?
 
-`-3L`, vì chuyển floating point sang integer loại phần lẻ về phía 0.
+`-3L`, because converting floating-point to integer truncates the fractional part toward 0.
 
-**3.** Có thể thay `new BigDecimal("123.45")` bằng `Double.valueOf(123.45)` trong xử lý tiền rồi gọi `doubleValue()` không?
+**3.** Can `new BigDecimal("123.45")` be replaced by `Double.valueOf(123.45)` in monetary processing and then calling `doubleValue()`?
 
-Có thể thực hiện về mặt cú pháp, nhưng số thập phân có thể được biểu diễn xấp xỉ trong binary64. Khi yêu cầu chính xác cho nghiệp vụ tiền tệ, giữ `BigDecimal` cùng quy tắc scale/rounding.
+It works syntactically, but decimal numbers may be approximated in binary64. When exactness is required for currency logic, keep `BigDecimal` with scale/rounding rules.
 
-**4.** Tại sao `BigInteger.intValue()` và `Double.intValue()` có thể khác quy tắc với số lớn?
+**4.** Why can `BigInteger.intValue()` and `Double.intValue()` follow different rules for large numbers?
 
-Vì `BigInteger` lấy 32 bit thấp của số nguyên tùy ý; `Double` tuân theo chuyển đổi dấu phẩy động sang nguyên của Java, bão hòa ở min/max khi vượt miền.
+Because `BigInteger` takes the low 32 bits of an arbitrary-precision integer; `Double` follows Java's floating-point-to-integer conversion, saturating at min/max when out of range.
 
-**5.** Muốn ép `BigDecimal("100.0")` thành `int` và chắc chắn không mất thông tin phải làm gì?
+**5.** To convert `BigDecimal("100.0")` to `int` and ensure no information is lost, what should you do?
 
-Gọi `new BigDecimal("100.0").intValueExact()`; kết quả là `100` vì giá trị toán học đúng là số nguyên, mặc dù biểu diễn có một chữ số thập phân.
+Call `new BigDecimal("100.0").intValueExact()`; the result is `100` because its mathematical value is an exact integer, even though the representation includes one decimal place.
 
-## 13. Ghi nhớ
+## 13. Key takeaways
 
-- `Number` cung cấp một giao diện phương thức chung cho nhiều loại đối tượng số; **kiểu đối tượng thực tế quyết định** cách chuyển đổi.
-- `intValue()` và `longValue()` trả giá trị nguyên primitive; có thể cắt phần thập phân, mất bit cao hoặc bão hòa, **tùy loại nguồn**.
-- `doubleValue()` cho phép làm việc với số thực nhưng có giới hạn **53 bit độ chính xác hiệu dụng** và có thể làm tròn, tràn thành Infinity hoặc mất giá trị rất nhỏ.
-- Khi không được phép mất dữ liệu, kiểm tra miền và tính nguyên; dùng `Math.toIntExact`, `BigInteger.intValueExact/longValueExact` hoặc `BigDecimal.intValueExact/longValueExact` theo loại nguồn. Giữ `BigDecimal`/`BigInteger` trong các phép tính cần độ chính xác cao.
+- `Number` provides a common method interface for multiple numeric object types; **the actual object type determines** how conversion behaves.
+- `intValue()` and `longValue()` return primitive integer values; they may truncate fractions, drop high bits, or saturate, **depending on the source type**.
+- `doubleValue()` enables floating-point work but has a limit of **53 bits of effective precision** and can round, overflow to Infinity, or lose very small values.
+- When data loss is unacceptable, check range and integrality; use `Math.toIntExact`, `BigInteger.intValueExact/longValueExact`, or `BigDecimal.intValueExact/longValueExact` according to the source type. Keep `BigDecimal`/`BigInteger` in calculations requiring high precision.

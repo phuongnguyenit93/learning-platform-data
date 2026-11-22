@@ -1,51 +1,51 @@
-# `String.replace(char, char)` — thay mọi ký tự khớp trong Java
+# `String.replace(char, char)` — Replacing Every Matching Character in Java
 
-## 1. Mục tiêu và ý nghĩa
+## 1. Purpose and Meaning
 
-`String.replace(char oldChar, char newChar)` là phương thức dùng để **thay tất cả lần xuất hiện** của một đơn vị ký tự `char` bằng một `char` khác trong chuỗi Java. Chẳng hạn, `"banana".replace('a', 'o')` có kết quả `"bonono"`: cả ba chữ `a` đều được thay. Phương thức không dừng ở kết quả đầu tiên và không cần vòng lặp tự tìm từng vị trí.
+`String.replace(char oldChar, char newChar)` is a method used to **replace all occurrences** of a `char` character unit with another `char` in a Java string. For example, `"banana".replace('a', 'o')` produces `"bonono"`: all three `a` characters are replaced. The method does not stop at the first match and does not require a manual loop to find each position.
 
-Bốn điểm cần nắm:
+Four key points to understand:
 
-1. `oldChar` và `newChar` là hai đối số kiểu **`char`**, viết bằng dấu nháy đơn như `'a'`; chúng biểu diễn đơn vị mã UTF-16, không phải một chuỗi ký tự tùy ý.
-2. `replace(char,char)` tìm và thay **mọi phần tử khớp chính xác**. Phép tìm phân biệt hoa/thường: `'a'` khác `'A'`.
-3. `String` **bất biến**. Phương thức trả về kết quả kiểu `String`; không sửa chuỗi đã gọi. Muốn lưu kết quả, phải gán nó vào biến hoặc truyền cho nơi cần dùng.
-4. Đây là thao tác thay **ký tự literal**, không phải biểu thức chính quy (*regex*). Muốn thay toàn bộ đoạn văn bản có nhiều `char`, dùng overload `replace(CharSequence, CharSequence)`; muốn xử lý regex, dùng `replaceAll(String, String)`.
+1. `oldChar` and `newChar` are two **`char`** arguments, written with single quotes such as `'a'`; they represent UTF-16 code units, not arbitrary character strings.
+2. `replace(char,char)` finds and replaces **every exact match**. Matching is case-sensitive: `'a'` is different from `'A'`.
+3. `String` is **immutable**. The method returns a `String` result; it does not modify the string it was called on. To keep the result, you must assign it to a variable or pass it where it is needed.
+4. This is a **literal character** replacement operation, not a regular expression (*regex*). To replace an entire text segment with multiple `char`s, use the `replace(CharSequence, CharSequence)` overload; to process regex, use `replaceAll(String, String)`.
 
-Bài này đi từ cú pháp đến ví dụ chạy được, phân biệt overload, Unicode và những lỗi thường gặp khi xử lý dữ liệu văn bản.
+This lesson goes from syntax to runnable examples, distinguishing overloads, Unicode, and common mistakes when processing text data.
 
-## 2. Cú pháp, kiểu dữ liệu và kết quả trả về
+## 2. Syntax, Data Types, and Return Value
 
-Khai báo API trong Java SE 17:
+API declaration in Java SE 17:
 
 ```java
 public String replace(char oldChar, char newChar)
 ```
 
-| Thành phần | Ý nghĩa |
+| Component | Meaning |
 | --- | --- |
-| `oldChar` | Đơn vị `char` cần tìm trong chuỗi nguồn |
-| `newChar` | Đơn vị `char` sẽ thay cho mỗi vị trí khớp |
-| Kết quả | Một giá trị `String` có nội dung sau khi thay các vị trí khớp |
-| Quy tắc khớp | So sánh chính xác giá trị `char`; không tự bỏ qua hoa/thường, dấu hoặc chuẩn hóa Unicode |
-| Phạm vi | Toàn bộ chuỗi, từ đầu đến cuối; không có tham số giới hạn số lần thay |
+| `oldChar` | The `char` unit to search for in the source string |
+| `newChar` | The `char` unit that will replace each matching position |
+| Return value | A `String` value containing the content after replacing matching positions |
+| Matching rule | Compares exact `char` values; does not automatically ignore case, diacritics, or normalize Unicode |
+| Scope | The entire string, from start to end; there is no parameter to limit the number of replacements |
 
-Ví dụ biểu thức (đặt trong một phương thức, như `main`):
+Expression examples (placed inside a method, such as `main`):
 
 ```java
 "banana".replace('a', 'o');   // "bonono"
 "aaaa".replace('a', 'b');     // "bbbb"
 "aba".replace('a', 'b');      // "bbb"
 "Java".replace('a', 'A');     // "JAvA"
-"Java".replace('A', 'x');     // "Java" (không có 'A')
+"Java".replace('A', 'x');     // "Java" (no 'A')
 ```
 
-Những dòng trên là **các biểu thức minh họa**, chưa tạo thành file Java độc lập. Trong Java, một literal `char` có đúng một đơn vị mã UTF-16; `'a'` là `char`, còn `"a"` là `String`. Việc truyền hai `String` vào `replace("a","o")` vẫn hợp lệ, nhưng Java chọn **overload nhận `CharSequence`**, không phải overload đang học.
+The lines above are **illustrative expressions**, not a standalone Java file. In Java, a `char` literal has exactly one UTF-16 code unit; `'a'` is a `char`, whereas `"a"` is a `String`. Passing two `String`s to `replace("a","o")` is still valid, but Java selects the **`CharSequence` overload**, not the overload being studied here.
 
-Phương thức không nhận tham số `boolean` điều khiển số lần thay và không có phiên bản `replace(char,char,int limit)` trong `String`. Nếu chỉ muốn thay lần đầu tiên hoặc thay một vùng, cần chọn thuật toán/API khác.
+The method does not take a `boolean` parameter controlling the number of replacements and has no `replace(char,char,int limit)` version in `String`. If you only want to replace the first occurrence or replace a specific range, you need to choose a different algorithm/API.
 
-## 3. Chương trình đầy đủ: tất cả vị trí khớp đều được thay
+## 3. Complete Program: Every Matching Position Is Replaced
 
-Lưu thành `ReplaceCharDemo.java`:
+Save as `ReplaceCharDemo.java`:
 
 ```java
 public class ReplaceCharDemo {
@@ -67,14 +67,14 @@ public class ReplaceCharDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 ReplaceCharDemo.java
 java ReplaceCharDemo
 ```
 
-Kết quả chuẩn:
+Standard output:
 
 ```text
 banana
@@ -89,26 +89,26 @@ JAvA
 Java
 ```
 
-Giải thích:
-- `original` vẫn là `banana`; biến `changed` giữ kết quả `bonono`.
-- `"aaaa".replace('a','b')` thay cả bốn vị trí, và `"aba".replace('a','b')` cho `bbb`, không chỉ thay chữ `a` đầu tiên.
-- Dấu `'.'` và `'$'` được xem như ký tự bình thường. Chúng **không mang ý nghĩa regex** trong overload `char,char`.
-- Không có `'x'` trong `Java` nên nội dung giữ nguyên. `oldChar == newChar` cũng không làm nội dung thay đổi.
-- Phép thay phân biệt hoa/thường: chữ `a` trong `Java` khớp, chữ `A` không có trong `Java`.
+Explanation:
+- `original` remains `banana`; the `changed` variable holds the result `bonono`.
+- `"aaaa".replace('a','b')` replaces all four positions, and `"aba".replace('a','b')` yields `bbb`, not just the first `a`.
+- `'.'` and `'$'` are treated as ordinary characters. They **do not carry regex meaning** in the `char,char` overload.
+- There is no `'x'` in `Java`, so the content stays unchanged. `oldChar == newChar` also leaves the content unchanged.
+- Replacement is case-sensitive: lowercase `a` in `Java` matches, while uppercase `A` is not present in `Java`.
 
-## 4. Tại sao đây là thao tác đồng thời theo nội dung nguồn?
+## 4. Why Is This a Simultaneous Operation on Source Content?
 
-Điều kiện khớp được xét theo **chuỗi nguồn ban đầu** trong một lần gọi. Ký tự vừa được thay vào không được xem là mục tiêu mới để “thay dây chuyền” ngay trong chính lần gọi đó.
+The match condition is evaluated against the **original source string** in a single call. Newly inserted characters are not treated as new targets for "chained replacement" within that same call.
 
-Ví dụ:
+For example:
 
 ```java
 System.out.println("aba".replace('a', 'b')); // bbb
 ```
 
-Từ `aba`, hai vị trí `a` được thay bằng `b`; chữ `b` gốc vẫn là `b`. Không có một bước thứ hai trong lần gọi này để tiếp tục xử lý các chữ `b`. Do đó kết quả là `bbb`.
+From `aba`, the two `a` positions are replaced with `b`; the original `b` stays `b`. There is no second pass within this call to continue processing the `b` characters. Therefore, the result is `bbb`.
 
-Tuy nhiên, **nối nhiều lần gọi `replace`** là một chuỗi các phép biến đổi khác nhau; phép sau nhìn thấy kết quả của phép trước:
+However, **chaining multiple `replace` calls** is a sequence of distinct transformations; each subsequent call sees the result of the previous one:
 
 ```java
 System.out.println(
@@ -117,21 +117,21 @@ System.out.println(
         "aba".replace('b', 'c').replace('a', 'b')); // bcb
 ```
 
-Đây là snippet đặt trong `main`. Ở dòng đầu, `aba` thành `bbb`, rồi toàn bộ `b` thành `c`. Dòng sau bắt đầu bằng `aca`, rồi thay `a` bằng `b` để thành `bcb`. **Thứ tự các lời gọi quan trọng**; không được giả định hai phép thay ký tự luôn giao hoán.
+This is a snippet placed in `main`. In the first line, `aba` becomes `bbb`, and then all `b`s become `c`. The second line starts with `aca`, then replaces `a` with `b` to become `bcb`. **Call order matters**; never assume two character replacements are always commutative.
 
-Nếu muốn thực hiện đồng thời một bảng chuyển đổi nhiều ký tự khác nhau mà không để ký tự mới bị xử lý bởi quy tắc tiếp theo, có thể duyệt chuỗi nguồn một lần, quyết định ký tự thay thế cho từng vị trí và xây dựng kết quả riêng. Không nên ghép các lời gọi `replace` khi phép thay thứ hai không được phép ảnh hưởng ký tự mà phép thứ nhất vừa tạo ra.
+If you want to perform a multi-character mapping simultaneously without letting newly replaced characters be processed by subsequent rules, you can iterate over the source string once, decide the replacement character for each position, and build a separate result. Avoid chaining `replace` calls when the second replacement must not affect characters just produced by the first.
 
-## 5. `String` bất biến: kết quả phải được giữ lại
+## 5. `String` Is Immutable: The Result Must Be Retained
 
-Một lỗi thường gặp:
+A common mistake:
 
 ```java
 String text = "banana";
-text.replace('a', 'o'); // Có tính kết quả, nhưng kết quả bị bỏ qua.
+text.replace('a', 'o'); // Computes the result, but the result is discarded.
 System.out.println(text); // banana
 ```
 
-`replace` **không sửa** đối tượng `String` mà `text` đang trỏ tới. Để sử dụng nội dung sau khi thay:
+`replace` **does not modify** the `String` object that `text` points to. To use the content after replacement:
 
 ```java
 String text = "banana";
@@ -139,32 +139,32 @@ text = text.replace('a', 'o');
 System.out.println(text); // bonono
 ```
 
-Lệnh gán sau đó chỉ khiến **biến** `text` tham chiếu tới kết quả; chuỗi bất biến `"banana"` ban đầu không bị đổi nội dung. Nếu có biến khác vẫn trỏ tới chuỗi cũ, biến đó tiếp tục thấy `banana`.
+The subsequent assignment only makes the **variable** `text` reference the result; the original immutable `"banana"` string is not modified in content. If another variable still points to the old string, that variable continues to see `banana`.
 
-Trường hợp ký tự cần tìm không xuất hiện, tài liệu `String.replace(char,char)` cho phép trả về tham chiếu tới chính `String` đã gọi. Vì vậy **không được suy luận rằng một lời gọi `replace` lúc nào cũng cấp phát một đối tượng mới**. Điều được cam kết ở mức lập trình là **nội dung kết quả** và **tính bất biến**. Để so chuỗi, dùng `equals`, không dùng `==` nhằm phỏng đoán có diễn ra thay thế hay không.
+In case the target character does not appear, the `String.replace(char,char)` documentation allows returning a reference to the called `String` itself. Therefore, **do not infer that calling `replace` always allocates a new object**. What is guaranteed at the programming level is the **result content** and **immutability**. To compare strings, use `equals`, not `==`, to guess whether a replacement occurred.
 
-Một biến `final String` không được gán lại:
+A `final String` variable cannot be reassigned:
 
 ```java
 final String text = "banana";
-String changed = text.replace('a', 'o'); // Hợp lệ.
-// text = changed; // Lỗi biên dịch: không thể gán lại biến final.
+String changed = text.replace('a', 'o'); // Valid.
+// text = changed; // Compile error: cannot reassign a final variable.
 ```
 
-Đây là snippet minh họa. `final` của biến ngăn gán lại tham chiếu, còn tính bất biến của `String` ngăn sửa nội dung đối tượng; đó là hai khái niệm khác nhau.
+This is an illustrative snippet. `final` on a variable prevents reassigning the reference, whereas `String` immutability prevents modifying the object's content; those are two different concepts.
 
-## 6. Chọn đúng API khi thao tác với một `char`
+## 6. Choosing the Right API When Working with a `char`
 
-`String` có nhiều dạng thay thế. Bài này dùng **`replace(char,char)`** khi đầu vào và đầu ra đều là *một đơn vị UTF-16*; hai đối số trong dấu nháy đơn được xử lý như ký tự nguyên văn. Ba lựa chọn gần tên có mục đích khác:
+`String` has multiple replacement forms. This lesson uses **`replace(char,char)`** when both input and output are *one UTF-16 unit*; the two arguments in single quotes are handled as literal characters. Three similarly named options serve different purposes:
 
-| API | Điều được tìm | Số lần thay |
+| API | What is searched | Number of replacements |
 | --- | --- | --- |
-| `replace(char, char)` | Một `char` chính xác | Tất cả vị trí khớp |
-| `replace(CharSequence, CharSequence)` | Đoạn chuỗi literal, có thể dài hơn một `char` | Tất cả lần khớp không chồng lấn |
-| `replaceFirst(String, String)` | Regex | Match đầu tiên |
-| `replaceAll(String, String)` | Regex | Tất cả match |
+| `replace(char, char)` | One exact `char` | All matching positions |
+| `replace(CharSequence, CharSequence)` | A literal string segment, possibly longer than one `char` | All non-overlapping matches |
+| `replaceFirst(String, String)` | Regex | First match |
+| `replaceAll(String, String)` | Regex | All matches |
 
-Ví dụ đặt trong `main`:
+Example placed in `main`:
 
 ~~~java
 System.out.println("a.b".replace('.', '/'));      // a/b
@@ -173,17 +173,17 @@ System.out.println("a.b".replaceAll(".", "/"));   // ///
 System.out.println("a.b".replaceFirst(".", "/")); // /.b
 ~~~
 
-Với regex, dấu `.` có nghĩa đặc biệt; với cả hai overload `replace`, nó chỉ là dấu chấm. `replaceAll` và `replaceFirst` còn diễn giải `$1` và backslash trong chuỗi replacement theo cú pháp regex, còn `replace` chèn replacement nguyên văn. Nếu chỉ đổi dấu phân cách đơn lẻ, overload `char,char` thể hiện đúng ý định nhất; bài so sánh ba API ở phần sau của chương đi sâu vào nhóm bắt, escape và lựa chọn regex.
+In regex, `.` has a special meaning; in both `replace` overloads, it is simply a dot. `replaceAll` and `replaceFirst` also interpret `$1` and backslashes in the replacement string according to regex syntax, whereas `replace` inserts the replacement literally. If you only need to change a single delimiter character, the `char,char` overload expresses intent most clearly; the comparison lesson later in the chapter covers capture groups, escaping, and regex choices in depth.
 
-## 7. Khi nào nên chọn `replace(char,char)`?
+## 7. When Should You Choose `replace(char,char)`?
 
-Chọn overload `char,char` khi:
-- Mục tiêu là **đúng một** đơn vị UTF-16 có giá trị cố định hoặc được truyền qua biến `char`.
-- Muốn thay **mọi** vị trí khớp một cách trực tiếp, ví dụ đổi dấu phân cách `','` thành `';'` hoặc đổi khoảng trắng ASCII `' '` thành `'_'`.
-- Không cần regex, capture group, kiểm tra nhiều ký tự liên tiếp hay giới hạn số lần thay.
-- Muốn kết quả vẫn có cùng số đơn vị UTF-16 với nguồn (vì mỗi `char` được thay bằng đúng một `char`).
+Choose the `char,char` overload when:
+- The target is **exactly one** UTF-16 unit with a fixed value or passed via a `char` variable.
+- You want to replace **every** matching position directly, such as changing delimiter `','` to `';'` or changing ASCII space `' '` to `'_'`.
+- You do not need regex, capture groups, multi-character matching, or a replacement count limit.
+- You want the result to keep the same number of UTF-16 units as the source (since each `char` is replaced with exactly one `char`).
 
-Một ứng dụng thông dụng là chuẩn hóa dấu phân tách theo đúng ký tự được biết trước:
+A common use case is normalizing delimiters for an exact known character:
 
 ```java
 String csvLike = "red,green,blue";
@@ -191,13 +191,13 @@ String separated = csvLike.replace(',', ';');
 System.out.println(separated); // red;green;blue
 ```
 
-Đây là snippet trong `main`. Phép thay không hiểu cú pháp CSV: nếu dấu phẩy nằm trong trường được đặt trong dấu nháy kép, thay tất cả dấu phẩy bằng dấu chấm phẩy có thể phá cấu trúc dữ liệu. Hãy dùng parser CSV nếu cần hiểu ngữ nghĩa định dạng.
+This is a snippet in `main`. Replacement does not understand CSV syntax: if a comma is inside a double-quoted field, replacing all commas with semicolons can break the data structure. Use a CSV parser if you need format-aware semantics.
 
-Tương tự, `replace(' ', '_')` chỉ thay **dấu cách U+0020**; nó không thay mọi dạng whitespace như tab, xuống dòng, non-breaking space. Nếu cần quy tắc dựa trên lớp ký tự, hãy chọn regex Unicode phù hợp hoặc xử lý code point rõ ràng.
+Similarly, `replace(' ', '_')` only replaces **space U+0020**; it does not replace all whitespace forms such as tabs, newlines, or non-breaking spaces. If you need rules based on character classes, choose an appropriate Unicode regex or handle code points explicitly.
 
-## 8. Phạm vi khớp: phân biệt hoa/thường, dấu và Unicode
+## 8. Matching Scope: Case Sensitivity, Diacritics, and Unicode
 
-`replace(char,char)` so khớp **chính xác từng `char`**. Nó không biết hai chữ là biến thể hoa/thường hay dấu tiếng Việt của cùng một chữ cơ sở:
+`replace(char,char)` matches **each `char` exactly**. It does not know whether two letters are upper/lowercase variants or Vietnamese diacritical forms of the same base letter:
 
 ```java
 System.out.println("Java".replace('a', 'o')); // Jovo
@@ -205,15 +205,15 @@ System.out.println("Java".replace('A', 'o')); // Java
 System.out.println("café".replace('é', 'e')); // cafe
 ```
 
-Đây là snippet minh họa. Chữ `é` dạng tiền tổ hợp là một mã Unicode thuộc BMP, có thể chứa trong một `char`. Nhưng Unicode cũng cho phép biểu diễn chữ có dấu bằng **chữ cơ sở + dấu kết hợp**; hai cách biểu diễn có thể nhìn giống nhau nhưng dữ liệu `char` khác nhau.
+This is an illustrative snippet. The precomposed letter `é` is a Unicode BMP code point that fits in one `char`. However, Unicode also allows representing accented letters as **base letter + combining mark**; the two representations may look identical, but their `char` data differs.
 
-Chương trình độc lập, lưu `ReplaceUnicodeFormDemo.java`:
+Standalone program, save as `ReplaceUnicodeFormDemo.java`:
 
 ```java
 public class ReplaceUnicodeFormDemo {
     public static void main(String[] args) {
         String composed = "caf\u00E9";       // café: U+00E9
-        String decomposed = "cafe\u0301";    // e + dấu sắc U+0301
+        String decomposed = "cafe\u0301";    // e + combining acute accent U+0301
 
         System.out.println(composed.replace('\u00E9', 'e'));
         System.out.println(decomposed.replace('\u00E9', 'e')
@@ -234,28 +234,28 @@ true
 false
 ```
 
-Vì `decomposed` **không chứa phần tử `char` có giá trị U+00E9**, thay `'é'` không tác động gì lên chuỗi đó. Nếu nghiệp vụ cần xử lý các cách biểu diễn Unicode tương đương, cân nhắc chuẩn hóa bằng `java.text.Normalizer` trước khi áp dụng quy tắc thay; chọn dạng chuẩn hóa phù hợp và hiểu rằng chuẩn hóa cũng có thể làm thay đổi dãy code point.
+Because `decomposed` **does not contain a `char` element with value U+00E9**, replacing `'é'` has no effect on that string. If business logic requires handling equivalent Unicode representations, consider normalizing with `java.text.Normalizer` before applying replacement rules; choose the appropriate normalization form and understand that normalization can also change the code point sequence.
 
-## 9. `char` là đơn vị UTF-16, không phải mọi ký tự hiển thị
+## 9. `char` Is a UTF-16 Unit, Not Every Displayed Character
 
-Java `char` có kích thước 16 bit, chứa **một code unit UTF-16**. Các Unicode code point ngoài BMP (ví dụ nhiều emoji) cần **hai** `char`: high surrogate và low surrogate. Một literal `char` không thể biểu diễn **toàn bộ** emoji như `🙂` bằng một giá trị `char` duy nhất.
+Java `char` is 16 bits wide, holding **one UTF-16 code unit**. Unicode code points outside the BMP (for example, many emojis) require **two** `char`s: a high surrogate and a low surrogate. A `char` literal cannot represent an **entire** emoji like `🙂` as a single `char` value.
 
-Giả sử chuỗi có hai emoji:
+Suppose a string contains two emojis:
 
 ```java
 String emoji = "A🙂B🙂";
-System.out.println(emoji.length()); // 6 đơn vị char
-System.out.println(emoji.codePointCount(0, emoji.length())); // 4 code point
+System.out.println(emoji.length()); // 6 char units
+System.out.println(emoji.codePointCount(0, emoji.length())); // 4 code points
 ```
 
-Không thể dùng `emoji.replace('🙂', '*')` như một cách thay nguyên emoji: ký tự emoji ngoài BMP không vừa trong một literal `char`. Hãy chọn overload nhận chuỗi để tìm đủ cả cặp surrogate:
+You cannot use `emoji.replace('🙂', '*')` as a way to replace a whole emoji: a supplementary emoji outside the BMP does not fit in a `char` literal. Choose the string overload to match the full surrogate pair:
 
 ```java
 String result = emoji.replace("🙂", "*");
 System.out.println(result); // A*B*
 ```
 
-Chương trình hoàn chỉnh, lưu `ReplaceEmojiDemo.java`:
+Complete program, save as `ReplaceEmojiDemo.java`:
 
 ```java
 public class ReplaceEmojiDemo {
@@ -284,13 +284,13 @@ X🙂B🙂
 A🙂B🙂
 ```
 
-Phép `replace("🙂", "*")` thay cả **đoạn chuỗi** gồm hai code unit; `replace('A','X')` chỉ thay code unit `A` đơn lẻ. Cả hai không sửa `text`.
+Calling `replace("🙂", "*")` replaces the entire **string segment** consisting of two code units; `replace('A','X')` only replaces the single `A` code unit. Neither modifies `text`.
 
-**Nguy cơ với surrogate:** nếu gọi `replace(char,char)` lên riêng high surrogate hoặc low surrogate của một code point ngoài BMP, có thể phá cặp UTF-16 hợp lệ và tạo dãy surrogate lẻ. Khi cần biến đổi theo Unicode code point, dùng `String.codePoints()` và `StringBuilder.appendCodePoint()` hoặc phương thức xử lý chuỗi có ranh giới đúng; khi yêu cầu là “một ký tự người đọc thấy”, còn phải cân nhắc *grapheme cluster* (ví dụ chữ có dấu kết hợp hay emoji nối bằng ZWJ).
+**Surrogate risk:** calling `replace(char,char)` on an individual high surrogate or low surrogate of a non-BMP code point can break valid UTF-16 pairs and produce unpaired surrogate sequences. When transforming by Unicode code point, use `String.codePoints()` and `StringBuilder.appendCodePoint()` or string-processing methods with proper boundaries; when the requirement is "one user-perceived character," you must also consider *grapheme clusters* (such as letters with combining marks or emojis joined with ZWJ).
 
-## 10. Viết hàm nhận `char` làm tham số và quản lý kết quả
+## 10. Writing Helper Methods Taking `char` Parameters and Managing Results
 
-Một hàm hỗ trợ thay ký tự có thể rất ngắn:
+A character-replacement helper method can be very short:
 
 ```java
 import java.util.Objects;
@@ -312,7 +312,7 @@ public class ReplaceUtility {
 }
 ```
 
-Lưu thành `ReplaceUtility.java` rồi chạy:
+Save as `ReplaceUtility.java` and run:
 
 ```bash
 javac -encoding UTF-8 ReplaceUtility.java
@@ -324,55 +324,55 @@ a_a_a
 a-a-a
 ```
 
-`Objects.requireNonNull` giúp báo lỗi rõ tại ranh giới hàm khi `input` là `null`; bản thân lời gọi `input.replace(...)` cũng không thể hoạt động nếu `input` là `null`. Hai tham số `char` là giá trị nguyên thủy nên không có giá trị `null`. Hàm trả một chuỗi mới về **giá trị**; các tham chiếu khác tới `original` tiếp tục thấy nội dung gốc.
+`Objects.requireNonNull` gives a clear error at the method boundary when `input` is `null`; calling `input.replace(...)` itself cannot work if `input` is `null` anyway. The two `char` parameters are primitive values, so they cannot be `null`. The method returns a new string by **value**; other references to `original` continue to see the original content.
 
-Có thể truyền biến `char` thay cho literal:
+You can pass `char` variables instead of literals:
 
 ```java
 char delimiter = ',';
 char newDelimiter = ';';
 String converted = "a,b,c".replace(delimiter, newDelimiter);
-// converted có nội dung "a;b;c".
+// converted has content "a;b;c".
 ```
 
-Đây là snippet độc lập về biểu thức nhưng cần đặt vào thân phương thức Java. Nếu hệ thống cần lựa chọn ký tự tùy ý từ người dùng, kiểm tra rằng giá trị đầu vào có đúng **một đơn vị UTF-16** trước khi chuyển thành `char`; đừng dùng `input.charAt(0)` rồi lặng lẽ bỏ phần còn lại của một chuỗi có nhiều code unit.
+This is a standalone expression snippet that needs to be placed inside a Java method body. If the system allows arbitrary character selection from users, verify that the input value has exactly **one UTF-16 unit** before converting it to `char`; do not call `input.charAt(0)` and silently drop the rest of a multi-unit string.
 
-## 11. Chi phí, nhiều phép thay và chọn công cụ phù hợp
+## 11. Cost, Multiple Replacements, and Choosing the Right Tool
 
-Về mặt thuật toán, để xác định tất cả vị trí khớp, Java phải xem xét nội dung chuỗi cần xử lý. Với một lần thay trên chuỗi dài `n` code unit, có thể coi chi phí quét là **O(n)**; việc tạo kết quả và tối ưu cấp phát phụ thuộc phiên bản/cài đặt JDK. Không dựa vào giả định `replace` luôn tạo đối tượng mới, cũng không dùng so sánh tham chiếu để đo xem có thay thế.
+Algorithmically, to locate all matching positions, Java must inspect the string content being processed. For a single replacement on a string of length `n` code units, scanning cost can be considered **O(n)**; result creation and allocation optimizations depend on the JDK version and implementation. Do not rely on assuming `replace` always creates a new object, nor use reference comparison to test whether a replacement happened.
 
-Khi cần **nhiều loại chuyển đổi liên tiếp**, mã như sau dễ hiểu nhưng mỗi lần gọi là một phép xử lý độc lập:
+When **multiple consecutive transformations** are needed, code like the following is easy to read, though each call is an independent processing step:
 
 ```java
 String normalized = "a.b-c".replace('.', '_').replace('-', '_');
 // normalized: "a_b_c"
 ```
 
-Đối với lượng dữ liệu rất lớn và rất nhiều quy tắc ký tự, bạn có thể duyệt một lần rồi ghi vào `StringBuilder` hoặc mảng, tránh quét lặp; lựa chọn theo độ phức tạp thực tế và đo hiệu năng. Ví dụ, nếu nhiều ký tự nguồn khác nhau đều cần được thay thành `'_'`, một vòng lặp `switch` trên từng `char` có thể biểu diễn phép thay đồng thời rõ hơn; với Unicode phức tạp, thay vì duyệt từng `char` hãy xem xét duyệt code point.
+For very large data volumes and many character rules, you can scan once and write to a `StringBuilder` or array to avoid repeated scans; choose based on actual complexity and performance measurements. For example, if several different source characters all need to be replaced with `'_'`, a loop with a `switch` over each `char` can express simultaneous replacement more clearly; for complex Unicode, consider iterating over code points rather than individual `char`s.
 
-Đừng tự tối ưu quá sớm: `replace(char,char)` ngắn gọn, dễ đọc, truyền tải rõ ý định và thường phù hợp cho các phép thay ký tự đơn lẻ.
+Do not optimize prematurely: `replace(char,char)` is concise, readable, communicates intent clearly, and is usually appropriate for single-character replacements.
 
-## 12. Các lỗi thường gặp
+## 12. Common Mistakes
 
-| Lỗi | Vì sao sai | Cách sửa |
+| Mistake | Why it is wrong | How to fix |
 | --- | --- | --- |
-| Gọi `text.replace('a','o')` rồi bỏ kết quả | `String` bất biến; biến `text` không đổi | Gán lại `text = text.replace(...)` hoặc giữ biến kết quả |
-| Tưởng chỉ thay lần xuất hiện đầu tiên | `replace(char,char)` thay **tất cả** vị trí khớp | Dùng thuật toán thay lần đầu nếu đó là yêu cầu |
-| Dùng `replaceAll(".", "_")` để tìm dấu chấm literal | `.` trong regex khớp nhiều ký tự | Dùng `replace('.', '_')` hoặc `replace(".", "_")` |
-| Tưởng `'a'` và `'A'` là cùng ký tự | Phương thức so khớp chính xác | Áp dụng chính sách hoa/thường riêng nếu cần |
-| Dùng `char` cho emoji ngoài BMP | Một emoji có thể cần hai đơn vị UTF-16 | Dùng overload `replace(CharSequence,CharSequence)` với chuỗi đầy đủ |
-| Giả định `'é'` khớp mọi cách viết chữ e có dấu | Dữ liệu Unicode có thể tiền tổ hợp hoặc kết hợp | Chuẩn hóa Unicode nếu yêu cầu |
-| Ghép nhiều `replace` nhưng muốn xử lý đồng thời | Phép sau xử lý cả ký tự do phép trước tạo ra | Viết phép ánh xạ từng vị trí theo nguồn gốc |
-| Kiểm tra `result == original` để biết có thay | `==` kiểm tra identity, không phải nội dung | Dùng `equals` hoặc so nội dung theo yêu cầu |
-| Cho rằng `replace(' ', '_')` thay mọi whitespace | Chỉ thay space U+0020 | Chọn xử lý whitespace theo đặc tả |
-| Dùng thay ký tự đơn để xử lý định dạng có cú pháp | Không hiểu dấu nháy/escape/grammar của CSV, URL, JSON... | Dùng parser/encoder tương ứng |
-| Phá cặp surrogate bằng cách thay một nửa | `char` không luôn là code point hoàn chỉnh | Chuyển đổi theo code point hoặc chuỗi hoàn chỉnh |
+| Calling `text.replace('a','o')` and ignoring the result | `String` is immutable; variable `text` does not change | Reassign `text = text.replace(...)` or keep the result variable |
+| Thinking it only replaces the first occurrence | `replace(char,char)` replaces **all** matching positions | Use a first-match replacement algorithm if that is the requirement |
+| Using `replaceAll(".", "_")` to match a literal dot | `.` in regex matches many characters | Use `replace('.', '_')` or `replace(".", "_")` |
+| Thinking `'a'` and `'A'` are the same character | The method matches exact values | Apply a separate case policy if needed |
+| Using `char` for a supplementary emoji outside BMP | One emoji can require two UTF-16 units | Use the `replace(CharSequence,CharSequence)` overload with the full string |
+| Assuming `'é'` matches every way to write an accented e | Unicode data may be precomposed or decomposed | Normalize Unicode if required |
+| Chaining multiple `replace` calls when wanting simultaneous mapping | Later calls also process characters produced by earlier calls | Write a per-position mapping against the original source |
+| Checking `result == original` to see if replacement occurred | `==` checks identity, not content | Use `equals` or compare content as required |
+| Assuming `replace(' ', '_')` replaces all whitespace | Only replaces space U+0020 | Choose whitespace handling according to specification |
+| Using single-character replacement for syntax-aware formats | Does not understand quotes/escapes/grammar of CSV, URL, JSON... | Use the corresponding parser/encoder |
+| Breaking surrogate pairs by replacing half of one | `char` is not always a complete code point | Transform by code point or full string |
 
-## 13. Bài tập tự kiểm tra
+## 13. Self-Check Exercises
 
-**Bài 1.** Với `String s = "aAaA";`, kết quả của `s.replace('a','x')` là gì? Vì sao hai chữ `A` giữ nguyên?
+**Exercise 1.** Given `String s = "aAaA";`, what is the result of `s.replace('a','x')`? Why do the two `A` characters stay unchanged?
 
-**Bài 2.** Dự đoán kết quả:
+**Exercise 2.** Predict the output:
 ```java
 String value = "abba";
 String result = value.replace('a', 'b');
@@ -380,29 +380,29 @@ System.out.println(value);
 System.out.println(result);
 ```
 
-**Bài 3.** Vì sao `"a.b".replace('.', '_')` và `"a.b".replaceAll(".", "_")` cho hai kết quả khác nhau?
+**Exercise 3.** Why do `"a.b".replace('.', '_')` and `"a.b".replaceAll(".", "_")` produce two different results?
 
-**Bài 4.** Nếu cần đổi mọi đoạn `"cat"` thành `"dog"` trong `"cat-cat"`, bạn sẽ dùng overload nào? Vì sao `replace(char,char)` không đáp ứng trực tiếp?
+**Exercise 4.** If you need to change every `"cat"` segment to `"dog"` in `"cat-cat"`, which overload would you use? Why cannot `replace(char,char)` satisfy this directly?
 
-**Bài 5.** Với `String source = "A🙂A";`, hãy giải thích tại sao `replace('A','X')` hoạt động như mong đợi, còn thay emoji bằng một literal `char` không phải lựa chọn hợp lệ.
+**Exercise 5.** Given `String source = "A🙂A";`, explain why `replace('A','X')` works as expected, while replacing the emoji with a `char` literal is not a valid option.
 
-Đáp án:
-- Bài 1: `"xAxA"` vì `'a'` khác `'A'`.
-- Bài 2: in `abba` rồi `bbbb`; mảng ký tự không liên quan, đây là hai giá trị `String` bất biến.
-- Bài 3: `replace` theo `char` tìm đúng dấu chấm nên ra `a_b`; regex `.` của `replaceAll` khớp ba ký tự nên ra `___`.
-- Bài 4: `"cat-cat".replace("cat", "dog")` cho `"dog-dog"`; cần thay cả một đoạn ba `char` bằng đoạn khác.
-- Bài 5: `A` là một đơn vị UTF-16; emoji `🙂` cần một cặp surrogate, phải thay bằng chuỗi `"🙂"` hoặc xử lý code point.
+Answers:
+- Exercise 1: `"xAxA"` because `'a'` differs from `'A'`.
+- Exercise 2: prints `abba` then `bbbb`; no character array mutation is involved, these are two immutable `String` values.
+- Exercise 3: `char`-based `replace` looks for the exact dot character so it produces `a_b`; the regex `.` in `replaceAll` matches three characters so it produces `___`.
+- Exercise 4: `"cat-cat".replace("cat", "dog")` yields `"dog-dog"`; an entire three-`char` segment must be replaced with another segment.
+- Exercise 5: `A` is one UTF-16 unit; the `🙂` emoji requires a surrogate pair, so it must be replaced using the string `"🙂"` or by code point processing.
 
-## 14. Ghi nhớ
+## 14. Key Takeaways
 
-- `String.replace(char oldChar, char newChar)` thay **mọi `char` trùng `oldChar`** trong chuỗi, không dùng regex và không giới hạn ở lần đầu.
-- Kết quả là một `String`; nội dung chuỗi nguồn vẫn bất biến. Muốn dùng kết quả, **giữ giá trị trả về**.
-- `char` biểu diễn một đơn vị UTF-16. Chọn đúng overload theo đơn vị cần thay: `char` đơn lẻ, đoạn `CharSequence` literal hay một mẫu regex.
-- Phép so khớp là chính xác, có phân biệt hoa/thường và biểu diễn Unicode; nếu yêu cầu nghiệp vụ khác, phải định nghĩa rõ cách chuẩn hóa/xử lý.
-- Nhiều lời gọi `replace` liên tiếp được thực hiện theo thứ tự; phép sau nhìn thấy kết quả phép trước.
+- `String.replace(char oldChar, char newChar)` replaces **every `char` matching `oldChar`** in the string, without using regex and without stopping at the first match.
+- The result is a `String`; the source string content remains immutable. To use the result, **keep the return value**.
+- `char` represents one UTF-16 unit. Choose the right overload for the target unit: single `char`, literal `CharSequence` segment, or regex pattern.
+- Matching is exact, sensitive to case and Unicode representation; if business requirements differ, you must explicitly define normalization/handling rules.
+- Chained `replace` calls execute in order; each call sees the output of the previous call.
 
-## Tài liệu Java SE 17
+## Java SE 17 Documentation
 
-- [`String.replace(char,char)`, `replace(CharSequence,CharSequence)` và `replaceAll` — Oracle Java 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html)
-- [`Character`, UTF-16 và surrogate — Oracle Java 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html)
+- [`String.replace(char,char)`, `replace(CharSequence,CharSequence)` and `replaceAll` — Oracle Java 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html)
+- [`Character`, UTF-16 and surrogates — Oracle Java 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html)
 - [`Normalizer` — Oracle Java 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Normalizer.html)

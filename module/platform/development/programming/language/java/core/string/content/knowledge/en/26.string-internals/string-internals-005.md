@@ -1,41 +1,41 @@
-# Constant pool và vai trò của `Constable`, `ConstantDesc` trong Java String
+# The Constant Pool and the Role of `Constable` and `ConstantDesc` in Java String
 
-Khi đọc tài liệu về `String`, ta dễ gặp ba thuật ngữ rất giống nhau: **constant pool**, **String pool** và **constant descriptor**. Chúng liên hệ với nhau nhưng phục vụ những mục đích khác nhau:
+When reading documentation about `String`, it is easy to encounter three very similar terms: **constant pool**, **String pool**, and **constant descriptor**. They are related but serve different purposes:
 
-- **Constant pool của class file**: bảng thông tin hằng và tham chiếu ký hiệu trong tệp `.class`, được JVM sử dụng khi nạp và chạy mã.
-- **String pool / string interning**: cơ chế cho phép những chuỗi có cùng nội dung dùng chung một đối tượng `String` chuẩn hóa (*canonical*), ví dụ qua literal và `intern()`.
-- **`Constable` và `ConstantDesc`**: API từ Java 12 để **mô tả một giá trị dưới dạng hằng có thể biểu diễn danh nghĩa (*nominally*)** và, khi cần, phân giải mô tả ấy trong một ngữ cảnh truy cập phù hợp.
+- **Class-file constant pool**: a table of constants and symbolic references inside a `.class` file, used by the JVM when loading and executing code.
+- **String pool / string interning**: a mechanism allowing strings with identical content to share a single canonical `String` object, such as through literals and `intern()`.
+- **`Constable` and `ConstantDesc`**: APIs introduced in Java 12 to **describe a value as a constant that can be represented nominally** and, when needed, resolve that description within an appropriate lookup/access context.
 
-Chúng **không phải ba tên gọi của cùng một vùng bộ nhớ**. Hiểu đúng sự khác biệt giúp tránh nhầm lẫn về việc literal được lưu ở đâu, vì sao `"abc" == "abc"` thường là `true` và tại sao `String` triển khai cả hai interface `Constable`, `ConstantDesc`.
+They are **not three names for the same region of memory**. Understanding the distinction helps prevent confusion about where literals are stored, why `"abc" == "abc"` is typically `true`, and why `String` implements both `Constable` and `ConstantDesc`.
 
-## 1. Constant pool trong tệp `.class` là gì?
+## 1. What is the constant pool in a `.class` file?
 
-Một class file hợp lệ có cấu trúc bảng `constant_pool`. Đây là **bảng dữ liệu nhị phân**, chứa nhiều kiểu entry phục vụ bytecode và liên kết biểu tượng, chứ không phải một kho chỉ chứa chuỗi Java.
+A valid class file contains a `constant_pool` table structure. This is a **binary data table** holding many kinds of entries used for bytecode and symbolic linking, rather than a repository storing only Java strings.
 
-Một số entry điển hình:
+Some typical entries:
 
-| Loại entry trong class file | Vai trò |
+| Class-file entry type | Role |
 | --- | --- |
-| `CONSTANT_Utf8` | Lưu tên lớp, tên phương thức, descriptor, các chuỗi văn bản và dữ liệu ký hiệu khác theo dạng modified UTF-8 của JVM |
-| `CONSTANT_String` | Biểu diễn một **hằng `String`**, tham chiếu đến một entry `CONSTANT_Utf8` chứa nội dung |
-| `CONSTANT_Class` | Tham chiếu ký hiệu đến lớp hoặc interface |
-| `CONSTANT_NameAndType` | Tên và descriptor của field hoặc method |
-| `CONSTANT_Fieldref`, `CONSTANT_Methodref` | Tham chiếu ký hiệu đến field và method |
-| `CONSTANT_Integer`, `CONSTANT_Long`, ... | Giá trị số được biểu diễn trực tiếp bằng các loại entry tương ứng |
-| `CONSTANT_MethodHandle`, `CONSTANT_MethodType` | Thông tin method handle và method type |
-| `CONSTANT_Dynamic`, `CONSTANT_InvokeDynamic` | Hỗ trợ hằng động và liên kết lời gọi động; **không phải cùng một loại entry** |
+| `CONSTANT_Utf8` | Stores class names, method names, descriptors, text strings, and other symbolic data in the JVM's modified UTF-8 format |
+| `CONSTANT_String` | Represents a **`String` constant**, referencing a `CONSTANT_Utf8` entry containing the content |
+| `CONSTANT_Class` | Symbolic reference to a class or interface |
+| `CONSTANT_NameAndType` | Name and descriptor of a field or method |
+| `CONSTANT_Fieldref`, `CONSTANT_Methodref` | Symbolic reference to a field or method |
+| `CONSTANT_Integer`, `CONSTANT_Long`, ... | Numeric values represented directly by their corresponding entry types |
+| `CONSTANT_MethodHandle`, `CONSTANT_MethodType` | Method handle and method type metadata |
+| `CONSTANT_Dynamic`, `CONSTANT_InvokeDynamic` | Supports dynamic constants and dynamic call-site linking; **not the same entry type** |
 
-Khi viết:
+When you write:
 
 ```java
 String text = "Java";
 ```
 
-Trình biên dịch thường ghi một entry `CONSTANT_String` tham chiếu đến `CONSTANT_Utf8` chứa nội dung `Java`. Bytecode có thể dùng lệnh `ldc` để nạp tham chiếu tới đối tượng `String` tương ứng.
+The compiler typically emits a `CONSTANT_String` entry pointing to a `CONSTANT_Utf8` entry containing `Java`. The bytecode can use the `ldc` instruction to load a reference to the corresponding `String` object.
 
-Điều này **không có nghĩa toàn bộ đối tượng `String`, gồm header và dữ liệu runtime, được nhét nguyên trong tệp `.class`**. Tệp `.class` chỉ chứa **biểu diễn nhị phân và ký hiệu** để JVM tạo/lấy đối tượng khi thực thi.
+This **does not mean an entire `String` object—including its header and runtime data—is embedded directly inside the `.class` file**. The `.class` file only stores **binary and symbolic representations** so the JVM can create or obtain the object at execution time.
 
-Một sơ đồ đơn giản:
+A simple diagram:
 
 ```text
 Java source:       String s = "Java";
@@ -46,26 +46,26 @@ Class file:       CONSTANT_String --> CONSTANT_Utf8("Java")
                       bytecode ldc
                            |
                            v
-JVM runtime:      tham chiếu tới String canonical "Java"
+JVM runtime:      reference to canonical String "Java"
 ```
 
-Trong JVM còn có **run-time constant pool** gắn với mỗi class/interface được nạp: nó được dẫn xuất từ cấu trúc `constant_pool` trong class file và chứa dữ liệu/tham chiếu đã hoặc sẽ được JVM phân giải. Khái niệm run-time constant pool này cũng **khác với cơ chế intern chuỗi**.
+The JVM also maintains a **run-time constant pool** associated with each loaded class or interface: it is derived from the `constant_pool` structure in the class file and holds data/references that have been or will be resolved by the JVM. This run-time constant pool concept is also **distinct from the string interning mechanism**.
 
-## 2. String pool là gì? Vì sao literal thường dùng chung đối tượng?
+## 2. What is the String pool? Why do literals normally share objects?
 
-Java quy định rằng các **string literal có cùng nội dung** biểu diễn cùng một đối tượng `String`. Chuỗi tạo bằng cách ghép **các biểu thức hằng ở thời điểm biên dịch** cũng có thể trở thành cùng literal đã được intern.
+Java specifies that **string literals with the same content** represent the same `String` object. Strings produced by concatenating **compile-time constant expressions** can also resolve to the same interned literal.
 
 ```java
 String a = "Java";
-String b = "Ja" + "va"; // biểu thức hằng, được gộp lúc biên dịch
+String b = "Ja" + "va"; // constant expression, folded at compile time
 
 System.out.println(a == b);       // true
 System.out.println(a.equals(b));  // true
 ```
 
-`==` so sánh **cùng tham chiếu** (cùng đối tượng); `equals` so sánh **nội dung chuỗi**. Nhờ cơ chế interning dành cho literal và biểu thức hằng, `a == b` là `true` trong ví dụ này.
+`==` compares **reference identity** (same object); `equals` compares **string content**. Because of interning for literals and constant expressions, `a == b` is `true` in this example.
 
-Nhưng một chuỗi được tạo mới không mặc nhiên trỏ đến cùng đối tượng:
+However, a newly constructed string does not automatically point to that same object:
 
 ```java
 String a = "Java";
@@ -76,26 +76,26 @@ System.out.println(a.equals(c));     // true
 System.out.println(a == c.intern());  // true
 ```
 
-- `new String("Java")` tạo một đối tượng `String` mới riêng biệt (dù cùng nội dung).
-- `intern()` trả về tham chiếu đến đại diện canonical tương ứng với nội dung ấy.
-- `equals` mới là lựa chọn thông thường để so sánh **giá trị văn bản**.
+- `new String("Java")` creates a distinct new `String` object (even with the same content).
+- `intern()` returns a reference to the canonical representation matching that content.
+- `equals` is the standard choice for comparing **text values**.
 
-Tại đây, **String pool** là ý tưởng/cơ chế quản lý các tham chiếu `String` canonical trong JVM, chứ không phải một bảng entry `CONSTANT_String` độc lập ở file `.class`. Không nên suy ra địa chỉ vật lý chính xác của chuỗi hoặc cơ chế quản lý bộ nhớ chỉ từ từ “pool”. Vị trí lưu trữ và tối ưu hóa nội bộ có thể thay đổi theo phiên bản và triển khai JVM.
+Here, the **String pool** is the concept/mechanism managing canonical `String` references inside the JVM, not a standalone `CONSTANT_String` entry table in a `.class` file. Do not infer the exact physical memory location of strings or the memory management algorithm solely from the word "pool." Storage location and internal optimizations can vary across JVM versions and implementations.
 
-### Ghép chuỗi ở runtime có giống hằng lúc biên dịch không?
+### Is runtime concatenation the same as compile-time constants?
 
-`"Ja" + "va"` được tính như biểu thức hằng. Ngược lại:
+`"Ja" + "va"` is evaluated as a constant expression. By contrast:
 
 ```java
 String left = "Ja";
 String runtime = left + "va";
 ```
 
-`runtime` là kết quả **ghép ở runtime** vì `left` là biến cục bộ thông thường, không phải biến hằng. Không nên dựa vào `runtime == "Java"` để kiểm tra nội dung. Trình biên dịch/JVM có thể tối ưu hóa ghép chuỗi, nhưng **tính đúng đắn của chương trình phải dựa trên `equals`**. Có thể gọi `runtime.intern()` nếu thực sự cần tham chiếu canonical và hiểu chi phí của việc đó.
+`runtime` is the result of **runtime concatenation** because `left` is an ordinary local variable, not a constant variable. Do not rely on `runtime == "Java"` to check content. The compiler/JVM may optimize concatenation, yet **program correctness must rely on `equals`**. You can call `runtime.intern()` if you genuinely need the canonical reference and understand its cost.
 
-## 3. `Constable` — giá trị có thể tự mô tả như một hằng
+## 3. `Constable` — values that can describe themselves as a constant
 
-Từ Java 12, package `java.lang.constant` cung cấp interface:
+Since Java 12, the `java.lang.constant` package provides the interface:
 
 ```java
 public interface Constable {
@@ -103,44 +103,44 @@ public interface Constable {
 }
 ```
 
-Một kiểu `Constable` có những giá trị **có thể mô tả dưới dạng một hằng có thể biểu diễn trong mô hình constant pool của class file**. `describeConstable()` tạo mô tả danh nghĩa khi khả thi.
+A `Constable` type has values that **can be described as a constant representable in the class-file constant pool model**. `describeConstable()` produces a nominal description when possible.
 
-Điều cần nhớ:
+Things to remember:
 
-- `Constable` thể hiện **khả năng mô tả**, không có nghĩa đối tượng đang nằm trong String pool.
-- Phương thức trả về `Optional` vì **không phải mọi instance của mọi kiểu `Constable` đều mô tả được**. Khi không thể tạo mô tả, nó có thể trả về `Optional.empty()`.
-- Kết quả là một `ConstantDesc`, biểu diễn giá trị bằng API mô tả hằng, chứ không bắt buộc là đối tượng runtime ban đầu.
+- `Constable` expresses **describability**, not that the object currently lives in the String pool.
+- The method returns an `Optional` because **not every instance of every `Constable` type is describable**. When a description cannot be formed, it can return `Optional.empty()`.
+- The result is a `ConstantDesc`, representing the value via the constant descriptor API rather than necessarily being the original runtime object.
 
-Ví dụ, một số kiểu có biểu diễn hằng quen thuộc như `String`, `Integer`, `Long`, `Float` và `Double` có thể tự đóng vai trò là descriptor; `Class` dùng `ClassDesc` làm mô tả danh nghĩa tương ứng. Các kiểu khác có thể cần descriptor phức tạp hơn.
+For example, some types with familiar constant representations such as `String`, `Integer`, `Long`, `Float`, and `Double` can act as their own descriptors; `Class` uses `ClassDesc` as its corresponding nominal description. Other types may require more complex descriptors.
 
-**Không nhầm `Constable` với `final` hay `static final`**. `final` nói về khả năng gán lại biến/field; một object có thể triển khai `Constable` dù được tạo mới ở runtime và không nằm trong một field `final` nào.
+**Do not confuse `Constable` with `final` or `static final`**. `final` governs variable/field reassignment; an object can implement `Constable` even if it was created fresh at runtime and is not stored in any `final` field.
 
-## 4. `ConstantDesc` — mô tả danh nghĩa và phân giải hằng
+## 4. `ConstantDesc` — nominal descriptions and constant resolution
 
-Interface `ConstantDesc` thuộc cùng package và cung cấp phương thức chính:
+The `ConstantDesc` interface belongs to the same package and provides the primary method:
 
 ```java
 Object resolveConstantDesc(MethodHandles.Lookup lookup)
         throws ReflectiveOperationException;
 ```
 
-Đây là chữ ký khái quát của interface; các kiểu triển khai có thể trả về kiểu cụ thể hơn.
+This is the general interface signature; implementing types can return a more specific type.
 
-Phương thức `resolveConstantDesc(lookup)` yêu cầu hệ thống **phân giải một mô tả** thành một giá trị runtime trong ngữ cảnh tra cứu/truy cập được chỉ định. Đối với descriptor biểu diễn lớp, phương thức hoặc hằng động, bước phân giải có thể cần truy cập metadata, class loader, bootstrap hoặc gặp lỗi truy cập.
+Calling `resolveConstantDesc(lookup)` asks the system to **resolve a descriptor** into a runtime value within the specified lookup/access context. For descriptors representing classes, methods, or dynamic constants, resolution may require accessing metadata, class loaders, bootstrap methods, or may fail with access errors.
 
-Phân biệt vai trò:
+Distinguishing their roles:
 
-| Khái niệm | Câu hỏi nó trả lời |
+| Concept | Question it answers |
 | --- | --- |
-| `Constable.describeConstable()` | “Giá trị này có thể cung cấp một mô tả hằng danh nghĩa không?” |
-| `ConstantDesc` | “Mô tả hằng được biểu diễn bằng API như thế nào?” |
-| `ConstantDesc.resolveConstantDesc(lookup)` | “Từ mô tả này, có thể phân giải được giá trị runtime nào trong ngữ cảnh `lookup`?” |
+| `Constable.describeConstable()` | "Can this value provide a nominal constant descriptor?" |
+| `ConstantDesc` | "How is the constant descriptor represented in the API?" |
+| `ConstantDesc.resolveConstantDesc(lookup)` | "From this descriptor, what runtime value can be resolved in the `lookup` context?" |
 
-**Không phải mọi `ConstantDesc` đều là entry đang tồn tại sẵn trong constant pool của một class file cụ thể.** API giúp mô tả các hằng tải được (*loadable constants*) và hỗ trợ các công cụ dựng bytecode, mô tả bootstrap, phân giải biểu tượng. Nó không xác nhận rằng JVM đã lưu một bản sao của mọi descriptor vào class file hay intern mọi giá trị được phân giải.
+**Not every `ConstantDesc` corresponds to an existing entry in a specific class file's constant pool.** The API models *loadable constants* and supports bytecode builders, bootstrap descriptions, and symbolic resolution. It does not assert that the JVM has written a copy of every descriptor into a class file or interned every resolved value.
 
-### Ví dụ `ClassDesc`
+### `ClassDesc` example
 
-`ClassDesc` là một dạng `ConstantDesc` mô tả lớp bằng descriptor JVM:
+`ClassDesc` is a `ConstantDesc` that describes a class using a JVM descriptor:
 
 ```java
 ClassDesc desc = ClassDesc.of("java.lang.String");
@@ -153,21 +153,21 @@ System.out.println(
 // true
 ```
 
-Hai dòng trên là **đoạn mã minh họa đặt trong phương thức** có khai báo hoặc xử lý `ReflectiveOperationException` và đã import `java.lang.constant.ClassDesc`, `java.lang.invoke.MethodHandles`.
+These lines are an **illustrative code snippet placed inside a method** that declares or handles `ReflectiveOperationException` and imports `java.lang.constant.ClassDesc` and `java.lang.invoke.MethodHandles`.
 
-`"Ljava/lang/String;"` là **mô tả tên kiểu** (JVM field descriptor), không phải đối tượng `Class<?>`. Việc phân giải `ClassDesc` mới có thể trả về đối tượng `Class` tương ứng. Với tên lớp không hợp lệ hoặc lớp không truy cập được trong ngữ cảnh phù hợp, việc phân giải có thể thất bại.
+`"Ljava/lang/String;"` is a **type name descriptor** (a JVM field descriptor), not a `Class<?>` object. Resolving the `ClassDesc` is what can return the corresponding `Class` object. For invalid class names or classes inaccessible in the given context, resolution can fail.
 
-## 5. Tại sao `String` triển khai **cả hai interface**?
+## 5. Why does `String` implement **both interfaces**?
 
-Từ Java 12, `String` triển khai cả `Constable` và `ConstantDesc`. Với chính `String`, mô tả danh nghĩa của một giá trị có thể chính là **giá trị chuỗi đó**.
+Since Java 12, `String` implements both `Constable` and `ConstantDesc`. For `String` itself, the nominal description of a value can simply be **that string value itself**.
 
-Nói cách khác:
+In other words:
 
-1. `String.describeConstable()` trả về `Optional` có chứa **chính chuỗi hiện tại**.
-2. Vì `String` cũng là một `ConstantDesc`, giá trị chuỗi ấy được dùng làm descriptor.
-3. `String.resolveConstantDesc(lookup)` đơn giản trả về **chính đối tượng chuỗi**; nó không cần tra cứu class như `ClassDesc`.
+1. `String.describeConstable()` returns an `Optional` containing **the current string itself**.
+2. Because `String` is also a `ConstantDesc`, that string value serves directly as the descriptor.
+3. `String.resolveConstantDesc(lookup)` simply returns **that same string object**; it does not need a class lookup like `ClassDesc`.
 
-Thử với một chuỗi được tạo mới:
+Try this with a newly created string:
 
 ```java
 String fresh = new String("Java");
@@ -180,15 +180,15 @@ System.out.println(resolved == fresh); // true
 System.out.println(resolved == "Java"); // false
 ```
 
-Đoạn này cần import `java.lang.constant.ConstantDesc`, `java.lang.invoke.MethodHandles` và được đặt trong phương thức khai báo/giải quyết `ReflectiveOperationException`.
+This snippet requires importing `java.lang.constant.ConstantDesc` and `java.lang.invoke.MethodHandles`, and must be inside a method declaring or handling `ReflectiveOperationException`.
 
-Phép so sánh cuối là điểm then chốt: **một `String` là `Constable`/`ConstantDesc` không có nghĩa nó đã được intern**. `resolveConstantDesc` của `String` trả về chính instance mà ta đang cầm, kể cả nó được tạo bởi `new String(...)`. Để lấy chuỗi canonical, phải dùng `intern()` riêng khi phù hợp.
+The final comparison is the key takeaway: **a `String` being `Constable`/`ConstantDesc` does not mean it has been interned**. `String`'s `resolveConstantDesc` returns the very instance you hold, even if it was created via `new String(...)`. To obtain the canonical string, you must call `intern()` explicitly when appropriate.
 
-Đừng nhầm “có thể mô tả thành hằng” với “chương trình hiện tại đã lưu một bản của chuỗi này trong class file”.
+Do not confuse "can be described as a constant" with "the current program has stored a copy of this string in a class file."
 
-## 6. Ví dụ Java 17+ chạy độc lập
+## 6. Standalone Java 17+ example
 
-Tạo file `StringConstantDemo.java` với nội dung:
+Create `StringConstantDemo.java` with the following contents:
 
 ```java
 import java.lang.constant.ClassDesc;
@@ -241,7 +241,7 @@ public class StringConstantDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac StringConstantDemo.java
@@ -263,26 +263,26 @@ class descriptor    : Ljava/lang/String;
 resolved String.class: true
 ```
 
-Giải thích từng phần:
+Step-by-step explanation:
 
-- `literal` và `folded` là cùng chuỗi interned vì `"Ja" + "va"` là biểu thức hằng ở thời điểm biên dịch.
-- `fresh` do `new String("Java")` tạo ra nên khác tham chiếu với literal, dù `equals` trả `true`.
-- `fresh.intern()` trả về tham chiếu canonical và bằng `literal`.
-- `describeConstable()` của `String` trả về mô tả hiện diện; mô tả ấy chính là `fresh`.
-- `resolveConstantDesc(...)` trên một `String` descriptor cũng trả về `fresh`, **không tự động intern**.
-- `ClassDesc` mô tả tên lớp; sau khi phân giải, nó tương ứng với đối tượng `String.class`.
+- `literal` and `folded` are the same interned string because `"Ja" + "va"` is a compile-time constant expression.
+- `fresh` is created by `new String("Java")`, so its reference differs from `literal`, even though `equals` returns `true`.
+- `fresh.intern()` returns the canonical reference, which equals `literal` with `==`.
+- `String`'s `describeConstable()` returns a present descriptor; that descriptor is `fresh` itself.
+- `resolveConstantDesc(...)` on a `String` descriptor also returns `fresh`, **without automatically interning it**.
+- `ClassDesc` describes a class name; once resolved, it corresponds to the `String.class` object.
 
-`main` khai báo `throws ReflectiveOperationException` vì các lệnh phân giải descriptor được phép ném checked exception theo API. Với code ứng dụng cần xử lý thất bại phân giải, hãy dùng `try/catch` hay khai báo ngoại lệ ở tầng phù hợp.
+`main` declares `throws ReflectiveOperationException` because resolving descriptors is permitted to throw that checked exception per the API. In application code that needs to handle resolution failures, use `try/catch` or declare the exception at the appropriate layer.
 
-## 7. Tự quan sát constant pool bằng `javap`
+## 7. Inspecting the constant pool yourself with `javap`
 
-Sau khi biên dịch file ở mục 6, dùng:
+After compiling the file in section 6, run:
 
 ```bash
 javap -v StringConstantDemo
 ```
 
-Đây là công cụ JDK để xem metadata và bytecode của `.class`. Trong kết quả thường có phần:
+This is a JDK tool for viewing `.class` metadata and bytecode. In the output, you will typically find a section like:
 
 ```text
 Constant pool:
@@ -292,23 +292,23 @@ Constant pool:
   ...
 ```
 
-Đoạn trên là **sơ đồ rút gọn của định dạng đầu ra**, không phải transcript có số index cố định. Số thứ tự entry, vị trí và cách tối ưu có thể khác theo trình biên dịch và phiên bản JDK. Để nhìn thấy lệnh bytecode, có thể dùng:
+The snippet above is a **condensed schematic of the output format**, not a transcript with fixed index numbers. Entry numbering, positions, and optimizations can differ across compilers and JDK versions. To see the bytecode instructions, use:
 
 ```bash
 javap -c StringConstantDemo
 ```
 
-Một lệnh `ldc` dùng entry tương ứng để nạp hằng chuỗi từ constant pool. **Đừng tìm đối tượng `fresh` ở dưới dạng một entry `String` mới chỉ vì nó xuất hiện qua `new String("Java")`**: đối tượng mới được tạo ở runtime, dù literal `Java` có mặt trong class file.
+An `ldc` instruction uses the corresponding entry to load a string constant from the constant pool. **Do not look for the `fresh` object as a separate new `String` entry just because it appeared via `new String("Java")`**: the new object is allocated at runtime, even though the literal `Java` is present in the class file.
 
-Ngoài chuỗi, class file còn có các entry mô tả tên lớp, method, field và các biểu thức hằng khác. Constant pool **phục vụ liên kết và thực thi bytecode**, chứ không cung cấp API để ứng dụng Java duyệt tất cả đối tượng `String` đang được intern.
+Besides strings, a class file contains entries describing class names, methods, fields, and other constant expressions. The constant pool **serves bytecode linking and execution**, rather than providing an API for Java applications to enumerate all currently interned `String` objects.
 
-### Mối quan hệ với `CONSTANT_Dynamic`
+### Relationship with `CONSTANT_Dynamic`
 
-Từ Java 11, JVM có entry `CONSTANT_Dynamic` để hỗ trợ hằng được phân giải động thông qua bootstrap method. Trong API `java.lang.constant`, `DynamicConstantDesc` là một dạng descriptor để mô tả loại hằng động đó theo hướng danh nghĩa.
+Since Java 11, the JVM includes the `CONSTANT_Dynamic` entry to support constants resolved dynamically via a bootstrap method. In the `java.lang.constant` API, `DynamicConstantDesc` is a descriptor type for nominally describing such dynamic constants.
 
-Không cần dùng `DynamicConstantDesc` chỉ để thao tác chuỗi thường ngày, và **`CONSTANT_Dynamic` không đồng nghĩa với “mọi chuỗi được tạo lúc runtime”**. Chuỗi nối hay `new String(...)` thông thường không tự trở thành một constant dynamic.
+You do not need `DynamicConstantDesc` for everyday string manipulation, and **`CONSTANT_Dynamic` does not mean "every string created at runtime."** Ordinary string concatenation or `new String(...)` does not automatically become a dynamic constant.
 
-## 8. Sơ đồ phân biệt ba tầng
+## 8. Diagram distinguishing the three layers
 
 ```text
         Java source
@@ -323,65 +323,65 @@ Không cần dùng `DynamicConstantDesc` chỉ để thao tác chuỗi thường
   [2] JVM String interning
       canonical String object: "Java"
             |
-            | String API (có thể gọi trên cả String không intern)
+            | String API (can also be called on non-interned Strings)
             v
   [3] Constable / ConstantDesc
-      string.describeConstable() -> Optional chứa string
-      descriptor.resolveConstantDesc(lookup) -> chính string
+      string.describeConstable() -> Optional containing the string
+      descriptor.resolveConstantDesc(lookup) -> the string itself
 ```
 
-Sơ đồ cho biết **mối liên hệ**, không khẳng định ba tầng dùng chung một vùng nhớ. Tầng 1 là cấu trúc thông tin hằng trong class file; tầng 2 là quy tắc canonical reference đối với literal và `intern`; tầng 3 là interface Java cho biểu diễn/phân giải hằng dưới dạng danh nghĩa.
+The diagram shows the **relationships**, not a claim that the three layers share a single memory region. Layer 1 is the constant table structure inside a class file; layer 2 is the canonical reference rule for literals and `intern`; layer 3 is the Java API for nominally describing and resolving constants.
 
-Đối với `String`, một giá trị có thể được tạo mà **không xuất phát trực tiếp từ literal** nhưng vẫn là `Constable` và `ConstantDesc`, vì đây là tính chất của kiểu `String` chứ không phải nhãn chỉ dành cho những instance nằm trong pool.
+For `String`, a value can be constructed **without coming directly from a literal** and still be both `Constable` and `ConstantDesc`, because this is a property of the `String` type rather than a tag reserved only for instances inside the pool.
 
-## 9. Những lỗi phổ biến
+## 9. Common mistakes
 
-1. **Đồng nhất constant pool với String pool.** Constant pool của `.class` chứa rất nhiều loại entry; String pool liên quan đến tham chiếu canonical của các đối tượng `String` runtime.
-2. **Cho rằng mọi `String` đều được intern.** `new String(...)` tạo instance khác. `String` có tính bất biến không đồng nghĩa với tự động canonical hóa tất cả giá trị.
-3. **Dùng `==` để kiểm tra nội dung hai chuỗi.** `==` chỉ so sánh tham chiếu; dùng `equals` hoặc `Objects.equals` khi có thể có `null`.
-4. **Cho rằng `String implements Constable` nghĩa là `String` luôn là compile-time constant.** Sai: kiểu hỗ trợ API mô tả hằng, không cam kết cách biểu thức được tính hoặc nơi instance được lưu.
-5. **Cho rằng `describeConstable()` bắt buộc luôn có giá trị với mọi loại `Constable`.** Kết quả là `Optional`; một số kiểu/instance không mô tả được và có thể trả rỗng. Riêng `String` trả descriptor của chính nó.
-6. **Cho rằng `resolveConstantDesc` luôn tạo đối tượng mới.** Với `String`, nó trả lại chính đối tượng hiện có; với các kiểu descriptor khác, hành vi phân giải phụ thuộc ý nghĩa descriptor.
-7. **Cho rằng `ClassDesc` là `Class<?>`.** `ClassDesc` mô tả kiểu bằng dạng danh nghĩa; `resolveConstantDesc` mới tạo/thu được `Class<?>` trong ngữ cảnh phù hợp.
-8. **Cho rằng `CONSTANT_Utf8` luôn là một chuỗi literal Java.** Nó cũng lưu tên, descriptor và metadata ký hiệu; chỉ `CONSTANT_String` dùng nội dung liên quan để biểu diễn hằng `String`.
-9. **Cố suy ra vị trí vật lý cụ thể của bộ nhớ từ từ “pool”.** Cấu trúc đặc tả và cách cài đặt JVM không phải một điều; hãy phân biệt bảo đảm ngôn ngữ với chi tiết của một JVM phiên bản cụ thể.
-10. **Intern mọi chuỗi để tăng tốc một cách máy móc.** `intern()` có chi phí quản lý và tác động bộ nhớ; chỉ dùng khi có lý do đo đạc hoặc thiết kế rõ ràng.
+1. **Equating the constant pool with the String pool.** A `.class` file's constant pool contains many kinds of entries; the String pool relates to canonical references of runtime `String` objects.
+2. **Assuming every `String` is interned.** `new String(...)` creates a distinct instance. `String` immutability does not mean automatic canonicalization of all values.
+3. **Using `==` to compare the content of two strings.** `==` compares only references; use `equals`, or `Objects.equals` when `null` is possible.
+4. **Assuming `String implements Constable` means `String` is always a compile-time constant.** False: the type supports the constant descriptor API, without guaranteeing how an expression is evaluated or where an instance is stored.
+5. **Assuming `describeConstable()` is guaranteed to be non-empty for every `Constable`.** It returns an `Optional`; some types/instances cannot be described and may return empty. `String` specifically returns a descriptor of itself.
+6. **Assuming `resolveConstantDesc` always creates a new object.** For `String`, it returns the existing object itself; for other descriptor types, resolution behavior depends on the descriptor's semantics.
+7. **Assuming `ClassDesc` is `Class<?>`.** `ClassDesc` describes a type nominally; only `resolveConstantDesc` produces/obtains a `Class<?>` in an appropriate context.
+8. **Assuming `CONSTANT_Utf8` is always a Java string literal.** It also stores names, descriptors, and symbolic metadata; only `CONSTANT_String` uses the associated content to represent a `String` constant.
+9. **Trying to infer exact physical memory locations from the word "pool."** Specification structure and JVM implementation are not the same thing; separate language guarantees from details of a specific JVM version.
+10. **Blindly interning every string to speed things up.** `intern()` has management overhead and memory impact; use it only with clear measurement or design justification.
 
-## 10. Tự luyện tập
+## 10. Practice questions
 
-**Câu 1.** Với `String a = "x"; String b = "x";`, `a == b` là gì?
+**Question 1.** For `String a = "x"; String b = "x";`, what is `a == b`?
 
-**Đáp án:** `true` vì hai literal có cùng nội dung dùng chung tham chiếu `String` canonical.
+**Answer:** `true` because two literals with identical content share the same canonical `String` reference.
 
-**Câu 2.** Với `String a = "x"; String b = new String("x");`, `a.equals(b)` và `a == b`?
+**Question 2.** For `String a = "x"; String b = new String("x");`, what are `a.equals(b)` and `a == b`?
 
-**Đáp án:** `equals` là `true`, `==` là `false`. `b.intern() == a` là `true`.
+**Answer:** `equals` is `true`, `==` is `false`. `b.intern() == a` is `true`.
 
-**Câu 3.** `fresh.describeConstable()` có đồng nghĩa với `fresh.intern()` không?
+**Question 3.** Is `fresh.describeConstable()` equivalent to `fresh.intern()`?
 
-**Đáp án:** Không. Với `String`, `describeConstable()` cung cấp descriptor là chính `fresh`; `intern()` tìm/trả về đối tượng chuỗi canonical theo nội dung.
+**Answer:** No. For `String`, `describeConstable()` provides a descriptor that is `fresh` itself; `intern()` looks up/returns the canonical string object by content.
 
-**Câu 4.** `ClassDesc.of("java.lang.String")` có phải là `String.class` không?
+**Question 4.** Is `ClassDesc.of("java.lang.String")` the same as `String.class`?
 
-**Đáp án:** Không. `ClassDesc` là một descriptor danh nghĩa. Khi phân giải thành công bằng `resolveConstantDesc(lookup)`, nó có thể trả về đối tượng `Class` tương ứng với `String.class`.
+**Answer:** No. `ClassDesc` is a nominal descriptor. When resolved successfully via `resolveConstantDesc(lookup)`, it can return the `Class` object corresponding to `String.class`.
 
-**Câu 5.** Có thể dùng `Constable` để kiểm tra một `String` được khai báo với `final` hay được đưa trực tiếp vào `.class` không?
+**Question 5.** Can `Constable` be used to check whether a `String` was declared `final` or embedded directly in a `.class` file?
 
-**Đáp án:** Không. `Constable` mô tả khả năng của kiểu/giá trị trong API constant descriptor; nó không cung cấp nguồn gốc literal, thuộc tính `final` của biến hay nơi đối tượng đang nằm trong bộ nhớ.
+**Answer:** No. `Constable` describes a capability of the type/value in the constant descriptor API; it does not reveal literal origin, whether a variable is `final`, or where the object resides in memory.
 
-**Câu 6.** Vì sao dùng `javap -v` và `==` trả lời hai câu hỏi khác nhau?
+**Question 6.** Why do `javap -v` and `==` answer two different questions?
 
-**Đáp án:** `javap -v` kiểm tra **entry và bytecode của class file**; `==` so sánh **tham chiếu object ở runtime**. Đây là hai tầng quan sát khác nhau.
+**Answer:** `javap -v` inspects **class-file entries and bytecode**; `==` compares **runtime object references**. These are two different observation layers.
 
-## 11. Ghi nhớ và tài liệu chính thức
+## 11. Key takeaways and official references
 
-- **Class-file constant pool**: bảng hằng và tham chiếu ký hiệu phục vụ bytecode, gồm `CONSTANT_String` và nhiều loại entry khác.
-- **String pool / `intern()`**: bảo đảm tham chiếu canonical cho cùng nội dung chuỗi theo hợp đồng của Java.
-- **`Constable`**: một instance có thể cung cấp biểu diễn danh nghĩa bằng `describeConstable()`.
-- **`ConstantDesc`**: mô tả giá trị hằng và hỗ trợ `resolveConstantDesc(lookup)`.
-- **`String`**: vừa là `Constable` vừa là `ConstantDesc`, nhưng **không phải mọi instance `String` đều được intern**.
+- **Class-file constant pool**: table of constants and symbolic references supporting bytecode, including `CONSTANT_String` and many other entry types.
+- **String pool / `intern()`**: guarantees canonical references for equal string content per Java's contract.
+- **`Constable`**: an instance can provide a nominal representation via `describeConstable()`.
+- **`ConstantDesc`**: describes a constant value and supports `resolveConstantDesc(lookup)`.
+- **`String`**: is both `Constable` and `ConstantDesc`, yet **not every `String` instance is interned**.
 
-Tài liệu:
+References:
 - [`String` — Java SE 21 API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html)
 - [`Constable` — Java SE 21 API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/constant/Constable.html)
 - [`ConstantDesc` — Java SE 21 API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/constant/ConstantDesc.html)

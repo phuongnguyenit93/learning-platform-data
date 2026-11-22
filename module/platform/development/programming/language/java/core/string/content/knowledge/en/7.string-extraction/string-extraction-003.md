@@ -1,8 +1,8 @@
-# Chuỗi rỗng khi hai biên bằng nhau: `String.substring(beginIndex, endIndex)`
+# Empty String When Both Bounds Are Equal: `String.substring(beginIndex, endIndex)`
 
-Khi trích xuất một đoạn của `String` trong Java, hai tham số `beginIndex` và `endIndex` xác định phạm vi ký tự cần lấy. Nếu **hai biên bằng nhau và cùng nằm trong phạm vi hợp lệ**, đoạn được chọn có độ dài bằng 0, nên `substring(beginIndex, endIndex)` trả về **chuỗi rỗng `""`**. Đây là hành vi đúng theo hợp đồng API, không phải lỗi, cũng không phải `null`.
+When extracting a segment of a `String` in Java, the two parameters `beginIndex` and `endIndex` define the range of characters to take. If **both bounds are equal and within the valid range**, the selected segment has length 0, so `substring(beginIndex, endIndex)` returns the **empty string `""`**. This is valid behavior according to the API contract—neither an error nor `null`.
 
-Ví dụ:
+Example:
 
 ```java
 String text = "Java";
@@ -13,34 +13,34 @@ System.out.println(empty.isEmpty()); // true
 System.out.println(empty.equals("")); // true
 ```
 
-`substring(2, 2)` không chọn ký tự nào, dù vị trí 2 là một ranh giới nằm giữa chuỗi có nội dung. Cần phân biệt điều này với một phạm vi **không hợp lệ** như `substring(5, 5)` trên `"Java"` dài 4: hai số bằng nhau vẫn không cứu được chỉ số nằm ngoài giới hạn.
+`substring(2, 2)` selects no characters, even though position 2 is a boundary in the middle of a non-empty string. Distinguish this from an **invalid** range such as `substring(5, 5)` on `"Java"` of length 4: having two equal numbers does not rescue out-of-bounds indices.
 
-## 1. Quy tắc của hai biên: bắt đầu bao gồm, kết thúc không bao gồm
+## 1. Rule of the Two Bounds: Inclusive Start, Exclusive End
 
-Chữ ký phương thức:
+Method signature:
 
 ```java
 public String substring(int beginIndex, int endIndex)
 ```
 
-Phương thức lấy các UTF-16 code unit tại các chỉ số thuộc khoảng **`[beginIndex, endIndex)`**:
+The method takes the UTF-16 code units at indices in the range **`[beginIndex, endIndex)`**:
 
-- `beginIndex` là chỉ số đầu, **được tính vào** kết quả.
-- `endIndex` là chỉ số kết thúc, **không được tính vào** kết quả.
-- Số UTF-16 code unit trong kết quả là `endIndex - beginIndex`.
-- Phải thỏa mãn đồng thời `0 <= beginIndex <= endIndex <= text.length()`.
+- `beginIndex` is the starting index, **included** in the result.
+- `endIndex` is the ending index, **excluded** from the result.
+- The number of UTF-16 code units in the result is `endIndex - beginIndex`.
+- It must simultaneously satisfy `0 <= beginIndex <= endIndex <= text.length()`.
 
-Với chuỗi `"Java"`, các ký tự có chỉ số 0, 1, 2 và 3, nhưng có **năm vị trí biên** từ 0 đến 4:
+For the string `"Java"`, the characters have indices 0, 1, 2, and 3, while there are **five boundary positions** from 0 to 4:
 
 ```text
-Vị trí biên:  0   1   2   3   4
+Boundary pos: 0   1   2   3   4
               | J | a | v | a |
-Chỉ số char:    0   1   2   3
+Char index:     0   1   2   3
 ```
 
-Ví dụ các phạm vi:
+Range examples:
 
-| Lời gọi | Phạm vi lấy | Kết quả | Độ dài |
+| Call | Selected Range | Result | Length |
 | --- | --- | --- | ---: |
 | `text.substring(0, 2)` | `[0, 2)` | `"Ja"` | 2 |
 | `text.substring(2, 4)` | `[2, 4)` | `"va"` | 2 |
@@ -49,11 +49,11 @@ Ví dụ các phạm vi:
 | `text.substring(2, 2)` | `[2, 2)` | `""` | 0 |
 | `text.substring(4, 4)` | `[4, 4)` | `""` | 0 |
 
-Khi `beginIndex == endIndex`, khoảng nửa mở có **không phần tử**, nên không có ký tự nào được đưa vào chuỗi kết quả. Quy tắc này nhất quán với cách Java mô tả các đoạn bằng chỉ số bắt đầu bao gồm và kết thúc loại trừ.
+When `beginIndex == endIndex`, the half-open interval has **zero elements**, so no characters are placed into the resulting string. This rule is consistent with how Java describes ranges using an inclusive start index and an exclusive end index.
 
-## 2. Ví dụ hoàn chỉnh: mọi vị trí biên hợp lệ đều có thể tạo chuỗi rỗng
+## 2. Complete Example: Every Valid Boundary Position Can Produce an Empty String
 
-Tạo tệp `EmptySubstringDemo.java`:
+Create the file `EmptySubstringDemo.java`:
 
 ```java
 public class EmptySubstringDemo {
@@ -76,14 +76,14 @@ public class EmptySubstringDemo {
 }
 ```
 
-Biên dịch/chạy trên JDK 17 trở lên:
+Compile/run on JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 EmptySubstringDemo.java
 java EmptySubstringDemo
 ```
 
-Kết quả chính xác:
+Exact output:
 
 ```text
 start=[]
@@ -95,32 +95,32 @@ isEmpty=true
 equalsEmpty=true
 ```
 
-Dấu ngoặc vuông trong kết quả do chương trình **chủ động nối vào** để nhìn thấy ranh giới; chúng không nằm trong chuỗi rỗng. Nếu viết `System.out.println(inMiddle);`, chương trình chỉ in một dòng trống.
+The square brackets in the output are **explicitly concatenated** by the program to make the boundaries visible; they are not part of the empty string. If you write `System.out.println(inMiddle);`, the program simply prints a blank line.
 
-Các trường hợp `atStart`, `inMiddle`, `atEnd` đều trả về giá trị bằng `""`. Đồng thời, overload một tham số `substring(beginIndex)` hiểu rằng lấy từ `beginIndex` đến hết chuỗi; do đó gọi `text.substring(text.length())` cũng trả về chuỗi rỗng.
+The cases `atStart`, `inMiddle`, and `atEnd` all return a value equal to `""`. Likewise, the single-parameter overload `substring(beginIndex)` means taking from `beginIndex` to the end of the string; therefore calling `text.substring(text.length())` also returns an empty string.
 
-## 3. Hai biên bằng nhau vẫn phải nằm trong phạm vi hợp lệ
+## 3. Equal Bounds Must Still Be Within Valid Range
 
-Điều kiện quan trọng là:
+The critical condition is:
 
 ```text
 0 <= beginIndex <= endIndex <= text.length()
 ```
 
-Nếu `beginIndex == endIndex == k` thì lời gọi hợp lệ **chỉ khi** `0 <= k <= text.length()`.
+If `beginIndex == endIndex == k`, the call is valid **only if** `0 <= k <= text.length()`.
 
-| Ví dụ với `text = "Java"`, `length() = 4` | Hợp lệ? | Vì sao |
+| Example with `text = "Java"`, `length() = 4` | Valid? | Why |
 | --- | --- | --- |
-| `substring(0, 0)` | Có | Cả hai biên đều là 0, nằm trong [0, 4] |
-| `substring(2, 2)` | Có | Ranh giới số 2 nằm trong [0, 4] |
-| `substring(4, 4)` | Có | Biên cuối 4 bằng `length()` và được cho phép |
-| `substring(-1, -1)` | Không | Biên âm |
-| `substring(5, 5)` | Không | Biên 5 lớn hơn `length()` |
-| `substring(3, 2)` | Không | Biên bắt đầu lớn hơn biên kết thúc |
+| `substring(0, 0)` | Yes | Both bounds are 0, within [0, 4] |
+| `substring(2, 2)` | Yes | Boundary 2 is within [0, 4] |
+| `substring(4, 4)` | Yes | End boundary 4 equals `length()` and is allowed |
+| `substring(-1, -1)` | No | Negative bounds |
+| `substring(5, 5)` | No | Bound 5 is greater than `length()` |
+| `substring(3, 2)` | No | Start bound is greater than end bound |
 
-Với tham số không hợp lệ, `String.substring` ném ngoại lệ `StringIndexOutOfBoundsException` (thuộc họ `IndexOutOfBoundsException`). Không nên phụ thuộc vào nội dung thông báo của ngoại lệ vì cách mô tả có thể khác theo phiên bản hoặc triển khai JDK.
+With invalid arguments, `String.substring` throws `StringIndexOutOfBoundsException` (a subclass of `IndexOutOfBoundsException`). You should not depend on the exact exception message text because the wording can vary across JDK versions or implementations.
 
-Tệp `EmptyRangeValidation.java` minh họa hành vi thành công/thất bại mà không phụ thuộc thông báo ngoại lệ:
+The file `EmptyRangeValidation.java` demonstrates success/failure behavior without relying on the exception message:
 
 ```java
 public class EmptyRangeValidation {
@@ -151,14 +151,14 @@ public class EmptyRangeValidation {
 }
 ```
 
-Lưu đúng tên tệp rồi chạy:
+Save with the exact file name and run:
 
 ```bash
 javac -encoding UTF-8 EmptyRangeValidation.java
 java EmptyRangeValidation
 ```
 
-Kết quả:
+Output:
 
 ```text
 [0,0) -> length=0
@@ -169,33 +169,33 @@ Kết quả:
 [3,2) -> invalid
 ```
 
-Trường hợp `[4,4)` hợp lệ dù chuỗi chỉ có các chỉ số **ký tự** từ 0 đến 3, vì `endIndex` biểu diễn **vị trí biên ngay sau ký tự cuối**. Ngược lại, `[5,5)` không phải biên tồn tại trong chuỗi dài 4.
+The case `[4,4)` is valid even though the string only has **character** indices from 0 to 3, because `endIndex` represents the **boundary position right after the last character**. Conversely, `[5,5)` is not an existing boundary in a string of length 4.
 
-## 4. Chuỗi nguồn rỗng cũng có một phạm vi trích xuất hợp lệ
+## 4. An Empty Source String Also Has One Valid Extraction Range
 
-Với `String emptySource = "";`, `emptySource.length() == 0`. Phạm vi hợp lệ duy nhất của overload hai tham số là `[0, 0)`:
+With `String emptySource = "";`, `emptySource.length() == 0`. The only valid range for the two-parameter overload is `[0, 0)`:
 
 ```java
 String emptySource = "";
 
 System.out.println(emptySource.substring(0, 0).isEmpty()); // true
 System.out.println(emptySource.substring(0).isEmpty());    // true
-// emptySource.substring(1, 1); // Ngoại lệ vì vượt length() = 0
+// emptySource.substring(1, 1); // Exception because it exceeds length() = 0
 ```
 
-Các lệnh trên là đoạn minh họa nằm trong một phương thức Java, không phải chương trình độc lập. Trường hợp nguồn rỗng **không có ngoại lệ đặc biệt**: quy tắc biên và điều kiện hợp lệ vẫn giữ nguyên như với chuỗi không rỗng.
+The statements above are illustrative snippets inside a Java method, not a standalone program. An empty source has **no special exception**: the boundary rules and validity conditions remain the same as for non-empty strings.
 
-## 5. Chuỗi rỗng không phải `null` và không phải chuỗi chứa dấu cách
+## 5. Empty String Is Neither `null` Nor a String Containing a Space
 
-Cần phân biệt ba giá trị:
+Three values must be distinguished:
 
-- `""`: đối tượng `String` có độ dài `0`, `isEmpty() == true`.
-- `" "`: chuỗi chứa một dấu cách thông thường, `length() == 1`, `isEmpty() == false`.
-- `null`: tham chiếu **không trỏ đến đối tượng `String` nào**; không thể gọi `length()` hoặc `isEmpty()` trực tiếp trên tham chiếu đó.
+- `""`: a `String` object with length `0`, `isEmpty() == true`.
+- `" "`: a string containing one regular space character, `length() == 1`, `isEmpty() == false`.
+- `null`: a reference that **points to no `String` object**; `length()` or `isEmpty()` cannot be called directly on it.
 
-`substring(k, k)` với `k` hợp lệ luôn trả về một giá trị kiểu `String` có nội dung rỗng. Phương thức không trả về `null` để diễn tả “không chọn ký tự”.
+`substring(k, k)` with a valid `k` always returns a `String` value with empty content. The method does not return `null` to represent “no characters selected”.
 
-Ví dụ:
+Example:
 
 ```java
 String text = "A B";
@@ -210,20 +210,20 @@ System.out.println(space.length());  // 1
 System.out.println(space.isEmpty()); // false
 ```
 
-Đoạn trên là các lệnh minh họa đặt trong một phương thức. Mặc dù `part` và `space` có thể đều trông “không có chữ” khi in trên console, chúng có giá trị và độ dài khác nhau.
+The snippet above consists of illustrative statements placed inside a method. Although `part` and `space` might both look “blank” when printed to the console, they have different values and lengths.
 
-Nếu cần so sánh nội dung trích xuất với chuỗi rỗng, dùng `part.isEmpty()` hoặc `part.equals("")`. Không dùng `part == ""` để dựa vào danh tính đối tượng: kể cả khi một triển khai có thể tái sử dụng tham chiếu đến chuỗi rỗng, hợp đồng cần quan tâm là **nội dung bằng nhau**.
+If you need to compare extracted content against an empty string, use `part.isEmpty()` or `part.equals("")`. Do not use `part == ""` to rely on object identity: even if an implementation happens to reuse a reference to the empty string, the contract that matters is **content equality**.
 
-## 6. Ứng dụng: trích xuất phần trước/sau dấu phân cách
+## 6. Application: Extracting Parts Before/After a Delimiter
 
-Chuỗi rỗng thường là kết quả **hợp lệ** khi dấu phân cách nằm ngay đầu hoặc cuối dữ liệu. Ví dụ chuỗi dạng `key=value`:
+An empty string is often a **valid** result when the delimiter lies right at the start or end of the data. For example, strings in `key=value` format:
 
-- `"=value"` có phần khóa rỗng ở trước dấu `=`.
-- `"key="` có phần giá trị rỗng ở sau dấu `=`.
-- `"="` có cả hai phần rỗng.
-- `"name=Lan"` có cả khóa và giá trị không rỗng.
+- `"=value"` has an empty key before `=`.
+- `"key="` has an empty value after `=`.
+- `"="` has both parts empty.
+- `"name=Lan"` has both key and value non-empty.
 
-Tệp `DelimiterExtraction.java`:
+File `DelimiterExtraction.java`:
 
 ```java
 public class DelimiterExtraction {
@@ -251,14 +251,14 @@ public class DelimiterExtraction {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac -encoding UTF-8 DelimiterExtraction.java
 java DelimiterExtraction
 ```
 
-Đầu ra:
+Output:
 
 ```text
 key=[name], value=[Lan]
@@ -268,18 +268,18 @@ key=[], value=[]
 No separator: missing
 ```
 
-Giải thích kỹ hai trường hợp quan trọng:
+Closer explanation of two important cases:
 
-- Khi `line = "=value"`, `separator == 0` nên `line.substring(0, separator)` chính là `substring(0, 0)`: **khóa rỗng**, không phải lỗi.
-- Khi `line = "key="`, `separator == line.length() - 1` nên phần giá trị bắt đầu tại `separator + 1 == line.length()`; hai biên bằng nhau tại cuối chuỗi nên giá trị rỗng.
+- When `line = "=value"`, `separator == 0`, so `line.substring(0, separator)` is `substring(0, 0)`: an **empty key**, not an error.
+- When `line = "key="`, `separator == line.length() - 1`, so the value starts at `separator + 1 == line.length()`; equal bounds at the end of the string produce an empty value.
 
-Kiểm tra `separator < 0` là cần thiết: `indexOf('=')` trả về `-1` nếu không tìm thấy; dùng trực tiếp giá trị này làm biên cho `substring` có thể gây lỗi hoặc phân tích dữ liệu sai. Với yêu cầu nghiệp vụ mà khóa/giá trị **không được phép rỗng**, cần xác thực thêm sau khi trích xuất; không nên coi chuỗi rỗng tự động là ngoại lệ API.
+Checking `separator < 0` is necessary: `indexOf('=')` returns `-1` if not found; using that value directly as a bound for `substring` can cause an error or misparse the data. For business rules where key/value **must not be empty**, validate further after extraction; do not expect the API to automatically treat an empty string as an exception.
 
-## 7. Áp dụng trong thuật toán dùng cửa sổ [begin, end)
+## 7. Applying in Algorithms Using a `[begin, end)` Window
 
-Nhiều thuật toán quét văn bản lưu một cặp chỉ số `begin` và `end`, trong đó `begin` là nơi bắt đầu của đoạn hiện tại và `end` là vị trí ngay sau ký tự cuối đã duyệt. Khi hai chỉ số bằng nhau, cửa sổ có độ dài 0.
+Many text-scanning algorithms maintain a pair of indices `begin` and `end`, where `begin` is the start of the current segment and `end` is the position right after the last scanned character. When the two indices are equal, the window has length 0.
 
-Ví dụ, một hàm lấy đoạn giữa hai vị trí biên:
+For example, a function extracting the segment between two boundary positions:
 
 ```java
 static String extractWindow(String text, int begin, int end) {
@@ -287,26 +287,26 @@ static String extractWindow(String text, int begin, int end) {
 }
 ```
 
-Với `extractWindow("ABCDE", 3, 3)`, kết quả là `""`. Không cần viết điều kiện riêng `if (begin == end) return "";` để tránh ngoại lệ: nếu hai biên **hợp lệ**, `substring` đã xử lý đúng. Tuy nhiên, nếu thuật toán mong đợi **ít nhất một ký tự**, điều kiện `begin == end` có thể báo hiệu rằng cửa sổ chưa có dữ liệu; quy tắc nghiệp vụ phải được kiểm tra riêng.
+With `extractWindow("ABCDE", 3, 3)`, the result is `""`. There is no need to write a separate condition `if (begin == end) return "";` to avoid an exception: if both bounds are **valid**, `substring` already handles it properly. However, if the algorithm expects **at least one character**, the condition `begin == end` may signal that the window contains no data yet; business rules must be checked separately.
 
-Những tình huống hay gặp:
+Common situations:
 
-1. **Cắt phần tiền tố** bằng `substring(0, boundary)`: nếu `boundary == 0`, tiền tố rỗng.
-2. **Cắt phần hậu tố** bằng `substring(boundary, length())`: nếu `boundary == length()`, hậu tố rỗng.
-3. **Cắt giữa hai mốc** bằng `substring(left, right)`: nếu hai mốc trùng nhau, không có ký tự giữa chúng.
-4. **Bước lặp hoặc quét không tiêu thụ ký tự mới**: cửa sổ `[cursor, cursor)` có thể hợp lệ nhưng cần quyết định thuật toán nên tiếp tục hay dừng để tránh lặp vô hạn.
+1. **Extracting a prefix** with `substring(0, boundary)`: if `boundary == 0`, the prefix is empty.
+2. **Extracting a suffix** with `substring(boundary, length())`: if `boundary == length()`, the suffix is empty.
+3. **Extracting between two markers** with `substring(left, right)`: if both markers coincide, there are no characters between them.
+4. **Loop or scan step consuming no new characters**: a window `[cursor, cursor)` can be valid, but you must decide whether the algorithm should advance or stop to avoid an infinite loop.
 
-Điểm cuối rất quan trọng: một `substring` trả chuỗi rỗng không tự di chuyển chỉ số `cursor`. Nếu thiết kế vòng lặp dựa vào việc mỗi vòng phải tiến ít nhất một ký tự, cần đảm bảo phần cập nhật chỉ số phù hợp.
+The last point is very important: a `substring` returning an empty string does not advance `cursor` on its own. If a loop design relies on each iteration advancing by at least one character, ensure the index update handles that properly.
 
-## 8. Chỉ số của `substring` tính theo UTF-16 code unit
+## 8. `substring` Indices Are Measured in UTF-16 Code Units
 
-Một phạm vi rỗng `[k, k)` không lấy bất kỳ code unit nào, **kể cả khi `k` nằm giữa hai nửa surrogate pair**. Chẳng hạn, với `"A😀B"`, `substring(2, 2)` vẫn trả `""`, trong khi `substring(1, 2)` chỉ lấy nửa đầu emoji và không biểu diễn một code point hoàn chỉnh.
+An empty range `[k, k)` extracts no code units at all, **even when `k` lies between the two halves of a surrogate pair**. For instance, with `"A😀B"`, `substring(2, 2)` still returns `""`, whereas `substring(1, 2)` takes only the first half of the emoji and does not represent a complete code point.
 
-Việc hai biên bằng nhau giải quyết câu hỏi “có dữ liệu nào trong đoạn?”; khi đoạn **không rỗng** và chứa Unicode bổ sung, phải chọn biên code point hoặc grapheme thích hợp cho nghiệp vụ.
+Having equal bounds answers the question “is there any data in the range?”; when the range is **non-empty** and contains supplementary Unicode, choose appropriate code point or grapheme boundaries for the business requirement.
 
-## 9. `substring` với `subSequence` và đoạn rỗng
+## 9. `substring` vs. `subSequence` and Empty Segments
 
-`String` triển khai `CharSequence`, nên `text.subSequence(k, k)` cũng cho dãy có độ dài `0` với `k` hợp lệ. Ví dụ:
+`String` implements `CharSequence`, so `text.subSequence(k, k)` also produces a sequence of length `0` for valid `k`. Example:
 
 ```java
 String text = "Java";
@@ -314,36 +314,36 @@ CharSequence empty = text.subSequence(3, 3);
 System.out.println(empty.isEmpty()); // true
 ```
 
-`substring` khai báo trả về `String`, còn `subSequence` khai báo trả về `CharSequence`. Đây là khác biệt về kiểu API; với nguồn `String`, cả hai cùng diễn đạt đoạn rỗng theo quy tắc nửa mở.
+`substring` is declared to return `String`, whereas `subSequence` is declared to return `CharSequence`. This is a difference in API type; on a `String` source, both express an empty segment following the half-open rule.
 
-## 10. Lỗi thường gặp
+## 10. Common Pitfalls
 
-- **`substring(k, k)` luôn hợp lệ?** Không: `k` vẫn phải nằm trong `[0, length()]`. `substring(5, 5)` trên `"Java"` dài bốn code unit vẫn ném ngoại lệ.
-- **Đoạn rỗng đồng nghĩa `null`?** Không: `""` có `length() == 0`, gọi được `isEmpty()`; `null` không phải đối tượng `String`.
-- **Một dấu cách có rỗng không?** Không: `" "` có độ dài một và `isEmpty() == false`. `isBlank()` hỏi một câu khác về nội dung khoảng trắng.
-- **Có nên so sánh với `== ""`?** Không: `==` so identity, dùng `isEmpty()` hoặc `equals("")` cho nội dung.
-- **Vòng lặp không tiến do kết quả rỗng?** `substring` không di chuyển con trỏ; thuật toán phải bảo đảm tiến độ hoặc quy tắc dừng riêng.
+- **Is `substring(k, k)` always valid?** No: `k` must still be in `[0, length()]`. `substring(5, 5)` on `"Java"` of four code units still throws an exception.
+- **Does an empty slice mean `null`?** No: `""` has `length() == 0` and supports `isEmpty()`; `null` is not a `String` object.
+- **Is a single space empty?** No: `" "` has length one and `isEmpty() == false`. `isBlank()` asks a different question about whitespace content.
+- **Should you compare with `== ""`?** No: `==` compares identity; use `isEmpty()` or `equals("")` for content.
+- **Loop failing to advance due to empty result?** `substring` does not move the cursor; the algorithm must guarantee progress or a separate stopping condition.
 
-## 11. Câu hỏi tự kiểm tra
+## 11. Self-Check Questions
 
-**Câu 1.** Với `String s = "abc";`, kết quả của `s.substring(1, 1)` và `s.substring(3, 3)` là gì?
+**Question 1.** Given `String s = "abc";`, what are the results of `s.substring(1, 1)` and `s.substring(3, 3)`?
 
-**Đáp án:** Cả hai là `""`, vì hai biên trùng nhau và `1` lẫn `3` đều nằm trong phạm vi biên hợp lệ `[0, 3]`.
+**Answer:** Both are `""`, because both bounds are equal and both `1` and `3` lie within the valid boundary range `[0, 3]`.
 
-**Câu 2.** `s.substring(4, 4)` với `s = "abc"` có trả chuỗi rỗng không?
+**Question 2.** Does `s.substring(4, 4)` with `s = "abc"` return an empty string?
 
-**Đáp án:** Không. Phương thức ném ngoại lệ vì `4 > s.length() == 3`. Hai biên bằng nhau không đủ để một khoảng trở nên hợp lệ.
+**Answer:** No. The method throws an exception because `4 > s.length() == 3`. Equal bounds alone are not enough for a range to be valid.
 
-**Câu 3.** `"abc".substring("abc".length())` trả về gì?
+**Question 3.** What does `"abc".substring("abc".length())` return?
 
-**Đáp án:** `""`. Overload một tham số lấy từ chỉ số bắt đầu đến hết chuỗi; bắt đầu ngay tại biên cuối nên không còn ký tự nào.
+**Answer:** `""`. The single-parameter overload takes from the start index to the end of the string; starting right at the end boundary leaves no characters.
 
-**Câu 4.** Chuỗi `"x="` có phần sau dấu bằng dài bao nhiêu khi trích bằng `substring(separator + 1, length())`?
+**Question 4.** For the string `"x="`, how long is the part after the equals sign when extracted with `substring(separator + 1, length())`?
 
-**Đáp án:** `0`. Dấu `=` ở cuối nên `separator + 1 == length()`; hai biên hợp lệ bằng nhau, kết quả là chuỗi rỗng.
+**Answer:** `0`. The `=` is at the end, so `separator + 1 == length()`; valid equal bounds produce an empty string.
 
-**Câu 5.** `substring(k, k)` tại vị trí giữa high surrogate và low surrogate có gây ra một surrogate đứng lẻ không?
+**Question 5.** Does `substring(k, k)` at a position between a high surrogate and a low surrogate cause an unpaired surrogate?
 
-**Đáp án:** Không, vì không lấy code unit nào. Nhưng nếu trích đoạn khác rỗng và cắt một nửa surrogate pair thì mới có nguy cơ tạo một chuỗi UTF-16 chứa surrogate đứng lẻ.
+**Answer:** No, because no code units are taken. Only when extracting a non-empty slice that splits a surrogate pair is there a risk of creating a UTF-16 string containing an unpaired surrogate.
 
-**Ghi nhớ:** Với `String.substring(beginIndex, endIndex)`, nếu `0 <= beginIndex == endIndex <= length()`, kết quả luôn là **`""`** và có **độ dài 0**. Chỉ số phải hợp lệ; chuỗi rỗng là kết quả bình thường của một khoảng `[k, k)`, không phải `null` và không phải ngoại lệ.
+**Key takeaway:** With `String.substring(beginIndex, endIndex)`, if `0 <= beginIndex == endIndex <= length()`, the result is always **`""`** with **length 0**. The indices must be valid; an empty string is the normal result of a `[k, k)` range, neither `null` nor an exception.

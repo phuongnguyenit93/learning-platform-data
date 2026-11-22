@@ -1,33 +1,33 @@
-# Phân biệt Java, Java SE, JDK và môi trường chạy
+# Distinguishing Java, Java SE, the JDK, and the Runtime Environment
 
-> **Chủ đề:** Java core — language-basics / Tổng quan  
-> **Mục tiêu:** Biết chính xác mình đang *viết bằng ngôn ngữ nào*, *dựa vào nền tảng nào*, *dùng bộ công cụ nào để xây dựng*, và *cần gì để chạy ứng dụng*. Sau bài học, bạn có thể dùng `javac` và `java` để tự biên dịch/chạy một chương trình đơn giản, xác định môi trường đang sử dụng và giải thích lỗi sai phiên bản phổ biến.
+> **Topic:** Java core — language-basics / Overview  
+> **Goal:** Know precisely *which language* you are writing in, *which platform* you rely on, *which toolkit* you use to build, and *what is needed* to run the application. After this lesson, you can use `javac` and `java` to compile and run a simple program yourself, identify the environment being used, and explain common version mismatch errors.
 
-## 1. Vì sao bốn tên gọi này dễ bị nhầm?
+## 1. Why Are These Four Names Easily Confused?
 
-Một bạn mới học thường nói: “Tôi đã cài Java nên có thể viết và chạy mọi chương trình Java”. Câu này chưa đủ rõ: máy có **công cụ biên dịch** không? Có **máy ảo Java** không? Chương trình được xây dựng cho **phiên bản nền tảng** nào? Lệnh `java` trong terminal thực sự trỏ đến bản cài đặt nào?
+A beginner often says: “I have installed Java, so I can write and run any Java program.” That statement is not specific enough: does the machine have the **compiler tool**? Does it have a **Java Virtual Machine**? Which **platform version** was the program built for? Which installation does the `java` command in the terminal actually point to?
 
-Một cách phân biệt hữu ích:
+A useful way to distinguish them:
 
-| Tên gọi | Nó là gì? | Dùng để làm gì? | Câu hỏi nhận diện |
+| Name | What is it? | What is it used for? | Identifying question |
 | --- | --- | --- | --- |
-| **Java (ngôn ngữ)** | Ngôn ngữ lập trình có cú pháp, kiểu dữ liệu, class, method và quy tắc ngữ nghĩa | Viết mã nguồn `.java` | “Đoạn mã này viết bằng ngôn ngữ gì?” |
-| **Java SE** (*Java Platform, Standard Edition*) | Nền tảng chuẩn: các đặc tả liên quan cùng tập API cơ bản của Java | Xác định khả năng chuẩn mà chương trình Java thông thường dựa vào, ví dụ `java.lang`, `java.util`, `java.io` | “Ứng dụng dựa trên nền tảng/API Java chuẩn nào?” |
-| **JDK** (*Java Development Kit*) | Bộ công cụ phát triển kèm khả năng chạy Java | Biên dịch, chạy, đóng gói, kiểm tra chương trình; có `javac`, `java`, `jar`… | “Tôi dùng công cụ nào để viết, biên dịch và xây dựng ứng dụng?” |
-| **JVM** (*Java Virtual Machine*) | Máy ảo thực thi bytecode Java | Nạp, kiểm tra và thực thi mã `.class`, quản lý nhiều khía cạnh lúc chạy | “Ai thực sự thực thi bytecode?” |
-| **JRE / môi trường chạy** | Khả năng chạy ứng dụng: máy ảo và thư viện/thành phần runtime cần thiết | Thực thi chương trình đã xây dựng mà không nhất thiết cần compiler | “Máy đích cần những thành phần gì để chạy?” |
+| **Java (the language)** | A programming language with syntax, data types, classes, methods, and semantic rules | Writing `.java` source code | “What language is this code written in?” |
+| **Java SE** (*Java Platform, Standard Edition*) | The standard platform: the relevant specifications and core Java APIs | Defining standard capabilities that typical Java programs rely on, e.g., `java.lang`, `java.util`, `java.io` | “Which standard Java platform/API does the application rely on?” |
+| **JDK** (*Java Development Kit*) | The development toolkit along with the capability to run Java | Compiling, running, packaging, and inspecting programs; includes `javac`, `java`, `jar`… | “Which tools do I use to write, compile, and build the application?” |
+| **JVM** (*Java Virtual Machine*) | The virtual machine that executes Java bytecode | Loading, verifying, and executing `.class` code, managing many runtime aspects | “What actually executes the bytecode?” |
+| **JRE / runtime environment** | The capability to run applications: the virtual machine and required runtime libraries/components | Executing built programs without necessarily needing a compiler | “What components does the target machine need in order to run?” |
 
-**Đừng coi đây là năm sản phẩm cạnh tranh.** Các tên chỉ *những tầng khác nhau* của cùng hệ sinh thái. JDK thông thường bao gồm những thành phần cần để phát triển **và** chạy; một runtime tối giản có thể không chứa công cụ `javac`.
+**Do not treat these as five competing products.** These names only refer to *different layers* of the same ecosystem. A typical JDK includes the components needed to develop **and** run; a minimal runtime may not contain the `javac` tool.
 
-### Đặt từng khái niệm vào đúng vị trí
+### Putting Each Concept in Its Right Place
 
-Trong quy trình thông thường, mã nguồn `.java` được viết theo **ngôn ngữ Java**; `javac` thuộc **JDK** tạo bytecode `.class`; lệnh `java` khởi động **JVM** để chạy class cùng những thư viện runtime cần thiết. **Java SE** xác định nền tảng và API chuẩn mà một bản triển khai tương thích cung cấp.
+In a standard workflow, `.java` source code is written in the **Java language**; `javac` from the **JDK** produces `.class` bytecode; the `java` command starts the **JVM** to run the class along with the needed runtime libraries. **Java SE** defines the standard platform and APIs that a compatible implementation provides.
 
-Bài này chú trọng **chọn và kiểm tra đúng môi trường**. Cơ chế nạp class, bytecode và các bước biên dịch được thực hành sâu ở bài về mã nguồn → trình biên dịch → bytecode → JVM.
+This lesson focuses on **choosing and verifying the right environment**. Class loading mechanisms, bytecode, and compilation steps are practiced in depth in the lesson on source code → compiler → bytecode → JVM.
 
-## 2. Java: tên ngôn ngữ khác với tên nền tảng
+## 2. Java: Language Name vs. Platform Name
 
-Ở cấp ngôn ngữ, Java quy định những thứ như khai báo kiểu, biểu thức, class, interface, câu lệnh điều kiện, xử lý ngoại lệ và cách gọi method. Ví dụ:
+At the language level, Java specifies things such as type declarations, expressions, classes, interfaces, conditional statements, exception handling, and how methods are called. For example:
 
 ~~~java
 public class Hello {
@@ -37,97 +37,97 @@ public class Hello {
 }
 ~~~
 
-Đây là **mã nguồn viết bằng ngôn ngữ Java**. Tệp có tên `Hello.java` vì chứa public class `Hello`.
+This is **source code written in the Java language**. The file is named `Hello.java` because it contains the public class `Hello`.
 
-Tuy nhiên, `System.out.println` không chỉ là cú pháp ngôn ngữ: `System` và `PrintStream` là các lớp được nền tảng cung cấp. Muốn chạy chương trình, bạn cần môi trường có những thành phần chuẩn tương ứng.
+However, `System.out.println` is not just language syntax: `System` and `PrintStream` are classes provided by the platform. To run the program, you need an environment that has those corresponding standard components.
 
-Cụm từ **“Java”** trong giao tiếp hằng ngày đôi khi ám chỉ cả ngôn ngữ lẫn nền tảng và công cụ. Khi cấu hình môi trường hoặc giải thích lỗi, nên gọi rõ **JDK**, **JVM**, **Java SE** hay **Java source** để tránh nhầm.
+In everyday conversation, the term **“Java”** sometimes refers to the language, the platform, and the tools all at once. When configuring environments or explaining errors, refer specifically to **JDK**, **JVM**, **Java SE**, or **Java source** to avoid confusion.
 
-## 3. Java SE: nền tảng chuẩn, không phải tên lệnh cài đặt
+## 3. Java SE: The Standard Platform, Not an Installer Command Name
 
-**Java SE** là viết tắt của *Java Platform, Standard Edition*, tập trung vào những khả năng nền tảng thường dùng cho ứng dụng Java thông thường:
+**Java SE** stands for *Java Platform, Standard Edition*, focusing on the platform capabilities commonly used by general Java applications:
 
-- Ngôn ngữ và các quy tắc tương thích với một phiên bản Java tương ứng.
-- Máy ảo và đặc tả liên quan đến việc thực thi Java.
-- Thư viện/API chuẩn, chẳng hạn các gói `java.lang` (kiểu cơ bản), `java.util` (collections), `java.time` (ngày giờ), `java.nio.file` (tệp/đường dẫn), `java.net` (mạng).
-- Những tính năng cụ thể tùy theo **phiên bản Java SE**.
+- The language and compatibility rules corresponding to a given Java version.
+- The virtual machine and specifications related to Java execution.
+- Standard libraries/APIs, such as the packages `java.lang` (core types), `java.util` (collections), `java.time` (date and time), `java.nio.file` (files/paths), and `java.net` (networking).
+- Specific features depending on the **Java SE version**.
 
-Java SE **không phải** một tệp `java-se.exe` hay một chương trình bạn chạy bằng lệnh `java-se`. Một bản phân phối JDK được tạo ra để triển khai nền tảng Java tương ứng, cung cấp compiler và các công cụ phát triển.
+Java SE is **not** a `java-se.exe` file or a program you run with a `java-se` command. A JDK distribution is created to implement the corresponding Java platform, providing the compiler and development tools.
 
-**Đặc tả, triển khai và bản phân phối khác nhau:**
+**Specifications, implementations, and distributions are different:**
 
-| Khái niệm | Ý nghĩa |
+| Concept | Meaning |
 | --- | --- |
-| Đặc tả Java SE | Quy định các hành vi và API chuẩn cần đáp ứng |
-| Triển khai | Mã phần mềm thực hiện các yêu cầu của nền tảng/VM |
-| Bản phân phối JDK | Gói cài đặt thực tế từ một nhà cung cấp, có công cụ và runtime |
+| Java SE specification | Defines the standard behaviors and APIs to be satisfied |
+| Implementation | Software code that fulfills the platform/VM requirements |
+| JDK distribution | An actual installer package from a vendor, containing tools and runtime |
 
-Chẳng hạn, **OpenJDK** là dự án triển khai Java mã nguồn mở; các tổ chức có thể phát hành những bản dựng JDK dựa trên OpenJDK. Đối với người mới học, quan trọng nhất là chọn một **JDK có phiên bản phù hợp** và kiểm tra đường dẫn công cụ; không phải tìm một chương trình riêng mang tên “Java SE”.
+For example, **OpenJDK** is an open-source Java implementation project; organizations can release JDK builds based on OpenJDK. For a beginner, the most important things are choosing a **JDK with a suitable version** and checking the tool paths—not looking for a separate program named “Java SE”.
 
-**Phạm vi:** Java SE là nền tảng lõi. Một ứng dụng web doanh nghiệp có thể còn dùng Jakarta EE, Spring hoặc thư viện khác; những thư viện/framework này **không tự động trở thành API chuẩn của Java SE**. Bài này không đi sâu vào các nền tảng đó.
+**Scope:** Java SE is the core platform. An enterprise web application may also use Jakarta EE, Spring, or other libraries; those libraries/frameworks **do not automatically become standard Java SE APIs**. This lesson does not go into those platforms.
 
-## 4. JDK, JVM, JRE: ai biên dịch và ai chạy?
+## 4. JDK, JVM, JRE: Who Compiles and Who Runs?
 
-### 4.1. JDK — bộ đồ nghề phát triển
+### 4.1. JDK — The Development Toolkit
 
-Một JDK thông thường có:
+A typical JDK includes:
 
-| Công cụ | Vai trò thường gặp |
+| Tool | Common Role |
 | --- | --- |
-| `javac` | Biên dịch mã nguồn `.java` thành bytecode `.class` |
-| `java` | Khởi động chương trình Java và môi trường thực thi thích hợp |
-| `jar` | Tạo, xem hoặc xử lý tệp JAR |
-| `javadoc` | Sinh tài liệu từ chú thích JavaDoc |
-| `jshell` | Thử các biểu thức/lệnh Java tương tác (các JDK hiện đại) |
-| `jlink` | Tạo runtime image tùy biến từ các module cần thiết (JDK 9+) |
+| `javac` | Compiles `.java` source code into `.class` bytecode |
+| `java` | Launches a Java program and the appropriate execution environment |
+| `jar` | Creates, views, or manipulates JAR files |
+| `javadoc` | Generates documentation from JavaDoc comments |
+| `jshell` | Evaluates Java expressions/commands interactively (modern JDKs) |
+| `jlink` | Builds a custom runtime image from required modules (JDK 9+) |
 
-Khi học và xây dựng ứng dụng Java core, **cài JDK** là lựa chọn dễ nhất vì có cả compiler lẫn runtime. IDE như IntelliJ IDEA hoặc VS Code là trình soạn thảo/môi trường phát triển **khác với JDK**; IDE có thể tự tải/chọn JDK nhưng bản thân IDE không đồng nghĩa với JDK.
+When learning and building core Java applications, **installing a JDK** is the easiest choice because it includes both the compiler and the runtime. An IDE such as IntelliJ IDEA or VS Code is an editor/development environment **distinct from the JDK**; an IDE may download or select a JDK automatically, but the IDE itself is not synonymous with the JDK.
 
-### 4.2. JVM — thành phần thực thi trong runtime
+### 4.2. JVM — The Execution Component in the Runtime
 
-**JVM thực thi bytecode** và quản lý những khía cạnh như tải class, bộ nhớ, ngoại lệ; JVM hiện đại có thể kết hợp thông dịch và JIT. Nó không phải compiler `javac`. Lệnh `java` khởi động runtime có JVM cùng thư viện cần thiết. Bản JVM phải phù hợp hệ điều hành, CPU và phiên bản class file, còn bytecode thường có thể được chia sẻ giữa nhiều bản JVM tương thích.
+**The JVM executes bytecode** and manages aspects such as class loading, memory, and exceptions; modern JVMs may combine interpretation and JIT compilation. It is not the `javac` compiler. The `java` command starts a runtime containing a JVM along with the needed libraries. A JVM build must match the operating system, CPU, and class file version, while bytecode can generally be shared across many compatible JVMs.
 
-Cài một JDK phổ biến thường đã có runtime và JVM để chạy ví dụ; người học không cần tải JVM riêng chỉ vì nhìn thấy các khái niệm JDK/JVM trong sơ đồ.
+Installing a common JDK usually already includes the runtime and JVM to run examples; learners do not need to download a separate JVM just because they see JDK/JVM concepts in diagrams.
 
-### 4.3. JRE — hiểu đúng theo bối cảnh phiên bản
+### 4.3. JRE — Understanding It in Version Context
 
-**JRE** (*Java Runtime Environment*) là cách gọi quen thuộc cho bộ thành phần **chạy** ứng dụng: VM và các thư viện/tệp runtime cần thiết, nhưng không yêu cầu đầy đủ công cụ phát triển như `javac`.
+**JRE** (*Java Runtime Environment*) is a familiar term for the set of components to **run** an application: the VM and required runtime libraries/files, without requiring full development tools like `javac`.
 
-- Ở nhiều bản phát hành Java cũ (đặc biệt Java 8), người học thường gặp **gói JRE riêng** hoặc thư mục `jre` nằm trong JDK.
-- Từ thế hệ Java module hiện đại (Java 9+), cách đóng gói thay đổi. **Không nên mặc định** mọi JDK đều có một thư mục `jre` riêng hoặc có bộ cài JRE độc lập.
-- Một số nhà cung cấp vẫn phân phối runtime-only; ứng dụng cũng có thể đóng gói runtime image được tạo bằng `jlink`. Vì vậy, nói tuyệt đối “Java mới không còn JRE” là **không chính xác**.
+- In many older Java releases (especially Java 8), learners often encountered a **separate JRE package** or a `jre` folder inside the JDK.
+- Starting from the modern modular Java generation (Java 9+), packaging changed. **Do not assume** every JDK has a separate `jre` directory or a standalone JRE installer.
+- Some vendors still distribute runtime-only builds; applications can also bundle a runtime image created with `jlink`. Therefore, saying flatly “modern Java no longer has a JRE” is **inaccurate**.
 
-Phân biệt theo *khả năng*: máy có **`java` để chạy** chưa chắc có **`javac` để biên dịch**. Máy cài JDK đúng cách thì thông thường có cả hai.
+Distinguish by *capability*: a machine that has **`java` to run** does not necessarily have **`javac` to compile**. A machine with a properly installed JDK normally has both.
 
-## 5. Thực hành: kiểm tra, biên dịch và chạy chương trình
+## 5. Hands-On: Checking, Compiling, and Running a Program
 
-Ví dụ dùng **JDK 17 trở lên** để thống nhất các lệnh. Bạn có thể dùng JDK mới hơn, nhưng cần chọn phiên bản mà dự án/khóa học yêu cầu.
+The examples use **JDK 17 or later** to keep commands consistent. You can use a newer JDK, but choose the version required by your project/course.
 
-### Bước 1 — Kiểm tra công cụ trên máy
+### Step 1 — Check the Tools on Your Machine
 
-Mở terminal và chạy:
+Open a terminal and run:
 
 ~~~bash
 java -version
 javac -version
 ~~~
 
-Lệnh đầu xem runtime/launcher Java đang được tìm thấy; lệnh sau xem compiler Java đang được tìm thấy. Kết quả thực tế phụ thuộc bản JDK/bản phân phối bạn cài. **Hai lệnh không bắt buộc trỏ đến cùng một bản cài**, vì `PATH` có thể chứa nhiều JDK/JRE; do đó cần kiểm tra khi thấy phiên bản lệch nhau.
+The first command shows the Java runtime/launcher currently found; the second shows the Java compiler currently found. Actual output depends on the JDK/distribution you installed. **The two commands do not necessarily point to the same installation**, because `PATH` may contain multiple JDKs/JREs; therefore, check whenever you see mismatched versions.
 
-Bạn cũng có thể chạy:
+You can also run:
 
 ~~~bash
 java --version
 javac --version
 ~~~
 
-Cú pháp `--version` áp dụng cho các JDK hiện đại. Với môi trường Java cũ, dạng `-version` quen thuộc hơn.
+The `--version` syntax applies to modern JDKs. For older Java environments, the `-version` form is more common.
 
-**Nếu `java` có nhưng `javac` không tồn tại:** bạn có thể đang dùng runtime-only, hoặc `PATH` đang chỉ tới thư mục không chứa compiler. Không kết luận ngay là “Java hỏng”.
+**If `java` exists but `javac` does not:** you may be using a runtime-only installation, or `PATH` may be pointing to a directory without the compiler. Do not immediately conclude that “Java is broken”.
 
-### Bước 2 — Viết một tệp nguồn tự kiểm tra runtime
+### Step 2 — Write a Source File That Inspects the Runtime
 
-Tạo tệp **JavaEnvironmentDemo.java** (đúng chữ hoa/thường với tên public class) và chép mã sau:
+Create the file **JavaEnvironmentDemo.java** (matching the exact capitalization of the public class name) and copy the following code:
 
 ~~~java
 public class JavaEnvironmentDemo {
@@ -148,17 +148,17 @@ public class JavaEnvironmentDemo {
 }
 ~~~
 
-Điểm cần hiểu:
+Points to understand:
 
-- `main(String[] args)` là điểm bắt đầu của chương trình theo cách chạy class truyền thống.
-- `System.getProperty("java.version")` mô tả **môi trường đang chạy chương trình**, không chứng minh compiler nào đã tạo tệp `.class`.
-- `java.vm.name` cho biết tên VM hiện tại; `java.vendor` cho biết nhà cung cấp được runtime công bố.
-- `java.home` là **đường dẫn runtime đang sử dụng**; không nhất thiết bằng biến môi trường `JAVA_HOME`.
-- `args` chứa các đối số sau tên class khi gọi lệnh `java`.
+- `main(String[] args)` is the program's entry point in traditional class execution mode.
+- `System.getProperty("java.version")` describes the **environment currently running the program**, not which compiler built the `.class` file.
+- `java.vm.name` shows the current VM name; `java.vendor` shows the vendor reported by the runtime.
+- `java.home` is the **runtime path currently in use**; it is not necessarily equal to the `JAVA_HOME` environment variable.
+- `args` holds the arguments after the class name when invoking the `java` command.
 
-### Bước 3 — Biên dịch rồi chạy
+### Step 3 — Compile and Then Run
 
-Trong thư mục chứa tệp nguồn:
+In the directory containing the source file:
 
 ~~~bash
 mkdir out
@@ -166,79 +166,79 @@ javac -encoding UTF-8 -d out JavaEnvironmentDemo.java
 java -cp out JavaEnvironmentDemo VietNam
 ~~~
 
-Trước tiên, `mkdir out` tạo thư mục đích `out` (chỉ cần làm khi thư mục chưa có). Vì mã nguồn có chữ tiếng Việt, `-encoding UTF-8` giúp `javac` đọc đúng tệp UTF-8, kể cả trên máy mà encoding mặc định khác UTF-8; tùy chọn này **không** tự đổi encoding terminal. `javac -d out` ghi tệp `.class` vào thư mục đích đã tồn tại; khi có `package`, `javac` có thể tạo các thư mục con phù hợp. `java -cp out JavaEnvironmentDemo` tìm class trong đó rồi chạy phương thức `main`.
+First, `mkdir out` creates the destination directory `out` (only needed if the directory does not exist yet). Because the source code contains Vietnamese characters, `-encoding UTF-8` helps `javac` read the UTF-8 file properly, even on machines whose default encoding is not UTF-8; this option **does not** automatically change the terminal encoding. `javac -d out` writes the `.class` file into the existing destination directory; when there is a `package`, `javac` can create the corresponding subdirectories. `java -cp out JavaEnvironmentDemo` finds the class there and runs the `main` method.
 
-Đầu ra minh họa, phần phiên bản và đường dẫn **sẽ khác giữa các máy**:
+Illustrative output—the version and path parts **will differ between machines**:
 
 ~~~text
 Xin chào, VietNam!
-Java version : <phiên bản đang chạy>
-Java vendor  : <nhà cung cấp runtime>
-VM name      : <tên Java VM>
-Runtime home : <đường dẫn runtime>
+Java version : <running version>
+Java vendor  : <runtime vendor>
+VM name      : <Java VM name>
+Runtime home : <runtime path>
 Số tham số   : 1
 ~~~
 
-Các chuỗi trong dấu ngoặc nhọn ở ví dụ đầu ra chỉ là **chỗ giữ chỗ**, không phải văn bản Java thực sự in ra.
+The strings in angle brackets in the output example are only **placeholders**, not literal text Java prints.
 
-Chạy lại không truyền đối số:
+Run again without passing any arguments:
 
 ~~~bash
 java -cp out JavaEnvironmentDemo
 ~~~
 
-Lúc này chương trình in `Xin chào, Java!` và `Số tham số   : 0`. Cùng tệp `.class` nhưng đầu ra khác do **đối số runtime**.
+This time the program prints `Xin chào, Java!` and `Số tham số   : 0`. Same `.class` file, different output due to **runtime arguments**.
 
-### Bước 4 — Hai cách khởi động khác nhau
+### Step 4 — Two Different Ways to Launch
 
-Trên JDK 11+, bạn cũng có thể chạy `java JavaEnvironmentDemo.java VietNam` theo *source-file mode*. Launcher biên dịch nguồn phục vụ lần chạy; không cần lệnh `javac` riêng. Với `java -cp out JavaEnvironmentDemo VietNam`, launcher tìm **class đã biên dịch** trong `out`. Cả hai vẫn sử dụng runtime Java; chúng khác nhau ở **đầu vào dành cho launcher** và bước chuẩn bị bytecode.
+On JDK 11+, you can also run `java JavaEnvironmentDemo.java VietNam` using *source-file mode*. The launcher compiles the source for that run; no separate `javac` command is needed. With `java -cp out JavaEnvironmentDemo VietNam`, the launcher finds the **compiled class** in `out`. Both still use the Java runtime; they differ in the **input given to the launcher** and the bytecode preparation step.
 
-### Bước 5 — Khi cần đóng gói JAR
+### Step 5 — When You Need to Package a JAR
 
-Sau khi biên dịch vào thư mục `out`, có thể tạo JAR chạy được:
+After compiling into the `out` directory, you can create a runnable JAR:
 
 ~~~bash
 jar --create --file demo.jar --main-class JavaEnvironmentDemo -C out .
 java -jar demo.jar VietNam
 ~~~
 
-Lệnh `jar` nằm trong bộ công cụ JDK. Tham số `--main-class` tạo thông tin entry point trong manifest; nếu JAR không xác định main class hợp lệ, `java -jar` sẽ không biết bắt đầu ở đâu. Đây là JAR ứng dụng đơn giản **không cần thư viện ngoài**; với dự án có dependency, phải đóng gói hoặc cung cấp chúng bằng cách phù hợp.
+The `jar` command is part of the JDK toolkit. The `--main-class` option writes entry point information into the manifest; if a JAR does not specify a valid main class, `java -jar` will not know where to start. This is a simple application JAR **without external libraries**; for a project with dependencies, you must package or provide them appropriately.
 
-## 6. Máy chạy ứng dụng cần gì?
+## 6. What Does the Machine Running the Application Need?
 
-**Một chương trình chỉ dùng API Java SE** cần runtime phù hợp với bytecode và API mà chương trình yêu cầu. Điều này **không bắt buộc** máy người dùng cuối phải có cả compiler hay IDE.
+**A program that only uses Java SE APIs** needs a runtime compatible with the bytecode and APIs the program requires. This **does not require** the end user's machine to have a compiler or an IDE.
 
-| Tình huống | Cần gì? | Không bắt buộc phải có |
+| Situation | What is needed? | Not required |
 | --- | --- | --- |
-| Viết, biên dịch Java source | JDK thích hợp, editor/IDE nếu muốn | Spring, Maven cho ví dụ nhỏ |
-| Chạy `.class` đã biên dịch | Runtime Java tương thích; đúng classpath và entry point | `javac` trên máy chạy |
-| Chạy JAR ứng dụng | Runtime tương thích; JAR đúng manifest và đủ dependency | IDE hoặc mã nguồn |
-| Chạy bằng runtime đóng gói kèm app | Runtime image chứa module/API app cần, cấu hình khởi chạy | JDK đầy đủ ở máy người dùng |
+| Writing and compiling Java source | Appropriate JDK, editor/IDE if desired | Spring, Maven for small examples |
+| Running compiled `.class` files | Compatible Java runtime; proper classpath and entry point | `javac` on the target machine |
+| Running an application JAR | Compatible runtime; JAR with valid manifest and all dependencies | IDE or source code |
+| Running with a runtime bundled with the app | Runtime image containing needed modules/APIs, launch configuration | Full JDK on the user's machine |
 
-Một cách triển khai thực tế là **máy phát triển/CI dùng JDK để build**, còn máy production dùng runtime tương thích hoặc runtime image đóng gói. Ứng dụng có thư viện ngoài, native library, biến môi trường, tệp cấu hình, DB hoặc network còn phải đáp ứng các phụ thuộc ấy: câu “write once, run anywhere” **không** loại bỏ mọi khác biệt hệ điều hành và hạ tầng.
+A practical deployment pattern is **developer/CI machines use a JDK to build**, while production machines use a compatible runtime or bundled runtime image. Applications with external libraries, native libraries, environment variables, config files, databases, or networks must also satisfy those dependencies: the phrase “write once, run anywhere” **does not** eliminate every operating system and infrastructure difference.
 
-## 7. Phiên bản JDK và tương thích khi chạy
+## 7. JDK Versions and Runtime Compatibility
 
-Khi kiểm tra một máy hoặc cấu hình CI, cần tách **JDK đang biên dịch**, **mức tương thích đã build** và **runtime thật sự chạy**. Lệnh `javac -version` và `java -version` có thể báo hai phiên bản khác nhau nếu `PATH` trỏ đến hai bản cài.
+When inspecting a machine or CI configuration, separate the **JDK doing the compiling**, the **compatibility level built for**, and the **runtime actually executing**. The `javac -version` and `java -version` commands can report two different versions if `PATH` points to two installations.
 
-| Tình huống | Điều cần kiểm tra |
+| Situation | What to check |
 | --- | --- |
-| Build trên JDK mới để chạy Java 17 | Khi compiler hỗ trợ, dùng `javac --release 17 -encoding UTF-8 -d out JavaEnvironmentDemo.java` để nhắm cú pháp, class file và API chuẩn của Java 17 |
-| Chạy class trên JVM cũ hơn đích biên dịch | Có thể gặp `UnsupportedClassVersionError`; kiểm tra phiên bản runtime và mức class file, không chữa bằng cách đổi tên tệp |
-| Compiler và launcher đến từ hai bản JDK khác nhau | Xác nhận vị trí thực của `java`, `javac` và cấu hình build thay vì chỉ xem `JAVA_HOME` |
-| Có thư viện ngoài hoặc thành phần native | `--release` không tự chứng minh mọi dependency và điều kiện môi trường chạy được trên runtime đích; cần chạy thử bản phân phối thực tế |
+| Building on a newer JDK to run on Java 17 | When the compiler supports it, use `javac --release 17 -encoding UTF-8 -d out JavaEnvironmentDemo.java` to target Java 17 syntax, class files, and standard APIs |
+| Running a class on a JVM older than the compilation target | May encounter `UnsupportedClassVersionError`; check the runtime version and class file level rather than renaming files |
+| Compiler and launcher come from two different JDK installations | Verify the actual locations of `java`, `javac`, and build configuration instead of looking only at `JAVA_HOME` |
+| External libraries or native components are present | `--release` does not prove all dependencies and environmental conditions work on the target runtime; test the actual distribution |
 
-Phiên bản được chọn phải khớp yêu cầu của dự án, thư viện, CI và môi trường triển khai. Để xem **môi trường đang thực thi**, sử dụng `java -version` ngay trên máy đích hoặc các property `java.version`, `java.home` trong chương trình mẫu; không suy luận từ máy dùng để biên dịch.
+The chosen version must match the requirements of the project, libraries, CI, and deployment environment. To check the **actual executing environment**, run `java -version` directly on the target machine or inspect the `java.version` and `java.home` properties in the sample program; do not infer it from the build machine.
 
-## 8. JAVA_HOME, PATH và classpath: ba vai trò khác nhau
+## 8. JAVA_HOME, PATH, and Classpath: Three Different Roles
 
-| Tên | Ý nghĩa | Lỗi thường gặp |
+| Name | Meaning | Common Mistake |
 | --- | --- | --- |
-| `JAVA_HOME` | Biến môi trường thường được công cụ build dùng để tìm thư mục JDK | Trỏ tới JDK khác với JDK mà terminal đang dùng |
-| `PATH` | Danh sách thư mục hệ điều hành tìm kiếm lệnh `java`, `javac`… | `java` và `javac` nằm ở hai bộ cài khác nhau |
-| **Classpath** (`-cp`/`--class-path`) | Nơi Java tìm class và một số resource của ứng dụng | Biên dịch xong nhưng runtime không tìm thấy main class hoặc dependency |
+| `JAVA_HOME` | Environment variable often used by build tools to locate the JDK directory | Pointing to a different JDK than the one the terminal is using |
+| `PATH` | List of directories the OS searches for commands like `java`, `javac`… | `java` and `javac` come from two different installations |
+| **Classpath** (`-cp`/`--class-path`) | Where Java looks for application classes and certain resources | Compilation succeeds, but the runtime cannot find the main class or a dependency |
 
-Một số kiểm tra vị trí lệnh:
+Some commands to inspect tool locations:
 
 **Windows PowerShell:**
 
@@ -248,7 +248,7 @@ where.exe javac
 $env:JAVA_HOME
 ~~~
 
-**macOS / Linux (terminal shell phổ biến):**
+**macOS / Linux (common terminal shells):**
 
 ~~~bash
 command -v java
@@ -256,60 +256,60 @@ command -v javac
 echo "$JAVA_HOME"
 ~~~
 
-Bạn có thể cài nhiều JDK trên một máy. Các lệnh kiểm tra trên chỉ hỗ trợ chẩn đoán; **không tự sửa môi trường**. Đừng vội thay `PATH` cho toàn hệ thống khi dự án khác vẫn cần một phiên bản cũ.
+You can have multiple JDKs installed on one machine. These inspection commands only help diagnose; **they do not fix the environment automatically**. Do not rush to change system-wide `PATH` when another project still needs an older version.
 
-Ví dụ phân biệt classpath và đường dẫn tệp: sau khi `javac -d out` tạo `out/JavaEnvironmentDemo.class`, ta chạy:
+An example distinguishing classpath and file paths: after `javac -d out` produces `out/JavaEnvironmentDemo.class`, you run:
 
 ~~~bash
 java -cp out JavaEnvironmentDemo
 ~~~
 
-Không chạy bằng tên `JavaEnvironmentDemo.class` trong vị trí tên class. `java` cần **tên lớp** (hoặc tên lớp có package), không phải phần mở rộng `.class`.
+Do not run with `JavaEnvironmentDemo.class` in the class name position. `java` expects a **class name** (or a package-qualified class name), not the `.class` extension.
 
-Nếu source có `package demo;` và class được biên dịch thành `out/demo/Main.class` thì entry point là **`demo.Main`** và lệnh thường là `java -cp out demo.Main`. Đây là cơ chế tìm lớp, không phải một công cụ khác với JVM.
+If the source has `package demo;` and the class is compiled to `out/demo/Main.class`, then the entry point is **`demo.Main`** and the command is typically `java -cp out demo.Main`. This is the class lookup mechanism, not a different tool from the JVM.
 
-## 9. Khi gặp lỗi: chẩn đoán môi trường có thứ tự
+## 9. When Errors Occur: Diagnose the Environment Methodically
 
-Đầu tiên, chạy `java -version` và `javac -version`, sau đó tìm vị trí thật của hai lệnh bằng `where.exe` (Windows) hoặc `command -v` (macOS/Linux). So sánh kết quả với `JAVA_HOME` và JDK mà IDE/công cụ build chọn. Khi compiler và runtime đã được xác định, mới xem `-cp`, tên class và dependency.
+First, run `java -version` and `javac -version`, then find the actual locations of both commands with `where.exe` (Windows) or `command -v` (macOS/Linux). Compare the results against `JAVA_HOME` and the JDK chosen by your IDE/build tool. Once the compiler and runtime are confirmed, then inspect `-cp`, the class name, and dependencies.
 
-| Hiện tượng | Câu hỏi chẩn đoán hữu ích |
+| Symptom | Helpful Diagnostic Questions |
 | --- | --- |
-| Có `java` nhưng không có `javac` | Máy chỉ có runtime hay `PATH` đang trỏ sai thư mục `bin` của JDK? |
-| Terminal dùng Java A nhưng IDE build bằng Java B | IDE/Gradle chọn JDK nào? `JAVA_HOME` có bị ưu tiên khác với `PATH` không? |
-| Build thành công, chạy báo `UnsupportedClassVersionError` | Class file cần phiên bản runtime nào; máy chạy đang dùng `java -version` nào? |
-| `Could not find or load main class` | Lệnh `-cp` trỏ đến thư mục gốc chứa package chưa, và có dùng tên class đầy đủ thay vì `.class` không? |
-| Chạy JAR nhưng thiếu class ở runtime | Dependency có thực sự được đóng gói hoặc đưa vào classpath/module path không? |
+| `java` exists, but `javac` does not | Does the machine only have a runtime, or is `PATH` pointing to the wrong JDK `bin` directory? |
+| Terminal uses Java A, but IDE builds with Java B | Which JDK is the IDE/Gradle selecting? Does `JAVA_HOME` take precedence differently from `PATH`? |
+| Build succeeds, running throws `UnsupportedClassVersionError` | Which runtime version does the class file require, and which `java -version` is the target machine using? |
+| `Could not find or load main class` | Does `-cp` point to the root directory containing the package, and are you using the fully qualified class name instead of `.class`? |
+| Running a JAR fails with a missing class at runtime | Was the dependency actually packaged or placed on the classpath/module path? |
 
-Một lỗi có thể xuất hiện ở bước khởi động hoặc tải class chứ không phải ở việc Java SE/JDK được “cài sai”. Hãy dựa vào thông báo cụ thể để xử lý đúng thành phần và giữ cấu hình các dự án khác trên máy.
+An error can happen at the launch or class-loading stage rather than because Java SE/JDK was “installed wrong”. Use the specific message to address the right component and preserve the setup for other projects on the machine.
 
-## 10. Những hiểu lầm cần tránh
+## 10. Misconceptions to Avoid
 
-- **JDK không phải JVM.** JDK là bộ công cụ phát triển có runtime; JVM là thành phần thực thi bytecode.
-- **Java SE không phải tên bộ cài của một hãng.** Nó là nền tảng/API chuẩn; một bản JDK cụ thể cung cấp triển khai.
-- **Có lệnh `java` không bảo đảm có `javac`.** Hãy kiểm tra cả khả năng chạy lẫn biên dịch theo yêu cầu của máy.
-- **“Java hiện đại hoàn toàn không còn JRE” là khẳng định quá rộng.** Có nhiều hình thức đóng gói runtime, gồm runtime-only và image tùy biến bằng `jlink`; không nên giả định phải có thư mục `jre` độc lập.
-- **IDE và `JAVA_HOME` không tự quyết định kết quả của mọi terminal.** Kiểm tra đường dẫn `java`/`javac` được gọi, JDK của dự án và runtime đích.
+- **JDK is not JVM.** The JDK is the development toolkit that includes a runtime; the JVM is the component that executes bytecode.
+- **Java SE is not the name of one vendor's installer.** It is the standard platform/API; a specific JDK provides an implementation.
+- **Having the `java` command does not guarantee having `javac`.** Check both running and compiling capabilities according to the machine's role.
+- **“Modern Java has completely removed the JRE” is too broad a claim.** There are multiple runtime packaging forms, including runtime-only distributions and custom images via `jlink`; do not assume there must be a standalone `jre` folder.
+- **The IDE and `JAVA_HOME` do not automatically dictate every terminal's outcome.** Check the actual `java`/`javac` path being invoked, the project's JDK, and the target runtime.
 
-## 11. Bài tập tự luyện có lời giải định hướng
+## 11. Self-Practice Exercises with Guided Solutions
 
-**Bài 1 — Gọi đúng tên:** Một máy chỉ cần chạy `demo.jar` đã build. Máy đó bắt buộc phải cài full JDK không? Vì sao?
+**Exercise 1 — Use the right name:** A machine only needs to run a prebuilt `demo.jar`. Must that machine install a full JDK? Why?
 
-*Định hướng:* Không bắt buộc. Cần runtime tương thích, có đủ thư viện và dependency, cùng entry point đúng. Máy build mới cần compiler/JDK.
+*Guidance:* Not required. It needs a compatible runtime, the necessary libraries and dependencies, and a valid entry point. Only the build machine needs the compiler/JDK.
 
-**Bài 2 — Giải thích hai lệnh:** So sánh `javac -encoding UTF-8 -d out JavaEnvironmentDemo.java` với `java -cp out JavaEnvironmentDemo`.
+**Exercise 2 — Explain two commands:** Compare `javac -encoding UTF-8 -d out JavaEnvironmentDemo.java` with `java -cp out JavaEnvironmentDemo`.
 
-*Định hướng:* Lệnh một tạo bytecode `.class`; lệnh hai khởi động runtime để tìm và thực thi class đã biên dịch. Không dùng phần mở rộng `.class` trong tên entry point.
+*Guidance:* The first command produces `.class` bytecode; the second starts the runtime to locate and execute the compiled class. Do not include the `.class` extension in the entry point name.
 
-**Bài 3 — Phân tích môi trường:** `java -version` báo phiên bản A, `javac -version` báo phiên bản B. Có thể kết luận máy thiếu JDK không?
+**Exercise 3 — Analyze an environment:** `java -version` reports version A, while `javac -version` reports version B. Can you conclude the machine lacks a JDK?
 
-*Định hướng:* Chưa. Có thể cả hai được cài nhưng `PATH` ưu tiên hai vị trí khác nhau. Kiểm tra đường dẫn thực tế của cả hai lệnh và mục tiêu build/runtime.
+*Guidance:* Not yet. Both might be installed while `PATH` prioritizes two different locations. Check the actual paths of both commands and the build/runtime targets.
 
-**Bài 4 — Suy luận lỗi:** Bạn biên dịch bằng compiler mới, đưa tệp `.class` sang máy chạy Java cũ và nhận `UnsupportedClassVersionError`. Có nên đổi tên tệp `.class` để khắc phục?
+**Exercise 4 — Reason about an error:** You compile with a newer compiler, copy the `.class` file to a machine running an older Java, and get `UnsupportedClassVersionError`. Should you rename the `.class` file to fix it?
 
-*Định hướng:* Không. Đây là vấn đề định dạng/phiên bản bytecode. Chọn runtime tương thích hoặc biên dịch cho release thấp hơn mà code và thư viện thực sự hỗ trợ.
+*Guidance:* No. This is a bytecode format/version issue. Choose a compatible runtime or compile for a lower release that your code and libraries actually support.
 
-**Bài 5 — Thử nghiệm:** Chạy ví dụ `JavaEnvironmentDemo` bằng hai cách: (a) `javac` rồi `java -cp` và (b) `java JavaEnvironmentDemo.java`. Ghi lại điểm giống nhau về nội dung đầu ra và điểm khác nhau về cách launcher chuẩn bị mã chạy.
+**Exercise 5 — Experiment:** Run the `JavaEnvironmentDemo` example in two ways: (a) `javac` then `java -cp`, and (b) `java JavaEnvironmentDemo.java`. Record what is the same in the output content and what differs in how the launcher prepares the code to run.
 
-### Tự kiểm tra trước khi chuyển bài
+### Self-Check Before Moving On
 
-Bạn đã nắm bài nếu có thể giải thích bằng lời của mình: **Java là ngôn ngữ; Java SE là nền tảng chuẩn; JDK giúp xây dựng và cũng chạy chương trình; JVM thực thi bytecode; runtime/JRE là tập thành phần cần để chạy**. Khi mở terminal, bạn biết kiểm tra `java`/`javac`, chạy ví dụ, nhận diện classpath và biết tại sao phiên bản build và runtime phải tương thích.
+You have mastered this lesson if you can explain in your own words: **Java is the language; Java SE is the standard platform; the JDK lets you build and also run programs; the JVM executes bytecode; the runtime/JRE is the set of components needed to run**. When opening a terminal, you know how to check `java`/`javac`, run an example, recognize the classpath, and explain why build and runtime versions must be compatible.

@@ -1,17 +1,17 @@
-# ResourceBundle.getLocale(): xác định bundle thực sự được nạp trong Java
+# ResourceBundle.getLocale(): Identifying the Actually Loaded Bundle in Java
 
-## 1. Vấn đề: locale yêu cầu chưa chắc là locale được tải
+## 1. The Problem: The Requested Locale Is Not Always the Loaded Locale
 
-Trong ứng dụng đa ngôn ngữ, một lời gọi như:
+In a multilingual application, a call such as:
 
 ```java
 Locale requested = Locale.forLanguageTag("fr-CA");
 ResourceBundle bundle = ResourceBundle.getBundle("Messages", requested);
 ```
 
-không có nghĩa JVM chắc chắn đã tìm thấy bundle dành riêng cho tiếng Pháp tại Canada (`fr-CA`). Khi tệp tương ứng không tồn tại, `ResourceBundle` có thể dùng bundle ít cụ thể hơn, locale mặc định của JVM hoặc bundle gốc tùy cơ chế tìm kiếm.
+does not guarantee the JVM definitely found a bundle dedicated to Canadian French (`fr-CA`). When the corresponding file does not exist, `ResourceBundle` may use a less specific bundle, the JVM's default locale, or the root bundle depending on the lookup mechanism.
 
-**`ResourceBundle.getLocale()` cho biết locale gắn với đối tượng bundle đã được `getBundle(...)` lựa chọn và trả về.** Đây là cách trực tiếp để biết kết quả tra cứu bundle thực tế, thay vì chỉ biết locale mà người gọi đã yêu cầu.
+**`ResourceBundle.getLocale()` reports the locale attached to the bundle object selected and returned by `getBundle(...)`.** It is the direct way to see the actual bundle lookup outcome, rather than knowing only what the caller asked for.
 
 ```java
 Locale requested = Locale.forLanguageTag("fr-CA");
@@ -19,17 +19,17 @@ ResourceBundle bundle = ResourceBundle.getBundle("Messages", requested);
 Locale resolved = bundle.getLocale();
 ```
 
-Ở đây:
+Here:
 
-- `requested` là **locale người dùng/ứng dụng yêu cầu**.
-- `resolved` là **locale của bundle được tìm thấy**; nó có thể bằng hoặc khác `requested`.
-- `bundle.getString("key")` tra cứu một khóa trong bundle hiện tại, và có thể tiếp tục tìm trong các **parent bundles** nếu bundle hiện tại không chứa khóa đó.
+- `requested` is the **locale requested by the user/application**.
+- `resolved` is the **locale of the bundle found**; it may match or differ from `requested`.
+- `bundle.getString("key")` looks up a key in the current bundle, and may continue searching in **parent bundles** if the current bundle does not contain that key.
 
-Sự phân biệt cuối cùng rất quan trọng: `getLocale()` nhận diện **bundle ở đầu chuỗi được trả về**, không nhất thiết là bundle chứa từng khóa riêng lẻ. Chúng ta sẽ kiểm chứng điều đó bằng ví dụ chạy được.
+This last distinction is vital: `getLocale()` identifies **the bundle at the head of the returned chain**, not necessarily the bundle containing each individual key. We will verify this with a runnable example.
 
-## 2. Cơ chế nạp và fallback liên quan đến `getLocale()`
+## 2. Loading and Fallback Mechanics Related to `getLocale()`
 
-Giả sử có các tài nguyên cùng `baseName` là `Messages`:
+Suppose we have these resources sharing `baseName` `Messages`:
 
 ```text
 Messages.properties
@@ -37,59 +37,59 @@ Messages_fr.properties
 Messages_en_US.properties
 ```
 
-Một số kết quả minh họa:
+Illustrative outcomes:
 
-| Locale được yêu cầu | Bundle khả dụng phù hợp | `bundle.getLocale()` |
+| Requested Locale | Matching Available Bundle | `bundle.getLocale()` |
 |---|---|---|
 | `en-US` | `Messages_en_US.properties` | `en-US` |
 | `fr-CA` | `Messages_fr.properties` | `fr` |
-| `de-DE` | Chỉ bundle gốc nếu **không dùng fallback sang JVM default** | `Locale.ROOT` |
-| `en` | Chỉ bundle gốc nếu không có `Messages_en.properties` và không dùng default fallback | `Locale.ROOT` |
+| `de-DE` | Root bundle only if **not falling back to JVM default** | `Locale.ROOT` |
+| `en` | Root bundle only if `Messages_en.properties` is absent and no default fallback | `Locale.ROOT` |
 | `Locale.ROOT` | `Messages.properties` | `Locale.ROOT` |
 
-Tên tệp dùng dấu gạch dưới (`_`) theo quy ước tài nguyên Java; mã language tag dùng dấu gạch nối (`-`). Ví dụ `en-US` ánh xạ đến tên bundle `Messages_en_US.properties`. Để lấy tên language tag từ một `Locale`, dùng `toLanguageTag()`.
+Filenames use underscores (`_`) per Java resource conventions; language tags use hyphens (`-`). For example, `en-US` maps to bundle filename `Messages_en_US.properties`. To obtain the language tag string from a `Locale`, call `toLanguageTag()`.
 
-Trong tìm kiếm mặc định, Java sử dụng các **candidate locales** theo mức độ cụ thể, chẳng hạn với `fr-CA` là `fr_CA`, `fr`, rồi bundle gốc. Đối với locale có script hoặc variant, danh sách ứng viên đầy đủ phức tạp hơn; không nên tự dựng tên bằng cách bỏ một phần chuỗi theo cảm tính.
+During default lookup, Java uses **candidate locales** ordered by specificity—for instance, for `fr-CA` they are `fr_CA`, `fr`, and then the root bundle. For locales with a script or variant, the full candidate list is more involved; do not build names manually by arbitrarily dropping string segments.
 
-**Hai loại fallback phải được phân biệt:**
+**Two kinds of fallback must be distinguished:**
 
-1. **Candidate fallback**: đi từ locale cụ thể về locale tổng quát hơn, ví dụ `fr-CA` → `fr` → root trong cùng lượt tra cứu.
-2. **Fallback sang default locale của JVM**: khi không tìm được bundle phù hợp riêng cho locale đích (ngoại trừ root), `ResourceBundle.getBundle` mặc định có thể thử `Locale.getDefault()` trước khi trả bundle gốc.
+1. **Candidate fallback**: moving from a specific locale to a more general one, e.g., `fr-CA` → `fr` → root within the same lookup pass.
+2. **Fallback to the JVM's default locale**: when no dedicated bundle is found for the target locale (excluding root), default `ResourceBundle.getBundle` may try `Locale.getDefault()` before returning the root bundle.
 
-Do đó, nếu JVM có default locale `en-US` và tồn tại `Messages_en_US.properties`, yêu cầu `de-DE` có thể trả bundle `en-US` thay vì root, **ngay cả khi tồn tại `Messages.properties`**. Đây là lý do cần đo `getLocale()` thay vì tự suy luận theo tên tệp.
+Consequently, if the JVM has default locale `en-US` and `Messages_en_US.properties` exists, requesting `de-DE` can return the `en-US` bundle instead of root, **even when `Messages.properties` exists**. That is why you should inspect `getLocale()` rather than guessing from filenames.
 
-Cơ chế này được điều chỉnh bằng `ResourceBundle.Control` khi dùng các overload hỗ trợ Control. Với ví dụ trên classpath, ta có thể dùng `Control.getNoFallbackControl(...)` để **ngăn việc tìm tiếp theo default locale**, giúp thí nghiệm có kết quả ổn định. Điều đó không tắt chuỗi parent bundles cho các khóa dữ liệu.
+This mechanism is controlled by `ResourceBundle.Control` when using `Control`-accepting overloads. In classpath examples, we can use `Control.getNoFallbackControl(...)` to **prevent continuing to the default locale**, giving the experiment deterministic results. Doing so does not disable the parent bundle chain for data keys.
 
-## 3. Ví dụ Java 17+ hoàn chỉnh, chạy được không phụ thuộc default locale
+## 3. Complete Runnable Java 17+ Example Independent of the Default Locale
 
-Tạo bốn tệp trong **cùng một thư mục**. Ba tệp `.properties` là dữ liệu tài nguyên; tệp `.java` là chương trình gọi và in kết quả.
+Create four files in the **same directory**. Three `.properties` files hold resource data; the `.java` file runs the calls and prints results.
 
-### Tệp 1 — `Messages.properties`: bundle gốc
+### File 1 — `Messages.properties`: Root Bundle
 
 ```properties
 hello=Root hello
 shared=Shared from root
 ```
 
-`Messages.properties` không có phần hậu tố locale; nếu được nạp, bundle tương ứng có `Locale.ROOT`.
+`Messages.properties` has no locale suffix; when loaded, its corresponding bundle has `Locale.ROOT`.
 
-### Tệp 2 — `Messages_fr.properties`: tiếng Pháp chung
+### File 2 — `Messages_fr.properties`: General French
 
 ```properties
 hello=Bonjour
 ```
 
-Đây là bundle `fr`, **không phải** `fr-CA`. Nó cố tình không có khóa `shared` để minh họa việc kế thừa khóa từ parent bundle.
+This is bundle `fr`, **not** `fr-CA`. It intentionally omits key `shared` to demonstrate inheriting keys from a parent bundle.
 
-### Tệp 3 — `Messages_en_US.properties`: tiếng Anh tại Hoa Kỳ
+### File 3 — `Messages_en_US.properties`: US English
 
 ```properties
 hello=Howdy
 ```
 
-Bundle này cũng cố tình thiếu `shared`. Không có `Messages_en.properties`, vì vậy yêu cầu language đơn giản `en` không tự tìm “chiều lên” `en-US` khi fallback sang default bị tắt.
+This bundle also intentionally omits `shared`. There is no `Messages_en.properties`, so requesting plain language `en` does not search "upward/downward" into more specific `en-US` when default fallback is disabled.
 
-### Tệp 4 — `BundleLocaleDemo.java`
+### File 4 — `BundleLocaleDemo.java`
 
 ```java
 import java.util.Locale;
@@ -138,16 +138,16 @@ public class BundleLocaleDemo {
 }
 ```
 
-Chương trình dùng `FORMAT_PROPERTIES` để chỉ xét `.properties` và `getNoFallbackControl` để loại trừ đường fallback sang locale mặc định JVM. Đây là lựa chọn **cho ví dụ thử nghiệm trên classpath**, không phải yêu cầu bắt buộc cho mọi ứng dụng. Một số overload dùng `ResourceBundle.Control` không được hỗ trợ từ named module; nếu ứng dụng dùng Java modules, cần tra cứu quy tắc bundle loading và cách khai báo tài nguyên tương ứng.
+The program uses `FORMAT_PROPERTIES` to consider only `.properties` files and `getNoFallbackControl` to exclude fallback to the JVM default locale. This is a choice **for classpath test examples**, not a universal requirement for all apps. Some overloads accepting `ResourceBundle.Control` are unsupported from named modules; if an application uses Java modules, consult the corresponding bundle-loading and resource-declaration rules.
 
-Mở terminal tại thư mục chứa bốn tệp và chạy:
+Open a terminal in the directory containing the four files and run:
 
 ```bash
 javac BundleLocaleDemo.java
 java BundleLocaleDemo
 ```
 
-Kết quả dự kiến trên Java 17+:
+Expected output on Java 17+:
 
 ```text
 requested=fr-CA | actual=fr | same=false | hello=Bonjour | shared=Shared from root
@@ -158,58 +158,58 @@ root is Locale.ROOT: true
 root toLanguageTag: und
 ```
 
-Cách đọc kết quả:
+How to read the output:
 
-- `fr-CA` không có bundle riêng. JVM tìm `Messages_fr.properties` nên `getLocale()` trả `fr`.
-- `en-US` có bundle khớp chính xác nên `getLocale()` trả `en-US`.
-- `de-DE` không có `de_DE` hay `de`. Do đã tắt fallback sang default locale, kết quả là `Messages.properties` có locale `ROOT`.
-- `en` không có `Messages_en.properties`. Nó không tìm ngược sang bundle cụ thể hơn `en-US`; kết quả là root.
-- `Locale.ROOT.toLanguageTag()` trả `"und"` (*undetermined*) khi chuyển sang language tag. Để phát hiện root trong code, dùng `actual.equals(Locale.ROOT)`. `Locale.ROOT.toString()` là chuỗi rỗng, vì vậy không nên log chỉ bằng `toString()` rồi hiểu dòng trống là không có bundle.
+- `fr-CA` has no dedicated bundle. The JVM locates `Messages_fr.properties`, so `getLocale()` returns `fr`.
+- `en-US` has an exact matching bundle, so `getLocale()` returns `en-US`.
+- `de-DE` has neither `de_DE` nor `de`. Because default-locale fallback is disabled, the result is `Messages.properties` with locale `ROOT`.
+- `en` has no `Messages_en.properties`. It does not search backward to the more specific `en-US` bundle; the result is root.
+- `Locale.ROOT.toLanguageTag()` returns `"und"` (*undetermined*) when converted to a language tag. To detect root in code, use `actual.equals(Locale.ROOT)`. `Locale.ROOT.toString()` is an empty string, so avoid logging only `toString()` and mistaking a blank field for a missing bundle.
 
-Nếu thay đổi cấu trúc tệp, ví dụ bổ sung `Messages_fr_CA.properties`, kết quả khi yêu cầu `fr-CA` sẽ khác. Điều này chính là thông tin mà `getLocale()` giúp ta quan sát.
+If you change the file layout—for instance adding `Messages_fr_CA.properties`—the result for requesting `fr-CA` will change. That is precisely what `getLocale()` helps you observe.
 
-## 4. Điểm tinh tế: `getLocale()` không nói khóa `getString()` đến từ tệp nào
+## 4. Subtlety: `getLocale()` Does Not Tell Which File Supplied `getString()`
 
-Trong ví dụ trên, yêu cầu `en-US` cho kết quả:
+In the example above, requesting `en-US` yields:
 
 ```text
 actual=en-US | ... | hello=Howdy | shared=Shared from root
 ```
 
-Vì `Messages_en_US.properties` chứa `hello`, `getString("hello")` tìm thấy giá trị ở bundle `en-US`. Nhưng khóa `shared` chỉ nằm trong `Messages.properties`. Khi không tìm thấy khóa ở bundle `en-US`, Java tiếp tục đi qua **parent chain**, nên vẫn trả được `Shared from root`.
+Because `Messages_en_US.properties` contains `hello`, `getString("hello")` finds the value in the `en-US` bundle. However, key `shared` exists only in `Messages.properties`. When the key is not found in `en-US`, Java continues along the **parent chain**, returning `Shared from root`.
 
-Tuy vậy, `bundle.getLocale()` **vẫn là `en-US`** sau khi lấy `shared`.
+Even so, `bundle.getLocale()` **remains `en-US`** after retrieving `shared`.
 
-Điều này đưa đến hai câu hỏi riêng:
+This leads to two separate questions:
 
-| Câu hỏi | API phù hợp |
+| Question | Appropriate API |
 |---|---|
-| “`getBundle` đã trả về bundle cho locale nào?” | `bundle.getLocale()` |
-| “Một khóa cụ thể đang lấy giá trị từ bundle nào trong parent chain?” | Không thể suy ra chỉ bằng `bundle.getLocale()`; phải kiểm tra nguồn giá trị hoặc thiết kế công cụ tra cứu/ghi log riêng |
+| "Which locale's bundle did `getBundle` return?" | `bundle.getLocale()` |
+| "Which bundle in the parent chain supplied a specific key?" | Cannot be inferred from `bundle.getLocale()` alone; inspect the value source or build dedicated lookup/logging tooling |
 
-`ResourceBundle.getString` gọi cơ chế tra cứu khóa của bundle, có thể rơi về parent; `getObject` hoạt động tương tự. `containsKey` và `keySet` cũng có thể tính đến parent bundles, vì vậy chúng **không phải** bằng chứng rằng khóa được định nghĩa trực tiếp trong tệp có locale bằng `getLocale()`.
+`ResourceBundle.getString` invokes key lookup on the bundle, which may fall back to parents; `getObject` works the same way. `containsKey` and `keySet` can also include parent bundles, so they are **not** proof that a key is defined directly in the file matching `getLocale()`.
 
-Điểm sai thường gặp trong logging:
+Common logging mistake:
 
 ```java
 String label = bundle.getString("shared");
 System.out.println("Loaded from " + bundle.getLocale());
 ```
 
-Dòng log trên có thể khiến người đọc hiểu nhầm `shared` được định nghĩa trong bundle `en-US`. Câu mô tả chính xác hơn là **“Selected bundle locale = en-US”**. Nếu cần audit dịch thiếu theo từng khóa, hãy có cơ chế theo dõi nơi định nghĩa khóa thay vì gán nhãn nguồn dựa vào `getLocale()`.
+That log line can mislead readers into thinking `shared` was defined in the `en-US` bundle. A more accurate phrasing is **"Selected bundle locale = en-US"**. If you need to audit missing translations per key, track where keys are defined directly instead of attributing source files from `getLocale()`.
 
-## 5. Fallback mặc định có thể làm `getLocale()` bất ngờ
+## 5. Default Fallback Can Make `getLocale()` Surprising
 
-Khi sử dụng overload đơn giản:
+When using the simple overload:
 
 ```java
 ResourceBundle bundle =
         ResourceBundle.getBundle("Messages", requested);
 ```
 
-Java có thể thử default locale của JVM nếu không tìm thấy bundle cụ thể cho locale được yêu cầu. Việc đã có bundle root **không nhất thiết chấm dứt ngay** mọi tìm kiếm trước khi JVM thử default locale.
+Java may try the JVM's default locale if no specific bundle is found for the requested locale. Having a root bundle **does not necessarily stop** searching before the JVM tries the default locale.
 
-Để quan sát hành vi đó trên bộ tệp ở mục 3, ta có thể thêm một chương trình kiểm chứng độc lập, `DefaultFallbackDemo.java`:
+To observe that behavior on the file set from section 3, add a standalone verification program, `DefaultFallbackDemo.java`:
 
 ```java
 import java.util.Locale;
@@ -235,25 +235,25 @@ public class DefaultFallbackDemo {
 }
 ```
 
-Chạy với **cùng ba tệp properties**:
+Run with the **same three properties files**:
 
 ```bash
 javac DefaultFallbackDemo.java
 java DefaultFallbackDemo
 ```
 
-Kết quả trong quy trình thử này:
+Output in this test run:
 
 ```text
 en-US
 Howdy
 ```
 
-Ở đây yêu cầu là `de-DE` nhưng JVM default được đặt tạm thành `en-US`. Vì tồn tại `Messages_en_US.properties`, `ResourceBundle.getBundle` trả bundle tương ứng với **default locale**, và `getLocale()` phản ánh đúng thực tế đó.
+Here the request is `de-DE`, yet the JVM default was temporarily set to `en-US`. Because `Messages_en_US.properties` exists, `ResourceBundle.getBundle` returns the bundle matching the **default locale**, and `getLocale()` accurately reflects that fact.
 
-**Không gọi `Locale.setDefault(...)` theo từng HTTP request trong dịch vụ thật.** Đây là trạng thái mặc định chia sẻ cho tiến trình, có thể gây ảnh hưởng chéo giữa người dùng và các luồng. Chỉ dùng thao tác đặt default có khôi phục như trên trong thí nghiệm độc lập. Trong ứng dụng thực tế, truyền locale yêu cầu tường minh và xây dựng chính sách fallback nhất quán.
+**Do not call `Locale.setDefault(...)` per HTTP request in a real service.** It is process-wide shared default state that can cause cross-talk across users and threads. Only use the save-and-restore pattern above in isolated experiments. In production applications, pass the requested locale explicitly and build a consistent fallback policy.
 
-Nếu cần tránh fallback sang default locale trong một ứng dụng classpath, cân nhắc:
+If you need to prevent fallback to the default locale in a classpath application, consider:
 
 ```java
 ResourceBundle.Control control =
@@ -264,25 +264,25 @@ ResourceBundle bundle =
         ResourceBundle.getBundle("Messages", requested, control);
 ```
 
-Cần nhớ: “NoFallback” trong tên API này **ngăn fallback sang default locale**; nó không loại bỏ các candidate ít cụ thể hơn như `fr` và root, cũng không loại bỏ parent chain để tra cứu khóa.
+Remember: "NoFallback" in this API name **prevents fallback to the default locale**; it does not remove less specific candidates like `fr` and root, nor does it disable the parent chain for key lookups.
 
-## 6. Cách phân loại kết quả bằng `getLocale()`
+## 6. Classifying Results Using `getLocale()`
 
-Sau khi gọi `getBundle` thành công, một dịch vụ có thể phân biệt:
+After a successful `getBundle` call, a service can distinguish:
 
-1. **Exact match**: `bundle.getLocale().equals(requested)` trả `true`. Bundle được chọn đúng locale yêu cầu.
-2. **Candidate fallback**: hai locale khác nhau nhưng bundle đã chọn là một candidate ít cụ thể hơn, chẳng hạn `fr-CA` → `fr`.
-3. **Default-locale fallback**: bundle đã chọn là locale mặc định JVM (hoặc candidate của nó), có thể khác hẳn ngôn ngữ người dùng yêu cầu.
-4. **Root fallback**: `bundle.getLocale().equals(Locale.ROOT)`, tức bundle không mang mã language/region cụ thể.
-5. **Không có bundle**: `getBundle(...)` ném `MissingResourceException`; không có đối tượng để gọi `getLocale()`.
+1. **Exact match**: `bundle.getLocale().equals(requested)` returns `true`. The selected bundle matches the requested locale exactly.
+2. **Candidate fallback**: the two locales differ, yet the selected bundle is a less specific candidate, such as `fr-CA` → `fr`.
+3. **Default-locale fallback**: the selected bundle belongs to the JVM's default locale (or one of its candidates), potentially in a completely different language from what the user asked for.
+4. **Root fallback**: `bundle.getLocale().equals(Locale.ROOT)`, meaning a bundle with no specific language/region code.
+5. **No bundle**: `getBundle(...)` throws `MissingResourceException`; there is no object on which to call `getLocale()`.
 
-Lưu ý: chỉ so sánh `requested` với `actual` là đủ phát hiện **match hay mismatch**, nhưng không luôn xác định được **tại sao** mismatch. Nếu phải phân loại chính xác candidate fallback và default fallback, cần biết cấu hình `ResourceBundle.Control`, các candidate locales, default locale được sử dụng tại thời điểm tra cứu và tập tài nguyên sẵn có. Không chỉ nhìn `actual.getLanguage()` rồi kết luận loại fallback.
+Note: comparing `requested` against `actual` suffices to detect **match vs. mismatch**, but does not always identify **why** a mismatch occurred. To accurately distinguish candidate fallback from default fallback, you need to know the `ResourceBundle.Control` configuration, candidate locales, default locale at lookup time, and available resources. Never infer the fallback kind from `actual.getLanguage()` alone.
 
-Đặc biệt, khi sử dụng custom `Control`, resource bundle provider hoặc Java modules, chiến lược tìm kiếm có thể thay đổi. `getLocale()` vẫn là thông tin về đối tượng bundle được trả về, nhưng không mô tả toàn bộ lịch sử tìm kiếm.
+Especially when using custom `Control`, resource bundle providers, or Java modules, the lookup strategy can vary. `getLocale()` still identifies the returned bundle object, without describing the full search history.
 
-## 7. Ghi log đúng cách để debug lựa chọn bản dịch
+## 7. Proper Logging to Debug Translation Selection
 
-Một mẫu log cơ bản:
+A basic logging pattern:
 
 ```java
 Locale requested = Locale.forLanguageTag("fr-CA");
@@ -304,26 +304,26 @@ System.out.printf(
         requested.equals(actual));
 ```
 
-Đây là **đoạn mã đặt trong chương trình đã có biến và import `Locale`, `ResourceBundle`**; các ví dụ hoàn chỉnh ở mục trước có thể chạy độc lập. Log cần phân biệt rõ tên bundle (`baseName`), locale được yêu cầu và locale được chọn.
+This is a **snippet placed inside a program that already has variables and imports for `Locale` and `ResourceBundle`**; the complete examples in earlier sections run standalone. Logs should clearly separate bundle name (`baseName`), requested locale, and resolved locale.
 
-Các thông tin nên cân nhắc khi chẩn đoán:
+Information worth considering when diagnosing issues:
 
-| Dữ liệu | Lý do |
+| Data | Reason |
 |---|---|
-| `baseName` | Cho biết nhóm tệp tài nguyên nào đang được tìm |
-| `requested.toLanguageTag()` | Xác định yêu cầu từ ứng dụng/người dùng |
-| `bundle.getLocale()` | Cho biết locale gắn với bundle đã nạp |
-| `requested.equals(bundle.getLocale())` | Phát hiện có khớp locale chính xác hay không |
-| Default locale/Control nếu có | Giải thích đường fallback khi cần |
-| Khóa đang tra cứu và kết quả | Giúp tìm vấn đề dịch thiếu; không suy ra nguồn khóa chỉ từ `getLocale()` |
+| `baseName` | Identifies which resource bundle family is being searched |
+| `requested.toLanguageTag()` | Records what the app/user requested |
+| `bundle.getLocale()` | Reports the locale attached to the loaded bundle |
+| `requested.equals(bundle.getLocale())` | Detects whether an exact locale match occurred |
+| Default locale / `Control` if applicable | Explains the fallback path when needed |
+| Key looked up and result | Helps locate missing translations; do not infer key origin from `getLocale()` alone |
 
-Không nhất thiết log toàn bộ HTTP header hay thông tin người dùng nếu không phục vụ việc debug. Với các hệ thống có nhiều requests, phân biệt rõ dữ liệu per-request và cấu hình chung.
+There is no need to log entire HTTP headers or user details if they do not aid debugging. In high-request systems, keep per-request data separate from global configuration.
 
-## 8. Xử lý trường hợp không tìm thấy bundle
+## 8. Handling When No Bundle Is Found
 
-Nếu không có `Messages.properties` lẫn các biến thể phù hợp (kể cả những nguồn tìm qua default locale), lời gọi `getBundle(...)` sẽ ném `java.util.MissingResourceException`.
+If neither `Messages.properties` nor any matching variant exists (including sources checked via the default locale), `getBundle(...)` throws `java.util.MissingResourceException`.
 
-Ví dụ minh họa trong một chương trình Java:
+Illustrative snippet in a Java program:
 
 ```java
 try {
@@ -331,65 +331,65 @@ try {
             ResourceBundle.getBundle("UnknownMessages", Locale.JAPAN);
     System.out.println(bundle.getLocale().toLanguageTag());
 } catch (java.util.MissingResourceException ex) {
-    System.out.println("Khong tim thay resource bundle");
+    System.out.println("Resource bundle not found");
 }
 ```
 
-`UnknownMessages` ở đây phải thực sự không có file/class tương ứng trên classpath; nếu trùng bundle có sẵn thì kết quả sẽ khác. Lưu ý không truy cập `bundle.getLocale()` khi `getBundle` chưa trả về bundle.
+Here `UnknownMessages` must truly have no matching file/class on the classpath; if an existing bundle shares that name, the result will differ. Note that you cannot access `bundle.getLocale()` when `getBundle` fails to return a bundle.
 
-Ngược lại, nếu **bundle được tìm thấy nhưng khóa thiếu ở cả bundle hiện tại và parent**, `bundle.getString("key")` cũng có thể ném `MissingResourceException`. Hai lỗi khác nhau:
+Conversely, if **the bundle is found but a key is missing in both the current bundle and its parents**, `bundle.getString("key")` can also throw `MissingResourceException`. These are two distinct errors:
 
-- *Missing bundle*: chưa lấy được `ResourceBundle`.
-- *Missing key*: đã lấy được bundle, nhưng không có khóa ở chuỗi tra cứu.
+- *Missing bundle*: failed to obtain a `ResourceBundle`.
+- *Missing key*: obtained the bundle, yet the key is absent from the lookup chain.
 
-Khi xử lý lỗi, giữ thông tin `baseName`, locale yêu cầu, locale thực tế (nếu đã có bundle) và khóa bị thiếu. Điều này giúp nhận biết lỗi cấu hình tài nguyên hay lỗi thiếu bản dịch.
+When handling errors, preserve `baseName`, requested locale, resolved locale (if a bundle was obtained), and the missing key. This helps distinguish resource configuration errors from missing-translation bugs.
 
-## 9. `getLocale()` và cơ chế cache
+## 9. `getLocale()` and Caching
 
-`ResourceBundle.getBundle(...)` có thể dùng cache để tái sử dụng các resource bundles đã nạp. `getLocale()` vẫn thể hiện locale của **đối tượng được trả về** ngay cả khi đối tượng đến từ cache; nó không phải timestamp hay chứng cứ bundle vừa được đọc lại từ đĩa.
+`ResourceBundle.getBundle(...)` may cache loaded resource bundles for reuse. `getLocale()` still reports the locale of the **returned object** even when served from cache; it is not a timestamp or proof that the bundle was just re-read from disk.
 
-Một số điểm thực tế:
+Practical points:
 
-- Thay đổi nội dung `Messages_fr.properties` trong lúc ứng dụng đang chạy không bảo đảm lần `getBundle` kế tiếp lập tức đọc lại tệp.
-- `ResourceBundle.clearCache()` hoặc các cấu hình time-to-live/reload trong `Control` có thể cần thiết trong công cụ phát triển; chỉ sử dụng khi hiểu tác động cache của ứng dụng.
-- Việc đổi default locale trong cùng tiến trình có thể thay đổi hướng tìm fallback. Đừng dùng `getLocale()` của một lần gọi cũ như thể nó mô tả kết quả của mọi lần gọi tiếp theo.
-- Nếu gặp lỗi locale không mong muốn, hãy kiểm tra classpath, tên resource, candidate locales, default locale, cơ chế module/classloader và cache.
+- Modifying `Messages_fr.properties` while the app is running does not guarantee the next `getBundle` call immediately reads the file again.
+- `ResourceBundle.clearCache()` or time-to-live/reload configurations in `Control` can be useful in development tools; use them only when you understand the application's caching implications.
+- Changing the default locale in the same process can change future fallback resolution. Do not treat `getLocale()` from an earlier call as describing every subsequent call's outcome.
+- When encountering unexpected locale behavior, inspect the classpath, resource names, candidate locales, default locale, module/classloader rules, and caching.
 
-Thông thường, ứng dụng production đóng gói các tệp properties cùng bản build; khi đó giải pháp ổn định nhất là xác định rõ bộ locale hỗ trợ và kiểm thử trên đúng artifact được triển khai.
+Typically, production applications package properties files inside the build artifact; in that setup, the most reliable approach is explicitly defining supported locales and testing against the actual deployed artifact.
 
-## 10. Những lỗi thường gặp
+## 10. Common Mistakes
 
-**Lỗi 1 — Đồng nhất locale yêu cầu với locale đã nạp.** Lệnh `getBundle("Messages", frCA)` có thể trả bundle `fr`, default locale hoặc root. Luôn xem `getLocale()`.
+**Mistake 1 — Equating the requested locale with the loaded locale.** `getBundle("Messages", frCA)` can return the `fr` bundle, the default locale's bundle, or root. Always check `getLocale()`.
 
-**Lỗi 2 — Dựa vào `Locale.getDefault()` để đoán kết quả.** JVM default có thể là một đường fallback, nhưng bundle phù hợp với locale yêu cầu thường được ưu tiên. Bundle thực tế phải đo từ kết quả `getBundle`.
+**Mistake 2 — Relying on `Locale.getDefault()` to guess outcomes.** The JVM default can be a fallback path, yet bundles matching the requested locale normally take precedence. Measure the actual bundle from `getBundle`'s return value.
 
-**Lỗi 3 — Coi bundle root là `null`.** Khi bundle gốc được chọn, `getLocale()` trả `Locale.ROOT`, không phải `null`. `Locale.ROOT.toLanguageTag()` là `und`, còn `toString()` rỗng.
+**Mistake 3 — Assuming the root bundle has `null` locale.** When the root bundle is selected, `getLocale()` returns `Locale.ROOT`, not `null`. `Locale.ROOT.toLanguageTag()` is `und`, while `toString()` is empty.
 
-**Lỗi 4 — Coi `getLocale()` là locale nguồn của từng khóa.** Một khóa có thể được kế thừa từ parent `Messages.properties` dù bundle được chọn là `en-US`.
+**Mistake 4 — Treating `getLocale()` as the source locale of every key.** A key can be inherited from parent `Messages.properties` even when the selected bundle is `en-US`.
 
-**Lỗi 5 — Hiểu sai `getNoFallbackControl`.** Nó ngăn tìm tiếp theo default locale nhưng vẫn cho phép tìm parent/candidate và root.
+**Mistake 5 — Misunderstanding `getNoFallbackControl`.** It prevents continuing to the default locale, yet still permits parent/candidate fallback and root.
 
-**Lỗi 6 — Tự tạo tên tệp từ chuỗi locale sai.** `fr-CA` dùng dấu `-` trong BCP 47; tên tệp resource Java là `Messages_fr_CA.properties`. Script/variant làm quy tắc candidate phức tạp hơn.
+**Mistake 6 — Constructing filenames improperly from locale strings.** `fr-CA` uses `-` in BCP 47; Java resource filenames use `Messages_fr_CA.properties`. Scripts/variants make candidate rules more nuanced.
 
-**Lỗi 7 — Giả định `fr-CA` tự chuyển sang `fr-FR`.** Candidate fallback thông thường có thể thử `fr`, chứ không tùy tiện chọn một region khác cùng language. Default locale hoặc custom policy là câu chuyện khác.
+**Mistake 7 — Assuming `fr-CA` automatically switches to `fr-FR`.** Standard candidate fallback tries `fr`, rather than arbitrarily picking another region of the same language. Default locale or custom policy is a separate matter.
 
-**Lỗi 8 — Bỏ qua `MissingResourceException`.** Thiếu bundle hoặc thiếu khóa có thể gây lỗi runtime; thiết kế dữ liệu gốc và cơ chế fallback hợp lý.
+**Mistake 8 — Ignoring `MissingResourceException`.** A missing bundle or missing key can cause runtime failures; design proper root data and fallback handling.
 
-**Lỗi 9 — Dùng `Locale.setDefault` trên mỗi request.** Default locale là trạng thái chia sẻ trong JVM; truyền `Locale` tường minh và tránh cập nhật toàn cục từ request.
+**Mistake 9 — Calling `Locale.setDefault` per request.** The default locale is shared JVM state; pass an explicit `Locale` and avoid global mutations from requests.
 
-**Lỗi 10 — Dùng `getLocale()` để xác nhận bản dịch đầy đủ.** Exact match chỉ chứng minh bundle được chọn có đúng locale, không chứng minh mọi khóa có bản dịch cho locale đó.
+**Mistake 10 — Using `getLocale()` to prove translation completeness.** An exact match proves only that the selected bundle has that locale, not that every key has a translation for that locale.
 
-## 11. Câu hỏi tự kiểm tra
+## 11. Self-Check Questions
 
-1. **Yêu cầu `fr-CA`, chỉ có `Messages_fr.properties` và root, không fallback JVM default. `getLocale()` là gì?** → `fr`.
-2. **Yêu cầu `de-DE`, chỉ có root và không fallback default. `getLocale()` là gì?** → `Locale.ROOT`.
-3. **Yêu cầu `en-US`, bundle `en-US` thiếu khóa `shared` nhưng root có khóa đó. `getLocale()` sau `getString("shared")` là gì?** → Vẫn `en-US`.
-4. **`getLocale()` trả `Locale.ROOT`, gọi `toLanguageTag()` ra gì?** → `"und"`.
-5. **Không có bundle phù hợp và không có root. Lấy `getLocale()` bằng cách nào?** → Không thể, vì `getBundle` ném `MissingResourceException`.
-6. **Muốn tránh fallback sang default locale trong ví dụ classpath Java 17, dùng gì?** → `ResourceBundle.Control.getNoFallbackControl(...)` với định dạng phù hợp.
+1. **Request `fr-CA`, only `Messages_fr.properties` and root exist, no JVM default fallback. What is `getLocale()`?** → `fr`.
+2. **Request `de-DE`, only root exists and no default fallback. What is `getLocale()`?** → `Locale.ROOT`.
+3. **Request `en-US`, bundle `en-US` lacks key `shared` yet root has it. What is `getLocale()` after `getString("shared")`?** → Still `en-US`.
+4. **`getLocale()` returns `Locale.ROOT`; what does `toLanguageTag()` return?** → `"und"`.
+5. **No matching bundle exists and no root exists. How do you get `getLocale()`?** → You cannot, because `getBundle` throws `MissingResourceException`.
+6. **To avoid falling back to the default locale in Java 17 classpath examples, what do you use?** → `ResourceBundle.Control.getNoFallbackControl(...)` with the appropriate format.
 
-## 12. Ghi nhớ
+## 12. Key Takeaways
 
-`ResourceBundle.getLocale()` giúp trả lời câu hỏi chính xác: **“Bundle mà Java thực sự trả về thuộc locale nào?”**. So sánh nó với locale được yêu cầu để phát hiện fallback, kiểm tra `Locale.ROOT` để nhận diện bundle gốc và luôn nhớ rằng tra cứu **từng khóa** có thể tiếp tục qua parent bundles khác. Khi hành vi không như kỳ vọng, kiểm tra candidate locales, default locale, nguồn resources, Control/module và cache.
+`ResourceBundle.getLocale()` answers the exact question: **"Which locale does the bundle actually returned by Java belong to?"** Compare it against the requested locale to detect fallback, check `Locale.ROOT` to identify the root bundle, and always remember that **per-key** lookups may continue through other parent bundles. When behavior deviates from expectations, inspect candidate locales, default locale, resource sources, `Control`/modules, and caching.
 
-**Tài liệu chính thức:** [Java SE 17 — ResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html) · [Java SE 17 — ResourceBundle.Control](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.Control.html) · [Java SE 17 — Locale](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html).
+**Official documentation:** [Java SE 17 — ResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html) · [Java SE 17 — ResourceBundle.Control](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.Control.html) · [Java SE 17 — Locale](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html).

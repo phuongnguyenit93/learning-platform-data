@@ -1,17 +1,17 @@
-# Unary numeric promotion và binary numeric promotion — Java 17+
+# Unary Numeric Promotion and Binary Numeric Promotion — Java 17+
 
-Trong Java, **numeric promotion (nâng kiểu số)** là các phép chuyển đổi ngầm định mà ngôn ngữ áp dụng để xác định kiểu dùng khi đánh giá một biểu thức số. Hai cơ chế cần phân biệt:
+In Java, **numeric promotion** refers to implicit conversions that the language applies to determine the type used when evaluating a numeric expression. Two mechanisms need to be distinguished:
 
-- **Unary numeric promotion**: nâng kiểu cho **một toán hạng số** trong những ngữ cảnh được quy định, ví dụ toán tử một ngôi `+`, `-`, `~`.
-- **Binary numeric promotion**: đưa **hai toán hạng số** về một kiểu chung trước một số phép toán hai ngôi, ví dụ cộng số `+`, nhân `*`, so sánh số `<`.
+- **Unary numeric promotion**: promotes the type of **a single numeric operand** in specified contexts, such as unary operators `+`, `-`, `~`.
+- **Binary numeric promotion**: brings **two numeric operands** to a common type before certain binary operations, such as numeric addition `+`, multiplication `*`, numeric comparison `<`.
 
-Cả hai đều được compiler quyết định từ **kiểu của biểu thức**, không phải từ giá trị thực tế. Vì vậy hai biến `byte` cộng nhau có kiểu kết quả `int`, ngay cả khi tổng nhỏ và nằm trong miền `byte`.
+Both are decided by the compiler from the **type of the expression**, not from the actual runtime value. Therefore, two `byte` variables added together have a result type of `int`, even when the sum is small and fits within the `byte` range.
 
-## 1. Unary numeric promotion: một toán hạng
+## 1. Unary numeric promotion: one operand
 
-Với một biểu thức phải áp dụng *unary numeric promotion*:
+For an expression subject to *unary numeric promotion*:
 
-| Kiểu ban đầu | Kiểu sau promotion |
+| Initial type | Type after promotion |
 | --- | --- |
 | `byte` | `int` |
 | `short` | `int` |
@@ -21,56 +21,56 @@ Với một biểu thức phải áp dụng *unary numeric promotion*:
 | `float` | `float` |
 | `double` | `double` |
 
-Với wrapper số thích hợp như `Byte`, `Short`, `Character` hoặc `Integer`, Java có thể **unbox** trước rồi áp dụng promotion; wrapper `null` có thể gây `NullPointerException`.
+For suitable numeric wrappers such as `Byte`, `Short`, `Character`, or `Integer`, Java can **unbox** first and then apply promotion; a `null` wrapper can cause a `NullPointerException`.
 
-Ví dụ:
+Example:
 
 ~~~java
 byte b = 100;
 int a = +b; // Unary +: byte -> int.
-int c = -b; // Unary -: byte -> int, ket qua -100.
+int c = -b; // Unary -: byte -> int, result -100.
 
 short min = Short.MIN_VALUE; // -32768.
-int positive = -min;        // int 32768, khong phai short.
+int positive = -min;        // int 32768, not short.
 
 byte zero = 0;
-int inverted = ~zero;       // int -1, vi ~ ap dung tren 32 bit int.
+int inverted = ~zero;       // int -1, because ~ applies to 32-bit int.
 ~~~
 
-**Bẫy phổ biến:** `-Short.MIN_VALUE` không tràn kiểu `short`, vì toán hạng đã được nâng thành `int`. Tuy nhiên, `-Integer.MIN_VALUE` vẫn là phép toán `int`; kết quả tràn và quay về `Integer.MIN_VALUE`. Promotion **không tự phát hiện tràn**.
+**Common pitfall:** `-Short.MIN_VALUE` does not overflow `short`, because the operand has already been promoted to `int`. However, `-Integer.MIN_VALUE` remains an `int` operation; the result overflows and wraps back to `Integer.MIN_VALUE`. Promotion **does not automatically detect overflow**.
 
-Với `char`, giá trị 16 bit không dấu được nâng thành `int`. Ví dụ `'A' + 1` cho giá trị số `66` có kiểu `int`, **không phải** `char 'B'`.
+With `char`, the 16-bit unsigned value is promoted to `int`. For example, `'A' + 1` gives the numeric value `66` of type `int`, **not** `char 'B'`.
 
-## 2. Binary numeric promotion: hai toán hạng
+## 2. Binary numeric promotion: two operands
 
-Khi ngữ cảnh yêu cầu *binary numeric promotion*, Java đưa các toán hạng về cùng kiểu theo thứ tự ưu tiên:
+When a context requires *binary numeric promotion*, Java converts operands to a common type in order of precedence:
 
-1. Nếu có `double`, toán hạng kia chuyển sang `double`.
-2. Ngược lại, nếu có `float`, toán hạng kia chuyển sang `float`.
-3. Ngược lại, nếu có `long`, toán hạng kia chuyển sang `long`.
-4. Nếu không, **cả hai thành `int`** (gồm `byte`, `short`, `char`).
+1. If either is `double`, the other operand is converted to `double`.
+2. Otherwise, if either is `float`, the other operand is converted to `float`.
+3. Otherwise, if either is `long`, the other operand is converted to `long`.
+4. Otherwise, **both become `int`** (including `byte`, `short`, `char`).
 
-| Biểu thức | Kiểu dùng để tính | Vì sao |
+| Expression | Type used for evaluation | Why |
 | --- | --- | --- |
-| `byte + byte` | `int` | Các kiểu nguyên nhỏ được nâng thành `int` |
-| `short + char` | `int` | Cả hai được nâng thành `int` |
-| `int + long` | `long` | `long` ưu tiên hơn `int` |
-| `long + float` | `float` | `float` ưu tiên hơn `long` |
-| `float + double` | `double` | `double` ưu tiên cao nhất |
-| `int < double` | Hai toán hạng chuyển thành `double` | Kết quả so sánh là **`boolean`** |
-| `int == long` | Hai toán hạng chuyển thành `long` | Kết quả so sánh là **`boolean`** |
+| `byte + byte` | `int` | Small integer types are promoted to `int` |
+| `short + char` | `int` | Both are promoted to `int` |
+| `int + long` | `long` | `long` takes precedence over `int` |
+| `long + float` | `float` | `float` takes precedence over `long` |
+| `float + double` | `double` | `double` has the highest precedence |
+| `int < double` | Both operands convert to `double` | Comparison result is **`boolean`** |
+| `int == long` | Both operands convert to `long` | Comparison result is **`boolean`** |
 
-Thứ tự ưu tiên nói trên là **quy tắc kiểu**, không phải lời bảo đảm giữ nguyên giá trị: chuyển một `long` rất lớn sang `float` hoặc `double` có thể **mất độ chính xác**.
+The precedence order above is a **type rule**, not a guarantee of value preservation: converting a very large `long` to `float` or `double` can **lose precision**.
 
-### Không phải mọi toán tử hai ngôi đều dùng binary numeric promotion
+### Not every binary operator uses binary numeric promotion
 
-- `"n=" + 1 + 2` là **nối chuỗi** sau khi toán hạng đầu tiên là `String`; kết quả `"n=12"`. `"n=" + (1 + 2)` cho `"n=3"`.
-- `boolean && boolean` hay `boolean || boolean` là phép logic, **không** phải phép toán số.
-- Toán tử dịch bit `<<`, `>>`, `>>>` **không áp dụng binary numeric promotion cho hai toán hạng**: *mỗi* toán hạng được **unary numeric promotion** riêng. Kiểu kết quả là kiểu đã nâng của **toán hạng bên trái**.
+- `"n=" + 1 + 2` is **string concatenation** once the first operand is `String`; the result is `"n=12"`. `"n=" + (1 + 2)` yields `"n=3"`.
+- `boolean && boolean` or `boolean || boolean` are logical operations, **not** numeric operations.
+- Bitwise shift operators `<<`, `>>`, `>>>` **do not apply binary numeric promotion to the two operands**: *each* operand receives **unary numeric promotion** separately. The result type is the promoted type of the **left-hand operand**.
 
-## 3. Chương trình Java 17+ runnable
+## 3. Runnable Java 17+ program
 
-Tạo file **`NumericPromotionDemo.java`** với nội dung dưới đây:
+Create the file **`NumericPromotionDemo.java`** with the following content:
 
 ~~~java
 public class NumericPromotionDemo {
@@ -126,7 +126,7 @@ public class NumericPromotionDemo {
 }
 ~~~
 
-Mở PowerShell (Windows) hoặc Bash (Linux/macOS) tại thư mục có file và sử dụng **JDK 17+**:
+Open PowerShell (Windows) or Bash (Linux/macOS) in the directory containing the file and use **JDK 17+**:
 
 ~~~bash
 java -version
@@ -135,7 +135,7 @@ javac -encoding UTF-8 NumericPromotionDemo.java
 java NumericPromotionDemo
 ~~~
 
-**Expected output chính xác** của lệnh `java NumericPromotionDemo` (không gồm các dòng phiên bản JDK):
+**Exact expected output** of the `java NumericPromotionDemo` command (excluding the JDK version lines):
 
 ~~~text
 bytePlusByte=127 (boxedType=Integer)
@@ -160,42 +160,42 @@ stringGrouped=n=3
 unboxNull=NullPointerException
 ~~~
 
-**Cách đọc tên `boxedType` trong output:** Các biểu thức số được truyền vào tham số `Object value` của `show`, nên Java thực hiện **autoboxing** kết quả nguyên thủy thành wrapper (`int -> Integer`, `long -> Long`...). Nhờ đó, `value.getClass().getSimpleName()` giúp quan sát kiểu nguyên thủy của **kết quả biểu thức trước khi boxing**. Điều này không có nghĩa mọi giá trị số trong Java vốn là đối tượng.
+**How to read `boxedType` in the output:** Numeric expressions are passed to the `Object value` parameter of `show`, so Java performs **autoboxing** of the primitive result into a wrapper (`int -> Integer`, `long -> Long`, etc.). Thus, `value.getClass().getSimpleName()` lets us observe the primitive type of the **expression result prior to boxing**. This does not mean all numeric values in Java are natively objects.
 
-### Phân tích các nhóm kết quả
+### Analyzing the result groups
 
-**Phép một ngôi:** `+first`, `-minimum` và `~zero` đều có kết quả `int`. Riêng `~zero` là phép đảo bit của **32-bit int 0**, nên kết quả `-1`.
+**Unary operations:** `+first`, `-minimum`, and `~zero` all produce `int`. In particular, `~zero` is the bitwise complement of **32-bit `int` 0**, yielding `-1`.
 
-**Phép hai ngôi:** `first + second` là `int 127`; `(short) 300 + letter` là `int 365`. `2 + 3L` có kiểu `long`, `0.5f + 2L` có kiểu `float`, `1.25d + 0.5f` có kiểu `double`.
+**Binary operations:** `first + second` is `int 127`; `(short) 300 + letter` is `int 365`. `2 + 3L` has type `long`, `0.5f + 2L` has type `float`, `1.25d + 0.5f` has type `double`.
 
-**Phép dịch bit:** `count << 2` có kết quả `int` vì `count` là `short` được nâng lên `int`. Với `1 << 2L`, toán hạng phải là `long` nhưng kết quả **vẫn là `int`**. Còn `1L << 2` trả `long` vì toán hạng trái là `long`.
+**Bitwise shifts:** `count << 2` produces `int` because `count` is a `short` promoted to `int`. With `1 << 2L`, the right operand is `long`, yet the result is **still `int`**. Meanwhile, `1L << 2` returns `long` because the left operand is `long`.
 
-**Chia nguyên:** `5 / 2` được thực hiện trên `int` nên cho `2`. `5 / 2.0` áp dụng binary numeric promotion sang `double` trước phép chia, cho `2.5`.
+**Integer division:** `5 / 2` is performed on `int`, yielding `2`. `5 / 2.0` applies binary numeric promotion to `double` before division, yielding `2.5`.
 
-**Gán kết hợp:** `compound += 200` cho phép ghi lại kết quả về `byte` dù phép cộng trung gian là `int 300`. Sau chuyển thu hẹp về 8 bit, kết quả là `44`.
+**Compound assignment:** `compound += 200` allows writing the result back to `byte` even though the intermediate addition is `int 300`. After narrowing to 8 bits, the result is `44`.
 
-**Wrapper:** `wrapper + 2L` unbox `Integer` thành `int` rồi nâng sang `long`; kết quả là `long 6`. Nếu wrapper bằng null, bước unbox gây `NullPointerException`.
+**Wrapper:** `wrapper + 2L` unboxes `Integer` to `int` and promotes to `long`; the result is `long 6`. If the wrapper is null, the unboxing step throws `NullPointerException`.
 
-## 4. Vì sao `byte` + `byte` không thể gán thẳng vào `byte`?
+## 4. Why can't `byte` + `byte` be assigned directly to `byte`?
 
 ~~~java
 byte x = 10;
 byte y = 20;
 
-int correct = x + y;       // Hop le: kieu ket qua la int.
-// byte invalid = x + y;   // Loi bien dich, vi x+y la int.
-byte narrowed = (byte) (x + y); // Co cast tuong minh.
+int correct = x + y;       // Valid: result type is int.
+// byte invalid = x + y;   // Compile error, because x+y is int.
+byte narrowed = (byte) (x + y); // With explicit cast.
 ~~~
 
-Nếu cố gán `x + y` vào một biến `byte` mà không cast, compiler báo lỗi vì **kiểu biểu thức là `int`**, dù bạn biết tổng cụ thể vẫn nằm trong miền `byte`.
+If you try to assign `x + y` to a `byte` variable without a cast, the compiler reports an error because **the expression type is `int`**, even if you know the specific sum fits within the `byte` range.
 
-**Ngoại lệ đối với biểu thức hằng:** `byte b = 10 + 20;` có thể biên dịch, vì `10 + 20` là biểu thức hằng kiểu `int` với giá trị nằm trong miền `byte`. Quy tắc thu hẹp hằng số ở ngữ cảnh gán **không làm thay đổi** việc `x + y` giữa hai biến `byte` có kiểu `int`.
+**Exception for constant expressions:** `byte b = 10 + 20;` compiles because `10 + 20` is an `int` constant expression with a value within the `byte` range. The constant narrowing rule in assignment context **does not change** the fact that `x + y` between two `byte` variables has type `int`.
 
-Một cast ngược về `byte` cũng không tự bảo đảm giữ nguyên giá trị; ví dụ `(byte) (100 + 100)` cho `-56` do kết quả 200 vượt miền `byte`.
+Casting back to `byte` does not automatically guarantee preserving the value either; for example, `(byte) (100 + 100)` yields `-56` because 200 exceeds the `byte` range.
 
-## 5. Binary promotion khi so sánh và tính toán
+## 5. Binary promotion in comparisons and calculations
 
-Cùng một quy tắc binary numeric promotion có thể áp dụng cho biểu thức số học và so sánh số:
+The same binary numeric promotion rules apply to arithmetic expressions and numeric comparisons:
 
 ~~~java
 short left = 10;
@@ -205,64 +205,64 @@ long total = left + right; // long 30.
 boolean smaller = left < right; // true.
 ~~~
 
-Với phép cộng, kiểu kết quả là kiểu số được chọn sau promotion. Với phép so sánh `<`, `<=`, `>`, `>=` hoặc so sánh bằng giữa hai biểu thức số, **các toán hạng** được nâng theo quy tắc thích hợp nhưng **kết quả phép so sánh là `boolean`**, không phải kiểu số.
+With addition, the result type is the numeric type selected after promotion. With comparisons `<`, `<=`, `>`, `>=`, or equality comparisons between two numeric expressions, **the operands** are promoted per the appropriate rules, but **the result of the comparison is `boolean`**, not a numeric type.
 
-Do chuyển sang kiểu floating-point có thể mất độ chính xác, hãy cẩn thận khi so sánh `long` rất lớn với `float`/`double`. Không dùng “được Java tự nâng kiểu” như chứng minh rằng mọi phép so sánh đều giữ đúng từng đơn vị nguyên.
+Because converting to a floating-point type can lose precision, be careful when comparing a very large `long` with `float`/`double`. Do not treat “Java promotes types automatically” as proof that every comparison preserves exact integer units.
 
-## 6. Phép dịch bit: hai toán hạng nâng kiểu riêng
+## 6. Bitwise shifts: the two operands are promoted separately
 
-Đây là trường hợp rất hay bị nhầm với binary numeric promotion:
+This is a case very frequently confused with binary numeric promotion:
 
 ~~~java
 short s = 3;
 int result = s << 2; // left short -> int; result int.
 
-int x = 1 << 2L;     // RHS long duoc chap nhan; ket qua van int.
-long y = 1L << 2;    // Left long; ket qua long.
+int x = 1 << 2L;     // long RHS is accepted; result is still int.
+long y = 1L << 2;    // Left is long; result is long.
 ~~~
 
-Trong phép dịch bit, Java áp dụng **unary numeric promotion** cho *mỗi toán hạng*, rồi lấy **kiểu của toán hạng trái đã nâng** làm kiểu kết quả. Toán hạng phải cung cấp số vị trí dịch; nó không biến kết quả thành `long` chỉ vì nó có kiểu `long`.
+In bitwise shift operations, Java applies **unary numeric promotion** to *each operand*, and then takes the **type of the promoted left operand** as the result type. The right operand supplies the shift distance; it does not turn the result into `long` just because it has type `long`.
 
-Ngoài ra, với toán hạng trái kiểu `int`, Java chỉ dùng **5 bit thấp** của khoảng dịch (tương đương lấy modulo 32); với `long`, Java dùng **6 bit thấp** (tương đương lấy modulo 64). Đây là quy tắc dịch bit riêng, không phải quy tắc chọn kiểu của binary numeric promotion.
+Additionally, when the left operand is `int`, Java uses only the **low 5 bits** of the shift distance (equivalent to modulo 32); for `long`, Java uses the **low 6 bits** (equivalent to modulo 64). This is a bitwise shift rule itself, not a type-selection rule of binary numeric promotion.
 
-## 7. Promotion, ép kiểu và toán tử gán kết hợp khác nhau
+## 7. Promotion, casting, and compound assignment differ
 
-| Cơ chế | Ví dụ | Điểm cần nhớ |
+| Mechanism | Example | Key takeaway |
 | --- | --- | --- |
-| Unary numeric promotion | `+((byte) 5)` | Kết quả kiểu `int` |
-| Binary numeric promotion | `2 + 3L` | Kết quả kiểu `long` |
-| Cast tường minh | `(byte) 200` | Có thể mất dữ liệu |
-| Gán kết hợp | `byte b = 100; b += 200;` | Chuyển ngầm kết quả phép toán về kiểu vế trái |
-| Autoboxing | `Object o = 2 + 3L;` | Kết quả `long` được boxing thành `Long` |
-| Nối chuỗi | `"n=" + 1 + 2` | Không phải cộng số sau khi `String` tham gia |
+| Unary numeric promotion | `+((byte) 5)` | Result type is `int` |
+| Binary numeric promotion | `2 + 3L` | Result type is `long` |
+| Explicit cast | `(byte) 200` | Can lose data |
+| Compound assignment | `byte b = 100; b += 200;` | Implicitly converts operation result to left-hand type |
+| Autoboxing | `Object o = 2 + 3L;` | `long` result is boxed to `Long` |
+| String concatenation | `"n=" + 1 + 2` | Not numeric addition once `String` participates |
 
-Khi kết quả có thể vượt miền kiểu đích, nên kiểm tra miền trước khi cast hoặc dùng kiểu đủ rộng. Nếu cần kiểm tra tràn `int`/`long` trong phép cộng, nhân, có thể dùng các phương thức `Math.addExact`, `Math.multiplyExact` theo yêu cầu.
+When the result can exceed the target type's range, check the range before casting or use a wide-enough type. If you need to check `int`/`long` overflow in addition or multiplication, you can use `Math.addExact` and `Math.multiplyExact` as needed.
 
-## 8. Bài tập tự kiểm tra
+## 8. Self-check exercises
 
-1. **Unary promotion:** `byte b = 5;` thì `+b` có kiểu gì?  
-   *Đáp án:* `int`, giá trị 5.
-2. **Binary promotion:** `short s = 10; char c = 'A';` thì `s + c` có kiểu và giá trị nào?  
-   *Đáp án:* `int`, giá trị 75.
-3. **Ưu tiên:** `1L + 0.5f` có kiểu gì?  
-   *Đáp án:* `float`, giá trị 1.5f trong trường hợp này.
-4. **Dịch bit:** `1 << 2L` có kiểu kết quả `long` không?  
-   *Đáp án:* Không, kết quả `int 4`, vì loại toán tử này nâng mỗi toán hạng riêng.
-5. **Chia:** `double result = 5 / 2;` có giá trị bao nhiêu?  
-   *Đáp án:* `2.0` do phép chia kiểu `int` xảy ra trước khi gán sang `double`.
-6. **Gán kết hợp:** `byte b = 100; b += 200;` cho gì?  
-   *Đáp án:* `44` sau phép cộng trung gian `int 300` và chuyển thu hẹp về `byte`.
-7. **Null wrapper:** `Integer x = null; int y = x + 1;` lỗi ở đâu?  
-   *Đáp án:* Khi unboxing `x` để thực hiện phép cộng, ném `NullPointerException`.
+1. **Unary promotion:** Given `byte b = 5;`, what type is `+b`?  
+   *Answer:* `int`, value 5.
+2. **Binary promotion:** Given `short s = 10; char c = 'A';`, what type and value does `s + c` have?  
+   *Answer:* `int`, value 75.
+3. **Precedence:** What type is `1L + 0.5f`?  
+   *Answer:* `float`, value 1.5f in this case.
+4. **Bitwise shift:** Does `1 << 2L` have result type `long`?  
+   *Answer:* No, the result is `int 4`, because this operator promotes each operand separately.
+5. **Division:** What value does `double result = 5 / 2;` have?  
+   *Answer:* `2.0` because `int` division happens before assignment to `double`.
+6. **Compound assignment:** What does `byte b = 100; b += 200;` give?  
+   *Answer:* `44` after intermediate `int 300` addition and narrowing conversion to `byte`.
+7. **Null wrapper:** Where does `Integer x = null; int y = x + 1;` fail?  
+   *Answer:* When unboxing `x` to perform the addition, throwing `NullPointerException`.
 
-## Checklist ghi nhớ
+## Memory checklist
 
-- [ ] Unary promotion: `byte`/`short`/`char` nâng thành `int`; các kiểu số lớn giữ nguyên.
-- [ ] Binary promotion: ưu tiên `double > float > long > int` trong các ngữ cảnh số thích hợp.
-- [ ] Promotion là quy tắc **kiểu biểu thức**, không phải bảo đảm không mất giá trị.
-- [ ] `byte + byte` có kiểu `int`; phép gán hằng có thể có ngoại lệ riêng.
-- [ ] Toán tử dịch bit nâng **từng toán hạng riêng**, kiểu kết quả dựa vào vế trái.
-- [ ] `+=` có bước chuyển về kiểu biến đích; có thể làm mất dữ liệu.
-- [ ] Phân biệt cộng số, nối chuỗi và boxing/unboxing.
+- [ ] Unary promotion: `byte`/`short`/`char` promote to `int`; larger numeric types stay unchanged.
+- [ ] Binary promotion: precedence `double > float > long > int` in appropriate numeric contexts.
+- [ ] Promotion is an **expression type** rule, not a guarantee against losing values.
+- [ ] `byte + byte` has type `int`; constant assignments may have a separate exception.
+- [ ] Bitwise shift operators promote **each operand separately**, result type is based on the left side.
+- [ ] `+=` includes a conversion step to the target variable's type; can lose data.
+- [ ] Distinguish numeric addition, string concatenation, and boxing/unboxing.
 
-**Kết luận:** Trước khi viết phép tính Java, hãy xác định **toán tử có dùng unary hay binary numeric promotion không**, **kiểu của từng toán hạng sau nâng kiểu** và **kiểu kết quả**. Đặc biệt cẩn thận với `byte`/`short`/`char`, phép dịch bit, phép gán kết hợp và chuyển đổi có thể mất độ chính xác.
+**Conclusion:** Before writing a Java calculation, determine **whether the operator uses unary or binary numeric promotion**, **the type of each operand after promotion**, and **the result type**. Be especially careful with `byte`/`short`/`char`, bitwise shifts, compound assignments, and conversions that may lose precision.

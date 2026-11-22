@@ -1,45 +1,45 @@
-# Unnamed module đọc named module theo điều kiện nào
+# Conditions Under Which an Unnamed Module Reads a Named Module
 
-Trong JPMS, **unnamed module** là module đặc biệt gắn với một class loader khi các lớp được nạp từ classpath. Dù không có tên và không có file `module-info.java`, unnamed module vẫn có thể sử dụng các named module trong cấu hình runtime.
+In JPMS, an **unnamed module** is a special module associated with a class loader when classes are loaded from the classpath. Even though it has no name and no `module-info.java` file, an unnamed module can still use named modules in the runtime configuration.
 
-Quy tắc quan trọng là: **unnamed module đọc được tất cả named module thuộc boot layer, nhưng chỉ truy cập được các package được export phù hợp**. Vì vậy, việc một modular JAR có mặt trên module path chưa đủ để kết luận mã classpath có thể dùng mọi lớp bên trong JAR đó. Module phải được giải quyết vào cấu hình đang chạy, package cần dùng phải được export cho unnamed module, và kiểu/thành viên vẫn phải đáp ứng access modifier của Java.
+The key rule is: **an unnamed module reads all named modules in the boot layer, but can only access appropriately exported packages**. Therefore, the presence of a modular JAR on the module path is not enough to conclude that classpath code can use every class inside that JAR. The module must be resolved into the running configuration, the target package must be exported to the unnamed module, and the type/member must still satisfy Java access modifiers.
 
-## 1. Unnamed module được tạo ra như thế nào?
+## 1. How is an unnamed module created?
 
-Khi chạy ứng dụng theo classpath, các lớp không thuộc named module được nạp vào unnamed module gắn với class loader tương ứng. Ví dụ:
+When running an application via the classpath, classes not belonging to a named module are loaded into the unnamed module associated with the corresponding class loader. For example:
 
 ~~~bash
 java -cp "out:lib/*" com.acme.app.Main
 ~~~
 
-Nếu chạy trên Windows, dấu phân cách các mục classpath là dấu chấm phẩy:
+If running on Windows, the separator for classpath entries is a semicolon:
 
 ~~~powershell
 java -cp "out;lib/*" com.acme.app.Main
 ~~~
 
-Lớp `com.acme.app.Main` và các lớp thư viện được nạp từ classpath thuộc unnamed module của class loader đã nạp chúng. Unnamed module có một số đặc điểm:
+The `com.acme.app.Main` class and library classes loaded from the classpath belong to the unnamed module of the class loader that loaded them. An unnamed module has several characteristics:
 
-- Không có tên module để khai báo bằng `requires` trong module descriptor.
-- Không có file `module-info.class` riêng.
-- Các package của nó được export và mở theo quy tắc đặc biệt của unnamed module.
-- Nó đọc được tất cả named module trong boot layer.
-- Nó không tự động trở thành named module chỉ vì classpath chứa một JAR có `module-info.class`.
+- Has no module name to declare via `requires` in a module descriptor.
+- Has no separate `module-info.class` file.
+- Its packages are exported and opened according to the special rules of the unnamed module.
+- It reads all named modules in the boot layer.
+- It does not automatically become a named module simply because the classpath contains a JAR with `module-info.class`.
 
-Có một unnamed module riêng cho mỗi class loader. Vì vậy, nếu ứng dụng hoặc container tạo nhiều class loader, mỗi class loader có thể có unnamed module riêng. Khi dùng tùy chọn launcher `ALL-UNNAMED`, JVM áp dụng thay đổi tương ứng cho các unnamed module, bao gồm cả những module gắn với class loader được tạo trong tiến trình.
+There is a separate unnamed module for each class loader. Therefore, if an application or container creates multiple class loaders, each class loader can have its own unnamed module. When using the `ALL-UNNAMED` launcher option, the JVM applies the corresponding change to unnamed modules, including those associated with class loaders created during the process.
 
-## 2. Điều kiện thứ nhất: named module phải thuộc cấu hình runtime
+## 2. First condition: the named module must belong to the runtime configuration
 
-Unnamed module đọc được các named module trong **boot layer**. Boot layer là module layer ban đầu do JVM tạo khi khởi chạy. Các module của JDK cần thiết thường được giải quyết vào layer này; module ứng dụng hoặc thư viện trên module path cũng có thể được đưa vào nếu là root hoặc được kéo vào qua dependency/service binding.
+An unnamed module reads named modules in the **boot layer**. The boot layer is the initial module layer created by the JVM at startup. Required JDK modules are typically resolved into this layer; application or library modules on the module path can also be included if they are roots or pulled in via dependencies/service binding.
 
-Giả sử có một modular JAR:
+Suppose there is a modular JAR:
 
 ~~~text
 mods/
 └── com.acme.api.jar
 ~~~
 
-Descriptor bên trong JAR:
+Descriptor inside the JAR:
 
 ~~~java
 module com.acme.api {
@@ -47,7 +47,7 @@ module com.acme.api {
 }
 ~~~
 
-Ứng dụng classpath có thể chạy cùng module này bằng cách thêm module làm root:
+A classpath application can run with this module by adding the module as a root:
 
 ~~~bash
 java --module-path mods \
@@ -56,17 +56,17 @@ java --module-path mods \
      com.acme.app.Main
 ~~~
 
-Tùy chọn `--add-modules com.acme.api` yêu cầu JVM đưa module đó vào quá trình resolution như một root module. Nếu module đã được kéo vào bởi dependency của một root khác, không cần thêm nó lần nữa.
+The `--add-modules com.acme.api` option instructs the JVM to include that module in the resolution process as a root module. If the module is already pulled in as a dependency of another root, there is no need to add it again.
 
-Điểm cần nhớ: **module path là nơi tìm module; boot layer là cấu hình các module đã được giải quyết**. Một JAR nằm trong thư mục module path nhưng không được chọn làm root, không được dependency kéo vào và không được service binding đưa vào có thể không xuất hiện trong boot layer. Khi đó, unnamed module không thể sử dụng module đó chỉ nhờ việc file JAR tồn tại trên đĩa.
+Key point to remember: **the module path is where modules are located; the boot layer is the configuration of resolved modules**. A JAR located in the module path directory that is not selected as a root, not pulled in by a dependency, and not included by service binding may not appear in the boot layer. In that case, an unnamed module cannot use that module merely because the JAR file exists on disk.
 
-Có thể dùng `--add-modules ALL-MODULE-PATH` để yêu cầu resolution thêm tất cả module quan sát được trên module path, nhưng trong ứng dụng thông thường nên chọn các root cần thiết để cấu hình rõ ràng hơn.
+You can use `--add-modules ALL-MODULE-PATH` to request resolution of all observable modules on the module path, though in normal applications it is better to select the needed roots for a clearer configuration.
 
-## 3. Điều kiện thứ hai: package phải được export cho unnamed module
+## 3. Second condition: the package must be exported to the unnamed module
 
-Unnamed module có readability tới named module trong boot layer, nhưng readability không đồng nghĩa với quyền truy cập mọi package. Module nguồn phải export package chứa kiểu cần dùng.
+An unnamed module has readability to named modules in the boot layer, but readability is not synonymous with access to every package. The source module must export the package containing the type to be used.
 
-Ví dụ module thư viện:
+Example library module:
 
 ~~~java
 module com.acme.api {
@@ -74,7 +74,7 @@ module com.acme.api {
 }
 ~~~
 
-Lớp public:
+Public class:
 
 ~~~java
 package com.acme.api;
@@ -86,7 +86,7 @@ public class Greeting {
 }
 ~~~
 
-Ứng dụng không có `module-info.java`:
+Application without `module-info.java`:
 
 ~~~java
 package com.acme.app;
@@ -100,7 +100,7 @@ public class Main {
 }
 ~~~
 
-Biên dịch ứng dụng classpath trong khi module thư viện nằm trên module path:
+Compile the classpath application while the library module is on the module path:
 
 ~~~bash
 javac --module-path mods \
@@ -109,7 +109,7 @@ javac --module-path mods \
       src/com/acme/app/Main.java
 ~~~
 
-Chạy ứng dụng:
+Run the application:
 
 ~~~bash
 java --module-path mods \
@@ -118,21 +118,21 @@ java --module-path mods \
      com.acme.app.Main
 ~~~
 
-Ứng dụng classpath không cần viết `requires com.acme.api` vì unnamed module có quy tắc readability đặc biệt. Tuy nhiên, package `com.acme.api` phải được export không giới hạn hoặc được mở quyền export bằng cấu hình runtime phù hợp.
+The classpath application does not need to write `requires com.acme.api` because the unnamed module has special readability rules. However, the `com.acme.api` package must be exported unqualified or granted export access via appropriate runtime configuration.
 
-Nếu module descriptor không export package:
+If the module descriptor does not export the package:
 
 ~~~java
 module com.acme.api {
-    // com.acme.api không được export
+    // com.acme.api is not exported
 }
 ~~~
 
-thì mã classpath không thể import `com.acme.api.Greeting` qua module boundary. Việc thêm `public` vào lớp không giải quyết được vấn đề này.
+then classpath code cannot import `com.acme.api.Greeting` across the module boundary. Adding `public` to the class will not solve this issue.
 
-## 4. Qualified exports không tự động cấp quyền cho unnamed module
+## 4. Qualified exports do not automatically grant access to unnamed modules
 
-Module có thể export package cho một số named module cụ thể:
+A module can export a package to specific named modules:
 
 ~~~java
 module com.acme.api {
@@ -140,9 +140,9 @@ module com.acme.api {
 }
 ~~~
 
-Trong trường hợp này, package `com.acme.api.spi` chỉ được export cho module `com.acme.plugin`. Unnamed module không có tên để xuất hiện trong danh sách module đích, nên không nhận quyền truy cập package chỉ từ qualified export này.
+In this case, the `com.acme.api.spi` package is exported only to the `com.acme.plugin` module. An unnamed module has no name to appear in the list of target modules, so it does not receive access to the package from this qualified export alone.
 
-Nếu ứng dụng classpath thực sự cần truy cập kiểu public trong package đó, có thể bổ sung export tại runtime:
+If a classpath application genuinely needs to access public types in that package, you can supplement the export at runtime:
 
 ~~~bash
 java --module-path mods \
@@ -152,27 +152,27 @@ java --module-path mods \
      com.acme.app.Main
 ~~~
 
-Cấu trúc tùy chọn:
+Option structure:
 
 ~~~text
 --add-exports source.module/package=target.module
 ~~~
 
-Ở đây:
+Here:
 
-- `com.acme.api` là module nguồn.
-- `com.acme.api.spi` là package cần export.
-- `ALL-UNNAMED` là đích đặc biệt đại diện cho các unnamed module.
+- `com.acme.api` is the source module.
+- `com.acme.api.spi` is the package to export.
+- `ALL-UNNAMED` is the special target representing unnamed modules.
 
-`ALL-UNNAMED` là ký hiệu đặc biệt dành cho các tùy chọn launcher/compiler như `--add-exports`; nó không phải tên module để ghi trong `module-info.java`. Không thể viết `exports com.acme.api.spi to ALL-UNNAMED;` trong descriptor.
+`ALL-UNNAMED` is a special symbol for launcher/compiler options such as `--add-exports`; it is not a module name to write in `module-info.java`. You cannot write `exports com.acme.api.spi to ALL-UNNAMED;` in a descriptor.
 
-Nếu có thể thay đổi module nguồn, hãy cân nhắc thiết kế API công khai phù hợp thay vì dựa lâu dài vào tùy chọn mở rộng runtime.
+If you can modify the source module, consider designing an appropriate public API instead of relying long-term on runtime expansion flags.
 
-## 5. Điều kiện thứ ba: kiểu và thành viên vẫn tuân theo access modifier Java
+## 5. Third condition: types and members still obey Java access modifiers
 
-Sau khi module được giải quyết và package được export, các quy tắc truy cập của ngôn ngữ Java vẫn áp dụng.
+Once the module is resolved and the package is exported, Java language access rules still apply.
 
-Ví dụ:
+Example:
 
 ~~~java
 package com.acme.api;
@@ -192,20 +192,20 @@ public class Customer {
 }
 ~~~
 
-Mã trong unnamed module có thể sử dụng lớp `Customer` và gọi method public `name()`. Nó không thể gọi trực tiếp `internalLabel()` vì method package-private, cũng không thể gọi `secret()` vì method private.
+Code in the unnamed module can use the `Customer` class and call the public method `name()`. It cannot directly call `internalLabel()` because it is package-private, nor can it call `secret()` because it is private.
 
-`exports` không biến tất cả thành viên trong package thành public. Nó chỉ cho phép module khác truy cập các kiểu public trong package theo quy tắc JPMS. Sau đó, access modifier tiếp tục quyết định thành viên nào được truy cập.
+`exports` does not turn all members in a package into public ones. It only allows other modules to access public types in the package according to JPMS rules. After that, access modifiers continue to determine which members are accessible.
 
-Nếu framework cần truy cập field private hoặc constructor không public bằng reflection, điều kiện export chưa đủ. Package phải được mở cho deep reflection.
+If a framework needs to access private fields or non-public constructors via reflection, the export condition is not enough. The package must be opened for deep reflection.
 
-## 6. Deep reflection cần opens
+## 6. Deep reflection requires opens
 
-`exports` và `opens` phục vụ hai mục đích khác nhau:
+`exports` and `opens` serve two different purposes:
 
-- `exports` cho phép mã module khác truy cập API public trong package.
-- `opens` cho phép reflection truy cập sâu vào các thành viên không public của package ở runtime.
+- `exports` allows code in other modules to access public APIs in a package.
+- `opens` allows reflection to deeply access non-public members of a package at runtime.
 
-Ví dụ module:
+Example module:
 
 ~~~java
 module com.acme.domain {
@@ -214,7 +214,7 @@ module com.acme.domain {
 }
 ~~~
 
-Package `com.acme.domain.model` được mở cho mọi module ở runtime. Nếu chỉ framework classpath cần reflection, có thể giới hạn bằng tùy chọn launcher:
+The `com.acme.domain.model` package is opened to all modules at runtime. If only a classpath framework needs reflection, you can limit it with a launcher option:
 
 ~~~bash
 java --module-path mods \
@@ -224,7 +224,7 @@ java --module-path mods \
      com.acme.app.Main
 ~~~
 
-Nếu framework là named module, thay `ALL-UNNAMED` bằng tên module framework. Nếu có thể sửa descriptor, qualified opens thường thể hiện phạm vi tốt hơn:
+If the framework is a named module, replace `ALL-UNNAMED` with the framework's module name. If you can edit the descriptor, qualified opens usually express scope better:
 
 ~~~java
 module com.acme.domain {
@@ -232,21 +232,21 @@ module com.acme.domain {
 }
 ~~~
 
-Một package được mở cho reflection không tự động trở thành API để mã nguồn bên ngoài import. Nếu ứng dụng cần gọi kiểu public trong package, hãy kiểm tra thêm `exports`.
+A package opened for reflection does not automatically become an API for external source code to import. If the application needs to call public types in the package, check `exports` as well.
 
-## 7. Named module có đọc được unnamed module không?
+## 7. Can a named module read an unnamed module?
 
-Chiều ngược lại có quy tắc khác. Unnamed module đọc các named module trong boot layer theo mặc định; named module **không tự động đọc unnamed module**.
+The reverse direction has a different rule. An unnamed module reads named modules in the boot layer by default; a named module **does not automatically read an unnamed module**.
 
-Ví dụ ứng dụng module hóa có khai báo:
+For example, a modularized application declares:
 
 ~~~java
 module com.acme.app {
-    // Không có requires tới thư viện classpath
+    // No requires for the classpath library
 }
 ~~~
 
-Nếu lớp của ứng dụng cần import một thư viện chỉ có trên classpath, named module không thể tự động đọc unnamed module chứa thư viện đó. Trong giai đoạn chuyển đổi, có thể bổ sung quan hệ đọc ở runtime:
+If the application's classes need to import a library that only exists on the classpath, the named module cannot automatically read the unnamed module containing that library. During migration, you can add a read relationship at runtime:
 
 ~~~bash
 java --module-path mods \
@@ -255,13 +255,13 @@ java --module-path mods \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-`--add-reads com.acme.app=ALL-UNNAMED` cho phép named module `com.acme.app` đọc các unnamed module. Đây là thay đổi chiều ngược lại với quy tắc đang xét trong bài. Unnamed module đọc named module vốn đã được JPMS cho phép khi module nằm trong boot layer; named module cần cấu hình bổ sung nếu muốn đọc thư viện classpath.
+`--add-reads com.acme.app=ALL-UNNAMED` allows the named module `com.acme.app` to read unnamed modules. This alters the opposite direction of the rule examined in this lesson. An unnamed module reading a named module is already permitted by JPMS when the module is in the boot layer; a named module needs additional configuration if it wants to read classpath libraries.
 
-Một module không thể viết `requires unnamed.module` vì unnamed module không có tên ổn định để tham chiếu trong descriptor.
+A module cannot write `requires unnamed.module` because an unnamed module has no stable name to reference in a descriptor.
 
-## 8. Kiểm tra readability và export bằng Java API
+## 8. Checking readability and exports with the Java API
 
-Có thể kiểm tra quan hệ module trong chương trình:
+You can inspect module relationships programmatically:
 
 ~~~java
 public class ModuleAccessCheck {
@@ -286,18 +286,18 @@ public class ModuleAccessCheck {
 }
 ~~~
 
-Khi lớp `ModuleAccessCheck` được nạp từ classpath:
+When the `ModuleAccessCheck` class is loaded from the classpath:
 
-- `unnamed.isNamed()` trả về `false`.
-- `unnamed.canRead(named)` cho biết caller có readability tới module được tìm trong boot layer hay không.
-- `named.isExported(packageName, unnamed)` kiểm tra package có được export cho đúng caller không.
-- `named.isOpen(packageName, unnamed)` kiểm tra package có được mở cho deep reflection đối với caller không.
+- `unnamed.isNamed()` returns `false`.
+- `unnamed.canRead(named)` indicates whether the caller has readability to the module found in the boot layer.
+- `named.isExported(packageName, unnamed)` checks whether the package is exported to that exact caller.
+- `named.isOpen(packageName, unnamed)` checks whether the package is open for deep reflection to the caller.
 
-Nếu `findModule` không tìm thấy module, hãy kiểm tra module đó đã được đưa vào boot layer chưa. Nếu `canRead` đúng nhưng `isExported` sai, vấn đề nằm ở quyền export package, không phải readability.
+If `findModule` does not find the module, check whether that module has been included in the boot layer. If `canRead` is true but `isExported` is false, the issue lies in package export permissions, not readability.
 
-## 9. Quan sát module resolution khi chạy
+## 9. Observing module resolution at runtime
 
-Thêm `--show-module-resolution` để xem module nào được JVM giải quyết:
+Add `--show-module-resolution` to see which modules are resolved by the JVM:
 
 ~~~bash
 java --show-module-resolution \
@@ -307,47 +307,47 @@ java --show-module-resolution \
      com.acme.app.Main
 ~~~
 
-Kết quả giúp xác nhận module `com.acme.api` đã tham gia cấu hình runtime hay chưa. Để kiểm tra metadata tĩnh của JAR:
+The output helps confirm whether the `com.acme.api` module joined the runtime configuration. To inspect the static metadata of a JAR:
 
 ~~~bash
 jar --describe-module --file mods/com.acme.api.jar
 ~~~
 
-Lệnh này hiển thị tên module, các directive `requires` và package `exports`. Kết hợp hai cách kiểm tra giúp phân biệt:
+This command displays the module name, `requires` directives, and `exports` packages. Combining both checks helps distinguish:
 
-- JAR không được tìm thấy hoặc module không được resolve.
-- Module đã resolve nhưng package không được export cho unnamed module.
-- Package được export nhưng kiểu/thành viên không đáp ứng access modifier Java.
-- Package cần reflection nhưng chưa được mở.
+- The JAR was not found or the module was not resolved.
+- The module was resolved, but the package is not exported to the unnamed module.
+- The package is exported, but the type/member does not satisfy Java access modifiers.
+- The package needs reflection, but has not been opened.
 
-## 10. Các lỗi thường gặp và cách xử lý
+## 10. Common errors and how to handle them
 
-| Triệu chứng | Nguyên nhân | Hướng xử lý |
+| Symptom | Cause | Resolution |
 |---|---|---|
-| `package ... is not visible` khi biên dịch classpath app | Package của named module chưa export hoặc module chưa được đưa vào cấu hình biên dịch | Kiểm tra `exports`, module path và `--add-modules` |
-| `FindException: Module ... not found` | Module bắt buộc không có trong nguồn module được quan sát | Kiểm tra tên module và module path |
-| `IllegalAccessError` | Module readability hoặc export không đáp ứng khi liên kết/chạy | Kiểm tra `canRead`, `isExported`, descriptor và tùy chọn runtime |
-| `InaccessibleObjectException` | Reflection cố truy cập thành viên không public trong package chưa mở | Dùng qualified `opens` hoặc `--add-opens` cho đúng caller |
-| Ứng dụng classpath gọi được API nhưng named module không gọi được | Named module không đọc unnamed module, hoặc package chưa export cho nó | Khai báo `requires`/`exports` đúng; chỉ dùng `--add-reads` khi tích hợp classpath có chủ đích |
-| Module có trong thư mục `mods` nhưng không xuất hiện trong boot layer | Module không phải root và không được dependency/service binding kéo vào | Kiểm tra `--add-modules` và `--show-module-resolution` |
+| `package ... is not visible` when compiling a classpath app | The named module's package is not exported or the module was not included in the compile configuration | Check `exports`, module path, and `--add-modules` |
+| `FindException: Module ... not found` | A required module is missing from observable module sources | Check the module name and module path |
+| `IllegalAccessError` | Module readability or export is not satisfied during linking/execution | Check `canRead`, `isExported`, descriptor, and runtime options |
+| `InaccessibleObjectException` | Reflection attempts to access a non-public member in an unopened package | Use qualified `opens` or `--add-opens` for the right caller |
+| Classpath app can call API but named module cannot | Named module does not read unnamed module, or the package is not exported to it | Declare `requires`/`exports` properly; only use `--add-reads` for intentional classpath integration |
+| Module is in the `mods` directory but does not appear in the boot layer | Module is not a root and was not pulled in by dependency/service binding | Check `--add-modules` and `--show-module-resolution` |
 
-## 11. Quy trình chẩn đoán thực tế
+## 11. Practical diagnostic workflow
 
-Khi ứng dụng classpath cần sử dụng một named module, hãy kiểm tra theo thứ tự:
+When a classpath application needs to use a named module, check in order:
 
-1. **Xác định module caller:** lớp gọi API thuộc unnamed module nào và được nạp bởi class loader nào?
-2. **Xác nhận module nguồn:** JAR có descriptor hợp lệ và tên module đúng không?
-3. **Xác nhận module được resolve:** module có thuộc boot layer không? Dùng `--add-modules` nếu cần thêm root.
-4. **Kiểm tra readability:** gọi `canRead` hoặc quan sát graph để xác nhận unnamed module đọc được module nguồn.
-5. **Kiểm tra export:** package chứa kiểu có được export không? Qualified export có thể không cấp quyền cho unnamed module.
-6. **Kiểm tra access modifier:** lớp và thành viên có public ở mức cần thiết không?
-7. **Kiểm tra reflection:** nếu framework cần deep reflection, xác nhận package được mở cho caller bằng `opens` hoặc `--add-opens`.
-8. **Thử cấu hình đúng tiến trình:** đặt tùy chọn vào JVM thực sự chạy ứng dụng/test, sau đó chạy lại và kiểm tra output resolution.
+1. **Identify the caller module:** which unnamed module does the API-calling class belong to, and which class loader loaded it?
+2. **Verify the source module:** does the JAR have a valid descriptor and the right module name?
+3. **Verify the module is resolved:** does the module belong to the boot layer? Use `--add-modules` if you need to add a root.
+4. **Check readability:** call `canRead` or observe the graph to confirm the unnamed module reads the source module.
+5. **Check exports:** is the package containing the type exported? A qualified export may not grant access to an unnamed module.
+6. **Check access modifiers:** are the class and member public to the required extent?
+7. **Check reflection:** if a framework needs deep reflection, verify the package is open to the caller via `opens` or `--add-opens`.
+8. **Test configuration on the right process:** place the options on the JVM actually running the application/tests, then re-run and inspect the resolution output.
 
-Đừng thêm hàng loạt `--add-exports` hoặc `--add-opens` khi chưa xác định ranh giới nào đang chặn truy cập. Mỗi tùy chọn nên giải quyết một package và một module caller cụ thể.
+Do not add `--add-exports` or `--add-opens` in bulk before identifying which boundary is blocking access. Each option should address a specific package and a specific caller module.
 
-## 12. Ghi nhớ
+## 12. Key takeaways
 
-Unnamed module đọc được các named module trong boot layer, nhưng quyền đọc module không đồng nghĩa với quyền truy cập mọi package. Module nguồn phải export package cho unnamed module; các kiểu và thành viên vẫn phải tuân theo access modifier Java. Nếu cần deep reflection, package phải được mở riêng.
+An unnamed module reads named modules in the boot layer, but reading a module is not synonymous with accessing every package. The source module must export the package to the unnamed module; types and members must still obey Java access modifiers. If deep reflection is needed, the package must be opened separately.
 
-Khi tích hợp thư viện module hóa với ứng dụng classpath, hãy xác nhận module đã được resolve, package API được export không giới hạn hoặc được bổ sung bằng `--add-exports ...=ALL-UNNAMED`, và framework reflection được cấp `opens` phù hợp. `ALL-UNNAMED` là đích đặc biệt cho tùy chọn runtime, không phải tên module để khai báo trong `module-info.java`.
+When integrating modularized libraries with a classpath application, confirm that the module is resolved, the API package is exported unqualified or supplemented with `--add-exports ...=ALL-UNNAMED`, and reflection frameworks are granted appropriate `opens`. `ALL-UNNAMED` is a special target for runtime options, not a module name to declare in `module-info.java`.

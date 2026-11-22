@@ -1,10 +1,10 @@
-# `MethodType` và kiểm tra chữ ký trong Java
+# `MethodType` and Signature Checking in Java
 
-## 1. `MethodType` mô tả điều gì?
+## 1. What Does `MethodType` Describe?
 
-Trong Java, `java.lang.invoke.MethodType` là một **mô tả bất biến của chữ ký kiểu phương thức**: đúng một kiểu trả về và danh sách các kiểu tham số có thứ tự. Nó thuộc nhóm API `java.lang.invoke`, được sử dụng khi tra cứu và gọi `MethodHandle`, khi thích nghi lời gọi động, và khi tra chữ ký truy cập của `VarHandle`.
+In Java, `java.lang.invoke.MethodType` is an **immutable descriptor of a method type signature**: exactly one return type and an ordered list of parameter types. It belongs to the `java.lang.invoke` API group and is used when looking up and invoking `MethodHandle`s, adapting dynamic invocations, and querying the access signature of a `VarHandle`.
 
-Ví dụ, chữ ký `String label(String name, int count)` được biểu diễn bởi:
+For example, the signature `String label(String name, int count)` is represented by:
 
 ```java
 import java.lang.invoke.MethodType;
@@ -14,24 +14,24 @@ MethodType signature = MethodType.methodType(
 System.out.println(signature); // (String,int)String
 ```
 
-Trong lời gọi `methodType`, **đối số đầu tiên là kiểu trả về**; hai đối số kế tiếp lần lượt là kiểu của `name` và `count`. Chữ ký `(String,int)String` được đọc là "nhận `String` và `int`, trả `String`". Nó **không** bao gồm tên phương thức `label`.
+In the `methodType` call, **the first argument is the return type**; the next two arguments are the types of `name` and `count`, respectively. The signature `(String,int)String` reads as "accepts `String` and `int`, returns `String`". It does **not** include the method name `label`.
 
-`MethodType` không lưu lớp khai báo, tên phương thức, tên tham số, modifier (`public`/`static`), generic type arguments, annotation hay danh sách `throws`. Chẳng hạn, `List<String>` và `List<Integer>` đều có thể được biểu diễn bằng `List.class` vì type erasure; `MethodType` không thể thay thế một `ParameterizedType`.
+`MethodType` does not store the declaring class, method name, parameter names, modifiers (`public`/`static`), generic type arguments, annotations, or `throws` lists. For instance, `List<String>` and `List<Integer>` are both represented by `List.class` due to type erasure; `MethodType` cannot replace a `ParameterizedType`.
 
-So sánh các khái niệm:
+Comparing concepts:
 
-| API | Dữ liệu chính | Công dụng |
+| API | Primary Data | Purpose |
 | --- | --- | --- |
-| `MethodType` | Kiểu trả về và kiểu tham số runtime | Mô tả, so khớp, tạo/chỉnh chữ ký kiểu |
-| `MethodHandle` | Một thao tác có thể gọi, kèm `type()` | Thực thi lời gọi động |
-| `java.lang.reflect.Method` | Phương thức có tên, lớp khai báo, modifiers và metadata | Tìm và gọi phương thức bằng Core Reflection |
-| `VarHandle` | Truy cập đến biến/field/phần tử mảng | `GET`, `SET`, CAS và những access mode khác |
+| `MethodType` | Return type and runtime parameter types | Describe, match, create/modify type signatures |
+| `MethodHandle` | An invocable operation, along with `type()` | Execute dynamic invocations |
+| `java.lang.reflect.Method` | Named method, declaring class, modifiers, and metadata | Find and invoke methods via Core Reflection |
+| `VarHandle` | Access to a variable/field/array element | `GET`, `SET`, CAS, and other access modes |
 
-**Lưu ý:** `MethodType` chỉ mô tả kiểu, bản thân nó không chứa mã thực thi và không có thao tác gọi phương thức như `invokeExact`.
+**Note:** `MethodType` only describes types; by itself it contains no executable code and has no invocation operation like `invokeExact`.
 
-## 2. Cách tạo và đọc một `MethodType`
+## 2. How to Create and Inspect a `MethodType`
 
-Một số overload của factory `MethodType.methodType(...)`:
+Several overloads of the `MethodType.methodType(...)` factory:
 
 ```java
 MethodType none = MethodType.methodType(void.class);
@@ -42,36 +42,36 @@ MethodType fromArray = MethodType.methodType(
         String.class, new Class<?>[] { String.class, int.class });
 ```
 
-Đây là các đoạn mã minh họa để đặt trong class/phương thức và import `java.lang.invoke.MethodType`; chương trình đầy đủ có ở phần sau.
+These are illustrative code snippets to be placed inside a class/method with `import java.lang.invoke.MethodType;`; a complete program appears in a later section.
 
-Các hàm truy vấn thường dùng:
+Common query methods:
 
-- `returnType()` trả `Class<?>` mô tả kiểu kết quả; `void.class` được phép khi không có kết quả.
-- `parameterCount()` đếm tham số; `parameterType(i)` truy cập tham số thứ `i`, đánh số từ 0.
-- `parameterArray()` và `parameterList()` liệt kê các kiểu tham số theo đúng thứ tự; việc thay đổi mảng kết quả không thay đổi `MethodType`.
-- `toString()` hiển thị dạng dễ đọc, ví dụ `(String,int)String`.
-- `toMethodDescriptorString()` chuyển sang JVM descriptor, ví dụ `(Ljava/lang/String;I)Ljava/lang/String;` (`I` biểu diễn primitive `int`).
-- `MethodType.fromMethodDescriptorString(descriptor, loader)` đọc JVM descriptor với class loader được cung cấp để phân giải kiểu tham chiếu.
+- `returnType()` returns a `Class<?>` describing the result type; `void.class` is permitted when there is no result.
+- `parameterCount()` counts parameters; `parameterType(i)` accesses the `i`-th parameter, zero-indexed.
+- `parameterArray()` and `parameterList()` list parameter types in order; mutating the returned array does not mutate the `MethodType`.
+- `toString()` displays a human-readable form, such as `(String,int)String`.
+- `toMethodDescriptorString()` converts to a JVM descriptor, such as `(Ljava/lang/String;I)Ljava/lang/String;` (`I` represents primitive `int`).
+- `MethodType.fromMethodDescriptorString(descriptor, loader)` parses a JVM descriptor using the supplied class loader to resolve reference types.
 
-**Kiểu trả về `void` hợp lệ, kiểu tham số `void` không hợp lệ.** `MethodType.methodType(String.class, void.class)` ném `IllegalArgumentException`. Nếu kiểu trả về hoặc kiểu tham số bị truyền `null`, API ném `NullPointerException`. Đối với `parameterType(i)`, chỉ số ngoài khoảng sẽ phát sinh `IndexOutOfBoundsException`.
+**Return type `void` is valid, parameter type `void` is invalid.** `MethodType.methodType(String.class, void.class)` throws `IllegalArgumentException`. If the return type or a parameter type is passed as `null`, the API throws `NullPointerException`. For `parameterType(i)`, an out-of-range index throws `IndexOutOfBoundsException`.
 
-Kiểu primitive và wrapper là **hai kiểu khác nhau**: `int.class` khác `Integer.class`. Kiểu mảng là một kiểu riêng: `String[].class` khác `String.class`. `MethodType` xét đối tượng `Class` thực tế, kể cả class loader, không chỉ chuỗi tên lớp.
+Primitive types and wrapper types are **two distinct types**: `int.class` differs from `Integer.class`. Array types are distinct types: `String[].class` differs from `String.class`. `MethodType` considers the actual `Class` objects, including class loaders, not just class-name strings.
 
-## 3. So sánh chính xác và biến đổi chữ ký
+## 3. Exact Comparison and Transforming Signatures
 
-`MethodType` bất biến. Các phương thức điều chỉnh trả về một `MethodType` khác (hoặc có thể dùng lại đối tượng hiện tại nếu nội dung không đổi), không sửa đối tượng ban đầu:
+`MethodType` is immutable. Adjustment methods return another `MethodType` (or may reuse the current instance if contents are unchanged) without modifying the original object:
 
-| Phương thức | Tác dụng |
+| Method | Effect |
 | --- | --- |
-| `changeReturnType(Class<?>)` | Thay kiểu trả về |
-| `changeParameterType(index, Class<?>)` | Thay kiểu một tham số |
-| `insertParameterTypes(index, Class<?>...)` | Chèn các tham số vào vị trí xác định |
-| `appendParameterTypes(Class<?>...)` | Nối thêm các tham số |
-| `dropParameterTypes(start, end)` | Bỏ đoạn tham số từ `start` đến trước `end` |
-| `wrap()` / `unwrap()` | Chuyển primitive sang wrapper hoặc chiều ngược lại trong mô tả |
-| `equals(Object)` | Kiểm tra kiểu trả về và từng kiểu tham số trùng chính xác |
+| `changeReturnType(Class<?>)` | Replaces the return type |
+| `changeParameterType(index, Class<?>)` | Replaces the type of one parameter |
+| `insertParameterTypes(index, Class<?>...)` | Inserts parameters at a given position |
+| `appendParameterTypes(Class<?>...)` | Appends parameters |
+| `dropParameterTypes(start, end)` | Drops the parameter slice from `start` up to before `end` |
+| `wrap()` / `unwrap()` | Converts primitives to wrappers or vice versa in the descriptor |
+| `equals(Object)` | Checks that the return type and each parameter type match exactly |
 
-Ví dụ:
+Example:
 
 ```java
 MethodType oldType = MethodType.methodType(
@@ -83,45 +83,45 @@ MethodType newType = oldType.changeReturnType(Object.class)
 // newType: (String,long,int)Object
 ```
 
-Dùng `equals` để so sánh chữ ký theo nội dung; **không dùng `==` để thay cho phép kiểm tra tương đương**. Kiểu, vị trí và số tham số đều quan trọng. Nếu chỉ đổi `int` thành `Integer` hoặc đổi kiểu trả về, hai `MethodType` không bằng nhau.
+Use `equals` to compare signatures by content; **do not use `==` in place of equivalence checks**. Types, positions, and parameter count all matter. Changing only `int` to `Integer` or changing the return type makes two `MethodType`s unequal.
 
-Biến đổi `MethodType` **không tự động biến đổi hành vi hay kiểu của một `MethodHandle` đang có**. Để tạo handle có kiểu mới và bộ chuyển đổi phù hợp, dùng `handle.asType(newType)` khi chuyển đổi được cho phép.
+Transforming a `MethodType` **does not automatically transform the behavior or type of an existing `MethodHandle`**. To produce a handle with a new type and the corresponding adapter, use `handle.asType(newType)` when the conversion is permitted.
 
-## 4. Kiểu của `MethodHandle`, receiver và `invokeExact`
+## 4. `MethodHandle` Type, Receiver, and `invokeExact`
 
-`MethodHandle.type()` trả về `MethodType` mà handle yêu cầu tại lời gọi. Với phương thức `static` được tra bằng `Lookup.findStatic`, kiểu handle thường trùng kiểu phương thức mô tả tại lookup.
+`MethodHandle.type()` returns the `MethodType` that the handle expects at invocation. For a `static` method looked up with `Lookup.findStatic`, the handle type normally matches the method type described at lookup.
 
-Với `Lookup.findVirtual`, có hai mức chữ ký cần phân biệt:
+With `Lookup.findVirtual`, there are two signature levels to distinguish:
 
 ```java
-// Chữ ký khai báo của String.substring(int, int):
+// Declared signature of String.substring(int, int):
 MethodType declared = MethodType.methodType(
         String.class, int.class, int.class);
 MethodHandle handle = MethodHandles.lookup()
         .findVirtual(String.class, "substring", declared);
 
 // handle.type(): (String,int,int)String
-//              ^ receiver String được đưa vào đầu
+//              ^ String receiver is placed first
 ```
 
-Ví dụ trên cần import `MethodHandle`, `MethodHandles`, `MethodType` và đặt trong phương thức xử lý checked exceptions. `findVirtual` nhận kiểu theo khai báo, không có receiver. Nhưng khi **gọi handle**, receiver trở thành tham số đầu tiên. `bindTo(receiver)` có thể gắn sẵn receiver trên một handle thích hợp và giảm số tham số của handle kết quả.
+The example above requires importing `MethodHandle`, `MethodHandles`, `MethodType` and placing it in a method that handles checked exceptions. `findVirtual` takes the declared type without a receiver. However, when **invoking the handle**, the receiver becomes the first parameter. `bindTo(receiver)` can pre-bind a receiver on an eligible handle and reduce the parameter count of the resulting handle.
 
-`MethodHandle.invokeExact(...)` yêu cầu chữ ký tại **call site** khớp chính xác `handle.type()`: số lượng, thứ tự, kiểu tham số **và kiểu trả về**. Compiler xác định kiểu trả về của call site từ ngữ cảnh của biểu thức. Chẳng hạn:
+`MethodHandle.invokeExact(...)` requires the signature at the **call site** to match `handle.type()` exactly: parameter count, order, parameter types, **and return type**. The compiler determines the call site's return type from the expression context. For example:
 
 ```java
-// handle.type() là (String,int,int)String:
+// handle.type() is (String,int,int)String:
 String yes = (String) handle.invokeExact("abcdef", 1, 3);
 // Object no = (Object) handle.invokeExact("abcdef", 1, 3);
-// Dòng thứ hai có thể biên dịch nhưng ném WrongMethodTypeException.
+// The second line may compile, yet throws WrongMethodTypeException.
 ```
 
-Trường hợp sau yêu cầu **Object** tại call site, còn handle trả **String**. Dù `String` là subtype của `Object`, `invokeExact` không chấp nhận chuyển đổi đó. Khi lời gọi đứng riêng như statement và giá trị bị bỏ qua, call site có kiểu trả về `void`; điều này cũng có thể không khớp.
+The latter case requests **Object** at the call site, whereas the handle returns **String**. Even though `String` is a subtype of `Object`, `invokeExact` does not accept that conversion. When a call stands alone as a statement and its value is discarded, the call site has return type `void`; that can also fail to match.
 
-`MethodHandle.invoke(...)` linh hoạt hơn: nếu chữ ký khác, JVM có thể thực hiện chuyển đổi tương đương `asType` (chẳng hạn ép kiểu tham chiếu, boxing/unboxing trong phạm vi được hỗ trợ). `invokeExact` không làm bước thích nghi này. Khi không thích nghi được, có thể nhận `WrongMethodTypeException`; lỗi cast cụ thể có thể gây `ClassCastException`.
+`MethodHandle.invoke(...)` is more flexible: if the signatures differ, the JVM can perform conversions equivalent to `asType` (such as reference casts and boxing/unboxing within the supported range). `invokeExact` skips this adaptation step. When adaptation is not possible, `WrongMethodTypeException` may be thrown; a specific cast failure can cause `ClassCastException`.
 
-## 5. Ví dụ Java 17+ chạy độc lập: so chữ ký, kiểm tra lỗi và thích nghi
+## 5. Standalone Java 17+ Example: Comparing Signatures, Error Checking, and Adaptation
 
-Lưu thành `MethodTypeSignatureDemo.java`:
+Save as `MethodTypeSignatureDemo.java`:
 
 ```java
 import java.lang.invoke.MethodHandle;
@@ -205,14 +205,14 @@ public class MethodTypeSignatureDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --release 17 -encoding UTF-8 MethodTypeSignatureDemo.java
 java MethodTypeSignatureDemo
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 type=(String,int)String
@@ -235,26 +235,26 @@ virtualType=(String,int,int)String
 substring=method
 ```
 
-Giải thích các điểm then chốt:
+Explanation of key points:
 
-1. `changeReturnType` và `insertParameterTypes` giữ nguyên `signature` ban đầu; `roundtrip=true` chứng minh descriptor giải mã trở về chữ ký tương đương.
-2. `handle.type()` của `findStatic` khớp chữ ký `(String,int)String` đã dùng tra cứu. Hàm `requireType` kiểm tra trước khi dùng để phát hiện việc kết nối nhầm contract.
-3. `String exact = (String) handle.invokeExact(...)` thành công. Cast kết quả `Object` làm thay đổi kiểu trả về của call site nên ném `WrongMethodTypeException`.
-4. `asType` tạo adapter có kiểu `(Object,Integer)Object`, ép `Object` chứa chuỗi thành `String`, unbox `Integer` sang `int` rồi nâng kết quả `String` thành `Object`. Adapter không sửa handle ban đầu.
-5. `findVirtual` yêu cầu receiver `String` đứng đầu. Hàm `substring("methodtype", 0, 6)` trả về `method`.
+1. `changeReturnType` and `insertParameterTypes` leave the original `signature` intact; `roundtrip=true` proves the descriptor decodes back into an equivalent signature.
+2. `handle.type()` from `findStatic` matches the `(String,int)String` signature used for lookup. `requireType` checks beforehand to catch miswired contracts.
+3. `String exact = (String) handle.invokeExact(...)` succeeds. Casting the result to `Object` changes the call site's return type, throwing `WrongMethodTypeException`.
+4. `asType` creates an adapter with type `(Object,Integer)Object`, casts the `Object` holding a string to `String`, unboxes `Integer` to `int`, and widens the `String` result to `Object`. The adapter does not modify the original handle.
+5. `findVirtual` requires the `String` receiver first. Calling `substring("methodtype", 0, 6)` returns `method`.
 
-Hàm `requireType` là kiểm tra contract chủ động; JVM vẫn thực thi kiểm tra riêng khi gặp lời gọi `invokeExact`.
+`requireType` is an explicit contract check; the JVM still enforces its own check when encountering an `invokeExact` call.
 
-## 6. Liên hệ `VarHandle`: chữ ký phụ thuộc access mode
+## 6. Relation to `VarHandle`: Signatures Depend on Access Mode
 
-`VarHandle` không có một chữ ký chung cho mọi thao tác. `GET` đọc giá trị, `SET` ghi giá trị và nhận thêm đối số mới, `COMPARE_AND_SET` có hợp đồng riêng. Có thể tra:
+`VarHandle` does not have a single signature for every operation. `GET` reads a value, `SET` writes a value and takes an additional new-value argument, and `COMPARE_AND_SET` has its own contract. You can inspect:
 
-- `vh.accessModeType(VarHandle.AccessMode.GET)` — kiểu call site của `GET`.
-- `vh.accessModeType(VarHandle.AccessMode.SET)` — kiểu call site của `SET`.
-- `vh.toMethodHandle(mode).type()` — kiểu của MethodHandle đại diện access mode.
-- `vh.isAccessModeSupported(mode)` — xác định access mode có được loại VarHandle đó hỗ trợ hay không.
+- `vh.accessModeType(VarHandle.AccessMode.GET)` — the call-site type of `GET`.
+- `vh.accessModeType(VarHandle.AccessMode.SET)` — the call-site type of `SET`.
+- `vh.toMethodHandle(mode).type()` — the type of a MethodHandle representing the access mode.
+- `vh.isAccessModeSupported(mode)` — determines whether the access mode is supported by that VarHandle instance.
 
-Với phần tử `int[]`, tọa độ gồm **mảng** và **chỉ số**. Một ví dụ độc lập lưu vào `VarHandleSignatureDemo.java`:
+For an `int[]` element, the coordinates consist of **the array** and **the index**. Save a standalone example as `VarHandleSignatureDemo.java`:
 
 ```java
 import java.lang.invoke.MethodHandle;
@@ -299,48 +299,48 @@ before=20
 after=42
 ```
 
-`GET` có kiểu `(int[],int)int`; `SET` có kiểu `(int[],int,int)void` vì nhận thêm giá trị mới. Lời gọi access mode của `VarHandle` cũng có ngữ nghĩa signature polymorphic; kiểm tra `accessModeType` giúp tránh nhầm số và kiểu tọa độ, giá trị cần ghi và kiểu kết quả.
+`GET` has type `(int[],int)int`; `SET` has type `(int[],int,int)void` because it takes the new value as an extra argument. Access-mode calls on `VarHandle` also have signature-polymorphic semantics; checking `accessModeType` prevents mixing up coordinate count/types, the value to write, and the result type.
 
-## 7. Cách kiểm tra chữ ký khi tích hợp code động
+## 7. How to Check Signatures When Integrating Dynamic Code
 
-Trong hệ thống ánh xạ lời gọi runtime, plugin, adapter hoặc thư viện tạo MethodHandle, nên thực hiện:
+In runtime call-mapping systems, plugins, adapters, or MethodHandle-generating libraries, you should:
 
-1. Xây `MethodType expected` dựa trên hợp đồng của thao tác cần gọi. Ghi rõ **kiểu trả về**, không chỉ tham số.
-2. Đọc kiểu thực tế bằng `handle.type()`. Với instance method, tính cả receiver, còn với VarHandle chọn `accessModeType` theo đúng mode.
-3. Nếu yêu cầu trùng tuyệt đối, dùng `expected.equals(actual)` và đưa ra lỗi giải thích khi không khớp.
-4. Nếu chủ định chấp nhận chuyển đổi, tạo adapter `handle.asType(expected)` và kiểm tra logic cast/unboxing; adapter có thể thất bại ngay hoặc lúc gọi tùy kiểu chuyển đổi.
-5. Khi đọc descriptor từ bytecode hay cấu hình, sử dụng class loader phù hợp. Chữ ký đúng **không bảo đảm** target method tồn tại hoặc được truy cập: `Lookup.findStatic`/`findVirtual` còn thực hiện kiểm tra quyền truy cập và có thể ném `NoSuchMethodException` hoặc `IllegalAccessException`.
+1. Construct `MethodType expected` based on the contract of the target operation. Specify the **return type** explicitly, not just parameters.
+2. Read the actual type via `handle.type()`. For instance methods, account for the receiver; for VarHandle, choose `accessModeType` for the exact mode.
+3. If an exact match is required, use `expected.equals(actual)` and emit an informative error on mismatch.
+4. If conversions are intentionally allowed, create an adapter via `handle.asType(expected)` and verify cast/unboxing logic; the adapter can fail immediately or at invocation time depending on the conversion.
+5. When reading descriptors from bytecode or configuration, use the appropriate class loader. A matching signature **does not guarantee** the target method exists or is accessible: `Lookup.findStatic`/`findVirtual` still perform access checks and can throw `NoSuchMethodException` or `IllegalAccessException`.
 
-Với API mà kiểu đích biết tại compile time, ưu tiên lời gọi Java thông thường; `MethodType` hữu ích khi thực sự cần mô tả và xử lý chữ ký ở runtime.
+For APIs where the target type is known at compile time, prefer normal Java calls; `MethodType` is useful when signatures genuinely need to be described and processed at runtime.
 
-## 8. Lỗi thường gặp
+## 8. Common Mistakes
 
-| Sai sót | Biểu hiện và cách tránh |
+| Mistake | Symptom and How to Avoid |
 | --- | --- |
-| Nhầm tham số đầu của `methodType` | Nó là **kiểu trả về**, còn các kiểu tham số theo sau |
-| Cho `void.class` vào tham số | `IllegalArgumentException`; `void` chỉ phù hợp với kiểu trả về |
-| Dùng `==` để so nội dung chữ ký | Dùng `equals` |
-| Nhầm `int.class` và `Integer.class` | Chữ ký khác nhau; `invokeExact` không tự boxing |
-| Bỏ receiver của `findVirtual` | `handle.type()` có thêm receiver ở vị trí đầu |
-| Bỏ qua kiểu trả về tại `invokeExact` | Call site có thể sai dù mọi đối số nhìn đúng |
-| Tưởng `asType` sửa nguyên handle | Nó trả về adapter có kiểu mới |
-| Dùng `toString()` làm JVM descriptor | Dùng `toMethodDescriptorString()` |
-| Tưởng `MethodType` lưu generic/throws/tên method | Chỉ mô tả kiểu runtime của tham số/trả về |
-| Dùng chữ ký `get` cho `set` của `VarHandle` | Kiểm tra `accessModeType(mode)` cho từng mode |
-| Trộn kiểu từ class loader khác nhau | Danh tính `Class` phụ thuộc loader; cần giải mã descriptor với loader đúng |
+| Misreading the first parameter of `methodType` | It is the **return type**, followed by parameter types |
+| Passing `void.class` as a parameter | `IllegalArgumentException`; `void` is only valid as a return type |
+| Using `==` to compare signature contents | Use `equals` |
+| Confusing `int.class` and `Integer.class` | Different signatures; `invokeExact` does not auto-box |
+| Omitting the receiver for `findVirtual` | `handle.type()` prepends the receiver in the first slot |
+| Ignoring return type at `invokeExact` | The call site can fail even when every argument looks right |
+| Thinking `asType` mutates the original handle | It returns an adapter with a new type |
+| Using `toString()` as a JVM descriptor | Use `toMethodDescriptorString()` |
+| Thinking `MethodType` stores generics/`throws`/method name | It only describes runtime parameter and return types |
+| Using `VarHandle`'s `get` signature for `set` | Check `accessModeType(mode)` for each mode |
+| Mixing types from different class loaders | `Class` identity depends on its loader; decode descriptors with the right loader |
 
-`invokeExact` và `invoke` khai báo `throws Throwable`; các ví dụ dùng `main throws Throwable` để code chạy độc lập. `WrongMethodTypeException` thường cho biết sai hợp đồng kiểu tại call site, trong khi `ClassCastException` có thể là lỗi chuyển giá trị khi dùng adapter.
+`invokeExact` and `invoke` declare `throws Throwable`; the examples use `main throws Throwable` so the code runs standalone. `WrongMethodTypeException` usually indicates a type-contract mismatch at the call site, whereas `ClassCastException` can be a value-conversion error when using an adapter.
 
-## 9. Tự kiểm tra
+## 9. Self-Check
 
-**1.** `MethodType.methodType(void.class, String.class)` có hợp lệ không? — **Có**: nhận `String` và trả `void`. Ngược lại, `methodType(String.class, void.class)` không hợp lệ.
+**1.** Is `MethodType.methodType(void.class, String.class)` valid? — **Yes**: accepts `String` and returns `void`. Conversely, `methodType(String.class, void.class)` is invalid.
 
-**2.** `findVirtual(String.class, "substring", methodType(String.class, int.class, int.class))` tạo `handle.type()` nào? — **`(String,int,int)String`**, vì có receiver `String`.
+**2.** What `handle.type()` does `findVirtual(String.class, "substring", methodType(String.class, int.class, int.class))` produce? — **`(String,int,int)String`**, because of the `String` receiver.
 
-**3.** Handle có kiểu `(String,int)String`; ép kết quả `invokeExact` sang `Object` có phù hợp không? — **Không**: call site muốn trả `Object`, không trùng `String`.
+**3.** A handle has type `(String,int)String`; is casting the `invokeExact` result to `Object` valid? — **No**: the call site expects return type `Object`, which does not match `String`.
 
-**4.** Vì sao `VarHandle` cần `accessModeType` thay vì dùng một `MethodType` duy nhất? — Vì các mode có số tham số và kiểu trả về khác nhau.
+**4.** Why does `VarHandle` need `accessModeType` instead of using a single `MethodType`? — Because modes differ in parameter count and return type.
 
-**Ghi nhớ:** `MethodType` là hợp đồng kiểu bất biến. Khi kiểm tra lời gọi động, đối chiếu đầy đủ **return type + danh sách tham số theo thứ tự + receiver**; dùng `handle.type()` và `VarHandle.accessModeType(mode)` để xác nhận trước khi thực thi.
+**Remember:** `MethodType` is an immutable type contract. When checking dynamic invocations, verify the full **return type + ordered parameter list + receiver**; use `handle.type()` and `VarHandle.accessModeType(mode)` to confirm before executing.
 
-Tham khảo: [Javadoc `MethodType` Java 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodType.html), [Javadoc `MethodHandle` Java 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodHandle.html), [Javadoc `VarHandle` Java 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/VarHandle.html).
+References: [Java 17 `MethodType` Javadoc](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodType.html), [Java 17 `MethodHandle` Javadoc](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodHandle.html), [Java 17 `VarHandle` Javadoc](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/VarHandle.html).

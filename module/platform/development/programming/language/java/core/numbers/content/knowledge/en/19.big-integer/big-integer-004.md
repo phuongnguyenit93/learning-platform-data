@@ -1,12 +1,12 @@
-# `BigInteger.ZERO`, `ONE`, `TWO`, `TEN` và `valueOf` trong Java
+# `BigInteger.ZERO`, `ONE`, `TWO`, `TEN`, and `valueOf` in Java
 
-## 1. Tổng quan: số nguyên lớn và cách tạo giá trị
+## 1. Overview: Large Integers and Creating Values
 
-`java.math.BigInteger` biểu diễn **số nguyên có dấu với độ chính xác tùy ý** (*arbitrary-precision integer*). Khác với `int` (32 bit) và `long` (64 bit), số chữ số/bit của một `BigInteger` không bị cố định ở 32 hoặc 64 bit. Giới hạn thực tế đến từ bộ nhớ, phạm vi mà API/JVM hỗ trợ và tài nguyên tính toán.
+`java.math.BigInteger` represents **arbitrary-precision signed integers**. Unlike `int` (32 bits) and `long` (64 bits), the number of digits/bits of a `BigInteger` is not fixed at 32 or 64 bits. Practical limits come from memory, the range supported by the API/JVM, and computation resources.
 
-Một `BigInteger` là **đối tượng bất biến** (*immutable*). Mọi thao tác như `add`, `multiply`, `pow` trả về giá trị kết quả mà không sửa giá trị ban đầu.
+A `BigInteger` is an **immutable object**. Every operation such as `add`, `multiply`, or `pow` returns a result value without modifying the original value.
 
-Để không phải tạo lại các số nguyên rất thường dùng, Java cung cấp sẵn các hằng `public static final`:
+To avoid recreating very commonly used integers, Java provides built-in `public static final` constants:
 
 ```java
 import java.math.BigInteger;
@@ -17,29 +17,29 @@ BigInteger two  = BigInteger.TWO;  // 2
 BigInteger ten  = BigInteger.TEN;  // 10
 ```
 
-Với một số nguyên `long` khác, dùng:
+For another `long` integer, use:
 
 ```java
 BigInteger n = BigInteger.valueOf(123456789L);
 ```
 
-**Hai nguyên tắc cốt lõi:**
+**Two core principles:**
 
-1. Dùng các hằng `ZERO`, `ONE`, `TWO`, `TEN` khi đúng giá trị và làm mã dễ đọc; dùng `valueOf(long)` khi đầu vào đã là một giá trị nguyên vừa miền `long`.
-2. Không dùng toán tử `==` để kiểm tra **hai đối tượng `BigInteger` có bằng nhau về giá trị không**. Dùng `equals`, `compareTo` hoặc `signum` theo ý nghĩa bài toán.
+1. Use the constants `ZERO`, `ONE`, `TWO`, `TEN` when matching those exact values and making code more readable; use `valueOf(long)` when the input is already an integer fitting in the `long` range.
+2. Do not use the `==` operator to check whether **two `BigInteger` objects are equal in value**. Use `equals`, `compareTo`, or `signum` depending on the problem's semantics.
 
-Bài này tập trung vào **các hằng số và factory `valueOf`**, đồng thời trình bày đủ các phép thao tác và bẫy cần biết để dùng chúng chính xác.
+This lesson focuses on **the constants and the `valueOf` factory**, while covering all operations and pitfalls needed to use them accurately.
 
-## 2. Bốn hằng số có sẵn
+## 2. Four Built-In Constants
 
-| Hằng số | Giá trị toán học | Ứng dụng điển hình |
+| Constant | Mathematical value | Typical usage |
 | --- | ---: | --- |
-| `BigInteger.ZERO` | 0 | Khởi tạo tổng, kết quả rỗng, phần tử đơn vị của phép cộng, kiểm tra số 0 |
-| `BigInteger.ONE` | 1 | Phần tử đơn vị của phép nhân, bắt đầu tích, tăng/giảm một đơn vị |
-| `BigInteger.TWO` | 2 | Thuật toán nhị phân, tính lũy thừa cơ số hai, diễn đạt hệ số 2 |
-| `BigInteger.TEN` | 10 | Lũy thừa 10, tính toán số nguyên theo cơ số thập phân, quy đổi đơn vị |
+| `BigInteger.ZERO` | 0 | Initializing sums, empty results, additive identity, checking for 0 |
+| `BigInteger.ONE` | 1 | Multiplicative identity, starting products, incrementing/decrementing by one |
+| `BigInteger.TWO` | 2 | Binary algorithms, computing powers of two, expressing factor 2 |
+| `BigInteger.TEN` | 10 | Powers of 10, base-10 integer math, unit conversion |
 
-Ví dụ trong một phương thức Java:
+Example inside a Java method:
 
 ```java
 System.out.println(BigInteger.ZERO); // 0
@@ -48,40 +48,40 @@ System.out.println(BigInteger.TWO);  // 2
 System.out.println(BigInteger.TEN);  // 10
 ```
 
-**Lưu ý về phiên bản:** `BigInteger.TWO` xuất hiện từ **Java 9**. Trong Java 17 trở lên, cả bốn hằng đều dùng được. Nếu buộc hỗ trợ Java 8, thay `TWO` bằng `BigInteger.valueOf(2)` hoặc biểu thức tương đương.
+**Version note:** `BigInteger.TWO` appeared in **Java 9**. In Java 17 and later, all four constants are available. If forced to support Java 8, replace `TWO` with `BigInteger.valueOf(2)` or an equivalent expression.
 
-Mỗi hằng là một tham chiếu `public static final` tới giá trị `BigInteger` bất biến. `final` ở đây ngăn gán lại trường tĩnh; đặc tính **bất biến của chính `BigInteger`** ngăn sửa giá trị số bên trong.
+Each constant is a `public static final` reference to an immutable `BigInteger` value. `final` here prevents reassigning the static field; the **immutability of `BigInteger` itself** prevents mutating the internal numeric value.
 
-Không được hiểu `ZERO`, `ONE` hay `TEN` giống biến toàn cục có thể cộng trừ trực tiếp:
+Do not treat `ZERO`, `ONE`, or `TEN` like global variables that can be directly added to or subtracted from:
 
 ```java
 BigInteger sum = BigInteger.ZERO;
-sum = sum.add(BigInteger.ONE); // sum mang giá trị 1
+sum = sum.add(BigInteger.ONE); // sum holds the value 1
 
 System.out.println(sum);             // 1
-System.out.println(BigInteger.ZERO); // 0: hằng ban đầu không đổi
+System.out.println(BigInteger.ZERO); // 0: original constant unchanged
 ```
 
-Biểu thức `sum.add(BigInteger.ONE)` tạo ra hoặc trả về một đối tượng biểu diễn kết quả tùy tối ưu của thư viện; dù cách triển khai nào, **giá trị `sum` ban đầu không bị sửa** cho đến khi ta gán lại biến `sum`.
+The expression `sum.add(BigInteger.ONE)` creates or returns an object representing the result depending on library optimizations; regardless of the implementation, **the original value of `sum` is not modified** until we reassign the `sum` variable.
 
-### Hằng `ZERO` có giá trị khác tham chiếu `null`
+### The `ZERO` Constant Is Different from a `null` Reference
 
 ```java
-BigInteger count = BigInteger.ZERO; // Số 0 hợp lệ
-BigInteger unknown = null;          // Không có đối tượng
+BigInteger count = BigInteger.ZERO; // Valid number 0
+BigInteger unknown = null;          // No object
 ```
 
-`ZERO` là một giá trị số thật; `null` không phải số 0 và không gọi được phương thức trên nó. Ví dụ `unknown.add(BigInteger.ONE)` sẽ ném `NullPointerException`. Dùng `BigInteger.ZERO` làm mặc định chỉ khi nghiệp vụ cho phép coi dữ liệu thiếu là 0.
+`ZERO` is a real numeric value; `null` is not 0 and methods cannot be called on it. For example, `unknown.add(BigInteger.ONE)` throws `NullPointerException`. Use `BigInteger.ZERO` as a default only when business logic allows treating missing data as 0.
 
-## 3. `BigInteger.valueOf(long)` là gì?
+## 3. What Is `BigInteger.valueOf(long)`?
 
-Chữ ký API:
+API signature:
 
 ```java
 public static BigInteger valueOf(long val)
 ```
 
-Phương thức nhận **một giá trị nguyên kiểu `long`**, rồi trả về `BigInteger` mang **chính xác giá trị đó**:
+The method takes **a `long` integer value** and returns a `BigInteger` holding **that exact value**:
 
 ```java
 BigInteger a = BigInteger.valueOf(0L);
@@ -90,9 +90,9 @@ BigInteger c = BigInteger.valueOf(-17L);
 BigInteger d = BigInteger.valueOf(Long.MIN_VALUE);
 ```
 
-`valueOf(long)` không ném overflow vì đầu vào đã là một `long` hợp lệ. **Mọi giá trị `long`**, kể cả `Long.MIN_VALUE` và `Long.MAX_VALUE`, đều biểu diễn chính xác bằng `BigInteger`.
+`valueOf(long)` does not throw overflow because the input is already a valid `long`. **Every `long` value**, including `Long.MIN_VALUE` and `Long.MAX_VALUE`, is represented accurately by `BigInteger`.
 
-Ví dụ:
+Example:
 
 ```java
 BigInteger min = BigInteger.valueOf(Long.MIN_VALUE);
@@ -102,26 +102,26 @@ System.out.println(min); // -9223372036854775808
 System.out.println(max); // 9223372036854775807
 ```
 
-Lời gọi với literal `int` hợp lệ nhờ **widening primitive conversion** từ `int` sang `long`:
+Calling with an `int` literal is valid thanks to **widening primitive conversion** from `int` to `long`:
 
 ```java
-BigInteger x = BigInteger.valueOf(100); // int literal được chuyển sang long
+BigInteger x = BigInteger.valueOf(100); // int literal is converted to long
 ```
 
-Không có overload `BigInteger.valueOf(double)` trong API này. Các ví dụ sau **không** được phép:
+There is no `BigInteger.valueOf(double)` overload in this API. The following examples are **not** allowed:
 
 ```java
-// BigInteger.valueOf(3.14);  // Lỗi biên dịch: double không chuyển ngầm sang long
-// BigInteger.valueOf("42");  // Lỗi biên dịch: String không phải long
+// BigInteger.valueOf(3.14);  // Compile error: double does not implicitly convert to long
+// BigInteger.valueOf("42");  // Compile error: String is not a long
 ```
 
-Với chuỗi, dùng constructor `new BigInteger("42")`. Với decimal có phần lẻ hoặc đầu vào dấu phẩy động, cần chọn **chính sách làm tròn và tính chính xác** tường minh trước khi đổi sang số nguyên.
+For strings, use the constructor `new BigInteger("42")`. For decimals with fractional parts or floating-point inputs, choose an explicit **rounding and precision policy** before converting to an integer.
 
-### Dùng `valueOf` để tận dụng tái sử dụng đối tượng
+### Use `valueOf` to Benefit from Object Reuse
 
-Tài liệu `valueOf` khuyến nghị static factory thay cho constructor nhận `long` vì nó **có thể tái sử dụng những `BigInteger` thường gặp**. Điều đó có nghĩa JVM/thư viện được tự do tối ưu cấp phát khi thích hợp.
+The `valueOf` documentation recommends the static factory over a constructor taking `long` because it **may reuse frequently used `BigInteger` instances**. That means the JVM/library is free to optimize allocations where appropriate.
 
-Nhưng **không có nghĩa hai lần `BigInteger.valueOf(100)` luôn phải trả cùng tham chiếu trên mọi triển khai**. Điều cần dựa vào là **giá trị** của kết quả:
+However, **this does not mean two calls to `BigInteger.valueOf(100)` must always return the same reference across every implementation**. What you must rely on is the **value** of the result:
 
 ```java
 BigInteger a = BigInteger.valueOf(100);
@@ -130,30 +130,30 @@ BigInteger b = BigInteger.valueOf(100);
 System.out.println(a.equals(b)); // true
 ```
 
-Không dựa vào `a == b`. Việc factory trả đúng instance của `BigInteger.ZERO`, `ONE` hoặc instance cache khác không phải hợp đồng so sánh giá trị nghiệp vụ.
+Do not rely on `a == b`. Whether the factory returns the exact instance of `BigInteger.ZERO`, `ONE`, or another cached instance is not a contract for business value equality.
 
-### Khi nào nên dùng hằng, khi nào dùng `valueOf`?
+### When to Use Constants vs. `valueOf`?
 
-- Nếu viết thuật toán với giá trị *cố định* `0`, `1`, `2`, `10`, các hằng thường sáng rõ và tránh lời gọi factory thừa.
-- Nếu đầu vào là `long` (tham số hàm, dữ liệu từ parser nguyên có giới hạn hoặc phép tính không overflow), `BigInteger.valueOf(value)` là lựa chọn chuẩn.
-- Nếu đầu vào là số nguyên thập phân **có thể vượt `long`**, phải parse từ chuỗi hoặc tính trực tiếp bằng `BigInteger` — **không** ép tạm về `long` rồi `valueOf`.
-- Nếu cần kết quả sau phép toán `BigInteger`, dùng các phương thức `add`, `multiply`, `pow`... thay vì quay lại `long`.
+- When writing algorithms with *fixed* values `0`, `1`, `2`, `10`, constants are usually clearer and avoid unnecessary factory calls.
+- When the input is a `long` (method parameter, bounded integer parser data, or non-overflowing calculation), `BigInteger.valueOf(value)` is the standard choice.
+- When the input is a decimal integer **that may exceed `long`**, parse from a string or compute directly with `BigInteger` — **do not** temporarily cast to `long` and then call `valueOf`.
+- When needing results after `BigInteger` operations, use methods like `add`, `multiply`, `pow`, etc., rather than going back to `long`.
 
-## 4. Điều `valueOf` không làm được: mở rộng dữ liệu đã overflow
+## 4. What `valueOf` Cannot Do: Widen Already-Overflowed Data
 
-Cạm bẫy lớn nhất là làm toán bằng `long` trước rồi mới chuyển sang `BigInteger`:
+The biggest trap is doing math in `long` first and then converting to `BigInteger`:
 
 ```java
 long max = Long.MAX_VALUE;
-long overflowed = max + 1L;           // Tràn số nguyên long: trở thành Long.MIN_VALUE
+long overflowed = max + 1L;           // long integer overflow: becomes Long.MIN_VALUE
 BigInteger wrong = BigInteger.valueOf(overflowed);
 
 System.out.println(wrong); // -9223372036854775808
 ```
 
-`BigInteger.valueOf` đã thực hiện **đúng** việc chuyển giá trị `long` nhận được. Nó không biết giá trị trước phép cộng từng là `Long.MAX_VALUE`, và không khôi phục được bit đã mất.
+`BigInteger.valueOf` performed the **exact** conversion of the `long` value it received. It does not know the value before addition was `Long.MAX_VALUE`, and cannot recover lost bits.
 
-Cách đúng là **nâng lên `BigInteger` trước khi phép cộng vượt miền**:
+The right approach is to **promote to `BigInteger` before addition exceeds the range**:
 
 ```java
 BigInteger correct =
@@ -162,40 +162,40 @@ BigInteger correct =
 System.out.println(correct); // 9223372036854775808
 ```
 
-Nói cách khác:
+In other words:
 
 \[
-\operatorname{valueOf}(\text{phép toán long đã overflow})
+\operatorname{valueOf}(\text{overflowed long operation})
 \ne
-\text{phép toán BigInteger trực tiếp}.
+\text{direct BigInteger operation}.
 \]
 
-Vấn đề tương tự xảy ra với phép nhân và lũy thừa:
+The same issue occurs with multiplication and exponentiation:
 
 ```java
 long a = 4_000_000_000L;
 long b = 4_000_000_000L;
 
-// long product = a * b; // Vượt Long.MAX_VALUE; overflow
+// long product = a * b; // Exceeds Long.MAX_VALUE; overflows
 BigInteger product = BigInteger.valueOf(a)
         .multiply(BigInteger.valueOf(b));
 
 System.out.println(product); // 16000000000000000000
 ```
 
-Không có “overflow theo miền `long`” trong kết quả `BigInteger` hợp lệ; giới hạn vẫn tồn tại ở tài nguyên và hạn chế triển khai, nhưng không cố định 64 bit.
+There is no "`long`-range overflow" in valid `BigInteger` results; limits still exist in resources and implementation constraints, but not a fixed 64-bit limit.
 
-## 5. Số vượt miền `long`: dùng constructor từ chuỗi
+## 5. Numbers Exceeding `long`: Use the String Constructor
 
-`BigInteger.valueOf` chỉ nhận một `long`. Với số nguyên lớn hơn miền `long`, dùng:
+`BigInteger.valueOf` only takes a `long`. For integers larger than the `long` range, use:
 
 ```java
 BigInteger huge = new BigInteger("100000000000000000000000000000000000000");
 ```
 
-Constructor này đọc chuỗi thập phân (cơ số 10) với dấu tùy chọn và không ép qua `double` hoặc `long`.
+This constructor reads a decimal (base-10) string with an optional sign and does not route through `double` or `long`.
 
-Ví dụ:
+Example:
 
 ```java
 BigInteger beyondLong = new BigInteger("9223372036854775808");
@@ -204,7 +204,7 @@ System.out.println(beyondLong);
 // 9223372036854775808
 ```
 
-Với hệ cơ số khác, dùng `new BigInteger(text, radix)`:
+For another radix, use `new BigInteger(text, radix)`:
 
 ```java
 BigInteger hex = new BigInteger("FF", 16);
@@ -214,25 +214,25 @@ System.out.println(hex);    // 255
 System.out.println(binary); // 10
 ```
 
-`radix` phải trong phạm vi được hỗ trợ, thường là `Character.MIN_RADIX` (2) tới `Character.MAX_RADIX` (36). Dữ liệu sai cú pháp hoặc không hợp lệ theo radix gây `NumberFormatException`.
+`radix` must be within the supported range, normally `Character.MIN_RADIX` (2) through `Character.MAX_RADIX` (36). Malformed syntax or digits invalid for the radix cause `NumberFormatException`.
 
-### Phân biệt parse và chuyển kiểu
+### Distinguishing Parsing and Type Conversion
 
-| Đầu vào | API phù hợp | Chú ý |
+| Input | Suitable API | Notes |
 | --- | --- | --- |
-| `long` | `BigInteger.valueOf(long)` | Giữ chính xác toàn miền `long` |
-| `int` | `BigInteger.valueOf(intValue)` | Java nâng `int` sang `long` |
-| Chuỗi số nguyên thập phân | `new BigInteger(text)` | Không cần thông qua `long` |
-| Chuỗi số nguyên hệ 16 | `new BigInteger(text, 16)` | Ví dụ `"FF"` → 255 |
-| Giá trị `BigInteger` đã có | Dùng trực tiếp | Không tạo lại nếu không cần |
-| Số decimal như `"1.5"` | `BigDecimal` trước, rồi chính sách nguyên hóa nếu cần | `new BigInteger("1.5")` không hợp lệ |
-| `double` | Không dùng `BigInteger.valueOf(double)` | Cần xét mất chính xác và quy tắc làm tròn |
+| `long` | `BigInteger.valueOf(long)` | Accurately preserves the full `long` range |
+| `int` | `BigInteger.valueOf(intValue)` | Java widens `int` to `long` |
+| Decimal integer string | `new BigInteger(text)` | Does not go through `long` |
+| Hexadecimal integer string | `new BigInteger(text, 16)` | E.g. `"FF"` → 255 |
+| Existing `BigInteger` value | Use directly | Do not recreate unnecessarily |
+| Decimal number like `"1.5"` | `BigDecimal` first, then integer conversion policy if needed | `new BigInteger("1.5")` is invalid |
+| `double` | Do not use `BigInteger.valueOf(double)` | Must account for precision loss and rounding rules |
 
-Nhập `"9223372036854775808"` bằng `Long.parseLong` sẽ thất bại vì vượt miền `long`, dù `BigInteger` vẫn đọc được. Đây là lý do không dùng `Long.parseLong` làm “bước đệm” cho dữ liệu nguyên lớn.
+Reading `"9223372036854775808"` via `Long.parseLong` fails because it exceeds the `long` range, even though `BigInteger` reads it fine. This is why `Long.parseLong` should not be used as a "stepping stone" for large integer data.
 
-## 6. Bất biến và phép tính với `ZERO`, `ONE`, `TWO`, `TEN`
+## 6. Immutability and Operations with `ZERO`, `ONE`, `TWO`, `TEN`
 
-Các phương thức số học của `BigInteger` trả về kết quả mới về **mặt giá trị**, không sửa toán hạng:
+`BigInteger`'s arithmetic methods return a new result **by value** without modifying operands:
 
 ```java
 BigInteger x = BigInteger.TEN;
@@ -242,9 +242,9 @@ System.out.println(x); // 10
 System.out.println(y); // 11
 ```
 
-Một số phép thường dùng:
+Some common operations:
 
-| Phép toán | Mã Java | Kết quả |
+| Operation | Java code | Result |
 | --- | --- | --- |
 | `7 + 1` | `BigInteger.valueOf(7).add(BigInteger.ONE)` | `8` |
 | `7 - 1` | `BigInteger.valueOf(7).subtract(BigInteger.ONE)` | `6` |
@@ -252,13 +252,13 @@ Một số phép thường dùng:
 | `7 × 10` | `BigInteger.valueOf(7).multiply(BigInteger.TEN)` | `70` |
 | `2^10` | `BigInteger.TWO.pow(10)` | `1024` |
 | `10^6` | `BigInteger.TEN.pow(6)` | `1000000` |
-| Dịch trái 5 bit từ 1 | `BigInteger.ONE.shiftLeft(5)` | `32` |
-| Đổi dấu của 10 | `BigInteger.TEN.negate()` | `-10` |
-| Trị tuyệt đối của -10 | `BigInteger.TEN.negate().abs()` | `10` |
+| Left shift 1 by 5 bits | `BigInteger.ONE.shiftLeft(5)` | `32` |
+| Negate 10 | `BigInteger.TEN.negate()` | `-10` |
+| Absolute value of -10 | `BigInteger.TEN.negate().abs()` | `10` |
 
-`ZERO` là phần tử trung hòa của phép cộng: \(n+0=n\). `ONE` là phần tử trung hòa của phép nhân: \(n\times1=n\). Nhưng không nên suy từ điều này ra đảm bảo **cùng tham chiếu** khi thư viện tối ưu trả về một trong hai toán hạng; quan hệ về số phải kiểm tra qua `equals`.
+`ZERO` is the additive identity: \(n+0=n\). `ONE` is the multiplicative identity: \(n\times1=n\). Do not infer from this a guarantee of **the same reference** if the library optimizes by returning one of the operands; numeric equality must be checked via `equals`.
 
-Ví dụ tích lũy:
+Accumulation example:
 
 ```java
 BigInteger sum = BigInteger.ZERO;
@@ -270,11 +270,11 @@ for (long value : new long[] { 1, 2, 3, 4 }) {
 System.out.println(sum); // 10
 ```
 
-Cần có phép gán lại `sum = sum.add(...)`. Nếu chỉ gọi `sum.add(...)` mà không nhận kết quả, giá trị lưu trong `sum` không đổi.
+The reassignment `sum = sum.add(...)` is required. If you only call `sum.add(...)` without capturing the result, the value stored in `sum` does not change.
 
-### Lũy thừa và trường hợp `0^0`
+### Exponentiation and the `0^0` Case
 
-`BigInteger.pow(int exponent)` nhận số mũ kiểu `int` **không âm**:
+`BigInteger.pow(int exponent)` accepts a **non-negative** `int` exponent:
 
 ```java
 System.out.println(BigInteger.TWO.pow(10)); // 1024
@@ -282,13 +282,13 @@ System.out.println(BigInteger.TEN.pow(6));  // 1000000
 System.out.println(BigInteger.ZERO.pow(0)); // 1
 ```
 
-Theo quy ước của API, `pow(0)` trả `ONE`, kể cả khi cơ số bằng `ZERO`. Đây là **quy ước lập trình của phép lũy thừa số nguyên**; trong các ngữ cảnh toán học, biểu thức `0^0` có thể được quy định khác hoặc để không xác định. Đừng áp dụng quy ước API mà không kiểm tra mô hình toán học của ứng dụng.
+By API convention, `pow(0)` returns `ONE`, even when the base is `ZERO`. This is an **integer exponentiation programming convention**; in mathematical contexts, the expression `0^0` may be defined differently or left indeterminate. Do not apply an API convention without checking the application's mathematical model.
 
-Nếu `exponent < 0`, `BigInteger.pow` ném `ArithmeticException`: không thể biểu diễn `2^-1` dưới dạng số nguyên `BigInteger`. Nếu số mũ quá lớn, phép tính có thể tốn nhiều bộ nhớ/thời gian; phải validate giới hạn công việc với đầu vào không tin cậy.
+If `exponent < 0`, `BigInteger.pow` throws `ArithmeticException`: `2^-1` cannot be represented as a `BigInteger` integer. If the exponent is too large, the computation can consume excessive memory/time; validate work bounds for untrusted input.
 
-## 7. So sánh giá trị: `equals`, `compareTo`, `signum` thay vì `==`
+## 7. Value Comparison: `equals`, `compareTo`, `signum` Instead of `==`
 
-**`BigInteger` là đối tượng tham chiếu**, không phải primitive wrapper có unboxing tự động sang `long`.
+**`BigInteger` is a reference object**, not a primitive wrapper with auto-unboxing to `long`.
 
 ```java
 BigInteger a = BigInteger.valueOf(10);
@@ -297,14 +297,14 @@ BigInteger b = BigInteger.TEN;
 boolean equal = a.equals(b); // true
 ```
 
-Đối với hai tham chiếu `BigInteger`:
+For two `BigInteger` references:
 
-- `a == b` kiểm tra **cùng đối tượng**.
-- `a.equals(b)` kiểm tra **cùng giá trị số nguyên**.
-- `a.compareTo(b)` trả số âm, 0, hoặc số dương tương ứng `a < b`, `a = b`, `a > b`.
-- `a.signum()` trả `-1`, `0` hoặc `1` tùy dấu giá trị.
+- `a == b` checks **same object**.
+- `a.equals(b)` checks **same integer value**.
+- `a.compareTo(b)` returns negative, 0, or positive corresponding to `a < b`, `a = b`, `a > b`.
+- `a.signum()` returns `-1`, `0`, or `1` depending on the sign of the value.
 
-Ví dụ:
+Example:
 
 ```java
 BigInteger a = BigInteger.valueOf(10);
@@ -315,9 +315,9 @@ System.out.println(a.compareTo(b));  // 0
 System.out.println(a.signum());      // 1
 ```
 
-Không sử dụng `==` ngay cả khi một lần thử cho thấy `BigInteger.valueOf(10) == BigInteger.TEN` là `true` trong JVM đang chạy. Cache/reuse là lựa chọn triển khai, **không phải định nghĩa bằng nhau của số nguyên**.
+Do not use `==` even if one trial shows `BigInteger.valueOf(10) == BigInteger.TEN` is `true` in the running JVM. Caching/reuse is an implementation choice, **not the definition of integer equality**.
 
-### Kiểm tra 0 đúng cách
+### Checking for Zero Properly
 
 ```java
 BigInteger n = BigInteger.valueOf(0);
@@ -326,7 +326,7 @@ boolean isZero = n.signum() == 0;
 boolean alsoZero = n.equals(BigInteger.ZERO);
 ```
 
-Cả hai đều kiểm tra **giá trị** nếu `n` không `null`. Với `n == null`, gọi `signum()` hoặc `equals()` sẽ ném `NullPointerException`. Nếu phải xử lý nullable data:
+Both check the **value** if `n` is non-null. When `n == null`, calling `signum()` or `equals()` throws `NullPointerException`. If you must handle nullable data:
 
 ```java
 import java.util.Objects;
@@ -334,49 +334,49 @@ import java.util.Objects;
 boolean zeroIfPresent = Objects.equals(n, BigInteger.ZERO);
 ```
 
-Điều kiện này trả `false` khi `n == null`, và `true` khi `n` có giá trị số 0. Nếu nghiệp vụ cần phân biệt missing với zero, hãy kiểm tra `n == null` riêng.
+This condition returns `false` when `n == null`, and `true` when `n` has value 0. If business logic needs to distinguish missing from zero, check `n == null` separately.
 
-### So sánh với primitive
+### Comparing with a Primitive
 
-Không có autounboxing từ `BigInteger` thành `long`:
+There is no auto-unboxing from `BigInteger` to `long`:
 
 ```java
 BigInteger n = BigInteger.TEN;
 
-// boolean wrong = (n == 10); // Không biên dịch: BigInteger và int không tương thích
+// boolean wrong = (n == 10); // Does not compile: BigInteger and int are incompatible
 
 boolean right = n.equals(BigInteger.valueOf(10));
 ```
 
-Khi cần so sánh một `BigInteger` với `long`, tạo `BigInteger.valueOf(long)` để so giá trị, hoặc dùng các phép kiểm tra miền/chuyển đổi chính xác thích hợp. Không tự ép `BigInteger` sang `double` rồi so nếu số rất lớn.
+When needing to compare a `BigInteger` with a `long`, create `BigInteger.valueOf(long)` to compare values, or use appropriate range checks/exact conversions. Do not cast `BigInteger` to `double` to compare if the number is very large.
 
-## 8. `valueOf` và tối ưu cấp phát: không nhầm với cache wrapper
+## 8. `valueOf` and Allocation Optimization: Do Not Confuse with Wrapper Caching
 
-Mục đích của `valueOf` là tạo một giá trị chính xác và **cho phép thư viện tái sử dụng đối tượng** thường gặp. Không được suy luận rằng `valueOf` luôn tạo mới hoặc luôn trả một instance duy nhất cho mọi số.
+The purpose of `valueOf` is to produce an exact value and **allow the library to reuse common objects**. Never infer that `valueOf` always allocates a new instance or always returns a unique singleton for every number.
 
-Ví dụ:
+Example:
 
 ```java
 BigInteger x = BigInteger.valueOf(7);
 BigInteger y = BigInteger.valueOf(7);
 
 System.out.println(x.equals(y)); // true
-// Không xây dựng logic nghiệp vụ trên x == y.
+// Do not build business logic on x == y.
 ```
 
-Một vài lưu ý:
+A few notes:
 
-1. `BigInteger.ZERO`, `ONE`, `TWO`, `TEN` là **các hằng có sẵn** để truy cập và biểu đạt ý nghĩa, không phải một cơ chế *interning* hoàn chỉnh cho tất cả số.
-2. `BigInteger.valueOf(long)` có thể tối ưu tạo đối tượng; không thể dựa vào `==` để suy ra hai số khác nhau.
-3. Cũng không nên dùng một `BigInteger` làm **monitor/khóa đồng bộ** với kỳ vọng mỗi lần gọi `valueOf` tạo một khóa độc lập: có thể chia sẻ instance. Hãy dùng một `new Object()` riêng do ứng dụng kiểm soát khi cần khóa.
-4. Do `BigInteger` là bất biến, có thể chia sẻ hằng trong nhiều nơi mà không lo các phép `add`/`multiply` làm thay đổi chúng.
-5. Hiệu năng của `BigInteger` khác phép toán `long`: số bit lớn hơn làm tăng công việc tính toán và có thể phát sinh đối tượng/áp lực GC. Sử dụng khi cần miền vượt primitive hoặc khi API yêu cầu.
+1. `BigInteger.ZERO`, `ONE`, `TWO`, `TEN` are **built-in constants** for convenience and clarity, not a complete *interning* mechanism for all numbers.
+2. `BigInteger.valueOf(long)` may optimize object creation; `==` cannot be relied upon to tell two numbers apart.
+3. Also do not use a `BigInteger` as a **synchronization monitor/lock** expecting each `valueOf` call to create an independent lock: instances may be shared. Use a dedicated `new Object()` owned by the application when a lock is needed.
+4. Because `BigInteger` is immutable, constants can be shared in many places without worrying that `add`/`multiply` will mutate them.
+5. `BigInteger` performance differs from `long` operations: larger bit counts increase computation work and can introduce object allocations/GC pressure. Use it when a range beyond primitives is needed or when an API requires it.
 
-Chọn `BigInteger` vì **tính đúng đắn và miền giá trị**, không vì tin rằng tham chiếu `valueOf` luôn cố định.
+Choose `BigInteger` for **correctness and value range**, not out of belief that `valueOf` references are always fixed.
 
-## 9. Chuyển từ `BigInteger` về primitive và vấn đề mất dữ liệu
+## 9. Converting from `BigInteger` to Primitives and Data Loss
 
-`BigInteger` kế thừa `Number`, có các phương thức lấy primitive:
+`BigInteger` extends `Number` and provides primitive extraction methods:
 
 ```java
 BigInteger n = BigInteger.valueOf(42);
@@ -386,9 +386,9 @@ long asLong = n.longValue();
 double asDouble = n.doubleValue();
 ```
 
-Nhưng các phương thức `intValue()`/`longValue()` **không bảo đảm phát hiện vượt miền**; chúng có thể bỏ các bit cao khi chuyển sang kiểu số nguyên hẹp. `doubleValue()` còn có thể làm tròn hoặc trả vô cực nếu độ lớn quá lớn.
+However, `intValue()`/`longValue()` **do not guarantee out-of-range detection**; they can discard high-order bits when narrowing to an integer type. `doubleValue()` can also round or return infinity if the magnitude is too large.
 
-Ví dụ:
+Example:
 
 ```java
 BigInteger beyondLong =
@@ -398,14 +398,14 @@ long truncated = beyondLong.longValue();
 System.out.println(truncated); // -9223372036854775808
 ```
 
-Nếu cần **chắc chắn nguyên vẹn**, dùng:
+If you need **guaranteed intactness**, use:
 
 ```java
 long exact = BigInteger.valueOf(42).longValueExact();
 int exactInt = BigInteger.valueOf(42).intValueExact();
 ```
 
-Với số vượt miền, các phương thức `longValueExact()`/`intValueExact()` ném `ArithmeticException`:
+For out-of-range numbers, `longValueExact()`/`intValueExact()` throw `ArithmeticException`:
 
 ```java
 BigInteger tooBig = BigInteger.TWO.pow(80);
@@ -413,13 +413,13 @@ BigInteger tooBig = BigInteger.TWO.pow(80);
 // tooBig.longValueExact(); // ArithmeticException
 ```
 
-Nên bắt hoặc để ngoại lệ phát ra theo hợp đồng của phương thức, thay vì âm thầm mất dữ liệu. Các API exact này đặc biệt quan trọng khi dữ liệu nguyên lớn phải đi vào giao thức hoặc DB chỉ hỗ trợ 64 bit.
+Catch or propagate the exception according to the method's contract instead of silently losing data. These exact APIs are especially important when large integer data must go into a protocol or DB that only supports 64 bits.
 
-**Một chiều chuyển đổi an toàn không bảo đảm chiều ngược lại an toàn:** `BigInteger.valueOf(long)` luôn chính xác, nhưng `someBigInteger.longValue()` có thể làm mất thông tin.
+**Safety in one conversion direction does not guarantee safety in the reverse direction:** `BigInteger.valueOf(long)` is always exact, whereas `someBigInteger.longValue()` can lose information.
 
-## 10. Demo Java 17 hoàn chỉnh
+## 10. Complete Java 17 Demo
 
-Lưu chương trình dưới tên `BigIntegerConstantsDemo.java`:
+Save the program as `BigIntegerConstantsDemo.java`:
 
 ```java
 import java.math.BigInteger;
@@ -470,14 +470,14 @@ public class BigIntegerConstantsDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac BigIntegerConstantsDemo.java
 java BigIntegerConstantsDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 ZERO = 0
@@ -500,11 +500,11 @@ hex FF = 255
 longValueExact: ArithmeticException
 ```
 
-Đoạn demo không đưa ra giả định về `==` của các đối tượng `BigInteger`, không ép chuỗi số lớn qua `long`, và sử dụng `longValueExact()` để nhận biết dữ liệu không vừa miền khi chuyển ngược về primitive.
+The demo makes no assumptions about `==` on `BigInteger` objects, does not route large numeric strings through `long`, and uses `longValueExact()` to detect out-of-range data when converting back to a primitive.
 
-## 11. Tình huống thực tế: hằng số giúp code diễn đạt ý nghĩa
+## 11. Real-World Scenarios: Constants Make Code Express Intent
 
-### Tính tổng không overflow
+### Summing Without Overflow
 
 ```java
 BigInteger total = BigInteger.ZERO;
@@ -516,9 +516,9 @@ for (long item : new long[] { Long.MAX_VALUE, 1L, 2L }) {
 System.out.println(total); // 9223372036854775810
 ```
 
-Ở đây phép cộng **được thực hiện hoàn toàn dưới dạng `BigInteger`**. Dùng `long total` để tích lũy trước rồi chuyển sau sẽ overflow.
+Here the addition **is performed entirely in `BigInteger`**. Using `long total` to accumulate first and converting later would overflow.
 
-### Đếm số cách theo quy luật nhân đôi
+### Counting Possibilities by Doubling
 
 ```java
 BigInteger count = BigInteger.ONE;
@@ -530,20 +530,20 @@ for (int i = 0; i < 10; i++) {
 System.out.println(count); // 1024
 ```
 
-Với n nguyên không âm, `BigInteger.TWO.pow(n)` thường diễn đạt ngắn gọn hơn vòng lặp. Nhưng nhớ `pow` nhận số mũ kiểu `int`; nếu `n` cực lớn, kết quả có thể tốn tài nguyên đáng kể.
+For non-negative integer `n`, `BigInteger.TWO.pow(n)` usually expresses this more concisely than a loop. Remember `pow` takes an `int` exponent; if `n` is huge, the result can consume significant resources.
 
-### Tạo lũy thừa cơ số 10 chính xác
+### Creating Exact Powers of 10
 
 ```java
 BigInteger million = BigInteger.TEN.pow(6);
 System.out.println(million); // 1000000
 ```
 
-Không nên thay bằng `(long) Math.pow(10, n)` cho mọi `n` khi muốn **số nguyên chính xác không giới hạn**: `Math.pow` làm việc với `double`, nên có miền/độ chính xác của số thực và phép ép kiểu có thể mất dữ liệu.
+Do not replace this with `(long) Math.pow(10, n)` for arbitrary `n` when wanting **unbounded exact integers**: `Math.pow` works on `double`, so it is subject to floating-point range/precision and casting can lose data.
 
-### Chuyển một giá trị nguyên theo đơn vị nhỏ nhất
+### Converting an Integer Value by Smallest Unit
 
-Nếu có tổng số lượng dưới dạng `BigInteger`, có thể nhân chính xác với `TEN`, `TWO` hoặc các hằng khác:
+If you have a total quantity as a `BigInteger`, you can multiply accurately by `TEN`, `TWO`, or other constants:
 
 ```java
 BigInteger units = BigInteger.valueOf(500);
@@ -552,40 +552,40 @@ BigInteger subunits = units.multiply(BigInteger.TEN);
 System.out.println(subunits); // 5000
 ```
 
-Với đơn vị đo hay tiền tệ, hệ số quy đổi phải đến từ quy định nghiệp vụ. `TEN` chỉ là số 10, không tự nói “đơn vị tiền nhỏ nhất” hay “đơn vị đo”.
+For units of measure or currency, conversion factors must come from business rules. `TEN` is simply the number 10, not inherently a "smallest currency unit" or "measurement unit."
 
-## 12. Những lỗi phổ biến
+## 12. Common Mistakes
 
-| Lỗi | Vì sao sai | Cách làm đúng |
+| Mistake | Why it is wrong | Right approach |
 | --- | --- | --- |
-| `BigInteger.valueOf("123")` | `valueOf` nhận `long`, không nhận `String` | `new BigInteger("123")` |
-| Tạo số vượt `long` bằng `valueOf` | Không thể truyền nguyên giá trị vượt miền `long` | Parse từ chuỗi hoặc tính bằng `BigInteger` trước |
-| `BigInteger.valueOf(Long.MAX_VALUE + 1L)` | Phép cộng tràn khi còn là `long` | `BigInteger.valueOf(Long.MAX_VALUE).add(BigInteger.ONE)` |
-| `a == b` với hai `BigInteger` | So tham chiếu chứ không so giá trị | `a.equals(b)` hoặc `a.compareTo(b) == 0` |
-| Nghĩ `ZERO` là `null` | `ZERO` là đối tượng mang số 0 | Xử lý trạng thái thiếu dữ liệu riêng |
-| `sum.add(n);` không gán lại | `BigInteger` bất biến | `sum = sum.add(n);` |
-| `new BigInteger("1.5")` | Constructor cần số nguyên theo radix | Dùng `BigDecimal` nếu có phần lẻ |
-| Dùng `longValue()` cho giá trị bất kỳ | Có thể bỏ bit cao | `longValueExact()` để báo lỗi |
-| Dùng `doubleValue()` khi cần giá trị nguyên chính xác | `double` có thể làm tròn nguyên lớn | Giữ `BigInteger` hoặc kiểm tra miền/độ chính xác |
-| Dựa vào identity do `valueOf` cache | Tái sử dụng đối tượng không phải quy tắc bằng nhau | So sánh giá trị |
-| Dùng `Math.pow` rồi ép sang `long` | Số thực có thể mất chữ số/tràn miền | `BigInteger.pow` với số mũ nguyên không âm |
-| Mong toán tử `+`, `*` hoạt động với `BigInteger` | Đây không phải primitive số có hỗ trợ toán tử tương ứng | Gọi `add`, `multiply` |
-| Dùng `BigInteger.TWO` trong Java 8 | `TWO` chưa có ở Java 8 | Java 9+, hoặc `valueOf(2)` |
-| Coi số nguyên lớn là vô hạn tài nguyên | `BigInteger` vẫn có giới hạn bộ nhớ/thời gian | Kiểm tra kích thước đầu vào/số mũ |
+| `BigInteger.valueOf("123")` | `valueOf` takes `long`, not `String` | `new BigInteger("123")` |
+| Creating numbers beyond `long` with `valueOf` | Cannot pass a value exceeding `long` range | Parse from string or compute in `BigInteger` first |
+| `BigInteger.valueOf(Long.MAX_VALUE + 1L)` | Addition overflows while still `long` | `BigInteger.valueOf(Long.MAX_VALUE).add(BigInteger.ONE)` |
+| `a == b` with two `BigInteger`s | Compares references rather than values | `a.equals(b)` or `a.compareTo(b) == 0` |
+| Thinking `ZERO` is `null` | `ZERO` is an object holding 0 | Handle missing data state separately |
+| `sum.add(n);` without reassignment | `BigInteger` is immutable | `sum = sum.add(n);` |
+| `new BigInteger("1.5")` | Constructor expects an integer in a radix | Use `BigDecimal` if there is a fractional part |
+| Calling `longValue()` on arbitrary values | May drop high bits | `longValueExact()` to fail fast |
+| Calling `doubleValue()` when exact integer needed | `double` can round large integers | Keep `BigInteger` or check range/precision |
+| Relying on identity from `valueOf` cache | Object reuse is not the equality rule | Compare by value |
+| Using `Math.pow` then casting to `long` | Floating point can lose digits/overflow | `BigInteger.pow` with non-negative integer exponent |
+| Expecting `+`, `*` operators to work on `BigInteger` | Not a primitive number supporting those operators | Call `add`, `multiply` |
+| Using `BigInteger.TWO` in Java 8 | `TWO` did not exist in Java 8 | Java 9+, or `valueOf(2)` |
+| Treating large integers as infinite resources | `BigInteger` still has memory/time limits | Validate input/exponent size |
 
-### Thêm hai lưu ý về hiệu năng và API
+### Two Additional Notes on Performance and APIs
 
-**Không dùng `BigInteger` một cách máy móc cho mọi bộ đếm nhỏ.** Nếu miền giá trị đã biết nằm trọn trong `long` và phép tính có kiểm tra overflow phù hợp, primitive thường gọn và nhanh hơn. Dùng `BigInteger` khi cần miền rộng, tính chính xác vượt giới hạn primitive hoặc giao thức/API yêu cầu.
+**Do not mechanically use `BigInteger` for every small counter.** If the value range is known to stay within `long` and arithmetic has appropriate overflow checks, primitives are usually simpler and faster. Use `BigInteger` when needing a range beyond primitives, exactness beyond primitive limits, or when an API/protocol requires it.
 
-**Không dùng `BigInteger` làm monitor đồng bộ chia sẻ dựa vào factory.** Do `valueOf` có thể tái sử dụng instance, một đoạn mã khác có thể nhận cùng object; dùng khóa riêng do ứng dụng sở hữu nếu cần đồng bộ.
+**Do not use `BigInteger` as a shared synchronization monitor based on the factory.** Because `valueOf` can reuse instances, another piece of code might receive the same object; use a private lock owned by the application when synchronization is needed.
 
-## 13. Bài tập và đáp án
+## 13. Exercises and Answers
 
-**Câu 1.** Trong Java 17, bốn hằng `BigInteger.ZERO`, `ONE`, `TWO`, `TEN` biểu diễn số nào? Hằng nào chưa có ở Java 8?
+**Question 1.** In Java 17, what numbers do the four constants `BigInteger.ZERO`, `ONE`, `TWO`, `TEN` represent? Which constant did not exist in Java 8?
 
-**Đáp án:** Lần lượt 0, 1, 2, 10. `BigInteger.TWO` có từ Java 9 nên không dùng trực tiếp được trên Java 8.
+**Answer:** 0, 1, 2, and 10 respectively. `BigInteger.TWO` was introduced in Java 9 so it cannot be used directly on Java 8.
 
-**Câu 2.** Cho:
+**Question 2.** Given:
 
 ```java
 BigInteger n = BigInteger.TEN;
@@ -593,47 +593,47 @@ n.add(BigInteger.ONE);
 System.out.println(n);
 ```
 
-Kết quả là gì, vì sao?
+What is the output, and why?
 
-**Đáp án:** `10`. `BigInteger` bất biến; lời gọi `add` trả kết quả nhưng không sửa `n`. Muốn `11`, gán `n = n.add(BigInteger.ONE)`.
+**Answer:** `10`. `BigInteger` is immutable; calling `add` returns the result without modifying `n`. To get `11`, assign `n = n.add(BigInteger.ONE)`.
 
-**Câu 3.** Làm sao tính chính xác `Long.MAX_VALUE + 1` bằng `BigInteger`?
+**Question 3.** How do you compute `Long.MAX_VALUE + 1` accurately using `BigInteger`?
 
-**Đáp án:**
+**Answer:**
 
 ```java
 BigInteger result =
         BigInteger.valueOf(Long.MAX_VALUE).add(BigInteger.ONE);
 ```
 
-Không thực hiện phép cộng kiểu `long` trước khi gọi `valueOf`.
+Do not perform `long` addition before calling `valueOf`.
 
-**Câu 4.** `BigInteger.valueOf(10).equals(BigInteger.TEN)` là `true` hay `false`? Có cần so `==` để chắc chắn không?
+**Question 4.** Is `BigInteger.valueOf(10).equals(BigInteger.TEN)` `true` or `false`? Do you need to check `==` to be sure?
 
-**Đáp án:** `true`. `equals` so sánh giá trị nguyên; `==` không cần thiết và không phù hợp để xác định numeric equality.
+**Answer:** `true`. `equals` compares integer values; `==` is unnecessary and inappropriate for determining numeric equality.
 
-**Câu 5.** Muốn đọc số `"123456789012345678901234567890"` thành `BigInteger`, dùng API nào?
+**Question 5.** To read the number `"123456789012345678901234567890"` into a `BigInteger`, which API do you use?
 
-**Đáp án:** `new BigInteger("123456789012345678901234567890")`; không dùng `Long.parseLong` hay `BigInteger.valueOf(String)`.
+**Answer:** `new BigInteger("123456789012345678901234567890")`; do not use `Long.parseLong` or `BigInteger.valueOf(String)`.
 
-**Câu 6.** `BigInteger.TWO.pow(10)` và `BigInteger.TEN.pow(6)` trả gì?
+**Question 6.** What do `BigInteger.TWO.pow(10)` and `BigInteger.TEN.pow(6)` return?
 
-**Đáp án:** Lần lượt `1024` và `1000000`, đều là đối tượng `BigInteger` mang giá trị nguyên chính xác.
+**Answer:** `1024` and `1000000` respectively, both as `BigInteger` objects holding exact integer values.
 
-**Câu 7.** `BigInteger.ZERO.pow(0)` trả gì theo API Java? Có được áp dụng không điều kiện vào mọi bài toán toán học không?
+**Question 7.** What does `BigInteger.ZERO.pow(0)` return per the Java API? Should it be applied unconditionally to every mathematical problem?
 
-**Đáp án:** Trả `BigInteger.ONE` (giá trị 1) theo quy ước API. Một số ngữ cảnh toán học xem `0^0` là biểu thức không xác định; phải theo định nghĩa của bài toán.
+**Answer:** It returns `BigInteger.ONE` (value 1) per API convention. Some mathematical contexts treat `0^0` as indeterminate; follow the problem's definition.
 
-**Câu 8.** Vì sao `BigInteger.TWO.pow(80).longValue()` không thích hợp nếu ứng dụng cần đủ giá trị? Phương thức thay thế là gì?
+**Question 8.** Why is `BigInteger.TWO.pow(80).longValue()` unsuitable if the application needs the full value? What is the alternative method?
 
-**Đáp án:** Giá trị `2^80` vượt miền `long`; `longValue()` có thể bỏ bit cao, gây mất dữ liệu. `longValueExact()` ném `ArithmeticException` để báo rằng không thể chuyển chính xác.
+**Answer:** The value `2^80` exceeds the `long` range; `longValue()` can drop high bits, causing data loss. `longValueExact()` throws `ArithmeticException` to signal it cannot convert exactly.
 
-**Câu 9.** Một chương trình luôn gọi `BigInteger.valueOf(7)` rồi so tham chiếu để xác định “hai ID bằng nhau”. Sai ở đâu?
+**Question 9.** A program always calls `BigInteger.valueOf(7)` and compares references to determine "whether two IDs are equal." What is wrong here?
 
-**Đáp án:** Giá trị số là ID có thể dùng được, nhưng so tham chiếu dựa vào tái sử dụng đối tượng là sai thiết kế. So bằng `equals`, hoặc định nghĩa một lớp ID với hợp đồng so sánh giá trị phù hợp.
+**Answer:** Numeric values can serve as IDs, but comparing references based on object reuse is flawed design. Compare using `equals`, or define an ID class with an appropriate value-comparison contract.
 
-**Câu 10.** `new BigInteger("FF", 16)` cho gì? `new BigInteger("FF")` có tương đương không?
+**Question 10.** What does `new BigInteger("FF", 16)` give? Is `new BigInteger("FF")` equivalent?
 
-**Đáp án:** Cái đầu cho `255` theo hệ 16. Cái sau dùng hệ 10 mặc định, nên `"FF"` không hợp lệ và ném `NumberFormatException`.
+**Answer:** The first gives `255` in base 16. The second uses base 10 by default, so `"FF"` is invalid and throws `NumberFormatException`.
 
-**Ghi nhớ:** `BigInteger.ZERO`, `ONE`, `TWO`, `TEN` là các hằng số nguyên bất biến dễ đọc; `BigInteger.valueOf(long)` tạo giá trị chính xác từ `long` và cho phép tối ưu tái sử dụng. Đừng thực hiện phép toán `long` có thể overflow trước khi chuyển; đừng so `BigInteger` bằng `==`; và giữ dữ liệu dưới dạng `BigInteger` khi cần phân biệt các số nguyên vượt giới hạn primitive.
+**Key takeaway:** `BigInteger.ZERO`, `ONE`, `TWO`, `TEN` are readable immutable integer constants; `BigInteger.valueOf(long)` constructs exact values from `long` and allows reuse optimizations. Do not perform potentially overflowing `long` operations before converting; do not compare `BigInteger`s with `==`; and keep data as `BigInteger` when needing to distinguish integers beyond primitive limits.

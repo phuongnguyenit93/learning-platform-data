@@ -1,93 +1,93 @@
-# Xây dựng bộ làm sạch đầu vào theo chính sách tường minh trong Java
+# Building an Explicit Policy-Based Input Cleaner in Java
 
-Khi nhận dữ liệu từ biểu mẫu, API, tệp CSV hoặc nguồn bên ngoài, lập trình viên thường viết một chuỗi thao tác như `trim()`, thay nhiều khoảng trắng bằng một, đổi thành chữ thường hoặc xóa ký tự lạ. Cách làm này dễ tạo lỗi khi mỗi trường dữ liệu có **ý nghĩa và yêu cầu khác nhau**: tên đăng nhập, tên hiển thị, mật khẩu, địa chỉ email, nội dung bài viết và đường dẫn tệp không thể dùng chung một quy tắc.
+When receiving data from forms, APIs, CSV files, or external sources, developers often write a chain of operations such as `trim()`, replacing multiple spaces with one, converting to lowercase, or stripping strange characters. This approach easily creates bugs when each data field has **different meanings and requirements**: usernames, display names, passwords, email addresses, article bodies, and file paths cannot share a single rule.
 
-Bộ làm sạch đầu vào (*input cleaner*) đáng tin cậy phải nêu rõ **dữ liệu nào được chấp nhận, biến đổi nào được phép, trường hợp nào phải từ chối và thứ tự áp dụng**. Bài thực hành xây dựng bộ làm sạch Java 17+ với chính sách bất biến cho hai loại đầu vào:
+A reliable input cleaner must state clearly **which data is accepted, which transformations are allowed, which cases must be rejected, and the order of application**. This practice builds a Java 17+ cleaner with immutable policies for two input types:
 
-- **Tên đăng nhập (username):** chuẩn hóa Unicode theo NFKC, bỏ khoảng trắng ở hai đầu, đổi chữ thường độc lập ngôn ngữ, chỉ chấp nhận chữ ASCII, số và dấu gạch dưới theo cấu trúc xác định.
-- **Tên hiển thị (display name):** chuẩn hóa NFC, gom nhiều khoảng trắng thành một, cho phép chữ cái và dấu kết hợp Unicode, giữ nguyên chữ hoa/thường; không tự ý loại bỏ ký tự sai mà báo lỗi.
+- **Username:** Unicode NFKC normalization, stripping leading/trailing whitespace, locale-independent lowercasing, accepting only ASCII letters, digits, and underscores in a defined structure.
+- **Display name:** NFC normalization, collapsing multiple whitespace characters into one, allowing Unicode letters and combining marks, preserving letter case; reporting an error rather than arbitrarily stripping invalid characters.
 
-Đây là **ví dụ chính sách cho một ứng dụng cụ thể**, không phải bộ lọc được phép áp dụng nguyên xi cho mọi ngôn ngữ, tên người hoặc hệ thống.
+This is a **policy example for a specific application**, not a filter permitted to be applied verbatim to all languages, personal names, or systems.
 
-## 1. Phân biệt làm sạch, chuẩn hóa, xác thực và mã hóa đầu ra
+## 1. Distinguishing cleaning, normalization, validation, and output encoding
 
-| Khái niệm | Mục đích | Ví dụ |
+| Concept | Purpose | Example |
 | --- | --- | --- |
-| **Chuẩn hóa (normalization)** | Đưa những biểu diễn được ứng dụng coi là tương đương về một dạng thống nhất. | Chuyển chuỗi có dấu kết hợp sang dạng NFC. |
-| **Làm sạch (cleaning/canonicalization)** | Áp dụng các phép biến đổi được chính sách công bố rõ ràng. | Thu gọn khoảng trắng trong tên hiển thị thành một dấu cách. |
-| **Xác thực (validation)** | Kiểm tra dữ liệu sau khi biến đổi có phù hợp hợp đồng của trường không. | Tên đăng nhập phải khớp `[a-z][a-z0-9_]{2,15}`. |
-| **Mã hóa/escape theo ngữ cảnh đầu ra** | Bảo vệ dữ liệu khi đưa vào HTML, JSON, URL, câu lệnh SQL, shell và các ngữ cảnh khác. | Escape văn bản khi hiển thị HTML; dùng tham số cho câu lệnh SQL. |
+| **Normalization** | Bring representations considered equivalent by the application into a uniform form. | Convert a string with combining marks into NFC form. |
+| **Cleaning / canonicalization** | Apply transformations explicitly declared by the policy. | Collapse whitespace in a display name into a single space. |
+| **Validation** | Check whether data after transformation conforms to the field's contract. | A username must match `[a-z][a-z0-9_]{2,15}`. |
+| **Context-aware output encoding/escaping** | Protect data when placed into HTML, JSON, URLs, SQL statements, shell commands, and other contexts. | Escape text when rendering HTML; use parameters for SQL statements. |
 
-**Làm sạch đầu vào không thay thế cơ chế bảo vệ ở nơi sử dụng dữ liệu.** Ví dụ, một chuỗi đã khớp quy tắc tên hiển thị vẫn phải được escape khi chèn vào HTML; mọi truy vấn SQL nhận dữ liệu từ người dùng nên dùng prepared statement/tham số thay cho nối chuỗi. Tránh đặt tên một hàm chung kiểu `sanitizeEverything()` và giả định rằng đầu ra an toàn trong mọi ngữ cảnh.
+**Input cleaning does not replace protection mechanisms at the point where data is used.** For example, a string that already matches the display name rule must still be escaped when inserted into HTML; any SQL query receiving user data should use prepared statements/parameters instead of string concatenation. Avoid naming a generic function `sanitizeEverything()` and assuming that the output is safe in every context.
 
-Cũng cần phân biệt:
+It is also necessary to distinguish:
 
-- **Từ chối dữ liệu lỗi:** Báo cho người gọi biết chính xác loại vi phạm, không tự làm mất thông tin.
-- **Biến đổi dữ liệu hợp lệ theo quy tắc:** Ví dụ bỏ khoảng trắng ở đầu/cuối được sản phẩm chấp nhận.
-- **Sửa lỗi tùy tiện:** Ví dụ âm thầm bỏ mọi ký tự không thuộc allowlist có thể biến `ad!min` thành `admin`; hai định danh khác nhau có thể trở thành một. Ví dụ này chọn **từ chối** để tránh trường hợp đó.
+- **Rejecting invalid data:** Tell the caller the exact type of violation without silently losing information.
+- **Transforming valid data according to rules:** For example, stripping leading/trailing whitespace accepted by the product.
+- **Arbitrarily fixing errors:** For example, silently dropping every character outside the allowlist can turn `ad!min` into `admin`; two different identifiers could become one. This example chooses to **reject** to prevent that case.
 
-## 2. Viết chính sách trước khi viết thuật toán
+## 2. Writing the policy before writing the algorithm
 
-Chính sách nên xác định từng chiều quyết định:
+The policy should define each decision dimension:
 
-| Quyết định | Username | Display name |
+| Decision | Username | Display name |
 | --- | --- | --- |
-| Đầu vào `null` | Từ chối | Từ chối |
+| `null` input | Reject | Reject |
 | Unicode normalization | `Normalizer.Form.NFKC` | `Normalizer.Form.NFC` |
-| Khoảng trắng ở đầu/cuối | Bỏ bằng `strip()` | Bỏ bằng `strip()` sau khi thu gọn |
-| Khoảng trắng bên trong | Không thay đổi; mẫu ký tự cuối cùng sẽ từ chối | Quy đổi chuỗi khoảng trắng về một dấu cách ASCII |
-| Chữ hoa/chữ thường | `toLowerCase(Locale.ROOT)` | Giữ nguyên |
-| Điều khiển/định dạng Unicode bất thường | Từ chối | Từ chối, ngoại trừ khoảng trắng được phép quy đổi |
-| Chuỗi không hợp lệ về cấu trúc UTF-16 | Từ chối | Từ chối |
-| Độ dài sau biến đổi | 3–16 code point | 1–40 code point |
-| Ký tự được phép | `[a-z][a-z0-9_]{2,15}` | Chữ cái và dấu kết hợp Unicode, các từ cách nhau một dấu cách |
+| Leading/trailing whitespace | Remove with `strip()` | Remove with `strip()` after collapsing |
+| Internal whitespace | Unchanged; final character pattern will reject | Collapse whitespace sequences into a single ASCII space |
+| Letter case | `toLowerCase(Locale.ROOT)` | Preserve |
+| Unusual Unicode control/format chars | Reject | Reject, except whitespace allowed to be normalized |
+| Structurally invalid UTF-16 string | Reject | Reject |
+| Length after transformation | 3–16 code points | 1–40 code points |
+| Allowed characters | `[a-z][a-z0-9_]{2,15}` | Unicode letters and combining marks, words separated by a single space |
 
-Giải thích phạm vi:
+Scope explanation:
 
-- Với username, `[a-z][a-z0-9_]{2,15}` yêu cầu ký tự đầu tiên là chữ thường ASCII, sau đó có từ 2 đến 15 ký tự thuộc `a-z`, `0-9` hoặc `_`. Tổng chiều dài là 3–16.
-- Với display name, biểu thức `[\p{L}][\p{L}\p{M}]*(?: [\p{L}][\p{L}\p{M}]*)*` sử dụng nhóm Unicode Letter/Mark. Nó cố ý **không cho phép** chữ số, dấu gạch nối, dấu nháy, emoji hay nhiều cách viết tên khác. Ứng dụng thực tế phải điều chỉnh allowlist theo đối tượng người dùng; không nên dùng chính sách minh họa để tuyên bố tên của người dùng là “không hợp lệ”.
-- `NFC` gộp các biểu diễn Unicode tương đương theo quy tắc chuẩn hóa dạng canonical; `NFKC` còn áp dụng biến đổi compatibility, ví dụ chữ Latin fullwidth `Ａ` thành `A`. NFKC có thể thay đổi ý nghĩa hiển thị của một số ký tự: chỉ dùng nếu hợp đồng định danh muốn coi các biểu diễn đó là tương đương.
-- `Locale.ROOT` tránh kết quả chữ hoa/chữ thường thay đổi theo locale máy chạy. Đây là *lowercasing*, không phải thuật toán Unicode *case folding* đầy đủ. Với username vốn chỉ nhận ASCII sau xử lý, quy tắc minh họa đủ rõ.
-- Bài này tính độ dài bằng **Unicode code point**, không dùng độ dài UTF-16 của `String.length()`. Code point vẫn không luôn bằng một ký tự mà con người cảm nhận (grapheme cluster); khi giới hạn tên hiển thị theo “ký tự nhìn thấy”, cần chọn định nghĩa khác phù hợp.
+- For username, `[a-z][a-z0-9_]{2,15}` requires the first character to be a lowercase ASCII letter, followed by 2 to 15 characters from `a-z`, `0-9`, or `_`. Total length is 3–16.
+- For display name, the expression `[\p{L}][\p{L}\p{M}]*(?: [\p{L}][\p{L}\p{M}]*)*` uses the Unicode Letter/Mark categories. It intentionally **disallows** digits, hyphens, apostrophes, emoji, or many other ways of writing names. Real applications must adjust the allowlist to fit their user base; this illustrative policy must not be used to declare a user's name "invalid".
+- `NFC` merges canonically equivalent Unicode representations under canonical normalization rules; `NFKC` also applies compatibility transformations, such as fullwidth Latin `Ａ` to `A`. NFKC can change the visual meaning of some characters: only use it if the identifier contract intends to treat those representations as equivalent.
+- `Locale.ROOT` prevents letter case results from changing with the host machine's locale. This is *lowercasing*, not full Unicode *case folding*. For usernames that only accept ASCII after processing, the illustrative rule is clear enough.
+- This practice measures length in **Unicode code points**, not the UTF-16 length of `String.length()`. A code point still does not always equal one human-perceived character (grapheme cluster); when limiting display names by "visible characters", choose another suitable definition.
 
-## 3. Xác định thứ tự pipeline
+## 3. Defining the pipeline order
 
-Một pipeline có thể kiểm chứng cần chạy theo thứ tự đã công bố:
+A verifiable pipeline must run in its published order:
 
 ~~~text
 Input String
     |
     v
-1. Kiểm tra null và giới hạn dữ liệu thô ở biên hệ thống
+1. Check null and raw data limits at the system boundary
     |
     v
-2. Chuẩn hóa Unicode NFC hoặc NFKC theo chính sách
+2. Apply Unicode normalization NFC or NFKC per policy
     |
     v
-3. Duyệt code point; xử lý khoảng trắng hoặc từ chối control/format/surrogate
+3. Iterate code points; handle whitespace or reject control/format/surrogate
     |
     v
-4. Bỏ khoảng trắng đầu/cuối khi chính sách cho phép
+4. Strip leading/trailing whitespace when policy allows
     |
     v
-5. Đổi chữ thường bằng Locale.ROOT nếu là username
+5. Lowercase with Locale.ROOT if username
     |
     v
-6. Kiểm tra độ dài và allowlist trên giá trị kết quả
+6. Check length and allowlist on the resulting value
     |
-    +---- không đạt ----> REJECT: trả lỗi có thể xử lý
+    +---- fails ----> REJECT: return actionable error
     |
     v
-7. Trả chuỗi đã làm sạch để dùng trong nghiệp vụ
+7. Return cleaned string for business logic use
 ~~~
 
-**Vì sao phải kiểm tra sau biến đổi?** `ＮＡＭＥ` có thể biến thành `NAME` qua NFKC rồi thành `name` qua lowercase; cấu trúc và độ dài phải được đánh giá trên giá trị **thực sự được lưu hoặc so sánh**. Cũng nên giới hạn kích thước yêu cầu/chuỗi thô **trước** khi gọi các thao tác tốn CPU/bộ nhớ, tránh phải xử lý một chuỗi đầu vào không giới hạn chỉ để cuối cùng báo quá dài. Ví dụ Java bên dưới tập trung vào quy tắc trường dữ liệu; giới hạn kích thước thông điệp cần được cấu hình ở tầng nhận dữ liệu của ứng dụng.
+**Why check after transformation?** `ＮＡＭＥ` can become `NAME` via NFKC and then `name` via lowercasing; structure and length must be evaluated on the value **actually stored or compared**. Request/raw string size should also be bounded **before** calling CPU/memory-intensive operations, avoiding processing an unbounded input string only to report it as too long at the end. The Java example below focuses on field rules; message size limits need to be configured at the application's ingress layer.
 
-Các quyết định đặc biệt theo trường phải tường minh. Chẳng hạn, pipeline tên hiển thị cho phép biến tab hoặc xuống dòng thành dấu cách; trường HTTP header hay một định danh dòng đơn có thể cần **từ chối CR/LF** ngay từ đầu. Không tái sử dụng chính sách tên hiển thị cho các ngữ cảnh đó.
+Field-specific decisions must be explicit. For instance, the display name pipeline allows turning tabs or newlines into spaces; an HTTP header field or a single-line identifier may need to **reject CR/LF** right at the start. Do not reuse the display name policy for such contexts.
 
-## 4. Chương trình Java 17+ hoàn chỉnh
+## 4. Complete Java 17+ program
 
-Lưu đoạn sau thành **InputCleanerDemo.java** (UTF-8). `record Policy` tập trung tất cả lựa chọn thành một đối tượng cấu hình, hai hằng `USERNAME` và `DISPLAY_NAME` là các hợp đồng đầu vào riêng biệt. `Pattern` được biên dịch một lần cho mỗi hợp đồng, còn `Matcher` được tạo mới khi kiểm tra từng chuỗi.
+Save the following as **InputCleanerDemo.java** (UTF-8). `record Policy` centralizes all choices into one configuration object, and the two constants `USERNAME` and `DISPLAY_NAME` are separate input contracts. `Pattern` is compiled once per contract, while `Matcher` is created anew when checking each string.
 
 ~~~java
 import java.text.Normalizer;
@@ -193,14 +193,14 @@ public class InputCleanerDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ~~~bash
 javac -encoding UTF-8 InputCleanerDemo.java
 java InputCleanerDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 username fullwidth -> alice_12
@@ -212,103 +212,103 @@ display emoji -> REJECT (not allowed)
 display empty -> REJECT (length)
 ~~~
 
-**Phân tích từng tình huống:**
+**Case-by-case breakdown:**
 
-1. `\uFF21` là chữ Latin `Ａ` ở dạng fullwidth; NFKC chuyển thành `A`, `strip()` bỏ khoảng trắng hai đầu, sau đó `Locale.ROOT` chuyển thành `alice_12`. Tên này hợp lệ theo regex username.
-2. `abc!` đủ độ dài, nhưng dấu `!` không nằm trong allowlist nên bị từ chối; chương trình **không tự biến** thành `abc`.
-3. `al\0ice` chứa ký tự điều khiển NUL; việc kiểm tra `Character.isISOControl` từ chối trước khi kiểm tra regex.
-4. Chuỗi `Ca\u0300   phe\u0302` chứa các dấu kết hợp; NFC chuẩn hóa thành `Cà   phê` rồi bộ gom khoảng trắng tạo `Cà phê`.
-5. Chuỗi tên hiển thị có tab và xuống dòng được gộp thành một dấu cách vì **chính sách riêng của display name cho phép**. Không suy ra rằng mọi loại input đều được phép chuyển CR/LF như vậy.
-6. Emoji `🙂` không nằm trong regex Letter/Mark được chọn; input bị từ chối rõ ràng, không bị xóa ngầm. Sản phẩm hỗ trợ emoji trong tên phải thay đổi chính sách.
-7. Chuỗi chỉ gồm khoảng trắng trở thành chuỗi rỗng; kiểm tra độ dài phát hiện và từ chối.
+1. `\uFF21` is the fullwidth Latin letter `Ａ`; NFKC converts it to `A`, `strip()` removes leading/trailing whitespace, then `Locale.ROOT` converts it to `alice_12`. This name is valid under the username regex.
+2. `abc!` meets the length requirement, but `!` is not in the allowlist so it is rejected; the program **does not silently turn it** into `abc`.
+3. `al\0ice` contains the NUL control character; the `Character.isISOControl` check rejects it before the regex check.
+4. The string `Ca\u0300   phe\u0302` contains combining marks; NFC normalizes it to `Cà   phê` and then the whitespace collapser produces `Cà phê`.
+5. The display name string containing a tab and a newline is collapsed into a single space because **the display name's own policy allows it**. Do not infer that all input types are allowed to convert CR/LF in this way.
+6. The emoji `🙂` is not in the chosen Letter/Mark regex; the input is explicitly rejected, not silently deleted. Products supporting emoji in names must change the policy.
+7. A whitespace-only string becomes an empty string; the length check detects and rejects it.
 
-## 5. Giải thích các quyết định kỹ thuật quan trọng
+## 5. Explaining key technical decisions
 
-### Unicode normalization: NFC và NFKC
+### Unicode normalization: NFC and NFKC
 
-`java.text.Normalizer.normalize(input, form)` trả một chuỗi theo dạng chuẩn hóa được yêu cầu. Với `NFC`, các chuỗi ký tự tương đương theo chuẩn Unicode canonical được đưa về dạng thống nhất (khi có dạng ghép). Với `NFKC`, các ký tự compatibility còn được biến đổi rộng hơn. Điều này hữu ích với định danh nhưng có thể làm **hai đầu vào ban đầu khác nhau trở thành một giá trị**.
+`java.text.Normalizer.normalize(input, form)` returns a string in the requested normalization form. With `NFC`, canonically equivalent character sequences under the Unicode standard are brought to a unified form (when a composed form exists). With `NFKC`, compatibility characters are transformed more broadly. This is useful for identifiers but can make **two originally distinct inputs become one value**.
 
-Nếu username được dùng làm khóa tra cứu hoặc ràng buộc unique trong cơ sở dữ liệu, hệ thống phải thực hiện chuẩn hóa **trước kiểm tra trùng lặp và trước khi lưu khóa định danh**, theo cùng một chính sách ở mọi đường vào dữ liệu. Khi thay đổi chính sách trong tương lai, cần đánh giá va chạm với các username đã tồn tại; không thể đơn giản đổi cách chuẩn hóa mà coi dữ liệu cũ không ảnh hưởng.
+If username is used as a lookup key or unique constraint in a database, the system must perform normalization **before checking duplicates and before storing the identifier key**, following the same policy on every data entry path. When changing the policy in the future, collisions with existing usernames must be evaluated; you cannot simply change the normalization method and assume old data is unaffected.
 
-Normalization **không** giải quyết mọi ký tự giống nhau về hình dáng (*confusables*, ví dụ một số chữ Latin và Cyrillic), cũng không thay thế kiểm tra nghiệp vụ. Với các định danh công khai hoặc có giá trị bảo mật, cần cân nhắc chống nhầm lẫn ký tự ở cấp sản phẩm.
+Normalization does **not** resolve all visually similar characters (*confusables*, such as certain Latin and Cyrillic letters), nor does it replace business validation. For public or security-sensitive identifiers, consider character-confusion defenses at the product level.
 
-### Khoảng trắng không chỉ là ký tự `' '`
+### Whitespace is not just the `' '` character
 
-`String.strip()` loại bỏ hai đầu dựa trên `Character.isWhitespace`, khác `trim()` vốn có quy tắc cũ dựa trên giá trị ký tự. Một số khoảng trắng Unicode như non-breaking space không được `isWhitespace` nhận diện. Ví dụ đã chọn `Character.isWhitespace(cp) || Character.isSpaceChar(cp)` để nhận diện rộng hơn **trong chính sách thu gọn khoảng trắng**, đổi về dấu cách ASCII rồi mới `strip()`.
+`String.strip()` removes leading and trailing characters based on `Character.isWhitespace`, unlike `trim()` which has legacy character-value rules. Some Unicode whitespace characters such as non-breaking space are not recognized by `isWhitespace`. The example chooses `Character.isWhitespace(cp) || Character.isSpaceChar(cp)` for broader recognition **within the whitespace-collapsing policy**, converting them to an ASCII space before calling `strip()`.
 
-Bộ gom dùng `codePointAt`, `Character.charCount` và `StringBuilder.appendCodePoint` để không cắt đôi surrogate pair hợp lệ. Ký tự UTF-16 surrogate lẻ bị từ chối thay vì được tự động biến thành ký tự thay thế. Trường hợp `Character.FORMAT` cũng bị từ chối, gồm một số dấu điều khiển định dạng vô hình. Tuy nhiên, một số hệ chữ dùng các ký tự định dạng như zero-width joiner một cách hợp lệ; chính sách này cần được nới/điều chỉnh nếu sản phẩm hỗ trợ chúng. Không áp dụng lệnh xóa toàn bộ ký tự định dạng một cách không xét ngữ cảnh.
+The collapser uses `codePointAt`, `Character.charCount`, and `StringBuilder.appendCodePoint` so valid surrogate pairs are not split in half. Unpaired UTF-16 surrogate characters are rejected instead of being automatically replaced with replacement characters. `Character.FORMAT` cases are also rejected, including certain invisible formatting controls. However, some writing systems legitimately use formatting characters like zero-width joiner; this policy must be relaxed/adjusted if the product supports them. Do not apply a blanket removal of all formatting characters without considering context.
 
-### Dùng allowlist sau khi xử lý
+### Applying the allowlist after processing
 
-`Pattern.matcher(value).matches()` xác nhận **toàn bộ giá trị** phù hợp regex, khác `find()` chỉ tìm một đoạn khớp. Đây là lý do chuỗi `abc!` không được nhận dù có đoạn `abc` phù hợp. Regex là một phần của hợp đồng dữ liệu và phải đi kèm kiểm tra độ dài; không nên coi một regex duy nhất là đủ để bảo vệ hệ thống.
+`Pattern.matcher(value).matches()` verifies that **the entire value** matches the regex, unlike `find()` which only searches for a matching substring. This is why `abc!` is not accepted even though it contains a matching `abc` substring. Regex is part of the data contract and must be paired with length checks; a single regex should not be treated as sufficient to protect the system.
 
-Quy tắc ký tự tên hiển thị ở ví dụ chỉ là tập con để minh họa. Tên thực tế có thể chứa dấu nối, dấu nháy, chữ số, chữ viết có quy tắc phức tạp hoặc emoji. Người thiết kế phải quyết định rõ cần chấp nhận những dạng nào, bổ sung kiểm thử cho các hệ chữ đó và ghi lại lý do từ chối.
+The display name character rule in the example is only an illustrative subset. Real names may contain hyphens, apostrophes, digits, scripts with complex rules, or emoji. Designers must explicitly decide which forms to accept, add tests for those scripts, and document rejection reasons.
 
-### Khi nào nên báo lỗi thay vì âm thầm sửa?
+### When to report errors instead of silently fixing?
 
-Trong demo, các biến đổi được phép đều ghi thành thuộc tính của `Policy`. Các trường hợp ngoài chính sách được từ chối bằng `IllegalArgumentException` và nhãn nguyên nhân ổn định ở mức minh họa: `null`, `control/format/surrogate`, `length`, `not allowed`. Ứng dụng production nên chuyển lỗi này thành **mã lỗi có cấu trúc** (ví dụ enum/record kết quả) rồi trả thông báo phù hợp cho người dùng. Tránh phơi bày nguyên chuỗi nhạy cảm trong log hoặc error response.
+In the demo, allowed transformations are recorded as properties of `Policy`. Cases outside the policy are rejected with `IllegalArgumentException` and stable illustrative reason labels: `null`, `control/format/surrogate`, `length`, `not allowed`. Production applications should turn these errors into **structured error codes** (such as an enum or result record) and return appropriate messages to users. Avoid exposing raw sensitive strings in logs or error responses.
 
-Bởi việc biến đổi có thể gây mất phân biệt giữa nhiều input, đôi khi cần lưu **giá trị gốc** cho mục đích nghiệp vụ có quyền truy cập phù hợp và dùng **giá trị chuẩn hóa** để so sánh/tìm kiếm. Không giữ giá trị gốc nếu trường đó là bí mật hoặc chính sách bảo mật không cho phép.
+Because transformations can lose distinctions between multiple inputs, it is sometimes necessary to store the **original value** for business purposes with proper access controls and use the **normalized value** for comparison/lookup. Do not retain the original value if the field is a secret or security policy forbids it.
 
-## 6. Kiểm thử: những ca cần có ngoài ví dụ chạy tay
+## 6. Testing: cases needed beyond manual demo runs
 
-Bộ làm sạch nên có automated tests cho từng chính sách, nhất là tại ranh giới Unicode và chiều dài. Tập ca kiểm thử nên bao phủ:
+The cleaner should have automated tests for each policy, especially at Unicode and length boundaries. The test suite should cover:
 
-| Nhóm tình huống | Input/điều kiện | Mong đợi |
+| Scenario group | Input / condition | Expected |
 | --- | --- | --- |
-| Giá trị không có | `null` | Từ chối, không ném `NullPointerException` ngoài dự kiến. |
-| Trống sau xử lý | `" \t "` cho display name | Từ chối vì độ dài nhỏ hơn 1. |
-| Dạng Unicode tương đương | `"Ca\u0300"` và `"Cà"` trong display name | Cùng kết quả `"Cà"` sau NFC. |
-| Dạng compatibility | `"\uFF21lice_12"` cho username | Thành `"alice_12"` sau NFKC và lowercase. |
-| Ký tự không được phép | `"abc!"` cho username | Từ chối; không tự cắt `!`. |
-| Control/format | NUL, tab trong username, ký tự định dạng ẩn | Từ chối theo chính sách username. |
-| Khoảng trắng nhiều loại | Space, tab, xuống dòng, non-breaking space trong display name | Gom thành một dấu cách; loại bỏ ở hai đầu. |
-| Độ dài | 2, 3, 16, 17 ký tự ASCII của username theo cấu trúc | Đúng các ranh giới, không sai lệch `<`/`<=`. |
-| Unicode ngoài BMP | Emoji/supplementary code point | Xử lý nguyên code point; cuối cùng chấp nhận/từ chối theo policy. |
-| Thay đổi chính sách | Cùng input, hai policy khác nhau | Kết quả theo từng policy; không có ngoại lệ “ẩn”. |
-| Tính ổn định | `clean(clean(x, p), p)` với dữ liệu được chấp nhận | Kết quả bằng `clean(x, p)` đối với chính sách minh họa. |
+| Missing value | `null` | Reject, without throwing an unexpected `NullPointerException`. |
+| Empty after processing | `" \t "` for display name | Reject because length is less than 1. |
+| Equivalent Unicode forms | `"Ca\u0300"` and `"Cà"` in display name | Same result `"Cà"` after NFC. |
+| Compatibility form | `"\uFF21lice_12"` for username | Becomes `"alice_12"` after NFKC and lowercasing. |
+| Disallowed characters | `"abc!"` for username | Reject; do not silently strip `!`. |
+| Control/format | NUL, tab in username, invisible format characters | Reject according to username policy. |
+| Multiple whitespace types | Space, tab, newline, non-breaking space in display name | Collapse into a single space; strip at both ends. |
+| Length | 2, 3, 16, 17 ASCII characters in username matching structure | Accurate at boundaries, no `<`/`<=` off-by-one errors. |
+| Non-BMP Unicode | Emoji / supplementary code points | Process whole code points; finally accept/reject per policy. |
+| Policy switching | Same input, two different policies | Output follows each policy; no "hidden" exceptions. |
+| Stability | `clean(clean(x, p), p)` for accepted data | Result equals `clean(x, p)` for the illustrative policies. |
 
-Cần kiểm tra thêm giới hạn dữ liệu thô ở API, tải lớn và hành vi đối với đầu vào không tin cậy. Lưu ý kiểm thử **idempotence** nêu trên là tính chất được kỳ vọng của pipeline này, không phải thuộc tính tự động của mọi phép chuẩn hóa/làm sạch; chính sách mới cần tự chứng minh lại.
+Additional testing is needed for raw data limits at the API, high load, and behavior with untrusted inputs. Note that the **idempotence** test above is an expected property of this pipeline, not an automatic property of every normalization/cleaning operation; new policies must prove it themselves.
 
-## 7. Đưa vào ứng dụng: điểm đặt và giới hạn trách nhiệm
+## 7. Integrating into an application: placement and responsibility boundaries
 
-Tại lớp biên nhận dữ liệu (controller, DTO mapper, import parser), chọn chính sách theo **trường dữ liệu** thay vì gọi một hàm chung không có ngữ cảnh:
+At the data-ingestion boundary layer (controllers, DTO mappers, import parsers), select the policy by **data field** instead of calling a generic contextless function:
 
 ~~~java
-// Đoạn minh họa trong ứng dụng đã có InputCleanerDemo.
+// Illustration snippet in an application that already has InputCleanerDemo.
 String username = InputCleanerDemo.clean(
         requestUsername, InputCleanerDemo.USERNAME);
 String displayName = InputCleanerDemo.clean(
         requestDisplayName, InputCleanerDemo.DISPLAY_NAME);
 ~~~
 
-Đoạn này là minh họa, **không phải chương trình chạy độc lập**: `requestUsername` và `requestDisplayName` do controller cung cấp. Chính sách trong lớp demo là package-private; khi tách thành thư viện ở package khác, công khai API thích hợp và kiểm soát phiên bản chính sách. Nên tổ chức việc validate ở một nơi dùng chung để tất cả lối vào (web, batch, migration) áp dụng nhất quán.
+This snippet is illustrative, **not a standalone runnable program**: `requestUsername` and `requestDisplayName` are provided by the controller. Policies in the demo class are package-private; when extracting into a library in another package, expose an appropriate API and version the policies. Validation should be centralized in a shared place so all entry points (web, batch, migration) apply it consistently.
 
-Đối với **mật khẩu**, không trim, lowercase, NFKC hoặc âm thầm thay thế ký tự trừ khi giao thức xác thực đã định nghĩa chính xác phép biến đổi và áp dụng nhất quán; đổi chuỗi đầu vào có thể đổi bí mật mà người dùng muốn sử dụng. Đối với **email, URL, tên tệp, địa chỉ đường dẫn, văn bản HTML**, cần parser, luật chuẩn hóa và biện pháp bảo vệ theo riêng từng loại. Ví dụ, chặn path traversal đòi hỏi kiểm soát đường dẫn sau khi resolve trong thư mục được phép; gom khoảng trắng không giải quyết được vấn đề.
+For **passwords**, do not trim, lowercase, apply NFKC, or silently replace characters unless the authentication protocol has defined the exact transformation and applies it consistently; changing the input string can alter the secret the user intended to use. For **emails, URLs, filenames, path addresses, and HTML text**, type-specific parsers, normalization rules, and protections are required. For example, preventing path traversal requires checking the path after resolving it inside an allowed directory; collapsing whitespace does not solve the problem.
 
-Với chuỗi dùng trong **SQL**, hãy dùng tham số của `PreparedStatement` hoặc ORM; với **HTML**, escape theo ngữ cảnh khi xuất; với **lệnh shell**, tránh nối lệnh từ chuỗi người dùng; với **log**, xử lý ký tự điều khiển và dữ liệu nhạy cảm theo chính sách ghi log. Không gán cho `clean()` trách nhiệm thay thế các cơ chế đó.
+For strings used in **SQL**, use `PreparedStatement` parameters or an ORM; for **HTML**, escape according to output context; for **shell commands**, avoid building commands by concatenating user strings; for **logs**, handle control characters and sensitive data according to logging policy. Do not assign `clean()` the responsibility of replacing those mechanisms.
 
-## 8. Các lỗi thiết kế thường gặp
+## 8. Common design mistakes
 
-| Sai lầm | Rủi ro | Hướng khắc phục |
+| Mistake | Risk | Remedy |
 | --- | --- | --- |
-| Dùng chung một quy tắc cho username, tên hiển thị, mật khẩu và nội dung | Mất dữ liệu, đổi ý nghĩa hoặc từ chối dữ liệu hợp lệ. | Chính sách tường minh theo từng trường và hợp đồng sản phẩm. |
-| `replaceAll("[^a-z0-9]", "")` để xóa ký tự không hợp lệ | Có thể tạo va chạm định danh và che mất lỗi nhập. | Từ chối khi không thuộc allowlist; chỉ biến đổi đã thỏa thuận. |
-| Kiểm tra regex trước normalize/lowercase, sau đó lưu chuỗi đã đổi | Dữ liệu cuối cùng có thể không còn cùng tính chất đã kiểm tra. | Xác thực trên biểu diễn cuối cùng sau tất cả phép biến đổi. |
-| Dùng `String.length()` và cho rằng đó là số ký tự hiển thị | UTF-16 surrogate pair và grapheme cluster khiến số đếm khác. | Chọn code point hoặc grapheme cluster theo yêu cầu thật. |
-| Dùng `toLowerCase()` phụ thuộc locale cho định danh | Có thể cho kết quả khác ở môi trường khác nhau. | Dùng `Locale.ROOT` nếu chính sách cho phép lowercase độc lập locale. |
-| Áp dụng NFKC mặc định cho mọi chuỗi | Compatibility folding có thể thay đổi ý nghĩa dữ liệu. | Chọn NFC/NFKC theo từng loại dữ liệu và test va chạm. |
-| Xóa hết ký tự Unicode thuộc loại FORMAT | Làm hỏng tên/văn bản trong một số hệ chữ. | Chỉ từ chối/biến đổi nếu hợp đồng trường cho phép. |
-| Tin chuỗi đã clean là tự động an toàn cho HTML/SQL/URL | Các bề mặt tấn công có cơ chế diễn giải khác nhau. | Dùng prepared statements, output escaping và parser theo ngữ cảnh. |
-| Chỉ giới hạn độ dài sau khi xử lý một input khổng lồ | Có thể tiêu tốn CPU/bộ nhớ không cần thiết. | Giới hạn kích thước thô ở ingress, rồi mới normalize và validate. |
-| Không kiểm tra trùng sau chuẩn hóa username | Hai biểu diễn khác nhau có thể trùng một khóa định danh. | Chuẩn hóa trước uniqueness check và áp dụng nhất quán khi lưu/truy vấn. |
+| Using one rule for username, display name, password, and body text | Data loss, altered meaning, or rejecting valid data. | Explicit policies per field and product contract. |
+| `replaceAll("[^a-z0-9]", "")` to strip invalid characters | Can cause identifier collisions and mask input errors. | Reject when outside the allowlist; only apply agreed transformations. |
+| Checking regex before normalize/lowercase, then storing the changed string | Final data may no longer have the properties that were checked. | Validate on the final representation after all transformations. |
+| Using `String.length()` and assuming it is the visible character count | UTF-16 surrogate pairs and grapheme clusters make counts differ. | Choose code points or grapheme clusters according to actual requirements. |
+| Using locale-dependent `toLowerCase()` for identifiers | Can produce different results across environments. | Use `Locale.ROOT` if policy allows locale-independent lowercasing. |
+| Applying NFKC by default to all strings | Compatibility folding can alter data meaning. | Choose NFC/NFKC per data type and test for collisions. |
+| Removing all Unicode characters in category FORMAT | Corrupts names/text in certain writing systems. | Only reject/transform if the field contract permits. |
+| Trusting a cleaned string as automatically safe for HTML/SQL/URL | Different attack surfaces interpret strings differently. | Use prepared statements, output escaping, and context-specific parsers. |
+| Only enforcing length limits after processing a huge input | Can waste CPU/memory unnecessarily. | Bound raw size at ingress first, then normalize and validate. |
+| Not checking duplicates after username normalization | Two different representations can collide on one identifier key. | Normalize before uniqueness check and apply consistently on write/query. |
 
-## 9. Bài tập mở rộng
+## 9. Follow-up exercises
 
-1. Thêm chính sách **mã sản phẩm**: chỉ cho phép chữ ASCII in hoa, số và dấu gạch ngang, chiều dài 6–20; không thu gọn khoảng trắng bên trong. Viết kiểm thử input đúng/sai, cùng input sau normalize.
-2. Thay `IllegalArgumentException` bằng `record CleanResult(String value, String errorCode)` hoặc mô hình lỗi có kiểu, bảo đảm người gọi nhận được mã lý do rõ ràng và không vô tình sử dụng chuỗi sai.
-3. Tách chính sách display name hỗ trợ tên có dấu gạch nối và dấu nháy, viết kiểm thử đa ngôn ngữ trước khi mở rộng regex.
-4. Thêm giới hạn độ dài chuỗi thô trước `Normalizer.normalize`, đồng thời ghi rõ giới hạn này áp dụng cho số code unit hay byte khi nhận qua HTTP.
-5. Tạo kiểm thử tính ổn định `clean(clean(input, policy), policy)` và kiểm thử va chạm sau NFKC đối với tập định danh mẫu.
+1. Add a **product code** policy: only allow uppercase ASCII letters, digits, and hyphens, length 6–20; do not collapse internal whitespace. Write tests for valid/invalid inputs, as well as inputs after normalization.
+2. Replace `IllegalArgumentException` with `record CleanResult(String value, String errorCode)` or a typed error model, ensuring callers receive a clear reason code and cannot accidentally use an invalid string.
+3. Split out a display name policy supporting names with hyphens and apostrophes, and write multilingual tests before expanding the regex.
+4. Add a raw string length limit before `Normalizer.normalize`, and specify whether this limit applies to code units or bytes when received over HTTP.
+5. Create a stability test `clean(clean(input, policy), policy)` and a collision test after NFKC on a sample set of identifiers.
 
-**Ghi nhớ:** Một bộ làm sạch đầu vào tốt bắt đầu từ **chính sách công khai về phép biến đổi và lỗi**, sau đó mới đến API Java. Chuẩn hóa đúng thứ tự, duyệt Unicode an toàn, kiểm tra độ dài và allowlist trên giá trị kết quả, từ chối trường hợp ngoài chính sách, và dùng biện pháp bảo vệ đúng ngữ cảnh khi lưu/hiển thị/sử dụng dữ liệu.
+**Takeaway:** A good input cleaner starts with an **explicit policy on transformations and errors**, and only then moves to Java APIs. Normalize in the right order, iterate Unicode safely, check length and allowlists on the resulting value, reject out-of-policy cases, and apply context-appropriate protections when storing/displaying/using data.

@@ -1,34 +1,34 @@
-# Chi tiết substring, intern và tối ưu String có thể khác giữa các phiên bản JDK
+# `substring`, `intern`, and String Optimization Details Can Vary Across JDK Versions
 
-## 1. Phân biệt hợp đồng API và chi tiết cài đặt
+## 1. Separating the API contract from implementation details
 
-`String` là một lớp cốt lõi của Java: bất biến (immutable), biểu diễn một dãy đơn vị mã UTF-16 và cung cấp các thao tác như `substring()`, `equals()` và `intern()`. Tuy vậy, cách JVM bố trí bộ nhớ, tái sử dụng vùng dữ liệu ký tự, lưu bảng chuỗi intern hay loại bỏ bản sao trùng lặp đã thay đổi nhiều lần qua các phiên bản JDK.
+`String` is a core Java class: immutable, representing a sequence of UTF-16 code units, and providing operations such as `substring()`, `equals()`, and `intern()`. However, how the JVM lays out memory, reuses character storage, stores the intern table, or eliminates duplicate copies has changed several times across JDK versions.
 
-Khi học hoặc tối ưu hóa `String`, phải tách **hai tầng**:
+When studying or optimizing `String`, you must separate **two layers**:
 
-- **Hợp đồng ngôn ngữ/API:** `substring(begin, end)` lấy đúng đoạn ký tự; `equals` so sánh nội dung; `intern` trả về đại diện chuẩn (canonical) của nội dung trong pool. Chương trình phải dựa vào các quy tắc này.
-- **Cơ chế cài đặt:** `String` dùng `char[]` hay `byte[]`, một substring có chia sẻ backing array không, pool lưu ở vùng bộ nhớ nào, JIT/GC có loại bỏ bản sao hay không. Đây là các lựa chọn của phiên bản JDK, nhà cung cấp JVM và cấu hình runtime; không nên coi là API bất biến.
+- **Language/API contract:** `substring(begin, end)` extracts the exact character slice; `equals` compares content; `intern` returns the canonical representation of that content in the pool. Programs must rely on these rules.
+- **Implementation mechanism:** whether `String` uses `char[]` or `byte[]`, whether a substring shares a backing array, which memory region holds the pool, and whether the JIT/GC eliminates duplicates. These are choices made by the JDK version, JVM vendor, and runtime flags; do not treat them as an immutable API.
 
-Một tối ưu hợp lý trên JDK cũ có thể đã lỗi thời trên JDK mới; ngược lại, kết quả đúng của chương trình không được phụ thuộc vào đoán định về backing array, kích thước đối tượng hoặc số lần cấp phát nội bộ.
+An optimization that made sense on an older JDK may be obsolete on a newer one; conversely, program correctness must never depend on assumptions about backing arrays, object size, or internal allocation counts.
 
-| Vấn đề | Bảo đảm ổn định để viết chương trình | Chi tiết phụ thuộc JDK/JVM |
+| Topic | Stable guarantee for writing programs | JDK/JVM-dependent detail |
 | --- | --- | --- |
-| `substring` | Trả về nội dung từ chỉ số đầu (bao gồm) tới cuối (không bao gồm) | Có copy dữ liệu hay chia sẻ vùng lưu trữ; chi phí cấp phát |
-| `String.intern` | Với chuỗi bằng nhau theo `equals`, kết quả `intern()` là cùng tham chiếu chuẩn | Cấu trúc bảng pool, vị trí lưu trữ, GC, thời gian tìm kiếm |
-| `String` immutable | Nội dung chuỗi không thể bị sửa sau khi tạo | Các đối tượng có dùng chung mảng dữ liệu nội bộ không |
-| `length` và `charAt` | Hoạt động theo đơn vị mã UTF-16 `char` | Chuỗi có lưu bằng mảng byte compact hay mảng char |
-| Tối ưu String | Nội dung và hành vi API không đổi | Deduplication, compact storage, JIT, GC, chiến lược nối chuỗi |
+| `substring` | Returns content from begin index (inclusive) to end index (exclusive) | Whether data is copied or backing storage is shared; allocation cost |
+| `String.intern` | For strings equal under `equals`, `intern()` returns the same canonical reference | Pool table structure, storage location, GC, lookup speed |
+| `String` immutability | String content cannot be modified after creation | Whether objects share an internal data array |
+| `length` and `charAt` | Operate in UTF-16 `char` code units | Whether the string is stored in a compact byte array or a char array |
+| String optimizations | Content and API behavior remain unchanged | Deduplication, compact storage, JIT, GC, concatenation strategy |
 
-## 2. substring: cùng một kết quả, nhiều chiến lược lưu trữ
+## 2. substring: same result, different storage strategies
 
-Hai overload thường dùng:
+Two common overloads:
 
 ```java
 String substring(int beginIndex)
 String substring(int beginIndex, int endIndex)
 ```
 
-`beginIndex` được tính vào kết quả; `endIndex` **không** được tính vào. Các chỉ số được đo bằng đơn vị `char` UTF-16, không phải Unicode code point.
+`beginIndex` is included in the result; `endIndex` is **excluded**. Indices are measured in UTF-16 `char` units, not Unicode code points.
 
 ```java
 String source = "abcdef";
@@ -39,34 +39,34 @@ System.out.println(part.length());           // 3
 System.out.println(part.equals("cde"));      // true
 ```
 
-Phạm vi bất hợp lệ như `beginIndex < 0`, `endIndex > source.length()` hoặc `beginIndex > endIndex` gây `IndexOutOfBoundsException`. API quy định **nội dung đoạn chuỗi**; nó không hứa mỗi lần gọi phải tạo một đối tượng `String` và mảng backing độc lập.
+Invalid ranges such as `beginIndex < 0`, `endIndex > source.length()`, or `beginIndex > endIndex` throw `IndexOutOfBoundsException`. The API specifies **the sliced string's content**; it does not promise that every call allocates a brand-new `String` object and independent backing array.
 
-### Lịch sử: chia sẻ mảng ở JDK cũ
+### History: array sharing in older JDKs
 
-Trong các cài đặt OpenJDK/HotSpot đời cũ **trước JDK 7u6**, `String` từng sử dụng một mảng `char[]` cùng thông tin `offset`/`count`. Một `substring` nhỏ có thể tạo đối tượng String mới nhưng **chia sẻ cùng mảng ký tự lớn** với chuỗi gốc. Lợi thế là tránh copy dữ liệu; đánh đổi là nguy cơ giữ sống mảng lớn chỉ vì còn một substring ngắn.
+In older OpenJDK/HotSpot implementations **prior to JDK 7u6**, `String` used a `char[]` array together with `offset`/`count` fields. A small `substring` could allocate a new `String` object yet **share the same large character array** with the parent string. The advantage was avoiding data copying; the trade-off was the risk of keeping a huge array alive solely because one short substring remained reachable.
 
-Ví dụ tình huống lịch sử:
+Example of the historical scenario:
 
 ```text
-Chuỗi gốc rất dài:     [........ hàng triệu ký tự ........]
-                                |
-Substring chỉ lấy:             "id"
+Very long original string: [........ millions of characters ........]
+                                    |
+Substring takes only:              "id"
 
-Cài đặt chia sẻ mảng đời cũ:
-" id " nhỏ vẫn tham chiếu backing char[] lớn.
-Khi chuỗi gốc không còn dùng, backing array lớn có thể vẫn
-chưa được giải phóng vì substring còn sống.
+Old array-sharing implementation:
+Small " id " still references the large backing char[].
+When the original string is no longer used, the large backing array
+may still not be freed because the substring remains alive.
 ```
 
-Điểm dễ nhầm: đây thường gọi là **khả năng giữ bộ nhớ ngoài ý muốn (memory retention)**, không có nghĩa `String` bị thay đổi nội dung hay JVM vi phạm tính immutable.
+Common point of confusion: this is called **unintended memory retention**, not a mutation of `String` content or a violation of immutability by the JVM.
 
-Từ **JDK 7u6**, cách cài đặt phổ biến đã thay đổi: substring có thể tạo vùng lưu trữ ký tự phù hợp với đoạn cần giữ, thay cho việc luôn chia sẻ cả mảng lớn theo `offset`/`count`. Vì thế, mẹo cũ `new String(large.substring(...))` để buộc copy/thoát tham chiếu tới backing array **không nên được áp dụng máy móc trên JDK hiện đại**. Constructor `String(String original)` hiện không bảo đảm một backing copy mới tách biệt; String bất biến cho phép chia sẻ dữ liệu khi có lợi.
+Starting in **JDK 7u6**, the common implementation changed: `substring` could allocate character storage sized to the extracted slice instead of always sharing the full large array via `offset`/`count`. Because of that, the old trick `new String(large.substring(...))` to force a copy and drop the backing-array reference **should not be applied mechanically on modern JDKs**. The `String(String original)` constructor does not guarantee a separate copied backing array today; immutable `String` semantics allow sharing backing data whenever beneficial.
 
-**Kết luận về thiết kế:** dùng `substring` để lấy đoạn theo nhu cầu. Khi thực sự lo về memory retention hoặc throughput, kiểm tra **đúng JDK/JVM đang chạy** bằng heap profiler và benchmark thay vì áp dụng quy tắc “substring luôn O(1)” hay “substring luôn copy” cho mọi phiên bản. Với tác vụ cắt rất nhiều chuỗi, chi phí cấp phát vẫn cần được đo.
+**Design takeaway:** use `substring` to slice text as needed. When you genuinely have concerns about memory retention or throughput, check the **actual target JDK/JVM** using a heap profiler and benchmarks rather than applying blanket rules like "substring is always O(1)" or "substring always copies" across all versions. When slicing huge numbers of strings, allocation cost still needs measurement.
 
-### UTF-16 và nguy cơ cắt giữa surrogate pair
+### UTF-16 and the risk of splitting surrogate pairs
 
-Cho dù cài đặt bên trong dùng compact bytes, API `substring` vẫn dùng **chỉ số UTF-16**. Ví dụ emoji `🚀` là một Unicode code point nhưng cần hai `char`:
+Even when internal storage uses compact bytes, the `substring` API still uses **UTF-16 indices**. For example, the emoji `🚀` is one Unicode code point yet requires two `char` values:
 
 ```java
 String value = "A🚀B";
@@ -75,11 +75,11 @@ System.out.println(value.codePointCount(0, value.length())); // 3
 System.out.println(value.substring(1, 3));             // 🚀
 ```
 
-Cắt `substring(1, 2)` sẽ chỉ lấy một nửa cặp surrogate; giá trị Java String vẫn có thể chứa đơn vị mã lẻ, nhưng có thể không hiển thị như ký tự mong muốn. Khi xử lý theo code point, tính chỉ số bằng `offsetByCodePoints` hoặc xử lý bằng `codePoints()`; đừng nhầm một `char` là một ký tự người dùng nhìn thấy.
+Calling `substring(1, 2)` takes only half of the surrogate pair; a Java `String` can still hold an unpaired code unit, though it may not render as the intended character. When processing by code points, compute indices with `offsetByCodePoints` or iterate with `codePoints()`; do not confuse a `char` with a user-perceived character.
 
-## 3. intern(): hợp đồng ổn định, nơi giữ pool thay đổi
+## 3. intern(): stable contract, changing pool location
 
-`String.intern()` trả một đối tượng canonical theo nội dung; với hai String `a.equals(b)` là `true`, `a.intern() == b.intern()` cũng là `true`. Literal và biểu thức String hằng lúc biên dịch được intern. Cách JVM lưu và quản lý các đối tượng canonical có thể đổi mà vẫn phải giữ hợp đồng đó.
+`String.intern()` returns a canonical object for the content; for any two strings where `a.equals(b)` is `true`, `a.intern() == b.intern()` is also `true`. String literals and compile-time constant String expressions are interned. How the JVM stores and manages canonical objects can change as long as that contract holds.
 
 ```java
 String literal = "java";
@@ -89,66 +89,66 @@ System.out.println(created.equals(literal));      // true
 System.out.println(created.intern() == literal);  // true
 ```
 
-Trong lịch sử **HotSpot**, vùng lưu String interned từng gắn với **PermGen** trên JDK 6 trở về trước. **Từ JDK 7**, các đối tượng String được intern nằm trên **Java heap thông thường**; JDK 8 loại bỏ PermGen và dùng **Metaspace** cho metadata, chứ không chuyển các `String` ứng dụng vào Metaspace. Các bản JDK/GC khác nhau có thể đổi cấu trúc bảng tra pool, thời gian sống hoặc chính sách thu gom.
+Historically in **HotSpot**, interned strings resided in **PermGen** on JDK 6 and earlier. **Starting in JDK 7**, interned `String` objects live on the **regular Java heap**; JDK 8 removed PermGen and introduced **Metaspace** for metadata, rather than moving application `String` objects into Metaspace. Different JDK/GC releases can change the pool's lookup table structure, lifetimes, or collection policies.
 
-Điều đó **không** có nghĩa intern miễn phí hay các đối tượng được intern sẽ sống mãi. Với tập giá trị ít lặp, như UUID, session ID hay URL ngẫu nhiên, đưa mọi đầu vào vào pool có thể làm tăng chi phí quản lý. Hãy kiểm tra độ trùng, vòng đời dữ liệu và profile heap trước khi dùng làm tối ưu.
+That **does not** mean interning is free or that interned objects live forever. For low-repetition sets such as UUIDs, session IDs, or random URLs, placing every input into the pool can add management overhead. Measure duplication rate, data lifetime, and heap profile before using `intern()` as an optimization.
 
-Bài **Constant pool và vai trò của Constable/ConstantDesc** giải thích chi tiết khác biệt giữa String pool, constant pool trong class file và API mô tả hằng. Phần này tập trung vào **sự dịch chuyển cài đặt và hệ quả khi nâng JDK**.
+The **Constant Pool and the Role of Constable/ConstantDesc** article details the differences between the String pool, class-file constant pool, and constant descriptor APIs. This section focuses on **implementation shifts and consequences when upgrading JDKs**.
 
-## 4. String layout thay đổi qua các đời JDK
+## 4. String layout changes across JDK generations
 
-| Giai đoạn triển khai OpenJDK/HotSpot | Cách lưu nội dung điển hình | Hệ quả cần kiểm tra khi nâng cấp |
+| OpenJDK/HotSpot implementation era | Typical content storage | Upgrade implication to verify |
 | --- | --- | --- |
-| Nhiều bản trước Java 9 | `char[]` theo đơn vị UTF-16 | Không mặc định áp dụng footprint của JDK hiện đại |
-| Java 9+ có Compact Strings (JEP 254) | `byte[]` với dạng LATIN1 hoặc UTF16 | Chuỗi có toàn code unit thuộc U+0000–U+00FF có thể tiết kiệm byte dữ liệu |
+| Many releases prior to Java 9 | `char[]` in UTF-16 units | Do not assume modern JDK footprints apply |
+| Java 9+ with Compact Strings (JEP 254) | `byte[]` in LATIN1 or UTF16 format | Strings whose code units all fall in U+0000–U+00FF can save data bytes |
 
-Ví dụ `"Xin chào"` gồm ký tự `à` thuộc Latin-1, nên **có thể** đủ điều kiện compact dù là tiếng Việt. Một ký tự ngoài U+00FF làm cả String dùng dạng UTF16 trong chiến lược này. Tuy nhiên `length()` vẫn đếm UTF-16 code units, còn `getBytes(StandardCharsets.UTF_8)` vẫn cho byte UTF-8 của dữ liệu trao đổi.
+For example, `"Xin chào"` has `à` belonging to Latin-1, so it **can** be compact-eligible even though it is Vietnamese. A single character outside U+00FF causes the whole `String` to use UTF16 under this strategy. Nevertheless, `length()` still counts UTF-16 code units, and `getBytes(StandardCharsets.UTF_8)` still produces UTF-8 interchange bytes.
 
-Đây là chuyện triển khai, không phải yêu cầu Java SE cho mọi JVM. Không truy cập trường `value`/`coder` bằng reflection để suy đoán tính đúng của ứng dụng. Nếu cần phân tích cụ thể cách chọn coder, tác động của `-XX:-CompactStrings` và chi phí bộ nhớ, xem bài **Compact Strings** và bài **Chi phí đối tượng, mảng lưu dữ liệu và chuỗi tạm**.
+This is an implementation matter, not a Java SE requirement across all JVMs. Do not access `value`/`coder` via reflection to reason about application correctness. For a detailed analysis of coder selection, the impact of `-XX:-CompactStrings`, and memory overhead, see the **Compact Strings** article and the **Object Cost, Backing Arrays, and Temporary Strings** article.
 
-## 5. String Deduplication: chia sẻ dữ liệu, không trộn đối tượng
+## 5. String Deduplication: sharing data without merging objects
 
-**JEP 192 — String Deduplication in G1**, có từ JDK 8u20 ở HotSpot với GC G1, nhằm giảm bộ nhớ khi nhiều đối tượng String khác nhau chứa cùng nội dung. Dưới điều kiện thích hợp, GC có thể giúp các String **chia sẻ cùng vùng dữ liệu backing** mà vẫn giữ **hai đối tượng `String` riêng**.
+**JEP 192 — String Deduplication in G1**, introduced in HotSpot JDK 8u20 with the G1 GC, aims to reduce memory when many distinct `String` objects hold identical content. Under eligible conditions, the GC can make those `String` objects **share the same backing data array** while remaining **two separate `String` objects**.
 
 ```text
-Đối tượng String A ----\
-                        > dữ liệu "AB" được chia sẻ (khi GC dedup)
-Đối tượng String B ----/
+String object A ----\
+                     > shared "AB" data (when GC deduplicates)
+String object B ----/
 
-A và B vẫn là hai tham chiếu đối tượng khác nhau.
+A and B remain two distinct object references.
 ```
 
-Đây **không** phải `intern()`:
+This is **not** `intern()`:
 
-| Cơ chế | Chuẩn hóa chính đối tượng String? | Mục đích chính | Điều Java code quan sát được |
+| Mechanism | Canonicalizes the String object itself? | Primary goal | Observable behavior in Java code |
 | --- | --- | --- | --- |
-| `intern()` | Có: trả về một đối tượng canonical cho nội dung | Chuẩn hóa identity khi gọi rõ ràng | Hai kết quả `intern` của chuỗi bằng nhau so sánh `==` ra `true` |
-| String Deduplication của GC | Không: có thể chia sẻ **mảng nội dung** nhưng giữ các String riêng | Giảm số vùng dữ liệu trùng lặp | `equals` vẫn đúng; `==` giữa hai đối tượng riêng vẫn `false` |
+| `intern()` | Yes: returns one canonical object per content | Identity canonicalization when called explicitly | Two `intern` results for equal strings compare `true` with `==` |
+| GC String Deduplication | No: may share the **content array** while keeping separate Strings | Reduce duplicate backing arrays | `equals` remains true; `==` between two separate objects remains `false` |
 
-Trong HotSpot/JDK có hỗ trợ, có thể thử tùy chọn sau tại **môi trường đo đạc**:
+On a supporting HotSpot/JDK, you can test the following options in a **measurement environment**:
 
 ```bash
 java -XX:+UseG1GC -XX:+UseStringDeduplication YourApp
 ```
 
-Hiệu quả phụ thuộc số lượng nội dung lặp lại, vòng đời đối tượng, GC, áp lực bộ nhớ và thời gian xử lý. Không có bảo đảm rằng một String cụ thể chắc chắn được dedup ngay hoặc rằng ứng dụng luôn nhanh hơn khi bật tùy chọn. Một số cờ và GC được hỗ trợ có thể thay đổi theo JDK; hãy kiểm tra tài liệu `java`/`-XX` của phiên bản runtime đích trước khi dùng trong môi trường thật.
+Effectiveness depends on duplicate content volume, object lifetimes, the GC, memory pressure, and CPU overhead. There is no guarantee that any specific `String` will be deduplicated immediately or that an application will always run faster with the option enabled. Supported flags and collectors can vary by JDK; check the `java`/`-XX` documentation for your target runtime before using in production.
 
-**Không dùng `a == b` để đo deduplication.** Trường hợp hai `String` được tạo riêng, identity vẫn khác nhau kể cả khi GC đã chia sẻ backing data. Kiểm tra bằng chỉ số heap/GC hoặc profiler, không dựa vào Java reference equality.
+**Do not use `a == b` to measure deduplication.** When two `String` objects are created separately, their identities stay distinct even after the GC shares their backing data. Verify via heap/GC metrics or a profiler, not Java reference equality.
 
-## 6. Những tối ưu khác cũng phụ thuộc phiên bản JVM
+## 6. Other optimizations that also depend on JVM version
 
-Ngoài `substring`, `intern`, compact storage và deduplication, hành vi cấp phát/hiệu năng còn chịu ảnh hưởng của:
+Beyond `substring`, `intern`, compact storage, and deduplication, allocation and performance behavior are also shaped by:
 
-- **JIT và escape analysis:** trình biên dịch runtime có thể thay đổi, tối ưu hoặc loại bớt các cấp phát không quan sát được, nhưng không bảo đảm mọi lời gọi `new String` hay phép nối đều được loại bỏ.
-- **Ghép chuỗi bằng `+`:** bộ biên dịch/JVM có thể dùng chiến lược khác nhau; từ Java 9, JEP 280 đưa cơ chế dựa trên `invokedynamic` cho bytecode nối chuỗi của `javac`. Không suy ra mã nguồn `a + b` luôn có cùng số `StringBuilder` hay số cấp phát trên mọi JDK.
-- **GC và kích thước heap:** thuật toán quản lý/di chuyển đối tượng, kiểu collector và hành vi thu hồi tạo ra thời gian chạy/footprint khác nhau ngay cả khi source code giống hệt.
-- **Phiên bản Unicode và quy tắc xử lý chữ:** việc nâng JDK có thể cập nhật dữ liệu Unicode trong các API liên quan; nếu logic phụ thuộc thuộc tính ký tự hay quy tắc case mapping, kiểm thử lại với bộ dữ liệu thực.
+- **JIT and escape analysis:** the runtime compiler can transform, optimize, or eliminate unobservable allocations, though it does not guarantee every `new String` or concatenation is eliminated.
+- **Concatenation with `+`:** compilers/JVMs can use different strategies; since Java 9, JEP 280 introduced an `invokedynamic`-based strategy for `javac` string concatenation bytecode. Never assume `a + b` produces the same `StringBuilder` count or allocation count across every JDK.
+- **GC and heap sizing:** object management/relocation algorithms, collector choice, and reclamation behavior yield different timings and footprints even with identical source code.
+- **Unicode versions and case-handling rules:** upgrading the JDK can update Unicode data in related APIs; if logic relies on character properties or case-mapping rules, re-test with real datasets.
 
-Từng thay đổi có thể tối ưu nhiều workload nhưng không có “một cờ tốt nhất” áp dụng mọi ứng dụng. Tránh đánh giá chỉ từ một lần chạy trên máy phát triển.
+Each change can improve many workloads, yet there is no "single best flag" for every application. Avoid drawing conclusions from a single run on a developer workstation.
 
-## 7. Ví dụ Java 17+ có kết quả ổn định giữa các cài đặt
+## 7. Java 17+ example with stable results across implementations
 
-Lưu vào tệp `StringVersionDemo.java`:
+Save to `StringVersionDemo.java`:
 
 ```java
 public class StringVersionDemo {
@@ -191,14 +191,14 @@ public class StringVersionDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 StringVersionDemo.java
 java StringVersionDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 substring = cde
@@ -217,68 +217,68 @@ rocket UTF16 units = 2
 rocket code points = 1
 ```
 
-Chương trình kiểm tra **hợp đồng quan sát được** thay vì kích thước backing array:
+This program tests **observable contracts** rather than backing-array sizes:
 
-- `substring` trả đúng nội dung, không khẳng định mảng dữ liệu có được copy hay không.
-- `new String("java")` tạo tham chiếu khác literal nhưng cùng nội dung.
-- `intern` trả về một đại diện canonical; cả hai lần gọi `intern` trên các String cùng nội dung cho cùng tham chiếu.
-- Hai `String` khác nhau từ hai mảng ký tự riêng có nội dung `"AB"` vẫn là hai đối tượng; dedup của GC không thay đổi phép kiểm tra identity của chúng.
-- `length()` vẫn tính theo UTF-16 bất kể có dùng Compact Strings bên trong hay không.
+- `substring` returns the right content without asserting whether the data array was copied.
+- `new String("java")` produces a different reference from the literal while matching its content.
+- `intern` returns a canonical representation; calling `intern` on equal strings yields the same reference.
+- Two distinct `String` instances created from separate `char` arrays with content `"AB"` remain two objects; GC deduplication does not alter their identity check.
+- `length()` still counts in UTF-16 regardless of whether Compact Strings is used internally.
 
-Không nên tạo bài kiểm tra unit test có assertion về địa chỉ, trường `value` nội bộ, số byte chiếm dụng hoặc tốc độ của `substring`. Các đặc điểm này cần benchmark/profiler và có thể thay đổi qua patch version.
+Do not write unit tests asserting memory addresses, internal `value` fields, exact byte footprint, or `substring` speed. Those characteristics require benchmarks/profilers and can shift even across patch versions.
 
-## 8. Cách kiểm tra tối ưu trên đúng JDK đang chạy
+## 8. How to verify optimizations on the exact JDK you run
 
-### Bước 1: ghi rõ môi trường
+### Step 1: record the environment precisely
 
-Kiểm tra JDK và JVM hiện dùng:
+Check the current JDK and JVM:
 
 ```bash
 java -version
 javac -version
 ```
 
-Ghi lại nhà cung cấp, bản cập nhật, hệ điều hành, kiến trúc CPU, heap size, collector và các cờ JVM liên quan. Nói “Java 17” thôi chưa đủ để chứng minh hai tiến trình có cùng footprint và chiến lược tối ưu.
+Record the vendor, update build, operating system, CPU architecture, heap size, collector, and relevant JVM flags. Saying "Java 17" alone is not enough to establish that two processes have identical footprints and optimization strategies.
 
-### Bước 2: đo vấn đề thật
+### Step 2: measure the actual problem
 
-Trước khi tối ưu, xác định thước đo:
+Before optimizing, identify the metric:
 
-- Nếu quan tâm **heap footprint**, dùng heap dump/profiler để thấy số lượng `String`, kích thước dữ liệu và những đối tượng còn tham chiếu.
-- Nếu quan tâm **allocation rate/GC**, dùng Java Flight Recorder (JFR), công cụ giám sát GC hoặc heap/allocation profiler phù hợp.
-- Nếu quan tâm **throughput/latency** của việc cắt và ghép chuỗi, dùng benchmark có warm-up và dữ liệu đại diện; [JMH](https://github.com/openjdk/jmh) là công cụ chuyên dụng của OpenJDK. Đừng dựa vào `System.nanoTime()` quanh một phép `substring` đơn lẻ để đưa kết luận.
-- Nếu quan tâm **intern/dedup**, đo số giá trị lặp lại, thời gian sống và chi phí pool/GC. Không suy ra lượng bộ nhớ tiết kiệm từ `==`.
+- If you care about **heap footprint**, use a heap dump/profiler to inspect `String` counts, backing data sizes, and retaining references.
+- If you care about **allocation rate/GC**, use Java Flight Recorder (JFR), GC monitoring tools, or an appropriate allocation profiler.
+- If you care about **throughput/latency** of slicing and concatenation, use a benchmark with warm-up and representative data; [JMH](https://github.com/openjdk/jmh) is OpenJDK's dedicated tool. Do not wrap `System.nanoTime()` around a single `substring` call to draw conclusions.
+- If you care about **intern/dedup**, measure duplicate value counts, lifetimes, and pool/GC overhead. Never infer memory savings from `==`.
 
-### Bước 3: so sánh một yếu tố mỗi lần
+### Step 3: compare one variable at a time
 
-Chạy cùng workload với phiên bản JDK/cờ JVM dự kiến, cố định dữ liệu và tài nguyên, đo nhiều lần; cân nhắc chi phí GC và tác dụng phụ. Ví dụ, chỉ thử bật `-XX:+UseStringDeduplication` khi runtime hỗ trợ và đo được khối lượng chuỗi trùng lặp đáng kể. Đừng tự ý dùng cờ cũ như `-XX:MaxPermSize` trên JDK đã loại bỏ PermGen.
+Run the same workload with the target JDK version/JVM flags, hold data and resources constant, and measure multiple runs; account for GC cost and side effects. For instance, only test `-XX:+UseStringDeduplication` when your runtime supports it and measurements show substantial duplicate strings. Do not blindly pass legacy flags like `-XX:MaxPermSize` on JDKs that removed PermGen.
 
-### Bước 4: ưu tiên tính đúng trước micro-optimization
+### Step 4: prioritize correctness before micro-optimization
 
-Khi code rõ ràng và đúng phạm vi dữ liệu, thường nên giữ `substring`, `equals` và cách tạo chuỗi phổ biến. Chỉ thêm cache, intern hay cấu hình JVM sau khi có bằng chứng về bottleneck và kiểm thử hồi quy. Hiệu năng cũng có thể thay đổi khi nâng patch JDK, thay collector hoặc thay số lượng dữ liệu thực tế.
+When code is clear and fits its data bounds, usually keep standard `substring`, `equals`, and ordinary string creation. Add caches, `intern`, or JVM flags only after proving a bottleneck and verifying with regression tests. Performance can also shift when upgrading a JDK patch, switching collectors, or changing production data volume.
 
-## 9. Các nhận định dễ sai
+## 9. Easily mistaken claims
 
-| Khẳng định | Đánh giá và cách hiểu đúng |
+| Claim | Assessment and accurate understanding |
 | --- | --- |
-| “`substring` luôn tạo view dùng chung mảng gốc.” | Sai với nhiều JDK hiện đại; đó là hành vi của một số triển khai cũ trước JDK 7u6. |
-| “`substring` luôn phải copy và tốn O(n) trên mọi JVM.” | Không phải bảo đảm API; hiệu năng, trường hợp biên và tối ưu JIT phụ thuộc cài đặt. |
-| “`new String(s)` luôn tạo backing array mới, nên phải gọi sau `substring`.” | Không đúng cho JDK hiện đại; tránh dùng mẹo lịch sử không còn phù hợp. |
-| “Mọi String intern đều ở PermGen.” | Sai từ JDK 7 trong HotSpot; đối tượng intern nằm trên heap thông thường. |
-| “JDK 8 Metaspace là nơi lưu String pool.” | Sai; Metaspace thay một phần vai trò metadata của PermGen, không có nghĩa chuỗi Java nằm trong Metaspace. |
-| “`intern` làm `equals` nhanh hơn cho mọi chuỗi.” | Không đúng; có chi phí duy trì pool và không thay thế quy tắc so sánh nội dung. |
-| “String Deduplication làm `a == b` thành true.” | Sai; nó có thể chia sẻ dữ liệu nội bộ nhưng không hợp nhất các đối tượng String. |
-| “JDK 9+ luôn dùng UTF-8 cho String vì có Compact Strings.” | Sai; cơ chế compact sử dụng Latin-1 hoặc UTF-16 trong triển khai tương ứng, không phải mã hóa UTF-8 của API. |
-| “Mọi ký tự có dấu phải dùng hai byte ở Compact Strings.” | Sai; ký tự thuộc Latin-1 như `é` có thể dùng một byte trong dạng compact. |
-| “Đổi JDK không ảnh hưởng tối ưu bộ nhớ.” | Sai; layout, JIT, GC và flags thay đổi. Cần đo lại nếu việc tối ưu quan trọng. |
+| "`substring` always creates a view sharing the parent array." | False for many modern JDKs; that was the behavior of some older implementations prior to JDK 7u6. |
+| "`substring` must always copy and takes O(n) on every JVM." | Not an API guarantee; performance, edge cases, and JIT optimizations depend on the implementation. |
+| "`new String(s)` always allocates a new backing array, so call it after `substring`." | False on modern JDKs; avoid obsolete historical workarounds. |
+| "All interned Strings live in PermGen." | False since JDK 7 in HotSpot; interned objects reside on the regular heap. |
+| "JDK 8 Metaspace is where the String pool is stored." | False; Metaspace replaced part of PermGen's metadata role, not where Java strings live. |
+| "`intern` makes `equals` faster for every string." | False; maintaining the pool has overhead and does not replace content comparison rules. |
+| "String Deduplication turns `a == b` into true." | False; it can share internal backing data without merging String objects. |
+| "JDK 9+ always uses UTF-8 for String because of Compact Strings." | False; compaction uses Latin-1 or UTF-16 in supporting implementations, not API UTF-8 encoding. |
+| "Every accented character must take two bytes in Compact Strings." | False; characters in Latin-1 such as `é` can use one byte in compact form. |
+| "Changing JDKs does not affect memory optimizations." | False; layout, JIT, GC, and flags evolve. Re-measure whenever optimization matters. |
 
-## 10. Bài tập tự kiểm tra
+## 10. Self-check exercises
 
-**Bài 1.** Có thể viết code dựa vào giả định `big.substring(0, 3)` luôn giữ tham chiếu tới toàn bộ mảng dữ liệu của `big` không?
+**Exercise 1.** Can you write code assuming `big.substring(0, 3)` always keeps a reference to `big`'s entire backing data array?
 
-**Đáp án:** Không. Đó là chi tiết của một số JDK cũ. Hợp đồng API chỉ bảo đảm nội dung đoạn con và xử lý chỉ số hợp lệ.
+**Answer:** No. That was a detail of some older JDKs. The API contract only guarantees the sliced content and valid index handling.
 
-**Bài 2.** Vì sao đoạn sau in `true` rồi `false`?
+**Exercise 2.** Why does the following print `true` then `false`?
 
 ```java
 String literal = "abc";
@@ -288,27 +288,27 @@ System.out.println(literal.equals(copy));
 System.out.println(literal == copy);
 ```
 
-**Đáp án:** `equals` so sánh nội dung còn `==` so sánh identity; `new String(...)` tạo đối tượng String mới.
+**Answer:** `equals` compares content whereas `==` compares identity; `new String(...)` creates a new `String` object.
 
-**Bài 3.** `a.intern() == b.intern()` cho biết điều gì nếu `a.equals(b)` là `true`?
+**Exercise 3.** What does `a.intern() == b.intern()` tell you if `a.equals(b)` is `true`?
 
-**Đáp án:** Hai chuỗi cùng nội dung được đưa về cùng đại diện canonical trong pool. Điều đó không chứng minh chúng vốn là một đối tượng trước khi gọi `intern`.
+**Answer:** Both strings with equal content map to the same canonical representation in the pool. It does not prove they were originally the same object before calling `intern`.
 
-**Bài 4.** Hai String `a` và `b` khác đối tượng nhưng có nội dung giống nhau. Sau String Deduplication của GC, `a == b` có chuyển thành `true` không?
+**Exercise 4.** Two `String` instances `a` and `b` are distinct objects with identical content. After GC String Deduplication, does `a == b` become `true`?
 
-**Đáp án:** Không. Deduplication có thể dùng chung dữ liệu nội bộ, còn đối tượng String vẫn giữ identity riêng.
+**Answer:** No. Deduplication may share internal backing data, while each `String` object keeps its own identity.
 
-**Bài 5.** Vì sao `"café"` có thể được lưu gọn ở JVM hỗ trợ Compact Strings, còn `"漢字"` cần dạng khác?
+**Exercise 5.** Why can `"café"` be stored compactly on a JVM supporting Compact Strings, while `"漢字"` needs a different representation?
 
-**Đáp án:** Các ký tự trong `"café"` nằm trong Latin-1; `"漢字"` có ký tự ngoài Latin-1. Đây là chiến lược lưu dữ liệu của JEP 254, không đổi ý nghĩa Unicode/UTF-16 mà API `String` cung cấp.
+**Answer:** All characters in `"café"` lie in Latin-1; `"漢字"` contains characters outside Latin-1. This is JEP 254's data storage strategy and does not change the Unicode/UTF-16 semantics provided by the `String` API.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 17 — API `String`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): hợp đồng `substring`, `intern`, tính immutable và mô hình UTF-16.
-- [Oracle — Java Virtual Machine Enhancements in JDK 7](https://docs.oracle.com/javase/8/docs/technotes/guides/vm/enhancements-7.html): sự thay đổi vị trí interned strings trong HotSpot từ JDK 7.
-- [Oracle — JDK 9 Enhancements, JEP 254 Compact Strings](https://www.oracle.com/java/technologies/javase/9-enhancements.html): bố trí `byte[]` + coder Latin-1/UTF-16 và tùy chọn `CompactStrings`.
-- [OpenJDK — JEP 192 String Deduplication in G1](https://openjdk.org/jeps/192): chia sẻ dữ liệu String trùng lặp và mục tiêu giảm sử dụng heap từ JDK 8u20.
-- [OpenJDK — JEP 280 Indify String Concatenation](https://openjdk.org/jeps/280): cài đặt nối chuỗi thay đổi từ Java 9.
-- [Aleksey Shipilëv — java.lang.String Catechism (2014)](https://2014.jokerconf.com/presentations/shipilev-string.pdf): phân tích trực quan lịch sử `substring` và chi phí bộ nhớ của cách chia sẻ mảng trước JDK 7u6.
+- [Java SE 17 — `String` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): contracts for `substring`, `intern`, immutability, and the UTF-16 model.
+- [Oracle — Java Virtual Machine Enhancements in JDK 7](https://docs.oracle.com/javase/8/docs/technotes/guides/vm/enhancements-7.html): change in location of interned strings in HotSpot starting in JDK 7.
+- [Oracle — JDK 9 Enhancements, JEP 254 Compact Strings](https://www.oracle.com/java/technologies/javase/9-enhancements.html): `byte[]` + Latin-1/UTF-16 coder layout and the `CompactStrings` option.
+- [OpenJDK — JEP 192 String Deduplication in G1](https://openjdk.org/jeps/192): sharing duplicate String backing data and heap reduction goals since JDK 8u20.
+- [OpenJDK — JEP 280 Indify String Concatenation](https://openjdk.org/jeps/280): string concatenation implementation changes starting in Java 9.
+- [Aleksey Shipilëv — java.lang.String Catechism (2014)](https://2014.jokerconf.com/presentations/shipilev-string.pdf): visual analysis of `substring` history and memory cost of pre-JDK 7u6 array sharing.
 
-**Nguyên tắc áp dụng:** viết Java dựa vào ngữ nghĩa chuẩn của `String`; đo `substring`, `intern` và các tối ưu bộ nhớ bằng **JDK/JVM thực sự triển khai ứng dụng**. Các mẹo về backing array, pool, cấp phát hoặc GC luôn cần được đặt trong ngữ cảnh phiên bản cụ thể.
+**Guiding principle:** write Java based on standard `String` semantics; measure `substring`, `intern`, and memory optimizations on the **actual JDK/JVM running your application**. Rules of thumb about backing arrays, pools, allocations, or GC always belong in the context of a specific version.

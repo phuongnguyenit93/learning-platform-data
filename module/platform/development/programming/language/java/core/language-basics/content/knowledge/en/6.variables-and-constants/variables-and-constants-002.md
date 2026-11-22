@@ -1,12 +1,12 @@
-# Kiểu khai báo quyết định giá trị biến có thể giữ
+# Declared Type Determines the Values a Variable Can Hold
 
-> **Java core — language-basics / Biến và hằng**  
-> **Môi trường:** JDK 17 trở lên.  
-> **Mục tiêu:** Hiểu kiểu khai báo ràng buộc giá trị có thể gán cho biến; phân biệt biến kiểu nguyên thủy và tham chiếu, phép chuyển kiểu, suy luận kiểu với `var` và quy tắc gán lại với `final`.
+> **Java core — language-basics / Variables and Constants**  
+> **Environment:** JDK 17 or later.  
+> **Objective:** Understand how the declared type constrains the values assignable to a variable; distinguish primitive and reference variables, type conversions, type inference with `var`, and reassignment rules with `final`.
 
-## 1. Biến có kiểu ngay từ lúc khai báo
+## 1. A Variable Has a Type from the Moment It Is Declared
 
-Java là ngôn ngữ **kiểm tra kiểu tĩnh** (*statically typed*). Khi khai báo:
+Java is a **statically typed** language. When declaring:
 
 ~~~java
 int age = 20;
@@ -14,9 +14,9 @@ String name = "Lan";
 boolean active = true;
 ~~~
 
-compiler biết `age` có kiểu `int`, `name` có kiểu `String`, `active` có kiểu `boolean`. Một lần gán sau đó phải **tương thích với kiểu đã khai báo**, chứ không được tự do biến `age` thành biến chứa chuỗi.
+the compiler knows `age` has type `int`, `name` has type `String`, and `active` has type `boolean`. Any subsequent assignment must be **compatible with the declared type**, rather than freely turning `age` into a string variable.
 
-Cấu trúc cơ bản: `Type variableName = initialValue;`. Ví dụ `int count = 3;` gồm kiểu `int`, tên `count` và biểu thức khởi tạo `3`. Biến cục bộ có thể khai báo trước rồi gán sau, nhưng phải được **gán chắc chắn trước khi đọc**:
+Basic structure: `Type variableName = initialValue;`. For example, `int count = 3;` consists of the type `int`, name `count`, and initializer expression `3`. A local variable can be declared first and assigned later, but it must be **definitely assigned before being read**:
 
 ~~~java
 int count;
@@ -24,89 +24,89 @@ count = 3;
 System.out.println(count); // 3
 ~~~
 
-Điều này khác với field của object có giá trị mặc định khi object được tạo; đừng suy ra biến cục bộ chưa gán mặc nhiên bằng 0.
+This differs from object fields, which receive default values when the object is created; do not infer that an unassigned local variable defaults to `0`.
 
-## 2. Kiểu nguyên thủy (*primitive*): giữ giá trị thuộc miền của kiểu
+## 2. Primitive Types: Holding a Value in the Type's Domain
 
-Java có tám kiểu nguyên thủy. Biến primitive giữ **giá trị** thuộc loại đó, không phải tham chiếu đến một object:
+Java has eight primitive types. A primitive variable holds a **value** of that kind, not a reference to an object:
 
-| Kiểu | Giá trị có thể giữ | Ví dụ |
+| Type | Values it can hold | Example |
 | --- | --- | --- |
-| `byte` | Số nguyên -128 đến 127 (8 bit) | `byte level = 100;` |
-| `short` | Số nguyên -32768 đến 32767 (16 bit) | `short pages = 500;` |
-| `int` | Số nguyên -2147483648 đến 2147483647 (32 bit) | `int amount = 10_000;` |
-| `long` | Số nguyên có dấu 64 bit | `long total = 3_000_000_000L;` |
-| `float` | Số thực dấu chấm động IEEE 754 32 bit, độ chính xác hữu hạn | `float rate = 1.5f;` |
-| `double` | Số thực dấu chấm động IEEE 754 64 bit, độ chính xác hữu hạn | `double ratio = 1.5;` |
-| `char` | Một đơn vị mã UTF-16, từ `'\u0000'` đến `'\uffff'` | `char grade = 'A';` |
-| `boolean` | Chỉ `true` hoặc `false` | `boolean ready = true;` |
+| `byte` | Signed integer -128 to 127 (8-bit) | `byte level = 100;` |
+| `short` | Signed integer -32768 to 32767 (16-bit) | `short pages = 500;` |
+| `int` | Signed integer -2147483648 to 2147483647 (32-bit) | `int amount = 10_000;` |
+| `long` | 64-bit signed integer | `long total = 3_000_000_000L;` |
+| `float` | 32-bit IEEE 754 floating-point number, finite precision | `float rate = 1.5f;` |
+| `double` | 64-bit IEEE 754 floating-point number, finite precision | `double ratio = 1.5;` |
+| `char` | A single UTF-16 code unit, from `'\u0000'` to `'\uffff'` | `char grade = 'A';` |
+| `boolean` | Only `true` or `false` | `boolean ready = true;` |
 
-`char` không bảo đảm chứa trọn mọi ký tự Unicode: một số code point ngoài BMP cần **hai** đơn vị UTF-16. `float` và `double` có cả giá trị đặc biệt như NaN, vô cực; chúng không phải kiểu số thập phân chính xác cho mọi phép tính tiền tệ.
+`char` does not guarantee holding every Unicode character completely: some code points outside the BMP require **two** UTF-16 code units. `float` and `double` also include special values like NaN and infinity; they are not exact decimal types for all monetary calculations.
 
-Với integer literal thập phân vượt phạm vi `int`, thêm hậu tố `L` để tạo literal `long`:
+For decimal integer literals exceeding the `int` range, add the `L` suffix to create a `long` literal:
 
 ~~~java
-long visitors = 3_000_000_000L;  // Đúng.
-// long wrong = 3_000_000_000;  // Sai: literal mặc định int quá lớn.
+long visitors = 3_000_000_000L;  // Valid.
+// long wrong = 3_000_000_000;  // Invalid: default int literal is too large.
 ~~~
 
-`boolean` không tự chuyển thành số `0`/`1`; `int flag = true;` là lỗi kiểu.
+`boolean` does not automatically convert to `0`/`1`; `int flag = true;` is a type error.
 
-## 3. Kiểu tham chiếu: kiểu khai báo giới hạn đối tượng được trỏ tới
+## 3. Reference Types: The Declared Type Limits What Objects Are Pointed To
 
-`String`, array, class, interface, record… là **kiểu tham chiếu**. Biến tham chiếu giữ một **reference** tới object tương thích (hoặc `null`), không trực tiếp chứa toàn bộ object như biến primitive chứa một số.
+`String`, arrays, classes, interfaces, records, etc., are **reference types**. A reference variable holds a **reference** to a compatible object (or `null`), rather than directly containing the entire object the way a primitive variable holds a number.
 
 ~~~java
 String title = "Java";
-CharSequence text = title;           // String triển khai CharSequence.
-Number number = Integer.valueOf(42); // Integer là Number.
-number = Double.valueOf(2.5);       // Double cũng là Number.
+CharSequence text = title;           // String implements CharSequence.
+Number number = Integer.valueOf(42); // Integer is a Number.
+number = Double.valueOf(2.5);       // Double is also a Number.
 Object item = "book";
-item = Integer.valueOf(7);          // Integer cũng là Object.
+item = Integer.valueOf(7);          // Integer is also an Object.
 ~~~
 
-Một biến khai báo kiểu `Number` có thể trỏ đến `Integer` hoặc `Double` vì chúng tương thích với `Number`. **Kiểu khai báo của biến vẫn là `Number`** sau khi gán lại, dù kiểu runtime của object thay đổi.
+A variable declared as `Number` can point to an `Integer` or a `Double` because both are compatible with `Number`. **The declared type of the variable remains `Number`** after reassignment, even though the runtime type of the object changes.
 
-Compiler cũng giới hạn những method được gọi dựa trên **kiểu tham chiếu tại vị trí sử dụng**:
+The compiler also restricts which methods can be called based on the **reference type at the call site**:
 
 ~~~java
 CharSequence text = "Java";
-System.out.println(text.length()); // Đúng: CharSequence có length().
-// text.substring(1);              // Sai: CharSequence không khai báo substring().
+System.out.println(text.length()); // Valid: CharSequence has length().
+// text.substring(1);              // Invalid: CharSequence does not declare substring().
 ~~~
 
-Object thực tế có thể là `String`, nhưng compiler không tự cho gọi mọi method riêng của `String` qua biến kiểu `CharSequence`. Khi thật sự cần thao tác phụ thuộc kiểu runtime, hãy kiểm tra trước, ví dụ cú pháp Java 17 `if (item instanceof Integer i) { ... }`.
+The actual object may be a `String`, but the compiler does not automatically allow calling every `String`-specific method through a `CharSequence` variable. When an operation genuinely depends on the runtime type, check first—for instance with Java 17 syntax `if (item instanceof Integer i) { ... }`.
 
-`null` có thể gán cho biến tham chiếu như `String name = null;`, nhưng không gán được cho primitive `int`. Gọi method trên tham chiếu `null` có thể gây `NullPointerException`.
+`null` can be assigned to a reference variable like `String name = null;`, but cannot be assigned to a primitive `int`. Calling a method on a `null` reference can cause a `NullPointerException`.
 
-## 4. Phép gán hợp lệ, chuyển rộng và chuyển hẹp
+## 4. Valid Assignments, Widening, and Narrowing
 
-| Tình huống | Ví dụ | Kết quả |
+| Situation | Example | Outcome |
 | --- | --- | --- |
-| Cùng kiểu | `int x = 10; x = 20;` | Hợp lệ |
-| Mở rộng số nguyên | `byte b = 100; int x = b;` | Hợp lệ, giữ nguyên giá trị |
-| `int` sang `long` | `int x = 100; long y = x;` | Hợp lệ |
-| Chuyển hẹp có cast | `int x = 130; byte b = (byte) x;` | Hợp lệ về cú pháp, **b = -126** do chỉ giữ 8 bit thấp |
-| Số thực sang số nguyên có cast | `int n = (int) 3.9;` | Hợp lệ, **n = 3** (phần lẻ bị bỏ) |
-| Gán chuỗi cho số | `int x = "10";` | **Lỗi biên dịch** |
-| Gán số sang boolean | `boolean b = 1;` | **Lỗi biên dịch** |
-| Gán supertype sang subtype | `Object o = "Hi"; String s = o;` | **Lỗi biên dịch** nếu không có cast/kiểm tra kiểu phù hợp |
+| Same type | `int x = 10; x = 20;` | Valid |
+| Integer widening | `byte b = 100; int x = b;` | Valid, preserves value |
+| `int` to `long` | `int x = 100; long y = x;` | Valid |
+| Narrowing with cast | `int x = 130; byte b = (byte) x;` | Syntactically valid, **b = -126** because only the low 8 bits are kept |
+| Floating-point to integer with cast | `int n = (int) 3.9;` | Valid, **n = 3** (fractional part is discarded) |
+| Assigning a string to a number | `int x = "10";` | **Compile error** |
+| Assigning a number to boolean | `boolean b = 1;` | **Compile error** |
+| Assigning supertype to subtype | `Object o = "Hi"; String s = o;` | **Compile error** without an appropriate cast/type check |
 
-**Lưu ý khi chuyển rộng:** từ số nguyên sang `float`/`double` có thể mất độ chính xác với giá trị lớn, dù không cần cast. **Cast không bảo đảm giá trị còn nguyên**; nó chỉ cho phép một phép chuyển kiểu nhất định.
+**Note on widening:** converting from integer types to `float`/`double` can lose precision for large values, even though no cast is required. **A cast does not guarantee the value stays intact**; it only permits a specific type conversion.
 
-Một ngoại lệ thực tế ở mức compile time: `byte b = 100;` hợp lệ vì `100` là biểu thức hằng kiểu `int` nằm trong phạm vi `byte`; nhưng:
+A practical compile-time exception: `byte b = 100;` is valid because `100` is an `int` constant expression within the `byte` range; however:
 
 ~~~java
 int number = 100;
-// byte b = number;  // Lỗi: number là biến int, không phải constant expression.
-// byte b = 128;     // Lỗi: vượt phạm vi byte.
+// byte b = number;  // Error: number is an int variable, not a constant expression.
+// byte b = 128;     // Error: exceeds byte range.
 ~~~
 
-Đừng đánh đồng việc **giá trị đang nhỏ** với việc compiler cho phép mọi phép gán thu hẹp.
+Do not equate **a currently small value** with the compiler allowing every narrowing assignment.
 
-## 5. Chương trình Java 17+ có thể biên dịch và chạy
+## 5. Compilable and Runnable Java 17+ Program
 
-Tạo file **DeclaredTypeDemo.java**:
+Create the file **DeclaredTypeDemo.java**:
 
 ~~~java
 public class DeclaredTypeDemo {
@@ -128,7 +128,7 @@ public class DeclaredTypeDemo {
         byte narrowed = (byte) 130;
         int whole = (int) 3.9;
 
-        var inferred = 10; // Compiler suy ra int.
+        var inferred = 10; // Compiler infers int.
         inferred = 12;
         final int MAX = 20;
 
@@ -149,7 +149,7 @@ public class DeclaredTypeDemo {
 }
 ~~~
 
-Trong terminal (Bash, PowerShell hoặc Command Prompt) tại thư mục chứa file:
+In a terminal (Bash, PowerShell, or Command Prompt) in the directory containing the file:
 
 ~~~bash
 javac -encoding UTF-8 DeclaredTypeDemo.java
@@ -171,47 +171,47 @@ inferred=12, MAX=20
 nextItem=8
 ~~~
 
-Đọc kết quả: `quantity` nhận giá trị `byte` dưới dạng `int`; `number` giữ kiểu khai báo `Number` nhưng trỏ tới object `Double` tại lúc in; `narrowed` minh họa chuyển hẹp mất thông tin; `item instanceof Integer value` kiểm tra kiểu object trước khi dùng `value` như `Integer`.
+Reading the output: `quantity` receives the `byte` value as an `int`; `number` keeps its declared type `Number` while pointing to a `Double` object when printed; `narrowed` illustrates lossy narrowing conversion; `item instanceof Integer value` checks the object's type before using `value` as an `Integer`.
 
 
-## 6. `var` giữ kiểu tĩnh; `final` hạn chế gán lại
+## 6. `var` Preserves Static Typing; `final` Restricts Reassignment
 
-`var` cho phép suy luận kiểu từ initializer ở vị trí được hỗ trợ, nhưng kiểu suy ra vẫn cố định:
+`var` enables type inference from the initializer in supported positions, but the inferred type remains fixed:
 
 ~~~java
 var count = 10;    // int
-count = 20;        // Hợp lệ
-// count = "twenty"; // Lỗi kiểu
-// var unknown = null; // Không suy ra được kiểu từ null đơn lẻ
+count = 20;        // Valid
+// count = "twenty"; // Type error
+// var unknown = null; // Cannot infer type from null alone
 ~~~
 
-`final` là ràng buộc **số lần gán cho biến**, độc lập với kiểu khai báo:
+`final` is a constraint on **how many times a variable can be assigned**, independent of its declared type:
 
 ~~~java
 final Number max = Integer.valueOf(10);
-// max = Double.valueOf(3.5); // Lỗi: final không cho gán lại
+// max = Double.valueOf(3.5); // Error: final disallows reassignment
 ~~~
 
-Vì vậy, câu hỏi “giá trị này **có thể gán vì tương thích kiểu không?**” khác câu hỏi “**biến final này còn được phép gán không?**”. Quy tắc gán `final` theo luồng điều khiển và tính mutable của object được đào sâu ở hai bài riêng.
+Therefore, the question "is this value **assignable because the types are compatible?**" is different from "**is this `final` variable still allowed to be assigned?**" Control-flow assignment rules for `final` and object mutability are covered in depth in two dedicated lessons.
 
-## 7. Bẫy thường gặp và cách tự kiểm tra
+## 7. Common Pitfalls and Self-Check
 
-| Mảnh mã | Vấn đề | Cách khắc phục |
+| Code snippet | Issue | Fix |
 | --- | --- | --- |
-| `long n = 3_000_000_000;` | Literal thập phân chưa có `L` và quá lớn cho `int` | `3_000_000_000L` |
-| `byte b = 128;` | Ngoài phạm vi `byte` | Dùng kiểu rộng hơn hoặc giá trị trong miền |
-| `int x = 3.9;` | `double` không tự thu hẹp thành `int` | Xem có thực sự muốn `(int) 3.9` không |
-| `String s = 100;` | `int` không được gán trực tiếp thành `String` | `String.valueOf(100)` |
-| `var x = 10; x = "A";` | `var` đã suy luận `int` | Dùng biến kiểu phù hợp, không gán khác kiểu |
-| `CharSequence t = "Hi"; t.substring(1);` | Kiểu khai báo không có method `substring` | Dùng `String` khi cần, hoặc kiểm tra/chuyển kiểu an toàn |
-| `String s = null; s.length();` | Tham chiếu `null` không có object để gọi method | Kiểm tra `null` hoặc thiết kế tránh null |
+| `long n = 3_000_000_000;` | Decimal literal lacks `L` and is too large for `int` | `3_000_000_000L` |
+| `byte b = 128;` | Outside `byte` range | Use a wider type or an in-range value |
+| `int x = 3.9;` | `double` does not automatically narrow to `int` | Check if `(int) 3.9` is actually intended |
+| `String s = 100;` | `int` is not directly assignable to `String` | `String.valueOf(100)` |
+| `var x = 10; x = "A";` | `var` already inferred `int` | Use a variable of an appropriate type, do not assign a different type |
+| `CharSequence t = "Hi"; t.substring(1);` | Declared type does not have `substring` method | Use `String` when needed, or safely check/cast |
+| `String s = null; s.length();` | `null` reference has no object to invoke methods on | Check for `null` or design to avoid null |
 
-### Bài tập ngắn
+### Short Exercises
 
-1. Dự đoán kiểu và giá trị của `var x = 5L;`, sau đó thử gán `x = 6;` và `x = "6";`. Tại sao kết quả khác nhau?
-2. Giải thích vì sao `byte b = 100;` biên dịch được nhưng `int x = 100; byte b = x;` lại không.
-3. Tạo `Number n = Integer.valueOf(3);` rồi gán `Double.valueOf(3.5)`. Kiểu khai báo của `n` có thay đổi không?
-4. Thử `final StringBuilder b = new StringBuilder(); b.append("OK");`. Phân biệt thay đổi object với gán lại reference.
-5. Trong `DeclaredTypeDemo`, thử thay `(byte) 130` bằng `(byte) 127` và dự đoán kết quả.
+1. Predict the type and value of `var x = 5L;`, then try assigning `x = 6;` and `x = "6";`. Why do the outcomes differ?
+2. Explain why `byte b = 100;` compiles, whereas `int x = 100; byte b = x;` does not.
+3. Create `Number n = Integer.valueOf(3);` and then assign `Double.valueOf(3.5)`. Does the declared type of `n` change?
+4. Try `final StringBuilder b = new StringBuilder(); b.append("OK");`. Distinguish mutating the object from reassigning the reference.
+5. In `DeclaredTypeDemo`, try replacing `(byte) 130` with `(byte) 127` and predict the output.
 
-**Ghi nhớ:** Với **primitive**, kiểu khai báo xác định miền giá trị và cách biểu diễn. Với **reference**, kiểu khai báo giới hạn đối tượng tương thích và những thành phần có thể truy cập qua biến; object thực tế có thể là subtype. `var` chỉ giúp suy luận kiểu cố định; `final` chỉ hạn chế gán lại biến. Mỗi phép gán đều phải qua quy tắc kiểu của Java.
+**Takeaway:** For **primitives**, the declared type determines the value range and representation. For **references**, the declared type limits compatible objects and accessible members through the variable; the actual object can be a subtype. `var` only helps infer a fixed type; `final` only restricts reassigning the variable. Every assignment must pass Java's type rules.

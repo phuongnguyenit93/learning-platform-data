@@ -1,35 +1,35 @@
-# Khai báo biến không đồng nghĩa với tạo đối tượng — Java 17+
+# Declaring a Variable Does Not Mean Creating an Object — Java 17+
 
-Trong Java, **khai báo một biến tham chiếu** không đồng nghĩa với **tạo một đối tượng**. Đây là hai hành động độc lập: biến giữ một **giá trị tham chiếu** (hoặc `null`), còn đối tượng là thực thể được tạo ra khi một thao tác thực sự khởi tạo đối tượng.
+In Java, **declaring a reference variable** does not mean **creating an object**. These are two independent actions: a variable holds a **reference value** (or `null`), whereas an object is an entity created when an operation actually instantiates an object.
 
 ~~~java
-Book book;                    // Chi khai bao bien cuc bo, chua tao Book.
-book = null;                 // Bien khong tham chieu den doi tuong nao.
-book = new Book("Java");     // Tao Book, gan tham chieu cho book.
-Book alias = book;           // Sao chep tham chieu, KHONG tao Book moi.
+Book book;                    // Only declares a local variable, no Book created yet.
+book = null;                 // The variable references no object.
+book = new Book("Java");     // Creates a Book, assigns its reference to book.
+Book alias = book;           // Copies the reference, does NOT create a new Book.
 ~~~
 
-Không thể đọc `book` ngay sau dòng `Book book;` nếu đó là biến cục bộ: nó chưa được gán chắc chắn (*definite assignment*). Ngược lại, field kiểu tham chiếu của lớp/đối tượng chưa được khởi tạo tường minh sẽ có giá trị mặc định `null`.
+You cannot read `book` immediately after the line `Book book;` if it is a local variable: it has not undergone *definite assignment*. By contrast, a class/object reference-type field that is not explicitly initialized will have the default value `null`.
 
-## 1. Phân biệt các thao tác
+## 1. Distinguishing the Operations
 
-| Đoạn mã | Điều gì xảy ra? | Có tạo `Book` mới? |
+| Code snippet | What happens? | Creates a new `Book`? |
 | --- | --- | --- |
-| `Book a;` | Khai báo biến cục bộ chưa gán | **Không** |
-| `Book a = null;` | Khai báo và gán tham chiếu null | **Không** |
-| `Book a = new Book("A");` | Gọi constructor của một Book mới | **Có** |
-| `Book b = a;` | Sao chép tham chiếu, tạo alias | **Không** |
-| `a = new Book("B");` | Gán lại biến `a` để trỏ tới Book mới | **Có** |
-| `Book[] books = new Book[2];` | Tạo **một đối tượng mảng**, hai phần tử ban đầu là null | **Không tạo Book** |
-| `books[0] = a;` | Đặt tham chiếu sẵn có vào phần tử mảng | **Không** |
+| `Book a;` | Declares an unassigned local variable | **No** |
+| `Book a = null;` | Declares and assigns a null reference | **No** |
+| `Book a = new Book("A");` | Calls the constructor of a new Book | **Yes** |
+| `Book b = a;` | Copies the reference, creating an alias | **No** |
+| `a = new Book("B");` | Reassigns variable `a` to point to a new Book | **Yes** |
+| `Book[] books = new Book[2];` | Creates **an array object**, with both elements initially null | **Does not create a Book** |
+| `books[0] = a;` | Places an existing reference into an array element | **No** |
 
-**Cần phân biệt loại đối tượng được tạo:** `new Book[2]` vẫn tạo **đối tượng mảng `Book[]`**, nhưng không gọi constructor `Book` hai lần. Mỗi phần tử của mảng tham chiếu ban đầu bằng `null`.
+**Distinguish the kind of object created:** `new Book[2]` still creates a **`Book[]` array object**, but it does not call the `Book` constructor twice. Each element of the reference array is initially equal to `null`.
 
-Một đối tượng cũng có thể được truy cập qua giá trị mà một phương thức trả về, một field, hoặc một biến khác. Đừng hiểu nhầm rằng **mỗi tên biến** đều phải đi với một **đối tượng riêng**.
+An object can also be accessed through the return value of a method, a field, or another variable. Do not mistakenly think that **every variable name** must correspond to its **own separate object**.
 
-## 2. Chương trình Java 17+ runnable
+## 2. Runnable Java 17+ Program
 
-Tạo file UTF-8 tên **`DeclarationAndCreationDemo.java`**:
+Create a UTF-8 file named **`DeclarationAndCreationDemo.java`**:
 
 ~~~java
 public class DeclarationAndCreationDemo {
@@ -44,10 +44,10 @@ public class DeclarationAndCreationDemo {
     }
 
     static class Shelf {
-        Book current; // Reference field mac dinh null.
+        Book current; // Reference field defaults to null.
     }
 
-    static Book shared; // Static reference field mac dinh null.
+    static Book shared; // Static reference field defaults to null.
 
     public static void main(String[] args) {
         Book pending;
@@ -55,14 +55,14 @@ public class DeclarationAndCreationDemo {
         System.out.println("pendingNull=" + (pending == null));
         System.out.println("constructedStart=" + Book.constructed);
 
-        Shelf shelf = new Shelf(); // Tao Shelf, KHONG tao Book.
+        Shelf shelf = new Shelf(); // Creates a Shelf, does NOT create a Book.
         System.out.println("shelfBookNull=" + (shelf.current == null));
         System.out.println("sharedNull=" + (shared == null));
 
         Book first = new Book("Java");
         System.out.println("afterFirst=" + Book.constructed);
 
-        Book alias = first; // Khong new, khong goi constructor.
+        Book alias = first; // No new, does not call constructor.
         System.out.println("afterAlias=" + Book.constructed);
         System.out.println("aliasSame=" + (alias == first));
 
@@ -96,7 +96,7 @@ public class DeclarationAndCreationDemo {
 }
 ~~~
 
-Tại thư mục chứa file, mở PowerShell hoặc Bash và dùng **JDK 17+**:
+In the directory containing the file, open PowerShell or Bash and use **JDK 17+**:
 
 ~~~bash
 java -version
@@ -105,7 +105,7 @@ javac -encoding UTF-8 DeclarationAndCreationDemo.java
 java DeclarationAndCreationDemo
 ~~~
 
-**Expected output** của lệnh `java DeclarationAndCreationDemo` (không tính thông tin phiên bản JDK):
+**Expected output** of the command `java DeclarationAndCreationDemo` (excluding JDK version information):
 
 ~~~text
 pendingNull=true
@@ -129,67 +129,67 @@ constructedEnd=2
 nullAccess=NullPointerException
 ~~~
 
-### Giải thích kết quả
+### Explaining the Output
 
-- `Book pending;` không tạo `Book`. Sau khi gán `pending = null`, biến đã được khởi tạo hợp lệ, nhưng vẫn không tham chiếu đối tượng.
-- `new Shelf()` **tạo một Shelf** chứ không tạo sẵn Book. Field `current` trong Shelf và field `shared` mặc định là `null`.
-- Mỗi biểu thức `new Book("Java")` gọi constructor `Book` một lần. Trong chương trình, `Book.constructed` tăng từ 0 lên 1 rồi 2.
-- `Book alias = first;` **không gọi constructor**. Hai biến cùng tham chiếu một Book; `alias == first` là `true`.
-- `first` và `second` là hai Book riêng biệt dù `title.equals` cho `true`. `==` với hai tham chiếu ở đây so sánh **đồng nhất đối tượng**, không so sánh nội dung.
-- `new Book[2]` chỉ tạo **một mảng**. Hai ô của mảng nhận giá trị null, không tự nhận Book. Vì vậy `afterArray=2`.
-- Gán `slots[0] = first`, `shelf.current = first` và `shared = second` chỉ lưu **các tham chiếu sẵn có**.
-- `first = second` không xóa Book cũ. `alias` và `slots[0]` vẫn tham chiếu Book cũ; không có constructor được gọi thêm.
-- `pending.title` cố truy cập field qua `null`, gây `NullPointerException` và được chương trình bắt để in thông báo xác định.
+- `Book pending;` does not create a `Book`. After assigning `pending = null`, the variable is validly initialized, yet it still does not reference an object.
+- `new Shelf()` **creates a Shelf** rather than pre-creating a Book. The `current` field inside Shelf and the `shared` field default to `null`.
+- Each `new Book("Java")` expression invokes the `Book` constructor once. In the program, `Book.constructed` increases from 0 to 1 and then 2.
+- `Book alias = first;` **does not call the constructor**. Both variables reference the same Book; `alias == first` is `true`.
+- `first` and `second` are two distinct Books even though `title.equals` yields `true`. Here, `==` on two references compares **object identity**, not content.
+- `new Book[2]` only creates **one array**. The two array slots receive null, without automatically receiving Books. Thus `afterArray=2`.
+- Assigning `slots[0] = first`, `shelf.current = first`, and `shared = second` only stores **existing references**.
+- `first = second` does not delete the old Book. `alias` and `slots[0]` still reference the old Book; no additional constructor is called.
+- `pending.title` attempts to access a field through `null`, causing a `NullPointerException` which the program catches to print a deterministic message.
 
-**Lưu ý:** `constructed` chỉ là bộ đếm *lần gọi constructor Book trong ví dụ một luồng*. Nó không phải bộ đếm tất cả object trong JVM: còn có đối tượng Shelf, đối tượng mảng và các đối tượng khác.
+**Note:** `constructed` is merely a counter of *`Book` constructor invocations in this single-threaded example*. It is not a counter of all objects in the JVM: there are also the Shelf object, the array object, and other objects.
 
-## 3. Biến chưa gán, biến `null` và đối tượng thật
+## 3. Unassigned Variables, `null` Variables, and Real Objects
 
 ~~~java
-Book local;             // Khai bao local; CHUA duoc gan.
-// System.out.println(local); // Loi bien dich: chua definite assignment.
+Book local;             // Local declaration; NOT yet assigned.
+// System.out.println(local); // Compile error: no definite assignment yet.
 
-local = null;           // Da gan, nhung khong co doi tuong.
+local = null;           // Assigned, but no object.
 System.out.println(local == null); // true.
 
-local = new Book("A");  // Bay gio co doi tuong Book.
+local = new Book("A");  // Now there is a Book object.
 System.out.println(local.title);   // A.
 ~~~
 
-Có ba trạng thái cần tách biệt:
+There are three states to keep separate:
 
-1. **Biến cục bộ chưa được gán chắc chắn:** compiler **không cho phép đọc** giá trị.
-2. **Biến đã gán `null`:** đọc chính biến hợp lệ, nhưng gọi phương thức hoặc đọc field qua nó sẽ ném `NullPointerException`.
-3. **Biến trỏ tới một đối tượng:** có thể truy cập thành viên của đối tượng đó theo quyền truy cập và trạng thái thực tế.
+1. **Local variable without definite assignment:** the compiler **does not allow reading** its value.
+2. **Variable assigned `null`:** reading the variable itself is valid, but calling a method or reading a field through it throws `NullPointerException`.
+3. **Variable pointing to an object:** members of that object can be accessed according to access rights and actual state.
 
-Field của lớp/đối tượng khác local variable: `Book field;` ở cấp lớp nhận giá trị mặc định `null`. Nhưng **null không phải là một đối tượng Book rỗng**. `new Book("")` tạo Book thật, còn `Book b = null;` thì không.
-
-
-## 4. Biến có thể lấy tham chiếu từ nhiều nguồn
-
-Sau `Book alias = first;`, cả hai biến giữ tham chiếu tới cùng một `Book`; gán `slots[0] = first` cũng không tạo `Book` mới. `Book shared = getBook();` nhận giá trị trả về của phương thức, còn field và tham số cũng có thể giữ tham chiếu đã có. Vì vậy **đếm biến hoặc phép gán không cho biết số đối tượng được tạo**; trong ví dụ chạy, bộ đếm constructor mới giúp theo dõi riêng các instance `Book`.
+Class/object fields differ from local variables: `Book field;` at class level receives the default value `null`. However, **null is not an empty Book object**. `new Book("")` creates a real Book, whereas `Book b = null;` does not.
 
 
-## 5. `final` có tạo hoặc bảo toàn đối tượng không?
+## 4. Variables Can Obtain References from Multiple Sources
 
-`final Book b;` chỉ khai báo một biến chưa được gán ở phạm vi cục bộ. Nó chưa tạo `Book` và vẫn phải được gán chắc chắn trước khi đọc; sau lần gán hợp lệ, biến `final` không thể được gán lại. Bỏ tham chiếu bằng cách gán `null` ở biến khác cũng không hủy đối tượng ngay: một alias vẫn có thể dùng nó. Các điều này đều độc lập với việc constructor đã được gọi bao nhiêu lần.
+After `Book alias = first;`, both variables hold a reference to the same `Book`; assigning `slots[0] = first` does not create a new `Book` either. `Book shared = getBook();` receives a method's return value, and fields and parameters can also hold existing references. Therefore, **counting variables or assignments does not tell you how many objects were created**; in the runnable example, the constructor counter is what tracks `Book` instances specifically.
 
 
-## 6. Tự phân biệt các trường hợp dễ nhầm
+## 5. Does `final` Create or Preserve Objects?
 
-| Mã | Có tạo `Book` mới? | Vì sao? |
+`final Book b;` only declares an unassigned variable in local scope. It has not created a `Book` yet and still requires definite assignment before being read; after a valid assignment, the `final` variable cannot be reassigned. Dropping a reference by assigning `null` in another variable does not immediately destroy the object either: an alias can still use it. All of these are independent of how many times the constructor was invoked.
+
+
+## 6. Distinguishing Easily Confused Cases
+
+| Code | Creates a new `Book`? | Why? |
 | --- | --- | --- |
-| `Book a;` hoặc `Book a = null;` | Không | Chỉ khai báo/gán biến |
-| `Book b = a;` | Không | Sao chép tham chiếu |
-| `new Book[2]` | Không | Tạo một **mảng** chứ không tạo `Book` |
-| `Book b = new Book("X");` | Có | Một lần khởi tạo `Book` |
-| `b = new Book("Y");` | Có | Khởi tạo thêm `Book` rồi gán lại `b` |
+| `Book a;` or `Book a = null;` | No | Only declares/assigns a variable |
+| `Book b = a;` | No | Copies a reference |
+| `new Book[2]` | No | Creates an **array**, not a `Book` |
+| `Book b = new Book("X");` | Yes | One `Book` instantiation |
+| `b = new Book("Y");` | Yes | Instantiates another `Book` and reassigns `b` |
 
-Đối tượng còn có thể đến từ lời gọi phương thức hoặc literal; không phải mọi tham chiếu đều được tạo tại dòng khai báo biến.
+Objects can also come from method calls or literals; not every reference is created on the variable declaration line.
 
-## 7. Bài tập tự kiểm tra
+## 7. Self-Check Exercises
 
-**Bài 1.** Bao nhiêu đối tượng `Book` được tạo?
+**Exercise 1.** How many `Book` objects are created?
 
 ~~~java
 Book a = new Book("X");
@@ -197,32 +197,32 @@ Book b = a;
 Book c = null;
 ~~~
 
-*Đáp án:* **Một Book**. `b` chỉ là alias, `c` là null.
+*Answer:* **One Book**. `b` is just an alias, and `c` is null.
 
-**Bài 2.** `Book[] a = new Book[3];` tạo bao nhiêu mảng và bao nhiêu Book?
+**Exercise 2.** `Book[] a = new Book[3];` creates how many arrays and how many Books?
 
-*Đáp án:* Một **mảng Book[]**, **không có Book** mới; các phần tử đều null.
+*Answer:* One **`Book[]` array**, **zero Books**; all elements are null.
 
-**Bài 3.** Tại sao `Book x; System.out.println(x);` ở trong phương thức không biên dịch?
+**Exercise 3.** Why does `Book x; System.out.println(x);` inside a method fail to compile?
 
-*Đáp án:* `x` là biến cục bộ chưa được gán chắc chắn (*definite assignment*).
+*Answer:* `x` is a local variable that has not undergone *definite assignment*.
 
-**Bài 4.** `Book x = new Book("One"); Book y = x; x = new Book("Two");`. `y` trỏ đối tượng nào?
+**Exercise 4.** `Book x = new Book("One"); Book y = x; x = new Book("Two");`. Which object does `y` point to?
 
-*Đáp án:* Vẫn là Book “One”, còn `x` trỏ Book “Two”.
+*Answer:* Still Book "One", while `x` points to Book "Two".
 
-**Bài 5.** `Book x = null;` có tương đương `Book x = new Book("");` không?
+**Exercise 5.** Is `Book x = null;` equivalent to `Book x = new Book("");`?
 
-*Đáp án:* Không. Câu đầu không tạo object; câu sau tạo một Book với `title` là chuỗi rỗng.
+*Answer:* No. The first statement creates no object; the second creates a Book whose `title` is an empty string.
 
 ## Checklist
 
-- [ ] Phân biệt **khai báo biến** với **tạo đối tượng**.
-- [ ] Phân biệt local variable chưa gán với reference có giá trị null.
-- [ ] Biết phép gán tham chiếu tạo **alias**, không nhân bản object.
-- [ ] Biết mảng tham chiếu là **đối tượng mảng**, các phần tử ban đầu null.
-- [ ] Biết gán lại biến không thay đổi các tham chiếu khác đến object cũ.
-- [ ] Không dùng `==` để suy ra hai đối tượng có cùng nội dung.
-- [ ] Không nghĩ `final` hay gán `null` sẽ tự tạo/xóa object.
+- [ ] Distinguish **variable declaration** from **object creation**.
+- [ ] Distinguish an unassigned local variable from a reference with the value null.
+- [ ] Know that reference assignment creates an **alias**, without cloning the object.
+- [ ] Know that a reference array is an **array object**, with elements initially null.
+- [ ] Know that reassigning a variable does not change other references to the old object.
+- [ ] Do not use `==` to infer that two objects have the same content.
+- [ ] Do not assume `final` or assigning `null` automatically creates/deletes objects.
 
-**Ghi nhớ:** Một biến là **nơi giữ giá trị tham chiếu**; một đối tượng là **thực thể được tạo và có trạng thái**. Đếm số lần tạo đối tượng phù hợp, **không đếm tên biến**, khi phân tích chương trình Java.
+**Remember:** A variable is **a place that holds a reference value**; an object is **an entity that is created and has state**. Count actual object creations appropriately, **not variable names**, when analyzing a Java program.

@@ -1,42 +1,42 @@
-# Matcher.matches(), find() và lookingAt() trong Java
+# Matcher.matches(), find(), and lookingAt() in Java
 
-## 1. Mục tiêu và bối cảnh
+## 1. Objective and Context
 
-Khi xử lý **biểu thức chính quy (regular expression, regex)**, Java tách hai vai trò:
+When working with **regular expressions (regex)**, Java separates two roles:
 
-- **Pattern**: biểu thức đã được biên dịch; có thể tái sử dụng.
-- **Matcher**: đối tượng giữ chuỗi đầu vào, vùng tìm kiếm, vị trí và kết quả khớp hiện tại. Tạo bằng **pattern.matcher(input)**.
+- **Pattern**: a compiled expression; reusable.
+- **Matcher**: an object holding the input string, search region, current position, and match result. Created via **pattern.matcher(input)**.
 
-Ba phương thức **Matcher.matches()**, **Matcher.lookingAt()** và **Matcher.find()** đều trả về **boolean**, nhưng câu hỏi chúng trả lời khác nhau:
+The three methods **Matcher.matches()**, **Matcher.lookingAt()**, and **Matcher.find()** all return **boolean**, but the questions they answer are different:
 
-- **matches()**: *Toàn bộ vùng đang xét có khớp regex không?*
-- **lookingAt()**: *Regex có khớp ngay từ đầu vùng đang xét không?*
-- **find()**: *Có đoạn con nào khớp regex kể từ vị trí tìm kiếm hiện tại không?*
+- **matches()**: *Does the entire region under consideration match the regex?*
+- **lookingAt()**: *Does the regex match right at the beginning of the region under consideration?*
+- **find()**: *Is there any subsequence matching the regex starting from the current search position?*
 
-“Vùng đang xét” (region) mặc định là toàn bộ chuỗi đầu vào. Matcher có thể giới hạn vùng bằng **region(start, end)**; vì thế mô tả chính xác là “toàn bộ vùng” thay vì luôn luôn “toàn bộ String”.
+The "region under consideration" defaults to the entire input string. A Matcher can restrict the region with **region(start, end)**; hence the accurate description is "the entire region" rather than always "the entire String".
 
-## 2. So sánh nhanh
+## 2. Quick Comparison
 
-| Phương thức | Bắt buộc bắt đầu tại đầu region? | Bắt buộc kết thúc tại cuối region? | Tìm nhiều lần liên tiếp? | Mục đích điển hình |
+| Method | Must start at the beginning of the region? | Must end at the end of the region? | Can search multiple times sequentially? | Typical Purpose |
 | --- | --- | --- | --- | --- |
-| **matches()** | Có | Có | Không; mỗi lần kiểm tra khớp toàn vùng | Kiểm tra một giá trị có hợp lệ theo mẫu |
-| **lookingAt()** | Có | Không | Không; kiểm tra tiền tố của region | Nhận diện tiền tố, token ở đầu |
-| **find()** | Không | Không | Có; gọi liên tiếp để duyệt các kết quả | Trích xuất các phần khớp trong văn bản |
+| **matches()** | Yes | Yes | No; each call checks full-region match | Validate whether a value conforms to a pattern |
+| **lookingAt()** | Yes | No | No; checks the prefix of the region | Identify a prefix or token at the start |
+| **find()** | No | No | Yes; call repeatedly to iterate through matches | Extract matching parts from text |
 
-Ví dụ với regex **cat**:
+Example with the regex **cat**:
 
-| Chuỗi đầu vào | matches() | lookingAt() | find() |
+| Input String | matches() | lookingAt() | find() |
 | --- | --- | --- | --- |
 | cat | true | true | true |
 | cat nap | false | true | true |
 | a cat | false | false | true |
 | dog | false | false | false |
 
-**Lưu ý:** cả ba chỉ biết regex, không biết ý nghĩa nghiệp vụ. Regex **cat** có thể tìm thấy trong **scatter** nếu không ràng buộc ranh giới từ; muốn khớp cả từ thì dùng **\bcat\b** (viết trong Java là **"\\bcat\\b"**).
+**Note:** all three only know regex, not business semantics. The regex **cat** can be found inside **scatter** if word boundaries are not enforced; to match a whole word, use **\bcat\b** (written in Java as **"\\bcat\\b"**).
 
-## 3. Ví dụ Java 17+ chạy độc lập
+## 3. Standalone Runnable Java 17+ Example
 
-Tạo tệp **MatcherOperationsDemo.java**:
+Create the file **MatcherOperationsDemo.java**:
 
 ~~~java
 import java.util.regex.Matcher;
@@ -67,14 +67,14 @@ public class MatcherOperationsDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac MatcherOperationsDemo.java
 java MatcherOperationsDemo
 ~~~
 
-Kết quả chuẩn:
+Standard output:
 
 ~~~text
 matches: false
@@ -86,16 +86,16 @@ find after loop: false
 find after reset: true
 ~~~
 
-Giải thích:
+Explanation:
 
-1. **matches() = false** vì **ID=42** chỉ khớp đoạn đầu; phần **; ID=7** còn lại khiến toàn bộ chuỗi không khớp.
-2. **lookingAt() = true** vì chuỗi mở đầu bằng **ID=42**; phương thức không yêu cầu phần sau cũng khớp.
-3. **find()** tìm lần thứ nhất ở đoạn **[0, 5)** và lần thứ hai ở **[7, 11)**. Chỉ số **end()** là vị trí *ngay sau* ký tự cuối cùng của phần khớp.
-4. Hết các đoạn khớp, **find()** trả **false**. **reset()** đưa Matcher về trạng thái ban đầu nên tìm lại được từ đầu.
+1. **matches() = false** because **ID=42** only matches the beginning; the remaining **; ID=7** causes the full string not to match.
+2. **lookingAt() = true** because the string begins with **ID=42**; the method does not require the trailing part to match as well.
+3. **find()** finds the first match at **[0, 5)** and the second at **[7, 11)**. The **end()** index is the position *immediately after* the last character of the matched part.
+4. Once matches are exhausted, **find()** returns **false**. **reset()** restores the Matcher to its initial state so it can search from the beginning again.
 
-Ví dụ dùng **ba Matcher độc lập** để mỗi phép thử không bị ảnh hưởng bởi vị trí hoặc kết quả của phép thử trước. Có thể tái sử dụng **Pattern**, nhưng một Matcher có trạng thái thay đổi sau mỗi thao tác.
+The example uses **three independent Matchers** so each check is not affected by the position or result of the previous check. A **Pattern** can be reused, whereas a Matcher has state that changes after each operation.
 
-## 4. matches(): kiểm tra khớp toàn bộ region
+## 4. matches(): Checking a Full-Region Match
 
 ~~~java
 Pattern digits = Pattern.compile("\\d+");
@@ -106,14 +106,14 @@ System.out.println(digits.matcher("12345a").matches()); // false
 System.out.println(digits.matcher("").matches());       // false
 ~~~
 
-**matches()** cố gắng làm cho regex bao phủ toàn bộ region. Vì vậy:
+**matches()** attempts to make the regex cover the entire region. Therefore:
 
-- Với region là toàn chuỗi, regex **\\d+** chấp nhận chuỗi chỉ gồm ít nhất một chữ số ASCII thông thường theo cách dùng regex này.
-- Regex **\\d+** không cần thêm **^** và **$** để làm cho **matches()** kiểm tra toàn region.
-- Nếu chỉ muốn tìm một dãy số ở đâu đó bên trong văn bản, dùng **find()** thay vì nới regex thành **.*\\d+.*** một cách máy móc.
-- Đừng nhầm **Matcher.matches()** với việc “kiểm tra có một đoạn con khớp”. Nó không hoạt động như phép tìm kiếm một phần.
+- With the region being the full string, the regex **\\d+** accepts strings consisting only of at least one standard ASCII digit under this regex usage.
+- The regex **\\d+** does not need **^** and **$** added for **matches()** to check the whole region.
+- If you only want to find a sequence of digits somewhere inside text, use **find()** instead of mechanically loosening the regex to **.*\\d+.*** .
+- Do not confuse **Matcher.matches()** with "checking whether a matching substring exists". It does not act like a partial search.
 
-Hai cách viết tiện ích cũng mang ý nghĩa khớp toàn chuỗi:
+Two utility forms also have full-string matching semantics:
 
 ~~~java
 boolean a = "123".matches("\\d+");
@@ -123,11 +123,11 @@ System.out.println(a); // true
 System.out.println(b); // true
 ~~~
 
-**String.matches(regex)** và **Pattern.matches(regex, input)** phù hợp cho phép kiểm tra đơn lẻ. Khi chạy cùng regex nhiều lần, biên dịch **Pattern** một lần rồi tạo Matcher mới cho từng input để tránh biên dịch lặp không cần thiết.
+**String.matches(regex)** and **Pattern.matches(regex, input)** are suitable for single checks. When running the same regex multiple times, compile **Pattern** once and create a new Matcher for each input to avoid unnecessary recompilation.
 
-## 5. lookingAt(): nhận diện một tiền tố
+## 5. lookingAt(): Recognizing a Prefix
 
-**lookingAt()** bắt buộc regex bắt đầu tại đầu region, nhưng không yêu cầu đi đến cuối region:
+**lookingAt()** requires the regex to start at the beginning of the region, without requiring it to reach the end of the region:
 
 ~~~java
 Pattern command = Pattern.compile("GET|POST");
@@ -137,15 +137,15 @@ System.out.println(command.matcher("POST /users").lookingAt()); // true
 System.out.println(command.matcher("X GET /users").lookingAt());// false
 ~~~
 
-Giá trị trả về cho biết **một tiền tố** khớp; nó không kiểm tra token có kết thúc đúng ranh giới hay không. Chẳng hạn regex **GET|POST** cũng khớp tiền tố trong **GETAWAY**. Nếu cần phân biệt lệnh **GET** đứng độc lập, phải bổ sung ranh giới phù hợp, ví dụ **(?:GET|POST)\b** cho token dạng từ hoặc thiết kế mẫu bao gồm dấu phân cách.
+The return value indicates that **a prefix** matched; it does not check whether the token ends at an appropriate boundary. For instance, the regex **GET|POST** also matches the prefix in **GETAWAY**. If you need to distinguish a standalone **GET** command, you must add an appropriate boundary, such as **(?:GET|POST)\b** for word-like tokens or a pattern that includes the delimiter.
 
-Khi thành công, **group()**, **start()**, **end()** cho biết tiền tố được khớp, để chương trình có thể tiếp tục xử lý phần văn bản phía sau.
+Upon success, **group()**, **start()**, and **end()** identify the matched prefix so the program can continue processing the text that follows.
 
-**lookingAt()** luôn thử từ đầu region, kể cả khi Matcher từng có phép tìm kiếm khác. Tuy nhiên, để so sánh ba phương thức công bằng và dễ hiểu, hãy dùng Matcher riêng hoặc gọi **reset()** giữa các kịch bản độc lập.
+**lookingAt()** always tries from the start of the region, even if the Matcher previously ran another search. However, to compare the three methods fairly and clearly, use separate Matchers or call **reset()** between independent scenarios.
 
-## 6. find(): quét và trích xuất nhiều đoạn khớp
+## 6. find(): Scanning and Extracting Multiple Matches
 
-**find()** tìm một đoạn con khớp từ vị trí tìm kiếm hiện tại; khi thành công, lần gọi **find()** tiếp theo tiếp tục sau phần vừa khớp. Trường hợp phổ biến:
+**find()** looks for a matching subsequence from the current search position; on success, the next **find()** call continues after the just-matched portion. Common case:
 
 ~~~java
 Pattern number = Pattern.compile("\\d+");
@@ -164,43 +164,43 @@ Output:
 6
 ~~~
 
-**find()** thường dùng cho log, văn bản tự do, trích ID, tìm token hoặc các lần xuất hiện của một mẫu. Mỗi lần **find()** thành công, thông tin kết quả mới thay thế kết quả khớp trước đó.
+**find()** is commonly used for logs, free text, ID extraction, token searching, or finding occurrences of a pattern. Each time **find()** succeeds, the new match information replaces the previous match result.
 
-### 6.1. find(int start) và reset()
+### 6.1. find(int start) and reset()
 
-Biến thể **find(int start)** bắt đầu tìm từ một chỉ số được chỉ định trong **chuỗi đầu vào** và **reset Matcher trước khi tìm**:
+The **find(int start)** overload starts searching from a specified index in the **input string** and **resets the Matcher before searching**:
 
 ~~~java
 Matcher m = Pattern.compile("aba").matcher("ababa");
 
 System.out.println(m.find());    // true: [0,3)
 System.out.println(m.start());   // 0
-System.out.println(m.find());    // false (không quét chồng lên đoạn đã khớp)
+System.out.println(m.find());    // false (does not scan overlapping the already matched segment)
 
 System.out.println(m.find(2));   // true: [2,5)
 System.out.println(m.start());   // 2
 ~~~
 
-Phần khớp **aba** thứ hai bắt đầu ở chỉ số 2, nhưng chồng lên phần đầu. **find()** tuần tự không trả về các kết quả chồng lấn theo mặc định. **find(2)** là một cách chủ động bắt đầu một phép tìm kiếm mới từ chỉ số 2; đây không phải hành vi tự động tìm mọi vị trí chồng lấn.
+The second **aba** match starts at index 2, overlapping the first one. Sequential **find()** does not return overlapping matches by default. **find(2)** is an explicit way to start a new search from index 2; it is not an automatic behavior for finding all overlapping positions.
 
-**find(int start)** gọi logic reset nên không nên giả định nó giữ nguyên region tùy chỉnh hay trạng thái tìm kiếm trước đó. Nếu cần region cụ thể, thiết lập lại region sau khi reset hoặc thiết kế Matcher mới.
+**find(int start)** invokes reset logic, so you should not assume it preserves a custom region or prior search state. If a specific region is needed, reconfigure the region after resetting or create a new Matcher.
 
-### 6.2. Mẫu khớp chuỗi rỗng
+### 6.2. Patterns That Match the Empty String
 
-Một số regex có thể khớp **độ dài 0**, ví dụ **a*** hoặc ranh giới từ **\b**. Khi ấy **start() == end()**. Matcher có cơ chế tiến vị trí tìm kiếm để vòng **while (find())** không lặp mãi tại một vị trí rỗng, nhưng kết quả có thể gồm các lần khớp rỗng mà ứng dụng không muốn.
+Some regexes can match **zero length**, such as **a*** or the word boundary **\b**. In that case **start() == end()**. Matcher has a mechanism to advance the search position so a **while (find())** loop does not loop forever at an empty position, but the results may include empty matches that the application does not want.
 
-Nếu cần trích nội dung thực sự có ký tự, hãy xác định regex có cho phép độ dài 0 hay không; ví dụ **\\d+** cần ít nhất một chữ số, còn **\\d*** cho phép cả chuỗi rỗng.
+If you need to extract content that actually has characters, verify whether the regex allows zero length; for example **\\d+** requires at least one digit, whereas **\\d*** allows the empty string as well.
 
-## 7. Kết quả khớp, capturing group và trạng thái Matcher
+## 7. Match Results, Capturing Groups, and Matcher State
 
-Sau **một phép khớp thành công** của bất kỳ phương thức nào:
+After **a successful match** of any of the methods:
 
-- **group()** hoặc **group(0)**: toàn bộ đoạn khớp.
-- **group(1)**, **group(2)**, ...: giá trị của các *capturing group* đánh số từ 1 theo dấu ngoặc bắt nhóm trong regex.
-- **start()**, **end()**: chỉ số đầu và chỉ số sau cuối của toàn bộ đoạn khớp; có biến thể **start(group)**, **end(group)**.
-- Các chỉ số dùng offset theo **đơn vị UTF-16** của Java String, không nhất thiết trùng số ký tự người đọc nhìn thấy khi có emoji hoặc ký tự bổ sung Unicode.
+- **group()** or **group(0)**: the entire matched substring.
+- **group(1)**, **group(2)**, ...: values of *capturing groups* numbered starting from 1 according to the capturing parentheses in the regex.
+- **start()**, **end()**: the start index and exclusive end index of the entire match; there are overloads **start(group)** and **end(group)**.
+- Indices use offsets in **UTF-16 units** of Java String, which do not necessarily equal the number of visible characters when emojis or Unicode supplementary characters are present.
 
-Ví dụ nhóm bắt:
+Capturing group example:
 
 ~~~java
 Pattern p = Pattern.compile("([A-Z]+)-(\\d+)");
@@ -215,9 +215,9 @@ if (m.find()) {
 }
 ~~~
 
-Nếu nhóm là **tùy chọn và không tham gia phép khớp**, **group(n)** trả **null**, còn **start(n)** và **end(n)** trả **-1**. Kết quả khác với nhóm có tham gia nhưng khớp chuỗi rỗng, khi đó **group(n)** là **""**.
+If a group is **optional and did not participate in the match**, **group(n)** returns **null**, while **start(n)** and **end(n)** return **-1**. This differs from a group that participated and matched the empty string, in which case **group(n)** is **""**.
 
-**Rất quan trọng:** không được gọi **group()**, **start()**, **end()** để lấy kết quả khi chưa có phép khớp thành công hoặc ngay sau một phép khớp thất bại; Java sẽ ném **IllegalStateException**. Hãy kiểm tra boolean trước:
+**Very important:** do not call **group()**, **start()**, or **end()** to retrieve results before any successful match or right after a failed match; Java will throw **IllegalStateException**. Check the boolean first:
 
 ~~~java
 Matcher m = Pattern.compile("\\d+").matcher("abc");
@@ -225,17 +225,17 @@ Matcher m = Pattern.compile("\\d+").matcher("abc");
 if (m.find()) {
     System.out.println(m.group());
 } else {
-    System.out.println("Không tìm thấy số");
+    System.out.println("No number found");
 }
 ~~~
 
-Một nhóm vượt quá số nhóm bắt hợp lệ cũng gây lỗi chỉ số nhóm. Ngoài ra, dùng **(?:...)** khi chỉ cần nhóm cú pháp mà không cần lấy dữ liệu.
+A group index exceeding the valid number of capturing groups also causes a group index error. Additionally, use **(?:...)** when you only need syntactic grouping without capturing data.
 
-**Matcher không an toàn để chia sẻ đồng thời giữa nhiều thread** vì mang trạng thái mutable. **Pattern** có thể chia sẻ giữa các thread; mỗi luồng hoặc mỗi tác vụ nên tạo Matcher riêng.
+**Matcher is not safe to share concurrently across multiple threads** because it carries mutable state. **Pattern** can be shared across threads; each thread or task should create its own Matcher.
 
-## 8. region(), anchor và flag: những điểm dễ hiểu sai
+## 8. region(), Anchors, and Flags: Common Misconceptions
 
-### 8.1. region(start, end) thay đổi phạm vi kiểm tra
+### 8.1. region(start, end) Changes the Search Scope
 
 ~~~java
 Matcher m = Pattern.compile("\\d+")
@@ -247,17 +247,17 @@ System.out.println(m.start());   // 2
 System.out.println(m.end());     // 5
 ~~~
 
-Ở đây input gốc là **xx123yy**, nhưng region **[2,5)** chỉ chứa **123**, nên **matches()** đúng. **start()** và **end()** vẫn là offset trong input gốc.
+Here the original input is **xx123yy**, but the region **[2,5)** contains only **123**, so **matches()** succeeds. **start()** and **end()** are still offsets in the original input.
 
-Region cũng chi phối điểm bắt đầu của **lookingAt()** và phạm vi tìm của **find()**. Mặc định Matcher dùng **anchoring bounds = true**, cho phép **^**, **$** nhận biên region là ranh giới; **transparent bounds = false** khiến một số phép nhìn trước/nhìn sau và biên từ không nhìn xuyên qua region. Khi regex dựa vào lookaround/anchor tại biên region, có thể cần hiểu **useAnchoringBounds(...)** và **useTransparentBounds(...)**.
+The region also governs the starting point of **lookingAt()** and the search range of **find()**. By default, Matcher uses **anchoring bounds = true**, allowing **^** and **$** to treat region boundaries as anchors; **transparent bounds = false** prevents certain lookaheads/lookbehinds and word boundaries from seeing past the region. When a regex relies on lookaround/anchors at region boundaries, you may need to understand **useAnchoringBounds(...)** and **useTransparentBounds(...)**.
 
-### 8.2. ^, $, MULTILINE và DOTALL không biến ba phương thức thành nhau
+### 8.2. ^, $, MULTILINE, and DOTALL Do Not Turn the Three Methods into One Another
 
-- **^** và **$** là anchor trong **regex**. **matches()** tự đòi hỏi phủ toàn region dù không ghi anchor.
-- **Pattern.MULTILINE** thay đổi ý nghĩa anchor **^** và **$** để chúng còn có thể gắn với ranh giới dòng; nó **không** biến **matches()** thành tìm một dòng tùy ý trong toàn input.
-- **Pattern.DOTALL** cho phép dấu **.** khớp cả ký tự xuống dòng; nếu regex **a.b** dùng với **matches()** trên **"a\nb"**, kết quả mặc định là **false** nhưng có thể là **true** khi bật DOTALL.
+- **^** and **$** are anchors in the **regex**. **matches()** inherently requires covering the entire region even without writing anchors.
+- **Pattern.MULTILINE** changes the meaning of anchors **^** and **$** so they can also attach to line boundaries; it **does not** turn **matches()** into searching for an arbitrary line within the whole input.
+- **Pattern.DOTALL** allows the dot **.** to match newline characters as well; if the regex **a.b** is used with **matches()** on **"a\nb"**, the default result is **false**, whereas it can be **true** when DOTALL is enabled.
 
-Ví dụ tách rõ regex, mode và phương thức:
+Example separating regex, mode, and method:
 
 ~~~java
 String lines = "one\ntwo";
@@ -267,41 +267,41 @@ System.out.println(p.matcher(lines).find());    // true
 System.out.println(p.matcher(lines).matches()); // false
 ~~~
 
-**find()** tìm được dòng thứ hai nhờ MULTILINE cho **^two$**. **matches()** vẫn đòi hỏi toàn region từ **one** đến **two** phải khớp.
+**find()** finds the second line thanks to MULTILINE for **^two$**. **matches()** still requires the entire region from **one** to **two** to match.
 
-### 8.3. Dấu gạch chéo ngược trong regex Java
+### 8.3. Backslashes in Java Regexes
 
-Java String literal và cú pháp regex đều dùng dấu **\**. Để regex engine nhận **\d+**, mã Java phải ghi **"\\d+"**. Tương tự, regex ranh giới từ **\b** phải viết trong Java là **"\\b"**; viết **"\b"** sẽ tạo ký tự backspace ở tầng Java String và làm regex có nghĩa khác.
+Both Java String literals and regex syntax use the **\** character. For the regex engine to receive **\d+**, the Java code must write **"\\d+"**. Likewise, the word boundary regex **\b** must be written in Java as **"\\b"**; writing **"\b"** produces a backspace character at the Java String layer and gives the regex a different meaning.
 
-## 9. Chọn phương thức phù hợp theo bài toán
+## 9. Choosing the Right Method for the Task
 
-| Bài toán | Nên dùng | Lý do |
+| Task | Recommended | Reason |
 | --- | --- | --- |
-| Kiểm tra mã chỉ được gồm chữ số | **matches()** với regex **\\d+** | Không cho phép ký tự dư ở đầu/cuối |
-| Kiểm tra đầu câu lệnh có token hợp lệ | **lookingAt()** với regex và ranh giới token | Chỉ yêu cầu khớp từ đầu |
-| Lấy mọi số trong nội dung log | Vòng lặp **while (find())** | Quét từng đoạn con khớp |
-| Xem văn bản có chứa ít nhất một email theo mẫu | **find()** | Chỉ cần một đoạn con phù hợp |
-| Kiểm tra toàn bộ giá trị nhập theo một định dạng | **matches()** | Mọi ký tự trong region phải được regex bao phủ |
+| Validate that a code consists only of digits | **matches()** with regex **\\d+** | Does not allow extra leading/trailing characters |
+| Check whether the start of a statement has a valid token | **lookingAt()** with regex and token boundary | Only requires matching from the start |
+| Extract all numbers in log content | **while (find())** loop | Scans each matching subsequence |
+| Check whether text contains at least one email matching a pattern | **find()** | Only needs one matching subsequence |
+| Validate the entire input value against a format | **matches()** | Every character in the region must be covered by the regex |
 
-Đối với kiểm tra dữ liệu nghiệp vụ, regex mới chỉ xác minh **cú pháp**. Ví dụ ngày tháng khớp dạng **\\d{4}-\\d{2}-\\d{2}** vẫn có thể là ngày không tồn tại; cần thêm kiểm tra giá trị bằng API phù hợp.
+For business data validation, regex only verifies **syntax**. For example, a date matching **\\d{4}-\\d{2}-\\d{2}** can still be a nonexistent date; value validation with an appropriate API is still needed.
 
-## 10. Sai lầm thường gặp và cách tự kiểm tra
+## 10. Common Mistakes and Self-Checks
 
-1. **Dùng matches() rồi ngạc nhiên khi false.** Xem có ký tự thừa hoặc xuống dòng không; nếu muốn tìm đoạn con hãy thử **find()**, nếu muốn tiền tố hãy thử **lookingAt()**.
-2. **Dùng lookingAt() để xác thực trọn input.** Nó có thể trả true cho chuỗi có phần đuôi không hợp lệ. Dùng **matches()** nếu cần hợp lệ toàn bộ.
-3. **Chỉ gọi find() một lần dù cần tất cả kết quả.** Dùng vòng **while (matcher.find())**; mỗi lần đọc **group()** ngay trong lần lặp đó.
-4. **Đọc group() sau khi find() trả false.** Không còn kết quả khớp hợp lệ cho lần kiểm tra vừa thất bại; chỉ đọc thông tin match trong nhánh boolean true.
-5. **Tái sử dụng Matcher mà quên vị trí hiện tại.** Gọi **reset()** hoặc tạo Matcher mới trước một kịch bản độc lập; một **Pattern** có thể tái sử dụng.
-6. **Muốn tìm các kết quả chồng lấn nhưng dùng find() liên tục.** Kết quả tuần tự mặc định không chồng lấn; cần thiết kế tìm kiếm từ vị trí thích hợp hoặc dùng lookahead tùy bài toán.
-7. **Nhầm \d với chuỗi Java "\\d" hoặc quên escape.** Kiểm tra từng tầng Java string và regex; nếu tạo regex từ input người dùng, cân nhắc **Pattern.quote(...)** khi muốn hiểu input là văn bản thường.
-8. **Nghĩ ^ và $ luôn tương đương matches().** Anchor chịu ảnh hưởng bởi MULTILINE, region và các ranh giới; **matches()** có điều kiện phủ toàn region riêng.
+1. **Using matches() and being surprised when it returns false.** Check for extra characters or newlines; if you want to find a subsequence try **find()**, if you want a prefix try **lookingAt()**.
+2. **Using lookingAt() to validate the entire input.** It can return true for a string with an invalid suffix. Use **matches()** if the whole input must be valid.
+3. **Calling find() only once even though all matches are needed.** Use a **while (matcher.find())** loop; read **group()** inside each iteration.
+4. **Reading group() after find() returns false.** There is no longer a valid match result for the failed check; only read match info in the boolean true branch.
+5. **Reusing a Matcher while forgetting its current position.** Call **reset()** or create a new Matcher before an independent scenario; a **Pattern** can be reused.
+6. **Wanting overlapping matches but calling find() consecutively.** Sequential results do not overlap by default; design the search from an appropriate index or use lookahead depending on the problem.
+7. **Confusing \d with the Java string "\\d" or forgetting to escape.** Check both the Java string and regex layers; if building a regex from user input, consider **Pattern.quote(...)** when the input should be treated as plain text.
+8. **Thinking ^ and $ are always equivalent to matches().** Anchors are affected by MULTILINE, region, and bounds; **matches()** has its own full-region coverage condition.
 
-## 11. Ghi nhớ qua ba câu hỏi
+## 11. Remembering Through Three Questions
 
-Với một **Pattern** đã biên dịch và một **Matcher** trên input/region:
+Given a compiled **Pattern** and a **Matcher** on an input/region:
 
-- **“Cả vùng có hợp lệ theo mẫu không?” → matches().**
-- **“Vùng có bắt đầu bằng mẫu này không?” → lookingAt().**
-- **“Ở đâu trong vùng có một đoạn khớp, và có bao nhiêu đoạn?” → find().**
+- **"Is the entire region valid according to the pattern?" → matches().**
+- **"Does the region start with this pattern?" → lookingAt().**
+- **"Where in the region is there a match, and how many are there?" → find().**
 
-Khi phép khớp thành công, khai thác **group/start/end** ngay lúc đó; khi cần kiểm tra độc lập, bắt đầu bằng Matcher mới hoặc **reset()**. Sự khác nhau cốt lõi là **phạm vi phải bao phủ và vị trí bắt đầu**, không phải ba kiểu cú pháp regex khác nhau.
+When a match succeeds, extract **group/start/end** right then; when an independent check is needed, start with a new Matcher or **reset()**. The core difference is **the scope to cover and the starting position**, not three different regex syntaxes.

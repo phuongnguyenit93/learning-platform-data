@@ -1,26 +1,26 @@
-# Bảng tra cứu: Class, Member, Executable, Field, Method và Constructor (Java Reflection)
+# Reference Table: Class, Member, Executable, Field, Method, and Constructor (Java Reflection)
 
-## 1. Mục tiêu và cách đọc bảng
+## 1. Objective and How to Read the Table
 
-Java Reflection dùng các đối tượng metadata để mô tả kiểu và thành viên của chương trình lúc chạy. Sáu tên trong đề bài **không nằm trên cùng một mức của hệ phân cấp kiểu**:
+Java Reflection uses metadata objects to describe a program's types and members at runtime. The six names in the title **do not sit at the same level of the type hierarchy**:
 
-- `Class<T>`: mô tả **một kiểu Java** (class, interface, enum, annotation, record, mảng, kiểu nguyên thủy hoặc `void`).
-- `Member`: **interface** chung cho thành viên dạng field, method, constructor trong reflection.
-- `Executable`: **abstract class** chung cho phương thức và constructor; có chung API về tham số, exceptions, annotations.
-- `Field`: metadata của **trường dữ liệu**.
-- `Method`: metadata của **phương thức**.
-- `Constructor<T>`: metadata của **constructor** của một class.
+- `Class<T>`: describes **a Java type** (class, interface, enum, annotation, record, array, primitive type, or `void`).
+- `Member`: common **interface** for field, method, and constructor members in reflection.
+- `Executable`: common **abstract class** for methods and constructors; shares APIs for parameters, exceptions, and annotations.
+- `Field`: metadata of a **data field**.
+- `Method`: metadata of a **method**.
+- `Constructor<T>`: metadata of a **constructor** of a class.
 
-Mục đích chính của bảng là xác định: **đối tượng nào giữ thông tin gì, API nào để tra cứu, và API nào dùng để thực thi hoặc truy cập giá trị**. Không nên học thuộc một danh sách method mà bỏ qua quan hệ của các kiểu.
+The main purpose of the table is to determine: **which object holds what information, which API performs lookup, and which API executes or accesses values**. You should not memorize a list of methods while ignoring the relationships among the types.
 
-## 2. Sơ đồ quan hệ chính xác
+## 2. Exact Relationship Diagram
 
 ~~~text
 java.lang.Object
   |
   +-- java.lang.Class<T>
   |     implements Type, AnnotatedElement, GenericDeclaration, ...
-  |     (KHÔNG implements java.lang.reflect.Member)
+  |     (DOES NOT implement java.lang.reflect.Member)
   |
   +-- java.lang.reflect.AccessibleObject
         implements AnnotatedElement
@@ -42,108 +42,108 @@ java.lang.reflect.Member  (interface)
       +-- Constructor<T> inherits Member
 ~~~
 
-**Ba kết luận quan trọng:**
+**Three key takeaways:**
 
-1. `Class<T>` là cửa vào tìm metadata và có thể đại diện cho **lớp lồng nhau**, nhưng bản thân `Class<T>` **không triển khai interface `Member`**. Đừng nhầm khái niệm “member class” của Java language với kiểu `java.lang.reflect.Member`.
-2. `Field` và `Executable` đều là `AccessibleObject` và đều triển khai `Member`, nhưng `Field` **không** kế thừa `Executable`.
-3. `Method` và `Constructor<T>` kế thừa API tham số từ `Executable`; tuy nhiên **chúng không dùng cùng API thực thi**: method gọi `invoke`, constructor tạo instance qua `newInstance`.
+1. `Class<T>` is the entry point for finding metadata and can represent a **nested class**, yet `Class<T>` itself **does not implement the `Member` interface**. Do not confuse the Java language concept of a "member class" with the `java.lang.reflect.Member` type.
+2. `Field` and `Executable` are both `AccessibleObject`s and both implement `Member`, but `Field` **does not** extend `Executable`.
+3. `Method` and `Constructor<T>` inherit parameter APIs from `Executable`; however, **they do not use the same execution API**: a method calls `invoke`, while a constructor creates an instance via `newInstance`.
 
-`AccessibleObject` không có nghĩa “mặc định được phép truy cập mọi thứ”: đây là lớp nền hỗ trợ kiểm tra/điều chỉnh quyền truy cập reflection trong giới hạn Java/JPMS. `AnnotatedElement` là interface cho các phương thức đọc annotation.
+`AccessibleObject` does not mean "allowed to access everything by default": it is the base class supporting reflection access checking/adjustment within Java/JPMS limits. `AnnotatedElement` is the interface for annotation-reading methods.
 
-## 3. Bảng so sánh sáu API cốt lõi
+## 3. Comparison Table of the Six Core APIs
 
-| Kiểu | Bản chất | Đại diện cho | Cách lấy thường dùng | API đặc trưng |
+| Type | Nature | Represents | Common Ways to Obtain | Characteristic APIs |
 | --- | --- | --- | --- | --- |
-| `Class<T>` | Class trong `java.lang` | Một kiểu | `User.class`, `obj.getClass()`, `Class.forName(name)` | `getName`, `getSuperclass`, `getInterfaces`, `getDeclaredMethod`, `getDeclaredField`, `getDeclaredConstructor` |
-| `Member` | Interface trong `java.lang.reflect` | Hợp đồng chung cho field/method/constructor | Nhận `Field`/`Method`/`Constructor` dưới kiểu `Member` | `getDeclaringClass`, `getName`, `getModifiers`, `isSynthetic` |
-| `Executable` | Abstract class trong `java.lang.reflect` | Phần chung của method/constructor | Nhận `Method` hoặc `Constructor` dưới kiểu `Executable` | `getParameterCount`, `getParameters`, `getParameterTypes`, `getExceptionTypes`, `isVarArgs` |
-| `Field` | Class trong `java.lang.reflect` | Một trường khai báo trong class/interface | `clazz.getField` / `getDeclaredField` | `getType`, `getGenericType`, `get`, `set`; getter/setter primitive như `getInt`/`setInt` |
-| `Method` | Class kế thừa `Executable` | Một phương thức với tên + parameter types + return type | `clazz.getMethod` / `getDeclaredMethod` | `getReturnType`, `getGenericReturnType`, `invoke`, `isBridge`, `isDefault` |
-| `Constructor<T>` | Class kế thừa `Executable` | Một constructor của class `T` | `clazz.getConstructor` / `getDeclaredConstructor` | `newInstance`, `getDeclaringClass`, các API tham số từ `Executable` |
+| `Class<T>` | Class in `java.lang` | A type | `User.class`, `obj.getClass()`, `Class.forName(name)` | `getName`, `getSuperclass`, `getInterfaces`, `getDeclaredMethod`, `getDeclaredField`, `getDeclaredConstructor` |
+| `Member` | Interface in `java.lang.reflect` | Common contract for field/method/constructor | Receiving a `Field`/`Method`/`Constructor` as type `Member` | `getDeclaringClass`, `getName`, `getModifiers`, `isSynthetic` |
+| `Executable` | Abstract class in `java.lang.reflect` | Common part of method/constructor | Receiving a `Method` or `Constructor` as type `Executable` | `getParameterCount`, `getParameters`, `getParameterTypes`, `getExceptionTypes`, `isVarArgs` |
+| `Field` | Class in `java.lang.reflect` | A field declared in a class/interface | `clazz.getField` / `getDeclaredField` | `getType`, `getGenericType`, `get`, `set`; primitive getters/setters like `getInt`/`setInt` |
+| `Method` | Class extending `Executable` | A method with name + parameter types + return type | `clazz.getMethod` / `getDeclaredMethod` | `getReturnType`, `getGenericReturnType`, `invoke`, `isBridge`, `isDefault` |
+| `Constructor<T>` | Class extending `Executable` | A constructor of class `T` | `clazz.getConstructor` / `getDeclaredConstructor` | `newInstance`, `getDeclaringClass`, parameter APIs from `Executable` |
 
-**Không có `Member.invoke()` hay `Executable.invoke()` chung cho mọi subtype.** Nếu chỉ giữ biến kiểu `Member`, ta đọc được metadata phổ quát nhưng không thể gọi ngay `get`/`set`/`invoke`/`newInstance` mà không phân nhánh theo subtype.
+**There is no common `Member.invoke()` or `Executable.invoke()` for all subtypes.** If you only hold a variable of type `Member`, you can read universal metadata, but you cannot immediately call `get`/`set`/`invoke`/`newInstance` without branching by subtype.
 
-### 3.1. Ghi chú về các kiểu trung gian và interface khác
+### 3.1. Notes on Other Intermediate Types and Interfaces
 
-- `java.lang.reflect.Type` là interface biểu diễn **kiểu** trong generic reflection. `Class<?>` vừa là một `Type`, nhưng `ParameterizedType` và `TypeVariable` là các biến thể khác; không mặc định mọi `Type` ép được về `Class`.
-- `GenericDeclaration` áp dụng cho `Class`, `Method`, `Constructor` thông qua `Executable`; có `getTypeParameters()` cho khai báo type variables như `<T>`.
-- `AnnotatedElement` cho phép đọc annotation trên class, field, method, constructor. Annotation ở **tham số** còn có thể lấy từ `Parameter`.
-- `Parameter` là metadata **từng tham số** của `Executable`; không phải một trong sáu kiểu của bảng, nhưng rất thường gặp khi gọi `getParameters()`.
-- `Modifier` là utility class với `Modifier.isPublic(int)`, `isPrivate(int)`, `isStatic(int)`... Nó giúp diễn giải bitmask trả về từ `Member.getModifiers()`.
+- `java.lang.reflect.Type` is the interface representing a **type** in generic reflection. `Class<?>` is one kind of `Type`, whereas `ParameterizedType` and `TypeVariable` are other variants; do not assume every `Type` can be cast to `Class`.
+- `GenericDeclaration` applies to `Class`, `Method`, and `Constructor` via `Executable`; it provides `getTypeParameters()` for type variable declarations such as `<T>`.
+- `AnnotatedElement` enables reading annotations on classes, fields, methods, and constructors. Annotations on **parameters** can also be retrieved from `Parameter`.
+- `Parameter` is metadata for **each individual parameter** of an `Executable`; it is not one of the six types in the table, but is very frequently encountered when calling `getParameters()`.
+- `Modifier` is a utility class with `Modifier.isPublic(int)`, `isPrivate(int)`, `isStatic(int)`, etc. It helps interpret the bitmask returned by `Member.getModifiers()`.
 
-## 4. Từ `Class<?>` đến Member: chọn phạm vi tra cứu
+## 4. From `Class<?>` to Member: Choosing the Lookup Scope
 
-`Class<?>` là điểm xuất phát để lấy `Field`, `Method` và `Constructor`. Các cặp `getX`/`getDeclaredX` không thay đổi **kiểu đối tượng kết quả**; chúng thay đổi **phạm vi tra cứu**:
+`Class<?>` is the starting point for obtaining `Field`, `Method`, and `Constructor`. The `getX`/`getDeclaredX` pairs do not change **the resulting object type**; they change **the lookup scope**:
 
-| Loại | Public/member lookup | Khai báo trực tiếp ở mọi mức truy cập |
+| Kind | Public/member lookup | Directly declared at any access level |
 | --- | --- | --- |
 | Field | `getField(name)`, `getFields()` | `getDeclaredField(name)`, `getDeclaredFields()` |
 | Method | `getMethod(name, types...)`, `getMethods()` | `getDeclaredMethod(name, types...)`, `getDeclaredMethods()` |
 | Constructor | `getConstructor(types...)`, `getConstructors()` | `getDeclaredConstructor(types...)`, `getDeclaredConstructors()` |
 
-Với field và method, tra cứu public có thể thấy member kế thừa; bản declared chỉ thấy khai báo ngay trên kiểu hiện tại. **Constructor không kế thừa**, nên cả hai nhóm constructor đều thuộc chính class đang hỏi. Kết quả mảng không bảo đảm thứ tự; một chữ ký method cần **tên + kiểu tham số chính xác sau erasure**, chẳng hạn `int.class` khác `Integer.class`.
+For fields and methods, public lookup can see inherited members; the declared version only sees declarations directly on the current type. **Constructors are not inherited**, so both constructor groups belong to the queried class itself. Array results do not guarantee order; a method signature requires **name + exact parameter types after erasure**, for instance `int.class` differs from `Integer.class`.
 
-Sự khác biệt này là **quy tắc tìm metadata**, không phải quyền dùng metadata. Một `Method` private có thể xuất hiện từ `getDeclaredMethod` nhưng `invoke` vẫn đòi access phù hợp. Cần biết nơi khai báo, đọc `member.getDeclaringClass()`; nó không nhất thiết trùng runtime class của receiver. Chương trình ở mục 7 thể hiện rõ `Field`/`Method`/`Constructor` và hành động tương ứng của mỗi subtype.
+This distinction is a **metadata lookup rule**, not permission to use metadata. A private `Method` may appear from `getDeclaredMethod`, yet `invoke` still requires appropriate access. If you need to know where it was declared, read `member.getDeclaringClass()`; it does not necessarily match the runtime class of the receiver. The program in Section 7 clearly demonstrates `Field`/`Method`/`Constructor` and the corresponding actions of each subtype.
 
-## 5. Member và Executable: API dùng chung và những khác biệt
+## 5. Member and Executable: Shared APIs and Differences
 
-### 5.1. Member — interface mức tối thiểu
+### 5.1. Member — Minimal Interface
 
-Mọi `Field`, `Method`, `Constructor` triển khai `Member` và cung cấp:
+Every `Field`, `Method`, and `Constructor` implements `Member` and provides:
 
-| Phương thức | Diễn giải | Ghi chú |
+| Method | Interpretation | Notes |
 | --- | --- | --- |
-| `getDeclaringClass()` | Class/interface khai báo member | Không mặc định là subclass của object nhận lời gọi |
-| `getName()` | Tên member | Với `Constructor`, tên là **tên binary của declaring class** (không phải một method tên `<init>`) |
-| `getModifiers()` | Bitmask modifier | Dùng `Modifier.isPublic/isStatic/isFinal`... |
-| `isSynthetic()` | Member do compiler tạo theo ngữ nghĩa synthetic | Có ích khi quét bridge/synthetic members |
+| `getDeclaringClass()` | Class/interface declaring the member | Not by default the subclass of the object receiving the call |
+| `getName()` | Member name | For `Constructor`, the name is the **binary name of the declaring class** (not a method named `<init>`) |
+| `getModifiers()` | Modifier bitmask | Use `Modifier.isPublic/isStatic/isFinal`... |
+| `isSynthetic()` | Compiler-generated member with synthetic semantics | Useful when scanning bridge/synthetic members |
 
-**Không ép mọi subtype về `Method`.** Nếu code scan nhận `Member member`, kiểm tra loại bằng `instanceof Field`, `instanceof Method`, `instanceof Constructor<?>` khi cần hành vi chuyên biệt.
+**Do not cast every subtype to `Method`.** If scanning code receives a `Member member`, check the kind using `instanceof Field`, `instanceof Method`, `instanceof Constructor<?>` when specialized behavior is needed.
 
-### 5.2. Executable — method/constructor dùng chung tham số
+### 5.2. Executable — Parameters Shared by Methods and Constructors
 
-Với biến kiểu `Executable executable`, áp dụng được cả method lẫn constructor:
+With a variable of type `Executable executable`, the following apply to both methods and constructors:
 
-- `getParameterCount()` và `getParameterTypes()`: số lượng và kiểu tham số runtime (sau type erasure).
-- `getParameters()`: mảng `Parameter` với `getName()`, `isNamePresent()`, `getType()`, `getAnnotations()`...
-- `getGenericParameterTypes()`, `getAnnotatedParameterTypes()`: biểu diễn generic và type-use annotation của tham số.
-- `getExceptionTypes()` / `getGenericExceptionTypes()`: kiểu exceptions khai báo trong phần `throws`.
-- `getParameterAnnotations()`: annotations ở từng vị trí tham số.
-- `isVarArgs()`, `getTypeParameters()`: method/constructor varargs và khai báo type variables.
-- `toGenericString()`: mô tả chữ ký có thông tin generic; dùng để chẩn đoán, không dùng như parser API ổn định.
+- `getParameterCount()` and `getParameterTypes()`: count and runtime parameter types (after type erasure).
+- `getParameters()`: `Parameter` array with `getName()`, `isNamePresent()`, `getType()`, `getAnnotations()`, etc.
+- `getGenericParameterTypes()`, `getAnnotatedParameterTypes()`: generic representations and type-use annotations of parameters.
+- `getExceptionTypes()` / `getGenericExceptionTypes()`: exception types declared in the `throws` clause.
+- `getParameterAnnotations()`: annotations at each parameter position.
+- `isVarArgs()`, `getTypeParameters()`: varargs methods/constructors and type variable declarations.
+- `toGenericString()`: signature description including generic information; use for diagnostics, not as a stable parser API.
 
-Tên tham số gốc **không bảo đảm được giữ lại** trong bytecode khi không biên dịch với `javac -parameters`. Khi đó `Parameter.getName()` có thể là `arg0`, `arg1` và `isNamePresent()` là false. Số lượng/kiểu tham số vẫn có thể tra cứu như thường.
+Original parameter names **are not guaranteed to be preserved** in bytecode when not compiled with `javac -parameters`. In that case, `Parameter.getName()` may be `arg0`, `arg1`, and `isNamePresent()` is false. Parameter counts and types can still be queried as usual.
 
-## 6. Field, Method và Constructor: API riêng và tác dụng
+## 6. Field, Method, and Constructor: Specific APIs and Effects
 
-| Loại | Thông tin chỉ ra | Hành động | Lưu ý quan trọng |
+| Kind | Information Exposed | Action | Important Notes |
 | --- | --- | --- | --- |
-| `Field` | Tên, modifier, type (raw/generic), annotation của field | `field.get(receiver)`, `field.set(receiver, value)`, getter/setter primitive | Truy cập field không phải gọi getter/setter; field instance cần receiver phù hợp |
-| `Method` | Return type, parameter types, exceptions, bridge/default/synthetic flags | `method.invoke(receiver, args...)` | Exception do method đích ném bị `InvocationTargetException` bọc |
-| `Constructor<T>` | Tham số, exceptions, modifier/annotations của constructor | `constructor.newInstance(args...)` | Tạo object của declaring class; lỗi trong constructor có thể bị `InvocationTargetException` bọc |
+| `Field` | Field name, modifiers, type (raw/generic), annotations | `field.get(receiver)`, `field.set(receiver, value)`, primitive getters/setters | Accessing a field does not call a getter/setter; an instance field needs an appropriate receiver |
+| `Method` | Return type, parameter types, exceptions, bridge/default/synthetic flags | `method.invoke(receiver, args...)` | Exceptions thrown by the target method are wrapped in `InvocationTargetException` |
+| `Constructor<T>` | Parameters, exceptions, constructor modifiers/annotations | `constructor.newInstance(args...)` | Creates an object of the declaring class; errors inside the constructor may be wrapped in `InvocationTargetException` |
 
-Các điểm phân biệt thường bị hỏi:
+Commonly asked distinctions:
 
-- `Field.getType()` trả một `Class<?>` của kiểu field sau erasure; `Field.getGenericType()` trả `Type`, có thể là `ParameterizedType` đối với `List<String>`.
-- `Method.getReturnType()` trả `Class<?>`. `Method.getGenericReturnType()` có thể trả `ParameterizedType`/`TypeVariable`; constructor **không** có kiểu trả về như method và **không có** API `getReturnType()`.
-- `Method.isBridge()` nhận diện bridge method do compiler sinh, thường để bảo toàn đa hình với generic/covariant return; `Method.isDefault()` xác nhận default method của interface.
-- `Constructor.newInstance(...)` nên được dùng thay cho `Class.newInstance()` (API cũ deprecated) vì tường minh constructor và có cách bọc lỗi nhất quán hơn.
-- `Field.get`/`set` và `Method.invoke` cho static member dùng receiver `null`; instance member cần receiver tương thích.
-- Không phải `getDeclaredXxx` tìm được là có thể invoke/get/set ngay: Java access checks và giới hạn JPMS vẫn áp dụng.
+- `Field.getType()` returns a `Class<?>` of the field type after erasure; `Field.getGenericType()` returns a `Type`, which can be a `ParameterizedType` for `List<String>`.
+- `Method.getReturnType()` returns `Class<?>`. `Method.getGenericReturnType()` can return a `ParameterizedType`/`TypeVariable`; constructors **do not** have a return type like methods and **do not have** a `getReturnType()` API.
+- `Method.isBridge()` identifies compiler-generated bridge methods, usually to preserve polymorphism with generics/covariant return types; `Method.isDefault()` confirms an interface default method.
+- `Constructor.newInstance(...)` should be used instead of `Class.newInstance()` (deprecated old API) because the constructor is explicit and error wrapping is more consistent.
+- `Field.get`/`set` and `Method.invoke` for static members take a `null` receiver; instance members require a compatible receiver.
+- Being found by `getDeclaredXxx` does not mean you can immediately invoke/get/set: Java access checks and JPMS restrictions still apply.
 
-### 6.1. Access checks và JPMS
+### 6.1. Access Checks and JPMS
 
-`Field`, `Method`, `Constructor` kế thừa `AccessibleObject`:
+`Field`, `Method`, and `Constructor` extend `AccessibleObject`:
 
-- `canAccess(receiver)` hỏi khả năng truy cập với receiver thích hợp; đối với static member hoặc constructor, receiver truyền `null`.
-- `trySetAccessible()` cố bật chế độ bỏ qua một số Java access checks, trả true/false tùy khả năng; `setAccessible(true)` có thể ném `InaccessibleObjectException` nếu module không mở quyền cần thiết.
-- Không tự động gọi `setAccessible(true)` trên toàn bộ thành viên khi scan: chỉ xin quyền thực sự cần, xử lý lỗi và tôn trọng exports/opens của module.
+- `canAccess(receiver)` checks accessibility with an appropriate receiver; for static members or constructors, pass `null` as the receiver.
+- `trySetAccessible()` attempts to enable bypassing certain Java access checks, returning true/false depending on capability; `setAccessible(true)` can throw `InaccessibleObjectException` if the module does not open the required access.
+- Do not automatically call `setAccessible(true)` on every member when scanning: only request permissions actually needed, handle errors, and respect module `exports`/`opens`.
 
-**Reflection access không thay thế authorization nghiệp vụ.** `public` hoặc đọc được metadata không có nghĩa request HTTP hiện tại được phép gọi method.
+**Reflection access does not replace business authorization.** Being `public` or having readable metadata does not mean the current HTTP request is permitted to invoke the method.
 
-## 7. Ví dụ Java 17+ hoàn chỉnh: sáu kiểu trong một chương trình
+## 7. Complete Java 17+ Example: Six Types in One Program
 
-Lưu thành **MemberTableDemo.java**. Ví dụ dùng lookup theo tên/chữ ký để tránh phụ thuộc thứ tự mảng reflection, minh họa một field private, một field generic, một method và một constructor public.
+Save as **MemberTableDemo.java**. The example uses lookup by name/signature to avoid relying on reflection array order, illustrating one private field, one generic field, one method, and one public constructor.
 
 ~~~java
 import java.lang.reflect.Constructor;
@@ -207,14 +207,14 @@ public class MemberTableDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 MemberTableDemo.java
 java MemberTableDemo
 ~~~
 
-Output dự kiến:
+Expected output:
 
 ~~~text
 Class: Sample
@@ -231,68 +231,68 @@ Inherited public method declares=Object
 Invoke result: Hi:Java
 ~~~
 
-**Đọc kết quả đúng theo hệ phân cấp:**
+**Reading the output accurately according to the hierarchy:**
 
-1. `Class is Member: false` chứng minh kiểu `Class` không triển khai interface `Member`.
-2. Field `title` private vẫn tìm được bằng `getDeclaredField` nhưng ví dụ **không** đọc hoặc sửa giá trị private field bằng reflection, nên không cần bật `setAccessible`.
-3. `Method` và `Constructor` là `Executable`, còn `Field` thì không.
-4. Field `tags` khai báo `List<String>`: `getType()` trả raw `List`, còn `getGenericType()` biểu diễn `ParameterizedType` có argument `java.lang.String`.
-5. `type.getMethod("toString")` lấy một method public kế thừa từ `Object`, khác `getDeclaredMethod` chỉ tìm method của `Sample`.
-6. `ctor.newInstance("Java")` tạo object; `echo.invoke(sample, "Hi")` thực thi method và trả `"Hi:Java"`.
+1. `Class is Member: false` proves that the `Class` type does not implement the `Member` interface.
+2. The private field `title` can still be found via `getDeclaredField`, but the example does **not** read or modify the private field's value via reflection, so it does not need to enable `setAccessible`.
+3. `Method` and `Constructor` are `Executable`, whereas `Field` is not.
+4. Field `tags` is declared as `List<String>`: `getType()` returns raw `List`, while `getGenericType()` represents a `ParameterizedType` with argument `java.lang.String`.
+5. `type.getMethod("toString")` retrieves a public method inherited from `Object`, unlike `getDeclaredMethod` which only searches `Sample`'s methods.
+6. `ctor.newInstance("Java")` creates the object; `echo.invoke(sample, "Hi")` executes the method and returns `"Hi:Java"`.
 
-Nếu dùng `type.getField("title")` thay vì `getDeclaredField("title")` thì nhận `NoSuchFieldException`, vì `title` là private. Nếu dùng `type.getDeclaredMethod("toString")` thì cũng nhận `NoSuchMethodException` vì `Sample` không khai báo override `toString`.
+If you use `type.getField("title")` instead of `getDeclaredField("title")`, you get `NoSuchFieldException` because `title` is private. If you use `type.getDeclaredMethod("toString")`, you also get `NoSuchMethodException` because `Sample` does not declare an override of `toString`.
 
-## 8. Cách chọn đúng API theo câu hỏi thực tế
+## 8. Choosing the Right API for Practical Questions
 
-| Câu hỏi của bạn | API thích hợp | Vì sao? |
+| Your Question | Appropriate API | Why? |
 | --- | --- | --- |
-| Đối tượng này thuộc kiểu runtime nào? | `object.getClass()` | Nhận `Class<?>` của object |
-| Tìm method public có thể gọi theo kiểu? | `type.getMethod("save", Id.class)` | Cho phép method public được kế thừa |
-| Tìm method được khai báo trực tiếp, kể cả private? | `type.getDeclaredMethod(...)` | Phạm vi đúng class; quyền invoke là bước khác |
-| Đọc metadata tên/modifier/declaring class của nhiều member? | Biến/collection kiểu `Member` | Không phụ thuộc subtype cụ thể |
-| Tạo cùng logic kiểm tra signature cho method và constructor? | Biến kiểu `Executable` | Chung `getParameters/getExceptionTypes/isVarArgs` |
-| Tìm thông tin kiểu của field? | `Field.getType/getGenericType` | Field có loại dữ liệu, không có return type |
-| Thực thi method? | `Method.invoke` | Receiver + đối số; exception từ method đích được bọc |
-| Tạo object bằng constructor? | `Constructor.newInstance` | Không dùng `Method.invoke` cho constructor |
-| Đọc annotation trên member? | `AnnotatedElement.getAnnotation(...)` | `Class` và member classes cùng hỗ trợ interface phù hợp |
-| Tìm annotation trên parameter? | `Executable.getParameters()` → `Parameter.getAnnotation(...)` | Parameter là thành phần riêng, không phải `Member` |
+| What runtime type does this object belong to? | `object.getClass()` | Obtains the `Class<?>` of the object |
+| Find a callable public method by type? | `type.getMethod("save", Id.class)` | Allows inherited public methods |
+| Find a directly declared method, including private? | `type.getDeclaredMethod(...)` | Scoped to the exact class; invoke permission is a separate step |
+| Read name/modifier/declaring class metadata of multiple members? | Variable/collection of type `Member` | Independent of specific subtype |
+| Write shared signature-checking logic for methods and constructors? | Variable of type `Executable` | Shares `getParameters/getExceptionTypes/isVarArgs` |
+| Find type information of a field? | `Field.getType/getGenericType` | A field has a data type, not a return type |
+| Execute a method? | `Method.invoke` | Receiver + arguments; exceptions from the target method are wrapped |
+| Create an object using a constructor? | `Constructor.newInstance` | Do not use `Method.invoke` for constructors |
+| Read annotations on a member? | `AnnotatedElement.getAnnotation(...)` | `Class` and member classes both support the appropriate interface |
+| Find annotations on a parameter? | `Executable.getParameters()` → `Parameter.getAnnotation(...)` | Parameter is a separate component, not a `Member` |
 
-**Trường hợp generic:** nếu `Type t = field.getGenericType()`, hãy kiểm tra `t instanceof ParameterizedType` trước khi cast. Với field kiểu `String`, `getGenericType()` có thể trả `Class<String>`, không phải `ParameterizedType`. Khi generic signature không hợp lệ hoặc thiếu type, API metadata generic có thể ném những lỗi đặc thù khác.
+**Generic case:** if `Type t = field.getGenericType()`, check `t instanceof ParameterizedType` before casting. For a field of type `String`, `getGenericType()` can return `Class<String>`, not `ParameterizedType`. When a generic signature is invalid or missing types, generic metadata APIs can throw other specific errors.
 
-## 9. Lỗi phổ biến và giới hạn
+## 9. Common Mistakes and Limitations
 
-1. **Nhầm Class với Member:** một nested class là member theo ngôn ngữ Java, nhưng metadata `Class<?>` của nó không thể ép thành `java.lang.reflect.Member`.
-2. **Dùng Executable cho Field:** `Field` không có `getParameters()`, cũng không có `invoke()`.
-3. **Gọi Constructor như Method:** constructor không có kiểu trả về hoặc `Method.invoke`; dùng `Constructor.newInstance`.
-4. **Nhầm public với declared:** `getDeclaredMethod` không quét member kế thừa; `getMethod` không tìm private method.
-5. **Nhầm metadata với quyền sử dụng:** `getDeclaredField` tìm được private field không có nghĩa `field.get(receiver)` luôn hợp lệ.
-6. **Đoán thứ tự mảng reflection:** `getDeclaredFields()` và `getDeclaredMethods()` không cam kết trả theo thứ tự source.
-7. **Nhầm raw type với generic type:** `getType/getReturnType/getParameterTypes` chưa giữ toàn bộ cấu trúc parameterized type; dùng `getGenericType/getGenericReturnType/getGenericParameterTypes` khi cần.
-8. **Hiểu sai tên constructor:** trong reflection `Constructor.getName()` là **binary name** của declaring class, không phải tên `<init>` trong bytecode.
-9. **Dùng reflection trong hot path mà không cache:** nếu phải lặp lại lookup cùng chữ ký, có thể cache `Method/Field/Constructor` theo đúng declaring class và signature; đo trước khi tối ưu.
-10. **Không xử lý exception thích hợp:** lookup thường ném `NoSuchFieldException`/`NoSuchMethodException`; invoke/newInstance có thể ném `IllegalAccessException`, `IllegalArgumentException`, `InvocationTargetException`; ngoại lệ lớp đích phải được kiểm tra từ `getCause()`.
+1. **Confusing Class with Member:** a nested class is a member in the Java language, but its `Class<?>` metadata cannot be cast to `java.lang.reflect.Member`.
+2. **Using Executable for Field:** `Field` does not have `getParameters()`, nor does it have `invoke()`.
+3. **Calling a Constructor like a Method:** constructors have no return type or `Method.invoke`; use `Constructor.newInstance`.
+4. **Confusing public with declared:** `getDeclaredMethod` does not scan inherited members; `getMethod` does not find private methods.
+5. **Confusing metadata with usage permission:** `getDeclaredField` finding a private field does not mean `field.get(receiver)` is always valid.
+6. **Guessing reflection array order:** `getDeclaredFields()` and `getDeclaredMethods()` do not guarantee returning elements in source order.
+7. **Confusing raw type with generic type:** `getType/getReturnType/getParameterTypes` do not preserve the full parameterized type structure; use `getGenericType/getGenericReturnType/getGenericParameterTypes` when needed.
+8. **Misunderstanding constructor names:** in reflection, `Constructor.getName()` is the **binary name** of the declaring class, not the `<init>` name in bytecode.
+9. **Using reflection on a hot path without caching:** if you must repeat lookups with the same signature, you can cache `Method/Field/Constructor` by the exact declaring class and signature; measure before optimizing.
+10. **Not handling exceptions appropriately:** lookup usually throws `NoSuchFieldException`/`NoSuchMethodException`; invoke/newInstance can throw `IllegalAccessException`, `IllegalArgumentException`, `InvocationTargetException`; target-class exceptions must be inspected via `getCause()`.
 
-## 10. Checklist ghi nhớ nhanh
+## 10. Quick Reference Checklist
 
-- `Class` = **mô tả kiểu và điểm xuất phát lookup**.
-- `Member` = **interface metadata chung** của field/method/constructor.
-- `Executable` = **lớp chung method + constructor**, chuyên thông tin parameters/exceptions.
-- `Field` = **dữ liệu**: type, get, set.
-- `Method` = **hành vi có tên**: return type, invoke, bridge/default.
-- `Constructor` = **khởi tạo object**: parameters, newInstance.
-- `getXxx` thường tìm public phù hợp và có thể kế thừa đối với field/method; `getDeclaredXxx` tìm member khai báo trực tiếp, kể cả non-public.
-- Chọn API bằng **ngữ nghĩa của thao tác**, sau đó mới cân nhắc cache, quyền truy cập, lỗi và hiệu năng.
+- `Class` = **type descriptor and lookup entry point**.
+- `Member` = **common metadata interface** for field/method/constructor.
+- `Executable` = **common class for method + constructor**, specializing in parameters/exceptions information.
+- `Field` = **data**: type, get, set.
+- `Method` = **named behavior**: return type, invoke, bridge/default.
+- `Constructor` = **object instantiation**: parameters, newInstance.
+- `getXxx` generally finds matching public members and may include inherited ones for fields/methods; `getDeclaredXxx` finds directly declared members, including non-public ones.
+- Choose APIs by **the semantics of the operation**, and only then consider caching, access permissions, errors, and performance.
 
-**Câu hỏi tự kiểm tra:**
+**Self-check questions:**
 
-1. Vì sao `Member.class.isAssignableFrom(Class.class)` trả false?
-2. Nếu muốn kiểm tra số lượng tham số của cả method và constructor, dùng chung kiểu nào?
-3. Vì sao field private vẫn được tìm thấy bằng `getDeclaredField` nhưng chưa chắc truy cập được bằng `Field.get`?
-4. `Method.getReturnType` và `Field.getType` giống và khác nhau thế nào?
-5. Tại sao `getMethod("toString")` thành công, còn `getDeclaredMethod("toString")` trên `Sample` lại không?
-6. Khi phản xạ vào `List<String>`, vì sao nên xem `Type`/`ParameterizedType` thay vì chỉ `Class<?>`?
+1. Why does `Member.class.isAssignableFrom(Class.class)` return false?
+2. If you want to check the parameter count of both methods and constructors, which common type should you use?
+3. Why can a private field still be found by `getDeclaredField` yet not necessarily be accessible via `Field.get`?
+4. How are `Method.getReturnType` and `Field.getType` similar and different?
+5. Why does `getMethod("toString")` succeed, while `getDeclaredMethod("toString")` on `Sample` does not?
+6. When reflecting on `List<String>`, why should you inspect `Type`/`ParameterizedType` instead of only `Class<?>`?
 
-### Nguồn tra cứu API chính thức
+### Official API Reference Sources
 
 - `Class` (Java SE 21): https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html
 - `Member`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Member.html

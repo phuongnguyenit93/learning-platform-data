@@ -1,18 +1,18 @@
-# Tránh lồng quá nhiều toán tử ba ngôi trong Java
+# Avoiding Excessive Nesting of Ternary Operators in Java
 
-> **Java core — language-basics / Logic và điều kiện**  
-> **Yêu cầu:** Java 17+, một file Java độc lập, không cần thư viện ngoài.  
-> **Mục tiêu:** Dùng `?:` cho lựa chọn ngắn gọn; hiểu cách nhóm, nhánh thực sự được đánh giá và lý do nên thay chuỗi `?:` dài bằng `if/else`, phương thức có tên hoặc `switch` expression.
+> **Java core — language-basics / Logic and conditions**  
+> **Requirements:** Java 17+, a standalone Java file, no external libraries needed.  
+> **Goal:** Use `?:` for concise choices; understand grouping, which branch is actually evaluated, and why long `?:` chains should be replaced with `if/else`, named methods, or `switch` expressions.
 
-## 1. Toán tử ba ngôi `?:` là gì?
+## 1. What Is the Ternary Operator `?:`?
 
-Cú pháp:
+Syntax:
 
 ~~~java
 result = condition ? valueIfTrue : valueIfFalse;
 ~~~
 
-`condition` phải là biểu thức `boolean` hoặc `Boolean` có thể unbox thành `boolean`; nếu `Boolean` là `null` thì có thể ném `NullPointerException` khi đánh giá điều kiện. Java **chỉ đánh giá một trong hai nhánh kết quả**, tùy điều kiện:
+`condition` must be a `boolean` expression or a `Boolean` that can unbox to `boolean`; if `Boolean` is `null`, it can throw `NullPointerException` when evaluating the condition. Java **evaluates only one of the two result branches**, depending on the condition:
 
 ~~~java
 int age = 20;
@@ -20,11 +20,11 @@ String category = age >= 18 ? "adult" : "minor";
 System.out.println(category); // adult
 ~~~
 
-`?:` là **biểu thức tạo ra một giá trị**, khác `if/else` là cấu trúc điều khiển luồng. Nó phù hợp khi cả hai nhánh là biểu thức ngắn, dễ đọc, không mang tác dụng phụ khó hiểu.
+`?:` is an **expression that produces a value**, unlike `if/else` which is a control-flow construct. It works well when both branches are short, readable expressions without confusing side effects.
 
-## 2. Lồng `?:` nhiều tầng vẫn hợp lệ nhưng khó đọc
+## 2. Multi-Level Nesting of `?:` Is Valid but Hard to Read
 
-Ví dụ phân loại điểm:
+Grade classification example:
 
 ~~~java
 int score = 82;
@@ -34,7 +34,7 @@ String grade = score >= 90 ? "A"
              : "D";
 ~~~
 
-Java cho phép biểu thức điều kiện **kết hợp từ phải sang trái**. Cách nhóm tương ứng:
+Java allows conditional expressions to be **right-associative**. The corresponding grouping is:
 
 ~~~java
 String grade = score >= 90 ? "A"
@@ -42,18 +42,18 @@ String grade = score >= 90 ? "A"
              : (score >= 70 ? "C" : "D"));
 ~~~
 
-Nếu `score == 82` thì `grade == "B"` về nội dung. Nhánh cho điểm từ 70 trở xuống không cần chạy khi đã chọn nhánh B.
+If `score == 82`, then `grade` holds `"B"`. The branch for scores 70 and below does not need to run once branch B is chosen.
 
-Vấn đề là người đọc phải tự xác định:
+The problem is that the reader has to mentally determine:
 
-- Mỗi dấu `?` thuộc điều kiện nào, mỗi dấu `:` thuộc nhánh nào.
-- Các điều kiện có **thứ tự ưu tiên nghiệp vụ** không (ví dụ ngưỡng 90 phải xét trước 80).
-- Nhánh mặc định cuối cùng ứng với trường hợp nào.
-- Khi thêm một mức phân loại, ngoặc và căn lề có còn đúng không.
+- Which condition each `?` belongs to, and which branch each `:` belongs to.
+- Whether the conditions have a **business priority order** (e.g., threshold 90 must be checked before 80).
+- Which case the final default branch corresponds to.
+- Whether parentheses and alignment remain correct when adding another tier.
 
-**Nguyên tắc:** Càng nhiều điều kiện/nhánh, `if/else` càng dễ kiểm tra, đặt breakpoint và thay đổi. Không có một “giới hạn cú pháp” bắt buộc về số tầng; đây là khuyến nghị về chất lượng mã.
+**Principle:** The more conditions/branches there are, the easier `if/else` is to inspect, set breakpoints on, and modify. There is no mandatory "syntax limit" on nesting depth; this is a code-quality recommendation.
 
-## 3. Cách viết rõ hơn bằng `if/else`
+## 3. Clearer Writing with `if/else`
 
 ~~~java
 static String grade(int score) {
@@ -69,7 +69,7 @@ static String grade(int score) {
 }
 ~~~
 
-Cách này giữ **cùng thứ tự xét ngưỡng** nhưng mỗi điều kiện là một nhánh rõ ràng. Có thể dùng *guard clauses* để tránh lồng khối:
+This preserves **the same threshold evaluation order**, while giving each condition a clear branch. *Guard clauses* can be used to avoid block nesting:
 
 ~~~java
 static String gradeWithEarlyReturns(int score) {
@@ -80,23 +80,23 @@ static String gradeWithEarlyReturns(int score) {
 }
 ~~~
 
-Với nhánh nhiều dòng, cần log, xử lý lỗi hoặc gọi phương thức có tác dụng phụ, dùng `if/else` thường dễ bảo trì hơn cố nhét cả logic vào `?:`.
+With multi-line branches, logging, error handling, or side-effecting method calls, `if/else` is usually easier to maintain than stuffing everything into `?:`.
 
-## 4. Khi nào vẫn nên dùng một `?:`?
+## 4. When Should a Single `?:` Still Be Used?
 
-| Tình huống | Cách viết | Nhận xét |
+| Situation | Style | Notes |
 | --- | --- | --- |
-| Chọn một trong hai chuỗi ngắn | `passed ? "PASS" : "FAIL"` | Dễ đọc |
-| Giá trị mặc định | `name != null ? name : "guest"` | Giữ guard trước nhánh sử dụng |
-| Chọn nhãn sau nhiều ngưỡng | `a ? "A" : b ? "B" : c ? "C" : "D"` | Nên cân nhắc `if/else` |
-| Hai nhánh nhiều lệnh hoặc log | `condition ? complexA() : complexB()` | Tách phương thức hoặc dùng `if/else` khi logic phức tạp |
-| Nhiều trạng thái rời rạc | Chuỗi kiểm tra `status == ... ? ...` | Dùng `switch` expression/enum khi phù hợp |
+| Choosing between two short strings | `passed ? "PASS" : "FAIL"` | Readable |
+| Default value | `name != null ? name : "guest"` | Keep the guard before the usage branch |
+| Choosing a label across multiple thresholds | `a ? "A" : b ? "B" : c ? "C" : "D"` | Consider `if/else` |
+| Two branches with multiple statements or logging | `condition ? complexA() : complexB()` | Extract methods or use `if/else` when logic is complex |
+| Multiple discrete states | Chain of `status == ... ? ...` checks | Use `switch` expression/enum when appropriate |
 
-`?:` chỉ dùng được khi hai nhánh có kiểu **tương thích theo quy tắc kiểu của Java**. Ví dụ `true ? 1 : 2.5` có kiểu `double` và trả `1.0`; không phải lúc nào kiểu kết quả cũng giống đúng kiểu của nhánh được chọn. Tránh dựa vào phép chuyển kiểu ngầm khó đoán ở chuỗi `?:` nhiều tầng.
+`?:` only works when both branches have **compatible types under Java's typing rules**. For instance, `true ? 1 : 2.5` has type `double` and returns `1.0`; the result type does not always match the exact type of the chosen branch. Avoid relying on subtle implicit conversions across multi-level `?:` chains.
 
-## 5. Java 17: `switch` expression cho lựa chọn theo trạng thái
+## 5. Java 17: `switch` Expressions for State-Based Selection
 
-Với một trạng thái có nhiều giá trị rời rạc, `switch` expression có thể sáng sủa hơn chuỗi `?:`:
+For a state with multiple discrete values, a `switch` expression can be cleaner than a `?:` chain:
 
 ~~~java
 enum State { NEW, APPROVED, REJECTED }
@@ -110,43 +110,43 @@ static String label(State state) {
 }
 ~~~
 
-Đây là cú pháp chuẩn trong Java 17, không cần bật preview. `switch` expression phải **exhaustive** (bao phủ hết các trường hợp). Ở ví dụ `enum` trên, đã liệt kê đủ ba hằng; nếu bổ sung trạng thái mới, trình biên dịch sẽ buộc xử lý cho phù hợp.
+This is standard syntax in Java 17, requiring no preview flags. A `switch` expression must be **exhaustive** (covering all cases). In the `enum` example above, all three constants are listed; if a new state is added, the compiler enforces handling it appropriately.
 
-**Chọn công cụ theo bài toán:** Dãy kiểm tra **khoảng số** thường hợp với `if/else if`; tập **trạng thái rời rạc** thường hợp với `switch`. Không ép mọi bài toán sang `switch` chỉ để bỏ dấu `?:`.
+**Pick the right tool for the problem:** sequences of **numeric range** checks usually fit `if/else if`; sets of **discrete states** usually fit `switch`. Do not force every problem into `switch` just to remove `?:`.
 
-## 6. Nhánh không được chọn không chạy — nhưng cẩn thận khi refactor
+## 6. The Unselected Branch Does Not Run — Be Careful When Refactoring
 
 ~~~java
 StringBuilder log = new StringBuilder();
 String selected = false
         ? trace(log, "X", "unused")
         : trace(log, "R", "chosen");
-// selected="chosen", log="R"; nhánh X hoàn toàn không chạy.
+// selected="chosen", log="R"; branch X does not run at all.
 ~~~
 
-Các điều kiện trong chuỗi `?:` lồng nhau được đánh giá theo cách nhóm và **chỉ khi cần**. Nếu nhánh không được chọn gọi hàm, tăng biến, truy cập null hoặc ném ngoại lệ, tác dụng phụ đó không xảy ra trong lần đánh giá ấy.
+Conditions in a nested `?:` chain are evaluated according to grouping and **only when needed**. If an unselected branch calls a method, increments a variable, accesses null, or throws an exception, that side effect does not happen during that evaluation.
 
-Tuy nhiên, **tránh nhét tác dụng phụ vào điều kiện hoặc nhánh** chỉ vì cú pháp cho phép. Khi chuyển sang `if/else`, phải giữ nguyên thứ tự xét điều kiện, không gọi lại hàm có side effect và không vô tình thực hiện cả hai nhánh.
+However, **avoid stuffing side effects into conditions or branches** merely because the syntax allows it. When refactoring to `if/else`, preserve condition evaluation order, do not call side-effecting functions twice, and do not accidentally execute both branches.
 
-Ví dụ guard an toàn:
+Safe guard example:
 
 ~~~java
 String text = null;
 String display = text != null ? text.toUpperCase() : "(unknown)";
-// Không gọi text.toUpperCase() khi text == null.
+// Does not call text.toUpperCase() when text == null.
 ~~~
 
-Ví dụ quá phức tạp để viết một dòng:
+Example too complex for a single expression:
 
 ~~~java
-// Khó kiểm tra khi tăng số nhánh:
+// Hard to verify as branch count grows:
 String access = !loggedIn ? "SIGN_IN"
               : suspended ? "BLOCKED"
               : admin ? "ADMIN"
               : "USER";
 ~~~
 
-Refactor bằng phương thức rõ nghĩa:
+Refactored with a clearly named method:
 
 ~~~java
 static String accessLabel(boolean loggedIn,
@@ -158,11 +158,11 @@ static String accessLabel(boolean loggedIn,
 }
 ~~~
 
-Giữ một `?:` đơn giản ở cuối vẫn ổn; mục tiêu là **giảm độ phức tạp**, không cấm tuyệt đối toán tử ba ngôi.
+Keeping one simple `?:` at the end is fine; the goal is **reducing complexity**, not banning the ternary operator outright.
 
-## 7. Chương trình Java 17+ runnable
+## 7. Runnable Java 17+ Program
 
-Tạo file **ReadableTernaryDemo.java**:
+Create the file **`ReadableTernaryDemo.java`**:
 
 ~~~java
 public final class ReadableTernaryDemo {
@@ -241,14 +241,14 @@ public final class ReadableTernaryDemo {
 }
 ~~~
 
-Biên dịch/chạy ở thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Compile/run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 ReadableTernaryDemo.java
 java ReadableTernaryDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 grade=95:A/A
@@ -267,28 +267,28 @@ branchTrace=R
 numericType=1.0
 ~~~
 
-Hai cột điểm `A/A`, `B/B`, ... chứng tỏ hai cách triển khai phân loại thống nhất với dữ liệu thử; `branchTrace=R` cho thấy nhánh X không được gọi. `numericType=1.0` minh họa kiểu kết quả do Java quyết định, không chỉ dựa vào literal `1` của nhánh được chọn.
+The pairs `A/A`, `B/B`, ... prove both classification implementations agree on the test inputs; `branchTrace=R` shows branch X was not called. `numericType=1.0` illustrates Java determining the result type rather than simply using the literal `1` of the chosen branch.
 
-## 8. Checklist và bài tập
+## 8. Checklist and Exercises
 
-Trước khi giữ một chuỗi `?:` lồng nhau, tự kiểm tra:
+Before keeping a nested `?:` chain, check yourself:
 
-- Có thể hiểu kết quả chỉ bằng một lần đọc, không cần đếm dấu `?`/`:` không?
-- Các điều kiện có thứ tự ưu tiên rõ ràng và trường hợp mặc định dễ nhận thấy không?
-- Có nhánh nào cần nhiều câu lệnh, log, exception hoặc thay đổi trạng thái không?
-- Khi thêm nhánh mới, đoạn mã có dễ viết test cho các đường đi không?
-- `if/else`, helper có tên hoặc `switch` expression có giúp ý nghĩa sáng tỏ hơn không?
+- Can the result be understood on a single pass without counting `?`/`:` pairs?
+- Do the conditions have a clear priority order and an obvious default case?
+- Does any branch require multiple statements, logging, exceptions, or state changes?
+- When adding a new branch, is it easy to write tests for the execution paths?
+- Would `if/else`, a named helper, or a `switch` expression make the intent clearer?
 
-**Bài 1.** Viết lại chuỗi chọn `"A"/"B"/"C"/"D"` từ điểm bằng `if/else if`; thử các mốc 69, 70, 79, 80, 89, 90.
+**Exercise 1.** Rewrite the `"A"/"B"/"C"/"D"` grade selection using `if/else if`; test boundary values 69, 70, 79, 80, 89, 90.
 
-**Bài 2.** Giải thích cách nhóm của `a ? x : b ? y : z`. Với `a=false` và `b=true`, giá trị được chọn là gì?
+**Exercise 2.** Explain how `a ? x : b ? y : z` is grouped. With `a=false` and `b=true`, which value is selected?
 
-**Bài 3.** Chuyển lựa chọn theo trạng thái `NEW`/`APPROVED`/`REJECTED` sang `switch` expression của Java 17.
+**Exercise 3.** Convert the `NEW`/`APPROVED`/`REJECTED` state selection to a Java 17 `switch` expression.
 
-**Bài 4.** Cho `String s = null;`, giải thích tại sao `s != null ? s.trim() : ""` không ném `NullPointerException`.
+**Exercise 4.** Given `String s = null;`, explain why `s != null ? s.trim() : ""` does not throw `NullPointerException`.
 
-**Bài 5.** Với lời gọi có side effect trong mỗi nhánh `?:`, trình bày cách refactor sang `if/else` mà vẫn chỉ thực hiện **một nhánh được chọn**.
+**Exercise 5.** Given side-effecting calls in each branch of `?:`, show how to refactor to `if/else` while still executing **only the selected branch**.
 
-### Ghi nhớ
+### Key Takeaways
 
-**`?:` tốt cho lựa chọn ngắn, nhưng lồng nhiều tầng làm điều kiện khó đọc và khó bảo trì.** Java nhóm biểu thức điều kiện từ phải sang trái và chỉ đánh giá nhánh được chọn. Khi có nhiều ngưỡng, ưu tiên `if/else if`; khi có nhiều trạng thái rời rạc, cân nhắc `switch` expression; với quy tắc nghiệp vụ, đặt tên phương thức rõ ràng.
+**`?:` is great for short choices, but deep nesting makes conditions hard to read and maintain.** Java groups conditional expressions from right to left and evaluates only the selected branch. For multiple thresholds, prefer `if/else if`; for multiple discrete states, consider `switch` expressions; for business rules, extract clearly named methods.

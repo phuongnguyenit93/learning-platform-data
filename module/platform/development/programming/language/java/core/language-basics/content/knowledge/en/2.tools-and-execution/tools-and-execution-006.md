@@ -1,32 +1,32 @@
-# Thử biểu thức, biến và phương thức với JShell
+# Testing Expressions, Variables, and Methods with JShell
 
-## 1. JShell dùng để làm gì?
+## 1. What is JShell used for?
 
-**JShell** là công cụ REPL (*Read–Evaluate–Print Loop*) đi kèm **JDK từ Java 9**. Bạn nhập một đoạn Java nhỏ (*snippet*), JShell biên dịch/đánh giá đoạn đó, hiển thị kết quả hoặc thông báo lỗi, rồi cho phép nhập tiếp. Đây là cách nhanh để tự kiểm tra một phép tính, thử API, tạo biến và khai báo phương thức **mà chưa cần tạo một class có `main`**.
+**JShell** is a REPL (*Read–Evaluate–Print Loop*) tool bundled with the **JDK since Java 9**. You enter a small Java snippet (*snippet*), JShell compiles/evaluates it, displays the result or an error message, and lets you enter the next one. It is a fast way to check a calculation, try an API, create variables, and declare methods **without having to create a class with `main`**.
 
 ~~~text
-Bạn nhập biểu thức / khai báo / lệnh JShell
+You enter an expression / declaration / JShell command
                  |
                  v
-       JShell xử lý snippet Java
+       JShell processes Java snippet
                  |
         +--------+---------+
         |                  |
-     Hợp lệ              Có lỗi
+      Valid              Error
         |                  |
-  Cập nhật trạng thái     In chẩn đoán
-  và hiện kết quả         không nhận snippet lỗi
+  Updates state       Prints diagnostics
+  and shows result    rejects invalid snippet
         |
-     Nhập tiếp
+     Continue input
 ~~~
 
-Khác với terminal hệ điều hành, dấu nhắc **`jshell>`** là nơi nhập *mã Java và lệnh nội bộ JShell*. Các lệnh `javac`, `java`, `cd` hay `ls` là lệnh shell hệ điều hành, không phải biểu thức Java để gõ trực tiếp tại `jshell>`.
+Unlike the OS terminal, the **`jshell>`** prompt is where you enter *Java code and internal JShell commands*. Commands like `javac`, `java`, `cd`, or `ls` are OS shell commands, not Java expressions to type directly at `jshell>`.
 
-JShell rất phù hợp để học ngôn ngữ, khám phá API và dựng ví dụ nhỏ. Nó không thay thế việc viết chương trình có cấu trúc, bộ test tự động hoặc hệ thống build cho dự án thực tế.
+JShell is great for learning the language, exploring APIs, and building small examples. It does not replace writing structured programs, automated test suites, or build systems for real projects.
 
-## 2. Chuẩn bị JDK và mở JShell
+## 2. Preparing the JDK and launching JShell
 
-Bài này dùng **JDK 17 trở lên**. Mở Bash, PowerShell hoặc terminal của IDE và gõ:
+This lesson uses **JDK 17 or higher**. Open Bash, PowerShell, or your IDE's terminal and type:
 
 **Bash (Linux/macOS/Git Bash):**
 
@@ -46,7 +46,7 @@ jshell --version
 jshell
 ~~~
 
-Khi công cụ sẵn sàng, bạn thường thấy phần chào mừng và dấu nhắc gần giống:
+When the tool is ready, you typically see a welcome banner and a prompt similar to:
 
 ~~~text
 |  Welcome to JShell -- Version 17...
@@ -55,13 +55,13 @@ Khi công cụ sẵn sàng, bạn thường thấy phần chào mừng và dấu
 jshell>
 ~~~
 
-Phiên bản và lời chào có thể khác theo bản JDK, tùy chọn và môi trường. Bạn **chỉ nhập phần sau `jshell>`**, không gõ lại dấu nhắc. Nếu hệ thống báo `jshell` không được nhận diện, kiểm tra bạn đã cài **JDK** và thư mục `bin` của JDK có trên `PATH`; việc chỉ có một runtime Java hoặc cấu hình `PATH` sai có thể làm thiếu công cụ này.
+The version and greeting may vary by JDK distribution, options, and environment. You **only type the part after `jshell>`**, do not retype the prompt. If the system reports `jshell` is not recognized, check that you installed a **JDK** and that the JDK's `bin` directory is on `PATH`; having only a Java runtime or a wrong `PATH` setup can cause this tool to be missing.
 
-JShell nhận snippet ngay khi đoạn mã hoàn chỉnh. Với khai báo nhiều dòng hoặc block chưa đóng, nó sẽ tiếp tục chờ bạn hoàn thiện, thường bằng dấu nhắc nối dòng.
+JShell accepts a snippet as soon as the code fragment is complete. For multi-line declarations or unclosed blocks, it will wait for you to finish, usually with a continuation prompt.
 
-## 3. Thử biểu thức và quan sát kết quả
+## 3. Testing expressions and observing results
 
-Nhập lần lượt vào JShell:
+Type the following in turn into JShell:
 
 ~~~java
 2 + 3 * 4
@@ -72,31 +72,31 @@ Nhập lần lượt vào JShell:
 Math.max(10, 25)
 ~~~
 
-Kết quả giá trị theo thứ tự là:
+The resulting values in order are:
 
-| Biểu thức | Giá trị | Vì sao? |
+| Expression | Value | Why? |
 |---|---|---|
-| `2 + 3 * 4` | `14` | Nhân có ưu tiên cao hơn cộng |
-| `(2 + 3) * 4` | `20` | Ngoặc đổi cách nhóm |
-| `7 / 2` | `3` | Hai toán hạng nguyên nên chia nguyên |
-| `7.0 / 2` | `3.5` | Có toán hạng `double` |
-| `"Java".toUpperCase()` | `"JAVA"` | Gọi phương thức `String` |
-| `Math.max(10, 25)` | `25` | Trả số lớn hơn |
+| `2 + 3 * 4` | `14` | Multiplication has higher precedence than addition |
+| `(2 + 3) * 4` | `20` | Parentheses change grouping |
+| `7 / 2` | `3` | Both operands are integers, so integer division |
+| `7.0 / 2` | `3.5` | Has a `double` operand |
+| `"Java".toUpperCase()` | `"JAVA"` | Calls a `String` method |
+| `Math.max(10, 25)` | `25` | Returns the larger number |
 
-Ví dụ JShell có thể hiển thị kết quả của một biểu thức như:
+For example, JShell can display an expression result like:
 
 ~~~text
 jshell> 2 + 3 * 4
 $1 ==> 14
 ~~~
 
-`$1` là **biến tạm tự sinh** cho kết quả snippet; ở phiên của bạn có thể là `$2`, `$3`... nếu đã nhập thêm lệnh khác. Vì vậy, khi hướng dẫn một phép tính cụ thể, hãy dựa vào **giá trị bên phải `==>`**, không lệ thuộc số thứ tự `$n`.
+`$1` is an **auto-generated temporary variable** for the snippet result; in your session it might be `$2`, `$3`... if you have entered other commands. Therefore, when following a specific calculation, rely on the **value to the right of `==>`**, not on the `$n` sequence number.
 
-JShell cũng có thể nhận dấu `;` ở cuối các snippet thích hợp. Với biểu thức tương tác đơn giản, bỏ dấu chấm phẩy thường tiện hơn; khi viết chương trình Java trong tệp, hãy tuân thủ cú pháp đầy đủ của câu lệnh.
+JShell can also accept `;` at the end of appropriate snippets. For simple interactive expressions, omitting the semicolon is often more convenient; when writing Java programs in files, follow full statement syntax.
 
-## 4. Tạo, đọc và cập nhật biến
+## 4. Creating, reading, and updating variables
 
-Thử một giao dịch mua hàng rất nhỏ:
+Try a very small purchase calculation:
 
 ~~~java
 int unitPrice = 120_000;
@@ -109,36 +109,36 @@ subtotal = unitPrice * quantity;
 subtotal
 ~~~
 
-Các giá trị đáng kiểm tra:
+Values worth checking:
 
-| Bước | Kết quả |
+| Step | Result |
 |---|---|
-| Tạo `unitPrice` và `quantity` | 120.000 và 3 |
-| Tính `subtotal` lần đầu | 360.000 |
-| Gán lại `quantity = 4` | `quantity` là 4 |
-| Đọc `subtotal` ngay sau đó | **Vẫn là 360.000** |
-| Gán lại `subtotal = unitPrice * quantity` | **480.000** |
+| Create `unitPrice` and `quantity` | 120,000 and 3 |
+| Compute `subtotal` the first time | 360,000 |
+| Reassign `quantity = 4` | `quantity` is 4 |
+| Read `subtotal` immediately afterward | **Still 360,000** |
+| Reassign `subtotal = unitPrice * quantity` | **480,000** |
 
-**Lưu ý:** biến `subtotal` giữ **giá trị đã tính tại thời điểm gán**, không phải một công thức bảng tính tự động cập nhật khi `quantity` thay đổi.
+**Note:** the `subtotal` variable holds the **value computed at the time of assignment**, not a spreadsheet formula that automatically updates when `quantity` changes.
 
-Bạn có thể hỏi JShell trạng thái hiện tại:
+You can query JShell for the current state:
 
 ~~~text
 /vars
 ~~~
 
-Nó liệt kê các biến đã tạo trong phiên cùng kiểu/giá trị. Nếu nhập:
+It lists variables created in the session along with their types/values. If you enter:
 
 ~~~java
 var label = "Don hang";
 label.length()
 ~~~
 
-`var` suy ra kiểu `String` từ giá trị khởi tạo; Java vẫn kiểm tra kiểu tĩnh. `var` không có nghĩa biến được phép thay đổi sang một kiểu tùy ý về sau.
+`var` infers the `String` type from the initial value; Java still performs static type checking. `var` does not mean the variable is allowed to change to an arbitrary type later.
 
-### Khi khai báo lại một tên
+### When redeclaring a name
 
-Trong JShell, bạn có thể thử:
+In JShell, you can try:
 
 ~~~java
 int level = 1;
@@ -146,13 +146,13 @@ level = 2;
 level
 ~~~
 
-Đây là **gán lại**, không phải khai báo mới. JShell còn hỗ trợ thay thế một snippet đã khai báo bằng snippet mới trong môi trường tương tác. Tuy nhiên, đừng nhầm quy tắc tiện dụng đó với việc có thể khai báo trùng hai biến cục bộ cùng tên trong một block Java bình thường.
+This is a **reassignment**, not a new declaration. JShell also supports replacing an already declared snippet with a new snippet in the interactive environment. However, do not confuse that convenience rule with being able to declare two duplicate local variables of the same name inside a normal Java block.
 
-## 5. Khai báo phương thức rồi gọi ngay
+## 5. Declaring methods and calling them right away
 
-Một phương thức giúp đặt tên cho phép tính và thử cùng logic với nhiều đối số.
+A method lets you name a calculation and test the same logic with multiple arguments.
 
-Nhập vào JShell:
+Enter into JShell:
 
 ~~~java
 int square(int n) { return n * n; }
@@ -160,9 +160,9 @@ square(5)
 square(-3)
 ~~~
 
-Kết quả gọi lần lượt là `25` và `9`.
+The call results are `25` and `9`, respectively.
 
-Tiếp theo:
+Next:
 
 ~~~java
 long lineTotal(long unitPrice, int quantity) {
@@ -175,25 +175,25 @@ lineTotal(120_000L, 3)
 lineTotal(120_000L, 4)
 ~~~
 
-Giá trị lần lượt là `360000` và `480000`. JShell cho phép khai báo method tương tự thành viên của class, nhưng không yêu cầu bạn gõ cả `public class Demo { ... }` cho mỗi phép thử.
+The values are `360000` and `480000`, respectively. JShell lets you declare methods much like class members, without requiring you to type `public class Demo { ... }` for every test.
 
-Kiểm tra danh sách method:
+Check the method list:
 
 ~~~text
 /methods
 ~~~
 
-### Biểu thức và lời gọi method khác nhau thế nào?
+### How do expressions and method invocation statements differ?
 
-- `square(5)` là **biểu thức gọi method** có giá trị trả về `25`.
-- `System.out.println(square(5));` là **câu lệnh gọi method** tạo hiệu ứng in ra `25`; `println` trả về `void`.
-- `square` được định nghĩa trong trạng thái phiên JShell; bạn có thể gọi lại mà không khai báo lại ở mỗi dòng.
+- `square(5)` is a **method call expression** with return value `25`.
+- `System.out.println(square(5));` is a **method invocation statement** producing the side effect of printing `25`; `println` returns `void`.
+- `square` is defined in the JShell session state; you can call it again without redeclaring it on each line.
 
-Một method cần phù hợp kiểu trả về: `int square(int n) { return "abc"; }` bị từ chối do `String` không thể trở thành `int` trong phép `return` này.
+A method must match its return type: `int square(int n) { return "abc"; }` is rejected because `String` cannot become `int` in this `return` statement.
 
-## 6. Thử nhanh điều kiện, chuỗi và null
+## 6. Quickly testing conditions, strings, and null
 
-Nhập lần lượt:
+Enter in turn:
 
 ~~~java
 int amount = 300_000;
@@ -204,64 +204,64 @@ customer != null && !customer.isBlank()
 "Java".equals(customer)
 ~~~
 
-Giá trị các biểu thức boolean lần lượt là **`true`**, **`false`**, **`false`**.
+The boolean expression values in order are **`true`**, **`false`**, **`false`**.
 
-Phân tích:
+Analysis:
 
-- `&&` là toán tử ngắn mạch: khi `customer != null` là `false`, vế sau **không được đánh giá**, tránh gọi `isBlank()` trên `null`.
-- `"Java".equals(customer)` an toàn với `customer == null`, vì đối tượng gọi method là chuỗi literal khác null.
-- Với kiểu tham chiếu, `==` kiểm tra hai tham chiếu có cùng object hay không; nó không phải phép so sánh nội dung chuỗi chung cho mọi trường hợp.
+- `&&` is a short-circuit operator: when `customer != null` is `false`, the right-hand side is **not evaluated**, avoiding calling `isBlank()` on `null`.
+- `"Java".equals(customer)` is safe when `customer == null`, because the object on which the method is called is a non-null string literal.
+- For reference types, `==` checks whether two references point to the same object; it is not general string-content comparison in all cases.
 
-Thử điều kiện ba ngôi:
+Try a ternary condition:
 
 ~~~java
 String category = amount >= 300_000 ? "LON" : "NHO";
 category
 ~~~
 
-Kết quả là `"LON"`. Khi cần nhiều nhánh hoặc xử lý phức tạp, viết method và dùng `if` sẽ dễ đọc hơn ghép nhiều toán tử ba ngôi lồng nhau.
+The result is `"LON"`. When multiple branches or complex logic are needed, writing a method and using `if` is easier to read than nesting multiple ternary operators.
 
-## 7. Nhận diện lỗi từ phản hồi JShell
+## 7. Recognizing errors from JShell feedback
 
-JShell thử biên dịch snippet và báo lỗi khi cú pháp, tên hoặc kiểu không hợp lệ:
+JShell attempts to compile the snippet and reports errors when syntax, names, or types are invalid:
 
-| Thử trong JShell | Kết quả cần nhận ra |
+| Try in JShell | Result to recognize |
 |---|---|
-| `int age = "hai muoi";` | Lỗi kiểu: không thể gán `String` vào `int` |
-| `missing + 1` | Lỗi tên: biến `missing` chưa được định nghĩa |
-| `square("5")` | Lỗi truyền đối số không phù hợp với `square(int)` |
-| `7 / 0` | Phép chia nguyên cho 0 gây `ArithmeticException` **khi đánh giá** |
-| `String s = null; s.length()` | `NullPointerException` khi gọi method qua `null` |
-| `int x = Integer.MAX_VALUE; x + 1` | Tràn số `int`, kết quả là `-2147483648` |
+| `int age = "hai muoi";` | Type error: cannot assign `String` to `int` |
+| `missing + 1` | Name error: variable `missing` is not yet defined |
+| `square("5")` | Argument mismatch error for `square(int)` |
+| `7 / 0` | Integer division by 0 causes `ArithmeticException` **at evaluation time** |
+| `String s = null; s.length()` | `NullPointerException` when calling a method through `null` |
+| `int x = Integer.MAX_VALUE; x + 1` | `int` overflow, resulting in `-2147483648` |
 
-Câu chữ cụ thể của thông báo lỗi có thể khác giữa các phiên bản JDK, nên hãy đọc **loại lỗi** và snippet gây lỗi thay vì học thuộc toàn bộ chuỗi thông báo.
+The exact wording of error messages can vary between JDK versions, so read the **error category** and offending snippet instead of memorizing the entire message string.
 
-Nếu một snippet lỗi bị từ chối, các snippet hợp lệ trước đó thông thường vẫn có trong trạng thái phiên; bạn có thể sửa và nhập lại.
+If an erroneous snippet is rejected, previously valid snippets normally remain in the session state; you can fix and re-enter it.
 
-Một biểu thức có thể **đúng cú pháp mà sai ý định**. Chẳng hạn `7 / 2` trả `3` chính xác theo quy tắc chia nguyên của Java, nhưng nếu bài toán yêu cầu `3.5` thì bạn cần đổi biểu thức sang `7.0 / 2`. JShell giúp quan sát hành vi, không thể tự đoán yêu cầu nghiệp vụ của bạn.
+An expression can be **syntactically valid yet wrong in intent**. For instance, `7 / 2` returns `3` accurately per Java's integer division rules, yet if the problem requires `3.5`, you need to change the expression to `7.0 / 2`. JShell helps you observe behavior; it cannot guess your business requirements.
 
-## 8. Lệnh JShell để xem và quản lý phiên
+## 8. JShell commands to inspect and manage the session
 
-Những lệnh mở đầu bằng dấu `/` là **lệnh riêng của JShell**, không phải phép chia hay cú pháp Java.
+Commands starting with `/` are **JShell-specific commands**, not division operators or Java syntax.
 
-| Lệnh | Tác dụng |
+| Command | Effect |
 |---|---|
-| `/help` | Xem trợ giúp và các lệnh hỗ trợ |
-| `/help intro` | Xem hướng dẫn nhập môn |
-| `/vars` | Liệt kê biến trong phiên |
-| `/methods` | Liệt kê các method đã khai báo |
-| `/types` | Liệt kê các kiểu đã định nghĩa |
-| `/imports` | Xem các import đang dùng |
-| `/list` | Hiển thị các snippet trong phiên kèm ID |
-| `/drop <id-or-name>` | Bỏ snippet/khai báo đã chọn |
-| `/reset` | Đặt lại trạng thái snippets, hữu ích khi muốn làm từ đầu |
-| `/save <file>` | Lưu các snippet dưới dạng văn bản nguồn |
-| `/open <file>` | Nạp và thực hiện snippets từ tệp |
-| `/exit` | Thoát JShell |
+| `/help` | View help and supported commands |
+| `/help intro` | View the introductory guide |
+| `/vars` | List variables in the session |
+| `/methods` | List declared methods |
+| `/types` | List defined types |
+| `/imports` | View active imports |
+| `/list` | Display snippets in the session with IDs |
+| `/drop <id-or-name>` | Drop the selected snippet/declaration |
+| `/reset` | Reset snippet state, useful when starting fresh |
+| `/save <file>` | Save snippets as source text |
+| `/open <file>` | Load and execute snippets from a file |
+| `/exit` | Exit JShell |
 
-Các ID cụ thể phụ thuộc lịch sử phiên. Hãy xem `/list` để xác định ID trước khi dùng `/drop`. Không chọn ID theo ảnh chụp của người khác.
+Specific IDs depend on session history. Check `/list` to find the ID before using `/drop`. Do not pick IDs from someone else's screenshot.
 
-Ví dụ:
+Example:
 
 ~~~text
 jshell> /vars
@@ -271,11 +271,11 @@ jshell> /reset
 jshell> /exit
 ~~~
 
-Sau `/reset`, thử gọi lại `square(5)`: nếu bạn chưa nhập lại định nghĩa `square`, JShell không còn tìm thấy method ấy. Đây là cách chứng minh trạng thái JShell **thuộc phiên tương tác**, không tự trở thành một class trong dự án.
+After `/reset`, try calling `square(5)` again: if you have not re-entered the definition of `square`, JShell no longer finds that method. This demonstrates that JShell state **belongs to the interactive session**, and does not automatically become a class in a project.
 
-## 9. Lưu một bài thử JShell để dùng lại
+## 9. Saving a JShell exercise for reuse
 
-Bạn có thể tạo tệp tên **`practice.jsh`** bằng editor, chứa các snippet Java sau (không cần `package`, không cần `main`):
+You can create a file named **`practice.jsh`** with an editor, containing the following Java snippets (no `package`, no `main` needed):
 
 ~~~java
 int price = 50_000;
@@ -291,7 +291,7 @@ subtotal
 discounted(subtotal, 10)
 ~~~
 
-Từ JShell, trong thư mục chứa tệp, nhập:
+From JShell, in the directory containing the file, type:
 
 ~~~text
 /open practice.jsh
@@ -299,15 +299,15 @@ Từ JShell, trong thư mục chứa tệp, nhập:
 /methods
 ~~~
 
-**Kết quả giá trị cần xác nhận:** `subtotal = 100000`, `discounted(subtotal, 10) = 90000`. Dạng hiển thị còn phụ thuộc cấu hình feedback của JShell.
+**Values to confirm:** `subtotal = 100000`, `discounted(subtotal, 10) = 90000`. Display formatting also depends on JShell's feedback settings.
 
-Tệp `.jsh` dùng để lưu các snippet phiên, không phải một class Java biên dịch được bằng `javac practice.jsh`. Nếu muốn lưu trực tiếp những snippet bạn đã nhập trong phiên, dùng `/save practice.jsh`, rồi có thể `/reset` và `/open practice.jsh` để thử lại.
+A `.jsh` file stores session snippets, not a Java class compilable with `javac practice.jsh`. If you want to directly save the snippets you typed in the session, use `/save practice.jsh`, and then you can `/reset` and `/open practice.jsh` to retry.
 
-**Giới hạn số học của demo:** method `discounted` trong file chỉ dùng giá nhỏ cho bài thử nhanh; việc `amount * (100 - percent)` có thể tràn `long`, và ép `long` sang `int` có thể mất thông tin. Vì vậy không dùng đoạn này làm mô-đun tính tiền sản xuất. Ở bài tập cuối, bạn sẽ sửa cả công thức lẫn kiểu trả về.
+**Arithmetic limitation of the demo:** the `discounted` method in the file uses small amounts only for quick testing; `amount * (100 - percent)` can overflow `long`, and casting `long` to `int` can lose information. Therefore, do not use this snippet as a production billing module. In the final exercise, you will fix both the formula and the return type.
 
-### Chạy file snippet từ terminal
+### Running a snippet file from the terminal
 
-JShell có thể được khởi động với file snippets, ví dụ từ thư mục có `practice.jsh`:
+JShell can be launched with a snippet file, for example from the directory containing `practice.jsh`:
 
 **Bash:**
 
@@ -321,11 +321,11 @@ jshell practice.jsh
 jshell .\practice.jsh
 ~~~
 
-Dù chạy theo cách nào, các snippets được đánh giá trong JShell; bạn không có một file class ứng dụng chứa `public static void main` chỉ nhờ lưu `.jsh`.
+Either way, the snippets are evaluated inside JShell; you do not get an application class file with `public static void main` merely by saving `.jsh`.
 
-## 10. Từ JShell sang một chương trình Java hoàn chỉnh
+## 10. From JShell to a complete Java program
 
-Khi một ý tưởng đã được thử, hãy chuyển thành class có `main` để đóng gói và chạy lặp lại có chủ đích. Tạo **`Experiment.java`**:
+Once an idea has been tested, move it into a class with `main` for packaging and repeatable intentional execution. Create **`Experiment.java`**:
 
 ~~~java
 public final class Experiment {
@@ -342,7 +342,7 @@ public final class Experiment {
 }
 ~~~
 
-Chạy bằng **JDK 17+**:
+Run with **JDK 17+**:
 
 **Bash:**
 
@@ -360,33 +360,33 @@ java Experiment
 java Experiment 7
 ~~~
 
-Đầu ra của hai lần chạy tương ứng:
+Outputs from the two runs respectively:
 
 ~~~text
 Binh phuong: 25
 Binh phuong: 49
 ~~~
 
-Bài này cố tình phân biệt: nhập `square(5)` trong JShell dùng **trạng thái snippet của phiên**; chạy `java Experiment` dùng **class đã biên dịch có `main`**. Hai cách bổ sung nhau, không thay thế nhau trong mọi tình huống.
+This lesson intentionally distinguishes: typing `square(5)` in JShell uses **session snippet state**; running `java Experiment` uses **a compiled class with `main`**. Both approaches complement each other rather than replacing one another in all situations.
 
-Với đối số không phải số nguyên, `Integer.parseInt` có thể ném `NumberFormatException`. Với số đủ lớn, `Math.multiplyExact` phát hiện tràn `int` bằng `ArithmeticException`. Chạy được với số 5 không có nghĩa chạy được với mọi đầu vào.
+With non-integer arguments, `Integer.parseInt` may throw `NumberFormatException`. With sufficiently large numbers, `Math.multiplyExact` detects `int` overflow with `ArithmeticException`. Running with 5 does not mean it works for every input.
 
-## 11. Một phiên thực hành có cấu trúc
+## 11. A structured practice session
 
-Thực hiện các bước sau trong một phiên JShell mới, ghi lại **giá trị thực**, không chỉ dòng bạn nhập:
+Follow these steps in a fresh JShell session, recording the **actual values**, not just the lines you type:
 
-1. Mở `jshell`; dùng `/help intro` nếu chưa quen.
-2. Tính `9 / 4` và `9.0 / 4`; giải thích vì sao là `2` và `2.25`.
-3. Tạo `int price = 75_000;` và `int count = 2;`. Thử `price * count`.
-4. Đổi `count = 3;`; kiểm tra lại biểu thức. Nếu đã gán kết quả vào biến riêng, quan sát giá trị cũ có tự đổi hay không.
-5. Khai báo `long total(long unitPrice, int quantity)` với `Math.multiplyExact` và từ chối số lượng âm; gọi method với ít nhất ba đầu vào.
-6. Nhập `/vars`, `/methods`, `/list` và chỉ ra những snippet đã tạo.
-7. Thử một lỗi kiểu, một lỗi tên và một exception runtime; ghi lại khác biệt.
-8. Lưu phiên bằng `/save`, mở lại sau `/reset` và xác minh có thể tái tạo các phép thử.
+1. Open `jshell`; use `/help intro` if unfamiliar.
+2. Compute `9 / 4` and `9.0 / 4`; explain why they are `2` and `2.25`.
+3. Create `int price = 75_000;` and `int count = 2;`. Try `price * count`.
+4. Change `count = 3;`; recheck the expression. If you assigned the result to a separate variable, observe whether the old value updates automatically.
+5. Declare `long total(long unitPrice, int quantity)` with `Math.multiplyExact` and reject negative quantities; call the method with at least three inputs.
+6. Type `/vars`, `/methods`, `/list` and point out which snippets were created.
+7. Try one type error, one name error, and one runtime exception; note the differences.
+8. Save the session with `/save`, reopen after `/reset`, and verify the tests can be reproduced.
 
-### Bảng kết quả gợi ý
+### Suggested results table
 
-| Thử nghiệm | Giá trị/kết quả cần xác nhận |
+| Test | Value/result to confirm |
 |---|---|
 | `9 / 4` | `2` |
 | `9.0 / 4` | `2.25` |
@@ -394,15 +394,15 @@ Thực hiện các bước sau trong một phiên JShell mới, ghi lại **giá
 | `75_000 * 3` | `225000` |
 | `Math.multiplyExact(75_000L, 3L)` | `225000` |
 | `"hello".substring(1, 4)` | `"ell"` |
-| `(String) null` rồi gọi `.length()` | `NullPointerException` khi method được gọi |
+| `(String) null` then call `.length()` | `NullPointerException` when the method is called |
 
-## 12. Bài tập kèm hướng dẫn đáp án
+## 12. Exercises with solution guides
 
-### Bài A — viết phương thức kiểm tra điểm
+### Exercise A — write a score-checking method
 
-Tạo `boolean passed(int score)` trả `true` khi `score >= 50`; từ chối điểm dưới 0 hoặc trên 100 bằng `IllegalArgumentException`.
+Create `boolean passed(int score)` returning `true` when `score >= 50`; reject scores below 0 or above 100 with `IllegalArgumentException`.
 
-Một đáp án:
+One solution:
 
 ~~~java
 boolean passed(int score) {
@@ -413,11 +413,11 @@ boolean passed(int score) {
 }
 ~~~
 
-Thử `passed(49)`, `passed(50)`, `passed(100)`, `passed(101)`. Kỳ vọng: `false`, `true`, `true`, rồi exception. Ngưỡng đúng `50` kiểm tra được sự khác biệt giữa `>` và `>=`.
+Test `passed(49)`, `passed(50)`, `passed(100)`, `passed(101)`. Expected: `false`, `true`, `true`, then an exception. The exact boundary `50` tests the difference between `>` and `>=`.
 
-### Bài B — sửa kiểu trả về và tràn số
+### Exercise B — fix return type and overflow
 
-Trong `practice.jsh`, thay đoạn tính tiền bằng phương thức trả `long`, giới hạn đầu vào và dùng các phép toán an toàn hơn:
+In `practice.jsh`, replace the billing calculation with a method returning `long`, constraining inputs and using safer operations:
 
 ~~~java
 long discounted(long amount, int percent) {
@@ -430,25 +430,25 @@ long discounted(long amount, int percent) {
 }
 ~~~
 
-`discounted(100_000L, 10)` cho `90000`. Khi `amount` rất lớn, `multiplyExact` có thể ném exception thay vì âm thầm tạo số sai. Đây là **cách phát hiện tràn**, chưa phải giải pháp tính mọi số `long` lớn; muốn tính chính xác trên toàn miền có thể dùng `BigInteger` hoặc thay đổi thuật toán theo yêu cầu nghiệp vụ.
+`discounted(100_000L, 10)` gives `90000`. When `amount` is very large, `multiplyExact` can throw an exception instead of silently producing a wrong number. This is an **overflow detection approach**, not yet a solution to compute arbitrarily large `long` values; to compute accurately across the entire range you can use `BigInteger` or change the algorithm per business requirements.
 
-### Bài C — giải thích trạng thái phiên
+### Exercise C — explain session state
 
-Sau `/reset`, gọi `passed(50)` trước khi định nghĩa lại method. Vì sao không hoạt động?
+After `/reset`, call `passed(50)` before redefining the method. Why does it not work?
 
-**Đáp án:** snippet định nghĩa `passed` thuộc trạng thái phiên đã được xóa; JShell không lưu method đó như một class trên classpath để các phiên sau tự nạp. Hãy nhập lại, dùng `/open` với file snippet phù hợp hoặc viết mã nguồn `.java` có cấu trúc.
+**Answer:** the snippet defining `passed` belonged to the cleared session state; JShell does not store that method as a class on the classpath for future sessions to load automatically. Re-enter it, use `/open` with an appropriate snippet file, or write structured `.java` source code.
 
-## 13. Checklist hoàn thành
+## 13. Completion checklist
 
-- [ ] Mở được JShell từ JDK 17+ trên Bash hoặc PowerShell.
-- [ ] Phân biệt lệnh terminal (`jshell`, `javac`, `java`) với lệnh bên trong JShell (`/vars`, `/list`, `/exit`).
-- [ ] Đánh giá được các biểu thức số học, chuỗi, boolean và giải thích được kiểu kết quả.
-- [ ] Khai báo, đọc và cập nhật biến; hiểu biến lưu giá trị, không phải công thức tự cập nhật.
-- [ ] Khai báo và gọi phương thức có tham số/kiểu trả về.
-- [ ] Phân biệt lỗi biên dịch snippet và exception khi đánh giá.
-- [ ] Dùng `/vars`, `/methods`, `/list`, `/reset` để quan sát trạng thái.
-- [ ] Lưu/mở `.jsh`, hiểu nó không tương đương class Java có `main`.
-- [ ] Biên dịch và chạy `Experiment.java` với đầu ra dự kiến.
-- [ ] Nhận ra hạn chế của JShell: phù hợp để thử nhanh, không thay thế tests/build của dự án.
+- [ ] Can launch JShell from JDK 17+ in Bash or PowerShell.
+- [ ] Distinguish terminal commands (`jshell`, `javac`, `java`) from internal JShell commands (`/vars`, `/list`, `/exit`).
+- [ ] Can evaluate arithmetic, string, and boolean expressions and explain result types.
+- [ ] Can declare, read, and update variables; understand variables store values, not self-updating formulas.
+- [ ] Can declare and invoke methods with parameters/return types.
+- [ ] Distinguish snippet compilation errors from evaluation-time exceptions.
+- [ ] Use `/vars`, `/methods`, `/list`, `/reset` to inspect state.
+- [ ] Save/open `.jsh`, understanding it is not equivalent to a Java class with `main`.
+- [ ] Compile and run `Experiment.java` with expected output.
+- [ ] Recognize JShell's limitations: suitable for quick experiments, does not replace project tests/builds.
 
-**Kết luận:** JShell là phòng thực hành ngắn gọn để học cách Java đánh giá biểu thức, lưu biến và gọi phương thức. Hãy quan sát kết quả và lỗi thực tế, hiểu trạng thái của phiên, rồi chuyển những đoạn mã cần kiểm thử và tái sử dụng lâu dài sang tệp `.java` với `main` hoặc bộ test thích hợp.
+**Conclusion:** JShell is a concise laboratory for learning how Java evaluates expressions, stores variables, and invokes methods. Observe actual results and errors, understand session state, and then move code that needs long-term testing and reuse into `.java` files with `main` or an appropriate test suite.

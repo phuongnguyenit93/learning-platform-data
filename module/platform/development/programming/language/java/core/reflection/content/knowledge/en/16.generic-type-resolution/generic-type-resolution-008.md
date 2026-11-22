@@ -1,38 +1,38 @@
-# Mẫu type token và anonymous subclass trong Java Reflection
+# Type Token Pattern and Anonymous Subclasses in Java Reflection
 
-## 1. Vì sao cần type token?
+## 1. Why do we need a type token?
 
-Trong Java, kiểu generic giúp trình biên dịch kiểm tra tính an toàn kiểu nhưng phần lớn tham số kiểu bị **type erasure** khi chạy. Chẳng hạn, cả `List<String>` và `List<Integer>` cùng có raw class là `java.util.List`. Biểu thức `List<String>.class` không hợp lệ; `List.class` chỉ biểu diễn raw type.
+In Java, generic types help the compiler check type safety, yet most type parameters undergo **type erasure** at runtime. For example, both `List<String>` and `List<Integer>` share the raw class `java.util.List`. The expression `List<String>.class` is illegal; `List.class` only represents the raw type.
 
-Tuy vậy, Java có thể lưu **chữ ký generic được khai báo** trong metadata của lớp, field, method hoặc superclass. Reflection có thể đọc chữ ký đó dưới dạng `java.lang.reflect.Type`. Mẫu **type token** sử dụng một đối tượng đại diện cho mô tả kiểu, để truyền kiểu phức tạp như `List<String>` hoặc `Map<String, List<Integer>>` tới một API cần thông tin kiểu.
+Even so, Java can store **declared generic signatures** in metadata of a class, field, method, or superclass. Reflection can read that signature as a `java.lang.reflect.Type`. The **type token** pattern uses an object representing a type description to pass complex types such as `List<String>` or `Map<String, List<Integer>>` to an API that needs type information.
 
-Phân biệt hai trường hợp:
+Distinguish two cases:
 
-- **Class token**: `String.class`, `List.class` hoặc `Class<T>` phù hợp khi chỉ cần danh tính lớp/raw type.
-- **Generic type token**: `Type` mô tả cả cấu trúc generic được khai báo, ví dụ `List<String>`, kiểu lồng nhau, wildcard hoặc mảng generic. Không phải mọi `Type` đều là `Class<?>`.
+- **Class token**: `String.class`, `List.class`, or `Class<T>` is suitable when only class/raw type identity is needed.
+- **Generic type token**: `Type` describes the entire declared generic structure, such as `List<String>`, nested types, wildcards, or generic arrays. Not every `Type` is a `Class<?>`.
 
-Type token **không đảo ngược type erasure của một đối tượng bất kỳ**. Nó đọc thông tin generic còn được lưu ở một vị trí khai báo cụ thể.
+A type token **does not reverse type erasure on an arbitrary object**. It reads generic information preserved at a specific declaration site.
 
-## 2. Anonymous subclass giúp giữ đối số generic như thế nào?
+## 2. How does an anonymous subclass preserve generic arguments?
 
-Đây là cách dùng thường gặp:
+This is a common usage:
 
 ~~~java
 Type type = new TypeRef<List<String>>() {}.type();
 ~~~
 
-Dấu `{}` tạo ra **anonymous subclass** của `TypeRef<List<String>>`. Trình biên dịch lưu chữ ký generic của superclass trên lớp ẩn danh. Khi đối tượng được tạo:
+The `{}` creates an **anonymous subclass** of `TypeRef<List<String>>`. The compiler stores the generic signature of the superclass on the anonymous class. When the object is created:
 
-1. `getClass()` trả về `Class` của anonymous subclass, **không phải** chính `TypeRef.class`.
-2. `getClass().getGenericSuperclass()` đọc kiểu superclass đã khai báo, tức `TypeRef<List<String>>`.
-3. Giá trị nhận được là một `ParameterizedType`; `getActualTypeArguments()[0]` chính là `List<String>`, vẫn ở dạng `Type`.
-4. Có thể giữ `Type` này để đưa cho thư viện xử lý dữ liệu hoặc để phân tích tiếp bằng Reflection.
+1. `getClass()` returns the `Class` of the anonymous subclass, **not** `TypeRef.class` itself.
+2. `getClass().getGenericSuperclass()` reads the declared superclass type, namely `TypeRef<List<String>>`.
+3. The value obtained is a `ParameterizedType`; `getActualTypeArguments()[0]` is `List<String>`, still as a `Type`.
+4. This `Type` can be retained to pass to a data-processing library or to inspect further with Reflection.
 
-Cú pháp `new TypeRef<List<String>>()` **không có** `{}` sẽ không tạo được đối tượng trong ví dụ bên dưới vì `TypeRef` là lớp `abstract`. Quan trọng hơn, anonymous subclass là nơi có **chữ ký generic cụ thể** để đọc. Mẫu này đôi khi được gọi là *super type token*.
+The syntax `new TypeRef<List<String>>()` **without** `{}` cannot instantiate an object in the example below because `TypeRef` is an `abstract` class. More importantly, the anonymous subclass is what carries a **concrete generic signature** to read. This pattern is sometimes called a *super type token*.
 
-## 3. Tự xây dựng một TypeRef đơn giản, chạy được trên Java 17+
+## 3. Building a simple TypeRef runnable on Java 17+
 
-Lưu mã sau thành `TypeTokenDemo.java`:
+Save the following code as `TypeTokenDemo.java`:
 
 ~~~java
 import java.lang.reflect.ParameterizedType;
@@ -49,7 +49,7 @@ public class TypeTokenDemo {
             if (!(parent instanceof ParameterizedType parameterized)
                     || parameterized.getRawType() != TypeRef.class) {
                 throw new IllegalStateException(
-                        "Phải kế thừa TypeRef<T> với đối số kiểu cụ thể");
+                        "Must subclass TypeRef<T> with a concrete type argument");
             }
             type = parameterized.getActualTypeArguments()[0];
         }
@@ -86,7 +86,7 @@ public class TypeTokenDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac --release 17 TypeTokenDemo.java
@@ -105,76 +105,76 @@ java.util.List<java.lang.Integer>
 true
 ~~~
 
-Giải thích các kết quả:
+Explanation of results:
 
-- `a` và `c` có raw type giống nhau (`List`) nhưng đối số generic khác nhau (`String` và `Integer`), nên phép so sánh `Type.equals` cho kết quả `false`.
-- `b` là `ParameterizedType` cho `Map<String, List<Integer>>`. `getRawType()` trả về `Map.class`; hai phần tử `getActualTypeArguments()` lần lượt là `String.class` và một `ParameterizedType` cho `List<Integer>`.
-- Field `names` khai báo trực tiếp `List<String>` nên `Field.getGenericType()` cho một mô tả kiểu tương đương `a`; kết quả so sánh là `true`. Không cần tạo instance của `Example` để đọc khai báo field.
-- Constructor của `TypeRef` chặn trường hợp kế thừa trực tiếp bằng raw type hoặc không khai báo `TypeRef<T>` dưới dạng superclass được tham số hóa. Triển khai đơn giản này **chỉ hỗ trợ lớp kế thừa trực tiếp `TypeRef<...>`**, không tự lần theo nhiều tầng kế thừa.
+- `a` and `c` have the same raw type (`List`) but different generic arguments (`String` and `Integer`), so `Type.equals` evaluates to `false`.
+- `b` is a `ParameterizedType` for `Map<String, List<Integer>>`. `getRawType()` returns `Map.class`; the two elements of `getActualTypeArguments()` are `String.class` and a `ParameterizedType` for `List<Integer>`, respectively.
+- Field `names` directly declares `List<String>`, so `Field.getGenericType()` gives a type description equivalent to `a`; the comparison result is `true`. No instance of `Example` is needed to read the field declaration.
+- The `TypeRef` constructor rejects direct subclassing with a raw type or failing to declare `TypeRef<T>` as a parameterized superclass. This simple implementation **only supports classes directly extending `TypeRef<...>`** and does not walk multi-level inheritance.
 
-Chữ ký generic được đọc từ cấu trúc lớp đã biên dịch; thao tác này **không kiểm tra nội dung thực tế** của một `List` tại runtime. Mẫu `TypeRef` cũng không tự giải mã JSON, chuyển đổi dữ liệu hay xác minh từng phần tử.
+The generic signature is read from the compiled class structure; this operation **does not check the actual runtime contents** of a `List`. The `TypeRef` pattern also does not parse JSON, convert data, or validate individual elements on its own.
 
-## 4. Đọc cây Type đúng cách
+## 4. Reading the Type tree properly
 
-`Type` là một interface chung. Kết quả đọc được có thể thuộc các loại sau:
+`Type` is a common interface. Values read can belong to the following kinds:
 
-| Loại Reflection | Ví dụ | Ý nghĩa và API chính |
+| Reflection kind | Example | Meaning and main APIs |
 | --- | --- | --- |
-| `Class<?>` | `String.class`, `List.class`, `String[].class` | Lớp hoặc mảng có kiểu thành phần reifiable; `getTypeName()` |
-| `ParameterizedType` | `List<String>`, `Map<String, Integer>` | Raw type, owner type và đối số kiểu; `getRawType()`, `getOwnerType()`, `getActualTypeArguments()` |
-| `TypeVariable<?>` | `T` trong `class Box<T>` | Biến kiểu từ khai báo; `getName()`, `getBounds()`, `getGenericDeclaration()` |
-| `WildcardType` | `? extends Number`, `? super Integer` | Cận trên/dưới; `getUpperBounds()`, `getLowerBounds()` |
-| `GenericArrayType` | `List<String>[]`, `T[]` | Mảng có kiểu thành phần không reifiable; `getGenericComponentType()` |
+| `Class<?>` | `String.class`, `List.class`, `String[].class` | Class or array with reifiable component type; `getTypeName()` |
+| `ParameterizedType` | `List<String>`, `Map<String, Integer>` | Raw type, owner type, and type arguments; `getRawType()`, `getOwnerType()`, `getActualTypeArguments()` |
+| `TypeVariable<?>` | `T` in `class Box<T>` | Type variable from a declaration; `getName()`, `getBounds()`, `getGenericDeclaration()` |
+| `WildcardType` | `? extends Number`, `? super Integer` | Upper/lower bounds; `getUpperBounds()`, `getLowerBounds()` |
+| `GenericArrayType` | `List<String>[]`, `T[]` | Array with non-reifiable component type; `getGenericComponentType()` |
 
-Ví dụ `new TypeRef<List<? extends Number>>() {}.type()` có nút ngoài là `ParameterizedType` cho `List`; đối số kiểu của nút này là `WildcardType`. Với `new TypeRef<List<String>[]>() {}.type()`, nút ngoài thường là `GenericArrayType` có component là `ParameterizedType` cho `List<String>`.
+For example, `new TypeRef<List<? extends Number>>() {}.type()` has an outer node that is a `ParameterizedType` for `List`; that node's type argument is a `WildcardType`. For `new TypeRef<List<String>[]>() {}.type()`, the outer node is typically a `GenericArrayType` whose component is a `ParameterizedType` for `List<String>`.
 
-Muốn phân tích chính xác generic lồng nhau, cần duyệt đệ quy theo **loại nút**; không ép tất cả kết quả về `Class<?>`. Ví dụ kiểm tra một `Type` trước khi xử lý:
+To analyze nested generics accurately, traverse recursively by **node kind**; do not cast every result to `Class<?>`. Example of checking a `Type` before handling it:
 
 ~~~java
 if (type instanceof ParameterizedType p) {
     Type raw = p.getRawType();
     Type[] args = p.getActualTypeArguments();
-    // Tiếp tục kiểm tra loại của từng phần tử args.
+    // Continue checking the kind of each element in args.
 } else if (type instanceof Class<?> cls) {
-    // Kiểu lớp, primitive hoặc mảng reifiable.
+    // Class type, primitive, or reifiable array.
 } else if (type instanceof TypeVariable<?> tv) {
-    // Tên và bounds của biến kiểu; chưa chắc đã là kiểu cụ thể.
+    // Name and bounds of the type variable; not necessarily a concrete type.
 }
 ~~~
 
-Đoạn trên là **mảnh mã minh họa** với biến `type` đã có sẵn; phần chương trình hoàn chỉnh ở mục 3 có thể chạy độc lập.
+The snippet above is an **illustrative code fragment** assuming `type` is already available; the complete program in section 3 can run standalone.
 
-Các nguồn Reflection khác cũng cung cấp `Type`: `Field.getGenericType()`, `Method.getGenericReturnType()`, `Method.getGenericParameterTypes()`, `Class.getGenericInterfaces()` và `Class.getGenericSuperclass()`. Nếu dùng các phiên bản **không có “Generic”**, như `Field.getType()` hoặc `Method.getReturnType()`, kết quả chỉ là `Class<?>` sau erasure.
+Other Reflection sources also provide `Type`: `Field.getGenericType()`, `Method.getGenericReturnType()`, `Method.getGenericParameterTypes()`, `Class.getGenericInterfaces()`, and `Class.getGenericSuperclass()`. Using the versions **without "Generic"**, such as `Field.getType()` or `Method.getReturnType()`, yields only the post-erasure `Class<?>`.
 
-## 5. Áp dụng khi thiết kế API
+## 5. Applying when designing APIs
 
-Khi một hàm cần biết cấu trúc kiểu đích để phân tích dữ liệu, nên để nó nhận `Type` (hoặc một abstraction tương đương), thay vì chỉ nhận `Class<?>`. Cách gọi phía client có thể là:
+When a function needs to know the target type structure to parse data, have it accept `Type` (or an equivalent abstraction) rather than accepting only `Class<?>`. Client-side call sites can look like:
 
 ~~~java
 Type listOfNames = new TypeRef<List<String>>() {}.type();
 Type index = new TypeRef<Map<String, List<Integer>>>() {}.type();
 ~~~
 
-Hai biến trên là mô tả kiểu, thích hợp làm đầu vào cho API **có hỗ trợ `Type`**. API đó phải tự định nghĩa cách dùng `ParameterizedType`, wildcard và các kiểu lồng nhau; `TypeRef` chỉ làm nhiệm vụ giữ và cung cấp thông tin kiểu.
+These two variables are type descriptions suitable as inputs for an API **that supports `Type`**. That API must define how to handle `ParameterizedType`, wildcards, and nested types; `TypeRef` only holds and supplies type information.
 
-Đối với type đơn giản, `String.class` thường đủ và gọn hơn. Đối với kiểu khai báo trong một class cụ thể, đọc từ field/method bằng Reflection có thể phù hợp hơn việc tạo anonymous subclass mới. Nhiều thư viện có sẵn loại tương tự (chẳng hạn `TypeToken` hoặc `TypeReference`); tên API, khả năng hỗ trợ biến kiểu và cách tạo token có thể khác nhau giữa thư viện.
+For simple types, `String.class` is usually sufficient and cleaner. For types declared inside a specific class, reading from a field/method via Reflection can be more appropriate than creating a new anonymous subclass. Many libraries already include similar types (such as `TypeToken` or `TypeReference`); API names, type variable support, and token creation methods can vary across libraries.
 
-## 6. Những giới hạn và lỗi dễ gặp
+## 6. Common limitations and mistakes
 
-### 6.1. Không thể suy ra generic của đối tượng thường
+### 6.1. Cannot infer generics of an ordinary object
 
 ~~~java
 List<String> names = new java.util.ArrayList<>();
 System.out.println(names.getClass() == java.util.ArrayList.class);
 ~~~
 
-Kết quả là `true`. Runtime class của instance là `ArrayList`, không mang riêng đối số `String` của biến `names`. `names.getClass().getGenericSuperclass()` cho biết khai báo superclass generic của **lớp ArrayList**, không chứng minh list đó có các phần tử `String`.
+The result is `true`. The runtime class of the instance is `ArrayList`, which does not carry the `String` argument of the `names` variable. `names.getClass().getGenericSuperclass()` gives the generic superclass declaration of the **ArrayList class**, not proving the list holds `String` elements.
 
-Không thể dùng `new TypeRef<>(...)` để “đọc ngược” kiểu generic đã mất từ một instance tùy ý nếu không có metadata khai báo bổ sung.
+You cannot use `new TypeRef<>(...)` to "read back" lost generic types from an arbitrary instance without additional declaration metadata.
 
-### 6.2. Bắt được biến kiểu chưa chắc bắt được kiểu cụ thể
+### 6.2. Capturing a type variable does not guarantee capturing a concrete type
 
-Trong một phương thức generic:
+Inside a generic method:
 
 ~~~java
 static <T> Type captureInGenericMethod() {
@@ -182,26 +182,26 @@ static <T> Type captureInGenericMethod() {
 }
 ~~~
 
-`Type` tạo ra mô tả `List<T>`, trong đó `T` là một `TypeVariable` của khai báo phương thức. Dù gọi từ ngữ cảnh có đối số là `String`, không thể tự suy ra `List<String>` chỉ từ token này. Muốn kiểu cụ thể, hãy truyền vào một `Type` đã được xác định hoặc có cơ chế giải quyết biến kiểu từ ngữ cảnh phù hợp. Đoạn trên giả định `TypeRef` của mục 3 và import `Type`; đây là minh họa, không phải chương trình độc lập.
+The resulting `Type` describes `List<T>`, where `T` is a `TypeVariable` of the method declaration. Even if called from a context whose argument is `String`, `List<String>` cannot be inferred automatically from this token alone. To obtain a concrete type, pass in an already resolved `Type` or provide a mechanism to resolve type variables from the appropriate context. The snippet above assumes `TypeRef` from section 3 and `Type` imported; it is illustrative, not a standalone program.
 
-### 6.3. Nhầm `ParameterizedType` với `Class`
+### 6.3. Confusing `ParameterizedType` with `Class`
 
-Ép kiểu `(Class<?>) new TypeRef<List<String>>() {}.type()` sẽ gây `ClassCastException` vì nút ngoài là `ParameterizedType`. Hãy kiểm tra bằng `instanceof` và chỉ lấy `getRawType()` khi thực sự cần raw type.
+Casting `(Class<?>) new TypeRef<List<String>>() {}.type()` will throw `ClassCastException` because the outer node is a `ParameterizedType`. Check with `instanceof` and only extract `getRawType()` when you genuinely need the raw type.
 
-### 6.4. Raw type và lớp kế thừa nhiều tầng
+### 6.4. Raw types and multi-level inheritance
 
-Viết `new TypeRef() {}` làm mất đối số kiểu và bị constructor ví dụ phát hiện. Với `class Mid<T> extends TypeRef<T>` rồi `class Final extends Mid<String>`, `Final.class.getGenericSuperclass()` là `Mid<String>`, không trực tiếp là `TypeRef<String>`; triển khai mục 3 sẽ từ chối. Một phiên bản tổng quát muốn hỗ trợ phân cấp nhiều tầng phải lần theo hierarchy và giải quyết ánh xạ `TypeVariable` qua từng cấp, thay vì chỉ đọc `getActualTypeArguments()[0]` ở cấp đầu.
+Writing `new TypeRef() {}` loses the type argument and is caught by the example constructor. For `class Mid<T> extends TypeRef<T>` and `class Final extends Mid<String>`, `Final.class.getGenericSuperclass()` is `Mid<String>`, not directly `TypeRef<String>`; the section 3 implementation will reject it. A general-purpose version supporting multi-level hierarchies must walk the hierarchy and resolve `TypeVariable` mappings across each level instead of reading only `getActualTypeArguments()[0]` at the first level.
 
-### 6.5. Đừng nhầm metadata với bảo đảm an toàn runtime
+### 6.5. Do not confuse metadata with runtime safety guarantees
 
-Token `List<String>` mô tả ý định kiểu. Nó không ngăn raw-type code thêm phần tử sai kiểu vào list và không biến kiểm tra `instanceof List<String>` thành hợp lệ. Việc validate/deserialize dữ liệu cần xử lý riêng, bao gồm kiểu con, null, wildcard và sai định dạng.
+A `List<String>` token describes type intent. It does not prevent raw-type code from adding wrong-type elements into the list and does not make `instanceof List<String>` valid. Data validation/deserialization must be handled separately, including subtypes, nulls, wildcards, and malformed formats.
 
-## 7. Ghi nhớ khi dùng Reflection generic
+## 7. Takeaways when using generic Reflection
 
-- Khi cần đối số generic **được khai báo trên superclass**, dùng `getGenericSuperclass()` và kiểm tra `ParameterizedType`.
-- Với một type token cụ thể, dùng `new TypeRef<KiểuĐích>() {}`; cặp `{}` là phần tạo subclass có chữ ký để Reflection đọc.
-- Sau khi lấy `Type`, duyệt các loại `Class`, `ParameterizedType`, `WildcardType`, `TypeVariable` và `GenericArrayType` theo nhu cầu. Không giả định mọi nút đều có class trực tiếp.
-- Phân biệt **kiểu được khai báo** với **kiểu của dữ liệu khi đang chạy**; type erasure vẫn áp dụng.
-- Chỉ sử dụng token với API hiểu `Type`. Kiểm thử riêng các trường hợp nested generic, wildcard, generic method và raw type nếu framework của bạn hỗ trợ chúng.
+- When you need generic arguments **declared on a superclass**, use `getGenericSuperclass()` and check `ParameterizedType`.
+- For a concrete type token, use `new TypeRef<TargetType>() {}`; the `{}` creates a subclass carrying a signature for Reflection to read.
+- After obtaining a `Type`, traverse `Class`, `ParameterizedType`, `WildcardType`, `TypeVariable`, and `GenericArrayType` as needed. Do not assume every node directly has a class.
+- Distinguish **declared types** from **runtime data types**; type erasure still applies.
+- Only pass tokens to APIs that understand `Type`. Separately test nested generics, wildcards, generic methods, and raw types if your framework supports them.
 
-Bản chất của mẫu này là **đưa một biểu thức generic cụ thể vào chữ ký superclass của một anonymous subclass**, rồi lấy lại mô tả đó qua Reflection. Đây là cách truyền thông tin kiểu giàu cấu trúc cho API mà vẫn tuân theo cơ chế type erasure của Java.
+The essence of this pattern is **placing a concrete generic expression into the superclass signature of an anonymous subclass**, then retrieving that description via Reflection. This is a way to pass richly structured type information to APIs while staying within Java's type erasure model.

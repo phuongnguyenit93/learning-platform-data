@@ -1,46 +1,46 @@
-# Khác biệt nhà cung cấp và dữ liệu giữa các phiên bản JDK
+# Provider and Data Differences Across JDK Versions
 
-## 1. Vì sao cùng mã Java nhưng kết quả bản địa hóa có thể thay đổi?
+## 1. Why can identical Java code yield changing localization outputs?
 
-`Locale` chỉ biểu diễn yêu cầu về ngôn ngữ, vùng lãnh thổ và một số tùy chọn. Nó **không phải bản sao cố định của dữ liệu** dùng để hiển thị ngày, số, tên tháng hoặc so sánh chuỗi. Những API như `NumberFormat`, `DateFormat`, `DateTimeFormatter` và `Collator` thường sử dụng dữ liệu locale có sẵn trong Java runtime.
+`Locale` merely represents a request for a language, region, and certain options. It is **not a fixed copy of the data** used to display dates, numbers, month names, or compare strings. APIs such as `NumberFormat`, `DateFormat`, `DateTimeFormatter`, and `Collator` typically draw upon locale data bundled in the Java runtime.
 
-Vì vậy, ứng dụng chạy cùng source code và cùng `Locale.FRANCE` vẫn có thể sinh chuỗi khác khi nâng cấp JDK, thay nhà cung cấp dữ liệu, chạy trên hệ điều hành khác hoặc dùng runtime image được đóng gói tối giản.
+Consequently, an application running the exact same source code and the same `Locale.FRANCE` can still produce different strings when upgrading the JDK, switching data providers, running on another OS, or using a minimally packaged runtime image.
 
-Ba thành phần phải phân biệt:
+Three components must be distinguished:
 
-| Thành phần | Ví dụ | Vai trò |
+| Component | Example | Role |
 | --- | --- | --- |
-| Định danh locale | `Locale.forLanguageTag("vi-VN")` | Yêu cầu quy tắc tiếng Việt tại Việt Nam |
-| API nhạy với locale | `NumberFormat`, `DateFormat`, `Collator` | Format, parse hoặc so sánh |
-| Nguồn dữ liệu | `CLDR`, `SPI`, `HOST`, legacy `COMPAT/JRE` | Cung cấp mẫu ngày, dấu số, tên hiển thị và quy tắc sắp xếp |
+| Locale identifier | `Locale.forLanguageTag("vi-VN")` | Requests Vietnamese conventions in Vietnam |
+| Locale-sensitive API | `NumberFormat`, `DateFormat`, `Collator` | Formats, parses, or compares |
+| Data source | `CLDR`, `SPI`, `HOST`, legacy `COMPAT/JRE` | Supplies date patterns, number symbols, display names, and sorting rules |
 
 ```text
-Locale yêu cầu
+Requested Locale
    ↓
-API locale-sensitive
+Locale-sensitive API
    ↓
-Thứ tự provider được JVM đọc lúc khởi động
+Provider order read by JVM at startup
    ├── CLDR
    ├── SPI
-   ├── HOST (nếu môi trường hỗ trợ)
-   └── COMPAT/JRE (dữ liệu cũ, chỉ trong các JDK trước 23)
+   ├── HOST (if supported by environment)
+   └── COMPAT/JRE (legacy data, only in JDKs prior to 23)
    ↓
-Chuỗi hiển thị / kết quả parse / thứ tự so sánh
+Display string / parse result / comparison order
 ```
 
-**Một locale hợp lệ không đồng nghĩa mọi API đều có đầy đủ dữ liệu riêng cho locale đó.** Một provider có thể hỗ trợ định dạng số nhưng thiếu một dịch vụ khác; runtime có thể xét provider/locale fallback. Khi muốn có hành vi được bảo đảm, cần thử đúng API trên runtime triển khai.
+**A valid locale does not mean every API has complete dedicated data for that locale.** A provider may support number formatting yet lack another service; the runtime may perform provider or locale fallback. When guaranteed behavior is needed, test the exact API on the deployment runtime.
 
-## 2. CLDR và các mốc JDK quan trọng
+## 2. CLDR and key JDK milestones
 
-CLDR (*Common Locale Data Repository*) là nguồn dữ liệu quốc tế hóa do Unicode Consortium duy trì. Các dữ liệu liên quan gồm mẫu hiển thị ngày/giờ, dấu grouping, dấu thập phân, tên tháng/ngày, tên vùng/ngôn ngữ, ký hiệu tiền tệ và một số quy tắc khác.
+CLDR (*Common Locale Data Repository*) is the internationalization data source maintained by the Unicode Consortium. Relevant data includes date/time display patterns, grouping separators, decimal separators, month/day names, region/language names, currency symbols, and various rules.
 
-- **JDK 8:** có dữ liệu legacy JRE; CLDR đã được tích hợp nhưng không phải nguồn mặc định ưu tiên như các bản sau.
-- **JDK 9:** dữ liệu CLDR trở thành nguồn mặc định được ưu tiên.
-- **JDK 9–22:** dữ liệu cũ `COMPAT` (alias lịch sử `JRE`) còn được cung cấp để hỗ trợ chuyển đổi.
-- **JDK 21:** việc chỉ định dữ liệu legacy được cảnh báo trước khi loại bỏ.
-- **JDK 23 trở đi:** legacy locale data `COMPAT/JRE` **đã bị loại bỏ**. Chỉ thêm tên `COMPAT` vào thuộc tính JVM không khôi phục dữ liệu cũ.
+- **JDK 8:** included legacy JRE data; CLDR was integrated but was not the default prioritized source as in later versions.
+- **JDK 9:** CLDR data became the default prioritized source.
+- **JDK 9–22:** legacy `COMPAT` data (historical alias `JRE`) remained available to ease migration.
+- **JDK 21:** specifying legacy data emitted warnings ahead of removal.
+- **JDK 23 onward:** legacy `COMPAT/JRE` locale data **was removed**. Merely adding `COMPAT` to the JVM property does not restore legacy data.
 
-Một số phiên bản CLDR theo tài liệu JDK:
+Selected CLDR versions per JDK documentation:
 
 | JDK | CLDR |
 | --- | --- |
@@ -52,55 +52,55 @@ Một số phiên bản CLDR theo tài liệu JDK:
 | 25 | 47 |
 | 26 | 48 |
 
-Các con số thể hiện **data version**, không có nghĩa tất cả locale đều thay đổi ở mỗi bản. Tuy vậy, dữ liệu khác nhau có thể làm test snapshot hoặc parser đọc chuỗi cũ thất bại. Dòng JDK có cùng Java language level không bảo đảm giống dữ liệu locale.
+These numbers denote **data versions**; not every locale changes in every release. Even so, data differences can break snapshot tests or parsers reading older strings. JDK releases sharing the same Java language level are not guaranteed to carry identical locale data.
 
-## 3. Bốn nhà cung cấp locale
+## 3. Four locale providers
 
 ### `CLDR`
 
-Provider mặc định được ưu tiên từ JDK 9, dựa trên dữ liệu CLDR đóng gói trong JDK. Bản JDK mới có thể chứa bản CLDR mới. Dùng rõ:
+The default prioritized provider since JDK 9, backed by CLDR data bundled in the JDK. Newer JDK releases may bundle newer CLDR versions. To specify explicitly:
 
 ```bash
 java -Djava.locale.providers=CLDR -cp . LocaleDataProbe
 ```
 
-Đây là ví dụ chạy chương trình `LocaleDataProbe` được định nghĩa ở phần sau.
+This example runs the `LocaleDataProbe` program defined later in this lesson.
 
 ### `COMPAT/JRE`
 
-Trong JDK 9–22, cung cấp dữ liệu tương thích với JDK trước 9. Có thể dùng để chẩn đoán migration từ JDK 8:
+In JDK 9–22, supplies data compatible with pre-JDK 9 behavior. Useful for diagnosing migrations from JDK 8:
 
 ```bash
 java -Djava.locale.providers=COMPAT,CLDR -cp . LocaleDataProbe
 ```
 
-Chỉ dùng thử trên các bản JDK **còn có legacy data**. Từ JDK 23, cơ chế này không còn là cách quay về định dạng legacy; nếu bắt buộc tương thích phải giữ một parser/mẫu riêng hoặc triển khai dịch vụ phù hợp.
+Use only for testing on JDK versions **that still retain legacy data**. Starting in JDK 23, this mechanism is no longer a way to revert to legacy formats; if strict compatibility is required, maintain a custom parser/pattern or implement an appropriate service.
 
 ### `SPI`
 
-*Service Provider Interface* cho phép ứng dụng cung cấp những dịch vụ locale qua các lớp như `NumberFormatProvider`, `DateFormatProvider`, `DecimalFormatSymbolsProvider`, `CollatorProvider` và `LocaleNameProvider`.
+*Service Provider Interface* allows applications to supply locale services via classes such as `NumberFormatProvider`, `DateFormatProvider`, `DecimalFormatSymbolsProvider`, `CollatorProvider`, and `LocaleNameProvider`.
 
-Provider có thể được đóng gói trên classpath bằng `META-INF/services/…` hoặc dưới dạng module khai báo `provides … with …`. Nó phải công bố những locale mà nó hỗ trợ. Muốn ưu tiên provider ngoài, có thể dùng:
+A provider can be packaged on the classpath via `META-INF/services/…` or as a module declaring `provides … with …`. It must advertise the locales it supports. To prioritize external providers, use:
 
 ```text
 -Djava.locale.providers=SPI,CLDR
 ```
 
-**Liệt kê SPI không tự tạo nhà cung cấp**; phải có implementation được cài/đăng ký. Provider không hỗ trợ dịch vụ/locale nào thì runtime có thể tìm đến CLDR.
+**Listing SPI does not automatically create a provider**; an implementation must be installed and registered. For any service/locale not supported by the provider, the runtime may fall back to CLDR.
 
 ### `HOST`
 
-Có thể phản ánh một số thiết lập locale của hệ điều hành/người dùng, đặc biệt số, ngày, giờ và tiền tệ. Không phải mọi JDK/vendor/OS đều hỗ trợ giống nhau.
+Can reflect certain OS/user locale settings, particularly for numbers, dates, times, and currencies. Support varies across JDKs, vendors, and operating systems.
 
 ```text
 -Djava.locale.providers=HOST,CLDR
 ```
 
-Với backend nhiều người dùng, phụ thuộc cấu hình hệ điều hành máy chủ thường không phải lựa chọn tốt nếu ứng dụng đòi kết quả đồng nhất.
+For multi-user backends, relying on the server OS configuration is rarely ideal when the application requires uniform results.
 
-## 4. `java.locale.providers`: cấu hình khi khởi động JVM
+## 4. `java.locale.providers`: configuring at JVM startup
 
-Thuộc tính hệ thống `java.locale.providers` chọn **thứ tự ưu tiên provider**. Ví dụ:
+The `java.locale.providers` system property selects the **provider priority order**. Examples:
 
 ```bash
 java -Djava.locale.providers=CLDR -cp . Main
@@ -108,56 +108,56 @@ java -Djava.locale.providers=SPI,CLDR -cp . Main
 java -Djava.locale.providers=HOST,SPI,CLDR -cp . Main
 ```
 
-Các quy tắc:
+Rules:
 
-1. Truyền property vào **JVM launcher**, trước tên class hoặc JAR.
-2. Nó được đọc và cached khi cơ chế locale service khởi tạo; **không** dựa vào `System.setProperty` trong một request để đổi provider của JVM đang chạy.
-3. Provider đầu tiên chỉ được dùng khi có service/locale phù hợp. Một số API có cơ chế fallback.
-4. `java.locale.providers` khác với `Locale.getDefault()`. Provider là nguồn dữ liệu; default locale là giá trị được dùng khi bạn bỏ qua tham số locale.
-5. Sau JDK 23, `COMPAT`/`JRE` không khôi phục dữ liệu legacy.
-6. Với hệ thống đa người dùng, **truyền locale tường minh** thay vì gọi `Locale.setDefault` mỗi request.
+1. Pass the property to the **JVM launcher**, before the class name or JAR.
+2. It is read and cached when locale services initialize; **do not** rely on `System.setProperty` inside a request to switch providers on a running JVM.
+3. The first provider is used only when it supports the requested service/locale. Some APIs apply fallback mechanisms.
+4. `java.locale.providers` differs from `Locale.getDefault()`. The provider is the data source; the default locale is the value used when you omit a locale argument.
+5. Starting in JDK 23, `COMPAT`/`JRE` no longer restores legacy data.
+6. In multi-user systems, **pass locales explicitly** rather than calling `Locale.setDefault` on every request.
 
-Cùng một property không bảo đảm output giống nhau nếu JDK đã tích hợp các bản CLDR khác, thiếu module data hoặc dùng SPI/HOST từ môi trường riêng.
+The same property does not guarantee identical output if JDKs bundle different CLDR versions, lack data modules, or pull SPI/HOST from distinct environments.
 
-## 5. Các lĩnh vực chịu ảnh hưởng
+## 5. Affected areas
 
-### Số và ký hiệu phân cách
+### Numbers and separator symbols
 
-`NumberFormat`, `DecimalFormatSymbols` và `DecimalFormat` có thể dùng các dấu phân nhóm/decimal khác. Đặc biệt những dấu cách dễ bị nhầm:
+`NumberFormat`, `DecimalFormatSymbols`, and `DecimalFormat` may use different grouping/decimal separators. In particular, these spaces are easily confused:
 
-| Unicode | Ký tự |
+| Unicode | Character |
 | --- | --- |
-| `U+0020` | Space ASCII |
+| `U+0020` | ASCII space |
 | `U+00A0` | No-break space |
 | `U+202F` | Narrow no-break space |
 
-Chúng có thể trông tương tự nhưng khác code point. Một test so sánh byte, đầu vào copy/paste hoặc parser được viết theo dấu cố định có thể thất bại. Hãy in mã Unicode của separator, không chỉ chụp ảnh màn hình.
+They may look alike yet differ in code point. Byte-comparison tests, copy/pasted inputs, or parsers hardcoded to a fixed character can fail. Print the Unicode code points of separators rather than relying only on visual inspection.
 
-### Ngày giờ
+### Dates and times
 
-`DateFormat.getDateInstance(style, locale)` và `DateTimeFormatter.ofLocalizedDate(style)` sử dụng mẫu địa phương; thứ tự ngày/tháng/năm, dấu ngăn cách, tên tháng, độ dài năm và cách biểu diễn giờ có thể khác.
+`DateFormat.getDateInstance(style, locale)` and `DateTimeFormatter.ofLocalizedDate(style)` use localized patterns; day/month/year ordering, delimiters, month names, year width, and time formatting may differ.
 
-Nếu đã lưu dữ liệu thành chuỗi được tạo từ `FormatStyle.SHORT` hoặc `DateFormat.SHORT`, runtime mới có thể không parse lại giống runtime cũ. **Định dạng hiển thị không phải schema lưu trữ/giao thức.** Lưu `LocalDate`/`Instant` hoặc ISO text xác định rõ, sau đó format theo locale khi hiển thị.
+If data was stored as strings generated from `FormatStyle.SHORT` or `DateFormat.SHORT`, a newer runtime might not parse them identically to an older runtime. **Display formatting is not a storage or protocol schema.** Store `LocalDate`/`Instant` or explicit ISO text, then format per locale when displaying.
 
-### Tiền tệ và tỷ lệ
+### Currency and percentages
 
-Vị trí ký hiệu tiền, tên/ký hiệu currency, khoảng trắng và pattern phần trăm có thể phụ thuộc locale data. `NumberFormat.getCurrencyInstance(locale)` **không thực hiện chuyển tỷ giá**. Luôn lưu currency code, amount và quy tắc làm tròn theo nghiệp vụ.
+Currency symbol placement, currency names/symbols, spacing, and percentage patterns can depend on locale data. `NumberFormat.getCurrencyInstance(locale)` **does not perform currency conversion**. Always store the currency code, amount, and rounding rules per business logic.
 
-### Sắp xếp theo ngôn ngữ
+### Language-sensitive sorting
 
-`Collator.getInstance(locale)` có thể thay đổi thứ tự/cách coi chuỗi tương đương theo dữ liệu locale và strength. Điều này ảnh hưởng sort, tìm kiếm, `TreeSet`/`TreeMap` dùng comparator, cache và phân trang.
+`Collator.getInstance(locale)` can change ordering or string equivalence depending on locale data and strength. This affects sorting, searching, `TreeSet`/`TreeMap` with comparators, caches, and pagination.
 
-Không lưu collation key như một định dạng vĩnh viễn không version. Khi thay dữ liệu collation, kiểm tra có cần rebuild index và tie-breaker theo ID hay không.
+Do not store collation keys as an unversioned permanent format. When collation data changes, check whether indexes need rebuilding and use an ID tie-breaker.
 
-### Tên hiển thị
+### Display names
 
-`Locale.getDisplayName(displayLocale)` và `Currency.getDisplayName(locale)` cũng chịu ảnh hưởng dữ liệu. Không dùng tên quốc gia/ngôn ngữ đã dịch làm khóa lâu dài; lưu mã chuẩn tách biệt.
+`Locale.getDisplayName(displayLocale)` and `Currency.getDisplayName(locale)` are also affected by data updates. Never use translated country/language names as long-lived keys; store standard codes separately.
 
-## 6. Chương trình Java 17+: khảo sát runtime thực tế
+## 6. Java 17+ program: inspecting the actual runtime
 
-Một cách phát hiện khác biệt là in **phiên bản Java, provider property và ký hiệu dưới dạng code point**.
+One way to detect differences is to print **Java version, provider property, and symbols as code points**.
 
-Tạo tệp **`LocaleDataProbe.java`**:
+Create the file **`LocaleDataProbe.java`**:
 
 ```java
 import java.text.Collator;
@@ -212,19 +212,19 @@ public class LocaleDataProbe {
 }
 ```
 
-Lệnh:
+Commands:
 
 ```bash
 javac -encoding UTF-8 LocaleDataProbe.java
 java -Djava.locale.providers=CLDR -cp . LocaleDataProbe
 ```
 
-**Output phụ thuộc môi trường, nên không có một stdout cố định chính xác cho mọi JDK.** Chương trình in ba dòng runtime (`java.version`, `java.vendor`, `providers`), sau đó mỗi locale có năm dòng về grouping/decimal/number/date/collator.
+**Outputs depend on the environment, so there is no single exact fixed stdout across all JDKs.** The program prints three runtime lines (`java.version`, `java.vendor`, `providers`), followed by five lines per locale covering grouping/decimal/number/date/collator.
 
 ```text
-java.version=<phiên bản JDK>
-java.vendor=<nhà cung cấp JDK>
-providers=<CLDR hoặc cấu hình đã truyền>
+java.version=<JDK version>
+java.vendor=<JDK vendor>
+providers=<CLDR or passed configuration>
 locale=en-US
   grouping=U+....
   decimal=U+....
@@ -234,13 +234,13 @@ locale=en-US
 ...
 ```
 
-Đây chỉ là **sơ đồ đầu ra**, không phải snapshot chính xác. `System.getProperty("java.locale.providers")` cho biết cấu hình được truyền, **không chứng minh** provider đã xử lý mọi service. Cần so trực tiếp kết quả trên các process JVM với cùng locale.
+This is solely an **output schema**, not an exact snapshot. `System.getProperty("java.locale.providers")` indicates the passed configuration, **not proof** that the provider handled every service. Compare results directly across JVM processes using the same locales.
 
-## 7. Mẫu tường minh và kết quả Java 17+
+## 7. Explicit patterns and Java 17+ results
 
-Một pattern rõ ràng giúp giảm phụ thuộc **mẫu số mặc định** nhưng vẫn có thể lấy các ký hiệu từ locale data.
+An explicit pattern reduces dependence on **default number patterns** while still sourcing symbols from locale data.
 
-Tạo **`ExplicitLocalePatternDemo.java`**:
+Create **`ExplicitLocalePatternDemo.java`**:
 
 ```java
 import java.text.DecimalFormat;
@@ -277,14 +277,14 @@ public class ExplicitLocalePatternDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 ExplicitLocalePatternDemo.java
 java -cp . ExplicitLocalePatternDemo
 ```
 
-Đầu ra trên JDK hiện đại với symbols Đức/Mỹ thông dụng:
+Output on modern JDKs with standard German/US symbols:
 
 ```text
 US=1,234,567.89
@@ -293,13 +293,13 @@ ISO=2026-10-28
 parsed=1234.56, end=8, error=-1
 ```
 
-Phân biệt **pattern chuẩn** `#,##0.00` với **dấu thực tế khi hiển thị** từ `DecimalFormatSymbols`. Pattern không cố định mã Unicode của dấu phân cách trên mọi runtime. Với dữ liệu máy-máy, ISO date và định dạng giao thức cụ thể phù hợp hơn localized text.
+Distinguish the **structural pattern** `#,##0.00` from the **actual display symbols** supplied by `DecimalFormatSymbols`. The pattern does not pin the Unicode code point of separators across every runtime. For machine-to-machine data, ISO dates and explicit protocol formats are more appropriate than localized text.
 
-## 8. Kiểm thử hợp đồng mà không đóng băng từng dấu địa phương
+## 8. Contract testing without freezing every local symbol
 
-Golden tests cố định output có ích nếu sản phẩm yêu cầu đúng mẫu đó và đã pin JDK/provider. Nhưng các contract tests chung nên kiểm tra **ý nghĩa**, tránh coi từng dấu cách CLDR là bất biến.
+Fixed-output golden tests are useful when a product requires that exact pattern and pins the JDK/provider. General contract tests, however, should verify **semantics**, avoiding treating every CLDR space character as immutable.
 
-Tạo **`LocaleDataContractChecks.java`**:
+Create **`LocaleDataContractChecks.java`**:
 
 ```java
 import java.text.NumberFormat;
@@ -339,33 +339,33 @@ public class LocaleDataContractChecks {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 LocaleDataContractChecks.java
 java -cp . LocaleDataContractChecks
 ```
 
-Đầu ra khi đạt các điều kiện:
+Output when all conditions pass:
 
 ```text
 4 contract groups passed
 ```
 
-Có một nhóm ISO và ba nhóm số nguyên. Mỗi nhóm số lại có các kiểm tra giá trị và đã tiêu thụ toàn bộ text. **Round-trip cùng một runtime không chứng minh runtime mới đọc được chuỗi được ghi từ JDK cũ**; việc đó cần migration tests riêng.
+There is one ISO group and three integer groups. Each numeric group checks the parsed value and full consumption of the text. **A round-trip on the same runtime does not prove a newer runtime can read strings written by an older JDK**; that requires dedicated migration tests.
 
-## 9. Quy trình đối chiếu hai JDK
+## 9. Procedure for comparing two JDKs
 
-1. Ghi JDK feature/update version, vendor/build, OS và runtime image.
-2. Biên dịch cùng source cho phiên bản Java chung (ví dụ `javac --release 17` trên JDK mới).
-3. Chạy **mỗi JDK ở một process mới** với `java.locale.providers` đã chọn.
-4. Dùng cùng language tag, input, zone, style và loại API.
-5. So code point của dấu phân cách, giá trị format/parse và thứ tự collation.
-6. Nếu chỉ khác trên container, kiểm tra default locale, module `jdk.localedata` và HOST/SPI.
-7. Đánh giá thay đổi có được sản phẩm chấp nhận hay cần migration parser, không chỉ cập nhật snapshot.
-8. Không thử `COMPAT` để rollback JDK 23+, nơi dữ liệu legacy đã bị gỡ.
+1. Record the JDK feature/update version, vendor/build, OS, and runtime image.
+2. Compile the same source for a shared Java version (e.g., `javac --release 17` on the newer JDK).
+3. Run **each JDK in a fresh process** with the chosen `java.locale.providers`.
+4. Use identical language tags, inputs, zones, styles, and API calls.
+5. Compare separator code points, format/parse values, and collation order.
+6. If differences appear only in containers, check the default locale, `jdk.localedata` module, and HOST/SPI.
+7. Evaluate whether the change is acceptable to the product or requires parser migration, rather than blindly updating snapshots.
+8. Do not try `COMPAT` to roll back JDK 23+, where legacy data has been removed.
 
-Ví dụ trên Linux/macOS với hai đường dẫn Java **minh họa**:
+Illustrative example on Linux/macOS with two Java paths:
 
 ```bash
 /path/to/jdk17/bin/java -Djava.locale.providers=CLDR -cp . LocaleDataProbe > jdk17.txt
@@ -373,99 +373,99 @@ Ví dụ trên Linux/macOS với hai đường dẫn Java **minh họa**:
 diff -u jdk17.txt jdk25.txt
 ```
 
-Trên Windows PowerShell, dùng toán tử `&` với đường dẫn Java thật, và công cụ so nội dung như `Compare-Object`. Không coi những đường dẫn ví dụ là JDK đã được cài.
+On Windows PowerShell, use the `&` call operator with real Java paths and a comparison tool like `Compare-Object`. Do not treat the example paths as pre-installed JDKs.
 
-Thông tin cần có trong bản chẩn đoán:
+Information to capture in a diagnostic report:
 
 ```text
 JDK version + vendor + build
-java.locale.providers lúc startup
+java.locale.providers at startup
 locale tag + Unicode extensions
-API/style/pattern/strength được sử dụng
-zone/chronology/currency (nếu có)
-code point của dấu phân cách
-format result, parse result và vị trí kết thúc
+API/style/pattern/strength used
+zone/chronology/currency (if applicable)
+separator code points
+format result, parse result, and end index
 runtime modules, jdk.localedata, OS
 ```
 
-## 10. `jlink` và module `jdk.localedata`
+## 10. `jlink` and the `jdk.localedata` module
 
-Một runtime image tự tạo bằng `jlink` có thể không chứa cùng tập locale như full JDK. Module `jdk.localedata` cung cấp dữ liệu locale bổ sung; `jlink` có plugin `--include-locales`.
+A custom runtime image built with `jlink` might not contain the same set of locales as a full JDK. The `jdk.localedata` module supplies additional locale data; `jlink` provides the `--include-locales` plugin.
 
-Ví dụ:
+Example:
 
 ```bash
 jlink --add-modules java.base,jdk.localedata --include-locales=en,vi,fr --output custom-runtime
 ```
 
-Đây chỉ là minh họa đóng gói locale; một ứng dụng thực tế còn cần module khác theo dependency. Hãy kiểm tra runtime bằng `java --list-modules` và chạy `LocaleDataProbe` **trên đúng image triển khai**.
+This only illustrates locale packaging; real applications also require other modules per their dependencies. Inspect the runtime with `java --list-modules` and run `LocaleDataProbe` **on the exact deployment image**.
 
-Ngay cả khi cùng JDK major version, khác vendor, provider startup, custom modules hoặc OS có thể làm kết quả khác. Đừng kết luận mọi chênh lệch đều do CLDR.
+Even with the same JDK major version, different vendors, startup providers, custom modules, or OSes can alter outputs. Do not conclude every discrepancy stems from CLDR.
 
-## 11. Đừng nhầm CLDR với dữ liệu và cơ chế khác
+## 11. Do not confuse CLDR with other data and mechanisms
 
-| Hiện tượng | Điều cần điều tra |
+| Symptom | What to investigate |
 | --- | --- |
-| Số, dấu grouping khác | CLDR, provider, DecimalFormatSymbols |
-| Mẫu ngày/tên tháng khác | Locale data và FormatStyle |
-| Giờ bị lệch, DST khác | `ZoneId`, timezone database `tzdb` |
-| Tên múi giờ hiển thị khác | Locale display names và timezone information |
-| Sắp xếp tên khác | `Collator`, strength, version |
-| Tiếng Việt bị méo mã | Encoding/decoding, không nhất thiết CLDR |
-| Văn bản đúng code point nhưng ô vuông | Font/glyph/renderer |
-| Nhãn nghiệp vụ chưa dịch | `ResourceBundle`/bản dịch ứng dụng |
+| Different numbers, grouping separators | CLDR, providers, DecimalFormatSymbols |
+| Different date patterns/month names | Locale data and FormatStyle |
+| Shifted hours, different DST | `ZoneId`, `tzdb` timezone database |
+| Different timezone display names | Locale display names and timezone information |
+| Different name sorting | `Collator`, strength, version |
+| Garbled Vietnamese characters | Encoding/decoding, not necessarily CLDR |
+| Correct code points rendered as boxes | Fonts/glyphs/renderer |
+| Untranslated business labels | `ResourceBundle`/application translations |
 
-CLDR **không tự cung cấp bản dịch của mọi thông điệp sản phẩm**. `ResourceBundle` vẫn cần các tệp/nguồn translation do ứng dụng quản lý.
+CLDR **does not automatically provide translations for product messages**. `ResourceBundle` still requires application-managed translation files/sources.
 
-## 12. Chiến lược migration
+## 12. Migration strategy
 
-**Trước khi nâng cấp:** kiểm kê `DateFormat`, `NumberFormat`, `DecimalFormatSymbols`, `Collator`, `DateTimeFormatter.ofLocalized...`, `Locale.getDisplayName`, các lời gọi thiếu `Locale` và cấu hình `java.locale.providers`. Kiểm tra chỗ lưu ngày/số đã format theo locale làm dữ liệu.
+**Before upgrading:** inventory `DateFormat`, `NumberFormat`, `DecimalFormatSymbols`, `Collator`, `DateTimeFormatter.ofLocalized...`, `Locale.getDisplayName`, calls omitting `Locale`, and `java.locale.providers` settings. Audit places storing locale-formatted dates/numbers as data.
 
-**Khi thử JDK mới:** chạy probe trên runtime đích, test số/ngày/currency/sort cho những locale chính; kiểm tra cả format lẫn parse, nhất là dữ liệu legacy. Một parser có thể chỉ đọc được tiền tố hợp lệ, nên xác thực toàn bộ input bằng `ParsePosition` hoặc API strict tương ứng.
+**When testing the new JDK:** run the probe on the target runtime and test numbers/dates/currencies/sorting for key locales; test both formatting and parsing, especially for legacy data. A parser might only read a valid prefix, so validate full input consumption using `ParsePosition` or strict APIs.
 
-**Sau khi đánh giá:** chấp nhận những thay đổi CLDR đúng chính sách hiển thị; sửa hợp đồng nghiệp vụ hoặc dữ liệu lưu cũ nếu bị tác động. Dùng ISO/wire format độc lập locale, versioning cho collation/index và test tại CI/CD. Không dùng việc xóa mọi dấu cách hoặc khóa cứng một format tiếng Anh làm cách chữa chung.
+**After evaluation:** accept CLDR changes that align with display policy; fix business contracts or legacy stored data if impacted. Use locale-independent ISO/wire formats, versioned collation/indexes, and CI/CD tests. Never resort to stripping all whitespace or hardcoding one English format as a blanket fix.
 
-## 13. Lỗi phổ biến
+## 13. Common mistakes
 
-| Sai lầm | Hậu quả | Khắc phục |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Nghĩ `Locale.forLanguageTag` đảm bảo có locale data đầy đủ | Có fallback/thiếu dịch vụ | Test trên runtime đích |
-| Dùng default locale server cho mọi user | Output thay đổi theo môi trường | Truyền locale tường minh |
-| Trông chờ `COMPAT` trên JDK 23+ | Không khôi phục legacy data | Migration có kiểm soát |
-| Gọi `System.setProperty` sau startup để đổi provider | Property có thể đã cached | Đặt trong JVM arguments |
-| Coi các JDK LTS có dữ liệu giống nhau | CLDR version khác | Test theo JDK build |
-| So dấu cách bằng mắt | Nhầm U+0020/U+00A0/U+202F | In Unicode code point |
-| Lưu số/ngày display style làm wire format | JDK mới có thể parse khác | ISO/cấu trúc chuẩn |
-| Chỉ test format | Bỏ qua lỗi parse dữ liệu cũ | Test cả hai chiều |
-| Không kiểm tra custom runtime | Thiếu `jdk.localedata` | Kiểm thử trong deployment image |
-| Dùng collation key không version | Index có thể lỗi thời | Reindex khi đổi policy |
-| Nhầm locale với timezone | Hiển thị sai thời điểm | Truyền `ZoneId` riêng |
+| Thinking `Locale.forLanguageTag` guarantees full locale data | Fallback or missing service | Test on the target runtime |
+| Using the server's default locale for all users | Output varies by environment | Pass locales explicitly |
+| Expecting `COMPAT` to work on JDK 23+ | Legacy data is not restored | Plan a controlled migration |
+| Calling `System.setProperty` after startup to change providers | Property may already be cached | Pass in JVM arguments |
+| Assuming all LTS JDKs share identical data | CLDR versions differ | Test per JDK build |
+| Comparing spaces visually | Confuses U+0020/U+00A0/U+202F | Print Unicode code points |
+| Storing display-style numbers/dates as wire formats | Newer JDKs may parse differently | Use ISO/standard structures |
+| Testing only formatting | Misses parsing failures on old data | Test both directions |
+| Not inspecting custom runtimes | Missing `jdk.localedata` | Test inside the deployment image |
+| Using unversioned collation keys | Indexes can go stale | Reindex on policy changes |
+| Confusing locale with timezone | Displays the wrong instant | Pass `ZoneId` separately |
 
-## 14. Checklist trước khi phát hành
+## 14. Pre-release checklist
 
-- [ ] Ghi phiên bản, vendor/build và runtime image JDK.
-- [ ] Biết `java.locale.providers` thực sự được truyền khi khởi động.
-- [ ] Dùng locale explicit cho các API hiển thị theo người dùng.
-- [ ] Kiểm tra decimal/grouping, Unicode separator, percent/currency.
-- [ ] Kiểm tra ngày giờ, tên tháng, parse cũ, timezone và DST.
-- [ ] Kiểm tra sort theo `Collator`, equality và phân trang.
-- [ ] Kiểm tra fallback/SPI/HOST và module `jdk.localedata`.
-- [ ] Phân biệt wire format với localized display text.
-- [ ] Kiểm thử JDK cũ/mới bằng process riêng và lưu fingerprint.
-- [ ] Đánh giá tác động và cập nhật golden tests có giải thích.
+- [ ] Record JDK version, vendor/build, and runtime image.
+- [ ] Know the actual `java.locale.providers` passed at startup.
+- [ ] Use explicit locales for user-facing formatting APIs.
+- [ ] Verify decimal/grouping separators, Unicode separators, percentages/currencies.
+- [ ] Verify dates/times, month names, legacy parsing, timezones, and DST.
+- [ ] Verify `Collator` sorting, equality, and pagination.
+- [ ] Verify fallback/SPI/HOST and the `jdk.localedata` module.
+- [ ] Separate wire formats from localized display text.
+- [ ] Test old/new JDKs in separate processes and save fingerprints.
+- [ ] Assess impact and update golden tests with clear justification.
 
-## 15. Tài liệu tham khảo chính thức
+## 15. Official references
 
-- [Java 17 — LocaleServiceProvider API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/spi/LocaleServiceProvider.html): provider và property trong JDK 17.
-- [Java 25 — LocaleServiceProvider API](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/spi/LocaleServiceProvider.html): dữ liệu CLDR theo từng dòng JDK.
-- [JDK 23 — Removed Tools and Components](https://docs.oracle.com/en/java/javase/23/migrate/removed-tools-and-components.html): loại bỏ legacy COMPAT/JRE.
-- [JDK 26 — jlink reference](https://docs.oracle.com/en/java/javase/26/docs/specs/man/jlink.html): `--include-locales` và runtime tùy biến.
+- [Java 17 — LocaleServiceProvider API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/spi/LocaleServiceProvider.html): providers and properties in JDK 17.
+- [Java 25 — LocaleServiceProvider API](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/spi/LocaleServiceProvider.html): CLDR data across JDK lines.
+- [JDK 23 — Removed Tools and Components](https://docs.oracle.com/en/java/javase/23/migrate/removed-tools-and-components.html): removal of legacy COMPAT/JRE.
+- [JDK 26 — jlink reference](https://docs.oracle.com/en/java/javase/26/docs/specs/man/jlink.html): `--include-locales` and custom runtimes.
 
-## 16. Ghi nhớ
+## 16. Takeaways
 
-- **`Locale` là yêu cầu, không phải bộ dữ liệu locale bất biến.**
-- **CLDR mặc định được ưu tiên từ JDK 9; COMPAT/JRE bị loại từ JDK 23.**
-- **SPI/HOST có giới hạn hỗ trợ** và phụ thuộc cấu hình/OS.
-- **Cùng code + locale có thể ra output khác** khi thay CLDR, provider hoặc runtime image.
-- **Dùng locale cho giao diện, wire format chuẩn cho lưu trữ**, không đảo hai mục tiêu.
-- **Kiểm tra bằng hai JVM riêng, code point và regression tests**, nhất là format/parse và collation.
+- **`Locale` is a request, not an immutable locale dataset.**
+- **CLDR has been prioritized by default since JDK 9; COMPAT/JRE was removed in JDK 23.**
+- **SPI/HOST have support limits** and depend on configuration/OS.
+- **Identical code + locale can produce different outputs** when CLDR, providers, or runtime images change.
+- **Use locales for the UI and standard wire formats for storage**—never swap those two goals.
+- **Verify using two separate JVMs, code points, and regression tests**, especially for formatting/parsing and collation.

@@ -1,26 +1,26 @@
-# Biến đổi phần tử bằng map và xử lý ánh xạ nhiều bước
+# Transforming Elements with `map` and Handling Multi-Step Mapping
 
-## 1. Vị trí của map trong pipeline Java Stream
+## 1. The Role of `map` in a Java Stream Pipeline
 
-Trong **Java Stream API**, một pipeline thường gồm nguồn dữ liệu, những thao tác trung gian (*intermediate operations*) và một thao tác kết thúc (*terminal operation*). Ở chương **Lọc và biến đổi phần tử**, `filter` quyết định phần tử nào được giữ lại, còn `map` quyết định **mỗi phần tử được biểu diễn thành giá trị mới như thế nào**.
+In the **Java Stream API**, a pipeline typically consists of a data source, *intermediate operations*, and a *terminal operation*. In the **Filtering and Transforming Elements** chapter, `filter` decides which elements are kept, while `map` decides **how each element is represented as a new value**.
 
 ```text
-Nguồn Stream<T>
+Source Stream<T>
       |
       v
-  filter(...)        Chọn phần tử cần xử lý
+  filter(...)        Select elements to process
       |
       v
-   map(T -> R)       Biến đổi từng phần tử thành giá trị kiểu R
+   map(T -> R)       Transform each element into a value of type R
       |
       v
   Stream<R>
       |
       v
-  toList()/collect() Thu kết quả
+  toList()/collect() Collect results
 ```
 
-Ví dụ: lấy tên người dùng, bỏ khoảng trắng ở hai đầu, chuẩn hóa chữ thường rồi tạo mã định danh.
+Example: take usernames, strip leading/trailing whitespace, normalize to lowercase, and create identifiers.
 
 ```java
 import java.util.List;
@@ -38,38 +38,38 @@ System.out.println(usernames);
 // [user-an, user-bình, user-chi]
 ```
 
-Ba lời gọi `map` lần lượt chuẩn hóa khoảng trắng, chuẩn hóa kiểu chữ và bổ sung tiền tố. Đó chính là **ánh xạ nhiều bước** (*multi-step mapping*): kết quả bước trước trở thành đầu vào của bước sau, trong cùng một pipeline.
+The three `map` calls sequentially normalize whitespace, normalize letter case, and add a prefix. That is **multi-step mapping**: the output of the previous step becomes the input of the next step, within the same pipeline.
 
-**Kết quả cần đạt sau bài học:**
+**Learning outcomes after this lesson:**
 
-- Hiểu hợp đồng của `Stream.map`, tính lazy và việc thay đổi kiểu phần tử.
-- Biết tổ chức chuỗi nhiều `map` để dễ đọc, tái sử dụng và kiểm soát lỗi.
-- Kết hợp `filter`, `map`, `mapToInt` và `collect` trong xử lý dữ liệu thực tế.
-- Phân biệt `map` với `flatMap`, tránh tác dụng phụ, lỗi `null` và trạng thái dùng chung.
-- Chọn thứ tự xử lý phù hợp với dữ liệu, tính đúng đắn và chi phí tính toán.
+- Understand the contract of `Stream.map`, laziness, and element type transformation.
+- Know how to organize chains of multiple `map` calls for readability, reusability, and error control.
+- Combine `filter`, `map`, `mapToInt`, and `collect` in practical data processing.
+- Distinguish `map` from `flatMap`, and avoid side effects, `null` errors, and shared state.
+- Choose a processing order suited to the data, correctness, and computational cost.
 
-Các ví dụ chính dùng **Java 17+** để sử dụng `record`, `String.strip` và `Stream.toList`. `Stream.map` có từ Java 8.
+The main examples use **Java 17+** for `record`, `String.strip`, and `Stream.toList`. `Stream.map` has been available since Java 8.
 
-## 2. Hợp đồng của Stream.map
+## 2. The Contract of `Stream.map`
 
-Chữ ký phương thức trong `Stream<T>`:
+Method signature in `Stream<T>`:
 
 ```java
 <R> Stream<R> map(Function<? super T, ? extends R> mapper)
 ```
 
-Trong đó:
+Where:
 
-| Thành phần | Ý nghĩa |
+| Component | Meaning |
 | --- | --- |
-| `T` | Kiểu phần tử của Stream đầu vào. |
-| `R` | Kiểu phần tử của Stream sau biến đổi; có thể giống hoặc khác `T`. |
-| `mapper` | Hàm nhận một phần tử `T` và trả về một giá trị `R`. |
-| `Stream<R>` | Stream mới mô tả phép biến đổi; chưa phải `List<R>`. |
+| `T` | Element type of the input Stream. |
+| `R` | Element type of the transformed Stream; may be the same as or different from `T`. |
+| `mapper` | A function taking an element `T` and returning a value `R`. |
+| `Stream<R>` | A new Stream describing the transformation; not yet a `List<R>`. |
 
-`map` là **thao tác trung gian, stateless theo hợp đồng sử dụng, và thực thi lazy**. Khi mapper thực sự được gọi cho một phần tử, nó trả về **một** giá trị đầu ra cho phần tử đó. `map` tự nó không bỏ phần tử theo điều kiện và cũng không trải phẳng các collection con.
+`map` is an **intermediate operation, stateless by usage contract, and lazily executed**. When the mapper is actually invoked for an element, it returns **one** output value for that element. `map` itself does not drop elements conditionally and does not flatten nested collections.
 
-Ví dụ từ `String` sang `Integer`:
+Example from `String` to `Integer`:
 
 ```java
 List<String> words = List.of("Java", "Stream", "API");
@@ -81,13 +81,13 @@ List<Integer> lengths = words.stream()
 System.out.println(lengths); // [4, 6, 3]
 ```
 
-Sau `map(String::length)`, kiểu logic là `Stream<Integer>`. Từ đây, các thao tác phía sau làm việc với độ dài, chứ không còn trực tiếp nhận chuỗi ban đầu.
+After `map(String::length)`, the logical type is `Stream<Integer>`. From here on, downstream operations work with lengths rather than directly receiving the original strings.
 
-Lưu ý: `map` trong `Stream.map(...)` là **tên thao tác ánh xạ**; khác với cấu trúc dữ liệu `java.util.Map<K, V>`. Hai khái niệm cùng tên nhưng giữ vai trò riêng.
+Note: `map` in `Stream.map(...)` is the **name of the mapping operation**; it is different from the `java.util.Map<K, V>` data structure. The two share the same name but serve distinct roles.
 
-## 3. Ánh xạ một bước và nhiều bước
+## 3. Single-Step and Multi-Step Mapping
 
-Một mapper có thể biểu diễn bằng lambda hoặc method reference:
+A mapper can be expressed as a lambda or a method reference:
 
 ```java
 List<String> products = List.of("sách", "bút", "vở");
@@ -96,31 +96,31 @@ List<String> upper = products.stream()
         .map(value -> value.toUpperCase(Locale.ROOT))
         .toList();
 
-// Tương đương khi muốn gọi toUpperCase() không có tham số:
+// Equivalent when calling parameterless toUpperCase():
 List<String> upperDefault = products.stream()
         .map(String::toUpperCase)
         .toList();
 ```
 
-Ở ví dụ tiếp theo, dữ liệu đi qua **ba giai đoạn biến đổi**, mỗi giai đoạn có trách nhiệm cụ thể:
+In the next example, data passes through **three transformation stages**, each with a specific responsibility:
 
 ```java
 List<String> rawCodes = List.of("  SP 01 ", "Sp 02", "  sp 03 ");
 
 List<String> normalizedCodes = rawCodes.stream()
-        .map(String::strip)                                // Bước 1: cắt đầu/cuối
-        .map(code -> code.toUpperCase(Locale.ROOT))        // Bước 2: viết hoa
-        .map(code -> code.replace(" ", "-"))                // Bước 3: đổi dấu cách
+        .map(String::strip)                                // Step 1: strip leading/trailing whitespace
+        .map(code -> code.toUpperCase(Locale.ROOT))        // Step 2: uppercase
+        .map(code -> code.replace(" ", "-"))                // Step 3: replace spaces
         .toList();
 
 System.out.println(normalizedCodes); // [SP-01, SP-02, SP-03]
 ```
 
-Việc chia nhiều `map` có ba lợi ích: đọc pipeline theo từng ý nghĩa, dễ thay đổi quy tắc riêng và dễ dùng lại hàm chuẩn hóa.
+Splitting into multiple `map` calls has three benefits: reading the pipeline by meaning, easily changing individual rules, and reusing normalization functions.
 
-### Một mapper hợp nhất có được không?
+### Is One Combined Mapper Acceptable?
 
-Có thể viết:
+You can write:
 
 ```java
 List<String> normalizedCodes = rawCodes.stream()
@@ -130,13 +130,13 @@ List<String> normalizedCodes = rawCodes.stream()
         .toList();
 ```
 
-Hai cách cho cùng kết quả với dữ liệu này. Dùng nhiều `map` khi các bước có ý nghĩa độc lập hoặc muốn xen `filter` để loại dữ liệu trước bước tốn kém; gộp lại nếu phép biến đổi ngắn và dễ hiểu.
+Both approaches yield the same result on this data. Use multiple `map` calls when steps have independent meaning or when you want to interleave `filter` to discard data before an expensive step; combine them if the transformation is short and easy to understand.
 
-**Không phải mỗi `map` tạo một danh sách trung gian.** Pipeline tuần tự thông thường kết hợp các bước và chuyển từng phần tử qua chúng trong lúc thao tác kết thúc thực thi. Danh sách kết quả chỉ được tạo ở `toList()`. Các thao tác có trạng thái như `sorted` có thể cần bộ đệm riêng.
+**Each `map` does not create an intermediate list.** A typical sequential pipeline fuses the steps and passes each element through them while the terminal operation executes. The result list is only created at `toList()`. Stateful operations like `sorted` may require their own buffer.
 
-## 4. Biến đổi kiểu qua nhiều giai đoạn
+## 4. Transforming Types Across Multiple Stages
 
-Ánh xạ nhiều bước không giới hạn trong `String -> String`. Với ứng dụng thực tế, dữ liệu có thể đi qua các kiểu khác nhau:
+Multi-step mapping is not limited to `String -> String`. In real applications, data can transition through different types:
 
 ```text
 Stream<String>          Stream<Integer>        Stream<String>
@@ -144,7 +144,7 @@ Stream<String>          Stream<Integer>        Stream<String>
                               --map(n -> "Điểm: " + n)--> ["Điểm: 12", ...]
 ```
 
-Mã Java tương ứng:
+Corresponding Java code:
 
 ```java
 List<String> scoreTexts = List.of("12", "7", "30");
@@ -158,9 +158,9 @@ List<String> labels = scoreTexts.stream()
 System.out.println(labels); // [Điểm: 24, Điểm: 14, Điểm: 60]
 ```
 
-Kiểu sau mỗi bước được suy luận từ `Function` tương ứng. Trình biên dịch kiểm tra rằng bước sau có thể nhận giá trị được bước trước trả về.
+The type after each step is inferred from the corresponding `Function`. The compiler verifies that the next step can accept the value returned by the previous step.
 
-Nếu cần lấy nhiều thuộc tính từ một đối tượng, nên ánh xạ trực tiếp sang một kiểu dữ liệu đích rõ ràng. Ví dụ:
+If you need multiple properties from an object, map directly to an explicit target data type. For example:
 
 ```java
 record Customer(String id, String fullName, int age) {}
@@ -184,11 +184,11 @@ System.out.println(adultLabels);
 // [CustomerLabel[id=C01, displayName=AN], CustomerLabel[id=C03, displayName=CHI]]
 ```
 
-Ở đây `filter` loại khách dưới 18 tuổi; `map` biến một đối tượng nghiệp vụ thành DTO chỉ chứa thông tin cần trình bày. Đối tượng nguồn không bị sửa đổi.
+Here `filter` excludes customers under 18; `map` turns a domain object into a DTO containing only the information needed for display. The source object is not mutated.
 
-## 5. Tách các bước phức tạp thành hàm riêng
+## 5. Extracting Complex Steps into Dedicated Functions
 
-Với chuỗi ánh xạ dài, các lambda lồng nhau khó kiểm tra. Có thể tạo hàm thuần (*pure function*) với tên phản ánh trách nhiệm:
+With long mapping chains, nested lambdas are hard to test. You can create *pure functions* with names reflecting their responsibilities:
 
 ```java
 static String trimAndUppercase(String value) {
@@ -199,7 +199,7 @@ static String toSlug(String value) {
     return value.toLowerCase(Locale.ROOT).replace(" ", "-");
 }
 
-// Trong phương thức khác của cùng lớp:
+// Inside another method of the same class:
 List<String> slugs = List.of("  Java Stream ", "Lambda API ")
         .stream()
         .map(MyClass::trimAndUppercase)
@@ -209,17 +209,17 @@ List<String> slugs = List.of("  Java Stream ", "Lambda API ")
 // [java-stream, lambda-api]
 ```
 
-Trong đoạn minh họa, `MyClass` là tên lớp chứa hai hàm `static` và câu lệnh tạo `slugs`. Khi dùng trong dự án, thay bằng tên lớp thật; nếu các hàm ở cùng lớp, có thể gọi `MyClass::trimAndUppercase` hoặc dạng method reference thích hợp.
+In the illustration, `MyClass` is the name of the class containing the two `static` methods and the statement creating `slugs`. When used in a project, replace it with the actual class name; if the methods are in the same class, you can use `MyClass::trimAndUppercase` or an appropriate method reference form.
 
-Hàm độc lập cho phép kiểm tra từng quy tắc chuẩn hóa trước khi nối chúng. Với logic nhiều nhánh, dùng tên hàm rõ ràng thường dễ bảo trì hơn một lambda dài.
+Standalone functions allow testing each normalization rule before chaining them. For logic with multiple branches, using clear function names is usually easier to maintain than a long lambda.
 
-Không nên chia tách máy móc mọi biểu thức nhỏ. Một `map(String::strip)` riêng đã đủ rõ; nhiều phương thức chỉ làm mã phức tạp hơn nếu không biểu đạt thêm ý nghĩa.
+Do not mechanically split every tiny expression. A standalone `map(String::strip)` is already clear enough; extra methods only complicate code if they add no further meaning.
 
-## 6. Kết hợp filter và map đúng thứ tự
+## 6. Combining `filter` and `map` in the Right Order
 
-`filter` giữ lại phần tử theo `Predicate<T>`, còn `map` biến nó thành `R`. Thứ tự hai thao tác ảnh hưởng tới **ngữ nghĩa** và **chi phí**.
+`filter` retains elements according to `Predicate<T>`, while `map` transforms them into `R`. The order of the two operations affects both **semantics** and **cost**.
 
-Ví dụ chỉ cần xử lý đơn hàng đã thanh toán:
+Example where only paid orders need processing:
 
 ```java
 record Order(String id, int quantity, boolean paid) {}
@@ -231,16 +231,16 @@ List<Order> orders = List.of(
 );
 
 List<String> paidLabels = orders.stream()
-        .filter(Order::paid)                         // Chọn trước
+        .filter(Order::paid)                         // Select first
         .map(order -> order.id() + ": " + order.quantity())
         .toList();
 
 System.out.println(paidLabels); // [O01: 2, O03: 3]
 ```
 
-Nếu việc tạo nhãn tốn kém và không cần xử lý đơn chưa thanh toán, lọc trước sẽ tránh biến đổi thừa.
+If creating labels is expensive and unpaid orders do not need processing, filtering first avoids unnecessary transformations.
 
-Ngược lại, khi điều kiện lọc chỉ có nghĩa **sau** chuẩn hóa, cần `map` trước:
+Conversely, when the filter condition only makes sense **after** normalization, `map` must come first:
 
 ```java
 List<String> values = List.of("  ", " An ", "  Bình  ");
@@ -253,17 +253,17 @@ List<String> nonEmptyNames = values.stream()
 System.out.println(nonEmptyNames); // [An, Bình]
 ```
 
-| Pipeline | Thực hiện khi nào | Điều cần lưu ý |
+| Pipeline | When to use | Things to note |
 | --- | --- | --- |
-| `filter(...).map(...)` | Điều kiện biết được từ phần tử gốc. | Thường giảm số lượt biến đổi. |
-| `map(...).filter(...)` | Điều kiện cần giá trị đã được chuẩn hóa/biến đổi. | Mọi phần tử đi qua bước ánh xạ trước. |
-| `map(...).filter(...).map(...)` | Cần chuẩn hóa, loại không hợp lệ, rồi tạo kiểu đầu ra. | Mỗi bước có mục đích riêng. |
+| `filter(...).map(...)` | The condition can be determined from the original element. | Usually reduces the number of transformations. |
+| `map(...).filter(...)` | The condition requires the normalized/transformed value. | Every element goes through the mapping step first. |
+| `map(...).filter(...).map(...)` | Need to normalize, drop invalid ones, then build the output type. | Each step has a distinct purpose. |
 
-Không tự động hoán đổi `filter` và `map`. Hai thứ tự có thể cho kết quả khác nhau; hãy căn cứ vào kiểu dữ liệu và điều kiện nghiệp vụ.
+Do not automatically swap `filter` and `map`. The two orders can produce different results; base your choice on the data types and business conditions.
 
-## 7. Từ kiểu đối tượng sang primitive stream
+## 7. From Object Types to Primitive Streams
 
-`map(String::length)` trả về `Stream<Integer>`, tức các số nguyên được boxed. Khi mục tiêu là tính tổng, trung bình hoặc thống kê số, dùng `mapToInt`, `mapToLong` hoặc `mapToDouble` thường phù hợp hơn.
+`map(String::length)` returns `Stream<Integer>`, i.e., boxed integers. When the goal is computing sums, averages, or numeric statistics, using `mapToInt`, `mapToLong`, or `mapToDouble` is usually more suitable.
 
 ```java
 List<String> words = List.of("Java", "Stream", "API");
@@ -281,9 +281,9 @@ System.out.println(totalLetters);   // 13
 System.out.println(averageLength); // 4.333333333333333
 ```
 
-Lúc này pipeline sau `mapToInt` có kiểu `IntStream`. Nó có các thao tác chuyên biệt như `sum`, `average`, `summaryStatistics` và `max`.
+Here the pipeline after `mapToInt` has type `IntStream`. It has specialized operations such as `sum`, `average`, `summaryStatistics`, and `max`.
 
-Có thể đổi tiếp kiểu dữ liệu:
+You can further convert the data type:
 
 ```java
 List<String> labels = words.stream()
@@ -295,7 +295,7 @@ List<String> labels = words.stream()
 System.out.println(labels); // [x2=8, x2=12, x2=6]
 ```
 
-Nếu muốn trở về `Stream<Integer>`, dùng `boxed()`:
+If you want to return to `Stream<Integer>`, use `boxed()`:
 
 ```java
 List<Integer> lengths = words.stream()
@@ -304,11 +304,11 @@ List<Integer> lengths = words.stream()
         .toList();
 ```
 
-`mapToLong` và `mapToDouble` cũng hỗ trợ kiểu primitive tương ứng. Chúng tránh boxing trong quá trình tính toán số nhưng không thay thế kiểm tra tràn số hoặc chọn kiểu số hợp lý theo nghiệp vụ.
+`mapToLong` and `mapToDouble` also support the corresponding primitive types. They avoid boxing during numeric calculations but do not replace overflow checks or choosing an appropriate numeric type for the business domain.
 
-## 8. map khác flatMap như thế nào?
+## 8. How Does `map` Differ from `flatMap`?
 
-Nếu mỗi phần tử đầu vào chứa **một danh sách con**, dùng `map` sẽ tạo Stream của các danh sách:
+If each input element contains **a sublist**, using `map` produces a Stream of lists:
 
 ```java
 List<List<String>> teams = List.of(
@@ -324,7 +324,7 @@ List<List<String>> namesByTeam = teams.stream()
 // [[AN, BÌNH], [CHI], [DŨNG, HÀ]]
 ```
 
-Khi cần **một dãy tên phẳng**, dùng `flatMap`:
+When you need **a flat sequence of names**, use `flatMap`:
 
 ```java
 List<String> allNames = teams.stream()
@@ -335,18 +335,18 @@ List<String> allNames = teams.stream()
 System.out.println(allNames); // [AN, BÌNH, CHI, DŨNG, HÀ]
 ```
 
-| Thao tác | Phép biến đổi | Kết quả điển hình |
+| Operation | Transformation | Typical result |
 | --- | --- | --- |
-| `map(f)` | Mỗi phần tử được ánh xạ thành **một giá trị** (có thể là collection hoặc Stream). | `Stream<List<String>>` nếu `f` tạo `List<String>`. |
-| `flatMap(f)` | Mỗi phần tử được ánh xạ thành một Stream con, rồi trải phẳng các Stream con. | `Stream<String>` từ nhiều danh sách tên. |
+| `map(f)` | Each element is mapped to **one value** (which may be a collection or Stream). | `Stream<List<String>>` if `f` produces `List<String>`. |
+| `flatMap(f)` | Each element is mapped to a sub-Stream, then the sub-Streams are flattened. | `Stream<String>` from multiple lists of names. |
 
-Nếu chỉ cần chuẩn hóa một giá trị thành một giá trị khác, `map` là đủ. Khi một đầu vào có thể sinh **0, 1 hoặc nhiều phần tử** và cần đầu ra phẳng, hãy xét `flatMap` hoặc `mapMulti` (Java 16+). Không cần dùng `flatMap` cho bài toán biến đổi một-một đơn giản.
+If you only need to normalize one value into another value, `map` is enough. When one input can produce **0, 1, or more elements** and you need a flat output, consider `flatMap` or `mapMulti` (Java 16+). There is no need to use `flatMap` for simple one-to-one transformations.
 
-## 9. Giá trị null, lỗi chuyển đổi và Optional
+## 9. `null` Values, Conversion Errors, and `Optional`
 
-### 9.1. map không tự loại bỏ null
+### 9.1. `map` Does Not Automatically Remove `null`
 
-`Stream.map` **có thể trả về `null`** và tiếp tục chứa phần tử `null` trong pipeline. Điều này khác với `Optional.map`, nơi kết quả ánh xạ `null` trở thành `Optional.empty()`.
+`Stream.map` **can return `null`** and continue carrying `null` elements through the pipeline. This differs from `Optional.map`, where a `null` mapping result becomes `Optional.empty()`.
 
 ```java
 import java.util.Arrays;
@@ -363,9 +363,9 @@ List<String> clean = raw.stream()
 System.out.println(clean); // [AN, CHI]
 ```
 
-Nếu bỏ `filter(Objects::nonNull)`, `String::strip` sẽ ném `NullPointerException` khi gặp phần tử `null`. Các factory `List.of(...)` không nhận phần tử `null`, nên ví dụ cố ý dùng `Arrays.asList`.
+If `filter(Objects::nonNull)` is omitted, `String::strip` will throw `NullPointerException` when encountering the `null` element. The `List.of(...)` factories do not accept `null` elements, so the example intentionally uses `Arrays.asList`.
 
-Khi một phép `map` có thể sinh `null`, vẫn cần quyết định bước tiếp theo phải làm gì:
+When a `map` step can produce `null`, you still need to decide what the next step should do:
 
 ```java
 List<String> mapped = List.of("A", "X", "B").stream()
@@ -376,22 +376,22 @@ List<String> mapped = List.of("A", "X", "B").stream()
 System.out.println(mapped); // [a, b]
 ```
 
-Với mã nghiệp vụ, nên cân nhắc mô hình kết quả rõ ràng như `Optional` hoặc đối tượng biểu diễn trạng thái lỗi để tránh tạo `null` âm thầm.
+In business code, consider modeling results explicitly with `Optional` or an object representing error state to avoid silently producing `null`.
 
-### 9.2. Lỗi parse dừng pipeline
+### 9.2. Parse Errors Stop the Pipeline
 
-`Integer.parseInt` ném `NumberFormatException` nếu chuỗi không hợp lệ:
+`Integer.parseInt` throws `NumberFormatException` if the string is invalid:
 
 ```java
 List<String> amounts = List.of("10", "oops", "25");
 
-// Sẽ lỗi tại phần tử "oops" khi thao tác kết thúc được thực thi.
+// Will fail at element "oops" when the terminal operation executes.
 List<Integer> parsed = amounts.stream()
         .map(Integer::parseInt)
         .toList();
 ```
 
-Với yêu cầu **bỏ qua đầu vào không thể chuyển đổi**, có thể viết hàm hỗ trợ:
+For the requirement to **skip unconvertible inputs**, you can write a helper method:
 
 ```java
 static Optional<Integer> tryParseInt(String raw) {
@@ -402,20 +402,20 @@ static Optional<Integer> tryParseInt(String raw) {
     }
 }
 
-// Ví dụ trong cùng lớp:
+// Example in the same class:
 List<Integer> parsed = List.of("10", "oops", "25").stream()
         .map(MyClass::tryParseInt)        // Stream<Optional<Integer>>
-        .flatMap(Optional::stream)        // Chỉ giữ các Optional có giá trị
+        .flatMap(Optional::stream)        // Keep only non-empty Optionals
         .toList();
 
 System.out.println(parsed); // [10, 25]
 ```
 
-`MyClass` là tên lớp chứa hàm `tryParseInt`. `Optional::stream` có từ Java 9. Khi dữ liệu không hợp lệ là vấn đề cần báo cáo, không nên chỉ bỏ qua: hãy thu thập lỗi theo một cấu trúc kết quả riêng để truy vết và thông báo.
+`MyClass` is the name of the class containing `tryParseInt`. `Optional::stream` has been available since Java 9. When invalid data is an issue that needs reporting, do not just skip it: collect errors into a separate result structure for tracing and notification.
 
-## 10. Tính lazy và tác dụng phụ của mapper
+## 10. Laziness and Mapper Side Effects
 
-`map` không chạy ngay khi được khai báo:
+`map` does not run immediately when declared:
 
 ```java
 Stream<String> pipeline = List.of("a", "b", "c").stream()
@@ -424,12 +424,12 @@ Stream<String> pipeline = List.of("a", "b", "c").stream()
             return value.toUpperCase(Locale.ROOT);
         });
 
-// Đến đây chưa có thao tác kết thúc, nên chưa thực hiện ánh xạ.
+// Up to here there is no terminal operation, so mapping has not executed yet.
 List<String> result = pipeline.toList();
-// Bây giờ mới xử lý các phần tử và thu được [A, B, C].
+// Only now are elements processed, yielding [A, B, C].
 ```
 
-Không nên đặt cập nhật dữ liệu quan trọng bên trong mapper. Stream có thể dừng sớm nhờ `findFirst`, `anyMatch`, `limit` hoặc bỏ qua một số thao tác trung gian khi kết quả có thể xác định mà không cần tính từng phần tử. Ví dụ, với nguồn `SIZED` và `count()`, một `map` không cần thiết có thể không được gọi.
+Do not place important data updates inside a mapper. A Stream may terminate early via `findFirst`, `anyMatch`, `limit`, or skip some intermediate operations when the result can be determined without computing every element. For example, with a `SIZED` source and `count()`, an unnecessary `map` may not be invoked.
 
 ```java
 long count = List.of("a", "b", "c").stream()
@@ -442,7 +442,7 @@ long count = List.of("a", "b", "c").stream()
 System.out.println(count); // 3
 ```
 
-Nếu cần chuyển đổi dữ liệu, hãy **trả về giá trị mới** thay vì sửa collection nguồn:
+If you need to transform data, **return a new value** instead of mutating the source collection:
 
 ```java
 List<StringBuilder> builders = List.of(
@@ -450,22 +450,22 @@ List<StringBuilder> builders = List.of(
         new StringBuilder("B")
 );
 
-// Không nên: mapper sửa trạng thái các đối tượng nguồn.
+// Not recommended: mapper mutates the state of source objects.
 List<StringBuilder> changed = builders.stream()
         .map(builder -> builder.append("-done"))
         .toList();
 
-// Nên: tạo String đầu ra, không sửa StringBuilder gốc.
+// Recommended: create output Strings without mutating original StringBuilders.
 List<String> safe = builders.stream()
         .map(builder -> builder.toString() + "-done")
         .toList();
 ```
 
-Đoạn `changed` là **minh họa phản ví dụ**, không chạy nó trước đoạn `safe` nếu muốn giữ nguyên giá trị nguồn. Mapper có tác dụng phụ gây khó dự đoán khi chạy song song, tái sử dụng dữ liệu hoặc kết hợp các bước khác.
+The `changed` snippet is a **counter-example illustration**; do not run it before `safe` if you want to preserve original values. Mappers with side effects cause unpredictable behavior under parallel execution, data reuse, or step composition.
 
-### Ánh xạ song song
+### Parallel Mapping
 
-`parallelStream()` cho phép framework xử lý phần tử trên nhiều thread:
+`parallelStream()` allows the framework to process elements across multiple threads:
 
 ```java
 List<Integer> squares = List.of(1, 2, 3, 4).parallelStream()
@@ -475,13 +475,13 @@ List<Integer> squares = List.of(1, 2, 3, 4).parallelStream()
 System.out.println(squares); // [1, 4, 9, 16]
 ```
 
-Với nguồn có *encounter order* như `List`, `toList` giữ thứ tự đó ngay cả khi mapper chạy song song. **Thứ tự gọi mapper giữa các thread không được bảo đảm.** Không dùng biến đếm chung, `ArrayList` dùng chung trong mapper hay logic phụ thuộc phần tử nào hoàn thành trước. Phép biến đổi nên không trạng thái, không can thiệp nguồn, không phụ thuộc thứ tự thực thi.
+With a source that has an *encounter order* such as `List`, `toList` preserves that order even when the mapper runs in parallel. **The order in which the mapper is called across threads is not guaranteed.** Do not use shared counters, a shared `ArrayList` inside the mapper, or logic depending on which element finishes first. Transformations should be stateless, non-interfering with the source, and independent of execution order.
 
-Đối với pipeline nhỏ và mapper rẻ, tạo thêm chi phí phân luồng có thể khiến `parallelStream` chậm hơn. Hãy đánh giá dựa vào khối lượng và phép biến đổi thực tế.
+For small pipelines and cheap mappers, the added threading overhead can make `parallelStream` slower. Evaluate based on actual workload and transformation cost.
 
-## 11. Ánh xạ trước khi collect hoặc grouping
+## 11. Mapping Before `collect` or Grouping
 
-`map` thường được dùng để chuẩn bị dữ liệu trước khi `collect`:
+`map` is often used to prepare data before `collect`:
 
 ```java
 List<String> products = List.of("  Bút ", " Sách", " Vở  ");
@@ -494,7 +494,7 @@ Set<String> normalized = products.stream()
 System.out.println(normalized); // [BÚT, SÁCH, VỞ]
 ```
 
-Khi gom nhóm cần giữ đối tượng ban đầu nhưng chỉ biến đổi giá trị **bên trong mỗi nhóm**, `Collectors.mapping` cũng hữu ích:
+When grouping requires keeping the original object for keys while transforming values **within each group**, `Collectors.mapping` is also useful:
 
 ```java
 record Student(String group, String name) {}
@@ -514,18 +514,18 @@ Map<String, List<String>> namesByGroup = students.stream()
                 )
         ));
 
-// A -> [An, Bình]; B -> [Chi]. Thứ tự khóa Map không được bảo đảm.
+// A -> [An, Bình]; B -> [Chi]. Map key order is not guaranteed.
 ```
 
-`Stream.map` biến đổi tất cả phần tử của luồng **trước** terminal operation; `Collectors.mapping` là một downstream collector biến đổi phần tử **trong quá trình thu thập** của collector khác, thường dùng kết hợp `groupingBy` hoặc `partitioningBy`.
+`Stream.map` transforms all elements of the stream **before** the terminal operation; `Collectors.mapping` is a downstream collector that transforms elements **during collection** by another collector, commonly used with `groupingBy` or `partitioningBy`.
 
-Nếu cần một pipeline nhiều bước với những nhánh điều kiện, hãy ưu tiên diễn đạt rõ ý nghĩa nghiệp vụ. Những thao tác như `sorted`, `distinct` hay `collect` có yêu cầu trạng thái, thứ tự và bộ nhớ khác với `map`.
+If you need a multi-step pipeline with conditional branches, prioritize clearly expressing business intent. Operations such as `sorted`, `distinct`, or `collect` have different state, ordering, and memory requirements than `map`.
 
-## 12. Ví dụ hoàn chỉnh: chuẩn hóa và trình bày đơn hàng
+## 12. Complete Example: Normalizing and Presenting Orders
 
-Một hệ thống nhận đơn hàng dạng thô: mã đơn, tên khách, số tiền dạng chuỗi và trạng thái thanh toán. Nhiệm vụ là chỉ lấy đơn đã thanh toán, chuẩn hóa thông tin, tạo đối tượng hiển thị rồi cộng tổng tiền theo khách.
+A system receives raw orders: order ID, customer name, amount as a string, and payment status. The task is to keep only paid orders, normalize the information, create display objects, and sum totals by customer.
 
-Ví dụ có thể biên dịch và chạy với Java 17+:
+The example compiles and runs with Java 17+:
 
 ```java
 import java.math.BigDecimal;
@@ -582,47 +582,47 @@ public class MultiStepMappingDemo {
 }
 ```
 
-Trong pipeline này:
+In this pipeline:
 
-1. `filter(RawOrder::paid)` loại đơn chưa thanh toán trước khi chuyển đổi.
-2. `map(RawOrder -> CleanOrder)` chuẩn hóa chuỗi và đổi số tiền sang `BigDecimal`.
-3. `filter(CleanOrder)` kiểm tra số tiền dương trên dữ liệu đã được parse.
-4. `map(CleanOrder -> OrderView)` tạo dạng hiển thị với các trường cần dùng.
-5. `toList()` là thao tác kết thúc; `Collectors.toMap` trên danh sách mới cộng tiền các khách trùng tên chuẩn hóa bằng `BigDecimal::add`.
+1. `filter(RawOrder::paid)` drops unpaid orders before conversion.
+2. `map(RawOrder -> CleanOrder)` normalizes strings and converts the amount to `BigDecimal`.
+3. `filter(CleanOrder)` checks for positive amounts on the already-parsed data.
+4. `map(CleanOrder -> OrderView)` creates the display form with the required fields.
+5. `toList()` is the terminal operation; `Collectors.toMap` on the new list sums amounts for customers with matching normalized names using `BigDecimal::add`.
 
-Ví dụ giả định đầu vào hợp lệ và không có trường `null`. Trong ứng dụng thực tế, validate các trường và xử lý lỗi parse trước khi tạo `BigDecimal`; chọn chính sách gộp tên khách theo định danh bền vững (ví dụ customer ID) nếu tên không đủ để phân biệt khách.
+The example assumes valid inputs and no `null` fields. In real applications, validate fields and handle parse errors before constructing `BigDecimal`; choose a policy to merge customers by a durable identifier (such as customer ID) if names are insufficient to distinguish customers.
 
-## 13. Sai lầm thường gặp
+## 13. Common Mistakes
 
-| Dấu hiệu | Nguyên nhân | Hướng xử lý |
+| Symptom | Cause | How to address |
 | --- | --- | --- |
-| `map` xong nhưng kiểu dữ liệu không phù hợp bước sau | Không theo dõi `Stream<T> -> Stream<R>` | Xác định kiểu sau từng phép ánh xạ. |
-| `map` cho ra `Stream<List<T>>` thay vì danh sách phần tử phẳng | Cần trải nhiều phần tử từ mỗi đầu vào | Cân nhắc `flatMap`. |
-| `NullPointerException` trong method reference | Nguồn có `null` hoặc bước trước sinh `null` | Lọc/kiểm tra `null` và quy định dữ liệu thiếu. |
-| `NumberFormatException` từ parse | Đầu vào sai định dạng | Validate, tách kết quả thành công/thất bại hoặc dùng `Optional` có chủ đích. |
-| Dữ liệu nguồn bị thay đổi sau pipeline | Mapper sửa đối tượng/collection đang duyệt | Tạo đối tượng kết quả độc lập, không viết vào nguồn. |
-| Số lần log trong mapper không như mong đợi | Pipeline lazy, dừng sớm hoặc tối ưu bỏ bước | Không dùng mapper làm cơ chế tác dụng phụ bắt buộc. |
-| Sai thứ tự hoặc sai số khi chạy song song | Mapper dựa vào trạng thái ngoài, biến đếm dùng chung | Viết hàm ánh xạ không trạng thái; dùng collector phù hợp. |
-| Pipeline khó đọc | Quá nhiều biểu thức lồng nhau, quy tắc trộn lẫn | Đặt tên bước và tách hàm chuyển đổi có ý nghĩa. |
+| Type after `map` does not fit the next step | Not tracking `Stream<T> -> Stream<R>` | Determine the type after each mapping step. |
+| `map` yields `Stream<List<T>>` instead of a flat list of elements | Need to expand multiple elements from each input | Consider `flatMap`. |
+| `NullPointerException` in a method reference | Source has `null` or a previous step produces `null` | Filter/check `null` and define missing-data rules. |
+| `NumberFormatException` from parsing | Malformed input | Validate, separate success/failure results, or use `Optional` intentionally. |
+| Source data is mutated after the pipeline | Mapper modifies objects/collections being traversed | Create independent result objects; do not write back to the source. |
+| Log count inside mapper is not as expected | Lazy pipeline, early termination, or step elision optimization | Do not rely on mappers for mandatory side effects. |
+| Wrong order or wrong totals in parallel runs | Mapper relies on external state or shared counters | Write stateless mapping functions; use appropriate collectors. |
+| Pipeline is hard to read | Too many nested expressions, mixed rules | Name steps and extract meaningful transformation functions. |
 
-## 14. Bài tập và lời giải tham khảo
+## 14. Exercise and Reference Solution
 
-Cho danh sách dữ liệu thô:
+Given a list of raw data:
 
 ```java
 List<String> prices = List.of(" 100 ", " 250 ", " 75 ", " 300 ");
 ```
 
-**Yêu cầu:** Chuẩn hóa khoảng trắng, chuyển thành số nguyên, chỉ giữ giá trị từ 100 trở lên, tăng thuế minh họa 10% và tạo các nhãn `"Giá sau thuế: ..."`. Giả sử mọi chuỗi đều chứa số nguyên hợp lệ.
+**Requirement:** Normalize whitespace, convert to integers, keep only values from 100 upward, apply an illustrative 10% tax increase, and create labels `"Giá sau thuế: ..."`. Assume all strings contain valid integers.
 
-Lời giải:
+Solution:
 
 ```java
 List<String> labels = prices.stream()
         .map(String::strip)                       // Stream<String>
         .map(Integer::parseInt)                   // Stream<Integer>
-        .filter(price -> price >= 100)            // Giữ 100, 250, 300
-        .map(price -> price * 110 / 100)          // Tính minh họa trên số nguyên
+        .filter(price -> price >= 100)            // Keep 100, 250, 300
+        .map(price -> price * 110 / 100)          // Illustrative integer calculation
         .map(price -> "Giá sau thuế: " + price)    // Stream<String>
         .toList();
 
@@ -630,10 +630,10 @@ System.out.println(labels);
 // [Giá sau thuế: 110, Giá sau thuế: 275, Giá sau thuế: 330]
 ```
 
-**Tự mở rộng:** Nếu `prices` có giá trị `"không rõ"`, điều gì xảy ra ở `Integer::parseInt`? Hãy sử dụng `Optional<Integer>` và `flatMap(Optional::stream)` như mục 9 để xử lý dữ liệu không hợp lệ theo chính sách phù hợp.
+**Extension:** If `prices` contains `"không rõ"`, what happens at `Integer::parseInt`? Use `Optional<Integer>` and `flatMap(Optional::stream)` as in Section 9 to handle invalid data according to an appropriate policy.
 
-Lưu ý phép `price * 110 / 100` chỉ để minh họa biến đổi nhiều bước với số nguyên: nó có thể bị tràn số và làm tròn xuống. Với số tiền thật, hãy sử dụng `BigDecimal` và quy tắc làm tròn được nghiệp vụ quy định.
+Note that `price * 110 / 100` is only to illustrate multi-step integer transformation: it can overflow and truncates downward. For real monetary amounts, use `BigDecimal` and the rounding rules defined by the business domain.
 
-## Ghi nhớ
+## Key Takeaways
 
-`map` chuyển mỗi phần tử của Stream sang một giá trị mới, có thể thay đổi kiểu dữ liệu. Nối nhiều `map` giúp mô tả rõ từng giai đoạn chuẩn hóa, parse và tạo đối tượng đầu ra; `filter` được đặt theo điều kiện có nghĩa trước hoặc sau bước ánh xạ tương ứng. Pipeline vẫn lazy và không tự tạo một danh sách ở từng `map`. Khi một phần tử cần sinh nhiều phần tử phẳng, dùng `flatMap`; khi xử lý số, cân nhắc `mapToInt` và các primitive stream. Hãy giữ mapper không trạng thái, tránh sửa nguồn, xử lý `null`/lỗi chuyển đổi rõ ràng và chỉ dùng song song khi có lợi ích được kiểm chứng.
+`map` transforms each element of a Stream into a new value, optionally changing its data type. Chaining multiple `map` calls clearly describes each stage of normalization, parsing, and output object creation; `filter` is placed where the condition makes sense before or after the corresponding mapping step. Pipelines remain lazy and do not create a list at each `map`. When one element must produce multiple flattened elements, use `flatMap`; when processing numbers, consider `mapToInt` and primitive streams. Keep mappers stateless, avoid mutating the source, handle `null`/conversion errors explicitly, and only use parallelism when there is a verified benefit.

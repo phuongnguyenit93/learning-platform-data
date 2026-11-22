@@ -1,42 +1,42 @@
-# Đặc tính ORDERED, DISTINCT, SORTED và NONNULL
+# Characteristics: ORDERED, DISTINCT, SORTED, and NONNULL
 
-> **Chương:** Spliterator và nguồn tự định nghĩa  
+> **Chapter:** Spliterators and Custom Sources  
 > **Module:** JAVA_STREAM_API  
-> **Trọng tâm:** Hiểu chính xác bốn đặc tính (*characteristics*) của `Spliterator` trong Java Stream API: `ORDERED`, `DISTINCT`, `SORTED` và `NONNULL`. Khi tạo nguồn Stream tùy chỉnh, những cờ này là **lời cam kết về dữ liệu và cách duyệt**, không chỉ là gợi ý tối ưu hóa.
+> **Focus:** Accurately understand four `Spliterator` characteristics in the Java Stream API: `ORDERED`, `DISTINCT`, `SORTED`, and `NONNULL`. When creating custom Stream sources, these flags are **guarantees about data and traversal**, not mere optimization hints.
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Giải thích `Spliterator` làm gì trong pipeline lazy và cơ chế chia dữ liệu phục vụ `parallelStream()`.
-2. Phân biệt **encounter order** (`ORDERED`), **không trùng theo `equals`** (`DISTINCT`), **thứ tự sắp xếp theo comparator** (`SORTED`) và **không có phần tử null** (`NONNULL`).
-3. Nêu đúng các quan hệ và khác biệt: `SORTED` kéo theo `ORDERED`; `ORDERED` không nhất thiết `SORTED`; `DISTINCT` không đồng nghĩa đã sắp xếp.
-4. Kiểm tra cờ bằng `characteristics()`/`hasCharacteristics(...)` và hiểu quy tắc `getComparator()`.
-5. Viết một `Spliterator` tự định nghĩa có `tryAdvance`, `trySplit`, `estimateSize` và `characteristics` đáp ứng đúng hợp đồng.
-6. Kiểm chứng cả phần được tách bởi `trySplit`, thứ tự duyệt, tính duy nhất, null, kích thước và cách chạy tuần tự/song song.
-7. Nhận diện rủi ro khi tuyên bố sai cờ, dùng comparator không phù hợp hoặc thay đổi nguồn trong lúc Stream đang xử lý.
-8. Hiểu các đặc tính này liên hệ thế nào với `filter`, `map`, `distinct`, `sorted`, `unordered` và tối ưu hóa.
+1. Explain what `Spliterator` does in a lazy pipeline and in data partitioning for `parallelStream()`.
+2. Distinguish **encounter order** (`ORDERED`), **uniqueness per `equals`** (`DISTINCT`), **sorted order per comparator** (`SORTED`), and **absence of null elements** (`NONNULL`).
+3. State the exact relationships and differences: `SORTED` implies `ORDERED`; `ORDERED` does not necessarily mean `SORTED`; `DISTINCT` does not mean sorted.
+4. Inspect flags via `characteristics()`/`hasCharacteristics(...)` and understand `getComparator()` rules.
+5. Write a custom `Spliterator` with `tryAdvance`, `trySplit`, `estimateSize`, and `characteristics` satisfying the contract.
+6. Verify parts returned by `trySplit`, traversal order, uniqueness, null-freeness, size, and sequential/parallel execution.
+7. Recognize the risks of misdeclaring flags, using an unsuitable comparator, or mutating the source while a Stream is processing.
+8. Understand how these characteristics relate to `filter`, `map`, `distinct`, `sorted`, `unordered`, and optimizations.
 
-Các ví dụ dùng **Java 17+** để có `List.of`, `List.copyOf` và `Stream.toList()`. Bản thân `Spliterator`, bốn cờ đang học và `StreamSupport` đã có từ **Java 8**. Với Java 8–15, dùng API tương thích như `collect(Collectors.toList())` thay `Stream.toList()`.
+Examples use **Java 17+** for `List.of`, `List.copyOf`, and `Stream.toList()`. `Spliterator` itself, the four flags studied here, and `StreamSupport` have existed since **Java 8**. For Java 8–15, use compatible APIs like `collect(Collectors.toList())` instead of `Stream.toList()`.
 
 ---
 
-## 1. Spliterator nằm ở đâu trong Java Stream API?
+## 1. Where Does Spliterator Sit in the Java Stream API?
 
-`Spliterator<T>` là một giao diện dùng để **duyệt** và, khi thích hợp, **chia** các phần tử của một nguồn dữ liệu. Nhiều collection cung cấp nó qua `collection.spliterator()`. `StreamSupport.stream(...)` có thể dùng một Spliterator làm nguồn cho một Stream mới.
+`Spliterator<T>` is an interface used to **traverse** and, when appropriate, **split** elements of a data source. Many collections provide it via `collection.spliterator()`. `StreamSupport.stream(...)` can use a Spliterator as the source for a new Stream.
 
 ~~~text
-Collection / mảng / nguồn tùy chỉnh
+Collection / array / custom source
                   |
                   v
           Spliterator<T>
            |          |
-           |          +--- trySplit() ---> Spliterator<T> khác
+           |          +--- trySplit() ---> Another Spliterator<T>
            |
            +--- tryAdvance(Consumer<T>) / forEachRemaining(...)
                   |
                   v
-      Stream<T> (pipeline lazy)
+      Stream<T> (lazy pipeline)
                   |
       filter -> map -> distinct -> sorted -> ...
                   |
@@ -45,15 +45,15 @@ Collection / mảng / nguồn tùy chỉnh
          collect / reduce / ...
 ~~~
 
-Ba khía cạnh cần phân biệt:
+Three aspects to distinguish:
 
-- **Duyệt:** `tryAdvance` chuyển từng phần tử cho hành động được cung cấp.
-- **Phân chia:** `trySplit` có thể tách phần việc còn lại thành những Spliterator khác.
-- **Mô tả nguồn:** `characteristics()` trả về tập cờ nói cho Stream biết những bảo đảm thật sự của nguồn.
+- **Traversal:** `tryAdvance` passes individual elements to the supplied action.
+- **Partitioning:** `trySplit` can split off remaining work into other Spliterators.
+- **Source description:** `characteristics()` returns a flag set telling the Stream what guarantees the source truly provides.
 
-Một nguồn biết rõ dữ liệu có thứ tự, không trùng, đã sắp xếp và không chứa null có thể công bố các cờ tương ứng. Nhưng nguồn chỉ “thường có vẻ như vậy” không được quyền tuyên bố chúng.
+A source that knows its data is ordered, duplicate-free, sorted, and null-free can publish the corresponding flags. However, a source that merely "usually looks that way" has no right to declare them.
 
-Ví dụ sơ bộ:
+Initial example:
 
 ~~~java
 import java.util.List;
@@ -63,17 +63,17 @@ List<Integer> numbers = List.of(4, 1, 4, 2);
 Spliterator<Integer> source = numbers.spliterator();
 
 System.out.println(source.hasCharacteristics(Spliterator.ORDERED));
-// true: List có encounter order.
+// true: List has an encounter order.
 
 System.out.println(source.hasCharacteristics(Spliterator.SORTED));
-// false: List không cam kết đã sắp xếp.
+// false: List does not guarantee being sorted.
 ~~~
 
-Dù thay dữ liệu thành `List.of(1, 2, 3)`, Spliterator thông thường của List **không nhất thiết tự suy ra `SORTED`**: cờ là đặc tính được nguồn cam kết, không phải một phép kiểm tra dữ liệu ngẫu nhiên ở thời điểm đọc.
+Even if the data is changed to `List.of(1, 2, 3)`, a regular List Spliterator **does not automatically infer `SORTED`**: flags are guarantees committed by the source, not an ad-hoc data check at read time.
 
-## 2. Characteristics là một bitmask, không phải danh sách nhãn
+## 2. Characteristics Are a Bitmask, Not a List of Labels
 
-`Spliterator` định nghĩa các hằng kiểu `int`. Có thể kiểm tra chúng bằng:
+`Spliterator` defines `int` constants. You can inspect them using:
 
 ~~~java
 int flags = spliterator.characteristics();
@@ -84,7 +84,7 @@ boolean sorted = spliterator.hasCharacteristics(Spliterator.SORTED);
 boolean nonNull = spliterator.hasCharacteristics(Spliterator.NONNULL);
 ~~~
 
-Đây là những **bit** độc lập hoặc có ràng buộc với nhau. Có thể kết hợp bằng toán tử bitwise OR:
+These are independent or constrained **bits**. They can be combined with bitwise OR:
 
 ~~~java
 int flags =
@@ -94,7 +94,7 @@ int flags =
         | Spliterator.NONNULL;
 ~~~
 
-Khi kiểm tra bằng AND, có thể hỏi một nhóm cờ cùng tồn tại:
+When checking with bitwise AND, you can query whether a group of flags coexists:
 
 ~~~java
 boolean allFour = spliterator.hasCharacteristics(
@@ -105,36 +105,36 @@ boolean allFour = spliterator.hasCharacteristics(
 );
 ~~~
 
-`hasCharacteristics` chỉ nói về **đặc tính được khai báo**. Nó **không duyệt toàn bộ nguồn để chứng minh** dữ liệu đã thực sự không trùng hay không null. Vì vậy, nếu mã tạo Spliterator tuyên bố sai, phép kiểm tra cờ vẫn trả kết quả theo lời tuyên bố sai ấy.
+`hasCharacteristics` only reports **declared characteristics**. It **does not scan the entire source to prove** the data is actually duplicate-free or null-free. Therefore, if the code creating the Spliterator makes a false declaration, flag checks will still return results based on that false declaration.
 
-### 2.1. Bốn cờ chính nhìn trong một bảng
+### 2.1. The four core flags at a glance
 
-| Cờ | Nguồn cam kết điều gì? | Không cam kết điều gì? |
+| Flag | What does the source guarantee? | What does it NOT guarantee? |
 |---|---|---|
-| `ORDERED` | Có encounter order xác định cho quá trình duyệt | Không bảo đảm đã sắp xếp hay mọi lambda chạy theo thứ tự đó |
-| `DISTINCT` | Không có hai phần tử khác vị trí nào bằng nhau theo `equals` | Không bảo đảm sắp xếp, không null, hay các khóa phụ khác cũng duy nhất |
-| `SORTED` | Duyệt theo một thứ tự sắp xếp xác định; có comparator hoặc natural order | Không bảo đảm không trùng; không mặc nhiên `NONNULL` |
-| `NONNULL` | Không có phần tử `null` được phát ra | Không bảo đảm dữ liệu hợp lệ về nghiệp vụ, không đồng nghĩa `DISTINCT` |
+| `ORDERED` | Defined encounter order for traversal | Not guaranteed sorted, nor that every lambda runs in that order |
+| `DISTINCT` | No two elements at different positions are equal per `equals` | Not guaranteed sorted, non-null, or that secondary keys are unique |
+| `SORTED` | Traversed in a defined sort order; has comparator or natural order | Not guaranteed duplicate-free; does not imply `NONNULL` |
+| `NONNULL` | No `null` elements are emitted | Not guaranteed business-valid, nor equivalent to `DISTINCT` |
 
-Mối quan hệ quan trọng nhất:
+Key relationships:
 
 ~~~text
-SORTED ───────> ORDERED      (bắt buộc)
-ORDERED ──X──> SORTED       (không suy ra)
-DISTINCT ──X─> SORTED       (không suy ra)
-SORTED ──X───> DISTINCT     (không suy ra)
-NONNULL: độc lập với ba tính chất trên
+SORTED ───────> ORDERED      (required)
+ORDERED ──X──> SORTED       (does not imply)
+DISTINCT ──X─> SORTED       (does not imply)
+SORTED ──X───> DISTINCT     (does not imply)
+NONNULL: independent of the three properties above
 ~~~
 
-Ngoài bốn cờ đang học, `Spliterator` còn có `SIZED`, `SUBSIZED`, `IMMUTABLE`, `CONCURRENT`. Chúng mô tả các bảo đảm khác, không nên lẫn với nội dung/chất lượng của phần tử.
+Besides the four flags studied here, `Spliterator` also has `SIZED`, `SUBSIZED`, `IMMUTABLE`, and `CONCURRENT`. They describe other guarantees and should not be confused with element content or quality.
 
 ---
 
-## 3. ORDERED: nguồn có encounter order
+## 3. ORDERED: Source with an Encounter Order
 
-`Spliterator.ORDERED` nghĩa là nguồn có **encounter order** (thứ tự gặp phần tử) được định nghĩa. Khi duyệt tuần tự với `tryAdvance` hoặc `forEachRemaining`, Spliterator phải phát phần tử theo thứ tự ấy.
+`Spliterator.ORDERED` means the source has a defined **encounter order**. When traversing sequentially with `tryAdvance` or `forEachRemaining`, the Spliterator must emit elements in that order.
 
-Ví dụ nguồn `List`:
+Example with a `List` source:
 
 ~~~java
 import java.util.List;
@@ -151,18 +151,18 @@ sp.forEachRemaining(System.out::println);
 // Chi
 ~~~
 
-Thứ tự này là **thứ tự phần tử trong List**, không phải thứ tự chữ cái. Vì vậy `ORDERED` không đồng nghĩa `SORTED`.
+This order is **the element order in the List**, not alphabetical order. Thus `ORDERED` does not mean `SORTED`.
 
-Nguồn có thể có trật tự xác định do:
+A source can have a defined order due to:
 
-- **Vị trí:** `List` và mảng.
-- **Thứ tự chèn:** những collection như `LinkedHashSet`.
-- **Thứ tự theo khóa/comparator:** một `SortedSet`.
-- **Quy tắc do nguồn tùy chỉnh thiết lập:** ví dụ bản ghi theo số thứ tự tăng dần.
+- **Position:** `List` and arrays.
+- **Insertion order:** collections such as `LinkedHashSet`.
+- **Key/comparator order:** a `SortedSet`.
+- **Custom source rules:** for example, records ordered by ascending sequence number.
 
-Ngược lại, các collection như `HashSet` **không cam kết encounter order**. Một lần duyệt có thể trông ổn định, nhưng chương trình không được dựa vào thứ tự đó như một hợp đồng.
+Conversely, collections like `HashSet` **do not guarantee an encounter order**. One traversal might look stable, but a program must not rely on that order as a contract.
 
-### 3.1. Encounter order khác thứ tự thực thi song song
+### 3.1. Encounter order differs from parallel execution order
 
 ~~~java
 import java.util.List;
@@ -170,7 +170,7 @@ import java.util.List;
 List<String> values = List.of("A", "B", "C", "D");
 
 values.parallelStream().forEach(System.out::println);
-// Không bảo đảm A, B, C, D theo thứ tự khi in.
+// Printing A, B, C, D in order is not guaranteed.
 
 values.parallelStream().forEachOrdered(System.out::println);
 // A
@@ -179,35 +179,35 @@ values.parallelStream().forEachOrdered(System.out::println);
 // D
 ~~~
 
-Trong một Stream có thứ tự, `forEachOrdered` giữ encounter order đối với các hành động được thực thi. Điều này có thể làm hạn chế mức song song hữu ích so với `forEach`.
+In an ordered Stream, `forEachOrdered` preserves encounter order for the executed actions. This can limit useful parallelism compared to `forEach`.
 
-`ORDERED` không có nghĩa tất cả thao tác trong một pipeline song song sẽ **chạy** lần lượt theo vị trí. Framework có thể xử lý phân vùng đồng thời và chỉ duy trì thứ tự ở những thao tác/đầu ra mà hợp đồng yêu cầu.
+`ORDERED` does not mean every operation in a parallel pipeline will **execute** sequentially by position. The framework can process partitions concurrently and enforce ordering only at operations or outputs required by the contract.
 
-### 3.2. ORDERED và trySplit()
+### 3.2. ORDERED and trySplit()
 
-Với Spliterator có `ORDERED`, `trySplit()` phải trả về một Spliterator bao phủ **tiền tố** (*strict prefix*) của những phần tử còn lại; Spliterator hiện tại giữ phần **hậu tố** tương ứng.
+For an `ORDERED` Spliterator, `trySplit()` must return a Spliterator covering a **strict prefix** of the remaining elements; the current Spliterator retains the corresponding **suffix**.
 
 ~~~text
-Nguồn còn lại: [A, B, C, D, E, F]
-                       |
-                    trySplit()
-                       |
-           +-----------+-----------+
-           |                       |
-     Spliterator trả về     Spliterator ban đầu
-          [A, B, C]              [D, E, F]
-              tiền tố              hậu tố
+Remaining source: [A, B, C, D, E, F]
+                        |
+                     trySplit()
+                        |
+            +-----------+-----------+
+            |                       |
+   Returned Spliterator    Original Spliterator
+        [A, B, C]               [D, E, F]
+          prefix                  suffix
 ~~~
 
-Nếu một nguồn có `ORDERED` nhưng `trySplit` tùy ý trả `[B, D, F]` và giữ `[A, C, E]`, việc tách đó **vi phạm hợp đồng phân chia của nguồn có thứ tự**.
+If an `ORDERED` source arbitrarily returns `[B, D, F]` from `trySplit` and keeps `[A, C, E]`, that split **violates the partitioning contract of an ordered source**.
 
-Nếu `trySplit()` trả `null`, nghĩa là lần này Spliterator không chia thêm được. Không có yêu cầu mọi Spliterator phải chia được để gọi là `ORDERED`.
+If `trySplit()` returns `null`, it simply means the Spliterator cannot split further this time. There is no requirement that a Spliterator must be splittable to be `ORDERED`.
 
 ---
 
-## 4. DISTINCT: không có phần tử trùng theo equals
+## 4. DISTINCT: No Duplicate Elements per equals
 
-`Spliterator.DISTINCT` nghĩa là **với mọi cặp phần tử khác vị trí**, hai giá trị không bằng nhau theo `Object.equals` (với ngữ nghĩa null phù hợp).
+`Spliterator.DISTINCT` means **for any pair of elements at different positions**, the two values are not equal according to `Object.equals` (with appropriate null semantics).
 
 ~~~java
 import java.util.LinkedHashSet;
@@ -217,7 +217,7 @@ import java.util.Spliterator;
 Set<String> tags = new LinkedHashSet<>();
 tags.add("java");
 tags.add("stream");
-tags.add("java"); // Không tạo phần tử thứ hai.
+tags.add("java"); // Does not create a second element.
 
 Spliterator<String> sp = tags.spliterator();
 
@@ -225,9 +225,9 @@ System.out.println(sp.hasCharacteristics(Spliterator.DISTINCT)); // true
 System.out.println(tags); // [java, stream]
 ~~~
 
-`Set` theo hợp đồng tập hợp không chứa hai phần tử bằng nhau theo `equals`. `LinkedHashSet` còn có encounter order theo thứ tự chèn, nhưng **DISTINCT tự nó không yêu cầu ORDERED**.
+A `Set`, by its set contract, never contains two elements equal per `equals`. `LinkedHashSet` also has insertion-based encounter order, yet **DISTINCT itself does not require ORDERED**.
 
-### 4.1. DISTINCT không có nghĩa duy nhất theo mọi thuộc tính
+### 4.1. DISTINCT does not mean unique across every attribute
 
 ~~~java
 import java.util.List;
@@ -242,11 +242,11 @@ List<Product> products = List.of(
 );
 ~~~
 
-Ba record này khác nhau theo `equals` nên các đối tượng có thể đều DISTINCT, nhưng **category không duy nhất**: có hai sản phẩm thuộc `BOOK`. Nếu đang lập chỉ mục bằng `Collectors.toMap(Product::category, ...)`, khóa trùng vẫn xảy ra.
+These three records differ per `equals`, so the objects can all be `DISTINCT`, yet **category is not unique**: two products belong to `BOOK`. If indexing with `Collectors.toMap(Product::category, ...)`, duplicate keys will still occur.
 
-Điều kiện “không có phần tử trùng theo `equals`” khác “không có ID trùng”, “không có email trùng” hoặc “không có category trùng” nếu `equals` của kiểu phần tử không chỉ dựa vào thuộc tính ấy.
+The condition "no duplicate elements per `equals`" differs from "no duplicate IDs," "no duplicate emails," or "no duplicate categories" when the element type's `equals` does not depend solely on that attribute.
 
-### 4.2. DISTINCT không đồng nghĩa SORTED
+### 4.2. DISTINCT does not imply SORTED
 
 ~~~java
 import java.util.LinkedHashSet;
@@ -260,29 +260,29 @@ numbers.add(5);
 System.out.println(numbers); // [9, 1, 5]
 ~~~
 
-Các phần tử không trùng, nhưng không được sắp tăng. Cũng có thể có nguồn **SORTED mà không DISTINCT**, chẳng hạn dãy `[1, 1, 2, 3]`.
+The elements are unique, yet not sorted in ascending order. You can also have a source that is **SORTED without being DISTINCT**, such as `[1, 1, 2, 3]`.
 
-### 4.3. Cảnh báo với comparator không nhất quán với equals
+### 4.3. Warning about comparators inconsistent with equals
 
-Một `Comparator` có thể coi hai giá trị tương đương khi `compare(a, b) == 0` trong khi `a.equals(b)` trả `false`, hoặc ngược lại. Vì vậy, **chứng minh các khóa khác nhau theo comparator chưa đủ để kết luận `DISTINCT` theo `equals`**.
+A `Comparator` may treat two values as equivalent (`compare(a, b) == 0`) while `a.equals(b)` returns `false`, or vice versa. Thus, **proving keys differ according to a comparator is not enough to conclude `DISTINCT` per `equals`**.
 
-Khi tự viết nguồn `SORTED | DISTINCT`, hãy xác minh cả:
+When writing a `SORTED | DISTINCT` custom source, verify both:
 
-1. Dữ liệu đúng thứ tự theo comparator đã công bố.
-2. Không có hai phần tử bằng nhau theo `equals`.
+1. Data is properly ordered according to the declared comparator.
+2. No two elements are equal per `equals`.
 
-Trong ví dụ nguồn `Integer` tăng nghiêm ngặt ở mục 10, natural ordering nhất quán với `equals` nên kiểm tra `previous < current` bảo đảm được cả hai điều kiện.
+In the strictly increasing `Integer` source example in section 10, natural ordering is consistent with `equals`, so checking `previous < current` satisfies both conditions.
 
 ---
 
-## 5. SORTED: thứ tự sắp xếp có hợp đồng
+## 5. SORTED: Contracted Sort Order
 
-`Spliterator.SORTED` nghĩa là phần tử được duyệt theo một thứ tự sắp xếp xác định:
+`Spliterator.SORTED` means elements are traversed in a defined sort order:
 
-- **Natural order** của phần tử, nếu nguồn dùng thứ tự tự nhiên; hoặc
-- Một **`Comparator`** được nguồn cung cấp.
+- **Natural order** of the elements, if the source uses natural ordering; or
+- A **`Comparator`** provided by the source.
 
-Một Spliterator khai báo `SORTED` **bắt buộc** cũng phải khai báo `ORDERED`.
+A Spliterator declaring `SORTED` **must** also declare `ORDERED`.
 
 ~~~java
 import java.util.SortedSet;
@@ -305,16 +305,16 @@ sp.forEachRemaining(System.out::println);
 // 9
 ~~~
 
-Thứ tự tăng dần ở đây do natural ordering của `Integer`, không phải do tình cờ danh sách đã sắp xếp.
+The ascending order here comes from `Integer`'s natural ordering, not because a list happened to be sorted by coincidence.
 
-### 5.1. getComparator() là một phần của hợp đồng SORTED
+### 5.1. getComparator() is part of the SORTED contract
 
-Nếu Spliterator có `SORTED`, `getComparator()` phải:
+If a Spliterator has `SORTED`, `getComparator()` must:
 
-- Trả `null` khi nguồn sắp xếp theo **natural order**.
-- Trả `Comparator<? super T>` phù hợp nếu dùng thứ tự riêng.
+- Return `null` when the source is sorted in **natural order**.
+- Return the appropriate `Comparator<? super T>` if a custom order is used.
 
-Nếu Spliterator **không** có `SORTED`, lời gọi `getComparator()` phải ném `IllegalStateException`.
+If the Spliterator **does not** have `SORTED`, calling `getComparator()` must throw `IllegalStateException`.
 
 ~~~java
 import java.util.Comparator;
@@ -339,15 +339,15 @@ System.out.println(customOrder.getComparator() != null); // true
 Spliterator<Integer> listSp = List.of(1, 2, 3).spliterator();
 
 try {
-    listSp.getComparator(); // List spliterator không công bố SORTED.
+    listSp.getComparator(); // List spliterator does not declare SORTED.
 } catch (IllegalStateException expected) {
-    System.out.println("Nguồn không khai báo SORTED");
+    System.out.println("Source does not declare SORTED");
 }
 ~~~
 
-**Sai lầm thường gặp:** override `getComparator()` trả `null` chỉ để “cho qua” dù cờ `SORTED` không có; hoặc công bố `SORTED` nhưng lại trả comparator không phản ánh thứ tự phần tử thực sự.
+**Common mistake:** overriding `getComparator()` to return `null` just to "make it pass" even though the `SORTED` flag is absent; or declaring `SORTED` while returning a comparator that does not reflect the actual element order.
 
-### 5.2. SORTED không bảo đảm không trùng
+### 5.2. SORTED does not guarantee uniqueness
 
 ~~~java
 import java.util.List;
@@ -359,17 +359,17 @@ System.out.println(
 ); // [1, 1, 2, 3]
 ~~~
 
-`sorted()` sắp xếp nhưng không loại phần tử trùng. Nếu cần hai đặc tính, thường phải dùng cả `sorted()` lẫn `distinct()` (trừ khi nguồn đã cam kết một trong hai).
+`sorted()` sorts elements but does not remove duplicates. If you need both properties, you usually need both `sorted()` and `distinct()` (unless the source already guarantees one of them).
 
-### 5.3. Đừng tự khai báo SORTED cho một List chỉ vì vừa kiểm tra dữ liệu
+### 5.3. Do not declare SORTED on a List just because you inspected the data
 
-Một `List.of(1, 2, 3)` có nội dung tăng dần ở ví dụ hiện tại, nhưng kiểu nguồn List tổng quát không tự cam kết tính chất đó cho mọi đối tượng List. Trong một nguồn tùy chỉnh, việc **cố định snapshot và kiểm tra trước** khi công bố `SORTED` có thể hợp lệ; đó là chiến lược được dùng ở mục 10.
+`List.of(1, 2, 3)` happens to have ascending contents in this example, but the general List source type does not guarantee that property for every List instance. In a custom source, **taking an immutable snapshot and validating upfront** before declaring `SORTED` can be valid; that is the strategy used in section 10.
 
 ---
 
-## 6. NONNULL: nguồn cam kết không phát ra null
+## 6. NONNULL: Source Guarantees No null Values Are Emitted
 
-`Spliterator.NONNULL` nói rằng tất cả phần tử được Spliterator phát ra đều **khác `null`**.
+`Spliterator.NONNULL` states that every element emitted by the Spliterator is **non-`null`**.
 
 ~~~java
 import java.util.List;
@@ -377,16 +377,16 @@ import java.util.Spliterator;
 
 List<String> names = List.of("An", "Bình", "Chi");
 
-// List.of không chấp nhận phần tử null.
+// List.of does not allow null elements.
 boolean noNullInData = names.stream().noneMatch(v -> v == null);
 System.out.println(noNullInData); // true
 ~~~
 
-**Tuy nhiên:** từ việc dữ liệu trong List hiện không null **không được suy ra** rằng `names.spliterator()` bắt buộc công bố cờ `NONNULL`. Đây là một đặc tính của **triển khai Spliterator**, không phải một phép suy luận chạy trên List.
+**However:** from the fact that data currently in a List is non-null, you **must not deduce** that `names.spliterator()` necessarily declares the `NONNULL` flag. This is a property of **the Spliterator implementation**, not a runtime inference over the List.
 
-Một nguồn tùy chỉnh có thể công bố `NONNULL` nếu cấu trúc dữ liệu, quá trình kiểm tra đầu vào hoặc giao thức phát phần tử bảo đảm không có null.
+A custom source may declare `NONNULL` if its data structure, input validation, or element-emission protocol guarantees no nulls.
 
-### 6.1. NONNULL không thay thế kiểm tra hợp lệ nghiệp vụ
+### 6.1. NONNULL does not replace business validation
 
 ~~~java
 record Employee(String name, int age) {}
@@ -395,9 +395,9 @@ Employee e = new Employee("", -5);
 System.out.println(e != null); // true
 ~~~
 
-Đối tượng không null nhưng nội dung có thể không hợp lệ theo nghiệp vụ. `NONNULL` không chứng nhận tuổi dương, tên có giá trị, email đúng định dạng hoặc bất kỳ quy tắc domain nào.
+An object is non-null, yet its contents may be invalid under business rules. `NONNULL` does not certify positive ages, non-blank names, valid email formats, or any domain rule.
 
-### 6.2. Không khai báo NONNULL nếu nguồn có thể phát null
+### 6.2. Do not declare NONNULL if the source can emit null
 
 ~~~java
 import java.util.Arrays;
@@ -405,7 +405,7 @@ import java.util.List;
 
 List<String> source = Arrays.asList("An", null, "Chi");
 
-// Ví dụ xử lý rõ null trước khi gọi String::length.
+// Example explicitly handling null before calling String::length.
 List<Integer> lengths = source.stream()
         .filter(java.util.Objects::nonNull)
         .map(String::length)
@@ -414,52 +414,52 @@ List<Integer> lengths = source.stream()
 System.out.println(lengths); // [2, 3]
 ~~~
 
-Nếu nguồn có khả năng phát null, tự công bố `NONNULL` là sai. Việc gọi `filter(Objects::nonNull)` trong pipeline có thể xử lý null ở tầng ứng dụng, nhưng không “sửa” được một **khai báo sai của nguồn** có thể đã ảnh hưởng đến cách Stream tối ưu thao tác.
+If a source can emit null, declaring `NONNULL` is wrong. Calling `filter(Objects::nonNull)` in the pipeline can handle nulls at the application layer, but it does not "fix" a **false source declaration** that may already have affected how the Stream optimized operations.
 
-### 6.3. NONNULL không làm mọi terminal operation an toàn với null
+### 6.3. NONNULL does not make every terminal operation null-safe
 
-Ví dụ `Stream.findFirst()` trả `Optional<T>` và không thể biểu diễn một giá trị được chọn là null bằng `Optional.of(null)`:
+For instance, `Stream.findFirst()` returns an `Optional<T>` and cannot represent a selected null value via `Optional.of(null)`:
 
 ~~~java
 import java.util.stream.Stream;
 
-// Có thể ném NullPointerException do phần tử đầu tiên là null.
+// Can throw NullPointerException because the first element is null.
 // Stream.of((String) null).findFirst();
 ~~~
 
-Nguồn có thể chứa null cần một chính sách xử lý riêng. Không nên lấy `NONNULL` làm cách “tắt” kiểm tra null đối với một nguồn không được kiểm chứng.
+Sources that may contain null need an explicit handling policy. Do not treat `NONNULL` as a way to "turn off" null checks on an unverified source.
 
 ---
 
-## 7. Bảng phân biệt các tổ hợp đặc tính
+## 7. Comparison Table of Characteristic Combinations
 
-Đừng đọc bốn cờ như bốn mức độ “chất lượng” tăng dần. Chúng mô tả **bốn chiều thông tin khác nhau**:
+Do not read the four flags as four ascending levels of "quality." They describe **four distinct dimensions of information**:
 
-| Nguồn dữ liệu về mặt khái niệm | ORDERED | DISTINCT | SORTED | NONNULL |
+| Conceptual Data Source | ORDERED | DISTINCT | SORTED | NONNULL |
 |---|---|---|---|---|
-| Dãy `[3, 1, 3]` theo vị trí | Có | Không | Không | Có, nếu bảo đảm |
-| Dãy `[1, 1, 3]` có sắp tăng | Có | Không | Có | Có, nếu bảo đảm |
-| Tập `{3, 1, 5}` không có thứ tự duyệt quy định | Không | Có | Không | Tùy nguồn |
-| Tập số nguyên tự nhiên sắp tăng `[1, 3, 5]` | Có | Có | Có | Có, nếu bảo đảm |
-| Dãy `[null, "A"]` có thứ tự vị trí | Có | Có nếu hai phần tử khác nhau theo equals | Có thể, nếu comparator hỗ trợ null | Không |
+| Sequence `[3, 1, 3]` by position | Yes | No | No | Yes, if guaranteed |
+| Ascending sequence `[1, 1, 3]` | Yes | No | Yes | Yes, if guaranteed |
+| Set `{3, 1, 5}` with no defined traversal order | No | Yes | No | Depends on source |
+| Ascending natural integers `[1, 3, 5]` | Yes | Yes | Yes | Yes, if guaranteed |
+| Sequence `[null, "A"]` by position | Yes | Yes if the two elements differ per equals | Possible, if comparator supports null | No |
 
-Bảng mô tả **các bảo đảm có thể có**; không khẳng định mọi implementation Java của một collection cụ thể tự động xuất ra đúng tập cờ như hàng tương ứng.
+The table describes **possible guarantees**; it does not assert that every Java implementation of a given collection automatically emits the exact flag set shown in the corresponding row.
 
-### 7.1. Một số ví dụ collection phổ biến
+### 7.1. Common collection examples
 
-| Loại nguồn | Điều thường có thể dựa vào |
+| Source Type | What You Can Usually Rely On |
 |---|---|
-| `List` | Có encounter order; không tự mặc định DISTINCT hoặc SORTED |
-| `LinkedHashSet` | Không trùng theo Set và duyệt theo thứ tự chèn |
-| `HashSet` | Không trùng theo Set; không bảo đảm encounter order |
-| `SortedSet`/`TreeSet` | Có thứ tự sắp xếp theo comparator/natural order |
-| `StreamSupport.stream(customSpliterator, ...)` | Phụ thuộc hoàn toàn vào hợp đồng của Spliterator được cung cấp |
+| `List` | Has encounter order; does not imply DISTINCT or SORTED |
+| `LinkedHashSet` | Set-unique and traverses in insertion order |
+| `HashSet` | Set-unique; no guaranteed encounter order |
+| `SortedSet`/`TreeSet` | Sorted order per comparator/natural order |
+| `StreamSupport.stream(customSpliterator, ...)` | Depends entirely on the supplied Spliterator's contract |
 
-Trong mã thực tế, kiểm tra flags nếu việc ra quyết định phụ thuộc vào chúng; song song với đó phải **kiểm chứng chính triển khai nguồn** để bảo đảm flags phản ánh dữ liệu thật.
+In real code, check flags when decisions depend on them; alongside that, **verify the source implementation itself** to ensure flags reflect real data.
 
 ---
 
-## 8. Kiểm tra flags qua API
+## 8. Inspecting Flags via API
 
 ~~~java
 import java.util.List;
@@ -484,22 +484,22 @@ System.out.println(
 );
 ~~~
 
-Khi truyền nhiều bit cho `hasCharacteristics`, kết quả chỉ `true` nếu **tất cả bit được yêu cầu** đều có.
+When passing multiple bits to `hasCharacteristics`, the result is `true` only if **all requested bits** are present.
 
-### 8.1. Các phương thức thường đi kèm
+### 8.1. Commonly paired methods
 
-| Phương thức | Mục đích |
+| Method | Purpose |
 |---|---|
-| `characteristics()` | Trả bitmask các đặc tính nguồn |
-| `hasCharacteristics(flags)` | Kiểm tra mọi cờ yêu cầu có được công bố không |
-| `estimateSize()` | Ước lượng số phần tử còn lại |
-| `getExactSizeIfKnown()` | Kích thước chính xác nếu có `SIZED`, ngược lại trả `-1` |
-| `tryAdvance(action)` | Phát nhiều nhất một phần tử và báo còn hay hết |
-| `forEachRemaining(action)` | Phát các phần tử còn lại |
-| `trySplit()` | Tách một phần nguồn còn lại hoặc trả `null` |
-| `getComparator()` | Chỉ có ý nghĩa nếu `SORTED` |
+| `characteristics()` | Returns the bitmask of source characteristics |
+| `hasCharacteristics(flags)` | Checks whether all requested flags are declared |
+| `estimateSize()` | Estimates the number of remaining elements |
+| `getExactSizeIfKnown()` | Exact size if `SIZED` is present, otherwise `-1` |
+| `tryAdvance(action)` | Emits at most one element and reports whether one remained |
+| `forEachRemaining(action)` | Emits the remaining elements |
+| `trySplit()` | Splits off part of the remaining source or returns `null` |
+| `getComparator()` | Meaningful only if `SORTED` |
 
-Ví dụ kiểm tra an toàn `getComparator`:
+Example of safely checking `getComparator`:
 
 ~~~java
 import java.util.Comparator;
@@ -509,51 +509,51 @@ static <T> Comparator<? super T> comparatorIfSorted(
         Spliterator<T> sp) {
 
     if (!sp.hasCharacteristics(Spliterator.SORTED)) {
-        throw new IllegalArgumentException("Nguồn chưa công bố SORTED");
+        throw new IllegalArgumentException("Source has not declared SORTED");
     }
 
     return sp.getComparator();
-    // null có nghĩa natural ordering; không phải comparator bị lỗi.
+    // null means natural ordering; not a broken comparator.
 }
 ~~~
 
-Đoạn trên đặt bên trong lớp tiện ích Java. Nếu cần so sánh theo natural order khi comparator là `null`, hãy xác định rõ rằng kiểu phần tử thực sự hỗ trợ `Comparable` theo hợp đồng nguồn.
+The snippet above belongs inside a Java utility class. If you need to compare using natural order when the comparator is `null`, verify clearly that the element type actually supports `Comparable` per the source contract.
 
 ---
 
-## 9. Khi nào được công bố bốn cờ trong nguồn tự định nghĩa?
+## 9. When May a Custom Source Declare These Four Flags?
 
-Trước khi viết `characteristics()` cho Spliterator tùy chỉnh, đặt bốn câu hỏi:
+Before writing `characteristics()` for a custom Spliterator, ask four questions:
 
-1. **ORDERED:** Nguồn có một thứ tự duyệt được định nghĩa không? Nếu `trySplit` tách nguồn, phần tách ra có là tiền tố của phần còn lại không?
-2. **DISTINCT:** Mỗi cặp phần tử khác vị trí có bảo đảm không bằng nhau theo `equals` không? Nếu khóa phụ trùng thì không tự làm phần tử mất DISTINCT.
-3. **SORTED:** Các phần tử có thực sự theo natural order hoặc comparator đã công bố không? Có khai báo ORDERED và triển khai `getComparator` đúng không?
-4. **NONNULL:** Mọi đường phát phần tử đều không thể tạo null không? Việc nguồn thay đổi trong lúc duyệt có phá vỡ bảo đảm này không?
+1. **ORDERED:** Does the source have a defined traversal order? If `trySplit` splits the source, is the split-off part a prefix of the remaining portion?
+2. **DISTINCT:** Is every pair of elements at different positions guaranteed unequal per `equals`? Duplicate secondary keys alone do not prevent elements from being `DISTINCT`.
+3. **SORTED:** Do elements truly follow natural order or the declared comparator? Are `ORDERED` declared and `getComparator` properly implemented?
+4. **NONNULL:** Can none of the element-emission paths produce null? Could source mutations during traversal break this guarantee?
 
-Đặc tính phải đúng cho **toàn bộ quá trình sử dụng Spliterator**, không chỉ đúng với vài phần tử đầu tiên hoặc trong dữ liệu mẫu.
+Characteristics must hold for **the entire lifetime of the Spliterator**, not just for the first few elements or sample data.
 
-Một cách đơn giản, dễ kiểm chứng là:
+A simple, verifiable approach is:
 
-- Tạo snapshot bất biến của nguồn đầu vào.
-- Xác thực dữ liệu và thứ tự khi tạo snapshot.
-- Duyệt bằng cặp chỉ số `[index, fence)`.
-- Khi chia, tạo Spliterator con trên **tiền tố** `[index, mid)`, còn Spliterator ban đầu giữ `[mid, fence)`.
-- Bảo đảm mọi Spliterator con sử dụng cùng tập cờ phản ánh đúng các lát của snapshot.
+- Create an immutable snapshot of the input source.
+- Validate the data and ordering when creating the snapshot.
+- Traverse using an index pair `[index, fence)`.
+- When splitting, create a child Spliterator over the **prefix** `[index, mid)`, while the original Spliterator keeps `[mid, fence)`.
+- Ensure every child Spliterator uses the same flag set accurately reflecting the snapshot slices.
 
-Phần tiếp theo biến cách làm ấy thành chương trình chạy được.
+The next section turns that approach into a runnable program.
 
 ---
 
-## 10. Ví dụ hoàn chỉnh: nguồn Integer tăng nghiêm ngặt, không null
+## 10. Complete Example: Strictly Increasing, Non-Null Integer Source
 
-Nguồn mẫu có những bảo đảm rõ ràng:
+The sample source provides clear guarantees:
 
-- Giá trị kiểu `Integer`, không có null.
-- Các phần tử được sắp **tăng nghiêm ngặt** theo natural order.
-- Không có phần tử trùng theo `equals`.
-- Thứ tự gặp phần tử chính là thứ tự tăng.
-- Snapshot không bị sửa cấu trúc sau khi tạo.
-- Mỗi Spliterator biết chính xác số phần tử còn lại và có thể tách theo lát chỉ số.
+- Values of type `Integer`, no nulls.
+- Elements are sorted **strictly increasing** in natural order.
+- No duplicate elements per `equals`.
+- Encounter order matches ascending order.
+- Snapshot cannot be structurally modified after creation.
+- Each Spliterator knows its exact remaining element count and splits by index slice.
 
 ~~~java
 import java.util.Comparator;
@@ -572,17 +572,17 @@ public class SortedUniqueSpliteratorDemo {
         private int index;
         private final int fence;
 
-        // Constructor công khai: sao chép và xác thực dữ liệu nguồn.
+        // Public constructor: copies and validates source data.
         SortedUniqueIntegers(List<Integer> input) {
             Objects.requireNonNull(input, "input");
 
-            // List.copyOf không cho phép phần tử null.
+            // List.copyOf disallows null elements.
             List<Integer> snapshot = List.copyOf(input);
 
             for (int i = 1; i < snapshot.size(); i++) {
                 if (snapshot.get(i - 1) >= snapshot.get(i)) {
                     throw new IllegalArgumentException(
-                            "Giá trị phải tăng nghiêm ngặt ở vị trí " + i
+                            "Values must be strictly increasing at index " + i
                     );
                 }
             }
@@ -592,7 +592,7 @@ public class SortedUniqueSpliteratorDemo {
             this.fence = snapshot.size();
         }
 
-        // Constructor nội bộ: chia sẻ snapshot bất biến theo một lát.
+        // Internal constructor: shares immutable snapshot over a slice.
         private SortedUniqueIntegers(
                 List<Integer> snapshot, int index, int fence) {
             this.data = snapshot;
@@ -623,11 +623,11 @@ public class SortedUniqueSpliteratorDemo {
 
             int middle = index + remaining / 2;
 
-            // Trả lại tiền tố của phần tử còn lại.
+            // Return the prefix of remaining elements.
             SortedUniqueIntegers prefix =
                     new SortedUniqueIntegers(data, index, middle);
 
-            // Spliterator hiện tại giữ hậu tố.
+            // Current Spliterator retains the suffix.
             index = middle;
 
             return prefix;
@@ -651,7 +651,7 @@ public class SortedUniqueSpliteratorDemo {
 
         @Override
         public Comparator<? super Integer> getComparator() {
-            // Nguồn SORTED theo natural ordering của Integer.
+            // Source is SORTED by Integer natural ordering.
             return null;
         }
     }
@@ -687,27 +687,27 @@ public class SortedUniqueSpliteratorDemo {
 }
 ~~~
 
-### 10.1. Vì sao ví dụ được phép khai báo bốn cờ?
+### 10.1. Why is the example allowed to declare all four flags?
 
-| Cờ | Chứng cứ từ triển khai |
+| Flag | Evidence from Implementation |
 |---|---|
-| `ORDERED` | Duyệt theo chỉ số tăng và `trySplit` trả lát **tiền tố** |
-| `DISTINCT` | Constructor từ chối mọi cặp kề không tăng; với `Integer` natural order nhất quán với `equals` |
-| `SORTED` | Snapshot được kiểm tra tăng nghiêm ngặt; `getComparator()` trả `null` để chỉ natural order |
-| `NONNULL` | `List.copyOf` từ chối phần tử null trước khi nguồn được công bố |
+| `ORDERED` | Traverses in ascending index order and `trySplit` returns a **prefix** slice |
+| `DISTINCT` | Constructor rejects any non-increasing adjacent pair; for `Integer`, natural order is consistent with `equals` |
+| `SORTED` | Snapshot is validated as strictly increasing; `getComparator()` returns `null` to indicate natural order |
+| `NONNULL` | `List.copyOf` rejects null elements before the source is exposed |
 
-Các cờ bổ sung:
+Additional flags:
 
-- `SIZED`: `fence - index` là số phần tử còn lại chính xác.
-- `SUBSIZED`: sau khi chia, cả phần tách ra và phần giữ lại đều biết kích thước chính xác.
-- `IMMUTABLE`: nguồn duyệt được xây từ snapshot không thể thay đổi cấu trúc, chứa các giá trị `Integer` bất biến.
+- `SIZED`: `fence - index` is the exact remaining element count.
+- `SUBSIZED`: after splitting, both the split-off part and retained part know their exact sizes.
+- `IMMUTABLE`: traversal is backed by a structurally unmodifiable snapshot containing immutable `Integer` values.
 
-**Giới hạn:** Đây là nguồn minh họa chuyên biệt cho `Integer` tăng nghiêm ngặt. Không thể sao chép nguyên cờ `DISTINCT | SORTED | NONNULL` sang một nguồn tùy ý mà không có bảo đảm tương ứng.
+**Limitations:** This is a specialized illustrative source for strictly increasing `Integer` values. You cannot blindly copy `DISTINCT | SORTED | NONNULL` onto an arbitrary source without the corresponding guarantees.
 
-### 10.2. Vì sao phải tạo Spliterator mới cho mỗi Stream?
+### 10.2. Why create a fresh Spliterator for each Stream?
 
 ~~~java
-// Nên tạo nguồn mới cho mỗi lần sử dụng:
+// Create a new source for each usage:
 List<Integer> a = StreamSupport.stream(
         new SortedUniqueIntegers(values), false
 ).toList();
@@ -717,26 +717,26 @@ List<Integer> b = StreamSupport.stream(
 ).toList();
 ~~~
 
-`Spliterator` thường giữ vị trí duyệt thay đổi. Nếu một Stream đã tiêu thụ Spliterator, việc dùng lại đối tượng đó cho Stream khác có thể chỉ còn các phần tử chưa duyệt hoặc không còn phần tử nào. **Không dùng lại một nguồn đã bị tiêu thụ rồi tưởng đó là hai phép đọc độc lập.**
+A `Spliterator` typically holds mutable traversal position. If one Stream has consumed a Spliterator, reusing that object for another Stream may yield only untraversed elements or none at all. **Never reuse a consumed source expecting two independent reads.**
 
 ---
 
-## 11. Kiểm tra trySplit: tiền tố, hậu tố và tính duy nhất
+## 11. Testing trySplit: Prefix, Suffix, and Uniqueness
 
-Xét một nguồn có thứ tự:
+Consider an ordered source:
 
 ~~~text
 [1, 3, 7, 9, 11, 15]
 
 trySplit:
-  trả về:       [1, 3, 7]
-  giữ lại:      [9, 11, 15]
+  returned: [1, 3, 7]
+  retained: [9, 11, 15]
 
-Khi duyệt lần lượt phần trả về, rồi phần giữ lại:
+When traversing returned part first, then retained part:
   [1, 3, 7, 9, 11, 15]
 ~~~
 
-Để kiểm tra trực tiếp, đặt đoạn sau trong `SortedUniqueSpliteratorDemo.main`:
+To test directly, place the following snippet inside `SortedUniqueSpliteratorDemo.main`:
 
 ~~~java
 List<Integer> values = List.of(1, 3, 7, 9, 11, 15);
@@ -747,7 +747,7 @@ SortedUniqueIntegers remainder =
 Spliterator<Integer> prefix = remainder.trySplit();
 
 if (prefix == null) {
-    throw new AssertionError("Nguồn đủ lớn phải tách được");
+    throw new AssertionError("A sufficiently large source must be splittable");
 }
 
 List<Integer> left = StreamSupport.stream(prefix, false).toList();
@@ -761,21 +761,21 @@ java.util.ArrayList<Integer> recombined =
 recombined.addAll(right);
 
 if (!recombined.equals(values)) {
-    throw new AssertionError("Mất, nhân đôi hoặc đảo phần tử");
+    throw new AssertionError("Lost, duplicated, or reordered elements");
 }
 ~~~
 
-Đoạn này kiểm tra một lần tách. Với một Spliterator phức tạp, nên lặp tách **nhiều cấp**, kiểm tra tất cả các phần đều:
+This snippet tests a single split. For a complex Spliterator, perform **multi-level** splitting repeatedly, verifying that all parts:
 
-- Không phát phần tử ngoài nguồn.
-- Không làm mất hoặc nhân đôi phần tử.
-- Giữ đúng encounter order nếu `ORDERED`.
-- Không phát null nếu `NONNULL`.
-- Không tạo phần tử trùng theo `equals` nếu `DISTINCT`.
-- Giữ comparator/order của phần tách nếu `SORTED`.
-- Có kích thước chính xác khi `SIZED | SUBSIZED` được công bố.
+- Emit no elements outside the source.
+- Never drop or duplicate elements.
+- Preserve encounter order if `ORDERED`.
+- Emit no nulls if `NONNULL`.
+- Produce no duplicates per `equals` if `DISTINCT`.
+- Preserve comparator/ordering of split parts if `SORTED`.
+- Have exact sizes when `SIZED | SUBSIZED` is declared.
 
-### 11.1. Cờ sau khi tách
+### 11.1. Flags after splitting
 
 ~~~java
 int flags = Spliterator.ORDERED
@@ -794,22 +794,22 @@ System.out.println(prefix != null
 System.out.println(source.hasCharacteristics(flags)); // true
 ~~~
 
-Cả hai lát cùng trỏ đến snapshot đã xác thực và chia theo tiền tố/hậu tố, nên bốn bảo đảm vẫn đúng sau khi tách.
+Both slices point to the validated snapshot and split into prefix/suffix, so all four guarantees still hold after splitting.
 
 ---
 
-## 12. Cờ của nguồn ảnh hưởng gì đến Stream pipeline?
+## 12. How Do Source Flags Affect the Stream Pipeline?
 
-Stream API dùng thông tin từ nguồn và các thao tác trung gian để lập kế hoạch xử lý. Một số phép toán có thể tận dụng đặc tính đã biết:
+The Stream API uses metadata from the source and intermediate operations to plan execution. Certain operations can leverage known characteristics:
 
-- `distinct()` có thể tránh làm việc không cần thiết nếu dữ liệu đã được bảo đảm `DISTINCT`.
-- `sorted()` có thể tránh sắp xếp lại nếu nguồn/pipeline đã được bảo đảm sắp tự nhiên đúng yêu cầu.
-- Thứ tự gặp phần tử có thể tác động đến `findFirst`, `limit`, `forEachOrdered` và nhiều thao tác trạng thái, nhất là khi song song.
-- `SIZED`/`SUBSIZED` (ngoài phạm vi bốn cờ chính) có thể giúp phân chia, cấp phát hoặc tối ưu đếm.
+- `distinct()` can avoid unnecessary deduplication work if data is already guaranteed `DISTINCT`.
+- `sorted()` can skip re-sorting if the source/pipeline is already guaranteed to be in the requested natural order.
+- Encounter order affects `findFirst`, `limit`, `forEachOrdered`, and many stateful operations, especially in parallel.
+- `SIZED`/`SUBSIZED` (beyond the four core flags) can aid partitioning, allocation, or count optimizations.
 
-Những điểm trên là **khả năng tối ưu hợp lệ**, không phải bảo đảm một phiên bản JDK cụ thể sẽ bỏ qua hay thực hiện bao nhiêu thao tác.
+These are **valid optimization possibilities**, not guarantees that a specific JDK version will skip or perform a specific number of steps.
 
-### 12.1. filter giữ nội dung phần tử nhưng thay đổi số lượng
+### 12.1. filter preserves element values but changes count
 
 ~~~java
 import java.util.List;
@@ -823,11 +823,11 @@ List<Integer> result = values.stream()
 System.out.println(result); // [7, 9, 11]
 ~~~
 
-Về ngữ nghĩa dữ liệu, chỉ lọc bỏ phần tử của một dãy vốn SORTED/DISTINCT/NONNULL thì các phần tử còn lại vẫn có các tính chất đó và còn encounter order như trước.
+Data-semantically, simply filtering elements from an already `SORTED`/`DISTINCT`/`NONNULL` sequence leaves remaining elements with those same properties and the same encounter order.
 
-Tuy nhiên, `filter` làm số lượng phần tử không còn suy ra trực tiếp từ số lượng nguồn. **Đừng mặc định bitmask của Spliterator sau mọi thao tác trung gian sẽ giống hệt bitmask nguồn**; Stream có các quy tắc duy trì/hủy thông tin riêng.
+However, `filter` makes the element count no longer directly derivable from the source size. **Do not assume a Spliterator's bitmask after intermediate operations remains identical to the source bitmask**; Streams have their own rules for propagating or clearing flags.
 
-### 12.2. map có thể làm mất DISTINCT, SORTED, NONNULL
+### 12.2. map can lose DISTINCT, SORTED, and NONNULL
 
 ~~~java
 import java.util.List;
@@ -841,15 +841,15 @@ List<Integer> mapped = values.stream()
 System.out.println(mapped); // [1, 1, 1]
 ~~~
 
-Ngay cả nếu nguồn đầu vào không trùng và đã sắp xếp, phép `map` tổng quát có thể:
+Even if the input source is duplicate-free and sorted, a general `map` can:
 
-- Tạo **trùng** do nhiều phần tử đi về cùng giá trị.
-- Làm **mất thứ tự sắp xếp** do hàm biến đổi không đơn điệu.
-- Trả **null** ngay cả khi đầu vào không null.
+- Introduce **duplicates** when multiple elements map to the same value.
+- Break **sort order** when the mapping function is non-monotonic.
+- Return **null** even when inputs are non-null.
 
-Do đó không được tự suy ra `DISTINCT`, `SORTED` hoặc `NONNULL` cho đầu ra của một phép `map` tùy ý. Nếu một pipeline có hành vi đặc biệt bảo toàn những tính chất ấy, đó phải là bảo đảm được đánh giá riêng.
+Therefore, `DISTINCT`, `SORTED`, or `NONNULL` must never be inferred automatically for the output of an arbitrary `map`. If a pipeline has special behavior preserving those properties, that guarantee must be evaluated specifically.
 
-### 12.3. distinct(), sorted() và unordered()
+### 12.3. distinct(), sorted(), and unordered()
 
 ~~~java
 import java.util.List;
@@ -857,17 +857,17 @@ import java.util.List;
 List<Integer> numbers = List.of(3, 1, 3, 2);
 
 System.out.println(numbers.stream().distinct().toList());
-// [3, 1, 2]: nguồn có thứ tự, giữ lần gặp đầu tiên.
+// [3, 1, 2]: ordered source keeps first occurrence.
 
 System.out.println(numbers.stream().sorted().toList());
-// [1, 2, 3, 3]: đã sắp xếp nhưng còn số 3 trùng.
+// [1, 2, 3, 3]: sorted, but duplicate 3 remains.
 
 System.out.println(numbers.stream()
         .distinct().sorted().toList());
 // [1, 2, 3]
 ~~~
 
-`unordered()` là thao tác trung gian có thể **bỏ ràng buộc encounter order của Stream**, để framework có thêm tự do khi tối ưu. Nó **không hứa sẽ xáo trộn phần tử**, cũng không đồng nghĩa phần tử mất DISTINCT hay phải chứa null.
+`unordered()` is an intermediate operation that can **drop the Stream's encounter-order constraint**, giving the framework greater freedom to optimize. It **does not promise to shuffle elements**, nor does it imply elements lose `DISTINCT` or must contain nulls.
 
 ~~~java
 List<Integer> result = numbers.parallelStream()
@@ -875,54 +875,54 @@ List<Integer> result = numbers.parallelStream()
         .distinct()
         .toList();
 
-// Không dựa vào thứ tự phần tử trong result nếu pipeline không
-// còn ràng buộc encounter order.
+// Do not rely on element order in result when the pipeline no longer
+// enforces encounter order.
 ~~~
 
-**Không thay cờ nguồn để ép thứ tự mong muốn**. Nếu muốn sắp xếp, dùng `sorted` với comparator thích hợp; nếu muốn bỏ trùng, dùng `distinct` hoặc cấu trúc tập hợp theo đúng chính sách `equals`.
+**Do not alter source flags to force a desired order.** If you want sorting, use `sorted` with an appropriate comparator; if you want deduplication, use `distinct` or a set structure matching your `equals` policy.
 
 ---
 
-## 13. Cảnh báo: khai báo sai characteristics có thể làm sai kết quả
+## 13. Warning: Misdeclaring Characteristics Can Produce Wrong Results
 
-Một nguồn chưa được xác thực:
+An unvalidated source:
 
 ~~~text
-Dữ liệu: [1, 1, 2]
-Thực tế:
-  ORDERED = có, theo vị trí
-  DISTINCT = không
-  SORTED = có, theo số tự nhiên
-  NONNULL = có, nếu dữ liệu không null
+Data: [1, 1, 2]
+Reality:
+  ORDERED  = yes, by position
+  DISTINCT = no
+  SORTED   = yes, in natural order
+  NONNULL  = yes, if data has no nulls
 ~~~
 
-Nếu mã nguồn tùy chỉnh **khai báo `DISTINCT` một cách không đúng**, một triển khai Stream có thể tin rằng không cần loại phần tử trùng nữa và tối ưu `distinct()`. Khi ấy kết quả có nguy cơ vẫn chứa hai số `1`.
+If custom source code **incorrectly declares `DISTINCT`**, a Stream implementation may trust that deduplication is unnecessary and optimize away `distinct()`. The output could then still contain both `1`s.
 
 ~~~java
-// KHÔNG làm:
-// characteristics() trả DISTINCT khi nguồn thực tế chứa [1, 1, 2].
+// DO NOT do this:
+// characteristics() returns DISTINCT when the actual source contains [1, 1, 2].
 //
 // StreamSupport.stream(broken, false)
 //         .distinct()
 //         .toList();
 //
-// Không dùng kết quả để suy ra Stream đã sửa dữ liệu sai của nguồn.
+// Do not use the result to assume the Stream fixed the source's invalid data.
 ~~~
 
-Tương tự:
+Similarly:
 
-- Khai báo `SORTED` cho dữ liệu chưa sắp xếp có thể khiến `sorted()` không thực hiện công việc mà người viết mong đợi.
-- Khai báo `ORDERED` nhưng `trySplit` không trả đúng tiền tố có thể làm hỏng kết quả phụ thuộc encounter order.
-- Khai báo `NONNULL` trong khi nguồn có thể phát null là **vi phạm hợp đồng** và làm các giả định của mã sử dụng nguồn không còn hợp lệ.
-- Khai báo `SIZED` với `estimateSize` không chính xác có thể làm các tối ưu dựa vào kích thước bị sai.
+- Declaring `SORTED` for unsorted data may cause `sorted()` to skip work the caller expected.
+- Declaring `ORDERED` while `trySplit` fails to return a proper prefix can corrupt encounter-order-dependent results.
+- Declaring `NONNULL` when the source can emit null **violates the contract** and invalidates downstream consumer assumptions.
+- Declaring `SIZED` with an inaccurate `estimateSize` can break size-based optimizations.
 
-Nguyên tắc: **khai báo ít hơn những gì nguồn thật sự biết thường làm mất cơ hội tối ưu; khai báo nhiều hơn sự thật có thể làm sai kết quả.** Đừng thêm cờ chỉ vì một benchmark hoặc một bộ dữ liệu mẫu trông “đã đúng”.
+Rule of thumb: **under-declaring what the source truly knows usually only forfeits optimization opportunities; over-declaring beyond the truth can produce wrong results.** Never add flags just because one benchmark or sample dataset "looked fine."
 
 ---
 
-## 14. Custom source không biết trước kích thước
+## 14. Custom Sources with Unknown Size
 
-Không phải nguồn nào cũng có dữ liệu nằm trong một `List` hoặc biết kích thước trước khi duyệt. Ví dụ một `Iterator<String>` do ứng dụng cung cấp:
+Not every source has data sitting in a `List` or knows its size before traversal. For instance, an application-provided `Iterator<String>`:
 
 ~~~java
 import java.util.Iterator;
@@ -943,16 +943,16 @@ List<String> values = StreamSupport.stream(source, false).toList();
 System.out.println(values); // [A, B, C]
 ~~~
 
-Ở ví dụ này:
+In this example:
 
-- Thứ tự của iterator bắt nguồn từ `List` nên có thể công bố `ORDERED`.
-- `List.of` không chứa null và iterator chỉ trả phần tử của List nên có thể công bố `NONNULL`.
-- Không tự công bố `SIZED` vì cách tạo `spliteratorUnknownSize` không biết trước tổng số phần tử.
-- Không công bố `DISTINCT` hay `SORTED` vì đầu vào mẫu này không đủ tạo ra hợp đồng tổng quát cho mọi nguồn tương tự.
+- The iterator's order comes from `List`, so `ORDERED` can be declared.
+- `List.of` contains no nulls and the iterator only yields List elements, so `NONNULL` can be declared.
+- Do not declare `SIZED`, because `spliteratorUnknownSize` does not know the total element count upfront.
+- Do not declare `DISTINCT` or `SORTED`, because this sample input is insufficient to establish a general contract for all similar sources.
 
-Khi sử dụng trên iterator thực sự từ mạng, file hay truy vấn dữ liệu, cần hiểu nguồn có thể thay đổi, số lượng có thể tăng, có thể lỗi và cần giải phóng tài nguyên. `Spliterators.spliteratorUnknownSize` không tự đóng tài nguyên của iterator.
+When used on a real iterator from network, files, or database queries, recognize that the source may change, grow, fail, and require resource cleanup. `Spliterators.spliteratorUnknownSize` does not auto-close the iterator's underlying resources.
 
-### 14.1. Nguồn vô hạn và giới hạn duyệt
+### 14.1. Infinite sources and traversal limits
 
 ~~~java
 import java.util.stream.Stream;
@@ -964,32 +964,32 @@ List<Integer> firstFive = Stream.iterate(0, n -> n + 1)
 System.out.println(firstFive); // [0, 1, 2, 3, 4]
 ~~~
 
-Ví dụ này là Stream sinh phần tử theo nhu cầu chứ không yêu cầu tự viết Spliterator. Nó cho thấy có những nguồn không biết trước số lượng cuối; khi đó không nên tuyên bố `SIZED` nếu không có một kích thước chính xác hợp lệ.
+This example is a demand-driven Stream generator rather than requiring a custom Spliterator. It shows that some sources have no known final count; in such cases, never declare `SIZED` without a valid exact size.
 
-Dữ liệu tự sinh có tăng dần không tự bảo đảm mọi loại nguồn vô hạn đều `SORTED`; nếu tự viết Spliterator và công bố `SORTED`, cần chứng minh thứ tự theo comparator cho mọi phần tử thực sự được phát.
+Generated data appearing ascending does not automatically make every infinite source `SORTED`; if writing a custom Spliterator and declaring `SORTED`, you must prove comparator ordering across every element actually emitted.
 
 ---
 
-## 15. IMMUTABLE, CONCURRENT và sự ổn định của bốn cờ
+## 15. IMMUTABLE, CONCURRENT, and the Stability of the Four Flags
 
-Bốn cờ `ORDERED`/`DISTINCT`/`SORTED`/`NONNULL` mô tả dữ liệu; còn `IMMUTABLE` và `CONCURRENT` liên quan đến cách nguồn đối diện **sửa đổi trong lúc duyệt**.
+The four flags `ORDERED`/`DISTINCT`/`SORTED`/`NONNULL` describe the data; meanwhile, `IMMUTABLE` and `CONCURRENT` relate to how the source handles **modifications during traversal**.
 
-| Cờ bổ sung | Ý nghĩa chính | Không đồng nghĩa |
+| Additional Flag | Core Meaning | Does NOT Mean |
 |---|---|---|
-| `IMMUTABLE` | Nguồn phần tử không thể bị thay đổi cấu trúc trong lúc duyệt | Không có nghĩa mọi đối tượng phần tử là immutable sâu |
-| `CONCURRENT` | Nguồn hỗ trợ sửa đổi đồng thời theo hợp đồng của nó | Không tự bảo đảm DISTINCT/SORTED/NONNULL |
-| `SIZED` | Số phần tử còn lại được biết chính xác theo hợp đồng | Không đồng nghĩa thứ tự đã sắp xếp |
-| `SUBSIZED` | Các Spliterator sau chia có kích thước chính xác theo hợp đồng | Không đồng nghĩa chia cân bằng hoặc luôn chia được |
+| `IMMUTABLE` | Element source cannot be structurally modified during traversal | Does not mean every element object is deeply immutable |
+| `CONCURRENT` | Source supports concurrent modifications per its contract | Does not automatically guarantee DISTINCT/SORTED/NONNULL |
+| `SIZED` | Remaining element count is known exactly per contract | Does not mean sorted order |
+| `SUBSIZED` | Child Spliterators after splitting have exact sizes per contract | Does not mean balanced splits or always splittable |
 
-Một nguồn tùy chỉnh dựa trên collection mutable bị thread khác sửa trong lúc duyệt có thể phá vỡ bảo đảm đã công bố. Ví dụ:
+A custom source backed by a mutable collection modified by another thread during traversal can break published guarantees. For example:
 
-- Dữ liệu đang sắp xếp tăng nhưng bị thay đổi chèn vào giữa có thể không còn `SORTED`.
-- Dữ liệu không trùng lúc tạo, nhưng có thêm giá trị trùng trong quá trình duyệt sẽ phá `DISTINCT`.
-- Trường tham chiếu trong các đối tượng mutable có thể chuyển thành null, khiến các giả định nghiệp vụ sai — dù bản thân phần tử gốc không null.
+- Ascending sorted data modified by mid-list insertion may no longer be `SORTED`.
+- Data unique at creation time may receive duplicate values during traversal, breaking `DISTINCT`.
+- Reference fields inside mutable objects may become null, breaking business assumptions—even if the element reference itself is non-null.
 
-Tạo snapshot và chỉ đọc là một cách đơn giản để tránh vấn đề đó. Khi dữ liệu phải cập nhật liên tục, cần chọn cấu trúc dữ liệu và hợp đồng nguồn thích hợp; chỉ thêm `CONCURRENT` vào bitmask không làm một collection bất kỳ tự động an toàn cho truy cập đồng thời.
+Creating a read-only snapshot is a simple way to avoid those issues. When data must update continuously, pick an appropriate data structure and source contract; merely adding `CONCURRENT` to the bitmask does not make an arbitrary collection thread-safe.
 
-### 15.1. SIZED và biến đổi sau nguồn
+### 15.1. SIZED and downstream transformations
 
 ~~~java
 import java.util.List;
@@ -1003,19 +1003,19 @@ long count = values.stream()
 System.out.println(count); // 2
 ~~~
 
-Nguồn `List` biết số phần tử, nhưng sau `filter` số phần tử còn lại phụ thuộc predicate. Một thao tác trung gian có thể làm một đặc tính về số lượng không còn áp dụng cho pipeline kết quả. Đây là một trong các lý do không nên coi flags của nguồn và flags của mọi pipeline là một thứ.
+The `List` source knows its element count, but after `filter` the remaining count depends on the predicate. An intermediate operation can invalidate a count characteristic for the resulting pipeline. This is one reason not to treat source flags and pipeline flags as the same thing.
 
 ---
 
-## 16. Đặc tính với primitive Spliterator
+## 16. Characteristics with Primitive Spliterators
 
-Java còn có:
+Java also provides:
 
 - `Spliterator.OfInt`.
 - `Spliterator.OfLong`.
 - `Spliterator.OfDouble`.
 
-Các kiểu chuyên biệt này cho phép duyệt giá trị nguyên thủy mà không cần boxing vào `Integer`/`Long`/`Double` ở mỗi bước.
+These specialized types allow traversing primitive values without boxing into `Integer`/`Long`/`Double` at every step.
 
 ~~~java
 import java.util.Spliterator;
@@ -1030,51 +1030,51 @@ System.out.println(ints.hasCharacteristics(Spliterator.SORTED));
 // true
 
 System.out.println(ints.getComparator() == null);
-// true: thứ tự tự nhiên trong nguồn range.
+// true: natural ordering in range source.
 ~~~
 
-`IntStream.range(0, 5)` cung cấp dãy số `0,1,2,3,4` tăng dần, không trùng và hữu hạn. Các bảo đảm của nguồn `range` phải được đọc theo hợp đồng của nguồn này; không áp chúng cho một `IntStream` tùy ý đã qua `map`.
+`IntStream.range(0, 5)` supplies the ascending, duplicate-free, finite sequence `0,1,2,3,4`. The `range` source's guarantees should be read under its own contract; do not extrapolate them to an arbitrary `IntStream` after `map`.
 
-### 16.1. NONNULL với kiểu nguyên thủy
+### 16.1. NONNULL with primitive types
 
-`int`/`long`/`double` nguyên thủy **không thể là null**. Tuy nhiên, việc một primitive Spliterator công bố cờ `NONNULL` hay không vẫn là chi tiết/hợp đồng của Spliterator cụ thể; khi lập trình, không cần dùng `Integer` boxing chỉ để kiểm tra null của dữ liệu primitive.
+Primitive `int`/`long`/`double` **cannot be null**. Still, whether a primitive Spliterator explicitly publishes `NONNULL` remains an implementation/contract detail of that specific Spliterator; when coding, you never need to box to `Integer` just to null-check primitive data.
 
-Nếu chuyển dữ liệu qua `mapToObj` và trả object, code mapping **có thể trả null**. Khi ấy không còn được suy ra nguồn đối tượng có `NONNULL` chỉ vì nguồn số nguyên ban đầu không có null.
+If you convert via `mapToObj` returning objects, the mapping function **can return null**. You can no longer infer that the object stream has `NONNULL` just because the original integer source had no nulls.
 
 ---
 
-## 17. Kiểm thử nguồn tùy chỉnh: đừng chỉ so sequential và parallel
+## 17. Testing Custom Sources: Don't Just Compare Sequential vs Parallel
 
-Một nguồn Spliterator tốt cần kiểm chứng **bốn chiều nội dung và hợp đồng chia**. Bảng thử nghiệm đề xuất:
+A solid Spliterator source needs verification across **four content and split-contract dimensions**. Suggested test matrix:
 
-| Ca kiểm thử | Điều cần kiểm tra |
+| Test Case | What to Verify |
 |---|---|
-| Nguồn rỗng | `tryAdvance` trả false, `estimateSize` bằng 0; không phát phần tử |
-| Một phần tử | Không mất/nhân đôi, `trySplit` có thể trả null |
-| Nhiều phần tử | Duyệt tuần tự đúng thứ tự gốc |
-| Tách 2 phần | Spliterator trả về bao phủ tiền tố, phần giữ lại bao phủ hậu tố |
-| Tách nhiều cấp | Ghép các phần theo đúng thứ tự không mất/nhân đôi |
-| Dữ liệu trùng | Constructor nguồn DISTINCT từ chối hoặc không khai báo DISTINCT |
-| Dữ liệu chưa sắp | Constructor nguồn SORTED từ chối hoặc không khai báo SORTED |
-| Phần tử null | Constructor NONNULL từ chối hoặc xử lý theo chính sách |
-| Comparator khác natural | `getComparator` trả đúng comparator hoặc từ chối SORTED |
-| Nguồn bị thay đổi | Snapshot vẫn không bị sai dữ liệu đã công bố |
-| Chạy song song | Kết quả terminal theo hợp đồng, không phụ thuộc thứ tự thread |
-| Flags | Cả nguồn gốc và phần tách đều có các cờ thực sự đúng |
-| Kích thước | Nếu SIZED/SUBSIZED, số còn lại khớp `estimateSize` |
-| Thao tác downstream | `distinct`, `sorted`, `limit`, `toList` trả kết quả đúng |
+| Empty source | `tryAdvance` returns false, `estimateSize` is 0; emits nothing |
+| Single element | No loss/duplication, `trySplit` may return null |
+| Multiple elements | Sequential traversal matches original order |
+| 2-way split | Returned Spliterator covers prefix, retained part covers suffix |
+| Multi-level split | Reassembling parts in order loses/duplicates nothing |
+| Duplicate data | `DISTINCT` source constructor rejects or omits DISTINCT |
+| Unsorted data | `SORTED` source constructor rejects or omits SORTED |
+| Null element | `NONNULL` constructor rejects or handles per policy |
+| Non-natural comparator | `getComparator` returns right comparator or omits SORTED |
+| Mutated input source | Snapshot remains unaffected in published data |
+| Parallel run | Terminal result matches contract, independent of thread order |
+| Flags | Both original and split parts carry truly accurate flags |
+| Size | If SIZED/SUBSIZED, remaining count matches `estimateSize` |
+| Downstream operations | `distinct`, `sorted`, `limit`, `toList` return right results |
 
-### 17.1. Đoạn test độc lập với framework kiểm thử
+### 17.1. Framework-independent verification snippet
 
-Các phương thức sau đặt bên trong lớp `SortedUniqueSpliteratorDemo` của mục 10:
+Place the following methods inside `SortedUniqueSpliteratorDemo` from section 10:
 
 ~~~java
 static void expectInvalid(List<Integer> values) {
     try {
         new SortedUniqueIntegers(values);
-        throw new AssertionError("Đáng lẽ nguồn không hợp lệ: " + values);
+        throw new AssertionError("Source should have been invalid: " + values);
     } catch (IllegalArgumentException | NullPointerException expected) {
-        // PASS: constructor từ chối nguồn sai hợp đồng.
+        // PASS: constructor rejected non-compliant source.
     }
 }
 
@@ -1091,16 +1091,16 @@ static void verifySource() {
             | Spliterator.SUBSIZED;
 
     if (!sp.hasCharacteristics(required)) {
-        throw new AssertionError("Thiếu characteristic cần thiết");
+        throw new AssertionError("Missing required characteristics");
     }
 
     if (sp.getComparator() != null) {
-        throw new AssertionError("Nguồn phải dùng natural order");
+        throw new AssertionError("Source must use natural order");
     }
 
     Spliterator<Integer> prefix = sp.trySplit();
     if (prefix == null || !prefix.hasCharacteristics(required)) {
-        throw new AssertionError("Phân chia không đúng hợp đồng");
+        throw new AssertionError("Split violates contract");
     }
 
     List<Integer> left = StreamSupport.stream(prefix, false).toList();
@@ -1111,7 +1111,7 @@ static void verifySource() {
     recombined.addAll(right);
 
     if (!recombined.equals(expected)) {
-        throw new AssertionError("Mất, nhân đôi hoặc đảo phần tử");
+        throw new AssertionError("Lost, duplicated, or reordered elements");
     }
 
     List<Integer> parallel = StreamSupport.stream(
@@ -1119,22 +1119,22 @@ static void verifySource() {
     ).toList();
 
     if (!parallel.equals(expected)) {
-        throw new AssertionError("Kết quả parallel không khớp");
+        throw new AssertionError("Parallel result mismatch");
     }
 
-    expectInvalid(List.of(1, 1, 2)); // DISTINCT bị vi phạm.
-    expectInvalid(List.of(3, 2, 4)); // SORTED bị vi phạm.
+    expectInvalid(List.of(1, 1, 2)); // DISTINCT violated.
+    expectInvalid(List.of(3, 2, 4)); // SORTED violated.
     expectInvalid(java.util.Arrays.asList(1, null, 3)); // NONNULL.
 
     System.out.println("SPLITERATOR_OK");
 }
 ~~~
 
-Gọi `verifySource()` từ `main` hoặc một unit test. Nên bổ sung bộ thử với nhiều độ dài và đường chia khác nhau, đặc biệt nếu Spliterator có thuật toán phân chia phức tạp hơn một lát mảng.
+Call `verifySource()` from `main` or a unit test. Add test cases with varied lengths and split paths, especially if the Spliterator uses a partitioning algorithm more complex than an array slice.
 
-**Không chỉ tin vào `hasCharacteristics`.** Trong test, cần so dữ liệu được phát thật với một oracle độc lập từ snapshot đã xác thực.
+**Do not trust `hasCharacteristics` alone.** In tests, compare emitted data against an independent oracle from the validated snapshot.
 
-### 17.2. Kiểm tra từng phần tử của toàn bộ kết quả
+### 17.2. Checking every element of the full output
 
 ~~~java
 List<Integer> result = StreamSupport.stream(
@@ -1144,162 +1144,161 @@ List<Integer> result = StreamSupport.stream(
 
 for (int i = 0; i < result.size(); i++) {
     if (result.get(i) == null) {
-        throw new AssertionError("Vi phạm NONNULL");
+        throw new AssertionError("NONNULL violated");
     }
 
     if (i > 0 && result.get(i - 1) >= result.get(i)) {
-        throw new AssertionError("Không tăng nghiêm ngặt");
+        throw new AssertionError("Not strictly increasing");
     }
 }
 ~~~
 
-Kiểm tra tăng nghiêm ngặt phù hợp với **nguồn Integer được thiết kế riêng** trong bài. Với nguồn có comparator hoặc các giá trị khác, thay điều kiện bằng một phép kiểm đúng theo comparator và kiểm tra DISTINCT qua `equals`.
+The strictly increasing check suits **the custom Integer source designed in this lesson**. For sources with a custom comparator or other value types, replace the condition with a comparator-based check and verify `DISTINCT` via `equals`.
 
 ---
 
-## 18. Lỗi thường gặp và cách sửa
+## 18. Common Mistakes and Fixes
 
-| Sai lầm | Vì sao sai? | Cách xử lý |
+| Mistake | Why It Is Wrong | How to Fix |
 |---|---|---|
-| Khai báo `ORDERED` vì lần chạy thử thấy thứ tự ổn định | Thứ tự tình cờ không phải encounter order được định nghĩa | Kiểm tra nguồn và thuật toán `trySplit` |
-| Nghĩ `ORDERED` có nghĩa tăng dần | Thứ tự List có thể là `[9,1,5]` | Dùng `SORTED` chỉ khi thật sự đã sắp xếp |
-| Nghĩ `DISTINCT` nghĩa khóa `id` duy nhất | `equals` có thể dựa vào nhiều trường | Xác định quy tắc trùng theo `equals` riêng với unique business key |
-| Khai báo `SORTED` nhưng thiếu `ORDERED` | Vi phạm quan hệ SORTED kéo theo ORDERED | Công bố cả hai và bảo đảm thứ tự duyệt |
-| Không override `getComparator` cho custom SORTED | Hàm mặc định có thể ném `IllegalStateException` | Trả null cho natural order, comparator phù hợp cho custom order |
-| Khai báo `SORTED` khi chỉ một prefix đã sắp xếp | Các phần còn lại vẫn có thể đảo | Xác thực toàn bộ dữ liệu, hoặc không công bố SORTED |
-| Khai báo `DISTINCT` khi nguồn chứa hai giá trị equals nhau | `distinct` có thể được tối ưu trên giả định sai | Khử trùng trước hoặc bỏ cờ |
-| Khai báo `NONNULL` nhưng mapper/iterator có thể trả null | Vi phạm lời cam kết của nguồn | Kiểm tra null hoặc không công bố NONNULL |
-| `trySplit` lấy các phần tử đan xen từ nguồn ORDERED | Phần tách không còn là tiền tố | Tách theo lát liên tiếp |
-| Dùng lại Spliterator đã duyệt | Trạng thái cursor đã thay đổi | Tạo nguồn mới cho mỗi pipeline |
-| Cho nguồn mutable thay đổi trong lúc duyệt | Có thể làm sai flags và phép duyệt | Snapshot, đồng bộ hoặc nguồn concurrent đúng hợp đồng |
-| Dựa vào `forEach` song song để in theo ORDERED | Thứ tự chạy giữa thread không bảo đảm | `forEachOrdered` khi cần thứ tự |
-| Coi flags của source là flags của mọi pipeline | `map`/`filter`/`unordered` có thể đổi thông tin | Đánh giá hợp đồng từng thao tác |
-| Tự thêm `SIZED` để tăng tốc | Kích thước sai có thể ảnh hưởng tối ưu | Chỉ khai báo nếu `estimateSize` thật sự chính xác |
+| Declaring `ORDERED` because a test run looked stable | Accidental order is not a defined encounter order | Check the source and `trySplit` algorithm |
+| Thinking `ORDERED` means ascending | List order can be `[9,1,5]` | Use `SORTED` only when truly sorted |
+| Thinking `DISTINCT` means unique `id` key | `equals` may depend on multiple fields | Separate `equals`-based uniqueness from unique business keys |
+| Declaring `SORTED` without `ORDERED` | Violates `SORTED` implies `ORDERED` | Declare both and uphold traversal order |
+| Not overriding `getComparator` for custom SORTED | Default method may throw `IllegalStateException` | Return null for natural order, right comparator for custom order |
+| Declaring `SORTED` when only a prefix is sorted | Remaining parts could still be out of order | Validate entire dataset, or omit SORTED |
+| Declaring `DISTINCT` when source has two equal values | `distinct` may optimize on a false premise | Deduplicate upfront or omit flag |
+| Declaring `NONNULL` when mapper/iterator can return null | Violates source commitment | Null-check or omit NONNULL |
+| `trySplit` picks interleaved elements from an ORDERED source | Returned split is no longer a prefix | Split by contiguous slices |
+| Reusing an already-traversed Spliterator | Cursor state has already advanced | Create a new source for each pipeline |
+| Letting a mutable source change during traversal | Can invalidate flags and traversal | Snapshot, synchronize, or use a compliant concurrent source |
+| Relying on parallel `forEach` to print in ORDERED order | Execution order across threads is unguaranteed | Use `forEachOrdered` when order is needed |
+| Treating source flags as every pipeline's flags | `map`/`filter`/`unordered` can alter metadata | Evaluate each operation's contract |
+| Adding `SIZED` to speed things up | Wrong size can break optimizations | Declare only if `estimateSize` is truly exact |
 
 ---
 
-## 19. Quy trình thiết kế một Spliterator có characteristics đúng
+## 19. Design Workflow for a Spliterator with Accurate Characteristics
 
-Một checklist áp dụng trước khi xuất bản nguồn tùy chỉnh:
+A checklist to apply before publishing a custom source:
 
-1. **Định nghĩa tập giá trị:** kiểu `T` là gì, nguồn có null không, phần tử nào có thể trùng?
-2. **Định nghĩa encounter order:** thứ tự theo vị trí, thời gian hay comparator? Có cần bảo toàn khi chạy song song?
-3. **Xác định DISTINCT:** dùng `equals` chứ không suy từ duy nhất của một trường ngoài định nghĩa `equals`.
-4. **Xác định SORTED:** chọn natural ordering hoặc comparator; nếu công bố SORTED phải công bố ORDERED và `getComparator` đúng.
-5. **Xác định NONNULL:** mọi đường phát dữ liệu và các thay đổi nguồn có bảo đảm không phát null không?
-6. **Thiết kế tryAdvance:** phát đúng một phần tử cho mỗi lần gọi thành công, không vượt ranh giới dữ liệu, kiểm tra action không null.
-7. **Thiết kế trySplit:** với ORDERED, trả tiền tố; bảo đảm không mất/nhân đôi và mọi phân vùng vẫn tuân theo các cờ.
-8. **Công bố SIZED/SUBSIZED nếu thực sự biết kích thước:** `estimateSize` phải phản ánh phần còn lại sau khi tách/duyệt.
-9. **Quản lý vòng đời nguồn:** nếu nguồn có tài nguyên I/O, đóng đúng cách; Spliterator không tự biến tài nguyên thành an toàn.
-10. **Kiểm chứng:** dữ liệu rỗng, một phần tử, dữ liệu trùng, chưa sắp, null, chia nhiều cấp, chạy tuần tự/song song, downstream `distinct` và `sorted`.
-11. **Đo hiệu năng sau khi đúng:** thêm cờ không bảo đảm Stream nhanh hơn; dùng benchmark với dữ liệu và JDK thực tế.
+1. **Define the value domain:** What is type `T`, can the source contain nulls, which elements could be equal?
+2. **Define encounter order:** Positional, chronological, or comparator-based? Must it be preserved in parallel?
+3. **Determine DISTINCT:** Use `equals`, not uniqueness of an arbitrary field outside `equals`.
+4. **Determine SORTED:** Choose natural ordering or a comparator; if declaring `SORTED`, declare `ORDERED` and implement `getComparator` properly.
+5. **Determine NONNULL:** Do all emission paths and allowed source mutations guarantee no nulls?
+6. **Design tryAdvance:** Emit exactly one element per successful call, stay within bounds, reject null actions.
+7. **Design trySplit:** For `ORDERED`, return a prefix; ensure no lost/duplicated elements and all partitions still obey the flags.
+8. **Declare SIZED/SUBSIZED if size is truly known:** `estimateSize` must reflect remaining elements after splitting/traversal.
+9. **Manage source lifecycle:** If backed by I/O resources, close properly; Spliterator does not make resources safe automatically.
+10. **Verify:** Empty data, single element, duplicates, unsorted data, nulls, multi-level splits, sequential/parallel runs, downstream `distinct` and `sorted`.
+11. **Measure performance after correctness:** Adding flags does not guarantee faster Streams; benchmark on realistic data and JDKs.
 
-Quy trình tóm tắt:
+Summary workflow:
 
 ~~~text
-Có dữ liệu nguồn
+Have source data
        |
        v
-Xác định tính chất bảo đảm
+Identify guaranteed properties
        |
-       +--- không chắc chắn? ---> Không công bố cờ đó
-       |
-       v
-Xác thực / snapshot khi phù hợp
+       +--- uncertain? ---> Do not declare that flag
        |
        v
-Cài đặt tryAdvance + trySplit
+Validate / snapshot as appropriate
        |
        v
-Khai báo đúng characteristics + getComparator
+Implement tryAdvance + trySplit
        |
        v
-Kiểm thử nguồn và mọi phần sau khi tách
+Declare accurate characteristics + getComparator
        |
        v
-Tạo Stream qua StreamSupport
+Test source and all split parts
        |
        v
-Đo lường / tối ưu sau khi đã đúng
+Create Stream via StreamSupport
+       |
+       v
+Measure / optimize after correctness
 ~~~
 
 ---
 
-## 20. Bài tập tự kiểm tra (kèm đáp án)
+## 20. Self-Check Exercises (with Answers)
 
-### Bài 1. ORDERED khác SORTED thế nào?
+### Exercise 1. How does ORDERED differ from SORTED?
 
-**Đề:** Nguồn `List.of(9, 1, 5)` duyệt theo thứ tự phần tử của List. Có ORDERED không? Có SORTED không?
+**Prompt:** Source `List.of(9, 1, 5)` traverses in List element order. Is it ORDERED? Is it SORTED?
 
-**Đáp án:** Nguồn List có encounter order `9, 1, 5` nên có thể công bố ORDERED; không được công bố SORTED tăng dần vì dữ liệu chưa được sắp xếp. ORDERED không đồng nghĩa SORTED.
+**Answer:** The List source has encounter order `9, 1, 5`, so it can declare ORDERED; it must not declare ascending SORTED because the data is unsorted. ORDERED does not imply SORTED.
 
-### Bài 2. DISTINCT và khóa nghiệp vụ
+### Exercise 2. DISTINCT and business keys
 
-**Đề:** Hai record `Product(1, "BOOK")` và `Product(2, "BOOK")` khác nhau theo `equals`. Nếu nguồn không chứa record trùng, có thể DISTINCT không? Điều đó có chứng minh category duy nhất không?
+**Prompt:** Two records `Product(1, "BOOK")` and `Product(2, "BOOK")` differ per `equals`. If the source has no duplicate records, can it be DISTINCT? Does that prove category is unique?
 
-**Đáp án:** Có thể bảo đảm DISTINCT đối với **phần tử Product** nếu mọi cặp phần tử khác nhau theo `equals`. Nhưng category không duy nhất vì hai record đều có `"BOOK"`. Nếu cần Map theo category một-một, vẫn phải có chính sách xử lý khóa trùng hoặc dùng `groupingBy`.
+**Answer:** It can guarantee DISTINCT for **`Product` elements** if every pair of elements differs per `equals`. However, category is not unique because both records have `"BOOK"`. If you need a one-to-one Map by category, you still need a duplicate-key policy or `groupingBy`.
 
-### Bài 3. SORTED có thể thiếu ORDERED không?
+### Exercise 3. Can SORTED omit ORDERED?
 
-**Đề:** Một Spliterator công bố `SORTED` nhưng không công bố `ORDERED` có đúng hợp đồng không?
+**Prompt:** Is a Spliterator that declares `SORTED` without `ORDERED` compliant with the contract?
 
-**Đáp án:** Không. `SORTED` kéo theo `ORDERED`. Một nguồn tùy chỉnh phải bảo đảm thứ tự duyệt và khai báo đúng các cờ; `getComparator()` phải phản ánh thứ tự sắp xếp.
+**Answer:** No. `SORTED` implies `ORDERED`. A custom source must guarantee traversal order and declare the proper flags; `getComparator()` must reflect the sort order.
 
-### Bài 4. getComparator trả null khi nào?
+### Exercise 4. When does getComparator return null?
 
-**Đề:** Với một Spliterator đã có `SORTED` theo natural order của `Integer`, `getComparator()` trả gì?
+**Prompt:** For a Spliterator that is `SORTED` in `Integer`'s natural order, what does `getComparator()` return?
 
-**Đáp án:** Trả `null`. Nếu nguồn SORTED theo comparator riêng thì trả comparator ấy. Nếu không có SORTED, `getComparator()` phải ném `IllegalStateException`.
+**Answer:** It returns `null`. If the source is SORTED by a custom comparator, it returns that comparator. Without SORTED, `getComparator()` must throw `IllegalStateException`.
 
-### Bài 5. Dãy [1, 1, 2, 3]
+### Exercise 5. Sequence [1, 1, 2, 3]
 
-**Đề:** Dãy được duyệt tăng dần `[1, 1, 2, 3]`, không null. Những đặc tính nào trong bốn cờ có thể đúng?
+**Prompt:** An ascending sequence `[1, 1, 2, 3]`, no nulls. Which of the four flags can hold?
 
-**Đáp án:** `ORDERED`, `SORTED` và `NONNULL` nếu nguồn bảo đảm chúng; **không có `DISTINCT`**, vì số `1` xuất hiện hai lần. Nếu nguồn thực tế là một List thông thường, đừng tự mặc định List công bố `SORTED` dù dữ liệu hiện đang sắp.
+**Answer:** `ORDERED`, `SORTED`, and `NONNULL` if guaranteed by the source; **not `DISTINCT`**, because `1` appears twice. If the actual source is a regular List, do not assume List declares `SORTED` merely because the current data happens to be sorted.
 
-### Bài 6. trySplit của nguồn ORDERED
+### Exercise 6. trySplit on an ORDERED source
 
-**Đề:** Nguồn còn lại `[A, B, C, D]`, `trySplit` trả phần `[B, D]` và giữ `[A, C]`. Có hợp lệ nếu nguồn công bố ORDERED không?
+**Prompt:** Remaining source is `[A, B, C, D]`; `trySplit` returns `[B, D]` and keeps `[A, C]`. Is this valid if the source declares ORDERED?
 
-**Đáp án:** Không. Phần trả lại phải là **tiền tố** của phần còn lại. Một cách hợp lệ là trả `[A, B]` và giữ `[C, D]`.
+**Answer:** No. The returned portion must be a **prefix** of the remaining elements. A valid split returns `[A, B]` and keeps `[C, D]`.
 
-### Bài 7. NONNULL có chứng minh email hợp lệ không?
+### Exercise 7. Does NONNULL prove valid emails?
 
-**Đề:** Stream các đối tượng `Customer` đều khác null, nhưng một số customer có email rỗng. Cờ NONNULL có phát hiện email rỗng không?
+**Prompt:** A Stream of `Customer` objects contains no nulls, yet some customers have blank emails. Does the NONNULL flag detect blank emails?
 
-**Đáp án:** Không. NONNULL chỉ nói phần tử `Customer` không phải `null`; nó không kiểm tra giá trị field hoặc quy tắc dữ liệu nghiệp vụ.
+**Answer:** No. NONNULL only says `Customer` elements themselves are not `null`; it does not inspect field values or business rules.
 
-### Bài 8. Cờ DISTINCT bị khai báo sai
+### Exercise 8. Falsely declared DISTINCT flag
 
-**Đề:** Nguồn tùy chỉnh phát `[2, 2, 3]` nhưng khai báo `DISTINCT`. Vì sao nguy hiểm nếu pipeline có `distinct()`?
+**Prompt:** A custom source emits `[2, 2, 3]` yet declares `DISTINCT`. Why is this dangerous if the pipeline has `distinct()`?
 
-**Đáp án:** Framework có quyền tin vào cờ DISTINCT và bỏ công việc loại trùng khi tối ưu. Kết quả có thể còn số `2` trùng. Phải bỏ cờ hoặc khử trùng ở nguồn trước khi công bố.
+**Answer:** The framework may trust the DISTINCT flag and optimize away deduplication work. The output may still contain duplicate `2`s. Either remove the flag or deduplicate at the source before publishing.
 
-### Bài 9. Kiểm tra custom SORTED với comparator
+### Exercise 9. Checking custom SORTED with a comparator
 
-**Đề:** Một nguồn String đã sắp theo `Comparator.reverseOrder()`. `getComparator()` nên trả gì?
+**Prompt:** A String source is sorted by `Comparator.reverseOrder()`. What should `getComparator()` return?
 
-**Đáp án:** Trả comparator phản ánh thứ tự đảo ấy; không trả `null` vì `null` chỉ có nghĩa natural order. Nguồn còn phải công bố ORDERED và thực sự duyệt theo thứ tự đảo đã nói.
+**Answer:** Return the comparator reflecting that reverse order; do not return `null`, because `null` means natural order only. The source must also declare ORDERED and actually traverse in that reverse order.
 
-### Bài 10. map có giữ NONNULL không?
+### Exercise 10. Does map preserve NONNULL?
 
-**Đề:** Nguồn `List<Integer>` không có null, sau đó `map(n -> n > 10 ? "big" : null)`. Có được tự công bố NONNULL cho kết quả không?
+**Prompt:** A `List<Integer>` source has no nulls, followed by `map(n -> n > 10 ? "big" : null)`. Can the result automatically be declared NONNULL?
 
-**Đáp án:** Không. Hàm `map` có thể tạo `null`. Việc nguồn đầu vào không chứa null không đủ bảo đảm nguồn đầu ra không chứa null.
+**Answer:** No. The `map` function can produce `null`. An input source free of nulls does not guarantee the output is free of nulls.
 
-### Bài 11. SIZED và SUBSIZED
+### Exercise 11. SIZED and SUBSIZED
 
-**Đề:** Một Spliterator có `estimateSize() == 10` lúc đầu nhưng sau `trySplit` không biết chính xác kích thước hai phần. Có nên khai báo `SUBSIZED` không?
+**Prompt:** A Spliterator has `estimateSize() == 10` initially, but after `trySplit` the exact sizes of both parts are unknown. Should `SUBSIZED` be declared?
 
-**Đáp án:** Không. `SUBSIZED` yêu cầu những Spliterator phát sinh qua chia đều đáp ứng hợp đồng kích thước chính xác. Chỉ khai báo khi cách phân chia bảo đảm được điều đó.
+**Answer:** No. `SUBSIZED` requires Spliterators produced via splitting to also satisfy the exact size contract. Only declare it when the splitting logic guarantees it.
 
-### Bài 12. Kiểm tra nguồn song song
+### Exercise 12. Testing parallel sources
 
-**Đề:** Vì sao chỉ so `sequential.equals(parallel)` chưa đủ để khẳng định bốn cờ được khai báo đúng?
+**Prompt:** Why is comparing `sequential.equals(parallel)` alone insufficient to confirm the four flags are declared accurately?
 
-**Đáp án:** Hai chế độ có thể cùng bỏ sót một lỗi, cùng nhận cờ sai hoặc dữ liệu thử chưa kích hoạt trường hợp biên. Cần kiểm tra **trực tiếp** tập cờ, dữ liệu phát ra, đặc tính null/trùng/sắp xếp, cách tách tiền tố/hậu tố, kích thước và các trường hợp nguồn không hợp lệ.
+**Answer:** Both modes could share the same bug, honor the same false flag, or run on test data that fails to trigger edge cases. You need to **directly** test the flag set, emitted data, null/duplicate/sort properties, prefix/suffix splitting, sizes, and invalid source cases.
 
 ---
 
-**Ghi nhớ:** `ORDERED` là **thứ tự gặp phần tử**, `DISTINCT` là **không trùng theo `equals`**, `SORTED` là **được sắp theo natural order/comparator** (và bắt buộc ORDERED), còn `NONNULL` là **không phát phần tử null**. Các cờ này là **hợp đồng của Spliterator**, không phải lời đoán từ một bộ dữ liệu mẫu. Khi tự viết nguồn cho Java Stream API, hãy xác thực dữ liệu, cài đặt `trySplit` đúng với encounter order, công bố `getComparator` phù hợp và kiểm thử cả nguồn gốc lẫn các phần sau khi tách — nhất là trước khi dùng Stream song song.
-
+**Remember:** `ORDERED` is **encounter order**, `DISTINCT` is **uniqueness per `equals`**, `SORTED` is **sorted per natural order/comparator** (requiring ORDERED), and `NONNULL` is **no null elements emitted**. These flags are the **Spliterator's contract**, not guesses from sample data. When writing custom sources for the Java Stream API, validate data, implement `trySplit` consistently with encounter order, provide the proper `getComparator`, and test both the original source and split parts—especially before using parallel Streams.

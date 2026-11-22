@@ -1,34 +1,34 @@
-# Chia cửa sổ cố định bằng `Gatherers.windowFixed`
+# Splitting Fixed Windows with `Gatherers.windowFixed`
 
-Trong **Java Stream API**, các phép toán `filter`, `map`, `reduce` và `collect` thường xử lý từng phần tử hoặc tổng hợp toàn bộ nguồn. Nhưng nhiều tác vụ thực tế lại cần xử lý **từng lô gồm một số phần tử liên tiếp**: gửi dữ liệu theo batch, tính tổng sau mỗi ba giao dịch, đóng gói các dòng log để xuất báo cáo hoặc chia một dãy đo thành các nhóm không chồng lắp.
+In the **Java Stream API**, operations such as `filter`, `map`, `reduce`, and `collect` typically process each element individually or aggregate the entire source. However, many real-world tasks require processing **batches of consecutive elements**: sending data in batches, summing every three transactions, packaging log lines for reporting, or dividing a measurement sequence into non-overlapping groups.
 
-Từ **Java 24**, API **Stream Gatherers** cung cấp `Gatherers.windowFixed(windowSize)` để biểu diễn trực tiếp phép chia này. Gatherer là một dạng intermediate operation có thể giữ trạng thái; nó được đưa vào pipeline bằng `Stream.gather(...)`, và cho phép đầu ra là những **cửa sổ** chứa nhiều phần tử nguồn.
+Starting in **Java 24**, the **Stream Gatherers** API provides `Gatherers.windowFixed(windowSize)` to express this partitioning directly. A Gatherer is an intermediate operation capable of holding state; it is inserted into a pipeline via `Stream.gather(...)`, allowing the output to be **windows** containing multiple source elements.
 
-Bài học thuộc chương **Stream Gatherer** của mô-đun `JAVA_STREAM_API`. Chúng ta sẽ học cách chia cửa sổ cố định, xử lý cửa sổ cuối không đủ kích thước, phối hợp với `map`, `filter`, `collect`, phân biệt với cửa sổ trượt, và nhận diện các ràng buộc về thứ tự, bộ nhớ, tài nguyên và hiệu năng.
+This lesson belongs to the **Stream Gatherer** chapter of the `JAVA_STREAM_API` module. We will learn how to split fixed windows, handle an incomplete final window, combine with `map`, `filter`, and `collect`, distinguish fixed windows from sliding windows, and recognize constraints around ordering, memory, resources, and performance.
 
-## 1. Cửa sổ cố định là gì?
+## 1. What is a fixed window?
 
-Cho dãy có encounter order:
+Given a sequence with encounter order:
 
 ```text
-Nguồn:  [1, 2, 3, 4, 5, 6, 7, 8]
+Source:   [1, 2, 3, 4, 5, 6, 7, 8]
                          windowSize = 3
 
-Cửa sổ 1: [1, 2, 3]
-Cửa sổ 2:          [4, 5, 6]
-Cửa sổ 3:                   [7, 8]
+Window 1: [1, 2, 3]
+Window 2:          [4, 5, 6]
+Window 3:                   [7, 8]
 ```
 
-Mỗi cửa sổ nhận **tối đa `windowSize` phần tử liên tiếp theo encounter order**. Các cửa sổ:
+Each window receives **at most `windowSize` consecutive elements in encounter order**. The windows:
 
-- **Không chồng lắp**: một phần tử nguồn thuộc một cửa sổ duy nhất.
-- **Giữ thứ tự tương đối** của các phần tử trong cửa sổ.
-- Được phát lần lượt từ trái sang phải đối với nguồn có encounter order.
-- **Không bắt buộc đầy ở cuối**: nếu còn 1–2 phần tử khi `windowSize = 3`, chúng tạo thành cửa sổ cuối ngắn hơn.
+- **Do not overlap**: a source element belongs to a single window.
+- **Preserve the relative order** of elements within the window.
+- Are emitted one by one from left to right for a source with encounter order.
+- **Do not have to be full at the end**: if 1–2 elements remain when `windowSize = 3`, they form a shorter final window.
 
-Đây là **cửa sổ theo số lượng phần tử** (*count-based tumbling window*), không phải cửa sổ thời gian. `windowFixed(3)` nghĩa là ba phần tử, **không có nghĩa ba giây hoặc ba phút**.
+This is a **count-based tumbling window**, not a time window. `windowFixed(3)` means three elements, **not three seconds or three minutes**.
 
-Ký hiệu: nếu nguồn hữu hạn có `n` phần tử, kích thước cửa sổ `k > 0`, thì số cửa sổ là:
+Notation: if a finite source has `n` elements and window size `k > 0`, the number of windows is:
 
 \[
 \operatorname{windows}(n,k) =
@@ -38,29 +38,29 @@ Ký hiệu: nếu nguồn hữu hạn có `n` phần tử, kích thước cửa 
 \end{cases}
 \]
 
-Mỗi cửa sổ đầy đủ có `k` phần tử. Cửa sổ cuối có phần dư `n % k` nếu phần dư khác 0; khi `n` chia hết cho `k`, **không tạo thêm cửa sổ rỗng**.
+Each full window has `k` elements. The last window has the remainder `n % k` if the remainder is nonzero; when `n` is divisible by `k`, **no extra empty window is created**.
 
-## 2. Phiên bản JDK và chữ ký API
+## 2. JDK version and API signature
 
-`Gatherer`, `Gatherers` và `Stream.gather` là API chính thức từ **Java 24**. Các phiên bản Java 22 và 23 có Stream Gatherers ở trạng thái **preview**, phải bật preview và chú ý khác biệt giữa các bản. Bài này sử dụng cú pháp API ổn định của Java 24+.
+`Gatherer`, `Gatherers`, and `Stream.gather` are official APIs starting in **Java 24**. Java 22 and 23 included Stream Gatherers as a **preview** feature, requiring preview flags and attention to differences between releases. This lesson uses the stable API syntax of Java 24+.
 
-Chữ ký của phương thức:
+Method signature:
 
 ```java
 public static <TR> Gatherer<TR, ?, List<TR>>
 windowFixed(int windowSize);
 ```
 
-Thành phần:
+Parts:
 
-| Thành phần | Ý nghĩa |
+| Part | Meaning |
 | --- | --- |
-| `TR` | Kiểu phần tử nguồn, đồng thời là kiểu phần tử trong mỗi cửa sổ. |
-| `windowSize` | Số phần tử tối đa trong mỗi cửa sổ; phải **ít nhất là 1**. |
-| `Gatherer<TR, ?, List<TR>>` | Một Gatherer nhận phần tử `TR` và phát `List<TR>`. |
-| `Stream.gather(...)` | Đưa Gatherer vào pipeline như một intermediate operation. |
+| `TR` | Source element type, and also the element type inside each window. |
+| `windowSize` | Maximum number of elements in each window; must be **at least 1**. |
+| `Gatherer<TR, ?, List<TR>>` | A Gatherer that receives `TR` elements and emits `List<TR>`. |
+| `Stream.gather(...)` | Inserts the Gatherer into a pipeline as an intermediate operation. |
 
-Ví dụ tối thiểu:
+Minimal example:
 
 ```java
 import java.util.List;
@@ -75,28 +75,28 @@ System.out.println(windows);
 // [[1, 2, 3], [4, 5, 6], [7, 8]]
 ```
 
-Sau `gather`, mỗi phần tử đi tiếp trong pipeline **không còn là `Integer`**, mà là **`List<Integer>`**. Do đó `map` ở phía sau xử lý **một cửa sổ**, chẳng hạn `map(List::size)` hoặc `map(batch -> batch.stream().mapToInt(...).sum())`.
+After `gather`, each element flowing downstream in the pipeline **is no longer an `Integer`**, but a **`List<Integer>`**. Therefore, a subsequent `map` processes **one window**, such as `map(List::size)` or `map(batch -> batch.stream().mapToInt(...).sum())`.
 
-### Khi `windowSize` không hợp lệ
+### When `windowSize` is invalid
 
 ```java
 import java.util.stream.Gatherers;
 
-Gatherers.windowFixed(1);   // Hợp lệ
-Gatherers.windowFixed(20);  // Hợp lệ, kể cả nguồn chỉ có 3 phần tử
+Gatherers.windowFixed(1);   // Valid
+Gatherers.windowFixed(20);  // Valid, even if the source only has 3 elements
 
-// Ném IllegalArgumentException:
+// Throws IllegalArgumentException:
 // Gatherers.windowFixed(0);
 // Gatherers.windowFixed(-3);
 ```
 
-Điều kiện được kiểm tra trên **tham số kích thước**, không phụ thuộc nguồn có rỗng hay không. Không dùng `windowSize = 0` để biểu diễn một lô rỗng; nếu cần “không xử lý”, hãy giải quyết điều kiện đó trước khi tạo Gatherer.
+The precondition is checked on **the size parameter**, independent of whether the source is empty. Do not use `windowSize = 0` to represent an empty batch; if "no processing" is needed, handle that condition before creating the Gatherer.
 
-## 3. Các trường hợp biên cần thuộc lòng
+## 3. Edge cases to remember
 
-Đây là hành vi được mô tả trong API:
+This is the behavior specified by the API:
 
-| Nguồn | `windowSize` | Kết quả |
+| Source | `windowSize` | Result |
 | --- | ---: | --- |
 | `[]` | 3 | `[]` |
 | `[1]` | 3 | `[[1]]` |
@@ -107,14 +107,14 @@ Gatherers.windowFixed(20);  // Hợp lệ, kể cả nguồn chỉ có 3 phần 
 | `[1,2,3]` | 1 | `[[1],[2],[3]]` |
 | `[1,2,3]` | 10 | `[[1,2,3]]` |
 
-Đặc biệt:
+Specifically:
 
-1. **Nguồn rỗng không tạo cửa sổ rỗng**. Kết quả là stream rỗng, nên `toList()` trả danh sách ngoài rỗng.
-2. **Nguồn ngắn hơn kích thước cửa sổ vẫn tạo một cửa sổ**, nếu nguồn có ít nhất một phần tử.
-3. **Không mất phần dư**. Cửa sổ cuối ngắn hơn là hành vi hợp lệ, không phải lỗi.
-4. `windowSize = 1` biến mỗi phần tử thành một danh sách chỉ chứa chính phần tử đó; không phải công cụ tối ưu nếu mục tiêu chỉ là `map` từng phần tử.
+1. **An empty source creates no empty window.** The result is an empty stream, so `toList()` returns an empty outer list.
+2. **A source shorter than the window size still creates one window**, provided the source has at least one element.
+3. **No remainder is dropped.** A shorter final window is valid behavior, not an error.
+4. `windowSize = 1` wraps each element in a single-element list; it is not an optimal tool if the goal is only to `map` each element.
 
-Kiểm tra nhanh bằng Java 24+:
+Quick check with Java 24+:
 
 ```java
 import java.util.List;
@@ -133,11 +133,11 @@ System.out.println(empty);      // []
 System.out.println(shortInput); // [[A, B]]
 ```
 
-Nếu nghiệp vụ **chỉ chấp nhận lô đủ `k` phần tử**, đó là yêu cầu bổ sung của ứng dụng, không phải hợp đồng mặc định của `windowFixed`.
+If the business rule **only accepts full batches of `k` elements**, that is an extra application requirement, not the default contract of `windowFixed`.
 
-## 4. Ví dụ đầy đủ: tạo batch từ danh sách mã giao dịch
+## 4. Complete example: creating batches from a list of transaction IDs
 
-Giả sử hệ thống cần chia các mã giao dịch thành lô tối đa ba mã để hiển thị, đối soát hoặc gửi sang một bước xử lý khác.
+Suppose a system needs to split transaction IDs into batches of at most three IDs for display, reconciliation, or forwarding to another processing step.
 
 ```java
 import java.util.Arrays;
@@ -163,7 +163,7 @@ public class FixedWindowDemo {
 }
 ```
 
-Kết quả:
+Output:
 
 ```text
 [TX-001, TX-002, TX-003]
@@ -171,7 +171,7 @@ Kết quả:
 [TX-007]
 ```
 
-Pipeline này là:
+This pipeline is:
 
 ```text
 List<String>
@@ -183,11 +183,11 @@ List<String>
    +--> toList()                 List<List<String>>
 ```
 
-Vì nguồn là `List` có encounter order, thứ tự mã trong từng lô đúng theo thứ tự xuất hiện. Nếu mã giao dịch ban đầu chưa theo thứ tự nghiệp vụ (chẳng hạn chưa sắp theo thời điểm), `windowFixed` **không tự sắp xếp** chúng.
+Because the source is a `List` with encounter order, the order of IDs within each batch matches their order of appearance. If the original transaction IDs are not yet in business order (for example, not sorted by timestamp), `windowFixed` **does not sort them automatically**.
 
-## 5. Cửa sổ trả về không sửa đổi được
+## 5. Returned windows are unmodifiable
 
-Theo hợp đồng Java 24, **mỗi cửa sổ** do `windowFixed` phát ra là một `List` **không thể sửa đổi** (*unmodifiable*). Gọi phương thức thay đổi cấu trúc cửa sổ như `add`, `remove` hoặc `set` sẽ bị từ chối bằng `UnsupportedOperationException`.
+According to the Java 24 contract, **each window** emitted by `windowFixed` is an **unmodifiable** `List`. Calling methods that alter the window structure such as `add`, `remove`, or `set` will be rejected with `UnsupportedOperationException`.
 
 ```java
 import java.util.List;
@@ -206,13 +206,13 @@ System.out.println(first); // [10, 20, 30]
 // first.remove(0);   // UnsupportedOperationException
 ```
 
-Hãy phân biệt:
+Distinguish clearly:
 
-- **Danh sách cửa sổ bên trong** được `windowFixed` bảo đảm là unmodifiable.
-- **Danh sách bên ngoài** ở ví dụ cũng unmodifiable vì dùng `Stream.toList()` (Java 16+).
-- **Các đối tượng phần tử bên trong** có thể vẫn mutable. Một cửa sổ không sửa đổi được **không tự sao chép sâu** từng phần tử.
+- **The inner window list** is guaranteed by `windowFixed` to be unmodifiable.
+- **The outer list** in the example is also unmodifiable because `Stream.toList()` (Java 16+) is used.
+- **The element objects inside** may still be mutable. An unmodifiable window **does not automatically deep-copy** each element.
 
-Ví dụ, nếu cửa sổ giữ các `StringBuilder`, người dùng vẫn có thể gọi `append` trên một `StringBuilder` đã được phát:
+For example, if windows hold `StringBuilder` objects, a caller can still call `append` on a `StringBuilder` that was already emitted:
 
 ```java
 import java.util.List;
@@ -229,13 +229,13 @@ value.append("B");
 System.out.println(batches.get(0).get(0)); // AB
 ```
 
-Nếu cần snapshot thực sự bất biến, hãy chuyển phần tử về kiểu giá trị bất biến hoặc sao chép các thuộc tính cần thiết **trước hoặc trong quá trình tạo batch**. Việc giữ một cửa sổ unmodifiable không bảo đảm dữ liệu phần tử có trạng thái cố định vĩnh viễn.
+If a truly immutable snapshot is required, convert elements to immutable value types or copy the necessary properties **before or during batch creation**. Holding an unmodifiable window does not guarantee that element data has permanently fixed state.
 
-## 6. Xử lý từng cửa sổ bằng `map`, `filter` và `collect`
+## 6. Processing each window with `map`, `filter`, and `collect`
 
-Điểm mạnh của `windowFixed` là nó trả về một **Stream của các cửa sổ**, nên vẫn có thể tiếp tục pipeline.
+The strength of `windowFixed` is that it returns a **Stream of windows**, so the pipeline can continue.
 
-### Tính tổng của mỗi ba phần tử
+### Computing the sum of every three elements
 
 ```java
 import java.util.List;
@@ -253,11 +253,11 @@ List<Integer> totals = IntStream.rangeClosed(1, 8)
 System.out.println(totals); // [6, 15, 15]
 ```
 
-Giải thích kết quả: `[1,2,3]` có tổng 6; `[4,5,6]` có tổng 15; `[7,8]` cũng có tổng 15. **Không tự đệm thêm số 0** vào lô cuối, trừ khi có quy tắc nghiệp vụ yêu cầu điều đó.
+Result explanation: `[1,2,3]` sums to 6; `[4,5,6]` sums to 15; `[7,8]` also sums to 15. **No 0s are automatically padded** into the last batch unless a business rule explicitly requires it.
 
-`IntStream` không có `gather` trực tiếp theo chữ ký `Stream<T>.gather` của Java 24. Vì vậy `.boxed()` ở ví dụ chuyển `IntStream` thành `Stream<Integer>` trước khi gọi `gather`. Cách này tạo các đối tượng `Integer`; với khối lượng số cực lớn và yêu cầu hiệu năng cao, nên đo chi phí boxing hoặc chọn giải pháp khác.
+`IntStream` does not have a direct `gather` matching Java 24's `Stream<T>.gather` signature. Therefore, `.boxed()` in the example converts `IntStream` to `Stream<Integer>` before calling `gather`. This creates `Integer` objects; with massive volumes of numbers and high performance requirements, measure the boxing cost or choose another approach.
 
-### Chỉ giữ những cửa sổ có tổng vượt ngưỡng
+### Keeping only windows whose sum exceeds a threshold
 
 ```java
 import java.util.List;
@@ -273,9 +273,9 @@ List<List<Integer>> largeWindows = Stream.of(1, 2, 3, 8, 9, 10, 4)
 System.out.println(largeWindows); // [[8, 9, 10]]
 ```
 
-Ở đây `filter` áp dụng **sau khi chia cửa sổ**, nghĩa là **loại cả cửa sổ** không đạt yêu cầu, chứ không loại các phần tử riêng lẻ trước khi chia.
+Here `filter` is applied **after windowing**, meaning it **drops entire windows** that do not meet the requirement, rather than dropping individual elements before windowing.
 
-### Đếm số cửa sổ, không phải số phần tử nguồn
+### Counting windows, not source elements
 
 ```java
 import java.util.stream.Gatherers;
@@ -288,11 +288,11 @@ long windowCount = Stream.of("A", "B", "C", "D", "E")
 System.out.println(windowCount); // 3
 ```
 
-Sau `gather`, `count()` đếm **số danh sách được phát**, không đếm số phần tử ở bên trong các danh sách đó.
+After `gather`, `count()` counts **the number of lists emitted**, not the number of elements inside those lists.
 
-## 7. Vị trí `filter` thay đổi ranh giới cửa sổ
+## 7. `filter` placement changes window boundaries
 
-Hai pipeline trông giống nhau nhưng có ý nghĩa khác:
+Two pipelines look similar but have different meanings:
 
 ```java
 import java.util.List;
@@ -313,12 +313,12 @@ System.out.println(filterFirst);   // [[2, 4], [6]]
 System.out.println(filterWindows); // [[1, 2]]
 ```
 
-- **`filter` trước `gather`**: phần tử bị loại không chiếm vị trí trong cửa sổ; các phần tử còn lại được gom lại từ đầu theo thứ tự mới.
-- **`filter` sau `gather`**: ranh giới đã xác định; predicate quyết định giữ hay bỏ **cả lô**.
+- **`filter` before `gather`**: excluded elements take no slot in any window; the remaining elements are grouped from the start in their new sequence.
+- **`filter` after `gather`**: boundaries are already fixed; the predicate decides whether to keep or drop **the entire batch**.
 
-Tương tự, nếu gọi `sorted()` trước `gather`, các cửa sổ được lập theo **thứ tự đã sắp xếp**; nếu gọi `distinct()` trước `gather`, số phần tử và ranh giới có thể thay đổi. Vì thế **vị trí các phép toán trung gian là một phần của yêu cầu nghiệp vụ**, không chỉ là chi tiết viết code.
+Similarly, if `sorted()` is called before `gather`, windows are formed in **the sorted order**; if `distinct()` is called before `gather`, element counts and boundaries can change. Thus **the placement of intermediate operations is part of the business requirement**, not just a coding detail.
 
-## 8. `limit` trước và sau cửa sổ khác nhau thế nào?
+## 8. How do `limit` before and after windowing differ?
 
 ```java
 import java.util.List;
@@ -341,11 +341,11 @@ System.out.println(firstFiveItems);  // [[1, 2, 3], [4, 5]]
 System.out.println(firstTwoWindows); // [[1, 2, 3], [4, 5, 6]]
 ```
 
-Ở pipeline đầu, `limit(5)` giới hạn **năm phần tử nguồn** rồi mới chia cửa sổ. Ở pipeline sau, `limit(2)` giới hạn **hai phần tử của stream cửa sổ** — tức là hai danh sách, tổng cộng sáu giá trị ở ví dụ.
+In the first pipeline, `limit(5)` limits **five source elements** before windowing. In the second pipeline, `limit(2)` limits **two elements of the window stream** — meaning two lists, totaling six values in the example.
 
-Đây là một kiểu **short-circuiting**: terminal operation có thể kết thúc mà không cần đi hết nguồn, nếu downstream đã nhận đủ cửa sổ. Tuy nhiên, không nên dựa vào số lần mapper/`peek` được gọi để khẳng định hệ thống luôn đọc đúng bằng `2 * windowSize` phần tử: tối ưu, buffering và cách tiêu thụ có thể ảnh hưởng số thao tác quan sát được.
+This is a form of **short-circuiting**: the terminal operation can finish without exhausting the source once downstream has received enough windows. However, you should not rely on the number of mapper/`peek` invocations to assert that the system always reads exactly `2 * windowSize` elements: optimizations, buffering, and consumption strategy can affect observed operation counts.
 
-Với nguồn vô hạn, thường phải có điều kiện dừng:
+With infinite sources, a stopping condition is generally required:
 
 ```java
 import java.util.List;
@@ -362,20 +362,20 @@ System.out.println(firstThreeBatches);
 // [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]]
 ```
 
-Không được gọi `toList()` trên toàn bộ cửa sổ của **một nguồn vô hạn không có giới hạn**, vì terminal operation không thể hoàn tất và việc giữ dữ liệu sẽ tiêu tốn tài nguyên không giới hạn.
+Never call `toList()` on all windows of **an unbounded infinite source**, because the terminal operation cannot complete and retaining the data will consume unbounded resources.
 
-## 9. Xử lý cửa sổ cuối không đủ kích thước
+## 9. Handling an incomplete final window
 
-`windowFixed` **giữ phần dư**. Ứng dụng cần chọn một trong các chính sách sau:
+`windowFixed` **keeps the remainder**. Applications need to choose one of the following policies:
 
-| Chính sách | Khi áp dụng | Với `[1,2,3,4,5]`, `k=3` |
+| Policy | When applied | With `[1,2,3,4,5]`, `k=3` |
 | --- | --- | --- |
-| **Chấp nhận lô cuối ngắn** | Batch API cho phép số lượng từ 1 đến `k`. | `[[1,2,3],[4,5]]` |
-| **Chỉ xử lý lô đầy** | Thuật toán bắt buộc đúng `k` giá trị. | `[[1,2,3]]`; phần dư phải được xử lý riêng nếu cần. |
-| **Đệm tới đủ số phần tử** | Giao thức có giá trị đệm rõ nghĩa. | `[[1,2,3],[4,5,PAD]]` |
-| **Từ chối đầu vào thiếu** | Toàn bộ dữ liệu phải có kích thước chia hết cho `k`. | Báo lỗi trước hoặc sau bước kiểm tra kích thước. |
+| **Accept a short final batch** | Batch API allows counts from 1 to `k`. | `[[1,2,3],[4,5]]` |
+| **Process full batches only** | Algorithm strictly requires `k` values. | `[[1,2,3]]`; remainder must be handled separately if needed. |
+| **Pad to full element count** | Protocol has a well-defined padding value. | `[[1,2,3],[4,5,PAD]]` |
+| **Reject incomplete input** | Entire dataset size must be divisible by `k`. | Report error before or after size validation. |
 
-### Chỉ giữ các lô đầy
+### Keeping full batches only
 
 ```java
 import java.util.List;
@@ -393,9 +393,9 @@ List<List<Integer>> complete = IntStream.rangeClosed(1, 8)
 System.out.println(complete); // [[1, 2, 3], [4, 5, 6]]
 ```
 
-Lựa chọn này **làm mất hai phần tử cuối** khỏi kết quả. Trong hệ thống giao dịch, xử lý thanh toán hoặc nhật ký quan trọng, **không được bỏ phần dư âm thầm**. Cần quyết định rõ phần dữ liệu còn lại sẽ được giữ cho lô sau, xử lý riêng, hay báo lỗi.
+This choice **drops the last two elements** from the result. In transaction systems, payment processing, or critical logs, **never discard the remainder silently**. You must decide explicitly whether remaining data is held for the next batch, processed separately, or flagged as an error.
 
-### Đệm phần dư bằng giá trị đại diện
+### Padding the remainder with a placeholder value
 
 ```java
 import java.util.ArrayList;
@@ -420,14 +420,14 @@ System.out.println(padded);
 // [[A, B, C], [D, E, MISSING]]
 ```
 
-Phải **tạo bản sao** trước khi thêm phần tử, vì danh sách do `windowFixed` phát là unmodifiable. Trong ví dụ, `"MISSING"` chỉ là giá trị giả định; với dữ liệu thực tế, phải chắc chắn giá trị đệm không thể bị hiểu nhầm là một giao dịch hoặc số đo có thật.
+You must **create a copy** before adding elements, because the list emitted by `windowFixed` is unmodifiable. In the example, `"MISSING"` is only a placeholder value; with real data, ensure the padding value can never be mistaken for a real transaction or measurement.
 
-## 10. `windowFixed` khác `windowSliding` thế nào?
+## 10. How does `windowFixed` differ from `windowSliding`?
 
-Cả hai đều tạo cửa sổ theo số lượng phần tử, nhưng **quy tắc dịch cửa sổ** khác nhau:
+Both create count-based windows, but **the window-shifting rule** differs:
 
 ```text
-Nguồn:       [1, 2, 3, 4, 5, 6, 7]
+Source:      [1, 2, 3, 4, 5, 6, 7]
 
 Fixed(3):    [1, 2, 3]
                       [4, 5, 6]
@@ -464,19 +464,19 @@ System.out.println(sliding);
 // [[1, 2, 3], [2, 3, 4], [3, 4, 5], [4, 5, 6], [5, 6, 7]]
 ```
 
-| Thuộc tính | `windowFixed(k)` | `windowSliding(k)` |
+| Property | `windowFixed(k)` | `windowSliding(k)` |
 | --- | --- | --- |
-| Ranh giới | Chia thành các nhóm liên tiếp **không chồng lắp**. | Mỗi nhóm tiếp theo trượt **một phần tử**. |
-| Phần tử xuất hiện ở mấy nhóm? | Tối đa một. | Có thể ở nhiều nhóm. |
-| Kích thước nhóm cuối | Có thể ngắn hơn `k`. | Với nguồn có ít nhất `k` phần tử, các nhóm trượt đủ `k`; nếu nguồn ngắn hơn `k`, có một nhóm ngắn. |
-| Số nhóm khi `n > 0` | `ceil(n / k)`. | `1` nếu `n < k`; nếu `n >= k`, có `n - k + 1` nhóm. |
-| Phù hợp | Đóng gói batch, tổng hợp theo lô. | Trung bình trượt, so sánh chuỗi giá trị lân cận. |
+| Boundaries | Splits into **non-overlapping** consecutive groups. | Each next group slides forward by **one element**. |
+| How many groups does an element appear in? | At most one. | May appear in multiple groups. |
+| Last group size | May be shorter than `k`. | For sources with at least `k` elements, sliding groups have full `k`; if shorter than `k`, there is one short group. |
+| Number of groups when `n > 0` | `ceil(n / k)`. | `1` if `n < k`; if `n >= k`, there are `n - k + 1` groups. |
+| Best suited for | Batch packaging, per-batch aggregation. | Moving averages, comparing adjacent value sequences. |
 
-Ví dụ một lần tính tổng cho các **lô ngày không giao nhau** nên dùng fixed window. Nếu cần tính **trung bình của ba phép đo liên tiếp tại mỗi vị trí**, sliding window phù hợp hơn. Đừng gọi `windowFixed` rồi kỳ vọng kết quả chồng lắp như rolling average.
+For example, summing over **non-overlapping daily batches** should use a fixed window. If you need **the average of three consecutive measurements at each position**, a sliding window is more appropriate. Do not call `windowFixed` and expect overlapping results like a rolling average.
 
-## 11. Cửa sổ theo thứ tự phần tử, không phải phân nhóm theo khóa
+## 11. Windows by element order, not grouping by key
 
-`Collectors.groupingBy` phân loại các phần tử có **cùng khóa**. `Gatherers.windowFixed` phân chia theo **vị trí tương đối trong một chuỗi có thứ tự**.
+`Collectors.groupingBy` classifies elements sharing the **same key**. `Gatherers.windowFixed` partitions by **relative position in an ordered sequence**.
 
 ```java
 import java.util.List;
@@ -498,15 +498,15 @@ System.out.println(batches); // [[A, B], [A, B], [A]]
 System.out.println(byValue.get("A")); // [A, A, A]
 ```
 
-Không thể thay `windowFixed(k)` bằng `groupingBy(value -> value)` nếu mục tiêu là mỗi batch có `k` phần tử liên tiếp. Tương tự, `partitioningBy` chia thành hai nhóm Boolean chứ không đóng gói theo số phần tử.
+You cannot replace `windowFixed(k)` with `groupingBy(value -> value)` if the goal is batches of `k` consecutive elements. Similarly, `partitioningBy` splits into two boolean groups rather than packaging by element count.
 
-Nếu nguồn là `HashSet` hay một stream không có encounter order, vị trí của phần tử không được bảo đảm ổn định theo thứ tự nghiệp vụ. **Cửa sổ cố định có ý nghĩa mạnh nhất trên nguồn có encounter order rõ ràng**, như `List` hoặc `Stream.of(...)`.
+If the source is a `HashSet` or a stream without encounter order, element positions are not guaranteed to be stable according to business order. **Fixed windows are most meaningful on sources with a clear encounter order**, such as `List` or `Stream.of(...)`.
 
-## 12. Dự án thực tế: lập báo cáo theo lô giao dịch
+## 12. Real-world project: generating a transaction batch report
 
-Giả sử mỗi giao dịch có mã và số tiền theo **đơn vị nguyên nhỏ nhất**. Cứ ba giao dịch liên tiếp tạo thành một lô; với mỗi lô, ta muốn biết số giao dịch và tổng tiền.
+Suppose each transaction has an ID and an amount in **minor integer units**. Every three consecutive transactions form a batch; for each batch, we want the transaction count and total amount.
 
-Đây là một chương trình Java 24+ hoàn chỉnh:
+Here is a complete Java 24+ program:
 
 ```java
 import java.util.List;
@@ -556,7 +556,7 @@ public class TransactionBatchReport {
 }
 ```
 
-Kết quả có ba dòng báo cáo, tương ứng các lô:
+Output has three report lines corresponding to the batches:
 
 ```text
 BatchSummary[firstTransaction=T-01, lastTransaction=T-03,
@@ -567,21 +567,21 @@ BatchSummary[firstTransaction=T-07, lastTransaction=T-07,
              transactionCount=1, totalAmount=250]
 ```
 
-Những điểm cần chú ý:
+Points to note:
 
-1. `data.stream()` có encounter order đúng theo danh sách giao dịch.
-2. `gather(windowFixed(3))` phân chia thành ba lô, giữ cả giao dịch cuối.
-3. `summarize(batch)` có thể gọi `get(0)` vì **không có cửa sổ rỗng**.
-4. Mỗi kết quả `BatchSummary` là một record chỉ chứa `String` và các primitive, phù hợp để công bố dữ liệu không sửa đổi được.
-5. Nếu số lượng giao dịch rất lớn, dùng `sum()` trên `long` vẫn có thể bị tràn. Hệ thống tài chính cần chính sách kiểm tra giới hạn, `Math.addExact` hoặc kiểu số thích hợp.
+1. `data.stream()` has an encounter order matching the transaction list.
+2. `gather(windowFixed(3))` partitions into three batches, preserving the final transaction.
+3. `summarize(batch)` can safely call `get(0)` because **there are no empty windows**.
+4. Each `BatchSummary` result is a record containing only `String` and primitives, suitable for publishing immutable data.
+5. If the number of transactions is very large, using `sum()` on `long` can still overflow. Financial systems need bounds checks, `Math.addExact`, or an appropriate numeric type.
 
-Chương trình dùng batch để **tổng hợp**, không thực sự gửi mạng hay ghi DB. Nếu thay `summarize` bằng một API có side effect, còn cần giới hạn đồng thời, retry, idempotency, timeout và xử lý lô gửi dở; `windowFixed` không tự cung cấp giao dịch nguyên tử hoặc bảo đảm gửi đúng một lần.
+The program uses batches for **aggregation**, not for actual network calls or DB writes. If you replace `summarize` with a side-effecting API, you also need concurrency limits, retries, idempotency, timeouts, and partial-batch failure handling; `windowFixed` does not provide atomic transactions or exactly-once delivery on its own.
 
-## 13. Tạo báo cáo mà không lưu mọi cửa sổ đến cuối
+## 13. Producing a report without holding every window until the end
 
-`toList()` trên stream các cửa sổ **lưu toàn bộ cửa sổ** vào một danh sách kết quả. Khi nguồn rất lớn, điều này có thể tốn nhiều bộ nhớ.
+`toList()` on a stream of windows **retains all windows** in a result list. When the source is very large, this can consume a lot of memory.
 
-Nếu chỉ cần các số liệu cuối cùng, có thể tính trong `map` rồi thu một lượng kết quả nhỏ hơn, hoặc tổng hợp tiếp:
+If only final metrics are needed, you can compute them inside `map` and collect a smaller result, or aggregate further:
 
 ```java
 import java.util.LongSummaryStatistics;
@@ -596,13 +596,13 @@ LongSummaryStatistics sumsOfBatches = IntStream.rangeClosed(1, 1_000)
         .sum())
     .summaryStatistics();
 
-System.out.println(sumsOfBatches.getCount()); // 10 lô
+System.out.println(sumsOfBatches.getCount()); // 10 batches
 System.out.println(sumsOfBatches.getSum());   // 500500
 ```
 
-Ở đây, terminal operation trả về **một bộ thống kê của các tổng theo lô**, thay vì danh sách lồng chứa toàn bộ 1.000 giá trị. Nếu chỉ cần tổng toàn bộ nguồn, `IntStream.rangeClosed(1, 1_000).asLongStream().sum()` đơn giản hơn và không cần windowing.
+Here, the terminal operation returns **a summary statistics object of batch sums**, rather than a nested list holding all 1,000 values. If you only need the total sum of the entire source, `IntStream.rangeClosed(1, 1_000).asLongStream().sum()` is simpler and needs no windowing.
 
-### Với nguồn I/O như `Files.lines`
+### With I/O sources such as `Files.lines`
 
 ```java
 import java.io.IOException;
@@ -627,50 +627,50 @@ public class FileBatchSizes {
 }
 ```
 
-`Files.lines` giữ tài nguyên I/O nên cần `try-with-resources` để đóng stream. `collect`, `toList` hay `gather` **không thay thế trách nhiệm đóng nguồn**. Trong ví dụ này, đầu ra là danh sách **số dòng của mỗi batch**, không giữ toàn bộ nội dung tệp.
+`Files.lines` holds an I/O resource, so `try-with-resources` is required to close the stream. `collect`, `toList`, or `gather` **do not replace the responsibility of closing the source**. In this example, the output is a list of **line counts per batch**, not retaining the entire file content.
 
-Tuy nhiên, nếu tệp có dòng cực lớn hoặc số lượng lô rất nhiều, vẫn cần tính toán bộ nhớ tổng thể. Nếu nguồn đã có đặc điểm cần giữ tính nhất quán (tệp thay đổi lúc đang đọc), `windowFixed` không tự khóa hoặc chụp snapshot nguồn dữ liệu.
+However, if the file has extremely long lines or a huge number of batches, you still need to account for total memory. If the source requires consistency (e.g., the file changes while being read), `windowFixed` does not automatically lock or snapshot the data source.
 
-## 14. Cân nhắc bộ nhớ và kích thước cửa sổ
+## 14. Memory considerations and window size
 
-Theo tài liệu API của `Gatherers.windowFixed`, cửa sổ có thể được **cấp phát liên tục và sớm** để tối ưu hiệu quả. Điều này có một hệ quả đáng chú ý: chọn `windowSize` cực lớn cho nguồn rất ngắn có thể tiêu tốn bộ nhớ **không tương xứng với lượng dữ liệu thực tế**.
+According to the `Gatherers.windowFixed` API documentation, windows may be **allocated greedily and eagerly** for efficiency. This has a notable consequence: choosing an enormous `windowSize` for a very short source can consume memory **disproportionate to the actual data volume**.
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.stream.Gatherers;
 import java.util.stream.Stream;
 
-// Tránh làm theo thói quen: kích thước cửa sổ khổng lồ
-// không tự trở nên rẻ chỉ vì nguồn có 2 phần tử.
+// Avoid doing this out of habit: a huge window size
+// does not automatically become cheap just because the source has 2 elements.
 var windows = Stream.of("A", "B")
     .gather(Gatherers.windowFixed(1_000_000));
 ```
 
-Đoạn trên chỉ minh họa một **cấu hình có nguy cơ cấp phát lớn**, không khẳng định chính xác số byte hoặc thời điểm cấp phát trên mọi JDK. Nên chọn kích thước cửa sổ theo giới hạn tài nguyên, đặc điểm dữ liệu và yêu cầu xử lý thực tế.
+The snippet above only illustrates a **configuration risking large allocation**, without asserting exact byte counts or allocation timing on every JDK. Choose the window size according to resource limits, data characteristics, and actual processing requirements.
 
-Phân biệt hai tầng bộ nhớ:
+Distinguish two memory layers:
 
-- **Buffer của Gatherer**: giữ những phần tử cần thiết để lập một cửa sổ, chi phí liên quan tới `windowSize` và cách triển khai.
-- **Kết quả terminal operation**: `toList()` giữ tất cả cửa sổ đã phát; nếu muốn xử lý dòng chảy theo lô mà không giữ toàn bộ, cần terminal operation/downstream phù hợp.
+- **Gatherer buffer**: holds the elements needed to form one window; cost relates to `windowSize` and the implementation.
+- **Terminal operation result**: `toList()` holds all emitted windows; if you want streaming per-batch processing without retaining everything, use an appropriate terminal operation/downstream.
 
-Lưu ý `windowFixed` có thể giúp **xử lý theo batch**, nhưng không tự giải quyết giới hạn bộ nhớ của tất cả các thao tác phía sau. Một `map(batch -> hugeObject)` rồi `toList()` vẫn có thể dùng rất nhiều bộ nhớ.
+Note that `windowFixed` can help **process in batches**, but does not automatically solve memory limits of all downstream operations. A `map(batch -> hugeObject)` followed by `toList()` can still consume a huge amount of memory.
 
-## 15. Thứ tự, song song và ngữ nghĩa xử lý
+## 15. Ordering, parallelism, and processing semantics
 
-Cửa sổ cố định **phụ thuộc thứ tự**. Nếu có nguồn `[1,2,3,4,5,6]`, ta kỳ vọng `[[1,2,3],[4,5,6]]`, không phải các nhóm ngẫu nhiên chỉ vì có hai worker.
+Fixed windows are **order-dependent**. Given `[1,2,3,4,5,6]`, we expect `[[1,2,3],[4,5,6]]`, not random groups simply because two workers were used.
 
-Những điều cần nhớ:
+Points to remember:
 
-1. Trên nguồn có encounter order, cửa sổ giữ thứ tự các phần tử như hợp đồng API.
-2. Nếu nguồn vốn **unordered** hoặc bị gọi `unordered()`, không nên kỳ vọng các phần tử cụ thể sẽ nằm trong batch nào theo thứ tự nghiệp vụ.
-3. Thêm `parallel()` **không bảo đảm tăng tốc**. Windowing là phép toán trung gian có trạng thái và phụ thuộc ranh giới; cách thực thi còn phụ thuộc khả năng chia nguồn và triển khai Gatherer.
-4. Không sửa một `ArrayList` nguồn ngay trong `map`/ `forEach` khi Stream đang duyệt. Hành vi các lambda nên *non-interfering* và, nếu có thể, *stateless*.
-5. Không giả định `windowFixed` tự phân phối các lô tới một pool worker với số lượng tác vụ hoặc thứ tự thực thi cụ thể.
+1. On a source with encounter order, windows preserve element order per the API contract.
+2. If the source is inherently **unordered** or `unordered()` was called, do not expect specific elements to land in specific batches in business order.
+3. Adding `parallel()` **does not guarantee speedup**. Windowing is a stateful, boundary-dependent intermediate operation; execution also depends on source splittability and Gatherer implementation.
+4. Do not mutate a source `ArrayList` inside `map`/`forEach` while the Stream is traversing it. Lambda behavior should be *non-interfering* and, if possible, *stateless*.
+5. Do not assume `windowFixed` dispatches batches to a worker pool with a specific task count or execution order.
 
-Nếu cần **xử lý đồng thời từng batch** sau khi đã chia cửa sổ, đó là một yêu cầu khác với việc **chia cửa sổ**. Java 24 còn có `Gatherers.mapConcurrent(maxConcurrency, mapper)` để xử lý phép ánh xạ với mức đồng thời được giới hạn và vẫn bảo toàn thứ tự đầu ra theo hợp đồng. Chỉ dùng nó khi mapper phù hợp, việc xử lý từng batch độc lập và bạn đã xác định cách xử lý lỗi hoặc side effect.
+If you need to **process each batch concurrently** after windowing, that is a separate requirement from **windowing**. Java 24 also provides `Gatherers.mapConcurrent(maxConcurrency, mapper)` to handle mapping with bounded concurrency while still preserving output order per contract. Only use it when the mapper fits, each batch is processed independently, and you have defined error and side-effect handling.
 
-Ví dụ về **phép tính thuần**, không thực hiện I/O:
+Example of a **pure computation**, performing no I/O:
 
 ```java
 import java.util.List;
@@ -689,11 +689,11 @@ List<Integer> totals = IntStream.rangeClosed(1, 12)
 System.out.println(totals); // [6, 15, 24, 33]
 ```
 
-Ví dụ này minh họa **hai Gatherer nối tiếp**. Nó không chứng minh cách dùng `mapConcurrent` nhanh hơn `map` thường; với phép cộng ba số, overhead đồng thời hầu như không đáng để lựa chọn trước khi đo đạc.
+This example illustrates **chaining two Gatherers**. It does not prove `mapConcurrent` is faster than regular `map`; for summing three numbers, concurrency overhead is hardly worth choosing before benchmarking.
 
-## 16. So sánh với cách chia List theo chỉ số trước Java 24
+## 16. Comparison with index-based List splitting before Java 24
 
-Trước Stream Gatherers, nếu nguồn đã là một `List` có chỉ số và bạn muốn chia theo vị trí, có thể dùng `IntStream.range` hoặc `subList`.
+Before Stream Gatherers, if the source was already an indexed `List` and you wanted to split by position, you could use `IntStream.range` or `subList`.
 
 ```java
 import java.util.ArrayList;
@@ -715,32 +715,32 @@ List<List<Integer>> batches = IntStream
 System.out.println(batches); // [[1, 2, 3], [4, 5, 6], [7, 8]]
 ```
 
-Đây là một lựa chọn phù hợp khi bạn đã có danh sách **truy cập theo chỉ số**. Mẫu này dùng `List.copyOf` (Java 10+) để tạo danh sách cửa sổ không sửa đổi được, nhưng không sao chép sâu các phần tử. Nếu phần tử có thể `null`, `List.copyOf` sẽ từ chối `null`, nên cần chính sách dữ liệu trước khi áp dụng.
+This is a reasonable choice when you already have an **indexed-access** list. This pattern uses `List.copyOf` (Java 10+) to create unmodifiable window lists, without deep-copying elements. If elements can be `null`, `List.copyOf` will reject `null`, so a data policy is needed before applying it.
 
-Một điểm khác: `source.subList(from, to)` **thường là view** liên kết với danh sách gốc, không phải snapshot độc lập. Trả trực tiếp các `subList` có thể khiến sửa đổi nguồn ảnh hưởng kết quả hoặc làm view không còn hợp lệ. Tạo bản sao tránh phụ thuộc cấu trúc danh sách gốc, dù vẫn chỉ sao chép tham chiếu tới phần tử.
+Another point: `source.subList(from, to)` **is usually a view** backed by the original list, not an independent snapshot. Returning `subList`s directly can cause source modifications to affect results or invalidate the view. Creating a copy avoids structural dependency on the original list, though it still only copies references to elements.
 
-`windowFixed` không yêu cầu nguồn phải là `List` có chỉ số; nó làm việc với một `Stream<T>` và giữ tính khai báo của pipeline. Khi dữ liệu vốn từ iterator, file hoặc một stream đã qua nhiều bước chuyển đổi, đây có thể là API dễ diễn đạt ý định hơn.
+`windowFixed` does not require the source to be an indexed `List`; it works on any `Stream<T>` and preserves the declarative style of the pipeline. When data originates from an iterator, file, or a stream that has passed through several transformations, it can be the cleaner API to express intent.
 
-## 17. Những lỗi thường gặp
+## 17. Common mistakes
 
-| Sai lầm | Hệ quả | Cách xử lý |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Gọi `windowFixed` với `k = 0` hoặc số âm | `IllegalArgumentException`. | Bắt buộc `k >= 1`. |
-| Mong lô cuối luôn có đúng `k` phần tử | Có thể xử lý sai bản ghi cuối. | Chấp nhận, đệm, từ chối hoặc giữ phần dư theo chính sách. |
-| Nghĩ `windowFixed(3)` là ba giây | Nhầm cửa sổ theo số lượng với cửa sổ theo thời gian. | Dùng đúng loại công cụ xử lý thời gian nếu cần. |
-| Truyền trực tiếp `IntStream` vào `gather` | API `gather` dành cho `Stream<T>` tham chiếu. | Dùng `boxed()` hoặc lựa chọn xử lý primitive khác. |
-| Gọi `window.add(...)` trên cửa sổ kết quả | `UnsupportedOperationException`. | Sao chép sang collection mutable nếu cần sửa. |
-| Đặt `filter` sai vị trí | Ranh giới cửa sổ thay đổi hoặc bị loại cả lô. | Xác định muốn lọc phần tử hay lọc cửa sổ. |
-| Dùng `limit(2)` sau `gather` và tưởng chỉ lấy 2 phần tử | Thực tế lấy tối đa **2 cửa sổ**. | Đặt `limit` theo đúng mức dữ liệu cần giới hạn. |
-| Dùng cửa sổ rất lớn trên nguồn ngắn | Có nguy cơ cấp phát bộ nhớ quá mức. | Chọn `windowSize` hữu hạn, hợp lý theo tài nguyên. |
-| Dùng `toList()` để giữ tất cả lô của nguồn khổng lồ | Đầu ra chiếm nhiều bộ nhớ. | Tổng hợp hoặc tiêu thụ từng lô khi phù hợp. |
-| Dùng nguồn unordered rồi kỳ vọng nhóm ổn định | Mất ý nghĩa vị trí theo thứ tự nghiệp vụ. | Cấp encounter order rõ ràng trước khi chia. |
-| Gửi batch tới API từ `forEach` rồi coi là giao dịch nguyên tử | Có thể gửi một phần trước khi lỗi xảy ra. | Thiết kế retry, idempotency, giới hạn concurrency và giám sát riêng. |
-| So `windowFixed` với `windowSliding` mà bỏ qua chồng lắp | Sai số lô và tổng hợp. | Chọn đúng quy tắc cửa sổ theo yêu cầu. |
+| Calling `windowFixed` with `k = 0` or a negative number | `IllegalArgumentException`. | Enforce `k >= 1`. |
+| Expecting the last batch to always have `k` elements | Trailing records may be mishandled. | Accept, pad, reject, or keep remainder per policy. |
+| Thinking `windowFixed(3)` means three seconds | Confusing count-based with time-based windows. | Use proper time-windowing tools if needed. |
+| Passing `IntStream` directly to `gather` | `gather` API is for reference `Stream<T>`. | Use `boxed()` or other primitive processing options. |
+| Calling `window.add(...)` on a result window | `UnsupportedOperationException`. | Copy to a mutable collection if modification is needed. |
+| Placing `filter` in the wrong position | Window boundaries change or whole batches are dropped. | Decide whether to filter elements or filter windows. |
+| Using `limit(2)` after `gather` expecting only 2 elements | Actually takes at most **2 windows**. | Place `limit` at the level of data you want to cap. |
+| Using a huge window on a short source | Risks excessive memory allocation. | Choose a finite, resource-appropriate `windowSize`. |
+| Using `toList()` to hold all batches of a huge source | Output consumes a lot of memory. | Aggregate or consume batch by batch when appropriate. |
+| Using an unordered source while expecting stable groups | Loses positional meaning in business order. | Provide explicit encounter order before splitting. |
+| Sending batches to an API in `forEach` assuming atomic transaction | Partial send can occur before an error. | Design retries, idempotency, concurrency limits, and monitoring separately. |
+| Comparing `windowFixed` and `windowSliding` while ignoring overlap | Wrong batch count and totals. | Choose the windowing rule matching the requirement. |
 
-## 18. Kiểm thử ranh giới cửa sổ
+## 18. Testing window boundaries
 
-Khi cần bảo đảm **không mất và không lặp phần tử**, nên kiểm thử trên nhiều kích thước đầu vào. Ví dụ Java 24+:
+When you need to ensure **no missing or duplicated elements**, test across multiple input sizes. Java 24+ example:
 
 ```java
 import java.util.List;
@@ -762,20 +762,20 @@ public class WindowFixedCheck {
             .toList();
 
         if (!flattened.equals(source)) {
-            throw new AssertionError("Mất, lặp hoặc đảo phần tử");
+            throw new AssertionError("Missing, duplicated, or reordered elements");
         }
 
         int expectedWindows = n == 0
             ? 0
             : 1 + (n - 1) / size;
         if (windows.size() != expectedWindows) {
-            throw new AssertionError("Sai số cửa sổ");
+            throw new AssertionError("Incorrect window count");
         }
 
         for (int i = 0; i < windows.size(); i++) {
             int expectedSize = Math.min(size, n - i * size);
             if (windows.get(i).size() != expectedSize) {
-                throw new AssertionError("Sai kích thước cửa sổ " + i);
+                throw new AssertionError("Incorrect size for window " + i);
             }
         }
     }
@@ -786,56 +786,56 @@ public class WindowFixedCheck {
                 check(n, k);
             }
         }
-        System.out.println("Các kiểm tra cửa sổ đã đạt");
+        System.out.println("Window checks passed");
     }
 }
 ```
 
-Một số bất biến đáng kiểm tra:
+Some invariants worth testing:
 
-- **Toàn vẹn phần tử**: ghép phẳng các cửa sổ của một nguồn có thứ tự phải được chính dãy nguồn (khi không có `filter` hoặc biến đổi làm đổi số phần tử).
-- **Số cửa sổ**: `0` nếu nguồn rỗng; nếu không, bằng `ceil(n/k)`.
-- **Kích thước**: mọi cửa sổ trừ cửa sổ cuối có đúng `k` phần tử; cửa sổ cuối có từ 1 đến `k`.
-- **Không sửa đổi được**: gọi phương thức mutator trên một cửa sổ kết quả phải bị từ chối.
-- **Không mất dữ liệu ở ranh giới**: kiểm tra riêng `n = k - 1`, `n = k`, `n = k + 1`, `n = 2k`, `n = 2k + 1`.
+- **Element integrity**: flattening the windows of an ordered source must yield the original sequence (when there is no `filter` or transformation changing element count).
+- **Window count**: `0` if source is empty; otherwise `ceil(n/k)`.
+- **Sizes**: every window except the last has exactly `k` elements; the last window has between 1 and `k`.
+- **Unmodifiability**: calling a mutator method on a result window must be rejected.
+- **No data loss at boundaries**: specifically test `n = k - 1`, `n = k`, `n = k + 1`, `n = 2k`, `n = 2k + 1`.
 
-Các kiểm tra trên chứng minh hành vi đối với những đầu vào đã thử; chưa phải phép đo hiệu năng hoặc kiểm chứng mọi trường hợp nguồn concurrent/unordered.
+These checks verify behavior for the tested inputs; they are not performance benchmarks or proof of all concurrent/unordered source cases.
 
-## 19. Bài tập thực hành
+## 19. Practice exercises
 
-**Bài 1 — Cửa sổ cơ bản.** Từ `Stream.of(10,20,30,40,50,60,70)`, dùng `windowFixed(3)` và dự đoán ba danh sách kết quả. Giải thích vì sao cửa sổ cuối chỉ có một phần tử.
+**Exercise 1 — Basic windows.** From `Stream.of(10,20,30,40,50,60,70)`, use `windowFixed(3)` and predict the three resulting lists. Explain why the final window has only one element.
 
-**Bài 2 — Lọc đúng vị trí.** Với nguồn `[1,2,3,4,5,6]` và `k=2`, so sánh `filter(n -> n % 2 == 0)` trước `gather` với `filter(batch -> batch.contains(2))` sau `gather`. Viết rõ khác biệt về số lượng và nội dung cửa sổ.
+**Exercise 2 — Filtering in the right place.** With source `[1,2,3,4,5,6]` and `k=2`, compare `filter(n -> n % 2 == 0)` before `gather` with `filter(batch -> batch.contains(2))` after `gather`. Write clearly the difference in window count and contents.
 
-**Bài 3 — Giữ hoặc bỏ phần dư.** Cho tám mã giao dịch và `k=3`. Thu tất cả lô trước; sau đó chỉ giữ lô có đúng ba phần tử. Có bao nhiêu giao dịch bị loại? Nếu đó là giao dịch tài chính, hãy đề xuất chính sách không mất dữ liệu.
+**Exercise 3 — Keeping or dropping the remainder.** Given eight transaction IDs and `k=3`. Collect all batches first; then keep only batches with exactly three elements. How many transactions are dropped? If these are financial transactions, propose a zero-data-loss policy.
 
-**Bài 4 — Tổng theo lô.** Dùng `IntStream.rangeClosed(1, 10).boxed()`, chia `windowFixed(4)` rồi tính tổng trong mỗi lô. Kết quả dự kiến là `[10,26,19]`.
+**Exercise 4 — Sum per batch.** Using `IntStream.rangeClosed(1, 10).boxed()`, split with `windowFixed(4)` and sum each batch. Expected output is `[10,26,19]`.
 
-**Bài 5 — So sánh sliding.** Với `[1,2,3,4,5]`, hãy viết kết quả của `windowFixed(3)` và `windowSliding(3)`. Vì sao việc cộng tổng các cửa sổ trượt sẽ đếm nhiều phần tử hơn một lần?
+**Exercise 5 — Comparing sliding.** With `[1,2,3,4,5]`, write the outputs of `windowFixed(3)` and `windowSliding(3)`. Why would summing the sliding windows count several elements more than once?
 
-**Bài 6 — Memory và API.** Vì sao `windowFixed(1_000_000)` trên một stream chỉ có hai phần tử vẫn có thể gây áp lực bộ nhớ? Vì sao `toList()` chứa mọi cửa sổ của nguồn khổng lồ không phải một pipeline tiết kiệm bộ nhớ?
+**Exercise 6 — Memory and API.** Why can `windowFixed(1_000_000)` on a stream with only two elements still cause memory pressure? Why is `toList()` holding every window of a huge source not a memory-efficient pipeline?
 
-**Bài 7 — Kiểm thử bất biến.** Viết hàm `check(n,k)` để xác minh: không mất/lặp phần tử; kích thước từng cửa sổ hợp lệ; số lượng cửa sổ đúng; cửa sổ trả về không sửa đổi được. Chạy trên nguồn rỗng và các kích thước ngay trước/sau bội của `k`.
+**Exercise 7 — Invariant testing.** Write a `check(n,k)` function to verify: no missing/duplicated elements; valid size for each window; exact window count; returned windows are unmodifiable. Run on an empty source and sizes right before/after multiples of `k`.
 
-**Bài 8 — Báo cáo lô.** Từ `Stream<Transaction>`, tạo báo cáo chứa count, tổng tiền và mã đầu/cuối của từng batch, theo `windowFixed(100)`. Nếu bổ sung việc gửi API thật, hãy mô tả cách tránh gửi lặp, giới hạn tác vụ đang chạy và xử lý lỗi chỉ xảy ra ở một batch.
+**Exercise 8 — Batch report.** From `Stream<Transaction>`, produce a report containing count, total amount, and first/last ID of each batch using `windowFixed(100)`. If real API calls are added, describe how to avoid duplicate sends, limit concurrent tasks, and handle an error occurring in only one batch.
 
-## 20. Checklist áp dụng
+## 20. Adoption checklist
 
-- [ ] Dự án sử dụng Java 24+ cho Stream Gatherers API chính thức.
-- [ ] Nguồn có encounter order nếu việc giữ thứ tự theo batch là bắt buộc.
-- [ ] `windowSize` được xác thực lớn hơn 0 và có giới hạn hợp lý.
-- [ ] Quy tắc xử lý phần dư cuối được viết thành yêu cầu nghiệp vụ.
-- [ ] Đã phân biệt `filter` trên phần tử với `filter` trên cửa sổ.
-- [ ] Đã phân biệt `limit` phần tử nguồn và `limit` số cửa sổ.
-- [ ] Không gọi `add`, `remove`, `set` trên cửa sổ do Gatherer trả về.
-- [ ] Đã kiểm tra tính mutable của các đối tượng phần tử nếu cần snapshot dữ liệu.
-- [ ] Không dùng `windowFixed` thay cho cửa sổ thời gian hoặc cửa sổ trượt.
-- [ ] Không giữ mọi cửa sổ trong bộ nhớ nếu đầu vào lớn và không cần lưu lại.
-- [ ] Đã cân nhắc tài nguyên và việc đóng stream cho nguồn I/O.
-- [ ] Không giả định song song hóa hoặc tối ưu hiệu năng nếu chưa đo.
-- [ ] Nếu xử lý batch có side effect, có chính sách retry, idempotency và báo lỗi riêng.
-- [ ] Đã kiểm tra nguồn rỗng, `k=1`, `n<k`, `n=k` và `n=k+1`.
+- [ ] Project uses Java 24+ for the official Stream Gatherers API.
+- [ ] Source has encounter order if preserving batch order is required.
+- [ ] `windowSize` is validated to be greater than 0 and reasonably bounded.
+- [ ] Policy for handling the trailing remainder is written as a business requirement.
+- [ ] Distinguished `filter` on elements from `filter` on windows.
+- [ ] Distinguished `limit` on source elements from `limit` on window count.
+- [ ] Never call `add`, `remove`, or `set` on windows returned by Gatherer.
+- [ ] Checked mutability of element objects if data snapshots are needed.
+- [ ] Not using `windowFixed` in place of time windows or sliding windows.
+- [ ] Not retaining all windows in memory when input is large and full retention is unnecessary.
+- [ ] Considered resources and stream closing for I/O sources.
+- [ ] Not assuming parallelization or performance gains without measuring.
+- [ ] If batch processing has side effects, separate policies exist for retry, idempotency, and error reporting.
+- [ ] Tested empty source, `k=1`, `n<k`, `n=k`, and `n=k+1`.
 
-**Ghi nhớ:** `Gatherers.windowFixed(k)` chia một `Stream<T>` có thứ tự thành `Stream<List<T>>` gồm các nhóm **liên tiếp, không chồng lắp**, mỗi nhóm tối đa `k` phần tử. Nguồn rỗng không có cửa sổ; cửa sổ cuối có thể ngắn; mỗi cửa sổ được bảo đảm **không sửa đổi được**. Đặt `map`, `filter`, `limit` đúng vị trí, chọn kích thước batch phù hợp tài nguyên và chỉ sử dụng windowing khi bài toán thực sự cần xử lý theo lô.
+**Remember:** `Gatherers.windowFixed(k)` splits an ordered `Stream<T>` into a `Stream<List<T>>` of **consecutive, non-overlapping** groups, each with at most `k` elements. Empty sources have no windows; the final window may be shorter; each window is guaranteed to be **unmodifiable**. Place `map`, `filter`, and `limit` in the right positions, choose a resource-appropriate batch size, and only use windowing when the problem truly requires batch processing.
 
-**Tài liệu chính thức:** [Gatherers.windowFixed — Java SE 24 API](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherers.html#windowFixed(int)); [Stream Gatherers — Oracle Java 24 Guide](https://docs.oracle.com/en/java/javase/24/core/stream-gatherers.html); [Stream.gather — Java SE 24 API](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Stream.html#gather(java.util.stream.Gatherer)).
+**Official documentation:** [Gatherers.windowFixed — Java SE 24 API](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherers.html#windowFixed(int)); [Stream Gatherers — Oracle Java 24 Guide](https://docs.oracle.com/en/java/javase/24/core/stream-gatherers.html); [Stream.gather — Java SE 24 API](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Stream.html#gather(java.util.stream.Gatherer)).

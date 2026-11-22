@@ -1,75 +1,75 @@
-# Lỗi biên dịch, lỗi khi chạy và lỗi logic trong Java
+# Compile-Time Errors, Runtime Errors, and Logic Errors in Java
 
-## 1. Ba loại lỗi khác nhau ở thời điểm và cách phát hiện
+## 1. Three Error Types Differ in When and How They Are Detected
 
-Khi viết chương trình Java, không phải mọi lỗi đều được phát hiện ở cùng một giai đoạn.
+When writing a Java program, not every error is detected at the same stage.
 
-| Loại | Thời điểm thường phát hiện | Dấu hiệu đặc trưng | Ví dụ |
+| Type | Typically Detected When | Characteristic Sign | Example |
 | --- | --- | --- | --- |
-| **Lỗi biên dịch** (*compile-time error*) | Khi `javac` kiểm tra mã nguồn | Biên dịch thất bại; mã nguồn vi phạm quy tắc cú pháp, tên hoặc kiểu của Java | `int x = "abc";` |
-| **Lỗi khi chạy** (*runtime error/failure*) | Khi chương trình bắt đầu hoặc đang thực thi | Chương trình có thể ném ngoại lệ, gặp lỗi JVM hoặc kết thúc bất thường | Chia số nguyên cho 0, truy cập mảng vượt chỉ số |
-| **Lỗi logic** (*logic error*) | Khi kiểm tra hành vi, chạy test hoặc đối chiếu yêu cầu | Chương trình có thể biên dịch và chạy không báo lỗi nhưng **kết quả sai** | Tính trung bình `a + b / 2` thay vì `(a + b) / 2.0` |
+| **Compile-time error** | When `javac` checks the source code | Compilation fails; source code violates Java syntax, name, or type rules | `int x = "abc";` |
+| **Runtime error/failure** | When the program starts or is executing | Program may throw an exception, encounter a JVM error, or terminate abnormally | Integer division by 0, out-of-bounds array access |
+| **Logic error** | When checking behavior, running tests, or comparing against requirements | Program may compile and run without reporting errors, yet produce **wrong results** | Computing average as `a + b / 2` instead of `(a + b) / 2.0` |
 
-Đây là một cách **phân loại phục vụ học tập**, không có nghĩa mọi lỗi chỉ thuộc một nhóm. Chẳng hạn lỗi logic có thể dẫn tới ngoại lệ khi chạy ở một đầu vào đặc biệt; một lỗi runtime về thư viện thiếu có thể chỉ xuất hiện khi JVM cố tải lớp liên quan.
+This is a **classification for learning purposes** and does not mean every bug belongs to only one group. For example, a logic error can lead to a runtime exception on a specific input; a runtime error about a missing library may only appear when the JVM attempts to load the related class.
 
-Quy trình cơ bản với một tệp Java:
+Basic workflow for a Java file:
 
 ```text
-Mã nguồn (.java)
+Source code (.java)
     |
     v
-javac biên dịch và kiểm tra
-    |--- Không hợp lệ ---> Lỗi biên dịch (cần sửa mã)
+javac compiles and checks
+    |--- Invalid ---------> Compile-time error (need to fix code)
     |
     v
-Mã bytecode (.class)
+Bytecode (.class)
     |
     v
-JVM tải lớp, khởi chạy, thực thi
-    |--- Gặp ngoại lệ/lỗi ---> Thất bại khi chạy
+JVM loads classes, launches, executes
+    |--- Exception/error -> Runtime failure
     |
     v
-Kết quả chương trình
-    |--- Sai yêu cầu ----> Lỗi logic (test/đối chiếu)
+Program result
+    |--- Violates reqs ---> Logic error (tests/verification)
     |
     v
-Kết quả đáp ứng yêu cầu đã kiểm tra
+Result meets verified requirements
 ```
 
-Không có thông báo lỗi **không chứng minh** thuật toán đúng. Cần kiểm tra cả đầu ra, trạng thái dữ liệu và các trường hợp biên.
+Having no error messages **does not prove** the algorithm is correct. You need to verify outputs, data states, and edge cases.
 
-## 2. Lỗi biên dịch: `javac` không chấp nhận mã nguồn
+## 2. Compile-Time Errors: `javac` Rejects the Source Code
 
-Lỗi biên dịch xảy ra khi chương trình vi phạm các quy tắc mà trình biên dịch Java phải kiểm tra. Các nhóm thường gặp:
+Compile-time errors occur when a program violates rules that the Java compiler must enforce. Common categories:
 
-1. **Cú pháp:** thiếu dấu `;`, thiếu ngoặc hoặc dùng từ khóa sai vị trí.
-2. **Tên và phạm vi:** gọi biến chưa khai báo, dùng biến ngoài scope, gọi phương thức không tồn tại.
-3. **Kiểu dữ liệu:** gán `String` cho `int`, truyền sai kiểu đối số, trả về sai kiểu.
-4. **Gán chắc chắn trước khi đọc:** biến cục bộ chưa được gán (*definite assignment*).
-5. **Ngoại lệ có kiểm tra:** không bắt hoặc khai báo `throws` cho checked exception có thể phát sinh.
-6. **Quy tắc lớp/tệp/quyền truy cập:** tên tệp không khớp tên kiểu top-level `public`, truy cập thành viên không được phép.
+1. **Syntax:** missing `;`, missing parentheses/braces, or misplaced keywords.
+2. **Names and scope:** referencing an undeclared variable, using a variable out of scope, calling a nonexistent method.
+3. **Data types:** assigning a `String` to an `int`, passing an argument of the wrong type, returning the wrong type.
+4. **Definite assignment before reading:** reading an uninitialized local variable (*definite assignment*).
+5. **Checked exceptions:** failing to catch or declare `throws` for a checked exception that may arise.
+6. **Class/file/access rules:** file name not matching the `public` top-level type name, unauthorized member access.
 
-Ví dụ dưới đây là **các dòng cố tình sai; không gộp vào chương trình chạy ở mục 5**:
+The examples below are **deliberately invalid lines; do not include them in the runnable program in section 5**:
 
 ```java
-// Sai kiểu:
+// Wrong type:
 int age = "18"; // incompatible types: String cannot be converted to int
 
-// Sai tên:
-System.out.println(missingValue); // cannot find symbol nếu chưa khai báo tên
+// Wrong name:
+System.out.println(missingValue); // cannot find symbol if the name has not been declared
 
-// Đọc biến cục bộ chưa được gán:
+// Reading an unassigned local variable:
 int score;
 System.out.println(score); // variable score might not have been initialized
 
-// Sai cú pháp:
-// int count = 5 // thiếu dấu chấm phẩy
+// Syntax error:
+// int count = 5 // missing semicolon
 ```
 
-Cách sửa tùy ý định:
+How to fix depends on intent:
 
 ```java
-int age = 18; // Dùng literal int
+int age = 18; // Use an int literal
 
 int missingValue = 7;
 System.out.println(missingValue);
@@ -78,11 +78,11 @@ int score = 0;
 System.out.println(score);
 ```
 
-Các đoạn trên minh họa trong thân phương thức, không phải tệp chạy độc lập. Lưu ý: `Integer.parseInt("18")` là một cách chuyển chuỗi thành số nếu dữ liệu thật là văn bản, nhưng nếu nội dung không phải số hợp lệ thì phương thức có thể ném `NumberFormatException` **khi chạy**. Việc chuyển chuỗi sang số vì thế đòi hỏi quy tắc kiểm tra dữ liệu.
+The snippets above illustrate code inside a method body, not standalone runnable files. Note: `Integer.parseInt("18")` is one way to convert a string to a number if the real data is text, but if the content is not a valid number, the method may throw `NumberFormatException` **at runtime**. Converting strings to numbers therefore requires data validation rules.
 
-### Trường hợp checked exception
+### Checked Exception Case
 
-Nếu gọi API khai báo checked exception, trình biên dịch buộc mã xử lý ngoại lệ hoặc khai báo để chuyển trách nhiệm cho bên gọi:
+When calling an API that declares a checked exception, the compiler forces the code to handle the exception or declare it to pass responsibility to the caller:
 
 ```java
 import java.nio.file.Files;
@@ -95,69 +95,69 @@ class FileExample {
 }
 ```
 
-`throws java.io.IOException` khiến ví dụ **biên dịch hợp lệ**. Tuy vậy, nếu tệp không tồn tại, lời gọi `Files.readString` vẫn có thể ném `NoSuchFileException` khi chương trình chạy. **Trình biên dịch kiểm tra cách xử lý ngoại lệ, không bảo đảm môi trường runtime có đủ tệp hoặc mạng hoạt động.**
+`throws java.io.IOException` makes the example **compile validly**. However, if the file does not exist, calling `Files.readString` can still throw `NoSuchFileException` at runtime. **The compiler checks how exceptions are handled, not whether the runtime environment has the required files or a working network.**
 
-### Cách đọc lỗi biên dịch
+### How to Read Compile-Time Errors
 
-Chạy `javac -encoding UTF-8 Example.java` rồi đọc chẩn đoán trên luồng lỗi (stderr). Thông tin thường gồm tên tệp, số dòng, vị trí và diễn giải như `cannot find symbol`, `incompatible types` hoặc `';' expected`. Nội dung chẩn đoán có thể khác theo phiên bản JDK, nên không nên coi mọi thông báo lỗi biên dịch là chuỗi stdout cố định. Sửa **lỗi đầu tiên có ý nghĩa** rồi biên dịch lại: một dấu ngoặc hoặc khai báo sai có thể dẫn đến nhiều lỗi phụ ở những dòng sau.
+Run `javac -encoding UTF-8 Example.java` and read the diagnostics on the error stream (stderr). Information usually includes the file name, line number, position, and descriptions such as `cannot find symbol`, `incompatible types`, or `';' expected`. Diagnostic text can vary by JDK version, so you should not treat every compile error message as a fixed stdout string. Fix the **first meaningful error** and recompile: one missing brace or bad declaration can trigger many cascading errors on subsequent lines.
 
-## 3. Lỗi khi chạy: chương trình biên dịch được nhưng không thực thi như mong đợi
+## 3. Runtime Errors: The Program Compiles but Does Not Execute as Expected
 
-Nhiều lỗi chỉ xuất hiện khi JVM gặp một **giá trị cụ thể** hoặc **điều kiện môi trường cụ thể**.
+Many errors only surface when the JVM encounters a **specific value** or a **specific environmental condition**.
 
-| Tình huống | Hành vi Java thường gặp |
+| Situation | Typical Java Behavior |
 | --- | --- |
-| `12 / 0` với phép chia nguyên | `ArithmeticException` khi thực thi phép chia |
-| Đọc `arr[arr.length]` | `ArrayIndexOutOfBoundsException` |
-| Gọi phương thức qua tham chiếu `null` | `NullPointerException` |
+| `12 / 0` with integer division | `ArithmeticException` when executing the division |
+| Reading `arr[arr.length]` | `ArrayIndexOutOfBoundsException` |
+| Calling a method through a `null` reference | `NullPointerException` |
 | `Integer.parseInt("abc")` | `NumberFormatException` |
-| Mở tệp không tồn tại | Thường là `NoSuchFileException` khi dùng `Files.readString` |
-| Ép một đối tượng sang kiểu tham chiếu không tương thích | `ClassCastException` |
-| Hết bộ nhớ có thể cấp phát | Có thể ném `OutOfMemoryError` |
+| Opening a nonexistent file | Typically `NoSuchFileException` when using `Files.readString` |
+| Casting an object to an incompatible reference type | `ClassCastException` |
+| Running out of allocatable memory | May throw `OutOfMemoryError` |
 
-**Ngoại lệ** (*exception*) là đối tượng mô tả một tình trạng bất thường trong lúc thực thi; nhiều ngoại lệ là các kiểu con của `Exception` hoặc `RuntimeException`. Các lỗi nghiêm trọng hơn của JVM thường được biểu diễn bởi các kiểu con của `Error`, ví dụ `OutOfMemoryError`. Cả hai nhánh này đều thuộc `Throwable`, nhưng **không nên bắt `Error` để tiếp tục hoạt động bình thường** như thể đó là dữ liệu đầu vào sai đơn giản.
+An **exception** is an object describing an abnormal condition during execution; many exceptions are subtypes of `Exception` or `RuntimeException`. More serious JVM errors are typically represented by subtypes of `Error`, such as `OutOfMemoryError`. Both branches belong to `Throwable`, but **you should not catch `Error` to continue normal operation** as if it were simple bad input data.
 
-Phân biệt **checked exception** và **unchecked exception**:
+Distinguishing **checked exceptions** and **unchecked exceptions**:
 
-- `IOException` là checked exception: trình biên dịch thường yêu cầu `try/catch` hoặc `throws`.
-- `ArithmeticException`, `NullPointerException`, `NumberFormatException` là unchecked exceptions thuộc `RuntimeException`: không phải khai báo `throws` mới biên dịch được, nhưng vẫn có thể phát sinh khi chạy.
-- `Error` và các lớp con cũng là unchecked theo cơ chế kiểm tra ngoại lệ, nhưng thường biểu diễn tình huống nặng hơn và không phải loại lỗi nghiệp vụ để xử lý bằng `catch` thông thường.
+- `IOException` is a checked exception: the compiler generally requires `try/catch` or `throws`.
+- `ArithmeticException`, `NullPointerException`, `NumberFormatException` are unchecked exceptions under `RuntimeException`: you do not need to declare `throws` to compile, yet they can still occur at runtime.
+- `Error` and its subclasses are also unchecked under exception-checking rules, but they usually represent more severe situations and are not business errors to handle with a regular `catch`.
 
-Một số thất bại lúc khởi chạy không nhất thiết là lỗi ném ra từ thân `main`. Ví dụ gọi `java MissingClass` trong khi không có lớp phù hợp trên classpath có thể khiến trình khởi chạy báo không tìm thấy hoặc không tải được lớp chính. Khi chẩn đoán phải phân biệt vấn đề **biên dịch mã** với **cấu hình classpath/module path lúc chạy**.
+Some startup failures are not necessarily errors thrown from the `main` body. For example, running `java MissingClass` when no matching class exists on the classpath can cause the launcher to report that the main class could not be found or loaded. When diagnosing, distinguish **code compilation** issues from **runtime classpath/module path configuration** issues.
 
-### Khi ngoại lệ không được bắt
+### When an Exception Is Uncaught
 
-Khi một exception không được xử lý ở đường gọi hiện tại, nó lan ngược qua các lời gọi. Nếu đi đến luồng thực thi mà không được xử lý, JVM thường ghi thông tin ngoại lệ và **stack trace** lên stderr. Stack trace giúp xác định kiểu ngoại lệ, nơi ném và chuỗi phương thức gọi. Đừng nuốt ngoại lệ bằng khối `catch` rỗng: việc đó có thể che mất nguyên nhân.
+When an exception is not handled along the current call path, it propagates backward through the callers. If it reaches the top of the execution thread unhandled, the JVM typically writes the exception details and **stack trace** to stderr. A stack trace helps identify the exception type, where it was thrown, and the method call chain. Do not swallow exceptions with an empty `catch` block: doing so can hide the root cause.
 
-Việc dùng `try/catch` **không sửa sai logic**; nó chỉ xác định cách xử lý một tình huống bất thường. Ví dụ truy cập sai chỉ số nên sửa điều kiện vòng lặp, không dùng `catch (ArrayIndexOutOfBoundsException)` để che lỗi lập trình.
+Using `try/catch` **does not fix faulty logic**; it only defines how to handle an abnormal situation. For instance, an out-of-bounds index access should be fixed in the loop condition, rather than using `catch (ArrayIndexOutOfBoundsException)` to mask a programming mistake.
 
-## 4. Lỗi logic: mã hợp lệ, chạy được nhưng cho đáp án sai
+## 4. Logic Errors: Valid Code That Runs but Produces the Wrong Answer
 
-Đây thường là loại lỗi khó thấy nhất vì chương trình có thể kết thúc bình thường.
+This is often the hardest error type to spot because the program can terminate normally.
 
-### Sai thứ tự ưu tiên toán tử
+### Wrong Operator Precedence
 
 ```java
 int a = 8;
 int b = 4;
-int wrong = a + b / 2;         // 10 do phép chia làm trước
+int wrong = a + b / 2;         // 10 because division is performed first
 double correct = (a + b) / 2.0; // 6.0
 ```
 
-`wrong` có giá trị `10`, không phải trung bình `6`. Lỗi không phát sinh ngoại lệ và cũng không bị `javac` từ chối.
+`wrong` has the value `10`, not the average `6`. The bug throws no exception and is not rejected by `javac`.
 
-### Chia nguyên làm mất phần thập phân
+### Integer Division Truncating the Fractional Part
 
 ```java
 int total = 5;
 int count = 2;
-double wrong = total / count;   // 2.0: phép chia int thực hiện trước
-double correct = total / 2.0;   // 2.5: phép chia kiểu double
+double wrong = total / count;   // 2.0: int division executes first
+double correct = total / 2.0;   // 2.5: double-precision division
 ```
 
-Dù biến đích là `double`, phép `total / count` vẫn là phép chia nguyên khi hai toán hạng đều có kiểu `int`. Nếu muốn phần lẻ, cần làm cho ít nhất một toán hạng mang kiểu số thực thích hợp.
+Even though the target variable is `double`, the expression `total / count` is still integer division when both operands have type `int`. If you want the fractional part, at least one operand must have an appropriate floating-point type.
 
-### Điều kiện biên và điều kiện sai
+### Boundary Conditions and Wrong Conditions
 
 ```java
 int[] values = {10, 20, 30};
@@ -165,23 +165,23 @@ int sum = 0;
 for (int i = 0; i < values.length - 1; i++) {
     sum += values[i];
 }
-// sum == 30, trong khi tổng đủ ba phần tử phải là 60.
+// sum == 30, whereas the full sum of all three elements should be 60.
 ```
 
-Vòng lặp trên chạy hợp lệ nhưng bỏ sót phần tử cuối. Một điều kiện khác `i <= values.length` có thể dẫn tới **runtime exception** vì cố truy cập phần tử ở chỉ số `values.length` (không hợp lệ).
+The loop above runs validly but omits the last element. Another condition like `i <= values.length` can cause a **runtime exception** because it attempts to access the element at index `values.length` (out of bounds).
 
-Với `boolean`, câu lệnh `if (enabled = true)` có thể **biên dịch hợp lệ** vì phép gán trả về giá trị `boolean`, nhưng vừa sửa trạng thái `enabled` vừa làm điều kiện thành `true`. Muốn kiểm tra giá trị, dùng `if (enabled)` hoặc phép so sánh phù hợp.
+With `boolean`, the statement `if (enabled = true)` can **compile validly** because an assignment evaluates to a `boolean` value, yet it both mutates `enabled` and forces the condition to `true`. To test the value, use `if (enabled)` or an appropriate comparison.
 
-Lỗi logic còn có thể đến từ hiểu nhầm yêu cầu (ví dụ “ít nhất 18 tuổi” lại dùng `age > 18`), sai đơn vị đo, tràn số nguyên, sắp xếp sai chiều hoặc giả định dữ liệu luôn không rỗng.
+Logic errors can also come from misunderstanding requirements (for example, "at least 18 years old" coded as `age > 18`), wrong units of measurement, integer overflow, sorting in the wrong direction, or assuming data is never empty/null.
 
-## 5. Chương trình Java 17+ độc lập để quan sát hai nhóm lỗi khi chạy và lỗi logic
+## 5. Standalone Java 17+ Program to Observe Runtime Error and Logic Error Groups
 
-Tạo một tệp **`ErrorKindsDemo.java`**:
+Create a file named **`ErrorKindsDemo.java`**:
 
 ```java
 public class ErrorKindsDemo {
     static int wrongAverage(int a, int b) {
-        return a + b / 2; // Sai logic: không đặt ngoặc
+        return a + b / 2; // Logic error: missing parentheses
     }
 
     static double correctAverage(int a, int b) {
@@ -229,14 +229,14 @@ public class ErrorKindsDemo {
 }
 ```
 
-Mở terminal trong thư mục chứa file, dùng **JDK 17 trở lên**. Trên Windows PowerShell/CMD hoặc Linux/macOS:
+Open a terminal in the folder containing the file, using **JDK 17 or later**. On Windows PowerShell/CMD or Linux/macOS:
 
 ```bash
 javac -encoding UTF-8 ErrorKindsDemo.java
 java ErrorKindsDemo
 ```
 
-**Stdout chính xác** (biên dịch thành công không in thông báo):
+**Exact stdout** (successful compilation prints no message):
 
 ```text
 Trung binh sai: 10
@@ -249,29 +249,29 @@ Chia thuc dung: 2.5
 Chuong trinh tiep tuc.
 ```
 
-Đoạn này **cố ý không đưa mã có lỗi biên dịch vào file**, để chương trình có thể chạy độc lập. Ba ngoại lệ ở giữa được bắt ngay trong `main` nên không in stack trace mặc định, và chương trình tiếp tục. Nếu bỏ một khối `catch`, ngoại lệ tương ứng có thể làm đường thực thi `main` kết thúc sớm. Hai phép tính trung bình và chia nguyên minh họa lỗi logic, vì JVM không thể tự biết kết quả nghiệp vụ nào là đúng.
+This snippet **deliberately omits code with compile-time errors** from the file so the program can run standalone. The three middle exceptions are caught right inside `main`, so they do not print a default stack trace, and the program continues. If you remove one `catch` block, the corresponding exception can cause the `main` execution path to terminate early. The two average and integer-division calculations illustrate logic errors, because the JVM cannot know on its own which business result is right.
 
-Không nên đánh giá mã này là “không có lỗi” chỉ vì stdout xuất hiện bình thường: mục đích ví dụ là quan sát sự khác nhau giữa **kết quả sai im lặng** và **ngoại lệ khi chạy đã được bắt**.
+You should not judge this code as "bug-free" just because stdout appears normally: the purpose of the example is to observe the difference between **silently wrong results** and **caught runtime exceptions**.
 
-## 6. Quy trình xác định và xử lý lỗi
+## 6. Process for Identifying and Fixing Errors
 
-### Bước 1 — Xác định giai đoạn
+### Step 1 — Identify the Stage
 
-- **`javac` thất bại:** tập trung lỗi cú pháp, tên, kiểu, quyền truy cập, biến chưa khởi tạo hoặc checked exception chưa xử lý.
-- **Biên dịch được nhưng chạy báo lỗi/ngoại lệ:** đọc stack trace, dòng lỗi, điều kiện đầu vào và trạng thái môi trường.
-- **Chạy xong nhưng output sai:** tái hiện đầu vào, tính tay kết quả mong đợi và kiểm tra các bước thuật toán.
+- **`javac` fails:** focus on syntax errors, names, types, access modifiers, uninitialized variables, or unhandled checked exceptions.
+- **Compiles cleanly, but fails at runtime with an error/exception:** read the stack trace, error line, input conditions, and environment state.
+- **Runs to completion, but output is wrong:** reproduce the input, calculate the expected result by hand, and inspect the algorithm steps.
 
-### Bước 2 — Thu nhỏ ví dụ
+### Step 2 — Minimize the Example
 
-Tách đoạn gây lỗi thành chương trình nhỏ nhất có thể tái hiện vấn đề. Dùng các giá trị đầu vào đơn giản và kết quả dễ kiểm tra. Trong Java, thêm `System.out.println` để quan sát trạng thái khi học, hoặc dùng debugger của IDE để đặt breakpoint, xem biến và đi từng dòng.
+Isolate the failing code into the smallest program that can reproduce the issue. Use simple input values and easily verifiable outputs. In Java, add `System.out.println` to inspect state while learning, or use an IDE debugger to set breakpoints, inspect variables, and step line by line.
 
-### Bước 3 — Kiểm thử cả biên và trường hợp bất thường
+### Step 3 — Test Both Boundaries and Abnormal Cases
 
-Các trường hợp nên thử phụ thuộc bài toán: `0`, số âm, mảng rỗng, mảng một phần tử, `null`, chuỗi không hợp lệ, giá trị rất lớn, tài nguyên không tồn tại. Với phương thức tính trung bình, nên kiểm tra `(8,4)`, `(5,2)`, hai số âm và các giá trị có thể gây tràn khi cộng nếu dùng `int`.
+Which cases to test depends on the problem: `0`, negative numbers, empty arrays, single-element arrays, `null`, invalid strings, very large values, nonexistent resources. For a method that computes an average, test `(8,4)`, `(5,2)`, two negative numbers, and values that could overflow on addition when using `int`.
 
-### Bước 4 — Viết test có kết quả kỳ vọng cụ thể
+### Step 4 — Write Tests with Concrete Expected Results
 
-Ví dụ, một phép kiểm thử thủ công trong `main`:
+For example, a manual check inside `main`:
 
 ```java
 double actual = (8 + 4) / 2.0;
@@ -281,32 +281,32 @@ if (Double.compare(actual, expected) != 0) {
 }
 ```
 
-Nếu phép tính bị đổi thành `8 + 4 / 2.0`, điều kiện sẽ phát hiện kết quả `10.0` không khớp `6.0`. Với tính toán số thực tổng quát, thường nên so sánh theo **dung sai** phù hợp thay vì chỉ so sánh `double` tuyệt đối bằng nhau; ví dụ số học đơn giản này cho kết quả biểu diễn chính xác.
+If the expression is changed to `8 + 4 / 2.0`, the condition detects that `10.0` does not match `6.0`. For general floating-point arithmetic, you should usually compare within an appropriate **tolerance** rather than only checking exact `double` equality; this simple arithmetic example happens to produce an exact representable result.
 
-Có thể tổ chức test bằng JUnit trong dự án thật. Test không thể chứng minh tuyệt đối không còn lỗi với mọi đầu vào, nhưng giúp phát hiện hồi quy khi sửa mã.
+You can organize tests with JUnit in real projects. Tests cannot prove the absolute absence of bugs for every possible input, but they help catch regressions when modifying code.
 
-### Bước 5 — Sửa nguyên nhân, không chỉ che triệu chứng
+### Step 5 — Fix the Cause, Not Just the Symptom
 
-Nếu vòng lặp bỏ sót phần tử, sửa điều kiện; nếu dữ liệu có thể `null`, quyết định có cho phép `null` hay cần kiểm tra/khước từ; nếu chia cho 0, xác định yêu cầu xử lý mẫu số 0. Tránh `catch (Exception ex) { }` rỗng hoặc trả giá trị mặc định tùy tiện, vì làm lỗi khó chẩn đoán hơn.
+If a loop misses an element, fix the condition; if data can be `null`, decide whether to allow `null` or check/reject it; if division by 0 occurs, determine the requirement for handling a zero divisor. Avoid empty `catch (Exception ex) { }` blocks or returning arbitrary default values, as they make bugs harder to diagnose.
 
-## 7. Công cụ và thông báo nên biết
+## 7. Tools and Diagnostics Worth Knowing
 
-| Công cụ/cách làm | Mục đích |
+| Tool/Practice | Purpose |
 | --- | --- |
-| `javac -encoding UTF-8 File.java` | Biên dịch file Java đúng mã hóa nguồn |
-| `javac -Xlint:all File.java` | Bật thêm các cảnh báo biên dịch được hỗ trợ |
-| `java ClassName` | Thực thi lớp có phương thức `main` phù hợp |
-| Breakpoint và debugger | Xem giá trị biến, stack và các bước thực thi |
-| Stack trace | Xác định vị trí và chuỗi lời gọi dẫn đến ngoại lệ |
-| Unit test | Kiểm tra đầu ra/trạng thái với dữ liệu kỳ vọng |
-| Log có ngữ cảnh | Ghi lại thông tin hữu ích mà không che lỗi |
+| `javac -encoding UTF-8 File.java` | Compile a Java file with the proper source encoding |
+| `javac -Xlint:all File.java` | Enable additional supported compiler warnings |
+| `java ClassName` | Execute a class with an appropriate `main` method |
+| Breakpoints and debugger | Inspect variable values, call stack, and execution steps |
+| Stack trace | Identify the location and call chain leading to an exception |
+| Unit tests | Verify outputs/states against expected data |
+| Contextual logging | Record useful information without hiding errors |
 
-**Cảnh báo biên dịch không giống lỗi biên dịch**: mặc định nhiều cảnh báo vẫn cho phép sinh `.class`. Cũng không thể khẳng định `javac -Xlint:all` sẽ tìm ra mọi lỗi logic. Phân biệt stdout (kết quả chương trình) với stderr (thường chứa chẩn đoán), và lưu ý thông điệp ngoại lệ có thể khác theo phiên bản JDK hoặc môi trường.
+**Compiler warnings are not compile errors**: by default, many warnings still allow `.class` files to be generated. Nor can you claim that `javac -Xlint:all` will find every logic error. Distinguish stdout (program output) from stderr (which typically contains diagnostics), and note that exception messages may differ across JDK versions or environments.
 
-## 8. Tổng kết bằng ba câu hỏi
+## 8. Summary in Three Questions
 
-1. **Chưa biên dịch được?** Xem lỗi compile-time và sửa mã theo cú pháp/quy tắc kiểu của Java.
-2. **Biên dịch được nhưng khi chạy thất bại?** Xem exception, stack trace, dữ liệu đầu vào, phụ thuộc và môi trường.
-3. **Chạy bình thường nhưng kết quả sai?** Xem logic, đặc tả, thứ tự toán tử, vòng lặp, trường hợp biên và kiểm thử.
+1. **Won't compile?** Look at the compile-time errors and fix the code according to Java's syntax/type rules.
+2. **Compiles, but fails when running?** Look at the exception, stack trace, input data, dependencies, and environment.
+3. **Runs normally, but produces the wrong result?** Look at logic, specifications, operator precedence, loops, edge cases, and tests.
 
-**Ghi nhớ:** lỗi biên dịch bị chặn trước khi thực thi; lỗi khi chạy xuất hiện trong quá trình khởi chạy/thực thi; lỗi logic có thể im lặng dù chương trình hoàn tất. Một chương trình chất lượng cần **biên dịch đúng, chạy ổn định và đáp ứng kết quả mong đợi**.
+**Remember:** compile-time errors are blocked before execution; runtime errors occur during launch/execution; logic errors can remain silent even when the program finishes. A quality program must **compile cleanly, run reliably, and produce the expected results**.

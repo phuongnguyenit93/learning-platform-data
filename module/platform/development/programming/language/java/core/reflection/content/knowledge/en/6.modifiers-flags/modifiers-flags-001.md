@@ -1,33 +1,33 @@
-# `getModifiers()` và cách giải mã cờ bằng `Modifier` trong Java Reflection
+# `getModifiers()` and How to Decode Flags with `Modifier` in Java Reflection
 
-Khi dùng Java Reflection để xem khai báo của một lớp, phương thức, constructor hoặc field, ta có thể cần trả lời: thành phần có `public` không, có `static`/`final` không, field có `volatile` không, method có `synchronized` không? Java không cung cấp một đối tượng riêng cho từng từ khóa này trong API `getModifiers()`. Thay vào đó, nó trả về **một số nguyên `int` chứa tập hợp các bit cờ**. Lớp tiện ích `java.lang.reflect.Modifier` dùng để giải mã các bit ấy.
+When using Java Reflection to inspect the declaration of a class, method, constructor, or field, we may need to answer: is the member `public`, is it `static`/`final`, is the field `volatile`, is the method `synchronized`? Java does not provide a separate object for each of these keywords in the `getModifiers()` API. Instead, it returns **an `int` integer containing a set of flag bits**. The utility class `java.lang.reflect.Modifier` is used to decode those bits.
 
-Điều quan trọng là **cờ mô tả khai báo**, không tự động cho biết liệu một lời gọi hoặc truy cập reflective thực sự được phép, cũng không biểu diễn mọi đặc điểm của class file hay mọi từ khóa Java mới.
+Importantly, **flags describe the declaration**; they do not automatically indicate whether a reflective call or access is actually permitted, nor do they represent every class file characteristic or every newer Java keyword.
 
-## 1. `getModifiers()` trả về gì?
+## 1. What does `getModifiers()` return?
 
-Các API `getModifiers()` xuất hiện ở:
+The `getModifiers()` APIs appear on:
 
-| Đối tượng reflection | Cách lấy cờ | Thành phần được mô tả |
+| Reflection object | How to get the flags | Element described |
 | --- | --- | --- |
-| `Class<?>` | `SomeClass.class.getModifiers()` | Class hoặc interface |
-| `Field` | `field.getModifiers()` | Trường dữ liệu |
-| `Method` | `method.getModifiers()` | Phương thức |
+| `Class<?>` | `SomeClass.class.getModifiers()` | Class or interface |
+| `Field` | `field.getModifiers()` | Data field |
+| `Method` | `method.getModifiers()` | Method |
 | `Constructor<?>` | `constructor.getModifiers()` | Constructor |
-| `Parameter` | `parameter.getModifiers()` | Các cờ của tham số hình thức, ví dụ `final` |
+| `Parameter` | `parameter.getModifiers()` | Formal parameter flags, e.g., `final` |
 
-Giá trị trả về là **bitmask**, nghĩa là mỗi bit được dùng để biểu thị sự hiện diện của một cờ. Nếu nhiều modifier cùng tồn tại, chúng được ghép bằng phép OR bitwise `|`; ví dụ:
+The return value is a **bitmask**, meaning each bit is used to indicate the presence of a flag. If multiple modifiers coexist, they are combined using bitwise OR `|`; for example:
 
 ```java
 int flags = Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL;
 System.out.println(flags); // 25
 ```
 
-Trong ví dụ này, `PUBLIC = 0x0001`, `STATIC = 0x0008` và `FINAL = 0x0010`; OR tạo ra `0x0019`, tức `25` trong hệ thập phân.
+In this example, `PUBLIC = 0x0001`, `STATIC = 0x0008`, and `FINAL = 0x0010`; OR produces `0x0019`, which is `25` in decimal.
 
-**Không nên coi số nguyên `25` là hợp đồng định dạng để hiển thị cho người dùng.** Giải mã bằng `Modifier` sẽ vừa rõ ý nghĩa vừa tránh các phép so sánh số nguyên sai.
+**You should not treat the integer `25` as a formatting contract to display to users.** Decoding with `Modifier` both clarifies the meaning and avoids incorrect integer comparisons.
 
-Ví dụ một khai báo `public static final int LIMIT` có thể được kiểm tra bằng:
+For example, a declaration `public static final int LIMIT` can be checked with:
 
 ```java
 Field field = SomeClass.class.getDeclaredField("LIMIT");
@@ -39,74 +39,74 @@ boolean finalField = Modifier.isFinal(modifiers);
 String humanReadable = Modifier.toString(modifiers);
 ```
 
-Đoạn trên là **minh họa API**, với `SomeClass` giả định có field `LIMIT`; chương trình độc lập đầy đủ ở phần 5.
+The snippet above is an **API illustration**, assuming `SomeClass` has a field `LIMIT`; the complete standalone program is in section 5.
 
-## 2. `Modifier`: kiểm tra từng cờ
+## 2. `Modifier`: checking individual flags
 
-`java.lang.reflect.Modifier` là lớp tiện ích chứa hằng bit và các phương thức `static`. Các nhóm thường gặp:
+`java.lang.reflect.Modifier` is a utility class containing bit constants and `static` methods. Common groups:
 
-| Nhóm | Hằng cờ | Phương thức kiểm tra | Nơi thường gặp |
+| Group | Flag constants | Check method | Where commonly seen |
 | --- | --- | --- | --- |
-| Truy cập | `PUBLIC`, `PROTECTED`, `PRIVATE` | `isPublic`, `isProtected`, `isPrivate` | Class/member |
-| Thành viên cấp lớp | `STATIC` | `isStatic` | Field, method, nested type |
-| Hạn chế thay đổi/kế thừa | `FINAL` | `isFinal` | Class, field, method |
-| Yêu cầu cài đặt | `ABSTRACT` | `isAbstract` | Class, method |
-| Dấu hiệu interface | `INTERFACE` | `isInterface` | Class biểu diễn interface |
-| Đồng bộ | `SYNCHRONIZED` | `isSynchronized` | Method |
-| Kết nối native | `NATIVE` | `isNative` | Method |
-| Field không tham gia mặc định vào Java object serialization | `TRANSIENT` | `isTransient` | Field |
-| Ngữ nghĩa bộ nhớ chia sẻ | `VOLATILE` | `isVolatile` | Field |
-| Ngữ nghĩa dấu phẩy động | `STRICT` | `isStrict` | `strictfp` (lịch sử) |
+| Access | `PUBLIC`, `PROTECTED`, `PRIVATE` | `isPublic`, `isProtected`, `isPrivate` | Class/member |
+| Class-level member | `STATIC` | `isStatic` | Field, method, nested type |
+| Change/inheritance restriction | `FINAL` | `isFinal` | Class, field, method |
+| Implementation requirement | `ABSTRACT` | `isAbstract` | Class, method |
+| Interface marker | `INTERFACE` | `isInterface` | Class representing an interface |
+| Synchronization | `SYNCHRONIZED` | `isSynchronized` | Method |
+| Native linkage | `NATIVE` | `isNative` | Method |
+| Field excluded by default from Java object serialization | `TRANSIENT` | `isTransient` | Field |
+| Shared memory semantics | `VOLATILE` | `isVolatile` | Field |
+| Floating-point semantics | `STRICT` | `isStrict` | `strictfp` (historical) |
 
-Một số lưu ý về ngữ nghĩa:
+A few semantic notes:
 
-- Các cờ truy cập `public`, `protected`, `private` không thể đồng thời có trên cùng một khai báo hợp lệ. **Không có cờ `PACKAGE_PRIVATE`**: không có cả ba cờ trên nghĩa là *package-private* đối với class/member thích hợp.
-- `Modifier.isInterface(classFlags)` nhận biết flag interface ở `Class`; thông thường `Class.isInterface()` diễn đạt trực tiếp ý định này hơn.
-- `synchronized` thuộc về method; `volatile` và `transient` thuộc về field. Không kiểm tra những cờ này ngoài ngữ cảnh thích hợp.
-- `final` không đồng nghĩa với đối tượng bất biến; với `final List<String> list`, tham chiếu không được gán lại bình thường nhưng nội dung `List` có thể thay đổi.
-- `volatile` đảm bảo những tính chất visibility và ordering được Java Memory Model quy định; nó **không** làm phép `count++` trở nên atomic.
-- Trên Java 17+, `strictfp` không còn thay đổi kết quả biểu thức floating-point theo cách trước kia do ngữ nghĩa floating-point luôn strict; khi đọc dữ liệu cũ vẫn có thể gặp khái niệm này.
+- The access flags `public`, `protected`, and `private` cannot coexist on the same valid declaration. **There is no `PACKAGE_PRIVATE` flag**: the absence of all three flags means *package-private* for an appropriate class/member.
+- `Modifier.isInterface(classFlags)` recognizes the interface flag on `Class`; usually `Class.isInterface()` expresses this intent more directly.
+- `synchronized` belongs to methods; `volatile` and `transient` belong to fields. Do not check these flags outside their appropriate context.
+- `final` is not synonymous with an immutable object; with `final List<String> list`, the reference cannot normally be reassigned, but the contents of the `List` can be mutated.
+- `volatile` guarantees the visibility and ordering properties specified by the Java Memory Model; it does **not** make `count++` atomic.
+- On Java 17+, `strictfp` no longer changes floating-point expression results as it previously did because floating-point semantics are always strict; you may still encounter this concept when reading older data.
 
-## 3. Hai cách giải mã: predicate và toán tử bit
+## 3. Two ways to decode: predicates and bitwise operators
 
-### Cách ưu tiên — `Modifier.isXxx(int)`
+### Preferred approach — `Modifier.isXxx(int)`
 
 ```java
 int flags = field.getModifiers();
 
 if (Modifier.isPrivate(flags)) {
-    System.out.println("Field được khai báo private");
+    System.out.println("Field is declared private");
 }
 if (Modifier.isStatic(flags) && Modifier.isFinal(flags)) {
-    System.out.println("Field mang đồng thời static và final");
+    System.out.println("Field has both static and final");
 }
 ```
 
-Mỗi `isXxx` trả về `true` nếu cờ tương ứng có mặt, bất kể những cờ khác. Đây là cách dễ đọc khi kiểm tra chính sách hoặc tạo metadata.
+Each `isXxx` returns `true` if the corresponding flag is present, regardless of other flags. This is the most readable approach when checking policies or generating metadata.
 
-### Cách bitwise — dùng hằng `Modifier.Xxx`
+### Bitwise approach — using `Modifier.Xxx` constants
 
-Các hằng là các bit khác nhau; kiểm tra một cờ:
+The constants are distinct bits; checking a single flag:
 
 ```java
 boolean isStatic = (flags & Modifier.STATIC) != 0;
 ```
 
-Kiểm tra **đồng thời tất cả** các cờ yêu cầu:
+Checking **all** required flags simultaneously:
 
 ```java
 int required = Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL;
 boolean containsAll = (flags & required) == required;
 ```
 
-Kiểm tra **ít nhất một** trong số cờ yêu cầu:
+Checking **at least one** of the required flags:
 
 ```java
 int either = Modifier.PUBLIC | Modifier.PROTECTED;
 boolean containsAny = (flags & either) != 0;
 ```
 
-Tính package-private cho member đang xét:
+Evaluating package-private for the member under inspection:
 
 ```java
 boolean packagePrivate = !Modifier.isPublic(flags)
@@ -114,13 +114,13 @@ boolean packagePrivate = !Modifier.isPublic(flags)
         && !Modifier.isPrivate(flags);
 ```
 
-**Sai lầm kinh điển:** viết `flags == Modifier.PUBLIC` để hỏi thành phần có `public` không. Nếu field có `public static final`, kết quả đó sai vì số nguyên còn có các bit `STATIC` và `FINAL`. Tương tự, `(flags & required) != 0` chỉ chứng minh *ít nhất một cờ* xuất hiện, không chứng minh *tất cả*.
+**Classic mistake:** writing `flags == Modifier.PUBLIC` to ask whether a member is `public`. If a field is `public static final`, that check is false because the integer also has the `STATIC` and `FINAL` bits set. Similarly, `(flags & required) != 0` only proves *at least one flag* is present, not *all* of them.
 
-Không dùng phép phủ định bit `~flags` rồi giải mã như thể đó là tập các modifier Java hợp lệ; các bit ngoài nhóm được định nghĩa có thể xuất hiện.
+Do not use bitwise negation `~flags` and then decode it as if it were a valid set of Java modifiers; bits outside the defined group may appear.
 
-## 4. Hiển thị cờ bằng `Modifier.toString()`
+## 4. Displaying flags with `Modifier.toString()`
 
-`Modifier.toString(int)` chuyển bitmask thành chuỗi các từ khóa có thứ tự, cách nhau bằng dấu cách:
+`Modifier.toString(int)` converts a bitmask into a space-separated string of ordered keywords:
 
 ```java
 int flags = Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL;
@@ -128,22 +128,22 @@ System.out.println(Modifier.toString(flags));
 // public static final
 ```
 
-Nếu không có cờ thuộc tập mà `toString` biểu diễn, chuỗi có thể rỗng. Điều đó **không** nói class/member «không tồn tại» hay «không có đặc điểm nào».
+If none of the flags represented by `toString` are present, the string can be empty. That does **not** say the class/member "does not exist" or "has no characteristics."
 
-`Modifier.toString()` là bộ **giải mã và định dạng**, không phải bộ xác thực tính hợp lệ của một khai báo Java. Bạn có thể OR những cờ xung đột như `PUBLIC | PRIVATE` và vẫn nhận được chuỗi, dù mã nguồn Java hợp lệ không thể khai báo một member vừa `public` vừa `private`.
+`Modifier.toString()` is a **decoder and formatter**, not a validator for whether a Java declaration is legal. You can OR conflicting flags such as `PUBLIC | PRIVATE` and still get a string, even though valid Java source code cannot declare a member as both `public` and `private`.
 
-Các phương thức `Modifier.classModifiers()`, `interfaceModifiers()`, `fieldModifiers()`, `methodModifiers()`, `constructorModifiers()`, `parameterModifiers()` trả về mask các source modifier áp dụng cho *loại khai báo tương ứng*. Chúng hữu ích khi cần lọc nhóm cờ trước khi hiển thị:
+The methods `Modifier.classModifiers()`, `interfaceModifiers()`, `fieldModifiers()`, `methodModifiers()`, `constructorModifiers()`, and `parameterModifiers()` return the mask of source modifiers applicable to *the corresponding declaration kind*. They are useful when you need to filter a group of flags before displaying them:
 
 ```java
 int fieldWords = field.getModifiers() & Modifier.fieldModifiers();
 System.out.println(Modifier.toString(fieldWords));
 ```
 
-Đừng dùng `Modifier.toString()` như bản ghi đầy đủ mọi access flag ở class file: một số flag nội bộ, `synthetic`, `bridge`, `varargs`, `enum`, và thuộc tính mới không nhất thiết được biểu diễn bằng từ khóa của `Modifier`.
+Do not treat `Modifier.toString()` as a complete record of every access flag in a class file: some internal flags, `synthetic`, `bridge`, `varargs`, `enum`, and newer attributes are not necessarily represented by `Modifier` keywords.
 
-## 5. Ví dụ Java 17+ hoàn chỉnh
+## 5. Complete Java 17+ example
 
-Lưu nội dung sau vào tệp `ModifierDemo.java`, rồi chạy bằng `javac` và `java`. Chương trình có class lồng nhau, nhiều field/method khác modifier, constructor và một default method trong interface.
+Save the following content to `ModifierDemo.java`, then run it with `javac` and `java`. The program includes a nested class, several fields/methods with different modifiers, a constructor, and a default method in an interface.
 
 ```java
 import java.lang.reflect.Constructor;
@@ -218,14 +218,14 @@ public class ModifierDemo {
 }
 ```
 
-Lệnh:
+Commands:
 
 ```bash
 javac ModifierDemo.java
 java ModifierDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 class: public static
@@ -243,32 +243,32 @@ isDefault(): true
 interface flag: true
 ```
 
-Giải thích:
+Explanation:
 
-1. `Sample` là **member class** khai báo `public static` nên `Class.getModifiers()` phản ánh cả hai cờ. Với top-level class, modifier `static` không thể xuất hiện như trong ví dụ member class.
-2. `MAX` mang ba cờ `public static final`; dùng ba predicate hoặc phép AND với mask đều trả kết quả đúng.
-3. `token` khai báo `private transient`; `revision` khai báo `protected volatile`. Các cờ phản ánh khai báo chứ chưa chứng minh logic serialization hay thread safety của cả chương trình.
-4. `refresh` có cờ `synchronized`; `nativeHook` có cờ `native`, **không cần gọi** phương thức native để đọc metadata. Ví dụ chỉ đọc tên và modifier nên không cần thư viện native.
-5. Default method `process()` có `getModifiers()` hiển thị `public`, còn `isDefault() == true`. Từ khóa `default` của interface method **không có hằng `Modifier.DEFAULT`**.
+1. `Sample` is a **member class** declared `public static`, so `Class.getModifiers()` reflects both flags. For a top-level class, the `static` modifier cannot appear as in the member class example.
+2. `MAX` carries the three flags `public static final`; using three predicates or ANDing with the mask both return the correct result.
+3. `token` is declared `private transient`; `revision` is declared `protected volatile`. The flags reflect the declaration rather than proving serialization logic or thread safety of the whole program.
+4. `refresh` has the `synchronized` flag; `nativeHook` has the `native` flag, **without needing to call** the native method to read metadata. The example only reads the name and modifiers, so no native library is needed.
+5. The default method `process()` has `getModifiers()` showing `public`, while `isDefault() == true`. The `default` keyword of an interface method **does not have a `Modifier.DEFAULT` constant**.
 
-Cả `getDeclaredField`, `getDeclaredMethod` và `getDeclaredConstructor` trong ví dụ chỉ **lấy metadata**. Lấy metadata của thành viên `private` không đồng nghĩa đã được phép đọc/ghi/gọi thành viên đó.
+`getDeclaredField`, `getDeclaredMethod`, and `getDeclaredConstructor` in the example all only **retrieve metadata**. Retrieving metadata of a `private` member does not mean reading/writing/invoking that member is already permitted.
 
-## 6. Phân biệt *declared* và *public/inherited* trước khi đọc modifier
+## 6. Distinguishing *declared* vs *public/inherited* before reading modifiers
 
-Các phương thức chọn member ảnh hưởng đến việc bạn sẽ giải mã cờ của **thành viên nào**:
+The member-selection methods affect **whose** flags you will decode:
 
-| API | Phạm vi tìm kiếm quan trọng |
+| API | Key search scope |
 | --- | --- |
-| `getDeclaredFields()` | Các field được khai báo trực tiếp, mọi mức truy cập; không bao gồm field kế thừa |
-| `getFields()` | Các field `public` trong phạm vi thành viên có thể thấy, kể cả kế thừa |
-| `getDeclaredMethods()` | Các method khai báo trực tiếp, mọi mức truy cập; không bao gồm method kế thừa |
-| `getMethods()` | Các method `public` được phản ánh từ class/interface và phần kế thừa |
-| `getDeclaredConstructors()` | Các constructor khai báo trong class, mọi mức truy cập |
-| `getConstructors()` | Các constructor `public` của class; constructor không được kế thừa |
+| `getDeclaredFields()` | Directly declared fields, all access levels; does not include inherited fields |
+| `getFields()` | `public` fields within visible member scope, including inherited ones |
+| `getDeclaredMethods()` | Directly declared methods, all access levels; does not include inherited methods |
+| `getMethods()` | `public` methods reflected from the class/interface and inheritance |
+| `getDeclaredConstructors()` | Constructors declared in the class, all access levels |
+| `getConstructors()` | `public` constructors of the class; constructors are not inherited |
 
-Vì vậy, nếu viết bộ quét metadata và muốn tìm field `private transient`, thường phải dùng `getDeclaredFields()`. Nếu chỉ quét `getFields()`, bạn sẽ bỏ qua field `private`.
+Therefore, if you write a metadata scanner and want to find `private transient` fields, you usually must use `getDeclaredFields()`. If you only scan `getFields()`, you will miss `private` fields.
 
-Ví dụ phác thảo một bộ lọc (giả định `type` là `Class<?>` cần quét):
+Sketch of a filter (assuming `type` is the `Class<?>` to scan):
 
 ```java
 for (Field field : type.getDeclaredFields()) {
@@ -280,37 +280,37 @@ for (Field field : type.getDeclaredFields()) {
 }
 ```
 
-Với API mở rộng, cần cân nhắc field/method do compiler sinh ra và method bridge; đừng suy ra mọi phần tử `getDeclaredXxx()` đều tương ứng một khai báo hiển thị nguyên văn trong mã nguồn.
+For broader APIs, consider compiler-generated fields/methods and bridge methods; do not assume every element from `getDeclaredXxx()` corresponds verbatim to a visible declaration in source code.
 
-## 7. Những đặc điểm không nên suy ra chỉ từ `Modifier`
+## 7. Characteristics you should not infer solely from `Modifier`
 
-Java có các trạng thái hoặc dấu hiệu cần API chuyên biệt:
+Java has states or markers that require dedicated APIs:
 
-| Đặc điểm cần hỏi | API phù hợp | Vì sao `Modifier` chưa đủ |
+| Characteristic to ask about | Appropriate API | Why `Modifier` is not enough |
 | --- | --- | --- |
-| Default method trong interface | `Method.isDefault()` | Không có `Modifier.DEFAULT` |
-| Method bridge do compiler sinh ra | `Method.isBridge()` | Bridge là đặc tính method/class file |
-| Phương thức có varargs | `Executable.isVarArgs()` | Không có `Modifier.VARARGS` |
-| Member do compiler sinh ra | `Member.isSynthetic()` | Không có predicate `Modifier.isSynthetic` |
-| Class là enum | `Class.isEnum()` | Không có `Modifier.ENUM` |
-| Class là annotation type | `Class.isAnnotation()` | Không có `Modifier.ANNOTATION` |
-| Class là record | `Class.isRecord()` | Không có `Modifier.RECORD` |
-| Class/interface là sealed | `Class.isSealed()` | Không có `Modifier.SEALED` |
+| Default method in an interface | `Method.isDefault()` | There is no `Modifier.DEFAULT` |
+| Bridge method generated by compiler | `Method.isBridge()` | Bridge is a method/class-file characteristic |
+| Method with varargs | `Executable.isVarArgs()` | There is no `Modifier.VARARGS` |
+| Compiler-generated member | `Member.isSynthetic()` | There is no `Modifier.isSynthetic` predicate |
+| Class is an enum | `Class.isEnum()` | There is no `Modifier.ENUM` |
+| Class is an annotation type | `Class.isAnnotation()` | There is no `Modifier.ANNOTATION` |
+| Class is a record | `Class.isRecord()` | There is no `Modifier.RECORD` |
+| Class/interface is sealed | `Class.isSealed()` | There is no `Modifier.SEALED` |
 
-Chú ý: những API trên không có nghĩa tất cả đều là «modifier» trong cú pháp Java; một số đại diện cho thông tin class file hoặc đặc điểm mô hình ngôn ngữ.
+Note: the APIs above do not mean all of them are "modifiers" in Java syntax; some represent class-file information or language-model characteristics.
 
-Từ Java 20, API `Class.accessFlags()` và `Member.accessFlags()` cung cấp một tập `AccessFlag` có tính kiểu hóa, thuận tiện để đọc cả access flags ngoài tập modifier cổ điển. Nhưng **trong dự án phải chạy Java 17**, hãy dùng `getModifiers()` + `Modifier` và những phép kiểm tra chuyên biệt có sẵn; không gọi `accessFlags()` nếu cần hỗ trợ Java 17.
+Starting in Java 20, the `Class.accessFlags()` and `Member.accessFlags()` APIs provide a typed `AccessFlag` set, convenient for reading access flags beyond the classic modifier set. However, **in a project that must run on Java 17**, use `getModifiers()` + `Modifier` and the available dedicated checks; do not call `accessFlags()` if Java 17 support is required.
 
-`Modifier.STRICT`/`isStrict` cũng đòi hỏi đọc theo phiên bản Java: từ Java 17 biểu thức dấu phẩy động mặc định đã strict, vì vậy sự hiện diện hay vắng mặt của cờ này không phải phép thử «mã có tính toán số thực chính xác hay không».
+`Modifier.STRICT`/`isStrict` also needs to be interpreted by Java version: since Java 17, floating-point expressions are strict by default, so the presence or absence of this flag is not a test for "whether the code computes floating-point numbers accurately."
 
-## 8. Modifier không đồng nghĩa với quyền truy cập có hiệu lực
+## 8. Modifiers are not the same as effective access rights
 
-Đây là hai câu hỏi khác nhau:
+These are two different questions:
 
-1. **Thành viên khai báo gì?** Đọc `field.getModifiers()` rồi `Modifier.isPrivate(...)` hoặc `Modifier.isPublic(...)`.
-2. **Caller này có thể truy cập thành viên trên receiver cụ thể không?** Dùng `AccessibleObject.canAccess(receiver)`, cân nhắc quy tắc Java access checks và giới hạn module.
+1. **What does the member declare?** Read `field.getModifiers()`, then `Modifier.isPrivate(...)` or `Modifier.isPublic(...)`.
+2. **Can this caller access the member on a specific receiver?** Use `AccessibleObject.canAccess(receiver)`, considering Java access check rules and module boundaries.
 
-Ví dụ:
+Example:
 
 ```java
 Field field = type.getDeclaredField("token");
@@ -318,69 +318,69 @@ Field field = type.getDeclaredField("token");
 boolean declaredPrivate =
         Modifier.isPrivate(field.getModifiers());
 
-// 'instance' là đối tượng phù hợp với field instance 'token'.
+// 'instance' is an appropriate object for the instance field 'token'.
 boolean currentlyAccessible = field.canAccess(instance);
 ```
 
-`declaredPrivate` không thay đổi khi accessibility checks được suppress. Nếu cố truy cập `private` field từ caller không có quyền, chỉ biết cờ `private` không làm API truy cập thành công. `trySetAccessible()` có thể yêu cầu suppress Java language access checks **khi module system cho phép**; nó có thể trả `false`. `setAccessible(true)` có thể ném `InaccessibleObjectException`. Các thiết lập này cũng không biến `private` thành `public` và không khiến `getModifiers()` trả giá trị khác.
+`declaredPrivate` does not change when accessibility checks are suppressed. If you try to access a `private` field from an unauthorized caller, merely knowing the `private` flag does not make the access API succeed. `trySetAccessible()` can request suppressing Java language access checks **when the module system allows it**; it may return `false`. `setAccessible(true)` may throw `InaccessibleObjectException`. These settings also do not turn `private` into `public` and do not make `getModifiers()` return a different value.
 
-Ngược lại, member có cờ `public` vẫn có thể không truy cập được từ module khác nếu class chứa nó không accessible hoặc package không được module `exports` thích hợp. Vì vậy, **không dùng `Modifier.isPublic(member.getModifiers())` làm quyết định duy nhất rằng reflective invocation sẽ thành công**.
+Conversely, a member with the `public` flag may still be inaccessible from another module if its enclosing class is not accessible or the package is not appropriately `exports`ed by the module. Therefore, **do not use `Modifier.isPublic(member.getModifiers())` as the sole decision that a reflective invocation will succeed**.
 
-Nếu mục tiêu là kiểm tra khả năng truy cập trước lời gọi, hãy xác định receiver, loại member (static/instance), class khai báo và module/caller context. `canAccess(null)` phù hợp với static member hoặc constructor, còn instance member cần receiver phù hợp; truyền sai receiver sẽ gây lỗi.
+If the goal is to check accessibility before a call, identify the receiver, member kind (static/instance), declaring class, and module/caller context. `canAccess(null)` is appropriate for a static member or constructor, whereas an instance member requires a matching receiver; passing the wrong receiver causes an error.
 
-## 9. Lỗi phổ biến và cách sửa
+## 9. Common mistakes and how to fix them
 
-### Lỗi A — So sánh nguyên số mask
+### Mistake A — Comparing the integer mask directly
 
-Sai:
+Wrong:
 
 ```java
 boolean isPublic = field.getModifiers() == Modifier.PUBLIC;
 ```
 
-Một field `public static` cũng là `public` nhưng biểu thức sai. Đúng: `Modifier.isPublic(field.getModifiers())` hoặc `(mask & Modifier.PUBLIC) != 0`.
+A `public static` field is also `public`, yet the expression returns false. Correct: `Modifier.isPublic(field.getModifiers())` or `(mask & Modifier.PUBLIC) != 0`.
 
-### Lỗi B — Nhầm «có bất kỳ cờ» với «có đủ mọi cờ»
+### Mistake B — Confusing "has any flag" with "has all flags"
 
-Sai khi phải kiểm tra đồng thời `static` và `final`:
+Wrong when checking both `static` and `final` simultaneously:
 
 ```java
 boolean staticAndFinal =
         (field.getModifiers() & (Modifier.STATIC | Modifier.FINAL)) != 0;
 ```
 
-Biểu thức này cũng đúng khi chỉ có `static`. Sửa:
+This expression is also true when only `static` is present. Fix:
 
 ```java
 int required = Modifier.STATIC | Modifier.FINAL;
 boolean staticAndFinal = (field.getModifiers() & required) == required;
 ```
 
-### Lỗi C — Suy luận truy cập từ cờ `public`
+### Mistake C — Inferring access from the `public` flag
 
-`public` chỉ là một phần điều kiện của cơ chế Java access control. Với reflection, caller, package, declaring class và Java Platform Module System đều liên quan. Kiểm tra `canAccess` hoặc `trySetAccessible` khi thật sự cần thao tác member.
+`public` is only part of the conditions of Java's access control mechanism. With reflection, the caller, package, declaring class, and Java Platform Module System are all involved. Check `canAccess` or `trySetAccessible` when you actually need to operate on the member.
 
-### Lỗi D — Nghĩ `final`/`volatile` là giải pháp chung cho bất biến hoặc thread safety
+### Mistake D — Thinking `final`/`volatile` are general solutions for immutability or thread safety
 
-`final` bảo vệ ràng buộc nhất định của biến, phương thức hoặc lớp tùy ngữ cảnh. `volatile` quy định visibility/ordering cho field; với thao tác read-modify-write như `count++`, cần đồng bộ hoặc công cụ atomic phù hợp.
+`final` protects specific constraints on a variable, method, or class depending on context. `volatile` specifies visibility/ordering for a field; for read-modify-write operations like `count++`, appropriate synchronization or atomic tools are required.
 
-### Lỗi E — Hiển thị `Modifier.toString(mask)` như toàn bộ metadata
+### Mistake E — Displaying `Modifier.toString(mask)` as complete metadata
 
-Một method có thể là `bridge`, `synthetic` hoặc `default` mà chuỗi modifier không ghi đủ. Kiểm tra `isBridge()`, `isSynthetic()`, `isDefault()` tương ứng; với `sealed` và `record` dùng API của `Class`.
+A method may be `bridge`, `synthetic`, or `default` without the modifier string recording enough detail. Check `isBridge()`, `isSynthetic()`, `isDefault()` accordingly; for `sealed` and `record`, use the APIs on `Class`.
 
-### Lỗi F — Chọn sai tập member
+### Mistake F — Choosing the wrong member set
 
-Dùng `getMethods()` rồi kết luận class không có method `private` là sai vì hàm đó chỉ trả method `public`. Dùng `getDeclaredMethods()` để quét các method khai báo trực tiếp, và xử lý riêng việc kế thừa khi cần.
+Calling `getMethods()` and concluding a class has no `private` methods is wrong because that method only returns `public` methods. Use `getDeclaredMethods()` to scan directly declared methods, and handle inheritance separately when needed.
 
-## 10. Checklist khi viết công cụ Reflection
+## 10. Checklist when writing Reflection tools
 
-Khi viết bộ phân tích class, framework đăng ký method hay công cụ kiểm tra field:
+When writing a class analyzer, method registration framework, or field inspection tool:
 
-1. Xác định bạn muốn metadata của **lớp, field, method, constructor hay parameter**.
-2. Chọn nhóm `getDeclaredXxx` hay `getXxx` phù hợp với phạm vi thành viên.
-3. Lưu `int modifiers = member.getModifiers()` và dùng `Modifier.isXxx` cho các điều kiện đơn; dùng bitmask khi cần kiểm tra kết hợp.
-4. In `Modifier.toString(modifiers)` để hỗ trợ đọc; đừng dùng chuỗi này thay toàn bộ thông tin API.
-5. Bổ sung các API chuyên biệt: `isSynthetic`, `isBridge`, `isDefault`, `isVarArgs`, `isRecord`, `isSealed` tùy mục tiêu và phiên bản Java.
-6. Trước khi truy cập/gọi thực tế, thực hiện **access check** theo đúng caller/receiver/module; cờ khai báo chưa phải quyền thao tác.
+1. Identify whether you want metadata for a **class, field, method, constructor, or parameter**.
+2. Choose `getDeclaredXxx` or `getXxx` matching the member scope.
+3. Store `int modifiers = member.getModifiers()` and use `Modifier.isXxx` for single conditions; use a bitmask when combined checks are needed.
+4. Print `Modifier.toString(modifiers)` for readability; do not use this string as a substitute for all API information.
+5. Supplement with specialized APIs: `isSynthetic`, `isBridge`, `isDefault`, `isVarArgs`, `isRecord`, `isSealed` depending on your goal and Java version.
+6. Before actually accessing/invoking, perform an **access check** for the exact caller/receiver/module; declaration flags are not operational permission.
 
-**Ghi nhớ:** `getModifiers()` trả về **các bit mô tả khai báo**; `Modifier.isXxx()` là cách kiểm tra ý nghĩa của từng bit; `Modifier.toString()` là cách hiển thị quen thuộc. Đọc modifier chính xác đòi hỏi biết **member nào** đang xét và **câu hỏi thuộc metadata hay quyền truy cập thực tế**.
+**Key takeaway:** `getModifiers()` returns **bits describing the declaration**; `Modifier.isXxx()` is how to check the meaning of each bit; `Modifier.toString()` is a familiar way to display them. Reading modifiers accurately requires knowing **which member** is being inspected and **whether the question is about metadata or actual access permission**.

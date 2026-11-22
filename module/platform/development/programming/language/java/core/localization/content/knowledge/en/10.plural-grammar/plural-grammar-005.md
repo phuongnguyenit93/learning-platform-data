@@ -1,20 +1,20 @@
-# Thông điệp lồng nhau và các lớp escape cần phân biệt
+# Nested Messages and Escaping Layers to Distinguish
 
-Một mẫu thông điệp được địa phương hóa có thể chứa **mẫu con** được chọn theo số lượng, giới tính, điều kiện hoặc nhánh nghiệp vụ. Đồng thời, mẫu ấy thường đi qua nhiều tầng biểu diễn: **chuỗi trong Java**, **tệp `.properties` hoặc JSON**, **bộ phân tích `MessageFormat`**, **`ChoiceFormat`/mẫu con**, rồi cuối cùng là **HTML hoặc giao diện người dùng**. Mỗi tầng có cú pháp escape khác nhau.
+A localized message pattern can contain **subpatterns** selected by quantity, gender, condition, or business branch. At the same time, that pattern often passes through multiple representation layers: **a Java string**, **a `.properties` or JSON file**, **the `MessageFormat` parser**, **`ChoiceFormat`/subpattern**, and finally **HTML or the user interface**. Each layer has different escaping syntax.
 
-Nếu nhầm các tầng, chương trình có thể in nguyên `{0}` thay vì chèn đối số, mất dấu nháy đơn trong văn bản, lỗi biên dịch Java, chọn sai câu số ít/số nhiều, hoặc tạo HTML không an toàn. Cách giải quyết là xác định **ký tự thuộc tầng nào**, **tầng nào xử lý trước** và **mẫu con có được parse lại hay chỉ được xem như dữ liệu**.
+If the layers are confused, the program may print literal `{0}` instead of inserting an argument, drop single quotes in text, fail Java compilation, pick the wrong singular/plural sentence, or produce unsafe HTML. The solution is to identify **which layer a character belongs to**, **which layer runs first**, and **whether a subpattern is re-parsed or treated strictly as data**.
 
-Bài này dùng `java.text.MessageFormat` và `ChoiceFormat` trong Java 17+ để giải thích cơ chế lồng mẫu, giới hạn của xử lý số nhiều theo ngưỡng và những trường hợp escape thực tế. Các cú pháp plural của thư viện ICU là một hệ thống khác, cần đọc theo tài liệu của chính thư viện đó.
+This lesson uses `java.text.MessageFormat` and `ChoiceFormat` in Java 17+ to explain pattern nesting mechanics, limits of threshold-based pluralization, and real-world escaping cases. Plural syntaxes of the ICU library are a separate system that must be read from that library's own documentation.
 
-## 1. Thông điệp lồng nhau nghĩa là gì?
+## 1. What Does a Nested Message Mean?
 
-Một thông điệp đơn giản có một mẫu:
+A simple message has a single pattern:
 
 ~~~text
-Xin chào {0}, bạn có {1} thông báo.
+Hello {0}, you have {1} notifications.
 ~~~
 
-Trong đó `{0}` và `{1}` tham chiếu đến các vị trí tương ứng trong mảng đối số. Với câu có số lượng, nội dung tự nhiên có thể thay đổi:
+Here `{0}` and `{1}` refer to the corresponding positions in the argument array. For sentences with quantities, natural phrasing may vary:
 
 ~~~text
 0 → You have no messages.
@@ -22,55 +22,55 @@ Trong đó `{0}` và `{1}` tham chiếu đến các vị trí tương ứng tron
 5 → You have 5 messages.
 ~~~
 
-Thay vì thêm ba câu `if/else` rời rạc, `MessageFormat` có thể dùng một phần định dạng `choice` để chọn nhánh. Nhánh được chọn lại có thể chứa placeholder cần thay tiếp, chẳng hạn `{0,number,integer}`.
+Instead of writing three disconnected `if/else` sentences, `MessageFormat` can use a `choice` format element to pick a branch. The selected branch can in turn contain placeholders that need further substitution, such as `{0,number,integer}`.
 
-Ví dụ mẫu:
+Example pattern:
 
 ~~~text
 You have {0,choice,0#no messages|1#one message|1<{0,number,integer} messages}.
 ~~~
 
-Đây là **mẫu lồng nhau** theo nghĩa phần `choice` chọn một chuỗi mà trong một số nhánh có cú pháp của `MessageFormat` cần xử lý tiếp. Nó không phải là một cây JSON hay một file bundle lồng vào nhau; sự lồng nhau nằm trong **quy trình phân tích/định dạng pattern**.
+This is a **nested pattern** in the sense that the `choice` part picks a string which in some branches contains `MessageFormat` syntax requiring further processing. It is not a nested JSON tree or nested bundle file; the nesting lies in the **pattern parsing/formatting pipeline**.
 
-Có hai ý cần luôn tách riêng:
+Two concepts must always be kept separate:
 
-- **Chọn nhánh:** `ChoiceFormat` dựa vào giá trị số của một đối số để chọn đoạn thông điệp.
-- **Thay đối số trong nhánh:** `MessageFormat` có thể format tiếp đoạn nhánh được chọn khi nó có cú pháp placeholder.
+- **Branch selection:** `ChoiceFormat` selects a message fragment based on a numeric value of an argument.
+- **Argument substitution inside the branch:** `MessageFormat` can format the selected branch fragment further when it contains placeholder syntax.
 
-Không nên giả định mọi giá trị chuỗi trả về từ mọi formatter đều tự động được parse lần thứ hai. Cơ chế đặc biệt này thuộc cách `MessageFormat` tích hợp `ChoiceFormat`.
+Do not assume every string returned by any formatter is automatically parsed a second time. This special mechanism belongs to how `MessageFormat` integrates `ChoiceFormat`.
 
-## 2. Tầng xử lý: từ mã nguồn tới chuỗi đầu ra
+## 2. Processing Layers: From Source Code to Output String
 
-Với một thông điệp được lưu trong mã Java, luồng xử lý phổ biến là:
+For a message stored in Java code, the common processing flow is:
 
 ~~~text
-Java source chứa string literal
-    ↓ Java compiler hiểu escape của chuỗi Java
-Chuỗi pattern tại runtime
-    ↓ MessageFormat parse {index}, dấu nháy đơn và định dạng
-Phần choice chọn nhánh (nếu có)
-    ↓ MessageFormat parse lại nhánh được chọn khi có cú pháp mẫu
-Giá trị cuối cùng được chèn thành chuỗi
-    ↓ Encode cho HTML/JSON/giao diện nếu cần
-Dữ liệu được hiển thị
+Java source containing a string literal
+    ↓ Java compiler interprets Java string escapes
+Runtime pattern string
+    ↓ MessageFormat parses {index}, single quotes, and formats
+Choice part selects a branch (if present)
+    ↓ MessageFormat re-parses the selected branch when it contains pattern syntax
+Final values are inserted into the string
+    ↓ Encode for HTML/JSON/UI if needed
+Displayed data
 ~~~
 
-Với tệp `.properties`, thay tầng đầu bằng **bộ đọc properties**: nó nhận các escape dành cho định dạng tệp tài nguyên và tạo chuỗi pattern. Với JSON, tầng đầu tương ứng là **JSON parser**.
+With a `.properties` file, the first layer is replaced by the **properties reader**: it interprets escapes defined for the resource file format and produces the pattern string. With JSON, the corresponding first layer is the **JSON parser**.
 
-| Tầng | Cú pháp đặc trưng | Ví dụ quan trọng |
+| Layer | Characteristic Syntax | Key Example |
 | --- | --- | --- |
-| Java string literal | `\\`, `\"`, `\n` | Java source `"A\nB"` tạo runtime string có xuống dòng |
-| Java `.properties` | `\n`, `\t`, `\\`, `\uXXXX`, tiếp dòng bằng backslash | Source `line=Hello\n{0}` trở thành pattern có xuống dòng |
-| JSON string | `\"`, `\\`, `\n`, `\uXXXX` | JSON được parse **trước** khi thành pattern |
-| `MessageFormat` | `{0}`, `{1,number}`, `'`, `''` | `'{0}'` là placeholder nguyên văn; `''{0}''` hiển thị dấu nháy quanh giá trị |
-| `ChoiceFormat` | `|`, `#`, `<`, giới hạn số | `0#none|1#one|1<many` |
-| HTML | `&amp;`, `&lt;`, escaping cho text/attribute | Đầu ra của MessageFormat vẫn cần encode theo ngữ cảnh |
+| Java string literal | `\\`, `\"`, `\n` | Java source `"A\nB"` creates a runtime string with a newline |
+| Java `.properties` | `\n`, `\t`, `\\`, `\uXXXX`, backslash line continuation | Source `line=Hello\n{0}` becomes a pattern with a newline |
+| JSON string | `\"`, `\\`, `\n`, `\uXXXX` | JSON is parsed **before** becoming a pattern |
+| `MessageFormat` | `{0}`, `{1,number}`, `'`, `''` | `'{0}'` is literal placeholder text; `''{0}''` displays quotes around the value |
+| `ChoiceFormat` | `|`, `#`, `<`, numeric limits | `0#none|1#one|1<many` |
+| HTML | `&amp;`, `&lt;`, text/attribute escaping | MessageFormat output still requires context-appropriate encoding |
 
-**Không dùng một hàm “escape tất cả” cho mọi tầng.** Ví dụ `\\` là escape trong chuỗi Java hoặc properties, nhưng dấu backslash **không** phải cách quote dấu ngoặc nhọn trong `MessageFormat`.
+**Do not use a single “escape everything” function for all layers.** For instance, `\\` is an escape in Java strings or properties, but a backslash is **not** the way to quote curly braces in `MessageFormat`.
 
-## 3. Cú pháp của `ChoiceFormat` bên trong `MessageFormat`
+## 3. Syntax of `ChoiceFormat` Inside `MessageFormat`
 
-Trong `java.text.MessageFormat`, một format element có dạng tổng quát:
+In `java.text.MessageFormat`, a format element has the general form:
 
 ~~~text
 {argumentIndex}
@@ -78,36 +78,36 @@ Trong `java.text.MessageFormat`, một format element có dạng tổng quát:
 {argumentIndex,formatType,formatStyle}
 ~~~
 
-Đối với `choice`:
+For `choice`:
 
 ~~~text
 {0,choice,0#none|1#one|1<many}
 ~~~
 
-Ý nghĩa:
+Meaning:
 
-- `0` đầu tiên, trước `,choice,`: **index của đối số** trong mảng đầu vào.
-- `0#none`: chọn văn bản `none` khi giá trị đạt nhánh có giới hạn 0.
-- `1#one`: chọn `one` ở giới hạn 1.
-- `1<many`: chọn `many` khi giá trị **lớn hơn 1**.
-- `|`: phân tách các nhánh choice.
+- The first `0`, before `,choice,`: **index of the argument** in the input array.
+- `0#none`: selects the text `none` when the value reaches the branch with limit 0.
+- `1#one`: selects `one` at limit 1.
+- `1<many`: selects `many` when the value is **greater than 1**.
+- `|`: separates choice branches.
 
-`#` biểu diễn giới hạn **bao gồm**; `<` biểu diễn giới hạn **không bao gồm**. `ChoiceFormat` chọn nhánh dựa trên ngưỡng, không tự biết các quy tắc số nhiều của từng ngôn ngữ.
+`#` represents an **inclusive** limit; `<` represents an **exclusive** limit. `ChoiceFormat` selects branches based on thresholds; it does not inherently know the plural rules of individual languages.
 
-Với mẫu `0#none|1#one|1<many` và các số nguyên không âm:
+With the pattern `0#none|1#one|1<many` and non-negative integers:
 
-| Giá trị | Nhánh |
+| Value | Branch |
 | ---: | --- |
 | 0 | `none` |
 | 1 | `one` |
 | 2 | `many` |
 | 5 | `many` |
 
-**Giới hạn nghiệp vụ:** mẫu này chỉ được thiết kế cho số lượng nguyên không âm. Đầu vào âm, phân số hoặc giá trị đặc biệt cần quy tắc được xác định riêng. Đừng áp dụng ngưỡng ví dụ vào mọi bài toán số lượng rồi coi là đúng về ngữ pháp.
+**Business scope limitation:** this pattern is designed only for non-negative integer counts. Negative inputs, fractions, or special values need explicitly defined rules. Do not apply an example threshold to every quantity problem and assume it is grammatically right.
 
-## 4. Ví dụ Java 17+: chọn nhánh rồi format mẫu con
+## 4. Java 17+ Example: Select a Branch Then Format the Subpattern
 
-Tạo tệp **`NestedChoiceDemo.java`**:
+Create the file **`NestedChoiceDemo.java`**:
 
 ~~~java
 import java.text.MessageFormat;
@@ -130,14 +130,14 @@ public class NestedChoiceDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac NestedChoiceDemo.java
 java NestedChoiceDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 You have no messages.
@@ -145,35 +145,35 @@ You have one message.
 You have 5 messages.
 ~~~
 
-Tại nhánh thứ ba, đoạn `{0,number,integer} messages` có placeholder. `MessageFormat` xử lý kết quả của `ChoiceFormat` như **một mẫu cần format tiếp**, nên đối số số lượng được thay ngay trong nhánh.
+In the third branch, `{0,number,integer} messages` contains a placeholder. `MessageFormat` treats the result of `ChoiceFormat` as **a pattern to format further**, so the count argument is substituted inside the branch.
 
-Điều quan trọng là **đối số không đổi index qua lần parse lồng**: `{0,number,integer}` vẫn chỉ vào `arguments[0]`. Nếu có `{1}` bên trong nhánh thì nó vẫn lấy `arguments[1]` từ cùng mảng, không phải đối số đầu tiên của nhánh con.
+Importantly, **argument indices do not change across nested parsing**: `{0,number,integer}` still points to `arguments[0]`. If `{1}` appears inside the branch, it still reads `arguments[1]` from the same array, not a first argument local to the sub-branch.
 
-### Lặp index và dùng nhiều index trong nhánh
+### Repeating indices and using multiple indices in a branch
 
-Ví dụ khác:
+Another example:
 
 ~~~text
 Status: {0,choice,0#empty|1#one item for {1}|1<{0,number,integer} items for {1}}
 ~~~
 
-Với `new Object[]{3, "Lan"}`, kết quả là:
+With `new Object[]{3, "Lan"}`, the result is:
 
 ~~~text
 Status: 3 items for Lan
 ~~~
 
-Trong nhánh cuối, `{0,number,integer}` và `{1}` được xử lý sau khi `choice` chọn văn bản của nhánh đó. Đây là mô hình “lồng” đáng nhớ của `MessageFormat` và `ChoiceFormat`.
+In the last branch, `{0,number,integer}` and `{1}` are processed after `choice` selects that branch's text. This is the memorable “nesting” model of `MessageFormat` and `ChoiceFormat`.
 
-## 5. Mẫu con được parse lại; dữ liệu đối số thì không
+## 5. Subpatterns Are Re-Parsed; Argument Data Is Not
 
-Hai đoạn sau nhìn giống nhau nhưng có ý nghĩa khác nhau.
+The two snippets below look similar but mean different things.
 
-**Tình huống A:** `ChoiceFormat` trả một chuỗi có `{1}`, và `MessageFormat` dùng chuỗi đó như **mẫu lồng**.
+**Scenario A:** `ChoiceFormat` returns a string containing `{1}`, and `MessageFormat` uses that string as a **nested pattern**.
 
-**Tình huống B:** `ChoiceFormat` trả cùng chuỗi nhưng ứng dụng đưa nó làm **giá trị đối số `{0}`** cho một `MessageFormat` khác. Khi đó `{1}` bên trong giá trị được xem là **dữ liệu**, không tự parse tiếp.
+**Scenario B:** `ChoiceFormat` returns the same string, but the application passes it as **the value of argument `{0}`** to another `MessageFormat`. Then `{1}` inside the value is treated as **data**, not parsed further.
 
-Tạo **`NestedVersusDataDemo.java`**:
+Create **`NestedVersusDataDemo.java`**:
 
 ~~~java
 import java.text.ChoiceFormat;
@@ -206,7 +206,7 @@ javac NestedVersusDataDemo.java
 java NestedVersusDataDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 many {1}
@@ -214,25 +214,25 @@ Status: many {1}
 Status: many X
 ~~~
 
-Giải thích:
+Explanation:
 
-- `choice.format(3)` chỉ tạo văn bản `many {1}`.
-- `asData.format(new Object[]{selected})` **chèn nguyên giá trị chuỗi**; nó không hiểu `{1}` bên trong đối số là placeholder cần thay.
-- `nested.format(new Object[]{3, "X"})` chạy cơ chế choice **bên trong MessageFormat**; nhánh `many {1}` được format tiếp và nhận `X`.
+- `choice.format(3)` only produces the text `many {1}`.
+- `asData.format(new Object[]{selected})` **inserts the string value verbatim**; it does not interpret `{1}` inside the argument as a placeholder to replace.
+- `nested.format(new Object[]{3, "X"})` runs the choice mechanism **inside MessageFormat**; the `many {1}` branch is formatted further and receives `X`.
 
-Hệ quả tích cực: dữ liệu người dùng chứa `{0}` thường không biến thành mã pattern nếu được truyền đúng cách dưới dạng **argument**. Hệ quả nguy hiểm: nếu ứng dụng tự xây một pattern mới từ dữ liệu đó rồi parse lại, dữ liệu có thể được hiểu thành cú pháp. Hãy tách **mẫu được tin cậy** khỏi **giá trị động**.
+Positive consequence: user data containing `{0}` normally does not turn into pattern code if passed properly as an **argument**. Dangerous consequence: if the application constructs a new pattern from that data and re-parses it, the data can be interpreted as syntax. Keep **trusted patterns** separate from **dynamic values**.
 
-## 6. Dấu nháy đơn là escape của `MessageFormat`
+## 6. Single Quotes Are `MessageFormat`'s Escape
 
-Khi `MessageFormat` parse pattern, dấu nháy đơn `'` có ý nghĩa đặc biệt:
+When `MessageFormat` parses a pattern, the single quote `'` has special meaning:
 
-- `''` trong pattern biểu diễn **một dấu nháy đơn literal**.
-- `'{0}'` khiến `{0}` trở thành **văn bản literal**, không chèn đối số.
-- `''{0}''` hiển thị **dấu nháy đơn quanh giá trị đã chèn**.
+- `''` in a pattern represents **one literal single quote**.
+- `'{0}'` makes `{0}` **literal text**, without inserting the argument.
+- `''{0}''` displays **single quotes around the inserted value**.
 
-Đây **không** phải cú pháp Java dùng để tạo chuỗi. Những dấu `'` nằm **trong giá trị pattern tại runtime** được `MessageFormat` diễn giải.
+This is **not** Java syntax for creating strings. Those `'` characters inside **the runtime pattern value** are interpreted by `MessageFormat`.
 
-Ví dụ runnable **`MessageQuoteDemo.java`**:
+Runnable example **`MessageQuoteDemo.java`**:
 
 ~~~java
 import java.text.MessageFormat;
@@ -259,7 +259,7 @@ javac MessageQuoteDemo.java
 java MessageQuoteDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 It's ready.
@@ -267,76 +267,76 @@ Use {0} then X.
 Value: 'X'.
 ~~~
 
-Trong ngôn ngữ tự nhiên, dấu apostrophe như trong `It's`, `don't`, `l'utilisateur` thường là nguồn lỗi. Với pattern được xử lý bởi `MessageFormat`, viết `It''s`, `don''t`, `l''utilisateur` khi muốn chúng xuất hiện đúng.
+In natural languages, apostrophes such as in `It's`, `don't`, `l'utilisateur` are a frequent source of bugs. For patterns processed by `MessageFormat`, write `It''s`, `don''t`, `l''utilisateur` when you want them to appear properly.
 
-**Lỗi thường gặp:** viết `"Value: '{0}'"` rồi mong nhìn thấy `'X'`. Trong `MessageFormat`, mẫu đó hiển thị `Value: {0}` do `{0}` đã bị quote thành literal.
+**Common mistake:** writing `"Value: '{0}'"` and expecting to see `'X'`. In `MessageFormat`, that pattern displays `Value: {0}` because `{0}` was quoted into a literal.
 
-## 7. Dấu ngoặc nhọn: không escape bằng backslash
+## 7. Curly Braces: Do Not Escape with Backslash
 
-Trong `MessageFormat`:
+In `MessageFormat`:
 
 ~~~text
-'{0}'        → văn bản {0}
-{0}          → giá trị đối số thứ nhất
-''{0}''      → dấu ' + giá trị đối số + dấu '
+'{0}'        → literal text {0}
+{0}          → value of the first argument
+''{0}''      → ' + argument value + '
 ~~~
 
-Dấu backslash `\` **không** phải cơ chế quote placeholder. Nếu viết `\{0}` trong một pattern runtime, dấu backslash không ngăn `{0}` được hiểu là phần thay thế.
+The backslash `\` is **not** a mechanism to quote placeholders. If you write `\{0}` in a runtime pattern, the backslash does not stop `{0}` from being interpreted as a substitution.
 
-Cách đúng để hiển thị nguyên văn một chuỗi có ngoặc nhọn như `{name}` là quote đoạn chứa ngoặc theo **luật dấu nháy đơn của `MessageFormat`**, ví dụ:
+The right way to display a literal string with braces like `{name}` is to quote the braced segment using **`MessageFormat`'s single-quote rule**, for example:
 
 ~~~text
 Pattern:  Please type '{name}' exactly.
 Output:   Please type {name} exactly.
 ~~~
 
-Không cố tạo một placeholder có tên `name` rồi truyền đối số với khóa đó: `java.text.MessageFormat` dùng **index dạng số**, không hỗ trợ `{name}` như một tham chiếu được đặt tên.
+Do not try to create a placeholder named `name` and pass an argument under that key: `java.text.MessageFormat` uses **numeric indices** and does not support `{name}` as a named reference.
 
-Khi một chuỗi có nhiều cặp ngoặc hoặc dấu apostrophe, nên viết test dựa trên **pattern runtime cuối cùng**. Nhìn vào mã nguồn Java hoặc file `.properties` mà bỏ qua tầng đọc đầu tiên dễ dẫn đến đếm nhầm ký tự escape.
+When a string has multiple pairs of braces or apostrophes, write tests against the **final runtime pattern**. Looking at Java source code or a `.properties` file while ignoring the first parsing layer easily leads to miscounting escape characters.
 
-## 8. Escape trong Java string literal và escape trong `MessageFormat`
+## 8. Escaping in Java String Literals vs. Escaping in `MessageFormat`
 
-Khi pattern được viết trực tiếp trong Java, trước hết Java compiler phải xử lý string literal.
+When a pattern is written directly in Java, the Java compiler must process the string literal first.
 
-Ví dụ:
+Example:
 
 ~~~java
 String pattern = "It''s {0}";
 ~~~
 
-Chuỗi runtime vẫn chứa `It''s {0}`; dấu nháy đơn không cần escape bằng backslash trong **string literal có dấu nháy kép** của Java. Nhưng khi pattern đi qua `MessageFormat`, hai dấu nháy đơn được xử lý thành một dấu nháy đơn hiển thị.
+The runtime string still contains `It''s {0}`; single quotes do not need backslash escaping inside a Java **double-quoted string literal**. However, when the pattern passes through `MessageFormat`, the two single quotes are processed into one displayed single quote.
 
-So sánh:
+Comparison:
 
-| Java source | Chuỗi runtime trước khi format | `MessageFormat` với đối số `X` |
+| Java Source | Runtime String Before Formatting | `MessageFormat` with Argument `X` |
 | --- | --- | --- |
 | `"Hi {0}"` | `Hi {0}` | `Hi X` |
 | `"It''s {0}"` | `It''s {0}` | `It's X` |
 | `"'{0}'"` | `'{0}'` | `{0}` |
 | `"''{0}''"` | `''{0}''` | `'X'` |
-| `"A\n{0}"` | Hai dòng: `A` rồi `{0}` | Hai dòng: `A` rồi `X` |
+| `"A\n{0}"` | Two lines: `A` then `{0}` | Two lines: `A` then `X` |
 
-Trong ví dụ `"A\n{0}"`, ký hiệu `\n` được **Java compiler** chuyển thành ký tự xuống dòng trước khi `MessageFormat` nhận pattern.
+In the `"A\n{0}"` example, the sequence `\n` is converted by the **Java compiler** into a newline character before `MessageFormat` receives the pattern.
 
-Dấu nháy kép `"` trong Java source cần được escape theo luật Java nếu muốn nằm trong string literal; dấu ngoặc nhọn `{` không phải escape của Java string. Đừng dùng `\\'` trong Java string để “sửa” cách `MessageFormat` diễn giải apostrophe: dấu backslash dành cho tầng Java không thay thế `''` dành cho tầng pattern.
+Double quotes `"` in Java source must be escaped per Java rules to appear inside a string literal; curly braces `{` are not a Java string escape. Do not use `\\'` in a Java string to “fix” how `MessageFormat` interprets apostrophes: backslashes belong to the Java layer and do not replace `''` at the pattern layer.
 
-### Cách kiểm tra khi khó phân biệt
+### How to inspect when it is hard to tell apart
 
-Ghi lại hoặc debug chuỗi **sau khi Java đã tạo string** và **trước khi đưa cho `MessageFormat`**. Nếu chuỗi runtime đã không giống điều mong đợi, lỗi nằm ở tầng string literal. Nếu runtime pattern đúng nhưng đầu ra mất apostrophe hoặc in nguyên `{0}`, kiểm tra cú pháp `MessageFormat`.
+Log or debug the string **after Java has created the string** and **before passing it to `MessageFormat`**. If the runtime string is already not what you expect, the bug is in the string literal layer. If the runtime pattern is right but the output drops an apostrophe or prints literal `{0}`, check `MessageFormat` syntax.
 
-## 9. Escape trong `.properties` khác escape của `MessageFormat`
+## 9. Escaping in `.properties` Differs from `MessageFormat` Escaping
 
-Khi đặt bản dịch trong tệp `.properties`, có **hai phép biến đổi kế tiếp**:
+When placing translations in `.properties` files, there are **two consecutive transformations**:
 
 ~~~text
-Nội dung file .properties
+.properties file content
     → PropertyResourceBundle / properties parser
-Chuỗi pattern runtime
+Runtime pattern string
     → MessageFormat parser
-Chuỗi kết quả
+Result string
 ~~~
 
-Ví dụ **`Messages_en.properties`**:
+Example **`Messages_en.properties`**:
 
 ~~~properties
 success=It''s ready, {0}.
@@ -344,14 +344,14 @@ literal=Type '{0}' then enter {1}.
 line=First line\nSecond line: {0}
 ~~~
 
-Các ý cần nhớ:
+Points to remember:
 
-- `It''s` dùng **hai dấu nháy đơn** vì quy tắc **MessageFormat**, không phải vì parser properties yêu cầu.
-- `'{0}'` được giữ dưới dạng pattern và `MessageFormat` sẽ in `{0}` nguyên văn.
-- `\n` trong `.properties` là escape tạo **ký tự xuống dòng** sau khi parser đọc file; `MessageFormat` nhận một chuỗi đã có xuống dòng.
-- Trong `.properties`, dấu backslash cần được viết `\\` nếu muốn giữ một dấu backslash literal sau khi đọc. Một dấu backslash trước ký tự không được đặc tả có thể bị parser loại bỏ mà không giữ nguyên ký tự đó.
+- `It''s` uses **two single quotes** because of **MessageFormat** rules, not because the properties parser requires it.
+- `'{0}'` is preserved in the pattern and `MessageFormat` prints `{0}` literally.
+- `\n` in `.properties` is an escape that produces a **newline character** after the parser reads the file; `MessageFormat` receives a string that already contains a newline.
+- In `.properties`, a backslash must be written as `\\` if you want to preserve a literal backslash after reading. A single backslash before an unspecified character may be stripped by the parser without preserving the backslash itself.
 
-Tạo **`PropertiesMessageDemo.java`** và đặt cùng thư mục với file `Messages_en.properties`:
+Create **`PropertiesMessageDemo.java`** and place it in the same directory as `Messages_en.properties`:
 
 ~~~java
 import java.text.MessageFormat;
@@ -382,7 +382,7 @@ javac -encoding UTF-8 PropertiesMessageDemo.java
 java -cp . PropertiesMessageDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 It's ready, Lan.
@@ -391,13 +391,13 @@ First line
 Second line: done
 ~~~
 
-Chú ý thứ tự: file chứa `\n` **hai ký tự** backslash + chữ `n`, nhưng output chứa một dấu xuống dòng vì tầng parser của properties xử lý nó trước. Mã nguồn Java không chứa `\n` tương ứng cho giá trị này.
+Notice the order: the file contains `\n` as **two characters** (backslash + letter `n`), yet the output contains a single newline because the properties parser layer processes it first. The Java source code contains no corresponding `\n` for this value.
 
-`ResourceBundle` có thể fallback sang bản dịch khác nếu thiếu bundle/khóa; khi xử lý lỗi escape, hãy xác nhận **bundle nào thực sự được chọn** và **chuỗi pattern runtime** là gì. Tránh “sửa” một file chưa từng được ứng dụng tải.
+`ResourceBundle` can fall back to another translation if a bundle or key is missing; when troubleshooting escaping bugs, confirm **which bundle was actually loaded** and **what the runtime pattern string is**. Avoid “fixing” a file that the application never loaded.
 
-## 10. JSON và các định dạng vận chuyển không dùng cùng luật
+## 10. JSON and Transport Formats Do Not Share the Same Rules
 
-Nếu thông điệp được lưu dưới dạng JSON, JSON parser cũng xử lý chuỗi trước khi `MessageFormat` nhìn thấy nó:
+If messages are stored as JSON, the JSON parser also processes strings before `MessageFormat` sees them:
 
 ~~~json
 {
@@ -406,62 +406,62 @@ Nếu thông điệp được lưu dưới dạng JSON, JSON parser cũng xử l
 }
 ~~~
 
-Trong JSON, `\n` biểu diễn xuống dòng; trong chuỗi được parse, ký tự đó không còn là hai ký tự backslash + `n`. Cú pháp `''` không có ý nghĩa riêng với JSON; nó trở nên đặc biệt **chỉ khi chuỗi được đưa vào `MessageFormat`**.
+In JSON, `\n` represents a newline; in the parsed string, that character is no longer two characters (backslash + `n`). The `''` syntax has no special meaning to JSON; it becomes special **only when the string is passed into `MessageFormat`**.
 
-Nếu chuỗi được nhúng vào thêm một literal Java để tạo ra JSON, lại có một tầng escape **trước JSON parser**. Không nên đếm số backslash theo cảm tính: hãy lần từng bước từ nguồn tới pattern runtime.
+If the string is embedded inside another Java literal to build JSON, there is yet another escaping layer **before the JSON parser**. Do not count backslashes by intuition: trace each step from source to runtime pattern.
 
-Không nhầm cú pháp Java `MessageFormat` với thư viện ICU MessageFormat hoặc cú pháp ICU plural:
+Do not confuse Java `MessageFormat` syntax with the ICU MessageFormat library or ICU plural syntax:
 
 ~~~text
 {count, plural, one {...} other {...}}
 ~~~
 
-Đây **không** phải cú pháp plural mà `java.text.MessageFormat` chuẩn của Java 17 chấp nhận. Để dùng ICU plural, cần dùng formatter/thư viện có parser ICU tương ứng; `ChoiceFormat` trong JDK sử dụng ngưỡng và luật khác. Dán ICU pattern nguyên vẹn vào `new java.text.MessageFormat(...)` có thể gây lỗi parse.
+This is **not** a plural syntax accepted by standard Java 17 `java.text.MessageFormat`. To use ICU plurals, you need a formatter/library with a corresponding ICU parser; `ChoiceFormat` in the JDK uses different thresholds and rules. Pasting an ICU pattern verbatim into `new java.text.MessageFormat(...)` can cause parse errors.
 
-## 11. Mẫu con và apostrophe: vì sao phải xét nhiều lần parse?
+## 11. Subpatterns and Apostrophes: Why Must Multiple Parse Passes Be Considered?
 
-`MessageFormat` nhận pattern ngoài. Khi chọn một nhánh `choice` có nội dung giống pattern, nó có thể tạo và dùng một `MessageFormat` khác để format **chuỗi nhánh**. Điều này sinh ra thêm **một tầng diễn giải dấu nháy đơn và dấu ngoặc nhọn**.
+`MessageFormat` receives the outer pattern. When selecting a `choice` branch whose content looks like a pattern, it can create and use another `MessageFormat` to format the **branch string**. This introduces an additional **layer of single-quote and brace interpretation**.
 
-Ví dụ:
+Example:
 
 ~~~text
 {0,choice,0#none|1#one|1<{0,number,integer} items}
 ~~~
 
-Trong nhánh cuối, `{0,number,integer}` không phải văn bản cố định; nó được parse thành placeholder khi nhánh được format lại.
+In the last branch, `{0,number,integer}` is not fixed text; it is parsed as a placeholder when the branch is formatted again.
 
-Nếu muốn đoạn nhánh chứa **dấu nháy đơn literal**, hoặc **ngoặc nhọn literal**, phải xét hai bộ parser: pattern bên ngoài (bao gồm xử lý dấu nháy đơn) và pattern nhánh được chọn. Số lượng apostrophe cần viết có thể khác khi mẫu nằm trong `.properties`, chuỗi Java, hay chuỗi đã được tạo bởi code.
+If you want a branch segment to contain a **literal single quote**, or **literal braces**, you must account for two parser passes: the outer pattern (including single-quote processing) and the selected branch pattern. The number of apostrophes needed can differ when the pattern lives in `.properties`, a Java string, or a string already constructed by code.
 
-**Không có quy tắc ngắn “luôn nhân đôi dấu nháy đúng một lần là đủ” cho mọi mức lồng.** Quy tắc tốt hơn:
+**There is no shortcut rule like “always double quotes once and it is enough” for all nesting depths.** A better process:
 
-1. Viết ra **chuỗi đầu ra mong muốn**.
-2. Xác định placeholder nào phải được xử lý ở **mẫu con**.
-3. Viết mẫu con hợp lệ cho parser của nó và thử độc lập nếu có thể.
-4. Xây pattern ngoài; xác định ký tự quote nào sẽ bị parser ngoài xử lý.
-5. Sau cùng, encode pattern ngoài theo nguồn lưu trữ: Java literal, `.properties` hoặc JSON.
-6. Kiểm thử với **mọi nhánh choice**, đặc biệt những nhánh không được kích hoạt bởi dữ liệu thử thông thường.
+1. Write down the **desired output string**.
+2. Identify which placeholders must be processed in the **subpattern**.
+3. Write a valid subpattern for its parser and test it standalone if possible.
+4. Build the outer pattern; determine which quote characters will be consumed by the outer parser.
+5. Finally, encode the outer pattern according to the storage source: Java literal, `.properties`, or JSON.
+6. Test with **every choice branch**, especially branches not triggered by typical test data.
 
-Việc chỉ kiểm thử nhánh `0#...` rồi coi cả pattern an toàn là không đủ: lỗi ở nhánh `1<...` có thể chỉ bộc lộ khi số lượng thực tế vượt 1.
+Testing only the `0#...` branch and assuming the entire pattern is safe is insufficient: bugs in the `1<...` branch may only surface when the actual count exceeds 1.
 
-### Tránh lồng nhiều tầng khi khó bảo trì
+### Avoiding deep nesting when hard to maintain
 
-Nếu mức lồng tăng nhanh và việc quote trở nên khó đọc, ứng dụng có thể:
+If nesting grows rapidly and quoting becomes hard to read, an application can:
 
-- Dùng những **message key riêng cho từng nhánh** rồi format mỗi message đúng một lần.
-- Chọn nhánh bằng code có test rõ, truyền dữ liệu động làm **đối số** thay vì nối chuỗi pattern.
-- Dùng thư viện hỗ trợ plural/ngữ pháp phù hợp với các ngôn ngữ sản phẩm phục vụ.
+- Use **separate message keys for each branch** and format each message exactly once.
+- Select branches in well-tested code, passing dynamic data as **arguments** rather than concatenating pattern strings.
+- Use a plural/grammar library suitable for the languages the product serves.
 
-Mục tiêu là biểu diễn đúng ngữ pháp và dễ xác minh, không phải tối đa hóa độ sâu lồng `ChoiceFormat`.
+The goal is grammatical correctness and easy verification, not maximizing `ChoiceFormat` nesting depth.
 
-## 12. Lỗi đặc biệt: chuỗi do người dùng cung cấp bị parse như pattern
+## 12. Special Bug: User-Supplied Strings Parsed as Patterns
 
-Giả sử người dùng nhập văn bản:
+Suppose a user enters the text:
 
 ~~~text
 Hello {1}
 ~~~
 
-**Nếu truyền làm argument**, `MessageFormat` coi đây là dữ liệu:
+**If passed as an argument**, `MessageFormat` treats it as data:
 
 ~~~java
 MessageFormat formatter =
@@ -469,15 +469,15 @@ MessageFormat formatter =
 System.out.println(formatter.format(new Object[]{"Hello {1}"}));
 ~~~
 
-Đoạn này đặt trong method có import `java.text.MessageFormat` và `java.util.Locale`. Kết quả:
+This snippet sits inside a method importing `java.text.MessageFormat` and `java.util.Locale`. Output:
 
 ~~~text
 Comment: Hello {1}
 ~~~
 
-Không có vòng parse thứ hai cho nội dung đối số theo cách dùng thông thường này.
+There is no second parse pass on argument contents under this normal usage.
 
-**Nếu nối vào pattern**:
+**If concatenated into the pattern**:
 
 ~~~java
 String userInput = "Hello {1}";
@@ -485,123 +485,123 @@ String pattern = "Comment: " + userInput + " / {0}";
 MessageFormat formatter = new MessageFormat(pattern, Locale.US);
 ~~~
 
-`{1}` trong dữ liệu đã được đưa vào **cú pháp pattern**; kết quả có thể bị thay, giữ nguyên do thiếu đối số, hoặc làm hỏng mẫu nếu văn bản khác chứa ký tự đặc biệt. Vì vậy **không xây pattern bằng dữ liệu chưa được kiểm soát**.
+`{1}` inside the data has been injected into **pattern syntax**; the result may be substituted, left unreplaced due to a missing argument, or break the pattern if other text contains special characters. Therefore, **never build patterns from untrusted data**.
 
-Đối với các giá trị dùng trong nested choice, sự chú ý càng quan trọng: một nhánh được parse lại có thể biến ký tự `{...}` thành placeholder nếu chúng thuộc **pattern** của nhánh. Giữ pattern do ứng dụng hoặc hệ thống dịch đáng tin cậy quản lý, và giữ nội dung người dùng trong arguments.
+For values used with nested choice, care is even more critical: a re-parsed branch can turn `{...}` characters into placeholders if they belong to the branch's **pattern**. Keep patterns managed by the application or a trusted translation system, and keep user content in arguments.
 
-Điều này chỉ xử lý ranh giới **cú pháp MessageFormat**. Khi kết quả được đặt vào HTML, URL, SQL hoặc template khác, vẫn cần xử lý an toàn của **đích đó**. `MessageFormat` không tự encode HTML hay thay thế prepared statement.
+This only addresses the **`MessageFormat` syntax** boundary. When output is placed into HTML, URLs, SQL, or another template, safety handling for **that target** is still required. `MessageFormat` does not automatically HTML-encode or replace prepared statements.
 
-## 13. HTML escape và MessageFormat escape là hai vấn đề
+## 13. HTML Escaping and MessageFormat Escaping Are Two Separate Concerns
 
-Giả sử đầu ra sau format là:
+Suppose the formatted output is:
 
 ~~~text
 Hello <script>alert(1)</script>
 ~~~
 
-Với `MessageFormat`, dấu `<` và `>` là ký tự văn bản bình thường. Nếu đưa chuỗi trên vào `innerHTML` mà không xử lý, trình duyệt có thể diễn giải HTML do người dùng cung cấp.
+To `MessageFormat`, `<` and `>` are ordinary text characters. If the string above is assigned to `innerHTML` without handling, the browser can interpret user-supplied HTML.
 
-Để hiển thị **văn bản**, giao diện nên dùng API gán text, ví dụ `textContent` trên web, hoặc HTML-encode đúng **ngữ cảnh output** nếu bắt buộc sinh HTML. Không tự thay tất cả dấu apostrophe/ngoặc nhọn của MessageFormat rồi nghĩ rằng đã đạt an toàn HTML.
+To display **plain text**, the UI should use text-assignment APIs such as `textContent` on the web, or HTML-encode for the exact **output context** when generating HTML is required. Do not replace all MessageFormat apostrophes/braces and assume you have achieved HTML safety.
 
-| Ký tự / cú pháp | Tầng liên quan | Cách hiểu |
+| Character / Syntax | Relevant Layer | Interpretation |
 | --- | --- | --- |
-| `{0}` | `MessageFormat` | Thay đối số 0 |
-| `'{0}'` | `MessageFormat` | In `{0}` nguyên văn |
-| `&lt;` | HTML text | Biểu diễn dấu `<` khi render HTML |
-| `\"` trong JSON string | JSON parser | Tạo dấu nháy kép trong giá trị string |
-| `\\` trong `.properties` | Properties parser | Giữ một dấu backslash literal sau khi đọc |
-| `<script>` trong argument | Giao diện đầu ra | Không được coi là HTML an toàn chỉ vì đã đi qua MessageFormat |
+| `{0}` | `MessageFormat` | Substitutes argument 0 |
+| `'{0}'` | `MessageFormat` | Prints `{0}` literally |
+| `&lt;` | HTML text | Represents `<` when rendering HTML |
+| `\"` in JSON string | JSON parser | Produces a double quote inside the string value |
+| `\\` in `.properties` | Properties parser | Keeps one literal backslash after reading |
+| `<script>` in argument | Output UI | Must not be assumed HTML-safe just because it passed through MessageFormat |
 
-Cú pháp escape đúng ở **một tầng** không thay thế việc escape ở **tầng khác**.
+Proper escaping syntax at **one layer** does not replace escaping at **another layer**.
 
-## 14. Số nhiều và ngữ pháp: giới hạn của `ChoiceFormat`
+## 14. Plurals and Grammar: Limitations of `ChoiceFormat`
 
-Ví dụ với ba nhánh 0, 1, nhiều cho tiếng Anh rất dễ hiểu, nhưng chưa đủ để hỗ trợ quy tắc số nhiều toàn cầu.
+The three-branch example 0, 1, many for English is easy to understand, yet insufficient to support global plural rules.
 
-Một số ngôn ngữ có dạng số nhiều khác nhau cho 0, 1, 2, các nhóm số như 3–10, số kết thúc bằng 1 hoặc số thập phân. `ChoiceFormat` dựa trên **ngưỡng số**, nên phải lập nhiều nhánh và vẫn có thể không biểu diễn đúng mọi quy tắc plural theo CLDR.
+Some languages have distinct plural forms for 0, 1, 2, number groups like 3–10, numbers ending in 1, or decimals. `ChoiceFormat` relies on **numeric thresholds**, so many branches would be required and it still might not accurately express all CLDR plural rules.
 
-Do đó:
+Therefore:
 
-- Đừng xem `0#...|1#...|1<...` là thuật toán số nhiều đúng cho mọi locale.
-- Không nhầm `{0,number,integer}` với việc chọn **hình thái từ** theo số lượng; nó chỉ định dạng con số.
-- Với sản phẩm nhiều ngôn ngữ, cân nhắc công cụ i18n hiểu **plural categories** của từng ngôn ngữ và kiểm thử dữ liệu `0`, `1`, `2`, `5`, `11`, `21`, số âm và thập phân tùy ngôn ngữ.
-- Khi dùng thư viện khác JDK, phải dùng **parser và quy tắc escaping của thư viện đó**, không áp dụng mặc định `ChoiceFormat` của Java vào ICU message.
+- Do not treat `0#...|1#...|1<...` as a correct plural algorithm for every locale.
+- Do not confuse `{0,number,integer}` with selecting **word morphology** by count; it only formats the number.
+- For multilingual products, consider an i18n tool that understands each language's **plural categories** and test `0`, `1`, `2`, `5`, `11`, `21`, negative numbers, and decimals depending on the language.
+- When using a non-JDK library, use **that library's parser and escaping rules**; do not blindly apply Java `ChoiceFormat` assumptions to ICU messages.
 
-Một chuỗi có thể **đúng cú pháp** nhưng **sai ngữ pháp**. Việc format thành công không chứng minh bản dịch tự nhiên ở mọi locale.
+A string can be **syntactically valid** yet **grammatically wrong**. Successful formatting does not prove a translation is natural in every locale.
 
-## 15. Kiểm thử escape và nested messages
+## 15. Testing Escaping and Nested Messages
 
-Nên lập bộ test từ **các chuỗi cuối cùng**, không chỉ kiểm tra pattern trông có vẻ đúng.
+Build test suites around the **final output strings**, rather than only checking that patterns look right.
 
-| Tình huống | Kiểm tra |
+| Scenario | What to Check |
 | --- | --- |
-| `choice` với 0, 1, 2, 5 | Đúng nhánh và đúng ngữ pháp ở miền dữ liệu cần hỗ trợ |
-| Mẫu con chứa `{0}` hoặc `{1}` | Dùng đúng mảng arguments ở lần parse lồng |
-| Cùng chuỗi `{1}` truyền làm argument | Giữ nguyên như dữ liệu, không bị parse như pattern |
-| `It's` / `don't` | Dấu apostrophe xuất hiện đúng |
-| `'{0}'` / `''{0}''` | Phân biệt placeholder literal và giá trị có dấu nháy |
-| `.properties` chứa `\n` | Có xuống dòng thật sau khi đọc tài nguyên |
-| JSON chứa `\n` | Parser JSON xử lý escape trước formatter |
-| Mẫu sai hoặc thiếu đối số | Không để `{1}` xuất hiện trong UI do hợp đồng dữ liệu sai |
-| Nâng JDK/provider | Xem xét thay đổi localized number/date, khoảng trắng và quy tắc hiển thị |
-| Đầu ra HTML có nội dung động | Encode theo HTML context, không dựa vào MessageFormat |
+| `choice` with 0, 1, 2, 5 | Correct branch and grammar across supported data domain |
+| Subpattern containing `{0}` or `{1}` | Uses the right arguments array in the nested parse |
+| Same `{1}` string passed as an argument | Preserved verbatim as data, not parsed as a pattern |
+| `It's` / `don't` | Apostrophes appear correctly |
+| `'{0}'` / `''{0}''` | Distinguishes literal placeholder from quoted value |
+| `.properties` containing `\n` | Actual newline exists after reading the resource |
+| JSON containing `\n` | JSON parser handles escapes before the formatter |
+| Invalid pattern or missing arguments | Never leak `{1}` into the UI due to a broken data contract |
+| JDK/provider upgrades | Watch for changes in localized numbers/dates, spacing, and display rules |
+| HTML output with dynamic content | Encode per HTML context; do not rely on MessageFormat |
 
-### Kiểm thử độc lập các nhánh
+### Testing branches independently
 
-Khi dùng `ChoiceFormat`, đừng chỉ test một số “đại diện” mà bỏ qua ranh giới. Với `0#none|1#one|1<many`, tối thiểu thử `0`, `1`, `2` và các giá trị ngoài miền dữ liệu nếu API có thể nhận chúng.
+With `ChoiceFormat`, do not test just one “representative” number and skip boundaries. For `0#none|1#one|1<many`, test at minimum `0`, `1`, `2`, and out-of-domain values if the API can receive them.
 
-Nếu một nhánh con chứa placeholder mới `{2}` nhưng code chỉ truyền hai đối số, output có thể còn nguyên `{2}`. Nên phát hiện từ kiểm thử contract về **tập chỉ số và ý nghĩa từng chỉ số**, thay vì hy vọng formatter luôn báo lỗi.
+If a sub-branch contains a new placeholder `{2}` while the code passes only two arguments, the output may leave `{2}` intact. Catch this via contract tests over **index sets and the meaning of each index**, rather than hoping the formatter always throws an error.
 
-### Kiểm thử literal apostrophe ở nhiều nguồn
+### Testing literal apostrophes across multiple sources
 
-Một thông điệp tiếng Anh giống nhau, ví dụ “It's ready, Lan.”, khi lưu ở Java string literal, `.properties` và JSON có thể được viết khác nhau ở phần backslash, nhưng **pattern runtime sau khi decode** cần giữ chuỗi `It''s ready, {0}.`. Sau đó `MessageFormat` mới chuyển thành đầu ra có một apostrophe.
+The same English message, such as “It's ready, Lan.”, when stored in a Java string literal, `.properties`, and JSON, may be written differently with respect to backslashes, yet the **decoded runtime pattern** must preserve `It''s ready, {0}.`. Only then does `MessageFormat` produce output with one apostrophe.
 
-Đừng dùng regex thay thế `'` hoặc `{...}` theo kiểu toàn cục trên tệp dịch mà không hiểu thứ tự parser; có thể làm hỏng những mẫu đã quote đúng.
+Do not run global regex replacements on `'` or `{...}` across translation files without understanding parser order; you can break already properly quoted patterns.
 
-## 16. Các ngộ nhận phổ biến
+## 16. Common Misconceptions
 
-1. **“`ChoiceFormat` tự xử lý số nhiều theo CLDR.”** Không: nó chọn nhánh theo giới hạn số, không phải engine plural rules đa ngôn ngữ.
-2. **“Mọi chuỗi trả về có `{1}` sẽ được `MessageFormat` parse lại.”** Không: chuỗi đi vào dưới dạng argument là dữ liệu; mẫu con được chọn từ `choice` bên trong `MessageFormat` có cơ chế riêng.
-3. **“Dấu backslash escape được dấu ngoặc nhọn của MessageFormat.”** Không: dùng quy tắc dấu nháy đơn của pattern.
-4. **“Viết `'{0}'` sẽ in dấu nháy quanh đối số.”** Sai: nó in literal `{0}`; cần `''{0}''` để in `'X'`.
-5. **“Đặt pattern trong file properties thì không cần quote apostrophe.”** Sai nếu pattern được đưa qua `MessageFormat`; properties parser không thay thế quy tắc của formatter.
-6. **“Escape được trong Java source thì chắc chắn đúng khi qua MessageFormat.”** Sai: đó là hai parser nối tiếp.
-7. **“JSON và Java MessageFormat dùng chung cú pháp plural.”** Sai: JSON chỉ đóng vai trò định dạng chứa chuỗi; `MessageFormat` quyết định cú pháp của pattern bên trong.
-8. **“Lồng thêm một vòng format luôn an toàn và không đổi ý nghĩa.”** Sai: chuỗi chứa dấu ngoặc hoặc apostrophe có thể bị parse lại thành cú pháp.
-9. **“MessageFormat tự chống XSS khi hiển thị HTML.”** Sai: cần encode output theo HTML context.
-10. **“Một nhánh chạy đúng là toàn bộ pattern đúng.”** Sai: nhánh chưa chọn có thể có placeholder thiếu hoặc logic ngữ pháp sai.
+1. **“`ChoiceFormat` automatically handles CLDR plurals.”** No: it selects branches by numeric limits, not a multilingual plural rules engine.
+2. **“Any returned string containing `{1}` will be re-parsed by `MessageFormat`.”** No: strings entering as arguments are data; subpatterns chosen from `choice` inside `MessageFormat` have their own mechanism.
+3. **“Backslashes escape `MessageFormat` curly braces.”** No: use the pattern's single-quote rule.
+4. **“Writing `'{0}'` prints single quotes around the argument.”** False: it prints literal `{0}`; `''{0}''` is needed to print `'X'`.
+5. **“Putting a pattern in a properties file means apostrophes don't need quoting.”** False if the pattern is passed to `MessageFormat`; the properties parser does not replace formatter rules.
+6. **“If it escapes cleanly in Java source, it's definitely right for MessageFormat.”** False: those are two sequential parsers.
+7. **“JSON and Java MessageFormat share the same plural syntax.”** False: JSON only acts as a string transport format; `MessageFormat` governs the syntax of the pattern inside.
+8. **“Nesting another formatting pass is always safe and preserves meaning.”** False: strings containing braces or apostrophes may be re-parsed as syntax.
+9. **“MessageFormat automatically prevents XSS when rendering HTML.”** False: output must be encoded for the HTML context.
+10. **“If one branch runs right, the whole pattern is right.”** False: unexercised branches may have missing placeholders or broken grammar logic.
 
-## 17. Quy trình áp dụng trong ứng dụng thực tế
+## 17. Practical Application Workflow
 
-1. **Xác định nguồn pattern** (Java source, `.properties`, JSON hoặc catalog của thư viện i18n) và parser đầu tiên xử lý nguồn đó.
-2. **Xác định hợp đồng đối số**: index 0 đại diện điều gì, index 1 đại diện điều gì, kiểu dữ liệu dự kiến là gì.
-3. **Thiết kế các nhánh** theo nhu cầu ngữ pháp thực tế. Dùng `ChoiceFormat` cho bài toán ngưỡng phù hợp; với plural phức tạp, chọn công cụ có dữ liệu plural theo locale.
-4. **Viết pattern runtime**, rồi escape theo **MessageFormat** (apostrophe, braces) và theo **parser của nguồn lưu trữ**.
-5. **Nếu có mẫu con**, thử phần được chọn độc lập và sau đó thử pattern đầy đủ để phát hiện lỗi parse lồng.
-6. **Truyền locale tường minh** khi format số/ngày; không đổi default JVM trên mỗi request.
-7. **Truyền dữ liệu người dùng dưới dạng arguments**, tránh nối dữ liệu vào pattern; encode kết quả theo nơi hiển thị.
-8. **Kiểm thử mọi nhánh và locale được sản phẩm hỗ trợ**, nhất là dấu nháy đơn, ngoặc nhọn literal, số lượng biên và các tầng escape.
+1. **Identify the pattern source** (Java source, `.properties`, JSON, or an i18n library catalog) and the first parser that reads it.
+2. **Define the argument contract**: what index 0 represents, what index 1 represents, and what data types are expected.
+3. **Design branches** for real grammatical needs. Use `ChoiceFormat` for suitable threshold problems; for complex plurals, choose a tool with locale-specific plural data.
+4. **Write the runtime pattern**, then escape for **`MessageFormat`** (apostrophes, braces) and for the **storage source parser**.
+5. **If there are subpatterns**, test the selected part standalone and then test the full pattern to catch nested parse bugs.
+6. **Pass `Locale` explicitly** when formatting numbers/dates; do not change the JVM default per request.
+7. **Pass user data as arguments**, avoiding pattern concatenation; encode the result for its display destination.
+8. **Test every branch and product-supported locale**, especially single quotes, literal braces, boundary quantities, and escaping layers.
 
-### Tự kiểm tra
+### Self-Check
 
-**Câu 1.** Tại sao `Status: many {1}` vẫn có thể xuất hiện nguyên văn khi đưa `many {1}` làm đối số cho `MessageFormat("Status: {0}")`?
+**Question 1.** Why can `Status: many {1}` appear verbatim when passing `many {1}` as an argument to `MessageFormat("Status: {0}")`?
 
-**Đáp án:** `{1}` nằm **trong dữ liệu đối số**, nên không bị parse thành placeholder.
+**Answer:** `{1}` is **inside argument data**, so it is not parsed as a placeholder.
 
-**Câu 2.** Vì sao `{1}` ở nhánh `1<many {1}` của một `choice` lồng trong `MessageFormat` lại có thể trở thành `X`?
+**Question 2.** Why can `{1}` in the `1<many {1}` branch of a `choice` nested inside `MessageFormat` become `X`?
 
-**Đáp án:** Đoạn nhánh được chọn được xử lý như **pattern lồng** và dùng cùng mảng đối số.
+**Answer:** The selected branch fragment is processed as a **nested pattern** using the same argument array.
 
-**Câu 3.** Muốn in `It's ready.` từ `MessageFormat`, cần viết gì trong pattern runtime?
+**Question 3.** To print `It's ready.` from `MessageFormat`, what must be written in the runtime pattern?
 
-**Đáp án:** `It''s ready.` — hai apostrophe để tạo một apostrophe hiển thị.
+**Answer:** `It''s ready.` — two apostrophes to produce one displayed apostrophe.
 
-**Câu 4.** Dùng `\{0}` để in `{0}` nguyên văn có đúng không?
+**Question 4.** Is using `\{0}` to print literal `{0}` correct?
 
-**Đáp án:** Không. Trong `MessageFormat` dùng `'{0}'` ở pattern runtime.
+**Answer:** No. In `MessageFormat`, use `'{0}'` in the runtime pattern.
 
-**Câu 5.** Một chuỗi đã escape đúng cho `MessageFormat` có thể đưa thẳng vào HTML không?
+**Question 5.** Can a string properly escaped for `MessageFormat` be inserted straight into HTML?
 
-**Đáp án:** Không nhất thiết. Vẫn phải encode nội dung theo ngữ cảnh HTML hoặc dùng API hiển thị text phù hợp.
+**Answer:** Not necessarily. You must still encode content for the HTML context or use an appropriate text-display API.
 
-**Ghi nhớ:** **Lồng thông điệp là lồng những lần diễn giải pattern; escape phải đúng ở từng tầng.** Phân biệt chuỗi nguồn, pattern runtime, nhánh `choice` được format tiếp, dữ liệu đối số và ngữ cảnh hiển thị cuối cùng. Khi các tầng được phân định rõ, việc viết và kiểm thử bản dịch nhiều ngôn ngữ sẽ đáng tin cậy hơn.
+**Key Takeaway:** **Nested messages mean nested pattern interpretations; escaping must be right at every layer.** Distinguish source strings, runtime patterns, re-formatted `choice` branches, argument data, and the final display context. When the layers are clearly separated, writing and testing multilingual translations becomes far more reliable.

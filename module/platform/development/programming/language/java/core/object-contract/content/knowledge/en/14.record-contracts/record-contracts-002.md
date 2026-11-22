@@ -1,28 +1,28 @@
-# `equals()` của record: cùng lớp record và các thành phần tương ứng bằng nhau
+# Record `equals()`: Same Record Class and Equal Corresponding Components
 
-## 1. Record và quan hệ bằng nhau theo giá trị
+## 1. Records and Value-Based Equality
 
-`record` là một dạng lớp trong Java để khai báo các **thành phần dữ liệu (record components)** làm trạng thái chính của đối tượng. Với Java 17:
+`record` is a kind of class in Java for declaring **data components (record components)** as the primary state of an object. With Java 17:
 
 ```java
 record Point(int x, int y) {}
 ```
 
-Đây là một khai báo kiểu hợp lệ, chưa có `main` để chạy độc lập. Trình biên dịch tự sinh constructor chuẩn, accessor `x()`/`y()` và ba phương thức `equals(Object)`, `hashCode()`, `toString()` nếu lập trình viên không tự khai báo các phương thức tương ứng.
+This is a valid type declaration, without a `main` method to run standalone. The compiler automatically generates the canonical constructor, `x()`/`y()` accessors, and the three methods `equals(Object)`, `hashCode()`, and `toString()` if the programmer does not declare them explicitly.
 
-Với **`equals(Object)` do trình biên dịch sinh**, quy tắc là:
+For **compiler-generated `equals(Object)`**, the rule is:
 
-> Hai record bằng nhau khi chúng thuộc **cùng chính xác một lớp record** và **mọi cặp thành phần tương ứng đều bằng nhau**, theo ngữ nghĩa so sánh của kiểu thành phần.
+> Two records are equal when they belong to the **exact same record class** and **every pair of corresponding components is equal**, according to the comparison semantics of the component's type.
 
-Ví dụ `new Point(2, 3).equals(new Point(2, 3))` trả `true` mặc dù có hai đối tượng mới được tạo. `new Point(2, 3).equals(new Point(2, 4))` trả `false` vì thành phần `y` khác.
+For example, `new Point(2, 3).equals(new Point(2, 3))` returns `true` even though two new objects are created. `new Point(2, 3).equals(new Point(2, 4))` returns `false` because the `y` component differs.
 
-Điều này khác `==` trên hai tham chiếu: `==` hỏi chúng có trỏ tới **cùng một đối tượng** hay không. Một record phù hợp làm kiểu mang giá trị, ví dụ tọa độ, ngày giờ ghép từ các trường, đầu ra tính toán và khóa dữ liệu; nhưng phải thiết kế thành phần sao cho *tất cả các thành phần* thực sự thuộc ý nghĩa của giá trị logic.
+This differs from `==` on two references: `==` asks whether they point to **the exact same object**. A record is suitable as a value-carrying type, such as coordinates, composite date-time fields, computation outputs, and data keys; however, components must be designed so that *all components* truly belong to the logical value's meaning.
 
-Cần phân biệt **hành vi tự sinh** với trường hợp **tự override `equals`/`hashCode`**. Java cho phép viết hai phương thức này trong record. Khi làm vậy, lập trình viên chịu trách nhiệm hợp đồng bằng nhau và có thể chọn quy tắc khác mặc định (xem mục 8). Các phát biểu “cùng loại record và mọi component bằng nhau” trong bài áp dụng trực tiếp cho **phương thức tự sinh**.
+Distinguish **auto-generated behavior** from **customly overriding `equals`/`hashCode`**. Java allows writing these two methods in a record. When doing so, the programmer is responsible for the equality contract and may choose rules different from the default (see section 8). Statements about "same record type and all components equal" in this lesson apply directly to **the auto-generated methods**.
 
-## 2. Điều kiện đầu tiên: cùng chính xác record class
+## 2. First Condition: Exact Same Record Class
 
-Hai record có tên thành phần, kiểu và dữ liệu giống nhau vẫn là hai loại khác nhau nếu chúng được khai báo thành hai lớp riêng:
+Two records with identical component names, types, and data are still two different types if they are declared as two separate classes:
 
 ```java
 record Point(int x, int y) {}
@@ -35,33 +35,33 @@ System.out.println(p.equals(new Point(2, 3))); // true
 System.out.println(p.equals(c));               // false
 ```
 
-Đây là mảnh mã minh họa; chương trình hoàn chỉnh nằm ở mục 5. `Point` và `Coordinate` đều có hai `int` giống nhau nhưng là **hai record class khác nhau**. Equality tự sinh không làm phép so sánh cấu trúc xuyên lớp (structural equality). Hai record khác kiểu cũng không tự bằng nhau chỉ vì `toString()` trông gần giống hoặc `hashCode()` trùng nhau.
+This is an illustrative snippet; the complete program is in section 5. `Point` and `Coordinate` both have two identical `int`s, yet are **two different record classes**. Auto-generated equality does not perform cross-class structural comparison (structural equality). Nor are two records of different types automatically equal just because `toString()` looks similar or `hashCode()` collides.
 
-Một số hệ quả:
+Some consequences:
 
-- Hai đối tượng `Point` khác tham chiếu nhưng cùng `x` và `y` có thể bằng nhau; `p1 == p2` không phải cách so giá trị.
-- `Point` không mặc nhiên bằng `Coordinate` dù chúng có cùng dữ liệu và cùng tên thành phần.
-- Một biến kiểu `Object` hoặc interface giữ instance `Point` vẫn sử dụng triển khai `Point.equals` tại runtime.
-- `p.equals(null)` là `false`. Ngược lại, nếu **biến `p` chính nó là `null`**, `p.equals(...)` sẽ ném `NullPointerException`; có thể dùng `Objects.equals(p,q)` khi một trong hai tham chiếu có thể null.
+- Two `Point` objects with different references but the same `x` and `y` can be equal; `p1 == p2` is not how to compare values.
+- `Point` is not automatically equal to `Coordinate` even when they share the same data and component names.
+- A variable of type `Object` or an interface holding a `Point` instance still uses `Point.equals` at runtime.
+- `p.equals(null)` is `false`. Conversely, if **the variable `p` itself is `null`**, `p.equals(...)` will throw `NullPointerException`; you can use `Objects.equals(p, q)` when either reference might be null.
 
-Mọi record là lớp **ngầm định `final`** và trực tiếp mở rộng `java.lang.Record`. Vì vậy không có subclass nào của `Point` được phép thêm thành phần rồi override phép bằng nhau do `Point` cung cấp. Đây là khác biệt quan trọng so với một hệ phân cấp class thông thường, nơi lớp con dễ phá đối xứng của `equals` khi thêm điều kiện.
+Every record is an **implicitly `final`** class and directly extends `java.lang.Record`. Therefore, no subclass of `Point` is permitted to add components and override the equality provided by `Point`. This is an important difference from a regular class hierarchy, where a subclass easily breaks the symmetry of `equals` when adding conditions.
 
-## 3. Điều kiện thứ hai: mọi component tương ứng phải bằng nhau
+## 3. Second Condition: Every Corresponding Component Must Be Equal
 
-Sau khi xác định hai đối tượng thuộc cùng record class, `equals` tự sinh đánh giá mỗi **cặp component tương ứng theo thứ tự khai báo**. Ngữ nghĩa phụ thuộc vào kiểu của thành phần đó:
+After determining that two objects belong to the same record class, the auto-generated `equals` evaluates each **corresponding pair of components in declaration order**. The semantics depend on the type of that component:
 
-| Kiểu component | Quy tắc equality liên quan | Ví dụ |
+| Component Type | Relevant Equality Rule | Example |
 | --- | --- | --- |
-| `int`, `long`, `boolean`, `char` và các primitive không phải số thực | So giá trị nguyên thủy tương ứng | `Point(2,3)` bằng `Point(2,3)` |
-| `float` và `double` | Ngữ nghĩa như `Float.compare`/`Double.compare` (hoặc phép bằng nhau của wrapper), có quy tắc riêng cho NaN và signed zero | `NaN` bằng `NaN`; `+0.0` khác `-0.0` |
-| `String` | Dựa trên `String.equals`, so nội dung ký tự | Hai chuỗi khác tham chiếu cùng nội dung vẫn bằng |
-| Kiểu tham chiếu khác | So bằng `Objects.equals`, gọi `equals` của giá trị khi khác null | Record lồng nhau, `List`, đối tượng khác |
-| Mảng như `int[]` | `equals` kế thừa từ `Object`: so danh tính mảng | Hai mảng riêng cùng phần tử không tự bằng |
-| `List` | Theo hợp đồng `List.equals` của đối tượng thành phần | Hai danh sách có cùng phần tử theo thứ tự có thể bằng |
+| `int`, `long`, `boolean`, `char`, and non-floating-point primitives | Compares corresponding primitive values | `Point(2,3)` equals `Point(2,3)` |
+| `float` and `double` | Semantics like `Float.compare`/`Double.compare` (or wrapper equality), with special rules for NaN and signed zero | `NaN` equals `NaN`; `+0.0` differs from `-0.0` |
+| `String` | Based on `String.equals`, compares character contents | Two strings with different references and identical contents are still equal |
+| Other reference types | Compares using `Objects.equals`, calling the value's `equals` when non-null | Nested records, `List`, other objects |
+| Arrays such as `int[]` | `equals` inherited from `Object`: compares array identity | Two separate arrays with the same elements are not automatically equal |
+| `List` | Follows the `List.equals` contract of the component object | Two lists with the same elements in order can be equal |
 
-**Không có cơ chế mặc định “tự so sâu mọi thứ”**. Record sử dụng cách mà **kiểu component** định nghĩa equality. Nếu chỉ một thành phần khác nhau, hai record không bằng nhau.
+**There is no default mechanism to "automatically deep-compare everything"**. A record uses the way the **component type** defines equality. If even a single component differs, the two records are not equal.
 
-Ví dụ với component tham chiếu:
+Example with reference components:
 
 ```java
 record Label(String text) {}
@@ -72,25 +72,25 @@ boolean b = new Label(null).equals(new Label(null)); // true
 boolean c = new Label(null).equals(new Label("core")); // false
 ```
 
-Đây là mảnh minh họa. Hai `String` có cùng nội dung nên `String.equals` trả đúng; hai component `null` cũng bằng nhau khi so qua `Objects.equals`. Không nên nói `record` dựa vào identity của mọi field: identity chỉ là quy tắc của **những kiểu component** không override equality.
+This is an illustrative snippet. Two `String`s have the same content so `String.equals` returns true; two `null` components are also equal when compared via `Objects.equals`. You should not say that `record` relies on the identity of every field: identity is only the rule for **component types** that do not override equality.
 
-### Tại sao `float` và `double` cần chú ý?
+### Why Do `float` and `double` Need Attention?
 
-Primitive `double` có quy tắc toán tử `==` đặc biệt: `Double.NaN == Double.NaN` là `false`, còn `+0.0 == -0.0` là `true`. Nhưng `equals` tự sinh của record dùng ngữ nghĩa so sánh giúp duy trì tính phản xạ và tương thích hash:
+Primitive `double` has special `==` operator rules: `Double.NaN == Double.NaN` is `false`, while `+0.0 == -0.0` is `true`. However, a record's auto-generated `equals` uses comparison semantics that preserve reflexivity and hash compatibility:
 
-- `new Measurement(Double.NaN).equals(new Measurement(Double.NaN))` là `true`.
-- `new Measurement(+0.0).equals(new Measurement(-0.0))` là `false`.
-- Các bit biểu diễn NaN khác nhau được quy về cùng lớp tương đương khi dùng ngữ nghĩa `Double.compare`/`Double.equals`.
+- `new Measurement(Double.NaN).equals(new Measurement(Double.NaN))` is `true`.
+- `new Measurement(+0.0).equals(new Measurement(-0.0))` is `false`.
+- Different NaN bit representations are grouped into the same equivalence class when using `Double.compare`/`Double.equals` semantics.
 
-Vì vậy **không thể giả định** record dùng phép `==` primitive đơn thuần cho mọi component. Nếu tự viết lại `equals` của record chứa số thực, cần đặc biệt kiểm tra NaN, số không có dấu và `hashCode`.
+Therefore, **you cannot assume** a record uses plain primitive `==` for every component. If manually rewriting `equals` for a record containing floating-point numbers, be sure to specifically test NaN, signed zeros, and `hashCode`.
 
-### Record component và ý nghĩa danh tính nghiệp vụ
+### Record Components and Business Identity Meaning
 
-`record Product(String sku, String displayName) {}` so cả `sku` **lẫn** `displayName`. Nếu chỉ `sku` xác định danh tính sản phẩm, một thay đổi của tên hiển thị sẽ khiến hai `Product` khác nhau theo equality mặc định. Khi thiết kế, cần quyết định record này biểu diễn **snapshot đầy đủ** hay **mã nhận dạng**, tránh dùng nhầm record snapshot làm khóa chỉ cần một ID.
+`record Product(String sku, String displayName) {}` compares both `sku` **and** `displayName`. If only `sku` identifies a product, a change in the display name will cause two `Product`s to differ under default equality. During design, decide whether this record represents a **full snapshot** or an **identifier**, avoiding accidentally using a snapshot record as a key when only an ID is needed.
 
-## 4. Mảng và dữ liệu có thể thay đổi: giới hạn của record
+## 4. Arrays and Mutable Data: Limitations of Records
 
-### Component là mảng
+### Array Components
 
 ```java
 record NumberBox(int[] numbers) {}
@@ -100,13 +100,13 @@ NumberBox b = new NumberBox(new int[] {1, 2});
 System.out.println(a.equals(b)); // false
 ```
 
-Hai mảng có nội dung bằng nhau nhưng là hai **đối tượng mảng** khác nhau. So `NumberBox` mặc định dùng equality của `int[]`, nghĩa là theo identity của mảng. Nếu muốn so nội dung mảng phải thiết kế điều đó tường minh, chẳng hạn dùng `Arrays.equals` trong cặp `equals`/`hashCode` được tự cài hoặc chuyển sang thành phần collection bất biến có ngữ nghĩa phù hợp.
+The two arrays have equal contents but are two different **array objects**. Comparing `NumberBox` by default uses `int[]` equality, meaning by array identity. If you want to compare array contents, that must be designed explicitly, such as using `Arrays.equals` in a custom `equals`/`hashCode` pair or switching to an immutable collection component with appropriate semantics.
 
-Nếu hai record được tạo với **cùng tham chiếu mảng**, chúng có thể bằng nhau. Điều này chỉ xác nhận cùng đối tượng mảng, không chứng minh so từng phần tử.
+If two records are created with **the same array reference**, they can be equal. This only confirms the same array object, not element-by-element comparison.
 
-### `final` không đồng nghĩa bất biến sâu
+### `final` Does Not Mean Deep Immutability
 
-Record chứa các trường component `private final` nên không gán lại tham chiếu sau khi tạo. Nhưng phần tử tham chiếu vẫn có thể trỏ tới đối tượng mutable:
+A record holds `private final` component fields so the reference cannot be reassigned after creation. However, a reference component can still point to a mutable object:
 
 ```java
 record Permissions(java.util.List<String> roles) {}
@@ -115,12 +115,12 @@ java.util.List<String> mutable = new java.util.ArrayList<>();
 mutable.add("READER");
 Permissions p = new Permissions(mutable);
 
-mutable.add("EDITOR"); // Nội dung List bên trong p đã thay đổi.
+mutable.add("EDITOR"); // The List contents inside p have changed.
 ```
 
-Đây là mảnh code minh họa. `List.equals` và `List.hashCode` dựa trên các phần tử, nên khi list thay đổi, `p.equals(...)` và `p.hashCode()` cũng có thể thay đổi. Điều đó nguy hiểm nếu `p` đã là khóa trong `HashMap` hay phần tử của `HashSet`.
+This is an illustrative code snippet. `List.equals` and `List.hashCode` are based on elements, so when the list changes, `p.equals(...)` and `p.hashCode()` can also change. That is dangerous if `p` is already a key in a `HashMap` or an element of a `HashSet`.
 
-Giải pháp với `List<String>` là sao chép và giữ một danh sách không thể sửa từ bên ngoài:
+The solution for `List<String>` is to copy and retain a list that cannot be modified from outside:
 
 ```java
 record Permissions(java.util.List<String> roles) {
@@ -130,13 +130,13 @@ record Permissions(java.util.List<String> roles) {
 }
 ```
 
-Đây là record Java 17 hợp lệ, dùng compact constructor. `List.copyOf` tạo snapshot không thể sửa qua API thông thường và từ chối phần tử null; với `String` bất biến, việc giữ khóa ổn định đơn giản hơn. Với list các đối tượng mutable, list không sửa được **không tự bất biến hóa phần tử**.
+This is a valid Java 17 record using a compact constructor. `List.copyOf` creates a snapshot that cannot be modified through normal APIs and rejects null elements; with immutable `String`s, keeping the key stable is simpler. With a list of mutable objects, an unmodifiable list **does not automatically make elements immutable**.
 
-Với mảng, chỉ clone ở constructor mà accessor vẫn công khai trả mảng nội bộ thì vẫn có nguy cơ bị sửa qua accessor. Cần cân nhắc sao chép phòng vệ ở cả đầu vào/đầu ra và định nghĩa equality/hash có mục đích.
+With arrays, cloning only in the constructor while the accessor still publicly exposes the internal array still leaves a risk of mutation via the accessor. Consider defensive copying on both input/output and purposefully defining equality/hashing.
 
-## 5. Ví dụ Java 17+ biên dịch và chạy
+## 5. Compilable and Runnable Java 17+ Example
 
-Tạo tệp `RecordEqualityDemo.java`:
+Create the file `RecordEqualityDemo.java`:
 
 ```java
 import java.util.Arrays;
@@ -197,14 +197,14 @@ public class RecordEqualityDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac --release 17 RecordEqualityDemo.java
 java RecordEqualityDemo
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 same reference: false
@@ -223,25 +223,25 @@ NaN records equal: true
 signed zero records equal: false
 ```
 
-Giải thích theo kết quả:
+Explanation based on the output:
 
-1. `p1` và `p2` là hai object khác nhau nên `== false`, nhưng cùng record class với cùng `x`/`y` nên `equals true`.
-2. `p3` khác `y`; `Coordinate` khác kiểu runtime. Cả hai trường hợp không bằng `p1`.
-3. Hai `Point` bằng nhau có cùng hash. `HashSet` chỉ giữ một giá trị logic; `HashMap` tìm được mục đã chèn bằng đối tượng `Point` mới cùng dữ liệu.
-4. `String` component so theo nội dung; hai component cùng `null` cũng bằng. Hai mảng có phần tử giống nhau theo `Arrays.equals` nhưng hai `NumberBox` chứa mảng khác tham chiếu không bằng; nếu dùng cùng mảng thì bằng.
-5. Record số thực xem NaN bằng NaN, nhưng phân biệt `+0.0` và `-0.0` theo ngữ nghĩa wrapper, khác trực giác từ phép `==` primitive.
+1. `p1` and `p2` are two distinct objects so `== false`, yet belong to the same record class with the same `x`/`y` so `equals true`.
+2. `p3` differs in `y`; `Coordinate` differs in runtime type. Neither equals `p1`.
+3. Two equal `Point`s have the same hash. `HashSet` keeps only one logical value; `HashMap` finds the inserted entry using a new `Point` object with the same data.
+4. `String` components compare by contents; two `null` components are also equal. Two arrays have identical elements per `Arrays.equals`, yet two `NumberBox` instances holding different array references are unequal; if they share the same array, they are equal.
+5. The floating-point record treats NaN as equal to NaN, yet distinguishes `+0.0` and `-0.0` per wrapper semantics, differing from intuition built on primitive `==`.
 
-## 6. `hashCode()` và hành vi collection
+## 6. `hashCode()` and Collection Behavior
 
-Ngoài `equals`, Java sinh `hashCode()` tương ứng với các thành phần. Bất biến bắt buộc là:
+In addition to `equals`, Java generates `hashCode()` corresponding to the components. The required invariant is:
 
 ```text
 a.equals(b) == true  =>  a.hashCode() == b.hashCode()
 ```
 
-Đây là biểu thức về hợp đồng. Chiều ngược lại **không đúng**: nhiều giá trị khác nhau có thể có cùng hash (va chạm). Giá trị số cụ thể của hash code record không phải thứ cần dựa vào khi thiết kế hợp đồng ứng dụng, vì cách kết hợp các thành phần không được hứa là một công thức công khai cố định cho mọi triển khai JDK.
+This is an expression of the contract. The converse is **false**: different values may have the same hash (collisions). The specific numeric value of a record's hash code is not something to rely on when designing application contracts, because how components are combined is not promised as a fixed public formula across all JDK implementations.
 
-Record có component ổn định làm khóa rất thuận tiện:
+Records with stable components make very convenient keys:
 
 ```java
 record Key(String code, int version) {}
@@ -251,27 +251,27 @@ map.put(new Key("ORD-7", 2), "done");
 String result = map.get(new Key("ORD-7", 2)); // "done"
 ```
 
-Đây là mảnh mã minh họa, không cần cùng tham chiếu key vì `equals` dùng giá trị. Nhưng record có `List` hoặc đối tượng mutable mà tham gia `equals`/`hashCode` có thể bị đổi hash khi nội dung thay đổi, khiến việc tìm lại khóa không còn tin cậy.
+This is an illustrative snippet; the same key reference is not required because `equals` uses values. However, a record with a `List` or mutable object participating in `equals`/`hashCode` can change its hash when its contents change, making key lookup unreliable.
 
-Đừng nhầm với collection có thứ tự: `TreeMap`/`TreeSet` dựa trên `Comparable`/`Comparator`. `record Point(int x,int y) {}` không tự triển khai `Comparable<Point>`; việc có `equals`/`hashCode` không tạo ra thứ tự tự nhiên. Muốn dùng sorted collection cần cung cấp comparator hoặc triển khai Comparable phù hợp.
+Do not confuse this with ordered collections: `TreeMap`/`TreeSet` rely on `Comparable`/`Comparator`. `record Point(int x,int y) {}` does not automatically implement `Comparable<Point>`; having `equals`/`hashCode` does not create a natural ordering. To use sorted collections, provide an appropriate comparator or implement `Comparable`.
 
-## 7. Những lỗi và hiểu lầm điển hình
+## 7. Typical Mistakes and Misconceptions
 
-**“Hai record có cùng các trường thì phải bằng nhau.”** Chưa đủ. Với equality được tự sinh, **cùng chính xác record class** cũng là điều kiện bắt buộc; `Point(2,3)` khác `Coordinate(2,3)`.
+**"Two records with the same fields must be equal."** Not sufficient. With auto-generated equality, **the exact same record class** is also a required condition; `Point(2,3)` differs from `Coordinate(2,3)`.
 
-**“Record tự so sâu toàn bộ thành phần tham chiếu.”** Sai. Nó dùng `equals` của thành phần. `String` so nội dung, `List` so phần tử theo hợp đồng List, còn mảng mặc định so identity. Với một kiểu do bạn viết mà không override `equals`, thành phần đó vẫn so identity.
+**"Records automatically deep-compare all reference components."** False. They use the component's `equals`. `String` compares contents, `List` compares elements per the List contract, and arrays default to identity. For a custom type you wrote without overriding `equals`, that component still compares by identity.
 
-**“Mọi record đều bất biến tuyệt đối.”** Sai. Các tham chiếu trường component là `final` nhưng đối tượng mà chúng trỏ đến có thể mutable. Đặc biệt mảng và danh sách thường yêu cầu sao chép phòng vệ nếu cần giá trị ổn định.
+**"All records are completely immutable."** False. Component field references are `final`, but the objects they point to can be mutable. Arrays and lists in particular often require defensive copying if stable values are needed.
 
-**“Record sử dụng `==` cho mọi primitive.”** Với `float`/`double`, equality tự sinh xử lý NaN và signed zero theo ngữ nghĩa như wrapper, khác toán tử `==` primitive. Test các giá trị biên trước khi tự cài `equals`.
+**"Records use `==` for all primitives."** For `float`/`double`, auto-generated equality handles NaN and signed zero using wrapper-like semantics, differing from the primitive `==` operator. Test boundary values before implementing `equals` manually.
 
-**“Có equals rồi không cần hashCode.”** Nếu giữ cả hai phương thức tự sinh, Java đảm bảo tính tương thích. Nhưng khi tự override `equals` và bỏ qua `hashCode`, bạn có thể phá hợp đồng, nhất là nếu bỏ một component khỏi phép so sánh.
+**"Having equals means hashCode is unnecessary."** If keeping both auto-generated methods, Java guarantees compatibility. However, if overriding `equals` and omitting `hashCode`, you can break the contract, especially if excluding a component from comparison.
 
-**“`toString` giống nhau đồng nghĩa đối tượng bằng nhau.”** `toString` nhằm hiển thị/debug, không là hợp đồng danh tính. Không dựa vào chuỗi in để thay `equals`, hoặc dùng thứ tự hiển thị để suy ra kết quả hash.
+**"Identical `toString` means objects are equal."** `toString` is for display/debugging, not an identity contract. Do not rely on printed strings in place of `equals`, or use display order to infer hash results.
 
-## 8. Khi cần equality khác mặc định: nên thiết kế thế nào?
+## 8. When Equality Different from the Default Is Needed: How Should You Design It?
 
-Java cho phép khai báo tường minh `equals(Object)` và `hashCode()` trong record. Ví dụ, một object hiển thị sản phẩm có mã `sku` là khóa, còn `displayName` chỉ là dữ liệu bổ sung:
+Java allows explicitly declaring `equals(Object)` and `hashCode()` in a record. For example, a product display object has `sku` as a key, while `displayName` is merely supplementary data:
 
 ```java
 import java.util.Objects;
@@ -294,23 +294,23 @@ record Product(String sku, String displayName) {
 }
 ```
 
-Đây là một khai báo record Java 17 hợp lệ, chỉ là ví dụ về **tùy biến**; nó không còn so `displayName`. Hai `Product` cùng `sku` sẽ bằng nhau dù `displayName` khác. Cần giữ `equals`/`hashCode` dựa trên cùng khóa và dữ liệu khóa ổn định.
+This is a valid Java 17 record declaration, solely as an example of **customization**; it no longer compares `displayName`. Two `Product`s with the same `sku` will be equal even if `displayName` differs. Ensure `equals`/`hashCode` are based on the same key and that the key data is stable.
 
-Nhưng khi mục tiêu chỉ là dùng mã sản phẩm làm khóa map, phương án đơn giản hơn thường là thiết kế `record ProductId(String sku) {}` riêng và lưu `displayName` trong một model khác. Như vậy không phải phá sự kỳ vọng mặc định rằng component của record xác định trạng thái giá trị của chính record.
+However, when the goal is simply to use a product code as a map key, a simpler option is usually to design a separate `record ProductId(String sku) {}` and store `displayName` in another model. That avoids breaking the default expectation that a record's components determine the value state of the record itself.
 
-Khi tự override equality, cần bảo vệ hợp đồng `Object`: phản xạ, đối xứng, bắc cầu, nhất quán, xử lý null và chiều suy ra giữa equals/hashCode. Đừng tùy tiện coi hai record class khác nhau là bằng nhau; phải xác định rõ ý nghĩa và kiểm chứng sự đối xứng giữa cả hai loại.
+When manually overriding equality, protect the `Object` contract: reflexivity, symmetry, transitivity, consistency, null handling, and the implication between equals/hashCode. Do not arbitrarily treat two different record classes as equal; define the meaning clearly and verify symmetry across both types.
 
-## 9. Checklist kiểm thử một record
+## 9. Checklist for Testing a Record
 
-1. Hai instance **cùng record class** và cùng tất cả component phải bằng nhau khi dùng phương thức tự sinh, dù khác tham chiếu.
-2. Đổi một component thì kết quả phải thay đổi theo ngữ nghĩa equality của đúng kiểu component đó.
-3. Hai **record class khác nhau** có cùng cấu trúc/dữ liệu vẫn không bằng nhau theo mặc định.
-4. Thử component `null`, `String`, record lồng nhau, mảng và collection để hiểu kiểu nào so giá trị, kiểu nào so identity.
-5. Kiểm tra `float`/`double` với NaN và hai signed zero; tránh áp dụng `==` primitive một cách máy móc.
-6. Với component tham chiếu mutable, kiểm tra khả năng dữ liệu bị sửa sau khi tạo; dùng sao chép phòng vệ/bất biến khi làm khóa collection.
-7. Hai record bằng nhau phải có cùng `hashCode()`; không đòi hỏi hash bằng nhau phải kéo theo record bằng nhau.
-8. Dùng `HashSet`/`HashMap` với khóa mới cùng giá trị để xác minh tìm kiếm và loại trùng theo ý nghĩa nghiệp vụ.
-9. Nếu tự viết `equals`, luôn xem xét lại `hashCode`, sự ổn định, phản xạ, đối xứng và bắc cầu; xem liệu có nên tạo record khóa riêng.
-10. Nếu yêu cầu sắp xếp, xác định `Comparator` hoặc `Comparable` riêng, vì record không tự có thứ tự tự nhiên.
+1. Two instances of **the same record class** with all identical components must be equal when using generated methods, even with different references.
+2. Changing one component must change the result according to the equality semantics of that exact component type.
+3. Two **different record classes** with the same structure/data remain unequal by default.
+4. Test `null` components, `String`, nested records, arrays, and collections to understand which types compare by value and which compare by identity.
+5. Test `float`/`double` with NaN and both signed zeros; avoid mechanically applying primitive `==`.
+6. For mutable reference components, test whether data can be modified after creation; use defensive copies/immutability when used as collection keys.
+7. Two equal records must have the same `hashCode()`; do not require equal hashes to imply equal records.
+8. Use `HashSet`/`HashMap` with a new key of the same value to verify lookup and deduplication according to business meaning.
+9. If writing `equals` manually, always review `hashCode`, stability, reflexivity, symmetry, and transitivity; consider whether a separate key record should be created.
+10. If sorting is required, define a separate `Comparator` or `Comparable`, as records do not automatically have a natural ordering.
 
-**Kết luận:** `equals(Object)` do Java tự sinh cho record trả `true` khi đối tượng kia **cùng chính xác record class** và **từng cặp component tương ứng bằng nhau**. Phần “bằng nhau” đến từ kiểu component: primitive, số thực, `String`, mảng và collection có những quy tắc khác nhau. Thiết kế đúng loại và tính ổn định của component quyết định record có thực sự là giá trị đáng tin cậy trong ứng dụng hay không.
+**Conclusion:** Java's auto-generated `equals(Object)` for a record returns `true` when the other object is of **the exact same record class** and **each pair of corresponding components is equal**. What "equal" means comes from the component type: primitives, floating-point numbers, `String`, arrays, and collections have different rules. Designing the right types and stability of components determines whether a record is truly a reliable value in an application.

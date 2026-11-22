@@ -1,38 +1,38 @@
-# Mảng rỗng khác tham chiếu mảng `null` trong Java
+# Empty Arrays Differ from `null` Array References in Java
 
-> **Java core — language-basics / Mảng một chiều**  
-> **Môi trường:** JDK 17+, một file Java tự chứa, chỉ sử dụng thư viện chuẩn.  
-> **Mục tiêu:** Phân biệt mảng có `length == 0` với tham chiếu không trỏ tới mảng (`null`), dự đoán hành vi khi đọc `length`, truy cập phần tử hay duyệt bằng `for-each`, và thiết kế cách xử lý null/rỗng rõ ràng.
+> **Java core — language-basics / One-Dimensional Arrays**  
+> **Environment:** JDK 17+, a self-contained Java file using only the standard library.  
+> **Goal:** Distinguish an array with `length == 0` from a reference not pointing to any array (`null`), predict behavior when reading `length`, accessing elements, or iterating with `for-each`, and design clear null/empty handling.
 
-## 1. Hai trạng thái hoàn toàn khác nhau
+## 1. Two completely different states
 
 ~~~java
-int[] empty = new int[0]; // Có đối tượng mảng; length = 0.
-int[] alsoEmpty = {};     // Một đối tượng mảng rỗng khác.
-int[] missing = null;     // Không trỏ tới đối tượng mảng nào.
+int[] empty = new int[0]; // Has an array object; length = 0.
+int[] alsoEmpty = {};     // Another empty array object.
+int[] missing = null;     // Points to no array object.
 
 System.out.println(empty.length);    // 0
 System.out.println(missing == null);  // true
 ~~~
 
-**Mảng rỗng** tồn tại trong bộ nhớ, có kiểu mảng cụ thể và có thuộc tính `length` bằng 0. **Tham chiếu mảng null** không trỏ tới bất kỳ đối tượng nào; nó không có thuộc tính `length` để truy cập.
+An **empty array** exists in memory, has a concrete array type, and has a `length` property equal to 0. A **null array reference** does not point to any object; it has no `length` property to access.
 
-Đây không phải khác biệt về **giá trị các phần tử**: mảng rỗng hoàn toàn **không có phần tử**. Mảng `new int[2]` có hai phần tử bằng 0, còn mảng `new String[2]` có hai phần tử bằng `null` — cả hai đều **không rỗng**.
+This is not a difference in **element values**: an empty array has **no elements at all**. The array `new int[2]` has two elements equal to 0, and `new String[2]` has two elements equal to `null` — both are **non-empty**.
 
-| Khía cạnh | Mảng rỗng `new int[0]` | Tham chiếu `int[] a = null` |
+| Aspect | Empty array `new int[0]` | Reference `int[] a = null` |
 | --- | --- | --- |
-| Có đối tượng mảng? | Có | Không |
+| Has an array object? | Yes | No |
 | `a == null` | `false` | `true` |
-| `a.length` | `0` | Ném `NullPointerException` |
-| Duyệt `for (int x : a)` | 0 lượt, không lỗi | Ném `NullPointerException` |
-| Đọc `a[0]` | `ArrayIndexOutOfBoundsException` | `NullPointerException` |
+| `a.length` | `0` | Throws `NullPointerException` |
+| Iterating `for (int x : a)` | 0 iterations, no error | Throws `NullPointerException` |
+| Reading `a[0]` | `ArrayIndexOutOfBoundsException` | `NullPointerException` |
 | `a instanceof int[]` | `true` | `false` |
 
-Khai báo `int[] data;` làm biến cục bộ **chưa được gán**, khác với `int[] data = null;`. Java không cho đọc một biến cục bộ chưa được khởi tạo.
+Declaring `int[] data;` makes an **unassigned** local variable, which differs from `int[] data = null;`. Java does not allow reading an uninitialized local variable.
 
-## 2. Cách tạo mảng rỗng và độ dài cố định
+## 2. How to create an empty array and fixed length
 
-Có thể tạo một mảng rỗng theo nhiều cách:
+You can create an empty array in several ways:
 
 ~~~java
 int[] first = new int[0];
@@ -41,7 +41,7 @@ int[] third = new int[] {};
 String[] names = {};
 ~~~
 
-Mỗi lần thực hiện biểu thức tạo mảng là tạo **một đối tượng mảng mới**. Các đối tượng có thể cùng độ dài và cùng nội dung nhưng không nhất thiết cùng tham chiếu:
+Each time an array creation expression executes, **a new array object** is created. Objects can have the same length and contents without necessarily sharing the same reference:
 
 ~~~java
 int[] a = {};
@@ -50,40 +50,40 @@ System.out.println(a == b);                     // false
 System.out.println(java.util.Arrays.equals(a,b)); // true
 ~~~
 
-`a == b` so sánh **tham chiếu**; `Arrays.equals(a, b)` so sánh **phần tử** (hai mảng rỗng cùng kiểu thành phần có nội dung bằng nhau theo phép so sánh phù hợp).
+`a == b` compares **references**; `Arrays.equals(a, b)` compares **elements** (two empty arrays with the same component type have equal contents under the appropriate comparison).
 
-Độ dài mảng là cố định. Muốn chuyển từ mảng rỗng sang một mảng có hai phần tử, ta phải tạo mảng mới và gán lại biến tham chiếu:
+Array length is fixed. To go from an empty array to an array with two elements, you must create a new array and reassign the reference variable:
 
 ~~~java
 int[] data = {};
-data = new int[] {5, 7}; // data trỏ đối tượng khác, length = 2.
+data = new int[] {5, 7}; // data points to a different object, length = 2.
 ~~~
 
-Điều này không làm “mở rộng” đối tượng rỗng ban đầu. Nếu có một biến khác đang tham chiếu đối tượng rỗng cũ, nó vẫn trỏ tới mảng dài 0.
+This does not "expand" the original empty object. If another variable was referencing the old empty object, it still points to the array of length 0.
 
-## 3. `length`, chỉ số và hai kiểu ngoại lệ
+## 3. `length`, indices, and two types of exceptions
 
-Với một mảng hợp lệ có `n` phần tử, chỉ số hợp lệ là từ `0` đến `n - 1`. Với `n = 0`, **không có chỉ số hợp lệ**:
+For a valid array with `n` elements, valid indices are from `0` to `n - 1`. When `n = 0`, **there are no valid indices**:
 
 ~~~java
 int[] empty = new int[0];
 System.out.println(empty.length); // 0
-// int x = empty[0]; // Nếu chạy: ArrayIndexOutOfBoundsException.
+// int x = empty[0]; // At runtime: ArrayIndexOutOfBoundsException.
 ~~~
 
-Còn với tham chiếu `null`, thao tác cần truy cập đối tượng sẽ không thành công:
+With a `null` reference, any operation that needs to access the object will fail:
 
 ~~~java
 int[] missing = null;
-// int size = missing.length; // Nếu chạy: NullPointerException.
-// int x = missing[0];        // Nếu chạy: NullPointerException.
+// int size = missing.length; // At runtime: NullPointerException.
+// int x = missing[0];        // At runtime: NullPointerException.
 ~~~
 
-Đọc `empty.length` hợp lệ vì đối tượng tồn tại; đọc `missing.length` không thể. `ArrayIndexOutOfBoundsException` xảy ra khi **đã có mảng** nhưng chỉ số nằm ngoài phạm vi; `NullPointerException` xảy ra khi cố truy cập qua **tham chiếu null**.
+Reading `empty.length` is valid because the object exists; reading `missing.length` is impossible. `ArrayIndexOutOfBoundsException` occurs when **an array already exists** but the index is out of range; `NullPointerException` occurs when attempting to access through a **null reference**.
 
-Java không tự chuyển `null` thành mảng rỗng và không tự cho `a[0]` bằng 0 khi mảng không có phần tử.
+Java does not automatically convert `null` into an empty array, nor does it make `a[0]` equal 0 when the array has no elements.
 
-## 4. Duyệt `for-each` và tích lũy an toàn
+## 4. `for-each` traversal and safe accumulation
 
 ~~~java
 static long sum(int[] values) {
@@ -95,11 +95,11 @@ static long sum(int[] values) {
 }
 ~~~
 
-Nếu truyền một mảng rỗng, thân `for-each` chạy **0 lần** và phương thức trả `0`. Nếu truyền `null`, vòng `for-each` sẽ cố lấy nguồn dữ liệu để duyệt và ném `NullPointerException`.
+If an empty array is passed, the `for-each` body runs **0 times** and the method returns `0`. If `null` is passed, the `for-each` loop attempts to retrieve the data source to iterate and throws `NullPointerException`.
 
-Với dữ liệu có thể null, cần quyết định **hợp đồng phương thức**:
+For data that may be null, decide the **method contract**:
 
-**Cách A — null là lỗi đầu vào (strict):**
+**Approach A — null is an invalid input (strict):**
 
 ~~~java
 static long strictSum(int[] values) {
@@ -112,7 +112,7 @@ static long strictSum(int[] values) {
 }
 ~~~
 
-**Cách B — null được coi như không có phần tử (có chủ đích):**
+**Approach B — null is treated as having no elements (intentional):**
 
 ~~~java
 static long sumOrZero(int[] values) {
@@ -127,11 +127,11 @@ static long sumOrZero(int[] values) {
 }
 ~~~
 
-Hai lựa chọn có ngữ nghĩa khác nhau: *strict* giúp phát hiện sai hợp đồng sớm; *null-as-empty* có thể tiện cho dữ liệu tùy chọn nhưng cũng có thể che lỗi nguồn. **Đừng tự ý biến null thành mảng rỗng** nếu nghiệp vụ phân biệt “chưa có dữ liệu” và “có dữ liệu nhưng rỗng”.
+The two choices have different semantics: *strict* catches contract violations early; *null-as-empty* can be convenient for optional data, yet it can also mask upstream bugs. **Do not silently turn null into an empty array** if the domain distinguishes "data not present" from "data present but empty."
 
-## 5. Phân biệt ba trạng thái: null, rỗng, có phần tử
+## 5. Distinguishing three states: null, empty, non-empty
 
-Khi cần trả thông báo khác nhau, nên kiểm tra null **trước**:
+When you need to return different statuses, check for null **first**:
 
 ~~~java
 static String classify(int[] values) {
@@ -145,20 +145,20 @@ static String classify(int[] values) {
 }
 ~~~
 
-Thứ tự trên vừa tránh `NullPointerException`, vừa giữ rõ ý nghĩa trạng thái:
+This order both avoids `NullPointerException` and preserves clear state semantics:
 
-| Đầu vào | Giá trị trả về |
+| Input | Return value |
 | --- | --- |
 | `null` | `"NULL"` |
 | `new int[0]` | `"EMPTY"` |
 | `new int[] {0}` | `"NON_EMPTY:1"` |
 | `new int[] {4, 5}` | `"NON_EMPTY:2"` |
 
-Nếu chỉ cần tính tổng hay đếm, có thể dùng chính sách null-as-empty. Nếu ứng dụng cần phân biệt dữ liệu chưa được tải với dữ liệu đã tải nhưng không có phần tử, nên giữ hai trạng thái riêng.
+If you only need to sum or count, the null-as-empty policy may suffice. If the application needs to distinguish data not yet loaded from data that was loaded with zero items, keep the two states separate.
 
-## 6. `Arrays.toString`, sao chép và mảng chứa phần tử `null`
+## 6. `Arrays.toString`, copying, and arrays containing `null` elements
 
-`java.util.Arrays.toString(...)` hữu ích khi in nội dung mảng và **xử lý được tham chiếu mảng null**:
+`java.util.Arrays.toString(...)` is useful for printing array contents and **handles a null array reference**:
 
 ~~~java
 int[] empty = {};
@@ -167,9 +167,9 @@ System.out.println(java.util.Arrays.toString(empty));   // []
 System.out.println(java.util.Arrays.toString(missing)); // null
 ~~~
 
-Dòng thứ hai in chuỗi chữ `null`, **không có nghĩa mảng đã được tạo**. Đó là hành vi của phương thức định dạng, không phải của `missing.length`.
+The second line prints the literal text `null`, which **does not mean an array was created**. That is the behavior of the formatting method, not of `missing.length`.
 
-Một mảng tham chiếu có thể chứa giá trị `null` trong các vị trí tồn tại:
+A reference array can hold `null` values in its existing slots:
 
 ~~~java
 String[] slots = new String[2];
@@ -177,13 +177,13 @@ System.out.println(java.util.Arrays.toString(slots)); // [null, null]
 System.out.println(slots.length); // 2.
 ~~~
 
-`slots` không rỗng dù mỗi phần tử đang null. `slots[0] == null` kiểm tra phần tử đầu tiên; `slots == null` kiểm tra chính **tham chiếu mảng**.
+`slots` is not empty even though each element is null. `slots[0] == null` checks the first element; `slots == null` checks the **array reference** itself.
 
-Có thể `clone()` một mảng rỗng để tạo một mảng rỗng **khác**. Nếu cố gọi `missing.clone()` khi `missing == null`, Java ném `NullPointerException`.
+You can `clone()` an empty array to create **another** empty array. Trying to call `missing.clone()` when `missing == null` throws `NullPointerException`.
 
-## 7. Chương trình Java 17+ chạy độc lập
+## 7. Standalone Java 17+ program
 
-Tạo file **EmptyVsNullArrayDemo.java**:
+Create the file **EmptyVsNullArrayDemo.java**:
 
 ~~~java
 import java.util.Arrays;
@@ -286,14 +286,14 @@ public final class EmptyVsNullArrayDemo {
 }
 ~~~
 
-Biên dịch và chạy tại thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Compile and run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 EmptyVsNullArrayDemo.java
 java EmptyVsNullArrayDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 emptyNull=false
@@ -322,30 +322,30 @@ newLength=2
 oldAliasLength=0
 ~~~
 
-`differentObjects=true` minh họa hai mảng rỗng có thể khác tham chiếu; `nullElements` cho thấy mảng dài 2 vẫn có thể chứa các phần tử null. `emptyIndex` và `missingLength` phân biệt rõ hai ngoại lệ; `oldAliasLength=0` chứng minh gán biến sang một mảng khác không biến đổi mảng cũ.
+`differentObjects=true` illustrates that two empty arrays can have different references; `nullElements` shows that an array of length 2 can still contain null elements. `emptyIndex` and `missingLength` clearly distinguish the two exceptions; `oldAliasLength=0` proves that reassigning a variable to another array does not mutate the old array.
 
-## 8. Sai lầm phổ biến và bài tập
+## 8. Common pitfalls and exercises
 
-| Hiểu lầm / lỗi | Cách hiểu đúng |
+| Misconception / error | Correct understanding |
 | --- | --- |
-| `new int[0] == null` | Sai: mảng rỗng vẫn là một đối tượng |
-| Có thể gọi `missing.length` | Sai: tham chiếu null gây `NullPointerException` |
-| `empty[0]` có giá trị mặc định 0 | Sai: không tồn tại phần tử số 0; truy cập vượt chỉ số |
-| `new String[2]` là mảng rỗng vì phần tử đều null | Sai: có hai phần tử, `length == 2` |
-| `for-each` trên null bỏ qua như trên mảng rỗng | Sai: null gây `NullPointerException` |
-| `Arrays.toString(nullArray)` in `null` tức là đã tạo mảng | Sai: đó chỉ là chuỗi định dạng tham chiếu null |
-| Luôn thay null bằng rỗng | Chỉ khi hợp đồng nghiệp vụ cho phép |
+| `new int[0] == null` | False: an empty array is still an object |
+| Can access `missing.length` | False: a null reference causes `NullPointerException` |
+| `empty[0]` has default value 0 | False: element 0 does not exist; access is out of bounds |
+| `new String[2]` is an empty array because all elements are null | False: it has two elements, `length == 2` |
+| `for-each` on null skips like on an empty array | False: null causes `NullPointerException` |
+| `Arrays.toString(nullArray)` prints `null` so an array was created | False: that is only the formatted string for a null reference |
+| Always replace null with empty | Only when the business contract allows it |
 
-**Bài 1.** Tạo `int[] a = new int[0]` và `int[] b = null`. Dự đoán `a == null`, `b == null`, `a.length` và `b.length`.
+**Exercise 1.** Create `int[] a = new int[0]` and `int[] b = null`. Predict `a == null`, `b == null`, `a.length`, and `b.length`.
 
-**Bài 2.** So sánh `new int[0]`, `new int[1]`, `new String[2]` về `length` và các giá trị mặc định.
+**Exercise 2.** Compare `new int[0]`, `new int[1]`, and `new String[2]` in terms of `length` and default values.
 
-**Bài 3.** Viết hàm trả `"NULL"`, `"EMPTY"` hoặc `"NON_EMPTY"` để phân biệt ba trạng thái mà không gây NPE.
+**Exercise 3.** Write a method returning `"NULL"`, `"EMPTY"`, or `"NON_EMPTY"` to distinguish the three states without causing an NPE.
 
-**Bài 4.** Chọn hợp đồng cho hàm tính tổng: từ chối null hay coi null như không có phần tử? Viết cả hai, giải thích vì sao kết quả rỗng là 0.
+**Exercise 4.** Choose a contract for a sum method: reject null or treat null as having no elements? Write both, and explain why the empty result is 0.
 
-**Bài 5.** Gán tham chiếu mảng rỗng vào biến `alias`, rồi gán biến ban đầu sang `new int[] {1, 2, 3}`; giải thích vì sao `alias.length` vẫn bằng 0.
+**Exercise 5.** Assign an empty array reference to a variable `alias`, then reassign the original variable to `new int[] {1, 2, 3}`; explain why `alias.length` is still 0.
 
-### Ghi nhớ
+### Key takeaways
 
-**Mảng rỗng là một đối tượng hợp lệ với `length == 0`; tham chiếu `null` không trỏ tới đối tượng mảng nào.** Vòng `for-each` trên mảng rỗng thực hiện 0 lượt, còn trên null gây NPE. Mảng rỗng không có chỉ số 0. Trong API, hãy quyết định rõ lúc nào null được phép, thay vì vô tình đánh đồng “không có dữ liệu” với “dữ liệu đã có nhưng rỗng”.
+**An empty array is a valid object with `length == 0`; a `null` reference points to no array object.** A `for-each` loop on an empty array performs 0 iterations, whereas on null it causes an NPE. An empty array has no index 0. In APIs, explicitly decide when null is allowed, rather than accidentally equating "no data" with "present but empty data."

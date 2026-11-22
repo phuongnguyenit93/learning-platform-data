@@ -1,51 +1,51 @@
-# `assert` để kiểm tra giả định nội bộ và bật bằng `-ea` (Java 17+)
+# Using `assert` to Check Internal Assumptions and Enabling with `-ea` (Java 17+)
 
-## 1. `assert` là gì?
+## 1. What Is `assert`?
 
-`assert` là câu lệnh Java dùng để kiểm tra một **giả định mà lập trình viên tin phải luôn đúng** nếu chương trình hoạt động đúng. Nó đặc biệt hữu ích để phát hiện vi phạm bất biến (*invariant*), hậu điều kiện của thuật toán hoặc trạng thái nội bộ không thể xảy ra theo thiết kế.
+`assert` is a Java statement used to check an **assumption the programmer believes must always hold true** if the program is working properly. It is especially useful for detecting violations of invariants, algorithm postconditions, or internal states that should be impossible by design.
 
-Nếu kiểm tra được **bật** và điều kiện sai, Java ném `java.lang.AssertionError`. Nếu điều kiện đúng, chương trình đi tiếp. Với phần lớn ứng dụng Java thông thường, assertions **mặc định tắt khi chạy**, vì vậy câu lệnh `assert` bị bỏ qua trừ khi bật bằng tùy chọn JVM như `-ea` (*enable assertions*).
+If checks are **enabled** and the condition is false, Java throws `java.lang.AssertionError`. If the condition is true, the program proceeds. In most standard Java applications, assertions are **disabled by default at runtime**, so `assert` statements are skipped unless enabled with a JVM option such as `-ea` (*enable assertions*).
 
-Ví dụ ý tưởng:
+Conceptual example:
 
 ```java
 assert index >= 0 : "negative internal index: " + index;
 ```
 
-Câu trên phù hợp nếu `index` là giá trị **nội bộ** được suy ra từ thuật toán vốn phải không âm. Nó **không phù hợp** làm lớp kiểm tra đầu vào duy nhất cho tham số `index` do người dùng gửi đến, vì khi assertions tắt thì phép kiểm tra không chạy.
+This is appropriate if `index` is an **internal** value derived from an algorithm that is guaranteed to be non-negative. It is **not appropriate** as the sole input validation layer for an `index` parameter sent by a user, because when assertions are disabled, the check does not run.
 
-**Phân biệt:** `assert` là câu lệnh thuộc ngôn ngữ Java, không phải phương thức `assertEquals` của JUnit và cũng không phải `throw new IllegalArgumentException(...)`. Các phương thức assertion trong framework kiểm thử hoạt động theo cơ chế riêng của framework.
+**Distinction:** `assert` is a Java language statement, not JUnit's `assertEquals` method and not `throw new IllegalArgumentException(...)`. Assertion methods in testing frameworks operate via the framework's own mechanisms.
 
-## 2. Cú pháp và cơ chế đánh giá
+## 2. Syntax and Evaluation Mechanism
 
-Java có hai dạng cú pháp:
+Java has two syntax forms:
 
 ```java
 assert booleanExpression;
 assert booleanExpression : detailExpression;
 ```
 
-- `booleanExpression` phải cho kết quả kiểu `boolean` hoặc `Boolean` (có thể được unbox). Chẳng hạn `assert count >= 0;` hợp lệ, còn `assert count;` sai nếu `count` là `int`.
-- `detailExpression` là biểu thức trả về một giá trị (không được là lời gọi phương thức có kiểu kết quả `void`); giá trị đó giúp xây dựng thông tin của `AssertionError`. Không có nghĩa là câu lệnh `println` luôn được thực thi.
-- Khi assertions **được bật**: Java đánh giá điều kiện; nếu `false`, nó đánh giá thêm biểu thức sau `:` (nếu có) rồi ném `AssertionError` với thông tin tương ứng.
-- Khi assertions **tắt**: cả điều kiện lẫn biểu thức thông tin đều **không được đánh giá**. Do đó không nên đặt tác dụng phụ (*side effect*) trong assertion.
-- Nếu điều kiện là `Boolean` có giá trị `null`, việc unbox trong lúc assertion được đánh giá có thể phát sinh `NullPointerException`. Tránh dùng một giá trị nullable làm điều kiện trực tiếp.
+- `booleanExpression` must evaluate to `boolean` or `Boolean` (unboxable). For instance, `assert count >= 0;` is valid, whereas `assert count;` is invalid if `count` is an `int`.
+- `detailExpression` is an expression that yields a value (it must not be a call to a `void` method); that value is used to construct the `AssertionError` detail message. It does not mean a `println` statement is always executed.
+- When assertions are **enabled**: Java evaluates the condition; if `false`, it evaluates the expression after `:` (if present) and throws `AssertionError` with that detail.
+- When assertions are **disabled**: neither the condition nor the detail expression is **evaluated**. Therefore, never put side effects inside an assertion.
+- If the condition is a `Boolean` with value `null`, unboxing while evaluating the assertion can throw `NullPointerException`. Avoid using a nullable value directly as the condition.
 
-Trong Java 17, `assert` là từ khóa, không thể dùng để đặt tên phương thức hoặc biến. Câu lệnh được kiểm tra cú pháp và kiểu **khi biên dịch** kể cả khi assertions sẽ bị tắt ở lúc chạy.
+In Java 17, `assert` is a keyword and cannot be used as a method or variable name. The statement is checked for syntax and types **at compile time**, even when assertions will be disabled at runtime.
 
-Ví dụ khi assertion được bật:
+Example when assertions are enabled:
 
 ```java
 int count = 2;
-assert count >= 0;                        // đúng: tiếp tục
-assert count % 2 != 0 : "count is even"; // sai: ném AssertionError với thông điệp
+assert count >= 0;                        // true: continues
+assert count % 2 != 0 : "count is even"; // false: throws AssertionError with message
 ```
 
-Đây là **đoạn minh họa**, không phải tệp chương trình độc lập; ví dụ chạy hoàn chỉnh ở phần tiếp theo.
+This is an **illustrative snippet**, not a standalone program file; the full runnable example follows in the next section.
 
-## 3. Ví dụ đầy đủ: nhìn thấy khác biệt khi có và không có `-ea`
+## 3. Complete Example: Seeing the Difference With and Without `-ea`
 
-Tạo tệp **`AssertDemo.java`**:
+Create a file named **`AssertDemo.java`**:
 
 ```java
 public class AssertDemo {
@@ -68,20 +68,20 @@ public class AssertDemo {
 }
 ```
 
-Từ thư mục chứa tệp (JDK 17+; chạy được trên PowerShell, CMD, bash), tạo thư mục `out` nếu chưa có, rồi biên dịch:
+From the directory containing the file (JDK 17+; works on PowerShell, CMD, bash), create the `out` directory if it does not exist, then compile:
 
 ```sh
 mkdir out
 javac -encoding UTF-8 --release 17 -d out AssertDemo.java
 ```
 
-### Chạy bình thường: assertions tắt
+### Normal Run: Assertions Disabled
 
 ```sh
 java -cp out AssertDemo
 ```
 
-**Stdout chính xác** khi không có cấu hình bật assertion bổ sung:
+**Exact stdout** when no extra assertion-enabling option is set:
 
 ```text
 enabled=false
@@ -89,15 +89,15 @@ half(8)=4
 half(5)=2
 ```
 
-`halfEven(5)` trả `2` do phép chia số nguyên, vì dòng `assert` không được thực thi. Ví dụ cố tình dùng số lẻ để chỉ ra lý do **không được lấy assert làm kiểm tra dữ liệu bắt buộc**.
+`halfEven(5)` returns `2` due to integer division because the `assert` statement is not executed. The example intentionally passes an odd number to show why **you must not use `assert` for mandatory data validation**.
 
-### Chạy với `-ea`: assertions bật
+### Run with `-ea`: Assertions Enabled
 
 ```sh
 java -ea -cp out AssertDemo
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 enabled=true
@@ -106,28 +106,28 @@ caught=AssertionError
 detail=even input required: 5
 ```
 
-Lần gọi với `8` thỏa điều kiện và trả `4`. Lần gọi với `5` ném `AssertionError` nên phần `System.out.println("half(5)=" + ...)` không in dòng giá trị. Khối `catch (AssertionError)` ở đây chỉ dùng **để biểu diễn kết quả cố định cho người học**; trong ứng dụng thật, assertion thất bại thường báo một lỗi lập trình cần được sửa, không nên bị bắt để giả vờ tiếp tục bình thường.
+The call with `8` satisfies the condition and returns `4`. The call with `5` throws `AssertionError`, so `System.out.println("half(5)=" + ...)` does not print a value line. The `catch (AssertionError)` block here is used **only to display deterministic output for learners**; in real applications, a failed assertion indicates a programming bug that must be fixed rather than caught to pretend normal execution continues.
 
-`AssertDemo.class.desiredAssertionStatus()` báo cấu hình mong muốn cho lớp; trong ví dụ chạy bằng launcher Java chuẩn, nó khớp với trạng thái assertions thực tế. Trong chương trình có class loader tự điều chỉnh assertion status, không nên xem phương thức này là cơ chế kiểm tra lỗi nghiệp vụ.
+`AssertDemo.class.desiredAssertionStatus()` reports the configured assertion status for the class; when run with the standard Java launcher in this example, it matches the actual assertion state. In programs with custom class loaders that adjust assertion status, do not treat this method as a business error-checking mechanism.
 
-**Chú ý lệnh:** `-ea` là tùy chọn của **`java` lúc chạy**, không phải tùy chọn của `javac`. Không cần biên dịch lại giữa hai lần chạy; một file `.class` có thể cho hai hành vi vì thiết lập JVM khác nhau.
+**Command note:** `-ea` is a runtime option for **`java`**, not an option for `javac`. You do not need to recompile between the two runs; a single `.class` file exhibits both behaviors due to different JVM settings.
 
-## 4. Bật/tắt assertions theo lớp và package
+## 4. Enabling/Disabling Assertions by Class and Package
 
-Các tùy chọn thường dùng với `java`:
+Common options with `java`:
 
-| Tùy chọn | Tác dụng |
+| Option | Effect |
 | --- | --- |
-| `-ea` hoặc `-enableassertions` | Bật assertions cho các lớp ứng dụng thông thường theo phạm vi mặc định của JVM |
-| `-da` hoặc `-disableassertions` | Tắt assertions cho các lớp theo phạm vi tương ứng |
-| `-ea:lesson.AssertDemo` | Bật cho một lớp có tên đầy đủ `lesson.AssertDemo` |
-| `-ea:lesson...` | Bật cho package `lesson` và các package con của nó |
-| `-da:lesson.Legacy` | Tắt cho một lớp cụ thể |
-| `-esa` hoặc `-enablesystemassertions` | Bật assertions trong các lớp hệ thống; thường không cần cho chương trình mới học |
+| `-ea` or `-enableassertions` | Enables assertions for regular application classes per JVM default scope |
+| `-da` or `-disableassertions` | Disables assertions for classes in the corresponding scope |
+| `-ea:lesson.AssertDemo` | Enables for a single class with fully qualified name `lesson.AssertDemo` |
+| `-ea:lesson...` | Enables for package `lesson` and its subpackages |
+| `-da:lesson.Legacy` | Disables for a specific class |
+| `-esa` or `-enablesystemassertions` | Enables assertions in system classes; usually unnecessary for beginner programs |
 
-Tên lớp và package trong tham số phải khớp **tên đầy đủ thực tế**. Ví dụ `AssertDemo` ở phần 3 thuộc unnamed package, vì vậy bật riêng bằng `-ea:AssertDemo` thay vì `-ea:lesson.AssertDemo`.
+Class and package names in the argument must match the **actual fully qualified names**. For instance, `AssertDemo` in section 3 is in the unnamed package, so enable it specifically with `-ea:AssertDemo` rather than `-ea:lesson.AssertDemo`.
 
-Các tùy chọn enable/disable có thể được phối hợp để cấu hình theo class/package; khi làm vậy, hãy dùng quy tắc của Java launcher và kiểm tra trên chính chương trình được khởi chạy. Tùy chọn đặt **trước tên lớp chứa `main`** hoặc trước `-jar` nếu chạy JAR:
+Enable/disable flags can be combined to configure by class/package; when doing so, follow the Java launcher rules and test against the actual launched program. Place options **before the class name containing `main`** or before `-jar` when running a JAR:
 
 ```sh
 java -ea -cp out AssertDemo
@@ -135,11 +135,11 @@ java -ea:AssertDemo -cp out AssertDemo
 java -da -cp out AssertDemo
 ```
 
-Các lệnh trên dùng tệp `AssertDemo.class` đã biên dịch ở phần 3. Đừng viết `java -cp out AssertDemo -ea` rồi cho rằng `-ea` được JVM xử lý: tại vị trí sau tên lớp, nó chỉ là đối số truyền cho `main(String[] args)`.
+These commands use the `AssertDemo.class` compiled in section 3. Do not write `java -cp out AssertDemo -ea` expecting the JVM to process `-ea`: placed after the class name, it is merely passed as an argument to `main(String[] args)`.
 
-### Ví dụ package riêng
+### Dedicated Package Example
 
-Tạo **`src/lesson/InvariantDemo.java`**:
+Create **`src/lesson/InvariantDemo.java`**:
 
 ```java
 package lesson;
@@ -167,7 +167,7 @@ public class InvariantDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```sh
 javac -encoding UTF-8 --release 17 -d out src/lesson/InvariantDemo.java
@@ -175,33 +175,33 @@ java -cp out lesson.InvariantDemo
 java -ea:lesson.InvariantDemo -cp out lesson.InvariantDemo
 ```
 
-**Stdout của lần chạy đầu (không bật assertions):**
+**Stdout of the first run (assertions disabled):**
 
 ```text
 enabled=false
 sorted=[1, 2, 3]
 ```
 
-**Stdout của lần chạy thứ hai (bật cho đúng lớp):**
+**Stdout of the second run (enabled for that exact class):**
 
 ```text
 enabled=true
 sorted=[1, 2, 3]
 ```
 
-Ví dụ này thể hiện vị trí phù hợp của `assert`: kiểm tra **hậu điều kiện nội bộ** sau khi sắp xếp. Không cần dùng assertion để quyết định có sắp xếp hay không, vì thuật toán vẫn phải chạy đúng khi assertions tắt.
+This example shows the proper place for `assert`: checking an **internal postcondition** after sorting. You do not use an assertion to decide whether to sort, because the algorithm must still work correctly when assertions are disabled.
 
-## 5. Không đặt tác dụng phụ trong assertion
+## 5. Do Not Put Side Effects in Assertions
 
-Đoạn code sau biên dịch hợp lệ nhưng **là kiểu viết cần tránh**:
+The code below compiles validly, yet **is a pattern to avoid**:
 
 ```java
 assert ++counter > 0;
 ```
 
-Nếu assertions tắt, `counter` không tăng; nếu bật, `counter` tăng. Chương trình có thể thay đổi trạng thái chỉ do thêm `-ea`.
+If assertions are disabled, `counter` does not increment; if enabled, `counter` increments. Program state changes solely because `-ea` was added.
 
-Để thấy sự khác biệt, tạo tệp **`SideEffectDemo.java`**:
+To see the difference, create **`SideEffectDemo.java`**:
 
 ```java
 public class SideEffectDemo {
@@ -219,43 +219,43 @@ java -cp out SideEffectDemo
 java -ea -cp out SideEffectDemo
 ```
 
-Hai lần chạy có output lần lượt:
+The two runs produce the following outputs respectively:
 
-Không có `-ea`:
+Without `-ea`:
 
 ```text
 counter=0
 ```
 
-Có `-ea`:
+With `-ea`:
 
 ```text
 counter=1
 ```
 
-**Cách viết đúng:** thực hiện các phép cập nhật quan trọng ngoài `assert`, rồi chỉ kiểm tra một biểu thức **không làm thay đổi trạng thái**:
+**Correct style:** perform important updates outside `assert`, and then check only an expression that **does not mutate state**:
 
 ```java
 counter++;
 assert counter == 1 : "unexpected counter";
 ```
 
-Đoạn sửa là minh họa tại phạm vi có biến `counter`. Ngay cả trong biểu thức `detailExpression` sau dấu `:`, cũng không nên đặt thao tác ghi file, cập nhật dữ liệu hoặc hàm có tác dụng phụ: biểu thức đó chỉ được đánh giá khi assertions bật **và điều kiện sai**.
+This fix illustrates code in a scope where `counter` exists. Even in the `detailExpression` after `:`, do not perform file writes, data updates, or side-effecting calls: that expression is evaluated only when assertions are enabled **and the condition is false**.
 
-## 6. Khi nào dùng `assert`, khi nào dùng `if` và `throw`?
+## 6. When to Use `assert` vs. When to Use `if` and `throw`
 
-| Mục đích | Cách làm |
+| Purpose | Approach |
 | --- | --- |
-| Bảo vệ tiền điều kiện của **public API**, tham số truyền từ caller có thể sai | `if` + `throw new IllegalArgumentException(...)` hoặc `Objects.requireNonNull(...)` |
-| Kiểm tra dữ liệu ngoài: request, file, DB, CLI, network | Kiểm tra luôn chạy, có xử lý lỗi rõ ràng; không dùng `assert` thay thế |
-| Kiểm tra bất biến nội bộ vốn phải đúng nếu code không có bug | `assert condition : detail;` |
-| Kiểm tra hậu điều kiện của thuật toán nội bộ để tìm bug trong lúc phát triển | `assert postcondition;` |
-| Kiểm tra kết quả bằng JUnit trong automated tests | Dùng assertion của JUnit/test framework theo hợp đồng kiểm thử |
+| Guarding **public API** preconditions where caller-supplied arguments may be invalid | `if` + `throw new IllegalArgumentException(...)` or `Objects.requireNonNull(...)` |
+| Validating external data: requests, files, DB, CLI, network | Always-on checks with explicit error handling; do not substitute `assert` |
+| Checking internal invariants that must hold if the code has no bugs | `assert condition : detail;` |
+| Checking internal algorithm postconditions to catch bugs during development | `assert postcondition;` |
+| Verifying results with JUnit in automated tests | Use JUnit/test framework assertions per test contract |
 
-**Minh họa phân biệt** (các phương thức dưới đây cần đặt trong một class thích hợp; không phải tệp chạy độc lập):
+**Illustrative comparison** (the methods below must be placed in an appropriate class; not a standalone file):
 
 ```java
-// Input bên ngoài: kiểm tra phải hoạt động khi assertions tắt.
+// External input: checks must run even when assertions are disabled.
 public static int positive(int value) {
     if (value <= 0) {
         throw new IllegalArgumentException("value must be positive");
@@ -263,20 +263,20 @@ public static int positive(int value) {
     return value;
 }
 
-// Giá trị suy ra bên trong thuật toán: bảo vệ giả định lập trình.
+// Value derived inside the algorithm: guards a programming assumption.
 private static int internalHalf(int provenEven) {
     assert provenEven % 2 == 0 : "algorithm produced an odd value";
     return provenEven / 2;
 }
 ```
 
-Nếu `provenEven` thực tế do người dùng đưa vào mà chưa kiểm tra, assertion không đủ bảo vệ hợp đồng. Vấn đề là **nguồn gốc và ý nghĩa của dữ liệu**, không chỉ mức truy cập `private`/ `public` của phương thức.
+If `provenEven` actually comes from unvalidated user input, an assertion is not enough to uphold the contract. What matters is the **origin and meaning of the data**, not just whether a method is `private` or `public`.
 
-Dùng `assert false : "unreachable state";` để đánh dấu nhánh logic đáng lẽ không thể tới được là một kỹ thuật debug. Nhưng khi assertions tắt, câu lệnh đó không làm gì; vì vậy **không dùng `assert false` thay `throw`** trong trường hợp ứng dụng phải từ chối trạng thái đó ở mọi môi trường.
+Using `assert false : "unreachable state";` to mark a logic branch that should be unreachable is a debugging technique. However, when assertions are disabled, that statement does nothing; therefore **never use `assert false` instead of `throw`** when the application must reject that state in all environments.
 
-## 7. `AssertionError` không phải ngoại lệ nghiệp vụ thông thường
+## 7. `AssertionError` Is Not a Normal Business Exception
 
-`AssertionError` kế thừa `Error`, và `Error` kế thừa `Throwable`. Nó **không** kế thừa `Exception`. Do đó:
+`AssertionError` extends `Error`, and `Error` extends `Throwable`. It does **not** extend `Exception`. Therefore:
 
 ```java
 try {
@@ -286,44 +286,44 @@ try {
 }
 ```
 
-Đoạn minh họa trên không bắt được `AssertionError` khi bật assertions, vì `catch (Exception)` không nhận `Error`. Khi assertions tắt, câu lệnh `assert` bị bỏ qua và phần `catch` không chạy. Đây không phải ví dụ chương trình đầy đủ; dùng phần 3 để xem bản chạy có bắt `AssertionError` nhằm minh họa.
+This snippet does not catch `AssertionError` when assertions are enabled, because `catch (Exception)` does not match `Error`. When assertions are disabled, the `assert` statement is skipped and the `catch` does not run. This is not a complete program example; see section 3 for a runnable version that catches `AssertionError` for demonstration.
 
-Không nên dùng `catch (Throwable)` hoặc `catch (AssertionError)` rộng khắp để biến lỗi lập trình thành kết quả mặc định. Nếu xuất hiện `AssertionError`, điều cần làm thường là điều tra assumption bị phá vỡ, input dẫn tới trạng thái đó và đường đi của thuật toán.
+Do not use `catch (Throwable)` or `catch (AssertionError)` broadly to turn programming bugs into default results. When `AssertionError` occurs, the right action is usually to investigate the broken assumption, the input leading to that state, and the algorithm's execution path.
 
-Thông báo/stack trace nếu `AssertionError` không được bắt sẽ do JVM in ra luồng lỗi chuẩn (*stderr*); nội dung stack trace chứa tên tệp/số dòng và có thể thay đổi. Vì vậy ví dụ chính bắt lỗi có chủ đích để người học nhìn thấy **stdout chính xác**, không phụ thuộc vào chi tiết stack trace.
+If `AssertionError` goes uncaught, the message/stack trace is printed by the JVM to standard error (*stderr*); stack trace content includes file names and line numbers that can vary. That is why the main example intentionally catches the error so learners observe **exact stdout** without depending on stack trace details.
 
-## 8. Sai lầm phổ biến
+## 8. Common Mistakes
 
-1. **Quên `-ea`:** thấy chương trình không báo gì rồi tin assertion đã chạy. Hãy kiểm tra dòng lệnh JVM hoặc cấu hình Run/Debug trong IDE.
-2. **Dùng `assert` thay validation:** khi triển khai với assertions tắt, input không hợp lệ có thể đi qua; phải dùng `if`/`throw` hoặc API validation phù hợp.
-3. **Có tác dụng phụ trong biểu thức:** cập nhật biến, xóa file, gọi API tạo thay đổi có thể chỉ xảy ra trong một chế độ JVM.
-4. **Nhầm `-ea` là tham số biên dịch:** `javac` vẫn phân tích và biên dịch câu lệnh; `java -ea` quyết định việc kiểm tra lúc chạy.
-5. **Đặt `-ea` sau tên main class:** launcher chuyển nó cho `main` như tham số chương trình.
-6. **Dùng `assert` để báo lỗi có thể dự kiến:** file không tồn tại, JSON không hợp lệ, người dùng nhập sai là tình huống vận hành thông thường, không nhất thiết biểu thị bug nội bộ.
-7. **Lẫn với kiểm thử JUnit:** lời gọi `Assertions.assertEquals` là API của thư viện, không cần bật `-ea` để thực hiện logic kiểm thử của JUnit.
-8. **Giả định mọi Java class đều bật chỉ nhờ `-ea`:** cấu hình có phạm vi class/package, class loader và nhóm system classes; kiểm tra lớp nào thực sự chịu tác dụng khi dùng cấu hình chọn lọc.
+1. **Forgetting `-ea`:** seeing no error and assuming the assertion ran. Check the JVM command line or IDE Run/Debug configuration.
+2. **Using `assert` instead of validation:** when deployed with assertions off, invalid input slips through; use `if`/`throw` or an appropriate validation API.
+3. **Having side effects in the expression:** updating variables, deleting files, or calling mutating APIs may happen in only one JVM mode.
+4. **Confusing `-ea` with a compiler flag:** `javac` still parses and compiles the statement; `java -ea` controls checking at runtime.
+5. **Placing `-ea` after the main class name:** the launcher passes it to `main` as a program argument.
+6. **Using `assert` to report expected failures:** missing files, invalid JSON, and bad user input are normal operational situations, not necessarily internal bugs.
+7. **Confusing it with JUnit assertions:** calls like `Assertions.assertEquals` are library APIs and do not need `-ea` for JUnit's test logic to execute.
+8. **Assuming every Java class is enabled just by `-ea`:** configuration has class/package scopes, class loaders, and system class rules; verify which classes are actually affected when using selective flags.
 
-## 9. Checklist thực hành
+## 9. Practice Checklist
 
-Trước khi thêm một assertion, tự hỏi:
+Before adding an assertion, ask:
 
-- Điều kiện này có **luôn đúng nếu thuật toán không có lỗi** hay đây là dữ liệu ngoài có thể sai hợp lệ?
-- Biểu thức kiểm tra và biểu thức message có **không gây tác dụng phụ** không?
-- Khi `-ea` tắt, chương trình có vẫn giữ nguyên hành vi cần thiết không?
-- Nếu điều kiện sai, message có cho biết giá trị/biến quan trọng để tìm bug không?
-- Khi chạy local/test, tôi đã bật assertions cho lớp hoặc package cần kiểm tra chưa?
-- Sau khi sửa bug, chương trình đã chạy thử ở cả chế độ **có** và **không có `-ea`** chưa?
+- Is this condition **guaranteed to hold if the algorithm has no bugs**, or is it external data that can legitimately be invalid?
+- Are both the test expression and the detail expression **free of side effects**?
+- When `-ea` is off, does the program still maintain all required behavior?
+- If the condition fails, does the message show the key values/variables needed to find the bug?
+- When running locally or testing, did I enable assertions for the classes or packages under test?
+- After fixing a bug, was the program tested both **with** and **without `-ea`**?
 
-### Tự kiểm tra
+### Self-Check
 
-**1. `assert value > 0;` có chạy mặc định trong hầu hết ứng dụng Java không?** Không. Cần bật assertion bằng `java -ea ...` hoặc cấu hình tương đương.
+**1. Does `assert value > 0;` run by default in most Java applications?** No. Assertions must be enabled with `java -ea ...` or an equivalent configuration.
 
-**2. Khi assertion sai và được bật, Java ném gì?** `AssertionError`, thuộc nhánh `Error`, không phải `Exception`.
+**2. When an assertion fails and is enabled, what does Java throw?** `AssertionError`, which is under `Error`, not `Exception`.
 
-**3. `assert condition : detail;` có luôn đánh giá `detail` không?** Không. Chỉ đánh giá khi assertion được bật và điều kiện sai.
+**3. Does `assert condition : detail;` always evaluate `detail`?** No. It is evaluated only when assertions are enabled and the condition is false.
 
-**4. Có thể dùng `assert` làm kiểm tra bắt buộc cho số tiền nhập vào không?** Không. Dùng validation luôn thực thi và ném loại exception phù hợp hoặc trả kết quả lỗi theo hợp đồng API.
+**4. Can `assert` be used as a mandatory check for an entered monetary amount?** No. Use always-on validation that throws the appropriate exception type or returns an error result per the API contract.
 
-**5. Có cần đổi lệnh `javac` hoặc biên dịch lại để bật assertions không?** Không. Chỉ cần chạy chương trình bằng `java -ea ...` và bảo đảm lớp cần kiểm tra được bật.
+**5. Do you need to change the `javac` command or recompile to enable assertions?** No. Just run the program with `java -ea ...` and ensure the target classes are enabled.
 
-**Ghi nhớ:** `assert` là công cụ phát hiện **vi phạm giả định nội bộ**; `-ea` bật việc kiểm tra ở **thời điểm chạy**. Chương trình phải giữ được hành vi đúng ngay cả khi assertion bị tắt.
+**Remember:** `assert` is a tool for catching **violations of internal assumptions**; `-ea` enables checking at **runtime**. The program must remain functionally correct even when assertions are disabled.

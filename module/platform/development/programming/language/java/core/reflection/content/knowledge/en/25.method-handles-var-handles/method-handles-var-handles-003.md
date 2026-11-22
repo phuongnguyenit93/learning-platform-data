@@ -1,25 +1,25 @@
-# `findVirtual`, `findStatic`, `findConstructor` và `findSpecial` trong Java MethodHandle
+# `findVirtual`, `findStatic`, `findConstructor`, and `findSpecial` in Java MethodHandle
 
-## 1. Bốn cách tìm lời gọi và mô hình tư duy
+## 1. Four Ways to Look Up Invocations and the Mental Model
 
-`java.lang.invoke.MethodHandle` là một đối tượng đại diện cho thao tác có thể gọi bằng Java: gọi phương thức instance, phương thức static, tạo đối tượng hoặc gọi một phương thức theo ngữ nghĩa đặc biệt. Ta không gọi trực tiếp tên phương thức qua `MethodHandle`; trước tiên dùng `MethodHandles.Lookup` để **tra cứu** thao tác hợp lệ, sau đó gọi handle.
+`java.lang.invoke.MethodHandle` is an object representing an operation that can be invoked in Java: calling an instance method, calling a static method, creating an object, or invoking a method with special semantics. You do not invoke a method name directly through `MethodHandle`; first you use `MethodHandles.Lookup` to **look up** a valid operation, then you invoke the handle.
 
-Một `MethodHandle` có kiểu chạy được mô tả bởi `MethodType`: danh sách kiểu tham số và kiểu kết quả. Kiểu này phải được hiểu chính xác, bởi kiểu của handle sau tra cứu **có thể khác** kiểu khai báo của phương thức Java. Đặc biệt, handle cho phương thức instance có thêm **receiver** (đối tượng nhận lời gọi) ở vị trí tham số đầu tiên; handle constructor nhận tham số constructor nhưng trả về đối tượng mới, mặc dù khi tra cứu phải khai báo kiểu trả về `void`.
+A `MethodHandle` has a runtime type described by `MethodType`: an ordered list of parameter types and a return type. This type must be understood accurately, because the type of the handle after lookup **can differ** from the Java method's declared signature. In particular, an instance-method handle has an extra **receiver** (the target object receiving the call) in the first parameter slot; a constructor handle takes constructor parameters and returns a new object, even though you must specify return type `void` during lookup.
 
-Bốn lời gọi được học ở đây đều nằm trên `MethodHandles.Lookup`:
+All four lookup methods covered here live on `MethodHandles.Lookup`:
 
-| API | Tìm thao tác | `MethodType` truyền vào | Kiểu handle nhận được | Điểm phân biệt |
+| API | Operation Found | `MethodType` Passed In | Resulting Handle Type | Distinguishing Point |
 | --- | --- | --- | --- | --- |
-| `findVirtual(refc, name, type)` | Phương thức instance | Kiểu kết quả và tham số **không gồm receiver** | `(Receiver, tham_số...)Kết_quả` | Dùng cơ chế dispatch instance phù hợp khi gọi |
-| `findStatic(refc, name, type)` | Phương thức `static` | Đúng kiểu kết quả và tham số đã khai báo | `(tham_số...)Kết_quả` | Không có receiver |
-| `findConstructor(refc, type)` | Constructor | **`void`** và tham số constructor | `(tham_số...)refc` | Tạo và trả về instance mới |
-| `findSpecial(refc, name, type, specialCaller)` | Gọi instance theo ngữ nghĩa `invokespecial` | Kiểu kết quả và tham số **không gồm receiver** | `(specialCaller, tham_số...)Kết_quả`, theo quy tắc truy cập | Có thể gọi phiên bản ở lớp cha mà bỏ qua override, nếu lookup đủ quyền |
+| `findVirtual(refc, name, type)` | Instance method | Return type and parameters **excluding receiver** | `(Receiver, params...)ReturnType` | Uses appropriate instance dispatch when invoked |
+| `findStatic(refc, name, type)` | `static` method | Exact declared return type and parameters | `(params...)ReturnType` | No receiver |
+| `findConstructor(refc, type)` | Constructor | **`void`** and constructor parameters | `(params...)refc` | Creates and returns a new instance |
+| `findSpecial(refc, name, type, specialCaller)` | Instance call with `invokespecial` semantics | Return type and parameters **excluding receiver** | `(specialCaller, params...)ReturnType`, per access rules | Can invoke a superclass version bypassing override, if lookup has sufficient permissions |
 
-Trong bảng, `refc` là lớp hoặc interface dùng để phân giải thành viên; `name` là tên phương thức; `type` có kiểu `MethodType`. `specialCaller` là ngữ cảnh lớp đặc biệt được phép thực hiện `invokespecial`, không phải một chuỗi tên tùy ý. Java kiểm tra quyền truy cập tại thời điểm tìm handle; quyền đó không tự nhiên được nâng lên chỉ vì ta dùng API động.
+In the table, `refc` is the class or interface used to resolve the member; `name` is the method name; `type` is a `MethodType`. `specialCaller` is the special calling class context allowed to perform `invokespecial`, not an arbitrary name string. Java checks access permissions when looking up the handle; those permissions are not automatically elevated just because you use a dynamic API.
 
-## 2. `MethodType` và `Lookup`: chuẩn bị đúng trước khi tìm
+## 2. `MethodType` and `Lookup`: Preparing Correctly Before Lookup
 
-`MethodType.methodType(returnType, parameterTypes...)` mô tả kiểu phương thức **được tìm**. Ví dụ:
+`MethodType.methodType(returnType, parameterTypes...)` describes the type of the method **being looked up**. For example:
 
 ```java
 MethodType.methodType(String.class, int.class)          // (int)String
@@ -27,16 +27,16 @@ MethodType.methodType(void.class, String.class)          // (String)void
 MethodType.methodType(boolean.class)                     // ()boolean
 ```
 
-- `MethodHandles.lookup()` cấp lookup gắn với **lớp gọi nó** và các quyền hiện có của lớp đó. Trong một lớp có quyền truy cập phù hợp, lookup có thể nhìn thấy cả thành viên không public.
-- `MethodHandles.publicLookup()` chỉ dành cho những truy cập public mà lookup công khai cho phép; không thể dùng nó để tự do gọi thành viên private hoặc package-private.
-- `MethodHandles.privateLookupIn(Target.class, lookup)` có thể tạo lookup mang quyền private của `Target` **khi** lookup đầu vào, module và quy tắc mở package cho phép. Đây không phải cách vượt mọi rào cản `private`/module.
-- Signature của phương thức và kiểu receiver phải chính xác. `MethodHandle.type()` giúp xem kiểu handle **sau** khi tìm, rất hữu ích khi chẩn đoán `WrongMethodTypeException`.
+- `MethodHandles.lookup()` provides a lookup bound to **its calling class** and that class's current access rights. Inside a class with appropriate permissions, the lookup can also see non-public members.
+- `MethodHandles.publicLookup()` is only for public accesses allowed to the public lookup; it cannot be used to freely invoke private or package-private members.
+- `MethodHandles.privateLookupIn(Target.class, lookup)` can create a lookup carrying private access to `Target` **when** the input lookup, modules, and package-opening rules permit it. It is not a way to bypass all `private`/module barriers.
+- Both the method signature and receiver type must be exact. `MethodHandle.type()` lets you inspect the handle type **after** lookup, which is very helpful when diagnosing `WrongMethodTypeException`.
 
-Tên phương thức có phân biệt chữ hoa/chữ thường; overload được phân biệt bằng danh sách tham số và kiểu trả về thích hợp. Với constructor, không có tên phương thức vì API chỉ nhận `refc` và `type`.
+Method names are case-sensitive; overloads are distinguished by parameter lists and appropriate return types. For constructors, there is no method name because the API only accepts `refc` and `type`.
 
-## 3. `findVirtual` — tìm phương thức instance
+## 3. `findVirtual` — Looking Up an Instance Method
 
-Chữ ký:
+Signature:
 
 ```java
 MethodHandle handle = lookup.findVirtual(
@@ -46,19 +46,19 @@ MethodHandle handle = lookup.findVirtual(
 );
 ```
 
-Cho phương thức Java `String greet(String prefix)` của `Person`:
+For the Java method `String greet(String prefix)` on `Person`:
 
-- Kiểu **tìm** là `(String)String`.
-- Kiểu **handle** là `(Person,String)String`, vì `Person` là receiver.
-- Khi gọi, truyền instance của `Person` trước chuỗi `prefix`.
+- The **lookup** type is `(String)String`.
+- The **handle** type is `(Person,String)String`, because `Person` is the receiver.
+- When invoking, pass the `Person` instance before the `prefix` string.
 
-Đối với phương thức instance có thể override, dispatch vẫn dựa trên đối tượng nhận lời gọi: handle tìm qua lớp cha có thể thực thi override của lớp con. Đừng hiểu “virtual” là lời hứa override cho mọi phương thức: `final` không thể override; private có các quy tắc gọi riêng.
+For overridable instance methods, dispatch still depends on the object receiving the call: a handle looked up through a superclass can execute a subclass override. Do not treat "virtual" as a promise that every method can be overridden: `final` methods cannot be overridden; private methods have their own invocation rules.
 
-`findVirtual` không được dùng để tìm constructor hay phương thức `static`. Nhầm loại thành viên sẽ khiến tra cứu thất bại, thay vì tự chuyển sang `findStatic`.
+`findVirtual` must not be used to look up constructors or `static` methods. Mixing up the member kind causes the lookup to fail rather than automatically falling back to `findStatic`.
 
-## 4. `findStatic` — tìm phương thức cấp lớp
+## 4. `findStatic` — Looking Up a Class-Level Method
 
-Chữ ký:
+Signature:
 
 ```java
 MethodHandle handle = lookup.findStatic(
@@ -68,13 +68,13 @@ MethodHandle handle = lookup.findStatic(
 );
 ```
 
-Một hàm `static int parse(String text)` có kiểu tìm và kiểu handle đều là `(String)int`. **Không truyền đối tượng `Utility`** khi gọi handle. Tên lớp trong `refc` phục vụ tra cứu, không biến thành tham số runtime.
+A `static int parse(String text)` method has both lookup type and handle type `(String)int`. **Do not pass a `Utility` object** when invoking the handle. The class in `refc` serves member resolution and does not become a runtime parameter.
 
-Đừng lẫn `static` với việc gọi một phương thức instance qua biến tham chiếu lớp: chỉ phương thức thực sự khai báo `static` mới phù hợp với `findStatic`. Các kiểm tra quyền truy cập cũng áp dụng như đối với `findVirtual`.
+Do not confuse `static` with calling an instance method through a class reference variable: only methods genuinely declared `static` fit `findStatic`. The same access checks apply as with `findVirtual`.
 
-## 5. `findConstructor` — tạo đối tượng có kiểm soát kiểu
+## 5. `findConstructor` — Type-Checked Object Creation
 
-Chữ ký:
+Signature:
 
 ```java
 MethodHandle ctor = lookup.findConstructor(
@@ -83,17 +83,17 @@ MethodHandle ctor = lookup.findConstructor(
 );
 ```
 
-Giả sử `Person(String name)` là constructor. Phần `MethodType` khi **tra cứu** có kiểu `(String)void`, vì constructor trong bytecode không khai báo kiểu trả về. Nhưng `ctor.type()` có kiểu `(String)Person` và khi gọi sẽ trả về instance `Person` mới.
+Suppose `Person(String name)` is a constructor. The `MethodType` during **lookup** has type `(String)void`, because constructors in bytecode do not declare a return type. However, `ctor.type()` has type `(String)Person`, and invoking it returns a new `Person` instance.
 
-Điểm cần nhớ:
+Points to remember:
 
-- Không viết `MethodType.methodType(Person.class, String.class)` vào `findConstructor`: tham số `type` bắt buộc trả về `void`.
-- Không có đối tượng receiver khi tạo object; constructor handle trả về instance mới.
-- Nếu lớp không thể khởi tạo hoặc constructor không tồn tại/không truy cập được theo điều kiện tương ứng, quá trình tra cứu hoặc lời gọi sẽ thất bại. Ví dụ một lớp trừu tượng không thể được khởi tạo bằng cách dùng handle này.
+- Do not pass `MethodType.methodType(Person.class, String.class)` into `findConstructor`: the `type` parameter must specify return type `void`.
+- There is no receiver object when creating an object; the constructor handle returns the new instance.
+- If the class cannot be instantiated or the constructor does not exist/is inaccessible under the applicable rules, lookup or invocation will fail. For example, an abstract class cannot be instantiated using this handle.
 
-## 6. `findSpecial` — gọi phiên bản “đặc biệt” theo quyền của lớp gọi
+## 6. `findSpecial` — Invoking a "Special" Version Under the Caller's Rights
 
-Chữ ký:
+Signature:
 
 ```java
 MethodHandle handle = lookup.findSpecial(
@@ -104,20 +104,20 @@ MethodHandle handle = lookup.findSpecial(
 );
 ```
 
-`findSpecial` phản ánh cách JVM thực hiện một số lời gọi `invokespecial`, ví dụ lời gọi `super.method()` hợp lệ trong ngữ cảnh lớp con. Nó **không** chỉ là biến thể có thêm một tham số của `findVirtual`.
+`findSpecial` reflects how the JVM performs certain `invokespecial` calls, such as a valid `super.method()` call in a subclass context. It is **not** simply a variant of `findVirtual` with one extra parameter.
 
-Giả sử `Child extends Parent` và override `label()`:
+Suppose `Child extends Parent` and overrides `label()`:
 
-- Gọi thông thường `child.label()` chạy `Child.label()`.
-- Nếu mã trong ngữ cảnh `Child` có quyền tra cứu đặc biệt với `Parent.class` và `specialCaller = Child.class`, handle phù hợp có thể chạy `Parent.label()` trên chính `Child` đó mà không dispatch sang override.
-- Đối số đầu tiên khi gọi handle này là receiver kiểu `Child`; `specialCaller` ảnh hưởng đến **ngữ nghĩa và kiểm soát truy cập** chứ không phải tham số tùy chọn khi invoke.
-- Tạo lookup từ lớp không có special-caller access phù hợp thường dẫn đến `IllegalAccessException`; không thể tùy tiện chọn một lớp bất kỳ làm `specialCaller`.
+- A normal call `child.label()` runs `Child.label()`.
+- If code inside the `Child` context has special-caller lookup permissions for `Parent.class` with `specialCaller = Child.class`, the corresponding handle can run `Parent.label()` on that `Child` without dispatching to the override.
+- The first argument when invoking this handle is a receiver of type `Child`; `specialCaller` affects **semantics and access control**, not an optional parameter at invocation time.
+- Creating a lookup from a class without appropriate special-caller access typically results in `IllegalAccessException`; you cannot arbitrarily pick any class as `specialCaller`.
 
-`findSpecial` cũng xuất hiện trong các tình huống gọi phương thức private/default interface theo ngữ nghĩa đặc biệt, nhưng chi tiết quyền truy cập phụ thuộc lớp, interface và module. Với mục tiêu gọi instance thông thường, dùng `findVirtual`; chỉ dùng `findSpecial` khi cần và được phép giữ rõ ngữ nghĩa gọi từ lớp cụ thể.
+`findSpecial` also appears in scenarios invoking private or default interface methods with special semantics, though access details depend on the class, interface, and module. For ordinary instance calls, use `findVirtual`; only use `findSpecial` when you need and are allowed to preserve explicit call semantics from a specific class.
 
-## 7. Ví dụ đầy đủ chạy được trên Java 17+
+## 7. Complete Runnable Example on Java 17+
 
-Lưu đoạn sau vào file `LookupDemo.java` theo UTF-8. Chương trình dùng cả bốn API, bao gồm một lời gọi `super` thực sự được giải quyết bằng `findSpecial` ngay trong lớp `Child`.
+Save the following code into `LookupDemo.java` as UTF-8. The program uses all four APIs, including a genuine `super` call resolved via `findSpecial` right inside the `Child` class.
 
 ```java
 import java.lang.invoke.MethodHandle;
@@ -154,7 +154,7 @@ public class LookupDemo {
         }
 
         String callBase() throws Throwable {
-            // Lookup được tạo bên trong Child: đúng ngữ cảnh special caller.
+            // Lookup created inside Child: valid special-caller context.
             MethodHandle parent = MethodHandles.lookup().findSpecial(
                 Base.class,
                 "label",
@@ -168,20 +168,20 @@ public class LookupDemo {
     public static void main(String[] args) throws Throwable {
         MethodHandles.Lookup lookup = MethodHandles.lookup();
 
-        // Constructor: tìm (String)void, nhận handle (String)Person.
+        // Constructor: look up (String)void, get handle (String)Person.
         MethodHandle constructor = lookup.findConstructor(
             Person.class,
             MethodType.methodType(void.class, String.class)
         );
 
-        // Virtual: tìm (String)String, nhận (Person,String)String.
+        // Virtual: look up (String)String, get (Person,String)String.
         MethodHandle virtual = lookup.findVirtual(
             Person.class,
             "greet",
             MethodType.methodType(String.class, String.class)
         );
 
-        // Static: tìm và nhận (int)String.
+        // Static: look up and get (int)String.
         MethodHandle fixed = lookup.findStatic(
             Person.class,
             "badge",
@@ -189,7 +189,7 @@ public class LookupDemo {
         );
 
         Person person = (Person) constructor.invokeExact("Lan");
-        System.out.println((String) virtual.invokeExact(person, "Chào"));
+        System.out.println((String) virtual.invokeExact(person, "Hello"));
         System.out.println((String) fixed.invokeExact(7));
 
         Child child = new Child();
@@ -199,91 +199,91 @@ public class LookupDemo {
 }
 ```
 
-Biên dịch và chạy trong thư mục có file nguồn:
+Compile and run in the directory containing the source file:
 
 ```bash
 javac -encoding UTF-8 LookupDemo.java
 java LookupDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
-Chào, Lan
+Hello, Lan
 ID-7
 Child
 Base
 ```
 
-Giải thích từng bước:
+Step-by-step explanation:
 
-1. `constructor.invokeExact("Lan")` tạo `Person`, yêu cầu Java compiler thấy kiểu trả về chính xác là `Person`.
-2. `virtual.invokeExact(person, "Chào")` truyền receiver trước tham số. Kết quả là lời chào dùng tên của đối tượng.
-3. `fixed.invokeExact(7)` chỉ nhận `int` vì `badge` là phương thức static.
-4. `child.label()` theo dispatch thông thường cho ra `Child`, nhưng `child.callBase()` tạo handle trong đúng ngữ cảnh `Child` để gọi `Base.label()` và cho ra `Base`.
+1. `constructor.invokeExact("Lan")` creates a `Person`, requiring the Java compiler to see an exact return type of `Person`.
+2. `virtual.invokeExact(person, "Hello")` passes the receiver before the parameter. The result is a greeting using the object's name.
+3. `fixed.invokeExact(7)` takes only `int` because `badge` is a static method.
+4. `child.label()` yields `Child` via normal dispatch, whereas `child.callBase()` creates a handle in the proper `Child` context to invoke `Base.label()` and yields `Base`.
 
-Ví dụ đặt `Person`, `Base` và `Child` trong cùng lớp bao nên quyền truy cập dễ kiểm soát. Nếu chuyển chúng sang package/module khác, cần xét lại modifier của lớp/phương thức và quyền của `Lookup`, không giả định mọi lookup vẫn hợp lệ.
+The example places `Person`, `Base`, and `Child` inside the same enclosing class so access rights are straightforward. If you move them into different packages/modules, you must re-check class/method modifiers and `Lookup` permissions instead of assuming every lookup remains valid.
 
-## 8. `invokeExact`, `invoke` và thay đổi kiểu
+## 8. `invokeExact`, `invoke`, and Changing Types
 
-Tra cứu thành công mới là bước một; lời gọi handle cần thỏa kiểu.
+Succeeding at lookup is only step one; invoking the handle must satisfy its type.
 
-- `invokeExact` yêu cầu kiểu tham số **và kiểu trả về nhìn từ vị trí gọi** khớp chính xác với `handle.type()`. Với lời gọi có kết quả, ép kiểu tường minh `(String)` hoặc `(Person)` như ví dụ giúp compiler xác lập expected return type. Nếu chữ ký không trùng sẽ có `WrongMethodTypeException` khi thực thi.
-- `invoke` cho phép một số phép thích nghi kiểu tương đương `asType` (ví dụ boxing/unboxing hoặc ép kiểu tham chiếu hợp lệ); không có nghĩa là mọi kiểu đều chuyển đổi được.
-- `handle.asType(targetType)` tạo handle thích nghi theo quy tắc chuyển đổi cho phép; nó có thể báo `WrongMethodTypeException` nếu không thể thích nghi.
-- `invokeWithArguments` hữu ích với danh sách đối số động và có thể thực hiện boxing/chuyển đổi; bù lại, nó không thay thế việc thiết kế chữ ký chính xác khi hiệu năng và an toàn kiểu là ưu tiên.
+- `invokeExact` requires parameter types **and the return type seen at the call site** to match `handle.type()` exactly. For calls returning a value, an explicit cast like `(String)` or `(Person)` in the example helps the compiler establish the expected return type. If the signatures do not match, `WrongMethodTypeException` is thrown at runtime.
+- `invoke` allows certain type adaptations equivalent to `asType` (such as boxing/unboxing or valid reference casts); this does not mean every type can be converted.
+- `handle.asType(targetType)` produces an adapted handle according to permitted conversion rules; it can throw `WrongMethodTypeException` if adaptation is not possible.
+- `invokeWithArguments` is useful for dynamic argument lists and can perform boxing/conversions; on the other hand, it does not replace designing exact signatures when performance and type safety are priorities.
 
-Ví dụ xử lý lời gọi `virtual` trong chương trình trên:
+Example of handling the `virtual` invocation in the program above:
 
 ```java
-// virtual.type() là (LookupDemo.Person,String)String
-String result = (String) virtual.invokeExact(person, "Chào");
+// virtual.type() is (LookupDemo.Person,String)String
+String result = (String) virtual.invokeExact(person, "Hello");
 
-// Với invokeExact, không thể tùy ý bỏ receiver:
-// virtual.invokeExact("Chào"); // Sai chữ ký ở vị trí gọi.
+// With invokeExact, you cannot arbitrarily omit the receiver:
+// virtual.invokeExact("Hello"); // Wrong signature at the call site.
 ```
 
-Đoạn này **chỉ minh họa khi được đặt trong `main` ở ví dụ đầy đủ**, nơi các biến `virtual` và `person` đã tồn tại; không phải file Java độc lập.
+This snippet is **only illustrative when placed inside `main` of the full example**, where the `virtual` and `person` variables already exist; it is not a standalone Java file.
 
-## 9. Lỗi thường gặp, nguyên nhân và cách xử lý
+## 9. Common Errors, Causes, and Fixes
 
-| Hiện tượng | Nguyên nhân tiêu biểu | Cách kiểm tra/sửa |
+| Symptom | Typical Cause | How to Check/Fix |
 | --- | --- | --- |
-| `NoSuchMethodException` lúc `find*` | Sai tên, overload, kiểu tham số/kết quả; nhầm static với instance | Đối chiếu khai báo thực tế và `MethodType`; chọn đúng API |
-| `IllegalAccessException` lúc tra cứu | Lookup không có quyền của lớp/thành viên hoặc không có special-caller access | Xét vị trí tạo `lookup()`, modifier, package và module; chỉ dùng `privateLookupIn` khi có quyền |
-| `WrongMethodTypeException` khi gọi | Chữ ký ở `invokeExact` khác `handle.type()`, kể cả kiểu kết quả | In `handle.type()`; kiểm tra receiver, `int`/`Integer`, kiểu kết quả và cast |
-| `ClassCastException`/lỗi chuyển đổi lúc invoke | Đối số runtime không khớp phép chuyển đổi được yêu cầu | Kiểm tra kiểu runtime, `asType` và đường chuyển đổi thực sự |
-| Gọi override thay vì lớp cha | Dùng `findVirtual` nhưng mong hành vi `super` | Dùng `findSpecial` trong special-caller context hợp lệ |
-| Constructor lookup thất bại | Đặt return type là lớp thay vì `void`, hoặc nhầm danh sách tham số | Tra cứu constructor bằng `MethodType.methodType(void.class, ...)` |
-| Lời gọi thiếu/thừa đối số | Quên receiver của virtual/special hoặc thêm receiver vào static/constructor | So sánh `handle.type()` với bảng ở mục 1 |
+| `NoSuchMethodException` during `find*` | Wrong name, overload, parameter/return types; confusing static with instance | Cross-check the actual declaration and `MethodType`; pick the right API |
+| `IllegalAccessException` during lookup | Lookup lacks permission for the class/member or lacks special-caller access | Check where `lookup()` is created, modifiers, package, and module; only use `privateLookupIn` when authorized |
+| `WrongMethodTypeException` during invocation | Call-site signature in `invokeExact` differs from `handle.type()`, including return type | Print `handle.type()`; check receiver, `int`/`Integer`, return type, and casts |
+| `ClassCastException`/conversion error during invoke | Runtime argument does not match the requested conversion | Check runtime types, `asType`, and the actual conversion path |
+| Calls override instead of superclass | Used `findVirtual` while expecting `super` behavior | Use `findSpecial` inside a valid special-caller context |
+| Constructor lookup fails | Put the class instead of `void` as the return type, or wrong parameter list | Look up constructors with `MethodType.methodType(void.class, ...)` |
+| Missing/extra arguments in call | Forgot receiver for virtual/special or added receiver for static/constructor | Compare `handle.type()` with the table in section 1 |
 
-Các API tra cứu nêu trên khai báo `NoSuchMethodException` và `IllegalAccessException`. `MethodHandle.invokeExact`/`invoke` có thể ném `Throwable`, nên ví dụ sử dụng `throws Throwable` để dễ quan sát; trong ứng dụng thật hãy chọn cách xử lý ngoại lệ phù hợp.
+The lookup APIs above declare `NoSuchMethodException` and `IllegalAccessException`. `MethodHandle.invokeExact`/`invoke` can throw `Throwable`, so the example uses `throws Throwable` for ease of observation; in real applications, choose an appropriate exception-handling strategy.
 
-## 10. Truy cập, kế thừa và module Java
+## 10. Access, Inheritance, and Java Modules
 
-`Lookup` là **capability có kiểm tra quyền**. Một reference đến `Class<?>` hoặc tên phương thức không tự cấp quyền. Vài nguyên tắc thực tế:
+`Lookup` is an **access-checked capability**. A reference to a `Class<?>` or a method name does not grant permissions by itself. A few practical rules:
 
-1. Tạo `MethodHandles.lookup()` trong đúng lớp/ngữ cảnh cần tra cứu. Di chuyển đoạn code sang helper khác sẽ đổi lớp sở hữu lookup, có thể đổi khả năng truy cập thành viên.
-2. Phương thức public của public class chưa chắc đủ khi lớp nằm trong package không được module export cho bên gọi. Truy cập private qua module khác còn liên quan đến package `opens` và các điều kiện của `privateLookupIn`.
-3. Với phương thức override, `findVirtual` thường là lựa chọn phản ánh polymorphism. Với `super` có chủ đích, `findSpecial` phải được kiểm tra bằng một case cụ thể trong hệ phân cấp lớp đang dùng.
-4. Không dùng `setAccessible(true)` của Reflection như giả định rằng lookup của MethodHandle tự động có cùng quyền. Đây là hai cơ chế truy cập khác nhau.
-5. Khi tra cứu thất bại, nên chẩn đoán đúng modifier, module và chữ ký trước khi thay đổi cấu hình JVM; không mở quyền module rộng chỉ để tránh hiểu nguyên nhân.
+1. Create `MethodHandles.lookup()` in the exact class/context where the lookup belongs. Moving the code into another helper changes the lookup-owning class, which can change member accessibility.
+2. A public method on a public class may not be enough when the class resides in a package not exported by its module to the caller. Cross-module private access also involves package `opens` and the conditions of `privateLookupIn`.
+3. For overridden methods, `findVirtual` is usually the choice that reflects polymorphism. For intentional `super` calls, `findSpecial` should be verified with a concrete case in the class hierarchy being used.
+4. Do not treat Reflection's `setAccessible(true)` as implying that a MethodHandle lookup automatically gains the same permissions. These are two distinct access mechanisms.
+5. When a lookup fails, diagnose the modifier, module, and signature accurately before changing JVM flags; do not open module permissions broadly just to avoid understanding the cause.
 
-## 11. Chọn API qua các tình huống
+## 11. Choosing an API by Scenario
 
-- Gọi `user.getName()` trên nhiều instance: tra `findVirtual(User.class, "getName", methodType(String.class))`; truyền từng `User` làm đối số đầu của handle.
-- Gọi hàm tiện ích `Math.max(int,int)`: tra `findStatic(Math.class, "max", methodType(int.class, int.class, int.class))`; truyền trực tiếp hai số nguyên.
-- Tạo `new ArrayList<>(initialCapacity)`: tra `findConstructor(ArrayList.class, methodType(void.class, int.class))`; kết quả của handle là một `ArrayList`.
-- Gọi phiên bản ở lớp cha dù lớp con có override: cân nhắc `findSpecial` **bên trong đúng ngữ cảnh lớp con được phép**; không dùng nó như lối tắt gọi thành viên tùy ý từ code ngoài lớp.
+- Calling `user.getName()` across many instances: look up `findVirtual(User.class, "getName", methodType(String.class))`; pass each `User` as the handle's first argument.
+- Calling utility `Math.max(int,int)`: look up `findStatic(Math.class, "max", methodType(int.class, int.class, int.class))`; pass the two integers directly.
+- Creating `new ArrayList<>(initialCapacity)`: look up `findConstructor(ArrayList.class, methodType(void.class, int.class))`; the handle's result is an `ArrayList`.
+- Calling the superclass version even though a subclass overrides it: consider `findSpecial` **inside the valid permitted subclass context**; do not use it as a shortcut to invoke arbitrary members from external code.
 
-Một trình tự giải bài thực hành hiệu quả: **xác định loại thành viên → viết chữ ký khai báo → chọn `find*` → in `handle.type()` → kiểm tra quyền lookup → gọi đúng receiver và kiểu kết quả → đối chiếu output**. Nếu người học nắm được sự khác nhau giữa kiểu tìm và kiểu handle, phần lớn lỗi thực tế sẽ trở nên dễ xác định hơn.
+An effective problem-solving sequence: **identify member kind -> write declared signature -> pick `find*` -> print `handle.type()` -> check lookup permissions -> pass proper receiver and return type -> verify output**. Once you grasp the difference between lookup type and handle type, most real-world errors become much easier to pinpoint.
 
-## 12. Tự kiểm tra
+## 12. Self-Check
 
-1. Vì sao `findVirtual` nhận `MethodType` không chứa receiver nhưng handle lại chứa receiver?
-2. Tại sao `findConstructor` yêu cầu return type `void` trong lúc handle trả về object?
-3. Khi một lớp con override `label()`, làm sao phân biệt lời gọi virtual với lời gọi special đến bản của lớp cha?
-4. `WrongMethodTypeException` có thể xảy ra vì kiểu kết quả ở vị trí `invokeExact` khác với handle hay không?
-5. Khi cùng một lời tra cứu chạy được trong lớp `Child` nhưng thất bại sau khi chuyển sang một helper ở module khác, cần kiểm tra những quyền nào?
+1. Why does `findVirtual` take a `MethodType` without the receiver, while the resulting handle includes the receiver?
+2. Why does `findConstructor` require return type `void` while the handle returns an object?
+3. When a subclass overrides `label()`, how do you distinguish a virtual call from a special call to the superclass version?
+4. Can `WrongMethodTypeException` occur because the return type at the `invokeExact` call site differs from the handle?
+5. When the same lookup works inside `Child` but fails after being moved to a helper in another module, which permissions must be checked?
 
-**Kết quả cần đạt:** phân biệt được cả bốn hình thức tra cứu, tự viết đúng `MethodType`, đọc được `MethodHandle.type()`, thực hiện lời gọi và giải thích được các lỗi về chữ ký cũng như quyền truy cập.
+**Learning outcome:** distinguish all four lookup forms, write the right `MethodType`, read `MethodHandle.type()`, execute calls, and explain signature as well as access errors.

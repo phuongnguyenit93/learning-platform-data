@@ -1,27 +1,27 @@
-# Giữ thứ tự gặp bằng `ArrayList` và `LinkedHashSet`
+# Preserving Encounter Order with `ArrayList` and `LinkedHashSet`
 
-## 1. Mục tiêu bài học
+## 1. Lesson Objectives
 
-Trong **Java Stream API**, một pipeline khai báo thường lấy dữ liệu từ nguồn, thực hiện các thao tác trung gian lazy như `filter`, `map` và kết thúc bằng `collect`. Khi thu kết quả thành một collection, kiểu collection quyết định **có giữ giá trị trùng hay không**, **duyệt lại theo thứ tự nào** và **có thể tiếp tục thêm/xóa phần tử không**.
+In the **Java Stream API**, a declarative pipeline typically draws data from a source, performs lazy intermediate operations such as `filter` and `map`, and ends with `collect`. When collecting results into a collection, the collection type determines **whether duplicate values are kept**, **in what order elements are iterated**, and **whether elements can continue to be added or removed**.
 
-Bài này thuộc chương **Thu thập thành Collection** của module **`JAVA_STREAM_API`**, tập trung vào hai trường hợp thực tế:
+This lesson belongs to the **Collecting into Collections** chapter of the **`JAVA_STREAM_API`** module, focusing on two practical cases:
 
-- **`ArrayList`:** giữ tất cả phần tử, kể cả các phần tử trùng nhau, theo **thứ tự gặp** (*encounter order*) của stream có thứ tự.
-- **`LinkedHashSet`:** chỉ giữ một phần tử cho mỗi nhóm bằng nhau theo `equals`/`hashCode`, đồng thời giữ **thứ tự xuất hiện đầu tiên** của các giá trị duy nhất.
+- **`ArrayList`:** retains all elements, including duplicates, in the **encounter order** of an ordered stream.
+- **`LinkedHashSet`:** retains only one element per equality group according to `equals`/`hashCode`, while preserving the **first-appearance order** of unique values.
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-1. Phân biệt thứ tự gặp của nguồn stream với thứ tự duyệt collection kết quả.
-2. Dùng `Collectors.toCollection(ArrayList::new)` và `Collectors.toCollection(LinkedHashSet::new)` để chọn rõ loại collection cần nhận.
-3. Dự đoán kết quả của pipeline có `filter`, `map`, `distinct` và `sorted`.
-4. Nhận biết ranh giới bảo đảm thứ tự ở nguồn có thứ tự, nguồn không có thứ tự và pipeline song song.
-5. Tránh nhầm lẫn giữa `toList`, `toSet`, `toCollection` và những vấn đề liên quan đến đối tượng thay đổi được.
+1. Distinguish the encounter order of a stream source from the iteration order of the resulting collection.
+2. Use `Collectors.toCollection(ArrayList::new)` and `Collectors.toCollection(LinkedHashSet::new)` to explicitly choose the target collection type.
+3. Predict the output of pipelines containing `filter`, `map`, `distinct`, and `sorted`.
+4. Recognize ordering guarantees across ordered sources, unordered sources, and parallel pipelines.
+5. Avoid confusion between `toList`, `toSet`, `toCollection`, and issues involving mutable objects.
 
-Những nguyên tắc này cũng hữu ích khi tiếp tục học grouping, collector tùy chỉnh, Spliterator và hiệu năng xử lý song song.
+These principles are also useful when moving on to grouping, custom collectors, Spliterators, and parallel processing performance.
 
-## 2. Thứ tự gặp (*encounter order*) là gì?
+## 2. What Is Encounter Order?
 
-**Thứ tự gặp** là thứ tự phần tử do nguồn stream xác định, nếu nguồn có thứ tự. Ví dụ, một `List` có thứ tự theo vị trí các phần tử:
+**Encounter order** is the order of elements defined by the stream source, if the source is ordered. For example, a `List` has an order based on element positions:
 
 ```java
 import java.util.Arrays;
@@ -32,66 +32,66 @@ List<String> khoaHoc = Arrays.asList(
 );
 ```
 
-Stream tạo bằng `khoaHoc.stream()` có thứ tự gặp:
+The stream created by `khoaHoc.stream()` has the encounter order:
 
 ```text
 Java Core → Go → Java Stream → Go → Kotlin
 ```
 
-Không phải nguồn nào cũng có thứ tự gặp được bảo đảm:
+Not every source has a guaranteed encounter order:
 
-| Nguồn | Có thứ tự gặp được bảo đảm? | Ghi chú |
+| Source | Guaranteed encounter order? | Notes |
 | --- | --- | --- |
-| `ArrayList.stream()` | Có | Theo thứ tự các phần tử trong list. |
-| `LinkedList.stream()` | Có | Theo thứ tự duyệt list. |
-| `Arrays.stream(array)` | Có | Theo thứ tự chỉ số mảng. |
-| `IntStream.range(0, 5)` | Có | Theo thứ tự tăng từ 0 đến 4. |
-| `LinkedHashSet.stream()` | Có | Theo thứ tự chèn của set. |
-| `HashSet.stream()` | Không | Thứ tự duyệt không được bảo đảm. |
-| `HashMap.keySet().stream()` | Không | Không nên dựa vào thứ tự khóa của `HashMap`. |
+| `ArrayList.stream()` | Yes | Follows the order of elements in the list. |
+| `LinkedList.stream()` | Yes | Follows list iteration order. |
+| `Arrays.stream(array)` | Yes | Follows array index order. |
+| `IntStream.range(0, 5)` | Yes | Follows ascending order from 0 to 4. |
+| `LinkedHashSet.stream()` | Yes | Follows the set's insertion order. |
+| `HashSet.stream()` | No | Iteration order is not guaranteed. |
+| `HashMap.keySet().stream()` | No | Do not rely on the key order of a `HashMap`. |
 
-**Điểm quan trọng:** một nguồn `HashSet` có thể tình cờ được in cùng thứ tự trong vài lần chạy, nhưng điều đó không tạo ra một hợp đồng bảo đảm thứ tự. Chuyển kết quả vào `LinkedHashSet` không thể tự suy ra thứ tự ban đầu mà nguồn chưa từng cam kết.
+**Important point:** a `HashSet` source may happen to print in the same order across several runs, but that does not establish an ordering guarantee. Collecting the result into a `LinkedHashSet` cannot invent an original order that the source never promised.
 
-Các thao tác trung gian có thể giữ, thay đổi hoặc loại bỏ ràng buộc thứ tự:
+Intermediate operations can preserve, change, or drop the ordering constraint:
 
-- `filter` giữ thứ tự tương đối của các phần tử còn lại trong một ordered stream.
-- `map` biến đổi giá trị nhưng giữ thứ tự vị trí đầu ra đối với ordered stream.
-- `sorted` tạo thứ tự sắp xếp mới.
-- `unordered` cho phép pipeline **bỏ ràng buộc** về thứ tự gặp.
-- `distinct` trên ordered stream giữ phần tử đầu tiên của mỗi giá trị bằng nhau.
+- `filter` preserves the relative order of remaining elements in an ordered stream.
+- `map` transforms values while preserving output positional order for an ordered stream.
+- `sorted` establishes a new sorted order.
+- `unordered` allows the pipeline to **drop the encounter order constraint**.
+- `distinct` on an ordered stream retains the first element of each equal value.
 
-Vì vậy, muốn đánh giá thứ tự kết quả, hãy hỏi: **nguồn có thứ tự không và các bước trước `collect` đã làm gì với thứ tự đó?**
+Therefore, to evaluate result ordering, ask: **does the source have an order, and what did the steps before `collect` do to that order?**
 
-## 3. Collector tường minh: `toCollection`
+## 3. Explicit Collector: `toCollection`
 
-Java 8 cung cấp phương thức:
+Java 8 provides the method:
 
 ```java
 static <T, C extends Collection<T>> Collector<T, ?, C>
     toCollection(Supplier<C> collectionFactory)
 ```
 
-`Collectors.toCollection` nhận một **supplier** dùng để tạo collection kết quả. Với hai kiểu đang học:
+`Collectors.toCollection` accepts a **supplier** used to create the resulting collection. For the two types covered here:
 
 ```java
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.stream.Collectors;
 
-// Thu thành ArrayList:
+// Collect into ArrayList:
 .collect(Collectors.toCollection(ArrayList::new));
 
-// Thu thành LinkedHashSet:
+// Collect into LinkedHashSet:
 .collect(Collectors.toCollection(LinkedHashSet::new));
 ```
 
-Cú pháp `ArrayList::new` và `LinkedHashSet::new` là **constructor reference**: supplier tạo collection mới khi collector cần tích lũy dữ liệu. Bạn có thể viết tương đương bằng lambda `() -> new ArrayList<>()` hoặc `() -> new LinkedHashSet<>()`.
+The syntax `ArrayList::new` and `LinkedHashSet::new` is a **constructor reference**: the supplier creates a new collection when the collector needs to accumulate data. You can equivalently write lambdas `() -> new ArrayList<>()` or `() -> new LinkedHashSet<>()`.
 
-`toCollection` cho phép quyết định **kiểu collection cụ thể**. Trên một ordered stream, collector nhận phần tử theo thứ tự gặp và tích lũy chúng; `ArrayList` giữ thứ tự đó khi duyệt, còn `LinkedHashSet` giữ thứ tự chèn của những phần tử đầu tiên chưa trùng.
+`toCollection` lets you decide the **concrete collection type**. On an ordered stream, the collector receives elements in encounter order and accumulates them; `ArrayList` preserves that order when iterating, while `LinkedHashSet` preserves the insertion order of the first non-duplicate elements.
 
-### Ví dụ hoàn chỉnh: thu cả danh sách và danh sách không trùng
+### Complete Example: Collecting Both a Full List and a Unique List
 
-Chương trình sau chạy trên **Java 8 trở lên**:
+The following program runs on **Java 8 and above**:
 
 ```java
 import java.util.ArrayList;
@@ -120,7 +120,7 @@ public class ThuThapTheoThuTu {
 }
 ```
 
-Kết quả:
+Output:
 
 ```text
 [Java, Go, Java, Kotlin, Go, Python]
@@ -129,26 +129,26 @@ ArrayList
 LinkedHashSet
 ```
 
-Ta tạo **hai stream riêng** bằng `ten.stream()` bởi một stream không thể được dùng lại sau khi chạy terminal operation `collect`.
+We create **two separate streams** with `ten.stream()` because a stream cannot be reused after running the `collect` terminal operation.
 
-So sánh:
+Comparison:
 
-| Yêu cầu | `ArrayList` | `LinkedHashSet` |
+| Requirement | `ArrayList` | `LinkedHashSet` |
 | --- | --- | --- |
-| Giữ hai lần xuất hiện của `"Java"` | Có | Không |
-| Giữ thứ tự xuất hiện từ nguồn ordered | Có | Có, đối với các giá trị duy nhất |
-| Truy cập phần tử bằng chỉ số `get(0)` | Có | Không |
-| Tìm kiếm phần tử bằng `contains` | Có, duyệt tuyến tính | Thường hiệu quả hơn nhờ bảng băm |
-| Cho phép thêm/xóa phần tử | Có | Có |
-| Chứa phần tử `null` | Có, có thể lặp lại | Có, tối đa một `null` |
+| Keeps both occurrences of `"Java"` | Yes | No |
+| Preserves appearance order from an ordered source | Yes | Yes, for unique values |
+| Index-based access `get(0)` | Yes | No |
+| Membership lookup via `contains` | Yes, linear scan | Usually more efficient via hash table |
+| Allows adding/removing elements | Yes | Yes |
+| Can contain `null` elements | Yes, can repeat | Yes, at most one `null` |
 
-Không nên chọn `LinkedHashSet` chỉ vì muốn giữ thứ tự nếu nghiệp vụ vẫn cần giữ đầy đủ các bản ghi trùng. Đó là hai yêu cầu khác nhau.
+Do not choose `LinkedHashSet` solely to preserve order if business rules still require keeping all duplicate records. Those are two different requirements.
 
-## 4. Dùng `ArrayList` khi phải giữ mọi phần tử
+## 4. Using `ArrayList` When All Elements Must Be Kept
 
-### 4.1. `filter` và `map` không tự loại trùng
+### 4.1. `filter` and `map` Do Not Automatically Deduplicate
 
-`ArrayList` đặc biệt hữu ích khi cần giữ bản ghi theo thứ tự thời gian, danh sách kết quả tìm kiếm hoặc lịch sử sự kiện mà **hai bản ghi bằng nhau vẫn có ý nghĩa**.
+`ArrayList` is especially useful when you need to keep records in chronological order, search result lists, or event histories where **two equal records still carry meaning**.
 
 ```java
 List<String> suKien = Arrays.asList(
@@ -164,11 +164,11 @@ System.out.println(lichSu);
 // [LOGIN, LOGIN, LOGOUT, LOGIN]
 ```
 
-Trong ví dụ này, cả ba lần `"login"` vẫn tồn tại; `filter` chỉ loại `"error"`. `map` biến đổi từng giá trị chứ không xóa phần tử trùng.
+In this example, all three `"login"` entries remain; `filter` only removes `"error"`. `map` transforms each value rather than removing duplicates.
 
-### 4.2. Thêm `sorted` khi cần thứ tự cụ thể
+### 4.2. Add `sorted` When a Specific Order Is Needed
 
-`ArrayList` giữ thứ tự **đầu vào của bước thu thập**. Nếu pipeline đã sắp xếp, list phản ánh thứ tự sau sắp xếp:
+`ArrayList` preserves the **input order entering the collection step**. If the pipeline has sorted elements, the list reflects the post-sort order:
 
 ```java
 List<String> ten = Arrays.asList("Kotlin", "Java", "Go");
@@ -180,20 +180,20 @@ ArrayList<String> theoAlphabet = ten.stream()
 System.out.println(theoAlphabet); // [Go, Java, Kotlin]
 ```
 
-Ở đây `ArrayList` không tự sắp xếp; chính `sorted()` làm thay đổi thứ tự gặp trước khi thu.
+Here `ArrayList` does not sort on its own; `sorted()` changes the encounter order prior to collection.
 
-### 4.3. Vì sao không luôn dùng `Collectors.toList()`?
+### 4.3. Why Not Always Use `Collectors.toList()`?
 
-Cách viết sau cũng có thể thu các phần tử vào một list:
+The following syntax also collects elements into a list:
 
 ```java
 List<String> ketQua = ten.stream()
     .collect(Collectors.toList());
 ```
 
-Tuy nhiên, **`Collectors.toList()` không cam kết kiểu triển khai, khả năng sửa đổi, tính thread-safe hay serializability** của list kết quả. Trên một số JDK nó là `ArrayList`, nhưng không nên xem đó là hợp đồng API.
+However, **`Collectors.toList()` does not guarantee the implementation class, mutability, thread-safety, or serializability** of the resulting list. On some JDKs it happens to be an `ArrayList`, but you should not treat that as an API contract.
 
-Nếu **thực sự cần `ArrayList`**, hãy viết:
+If you **genuinely need an `ArrayList`**, write:
 
 ```java
 ArrayList<String> ketQua = ten.stream()
@@ -203,16 +203,16 @@ ketQua.add("Python");
 System.out.println(ketQua); // [Kotlin, Java, Go, Python]
 ```
 
-Từ **Java 16**, `stream.toList()` thu về list **không cho phép sửa** và vẫn giữ thứ tự gặp nếu stream có thứ tự. Nếu yêu cầu là list có thể thay đổi với kiểu cụ thể, `toCollection(ArrayList::new)` vẫn là lựa chọn rõ ràng.
+Since **Java 16**, `stream.toList()` collects into an **unmodifiable** list while still preserving encounter order if the stream is ordered. If the requirement is a mutable list of a concrete type, `toCollection(ArrayList::new)` remains the explicit choice.
 
-## 5. Dùng `LinkedHashSet` khi cần duy nhất và giữ vị trí đầu tiên
+## 5. Using `LinkedHashSet` When Uniqueness and First Position Are Needed
 
-`LinkedHashSet` kết hợp hai đặc điểm:
+`LinkedHashSet` combines two traits:
 
-1. Không chứa hai phần tử được coi là bằng nhau theo hợp đồng `equals` và `hashCode`.
-2. Duyệt phần tử theo **thứ tự chèn**.
+1. Contains no two elements considered equal under the `equals` and `hashCode` contract.
+2. Iterates over elements in **insertion order**.
 
-Với stream có thứ tự, giá trị duy nhất nào xuất hiện trước sẽ được chèn trước:
+With an ordered stream, whichever unique value appears first is inserted first:
 
 ```java
 List<String> ten = Arrays.asList(
@@ -226,9 +226,9 @@ System.out.println(ketQua);
 // [Go, Java, Kotlin, Python]
 ```
 
-Khi `"Go"` hoặc `"Java"` xuất hiện lại, lần chèn trùng **không đổi vị trí** của phần tử đã được chèn trước.
+When `"Go"` or `"Java"` appears again, the duplicate insertion **does not change the position** of the previously inserted element.
 
-### 5.1. Thêm lại phần tử trùng không đưa nó về cuối
+### 5.1. Re-adding a Duplicate Does Not Move It to the End
 
 ```java
 LinkedHashSet<String> set = new LinkedHashSet<>();
@@ -239,7 +239,7 @@ set.add("A");
 System.out.println(set); // [A, B]
 ```
 
-Để chuyển `"A"` về cuối theo quy tắc chèn, phải xóa rồi thêm:
+To move `"A"` to the end according to insertion rules, you must remove and then re-add it:
 
 ```java
 set.remove("A");
@@ -247,11 +247,11 @@ set.add("A");
 System.out.println(set); // [B, A]
 ```
 
-Không nên dùng thao tác xóa/thêm khi mục tiêu chỉ là khử trùng; nếu thứ tự đầu tiên quan trọng, chỉ cần thu trực tiếp.
+Do not use remove/add operations when the goal is simply deduplication; if first-seen order matters, just collect directly.
 
-### 5.2. `LinkedHashSet` có khác `HashSet` không?
+### 5.2. How Does `LinkedHashSet` Differ from `HashSet`?
 
-Cả hai đều loại giá trị trùng, nhưng `HashSet` không bảo đảm thứ tự duyệt:
+Both remove duplicate values, but `HashSet` does not guarantee iteration order:
 
 ```java
 import java.util.HashSet;
@@ -264,13 +264,13 @@ LinkedHashSet<String> giuThuTu = ten.stream()
     .collect(Collectors.toCollection(LinkedHashSet::new));
 ```
 
-Nếu người dùng cần danh sách nhãn duy nhất theo **thứ tự xuất hiện lần đầu trong dữ liệu đầu vào**, sử dụng `LinkedHashSet` giúp diễn đạt chính xác yêu cầu. Nếu không quan tâm thứ tự, `HashSet` có thể là lựa chọn phù hợp.
+If the user needs a list of unique tags in **first-appearance order in the input data**, using `LinkedHashSet` expresses that requirement accurately. If order does not matter, `HashSet` can be an appropriate choice.
 
-`LinkedHashSet` **không sắp xếp theo bảng chữ cái**. Để tạo thứ tự chữ cái, cần `sorted()` trước khi collect hoặc một collection có ngữ nghĩa sắp xếp như `TreeSet` (ngữ nghĩa khác với thứ tự gặp).
+`LinkedHashSet` **does not sort alphabetically**. To produce alphabetical order, call `sorted()` before collecting or use a collection with sorting semantics such as `TreeSet` (which has different semantics from encounter order).
 
-## 6. Quy tắc trùng lặp: `equals` và `hashCode`
+## 6. Duplication Rules: `equals` and `hashCode`
 
-`LinkedHashSet` xác định trùng lặp theo ngữ nghĩa của `Set`. Với `String`, hai chuỗi bằng nhau theo `equals` được coi là trùng, trong khi `"Java"` và `"java"` khác nhau:
+`LinkedHashSet` determines duplicates using `Set` semantics. For `String`, two strings that are equal under `equals` are considered duplicates, whereas `"Java"` and `"java"` are distinct:
 
 ```java
 List<String> ten = Arrays.asList(
@@ -284,7 +284,7 @@ System.out.println(ketQua);
 // [Java, java, JAVA, Go]
 ```
 
-Nếu nghiệp vụ muốn so sánh không phân biệt hoa/thường, phải chuẩn hóa giá trị **trước khi thu**:
+If business logic requires case-insensitive comparison, normalize values **before collecting**:
 
 ```java
 import java.util.Locale;
@@ -296,11 +296,11 @@ LinkedHashSet<String> chuanHoa = ten.stream()
 System.out.println(chuanHoa); // [java, go]
 ```
 
-Đây là thao tác thay đổi dữ liệu: mọi giá trị đều được đưa về chữ thường. Nếu cần **giữ nguyên cách viết lần đầu** nhưng kiểm tra trùng không phân biệt hoa/thường, cần thiết kế khóa so sánh riêng, ví dụ dùng `LinkedHashMap` với khóa chuẩn hóa. `LinkedHashSet<String>` tự nó không nhận `Comparator` tùy chỉnh.
+This operation transforms the data: all values are converted to lowercase. If you need to **preserve the original first-seen casing** while checking duplicates case-insensitively, design a separate comparison key, such as using a `LinkedHashMap` with normalized keys. `LinkedHashSet<String>` itself does not accept a custom `Comparator`.
 
-### 6.1. Đối tượng tùy chỉnh phải tuân thủ hợp đồng bằng nhau
+### 6.1. Custom Objects Must Follow the Equality Contract
 
-Hai đối tượng có cùng mã nghiệp vụ có thể được coi là một phần tử, dù các thuộc tính hiển thị khác nhau. Ví dụ Java 8:
+Two objects with the same business code may be considered a single element even if display attributes differ. Java 8 example:
 
 ```java
 import java.util.Arrays;
@@ -340,29 +340,29 @@ public class LoaiBanGhiTrung {
 
     public static void main(String[] args) {
         List<GiaoDich> nguon = Arrays.asList(
-            new GiaoDich("A01", "Bản đầu"),
-            new GiaoDich("B02", "Bản khác"),
-            new GiaoDich("A01", "Bản cập nhật")
+            new GiaoDich("A01", "Initial record"),
+            new GiaoDich("B02", "Other record"),
+            new GiaoDich("A01", "Updated record")
         );
 
         LinkedHashSet<GiaoDich> duyNhat = nguon.stream()
             .collect(Collectors.toCollection(LinkedHashSet::new));
 
         System.out.println(duyNhat);
-        // [A01:Bản đầu, B02:Bản khác]
+        // [A01:Initial record, B02:Other record]
     }
 }
 ```
 
-Nhờ `equals` và `hashCode` cùng dựa trên `ma`, bản ghi `"A01"` thứ hai bị xem là trùng. `LinkedHashSet` giữ **đối tượng `"A01"` được gặp đầu tiên**, không tự cập nhật `moTa` sang giá trị mới.
+Because both `equals` and `hashCode` are based on `ma`, the second `"A01"` record is treated as a duplicate. `LinkedHashSet` keeps the **first-encountered `"A01"` object** and does not update `moTa` to the newer value.
 
-Nếu không override `equals` và `hashCode` trên một lớp thông thường, hai đối tượng khác nhau có thể không được nhận diện là trùng dù mang cùng mã nghiệp vụ.
+If `equals` and `hashCode` are not overridden on a regular class, two distinct object instances may fail to be recognized as duplicates even if they share the same business code.
 
-**Lưu ý:** không nên thay đổi thuộc tính tham gia vào `hashCode`/`equals` trong lúc đối tượng đang nằm trong set. Thao tác này có thể làm `contains` hoặc `remove` cho kết quả sai lệch. Các khóa dùng trong set nên ổn định hoặc bất biến.
+**Note:** do not mutate properties participating in `hashCode`/`equals` while the object is inside a set. Doing so can cause `contains` or `remove` to return incorrect results. Keys used in a set should be stable or immutable.
 
-## 7. `distinct` và `LinkedHashSet` giống và khác nhau thế nào?
+## 7. How Are `distinct` and `LinkedHashSet` Similar and Different?
 
-Với ordered stream, `distinct()` là một phép toán trung gian loại giá trị trùng **ổn định**: giữ lần xuất hiện đầu tiên của các phần tử bằng nhau. Sau đó ta vẫn có một stream để tiếp tục các phép toán.
+For an ordered stream, `distinct()` is a **stable** deduplicating intermediate operation: it retains the first occurrence of equal elements. Afterward, you still have a stream for further operations.
 
 ```java
 List<String> ten = Arrays.asList(
@@ -383,17 +383,17 @@ System.out.println(motLanMoiTenSet);
 // [Java, Go, Kotlin]
 ```
 
-Hai kết quả có cùng chuỗi giá trị trong ví dụ, nhưng **kiểu dữ liệu khác nhau**:
+The two results have the same sequence of values in this example, but **different data types**:
 
-| Cách làm | Kết quả | Khi nào phù hợp |
+| Approach | Result | When appropriate |
 | --- | --- | --- |
-| `distinct().collect(toCollection(ArrayList::new))` | `ArrayList<T>` không trùng theo thời điểm thu | Muốn giữ list và xử lý theo chỉ số sau đó. |
-| `collect(toCollection(LinkedHashSet::new))` | `LinkedHashSet<T>` duy nhất, theo thứ tự chèn | Muốn lưu kết quả dạng set, bảo toàn thứ tự xuất hiện đầu tiên. |
-| `collect(Collectors.toSet())` | `Set<T>`, không cam kết thứ tự | Chỉ cần tính duy nhất, không cần thứ tự hoặc kiểu set cụ thể. |
+| `distinct().collect(toCollection(ArrayList::new))` | `ArrayList<T>` without duplicates as of collection time | Want a list and index-based processing afterward. |
+| `collect(toCollection(LinkedHashSet::new))` | Unique `LinkedHashSet<T>`, in insertion order | Want to store results as a set while preserving first-appearance order. |
+| `collect(Collectors.toSet())` | `Set<T>`, no ordering guarantee | Only need uniqueness, without needing order or a concrete set type. |
 
-Không bắt buộc viết `distinct()` trước `LinkedHashSet` chỉ để loại trùng thêm một lần; điều đó thường dư thừa. Tuy nhiên, khi còn nhiều phép toán trung gian sau bước loại trùng, đặt `distinct` tại vị trí thích hợp có thể thể hiện rõ ý nghĩa pipeline.
+You do not have to write `distinct()` before `LinkedHashSet` just to deduplicate an extra time; that is usually redundant. However, when multiple intermediate operations follow the deduplication step, placing `distinct` at the right position can clarify the pipeline's intent.
 
-### Thứ tự các bước có thể thay đổi kết quả
+### Step Ordering Can Change Results
 
 ```java
 List<String> ten = Arrays.asList("Kotlin", "Java", "Kotlin", "Go");
@@ -412,11 +412,11 @@ System.out.println(a); // [Go, Java, Kotlin]
 System.out.println(b); // [Go, Java, Kotlin]
 ```
 
-Với dữ liệu này, hai pipeline cho cùng kết quả. Nhưng nếu biến đổi giá trị khác nhau trước bước loại trùng (chẳng hạn chuẩn hóa chữ hoa/thường), hoặc sắp xếp theo khóa khác với tiêu chí bằng nhau, thứ tự và đối tượng được giữ lại có thể khác. Vì vậy, phải mô tả **muốn loại trùng trên dữ liệu gốc hay dữ liệu đã biến đổi**.
+With this data, both pipelines produce the same result. However, if values are transformed differently before deduplication (such as case normalization), or sorted by a key different from the equality criterion, the resulting order and retained object can differ. Thus, specify **whether deduplication should happen on original or transformed data**.
 
-## 8. Pipeline có `filter`, `flatMap`, `sorted` và `limit`
+## 8. Pipelines with `filter`, `flatMap`, `sorted`, and `limit`
 
-### 8.1. `filter` giữ tương quan thứ tự các phần tử còn lại
+### 8.1. `filter` Preserves Relative Order of Remaining Elements
 
 ```java
 List<String> ten = Arrays.asList(
@@ -431,9 +431,9 @@ System.out.println(batDauBangJava);
 // [Java, JavaScript, Java]
 ```
 
-`filter` chỉ giữ/loại, không chủ động sắp xếp. Vì nguồn có thứ tự nên thứ tự của các giá trị còn lại được bảo toàn.
+`filter` only keeps or discards elements; it does not actively sort. Because the source is ordered, the order of remaining values is preserved.
 
-### 8.2. `flatMap` nối các phần tử theo thứ tự nguồn
+### 8.2. `flatMap` Concatenates Elements in Source Order
 
 ```java
 List<List<String>> nhom = Arrays.asList(
@@ -453,9 +453,9 @@ System.out.println(tatCa);  // [A, B, B, C]
 System.out.println(duyNhat); // [A, B, C]
 ```
 
-Với ordered stream từ hai list, kết quả của `flatMap` có thứ tự nối các stream con theo thứ tự gặp. `LinkedHashSet` vẫn chỉ giữ lần xuất hiện đầu của `"B"`.
+With an ordered stream from two lists, `flatMap`'s output concatenates sub-streams in encounter order. `LinkedHashSet` still retains only the first occurrence of `"B"`.
 
-### 8.3. `limit` áp dụng trước hay sau khi loại trùng?
+### 8.3. Should `limit` Apply Before or After Deduplication?
 
 ```java
 List<String> ten = Arrays.asList("A", "A", "B", "C", "D");
@@ -473,13 +473,13 @@ System.out.println(a); // [A, B]
 System.out.println(b); // [A, B, C]
 ```
 
-Ở `a`, ta chỉ xem ba phần tử nguồn đầu tiên rồi loại trùng; còn `b` yêu cầu ba **giá trị duy nhất** đầu tiên. Đây là khác biệt về ngữ nghĩa, nên phải đặt `limit` đúng vị trí theo yêu cầu nghiệp vụ.
+In `a`, we look only at the first three source elements and then deduplicate; in `b`, we ask for the first three **unique values**. This is a semantic difference, so place `limit` in the right spot per business requirements.
 
-## 9. Thu thập trên parallel stream có giữ thứ tự không?
+## 9. Does Collecting on a Parallel Stream Preserve Order?
 
-**Có, nếu nguồn và pipeline có thứ tự gặp và collector được sử dụng đúng hợp đồng.** `Collectors.toCollection(ArrayList::new)` và `Collectors.toCollection(LinkedHashSet::new)` đều có thể dùng trên ordered parallel stream mà không cần tự đồng bộ hóa một collection chia sẻ.
+**Yes, if the source and pipeline have an encounter order and the collector is used according to its contract.** Both `Collectors.toCollection(ArrayList::new)` and `Collectors.toCollection(LinkedHashSet::new)` can be used on an ordered parallel stream without manually synchronizing a shared collection.
 
-Ví dụ Java 8:
+Java 8 example:
 
 ```java
 import java.util.ArrayList;
@@ -508,23 +508,23 @@ public class ThuSongSong {
 }
 ```
 
-`IntStream.range(0, 10)` có thứ tự gặp. Trong quá trình collect song song, triển khai có thể tạo các collection cục bộ và ghép chúng để cho kết quả phù hợp thứ tự đã cam kết. **Thứ tự phần tử trong collection kết quả không đồng nghĩa với thứ tự thực thi các lambda** trên các worker thread.
+`IntStream.range(0, 10)` has an encounter order. During parallel collection, the implementation may create local collections and merge them to yield a result honoring the promised order. **Element order in the resulting collection does not imply lambda execution order** across worker threads.
 
-### 9.1. Vì sao không dùng `parallelStream().forEach(result::add)`?
+### 9.1. Why Not Use `parallelStream().forEach(result::add)`?
 
-Ví dụ sai:
+Wrong example:
 
 ```java
 List<Integer> nguon = Arrays.asList(1, 2, 3, 4, 5);
 ArrayList<Integer> ketQua = new ArrayList<>();
 
-// KHÔNG AN TOÀN: nhiều luồng có thể cùng sửa ArrayList.
+// UNSAFE: multiple threads may mutate ArrayList concurrently.
 nguon.parallelStream().forEach(ketQua::add);
 ```
 
-`ArrayList` không an toàn cho các lệnh `add` đồng thời, và `forEach` của parallel stream **không bảo đảm thứ tự gặp**. Kết quả có thể sai số phần tử, đảo thứ tự hoặc gặp lỗi khó tái hiện.
+`ArrayList` is not safe for concurrent `add` calls, and `forEach` on a parallel stream **does not guarantee encounter order**. The result may have the wrong element count, scrambled order, or hard-to-reproduce errors.
 
-Cách đúng:
+Correct approach:
 
 ```java
 ArrayList<Integer> ketQua = nguon.parallelStream()
@@ -533,13 +533,13 @@ ArrayList<Integer> ketQua = nguon.parallelStream()
 System.out.println(ketQua); // [1, 2, 3, 4, 5]
 ```
 
-`LinkedHashSet` cũng không phải cấu trúc an toàn để nhiều thread tự ý thêm phần tử đồng thời. Dùng collector thay vì tự sửa một collection chung là lựa chọn phù hợp.
+`LinkedHashSet` is likewise unsafe for multiple threads concurrently adding elements manually. Using a collector instead of mutating a shared collection is the right choice.
 
-### 9.2. `forEachOrdered` có thể giữ thứ tự, nhưng khác mục tiêu `collect`
+### 9.2. `forEachOrdered` Preserves Order, but Has a Different Purpose from `collect`
 
-`forEachOrdered` có thể thực hiện hành động theo thứ tự gặp của một ordered stream, nhưng nếu chỉ muốn **thu thành collection**, `collect` trực tiếp rõ ràng hơn và tránh quản lý trạng thái bên ngoài. Đừng dùng `forEachOrdered` như một cách thay thế mặc định cho `Collectors.toCollection`.
+`forEachOrdered` can execute an action in encounter order on an ordered stream, but if you simply want to **collect into a collection**, using `collect` directly is clearer and avoids managing external state. Do not use `forEachOrdered` as a default substitute for `Collectors.toCollection`.
 
-### 9.3. `unordered()` và nguồn không có thứ tự
+### 9.3. `unordered()` and Unordered Sources
 
 ```java
 List<String> ten = Arrays.asList("B", "A", "C", "A");
@@ -549,9 +549,9 @@ LinkedHashSet<String> ketQua = ten.parallelStream()
     .collect(Collectors.toCollection(LinkedHashSet::new));
 ```
 
-`unordered()` **không bắt buộc đảo thứ tự** nhưng cho phép pipeline hoạt động không có ràng buộc thứ tự gặp. Vì thế, khi yêu cầu cần thứ tự "B, A, C" dựa trên lần xuất hiện đầu của nguồn, **đừng bỏ ràng buộc thứ tự**. Một lần chạy vẫn in `[B, A, C]` không có nghĩa sẽ luôn như vậy.
+`unordered()` **does not necessarily reverse or scramble order**, but it allows the pipeline to operate without encounter-order constraints. Therefore, when the requirement calls for `"B, A, C"` order based on first appearance in the source, **do not drop the ordering constraint**. Printing `[B, A, C]` on one run does not mean it always will.
 
-Nếu nguồn là `HashSet`, thứ tự của phần tử đến collector vốn đã không được bảo đảm:
+If the source is a `HashSet`, the order of elements arriving at the collector is already not guaranteed:
 
 ```java
 import java.util.HashSet;
@@ -564,11 +564,11 @@ LinkedHashSet<String> ghiLaiThuTuDuyet = khongCoThuTu.stream()
     .collect(Collectors.toCollection(LinkedHashSet::new));
 ```
 
-`ghiLaiThuTuDuyet` ghi nhận thứ tự gặp **thực tế** mà nguồn cung cấp, nhưng không thể bảo đảm đó là thứ tự `"B", "A", "C"`. Nếu cần thứ tự có ý nghĩa, hãy tạo hoặc sắp xếp nguồn theo yêu cầu.
+`ghiLaiThuTuDuyet` records the **actual** encounter order provided by the source, but cannot guarantee that it will be `"B", "A", "C"`. If a meaningful order is needed, construct or sort the source as required.
 
-## 10. Mutability, tài nguyên và hiệu năng
+## 10. Mutability, Resources, and Performance
 
-Cả `ArrayList` và `LinkedHashSet` do `toCollection` tạo ra là **collection có thể sửa đổi**:
+Both `ArrayList` and `LinkedHashSet` created by `toCollection` are **modifiable collections**:
 
 ```java
 ArrayList<String> ds = ten.stream()
@@ -582,19 +582,19 @@ LinkedHashSet<String> tap = ten.stream()
 tap.add("Rust");
 ```
 
-Tuy nhiên, tính có thể sửa đổi không đồng nghĩa an toàn khi nhiều thread cùng thay đổi. Không dùng chúng như cấu trúc đồng thời nếu chưa có thiết kế đồng bộ hóa phù hợp.
+However, mutability does not mean thread-safety when multiple threads modify them concurrently. Do not use them as concurrent data structures without an appropriate synchronization design.
 
-Về tài nguyên:
+Regarding resources:
 
-- `ArrayList` lưu **mọi phần tử** nên bộ nhớ tăng theo số phần tử thu được.
-- `LinkedHashSet` chỉ lưu mỗi giá trị duy nhất một lần, nhưng cần cấu trúc băm và liên kết để giữ thứ tự chèn; overhead cho mỗi phần tử có thể lớn hơn list.
-- `ArrayList.contains` có độ phức tạp tuyến tính theo số phần tử; `LinkedHashSet.contains` thường có thời gian kỳ vọng gần hằng số với hàm băm tốt.
-- `collect` cần tích lũy kết quả trong bộ nhớ. Nếu nguồn có thể vô hạn và không có giới hạn, thu toàn bộ bằng hai collection trên có thể không bao giờ hoàn thành hoặc hết bộ nhớ.
-- `parallelStream` không tự động nhanh hơn: việc duy trì thứ tự và ghép các kết quả cục bộ có thêm chi phí.
+- `ArrayList` stores **every element**, so memory grows with the number of collected elements.
+- `LinkedHashSet` stores each unique value only once, but requires hashing and linking structures to maintain insertion order; per-element memory overhead can exceed a list's.
+- `ArrayList.contains` has linear time complexity in the number of elements; `LinkedHashSet.contains` typically has near-constant expected time with a good hash function.
+- `collect` must accumulate results in memory. If a source may be infinite and has no limit, collecting everything into either collection may never finish or may run out of memory.
+- `parallelStream` is not automatically faster: maintaining order and merging local results adds overhead.
 
-**Không có quy tắc "`LinkedHashSet` luôn nhanh hơn `ArrayList`" hoặc ngược lại.** Chọn theo ngữ nghĩa dữ liệu trước, sau đó đo hiệu năng nếu dữ liệu lớn.
+**There is no rule that "`LinkedHashSet` is always faster than `ArrayList`" or vice versa.** Choose by data semantics first, then measure performance if datasets are large.
 
-### 10.1. Nguồn vô hạn và giới hạn thu thập
+### 10.1. Infinite Sources and Collection Limits
 
 ```java
 ArrayList<Integer> muoiSo = java.util.stream.Stream
@@ -606,46 +606,46 @@ System.out.println(muoiSo);
 // [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 ```
 
-`limit(10)` giới hạn số phần tử được thu; bản thân `toCollection` không tạo điểm dừng cho nguồn vô hạn.
+`limit(10)` caps the number of elements collected; `toCollection` itself creates no stopping condition for an infinite source.
 
-Nếu vừa muốn khử trùng vừa muốn lấy **n giá trị khác nhau**, đặt `distinct()` trước `limit(n)`; nhưng cần chắc chắn nguồn sẽ tạo đủ n giá trị khác nhau, nếu không pipeline vẫn có thể chờ mãi.
+If you want both deduplication and **n distinct values**, place `distinct()` before `limit(n)`; however, ensure the source actually produces at least n distinct values, otherwise the pipeline can still wait forever.
 
-## 11. Chọn đúng collection trong ứng dụng
+## 11. Choosing the Right Collection in Applications
 
-| Nhu cầu | Cách viết đề xuất | Lý do |
+| Need | Recommended syntax | Reason |
 | --- | --- | --- |
-| Danh sách đầy đủ theo thứ tự gặp, có thể thêm/xóa, cần `ArrayList` | `collect(toCollection(ArrayList::new))` | Giữ phần tử trùng và cam kết kiểu cụ thể. |
-| Tập phần tử duy nhất theo thứ tự xuất hiện đầu | `collect(toCollection(LinkedHashSet::new))` | Duy nhất, giữ thứ tự chèn. |
-| Chỉ cần một `List`, không phụ thuộc kiểu triển khai | `collect(Collectors.toList())` | Ý định đơn giản, nhưng không cam kết khả năng sửa đổi. |
-| Cần list không cho phép sửa trên Java 16+ | `stream.toList()` | Trả list không cho phép sửa, giữ encounter order nếu có. |
-| Chỉ cần `Set`, không quan tâm thứ tự | `collect(Collectors.toSet())` | Không cam kết thứ tự hoặc kiểu set cụ thể. |
-| Cần dữ liệu duy nhất nhưng tiếp tục xử lý như list | `distinct().collect(toCollection(ArrayList::new))` | Loại trùng trong pipeline, kết quả là list. |
-| Cần duy nhất theo thứ tự **sắp xếp** | `sorted().collect(toCollection(LinkedHashSet::new))` | Thứ tự gặp sau `sorted` chính là thứ tự sắp xếp. |
+| Full list in encounter order, supports add/remove, needs `ArrayList` | `collect(toCollection(ArrayList::new))` | Keeps duplicates and guarantees concrete type. |
+| Unique elements in first-appearance order | `collect(toCollection(LinkedHashSet::new))` | Unique, preserves insertion order. |
+| Just a `List`, independent of implementation class | `collect(Collectors.toList())` | Simple intent, though mutability is not guaranteed. |
+| Unmodifiable list on Java 16+ | `stream.toList()` | Returns an unmodifiable list, preserves encounter order if present. |
+| Just a `Set`, order does not matter | `collect(Collectors.toSet())` | Promises neither order nor concrete set type. |
+| Unique data but further processed as a list | `distinct().collect(toCollection(ArrayList::new))` | Deduplicates in pipeline, result is a list. |
+| Unique elements in **sorted** order | `sorted().collect(toCollection(LinkedHashSet::new))` | Encounter order after `sorted` is the sorted order. |
 
-Trong bảng, `toCollection` là `Collectors.toCollection`. Nếu chỉ cần kết quả bất biến, hãy chọn API tương ứng theo phiên bản Java; đừng giả định `Collectors.toList()` hay `Collectors.toSet()` luôn trả collection không cho phép sửa.
+In the table, `toCollection` refers to `Collectors.toCollection`. If only an immutable result is needed, pick the API appropriate for your Java version; do not assume `Collectors.toList()` or `Collectors.toSet()` always returns an unmodifiable collection.
 
-## 12. Những lỗi thường gặp
+## 12. Common Mistakes
 
-| Hiện tượng | Nguyên nhân | Cách xử lý |
+| Symptom | Cause | How to handle |
 | --- | --- | --- |
-| `Collectors.toSet()` cho thứ tự khác mong muốn | Không có bảo đảm thứ tự | Dùng `toCollection(LinkedHashSet::new)`. |
-| `ArrayList` vẫn có nhiều phần tử trùng | List cho phép trùng | Dùng `LinkedHashSet` hoặc `distinct()` theo nghiệp vụ. |
-| `LinkedHashSet` chỉ còn một đối tượng cho một mã | Hai đối tượng được coi bằng nhau | Kiểm tra `equals`/`hashCode` và chọn đúng tiêu chí định danh. |
-| `LinkedHashSet` không xếp theo alphabet | Nó giữ thứ tự chèn, không tự sắp xếp | Dùng `sorted` trước khi thu nếu cần. |
-| Nguồn `HashSet` làm kết quả thứ tự bất ổn | Nguồn không có encounter order bảo đảm | Dùng nguồn có thứ tự hoặc `sorted`. |
-| `unordered()` làm mất yêu cầu giữ thứ tự | Pipeline đã bỏ ràng buộc thứ tự | Không dùng `unordered` khi thứ tự gặp quan trọng. |
-| `parallelStream().forEach(list::add)` cho kết quả sai | Thao tác đồng thời lên `ArrayList` và thứ tự không bảo đảm | Dùng `collect(toCollection(ArrayList::new))`. |
-| Nghĩ `Collectors.toList()` luôn là `ArrayList` | Kiểu triển khai không được cam kết | Yêu cầu rõ `toCollection(ArrayList::new)`. |
-| Gọi `add` trên kết quả `Stream.toList()` bị lỗi | Kết quả Java 16+ không cho phép sửa | Dùng `toCollection(ArrayList::new)` nếu cần thêm/xóa. |
-| Đối tượng trong set không tìm lại được sau khi đổi mã | Thuộc tính tham gia `hashCode` thay đổi | Dùng khóa ổn định hoặc đối tượng bất biến. |
-| `limit(3)` trước khi loại trùng chỉ còn hai phần tử | Giới hạn ba đầu vào, không phải ba giá trị duy nhất | Dùng `distinct().limit(3)` nếu cần ba giá trị khác nhau. |
-| Thu nguồn vô hạn gây quá tải | Không có điều kiện dừng | Giới hạn trước khi `collect`. |
+| `Collectors.toSet()` gives a different order than expected | No ordering guarantee | Use `toCollection(LinkedHashSet::new)`. |
+| `ArrayList` still has many duplicate elements | Lists allow duplicates | Use `LinkedHashSet` or `distinct()` per business logic. |
+| `LinkedHashSet` keeps only one object for a code | Two objects were treated as equal | Check `equals`/`hashCode` and choose the right identity criteria. |
+| `LinkedHashSet` is not sorted alphabetically | It preserves insertion order, does not sort | Use `sorted` before collecting if needed. |
+| `HashSet` source causes unstable result order | Source has no guaranteed encounter order | Use an ordered source or `sorted`. |
+| `unordered()` loses order-preservation requirement | Pipeline dropped the ordering constraint | Do not use `unordered` when encounter order matters. |
+| `parallelStream().forEach(list::add)` gives wrong results | Concurrent mutation on `ArrayList` and no order guarantee | Use `collect(toCollection(ArrayList::new))`. |
+| Assuming `Collectors.toList()` is always `ArrayList` | Implementation class is not promised | Explicitly request `toCollection(ArrayList::new)`. |
+| Calling `add` on `Stream.toList()` result fails | Java 16+ result is unmodifiable | Use `toCollection(ArrayList::new)` if add/remove is needed. |
+| Object in set cannot be found after changing code | Property involved in `hashCode` changed | Use stable keys or immutable objects. |
+| `limit(3)` before deduplication leaves only two elements | Limits to three inputs, not three unique values | Use `distinct().limit(3)` if three distinct values are needed. |
+| Collecting infinite source causes overload | No stopping condition | Limit before `collect`. |
 
-## 13. Bài tập thực hành
+## 13. Practice Exercises
 
-### Bài 1 — Giữ đầy đủ hay loại trùng?
+### Exercise 1 — Keep All or Deduplicate?
 
-Cho:
+Given:
 
 ```java
 List<String> ma = Arrays.asList(
@@ -653,11 +653,11 @@ List<String> ma = Arrays.asList(
 );
 ```
 
-Hãy tạo một `ArrayList<String>` giữ nguyên tất cả mã, đồng thời tạo `LinkedHashSet<String>` chứa mỗi mã một lần theo thứ tự xuất hiện đầu tiên. Dự đoán hai kết quả.
+Create an `ArrayList<String>` preserving all codes, and a `LinkedHashSet<String>` containing each code once in first-appearance order. Predict both results.
 
-### Bài 2 — Chuẩn hóa trước khi khử trùng
+### Exercise 2 — Normalize Before Deduplicating
 
-Cho:
+Given:
 
 ```java
 List<String> ngonNgu = Arrays.asList(
@@ -665,17 +665,17 @@ List<String> ngonNgu = Arrays.asList(
 );
 ```
 
-Viết pipeline để loại khoảng trắng thừa, chuyển sang chữ thường bằng `Locale.ROOT` rồi thu thành `LinkedHashSet<String>`. Kết quả có những giá trị nào và thứ tự ra sao?
+Write a pipeline to trim extra whitespace, convert to lowercase using `Locale.ROOT`, and collect into a `LinkedHashSet<String>`. Which values are in the result and in what order?
 
-### Bài 3 — Giới hạn trước hay sau khi loại trùng?
+### Exercise 3 — Limit Before or After Deduplication?
 
-Cho:
+Given:
 
 ```java
 List<Integer> so = Arrays.asList(1, 1, 2, 3, 4);
 ```
 
-Hãy tìm kết quả của:
+Find the results of:
 
 ```java
 LinkedHashSet<Integer> x = so.stream()
@@ -688,17 +688,17 @@ ArrayList<Integer> y = so.stream()
     .collect(Collectors.toCollection(ArrayList::new));
 ```
 
-### Bài 4 — Song song và thứ tự
+### Exercise 4 — Parallel and Ordering
 
-Một danh sách `["A", "B", "A", "C"]` cần được thu thành set theo thứ tự xuất hiện đầu. Chọn giữa `Collectors.toSet()` và `Collectors.toCollection(LinkedHashSet::new)`. Nếu chuyển `stream()` thành `parallelStream()` trên nguồn list có thứ tự, cách đã chọn có còn bảo đảm thứ tự kết quả không?
+A list `["A", "B", "A", "C"]` must be collected into a set in first-appearance order. Choose between `Collectors.toSet()` and `Collectors.toCollection(LinkedHashSet::new)`. If `stream()` is switched to `parallelStream()` on the ordered list source, does the chosen approach still guarantee the result order?
 
-### Bài 5 — Chọn cách giữ đối tượng đầu tiên
+### Exercise 5 — Choosing How to Keep the First Object
 
-Danh sách bản ghi có cùng mã `"X01"` nhưng hai mô tả khác nhau; cần giữ **bản xuất hiện đầu**. Cần lưu ý gì về `equals`, `hashCode` và việc sửa mã sau khi đưa vào `LinkedHashSet`?
+A list of records shares the code `"X01"` with two different descriptions; the **first-appearing record** must be kept. What should you watch out for regarding `equals`, `hashCode`, and mutating the code after putting it into `LinkedHashSet`?
 
-### Đáp án tham khảo
+### Reference Answers
 
-**Bài 1:**
+**Exercise 1:**
 
 ```java
 ArrayList<String> tatCa = ma.stream()
@@ -711,7 +711,7 @@ System.out.println(tatCa);   // [A01, B02, A01, C03, B02]
 System.out.println(duyNhat); // [A01, B02, C03]
 ```
 
-**Bài 2:**
+**Exercise 2:**
 
 ```java
 LinkedHashSet<String> chuanHoa = ngonNgu.stream()
@@ -722,28 +722,28 @@ LinkedHashSet<String> chuanHoa = ngonNgu.stream()
 System.out.println(chuanHoa); // [java, go, kotlin]
 ```
 
-Chuỗi `" Java "` đứng trước nên tạo khóa `"java"` đầu tiên; các lần lặp lại bị loại.
+The string `" Java "` comes first, creating the `"java"` key first; subsequent repeats are discarded.
 
-**Bài 3:** `x = [1, 2]` vì ba phần tử đầu là `1, 1, 2`. `y = [1, 2, 3]` vì `distinct` loại bản sao trước khi `limit(3)` đếm ba giá trị duy nhất.
+**Exercise 3:** `x = [1, 2]` because the first three elements are `1, 1, 2`. `y = [1, 2, 3]` because `distinct` removes duplicates before `limit(3)` counts three unique values.
 
-**Bài 4:** dùng `Collectors.toCollection(LinkedHashSet::new)` để bảo đảm kiểu set và thứ tự chèn theo encounter order. Với ordered stream từ `List`, phép thu đúng hợp đồng này vẫn bảo toàn thứ tự kết quả khi xử lý song song. Không tự chèn vào một `LinkedHashSet` dùng chung bằng `parallelStream().forEach`.
+**Exercise 4:** Use `Collectors.toCollection(LinkedHashSet::new)` to guarantee the set type and insertion order following encounter order. With an ordered stream from a `List`, this contract-compliant collection still preserves result order during parallel execution. Do not manually insert into a shared `LinkedHashSet` via `parallelStream().forEach`.
 
-**Bài 5:** cần quy định tính bằng nhau dựa trên mã và triển khai `equals`/`hashCode` nhất quán. `LinkedHashSet` giữ đối tượng gặp trước, không tự hợp nhất mô tả. Mã dùng cho băm cần ổn định trong suốt thời gian đối tượng nằm trong set.
+**Exercise 5:** Define equality based on the code and implement `equals`/`hashCode` consistently. `LinkedHashSet` keeps the first-encountered object without merging descriptions. The code used for hashing must remain stable for as long as the object stays in the set.
 
-## 14. Ghi nhớ
+## 14. Key Takeaways
 
 ```java
-// Giữ đầy đủ, có thể trùng, theo thứ tự gặp:
+// Keep all elements, including duplicates, in encounter order:
 ArrayList<T> list = stream
     .collect(Collectors.toCollection(ArrayList::new));
 
-// Giữ duy nhất, theo thứ tự xuất hiện đầu:
+// Keep unique elements, in first-appearance order:
 LinkedHashSet<T> set = stream
     .collect(Collectors.toCollection(LinkedHashSet::new));
 ```
 
-Hai dòng trên là **mẫu minh họa generic**: trong chương trình thực tế, thay `T` và `stream` bằng kiểu/biến cụ thể.
+These two lines are **generic illustration templates**: in an actual program, replace `T` and `stream` with concrete types and variables.
 
-Để kết quả thực sự có thứ tự mong muốn, nguồn hoặc pipeline phải có **encounter order** có ý nghĩa. `ArrayList` giữ trùng, `LinkedHashSet` loại trùng dựa vào `equals`/`hashCode` và nhớ thứ tự chèn; cả hai là collection có thể sửa nhưng không nên dùng làm nơi cập nhật chung cho nhiều thread. Với pipeline song song, dùng collector đúng hợp đồng để thu kết quả và chú ý chi phí duy trì thứ tự.
+For the result to actually have the desired order, the source or pipeline must have a meaningful **encounter order**. `ArrayList` retains duplicates while `LinkedHashSet` deduplicates based on `equals`/`hashCode` and remembers insertion order; both are modifiable collections but should not be used as shared mutation targets across multiple threads. For parallel pipelines, use contract-compliant collectors to gather results and be mindful of the cost of maintaining order.
 
-Hiểu rõ khác biệt này giúp lựa chọn kết quả phù hợp, tránh lỗi mất dữ liệu hoặc đảo thứ tự khi kết hợp `filter`, `map`, `collect` và các pipeline Stream API nâng cao.
+Understanding these differences clearly helps you pick the right result structure and avoid data-loss or out-of-order bugs when combining `filter`, `map`, `collect`, and advanced Stream API pipelines.

@@ -1,49 +1,49 @@
-# Chuỗi tìm rỗng và các trường hợp ở biên khi tìm kiếm `String` trong Java
+# Empty Search Strings and Boundary Cases When Searching `String` in Java
 
-Khi tìm một chuỗi con bằng `String.indexOf()`, `lastIndexOf()`, `contains()`, `startsWith()` hay `endsWith()`, rất dễ bỏ qua trường hợp **chuỗi cần tìm là `""` (chuỗi rỗng)**. Tuy nhiên, Java coi đây là **đầu vào hợp lệ**, và kết quả có quy tắc cụ thể. Các chỉ số ở biên như `0`, `length()`, chỉ số âm hoặc lớn hơn độ dài cũng có thể tạo kết quả khác với suy đoán ban đầu.
+When searching for a substring with `String.indexOf()`, `lastIndexOf()`, `contains()`, `startsWith()`, or `endsWith()`, it is easy to overlook the case where **the search string is `""` (empty string)**. Yet Java treats this as a **valid input**, and the results follow specific rules. Boundary indices such as `0`, `length()`, negative indices, or indices greater than the length can also yield results different from initial intuition.
 
-Bài học này tập trung vào ba câu hỏi:
+This lesson focuses on three questions:
 
-1. Vì sao tìm kiếm `""` vẫn có kết quả dù nó không chứa ký tự nào?
-2. Các API tìm kiếm xử lý **chuỗi rỗng, chuỗi nguồn rỗng và chỉ số `fromIndex` ngoài phạm vi** như thế nào?
-3. Làm sao viết mã an toàn khi chuỗi cần tìm đến từ người dùng hoặc khi lặp qua nhiều lần xuất hiện?
+1. Why does searching for `""` still succeed even though it contains no characters?
+2. How do search APIs handle **empty search strings, empty source strings, and out-of-range `fromIndex` values**?
+3. How do you write safe code when the search string comes from user input or when iterating over multiple occurrences?
 
-Các ví dụ áp dụng cho **Java 17+** và dựa trên hợp đồng của `java.lang.String`.
+Examples apply to **Java 17+** and are based on the contract of `java.lang.String`.
 
-## 1. Phân biệt chuỗi nguồn, chuỗi cần tìm và vị trí tìm kiếm
+## 1. Distinguishing Source String, Search String, and Search Position
 
-Trong biểu thức:
+In the expression:
 
 ```java
 int position = text.indexOf(keyword);
 ```
 
-- `text` là **chuỗi nguồn** (*haystack*).
-- `keyword` là **chuỗi cần tìm** (*needle*).
-- `position` là chỉ số bắt đầu của lần xuất hiện đầu tiên hoặc `-1` nếu không tìm thấy.
+- `text` is the **source string** (*haystack*).
+- `keyword` is the **search string** (*needle*).
+- `position` is the starting index of the first occurrence, or `-1` if not found.
 
-Chỉ số `String` trong Java bắt đầu từ `0`, dùng **đơn vị mã UTF-16**, và vị trí kết thúc chuỗi (ngay sau đơn vị mã cuối) là `text.length()`.
+`String` indices in Java start at `0`, use **UTF-16 code units**, and the end-of-string position (right after the last code unit) is `text.length()`.
 
-Ví dụ chuỗi `"Java"` có độ dài `4`:
+For example, `"Java"` has length `4`:
 
 ```text
        J   a   v   a
 Index  0   1   2   3
-Vị trí có thể chèn chuỗi rỗng:
+Positions where an empty string can be inserted:
        0   1   2   3   4
 ```
 
-Một cách hiểu hữu ích: **chuỗi rỗng phù hợp tại một vị trí ranh giới, không cần chiếm ký tự nào**. Vì thế, không nên tự động diễn giải kết quả của tìm kiếm `""` là “không tìm thấy”.
+A helpful way to think about it: **an empty string fits at a boundary position without consuming any characters**. Therefore, you should not automatically interpret the result of searching for `""` as "not found".
 
-Hãy phân biệt rõ ba giá trị:
+Distinguish three values clearly:
 
-- `""`: một đối tượng `String` hợp lệ có `length() == 0`.
-- `" "`: chuỗi chứa một dấu cách, có `length() == 1`. Tìm dấu cách khác hoàn toàn tìm chuỗi rỗng.
-- `null`: không tham chiếu tới đối tượng `String`; không phải chuỗi có độ dài 0.
+- `""`: a valid `String` object with `length() == 0`.
+- `" "`: a string containing a space, with `length() == 1`. Searching for a space is completely different from searching for an empty string.
+- `null`: no reference to a `String` object; not a zero-length string.
 
-## 2. Kết quả cơ bản khi chuỗi cần tìm là `""`
+## 2. Basic Results When the Search String Is `""`
 
-Xét:
+Consider:
 
 ```java
 String text = "Java";
@@ -54,7 +54,7 @@ System.out.println(text.startsWith(""));
 System.out.println(text.endsWith(""));
 ```
 
-Các dòng sẽ in:
+These lines print:
 
 ```text
 0
@@ -64,19 +64,19 @@ true
 true
 ```
 
-Giải thích theo từng API:
+Explanation by API:
 
-| Lời gọi với `text = "Java"` | Kết quả | Ý nghĩa |
+| Call with `text = "Java"` | Result | Meaning |
 | --- | --- | --- |
-| `text.indexOf("")` | `0` | Vị trí khớp rỗng đầu tiên là ngay trước chữ `J`. |
-| `text.lastIndexOf("")` | `4` | Vị trí khớp rỗng cuối cùng là ngay sau chữ `a` cuối. |
-| `text.contains("")` | `true` | Chuỗi rỗng được coi là chuỗi con của mọi `String`. |
-| `text.startsWith("")` | `true` | Mọi chuỗi đều có tiền tố rỗng. |
-| `text.endsWith("")` | `true` | Mọi chuỗi đều có hậu tố rỗng. |
+| `text.indexOf("")` | `0` | The first empty match position is right before `J`. |
+| `text.lastIndexOf("")` | `4` | The last empty match position is right after the final `a`. |
+| `text.contains("")` | `true` | The empty string is considered a substring of every `String`. |
+| `text.startsWith("")` | `true` | Every string has an empty prefix. |
+| `text.endsWith("")` | `true` | Every string has an empty suffix. |
 
-Đây là **hành vi theo hợp đồng API**, không phải lỗi hoặc sự trùng hợp ngẫu nhiên từ một phiên bản JVM. Đặc biệt, `indexOf("")` trả `0` và `lastIndexOf("")` trả `length()`, không trả `-1`.
+This is **API-contracted behavior**, not a bug or a coincidence of a specific JVM version. In particular, `indexOf("")` returns `0` and `lastIndexOf("")` returns `length()`, not `-1`.
 
-Ngược lại, khi tìm một **chuỗi không rỗng** mà nguồn không chứa nó, kết quả `indexOf()` hoặc `lastIndexOf()` là `-1`:
+Conversely, when searching for a **non-empty string** that the source does not contain, `indexOf()` or `lastIndexOf()` returns `-1`:
 
 ```java
 "Java".indexOf("Python")      // -1
@@ -84,11 +84,11 @@ Ngược lại, khi tìm một **chuỗi không rỗng** mà nguồn không ch�
 "Java".contains("Python")     // false
 ```
 
-Các dòng vừa rồi là biểu thức minh họa trong một phương thức, không phải tệp Java độc lập.
+The lines above are illustrative expressions inside a method, not a standalone Java file.
 
-## 3. Nếu chính chuỗi nguồn cũng rỗng thì sao?
+## 3. What If the Source String Itself Is Empty?
 
-Cho `String empty = "";`. Câu trả lời vẫn tuân theo cùng quy tắc:
+Given `String empty = "";`, the answers still follow the same rules:
 
 ```java
 String empty = "";
@@ -103,11 +103,11 @@ System.out.println(empty.indexOf("a"));    // -1
 System.out.println(empty.contains("a"));   // false
 ```
 
-Chuỗi nguồn rỗng có **một vị trí biên duy nhất**, tức vị trí `0`, nên tìm `""` thành công tại đó. Nhưng nó **không chứa bất kỳ chuỗi con không rỗng nào**.
+An empty source string has **one single boundary position**, namely position `0`, so searching for `""` succeeds there. However, it **contains no non-empty substrings**.
 
-Các trường hợp nên nhớ:
+Cases worth remembering:
 
-| Chuỗi nguồn | Chuỗi tìm | `indexOf` | `lastIndexOf` | `contains` |
+| Source string | Search string | `indexOf` | `lastIndexOf` | `contains` |
 | --- | --- | ---: | ---: | --- |
 | `""` | `""` | 0 | 0 | `true` |
 | `""` | `"a"` | -1 | -1 | `false` |
@@ -115,30 +115,30 @@ Các trường hợp nên nhớ:
 | `"abc"` | `"bc"` | 1 | 1 | `true` |
 | `"abc"` | `"x"` | -1 | -1 | `false` |
 
-Không dùng `text.contains("")` làm điều kiện xác nhận `text` **không rỗng**. Cả `"abc".contains("")` lẫn `"".contains("")` đều là `true`. Để kiểm tra nguồn rỗng, dùng `text.isEmpty()` sau khi bảo đảm tham chiếu khác `null`.
+Do not use `text.contains("")` to confirm that `text` is **non-empty**. Both `"abc".contains("")` and `"".contains("")` are `true`. To check for an empty source, use `text.isEmpty()` after ensuring the reference is not `null`.
 
-## 4. `indexOf("", fromIndex)`: vị trí tìm rỗng theo chiều tiến
+## 4. `indexOf("", fromIndex)`: Forward Empty Search Position
 
-Phương thức `indexOf(String str, int fromIndex)` tìm lần xuất hiện đầu tiên của `str` bắt đầu từ chỉ số `fromIndex`. Với `str = ""`, công thức kết quả rất cụ thể:
+`indexOf(String str, int fromIndex)` finds the first occurrence of `str` starting from index `fromIndex`. For `str = ""`, the result formula is very specific:
 
 ```text
 indexOf("", fromIndex)
     = min(max(fromIndex, 0), text.length())
 ```
 
-Nói cách khác, Java **giới hạn chỉ số về khoảng từ 0 đến `length()`** khi chuỗi cần tìm rỗng.
+In other words, Java **clamps the index to the range from 0 to `length()`** when the search string is empty.
 
-Ví dụ `text = "Java"` có `length() == 4`:
+Example with `text = "Java"`, where `length() == 4`:
 
-| `fromIndex` | `text.indexOf("", fromIndex)` | Giải thích |
+| `fromIndex` | `text.indexOf("", fromIndex)` | Explanation |
 | ---: | ---: | --- |
-| `-3` | `0` | Chỉ số âm được quy về vị trí đầu. |
-| `0` | `0` | Khớp rỗng ngay đầu chuỗi. |
-| `2` | `2` | Khớp rỗng tại ranh giới trước đơn vị mã thứ ba. |
-| `4` | `4` | Cho phép vị trí ngay sau ký tự cuối. |
-| `9` | `4` | Vượt quá độ dài, kết quả được giới hạn tại `length()`. |
+| `-3` | `0` | Negative index is clamped to the start position. |
+| `0` | `0` | Empty match right at the beginning of the string. |
+| `2` | `2` | Empty match at the boundary before the third code unit. |
+| `4` | `4` | Position right after the last character is allowed. |
+| `9` | `4` | Exceeds length; result is clamped to `length()`. |
 
-**Điểm dễ sai:** nếu chuỗi cần tìm **không rỗng**, truyền `fromIndex` lớn hơn hoặc bằng `length()` thường sẽ không còn đủ vị trí để khớp và trả `-1`. Với chuỗi cần tìm rỗng, ngay cả `fromIndex` rất lớn vẫn trả `length()`:
+**Easy mistake:** if the search string is **non-empty**, passing a `fromIndex` greater than or equal to `length()` usually leaves no positions to match and returns `-1`. With an empty search string, even a very large `fromIndex` still returns `length()`:
 
 ```java
 String text = "Java";
@@ -146,30 +146,30 @@ System.out.println(text.indexOf("a", 99)); // -1
 System.out.println(text.indexOf("", 99));  // 4
 ```
 
-Không giả định rằng “`fromIndex` vượt biên thì mọi phép tìm kiếm đều trả `-1`”.
+Do not assume that "an out-of-bounds `fromIndex` makes every search return `-1`".
 
-## 5. `lastIndexOf("", fromIndex)`: tìm theo chiều ngược
+## 5. `lastIndexOf("", fromIndex)`: Searching Backward
 
-`lastIndexOf(String str, int fromIndex)` tìm lần xuất hiện cuối cùng có vị trí bắt đầu **không lớn hơn `fromIndex`**. Với `str = ""`, quy tắc khác `indexOf` ở phía chỉ số âm:
+`lastIndexOf(String str, int fromIndex)` finds the last occurrence whose starting position is **not greater than `fromIndex`**. For `str = ""`, the rule differs from `indexOf` on negative indices:
 
 ```text
-Nếu fromIndex < 0:
+If fromIndex < 0:
     lastIndexOf("", fromIndex) = -1
-Ngược lại:
+Otherwise:
     lastIndexOf("", fromIndex) = min(fromIndex, text.length())
 ```
 
-Cho `text = "Java"`:
+Given `text = "Java"`:
 
-| `fromIndex` | `text.lastIndexOf("", fromIndex)` | Giải thích |
+| `fromIndex` | `text.lastIndexOf("", fromIndex)` | Explanation |
 | ---: | ---: | --- |
-| `-3` | `-1` | Không có vị trí bắt đầu hợp lệ ở bên trái chỉ số âm. |
-| `0` | `0` | Khớp rỗng đầu tiên cũng là vị trí cuối cho phép. |
-| `2` | `2` | Khớp rỗng gần nhất từ phía trái tại vị trí 2. |
-| `4` | `4` | Khớp rỗng tại điểm kết thúc chuỗi. |
-| `9` | `4` | Chỉ số lớn hơn độ dài được giới hạn ở cuối chuỗi. |
+| `-3` | `-1` | No valid starting position to the left of a negative index. |
+| `0` | `0` | The first empty match is also the last allowed position. |
+| `2` | `2` | Closest empty match from the left at position 2. |
+| `4` | `4` | Empty match at the end of the string. |
+| `9` | `4` | Index greater than length is clamped to the end of the string. |
 
-Điểm đối chiếu quan trọng:
+Important contrast:
 
 ```java
 String text = "Java";
@@ -177,20 +177,20 @@ System.out.println(text.indexOf("", -1));     // 0
 System.out.println(text.lastIndexOf("", -1)); // -1
 ```
 
-Cả hai API đều hiểu `fromIndex` theo hướng tìm kiếm của mình. Với chỉ số âm, tìm xuôi vẫn bắt đầu từ đầu chuỗi; tìm ngược thì không còn điểm bắt đầu hợp lệ, trả `-1`.
+Both APIs interpret `fromIndex` according to their search direction. With a negative index, forward search still starts at the beginning of the string; backward search has no valid start point left and returns `-1`.
 
-**Không nhầm `lastIndexOf("")` với `lastIndexOf("", 0)`**:
+**Do not confuse `lastIndexOf("")` with `lastIndexOf("", 0)`**:
 
 ```java
 "Java".lastIndexOf("")     // 4
 "Java".lastIndexOf("", 0)  // 0
 ```
 
-Bản không truyền `fromIndex` xét vị trí khớp rỗng cuối cùng của toàn bộ chuỗi, còn bản truyền `0` chỉ xét đến vị trí `0`.
+The overload without `fromIndex` considers the last empty match position across the entire string, whereas passing `0` only considers positions up to `0`.
 
-## 6. Tiền tố/hậu tố rỗng và kiểm tra chỉ số `startsWith("", offset)`
+## 6. Empty Prefix/Suffix and Index Checking with `startsWith("", offset)`
 
-`startsWith(String prefix)` và `endsWith(String suffix)` trả `true` khi đối số rỗng, kể cả khi chuỗi nguồn cũng rỗng:
+`startsWith(String prefix)` and `endsWith(String suffix)` return `true` when the argument is empty, even if the source string is also empty:
 
 ```java
 "Java".startsWith("") // true
@@ -199,9 +199,9 @@ Bản không truyền `fromIndex` xét vị trí khớp rỗng cuối cùng củ
 "".endsWith("")       // true
 ```
 
-Với phương thức có `offset`, điều kiện chính xác hơn. `text.startsWith("", offset)` trả `true` **khi và chỉ khi** `0 <= offset <= text.length()`:
+With the `offset` overload, the condition is stricter. `text.startsWith("", offset)` returns `true` **if and only if** `0 <= offset <= text.length()`:
 
-| `text = "Java"`, `length() = 4` | Kết quả |
+| `text = "Java"`, `length() = 4` | Result |
 | --- | --- |
 | `text.startsWith("", -1)` | `false` |
 | `text.startsWith("", 0)` | `true` |
@@ -209,7 +209,7 @@ Với phương thức có `offset`, điều kiện chính xác hơn. `text.start
 | `text.startsWith("", 4)` | `true` |
 | `text.startsWith("", 5)` | `false` |
 
-So sánh hai lời gọi khi `offset` lớn hơn độ dài:
+Compare the two calls when `offset` exceeds the length:
 
 ```java
 String text = "Java";
@@ -217,11 +217,11 @@ System.out.println(text.indexOf("", 5));     // 4
 System.out.println(text.startsWith("", 5));   // false
 ```
 
-`indexOf` chuẩn hóa chỉ số đối với chuỗi cần tìm rỗng; `startsWith` với chỉ số `offset` không hợp lệ trả `false`. Vì vậy, **không suy diễn quy tắc chỉ số từ API này sang API khác**.
+`indexOf` normalizes the index for an empty search string; `startsWith` with an invalid `offset` returns `false`. Therefore, **do not extrapolate index rules from one API to another**.
 
-## 7. Chương trình Java 17+: bảng kết quả biên có thể chạy lại
+## 7. Java 17+ Program: A Re-runnable Boundary Results Table
 
-Tạo tệp `EmptySearchBoundaryDemo.java`:
+Create file `EmptySearchBoundaryDemo.java`:
 
 ```java
 public class EmptySearchBoundaryDemo {
@@ -255,14 +255,14 @@ public class EmptySearchBoundaryDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac EmptySearchBoundaryDemo.java
 java EmptySearchBoundaryDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 length = 4
@@ -282,15 +282,15 @@ empty.containsEmpty = true
 empty.indexOfA = -1
 ```
 
-Ba khác biệt nên tự giải thích lại:
+Three differences you should be able to explain yourself:
 
-1. `indexOf("", -3) == 0` nhưng `lastIndexOf("", -3) == -1`.
-2. `indexOf("", 9) == 4` nhưng `startsWith("", 9) == false`.
-3. Tìm `""` trong nguồn `""` vẫn thành công tại `0`; tìm `"a"` trong nguồn rỗng không thành công.
+1. `indexOf("", -3) == 0` yet `lastIndexOf("", -3) == -1`.
+2. `indexOf("", 9) == 4` yet `startsWith("", 9) == false`.
+3. Searching for `""` in source `""` still succeeds at `0`; searching for `"a"` in an empty source fails.
 
-## 8. Chỉ số biên khi chuỗi tìm **không rỗng**
+## 8. Boundary Indices When the Search String Is **Non-Empty**
 
-Không nên chỉ ghi nhớ trường hợp chuỗi rỗng rồi áp dụng sai cho mọi chuỗi tìm. Với `text = "ababa"`, độ dài `5`:
+Do not memorize only the empty-string case and misapply it to all search strings. With `text = "ababa"`, length `5`:
 
 ```java
 String text = "ababa";
@@ -308,45 +308,45 @@ System.out.println(text.lastIndexOf("ba", 99)); // 3
 System.out.println(text.lastIndexOf("ba", -1)); // -1
 ```
 
-Đây là fragment Java đặt trong một phương thức. Những kết quả này cho thấy:
+This is a Java fragment placed inside a method. These results show:
 
-- `indexOf("aba", 1)` tìm từ chỉ số `1` về cuối, nên bỏ lần khớp ở `0` và gặp lần khớp ở `2`.
-- `lastIndexOf("aba", 1)` chỉ chấp nhận điểm bắt đầu không lớn hơn `1`, nên tìm ra lần ở `0`.
-- Với chuỗi tìm không rỗng, `indexOf` từ `length()` không còn vị trí khớp.
-- Với `lastIndexOf`, chỉ số lớn hơn độ dài có thể vẫn tìm thấy chuỗi ở phía bên trái, vì đây là phép tìm **ngược**.
-- Hai lần xuất hiện có thể **chồng lấn**, như `"aba"` ở chỉ số `0` và `2`.
+- `indexOf("aba", 1)` searches from index `1` to the end, so it skips the match at `0` and finds the match at `2`.
+- `lastIndexOf("aba", 1)` accepts only starting points no greater than `1`, so it finds the occurrence at `0`.
+- For a non-empty search string, `indexOf` from `length()` has no matching position left.
+- For `lastIndexOf`, an index greater than the length can still find the string to the left, because it is a **backward** search.
+- Two occurrences can **overlap**, like `"aba"` at indices `0` and `2`.
 
-Mô hình tổng quát: `indexOf` tìm lần đầu có vị trí bắt đầu **từ `fromIndex` trở về sau** (chỉ số âm được coi như `0`); `lastIndexOf` tìm lần cuối có vị trí bắt đầu **không vượt quá `fromIndex`**. Kết quả `-1` nghĩa là không có lần xuất hiện thỏa điều kiện.
+General model: `indexOf` finds the first occurrence starting **at `fromIndex` or later** (negative indices are treated as `0`); `lastIndexOf` finds the last occurrence starting **at most at `fromIndex`**. A result of `-1` means no occurrence satisfies the condition.
 
-## 9. Cẩn thận với `null`: không đồng nghĩa `""`
+## 9. Watch Out for `null`: Not Equivalent to `""`
 
-Chuỗi tìm rỗng là **giá trị hợp lệ**; `null` thì **không phải một chuỗi**.
+An empty search string is a **valid value**; `null` is **not a string**.
 
 ```java
 String text = "Java";
 String keyword = null;
 
-// text.indexOf(keyword);  // Ném NullPointerException.
-// text.contains(keyword); // Ném NullPointerException.
-// text.startsWith(keyword); // Ném NullPointerException.
+// text.indexOf(keyword);  // Throws NullPointerException.
+// text.contains(keyword); // Throws NullPointerException.
+// text.startsWith(keyword); // Throws NullPointerException.
 ```
 
-Ba dòng gọi API trên được chú thích để ví dụ không ném ngoại lệ khi biên dịch/chạy. Tương tự, nếu chính biến `text` là `null` thì `text.indexOf(...)` cũng ném `NullPointerException` vì không có đối tượng nhận lời gọi.
+The three API call lines above are commented out so the example does not throw when compiled/run. Likewise, if the `text` variable itself is `null`, `text.indexOf(...)` also throws `NullPointerException` because there is no receiver object for the call.
 
-Nếu keyword đến từ UI, API hoặc cấu hình, hãy **định nghĩa rõ chính sách**. Ví dụ, tùy chức năng, bạn có thể:
+If `keyword` comes from a UI, API, or configuration, **define the policy explicitly**. Depending on the feature, you might:
 
-- Từ chối `null` và `""` như từ khóa không hợp lệ.
-- Coi `""` là điều kiện tìm kiếm không lọc (trả mọi bản ghi), nhưng kiểm tra tường minh thay vì vô tình dựa vào `contains("")`.
-- Cho phép `""` để mô hình hóa vị trí rỗng trong một API chuyên xử lý văn bản.
+- Reject `null` and `""` as invalid keywords.
+- Treat `""` as an unfiltered search condition (return all records), checking it explicitly rather than accidentally relying on `contains("")`.
+- Allow `""` to model empty positions in a text-processing API.
 
-Các lựa chọn này khác nhau về nghiệp vụ; Java không tự biết người dùng muốn cách nào.
+These choices differ in business semantics; Java cannot guess which one the user wants.
 
-## 10. Lỗi nguy hiểm: vòng lặp tìm mọi lần xuất hiện bị kẹt khi keyword rỗng
+## 10. Dangerous Bug: A Find-All Loop Getting Stuck on an Empty Keyword
 
-Khi duyệt các lần xuất hiện của một chuỗi con, lập trình viên thường tăng vị trí tìm tiếp dựa theo `keyword.length()`:
+When iterating over occurrences of a substring, developers commonly advance the next search position using `keyword.length()`:
 
 ```java
-// Mã minh họa cách làm SAI nếu keyword là "":
+// Code illustrating the WRONG approach if keyword is "":
 int from = 0;
 int hit;
 while ((hit = text.indexOf(keyword, from)) >= 0) {
@@ -355,13 +355,13 @@ while ((hit = text.indexOf(keyword, from)) >= 0) {
 }
 ```
 
-Nếu `keyword.equals("")`, thì `keyword.length() == 0`. Ở lần đầu, `hit` có thể là `0`, và `from` vẫn bằng `0`. Lần sau lại tìm được đúng vị trí đó: **vòng lặp không tiến lên**.
+If `keyword.equals("")`, then `keyword.length() == 0`. On the first iteration, `hit` can be `0`, and `from` stays `0`. The next iteration finds the exact same position: **the loop makes no progress**.
 
-Một cách phòng tránh là yêu cầu keyword phải không rỗng trước khi tìm. Nếu chức năng cần liệt kê tất cả **điểm ranh giới rỗng**, cần viết một nhánh riêng có số bước hữu hạn (từ `0` đến `text.length()`); không dùng mã lặp dành cho chuỗi con không rỗng mà không sửa quy tắc tăng chỉ số.
+One way to prevent this is requiring `keyword` to be non-empty before searching. If a feature needs to list all **empty boundary points**, write a separate finite-step branch (from `0` to `text.length()`); do not reuse a loop written for non-empty substrings without fixing the index-increment rule.
 
-### Ví dụ Java 17+ có kiểm tra đầu vào và hỗ trợ các lần khớp chồng lấn
+### Java 17+ Example with Input Validation and Overlapping Match Support
 
-Tạo tệp `SafeSubstringSearch.java`:
+Create file `SafeSubstringSearch.java`:
 
 ```java
 import java.util.ArrayList;
@@ -386,7 +386,7 @@ public class SafeSubstringSearch {
                 break;
             }
             positions.add(found);
-            from = found + 1; // Cho phép lần khớp tiếp theo chồng lấn.
+            from = found + 1; // Allow the next match to overlap.
         }
 
         return positions;
@@ -407,14 +407,14 @@ public class SafeSubstringSearch {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac SafeSubstringSearch.java
 java SafeSubstringSearch
 ```
 
-Kết quả:
+Output:
 
 ```text
 [0, 2]
@@ -424,21 +424,21 @@ Kết quả:
 keyword must not be empty
 ```
 
-Trong `findAll()`:
+In `findAll()`:
 
-- Kiểm tra `null` trước khi gọi phương thức trên `text` hoặc `keyword`.
-- Chặn `keyword.isEmpty()` để không có trường hợp `indexOf("")` trả lại vị trí cũ liên tục.
-- Tăng `from = found + 1` giúp tìm **cả những lần xuất hiện chồng lấn**. Nếu bài toán chỉ cần lần khớp **không chồng lấn** với keyword không rỗng, có thể tăng `from = found + keyword.length()`.
-- Vòng lặp hữu hạn vì `from` tăng và bị ràng buộc bởi độ dài chuỗi. Khi không còn kết quả, `indexOf()` trả `-1` và vòng lặp dừng.
+- Check `null` before invoking methods on `text` or `keyword`.
+- Reject `keyword.isEmpty()` so `indexOf("")` never keeps returning the same position.
+- Advancing `from = found + 1` finds **overlapping occurrences as well**. If the problem only wants **non-overlapping** matches with a non-empty keyword, you can advance `from = found + keyword.length()`.
+- The loop is finite because `from` increases and is bounded by the string length. When no results remain, `indexOf()` returns `-1` and the loop stops.
 
-Với chương trình cần hiển thị vị trí khớp rỗng như một tính năng hợp lệ, hãy mô tả rõ: trên chuỗi có `n` UTF-16 code units sẽ có **`n + 1` ranh giới** (từ `0` đến `n`). Đây là quy ước về **vị trí chỉ số UTF-16**, không phải số ranh giới grapheme mà người dùng nhìn thấy.
+For a program that needs to expose empty match positions as a valid feature, describe it clearly: on a string with `n` UTF-16 code units there are **`n + 1` boundaries** (from `0` to `n`). This is a **UTF-16 index position** convention, not the number of grapheme boundaries perceived by a user.
 
-## 11. Unicode: vị trí tìm kiếm tính theo UTF-16, không theo số emoji hiển thị
+## 11. Unicode: Search Positions Are Measured in UTF-16, Not Visible Emojis
 
-Các API `indexOf()` và `lastIndexOf()` của `String` trả về **chỉ số UTF-16 code units**. Ví dụ:
+`String`'s `indexOf()` and `lastIndexOf()` APIs return **UTF-16 code unit indices**. Example:
 
 ```java
-String text = "A\uD83D\uDE00B"; // A😀B, emoji là một surrogate pair.
+String text = "A\uD83D\uDE00B"; // A😀B, the emoji is a surrogate pair.
 
 System.out.println(text.length());        // 4
 System.out.println(text.indexOf("B"));    // 3
@@ -447,48 +447,48 @@ System.out.println(text.lastIndexOf("")); // 4
 System.out.println(text.indexOf("", 2));  // 2
 ```
 
-Về mặt chuỗi ký tự hiển thị, văn bản `A😀B` thường có ba ký tự được cảm nhận. Nhưng về chỉ số UTF-16, nó có bốn code units: `A` ở 0; hai đơn vị mã của emoji ở 1 và 2; `B` ở 3.
+In terms of visible character sequences, `A😀B` usually has three perceived characters. In UTF-16 indices, however, it has four code units: `A` at 0; the emoji's two code units at 1 and 2; `B` at 3.
 
-Vì chuỗi tìm rỗng không chiếm code unit nào, vị trí `2` vẫn là một **ranh giới UTF-16 hợp lệ cho phép tìm kiếm**, dù ranh giới đó nằm giữa hai nửa của surrogate pair. Đây là lý do không nên diễn giải vị trí tìm `""` trực tiếp thành “vị trí ký tự hiển thị” trong giao diện.
+Because an empty search string consumes zero code units, position `2` is still a **valid searchable UTF-16 boundary**, even though that boundary lies between the two halves of a surrogate pair. That is why you should not directly interpret a `""` match position as a "visible character position" in a UI.
 
-Nếu ứng dụng muốn di chuyển theo Unicode code points, dùng những API như `codePointAt()`, `codePointCount()`, `offsetByCodePoints()` khi phù hợp. Nếu muốn thao tác theo ký tự người dùng cảm nhận (grapheme), cần quy tắc phân đoạn grapheme phù hợp. **`String.length()` và chỉ số `indexOf()` không tự giải quyết vấn đề đó.**
+If an application wants to step by Unicode code points, use APIs like `codePointAt()`, `codePointCount()`, and `offsetByCodePoints()` where appropriate. If it needs to operate on user-perceived characters (graphemes), proper grapheme segmentation rules are needed. **`String.length()` and `indexOf()` indices do not solve that automatically.**
 
-So sánh tìm kiếm `String` theo các API trên cũng **phân biệt chữ hoa/chữ thường** và **không tự chuẩn hóa Unicode**. Ví dụ `"Java".indexOf("java") == -1`; còn hai cách biểu diễn Unicode nhìn giống nhau có thể khác dãy đơn vị mã. Nếu nghiệp vụ yêu cầu chuẩn hóa, cần làm một cách nhất quán trước khi tìm.
+String search comparisons via the APIs above are also **case-sensitive** and **do not normalize Unicode automatically**. For example, `"Java".indexOf("java") == -1`; and two visually identical Unicode representations can have different code unit sequences. If business rules require normalization, do so consistently before searching.
 
-## 12. Một số trường hợp ở biên bổ sung
+## 12. Additional Boundary Cases
 
-| Tình huống | Kết quả / Điều cần lưu ý |
+| Case | Result / Note |
 | --- | --- |
-| `text.indexOf("")` | Luôn `0` với mọi đối tượng `String text` khác `null`. |
-| `text.lastIndexOf("")` | Luôn bằng `text.length()`. |
-| `text.contains("")` | Luôn `true` đối với đối tượng `String` khác `null`. |
-| `text.indexOf("", Integer.MAX_VALUE)` | Bằng `text.length()`. |
-| `text.indexOf("", Integer.MIN_VALUE)` | Bằng `0`. |
-| `text.lastIndexOf("", Integer.MAX_VALUE)` | Bằng `text.length()`. |
+| `text.indexOf("")` | Always `0` for every non-`null` `String text`. |
+| `text.lastIndexOf("")` | Always equals `text.length()`. |
+| `text.contains("")` | Always `true` for any non-`null` `String`. |
+| `text.indexOf("", Integer.MAX_VALUE)` | Equals `text.length()`. |
+| `text.indexOf("", Integer.MIN_VALUE)` | Equals `0`. |
+| `text.lastIndexOf("", Integer.MAX_VALUE)` | Equals `text.length()`. |
 | `text.lastIndexOf("", Integer.MIN_VALUE)` | `-1`. |
 | `text.startsWith("", text.length())` | `true`. |
-| `text.startsWith("", text.length() + 1)` | `false`, nếu phép cộng không tràn số nguyên (với chuỗi Java thực tế thông thường). |
-| `text.indexOf("x")` mà không có `x` | `-1`. |
-| `text.indexOf("") == -1` | Luôn `false` khi `text` khác `null`. |
-| `text.contains(" ")` | Tìm **dấu cách thật**, không đồng nghĩa `contains("")`. |
+| `text.startsWith("", text.length() + 1)` | `false`, assuming addition does not overflow (true for normal practical Java strings). |
+| `text.indexOf("x")` when `x` is absent | `-1`. |
+| `text.indexOf("") == -1` | Always `false` when `text` is non-`null`. |
+| `text.contains(" ")` | Searches for a **literal space**, not synonymous with `contains("")`. |
 
-Cần nhớ rằng `indexOf(int ch)` tìm một **ký tự/code point** theo tham số `int`, không nhận một chuỗi tìm rỗng; các quy tắc tìm `""` ở bài này dành cho overload nhận **`String`** (hoặc `CharSequence` trong trường hợp `contains()`).
+Remember that `indexOf(int ch)` searches for a **character/code point** via an `int` parameter and does not take an empty search string; the `""` rules in this lesson apply to the overloads accepting **`String`** (or `CharSequence` for `contains()`).
 
-## 13. Những ngộ nhận dễ gây lỗi
+## 13. Misconceptions That Easily Cause Bugs
 
-1. **“Không có ký tự nào thì không thể tìm thấy.”** Sai: chuỗi rỗng là chuỗi con hợp lệ; `indexOf("")` trả `0`.
-2. **“`lastIndexOf("")` luôn trả `0`.”** Sai: trên chuỗi `"Java"`, nó trả `4`.
-3. **“`contains("")` nghĩa là nguồn phải có ít nhất một ký tự.”** Sai: `"".contains("")` vẫn là `true`.
-4. **“Chỉ số lớn hơn độ dài thì `indexOf` luôn trả `-1`.”** Sai khi chuỗi tìm rỗng: `text.indexOf("", 999)` trả `text.length()`.
-5. **“`indexOf` và `lastIndexOf` xử lý chỉ số âm giống nhau.”** Sai: `indexOf("", -1)` trả `0`; `lastIndexOf("", -1)` trả `-1`.
-6. **“`startsWith("", offset)` luôn đúng ở mọi offset.”** Sai: chỉ đúng khi `offset` thuộc đoạn `0..length()`.
-7. **“Chuỗi rỗng giống `null`.”** Sai: `""` là đối tượng hợp lệ còn `null` không phải đối tượng `String`.
-8. **“Vòng lặp tìm tất cả khớp có thể tăng `keyword.length()` bất kể giá trị.”** Sai: khi keyword rỗng, độ tăng bằng `0` có thể tạo vòng lặp vô hạn.
-9. **“Mọi chỉ số tìm kiếm là số ký tự hiển thị.”** Sai: `String` dùng vị trí UTF-16 code units, kể cả ở giữa surrogate pair.
+1. **"With no characters, nothing can be found."** False: the empty string is a valid substring; `indexOf("")` returns `0`.
+2. **"`lastIndexOf("")` always returns `0`."** False: on `"Java"`, it returns `4`.
+3. **"`contains("")` means the source must have at least one character."** False: `"".contains("")` is still `true`.
+4. **"An index greater than the length always makes `indexOf` return `-1`."** False when the search string is empty: `text.indexOf("", 999)` returns `text.length()`.
+5. **"`indexOf` and `lastIndexOf` handle negative indices the same way."** False: `indexOf("", -1)` returns `0`; `lastIndexOf("", -1)` returns `-1`.
+6. **"`startsWith("", offset)` is always true for every offset."** False: only true when `offset` is in `0..length()`.
+7. **"An empty string is the same as `null`."** False: `""` is a valid object whereas `null` is not a `String` object.
+8. **"A find-all loop can always increment by `keyword.length()` regardless of value."** False: when `keyword` is empty, an increment of `0` can cause an infinite loop.
+9. **"Every search index is a visible character count."** False: `String` uses UTF-16 code-unit positions, even inside a surrogate pair.
 
-## 14. Tự kiểm tra
+## 14. Self-Check
 
-**Câu 1.** Với `String s = "abc";`, ba kết quả sau là gì?
+**Question 1.** Given `String s = "abc";`, what are the following three results?
 
 ```java
 System.out.println(s.indexOf(""));
@@ -496,7 +496,7 @@ System.out.println(s.lastIndexOf(""));
 System.out.println(s.contains(""));
 ```
 
-Đáp án:
+Answer:
 
 ```text
 0
@@ -504,7 +504,7 @@ System.out.println(s.contains(""));
 true
 ```
 
-**Câu 2.** Vì sao kết quả hai lời gọi sau không giống nhau?
+**Question 2.** Why do the following two calls produce different results?
 
 ```java
 String s = "abc";
@@ -512,30 +512,30 @@ System.out.println(s.indexOf("", -5));
 System.out.println(s.lastIndexOf("", -5));
 ```
 
-Kết quả lần lượt là `0` và `-1` vì tìm xuôi giới hạn đầu vào âm về `0`, còn tìm ngược với `fromIndex < 0` không có điểm bắt đầu hợp lệ.
+The results are `0` and `-1`, respectively, because forward search clamps negative input to `0`, whereas backward search with `fromIndex < 0` has no valid starting point.
 
-**Câu 3.** Nếu `String s = "";`, kết quả `s.startsWith("")`, `s.endsWith("")` và `s.indexOf("x")` là gì?
+**Question 3.** If `String s = "";`, what are the results of `s.startsWith("")`, `s.endsWith("")`, and `s.indexOf("x")`?
 
-Lần lượt: `true`, `true` và `-1`. Nguồn rỗng vẫn có tiền tố/hậu tố rỗng nhưng không chứa chuỗi `"x"`.
+Respectively: `true`, `true`, and `-1`. An empty source still has an empty prefix/suffix, yet does not contain `"x"`.
 
-**Câu 4.** Một ô tìm kiếm cho phép người dùng để trống, và chức năng yêu cầu “không nhập gì thì hiển thị tất cả bản ghi”. Có nên chỉ viết `value.contains(keyword)`?
+**Question 4.** A search box allows users to leave it blank, and the specification states "if nothing is entered, show all records." Should you just write `value.contains(keyword)`?
 
-Không nên chỉ dựa vào hành vi ngầm của `contains("")`. Hãy kiểm tra rõ `keyword == null`, `keyword.isEmpty()` (hoặc `isBlank()` nếu nghiệp vụ coi whitespace là bỏ trống), rồi chọn nhánh “không lọc”. Làm vậy sẽ rõ chính sách dữ liệu và tránh trường hợp mã sau này đổi API nhưng không còn giữ cùng hành vi.
+You should not rely solely on the implicit behavior of `contains("")`. Explicitly check `keyword == null`, `keyword.isEmpty()` (or `isBlank()` if business rules treat whitespace as blank), and then take the "no filter" branch. Doing so makes the data policy clear and prevents breakage if the code later changes APIs without preserving the same behavior.
 
-**Câu 5.** Một vòng lặp tiến từ `from = found + keyword.length()` bị kẹt khi keyword rỗng vì sao?
+**Question 5.** Why does a loop advancing `from = found + keyword.length()` get stuck when `keyword` is empty?
 
-Vì `keyword.length() == 0` và `indexOf("", from)` trả lại `from` nếu nó nằm trong phạm vi. Cần chặn keyword rỗng hoặc triển khai một nhánh xử lý ranh giới riêng.
+Because `keyword.length() == 0` and `indexOf("", from)` returns `from` right back if it is within range. Reject empty keywords or implement a separate boundary-iteration branch.
 
-## Tóm tắt kiến thức
+## Summary
 
-- `""` là chuỗi tìm hợp lệ: `indexOf("") == 0`, `lastIndexOf("") == length()`, `contains("") == true`, `startsWith("") == true` và `endsWith("") == true`.
-- `indexOf("", fromIndex)` giới hạn `fromIndex` trong đoạn `0..length()`. `lastIndexOf("", fromIndex)` trả `-1` với chỉ số âm, còn chỉ số không âm được giới hạn tối đa tại `length()`.
-- `startsWith("", offset)` chỉ trả `true` khi `offset` nằm trong phạm vi `0..length()`.
-- Với chuỗi tìm không rỗng, `-1` nghĩa là không có khớp thỏa điều kiện; kết quả tìm kiếm tính theo **UTF-16 code-unit indexes**.
-- Phân biệt rõ `""`, whitespace và `null`. Khi viết vòng lặp tìm nhiều lần khớp, **xử lý keyword rỗng tường minh** để tránh không tiến lên.
-- Trường hợp ở biên không phải ngoại lệ cần đoán: mỗi phương thức có hợp đồng riêng; đọc và thử đúng API được dùng.
+- `""` is a valid search string: `indexOf("") == 0`, `lastIndexOf("") == length()`, `contains("") == true`, `startsWith("") == true`, and `endsWith("") == true`.
+- `indexOf("", fromIndex)` clamps `fromIndex` to `0..length()`. `lastIndexOf("", fromIndex)` returns `-1` for negative indices, while non-negative indices are capped at `length()`.
+- `startsWith("", offset)` returns `true` only when `offset` is within `0..length()`.
+- For non-empty search strings, `-1` means no qualifying match; search results are measured in **UTF-16 code-unit indices**.
+- Clearly distinguish `""`, whitespace, and `null`. When writing a loop to find multiple matches, **handle empty keywords explicitly** to avoid failing to advance.
+- Edge cases are not exceptions to guess at: each method has its own contract; read and test the exact API you use.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 21 API — `java.lang.String`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html): hợp đồng chính thức của `indexOf(String)`, `indexOf(String, int)`, `lastIndexOf(String)`, `lastIndexOf(String, int)`, `contains(CharSequence)`, `startsWith(String, int)` và `endsWith(String)`.
-- [Java SE 21 API — `java.lang.Character`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Character.html): UTF-16, surrogate pairs và Unicode code points.
+- [Java SE 21 API — `java.lang.String`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html): official contract for `indexOf(String)`, `indexOf(String, int)`, `lastIndexOf(String)`, `lastIndexOf(String, int)`, `contains(CharSequence)`, `startsWith(String, int)`, and `endsWith(String)`.
+- [Java SE 21 API — `java.lang.Character`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Character.html): UTF-16, surrogate pairs, and Unicode code points.

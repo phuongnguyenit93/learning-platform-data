@@ -1,8 +1,8 @@
-# Phạm vi biến mẫu phụ thuộc luồng điều kiện — Java 17+
+# Condition-Flow-Dependent Scope of Pattern Variables — Java 17+
 
-## 1. Phạm vi biến mẫu là gì?
+## 1. What Is Pattern Variable Scope?
 
-Java 17 hỗ trợ **pattern matching cho `instanceof`** (tính năng ổn định từ Java 16). Cú pháp kiểm tra kiểu và khai báo biến mẫu (*pattern variable*) trong cùng một biểu thức:
+Java 17 supports **pattern matching for `instanceof`** (a stable feature since Java 16). The syntax checks a type and declares a **pattern variable** in the same expression:
 
 ~~~java
 Object value = "Java 17";
@@ -18,17 +18,17 @@ if (value instanceof String text) {
 7
 ~~~
 
-Khi điều kiện `value instanceof String text` đúng, Java đã xác nhận `value` là `String` và gán tham chiếu tương ứng cho biến mẫu `text`, không cần cast thủ công.
+When the condition `value instanceof String text` is true, Java has confirmed that `value` is a `String` and assigned the corresponding reference to the pattern variable `text`, without needing a manual cast.
 
-Điểm quan trọng của bài: **phạm vi của `text` không chỉ phụ thuộc dấu `{ }` mà còn phụ thuộc luồng điều kiện**. Compiler chỉ cho phép sử dụng biến mẫu ở nơi nó chứng minh được rằng mẫu đã **khớp chắc chắn** (*definitely matched*). Cơ chế đó gọi là **flow scoping**.
+The key point of this lesson: **the scope of `text` does not depend solely on `{ }` braces, but also on the conditional control flow**. The compiler only allows using a pattern variable where it can prove that the pattern has **definitely matched**. That mechanism is called **flow scoping**.
 
-## 2. Cách đọc luồng thay vì chỉ nhìn dấu ngoặc
+## 2. Reading Control Flow Instead of Only Looking at Braces
 
-Type pattern tránh phải viết lại phép cast sau `instanceof`; điểm cần phân tích ở đây là **nhánh nào bảo đảm mẫu đã khớp**. Chẳng hạn, trong `if (value instanceof String text)`, thân `if` có thể dùng `text` vì điều kiện đúng, còn `else` không có sự bảo đảm đó. Khi điều kiện không khớp mà luồng vẫn chạy tiếp, không thể dùng `text` sau toàn bộ `if`.
+A type pattern avoids having to rewrite a cast after `instanceof`; the point to analyze here is **which branch guarantees that the pattern has matched**. For instance, in `if (value instanceof String text)`, the `if` body can use `text` because the condition is true, whereas `else` has no such guarantee. When the condition does not match and execution continues, `text` cannot be used after the entire `if`.
 
-Những phần tiếp theo xem xét riêng phép `&&`, `||`, phủ định, guard thoát sớm, toán tử ba ngôi và `else if` để rút ra quy tắc này từ luồng điều khiển. Với `value == null`, kiểm tra kiểu thất bại mà không ném NPE.
+The following sections examine `&&`, `||`, negation, early-return guards, the ternary operator, and `else if` individually to derive this rule from control flow. When `value == null`, the type check fails without throwing NPE.
 
-## 3. Trong nhánh `if` đúng, biến mẫu dùng được
+## 3. In the True `if` Branch, the Pattern Variable Is Usable
 
 ~~~java
 static String inspect(Object value) {
@@ -39,25 +39,25 @@ static String inspect(Object value) {
 }
 ~~~
 
-- Khi điều kiện đúng, `text` chắc chắn là một `String`.
-- Khi điều kiện sai, không thể dùng `text` ở nhánh `else` của chính phép kiểm tra dương.
-- Sau toàn bộ `if`, nếu vẫn có đường đi mà pattern không khớp, `text` cũng **không được coi là chắc chắn tồn tại**.
+- When the condition is true, `text` is guaranteed to be a `String`.
+- When the condition is false, `text` cannot be used in the `else` branch of that positive check.
+- After the entire `if`, if there is still a path where the pattern did not match, `text` is also **not considered definitely in scope**.
 
 ~~~java
 if (value instanceof String text) {
-    System.out.println(text.length()); // Hợp lệ.
+    System.out.println(text.length()); // Valid.
 } else {
     System.out.println("not a String");
-    // System.out.println(text); // LỖI COMPILE: text không có phạm vi ở đây.
+    // System.out.println(text); // COMPILE ERROR: text is not in scope here.
 }
-// System.out.println(text); // LỖI nếu có đường đi chưa khớp mẫu.
+// System.out.println(text); // ERROR if there is a path where the pattern has not matched.
 ~~~
 
-Trong ví dụ này biến `text` chỉ có thể sử dụng ở nhánh mà compiler biết mẫu khớp. Không dùng tên biến mẫu như một biến cục bộ được khai báo vô điều kiện ở đầu phương thức.
+In this example, the variable `text` can only be used in the branch where the compiler knows the pattern matched. Do not treat a pattern variable name like a local variable declared unconditionally at the top of a method.
 
-## 4. Kết hợp `instanceof` với `&&`: vế phải biết mẫu đã khớp
+## 4. Combining `instanceof` with `&&`: The Right-Hand Side Knows the Pattern Matched
 
-Toán tử `&&` đánh giá từ trái sang phải và **ngắn mạch**: nếu vế trái `false`, vế phải không chạy.
+The `&&` operator evaluates from left to right and **short-circuits**: if the left-hand side is `false`, the right-hand side does not execute.
 
 ~~~java
 static boolean isLongString(Object value) {
@@ -65,16 +65,16 @@ static boolean isLongString(Object value) {
 }
 ~~~
 
-Vế phải `text.length() >= 4` chỉ được đánh giá khi `value instanceof String text` đúng, nên tại đó `text` chắc chắn đã khớp mẫu.
+The right-hand side `text.length() >= 4` is evaluated only when `value instanceof String text` is true, so `text` has definitely matched the pattern there.
 
-| `value` | Nhánh `instanceof` | Vế phải `text.length()` | Kết quả |
+| `value` | `instanceof` Branch | Right-Hand Side `text.length()` | Result |
 |---|---|---|---|
-| `"Java"` | true | Được đánh giá: 4 | true |
-| `"Go"` | true | Được đánh giá: 2 | false |
-| `Integer.valueOf(7)` | false | **Bỏ qua** | false |
-| `null` | false | **Bỏ qua** | false |
+| `"Java"` | true | Evaluated: 4 | true |
+| `"Go"` | true | Evaluated: 2 | false |
+| `Integer.valueOf(7)` | false | **Skipped** | false |
+| `null` | false | **Skipped** | false |
 
-Có thể thêm guard hoặc phương thức chỉ dùng biến mẫu sau khi khớp:
+You can add guards or method calls that use the pattern variable only after the match:
 
 ~~~java
 if (value instanceof String text
@@ -84,11 +84,11 @@ if (value instanceof String text
 }
 ~~~
 
-**Thứ tự là quan trọng:** đặt kiểm tra mẫu ở bên trái, rồi mới dùng biến mẫu ở những điều kiện tiếp theo.
+**Order matters:** put the pattern check on the left, and only then use the pattern variable in subsequent conditions.
 
-## 5. Vì sao `||` với kiểm tra mẫu dương không cho dùng biến ở vế phải?
+## 5. Why Does `||` with a Positive Pattern Check Not Allow Using the Variable on the Right-Hand Side?
 
-Xét ý định sai:
+Consider this incorrect attempt:
 
 ~~~java
 // if (value instanceof String text || text.isEmpty()) {
@@ -96,47 +96,47 @@ Xét ý định sai:
 // }
 ~~~
 
-Đây là **lỗi biên dịch**, không phải đơn thuần nguy cơ `NullPointerException`.
+This is a **compile error**, not merely a risk of `NullPointerException`.
 
-Với `A || B`, Java chỉ đánh giá `B` nếu `A` là **false**. Nhưng `A` ở đây chính là `value instanceof String text`, nên khi đi tới `B`, mẫu **chưa khớp**. Vì thế biến `text` không thuộc phạm vi hợp lệ ở vế phải.
+With `A || B`, Java evaluates `B` only if `A` is **false**. But `A` here is `value instanceof String text`, so upon reaching `B`, the pattern **has not matched**. Therefore, the variable `text` is not in valid scope on the right-hand side.
 
-**Đối chiếu:**
+**Comparison:**
 
-- `value instanceof String text && text.length() > 0` — **hợp lệ**.
-- `value instanceof String text || text.length() > 0` — **không hợp lệ**.
-- `value instanceof String text` đứng độc lập trong `if` — biến chỉ dùng được ở nhánh chắc chắn đã khớp.
+- `value instanceof String text && text.length() > 0` — **valid**.
+- `value instanceof String text || text.length() > 0` — **invalid**.
+- `value instanceof String text` standalone in an `if` — the variable is only usable in branches where it is guaranteed to have matched.
 
-Đừng tìm cách sửa lỗi biên dịch bằng cast tùy tiện ở vế phải; trước hết hãy xác định xem yêu cầu nghiệp vụ là “và” hay “hoặc”.
+Do not try to work around the compile error with an arbitrary cast on the right-hand side; first determine whether the business requirement is "and" or "or".
 
-## 6. Phủ định `!` làm thay đổi luồng xác định phạm vi
+## 6. Negation `!` Changes the Flow That Determines Scope
 
-Với biểu thức phủ định:
+With a negated expression:
 
 ~~~java
 if (!(value instanceof String text)) {
     System.out.println("not a String");
 } else {
-    System.out.println(text.length()); // Hợp lệ.
+    System.out.println(text.length()); // Valid.
 }
 ~~~
 
-Ở nhánh `else`, phủ định `!(...)` là false, tức pattern bên trong **đã khớp**. Vì vậy compiler cho dùng `text`.
+In the `else` branch, the negation `!(...)` is false, meaning the inner pattern **matched**. Therefore, the compiler allows using `text`.
 
-Ngược lại:
+Conversely:
 
 ~~~java
 if (!(value instanceof String text)) {
-    // System.out.println(text.length()); // Không hợp lệ.
+    // System.out.println(text.length()); // Invalid.
 }
 ~~~
 
-Trong nhánh `if` này, phép kiểm tra kiểu **không khớp**, nên không có biến `text` hợp lệ.
+In this `if` branch, the type check **did not match**, so there is no valid `text` variable.
 
-**Mẹo suy luận:** thay vì chỉ nhìn dấu ngoặc, hỏi: *để chương trình đi tới câu lệnh đang xét, biểu thức `instanceof` bắt buộc đã true hay chưa?*
+**Reasoning tip:** instead of looking only at braces, ask: *for execution to reach the statement under consideration, must the `instanceof` expression necessarily have been true?*
 
-## 7. Guard clause: biến mẫu có thể dùng sau câu `if`
+## 7. Guard Clause: The Pattern Variable Can Be Used After an `if` Statement
 
-Một mẫu rất hữu ích trong phương thức:
+A very useful pattern in methods:
 
 ~~~java
 static String describe(Object value) {
@@ -148,31 +148,31 @@ static String describe(Object value) {
 }
 ~~~
 
-Nếu giá trị không phải String, phương thức **trả về ngay**. Do đó, để đi tới câu `return "TEXT:" + text.strip()`, phép `instanceof` bắt buộc đã đúng, nên `text` thuộc phạm vi hợp lệ **ngay cả sau dấu `}` của `if`**.
+If the value is not a String, the method **returns immediately**. Consequently, to reach `return "TEXT:" + text.strip()`, the `instanceof` check must have succeeded, so `text` is in valid scope **even after the closing `}` of the `if`**.
 
-Điều đó cho thấy flow scoping **không chỉ là phạm vi từ dấu ngoặc mở đến dấu ngoặc đóng**.
+This demonstrates that flow scoping **is not simply scope from an opening brace to a closing brace**.
 
 ~~~java
 if (!(value instanceof String text)) {
     return "NOT_STRING";
 }
-// text có thể được dùng tại đây vì nhánh thất bại đã return.
+// text can be used here because the failing branch has returned.
 ~~~
 
-Nhưng nếu nhánh thất bại chỉ ghi log rồi tiếp tục:
+However, if the failing branch only logs and continues:
 
 ~~~java
 if (!(value instanceof String text)) {
     System.out.println("not a String");
 }
-// System.out.println(text.length()); // LỖI: đường đi thất bại vẫn tới đây.
+// System.out.println(text.length()); // ERROR: the failing path still reaches here.
 ~~~
 
-**Lưu ý:** trong cùng phương thức, đoạn có `return` phải phù hợp kiểu trả về. Các ví dụ với `return` được đặt trong phương thức trả `String`.
+**Note:** within the same method, a snippet with `return` must match the return type. Examples with `return` are placed inside methods returning `String`.
 
-## 8. `||` có thể hợp lệ khi kiểm tra bị phủ định
+## 8. `||` Can Be Valid When the Check Is Negated
 
-Biểu thức sau là **hợp lệ**:
+The following expression is **valid**:
 
 ~~~java
 static String validate(Object value) {
@@ -183,35 +183,35 @@ static String validate(Object value) {
 }
 ~~~
 
-Giải thích theo luồng:
+Flow-based explanation:
 
-1. `!(value instanceof String text)` true nếu không phải String; do `||` ngắn mạch nên **không gọi** `text.isBlank()`.
-2. Nếu vế trái false, `value instanceof String text` đã true; vì thế vế phải được phép dùng `text`.
-3. Sau câu `if`, chỉ có thể đi tiếp khi toàn bộ điều kiện là false. Điều này bảo đảm `text` là String và **không blank**, nên `text.strip()` an toàn.
+1. `!(value instanceof String text)` is true if the value is not a String; because `||` short-circuits, `text.isBlank()` is **not called**.
+2. If the left-hand side is false, `value instanceof String text` was true; therefore the right-hand side is allowed to use `text`.
+3. After the `if` statement, execution can continue only when the entire condition is false. That guarantees `text` is a String and **not blank**, so `text.strip()` is safe.
 
-| Đầu vào | Kết quả |
+| Input | Result |
 |---|---|
 | `" Java "` | `VALID:Java` |
 | `"   "` | `INVALID` |
 | `Integer.valueOf(3)` | `INVALID` |
 | `null` | `INVALID` |
 
-So sánh nhanh:
+Quick comparison:
 
 ~~~java
-// Hợp lệ: kiểm tra mẫu dương và dùng &&.
+// Valid: positive pattern check and use &&.
 value instanceof String text && !text.isBlank()
 
-// Hợp lệ: phủ định mẫu, rồi dùng || trong guard.
+// Valid: negate pattern, then use || in the guard.
 !(value instanceof String text) || text.isBlank()
 
-// Sai: mẫu dương với ||, dùng text ở vế phải.
+// Invalid: positive pattern with ||, using text on the right-hand side.
 // value instanceof String text || text.isBlank()
 ~~~
 
-Cơ chế của compiler dựa trên **luồng logic** chứ không dựa vào việc biến có tên giống nhau trong biểu thức.
+The compiler's mechanism is based on **logical control flow**, not on whether variables share the same name in an expression.
 
-## 9. Dùng `||` để trả boolean khi không phải String hoặc chuỗi rỗng
+## 9. Using `||` to Return a Boolean When Not a String or an Empty String
 
 ~~~java
 static boolean emptyOrNotString(Object value) {
@@ -219,19 +219,19 @@ static boolean emptyOrNotString(Object value) {
 }
 ~~~
 
-Kết quả:
+Results:
 
-- `42` → true vì không phải String; vế phải được bỏ qua.
-- `""` → true vì là String rỗng.
-- `"ok"` → false vì là String không rỗng.
+- `42` → true because it is not a String; the right-hand side is skipped.
+- `""` → true because it is an empty String.
+- `"ok"` → false because it is a non-empty String.
 
-Trong ví dụ này, yêu cầu là “**không phải String HOẶC String rỗng**”, nên dùng `||` với mẫu bị phủ định là phù hợp.
+In this example, the requirement is "**not a String OR an empty String**", so using `||` with a negated pattern is appropriate.
 
-**Không suy ra** rằng mọi trường hợp `||` đều cho phép dùng biến mẫu. Điều quyết định là khi chương trình bắt buộc phải đánh giá vế phải, pattern đã **definitely matched** hay chưa.
+**Do not infer** that every `||` case allows using a pattern variable. What decides it is whether, when the program must evaluate the right-hand side, the pattern is already **definitely matched**.
 
-## 10. Biến mẫu trong toán tử điều kiện `?:`
+## 10. Pattern Variables in the Conditional Operator `?:`
 
-Toán tử ba ngôi cũng có nhánh true/false rõ ràng:
+The ternary operator also has clear true/false branches:
 
 ~~~java
 static int stringLengthOrMinusOne(Object value) {
@@ -239,17 +239,17 @@ static int stringLengthOrMinusOne(Object value) {
 }
 ~~~
 
-Nhánh true của `?:` chỉ chạy khi `value instanceof String text` đúng nên `text.length()` hợp lệ. Nhánh false không có bảo đảm mẫu khớp:
+The true branch of `?:` executes only when `value instanceof String text` is true, so `text.length()` is valid. The false branch has no guarantee that the pattern matched:
 
 ~~~java
 // int n = value instanceof String text
 //         ? text.length()
-//         : text.length(); // Không hợp lệ ở nhánh false.
+//         : text.length(); // Invalid in the false branch.
 ~~~
 
-Trường hợp này phù hợp khi biểu thức trả kết quả đơn giản. Với nhiều lệnh kiểm tra hoặc cần báo lỗi, một `if/else` rõ ràng có thể dễ đọc hơn.
+This form is suitable when an expression returns a simple result. With multiple checks or when errors must be reported, an explicit `if/else` can be easier to read.
 
-## 11. Scope trong `else if` và biến mẫu khác
+## 11. Scope in `else if` and Other Pattern Variables
 
 ~~~java
 static String describeValue(Object value) {
@@ -262,39 +262,39 @@ static String describeValue(Object value) {
 }
 ~~~
 
-- `text` chỉ hợp lệ trong những vị trí được nhánh kiểm tra String đảm bảo.
-- `number` chỉ hợp lệ trong nhánh kiểm tra Integer.
-- Không được dùng `text` ở nhánh Integer khi điều kiện String có thể false.
-- Sau toàn bộ chuỗi, không có bảo đảm một trong hai mẫu đã khớp, nên các biến mẫu không trở thành biến chung của phương thức.
+- `text` is valid only in positions guaranteed by the String check branch.
+- `number` is valid only in the Integer check branch.
+- `text` cannot be used in the Integer branch when the String condition could have been false.
+- After the entire chain, there is no guarantee that either pattern matched, so the pattern variables do not become method-wide variables.
 
-**Lưu ý về điều kiện phụ:** một String có thể khớp `instanceof String text` nhưng bị loại do `text.isBlank()`. Khi đó nó không tự trở thành Integer; cuối cùng ví dụ trả `OTHER`.
+**Note on extra conditions:** a String can match `instanceof String text` yet be rejected by `!text.isBlank()`. In that case it does not automatically become an Integer; the example ultimately returns `OTHER`.
 
-Trong các biểu thức phức tạp, việc dùng cùng tên biến cho nhiều mẫu có phạm vi chồng lấn có thể gây lỗi khai báo trùng. Hãy đặt tên theo kiểu hoặc ý nghĩa (`text`, `number`) và giữ điều kiện dễ đọc.
+In complex expressions, reusing the same variable name across multiple patterns with overlapping scopes can cause duplicate declaration errors. Name variables by type or meaning (`text`, `number`) and keep conditions readable.
 
-## 12. Các giới hạn và điểm cần tránh
+## 12. Limitations and Pitfalls to Avoid
 
-| Trường hợp | Hợp lệ? | Nguyên nhân |
+| Case | Valid? | Reason |
 |---|---|---|
-| `if (o instanceof String s) { s.length(); }` | Có | Mẫu khớp ở nhánh true |
-| `if (o instanceof String s && s.length() > 2)` | Có | Vế phải chỉ chạy khi mẫu khớp |
-| `if (o instanceof String s || s.length() > 2)` | **Không** | Vế phải chỉ chạy khi mẫu không khớp |
-| `if (!(o instanceof String s)) { return; } use(s);` | Có, trong phương thức `void` phù hợp | Đường đi chưa khớp đã thoát |
-| `if (!(o instanceof String s)) { log(); } use(s);` | **Không** | Nhánh không khớp vẫn có thể đi tiếp |
-| `if (!(o instanceof String s)) ... else use(s);` | Có | Nhánh else bảo đảm mẫu khớp |
-| `!(o instanceof String s) || s.isEmpty()` | Có | Muốn đánh giá vế phải phải có mẫu khớp |
-| `o instanceof String s ? s.length() : -1` | Có | Nhánh true bảo đảm khớp |
-| `o instanceof String s ? 0 : s.length()` | **Không** | Nhánh false không bảo đảm khớp |
+| `if (o instanceof String s) { s.length(); }` | Yes | Pattern matches in the true branch |
+| `if (o instanceof String s && s.length() > 2)` | Yes | Right-hand side runs only when the pattern matches |
+| `if (o instanceof String s \|\| s.length() > 2)` | **No** | Right-hand side runs only when the pattern does not match |
+| `if (!(o instanceof String s)) { return; } use(s);` | Yes, in an appropriate `void` method | The non-matching path has exited |
+| `if (!(o instanceof String s)) { log(); } use(s);` | **No** | The non-matching branch can still continue |
+| `if (!(o instanceof String s)) ... else use(s);` | Yes | The `else` branch guarantees the pattern matched |
+| `!(o instanceof String s) \|\| s.isEmpty()` | Yes | Evaluating the right-hand side requires the pattern to have matched |
+| `o instanceof String s ? s.length() : -1` | Yes | The true branch guarantees a match |
+| `o instanceof String s ? 0 : s.length()` | **No** | The false branch does not guarantee a match |
 
-Một số điểm Java 17 đáng nhớ:
+Several Java 17 points worth remembering:
 
-- Với `Object candidate = null;`, biểu thức `candidate instanceof String s` trả `false` mà không ném NPE; không có biến mẫu `s` trên đường đi đó. **Không viết trực tiếp literal `null instanceof String s` trong Java 17**: đó là type pattern bị từ chối khi biên dịch (mẫu vô điều kiện đối với kiểu của literal `null`). Kiểm tra kiểu không ràng buộc mẫu `null instanceof String` lại hợp lệ và cho `false`.
-- Không dùng `switch` pattern matching như một tính năng ổn định mặc định của Java 17: ở phiên bản này nó thuộc **preview**; bài dùng `instanceof` pattern ổn định, biên dịch `--release 17` bình thường.
-- Compiler thường từ chối mẫu `instanceof` hiển nhiên luôn đúng về mặt kiểu tĩnh (ví dụ biến đã khai báo `String` lại thử `instanceof String s`). Dùng mẫu kiểm tra kiểu tại nơi biểu thức có kiểu đủ rộng, như `Object` hoặc interface phù hợp.
-- Chỉ dùng biến mẫu trong luồng đã xác nhận kiểu; đừng ép cast hoặc khai báo lại biến chỉ để “qua compiler” nếu biểu thức logic thực sự sai.
+- With `Object candidate = null;`, the expression `candidate instanceof String s` returns `false` without throwing NPE; there is no pattern variable `s` on that path. **Do not write the literal `null instanceof String s` directly in Java 17**: that is a type pattern rejected at compile time (an unconditional pattern for the type of the `null` literal). A non-binding type check `null instanceof String` is valid and evaluates to `false`.
+- Do not use `switch` pattern matching as a default stable feature of Java 17: in this version it is a **preview** feature; this lesson uses stable `instanceof` patterns that compile normally with `--release 17`.
+- The compiler generally rejects an `instanceof` pattern that is trivially always true based on static types (for example, testing `instanceof String s` on a variable already declared as `String`). Use type patterns where the expression has a sufficiently broad type, such as `Object` or an appropriate interface.
+- Only use pattern variables in flows where the type has been confirmed; do not force casts or redeclare variables just to "get past the compiler" if the logical expression is actually wrong.
 
-## 13. Chương trình Java 17 hoàn chỉnh
+## 13. Complete Java 17 Program
 
-Tạo file đúng tên **`PatternFlowScopeDemo.java`**:
+Create a file with the exact name **`PatternFlowScopeDemo.java`**:
 
 ~~~java
 import java.util.Locale;
@@ -400,7 +400,7 @@ public final class PatternFlowScopeDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 trở lên, terminal ở thư mục chứa file; không dùng thư viện ngoài JDK, Maven, Gradle hoặc tính năng preview.
+**Requirements:** JDK 17 or later, terminal in the directory containing the file; do not use external libraries outside the JDK, Maven, Gradle, or preview features.
 
 **Bash (Linux/macOS):**
 
@@ -446,35 +446,35 @@ checked length
 traced String=true
 ~~~
 
-**Vì sao output như vậy?**
+**Why is the output like this?**
 
-1. `inspect` chỉ dùng `text` khi mẫu String khớp và chuỗi không blank; `Integer` được xử lý bằng biến `number` ở nhánh riêng.
-2. `longEnough` minh họa `&&` cho phép truy cập `text.length()` ở vế phải và bỏ qua vế phải với null hoặc Integer.
-3. `afterGuard` dùng được `text` sau `if`, do đường đi không khớp đã `return`.
-4. `rejectInvalid` dùng `||` với phủ định pattern và từ chối String blank; sau guard chỉ còn chuỗi hợp lệ.
-5. `emptyOrNotString` trả true với object không phải String hoặc chuỗi rỗng; bỏ qua `text.isEmpty()` nếu không khớp.
-6. `conditionalLength` dùng biến mẫu trong nhánh true của `?:`.
-7. `negativeElse` dùng `text` ở nhánh `else` khi phép phủ định false.
-8. `tracedAnd(5)` **không in `checked length`** vì `instanceof` false; `tracedAnd("Hi")` mới gọi `traced`.
+1. `inspect` uses `text` only when the String pattern matches and the string is not blank; `Integer` is handled with the variable `number` in a separate branch.
+2. `longEnough` demonstrates that `&&` allows accessing `text.length()` on the right-hand side and skips the right-hand side for null or Integer.
+3. `afterGuard` can use `text` after `if` because the non-matching path has returned.
+4. `rejectInvalid` uses `||` with a negated pattern to reject blank Strings; after the guard, only valid non-blank strings remain.
+5. `emptyOrNotString` returns true for a non-String object or an empty string; it skips `text.isEmpty()` if the pattern does not match.
+6. `conditionalLength` uses the pattern variable in the true branch of `?:`.
+7. `negativeElse` uses `text` in the `else` branch when the negation is false.
+8. `tracedAnd(5)` **does not print `checked length`** because `instanceof` is false; `tracedAnd("Hi")` calls `traced`.
 
-## 14. Lỗi phổ biến và cách sửa
+## 14. Common Mistakes and Fixes
 
-| Sai lầm | Lý do | Cách sửa |
+| Mistake | Reason | Fix |
 |---|---|---|
-| Dùng biến mẫu ở `else` của kiểm tra dương | Nhánh else có thể không khớp | Dùng biến ở nhánh true |
-| Viết `o instanceof String s || s.isBlank()` | Vế phải của OR chỉ chạy khi mẫu không khớp | Dùng `&&` cho nhánh dương, hoặc `!(...) || ...` nếu logic yêu cầu |
-| Dùng `s` sau `if` nhưng nhánh không khớp vẫn chạy tiếp | Không bảo đảm definitely matched | Guard clause `return`/`throw` ở nhánh thất bại |
-| Tưởng dấu `{ }` là quy tắc duy nhất xác định scope | Java dùng phân tích luồng điều kiện | Xét các đường đi true/false |
-| Dùng `s` trong nhánh true của `!(o instanceof String s)` | Nhánh đó nghĩa là không khớp | Dùng trong `else` hoặc sau guard thoát sớm |
-| Dùng `s` ở nhánh false của `?:` kiểm tra dương | Không bảo đảm mẫu khớp | Chỉ dùng trong nhánh true |
-| Nghĩ `null instanceof String s` sẽ ném NPE | `instanceof` trả false với null | Có thể dùng như một null-safe type guard |
-| Viết cast lặp dù đã có pattern variable | Dễ dư code/cast sai | Dùng trực tiếp biến mẫu ở phạm vi hợp lệ |
-| Giấu side effect trong điều kiện kiểu | Khó suy luận luồng/đầu ra | Tách kiểm tra và side effect khi cần |
-| Dùng pattern switch preview mà không bật cờ trên JDK 17 | Lỗi compile/tính năng chưa ổn định | Dùng `instanceof` pattern ổn định |
+| Using the pattern variable in the `else` of a positive check | The `else` branch might not match | Use the variable in the true branch |
+| Writing `o instanceof String s \|\| s.isBlank()` | The right-hand side of OR runs only when the pattern fails to match | Use `&&` for the positive branch, or `!(...) \|\| ...` if logic requires |
+| Using `s` after `if` when the non-matching branch continues | Not guaranteed to be definitely matched | Use a `return`/`throw` guard clause in the failing branch |
+| Thinking `{ }` braces are the only rule for scope | Java uses conditional flow analysis | Examine the true/false paths |
+| Using `s` in the true branch of `!(o instanceof String s)` | That branch means no match | Use in `else` or after an early-return guard |
+| Using `s` in the false branch of `?:` on a positive check | No guarantee the pattern matched | Use only in the true branch |
+| Thinking `null instanceof String s` throws NPE | `instanceof` returns false for null | Can be used as a null-safe type guard |
+| Writing redundant casts despite having a pattern variable | Causes redundant code/bad casts | Use the pattern variable directly in valid scope |
+| Hiding side effects inside type conditions | Makes flow/output hard to reason about | Separate checks and side effects when needed |
+| Using preview pattern switch without flags on JDK 17 | Compile error/unstable feature | Use stable `instanceof` patterns |
 
-## 15. Bài tập có đáp án
+## 15. Exercises with Answers
 
-### Bài A — biến mẫu trong `&&`
+### Exercise A — Pattern variable in `&&`
 
 ~~~java
 Object value = "Java";
@@ -482,28 +482,28 @@ boolean valid = value instanceof String text && text.length() == 4;
 System.out.println(valid);
 ~~~
 
-**Đáp án:** in `true`. Vế phải chỉ chạy khi pattern khớp.
+**Answer:** prints `true`. The right-hand side runs only when the pattern matches.
 
-### Bài B — tại sao `||` sai?
+### Exercise B — Why is `||` wrong?
 
 ~~~java
 // boolean bad = value instanceof String text || text.isEmpty();
 ~~~
 
-**Đáp án:** nếu vế phải của `||` được đánh giá, pattern ở vế trái đã false; `text` chưa khớp chắc chắn nên không thuộc phạm vi. Sửa tùy ý định:
+**Answer:** if the right-hand side of `||` is evaluated, the pattern on the left-hand side was false; `text` has not definitely matched, so it is not in scope. Fix depending on intent:
 
 ~~~java
 boolean nonempty = value instanceof String text && !text.isEmpty();
 ~~~
 
-Hoặc khi muốn “không phải String **hoặc** String rỗng”:
+Or when you want "not a String **or** an empty String":
 
 ~~~java
 boolean emptyOrWrongType =
         !(value instanceof String text) || text.isEmpty();
 ~~~
 
-### Bài C — dùng biến sau guard clause
+### Exercise C — Using a variable after a guard clause
 
 ~~~java
 static String uppercase(Object value) {
@@ -514,9 +514,9 @@ static String uppercase(Object value) {
 }
 ~~~
 
-**Đáp án:** hợp lệ, vì đường đi thất bại đã `return`. Với `value = "hi"`, trả `"HI"`.
+**Answer:** valid, because the failing path has returned. With `value = "hi"`, returns `"HI"`.
 
-### Bài D — so sánh hai cấu trúc phủ định
+### Exercise D — Comparing two negation structures
 
 ~~~java
 if (!(value instanceof String text)) {
@@ -526,9 +526,9 @@ if (!(value instanceof String text)) {
 }
 ~~~
 
-**Đáp án:** `text` dùng được trong `else`, vì tới `else` có nghĩa pattern đã khớp.
+**Answer:** `text` is usable inside `else`, because reaching `else` means the pattern matched.
 
-### Bài E — toán tử điều kiện
+### Exercise E — Conditional operator
 
 ~~~java
 Object value = "abc";
@@ -536,21 +536,21 @@ int length = value instanceof String text ? text.length() : -1;
 System.out.println(length);
 ~~~
 
-**Đáp án:** `3`. Biến `text` thuộc phạm vi nhánh true của `?:`, không thuộc phạm vi nhánh false.
+**Answer:** `3`. The variable `text` is in scope in the true branch of `?:`, not in the false branch.
 
-## 16. Checklist và kết luận
+## 16. Checklist and Conclusion
 
-- [ ] Biết cú pháp `object instanceof Type variable` của Java 17.
-- [ ] Hiểu biến mẫu chỉ tồn tại ở luồng mà compiler chứng minh pattern khớp.
-- [ ] Dùng biến mẫu ở nhánh true của `if (o instanceof T t)`.
-- [ ] Hiểu `&&` cho dùng biến mẫu ở vế phải của kiểm tra dương.
-- [ ] Biết vì sao `||` với kiểm tra dương không cho dùng biến mẫu ở vế phải.
-- [ ] Hiểu phủ định `!` thay đổi nhánh nào bảo đảm pattern khớp.
-- [ ] Dùng guard `if (!(o instanceof T t)) return/throw` để dùng `t` sau guard.
-- [ ] Biết `!(o instanceof T t) || ... t ...` có thể hợp lệ với short-circuit.
-- [ ] Biết biến mẫu dùng được ở nhánh true của toán tử `?:` kiểm tra dương.
-- [ ] Không sử dụng biến mẫu ở đường đi thất bại hoặc sau `if` khi đường đi thất bại còn tiếp tục.
-- [ ] Biết `instanceof` trên null trả false, không ném NPE.
-- [ ] Biên dịch và chạy `PatternFlowScopeDemo.java` bằng Java 17+ và đối chiếu exact stdout.
+- [ ] Know Java 17's `object instanceof Type variable` syntax.
+- [ ] Understand that a pattern variable exists only on flows where the compiler proves the pattern matched.
+- [ ] Use the pattern variable in the true branch of `if (o instanceof T t)`.
+- [ ] Understand that `&&` allows using the pattern variable on the right-hand side of a positive check.
+- [ ] Know why `||` with a positive check does not allow using the pattern variable on the right-hand side.
+- [ ] Understand how negation `!` changes which branch guarantees the pattern matched.
+- [ ] Use guards like `if (!(o instanceof T t)) return/throw` to use `t` after the guard.
+- [ ] Know that `!(o instanceof T t) || ... t ...` can be valid with short-circuiting.
+- [ ] Know that a pattern variable is usable in the true branch of the `?:` operator on a positive check.
+- [ ] Do not use a pattern variable on the failing path or after an `if` when the failing path continues.
+- [ ] Know that `instanceof` on null returns false without throwing NPE.
+- [ ] Compile and run `PatternFlowScopeDemo.java` with Java 17+ and verify exact stdout.
 
-**Kết luận:** Phạm vi biến mẫu trong Java 17 được quyết định bởi **luồng điều khiển và thông tin kiểu mà compiler chứng minh được**. Với `instanceof` dương, biến có sẵn ở nhánh đúng và vế phải `&&`; với phủ định, biến có thể xuất hiện ở `else`, vế phải của `||` phù hợp hoặc sau guard clause thoát sớm. Hiểu flow scoping giúp giảm cast thừa mà không sử dụng biến ở đường đi chưa được kiểm tra kiểu.
+**Conclusion:** Pattern variable scope in Java 17 is determined by **control flow and the type information the compiler can prove**. With positive `instanceof`, the variable is available in the true branch and on the right-hand side of `&&`; with negation, the variable can appear in `else`, on the right-hand side of an appropriate `||`, or after an early-exit guard clause. Understanding flow scoping helps reduce redundant casts without using variables on type-unchecked paths.

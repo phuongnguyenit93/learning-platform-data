@@ -1,58 +1,58 @@
-# Đọc field instance bằng đối tượng đúng kiểu trong Java Reflection
+# Reading instance fields with a properly typed object in Java Reflection
 
-## 1. Bài toán: một `Field` cần một object để đọc giá trị
+## 1. The problem: a `Field` needs an object to read its value
 
-Reflection cho phép lấy metadata của một field ngay cả khi chưa có object cụ thể:
+Reflection lets you obtain a field's metadata even before having a concrete object:
 
 ```java
 Field field = Person.class.getDeclaredField("name");
 ```
 
-Nhưng **field instance thuộc trạng thái của từng object**. Để đọc giá trị, cần truyền một **đối tượng nhận (receiver)** phù hợp cho phương thức `Field.get(Object obj)`:
+However, **an instance field belongs to each object's state**. To read its value, you must pass a compatible **receiver object** to `Field.get(Object obj)`:
 
 ```java
 Person person = new Person("Lan");
 Object value = field.get(person);
 ```
 
-Trong ví dụ minh họa này, `Person` phải là class có field `name`, constructor nhận `String`, và quyền truy cập phải hợp lệ. Đây là mảnh code giải thích cú pháp, không phải chương trình độc lập.
+In this illustrative example, `Person` must be a class with a `name` field, a constructor accepting `String`, and access permissions must be valid. This is a code snippet explaining syntax, not a standalone program.
 
-Có hai điều kiện riêng biệt: **(1) receiver phải thuộc đúng kiểu tương thích với class khai báo field; (2) code đang gọi phải có quyền truy cập field đó**. Nếu receiver sai kiểu, Java Reflection không thể lấy giá trị trường theo metadata đã chọn, dù field mang modifier `public`.
+There are two separate conditions: **(1) the receiver must have a type compatible with the class declaring the field; (2) the calling code must have permission to access that field**. If the receiver has the wrong type, Java Reflection cannot retrieve the field value for the selected metadata, even if the field has the `public` modifier.
 
-Câu hỏi cốt lõi của bài: `field.get(obj)` đòi `obj` phải có kiểu gì, và những khác biệt giữa class khai báo field, class runtime của object, field kế thừa và field cùng tên là gì?
+Core question of this lesson: what type does `field.get(obj)` require `obj` to have, and what are the differences between the field's declaring class, the object's runtime class, inherited fields, and same-named fields?
 
-## 2. Quy tắc chính xác của `Field.get(Object)`
+## 2. Exact rules of `Field.get(Object)`
 
-Chữ ký API:
+API signature:
 
 ```java
 public Object get(Object obj)
         throws IllegalArgumentException, IllegalAccessException
 ```
 
-Khi `field` đại diện cho **instance field**:
+When `field` represents an **instance field**:
 
-- `obj` phải **khác `null`**.
-- `obj` phải là instance của **class hoặc interface khai báo field**, hoặc một lớp con/lớp triển khai tương thích. Với field khai báo trong `Parent`, receiver `new Parent()` và `new Child()` khi `Child extends Parent` đều hợp lệ về kiểu.
-- `Field.getDeclaringClass()` chỉ ra **kiểu khai báo field**. Đây là mốc cần đối chiếu với receiver, không phải class đã dùng để tìm kiếm một field một cách tình cờ.
-- Khi receiver sai kiểu: `IllegalArgumentException`. Khi receiver `null` cho instance field: `NullPointerException`.
-- Khi receiver đúng kiểu nhưng caller không có quyền đọc field trong chế độ kiểm tra truy cập hiện hành: `IllegalAccessException`.
-- Khi đọc field kiểu nguyên thủy như `int`, `get` trả đối tượng wrapper, ví dụ `Integer`. Khi field kiểu tham chiếu chứa `null`, kết quả `get` cũng có thể là `null`: đừng nhầm **giá trị field null** với **receiver null**.
+- `obj` must be **non-`null`**.
+- `obj` must be an instance of **the class or interface declaring the field**, or a compatible subclass/implementing class. For a field declared in `Parent`, receivers `new Parent()` and `new Child()` when `Child extends Parent` are both type-valid.
+- `Field.getDeclaringClass()` indicates **the type declaring the field**. This is the reference point to check against the receiver, not the class that happened to be used to look up the field.
+- When the receiver has the wrong type: `IllegalArgumentException`. When the receiver is `null` for an instance field: `NullPointerException`.
+- When the receiver has the right type but the caller lacks permission to read the field under current access checks: `IllegalAccessException`.
+- When reading a primitive field like `int`, `get` returns a wrapper object, e.g., `Integer`. When a reference-type field holds `null`, the result of `get` can also be `null`: do not confuse a **null field value** with a **null receiver**.
 
-**Khác biệt với field static:** nếu field có modifier `static`, Java bỏ qua receiver truyền vào `Field.get` (có thể truyền `null`), vì giá trị thuộc class, không thuộc một object cụ thể. Bài này tập trung vào **instance field**.
+**Difference with static fields:** if a field has the `static` modifier, Java ignores the receiver passed to `Field.get` (`null` can be passed), because the value belongs to the class, not a specific object. This lesson focuses on **instance fields**.
 
-Có thể dự đoán receiver đúng kiểu bằng biểu thức:
+You can predict a properly typed receiver with the expression:
 
 ```java
 Class<?> owner = field.getDeclaringClass();
 boolean compatible = owner.isInstance(obj);
 ```
 
-`Class.isInstance(null)` trả `false`, nên biểu thức kiểm tra an toàn cả khi receiver có thể null. Nó chỉ xác minh **khả năng tương thích kiểu**, không tự cấp quyền truy cập cho một field `private` hay một class/package bị giới hạn.
+`Class.isInstance(null)` returns `false`, so the expression safely checks even when the receiver may be null. It only verifies **type compatibility**; it does not grant access permission for a `private` field or a restricted class/package.
 
-## 3. Ví dụ Java 17+ chạy độc lập: đúng kiểu, sai kiểu và `null`
+## 3. Standalone runnable Java 17+ example: valid type, wrong type, and `null`
 
-Tạo file **`InstanceFieldReadDemo.java`**:
+Create file **`InstanceFieldReadDemo.java`**:
 
 ```java
 import java.lang.reflect.Field;
@@ -105,14 +105,14 @@ public class InstanceFieldReadDemo {
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa file:
+Compile and run from the directory containing the file:
 
 ```bash
 javac --release 17 InstanceFieldReadDemo.java
 java InstanceFieldReadDemo
 ```
 
-Kết quả stdout:
+Stdout result:
 
 ```text
 Parent.label from Parent: parent
@@ -127,19 +127,19 @@ Wrong receiver: IllegalArgumentException
 Null receiver: NullPointerException
 ```
 
-**Vì sao chương trình cho kết quả trên?**
+**Why does the program produce the output above?**
 
-1. `parentLabel` khai báo tại `Parent` nên đọc được từ một `Parent` hoặc `Child`. Một object `Child` **vẫn chứa trạng thái instance của phần `Parent` được kế thừa**.
-2. `Child` tự khai báo `label` cùng tên: đó là **field hiding**. Hai đối tượng `Field` đại diện cho **hai khai báo khác nhau**. `parentLabel.get(child)` vẫn đọc `Parent.label` và trả `parent`; `childLabel.get(child)` đọc `Child.label` và trả `child`.
-3. `childLabel` khai báo tại `Child`, nên receiver `parent` không hợp lệ: một instance `Parent` chưa chắc là `Child`. Java phát sinh `IllegalArgumentException`.
-4. `childLabel.get(null)` không có object chứa trạng thái instance nên phát sinh `NullPointerException`.
-5. `count` khai báo là `int`; `Field.get` trả `Integer` sau boxing. `count.getType()` vẫn là `int.class`, còn kiểu runtime của kết quả là `Integer.class`.
+1. `parentLabel` is declared in `Parent`, so it can be read from a `Parent` or a `Child`. A `Child` object **still contains the instance state of the inherited `Parent` part**.
+2. `Child` declares its own `label` with the same name: that is **field hiding**. The two `Field` objects represent **two different declarations**. `parentLabel.get(child)` still reads `Parent.label` and returns `parent`; `childLabel.get(child)` reads `Child.label` and returns `child`.
+3. `childLabel` is declared in `Child`, so the `parent` receiver is invalid: a `Parent` instance is not necessarily a `Child`. Java throws `IllegalArgumentException`.
+4. `childLabel.get(null)` has no object holding instance state, so it throws `NullPointerException`.
+5. `count` is declared as `int`; `Field.get` returns `Integer` after boxing. `count.getType()` remains `int.class`, while the runtime type of the result is `Integer.class`.
 
-Ví dụ cố ý dùng các field `public` trong những nested class `public` để làm nổi bật **kiểm tra kiểu receiver** mà không lẫn thêm lỗi quyền truy cập.
+The example deliberately uses `public` fields in `public` nested classes to highlight **receiver type checking** without mixing in access permission errors.
 
-## 4. Hiểu đúng quan hệ lớp khai báo và kiểu runtime
+## 4. Correctly understanding declaring class vs. runtime type
 
-Giả sử:
+Suppose:
 
 ```java
 class Animal {
@@ -151,9 +151,9 @@ class Dog extends Animal {
 }
 ```
 
-Đây là **mảnh code độc lập về khai báo kiểu**; để chạy thử, đặt hai class vào file phù hợp với quy tắc tên file Java, hoặc dùng chúng trong một chương trình có `main`.
+This is a **standalone snippet of type declarations**; to run it, place the two classes in files matching Java file naming rules, or use them inside a program with `main`.
 
-Với:
+With:
 
 ```java
 Field ageField = Animal.class.getDeclaredField("age");
@@ -162,51 +162,51 @@ Field breedField = Dog.class.getDeclaredField("breed");
 Dog dog = new Dog();
 Animal animal = new Animal();
 
-Object a = ageField.get(dog);     // Hợp lệ: Dog là Animal
-Object b = ageField.get(animal);  // Hợp lệ: Animal là Animal
-Object c = breedField.get(dog);   // Hợp lệ: Dog có field breed
+Object a = ageField.get(dog);     // Valid: Dog is an Animal
+Object b = ageField.get(animal);  // Valid: Animal is an Animal
+Object c = breedField.get(dog);   // Valid: Dog has field breed
 // breedField.get(animal);        // IllegalArgumentException
 ```
 
-Các câu lệnh nằm trong một phương thức khai báo `throws ReflectiveOperationException` hoặc có xử lý các exception phù hợp.
+These statements reside in a method declaring `throws ReflectiveOperationException` or handling the appropriate exceptions.
 
-Đừng đảo chiều quan hệ:
+Do not reverse the relationship:
 
-- **Field khai báo ở superclass + object subclass:** hợp lệ về kiểu.
-- **Field khai báo ở subclass + object superclass:** không hợp lệ, trừ khi object được truyền thực sự là instance của subclass.
-- **Field khai báo ở lớp A + object không liên quan B:** không hợp lệ.
-- **Field khai báo ở A + biến tham chiếu có static type `Object` nhưng chứa instance của A:** vẫn hợp lệ, vì `Field.get` kiểm tra **object runtime**, không bị giới hạn bởi kiểu khai báo của biến Java.
+- **Field declared in superclass + subclass object:** type-valid.
+- **Field declared in subclass + superclass object:** invalid, unless the passed object is actually an instance of the subclass.
+- **Field declared in class A + unrelated object B:** invalid.
+- **Field declared in A + reference variable with static type `Object` holding an instance of A:** still valid, because `Field.get` checks the **runtime object**, not limited by the declared type of the Java variable.
 
-Ví dụ:
+Example:
 
 ```java
 Object receiver = new Dog();
 Object value = Animal.class.getDeclaredField("age").get(receiver);
 ```
 
-Receiver hợp lệ vì object runtime là `Dog`. Việc biến `receiver` có static type `Object` không khiến `Field.get` ném `IllegalArgumentException`.
+The receiver is valid because the runtime object is `Dog`. Having the variable `receiver` with static type `Object` does not cause `Field.get` to throw `IllegalArgumentException`.
 
-Có thể nhớ bằng biểu thức:
+You can remember this with the expression:
 
 ```java
 field.getDeclaringClass().isInstance(receiver)
 ```
 
-Nhưng biểu thức này không kiểm tra field có phải `static` và không thay thế việc xác thực quyền truy cập. Muốn tránh nhập nhằng, xử lý hai điều kiện đó riêng.
+However, this expression does not check whether the field is `static` and does not replace access permission verification. To avoid ambiguity, handle those two conditions separately.
 
-## 5. Đọc đúng field khi có kế thừa và trùng tên
+## 5. Reading the right field with inheritance and duplicate names
 
-### 5.1. `getDeclaredField` cố định class khai báo
+### 5.1. `getDeclaredField` fixes the declaring class
 
-`Parent.class.getDeclaredField("label")` trả field được khai báo **ngay trong `Parent`**. Tương tự, `Child.class.getDeclaredField("label")` trả field khai báo **ngay trong `Child`**; hai field có cùng tên nhưng khác declaring class.
+`Parent.class.getDeclaredField("label")` returns the field declared **directly inside `Parent`**. Similarly, `Child.class.getDeclaredField("label")` returns the field declared **directly inside `Child`**; the two fields share the same name but have different declaring classes.
 
-Đây là lý do **đối tượng `Field` quyết định ô dữ liệu nào được đọc**, còn receiver quyết định **đọc ô dữ liệu đó trên instance nào**. Field không tự đổi thành khai báo gần subclass nhất chỉ vì truyền instance subclass vào `get`.
+This is why **the `Field` object determines which data slot is read**, while the receiver determines **which instance that data slot is read on**. A `Field` does not automatically switch to the declaration closest to the subclass just because a subclass instance is passed to `get`.
 
-### 5.2. `getField` có thể tìm field public được kế thừa
+### 5.2. `getField` can find inherited public fields
 
-`Child.class.getField("name")` có thể tìm field `public` kế thừa từ superclass nếu `Child` không khai báo field public cùng tên che khuất theo quy tắc Reflection. Tuy nhiên, khi xử lý field hiding, nên lấy chính xác theo class cần xét bằng `getDeclaredField` và kiểm tra `getDeclaringClass()`.
+`Child.class.getField("name")` can find a `public` field inherited from a superclass if `Child` does not declare a hiding public field with the same name according to Reflection rules. However, when handling field hiding, you should fetch by the exact target class using `getDeclaredField` and inspect `getDeclaringClass()`.
 
-Để tìm field có tên cho trước trên **chuỗi superclass**, có thể duyệt lớp từ con lên cha và lấy khai báo đầu tiên tìm thấy:
+To find a field with a given name along the **superclass chain**, you can traverse classes from child up to parent and take the first declaration found:
 
 ```java
 static Field findNearestDeclaredField(Class<?> start, String fieldName)
@@ -217,26 +217,26 @@ static Field findNearestDeclaredField(Class<?> start, String fieldName)
         try {
             return current.getDeclaredField(fieldName);
         } catch (NoSuchFieldException ignored) {
-            // Lớp này không khai báo field đó; thử lớp cha.
+            // This class does not declare that field; try the parent class.
         }
     }
     throw new NoSuchFieldException(fieldName);
 }
 ```
 
-Đây là **phương thức minh họa** (đặt trong class tiện ích và import `java.lang.reflect.Field`), không phải file hoàn chỉnh. Nó tìm **khai báo gần subclass nhất**, không tự kiểm tra đó là instance hay static field, không tự bảo đảm field đọc được về access. Nếu cần field cụ thể ở superclass, chọn `Parent.class.getDeclaredField("...")` ngay từ đầu.
+This is an **illustrative method** (place in a utility class and import `java.lang.reflect.Field`), not a complete file. It finds **the declaration closest to the subclass**, does not automatically check whether it is an instance or static field, and does not guarantee the field is readable by access rules. If a specific superclass field is needed, choose `Parent.class.getDeclaredField("...")` right from the start.
 
-### 5.3. Field hiding khác method overriding
+### 5.3. Field hiding differs from method overriding
 
-Method có thể override và thực hiện dynamic dispatch. Với field, Java **không có override field** theo nghĩa dispatch động như method. Khi hai class có field cùng tên, việc truy cập qua `Field` được xác định bởi **khai báo mà `Field` đại diện**, bất kể kiểu runtime của receiver là subclass.
+Methods can be overridden and perform dynamic dispatch. For fields, Java **does not have field overriding** in the sense of dynamic dispatch like methods. When two classes have a field with the same name, access via `Field` is determined by **the declaration that the `Field` represents**, even if the receiver's runtime type is a subclass.
 
-Vì vậy, đừng áp dụng trực giác “object là Child thì mọi field tên `label` phải lấy từ Child” cho Reflection. Hãy kiểm tra `Field.getDeclaringClass()`.
+Therefore, do not apply the intuition "the object is a Child, so any field named `label` must come from Child" to Reflection. Always check `Field.getDeclaringClass()`.
 
-## 6. Hàm hỗ trợ đọc instance field an toàn hơn
+## 6. A safer helper method for reading instance fields
 
-Nếu viết mapper hoặc công cụ chẩn đoán, có thể tạo helper bắt buộc receiver tương thích ngay từ đầu, tránh gọi nhầm field static hoặc đọc từ object khác loại.
+If writing a mapper or diagnostic tool, you can create a helper that enforces receiver compatibility upfront, avoiding accidentally calling a static field or reading from an incompatible object type.
 
-Đặt phương thức sau trong một class đã import `java.lang.reflect.Field`, `java.lang.reflect.Modifier` và `java.util.Objects`:
+Place the following method in a class that imports `java.lang.reflect.Field`, `java.lang.reflect.Modifier`, and `java.util.Objects`:
 
 ```java
 static Object readInstanceField(Field field, Object receiver)
@@ -258,20 +258,20 @@ static Object readInstanceField(Field field, Object receiver)
 }
 ```
 
-Ý nghĩa:
+Meaning:
 
-- `Objects.requireNonNull(field)` phát hiện sớm lỗi không có metadata field.
-- `Modifier.isStatic(...)` kiểm tra đối tượng `Field` đại diện cho **instance field** đúng phạm vi helper.
-- `owner.isInstance(receiver)` nhận cả instance của owner và subclass tương thích; với `null` trả `false`.
-- Khi receiver hợp lệ, `field.get(receiver)` vẫn có thể ném `IllegalAccessException` nếu field không accessible. Helper **không tự bypass access control**, và đây là chủ ý thiết kế.
+- `Objects.requireNonNull(field)` detects missing field metadata early.
+- `Modifier.isStatic(...)` verifies that the `Field` object represents an **instance field** within the helper's scope.
+- `owner.isInstance(receiver)` accepts instances of `owner` as well as compatible subclasses; for `null` it returns `false`.
+- When the receiver is valid, `field.get(receiver)` can still throw `IllegalAccessException` if the field is not accessible. The helper **does not bypass access control on its own**, and this is intentional by design.
 
-Helper cố tình chuyển cả null receiver và sai kiểu thành thông báo `IllegalArgumentException` của chính helper. Đó là **hợp đồng helper tự đặt ra**; nếu gọi API gốc `Field.get(null)` đối với instance field thì Java ném `NullPointerException` theo hợp đồng chính thức.
+The helper deliberately converts both a null receiver and a wrong type into its own `IllegalArgumentException` message. That is a **helper-defined contract**; if you call the raw `Field.get(null)` API on an instance field, Java throws `NullPointerException` per the official contract.
 
-Nếu dùng helper trong hệ thống nhận dữ liệu từ bên ngoài, hãy xác định rõ chính sách exception và quyền truy cập thay vì tự động mở toàn bộ field.
+If using the helper in a system receiving external data, clearly define the exception and access-permission policy instead of automatically opening all fields.
 
-## 7. Receiver đúng kiểu nhưng vẫn có thể bị `IllegalAccessException`
+## 7. Valid receiver type can still fail with `IllegalAccessException`
 
-Ví dụ:
+Example:
 
 ```java
 public class Account {
@@ -279,34 +279,34 @@ public class Account {
 }
 ```
 
-Phần minh họa cần đặt trong ngữ cảnh phù hợp để biên dịch (top-level public class nằm trong `Account.java`). Code bên ngoài class có thể tìm metadata:
+The illustration must be placed in an appropriate context to compile (top-level public class in `Account.java`). Code outside the class can look up the metadata:
 
 ```java
 Field tokenField = Account.class.getDeclaredField("token");
 Account account = new Account();
-Object value = tokenField.get(account); // Có thể ném IllegalAccessException
+Object value = tokenField.get(account); // May throw IllegalAccessException
 ```
 
-Ở đây `account` đúng kiểu, nhưng `token` là `private`. Nếu code gọi Reflection không có quyền truy cập private member, `get` bị chặn bằng `IllegalAccessException`. Nguyên nhân **khác hẳn** `IllegalArgumentException` khi receiver sai kiểu.
+Here `account` has the right type, but `token` is `private`. If the Reflection caller does not have permission to access private members, `get` is blocked with `IllegalAccessException`. The cause is **completely different** from `IllegalArgumentException` when the receiver has the wrong type.
 
-Cách xử lý nên ưu tiên **public getter hoặc API do lớp cung cấp** nếu bạn kiểm soát code nguồn. Chỉ dùng deep reflection khi bài toán thực sự yêu cầu và quyền truy cập cho phép. `trySetAccessible()` có thể trả `false`; `setAccessible(true)` có thể bị chặn, đặc biệt khi class nằm trong package của named module không được `opens` phù hợp. Không giả định mọi private field đều đọc được chỉ vì đã tìm thấy `Field`.
+The preferred approach is to use **a public getter or an API provided by the class** if you control the source code. Only use deep reflection when the problem truly requires it and access rules allow. `trySetAccessible()` can return `false`; `setAccessible(true)` can be blocked, especially when the class resides in a package of a named module that is not appropriately `opens`-ed. Do not assume every private field is readable simply because you found the `Field`.
 
-Phân biệt:
+Distinguish:
 
-| Trường hợp | Receiver đúng kiểu? | Quyền truy cập? | Kết quả |
+| Case | Receiver right type? | Access permission? | Result |
 | --- | --- | --- | --- |
-| Field `public` của public class, truy cập hợp lệ | Có | Có | Trả giá trị |
-| Field `public` của `Parent`, receiver `Child extends Parent` | Có | Có | Trả phần trạng thái `Parent` trên object `Child` |
-| Field của `Child`, receiver chỉ là `Parent` | Không | Không quyết định được kết quả thành công | `IllegalArgumentException` |
-| Instance field, receiver là `null` | Không | Không quyết định được kết quả thành công | `NullPointerException` |
-| Private field, receiver đúng kiểu nhưng caller không có quyền | Có | Không | `IllegalAccessException` |
-| Static field | Receiver bị bỏ qua | Vẫn phải hợp lệ | Có thể truyền `null` |
+| `public` field of a public class, valid access | Yes | Yes | Returns value |
+| `public` field of `Parent`, receiver `Child extends Parent` | Yes | Yes | Returns the `Parent` state portion on the `Child` object |
+| Field of `Child`, receiver is only `Parent` | No | Cannot determine success | `IllegalArgumentException` |
+| Instance field, receiver is `null` | No | Cannot determine success | `NullPointerException` |
+| Private field, receiver right type but caller lacks permission | Yes | No | `IllegalAccessException` |
+| Static field | Receiver is ignored | Still must be valid | Can pass `null` |
 
-Ở các trường hợp kết hợp nhiều lỗi, cần phân tích điều kiện của API và access control; bảng tập trung vào nguyên nhân nổi bật được tách riêng.
+In cases combining multiple errors, you need to analyze the API conditions and access control; the table focuses on prominent isolated causes.
 
-## 8. Đọc field primitive và kiểu tham chiếu
+## 8. Reading primitive and reference fields
 
-`Field.get(Object)` luôn trả về `Object` nên giá trị primitive được **boxing** tự động:
+`Field.get(Object)` always returns `Object`, so primitive values are automatically **boxed**:
 
 ```java
 Field countField = Child.class.getDeclaredField("count");
@@ -314,35 +314,35 @@ Object boxed = countField.get(child);   // Integer(7)
 int count = (Integer) boxed;            // Unboxing
 ```
 
-Đây là mảnh code tham chiếu `Child` và biến `child` trong chương trình ở mục 3.
+This snippet references `Child` and the `child` variable from the program in section 3.
 
-Khi đã biết chính xác kiểu field, API còn có các phương thức đọc theo kiểu nguyên thủy, ví dụ `getInt(receiver)`, `getLong(receiver)`, `getBoolean(receiver)`. Chúng tránh trả về wrapper trong chữ ký gọi và áp dụng quy tắc chuyển đổi primitive thích hợp. **Không gọi `getInt` trên field tham chiếu `Integer` rồi mặc nhiên kỳ vọng được unboxing**, vì các phương thức chuyên biệt này không phải công cụ chuyển đổi kiểu tùy ý.
+When the field type is known exactly, the API also provides primitive-typed read methods, such as `getInt(receiver)`, `getLong(receiver)`, and `getBoolean(receiver)`. They avoid returning a wrapper in the call signature and apply appropriate primitive widening conversions. **Do not call `getInt` on an `Integer` reference field expecting automatic unboxing**, as these specialized methods are not arbitrary type conversion tools.
 
-Với field kiểu tham chiếu:
+For reference-type fields:
 
 ```java
 String text = (String) field.get(receiver);
 ```
 
-ép kiểu `String` chỉ hợp lệ khi giá trị thực sự là `String` hoặc `null`; nếu giá trị thuộc class khác, code ép kiểu có thể ném `ClassCastException`. Có thể kiểm tra `field.getType()` để biết **kiểu khai báo của field**, nhưng type parameter generic yêu cầu thêm `getGenericType()` nếu cần phân tích chữ ký generic. Không nên dùng `getClass()` ngay trên kết quả mà chưa kiểm tra `null`.
+casting to `String` is only valid when the value is actually a `String` or `null`; if the value belongs to a different class, the cast can throw `ClassCastException`. You can check `field.getType()` to know **the field's declared type**, though generic type parameters require `getGenericType()` as well if generic signature analysis is needed. Do not call `getClass()` directly on the result without checking for `null`.
 
-## 9. Lỗi phổ biến khi đọc field instance
+## 9. Common mistakes when reading instance fields
 
-| Sai lầm | Triệu chứng | Cách sửa |
+| Mistake | Symptom | Fix |
 | --- | --- | --- |
-| `field.get(null)` với instance field | `NullPointerException` | Truyền instance thật, khác `null` |
-| Truyền object không thuộc declaring class hoặc subclass | `IllegalArgumentException` | Kiểm tra `field.getDeclaringClass().isInstance(receiver)` |
-| Dùng `Field` của `Child` để đọc trên một `Parent` thuần túy | `IllegalArgumentException` | Lấy `Field` từ class phù hợp hoặc dùng receiver `Child` |
-| Ngỡ field của superclass sẽ tự chuyển thành field cùng tên của subclass | Đọc nhầm giá trị khi field hiding | Kiểm tra `getDeclaringClass()`; chọn đúng khai báo |
-| Receiver đúng nhưng field private không accessible | `IllegalAccessException` | Ưu tiên public API; kiểm tra module và quyền truy cập |
-| Gọi `getDeclaredField` trên subclass cho field chỉ khai báo ở superclass | `NoSuchFieldException` | Tìm ở declaring class hoặc duyệt superclass |
-| Ép trực tiếp `Object` từ field int sang `String` | `ClassCastException` | Dùng wrapper tương ứng, `getInt` hoặc kiểm tra kiểu |
-| Dùng `field.getType().isInstance(receiver)` để kiểm tra receiver | Kết quả sai mục tiêu vì `getType()` là **kiểu giá trị** của field | Dùng `getDeclaringClass().isInstance(receiver)` |
-| Quên phân biệt `static` và instance | Truyền receiver không cần thiết hoặc dùng helper sai mục đích | Dùng `Modifier.isStatic(field.getModifiers())` |
+| `field.get(null)` on an instance field | `NullPointerException` | Pass a real, non-`null` instance |
+| Passing an object not belonging to the declaring class or a subclass | `IllegalArgumentException` | Check `field.getDeclaringClass().isInstance(receiver)` |
+| Using a `Field` from `Child` to read on a plain `Parent` | `IllegalArgumentException` | Obtain the `Field` from the appropriate class or pass a `Child` receiver |
+| Assuming a superclass field automatically switches to a same-named subclass field | Reads the wrong value during field hiding | Check `getDeclaringClass()`; pick the right declaration |
+| Right receiver but private field is not accessible | `IllegalAccessException` | Prefer public APIs; check module and access permissions |
+| Calling `getDeclaredField` on a subclass for a field only declared in a superclass | `NoSuchFieldException` | Look up on the declaring class or traverse superclasses |
+| Casting `Object` from an `int` field directly to `String` | `ClassCastException` | Use the corresponding wrapper, `getInt`, or type check |
+| Using `field.getType().isInstance(receiver)` to validate the receiver | Wrong target check because `getType()` is the field's **value type** | Use `getDeclaringClass().isInstance(receiver)` |
+| Forgetting to distinguish `static` and instance fields | Passing unnecessary receiver or misusing a helper | Check `Modifier.isStatic(field.getModifiers())` |
 
-### Phân biệt ba kiểu trong cùng thao tác
+### Distinguishing three types in the same operation
 
-Đọc biểu thức:
+Read the expression:
 
 ```java
 Field field = Parent.class.getDeclaredField("label");
@@ -350,36 +350,36 @@ Object receiver = new Child();
 Object value = field.get(receiver);
 ```
 
-- `field.getDeclaringClass() == Parent.class`: **kiểu khai báo field**.
-- `receiver.getClass() == Child.class`: **kiểu runtime của object đang chứa giá trị**.
-- `field.getType() == String.class`: **kiểu khai báo của giá trị field**.
+- `field.getDeclaringClass() == Parent.class`: **the field's declaring type**.
+- `receiver.getClass() == Child.class`: **the runtime type of the object holding the value**.
+- `field.getType() == String.class`: **the declared type of the field's value**.
 
-Để xác thực object truyền vào `get`, so **declaring class với runtime receiver**, không so `field.getType()` với receiver. `getType()` hữu ích khi kiểm tra hoặc chuyển đổi **giá trị trả về**, không phải khi xác định owner của field.
+To validate the object passed to `get`, compare **the declaring class with the runtime receiver**, not `field.getType()` with the receiver. `getType()` is useful when checking or converting **the returned value**, not when identifying the field's owner.
 
-## 10. Câu hỏi tự kiểm tra
+## 10. Self-check questions
 
-1. Với `Base` và `Derived extends Base`, nếu `age` được khai báo trong `Base` thì `Base.class.getDeclaredField("age").get(new Derived())` có hợp lệ về kiểu không?
-2. Nếu `Derived` có thêm field `score`, điều gì xảy ra khi gọi `Derived.class.getDeclaredField("score").get(new Base())`?
-3. `field.getDeclaringClass()` khác `field.getType()` như thế nào?
-4. `field.get(null)` với instance field gây exception gì? Nếu field là `static` thì receiver được xử lý ra sao?
-5. Tại sao đọc một private field có thể thất bại ngay cả khi `owner.isInstance(receiver)` trả `true`?
-6. Hai class cha/con cùng khai báo field tên `label`: đối tượng `Field` thu từ class cha sẽ đọc field nào khi receiver là object con?
+1. Given `Base` and `Derived extends Base`, if `age` is declared in `Base`, is `Base.class.getDeclaredField("age").get(new Derived())` type-valid?
+2. If `Derived` has an additional field `score`, what happens when calling `Derived.class.getDeclaredField("score").get(new Base())`?
+3. How does `field.getDeclaringClass()` differ from `field.getType()`?
+4. What exception does `field.get(null)` throw for an instance field? If the field is `static`, how is the receiver handled?
+5. Why can reading a private field fail even when `owner.isInstance(receiver)` returns `true`?
+6. Both parent and child classes declare a field named `label`: which field will a `Field` object obtained from the parent class read when the receiver is a child object?
 
-**Đáp án ngắn:** (1) hợp lệ; (2) `IllegalArgumentException`; (3) một bên là class khai báo field, bên kia là kiểu giá trị của field; (4) `NullPointerException` đối với instance, receiver bị bỏ qua đối với static; (5) vì còn kiểm tra quyền truy cập; (6) khai báo `label` của class cha.
+**Short answers:** (1) valid; (2) `IllegalArgumentException`; (3) one is the class declaring the field, the other is the field's value type; (4) `NullPointerException` for instance fields, receiver is ignored for static fields; (5) because access permission is also checked; (6) the parent class's `label` declaration.
 
-## 11. Ghi nhớ khi áp dụng
+## 11. Takeaways when applying
 
-Đối với **instance field**, thao tác đọc đúng là:
+For **instance fields**, the proper read pattern is:
 
 ```java
 if (field.getDeclaringClass().isInstance(receiver)) {
     Object value = field.get(receiver);
-    // Sử dụng value theo kiểu khai báo phù hợp.
+    // Use value according to the appropriate declared type.
 }
 ```
 
-Đây là mảnh code đặt trong phương thức có xử lý `IllegalAccessException`, áp dụng riêng cho instance field. Nó thể hiện đúng quy tắc tương thích receiver, nhưng chương trình thực tế còn phải xử lý receiver không hợp lệ, quyền truy cập và giá trị `null`.
+This is a snippet placed inside a method that handles `IllegalAccessException`, applicable specifically to instance fields. It accurately reflects the receiver compatibility rule, though real-world programs must also handle invalid receivers, access permissions, and `null` values.
 
-Ba câu hỏi nên trả lời trước mọi lệnh đọc bằng Reflection: **field được khai báo ở đâu? receiver thực sự là object thuộc kiểu nào? caller có quyền truy cập không?** Trả lời đúng ba câu hỏi này giúp phân biệt rõ lỗi kiểu, lỗi `null` và lỗi access, đồng thời tránh đọc nhầm field khi có kế thừa hoặc field hiding.
+Three questions to answer before any Reflection read call: **where is the field declared? what type of object is the receiver actually? does the caller have access permission?** Answering these three questions accurately helps clearly distinguish type errors, `null` errors, and access errors, while avoiding reading the wrong field under inheritance or field hiding.
 
-Tài liệu API tham khảo: [Java SE `Field.get(Object)`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Field.html#get(java.lang.Object)).
+API reference: [Java SE `Field.get(Object)`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Field.html#get(java.lang.Object)).

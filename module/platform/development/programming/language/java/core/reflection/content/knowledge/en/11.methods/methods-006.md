@@ -1,39 +1,39 @@
-# Gọi phương thức static bằng receiver `null` qua Java Reflection
+# Invoking static methods with a `null` receiver via Java Reflection
 
-## 1. Ý nghĩa của receiver trong `Method.invoke`
+## 1. The meaning of the receiver in `Method.invoke`
 
-Trong Java Reflection, đối tượng `java.lang.reflect.Method` đại diện cho một phương thức và cho phép gọi nó ở runtime bằng API:
+In Java Reflection, a `java.lang.reflect.Method` object represents a method and allows invoking it at runtime using the API:
 
 ```java
 Object result = method.invoke(receiver, arg1, arg2);
 ```
 
-Chữ ký API là:
+The API signature is:
 
 ```java
 public Object invoke(Object obj, Object... args)
         throws IllegalAccessException, InvocationTargetException
 ```
 
-Có **hai vai trò khác nhau** trong lệnh gọi:
+There are **two distinct roles** in the call:
 
-- `obj` (hay `receiver`): đối tượng mà phương thức **instance** sẽ chạy trên đó.
-- `args`: các **tham số thực tế** được truyền vào phương thức, theo đúng thứ tự khai báo.
+- `obj` (or `receiver`): the object on which an **instance** method will execute.
+- `args`: the **actual arguments** passed into the method, in the exact declared order.
 
-Với phương thức **`static`**, lệnh gọi không gắn với một instance cụ thể. Theo hợp đồng của `Method.invoke`, tham số `obj` **bị bỏ qua và có thể là `null`**. Vì vậy, cách gọi đúng, rõ ràng nhất là:
+For a **`static`** method, the call is not tied to a specific instance. Under the contract of `Method.invoke`, the `obj` parameter **is ignored and may be `null`**. Therefore, the clearest and most idiomatic call is:
 
 ```java
 Method method = Example.class.getDeclaredMethod("hello");
-method.invoke(null); // Gọi Example.hello() nếu method là static và có thể truy cập
+method.invoke(null); // Calls Example.hello() if the method is static and accessible
 ```
 
-Ở đây `null` là **receiver**, không phải tham số đầu tiên của `hello()`. Ví dụ trên giả định có lớp `Example` và phương thức `hello()` không tham số.
+Here `null` is the **receiver**, not the first argument of `hello()`. The example above assumes an `Example` class and a no-argument `hello()` method exist.
 
-**Kết luận trực tiếp:** `method.invoke(null, ...)` là cách gọi bình thường cho `static` method; không cần tạo đối tượng bằng `new Example()` trước.
+**Direct conclusion:** `method.invoke(null, ...)` is the normal way to invoke a `static` method; there is no need to create an object via `new Example()` beforehand.
 
-## 2. Vì sao `static` nhận receiver `null` còn instance method thì không?
+## 2. Why does `static` accept a `null` receiver while instance methods do not?
 
-Xét hai kiểu phương thức:
+Consider two kinds of methods:
 
 ```java
 class Demo {
@@ -47,14 +47,14 @@ class Demo {
 }
 ```
 
-Biểu thức Java thông thường:
+Normal Java expressions:
 
 ```java
-Demo.staticHello();             // Không cần instance
-new Demo().instanceHello();     // Cần instance
+Demo.staticHello();             // Does not need an instance
+new Demo().instanceHello();     // Needs an instance
 ```
 
-Tương ứng trong Reflection:
+Correspondingly in Reflection:
 
 ```java
 Method staticMethod = Demo.class.getDeclaredMethod("staticHello");
@@ -62,28 +62,28 @@ String a = (String) staticMethod.invoke(null);
 
 Method instanceMethod = Demo.class.getDeclaredMethod("instanceHello");
 String b = (String) instanceMethod.invoke(new Demo());
-// instanceMethod.invoke(null); // Ném NullPointerException
+// instanceMethod.invoke(null); // Throws NullPointerException
 ```
 
-Đây là các **đoạn minh họa** đặt trong ngữ cảnh có xử lý checked exceptions, chẳng hạn phương thức `main` khai báo `throws Exception`.
+These are **illustrative snippets** placed in a context that handles checked exceptions, such as a `main` method declaring `throws Exception`.
 
-Với instance method, `receiver` phải là instance tương thích với lớp/giao diện khai báo phương thức. Nếu receiver là `null`, `Method.invoke` ném `NullPointerException`; nếu là đối tượng **không đúng kiểu**, nó ném `IllegalArgumentException`.
+For an instance method, `receiver` must be an instance compatible with the class/interface declaring the method. If the receiver is `null`, `Method.invoke` throws `NullPointerException`; if it is an object of the **wrong type**, it throws `IllegalArgumentException`.
 
-Với `static` method, runtime không tra cứu đối tượng instance để chạy phương thức. Thậm chí nếu truyền một object khác `null`, Reflection **bỏ qua object ấy**. Ví dụ `staticMethod.invoke(new Object())` vẫn gọi phương thức static, miễn là access và arguments đều hợp lệ. Tuy nhiên, **nên truyền `null`** để thể hiện đúng ý nghĩa: không cần instance.
+For a `static` method, the runtime does not look up an instance object to run the method. Even if a non-`null` object is passed, Reflection **ignores that object**. For instance, `staticMethod.invoke(new Object())` still calls the static method, provided access and arguments are valid. However, **you should pass `null`** to express the exact intent: no instance is needed.
 
-| Method được phản ánh | Receiver truyền vào | Kết quả về receiver |
+| Reflected method | Passed receiver | Receiver outcome |
 | --- | --- | --- |
-| `static` | `null` | Hợp lệ; không cần object |
-| `static` | Object khác `null`, kể cả không cùng kiểu | Bị bỏ qua |
-| Instance | Object đúng kiểu | Có thể gọi; còn tùy access/arguments |
+| `static` | `null` | Valid; no object needed |
+| `static` | Non-`null` object, even of an unrelated type | Ignored |
+| Instance | Object of compatible type | Callable; still depends on access/arguments |
 | Instance | `null` | `NullPointerException` |
-| Instance | Object không phải instance tương thích | `IllegalArgumentException` |
+| Instance | Object that is not a compatible instance | `IllegalArgumentException` |
 
-Bảng chỉ bàn về **receiver**; việc gọi thành công còn cần số lượng/kiểu tham số, quyền truy cập và không có lỗi phát sinh khi thực thi.
+The table only addresses the **receiver**; a successful invocation also requires matching parameter count/types, access permissions, and no errors occurring during execution.
 
-## 3. Nhận diện phương thức `static` trước khi gọi
+## 3. Identifying a `static` method before invoking
 
-Khi xử lý các `Method` được phát hiện động, hãy dùng:
+When handling dynamically discovered `Method` objects, use:
 
 ```java
 import java.lang.reflect.Method;
@@ -92,7 +92,7 @@ import java.lang.reflect.Modifier;
 boolean isStatic = Modifier.isStatic(method.getModifiers());
 ```
 
-`Method.getModifiers()` trả về tập modifier của phương thức. `Modifier.isStatic(...)` kiểm tra cờ `static`. Đây là cách rõ ràng để quyết định receiver mà Reflection cần:
+`Method.getModifiers()` returns the method's modifier flags. `Modifier.isStatic(...)` checks the `static` flag. This is the clean way to decide the receiver needed by Reflection:
 
 ```java
 Object receiver = Modifier.isStatic(method.getModifiers())
@@ -101,20 +101,20 @@ Object receiver = Modifier.isStatic(method.getModifiers())
 Object result = method.invoke(receiver, args);
 ```
 
-Đây là **mẫu mã**: `method`, `existingInstance` và `args` phải được xác định trước. Với instance method, cần bảo đảm `existingInstance` đúng kiểu. Nếu caller không có instance nhưng phương thức không phải static, không tự suy ra có thể truyền `null`.
+This is a **code pattern**: `method`, `existingInstance`, and `args` must be defined beforehand. For an instance method, ensure `existingInstance` is of the right type. If the caller has no instance yet the method is not static, do not assume you can pass `null`.
 
-### Cách lấy đúng `Method`
+### How to get the right `Method`
 
-- `SomeClass.class.getMethod("name", ParamType.class)` tìm phương thức `public` theo tên và **kiểu tham số**, bao gồm public method được thừa kế theo quy tắc API.
-- `SomeClass.class.getDeclaredMethod("name", ParamType.class)` tìm phương thức khai báo **trực tiếp** trong lớp/giao diện đó, kể cả không `public`, nhưng không tìm tự động trên superclass.
-- Cả hai trả `Method` và có thể ném `NoSuchMethodException` khi không khớp tên/chữ ký.
-- Khi có overload, phải chọn đúng các `Class<?>` của kiểu tham số. `getDeclaredMethod("add", int.class, int.class)` khác `getDeclaredMethod("add", Integer.class, Integer.class)`.
+- `SomeClass.class.getMethod("name", ParamType.class)` searches for a `public` method by name and **parameter types**, including inherited public methods per API rules.
+- `SomeClass.class.getDeclaredMethod("name", ParamType.class)` searches for a method declared **directly** in that class/interface, even if non-`public`, but does not automatically search superclasses.
+- Both return `Method` and can throw `NoSuchMethodException` when the name/signature does not match.
+- When overloads exist, you must select the exact `Class<?>` values of the parameter types. `getDeclaredMethod("add", int.class, int.class)` differs from `getDeclaredMethod("add", Integer.class, Integer.class)`.
 
-`getDeclaredMethod` không tự cấp quyền gọi một method `private`. Đối với một `static` private method, **receiver `null` vẫn hợp lệ**, nhưng truy cập có thể bị chặn bởi Java access control / JPMS. Dùng `trySetAccessible()` có kiểm soát nếu thực sự cần truy cập sâu.
+`getDeclaredMethod` does not automatically grant permission to call a `private` method. For a `private static` method, **a `null` receiver is still valid**, but access can be blocked by Java access control / JPMS. Use `trySetAccessible()` in a controlled manner if deep access is genuinely needed.
 
-## 4. Ví dụ Java 17+ hoàn chỉnh
+## 4. Complete Java 17+ example
 
-Lưu toàn bộ chương trình vào tệp **`StaticReceiverDemo.java`**:
+Save the entire program to **`StaticReceiverDemo.java`**:
 
 ```java
 import java.lang.reflect.InvocationTargetException;
@@ -172,7 +172,7 @@ public class StaticReceiverDemo {
                 + join.invoke(null, (Object) new String[] {"red", "blue"}));
 
         try {
-            // Cố tình truyền 2 đối số thay vì 1 đối số String[].
+            // Intentionally pass 2 arguments instead of 1 String[] argument.
             join.invoke(null, (Object[]) new String[] {"red", "blue"});
         } catch (IllegalArgumentException e) {
             System.out.println("spread array: IllegalArgumentException");
@@ -196,14 +196,14 @@ public class StaticReceiverDemo {
 }
 ```
 
-Biên dịch và chạy trong thư mục chứa tệp:
+Compile and run in the file's directory:
 
 ```bash
 javac StaticReceiverDemo.java
 java StaticReceiverDemo
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 null receiver: Hi Lan
@@ -218,30 +218,30 @@ instance null: NullPointerException
 target failure: IllegalStateException
 ```
 
-**Phân tích chương trình:**
+**Program analysis:**
 
-1. `greet.invoke(null, "Lan")` gọi `greet` dù không có `StaticReceiverDemo` instance, vì phương thức có modifier `static`.
-2. `greet.invoke(new Object(), "Minh")` cũng thành công: `new Object()` là receiver **bị bỏ qua**. Cách này hợp lệ nhưng gây nhầm lẫn; khi viết code thực tế nên dùng `null`.
-3. `Modifier.isStatic(greet.getModifiers())` nhận đúng kiểu phương thức, trả `true`.
-4. `add.invoke(null, 3, 4)` truyền hai tham số int (được đưa vào mảng `Object...` và boxing bởi Java). Reflection tự chuyển `Integer` về `int` khi gọi. `Method.invoke` trả về `Object` nên kết quả primitive `int` được **box** lại thành `Integer`.
-5. `ping` có kiểu trả về `void`: thân phương thức in `ping`, sau đó `invoke` trả `null`.
-6. `join(String[])` nhận **một** tham số là mảng. Phép cast `(Object)` giúp truyền mảng thành một đối số duy nhất của `Method.invoke`.
-7. Phép cast `(Object[])` ở nhánh lỗi khiến nội dung mảng được xem thành **hai** đối số của varargs `invoke`; phương thức `join` chỉ nhận **một** tham số nên Reflection ném `IllegalArgumentException`.
-8. `instanceHello` không có modifier `static`; gọi với receiver `null` ném `NullPointerException`.
-9. Phương thức `fail` chạy thật rồi ném `IllegalStateException`. Reflection bọc lỗi của phương thức đích bằng `InvocationTargetException`; `getCause()` trả nguyên nhân gốc.
+1. `greet.invoke(null, "Lan")` calls `greet` even without a `StaticReceiverDemo` instance, because the method has the `static` modifier.
+2. `greet.invoke(new Object(), "Minh")` also succeeds: `new Object()` is an **ignored** receiver. This works, yet is misleading; in real code, use `null`.
+3. `Modifier.isStatic(greet.getModifiers())` identifies the method kind correctly, returning `true`.
+4. `add.invoke(null, 3, 4)` passes two `int` arguments (placed into the `Object...` array and boxed by Java). Reflection automatically converts `Integer` back to `int` when calling. `Method.invoke` returns `Object`, so the primitive `int` result is **boxed** back into `Integer`.
+5. `ping` has return type `void`: the method body prints `ping`, then `invoke` returns `null`.
+6. `join(String[])` accepts **one** array parameter. The `(Object)` cast passes the array as a single argument to `Method.invoke`.
+7. The `(Object[])` cast in the error branch causes the array's elements to be treated as **two** arguments to `invoke`'s varargs; `join` takes only **one** parameter so Reflection throws `IllegalArgumentException`.
+8. `instanceHello` lacks the `static` modifier; calling it with a `null` receiver throws `NullPointerException`.
+9. `fail` executes and throws `IllegalStateException`. Reflection wraps the target method's error in `InvocationTargetException`; `getCause()` returns the root cause.
 
-## 5. Phân biệt receiver `null` và tham số `null`
+## 5. Distinguishing a `null` receiver from a `null` parameter
 
-`Method.invoke` có hai “tầng” tham số:
+`Method.invoke` has two parameter "layers":
 
 ```java
 method.invoke(obj, args...);
               ^    ^
-              |    +-- đối số của phương thức đích
-              +------- receiver của lệnh invoke
+              |    +-- arguments of the target method
+              +------- receiver of the invoke call
 ```
 
-Với phương thức:
+Given the method:
 
 ```java
 public static String describe(String text) {
@@ -249,7 +249,7 @@ public static String describe(String text) {
 }
 ```
 
-Lấy `Method` rồi gọi:
+Look up the `Method` and invoke it:
 
 ```java
 Method describe = Example.class
@@ -258,57 +258,57 @@ Method describe = Example.class
 Object a = describe.invoke(null, (Object) null);
 ```
 
-Đây là **đoạn minh họa**, không phải tệp độc lập. `Example` phải có phương thức `describe` như đã khai báo ở trên.
+This is an **illustrative snippet**, not a standalone file. `Example` must have the `describe` method declared above.
 
-Trong `describe.invoke(null, (Object) null)`:
+In `describe.invoke(null, (Object) null)`:
 
-- `null` thứ nhất là receiver, bị bỏ qua vì `describe` static.
-- `(Object) null` thứ hai là **một tham số `String` có giá trị `null`**, nên lệnh gọi hợp lệ.
-- Kết quả là chuỗi `"<null>"`.
+- The first `null` is the receiver, ignored because `describe` is static.
+- The second `(Object) null` is **one `String` argument with value `null`**, so the call is valid.
+- The result is the string `"<null>"`.
 
-Điểm đặc biệt của varargs `Object... args`: `describe.invoke(null, (Object[]) null)` có **mảng đối số là `null`**, được xem như **không truyền tham số**. Với `describe` đòi đúng một tham số, điều này gây `IllegalArgumentException` do sai số lượng tham số. Tương tự, `describe.invoke(null, new Object[0])` là lời gọi không có tham số đích, không phải một tham số `null`.
+A quirk of varargs `Object... args`: `describe.invoke(null, (Object[]) null)` passes a **`null` argument array**, which is treated as **passing zero arguments**. Since `describe` requires exactly one parameter, this causes `IllegalArgumentException` due to wrong argument count. Similarly, `describe.invoke(null, new Object[0])` is a call with zero target arguments, not one `null` argument.
 
-Tránh viết `describe.invoke(null, null)` khi chủ đích là truyền một tham số null; Java có thể xử lý `null` cuối cùng như một varargs array null và trình biên dịch cảnh báo lời gọi không varargs. Hãy viết tường minh `(Object) null` hoặc `new Object[] {null}`.
+Avoid writing `describe.invoke(null, null)` when the intent is to pass one `null` argument; Java may treat the trailing `null` as a null varargs array and the compiler warns about a non-varargs call. Explicitly write `(Object) null` or `new Object[] {null}`.
 
-| Mục đích | Cú pháp rõ ràng |
+| Intent | Clear syntax |
 | --- | --- |
-| Static method không tham số | `method.invoke(null)` |
-| Static method nhận một tham số String `"a"` | `method.invoke(null, "a")` |
-| Static method nhận một tham số có giá trị `null` | `method.invoke(null, (Object) null)` |
-| Static method nhận một tham số mảng `String[]` | `method.invoke(null, (Object) new String[] {"a", "b"})` |
-| Static method nhận hai tham số `int` | `method.invoke(null, 1, 2)` |
+| Static method with no parameters | `method.invoke(null)` |
+| Static method taking one String `"a"` | `method.invoke(null, "a")` |
+| Static method taking one parameter with value `null` | `method.invoke(null, (Object) null)` |
+| Static method taking one `String[]` array parameter | `method.invoke(null, (Object) new String[] {"a", "b"})` |
+| Static method taking two `int` parameters | `method.invoke(null, 1, 2)` |
 
-**`null` receiver và `null` parameter là hai quyết định hoàn toàn khác nhau.** Đừng nhầm một lời gọi không có receiver với một phương thức nhận đầu vào null.
+**A `null` receiver and a `null` parameter are two completely different decisions.** Do not confuse a receiverless call with a method receiving a null input.
 
-## 6. Vì sao tham số mảng dễ gây lỗi?
+## 6. Why do array parameters easily cause errors?
 
-`Method.invoke` được khai báo nhận `Object... args`; về mặt Java, đây là biến thể của một mảng `Object[]` chứa các tham số thực tế. Điều đó **không đồng nhất** với lời khai báo varargs của **phương thức đích**.
+`Method.invoke` is declared to accept `Object... args`; in Java terms, this is a variant of an `Object[]` array containing the actual arguments. That is **not identical** to a varargs declaration on the **target method**.
 
-Ví dụ, dù phương thức đích chỉ nhận đúng một `String[]`, khi viết:
+For example, even if the target method accepts exactly one `String[]`, when writing:
 
 ```java
 Method m = SomeClass.class.getMethod("process", String[].class);
 String[] input = {"x", "y"};
 
-m.invoke(null, (Object) input);           // 1 tham số String[]: đúng
-m.invoke(null, new Object[] {input});     // 1 tham số String[]: đúng
-// m.invoke(null, (Object[]) input);      // 2 tham số String: sai
+m.invoke(null, (Object) input);           // 1 String[] argument: valid
+m.invoke(null, new Object[] {input});     // 1 String[] argument: valid
+// m.invoke(null, (Object[]) input);      // 2 String arguments: invalid
 ```
 
-Đây là đoạn minh họa giả định `SomeClass` có public static method `process(String[])`, không phải chương trình độc lập.
+This is an illustrative snippet assuming `SomeClass` has a public static method `process(String[])`, not a standalone program.
 
-- `(Object) input` ngăn mảng `String[]` bị **trải** thành nhiều phần tử của varargs `invoke`.
-- `new Object[] {input}` biểu diễn tường minh mảng **chứa một đối số**, và đối số đó mới là mảng `String[]`.
-- `(Object[]) input` biến mảng `String[]` thành mảng varargs truyền cho `invoke`, khiến Reflection thấy mỗi phần tử String là **một tham số riêng**.
-- Không suy luận từ `m.isVarArgs()` rằng `Method.invoke` sẽ tự động gộp các đối số thành mảng cho phương thức đích. Reflection yêu cầu cung cấp bộ đối số tương thích với số/kiểu tham số hình thức.
+- `(Object) input` prevents the `String[]` array from being **spread** into multiple elements of `invoke`'s varargs.
+- `new Object[] {input}` explicitly represents an array **containing one argument**, and that argument is the `String[]` array.
+- `(Object[]) input` turns the `String[]` array into the varargs array passed to `invoke`, causing Reflection to see each String element as **a separate argument**.
+- Do not infer from `m.isVarArgs()` that `Method.invoke` will automatically pack arguments into an array for the target method. Reflection requires providing an argument array matching the formal parameter count and types.
 
-Đây là lỗi thuộc **đóng gói `args`**; nó không liên quan đến tính đúng sai của `receiver = null`.
+This is an **`args` packaging** error; it is unrelated to the validity of `receiver = null`.
 
-## 7. Điều kiện truy cập vẫn áp dụng cho static method
+## 7. Access conditions still apply to static methods
 
-`null` receiver **không** có nghĩa là bỏ qua Java access control.
+A `null` receiver **does not** mean bypassing Java access control.
 
-Ví dụ:
+Example:
 
 ```java
 class Secrets {
@@ -318,7 +318,7 @@ class Secrets {
 }
 ```
 
-`Secrets.class.getDeclaredMethod("token")` có thể trả đối tượng `Method`, nhưng một caller từ lớp/package/module **không đủ quyền** có thể gặp `IllegalAccessException` khi gọi `invoke(null)`. Nếu cần deep reflection, dùng:
+`Secrets.class.getDeclaredMethod("token")` can return the `Method` object, yet a caller from a class/package/module **without sufficient permissions** can encounter `IllegalAccessException` when calling `invoke(null)`. If deep reflection is needed, use:
 
 ```java
 Method method = Secrets.class.getDeclaredMethod("token");
@@ -327,28 +327,28 @@ if (method.trySetAccessible()) {
 }
 ```
 
-Đây là đoạn minh họa cần xử lý checked exceptions. Việc `trySetAccessible()` trả `true` phụ thuộc vào caller, quyền trong Java và JPMS; không bảo đảm thành công khi package của named module chưa mở cho caller. `setAccessible(true)` có thể ném `InaccessibleObjectException` nếu module boundary cấm yêu cầu.
+This is an illustrative snippet requiring handling of checked exceptions. Whether `trySetAccessible()` returns `true` depends on the caller, Java permissions, and JPMS; success is not guaranteed when the named module's package is not open to the caller. `setAccessible(true)` can throw `InaccessibleObjectException` if module boundaries forbid the request.
 
-Phân biệt ba lớp vấn đề:
+Distinguish three layers of concerns:
 
-1. **Loại phương thức:** `static` cho phép receiver `null`.
-2. **Quyền truy cập:** caller có được phép gọi phương thức (hoặc yêu cầu suppress access checks) hay không.
-3. **Đối số:** số lượng/kiểu tham số đích có tương thích hay không.
+1. **Method kind:** `static` allows a `null` receiver.
+2. **Access rights:** whether the caller is allowed to invoke the method (or request suppressing access checks).
+3. **Arguments:** whether the target parameter count and types are compatible.
 
-Một lớp phương thức có thể là static và receiver null đúng, nhưng lời gọi vẫn thất bại vì `IllegalAccessException` hoặc `IllegalArgumentException`.
+A method can be static and have a valid `null` receiver, yet the call still fails due to `IllegalAccessException` or `IllegalArgumentException`.
 
-Khi code đặt trong framework, caller thực sự của `trySetAccessible` có thể nằm ở module framework. Cần mở package cho module **đó**, không đoán rằng module chứa ứng dụng khởi chạy luôn là caller Reflection.
+When code lives in a framework, the actual caller of `trySetAccessible` may reside in the framework module. You must open the package to **that** module, rather than assuming the application's startup module is always the Reflection caller.
 
-## 8. Giá trị trả về, static initialization và phương thức bị ẩn
+## 8. Return values, static initialization, and hidden methods
 
-### 8.1. Kết quả của `invoke` luôn là `Object`
+### 8.1. The result of `invoke` is always `Object`
 
-Dù phương thức đích trả về `int`, `boolean`, `double` hay kiểu tham chiếu, `Method.invoke` khai báo trả về `Object`:
+Whether the target method returns `int`, `boolean`, `double`, or a reference type, `Method.invoke` is declared to return `Object`:
 
-- Với primitive, kết quả được **box** thành wrapper tương ứng, ví dụ `int` thành `Integer`.
-- Với kiểu tham chiếu, trả về chính giá trị tham chiếu theo hợp đồng.
-- Với `void`, trả về `null`.
-- Nếu phương thức trả về một mảng primitive như `int[]`, kết quả là **mảng `int[]`**, không được tự động biến thành `Integer[]`.
+- For primitives, the result is **boxed** into the corresponding wrapper, e.g., `int` into `Integer`.
+- For reference types, the reference value itself is returned per contract.
+- For `void`, `null` is returned.
+- If the method returns a primitive array such as `int[]`, the result is the **`int[]` array**, not automatically converted to `Integer[]`.
 
 ```java
 Method count = Example.class.getMethod("count");
@@ -356,11 +356,11 @@ Object result = count.invoke(null);
 int value = (Integer) result;
 ```
 
-Mã minh họa này giả định `Example.count()` là public static method trả về `int`. Nên kiểm tra `getReturnType()` khi xử lý chữ ký động, tránh cast sai kiểu.
+This illustrative code assumes `Example.count()` is a public static method returning `int`. Check `getReturnType()` when handling dynamic signatures to avoid wrong type casts.
 
-### 8.2. Phương thức static có thể kích hoạt khởi tạo lớp
+### 8.2. Static methods can trigger class initialization
 
-Nếu lớp khai báo phương thức static chưa được khởi tạo, `Method.invoke` sẽ khiến **lớp khai báo được khởi tạo trước khi phương thức static chạy**. Đây là hành vi của Java, không phải hệ quả riêng của tham số `null`.
+If the class declaring a static method has not yet been initialized, `Method.invoke` will cause **the declaring class to be initialized before the static method runs**. This is standard Java behavior, not a specific effect of the `null` argument.
 
 ```java
 class LazyInit {
@@ -374,34 +374,34 @@ class LazyInit {
 }
 ```
 
-Nếu `LazyInit` chưa từng khởi tạo và một caller có quyền lấy `Method` rồi gọi `invoke(null)`, static initializer chạy trước `ping()`, nên log theo thứ tự `initialized` rồi `called`. Khi kiểm thử, chú ý những thao tác khởi tạo lớp khác đã chạy trước đó có thể làm log `initialized` không lặp lại.
+If `LazyInit` has never been initialized and a caller with permission retrieves `Method` and calls `invoke(null)`, the static initializer runs before `ping()`, logging `initialized` and then `called`. When testing, note that other operations initializing the class earlier may prevent the `initialized` log from repeating.
 
-Nếu khởi tạo lớp thất bại, Reflection có thể phát sinh `ExceptionInInitializerError`, khác với `InvocationTargetException` bọc exception do **thân phương thức đích** ném.
+If class initialization fails, Reflection can throw `ExceptionInInitializerError`, distinct from `InvocationTargetException` wrapping an exception thrown by the **target method body**.
 
-### 8.3. Static method không dispatch theo instance
+### 8.3. Static methods do not dispatch by instance
 
-Method static thuộc kiểu khai báo; Java không override static method theo cơ chế polymorphism của instance method. Nếu lớp con khai báo một static method cùng chữ ký, đó là **method hiding**, không phải overriding.
+Static methods belong to the declaring type; Java does not override static methods using the polymorphism mechanism of instance methods. If a subclass declares a static method with the same signature, that is **method hiding**, not overriding.
 
-Khi đã có một `Method` đại diện cho static method trong lớp A, việc truyền một instance lớp B vào tham số receiver **không** làm Reflection chuyển sang một static method khác trong B. Receiver vốn bị bỏ qua; `Method` nào được lựa chọn mới quyết định phương thức đích.
+Once you have a `Method` representing a static method in class A, passing an instance of class B as the receiver argument **does not** cause Reflection to switch to another static method in B. The receiver is ignored; whichever `Method` was selected determines the target method.
 
-Đừng dùng `method.invoke(instance, ...)` với static method rồi suy luận từ kiểu runtime của `instance` về đích gọi.
+Do not use `method.invoke(instance, ...)` on a static method and infer the call target from the runtime type of `instance`.
 
-## 9. Chẩn đoán lời gọi static thất bại
+## 9. Diagnosing failed static calls
 
-Receiver `null` là hợp lệ cho static method, nhưng lời gọi vẫn cần **đúng Method, đúng quyền truy cập và đúng danh sách đối số**. Khi chẩn đoán, tách ba giai đoạn:
+A `null` receiver is valid for a static method, yet the call still requires the **right Method, right access rights, and right argument list**. When diagnosing, separate three phases:
 
-| Giai đoạn | Dấu hiệu | Điều cần kiểm tra |
+| Phase | Symptom | What to check |
 | --- | --- | --- |
-| Tra cứu | `NoSuchMethodException` | Tên, erased parameter types, `getMethod` so với `getDeclaredMethod` |
-| Chuẩn bị gọi | `IllegalAccessException`, `IllegalArgumentException` | Quyền truy cập/JPMS, số lượng và kiểu `args`; `null` receiver không giải quyết các lỗi này |
-| Thực thi | `InvocationTargetException` | `getCause()` để đọc lỗi do thân static method ném |
-| Khởi tạo lớp | `ExceptionInInitializerError` | Lỗi trong quá trình khởi tạo declaring class trước lần gọi static |
+| Lookup | `NoSuchMethodException` | Name, erased parameter types, `getMethod` vs. `getDeclaredMethod` |
+| Call preparation | `IllegalAccessException`, `IllegalArgumentException` | Access permissions/JPMS, count and types of `args`; a `null` receiver does not resolve these errors |
+| Execution | `InvocationTargetException` | `getCause()` to read the error thrown by the static method body |
+| Class initialization | `ExceptionInInitializerError` | Error during initialization of the declaring class prior to the static call |
 
-Nếu `setAccessible(true)` bị `InaccessibleObjectException`, xem xét quyền mở package; không coi receiver `null` là cách vượt kiểm tra truy cập. Trước khi gọi trong code framework, dùng `Modifier.isStatic(method.getModifiers())` để xác nhận thực sự là static.
+If `setAccessible(true)` fails with `InaccessibleObjectException`, review package opening permissions; do not treat a `null` receiver as a way to bypass access checks. Before invoking in framework code, use `Modifier.isStatic(method.getModifiers())` to confirm the method is actually static.
 
-## 10. Mẫu hàm gọi động an toàn hơn
+## 10. A safer dynamic invocation helper pattern
 
-Nếu công cụ của bạn chỉ cần hỗ trợ **static methods**, có thể kiểm tra tường minh để phát hiện sai hợp đồng sớm:
+If your tool only needs to support **static methods**, you can validate explicitly to catch contract violations early:
 
 ```java
 import java.lang.reflect.InvocationTargetException;
@@ -425,9 +425,9 @@ public final class StaticCaller {
 }
 ```
 
-Đây là **lớp tiện ích có thể biên dịch độc lập**, lưu dưới tên `StaticCaller.java`; nó không tự tìm phương thức, không tự thay đổi quyền truy cập và không nuốt exception từ phương thức đích. Caller cần truyền `Method` hợp lệ và, nếu `arguments` chứa một mảng làm đối số đơn, phải đóng gói mảng đúng cách.
+This is a **standalone compilable utility class** saved as `StaticCaller.java`; it does not look up methods itself, does not alter access rights, and does not swallow exceptions from the target method. Callers must pass a valid `Method` and, if `arguments` contains an array as a single argument, package the array properly.
 
-Khi gọi utility:
+When calling the utility:
 
 ```java
 Method add = Math.class.getMethod("addExact", int.class, int.class);
@@ -435,43 +435,43 @@ Object answer = StaticCaller.invokeStatic(add, 20, 22);
 System.out.println(answer); // 42
 ```
 
-Ví dụ sử dụng này cần import `java.lang.reflect.Method` và xử lý checked exceptions (chẳng hạn đặt trong `main` có `throws Exception`), cùng class `StaticCaller` ở trên. `Math.addExact(int,int)` là public static method; từ đoạn gọi có thể kiểm tra không cần tạo `Math` instance.
+This usage example requires importing `java.lang.reflect.Method` and handling checked exceptions (for instance, placed in a `main` with `throws Exception`), alongside the `StaticCaller` class above. `Math.addExact(int,int)` is a public static method; from the call snippet you can verify no `Math` instance needs to be created.
 
-Nếu sử dụng Reflection lặp lại ở đường chạy hiệu năng cao, có thể cân nhắc cơ chế gọi được kiểm soát khác như `MethodHandle`. Dù dùng cơ chế nào, phải tôn trọng kiểm tra access và chữ ký; không cần tạo instance chỉ để gọi static method.
+If Reflection is used repeatedly on a hot performance path, consider another controlled invocation mechanism such as `MethodHandle`. Regardless of the mechanism used, access checks and signatures must be respected; there is no need to create an instance just to call a static method.
 
-## 11. Câu hỏi tự kiểm tra
+## 11. Self-check questions
 
-**Câu 1.** `Method m` trỏ tới `public static int add(int a, int b)`. Lệnh `m.invoke(null, 2, 3)` có hợp lệ không, và kiểu kết quả ở phía Reflection là gì?
+**Question 1.** `Method m` points to `public static int add(int a, int b)`. Is `m.invoke(null, 2, 3)` valid, and what is the result type on the Reflection side?
 
-**Đáp án:** Hợp lệ nếu access và các điều kiện chạy khác đáp ứng; trả về `Object` chứa một `Integer` giá trị `5`.
+**Answer:** Valid if access and other runtime conditions are met; returns an `Object` containing an `Integer` with value `5`.
 
-**Câu 2.** Vì sao `m.invoke(null)` với một instance method không tham số thất bại?
+**Question 2.** Why does `m.invoke(null)` fail for a no-argument instance method?
 
-**Đáp án:** `null` được dùng làm receiver của instance method; Reflection ném `NullPointerException`. “Không tham số” không có nghĩa “không cần instance”.
+**Answer:** `null` is used as the receiver of an instance method; Reflection throws `NullPointerException`. "No parameters" does not mean "no instance required".
 
-**Câu 3.** Với `public static void process(String[] items)`, hai dòng có tương đương không?
+**Question 3.** For `public static void process(String[] items)`, are these two lines equivalent?
 
 ```java
 m.invoke(null, (Object) new String[] {"x", "y"});
 m.invoke(null, (Object[]) new String[] {"x", "y"});
 ```
 
-**Đáp án:** Không. Dòng đầu truyền **một tham số mảng**; dòng sau truyền **hai tham số `String`** vào varargs của `invoke` và không khớp phương thức chỉ có một tham số.
+**Answer:** No. The first line passes **one array argument**; the second line passes **two `String` arguments** to `invoke`'s varargs and does not match the single-parameter method.
 
-**Câu 4.** `private static` method có thể luôn chạy với `invoke(null)` không?
+**Question 4.** Can a `private static` method always run with `invoke(null)`?
 
-**Đáp án:** `null` receiver là đúng về mặt static, nhưng không bảo đảm **quyền truy cập**. Phương thức có thể bị từ chối khi caller không được phép truy cập hay chưa có quyền deep reflection.
+**Answer:** A `null` receiver is valid from a static standpoint, but does not guarantee **access permissions**. The method may be rejected when the caller lacks access or deep reflection permission.
 
-**Câu 5.** Với `Method` đại diện cho static method trong lớp cha, truyền instance lớp con vào `invoke` có gọi static method bị ẩn trong lớp con không?
+**Question 5.** With a `Method` representing a static method in a superclass, does passing a subclass instance to `invoke` call a hidden static method in the subclass?
 
-**Đáp án:** Không. Receiver bị bỏ qua; mục tiêu gọi là static method mà `Method` đã đại diện.
+**Answer:** No. The receiver is ignored; the call target is the static method that the `Method` already represents.
 
-**Câu 6.** Khi thân static method ném `IllegalStateException`, caller thường thấy gì?
+**Question 6.** When a static method body throws `IllegalStateException`, what does the caller typically see?
 
-**Đáp án:** `Method.invoke` ném `InvocationTargetException`, và `getCause()` chứa `IllegalStateException` của phương thức đích.
+**Answer:** `Method.invoke` throws `InvocationTargetException`, and `getCause()` contains the target method's `IllegalStateException`.
 
-## 12. Ghi nhớ
+## 12. Takeaway
 
-`Method.invoke(Object receiver, Object... args)` diễn giải tham số đầu tiên theo **loại phương thức**: static method **bỏ qua receiver**, vì vậy nên dùng `null`; instance method cần một object tương thích. `null` receiver không phải tham số null của method đích. Phân biệt **receiver**, **mảng varargs `args`**, **access control**, **khởi tạo lớp** và **exception của phương thức đích** để chẩn đoán lỗi chính xác.
+`Method.invoke(Object receiver, Object... args)` interprets the first parameter according to **method kind**: static methods **ignore the receiver**, so `null` should be used; instance methods require a compatible object. A `null` receiver is not a null argument for the target method. Distinguish **receiver**, **`args` varargs array**, **access control**, **class initialization**, and **target method exceptions** to diagnose errors accurately.
 
-Tài liệu chuẩn: [Java SE 21 — java.lang.reflect.Method, invoke](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Method.html) và [Java SE 21 — java.lang.reflect.Modifier](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Modifier.html).
+Standard references: [Java SE 21 — java.lang.reflect.Method, invoke](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Method.html) and [Java SE 21 — java.lang.reflect.Modifier](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Modifier.html).

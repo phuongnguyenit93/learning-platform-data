@@ -1,46 +1,46 @@
-# Phân biệt chuẩn hóa Unicode với loại bỏ dấu trong Java
+# Distinguishing Unicode Normalization from Accent Stripping in Java
 
-## 1. Hai thao tác khác nhau, dù thường xuất hiện cạnh nhau
+## 1. Two different operations, even though they often appear together
 
-Trong Java, một `String` là dãy đơn vị mã UTF-16. Văn bản trông giống nhau có thể được biểu diễn bởi các dãy code point khác nhau, chẳng hạn chữ **é** có thể là:
+In Java, a `String` is a sequence of UTF-16 code units. Visually identical text can be represented by different code point sequences; for example, the letter **é** can be:
 
-- Dạng tiền tổ hợp: `U+00E9` (ký tự `é`, một code point).
-- Dạng phân rã: `U+0065 U+0301` (chữ `e` và dấu sắc kết hợp, hai code point).
+- Precomposed form: `U+00E9` (character `é`, one code point).
+- Decomposed form: `U+0065 U+0301` (letter `e` and combining acute accent, two code points).
 
-**Chuẩn hóa Unicode (Unicode normalization)** chuyển văn bản về một trong những dạng biểu diễn được Unicode quy định để xử lý các biểu diễn tương đương một cách thống nhất. Ví dụ, NFC biến `e + U+0301` thành `é` khi có dạng ghép thích hợp; NFD chuyển ngược thành `e + U+0301`. **Dấu sắc vẫn còn** trong cả hai trường hợp.
+**Unicode normalization** converts text into one of the Unicode-defined representation forms so equivalent representations are handled consistently. For example, NFC turns `e + U+0301` into `é` when an eligible composed form exists; NFD converts back to `e + U+0301`. **The acute accent remains** in both cases.
 
-**Loại bỏ dấu (accent/diacritic stripping)** là chính sách biến đổi mang tính ứng dụng, thường nhằm tạo từ khóa tìm kiếm hoặc biểu diễn gần ASCII: `café` thành `cafe`, `Cà phê` thành `Ca phe`. Bước này **thay đổi thông tin văn bản**, có thể làm những từ khác nghĩa trở nên giống nhau. Unicode normalization theo nghĩa chuẩn **không đồng nghĩa** với loại bỏ dấu.
+**Accent/diacritic stripping** is an application-level transformation policy, typically used to build search keys or near-ASCII representations: `café` becomes `cafe`, `Cà phê` becomes `Ca phe`. This step **alters textual information** and can make words with different meanings identical. Standard Unicode normalization is **not synonymous** with stripping accents.
 
-Ba câu hỏi phải tách biệt:
-1. **Có cần thống nhất các biểu diễn Unicode tương đương không?** Dùng `java.text.Normalizer` với NFC/NFD (hoặc NFKC/NFKD nếu chủ ý dùng tương đương compatibility).
-2. **Có cần bỏ một số dấu thanh, dấu phụ để tìm kiếm không?** Xác định rõ tập dấu được bỏ, script áp dụng, và cách xử lý ký tự không phân rã.
-3. **Có cần so sánh/sắp xếp theo ngôn ngữ người dùng không?** Xem `java.text.Collator` với `Locale` phù hợp; không thay thế bằng xóa dấu tùy tiện.
+Three questions must be kept separate:
+1. **Do you need to unify equivalent Unicode representations?** Use `java.text.Normalizer` with NFC/NFD (or NFKC/NFKD if compatibility equivalence is intended).
+2. **Do you need to strip tone marks or diacritics for search?** Explicitly define which marks are removed, which scripts apply, and how non-decomposing characters are handled.
+3. **Do you need language-aware comparison/sorting for users?** Look at `java.text.Collator` with the appropriate `Locale`; do not substitute arbitrary accent stripping.
 
-## 2. Phân biệt chữ, code point, đơn vị UTF-16 và dấu kết hợp
+## 2. Distinguishing characters, code points, UTF-16 units, and combining marks
 
-`String.length()` đếm **đơn vị mã UTF-16** (`char`), không đếm số ký tự người dùng nhìn thấy. `String.codePointCount(begin,end)` đếm Unicode code point trong khoảng UTF-16. Một *grapheme cluster* có thể gồm chữ cơ sở cộng nhiều dấu kết hợp hoặc một chuỗi emoji phức tạp.
+`String.length()` counts **UTF-16 code units** (`char`), not the number of characters a user perceives. `String.codePointCount(begin,end)` counts Unicode code points within a UTF-16 range. A *grapheme cluster* can consist of a base character plus multiple combining marks or a complex emoji sequence.
 
-Ví dụ:
+Example:
 
 ```text
-Hiển thị:                  é        é
-Biểu diễn:                U+00E9    U+0065 U+0301
-Số code point:              1        2
-Số char UTF-16:             1        2
-Chuẩn hóa NFC:            U+00E9   → U+00E9
-Chuẩn hóa NFD:       U+0065 U+0301 ← U+00E9
-Bỏ dấu sau NFD:           "e"       "e"
+Display:                   é        é
+Representation:           U+00E9    U+0065 U+0301
+Code points:                1        2
+UTF-16 chars:               1        2
+NFC normalization:        U+00E9   → U+00E9
+NFD normalization:   U+0065 U+0301 ← U+00E9
+Strip marks after NFD:     "e"      "e"
 ```
 
-`U+0301` là một dấu kết hợp thuộc nhóm *Unicode Mark*. Ngược lại, không phải bất kỳ ký tự “nhìn có dấu” nào cũng được tách thành một chữ Latin cơ sở bằng NFD. Chữ tiếng Việt `đ` (`U+0111`) và `Đ` (`U+0110`) là ví dụ quan trọng: chuẩn hóa NFD **không** đổi chúng thành `d`/`D`.
+`U+0301` is a combining mark belonging to the *Unicode Mark* category. Conversely, not every character that "looks accented" decomposes into a base Latin letter under NFD. The Vietnamese letters `đ` (`U+0111`) and `Đ` (`U+0110`) are an important example: NFD normalization **does not** turn them into `d`/`D`.
 
-Ký tự ngoài BMP (như một số emoji) lại chiếm **hai** `char` và không vì thế mà chứa “hai ký tự hiển thị”. Không nên xóa dấu bằng cách duyệt `charAt` rồi đoán từ hình dáng ký tự; cần hiểu rõ dữ liệu Unicode và quy tắc của bài toán.
+Characters outside the BMP (such as some emojis) take **two** `char`s and yet do not represent "two visible characters." Do not strip accents by iterating with `charAt` and guessing from glyph shapes; understand the Unicode data and the problem's rules.
 
-## 3. NFC/NFD giữ dấu; phép loại dấu cần một bước riêng
+## 3. NFC/NFD preserve accents; accent stripping requires a separate step
 
-`Normalizer.normalize(text, Normalizer.Form.NFC)` đưa chuỗi về dạng ghép khi có thể, còn `NFD` đưa về dạng phân rã. **Cả hai vẫn giữ dấu**. `NFKC/NFKD` còn xét tương đương tương thích nhưng bản thân chúng cũng không phải thao tác xóa dấu. Bài riêng về `Normalizer` trình bày bảng đầy đủ cả bốn dạng.
+`Normalizer.normalize(text, Normalizer.Form.NFC)` puts a string into composed form when possible, while `NFD` puts it into decomposed form. **Both preserve accents.** `NFKC/NFKD` also consider compatibility equivalence, yet they themselves are not accent-deletion operations either. The dedicated lesson on `Normalizer` presents the complete table of all four forms.
 
-## 4. Thử nghiệm đối chiếu canonical equivalence
+## 4. Testing canonical equivalence comparison
 
 ```java
 String a = "Caf\u00E9";
@@ -50,19 +50,19 @@ String nfd = java.text.Normalizer.normalize(a, java.text.Normalizer.Form.NFD);
 System.out.println(a.equals(b));         // false
 System.out.println(nfc.equals(a));       // true
 System.out.println(nfd.equals(b));       // true
-System.out.println(nfd.equals("Cafe"));  // false: dấu vẫn còn
+System.out.println(nfd.equals("Cafe"));  // false: accent is still present
 ```
 
-Đây là snippet đặt trong một phương thức. Chuẩn hóa hai phía theo cùng dạng giúp đối chiếu canonical equivalence, nhưng muốn tìm `"Cafe"` từ `"Café"` theo **chính sách bỏ dấu** thì vẫn cần bước lọc độc lập.
+This is a snippet placed inside a method. Normalizing both sides to the same form enables canonical equivalence comparison, but matching `"Cafe"` from `"Café"` under an **accent-stripping policy** still requires an independent filtering step.
 
-## 5. Loại bỏ dấu: một phép biến đổi riêng sau khi phân rã
+## 5. Stripping accents: a separate transformation after decomposition
 
-Một cách thường dùng để tạo **khóa tìm kiếm Latin bỏ dấu** là:
-1. Đưa chuỗi về `Normalizer.Form.NFD` để các chữ **có phân rã chuẩn tắc** tách thành chữ cơ sở và dấu kết hợp.
-2. Xóa các code point thuộc nhóm Unicode `Mark` theo quy tắc đã định, ví dụ dùng Java regex `\p{M}+`.
-3. Nếu sản phẩm cần, ánh xạ thêm những chữ **không phân rã** như `đ → d`, `Đ → D`.
+A common way to build a **diacritic-stripped Latin search key** is:
+1. Convert the string to `Normalizer.Form.NFD` so characters with **canonical decomposition** split into base characters and combining marks.
+2. Remove code points in the Unicode `Mark` category according to a defined rule, such as Java regex `\p{M}+`.
+3. If the product requires it, explicitly map **non-decomposing** characters such as `đ → d`, `Đ → D`.
 
-Ví dụ snippet:
+Example snippet:
 
 ```java
 String text = "C\u00E0 ph\u00EA s\u1EEFa \u0111\u00E1";
@@ -74,19 +74,19 @@ String asciiLike = withoutMarks
         .replace('\u0110', 'D');
 ```
 
-Kết quả của `withoutMarks` là **`Ca phe sua đa`**, vì `đ` vẫn được giữ nguyên. `asciiLike` có nội dung **`Ca phe sua da`** sau quy tắc ánh xạ `đ`. Chúng là **kết quả đã biến đổi**, không còn là văn bản gốc chuẩn tắc tương đương.
+The result of `withoutMarks` is **`Ca phe sua đa`**, because `đ` remains intact. `asciiLike` has the content **`Ca phe sua da`** after the `đ` mapping rule. These are **transformed results**, no longer canonically equivalent to the original text.
 
-Trong Java regex:
-- `\p{M}` là nhóm Unicode general category **Mark**: bao gồm *Nonspacing Mark* (`Mn`), *Spacing Combining Mark* (`Mc`) và *Enclosing Mark* (`Me`).
-- `+` nghĩa là một hoặc nhiều phần tử `Mark` liên tiếp.
-- Trong **string literal Java**, phải gõ `"\\p{M}+"` (hai dấu gạch chéo ngược trong mã Java) để truyền chuỗi regex thực `\p{M}+` cho `replaceAll`.
-- `replaceAll` nhận **regex**, không phải chuỗi literal; thay bằng `""` xóa các vùng khớp.
+In Java regex:
+- `\p{M}` is the Unicode general category **Mark**: including *Nonspacing Mark* (`Mn`), *Spacing Combining Mark* (`Mc`), and *Enclosing Mark* (`Me`).
+- `+` matches one or more consecutive `Mark` elements.
+- In a **Java string literal**, you must write `"\\p{M}+"` (two backslashes in Java code) to pass the actual regex `\p{M}+` to `replaceAll`.
+- `replaceAll` takes a **regex**, not a literal string; replacing with `""` deletes matched regions.
 
-`\p{M}` bao phủ nhiều dấu Unicode hơn riêng khối `\p{InCombiningDiacriticalMarks}` (U+0300..U+036F). Nhưng phạm vi rộng cũng đồng nghĩa với **rủi ro xóa các dấu cần thiết ở những hệ chữ khác**. Không xem nó là phép “xóa dấu tiếng Việt an toàn cho mọi ngôn ngữ”.
+`\p{M}` covers more Unicode marks than just the `\p{InCombiningDiacriticalMarks}` block (U+0300..U+036F). However, that broad scope also means **risking deletion of essential marks in other scripts**. Do not treat it as a "safe Vietnamese accent remover for every language."
 
-### Chương trình chạy được: hai bước tạo khóa tiếng Việt
+### Runnable program: two-step Vietnamese key builder
 
-Lưu thành `VietnameseAccentDemo.java`:
+Save as `VietnameseAccentDemo.java`:
 
 ```java
 import java.text.Normalizer;
@@ -136,13 +136,13 @@ Dang
 Cafe / Cafe
 ```
 
-Hàm `removeMarks` thể hiện thao tác **xóa Mark sau NFD**. Hàm `vietnameseSearchKey` bổ sung lựa chọn **đ/Đ** dành cho tình huống tạo khóa Latin/tiếng Việt. Các hàm đều trả một `String` mới về nội dung; đầu vào bất biến không bị sửa.
+The `removeMarks` method demonstrates **removing Marks after NFD**. `vietnameseSearchKey` adds the **đ/Đ** option for Latin/Vietnamese key generation. Both methods return a new `String` value; the immutable input is untouched.
 
-`removeMarks` không có nghĩa “giữ trọn ý nghĩa tiếng Việt”: `"ma"`, `"má"`, `"mà"`, `"mã"`, `"mạ"` có thể trở thành cùng chuỗi. Vì vậy bản bỏ dấu nên là **giá trị phụ trợ tìm kiếm**, không được mặc định thay thế chuỗi gốc lưu trong cơ sở dữ liệu hoặc trình bày cho người dùng.
+`removeMarks` does not mean "preserving full Vietnamese meaning": `"ma"`, `"má"`, `"mà"`, `"mã"`, `"mạ"` can collapse into the same string. Therefore, the accent-stripped version should be an **auxiliary search value**, never replacing the original string stored in the database or displayed to users by default.
 
-## 6. Chuẩn hóa *không* làm biến mất dấu; xóa dấu *không* phải chuẩn hóa chuẩn tắc
+## 6. Normalization does *not* remove accents; stripping accents is *not* canonical normalization
 
-Xét ba chuỗi:
+Consider three strings:
 
 ```text
 A = "é"                 (U+00E9)
@@ -150,9 +150,9 @@ B = "e" + U+0301         (U+0065 U+0301)
 C = "e"                 (U+0065)
 ```
 
-Hai chuỗi `A` và `B` là **tương đương chuẩn tắc**. NFC có thể biến chúng thành cùng biểu diễn `é`; NFD có thể biến cả hai thành `e + dấu sắc`. Chuỗi `C` không tương đương chuẩn tắc với `A` hay `B`: nó thiếu thông tin về dấu.
+`A` and `B` are **canonically equivalent**. NFC turns both into the same `é` representation; NFD turns both into `e + acute accent`. String `C` is not canonically equivalent to `A` or `B`: it lacks accent information.
 
-Nếu viết:
+If you write:
 
 ```java
 String a = "\u00E9";
@@ -167,69 +167,69 @@ System.out.println(Normalizer.normalize(
         a, Normalizer.Form.NFC).equals(c)); // false
 ```
 
-Đây là snippet cần `import java.text.Normalizer;`, dùng trong phương thức `main`. Chính sự khác biệt giữa `A/B` và `C` giải thích vì sao “normalize Unicode” **không phải** “convert to unaccented text”.
+This snippet requires `import java.text.Normalizer;` and goes inside `main`. This very difference between `A/B` and `C` explains why "normalize Unicode" **is not** "convert to unaccented text."
 
-Bước xóa dấu có thể tạo ra **va chạm thông tin**: nhiều chuỗi khác nhau chuyển thành cùng khóa. Nếu từ ngữ hoặc tên có dấu là dữ liệu gốc, xóa dấu trước khi lưu mà không giữ lại bản gốc có thể gây mất thông tin không thể khôi phục.
+Accent stripping can create **information collisions**: distinct strings collapse into the same key. If accented words or names are the original data, stripping accents before storing without keeping the original causes irreversible information loss.
 
-## 7. Không nhầm compatibility normalization với loại dấu
+## 7. Do not confuse compatibility normalization with accent stripping
 
-`NFKC/NFKD` có thể biến `ﬃ` (`U+FB03`) thành `ffi`, `①` thành `1` và `Ａ` thành `A`. Những ví dụ đó **không phải loại dấu**. Ngược lại, một chữ tiếng Việt có dấu thanh khi chuyển NFKD vẫn chứa thông tin dấu trừ khi có quy tắc tương thích đặc biệt khác. Đừng dùng `NFKD` chỉ để hy vọng tạo chuỗi ASCII; chọn `NFD` trước bước lọc `Mark` khi chính sách tìm kiếm Latin/tiếng Việt cho phép.
+`NFKC/NFKD` can turn `ﬃ` (`U+FB03`) into `ffi`, `①` into `1`, and `Ａ` into `A`. Those examples are **not accent stripping**. Conversely, a Vietnamese letter with a tone mark still retains its mark information under NFKD unless some special compatibility rule applies. Do not use `NFKD` hoping it will produce ASCII; choose `NFD` before the `Mark`-filtering step when your Latin/Vietnamese search policy allows it.
 
-## 8. Sự khác biệt giữa `Normalizer`, `toLowerCase` và `Collator`
+## 8. Differences among `Normalizer`, `toLowerCase`, and `Collator`
 
-Ba tác vụ này liên quan đến văn bản nhưng có **mục tiêu khác nhau**:
+These three operations relate to text yet have **different purposes**:
 
-| Tác vụ | API thường dùng | Ý nghĩa |
+| Task | Typical API | Meaning |
 | --- | --- | --- |
-| Thống nhất biểu diễn Unicode tương đương | `Normalizer.normalize(text, NFC)` | Chuẩn hóa dạng biểu diễn; giữ phân biệt có/không có dấu |
-| Loại bỏ dấu theo chính sách ứng dụng | NFD rồi lọc `Mark`, ánh xạ tùy chọn `đ/Đ` | Tạo dữ liệu đã mất thông tin dấu |
-| Chuyển chữ hoa/thường | `toLowerCase(Locale.ROOT)` hoặc locale xác định | Biến đổi case theo quy tắc Java/locale; **không xóa dấu** |
-| So sánh có xét ngôn ngữ | `Collator.getInstance(locale)` | So sánh/sắp xếp theo quy tắc ngôn ngữ, có mức độ phân biệt |
-| So bằng code unit sau chuẩn hóa | `normalize(a, NFC).equals(normalize(b, NFC))` | Xác định bằng nhau theo biểu diễn canonical đã chọn |
+| Unify equivalent Unicode representations | `Normalizer.normalize(text, NFC)` | Normalizes representation form; preserves accented vs. unaccented distinction |
+| Strip accents per application policy | NFD then filter `Mark`, optional `đ/Đ` mapping | Creates lossy data without accent information |
+| Convert uppercase/lowercase | `toLowerCase(Locale.ROOT)` or a defined locale | Transforms case per Java/locale rules; **does not remove accents** |
+| Language-aware comparison | `Collator.getInstance(locale)` | Compares/sorts by language rules, with configurable strength levels |
+| Code-unit equality after normalization | `normalize(a, NFC).equals(normalize(b, NFC))` | Tests equality under the chosen canonical representation |
 
-`String.toLowerCase()` phụ thuộc locale mặc định. Nếu tạo khóa tìm kiếm độc lập với ngôn ngữ hệ thống, có thể dùng `Locale.ROOT` một cách tường minh, nhưng phải xác định yêu cầu nghiệp vụ: với ngôn ngữ như tiếng Thổ Nhĩ Kỳ, cách chuyển hoa/thường và mong đợi của người dùng khác với quy tắc trung lập.
+`String.toLowerCase()` depends on the default locale. To generate search keys independent of system language, you can pass `Locale.ROOT` explicitly, but you must verify business requirements: for languages like Turkish, casing rules and user expectations differ from neutral rules.
 
-`Collator` hỗ trợ so sánh theo locale; có các mức phân biệt (*strength*) như PRIMARY, SECONDARY và TERTIARY. Ở nhiều locale, PRIMARY có thể coi một số khác biệt dấu và hoa/thường là ngang hàng, nhưng **đừng đồng nhất** nó với thao tác xóa `\p{M}`. Quy tắc thật phụ thuộc locale/phiên bản dữ liệu collation và yêu cầu ngôn ngữ. `Collator.compare(a,b) == 0` chỉ nói hai chuỗi tương đương ở mức cấu hình, không có nghĩa chuỗi gốc đã mất dấu hoặc được đổi nội dung.
+`Collator` supports locale-sensitive comparison; it has *strength* levels such as PRIMARY, SECONDARY, and TERTIARY. In many locales, PRIMARY treats certain accent and case differences as equal, yet **do not equate** it with deleting `\p{M}`. Actual behavior depends on the locale, collation data version, and language rules. `Collator.compare(a,b) == 0` only states that two strings are equivalent at the configured level, not that the original string lost its accents or had its content altered.
 
-Đối với hệ thống có ô tìm kiếm, thường nên giữ văn bản nguyên bản cho hiển thị và xây dựng chỉ mục/khóa tìm kiếm riêng theo đặc tả rõ ràng.
+For systems with a search box, it is usually best to preserve the original text for display and build a separate search index/key per an explicit specification.
 
-## 9. Vì sao xóa `\p{M}` có thể phá văn bản ngoài nhóm Latin?
+## 9. Why can deleting `\p{M}` break non-Latin scripts?
 
-Unicode `Mark` không chỉ là các dấu sắc, huyền, hỏi, ngã, nặng của tiếng Việt. Nhiều hệ chữ dùng dấu nguyên âm, dấu phụ hoặc ký hiệu kết hợp mang vai trò **cấu thành chữ viết**.
+Unicode `Mark` is not limited to Vietnamese acute, grave, hook, tilde, and dot-below marks. Many scripts use vowel signs, diacritics, or combining symbols that are **essential structural parts of letters**.
 
-Ví dụ:
-- Trong một số hệ chữ Ấn Độ, vowel signs có thể thuộc `Mark`. Xóa tất cả `\p{M}` có thể làm thay đổi cách đọc và cả ý nghĩa từ.
-- Chữ Ả Rập có dấu nguyên âm (*harakat*) thuộc các dạng mark; việc loại bỏ chúng có thể đúng trong một số bài toán tìm kiếm nhưng là lựa chọn có tính ngôn ngữ, không phải chuẩn hóa canonical.
-- Variation selector của emoji có thể thuộc loại mark. Xóa nó có thể thay đổi kiểu hiển thị emoji/text của cùng ký hiệu, dù không thay đổi chữ Latin có dấu.
-- Có dấu kết hợp nằm ngoài riêng khối `U+0300..U+036F`; dùng biểu thức chỉ bắt một khối có thể bỏ sót dấu ở các vùng khác của Unicode.
+For example:
+- In several Indic scripts, vowel signs belong to `Mark`. Deleting all `\p{M}` can alter pronunciation and word meaning.
+- Arabic includes vowel diacritics (*harakat*) that are marks; removing them may fit certain search tasks, but it is a linguistic choice rather than canonical normalization.
+- Emoji variation selectors can fall under mark categories. Deleting them can switch emoji vs. text presentation for the same symbol, even without touching accented Latin letters.
+- Some combining marks lie outside the `U+0300..U+036F` block; a regex targeting only that block can miss marks elsewhere in Unicode.
 
-Vì vậy, câu lệnh `replaceAll("\\p{M}+", "")` chỉ nên xuất hiện trong **hàm ứng dụng có tên rõ ràng** (ví dụ `latinSearchKey`), sau khi đã xác định bộ ngôn ngữ/kiểu dữ liệu cho phép mất dấu. Nếu ứng dụng xử lý đa ngôn ngữ, cân nhắc bộ phân tích ngôn ngữ riêng, Unicode collation, quy tắc transliteration được chỉ định hoặc chỉ tạo khóa phụ cho một tập dữ liệu đã khoanh vùng.
+Therefore, `replaceAll("\\p{M}+", "")` should only appear in a **clearly named application helper** (e.g., `latinSearchKey`), after verifying the language set and data types where losing diacritics is permitted. If the application handles multilingual text, consider language-specific analyzers, Unicode collation, defined transliteration rules, or building auxiliary keys only for a scoped subset of data.
 
-### `đ/Đ` và các ngoại lệ của chuyển tự
+### `đ/Đ` and transliteration exceptions
 
-`đ` là chữ cái riêng, không phải chữ `d` có combining mark mà NFD sẽ xóa được. Các ký tự như `ø`, `ł` hoặc `æ` cũng không phải lúc nào phân rã thành các chữ ASCII mong muốn theo NFD. Phép **transliteration** (chuyển tự) để có dạng ASCII là một chính sách khác, có thể cần bảng ánh xạ theo ngôn ngữ.
+`đ` is a distinct letter, not a `d` with a combining mark that NFD can detach. Characters like `ø`, `ł`, or `æ` also do not always decompose into the desired ASCII letters under NFD. **Transliteration** to ASCII is a separate policy that may require language-specific mapping tables.
 
-Không khẳng định rằng “NFD + xóa Mark = ASCII”: kết quả vẫn có thể chứa ký tự Unicode ngoài ASCII. Ngay cả sau khi thêm `đ → d`, dữ liệu đầu vào chưa biết ngôn ngữ vẫn có thể cần những quy tắc khác.
+Never claim that "NFD + strip Mark = ASCII": the output can still contain non-ASCII Unicode characters. Even after adding `đ → d`, input of unknown language may still require additional rules.
 
-## 10. Lưu trữ và tìm kiếm: giữ dữ liệu gốc, tạo khóa phụ khi cần
+## 10. Storage and search: keep original data, build auxiliary keys when needed
 
-Thiết kế đơn giản, an toàn về ý nghĩa:
+A simple, semantically safe design:
 
 ```text
-Dữ liệu nhập
+Input data
     │
-    ├── Giá trị hiển thị: giữ nguyên văn bản người dùng nhập
+    ├── Display value: keep user-entered text unchanged
     │
-    ├── Giá trị canonical (tùy chính sách): normalize NFC
+    ├── Canonical value (per policy): normalize NFC
     │
-    └── Khóa tìm kiếm (tùy nhu cầu):
-           NFD → bỏ Mark theo quy tắc → ánh xạ đ/Đ
-           → biến đổi hoa/thường theo chính sách riêng nếu cần
+    └── Search key (per need):
+           NFD → strip Marks per rule → map đ/Đ
+           → apply case conversion per separate policy if needed
 ```
 
-Dùng khóa phụ giúp tìm `"ca phe"` khớp với `"cà phê"` trong trải nghiệm tìm kiếm có chủ đích, nhưng không thay nội dung lưu/hiển thị bằng bản bỏ dấu. Nếu dùng khóa bỏ dấu làm khóa duy nhất của cơ sở dữ liệu, `"ma"`, `"má"`, `"mạ"`, `"mà"` có thể xung đột ngoài ý muốn.
+Using an auxiliary key lets `"ca phe"` match `"cà phê"` in an intentional search experience without replacing stored/displayed content with accent-stripped text. If you use the stripped key as a unique database key, `"ma"`, `"má"`, `"mạ"`, and `"mà"` can collide unintentionally.
 
-Ví dụ độc lập, lưu `SearchKeyDemo.java`:
+Standalone example, save as `SearchKeyDemo.java`:
 
 ```java
 import java.text.Normalizer;
@@ -273,67 +273,67 @@ true
 false
 ```
 
-Hàm `searchKey` chỉ phù hợp với **chính sách minh họa cho dữ liệu Latin/tiếng Việt**. Nó tạo một chuỗi phụ để tra cứu gần đúng, không cung cấp thuật toán bảo mật, chuẩn hóa identifier, chuyển tự tổng quát, hay bảo đảm tương đương ngữ nghĩa giữa mọi ngôn ngữ.
+The `searchKey` function fits only this **illustrative policy for Latin/Vietnamese data**. It produces a secondary string for fuzzy lookup and does not provide a security algorithm, identifier normalization, general transliteration, or semantic equivalence across all languages.
 
-Nếu kết quả dùng để kiểm tra mật khẩu, chữ ký, định danh pháp lý, tên file, quyền truy cập hoặc đối chiếu mã hệ thống, cần tuân theo quy tắc canonicalization đúng **đặc tả miền đó**. Không áp dụng tùy tiện normalization compatibility hoặc xóa dấu rồi cho rằng hai định danh là giống nhau.
+If results are used for password verification, signatures, legal identifiers, filenames, access permissions, or system-code matching, follow canonicalization rules matching **that domain's specification**. Do not arbitrarily apply compatibility normalization or accent stripping and treat two identifiers as equal.
 
-## 11. Tính đúng đắn, hiệu năng và tính nhất quán
+## 11. Correctness, performance, and consistency
 
-- **Xác định ranh giới chuẩn hóa**: nếu một hệ thống chuẩn hóa NFC trước khi ghi nhưng truy vấn không được chuẩn hóa cùng cách, so sánh chính xác có thể vẫn bỏ sót kết quả.
-- **Giữ bản gốc khi xóa dấu**: phép xóa dấu là nhiều-thành-một; không thể phục hồi dấu tiếng Việt chính xác từ `ca phe sua da`.
-- **Không dùng `String.length()` để đo số chữ hiển thị**: normalization có thể thay đổi số code point/UTF-16 code unit nhưng giữ văn bản hiển thị tương đương canonical.
-- **Phân biệt thứ tự thao tác**: normalize sang NFD trước khi xóa Mark. Nếu xóa Mark trực tiếp từ `"café"` tiền tổ hợp, regex `\p{M}` không khớp chữ `é` (nó thuộc loại Letter), nên dấu không bị xóa.
-- **Không mặc định mọi output chỉ có ASCII**: vì NFD không phân rã hết mọi chữ sang Latin cơ sở.
-- **Hạn chế cấp phát khi lặp lại liên tục**: chuẩn hóa, regex và đổi chữ đều tạo công việc xử lý và có thể tạo chuỗi mới; khi cần truy vấn nhiều lần, cân nhắc tính khóa tại lúc nhập hoặc lập chỉ mục, nhưng luôn theo một chính sách nhất quán.
-- **Hiệu năng không thay thế chuẩn định nghĩa**: đừng tối ưu bằng cách làm mất dấu, mã hóa hoặc phép so sánh nếu nghiệp vụ cần bảo tồn sự khác nhau giữa các giá trị.
+- **Define normalization boundaries**: if a system normalizes to NFC before writing while queries are not normalized the same way, exact comparisons can still miss matches.
+- **Keep original data when stripping accents**: accent stripping is many-to-one; you cannot reliably reconstruct Vietnamese diacritics from `ca phe sua da`.
+- **Do not use `String.length()` to count visible letters**: normalization can change the number of code points and UTF-16 code units while keeping visually canonically equivalent text.
+- **Mind operation order**: normalize to NFD before removing Marks. If you strip Marks directly from precomposed `"café"`, `\p{M}` does not match `é` (which is a Letter), so the accent remains.
+- **Do not assume all output is ASCII-only**: because NFD does not decompose every letter into basic Latin.
+- **Limit allocations in hot loops**: normalization, regex, and case conversion all do processing work and can allocate new strings; for repeated queries, consider computing keys at ingestion or indexing time under one consistent policy.
+- **Performance does not override specification**: do not optimize by discarding accents, encodings, or comparisons if business logic must distinguish those values.
 
-Một tính chất hữu ích: chuẩn hóa đúng dạng Unicode có tính **idempotent** về nội dung khi áp dụng lặp lại: `normalize(normalize(x, NFC), NFC)` bằng `normalize(x, NFC)`. Nhưng “idempotent” chỉ nói lặp bước chuẩn hóa không làm thay đổi thêm; nó **không** có nghĩa đã bỏ dấu.
+One useful property: Unicode normalization is **idempotent** in content when applied repeatedly: `normalize(normalize(x, NFC), NFC)` equals `normalize(x, NFC)`. However, "idempotent" only means repeating normalization causes no further changes; it does **not** mean accents were stripped.
 
-## 12. Lỗi thường gặp
+## 12. Common mistakes
 
-| Nhầm lẫn | Vì sao sai | Cách sửa |
+| Misconception | Why it is wrong | Fix |
 | --- | --- | --- |
-| `Normalizer.normalize(s, NFC)` sẽ bỏ dấu | NFC tổ chức lại biểu diễn, **giữ dấu** | Dùng bước loại dấu riêng nếu nghiệp vụ yêu cầu |
-| NFD làm thành chữ không dấu | NFD tách dấu thành các code point kết hợp; dấu vẫn tồn tại | Phải quyết định có xóa `Mark` hay không |
-| `replaceAll("\\p{M}+", "")` áp dụng trực tiếp trên mọi chuỗi | Chữ tiền tổ hợp có dấu như `é` là Letter, không phải Mark riêng | NFD trước khi xóa Mark |
-| NFD + xóa Mark biến mọi ký tự thành ASCII | `đ` và nhiều chữ khác không phân rã thành ký tự ASCII | Ánh xạ bổ sung theo ngôn ngữ, hoặc dùng công cụ chuyển tự |
-| Xóa `\p{M}` an toàn với mọi hệ chữ | Mark có thể là thành phần cốt lõi của chữ viết | Giới hạn tập ngôn ngữ và đặc tả mục tiêu |
-| NFKD/NFKC “giống NFD/NFC nhưng mạnh hơn” mà không có tác dụng phụ | Compatibility normalization cũng biến đổi ligature/số khoanh tròn/fullwidth | Chỉ dùng khi chủ đích gộp các biến thể đó |
-| Chuỗi nhìn giống nhau thì `equals` bằng nhau | `String.equals` không chuẩn hóa Unicode | Chuẩn hóa hai vế về cùng dạng trước khi so |
-| Loại dấu tương đương so sánh `Collator` | Collation là quy tắc thứ tự/tương đương theo locale và strength | Chọn `Collator` cho nhu cầu ngôn ngữ |
-| Bỏ dấu rồi dùng giá trị làm khóa duy nhất | Nhiều từ khác dấu có thể trùng khóa | Giữ bản gốc và thiết kế chính sách va chạm |
-| Dùng `toLowerCase()` không chỉ định locale cho khóa hệ thống | Kết quả có thể phụ thuộc locale mặc định | Chọn `Locale.ROOT` hoặc locale nghiệp vụ tường minh |
-| Đếm code point và cho rằng bằng số grapheme | Dấu kết hợp, emoji ZWJ có thể tạo một ký tự hiển thị từ nhiều code point | Dùng thuật toán phân đoạn grapheme khi cần |
+| `Normalizer.normalize(s, NFC)` strips accents | NFC reorganizes representation while **keeping accents** | Use a separate accent-stripping step if business logic requires it |
+| NFD produces unaccented letters | NFD splits accents into combining code points; accents still exist | Decide explicitly whether to remove `Mark`s |
+| `replaceAll("\\p{M}+", "")` works directly on any string | Precomposed accented letters like `é` are Letters, not separate Marks | Run NFD before removing Marks |
+| NFD + strip Marks turns everything into ASCII | `đ` and many other letters do not decompose into ASCII characters | Add language-specific mappings or use a transliteration tool |
+| Removing `\p{M}` is safe for all scripts | Marks can be core structural components of a script | Scope supported languages and target specifications |
+| NFKD/NFKC are "just stronger NFD/NFC" without side effects | Compatibility normalization also transforms ligatures/circled digits/fullwidth forms | Use only when folding those variants is intended |
+| Visually identical strings must satisfy `equals` | `String.equals` does not normalize Unicode | Normalize both sides to the same form before comparing |
+| Accent stripping equals `Collator` comparison | Collation defines locale- and strength-based ordering/equivalence | Choose `Collator` for linguistic needs |
+| Using stripped text as a unique key | Multiple accented words can collide onto the same key | Keep the original and design a collision policy |
+| Using `toLowerCase()` without a locale for system keys | Result can depend on default locale | Choose `Locale.ROOT` or an explicit business locale |
+| Counting code points as grapheme count | Combining marks and ZWJ emojis can build one visible glyph from many code points | Use grapheme segmentation when needed |
 
-## 13. Bài tập và đáp án
+## 13. Exercises and answers
 
-**Bài 1.** `"Caf\u00E9"` và `"Cafe\u0301"` có `equals` bằng nhau không? Sau khi đưa cả hai về NFC thì sao?
+**Exercise 1.** Are `"Caf\u00E9"` and `"Cafe\u0301"` equal under `equals`? What happens after normalizing both to NFC?
 
-**Bài 2.** Với `"C\u00E0 ph\u00EA"`, NFD làm dấu mất hẳn hay chỉ tách dấu thành code point riêng? Cần bước nào để tạo `"Ca phe"`?
+**Exercise 2.** On `"C\u00E0 ph\u00EA"`, does NFD delete the accents or merely split them into separate code points? Which step is needed to obtain `"Ca phe"`?
 
-**Bài 3.** Vì sao NFD rồi xóa `\p{M}` trên `"Đặng"` thu được `"Đang"` chứ chưa phải `"Dang"`?
+**Exercise 3.** Why does NFD followed by removing `\p{M}` on `"Đặng"` produce `"Đang"` instead of `"Dang"`?
 
-**Bài 4.** Chọn NFC hay NFKC nếu chỉ cần thống nhất biểu diễn canonical của dữ liệu người dùng và **không muốn** số `①` bị gộp thành `1`?
+**Exercise 4.** Should you choose NFC or NFKC if you only need to unify canonical representations of user data and **do not want** `①` folded into `1`?
 
-**Bài 5.** Khi xây dựng tìm kiếm bỏ dấu cho tiếng Việt, vì sao phải lưu lại văn bản gốc và kiểm tra các xung đột khóa?
+**Exercise 5.** When building accent-insensitive Vietnamese search, why must you store the original text and check for key collisions?
 
-**Đáp án:**
-1. So trực tiếp là `false`; sau NFC cho cả hai là `true`.
-2. NFD **tách** dấu; sau đó xóa các `Mark` bằng chính sách được xác định.
-3. `Đ` không bị phân rã thành `D + Mark` bởi NFD; muốn `Dang` phải ánh xạ thêm `Đ → D`.
-4. Dùng **NFC** vì `NFKC` có thể thực hiện compatibility transformations như `① → 1`.
-5. Vì bỏ dấu làm mất thông tin và nhiều từ khác nhau có thể trùng khóa; bản gốc cần cho hiển thị, bảo toàn ngữ nghĩa và phân biệt dữ liệu.
+**Answers:**
+1. Direct comparison is `false`; after NFC on both sides, it is `true`.
+2. NFD **splits** the accents; then remove `Mark`s using a defined policy.
+3. `Đ` is not decomposed into `D + Mark` by NFD; getting `Dang` requires an additional mapping `Đ → D`.
+4. Use **NFC**, because `NFKC` performs compatibility transformations such as `① → 1`.
+5. Because accent stripping loses information and distinct words can share the same key; the original is needed for display, preserving meaning, and distinguishing records.
 
-## 14. Kết luận thực hành
+## 14. Practical conclusion
 
-**Chuẩn hóa Unicode** là thao tác về **biểu diễn**: NFC/NFD đưa các biểu diễn tương đương chuẩn tắc về cùng dạng trong khi vẫn giữ sự khác nhau giữa chữ có dấu và chữ không dấu. **Loại bỏ dấu** là thao tác về **chính sách nội dung**: có thể dùng NFD để tách dấu rồi bỏ các `Mark` và bổ sung quy tắc tiếng Việt như `đ/Đ`, nhưng nó là phép biến đổi mất thông tin, không phải kết quả mặc định của `Normalizer`.
+**Unicode normalization** is an operation on **representation**: NFC/NFD bring canonically equivalent forms to the same representation while preserving the distinction between accented and unaccented letters. **Accent stripping** is a **content policy** operation: NFD can be used to separate marks before deleting `Mark`s and adding Vietnamese rules like `đ/Đ`, yet it is a lossy transformation and not the default output of `Normalizer`.
 
-Nếu cần dữ liệu chính xác, hãy giữ văn bản gốc và chuẩn hóa canonical nhất quán. Nếu cần tìm kiếm bỏ dấu, hãy tạo khóa riêng với phạm vi ngôn ngữ và quy tắc rõ ràng. Nếu cần so sánh theo ngôn ngữ, hãy xem `Collator` thay vì coi việc bỏ dấu là phép so sánh Unicode tổng quát.
+When accurate data is needed, keep original text and normalize canonically and consistently. When accent-insensitive search is needed, build a separate key with explicit language scope and rules. When linguistic comparison is needed, look at `Collator` instead of treating accent stripping as a universal Unicode comparator.
 
-## Tài liệu Java SE 17
+## Java SE 17 Documentation
 
 - [`java.text.Normalizer` — NFC, NFD, NFKC, NFKD](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Normalizer.html)
-- [`java.util.regex.Pattern` — Unicode categories và `\p{M}`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html)
+- [`java.util.regex.Pattern` — Unicode categories and `\p{M}`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html)
 - [`java.lang.String` — `equals`, `replaceAll`, `codePointCount`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html)
-- [`java.text.Collator` — so sánh theo locale và strength](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Collator.html)
-- [`java.util.Locale` — quy tắc locale khi chuyển chữ](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html)
+- [`java.text.Collator` — comparison by locale and strength](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Collator.html)
+- [`java.util.Locale` — locale rules for case conversion](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html)

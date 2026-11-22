@@ -1,49 +1,49 @@
-# Tránh giữ tài nguyên mở khi trả về Stream hoặc nối nhiều nguồn
+# Avoiding Open Resource Leaks When Returning Streams or Combining Multiple Sources
 
-Stream API giúp xử lý dữ liệu theo kiểu khai báo bằng pipeline lazy như `filter`, `map`, `reduce` và `collect`. Tuy nhiên, **không phải Stream nào cũng chỉ nằm trong bộ nhớ**. Một `Stream<String>` tạo từ `Files.lines(path)` hoặc `Stream<Path>` tạo từ `Files.list(directory)` có thể nắm giữ *file descriptor*, kênh đọc hay handle của thư mục. Nếu chỉ gọi một terminal operation mà không đóng Stream, tài nguyên liên quan có thể tiếp tục mở. Lỗi này đặc biệt khó phát hiện khi phương thức **trả về một Stream còn mở** hoặc khi ghép nhiều nguồn I/O bằng `Stream.concat`.
+The Stream API enables declarative data processing with lazy pipelines such as `filter`, `map`, `reduce`, and `collect`. However, **not every Stream lives solely in memory**. A `Stream<String>` created from `Files.lines(path)` or a `Stream<Path>` created from `Files.list(directory)` can hold a *file descriptor*, read channel, or directory handle. Calling a terminal operation without closing the Stream can leave the associated resource open. This bug is especially elusive when a method **returns an open Stream** or combines multiple I/O sources with `Stream.concat`.
 
-Bài thuộc chương **Nguồn vào ra và quản lý tài nguyên** của module **JAVA_STREAM_API**. Mục tiêu là phân biệt vòng đời dữ liệu với vòng đời tài nguyên, xác định bên nào sở hữu trách nhiệm đóng, áp dụng `try-with-resources` cho cả pipeline đơn lẻ lẫn nhiều nguồn, và chọn cách viết phù hợp với hiệu năng, xử lý song song và giới hạn tài nguyên. Các ví dụ sử dụng Java 8 trở lên, trừ nơi có ghi rõ khác.
+This lesson belongs to the **I/O Sources and Resource Management** chapter of the **JAVA_STREAM_API** module. The goal is to distinguish data lifecycles from resource lifecycles, determine who owns closing responsibility, apply `try-with-resources` for both single pipelines and multiple sources, and choose patterns suited for performance, parallelism, and resource limits. Examples use Java 8 and later unless noted otherwise.
 
-## 1. Phân biệt Stream trong bộ nhớ và Stream gắn tài nguyên
+## 1. Distinguishing In-Memory Streams from Resource-Backed Streams
 
-Hai dòng dưới đây đều trả `Stream<String>`, nhưng không có cùng trách nhiệm quản lý tài nguyên:
+Both lines below return `Stream<String>`, yet they do not carry the same resource-management responsibilities:
 
 ```java
-// Nguồn trong bộ nhớ: không có file handle phát sinh từ lệnh này.
+// In-memory source: no file handle is created by this statement.
 Stream<String> names = Arrays.asList("An", "Bình").stream();
 
-// Nguồn file: phải đóng Stream sau khi sử dụng.
+// File source: must close the Stream after use.
 Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8);
 ```
 
-Các phương thức I/O thường gặp:
+Common I/O source methods:
 
-| API nguồn | Đối tượng Stream tạo ra | Vì sao cần đóng |
+| Source API | Created Stream object | Why closing is needed |
 |---|---|---|
-| `Files.lines(Path, Charset)` | `Stream<String>` các dòng | Đóng file được mở để đọc |
-| `Files.list(Path)` | `Stream<Path>` các entry trực tiếp trong thư mục | Giải phóng tài nguyên duyệt thư mục |
-| `Files.walk(Path, ...)` | `Stream<Path>` trong cây thư mục | Giải phóng các tài nguyên duyệt cây thư mục |
-| `Files.find(Path, int, BiPredicate<...>, ...)` | `Stream<Path>` lọc kết quả tìm file | Giải phóng tài nguyên duyệt cây thư mục |
-| `Collection.stream()` | Stream từ collection | Bản thân lời gọi không mở một file hoặc thư mục |
-| `Stream.of(...)`, `IntStream.range(...)` | Stream từ giá trị/dãy trong bộ nhớ | Thông thường không có tài nguyên I/O cần giải phóng |
+| `Files.lines(Path, Charset)` | `Stream<String>` of lines | Closes the file opened for reading |
+| `Files.list(Path)` | `Stream<Path>` of direct directory entries | Releases directory-listing resources |
+| `Files.walk(Path, ...)` | `Stream<Path>` across directory tree | Releases directory-tree traversal resources |
+| `Files.find(Path, int, BiPredicate<...>, ...)` | `Stream<Path>` matching file search | Releases directory-tree traversal resources |
+| `Collection.stream()` | Stream from a collection | The call itself does not open a file or directory |
+| `Stream.of(...)`, `IntStream.range(...)` | Stream from in-memory values/ranges | Typically has no I/O resources to release |
 
-Với Stream gắn I/O, **hãy đóng bằng `close()`**, thường thông qua `try-with-resources`. Điều này không phủ nhận việc Stream trong bộ nhớ vẫn có thể được gắn `onClose` handler hoặc tài nguyên tự quản khác; hãy đọc hợp đồng của **nguồn tạo Stream**, không suy đoán chỉ từ kiểu `Stream<T>`.
+For I/O-backed Streams, **close via `close()`**, typically using `try-with-resources`. That does not rule out in-memory Streams having `onClose` handlers or custom managed resources attached; read the contract of **the Stream-creating source** rather than guessing from `Stream<T>` alone.
 
-### 1.1. Lazy không có nghĩa mở tài nguyên muộn
+### 1.1. Lazy Does Not Mean Deferred Resource Opening
 
-`Files.lines(path)` thiết lập một Stream gắn với file khi phương thức được gọi. Các thao tác trung gian như `filter` và `map` thường chỉ chạy lúc tiêu thụ, nhưng **nguồn I/O có thể đã được mở trước terminal operation**:
+`Files.lines(path)` sets up a file-backed Stream when the method is called. Intermediate operations such as `filter` and `map` normally run only at consumption time, yet **the I/O source may already be open before any terminal operation**:
 
 ```java
 Stream<String> lines = Files.lines(path);
 Stream<String> selected = lines.filter(line -> line.startsWith("ERROR"));
-// Chưa gọi count()/findFirst()/collect(), nhưng file có thể đang mở.
+// count()/findFirst()/collect() not called yet, but the file may already be open.
 ```
 
-Do đó, trì hoãn việc tiêu thụ pipeline mà không có cơ chế đóng thích hợp vẫn có nguy cơ giữ tài nguyên mở. Tính lazy của việc xử lý phần tử không tự quản lý vòng đời file.
+Therefore, deferring pipeline consumption without proper closing still risks holding resources open. Laziness in element processing does not automatically manage file lifecycles.
 
-## 2. Quy tắc nền tảng: mở và đóng trong cùng một phạm vi
+## 2. Fundamental Rule: Open and Close in the Same Scope
 
-Cách an toàn mặc định là `try-with-resources`:
+The safe default is `try-with-resources`:
 
 ```java
 import java.io.IOException;
@@ -62,42 +62,42 @@ public static long countErrors(Path path) throws IOException {
 }
 ```
 
-Đoạn trên minh họa **một phương thức** (dấu `}` sau cùng đóng phương thức); các import đặt ở đầu file khi dùng trong lớp hoàn chỉnh. `try-with-resources` bảo đảm `lines.close()` được gọi khi rời block, kể cả khi terminal operation ném ngoại lệ.
+The snippet above illustrates **a single method** (the final `}` closes the method); place imports at the top of the file when used in a complete class. `try-with-resources` guarantees `lines.close()` runs when leaving the block, even if the terminal operation throws an exception.
 
-Vòng đời:
+Lifecycle:
 
 ```text
-try (mở nguồn Files.lines)
+try (open Files.lines source)
         |
         v
-    filter/map/...       <- pipeline được thực thi khi terminal chạy
+    filter/map/...       <- pipeline executes when terminal runs
         |
         v
     count/findFirst/...
         |
         v
-close() từ try-with-resources
+close() from try-with-resources
         |
         v
-file handle được giải phóng
+file handle is released
 ```
 
-### 2.1. Terminal operation không đồng nghĩa close
+### 2.1. Terminal Operations Do Not Imply Closing
 
-`count()`, `findFirst()`, `forEach()` hay `collect()` **kết thúc việc tiêu thụ pipeline**, nhưng **không tự bảo đảm đóng Stream gắn tài nguyên**:
+`count()`, `findFirst()`, `forEach()`, or `collect()` **finish consuming the pipeline**, yet **do not guarantee closing a resource-backed Stream**:
 
 ```java
-// KHÔNG NÊN: không đóng Stream do Files.lines trả về.
+// AVOID: does not close the Stream returned by Files.lines.
 long count = Files.lines(path).filter(s -> !s.isEmpty()).count();
 
-// NÊN: đóng kể cả khi có lỗi.
+// PREFER: closes even on errors.
 try (Stream<String> lines = Files.lines(path)) {
     long safeCount = lines.filter(s -> !s.isEmpty()).count();
     System.out.println(safeCount);
 }
 ```
 
-Đặc biệt, terminal operation **ngắn mạch** như `findFirst()` có thể dừng sau vài dòng, trong khi file vẫn cần được đóng:
+In particular, **short-circuiting** terminal operations like `findFirst()` can stop after a few lines, while the file still must be closed:
 
 ```java
 Optional<String> firstError;
@@ -106,31 +106,31 @@ try (Stream<String> lines = Files.lines(path)) {
             .filter(line -> line.startsWith("ERROR"))
             .findFirst();
 }
-// Đến đây file đã đóng; firstError là giá trị đã tách khỏi nguồn.
+// By here the file is closed; firstError is a value detached from the source.
 ```
 
-Phép tìm kiếm ngắn mạch và việc giải phóng tài nguyên là **hai trách nhiệm riêng**.
+Short-circuit searching and resource release are **two separate responsibilities**.
 
-### 2.2. onClose là handler, không phải cơ chế tự đóng
+### 2.2. onClose Is a Handler, Not an Auto-Close Mechanism
 
-`Stream.onClose(Runnable)` đăng ký một hành động để chạy **khi Stream được đóng**. Nó không biến việc duyệt Stream thành tự động gọi `close()`:
+`Stream.onClose(Runnable)` registers an action to run **when the Stream is closed**. It does not make traversing the Stream call `close()` automatically:
 
 ```java
 try (Stream<String> lines = Files.lines(path)
-        .onClose(() -> System.out.println("Đã đóng stream"))) {
+        .onClose(() -> System.out.println("Stream closed"))) {
     lines.limit(1).forEach(System.out::println);
 }
-// Sau khi rời try: onClose handler được gọi.
+// After leaving try: the onClose handler is invoked.
 ```
 
-Đừng dùng `onClose` như một thay thế cho `try-with-resources`. Khi Stream có nhiều handler và xảy ra lỗi trong lúc đóng, Java vẫn cố gắng chạy các handler theo hợp đồng đóng; lỗi bổ sung có thể được ghi nhận dưới dạng *suppressed exception*. Tránh đặt hành động nghiệp vụ không thể hoàn tác trong handler.
+Do not use `onClose` as a replacement for `try-with-resources`. When a Stream has multiple handlers and an error occurs during closing, Java still attempts to run handlers per the close contract; additional errors may be recorded as *suppressed exceptions*. Avoid putting irreversible business actions inside handlers.
 
-## 3. Lỗi số một: trả Stream ra khỏi khối try đã đóng
+## 3. Mistake Number One: Returning a Stream Out of a Closed try Block
 
-Ví dụ sau **không an toàn**:
+The following example is **unsafe**:
 
 ```java
-// SAI: return đối tượng Stream đã bị đóng bởi try-with-resources.
+// WRONG: returns a Stream object already closed by try-with-resources.
 public static Stream<String> readLinesBroken(Path path) throws IOException {
     try (Stream<String> lines = Files.lines(path)) {
         return lines.filter(line -> !line.isBlank());
@@ -138,24 +138,24 @@ public static Stream<String> readLinesBroken(Path path) throws IOException {
 }
 ```
 
-Mã minh họa `String.isBlank()` yêu cầu Java 11+. Vấn đề quản lý tài nguyên **không phụ thuộc** phương thức lọc: rời `try` thì `lines` đã đóng; phía gọi nhận một pipeline không còn hợp lệ để duyệt. Vì thế, cố tiêu thụ nó có thể ném `IllegalStateException` như “stream has already been operated upon or closed”.
+The illustration uses `String.isBlank()`, which requires Java 11+. The resource-management bug **does not depend on** the filtering method: leaving `try` closes `lines`, so the caller receives a pipeline that is no longer valid to traverse. Attempting to consume it can throw `IllegalStateException` such as "stream has already been operated upon or closed".
 
-Để giữ tương thích Java 8, cùng lỗi có thể được minh họa bằng `line -> !line.trim().isEmpty()`. **Không** sửa lỗi bằng cách xóa `try` rồi im lặng trả Stream mở: điều đó chỉ chuyển nguy cơ rò rỉ sang phía gọi.
+To stay Java 8 compatible, the same mistake can be shown with `line -> !line.trim().isEmpty()`. Do **not** fix this by removing `try` and silently returning an open Stream: that merely shifts the leak risk onto the caller.
 
-### 3.1. Trả Stream còn mở: chỉ khi chuyển quyền sở hữu rõ ràng
+### 3.1. Returning an Open Stream: Only with Explicit Ownership Transfer
 
-Nếu thực sự cần API trả Stream để bên gọi tự xây pipeline, có thể chọn hợp đồng **caller owns stream**:
+If you truly need an API returning a Stream so the caller can build its own pipeline, adopt the **caller owns stream** contract:
 
 ```java
 /**
- * Mở Stream đọc dòng. Người gọi BẮT BUỘC đóng Stream trả về.
- * Mỗi lần gọi mở một nguồn I/O riêng.
+ * Opens a line-reading Stream. The caller MUST close the returned Stream.
+ * Each call opens a separate I/O source.
  */
 public static Stream<String> openLines(Path path) throws IOException {
     return Files.lines(path, StandardCharsets.UTF_8);
 }
 
-// Phía gọi:
+// Caller:
 try (Stream<String> lines = openLines(path)) {
     lines
             .filter(line -> !line.trim().isEmpty())
@@ -163,20 +163,20 @@ try (Stream<String> lines = openLines(path)) {
 }
 ```
 
-Điểm mấu chốt là **không ai được “quên” quyền sở hữu**:
+The key is that **nobody can "forget" ownership**:
 
-- Phương thức tạo ra Stream phải nêu rõ nghĩa vụ đóng trong tên API, Javadoc hoặc hợp đồng.
-- Phía gọi phải dùng `try-with-resources` quanh **toàn bộ quá trình tiêu thụ**.
-- Không lưu một Stream mở trong một trường sống lâu, cache hoặc trả xuyên nhiều lớp khi các lớp ấy không xác định rõ ai sẽ đóng.
-- Không trả một Stream rồi hy vọng bộ gom rác (*garbage collector*) hoặc thao tác kết thúc sẽ kịp đóng file.
+- The Stream-creating method must state the closing obligation clearly in its API name, Javadoc, or contract.
+- The caller must wrap **the entire consumption** in `try-with-resources`.
+- Never store an open Stream in a long-lived field, cache it, or pass it across layers where none of those layers clearly owns closing it.
+- Never return a Stream hoping the *garbage collector* or a terminal operation will close the file in time.
 
-Đây là lựa chọn có thể chấp nhận được khi API của ứng dụng thật sự có mục tiêu **streaming**, nhưng thường khó sử dụng an toàn hơn một API trả dữ liệu đã tính hoặc nhận callback.
+This is an acceptable option when an application API genuinely aims for **streaming**, though it is usually harder to use safely than an API returning computed data or accepting a callback.
 
-## 4. Ba mẫu API an toàn khi muốn đưa kết quả ra khỏi phương thức
+## 4. Three Safe API Patterns for Returning Results from a Method
 
-### 4.1. Mẫu A: xử lý xong rồi trả kết quả đã tách tài nguyên
+### 4.1. Pattern A: Finish Processing and Return Resource-Detached Results
 
-Khi kích thước dữ liệu phù hợp để lưu:
+When the data size fits comfortably in memory:
 
 ```java
 public static List<String> loadErrors(Path path) throws IOException {
@@ -189,9 +189,9 @@ public static List<String> loadErrors(Path path) throws IOException {
 }
 ```
 
-Phía gọi nhận một `List<String>` không phụ thuộc vào file handle. Đổi lại, chương trình phải cấp phát bộ nhớ cho các dòng được giữ trong List. Nếu file rất lớn hoặc dòng lỗi nhiều, cân nhắc tổng hợp/thống kê theo luồng thay vì tải tất cả.
+The caller receives a `List<String>` independent of any file handle. In return, the program allocates memory for all retained lines in the List. If the file is huge or contains many error lines, consider streaming aggregation/statistics instead of loading everything.
 
-### 4.2. Mẫu B: nhận phép xử lý và thực thi trong phạm vi mở file
+### 4.2. Pattern B: Accept a Processing Function and Execute Inside the Open-File Scope
 
 ```java
 import java.io.IOException;
@@ -210,38 +210,38 @@ public static <R> R withLines(
     }
 }
 
-// Sử dụng:
+// Usage:
 long count = withLines(path, lines ->
         lines.filter(line -> line.startsWith("ERROR")).count());
 ```
 
-Mẫu callback giữ việc **mở/đóng trong một nơi**, trong khi vẫn cho caller quyết định cách tính qua Stream. Hợp đồng phải quy định `operation` **tiêu thụ và hoàn thành việc dùng Stream ngay trong callback**; không được trả chính Stream, một iterator hay đối tượng lazy khác còn phụ thuộc nguồn đã đóng.
+The callback pattern keeps **opening and closing in one place**, while still letting the caller decide how to compute over the Stream. The contract must specify that `operation` **consumes and finishes using the Stream right inside the callback**; it must not return the Stream itself, an iterator, or another lazy object still tied to the closed source.
 
-Nếu việc xử lý cần trả về kết quả bất đồng bộ như `CompletableFuture` phụ thuộc Stream, phải thiết kế vòng đời khác để tài nguyên còn hợp lệ cho đến khi công việc hoàn tất. Đừng giả định callback trả Future là mọi thao tác đọc đã kết thúc.
+If processing must return an asynchronous result like a `CompletableFuture` depending on the Stream, design a different lifecycle so the resource stays valid until work completes. Never assume a callback returning a Future has finished reading.
 
-### 4.3. Mẫu C: chuyển quyền sở hữu một cách tường minh
+### 4.3. Pattern C: Transfer Ownership Explicitly
 
-`openLines(path)` như ở phần 3 phù hợp khi caller cần xử lý lazy ở nhiều bước, nhưng phải được tài liệu hóa và kiểm soát điểm đóng. Trường hợp chỉ cần số lượng, tập hợp hoặc kết quả thống kê, **mẫu A hoặc B thường ít rủi ro hơn**.
+`openLines(path)` from section 3 fits when the caller needs multi-step lazy processing, provided it is documented and closing points are controlled. When only a count, collection, or statistical summary is needed, **Pattern A or B is usually less risky**.
 
-| Kiểu API | Ai đóng? | Ưu điểm | Rủi ro/đánh đổi |
+| API style | Who closes? | Advantages | Risks / trade-offs |
 |---|---|---|---|
-| Trả `List` / `Map` / số liệu | Phương thức nguồn | Dễ sử dụng, không lộ handle | Có thể tốn RAM nếu materialize nhiều dữ liệu |
-| `withLines(path, operation)` | Phương thức nguồn | Có thể xử lý streaming, quyền sở hữu rõ | Callback không được để dữ liệu lazy thoát ra |
-| `openLines(path)` trả Stream | Caller | Cho phép ghép pipeline ở ngoài | Dễ rò rỉ nếu caller quên đóng |
-| Trả `Supplier<Stream<T>>` | Caller của mỗi lần `get()` | Có thể hoãn thời điểm mở I/O | Mỗi lần gọi phải tạo và đóng Stream riêng; không giảm trách nhiệm đóng |
+| Return `List` / `Map` / metrics | Source method | Easy to use, hides handles | Can consume high RAM when materializing lots of data |
+| `withLines(path, operation)` | Source method | Supports streaming, clear ownership | Callback must not let lazy objects escape |
+| `openLines(path)` returns Stream | Caller | Allows external pipeline composition | Easy to leak if caller forgets to close |
+| Return `Supplier<Stream<T>>` | Caller of each `get()` | Can defer when I/O opens | Each invocation must create and close its own Stream; does not reduce closing responsibility |
 
-`Supplier<Stream<T>>` chỉ diễn đạt “cách mở mới” chứ không biến Stream thành tài nguyên tự đóng. Nếu chọn cách này, cần tài liệu hóa cách dùng `try (Stream<T> s = supplier.get()) { ... }`.
+`Supplier<Stream<T>>` only expresses "how to open anew" and does not make a Stream self-closing. If you choose it, document the `try (Stream<T> s = supplier.get()) { ... }` usage pattern.
 
-## 5. Nối hai nguồn: Stream.concat không thay bạn quyết định vòng đời
+## 5. Combining Two Sources: Stream.concat Does Not Decide Lifecycles for You
 
-`Stream.concat(first, second)` tạo một Stream **lazy concatenation**: các phần tử của `first` rồi đến các phần tử của `second` (khi cả hai có encounter order). Theo hợp đồng Java, **khi Stream kết hợp được đóng, các close handler của cả hai Stream đầu vào cũng được gọi**.
+`Stream.concat(first, second)` creates a **lazy concatenation** Stream: elements of `first` followed by elements of `second` (when both have encounter order). By the Java contract, **when the concatenated Stream is closed, the close handlers of both input Streams are also invoked**.
 
-Nhưng `concat` **không tự đóng vì đã chạy xong `count()`, `findFirst()` hoặc `forEach()`**. Và nếu bạn đã gọi `Files.lines` để mở cả hai đầu vào, file thứ hai có thể đang mở **ngay cả khi xử lý dừng trong file thứ nhất**.
+However, `concat` **does not auto-close just because `count()`, `findFirst()`, or `forEach()` finished**. And if you already called `Files.lines` to open both inputs, the second file may be open **even when processing stops inside the first file**.
 
-### 5.1. Mẫu sai: mở hai nguồn, ghép rồi quên đóng
+### 5.1. Wrong Pattern: Open Two Sources, Concat, and Forget to Close
 
 ```java
-// SAI: cả hai Stream nguồn có thể giữ file handle sau terminal operation.
+// WRONG: both source Streams can retain file handles after the terminal operation.
 long total = Stream.concat(
         Files.lines(firstPath),
         Files.lines(secondPath))
@@ -249,9 +249,9 @@ long total = Stream.concat(
         .count();
 ```
 
-Ngoài rò rỉ do không đóng, còn một lỗi tinh vi: nếu mở `firstPath` thành công nhưng mở `secondPath` **ném `IOException`**, Stream thứ nhất đã mở có thể không được đóng vì lời gọi `Stream.concat(...)` chưa kịp tạo ra kết quả để quản lý.
+Beyond leaking by not closing, there is a subtle bug: if opening `firstPath` succeeds but opening `secondPath` **throws `IOException`**, the first already-opened Stream may never be closed because `Stream.concat(...)` never finished constructing a result to manage.
 
-### 5.2. Mẫu đúng: khai báo hai nguồn trong cùng try-with-resources
+### 5.2. Correct Pattern: Declare Both Sources in the Same try-with-resources
 
 ```java
 public static long countErrorsInTwoFiles(
@@ -269,16 +269,16 @@ public static long countErrorsInTwoFiles(
 }
 ```
 
-Lợi ích:
+Benefits:
 
-- Nếu mở file thứ hai thất bại, `try-with-resources` đóng file thứ nhất đã mở thành công.
-- Khi xử lý xong hoặc có ngoại lệ, các resource được đóng **theo thứ tự ngược với lúc khai báo**.
-- Đóng `combined` gọi đóng các nguồn; sau đó `try-with-resources` cũng đóng `second` và `first`. `Stream.close()` không xử lý lại các close handler đã chạy trong lần đóng trước, nên cách bảo vệ nhiều tầng này an toàn và làm rõ quyền sở hữu khi xảy ra lỗi lúc mở.
-- Nếu muốn chỉ mở hai nguồn rồi xử lý trong cùng scope, có thể giữ `first` và `second` trong `try` và không khai báo thêm `combined` làm resource riêng; vẫn phải bảo đảm cả hai được đóng.
+- If opening the second file fails, `try-with-resources` closes the first file that opened successfully.
+- Upon completion or exception, resources are closed **in reverse declaration order**.
+- Closing `combined` closes its inputs; afterward `try-with-resources` also closes `second` and `first`. `Stream.close()` does not re-run close handlers already executed in an earlier close, so this layered protection is safe and clarifies ownership when opening fails.
+- If you only need to open two sources and process them in the same scope, you can keep `first` and `second` in `try` without declaring `combined` as a separate resource; both still must be closed.
 
-**Không nên dựa vào thứ tự đóng Stream như một thứ tự nghiệp vụ.** Đóng tài nguyên là công việc dọn dẹp, không phải cam kết thứ tự thực thi các thao tác `filter` hoặc `map`.
+**Do not rely on Stream closing order as business-logic order.** Closing resources is cleanup work, not a guarantee of execution order for `filter` or `map`.
 
-### 5.3. Short-circuit vẫn phải đóng cả hai
+### 5.3. Short-Circuiting Still Must Close Both
 
 ```java
 public static Optional<String> firstErrorFromTwoFiles(
@@ -294,11 +294,11 @@ public static Optional<String> firstErrorFromTwoFiles(
 }
 ```
 
-Nếu phần tử lỗi đầu tiên nằm ngay trong file thứ nhất, `findFirst` có thể kết thúc sớm mà không cần đọc nội dung file thứ hai. **File thứ hai vẫn có thể đã mở** vì `Files.lines(secondPath)` được gọi lúc thiết lập pipeline. `try-with-resources` giải phóng cả hai bất kể file nào đã được đọc.
+If the first error element is inside the first file, `findFirst` can terminate early without reading the second file's contents. **The second file may still have been opened** because `Files.lines(secondPath)` was called when setting up the pipeline. `try-with-resources` releases both regardless of which file was read.
 
-## 6. Ví dụ Java 8 hoàn chỉnh: tạo hai file tạm, nối nguồn và dọn dẹp
+## 6. Complete Java 8 Example: Create Two Temp Files, Concat Sources, and Clean Up
 
-Chương trình dưới đây tạo hai file tạm để có dữ liệu tự kiểm chứng, đếm dòng bắt đầu bằng `ERROR`, tìm dòng lỗi đầu tiên, rồi xóa các file tạm trong `finally`. Ví dụ chỉ dùng Java 8+ và không cần thư viện bên ngoài.
+The program below creates two temporary files for self-verifying sample data, counts lines starting with `ERROR`, finds the first error line, and deletes the temporary files in `finally` blocks. The example uses only Java 8+ with no external libraries.
 
 ```java
 import java.io.IOException;
@@ -350,7 +350,7 @@ public class MultiFileResourceDemo {
 
                 System.out.println(countErrors(a, b)); // 2
                 System.out.println(
-                        firstError(a, b).orElse("(không có)"));
+                        firstError(a, b).orElse("(none)"));
                 // ERROR first
             } finally {
                 Files.deleteIfExists(b);
@@ -362,21 +362,21 @@ public class MultiFileResourceDemo {
 }
 ```
 
-Điểm cần phân tích:
+Points to note:
 
-1. `Files.lines` mở **nguồn mới** mỗi khi gọi `countErrors` hoặc `firstError`. Không thể dùng lại một Stream đã tiêu thụ.
-2. `Stream.concat` bảo toàn thứ tự file A rồi B nếu cả hai là Stream có thứ tự. Vì vậy `findFirst` chọn `ERROR first`.
-3. Hai nguồn đầu vào và Stream ghép đều được quản lý trong `try-with-resources`; việc dừng sớm không làm bỏ qua bước đóng.
-4. Cả hai file tạm được xóa ở các `finally` riêng, kể cả nếu bước ghi/đọc thất bại sau khi tạo file.
-5. Nếu một thao tác đọc trong khi duyệt thất bại, runtime có thể ném `UncheckedIOException`; khối `try-with-resources` vẫn đóng tài nguyên trong quá trình unwind. Lỗi có thể được chuyển tiếp, chứ không bị coi là kết quả trống.
+1. `Files.lines` opens a **new source** each time `countErrors` or `firstError` is called. A consumed Stream cannot be reused.
+2. `Stream.concat` preserves the order file A then B when both Streams are ordered. Thus `findFirst` picks `ERROR first`.
+3. Both input sources and the concatenated Stream are managed in `try-with-resources`; early stopping never skips closing.
+4. Both temporary files are deleted in separate `finally` blocks, even if writing or reading fails after file creation.
+5. If a read operation fails during traversal, the runtime can throw `UncheckedIOException`; `try-with-resources` still closes resources during stack unwinding. Errors can be propagated rather than treated as empty results.
 
-**Chú ý:** việc tạo *file tạm* trong ví dụ nhằm tự chuẩn bị dữ liệu kiểm thử; trong ứng dụng thực tế, các path thường đến từ cấu hình hoặc tham số. Không mở/ghi file tạm chỉ để dùng `Stream.concat` khi đã có dữ liệu trong bộ nhớ.
+**Note:** creating *temporary files* in the example serves to prepare self-contained test data; in real applications, paths typically come from configuration or parameters. Do not open/write temporary files just to use `Stream.concat` when data is already in memory.
 
-## 7. Nối nhiều file: tránh mở tất cả cùng lúc
+## 7. Combining Many Files: Avoid Opening All at Once
 
-Với hai file, `Stream.concat` đơn giản. Nhưng nếu có hàng trăm hoặc hàng nghìn file, cách “mở tất cả `Files.lines` rồi concat” có thể **giữ quá nhiều file descriptor đang mở**, kể cả các nguồn chưa tới lượt đọc.
+For two files, `Stream.concat` is simple. With hundreds or thousands of files, "open all `Files.lines` and concat them" can **keep too many file descriptors open**, including sources whose turn to be read has not arrived.
 
-Thay vào đó, có thể lấy một Stream đường dẫn và `flatMap` từng path sang Stream các dòng:
+Instead, obtain a Stream of paths and `flatMap` each path to a Stream of lines:
 
 ```java
 import java.io.IOException;
@@ -398,7 +398,7 @@ public static long countErrorsInDirectory(Path directory)
                         return Files.lines(path, StandardCharsets.UTF_8);
                     } catch (IOException e) {
                         throw new UncheckedIOException(
-                                "Không mở được file: " + path, e);
+                                "Cannot open file: " + path, e);
                     }
                 })
                 .filter(line -> line.startsWith("ERROR"))
@@ -407,19 +407,19 @@ public static long countErrorsInDirectory(Path directory)
 }
 ```
 
-Trong pipeline **tuần tự** này:
+In this **sequential** pipeline:
 
-- `Files.list(directory)` là nguồn I/O ngoài cùng và được đóng bằng `try-with-resources`.
-- `flatMap` mở Stream dòng cho từng path khi đến lượt xử lý. Theo hợp đồng `Stream.flatMap`, các Stream con do mapper tạo ra được đóng sau khi nội dung của chúng được đưa vào luồng kết quả.
-- Không cần tích lũy toàn bộ nội dung file thành một `List` chỉ để đếm dòng lỗi.
-- `IOException` khi **mở file** bên trong lambda phải được chuyển sang một ngoại lệ không kiểm tra như `UncheckedIOException`, vì `Function<T, Stream<R>>` không khai báo `throws IOException`.
-- Lỗi đọc phát sinh **trong lúc duyệt** `Files.lines` cũng có thể xuất hiện dưới dạng `UncheckedIOException`. Không nên nuốt lỗi và xem một file không đọc được như file rỗng, trừ khi đó là chính sách nghiệp vụ được công bố.
+- `Files.list(directory)` is the outermost I/O source and is closed via `try-with-resources`.
+- `flatMap` opens a line Stream for each path only when its turn arrives. By the `Stream.flatMap` contract, child Streams produced by the mapper are closed after their contents are placed into the result stream.
+- There is no need to accumulate all file contents into a `List` just to count error lines.
+- `IOException` when **opening a file** inside the lambda must be converted into an unchecked exception like `UncheckedIOException`, because `Function<T, Stream<R>>` does not declare `throws IOException`.
+- Read errors occurring **while traversing** `Files.lines` can also surface as `UncheckedIOException`. Do not swallow errors and treat an unreadable file as empty unless that is an explicit, documented business policy.
 
-**Không tùy tiện thêm `parallel()`** vào ví dụ trên nếu mục tiêu là giới hạn số file mở đồng thời. Một pipeline song song có thể gọi mapper trên nhiều path cùng lúc, làm tăng số luồng file đang mở và gây tranh chấp I/O. Nếu thực sự cần song song, hãy giới hạn mức đồng thời, đo hiệu năng và kiểm soát số handle theo tải thực tế.
+**Do not casually add `parallel()`** to the example above if your goal is limiting simultaneously open files. A parallel pipeline can invoke the mapper on many paths at once, increasing the number of concurrently open file streams and causing I/O contention. If parallelism is truly needed, cap concurrency, benchmark performance, and control handle counts under realistic load.
 
-### 7.1. Thứ tự xử lý của Files.list không được bảo đảm
+### 7.1. Processing Order of Files.list Is Not Guaranteed
 
-`Files.list(directory)` không cam kết thứ tự các entry. Nếu muốn ghép các file theo tên rồi chọn **dòng lỗi đầu tiên**, cần đặt quy tắc thứ tự, ví dụ:
+`Files.list(directory)` makes no guarantee about entry ordering. If you want to combine files by name and then pick the **first error line**, define an ordering rule explicitly, for example:
 
 ```java
 try (Stream<Path> paths = Files.list(directory)) {
@@ -439,17 +439,17 @@ try (Stream<Path> paths = Files.list(directory)) {
 }
 ```
 
-`sorted()` áp dụng thứ tự tự nhiên của `Path`, là thứ tự đường dẫn theo provider; nếu nghiệp vụ cần thứ tự riêng, hãy truyền `Comparator<Path>` thích hợp. Việc sắp xếp có chi phí về thời gian/bộ nhớ theo số path. `findFirst` trên nguồn đã được sắp xếp có ý nghĩa “đầu tiên theo thứ tự file đã chọn”, không phải “dòng lỗi xuất hiện sớm nhất về thời gian” trừ khi thứ tự file và nội dung phản ánh điều đó.
+`sorted()` applies the natural ordering of `Path`, which is the provider's path ordering; if business rules need custom ordering, pass an appropriate `Comparator<Path>`. Sorting carries time and memory cost proportional to the number of paths. `findFirst` on a sorted source means "first according to the chosen file order", not "earliest error chronologically" unless filenames and contents reflect that.
 
-### 7.2. Không nối hàng nghìn Stream bằng các concat lồng sâu
+### 7.2. Do Not Concatenate Thousands of Streams with Deeply Nested concat Calls
 
-Một chuỗi rất sâu của `Stream.concat(Stream.concat(...), ...)` có thể tạo cây concat sâu, gây chi phí và trong trường hợp cực đoan có nguy cơ `StackOverflowError` khi duyệt hoặc đóng. Với danh sách nhiều nguồn, mô hình “Stream các path → `flatMap` thành Stream dòng” hoặc một thiết kế đọc tuần tự có giới hạn thường dễ quản lý tài nguyên hơn.
+A very deep chain of `Stream.concat(Stream.concat(...), ...)` creates a deep concat tree, adding overhead and, in extreme cases, risking `StackOverflowError` during traversal or closing. For many sources, the "Stream of paths -> `flatMap` to line Streams" pattern or a bounded sequential reader design manages resources much more cleanly.
 
-## 8. Những nguồn liên quan nhưng có hợp đồng đóng khác nhau
+## 8. Related Sources with Different Closing Contracts
 
-### 8.1. BufferedReader.lines không tự quyết định quyền sở hữu BufferedReader
+### 8.1. BufferedReader.lines Does Not Govern BufferedReader Ownership
 
-Nếu bạn tự mở `BufferedReader`, hãy đóng **reader** bằng `try-with-resources`. Đừng giả định chỉ gọi `close()` trên một Stream lấy từ `reader.lines()` là đã đóng mọi tài nguyên của reader theo cách `Files.lines` quản lý:
+If you open a `BufferedReader` yourself, close the **reader** with `try-with-resources`. Never assume that merely calling `close()` on a Stream obtained from `reader.lines()` closes all reader resources the way `Files.lines` does:
 
 ```java
 import java.io.BufferedReader;
@@ -468,11 +468,11 @@ public static long countNonEmpty(Path path) throws IOException {
 }
 ```
 
-Ở đây, người sở hữu tài nguyên I/O là `BufferedReader`. Stream được dùng trong phạm vi reader còn mở; rời `try` thì reader được đóng. Các ngoại lệ đọc phát sinh khi duyệt Stream có thể được đóng gói thành `UncheckedIOException`.
+Here, the I/O resource owner is `BufferedReader`. The Stream is used while the reader is open; exiting `try` closes the reader. Read exceptions raised while traversing the Stream can be wrapped in `UncheckedIOException`.
 
-### 8.2. Files.walk và Files.find cũng cần try-with-resources
+### 8.2. Files.walk and Files.find Also Require try-with-resources
 
-`Files.walk` và `Files.find` có thể nắm giữ các tài nguyên duyệt thư mục. Ví dụ:
+`Files.walk` and `Files.find` can hold directory-traversal resources. Example:
 
 ```java
 public static long countJavaFiles(Path root) throws IOException {
@@ -485,75 +485,75 @@ public static long countJavaFiles(Path root) throws IOException {
 }
 ```
 
-Đoạn code này không tự giới hạn độ sâu hay số file. Trên cây thư mục lớn, cần cân nhắc giới hạn độ sâu, xử lý symbolic link và quyền truy cập. Việc duyệt có thể phát sinh lỗi khi chương trình đang chạy, không chỉ ở lúc gọi `Files.walk`.
+This snippet does not limit depth or file count on its own. On large directory trees, consider depth limits, symbolic-link handling, and access permissions. Traversal can throw errors while running, not only at the `Files.walk` call.
 
-### 8.3. Files.readAllLines không phải phương án tốt cho mọi file
+### 8.3. Files.readAllLines Is Not Ideal for Every File
 
-`Files.readAllLines(path)` đọc toàn bộ nội dung vào danh sách và không trả Stream đang giữ file mở cho caller. Điều này có thể đơn giản hóa vòng đời tài nguyên với file nhỏ, nhưng phải đổi lấy **bộ nhớ tỷ lệ theo kích thước dữ liệu**. Với file lớn, nên đọc theo Stream trong `try-with-resources` và tổng hợp từng phần thay vì tải toàn bộ.
+`Files.readAllLines(path)` reads the entire content into a list and does not return a Stream holding the file open for the caller. That can simplify resource lifecycles for small files, at the cost of **memory proportional to data size**. For large files, prefer streaming inside `try-with-resources` and aggregating incrementally instead of loading everything.
 
-## 9. Ngoại lệ trong lúc xử lý và đóng
+## 9. Exceptions During Processing and Closing
 
-Tài nguyên có thể gặp lỗi ở ba giai đoạn khác nhau:
+Resources can fail at three different stages:
 
-| Giai đoạn | Ví dụ | Cách xử lý |
+| Stage | Example | How to handle |
 |---|---|---|
-| **Mở nguồn** | `Files.lines(path)` ném `IOException` | Để `try-with-resources` đóng các nguồn trước đó đã mở thành công |
-| **Đọc trong pipeline** | Lỗi I/O sau vài dòng, có thể là `UncheckedIOException` | Không bỏ qua lỗi vô tình; tài nguyên vẫn phải được đóng |
-| **Đóng nguồn** | Close handler hoặc thao tác giải phóng tài nguyên gặp lỗi | Ghi nhận/lan truyền lỗi thích hợp; không làm mất thông tin lỗi chính |
+| **Opening source** | `Files.lines(path)` throws `IOException` | Let `try-with-resources` close earlier sources that opened successfully |
+| **Reading in pipeline** | I/O failure after several lines, possibly `UncheckedIOException` | Do not ignore errors accidentally; resources still must close |
+| **Closing source** | Close handler or resource release fails | Log/propagate error properly; preserve primary error details |
 
-Ví dụ xử lý và chuyển lỗi ở ranh giới ứng dụng:
+Example handling and translating errors at an application boundary:
 
 ```java
 public static long countOrReport(Path path) throws IOException {
     try (Stream<String> lines = Files.lines(path)) {
         return lines.filter(line -> line.startsWith("ERROR")).count();
     } catch (UncheckedIOException e) {
-        // Có thể phát sinh khi đọc trong lúc terminal operation duyệt.
+        // Can occur when reading during terminal operation traversal.
         throw e.getCause();
     }
 }
 ```
 
-Các import tương ứng là `java.io.IOException`, `java.io.UncheckedIOException`, `java.nio.file.Files`, `java.nio.file.Path` và `java.util.stream.Stream`. Cách xử lý ngoại lệ phải phù hợp với hợp đồng phương thức; không nên trả `0` hoặc `Optional.empty()` khi đọc file thất bại trừ khi nghiệp vụ cố ý coi lỗi I/O là thiếu dữ liệu.
+Corresponding imports are `java.io.IOException`, `java.io.UncheckedIOException`, `java.nio.file.Files`, `java.nio.file.Path`, and `java.util.stream.Stream`. Exception handling must match the method contract; do not return `0` or `Optional.empty()` when reading fails unless business rules intentionally treat I/O failures as missing data.
 
-### 9.1. Đóng ở đúng phạm vi cả khi findFirst hoặc limit dừng sớm
+### 9.1. Close in the Proper Scope Even When findFirst or limit Stops Early
 
-`limit`, `findFirst` và `anyMatch` có thể khiến pipeline dừng trước khi đọc hết file. Điều đó giúp tiết kiệm xử lý, nhưng **không thay thế việc đóng**. `try-with-resources` là ranh giới rõ ràng bảo đảm việc giải phóng nguồn kể cả khi pipeline bị dừng sớm hoặc ngoại lệ.
+`limit`, `findFirst`, and `anyMatch` can stop the pipeline before reading the whole file. That saves processing, yet **does not replace closing**. `try-with-resources` provides an explicit boundary ensuring resource release even on early stop or exception.
 
-## 10. Thiết kế API, hiệu năng và xử lý song song
+## 10. API Design, Performance, and Parallel Processing
 
-Việc giữ nguồn mở có thể gây cạn *file descriptor*, khiến xóa/đổi tên file bị cản trở trên một số hệ điều hành và làm tải hệ thống tăng khó dự đoán. Với các nguồn trong bộ nhớ, `parallelStream()` có thể thích hợp khi công việc CPU đủ lớn; nhưng với nhiều file I/O nhỏ, song song không tự động nhanh hơn vì chi phí mở/đóng, giới hạn thiết bị và tranh chấp tài nguyên.
+Keeping sources open can exhaust *file descriptors*, block file deletion/renaming on some operating systems, and cause unpredictable system load. For in-memory sources, `parallelStream()` can help when CPU work is substantial; for many small I/O files, parallelism is not automatically faster because of open/close overhead, hardware limits, and resource contention.
 
-Một số nguyên tắc:
+Key principles:
 
-1. **Xác định chủ sở hữu** ngay tại API tạo nguồn I/O. Nếu trả Stream thì phía gọi phải đóng; nếu không cần streaming ra ngoài, ưu tiên trả kết quả đã tính hoặc dùng callback.
-2. **Giữ phạm vi mở ngắn và rõ ràng**. Thực thi pipeline trong `try-with-resources`, không lưu Stream mở trong singleton hoặc cache.
-3. **Đừng tự động mở tất cả nguồn** khi chỉ cần dữ liệu của một vài file. Khi số file lớn, ưu tiên cách mở theo nhu cầu và đóng từng Stream con.
-4. **Đừng gọi `parallel()` để chữa bottleneck I/O** nếu chưa đo. Nhiều worker có thể mở nhiều file đồng thời, vượt giới hạn handle.
-5. **Kiểm soát số lượng kết quả**. `collect(toList())` sẽ giữ toàn bộ dữ liệu đã lọc, có thể gây áp lực RAM ngay cả khi file được đóng đúng cách; `count`, `sum` hoặc collector thống kê có thể cần ít bộ nhớ hơn.
-6. **Phân biệt thứ tự file với thứ tự dòng**. `Stream.concat` trên hai nguồn có thứ tự diễn đạt “file A rồi file B”; `Files.list` không cam kết một thứ tự file nghiệp vụ.
-7. **Không tạo tác dụng phụ khó kiểm soát** trong `filter`, `map` hoặc close handler. Các bước Stream có thể bị tối ưu hoặc chạy song song; các phép xử lý I/O phải được thiết kế dựa trên hợp đồng đã công bố.
+1. **Define the owner** right at the I/O source-creating API. If returning a Stream, the caller must close it; if external streaming is unnecessary, prefer returning computed results or accepting a callback.
+2. **Keep open scopes short and explicit**. Execute pipelines inside `try-with-resources`, and do not store open Streams in singletons or caches.
+3. **Do not eagerly open every source** when only data from a few files is needed. When file counts are large, prefer opening on demand and closing each child Stream.
+4. **Do not call `parallel()` to fix an I/O bottleneck** without benchmarking. Multiple workers may open many files simultaneously, exceeding handle limits.
+5. **Control result counts**. `collect(toList())` retains all filtered data and can pressure RAM even if files close properly; `count`, `sum`, or summarizing collectors can use far less memory.
+6. **Distinguish file ordering from line ordering**. `Stream.concat` on two ordered sources expresses "file A then file B"; `Files.list` promises no business file order.
+7. **Avoid uncontrolled side effects** inside `filter`, `map`, or close handlers. Stream steps can be optimized or run in parallel; I/O operations must be designed around published contracts.
 
-## 11. Các lỗi thường gặp
+## 11. Common Mistakes
 
-| Cách làm | Vấn đề | Giải pháp |
+| Practice | Problem | Solution |
 |---|---|---|
-| Trả `Files.lines(path)` mà không ghi rõ ai đóng | Caller dễ quên, giữ file mở | Tài liệu hóa caller ownership hoặc chuyển sang callback/kết quả đã tính |
-| `return lines.filter(...)` bên trong `try (lines)` | Stream trả ra đã bị đóng | Tiêu thụ bên trong scope hoặc trả Stream có trách nhiệm đóng rõ ràng |
-| `Files.lines(path).count()` không bọc `try` | Terminal không tự đóng | Dùng `try-with-resources` |
-| `Stream.concat(Files.lines(a), Files.lines(b))` trực tiếp | Có thể rò rỉ khi nguồn thứ hai mở lỗi | Khai báo từng nguồn trong `try-with-resources` trước khi concat |
-| `findFirst` rồi không đóng | Short-circuit không đồng nghĩa close | Đóng cả hai nguồn bằng `try-with-resources` |
-| Mở hàng nghìn file trước khi nối | Cạn file descriptor | Mở theo nhu cầu, dùng Stream<Path> và `flatMap` |
-| Dùng `flatMap` song song không giới hạn | Nhiều file đang mở cùng lúc | Giới hạn mức đồng thời hoặc xử lý tuần tự |
-| Cho rằng `onClose` tự chạy sau `count` | Handler chưa chắc được gọi | Gọi `close` hoặc dùng `try-with-resources` |
-| Dùng lại Stream sau terminal | `IllegalStateException` | Tạo nguồn Stream mới cho lần xử lý kế tiếp |
-| Duyệt `Files.list` rồi dựa vào thứ tự file bất kỳ | Kết quả `findFirst` không ổn định theo nghiệp vụ | `sorted`/Comparator trước khi đọc |
-| Dùng `Files.readAllLines` cho file rất lớn | Tăng chi phí bộ nhớ | Tổng hợp theo Stream trong scope có đóng |
-| Bắt mọi `UncheckedIOException` rồi trả kết quả rỗng | Che giấu lỗi I/O | Báo lỗi hoặc áp dụng chính sách fallback có chủ đích |
+| Returning `Files.lines(path)` without stating who closes | Callers easily forget, leaving files open | Document caller ownership or switch to callback/computed result |
+| `return lines.filter(...)` inside `try (lines)` | Returned Stream is already closed | Consume inside scope or return an open Stream with explicit close ownership |
+| `Files.lines(path).count()` without `try` | Terminal operation does not auto-close | Use `try-with-resources` |
+| Direct `Stream.concat(Files.lines(a), Files.lines(b))` | Can leak if opening the second source fails | Declare each source in `try-with-resources` before concat |
+| `findFirst` without closing | Short-circuiting does not imply close | Close both sources with `try-with-resources` |
+| Opening thousands of files before concatenating | Exhausts file descriptors | Open on demand using Stream<Path> and `flatMap` |
+| Unbounded parallel `flatMap` | Many files open simultaneously | Limit concurrency or process sequentially |
+| Assuming `onClose` runs automatically after `count` | Handler may never be called | Call `close` or use `try-with-resources` |
+| Reusing a Stream after a terminal operation | `IllegalStateException` | Create a new Stream source for the next pass |
+| Listing `Files.list` and relying on arbitrary file order | `findFirst` result is unstable functionally | Use `sorted`/Comparator before reading |
+| Using `Files.readAllLines` on very large files | Increases memory footprint | Aggregate via Stream inside a closing scope |
+| Catching all `UncheckedIOException` and returning empty result | Hides I/O failures | Report errors or apply an explicit fallback policy |
 
-## 12. Bài tập tự kiểm tra
+## 12. Self-Check Exercises
 
-### Bài 1. Stream bị đóng quá sớm
+### Exercise 1. Stream Closed Too Early
 
 ```java
 Stream<String> getLines(Path path) throws IOException {
@@ -563,11 +563,11 @@ Stream<String> getLines(Path path) throws IOException {
 }
 ```
 
-**Câu hỏi:** Vì sao phương thức sai?
+**Question:** Why is this method wrong?
 
-**Đáp án:** Trước khi caller nhận kết quả, khối `try-with-resources` đã đóng `s`; pipeline trả về không còn hợp lệ để duyệt. Hãy tiêu thụ trong scope rồi trả dữ liệu đã tính, dùng callback hoặc trả nguồn mở với hợp đồng caller phải đóng.
+**Answer:** Before the caller receives the result, the `try-with-resources` block has closed `s`; the returned pipeline is no longer valid to traverse. Consume inside scope and return computed data, use a callback, or return an open source with a caller-must-close contract.
 
-### Bài 2. Dừng sớm có thay thế close không?
+### Exercise 2. Does Early Stopping Replace Closing?
 
 ```java
 Optional<String> value = Files.lines(path)
@@ -575,29 +575,29 @@ Optional<String> value = Files.lines(path)
         .findFirst();
 ```
 
-**Đáp án:** Không. `findFirst` có thể dừng sớm nhưng không chịu trách nhiệm đóng file. Bọc nguồn `Files.lines` trong `try-with-resources`.
+**Answer:** No. `findFirst` can stop early, yet it is not responsible for closing the file. Wrap the `Files.lines` source in `try-with-resources`.
 
-### Bài 3. Mở hai file trước khi concat
+### Exercise 3. Opening Two Files Before concat
 
-Nếu `Files.lines(a)` thành công nhưng `Files.lines(b)` ném `IOException` trong biểu thức `Stream.concat(Files.lines(a), Files.lines(b))`, chuyện gì có thể xảy ra?
+If `Files.lines(a)` succeeds while `Files.lines(b)` throws `IOException` in `Stream.concat(Files.lines(a), Files.lines(b))`, what can happen?
 
-**Đáp án:** File A đã mở nhưng không có scope đóng bảo vệ, nên có nguy cơ rò rỉ. Mở A và B bằng các khai báo tài nguyên liên tiếp trong cùng `try-with-resources`; nếu B lỗi, Java tự đóng A.
+**Answer:** File A is already open without a protective closing scope, creating a leak risk. Open A and B as consecutive resource declarations in the same `try-with-resources`; if B fails, Java closes A automatically.
 
-### Bài 4. Nhiều file và giới hạn handle
+### Exercise 4. Many Files and Handle Limits
 
-Cho danh sách 10.000 file log. Nên mở tất cả `Files.lines` rồi ghép, hay lấy Stream<Path> và `flatMap` mở từng file khi cần?
+Given a list of 10,000 log files, should you open all `Files.lines` and concat them, or take a Stream<Path> and `flatMap` to open each file as needed?
 
-**Đáp án:** Với mục tiêu xử lý tuần tự và hạn chế file đang mở, nên mở theo nhu cầu bằng Stream<Path> và `flatMap`, đồng thời đóng Stream ngoài cùng. Tránh bật song song không kiểm soát vì có thể tăng số nguồn mở đồng thời.
+**Answer:** For sequential processing and limiting open files, open on demand with Stream<Path> and `flatMap`, while closing the outer Stream. Avoid enabling uncontrolled parallelism because it can increase simultaneously open sources.
 
-### Bài 5. Ai đóng BufferedReader?
+### Exercise 5. Who Closes BufferedReader?
 
-`BufferedReader reader = Files.newBufferedReader(path)` rồi `reader.lines().count()`. Có thể dựa vào terminal operation hoặc chỉ Stream đóng reader không?
+`BufferedReader reader = Files.newBufferedReader(path)` followed by `reader.lines().count()`. Can you rely on the terminal operation or only the Stream to close the reader?
 
-**Đáp án:** Không. Hãy quản lý `BufferedReader` trong `try-with-resources`; terminal operation không có hợp đồng tự đóng reader.
+**Answer:** No. Manage `BufferedReader` in `try-with-resources`; terminal operations have no contract to automatically close the reader.
 
-### Bài 6. Đọc hai nguồn, chỉ cần một kết quả
+### Exercise 6. Reading Two Sources, Returning One Result
 
-Hãy sửa đoạn mã sau để trả số dòng lỗi mà vẫn đóng tất cả nguồn:
+Fix the following snippet to return the error line count while closing all sources:
 
 ```java
 long total = Stream.concat(Files.lines(a), Files.lines(b))
@@ -605,7 +605,7 @@ long total = Stream.concat(Files.lines(a), Files.lines(b))
         .count();
 ```
 
-**Đáp án:**
+**Answer:**
 
 ```java
 long total;
@@ -616,19 +616,19 @@ try (Stream<String> first = Files.lines(a);
 }
 ```
 
-Nếu nguồn thứ hai mở lỗi, nguồn thứ nhất vẫn được đóng; nếu tính toán thất bại, cả hai nguồn cũng được giải phóng.
+If opening the second source fails, the first source still closes; if computation fails, both sources are released as well.
 
-## 13. Checklist trước khi trả về hoặc ghép Stream I/O
+## 13. Checklist Before Returning or Combining I/O Streams
 
-Trước khi hoàn thiện phương thức xử lý file hay thư mục, hãy tự hỏi:
+Before finalizing a method that processes files or directories, ask yourself:
 
-1. **Nguồn nào đang mở file, kênh đọc, reader hay directory handle?**
-2. **Ai là chủ sở hữu việc đóng?** Có `try-with-resources` hoặc hợp đồng caller-close rõ ràng chưa?
-3. **Stream có bị trả về sau khi scope đóng đã kết thúc không?** Hay ngược lại, nó được trả về đang mở mà không ai biết phải đóng?
-4. **Nếu mở nguồn thứ hai thất bại, nguồn thứ nhất có được đóng không?**
-5. **Nếu terminal operation dừng sớm hoặc ném ngoại lệ, nguồn có vẫn được đóng không?**
-6. **Nếu số nguồn rất lớn, có đang mở tất cả quá sớm không?** Mức đồng thời có giới hạn không?
-7. **Nếu gọi `findFirst` trên nhiều file, thứ tự file có được quy định rõ chưa?**
-8. **Nếu cần trả kết quả ra ngoài, có thể trả giá trị đã tính thay vì để lộ một Stream gắn tài nguyên không?**
+1. **Which source is opening a file, read channel, reader, or directory handle?**
+2. **Who owns closing?** Is there a `try-with-resources` block or an explicit caller-close contract?
+3. **Is a Stream returned after its closing scope has ended?** Or conversely, returned open without anyone knowing to close it?
+4. **If opening the second source fails, does the first source still close?**
+5. **If the terminal operation stops early or throws an exception, does the source still close?**
+6. **If the number of sources is huge, are all of them being opened too early?** Is concurrency bounded?
+7. **If calling `findFirst` across multiple files, is file order explicitly defined?**
+8. **If results must leave the method, can you return computed values instead of exposing a resource-backed Stream?**
 
-**Ghi nhớ:** `Stream` là một mô hình xử lý phần tử; nó **không tự động thay thế quyền sở hữu tài nguyên I/O**. Khi dùng `Files.lines`, `Files.list`, `Files.walk` hoặc `Files.find`, hãy đặt điểm mở và điểm đóng trong một phạm vi dễ nhìn thấy. Với `Stream.concat`, bảo vệ từng nguồn ngay từ lúc mở để xử lý cả lỗi mở nguồn sau. Với nhiều file, cân nhắc `flatMap` để mở theo nhu cầu thay vì giữ hàng loạt handle. Tách rõ trách nhiệm **tiêu thụ dữ liệu**, **giải phóng tài nguyên** và **quản lý lỗi** là nền tảng cho pipeline Java Stream an toàn, đúng nghĩa và có thể vận hành lâu dài.
+**Key takeaway:** A `Stream` is an element-processing model; it **does not automatically replace I/O resource ownership**. When using `Files.lines`, `Files.list`, `Files.walk`, or `Files.find`, place opening and closing within one visible scope. With `Stream.concat`, protect each source as soon as it opens so later open failures are handled too. With many files, consider `flatMap` to open on demand rather than holding heaps of handles. Separating **data consumption**, **resource release**, and **error management** is the foundation for safe, accurate, and long-running Java Stream pipelines.

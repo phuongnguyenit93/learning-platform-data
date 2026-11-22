@@ -1,22 +1,22 @@
-# So sánh Reflection với interface, Strategy, ServiceLoader và code generation trong Java
+# Comparing Reflection with Interfaces, Strategy, ServiceLoader, and Code Generation in Java
 
-## 1. Cùng một bài toán, nhiều cách giải khác nhau
+## 1. One Problem, Several Different Approaches
 
-Giả sử một ứng dụng Java cần chọn cách biến đổi chuỗi, xử lý thanh toán hoặc tạo serializer dựa trên cấu hình. Có nhiều mức độ linh hoạt:
+Suppose a Java application needs to choose how to transform strings, process payments, or build serializers based on configuration. There are multiple levels of flexibility:
 
-- **Interface và đa hình thông thường:** biết hợp đồng từ lúc biên dịch, gọi trực tiếp qua interface.
-- **Strategy pattern:** đóng gói nhiều thuật toán cùng hợp đồng và chọn một thuật toán theo ngữ cảnh runtime.
-- **`ServiceLoader`:** phát hiện các implementation của một **service interface/abstract class** được khai báo qua cơ chế provider của Java, không cần liệt kê từng implementation trong mã client.
-- **Reflection:** truy vấn kiểu và thành viên tại runtime, có thể nạp lớp theo tên và tạo/gọi implementation khi cấu trúc được biết muộn.
-- **Code generation:** tạo Java source, bytecode hoặc mã truy cập có kiểu theo schema/annotation/metadata, thường để giảm thao tác runtime lặp lại.
+- **Interfaces and ordinary polymorphism:** contract is known at compile time, invoked directly through the interface.
+- **Strategy pattern:** encapsulates multiple algorithms sharing a contract and selects one algorithm according to runtime context.
+- **`ServiceLoader`:** discovers implementations of a **service interface/abstract class** declared via Java's provider mechanism, without listing every implementation in client code.
+- **Reflection:** queries types and members at runtime, optionally loading classes by name and instantiating/invoking implementations when structure is known late.
+- **Code generation:** creates Java source, bytecode, or typed accessors from schemas/annotations/metadata, often to reduce repetitive runtime work.
 
-Đây không phải năm phương án hoàn toàn loại trừ nhau. Ví dụ: `ServiceLoader` trả về các implementation interface; ứng dụng có thể lưu chúng trong danh sách Strategy. Framework có thể dùng Reflection lúc khởi động rồi tạo mã hoặc cache dispatcher cho phần xử lý lặp lại.
+These are not five mutually exclusive options. For example, `ServiceLoader` returns interface implementations; the application can store them in a Strategy map. A framework might use Reflection at startup and then generate code or cache dispatchers for repeated handling.
 
-**Nguyên tắc lựa chọn:** ưu tiên hợp đồng tường minh, kiểm tra được tại compile time; thêm dynamic discovery/introspection khi yêu cầu thực tế bắt buộc hoặc lợi ích vượt chi phí. Reflection giúp xử lý cấu trúc chưa biết trước, nhưng không nên dùng tên method dưới dạng chuỗi khi lời gọi có thể biểu diễn an toàn bằng interface.
+**Selection principle:** prefer explicit contracts verifiable at compile time; add dynamic discovery/introspection when real requirements demand it or benefits outweigh costs. Reflection helps handle structures not known in advance, yet you should not pass method names as strings when a call can be safely expressed via an interface.
 
-## 2. Interface: hợp đồng ổn định và đa hình trực tiếp
+## 2. Interfaces: Stable Contracts and Direct Polymorphism
 
-Một interface quy định hành vi mà caller sử dụng. Ví dụ:
+An interface specifies the behavior callers use. For example:
 
 ```java
 public interface Transform {
@@ -42,25 +42,25 @@ Transform transform = new UpperCaseTransform();
 System.out.println(transform.apply("Hi")); // HI
 ```
 
-Ba đoạn trên là **các phần của ví dụ nhiều file** sẽ được trình bày đầy đủ ở phần 7; mỗi `public` top-level type nằm trong file cùng tên.
+The three snippets above are **parts of a multi-file example** presented in full in Section 7; each `public` top-level type resides in a file of the same name.
 
-Lợi ích:
+Benefits:
 
-1. Trình biên dịch kiểm tra tên method, kiểu tham số và kiểu trả về.
-2. IDE refactor/rename dễ tìm nơi sử dụng và báo lỗi compile khi đổi hợp đồng.
-3. Caller chỉ cần biết `Transform`, không phải tìm `Method`, thực hiện `setAccessible` hay tự ép kết quả `Object`.
-4. Gọi method thông thường có thể được JIT tối ưu theo đặc điểm runtime; không có chi phí tự tạo metadata Reflection cho từng lời gọi.
-5. Có thể tiêm implementation bằng constructor injection, factory hoặc DI container.
+1. The compiler checks method names, parameter types, and return types.
+2. IDE refactoring/renaming easily finds call sites and reports compile errors when contracts change.
+3. Callers only need to know `Transform`, without looking up `Method`, calling `setAccessible`, or manually casting `Object` results.
+4. Normal method calls can be optimized by the JIT based on runtime characteristics; there is no per-call Reflection metadata overhead.
+5. Implementations can be injected via constructor injection, factories, or a DI container.
 
-Giới hạn của **interface đơn thuần**: ai đó vẫn phải quyết định tạo implementation nào. Nếu cần plugin tự xuất hiện mà mã client không biết tên lúc build, phải thêm cơ chế discovery như `ServiceLoader` hoặc cơ chế DI/registry thích hợp.
+Limitation of a **plain interface**: someone still has to decide which implementation to instantiate. If plugins must appear without client code knowing their names at build time, you must add a discovery mechanism such as `ServiceLoader` or an appropriate DI/registry mechanism.
 
-Không có lý do dùng Reflection chỉ để gọi `transform.apply(text)` nếu đối tượng đã triển khai `Transform` và hợp đồng đó đáp ứng nhu cầu.
+There is no reason to use Reflection merely to call `transform.apply(text)` if the object already implements `Transform` and that contract meets the need.
 
-## 3. Strategy pattern: chọn thuật toán runtime mà không phải gọi Reflection
+## 3. Strategy Pattern: Selecting Algorithms at Runtime Without Calling Reflection
 
-**Strategy** là pattern thiết kế: đưa hành vi biến đổi thành các object cùng interface, rồi chọn object cần dùng khi chương trình chạy. Interface là phần hợp đồng; Strategy mô tả **cách tổ chức và hoán đổi thuật toán**.
+**Strategy** is a design pattern: turn transformation behaviors into objects sharing an interface, then choose which object to use at runtime. The interface is the contract; Strategy describes **how algorithms are organized and swapped**.
 
-Ví dụ registry:
+Registry example:
 
 ```java
 java.util.Map<String, Transform> strategies = java.util.Map.of(
@@ -74,26 +74,26 @@ if (selected == null) {
 System.out.println(selected.apply("Hi")); // hi
 ```
 
-Đoạn minh họa giả định `Transform`, `UpperCaseTransform` và `LowerCaseTransform` đã được định nghĩa. Ví dụ chạy độc lập phía dưới cung cấp đủ file.
+This illustrative snippet assumes `Transform`, `UpperCaseTransform`, and `LowerCaseTransform` are already defined. The standalone runnable example below provides all files.
 
-Ưu điểm:
+Advantages:
 
-- Có thể thay đổi thuật toán ở runtime dựa vào request, config hoặc feature flag mà vẫn giữ lời gọi qua interface.
-- Mỗi strategy có test riêng, phụ thuộc có thể tiêm bằng constructor, dễ mô tả ownership và vòng đời.
-- Có thể tập trung kiểm tra tên strategy, chính sách fallback và khả năng truy cập ở một điểm chọn.
-- Logic điều phối không cần `Class.forName` hoặc `getMethod`.
+- Can switch algorithms at runtime based on requests, config, or feature flags while keeping calls through the interface.
+- Each strategy can be tested independently, dependencies can be constructor-injected, and ownership and lifecycle are easy to describe.
+- Strategy-name checks, fallback policies, and accessibility can be centralized at one selection point.
+- Dispatch logic needs neither `Class.forName` nor `getMethod`.
 
-Giới hạn:
+Limitations:
 
-- Registry `Map.of(...)` tĩnh biết trước những class có thể chọn tại build time. Nếu muốn thêm plugin JAR mà không sửa danh sách, cần cơ chế cung cấp/đăng ký strategy động.
-- String key của registry vẫn có nguy cơ sai chính tả tại runtime; ứng dụng có thể dùng enum/key có kiểm tra hoặc validate config khi khởi động.
-- Chiến lược có thể có state mutable; việc tái sử dụng cùng instance cho nhiều thread đòi hỏi thiết kế thread safety phù hợp.
+- A static `Map.of(...)` registry knows selectable classes upfront at build time. To add plugin JARs without editing the list, you need a dynamic strategy provision/registration mechanism.
+- String registry keys still risk typos at runtime; applications can use enums/validated keys or validate configuration at startup.
+- Strategies may hold mutable state; reusing the same instance across multiple threads requires appropriate thread-safety design.
 
-**Strategy không tự động phát hiện implementation.** Bạn có thể kết hợp Strategy + `ServiceLoader` để thu nhận các nhà cung cấp từ classpath/module path, rồi chọn theo một ID ổn định.
+**Strategy does not automatically discover implementations.** You can combine Strategy + `ServiceLoader` to gather providers from the classpath/module path and then select by a stable ID.
 
-## 4. ServiceLoader: tìm implementation được đăng ký qua SPI
+## 4. ServiceLoader: Finding Registered Implementations via SPI
 
-`java.util.ServiceLoader<S>` là cơ chế **Service Provider Interface (SPI)** của JDK. Ứng dụng xác định service contract `S`; một hoặc nhiều provider công bố rằng chúng có thể cung cấp implementation của `S`. Client duyệt và sử dụng provider qua service type, thay vì cần biết tên implementation trước.
+`java.util.ServiceLoader<S>` is the JDK's **Service Provider Interface (SPI)** mechanism. The application defines a service contract `S`; one or more providers advertise that they supply implementations of `S`. Clients iterate and consume providers through the service type instead of needing to know implementation names in advance.
 
 ```java
 java.util.ServiceLoader<Transform> loader =
@@ -104,68 +104,68 @@ for (Transform provider : loader) {
 }
 ```
 
-Đây là mảnh minh họa. **Thứ tự provider không nên được dùng làm hợp đồng nghiệp vụ**; ví dụ đầy đủ sẽ sắp xếp kết quả để stdout xác định.
+This is an illustrative fragment. **Provider order should not be treated as a business contract**; the full example will sort results for deterministic stdout.
 
-### 4.1. Classpath: đăng ký ở META-INF/services
+### 4.1. Classpath: Registering in META-INF/services
 
-Với ứng dụng chạy trên **classpath** (không phải module có tên), nếu service interface là `Transform` trong unnamed package, resource cần có đường dẫn:
+For applications running on the **classpath** (not named modules), if the service interface is `Transform` in the unnamed package, the resource path must be:
 
 ```text
 META-INF/services/Transform
 ```
 
-Nội dung:
+Contents:
 
 ```text
 UpperCaseTransform
 LowerCaseTransform
 ```
 
-Tên mỗi provider phải là **tên lớp nhị phân** của implementation. Trong dự án thực, nếu interface là `com.example.spi.Transform`, tên file phải là:
+Each provider name must be the **binary class name** of the implementation. In a real project, if the interface is `com.example.spi.Transform`, the file name must be:
 
 ```text
 META-INF/services/com.example.spi.Transform
 ```
 
-và từng dòng bên trong ghi tên đầy đủ, ví dụ `com.example.impl.UpperCaseTransform`. Đăng ký provider ở một file cấu hình tự đặt tên sẽ không làm `ServiceLoader` tự nhận ra.
+and each line inside lists a fully qualified name, such as `com.example.impl.UpperCaseTransform`. Registering providers in an arbitrarily named config file will not make `ServiceLoader` recognize them.
 
-Với provider được triển khai trên **classpath**, dạng đơn giản nhất là public concrete class implement service type và có public constructor không tham số. Provider phải nhìn thấy được từ class loader có trách nhiệm đọc cấu hình. Lỗi package/classpath, thiếu public constructor, sai tên hoặc provider không đúng service type có thể dẫn tới `ServiceConfigurationError` khi duyệt.
+For providers deployed on the **classpath**, the simplest form is a public concrete class implementing the service type with a public no-arg constructor. The provider must be visible to the class loader responsible for reading the configuration. Package/classpath mistakes, missing public constructors, wrong names, or providers not matching the service type can cause `ServiceConfigurationError` during iteration.
 
-### 4.2. Module path: uses và provides
+### 4.2. Module Path: uses and provides
 
-Với Java Platform Module System (JPMS), cú pháp ví dụ (trích đoạn **module descriptors**, không ghép trực tiếp vào chương trình classpath ở phần 7):
+With the Java Platform Module System (JPMS), example syntax (excerpts from **module descriptors**, not pasted directly into the classpath program in Section 7):
 
 ```java
-// Trong module client, ví dụ: module client.app
+// In the client module, e.g.: module client.app
 uses com.example.spi.Transform;
 ```
 
 ```java
-// Trong module provider, ví dụ: module provider.impl
+// In the provider module, e.g.: module provider.impl
 provides com.example.spi.Transform
     with com.example.impl.UpperCaseTransform;
 ```
 
-Ứng dụng thường thêm `requires` để đọc module chứa service interface. Hai directive `uses` và `provides ... with ...` tham gia liên kết service/provider theo cơ chế module; ví dụ JPMS cũng đòi hỏi khai báo module và cấu trúc package hợp lệ, nên các fragment trên **không phải project độc lập**.
+The application typically adds `requires` to read the module containing the service interface. The two directives `uses` and `provides ... with ...` participate in module service/provider binding; JPMS examples also require module declarations and valid package structure, so the fragments above are **not a standalone project**.
 
-ServiceLoader hỗ trợ named-module provider theo hợp đồng riêng, bao gồm khả năng dùng provider method `public static provider()` trong provider class khi thỏa quy tắc tương ứng; không đồng nhất toàn bộ quy tắc named modules với yêu cầu constructor không tham số của classpath provider.
+ServiceLoader supports named-module providers under its own contract, including the ability to use a `public static provider()` method on the provider class when matching rules are satisfied; do not equate all named-module rules with the no-arg constructor requirement of classpath providers.
 
-### 4.3. Discovery, lazy loading và vòng đời
+### 4.3. Discovery, Lazy Loading, and Lifecycle
 
-- `ServiceLoader.load(Transform.class)` dùng thread context class loader trong overload phổ biến này; overload `load(service, classLoader)` cho phép chỉ định class loader.
-- Việc phát hiện/cài đặt provider thường **lười**; một số lỗi cấu hình chỉ lộ ra khi duyệt iterator hoặc stream/lấy instance, không nhất thiết ngay tại lời gọi `load(...)`.
-- ServiceLoader lưu cache provider đã khám phá; `reload()` xóa cache của loader để cho phép tra cứu lại. Không suy rằng mọi JAR mới tự được phát hiện nếu class loader không thấy nó.
-- `ServiceLoader` **không thread-safe**; khi nhiều thread dùng cùng một instance, ứng dụng phải đồng bộ hoặc tổ chức loader/registry phù hợp.
-- Không dùng “provider đầu tiên” để suy thứ tự ưu tiên khi hệ thống không có quy tắc ordering tường minh; nếu cần, đọc metadata/priority riêng rồi sắp xếp.
-- `ServiceConfigurationError` là một `Error`, không phải `Exception`. Vì vậy `catch (Exception)` không phải biện pháp xử lý đầy đủ cho provider config hỏng.
+- `ServiceLoader.load(Transform.class)` uses the thread context class loader in this common overload; `load(service, classLoader)` lets you specify a class loader.
+- Provider discovery/instantiation is usually **lazy**; some configuration errors surface only when iterating or streaming/getting instances, not necessarily at the `load(...)` call itself.
+- ServiceLoader caches discovered providers; `reload()` clears the loader's cache to allow re-lookup. Do not assume new JARs are automatically discovered if the class loader cannot see them.
+- `ServiceLoader` is **not thread-safe**; when multiple threads share an instance, the application must synchronize or structure loaders/registries properly.
+- Do not rely on "the first provider" to infer priority when the system has no explicit ordering rule; if needed, read separate metadata/priority and sort.
+- `ServiceConfigurationError` is an `Error`, not an `Exception`. Therefore `catch (Exception)` is not adequate handling for broken provider configs.
 
-**Ranh giới:** ServiceLoader tìm implementation **đã đăng ký cho service contract**, chứ không tự scan mọi class trong classpath rồi lựa chọn theo tên method/annotation bất kỳ. Khi cần xử lý cấu trúc trường/method chưa có interface chung, Reflection có thể vẫn cần.
+**Boundary:** ServiceLoader finds implementations **registered for a service contract**, rather than scanning every class on the classpath and picking by arbitrary method/annotation names. When you need to inspect fields/methods lacking a shared interface, Reflection may still be needed.
 
-## 5. Reflection: khi không có đủ cấu trúc ở compile time
+## 5. Reflection: When Enough Structure Is Not Available at Compile Time
 
-Reflection (`java.lang.Class`, `java.lang.reflect.Method`, `Field`, `Constructor`, ...) cho phép đọc metadata và thực hiện thao tác trên class/member lúc runtime.
+Reflection (`java.lang.Class`, `java.lang.reflect.Method`, `Field`, `Constructor`, ...) allows reading metadata and operating on classes/members at runtime.
 
-Ví dụ cấu hình chứa tên implementation:
+Example where configuration holds an implementation name:
 
 ```java
 String configuredClassName = "UpperCaseTransform";
@@ -175,73 +175,73 @@ Transform transform = implementation.getDeclaredConstructor().newInstance();
 System.out.println(transform.apply("Hi")); // HI
 ```
 
-Đây là mảnh code minh họa nằm trong phương thức có `throws ReflectiveOperationException` hoặc catch hợp lệ. Mã dùng `asSubclass(Transform.class)` để kiểm tra class đã nạp thực sự có thể dùng như `Transform`. Sau khi tạo instance, caller lại gọi qua interface bình thường.
+This illustrative snippet sits inside a method with `throws ReflectiveOperationException` or appropriate catch handling. The code uses `asSubclass(Transform.class)` to verify the loaded class can actually be used as `Transform`. After instantiation, the caller invokes through the normal interface.
 
-### Điểm mạnh
+### Strengths
 
-1. Không cần biết trước **tất cả** class cụ thể tại compile time.
-2. Hữu ích khi đọc annotation, xác định constructor/method/field, triển khai serializer/mapper, diagnostic tooling hoặc framework injection.
-3. Có thể chọn class loader phù hợp với plugin, phân tích cấu trúc ở runtime và xây adapter cho các kiểu không cùng interface.
-4. Có thể kết hợp cache metadata như `ClassValue<T>` để tránh tính toán lặp lại.
+1. No need to know **all** concrete classes upfront at compile time.
+2. Useful for reading annotations, resolving constructors/methods/fields, building serializers/mappers, diagnostic tooling, or DI frameworks.
+3. Can pick a plugin-appropriate class loader, analyze structure at runtime, and build adapters for types without a shared interface.
+4. Can pair with metadata caches such as `ClassValue<T>` to avoid repeated computation.
 
-### Chi phí và giới hạn
+### Costs and Limitations
 
-- Tên class/method truyền bằng String thường chỉ được xác minh khi chạy; đổi tên API dễ làm hỏng cấu hình khi runtime.
-- `getMethod`/`getDeclaredMethod` yêu cầu đúng tên và parameter types; sai overload/visibility sẽ ném checked lookup exception.
-- `Method.invoke`, `Constructor.newInstance` có hợp đồng kiểm tra argument, access và wrapper exception (`InvocationTargetException` với lỗi do mã đích ném).
-- Phân tích metadata và gọi gián tiếp có overhead; mức độ so với lời gọi trực tiếp phụ thuộc JDK, JIT, số lần gọi, khả năng caching. **Không gán một hệ số chậm cố định** cho mọi trường hợp.
-- Các giới hạn JPMS về visibility/`opens` vẫn tồn tại; `setAccessible(true)` không bảo đảm thành công.
-- Nạp/khởi tạo class dựa trên tên do người dùng không tin cậy nhập có thể kích hoạt code không mong muốn. Khi tạo plugin, cần allowlist, hợp đồng interface, class loader và chính sách phân quyền phù hợp.
-- Với closed-world/native image, Reflection động có thể cần metadata cấu hình/đăng ký trước build; phải theo quy tắc của runtime/compiler đang dùng.
+- Class/method names passed as Strings are usually verified only at runtime; API renames easily break configurations at runtime.
+- `getMethod`/`getDeclaredMethod` require exact names and parameter types; wrong overloads/visibility throw checked lookup exceptions.
+- `Method.invoke` and `Constructor.newInstance` carry argument checks, access checks, and exception wrapping (`InvocationTargetException` for errors thrown by target code).
+- Metadata analysis and indirect calls have overhead; how much compared to direct calls depends on JDK, JIT, call counts, and caching. **Do not assign a fixed slowdown factor** to every scenario.
+- JPMS restrictions on visibility/`opens` still apply; `setAccessible(true)` is not guaranteed to succeed.
+- Loading/initializing classes from untrusted user-supplied names can trigger unwanted code. For plugins, enforce allowlists, interface contracts, class loaders, and appropriate authorization policies.
+- For closed-world/native images, dynamic Reflection may require build-time metadata configuration/registration; follow the rules of your runtime/compiler.
 
-Dùng Reflection tốt khi nó phục vụ **khả năng khám phá/cấu trúc động**. Nếu sau khi nạp xong đã biết một interface, hãy chuyển sang gọi interface để đơn giản hóa phần còn lại.
+Reflection is well used when it serves **dynamic discovery/structure**. Once loaded, if an interface is already known, switch to interface calls to simplify everything afterward.
 
-## 6. Code generation: chuyển việc phân tích sang lúc build hoặc tạo bộ thực thi chuyên biệt
+## 6. Code Generation: Moving Analysis to Build Time or Building Specialized Executors
 
-**Code generation** là nhóm kỹ thuật, không phải một API duy nhất:
+**Code generation** is a family of techniques, not a single API:
 
-- **Compile time source generation:** annotation processor (JSR 269), schema compiler hoặc build task sinh ra `.java`/resource trước hoặc trong quá trình compile. Client sau đó gọi generated code có kiểu.
-- **Build time bytecode generation:** một công cụ sinh bytecode/class ở bước build trước khi ứng dụng chạy; đôi khi là augmentation của framework.
-- **Runtime bytecode generation:** thư viện tạo class/adapter/proxy ở runtime từ metadata đã biết; ví dụ hệ proxy/mock/interceptor. Cách này có thể vẫn cần Reflection/MethodHandle trong giai đoạn phân tích và vẫn phụ thuộc class loader.
-- **Ahead-of-time metadata/index generation:** build lập bảng descriptor hoặc index của annotation/type để phần runtime không phải scan rộng. Đây là hướng bổ trợ Reflection chứ không luôn thay thế việc Reflection dùng để gọi.
+- **Compile-time source generation:** annotation processors (JSR 269), schema compilers, or build tasks emit `.java`/resources before or during compilation. Clients then call typed generated code.
+- **Build-time bytecode generation:** a tool generates bytecode/classes during a build step before the app runs; sometimes part of framework build-time augmentation.
+- **Runtime bytecode generation:** libraries generate classes/adapters/proxies at runtime from known metadata; for instance proxies/mocks/interceptors. This may still need Reflection/MethodHandle during analysis and still depends on class loaders.
+- **Ahead-of-time metadata/index generation:** the build emits descriptor tables or annotation/type indexes so runtime avoids broad scanning. This complements Reflection rather than always replacing Reflection used for invocation.
 
-Ví dụ trước–sau mang tính **ý tưởng thiết kế**, không phải một code generator hoàn chỉnh:
+Before-and-after example as a **design idea**, not a complete code generator:
 
 ```java
-// Trước: runtime tìm method và invoke qua Reflection.
+// Before: runtime looks up the method and invokes via Reflection.
 Method method = type.getMethod("apply", String.class);
 String value = (String) method.invoke(instance, "Hi");
 
-// Sau: nếu generator biết class/interface và tạo adapter ở build time,
-// client gọi qua interface có kiểu. Adapter được generator tạo sẵn.
+// After: if a generator knows the class/interface and creates an adapter at build time,
+// the client calls through a typed interface. The adapter is pre-generated.
 Transform adapter = generatedFactory.create(config);
 String value2 = adapter.apply("Hi");
 ```
 
-Đoạn trên chỉ minh họa phương án thay thế và giả định có `generatedFactory`, `type`, `instance`, `config` và `Transform` phù hợp. Không phải chương trình Java độc lập.
+The snippet above only illustrates the alternative and assumes `generatedFactory`, `type`, `instance`, `config`, and `Transform` exist appropriately. It is not a standalone Java program.
 
-### Ưu điểm khi generated code phù hợp
+### Benefits When Generated Code Fits
 
-- Nhiều lỗi mismatch được phát hiện sớm hơn khi compile generated code.
-- Giảm việc quét annotation/Reflection hoặc tìm member động lặp lại khi khởi động/xử lý request.
-- Có thể tạo dispatcher/serializer/mapper tối ưu cho schema cố định.
-- Dễ kiểm tra những type/member cần dùng trong môi trường AOT khi generator tạo ra registration/metadata có kiểm soát.
+- Many mismatch errors are caught earlier when compiling generated code.
+- Reduces repeated annotation/Reflection scanning or dynamic member lookups during startup or request handling.
+- Can produce dispatchers/serializers/mappers tailored to a fixed schema.
+- Easier to audit which types/members are needed in AOT environments when generators emit controlled registrations/metadata.
 
-### Đổi lại
+### Trade-offs
 
-- Có build step, processor/plugin/compiler và generated artifacts cần quản lý.
-- Thay đổi schema hoặc annotation đòi hỏi regenerate và compile lại; cần test tính tái tạo/incremental build.
-- Mã sinh có thể khó đọc stack trace, debug, map source hoặc quản lý phiên bản.
-- Nếu class thật sự chỉ biết sau khi đã build và runtime cần tạo hành vi mới, source generation lúc build **không tự giải quyết** dynamic runtime discovery.
-- Runtime bytecode generation có overhead tạo/lưu class và vẫn có ràng buộc loader/module/security; nó không làm mọi lời gọi tự nhiên nhanh hơn.
+- Introduces build steps, processors/plugins/compilers, and generated artifacts to manage.
+- Schema or annotation changes require regeneration and recompilation; reproducibility/incremental builds must be tested.
+- Generated code can make stack traces, debugging, source mapping, or versioning harder to follow.
+- If classes are truly known only after build time and runtime must create new behavior, build-time source generation **does not solve** dynamic runtime discovery on its own.
+- Runtime bytecode generation incurs class creation/storage overhead and still faces loader/module/security constraints; it does not make every call automatically faster.
 
-**Phân biệt:** `ServiceLoader` phát hiện implementation đã có; code generation **tạo mã** hoặc metadata; Reflection **quan sát/gọi cấu trúc runtime**; Strategy **điều phối thuật toán**. Các nhiệm vụ này có thể bổ trợ nhau trong một kiến trúc.
+**Distinction:** `ServiceLoader` discovers existing implementations; code generation **creates code** or metadata; Reflection **inspects/invokes runtime structure**; Strategy **dispatches algorithms**. These responsibilities can complement one another in one architecture.
 
-## 7. Ví dụ Java 17 chạy đầy đủ: bốn cách cho một service
+## 7. Complete Runnable Java 17 Example: Four Ways for One Service
 
-Ví dụ sau minh họa **interface, Strategy, Reflection và ServiceLoader** cùng sử dụng `Transform`. Code generation không được chạy trong ví dụ vì nó cần thêm công cụ build/processor; phần 6 giải thích kiến trúc đó.
+The following example demonstrates **interface, Strategy, Reflection, and ServiceLoader** all using `Transform`. Code generation is not run in the example because it requires additional build/processor tooling; Section 6 explains that architecture.
 
-Tạo cấu trúc thư mục:
+Create the directory structure:
 
 ```text
 demo/
@@ -317,21 +317,21 @@ public class ChoiceDemo {
 }
 ```
 
-**Resource `META-INF/services/Transform`** (văn bản UTF-8, không phải mã Java):
+**Resource `META-INF/services/Transform`** (UTF-8 text, not Java code):
 
 ```text
 UpperCaseTransform
 LowerCaseTransform
 ```
 
-Biên dịch ở thư mục `demo/`:
+Compile inside `demo/`:
 
 ```bash
 javac --release 17 Transform.java UpperCaseTransform.java LowerCaseTransform.java ChoiceDemo.java
 java -cp . ChoiceDemo
 ```
 
-Kết quả stdout đã kiểm tra:
+Verified stdout:
 
 ```text
 interface: HI
@@ -340,65 +340,65 @@ reflection: HI
 ServiceLoader: [LowerCaseTransform=hi, UpperCaseTransform=HI]
 ```
 
-**Tại sao bốn dòng này khác nhau?**
+**Why do these four lines differ?**
 
-1. **`interface`:** client tự tạo `UpperCaseTransform` và gọi `apply`; tên method được kiểm tra khi compile.
-2. **`strategy`:** client chọn `"lower"` từ map chứa các đối tượng `Transform`. Cơ chế chọn dựa vào string key của registry, còn thực thi vẫn là lời gọi interface.
-3. **`reflection`:** client biết `"UpperCaseTransform"` dưới dạng tên class runtime, kiểm tra `asSubclass`, tạo instance qua constructor rồi gọi interface. Không cần `Method.invoke` cho `apply` vì sau khi có `Transform`, lời gọi trực tiếp là đủ.
-4. **`ServiceLoader`:** JDK tìm các provider được khai báo trong resource, tạo các instance và chạy qua interface. Ví dụ dùng `ServiceLoader.stream()` để truy vấn `Provider.type()`, sắp xếp theo tên class nhằm ổn định stdout, rồi `Provider.get()` mới lấy instance.
+1. **`interface`:** the client directly instantiates `UpperCaseTransform` and calls `apply`; method names are verified at compile time.
+2. **`strategy`:** the client picks `"lower"` from a map holding `Transform` objects. Selection relies on the registry's string key, while execution remains an interface call.
+3. **`reflection`:** the client knows `"UpperCaseTransform"` as a runtime class name, checks `asSubclass`, creates an instance via its constructor, and then calls the interface. No `Method.invoke` is needed for `apply` because once you have a `Transform`, a direct call suffices.
+4. **`ServiceLoader`:** the JDK locates providers declared in the resource, creates instances, and runs them through the interface. The example uses `ServiceLoader.stream()` to query `Provider.type()`, sorts by class name for deterministic stdout, and only then calls `Provider.get()` to obtain instances.
 
-**Phạm vi ví dụ:** đây là dự án classpath trong **unnamed package** để có thể copy/chạy nhanh, không phải cấu trúc được khuyến nghị cho ứng dụng lớn. Trong dự án thực nên dùng package và cập nhật tên file `META-INF/services/<fully.qualified.ServiceInterface>` tương ứng. Chạy đúng thư mục root để resource `META-INF/services/Transform` nằm trên classpath; chỉ biên dịch các file Java mà quên resource sẽ làm danh sách provider rỗng.
+**Example scope:** this is a classpath project in the **unnamed package** for quick copy/run convenience, not the recommended layout for large applications. In real projects, use packages and update the file name `META-INF/services/<fully.qualified.ServiceInterface>` accordingly. Run from the proper root directory so `META-INF/services/Transform` is on the classpath; compiling only Java files while omitting the resource leaves the provider list empty.
 
-Nếu đổi sang JPMS named modules, cần thêm `module-info.java`, package hợp lệ và directive `uses/provides` như đã trình bày ở phần 4; không trộn hai cách khai báo tùy tiện.
+If switching to JPMS named modules, add `module-info.java`, valid packages, and `uses/provides` directives as shown in Section 4; do not arbitrarily mix both declaration styles.
 
-## 8. Bảng so sánh theo nhu cầu kiến trúc
+## 8. Comparison Table by Architectural Need
 
-| Tiêu chí | Interface trực tiếp | Strategy | ServiceLoader | Reflection | Code generation |
+| Criterion | Direct interface | Strategy | ServiceLoader | Reflection | Code generation |
 |---|---|---|---|---|---|
-| Hợp đồng dùng ở client | Interface/kiểu compile time | Interface chung của thuật toán | Service interface/abstract class | Có thể chỉ biết tên/metadata runtime | Kiểu/adapter do generator tạo |
-| Chọn implementation | Gắn cứng, inject hoặc factory | Registry/context/runtime policy | Provider registration và discovery | Tên class, metadata, loader, quy tắc tự xây | Build/schema/processor hoặc runtime generator |
-| Có phát hiện plugin JAR tự đăng ký? | Không tự có | Không tự có | Có, khi JAR/module và provider config hiển thị đúng | Có thể tự xây logic discovery, nhưng `Class.forName` riêng lẻ không scan plugin | Không tự có nếu chỉ generation build time |
-| Refactor-safe | Cao | Cao ở API, registry key cần quản lý | Cao ở interface, provider config phải đúng | Dễ lỗi runtime khi dùng string | Cao với generated typed API, tùy chất lượng generator |
-| Metadata tùy ý | Hạn chế ở contract | Hạn chế ở contract | Có thể dùng metadata ngoài để chọn | Mạnh: fields/methods/annotations | Có thể trích ở build time hoặc generate index |
-| Lỗi điển hình | Compile/type mismatch | Sai key/cấu hình, logic thuật toán | `ServiceConfigurationError`, provider không thấy | `ClassNotFoundException`, `NoSuchMethodException`, `IllegalAccessException`... | Generator/build mismatch, output lỗi thời |
-| Hiệu năng | Lời gọi đa hình thông thường | Lời gọi interface + chọn strategy | Chi phí discovery/provider creation, sau đó gọi interface | Lookup/invoke động, có thể cache | Build cost hoặc runtime generation cost; thường giảm xử lý lặp |
-| Linh hoạt sau build | Phụ thuộc wiring | Đổi giữa strategy có sẵn | Thêm provider qua cấu hình/module/class loader phù hợp | Có thể xử lý class/metadata chưa biết trước | Build generation cần rebuild; runtime generation linh hoạt hơn |
-| Độ phức tạp vận hành | Thấp | Thấp đến vừa | Resource/module/loader/provider lifecycle | Access, lỗi runtime, security, module, classloader | Build pipeline, generated code, debug, versioning |
+| Client-facing contract | Compile-time interface/type | Shared algorithm interface | Service interface/abstract class | May know only runtime names/metadata | Generator-created types/adapters |
+| Implementation selection | Hardcoded, injected, or factory | Registry/context/runtime policy | Provider registration and discovery | Class names, metadata, loaders, custom rules | Build/schema/processor or runtime generator |
+| Auto-discovers self-registered plugin JARs? | Not built in | Not built in | Yes, when JARs/modules and provider configs are visible | Can build discovery logic, though `Class.forName` alone does not scan plugins | Not built in if build-time generation only |
+| Refactor-safe | High | High on API; registry keys need management | High on interface; provider configs must stay valid | Brittle at runtime when using strings | High with generated typed APIs, depending on generator quality |
+| Arbitrary metadata | Limited to contract | Limited to contract | Can use external metadata to select | Strong: fields/methods/annotations | Can extract at build time or generate indexes |
+| Typical errors | Compile/type mismatch | Wrong key/config, algorithm logic | `ServiceConfigurationError`, invisible provider | `ClassNotFoundException`, `NoSuchMethodException`, `IllegalAccessException`... | Generator/build mismatch, stale output |
+| Performance | Ordinary polymorphic call | Interface call + strategy lookup | Discovery/provider creation cost, then interface call | Dynamic lookup/invoke; cacheable | Build cost or runtime generation cost; often reduces repeated work |
+| Post-build flexibility | Depends on wiring | Switch among existing strategies | Add providers via config/modules/class loaders | Can handle previously unknown classes/metadata | Build generation needs rebuild; runtime generation is more flexible |
+| Operational complexity | Low | Low to moderate | Resource/module/loader/provider lifecycle | Access, runtime errors, security, modules, classloaders | Build pipeline, generated code, debugging, versioning |
 
-**Không có thứ hạng hiệu năng hay tính linh hoạt tuyệt đối.** Một ServiceLoader có thể dùng Reflection/constructor nội bộ để tạo provider, trong khi lời gọi sau đó qua interface. Một framework codegen có thể tạo class vào runtime và dùng Reflection để discover metadata ở bước đầu. Đo đúng phần việc người dùng quan tâm trước khi thay kiến trúc.
+**There is no absolute ranking of performance or flexibility.** A ServiceLoader may internally use Reflection/constructors to instantiate providers while subsequent calls go through an interface. A codegen framework may generate classes at runtime and use Reflection for initial metadata discovery. Measure the actual workload you care about before changing architecture.
 
-## 9. Chọn giải pháp qua các câu hỏi thực tế
+## 9. Choosing a Solution via Practical Questions
 
-### 9.1. “Tôi đã biết method cần gọi ở compile time”
+### 9.1. "I already know the method to call at compile time"
 
-**Chọn interface/lời gọi Java trực tiếp.** Nếu có nhiều implementation đổi được, dùng Strategy với factory/registry hoặc DI. Reflection chỉ để gọi một method cố định thường làm mất type safety mà không đem lại khả năng hữu ích.
+**Choose an interface / direct Java call.** If multiple swappable implementations exist, use Strategy with a factory/registry or DI. Using Reflection merely to call a fixed method sacrifices type safety without adding useful capability.
 
-### 9.2. “Tôi có nhiều thuật toán, mỗi request chọn một cái”
+### 9.2. "I have multiple algorithms and pick one per request"
 
-**Chọn Strategy** với interface chung, registry ID có kiểm tra và chính sách fallback. Nếu thuật toán được tiêm bởi framework, vẫn là cùng ý tưởng đa hình. Không cần tạo class dựa theo tên bất kỳ từ user input.
+**Choose Strategy** with a common interface, validated registry IDs, and a fallback policy. If algorithms are injected by a framework, it is still the same polymorphism idea. There is no need to instantiate classes from arbitrary user-supplied names.
 
-### 9.3. “Người viết plugin đóng gói JAR riêng, app chỉ biết service interface”
+### 9.3. "Plugin authors package separate JARs; the app knows only the service interface"
 
-**Chọn ServiceLoader** hoặc một plugin framework tương đương. Định nghĩa rõ contract, provider metadata, version compatibility và class loader. Dùng Strategy registry phía trên nếu cần chọn provider theo ID, priority hoặc quyền người dùng.
+**Choose ServiceLoader** or an equivalent plugin framework. Clearly define contracts, provider metadata, version compatibility, and class loaders. Layer a Strategy registry on top if you need to select providers by ID, priority, or user permissions.
 
-### 9.4. “Tôi cần đọc field/method/annotation của những class không có interface chung”
+### 9.4. "I need to read fields/methods/annotations of classes with no shared interface"
 
-**Chọn Reflection** khi cần inspect runtime class, kết hợp cache `ClassValue` hoặc các descriptor đã phân tích khi thao tác lặp lại. Tách bước khám phá khỏi hot path và kiểm soát quyền truy cập/module.
+**Choose Reflection** when runtime class inspection is required, paired with `ClassValue` caches or parsed descriptors when operations repeat. Separate discovery from hot paths and enforce access/module boundaries.
 
-### 9.5. “Tôi có schema/type ổn định, throughput cao, xử lý Reflection lặp lại nhiều”
+### 9.5. "I have stable schemas/types, high throughput, and heavy repeated Reflection"
 
-**Cân nhắc code generation** cho accessor/mapper/serializer/dispatcher nếu profiling xác nhận bottleneck. Đảm bảo generator kiểm tra schema, build tái tạo được artifact và có test tương thích. Nếu lớp chỉ xuất hiện sau build, cân nhắc runtime generation, metadata caching hoặc giải pháp hỗn hợp.
+**Consider code generation** for accessors/mappers/serializers/dispatchers if profiling confirms a bottleneck. Ensure the generator validates schemas, builds produce reproducible artifacts, and compatibility tests exist. If classes appear only after build time, consider runtime generation, metadata caching, or a hybrid approach.
 
-### 9.6. “Tôi phải chạy native image hoặc môi trường đóng”
+### 9.6. "I must run in a native image or closed environment"
 
-Ưu tiên thiết kế có **danh sách dependency/type có thể phân tích trước**. Interface và generated code thường dễ kiểm soát; Reflection và dynamic loading có thể cần khai báo metadata/registration bổ sung theo runtime. `ServiceLoader` có thể được hỗ trợ bởi native-image tooling theo cách riêng; phải kiểm thử build thực tế, không mặc định cứ dùng SPI là tự hoạt động như JVM truyền thống.
+Favor designs with **statically analyzable dependency/type lists**. Interfaces and generated code are usually easier to control; Reflection and dynamic loading may require runtime-specific metadata/registration declarations. `ServiceLoader` may be supported by native-image tooling in specific ways; test the actual build rather than assuming SPI behaves identically to a traditional JVM.
 
-## 10. Kết hợp các kỹ thuật cho đúng ranh giới
+## 10. Combining Techniques Along the Right Boundaries
 
-Kiến trúc plugin thực tế có thể đi qua các bước:
+A practical plugin architecture can follow these steps:
 
 ```text
-Client -> Transform interface (hợp đồng ổn định)
+Client -> Transform interface (stable contract)
                  |
                  v
           Strategy registry
@@ -414,68 +414,68 @@ Client -> Transform interface (hợp đồng ổn định)
                        Transform.apply(...)
 ```
 
-Trong quá trình khởi động, chương trình:
+During startup, the program:
 
-1. Tạo registry từ implementation sẵn có.
-2. Dùng `ServiceLoader` tìm provider mới, kiểm tra ID và capability, tránh trùng key.
-3. Đưa provider vào registry dưới interface chung.
-4. Khi request tới, chọn strategy theo ID đã được allowlist và gọi interface.
-5. Nếu framework còn cần đọc annotation/schema của provider, dùng Reflection **một lần ở bước khám phá**, lưu metadata đã kiểm tra, không bắt mọi request scan lại.
+1. Builds a registry from built-in implementations.
+2. Uses `ServiceLoader` to locate new providers, validating IDs and capabilities while avoiding duplicate keys.
+3. Registers providers under the shared interface.
+4. When requests arrive, selects a strategy by allowlisted ID and invokes the interface.
+5. If the framework also needs to read provider annotations/schemas, it uses Reflection **once during discovery**, caches validated metadata, and never forces every request to rescan.
 
-Nếu serialization/model binding là tác vụ nặng theo schema cố định, build tool có thể tạo adapter rồi đăng ký adapter như một provider. Như vậy **code generation và ServiceLoader không mâu thuẫn**, và Reflection có thể đóng vai trò discovery/validation thay vì nằm trên mọi invocation.
+If serialization/model binding is heavy on fixed schemas, the build tool can generate adapters and register each adapter as a provider. Thus **code generation and ServiceLoader do not conflict**, and Reflection can serve discovery/validation instead of sitting on every invocation.
 
-## 11. Rủi ro thường gặp và cách xử lý
+## 11. Common Risks and How to Handle Them
 
-**Lỗi 1 — Dùng `Class.forName(userInput)` như registry plugin.** Có thể nạp/khởi tạo class ngoài ý muốn và làm khó kiểm soát phiên bản. Nên định nghĩa contract, kiểm tra ID implementation được phép, thực hiện discovery tường minh và bảo vệ class loader.
+**Mistake 1 — Using `Class.forName(userInput)` as a plugin registry.** This can load/initialize unintended classes and make version control difficult. Define contracts, validate allowed implementation IDs, perform explicit discovery, and protect class loaders.
 
-**Lỗi 2 — Nghĩ interface tự có dynamic discovery.** Interface chỉ là hợp đồng. Muốn plugin được phát hiện, cần `ServiceLoader`, DI/container registration hoặc cơ chế riêng.
+**Mistake 2 — Thinking interfaces provide dynamic discovery automatically.** An interface is only a contract. To discover plugins, you need `ServiceLoader`, DI/container registration, or a dedicated mechanism.
 
-**Lỗi 3 — Nghĩ Strategy bắt buộc có Reflection.** Strategy chỉ cần các object implement interface chung. Ví dụ Map registry không dùng Reflection để gọi method.
+**Mistake 3 — Thinking Strategy requires Reflection.** Strategy needs only objects implementing a shared interface. The Map registry example uses zero Reflection to invoke methods.
 
-**Lỗi 4 — Quên `META-INF/services` hoặc ghi sai binary name.** `ServiceLoader` không đọc ngẫu nhiên mọi file cấu hình. Xác minh tên file service, mỗi dòng provider, package, classpath/module path và cấu trúc JAR sau build.
+**Mistake 4 — Forgetting `META-INF/services` or writing the wrong binary name.** `ServiceLoader` does not read arbitrary config files. Verify the service file name, each provider line, packages, classpath/module path, and post-build JAR layout.
 
-**Lỗi 5 — Giả định ServiceLoader luôn trả một provider duy nhất/theo thứ tự xác định.** Nó có thể thấy nhiều provider. Nếu ứng dụng cần quyết định một provider, phải tự định nghĩa priority/ID/fallback có kiểm tra.
+**Mistake 5 — Assuming ServiceLoader always returns one unique provider in a deterministic order.** It may find multiple providers. If the app needs to pick one, define explicit validated priority/ID/fallback rules yourself.
 
-**Lỗi 6 — Dùng `Method.invoke` dù đã có interface.** Sau khi kiểm tra `asSubclass` hoặc ServiceLoader trả `Transform`, cứ gọi `transform.apply(...)` để có type safety.
+**Mistake 6 — Using `Method.invoke` even when an interface is already available.** After checking `asSubclass` or obtaining `Transform` from ServiceLoader, simply call `transform.apply(...)` for type safety.
 
-**Lỗi 7 — Đánh đồng code generation với hiệu năng luôn tốt hơn.** Nếu workload nhỏ, chi phí thêm processor/build/debug có thể vượt lợi ích; cần benchmark đúng môi trường.
+**Mistake 7 — Equating code generation with always-better performance.** For small workloads, the extra processor/build/debugging cost can outweigh gains; benchmark in the real environment.
 
-**Lỗi 8 — Bỏ qua API và class loader compatibility.** Plugin có thể compile theo một version contract khác runtime; ServiceLoader có thể ném `ServiceConfigurationError`, Reflection `ClassCastException` hoặc `LinkageError`. Quy định version/compatibility và test integration.
+**Mistake 8 — Ignoring API and class-loader compatibility.** A plugin may be compiled against a different contract version than runtime; ServiceLoader can throw `ServiceConfigurationError`, and Reflection can throw `ClassCastException` or `LinkageError`. Specify versioning/compatibility and run integration tests.
 
-**Lỗi 9 — Tưởng Reflection có thể vượt mọi access rule.** `getDeclaredMethod` tìm private member nhưng khả năng gọi vẫn phụ thuộc Java access control và module openness. Không thiết kế plugin contract dựa vào việc ép mở private method của thư viện bất kỳ.
+**Mistake 9 — Assuming Reflection can bypass all access rules.** `getDeclaredMethod` locates private members, yet invocation still depends on Java access control and module openness. Do not design plugin contracts around forcing access to private methods of arbitrary libraries.
 
-**Lỗi 10 — Để generated code thành nguồn sự thật khó cập nhật.** Định nghĩa schema/annotation contract rõ ràng, để build tạo code tái lập, không sửa tay generated files rồi hy vọng build sau giữ nguyên.
+**Mistake 10 — Letting generated code become a hard-to-update source of truth.** Define clear schema/annotation contracts, let builds regenerate code reproducibly, and never hand-edit generated files expecting subsequent builds to keep your edits.
 
-## 12. Checklist quyết định và đo lường
+## 12. Decision and Measurement Checklist
 
-Trước khi chọn, trả lời:
+Before choosing, answer:
 
-1. Cần biết **hành vi** hay cần biết **cấu trúc class**?
-2. Contract có ổn định ở compile time không?
-3. Implementation là built-in, lựa chọn sẵn có, hay plugin sẽ xuất hiện động?
-4. Cần discovery theo service ID hay theo cấu trúc annotation/field tùy ý?
-5. Startup time, hot-path latency, throughput và class loader unloading quan trọng thế nào?
-6. Ứng dụng chạy JVM thường, JPMS modular, native image hay container plugin?
-7. Ai sở hữu versioning, config validation, fallback và audit lỗi?
-8. Có profiling hoặc benchmark chứng minh Reflection là bottleneck cần thay bằng codegen không?
+1. Do you need **behavior** or **class structure**?
+2. Is the contract stable at compile time?
+3. Are implementations built-in, pre-selected, or dynamically added plugins?
+4. Do you need discovery by service ID or by arbitrary annotation/field structure?
+5. How important are startup time, hot-path latency, throughput, and class-loader unloading?
+6. Does the app run on a standard JVM, modular JPMS, native image, or plugin container?
+7. Who owns versioning, config validation, fallbacks, and error auditing?
+8. Is there profiling or benchmarking proving Reflection is a bottleneck worth replacing with codegen?
 
-Một cách triển khai kiểm soát được là bắt đầu từ **interface + Strategy**, mở discovery bằng **ServiceLoader** khi có plugin contract, dùng **Reflection** để xử lý metadata thật sự động, và chỉ chuyển phần ổn định/tốn chi phí sang **code generation** sau khi có số đo và test phù hợp.
+A controlled rollout path starts with **interface + Strategy**, opens discovery via **ServiceLoader** when a plugin contract exists, uses **Reflection** for truly dynamic metadata, and moves only stable/costly parts to **code generation** after proper measurements and tests.
 
-## 13. Câu hỏi tự kiểm tra
+## 13. Self-Check Questions
 
-1. **Interface và Strategy khác nhau thế nào?** — Interface quy định hợp đồng; Strategy là cách tổ chức nhiều thuật toán theo hợp đồng và chọn implementation runtime.
-2. **ServiceLoader có thay thế hoàn toàn Reflection được không?** — Không. Nó phát hiện provider của service contract, không tự phân tích cấu trúc field/method của class bất kỳ.
-3. **Có cần `Method.invoke` sau khi đã tạo được `Transform` bằng `Class.forName`?** — Không. Gọi `transform.apply(...)` qua interface.
-4. **Một provider ở classpath nhưng không có file `META-INF/services/<service binary name>` có tự được load không?** — Không theo cơ chế cấu hình classpath của ServiceLoader.
-5. **Code generation build time có tự nạp plugin class chỉ tồn tại sau khi đã đóng gói bản build không?** — Không. Nó phải biết schema/type ở build time, hoặc cần cơ chế khác ở runtime.
-6. **Nếu `ServiceLoader` provider bị lỗi cấu hình, có chắc `catch (Exception)` bắt được không?** — Không. `ServiceConfigurationError` là `Error`.
-7. **Nếu dùng Reflection để đọc metadata ở startup rồi cache adapter, lời gọi hot path phải luôn qua Reflection?** — Không. Có thể chuyển sang interface, generated adapter hoặc cấu trúc đã phân tích.
-8. **Vì sao benchmark quan trọng?** — Chi phí load provider, build cache, Reflection invoke và generated adapter khác nhau theo tình huống/JDK; không thể suy hiệu năng chỉ từ tên kỹ thuật.
+1. **How do Interface and Strategy differ?** — An interface defines the contract; Strategy organizes multiple implementations of that contract and selects one at runtime.
+2. **Can ServiceLoader completely replace Reflection?** — No. It discovers providers of a service contract; it does not inspect fields/methods of arbitrary classes.
+3. **Is `Method.invoke` needed after obtaining a `Transform` via `Class.forName`?** — No. Call `transform.apply(...)` through the interface.
+4. **Will a provider on the classpath without `META-INF/services/<service binary name>` load automatically?** — Not under ServiceLoader's classpath configuration mechanism.
+5. **Can build-time code generation automatically load plugin classes that exist only after the build is packaged?** — No. It needs schemas/types at build time, or else a different runtime mechanism is required.
+6. **If a `ServiceLoader` provider has broken configuration, is `catch (Exception)` guaranteed to catch it?** — No. `ServiceConfigurationError` is an `Error`.
+7. **If Reflection reads metadata at startup and caches adapters, must hot-path calls still go through Reflection?** — No. They can switch to interfaces, generated adapters, or parsed structures.
+8. **Why do benchmarks matter?** — Costs of loading providers, building caches, Reflection invocations, and generated adapters vary by scenario/JDK; performance cannot be deduced from technique names alone.
 
-## 14. Ghi nhớ
+## 14. Key Takeaways
 
-- **Interface** là hợp đồng compile time; **Strategy** chọn thuật toán theo hợp đồng đó ở runtime.
-- **ServiceLoader** thực hiện discovery các **provider được đăng ký**, không tự scan mọi class.
-- **Reflection** cho introspection và invocation linh hoạt khi cấu trúc chưa biết trước, đổi lại phải quản lý runtime name/signature, access, loader và exception.
-- **Code generation** tạo mã/metadata chuyên biệt ở build time hoặc runtime; đánh đổi tính linh hoạt, thời gian build, chi phí startup và khả năng debug.
-- **Kết hợp có kiểm soát** thường là phương án tốt: giao tiếp qua interface, dùng Strategy cho lựa chọn, ServiceLoader cho extension, Reflection cho khám phá metadata và codegen cho đoạn đã ổn định, có lợi ích đã đo.
+- **Interfaces** are compile-time contracts; **Strategy** selects an algorithm under that contract at runtime.
+- **ServiceLoader** performs discovery of **registered providers**, not arbitrary scanning of all classes.
+- **Reflection** provides flexible introspection and invocation when structure is unknown beforehand, in exchange for managing runtime names/signatures, access, loaders, and exceptions.
+- **Code generation** produces specialized code/metadata at build time or runtime, trading off flexibility, build time, startup cost, and debuggability.
+- A **controlled combination** is usually best: communicate via interfaces, use Strategy for selection, ServiceLoader for extensions, Reflection for metadata discovery, and codegen for stable paths with measured benefits.

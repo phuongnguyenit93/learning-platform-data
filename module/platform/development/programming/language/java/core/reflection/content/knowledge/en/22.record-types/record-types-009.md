@@ -1,149 +1,149 @@
-# Thiết kế công cụ ánh xạ hỗ trợ record và lớp thông thường
+# Designing a mapping tool supporting records and ordinary classes
 
-## 1. Cùng là dữ liệu đối tượng, nhưng cách tạo khác nhau
+## 1. Same object data, different creation paths
 
-Một công cụ ánh xạ thường nhận dữ liệu có tên thuộc tính rồi tạo một đối tượng Java. Ví dụ:
+A mapping tool typically takes property-named data and creates a Java object. Example:
 
 ~~~text
 {name: " Linh ", age: 20}
-    -> đối tượng học viên
+    -> student object
 ~~~
 
-Nếu đối tượng đích là một lớp JavaBean có constructor không tham số và setter, công cụ có thể tạo đối tượng trước rồi gán từng thuộc tính.
+If the target type is a JavaBean class with a no-argument constructor and setters, the tool can instantiate the object first and then assign each property.
 
-Nếu đối tượng đích là record, cách làm phù hợp là chuẩn bị đầy đủ đối số rồi gọi **canonical constructor**. Các thành phần record không có setter để dùng theo mô hình JavaBean thông thường.
+If the target type is a record, the appropriate approach is preparing all arguments and invoking the **canonical constructor**. Record components do not have setters to use in the conventional JavaBean model.
 
-Vì vậy, không nên thiết kế một thuật toán duy nhất theo dạng:
+Therefore, do not design a single algorithm in the form:
 
 ~~~text
-Tạo đối tượng rỗng
-    -> tìm mọi field
-    -> mở truy cập
-    -> ghi giá trị vào từng field
+Create empty object
+    -> find every field
+    -> open access
+    -> write values into each field
 ~~~
 
-Thuật toán đó vừa bỏ qua giao diện của lớp thường, vừa không phù hợp với trường thành phần của record. Trường thành phần record là `private final`; Reflection không cho dùng việc mở truy cập để tùy ý ghi lại các trường final của lớp record. Quy tắc ghi trường được mô tả tại [Field.set](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Field.html#set(java.lang.Object,java.lang.Object)).
+That algorithm both bypasses the interface of ordinary classes and is incompatible with record component fields. Record component fields are `private final`; Reflection does not allow using accessibility overrides to arbitrarily rewrite final fields of record classes. Field-writing rules are described at [Field.set](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Field.html#set(java.lang.Object,java.lang.Object)).
 
-Thiết kế tốt hơn là **dùng chung mô hình thuộc tính và quy tắc kiểm tra**, nhưng có **chiến lược tạo đối tượng phù hợp với từng loại đích**.
+A better design is **sharing a common property model and validation rules**, while having **an object-creation strategy suited to each target kind**.
 
-## 2. Xác định hợp đồng hỗ trợ trước khi viết Reflection
+## 2. Define the supported contract before writing Reflection
 
-“Lớp thông thường” bao gồm nhiều thiết kế: JavaBean có setter, lớp bất biến chỉ có constructor, lớp dùng builder, lớp có factory tĩnh hoặc lớp có trường công khai. Không có một thuật toán suy đoán duy nhất phù hợp với mọi loại.
+"Ordinary classes" cover many designs: JavaBeans with setters, immutable classes with constructors only, classes using builders, classes with static factories, or classes with public fields. No single guessing algorithm fits every kind.
 
-Bài học xây dựng một mapper hai chiều:
+This lesson builds a bidirectional mapper:
 
 ~~~text
-Map<String, ?> -> đối tượng
-đối tượng      -> Map<String, Object>
+Map<String, ?> -> object
+object         -> Map<String, Object>
 ~~~
 
-Hợp đồng cụ thể của ví dụ:
+Concrete contract of the example:
 
-| Đích | Cách khám phá | Cách tạo | Cách đọc |
+| Target | Discovery approach | Creation approach | Reading approach |
 | --- | --- | --- | --- |
-| Record công khai | `getRecordComponents()` | Canonical constructor công khai | Accessor của từng component |
-| JavaBean công khai | `Introspector` và `PropertyDescriptor` | Constructor công khai không tham số, sau đó gọi setter | Getter của từng thuộc tính |
+| Public record | `getRecordComponents()` | Public canonical constructor | Accessor of each component |
+| Public JavaBean | `Introspector` and `PropertyDescriptor` | Public no-argument constructor, then call setters | Getter of each property |
 
-Với nhánh JavaBean, ví dụ yêu cầu các thuộc tính được phát hiện đều đọc và ghi được. Nó từ chối thuộc tính chỉ đọc, chỉ ghi, chỉ truy cập theo chỉ số hoặc accessor tĩnh.
+For the JavaBean branch, the example requires all discovered properties to be both readable and writable. It rejects read-only properties, write-only properties, indexed-only properties, or static accessors.
 
-Các giá trị đầu vào đã ở dạng đối tượng Java có kiểu phù hợp. Ví dụ không tự chuyển chuỗi `"20"` thành số, không ánh xạ đệ quy một map lồng nhau thành đối tượng con và không xác minh từng phần tử của một collection generic.
+Input values are already Java objects of appropriate types. The example does not automatically convert the string `"20"` to a number, does not recursively map a nested map into a sub-object, and does not verify every element of a generic collection.
 
-Đó là hợp đồng có chủ đích để thấy rõ kiến trúc. Khi mở rộng, hãy bổ sung chiến lược hoặc bộ chuyển đổi tương ứng, thay vì làm nhánh Reflection âm thầm đoán nhiều cách khác nhau.
+That is an intentional contract so the architecture stays clear. When extending it, add corresponding strategies or converters instead of making the Reflection branch silently guess in multiple ways.
 
-## 3. Tách giai đoạn khảo sát và giai đoạn xử lý dữ liệu
+## 3. Separating the inspection phase and the data-processing phase
 
-Một lần ánh xạ nên có các trách nhiệm rõ ràng:
+A mapping pass should have clear responsibilities:
 
-1. **Khảo sát kiểu đích:** nhận diện record hoặc mô hình JavaBean.
-2. **Lập kế hoạch:** lưu tên, kiểu và phương thức truy cập cho từng thuộc tính; xác định constructor.
-3. **Kiểm tra dữ liệu đầu vào:** khóa lạ, khóa thiếu, `null`, kiểu giá trị.
-4. **Tạo đối tượng:** gọi constructor theo chiến lược đã chọn.
-5. **Gán thuộc tính nếu cần:** chỉ ở nhánh JavaBean.
-6. **Báo lỗi có ngữ cảnh:** giữ tên thuộc tính hoặc vị trí constructor cùng nguyên nhân.
+1. **Inspect target type:** identify record or JavaBean model.
+2. **Build a plan:** store name, type, and access methods for each property; identify the constructor.
+3. **Validate input data:** unknown keys, missing keys, `null`, value types.
+4. **Instantiate object:** invoke the constructor according to the chosen strategy.
+5. **Assign properties if needed:** only in the JavaBean branch.
+6. **Report contextual errors:** preserve property name or constructor position along with the cause.
 
-Metadata không đổi theo từng map dữ liệu. Vì vậy có thể xây một đối tượng mapper cho một `Class<T>`, lập kế hoạch một lần rồi tái sử dụng nó.
+Metadata does not change per data map. Therefore you can build one mapper object for a `Class<T>`, plan once, and reuse it.
 
-Trong ví dụ, mô hình thuộc tính chung là:
+In the example, the common property model is:
 
 ~~~java
 record Property(String name, Class<?> type, Method reader, Method writer) {
 }
 ~~~
 
-Đây là phần trích từ chương trình sau; cần import `java.lang.reflect.Method` khi dùng độc lập trong một tệp.
+This is an excerpt from the program below; `import java.lang.reflect.Method` is needed when used standalone in a file.
 
-- Record có `reader` là accessor và không có `writer`.
-- JavaBean có `reader` là getter, `writer` là setter.
-- Tên và kiểu được dùng chung cho kiểm tra dữ liệu.
-- Cách tạo đối tượng được giữ ở kế hoạch của mapper, không suy ra từ việc `writer` có tồn tại cho từng thuộc tính riêng lẻ.
+- A record has `reader` as the accessor and no `writer`.
+- A JavaBean has `reader` as the getter and `writer` as the setter.
+- Name and type are shared for data validation.
+- The object-creation approach is kept in the mapper's plan, not inferred from whether `writer` exists on each individual property.
 
-## 4. Nhánh record: chuẩn bị đối số rồi gọi constructor
+## 4. Record branch: prepare arguments then call the constructor
 
-Metadata thành phần record cho biết tên, kiểu và thứ tự khai báo. [Class.getRecordComponents](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html#getRecordComponents()) bảo đảm thứ tự các thành phần theo phần đầu record.
+Record component metadata provides name, type, and declaration order. [Class.getRecordComponents](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html#getRecordComponents()) guarantees component order according to the record header.
 
-Đối với:
+For:
 
 ~~~java
 public record StudentRecord(String name, int age) {
 }
 ~~~
 
-chữ ký canonical constructor dùng thứ tự:
+the canonical constructor signature uses the order:
 
 ~~~text
 (String, int)
 ~~~
 
-Dù map đầu vào duyệt `age` trước `name`, công cụ vẫn phải tạo mảng đối số theo **thứ tự thành phần record**, không theo thứ tự của map.
+Even if the input map iterates `age` before `name`, the tool must still build the argument array in **record component order**, not map order.
 
-Quy trình là:
-
-~~~text
-component name -> lấy giá trị theo khóa "name" -> đối số 0
-component age  -> lấy giá trị theo khóa "age"  -> đối số 1
-    -> gọi canonical constructor
-~~~
-
-Những điểm cần tránh:
-
-- Không chọn constructor đầu tiên trong `getDeclaredConstructors()`.
-- Không yêu cầu record có constructor không tham số.
-- Không suy tên thuộc tính từ `getX()`; accessor record thường tên `x()`.
-- Không tạo record rồi cố ghi trực tiếp trường thành phần.
-- Không bỏ qua canonical hoặc compact constructor, vì đây có thể là nơi kiểm tra và chuẩn hóa dữ liệu.
-
-Constructor trong ví dụ chuẩn hóa tên bằng `strip()` và từ chối tuổi âm. Mapper phải thực thi logic đó khi tạo record.
-
-## 5. Nhánh JavaBean: dùng mô tả thuộc tính thay vì đoán tên field
-
-`Introspector` khảo sát các thuộc tính JavaBean. Mỗi `PropertyDescriptor` có thể cung cấp kiểu, phương thức đọc và phương thức ghi.
-
-Ví dụ:
+The flow is:
 
 ~~~text
-getName() / setName(String) -> thuộc tính name
-getAge()  / setAge(int)     -> thuộc tính age
+component name -> get value by key "name" -> argument 0
+component age  -> get value by key "age"  -> argument 1
+    -> invoke canonical constructor
 ~~~
 
-Công cụ không cần ghi vào trường `private name` hoặc `private age`. Nó dùng giao diện getter/setter, nhờ đó logic kiểm tra trong setter vẫn được thực thi.
+Things to avoid:
 
-Ví dụ gọi:
+- Do not pick the first constructor in `getDeclaredConstructors()`.
+- Do not require a record to have a no-argument constructor.
+- Do not infer property names from `getX()`; record accessors are normally named `x()`.
+- Do not instantiate a record and then try to write component fields directly.
+- Do not bypass the canonical or compact constructor, because this may be where data validation and normalization live.
+
+The constructor in the example normalizes the name with `strip()` and rejects negative ages. The mapper must execute that logic when creating the record.
+
+## 5. JavaBean branch: use property descriptors instead of guessing field names
+
+`Introspector` inspects JavaBean properties. Each `PropertyDescriptor` can provide the type, read method, and write method.
+
+Example:
+
+~~~text
+getName() / setName(String) -> property name
+getAge()  / setAge(int)     -> property age
+~~~
+
+The tool does not need to write to private fields `name` or `age`. It uses the getter/setter interface, so validation logic inside setters is still executed.
+
+Call example:
 
 ~~~java
 Introspector.getBeanInfo(type, Object.class)
 ~~~
 
-để dừng trước `Object`, tránh coi thuộc tính suy ra từ `getClass()` là dữ liệu của mô hình.
+to stop before `Object`, avoiding treating the property inferred from `getClass()` as model data.
 
-Tài liệu [Introspector](https://docs.oracle.com/en/java/javase/21/docs/api/java.desktop/java/beans/Introspector.html) và [PropertyDescriptor](https://docs.oracle.com/en/java/javase/21/docs/api/java.desktop/java/beans/PropertyDescriptor.html) mô tả các điểm vào này.
+The [Introspector](https://docs.oracle.com/en/java/javase/21/docs/api/java.desktop/java/beans/Introspector.html) and [PropertyDescriptor](https://docs.oracle.com/en/java/javase/21/docs/api/java.desktop/java/beans/PropertyDescriptor.html) documentation describes these entry points.
 
-Các thuộc tính JavaBean được ví dụ sắp xếp theo tên để có thứ tự ổn định. Thứ tự đó phục vụ kế hoạch và kết quả trình bày; không phải thứ tự khai báo trường của lớp.
+JavaBean properties in the example are sorted by name for a stable order. That order serves the plan and presentation output; it is not the class's field declaration order.
 
-Vì sử dụng `java.beans`, chương trình cần module `java.desktop`, có trong JDK đầy đủ. Nếu chuyển sang một dự án dùng `module-info.java`, module của chương trình cần khai báo `requires java.desktop;`.
+Because it uses `java.beans`, the program requires the `java.desktop` module, included in the full JDK. If moved into a project using `module-info.java`, the program's module must declare `requires java.desktop;`.
 
-## 6. Chương trình hoàn chỉnh
+## 6. Complete program
 
-Lưu vào `DualModelMapperDemo.java`:
+Save into `DualModelMapperDemo.java`:
 
 ~~~java
 import java.beans.IntrospectionException;
@@ -408,14 +408,14 @@ public class DualModelMapperDemo {
 }
 ~~~
 
-Biên dịch và chạy trên classpath thông thường với JDK 17 trở lên:
+Compile and run on the standard classpath with JDK 17 or later:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 DualModelMapperDemo.java
 java DualModelMapperDemo
 ~~~
 
-Kết quả chính xác:
+Exact output:
 
 ~~~text
 record: StudentRecord[name=Linh, age=20]
@@ -432,21 +432,21 @@ bean validation: StudentBean.age: IllegalArgumentException
 bean validation cause: IllegalArgumentException
 ~~~
 
-Trong ví dụ, tất cả các kiểu mô hình và phương thức mà mapper gọi đều công khai, truy cập được trong môi trường chạy. Mapper không tự mở truy cập sâu bằng `setAccessible(true)`.
+In the example, all model types and methods called by the mapper are public and accessible in the runtime environment. The mapper does not force deep access with `setAccessible(true)`.
 
-## 7. Đọc thiết kế qua kết quả thực thi
+## 7. Reading the design through the execution results
 
-### 7.1. Hai mô hình dùng chung dữ liệu đầu vào
+### 7.1. Both models share the same input data
 
-Map được đưa vào theo thứ tự `age`, rồi `name`. Record vẫn được tạo đúng vì đối số constructor được chuẩn bị theo metadata thành phần, không theo thứ tự map.
+The map is supplied in the order `age`, then `name`. The record is still created properly because constructor arguments are prepared in component metadata order, not map order.
 
-Cả compact constructor của record và setter `setName` của JavaBean đều loại khoảng trắng ở hai đầu. Kết quả tên là `Linh`, không còn hai khoảng trắng ban đầu.
+Both the record's compact constructor and the JavaBean's `setName` setter strip leading and trailing whitespace. The resulting name is `Linh`, without the two original spaces.
 
-Điều này chứng minh mapper đi qua hành vi khởi tạo hoặc hành vi gán mà mô hình đã định nghĩa. Nó không bỏ qua logic đó bằng cách ghi thẳng vào trường.
+This proves the mapper goes through the initialization or assignment behavior defined by the model. It does not bypass that logic by writing directly into fields.
 
-### 7.2. Map xuất ra có thể khác thứ tự mà vẫn bằng nhau
+### 7.2. Output maps can differ in order and still be equal
 
-Kết quả:
+Output:
 
 ~~~text
 record map: {name=Linh, age=20}
@@ -454,171 +454,171 @@ bean map: {age=20, name=Linh}
 maps equal: true
 ~~~
 
-Nhánh record giữ thứ tự thành phần `name, age`. Nhánh JavaBean sắp xếp thuộc tính theo tên `age, name`.
+The record branch preserves the component order `name, age`. The JavaBean branch sorts properties by name `age, name`.
 
-Hai map có cùng cặp khóa/giá trị nên `Map.equals` cho `true`. Không nên đánh đồng thứ tự trình bày với sự tương đương của dữ liệu map.
+The two maps have the same key/value pairs, so `Map.equals` returns `true`. Do not equate presentation order with equivalence of map data.
 
-Nếu giao thức đầu ra yêu cầu một thứ tự chung cho cả hai mô hình, hãy thiết kế quy tắc đầu ra riêng. Không đổi thứ tự đối số canonical constructor để đạt mục đích trình bày.
+If an output protocol requires a common order for both models, design a separate output rule. Do not change the canonical constructor argument order for presentation purposes.
 
-### 7.3. Khóa thiếu và null phải được phân biệt
+### 7.3. Missing keys and null must be distinguished
 
-Mapper dùng:
+The mapper uses:
 
 ~~~java
 source.containsKey(property.name())
 ~~~
 
-trước khi đọc giá trị.
+before reading the value.
 
-Vì vậy, hai trường hợp sau không bị nhập làm một:
+Therefore, the following two cases are not conflated:
 
 ~~~text
-Không có khóa age
-Có khóa age nhưng giá trị là null
+No key age
+Key age is present, but value is null
 ~~~
 
-Ví dụ chọn chính sách nghiêm ngặt:
+The example chooses a strict policy:
 
-- Mọi thuộc tính trong kế hoạch đều phải có khóa.
-- `null` bị từ chối nếu kiểu đích là primitive.
-- `null` có thể qua bước kiểm tra kiểu của mapper nếu kiểu đích là tham chiếu.
-- Constructor hoặc setter vẫn có thể từ chối `null` theo quy tắc của mô hình.
+- Every property in the plan must have a key.
+- `null` is rejected if the target type is primitive.
+- `null` can pass the mapper's type check if the target type is a reference type.
+- The constructor or setter can still reject `null` according to the model's rules.
 
-Không tự dùng `0` cho một khóa primitive bị thiếu, cũng không tự bỏ qua khóa thiếu ở JavaBean chỉ vì đối tượng mới có một giá trị mặc định.
+Do not automatically use `0` for a missing primitive key, nor automatically ignore a missing key on a JavaBean just because a new object has a default value.
 
-### 7.4. Kiểu dữ liệu được kiểm tra trước khi tạo đối tượng
+### 7.4. Data types are checked before creating the object
 
-`BOXES` ánh xạ kiểu primitive sang wrapper tương ứng, chẳng hạn `int.class -> Integer.class`. Giá trị `Integer` được chấp nhận cho thuộc tính `int`, còn chuỗi `"20"` bị từ chối.
+`BOXES` maps primitive types to their corresponding wrappers, such as `int.class -> Integer.class`. An `Integer` value is accepted for an `int` property, while the string `"20"` is rejected.
 
-Chính sách trong ví dụ yêu cầu wrapper tương ứng chính xác cho primitive; nó không tự cho `Byte` đi vào `int` dù một số thao tác Reflection có thể hỗ trợ chuyển đổi mở rộng primitive.
+The policy in the example requires the exact matching wrapper for a primitive; it does not let a `Byte` pass into `int` even though some Reflection operations can support primitive widening conversions.
 
-Với kiểu tham chiếu, phép kiểm tra dùng `Class.isInstance(...)`. Giá trị là một lớp con hoặc một triển khai interface phù hợp có thể được chấp nhận.
+For reference types, the check uses `Class.isInstance(...)`. A value that is a subclass or compatible interface implementation can be accepted.
 
-Đây là kiểm tra theo token kiểu sau xóa kiểu. Nó không chứng minh rằng mọi phần tử của một `List<String>` thực sự là `String`. Muốn xử lý generic, cần giữ và phân tích thêm `Type`, rồi xác định chính sách kiểm tra hoặc chuyển đổi dữ liệu ở từng cấp.
+This is a check against erased type tokens. It does not prove that every element of a `List<String>` is actually a `String`. To handle generics, you must retain and analyze `Type` as well, then define a checking or conversion policy at each level.
 
-## 8. Giữ nguyên nhân lỗi và vị trí xảy ra
+## 8. Preserving error causes and where they occurred
 
-Các lỗi đầu vào như khóa thiếu, khóa lạ và sai kiểu được phát hiện trước bước gọi constructor.
+Input errors such as missing keys, unknown keys, and wrong types are caught before the constructor call step.
 
-Với lỗi phát sinh trong hành vi của mô hình, Reflection thường bọc ngoại lệ bằng `InvocationTargetException`. Hàm `failure(...)` lấy nguyên nhân gốc và giữ nó làm `cause` của `MappingException`.
+For errors originating inside the model's behavior, Reflection typically wraps the exception in `InvocationTargetException`. The `failure(...)` method unwraps the root cause and keeps it as the `cause` of `MappingException`.
 
-Do đó, hai lỗi kiểm tra tuổi âm được định vị khác nhau:
+Thus, the two negative-age validation errors are localized differently:
 
 ~~~text
 StudentRecord.<init>: IllegalArgumentException
 StudentBean.age: IllegalArgumentException
 ~~~
 
-Ở record, lỗi xuất phát từ constructor. Ở JavaBean, lỗi xuất phát từ setter thuộc tính `age`.
+In the record, the error comes from the constructor. In the JavaBean, the error comes from the setter of property `age`.
 
-Thông tin này hữu ích hơn việc chỉ báo “ánh xạ thất bại”. Khi mở rộng sang dữ liệu lồng nhau, đường dẫn lỗi nên có thêm ngữ cảnh, ví dụ `student.address.city` hoặc `students[2].age`.
+This information is more useful than merely reporting "mapping failed." When extending to nested data, the error path should include additional context, such as `student.address.city` or `students[2].age`.
 
-Cũng cần tách các nhóm:
+You should also separate categories:
 
-| Nhóm lỗi | Ví dụ |
+| Error category | Example |
 | --- | --- |
-| Mô hình đích không thuộc hợp đồng | Enum, lớp trừu tượng, JavaBean có thuộc tính chỉ đọc |
-| Không lập được kế hoạch | Thiếu constructor phù hợp hoặc lỗi introspection |
-| Dữ liệu đầu vào không phù hợp | Thiếu khóa, khóa lạ, sai kiểu, `null` cho primitive |
-| Hành vi mô hình từ chối dữ liệu | Compact constructor hoặc setter ném ngoại lệ |
-| Điều kiện truy cập không thỏa | Constructor hoặc phương thức không gọi được từ môi trường hiện tại |
+| Target model outside contract | Enum, abstract class, JavaBean with a read-only property |
+| Unable to build plan | Missing matching constructor or introspection error |
+| Unsuitable input data | Missing key, unknown key, wrong type, `null` for primitive |
+| Model behavior rejects data | Compact constructor or setter throws an exception |
+| Unsatisfied access condition | Constructor or method cannot be invoked from the current environment |
 
-Không nuốt nguyên nhân gốc và trả về một đối tượng mặc định có vẻ hợp lệ. Việc đó làm người dùng công cụ khó biết dữ liệu đã bị bỏ qua hay đối tượng chỉ được khởi tạo một phần.
+Do not swallow the root cause and return a seemingly valid default object. That makes it hard for tool users to tell whether data was skipped or an object was only partially initialized.
 
-## 9. Kiểm tra trước không có nghĩa thao tác là giao dịch
+## 9. Pre-checking does not mean the operation is transactional
 
-Ví dụ kiểm tra tên khóa và kiểu của toàn bộ dữ liệu trước khi tạo đối tượng. Nhờ đó, một chuỗi sai kiểu ở thuộc tính cuối không khiến mapper gọi trước các setter của những thuộc tính đầu.
+The example validates key names and types of all data before creating the object. As a result, a mistyped string on the last property does not cause the mapper to call setters for earlier properties first.
 
-Tuy nhiên, kiểm tra nghiệp vụ vẫn diễn ra trong constructor hoặc setter:
+However, domain validation still happens inside constructors or setters:
 
-- Constructor có thể có tác động phụ rồi mới ném ngoại lệ.
-- Một setter có thể thành công, setter sau đó thất bại.
-- Getter dùng khi xuất map cũng có thể chứa logic hoặc ném ngoại lệ.
+- A constructor can perform side effects before throwing an exception.
+- One setter can succeed while a subsequent setter fails.
+- Getters used when exporting a map can also contain logic or throw exceptions.
 
-Mapper không hoàn tác các tác động phụ đó. Với JavaBean, khi setter thất bại, phương thức không trả về đối tượng đang tạo, nhưng điều này không tạo ra một bảo đảm giao dịch cho toàn bộ mã do lớp mô hình thực thi.
+The mapper does not roll back those side effects. With a JavaBean, when a setter fails, the method does not return the object being constructed, yet this does not create a transactional guarantee for all code executed by the model class.
 
-Nếu mô hình cần bảo đảm trạng thái hợp lệ ngay từ đầu, chiến lược tạo qua constructor hoặc factory với đầy đủ dữ liệu thường rõ ràng hơn việc gán tuần tự nhiều setter. Điều đó áp dụng cả cho lớp bất biến thông thường, không chỉ riêng record.
+If a model must guarantee valid state from the start, creating via a constructor or factory with complete data is usually clearer than assigning multiple setters sequentially. That applies to ordinary immutable classes too, not just records.
 
-Không sửa quy tắc dữ liệu của mô hình để thuận tiện cho mapper. Hãy chọn cách tạo phù hợp với hợp đồng mô hình.
+Do not alter a model's data rules for the mapper's convenience. Choose a creation approach that matches the model's contract.
 
-## 10. Các điểm mở rộng nên đặt thành chính sách riêng
+## 10. Extension points should be separate policies
 
-### 10.1. Chuyển đổi kiểu và dữ liệu lồng nhau
+### 10.1. Type conversion and nested data
 
-Có thể bổ sung một bộ chuyển đổi nhận giá trị nguồn, kiểu đích và đường dẫn hiện tại.
+You can add a converter taking the source value, target type, and current path.
 
-Ví dụ các nhiệm vụ cần quyết định riêng:
+Examples of tasks requiring dedicated decisions:
 
-- Chuỗi sang số: khoảng trắng, dấu, miền giá trị và tràn số.
-- Chuỗi sang enum: tên khai báo hay mã nghiệp vụ, chính sách khi không khớp.
-- Map sang đối tượng con: đệ quy theo đúng kiểu đích.
-- Danh sách phần tử: phân tích `ParameterizedType`, chuyển đổi từng phần tử và giữ chỉ số trong lỗi.
-- `Optional`, ngày giờ hoặc kiểu giá trị riêng: cách biểu diễn nguồn cụ thể.
+- String to number: whitespace, sign, value range, and overflow.
+- String to enum: declared name or business code, policy when unmatched.
+- Map to sub-object: recurse according to the target type.
+- List of elements: analyze `ParameterizedType`, convert each element, and keep the index in errors.
+- `Optional`, date-time, or custom value types: specific source representation.
 
-Không chỉ đưa thêm vài nhánh ép kiểu vào đoạn gọi constructor. Khi dữ liệu phức tạp hơn, chuyển đổi phải hoàn tất và được kiểm tra trước khi chuyển đối số cho chiến lược tạo.
+Do not merely add a few casting branches inside the constructor call site. When data is more complex, conversion must finish and be validated before passing arguments to the creation strategy.
 
-### 10.2. Lớp bất biến thông thường và factory
+### 10.2. Ordinary immutable classes and factories
 
-Một lớp thường có constructor nhiều tham số không nên bị coi là “record chưa được nhận diện”. Nó cần một chiến lược tạo khác, có quy tắc xác định constructor và ánh xạ tên tham số.
+An ordinary class with a multi-parameter constructor should not be treated as an "unrecognized record." It needs a separate creation strategy with rules for identifying the constructor and mapping parameter names.
 
-Có thể dùng cấu hình tường minh, annotation hoặc một factory được đăng ký. Với constructor thông thường, không mặc định tên tham số Reflection luôn là tên miền dữ liệu nếu chương trình không có metadata hoặc cấu hình phù hợp.
+Explicit configuration, annotations, or a registered factory can be used. For ordinary constructors, do not assume Reflection parameter names are always data domain names unless the program has appropriate metadata or configuration.
 
-Builder và factory tĩnh cũng nên là chiến lược riêng. Không tự thử hàng loạt constructor theo vị trí mảng rồi chọn lần gọi đầu tiên không ném lỗi.
+Builders and static factories should also be separate strategies. Do not try a series of constructors by array position and pick the first call that does not throw an error.
 
-### 10.3. Annotation và tên ánh xạ
+### 10.3. Annotations and mapped names
 
-Một công cụ thực tế có thể hỗ trợ tên đầu vào khác tên thuộc tính Java hoặc quy tắc kiểm tra dữ liệu bằng annotation.
+A real-world tool can support input names different from Java property names or data validation rules via annotations.
 
-Khi đó phải xác định rõ đọc annotation ở đâu:
+In that case, clearly specify where annotations are read:
 
 - Record component.
-- Trường lưu trữ.
+- Backing field.
 - Accessor.
-- Tham số canonical constructor.
-- Vị trí sử dụng kiểu.
+- Canonical constructor parameter.
+- Type use position.
 
-Đây là những vị trí metadata khác nhau. Không gộp mọi annotation tìm thấy rồi giả định chúng luôn có cùng ý nghĩa hoặc giá trị. Chính sách ưu tiên và xử lý xung đột cần thuộc hợp đồng mapper.
+These are distinct metadata locations. Do not merge every annotation found and assume they always carry the same meaning or value. Precedence and conflict-handling policies belong in the mapper's contract.
 
-### 10.4. Đối tượng lồng nhau và chu trình
+### 10.4. Nested objects and cycles
 
-Khi ánh xạ đệ quy, dữ liệu có thể chứa tham chiếu dùng chung hoặc chu trình. Cần xác định có bảo toàn định danh đối tượng hay chỉ sao chép giá trị.
+When mapping recursively, data can contain shared references or cycles. Decide whether to preserve object identity or only copy values.
 
-Record cần đủ đối số trước khi gọi canonical constructor, nên không thể mặc định mọi chu trình đều được xử lý bằng cách tạo đối tượng rỗng rồi ghi bù các trường sau. Nếu không hỗ trợ một cấu trúc chu trình, công cụ nên phát hiện và báo rõ theo đường dẫn dữ liệu.
+Records require all arguments before calling the canonical constructor, so you cannot assume every cycle can be handled by creating an empty object and patching fields afterward. If a cyclic structure is unsupported, the tool should detect it and report clearly along the data path.
 
-## 11. Kế hoạch metadata, tái sử dụng và giới hạn hiệu năng
+## 11. Metadata planning, reuse, and performance limits
 
-`Mapper<T>` trong chương trình khảo sát kiểu một lần khi được tạo. Mỗi lần `fromMap` hoặc `toMap` sử dụng lại danh sách thuộc tính và constructor đã lưu.
+`Mapper<T>` in the program inspects the type once when created. Each `fromMap` or `toMap` call reuses the stored property list and constructor.
 
-Đó là bước tối ưu có cơ sở: không cần introspection lại cùng một kiểu cho mỗi hàng dữ liệu.
+That is a sound optimization: there is no need to re-introspect the same type for every data row.
 
-Nếu bổ sung cache dùng chung, khóa phải phản ánh đúng đối tượng `Class<?>`, không chỉ tên lớp. Hai lớp cùng tên từ các class loader khác nhau có thể là những kiểu runtime khác nhau. Vòng đời cache cũng cần phù hợp với vòng đời class loader nếu ứng dụng có nạp hoặc tháo plugin.
+If adding a shared cache, keys must reflect the exact `Class<?>` object, not only the class name. Two classes with the same name from different class loaders can be different runtime types. Cache lifetime also needs to match class loader lifetime if the application loads or unloads plugins.
 
-Không kết luận mapper Reflection nhanh hoặc chậm chỉ từ một lần chạy chương trình mẫu. Chi phí có thể nằm ở khảo sát metadata, chuyển đổi dữ liệu, kiểm tra nghiệp vụ hoặc chính phương thức accessor. Đo trên công việc thực tế trước khi thay cách gọi bằng một cơ chế khác.
+Do not conclude that a Reflection mapper is fast or slow from a single sample program run. Cost can lie in metadata inspection, data conversion, domain validation, or the accessor methods themselves. Measure on real workloads before replacing calls with another mechanism.
 
-Map xuất ra trong ví dụ là bản sao cấu trúc khóa/giá trị ở mức ngoài. Các đối tượng tham chiếu bên trong vẫn có thể là cùng đối tượng mà getter/accessor trả về. Công cụ không tự sao chép sâu hoặc tạo một ảnh chụp nguyên tử của toàn bộ đồ thị dữ liệu.
+The output map in the example is a top-level copy of the key/value structure. Inner referenced objects can still be the exact same objects returned by getters/accessors. The tool does not automatically deep-copy or take an atomic snapshot of the entire data graph.
 
-## 12. Tự kiểm tra
+## 12. Self-check
 
-1. Vì sao không dùng cùng thuật toán “tạo rỗng rồi ghi field” cho JavaBean và record?
-2. Vì sao map đầu vào trong ví dụ đưa `age` trước `name` nhưng record vẫn được tạo đúng?
-3. Canonical constructor có cần được chọn theo constructor đầu tiên trong mảng Reflection không?
-4. Vì sao dùng `containsKey` thay vì chỉ kiểm tra `get(...) == null`?
-5. Chuỗi `"20"` có được chương trình tự chuyển thành `int` không?
-6. Khi tuổi âm, lỗi của record và JavaBean được báo ở các vị trí nào?
-7. Vì sao map xuất ra của record và JavaBean khác thứ tự nhưng vẫn bằng nhau?
-8. Việc kiểm tra toàn bộ kiểu dữ liệu trước khi tạo có đảm bảo hoàn tác tác động phụ của setter không?
-9. Nếu muốn hỗ trợ một lớp bất biến có constructor ba tham số, nên ép nó qua nhánh JavaBean hay bổ sung chiến lược tạo phù hợp?
-10. Việc `List.class.isInstance(value)` trả về `true` có chứng minh mọi phần tử là `String` không?
+1. Why not use the same "create empty then write fields" algorithm for JavaBeans and records?
+2. Why does the input map in the example supply `age` before `name` while the record is still created properly?
+3. Should the canonical constructor be chosen as the first constructor in the Reflection array?
+4. Why use `containsKey` instead of checking only `get(...) == null`?
+5. Does the program automatically convert the string `"20"` into `int`?
+6. When age is negative, at which locations are the errors for the record and the JavaBean reported?
+7. Why do the output maps of the record and JavaBean have different orders yet still equal each other?
+8. Does checking all data types before creation guarantee rolling back side effects of setters?
+9. To support an immutable class with a three-parameter constructor, should it be forced through the JavaBean branch or given a suitable creation strategy?
+10. Does `List.class.isInstance(value)` returning `true` prove every element is a `String`?
 
-Đáp án:
+Answers:
 
-1. Record cần được tạo qua constructor phù hợp và có các trường thành phần final; JavaBean trong hợp đồng có cách gán qua setter.
-2. Giá trị được lấy theo tên rồi xếp vào mảng theo thứ tự record component, không theo thứ tự map.
-3. Không. Cần tìm đúng chữ ký từ danh sách kiểu thành phần theo thứ tự.
-4. Để phân biệt thiếu khóa với có khóa mang giá trị `null`.
-5. Không. Ví dụ yêu cầu kiểu phù hợp và không thực hiện chuyển đổi chuỗi sang số.
-6. `StudentRecord.<init>` và `StudentBean.age`; nguyên nhân nghiệp vụ được giữ làm `cause`.
-7. Record dùng thứ tự thành phần, JavaBean dùng thứ tự tên; `Map.equals` so sánh các cặp khóa/giá trị.
-8. Không. Đó không phải một giao dịch hoàn tác mã đã được mô hình thực thi.
-9. Bổ sung chiến lược tạo có ánh xạ constructor hoặc factory rõ ràng.
-10. Không. Phép kiểm tra chỉ xác nhận đối tượng là một danh sách theo kiểu đã xóa; kiểm tra phần tử generic là nhiệm vụ riêng.
+1. A record must be created via an appropriate constructor and has final component fields; the JavaBean in the contract is assigned via setters.
+2. Values are fetched by name and arranged into an array in record component order, not map order.
+3. No. You must look up the exact signature from the ordered list of component types.
+4. To distinguish a missing key from a present key with a `null` value.
+5. No. The example requires matching types and does not perform string-to-number conversion.
+6. `StudentRecord.<init>` and `StudentBean.age`; the business cause is preserved as `cause`.
+7. The record uses component order, the JavaBean uses name order; `Map.equals` compares key/value pairs.
+8. No. It is not a transaction rolling back code already executed by the model.
+9. Add a creation strategy with clear constructor or factory mapping.
+10. No. The check only confirms the object is a list by erased type; checking generic elements is a separate task.

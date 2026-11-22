@@ -1,99 +1,99 @@
-# Giới hạn tác dụng phụ và tình trạng hoàn tất một phần
+# Bounding Side Effects and Partial Completion
 
-Java Stream API khuyến khích mô tả **dữ liệu cần biến đổi** thay vì điều khiển thủ công từng vòng lặp. Các thao tác như `filter`, `map`, `flatMap`, `reduce` và `collect` dễ kết hợp, hỗ trợ xử lý lazy và trong một số trường hợp có thể chạy song song. Nhưng chính sự linh hoạt đó khiến những **tác dụng phụ** (*side effects*)—ghi cơ sở dữ liệu, gửi HTTP, cập nhật biến ngoài pipeline, in log hoặc ghi tệp—trở nên nguy hiểm nếu bị xem như một phần tất yếu, luôn được thực hiện đúng một lần.
+The Java Stream API encourages describing **data transformations** rather than manually orchestrating every loop. Operations such as `filter`, `map`, `flatMap`, `reduce`, and `collect` compose cleanly, evaluate lazily, and can run in parallel when appropriate. Yet that very flexibility makes **side effects**—database writes, HTTP calls, mutating external variables, logging, or file writes—dangerous if treated as guaranteed to execute once per element.
 
-Đặc biệt, **Stream không phải transaction manager**. Nếu một phần tử làm phát sinh ngoại lệ giữa lúc xử lý, những thay đổi đã ghi ra hệ thống bên ngoài **không tự được rollback**. Với parallel stream, các tác vụ khác còn có thể đang thực thi khi một lỗi được quan sát. Kết quả cuối chưa được trả về **không có nghĩa** mọi tác dụng phụ trước đó đều chưa xảy ra.
+In particular, **Stream is not a transaction manager**. If an element triggers an exception midway through processing, changes already written to external systems **do not automatically roll back**. With parallel streams, other tasks may still be running when one failure is observed. The absence of a final return value **does not mean** prior side effects never happened.
 
-Bài thuộc chương **Ngoại lệ và tính an toàn** của module **JAVA_STREAM_API**. Mục tiêu là giới hạn side effect đúng chỗ, hiểu việc dừng sớm và lỗi làm pipeline chỉ hoàn thành một phần, phân biệt mutable reduction hợp lệ với shared mutable state không an toàn, và thiết kế các ranh giới commit có thể kiểm chứng. Kiến thức liên quan tới grouping, collector tùy chỉnh, `Spliterator`, xử lý song song, tài nguyên I/O và cả các pipeline hiện đại dùng Stream Gatherers.
+This lesson belongs to the **Exceptions and Safety** chapter of the **JAVA_STREAM_API** module. Its goal is to bound side effects properly, understand how early termination and errors leave pipelines partially completed, distinguish valid mutable reduction from unsafe shared mutable state, and design verifiable commit boundaries. These concepts connect to grouping, custom collectors, `Spliterator`, parallel execution, I/O resources, and modern pipelines using Stream Gatherers.
 
-## 1. Ba khái niệm không được đánh đồng
+## 1. Three Concepts That Must Not Be Equated
 
-| Khái niệm | Nghĩa | Ví dụ |
+| Concept | Meaning | Example |
 |---|---|---|
-| **Tác dụng phụ** | Tác động có thể quan sát được bên ngoài giá trị trả về của hàm | `writer.write`, `db.insert`, sửa `List` bên ngoài, tăng counter |
-| **Hoàn tất một phần** | Một số bước đã có tác động, trong khi toàn bộ tác vụ chưa hoàn tất như kỳ vọng | Ghi thành công 2 dòng rồi parse dòng 3 ném lỗi |
-| **Tính nguyên tử** | Tác vụ được công bố như một đơn vị thành công/thất bại theo giao thức đã thiết kế | Commit một transaction hoặc công bố tệp đã chuẩn bị |
+| **Side effect** | An observable effect beyond a function's return value | `writer.write`, `db.insert`, mutating an external `List`, incrementing a counter |
+| **Partial completion** | Some steps already took effect while the overall task did not finish as expected | Wrote 2 lines successfully, then parsing line 3 threw an error |
+| **Atomicity** | An operation publishes as a single success/failure unit under a designed protocol | Committing a transaction or publishing a staged file |
 
-Một pipeline có thể **trả về giá trị đúng** nhưng vẫn gây tác dụng phụ ngoài ý muốn. Ngược lại, một pipeline **ném ngoại lệ** có thể đã ghi một phần kết quả vào tệp hoặc database.
+A pipeline can **return the right value** while still causing unintended side effects. Conversely, a pipeline that **throws an exception** may have already written partial output to a file or database.
 
-### 1.1. Ví dụ tình trạng hoàn tất một phần
+### 1.1. Partial Completion Example
 
-Giả sử đơn hàng lần lượt là `O1, O2, O3, O4`:
+Suppose orders are `O1, O2, O3, O4` in sequence:
 
 ```text
-O1 -> gọi API thành công       [tác dụng phụ đã xảy ra]
-O2 -> gọi API thành công       [tác dụng phụ đã xảy ra]
-O3 -> gọi API ném ngoại lệ     [pipeline thất bại]
-O4 -> chưa được xử lý         [với cách duyệt tuần tự cụ thể]
+O1 -> API call succeeds        [side effect already occurred]
+O2 -> API call succeeds        [side effect already occurred]
+O3 -> API call throws          [pipeline fails]
+O4 -> not processed yet        [under specific sequential traversal]
 
-Lệnh collect/forEach thất bại
+collect/forEach fails
          |
-         +-- KHÔNG tự gọi API hoàn tác O1 và O2
-         +-- KHÔNG trả kết quả "đã xử lý đủ bốn đơn"
+         +-- DOES NOT automatically call API to undo O1 and O2
+         +-- DOES NOT return "processed all four orders"
 ```
 
-Nếu retry **toàn bộ pipeline** mà không có cơ chế chống trùng, O1 và O2 có thể bị gửi **hai lần**. Lỗi không nằm ở riêng `forEach` mà ở việc kết hợp một phép duyệt dữ liệu với **hành động ngoài hệ thống không có ranh giới commit/retry**.
+If you retry **the entire pipeline** without deduplication, O1 and O2 may be sent **twice**. The flaw lies not in `forEach` alone, but in coupling data traversal with **external actions lacking commit/retry boundaries**.
 
-## 2. Hợp đồng của hàm hành vi trong Stream
+## 2. Behavioral Parameter Contracts in Streams
 
-Để một pipeline có thể được tối ưu hóa, phân chia và chạy đúng, các hàm truyền vào nhiều thao tác Stream thường được yêu cầu:
+For a pipeline to optimize, split, and run correctly, functions passed to most Stream operations must be:
 
-- **Non-interfering**: không sửa nguồn dữ liệu đang được Stream duyệt, trừ những trường hợp đặc biệt được tài liệu API cho phép.
-- **Stateless**: kết quả xử lý phần tử không phụ thuộc trạng thái có thể thay đổi trong lúc pipeline chạy, nhất là trạng thái do các lời gọi khác thay đổi.
-- **Tuân thủ hợp đồng của thao tác**: ví dụ accumulator/combiner của reduction phải kết hợp đúng; comparator phải so sánh nhất quán; predicate không được tự thay đổi nguồn.
+- **Non-interfering**: never modify the data source being traversed by the Stream, except where explicitly permitted by API docs.
+- **Stateless**: element processing does not depend on state that may mutate during pipeline execution, especially state modified by other invocations.
+- **Compliant with operation contracts**: e.g., reduction accumulator/combiner must be associative; comparators must be consistent; predicates must not mutate the source.
 
-Một hàm thuần (*pure function*) giúp dễ đáp ứng các điều kiện này:
+A *pure function* makes satisfying these conditions easy:
 
 ```java
-// Ánh xạ giá trị; không sửa biến ngoài hoặc đơn hàng nguồn.
+// Value mapping; does not mutate external variables or source orders.
 Stream<Long> amounts = orders.stream()
         .map(order -> order.getAmountCents() * 2L);
 ```
 
-Ở đây `orders` là nguồn hợp lệ và `getAmountCents()` trả `long`. Ví dụ chỉ minh họa hình dạng ánh xạ; nếu phép nhân có nguy cơ tràn, dùng `Math.multiplyExact` hoặc kiểu số phù hợp.
+Here `orders` is a valid source and `getAmountCents()` returns `long`. This snippet only illustrates mapping shape; if multiplication risks overflow, use `Math.multiplyExact` or a larger numeric type.
 
-Trái lại:
+By contrast:
 
 ```java
 List<String> audit = new ArrayList<>();
 
 Stream<String> ids = orders.stream()
         .map(order -> {
-            audit.add(order.getId()); // Side effect ngoài pipeline.
+            audit.add(order.getId()); // Side effect outside the pipeline.
             return order.getId();
         });
 ```
 
-Khi mới tạo `ids`, pipeline **chưa nhất thiết chạy**, vì `map` là intermediate operation và lazy. Nếu terminal operation không cần gọi mapper với tất cả phần tử, `audit` không phản ánh toàn bộ đơn hàng. Nếu chuyển sang parallel, `ArrayList` chung còn có thể bị nhiều worker sửa đồng thời.
+When `ids` is constructed, the pipeline **has not necessarily run**, because `map` is a lazy intermediate operation. If the terminal operation does not need to call the mapper for every element, `audit` misses orders. If switched to parallel, the shared `ArrayList` can also be mutated concurrently by multiple workers.
 
-### 2.1. Side effect không bị cấm trong mọi tình huống
+### 2.1. Side Effects Are Not Forbidden Everywhere
 
-Tác dụng phụ là cần thiết khi ứng dụng **ghi kết quả ra ngoài**—gửi thông báo, ghi tệp, lưu database. Vấn đề là phải:
+Side effects are necessary when an application **persists or emits output**—sending notifications, writing files, saving to databases. What matters is:
 
-1. Đặt side effect ở **ranh giới được quản lý**, không giấu trong `map`/`filter` chỉ để “tiện gọi”.
-2. Định nghĩa rõ **thứ tự**, **điều kiện thành công**, **phạm vi commit** và **cách xử lý retry**.
-3. Không phụ thuộc vào số lần gọi hoặc thread chạy một callback khi API không cam kết.
-4. Tách **chuẩn bị dữ liệu** khỏi **thực thi hành động bên ngoài** khi có thể.
+1. Place side effects at **managed boundaries**, rather than hiding them in `map`/`filter` for convenience.
+2. Explicitly define **ordering**, **success criteria**, **commit scope**, and **retry handling**.
+3. Never depend on invocation counts or which thread runs a callback when the API makes no such commitment.
+4. Separate **data preparation** from **external action execution** whenever possible.
 
-Không nên cực đoan rằng mọi ứng dụng phải không có side effect; cần phân biệt **logic biến đổi thuần** và **I/O bắt buộc được kiểm soát**.
+Avoid the extreme claim that apps should have zero side effects; instead distinguish **pure transformation logic** from **controlled mandatory I/O**.
 
-## 3. Vì sao peek và map không phải cơ chế audit đáng tin?
+## 3. Why peek and map Are Not Reliable Audit Mechanisms
 
-`peek` hữu ích cho quan sát/debug, nhưng không phải giao diện bảo đảm một hành động nghiệp vụ được gọi đúng một lần cho mọi bản ghi.
+`peek` is useful for observation/debugging, not for guaranteeing a business action runs exactly once per record.
 
 ```java
 List<String> values = Arrays.asList("A", "B", "C");
 
 long count = values.stream()
-        .peek(value -> System.out.println("Đã thấy " + value))
+        .peek(value -> System.out.println("Saw " + value))
         .count();
 
 System.out.println(count); // 3
 ```
 
-Ở một số đường thực thi, `count()` có thể suy ra kích thước của nguồn và không cần duyệt qua từng phần tử. Tài liệu Stream cho phép tối ưu hóa bỏ việc gọi các callback trung gian nếu việc đó không thay đổi **kết quả được API bảo đảm**. Vì vậy, không được khẳng định ba dòng `Đã thấy ...` sẽ luôn được in.
+In some execution paths, `count()` can deduce source size without iterating element by element. The Stream specification allows eliding intermediate callbacks when doing so does not change **the API-guaranteed result**. Thus, never assert that three `Saw ...` lines will always print.
 
-Điều tương tự có thể xảy ra khi đặt side effect trong `map`:
+The same issue applies to side effects inside `map`:
 
 ```java
 AtomicInteger processed = new AtomicInteger();
@@ -105,20 +105,20 @@ long result = values.stream()
         })
         .count();
 
-// Không được khẳng định processed.get() luôn bằng result.
+// Never assert processed.get() always equals result.
 ```
 
-`AtomicInteger` giúp thao tác tăng **an toàn luồng** nếu callback thực sự chạy đồng thời; nó **không buộc runtime gọi mapper** trên mọi phần tử và không biến side effect thành một phép kiểm toán đầy đủ.
+`AtomicInteger` makes increments **thread-safe** if callbacks run concurrently; it **does not force the runtime to run the mapper** on every element and does not turn a side effect into a complete audit.
 
-### 3.1. Sửa bằng cách diễn đạt kết quả trực tiếp
+### 3.1. Fix by Expressing Results Directly
 
-Nếu mục tiêu là **đếm**:
+If the goal is **counting**:
 
 ```java
 long count = values.stream().count();
 ```
 
-Nếu mục tiêu là **đếm số bản ghi theo loại**:
+If the goal is **counting records by category**:
 
 ```java
 Map<String, Long> counts = orders.stream()
@@ -127,54 +127,54 @@ Map<String, Long> counts = orders.stream()
                 Collectors.counting()));
 ```
 
-Nếu mục tiêu là ghi **sự kiện audit bắt buộc**, hãy tổ chức một bước ghi có **cơ chế commit/idempotency** được định nghĩa riêng. Đừng dựa vào `peek` để quyết định một giao dịch đã được ghi nhận.
+If the goal is writing **mandatory audit events**, organize a write step with an explicit **commit/idempotency contract**. Never rely on `peek` to decide whether a transaction was recorded.
 
-## 4. Short-circuit: một terminal operation có thể cố ý dừng sớm
+## 4. Short-Circuiting: A Terminal Operation May Intentionally Stop Early
 
-Các thao tác như `findFirst`, `findAny`, `anyMatch`, `allMatch`, `noneMatch` và những pipeline có `limit` có thể dừng mà không tiêu thụ hết nguồn:
+Operations like `findFirst`, `findAny`, `anyMatch`, `allMatch`, `noneMatch`, and pipelines with `limit` can stop without consuming the whole source:
 
 ```java
 boolean hasError = messages.stream()
         .anyMatch(message -> message.startsWith("ERROR"));
 ```
 
-Khi tìm được một lỗi, `anyMatch` không cần kiểm tra mọi thông điệp còn lại để trả `true`. Nếu predicate vừa kiểm tra vừa tăng biến đếm bên ngoài, số lần gọi predicate **không đại diện chắc chắn cho toàn bộ số thông điệp**.
+Once an error is found, `anyMatch` need not inspect remaining messages to return `true`. If the predicate both checks and increments an external counter, the predicate call count **does not reliably reflect total messages**.
 
-### 4.1. Hai yêu cầu khác nhau
+### 4.1. Two Different Requirements
 
-| Yêu cầu | Phép toán phù hợp | Có duyệt toàn bộ nguồn không? |
+| Requirement | Suitable operation | Traverses the whole source? |
 |---|---|---|
-| Có **ít nhất một** lỗi hay không? | `anyMatch(isError)` | Có thể dừng tại lỗi đầu |
-| Lỗi **đầu tiên theo thứ tự** là gì? | `filter(isError).findFirst()` | Có thể dừng sớm |
-| Có **bao nhiêu** lỗi? | `filter(isError).count()` | Thông thường phải xét các phần tử cần thiết để đếm |
-| Lấy **tối đa K** lỗi đầu tiên | `filter(isError).limit(K).collect(toList())` | Có thể dừng sau đủ K lỗi |
-| Ghi **mọi** lỗi vào tệp | Terminal action/collector được thiết kế phù hợp | Phải hoàn thành toàn bộ nếu yêu cầu thành công đủ |
+| Is there **at least one** error? | `anyMatch(isError)` | Can stop at first error |
+| What is the **first** error in order? | `filter(isError).findFirst()` | Can stop early |
+| **How many** errors exist? | `filter(isError).count()` | Normally evaluates elements needed to count |
+| Get **up to K** first errors | `filter(isError).limit(K).collect(toList())` | Can stop after K errors |
+| Write **all** errors to a file | Properly designed terminal action/collector | Must process all if full completion is required |
 
-Không dùng `findFirst` chỉ vì chạy nhanh nếu yêu cầu là **đảm bảo tác động lên tất cả bản ghi**.
+Do not pick `findFirst` just for speed when the requirement is **ensuring every record is acted upon**.
 
-### 4.2. limit đặt ở đâu cũng là một quyết định nghiệp vụ
+### 4.2. Where limit Is Placed Is Also a Business Decision
 
 ```java
-// Tối đa 10 đơn hợp lệ đầu tiên.
+// Up to the first 10 valid orders.
 orders.stream()
         .filter(Order::isValid)
         .limit(10);
 
-// Chỉ xét 10 đơn đầu nguồn, rồi loại đơn không hợp lệ.
+// Inspect only the first 10 source orders, then drop invalid ones.
 orders.stream()
         .limit(10)
         .filter(Order::isValid);
 ```
 
-Hai pipeline **không tương đương** nếu dữ liệu có đơn không hợp lệ. Nếu trong `filter` có ghi database, cả số tác động lẫn phần dữ liệu được tác động có thể khác; vì vậy càng cần đưa side effect ra khỏi các bước biến đổi.
+These two pipelines **are not equivalent** if the data contains invalid orders. If `filter` performed database writes, both the number of writes and which records were affected would differ—another reason to keep side effects out of transformation steps.
 
-### 4.3. Không đếm số lần gọi lambda để suy ra kết quả
+### 4.3. Do Not Count Lambda Invocations to Infer Outcomes
 
-Với `parallelStream()`, cả số phần tử được duyệt trước khi dừng lẫn thứ tự gọi callback có thể khác giữa các lần chạy. Một số tác vụ đã bắt đầu có thể vẫn hoàn thành dù điều kiện dừng được tìm thấy. Chỉ sử dụng **giá trị trả về theo hợp đồng API**—không dùng biến counter phụ để khẳng định đã xử lý đúng K phần tử.
+With `parallelStream()`, both how many elements are visited before stopping and callback order can vary across runs. Some already-started tasks may finish even after a stop condition is met. Rely only on **API-contracted return values**—never use auxiliary counter variables to claim exactly K elements were processed.
 
-## 5. Ngoại lệ không làm hoàn tác side effect đã thực hiện
+## 5. Exceptions Do Not Roll Back Executed Side Effects
 
-`Stream` không tự bọc mọi lambda trong một transaction. Ví dụ:
+`Stream` does not wrap every lambda in a transaction. Example:
 
 ```java
 List<String> sent = new ArrayList<>();
@@ -183,7 +183,7 @@ try {
     Stream.of("O1", "O2", "O3", "O4")
             .forEachOrdered(id -> {
                 if ("O3".equals(id)) {
-                    throw new IllegalStateException("Gửi O3 thất bại");
+                    throw new IllegalStateException("Sending O3 failed");
                 }
                 sent.add(id);
             });
@@ -191,38 +191,38 @@ try {
     System.out.println(failure.getMessage());
 }
 
-System.out.println(sent); // [O1, O2] trong ví dụ tuần tự này.
+System.out.println(sent); // [O1, O2] in this sequential example.
 ```
 
-`O1` và `O2` đã được thêm vào `sent`. Nếu `sent.add` đại diện cho một lệnh gửi thật, lệnh gửi có thể đã xảy ra và không tự bị hoàn tác khi `O3` ném ngoại lệ. `forEachOrdered` giúp xác định thứ tự hành động theo encounter order; nó **không cung cấp rollback**.
+`O1` and `O2` were already added to `sent`. If `sent.add` represents a real send call, those sends may have already happened and are not undone when `O3` throws. `forEachOrdered` enforces action sequence by encounter order; it **provides no rollback**.
 
-### 5.1. Tình trạng sau lỗi không phải một giá trị duy nhất
+### 5.1. Post-Failure State Is Not a Single Value
 
-| Câu hỏi | Có bảo đảm chung không? |
+| Question | General guarantee? |
 |---|---|
-| Những thay đổi bên ngoài trước khi gặp lỗi có tự mất đi không? | **Không** |
-| Pipeline sẽ tạo một kết quả `collect` hoàn chỉnh sau ngoại lệ không? | **Không**, khi lỗi lan ra và terminal không hoàn tất |
-| Có thể biết số phần tử đã tác động chỉ từ ngoại lệ không? | **Không** |
-| Có bảo đảm callback đã được gọi đúng một lần cho từng phần tử không? | **Không** đối với mọi tổ hợp thao tác/đường tối ưu |
-| Stream tự thực hiện bù trừ hoặc retry cho API bên ngoài không? | **Không** |
-| Đóng Stream nguồn I/O có hoàn tác dữ liệu đã ghi ra đích không? | **Không** |
+| Do external changes made before an error vanish automatically? | **No** |
+| Will the pipeline return a complete `collect` result after an exception? | **No**, when the error propagates and the terminal does not finish |
+| Can you tell how many elements took effect from the exception alone? | **No** |
+| Is every callback guaranteed to run exactly once per element? | **No**, across all operation combinations/optimizations |
+| Does Stream perform compensation or retries for external APIs? | **No** |
+| Does closing an I/O source Stream undo data already written to a target? | **No** |
 
-Vì thế, ứng dụng cần **một hợp đồng tiến độ/commit riêng** nếu tính đúng phụ thuộc vào việc xử lý đủ hoặc không trùng các phần tử.
+Therefore, applications need **a dedicated progress/commit contract** when correctness depends on processing all elements without duplicates.
 
-### 5.2. Ngoại lệ trong map/filter/reduce/collect
+### 5.2. Exceptions in map/filter/reduce/collect
 
-Một mapper parse dữ liệu có thể ném `NumberFormatException`; predicate có thể ném lỗi khi gặp `null`; accumulator có thể ném `ArithmeticException` khi `Math.addExact` phát hiện tràn số. Trong các trường hợp này, nếu lỗi lan lên caller thì terminal operation không trả kết quả thông thường.
+A parsing mapper can throw `NumberFormatException`; a predicate can throw on `null`; an accumulator can throw `ArithmeticException` when `Math.addExact` detects overflow. When the error propagates to the caller, the terminal operation returns no normal result.
 
-Nhưng phải tách hai loại trạng thái:
+Yet two kinds of state must be separated:
 
-1. **Trạng thái trung gian do Stream/Collector quản lý**: thường không được công bố cho caller khi thu thập thất bại; không cần giả định nó được trả hoặc vẫn có thể sử dụng.
-2. **Tác dụng phụ mà lambda đã đẩy ra ngoài**: ghi tệp, gửi mạng, sửa object chia sẻ. Những thay đổi này có thể đã tồn tại, ngay cả khi terminal không có giá trị trả về.
+1. **Intermediate state managed by Stream/Collector**: normally never exposed to callers when collection fails; you need not assume it is returned or reusable.
+2. **Side effects pushed outward by lambdas**: file writes, network calls, shared object mutations. These changes may already exist even when the terminal returns no value.
 
-Vì vậy, “không thấy kết quả List/Map” không đồng nghĩa “chưa có bản ghi nào được gửi”.
+Hence, “no List/Map result returned” does not mean “no records were sent.”
 
-## 6. Parallel Stream làm hoàn tất một phần khó dự đoán hơn
+## 6. Parallel Streams Make Partial Completion Harder to Predict
 
-Trong parallel stream, các phần tử có thể được xử lý trên nhiều worker. Một lỗi ở một nhánh không tạo ra “điểm dừng đồng bộ tức thì” cho tất cả side effect đang chạy ở nhánh khác.
+In a parallel stream, elements can be processed across multiple workers. An error in one branch does not create an “instant global barrier” for side effects already executing in other branches.
 
 ```java
 List<String> sent =
@@ -233,41 +233,41 @@ try {
             .parallel()
             .forEach(id -> {
                 if ("O3".equals(id)) {
-                    throw new IllegalStateException("O3 thất bại");
+                    throw new IllegalStateException("O3 failed");
                 }
                 sent.add(id);
             });
 } catch (IllegalStateException failure) {
-    System.out.println("Bị lỗi: " + failure.getMessage());
+    System.out.println("Failed: " + failure.getMessage());
 }
 
-// Chỉ kiểm tra minh họa, KHÔNG assert tập hoặc thứ tự cụ thể.
+// Illustrative print only; DO NOT assert a fixed set or order.
 System.out.println(sent);
 ```
 
-`Collections.synchronizedList` bảo vệ các thao tác riêng lẻ trên List khỏi data race, nhưng **không đảm bảo** một nghiệp vụ gồm nhiều bước là nguyên tử. Tập ID trong `sent` có thể phụ thuộc lịch thực thi; không được khẳng định chỉ `O1` và `O2` đã được gửi.
+`Collections.synchronizedList` protects individual List operations from data races, yet **does not make** a multi-step business workflow atomic. The IDs in `sent` can depend on execution scheduling; never assert that only `O1` and `O2` were sent.
 
-### 6.1. Thread-safe khác transactional
+### 6.1. Thread-Safe Differs from Transactional
 
-| Thuộc tính | Câu hỏi |
+| Property | Question |
 |---|---|
-| **Thread-safe** | Khi nhiều thread gọi đồng thời, cấu trúc dữ liệu có tránh race/hỏng trạng thái không? |
-| **Atomic operation** | Một phép cập nhật riêng lẻ có diễn ra nguyên tử theo hợp đồng của nó không? |
-| **Transaction** | Một nhóm hành động có được commit/rollback như một đơn vị không? |
-| **Idempotency** | Lặp lại cùng yêu cầu có tạo thêm tác động không? |
-| **Exactly once effect** | Hệ thống bên ngoài có cơ chế bảo đảm hiệu ứng nghiệp vụ đúng một lần không? |
+| **Thread-safe** | Under concurrent calls from multiple threads, does the data structure avoid races/corruption? |
+| **Atomic operation** | Does a single update occur atomically under its contract? |
+| **Transaction** | Is a group of actions committed/rolled back as one unit? |
+| **Idempotency** | Does repeating the same request cause additional effects? |
+| **Exactly-once effect** | Does the external system guarantee the business effect happens once? |
 
-Một `ConcurrentHashMap` hoặc `AtomicInteger` có thể giúp tránh race đối với cấu trúc cụ thể. Nó **không** biến chuỗi `chargeCard(); sendEmail(); updateReport()` thành transaction và không giải quyết được việc retry sau lỗi mạng không rõ yêu cầu đã thành công hay chưa.
+A `ConcurrentHashMap` or `AtomicInteger` prevents races on that specific structure. It **does not** turn `chargeCard(); sendEmail(); updateReport()` into a transaction and cannot resolve retries after network timeouts where it is unknown whether the request succeeded.
 
-### 6.2. forEach và forEachOrdered
+### 6.2. forEach and forEachOrdered
 
-`forEach` trên Stream song song không cam kết thứ tự hành động. `forEachOrdered` tôn trọng encounter order nếu nguồn có thứ tự, và các action có quan hệ thực thi theo thứ tự đó; tuy nhiên các action không nhất thiết chạy trên cùng một thread.
+`forEach` on a parallel Stream makes no ordering promise. `forEachOrdered` respects encounter order when the source is ordered, with actions ordered accordingly; however, actions do not necessarily run on the same thread.
 
-**Điểm mấu chốt:** ngay cả `parallel().forEachOrdered(...)` cũng **không hoàn tác** các action đã thực hiện khi action sau ném lỗi. Nó bảo vệ ngữ nghĩa về thứ tự, **không** bảo vệ tính toàn vẹn của một loạt thao tác bên ngoài.
+**Key takeaway:** even `parallel().forEachOrdered(...)` **does not undo** prior actions when a later action throws. It preserves ordering semantics, **not** the integrity of a sequence of external operations.
 
-## 7. Mutable reduction hợp lệ khác shared mutable state
+## 7. Valid Mutable Reduction vs. Shared Mutable State
 
-Java Stream cho phép trạng thái mutable **bên trong collector** để tích lũy dữ liệu:
+Java Stream permits mutable state **inside a collector** to accumulate data:
 
 ```java
 List<String> ids = orders.parallelStream()
@@ -275,21 +275,21 @@ List<String> ids = orders.parallelStream()
         .collect(Collectors.toList());
 ```
 
-`Collectors.toList()` không công bố `CONCURRENT`, nhưng vẫn có thể chạy đúng trên parallel stream. Framework có thể tạo container riêng cho từng nhánh, sau đó gộp kết quả. Không vì `ArrayList` không thread-safe mà cho rằng mọi `collect(toList())` trên Stream song song đều sai.
+`Collectors.toList()` does not declare `CONCURRENT`, yet still works properly on parallel streams. The framework can allocate per-branch containers and merge them afterward. Never assume that because `ArrayList` is not thread-safe, `collect(toList())` on a parallel Stream is broken.
 
-Ngược lại:
+Conversely:
 
 ```java
 List<String> shared = new ArrayList<>();
 
 orders.parallelStream()
         .map(Order::getId)
-        .forEach(shared::add); // SAI: nhiều worker sửa một ArrayList chung.
+        .forEach(shared::add); // WRONG: multiple workers mutate one shared ArrayList.
 ```
 
-Ở đoạn thứ hai, chính ứng dụng tạo shared mutable state ngoài pipeline rồi cập nhật bằng action. Lỗi là race và thiếu hợp đồng kết hợp; thêm `synchronizedList` có thể tránh race trên thao tác `add` nhưng **không** tạo ra thứ tự hay transaction theo yêu cầu nghiệp vụ.
+In the second snippet, the application creates shared mutable state outside the pipeline and mutates it via actions. The bug is a race and missing combination contract; adding `synchronizedList` avoids races on `add` yet **does not** create the ordering or transactional guarantees business logic needs.
 
-### 7.1. Dùng Collector để tổng hợp số liệu, không dùng forEach để sửa Map chung
+### 7.1. Use Collectors to Aggregate Metrics, Not forEach Updating a Shared Map
 
 ```java
 Map<String, Long> countByRegion = orders.parallelStream()
@@ -298,61 +298,61 @@ Map<String, Long> countByRegion = orders.parallelStream()
                 Collectors.counting()));
 ```
 
-Nếu chỉ cần tổng theo khu vực, `groupingBy(..., counting())` diễn đạt chính xác yêu cầu hơn việc cho mỗi worker gọi `sharedMap.merge(...)`. Khi viết Collector tùy chỉnh, phải đảm bảo `supplier`, `accumulator`, `combiner`, `finisher` tuân thủ hợp đồng **đơn vị – kết hợp – tương đương** và không tự công bố `CONCURRENT` cho state không thread-safe.
+When you only need totals per region, `groupingBy(..., counting())` expresses the requirement far better than having workers call `sharedMap.merge(...)`. When writing a custom Collector, ensure `supplier`, `accumulator`, `combiner`, and `finisher` obey **identity – associativity – equivalence** and never declare `CONCURRENT` for un-thread-safe state.
 
-### 7.2. Collector không tự bảo đảm commit bên ngoài
+### 7.2. Collectors Do Not Automatically Guarantee External Commits
 
-Một collector thực hiện `accumulator -> database.insert(row)` vẫn có side effect bên ngoài và có thể hoàn thành một phần khi lỗi. Dù collector tuân thủ hợp đồng giảm dữ liệu, **mỗi callback không phải một ranh giới commit toàn pipeline**. Tránh đặt lệnh ghi database trong accumulator/combiner nếu quy tắc retry, idempotency và rollback chưa được thiết kế.
+A collector running `accumulator -> database.insert(row)` still causes external side effects and can partially complete on failure. Even if the collector obeys reduction contracts, **each callback is not a pipeline-wide commit boundary**. Avoid database writes inside accumulators/combiners unless retry, idempotency, and rollback rules are designed.
 
-## 8. Tách biến đổi thuần khỏi ranh giới side effect
+## 8. Separating Pure Transformations from Side-Effect Boundaries
 
-Một kiến trúc thường dễ kiểm thử hơn:
+An architecture that is usually easier to test:
 
 ```text
-Nguồn
+Source
   |
   v
-parse / validate / map / filter     [chỉ tính toán]
+parse / validate / map / filter     [pure computation]
   |
   v
-chuẩn bị lệnh hoặc kết quả          [chưa tác động bên ngoài]
+prepare commands or results         [no external effects yet]
   |
   v
-commit có kiểm soát                [I/O, transaction, publish]
+controlled commit                   [I/O, transaction, publish]
   |
   v
-ghi nhận trạng thái và xử lý retry
+record status and handle retries
 ```
 
-### 8.1. Chuẩn bị trước, commit sau
+### 8.1. Prepare First, Commit Later
 
-Với dữ liệu đủ nhỏ để giữ trong bộ nhớ:
+When data fits comfortably in memory:
 
 ```java
 List<String> commands = orders.stream()
         .map(order -> {
             if (!order.isValid()) {
                 throw new IllegalArgumentException(
-                        "Đơn không hợp lệ: " + order.getId());
+                        "Invalid order: " + order.getId());
             }
             return order.getId() + "\t" + order.getAmountCents();
         })
         .collect(Collectors.toList());
 
-// Chỉ thực hiện sau khi phần chuẩn bị hoàn tất.
+// Execute only after preparation succeeds completely.
 externalGateway.sendBatch(commands);
 ```
 
-`externalGateway` là giao diện ứng dụng giả định. **Ưu điểm:** nếu `map` ném lỗi khi chuẩn bị, chưa gọi `sendBatch`. **Giới hạn:** `sendBatch` vẫn có thể ghi một phần rồi lỗi; chỉ có transaction hoặc giao thức batch/idempotency của gateway mới quyết định có atomic hay không.
+`externalGateway` is an assumed application interface. **Advantage:** if `map` throws during preparation, `sendBatch` is never called. **Limitation:** `sendBatch` itself can still partially write and fail; only transactions or the gateway's batch/idempotency protocol govern atomicity.
 
-Thêm nữa, `collect(toList())` giữ toàn bộ `commands`; không phù hợp với nguồn quá lớn. Khi đó cần **staging ra tệp/DB tạm, xử lý batch có giới hạn và cơ chế commit** phù hợp.
+Furthermore, `collect(toList())` retains all `commands`; unsuitable for huge sources. In those cases, use **staging to a temporary file/DB, bounded batching, and an appropriate commit mechanism**.
 
-### 8.2. Nếu muốn xử lý mọi phần tử nhưng vẫn ghi lỗi
+### 8.2. Processing All Elements While Recording Errors
 
-Không nên bắt mọi lỗi bằng `try/catch` rồi trả `null` để âm thầm bỏ qua:
+Never catch all errors with `try/catch` and return `null` to drop them silently:
 
 ```java
-// Nguy hiểm nếu làm mất bản ghi và không có thống kê:
+// Dangerous if records vanish without statistics:
 orders.stream()
         .map(order -> {
             try {
@@ -364,7 +364,7 @@ orders.stream()
         .filter(Objects::nonNull);
 ```
 
-Nếu nghiệp vụ yêu cầu **tiếp tục sau dữ liệu lỗi**, hãy mô hình hóa kết quả parse:
+If business rules require **continuing past bad data**, model parse outcomes explicitly:
 
 ```text
 ParseResult
@@ -372,18 +372,18 @@ ParseResult
   - Failure(recordId, errorCode)
 ```
 
-Sau đó thu thập hoặc ghi **riêng** kết quả hợp lệ và bản ghi lỗi (*dead-letter*) cùng với số đếm tổng. Không coi pipeline có thể tiếp tục là lý do bỏ mất dữ liệu mà không báo cáo.
+Then collect or write valid outcomes and failed records (*dead-letter*) **separately** alongside total counts. Never treat a pipeline's ability to continue as permission to drop data unreported.
 
-## 9. Chương trình Java 8 hoàn chỉnh: nhận diện tác dụng phụ và kiểm tra kết quả
+## 9. Complete Java 8 Program: Identifying Side Effects and Verifying Outcomes
 
-Ví dụ sau dùng một danh sách đơn hàng nhỏ để chứng minh:
+The following example uses a small order list to demonstrate:
 
-1. Một terminal action ném lỗi **không xóa các tác động trước đó**.
-2. Thu thập dữ liệu theo kiểu **biến đổi thuần** giúp kiểm tra đầu ra trước khi công bố.
-3. Parallel `collect` có thể dùng để tổng hợp an toàn mà không sửa một Map chung ngoài pipeline.
-4. Test nên kiểm tra **giá trị được API cam kết**, không khẳng định `peek` hoặc các action song song chạy theo lịch cụ thể.
+1. A terminal action that throws **does not erase prior effects**.
+2. Collecting data via **pure transformations** lets you validate output before publishing.
+3. Parallel `collect` safely aggregates without mutating an external shared Map.
+4. Tests should verify **values guaranteed by the API**, never asserting `peek` or parallel execution schedules.
 
-Lưu thành `StreamSideEffectSafetyDemo.java` và chạy với **JDK 8 trở lên**:
+Save as `StreamSideEffectSafetyDemo.java` and run on **JDK 8 or later**:
 
 ```java
 import java.util.ArrayList;
@@ -416,7 +416,7 @@ public class StreamSideEffectSafetyDemo {
     static String prepare(Order order) {
         if (!order.isValid()) {
             throw new IllegalArgumentException(
-                    "Số tiền âm ở đơn " + order.getId());
+                    "Negative amount on order " + order.getId());
         }
         return order.getId() + "=" + order.getAmountCents();
     }
@@ -435,17 +435,17 @@ public class StreamSideEffectSafetyDemo {
                 new Order("O4", "NAM", 300L)
         );
 
-        // 1) Mô phỏng side effect trong terminal operation tuần tự.
+        // 1) Simulate side effects in a sequential terminal operation.
         List<String> externallySent = new ArrayList<>();
         try {
             orders.stream().forEachOrdered(order -> {
                 if (!order.isValid()) {
                     throw new IllegalStateException(
-                            "Không gửi được " + order.getId());
+                            "Failed to send " + order.getId());
                 }
                 externallySent.add(order.getId());
             });
-            throw new AssertionError("Phải phát sinh lỗi ở O3");
+            throw new AssertionError("Should have failed on O3");
         } catch (IllegalStateException expected) {
             System.out.println(expected.getMessage());
         }
@@ -453,22 +453,22 @@ public class StreamSideEffectSafetyDemo {
         System.out.println(externallySent); // [O1, O2]
         check(externallySent.equals(
                 Arrays.asList("O1", "O2")),
-                "Side effect trước lỗi vẫn tồn tại");
+                "Side effects before the error still persist");
 
-        // 2) Chuẩn bị thuần: khi lỗi, List chưa được trả về.
+        // 2) Pure preparation: on failure, no List is returned.
         List<String> commands = null;
         try {
             commands = orders.stream()
                     .map(StreamSideEffectSafetyDemo::prepare)
                     .collect(Collectors.toList());
-            throw new AssertionError("Phải từ chối đơn O3");
+            throw new AssertionError("Should have rejected order O3");
         } catch (IllegalArgumentException expected) {
             System.out.println(expected.getMessage());
         }
         check(commands == null,
-                "Không công bố List mới khi validation thất bại");
+                "Never publish a new List when validation fails");
 
-        // 3) Khi sửa dữ liệu đầu vào, có thể thu thập toàn bộ.
+        // 3) Once input data is fixed, everything can be collected.
         List<Order> validOrders = Arrays.asList(
                 new Order("O1", "BAC", 100L),
                 new Order("O2", "NAM", 200L),
@@ -482,60 +482,60 @@ public class StreamSideEffectSafetyDemo {
 
         check(prepared.equals(Arrays.asList(
                 "O1=100", "O2=200", "O3=250", "O4=300")),
-                "Chuẩn bị đủ bốn lệnh");
+                "Prepared all four commands");
         System.out.println(prepared);
 
-        // 4) Mutable reduction do Stream/Collector quản lý.
+        // 4) Mutable reduction managed by Stream/Collector.
         Map<String, Long> grouped = validOrders.parallelStream()
                 .collect(Collectors.groupingBy(
                         Order::getRegion,
                         Collectors.counting()));
         check(grouped.get("BAC") == 2L
                 && grouped.get("NAM") == 2L,
-                "groupingBy chạy song song đúng số đếm");
+                "Parallel groupingBy produced exact counts");
 
-        // 5) Kết quả List của collector không cần sửa
-        // bất kỳ ArrayList chung từ nhiều thread.
+        // 5) Collector List result without mutating
+        // any shared ArrayList across threads.
         List<String> ids = validOrders.parallelStream()
                 .map(Order::getId)
                 .collect(Collectors.toList());
         check(ids.equals(Arrays.asList(
                 "O1", "O2", "O3", "O4")),
-                "toList giữ encounter order của List nguồn");
+                "toList preserves encounter order of source List");
 
-        // 6) Khi chỉ cần chỉ số, đừng giấu counter trong peek.
+        // 6) When only a metric is needed, do not hide a counter in peek.
         long paidLikeCount = validOrders.stream()
                 .filter(order -> order.getAmountCents() > 0)
                 .count();
-        check(paidLikeCount == 4L, "Đếm trực tiếp");
+        check(paidLikeCount == 4L, "Direct count");
 
         System.out.println("PASS: semantic checks");
     }
 }
 ```
 
-### 9.1. Điều gì được kiểm tra, điều gì không?
+### 9.1. What Is Tested vs. What Is Not?
 
-Chương trình cố ý dùng `forEachOrdered` tuần tự khi mô phỏng lỗi `O3`, nên trong ví dụ này `externallySent` chứa đúng `O1, O2`. Đây là **kiểm thử hành vi của đoạn code cụ thể**, không phải bằng chứng rằng mọi parallel `forEach` khi lỗi đều gửi đúng hai đơn đầu.
+The program deliberately uses sequential `forEachOrdered` when simulating the `O3` failure, so in this run `externallySent` contains `[O1, O2]`. This tests **the behavior of this specific code**, not a general proof that every failing parallel `forEach` sends only the first two orders.
 
-Trong đoạn chuẩn bị, `commands` chỉ được gán sau khi `collect` trả về thành công. Khi `prepare` ném lỗi, biến `commands` vẫn là `null`; tuy nhiên **không có đảm bảo chung rằng mọi chương trình đặt side effect bên trong map sẽ không có tác động**. Lợi ích đến từ việc `prepare` là hàm thuần và chưa hề gọi hệ thống bên ngoài.
+In the preparation step, `commands` is assigned only after `collect` returns normally. When `prepare` throws, `commands` stays `null`; however, **there is no general guarantee that programs putting side effects inside `map` leave zero external effects**. The benefit comes from `prepare` being pure and never calling external systems.
 
-### 9.2. Test với parallel Stream
+### 9.2. Testing with Parallel Streams
 
-Khi kiểm tra kết quả `groupingBy` song song, chương trình so **giá trị theo khóa** chứ không so thứ tự in của `HashMap`. Tương tự, `collect(toList())` trên nguồn List có encounter order giữ thứ tự phần tử theo hợp đồng; không suy ra các mapper đã được thực thi lần lượt trên một thread.
+When checking parallel `groupingBy` output, the program compares **values by key** rather than `HashMap` iteration order. Similarly, `collect(toList())` on an encounter-ordered List preserves element order per contract, without implying mappers ran sequentially on one thread.
 
-## 10. Ví dụ Java 8 hoàn chỉnh: ghi tệp tạm rồi công bố khi thành công
+## 10. Complete Java 8 Program: Write to a Temp File and Publish on Success
 
-Đối với file export lớn, tạo toàn bộ `List` trước khi ghi có thể quá tốn RAM. Một cách thiết kế an toàn hơn cho **một tệp đầu ra mới**:
+For large exports, building an entire `List` in RAM before writing may consume too much memory. A safer design for **a new output file**:
 
-1. Mở nguồn bằng `Files.lines` trong `try-with-resources`.
-2. Ghi từng dòng đã chuẩn hóa vào một **tệp tạm trong cùng thư mục đích**.
-3. Nếu parse hoặc ghi lỗi, **đóng tài nguyên rồi xóa tệp tạm**, không công bố tệp kết quả.
-4. Chỉ sau khi toàn bộ việc chuẩn bị thành công, **move tệp tạm thành tên kết quả** bằng `ATOMIC_MOVE` nếu hệ thống tệp hỗ trợ.
+1. Open the source via `Files.lines` inside `try-with-resources`.
+2. Write each normalized line to a **temporary file in the target directory**.
+3. If parsing or writing fails, **close resources and delete the temp file**, never publishing the final file.
+4. Only after preparation succeeds completely, **move the temp file to the final name** using `ATOMIC_MOVE` if the filesystem supports it.
 
-Phương án này **giảm hiển thị kết quả chưa hoàn chỉnh**, nhưng không phải transaction đa tài nguyên và không đảm bảo tự động giải quyết mọi sự cố như mất điện, lỗi ổ đĩa, hoặc ghi cùng lúc ở nhiều hệ thống. Ví dụ chỉ công bố **tệp đích chưa tồn tại**, không thực hiện giao thức thay thế tệp có sẵn.
+This approach **reduces exposing incomplete output**, though it is not a multi-resource transaction and does not automatically solve power loss, disk corruption, or concurrent writers across systems. The example publishes only to **a target file that does not yet exist**, without implementing an overwrite protocol.
 
-Lưu thành `StreamStagedFileDemo.java`; code tự tạo dữ liệu mẫu nên chạy độc lập bằng **JDK 8 trở lên**:
+Save as `StreamStagedFileDemo.java`; it generates its own sample files so it runs standalone on **JDK 8 or later**:
 
 ```java
 import java.io.BufferedWriter;
@@ -552,23 +552,23 @@ import java.util.stream.Stream;
 
 public class StreamStagedFileDemo {
 
-    // Dữ liệu ví dụ: id;amountCents (không có header).
+    // Sample data format: id;amountCents (no header).
     static String normalize(String line) {
         String[] columns = line.split(";", -1);
         if (columns.length != 2
                 || columns[0].trim().isEmpty()) {
             throw new IllegalArgumentException(
-                    "Sai định dạng: " + line);
+                    "Invalid format: " + line);
         }
         long cents = Long.parseLong(columns[1].trim());
         if (cents < 0) {
             throw new IllegalArgumentException(
-                    "Số tiền âm: " + line);
+                    "Negative amount: " + line);
         }
         return columns[0].trim() + "\t" + cents;
     }
 
-    // Chỉ dùng cho tệp đích mới, chưa tồn tại.
+    // Only for a new target file that does not yet exist.
     static void exportToNewFile(Path input, Path target)
             throws IOException {
         Path absoluteTarget = target.toAbsolutePath();
@@ -576,7 +576,7 @@ public class StreamStagedFileDemo {
 
         if (Files.exists(absoluteTarget)) {
             throw new IllegalArgumentException(
-                    "Tệp đích phải chưa tồn tại");
+                    "Target file must not already exist");
         }
 
         Path staging = Files.createTempFile(
@@ -601,8 +601,8 @@ public class StreamStagedFileDemo {
                         });
             }
 
-            // Nếu không được hỗ trợ, để lỗi lan lên caller:
-            // KHÔNG tự fallback sang move không nguyên tử.
+            // If unsupported, let the error propagate to the caller:
+            // DO NOT silently fall back to a non-atomic move.
             Files.move(staging, absoluteTarget,
                     StandardCopyOption.ATOMIC_MOVE);
             published = true;
@@ -640,22 +640,22 @@ public class StreamStagedFileDemo {
                     published, StandardCharsets.UTF_8);
             check(exported.equals(Arrays.asList(
                     "O1\t100", "O2\t200", "O3\t300")),
-                    "Tệp hợp lệ phải chứa toàn bộ dữ liệu");
+                    "Valid file must contain all data");
             System.out.println(exported);
 
             try {
                 exportToNewFile(invalid, rejected);
-                throw new AssertionError("Phải ném lỗi parse");
+                throw new AssertionError("Should throw parse error");
             } catch (NumberFormatException expected) {
                 check(!Files.exists(rejected),
-                        "Không công bố tệp kết quả sai");
+                        "Must not publish invalid output file");
                 System.out.println(
-                        "Đã từ chối tệp lỗi; không có rejected.txt");
+                        "Rejected invalid file; no rejected.txt created");
             }
         } catch (AtomicMoveNotSupportedException unsupported) {
             System.out.println(
-                    "Filesystem không hỗ trợ ATOMIC_MOVE; "
-                    + "không công bố tệp theo cơ chế này");
+                    "Filesystem does not support ATOMIC_MOVE; "
+                    + "file not published under this mechanism");
         } finally {
             Files.deleteIfExists(valid);
             Files.deleteIfExists(invalid);
@@ -667,40 +667,40 @@ public class StreamStagedFileDemo {
 }
 ```
 
-### 10.1. Điều ví dụ thực sự bảo vệ
+### 10.1. What the Example Actually Protects
 
-Khi đọc `invalid.txt`, hai dòng đầu có thể đã được ghi vào **tệp staging**, rồi `NumberFormatException` ở dòng ba. Khối `try-with-resources` đóng reader/writer, sau đó `finally` xóa staging. Caller **không nhìn thấy tệp `rejected.txt` như một kết quả thành công**.
+When reading `invalid.txt`, the first two lines may already be written to **the staging file**, then line three throws `NumberFormatException`. The `try-with-resources` block closes the reader/writer, and `finally` deletes the staging file. Callers **never observe `rejected.txt` as a successful output**.
 
-Nếu hệ thống tệp không hỗ trợ `ATOMIC_MOVE`, code **báo rõ lỗi** thay vì âm thầm chuyển sang copy/move không nguyên tử. Việc đổi tên tệp nguyên tử chỉ áp dụng trong phạm vi và những đảm bảo của filesystem; nó **không** đồng nghĩa dữ liệu đã được đồng bộ bền vững xuống thiết bị lưu trữ trong mọi trường hợp.
+If the filesystem does not support `ATOMIC_MOVE`, the code **fails loudly** instead of silently falling back to a non-atomic copy/move. Atomic file renaming applies only within the scope and guarantees of the filesystem; it **does not** automatically mean data is durably synced to storage in every case.
 
-### 10.2. Giới hạn và tình huống cần xử lý ngoài phạm vi demo
+### 10.2. Limitations and Scenarios Outside Demo Scope
 
-- `Files.exists` rồi `Files.move` không giải quyết hoàn toàn race khi **nhiều tiến trình cùng chọn một tên đích**. Việc công bố tệp đã tồn tại hoặc ghi đè yêu cầu giao thức tương tranh phù hợp.
-- Nếu có lỗi khi xóa staging, lỗi dọn dẹp cũng cần được quan sát; khi thiết kế production nên ghi nhận cả lỗi chính và lỗi cleanup.
-- Với nhiều tệp đầu ra, không thể dùng một phép rename để tự tạo **transaction nguyên tử cho tất cả tệp**.
-- Nếu vừa ghi tệp vừa gửi email/database trong cùng pipeline, thao tác move không rollback những side effect ở hệ thống khác.
-- `Files.lines` vẫn có thể materialize một dòng rất dài; dùng parser/reader có giới hạn đầu vào nếu cần hard cap bộ nhớ.
-- Demo là ví dụ định dạng `id;amountCents` đơn giản, không phải parser CSV có quoting/escaping.
+- `Files.exists` followed by `Files.move` does not fully eliminate races when **multiple processes target the same output name**. Publishing over existing files or overwriting requires proper concurrency protocols.
+- If deleting the staging file fails, cleanup errors must also be observed; in production, record both primary and cleanup errors.
+- For multiple output files, a single rename cannot create **an atomic transaction across all files**.
+- If writing files and sending emails/updating databases in the same pipeline, moving a file does not roll back side effects in other systems.
+- `Files.lines` can still materialize one huge line; use bounded readers/parsers if a hard memory cap is needed.
+- The demo uses a simple `id;amountCents` format, not a CSV parser with quoting/escaping.
 
-**Bộ nhớ:** phương án staging ghi từng dòng, không giữ một `List` toàn bộ dữ liệu. Bộ nhớ chủ yếu dành cho dòng đang xử lý, buffer I/O và trạng thái pipeline; kích thước **tệp staging trên đĩa** vẫn tăng theo dữ liệu xuất ra. Phải kiểm soát cả dung lượng đĩa, quota và lỗi ghi đầy ổ.
+**Memory:** the staging approach writes line by line without holding a `List` of all records. Memory goes mainly to the active line, I/O buffers, and pipeline state; **the staging file size on disk** still grows with output data. Monitor disk space, quotas, and disk-full errors.
 
-## 11. Retry, idempotency và transaction ở hệ thống bên ngoài
+## 11. Retries, Idempotency, and Transactions in External Systems
 
-### 11.1. Cần phân biệt lỗi trước và sau commit
+### 11.1. Distinguishing Pre-Commit vs. Post-Commit Failures
 
-| Trường hợp | Điều đã biết | Quyết định retry |
+| Case | What is known | Retry decision |
 |---|---|---|
-| Validation thất bại trước khi gọi API | Chưa gọi side effect | Có thể sửa dữ liệu rồi chạy lại |
-| API trả lỗi rõ ràng trước khi thực hiện tác động | Theo hợp đồng cụ thể của API | Retry theo chính sách API |
-| Timeout sau khi gửi yêu cầu mạng | **Không chắc** server đã commit hay chưa | Cần idempotency key/trạng thái truy vấn |
-| Đã commit một batch rồi lỗi ở batch sau | Batch trước đã có hiệu ứng | Retry có phạm vi, tránh thực hiện trùng |
-| Một Stream song song ném lỗi | Các action khác có thể đã chạy | Không dựa vào encounter order để đoán phạm vi thành công |
+| Validation fails before calling API | No side effect called yet | Fix data and re-run |
+| API explicitly returns error before taking effect | Per specific API contract | Retry per API policy |
+| Timeout after sending network request | **Uncertain** whether server committed | Need idempotency key / status query |
+| One batch committed, later batch failed | Earlier batch took effect | Scoped retry avoiding duplicates |
+| Parallel Stream throws an error | Other actions may have run | Do not rely on encounter order to guess success scope |
 
-**Không thể đạt “exactly once” cho một side effect bên ngoài chỉ bằng cách đổi `map` thành `forEach` hoặc thêm `synchronized`.** Bảo đảm phụ thuộc vào giao thức bên ngoài, lưu trạng thái commit, giao dịch và chiến lược retry.
+**You cannot achieve “exactly once” for an external side effect merely by switching `map` to `forEach` or adding `synchronized`.** Guarantees depend on external protocols, commit state tracking, transactions, and retry strategies.
 
-### 11.2. Idempotency key theo nghiệp vụ
+### 11.2. Business Idempotency Keys
 
-Ví dụ gửi yêu cầu tạo hóa đơn:
+Example invoice creation request:
 
 ```text
 operation = "CREATE_INVOICE"
@@ -708,61 +708,61 @@ orderId   = "O123"
 key       = "CREATE_INVOICE:O123"
 ```
 
-Ứng dụng có thể truyền key cho một gateway **thực sự hỗ trợ idempotency**. Khi gửi lại đúng yêu cầu với cùng key, gateway theo hợp đồng của nó có thể trả kết quả cũ thay vì tạo hóa đơn thứ hai.
+The application passes the key to a gateway that **genuinely supports idempotency**. When resending the exact same request with the same key, the gateway per its contract returns the previous outcome instead of creating a duplicate invoice.
 
-Điều kiện đi kèm:
+Accompanying conditions:
 
-- Key phải ổn định giữa các lần retry của **cùng tác vụ nghiệp vụ**.
-- Không tái sử dụng key cho **hai tác vụ khác nhau**.
-- Nếu payload thay đổi nhưng key giữ nguyên, gateway phải có chính sách xử lý xung đột.
-- Thời hạn lưu trạng thái idempotency và retry window phải phù hợp.
+- Keys must stay stable across retries of **the same business operation**.
+- Never reuse a key for **two different operations**.
+- If payload changes while keeping the same key, the gateway must enforce a conflict policy.
+- Idempotency retention windows and retry windows must align properly.
 
-Đây là một **thiết kế ở tầng hệ thống**, không phải tính năng được Java Stream API tự cung cấp.
+This is a **system-level design**, not a built-in feature of the Java Stream API.
 
-### 11.3. Transaction và outbox
+### 11.3. Transactions and Outbox
 
-Khi dữ liệu phải được lưu vào database, có thể:
+When data must be stored in a database, you can:
 
-1. Parse/validate các record trước.
-2. Mở transaction ở tầng persistence.
-3. Ghi các thay đổi của **một đơn vị công việc đã chọn**.
-4. Commit thành công hoặc rollback nếu database và loại transaction hỗ trợ.
+1. Parse/validate records first.
+2. Open a transaction in the persistence layer.
+3. Write changes for **one chosen unit of work**.
+4. Commit on success or roll back if the database and transaction type support it.
 
-Với nhu cầu đồng thời **ghi database và phát thông điệp**, mô hình *transactional outbox* có thể ghi thay đổi nghiệp vụ và bản ghi outbox trong **cùng database transaction**. Một worker khác phát thông điệp từ outbox với cơ chế retry/dedup. Cách này giúp tránh tình huống đã commit database nhưng mất thông điệp, tuy nhiên consumer vẫn cần idempotency vì việc phát lại có thể xảy ra.
+When you need to **both update a database and publish a message**, the *transactional outbox* pattern writes business changes and an outbox row in **the same database transaction**. Another worker publishes messages from the outbox with retry/deduplication. This avoids committing the DB while losing the message, though consumers still require idempotency since redeliveries can occur.
 
-Không khẳng định một Stream duy nhất thực hiện cả hai hệ thống đã tạo được transaction phân tán.
+Never claim a single Stream writing to two systems creates a distributed transaction.
 
-## 12. Theo dõi tiến độ và phục hồi sau hoàn tất một phần
+## 12. Progress Tracking and Recovery After Partial Completion
 
-Với tệp lớn, không thể luôn giữ toàn bộ record trong RAM rồi commit một lần. Khi xử lý theo lô, cần **đơn vị checkpoint** rõ ràng:
+For large files, you cannot always keep all records in RAM and commit once. When processing in batches, define an explicit **checkpoint unit**:
 
 ```text
-Batch 1: chuẩn bị -> commit -> checkpoint 1
-Batch 2: chuẩn bị -> commit -> checkpoint 2
-Batch 3: chuẩn bị -> lỗi
-Khởi chạy lại: bắt đầu từ vị trí sau checkpoint 2
+Batch 1: prepare -> commit -> checkpoint 1
+Batch 2: prepare -> commit -> checkpoint 2
+Batch 3: prepare -> error
+Restart: resume after checkpoint 2
 ```
 
-Checkpoint chỉ có giá trị nếu nó **liên kết đúng với kết quả đã commit**. Nếu ghi checkpoint trước rồi ghi kết quả sau, lỗi giữa hai bước có thể làm **mất** bản ghi. Nếu ghi kết quả trước rồi checkpoint sau, lỗi giữa hai bước có thể làm **lặp** tác động khi retry. Cần transaction cùng hệ thống hoặc cơ chế idempotent/dedupe để xử lý khoảng trống này.
+A checkpoint is valuable only when it is **accurately coupled to committed results**. Writing the checkpoint before writing results risks **losing** records on crash between steps. Writing results before checkpointing risks **duplicating** effects on retry after crash between steps. Use a shared-system transaction or idempotent/dedupe mechanisms to close that gap.
 
-### 12.1. Chọn khóa tiến độ bền vững
+### 12.1. Choosing Durable Progress Keys
 
-- Với nguồn database: khóa tăng dần/cursor có thể phù hợp hơn chỉ số trang offset.
-- Với message broker: offset, partition và hợp đồng commit offset của broker.
-- Với tệp: byte offset hoặc số dòng chỉ an toàn khi nguồn **không thay đổi** và có cách định danh phiên bản/checksum tệp.
-- Với API có phân trang: cursor token cần được lưu cùng danh tính truy vấn và phiên bản dữ liệu, nếu API có các yêu cầu đó.
+- Database sources: monotonic keys/cursors are often safer than offset pagination.
+- Message brokers: offsets, partitions, and broker offset-commit contracts.
+- Files: byte offsets or line numbers are safe only when the source **does not change** and has a file version/checksum identifier.
+- Paginated APIs: store cursor tokens together with query identity and data version when supported.
 
-Một biến `AtomicLong processed` trong JVM chỉ là **số đếm tại runtime**, không đủ làm checkpoint tin cậy khi tiến trình chết hoặc khi tác động bên ngoài chưa được xác nhận.
+An `AtomicLong processed` variable in a JVM is only a **runtime counter**, not a durable checkpoint if the process crashes or external effects remain unconfirmed.
 
-### 12.2. Batch có giới hạn nhưng đừng quên lỗi giữa batch
+### 12.2. Bounded Batches Still Require Cross-Batch Failure Handling
 
-Nếu xử lý `K` dòng mỗi batch, bộ nhớ có thể bị ràng buộc theo `K` thay vì `n`. Tuy nhiên, **tính nguyên tử thường chỉ có thể áp dụng ở ranh giới từng batch**, không phải toàn bộ tệp trừ khi storage hỗ trợ transaction đủ lớn.
+Processing `K` lines per batch bounds memory to `K` rather than `n`. However, **atomicity usually applies only at each batch boundary**, not across the whole file unless storage supports massive transactions.
 
-Với batch gửi bất đồng bộ, cần giới hạn **cả kích thước batch lẫn số batch đang chờ**. Nếu hàng đợi không giới hạn, dù mỗi batch nhỏ, tổng bộ nhớ vẫn có thể tăng không giới hạn và lỗi có thể để lại rất nhiều batch ở trạng thái không rõ kết quả.
+With asynchronous batch dispatch, bound **both batch size and in-flight batch count**. Unbounded queues allow total memory to grow without limit even when each batch is small, and failures can leave many batches in uncertain states.
 
-## 13. Tài nguyên I/O: đóng tài nguyên không phải rollback
+## 13. I/O Resources: Closing a Resource Is Not Rollback
 
-`Files.lines` và các Stream nguồn I/O có thể cần đóng khi xử lý xong hoặc có lỗi:
+`Files.lines` and I/O-backed Streams must be closed after finishing or on error:
 
 ```java
 try (Stream<String> lines =
@@ -774,158 +774,158 @@ try (Stream<String> lines =
 }
 ```
 
-`try-with-resources` bảo đảm gọi `close` khi rời khối, kể cả khi một bước trong pipeline ném ngoại lệ. Nhưng **đóng reader không xóa dữ liệu đã ghi**, **đóng writer không bảo đảm transaction cho tệp**, và **đóng HTTP client không hoàn tác yêu cầu đã được server xử lý**.
+`try-with-resources` guarantees calling `close` on block exit, even when a pipeline step throws. However, **closing a reader does not erase written data**, **closing a writer does not make a file transactional**, and **closing an HTTP client does not undo requests the server already processed**.
 
-### 13.1. Stream một lần và vòng đời nguồn
+### 13.1. One-Shot Streams and Source Lifecycles
 
-- Một đối tượng Stream chỉ được tiêu thụ **một lần**; không gọi terminal operation thứ hai sau khi đã tiêu thụ.
-- Không trả Stream được tạo trong khối `try` đã đóng mà mong caller tiếp tục đọc.
-- Nếu một API trả Stream còn mở, phải có hợp đồng rõ ràng về **ai đóng** và **khi nào**.
-- `onClose` có thể đăng ký hành động đóng tài nguyên, nhưng việc tiêu thụ bằng `collect` hoặc `count` **không tự đóng mọi Stream nguồn**.
-- Với nguồn I/O, một ngoại lệ lúc duyệt có thể được bọc trong `UncheckedIOException`; ghi nhận nguyên nhân gốc và vẫn giải phóng tài nguyên.
+- A Stream object can be consumed **only once**; never invoke a second terminal operation after consumption.
+- Never return a Stream created inside a closed `try` block expecting the caller to keep reading.
+- If an API returns an open Stream, document clearly **who closes it** and **when**.
+- `onClose` registers close hooks, yet consuming with `collect` or `count` **does not auto-close every source Stream**.
+- For I/O sources, iteration errors can be wrapped in `UncheckedIOException`; preserve the root cause while still releasing resources.
 
-### 13.2. Side effect trong flatMap và Gatherer
+### 13.2. Side Effects in flatMap and Gatherers
 
-`flatMap` mở Stream con có thể gắn tài nguyên; Stream API có hợp đồng đóng các Stream con khi chúng đã được làm phẳng. Tuy nhiên, **mỗi tài nguyên mở bên ngoài hoặc được quản lý thủ công** vẫn cần sở hữu rõ ràng.
+`flatMap` opens sub-streams that may hold resources; the Stream API contracts to close sub-streams once flattened. Still, **any resource opened externally or managed manually** needs clear ownership.
 
-Với Stream Gatherers từ Java 24, integrator có thể giữ state và có thể phát đầu ra theo quy tắc riêng, nhưng Gatherer cũng **không phải transaction manager**. Dừng sớm, finisher hay tích hợp song song **không tạo rollback** cho các tác động đã ghi ra ngoài. Không đặt thao tác thanh toán hoặc gửi thông điệp trong integrator với giả định toàn bộ pipeline sẽ hoàn tất hoặc tự bù trừ khi lỗi.
+With Java 24 Stream Gatherers, an integrator can maintain state and emit downstream per custom rules, yet a Gatherer is **not a transaction manager** either. Early termination, finishers, or parallel integration **do not roll back** external side effects. Never place payment charges or message sends inside an integrator assuming the entire pipeline will complete or self-compensate on error.
 
-## 14. Kiểm thử đúng ngữ nghĩa, không kiểm thử lịch chạy
+## 14. Testing True Semantics, Not Execution Schedules
 
-Một bộ kiểm thử an toàn cần tách:
+A safe test suite separates:
 
-| Loại test | Điều cần xác nhận |
+| Test type | What to verify |
 |---|---|
-| **Pure transform** | Dữ liệu đúng, null và dữ liệu lỗi được xử lý theo hợp đồng |
-| **Short-circuit** | Giá trị trả về đúng; không assert số lần gọi `peek` |
-| **Sequential failure** | Side effect trước lỗi vẫn tồn tại nếu không có rollback được thiết kế |
-| **Parallel failure** | Không race/hỏng trạng thái; không assert tập phần tử hoàn tất cố định |
-| **Collector** | Kết quả tuần tự và song song tương đương, combiner đúng hợp đồng |
-| **File staging** | Parse lỗi không tạo tệp đích, staging được dọn; không dựa vào hỗ trợ ATOMIC_MOVE ở mọi filesystem |
-| **Retry/idempotency** | Gửi lại cùng key không tạo thêm tác động **theo hợp đồng gateway giả lập** |
-| **Checkpoint** | Lỗi trước/sau commit không làm mất hoặc nhân đôi tác động ngoài chính sách đã định |
-| **I/O** | Stream, reader, writer được đóng cả khi thành công và có lỗi |
+| **Pure transform** | Valid data, nulls, and bad data are handled per contract |
+| **Short-circuit** | Return value is right; never assert `peek` call counts |
+| **Sequential failure** | Side effects prior to error persist unless rollback was designed |
+| **Parallel failure** | No races/corrupted state; never assert a fixed set of completed items |
+| **Collector** | Sequential and parallel results match; combiner obeys contract |
+| **File staging** | Parse failure creates no target file and cleans staging; do not assume `ATOMIC_MOVE` on every filesystem |
+| **Retry/idempotency** | Resending with the same key causes no extra effect **per simulated gateway contract** |
+| **Checkpoint** | Failures before/after commit do not lose or duplicate effects beyond policy |
+| **I/O** | Streams, readers, and writers close on both success and failure |
 
-### 14.1. Bất biến nên kiểm tra
+### 14.1. Invariants Worth Asserting
 
-Với báo cáo chỉ cần số liệu, ưu tiên kiểm tra:
-
-```text
-tổng count theo nhóm == số bản ghi hợp lệ
-tổng tiền theo nhóm == tổng tiền toàn bộ
-kết quả tuần tự tương đương kết quả song song
-không xuất hiện bản ghi đã bị chính sách validation từ chối
-```
-
-Với hệ thống xuất dữ liệu, thêm:
+For numeric reports, prefer checking:
 
 ```text
-không công bố tên tệp đích khi bước chuẩn bị thất bại
-chỉ chuyển checkpoint sau khi commit phù hợp
-không gửi trùng khi retry cùng idempotency key
-không để lộ tệp staging chưa hoàn tất như báo cáo cuối
+sum of group counts == valid record count
+sum of group amounts == overall total amount
+sequential result equals parallel result
+no record rejected by validation policy appears
 ```
 
-Những bất biến này sát với nghiệp vụ hơn các kiểm thử kiểu “`peek` được gọi đúng n lần” hoặc “thread A xử lý O1 trước thread B”.
+For data-export systems, add:
 
-## 15. Các nhầm lẫn và lỗi phổ biến
+```text
+target filename is never published when preparation fails
+checkpoint advances only after appropriate commit
+no duplicate dispatch on retry with same idempotency key
+incomplete staging files are never exposed as final reports
+```
 
-| Nhận định hoặc cách làm | Vì sao không an toàn | Thay bằng |
+These invariants align far better with business requirements than tests like “`peek` ran n times” or “thread A processed O1 before thread B.”
+
+## 15. Common Misconceptions and Mistakes
+
+| Claim or practice | Why it is unsafe | Replace with |
 |---|---|---|
-| “`peek` luôn chạy một lần trên mỗi phần tử.” | Tối ưu hóa/short-circuit có thể bỏ hoặc dừng callback | Dùng kết quả Stream được API bảo đảm |
-| “Đặt `db.insert` trong `map` để vừa biến đổi vừa lưu.” | Giấu side effect, khó xác định commit/retry | Tách biến đổi và bước ghi có hợp đồng |
-| “`forEach` ném lỗi thì mọi bản ghi trước đó rollback.” | Stream không có transaction | Transaction/staging hoặc bù trừ |
-| “`forEachOrdered` có rollback vì giữ thứ tự.” | Chỉ ràng buộc thứ tự hành động | Thiết kế ranh giới commit riêng |
-| “`AtomicInteger` giải quyết exactly-once.” | Chỉ bảo vệ thao tác tăng bộ đếm | Idempotency/transaction/checkpoint |
-| “SynchronizedList đồng nghĩa kết quả nguyên tử.” | Có thể cập nhật một phần trước lỗi | Không dùng shared state cho nghiệp vụ cần atomic |
-| “Dùng `parallel()` luôn xử lý xong mọi phần tử trước khi ném lỗi.” | Tác vụ có thể còn đang hoạt động; lịch không định trước | Không suy trạng thái từ thứ tự |
-| “`Collectors.toList()` sai trên parallel stream.” | Framework có thể có container cục bộ và combiner | Dùng collector đúng hợp đồng |
-| “Tự viết Collector.CONCURRENT cho HashMap sẽ nhanh hơn.” | `CONCURRENT` là cam kết thread-safety, không tạo bảo vệ | Chỉ công bố khi accumulator thật sự an toàn |
-| “Không có kết quả `collect` nghĩa là chưa gửi bản ghi.” | Side effect ngoài pipeline vẫn có thể tồn tại | Theo dõi commit/ack ở hệ thống đích |
-| “Retry cả tệp sau timeout là an toàn.” | Có thể đã commit một phần | Idempotency key hoặc checkpoint |
-| “try-with-resources sẽ hoàn tác file đã ghi.” | Chỉ đóng tài nguyên | Staging + publish/transaction phù hợp |
-| “Ghi ra tệp tạm rồi move là transaction đa hệ thống.” | Chỉ xử lý phạm vi một tệp và filesystem hỗ trợ | Dùng giao thức giao dịch phù hợp hệ thống |
-| “Chỉ cần bắt lỗi rồi trả null.” | Có thể mất bản ghi không được thống kê | ParseResult thành công/thất bại rõ |
-| “Count biến phụ chứng minh mọi callback đã chạy.” | Lazy/short-circuit/elision và song song | Kiểm tra trực tiếp kết quả/đơn vị commit |
+| “`peek` always runs once per element.” | Optimizations/short-circuiting can skip or stop callbacks | Use API-guaranteed Stream results |
+| “Put `db.insert` in `map` to transform and save together.” | Hides side effects, muddies commit/retry | Separate transforms from contracted write steps |
+| “When `forEach` throws, earlier records roll back.” | Stream has no transactions | Transactions/staging or compensation |
+| “`forEachOrdered` rolls back because it preserves order.” | Only constrains action order | Design explicit commit boundaries |
+| “`AtomicInteger` solves exactly-once.” | Only protects counter increments | Idempotency/transactions/checkpoints |
+| “SynchronizedList means atomic results.” | Partial updates can happen before failure | Avoid shared state for atomic requirements |
+| “`parallel()` finishes every element before throwing.” | Tasks may still be active; scheduling is non-deterministic | Never infer state from ordering |
+| “`Collectors.toList()` is broken on parallel streams.” | Framework uses local containers and combiners | Use compliant collectors |
+| “Writing a `CONCURRENT` HashMap collector is faster.” | `CONCURRENT` promises thread safety, not protection | Declare only when accumulator is genuinely thread-safe |
+| “No `collect` result means nothing was sent.” | External side effects may still exist | Track commits/acks in target system |
+| “Retrying the whole file after timeout is safe.” | Partial commits may have occurred | Idempotency keys or checkpoints |
+| “try-with-resources undoes written files.” | Only closes resources | Staging + publish/transactions |
+| “Writing temp file and moving is a multi-system transaction.” | Covers only one file on supported filesystems | Use system-appropriate transaction protocols |
+| “Just catch errors and return null.” | Records can vanish untracked | Explicit success/failure `ParseResult` |
+| “An auxiliary counter proves every callback ran.” | Laziness/short-circuit/elision and parallelism | Assert outputs/commit units directly |
 
-## 16. Bài tập thực hành có đáp án
+## 16. Practice Exercises with Answers
 
-### Bài 1. Nhận diện side effect bị bỏ qua
+### Exercise 1. Identifying Skipped Side Effects
 
-**Đề bài:** Vì sao không dùng `peek(audit::record)` trước `count()` để ghi audit bắt buộc?
+**Prompt:** Why shouldn't you use `peek(audit::record)` before `count()` for mandatory auditing?
 
-**Đáp án:** `peek` là intermediate operation; `count()` có thể biết kích thước mà không cần duyệt callback, hoặc pipeline có thể dừng sớm trong những tình huống khác. Kết quả đếm được bảo đảm không đồng nghĩa side effect của `peek` đã chạy đúng n lần. Thiết kế bước audit ở ranh giới ghi có hợp đồng commit/idempotency.
+**Answer:** `peek` is an intermediate operation; `count()` may know the size without executing callbacks, or pipelines may short-circuit in other cases. A guaranteed count does not imply `peek`'s side effect ran n times. Place auditing at a write boundary with an explicit commit/idempotency contract.
 
-### Bài 2. forEachOrdered ném lỗi
+### Exercise 2. forEachOrdered Throwing an Exception
 
-**Đề bài:** `Stream.of("A","B","C").forEachOrdered(...)` ghi A, ghi B, rồi ném ngoại lệ khi gặp C. Những gì đã ghi có tự mất không?
+**Prompt:** `Stream.of("A","B","C").forEachOrdered(...)` writes A, writes B, then throws on C. Do the written items disappear automatically?
 
-**Đáp án:** Không. `forEachOrdered` bảo toàn thứ tự action theo encounter order, nhưng không rollback A và B. Nếu muốn đầu ra có tính toàn vẹn, dùng một transaction thích hợp hoặc ghi vào tệp staging rồi chỉ công bố sau khi hoàn tất.
+**Answer:** No. `forEachOrdered` preserves action ordering by encounter order, yet never rolls back A and B. For output integrity, use an appropriate transaction or write to a staging file and publish only after completion.
 
-### Bài 3. anyMatch có duyệt hết?
+### Exercise 3. Does anyMatch Inspect Everything?
 
-**Đề bài:** `List.of("ERROR","OK","OK").stream().anyMatch(s -> s.startsWith("ERROR"))` có bắt buộc gọi predicate trên cả ba phần tử không?
+**Prompt:** Does `List.of("ERROR","OK","OK").stream().anyMatch(s -> s.startsWith("ERROR"))` have to call the predicate on all three elements?
 
-**Đáp án:** Không; `anyMatch` có thể dừng khi gặp phần tử thỏa đầu. `List.of` chỉ có từ Java 9, nhưng ngữ nghĩa ngắn mạch của `anyMatch` có từ Java 8. Không dùng số lần gọi predicate để tính “đã xử lý bao nhiêu bản ghi”.
+**Answer:** No; `anyMatch` can stop at the first matching element. `List.of` requires Java 9+, while `anyMatch`'s short-circuit semantics have existed since Java 8. Never use predicate call counts to measure “how many records were processed.”
 
-### Bài 4. Đếm an toàn trên parallel stream
+### Exercise 4. Safe Counting on Parallel Streams
 
-**Đề bài:** Dùng `parallelStream().forEach(o -> count[0]++)` với mảng `long[1]`, có bảo đảm đếm đúng không? `AtomicLong` có giải quyết cả tính nghiệp vụ không?
+**Prompt:** With `parallelStream().forEach(o -> count[0]++)` on a `long[1]` array, is the count guaranteed accurate? Does `AtomicLong` solve the business semantics too?
 
-**Đáp án:** Mảng chung bị data race và có thể mất cập nhật. `AtomicLong` tránh race của phép tăng nhưng không bảo đảm mọi callback được gọi khi pipeline dừng sớm/lỗi, và không thay transaction. Nếu chỉ cần số lượng, dùng `count()` hoặc `Collectors.counting()`.
+**Answer:** The shared array suffers data races and lost updates. `AtomicLong` avoids increment races yet neither guarantees all callbacks run if the pipeline short-circuits/fails nor replaces transactions. When only a count is needed, use `count()` or `Collectors.counting()`.
 
-### Bài 5. Kết quả collect khi mapper ném lỗi
+### Exercise 5. Collect Outcome When Mapper Throws
 
-**Đề bài:** Trong `stream.map(parse).collect(toList())`, parser lỗi ở một phần tử. Caller có thể lấy một `List` kết quả hoàn chỉnh từ terminal operation đó không?
+**Prompt:** In `stream.map(parse).collect(toList())`, the parser fails on one element. Can the caller receive a complete result `List` from that terminal operation?
 
-**Đáp án:** Không, nếu lỗi lan ra; `collect` không trả kết quả thông thường. Nếu parser là hàm thuần, không có side effect bên ngoài cần rollback. Nếu parser đã gọi API/gửi log nghiệp vụ, các tác động trước lỗi có thể vẫn tồn tại.
+**Answer:** No, if the error propagates; `collect` returns no normal result. If the parser is pure, no external side effects need rollback. If the parser called APIs or sent business logs, effects before the failure may persist.
 
-### Bài 6. Retry sau timeout HTTP
+### Exercise 6. Retrying After HTTP Timeout
 
-**Đề bài:** Client gọi `POST /invoice` rồi timeout. Có nên giả định server chưa tạo hóa đơn và gọi lại không?
+**Prompt:** A client calls `POST /invoice` and times out. Should it assume the server has not created the invoice and call again?
 
-**Đáp án:** Không. Timeout không cho biết server đã commit hay chưa. Cần idempotency key, khả năng truy vấn trạng thái theo khóa nghiệp vụ hoặc giao thức retry của server. Stream API không tự biết trạng thái giao dịch bên ngoài.
+**Answer:** No. A timeout does not tell you whether the server committed. You need idempotency keys, status lookup by business key, or the server's retry protocol. The Stream API has no knowledge of external transaction state.
 
-### Bài 7. Ghi tệp lớn có cần giữ tất cả?
+### Exercise 7. Writing Large Files Without Holding Everything
 
-**Đề bài:** Muốn chuẩn hóa 5 triệu dòng rồi công bố một tệp báo cáo; `collect(toList())` có bắt buộc không?
+**Prompt:** You want to normalize 5 million lines and publish one report file; is `collect(toList())` required?
 
-**Đáp án:** Không. Có thể đọc bằng `Files.lines`, ghi dần vào tệp staging bằng `BufferedWriter`, đóng thành công rồi công bố theo giao thức tệp. Bộ nhớ không cần giữ toàn bộ năm triệu dòng, nhưng phải kiểm soát độ dài một dòng, dung lượng đĩa và xử lý lỗi trước lúc publish.
+**Answer:** No. Read with `Files.lines`, stream-write into a staging file via `BufferedWriter`, close cleanly, then publish per file protocol. Memory need not hold all five million lines, though you must bound line length, monitor disk space, and handle errors before publishing.
 
-### Bài 8. Side effect với Gatherer
+### Exercise 8. Side Effects with a Gatherer
 
-**Đề bài:** Java 24 Gatherer có integrator gửi email cho mỗi phần tử. Nếu downstream dùng `limit(2)` hoặc một phần tử làm lỗi, có thể khẳng định tất cả email đã được gửi đúng một lần không?
+**Prompt:** A Java 24 Gatherer has an integrator sending an email per element. If downstream uses `limit(2)` or one element throws, can you claim all emails were sent exactly once?
 
-**Đáp án:** Không. Gatherer có thể dừng sớm theo downstream; lỗi không rollback email đã gửi. Các phép biến đổi cần giữ state riêng, còn gửi email phải có giao thức idempotency/commit phù hợp, không gắn tính đúng vào số lần gọi integrator.
+**Answer:** No. A Gatherer can stop early based on downstream demand; errors do not roll back sent emails. Transformations should manage isolated state, while sending emails needs proper idempotency/commit protocols rather than tying correctness to integrator call counts.
 
-### Bài 9. Atomic move và sự cố hệ thống
+### Exercise 9. Atomic Move and System Failures
 
-**Đề bài:** Có thể dùng `Files.move(temp, target, ATOMIC_MOVE)` và khẳng định cả tệp cùng cơ sở dữ liệu đã commit nguyên tử không?
+**Prompt:** Can you call `Files.move(temp, target, ATOMIC_MOVE)` and claim both the file and database committed atomically?
 
-**Đáp án:** Không. Atomic move chỉ có các đảm bảo trong phạm vi operation và filesystem hỗ trợ; nó không phối hợp transaction với database. Nếu hệ thống không hỗ trợ atomic move, ứng dụng phải quyết định báo lỗi hoặc dùng giao thức khác—không âm thầm tự nhận một phép move thường là nguyên tử.
+**Answer:** No. Atomic move provides guarantees only within that single operation on supporting filesystems; it does not coordinate transactions with a database. If the system lacks atomic move support, fail explicitly or use another protocol—never silently treat a regular move as atomic.
 
-### Bài 10. Thiết kế checkpoint
+### Exercise 10. Designing Checkpoints
 
-**Đề bài:** Sau khi ghi thành công batch thứ hai, chương trình chết trước khi ghi checkpoint. Nếu chạy lại từ checkpoint cũ, điều gì có thể xảy ra?
+**Prompt:** After successfully writing the second batch, the program crashes before saving the checkpoint. What can happen when restarting from the old checkpoint?
 
-**Đáp án:** Batch thứ hai có thể được thực hiện lại. Cần idempotent writes/dedup hoặc transaction có thể commit trạng thái tiến độ và dữ liệu cùng nhau khi khả thi. Ghi checkpoint trước khi commit cũng sai theo hướng khác: có thể bỏ mất dữ liệu.
+**Answer:** The second batch may be executed again. Use idempotent writes/deduplication or transactions committing progress state and data together where feasible. Writing the checkpoint before committing fails in the opposite direction: data can be lost.
 
-## 17. Checklist an toàn trước khi triển khai Stream
+## 17. Safety Checklist Before Deploying Streams
 
-1. **Đã xác định rõ side effect chưa?** Ghi tệp, database, HTTP, email, counter hay sửa một collection ngoài pipeline?
-2. **Các mapper/predicate có stateless và non-interfering không?** Có sửa nguồn hoặc dựa vào biến chung không?
-3. **Có phụ thuộc số lần gọi `peek`/`map` để kiểm toán không?** Nếu có, hãy thiết kế lại.
-4. **Có thao tác ngắn mạch không?** `limit`, `findFirst`, `findAny`, `anyMatch` có thể dừng trước khi duyệt hết.
-5. **Nguồn có encounter order không?** Có cần giữ thứ tự các action hay chỉ cần kết quả tập hợp?
-6. **Nếu một phần tử ném lỗi, các tác động trước đó đi đâu?** Có commit, rollback hoặc bù trừ phù hợp không?
-7. **Có parallel stream không?** Đã tránh state mutable chung và không suy ra lịch xử lý cụ thể chưa?
-8. **Có dùng Collector đúng hợp đồng không?** Supplier/accumulator/combiner và characteristics đã chính xác chưa?
-9. **Có gateway bên ngoài không?** Đã có idempotency key, timeout policy, acknowledgement và retry window chưa?
-10. **Có batch/checkpoint không?** Khi crash giữa commit và checkpoint có thể mất/trùng dữ liệu không?
-11. **Có ghi file không?** Có đóng nguồn/đích, staging, publish và xử lý dọn dẹp khi lỗi chưa?
-12. **Có dữ liệu lỗi không?** Fail-fast hay ghi nhận lỗi rõ ràng; có đang lọc bỏ bản ghi âm thầm không?
-13. **Có giới hạn tài nguyên không?** Bộ nhớ tạm, số batch chờ, độ dài dòng, kích thước kết quả và số file mở?
-14. **Bộ test có kiểm tra lỗi giữa chừng không?** Đừng chỉ test đường thành công.
-15. **Đã tách “kết quả đúng” khỏi “tác dụng phụ đã commit” chưa?** Hai khái niệm phải được kiểm tra riêng.
+1. **Are all side effects identified?** File writes, database, HTTP, emails, counters, or mutating an external collection?
+2. **Are mappers/predicates stateless and non-interfering?** Do they mutate the source or depend on shared variables?
+3. **Does auditing depend on `peek`/`map` call counts?** If so, redesign it.
+4. **Are there short-circuiting operations?** `limit`, `findFirst`, `findAny`, `anyMatch` can stop before traversing everything.
+5. **Does the source have encounter order?** Must action order be preserved, or only aggregate results?
+6. **If an element throws, what happens to prior effects?** Are commits, rollbacks, or compensations in place?
+7. **Is a parallel stream used?** Have you avoided shared mutable state and assumptions about scheduling?
+8. **Are Collectors compliant with their contracts?** Are supplier/accumulator/combiner and characteristics accurate?
+9. **Are there external gateways?** Are idempotency keys, timeout policies, acknowledgements, and retry windows defined?
+10. **Are batches/checkpoints used?** Can a crash between commit and checkpoint lose or duplicate data?
+11. **Are files written?** Are source/target closing, staging, publishing, and error cleanup handled?
+12. **What about invalid data?** Fail-fast or explicit error recording; are records being silently dropped?
+13. **Are resources bounded?** Temporary memory, queued batches, line lengths, output sizes, and open file handles?
+14. **Do tests verify mid-stream failures?** Never test only happy paths.
+15. **Have you separated “correct output” from “committed side effects”?** Both concepts must be verified independently.
 
-**Kết luận:** Java Stream API là công cụ diễn đạt phép biến đổi và tổng hợp, **không** phải bộ quản lý giao dịch hay hệ thống tự bảo đảm exactly-once. Side effect giấu trong `map`/`peek` dễ bị bỏ qua, dừng sớm hoặc chạy không theo thứ tự kỳ vọng; side effect trong terminal action có thể **hoàn tất một phần** trước khi ngoại lệ lan ra; parallel stream càng khiến phạm vi đó khó suy đoán. Hãy dùng hàm biến đổi thuần, collector đúng hợp đồng, ranh giới ghi được kiểm soát, tài nguyên được đóng, staging/transaction và idempotency/checkpoint khi cần. Khi đó pipeline vẫn hưởng lợi từ cách viết khai báo mà không đánh đổi tính đúng và khả năng phục hồi sau lỗi.
+**Conclusion:** The Java Stream API is a tool for expressing transformations and aggregations, **not** a transaction manager or automatic exactly-once delivery system. Side effects hidden in `map`/`peek` risk being skipped, short-circuited, or run out of expected order; side effects in terminal actions can **partially complete** before an exception propagates; parallel streams make that scope even harder to predict. Rely on pure transformations, contract-compliant collectors, controlled write boundaries, properly closed resources, staging/transactions, and idempotency/checkpoints where needed. That way pipelines enjoy declarative clarity without sacrificing correctness or failure recovery.

@@ -1,14 +1,14 @@
-# Changelog khi thay đổi module boundary
+# Changelog When Changing Module Boundaries
 
-Trong Java Platform Module System (JPMS), **module boundary** xác định module nào sở hữu package, module nào có thể đọc module khác, những package nào được truy cập như public API và những package nào được mở cho reflection. Vì vậy, thay đổi `module-info.java` có thể là một thay đổi ảnh hưởng đến người dùng thư viện ngay cả khi không sửa một phương thức Java public nào.
+In the Java Platform Module System (JPMS), a **module boundary** defines which module owns which packages, which modules can read others, which packages are accessible as public APIs, and which packages are opened for reflection. Consequently, modifying `module-info.java` can affect library users even if no public Java method was changed.
 
-Một changelog tốt cần trả lời rõ: **đã thay đổi ranh giới nào, ai bị ảnh hưởng, hậu quả ở compile time hoặc runtime là gì, cần sửa code hoặc lệnh chạy ra sao và từ phiên bản nào thay đổi có hiệu lực**. Chỉ viết “refactor module structure” hoặc “cleanup module-info” thường không đủ cho những dự án phụ thuộc.
+A good changelog should clearly answer: **which boundary changed, who is affected, what the compile-time or runtime impact is, how code or run commands must be updated, and from which version the change takes effect**. Simply writing “refactor module structure” or “cleanup module-info” is usually insufficient for dependent projects.
 
-Bài này trình bày cách viết changelog và migration notes khi thay đổi module boundary trong thư viện hoặc ứng dụng modular Java.
+This article explains how to write changelogs and migration notes when changing module boundaries in Java modular libraries or applications.
 
-## 1. Vì sao module boundary là một phần của hợp đồng tương thích?
+## 1. Why are module boundaries part of the compatibility contract?
 
-Một named module có descriptor:
+A named module has a descriptor:
 
 ```java
 module com.acme.catalog {
@@ -19,41 +19,41 @@ module com.acme.catalog {
 }
 ```
 
-Descriptor này thể hiện nhiều quyết định kiến trúc:
+This descriptor expresses multiple architectural decisions:
 
-- `requires java.logging`: module có dependency đọc module logging.
-- `exports com.acme.catalog.api`: module khác có thể truy cập các kiểu public của package API nếu có readability phù hợp.
-- `opens com.acme.catalog.model to com.acme.json`: module JSON được phép deep reflection vào package model ở runtime.
-- `uses ... Connector`: module có nhu cầu khám phá một loại service qua `ServiceLoader`.
+- `requires java.logging`: the module has a read dependency on the logging module.
+- `exports com.acme.catalog.api`: other modules can access public types in the API package if they have appropriate readability.
+- `opens com.acme.catalog.model to com.acme.json`: the JSON module is permitted deep reflection into the model package at runtime.
+- `uses ... Connector`: the module intends to discover a service type via `ServiceLoader`.
 
-Giả sử release sau bỏ `exports com.acme.catalog.api`. Các class và phương thức trong JAR có thể vẫn còn, nhưng consumer đang import chúng có thể không biên dịch được; bytecode đã biên dịch cũng có thể gặp `IllegalAccessError` khi chạy trên module graph mới.
+Suppose a later release removes `exports com.acme.catalog.api`. The classes and methods in the JAR may still exist, yet consumers importing them can fail to compile; already-compiled bytecode may also encounter `IllegalAccessError` when running on the new module graph.
 
-Nếu đổi một `opens` thành đóng package, framework serializer/ORM có thể gặp `InaccessibleObjectException` dù unit test không dùng reflection vẫn chạy bình thường.
+If an `opens` is changed to close the package, serializer/ORM frameworks may hit `InaccessibleObjectException` even though unit tests not using reflection pass normally.
 
-Vì vậy, **diff của module descriptor phải được xem xét như diff của public API** khi chuẩn bị release notes.
+Therefore, **module descriptor diffs must be reviewed like public API diffs** when preparing release notes.
 
-## 2. Những thay đổi cần có trong changelog
+## 2. Changes that belong in the changelog
 
-| Thay đổi | Ảnh hưởng có thể xảy ra | Nội dung cần ghi |
+| Change | Possible impact | What to document |
 |---|---|---|
-| Thêm `exports P` | Mở public API mới cho consumer | Tên package, module, phạm vi hỗ trợ |
-| Bỏ `exports P` | Consumer mất quyền truy cập package | API thay thế, cách migrate, release áp dụng |
-| Đổi `exports P` thành `exports P to A` | Các module khác `A` bị giới hạn | Tập consumer được hỗ trợ, hướng chuyển đổi |
-| Thêm/bỏ `opens P` | Thay đổi khả năng deep reflection | Framework bị ảnh hưởng và cấu hình thay thế |
-| Thêm/bỏ `requires M` | Đổi dependency graph và khả năng phân giải | Module name và yêu cầu runtime |
-| Đổi `requires` ↔ `requires transitive` | Đổi readability được truyền cho consumer | Consumer có cần khai báo `requires` trực tiếp hay không |
-| Đổi `requires` ↔ `requires static` | Đổi yêu cầu dependency tại runtime resolution | Dependency còn cần khi code thực thi không |
-| Thêm/bỏ `uses S` | Thay đổi nhu cầu khám phá service | Service contract và hành vi mặc định |
-| Thêm/bỏ/đổi `provides S with I` | Tập provider và hành vi plugin đổi | Implementation được thêm/bỏ/thay và cách chọn |
-| Đổi tên module | Các descriptor `requires` cũ không còn phù hợp | Tên cũ, tên mới, tọa độ artifact và migration |
-| Chuyển package giữa các module | Thay đổi chủ sở hữu package và `requires` | Đường import, module path và tương thích |
-| Tách hoặc hợp nhất module | Graph và artifact phân phối thay đổi | Mapping module cũ/mới, dependency và lệnh chạy |
+| Add `exports P` | Exposes new public API to consumers | Package name, module, support scope |
+| Remove `exports P` | Consumers lose access to the package | Replacement API, how to migrate, release version |
+| Change `exports P` to `exports P to A` | Modules other than `A` become restricted | Supported consumer set, migration path |
+| Add/remove `opens P` | Alters deep reflection availability | Affected frameworks and alternative config |
+| Add/remove `requires M` | Changes dependency graph and resolution requirements | Module name and runtime requirements |
+| Switch `requires` <-> `requires transitive` | Changes readability propagated to consumers | Whether consumers must declare `requires` directly |
+| Switch `requires` <-> `requires static` | Changes dependency requirement at runtime resolution | Whether dependency is still needed when code executes |
+| Add/remove `uses S` | Changes service discovery needs | Service contract and default behavior |
+| Add/remove/change `provides S with I` | Available provider set and plugin behavior change | Added/removed/replaced implementations and selection |
+| Rename module | Old `requires` descriptors no longer match | Old name, new name, artifact coordinates, migration |
+| Move package between modules | Changes package owner and `requires` | Import paths, module path, compatibility |
+| Split or merge modules | Graph and distributed artifacts change | Old/new module mapping, dependencies, run commands |
 
-Không phải mọi thay đổi trong bảng đều luôn gây lỗi. Ảnh hưởng thực tế phụ thuộc vào consumer đang dùng package/service nào, artifact có được đặt trên module path hay classpath, và cách cấu hình build/runtime. Changelog phải **mô tả phạm vi ảnh hưởng có căn cứ**, không suy luận rằng bất cứ sửa đổi descriptor nào cũng là breaking change.
+Not every change in the table always breaks callers. Actual impact depends on which packages/services consumers use, whether the artifact sits on the module path or classpath, and build/runtime configuration. The changelog must **describe the impact scope with evidence**, rather than assuming every descriptor edit is a breaking change.
 
-## 3. Phân biệt tên artifact với tên module trong release notes
+## 3. Distinguishing artifact name from module name in release notes
 
-Một ứng dụng có thể dùng Maven dependency:
+An application may use a Maven dependency:
 
 ```xml
 <dependency>
@@ -63,30 +63,30 @@ Một ứng dụng có thể dùng Maven dependency:
 </dependency>
 ```
 
-Nhưng JPMS module name có thể là `com.acme.catalog`. Hai tên không bắt buộc giống nhau. Nếu đổi artifact hoặc module, changelog cần ghi riêng:
+Yet the JPMS module name could be `com.acme.catalog`. The two names do not have to match. If an artifact or module changes, the changelog should record them separately:
 
 ```text
-Artifact cũ: com.acme:catalog-client:1.x
-Artifact mới: com.acme:catalog-client:2.x
-JPMS module cũ: com.acme.catalog
-JPMS module mới: com.acme.catalog.api
+Old artifact: com.acme:catalog-client:1.x
+New artifact: com.acme:catalog-client:2.x
+Old JPMS module: com.acme.catalog
+New JPMS module: com.acme.catalog.api
 ```
 
-Ví dụ trên là thông tin minh họa. Điều quan trọng là tránh hướng dẫn consumer sửa `requires com.acme.catalog;` theo Maven `artifactId` thay vì theo **tên module thật** từ `module-info.class`.
+The above is illustrative. What matters is avoiding instructing consumers to edit `requires com.acme.catalog;` using the Maven `artifactId` instead of the **actual module name** from `module-info.class`.
 
-Có thể kiểm tra module name của artifact bằng:
+You can check an artifact's module name with:
 
 ```shell
 jar --describe-module --file catalog-client-2.0.0.jar
 ```
 
-Nếu JAR là automatic module, tên có thể đến từ `Automatic-Module-Name` hoặc được suy ra từ filename. Việc thay đổi naming của automatic module cũng cần ghi chú nếu consumer đang khai báo `requires` tới tên đó.
+If the JAR is an automatic module, the name may come from `Automatic-Module-Name` or be derived from the filename. Changes to automatic module naming should also be noted if consumers declare `requires` on that name.
 
-## 4. Mẫu ghi changelog cho thay đổi exports
+## 4. Changelog template for exports changes
 
-### Trước thay đổi
+### Before the change
 
-Thư viện phiên bản 1.x:
+Library version 1.x:
 
 ```java
 module com.acme.catalog {
@@ -95,7 +95,7 @@ module com.acme.catalog {
 }
 ```
 
-Consumer sử dụng:
+Consumer usage:
 
 ```java
 module com.acme.report {
@@ -107,9 +107,9 @@ module com.acme.report {
 import com.acme.catalog.legacy.LegacyCatalog;
 ```
 
-### Sau thay đổi
+### After the change
 
-Thư viện phiên bản 2.x:
+Library version 2.x:
 
 ```java
 module com.acme.catalog {
@@ -117,9 +117,9 @@ module com.acme.catalog {
 }
 ```
 
-Package `com.acme.catalog.legacy` không còn được export. Nếu class vẫn tồn tại nhưng không được công bố, consumer không còn quyền truy cập trực tiếp từ named module khác.
+Package `com.acme.catalog.legacy` is no longer exported. Even if the classes remain present without being exposed, consumers can no longer access them directly from another named module.
 
-Một mục changelog có ích:
+A helpful changelog entry:
 
 ```markdown
 ### Changed — JPMS module boundary
@@ -135,36 +135,36 @@ Một mục changelog có ích:
   `IllegalAccessError` when accessing the non-exported package
 ```
 
-Changelog cần có hướng migration cụ thể, không chỉ ghi “removed deprecated export”. Nếu API thay thế không hoàn toàn tương đương, hãy mô tả hành vi hoặc dữ liệu nào cần điều chỉnh.
+The changelog should include concrete migration steps, not just “removed deprecated export”. If the replacement API is not strictly equivalent, describe which behaviors or data need adjustment.
 
-**Lưu ý:** giữ `public` trên class bên trong package không export không làm class đó trở thành public API qua ranh giới named module.
+**Note:** leaving `public` on a class inside an unexported package does not make that class a public API across named-module boundaries.
 
-## 5. Qualified exports: thu hẹp nhóm consumer được phép dùng API
+## 5. Qualified exports: narrowing the allowed consumer group
 
-Một thay đổi từ:
+Changing from:
 
 ```java
 exports com.acme.catalog.integration;
 ```
 
-sang:
+to:
 
 ```java
 exports com.acme.catalog.integration to com.acme.partner;
 ```
 
-có nghĩa package đó chỉ còn được export cho module `com.acme.partner`. Consumer khác có thể bị ảnh hưởng.
+means that package is now exported only to module `com.acme.partner`. Other consumers may be affected.
 
-Trong changelog, cần nêu:
+In the changelog, state:
 
-1. Module sở hữu package và tên package được thu hẹp.
-2. Những module được cấp qualified export sau thay đổi.
-3. Những consumer trước đây dùng unqualified export sẽ không còn truy cập được.
-4. API thay thế hoặc hướng tích hợp được hỗ trợ.
+1. The module owning the package and the narrowed package name.
+2. Which modules retain the qualified export after the change.
+3. That consumers previously relying on the unqualified export will lose access.
+4. The replacement API or supported integration path.
 
-Nếu đổi tên consumer từ `com.acme.partner` sang `com.acme.partner.v2`, qualified export cũng phải được cập nhật khi cần. Không nên nói “qualified export vẫn tương thích” nếu tập module đích đã thay đổi.
+If a consumer is renamed from `com.acme.partner` to `com.acme.partner.v2`, the qualified export must also be updated as needed. Do not claim “qualified export remains compatible” if the target module set changed.
 
-Dạng ghi ngắn gọn:
+Concise format:
 
 ```markdown
 ### Breaking — Qualified export
@@ -174,18 +174,18 @@ Dạng ghi ngắn gọn:
 public `com.acme.catalog.api` package.
 ```
 
-Không dùng `--add-exports` như giải pháp dài hạn thay cho public API ổn định. Nếu cần workaround có thời hạn, ghi rõ bản release nào hỗ trợ và thời điểm dự kiến loại bỏ.
+Do not use `--add-exports` as a long-term substitute for a stable public API. If a time-bound workaround is necessary, note which releases support it and the expected removal timeline.
 
-## 6. opens và reflection phải có release note riêng
+## 6. opens and reflection must have their own release notes
 
-`exports` và `opens` không thay thế nhau:
+`exports` and `opens` do not replace each other:
 
-- `exports P`: cho phép truy cập các kiểu public trong package khi module có readability phù hợp.
-- `opens P`: cho phép deep reflection vào package ở runtime.
-- `opens P to M`: cho phép deep reflection chỉ từ module `M`.
-- `open module`: mở các package trong module cho deep reflection, thường rộng hơn mức cần thiết.
+- `exports P`: allows accessing public types in the package when a module has readability.
+- `opens P`: allows deep reflection into the package at runtime.
+- `opens P to M`: allows deep reflection only from module `M`.
+- `open module`: opens packages in the module for deep reflection, often more broadly than needed.
 
-Ví dụ trước thay đổi:
+Example before the change:
 
 ```java
 module com.acme.catalog {
@@ -194,7 +194,7 @@ module com.acme.catalog {
 }
 ```
 
-Sau thay đổi:
+After the change:
 
 ```java
 module com.acme.catalog {
@@ -203,13 +203,13 @@ module com.acme.catalog {
 }
 ```
 
-Đây là thay đổi từ mở reflection rộng sang mở cho một module cụ thể. Khi viết changelog, không chỉ ghi “security hardening”. Cần nêu module framework nào vẫn được hỗ trợ, framework hoặc test nào phải điều chỉnh và lỗi dự kiến nếu chưa migrate:
+This changes broad reflection openness to openness for a specific module. When writing the changelog, do not just write “security hardening”. Specify which framework modules remain supported, which frameworks or tests must adjust, and the expected error if not migrated:
 
 ```text
 java.lang.reflect.InaccessibleObjectException
 ```
 
-Một mục release note ví dụ:
+Example release note entry:
 
 ```markdown
 ### Changed — Reflection access
@@ -220,11 +220,11 @@ modules must use the supported mapping API or request a
 documented integration path.
 ```
 
-Với framework chạy trong unnamed module, cần kiểm tra quyền mở package cho `ALL-UNNAMED` nếu áp dụng workaround. Hãy ghi rõ môi trường chạy thay vì đưa một cờ JVM chung chung vào release notes.
+For frameworks running in the unnamed module, verify opening the package to `ALL-UNNAMED` if applying a workaround. State the execution environment clearly rather than dropping a generic JVM flag into release notes.
 
-## 7. requires và dependency graph: thay đổi nào cần công bố?
+## 7. requires and the dependency graph: which changes to announce?
 
-Nếu phiên bản 1.x có:
+If version 1.x has:
 
 ```java
 module com.acme.catalog {
@@ -233,15 +233,15 @@ module com.acme.catalog {
 }
 ```
 
-và phiên bản 2.x thêm:
+and version 2.x adds:
 
 ```java
 requires java.net.http;
 ```
 
-thì graph runtime của thư viện có thêm dependency `java.net.http`. Người dùng chạy bằng JDK đầy đủ thường có module này, nhưng custom runtime image được tạo bằng `jlink` hoặc module path tùy chỉnh có thể cần xây dựng lại.
+then the library's runtime graph gains a `java.net.http` dependency. Users running on a full JDK usually have this module, whereas custom runtime images built with `jlink` or custom module paths may need rebuilding.
 
-Trong changelog, nêu rõ:
+In the changelog, state clearly:
 
 ```text
 Added JPMS dependency: java.net.http
@@ -249,13 +249,13 @@ Affected environments: custom jlink images and constrained runtimes
 Action: rebuild the runtime image and verify module resolution
 ```
 
-Nếu dependency là một module thư viện bên thứ ba, cần ghi cả **artifact dependency** và **JPMS module name**, vì consumer hoặc build tool phải cung cấp artifact tương ứng.
+If the dependency is a third-party library module, record both the **artifact dependency** and the **JPMS module name**, since consumers or build tools must supply the corresponding artifact.
 
-Khi bỏ một `requires`, changelog cũng có thể ghi rõ module nào không còn bắt buộc, đặc biệt nếu thay đổi giúp giảm kích thước runtime image. Tuy nhiên, không cam kết image tự nhỏ đi nếu còn dependency khác giữ module đó trong graph.
+When removing a `requires`, the changelog can also note which module is no longer required, especially if the change helps shrink runtime image size. However, do not promise the image shrinks automatically if another dependency keeps that module in the graph.
 
-## 8. requires transitive có ảnh hưởng tới API consumer
+## 8. requires transitive affects API consumers
 
-Giả sử thư viện export một interface có kiểu trả về từ module khác:
+Suppose a library exports an interface returning a type from another module:
 
 ```java
 package com.acme.catalog.api;
@@ -267,7 +267,7 @@ public interface Catalog {
 }
 ```
 
-Descriptor ban đầu:
+Initial descriptor:
 
 ```java
 module com.acme.catalog {
@@ -276,9 +276,9 @@ module com.acme.catalog {
 }
 ```
 
-Nhờ `requires transitive`, consumer đọc `com.acme.catalog` cũng được hưởng readability tới `com.acme.model`.
+Thanks to `requires transitive`, consumers reading `com.acme.catalog` also receive readability to `com.acme.model`.
 
-Nếu đổi thành:
+If changed to:
 
 ```java
 module com.acme.catalog {
@@ -287,7 +287,7 @@ module com.acme.catalog {
 }
 ```
 
-thì consumer không còn nhận readability tới model theo đường transitive đó. Một số source consumer có thể phải khai báo thêm:
+consumers no longer receive readability to `model` transitively through that path. Some consumer sources may need to add:
 
 ```java
 module com.acme.report {
@@ -296,7 +296,7 @@ module com.acme.report {
 }
 ```
 
-Changelog cần mô tả cụ thể:
+The changelog should specify concretely:
 
 ```markdown
 ### Changed — Transitive readability
@@ -307,13 +307,13 @@ Changelog cần mô tả cụ thể:
 directly.
 ```
 
-Không đánh đồng điều này với Maven/Gradle transitive artifact dependency: build tool có thể vẫn tải model JAR, nhưng JPMS readability của named module được quyết định bằng descriptor và module graph.
+Do not equate this with Maven/Gradle transitive artifact dependencies: the build tool may still download the model JAR, yet JPMS readability for a named module is determined by descriptors and the module graph.
 
-## 9. requires static và dependency tùy chọn
+## 9. requires static and optional dependencies
 
-`requires static M` biểu thị dependency cần tại compile time nhưng không bắt buộc phải hiện diện khi phân giải module ở runtime.
+`requires static M` denotes a dependency needed at compile time but not required to be present during runtime module resolution.
 
-Ví dụ:
+Example:
 
 ```java
 module com.acme.catalog {
@@ -321,22 +321,22 @@ module com.acme.catalog {
 }
 ```
 
-Nếu release đổi `requires com.acme.annotations;` thành `requires static com.acme.annotations;`, changelog có thể nói rõ dependency không còn bắt buộc khi runtime resolution. Nhưng **không có nghĩa** mọi đường chạy dùng API của module đó sẽ tự hoạt động khi thiếu JAR.
+If a release changes `requires com.acme.annotations;` to `requires static com.acme.annotations;`, the changelog can note the dependency is no longer required at runtime resolution. However, that **does not mean** every code path using that module's API will automatically work without the JAR.
 
-Ngược lại, nếu đổi `requires static` thành `requires`, deployment phải bảo đảm module mới luôn có mặt tại runtime.
+Conversely, changing `requires static` to `requires` means deployments must ensure the new module is always present at runtime.
 
-Một thông báo tốt nên tách:
+A good notice should separate:
 
-- Điều kiện cần khi compile.
-- Điều kiện cần khi runtime resolution.
-- Điều kiện thực tế của những tính năng sử dụng class thuộc module phụ thuộc.
-- Thay đổi cần thiết trong Maven/Gradle scope hoặc dependency configuration.
+- Requirements at compile time.
+- Requirements at runtime resolution.
+- Actual requirements of features using classes from the dependency module.
+- Necessary updates in Maven/Gradle scopes or dependency configurations.
 
-Không nên viết “module dependency removed” khi module vẫn xuất hiện với `requires static` và source vẫn cần nó để biên dịch.
+Do not write “module dependency removed” when the module still appears with `requires static` and sources still need it to compile.
 
-## 10. Service boundary: uses và provides
+## 10. Service boundaries: uses and provides
 
-Service contract là một phần module boundary dù consumer không import trực tiếp implementation class.
+Service contracts are part of module boundaries even when consumers do not import implementation classes directly.
 
 Consumer:
 
@@ -357,16 +357,16 @@ module com.acme.catalog.csv {
 }
 ```
 
-Những thay đổi cần công bố gồm:
+Changes that should be announced include:
 
-- Module provider mới hoặc module provider bị loại bỏ.
-- Service interface được đổi tên hoặc chuyển sang module khác.
-- Provider implementation hoặc hành vi mặc định thay đổi.
-- Module consumer bắt đầu hoặc ngừng sử dụng service.
-- Thay đổi cách đưa provider vào runtime image hoặc `ModuleLayer`.
-- Service bị thay bằng API khác hoặc cần cấu hình provider tường minh.
+- New provider modules or removed provider modules.
+- Renamed service interfaces or interfaces moved to another module.
+- Changed provider implementations or default behaviors.
+- Consumer modules starting or stopping service usage.
+- Changes in how providers are added to runtime images or `ModuleLayer`s.
+- Services replaced by another API or requiring explicit provider configuration.
 
-Ví dụ changelog:
+Changelog example:
 
 ```markdown
 ### Changed — Service provider
@@ -377,11 +377,11 @@ Deployments must include the provider module and ensure it is
 resolved (for example, through an explicit root or service binding).
 ```
 
-Cần phân biệt “JAR có trên module path” và “module provider đã được resolve”. Một provider có thể nằm trong thư mục deployment nhưng chưa được đưa vào graph. Release notes nên chỉ ra yêu cầu khởi chạy hoặc linking nếu thay đổi service boundary làm khác cách khám phá provider.
+Distinguish “JAR is on the module path” from “provider module is resolved”. A provider may sit in the deployment folder without being included in the graph. Release notes should state launch or linking requirements if a service boundary change alters how providers are discovered.
 
-## 11. Đổi tên module hoặc tách module là thay đổi migration rõ rệt
+## 11. Renaming or splitting a module is a clear migration change
 
-Giả sử trước đây consumer có:
+Suppose consumers previously had:
 
 ```java
 module com.acme.report {
@@ -389,14 +389,14 @@ module com.acme.report {
 }
 ```
 
-Phiên bản mới tách:
+The new version splits into:
 
 ```text
 com.acme.catalog.api
 com.acme.catalog.impl
 ```
 
-Nếu API chuyển sang module `com.acme.catalog.api`, consumer thường cần sửa:
+If the API moves to module `com.acme.catalog.api`, consumers usually need to update:
 
 ```java
 module com.acme.report {
@@ -404,41 +404,41 @@ module com.acme.report {
 }
 ```
 
-Changelog phải bao gồm cả mapping tên:
+The changelog must include a name mapping:
 
-| Trước | Sau | Hành động consumer |
+| Before | After | Consumer action |
 |---|---|---|
-| `com.acme.catalog` | `com.acme.catalog.api` | Sửa `requires` và dependency artifact nếu thay đổi |
-| `com.acme.catalog.internal` | `com.acme.catalog.impl.internal` | Không import trực tiếp; dùng API public thay thế |
-| Provider nằm trong module gốc | Provider trong `com.acme.catalog.impl` | Đảm bảo provider module có trong runtime graph |
+| `com.acme.catalog` | `com.acme.catalog.api` | Update `requires` and dependency artifact if changed |
+| `com.acme.catalog.internal` | `com.acme.catalog.impl.internal` | Do not import directly; use public API instead |
+| Provider inside original module | Provider in `com.acme.catalog.impl` | Ensure provider module is present in runtime graph |
 
-Nếu thay đổi package name, cung cấp ví dụ import trước/sau, không chỉ ví dụ `module-info.java`.
+If package names also changed, supply before/after import examples, not just `module-info.java` examples.
 
-Đổi tên module có thể yêu cầu rebuild toàn bộ consumer modular JAR. Một số runtime configuration, launcher scripts, `--add-opens`, `--add-exports`, `--add-modules`, `--module-path` và file cấu hình plugin cũng cần cập nhật.
+Renaming a module may require rebuilding all consumer modular JARs. Runtime configurations, launcher scripts, `--add-opens`, `--add-exports`, `--add-modules`, `--module-path`, and plugin config files may also need updates.
 
-## 12. Binary compatibility, source compatibility và runtime compatibility
+## 12. Binary compatibility, source compatibility, and runtime compatibility
 
-Changelog nên phân loại tác động theo giai đoạn thay vì chỉ một nhãn “breaking”:
+The changelog should categorize impact by phase rather than using a single “breaking” label:
 
-| Loại tương thích | Cần xem xét |
+| Compatibility type | Considerations |
 |---|---|
-| Source compatibility | Source consumer biên dịch lại có cần đổi `requires`, import hoặc API không? |
-| Binary/runtime linkage | Bytecode consumer cũ có còn truy cập class/member qua graph runtime mới không? |
-| Runtime behavior | `ServiceLoader`, reflection, provider discovery và tính năng runtime có còn hoạt động? |
-| Deployment compatibility | Custom image, module path, launcher hoặc JDK version có phải thay đổi? |
-| Build tooling compatibility | Maven/Gradle module path, compiler options, test runner hoặc processor path có thay đổi? |
+| Source compatibility | Does recompiling consumer source require changing `requires`, imports, or APIs? |
+| Binary/runtime linkage | Can existing consumer bytecode still access classes/members through the new runtime graph? |
+| Runtime behavior | Do `ServiceLoader`, reflection, provider discovery, and runtime features still work? |
+| Deployment compatibility | Must custom images, module path, launchers, or JDK versions change? |
+| Build tooling compatibility | Did Maven/Gradle module paths, compiler options, test runners, or processor paths change? |
 
-Ví dụ, bỏ export một package có thể gây lỗi compile ở dự án consumer mới, nhưng bytecode đã biên dịch cũng có thể gặp `IllegalAccessError` nếu vẫn tham chiếu public class trong package không export.
+For example, removing an export can break compilation for new consumer projects, while precompiled bytecode may hit `IllegalAccessError` if it still references public classes in the unexported package.
 
-Đổi một `opens` có thể không thay đổi khả năng compile code thông thường, nhưng làm reflection thất bại ở runtime.
+Changing an `opens` may not affect compiling regular code, yet cause reflection to fail at runtime.
 
-Đổi `provides` có thể không tác động vào API source hay linkage nhưng làm `ServiceLoader` tìm được implementation khác hoặc không tìm thấy implementation nào.
+Changing `provides` may not impact API source or linkage, yet cause `ServiceLoader` to pick a different implementation or find none at all.
 
-Những khác biệt này nên xuất hiện trong phần “Impact” của changelog để người dùng biết cần chạy loại kiểm thử nào.
+These distinctions belong in the “Impact” section of the changelog so users know which tests to run.
 
-## 13. Mẫu changelog có cấu trúc
+## 13. Structured changelog template
 
-Có thể dùng một cấu trúc thống nhất cho mọi thay đổi module boundary:
+A uniform structure can be used for every module boundary change:
 
 ```markdown
 ## [2.0.0] - YYYY-MM-DD
@@ -473,13 +473,13 @@ Có thể dùng một cấu trúc thống nhất cho mọi thay đổi module bo
 - <supported JDK/runtime configurations and verification commands>
 ```
 
-Dấu `<...>` trong template là placeholder cần thay bằng dữ liệu phát hành thực tế. Không cần lặp lại cùng thay đổi dưới nhiều mục nếu việc đó gây khó đọc; ưu tiên một mục có đủ thông tin và dẫn tới migration guide chi tiết.
+The `<...>` tokens in the template are placeholders to be replaced with actual release data. Do not repeat the same change under multiple sections if doing so hurts readability; prefer one thorough entry linking to a detailed migration guide.
 
-Nếu project sử dụng định dạng Keep a Changelog, có thể đặt các entry vào các nhóm `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security` theo quy ước của project. Điều cốt lõi là người dùng nhìn thấy tác động JPMS, không phải tiêu đề nhóm cụ thể.
+If a project uses the Keep a Changelog format, entries can be placed under `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, and `Security` per project conventions. The essence is that users clearly see the JPMS impact, not specific section titles.
 
-## 14. Ví dụ release note đầy đủ cho một lần thay đổi boundary
+## 14. Full release note example for a boundary change
 
-Giả sử release 2.0.0 của thư viện giả định `com.acme.catalog` thu hẹp API, tách provider và bổ sung dependency. Changelog có thể viết:
+Suppose release 2.0.0 of a hypothetical library `com.acme.catalog` narrows its API, extracts a provider, and adds a dependency. The changelog could look like:
 
 ```markdown
 ## [2.0.0] - 2026-11-11
@@ -513,15 +513,15 @@ Giả sử release 2.0.0 của thư viện giả định `com.acme.catalog` thu 
 5. Recompile and run modular integration tests.
 ```
 
-Đây là ví dụ minh họa cách trình bày, không phải lịch sử phát hành của một thư viện có thật.
+This is an illustrative formatting example, not the release history of a real library.
 
-Khi phát hành chính thức, bổ sung link tới commit/PR, issue, migration guide hoặc API reference nếu project có những tài liệu đó. Người dùng cần một đường dẫn rõ từ việc phát hiện thay đổi đến các bước nâng cấp.
+For official releases, include links to commits/PRs, issues, migration guides, or API references if the project maintains them. Users need a clear path from noticing the change to executing upgrade steps.
 
-## 15. Migration guide nên có ví dụ trước/sau
+## 15. Migration guides should have before/after examples
 
-Nếu có breaking change, changelog ngắn gọn nên dẫn sang hướng dẫn nâng cấp có code trước/sau. Ví dụ đổi module name:
+When breaking changes exist, a concise changelog should point to an upgrade guide with before/after code. Example of renaming a module:
 
-Trước:
+Before:
 
 ```java
 module com.acme.report {
@@ -529,7 +529,7 @@ module com.acme.report {
 }
 ```
 
-Sau:
+After:
 
 ```java
 module com.acme.report {
@@ -537,21 +537,21 @@ module com.acme.report {
 }
 ```
 
-Trước:
+Before:
 
 ```java
 import com.acme.catalog.legacy.LegacyCatalog;
 ```
 
-Sau:
+After:
 
 ```java
 import com.acme.catalog.api.CatalogClient;
 ```
 
-Nếu một API thay đổi cả semantics, nên chỉ ra cách chuyển tham số, exception, lifecycle hoặc cấu hình provider tương ứng. Chỉ đổi tên import không đủ khi implementation có hành vi khác.
+If an API also changed semantics, show how to migrate parameters, exceptions, lifecycle, or provider configuration. Renaming imports alone is insufficient when implementations behave differently.
 
-Với runtime image, hướng dẫn có thể bao gồm việc tạo lại image:
+For runtime images, the guide can include rebuilding the image:
 
 ```shell
 jlink \
@@ -560,20 +560,20 @@ jlink \
   --output runtime
 ```
 
-Đường dẫn và root module trong ví dụ phải được thay theo build thực tế. Với Windows, phần tử module path được phân tách bằng dấu chấm phẩy thay vì dấu hai chấm.
+Paths and root modules in examples must be replaced to match actual builds. On Windows, module path elements are separated by semicolons rather than colons.
 
-Nếu provider cần được liên kết vào image thông qua service binding, có thể cần `--bind-services` hoặc một root module được chỉ định tường minh. Hướng dẫn nên nêu lựa chọn đúng cho kiến trúc triển khai.
+If providers must be linked into the image via service binding, `--bind-services` or an explicit root module may be needed. The guide should state the right option for the deployment architecture.
 
-## 16. Changelog cho các tình huống classpath và module path
+## 16. Changelogs for classpath vs. module path scenarios
 
-Một JAR có thể được dùng ở hai chế độ:
+A JAR can be used in two modes:
 
-1. **Classpath:** class được đưa vào unnamed module; descriptor trong JAR không được áp dụng như named module boundary.
-2. **Module path:** module system nhận diện module name, áp dụng readability, exports và opens.
+1. **Classpath:** classes are placed in the unnamed module; the descriptor inside the JAR is not enforced as a named module boundary.
+2. **Module path:** the module system recognizes the module name and enforces readability, `exports`, and `opens`.
 
-Vì vậy, một thay đổi chỉ liên quan `exports` có thể ảnh hưởng mạnh đến named-module consumers nhưng không có cùng tác động trực tiếp trên classpath consumers.
+Consequently, a change affecting only `exports` may strongly impact named-module consumers without having the same direct effect on classpath consumers.
 
-Changelog nên ghi tách:
+The changelog should document them separately:
 
 ```text
 Affected: consumers running the library on the JPMS module path.
@@ -581,38 +581,38 @@ Classpath usage: no direct export-boundary change; verify API and
 runtime behavior separately.
 ```
 
-Không suy ra rằng classpath hoàn toàn không bị ảnh hưởng: class, method hoặc dependency vẫn có thể thay đổi độc lập với descriptor.
+Do not infer that the classpath is completely unaffected: classes, methods, or dependencies may still change independently of the descriptor.
 
-Nếu thư viện chuyển từ automatic module sang explicit module, hãy ghi tên module cũ/mới và các package không còn được export rộng. Một module explicit thường có boundary chặt hơn automatic module; nhiều import trước đây có thể cần sửa.
+If a library transitions from an automatic module to an explicit module, record old/new module names and packages no longer exported broadly. An explicit module usually has tighter boundaries than an automatic module; many existing imports may need adjustment.
 
-## 17. Dùng công cụ để thu thập thông tin release notes
+## 17. Using tools to gather release note details
 
-Khi xây dựng changelog, cần so sánh **artifact trước và sau release**, không chỉ đọc diff của source descriptor.
+When preparing a changelog, compare **the before and after release artifacts**, not only the source descriptor diff.
 
-### Xem descriptor của từng JAR
+### Inspecting descriptors of each JAR
 
 ```shell
 jar --describe-module --file catalog-client-1.9.0.jar
 jar --describe-module --file catalog-client-2.0.0.jar
 ```
 
-Đầu ra cho thấy module name, các `requires`, `exports`, `opens`, `uses` và `provides` được đóng gói. Với multi-release JAR, cần kiểm tra descriptor tương ứng với release Java mục tiêu.
+The output shows the packaged module name, `requires`, `exports`, `opens`, `uses`, and `provides`. For multi-release JARs, inspect the descriptor matching the target Java release.
 
-### Xem module trong runtime hiện tại
+### Inspecting modules in the current runtime
 
 ```shell
 java --list-modules
 ```
 
-Đối với module nằm trên module path:
+For modules on the module path:
 
 ```shell
 java --module-path mods --describe-module com.acme.catalog
 ```
 
-Với custom runtime image, sử dụng executable bên trong image thay vì một lệnh `java` có thể trỏ tới JDK khác.
+With custom runtime images, use the executable inside the image rather than a `java` command that might point to a different JDK.
 
-### Theo dõi resolution
+### Tracing resolution
 
 ```shell
 java --show-module-resolution \
@@ -620,41 +620,41 @@ java --show-module-resolution \
   -m com.acme.report/com.acme.report.Main
 ```
 
-Công cụ này giúp xác định module nào được resolve trong lần chạy cụ thể. Nó không tự chứng minh các nhánh chức năng dùng reflection hoặc service đã hoạt động, nên vẫn cần integration tests phù hợp.
+This tool helps identify which modules are resolved in a specific run. It does not by itself prove reflection or service code paths work, so matching integration tests are still required.
 
-### Phân tích dependency
+### Analyzing dependencies
 
 ```shell
 jdeps --summary --module-path mods catalog-client-2.0.0.jar
 ```
 
-`jdeps` hữu ích để tìm dependency tĩnh, không thay thế kiểm tra service provider, reflection hay artifact packing. Khi ghi “removed dependency”, hãy đối chiếu với descriptor và dependency graph build/runtime thực tế.
+`jdeps` helps uncover static dependencies, and does not replace inspecting service providers, reflection, or artifact packaging. When writing “removed dependency”, verify against actual descriptors and build/runtime dependency graphs.
 
-## 18. Đánh giá mức độ thay đổi phiên bản
+## 18. Evaluating version bump severity
 
-Không có quy tắc JPMS nào bắt buộc một thay đổi `exports` phải tăng major version. Mức tăng phiên bản do chính sách tương thích của project quyết định, thường kết hợp với SemVer hoặc quy ước release khác.
+No JPMS rule dictates that changing `exports` must increment a major version. Version bump levels are decided by the project's compatibility policy, typically combined with SemVer or another release convention.
 
-Một cách cân nhắc:
+One way to weigh them:
 
-- **Breaking boundary change:** xóa export được công bố, đổi module name đang được consumer dùng, bỏ provider nằm trong hợp đồng hỗ trợ, thay đổi reflection contract cần thiết. Với dự án áp dụng SemVer nghiêm ngặt, những thay đổi này thường được cân nhắc cho major release.
-- **Backward-compatible API addition:** thêm package API mới được export hoặc thêm service tùy chọn mà không đổi hành vi hiện tại. Có thể phù hợp với minor release tùy chính sách.
-- **Bug fix / maintenance:** sửa descriptor cho đúng hợp đồng đã tài liệu hóa mà không làm consumer hợp lệ bị ảnh hưởng. Có thể phù hợp với patch release, nhưng vẫn cần mô tả nếu hành vi thực tế thay đổi.
+- **Breaking boundary change:** removing a published export, renaming a module currently used by consumers, removing a supported contracted provider, changing required reflection contracts. For projects strictly following SemVer, these are typically considered for a major release.
+- **Backward-compatible API addition:** adding a new exported API package or adding an optional service without altering existing behavior. May fit a minor release depending on policy.
+- **Bug fix / maintenance:** fixing a descriptor to match an already-documented contract without impacting compliant consumers. May fit a patch release, though still worth describing if actual behavior changes.
 
-Điểm quan trọng là **hợp đồng đã được công bố và phạm vi consumer được hỗ trợ**, không chỉ số dòng thay đổi trong `module-info.java`. Nếu một package internal chưa bao giờ được hỗ trợ công khai nhưng từng bị export nhầm, việc đóng package có thể làm hỏng consumer đã phụ thuộc vào nó; changelog vẫn nên cảnh báo tác động thực tế.
+What matters is **the published contract and supported consumer scope**, not the line count changed in `module-info.java`. If an internal package was never publicly supported yet was accidentally exported, closing it can still break consumers that depended on it; the changelog should still warn of the practical impact.
 
-## 19. Liên hệ giữa changelog và tài liệu API
+## 19. Relationship between the changelog and API docs
 
-Changelog trả lời “điều gì thay đổi ở release này”, còn các tài liệu khác trả lời “trạng thái hiện tại là gì”:
+The changelog answers “what changed in this release”, while other docs answer “what is the current state”:
 
-- **Module descriptor:** hợp đồng máy đọc được về readability, exports, opens và service bindings.
-- **Javadoc/API reference:** các kiểu, phương thức và package được hỗ trợ.
-- **Architecture documentation:** lý do tách module và hướng dependency.
-- **Migration guide:** các bước nâng cấp giữa hai release.
-- **Changelog:** lịch sử thay đổi, mức ảnh hưởng và điểm bắt đầu migration.
+- **Module descriptor:** machine-readable contract for readability, exports, opens, and service bindings.
+- **Javadoc/API reference:** supported types, methods, and packages.
+- **Architecture documentation:** rationale for module splits and dependency direction.
+- **Migration guide:** upgrade steps between two releases.
+- **Changelog:** change history, impact scope, and migration starting points.
 
-Không nên thay thế changelog bằng một snapshot của descriptor mới. Người dùng cần biết sự khác biệt **so với release trước**, đặc biệt khi dependency và cấu hình của họ được viết cho module name hoặc package cũ.
+Do not replace the changelog with a snapshot of the new descriptor. Users need to know what differs **compared to the previous release**, especially when their dependencies and configs were written for old module or package names.
 
-Trong tài liệu kiến trúc, có thể bổ sung sơ đồ:
+In architecture docs, you can add a diagram:
 
 ```text
 Before:
@@ -671,21 +671,21 @@ Provider:
   com.acme.catalog.csv --> com.acme.catalog.spi
 ```
 
-Sơ đồ này chỉ minh họa; cách hiển thị dependency cần phù hợp với descriptor thực tế. Changelog có thể liên kết tới sơ đồ hoặc migration guide thay vì lặp lại chi tiết quá dài.
+This diagram is illustrative; how dependencies are shown must reflect actual descriptors. The changelog can link to diagrams or migration guides instead of repeating lengthy details.
 
-## 20. Checklist cho maintainer khi phát hành thay đổi boundary
+## 20. Maintainer checklist when releasing boundary changes
 
-Trước khi công bố một release có thay đổi JPMS:
+Before publishing a release with JPMS changes:
 
-1. Xác định module names và package exports của cả bản cũ và mới từ artifact được đóng gói.
-2. Liệt kê những directive `requires`, `requires transitive`, `requires static`, `exports`, `opens`, `uses`, `provides` đã thay đổi.
-3. Phân loại consumer bị ảnh hưởng: compile-time imports, binary runtime access, deep reflection, service discovery hoặc deployment.
-4. Ghi chính xác module/package/service name, tránh chỉ ghi Maven artifact coordinates.
-5. Nếu có thay đổi tương thích ngược không đầy đủ, cung cấp migration steps với `module-info.java` và code trước/sau.
-6. Ghi chú các cờ launcher, module path hoặc cấu hình `jlink` cần thay đổi.
-7. Nếu đề xuất workaround như `--add-exports` hoặc `--add-opens`, mô tả đây là biện pháp tạm thời, phạm vi áp dụng và rủi ro phụ thuộc vào implementation nội bộ.
-8. Phân biệt tác động với consumer trên classpath và trên module path.
-9. Kiểm tra mô tả release bằng đúng phiên bản JDK và artifact mục tiêu.
-10. Đặt mục breaking change ở vị trí dễ thấy; liên kết tới tài liệu migration khi nội dung vượt phạm vi changelog ngắn.
+1. Determine module names and package exports of both old and new versions from packaged artifacts.
+2. List changed `requires`, `requires transitive`, `requires static`, `exports`, `opens`, `uses`, and `provides` directives.
+3. Categorize affected consumers: compile-time imports, binary runtime access, deep reflection, service discovery, or deployment.
+4. State exact module/package/service names; avoid writing only Maven artifact coordinates.
+5. If changes are not fully backward compatible, supply migration steps with before/after `module-info.java` and code.
+6. Note required changes to launcher flags, module paths, or `jlink` configurations.
+7. If suggesting workarounds like `--add-exports` or `--add-opens`, describe them as temporary measures, state their scope, and note the risk of relying on internal implementations.
+8. Distinguish impact on classpath consumers vs. module path consumers.
+9. Verify release notes using the exact target JDK version and artifacts.
+10. Place breaking changes prominently; link to migration docs when details exceed a concise changelog.
 
-**Kết luận:** Mỗi thay đổi module boundary có thể thay đổi cách mã consumer được biên dịch, liên kết, nạp provider hoặc hoạt động với reflection. Changelog cần làm rõ **trước/sau, phạm vi ảnh hưởng và hành động nâng cấp** cho từng thay đổi quan trọng. Khi coi `module-info.java` là một phần của hợp đồng API và ghi chép có cấu trúc, nhóm phát triển sẽ giảm những lỗi khó hiểu khi người dùng nâng phiên bản thư viện hoặc tái tạo runtime image.
+**Conclusion:** Every module boundary change can alter how consumer code compiles, links, loads providers, or works with reflection. A changelog must clarify **before/after states, impact scope, and upgrade actions** for every significant change. Treating `module-info.java` as part of the API contract and documenting changes in a structured way reduces puzzling failures when users upgrade library versions or rebuild runtime images.

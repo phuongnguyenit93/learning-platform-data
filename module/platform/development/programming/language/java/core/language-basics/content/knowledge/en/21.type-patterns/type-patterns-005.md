@@ -1,25 +1,25 @@
-# Pattern matching cho `switch` trong Java 21
+# Pattern Matching for `switch` in Java 21
 
-**Pattern matching for switch** là tính năng chuẩn từ **Java 21 (JEP 441)**: thay vì chỉ so sánh `case` với hằng số, Java có thể kiểm tra **kiểu thực tế** của đối tượng, ràng buộc đối tượng với **biến mẫu** và dùng điều kiện bổ sung `when`.
+**Pattern matching for switch** has been a standard feature since **Java 21 (JEP 441)**: instead of only comparing `case` against constants, Java can check the **actual type** of an object, bind the object to a **pattern variable**, and use an additional `when` condition.
 
 ~~~java
 Object value = "Java";
 
 String result = switch (value) {
-    case String s -> "Chuỗi: " + s.toUpperCase();
-    case Integer n -> "Số: " + n;
-    case null -> "Thiếu dữ liệu";
-    default -> "Kiểu khác";
+    case String s -> "String: " + s.toUpperCase();
+    case Integer n -> "Number: " + n;
+    case null -> "Missing data";
+    default -> "Other type";
 };
 ~~~
 
-Nếu `value` là `"Java"`, kết quả là `"Chuỗi: JAVA"`. Khi nhãn `case String s` khớp, `s` có kiểu tĩnh `String`, nên không cần viết `(String) value`. **Mẫu `case String s` không đồng nghĩa `case "String"`**: một bên kiểm tra kiểu, một bên là nhãn hằng chuỗi.
+If `value` is `"Java"`, the result is `"String: JAVA"`. When the label `case String s` matches, `s` has static type `String`, so you do not need to write `(String) value`. **The pattern `case String s` is not equivalent to `case "String"`**: one checks a type, while the other is a string constant label.
 
-**Lưu ý phiên bản:** `instanceof String s` đã là tính năng chuẩn từ Java 16 và dùng được ở JDK 17. Nhưng **pattern matching trong `switch` là tính năng chuẩn từ JDK 21**. Ví dụ `case String s ->` dưới đây **không biên dịch với `javac` JDK 17 tiêu chuẩn**. Mục 3 có cách viết tương đương chạy bằng JDK 17, không cần preview.
+**Version note:** `instanceof String s` has been a standard feature since Java 16 and works on JDK 17. However, **pattern matching in `switch` is a standard feature starting in JDK 21**. The `case String s ->` example below **does not compile with standard JDK 17 `javac`**. Section 3 provides an equivalent approach that runs on JDK 17 without preview.
 
-## 1. Kiểu mẫu, `when`, `null` và `default`
+## 1. Type Patterns, `when`, `null`, and `default`
 
-Ví dụ:
+Example:
 
 ~~~java
 return switch (value) {
@@ -32,15 +32,15 @@ return switch (value) {
 };
 ~~~
 
-Quy tắc:
+Rules:
 
-- `case String s`: khớp khi đối tượng có kiểu `String` tương thích; ràng buộc nó với `s`, chỉ có hiệu lực trong nhánh tương ứng.
-- `case String s when s.isBlank()`: trước tiên phải khớp kiểu `String`, sau đó kiểm tra thêm điều kiện `when`. Nếu guard false, Java tiếp tục xét nhãn phía sau.
-- `case null`: **xử lý selector null**. Đây là điểm khác đáng chú ý so với switch truyền thống Java 17.
-- `default`: xử lý trường hợp không nhãn nào khớp. **`default` riêng lẻ không bắt `null`**; nếu thiếu `case null`, selector null thông thường ném `NullPointerException`.
-- `case ... ->`: thực thi đúng nhánh đã chọn, **không fall-through** xuống nhãn sau.
+- `case String s`: matches when the object has a compatible `String` type; binds it to `s`, which is in scope only within the corresponding branch.
+- `case String s when s.isBlank()`: must first match the `String` type, and then evaluates the `when` condition. If the guard is false, Java continues checking subsequent labels.
+- `case null`: **handles a null selector**. This is a notable difference from the traditional Java 17 switch.
+- `default`: handles cases where no label matches. **`default` alone does not catch `null`**; if `case null` is missing, a null selector normally throws `NullPointerException`.
+- `case ... ->`: executes only the selected branch, **with no fall-through** to later labels.
 
-| Selector | Nhãn được chọn trong ví dụ trên | Kết quả |
+| Selector | Label Selected in the Example Above | Result |
 | --- | --- | --- |
 | `null` | `case null` | `missing` |
 | `"   "` | `String s when s.isBlank()` | `blank` |
@@ -49,15 +49,15 @@ Quy tắc:
 | `-2` (Integer) | `Integer n` | `negative:-2` |
 | `2.5` (Double) | `default` | `other` |
 
-### Thứ tự nhãn và dominance
+### Label Order and Dominance
 
-Nếu `case String s` **không có guard** xuất hiện trước `case String s when s.isBlank()`, nhãn thứ hai sẽ bị bao phủ bởi nhãn thứ nhất và gây lỗi **dominated case**. Do đó đặt mẫu **hẹp/có điều kiện** trước mẫu **rộng/không có điều kiện**.
+If an unguarded `case String s` appears before `case String s when s.isBlank()`, the second label is covered by the first and causes a **dominated case** compile error. Therefore, place **narrower/guarded** patterns before **broader/unguarded** patterns.
 
-Không dùng `when` sau một nhãn hằng như thể nó là phép `if` tổng quát; cú pháp guarded pattern được thiết kế để đi cùng **pattern label**.
+Do not use `when` after a constant label as if it were a general `if`; guarded pattern syntax is designed to accompany a **pattern label**.
 
-## 2. Ví dụ hoàn chỉnh chạy với JDK 21
+## 2. Complete Example Running on JDK 21
 
-Tạo file UTF-8 **`PatternSwitch21Demo.java`**:
+Create a UTF-8 file **`PatternSwitch21Demo.java`**:
 
 ~~~java
 import java.util.Locale;
@@ -100,7 +100,7 @@ public class PatternSwitch21Demo {
 }
 ~~~
 
-Dùng **JDK 21 trở lên** trong thư mục chứa file (PowerShell hoặc Bash):
+Use **JDK 21 or later** in the directory containing the file (PowerShell or Bash):
 
 ~~~bash
 java -version
@@ -109,7 +109,7 @@ javac -encoding UTF-8 PatternSwitch21Demo.java
 java PatternSwitch21Demo
 ~~~
 
-**Exact expected stdout** của riêng `java PatternSwitch21Demo`:
+**Exact expected stdout** of `java PatternSwitch21Demo` alone:
 
 ~~~text
 missing
@@ -123,11 +123,11 @@ other
 sealed=start:deploy
 ~~~
 
-Không cần `--enable-preview` trên JDK 21. Đầu ra `java -version` và `javac -version` phụ thuộc bản JDK được cài, nên không tính vào stdout cố định.
+`--enable-preview` is not needed on JDK 21. The output of `java -version` and `javac -version` depends on the installed JDK, so it is not included in the fixed stdout.
 
-### Exhaustiveness với `sealed`
+### Exhaustiveness with `sealed`
 
-`Action` là một **sealed interface** chỉ cho phép `Start` và `Stop` triển khai trực tiếp. Compiler biết tập subtype được phép, vì vậy switch expression sau có thể **không cần `default`**:
+`Action` is a **sealed interface** that permits only `Start` and `Stop` to implement it directly. The compiler knows the permitted set of subtypes, so the following switch expression can **omit `default`**:
 
 ~~~java
 static String action(Action action) {
@@ -138,15 +138,15 @@ static String action(Action action) {
 }
 ~~~
 
-Biểu thức `switch` phải **bao phủ đầy đủ** (*exhaustive*) những giá trị thuộc kiểu selector theo quy tắc biên dịch; nếu có subtype mới được phép mà không cập nhật các nhánh, compiler có thể yêu cầu sửa. `switch` statement với mẫu cũng có các quy tắc bao phủ/nhãn phù hợp, nhưng không nên nhầm với switch statement truyền thống chỉ dùng hằng.
+A `switch` expression must **exhaustively cover** all values of the selector type according to compiler rules; if a new permitted subtype is added without updating the branches, the compiler can require a fix. A `switch` statement with patterns also has appropriate coverage/label rules, though it should not be confused with a traditional switch statement that only uses constants.
 
-**Trường hợp null:** liệt kê đủ subtype `Start` và `Stop` không có nghĩa là đã xử lý null. Nếu `action == null`, switch này ném `NullPointerException` khi chạy.
+**The null case:** listing all subtypes `Start` and `Stop` does not mean null is handled. If `action == null`, this switch throws `NullPointerException` at runtime.
 
-## 3. Phương án tương thích Java 17: `instanceof` type pattern
+## 3. Java 17 Compatible Approach: `instanceof` Type Patterns
 
-Nếu chỉ có JDK 17, dùng các chuỗi `if` với `instanceof Type name` và guard. Cách này thể hiện cùng logic, chỉ không dùng pattern-switch Java 21.
+If you only have JDK 17, use `if` chains with `instanceof Type name` and guards. This expresses the same logic without using Java 21 pattern-switch.
 
-Tạo file UTF-8 **`PatternSwitch17Compat.java`**:
+Create a UTF-8 file **`PatternSwitch17Compat.java`**:
 
 ~~~java
 import java.util.Locale;
@@ -201,14 +201,14 @@ public class PatternSwitch17Compat {
 }
 ~~~
 
-Chạy với **JDK 17 trở lên**:
+Run with **JDK 17 or later**:
 
 ~~~bash
 javac -encoding UTF-8 PatternSwitch17Compat.java
 java PatternSwitch17Compat
 ~~~
 
-**Exact expected stdout** của `java PatternSwitch17Compat`:
+**Exact expected stdout** of `java PatternSwitch17Compat`:
 
 ~~~text
 missing
@@ -222,13 +222,13 @@ other
 sealed=start:deploy
 ~~~
 
-Hai chương trình cho cùng đầu ra minh họa. Tuy nhiên, cách viết Java 17 dùng các kiểm tra `instanceof` tuần tự nên **không có cùng kiểm tra exhaustiveness của switch expression trên sealed type**: phương thức `action` ở bản này sử dụng một `throw` dự phòng.
+Both programs produce the same illustrative output. However, the Java 17 approach uses sequential `instanceof` checks and therefore **does not have the same exhaustiveness checking of a switch expression over a sealed type**: the `action` method in this version uses a fallback `throw`.
 
-## 4. Pattern switch, `switch expression` và `yield`
+## 4. Pattern Switch, `switch expression`, and `yield`
 
-Pattern matching có thể xuất hiện trong cả switch statement lẫn switch expression. Trong chương trình JDK 21, `describe` dùng **switch expression** trả về `String` trực tiếp từ từng nhánh.
+Pattern matching can appear in both switch statements and switch expressions. In the JDK 21 program, `describe` uses a **switch expression** returning a `String` directly from each branch.
 
-Nếu một nhánh cần nhiều câu lệnh, dùng khối và `yield` để tạo giá trị:
+If a branch needs multiple statements, use a block and `yield` to produce a value:
 
 ~~~java
 String result = switch (value) {
@@ -241,51 +241,51 @@ String result = switch (value) {
 };
 ~~~
 
-`yield` trả giá trị **từ switch expression**, không thoát toàn bộ phương thức như `return`. Với `case ... ->` đơn, chỉ cần viết biểu thức kết quả, không phải `yield`.
+`yield` returns a value **from the switch expression**, rather than exiting the entire method like `return`. With a single-expression `case ... ->`, you just write the result expression without `yield`.
 
-**Kiểu kết quả** được xác định khi biên dịch từ các nhánh/ngữ cảnh đích; không tự thay đổi kiểu ở runtime tùy vào pattern nào khớp. Biến mẫu `s` có kiểu tĩnh `String`, nhưng biến `value` bên ngoài vẫn có kiểu tĩnh `Object`.
+**The result type** is determined at compile time from the branches/target context; it does not dynamically change type at runtime depending on which pattern matches. The pattern variable `s` has static type `String`, while the outer variable `value` still has static type `Object`.
 
-## 5. Giới hạn quan trọng và lỗi thường gặp
+## 5. Important Limitations and Common Mistakes
 
-| Nhầm lẫn | Cách hiểu đúng |
+| Misconception | Correct Understanding |
 | --- | --- |
-| “Java 17 hỗ trợ `case String s ->` như Java 21.” | Java 17 chỉ có pattern-switch ở dạng preview, không phải cú pháp chuẩn không bật preview |
-| “`case String s` tạo đối tượng String mới.” | Chỉ ràng buộc tham chiếu khi kiểu khớp |
-| “`case String s` và `case "String"` giống nhau.” | Một bên là **type pattern**, một bên là hằng chuỗi |
-| “`case String s` nên đặt trước `case String s when ...`.” | Mẫu rộng có thể thống trị mẫu hẹp và gây lỗi biên dịch |
-| “`default` tự xử lý `null`.” | Cần `case null`, hoặc null có thể gây NPE |
-| “`when` chạy trước khi kiểm tra kiểu.” | Guard chỉ được xét sau khi pattern khớp |
-| “Dạng `case ->` rơi tiếp xuống nhánh sau.” | Không có fall-through |
-| “Khai báo đủ subtype sealed cũng tự bắt null.” | Null phải được xử lý riêng nếu cần |
-| “`case List<String> list` luôn kiểm tra được generic argument.” | Type erasure hạn chế kiểm tra kiểu generic tham số hóa; thường dùng `List<?>` rồi xác thực phần tử |
+| "Java 17 supports `case String s ->` like Java 21." | Java 17 only has pattern-switch as preview, not as standard syntax without preview enabled |
+| "`case String s` creates a new String object." | It only binds a reference when the type matches |
+| "`case String s` and `case "String"` are the same." | One is a **type pattern**, the other is a string constant |
+| "`case String s` should come before `case String s when ...`." | A broad pattern can dominate a narrow pattern and cause a compile error |
+| "`default` automatically handles `null`." | You need `case null`, or null can throw NPE |
+| "`when` runs before checking the type." | A guard is evaluated only after the pattern matches |
+| "The `case ->` form falls through to the next branch." | There is no fall-through |
+| "Listing all sealed subtypes also catches null." | Null must be handled separately if needed |
+| "`case List<String> list` can always check the generic argument." | Type erasure restricts checking parameterized generic types; usually use `List<?>` and validate elements |
 
-Trong Java 21, record patterns cũng được chuẩn hóa và có thể phối hợp với pattern-switch, nhưng đó là kỹ thuật **phân rã cấu trúc record**, khác với type pattern cơ bản của bài này. Không cần dùng record pattern để thực hiện ví dụ trên.
+In Java 21, record patterns are also standardized and can be combined with pattern-switch, but that is a technique for **deconstructing record structure**, different from the basic type patterns in this lesson. Record patterns are not needed for the examples above.
 
-## 6. Bài tập tự kiểm tra
+## 6. Self-Check Exercises
 
-1. `switch(value) { case String s -> ...; default -> ...; }` khi `value` là `"abc"` sẽ chạy nhánh nào?  
-   *Đáp án:* `String s`.
-2. Nếu `value == null` và không có `case null`, `default` có chạy không?  
-   *Đáp án:* Không; thường ném `NullPointerException`.
-3. Có thể đặt `case String s when s.isBlank()` sau `case String s` không?  
-   *Đáp án:* Không; mẫu trước bao phủ mẫu sau và gây dominated-case compile error.
-4. `when` được đánh giá ở bước nào?  
-   *Đáp án:* Sau khi kiểu pattern đã khớp, trước khi chọn nhánh đó.
-5. Java 17 chuẩn có thể dùng cú pháp `instanceof String s` không?  
-   *Đáp án:* Có, từ Java 16.
-6. Vì sao `switch(action)` trên `sealed Action` có thể không cần `default`?  
-   *Đáp án:* Compiler biết toàn bộ subtype được phép và các pattern đã bao phủ chúng.
-7. Dùng gì để trả giá trị từ một khối trong switch expression?  
-   *Đáp án:* `yield`.
+1. In `switch(value) { case String s -> ...; default -> ...; }`, when `value` is `"abc"`, which branch runs?  
+   *Answer:* `String s`.
+2. If `value == null` and there is no `case null`, does `default` run?  
+   *Answer:* No; it normally throws `NullPointerException`.
+3. Can `case String s when s.isBlank()` be placed after `case String s`?  
+   *Answer:* No; the earlier pattern dominates the later one and causes a dominated-case compile error.
+4. At which step is `when` evaluated?  
+   *Answer:* After the pattern type has matched, before selecting that branch.
+5. Can standard Java 17 use the `instanceof String s` syntax?  
+   *Answer:* Yes, since Java 16.
+6. Why can `switch(action)` on `sealed Action` omit `default`?  
+   *Answer:* The compiler knows all permitted subtypes and the patterns already cover them.
+7. What is used to return a value from a block inside a switch expression?  
+   *Answer:* `yield`.
 
 ## Checklist
 
-- [ ] Phân biệt **`instanceof` type pattern chuẩn Java 17** và **pattern matching for switch chuẩn Java 21**.
-- [ ] Hiểu `case Type variable` vừa kiểm tra kiểu vừa ràng buộc biến đúng kiểu.
-- [ ] Dùng `when` cho điều kiện bổ sung và đặt mẫu hẹp trước mẫu rộng.
-- [ ] Xử lý `null` tường minh bằng `case null` khi cần; không nhầm với `default`.
-- [ ] Dùng `->` để tránh fall-through, `yield` khi nhánh switch expression là một khối.
-- [ ] Nắm quy tắc exhaustiveness, đặc biệt với sealed hierarchy.
-- [ ] Biết viết phương án Java 17 bằng `if` và `instanceof` nếu môi trường chưa nâng lên JDK 21.
+- [ ] Distinguish **`instanceof` type patterns standard in Java 17** from **pattern matching for switch standard in Java 21**.
+- [ ] Understand that `case Type variable` both checks the type and binds a properly typed variable.
+- [ ] Use `when` for additional conditions and place narrower patterns before broader ones.
+- [ ] Handle `null` explicitly with `case null` when needed; do not confuse it with `default`.
+- [ ] Use `->` to avoid fall-through, and `yield` when a switch expression branch is a block.
+- [ ] Understand exhaustiveness rules, especially with sealed hierarchies.
+- [ ] Know how to write a Java 17 alternative using `if` and `instanceof` if the environment has not upgraded to JDK 21.
 
-**Kết luận:** Java 21 đưa kiểm tra kiểu trực tiếp vào `switch`, giúp chọn nhánh theo loại đối tượng, kết hợp guard `when`, xử lý `null` và kiểm tra độ bao phủ. Khi dự án vẫn dùng Java 17, hãy dùng `instanceof` type pattern với `if` để đạt hành vi tương đương mà không phụ thuộc preview.
+**Conclusion:** Java 21 brings type checking directly into `switch`, letting you select branches by object type, combine `when` guards, handle `null`, and verify exhaustiveness. When a project still uses Java 17, use `instanceof` type patterns with `if` to achieve equivalent behavior without relying on preview.

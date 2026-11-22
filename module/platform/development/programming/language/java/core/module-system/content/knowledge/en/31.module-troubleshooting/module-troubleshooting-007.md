@@ -1,34 +1,34 @@
-# ClassNotFoundException do loader hoặc layer sai
+# ClassNotFoundException Due to Wrong Loader or Layer
 
-Trong một ứng dụng Java có sử dụng **Java Platform Module System (JPMS)**, việc file JAR tồn tại trên ổ đĩa không bảo đảm mọi code trong JVM có thể tìm thấy class bên trong JAR đó. Class có thể nằm trong một named module đã được resolve nhưng lại được định nghĩa bởi **class loader khác** với loader mà framework hoặc ứng dụng đang dùng. Nó cũng có thể nằm trong một **ModuleLayer con** hoặc layer anh em, không thuộc phạm vi tìm kiếm của loader hiện tại.
+In a Java application using the **Java Platform Module System (JPMS)**, having a JAR file on disk does not guarantee that all code in the JVM can find the classes inside that JAR. A class may reside in a resolved named module yet be defined by a **different class loader** from the loader that the framework or application is using. It may also reside in a **child ModuleLayer** or sibling layer, outside the search scope of the current loader.
 
-Khi gọi **Class.forName(...)**, **ClassLoader.loadClass(...)** hoặc cơ chế tự động discovery, ứng dụng có thể gặp **ClassNotFoundException** dù tên class và JAR có vẻ đúng. Muốn xử lý chính xác phải phân biệt **module discovery**, **module resolution**, **layer definition**, **class loading** và **module access**. Một sai lầm phổ biến là dùng **--add-exports** hoặc **--add-opens** để chữa lỗi không tìm thấy class, trong khi nguyên nhân thực tế là đang dùng sai loader hoặc đang tìm ở sai layer.
+When calling **Class.forName(...)**, **ClassLoader.loadClass(...)**, or automatic discovery mechanisms, the application may encounter **ClassNotFoundException** even when the class name and JAR look right. Handling this accurately requires distinguishing **module discovery**, **module resolution**, **layer definition**, **class loading**, and **module access**. A common mistake is using **--add-exports** or **--add-opens** to treat a class-not-found error, when the actual cause is using the wrong loader or looking in the wrong layer.
 
-Bài học này trình bày quy trình điều tra ClassNotFoundException theo module graph và class loader, kèm ví dụ tái hiện custom ModuleLayer và các cách sửa phù hợp.
+This lesson presents a workflow for investigating ClassNotFoundException across the module graph and class loaders, along with a custom ModuleLayer reproduction example and appropriate fixes.
 
-## 1. Những khái niệm cần phân biệt
+## 1. Concepts to distinguish
 
-Một class Java được nhận diện ở runtime bởi **tên nhị phân (binary name)** cùng với **defining class loader**. Với JPMS, class còn thuộc một **Module** object, và named module được định nghĩa trong một ModuleLayer.
+A Java class is identified at runtime by its **binary name** together with its **defining class loader**. With JPMS, a class also belongs to a **Module** object, and a named module is defined in a ModuleLayer.
 
-Các khái niệm liên quan:
+Related concepts:
 
-| Thành phần | Vai trò | Câu hỏi chẩn đoán |
+| Component | Role | Diagnostic question |
 |---|---|---|
-| JAR hoặc exploded module | Chứa class và module metadata | File class thực sự có trong artifact không? |
-| ModuleFinder | Tìm các module có thể quan sát được | Finder đang tìm ở path nào? |
-| Configuration | Kết quả resolve root modules và dependency | Module chứa class đã được resolve chưa? |
-| ModuleLayer | Định nghĩa các module trong runtime | Module nằm ở boot layer hay custom child layer? |
-| ClassLoader | Tìm và định nghĩa class | Code đang yêu cầu loader nào tìm class? |
-| Module exports/opens | Kiểm soát quyền truy cập | Class đã tìm thấy nhưng caller có quyền dùng hay reflect không? |
-| ServiceLoader | Tìm implementation theo service contract | Framework đang tìm service từ layer nào? |
+| JAR or exploded module | Contains classes and module metadata | Is the class file actually inside the artifact? |
+| ModuleFinder | Discovers observable modules | Which path is the finder searching? |
+| Configuration | Result of resolving root modules and dependencies | Has the module containing the class been resolved yet? |
+| ModuleLayer | Defines modules at runtime | Is the module in the boot layer or a custom child layer? |
+| ClassLoader | Locates and defines classes | Which loader is the code asking to find the class? |
+| Module exports/opens | Controls access permissions | Was the class found, yet the caller lacks permission to use or reflect on it? |
+| ServiceLoader | Finds implementations by service contract | Which layer is the framework searching for services? |
 
-Chuỗi hoạt động thường thấy:
+Typical sequence of operations:
 
 ~~~text
-Artifact (JAR hoặc exploded module)
+Artifact (JAR or exploded module)
     |
     v
-ModuleFinder -> Configuration.resolve(...) hoặc resolveAndBind(...)
+ModuleFinder -> Configuration.resolve(...) or resolveAndBind(...)
     |
     v
 ModuleLayer.defineModules...(...)
@@ -40,44 +40,44 @@ Module object + defining ClassLoader
 Class.forName / loadClass / ServiceLoader
     |
     v
-Kiểm tra readability, exports/opens khi sử dụng class
+Check readability, exports/opens when using the class
 ~~~
 
-Nếu lỗi xuất hiện ở từng bước khác nhau, tên exception và cách xử lý sẽ khác nhau. Không nên gom tất cả lỗi thành “JPMS không cho truy cập”.
+When errors arise at different steps, the exception names and remedies differ. Do not lump every error into "JPMS denies access".
 
-## 2. ClassNotFoundException thực sự có nghĩa gì?
+## 2. What does ClassNotFoundException actually mean?
 
-**ClassNotFoundException** là checked exception thường xuất hiện khi một lời gọi yêu cầu tải class theo tên nhưng class loader được sử dụng không thể tìm class đó:
+**ClassNotFoundException** is a checked exception that typically occurs when a call requests loading a class by name, yet the class loader used cannot locate that class:
 
 ~~~java
 Class<?> type = Class.forName("com.acme.plugin.internal.Parser");
 ~~~
 
-Hoặc:
+Or:
 
 ~~~java
 ClassLoader loader = Thread.currentThread().getContextClassLoader();
 Class<?> type = loader.loadClass("com.acme.plugin.internal.Parser");
 ~~~
 
-Các lời gọi này có thể thất bại vì:
+These calls can fail because:
 
-- Tên binary class sai, bao gồm package hoặc tên nested class.
-- JAR không tồn tại trong những đường dẫn mà loader có thể tìm.
-- Class nằm trong một module chưa được resolve.
-- Module đã resolve nhưng được định nghĩa trong class loader của child layer khác.
-- Code dùng system class loader để tìm class do plugin loader định nghĩa.
-- Thread context class loader (TCCL) đang trỏ tới loader không thấy plugin.
-- Plugin nằm ở sibling layer, không thuộc quan hệ delegation của caller.
-- Một thư viện hoặc framework tạo loader riêng nhưng không được truyền đúng loader.
+- The binary class name is wrong, including the package or nested class name.
+- The JAR does not exist on the paths the loader can search.
+- The class resides in an unresolved module.
+- The module was resolved yet defined in a class loader of another child layer.
+- Code uses the system class loader to look up a class defined by a plugin loader.
+- The thread context class loader (TCCL) points to a loader that cannot see the plugin.
+- The plugin sits in a sibling layer outside the caller's delegation relationship.
+- A library or framework creates its own loader without being passed the right loader.
 
-Lưu ý: Java có thể tải được một class mà sau đó vẫn không được phép truy cập class đó. **ClassNotFoundException** nói về việc tìm class, còn **IllegalAccessError**, **IllegalAccessException** hoặc **InaccessibleObjectException** có thể nói về việc sử dụng class/member sau khi nó đã được tìm thấy.
+Note: Java can load a class and still deny access to that class afterward. **ClassNotFoundException** is about finding the class, whereas **IllegalAccessError**, **IllegalAccessException**, or **InaccessibleObjectException** can be about using the class/member after it has been found.
 
-## 3. Cách class loader liên quan tới JPMS
+## 3. How class loaders relate to JPMS
 
-Trong Java truyền thống, nhiều ứng dụng đặt thư viện trên classpath và dựa vào system/application class loader. Khi dùng JPMS, module system có thể định nghĩa nhiều named modules trong các class loader khác nhau. Với custom layer, những loader được tạo để định nghĩa layer không nhất thiết là system class loader.
+In traditional Java, many applications place libraries on the classpath and rely on the system/application class loader. With JPMS, the module system can define multiple named modules in different class loaders. With custom layers, the loaders created to define the layer are not necessarily the system class loader.
 
-Hai cách định nghĩa layer phổ biến:
+Two common ways to define a layer:
 
 ~~~java
 ModuleLayer layer = parentLayer.defineModulesWithOneLoader(
@@ -86,7 +86,7 @@ ModuleLayer layer = parentLayer.defineModulesWithOneLoader(
 );
 ~~~
 
-và:
+and:
 
 ~~~java
 ModuleLayer layer = parentLayer.defineModulesWithManyLoaders(
@@ -95,9 +95,9 @@ ModuleLayer layer = parentLayer.defineModulesWithManyLoaders(
 );
 ~~~
 
-Trong trường hợp thứ nhất, các module của layer được ánh xạ vào một loader mới. Trong trường hợp thứ hai, mỗi module trong layer có loader riêng. Tham số **ClassLoader.getSystemClassLoader()** ở đây là parent loader để xây dựng loader của layer, **không có nghĩa các module mới được định nghĩa trực tiếp bởi system class loader**.
+In the first case, the layer's modules are mapped to one new loader. In the second case, each module in the layer gets its own loader. The **ClassLoader.getSystemClassLoader()** argument here is the parent loader for constructing the layer's loaders; it **does not mean the new modules are defined directly by the system class loader**.
 
-Do đó, đoạn code sau có thể không tìm được class thuộc một plugin layer mới:
+Therefore, the following code can fail to find a class belonging to a new plugin layer:
 
 ~~~java
 ClassLoader systemLoader = ClassLoader.getSystemClassLoader();
@@ -105,11 +105,11 @@ Class<?> pluginType =
     systemLoader.loadClass("com.acme.plugin.impl.PluginImpl");
 ~~~
 
-Class có thể đã tồn tại trong plugin layer nhưng được định nghĩa bởi loader của layer đó. Phải tìm đúng loader của module plugin thay vì đoán rằng system loader nhìn thấy mọi class.
+The class may already exist in the plugin layer yet be defined by that layer's loader. Look up the right loader for the plugin module rather than assuming the system loader sees every class.
 
-## 4. Class.forName dùng loader nào?
+## 4. Which loader does Class.forName use?
 
-Có nhiều overload của **Class.forName** và chúng không tương đương.
+There are multiple overloads of **Class.forName** and they are not equivalent.
 
 ### 4.1. Class.forName(String)
 
@@ -117,9 +117,9 @@ Có nhiều overload của **Class.forName** và chúng không tương đương.
 Class<?> type = Class.forName("com.acme.plugin.impl.PluginImpl");
 ~~~
 
-Overload này dùng defining class loader của class gọi phương thức để tìm class theo tên, theo ngữ nghĩa do API quy định. Nếu caller nằm ở host classpath hoặc boot layer, nó không tự chuyển sang loader của một child layer mới.
+This overload uses the defining class loader of the calling class to locate the class by name, according to API semantics. If the caller resides on the host classpath or boot layer, it does not automatically switch to the loader of a new child layer.
 
-Nếu class chỉ được định nghĩa ở child layer, overload này có thể ném ClassNotFoundException ngay cả khi module plugin đã được resolve và được định nghĩa thành công.
+If the class is defined only in a child layer, this overload can throw ClassNotFoundException even when the plugin module was resolved and defined successfully.
 
 ### 4.2. Class.forName(String, boolean, ClassLoader)
 
@@ -132,13 +132,13 @@ Class<?> type = Class.forName(
 );
 ~~~
 
-Tham số cuối cho phép chỉ định loader cần sử dụng. Giá trị **false** yêu cầu không khởi tạo class chỉ vì lời gọi Class.forName; điều này hữu ích khi muốn quan sát class trước khi chạy static initializer.
+The last parameter lets you specify the loader to use. The value **false** requests not initializing the class merely because of the Class.forName call; this is useful when inspecting a class before running static initializers.
 
-Khi cần khởi tạo class, có thể dùng **true**, nhưng cần biết static initialization có thể kích hoạt code và gây exception khác. Chỉ dùng true khi cần hành vi khởi tạo.
+When class initialization is needed, **true** can be used, bearing in mind static initialization can trigger code and cause other exceptions. Use true only when initialization behavior is required.
 
 ### 4.3. Class.forName(Module, String)
 
-JPMS còn cung cấp:
+JPMS also provides:
 
 ~~~java
 Module module = pluginLayer
@@ -151,13 +151,13 @@ Class<?> type = Class.forName(
 );
 ~~~
 
-Overload này tìm class trong module được chỉ định và **trả về null nếu class không được tìm thấy trong module đó**; nó không có cùng hợp đồng ném ClassNotFoundException như overload String thông thường. Nó cũng không khởi tạo class.
+This overload looks up the class in the specified module and **returns null if the class is not found in that module**; it does not share the same ClassNotFoundException-throwing contract as the standard String overload. It also does not initialize the class.
 
-Cần kiểm tra kết quả null và xử lý quyền truy cập khi dùng class. Class được tìm thấy trong module không bảo đảm một caller khác có thể gọi mọi constructor hoặc method của class đó.
+Check for a null result and handle access permissions when using the class. Finding a class in a module does not guarantee another caller can invoke every constructor or method of that class.
 
-## 5. ModuleLayer.findLoader(String) là điểm bắt đầu đúng
+## 5. ModuleLayer.findLoader(String) is the right starting point
 
-Khi đã có ModuleLayer của plugin, dùng **findLoader(moduleName)** để lấy loader định nghĩa module tương ứng trong layer:
+Once you have the plugin's ModuleLayer, use **findLoader(moduleName)** to retrieve the loader defining the corresponding module in the layer:
 
 ~~~java
 String moduleName = "com.acme.plugin";
@@ -169,11 +169,11 @@ Class<?> type = loader.loadClass(
 );
 ~~~
 
-Hàm **findLoader** nhận **module name**, không nhận package name hoặc tên class. Nó hữu ích nhất khi code đã biết plugin module được định nghĩa tại layer nào.
+The **findLoader** method takes a **module name**, not a package name or class name. It is most useful when code already knows which layer defines the plugin module.
 
-Nếu module name không thuộc layer theo hợp đồng API, lời gọi có thể ném **IllegalArgumentException**; cần phân biệt lỗi đó với ClassNotFoundException từ bước tiếp theo.
+If the module name does not belong to the layer under the API contract, the call can throw **IllegalArgumentException**; distinguish that error from a ClassNotFoundException in the subsequent step.
 
-Một cách kiểm tra rõ ràng:
+A clear way to check:
 
 ~~~java
 String moduleName = "com.acme.plugin";
@@ -193,15 +193,15 @@ Class<?> type = Class.forName(
 );
 ~~~
 
-**Module.getClassLoader()** trả về loader định nghĩa module. Với một số module nền tảng, loader có thể được biểu diễn bằng null để chỉ bootstrap loader; code chẩn đoán cần xử lý null mà không coi đó là lỗi.
+**Module.getClassLoader()** returns the loader that defines the module. For some platform modules, the loader may be represented as null to denote the bootstrap loader; diagnostic code must handle null without treating it as an error.
 
-Khi có nhiều layer, nên lấy Module object từ đúng layer và giữ nó cùng ngữ cảnh layer, thay vì chỉ lưu một module name string toàn cục.
+When there are multiple layers, retrieve the Module object from the right layer and keep it alongside the layer context, rather than storing only a global module name string.
 
-## 6. Ví dụ tái hiện: class tồn tại nhưng host dùng sai loader
+## 6. Reproduction example: class exists yet host uses the wrong loader
 
-Ví dụ có hai phần: một plugin là named module, và một chương trình host chạy trên classpath tạo ModuleLayer cho plugin.
+The example has two parts: a plugin as a named module, and a host program running on the classpath that creates a ModuleLayer for the plugin.
 
-Cấu trúc project:
+Project structure:
 
 ~~~text
 project/
@@ -215,7 +215,7 @@ project/
 └── host-out/
 ~~~
 
-Descriptor plugin:
+Plugin descriptor:
 
 ~~~java
 module com.acme.greeter.plugin {
@@ -223,7 +223,7 @@ module com.acme.greeter.plugin {
 }
 ~~~
 
-Class plugin:
+Plugin class:
 
 ~~~java
 package com.acme.greeter.impl;
@@ -295,7 +295,7 @@ public class Host {
 }
 ~~~
 
-Biên dịch plugin thành exploded named module:
+Compile the plugin as an exploded named module:
 
 ~~~bash
 javac --module-source-path plugin-src \
@@ -303,34 +303,34 @@ javac --module-source-path plugin-src \
       -m com.acme.greeter.plugin
 ~~~
 
-Biên dịch host classpath:
+Compile the classpath host:
 
 ~~~bash
 javac -d host-out host-src/Host.java
 ~~~
 
-Chạy host:
+Run the host:
 
 ~~~bash
 java --class-path host-out Host
 ~~~
 
-Nếu directory layout đúng, host tạo child ModuleLayer từ module nằm trong **plugin-out**. Lời gọi **Class.forName(className)** từ host classpath không thấy plugin class trong loader của child layer. Sau đó host lấy đúng **pluginLayer.findLoader(...)** và tìm class thành công.
+If the directory layout is right, the host creates a child ModuleLayer from the module in **plugin-out**. The **Class.forName(className)** call from the host classpath does not see the plugin class in the child layer's loader. Then the host retrieves the right **pluginLayer.findLoader(...)** and locates the class successfully.
 
-Kết quả minh họa:
+Illustrative output:
 
 ~~~text
 Host loader cannot find plugin class
 Hello from plugin layer
 ~~~
 
-Ở đây package plugin được export để host có thể gọi public constructor và method bằng reflection. Nếu không export package, class loader có thể vẫn tìm được class nhưng reflective invocation từ host có thể gặp lỗi access; đó là vấn đề khác với ClassNotFoundException.
+Here the plugin package is exported so the host can invoke the public constructor and method via reflection. Without exporting the package, the class loader might still find the class, yet reflective invocation from the host could hit an access error; that is a separate issue from ClassNotFoundException.
 
-## 7. Điều gì xảy ra khi plugin chưa được resolve?
+## 7. What happens when the plugin has not been resolved?
 
-Nếu module chưa được đưa vào Configuration, **findLoader** của layer không thể cung cấp loader cho module đó. Dù JAR có trong thư mục, module system chỉ giải quyết tập root và dependency cần thiết trong ngữ cảnh đã chọn.
+If a module was not included in the Configuration, the layer's **findLoader** cannot provide a loader for that module. Even if the JAR is in the directory, the module system only resolves the chosen root set and required dependencies in that context.
 
-Ví dụ có các JAR:
+Suppose the directory has JARs:
 
 ~~~text
 plugins/
@@ -338,9 +338,9 @@ plugins/
 └── com.acme.codec.plugin.jar
 ~~~
 
-Nếu configuration resolve chỉ root **com.acme.greeter.plugin** và module này không requires codec, module **com.acme.codec.plugin** có thể chưa được resolve.
+If the configuration resolves only the root **com.acme.greeter.plugin** and that module does not require codec, the **com.acme.codec.plugin** module may remain unresolved.
 
-Có thể kiểm tra configuration ngay sau resolve:
+You can inspect the configuration right after resolve:
 
 ~~~java
 config.modules().stream()
@@ -349,7 +349,7 @@ config.modules().stream()
     .forEach(System.out::println);
 ~~~
 
-Và sau khi tạo layer:
+And after creating the layer:
 
 ~~~java
 boolean inLayer = pluginLayer
@@ -359,15 +359,15 @@ boolean inLayer = pluginLayer
 System.out.println(inLayer);
 ~~~
 
-Nếu module không có trong graph, không giải quyết bằng cách thay loader tùy tiện. Cần xem lại root set, requires hoặc service binding tùy kiến trúc.
+If the module is absent from the graph, do not try to solve it by swapping loaders arbitrarily. Review the root set, requires, or service binding according to the architecture.
 
-Những lỗi phát sinh trong bước module resolution thường là **FindException** hoặc **ResolutionException**, không phải ClassNotFoundException của lời gọi loadClass sau đó. Đọc đúng điểm phát sinh exception để tránh sửa nhầm.
+Errors arising at the module resolution step are usually **FindException** or **ResolutionException**, not ClassNotFoundException from a later loadClass call. Read the exact point where the exception originates to avoid fixing the wrong thing.
 
-## 8. Boot layer, child layer và sibling layer
+## 8. Boot layer, child layer, and sibling layer
 
-Khi chạy bằng Java launcher theo module path, root application và dependency thường được định nghĩa trong **boot layer**. Khi ứng dụng tự tạo **custom ModuleLayer**, modules mới có thể được định nghĩa trong layer con.
+When launched via the Java launcher on the module path, the root application and its dependencies are normally defined in the **boot layer**. When the application creates a **custom ModuleLayer**, new modules can be defined in child layers.
 
-Sơ đồ:
+Diagram:
 
 ~~~text
 Boot layer
@@ -381,27 +381,27 @@ Boot layer
            └── com.acme.json.plugin
 ~~~
 
-CSV và JSON có thể nằm trong **hai sibling layers**. Các layer đó không tự động tìm class của nhau thông qua cùng một loader. Một class chỉ nằm trong CSV plugin layer không vì thế xuất hiện khi JSON plugin loader được yêu cầu tìm class đó.
+CSV and JSON can live in **two sibling layers**. Those layers do not automatically look up each other's classes through a shared loader. A class residing only in the CSV plugin layer does not appear when the JSON plugin loader is asked to find that class.
 
-Khi module API dùng chung, nên đặt API ở boot layer hoặc parent layer phù hợp rồi cho plugin modules yêu cầu API đó. Host và plugin trao đổi qua những interface/DTO có cùng class identity.
+When sharing an API module, place the API in the boot layer or an appropriate parent layer and have plugin modules require that API. Host and plugins communicate through interfaces/DTOs with shared class identity.
 
-Một sai lầm thường gặp là giả định:
+A common mistake is assuming:
 
 ~~~java
 Class.forName("com.acme.csv.internal.CsvParser");
 ~~~
 
-sẽ tự tìm trong tất cả ModuleLayer đang tồn tại. JVM không cung cấp một kho tìm class toàn cục kiểu đó. Mỗi lời gọi class loading dùng loader cụ thể.
+will automatically search all existing ModuleLayers. The JVM does not provide such a global class repository. Each class-loading call uses a specific loader.
 
-Nếu ứng dụng quản lý plugin layer động, nên duy trì ánh xạ có chủ đích từ **plugin ID -> ModuleLayer -> module name -> loader**. Cách này giúp xác định nguồn nạp và dừng plugin theo vòng đời mà không quét mù tất cả class loaders.
+If the application manages dynamic plugin layers, maintain an explicit mapping from **plugin ID -> ModuleLayer -> module name -> loader**. This makes it clear where classes load from and lets you retire plugins cleanly by lifecycle instead of blindly scanning all class loaders.
 
-## 9. Parent delegation có ý nghĩa gì?
+## 9. What does parent delegation mean?
 
-Class loader thường có cơ chế delegation tới parent loader. Tuy nhiên, các loader do module system tạo còn phải tôn trọng mapping giữa named module và defining loader; không nên chỉ suy luận theo thuật toán parent-first đơn giản của classpath truyền thống.
+Class loaders typically delegate to a parent loader. However, loaders created by the module system must also respect the mapping between named modules and defining loaders; do not reason solely via traditional classpath parent-first delegation.
 
-Nếu loader của child layer có parent là system loader, điều đó **không** khiến system loader biết tìm class mới trong child. Delegation thường đi từ yêu cầu của child loader tới parent khi cần, không tự tạo chiều ngược để parent đi tìm trong mọi child loader.
+If a child layer's loader has the system loader as its parent, that does **not** make the system loader know how to look up new classes in the child. Delegation typically flows from a child loader's request up to the parent when needed, not in reverse for the parent to search all child loaders.
 
-Vì vậy:
+Thus:
 
 ~~~java
 ClassLoader parentLoader =
@@ -411,15 +411,15 @@ ClassLoader pluginLoader =
     pluginLayer.findLoader("com.acme.greeter.plugin");
 ~~~
 
-Hai loader này có thể khác nhau. Một class do pluginLoader định nghĩa không mặc nhiên tải được bằng parentLoader.
+These two loaders can be different. A class defined by pluginLoader is not automatically loadable by parentLoader.
 
-Nếu một framework được cài đặt ở parent layer và tự gọi Class.forName từ code framework, nó có thể tìm với loader không thấy plugin. Phương án sửa tốt nhất thường là cung cấp loader/plugin layer đúng cho framework nếu API của framework hỗ trợ, hoặc sử dụng extension mechanism theo service contract.
+If a framework is installed in a parent layer and calls Class.forName from framework code, it may search with a loader that cannot see the plugin. The best fix is usually supplying the right loader/plugin layer to the framework if the framework's API supports it, or using an extension mechanism via a service contract.
 
 ## 10. Thread Context ClassLoader (TCCL)
 
-Nhiều framework Java và thư viện legacy tra cứu class bằng **Thread.currentThread().getContextClassLoader()**. TCCL được gắn với thread, không tự đồng bộ với ModuleLayer chứa plugin.
+Many Java frameworks and legacy libraries look up classes using **Thread.currentThread().getContextClassLoader()**. The TCCL is bound to a thread and does not automatically synchronize with a ModuleLayer holding plugins.
 
-Ví dụ:
+Example:
 
 ~~~java
 ClassLoader contextLoader =
@@ -428,9 +428,9 @@ ClassLoader contextLoader =
 System.out.println(contextLoader);
 ~~~
 
-Nếu framework cần plugin class nhưng TCCL vẫn là system loader, thao tác discovery dựa trên TCCL có thể gặp ClassNotFoundException hoặc không phát hiện extension.
+If a framework needs a plugin class yet the TCCL is still the system loader, TCCL-based discovery can hit ClassNotFoundException or fail to detect extensions.
 
-Có thể đặt TCCL đúng cho một phạm vi thực thi có kiểm soát:
+You can set the right TCCL for a controlled execution scope:
 
 ~~~java
 Thread thread = Thread.currentThread();
@@ -447,21 +447,21 @@ try {
 }
 ~~~
 
-Trong ví dụ, **runFrameworkIntegration()** đại diện cho công việc framework, không phải API JDK có sẵn. Khi triển khai, thay bằng phương thức thực sự của thư viện đang dùng.
+In this example, **runFrameworkIntegration()** stands for the framework work, not a built-in JDK API. In real code, replace it with the actual method of the library being used.
 
-Điều quan trọng:
+Important points:
 
-- Không thay TCCL của thread pool vĩnh viễn chỉ để chữa một test.
-- Luôn khôi phục loader trước đó trong finally.
-- Không giả định mọi framework dùng TCCL; một số dùng loader định nghĩa class framework hoặc loader được truyền tường minh.
-- Không dùng TCCL để cố “ép” named module đọc những module mà module graph không cho phép.
-- Cẩn thận với thread, executor hoặc callback giữ tham chiếu tới plugin loader và cản trở việc thu hồi plugin.
+- Do not permanently alter a thread pool's TCCL just to fix a test.
+- Always restore the previous loader in a finally block.
+- Do not assume every framework uses TCCL; some use the loader that defined the framework classes or an explicitly passed loader.
+- Do not use TCCL to try to "force" a named module to read modules disallowed by the module graph.
+- Watch out for threads, executors, or callbacks retaining references to a plugin loader and preventing plugin unloading.
 
-Nếu framework cho phép truyền class loader trực tiếp, cách này thường rõ ràng và dễ kiểm soát hơn thay đổi TCCL trên thread.
+If the framework lets you pass a class loader directly, that is usually clearer and easier to control than mutating the thread's TCCL.
 
-## 11. ServiceLoader và ModuleLayer
+## 11. ServiceLoader and ModuleLayer
 
-Với plugin architecture, việc host nạp implementation class theo tên string có thể gây coupling vào package nội bộ. JPMS cung cấp **ServiceLoader** để consumer làm việc với service interface.
+For plugin architectures, loading implementation classes by string name from the host can cause coupling to internal packages. JPMS provides **ServiceLoader** so consumers work with a service interface.
 
 Service API:
 
@@ -482,7 +482,7 @@ module com.acme.greeter.plugin {
 }
 ~~~
 
-Module consumer:
+Consumer module:
 
 ~~~java
 module com.acme.host {
@@ -491,7 +491,7 @@ module com.acme.host {
 }
 ~~~
 
-Sau khi provider module được resolve và định nghĩa vào plugin layer phù hợp, host có thể tìm service:
+Once the provider module is resolved and defined in the appropriate plugin layer, the host can discover services:
 
 ~~~java
 ServiceLoader<GreeterService> services =
@@ -502,37 +502,37 @@ for (GreeterService service : services) {
 }
 ~~~
 
-Đây là cách giảm nhu cầu gọi:
+This reduces the need to call:
 
 ~~~java
 Class.forName("com.acme.greeter.impl.DefaultGreeter");
 ~~~
 
-Tuy nhiên, ServiceLoader vẫn cần provider module hiện diện trong layer phù hợp, và service API type phải có cùng class identity giữa host/provider.
+Still, ServiceLoader requires the provider module to be present in the appropriate layer, and the service API type must share the same class identity between host and provider.
 
-Khi dùng một custom layer, overload **ServiceLoader.load(layer, serviceType)** thường giúp thể hiện đúng nơi tìm provider. Khi dùng overload dựa vào context class loader, kết quả có thể khác tùy loader của thread và cấu hình framework.
+When using a custom layer, the **ServiceLoader.load(layer, serviceType)** overload clearly expresses where to look for providers. When using an overload based on the context class loader, results can vary depending on the thread's loader and framework setup.
 
-Lỗi **ServiceConfigurationError** do provider configuration hoặc construction sai không nên tự động được xem là ClassNotFoundException. Cần đọc nguyên nhân gốc và metadata uses/provides của provider.
+**ServiceConfigurationError** caused by invalid provider configuration or instantiation should not be automatically treated as ClassNotFoundException. Read the root cause and the provider's uses/provides metadata.
 
-## 12. Class identity: tìm thấy cùng tên vẫn có thể không cast được
+## 12. Class identity: finding the same name can still fail to cast
 
-Một vấn đề khác là hai loader định nghĩa hai class có cùng tên nhị phân. Điều này có thể xảy ra khi mỗi plugin đóng gói bản sao của cùng một API JAR.
+Another issue is two loaders defining two classes with the same binary name. This can happen when each plugin bundles its own copy of the same API JAR.
 
-Giả sử host dùng:
+Suppose the host uses:
 
 ~~~java
 com.acme.plugin.api.GreeterService
 ~~~
 
-và plugin vô tình nạp một bản khác của API class từ loader riêng. Hai Class object có cùng tên nhưng khác defining loader, vì vậy có thể không tương thích khi cast:
+and the plugin accidentally loads another copy of the API class from its own loader. Two Class objects have the same name yet different defining loaders, so casting can be incompatible:
 
 ~~~java
 GreeterService service = (GreeterService) pluginInstance;
 ~~~
 
-Kết quả có thể là **ClassCastException**, dù tên class trong thông báo rất giống nhau.
+The result can be **ClassCastException**, even though the class names in the message look identical.
 
-Kiểm tra:
+Inspect:
 
 ~~~java
 Class<?> hostApi = GreeterService.class;
@@ -544,71 +544,71 @@ System.out.println(hostApi.getClassLoader());
 System.out.println(pluginApi.getClassLoader());
 ~~~
 
-Đây là ví dụ minh họa: trong ứng dụng thật, một provider có thể implement nhiều interface, nên không nên dựa vào phần tử đầu tiên của **getInterfaces()** để kết luận. Hãy tìm chính xác interface type cần kiểm tra trong graph kế thừa.
+This is an illustrative snippet: in a real application, a provider may implement multiple interfaces, so do not rely on the first element of **getInterfaces()** to draw conclusions. Look up the exact interface type to inspect in the inheritance hierarchy.
 
-Cách thiết kế bền vững là đưa module API vào một parent layer chung mà host và plugin đều đọc, tránh đóng gói lặp module API trong các child layers. Class identity khác nhau không được giải quyết bằng **--add-opens** hoặc **--add-exports**.
+The durable design is placing the API module in a common parent layer that both host and plugins read, avoiding duplicate packaging of the API module in child layers. Differing class identity is not solved by **--add-opens** or **--add-exports**.
 
-## 13. Phân biệt các loại exception
+## 13. Distinguishing exception types
 
-| Exception hoặc dấu hiệu | Giai đoạn thường gặp | Cách điều tra ưu tiên |
+| Exception or symptom | Stage where it typically occurs | Primary investigation direction |
 |---|---|---|
-| **ClassNotFoundException** | Loader được yêu cầu không tìm thấy class theo tên | Binary name, class loader, layer, artifact location |
-| **FindException** | Resolution không tìm được module hoặc descriptor cần thiết | ModuleFinder, module path, tên module, dependency |
-| **ResolutionException** | Module graph không hợp lệ | requires, package conflicts, readability graph |
-| **LayerInstantiationException** | Không định nghĩa được configuration vào loader/layer | Loader mapping, split package, parent layers |
-| **NoClassDefFoundError** | JVM không định nghĩa/khởi tạo được class khi cần | Dependency class, linkage, class initialization, nguyên nhân gốc |
-| **ClassCastException** | Class types không tương thích tại runtime | Defining loaders, API duplication, type identity |
-| **IllegalAccessError** | Truy cập class/member vi phạm kiểm soát truy cập khi liên kết hoặc chạy | exports/readability, modifiers, binary compatibility |
-| **InaccessibleObjectException** | Deep reflection bị strong encapsulation chặn | opens, qualified opens, module framework |
-| **ServiceConfigurationError** | Service/provider không hợp lệ hoặc không nạp được | uses, provides, provider instance, ServiceLoader scope |
+| **ClassNotFoundException** | Requested loader cannot find class by name | Binary name, class loader, layer, artifact location |
+| **FindException** | Resolution cannot find required module or descriptor | ModuleFinder, module path, module name, dependencies |
+| **ResolutionException** | Invalid module graph | requires, package conflicts, readability graph |
+| **LayerInstantiationException** | Cannot define configuration into loaders/layer | Loader mapping, split packages, parent layers |
+| **NoClassDefFoundError** | JVM cannot define/initialize class when needed | Dependency class, linkage, class initialization, root cause |
+| **ClassCastException** | Class types incompatible at runtime | Defining loaders, API duplication, type identity |
+| **IllegalAccessError** | Class/member access violates access control on link or run | exports/readability, modifiers, binary compatibility |
+| **InaccessibleObjectException** | Deep reflection blocked by strong encapsulation | opens, qualified opens, framework module |
+| **ServiceConfigurationError** | Service/provider invalid or failed to load | uses, provides, provider instance, ServiceLoader scope |
 
-**NoClassDefFoundError** không đồng nghĩa với ClassNotFoundException. Nó có thể xuất hiện khi JVM đang liên kết một class nhưng dependency class của nó không thể được tìm, hoặc class initialization từng thất bại. Cần đọc cả **Caused by** và thời điểm phát sinh.
+**NoClassDefFoundError** is not synonymous with ClassNotFoundException. It can occur when the JVM is linking a class and a dependency class cannot be found, or when class initialization previously failed. Read both **Caused by** and the point where it occurred.
 
-Tương tự, một **FindException** phát sinh khi chưa có ModuleLayer thì không nên xử lý bằng cách đổi TCCL trong code chạy sau đó. Code có thể chưa bắt đầu thực thi.
+Similarly, a **FindException** thrown before a ModuleLayer exists should not be addressed by changing the TCCL in code that runs later. The code may not even have started executing yet.
 
-## 14. Quy trình chẩn đoán từng bước
+## 14. Step-by-step diagnostic workflow
 
-Khi nhận stack trace có ClassNotFoundException:
+When you get a stack trace with ClassNotFoundException:
 
-### Bước 1. Xác minh binary class name
+### Step 1. Verify the binary class name
 
-Ghi tên class chính xác từ exception. Với nested class, binary name có dấu **$** thay vì dấu chấm giữa outer và inner class.
+Record the exact class name from the exception. For nested classes, the binary name has a **$** instead of a dot between outer and inner classes.
 
-Ví dụ:
+Example:
 
 ~~~java
 Class.forName("com.acme.order.Outer$Inner");
 ~~~
 
-Tên này khác với canonical name **com.acme.order.Outer.Inner**. Kiểm tra code đang dùng **Class.getName()** hay **Class.getCanonicalName()** nếu tên được tạo động.
+This name differs from the canonical name **com.acme.order.Outer.Inner**. Check whether the code uses **Class.getName()** or **Class.getCanonicalName()** if names are built dynamically.
 
-### Bước 2. Kiểm tra artifact thực sự chứa class
+### Step 2. Verify the artifact actually contains the class
 
-Dùng:
+Run:
 
 ~~~bash
 jar --list --file plugins/com.acme.greeter.plugin.jar
 ~~~
 
-Tìm entry tương ứng:
+Look for the corresponding entry:
 
 ~~~text
 com/acme/greeter/impl/Greeter.class
 ~~~
 
-Nếu class không có trong artifact, vấn đề nằm ở build/publish hoặc artifact version, không phải module access.
+If the class is absent from the artifact, the problem lies in build/publish or artifact version, not module access.
 
-### Bước 3. Xác nhận tên và loại module
+### Step 3. Confirm module name and kind
 
 ~~~bash
 jar --describe-module --file plugins/com.acme.greeter.plugin.jar
 ~~~
 
-Xác định module name thực tế. Đừng suy luận module name từ file JAR. Nếu là automatic module, descriptor được suy ra có thể có tên khác với dự kiến.
+Determine the actual module name. Do not infer the module name from the JAR filename. If it is an automatic module, the derived descriptor may have a different name than expected.
 
-### Bước 4. Xác nhận module đã resolve
+### Step 4. Confirm the module is resolved
 
-Nếu dùng boot layer:
+If using the boot layer:
 
 ~~~java
 System.out.println(
@@ -616,7 +616,7 @@ System.out.println(
 );
 ~~~
 
-Nếu dùng plugin layer:
+If using a plugin layer:
 
 ~~~java
 System.out.println(
@@ -624,11 +624,11 @@ System.out.println(
 );
 ~~~
 
-Với custom layer, đối chiếu cả **configuration.modules()** ngay sau resolution. Không dùng boot layer để kết luận các child/sibling layers có hay không có module.
+For custom layers, also compare **configuration.modules()** immediately after resolution. Do not use the boot layer to conclude whether child/sibling layers contain a module.
 
-### Bước 5. Xác định loader được yêu cầu
+### Step 5. Identify the loader being queried
 
-Ghi lại:
+Log:
 
 ~~~java
 ClassLoader systemLoader =
@@ -645,9 +645,9 @@ System.out.println("Context: " + contextLoader);
 System.out.println("Module: " + moduleLoader);
 ~~~
 
-Nếu framework có API cung cấp loader, ghi cả loader được truyền vào framework.
+If a framework has an API for supplying a loader, log the loader passed to the framework as well.
 
-### Bước 6. Thử tìm class bằng loader đúng
+### Step 6. Try finding the class with the right loader
 
 ~~~java
 ClassLoader moduleLoader =
@@ -662,11 +662,11 @@ Class<?> type = Class.forName(
 System.out.println(type.getModule().getName());
 ~~~
 
-Nếu cách này thành công nhưng loader trước đó không tìm được class, bằng chứng chỉ ra nguyên nhân chính là loader/layer mismatch.
+If this succeeds where the earlier loader failed to find the class, the evidence points directly to a loader/layer mismatch.
 
-### Bước 7. Kiểm tra exports hoặc opens sau khi load được class
+### Step 7. Check exports or opens after loading the class
 
-Khi class đã được tìm, nếu reflective constructor hoặc method invocation thất bại vì access, hãy kiểm tra module boundary:
+Once the class is found, if reflective constructor or method invocation fails due to access, inspect the module boundary:
 
 ~~~java
 Module source = type.getModule();
@@ -678,29 +678,29 @@ System.out.println(source.isExported(pkg, caller));
 System.out.println(source.isOpen(pkg, caller));
 ~~~
 
-**Host.class** là ví dụ class caller thực sự đang dùng; cần thay bằng đúng class trong code. Các quyền này không quyết định loader có tìm class được hay không, mà quyết định loại truy cập nào được chấp nhận.
+**Host.class** is an example of the actual caller class in use; replace it with the real class in your code. These permissions do not govern whether a loader can find a class, only what kinds of access are accepted.
 
-### Bước 8. Ghi kết quả và sửa đúng tầng
+### Step 8. Document findings and fix at the right layer
 
-Kết luận nên có dạng:
+The conclusion should look like:
 
 ~~~text
 Class name: com.acme.greeter.impl.Greeter
 Owning module: com.acme.greeter.plugin
 Module layer: plugin child layer
-Defining loader: loader của plugin layer
-Failing lookup: Class.forName(String) từ host
+Defining loader: plugin layer's loader
+Failing lookup: Class.forName(String) from host
 Successful lookup: Class.forName(name, false, pluginLoader)
-Fix: truyền pluginLoader hoặc dùng ServiceLoader.load(pluginLayer, API.class)
+Fix: pass pluginLoader or use ServiceLoader.load(pluginLayer, API.class)
 ~~~
 
-Ghi đủ ngữ cảnh để người khác tái hiện, thay vì chỉ chú thích “đã thêm --add-opens và chạy được”.
+Record enough context for others to reproduce it, rather than merely noting "added --add-opens and it worked".
 
-## 15. Công cụ quan sát class loading
+## 15. Tools for observing class loading
 
-### 15.1. Log class loading của JVM
+### 15.1. JVM class loading logs
 
-Trên JDK hiện đại, có thể bật unified logging:
+On modern JDKs, you can enable unified logging:
 
 ~~~bash
 java -Xlog:class+load=info \
@@ -708,11 +708,11 @@ java -Xlog:class+load=info \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Log giúp quan sát class nào được nạp và nguồn của nó. Output có thể rất lớn, nên chỉ bật khi cần điều tra, lưu log có kiểm soát và lọc theo tên package liên quan.
+The log shows which classes are loaded and from what source. Output can be very large, so enable it only while investigating, store logs cleanly, and filter by relevant package names.
 
-Với những môi trường khác, **-verbose:class** cũng là tùy chọn quan sát class loading thường dùng.
+In other environments, **-verbose:class** is also a commonly used option for observing class loading.
 
-### 15.2. In thông tin Module/ClassLoader
+### 15.2. Printing Module/ClassLoader info
 
 ~~~java
 static void inspect(Class<?> type) {
@@ -727,9 +727,9 @@ static void inspect(Class<?> type) {
 }
 ~~~
 
-Hàm này chỉ chạy sau khi class đã được tìm. Nếu vấn đề là ClassNotFoundException, cần log thêm loader và layer được dùng trong thao tác tìm class bị lỗi.
+This method runs only after the class has been found. If the problem is ClassNotFoundException, log the loader and layer used in the failing lookup operation as well.
 
-### 15.3. Quan sát module resolution
+### 15.3. Observing module resolution
 
 ~~~bash
 java --show-module-resolution \
@@ -737,31 +737,31 @@ java --show-module-resolution \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Lệnh này mô tả resolution của launcher. Nó hữu ích khi module chưa được chọn vào boot layer, nhưng không thay thế việc xem custom ModuleLayer được tạo sau khi ứng dụng khởi động.
+This command describes launcher resolution. It helps when a module was not selected into the boot layer, though it does not replace inspecting custom ModuleLayers created after the application starts.
 
-## 16. Khi lỗi xảy ra trong test hoặc IDE
+## 16. When the error occurs in tests or the IDE
 
-Một project có thể pass khi chạy bằng Maven/Gradle nhưng fail trong IDE hoặc ngược lại. Nguyên nhân thường nằm ở khác biệt về runtime graph và loader setup.
+A project may pass under Maven/Gradle yet fail in the IDE or vice versa. The cause usually lies in differences in runtime graphs and loader setup.
 
-Những cấu hình cần so sánh:
+Configurations to compare:
 
-- Test classes chạy trên classpath, trong named test module hay được patch vào production module?
-- JavaExec/Test task truyền module path và root modules nào?
-- IDE tạo runtime classpath và module path giống CI hay không?
-- Framework test sử dụng system loader, TCCL hay loader của test module?
-- Test plugin có tạo custom layer riêng để nạp test engines không?
-- Các JAR plugin có được copy vào đúng thư mục mà ModuleFinder được cấu hình không?
-- JVM flags **--add-modules**, **--add-reads** hoặc **--patch-module** có khác nhau giữa môi trường không?
+- Are test classes running on the classpath, in a named test module, or patched into a production module?
+- Which module path and root modules do JavaExec/Test tasks pass?
+- Does the IDE construct the runtime classpath and module path identically to CI?
+- Does the test framework use the system loader, TCCL, or the test module's loader?
+- Does a test plugin create its own custom layer to load test engines?
+- Are plugin JARs copied into the exact directory configured in ModuleFinder?
+- Do JVM flags **--add-modules**, **--add-reads**, or **--patch-module** differ between environments?
 
-Nếu lỗi chỉ xuất hiện trong JUnit/serialization/plugin discovery, hãy kiểm tra loader mà framework sử dụng. Một bài test chạy thành công từ classpath chưa chứng minh module trong custom layer cũng được nạp đúng ở production.
+If the error occurs only in JUnit/serialization/plugin discovery, check which loader the framework uses. A test passing from the classpath does not prove modules in a custom layer load properly in production.
 
-Để tránh phụ thuộc môi trường, nên có integration test tạo ModuleLayer từ đúng artifacts dự kiến phát hành và thực hiện class/service discovery bằng API mà production sử dụng.
+To avoid environmental fragility, write an integration test that creates the ModuleLayer from the exact artifacts scheduled for release and performs class/service discovery using the same API production uses.
 
-## 17. Những cách sửa bền vững
+## 17. Durable fixes
 
-### 17.1. Truyền loader tường minh
+### 17.1. Pass the loader explicitly
 
-Nếu API hiện có cho phép truyền **ClassLoader**, dùng loader của module/layer sở hữu class:
+If the existing API accepts a **ClassLoader**, pass the loader of the module/layer owning the class:
 
 ~~~java
 ClassLoader loader =
@@ -774,62 +774,62 @@ Class<?> type = Class.forName(
 );
 ~~~
 
-Cách này phù hợp cho công cụ plugin loader hoặc framework nạp class bằng tên string.
+This fits plugin loader utilities or frameworks that load classes by string name.
 
-### 17.2. Dùng ServiceLoader thay vì tên implementation
+### 17.2. Use ServiceLoader instead of implementation names
 
-Nếu host chỉ cần một capability, thiết kế service API trong parent layer và đăng ký provider bằng **provides**. Host gọi **ServiceLoader.load(layer, serviceType)** để tránh phụ thuộc tên implementation class.
+If the host only needs a capability, design a service API in a parent layer and register providers via **provides**. The host calls **ServiceLoader.load(layer, serviceType)** to avoid depending on implementation class names.
 
-### 17.3. Sửa root set và resolution
+### 17.3. Fix the root set and resolution
 
-Nếu module chưa resolve, điều chỉnh root modules hoặc service binding theo thiết kế. Đổi loader không giúp tìm class từ một module chưa được định nghĩa.
+If the module is not resolved, adjust root modules or service binding by design. Swapping loaders will not find classes from an undefined module.
 
-### 17.4. Đồng nhất service API identity
+### 17.4. Unify service API identity
 
-Nếu host và plugin đang dùng hai bản API thuộc loader khác nhau, đưa API lên parent layer chung, loại bỏ bản đóng gói lặp và kiểm tra type identity.
+If host and plugin use two copies of the API under different loaders, move the API to a shared parent layer, eliminate duplicate packaging, and verify type identity.
 
-### 17.5. Cấu hình TCCL có phạm vi
+### 17.5. Scope TCCL carefully
 
-Nếu framework bắt buộc dùng TCCL, đặt đúng loader chỉ trong phạm vi gọi framework rồi restore trong finally. Tránh để background thread hoặc pool giữ loader sau khi plugin ngừng hoạt động.
+If a framework requires TCCL, set the right loader only for the duration of the framework call and restore it in finally. Avoid letting background threads or pools hold onto the loader after a plugin stops.
 
-### 17.6. Không dùng escape hatch sai mục tiêu
+### 17.6. Do not misuse escape hatches
 
-Các tùy chọn **--add-exports**, **--add-opens** và **--add-reads** thay đổi quyền module; chúng không tự tạo child layer, không tải lại class và không biến system loader thành loader của plugin.
+The options **--add-exports**, **--add-opens**, and **--add-reads** alter module permissions; they do not create child layers, reload classes, or turn the system loader into a plugin's loader.
 
-Chỉ sử dụng khi stack trace xác nhận vấn đề thật sự là readability, package export hoặc reflection. Nếu class chưa được loader tìm thấy, phải sửa nguồn class/loading trước.
+Use them only when the stack trace confirms the real issue is readability, package export, or reflection. If a class is not found by the loader, fix class lookup/loading first.
 
-## 18. Bài tập thực hành
+## 18. Hands-on exercises
 
-1. Tạo named module **com.acme.greeter.plugin** và class Greeter như ví dụ.
-2. Biên dịch plugin thành exploded module trong **plugin-out**.
-3. Viết host trên classpath, tạo child layer bằng **Configuration.resolve** và **defineModulesWithOneLoader**.
-4. Gọi **Class.forName(String)** từ host và quan sát ClassNotFoundException.
-5. Lấy loader bằng **pluginLayer.findLoader(moduleName)** rồi gọi **Class.forName(name, false, loader)**.
-6. In **Class.getModule()**, **Module.getLayer()** và **Class.getClassLoader()** sau khi tìm được class.
-7. Thử đổi root module hoặc xóa artifact khỏi pluginFinder để phân biệt FindException và ClassNotFoundException.
-8. Đặt hai plugin ở sibling layers, thử nạp class của plugin A bằng loader của plugin B.
-9. Viết integration test dùng ServiceLoader thay cho hard-coded implementation class name.
-10. Đặt TCCL sang loader plugin trong một phạm vi try/finally và xác minh nó được khôi phục.
-11. Đưa một bản sao service API vào plugin layer, quan sát vấn đề class identity và sửa bằng parent API module.
-12. Thử bỏ exports của package plugin: xác nhận class loading và reflective access là hai bước khác nhau.
-13. Sử dụng **-Xlog:class+load=info** để quan sát class source khi nạp.
-14. Viết một bảng chẩn đoán cho bốn lỗi: FindException, ClassNotFoundException, ClassCastException và InaccessibleObjectException.
-15. So sánh command line thực tế của IDE, CI và production khi plugin discovery không nhất quán.
+1. Create the named module **com.acme.greeter.plugin** and the Greeter class as in the example.
+2. Compile the plugin into an exploded module inside **plugin-out**.
+3. Write the classpath host that creates a child layer using **Configuration.resolve** and **defineModulesWithOneLoader**.
+4. Call **Class.forName(String)** from the host and observe ClassNotFoundException.
+5. Retrieve the loader with **pluginLayer.findLoader(moduleName)** and call **Class.forName(name, false, loader)**.
+6. Print **Class.getModule()**, **Module.getLayer()**, and **Class.getClassLoader()** after locating the class.
+7. Try changing the root module or removing the artifact from pluginFinder to distinguish FindException from ClassNotFoundException.
+8. Place two plugins in sibling layers and try loading a class from plugin A with plugin B's loader.
+9. Write an integration test using ServiceLoader instead of a hard-coded implementation class name.
+10. Set TCCL to the plugin loader inside a try/finally scope and verify it is restored.
+11. Include a duplicate copy of the service API in the plugin layer, observe the class identity issue, and fix it with a parent API module.
+12. Try removing exports from the plugin package: confirm class loading and reflective access are two separate steps.
+13. Use **-Xlog:class+load=info** to observe class sources during loading.
+14. Write a diagnostic table covering four errors: FindException, ClassNotFoundException, ClassCastException, and InaccessibleObjectException.
+15. Compare the actual command lines of the IDE, CI, and production when plugin discovery behaves inconsistently.
 
-## 19. Những điểm cần ghi nhớ
+## 19. Key takeaways
 
-- **ClassNotFoundException** thường cho biết loader được yêu cầu không tìm thấy class theo binary name.
-- Có JAR trên đĩa hoặc module trên module path chưa bảo đảm class đã được resolve và loader hiện tại tìm được.
-- Một custom ModuleLayer có loader riêng; system loader không tự nhìn thấy class của child layer.
-- **Class.forName(String)** và **Class.forName(String, boolean, ClassLoader)** có thể dùng loader khác nhau.
-- **Class.forName(Module, String)** trả về null nếu không tìm được class trong module được nêu.
-- **ModuleLayer.findLoader(moduleName)** là cách rõ ràng để lấy loader của named module trong layer đã định nghĩa.
-- Module chưa thuộc configuration thì không thể khắc phục bằng cách chỉ đổi TCCL.
-- Sibling layers không tự động chia sẻ implementation class; API dùng chung nên nằm ở parent layer.
-- **TCCL** quan trọng với một số framework legacy, nhưng phải có phạm vi và khôi phục sau khi sử dụng.
-- Hai class cùng tên nhưng defining loader khác có thể không tương thích khi cast.
-- **ServiceLoader** giúp giảm coupling vào implementation class name và cho phép chọn provider theo layer.
-- **--add-opens** và **--add-exports** không phải cách trực tiếp sửa lỗi class loader không tìm thấy class.
-- Khi debug, log **binary name, module name, layer, defining loader, caller loader, classpath/module path và root set**.
+- **ClassNotFoundException** usually indicates the queried loader could not locate the class by binary name.
+- Having a JAR on disk or a module on the module path does not guarantee the class is resolved and reachable from the current loader.
+- A custom ModuleLayer has its own loaders; the system loader does not automatically see child-layer classes.
+- **Class.forName(String)** and **Class.forName(String, boolean, ClassLoader)** can use different loaders.
+- **Class.forName(Module, String)** returns null if the class is not found in the named module.
+- **ModuleLayer.findLoader(moduleName)** is an explicit way to obtain the loader for a named module in a defined layer.
+- A module missing from the configuration cannot be fixed merely by swapping TCCL.
+- Sibling layers do not automatically share implementation classes; shared APIs should reside in a parent layer.
+- **TCCL** matters for some legacy frameworks, yet must be scoped and restored after use.
+- Two classes with the same name but different defining loaders can be incompatible when cast.
+- **ServiceLoader** reduces coupling to implementation class names and enables selecting providers by layer.
+- **--add-opens** and **--add-exports** are not direct fixes when a class loader cannot find a class.
+- When debugging, log **binary name, module name, layer, defining loader, caller loader, classpath/module path, and root set**.
 
-**Cách xử lý ClassNotFoundException do loader hoặc layer sai là xác định class thuộc module/layer nào, xác nhận module đã được resolve rồi tìm bằng đúng defining loader.** Khi phân biệt được class discovery, module resolution và quyền truy cập, ta có thể sửa lỗi ở đúng tầng và tránh các escape hatch không cần thiết.
+**The way to handle ClassNotFoundException caused by a wrong loader or layer is to identify which module/layer the class belongs to, confirm the module is resolved, and look it up using the exact defining loader.** Distinguishing class discovery, module resolution, and access permissions lets you fix the error at the right layer and avoid unnecessary escape hatches.

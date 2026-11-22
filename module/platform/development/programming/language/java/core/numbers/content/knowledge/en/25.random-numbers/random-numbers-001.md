@@ -1,22 +1,22 @@
-# Số giả ngẫu nhiên, seed và yêu cầu tái lập trong Java
+# Pseudorandom Numbers, Seeds, and Reproducibility Requirements in Java
 
-## 1. PRNG có trạng thái: seed là điểm khởi đầu
+## 1. Stateful PRNGs: the seed is the starting point
 
-**Pseudorandom number generator (PRNG)** tạo dãy trông ngẫu nhiên bằng một thuật toán xác định và trạng thái nội bộ. Seed (hạt giống) giúp khởi tạo trạng thái; sau mỗi lần sinh giá trị, trạng thái thường tiến tới vị trí mới:
+A **pseudorandom number generator (PRNG)** produces a seemingly random sequence using a deterministic algorithm and internal state. A seed initializes the state; after each generated value, the state typically advances to a new position:
 
 ```text
 seed --> S0 --next--> r1,S1 --next--> r2,S2 --next--> r3,S3 ...
 ```
 
-Ba mục tiêu **khác nhau** khi dùng nguồn ngẫu nhiên:
+Three **distinct** goals when using a source of randomness:
 
-- **Exact replay:** phát lại đúng từng giá trị của một lần chạy.
-- **Chất lượng thống kê:** dãy có phân phối/tương quan phù hợp mô phỏng.
-- **Khó dự đoán:** kẻ quan sát không thể đoán được token, mã xác minh hoặc dữ liệu bí mật tiếp theo bằng cách tính toán khả thi.
+- **Exact replay:** reproducing every exact value of a run.
+- **Statistical quality:** the sequence has a distribution/correlation suitable for simulation.
+- **Unpredictability:** an observer cannot feasibly compute and guess the next token, verification code, or secret data.
 
-Một bộ sinh cố định seed giúp test tái lập nhưng **không tự an toàn mật mã**. `java.util.Random` phục vụ mô phỏng thông thường; dữ liệu cần chống dự đoán sử dụng `java.security.SecureRandom` cùng quản lý token an toàn.
+A generator with a fixed seed makes tests reproducible, but **is not automatically cryptographically secure**. `java.util.Random` serves general simulation; data that must resist prediction uses `java.security.SecureRandom` along with secure token management.
 
-## 2. Vì sao cùng seed chưa chắc cùng kết quả nghiệp vụ?
+## 2. Why does the same seed not always yield the same business result?
 
 ```java
 import java.util.Random;
@@ -28,41 +28,41 @@ int b = first.nextInt(100);   // 63
 int c = second.nextInt(100);  // 30
 ```
 
-Hai đối tượng riêng có cùng seed cho cùng chuỗi **nếu cùng thuật toán, cùng lời gọi và thứ tự**. Đối tượng `first` đã ở vị trí thứ hai khi lấy `b`, trong khi `second` mới lấy số đầu tiên. Nếu thêm lần rút cho thời tiết trước phần thưởng trong trò chơi, số dành cho phần thưởng có thể thay đổi, dù seed vẫn bằng 42.
+Two separate instances with the same seed produce the same sequence **if they use the same algorithm, the same calls, and the same order**. The `first` instance is already at the second position when drawing `b`, whereas `second` is only drawing its first number. If an extra draw for weather is added before rewards in a game, the number used for rewards can change even though the seed is still 42.
 
-| Yếu tố khác nhau | Hệ quả |
+| Different factor | Consequence |
 | --- | --- |
-| Thuật toán Random và SplittableRandom | Seed giống nhau không tạo thuật toán chung |
-| Số lần/thứ tự gọi nextInt, nextLong, nextGaussian | Trạng thái có thể tiến số bước khác nhau |
-| Bound/origin hay một nhánh điều kiện mới | Kết quả hoặc lịch sử tiêu thụ thay đổi |
-| Các luồng dùng chung một generator | Thứ tự task nhận số phụ thuộc lịch scheduler |
-| Input hoặc phiên bản mã thay đổi | Số lượt rút có thể không tương ứng |
+| Random vs. SplittableRandom algorithm | Same seed does not produce a common algorithm |
+| Number/order of calls to nextInt, nextLong, nextGaussian | State may advance by a different number of steps |
+| Bound/origin or a new conditional branch | Results or consumption history change |
+| Threads sharing a single generator | Order in which tasks receive numbers depends on scheduler timing |
+| Input or code version changes | Number of draws may no longer align |
 
-Với `java.util.Random` cổ điển, thuật toán sử dụng trạng thái 48 bit và dãy kết quả với cùng seed/lịch gọi được đặc tả. Bài kế tiếp giải thích `Random.setSeed` và chi tiết 48 bit; các bài riêng bàn về generator theo thread, splitting và factory của Java 17.
+For classic `java.util.Random`, the algorithm uses a 48-bit state, and the output sequence for the same seed and call schedule is specified. The next lesson explains `Random.setSeed` and the 48-bit details; separate lessons cover per-thread generators, splitting, and the Java 17 factory.
 
-## 3. Tái lập giống nhau hay tái lập về thống kê?
+## 3. Exact reproducibility or statistical reproducibility?
 
-**Exact replay** yêu cầu các giá trị tại mỗi bước trùng nhau. Nó cần seed, tên thuật toán, lịch sử gọi và hoàn cảnh chạy được kiểm soát. Nếu một công việc đã đi nửa chặng, seed ban đầu **không** cho biết bộ sinh đang ở trạng thái nào; cần chạy lại cùng lịch sử hoặc lưu checkpoint khi có cách phù hợp.
+**Exact replay** requires the values at each step to match identically. It requires the seed, algorithm name, call history, and controlled execution environment. If a job is already halfway through, the initial seed does **not** tell you what state the generator is currently in; you must replay the same history or save a checkpoint when an appropriate mechanism exists.
 
-**Statistical reproducibility** chỉ yêu cầu tính chất thống kê hoặc phân phối tương tự giữa các lần thử; không bắt buộc từng giá trị khớp nhau. Một seed cố định hữu ích cho regression test nhưng không chứng minh tính đúng của mô phỏng ở mọi seed, tính đều hay khả năng chống dự đoán.
+**Statistical reproducibility** only requires similar statistical properties or distributions across trials; individual values do not have to match. A fixed seed is useful for regression tests, but it does not prove simulation correctness across all seeds, uniformity, or resistance to prediction.
 
-Với mô phỏng song song, đừng dùng chung một đối tượng rồi mặc định mỗi task nhận cùng dãy giữa hai lần chạy: các thread có thể rút số theo thứ tự khác. Có thể dùng generator riêng theo **định danh task ổn định**, hoặc tách generator bằng `split()` theo lịch chia cố định. Những seed khác nhau không tự chứng minh các dãy độc lập thống kê; phải xét thuật toán và phương thức quản lý stream.
+For parallel simulations, do not share a single instance and assume each task receives the same sequence across two runs: threads can draw numbers in different orders. You can use a dedicated generator per **stable task identifier**, or split generators using `split()` on a fixed splitting schedule. Different seeds do not by themselves prove that sequences are statistically independent; you must consider the algorithm and stream-management strategy.
 
-## 4. Ghi gì để tái hiện ca lỗi?
+## 4. What should you log to reproduce a bug?
 
-Với dữ liệu **không chứa bí mật**, hãy lưu tối thiểu:
+For **non-secret** data, record at minimum:
 
-1. **Tên lớp/thuật toán**, chẳng hạn `java.util.Random` hoặc `L64X128MixRandom` (Java 17).
-2. **Seed thực tế** cùng cơ chế khởi tạo; nếu không ghi seed tự động, khó phát lại.
-3. **Thứ tự lời gọi** như năm lần `nextInt(100)`, các bound/origin và số lần chia generator.
-4. **Phiên bản mã và dữ liệu đầu vào** nếu chúng ảnh hưởng nhánh và lịch tiêu thụ.
-5. **Cách phân công task→generator** cùng quy tắc chia seed khi workload chạy song song.
+1. **Class/algorithm name**, such as `java.util.Random` or `L64X128MixRandom` (Java 17).
+2. **The actual seed** and initialization mechanism; if an automatically generated seed is not logged, replay is difficult.
+3. **Call sequence**, such as five calls to `nextInt(100)`, bounds/origins, and the number of generator splits.
+4. **Code version and input data** if they affect branching and the consumption schedule.
+5. **Task→generator assignment** along with the seed-splitting rule when the workload runs in parallel.
 
-Không ghi seed/trạng thái CSPRNG hay token bảo mật nhằm mục đích replay như seed mô phỏng; loại thông tin này có thể chính là bí mật.
+Do not log CSPRNG seeds/state or security tokens for replay purposes like simulation seeds; that information itself may be a secret.
 
-## 5. Ví dụ Java 17 chạy được
+## 5. Runnable Java 17 example
 
-Lưu thành `RandomSeedReplayDemo.java`:
+Save as `RandomSeedReplayDemo.java`:
 
 ```java
 import java.util.Arrays;
@@ -102,18 +102,18 @@ replay=true
 shiftedFirst=63
 ```
 
-Đây là kiểm tra khả năng tái lập dãy, không phải phép đo chất lượng thống kê hay kiểm chứng bảo mật.
+This is a sequence reproducibility check, not a measurement of statistical quality or security verification.
 
-## 6. Chọn API theo mục đích
+## 6. Choosing an API by purpose
 
-| Nhu cầu | Hướng tiếp cận |
+| Need | Approach |
 | --- | --- |
-| Test/mô phỏng tuần tự cần phát lại | `new Random(seed)` và lịch gọi được kiểm soát |
-| Đa luồng không cần seed tường minh | `ThreadLocalRandom.current()` trong worker |
-| Cấp bộ sinh cho từng nhánh task | `SplittableRandom.split()` theo lịch chia rõ ràng |
-| Cấu hình thuật toán Java 17 | `RandomGeneratorFactory.of(name).create(seed)` nếu thuật toán hỗ trợ seed |
-| Sinh token/bí mật | `SecureRandom` và chính sách bảo vệ vòng đời dữ liệu |
+| Sequential tests/simulations needing replay | `new Random(seed)` with a controlled call schedule |
+| Multithreading without explicit seeds | `ThreadLocalRandom.current()` inside workers |
+| Assigning generators to task branches | `SplittableRandom.split()` with an explicit splitting schedule |
+| Configuring a Java 17 algorithm | `RandomGeneratorFactory.of(name).create(seed)` if the algorithm supports seeding |
+| Generating tokens/secrets | `SecureRandom` with a data-lifecycle protection policy |
 
-**Ghi nhớ:** seed khởi tạo PRNG nhưng kết quả cuối phụ thuộc cả thuật toán, trình tự gọi và điều kiện xử lý. Tái lập và chống dự đoán là hai mục tiêu riêng, cần chọn đúng API.
+**Key takeaway:** A seed initializes a PRNG, but the final output also depends on the algorithm, call sequence, and execution conditions. Reproducibility and unpredictability are two separate goals that require choosing the right API.
 
-**Tài liệu:** [Random](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Random.html), [RandomGenerator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/random/RandomGenerator.html), [SplittableRandom](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/SplittableRandom.html), [SecureRandom](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/SecureRandom.html).
+**References:** [Random](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Random.html), [RandomGenerator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/random/RandomGenerator.html), [SplittableRandom](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/SplittableRandom.html), [SecureRandom](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/SecureRandom.html).

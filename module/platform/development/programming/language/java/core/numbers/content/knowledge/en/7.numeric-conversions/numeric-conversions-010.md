@@ -1,13 +1,13 @@
-# Không có phép cast trực tiếp giữa kiểu số và boolean trong Java
+# No Direct Cast Between Numeric Types and boolean in Java
 
-## 1. Vấn đề cần hiểu
+## 1. The problem to understand
 
-Khi học **chuyển kiểu (type conversion)** trong Java Core — Numbers, ta thường thấy `int` đổi sang `long`, `double` đổi sang `float`, hoặc `char` tham gia phép tính số. Nhưng Java có một ranh giới rõ ràng: **`boolean` không thuộc nhóm kiểu số và không có phép cast trực tiếp hợp lệ giữa `boolean` và các kiểu số nguyên thủy**.
+When learning **type conversion** in Java Core — Numbers, we often see `int` converted to `long`, `double` converted to `float`, or `char` participating in arithmetic. Yet Java draws a clear boundary: **`boolean` does not belong to the numeric types and there is no valid direct cast between `boolean` and numeric primitive types**.
 
-Cụ thể, những ý tưởng quen thuộc trong một số ngôn ngữ khác **không hợp lệ trong Java**:
+Specifically, ideas familiar in some other languages are **invalid in Java**:
 
 ```java
-// CÁC DÒNG SAU CỐ Ý SAI, KHÔNG BIÊN DỊCH:
+// THE FOLLOWING LINES ARE INTENTIONALLY WRONG AND DO NOT COMPILE:
 boolean a = (boolean) 1;
 boolean b = (boolean) 0;
 int c = (int) true;
@@ -16,184 +16,184 @@ boolean e = 42;
 int f = true;
 ```
 
-`0` không tự động là `false` và `1` không tự động là `true` trong ngôn ngữ Java. Nếu dữ liệu số mã hóa ý nghĩa đúng/sai, **chính chương trình phải định nghĩa cách chuyển ý nghĩa đó** bằng phép so sánh, toán tử điều kiện, xác thực hoặc một phương thức có tên.
+`0` is not automatically `false` and `1` is not automatically `true` in the Java language. If numeric data encodes a true/false meaning, **the program itself must define how to translate that meaning** via comparisons, conditional operators, validation, or a named method.
 
-Sau bài này, bạn sẽ:
+After this lesson, you will:
 
-- Phân biệt các kiểu số `byte`, `short`, `char`, `int`, `long`, `float`, `double` với `boolean`.
-- Hiểu tại sao phép gán, cast, toán tử điều kiện và lời gọi phương thức cần kiểu `boolean` thực sự.
-- Chuyển **ý nghĩa** “có/không”, “bật/tắt” từ dữ liệu số sang `boolean` bằng quy tắc rõ ràng.
-- Mã hóa `boolean` thành `0/1` theo hợp đồng giao tiếp, không nhầm với cast.
-- Xử lý các trường hợp biên của số thực, `NaN`, `Infinity`, chuỗi `"true"`/`"1"` và bitmask.
-- Đọc đúng lỗi biên dịch, tránh cast lòng vòng qua wrapper hoặc `Object`.
+- Distinguish the numeric types `byte`, `short`, `char`, `int`, `long`, `float`, `double` from `boolean`.
+- Understand why assignments, casts, conditional operators, and method calls require a real `boolean` type.
+- Convert the **meaning** of "yes/no" or "on/off" from numeric data to `boolean` using explicit rules.
+- Encode `boolean` as `0/1` according to an interface contract, without confusing it with casting.
+- Handle edge cases for floating-point numbers, `NaN`, `Infinity`, strings `"true"`/`"1"`, and bitmasks.
+- Read compile errors accurately and avoid roundabout casts through wrappers or `Object`.
 
-Các ví dụ đầy đủ dùng **Java 17+**.
+Full examples use **Java 17+**.
 
-## 2. Hệ kiểu primitive: số và boolean là hai nhóm riêng
+## 2. The primitive type system: numbers and boolean are two separate groups
 
-Java có tám kiểu primitive:
+Java has eight primitive types:
 
-| Nhóm | Kiểu | Ghi chú |
+| Group | Types | Notes |
 | --- | --- | --- |
-| Số nguyên | `byte`, `short`, `int`, `long` | Giá trị số nguyên có dấu |
-| Liên quan số nguyên/UTF-16 | `char` | Đơn vị mã UTF-16 16 bit không dấu, có thể tham gia một số phép số học |
-| Số thực | `float`, `double` | Số chấm động nhị phân |
-| Logic | `boolean` | Chỉ có hai giá trị ngôn ngữ: `true` và `false` |
+| Integer | `byte`, `short`, `int`, `long` | Signed integer values |
+| Integer/UTF-16 related | `char` | 16-bit unsigned UTF-16 code unit, can participate in some arithmetic |
+| Floating-point | `float`, `double` | Binary floating-point numbers |
+| Logical | `boolean` | Only two language values: `true` and `false` |
 
-Trong các **numeric conversion**, Java cho phép nhiều chuyển đổi giữa các kiểu số với nhau, chẳng hạn `int → long`, `int → double`, `double → int` hoặc `char → int`, có thể là chuyển rộng hoặc chuyển hẹp tùy loại.
+In **numeric conversions**, Java permits many conversions among numeric types, such as `int → long`, `int → double`, `double → int`, or `char → int`, which may be widening or narrowing depending on the types.
 
-Nhưng `boolean` không là kiểu số, không có quy tắc `numeric promotion` như `int`, và không tham gia các **widening/narrowing primitive numeric conversions**. Theo đặc tả ngôn ngữ, không có cast primitive trực tiếp hợp lệ từ kiểu số sang `boolean` hay ngược lại.
+However, `boolean` is not a numeric type, has no `numeric promotion` rules like `int`, and does not participate in **widening/narrowing primitive numeric conversions**. Under the language specification, there is no valid direct primitive cast from a numeric type to `boolean` or vice versa.
 
-Điều này vẫn đúng cho cả:
+This remains true for all of:
 
 - `byte`, `short`, `int`, `long`;
-- `char`, dù giá trị của nó có thể đọc được dưới dạng số nguyên;
+- `char`, even though its value can be read as an integer;
 - `float`, `double`;
-- Các literal số như `0`, `1`, `0.0`, `1.0F`;
-- Các giá trị âm và dương: Java không có cú pháp cho phép dùng `-1` làm `true` như một điều kiện.
+- Numeric literals such as `0`, `1`, `0.0`, `1.0F`;
+- Negative and positive values: Java has no syntax allowing `-1` to be used as `true` in a condition.
 
-Cần nhớ rằng **giá trị 0/1 dùng để mã hóa boolean trong dữ liệu** là một thỏa thuận ứng dụng, khác với **quy tắc chuyển kiểu của ngôn ngữ Java**.
+Remember that **using 0/1 values to encode booleans in data** is an application convention, distinct from **Java's language type conversion rules**.
 
-## 3. Tại sao `(boolean) 1` không hoạt động?
+## 3. Why doesn't `(boolean) 1` work?
 
-Hãy xét:
+Consider:
 
 ```java
 int count = 1;
-// boolean hasItems = (boolean) count; // LỖI BIÊN DỊCH
+// boolean hasItems = (boolean) count; // COMPILE ERROR
 ```
 
-Khi trình biên dịch gặp `(boolean) count`, nó kiểm tra có phép chuyển kiểu được JLS cho phép giữa kiểu `int` và kiểu đích `boolean` hay không. **Không có** phép chuyển đổi đó, nên mã không hợp lệ. Đây là lỗi **thời điểm biên dịch**, không phải “chạy thử mới ra `false` hay `true`”.
+When the compiler sees `(boolean) count`, it checks whether a conversion permitted by the JLS exists between `int` and the target type `boolean`. **No such conversion exists**, so the code is invalid. This is a **compile-time** error, not something that "runs and evaluates to `false` or `true`."
 
-Tương tự:
+Similarly:
 
 ```java
 boolean enabled = true;
-// int n = (int) enabled; // LỖI BIÊN DỊCH
+// int n = (int) enabled; // COMPILE ERROR
 ```
 
-Việc thêm nhiều dấu ngoặc không thay đổi quy tắc:
+Adding extra parentheses does not change the rule:
 
 ```java
-// boolean a = ((boolean) (1));     // vẫn sai
-// int b = ((int) (false));         // vẫn sai
+// boolean a = ((boolean) (1));     // still wrong
+// int b = ((int) (false));         // still wrong
 ```
 
-Không có hậu tố literal hoặc tùy chọn `javac` thông thường nào khiến `boolean` trở thành kiểu số. Java chủ ý yêu cầu điều kiện logic rõ ràng, thay vì âm thầm suy luận “khác 0 là đúng”.
+No literal suffix or standard `javac` flag turns `boolean` into a numeric type. Java deliberately requires explicit logical conditions rather than silently inferring "nonzero means true."
 
-### 3.1. So sánh với cast số hợp lệ
+### 3.1. Comparison with valid numeric casts
 
 ```java
 int quantity = 5;
-long larger = (long) quantity;  // hợp lệ: int -> long
-double exactHere = (double) quantity; // hợp lệ: int -> double
+long larger = (long) quantity;  // valid: int -> long
+double exactHere = (double) quantity; // valid: int -> double
 
 double estimate = 5.9;
-int truncated = (int) estimate; // hợp lệ nhưng có mất phần thập phân: 5
+int truncated = (int) estimate; // valid, though drops fractional part: 5
 ```
 
-Tính **hợp lệ** của phép cast và việc nó **giữ chính xác dữ liệu** là hai câu hỏi khác nhau. Với `boolean` và kiểu số, câu hỏi đầu đã thất bại: ngôn ngữ không định nghĩa cast primitive giữa chúng.
+Whether a cast is **valid** and whether it **preserves data accurately** are two separate questions. For `boolean` and numeric types, the first question already fails: the language defines no primitive cast between them.
 
-## 4. Điều kiện trong `if`, `while`, `for` và toán tử logic yêu cầu boolean
+## 4. Conditions in `if`, `while`, `for`, and logical operators require boolean
 
-Một lỗi chuyển từ các ngôn ngữ cho phép “truthy/falsy” sang Java là viết:
+A common mistake when moving from languages with "truthy/falsy" semantics to Java is writing:
 
 ```java
 int count = 3;
-// if (count) { ... } // LỖI BIÊN DỊCH
+// if (count) { ... } // COMPILE ERROR
 ```
 
-Trong Java, biểu thức điều kiện của `if`, `while`, `do ... while` và phần điều kiện của `for` thường phải là `boolean` hoặc `Boolean` có thể unbox thành `boolean`. Một `int` riêng lẻ không đủ. Tương tự, toán tử `!` và `&&`/`||` áp dụng cho giá trị logic; `!count` và `count && true` không hợp lệ.
+In Java, the condition expression of `if`, `while`, `do ... while`, and the condition clause of `for` must generally be `boolean` or a `Boolean` that can unbox to `boolean`. A standalone `int` is not enough. Likewise, `!` and `&&`/`||` apply to logical values; `!count` and `count && true` are invalid.
 
-Cách viết đúng phụ thuộc **ý nghĩa nghiệp vụ**:
+The right way to write it depends on **business intent**:
 
 ```java
 int count = 3;
 
 if (count > 0) {
-    System.out.println("Có phần tử");
+    System.out.println("Has elements");
 }
 
 if (count != 0) {
-    System.out.println("Khác không");
+    System.out.println("Nonzero");
 }
 ```
 
-Hai điều kiện này không đồng nghĩa khi `count` âm:
+These two conditions are not equivalent when `count` is negative:
 
-- `count > 0`: chỉ nhận số dương.
-- `count != 0`: nhận cả số âm và số dương.
-- `count == 1`: chỉ nhận đúng mã `1`.
-- `count >= minimum`: thể hiện điều kiện ngưỡng.
+- `count > 0`: accepts only positive numbers.
+- `count != 0`: accepts both negative and positive numbers.
+- `count == 1`: accepts only the exact code `1`.
+- `count >= minimum`: expresses a threshold condition.
 
-**Không tự chọn `!= 0` chỉ để làm trình biên dịch hết báo lỗi.** Hãy chọn phép so sánh diễn đạt đúng dữ liệu đang biểu thị.
+**Do not blindly pick `!= 0` just to silence the compiler.** Pick the comparison that accurately expresses what the data represents.
 
-### 4.1. Bảng diễn giải 0/1 thường gặp
+### 4.1. Common 0/1 interpretation table
 
-| Dữ liệu số | Ý định nghiệp vụ | Biểu thức Java |
+| Numeric data | Business intent | Java expression |
 | --- | --- | --- |
-| Bộ đếm `count` | “Có ít nhất một phần tử” | `count > 0` |
-| Mã giao thức quy ước 0/1 | “Đúng khi đúng bằng 1” | `code == 1` |
-| Trạng thái quy ước mọi số khác 0 là bật | “Bật khi khác 0” | `state != 0` |
-| Một bit trong `flags` | “Bit được chọn đang bật” | `(flags & MASK) != 0` |
-| Giá trị đo `v` | “Lớn hơn ngưỡng” | `v > threshold` |
-| Tập bit phải có đầy đủ | “Tất cả bit trong mask đều bật” | `(flags & MASK) == MASK` |
+| Counter `count` | "At least one element exists" | `count > 0` |
+| Protocol code defined as 0/1 | "True when strictly equal to 1" | `code == 1` |
+| Status where any nonzero means on | "On when nonzero" | `state != 0` |
+| One bit in `flags` | "Selected bit is set" | `(flags & MASK) != 0` |
+| Measurement `v` | "Above threshold" | `v > threshold` |
+| Bit set where all must be present | "All bits in mask are set" | `(flags & MASK) == MASK` |
 
-Đây là **những quy tắc quy ước khác nhau**, không phải các kiểu cast tương đương.
+These are **different convention rules**, not equivalent casts.
 
-## 5. Cách chuyển ý nghĩa kiểu số sang boolean bằng phép so sánh
+## 5. How to convert numeric meaning to boolean via comparisons
 
-Nếu dữ liệu là số đếm, biểu thức `count > 0` trả về `boolean`:
+If the data is a count, `count > 0` returns `boolean`:
 
 ```java
 int count = 3;
 boolean hasItems = count > 0; // true
 ```
 
-Nếu dữ liệu là cờ mã hóa bằng `0` hoặc `1`:
+If the data is a flag encoded as `0` or `1`:
 
 ```java
 int activeCode = 1;
 boolean active = activeCode == 1; // true
 ```
 
-Nếu hợp đồng chấp nhận mọi số khác 0:
+If the contract accepts any nonzero number:
 
 ```java
 int status = -2;
 boolean nonzero = status != 0; // true
 ```
 
-**Sự khác biệt:** ba biến `hasItems`, `active`, `nonzero` có cùng kiểu `boolean`, nhưng chúng được tạo từ **ba điều kiện rõ ràng**.
+**The difference:** all three variables `hasItems`, `active`, and `nonzero` have type `boolean`, yet they are produced from **three explicit conditions**.
 
-### 5.1. Đặc biệt với số thực
+### 5.1. Special considerations for floating-point numbers
 
-Với `double`/`float`, không nên tùy tiện dùng `value != 0.0` làm điều kiện “giá trị số hợp lệ” hoặc “có số”:
+With `double`/`float`, do not casually use `value != 0.0` as "valid numeric value" or "number present":
 
-- `0.0 == -0.0` là `true`; hai giá trị này khác bit dấu nhưng cùng so sánh bằng về mặt `==`.
-- `Double.NaN != 0.0` là `true`, nhưng `NaN` **không phải** một độ lớn đo được.
-- `Double.POSITIVE_INFINITY != 0.0` là `true`; giá trị vô cực cũng thường không hợp lệ cho phép đo hữu hạn.
-- Giá trị rất nhỏ nhưng khác `0.0` vẫn khiến `value != 0.0` thành `true`; yêu cầu nghiệp vụ “đủ lớn để đáng kể” có thể cần ngưỡng.
+- `0.0 == -0.0` is `true`; these two values differ in sign bit yet compare equal under `==`.
+- `Double.NaN != 0.0` is `true`, yet `NaN` is **not** a measurable magnitude.
+- `Double.POSITIVE_INFINITY != 0.0` is `true`; infinite values are usually invalid for finite measurements too.
+- A tiny nonzero value still makes `value != 0.0` `true`; a business requirement of "large enough to matter" may need a threshold.
 
-Ví dụ nếu chỉ muốn giá trị dương **hữu hạn**:
+For example, if you only want **finite** positive values:
 
 ```java
 double reading = 2.5;
 boolean validPositive = Double.isFinite(reading) && reading > 0.0;
 ```
 
-Nếu cần “khác 0 và hữu hạn”, viết `Double.isFinite(reading) && reading != 0.0`. Nếu cần so sánh số thực với độ chênh lệch chấp nhận được, chọn tolerance theo bài toán và lưu ý overflow/underflow trong công thức so sánh. Không có một epsilon duy nhất đúng cho mọi dữ liệu.
+If you need "nonzero and finite," write `Double.isFinite(reading) && reading != 0.0`. If you need floating-point comparison with an acceptable tolerance, choose the tolerance for the problem and watch out for overflow/underflow in the comparison formula. There is no single epsilon that fits every dataset.
 
-## 6. Cách mã hóa boolean thành số: dùng toán tử điều kiện
+## 6. How to encode boolean as a number: use the conditional operator
 
-Để xuất `boolean` thành mã nguyên, hãy nêu rõ quy ước bằng **toán tử điều kiện ba ngôi `?:`**:
+To output a `boolean` as an integer code, state the convention explicitly using the **ternary conditional operator `?:`**:
 
 ```java
 boolean enabled = true;
 int encoded = enabled ? 1 : 0;  // 1
 ```
 
-Mẫu này đọc là: nếu `enabled` đúng, trả `1`; ngược lại trả `0`. Với mã dài hơn hoặc dùng chung ở nhiều nơi, viết một phương thức đặt tên rõ ràng:
+This pattern reads: if `enabled` is true, return `1`; otherwise return `0`. For longer code or reuse in multiple places, write a clearly named method:
 
 ```java
 static int toZeroOne(boolean value) {
@@ -201,30 +201,30 @@ static int toZeroOne(boolean value) {
 }
 ```
 
-Đây là **một mảnh phương thức** cần đặt trong class để gọi, không phải chương trình độc lập.
+This is a **method snippet** that must be placed inside a class to be called, not a standalone program.
 
-Có thể chọn mã khác:
+Other encodings can be chosen:
 
 ```java
 boolean allowed = false;
 int protocolCode = allowed ? 100 : 400; // 400
 ```
 
-Không có quy định chung rằng boolean phải ánh xạ sang `0/1`, `-1/0` hay bất kỳ cặp giá trị nào. Điều này do hợp đồng trao đổi dữ liệu quyết định.
+There is no universal rule that booleans must map to `0/1`, `-1/0`, or any particular pair of values. That is determined by the data-exchange contract.
 
-### 6.1. Ternary không phải primitive cast
+### 6.1. Ternary is not a primitive cast
 
-Biểu thức `enabled ? 1 : 0` trả một giá trị số dựa trên điều kiện boolean; nó **không chuyển kiểu `boolean` thành `int`**.
+The expression `enabled ? 1 : 0` returns a numeric value based on a boolean condition; it **does not cast `boolean` to `int`**.
 
-Ngược lại, `code == 1` trả boolean bằng so sánh số; nó **không chuyển kiểu `int` sang `boolean`**.
+Conversely, `code == 1` returns a boolean via numeric comparison; it **does not cast `int` to `boolean`**.
 
-Nhận diện đúng thao tác giúp kiểm tra dễ hơn: nếu hệ thống đổi quy ước từ mã `1` sang mã `100`, ta sửa quy tắc mapping mà không thay đổi các quy tắc type conversion của Java.
+Identifying the operation correctly makes maintenance easier: if the system changes its convention from code `1` to code `100`, you update the mapping rule without altering Java's type conversion rules.
 
-## 7. Mã 0/1 phải được xác thực nếu input bên ngoài có thể sai
+## 7. 0/1 codes must be validated if external input can be malformed
 
-Nếu giao thức tuyên bố chỉ có `0` và `1`, dùng `code != 0` sẽ **âm thầm chấp nhận** `2`, `-1` hoặc `999` là true. Điều đó có thể che giấu dữ liệu lỗi.
+If a protocol states only `0` and `1` exist, using `code != 0` will **silently accept** `2`, `-1`, or `999` as true. That can mask corrupted data.
 
-Cách tốt hơn là định nghĩa phương thức chỉ nhận hai mã hợp lệ:
+A better approach is defining a method that accepts only the two valid codes:
 
 ```java
 static boolean fromZeroOne(int code) {
@@ -238,11 +238,11 @@ static boolean fromZeroOne(int code) {
 }
 ```
 
-Nếu một API phải cho phép mọi số khác 0 có nghĩa là true, hãy viết và tài liệu hóa rõ `code != 0`. Hai chính sách không nên bị trộn lẫn.
+If an API must allow any nonzero number to mean true, write and document `code != 0` explicitly. The two policies should not be conflated.
 
-### Ví dụ hoàn chỉnh: mapping có kiểm tra
+### Complete example: checked mapping
 
-Lưu tệp **`NumericBooleanMapping.java`**:
+Save the file **`NumericBooleanMapping.java`**:
 
 ```java
 public class NumericBooleanMapping {
@@ -271,14 +271,14 @@ public class NumericBooleanMapping {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac --release 17 NumericBooleanMapping.java
 java NumericBooleanMapping
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 false
@@ -288,13 +288,13 @@ true
 Expected 0 or 1: 2
 ```
 
-Lợi ích của phương thức này là **giữ hợp đồng dữ liệu ở một nơi**, phân biệt lỗi input khỏi mã hợp lệ và tránh sao chép các phép so sánh khác nhau khắp chương trình.
+The benefit of this method is **keeping the data contract in one place**, distinguishing bad input from valid codes, and avoiding duplicating disparate comparisons throughout the program.
 
-## 8. Wrapper `Boolean` và `Number` cũng không phải cầu nối cast
+## 8. Wrapper `Boolean` and `Number` are not a casting bridge either
 
-Các wrapper như `Integer`, `Long`, `Double` là đối tượng đại diện các giá trị số và kế thừa `Number`. `Boolean` đại diện giá trị logic; nó **không kế thừa `Number`**.
+Wrappers like `Integer`, `Long`, and `Double` are objects representing numeric values and extend `Number`. `Boolean` represents a logical value; it **does not extend `Number`**.
 
-Ví dụ hợp lệ:
+Valid examples:
 
 ```java
 Integer boxedInt = Integer.valueOf(1);
@@ -304,27 +304,27 @@ int number = boxedInt.intValue();
 boolean flag = boxedFlag.booleanValue();
 ```
 
-Nhưng không có cách cast trực tiếp `Integer` thành `Boolean` để nhận “1 = true”, hoặc cast `Boolean` thành `Integer` để nhận “true = 1”.
+However, there is no way to directly cast `Integer` to `Boolean` to get "1 = true", or cast `Boolean` to `Integer` to get "true = 1".
 
-Đừng dùng ép kiểu gián tiếp qua `Object` để “né” lỗi trình biên dịch. Ví dụ nếu một tham chiếu `Object` đang chứa `Integer`, cast nó thành `Boolean` sẽ dẫn đến lỗi kiểu lúc chạy (`ClassCastException`), thay vì tự động chuyển giá trị số thành logic. Việc boxing/unboxing không sáng tạo quy tắc numeric-to-boolean.
+Do not use indirect casts through `Object` to "bypass" compiler errors. For instance, if an `Object` reference holds an `Integer`, casting it to `Boolean` causes a runtime type error (`ClassCastException`), rather than automatically converting the numeric value to a boolean. Boxing/unboxing does not invent numeric-to-boolean rules.
 
-### 8.1. Unboxing đúng nghĩa là gì?
+### 8.1. What does unboxing actually mean?
 
-`Boolean enabled = Boolean.TRUE;` có thể unbox thành `boolean` trong ngữ cảnh cần primitive boolean. Đó là **`Boolean → boolean`**, không phải `int → boolean`.
+`Boolean enabled = Boolean.TRUE;` can unbox to `boolean` in contexts expecting a primitive boolean. That is **`Boolean → boolean`**, not `int → boolean`.
 
-Cần đề phòng `null`:
+Guard against `null`:
 
 ```java
 Boolean optional = null;
-// if (optional) { } // chạy sẽ ném NullPointerException khi unbox
+// if (optional) { } // throws NullPointerException at runtime when unboxing
 boolean safelyTrue = Boolean.TRUE.equals(optional); // false
 ```
 
-Nếu dữ liệu có ba trạng thái “true”, “false”, “chưa biết”, đừng vội ép mọi trường hợp vào số `0/1` rồi làm mất trạng thái null. Nên chọn mô hình dữ liệu thể hiện rõ đủ trạng thái.
+If data has three states—"true", "false", "unknown"—do not rush to force everything into `0/1` numbers and lose the null state. Choose a data model that represents all states clearly.
 
-## 9. Parse chuỗi: `Boolean.parseBoolean` không hiểu chuỗi "1" là true
+## 9. String parsing: `Boolean.parseBoolean` does not treat "1" as true
 
-Đây là một nhầm lẫn phổ biến khi chuyển từ biểu diễn số trong file, JSON hoặc form nhập:
+This is a common mistake when converting from numeric representations in files, JSON, or input forms:
 
 ```java
 System.out.println(Boolean.parseBoolean("true"));  // true
@@ -334,52 +334,52 @@ System.out.println(Boolean.parseBoolean("0"));     // false
 System.out.println(Boolean.parseBoolean(" TRUE ")); // false
 ```
 
-`Boolean.parseBoolean(String)` trả `true` **chỉ khi** chuỗi khác null và bằng `"true"` theo so sánh không phân biệt hoa/thường. Các chuỗi khác trả `false`. Nó không parse `"1"` thành true, và không tự trim khoảng trắng.
+`Boolean.parseBoolean(String)` returns `true` **only when** the string is non-null and equals `"true"` ignoring case. Other strings return `false`. It does not parse `"1"` as true, and does not automatically trim whitespace.
 
-Nếu dữ liệu đầu vào quy ước `"0"`/`"1"`, có thể parse sang số rồi chuyển bằng chính sách:
+If the input uses a `"0"`/`"1"` convention, you can parse it as a number and then convert by policy:
 
 ```java
 String raw = "1";
 int code = Integer.parseInt(raw);
-boolean active = code == 1; // chỉ đúng khi hợp đồng cho phép các giá trị khác
+boolean active = code == 1; // only right when the contract allows other values
 ```
 
-Nếu hợp đồng chỉ nhận `0/1`, hãy gọi `fromZeroOne(code)` ở mục trên để **báo lỗi** khi nhận `2`. `Integer.parseInt` có thể ném `NumberFormatException` nếu dữ liệu không phải số nguyên hợp lệ, vì vậy API nhận dữ liệu bên ngoài cần xử lý trường hợp này theo yêu cầu.
+If the contract accepts only `0/1`, call `fromZeroOne(code)` from the section above to **raise an error** on `2`. `Integer.parseInt` can throw `NumberFormatException` if the input is not a valid integer, so an API accepting external data must handle that case as required.
 
-Với một trường boolean thực sự trong JSON, nhiều thư viện mapping sẽ dùng giá trị JSON `true`/`false`. Nếu bên ngoài gửi `0/1`, bạn đang xử lý một **quy ước schema** và phải kiểm tra chính sách mapping của thư viện; Java primitive cast không tự xử lý việc ấy.
+For a true boolean field in JSON, many mapping libraries use JSON `true`/`false`. If an external party sends `0/1`, you are dealing with a **schema convention** and must check the library's mapping policy; Java primitive casts do not handle it automatically.
 
-## 10. Bitmask: giá trị bitwise là số, điều kiện được tạo bằng so sánh
+## 10. Bitmasks: bitwise values are numbers, conditions are built via comparisons
 
-Các toán tử `&`, `|`, `^` và `~` cũng xuất hiện ở chủ đề Numbers. Với toán hạng kiểu `int`, `&` trả về **`int`**, không phải `boolean`.
+The operators `&`, `|`, `^`, and `~` also appear in the Numbers topic. With `int` operands, `&` returns **`int`**, not `boolean`.
 
-Ví dụ:
+For example:
 
 ```java
 int flags = 0b0101;
 int mask = 0b0100;
 
-// boolean invalid = flags & mask; // LỖI: int không thể gán sang boolean
+// boolean invalid = flags & mask; // ERROR: int cannot be assigned to boolean
 boolean hasFlag = (flags & mask) != 0; // true
 ```
 
-Đọc logic đúng:
+Reading the logic properly:
 
-1. `flags & mask` tạo một **giá trị nguyên** chứa các bit chung.
-2. `!= 0` **so sánh** giá trị đó với số 0 và tạo ra `boolean`.
-3. Biến `hasFlag` nhận kết quả của phép so sánh.
+1. `flags & mask` produces an **integer value** containing the shared bits.
+2. `!= 0` **compares** that value against 0 and produces a `boolean`.
+3. `hasFlag` receives the result of the comparison.
 
-Nếu mask có nhiều bit và cần tất cả đều bật, dùng `(flags & mask) == mask`. Đừng nhầm kiểm tra “ít nhất một bit” với kiểm tra “mọi bit”.
+If the mask has multiple bits and all must be set, use `(flags & mask) == mask`. Do not confuse checking "at least one bit" with checking "all bits."
 
-### 10.1. `&` và `|` cũng hoạt động trên boolean
+### 10.1. `&` and `|` also operate on boolean
 
-Java có hai nhóm overload ngữ nghĩa của `&`, `|` và `^`:
+Java has two semantic overload groups for `&`, `|`, and `^`:
 
-- Với **hai toán hạng nguyên**, chúng thao tác từng bit và cho giá trị số nguyên.
-- Với **hai toán hạng boolean**, chúng thực hiện AND/OR/XOR logic và cho `boolean`.
+- With **two integer operands**, they operate bitwise and yield an integer value.
+- With **two boolean operands**, they perform logical AND/OR/XOR and yield `boolean`.
 
-`&&` và `||` chỉ dành cho logic và có khả năng short circuit; `&`/`|` trên boolean vẫn đánh giá cả hai toán hạng.
+`&&` and `||` are solely for booleans and short-circuit; `&`/`|` on booleans still evaluate both operands.
 
-Ví dụ hợp lệ:
+Valid examples:
 
 ```java
 boolean a = true;
@@ -389,11 +389,11 @@ boolean y = a | b; // true
 boolean z = a ^ b; // true
 ```
 
-Ngược lại, `int bits = 1 & 2;` cho `0`; `boolean test = 1 & 2;` không hợp lệ do vế phải là `int`. Việc cùng dùng ký hiệu `&` không tạo một cast tự động giữa hai loại kết quả.
+Conversely, `int bits = 1 & 2;` gives `0`; `boolean test = 1 & 2;` is invalid because the right-hand side is `int`. Sharing the `&` symbol does not create an automatic cast between the two result types.
 
-## 11. Ví dụ Java hoàn chỉnh: số tạo điều kiện, điều kiện tạo mã số
+## 11. Complete Java example: numbers producing conditions, conditions producing numeric codes
 
-Lưu tệp **`NumericBooleanConditions.java`**:
+Save the file **`NumericBooleanConditions.java`**:
 
 ```java
 public class NumericBooleanConditions {
@@ -422,14 +422,14 @@ public class NumericBooleanConditions {
 }
 ```
 
-Chạy bằng JDK 17 trở lên:
+Run with JDK 17 or later:
 
 ```bash
 javac --release 17 NumericBooleanConditions.java
 java NumericBooleanConditions
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 true
@@ -443,97 +443,97 @@ true
 false
 ```
 
-Giải thích:
+Explanation:
 
-- `count != 0` và `count > 0` đều đúng cho `3` nhưng không cùng hợp đồng ở mọi giá trị.
-- `measurement != 0.0` sai cho `0.0`.
-- Toán tử `?:` mã hóa `boolean` thành `int` theo quy ước `true ↦ 1` và `false ↦ 0`.
-- `Double.NaN != 0.0` đúng vì so sánh không bằng với NaN luôn đúng (trừ các chi tiết riêng của một số phương thức so sánh đối tượng); `Double.isFinite(Double.NaN)` trả false.
-- Bitmask `0101 & 0100` khác 0, còn `0101 & 0010` bằng 0.
+- `count != 0` and `count > 0` are both true for `3`, yet do not share the same contract across all values.
+- `measurement != 0.0` is false for `0.0`.
+- The `?:` operator encodes `boolean` into `int` using the convention `true ↦ 1` and `false ↦ 0`.
+- `Double.NaN != 0.0` is true because inequality with NaN is always true (aside from specific details of certain object-comparison methods); `Double.isFinite(Double.NaN)` returns false.
+- Bitmask `0101 & 0100` is nonzero, while `0101 & 0010` equals 0.
 
-Đây là ví dụ cho thấy **rõ ràng từng bước chuyển ý nghĩa**, hoàn toàn không dùng cast trực tiếp giữa kiểu số và boolean.
+This example illustrates **explicit step-by-step translation of meaning**, completely without direct casts between numbers and boolean.
 
-## 12. Lỗi biên dịch thường gặp và cách sửa
+## 12. Common compile errors and how to fix them
 
-Các đoạn trong bảng là mã **cố ý không hợp lệ**. Mọi cách sửa cần được đánh giá theo yêu cầu thực, vì khác ý nghĩa sẽ cho kết quả khác.
+The snippets in the table are **intentionally invalid** code. Every fix must be evaluated against real requirements, because different semantics yield different results.
 
-| Mã sai | Lý do | Cách sửa có chủ đích |
+| Wrong code | Reason | Intentional fix |
 | --- | --- | --- |
-| `boolean b = (boolean) 1;` | Không có numeric-to-boolean cast | `boolean b = (1 == 1);` hoặc `true` nếu là hằng |
-| `int n = (int) true;` | Không có boolean-to-numeric cast | `int n = true ? 1 : 0;` |
-| `if (count) { ... }` | `int` không là điều kiện boolean | `if (count > 0) { ... }` nếu “có phần tử” |
-| `while (n) { ... }` | `n` không là `boolean` | `while (n != 0) { ... }` nếu dữ liệu xác nhận |
-| `boolean x = 1 & 2;` | `1 & 2` có kiểu `int` | `boolean x = (1 & 2) != 0;` |
-| `boolean a = !1;` | `!` cần boolean | `boolean a = !(1 != 0);` nếu thực sự muốn phủ định “khác 0” |
-| `boolean b = "1";` | Chuỗi không là boolean | Parse/mapping theo schema, không cast |
-| `Boolean b = Integer.valueOf(1);` | Wrapper khác kiểu | `Boolean b = Integer.valueOf(1) == 1;` nếu chỉ nhận mã 1 |
+| `boolean b = (boolean) 1;` | No numeric-to-boolean cast | `boolean b = (1 == 1);` or `true` if constant |
+| `int n = (int) true;` | No boolean-to-numeric cast | `int n = true ? 1 : 0;` |
+| `if (count) { ... }` | `int` is not a boolean condition | `if (count > 0) { ... }` if "has elements" |
+| `while (n) { ... }` | `n` is not `boolean` | `while (n != 0) { ... }` if data confirms |
+| `boolean x = 1 & 2;` | `1 & 2` has type `int` | `boolean x = (1 & 2) != 0;` |
+| `boolean a = !1;` | `!` requires boolean | `boolean a = !(1 != 0);` if genuinely negating "nonzero" |
+| `boolean b = "1";` | String is not boolean | Parse/map per schema, do not cast |
+| `Boolean b = Integer.valueOf(1);` | Different wrapper types | `Boolean b = Integer.valueOf(1) == 1;` if only accepting code 1 |
 
-Khi IDE hoặc `javac` báo `incompatible types` hoặc `bad operand types`, hãy nhìn vào **kiểu của từng biểu thức**, không chỉ kiểu biến đích. Gắn thêm `(boolean)` hoặc `(int)` sẽ không sửa được lỗi chuyển giữa hai họ kiểu này.
+When your IDE or `javac` reports `incompatible types` or `bad operand types`, look at **the type of each expression**, not just the target variable's type. Slapping on `(boolean)` or `(int)` will not fix conversions between these two type families.
 
-### 12.1. Điều gì xảy ra nếu ép kiểu một `Object`?
+### 12.1. What happens if you cast an `Object`?
 
-Giả sử một giá trị tại runtime được lưu dưới dạng `Integer`. Ép tham chiếu `Object` thành `Boolean` (khi biểu thức được chấp nhận bởi cơ chế reference casting) không chuyển số `1` thành `true`; kiểu object thực tế vẫn là `Integer` và cast sai có thể gây `ClassCastException`. Đây là **reference cast khác với primitive value conversion**. Tốt nhất định nghĩa phương thức mapping tường minh ở biên nhận dữ liệu.
+Suppose a value at runtime is stored as an `Integer`. Casting an `Object` reference to `Boolean` (when the expression is syntactically accepted by reference casting) does not turn the number `1` into `true`; the actual object type remains `Integer` and the bad cast causes a `ClassCastException`. This is a **reference cast, distinct from primitive value conversion**. It is best to define an explicit mapping method at the data-ingestion boundary.
 
-## 13. Câu hỏi tự luyện có đáp án
+## 13. Self-study questions with answers
 
-**Bài 1 — Phân loại mã hợp lệ.** Mã nào biên dịch: `boolean a = 0;`, `boolean b = 0 == 0;`, `int c = true ? 1 : 0;` và `int d = (int) false;`?
+**Exercise 1 — Classify valid code.** Which statements compile: `boolean a = 0;`, `boolean b = 0 == 0;`, `int c = true ? 1 : 0;`, and `int d = (int) false;`?
 
-Đáp án: `b` và `c` hợp lệ; `a` và `d` sai vì Java không chuyển primitive số ↔ boolean.
+Answer: `b` and `c` are valid; `a` and `d` are invalid because Java does not convert primitives number ↔ boolean.
 
-**Bài 2 — Chọn điều kiện đúng.** Với `int count = -1;`, `count != 0` và `count > 0` trả gì?
+**Exercise 2 — Choose the right condition.** Given `int count = -1;`, what do `count != 0` and `count > 0` return?
 
-Đáp án: `true` và `false`. Nếu count là số lượng hợp lệ phải không âm, cần xử lý giá trị âm như một lỗi hoặc xác định thêm hợp đồng.
+Answer: `true` and `false`. If `count` is a valid quantity that must be non-negative, negative values must be handled as an error or further specified in the contract.
 
-**Bài 3 — Kiểm tra 0/1 nghiêm ngặt.** Một API chỉ chấp nhận mã `0` và `1`. Vì sao `code != 0` không đủ? Hãy viết hàm nhận 0/1 và báo lỗi nếu nhận 2.
+**Exercise 3 — Strict 0/1 check.** An API accepts only codes `0` and `1`. Why is `code != 0` insufficient? Write a function accepting 0/1 and failing on 2.
 
-Đáp án: `2 != 0` cũng true, dù 2 không phải mã hợp lệ. Dùng `fromZeroOne` ở mục 7, ném `IllegalArgumentException` cho các giá trị khác.
+Answer: `2 != 0` is also true, even though 2 is not a valid code. Use `fromZeroOne` in section 7, throwing `IllegalArgumentException` for other values.
 
-**Bài 4 — Đổi boolean sang số.** Với `boolean permitted = false;`, làm sao xuất `0`?
+**Exercise 4 — Convert boolean to number.** Given `boolean permitted = false;`, how do you output `0`?
 
-Đáp án: `int code = permitted ? 1 : 0;`. Đây là biểu thức chọn giá trị số, không phải cast.
+Answer: `int code = permitted ? 1 : 0;`. This is a numeric value-selection expression, not a cast.
 
-**Bài 5 — NaN.** Với `double value = Double.NaN;`, `value != 0.0` và `Double.isFinite(value)` bằng gì?
+**Exercise 5 — NaN.** Given `double value = Double.NaN;`, what do `value != 0.0` and `Double.isFinite(value)` equal?
 
-Đáp án: `true` và `false`. Vì vậy không dùng riêng `!= 0` để kết luận “số đo hợp lệ”.
+Answer: `true` and `false`. Therefore do not use `!= 0` alone to conclude "valid measurement."
 
-**Bài 6 — Wrapper.** Tại sao `Boolean.parseBoolean("1")` trả false? Nó có phải chuyển từ số nguyên 1 sang boolean không?
+**Exercise 6 — Wrapper.** Why does `Boolean.parseBoolean("1")` return false? Is it converting the integer 1 to boolean?
 
-Đáp án: phương thức chỉ nhận chuỗi tương đương `"true"` (không phân biệt hoa/thường), và `"1"` không thỏa. Đây là **parsing chuỗi**, không phải numeric cast.
+Answer: the method only accepts strings equivalent to `"true"` (case-insensitive), and `"1"` does not match. This is **string parsing**, not a numeric cast.
 
-**Bài 7 — Bitmask.** Với `flags = 0b0101` và `mask = 0b0100`, biểu thức `flags & mask` có kiểu gì? Viết điều kiện boolean kiểm tra cờ.
+**Exercise 7 — Bitmask.** Given `flags = 0b0101` and `mask = 0b0100`, what type does `flags & mask` have? Write a boolean condition checking the flag.
 
-Đáp án: `int`, giá trị `4`. `boolean enabled = (flags & mask) != 0;` trả true.
+Answer: `int`, value `4`. `boolean enabled = (flags & mask) != 0;` returns true.
 
-**Bài 8 — Toán tử logic.** Có thể viết `1 && 1` trong Java không? Làm sao diễn đạt ý “hai số đều khác 0”?
+**Exercise 8 — Logical operators.** Can you write `1 && 1` in Java? How do you express "both numbers are nonzero"?
 
-Đáp án: không; `&&` yêu cầu boolean. Viết `(a != 0) && (b != 0)` với hai biến số `a`/`b`.
+Answer: no; `&&` requires boolean. Write `(a != 0) && (b != 0)` for two numeric variables `a`/`b`.
 
-**Bài 9 — Nullability.** Điều gì xảy ra khi unbox `Boolean b = null;` vào biến `boolean`?
+**Exercise 9 — Nullability.** What happens when unboxing `Boolean b = null;` into a `boolean` variable?
 
-Đáp án: xảy ra `NullPointerException` ở runtime. Nếu null có ý nghĩa “chưa có dữ liệu”, phải xử lý riêng; ví dụ kiểm tra `Boolean.TRUE.equals(b)` khi chỉ cần nhận đúng `true`.
+Answer: a `NullPointerException` occurs at runtime. If null means "data not yet available," handle it separately; e.g., check `Boolean.TRUE.equals(b)` when only true matters.
 
-## 14. Checklist khi xử lý Numbers và chuyển kiểu
+## 14. Checklist when handling Numbers and conversions
 
-- [ ] Tôi biết `boolean` là primitive logic riêng, không thuộc các numeric primitive.
-- [ ] Tôi không dùng `(boolean) number`, `(int) boolean` hay gán `0/1` trực tiếp cho `boolean`.
-- [ ] Tôi phân biệt numeric conversion với điều kiện logic và mapping nghiệp vụ.
-- [ ] Tôi dùng `count > 0`, `code == 1` hoặc `code != 0` có lý do rõ, thay vì tự coi mọi số có “truthiness”.
-- [ ] Tôi kiểm tra miền input trước khi chuyển mã giao tiếp, không âm thầm chấp nhận mã lỗi.
-- [ ] Tôi biết toán tử `?:` có thể chọn `1/0` để mã hóa boolean theo hợp đồng.
-- [ ] Tôi không nhầm `Boolean.parseBoolean("1")` với phép chuyển số sang boolean.
-- [ ] Tôi xét đúng các trường hợp `0.0`, `-0.0`, `NaN` và vô cực nếu điều kiện lấy từ số thực.
-- [ ] Tôi biết `flags & mask` có kiểu số, và `(flags & mask) != 0` mới là boolean.
-- [ ] Tôi không coi `Boolean` là `Number` hoặc dùng reference cast như một phép chuyển nội dung.
-- [ ] Tôi đã chạy ví dụ, thử input ngoài miền và tự giải thích được lỗi biên dịch.
+- [ ] I know `boolean` is a distinct logical primitive, not among the numeric primitives.
+- [ ] I do not write `(boolean) number`, `(int) boolean`, or assign `0/1` directly to `boolean`.
+- [ ] I distinguish numeric conversions from logical conditions and business mappings.
+- [ ] I use `count > 0`, `code == 1`, or `code != 0` intentionally, rather than assuming numbers have "truthiness."
+- [ ] I validate input ranges before translating protocol codes, without silently accepting invalid codes.
+- [ ] I know the `?:` operator can select `1/0` to encode booleans per a contract.
+- [ ] I do not confuse `Boolean.parseBoolean("1")` with a numeric-to-boolean conversion.
+- [ ] I account properly for `0.0`, `-0.0`, `NaN`, and infinity when conditions derive from floating-point numbers.
+- [ ] I know `flags & mask` has a numeric type, and `(flags & mask) != 0` is what produces a boolean.
+- [ ] I do not treat `Boolean` as a `Number` or use a reference cast as a value conversion.
+- [ ] I have run the examples, tested out-of-range inputs, and can explain the compile errors myself.
 
-## 15. Tài liệu chuẩn để đối chiếu
+## 15. Standard reference documentation
 
-- [JLS 17 §4.2 — Primitive Types and Values](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2): phân biệt numeric primitive và `boolean`.
-- [JLS 17 §5.1.2 — Widening Primitive Conversion](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.1.2): chuyển rộng primitive, không chuyển sang `boolean`.
-- [JLS 17 §5.1.3 — Narrowing Primitive Conversion](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.1.3): chuyển hẹp giữa các kiểu primitive được phép.
-- [JLS 17 §5.5 — Casting Contexts](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.5): những chuyển đổi mà casting context cho phép.
-- [JLS 17 §14.9 — The `if` Statement](https://docs.oracle.com/javase/specs/jls/se17/html/jls-14.html#jls-14.9): điều kiện phải có kiểu boolean/Boolean.
-- [JLS 17 §15.22 — Bitwise and Logical Operators](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.22): cùng ký hiệu `&`/`|`/`^` nhưng toán hạng số và boolean có hợp đồng khác nhau.
-- [Java SE 17 Boolean API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Boolean.html): `parseBoolean`, `valueOf` và wrapper boolean.
+- [JLS 17 §4.2 — Primitive Types and Values](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2): distinguishes numeric primitives from `boolean`.
+- [JLS 17 §5.1.2 — Widening Primitive Conversion](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.1.2): primitive widening conversions, excluding `boolean`.
+- [JLS 17 §5.1.3 — Narrowing Primitive Conversion](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.1.3): permitted narrowing conversions between primitive types.
+- [JLS 17 §5.5 — Casting Contexts](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.5): conversions permitted in casting contexts.
+- [JLS 17 §14.9 — The `if` Statement](https://docs.oracle.com/javase/specs/jls/se17/html/jls-14.html#jls-14.9): condition must have type boolean/Boolean.
+- [JLS 17 §15.22 — Bitwise and Logical Operators](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.22): same `&`/`|`/`^` symbols, but numeric and boolean operands have different contracts.
+- [Java SE 17 Boolean API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Boolean.html): `parseBoolean`, `valueOf`, and boolean wrapper.
 
-Hãy luôn diễn đạt rõ **dữ liệu số đang có ý nghĩa gì** trước khi đưa nó vào điều kiện. Java không có cast trực tiếp giữa số và `boolean`, vì vậy phép so sánh, phương thức mapping và xác thực input là nơi phải thể hiện quy tắc mà chương trình thực sự mong muốn.
+Always state clearly **what the numeric data means** before placing it into a condition. Java has no direct cast between numbers and `boolean`, so comparisons, mapping methods, and input validation are where the program's intended rules must be expressed.

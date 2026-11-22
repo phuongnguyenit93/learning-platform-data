@@ -1,60 +1,60 @@
-# Dùng `Objects.equals()` cho trường có thể `null` khi cài đặt `equals()`
+# Using `Objects.equals()` for Nullable Fields When Implementing `equals()`
 
-Trong Java, một trường kiểu tham chiếu như `String`, `Address` hay `Integer` có thể nhận `null`. Khi cài đặt lại `equals(Object)`, việc gọi `field.equals(other.field)` trực tiếp có thể ném `NullPointerException` nếu `field` đang `null`. `java.util.Objects.equals(a, b)` là cách diễn đạt gọn, rõ và **an toàn khi một hoặc cả hai tham chiếu là `null`**.
+In Java, a reference-type field such as `String`, `Address`, or `Integer` can hold `null`. When overriding `equals(Object)`, calling `field.equals(other.field)` directly can throw `NullPointerException` if `field` is currently `null`. `java.util.Objects.equals(a, b)` is a concise, clear, and **safe expression when one or both references are `null`**.
 
-Bài học tập trung vào cách dùng `Objects.equals()` để xây dựng hợp đồng bằng nhau theo giá trị, phối hợp với `hashCode()` và tránh các lỗi thường gặp.
+This lesson focuses on how to use `Objects.equals()` to build a value-based equality contract, coordinate with `hashCode()`, and avoid common mistakes.
 
-## 1. Từ phép so sánh không an toàn đến `Objects.equals`
+## 1. From Unsafe Comparison to `Objects.equals`
 
-Đoạn sau chỉ minh họa biểu thức đặt bên trong một phương thức `equals`; nó **không phải chương trình Java độc lập**:
+The snippet below only illustrates an expression placed inside an `equals` method; it is **not a standalone Java program**:
 
 ```java
-// Sai khi displayName có thể null:
+// Wrong when displayName can be null:
 return displayName.equals(other.displayName);
 ```
 
-Nếu `displayName == null`, phép truy cập `.equals(...)` trên tham chiếu `null` sẽ ném ngoại lệ. Điều này xảy ra ngay cả khi `other.displayName` cũng là `null` và hai trường đáng lẽ phải được xem là tương đương.
+If `displayName == null`, accessing `.equals(...)` on a `null` reference will throw an exception. This happens even when `other.displayName` is also `null` and the two fields should be considered equivalent.
 
-Có thể kiểm tra hai bên bằng điều kiện tường minh, nhưng thường dùng cách ngắn gọn hơn:
+Both sides can be checked with an explicit condition, though a more concise form is usually used:
 
 ```java
-// Biểu thức tương đương về kết quả, với equals được cài đặt đúng hợp đồng:
+// Equivalent expression in outcome, assuming equals is implemented per contract:
 return displayName == other.displayName
         || (displayName != null && displayName.equals(other.displayName));
 
-// Cách viết khuyến nghị cho trường nullable:
+// Recommended way to write it for a nullable field:
 return Objects.equals(displayName, other.displayName);
 ```
 
-Nhớ `import java.util.Objects;`. `Objects.equals` là phương thức `static`, nên không phải gọi trên đối tượng có thể đang `null`.
+Remember `import java.util.Objects;`. `Objects.equals` is a `static` method, so it is not invoked on an object that might be `null`.
 
-## 2. Quy tắc của `Objects.equals(a, b)`
+## 2. Rules of `Objects.equals(a, b)`
 
-Về hành vi, `Objects.equals(a, b)` tương đương:
+Behaviorally, `Objects.equals(a, b)` is equivalent to:
 
 ```java
 a == b || (a != null && a.equals(b))
 ```
 
-| `a` | `b` | Kết quả | Giải thích |
+| `a` | `b` | Result | Explanation |
 | --- | --- | --- | --- |
-| `null` | `null` | `true` | Cả hai cùng vắng giá trị |
-| `null` | Không `null` | `false` | Chỉ một phía vắng giá trị |
-| Không `null` | `null` | `false` với lớp tuân thủ hợp đồng `equals` | `a.equals(null)` phải trả về `false` |
-| Cùng tham chiếu | Cùng tham chiếu | `true` | `a == b` đúng |
-| Hai đối tượng khác tham chiếu, cùng có giá trị | Hai đối tượng khác tham chiếu, cùng có giá trị | Tùy `a.equals(b)` | Ủy quyền cho cách định nghĩa bằng nhau của lớp |
+| `null` | `null` | `true` | Both are absent of a value |
+| `null` | Non-`null` | `false` | Only one side is absent of a value |
+| Non-`null` | `null` | `false` for classes adhering to the `equals` contract | `a.equals(null)` must return `false` |
+| Same reference | Same reference | `true` | `a == b` holds |
+| Two objects with different references, same value | Two objects with different references, same value | Depends on `a.equals(b)` | Delegates to the class's equality definition |
 
-**Phân biệt bản chất:**
+**Fundamental distinctions:**
 
-- `==` trên hai biến tham chiếu kiểm tra **cùng đối tượng**; `Objects.equals` kiểm tra **bằng nhau theo `equals`** và bổ sung xử lý `null`.
-- `Objects.equals` không tự đi qua các trường để so sánh sâu. Nếu kiểu dữ liệu không ghi đè `Object.equals`, hai instance riêng vẫn không bằng nhau.
-- `Objects.equals(a, b)` không sửa được một phương thức `a.equals(b)` bị cài đặt sai tính đối xứng hoặc bắc cầu. Nó chỉ làm việc kiểm tra `null` an toàn.
+- `==` on two reference variables checks **same object**; `Objects.equals` checks **equality according to `equals`** and adds `null` handling.
+- `Objects.equals` does not automatically traverse fields for deep comparison. If a data type does not override `Object.equals`, two separate instances are still not equal.
+- `Objects.equals(a, b)` cannot fix an `a.equals(b)` method that is implemented with broken symmetry or transitivity. It only makes `null` checking safe.
 
-## 3. Ví dụ hoàn chỉnh, chạy được trên Java 17+
+## 3. Complete Example, Runnable on Java 17+
 
-Một `ContactProfile` có hai trường nullable (`email`, `displayName`) và một trường nguyên thủy (`priority`). Theo **quy tắc nghiệp vụ của ví dụ**, tất cả ba trường đều tham gia phép so sánh bằng nhau. Đối tượng được giữ bất biến bằng `private final` để an toàn hơn khi dùng làm phần tử `HashSet` hoặc khóa `HashMap`.
+A `ContactProfile` has two nullable fields (`email`, `displayName`) and one primitive field (`priority`). By the **business rule of the example**, all three fields participate in the equality comparison. The object is kept immutable using `private final` to be safer when used as a `HashSet` element or `HashMap` key.
 
-Lưu chương trình sau vào **`NullableEqualsDemo.java`**:
+Save the following program to **`NullableEqualsDemo.java`**:
 
 ```java
 import java.util.HashSet;
@@ -123,14 +123,14 @@ public class NullableEqualsDemo {
 }
 ```
 
-Biên dịch và chạy trong thư mục có tệp trên:
+Compile and run in the directory containing the file above:
 
 ```bash
 javac NullableEqualsDemo.java
 java NullableEqualsDemo
 ```
 
-Đầu ra chính xác, không phụ thuộc địa chỉ bộ nhớ hoặc giá trị hash cụ thể:
+Exact output, independent of memory addresses or specific hash values:
 
 ```text
 a.equals(b): true
@@ -144,58 +144,58 @@ HashSet size: 2
 Equal objects share hashCode: true
 ```
 
-**Giải thích kết quả:**
+**Explanation of output:**
 
-1. `a` và `b` là hai instance riêng biệt, nhưng `email`, `displayName` và `priority` đều tương đương. Cụ thể, `Objects.equals(null, null)` cho `true`.
-2. `a` và `named` khác nhau tại `displayName`: một phía `null`, phía kia `"An"`. Kết quả là `false`, không có ngoại lệ.
-3. `missing1` và `missing2` bằng nhau trong mô hình này vì cả hai trường nullable đều `null` và `priority` bằng nhau. Nếu nghiệp vụ không muốn coi hai hồ sơ thiếu thông tin là bằng nhau, phải thay đổi **quy tắc so sánh của lớp**, thay vì mong `Objects.equals` tự suy luận ý nghĩa `null`.
-4. `a.equals(null)` cho `false`, đúng hợp đồng `equals`. Phép kiểm tra `obj instanceof ContactProfile that` an toàn với `null` và không truy cập trường trước khi kiểm tra kiểu.
-5. `HashSet` chỉ giữ một trong hai phần tử bằng nhau `a` và `b`, đồng thời giữ `named` vì khác theo `equals`. `HashSet` dựa vào cả `hashCode` và `equals`, nên hai phương thức phải thống nhất.
+1. `a` and `b` are two separate instances, but `email`, `displayName`, and `priority` are all equivalent. Specifically, `Objects.equals(null, null)` returns `true`.
+2. `a` and `named` differ at `displayName`: one side is `null`, the other is `"An"`. The result is `false`, with no exception.
+3. `missing1` and `missing2` are equal in this model because both nullable fields are `null` and `priority` is equal. If the domain does not want to treat two profiles with missing information as equal, you must change **the class's comparison rule**, instead of expecting `Objects.equals` to infer the meaning of `null`.
+4. `a.equals(null)` returns `false`, adhering to the `equals` contract. The check `obj instanceof ContactProfile that` is `null`-safe and does not access fields before verifying the type.
+5. `HashSet` keeps only one of the two equal elements `a` and `b`, while keeping `named` because it differs by `equals`. `HashSet` relies on both `hashCode` and `equals`, so the two methods must be consistent.
 
-## 4. Liên hệ với hợp đồng `equals` và `hashCode`
+## 4. Connection to the `equals` and `hashCode` Contract
 
-Một phương thức `equals` đúng cần đáp ứng **phản xạ** (`x.equals(x)` là `true`), **đối xứng**, **bắc cầu**, **nhất quán** khi trạng thái không đổi, và `x.equals(null)` là `false`.
+A proper `equals` method must satisfy **reflexivity** (`x.equals(x)` is `true`), **symmetry**, **transitivity**, **consistency** when state does not change, and `x.equals(null)` being `false`.
 
-Quan hệ bắt buộc với `hashCode` là:
+The required relationship with `hashCode` is:
 
-> Nếu `a.equals(b)` là `true`, thì `a.hashCode() == b.hashCode()` phải là `true`.
+> If `a.equals(b)` is `true`, then `a.hashCode() == b.hashCode()` must be `true`.
 
-Chiều ngược lại **không bắt buộc**, vì hai đối tượng khác nhau có thể trùng mã băm. Trong ví dụ, `equals` dùng `email`, `displayName` và `priority`, nên `hashCode` cũng tính theo những trường này bằng `Objects.hash(email, displayName, priority)`.
+The converse is **not required**, because two different objects can share the same hash code. In the example, `equals` uses `email`, `displayName`, and `priority`, so `hashCode` is also computed from these fields using `Objects.hash(email, displayName, priority)`.
 
-`Objects.hash` chấp nhận tham chiếu `null`, nhận nhiều đối số qua varargs và trả về một số băm kết hợp. Đừng nhầm với `Objects.hashCode(x)`: phương thức `hashCode(x)` trả về `0` cho `null`, còn khi `x != null` thì trả về `x.hashCode()`; `Objects.hash(x)` dùng thuật toán băm tổng hợp và không nhất thiết bằng `Objects.hashCode(x)` dù chỉ có một đối số.
+`Objects.hash` accepts `null` references, takes multiple arguments via varargs, and returns a combined hash integer. Do not confuse it with `Objects.hashCode(x)`: the `hashCode(x)` method returns `0` for `null`, and when `x != null` returns `x.hashCode()`; `Objects.hash(x)` uses a composite hashing algorithm and does not necessarily equal `Objects.hashCode(x)` even with only one argument.
 
-Sử dụng `Objects.hash` thuận tiện cho value object thông thường; nếu `hashCode` được gọi với tần suất rất cao, varargs và boxing có thể có chi phí, khi đó chỉ nên tối ưu sau khi đo hiệu năng. **Đúng hợp đồng và rõ ràng** là mục tiêu trước tiên.
+Using `Objects.hash` is convenient for ordinary value objects; if `hashCode` is called at very high frequency, varargs and boxing can incur overhead, in which case you should only optimize after measuring performance. **Contract correctness and clarity** come first.
 
-## 5. Chọn cách so sánh theo loại trường
+## 5. Choosing How to Compare by Field Type
 
-| Loại dữ liệu | Cách so sánh thích hợp | Lưu ý |
+| Data type | Appropriate comparison | Notes |
 | --- | --- | --- |
-| `String`, `Integer`, đối tượng con có thể `null` | `Objects.equals(x, that.x)` | Bên trong vẫn gọi `x.equals` khi `x` có giá trị |
-| Kiểu nguyên thủy `int`, `long`, `boolean`, `char` | `==` | Không tồn tại `null`; tránh boxing không cần thiết |
-| `float`, `double` | Chọn quy tắc nhất quán, có thể dùng `Float.compare`/`Double.compare` | Chú ý NaN và `-0.0`, đồng bộ với hash |
-| Enum | `==` (kể cả khi một bên `null`) hoặc `Objects.equals` | Mỗi hằng enum có danh tính duy nhất |
-| Mảng `int[]`, `String[]` | `Arrays.equals` | `Objects.equals` trên mảng thường so sánh tham chiếu, không phải từng phần tử |
-| Mảng lồng nhau | `Arrays.deepEquals` | Nếu đưa vào `hashCode`, phối hợp `Arrays.deepHashCode` |
+| `String`, `Integer`, nullable child objects | `Objects.equals(x, that.x)` | Internally still calls `x.equals` when `x` has a value |
+| Primitive types `int`, `long`, `boolean`, `char` | `==` | `null` does not exist; avoids unnecessary boxing |
+| `float`, `double` | Choose a consistent rule, possibly using `Float.compare`/`Double.compare` | Mind NaN and `-0.0`, stay in sync with hash |
+| Enum | `==` (even when one side is `null`) or `Objects.equals` | Each enum constant has a unique identity |
+| Arrays `int[]`, `String[]` | `Arrays.equals` | `Objects.equals` on arrays typically compares references, not element by element |
+| Nested arrays | `Arrays.deepEquals` | If included in `hashCode`, pair with `Arrays.deepHashCode` |
 
-Ví dụ, `Objects.equals(new int[]{1}, new int[]{1})` là `false` vì hai mảng là hai object khác nhau, trong khi `Arrays.equals(new int[]{1}, new int[]{1})` là `true`. Vì thế, `Objects.equals` không phải công cụ so sánh sâu tổng quát.
+For example, `Objects.equals(new int[]{1}, new int[]{1})` is `false` because the two arrays are two different objects, whereas `Arrays.equals(new int[]{1}, new int[]{1})` is `true`. Therefore, `Objects.equals` is not a general-purpose deep comparison tool.
 
-Với `String`, `Objects.equals("A", "a")` là `false`. Nếu cần không phân biệt hoa thường, phải thiết kế quy tắc chuẩn hóa/so sánh và **`hashCode` tương ứng**; `Objects.equals` không làm thay đổi hành vi `String.equals`.
+For `String`, `Objects.equals("A", "a")` is `false`. If case-insensitivity is needed, you must design a normalization/comparison rule and a **corresponding `hashCode`**; `Objects.equals` does not change `String.equals` behavior.
 
-Đối với lớp Java `record`, compiler tự sinh `equals`/`hashCode` cho các component và xử lý các reference nullable theo ngữ nghĩa thích hợp của record. Tuy nhiên, khi cần viết tay một lớp thông thường, `Objects.equals` vẫn là mẫu cốt lõi cần nắm.
+For a Java `record` class, the compiler automatically generates `equals`/`hashCode` for its components and handles nullable references according to the record's appropriate semantics. However, when you need to write a regular class by hand, `Objects.equals` remains a core pattern to master.
 
-## 6. Các lỗi dễ mắc
+## 6. Common Mistakes
 
-- **Dùng `field.equals(other.field)` khi `field` có thể `null`:** phát sinh `NullPointerException`. Với trường tham chiếu cần so sánh theo `equals`, dùng `Objects.equals(field, other.field)`.
-- **Dùng `field == other.field` cho `String` hoặc đối tượng giá trị:** đó là so sánh cùng tham chiếu. Nếu muốn bằng nhau theo nội dung, dùng `Objects.equals`.
-- **Ghi đè `equals` mà giữ nguyên `Object.hashCode`:** có thể khiến `HashSet`/`HashMap` xử lý sai các đối tượng vốn bằng nhau. Ghi đè cả hai.
-- **Đưa vào `hashCode` một trường bị bỏ qua trong `equals`:** có nguy cơ tạo hash khác nhau cho hai đối tượng bằng nhau, vi phạm hợp đồng. Một tập trường băm quá ít phân biệt tuy có thể hợp lệ nhưng gây nhiều va chạm; nên thiết kế các trường nhất quán.
-- **Thay đổi trường tham gia `equals`/`hashCode` sau khi đặt đối tượng làm key của `HashMap`:** khóa có thể không tra cứu được nữa. Ưu tiên value object bất biến.
-- **Cho rằng mọi hai giá trị `null` đều phải bằng nhau theo nghiệp vụ:** `Objects.equals(null, null)` luôn `true`, nhưng nghiệp vụ có thể cần tiêu chí khác (ví dụ ID không được vắng); kiểm tra hoặc chuẩn hóa dữ liệu từ lúc tạo đối tượng.
-- **Quên chiến lược kế thừa:** lớp con thêm trường so sánh có thể làm hỏng tính đối xứng so với lớp cha. Ví dụ dùng `final class` để xác định rõ phạm vi so sánh; với phân cấp mở rộng cần thiết kế riêng.
-- **Cho rằng `Objects.equals` sửa được `equals` sai trong một đối tượng lồng nhau:** nó chỉ chuyển việc so sánh cho `a.equals(b)` sau khi xử lý `null`.
+- **Using `field.equals(other.field)` when `field` can be `null`:** throws `NullPointerException`. For a reference field needing `equals`-based comparison, use `Objects.equals(field, other.field)`.
+- **Using `field == other.field` for `String` or value objects:** that is a same-reference comparison. If content-based equality is desired, use `Objects.equals`.
+- **Overriding `equals` while keeping `Object.hashCode`:** can cause `HashSet`/`HashMap` to mishandle objects that are equal. Override both.
+- **Including in `hashCode` a field that is ignored in `equals`:** risks producing different hashes for two equal objects, violating the contract. A hash field set that is too under-discriminating may still be valid but causes many collisions; design the fields consistently.
+- **Mutating a field participating in `equals`/`hashCode` after placing the object as a `HashMap` key:** the key may no longer be found on lookup. Prefer immutable value objects.
+- **Assuming every two `null` values must be equal in the business domain:** `Objects.equals(null, null)` is always `true`, but the domain may require a different criterion (for example, an ID must not be absent); validate or normalize data when constructing the object.
+- **Forgetting the inheritance strategy:** a subclass adding compared fields can break symmetry with the superclass. The example uses a `final class` to clearly define the comparison scope; for extensible hierarchies, design separately.
+- **Assuming `Objects.equals` fixes a broken `equals` in a nested object:** it only delegates the comparison to `a.equals(b)` after handling `null`.
 
-## 7. Checklist tự đánh giá
+## 7. Self-Assessment Checklist
 
-Trước khi hoàn tất `equals` có trường nullable, nên thử các tình huống: (1) hai trường đều `null`; (2) bên trái `null`, bên phải có giá trị; (3) bên trái có giá trị, bên phải `null`; (4) hai đối tượng con khác tham chiếu nhưng bằng nhau theo `equals`; (5) hai đối tượng con khác nhau về giá trị. Tiếp đó xác minh `x.equals(null)` là `false`, `a.equals(b) == b.equals(a)`, và các cặp đối tượng bằng nhau có cùng `hashCode`.
+Before finalizing an `equals` with nullable fields, test these scenarios: (1) both fields `null`; (2) left `null`, right has a value; (3) left has a value, right `null`; (4) two child objects with different references but equal by `equals`; (5) two child objects differing in value. Next, verify `x.equals(null)` is `false`, `a.equals(b) == b.equals(a)`, and equal object pairs have the same `hashCode`.
 
-**Ghi nhớ:** khi đã kiểm tra đúng kiểu của `other`, dùng **`Objects.equals(this.field, that.field)`** cho trường tham chiếu nullable, dùng `==` cho phần lớn kiểu nguyên thủy, và cài đặt `hashCode` nhất quán với những trường quyết định `equals`. `Objects.equals` làm phép so sánh an toàn với `null`; quy tắc bằng nhau của toàn đối tượng vẫn do lớp định nghĩa.
+**Key takeaway:** once `other`'s type has been verified, use **`Objects.equals(this.field, that.field)`** for nullable reference fields, use `==` for most primitive types, and implement `hashCode` consistently with the fields that determine `equals`. `Objects.equals` makes the comparison `null`-safe; the equality rule for the whole object is still defined by the class.

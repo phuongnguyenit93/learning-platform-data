@@ -1,16 +1,16 @@
-# Phân biệt giá trị toán học, kiểu dữ liệu và cách lưu trữ trong Java
+# Distinguishing Mathematical Value, Data Type, and Storage Representation in Java
 
-Trong lập trình số, ba khái niệm thường bị trộn lẫn: **giá trị toán học** (con số ta muốn mô tả), **kiểu dữ liệu** (những giá trị và phép toán chương trình cho phép) và **cách biểu diễn/lưu trữ** (các bit hoặc cấu trúc dữ liệu máy tính dùng để mã hóa giá trị). Phân biệt ba tầng này giúp giải thích vì sao `0.1 + 0.2` không ra đúng `0.3`, vì sao `int` tràn số, và vì sao hai số trông giống nhau vẫn có hành vi khác nhau trong Java.
+In numeric programming, three concepts are often conflated: **mathematical value** (the number we want to describe), **data type** (the values and operations the program allows), and **representation/storage** (the bits or data structures the computer uses to encode the value). Separating these three layers helps explain why `0.1 + 0.2` does not produce exact `0.3`, why `int` overflows, and why two numbers that look the same still behave differently in Java.
 
-## 1. Ba tầng cần phân biệt
+## 1. Three Layers to Distinguish
 
-| Tầng | Câu hỏi cần trả lời | Ví dụ |
+| Layer | Question to Answer | Example |
 | --- | --- | --- |
-| Giá trị toán học | Ta đang nói đến đại lượng nào, độc lập với máy tính? | Số nguyên 42; phân số 1/3; số thực 0,1; số âm −5 |
-| Kiểu dữ liệu | Java cho phép miền giá trị và phép toán nào? | `int`, `long`, `double`, `BigInteger`, `BigDecimal` |
-| Biểu diễn/lưu trữ | Giá trị được mã hóa bằng gì và có chính xác không? | `int` có 32 bit bù hai; `double` dùng nhị phân dấu phẩy động; `BigDecimal` dùng số nguyên không tỉ lệ và scale |
+| Mathematical value | What quantity are we talking about, independent of the computer? | Integer 42; fraction 1/3; real number 0.1; negative −5 |
+| Data type | What value range and operations does Java allow? | `int`, `long`, `double`, `BigInteger`, `BigDecimal` |
+| Representation/storage | How is the value encoded and is it exact? | `int` has 32-bit two's complement; `double` uses binary floating-point; `BigDecimal` uses unscaled integer and scale |
 
-Ví dụ, **42** là một giá trị toán học. Những cách viết sau có thể cùng mang giá trị số học 42 nhưng thuộc kiểu/biểu diễn khác nhau:
+For example, **42** is a mathematical value. The following declarations can carry the same arithmetic value 42 while having different types/representations:
 
 ```java
 int a = 42;
@@ -20,50 +20,50 @@ BigInteger d = new BigInteger("42");
 BigDecimal e = new BigDecimal("42.00");
 ```
 
-`a` và `b` là số nguyên chính xác trong miền hữu hạn, `c` là số chấm động nhị phân (42 là một số nguyên nhỏ biểu diễn chính xác được), `d` là số nguyên có độ lớn tùy ý trong giới hạn tài nguyên, còn `e` biểu diễn thập phân chính xác với **unscaled value = 4200**, **scale = 2**. Trong `BigDecimal`, `42.00` và `42.0` bằng nhau về **giá trị số học** nhưng khác **scale**, điều ảnh hưởng đến `equals()`.
+`a` and `b` are exact integers within a finite range, `c` is a binary floating-point number (42 is a small integer that can be represented exactly), `d` is an integer of arbitrary magnitude within resource limits, while `e` represents an exact decimal with **unscaled value = 4200**, **scale = 2**. In `BigDecimal`, `42.00` and `42.0` are equal in **numeric value** but differ in **scale**, which affects `equals()`.
 
-> Ghi nhớ: cách **hiển thị** số bằng ký tự (`"42"`, `"42.00"`) là một tầng khác. Một chuỗi văn bản chưa tự động là một giá trị kiểu số.
+> Note: how a number is **displayed** with characters (`"42"`, `"42.00"`) is yet another layer. A text string is not automatically a numeric-type value.
 
-## 2. Miền giá trị và cách mã hóa của số nguyên nguyên thủy
+## 2. Value Range and Encoding of Primitive Integers
 
-Java quy định kích thước và khoảng giá trị cho các kiểu nguyên có dấu:
+Java specifies the size and value range for signed integer types:
 
-| Kiểu | Độ rộng logic | Khoảng giá trị (bao gồm hai đầu) |
+| Type | Logical Width | Value Range (Inclusive) |
 | --- | ---: | --- |
-| `byte` | 8 bit | −128 đến 127 |
-| `short` | 16 bit | −32.768 đến 32.767 |
-| `int` | 32 bit | −2.147.483.648 đến 2.147.483.647 |
-| `long` | 64 bit | −9.223.372.036.854.775.808 đến 9.223.372.036.854.775.807 |
+| `byte` | 8 bits | −128 to 127 |
+| `short` | 16 bits | −32,768 to 32,767 |
+| `int` | 32 bits | −2,147,483,648 to 2,147,483,647 |
+| `long` | 64 bits | −9,223,372,036,854,775,808 to 9,223,372,036,854,775,807 |
 
-Với kiểu số nguyên có dấu rộng `n` bit, khoảng là `−2^(n−1)` đến `2^(n−1)−1`, vì có hữu hạn `2^n` mẫu bit. Java dùng **bù hai (two's complement)** để biểu diễn số nguyên có dấu. Ví dụ ở 8 bit: `0000_0101` diễn tả +5, còn `1111_1011` diễn tả −5. Cùng dãy bit chỉ có ý nghĩa số học sau khi gắn với **quy tắc diễn giải và độ rộng**.
+For a signed integer type of `n` bits, the range is `−2^(n−1)` to `2^(n−1)−1`, because there are finitely many `2^n` bit patterns. Java uses **two's complement** to represent signed integers. For example, in 8 bits: `0000_0101` represents +5, while `1111_1011` represents −5. The same sequence of bits only has numeric meaning after attaching an **interpretation rule and width**.
 
-`char` là kiểu nguyên 16 bit **không dấu**, có miền `0` đến `65535`, dùng cho đơn vị mã UTF-16. `char` không phải kiểu dành cho tính toán số thông thường, và một ký tự Unicode có thể cần hai `char`. Java không có kiểu nguyên nguyên thủy không dấu độc lập như `unsigned int` của C; các hàm như `Integer.toUnsignedLong` và `Integer.divideUnsigned` chỉ **diễn giải thao tác** trên mẫu bit của `int` theo nghĩa không dấu.
+`char` is a 16-bit **unsigned** integral type with range `0` to `65535`, used for UTF-16 code units. `char` is not a type meant for general numeric calculation, and one Unicode character can require two `char`s. Java has no independent unsigned primitive integer types like C's `unsigned int`; methods like `Integer.toUnsignedLong` and `Integer.divideUnsigned` only **interpret operations** on `int` bit patterns in an unsigned sense.
 
-### Tràn số không làm giá trị toán học thay đổi, mà làm kết quả biểu diễn khác đi
+### Overflow Does Not Change the Mathematical Value, It Changes the Represented Result
 
 ```java
 int max = Integer.MAX_VALUE;
 System.out.println(max + 1);             // -2147483648
-System.out.println(Math.addExact(max, 1)); // ném ArithmeticException
+System.out.println(Math.addExact(max, 1)); // throws ArithmeticException
 ```
 
-Giá trị toán học `2_147_483_647 + 1` là `2_147_483_648`, nhưng kết quả `int` thông thường vòng qua giá trị nhỏ nhất do phép toán số nguyên chỉ giữ 32 bit kết quả. Java **không tự ném exception** cho `+`, `-`, `*` tràn số nguyên. Dùng `Math.addExact`, `subtractExact`, `multiplyExact` hoặc chuyển sang `long`/`BigInteger` trước phép toán khi cần kiểm soát tràn.
+The mathematical value `2_147_483_647 + 1` is `2_147_483_648`, but the ordinary `int` result wraps around to the smallest value because integer arithmetic only keeps 32 bits of the result. Java **does not automatically throw an exception** for `+`, `-`, `*` integer overflow. Use `Math.addExact`, `subtractExact`, `multiplyExact`, or convert to `long`/`BigInteger` before the operation when overflow control is needed.
 
-Chú ý: ép kiểu **sau khi phép nhân `int` đã tràn** không khôi phục được kết quả đúng:
+Watch out: casting **after an `int` multiplication has already overflowed** cannot recover the right result:
 
 ```java
 int x = 1_000_000_000;
-long wrong = (long) (x * 3); // -1294967296: nhân int trước
-long right = (long) x * 3;   // 3000000000: nhân long
+long wrong = (long) (x * 3); // -1294967296: int multiplication first
+long right = (long) x * 3;   // 3000000000: long multiplication
 ```
 
-Khi ép hẹp từ `int` sang `byte`, Java chỉ giữ 8 bit thấp; `(byte) 130` cho `-126`, không phải một giá trị số học 130 có thể nằm trong `byte`. Ngược lại, gán `byte b = 130;` là lỗi biên dịch vì hằng nguyên không vừa kiểu đích.
+When narrowing from `int` to `byte`, Java keeps only the low 8 bits; `(byte) 130` yields `-126`, not a mathematical value 130 that could fit in `byte`. Conversely, assigning `byte b = 130;` is a compile error because the integer constant does not fit in the target type.
 
-## 3. Kiểu chấm động là phép xấp xỉ nhị phân có quy tắc riêng
+## 3. Floating-Point Types Are Binary Approximations with Their Own Rules
 
-`float` (32 bit) và `double` (64 bit) dùng định dạng IEEE 754 **binary32/binary64**, với bit dấu, số mũ và phần trị (*significand*). Độ chính xác hữu hạn: khoảng **7 chữ số thập phân có nghĩa** cho `float` và **15–16 chữ số** cho `double`; đây là ước lượng sử dụng, không phải số chữ số sau dấu phẩy cố định.
+`float` (32 bits) and `double` (64 bits) use IEEE 754 **binary32/binary64** format, with sign bit, exponent, and *significand*. Precision is finite: about **7 significant decimal digits** for `float` and **15–16 digits** for `double`; this is a usage estimate, not a fixed number of digits after the decimal point.
 
-Nhiều phân số thập phân như `0.1` không thể viết hữu hạn bằng cơ số 2. Java lưu một số nhị phân gần nhất, vì vậy:
+Many decimal fractions such as `0.1` cannot be written finitely in base 2. Java stores the nearest binary number, so:
 
 ```java
 System.out.println(0.1 + 0.2);       // 0.30000000000000004
@@ -71,9 +71,9 @@ System.out.println(0.1 + 0.2 == 0.3); // false
 System.out.println(0.5 + 0.25);      // 0.75
 ```
 
-`0.5 = 1/2` và `0.25 = 1/4` có biểu diễn nhị phân hữu hạn nên chính xác ở đây; `0.1` và `0.2` thì không. **In ra `0.1` không có nghĩa là bit trong `double` lưu đúng phân số toán học 1/10**: `Double.toString` chọn chuỗi thập phân ngắn có thể phân tích trở lại cùng giá trị `double`.
+`0.5 = 1/2` and `0.25 = 1/4` have finite binary representations so they are exact here; `0.1` and `0.2` do not. **Printing `0.1` does not mean the bits in `double` store the exact mathematical fraction 1/10**: `Double.toString` picks a short decimal string that parses back to the same `double` value.
 
-Đừng kiểm tra gần đúng bằng `==` khi sai số làm tròn có thể xuất hiện. Với phép đo có sai số, cân nhắc dung sai tuyệt đối/tương đối theo miền bài toán, chẳng hạn:
+Do not test approximate equality with `==` when rounding error can occur. For measurements with error, consider absolute/relative tolerance based on the problem domain, such as:
 
 ```java
 static boolean nearlyEqual(double a, double b, double absTol, double relTol) {
@@ -84,20 +84,20 @@ static boolean nearlyEqual(double a, double b, double absTol, double relTol) {
 }
 ```
 
-Hàm này là **chính sách so sánh cho trường hợp có dung sai**, không phải định nghĩa bằng nhau cho mọi bài toán. Chọn `absTol` và `relTol` từ yêu cầu đo lường, không lấy một epsilon cố định cho mọi độ lớn. Nếu cần giá trị tiền tệ/thập phân chính xác, ưu tiên `BigDecimal`.
+This function is a **comparison policy for cases with tolerance**, not a definition of equality for every problem. Choose `absTol` and `relTol` from measurement requirements, not a single fixed epsilon for all magnitudes. If exact monetary/decimal values are required, prefer `BigDecimal`.
 
-### Các trường hợp đặc biệt của số chấm động
+### Special Floating-Point Cases
 
-- `Double.POSITIVE_INFINITY`/`NEGATIVE_INFINITY` có thể xuất hiện do phép tính chấm động tràn độ lớn, hoặc chia số hữu hạn khác 0 cho ±0.0; không phải là số thực hữu hạn.
-- `Double.NaN` biểu diễn kết quả không xác định theo IEEE 754; `Double.NaN == Double.NaN` trả `false`. Kiểm tra bằng `Double.isNaN(x)`.
-- `+0.0` và `-0.0` so sánh bằng `==` nhưng dấu của chúng có thể ảnh hưởng đến phép tính như `1.0 / -0.0` cho `-Infinity`.
-- Với `double`, mọi số nguyên có trị tuyệt đối **không vượt quá `2^53`** đều biểu diễn chính xác, nhưng không phải tất cả số nguyên lớn hơn ngưỡng đó. `double` có thể có phạm vi độ lớn rộng hơn `long` mà vẫn mất chi tiết đơn vị.
+- `Double.POSITIVE_INFINITY`/`NEGATIVE_INFINITY` can appear due to floating-point magnitude overflow, or dividing a nonzero finite number by ±0.0; they are not finite real numbers.
+- `Double.NaN` represents an undefined result under IEEE 754; `Double.NaN == Double.NaN` returns `false`. Check using `Double.isNaN(x)`.
+- `+0.0` and `-0.0` compare equal with `==`, but their sign can affect operations such as `1.0 / -0.0` producing `-Infinity`.
+- For `double`, every integer with absolute value **not exceeding `2^53`** is represented exactly, though not every integer above that threshold is. `double` can have a wider magnitude range than `long` while still losing unit detail.
 
-## 4. `BigInteger` và `BigDecimal`: độ chính xác được quyết định bởi mô hình dữ liệu
+## 4. `BigInteger` and `BigDecimal`: Precision Determined by the Data Model
 
-### `BigInteger`: số nguyên chính xác, không giới hạn bởi 32/64 bit
+### `BigInteger`: Exact Integers, Not Limited by 32/64 Bits
 
-`BigInteger` giữ giá trị nguyên bằng cấu trúc nhiều từ máy, có thể chứa số vượt `Long.MAX_VALUE` và dùng các phương thức `add`, `multiply`, `divide`, `mod`. Độ lớn thực tế bị giới hạn bởi bộ nhớ, hiệu năng và giới hạn triển khai; đối tượng là **immutable**.
+`BigInteger` holds integer values in a multi-word structure, can store numbers exceeding `Long.MAX_VALUE`, and uses methods `add`, `multiply`, `divide`, and `mod`. Practical magnitude is bounded by memory, performance, and implementation limits; objects are **immutable**.
 
 ```java
 BigInteger beyondLong = BigInteger.valueOf(Long.MAX_VALUE)
@@ -105,9 +105,9 @@ BigInteger beyondLong = BigInteger.valueOf(Long.MAX_VALUE)
 System.out.println(beyondLong); // 9223372036854775808
 ```
 
-### `BigDecimal`: số thập phân theo `unscaledValue × 10^(−scale)`
+### `BigDecimal`: Decimal Numbers as `unscaledValue × 10^(−scale)`
 
-Hai thành phần cốt lõi là **một số nguyên tùy ý** và **scale**, không phải một giá trị nhị phân `double` được “in đẹp”:
+The two core components are **an arbitrary integer** and **scale**, not a "pretty-printed" binary `double` value:
 
 ```java
 BigDecimal amount = new BigDecimal("12.30");
@@ -116,7 +116,7 @@ System.out.println(amount.scale());         // 2
 System.out.println(amount);                 // 12.30
 ```
 
-Tạo `BigDecimal` từ chuỗi thập phân khi nguồn là chuỗi/money decimal:
+Construct `BigDecimal` from a decimal string when the source is a string/monetary decimal:
 
 ```java
 BigDecimal a = new BigDecimal("0.1");
@@ -124,9 +124,9 @@ BigDecimal b = new BigDecimal("0.2");
 System.out.println(a.add(b)); // 0.3
 ```
 
-**Tránh `new BigDecimal(0.1)` nếu muốn biểu diễn đúng số thập phân 0.1**: constructor nhận chính giá trị nhị phân `double` đã được làm tròn, nên kết quả chứa các chữ số xấp xỉ kéo dài. `BigDecimal.valueOf(0.1)` thông qua biểu diễn thập phân chuẩn của `double` và thường phù hợp hơn, nhưng nếu dữ liệu đầu vào ban đầu là văn bản thập phân thì giữ chuỗi gốc vẫn rõ ràng nhất.
+**Avoid `new BigDecimal(0.1)` if you want to represent the exact decimal 0.1**: the constructor receives the rounded binary `double` value itself, so the result contains trailing approximate digits. `BigDecimal.valueOf(0.1)` goes through `double`'s canonical decimal representation and is usually more suitable, though if the original input is decimal text, keeping the original string remains clearest.
 
-`BigDecimal` chính xác cho các phép cộng/trừ/nhân trên những số thập phân hữu hạn đã biểu diễn, nhưng **chia có thể tạo khai triển vô hạn**: `BigDecimal.ONE.divide(new BigDecimal("3"))` ném `ArithmeticException` nếu không cung cấp chính sách làm tròn. Cần chọn `scale`/`RoundingMode` hoặc `MathContext`:
+`BigDecimal` is exact for addition/subtraction/multiplication on already-represented finite decimals, but **division can produce an infinite expansion**: `BigDecimal.ONE.divide(new BigDecimal("3"))` throws `ArithmeticException` if no rounding policy is provided. Choose `scale`/`RoundingMode` or `MathContext`:
 
 ```java
 BigDecimal oneThird = BigDecimal.ONE.divide(
@@ -134,49 +134,49 @@ BigDecimal oneThird = BigDecimal.ONE.divide(
 System.out.println(oneThird); // 0.33
 ```
 
-`equals()` của `BigDecimal` xét cả giá trị lẫn scale: `new BigDecimal("1.0").equals(new BigDecimal("1.00"))` là `false`. `compareTo()` so sánh giá trị số học và trả `0` trong trường hợp này. Việc loại bỏ zero dư bằng `stripTrailingZeros()` có thể đổi scale/biểu diễn; trong khóa của `HashMap`/`HashSet` phải chú ý hợp đồng `equals/hashCode`.
+`BigDecimal.equals()` checks both value and scale: `new BigDecimal("1.0").equals(new BigDecimal("1.00"))` is `false`. `compareTo()` compares numeric value and returns `0` in this case. Stripping extra zeros with `stripTrailingZeros()` can change scale/representation; when used as keys in `HashMap`/`HashSet`, watch the `equals/hashCode` contract.
 
-## 5. Literal, phép toán và ép kiểu có thể thay đổi kết quả
+## 5. Literals, Operations, and Casts Can Change Results
 
-### Viết literal đúng kiểu
+### Writing Literals with the Right Type
 
-| Biểu thức | Kiểu mặc định / giá trị | Ghi chú |
+| Expression | Default Type / Value | Notes |
 | --- | --- | --- |
-| `42` | `int` | Hằng nguyên thập phân mặc định là `int` nếu vừa |
-| `42L` | `long` | `L` nên viết hoa, nhất là với số 1 |
-| `42.0`, `1e3` | `double` | Hằng dấu phẩy động mặc định là `double` |
-| `42.0f` | `float` | Hậu tố `f` hoặc `F` |
-| `0b101010`, `0x2A` | `int` có giá trị 42 | Nhị phân và thập lục phân chỉ là cách viết literal |
-| `1_000_000` | `int` có giá trị 1.000.000 | Dấu gạch dưới là cú pháp, không lưu trong giá trị |
-| `"42"` | `String` | Văn bản, không tự động là số |
+| `42` | `int` | Decimal integer constants default to `int` if they fit |
+| `42L` | `long` | `L` should be uppercase, especially next to digit 1 |
+| `42.0`, `1e3` | `double` | Floating-point constants default to `double` |
+| `42.0f` | `float` | Suffix `f` or `F` |
+| `0b101010`, `0x2A` | `int` with value 42 | Binary and hexadecimal are just literal notations |
+| `1_000_000` | `int` with value 1,000,000 | Underscores are syntax only, not stored in the value |
+| `"42"` | `String` | Text, not automatically a number |
 
-Chú ý literal `010` trong Java là **bát phân** (giá trị 8), không phải mười; đặt số 0 đầu literal nguyên dễ gây nhầm lẫn. Ký tự `-` trong `-42` là toán tử dấu âm, không phải “bit dấu” trong cú pháp literal.
+Note that the literal `010` in Java is **octal** (value 8), not ten; putting a leading 0 on integer literals easily causes confusion. The `-` character in `-42` is the unary negation operator, not a "sign bit" in literal syntax.
 
-### Kiểu của toán hạng quyết định phép toán
+### Operand Types Determine the Operation
 
 ```java
-System.out.println(1 / 2);          // 0: chia số nguyên
-System.out.println(1.0 / 2);        // 0.5: phép chia double
-System.out.println(5 / 2 * 2);      // 4: phần lẻ đã mất sau chia
-System.out.println((double) 5 / 2); // 2.5: đổi trước phép chia
+System.out.println(1 / 2);          // 0: integer division
+System.out.println(1.0 / 2);        // 0.5: double division
+System.out.println(5 / 2 * 2);      // 4: fractional part already lost after division
+System.out.println((double) 5 / 2); // 2.5: converted before division
 ```
 
-Các toán hạng `byte`, `short` và `char` thường được **promote** lên `int` trước phép toán số học. Ví dụ `byte a = 1, b = 2; byte c = a + b;` không biên dịch vì `a + b` có kiểu `int`, dù giá trị toán học 3 vừa `byte`. Gán sang kiểu hẹp cần conversion hợp lệ hoặc cast tường minh và chấp nhận khả năng mất dữ liệu.
+Operands of type `byte`, `short`, and `char` are normally **promoted** to `int` before arithmetic operations. For example, `byte a = 1, b = 2; byte c = a + b;` does not compile because `a + b` has type `int`, even though the mathematical value 3 fits in `byte`. Assigning to a narrower type requires a valid conversion or an explicit cast, accepting potential data loss.
 
-Ép `double` sang `int` **cắt bỏ phần thập phân hướng về 0** khi giá trị trong khoảng cho phép; NaN được chuyển về 0, các giá trị vượt miền được bão hòa về biên tương ứng. Vì thế `(int) 3.9` là 3 còn `(int) -3.9` là −3; đây không phải làm tròn đến số nguyên gần nhất.
+Casting `double` to `int` **truncates the fractional part toward 0** when the value is within the allowed range; NaN converts to 0, and out-of-range values saturate to the respective boundary. Thus `(int) 3.9` is 3 and `(int) -3.9` is −3; this is not rounding to the nearest integer.
 
-**Auto-boxing** (`int` ↔ `Integer`) thay đổi việc dùng primitive thành đối tượng wrapper, không mở rộng miền giá trị của số. Với đối tượng, `==` so sánh danh tính tham chiếu; dùng `equals` nếu so sánh giá trị wrapper, và chú ý `null` khi unboxing.
+**Auto-boxing** (`int` ↔ `Integer`) changes using a primitive to a wrapper object; it does not widen the number's value range. With objects, `==` compares reference identity; use `equals` when comparing wrapper values, and watch out for `null` during unboxing.
 
-## 6. Nói về “lưu trữ” mà không nhầm với vị trí trong bộ nhớ
+## 6. Talking About "Storage" Without Confusing It with Memory Layout
 
-- Một biến primitive kiểu `int` mô tả một giá trị 32 bit theo quy tắc Java; kiểu `double` dùng biểu diễn 64 bit. Điều này **không đồng nghĩa** với lời hứa rằng một biến luôn chiếm đúng 4/8 byte trên stack: bố cục stack frame, thanh ghi, alignment và tối ưu JIT là chi tiết triển khai JVM.
-- Với `BigInteger`/`BigDecimal`, biến tham chiếu trỏ đến đối tượng có trạng thái cần thiết; đối tượng còn có overhead, có thể dùng mảng nội bộ, và được quản lý bởi JVM/GC. Không thể suy ra tổng bộ nhớ chỉ từ số chữ số của chuỗi hiển thị.
-- Mẫu bit, kiểu và cách hiển thị phải được tách riêng: ví dụ các bit thấp `1111_1111` có thể đọc là `255` nếu là byte không dấu trong một giao thức, hoặc `-1` nếu diễn giải kiểu `byte` Java. Một ký tự `'9'` có mã Unicode khác số nguyên `9`.
-- Chuyển đổi qua JSON, CSV, cơ sở dữ liệu hoặc giao thức mạng cần đặc tả **loại số, miền giá trị, độ chính xác, đơn vị và quy tắc làm tròn**; một chuỗi `"9007199254740993"` có thể mất chính xác nếu trung gian chuyển qua số `double`.
+- A primitive variable of type `int` describes a 32-bit value under Java's rules; `double` uses a 64-bit representation. This **does not mean** a guarantee that a variable always occupies exactly 4/8 bytes on the stack: stack frame layout, registers, alignment, and JIT optimizations are JVM implementation details.
+- For `BigInteger`/`BigDecimal`, the reference variable points to an object holding the needed state; objects also carry overhead, may use internal arrays, and are managed by the JVM/GC. Total memory cannot be deduced solely from the digit count of the display string.
+- Bit patterns, types, and display formatting must be kept separate: for example, the low bits `1111_1111` can be read as `255` if treated as an unsigned byte in a protocol, or `-1` if interpreted as Java `byte`. A character `'9'` has a Unicode code point different from the integer `9`.
+- Conversions across JSON, CSV, databases, or network protocols must specify **number kind, value range, precision, units, and rounding rules**; a string `"9007199254740993"` can lose precision if passed intermediately through a `double`.
 
-## 7. Ví dụ Java 17+ chạy độc lập
+## 7. Standalone Java 17+ Example
 
-Lưu vào `NumericLayersDemo.java`:
+Save to `NumericLayersDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -208,7 +208,7 @@ public class NumericLayersDemo {
 }
 ```
 
-Biên dịch và chạy trong thư mục chứa tệp:
+Compile and run in the directory containing the file:
 
 ```bash
 javac NumericLayersDemo.java
@@ -231,35 +231,35 @@ rounded third = 0.33
 same numeric value = true
 ```
 
-Mỗi dòng thể hiện sự khác nhau giữa **giá trị mong muốn**, **quy tắc tính của kiểu** và **khả năng biểu diễn**. `double` biểu diễn chính xác `42` nhưng không biểu diễn chính xác `0.1`; `BigDecimal` giữ được thập phân 0.1 khi xây dựng từ chuỗi; `int` không thể biểu diễn `MAX_VALUE+1`; `BigInteger` làm được.
+Each line illustrates the difference between **intended value**, **type calculation rules**, and **representational capability**. `double` represents `42` exactly but does not represent `0.1` exactly; `BigDecimal` preserves decimal 0.1 when constructed from a string; `int` cannot represent `MAX_VALUE+1`; `BigInteger` can.
 
-## 8. Chọn kiểu từ yêu cầu của bài toán
+## 8. Choosing a Type from Problem Requirements
 
-| Nhu cầu | Lựa chọn thường phù hợp | Điều cần kiểm tra |
+| Need | Usually Suitable Choice | What to Check |
 | --- | --- | --- |
-| Đếm, chỉ số, số lượng trong miền nhỏ | `int` | Tràn khi cộng/nhân, kể cả ở trung gian |
-| Số nguyên lớn hơn miền `int`, timestamp/đơn vị phù hợp | `long` | Vẫn hữu hạn; kiểm tra đơn vị và tràn |
-| Số nguyên lớn tùy ý (mật mã, tổ hợp, số lớn) | `BigInteger` | Chi phí CPU/bộ nhớ, đối tượng immutable |
-| Đo đạc/khoa học, tính toán chấp nhận sai số chấm động | `double`; đôi khi `float` khi ràng buộc tài nguyên | NaN, infinity, làm tròn, dung sai |
-| Tiền tệ/quy tắc decimal cụ thể, giá trị thập phân cần chính xác | `BigDecimal` hoặc số nguyên ở đơn vị nhỏ nhất theo hợp đồng | Scale, rounding, phép chia, định dạng, đơn vị tiền |
-| Dữ liệu số từ chuỗi ngoài hệ thống | Parse có kiểm tra miền và định dạng | Không coi cách hiển thị là kiểu; tránh chuyển qua `double` khi cần decimal chính xác |
+| Counts, indices, quantities in a small range | `int` | Overflow during addition/multiplication, including intermediates |
+| Integers larger than `int` range, timestamps/appropriate units | `long` | Still finite; check units and overflow |
+| Arbitrarily large integers (cryptography, combinatorics, big numbers) | `BigInteger` | CPU/memory cost, immutable objects |
+| Measurements/science, calculations tolerating floating-point error | `double`; sometimes `float` when resource-constrained | NaN, infinity, rounding, tolerance |
+| Currency/specific decimal rules, decimal values needing exactness | `BigDecimal` or integer in smallest unit by contract | Scale, rounding, division, formatting, currency |
+| Numeric data from external strings | Parse with range and format validation | Do not mistake display format for type; avoid going through `double` when exact decimal is required |
 
-### Những lỗi phổ biến cần tự kiểm tra
+### Common Mistakes to Self-Check
 
-1. **Nhầm số hiển thị với số được lưu:** `System.out.println(0.1)` cho “0.1” nhưng `double` lưu một xấp xỉ nhị phân.
-2. **Chọn kiểu theo số chữ số nhìn thấy:** `double` chứa giá trị rất lớn nhưng không giữ chính xác mọi số nguyên 64 bit.
-3. **Chỉ cast ở kết quả:** `(long) (a * b)` không cứu được phép nhân `int` đã tràn.
-4. **Tưởng `BigDecimal` tự khắc phục đầu vào sai:** xây dựng từ `new BigDecimal(0.1)` đã nhận xấp xỉ `double`; hãy giữ dữ liệu decimal gốc.
-5. **Quên phép toán điều khiển bởi kiểu:** `1 / 2` bằng 0; `byte + byte` ra `int`.
-6. **Nhầm “exact” với vô hạn:** `BigDecimal` tính thập phân hữu hạn chính xác trong nhiều phép toán nhưng chia 1/3 phải chỉ định làm tròn; `BigInteger` chính xác nhưng chịu giới hạn tài nguyên.
-7. **Khẳng định cứng vị trí stack/heap hoặc số byte đối tượng:** kích thước logic của primitive được Java định nghĩa; bố trí bộ nhớ vật lý do JVM quyết định.
+1. **Confusing the displayed number with the stored number:** `System.out.println(0.1)` outputs "0.1" but `double` stores a binary approximation.
+2. **Choosing a type by visible digit count:** `double` holds very large values but does not keep every 64-bit integer exact.
+3. **Casting only at the result:** `(long) (a * b)` cannot rescue an `int` multiplication that has already overflowed.
+4. **Assuming `BigDecimal` fixes bad input automatically:** constructing from `new BigDecimal(0.1)` already received the `double` approximation; keep the original decimal data.
+5. **Forgetting that types govern operations:** `1 / 2` equals 0; `byte + byte` produces `int`.
+6. **Confusing "exact" with infinite:** `BigDecimal` computes finite decimals exactly in many operations, yet dividing 1/3 requires specifying rounding; `BigInteger` is exact yet subject to resource limits.
+7. **Asserting fixed stack/heap placement or object byte sizes:** logical sizes of primitives are defined by Java; physical memory layout is decided by the JVM.
 
-## 9. Tự kiểm tra mức hiểu
+## 9. Self-Check Your Understanding
 
-- Vì sao `42`, `42.0` và `new BigDecimal("42.00")` có thể biểu diễn cùng giá trị toán học nhưng không cùng kiểu, scale và phép toán?
-- Với `int` 32 bit, tại sao `Integer.MAX_VALUE + 1` âm trong khi số nguyên toán học không âm?
-- Tại sao `0.5` biểu diễn chính xác bằng binary64 nhưng `0.1` thì không? Khi nào chọn `double`, khi nào chọn `BigDecimal`?
-- Tại sao `BigDecimal("1.0").equals(BigDecimal("1.00"))` khác `compareTo() == 0`? Tại sao điều này quan trọng khi dùng làm khóa?
-- Nếu chuỗi đầu vào là `"9007199254740993"`, chọn `long`, `double` hay `BigInteger` để giữ nguyên giá trị và vì sao?
+- Why can `42`, `42.0`, and `new BigDecimal("42.00")` represent the same mathematical value while not sharing the same type, scale, and operations?
+- With 32-bit `int`, why is `Integer.MAX_VALUE + 1` negative when the mathematical integer is non-negative?
+- Why is `0.5` represented exactly in binary64 while `0.1` is not? When do you choose `double`, and when `BigDecimal`?
+- Why does `BigDecimal("1.0").equals(BigDecimal("1.00"))` differ from `compareTo() == 0`? Why does this matter when used as keys?
+- If the input string is `"9007199254740993"`, should you choose `long`, `double`, or `BigInteger` to preserve the exact value, and why?
 
-**Nguyên tắc ứng dụng:** bắt đầu từ **miền giá trị toán học và yêu cầu độ chính xác**, chọn **kiểu và phép toán** đáp ứng yêu cầu đó, rồi xác minh **biểu diễn, chuyển đổi, tràn số và hiển thị** ở từng ranh giới dữ liệu.
+**Application principle:** start from the **mathematical value range and precision requirements**, pick the **type and operations** that meet those requirements, then verify **representation, conversion, overflow, and display** at each data boundary.

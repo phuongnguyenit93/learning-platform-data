@@ -1,8 +1,8 @@
-# Xây dựng hàm so sánh gần bằng có hợp đồng rõ ràng trong Java
+# Building an Approximate Equality Function with a Clear Contract in Java
 
-## 1. Mục tiêu thực hành
+## 1. Practice Objectives
 
-Trong Java, `float` và `double` dùng biểu diễn nhị phân hữu hạn theo IEEE 754. Nhiều số thập phân quen thuộc, chẳng hạn `0.1` hoặc `0.2`, không biểu diễn chính xác bằng một số bit hữu hạn. Vì vậy phép tính:
+In Java, `float` and `double` use finite binary representations according to IEEE 754. Many familiar decimal numbers, such as `0.1` or `0.2`, cannot be represented exactly in a finite number of bits. Thus the operation:
 
 ```java
 double value = 0.1 + 0.2;
@@ -10,15 +10,15 @@ System.out.println(value);       // 0.30000000000000004
 System.out.println(value == 0.3); // false
 ```
 
-cho kết quả khác trực giác thập phân. Đôi khi bài toán cho phép xem hai giá trị sai lệch rất nhỏ là **gần bằng nhau** (*approximately equal*), chẳng hạn khi đối chiếu kết quả đo đạc, mô phỏng hoặc phép tính dấu phẩy động có dung sai đã được quy định.
+produces a result different from decimal intuition. Sometimes a problem allows two values with a very small discrepancy to be treated as **approximately equal**, such as when comparing measurements, simulations, or floating-point calculations with a specified tolerance.
 
-Tuy nhiên, câu “gần bằng nếu chênh lệch đủ nhỏ” chưa đủ để triển khai: **đủ nhỏ so với cái gì, khi dữ liệu gần 0 thì sao, có tính vô cực/NaN không, và những giá trị không hợp lệ được xử lý thế nào?** Một hàm so sánh cần **hợp đồng** (*contract*) tường minh và bộ kiểm thử sát biên.
+However, saying "nearly equal if the difference is small enough" is not enough to implement: **small enough compared to what, what happens near 0, are infinities/NaN handled, and how are invalid values treated?** A comparison function needs an explicit **contract** and boundary tests.
 
-Bài này xây dựng một hàm Java 17+ cho `double` với **absolute tolerance** (ngưỡng sai lệch tuyệt đối) và **relative tolerance** (ngưỡng sai lệch tương đối), xử lý `NaN`, `Infinity`, `+0.0`/`-0.0`, tránh lỗi tràn trong phép trừ; đồng thời chỉ ra giới hạn toán học khiến hàm gần bằng **không** thay thế được `equals()` hoặc `compareTo()`.
+This lesson builds a Java 17+ function for `double` with **absolute tolerance** and **relative tolerance**, handling `NaN`, `Infinity`, `+0.0`/`-0.0`, avoiding overflow in subtraction; it also points out mathematical limitations that prevent an approximate-equality function from replacing `equals()` or `compareTo()`.
 
-## 2. Phải chọn công thức và ý nghĩa trước khi viết code
+## 2. Choose the Formula and Semantics Before Writing Code
 
-Gọi hai số cần so sánh là \(a\) và \(b\). Với các số hữu hạn, ta định nghĩa:
+Let the two numbers to compare be \(a\) and \(b\). For finite numbers, we define:
 
 \[
 \Delta = |a-b|,\qquad
@@ -26,67 +26,67 @@ S = \max(|a|,|b|),\qquad
 T = \max(\mathrm{absTol}, \mathrm{relTol}\times S)
 \]
 
-Hàm trả về **`true` nếu và chỉ nếu** \(\Delta \le T\), sau khi xử lý các ngoại lệ `NaN`, vô cực và bằng nhau chính xác theo hợp đồng.
+The function returns **`true` if and only if** \(\Delta \le T\), after handling `NaN`, infinity, and exact equality per the contract.
 
-- **`absTol`:** sai số tuyệt đối tối đa theo **đơn vị của đại lượng**. Ví dụ kết quả đo bằng mét có thể cho phép lệch `0.001` mét.
-- **`relTol`:** tỷ lệ sai lệch cho phép theo độ lớn của hai giá trị, ví dụ `1e-9` là một phần trên một tỷ. Đây là tỷ lệ **không có đơn vị**.
-- **`max(absTol, relTol × S)`:** cho phép sai lệch theo **một trong hai điều kiện** (absolute hoặc relative). Đây là **lựa chọn chính sách trong bài**, không phải định nghĩa duy nhất của “gần bằng”.
+- **`absTol`:** maximum absolute error in the **units of the quantity**. For example, a measurement in meters may allow an error of `0.001` meters.
+- **`relTol`:** allowable error ratio relative to the magnitude of the two values, e.g., `1e-9` is one part per billion. This ratio is **dimensionless**.
+- **`max(absTol, relTol × S)`:** permits deviation under **either condition** (absolute or relative). This is a **policy choice in this lesson**, not the only definition of "nearly equal."
 
-Cách chọn `max` đồng nghĩa:
+Choosing `max` means:
 
 ```text
 abs(a - b) <= absTol
-                 HOẶC
+                 OR
 abs(a - b) <= relTol * max(abs(a), abs(b))
 ```
 
-Một số thư viện dùng `absTol + relTol × S` hoặc dạng khác. Hai công thức không giống nhau gần ranh giới, nên không thể thay thế tùy tiện nếu chưa cập nhật hợp đồng và test.
+Some libraries use `absTol + relTol × S` or other forms. The two formulas differ near the boundary, so one cannot be arbitrarily substituted for the other without updating the contract and tests.
 
-### Vì sao cần kết hợp cả hai loại dung sai?
+### Why combine both kinds of tolerance?
 
-Chỉ có **sai số tuyệt đối**:
+With **absolute error** alone:
 
 ```text
 abs(a-b) <= 0.001
 ```
 
-hợp lý nếu tất cả kết quả có một thang đo cố định, nhưng có thể quá chặt đối với những số cỡ một tỷ và quá lỏng đối với những số cỡ một phần tỷ.
+it makes sense if all results have a fixed scale, yet can be too tight for numbers around a billion and too loose for numbers around a billionth.
 
-Chỉ có **sai số tương đối**:
+With **relative error** alone:
 
 ```text
 abs(a-b) <= 1e-9 * max(abs(a), abs(b))
 ```
 
-tự thay đổi theo độ lớn của giá trị, nhưng gần `0`, độ lớn `S` tiến về `0` và ngưỡng tương đối cũng tiến về `0`. Do đó cần một ngưỡng tuyệt đối có ý nghĩa nghiệp vụ để quyết định “đủ gần 0”.
+it scales with the magnitude of values, yet near `0`, `S` approaches `0` and the relative threshold also approaches `0`. Therefore, a domain-meaningful absolute threshold is needed to decide "close enough to 0."
 
-Ví dụ, `absTol = 1e-9`, `relTol = 0` coi `0.0` và `1e-12` là gần bằng. Còn `absTol = 0`, `relTol = 1e-9` chỉ có thể chấp nhận các giá trị đủ gần nhau theo tỷ lệ, không cung cấp “vùng an toàn” tuyệt đối quanh 0.
+For example, `absTol = 1e-9`, `relTol = 0` treats `0.0` and `1e-12` as nearly equal. Meanwhile, `absTol = 0`, `relTol = 1e-9` only accepts values sufficiently close proportionally, providing no absolute "safe zone" around 0.
 
-## 3. Hợp đồng của hàm sẽ triển khai
+## 3. Contract of the Function to Implement
 
-Hàm có chữ ký:
+The function has the signature:
 
 ```java
 static boolean nearlyEqual(
         double a, double b, double absTol, double relTol)
 ```
 
-Hợp đồng rõ ràng:
+Explicit contract:
 
-1. Hai tham số `a`, `b` có thể là bất kỳ giá trị `double`, bao gồm hữu hạn, `+0.0`, `-0.0`, hai vô cực và `NaN`.
-2. `absTol` phải **hữu hạn và không âm**. Chấp nhận `0.0`; từ chối `NaN`, vô cực và mọi số âm.
-3. `relTol` phải **hữu hạn và thuộc khoảng `[0, 1)`**. Ràng buộc nhỏ hơn 1 là một quyết định trong hợp đồng để relative tolerance luôn nhỏ hơn 100% độ lớn tham chiếu; ứng dụng thực tế nên chọn giá trị nhỏ hơn rất nhiều.
-4. **`NaN` ở một trong hai toán hạng → `false`**, kể cả khi cả hai đều là NaN.
-5. Nếu `a == b` theo so sánh primitive của Java → **`true`**. Do đó cùng một vô cực theo dấu trả `true` và `+0.0` gần bằng `-0.0`.
-6. Nếu chỉ một toán hạng là vô cực, hoặc chúng là hai vô cực khác dấu → **`false`**. Không cố tính sai số hữu hạn cho vô cực.
-7. Với hai số hữu hạn còn lại, tính \(\Delta\), \(S\), \(T\) theo công thức ở phần 2 và trả `true` khi \(\Delta \le T\). **Đúng bằng ngưỡng cũng được chấp nhận**.
-8. Với tolerance không hợp lệ, ném `IllegalArgumentException` **trước khi xem dữ liệu**. Nghĩa là ngay cả `nearlyEqual(1, 1, NaN, 0)` vẫn ném lỗi: cấu hình sai không được âm thầm bỏ qua.
+1. Both parameters `a`, `b` can be any `double` value, including finite numbers, `+0.0`, `-0.0`, both infinities, and `NaN`.
+2. `absTol` must be **finite and non-negative**. `0.0` is accepted; `NaN`, infinities, and any negative number are rejected.
+3. `relTol` must be **finite and in `[0, 1)`**. The `< 1` constraint is a contract decision so relative tolerance is always under 100% of the reference magnitude; real applications should choose much smaller values.
+4. **`NaN` in either operand → `false`**, even when both are NaN.
+5. If `a == b` under Java's primitive comparison → **`true`**. Thus infinities of the same sign return `true`, and `+0.0` is nearly equal to `-0.0`.
+6. If only one operand is infinite, or they are infinities of opposite signs → **`false`**. Do not try to compute finite errors for infinities.
+7. For the remaining two finite numbers, compute \(\Delta\), \(S\), \(T\) per Section 2 and return `true` when \(\Delta \le T\). **Exact equality with the threshold is also accepted**.
+8. With invalid tolerances, throw `IllegalArgumentException` **before inspecting the data**. That means even `nearlyEqual(1, 1, NaN, 0)` still throws: misconfiguration must never be silently ignored.
 
-Ràng buộc dung sai và hành vi đối với special values là quyết định thiết kế. Một hệ thống khác có thể chọn coi NaN là lỗi đầu vào và ném exception, hoặc yêu cầu tất cả đầu vào đều hữu hạn. Điều quan trọng là **công khai chính sách** và kiểm thử chúng, chứ không để chúng phát sinh ngẫu nhiên từ các toán tử Java.
+Tolerance constraints and behavior for special values are design decisions. Another system might treat NaN as an input error and throw an exception, or require all inputs to be finite. What matters is **publishing the policy** and testing it, rather than letting behavior arise accidentally from Java operators.
 
-## 4. Cài đặt Java 17+: phiên bản có thể dùng và kiểm thử
+## 4. Java 17+ Implementation: Usable and Testable Version
 
-Lưu toàn bộ file dưới tên **`NearlyEqualDemo.java`**:
+Save the entire file as **`NearlyEqualDemo.java`**:
 
 ```java
 public class NearlyEqualDemo {
@@ -186,14 +186,14 @@ public class NearlyEqualDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17+:
+Compile and run with JDK 17+:
 
 ```bash
 javac NearlyEqualDemo.java
 java NearlyEqualDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 0.1 + 0.2 ~= 0.3: true
@@ -213,150 +213,150 @@ not transitive: true, true, false
 invalid tolerance: rejected
 ```
 
-### Giải thích thứ tự xử lý
+### Explaining the order of checks
 
-**Kiểm tra tolerance trước:** nếu `absTol` là `NaN` mà ta dùng trực tiếp `Math.max`, kết quả so sánh có thể bị ảnh hưởng khó hiểu. Điều tệ hơn là một nhánh xử lý giá trị bằng nhau có thể che giấu cấu hình sai. Vì vậy, validation là bước đầu.
+**Check tolerances first:** if `absTol` were `NaN` and we passed it directly to `Math.max`, the comparison result could be affected unpredictably. Worse, an equal-values branch could mask a bad configuration. Therefore, validation is the first step.
 
-**NaN trước toán tử bằng:** trong Java, `Double.NaN == Double.NaN` là `false`. Việc xét riêng cho biết rõ đây là chính sách, thay vì tình cờ phụ thuộc toán tử.
+**NaN before equality operator:** in Java, `Double.NaN == Double.NaN` is `false`. Handling it explicitly makes clear this is a policy decision, rather than an accidental reliance on the operator.
 
-**Đúng bằng nhau trước kiểm tra vô cực:** `Double.POSITIVE_INFINITY == Double.POSITIVE_INFINITY` là `true`; hai số 0 khác dấu cũng `==`. Không nên lấy `Infinity - Infinity` rồi so sánh, vì hiệu như vậy có thể tạo `NaN`.
+**Exact equality before infinity check:** `Double.POSITIVE_INFINITY == Double.POSITIVE_INFINITY` is `true`; signed zeros of opposite signs are also `==`. Do not compute `Infinity - Infinity` and compare, because such a difference can produce `NaN`.
 
-**Kiểm tra hữu hạn trước tính sai số:** nếu còn ít nhất một vô cực, `a != b` và không thể áp công thức cho hai số hữu hạn, hàm trả `false`.
+**Finite check before computing error:** if at least one infinity remains, `a != b` and the finite-number formula cannot apply, so the function returns `false`.
 
-**Tính ngưỡng rồi so sánh:** với hai số hữu hạn, hàm dùng `difference <= allowed`, chấp nhận cả trường hợp bằng đúng ngưỡng. `Math.max(Math.abs(a), Math.abs(b))` khiến kết quả **đối xứng** khi đổi chỗ hai toán hạng. Không dùng riêng `Math.abs(a)` làm mẫu số/thang đo vì khi đảo đối số có thể cho kết quả khác.
+**Compute threshold then compare:** for two finite numbers, the function uses `difference <= allowed`, accepting exact equality with the threshold as well. `Math.max(Math.abs(a), Math.abs(b))` makes the result **symmetric** when swapping the two operands. Do not use only `Math.abs(a)` as the denominator/scale because swapping arguments could yield a different result.
 
-## 5. Vì sao có thể viết Math.abs(a - b) ở đây?
+## 5. Why Can We Write Math.abs(a - b) Here?
 
-Một lỗi thường gặp là khẳng định hiệu hai số `double` hữu hạn luôn hữu hạn. Không đúng: với `a = Double.MAX_VALUE` và `b = -Double.MAX_VALUE`, biểu thức `a - b` **tràn thành `+Infinity`**, dù cả hai toán hạng đều hữu hạn.
+A common mistake is claiming the difference of two finite `double` numbers is always finite. That is false: with `a = Double.MAX_VALUE` and `b = -Double.MAX_VALUE`, the expression `a - b` **overflows to `+Infinity`**, even though both operands are finite.
 
-Hàm trên kiểm soát trường hợp đó bằng hợp đồng cụ thể:
+The function above handles that case via its specific contract:
 
-- `absTol` phải **hữu hạn**, nên không lớn hơn `Double.MAX_VALUE`.
-- `relTol < 1` và `scale` hữu hạn, nên `relTol * scale` vẫn hữu hạn và không vượt `Double.MAX_VALUE`.
-- Nếu `Math.abs(a-b)` thành `Infinity`, sai lệch thực lớn hơn miền hữu hạn của `double`, và **không thể nhỏ hơn hoặc bằng ngưỡng hữu hạn** đã chọn. Vì vậy `Infinity <= allowed` là `false` và phù hợp với chính sách này.
+- `absTol` must be **finite**, so it is no larger than `Double.MAX_VALUE`.
+- `relTol < 1` and `scale` is finite, so `relTol * scale` remains finite and does not exceed `Double.MAX_VALUE`.
+- If `Math.abs(a-b)` becomes `Infinity`, the true difference exceeds the finite range of `double`, and **cannot be less than or equal to the chosen finite threshold**. Thus `Infinity <= allowed` is `false` and aligns with this policy.
 
-Điều này giải thích vì sao hàm **không cần giả vờ trừ chính xác bằng BigDecimal** cho mọi trường hợp. Tuy nhiên, các phép trừ dấu phẩy động vẫn có làm tròn. Nếu cần chứng minh chính xác ranh giới độ sai số tính theo số thực toán học, phải xem xét cách biểu diễn đầu vào và đặc tả bài toán; hàm trên có hợp đồng dựa trên các **giá trị double thực tế và phép tính double**.
+This explains why the function **does not need to pretend to subtract exactly with BigDecimal** for every case. However, floating-point subtraction still rounds. If you must prove exact error bounds in terms of mathematical real numbers, you must consider input representation and the problem specification; the function above has a contract based on **actual double values and double arithmetic**.
 
-Không dùng thay bằng biểu thức:
+Do not replace it with the expression:
 
 ```java
 Math.abs(a / b - 1.0) <= relTol
 ```
 
-nếu chưa xử lý `b == 0`, dấu âm, underflow, overflow và tính đối xứng. Phép chia có thể không xác định hoặc tạo vô cực; chọn scale bằng `max(abs(a), abs(b))` là quy tắc rõ ràng hơn cho hợp đồng đã chọn.
+without handling `b == 0`, negative signs, underflow, overflow, and symmetry. Division can be undefined or produce infinity; choosing scale via `max(abs(a), abs(b))` is a cleaner rule for the chosen contract.
 
-## 6. Chọn ngưỡng dung sai từ miền bài toán
+## 6. Choosing Tolerance Thresholds from the Problem Domain
 
-Các giá trị `1e-12`, `1e-9` trong chương trình là **giá trị minh họa**, không phải dung sai mặc định an toàn cho mọi hệ thống. Một ngưỡng phù hợp phải xuất phát từ ít nhất một trong các yếu tố:
+The values `1e-12`, `1e-9` in the program are **illustrative values**, not safe default tolerances for every system. A suitable threshold must come from at least one of these factors:
 
-- **Đơn vị và độ phân giải đầu vào:** thiết bị đo nhiệt độ có sai số ±0,1°C không cần dung sai `1e-15` °C.
-- **Giới hạn sai số được nghiệm thu:** nếu hệ thống định nghĩa kết quả chênh không quá 0,01 đơn vị, `absTol = 0.01` có ý nghĩa nghiệp vụ cụ thể.
-- **Độ lớn biến thiên:** kết quả có thể từ phần triệu tới hàng tỷ; `relTol` hữu ích khi sai số cho phép tỷ lệ với độ lớn.
-- **Tích lũy lỗi của thuật toán:** sau nhiều phép cộng/nhân, sai số làm tròn có thể tích lũy tùy thuật toán, thứ tự phép tính và điều kiện số (*numerical conditioning*).
-- **Nhu cầu xác nhận chính xác:** với tiền tệ hoặc dữ liệu định danh số nguyên, một ngưỡng gần bằng tùy ý có thể che giấu lỗi quan trọng.
+- **Units and input resolution:** a temperature sensor with ±0.1°C accuracy does not need a `1e-15` °C tolerance.
+- **Accepted error limits:** if the system defines that results differ by at most 0.01 units, `absTol = 0.01` has concrete business meaning.
+- **Magnitude variation:** results may span from millionths to billions; `relTol` is useful when allowed error scales with magnitude.
+- **Algorithmic error accumulation:** after many additions/multiplications, rounding error can accumulate depending on the algorithm, operation order, and *numerical conditioning*.
+- **Need for exact verification:** for currency or integer identifier data, an arbitrary approximate-equality threshold can hide critical bugs.
 
-### Ví dụ về ngưỡng tuyệt đối
+### Example of an absolute threshold
 
-Nếu hai cảm biến cùng đo chiều dài theo mét và yêu cầu “chênh tối đa `0.002` mét”, hàm có thể gọi:
+If two sensors both measure length in meters and the requirement is "differ by at most `0.002` meters," the function can be called as:
 
 ```java
 boolean close = nearlyEqual(measuredA, measuredB, 0.002, 0.0);
 ```
 
-Đây là ngưỡng **định nghĩa bằng mét**, áp dụng đồng đều trên miền giá trị. Không nên dùng `0.002` nếu giá trị đang ở đơn vị milimét mà không đổi đơn vị tương ứng.
+This is a threshold **defined in meters**, applied uniformly across the value domain. Do not use `0.002` if the values are in millimeters without converting units accordingly.
 
-### Ví dụ về ngưỡng tương đối
+### Example of a relative threshold
 
-Nếu yêu cầu “sai khác dưới một phần triệu so với độ lớn của giá trị”, có thể chọn `relTol = 1e-6` và một `absTol` nhỏ phù hợp khi gần 0. Với `a` và `b` khoảng một triệu, ngưỡng tương đối khi ấy khoảng 1 đơn vị; với giá trị cỡ một phần triệu, ngưỡng tương đối chỉ cỡ `1e-12`.
+If the requirement is "differ by less than one part per million of the value's magnitude," you can choose `relTol = 1e-6` and a small `absTol` appropriate near 0. When `a` and `b` are around one million, the relative threshold is about 1 unit; when values are around one millionth, the relative threshold is only around `1e-12`.
 
-Công thức của bài sử dụng **`<=`** nên “dưới một phần triệu” cần được diễn đạt chính xác trong hợp đồng là **không vượt quá ngưỡng**. Nếu yêu cầu thật sự là “nhỏ hơn nghiêm ngặt”, phải đổi toán tử và sửa bài kiểm thử biên.
+The lesson's formula uses **`<=`**, so "under one part per million" should be stated precisely in the contract as **not exceeding the threshold**. If the requirement truly means "strictly less than," change the operator and update boundary tests.
 
-### Tolerance bằng 0
+### Zero tolerance
 
-Khi `absTol = 0` và `relTol = 0`, hai số hữu hạn phải có hiệu tính bằng 0 để gần bằng; với các số finite thông thường, tương đương so sánh `==`. Trong chính sách đang dùng, `+0.0` và `-0.0` bằng nhau, hai vô cực cùng dấu bằng nhau, còn NaN không gần bằng chính nó.
+When `absTol = 0` and `relTol = 0`, two finite numbers must have a computed difference of 0 to be nearly equal; for ordinary finite numbers, this is equivalent to `==`. Under the current policy, `+0.0` and `-0.0` are equal, two infinities of the same sign are equal, and NaN is not nearly equal to itself.
 
-Nếu yêu cầu **so sánh cùng mẫu bit**, dùng `Double.doubleToRawLongBits` để kiểm tra riêng; đó là hợp đồng khác hoàn toàn so với gần bằng về số học.
+If **bit-pattern comparison** is required, use `Double.doubleToRawLongBits` in a separate check; that is a completely different contract from numerical approximate equality.
 
-## 7. Kiểm thử theo lớp tương đương và giá trị biên
+## 7. Testing by Equivalence Classes and Boundary Values
 
-Một hàm so sánh gần bằng cần kiểm thử theo **hợp đồng**, không chỉ bằng ví dụ `0.1 + 0.2`. Các nhóm ca tối thiểu:
+An approximate-equality function must be tested against its **contract**, not just with `0.1 + 0.2`. Minimum test groups:
 
-| Nhóm | Ví dụ | Kỳ vọng theo hợp đồng |
+| Group | Example | Expected per contract |
 |---|---|---|
-| Đúng bằng finite | `(1.0, 1.0, 0, 0)` | `true` |
-| Sai lệch thập phân nhỏ | `(0.1+0.2, 0.3, 1e-12, 0)` | `true` |
-| Vượt ngưỡng tuyệt đối | `(0, 0.02, 0.01, 0)` | `false` |
-| Gần 0 | `(0, 1e-12, 1e-9, 0)` | `true` |
-| Số lớn, ngưỡng tương đối đủ | `(1e9, 1e9+1, 0, 1e-9)` | `true` |
-| Số lớn, ngưỡng tương đối thiếu | `(1e9, 1e9+2, 0, 1e-9)` | `false` |
-| Không dung sai | `(1, Math.nextUp(1), 0, 0)` | `false` |
-| Một ULP ở 1 | `(1, Math.nextUp(1), Math.ulp(1), 0)` | `true` |
-| Hai zero có dấu | `(+0.0, -0.0, 0, 0)` | `true` |
-| Hai vô cực dương | `(+∞, +∞, 0, 0)` | `true` |
-| Vô cực khác dấu | `(+∞, -∞, 0, 0)` | `false` |
+| Exact finite equality | `(1.0, 1.0, 0, 0)` | `true` |
+| Small decimal discrepancy | `(0.1+0.2, 0.3, 1e-12, 0)` | `true` |
+| Exceeds absolute threshold | `(0, 0.02, 0.01, 0)` | `false` |
+| Near 0 | `(0, 1e-12, 1e-9, 0)` | `true` |
+| Large numbers, sufficient relative threshold | `(1e9, 1e9+1, 0, 1e-9)` | `true` |
+| Large numbers, insufficient relative threshold | `(1e9, 1e9+2, 0, 1e-9)` | `false` |
+| Zero tolerance | `(1, Math.nextUp(1), 0, 0)` | `false` |
+| One ULP at 1 | `(1, Math.nextUp(1), Math.ulp(1), 0)` | `true` |
+| Two signed zeros | `(+0.0, -0.0, 0, 0)` | `true` |
+| Two positive infinities | `(+∞, +∞, 0, 0)` | `true` |
+| Opposite-sign infinities | `(+∞, -∞, 0, 0)` | `false` |
 | NaN | `(NaN, NaN, 1, 0.1)` | `false` |
-| Hiệu double tràn | `(MAX_VALUE, -MAX_VALUE, MAX_VALUE, 0.5)` | `false` |
-| Subnormal sát 0 | `(0, MIN_VALUE, 0, 0)` | `false` |
-| Subnormal có dung sai | `(0, MIN_VALUE, MIN_VALUE, 0)` | `true` |
-| Tolerance không hợp lệ | `absTol = NaN`; `relTol = 1`; `absTol < 0` | Ném `IllegalArgumentException` |
+| Overflowing double difference | `(MAX_VALUE, -MAX_VALUE, MAX_VALUE, 0.5)` | `false` |
+| Subnormal near 0 | `(0, MIN_VALUE, 0, 0)` | `false` |
+| Subnormal with tolerance | `(0, MIN_VALUE, MIN_VALUE, 0)` | `true` |
+| Invalid tolerance | `absTol = NaN`; `relTol = 1`; `absTol < 0` | Throws `IllegalArgumentException` |
 
-`Double.MIN_VALUE` là **số `double` dương nhỏ nhất khác 0** (subnormal), không phải số âm có độ lớn lớn nhất. `Double.MAX_VALUE` là số hữu hạn dương lớn nhất. Không nhầm hai hằng số này khi thiết kế test.
+`Double.MIN_VALUE` is the **smallest positive non-zero `double`** (subnormal), not the negative number with largest magnitude. `Double.MAX_VALUE` is the largest finite positive number. Do not confuse these two constants when designing tests.
 
-### Kiểm tra tính đối xứng
+### Testing symmetry
 
-Hàm được định nghĩa đối xứng: `nearlyEqual(a,b,t,r)` phải bằng `nearlyEqual(b,a,t,r)` với cùng tolerance hợp lệ. Việc lấy `max(abs(a),abs(b))` giúp giữ thuộc tính này. Nếu dùng `relTol * abs(a)` riêng và xem `a` là tham chiếu, đó là **so sánh có hướng**; cũng có ứng dụng hợp lệ nhưng phải ghi rõ và không gọi là quan hệ đối xứng.
+The function is defined symmetrically: `nearlyEqual(a,b,t,r)` must equal `nearlyEqual(b,a,t,r)` for the same valid tolerances. Using `max(abs(a),abs(b))` preserves this property. If you use `relTol * abs(a)` alone and treat `a` as the reference, that is a **directional comparison**; it has valid uses too, but must be clearly documented and not called a symmetric relation.
 
-### Kiểm tra gần biên với nextUp và nextDown
+### Testing near boundaries with nextUp and nextDown
 
-Dùng `Math.nextUp(x)` và `Math.nextDown(x)` để lấy giá trị `double` liền kề trong thứ tự số thực có thể biểu diễn, thay vì tự cộng `1e-16` rồi tưởng rằng số thực sẽ đổi. `Math.ulp(x)` cho khoảng cách ULP tại vùng đó (với chú ý về vị trí sát ranh giới số mũ).
+Use `Math.nextUp(x)` and `Math.nextDown(x)` to obtain the adjacent representable `double` value in real-number order, instead of adding `1e-16` and assuming the value actually changes. `Math.ulp(x)` gives the ULP spacing in that region (mindful of exponent boundaries).
 
-Ví dụ `Math.nextUp(1.0)` khác `1.0` một bước `Math.ulp(1.0)`. Với `absTol = 0` và `relTol = 0`, hàm phải trả `false`; với `absTol = Math.ulp(1.0)` thì trả `true`.
+For example, `Math.nextUp(1.0)` differs from `1.0` by one `Math.ulp(1.0)` step. With `absTol = 0` and `relTol = 0`, the function must return `false`; with `absTol = Math.ulp(1.0)`, it returns `true`.
 
-**Đừng mặc định N ULP giống một sai số nghiệp vụ cố định.** ULP đo theo cấu trúc biểu diễn nhị phân và thay đổi theo độ lớn; việc chọn ULP làm tiêu chí phải xuất phát từ đặc điểm thuật toán, không thay thế vô điều kiện ngưỡng tuyệt đối/tương đối.
+**Do not assume N ULPs is the same as a fixed business error.** ULP measures binary representation structure and varies with magnitude; choosing ULP as a criterion must come from algorithm analysis, not unconditionally replacing absolute/relative thresholds.
 
-## 8. Những tính chất toán học và giới hạn quan trọng
+## 8. Important Mathematical Properties and Limitations
 
-### Gần bằng không có tính bắc cầu
+### Approximate equality is not transitive
 
-Một quan hệ bằng nhau theo nghĩa thông thường cần tính bắc cầu: nếu A bằng B và B bằng C thì A phải bằng C. Gần bằng theo tolerance **không có** tính chất này.
+A standard equality relation requires transitivity: if A equals B and B equals C, then A must equal C. Tolerance-based approximate equality **lacks** this property.
 
-Với `absTol = 1.0` và `relTol = 0`:
+With `absTol = 1.0` and `relTol = 0`:
 
 ```text
 a = 0.00
 b = 0.75
 c = 1.50
 
-|a - b| = 0.75 <= 1.0 => gần bằng
-|b - c| = 0.75 <= 1.0 => gần bằng
-|a - c| = 1.50 >  1.0 => KHÔNG gần bằng
+|a - b| = 0.75 <= 1.0 => nearly equal
+|b - c| = 0.75 <= 1.0 => nearly equal
+|a - c| = 1.50 >  1.0 => NOT nearly equal
 ```
 
-Do đó `nearlyEqual(a,b) == true` và `nearlyEqual(b,c) == true` không suy ra `nearlyEqual(a,c) == true`. Hàm trong bài cũng **không phản xạ đối với NaN**, vì chính sách cố ý coi mọi so sánh có NaN là false.
+Thus `nearlyEqual(a,b) == true` and `nearlyEqual(b,c) == true` do not imply `nearlyEqual(a,c) == true`. The function in this lesson is also **not reflexive for NaN**, because the policy deliberately treats any comparison involving NaN as false.
 
-**Hệ quả:** không dùng so sánh gần bằng làm cơ sở triển khai `Object.equals()`/`hashCode()` cho đối tượng đưa vào `HashSet` hoặc làm khóa `HashMap`. Cũng không tự dùng nó để trả `0` trong `Comparator` của `TreeSet`/`TreeMap` hoặc thuật toán sắp xếp: comparator cần hợp đồng thứ tự nhất quán; không bắc cầu có thể gây lỗi hoặc hành vi khó đoán.
+**Consequence:** do not use approximate equality as the basis for implementing `Object.equals()`/`hashCode()` for objects placed in a `HashSet` or used as `HashMap` keys. Also do not use it to return `0` in a `Comparator` for `TreeSet`/`TreeMap` or sorting algorithms: comparators need a consistent ordering contract; non-transitivity can cause bugs or unpredictable behavior.
 
-Nếu cần **gom nhóm** những số theo độ phân giải cố định, hãy chọn quy tắc phân vùng/quantization có định nghĩa ranh giới rõ ràng, hoặc xây thuật toán clustering với hợp đồng riêng. Những kỹ thuật đó có ngữ nghĩa khác và có thể gây khác biệt tại ranh giới nhóm.
+If you need to **group** numbers at a fixed resolution, choose a partitioning/quantization rule with clearly defined boundaries, or build a clustering algorithm with its own contract. Those techniques have different semantics and can create differences at bucket boundaries.
 
-### Ngưỡng phụ thuộc giá trị so sánh
+### Threshold depends on compared values
 
-Với công thức `max(absTol, relTol × max(abs(a), abs(b)))`, một giá trị `b` rất lớn có thể làm relative tolerance lớn. Chẳng hạn `relTol = 0.5` cho phép sai lệch tới 50% độ lớn tham chiếu; về mặt số học hợp đồng vẫn nhất quán, nhưng phần lớn ứng dụng sẽ coi ngưỡng như vậy là quá rộng.
+With `max(absTol, relTol × max(abs(a), abs(b)))`, a very large `b` can make the relative tolerance large. For instance, `relTol = 0.5` allows discrepancies up to 50% of the reference magnitude; mathematically the contract remains consistent, yet most applications would consider such a threshold far too wide.
 
-Giới hạn kỹ thuật `relTol < 1` ngăn cấu hình bằng hoặc vượt 100%, **không chứng minh** dung sai nhỏ phù hợp. Cần giới hạn riêng theo miền nghiệp vụ: ví dụ tối đa `1e-6` nếu hợp đồng yêu cầu.
+The technical limit `relTol < 1` prevents configuring 100% or more, **not proving** a smaller tolerance is appropriate. You must enforce domain-specific limits: e.g., at most `1e-6` if required by the contract.
 
-### Không có “một epsilon cho mọi double”
+### There is no "one epsilon for all doubles"
 
-`Double.MIN_VALUE` không phải epsilon thích hợp cho mọi phép tính; khoảng cách giữa các giá trị biểu diễn được tăng theo độ lớn. `Math.ulp(1.0)` phản ánh bước gần 1, còn `Math.ulp(1e12)` lớn hơn nhiều. Một ngưỡng `1e-9` có thể quá nghiêm ngặt ở miền giá trị lớn nhưng lại quá dễ dãi ở miền rất nhỏ. Chính sách thực tế phải xét đơn vị, số phép toán, độ nhạy của thuật toán và mức sai khác có thể chấp nhận.
+`Double.MIN_VALUE` is not a suitable epsilon for all calculations; the spacing between representable values grows with magnitude. `Math.ulp(1.0)` reflects the step near 1, whereas `Math.ulp(1e12)` is much larger. A threshold of `1e-9` can be too strict in large-magnitude ranges yet too permissive in very small-magnitude ranges. Practical policy must consider units, number of operations, algorithm sensitivity, and acceptable error levels.
 
-### Precision là khái niệm khác với tolerance
+### Precision is a different concept from tolerance
 
-`double` có precision nhị phân hữu hạn (53 bit có nghĩa đối với số chuẩn hóa); đây là giới hạn biểu diễn. `absTol` và `relTol` là **chính sách chấp nhận sai khác** khi so sánh kết quả. Chúng có liên quan khi phân tích sai số nhưng không phải một khái niệm.
+`double` has finite binary precision (53 significant bits for normalized numbers); this is a representation limit. `absTol` and `relTol` are **policies for accepting discrepancy** when comparing results. They are related in error analysis, yet are not the same concept.
 
-Ví dụ một phép toán kém điều kiện có thể khuếch đại sai số đầu vào lớn hơn nhiều ULP. Dung sai cho kết quả phải dựa trên sai số hợp lệ của **toàn thuật toán**, chứ không đơn giản lấy cố định `Math.ulp(1.0)` ở mọi nơi.
+For example, an ill-conditioned operation can amplify input error by many ULPs. Output tolerance must be based on valid error bounds of the **entire algorithm**, not simply plugging in `Math.ulp(1.0)` everywhere.
 
-## 9. Khi nào cần BigDecimal hoặc so sánh chính xác?
+## 9. When Do You Need BigDecimal or Exact Comparison?
 
-Với **tiền, tỷ lệ được quy định bằng số chữ số thập phân, hoặc quy tắc làm tròn pháp lý/nghiệp vụ**, so sánh `double` gần bằng có thể che giấu sự khác biệt cần được phát hiện. Nếu dữ liệu là thập phân chính xác, nên cân nhắc `BigDecimal` dựng từ chuỗi:
+For **money, rates defined to a fixed number of decimal places, or legal/business rounding rules**, approximate `double` comparison can hide differences that must be detected. If the data is exact decimal, consider `BigDecimal` constructed from strings:
 
 ```java
 import java.math.BigDecimal;
@@ -364,86 +364,86 @@ import java.math.BigDecimal;
 BigDecimal a = new BigDecimal("1.00");
 BigDecimal b = new BigDecimal("1.0");
 
-// So sánh giá trị số học; không coi scale là điều kiện bằng:
+// Compare numeric value; do not require matching scale for equality:
 boolean sameNumericValue = a.compareTo(b) == 0; // true
 
-// Nếu quy định độ lệch thập phân tối đa là 0.01:
+// If maximum allowed decimal deviation is 0.01:
 BigDecimal tolerance = new BigDecimal("0.01");
 boolean withinAbsoluteTolerance =
         a.subtract(b).abs().compareTo(tolerance) <= 0; // true
 ```
 
-Đây là **đoạn mã minh họa dùng trong phương thức hoặc lớp**; nó không có `main()` độc lập. `BigDecimal.compareTo()` so sánh giá trị số học, còn `BigDecimal.equals()` còn xét scale; ví dụ `"1.00"` và `"1.0"` có giá trị bằng nhau nhưng `equals()` trả false.
+This is an **illustrative code snippet for use inside a method or class**; it has no standalone `main()`. `BigDecimal.compareTo()` compares numeric values, whereas `BigDecimal.equals()` also considers scale; for example, `"1.00"` and `"1.0"` have equal value, yet `equals()` returns false.
 
-Khi áp dụng dung sai với `BigDecimal`, cần đặt giới hạn giá trị/tài nguyên, xác định scale/precision, quy tắc làm tròn nếu các phép tính không hữu hạn trong biểu diễn thập phân, và trường hợp làm tròn trước hay sau khi so sánh. Không nên âm thầm ép `BigDecimal` về `double` chỉ để sử dụng hàm `nearlyEqual` khi yêu cầu đòi độ chính xác thập phân.
+When applying tolerances with `BigDecimal`, set value/resource limits, specify scale/precision, define rounding rules if calculations do not terminate in decimal representation, and decide whether rounding occurs before or after comparison. Do not silently convert `BigDecimal` to `double` just to use `nearlyEqual` when decimal accuracy is required.
 
-Nếu so sánh **số nguyên** (`int`, `long`, `BigInteger`), giá trị đã biểu diễn chính xác theo miền kiểu; thường so sánh bằng chính xác phù hợp hơn. Nếu muốn cho phép lệch N đơn vị nguyên, hãy định nghĩa phạm vi rõ ràng và chú ý overflow khi tính hiệu, không tự chuyển sang `double` với các số nguyên lớn hơn \(2^{53}\).
+When comparing **integers** (`int`, `long`, `BigInteger`), values are already represented exactly within the type's range; exact equality is usually more appropriate. If you want to allow a difference of N integer units, define the range explicitly and watch for overflow when computing the difference, without converting integers larger than \(2^{53}\) to `double`.
 
-## 10. Các sai lầm triển khai phổ biến
+## 10. Common Implementation Mistakes
 
-### Chỉ viết Math.abs(a - b) < 1e-9
+### Writing only Math.abs(a - b) < 1e-9
 
-Cách này không nói rõ miền đơn vị, loại trừ trường hợp **bằng đúng ngưỡng** vì dùng `<`, không có tương đối theo độ lớn và không mô tả NaN/vô cực. Nó có thể đủ cho một phép kiểm tra nhỏ đã giới hạn thang đo, nhưng không phải API dùng chung có hợp đồng đầy đủ.
+This approach does not state units, excludes **exact boundary equality** due to `<`, lacks magnitude-relative scaling, and does not specify NaN/infinity behavior. It may suffice for a tiny check with a bounded scale, but not for a shared API with a complete contract.
 
-### Dùng relTol * a thay vì một thang đo đối xứng
+### Using relTol * a instead of a symmetric scale
 
-Nếu dùng riêng `a` làm mốc, đảo tham số có thể đổi kết quả. Có bài toán chủ ý phân biệt **giá trị mong đợi** và **giá trị đo được**; khi đó dùng sai số tương đối theo expected là hợp lệ nếu hợp đồng nêu rõ vai trò từng đối số. Nhưng nếu tên hàm hàm ý so sánh đối xứng hai số, dùng `max(abs(a), abs(b))` giúp tính chất đó rõ ràng.
+If only `a` is used as the baseline, swapping parameters can change the result. Some problems intentionally distinguish **expected value** from **measured value**; in that case, relative error against `expected` is valid if the contract states each argument's role. However, if the function name implies symmetric comparison of two numbers, `max(abs(a), abs(b))` keeps that property clear.
 
-### Dùng Infinity làm tolerance để “bật tắt” kiểm tra
+### Using Infinity as a tolerance to "toggle" checks
 
-Nếu `absTol = Infinity`, các trường hợp xa nhau có thể được coi gần bằng vô điều kiện và gây kết quả bất ngờ với special values. Hàm bài này **từ chối tolerance vô hạn và NaN** để tránh cấu hình che giấu lỗi. Muốn bỏ một loại điều kiện, dùng giá trị `0` cho loại đó và chọn rõ loại còn lại theo nghiệp vụ.
+If `absTol = Infinity`, far-apart values can be treated as unconditionally equal and produce surprising results with special values. This lesson's function **rejects infinite and NaN tolerances** to prevent configurations from hiding bugs. To disable one condition, pass `0` for that parameter and explicitly choose the other per business rules.
 
-### Quên quy tắc NaN và signed zero
+### Forgetting NaN and signed zero rules
 
-`Double.NaN == Double.NaN` là false, nhưng `Double.compare(Double.NaN, Double.NaN) == 0` có ngữ nghĩa khác. `+0.0 == -0.0` là true, dù `Double.doubleToRawLongBits` cho hai mẫu bit khác nhau. Hàm gần bằng nên quy định **ngữ nghĩa số học** hay **ngữ nghĩa bit** từ đầu.
+`Double.NaN == Double.NaN` is false, whereas `Double.compare(Double.NaN, Double.NaN) == 0` has different semantics. `+0.0 == -0.0` is true, even though `Double.doubleToRawLongBits` yields two distinct bit patterns. An approximate-equality function should specify **arithmetic semantics** vs. **bit semantics** from the start.
 
-### Không chặn hiệu số tràn
+### Failing to guard against overflowing difference
 
-Hai số hữu hạn có thể cho hiệu vô cực. Nếu viết một công thức tương đối có phép chia trên hiệu, hoặc dùng một tolerance vô hạn, lỗi có thể khó nhận thấy. Trong hàm bài này, `difference == Infinity` tự cho kết quả false vì `allowed` hữu hạn, và điều đó có lý do từ hợp đồng `relTol < 1`.
+Two finite numbers can have an infinite difference. If you write a relative formula that divides by the difference, or use an infinite tolerance, bugs can go unnoticed. In this lesson's function, `difference == Infinity` naturally evaluates to false because `allowed` is finite, which follows directly from the `relTol < 1` contract.
 
-### Kiểm tra trung bình hai số để lấy scale
+### Taking the average of two numbers for scale
 
-Viết `scale = Math.abs((a+b)/2)` có thể bị overflow ở `a+b`, hoặc gần 0 khi hai giá trị lớn nhưng trái dấu, khiến ngưỡng trở nên sai lệch. `max(abs(a),abs(b))` tránh phép cộng trung gian và giữ tính đối xứng theo định nghĩa đã chọn.
+Writing `scale = Math.abs((a+b)/2)` can overflow in `a+b`, or approach 0 when two large values have opposite signs, skewing the threshold. `max(abs(a),abs(b))` avoids intermediate addition and preserves symmetry per the chosen definition.
 
-### Làm tròn chuỗi rồi so sánh
+### Rounding strings and then comparing
 
-Định dạng `String.format("%.2f", value)` chỉ kiểm soát **hiển thị**, có thể làm hai số khác nhau cùng trông giống nhau hoặc biến đổi theo locale. So sánh chuỗi đã định dạng không thể thay thế hợp đồng số học về tolerance; nếu nghiệp vụ yêu cầu làm tròn về 2 chữ số thập phân, phải định nghĩa đúng phép làm tròn và thời điểm thực hiện trước khi so sánh.
+Formatting with `String.format("%.2f", value)` only controls **display**, and can make two different numbers look identical or vary with locale. Comparing formatted strings cannot replace a numeric tolerance contract; if business rules require rounding to 2 decimal places, define the exact rounding operation and when it occurs before comparing.
 
-### Áp dụng cho dữ liệu đã mất precision mà không biết
+### Applying to data that already lost precision unknowingly
 
-Một số `long` lớn có thể mất chữ số khi chuyển thành `double`. Lúc đó `nearlyEqual` đang so sánh **hai giá trị double sau chuyển đổi**, không khôi phục dữ liệu nguyên gốc. Tương tự, số tiền đi qua `double` có thể đã mất thông tin thập phân chính xác. Hãy xác nhận nguồn dữ liệu trước khi chọn cách so sánh.
+A large `long` can lose digits when converted to `double`. Then `nearlyEqual` compares **two post-conversion double values**, not recovering the original integer data. Similarly, money passed through `double` may have already lost exact decimal information. Verify the data source before choosing a comparison strategy.
 
-## 11. Bài tập áp dụng và tiêu chí nghiệm thu
+## 11. Practice Exercise and Acceptance Criteria
 
-Giả sử một bộ kiểm thử số học phải chấp nhận sai lệch tối đa `0.001` theo đơn vị của kết quả, hoặc `1e-8` theo độ lớn của kết quả, tùy điều kiện nào cho ngưỡng lớn hơn. Theo hợp đồng đã chọn, lời gọi là:
+Suppose a numeric test suite must accept a deviation of at most `0.001` in the result's units, or `1e-8` of the result's magnitude, whichever yields the larger threshold. Under the chosen contract, the call is:
 
 ```java
 boolean accepted = nearlyEqual(actual, expected, 0.001, 1e-8);
 ```
 
-Để sử dụng trong ứng dụng, trước tiên phải làm rõ ý nghĩa của `actual` và `expected`, đơn vị đo, cách lấy giá trị mong đợi và liệu ngưỡng **bằng đúng ranh giới** có chấp nhận hay không. Hàm đang định nghĩa so sánh **đối xứng** (đổi `actual`/`expected` không đổi kết quả). Nếu nghiệm thu yêu cầu “sai lệch không quá X% của giá trị expected”, hãy xây một hàm khác theo đúng **mẫu số expected** và xử lý expected bằng 0, thay vì bí mật đổi công thức của hàm này.
+Before using it in an application, clarify the meaning of `actual` and `expected`, measurement units, how the expected value is obtained, and whether **exact boundary equality** is accepted. The function defines a **symmetric** comparison (swapping `actual`/`expected` does not change the result). If acceptance requires "deviation at most X% of expected," write a separate function using **expected as the denominator** and handling `expected == 0`, rather than silently altering this function's formula.
 
-Kiểm thử nghiệm thu nên có các nhóm:
+Acceptance tests should include these groups:
 
-1. Một kết quả đúng chính xác; một kết quả lệch nhỏ nhưng trong ngưỡng; một kết quả vượt ngưỡng.
-2. Giá trị gần 0 để absolute tolerance có vai trò rõ ràng.
-3. Giá trị rất lớn để relative tolerance chi phối.
-4. Số âm, hai số trái dấu, `+0.0` và `-0.0`.
-5. `NaN`, hai vô cực cùng dấu, vô cực khác dấu, một hữu hạn và một vô cực.
-6. Dung sai không hợp lệ: âm, `NaN`, vô cực, `relTol = 1`.
-7. Các số liền kề bằng `Math.nextUp`/`nextDown` và số subnormal sát 0.
-8. Ví dụ mất tính bắc cầu để người dùng API hiểu rằng gần bằng **không phải quan hệ tương đương**.
+1. Exact match; small deviation within threshold; deviation exceeding threshold.
+2. Values near 0 where absolute tolerance plays a clear role.
+3. Very large values where relative tolerance dominates.
+4. Negative numbers, opposite-sign pairs, `+0.0` and `-0.0`.
+5. `NaN`, two same-sign infinities, opposite-sign infinities, one finite and one infinite.
+6. Invalid tolerances: negative, `NaN`, infinite, `relTol = 1`.
+7. Adjacent values via `Math.nextUp`/`nextDown` and subnormal numbers near 0.
+8. Example demonstrating lack of transitivity so API users understand approximate equality is **not an equivalence relation**.
 
-### Câu hỏi tự kiểm tra
+### Self-check questions
 
-**1.** Vì sao `absTol = 0` và `relTol = 1e-9` chưa đủ cho một phép thử “gần bằng 0” có sai số đo tuyệt đối nhỏ? Vì ngưỡng tương đối `relTol × max(|a|,|b|)` tiến về 0 khi hai giá trị cùng tiến về 0; cần một `absTol` dựa trên độ phân giải thực tế.
+**1.** Why are `absTol = 0` and `relTol = 1e-9` insufficient for a "nearly equal to 0" check with small absolute measurement error? Because the relative threshold `relTol × max(|a|,|b|)` approaches 0 as both values approach 0; an `absTol` grounded in actual resolution is needed.
 
-**2.** `nearlyEqual(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, 0, 0)` trả gì? **`true`**, vì hai giá trị bằng chính xác theo chính sách, được xử lý trước phép trừ có thể tạo NaN.
+**2.** What does `nearlyEqual(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, 0, 0)` return? **`true`**, because the two values are exactly equal under the policy, handled before subtraction could produce NaN.
 
-**3.** Tại sao không dùng `nearlyEqual` trong `hashCode`/`equals` của khóa map? Vì quan hệ gần bằng theo ngưỡng **không bắc cầu**, không đáp ứng hợp đồng tương đương cần cho equality collections.
+**3.** Why should `nearlyEqual` not be used in `hashCode`/`equals` for map keys? Because tolerance-based approximate equality is **not transitive**, failing the equivalence contract required by equality-based collections.
 
-**4.** `nearlyEqual(0.0, Double.MIN_VALUE, 0, 0)` trả gì? **`false`**, vì một số là 0 còn số kia là subnormal dương khác 0. Nếu đặt `absTol = Double.MIN_VALUE` thì là **`true`**.
+**4.** What does `nearlyEqual(0.0, Double.MIN_VALUE, 0, 0)` return? **`false`**, because one number is 0 while the other is a non-zero positive subnormal. If `absTol = Double.MIN_VALUE` is set, it returns **`true`**.
 
-**5.** Nếu tính `a - b` từ hai số double hữu hạn mà kết quả thành vô cực, có chắc nên coi chúng gần bằng không? **Không**. Hợp đồng của bài từ chối cả hai số khác nhau khi sai lệch vượt ngưỡng hữu hạn; `difference <= allowed` sẽ false.
+**5.** If computing `a - b` from two finite doubles overflows to infinity, should they be considered nearly equal? **No**. This lesson's contract rejects two differing numbers when their separation exceeds finite limits; `difference <= allowed` evaluates to false.
 
-**Ghi nhớ:** Một hàm gần bằng tốt phải có **công thức, ý nghĩa tolerance, xử lý special values, quy tắc biên, giới hạn đầu vào và phép kiểm thử** được công bố. Hợp đồng bài này chọn \(|a-b| \le \max(\mathrm{absTol},\mathrm{relTol}\cdot\max(|a|,|b|))\) cho hai số hữu hạn, NaN luôn false, cùng vô cực true, signed zero true, tolerance bất hợp lệ ném lỗi. Hãy chọn các ngưỡng bằng yêu cầu thực tế và không dùng gần bằng thay thế bằng nhau chính xác trong cấu trúc dữ liệu.
+**Remember:** A sound approximate-equality function must publish its **formula, tolerance meaning, special-value handling, boundary rules, input limits, and tests**. This lesson's contract chooses \(|a-b| \le \max(\mathrm{absTol},\mathrm{relTol}\cdot\max(|a|,|b|))\) for two finite numbers, NaN always false, matching infinities true, signed zeros true, and invalid tolerances throwing an error. Choose thresholds from real requirements and do not use approximate equality to replace exact equality in data structures.

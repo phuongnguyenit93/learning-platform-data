@@ -1,8 +1,8 @@
-# Chính sách chuẩn hóa `scale` của `BigDecimal` trước khi lưu hoặc so sánh
+# Normalization policy for `BigDecimal` `scale` before storing or comparing
 
-## 1. Vì sao cần một chính sách chuẩn hóa?
+## 1. Why is a normalization policy needed?
 
-Trong Java, hai đối tượng `BigDecimal` có thể biểu diễn **cùng một giá trị toán học** nhưng có **`scale` khác nhau**:
+In Java, two `BigDecimal` objects can represent **the same mathematical value** yet have **different `scale` values**:
 
 ```java
 BigDecimal a = new BigDecimal("1.0");  // scale = 1
@@ -12,29 +12,29 @@ System.out.println(a.compareTo(b) == 0); // true
 System.out.println(a.equals(b));         // false
 ```
 
-`compareTo` chỉ xét thứ tự/giá trị số, trong khi `equals` còn yêu cầu cùng `scale`. Sự khác biệt này có thể gây kết quả bất ngờ khi dùng `BigDecimal` làm khóa `HashMap`, phần tử `HashSet`, dữ liệu định danh, giá trị lưu trong cơ sở dữ liệu hoặc trường trong bản ghi được so sánh bằng `equals`.
+`compareTo` only considers ordering/numeric value, while `equals` also requires the same `scale`. This difference can cause unexpected results when using `BigDecimal` as a `HashMap` key, a `HashSet` element, identity data, a value persisted in a database, or a field in a record compared with `equals`.
 
-**Mục tiêu của bài:** xây dựng chính sách nhất quán để quyết định *khi nào* chuẩn hóa `scale`, *chuẩn hóa bằng cách nào* và *ở ranh giới nào* (trước khi lưu, trước khi so sánh, khi tạo khóa, khi trao đổi dữ liệu), mà không làm mất thông tin hoặc âm thầm thay đổi giá trị.
+**Lesson objective:** establish a consistent policy to decide *when* to normalize `scale`, *how* to normalize it, and *at which boundary* (before storing, before comparing, when creating keys, when exchanging data), without losing information or silently altering values.
 
-Không có một cách chuẩn hóa phù hợp cho mọi miền nghiệp vụ. Ba mục tiêu thường gặp rất khác nhau:
+No single normalization approach fits every business domain. Three common goals are very different:
 
-1. **So sánh giá trị số:** `1.0` và `1.00` được coi bằng nhau; có thể dùng `compareTo` trực tiếp.
-2. **Tạo dạng biểu diễn duy nhất cho định danh/khóa:** hai giá trị số bằng nhau cần nhận cùng dạng `BigDecimal`; cân nhắc `stripTrailingZeros`.
-3. **Lưu theo số chữ số thập phân cố định:** ví dụ số tiền với 2 chữ số phần thập phân; cần `setScale(2, ...)` theo chính sách hợp lệ hoặc làm tròn.
+1. **Comparing numeric values:** `1.0` and `1.00` are considered equal; `compareTo` can be used directly.
+2. **Creating a unique representation for identities/keys:** two equal numeric values need to map to the same `BigDecimal` form; consider `stripTrailingZeros`.
+3. **Storing with a fixed number of decimal places:** for example monetary amounts with 2 decimal digits; `setScale(2, ...)` is needed according to a validation or rounding policy.
 
-Nhầm lẫn ba mục tiêu này thường gây ra lỗi dữ liệu hoặc logic khó nhận ra.
+Confusing these three goals often causes subtle data or logic bugs.
 
-## 2. Hiểu đúng `scale`, `precision` và tính bằng nhau
+## 2. Understanding `scale`, `precision`, and equality
 
-`BigDecimal` lưu giá trị dưới dạng:
+`BigDecimal` stores a value in the form:
 
 \[
 \text{value} = \text{unscaledValue} \times 10^{-\text{scale}}
 \]
 
-Ví dụ:
+Examples:
 
-| Chuỗi khởi tạo | `precision()` | `scale()` | Giá trị số |
+| Initialization string | `precision()` | `scale()` | Numeric value |
 | --- | ---: | ---: | ---: |
 | `"1.0"` | 2 | 1 | 1 |
 | `"1.00"` | 3 | 2 | 1 |
@@ -42,22 +42,22 @@ Ví dụ:
 | `"0.0000"` | 1 | 4 | 0 |
 | `"1000.00"` | 6 | 2 | 1000 |
 
-**Precision** là số chữ số có nghĩa của cách biểu diễn, còn **scale** xác định vị trí dấu thập phân. `MathContext(6)` giới hạn chữ số có nghĩa của phép tính; nó không phải chính sách “6 chữ số sau dấu phẩy” để lưu dữ liệu. Để yêu cầu scale cố định, dùng `setScale`.
+**Precision** is the number of significant digits in the representation, whereas **scale** determines the decimal point position. `MathContext(6)` limits the significant digits of an arithmetic operation; it is not a "6 digits after the decimal point" policy for storing data. To enforce a fixed scale, use `setScale`.
 
-Những phương thức quan trọng:
+Key methods:
 
-- `a.compareTo(b) == 0`: bằng nhau về **giá trị số**, bỏ qua khác biệt do scale.
-- `a.equals(b)`: bằng nhau cả về **giá trị số lẫn scale**.
-- `a.hashCode()`: tương ứng với `equals`; vì vậy những số bằng nhau theo `compareTo` nhưng khác scale thường có hash code khác nhau.
-- `a.stripTrailingZeros()`: loại bỏ các số 0 dư ở cuối cách biểu diễn, có thể tạo scale âm.
-- `a.setScale(targetScale, roundingMode)`: tạo đối tượng có scale yêu cầu; có thể chỉ thêm số 0 hoặc cần bỏ bớt chữ số.
-- `a.toPlainString()`: xuất chuỗi thập phân không dùng ký hiệu số mũ, không phải thao tác chuẩn hóa khóa.
+- `a.compareTo(b) == 0`: equal in **numeric value**, ignoring differences in scale.
+- `a.equals(b)`: equal in both **numeric value and scale**.
+- `a.hashCode()`: corresponds to `equals`; therefore numbers equal under `compareTo` with different scales usually have different hash codes.
+- `a.stripTrailingZeros()`: removes redundant trailing zeros from the representation; may produce a negative scale.
+- `a.setScale(targetScale, roundingMode)`: creates an object with the requested scale; may simply append zeros or require discarding digits.
+- `a.toPlainString()`: outputs a decimal string without exponential notation; not a key-normalization operation.
 
-`BigDecimal` bất biến: tất cả phương thức biến đổi trả về đối tượng mới hoặc giá trị mới. Cần sử dụng giá trị trả về; gọi `amount.setScale(2, ...)` mà không gán lại sẽ không thay đổi `amount`.
+`BigDecimal` is immutable: every transforming method returns a new object or value. You must use the returned value; calling `amount.setScale(2, ...)` without reassigning it will not modify `amount`.
 
-## 3. Chính sách A — Chỉ cần so sánh giá trị số
+## 3. Policy A — Only comparing numeric values
 
-Nếu câu hỏi nghiệp vụ là “hai số này có cùng độ lớn không?”, **không cần chuẩn hóa trước khi so sánh**:
+If the business question is "do these two numbers have the same magnitude?", **no normalization is needed before comparing**:
 
 ```java
 BigDecimal supplied = new BigDecimal("10.500");
@@ -67,9 +67,9 @@ boolean sameNumericValue = supplied.compareTo(expected) == 0; // true
 boolean greater = supplied.compareTo(expected) > 0;            // false
 ```
 
-Dùng `compareTo` để so sánh `>`, `<`, `>=`, `<=` hoặc bằng nhau về số học. Không dùng `equals` khi scale không có ý nghĩa nghiệp vụ.
+Use `compareTo` for `>`, `<`, `>=`, `<=`, or numeric equality. Do not use `equals` when scale has no business meaning.
 
-Không được làm tròn/ép scale chỉ để “giúp so sánh” nếu cần so sánh giá trị gốc:
+Do not round or force scale just to "help comparison" if you need to compare original values:
 
 ```java
 BigDecimal x = new BigDecimal("1.004");
@@ -78,17 +78,17 @@ BigDecimal y = new BigDecimal("1.00");
 System.out.println(x.compareTo(y) == 0); // false
 ```
 
-Nếu cả hai được làm tròn về 2 chữ số thập phân với `HALF_EVEN`, chúng đều thành `1.00`. Khi ấy so sánh sau làm tròn là một **quyết định nghiệp vụ khác**, vì đã cố ý loại bỏ sự khác nhau ở phần nghìn. Phải xác định rõ đang so sánh giá trị gốc hay giá trị sau lượng tử hóa.
+If both were rounded to 2 decimal places with `HALF_EVEN`, both would become `1.00`. Comparing after rounding is a **different business decision**, because it intentionally discards differences in the thousandths place. Be explicit about whether you are comparing original values or quantized values.
 
-### Vì sao `HashSet` và `TreeSet` có thể cho kết quả khác?
+### Why can `HashSet` and `TreeSet` give different results?
 
-`HashSet` và `HashMap` sử dụng `equals`/`hashCode` của phần tử hoặc khóa; vì thế `new BigDecimal("1.0")` và `new BigDecimal("1.00")` được coi là hai khóa khác nhau. `TreeSet` với thứ tự tự nhiên sử dụng `compareTo`; vì thế hai giá trị này được coi là cùng vị trí sắp xếp và một trong hai không được thêm vào. Đây là đặc điểm quan trọng của `BigDecimal`: thứ tự tự nhiên **không nhất quán với `equals`**.
+`HashSet` and `HashMap` use the element's or key's `equals`/`hashCode`; therefore `new BigDecimal("1.0")` and `new BigDecimal("1.00")` are treated as two distinct keys. `TreeSet` with natural ordering uses `compareTo`; therefore those two values occupy the same sort position and the second one is not added. This is a crucial trait of `BigDecimal`: its natural ordering is **inconsistent with `equals`**.
 
-Không thay `HashSet` bằng `TreeSet` chỉ để né chuẩn hóa. Hãy định nghĩa trước quy tắc bằng nhau của bộ dữ liệu rồi chọn cách triển khai phù hợp.
+Do not replace `HashSet` with `TreeSet` merely to avoid normalization. Define the dataset's equality rule first, then choose the appropriate implementation.
 
-## 4. Chính sách B — Chuẩn hóa theo giá trị số để dùng làm khóa
+## 4. Policy B — Normalizing by numeric value for keys
 
-Khi hệ thống muốn `1`, `1.0` và `1.00` là **cùng một khóa**, có thể đưa mọi giá trị về dạng chuẩn bằng `stripTrailingZeros()`:
+When a system wants `1`, `1.0`, and `1.00` to be **the same key**, every value can be reduced to a canonical form using `stripTrailingZeros()`:
 
 ```java
 BigDecimal a = new BigDecimal("1.0").stripTrailingZeros();
@@ -97,7 +97,7 @@ BigDecimal b = new BigDecimal("1.00").stripTrailingZeros();
 System.out.println(a.equals(b)); // true
 ```
 
-Hàm chuẩn hóa sau hỗ trợ giá trị `0` nhất quán và từ chối `null` một cách rõ ràng:
+The following normalization helper handles `0` consistently and rejects `null` explicitly:
 
 ```java
 import java.math.BigDecimal;
@@ -110,11 +110,11 @@ public static BigDecimal numericKey(BigDecimal input) {
 }
 ```
 
-Đây là **một phương thức minh họa**, đặt trong lớp Java hoặc dùng phương thức cùng tên trong chương trình hoàn chỉnh ở mục 7.
+This is an **illustrative method**; place it in a Java class or use the same-named method in the complete program in section 7.
 
-Hai lưu ý khi áp dụng:
+Two notes when applying this:
 
-**1. `stripTrailingZeros()` có thể tạo scale âm.**
+**1. `stripTrailingZeros()` can produce a negative scale.**
 
 ```java
 BigDecimal canonical = new BigDecimal("1000.00").stripTrailingZeros();
@@ -124,22 +124,22 @@ System.out.println(canonical.toPlainString()); // 1000
 System.out.println(canonical.scale());         // -3
 ```
 
-Scale âm hợp lệ, không biểu thị sai số. Đừng giả định dạng chuẩn hóa sẽ luôn có `scale >= 0`. Nếu cần chữ số thập phân cố định, hãy dùng chính sách C ở mục tiếp theo.
+Negative scale is valid and does not indicate an error. Do not assume the normalized form will always have `scale >= 0`. If fixed decimal digits are required, use Policy C in the next section.
 
-**2. Chuỗi hiển thị và khóa `BigDecimal` không hoàn toàn là cùng một hợp đồng.**
+**2. Display strings and `BigDecimal` keys do not share the exact same contract.**
 
-`canonical.toPlainString()` từ ví dụ trên xuất `"1000"`. Tạo lại `new BigDecimal("1000")` sẽ có `scale == 0`; nó *bằng về số học* nhưng không `equals` với giá trị chuẩn có scale `-3`. Vì thế, nếu đọc khóa từ chuỗi hoặc hệ thống khác, **chuẩn hóa lại cả hai phía** khi cần so sánh bằng `equals`/làm khóa hash. Không coi `toPlainString` là phép round-trip bảo toàn scale.
+`canonical.toPlainString()` in the example above outputs `"1000"`. Recreating `new BigDecimal("1000")` produces `scale == 0`; it is *numerically equal* but not `equals` to the canonical value with scale `-3`. Therefore, when reading keys from strings or external systems, **re-normalize both sides** whenever comparing with `equals` or using hash keys. Do not treat `toPlainString` as a scale-preserving round-trip.
 
-Chính sách `numericKey` phù hợp cho khóa tra cứu, khử trùng lặp và nhóm dữ liệu theo **giá trị số**. Phải áp dụng nhất quán ở cả lúc chèn, lúc tìm và lúc khôi phục dữ liệu từ kho lưu trữ. Không chỉ chuẩn hóa một nhánh dữ liệu.
+The `numericKey` policy fits lookup keys, deduplication, and grouping data by **numeric value**. Apply it consistently on inserts, lookups, and when restoring data from storage. Never normalize only one data path.
 
-## 5. Chính sách C — Ép `scale` cố định trước khi lưu
+## 5. Policy C — Enforcing a fixed `scale` before storing
 
-Nhiều mô hình lưu trữ có ràng buộc số chữ số phần thập phân, chẳng hạn một cột SQL `DECIMAL(18,2)` hoặc loại giá trị tiền tệ với hai chữ số thập phân. Lúc này, chính sách có thể là:
+Many storage models constrain the number of fractional digits, such as a SQL `DECIMAL(18,2)` column or a currency type with two decimal places. At this point, the policy can be:
 
-- Giá trị hợp lệ phải **biểu diễn chính xác** ở scale đích, nếu không thì từ chối.
-- Hoặc giá trị được phép **làm tròn** theo quy tắc nghiệp vụ đã công bố, rồi lưu scale đích.
+- Valid values must be **represented exactly** at the target scale, or else rejected.
+- Or values may be **rounded** according to a published business rule, then stored at the target scale.
 
-### 5.1. Chính sách nghiêm ngặt: không cho phép mất thông tin
+### 5.1. Strict policy: no information loss allowed
 
 ```java
 BigDecimal amount = new BigDecimal("12.3");
@@ -147,11 +147,11 @@ BigDecimal storage = amount.setScale(2, RoundingMode.UNNECESSARY);
 // 12.30
 ```
 
-`UNNECESSARY` yêu cầu không cần bỏ chữ số có giá trị. `12.3` trở thành `12.30`, và `12.3400` trở thành `12.34` mà vẫn chính xác. Nhưng `12.345` không thể lưu chính xác ở scale 2 nên ném `ArithmeticException`.
+`UNNECESSARY` requires that no non-zero digits need to be discarded. `12.3` becomes `12.30`, and `12.3400` becomes `12.34` exactly. However, `12.345` cannot be stored exactly at scale 2, so it throws `ArithmeticException`.
 
-Dùng cách này khi đầu vào bắt buộc tuân thủ hợp đồng, ví dụ giá sản phẩm chỉ nhận đơn vị nhỏ nhất là xu. Nếu dữ liệu đầu vào có độ chi tiết vượt quá quy định, một lỗi xác thực minh bạch tốt hơn việc cắt hoặc tự làm tròn.
+Use this when inputs must strictly obey a contract, such as product prices accepting cents as the smallest unit. If input data has finer granularity than permitted, a transparent validation error is better than truncating or silently rounding.
 
-### 5.2. Chính sách cho phép làm tròn
+### 5.2. Policy permitting rounding
 
 ```java
 BigDecimal raw = new BigDecimal("2.345");
@@ -159,37 +159,37 @@ BigDecimal stored = raw.setScale(2, RoundingMode.HALF_EVEN);
 // 2.34
 ```
 
-Với `HALF_EVEN`, điểm giữa được làm tròn về chữ số cuối chẵn:
+With `HALF_EVEN`, midpoints round toward the even last digit:
 
-| Giá trị | `setScale(2, HALF_EVEN)` |
+| Value | `setScale(2, HALF_EVEN)` |
 | --- | --- |
 | `2.345` | `2.34` |
 | `2.355` | `2.36` |
 | `12.3` | `12.30` |
 
-Chọn `RoundingMode` theo quy tắc nghiệp vụ, pháp lý hoặc hợp đồng trao đổi dữ liệu: `HALF_EVEN` không phải mặc định đúng cho mọi loại tiền tệ/giao dịch. Chẳng hạn `DOWN` cắt phần dư về phía 0, khác với `FLOOR` đối với số âm. Không được dùng `setScale(2)` thiếu chế độ làm tròn nếu đầu vào có thể cần làm tròn: overload đó có thể ném `ArithmeticException`.
+Choose `RoundingMode` based on business, legal, or data-exchange contract rules: `HALF_EVEN` is not the right default for every currency or transaction. For example, `DOWN` truncates toward 0, which differs from `FLOOR` for negative numbers. Do not call `setScale(2)` without a rounding mode if inputs might require rounding: that overload can throw `ArithmeticException`.
 
-**Nguyên tắc:** phân biệt rõ “kiểm tra dữ liệu có scale hợp lệ” với “cho phép biến đổi giá trị về scale hợp lệ”. Hai đường đi này phải có tên hàm và cách xử lý lỗi tách bạch.
+**Principle:** clearly separate "validating that data has a valid scale" from "allowing conversion of a value to a valid scale." These two paths should have distinct method names and error handling.
 
-## 6. Đặt quy tắc ở đúng ranh giới hệ thống
+## 6. Placing rules at the right system boundaries
 
-### 6.1. Trước khi ghi cơ sở dữ liệu
+### 6.1. Before writing to a database
 
-Giả sử cột `amount DECIMAL(18,2)` có tổng cộng tối đa 18 chữ số thập phân, trong đó 2 chữ số phần thập phân. Nó cho phép tối đa 16 chữ số phần nguyên. Một quy trình lưu an toàn nên:
+Suppose column `amount DECIMAL(18,2)` holds up to 18 total decimal digits, of which 2 are fractional digits. It allows at most 16 integer digits. A safe persistence flow should:
 
-1. Xác định scale và quy tắc làm tròn của miền dữ liệu.
-2. Kiểm tra đầu vào/null, trường hợp vượt miền giá trị và các quy tắc nghiệp vụ khác.
-3. Áp dụng `setScale(2, UNNECESSARY)` nếu cần bảo toàn chính xác, hoặc `setScale(2, selectedMode)` nếu được phép làm tròn.
-4. Kiểm tra giá trị chuẩn hóa có phù hợp `precision` và phạm vi của cột hay không.
-5. Ghi qua JDBC/ORM với kiểu số thập phân phù hợp; đọc lại và kiểm tra nếu hợp đồng đòi tương đương chính xác.
+1. Determine the domain's scale and rounding rule.
+2. Validate input/nulls, out-of-range values, and other business rules.
+3. Apply `setScale(2, UNNECESSARY)` if exact preservation is needed, or `setScale(2, selectedMode)` if rounding is allowed.
+4. Verify that the normalized value fits the column's `precision` and range.
+5. Write via JDBC/ORM with an appropriate decimal type; read back and verify if the contract demands exact equivalence.
 
-Ví dụ ánh xạ ORM `@Column(precision = 18, scale = 2)` chỉ mô tả cột dự kiến; hành vi làm tròn, ép kiểu hoặc từ chối của cơ sở dữ liệu và trình điều khiển có thể khác nhau. **Không dựa vào database để âm thầm chọn chính sách làm tròn thay cho ứng dụng.** Đặc biệt, scale của đối tượng `BigDecimal` sau khi đọc qua JDBC có thể phản ánh kiểu cột/driver, không nhất thiết giữ nguyên cách biểu diễn trong đầu vào ban đầu.
+For example, an ORM annotation `@Column(precision = 18, scale = 2)` only describes the expected column; rounding, casting, or rejection behavior across databases and drivers can vary. **Do not rely on the database to silently pick a rounding policy on behalf of the application.** In particular, the `scale` of a `BigDecimal` read back through JDBC may reflect the column/driver type rather than preserving the original input's representation.
 
-Với các số đo, kết quả khoa học hoặc tỷ lệ có precision biến đổi, việc áp đặt scale 2 sẽ làm mất dữ liệu. Chọn schema, scale và quy tắc lưu phù hợp từng loại giá trị.
+For measurements, scientific results, or ratios with variable precision, forcing scale 2 will lose data. Choose schema, scale, and storage rules appropriate to each value type.
 
-### 6.2. Trước khi tạo khóa `Map`, `Set`, cache hoặc nhóm dữ liệu
+### 6.2. Before creating keys for `Map`, `Set`, caches, or grouping
 
-Nếu định danh dựa trên giá trị số:
+If identity is based on numeric value:
 
 ```java
 Map<BigDecimal, String> labels = new HashMap<>();
@@ -199,29 +199,29 @@ String found = labels.get(numericKey(new BigDecimal("5.00")));
 // "five"
 ```
 
-Mã nhúng này cần `import java.util.Map; import java.util.HashMap;` và phương thức `numericKey` đã định nghĩa. Nên tập trung bước chuẩn hóa ở constructor, factory, value object hoặc lớp truy cập dữ liệu để mọi nơi chèn và truy vấn đều tuân thủ cùng hợp đồng.
+This embedded snippet requires `import java.util.Map; import java.util.HashMap;` and the `numericKey` method defined earlier. Centralize normalization in constructors, factories, value objects, or data access layers so every insertion and lookup follows the same contract.
 
-Nếu scale có ý nghĩa nghiệp vụ — ví dụ số đo `"1.0"` có độ phân giải khác `"1.00"` — **đừng chuẩn hóa mất scale** khi thiết kế định danh, nhật ký kiểm toán hoặc kiểm tra tính bằng nhau.
+If scale carries business meaning—for instance measurement `"1.0"` has different resolution from `"1.00"`—**do not normalize away scale** when designing identities, audit logs, or equality checks.
 
-### 6.3. Trước khi so sánh đối tượng chứa `BigDecimal`
+### 6.3. Before comparing objects containing `BigDecimal`
 
-Một `record`, đối tượng value hoặc DTO tự sinh `equals` có thể kế thừa hành vi `BigDecimal.equals`. Vì vậy:
+A `record`, value object, or DTO with auto-generated `equals` inherits `BigDecimal.equals` behavior. Therefore:
 
-- Nếu scale là một phần bản sắc dữ liệu, giữ nguyên `BigDecimal` và dùng `equals` bình thường.
-- Nếu chỉ giá trị số quyết định tính bằng nhau, chuẩn hóa tại lúc xây dựng đối tượng rồi giữ bất biến; nếu tự định nghĩa `equals`, phải định nghĩa `hashCode` tương ứng.
-- Với so sánh một lần theo giá trị, dùng `compareTo` trực tiếp, không cần sửa dữ liệu đang lưu.
+- If scale is part of data identity, keep `BigDecimal` as-is and use `equals` normally.
+- If only numeric value determines equality, normalize at object construction and keep it immutable; if implementing `equals` manually, implement a matching `hashCode`.
+- For one-off numeric comparisons, use `compareTo` directly without modifying stored data.
 
-Không triển khai `equals` dựa trên `compareTo` nhưng giữ `hashCode` mặc định của `BigDecimal`; điều đó vi phạm hợp đồng các đối tượng bằng nhau phải có cùng hash code.
+Do not implement `equals` using `compareTo` while keeping `BigDecimal`'s default `hashCode`; that violates the contract that equal objects must have the same hash code.
 
-### 6.4. Khi trao đổi JSON hoặc chuỗi
+### 6.4. When exchanging JSON or strings
 
-Nếu hệ thống yêu cầu biểu diễn văn bản **đúng hai chữ số phần thập phân**, hãy dùng `setScale(2, ...)` rồi `toPlainString()` trong bước xuất. Nếu hệ thống yêu cầu **dạng số thập phân chuẩn theo giá trị**, có thể xuất `numericKey(value).toPlainString()` và buộc phía nhận áp dụng lại quy tắc chuẩn hóa.
+If a system requires a text representation with **exactly two fractional digits**, use `setScale(2, ...)` followed by `toPlainString()` during serialization/output. If a system requires **a canonical decimal form by value**, you can output `numericKey(value).toPlainString()` and require the receiver to re-apply the normalization rule.
 
-JSON cho phép biểu diễn số theo nhiều chuỗi chữ số; serializer, parser và ngôn ngữ tiêu thụ có thể xử lý scale khác nhau hoặc chuyển về kiểu dấu chấm động. Nếu phải giữ nguyên số 0 cuối hoặc chuỗi gốc để ký số/kiểm toán, hãy xác định rõ schema và encoding (có thể dùng chuỗi JSON nếu giao thức cho phép) thay vì dựa vào hành vi ngầm của thư viện.
+JSON permits numbers to be written with varying digit strings; serializers, parsers, and consuming languages may handle scale differently or convert to floating point. If trailing zeros or original strings must be preserved for signing or auditing, define the schema and encoding explicitly (potentially using JSON strings if the protocol allows) rather than relying on implicit library behavior.
 
-## 7. Ví dụ Java 17+ hoàn chỉnh
+## 7. Complete Java 17+ example
 
-Lưu file **`BigDecimalScalePolicyDemo.java`**:
+Save the file **`BigDecimalScalePolicyDemo.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -233,20 +233,20 @@ import java.util.Objects;
 public class BigDecimalScalePolicyDemo {
     private static final int MONEY_SCALE = 2;
 
-    // Chính sách khóa: cùng giá trị số -> cùng BigDecimal chuẩn hóa.
+    // Key policy: same numeric value -> same normalized BigDecimal.
     static BigDecimal numericKey(BigDecimal input) {
         BigDecimal normalized =
                 Objects.requireNonNull(input, "input").stripTrailingZeros();
         return normalized.signum() == 0 ? BigDecimal.ZERO : normalized;
     }
 
-    // Chính sách lưu nghiêm ngặt: từ chối mọi giá trị cần làm tròn.
+    // Strict storage policy: reject any value requiring rounding.
     static BigDecimal strictAmount(BigDecimal input) {
         return Objects.requireNonNull(input, "input")
                 .setScale(MONEY_SCALE, RoundingMode.UNNECESSARY);
     }
 
-    // Chính sách lưu cho phép làm tròn (chỉ là ví dụ nghiệp vụ).
+    // Storage policy allowing rounding (business example only).
     static BigDecimal roundedAmount(BigDecimal input) {
         return Objects.requireNonNull(input, "input")
                 .setScale(MONEY_SCALE, RoundingMode.HALF_EVEN);
@@ -286,14 +286,14 @@ public class BigDecimalScalePolicyDemo {
 }
 ```
 
-Chạy với JDK 17 trở lên:
+Run with JDK 17 or later:
 
 ```bash
 javac BigDecimalScalePolicyDemo.java
 java BigDecimalScalePolicyDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 numeric equals: true
@@ -309,48 +309,48 @@ round 2.345: 2.34
 round 2.355: 2.36
 ```
 
-Trong chương trình, `numericKey` chuẩn hóa biểu diễn để có hành vi `equals`/hash ổn định theo giá trị số, trong khi `strictAmount` và `roundedAmount` thực thi **hai chính sách lưu khác nhau**. `toPlainString` quyết định biểu diễn văn bản; `setScale` quyết định scale, và có thể quyết định việc làm tròn. Ba trách nhiệm này không được đánh đồng.
+In the program, `numericKey` normalizes representations for stable numeric `equals`/hash behavior, while `strictAmount` and `roundedAmount` enforce **two different storage policies**. `toPlainString` determines text representation; `setScale` determines scale, and possibly rounding. These three responsibilities must not be conflated.
 
-## 8. Những trường hợp biên phải kiểm thử
+## 8. Edge cases that must be tested
 
-**Giá trị 0 và dấu âm:** `new BigDecimal("0.0000").stripTrailingZeros()` thành giá trị `BigDecimal.ZERO` với scale 0. Nếu hệ thống phải giữ đầu vào nguyên văn (ví dụ dấu `-0.00` trong một thông điệp ban đầu), cần lưu thêm văn bản gốc riêng; chuẩn hóa số học không bảo tồn tất cả chi tiết văn bản.
+**Zero and minus signs:** `new BigDecimal("0.0000").stripTrailingZeros()` becomes `BigDecimal.ZERO` with scale 0. If the system must preserve the verbatim input (for example `-0.00` in an incoming message), store the raw text separately; numeric normalization does not preserve all textual details.
 
-**Scale âm:** `1000.00` sau `stripTrailingZeros` có thể thành `1E+3`, scale `-3`. Đây là số hợp lệ; chấp nhận khi dùng làm khóa chuẩn, hoặc dùng chính sách scale cố định nếu kho lưu không hỗ trợ ý nghĩa biểu diễn đó.
+**Negative scale:** `1000.00` after `stripTrailingZeros` can become `1E+3`, scale `-3`. This is a valid number; accept it when used as a canonical key, or use a fixed-scale policy if storage cannot handle that representation meaning.
 
-**Scale cao nhưng chỉ có số 0:** `new BigDecimal("1.2300").setScale(2, UNNECESSARY)` thành `1.23` mà không mất giá trị. Đếm số ký tự phần thập phân của văn bản nguồn để từ chối tất cả trường hợp quá hai chữ số sẽ khác chính sách “không mất thông tin” này; hãy chọn rõ một trong hai.
+**High scale with only trailing zeros:** `new BigDecimal("1.2300").setScale(2, UNNECESSARY)` becomes `1.23` without losing value. Counting fractional characters in the source text to reject anything over two digits differs from this "no information loss" policy; explicitly choose one of the two.
 
-**Giá trị sát ngưỡng làm tròn:** kiểm thử các giá trị như `2.345`, `2.355`, số âm và các giá trị rất nhỏ. Không dùng cùng một mode theo thói quen cho mọi miền. Đảm bảo so sánh trước hoặc sau làm tròn đúng theo hợp đồng.
+**Values near rounding boundaries:** test values such as `2.345`, `2.355`, negative numbers, and very small values. Do not use the same rounding mode out of habit for every domain. Ensure pre-rounding or post-rounding comparisons match the contract.
 
-**Đọc/ghi nhiều hệ thống:** canonicalize tại cùng ranh giới trên cả đường nhập và đường truy vấn; xem xét trường hợp SQL `DECIMAL`, JSON, serializer, cache và khóa phân tán có chính sách khác nhau.
+**Reading/writing across multiple systems:** canonicalize at the same boundary on both input and query paths; account for SQL `DECIMAL`, JSON, serializers, caches, and distributed keys having different policies.
 
-**Bộ sưu tập:** kiểm thử chèn/truy vấn `HashMap`, `HashSet`, `TreeSet` với `1`, `1.0`, `1.00` để kiểm chứng quy tắc bằng nhau mong muốn.
+**Collections:** test insertion/lookup in `HashMap`, `HashSet`, and `TreeSet` with `1`, `1.0`, and `1.00` to verify the intended equality rule.
 
-**Input `double`:** tránh `new BigDecimal(0.1)` khi mục tiêu là giá trị thập phân chính xác `0.1`; chuyển đổi từ `double` có thể đã mang sai số trước khi bất kỳ chuẩn hóa scale nào diễn ra.
+**`double` input:** avoid `new BigDecimal(0.1)` when the intent is exact decimal `0.1`; conversion from `double` can already carry error before any scale normalization takes place.
 
-**Null/ngoại lệ:** quyết định liệu `null` có hợp lệ hay không. Các hàm ví dụ dùng `Objects.requireNonNull` để báo lỗi rõ ràng. Với `RoundingMode.UNNECESSARY`, `ArithmeticException` là tín hiệu đầu vào không thỏa hợp đồng; xử lý thành lỗi xác thực, không tự thay bằng 0 hoặc âm thầm làm tròn.
+**Null/exceptions:** decide whether `null` is valid. The example functions use `Objects.requireNonNull` to fail clearly. With `RoundingMode.UNNECESSARY`, `ArithmeticException` signals input violating the contract; handle it as a validation error rather than replacing with 0 or silently rounding.
 
-## 9. Bảng quyết định chính sách
+## 9. Policy decision table
 
-| Nhu cầu | Cách làm | Lưu ý |
+| Need | Approach | Notes |
 | --- | --- | --- |
-| So sánh giá trị số, không quan tâm scale | `a.compareTo(b) == 0` | Không cần biến đổi đầu vào |
-| So sánh cả giá trị và scale | `a.equals(b)` | `1.0` khác `1.00` |
-| Khóa hash đồng nhất theo giá trị số | `numericKey(a)` trước khi chèn/tìm | Chuẩn hóa mọi phía; có thể tạo scale âm |
-| Lưu đúng scale 2, không mất dữ liệu | `a.setScale(2, UNNECESSARY)` | Ném ngoại lệ nếu cần làm tròn |
-| Lưu đúng scale 2, cho phép làm tròn | `a.setScale(2, selectedMode)` | Mode phải theo hợp đồng nghiệp vụ |
-| Chuỗi số học chuẩn không có ký hiệu mũ | `numericKey(a).toPlainString()` | Khi parse lại, chuẩn hóa nếu dùng làm khóa |
-| Lưu nguyên độ phân giải/biểu diễn đầu vào | Giữ `BigDecimal` và/hoặc chuỗi gốc | Không loại 0 cuối vô điều kiện |
+| Compare numeric value, ignore scale | `a.compareTo(b) == 0` | No input transformation needed |
+| Compare both value and scale | `a.equals(b)` | `1.0` differs from `1.00` |
+| Hash key consistent by numeric value | `numericKey(a)` before insert/lookup | Normalize on all sides; may yield negative scale |
+| Store at exact scale 2, no data loss | `a.setScale(2, UNNECESSARY)` | Throws exception if rounding is needed |
+| Store at scale 2, rounding allowed | `a.setScale(2, selectedMode)` | Mode must follow business contract |
+| Canonical numeric string without exponent | `numericKey(a).toPlainString()` | When re-parsing, normalize if used as a key |
+| Preserve original input resolution/representation | Keep `BigDecimal` and/or raw string | Do not strip trailing zeros unconditionally |
 
-## 10. Bài tập tự kiểm tra
+## 10. Self-check exercises
 
-1. Vì sao `new BigDecimal("2.0").equals(new BigDecimal("2.00"))` là `false`, nhưng `compareTo` cho `0`? Điều gì xảy ra khi đưa hai giá trị vào `HashSet`?
-2. Viết hàm tạo khóa của một bộ đếm theo giá trị số để `1000`, `1000.0`, `1E+3` trùng khóa. Kiểm tra scale của giá trị chuẩn.
-3. Thiết kế API lưu số tiền `DECIMAL(18,2)` có hai đường đi rõ ràng: (a) chỉ cho phép giá trị chính xác; (b) chấp nhận làm tròn theo quy tắc đã định. Đầu vào `12.345` có kết quả gì với mỗi đường?
-4. Hệ thống đo lường cần phân biệt độ phân giải giữa `1.0` và `1.00`. Có nên gọi `stripTrailingZeros` ngay khi đọc dữ liệu không? Vì sao?
-5. Tại sao `numericKey(x).toPlainString()` không tự bảo đảm rằng `new BigDecimal(resultString).equals(numericKey(x))` cho mọi số nguyên có nhiều số 0 ở cuối?
+1. Why is `new BigDecimal("2.0").equals(new BigDecimal("2.00"))` `false`, while `compareTo` gives `0`? What happens when inserting both into a `HashSet`?
+2. Write a key-building function for a numeric-value counter so that `1000`, `1000.0`, and `1E+3` collide to the same key. Check the scale of the canonical value.
+3. Design a `DECIMAL(18,2)` money storage API with two clear paths: (a) only exact values allowed; (b) rounding allowed per a defined rule. What happens to input `12.345` in each path?
+4. A measurement system needs to distinguish resolution between `1.0` and `1.00`. Should `stripTrailingZeros` be called immediately when reading data? Why?
+5. Why does `numericKey(x).toPlainString()` not automatically guarantee that `new BigDecimal(resultString).equals(numericKey(x))` for every integer ending in multiple zeros?
 
-Gợi ý: (1) `equals` so cả scale; `HashSet` giữ 2 phần tử nếu chưa chuẩn hóa. (2) áp dụng `stripTrailingZeros` nhất quán cho mọi khóa; số nguyên 1000 có thể có scale `-3`. (3) đường nghiêm ngặt từ chối; đường làm tròn chọn kết quả theo mode, ví dụ `HALF_EVEN` thành `12.34`. (4) không, vì scale chứa ý nghĩa đo lường. (5) `toPlainString` không ghi lại scale âm, nên cần chuẩn hóa lại giá trị sau parse nếu dùng `BigDecimal.equals`.
+Hints: (1) `equals` also compares scale; `HashSet` keeps 2 elements if unnormalized. (2) apply `stripTrailingZeros` consistently to every key; integer 1000 can have scale `-3`. (3) strict path rejects; rounding path picks a result per mode, e.g., `HALF_EVEN` gives `12.34`. (4) no, because scale carries measurement meaning. (5) `toPlainString` does not encode negative scale, so re-normalization after parsing is required if using `BigDecimal.equals`.
 
-**Kết luận thực hành:** đặt tên và ghi rõ chính sách tại ranh giới. So sánh số học dùng `compareTo`; khóa đồng nhất số học có thể dùng `stripTrailingZeros`; lưu có scale cố định dùng `setScale` với quy tắc mất dữ liệu minh bạch. Chỉ chuẩn hóa khi biết chắc scale không chứa thông tin có ý nghĩa trong miền đang xử lý.
+**Practical conclusion:** name and document the policy explicitly at boundaries. Use `compareTo` for numeric comparisons; numeric-identity keys can use `stripTrailingZeros`; fixed-scale persistence uses `setScale` with an explicit data-loss rule. Normalize only when you are certain scale carries no meaningful information in the domain being processed.
 
-Tài liệu đối chiếu: [Java SE 17 — `BigDecimal`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html), đặc biệt `compareTo`, `equals`, `hashCode`, `stripTrailingZeros`, `setScale` và `toPlainString`.
+Reference documentation: [Java SE 17 — `BigDecimal`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html), especially `compareTo`, `equals`, `hashCode`, `stripTrailingZeros`, `setScale`, and `toPlainString`.

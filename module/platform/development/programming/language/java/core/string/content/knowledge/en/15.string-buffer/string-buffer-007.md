@@ -1,72 +1,72 @@
-# Chi phí đồng bộ và điều kiện thực sự cần StringBuffer
+# Synchronization Cost and When StringBuffer Is Truly Needed
 
-## 1. Mục tiêu và kết luận thực hành
+## 1. Objective and Practical Conclusion
 
-`StringBuffer` là chuỗi ký tự **có thể thay đổi** và có cơ chế đồng bộ cho những thao tác cần thiết trên **cùng một đối tượng**. `StringBuilder` có API gần tương đương nhưng **không tự đồng bộ**. Vì vậy, khi tạo chuỗi trong một phương thức, trong một request, hoặc trong một tác vụ mà buffer chỉ do một luồng sở hữu, lựa chọn thông thường là `StringBuilder`. Chỉ cân nhắc `StringBuffer` khi thực sự có nhiều luồng truy cập và thay đổi **cùng một buffer**, cần bảo vệ tính nhất quán ở mức **từng lời gọi phương thức**, hoặc phải tương thích với API cũ dùng `StringBuffer`.
+`StringBuffer` is a **mutable** character sequence with synchronization for necessary operations on **the same object**. `StringBuilder` has a nearly identical API but **is not self-synchronized**. Therefore, when building strings inside a method, inside a request, or in a task where the buffer is owned by only one thread, the usual choice is `StringBuilder`. Consider `StringBuffer` only when multiple threads genuinely access and mutate **the same buffer**, protection is needed at the level of **individual method calls**, or compatibility with legacy APIs using `StringBuffer` is required.
 
-Điểm mấu chốt: “thread-safe” của `StringBuffer` **không** có nghĩa mọi chuỗi thao tác gồm nhiều lời gọi đều nguyên tử, không áp đặt thứ tự giữa các luồng, và không tự bảo vệ một `CharSequence` nguồn đang bị luồng khác sửa.
+Key takeaway: `StringBuffer`'s "thread-safe" behavior does **not** mean every multi-call operation sequence is atomic, does not enforce ordering between threads, and does not automatically protect a source `CharSequence` being modified by another thread.
 
-## 2. Đồng bộ của StringBuffer hoạt động như thế nào?
+## 2. How Does StringBuffer Synchronization Work?
 
-- Các phương thức cần bảo vệ trạng thái như `append(...)`, `insert(...)`, `delete(...)`, `setLength(...)` và nhiều thao tác đọc sử dụng đồng bộ trên đối tượng `StringBuffer` tương ứng. Các lần gọi trên **cùng đối tượng** được phối hợp bằng monitor, tránh ghi đè hoặc làm hỏng trạng thái nội bộ khi các luồng cùng thao tác đúng theo hợp đồng API.
-- Khi một luồng thoát khỏi khối/phương thức `synchronized` và luồng khác sau đó lấy **cùng monitor**, Java Memory Model thiết lập quan hệ *happens-before* giữa lần mở khóa và lần khóa tiếp theo, nhờ đó các thay đổi được công bố phù hợp.
-- Monitor là **theo đối tượng**, không phải khóa toàn cục cho mọi `StringBuffer`. Hai buffer độc lập không tranh chấp cùng khóa nội tại.
-- Với `append("A")`, thao tác thêm chuỗi đó vào buffer được bảo vệ như một lời gọi. Nhưng `append("[")` rồi `append("A")` rồi `append("]")` là **ba** lời gọi; một luồng khác có thể xen thao tác của nó giữa các lời gọi ấy.
-- Đồng bộ bảo vệ buffer **đích**, không mặc nhiên khóa dữ liệu nguồn. Ví dụ, khi `append(CharSequence source)` đọc một đối tượng nguồn có thể thay đổi và đang được chia sẻ, người gọi phải bảo đảm dữ liệu nguồn ổn định trong suốt lần đọc (chẳng hạn dùng `String` bất biến hoặc đồng bộ thích hợp).
+- State-protecting methods such as `append(...)`, `insert(...)`, `delete(...)`, `setLength(...)`, and many read operations synchronize on the corresponding `StringBuffer` object. Calls on **the same object** are coordinated via its monitor, preventing overwrites or corruption of internal state when threads operate concurrently according to the API contract.
+- When one thread exits a `synchronized` block/method and another thread later acquires **the same monitor**, the Java Memory Model establishes a *happens-before* relationship between the unlock and subsequent lock, ensuring updates are properly published.
+- The monitor is **per-object**, not a global lock for all `StringBuffer` instances. Two independent buffers do not contend on the same intrinsic lock.
+- With `append("A")`, adding that string to the buffer is protected as a single call. However, `append("[")` then `append("A")` then `append("]")` are **three** calls; another thread can interleave its own operations between those calls.
+- Synchronization protects the **destination** buffer; it does not implicitly lock source data. For example, when `append(CharSequence source)` reads a shared mutable source object, the caller must ensure the source data stays stable during the read (such as using an immutable `String` or appropriate synchronization).
 
-### Mức độ bảo đảm cần phân biệt
+### Guarantees to Distinguish
 
-| Tình huống | `StringBuffer` tự bảo đảm? | Giải thích |
+| Scenario | Automatically guaranteed by `StringBuffer`? | Explanation |
 | --- | --- | --- |
-| Nhiều luồng gọi `append('x')` vào cùng buffer | Có, ở mức từng lời gọi | Trạng thái nội bộ không bị cập nhật đồng thời thiếu đồng bộ; thứ tự ký tự tùy lịch chạy |
-| Hai lần `append` liên tiếp phải đi liền nhau | Không | Luồng khác có thể xen vào giữa |
-| `if (buffer.length() == 0) buffer.append("init")` chỉ chạy một lần | Không | Đọc và ghi là hai thao tác riêng |
-| Các luồng bắt buộc có thứ tự A trước B | Không | Cần cơ chế điều phối/thứ tự bên ngoài |
-| Buffer nguồn khác đang bị sửa trong lúc `append(source)` | Không | Khóa trên đích không tự tạo snapshot ổn định của nguồn |
-| Mỗi luồng làm việc với buffer riêng | Không cần đồng bộ giữa các buffer | `StringBuilder` thường phù hợp hơn |
+| Multiple threads call `append('x')` on the same buffer | Yes, at the single-call level | Internal state is not concurrently updated without synchronization; character order depends on scheduling |
+| Two consecutive `append` calls must stay adjacent | No | Another thread can interleave in between |
+| `if (buffer.length() == 0) buffer.append("init")` runs only once | No | Reading and writing are two separate operations |
+| Threads must follow order A before B | No | External coordination/ordering mechanism is required |
+| Another source buffer is modified during `append(source)` | No | Locking the destination does not automatically create a stable snapshot of the source |
+| Each thread works on its own separate buffer | No cross-buffer synchronization needed | `StringBuilder` is usually more suitable |
 
-## 3. Chi phí đồng bộ đến từ đâu?
+## 3. Where Does Synchronization Cost Come From?
 
-Một lần gọi phương thức được đồng bộ có thêm công việc phối hợp khóa và các ràng buộc về bộ nhớ so với thao tác tương ứng không đồng bộ. Cần tách hai trường hợp:
+A synchronized method call incurs additional lock-coordination work and memory-ordering constraints compared to its unsynchronized counterpart. Two cases should be separated:
 
-1. **Không có tranh chấp khóa:** vẫn có chi phí biểu đạt và xử lý đồng bộ, nhưng HotSpot/JIT có thể tối ưu các khóa thích hợp (ví dụ khi chứng minh đối tượng không thoát khỏi phạm vi). Không thể kết luận mọi lần `append` đều chậm một lượng cố định; hiệu quả tùy JDK, mã và cách chạy.
-2. **Có nhiều luồng tranh chấp cùng buffer:** tại một thời điểm chỉ một luồng giữ monitor cho phần việc được khóa. Các luồng khác phải chờ; việc chuyển quyền sở hữu khóa, đồng bộ bộ nhớ và điều phối luồng làm tăng độ trễ, hạn chế thông lượng và khả năng mở rộng. Với chuỗi nhiều lần `append` rất ngắn, chi phí tranh chấp có thể đáng kể so với công việc nối ký tự.
+1. **Uncontended locks:** there is still synchronization expression and handling overhead, though HotSpot/JIT can optimize eligible locks (for instance when proving an object does not escape scope). You cannot conclude every `append` is slower by a fixed amount; actual efficiency depends on the JDK, code, and runtime behavior.
+2. **Multiple threads contending on the same buffer:** only one thread can hold the monitor for the locked work at a time. Other threads must wait; lock ownership handoffs, memory synchronization, and thread scheduling increase latency and limit throughput and scalability. For sequences of many very short `append` calls, contention cost can be significant relative to the work of appending characters.
 
-Ngoài khóa, cả `StringBuilder` và `StringBuffer` đều có thể phải mở rộng vùng chứa khi vượt `capacity()`. Việc cấp phát/sao chép lúc tăng dung lượng là **chi phí khác** với đồng bộ; đặt dung lượng ban đầu hợp lý có thể giúp cả hai. Đừng quy mọi chênh lệch thời gian hoặc bộ nhớ cho `synchronized`.
+Beyond locking, both `StringBuilder` and `StringBuffer` may need to expand storage when exceeding `capacity()`. Allocation/copying during capacity growth is a **separate cost** from synchronization; setting a sensible initial capacity can help both. Do not attribute every timing or memory difference to `synchronized`.
 
-Không có một tỷ lệ kiểu “`StringBuffer` chậm gấp N lần” đúng cho mọi ứng dụng. JVM có warm-up, JIT, garbage collector, kích thước dữ liệu, mức tranh chấp và cách sử dụng khác nhau. Ngay cả phép thử chỉ có một luồng cũng không phản ánh chi phí khi nhiều luồng chung một đối tượng.
+There is no universal ratio like "`StringBuffer` is N times slower" valid for every application. JVMs vary in warm-up, JIT, garbage collection, data sizes, contention levels, and usage patterns. Even a single-threaded test does not reflect the cost when multiple threads share one object.
 
-## 4. Khi nào thật sự nên chọn StringBuffer?
+## 4. When Should StringBuffer Actually Be Chosen?
 
-**Trường hợp hợp lý:**
+**Reasonable cases:**
 
-- **Một đối tượng mutable phải được dùng chung:** có nhiều luồng cùng `append`/sửa trên một `StringBuffer`, và hợp đồng nghiệp vụ chỉ cần an toàn cho **từng lời gọi**, không yêu cầu các lời gọi liên tiếp luôn tạo thành một giao dịch.
-- **API/thư viện hiện có yêu cầu `StringBuffer`:** cần giữ đúng kiểu tham số hoặc hợp đồng tương thích trong hệ thống cũ. Khi sửa thiết kế, kiểm tra lại nhu cầu chia sẻ và khả năng thay bằng `StringBuilder`.
-- **Cần dùng chung buffer với thao tác tổng hợp được khóa ngoài:** `StringBuffer` vẫn sử dụng được, nhưng phải bọc toàn bộ chuỗi kiểm tra/ghi trong cùng một `synchronized (buffer)` nếu muốn nguyên tử ở cấp nghiệp vụ. Trong một thiết kế mới, cũng nên cân nhắc trạng thái được đóng gói với một khóa rõ ràng và `StringBuilder` bên trong.
+- **A mutable object must be shared:** multiple threads concurrently `append`/edit a single `StringBuffer`, and the business contract only requires safety for **each individual call**, without requiring consecutive calls to form a transaction.
+- **Existing APIs/libraries require `StringBuffer`:** parameter types or compatibility contracts in legacy systems must be preserved. When refactoring the design, re-evaluate sharing needs and whether `StringBuilder` can replace it.
+- **Sharing a buffer with externally locked compound operations:** `StringBuffer` can still be used, provided the entire check/write sequence is wrapped in the same `synchronized (buffer)` when business-level atomicity is desired. In a new design, also consider encapsulated state with an explicit lock and an internal `StringBuilder`.
 
-**Thường không cần `StringBuffer`:**
+**Usually `StringBuffer` is unnecessary:**
 
-- Ghép chuỗi trong vòng lặp/method chạy ở một luồng; mỗi request/tác vụ có buffer riêng.
-- Nhiều luồng làm việc song song nhưng **mỗi luồng sở hữu buffer riêng**, sau đó chuyển kết quả `String` bất biến cho bộ phận tổng hợp.
-- Các chuỗi ngắn có biểu thức `+` rõ ràng, hoặc nối theo quy ước bằng `String.join`/`StringJoiner`/`Collectors.joining`. Chọn API theo độ dễ đọc và đặc tính dữ liệu; đừng tự giả định mọi phép `+` tạo ra quá nhiều đối tượng.
-- Nhiều luồng tạo các đoạn văn bản độc lập: dùng kết quả cục bộ và một cơ chế tập hợp/điều phối phù hợp, tránh ép mọi luồng tranh chấp một buffer chung chỉ để “thread-safe”.
+- Concatenating strings in a loop/method running on one thread; each request/task has its own buffer.
+- Multiple threads work in parallel, yet **each thread owns its own buffer**, then passes immutable `String` results to an aggregator.
+- Short strings with clear `+` expressions, or conventional joining via `String.join`/`StringJoiner`/`Collectors.joining`. Choose APIs for readability and data characteristics; do not assume every `+` creates excessive objects.
+- Multiple threads generate independent text segments: use local results and an appropriate collection/coordination mechanism, rather than forcing all threads to contend on one shared buffer just to be "thread-safe."
 
-### Quy tắc chọn nhanh
+### Quick Selection Rules
 
-| Đặc điểm công việc | Lựa chọn thường hợp lý | Vì sao |
+| Workload characteristics | Usually sensible choice | Why |
 | --- | --- | --- |
-| Ghép chuỗi biến đổi ở một luồng | `StringBuilder` | Không cần khóa cho buffer cục bộ |
-| Chỉ cần chuỗi bất biến đã hoàn thiện | `String` | Dễ chia sẻ, không cần đồng bộ việc sửa |
-| Nhiều luồng nối vào **cùng** mutable buffer, thao tác độc lập | `StringBuffer` | Đồng bộ từng thao tác |
-| Nhiều luồng ghi một bản ghi phải liền mạch qua nhiều lời gọi | Một vùng khóa bao toàn bản ghi hoặc append cả bản ghi đã tạo sẵn bằng **một** lời gọi | `StringBuffer` đơn lẻ không làm nhiều lời gọi trở nên nguyên tử |
-| Hệ thống legacy dùng chữ ký `StringBuffer` | `StringBuffer` tại ranh giới đó | Tuân thủ hợp đồng hiện có |
-| Nhiều luồng tạo đoạn chuỗi riêng | `StringBuilder` cục bộ + tập hợp kết quả có điều phối | Giảm tranh chấp khóa chung |
+| Mutable string building in one thread | `StringBuilder` | No locking needed for a local buffer |
+| Only finished immutable strings needed | `String` | Easy to share, no mutation synchronization needed |
+| Multiple threads appending to the **same** mutable buffer, independent ops | `StringBuffer` | Synchronizes each operation |
+| Multiple threads writing a record that must stay contiguous across calls | One lock block covering the whole record, or append a pre-built record in **one** call | `StringBuffer` alone does not make multiple calls atomic |
+| Legacy system using `StringBuffer` signatures | `StringBuffer` at that boundary | Complies with existing contract |
+| Multiple threads building separate string segments | Local `StringBuilder` + coordinated result aggregation | Reduces shared-lock contention |
 
-## 5. Ví dụ Java 17: giảm số lượt vào monitor bằng cách gom từng lô
+## 5. Java 17 Example: Reducing Monitor Entries by Batching
 
-Nếu mỗi luồng thêm hàng trăm ký tự độc lập vào một buffer chung, gọi `append(char)` từng ký tự sẽ có nhiều lần đi qua monitor của `StringBuffer`. Một lựa chọn khác là mỗi luồng xây **một đoạn cục bộ** trong `StringBuilder` rồi append trọn đoạn qua một lời gọi. Cả hai đúng về nội dung, nhưng **số lời gọi trên buffer dùng chung khác nhau**.
+If each thread appends hundreds of independent characters to a shared buffer, calling `append(char)` character by character enters `StringBuffer`'s monitor many times. An alternative is for each thread to build **a local chunk** in a `StringBuilder` and append the whole chunk in one call. Both are equivalent in content, yet **the number of calls on the shared buffer differs**.
 
-Tạo tệp `StringBufferBatchAppendDemo.java`:
+Create the file `StringBufferBatchAppendDemo.java`:
 
 ```java
 public class StringBufferBatchAppendDemo {
@@ -128,7 +128,7 @@ javac StringBufferBatchAppendDemo.java
 java StringBufferBatchAppendDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 single correct=true
@@ -137,39 +137,39 @@ single append calls=1000
 batched append calls=40
 ```
 
-Mỗi luồng thêm 250 ký tự của riêng nó nên hai kết quả đều dài 1.000 code unit và có 250 ký tự `A`, `B`, `C`, `D`. Phiên bản gọi từng ký tự sử dụng 1.000 lời gọi `append` trên buffer chung; phiên bản theo lô chỉ dùng 40 lần. Nội dung các nhóm có thể được sắp xen kẽ theo lịch luồng nhưng mỗi `append(String)` vẫn thêm toàn bộ nhóm như một thao tác trên đích.
+Each thread adds 250 characters of its own, so both results are 1,000 code units long and contain 250 of each letter `A`, `B`, `C`, `D`. The character-by-character version makes 1,000 `append` calls on the shared buffer; the batched version makes only 40. Group contents may be interleaved according to thread scheduling, yet each `append(String)` still adds an entire group as one operation on the destination.
 
-**Đây là phép đếm lời gọi API, không phải benchmark tốc độ.** Phiên bản theo lô cần thêm `StringBuilder` và tạo `String` cục bộ, có thể tăng chi phí cấp phát. Lợi ích thực tế còn phụ thuộc kích thước lô, số luồng, mức contention và GC. Nếu hiệu năng quan trọng, đo bằng JMH với tải phù hợp trước khi chọn.
+**This is an API call count, not a speed benchmark.** The batched version requires an extra `StringBuilder` and creates local `String` objects, which can increase allocation cost. Actual benefit also depends on batch size, thread count, contention level, and GC. If performance matters, measure with JMH under realistic load before choosing.
 
 
-## 6. Đo hiệu năng đúng cách trước khi tối ưu
+## 6. Measure Performance Properly Before Optimizing
 
-Nếu hiệu năng thật sự là vấn đề, lập benchmark tái hiện cách ứng dụng sử dụng buffer:
+If performance is genuinely an issue, write a benchmark reproducing how the application uses the buffer:
 
-1. Tách kịch bản **buffer riêng mỗi luồng** và **nhiều luồng chung một buffer**. Đây là hai bài toán khác nhau.
-2. Với phương án cần so sánh, giữ logic tạo dữ liệu, kích thước chuỗi, số vòng, kích thước đầu vào và kết quả tương đương. Tránh tối ưu sai ngữ nghĩa chỉ để có con số đẹp.
-3. Dùng **JMH** với warm-up, nhiều lần đo/fork và số luồng rõ ràng; kiểm tra kết quả được tiêu thụ để JIT không loại bỏ công việc. Đo cả throughput lẫn latency khi có contention.
-4. Quan sát profiler/metric về thời gian chờ monitor, CPU, cấp phát và GC khi phù hợp; so sánh trên JDK/hardware gần môi trường chạy thật.
-5. Nếu một buffer chung trở thành nút thắt, xem xét lại **thiết kế chia sẻ** trước khi thay một lớp bằng lớp khác. Thay `StringBuffer` chung thành `StringBuilder` chung mà không thêm đồng bộ là **sai về thread safety**.
+1. Separate the **per-thread private buffer** scenario from **multiple threads sharing one buffer**. These are two different problems.
+2. Across compared alternatives, keep data-generation logic, string sizes, loop counts, input sizes, and results equivalent. Avoid semantically broken optimizations just for flattering numbers.
+3. Use **JMH** with warm-up, multiple measurement iterations/forks, and explicit thread counts; ensure results are consumed so the JIT does not eliminate the work. Measure both throughput and latency under contention.
+4. Observe profiler/metrics for monitor wait time, CPU, allocation, and GC where relevant; compare on a JDK/hardware setup close to production.
+5. If a shared buffer becomes a bottleneck, reconsider the **sharing design** before swapping one class for another. Replacing a shared `StringBuffer` with a shared `StringBuilder` without adding synchronization is **incorrect for thread safety**.
 
-Không dùng `System.nanoTime()` đo một vòng lặp đơn rồi kết luận kết quả đại diện cho hệ thống: warm-up, inlining, dead-code elimination và scheduler đều có thể làm phép đo sai lệch.
+Do not use `System.nanoTime()` to measure a single loop and conclude the result represents the system: warm-up, inlining, dead-code elimination, and the scheduler can all skew measurements.
 
-## 7. Những lỗi hiểu sai thường gặp
+## 7. Common Misunderstandings
 
-- **“Ứng dụng đa luồng nên mọi nối chuỗi phải là StringBuffer.”** Sai: điều quyết định là **cùng instance có bị truy cập đồng thời không**, chứ không phải ứng dụng có bao nhiêu thread.
-- **“StringBuffer làm cả đoạn code thread-safe.”** Sai: nó chỉ bảo vệ hành vi từng thao tác theo hợp đồng của lớp. Quy tắc kiểm tra-rồi-ghi, nhiều bước cập nhật, hoặc quan hệ với dữ liệu khác vẫn phải đồng bộ riêng.
-- **“Synchronized luôn khiến chương trình chậm nghiêm trọng.”** Sai: không có hệ số cố định; JIT có tối ưu và chi phí phụ thuộc tranh chấp. Tuy nhiên khóa trên tài nguyên chung vẫn có thể thành điểm nghẽn.
-- **“Có thể thay StringBuffer chung bằng StringBuilder để tăng tốc.”** Sai nếu không thiết kế lại ownership/locking; `StringBuilder` không bảo đảm an toàn cho ghi đồng thời.
-- **“StringBuffer tự khóa cả CharSequence nguồn.”** Sai: nó chỉ đồng bộ trên buffer đích; nguồn mutable được chia sẻ cần bảo vệ hoặc snapshot độc lập.
-- **“Nếu hai luồng append thì ký tự chắc chắn theo thứ tự luồng tạo trước.”** Sai: thứ tự thực thi phụ thuộc scheduler và điều phối đồng bộ.
+- **"It's a multi-threaded application, so every string concatenation must use StringBuffer."** False: what decides this is **whether the same instance is accessed concurrently**, not how many threads exist in the application.
+- **"StringBuffer makes the whole block of code thread-safe."** False: it only protects individual operation behavior per the class contract. Check-then-write rules, multi-step updates, or relationships with other data must still be synchronized separately.
+- **"Synchronized always makes a program drastically slower."** False: there is no fixed multiplier; the JIT applies optimizations and cost depends on contention. However, locking on a shared resource can still become a bottleneck.
+- **"You can replace a shared StringBuffer with StringBuilder to speed it up."** False without redesigning ownership/locking; `StringBuilder` provides no safety for concurrent writes.
+- **"StringBuffer automatically locks the source CharSequence too."** False: it only synchronizes on the destination buffer; a shared mutable source needs independent protection or a snapshot.
+- **"If two threads append, characters definitely appear in thread-creation order."** False: execution order depends on the scheduler and synchronization coordination.
 
-## 8. Checklist trước khi chọn lớp
+## 8. Pre-Selection Checklist
 
-Trước khi giữ hoặc tạo một `StringBuffer`, hãy tự trả lời: **(1)** Có nhiều luồng thực sự dùng chung *cùng instance* không? **(2)** Có ghi đồng thời không? **(3)** Mỗi lần gọi riêng đã đáp ứng tính nguyên tử của nghiệp vụ chưa? **(4)** Có thể tạo nội dung cục bộ rồi chia sẻ `String` bất biến không? **(5)** Có ràng buộc tương thích API không? **(6)** Đã đo thấy contention hoặc tác động hiệu năng đáng kể chưa?
+Before keeping or creating a `StringBuffer`, ask yourself: **(1)** Do multiple threads actually share *the exact same instance*? **(2)** Are there concurrent writes? **(3)** Does each individual call already satisfy business atomicity? **(4)** Can content be built locally and shared as an immutable `String`? **(5)** Are there API compatibility constraints? **(6)** Have you measured significant contention or performance impact?
 
-Nếu chỉ cần ghép dữ liệu cục bộ, chọn `StringBuilder`. Nếu thật sự cần chia sẻ một buffer mutable với các thay đổi ở mức từng phương thức, `StringBuffer` là lựa chọn sẵn có. Nếu cần bất biến ở cấp nhiều thao tác hoặc thứ tự nghiệp vụ, phải thiết kế thêm cơ chế đồng bộ/điều phối, bất kể tên lớp là gì.
+If you only need to assemble data locally, choose `StringBuilder`. If you genuinely need to share a mutable buffer with per-method mutations, `StringBuffer` is a ready option. If multi-operation invariants or business ordering are needed, additional synchronization/coordination mechanisms must be designed regardless of class name.
 
-### Tài liệu tham khảo
+### References
 
 - [Oracle Java SE 17 — StringBuffer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StringBuffer.html)
 - [Oracle Java SE 17 — StringBuilder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StringBuilder.html)

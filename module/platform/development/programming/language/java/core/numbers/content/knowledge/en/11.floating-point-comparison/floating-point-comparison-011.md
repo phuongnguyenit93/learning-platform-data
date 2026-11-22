@@ -1,12 +1,12 @@
-# Không dùng so sánh gần bằng tùy tiện làm quan hệ equals hoặc thứ tự sắp xếp
+# Do Not Arbitrarily Use Approximate Comparison as `equals` or Sort Order
 
-## 1. Vấn đề cốt lõi
+## 1. The Core Problem
 
-Khi dùng `float` hoặc `double` trong Java, người học thường được khuyên tránh `a == b` sau phép tính có sai số làm tròn. Lời khuyên ấy có lý trong **kiểm tra gần bằng theo yêu cầu đo lường**, nhưng có một ranh giới cực kỳ quan trọng:
+When using `float` or `double` in Java, learners are often advised to avoid `a == b` after calculations with rounding error. That advice makes sense for **tolerance checks driven by measurement requirements**, yet there is a crucial boundary:
 
-> **“Hai số đủ gần” không tự động là quan hệ bằng nhau hợp lệ để triển khai `equals`, `hashCode`, `Comparator` hoặc khóa của `HashMap`/`TreeMap`.**
+> **"Two numbers being close enough" is not automatically a valid equality relation for implementing `equals`, `hashCode`, `Comparator`, or keys in `HashMap`/`TreeMap`.**
 
-Ví dụ quy tắc “coi bằng nhau nếu chênh lệch không vượt 0,1”:
+Consider the rule "treat as equal if the difference does not exceed 0.1":
 
 ```java
 static boolean close(double a, double b) {
@@ -14,7 +14,7 @@ static boolean close(double a, double b) {
 }
 ```
 
-Xét ba giá trị:
+Take three values:
 
 ```text
 a = 0.00
@@ -26,120 +26,120 @@ close(b, c) = true
 close(a, c) = false
 ```
 
-Đây là trường hợp **không bắc cầu**: `a` gần `b`, `b` gần `c`, nhưng `a` không gần `c`. Nếu ta cho `close` thay thế `equals` hoặc trả `0` trong `Comparator.compare`, các cấu trúc dữ liệu vốn cần một khái niệm bằng nhau/thứ tự **nhất quán** có thể hoạt động trái trực giác.
+This is a **non-transitive** case: `a` is close to `b` and `b` is close to `c`, yet `a` is not close to `c`. If you let `close` replace `equals` or return `0` in `Comparator.compare`, data structures that rely on a **consistent** notion of equality or ordering can behave counterintuitively.
 
-Bài này thuộc **Java Core — Numbers / So sánh số thực**. Mục tiêu là:
+This lesson belongs to **Java Core — Numbers / Floating-Point Comparison**. The goals are:
 
-1. Biết khi nào dùng so sánh số thực **chính xác về giá trị**, khi nào dùng **gần bằng** với dung sai.
-2. Hiểu yêu cầu **phản xạ, đối xứng, bắc cầu** của `equals` và mối liên hệ với `hashCode`.
-3. Hiểu hợp đồng `Comparator`, đặc biệt ràng buộc khi `compare(a,b) == 0` và tính bắc cầu.
-4. Giải thích vì sao “epsilon comparator” không an toàn cho `TreeSet`, `TreeMap` và các thuật toán sắp xếp.
-5. Sử dụng `Double.compare` hoặc một **khóa đại diện được chuẩn hóa/định lượng hóa** có quy tắc rõ ràng.
-6. Thiết kế riêng phép kiểm tra gần bằng cho thuật toán số, có xét NaN, infinity, signed zero, sai số tuyệt đối/tương đối và dữ liệu biên.
+1. Know when to use **exact-value** floating-point comparison and when to use **approximate comparison** with tolerance.
+2. Understand the **reflexivity, symmetry, and transitivity** requirements of `equals` and its relationship with `hashCode`.
+3. Understand the `Comparator` contract, especially the constraint when `compare(a,b) == 0` and transitivity.
+4. Explain why an "epsilon comparator" is unsafe for `TreeSet`, `TreeMap`, and sorting algorithms.
+5. Use `Double.compare` or a **normalized/quantized representative key** with explicit rules.
+6. Design separate approximate-equality checks for numerical algorithms, accounting for NaN, infinity, signed zero, absolute/relative error, and boundary data.
 
-Ví dụ chạy được với **Java 17+**; không cần thư viện ngoài JDK.
+Examples run on **Java 17+**; no libraries outside the JDK are needed.
 
-## 2. Cần phân biệt bốn câu hỏi khác nhau
+## 2. Four Distinct Questions to Separate
 
-Các câu hỏi về hai giá trị `double` không nhất thiết có cùng đáp án:
+Questions about two `double` values do not necessarily share the same answer:
 
-| Câu hỏi | Công cụ gợi ý | Mục đích |
+| Question | Suggested tool | Purpose |
 | --- | --- | --- |
-| Hai giá trị bằng theo phép so sánh floating-point của Java không? | `a == b` | Logic toán tử nguyên thủy |
-| Hai giá trị gần nhau theo sai số của bài toán không? | `isClose(a,b,absTol,relTol)` | Kiểm định sai số phép đo/kết quả tính |
-| Hai đối tượng là cùng một khóa theo hợp đồng ứng dụng không? | `equals` và `hashCode` nhất quán | `HashSet`, `HashMap`, mô hình dữ liệu |
-| Hai phần tử có thứ tự nào để sắp xếp/lưu trong cây? | `Comparator` hợp lệ; thường `Double.compare` | `sort`, `TreeSet`, `TreeMap` |
+| Are two values equal under Java's floating-point comparison? | `a == b` | Primitive operator logic |
+| Are two values close within the problem's error margin? | `isClose(a,b,absTol,relTol)` | Validating measurement/calculation error |
+| Are two objects the same key under the application contract? | Consistent `equals` and `hashCode` | `HashSet`, `HashMap`, data modeling |
+| What order do two elements have for sorting or tree storage? | Valid `Comparator`; usually `Double.compare` | `sort`, `TreeSet`, `TreeMap` |
 
-So sánh gần bằng là một **truy vấn** về khoảng cách, không phải mặc nhiên là **định nghĩa danh tính** của một phần tử.
+Approximate comparison is a **query** about distance, not by default a **definition of identity** for an element.
 
-Không nên hiểu “`==` nguy hiểm với `double`” thành “cứ thay mọi phép bằng bằng epsilon”. `==` chính xác có thể hoàn toàn đúng khi so sánh sentinel, kiểm tra zero theo giá trị, hay khi hợp đồng yêu cầu **đúng giá trị dấu phẩy động**. Điều quan trọng là chọn phép so sánh phù hợp với ý nghĩa dữ liệu.
+Do not interpret "`==` is dangerous with `double`" as "replace every equality check with epsilon." Exact `==` can be completely right when checking sentinels, testing zero by value, or when a contract requires **exact floating-point values**. What matters is choosing the comparison that matches the data's meaning.
 
-## 3. Quan hệ tương đương mà `equals` phải tuân thủ
+## 3. The Equivalence Relation That `equals` Must Obey
 
-Theo hợp đồng của `Object.equals`, với các đối tượng khác `null`, một quan hệ bằng nhau hợp lệ phải có ít nhất những tính chất sau:
+By the contract of `Object.equals`, for non-`null` objects, a valid equality relation must have at least the following properties:
 
-- **Phản xạ (reflexive):** `x.equals(x)` phải là `true`.
-- **Đối xứng (symmetric):** nếu `x.equals(y)` thì `y.equals(x)`.
-- **Bắc cầu (transitive):** nếu `x.equals(y)` và `y.equals(z)` thì `x.equals(z)`.
-- **Nhất quán (consistent):** nhiều lần gọi không đổi kết quả nếu những thông tin được dùng để so sánh không đổi.
-- `x.equals(null)` phải là `false`.
+- **Reflexive:** `x.equals(x)` must be `true`.
+- **Symmetric:** if `x.equals(y)`, then `y.equals(x)`.
+- **Transitive:** if `x.equals(y)` and `y.equals(z)`, then `x.equals(z)`.
+- **Consistent:** repeated calls do not change results if the information used for comparison has not changed.
+- `x.equals(null)` must be `false`.
 
-Ngoài ra, nếu `x.equals(y)` là `true` thì **`x.hashCode() == y.hashCode()` bắt buộc đúng**. Hai đối tượng không bằng nhau vẫn có thể trùng hash, nhưng hai đối tượng bằng nhau không được khác hash.
+Furthermore, if `x.equals(y)` is `true`, then **`x.hashCode() == y.hashCode()` must hold**. Two unequal objects may still collide in hash code, but two equal objects must never have different hash codes.
 
-### 3.1. Vì sao epsilon phá vỡ tính bắc cầu?
+### 3.1. Why Does Epsilon Break Transitivity?
 
-Đặt `ε = 0.1` và định nghĩa:
+Set `ε = 0.1` and define:
 
 ```text
-a ≈ b  khi  |a - b| <= ε
+a ≈ b  when  |a - b| <= ε
 ```
 
-Chọn `a = 0.00`, `b = 0.09` và `c = 0.18`.
+Choose `a = 0.00`, `b = 0.09`, and `c = 0.18`.
 
-| Cặp | Khoảng cách | Có “gần bằng” không? |
+| Pair | Distance | "Nearly equal"? |
 | --- | ---: | --- |
-| `a,b` | 0,09 | Có |
-| `b,c` | 0,09 | Có |
-| `a,c` | 0,18 | Không |
+| `a,b` | 0.09 | Yes |
+| `b,c` | 0.09 | Yes |
+| `a,c` | 0.18 | No |
 
-Hợp đồng `equals` sẽ yêu cầu nếu `a` bằng `b` và `b` bằng `c` thì `a` phải bằng `c`. Nhưng kiểm tra dung sai ở đây nói ngược lại.
+The `equals` contract requires that if `a` equals `b` and `b` equals `c`, then `a` must equal `c`. Yet the tolerance check says the opposite.
 
-Một dung sai **dương cố định** trên một miền số liên tục thường có hiện tượng “bắc cầu qua các bước gần nhau”. Đổi từ `<=` sang `<` hoặc đổi epsilon nhỏ hơn không biến nó thành quan hệ tương đương tổng quát.
+A **fixed positive** tolerance over a continuous numeric domain always exhibits "chaining across nearby steps." Changing `<=` to `<` or making epsilon smaller does not turn it into a general equivalence relation.
 
-### 3.2. NaN có thể phá cả phản xạ nếu viết sai
+### 3.2. NaN Can Even Break Reflexivity If Written Wrong
 
-Giả sử:
+Suppose:
 
 ```java
 boolean near = Math.abs(Double.NaN - Double.NaN) <= 1e-9;
 ```
 
-`near` là `false` do mọi so sánh thứ tự `<=` với NaN trả false. Nếu `equals` của một đối tượng dùng chính phép đó để so sánh field và **không có nhánh identity phù hợp**, một đối tượng chứa NaN thậm chí có thể không bằng chính nó. Nhưng thêm `if (this == other) return true;` chỉ có thể chữa **một nhánh phản xạ**, không sửa tính bắc cầu của quan hệ epsilon.
+`near` is `false` because every `<=` ordering comparison with NaN returns false. If an object's `equals` uses that check to compare fields and **lacks an appropriate identity branch**, an object containing NaN may not even equal itself. Adding `if (this == other) return true;` only patches **one reflexivity case**—it does not fix the non-transitivity of the epsilon relation.
 
-Tự đặt epsilon vào `equals` không phải “nâng cấp” toàn diện phép so sánh số thực.
+Putting an epsilon into `equals` is not a comprehensive "upgrade" for floating-point comparison.
 
-## 4. `hashCode` không cứu được quan hệ gần bằng không bắc cầu
+## 4. `hashCode` Cannot Rescue a Non-Transitive Approximate Relation
 
-Một lỗi thường thấy:
+A common mistake:
 
 ```java
-// MÃ Ý TƯỞNG SAI, KHÔNG NÊN DÙNG TRONG equals:
+// WRONG IDEA CODE, DO NOT USE IN equals:
 return Math.abs(this.value - other.value) <= EPSILON;
 ```
 
-rồi triển khai `hashCode` bằng `Double.hashCode(value)`. Khi `this.value` gần `other.value` nhưng bit/giá trị khác nhau, hai object có thể bị `equals` coi là bằng, trong khi hash của chúng khác nhau. Điều này **vi phạm trực tiếp** hợp đồng giữa `equals` và `hashCode`.
+and then implementing `hashCode` with `Double.hashCode(value)`. When `this.value` is close to `other.value` yet has different bits/values, two objects can be deemed equal by `equals` while having different hashes. This **directly violates** the contract between `equals` and `hashCode`.
 
-Có người sửa bằng cách cho mọi object `hashCode()` cố định bằng `1`. Cách đó tránh yêu cầu hash khác nhau, nhưng:
+Some try to fix it by making `hashCode()` return a constant `1` for every object. That avoids unequal hashes, yet:
 
-1. Không khôi phục tính bắc cầu của `equals`.
-2. Có thể làm `HashMap`/`HashSet` suy giảm hiệu năng vì quá nhiều va chạm.
-3. Khi dữ liệu bằng nhau theo từng cặp nhưng không bắc cầu, thao tác tìm/xóa/phân nhóm vẫn khó định nghĩa một cách nhất quán.
+1. It does not restore transitivity to `equals`.
+2. It degrades `HashMap`/`HashSet` performance due to excessive collisions.
+3. When items match pairwise without transitivity, lookup/removal/grouping operations remain impossible to define consistently.
 
-**Kết luận:** một quan hệ gần bằng không bắc cầu không thể trở thành `equals` hợp lệ chỉ nhờ chọn một công thức `hashCode` khéo léo.
+**Conclusion:** a non-transitive approximate relation cannot become a valid `equals` merely by picking a clever `hashCode` formula.
 
-## 5. `Comparator` cần một quan hệ thứ tự nhất quán
+## 5. `Comparator` Needs a Consistent Ordering Relation
 
-Java định nghĩa `Comparator<T>` qua phương thức:
+Java defines `Comparator<T>` via the method:
 
 ```java
 int compare(T a, T b);
 ```
 
-Ý nghĩa dấu kết quả:
+Meaning of the result sign:
 
-- Nhỏ hơn `0`: `a` đứng trước `b`.
-- Bằng `0`: comparator coi `a` và `b` **tương đương về thứ tự**.
-- Lớn hơn `0`: `a` đứng sau `b`.
+- Less than `0`: `a` comes before `b`.
+- Equal to `0`: the comparator treats `a` and `b` as **order-equivalent**.
+- Greater than `0`: `a` comes after `b`.
 
-Hợp đồng comparator yêu cầu (trình bày theo ý nghĩa toán học):
+The comparator contract requires (stated mathematically):
 
-1. **Đổi hai đối số thì dấu đổi:** dấu của `compare(a,b)` phải đối dấu với `compare(b,a)`, với yêu cầu ngoại lệ phù hợp.
-2. **Bắc cầu:** nếu `a > b` và `b > c` theo comparator thì `a > c`.
-3. **Nhất quán của lớp so sánh bằng 0:** nếu `compare(a,b) == 0` thì dấu của `compare(a,z)` và `compare(b,z)` phải giống nhau với mọi `z`.
+1. **Swapping arguments flips the sign:** the sign of `compare(a,b)` must be opposite to `compare(b,a)`, with appropriate exception requirements.
+2. **Transitivity:** if `a > b` and `b > c` under the comparator, then `a > c`.
+3. **Consistency of the zero-comparison class:** if `compare(a,b) == 0`, then the signs of `compare(a,z)` and `compare(b,z)` must match for all `z`.
 
-Điều (3) có nghĩa comparator định nghĩa một **quan hệ tương đương dựa trên kết quả so sánh bằng 0**. Nếu dùng “chênh lệch dưới epsilon” để trả 0, điều (3) dễ bị phá.
+Requirement (3) means a comparator defines an **equivalence relation based on returning zero**. If you use "difference below epsilon" to return 0, requirement (3) easily breaks.
 
-### 5.1. Comparator sai điển hình
+### 5.1. Typical Broken Comparator
 
 ```java
 static final double EPSILON = 0.1;
@@ -152,7 +152,7 @@ static int badCompare(double a, double b) {
 }
 ```
 
-Đoạn này có vẻ hợp lý vì phân biệt số rất khác nhau, còn số gần thì coi bằng. Nhưng với `a=0.00`, `b=0.09`, `c=0.18`:
+This looks plausible because it separates distant numbers while treating close ones as equal. Yet with `a=0.00`, `b=0.09`, `c=0.18`:
 
 ```text
 badCompare(a, b) = 0
@@ -160,13 +160,13 @@ badCompare(b, c) = 0
 badCompare(a, c) = -1
 ```
 
-Comparator vừa nói `a` tương đương `b`, `b` tương đương `c`, nhưng lại nói `a` đứng trước `c`. Đó là **vi phạm hợp đồng**, không chỉ là “độ chính xác chưa tốt”.
+The comparator just claimed `a` is equivalent to `b` and `b` is equivalent to `c`, yet claimed `a` comes before `c`. That is a **contract violation**, not merely "imperfect accuracy."
 
-**Cảnh báo:** không nên viết `return (int) (a - b);` để so sánh `double`. Phép trừ có thể làm tròn, sinh vô cực hoặc NaN; cast sang `int` sẽ làm mất phần thập phân, làm nhiều cặp khác nhau trả 0, thậm chí tràn/saturate. Với `int`/`long`, phép trừ để so sánh cũng có thể tràn. Hãy dùng comparator có hợp đồng rõ ràng.
+**Warning:** do not write `return (int) (a - b);` to compare `double`s. Subtraction can round, produce infinity or NaN; casting to `int` drops the fractional part, makes many distinct pairs return 0, and can even overflow/saturate. Even for `int`/`long`, subtracting to compare can overflow. Use a comparator with a well-defined contract.
 
-## 6. Ví dụ chạy được: cùng dữ liệu, `TreeSet` cho kết quả phụ thuộc thứ tự thêm
+## 6. Runnable Example: Same Data, `TreeSet` Results Depend on Insertion Order
 
-Lưu tệp **`BadEpsilonComparator.java`**:
+Save the file **`BadEpsilonComparator.java`**:
 
 ```java
 import java.util.Comparator;
@@ -211,14 +211,14 @@ public class BadEpsilonComparator {
 }
 ```
 
-Biên dịch/chạy bằng Java 17+:
+Compile and run with Java 17+:
 
 ```bash
 javac --release 17 BadEpsilonComparator.java
 java BadEpsilonComparator
 ```
 
-**Stdout với JDK Java chuẩn:**
+**Stdout on standard Java JDK:**
 
 ```text
 true
@@ -231,41 +231,41 @@ false
 1
 ```
 
-Diễn giải:
+Interpretation:
 
-- Khi thêm `a` trước: `b` bị xem như cùng phần tử với `a`, còn `c` khác `a` nên tập có `2` phần tử.
-- Khi thêm `b` trước: cả `a` và `c` đều được comparator coi là cùng phần tử với `b`, nên tập chỉ có `1` phần tử.
-- Dữ liệu đầu vào là cùng bộ ba, nhưng ý niệm “loại trùng” phụ thuộc thứ tự thêm. Đây là một phản ví dụ đủ để loại bỏ comparator dạng epsilon.
+- When adding `a` first: `b` is treated as the same element as `a`, while `c` differs from `a`, so the set has `2` elements.
+- When adding `b` first: both `a` and `c` are treated by the comparator as the same element as `b`, so the set has only `1` element.
+- The input is the exact same triple, yet "deduplication" depends on insertion order. This counterexample suffices to rule out epsilon comparators.
 
-`TreeSet`/`TreeMap` dùng `compare(a,b) == 0` để quyết định hai khóa có cùng vị trí trong cây, **không dùng `equals` trong bước này**. Các thuật toán `sort` cũng giả định comparator tuân thủ hợp đồng; comparator sai có thể gây thứ tự bất hợp lý hoặc `IllegalArgumentException` về vi phạm hợp đồng trong một số trường hợp, nhưng không bảo đảm lúc nào cũng ném lỗi.
+`TreeSet`/`TreeMap` use `compare(a,b) == 0` to decide whether two keys occupy the same position in the tree, **not `equals` in this step**. `sort` algorithms also assume comparators obey the contract; a broken comparator can produce nonsensical orderings or throw `IllegalArgumentException` for violating the contract in some cases, though it is not guaranteed to throw every time.
 
-**Không triển khai comparator sai rồi “kiểm thử thấy không crash” để kết luận an toàn.** Hợp đồng phải đúng với toàn bộ miền dữ liệu cho phép.
+**Do not deploy a broken comparator just because "tests didn't crash" and conclude it is safe.** The contract must hold over the entire permitted data domain.
 
-## 7. Dùng `Double.compare` để tạo thứ tự ổn định
+## 7. Using `Double.compare` for a Stable Ordering
 
-Với các khóa dựa trên giá trị `double`, lựa chọn mặc định phù hợp thường là:
+For keys based on `double` values, the appropriate default choice is usually:
 
 ```java
 Comparator<Double> byNumericValue = Double::compare;
 ```
 
-Hoặc với đối tượng có thuộc tính số:
+Or for objects with a numeric property:
 
 ```java
 Comparator<Reading> byValue =
         Comparator.comparingDouble(Reading::value);
 ```
 
-Ở đây `Reading` là một kiểu tự định nghĩa có phương thức `value()` trả `double`; đoạn thứ hai là **mảnh minh họa**, không phải chương trình hoàn chỉnh khi chưa khai báo `Reading`.
+Here `Reading` is a user-defined type with a `value()` method returning `double`; the second snippet is an **illustrative fragment**, not a complete program without declaring `Reading`.
 
-`Double.compare` tạo thứ tự được xác định cho cả các giá trị đặc biệt:
+`Double.compare` establishes a defined order even for special values:
 
-- `Double.compare(-0.0, +0.0) < 0`: **zero âm đứng trước zero dương**.
-- `Double.compare(Double.NaN, Double.NaN) == 0`: NaN được coi tương đương trong thứ tự của `Double`.
-- NaN được xếp **lớn hơn các giá trị số khác**, kể cả `Double.POSITIVE_INFINITY`.
-- Các số hữu hạn thông thường và ±Infinity được sắp xếp theo thứ tự số tương ứng.
+- `Double.compare(-0.0, +0.0) < 0`: **negative zero comes before positive zero**.
+- `Double.compare(Double.NaN, Double.NaN) == 0`: NaNs are treated as equivalent in `Double`'s ordering.
+- NaN is ordered **greater than all other numeric values**, including `Double.POSITIVE_INFINITY`.
+- Ordinary finite numbers and ±Infinity are ordered by their numeric values.
 
-Điều này khác với toán tử `==` primitive:
+This differs from the primitive `==` operator:
 
 ```java
 System.out.println(-0.0 == +0.0); // true
@@ -275,29 +275,29 @@ System.out.println(Double.NaN == Double.NaN); // false
 System.out.println(Double.compare(Double.NaN, Double.NaN)); // 0
 ```
 
-**Không dùng `x < y ? -1 : x > y ? 1 : 0` làm comparator tổng quát cho `double`**: với NaN cả `<` và `>` đều false, nên có thể trả 0 cho NaN và bất kỳ số nào; với ±0, nó cũng xem bằng nhau. Nếu muốn một thứ tự khác `Double.compare`, phải thiết kế **toàn bộ** quy tắc (bao gồm NaN, ±Infinity, ±0) sao cho vẫn bắc cầu và nhất quán.
+**Do not use `x < y ? -1 : x > y ? 1 : 0` as a general comparator for `double`**: with NaN both `<` and `>` are false, so it can return 0 for NaN and any number; for ±0, it also treats them as equal. If you want an ordering different from `Double.compare`, design the **entire** rule set (including NaN, ±Infinity, ±0) so it remains transitive and consistent.
 
-### 7.1. Thứ tự ổn định không đồng nghĩa dữ liệu đo “giống hệt”
+### 7.1. A Stable Ordering Does Not Mean Measurements Are "Identical"
 
-`Double.compare(a,b) == 0` là một tiêu chí **thứ tự theo giá trị IEEE 754** hữu ích cho dữ liệu dùng làm khóa; không phải phép kiểm định hai kết quả đo có nằm trong sai số cho phép hay không. Vì vậy, vẫn có thể dùng `isClose(a,b)` để hiển thị cảnh báo “hai cảm biến cho kết quả tương tự”, đồng thời dùng `Double.compare` cho việc sắp xếp danh sách theo kết quả.
+`Double.compare(a,b) == 0` is an **ordering criterion by IEEE 754 value** useful for keys; it is not a check of whether two measurements lie within allowed error. Thus, you can still use `isClose(a,b)` to display a warning "two sensors reported similar readings" while using `Double.compare` to sort a list by reading value.
 
-## 8. `Double.equals`, `hashCode`, signed zero và NaN
+## 8. `Double.equals`, `hashCode`, Signed Zero, and NaN
 
-`Double.equals` có hợp đồng khác primitive `==`:
+`Double.equals` has a different contract from primitive `==`:
 
-| Trường hợp | Primitive `==` | `Double.equals` |
+| Case | Primitive `==` | `Double.equals` |
 | --- | --- | --- |
-| `+0.0` và `-0.0` | `true` | `false` |
-| `Double.NaN` và `Double.NaN` | `false` | `true` |
-| Hai giá trị hữu hạn giống nhau về biểu diễn giá trị | `true` | `true` |
+| `+0.0` and `-0.0` | `true` | `false` |
+| `Double.NaN` and `Double.NaN` | `false` | `true` |
+| Two finite values with identical value representation | `true` | `true` |
 
-`Double.equals` so sánh theo mã hóa bit do `Double.doubleToLongBits` trả về; phương thức đó chuẩn hóa các dạng NaN về một mẫu canonical nhưng **giữ sự khác biệt ±0**. `Double.hashCode` nhất quán với hợp đồng này.
+`Double.equals` compares by the bit encoding returned by `Double.doubleToLongBits`; that method normalizes NaN forms to a canonical pattern while **preserving the ±0 distinction**. `Double.hashCode` is consistent with this contract.
 
-Do đó, `HashSet<Double>` có thể giữ hai khóa `+0.0` và `-0.0` riêng biệt, trong khi nhận thêm một NaN canonical-equivalent như đã có thì không tạo phần tử mới.
+Therefore, `HashSet<Double>` can keep `+0.0` and `-0.0` as two separate keys, while adding another canonically equivalent NaN does not create a new element.
 
-### Ví dụ chạy được: so sánh bằng nhau ở ba tầng
+### Runnable Example: Equality at Three Layers
 
-Lưu **`FloatingIdentity.java`**:
+Save **`FloatingIdentity.java`**:
 
 ```java
 import java.util.HashSet;
@@ -327,7 +327,7 @@ public class FloatingIdentity {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac --release 17 FloatingIdentity.java
@@ -346,11 +346,11 @@ true
 3
 ```
 
-Hai giá trị zero khác nhau theo wrapper equality; hai NaN được canonicalize cho `equals`. Điều này phù hợp cho các collection Java, không nhằm khẳng định NaN có quan hệ bằng nhau theo toán học thông thường.
+The two zero values differ under wrapper equality; the two NaNs are canonicalized for `equals`. This fits Java collections and is not meant to claim NaN obeys ordinary mathematical equality.
 
-### 8.1. Nếu tự viết kiểu dữ liệu có field `double`
+### 8.1. If You Write Your Own Type with a `double` Field
 
-Một lựa chọn đúng khi **danh tính chính là bit-value theo `Double`** là viết `equals`/`hashCode` tương thích:
+A valid option when **identity truly is the `Double` bit-value** is writing compatible `equals`/`hashCode`:
 
 ```java
 @Override
@@ -367,60 +367,60 @@ public int hashCode() {
 }
 ```
 
-Đây là **hai phương thức minh họa bên trong class `Measurement`** có field `private final double value`, không phải mã Java độc lập. Dùng `Double.doubleToLongBits` thay vì raw bits nếu muốn tất cả NaN patterns có cùng quy tắc `equals`/`hashCode` như wrapper. Dùng `Double.compare` trong comparator để tương thích với thứ tự của wrapper.
+These are **two illustrative methods inside a `Measurement` class** having a `private final double value` field, not standalone Java code. Use `Double.doubleToLongBits` instead of raw bits if you want all NaN patterns to share the same `equals`/`hashCode` rule as the wrapper. Use `Double.compare` in comparators to stay compatible with wrapper ordering.
 
-Nếu danh tính đối tượng là `id` ổn định, có thể định nghĩa `equals` bằng `id` và chỉ dùng số đo để lọc/gần bằng. Tránh để field floating-point **có thể thay đổi** quyết định `hashCode` sau khi đối tượng đã được đưa vào `HashSet`/`HashMap`.
+If object identity is a stable `id`, define `equals` by `id` and use the measurement only for filtering/approximate checks. Avoid letting a **mutable** floating-point field determine `hashCode` after the object has been placed into a `HashSet`/`HashMap`.
 
-## 9. Khi nào **gần bằng** thực sự phù hợp?
+## 9. When Is **Approximate Comparison** Truly Appropriate?
 
-Một phép kiểm tra dung sai rất hữu ích khi bạn quan tâm đến **độ lớn chênh lệch theo nghĩa vật lý hoặc số học**, ví dụ:
+A tolerance check is very useful when you care about **difference magnitude in a physical or numerical sense**, for example:
 
-- Hai phép đo nhiệt độ có chênh lệch nằm trong sai số cảm biến.
-- So sánh kết quả thuật toán số với giá trị kỳ vọng có dung sai đã xác định.
-- Phát hiện đầu ra mô phỏng khác nhau nhưng vẫn trong ngưỡng chấp nhận.
-- Xác định sự hội tụ theo tiêu chuẩn dựa trên sai số, kèm ngưỡng và tiêu chí dừng được thiết kế phù hợp.
+- Two temperature measurements differing within sensor error.
+- Comparing a numerical algorithm's result with an expected value using a defined tolerance.
+- Detecting simulation outputs that differ yet stay within acceptable bounds.
+- Checking convergence under an error-based criterion with appropriately designed thresholds and stopping rules.
 
-Nhưng câu trả lời `isClose(a,b)` nên là **một boolean của truy vấn cụ thể**, không dùng mặc định để quyết định object nào là “cùng khóa” trong hash/tree collection.
+Yet the answer `isClose(a,b)` should be **a boolean for a specific query**, not used by default to decide which objects share a "key" in hash/tree collections.
 
-### 9.1. Sai số tuyệt đối (absolute tolerance)
+### 9.1. Absolute Tolerance
 
-Một phép kiểm tra đơn giản:
+A simple check:
 
 ```java
 boolean near = Math.abs(actual - expected) <= absoluteTolerance;
 ```
 
-Nếu absolute tolerance có đơn vị đo (ví dụ độ C, mét, giây), hãy đặt giá trị theo sai số mà nghiệp vụ chấp nhận; không dùng một con số “ε thần kỳ” cho mọi tình huống.
+If `absoluteTolerance` has measurement units (e.g., °C, meters, seconds), set the value according to business-accepted error; do not use one "magic ε" for all situations.
 
-Ví dụ `|1.00001 - 1.00002| <= 0.0001` hợp lý khi chỉ cần sai số nhỏ hơn `0.0001` đơn vị; nhưng cùng epsilon đó có thể quá nhỏ hoặc quá lớn ở thang số khác.
+For example, `|1.00001 - 1.00002| <= 0.0001` makes sense when an error below `0.0001` units is all that is needed; yet that same epsilon may be too small or too large on another scale.
 
-### 9.2. Sai số tương đối (relative tolerance)
+### 9.2. Relative Tolerance
 
-Khi thang độ lớn thay đổi, ta có thể dùng:
+When the magnitude scale varies, we can use:
 
 ```text
 |a - b| <= relTol × max(|a|, |b|)
 ```
 
-Sai số tương đối chỉ có ý nghĩa khi thang đo khác 0. Gần zero, một tolerance tương đối thuần túy trở nên khó sử dụng; thường cần một phần **absolute tolerance** để ổn định.
+Relative error makes sense only when the scale is non-zero. Near zero, a pure relative tolerance becomes hard to use; an **absolute tolerance** part is usually needed for stability.
 
-Ví dụ kết hợp:
+Combined example:
 
 ```text
 |a - b| <= max(absTol, relTol × max(|a|, |b|))
 ```
 
-Đây là **quy tắc nghiệp vụ được chọn**, không phải định nghĩa equality của ngôn ngữ. Nó vẫn **không có tính bắc cầu tổng quát**.
+This is a **chosen business rule**, not the language's equality definition. It is still **not generally transitive**.
 
-### 9.3. Cần phân loại NaN/Infinity và kiểm soát input
+### 9.3. Classifying NaN/Infinity and Validating Input
 
-`Math.abs(a - b) <= eps` có thể trả false cho `a == b == Double.POSITIVE_INFINITY` vì `+∞ - +∞` là NaN. Với NaN, biểu thức `<=` trả false. Nếu một hệ thống muốn “cùng vô cực là cùng trạng thái”, quy tắc đó phải được viết rõ, không tự suy từ hiệu số.
+`Math.abs(a - b) <= eps` can return false for `a == b == Double.POSITIVE_INFINITY` because `+∞ - +∞` is NaN. With NaN, `<=` returns false. If a system wants "same infinity means same state," write that rule explicitly rather than inferring it from subtraction.
 
-Nếu comparator dùng `near` để trả 0 khi gặp NaN, điều kiện false có thể đẩy chương trình tới nhánh `Double.compare` nhưng quan hệ trộn vẫn không được bảo đảm bắc cầu. Với epsilon âm hoặc NaN, hành vi càng mơ hồ; phải **validate tolerance** ngay từ đầu.
+If a comparator uses `near` to return 0 and falls back to `Double.compare` on NaN, the mixed relation still is not guaranteed to be transitive. With negative or NaN epsilon, behavior becomes even murkier; **validate tolerances** right at the start.
 
-## 10. Ví dụ Java 17+ cho truy vấn gần bằng an toàn theo phạm vi sử dụng
+## 10. Java 17+ Example for a Scope-Safe Approximate-Equality Query
 
-Lưu thành **`NearEnough.java`**:
+Save to **`NearEnough.java`**:
 
 ```java
 public class NearEnough {
@@ -432,7 +432,7 @@ public class NearEnough {
         }
 
         if (!Double.isFinite(a) || !Double.isFinite(b)) {
-            return false; // Chính sách: chỉ so sánh gần bằng số hữu hạn
+            return false; // Policy: only compare finite numbers for closeness
         }
 
         double diff = Math.abs(a - b);
@@ -453,14 +453,14 @@ public class NearEnough {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac --release 17 NearEnough.java
 java NearEnough
 ```
 
-**Stdout dự kiến:**
+**Expected stdout:**
 
 ```text
 true
@@ -470,36 +470,36 @@ false
 true
 ```
 
-Mục tiêu của hàm là **truy vấn “chênh lệch nằm trong mức cho phép” trên dữ liệu hữu hạn**. Nó **không** được dùng trực tiếp cho `equals` hay `Comparator`.
+The function's goal is **querying "is the difference within the allowed margin" on finite data**. It must **not** be used directly for `equals` or `Comparator`.
 
-Cần hiểu giới hạn của chính hàm mẫu:
+Understand the limits of this sample function itself:
 
-- Nếu `a-b` tràn thành `Infinity` dù hai input hữu hạn, kiểm tra này sẽ trả false. Điều đó phù hợp với nhiều chính sách kiểm tra gần bằng với tolerance nhỏ, nhưng cần phân tích nếu miền dữ liệu rất rộng.
-- Tích `relTol * scale` có thể tràn với tolerance lớn; nên ràng buộc `relTol` và miền input theo ứng dụng. Hàm xác nhận tolerance hữu hạn và không âm, nhưng không thay thế đánh giá điều kiện số học ở mọi miền IEEE 754.
-- Giá trị `-0.0` và `+0.0` được coi gần bằng; đúng nếu ứng dụng chỉ quan tâm độ chênh lệch, **không** đúng nếu cần giữ signed zero.
-- Tolerance có thể không bắc cầu bất kể bạn kết hợp ngưỡng tuyệt đối và tương đối thế nào.
+- If `a-b` overflows to `Infinity` even with finite inputs, this check returns false. That fits many small-tolerance closeness policies, though it needs analysis if the data domain is huge.
+- The product `relTol * scale` can overflow for large tolerances; constrain `relTol` and input ranges per application. The function checks that tolerances are finite and non-negative, but does not replace evaluating numerical conditions across all IEEE 754 ranges.
+- `-0.0` and `+0.0` are considered nearly equal; right if the application only cares about difference magnitude, **wrong** if signed zero must be preserved.
+- Tolerance can be non-transitive regardless of how you combine absolute and relative thresholds.
 
-## 11. Nếu cần gom nhóm: chọn một quy tắc **khóa** ổn định, không dùng epsilon làm equals
+## 11. If Grouping Is Needed: Choose a Stable **Key** Rule, Do Not Use Epsilon as equals
 
-Đôi khi yêu cầu thực sự là: “mọi số thuộc cùng một khoảng nên được nhóm chung”. Đây là bài toán khác với “hai số gần nhau không quá epsilon”.
+Sometimes the actual requirement is: "every number falling in the same interval should be grouped together." This is a different problem from "two numbers are within epsilon of each other."
 
-Có thể định nghĩa một hàm ánh xạ **mỗi giá trị vào một khóa xác định**, rồi áp dụng equality/order lên khóa:
+You can define a function mapping **each value to a deterministic key**, then apply equality/ordering on the key:
 
 ```text
 bucket(x) = floor((x - origin) / width)
 ```
 
-Khi đó:
+Then:
 
 ```text
 sameBucket(a, b) = bucket(a) == bucket(b)
 ```
 
-Do mỗi giá trị có **một khóa duy nhất**, quan hệ `sameBucket` có tính phản xạ, đối xứng và bắc cầu, giả sử đầu vào và quy tắc bucket được kiểm soát nhất quán. Nó khác gần bằng theo khoảng cách: hai số rất gần nhau nhưng nằm hai phía ranh giới bucket **có thể** bị xếp hai nhóm khác nhau. Đây là lựa chọn có chủ đích để lấy **tính ổn định của quan hệ khóa**.
+Because each value has **one unique key**, the `sameBucket` relation is reflexive, symmetric, and transitive, assuming inputs and bucket rules are controlled consistently. It differs from distance-based closeness: two very close numbers on opposite sides of a bucket boundary **can** land in two different groups. This is an intentional trade-off to obtain **key-relation stability**.
 
-### 11.1. Ví dụ bucket cho miền dữ liệu bị ràng buộc
+### 11.1. Bucket Example for a Bounded Data Domain
 
-Lưu **`BucketGrouping.java`**:
+Save **`BucketGrouping.java`**:
 
 ```java
 public class BucketGrouping {
@@ -524,7 +524,7 @@ public class BucketGrouping {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac --release 17 BucketGrouping.java
@@ -542,57 +542,57 @@ true
 false
 ```
 
-`0.49` và `0.51` cách nhau chỉ `0.02` nhưng rơi vào hai bucket khác nhau. Đây **không phải lỗi** của hàm: nó cho thấy bucket equality và distance-based closeness là **hai khái niệm khác nhau**.
+`0.49` and `0.51` are only `0.02` apart yet fall into two different buckets. This is **not a bug** in the function: it shows that bucket equality and distance-based closeness are **two different concepts**.
 
-Ví dụ cố ý dùng `width=0.5` biểu diễn chính xác trong nhị phân và miền đầu vào được chặn. Nếu bucket theo bước thập phân như `0.01` hay dùng các số rất lớn, phải xét làm tròn tại ranh giới, overflow/cast saturation và hợp đồng làm tròn. Có thể dùng `BigDecimal` cho dữ liệu thập phân cần chính xác và lựa chọn chế độ làm tròn phù hợp. Không đưa giá trị NaN/Infinity vào hàm bucket nếu chưa định nghĩa chính sách riêng.
+The example deliberately uses `width=0.5` (exact in binary) and a bounded input range. If bucketing by decimal steps like `0.01` or very large numbers, consider boundary rounding, overflow/cast saturation, and rounding contracts. You can use `BigDecimal` for decimal data requiring exactness and choose an appropriate rounding mode. Do not pass NaN/Infinity into a bucket function without an explicit policy.
 
-### 11.2. Muốn nhóm theo sai số, có thể cần thuật toán clustering
+### 11.2. If You Want to Group by Error, You May Need a Clustering Algorithm
 
-Nếu yêu cầu là “mọi phép đo được coi thuộc một cụm khi có chuỗi liên kết gần nhau” thì bạn đang định nghĩa **connected components theo quan hệ gần kề**, không phải equality từng cặp. Cụm có thể chứa hai điểm cách nhau lớn hơn epsilon nếu có chuỗi điểm trung gian. Nếu yêu cầu “mọi cặp trong một cụm đều gần nhau”, lại là tiêu chí khác. Hãy chọn rõ bài toán clustering; đừng ngầm cài đặt bằng `equals` hoặc comparator tùy tiện.
+If the requirement is "measurements belong to the same cluster when linked by a chain of close neighbors," you are defining **connected components under a proximity relation**, not pairwise equality. A cluster can contain two points farther than epsilon apart if bridged by intermediate points. If the requirement is "every pair in a cluster is close," that is a different criterion. Explicitly pick the clustering problem; do not sneak it into `equals` or an arbitrary comparator.
 
-## 12. Thực hành với `HashMap`, `TreeMap`, `TreeSet` và `sort`
+## 12. Practical Notes with `HashMap`, `TreeMap`, `TreeSet`, and `sort`
 
 ### 12.1. `HashMap`/`HashSet`
 
-Các collection dựa trên hash sử dụng `hashCode` và `equals` của khóa. Chúng mong đợi hợp đồng equality ổn định, bắc cầu và hash nhất quán. Nếu đối tượng chứa giá trị floating-point thay đổi **sau khi đã dùng làm khóa**, có thể không tìm được khóa trong đúng bucket ban đầu.
+Hash-based collections use a key's `hashCode` and `equals`. They expect a stable, transitive equality contract and consistent hashes. If an object holding a floating-point value changes **after being used as a key**, the key may no longer be found in its original bucket.
 
-Tình huống nên tránh:
+Situation to avoid:
 
 ```java
-// Ý tưởng sai: dùng một trường mutable làm hash/equality rồi đổi nó
-// sau khi đối tượng đã được chèn vào HashSet/HashMap.
+// Wrong idea: using a mutable field for hash/equality then changing it
+// after the object has been inserted into a HashSet/HashMap.
 ```
 
-Đây là **mô tả sai lầm**, không phải API Java có thể chạy độc lập. Thiết kế tốt hơn là dùng khóa **immutable** — ví dụ ID, mã mẫu đo, hoặc bucket key được xác định từ đầu.
+This is a **description of a mistake**, not a runnable Java API. A better design is using **immutable** keys—for example an ID, measurement sample code, or a bucket key determined upfront.
 
 ### 12.2. `TreeMap`/`TreeSet`
 
-Collection dạng cây sử dụng `compare` hoặc `compareTo` để xác định thứ tự và sự trùng khóa. Nếu comparator trả `0` cho hai đối tượng mà `equals` coi khác nhau, tập có thể có hành vi khác `Set` dựa trên equals. Java cho phép comparator **không nhất quán với equals** trong một số ngữ cảnh nhưng cần ghi rõ; đối với `SortedSet`/`SortedMap`, việc không nhất quán có thể làm vi phạm kỳ vọng chung của hợp đồng `Set`/`Map`.
+Tree-based collections use `compare` or `compareTo` to determine order and key duplicates. If a comparator returns `0` for two objects that `equals` treats as distinct, the set can behave differently from an `equals`-based `Set`. Java permits comparators that are **inconsistent with equals** in certain contexts if documented; for `SortedSet`/`SortedMap`, inconsistency can violate general expectations of the `Set`/`Map` contracts.
 
-Nhưng comparator **không bắc cầu** là vấn đề nghiêm trọng hơn: nó vi phạm chính hợp đồng `Comparator` và có thể gây kết quả phụ thuộc đường đi so sánh, như ví dụ ở mục 6.
+However, a **non-transitive** comparator is a far more serious problem: it violates the `Comparator` contract itself and can yield path-dependent results, as in Section 6's example.
 
-Nếu cần thứ tự theo số đo rồi phá hòa bằng ID:
+If you need to order by measurement and break ties by ID:
 
 ```java
-// Đoạn này giả định Sample có value():double và id():long
+// This snippet assumes Sample has value():double and id():long
 Comparator<Sample> order =
         Comparator.comparingDouble(Sample::value)
                 .thenComparingLong(Sample::id);
 ```
 
-Đây là **mảnh minh họa**, cần khai báo `Sample`. Comparator tạo thứ tự có tiêu chí rõ, không dùng epsilon để trả `0`. Chú ý: thêm tiêu chí ID chỉ khắc phục những trường hợp **đã bằng nhau theo tiêu chí đầu hợp lệ**; nó không cứu một comparator epsilon vốn không bắc cầu.
+This is an **illustrative fragment**, requiring `Sample` to be declared. The comparator creates an order with clear criteria without using epsilon to return `0`. Note: adding an ID tie-breaker only resolves cases **already equal under a valid primary criterion**; it does not rescue a non-transitive epsilon comparator.
 
-### 12.3. `Collections.sort` và `List.sort`
+### 12.3. `Collections.sort` and `List.sort`
 
-Các thuật toán sắp xếp mong đợi comparator tuân thủ hợp đồng. Với comparator sai, thứ tự sắp xếp có thể thiếu nhất quán, hoặc có thể gặp ngoại lệ cho biết comparator vi phạm hợp đồng trên một số dữ liệu. **Không có ngoại lệ** không chứng minh comparator đúng; phản ví dụ bắc cầu là đủ để bác bỏ tính hợp lệ.
+Sorting algorithms expect comparators to obey the contract. With a broken comparator, sort order may be inconsistent, or an exception may be thrown indicating a contract violation on certain inputs. **No exception thrown** does not prove the comparator is right; a transitivity counterexample suffices to reject its validity.
 
-## 13. Các bẫy đặc biệt của floating point khi thiết kế equality/ordering
+## 13. Special Floating-Point Pitfalls When Designing Equality/Ordering
 
-### 13.1. Signed zero
+### 13.1. Signed Zero
 
-`+0.0 == -0.0` là `true`, nhưng `Double.compare(-0.0,+0.0) < 0` và `Double.equals` phân biệt hai dạng zero.
+`+0.0 == -0.0` is `true`, whereas `Double.compare(-0.0,+0.0) < 0` and `Double.equals` distinguish the two zero forms.
 
-Nếu ứng dụng muốn gộp cả hai thành một khóa, hãy chuẩn hóa theo quy tắc:
+If the application wants to merge both into one key, normalize by this rule:
 
 ```java
 static double normalizeZero(double value) {
@@ -600,160 +600,160 @@ static double normalizeZero(double value) {
 }
 ```
 
-Mảnh phương thức này biến `-0.0` thành `+0.0`, giữ các số khác zero; chỉ dùng nếu dấu zero không có ý nghĩa ở các phép tính kế tiếp. Với phép chia hoặc `Math.atan2`, signed zero có thể có ý nghĩa thực sự.
+This method snippet turns `-0.0` into `+0.0`, keeping other numbers unchanged; use it only if zero's sign carries no meaning in subsequent operations. In division or `Math.atan2`, signed zero can have real significance.
 
 ### 13.2. NaN
 
-`Double.NaN == Double.NaN` là false, trong khi `Double.compare(Double.NaN, Double.NaN) == 0`. Một comparator tự viết dựa trên `a > b` và `a < b` thường sai với NaN. Khi domain không cho phép NaN, hãy **chặn bằng `Double.isFinite`** (nó cũng loại infinity) hoặc `Double.isNaN`; nếu domain cho phép NaN, phải định nghĩa rõ thứ tự và equality.
+`Double.NaN == Double.NaN` is false, whereas `Double.compare(Double.NaN, Double.NaN) == 0`. A hand-written comparator based on `a > b` and `a < b` usually breaks on NaN. When the domain forbids NaN, **block it with `Double.isFinite`** (which also excludes infinity) or `Double.isNaN`; if the domain allows NaN, explicitly define its ordering and equality.
 
-### 13.3. Infinity và overflow của phép trừ
+### 13.3. Infinity and Subtraction Overflow
 
-`Double.POSITIVE_INFINITY - Double.POSITIVE_INFINITY` là NaN. `Double.MAX_VALUE - (-Double.MAX_VALUE)` tràn thành infinity dù hai đầu vào hữu hạn. Công thức `Math.abs(a-b)` chỉ thích hợp khi bạn đã đánh giá miền giá trị và chính sách đối với các kết quả đặc biệt.
+`Double.POSITIVE_INFINITY - Double.POSITIVE_INFINITY` is NaN. `Double.MAX_VALUE - (-Double.MAX_VALUE)` overflows to infinity even though both inputs are finite. The formula `Math.abs(a-b)` is only suitable once you have evaluated the value domain and your policy for special results.
 
-### 13.4. Tolerance thay đổi theo ngữ cảnh
+### 13.4. Tolerance Varies by Context
 
-Sai số chấp nhận được của phép đo nhiệt độ có thể khác đơn vị, độ chính xác thiết bị và thời gian lấy mẫu. Sai số cho thuật toán tính số có thể thay đổi theo magnitude và cách tích lũy phép tính. Không dùng một biến global `EPSILON` rồi áp cho mọi field, mọi domain và mọi chức năng.
+Acceptable error for temperature measurements can vary by unit, device accuracy, and sampling period. Error for numerical algorithms can vary with magnitude and operation accumulation. Do not define one global `EPSILON` and apply it to every field, domain, and feature.
 
-### 13.5. BigDecimal cũng có phân biệt equality và ordering
+### 13.5. BigDecimal Also Distinguishes Equality and Ordering
 
-`BigDecimal` là số thập phân tùy ý độ chính xác, nhưng `new BigDecimal("1.0").equals(new BigDecimal("1.00"))` là false vì `equals` xét cả scale, trong khi `compareTo` trả `0` vì hai giá trị số bằng nhau. Nếu dùng `BigDecimal` làm khóa, phải quyết định liệu scale là một phần danh tính hay có quy tắc chuẩn hóa riêng. Việc đổi từ `double` sang `BigDecimal` **không tự giải quyết mọi vấn đề thiết kế equals/comparator**.
+`BigDecimal` offers arbitrary-precision decimals, yet `new BigDecimal("1.0").equals(new BigDecimal("1.00"))` is false because `equals` checks scale as well, while `compareTo` returns `0` because the numeric values are equal. If using `BigDecimal` as a key, decide whether scale is part of identity or whether a normalization rule applies. Switching from `double` to `BigDecimal` **does not automatically solve every equals/comparator design issue**.
 
-## 14. Quy trình chọn quan hệ so sánh cho dự án
+## 14. Process for Choosing a Comparison Relation in a Project
 
-**Bước 1 — Xác định mục đích.** Bạn cần trả lời “có nằm trong sai số cho phép”, “có phải cùng thực thể”, “có cùng nhóm đã định nghĩa”, hay “xếp thứ tự nào”?
+**Step 1 — Identify the purpose.** Do you need to answer "is it within allowed error," "is it the same entity," "is it in the same defined group," or "what is the sort order"?
 
-**Bước 2 — Xác định domain.** Có cho phép `NaN`, `Infinity`, `-0.0`, giá trị ngoài ngưỡng, hoặc số thập phân cần chính xác không? Có cần phân biệt dữ liệu đo theo đơn vị, timestamp, ID?
+**Step 2 — Identify the domain.** Are `NaN`, `Infinity`, `-0.0`, out-of-range values, or decimals needing exactness allowed? Do measurements need to be distinguished by unit, timestamp, or ID?
 
-**Bước 3 — Nếu chỉ là truy vấn gần bằng**, chọn absolute/relative tolerance theo bài toán, kiểm tra finite và tập dữ liệu biên; trả về một `boolean` riêng, không dùng làm `equals`/`compare`.
+**Step 3 — If it is only an approximate-equality query**, choose absolute/relative tolerance from the problem, check finiteness and boundary datasets; return a separate `boolean`, not `equals`/`compare`.
 
-**Bước 4 — Nếu cần danh tính**, dùng ID ổn định hoặc khóa canonical/bucket có chính sách rõ, tạo `equals`/`hashCode` nhất quán; tránh field mutable.
+**Step 4 — If identity is needed**, use a stable ID or a canonical/bucket key with an explicit policy, creating consistent `equals`/`hashCode`; avoid mutable fields.
 
-**Bước 5 — Nếu cần thứ tự**, dùng `Double.compare` hoặc comparator có các bước so sánh bắc cầu, kiểm tra quy tắc `compare(a,b)==0` và cân nhắc tương thích với equality của khóa.
+**Step 5 — If ordering is needed**, use `Double.compare` or a comparator with transitive comparison steps, verify the `compare(a,b)==0` rule, and consider compatibility with key equality.
 
-**Bước 6 — Kiểm thử phản ví dụ.** Với ba giá trị `0.00, 0.09, 0.18`, truy vấn gần bằng có thể không bắc cầu; nhưng mọi equality hoặc comparator-zero thực sự dùng làm khóa phải có tính bắc cầu. Thêm bộ dữ liệu chứa ±0, NaN, ±Infinity, số lớn, số gần ranh giới bucket.
+**Step 6 — Test counterexamples.** For the triple `0.00, 0.09, 0.18`, an approximate query may be non-transitive; however, any actual `equals` or comparator-zero used for keys must be transitive. Add datasets containing ±0, NaN, ±Infinity, large numbers, and values near bucket boundaries.
 
-**Bước 7 — Ghi rõ quyết định.** Tài liệu hóa: “gần bằng theo dung sai là phép kiểm tra nghiệp vụ” hoặc “khóa nhóm là bucket 0.5 trên miền dữ liệu đã kiểm tra”, không dùng mơ hồ “tất cả gần bằng đều là bằng nhau”.
+**Step 7 — Document the decision.** Write down: "tolerance-based closeness is a business query" or "group key is a 0.5 bucket on the validated domain," avoiding vague claims like "everything close is equal."
 
-## 15. Bộ kiểm thử đặc tính nên có
+## 15. Property-Based Test Suite to Include
 
-Thay vì chỉ kiểm thử từng cặp bất kỳ, với comparator/equality nên kiểm thử các **tính chất**:
+Instead of testing only arbitrary pairs, for comparators/equality test these **properties**:
 
-| Tính chất | Câu hỏi kiểm tra |
+| Property | Verification question |
 | --- | --- |
-| Reflexivity | Với object `x` hợp lệ, `x.equals(x)` có luôn true? |
-| Symmetry | `x.equals(y)` và `y.equals(x)` có giống nhau? |
-| Transitivity | Nếu `x == y` và `y == z` theo equality tự định nghĩa, `x == z` có đúng? |
-| Hash consistency | Nếu `x.equals(y)` thì hash có giống nhau? |
-| Comparator sign symmetry | Dấu của `compare(x,y)` và `compare(y,x)` có ngược nhau? |
-| Comparator transitivity | Nếu `x>y` và `y>z` thì có `x>z` không? |
-| Comparator zero consistency | Nếu `compare(x,y)==0`, thì mọi `z` nhìn `x` và `y` theo cùng dấu thứ tự không? |
-| Special values | ±0.0, NaN, ±Infinity, rất lớn/rất nhỏ được xử lý thế nào? |
-| Mutable key | Khóa có bị thay đổi trong thời gian ở collection không? |
+| Reflexivity | For a valid object `x`, is `x.equals(x)` always true? |
+| Symmetry | Do `x.equals(y)` and `y.equals(x)` match? |
+| Transitivity | If `x == y` and `y == z` under custom equality, does `x == z` hold? |
+| Hash consistency | If `x.equals(y)`, do their hashes match? |
+| Comparator sign symmetry | Are the signs of `compare(x,y)` and `compare(y,x)` opposite? |
+| Comparator transitivity | If `x>y` and `y>z`, does `x>z` hold? |
+| Comparator zero consistency | If `compare(x,y)==0`, does every `z` see `x` and `y` with the same ordering sign? |
+| Special values | How are ±0.0, NaN, ±Infinity, very large/very small numbers handled? |
+| Mutable key | Can a key be mutated while inside a collection? |
 
-**Bộ ba bắt buộc để bắt lỗi epsilon:** `a=0.00`, `b=0.09`, `c=0.18`, `ε=0.1`. Nếu comparator trả `0` cho cặp `a,b` và `b,c` nhưng khác 0 cho `a,c`, dừng lại và thiết kế lại quan hệ, không chỉ tăng số lượng bài test.
+**Mandatory triple to catch epsilon bugs:** `a=0.00`, `b=0.09`, `c=0.18`, `ε=0.1`. If a comparator returns `0` for `a,b` and `b,c` yet non-zero for `a,c`, stop and redesign the relation—do not just add more tests.
 
-## 16. Những ngộ nhận phổ biến
+## 16. Common Misconceptions
 
-1. **“Mọi phép `double ==` đều sai.”** Không đúng. `==` là phép so sánh số học có hợp đồng xác định; sai là dùng nó cho mục tiêu gần bằng khi kết quả có sai số không được xem xét.
-2. **“Thêm epsilon là phép sửa chung cho `equals`.”** Sai: gần bằng thường không bắc cầu.
-3. **“`hashCode() = 1` làm equals epsilon hợp lệ.”** Sai: tính bắc cầu vẫn bị phá.
-4. **“Comparator trả 0 nghĩa là khoảng cách nhỏ hơn epsilon.”** Chỉ có thể nếu quan hệ trả 0 vẫn là quan hệ tương đương hợp lệ; ngưỡng chênh lệch tùy tiện không đáp ứng.
-5. **“`TreeSet` dùng `equals` để loại trùng.”** Sai: nó dùng so sánh bằng 0 của comparator/natural ordering.
-6. **“Sắp xếp không ném exception là comparator đúng.”** Sai: lỗi hợp đồng có thể không lộ ở bộ dữ liệu đang kiểm tra.
-7. **“Chỉ cần `a < b ? -1 : a > b ? 1 : 0` là đủ.”** Không đủ với NaN và signed zero.
-8. **“`Double.compare` cũng chỉ là `a-b`.”** Sai: nó có thứ tự rõ cho NaN, ±0 và các số khác.
-9. **“Bucket 0.5 tương đương gần bằng 0.5.”** Sai: hai điểm rất gần ở ranh giới bucket có thể khác nhóm.
-10. **“NaN luôn bị mọi kiểu so sánh coi không bằng.”** Primitive `==` và wrapper `equals` có hợp đồng khác nhau.
-11. **“Dữ liệu số đo đã gần bằng thì nên là cùng khóa HashMap.”** Không tự động; cần một chính sách danh tính ổn định.
-12. **“Dùng BigDecimal thì equals luôn so sánh theo giá trị số.”** Không đúng khi scale khác nhau.
-13. **“Epsilon = 1e-9 đúng cho mọi thang độ lớn.”** Sai; sai số phải theo đơn vị, quy mô và hợp đồng.
-14. **“Một quan hệ bằng 0 không bắc cầu vẫn có thể thành comparator hợp lệ.”** Sai, đây là vi phạm trực tiếp hợp đồng comparator.
+1. **"All `double ==` comparisons are wrong."** False. `==` is an arithmetic comparison with a well-defined contract; what is wrong is using it for approximate equality when results have unaccounted error.
+2. **"Adding epsilon is a general fix for `equals`."** False: closeness is usually not transitive.
+3. **"`hashCode() = 1` makes epsilon equals valid."** False: transitivity is still broken.
+4. **"A comparator returning 0 means distance is less than epsilon."** Only possible if the zero-returning relation remains a valid equivalence relation; an arbitrary difference threshold does not satisfy this.
+5. **"`TreeSet` uses `equals` to deduplicate."** False: it uses comparator/natural-ordering comparison equal to 0.
+6. **"Sorting without throwing an exception proves the comparator is right."** False: contract bugs may simply remain unexposed on the tested dataset.
+7. **"`a < b ? -1 : a > b ? 1 : 0` is enough."** Insufficient for NaN and signed zero.
+8. **"`Double.compare` is just `a-b`."** False: it defines clear ordering for NaN, ±0, and other numbers.
+9. **"A 0.5 bucket is equivalent to closeness within 0.5."** False: two very close points across a bucket boundary can land in different groups.
+10. **"NaN is always treated as unequal by every kind of comparison."** Primitive `==` and wrapper `equals` have different contracts.
+11. **"Measurement values that are close should share the same HashMap key."** Not automatically; you need a stable identity policy.
+12. **"Using BigDecimal means equals always compares numeric value."** False when scales differ.
+13. **"Epsilon = 1e-9 works for every scale."** False; error must reflect units, scale, and contract.
+14. **"A non-transitive zero relation can still make a valid comparator."** False; this directly violates the comparator contract.
 
-## 17. Bài tập có đáp án
+## 17. Exercises with Answers
 
-### Bài 1 — Tìm tính chất bị vi phạm
+### Exercise 1 — Find the Violated Property
 
-Với `ε=0.1`, `a=0.00`, `b=0.09`, `c=0.18`, hãy xác định tính chất nào của `equals` không được bảo đảm.
+Given `ε=0.1`, `a=0.00`, `b=0.09`, `c=0.18`, identify which property of `equals` fails to hold.
 
-**Đáp án:** tính bắc cầu. `near(a,b)` và `near(b,c)` true, nhưng `near(a,c)` false.
+**Answer:** transitivity. `near(a,b)` and `near(b,c)` are true, yet `near(a,c)` is false.
 
-### Bài 2 — Comparator sai
+### Exercise 2 — Broken Comparator
 
-Cho comparator trả 0 nếu `Math.abs(x-y)<=0.1`, còn lại dùng `Double.compare`. Vì sao không nên dùng nó trong `TreeSet`?
+Given a comparator that returns 0 if `Math.abs(x-y)<=0.1` and otherwise delegates to `Double.compare`, why should it not be used in a `TreeSet`?
 
-**Đáp án:** quan hệ `compare(x,y)==0` không bắc cầu. `TreeSet` dùng comparator để xác định trùng khóa, nên thứ tự chèn có thể làm kết quả khác nhau.
+**Answer:** the `compare(x,y)==0` relation is not transitive. `TreeSet` uses the comparator to determine duplicate keys, so insertion order can change the resulting contents.
 
-### Bài 3 — Phân biệt `==` với `Double.compare`
+### Exercise 3 — Distinguish `==` from `Double.compare`
 
-Dự đoán `-0.0 == +0.0` và `Double.compare(-0.0,+0.0)`.
+Predict `-0.0 == +0.0` and `Double.compare(-0.0,+0.0)`.
 
-**Đáp án:** `true` và `-1`. Java primitive equality coi signed zero bằng nhau, wrapper comparison có thứ tự phân biệt.
+**Answer:** `true` and `-1`. Java primitive equality treats signed zeros as equal, while wrapper comparison orders them distinctly.
 
-### Bài 4 — NaN
+### Exercise 4 — NaN
 
-Dự đoán `Double.NaN == Double.NaN` và `Double.valueOf(Double.NaN).equals(Double.valueOf(Double.NaN))`.
+Predict `Double.NaN == Double.NaN` and `Double.valueOf(Double.NaN).equals(Double.valueOf(Double.NaN))`.
 
-**Đáp án:** `false` và `true`, theo hợp đồng riêng của primitive equality và wrapper equality.
+**Answer:** `false` and `true`, following the separate contracts of primitive equality and wrapper equality.
 
-### Bài 5 — HashCode
+### Exercise 5 — HashCode
 
-Tại sao không nên viết `equals` bằng `Math.abs(a-b)<=eps` nhưng `hashCode` bằng `Double.hashCode(a)`?
+Why should you not implement `equals` as `Math.abs(a-b)<=eps` while implementing `hashCode` as `Double.hashCode(a)`?
 
-**Đáp án:** hai object được coi là bằng nhau theo epsilon có thể có hash khác nhau. Điều này vi phạm yêu cầu “equals true ⇒ hashCode bằng nhau”, bên cạnh lỗi không bắc cầu.
+**Answer:** two objects deemed equal within epsilon can have different hashes. That violates the requirement "equals true ⇒ equal hashCode," in addition to lacking transitivity.
 
-### Bài 6 — Chọn phép so sánh đúng nhu cầu
+### Exercise 6 — Choosing the Comparison for the Need
 
-Một phép đo nhiệt độ có dung sai ±0.2°C. Nên dùng quan hệ nào để xác định **hai phép đo chênh nhau trong dung sai**, và quan hệ nào để xác định **hai bản ghi có cùng ID**?
+A temperature measurement has a tolerance of ±0.2°C. Which relation should determine **whether two measurements differ within tolerance**, and which should determine **whether two records share the same ID**?
 
-**Đáp án:** phép truy vấn gần bằng dựa trên `Math.abs(temp1-temp2)<=0.2` cho yêu cầu đầu; equality bằng `id` ổn định cho yêu cầu thứ hai. Không dùng khoảng cách nhiệt độ làm danh tính bản ghi.
+**Answer:** an approximate query based on `Math.abs(temp1-temp2)<=0.2` for the first requirement; equality by stable `id` for the second. Never use temperature distance as record identity.
 
-### Bài 7 — Bucket ranh giới
+### Exercise 7 — Bucket Boundary
 
-Với `bucket(x)=floor(x/0.5)`, `bucket(0.49)` và `bucket(0.51)` bằng nhau không?
+Given `bucket(x)=floor(x/0.5)`, are `bucket(0.49)` and `bucket(0.51)` equal?
 
-**Đáp án:** không; chúng thuộc bucket `0` và `1` dù chỉ cách nhau 0.02. Đây là hệ quả chính sách lượng hóa, không phải vi phạm bắc cầu.
+**Answer:** no; they fall into buckets `0` and `1` even though they are only 0.02 apart. This is a consequence of a quantization policy, not a transitivity violation.
 
-### Bài 8 — Infinity
+### Exercise 8 — Infinity
 
-Tại sao `Math.abs(Double.POSITIVE_INFINITY-Double.POSITIVE_INFINITY)<=1e-6` là false?
+Why is `Math.abs(Double.POSITIVE_INFINITY-Double.POSITIVE_INFINITY)<=1e-6` false?
 
-**Đáp án:** `Infinity-Infinity` là NaN, và phép so sánh `NaN <= ...` là false. Nếu nghiệp vụ muốn nhận “cùng vô cực”, phải có quy tắc riêng.
+**Answer:** `Infinity-Infinity` is NaN, and `NaN <= ...` is false. If business logic wants to recognize "same infinity," an explicit rule is needed.
 
-### Bài 9 — Comparator thứ cấp
+### Exercise 9 — Secondary Comparator
 
-Khi sắp xếp mẫu đo theo giá trị, nếu hai giá trị bằng nhau theo `Double.compare`, bạn muốn dùng mã bản ghi để sắp thứ tự. Nên làm gì?
+When sorting measurement samples by value, if two values are equal under `Double.compare`, you want to break ties by record ID. What should you do?
 
-**Đáp án:** dùng `Comparator.comparingDouble(Sample::value).thenComparingLong(Sample::id)` với `Sample` có hai phương thức phù hợp. Không dùng epsilon comparator rồi hy vọng ID khắc phục mọi vi phạm.
+**Answer:** use `Comparator.comparingDouble(Sample::value).thenComparingLong(Sample::id)` with `Sample` providing both methods. Do not use an epsilon comparator hoping ID will fix its violations.
 
-### Bài 10 — Chọn cấu trúc dữ liệu
+### Exercise 10 — Choosing a Data Structure
 
-Bạn cần lưu các giá trị và cho phép truy vấn “liệt kê mọi số cách target không quá 0.1”. Có nhất thiết biến quy tắc gần bằng thành `equals`/comparator không?
+You need to store values and support the query "list all numbers within 0.1 of target." Do you have to turn the closeness rule into `equals`/comparator?
 
-**Đáp án:** không. Lưu bằng khóa/thứ tự hợp lệ (`Double.compare` hoặc khóa ID), rồi thực hiện truy vấn khoảng cách riêng trên các phần tử ứng viên. Có thể sử dụng range query có ranh giới thích hợp và lọc bằng hàm near; chính sách với NaN/Infinity phải rõ.
+**Answer:** no. Store using a valid key/order (`Double.compare` or an ID key), then perform a separate distance query over candidate elements. You can use a range query with appropriate bounds and filter with a `near` function; keep the policy for NaN/Infinity clear.
 
-## 18. Checklist trước khi dùng số thực làm khóa hoặc thứ tự
+## 18. Checklist Before Using Floating-Point Numbers as Keys or Ordering
 
-- [ ] Tôi biết rõ **gần bằng** là truy vấn sai số, không mặc nhiên là equality.
-- [ ] Tôi kiểm tra phản xạ, đối xứng, **bắc cầu** và `hashCode` nếu triển khai `equals`.
-- [ ] Tôi kiểm tra hợp đồng `Comparator`, nhất là sự nhất quán khi `compare(a,b)==0`.
-- [ ] Tôi không trả 0 trong comparator chỉ vì `Math.abs(a-b)<=epsilon`.
-- [ ] Tôi dùng `Double.compare`/`Comparator.comparingDouble` khi cần thứ tự theo giá trị floating point.
-- [ ] Tôi biết quy tắc khác nhau của `==` primitive, `Double.equals`, `Double.compare` với NaN và signed zero.
-- [ ] Tôi chọn tolerance theo **đơn vị và thang độ lớn**, validate NaN/Infinity và trường hợp tràn.
-- [ ] Nếu cần nhóm ổn định, tôi định nghĩa **khóa canonical/bucket**, chấp nhận ranh giới nhóm rõ ràng.
-- [ ] Tôi không sửa trường tham gia equality/hash khi đối tượng đang nằm trong hash collection.
-- [ ] Tôi kiểm tra việc sắp xếp/tập hợp với ba giá trị `0.00,0.09,0.18` cùng ±0, NaN, ±Infinity.
-- [ ] Tôi đã biên dịch/chạy ít nhất ba ví dụ và hiểu vì sao kết quả khác nhau theo cơ chế collection.
-- [ ] Quy tắc so sánh/nhóm/sắp xếp được ghi rõ cho người bảo trì sau này.
+- [ ] I know clearly that **approximate equality** is an error query, not equality by default.
+- [ ] I check reflexivity, symmetry, **transitivity**, and `hashCode` when implementing `equals`.
+- [ ] I check the `Comparator` contract, especially consistency when `compare(a,b)==0`.
+- [ ] I never return 0 in a comparator merely because `Math.abs(a-b)<=epsilon`.
+- [ ] I use `Double.compare`/`Comparator.comparingDouble` when ordering by floating-point value.
+- [ ] I know the different rules of primitive `==`, `Double.equals`, and `Double.compare` for NaN and signed zero.
+- [ ] I choose tolerances by **units and magnitude scale**, validating NaN/Infinity and overflow cases.
+- [ ] If stable grouping is needed, I define a **canonical/bucket key** with explicit group boundaries.
+- [ ] I never mutate a field participating in equality/hash while the object is inside a hash collection.
+- [ ] I test sorting/sets with the triple `0.00,0.09,0.18` as well as ±0, NaN, and ±Infinity.
+- [ ] I compiled/ran at least three examples and understand why results differ by collection mechanism.
+- [ ] Comparison/grouping/sorting rules are clearly documented for future maintainers.
 
-**Tài liệu chính thức (Java SE 17):**
+**Official Documentation (Java SE 17):**
 
-- [Object.equals và Object.hashCode](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html): hợp đồng equality và hash.
-- [Comparator interface](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Comparator.html): thứ tự, tính bắc cầu và consistency.
+- [Object.equals and Object.hashCode](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html): equality and hash contracts.
+- [Comparator interface](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Comparator.html): ordering, transitivity, and consistency.
 - [Double API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html): `compare`, `equals`, `hashCode`, signed zero, NaN.
-- [TreeSet API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/TreeSet.html): thứ tự và tiêu chí bằng nhau.
-- [TreeMap API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/TreeMap.html): sorted map theo comparator.
-- [HashMap API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/HashMap.html): sử dụng equality/hash của khóa.
-- [BigDecimal API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): `equals` phân biệt scale, `compareTo` theo giá trị số.
+- [TreeSet API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/TreeSet.html): ordering and equality criteria.
+- [TreeMap API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/TreeMap.html): comparator-sorted map.
+- [HashMap API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/HashMap.html): uses key equality/hash.
+- [BigDecimal API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): `equals` distinguishes scale, `compareTo` compares numeric value.
 
-**Kết luận:** sai số gần bằng là **thông tin của bài toán**, còn `equals`, `hashCode` và `Comparator` là **hợp đồng cấu trúc dữ liệu**. Giữ chúng tách biệt: dùng tolerance cho truy vấn số học; dùng khóa ổn định hoặc `Double.compare` cho danh tính và thứ tự.
+**Conclusion:** approximate error is **problem-domain information**, whereas `equals`, `hashCode`, and `Comparator` are **data-structure contracts**. Keep them separate: use tolerance for numerical queries; use stable keys or `Double.compare` for identity and ordering.

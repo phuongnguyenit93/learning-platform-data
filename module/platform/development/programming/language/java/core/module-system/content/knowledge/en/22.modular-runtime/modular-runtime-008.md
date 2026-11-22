@@ -1,27 +1,27 @@
-# Runtime error do module không resolve
+# Runtime Errors from Unresolved Modules
 
-## 1. Module resolution diễn ra trước khi chạy ứng dụng
+## 1. Module Resolution Happens Before Running the Application
 
-Với ứng dụng dùng Java Platform Module System (JPMS), JVM cần xây dựng **module graph** trước khi nạp main class và thực thi chương trình. Graph bắt đầu từ các root module, sau đó resolver tìm các module mà chúng yêu cầu trực tiếp hoặc gián tiếp qua directive **requires**.
+For an application using the Java Platform Module System (JPMS), the JVM must build the **module graph** before loading the main class and executing the program. The graph starts from the root modules, and then the resolver finds the modules they require directly or indirectly via **requires** directives.
 
-Một lệnh chạy modular thường có dạng:
+A modular launch command typically looks like:
 
 ~~~bash
 java --module-path mods \
   -m com.acme.app/com.acme.app.Main
 ~~~
 
-Trong đó:
+Where:
 
-- **--module-path mods** chỉ định nơi Java tìm các named module và automatic module.
-- **-m com.acme.app/com.acme.app.Main** yêu cầu chạy main class thuộc module **com.acme.app**.
-- Module descriptor và dependency của root module được kiểm tra trước khi main class bắt đầu chạy.
+- **--module-path mods** specifies where Java looks for named modules and automatic modules.
+- **-m com.acme.app/com.acme.app.Main** requests running the main class belonging to module **com.acme.app**.
+- Module descriptors and dependencies of the root module are checked before the main class begins running.
 
-Nếu một module bắt buộc không được tìm thấy, module graph có xung đột hoặc module không thể được resolve, chương trình dừng trước khi vào main. Đây là nhóm lỗi cần xử lý ở cấu hình module path và module descriptor.
+If a required module is not found, the module graph has a conflict, or a module cannot be resolved, the program stops before entering `main`. This is a category of errors that must be resolved in the module path configuration and module descriptors.
 
-## 2. Ví dụ ứng dụng modular tối thiểu
+## 2. Minimal Modular Application Example
 
-Giả sử ứng dụng có hai module:
+Suppose the application has two modules:
 
 ~~~text
 src/
@@ -33,7 +33,7 @@ src/
     └── com/acme/app/Main.java
 ~~~
 
-Module API:
+API module:
 
 ~~~java
 module com.acme.api {
@@ -41,7 +41,7 @@ module com.acme.api {
 }
 ~~~
 
-Class API:
+API class:
 
 ~~~java
 package com.acme.api;
@@ -50,7 +50,7 @@ public record Message(String value) {
 }
 ~~~
 
-Module ứng dụng:
+Application module:
 
 ~~~java
 module com.acme.app {
@@ -73,7 +73,7 @@ public class Main {
 }
 ~~~
 
-Biên dịch các module từ source tree:
+Compile the modules from the source tree:
 
 ~~~bash
 javac --module-source-path src \
@@ -81,41 +81,41 @@ javac --module-source-path src \
   -m com.acme.api,com.acme.app
 ~~~
 
-Chạy module ứng dụng:
+Run the application module:
 
 ~~~bash
 java --module-path mods \
   -m com.acme.app/com.acme.app.Main
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 JPMS is running
 ~~~
 
-Nếu lệnh chạy không tìm được com.acme.api, hãy kiểm tra module path và tên module trước khi thay đổi source code.
+If the launch command cannot find `com.acme.api`, check the module path and module name before changing source code.
 
-## 3. Phân loại lỗi theo thông báo
+## 3. Classifying Errors by Message
 
-Các lỗi sau thường gặp khi module graph không thể được tạo hoặc khi runtime chuyển sang giai đoạn nạp class:
+The following errors commonly occur when the module graph cannot be built or when the runtime moves into the class loading phase:
 
-| Dấu hiệu | Ý nghĩa thường gặp | Nơi cần kiểm tra |
+| Symptom | Common Meaning | Where to Check |
 |---|---|---|
-| java.lang.module.FindException: Module X not found | Resolver không tìm thấy module X được yêu cầu | Module path, tên module, vị trí JAR/thư mục module |
-| FindException: Error reading module hoặc lỗi đọc descriptor | Artifact hỏng, descriptor không hợp lệ hoặc không thể đọc | JAR, module-info.class, định dạng artifact |
-| ResolutionException | Module graph không nhất quán hoặc không thể giải quyết | Dependency, package overlap, phiên bản và ranh giới module |
-| LayerInstantiationException | Không thể tạo layer từ configuration đã resolve | Module graph, package/class loader constraints và cách tạo layer |
-| Could not find or load main class | Module có thể đã được tìm thấy nhưng main class không đúng hoặc không có trong artifact | Tên main class, package, nội dung JAR và lệnh -m |
-| ClassNotFoundException hoặc NoClassDefFoundError | Lỗi nạp class sau hoặc trong quá trình chạy | Class có trong artifact không, dependency/class loader |
-| IllegalAccessError | Runtime không cho phép truy cập type/member theo module boundary | exports, readability và artifact runtime có khớp lúc compile không |
-| InaccessibleObjectException | Reflection truy cập sâu bị module encapsulation chặn | opens và cách framework truy cập |
+| java.lang.module.FindException: Module X not found | The resolver cannot find the required module X | Module path, module name, JAR/module directory location |
+| FindException: Error reading module or descriptor read error | Corrupted artifact, invalid descriptor, or unreadable | JAR, module-info.class, artifact format |
+| ResolutionException | The module graph is inconsistent or unresolvable | Dependencies, package overlap, versions, and module boundaries |
+| LayerInstantiationException | Cannot create a layer from the resolved configuration | Module graph, package/class loader constraints, and layer creation |
+| Could not find or load main class | The module may have been found, but the main class is wrong or missing from the artifact | Main class name, package, JAR contents, and `-m` command |
+| ClassNotFoundException or NoClassDefFoundError | Class loading failure later or during execution | Whether the class is in the artifact, dependencies/class loader |
+| IllegalAccessError | Runtime does not allow accessing a type/member across a module boundary | `exports`, readability, and whether runtime artifacts match compile time |
+| InaccessibleObjectException | Deep reflective access blocked by module encapsulation | `opens` and how the framework accesses the type |
 
-Không nên gom mọi lỗi runtime thành “module không resolve”. Ví dụ, FindException xảy ra khi tìm hoặc resolve module, còn ClassNotFoundException có thể xảy ra sau khi module graph đã được tạo thành công.
+Do not lump every runtime error together as "unresolved module". For example, `FindException` happens while finding or resolving modules, whereas `ClassNotFoundException` can occur after the module graph has already been built successfully.
 
-## 4. Lỗi phổ biến: thiếu module trên module path
+## 4. Common Error: Missing Module on the Module Path
 
-Giả sử com.acme.app khai báo:
+Suppose `com.acme.app` declares:
 
 ~~~java
 module com.acme.app {
@@ -123,14 +123,14 @@ module com.acme.app {
 }
 ~~~
 
-Nhưng khi chạy, lệnh chỉ đưa ứng dụng lên module path:
+However, when running, the command only puts the application on the module path:
 
 ~~~bash
 java --module-path app.jar \
   -m com.acme.app/com.acme.app.Main
 ~~~
 
-Nếu com.acme.api nằm trong api.jar mà không được đưa vào module path, resolver có thể báo:
+If `com.acme.api` resides in `api.jar` and is not placed on the module path, the resolver may report:
 
 ~~~text
 Error occurred during initialization of boot layer
@@ -138,53 +138,53 @@ java.lang.module.FindException: Module com.acme.api not found,
 required by com.acme.app
 ~~~
 
-Cách sửa là cung cấp cả hai artifact:
+The fix is to provide both artifacts:
 
 ~~~bash
 java --module-path "app.jar:api.jar" \
   -m com.acme.app/com.acme.app.Main
 ~~~
 
-Trên Windows, dấu phân cách giữa các phần tử của module path là dấu chấm phẩy:
+On Windows, the separator between module path elements is a semicolon:
 
 ~~~powershell
 java --module-path "app.jar;api.jar" -m com.acme.app/com.acme.app.Main
 ~~~
 
-Nếu các module đã được đặt trong cùng thư mục mods, có thể dùng:
+If the modules are already placed in the same `mods` directory, you can use:
 
 ~~~bash
 java --module-path mods \
   -m com.acme.app/com.acme.app.Main
 ~~~
 
-Đảm bảo mods thực sự chứa các modular JAR hoặc exploded module directories. Chỉ đặt JAR trên ổ đĩa không khiến JVM tự động tìm thấy nó.
+Make sure `mods` actually contains modular JARs or exploded module directories. Simply having a JAR on disk does not make the JVM find it automatically.
 
-## 5. Đặt dependency nhầm trên classpath
+## 5. Placing a Dependency on the Classpath by Mistake
 
-Một lỗi chuyển đổi thường gặp là dependency có trên classpath nhưng module ứng dụng lại khai báo requires tới nó.
+A common migration error is having a dependency on the classpath while the application module declares `requires` on it.
 
-Ví dụ:
+Example:
 
 ~~~bash
 java -cp "app.jar:api.jar" \
   -m com.acme.app/com.acme.app.Main
 ~~~
 
-Classpath phục vụ classpath/unnamed module. Nó không thay thế module path để thỏa mãn một dependency requires com.acme.api của named module.
+The classpath serves the classpath/unnamed module. It does not replace the module path to satisfy a named module's `requires com.acme.api` dependency.
 
-Với ứng dụng modular, hãy đặt dependency trên module path:
+For a modular application, place dependencies on the module path:
 
 ~~~bash
 java --module-path "app.jar:api.jar" \
   -m com.acme.app/com.acme.app.Main
 ~~~
 
-Nếu dependency là JAR không có module-info.class, khi đặt trên module path nó có thể được xem là **automatic module**. Tên module thường được suy ra từ tên JAR, trừ khi JAR khai báo Automatic-Module-Name. Hãy kiểm tra tên thực tế thay vì đoán từ tên file.
+If a dependency is a JAR without `module-info.class`, placing it on the module path allows it to be treated as an **automatic module**. The module name is usually derived from the JAR filename unless the JAR declares `Automatic-Module-Name`. Check the actual name instead of guessing from the filename.
 
-## 6. Tên module không khớp với tên file hoặc tên package
+## 6. Module Name Does Not Match Filename or Package Name
 
-Tên module được khai báo trong descriptor:
+The module name is declared in the descriptor:
 
 ~~~java
 module com.acme.api {
@@ -192,7 +192,7 @@ module com.acme.api {
 }
 ~~~
 
-Consumer phải dùng đúng tên đó:
+The consumer must use that exact name:
 
 ~~~java
 module com.acme.app {
@@ -200,33 +200,33 @@ module com.acme.app {
 }
 ~~~
 
-Tên module không phải tên package và cũng không nhất thiết giống nguyên văn tên JAR. Với explicit module, descriptor là nguồn xác định tên module. Với automatic module, có thể kiểm tra tên suy ra hoặc tên được khai báo trong manifest.
+A module name is not a package name and does not necessarily match the literal JAR filename. For an explicit module, the descriptor is the source defining the module name. For an automatic module, you can inspect the derived name or the name declared in the manifest.
 
-Dùng lệnh sau để xem descriptor của JAR:
+Use the following command to view a JAR's descriptor:
 
 ~~~bash
 jar --describe-module --file mods/acme-api.jar
 ~~~
 
-Nếu module name hiển thị khác với tên trong requires, sửa dependency hoặc cấu hình đóng gói để thống nhất.
+If the displayed module name differs from the name in `requires`, fix the dependency or packaging configuration to align them.
 
-## 7. Kiểm tra module path và các module có thể quan sát
+## 7. Inspecting the Module Path and Observable Modules
 
-Một số lệnh hữu ích:
+Several useful commands:
 
-Liệt kê các module mà runtime nhận diện:
+List modules recognized by the runtime:
 
 ~~~bash
 java --list-modules --module-path mods
 ~~~
 
-Xem descriptor của một JAR:
+View the descriptor of a JAR:
 
 ~~~bash
 jar --describe-module --file mods/acme-api.jar
 ~~~
 
-Validate các module trên module path:
+Validate modules on the module path:
 
 ~~~bash
 java --validate-modules \
@@ -234,17 +234,17 @@ java --validate-modules \
   --add-modules ALL-MODULE-PATH
 ~~~
 
-Kiểm tra dependency của module:
+Check module dependencies:
 
 ~~~bash
 jdeps --check com.acme.app --module-path mods
 ~~~
 
-Các lệnh này phục vụ các mục đích khác nhau: liệt kê module, xem descriptor, kiểm tra module graph và phân tích dependency. Một lệnh thành công không đảm bảo mọi class sẽ nạp được khi chạy, vì vậy vẫn cần integration test trên module path.
+These commands serve different purposes: listing modules, viewing descriptors, checking the module graph, and analyzing dependencies. One command succeeding does not guarantee every class will load at runtime, so integration tests on the module path are still necessary.
 
-## 8. Bật thông tin chi tiết về quá trình resolution
+## 8. Enabling Detailed Output for the Resolution Process
 
-Khi ứng dụng chạy bằng Java launcher, thêm **--show-module-resolution** để xem các module được resolve:
+When running the application with the Java launcher, add **--show-module-resolution** to see the resolved modules:
 
 ~~~bash
 java --show-module-resolution \
@@ -252,16 +252,16 @@ java --show-module-resolution \
   -m com.acme.app/com.acme.app.Main
 ~~~
 
-Thông tin hiển thị giúp xác định:
+The displayed information helps identify:
 
-- Root module nào được yêu cầu.
-- Module nào được tìm thấy và resolve.
-- Dependency nào được đưa vào graph.
-- Service binding nào có thể đưa provider module vào graph.
+- Which root modules were requested.
+- Which modules were found and resolved.
+- Which dependencies were included in the graph.
+- Which service bindings may have brought provider modules into the graph.
 
-Nếu lệnh dừng trước khi in output của ứng dụng, đọc phần thông báo ngay sau thông tin resolution để tìm module thiếu hoặc conflict.
+If the command stops before printing application output, read the message right after the resolution output to locate the missing module or conflict.
 
-Có thể tăng mức chẩn đoán class loading bằng:
+You can increase class-loading diagnostics with:
 
 ~~~bash
 java -Xlog:class+load=info \
@@ -269,53 +269,53 @@ java -Xlog:class+load=info \
   -m com.acme.app/com.acme.app.Main
 ~~~
 
-Log class loading giúp điều tra lỗi xảy ra sau khi module graph đã được tạo, chẳng hạn class bị thiếu hoặc được nạp từ nguồn không mong muốn. Nó không thay thế --show-module-resolution.
+Class loading logs help investigate errors occurring after the module graph has been constructed, such as a missing class or a class loaded from an unexpected source. They do not replace `--show-module-resolution`.
 
-## 9. Các option có thể làm thay đổi module graph
+## 9. Options That Can Alter the Module Graph
 
-Khi đọc lệnh chạy, cần chú ý các option sau:
+When reading a launch command, pay attention to the following options:
 
-- **--module-path**: chỉ định các module có thể được tìm thấy.
-- **--add-modules**: thêm module root ngoài root mặc định. Có thể chỉ định tên module hoặc ALL-MODULE-PATH.
-- **--limit-modules**: giới hạn tập module có thể quan sát; một dependency vốn có thể tìm thấy có thể trở nên không khả dụng.
-- **--upgrade-module-path**: cung cấp module thay thế cho một số module hệ thống theo quy tắc upgrade module path.
-- **--add-reads**: bổ sung quan hệ readability ở runtime.
-- **--add-exports**: mở quyền truy cập public API của package cho module đích.
-- **--add-opens**: cho phép reflective access sâu vào package ở runtime.
+- **--module-path**: specifies which modules can be discovered.
+- **--add-modules**: adds root modules beyond the default root. You can specify module names or `ALL-MODULE-PATH`.
+- **--limit-modules**: restricts the set of observable modules; a dependency that could otherwise be found may become unavailable.
+- **--upgrade-module-path**: provides replacement modules for certain system modules under upgrade module path rules.
+- **--add-reads**: adds readability edges at runtime.
+- **--add-exports**: opens access to a package's public API for target modules.
+- **--add-opens**: allows deep reflective access into a package at runtime.
 
---add-reads, --add-exports và --add-opens thay đổi ranh giới truy cập; chúng không làm một JAR bị thiếu tự xuất hiện trên module path. Nếu thông báo là Module X not found, hãy sửa module discovery trước.
+`--add-reads`, `--add-exports`, and `--add-opens` change access boundaries; they do not make a missing JAR magically appear on the module path. If the message is `Module X not found`, fix module discovery first.
 
---add-modules cũng không thể tìm module nằm ngoài các nguồn mà module finder/runtime quan sát được. Nó yêu cầu resolver đưa một module đã có thể tìm thấy vào graph.
+`--add-modules` also cannot locate modules outside the sources observable by the module finder/runtime. It asks the resolver to include a module that is already discoverable into the graph.
 
-## 10. Runtime error không phải lúc nào cũng là resolution error
+## 10. Runtime Errors Are Not Always Resolution Errors
 
-Sau khi module graph resolve thành công, ứng dụng vẫn có thể lỗi ở các giai đoạn tiếp theo:
+After the module graph resolves successfully, the application can still fail in subsequent phases:
 
-- Main class không tồn tại hoặc tên class trong lệnh -m sai.
-- Một class dependency không có trong JAR hoặc class loader không tìm thấy.
-- Artifact runtime cũ hơn hoặc khác với artifact dùng khi compile.
-- Public package không được export hoặc module không đọc dependency như dự kiến.
-- Framework dùng reflection sâu nhưng package chưa được mở bằng opens.
-- Bytecode được biên dịch bằng JDK mới hơn runtime đang chạy, dẫn tới UnsupportedClassVersionError.
+- The main class does not exist or the class name in `-m` is wrong.
+- A dependency class is missing from the JAR or not found by the class loader.
+- Runtime artifacts are older than or different from the artifacts used at compile time.
+- A public package is not exported or a module does not read a dependency as expected.
+- A framework uses deep reflection, but the package has not been opened with `opens`.
+- Bytecode was compiled with a newer JDK than the running runtime, leading to `UnsupportedClassVersionError`.
 
-Vì vậy, khi thấy lỗi, hãy xác định nó xảy ra trước hay sau khi module graph được tạo. Không nên thêm --add-opens hoặc thay đổi requires nếu lỗi thực tế là sai tên main class hoặc thiếu class trong JAR.
+Therefore, when you see an error, determine whether it happens before or after the module graph is built. Do not add `--add-opens` or change `requires` if the actual error is a misspelled main class name or a missing class in the JAR.
 
-## 11. Quy trình chẩn đoán thực tế
+## 11. Practical Diagnostic Workflow
 
-Khi nhận lỗi runtime liên quan module, thực hiện lần lượt:
+When receiving a module-related runtime error, proceed step by step:
 
-1. **Đọc exception đầu tiên.** Phân biệt FindException, ResolutionException, lỗi tạo layer và lỗi nạp class.
-2. **Xác nhận module chính.** Kiểm tra tên module trong lệnh -m và module descriptor của artifact.
-3. **Kiểm tra module path.** Xác nhận thư mục/JAR chứa root module và mọi dependency requires đều được cung cấp.
-4. **Xác nhận module name.** Dùng jar --describe-module để xem tên thực tế.
-5. **In module resolution.** Chạy lại với --show-module-resolution để xem graph.
-6. **Validate graph.** Dùng java --validate-modules và jdeps --check khi cần.
-7. **Kiểm tra class loading.** Nếu resolution thành công, chuyển sang kiểm tra nội dung JAR, classpath/module path, class loader, exports/opens và phiên bản JDK.
-8. **Chạy integration test trên module path.** Đừng chỉ kiểm thử bằng classpath nếu artifact cuối cùng được phát hành như named modules.
+1. **Read the first exception.** Distinguish `FindException`, `ResolutionException`, layer creation errors, and class loading errors.
+2. **Verify the main module.** Check the module name in the `-m` command and the artifact's module descriptor.
+3. **Check the module path.** Confirm the directory/JAR containing the root module and all `requires` dependencies are provided.
+4. **Verify the module name.** Use `jar --describe-module` to inspect the actual name.
+5. **Print module resolution.** Re-run with `--show-module-resolution` to inspect the graph.
+6. **Validate the graph.** Use `java --validate-modules` and `jdeps --check` as needed.
+7. **Check class loading.** If resolution succeeded, move on to checking JAR contents, classpath/module path, class loaders, `exports`/`opens`, and JDK version.
+8. **Run integration tests on the module path.** Do not test only on the classpath if the final artifacts are released as named modules.
 
-## 12. Ví dụ checklist phát hành
+## 12. Release Checklist Example
 
-Một pipeline có thể chạy các lệnh sau trên thư mục staging cuối cùng:
+A pipeline can run the following commands on the final staging directory:
 
 ~~~bash
 jar --describe-module --file dist/acme-app.jar
@@ -329,15 +329,15 @@ java --show-module-resolution \
   -m com.acme.app/com.acme.app.Main
 ~~~
 
-Trong CI, cấu hình các bước này là required checks. Nếu module không tìm thấy hoặc graph không hợp lệ, pipeline nên dừng trước khi publish artifact.
+In CI, configure these steps as required checks. If a module is not found or the graph is invalid, the pipeline should stop before publishing artifacts.
 
-Đối với môi trường chạy thực tế, cần kiểm tra chính xác tập JAR được deploy, option JVM thực tế, biến môi trường và script khởi động. Một lệnh chạy local có module path khác production có thể che giấu lỗi đóng gói.
+For the actual runtime environment, verify the exact set of deployed JARs, actual JVM options, environment variables, and startup scripts. A local launch command with a different module path from production can mask packaging errors.
 
-## Ghi nhớ
+## Takeaways
 
-- Module graph được resolve trước khi main class chạy.
-- FindException: Module X not found thường chỉ ra module path, tên module hoặc nguồn tìm kiếm.
-- Dependency requires của named module phải có thể được tìm thấy trên module path hoặc trong parent configuration phù hợp.
-- --show-module-resolution, --list-modules, jar --describe-module, java --validate-modules và jdeps --check hỗ trợ chẩn đoán ở các góc độ khác nhau.
-- --add-modules chọn thêm root module đã quan sát được; nó không sửa module path sai.
-- Phân biệt lỗi resolution với lỗi main class, class loading, access, reflection và tương thích bytecode.
+- The module graph is resolved before the main class runs.
+- `FindException: Module X not found` usually points to the module path, module name, or search sources.
+- `requires` dependencies of a named module must be discoverable on the module path or in an appropriate parent configuration.
+- `--show-module-resolution`, `--list-modules`, `jar --describe-module`, `java --validate-modules`, and `jdeps --check` assist diagnostics from different angles.
+- `--add-modules` selects additional observable root modules; it does not fix an incorrect module path.
+- Distinguish resolution errors from main class, class loading, access, reflection, and bytecode compatibility errors.

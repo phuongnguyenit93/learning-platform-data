@@ -1,10 +1,10 @@
-# Kiểm thử số ngẫu nhiên bằng seed hoặc nguồn được truyền vào trong Java
+# Testing Random Numbers Using Seeds or Injected Sources in Java
 
-## 1. Vì sao code có yếu tố ngẫu nhiên khó kiểm thử?
+## 1. Why Is Code with Randomness Hard to Test?
 
-Một chức năng dùng số ngẫu nhiên có thể chọn phần tử, mô phỏng xúc xắc, lấy mẫu telemetry, quyết định nhánh A/B, sinh dữ liệu thử nghiệm hoặc thêm độ trễ *jitter*. Nếu mỗi lần chạy test đều lấy nguồn ngẫu nhiên mới, một test có thể thành công nhiều lần rồi thất bại trong CI dù code không đổi. Tình trạng này gọi là **flaky test**: kết quả không ổn định do test phụ thuộc dữ liệu không kiểm soát.
+A feature using random numbers might pick an element, simulate dice, sample telemetry, decide an A/B branch, generate test data, or add *jitter* latency. If every test run creates a fresh random source, a test can pass many times and then fail in CI even without code changes. This is called a **flaky test**: unstable results caused by tests depending on uncontrolled data.
 
-Ví dụ khó kiểm thử:
+Hard-to-test example:
 
 ~~~java
 public static int rollDie() {
@@ -12,18 +12,18 @@ public static int rollDie() {
 }
 ~~~
 
-Mỗi lần gọi tạo một đối tượng `Random` mới rồi sinh giá trị bất kỳ từ 1 đến 6. Một test viết `assertEquals(4, rollDie())` không có cơ sở: 4 chỉ là một kết quả khả dĩ.
+Each call creates a new `Random` object and generates an arbitrary value from 1 to 6. Writing `assertEquals(4, rollDie())` has no basis: 4 is only one possible outcome.
 
-Hai kỹ thuật quan trọng:
+Two essential techniques:
 
-1. **Cố định seed** cho một bộ sinh số giả ngẫu nhiên (PRNG) để lặp lại chuỗi khi cùng thuật toán, seed và thứ tự gọi.
-2. **Truyền nguồn sinh số ngẫu nhiên từ ngoài vào** (*dependency injection*) để code nghiệp vụ không tự tạo nguồn; test có thể cung cấp PRNG cố định seed hoặc nguồn giả lập có kết quả định trước.
+1. **Fixing the seed** of a pseudo-random number generator (PRNG) so the sequence repeats given the same algorithm, seed, and call order.
+2. **Injecting the random number source from outside** (*dependency injection*) so business code does not create the source itself; tests can provide a fixed-seed PRNG or a fake source with predetermined results.
 
-Đây là bài về **thiết kế kiểm thử và chẩn đoán**, không phải hướng dẫn tạo số ngẫu nhiên dùng cho bảo mật. Với token, mật khẩu, khóa mật mã hoặc nonce bảo mật, phải dùng `SecureRandom` và quy tắc riêng (xem mục 9).
+This lesson covers **test design and diagnostics**, not how to generate random numbers for security. For tokens, passwords, cryptographic keys, or security nonces, you must use `SecureRandom` and dedicated rules (see section 9).
 
-## 2. Từ seed đến tính tái lập
+## 2. From Seed to Reproducibility
 
-`java.util.Random` là PRNG. Nó tạo chuỗi các giá trị từ trạng thái nội bộ, nên hai instance `Random` độc lập có cùng seed sẽ cho cùng chuỗi nếu thực hiện cùng các lời gọi theo cùng thứ tự.
+`java.util.Random` is a PRNG. It produces a sequence of values from internal state, so two independent `Random` instances with the same seed produce the same sequence if called with the same methods in the same order.
 
 ~~~java
 import java.util.Random;
@@ -35,24 +35,24 @@ System.out.println(first.nextInt(10) == second.nextInt(10)); // true
 System.out.println(first.nextInt(10) == second.nextInt(10)); // true
 ~~~
 
-Ở đây seed `2026L` không làm hai đối tượng dùng chung trạng thái; nó khởi tạo trạng thái tương đương. Hai phép gọi tuần tự tạo hai cặp giá trị trùng nhau. Không cần ghi nhớ giá trị cụ thể để hiểu cơ chế.
+Here seed `2026L` does not make the two objects share state; it initializes equivalent states. Two sequential calls yield two matching pairs of values. You do not need to memorize specific numbers to understand the mechanism.
 
-Điều kiện để tái lập hữu ích:
+Conditions for useful reproducibility:
 
-- Cùng **thuật toán**: `Random`, `SplittableRandom` hoặc một algorithm của `RandomGeneratorFactory` không nhất thiết sinh cùng chuỗi dù seed giống nhau.
-- Cùng **seed**, số lần gọi và phương thức được gọi: thêm một lời gọi `nextInt()` trước bước cần test sẽ làm lệch các giá trị tiếp theo.
-- Cùng cách phân phối giá trị: `nextInt(6)` và `nextInt()` không có nghĩa như nhau.
-- Không có nhiều luồng tranh nhau gọi vào cùng một nguồn theo thứ tự không xác định.
+- Same **algorithm**: `Random`, `SplittableRandom`, or an algorithm from `RandomGeneratorFactory` do not necessarily produce the same sequence even with the same seed.
+- Same **seed**, call count, and invoked methods: adding one extra `nextInt()` call before the step under test shifts all subsequent values.
+- Same value distribution: `nextInt(6)` and `nextInt()` do not mean the same thing.
+- No multiple threads competing to call the same source in non-deterministic order.
 
-Seed là công cụ tái hiện lỗi rất hữu ích: ghi lại seed cùng tên thuật toán, cấu hình kiểm thử và dữ liệu đầu vào. Nếu testcase thất bại ở seed cụ thể, chạy lại với đúng thông tin đó giúp điều tra.
+Seeds are a very helpful bug-reproduction tool: record the seed along with algorithm name, test configuration, and input data. If a test case fails on a specific seed, re-running with that exact information helps investigate.
 
-**Không nên đánh đồng tính tái lập với tính dự đoán nghiệp vụ.** Một seed cố định giúp lặp lại chuỗi, nhưng một test quá phụ thuộc vào “giá trị lần gọi thứ 37 phải là 6” dễ bị hỏng khi code thêm một lần rút số ngẫu nhiên hợp lệ.
+**Do not equate reproducibility with business predictability.** A fixed seed helps repeat a sequence, yet a test overly coupled to “the 37th call must return 6” easily breaks whenever code adds one valid random draw.
 
-## 3. Java 17+: truyền `RandomGenerator` vào logic nghiệp vụ
+## 3. Java 17+: Passing `RandomGenerator` into Business Logic
 
-Java 17 cung cấp interface `java.util.random.RandomGenerator`. `java.util.Random` là một implementation của interface này; vì thế có thể nhận dependency qua interface, trong khi nơi khởi tạo quyết định dùng implementation nào.
+Java 17 provides the `java.util.random.RandomGenerator` interface. `java.util.Random` is one implementation of this interface; thus you can accept the dependency via the interface while the caller decides which implementation to supply.
 
-Ví dụ:
+Example:
 
 ~~~java
 import java.util.Objects;
@@ -71,32 +71,32 @@ public final class Dice {
 }
 ~~~
 
-Đây là lớp độc lập minh họa; ở mục 7 có chương trình Java hoàn chỉnh chứa nhiều bài test. `random.nextInt(6)` trả một `int` trong khoảng **0 đến 5**; cộng thêm 1 để tạo giá trị **1 đến 6**. Việc dùng overload có bound giúp tránh modulo thủ công dễ tạo phân phối lệch hoặc số âm.
+This is a standalone illustrative class; section 7 contains a complete Java program with multiple tests. `random.nextInt(6)` returns an `int` in **0 to 5**; adding 1 yields **1 to 6**. Using the bounded overload avoids manual modulo tricks that can easily cause biased distributions or negative numbers.
 
-Lợi ích của dependency injection:
+Benefits of dependency injection:
 
-- Production có thể truyền một nguồn PRNG được lựa chọn theo chính sách ứng dụng.
-- Unit test truyền một `Random` có seed cố định để tái hiện một chuỗi.
-- Unit test cần nhánh cụ thể truyền một nguồn giả (*fake*) để trả đúng những giá trị đã chọn.
-- Lớp nghiệp vụ chỉ diễn đạt cách sử dụng số ngẫu nhiên, không quyết định cách khởi tạo seed và không cần biết thuật toán.
+- Production can supply a PRNG source chosen by application policy.
+- Unit tests can supply a `Random` with a fixed seed to replay a sequence.
+- Unit tests targeting a specific branch can supply a *fake* source returning exact chosen values.
+- The business class expresses only how random numbers are used, without deciding how seeds are initialized or needing to know the algorithm.
 
-Ví dụ cách dùng:
+Usage example:
 
 ~~~java
-// Ví dụ trong phạm vi một phương thức:
+// Example within method scope:
 Dice productionDice = new Dice(new java.util.Random());
 Dice repeatableDice = new Dice(new java.util.Random(2026L));
 ~~~
 
-Có thể sử dụng `RandomGenerator.getDefault()` khi chính sách ứng dụng chấp nhận thuật toán mặc định. Nếu cần tái lập ổn định trên môi trường khác nhau, **nêu rõ implementation/algorithm và seed**; mặc định của môi trường không phải một hợp đồng cố định về chuỗi.
+You can use `RandomGenerator.getDefault()` when application policy accepts the default algorithm. If stable reproducibility across environments is needed, **explicitly specify the implementation/algorithm and seed**; an environment's default is not a fixed sequence contract.
 
-Nhiều ứng dụng còn cần truyền *factory* tạo RNG cho mỗi phiên hoặc mỗi worker, thay vì một instance chung. Quyết định này đặc biệt quan trọng khi có nhiều luồng và cần tái lập thứ tự tiêu thụ.
+Many applications also need to inject a *factory* that creates an RNG per session or per worker rather than one shared instance. This decision is especially important when multiple threads are involved and consumption order must be reproducible.
 
-## 4. Kiểm thử bằng seed: nên khẳng định điều gì?
+## 4. Seed-Based Testing: What Should Be Asserted?
 
-### Kiểm tra cùng seed tạo cùng chuỗi
+### Checking That the Same Seed Produces the Same Sequence
 
-Một test hợp lý so sánh hai thực thể độc lập dùng cùng seed, cùng số bước:
+A reasonable test compares two independent instances using the same seed and same number of steps:
 
 ~~~java
 import java.util.Arrays;
@@ -116,13 +116,13 @@ for (int i = 0; i < sequenceA.length; i++) {
 System.out.println(Arrays.equals(sequenceA, sequenceB)); // true
 ~~~
 
-Test chứng minh cơ chế tái lập trong cùng thuật toán và cùng lời gọi. Nếu cần kiểm thử **logic nghiệp vụ**, ta nên assert điều kiện nghiệp vụ thực sự quan tâm hơn là chỉ kiểm tra PRNG của JDK.
+The test proves reproducibility for the same algorithm and call sequence. To test **business logic**, assert the business conditions you actually care about rather than only testing the JDK's PRNG.
 
-Ví dụ với lớp `Dice`, có thể chạy nhiều lượt và assert `1 <= roll && roll <= 6`. Thử 10.000 lần tăng khả năng phát hiện lỗi bound hoặc phép biến đổi, nhưng vẫn không phải chứng minh phân phối hoàn toàn đồng đều.
+For example, with `Dice`, you can run many iterations and assert `1 <= roll && roll <= 6`. Trying 10,000 times increases the chance of catching bound or transformation bugs, though it still does not prove a completely uniform distribution.
 
-### Tái hiện một lỗi theo seed
+### Reproducing a Bug by Seed
 
-Giả sử một pipeline gặp lỗi ở seed `58723L`. Lưu lại:
+Suppose a pipeline fails on seed `58723L`. Record:
 
 ~~~text
 generator: java.util.Random
@@ -131,17 +131,17 @@ scenario: choose promotion after reading customer category
 input fixture: customer-group-A
 ~~~
 
-Thông tin seed **một mình** có thể không đủ nếu thuật toán, thứ tự lời gọi hoặc tập dữ liệu đã đổi. Một fixture tái hiện đáng tin cần ghi cả quy tắc rút số và điều kiện của test.
+Seed information **alone** may be insufficient if the algorithm, call order, or dataset changed. A reliable reproduction fixture records both the drawing rules and test conditions.
 
-Không đặt seed cố định trong hệ thống production nếu mục tiêu là tạo hành vi khó dự đoán. Seed cố định dành cho kiểm thử, mô phỏng cần tái lập hoặc chức năng nghiệp vụ có yêu cầu rõ ràng về chuỗi giả ngẫu nhiên.
+Do not hard-code a fixed seed in production systems when the goal is unpredictable behavior. Fixed seeds are for testing, reproducible simulations, or business features that explicitly require a pseudo-random sequence.
 
-### Hạn chế của seeded tests
+### Limitations of Seeded Tests
 
-Test chỉ dùng seed có thể không chạm được trường hợp cần thiết, ví dụ rút đúng 0 hoặc giá trị biên lớn nhất. “Chạy 1.000 lần rồi hy vọng gặp điều kiện đó” tạo test khó đọc và có nguy cơ flaky. Để kiểm tra một nhánh xác định, hãy truyền nguồn giả với kết quả được kiểm soát.
+Seed-only tests might fail to hit a needed case, such as drawing exactly 0 or the maximum boundary value. “Run 1,000 times and hope to hit that condition” creates hard-to-read tests with flakiness risk. To test a specific branch, inject a fake source with controlled outputs.
 
-## 5. Kiểm thử bằng nguồn được truyền vào: tạo fake có kịch bản
+## 5. Testing with Injected Sources: Creating a Scripted Fake
 
-Giả sử ứng dụng có:
+Suppose an application has:
 
 ~~~java
 boolean shouldSample(int percent) {
@@ -149,9 +149,9 @@ boolean shouldSample(int percent) {
 }
 ~~~
 
-Với `percent = 0`, kết quả luôn `false`; với `percent = 100`, kết quả luôn `true`; với `percent = 25`, các giá trị rút trong khoảng 0–24 làm kết quả `true`, còn 25–99 cho `false`.
+With `percent = 0`, the result is always `false`; with `percent = 100`, always `true`; with `percent = 25`, draws in 0–24 yield `true`, while 25–99 yield `false`.
 
-Thay vì đoán seed nào sẽ sinh 24 hoặc 25 đúng vị trí, một fake có thể cung cấp danh sách giá trị rõ ràng. Vì `Random` implement `RandomGenerator`, ta có thể kế thừa `Random` và override `nextInt(int bound)` cho trường hợp đang kiểm thử:
+Instead of guessing which seed produces 24 or 25 at the exact position, a fake can provide an explicit list of values. Because `Random` implements `RandomGenerator`, we can subclass `Random` and override `nextInt(int bound)` for the case under test:
 
 ~~~java
 import java.util.Random;
@@ -188,9 +188,9 @@ final class ScriptedRandom extends Random {
 }
 ~~~
 
-Đây là một fake **chỉ dành cho test**. Nó kiểm tra bound để phát hiện code sản phẩm gọi API với khoảng không mong muốn. Nó không mô phỏng toàn bộ hành vi của `Random`, không được dùng làm PRNG production, và chỉ thay thế chính xác lời gọi `nextInt(int)` mà code nghiệp vụ thực sự sử dụng.
+This is a **test-only** fake. It validates `bound` to catch production code calling the API with unexpected ranges. It does not simulate all of `Random`'s behavior, must never be used as a production PRNG, and replaces only the exact `nextInt(int)` call that business code actually invokes.
 
-Nếu code sản phẩm thay sang `nextLong()` hoặc phương thức RNG khác, fake phải hỗ trợ lời gọi đó hoặc thiết kế một interface domain hẹp hơn, ví dụ:
+If production code switches to `nextLong()` or another RNG method, the fake must support that call or you can design a narrower domain interface, for example:
 
 ~~~java
 @FunctionalInterface
@@ -199,31 +199,31 @@ interface IndexSource {
 }
 ~~~
 
-Trong thiết kế domain, truyền `IndexSource` thường tốt nếu service chỉ cần rút index. Test có thể truyền lambda `bound -> 0` để luôn chọn phần tử đầu; production truyền `random::nextInt`. Interface hẹp giảm sự phụ thuộc vào chi tiết toàn bộ RNG.
+In domain design, injecting `IndexSource` is often better if a service only needs to draw indices. Tests can pass the lambda `bound -> 0` to always pick the first element; production passes `random::nextInt`. A narrow interface reduces coupling to the entire RNG API.
 
-**Chọn mức trừu tượng phù hợp:** dùng `RandomGenerator` khi logic cần các thao tác RNG phổ biến; dùng interface domain nhỏ khi muốn chỉ cho phép một hoặc vài thao tác ngẫu nhiên có ý nghĩa nghiệp vụ.
+**Choose the right level of abstraction:** use `RandomGenerator` when logic needs general RNG operations; use a small domain interface when you want to allow only one or a few business-meaningful random operations.
 
-## 6. Những nhánh cần ép bằng fake
+## 6. Branches to Force with a Fake
 
-Giả sử method `chooseIndex(int size)` chọn index trong `[0, size)` và method `shouldSample(int percent)` nhận phần trăm từ 0 đến 100.
+Suppose `chooseIndex(int size)` picks an index in `[0, size)` and `shouldSample(int percent)` accepts a percentage from 0 to 100.
 
-| Trường hợp | Giá trị fake trả | Điều cần assert |
+| Case | Fake return value | What to assert |
 | --- | ---: | --- |
-| `chooseIndex(6)` | `0` | Chọn phần tử đầu |
-| `chooseIndex(6)` | `5` | Chọn phần tử cuối |
+| `chooseIndex(6)` | `0` | Selects first element |
+| `chooseIndex(6)` | `5` | Selects last element |
 | `shouldSample(25)` | `24` | `true` |
 | `shouldSample(25)` | `25` | `false` |
 | `shouldSample(0)` | `0` | `false` |
 | `shouldSample(100)` | `99` | `true` |
-| `chooseIndex(0)` | Không gọi nguồn | Ném `IllegalArgumentException` trước khi rút |
+| `chooseIndex(0)` | Source not called | Throws `IllegalArgumentException` before drawing |
 
-Với fake, các kiểm thử này **không phụ thuộc vào xác suất** và nên cho kết quả giống nhau ở mọi lần chạy.
+With a fake, these tests **do not depend on probability** and produce identical results on every run.
 
-Phải phân biệt **giới hạn inclusive/exclusive**. Với `nextInt(bound)`, bound là **exclusive**: `nextInt(6)` không thể trả 6. Đối với `RandomGenerator.nextInt(origin, bound)`, origin là inclusive, bound là exclusive. Tránh tự dùng phép `Math.abs(random.nextInt()) % size`: `Math.abs(Integer.MIN_VALUE)` vẫn âm và phép lấy dư có thể gây phân phối lệch.
+Distinguish **inclusive/exclusive bounds**. For `nextInt(bound)`, `bound` is **exclusive**: `nextInt(6)` cannot return 6. For `RandomGenerator.nextInt(origin, bound)`, `origin` is inclusive and `bound` is exclusive. Avoid hand-rolling `Math.abs(random.nextInt()) % size`: `Math.abs(Integer.MIN_VALUE)` stays negative and modulo can skew the distribution.
 
-## 7. Chương trình Java 17+ chạy độc lập
+## 7. Standalone Runnable Java 17+ Program
 
-Tạo tệp `RandomSourceTestingDemo.java`:
+Create file `RandomSourceTestingDemo.java`:
 
 ~~~java
 import java.util.Arrays;
@@ -296,7 +296,7 @@ public class RandomSourceTestingDemo {
     }
 
     public static void main(String[] args) {
-        // Hai PRNG cùng seed, cùng thứ tự gọi, tạo cùng chuỗi.
+        // Two PRNGs with the same seed and same call order produce the same sequence.
         Picker first = new Picker(new Random(2026L));
         Picker second = new Picker(new Random(2026L));
         int[] valuesA = new int[5];
@@ -311,7 +311,7 @@ public class RandomSourceTestingDemo {
         require(reproducible, "Seeded sequences must match");
         System.out.println("same seed, same sequence: " + reproducible);
 
-        // Fake ép giá trị đầu, cuối và hai nhánh phần trăm.
+        // Fake forces first, last, and two percentage branches.
         ScriptedRandom scripted = new ScriptedRandom(0, 5, 0, 99);
         Picker predictable = new Picker(scripted);
 
@@ -332,7 +332,7 @@ public class RandomSourceTestingDemo {
         System.out.println("sample at 100%: " + fullPercent);
         System.out.println("scripted calls: " + scripted.calls());
 
-        // Kiểm tra bất biến theo khoảng giá trị, không hard-code chuỗi.
+        // Check range invariant without hard-coding the sequence.
         Picker die = new Picker(new Random(7L));
         boolean inRange = true;
         for (int i = 0; i < 10_000; i++) {
@@ -348,7 +348,7 @@ public class RandomSourceTestingDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac RandomSourceTestingDemo.java
@@ -367,19 +367,19 @@ scripted calls: 4
 die range verified: true
 ~~~
 
-Đoạn fake được test bằng giá trị `0, 5, 0, 99` tương ứng các bound `6, 6, 100, 100`. Mỗi giá trị đều nằm trong khoảng hợp lệ. Test cũng kiểm tra chính xác số lần tiêu thụ RNG để phát hiện thay đổi bất ngờ trong cách code chọn số.
+The fake is tested with values `0, 5, 0, 99` corresponding to bounds `6, 6, 100, 100`. Every value lies within the valid range. The test also checks the exact count of RNG consumptions to detect unexpected changes in how the code draws numbers.
 
-Bài học về cấu trúc test:
+Lesson on test structure:
 
-- **Seeded PRNG** kiểm tra khả năng tái lập một chuỗi qua cùng thuật toán và thứ tự gọi.
-- **Scripted fake** kiểm tra nhánh cụ thể và các điểm biên một cách quyết định.
-- **Property/bound test** kiểm tra điều kiện đúng với nhiều lần lấy mẫu, không yêu cầu một chuỗi ngẫu nhiên cụ thể.
+- **Seeded PRNG** tests reproducibility of a sequence across the same algorithm and call order.
+- **Scripted fake** tests specific branches and boundary points deterministically.
+- **Property/bound test** checks invariants across many samples without requiring one specific random sequence.
 
-Cả ba có vai trò khác nhau; không nên dùng một test seeded duy nhất để thay thế mọi kiểm thử nhánh.
+All three serve different roles; do not use a single seeded test to replace all branch testing.
 
-## 8. Thiết kế unit test JUnit 5
+## 8. Designing JUnit 5 Unit Tests
 
-Với dự án dùng JUnit Jupiter, có thể viết test theo hướng sau. Đây là **đoạn trích** giả định lớp `Picker` và `ScriptedRandom` của chương trình ở mục 7 là các kiểu mà test có thể truy cập, ví dụ đặt test trong cùng package hoặc chuyển chúng sang class phù hợp:
+For projects using JUnit Jupiter, tests can be structured as follows. This **snippet** assumes `Picker` and `ScriptedRandom` from the program in section 7 are accessible to the test, such as placing the test in the same package or moving them to an appropriate class:
 
 ~~~java
 import static org.junit.jupiter.api.Assertions.*;
@@ -426,15 +426,15 @@ class PickerTest {
 }
 ~~~
 
-Đoạn JUnit ở trên cần dependency JUnit Jupiter trong build và được chạy qua test runner (Gradle/Maven/IDE) của dự án. Nó **không** phải một chương trình chỉ dùng JDK để chạy bằng lệnh `java PickerTest`.
+The JUnit snippet above requires the JUnit Jupiter dependency in the build and runs through the project's test runner (Gradle/Maven/IDE). It is **not** a JDK-only program to be run with `java PickerTest`.
 
-Nếu bản production chỉ định một PRNG/thuật toán khác, tạo constructor/factory phù hợp để test chủ động chọn chính implementation ấy. Không so sánh trực tiếp các chuỗi từ hai thuật toán khác nhau chỉ vì chúng được khởi tạo cùng seed.
+If production specifies a different PRNG/algorithm, create an appropriate constructor/factory so tests explicitly select that same implementation. Do not directly compare sequences from two different algorithms merely because they were initialized with the same seed.
 
-## 9. Phân biệt PRNG kiểm thử với ngẫu nhiên bảo mật
+## 9. Distinguishing Testing PRNGs from Cryptographic Randomness
 
-`Random`, `SplittableRandom` và nhiều implementation của `RandomGenerator` là nguồn **giả ngẫu nhiên không dùng cho mật mã**. Seed có thể khiến chuỗi lặp lại và có thể bị dự đoán; đó là điều hữu ích cho test mô phỏng nhưng nguy hiểm với token đăng nhập, mật khẩu ngẫu nhiên, mã khôi phục, khóa hoặc giá trị cần bí mật.
+`Random`, `SplittableRandom`, and many `RandomGenerator` implementations are **non-cryptographic pseudo-random** sources. Seeds make sequences repeatable and predictable; that is useful for simulation tests yet dangerous for login tokens, random passwords, recovery codes, keys, or values requiring secrecy.
 
-Với mục đích bảo mật, sử dụng `java.security.SecureRandom` theo hướng dẫn bảo mật và thuật toán/provider phù hợp:
+For security purposes, use `java.security.SecureRandom` following security guidelines and an appropriate algorithm/provider:
 
 ~~~java
 import java.security.SecureRandom;
@@ -444,46 +444,46 @@ byte[] token = new byte[32];
 secure.nextBytes(token);
 ~~~
 
-**Không cố định seed của `SecureRandom` trong production** để mong tạo token lặp lại. `SecureRandom.setSeed(...)` không phải giao diện bảo đảm “đặt trạng thái thành đúng seed để phát lại cùng chuỗi” như giả định đơn giản với `Random`; chi tiết còn tùy provider và cách khởi tạo. Khi kiểm thử code liên quan bảo mật, tách logic xử lý token/nonce khỏi nguồn tạo byte: test có thể tiêm dữ liệu giả định **chỉ trong môi trường test** để kiểm tra format, validation, đường lỗi; production vẫn dùng nguồn bảo mật.
+**Do not fix the seed of `SecureRandom` in production** hoping to generate repeatable tokens. `SecureRandom.setSeed(...)` is not an interface guaranteeing “set state to exactly this seed to replay the same sequence” like the simple assumption with `Random`; details depend on the provider and initialization. When testing security-related code, separate token/nonce processing logic from the byte generator: tests can inject scripted bytes **only in test environments** to verify formatting, validation, and error paths; production continues using the secure source.
 
-Không thay `SecureRandom` bằng `new Random(seed)` chỉ để test dễ hơn. Nếu hệ thống cần tính khó dự đoán, đó là một yêu cầu chức năng quan trọng cần giữ nguyên.
+Never replace `SecureRandom` with `new Random(seed)` just to make testing easier. If the system requires unpredictability, that is an essential functional requirement to preserve.
 
-## 10. Seed, nguồn chia sẻ và nhiều luồng
+## 10. Seeds, Shared Sources, and Multiple Threads
 
-Một nguồn được tạo từ seed có thể sinh chuỗi ổn định khi chạy tuần tự, nhưng **cùng seed không bảo đảm cùng kết quả nghiệp vụ nếu thứ tự các luồng tiêu thụ thay đổi**.
+A seeded source can generate a deterministic sequence when run sequentially, yet **the same seed does not guarantee the same business outcome if thread consumption order changes**.
 
-Ví dụ nhiều thread gọi cùng một `Random`:
+For example, multiple threads calling the same `Random`:
 
-- Một lần chạy: thread A rút giá trị thứ nhất, B rút thứ hai.
-- Lần chạy khác: B rút giá trị thứ nhất, A rút thứ hai.
+- Run 1: thread A draws the 1st value, B draws the 2nd.
+- Run 2: B draws the 1st value, A draws the 2nd.
 
-Ngay cả khi PRNG tạo cùng một chuỗi tổng thể, kết quả gắn với từng thread hoặc từng bản ghi có thể khác. Tranh chấp cũng ảnh hưởng hiệu năng. Các API như `ThreadLocalRandom.current()` cung cấp RNG theo thread, nhưng `ThreadLocalRandom.setSeed(long)` không hỗ trợ đặt seed để phát lại theo cách quen thuộc; nó ném `UnsupportedOperationException`.
+Even if the PRNG produces the same overall sequence, results tied to each thread or record can differ. Contention also hurts performance. APIs like `ThreadLocalRandom.current()` provide per-thread RNGs, yet `ThreadLocalRandom.setSeed(long)` does not support setting a seed for replay in the usual way; it throws `UnsupportedOperationException`.
 
-Nếu bài toán mô phỏng song song phải tái lập ổn định, có thể:
+If a parallel simulation must be stably reproducible, you can:
 
-1. Xác định một quy tắc gán seed theo **định danh công việc** được giữ ổn định, ví dụ cùng mã task và một master seed được lưu.
-2. Tạo RNG riêng cho mỗi task/partition từ chính sách đó.
-3. Đảm bảo mỗi task thực hiện cùng thứ tự rút số hoặc thiết kế cách rút không phụ thuộc thứ tự.
-4. Nếu dùng `SplittableRandom.split()` hoặc generator hỗ trợ split, ghi nhận quy tắc phân chia; thay đổi thứ tự split có thể làm thay đổi chuỗi của từng task.
+1. Define a rule assigning seeds based on a stable **work identifier**, e.g., combining task ID with a saved master seed.
+2. Create a separate RNG per task/partition from that policy.
+3. Ensure each task performs the same draw order or design order-independent draws.
+4. If using `SplittableRandom.split()` or a splittable generator, document the splitting rule; changing split order can alter each task's sequence.
 
-Không nên giả định nhiều thread chia sẻ một instance tùy ý đều thread-safe: hãy kiểm tra hợp đồng của implementation được chọn. Ngay cả khi implementation hỗ trợ gọi đồng thời, **tính tái lập kết quả theo nhiệm vụ** vẫn là vấn đề riêng.
+Do not assume any arbitrary instance shared across threads is thread-safe: check the contract of the chosen implementation. Even when an implementation supports concurrent calls, **per-task reproducibility** remains a separate concern.
 
-## 11. Những kiểu test gây flaky hoặc che lỗi
+## 11. Test Patterns That Cause Flakiness or Mask Bugs
 
-### Sai 1: assert một kết quả cụ thể của RNG thật không seed
+### Mistake 1: Asserting One Specific Result from an Unseeded Real RNG
 
 ~~~java
 int x = new Random().nextInt(6) + 1;
-// Sai: assert x == 4. Điều này chỉ đúng ngẫu nhiên.
+// Wrong: assert x == 4. That is only true by chance.
 ~~~
 
-Thay bằng test bất biến của output hoặc fake ép nhánh.
+Replace with an output invariant test or a branch-forcing fake.
 
-### Sai 2: phụ thuộc một chuỗi cố định không cần thiết
+### Mistake 2: Unnecessarily Depending on a Fixed Sequence
 
-Một test mã hóa sẵn 100 kết quả PRNG cho một chức năng chỉ yêu cầu nằm trong `[0, 6)` sẽ dễ hỏng khi đổi algorithm hoặc thêm một lần rút số. Nếu thực sự cần đối chiếu thuật toán PRNG, chuỗi chuẩn cố định có thể là *golden vectors* hữu ích. Còn với nghiệp vụ, ưu tiên assert kết quả và các nhánh nghiệp vụ.
+A test hard-coding 100 PRNG outputs for a feature that only requires values in `[0, 6)` breaks easily when changing algorithms or adding one draw. If you truly need to cross-check a PRNG algorithm, fixed standard sequences can serve as *golden vectors*. For business logic, prefer asserting outcomes and business branches.
 
-### Sai 3: tạo RNG trong method không thể thay thế
+### Mistake 3: Creating an RNG Inside a Method Where It Cannot Be Replaced
 
 ~~~java
 int pick() {
@@ -491,62 +491,62 @@ int pick() {
 }
 ~~~
 
-Không có cách đơn giản để tiêm fake vào method này. Chuyển thành dependency qua constructor, tham số method hoặc factory nếu cần kiểm soát vòng đời.
+There is no simple way to inject a fake into this method. Extract it into a dependency via constructor, method parameter, or factory if lifecycle control is needed.
 
-### Sai 4: reset seed giữa các lời gọi
+### Mistake 4: Resetting the Seed Between Calls
 
 ~~~java
 Random random = new Random(42L);
 for (int i = 0; i < 5; i++) {
-    random.setSeed(42L); // lặp lại trạng thái khởi đầu
+    random.setSeed(42L); // repeats the initial state
     System.out.println(random.nextInt(10));
 }
 ~~~
 
-Đặt lại seed trước **mỗi lần rút** sẽ tái sử dụng trạng thái ban đầu và có thể tạo cùng giá trị lặp đi lặp lại, không giống với một chuỗi rút liên tiếp. Test tái lập thường đặt seed **một lần khi tạo nguồn cho từng test**.
+Resetting the seed before **every draw** reuses the initial state and can emit the same value repeatedly, unlike a sequence of consecutive draws. Reproducibility tests typically set the seed **once when creating the source for each test**.
 
-### Sai 5: chia sẻ instance giữa các test
+### Mistake 5: Sharing an Instance Across Tests
 
-Nếu nhiều unit test cùng dùng một `static Random`, test này làm thay đổi trạng thái mà test khác sẽ đọc. Thứ tự chạy hoặc parallel execution có thể làm kết quả khác nhau. Mỗi test nên sở hữu một nguồn riêng (hoặc fixture riêng) và seed rõ ràng.
+If multiple unit tests share one `static Random`, one test mutates the state read by another. Execution order or parallel execution can alter outcomes. Each test should own its own source (or fixture) with an explicit seed.
 
-### Sai 6: dùng thống kê sơ sài để “chứng minh ngẫu nhiên”
+### Mistake 6: Using Crude Statistics to “Prove Randomness”
 
-Kiểm tra rằng 10 lần tung xúc xắc phải xuất hiện đủ cả 6 mặt là test flaky ngay cả với PRNG chính xác. Phép thử thống kê phải có giả thuyết, kích thước mẫu và ngưỡng sai số thích hợp; không dùng nó làm unit test bắt buộc nếu chưa phân tích xác suất sai báo. Kiểm thử logic biến đổi/bound với fake và kiểm thử thống kê đặc thù là hai nhiệm vụ khác nhau.
+Checking that 10 die rolls must show all 6 faces is a flaky test even with a correct PRNG. Statistical tests require a hypothesis, sample size, and proper error bounds; do not make them mandatory unit tests without analyzing false-positive probability. Testing transformation/bound logic with fakes and dedicated statistical testing are two separate tasks.
 
-## 12. Mẫu lựa chọn chiến lược test
+## 12. Test Strategy Selection Guide
 
-| Mục đích | Cách phù hợp | Điều cần khẳng định |
+| Objective | Suitable approach | What to verify |
 | --- | --- | --- |
-| Tái hiện bug cụ thể | Seed, algorithm, fixture và thứ tự rút được ghi lại | Cùng bối cảnh tái hiện bug |
-| Chọn nhánh đầu/cuối | Fake có kịch bản | Code xử lý đúng giá trị 0 và bound−1 |
-| Đảm bảo output trong miền | Kiểm tra invariant/property | Không ra ngoài miền giá trị |
-| Test phân phối | Thử nghiệm thống kê riêng với ngưỡng có cơ sở | Sai lệch nằm trong ngưỡng đã đặt |
-| Test concurrency | RNG/seed cho từng task và đồng bộ kịch bản | Tính đúng đắn độc lập lịch chạy |
-| Test luồng bảo mật | Tiêm dữ liệu giả ở ranh giới logic, production dùng `SecureRandom` | Format, xử lý lỗi và yêu cầu an toàn |
+| Reproduce a specific bug | Recorded seed, algorithm, fixture, and draw order | Same context reproduces bug |
+| Hit first/last branches | Scripted fake | Code handles `0` and `bound - 1` properly |
+| Guarantee output in range | Invariant/property check | Never exits value domain |
+| Test distribution | Dedicated statistical test with grounded thresholds | Deviation within set bounds |
+| Test concurrency | Per-task RNG/seed and deterministic scheduling | Correctness independent of schedule |
+| Test security flow | Inject fake bytes at logic boundary, production uses `SecureRandom` | Formatting, error handling, and security rules |
 
-Không cần ép mọi thành phần của ứng dụng nhận cả interface `RandomGenerator` nếu component chỉ cần một quyết định rất hẹp. Có thể truyền một interface domain riêng như `IndexSource` hoặc `BooleanDecision` để unit test ngắn hơn và giảm sự ràng buộc vào chi tiết PRNG.
+You do not have to force every application component to accept the full `RandomGenerator` interface when it needs only a narrow decision. You can inject a dedicated domain interface such as `IndexSource` or `BooleanDecision` to keep unit tests concise and reduce coupling to PRNG details.
 
-## 13. Tự kiểm tra
+## 13. Self-Check
 
-**Câu 1.** Hai instance `new Random(123L)` có chắc chắn cho cùng giá trị trong 20 lần gọi `nextInt(10)` khi được gọi theo cùng thứ tự không? Nếu một instance bị gọi thêm `nextLong()` trước lượt 10 thì sao?
+**Question 1.** Are two `new Random(123L)` instances guaranteed to return the same values over 20 `nextInt(10)` calls when invoked in the same order? What if one instance has an extra `nextLong()` call before the 10th draw?
 
-**Câu 2.** Tại sao không nên kiểm tra `rollDie() == 6` bằng cách gọi 10 lần rồi hy vọng có giá trị 6? Hãy nêu một cách chủ động kiểm tra nhánh 6.
+**Question 2.** Why should you not test `rollDie() == 6` by calling it 10 times and hoping for 6? Give a proactive way to test the 6 branch.
 
-**Câu 3.** Một phương thức quyết định lấy mẫu bằng `random.nextInt(100) < 25`. Fake phải trả những giá trị nào để kiểm tra đúng cả hai phía của biên?
+**Question 3.** A method decides sampling using `random.nextInt(100) < 25`. What values must the fake return to test both sides of the boundary?
 
-**Câu 4.** Vì sao không nên để nhiều test dùng chung một `static Random`, dù nó được khởi tạo với seed cố định?
+**Question 4.** Why should multiple tests not share one `static Random`, even when initialized with a fixed seed?
 
-**Câu 5.** Vì sao `SecureRandom` không được thay thế bằng `Random(42L)` trong chức năng tạo token production?
+**Question 5.** Why must `SecureRandom` not be replaced by `Random(42L)` in production token generation?
 
-**Câu 6.** Nếu một lần chạy simulation song song và lần chạy kế tiếp có cùng master seed nhưng thứ tự phân chia công việc khác, kết quả của từng task có chắc chắn giống nhau không?
+**Question 6.** If one parallel simulation run and the next run share the same master seed yet partition work in a different order, are per-task results guaranteed to be identical?
 
-### Đáp án
+### Answers
 
-1. Có, khi cùng `java.util.Random`, cùng seed và cùng chuỗi lời gọi. Nếu một nguồn tiêu thụ thêm giá trị, các lượt tiếp theo không còn tương ứng theo vị trí cũ.
-2. Đó là kiểm thử dựa vào may rủi; có thể cung cấp fake cho `nextInt(6)` trả 5, rồi assert kết quả `rollDie()` là 6.
-3. Fake trả 24 cho nhánh `true` và 25 cho nhánh `false`; cả hai đều nằm trong `[0,100)`.
-4. Mỗi test tiêu thụ trạng thái chung nên thứ tự chạy và chạy song song ảnh hưởng dữ liệu ngẫu nhiên.
-5. `Random` là PRNG thông thường và chuỗi có seed cố định có thể dự đoán, không đáp ứng mục đích bảo mật.
-6. Không. Tính tái lập còn cần quy tắc gán nguồn/seed, thứ tự split, thứ tự tiêu thụ và ánh xạ công việc ổn định.
+1. Yes, when using the same `java.util.Random`, same seed, and same call sequence. If one source consumes an extra value, subsequent draws no longer align by position.
+2. That is testing by luck; provide a fake whose `nextInt(6)` returns 5, then assert `rollDie()` returns 6.
+3. The fake returns 24 for the `true` branch and 25 for the `false` branch; both are within `[0,100)`.
+4. Each test consumes shared state, so run order and parallel execution affect random inputs.
+5. `Random` is a general PRNG and a fixed-seed sequence is predictable, failing security requirements.
+6. No. Reproducibility also requires deterministic source/seed assignment, split order, consumption order, and work mapping.
 
-**Điểm cần nhớ:** seed cố định giúp **tái hiện một chuỗi**, còn dependency injection giúp **kiểm soát chính xác nhánh nghiệp vụ**. Kết hợp seeded test, scripted fake và kiểm tra bất biến để tạo test rõ ràng, ổn định; phân biệt hoàn toàn với yêu cầu sinh số ngẫu nhiên có tính bảo mật.
+**Key point:** fixed seeds help **replay a sequence**, while dependency injection helps **precisely control business branches**. Combine seeded tests, scripted fakes, and invariant checks to write clear, stable tests; keep them strictly separate from cryptographic randomness requirements.

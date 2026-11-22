@@ -1,16 +1,16 @@
-# Dependency declaration và requires tương ứng
+# Dependency declaration and corresponding requires
 
-Trong ứng dụng Java dùng Java Platform Module System (JPMS), cùng một thư viện thường xuất hiện ở hai nơi: **khai báo dependency trong công cụ build** (Maven hoặc Gradle) và **khai báo `requires` trong `module-info.java`**. Hai khai báo này liên quan chặt chẽ nhưng không đồng nghĩa.
+In Java applications using the Java Platform Module System (JPMS), the same library often appears in two places: **a dependency declaration in the build tool** (Maven or Gradle) and **a `requires` declaration in `module-info.java`**. These two declarations are closely related, yet not synonymous.
 
-- Build tool quyết định **artifact nào, phiên bản nào, từ repository nào** được đưa vào compile classpath, module path, runtime hoặc test.
-- Module descriptor quyết định **named module nào đọc named module nào**, package nào được export hoặc mở cho reflection, và module nào tiêu thụ/cung cấp service.
-- Lệnh biên dịch hoặc chạy phải cung cấp các artifact đúng module name, đúng version và đúng đường dẫn để hệ thống phân giải module có thể kiểm tra hợp đồng đó.
+- The build tool decides **which artifact, which version, and from which repository** is placed on the compile classpath, module path, runtime, or test path.
+- The module descriptor decides **which named module reads which named module**, which packages are exported or opened for reflection, and which modules consume or provide services.
+- The compile or run command must supply artifacts with the right module name, version, and path so the module resolution system can verify that contract.
 
-Khi di chuyển dự án từ classpath sang module path, chỉ thêm dependency vào `pom.xml` hoặc `build.gradle` thường chưa đủ. Ngược lại, chỉ thêm `requires` mà không có artifact tương ứng trên module path sẽ gây lỗi `module not found`.
+When migrating a project from the classpath to the module path, merely adding a dependency to `pom.xml` or `build.gradle` is often insufficient. Conversely, merely adding `requires` without having the corresponding artifact on the module path will cause a `module not found` error.
 
-## 1. Hai tầng khai báo giải quyết những câu hỏi khác nhau
+## 1. Two declaration layers answer different questions
 
-Giả sử ứng dụng dùng một thư viện tên `acme-json`. Trong Maven, một dependency có thể được khai báo bằng:
+Suppose an application uses a library named `acme-json`. In Maven, a dependency can be declared as:
 
 ```xml
 <dependency>
@@ -20,9 +20,9 @@ Giả sử ứng dụng dùng một thư viện tên `acme-json`. Trong Maven, m
 </dependency>
 ```
 
-Ở đây, `com.acme:acme-json:2.4.0` là **tọa độ artifact**. Nó giúp Maven tải đúng file JAR và các dependency liên quan.
+Here, `com.acme:acme-json:2.4.0` is the **artifact coordinate**. It enables Maven to download the right JAR file and its associated dependencies.
 
-Trong `module-info.java` của ứng dụng:
+In the application's `module-info.java`:
 
 ```java
 module com.acme.app {
@@ -30,34 +30,34 @@ module com.acme.app {
 }
 ```
 
-`com.acme.json` là **tên JPMS module**, không phải Maven `groupId`, `artifactId` hay tên file JAR. Nếu artifact có descriptor `module-info.class`, tên module được lấy từ descriptor đó. Với automatic module, tên có thể đến từ manifest hoặc được suy ra từ tên JAR.
+`com.acme.json` is the **JPMS module name**, not the Maven `groupId`, `artifactId`, or JAR filename. If the artifact has a `module-info.class` descriptor, the module name comes from that descriptor. For automatic modules, the name may come from the manifest or be derived from the JAR filename.
 
-Một bản build hoạt động khi cả hai lớp cấu hình tương ứng: build tool cung cấp JAR chứa module `com.acme.json`, còn descriptor ứng dụng khai báo quan hệ đọc module đó.
+A build works when both configuration layers align: the build tool supplies the JAR containing module `com.acme.json`, and the application descriptor declares a readability relationship to that module.
 
-| Câu hỏi | Cấu hình chịu trách nhiệm |
+| Question | Responsible configuration |
 |---|---|
-| Dùng phiên bản thư viện nào? | Maven/Gradle dependency declaration |
-| Tìm thư viện ở repository nào? | Maven/Gradle repositories và dependency resolution |
-| Artifact nằm trên compile/module path nào? | Compiler plugin hoặc cấu hình build |
-| Named module của ứng dụng đọc module nào? | `requires` trong `module-info.java` |
-| Module consumer có thể import package nào? | `exports` của module cung cấp |
-| Framework được deep reflection vào package nào? | `opens` của module chứa package |
-| Service provider nào có thể được khám phá? | `uses`, `provides` và module graph |
+| Which library version is used? | Maven/Gradle dependency declaration |
+| Which repository is the library fetched from? | Maven/Gradle repositories and dependency resolution |
+| Which compile/module path does the artifact go on? | Compiler plugin or build configuration |
+| Which modules does the application's named module read? | `requires` in `module-info.java` |
+| Which packages can consumer modules import? | `exports` of the providing module |
+| Which packages can frameworks reflect deeply into? | `opens` of the module containing the package |
+| Which service providers can be discovered? | `uses`, `provides`, and the module graph |
 
-**Quy tắc cốt lõi:** dependency declaration chọn **artifact**; `requires` khai báo **readability** trong module graph.
+**Core rule:** dependency declarations select **artifacts**; `requires` declares **readability** in the module graph.
 
-## 2. Ví dụ tối thiểu với module ứng dụng và thư viện
+## 2. Minimal example with an application module and a library module
 
-Giả sử có module thư viện:
+Suppose there is a library module:
 
 ```java
-// module-info.java của thư viện
+// module-info.java of the library
 module com.acme.greeting {
     exports com.acme.greeting.api;
 }
 ```
 
-Class công khai:
+Public class:
 
 ```java
 package com.acme.greeting.api;
@@ -67,12 +67,12 @@ public final class Greeter {
     }
 
     public static String hello(String name) {
-        return "Xin chào, " + name;
+        return "Hello, " + name;
     }
 }
 ```
 
-Ứng dụng dùng thư viện:
+Application using the library:
 
 ```java
 package com.acme.app;
@@ -86,7 +86,7 @@ public class Main {
 }
 ```
 
-Descriptor của ứng dụng:
+Application descriptor:
 
 ```java
 module com.acme.app {
@@ -94,18 +94,18 @@ module com.acme.app {
 }
 ```
 
-Maven hoặc Gradle vẫn cần lấy đúng JAR của `com.acme.greeting`. Khi biên dịch module `com.acme.app`, `javac` nhìn thấy descriptor và xác nhận:
+Maven or Gradle still needs to fetch the right JAR for `com.acme.greeting`. When compiling module `com.acme.app`, `javac` inspects the descriptor and verifies:
 
-1. Module `com.acme.greeting` có tồn tại trong tập module có thể quan sát không?
-2. Module `com.acme.app` có quyền đọc nó thông qua `requires` không?
-3. Package `com.acme.greeting.api` đã được export cho consumer chưa?
-4. Class và method được tham chiếu có visibility hợp lệ không?
+1. Does module `com.acme.greeting` exist in the observable set of modules?
+2. Does module `com.acme.app` have permission to read it via `requires`?
+3. Has package `com.acme.greeting.api` been exported to the consumer?
+4. Do the referenced class and method have valid visibility?
 
-Một dependency build tồn tại nhưng thiếu `requires` vẫn có thể gây lỗi package không visible. Ngược lại, `requires` đúng nhưng thiếu JAR dẫn tới lỗi không tìm thấy module.
+Having a build dependency present while missing `requires` can still cause a package not visible error. Conversely, having a valid `requires` while missing the JAR leads to a module not found error.
 
-## 3. Khai báo dependency trong Maven
+## 3. Declaring dependencies in Maven
 
-Với cấu trúc Maven thông thường:
+With a standard Maven structure:
 
 ```text
 app/
@@ -115,7 +115,7 @@ app/
     └── com/acme/app/Main.java
 ```
 
-Ví dụ `pom.xml` tối giản:
+Minimal `pom.xml` example:
 
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -152,25 +152,25 @@ Ví dụ `pom.xml` tối giản:
 </project>
 ```
 
-Maven quản lý việc lấy `com.acme:greeting:1.0.0`; `module-info.java` trong ứng dụng vẫn cần `requires com.acme.greeting;` nếu mã nguồn truy cập API của named module này.
+Maven handles fetching `com.acme:greeting:1.0.0`; `module-info.java` in the application still needs `requires com.acme.greeting;` if source code accesses APIs of this named module.
 
-Phiên bản Java release và phiên bản plugin trong ví dụ chỉ là cấu hình minh họa. Dự án thực tế nên dùng phiên bản plugin tương thích với JDK/toolchain và chính sách build của tổ chức.
+The Java release version and plugin version in the example are illustrative configurations only. Real projects should use plugin versions compatible with the JDK/toolchain and organizational build policies.
 
-Các Maven scope phổ biến:
+Common Maven scopes:
 
-| Maven scope | Ý nghĩa build thông thường | Lưu ý khi thiết kế JPMS |
+| Maven scope | Normal build meaning | Notes when designing for JPMS |
 |---|---|---|
-| `compile` (mặc định) | Dependency cần khi compile; thường cũng nằm trong runtime dependency set | Nếu source named module tham chiếu module đó, thường khai báo `requires` |
-| `provided` | Có ở compile/test, môi trường chạy được kỳ vọng cung cấp | Có thể tương ứng với `requires static` trong một số thiết kế tùy chọn; không tự động tương ứng |
-| `runtime` | Cần khi chạy, không nhất thiết cần compile source trực tiếp | Không nên thêm `requires` chỉ vì JAR là runtime dependency; xem cách sử dụng |
-| `test` | Phục vụ test | Thường không cần đưa vào descriptor sản phẩm |
-| `system` | Phụ thuộc file local cụ thể, thường không khuyến khích | Không thay đổi quy tắc JPMS |
+| `compile` (default) | Dependency needed during compile; typically also in the runtime dependency set | If named module sources reference that module, usually declare `requires` |
+| `provided` | Present at compile/test time, expected to be supplied by the runtime environment | May correspond to `requires static` in certain optional designs; not an automatic mapping |
+| `runtime` | Needed at runtime, not necessarily needed to compile main sources directly | Do not add `requires` solely because a JAR is a runtime dependency; check how it is used |
+| `test` | Serves tests | Usually does not belong in the production descriptor |
+| `system` | Depends on a specific local file, generally discouraged | Does not alter JPMS rules |
 
-Maven scope không phải chỉ thị JPMS. Một dependency `runtime` có thể là driver được `ServiceLoader` phát hiện; ứng dụng không nhất thiết có `requires` tới module implementation.
+A Maven scope is not a JPMS directive. A `runtime` dependency may be a driver discovered by `ServiceLoader`; the application does not necessarily have a `requires` on the implementation module.
 
-## 4. Khai báo dependency trong Gradle
+## 4. Declaring dependencies in Gradle
 
-Với Gradle Java plugin hoặc Java Library plugin, một ví dụ Groovy DSL:
+With the Gradle Java plugin or Java Library plugin, a Groovy DSL example:
 
 ```groovy
 plugins {
@@ -189,9 +189,9 @@ dependencies {
 }
 ```
 
-Nếu source có `module-info.java`, build cần dùng module path đúng cho các dependency modular. Gradle có thể suy luận module path trong các cấu hình được hỗ trợ khi bật `inferModulePath`; hãy kiểm tra lệnh biên dịch thực tế khi có JAR không modular hoặc cấu hình tùy chỉnh.
+If sources contain `module-info.java`, the build must use the proper module path for modular dependencies. Gradle can infer the module path in supported configurations when `inferModulePath` is enabled; inspect the actual compile command when non-modular JARs or custom configurations are involved.
 
-Descriptor vẫn là:
+The descriptor remains:
 
 ```java
 module com.acme.app {
@@ -199,25 +199,25 @@ module com.acme.app {
 }
 ```
 
-Các cấu hình Gradle thường gặp:
+Common Gradle configurations:
 
-| Configuration | Vai trò | Quan hệ thường gặp với descriptor |
+| Configuration | Role | Typical relationship with descriptor |
 |---|---|---|
-| `implementation` | API/implementation được dự án dùng để compile và chạy | `requires` khi mã module trực tiếp cần named module |
-| `api` (Java Library plugin) | Dependency là một phần API được consumer biên dịch dựa vào | Có thể đi cùng `requires transitive` nếu public API thực sự phơi bày kiểu từ module đó |
-| `compileOnly` | Dependency chỉ cần khi compile | Có thể dùng `requires static` nếu runtime cho phép thiếu module đó |
-| `runtimeOnly` | Dependency chỉ cần khi chạy | Thường gặp ở service provider hoặc implementation được nạp động |
-| `annotationProcessor` | Thư viện chứa annotation processor chạy tại compile time | Cấu hình riêng; không tự động phải `requires` trong application module |
-| `testImplementation` | Thư viện phục vụ test | Không đồng nghĩa dependency của module ứng dụng ở production |
+| `implementation` | API/implementation used by the project to compile and run | `requires` when module code directly needs the named module |
+| `api` (Java Library plugin) | Dependency that is part of the API consumers compile against | May accompany `requires transitive` if the public API actually exposes types from that module |
+| `compileOnly` | Dependency needed only at compile time | May use `requires static` if runtime permits the module to be absent |
+| `runtimeOnly` | Dependency needed only at runtime | Common for service providers or dynamically loaded implementations |
+| `annotationProcessor` | Library containing annotation processors run at compile time | Separate configuration; does not automatically need `requires` in the application module |
+| `testImplementation` | Library serving tests | Not synonymous with production application module dependencies |
 
-**Không đồng nhất** `api` với `requires transitive` hoặc `compileOnly` với `requires static` theo kiểu máy móc. Hai hệ thống phân loại dependency theo mục đích khác nhau; sự phù hợp còn tùy public API và hành vi runtime.
+**Do not mechanically equate** `api` with `requires transitive` or `compileOnly` with `requires static`. The two systems categorize dependencies for different purposes; alignment still depends on the public API and runtime behavior.
 
-## 5. requires khác requires transitive như thế nào?
+## 5. How does requires differ from requires transitive?
 
-Giả sử `com.acme.service` cung cấp public API dùng kiểu `Customer` từ `com.acme.model`:
+Suppose `com.acme.service` provides a public API using the `Customer` type from `com.acme.model`:
 
 ```java
-// Trong com.acme.model
+// In com.acme.model
 package com.acme.model;
 
 public record Customer(String id) {
@@ -225,7 +225,7 @@ public record Customer(String id) {
 ```
 
 ```java
-// Trong com.acme.service
+// In com.acme.service
 package com.acme.service.api;
 
 import com.acme.model.Customer;
@@ -235,7 +235,7 @@ public interface CustomerService {
 }
 ```
 
-Descriptor module model:
+Model module descriptor:
 
 ```java
 module com.acme.model {
@@ -243,7 +243,7 @@ module com.acme.model {
 }
 ```
 
-Descriptor module service:
+Service module descriptor:
 
 ```java
 module com.acme.service {
@@ -252,7 +252,7 @@ module com.acme.service {
 }
 ```
 
-Ứng dụng:
+Application:
 
 ```java
 module com.acme.app {
@@ -260,9 +260,9 @@ module com.acme.app {
 }
 ```
 
-`requires transitive com.acme.model` làm cho các module đọc `com.acme.service` cũng đọc được `com.acme.model`. Điều này hữu ích vì chữ ký public của `CustomerService` chứa kiểu `Customer` thuộc module model.
+`requires transitive com.acme.model` makes modules that read `com.acme.service` also read `com.acme.model`. This is useful because `CustomerService`'s public signature contains the `Customer` type from the model module.
 
-Khi publish thư viện, Gradle Java Library plugin thường khai báo dependency model ở `api` thay vì `implementation` để consumer có dependency đó trong compile graph:
+When publishing a library, the Gradle Java Library plugin typically declares the model dependency under `api` rather than `implementation` so consumers have that dependency in their compile graph:
 
 ```groovy
 dependencies {
@@ -270,15 +270,15 @@ dependencies {
 }
 ```
 
-Nhưng cần viết `requires transitive` trong descriptor nếu muốn JPMS truyền readability như trên. Gradle `api` không tự thay thế directive trong `module-info.java`.
+However, you still must write `requires transitive` in the descriptor if you want JPMS to propagate readability as shown above. Gradle `api` does not automatically replace directives in `module-info.java`.
 
-Khi public API **không** phơi bày kiểu từ module khác, ưu tiên `requires` thường đủ. Lạm dụng `requires transitive` làm consumer nhìn thấy các dependency không cần thiết như một phần hợp đồng API.
+When the public API does **not** expose types from another module, preferring regular `requires` is usually sufficient. Overusing `requires transitive` exposes unnecessary dependencies to consumers as part of the API contract.
 
-## 6. requires static và dependency compile-only
+## 6. requires static and compile-only dependencies
 
-`requires static` biểu thị dependency bắt buộc lúc biên dịch nhưng không bắt buộc phải có ở runtime để module hiện tại được phân giải.
+`requires static` expresses a dependency that is mandatory at compile time but optional at runtime for the current module to resolve.
 
-Ví dụ ứng dụng chỉ dùng annotation ở compile time:
+For example, an application using annotations only at compile time:
 
 ```java
 module com.acme.app {
@@ -294,17 +294,17 @@ dependencies {
 }
 ```
 
-Maven có thể dùng `provided` khi dependency được cung cấp ngoài môi trường ứng dụng, nhưng ngữ nghĩa Maven `provided` và `requires static` không hoàn toàn giống nhau. Maven `provided` có thể vẫn cần thư viện ở runtime do container cung cấp, còn `requires static` cho phép JPMS phân giải module ngay cả khi module phụ thuộc vắng mặt.
+Maven may use `provided` when a dependency is supplied externally by the runtime environment, yet the semantics of Maven `provided` and `requires static` are not identical. Maven `provided` may still require the library at runtime via a container, whereas `requires static` lets JPMS resolve the module even when the depended-on module is absent.
 
-**Điều quan trọng:** `requires static` không làm class của thư viện tự xuất hiện khi ứng dụng chạy. Nếu code path runtime cố nạp một class của module tùy chọn không có mặt, ứng dụng vẫn có thể gặp lỗi nạp class. Chỉ dùng dạng này khi kiến trúc thật sự chấp nhận dependency không tồn tại khi chạy.
+**Important:** `requires static` does not make the library's classes appear automatically at runtime. If a runtime code path attempts to load a class from an absent optional module, the application can still fail to load the class. Use this form only when the architecture genuinely tolerates the dependency being absent at runtime.
 
-Cũng không nên dùng `requires static` chỉ vì muốn làm graph nhỏ hơn nếu thư viện luôn cần cho logic runtime.
+You should also avoid using `requires static` merely to shrink the graph if the library is always needed for runtime logic.
 
-## 7. Runtime-only dependency và ServiceLoader
+## 7. Runtime-only dependencies and ServiceLoader
 
-Một số implementation chỉ được sử dụng thông qua Java Service Provider Interface (SPI). Consumer biết service interface, nhưng không import implementation class.
+Some implementations are used only through the Java Service Provider Interface (SPI). The consumer knows the service interface, without importing the implementation class.
 
-Module SPI:
+SPI module:
 
 ```java
 module com.acme.spi {
@@ -331,7 +331,7 @@ module com.acme.export.csv {
 }
 ```
 
-Trong Gradle, implementation provider có thể là dependency `runtimeOnly` ở build layer:
+In Gradle, the provider implementation can be a `runtimeOnly` dependency at the build layer:
 
 ```groovy
 dependencies {
@@ -340,9 +340,9 @@ dependencies {
 }
 ```
 
-Nhưng riêng `runtimeOnly` **không bảo đảm** provider module đã được JPMS resolve. Provider cần có trên module path và được đưa vào graph theo cách phù hợp, ví dụ chọn làm root với `--add-modules`, chọn root khi tạo `ModuleLayer` hoặc thực hiện service binding.
+However, `runtimeOnly` alone **does not guarantee** the provider module is resolved by JPMS. The provider must be on the module path and included in the graph appropriately, such as by selecting it as a root with `--add-modules`, choosing roots when creating a `ModuleLayer`, or performing service binding.
 
-Ví dụ khởi chạy để yêu cầu provider module:
+Example launch command requesting the provider module:
 
 ```shell
 java --module-path mods \
@@ -350,14 +350,14 @@ java --module-path mods \
   -m com.acme.app/com.acme.app.Main
 ```
 
-Không thêm `requires com.acme.export.csv;` vào consumer chỉ để ServiceLoader biết provider; consumer nên dựa vào service interface, không buộc phụ thuộc trực tiếp vào implementation.
+Do not add `requires com.acme.export.csv;` to the consumer merely so ServiceLoader knows the provider; consumers should depend on the service interface, not couple directly to an implementation.
 
-## 8. Annotation processor không phải dependency runtime của ứng dụng
+## 8. Annotation processors are not application runtime dependencies
 
-Một application module có thể dùng annotation và annotation processor trong build. Hai thành phần này nên được phân biệt:
+An application module may use annotations and an annotation processor during the build. These two components should be distinguished:
 
-- Annotation API: source có thể import annotation type; đây là compile dependency.
-- Annotation processor: công cụ được `javac` nạp để sinh source/code; đây là dependency **của giai đoạn biên dịch**.
+- Annotation API: sources may import annotation types; this is a compile dependency.
+- Annotation processor: a tool loaded by `javac` to generate sources/code; this is a **compilation-phase** dependency.
 
 Gradle:
 
@@ -368,17 +368,17 @@ dependencies {
 }
 ```
 
-Nếu annotation API là một named module và source cần import nó, descriptor có thể có `requires static com.acme.annotations;`. Tuy nhiên, application module **không cần `requires` tới module processor chỉ vì processor chạy lúc build**.
+If the annotation API is a named module and sources import it, the descriptor may contain `requires static com.acme.annotations;`. However, the application module **does not need `requires` on the processor module merely because the processor runs at build time**.
 
-Đối với Maven Compiler Plugin, cấu hình processor path có thể được khai báo tường minh (tùy version plugin) trong `annotationProcessorPaths`. Với modular processor, có thêm cơ chế `--processor-module-path`.
+For the Maven Compiler Plugin, processor path configuration can be declared explicitly (depending on plugin version) in `annotationProcessorPaths`. For modular processors, there is also the `--processor-module-path` mechanism.
 
-Không đưa processor cùng những dependency như template engine hoặc JavaPoet vào production runtime nếu application không thực sự cần gọi chúng.
+Do not ship processors along with dependencies like template engines or JavaPoet into production runtime if the application does not actually need to invoke them.
 
-## 9. Tên Maven/Gradle artifact không nhất thiết là tên module
+## 9. Maven/Gradle artifact names are not necessarily module names
 
-Đây là một trong các nguồn gây lỗi phổ biến khi tạo `module-info.java`.
+This is one of the most common sources of errors when creating `module-info.java`.
 
-Ví dụ Maven:
+Maven example:
 
 ```text
 groupId    = org.example
@@ -386,41 +386,41 @@ artifactId = useful-utils
 version    = 3.2
 ```
 
-Tên JPMS module thực tế có thể là:
+The actual JPMS module name might be:
 
 ```text
 org.example.utilities
 ```
 
-chứ không nhất thiết là `useful.utils`, `org.example.useful.utils` hay chuỗi từ `artifactId`.
+rather than `useful.utils`, `org.example.useful.utils`, or a string derived from `artifactId`.
 
-Nguồn xác định tên module theo mức độ ưu tiên thực tế:
+Sources determining the module name in practical precedence order:
 
-1. `module-info.class` của explicit module.
-2. `Automatic-Module-Name` trong manifest với automatic module.
-3. Tên suy ra từ tên file JAR nếu không có hai nguồn trên và JAR được dùng như automatic module.
+1. `module-info.class` of an explicit module.
+2. `Automatic-Module-Name` in the manifest for an automatic module.
+3. A name derived from the JAR filename if neither of the two sources above exists and the JAR is used as an automatic module.
 
-Có thể kiểm tra bằng:
+You can check with:
 
 ```shell
 jar --describe-module --file libs/useful-utils-3.2.jar
 ```
 
-Ví dụ kết quả có thể nêu module automatic hoặc descriptor module explicit. Dùng đúng tên hiển thị trong `requires`.
+The output may indicate either an automatic module or an explicit module descriptor. Use the exact name displayed in `requires`.
 
-Để xem module thực sự có mặt trong môi trường hiện tại:
+To view modules actually present in the current environment:
 
 ```shell
 java --module-path libs --list-modules
 ```
 
-Tuy nhiên, danh sách module **có thể quan sát** không đồng nghĩa toàn bộ đã được resolve trong lần chạy ứng dụng. Dùng `--show-module-resolution` khi cần chẩn đoán graph của lần chạy.
+However, the list of **observable** modules does not mean all of them are resolved in a given application run. Use `--show-module-resolution` when diagnosing the graph of a specific run.
 
-## 10. Automatic module hỗ trợ migration nhưng có giới hạn
+## 10. Automatic modules assist migration but have limitations
 
-Một JAR không có descriptor khi đặt trên module path thường được xử lý như automatic module. Named module ứng dụng có thể khai báo `requires` tới automatic module, nếu tên module xác định được và package không xung đột.
+A JAR without a descriptor placed on the module path is typically treated as an automatic module. An application's named module can declare `requires` on an automatic module if the module name can be determined and packages do not conflict.
 
-Ví dụ:
+Example:
 
 ```java
 module com.acme.app {
@@ -428,18 +428,18 @@ module com.acme.app {
 }
 ```
 
-Trong giai đoạn chuyển đổi, automatic module có thể giúp sử dụng thư viện cũ mà chưa phải tự tạo descriptor cho nó. Nhưng có một số giới hạn:
+During a transition period, automatic modules allow using legacy libraries without creating descriptors for them yourself. Yet there are limitations:
 
-- Tên module có thể không ổn định nếu được suy ra từ tên JAR.
-- Mọi package của automatic module được export rộng, nên mức đóng gói yếu.
-- Nhiều JAR từ thời classpath có thể chứa split package và gây xung đột khi cùng chuyển lên module path.
-- `jlink` không hỗ trợ liên kết automatic modules theo cách dùng explicit modules thông thường.
+- The module name can be unstable if derived from the JAR filename.
+- Every package of an automatic module is broadly exported, making encapsulation weak.
+- Multiple JARs from the classpath era may contain split packages and conflict when moved together onto the module path.
+- `jlink` does not support linking automatic modules the way it links explicit modules.
 
-Vì vậy, không nên coi một dependency khai báo trong Maven/Gradle là luôn có module name ổn định. Khi chọn dependency cho ứng dụng modular dài hạn, ưu tiên artifact có explicit descriptor hoặc metadata module name rõ ràng.
+Therefore, do not assume a dependency declared in Maven/Gradle always has a stable module name. When selecting dependencies for long-term modular applications, prefer artifacts with explicit descriptors or clear module name metadata.
 
-## 11. Khi dependency có mặt nhưng javac vẫn báo package không visible
+## 11. When the dependency is present yet javac reports package is not visible
 
-Một tình huống điển hình:
+A typical scenario:
 
 ```java
 module com.acme.app {
@@ -447,7 +447,7 @@ module com.acme.app {
 }
 ```
 
-Compiler báo:
+The compiler reports:
 
 ```text
 package com.acme.library.internal is not visible
@@ -455,9 +455,9 @@ package com.acme.library.internal is not visible
  which does not export it)
 ```
 
-Đây không phải lỗi Maven/Gradle chưa tải được artifact. Module đã được tìm thấy, nhưng package trong thư viện chưa export cho ứng dụng.
+This is not a failure of Maven/Gradle to download the artifact. The module was found, but the package in the library has not been exported to the application.
 
-Một descriptor như sau:
+A descriptor such as:
 
 ```java
 module com.acme.library {
@@ -465,30 +465,30 @@ module com.acme.library {
 }
 ```
 
-chỉ công bố package `com.acme.library.api`. Thêm dependency ở build file hoặc thêm `requires` nữa không mở được `com.acme.library.internal`.
+only exposes the package `com.acme.library.api`. Adding dependencies in the build file or adding another `requires` will not expose `com.acme.library.internal`.
 
-Cần dùng public API trong package được export hoặc yêu cầu thư viện công bố API hợp lệ. `--add-exports` có thể giúp migration tạm thời nhưng làm phụ thuộc vào cấu trúc nội bộ của thư viện.
+Use public APIs in exported packages or ask the library to expose a proper API. `--add-exports` can assist temporary migration, but creates reliance on the library's internal structure.
 
-Tương tự, `opens` dành cho deep reflection ở runtime, không thay thế `exports` cho việc import và gọi API trực tiếp.
+Similarly, `opens` is for deep reflection at runtime, not a replacement for `exports` when importing and calling APIs directly.
 
-## 12. Khi requires hợp lệ nhưng build báo module not found
+## 12. When requires is valid yet the build reports module not found
 
-Ví dụ:
+Example:
 
 ```text
 error: module not found: com.acme.greeting
 ```
 
-Những nguyên nhân thường gặp:
+Common causes:
 
-1. Build tool chưa tải hoặc chưa đưa đúng JAR vào compiler input.
-2. JAR nằm trên `--class-path` thay vì `--module-path`.
-3. Tên module trong `requires` không khớp descriptor/automatic module name.
-4. Version dependency đã bị thay thế, exclude hoặc resolve sang artifact khác.
-5. Dependency là module tùy chọn nhưng cấu hình compile không cung cấp nó.
-6. Package/module path bị cấu hình khác giữa IDE và CI.
+1. The build tool has not downloaded or supplied the right JAR to the compiler input.
+2. The JAR is on `--class-path` instead of `--module-path`.
+3. The module name in `requires` does not match the descriptor/automatic module name.
+4. The dependency version was overridden, excluded, or resolved to a different artifact.
+5. The dependency is an optional module, yet the compile configuration does not provide it.
+6. The package/module path is configured differently between the IDE and CI.
 
-Chẩn đoán:
+Diagnosis:
 
 ```shell
 jar --describe-module --file libs/com.acme.greeting.jar
@@ -500,15 +500,15 @@ javac --module-path mods:libs -d out \
   src/com/acme/app/Main.java
 ```
 
-Ví dụ trên dùng dấu hai chấm cho Linux/macOS; Windows dùng dấu chấm phẩy. Trong IDE hoặc build tool, hãy kiểm tra tham số `javac` thật được sinh ra thay vì chỉ nhìn dependency declaration.
+The example above uses a colon for Linux/macOS; Windows uses a semicolon. In an IDE or build tool, inspect the actual `javac` arguments generated rather than looking only at the dependency declaration.
 
-## 13. Test dependencies và module descriptor
+## 13. Test dependencies and the module descriptor
 
-Các thư viện test như JUnit, mock framework hoặc test utilities thường được khai báo với Maven `test` scope hoặc Gradle `testImplementation`.
+Test libraries such as JUnit, mocking frameworks, or test utilities are typically declared with Maven `test` scope or Gradle `testImplementation`.
 
-Điều đó **không có nghĩa** nên thêm `requires` chúng vào descriptor production của `com.acme.app`. Nếu test code được biên dịch trong module riêng, hãy dùng test module descriptor phù hợp. Nếu test code được patch vào module production, cấu hình test runner có thể cần `--patch-module`, `--add-reads` hoặc `--add-opens` để chạy test.
+That **does not mean** you should add `requires` for them in `com.acme.app`'s production descriptor. If test code is compiled in a separate module, use an appropriate test module descriptor. If test code is patched into the production module, the test runner configuration may need `--patch-module`, `--add-reads`, or `--add-opens` to execute tests.
 
-Ví dụ Gradle:
+Gradle example:
 
 ```groovy
 dependencies {
@@ -516,25 +516,25 @@ dependencies {
 }
 ```
 
-Dependency trên phục vụ test; module descriptor của ứng dụng không tự cần `requires org.junit.jupiter.api;` chỉ vì test source import JUnit.
+The dependency above serves tests; the application's module descriptor does not automatically need `requires org.junit.jupiter.api;` just because test sources import JUnit.
 
-Mục tiêu là giữ module production phản ánh dependency production, không chứa toàn bộ công cụ hỗ trợ phát triển.
+The goal is to keep the production module reflecting production dependencies rather than pulling in the entire suite of development tools.
 
-## 14. Dependency resolution, module resolution và runtime image
+## 14. Dependency resolution, module resolution, and runtime images
 
-Ba loại “resolution” dễ bị nhầm:
+Three types of “resolution” are easily confused:
 
-**Build dependency resolution** của Maven/Gradle: chọn artifact và version cụ thể từ dependency graph.
+**Build dependency resolution** by Maven/Gradle: selects specific artifacts and versions from the dependency graph.
 
-**JPMS module resolution**: bắt đầu từ root modules, phân giải `requires`, kiểm tra các ràng buộc của module graph và có thể bổ sung provider qua service binding khi được yêu cầu.
+**JPMS module resolution**: starts from root modules, resolves `requires`, validates module graph constraints, and may add providers via service binding when requested.
 
-**Runtime image linking** của `jlink`: tạo image chứa tập module đã chọn cùng dependency cần thiết.
+**Runtime image linking** by `jlink`: creates an image containing a selected set of modules and required dependencies.
 
-Một dependency đã được Maven/Gradle tải về không bảo đảm module đó được resolve ở runtime. Một module khai báo `requires` cũng không bảo đảm JAR tương ứng có sẵn nếu deployment bỏ quên artifact.
+A dependency downloaded by Maven/Gradle does not guarantee that module is resolved at runtime. A module declaring `requires` also does not guarantee the corresponding JAR is present if deployment omitted the artifact.
 
-Khi đóng gói bằng `jlink`, cần kiểm tra ứng dụng và dependency đã có module descriptor phù hợp. Automatic modules hoặc các dependency chỉ nằm trên classpath có thể yêu cầu một chiến lược packaging khác.
+When packaging with `jlink`, check that the application and dependencies have suitable module descriptors. Automatic modules or classpath-only dependencies may require a different packaging strategy.
 
-Có thể kiểm tra runtime graph:
+You can inspect the runtime graph:
 
 ```shell
 java --show-module-resolution \
@@ -542,60 +542,60 @@ java --show-module-resolution \
   --module com.acme.app/com.acme.app.Main
 ```
 
-Nếu dùng custom runtime image, chạy lệnh bằng executable nằm trong image và đối chiếu `--list-modules` để xem module nào thực sự được đóng gói.
+If using a custom runtime image, run the executable inside the image and check `--list-modules` to verify which modules are actually packaged.
 
-## 15. Quy trình đối chiếu dependency với requires
+## 15. Process for reconciling dependencies with requires
 
-Một quy trình thực hành cho mỗi module ứng dụng hoặc thư viện:
+A practical workflow for each application or library module:
 
-1. **Liệt kê import và public API** của module: xác định kiểu thuộc module nào.
-2. **Kiểm tra dependency build**: artifact và version cụ thể đã khai báo trong Maven/Gradle.
-3. **Đọc module name từ artifact** bằng `jar --describe-module`.
-4. **Chọn requires phù hợp**: `requires` cho dependency thông thường; `requires transitive` khi muốn truyền readability do API công bố; `requires static` nếu compile-time dependency thực sự tùy chọn ở runtime.
-5. **Xem trường hợp đặc biệt**: service provider, annotation processor, test library và dependency chỉ dùng reflection.
-6. **Kiểm tra module path thực tế** của `javac` và lệnh `java`.
-7. **Biên dịch và chạy thử** bằng đúng artifact/dependency version sẽ triển khai.
-8. **Dùng `jdeps` và resolution output** để phát hiện sai khác giữa mã, descriptor và graph.
+1. **List imports and public APIs** of the module: identify which module each type belongs to.
+2. **Check build dependencies**: the exact artifacts and versions declared in Maven/Gradle.
+3. **Read module names from artifacts** using `jar --describe-module`.
+4. **Choose the right requires**: `requires` for normal dependencies; `requires transitive` when readability must propagate due to exposed APIs; `requires static` if a compile-time dependency is genuinely optional at runtime.
+5. **Review special cases**: service providers, annotation processors, test libraries, and reflection-only dependencies.
+6. **Verify actual module paths** passed to `javac` and `java` commands.
+7. **Compile and test** with the exact artifact/dependency versions that will be deployed.
+8. **Use `jdeps` and resolution output** to catch mismatches between code, descriptors, and the graph.
 
-Không cần ép mọi dependency của build tool thành một directive `requires`. Một số thư viện chỉ dùng để test, sinh mã, làm provider hoặc cung cấp resource. Điều quan trọng là xác định **mục đích sử dụng** của từng dependency.
+Do not force every build-tool dependency into a `requires` directive. Some libraries exist only for testing, code generation, service providing, or resource delivery. What matters is identifying each dependency's **intended usage**.
 
-## 16. Bảng tổng hợp các trường hợp điển hình
+## 16. Summary table of typical cases
 
-| Trường hợp | Build dependency thường gặp | JPMS tương ứng |
+| Case | Common build dependency | Corresponding JPMS |
 |---|---|---|
-| Source dùng API public từ module X | Maven compile / Gradle implementation | `requires X;` |
-| Thư viện công bố API có kiểu từ module X | Maven compile hoặc Gradle api | `requires transitive X;` khi cần truyền readability |
-| Source dùng annotation chỉ cần khi compile | Maven provided / Gradle compileOnly | `requires static X;` nếu X là named module cần cho compile |
-| Implementation nạp qua ServiceLoader | Maven runtime / Gradle runtimeOnly | Consumer `uses` service type; provider `provides` và phải được resolve |
-| Annotation processor chạy khi build | Maven compiler processor config / Gradle annotationProcessor | Không tự động cần `requires` processor trong application module |
-| Thư viện chỉ dùng ở test | Maven test / Gradle testImplementation | Không đưa vào descriptor production chỉ vì test cần |
-| Framework đọc field private bằng reflection | Thường là runtime/implementation dependency | `opens package to framework.module;` khi cần deep reflection |
-| Java SE API thuộc `java.sql` hoặc `java.logging` | Do JDK cung cấp, không có Maven artifact riêng | `requires java.sql;` hoặc `requires java.logging;` |
+| Source uses public API from module X | Maven compile / Gradle implementation | `requires X;` |
+| Library exposes API containing types from module X | Maven compile or Gradle api | `requires transitive X;` when readability must propagate |
+| Source uses annotations needed only at compile time | Maven provided / Gradle compileOnly | `requires static X;` if X is a named module needed for compile |
+| Implementation loaded via ServiceLoader | Maven runtime / Gradle runtimeOnly | Consumer `uses` service type; provider `provides` and must be resolved |
+| Annotation processor running at build time | Maven compiler processor config / Gradle annotationProcessor | Does not automatically need `requires` on processor in application module |
+| Library used only in tests | Maven test / Gradle testImplementation | Do not put in production descriptor solely for tests |
+| Framework reads private fields via reflection | Usually runtime/implementation dependency | `opens package to framework.module;` when deep reflection is needed |
+| Java SE APIs in `java.sql` or `java.logging` | Provided by JDK, no separate Maven artifact | `requires java.sql;` or `requires java.logging;` |
 
-Nhớ rằng ví dụ trong bảng mô tả quan hệ **thường gặp** chứ không phải phép chuyển tự động 1–1. Khai báo JPMS cần dựa trên module thực tế chứa API và cách code sử dụng nó.
+Remember that the table describes **typical** relationships rather than automatic 1-to-1 conversions. JPMS declarations must be grounded in the actual modules containing the APIs and how the code uses them.
 
-## 17. Các lỗi thường gặp và hướng xử lý
+## 17. Common errors and troubleshooting
 
-| Triệu chứng | Nguyên nhân có thể | Cách xử lý |
+| Symptom | Possible cause | How to fix |
 |---|---|---|
-| `module not found` | Artifact không được đưa vào module path hoặc module name sai | Xác định tên module thật, kiểm tra compiler/runtime path |
-| `package ... is not visible` | Thiếu `requires` hoặc package chưa export | Kiểm tra descriptor consumer và provider |
-| `reads package ... from both ...` | Split package / conflict giữa module | Loại dependency trùng, relocate package hoặc hợp nhất module |
-| Code compile nhưng runtime thiếu class | Build và runtime dependency set khác nhau | Đồng bộ artifact/runtime graph, kiểm tra `requires static` |
-| ServiceLoader không có provider | Provider không được resolve hoặc thiếu `provides` | Kiểm tra `uses`, `provides`, root modules và service binding |
-| Reflection thất bại | Package chưa mở cho framework | Dùng `opens` thích hợp, không lạm dụng export |
-| IDE chạy được nhưng CI lỗi | IDE và build tool phân loại classpath/module path khác | Kiểm tra toolchain, compiler args và dependency resolution |
-| Jlink không chấp nhận một dependency | Dependency là automatic module hoặc không phù hợp với linking | Dùng explicit modular artifact hoặc đổi chiến lược packaging |
+| `module not found` | Artifact not placed on module path or wrong module name | Determine actual module name, check compiler/runtime paths |
+| `package ... is not visible` | Missing `requires` or package not exported | Check consumer and provider descriptors |
+| `reads package ... from both ...` | Split package / conflict between modules | Remove duplicate dependency, relocate package, or merge modules |
+| Compiles yet missing classes at runtime | Build and runtime dependency sets differ | Synchronize artifact/runtime graph, check `requires static` |
+| ServiceLoader finds no provider | Provider not resolved or missing `provides` | Check `uses`, `provides`, root modules, and service binding |
+| Reflection fails | Package not opened to the framework | Use appropriate `opens`, avoid over-exporting |
+| Runs in IDE yet fails in CI | IDE and build tool classify classpath/module path differently | Check toolchain, compiler args, and dependency resolution |
+| Jlink rejects a dependency | Dependency is an automatic module or incompatible with linking | Use an explicit modular artifact or change packaging strategy |
 
-## 18. Những nguyên tắc cần nhớ
+## 18. Key principles to remember
 
-- Maven/Gradle quản lý **artifact và version**; JPMS quản lý **module readability và encapsulation**.
-- Không suy ra module name trực tiếp từ Maven `groupId`, `artifactId` hoặc tên file.
-- Chỉ dùng `requires transitive` khi cần truyền readability cho các module consumer.
-- `requires static` cho phép vắng dependency khi runtime resolution, nhưng code runtime vẫn phải tránh dùng class không có mặt.
-- Dependency kiểu `runtimeOnly` không tự bảo đảm provider được resolve trong JPMS.
-- Annotation processor và thư viện test thường không phải dependency production của application module.
-- `requires` không thay thế `exports`; `opens` giải quyết nhu cầu deep reflection.
-- Kiểm tra module path thực tế, descriptor của JAR, `jdeps` và `--show-module-resolution` khi build và runtime không nhất quán.
+- Maven/Gradle manage **artifacts and versions**; JPMS manages **module readability and encapsulation**.
+- Do not derive a module name directly from Maven `groupId`, `artifactId`, or filename.
+- Use `requires transitive` only when readability must propagate to consumer modules.
+- `requires static` permits a dependency to be absent at runtime resolution, yet runtime code must still avoid referencing absent classes.
+- `runtimeOnly` dependencies do not automatically guarantee providers are resolved in JPMS.
+- Annotation processors and test libraries are generally not production dependencies of the application module.
+- `requires` does not replace `exports`; `opens` addresses deep reflection needs.
+- Inspect the actual module path, JAR descriptors, `jdeps`, and `--show-module-resolution` when build and runtime disagree.
 
-**Kết luận:** Muốn khai báo dependency chính xác trong ứng dụng modular, cần kết hợp hai góc nhìn. Build tool trả lời “file JAR nào được đưa vào lúc build/chạy”, còn `module-info.java` trả lời “module nào được đọc và công bố API theo hợp đồng JPMS”. Khi hai lớp thông tin được đối chiếu bằng module name thật và chức năng sử dụng thực tế, dự án sẽ biên dịch dễ dự đoán hơn, giảm dependency thừa và tránh nhiều lỗi migration từ classpath sang module path.
+**Conclusion:** Declaring dependencies accurately in a modular application requires combining two perspectives. The build tool answers “which JAR files are supplied at build/run time”, while `module-info.java` answers “which modules are read and which APIs are exposed under the JPMS contract”. When both layers are reconciled using real module names and actual usage, projects compile more predictably, eliminate redundant dependencies, and avoid many classpath-to-module-path migration errors.

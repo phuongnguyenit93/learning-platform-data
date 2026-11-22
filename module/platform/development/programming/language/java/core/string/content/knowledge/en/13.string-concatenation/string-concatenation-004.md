@@ -1,26 +1,26 @@
-# String.concat và khác biệt khi đối số là null
+# String.concat and Differences When Arguments Are null
 
-Trong Java, có nhiều cách nối chuỗi, nhưng **String.concat(String str)** và toán tử **+** không xử lý **null** giống nhau. Đây là điểm dễ gây lỗi khi nối tên, mã, thông báo hoặc dữ liệu từ API mà một thành phần có thể chưa được cung cấp.
+In Java, there are multiple ways to concatenate strings, but **String.concat(String str)** and the **+** operator do not handle **null** the same way. This is a common source of bugs when joining names, codes, messages, or API data where one component may not have been provided.
 
-- **"Java".concat(" 17")** trả về String có nội dung **"Java 17"**.
-- **"Java".concat(null)** ném **NullPointerException**.
-- **"Java" + null** tạo String có nội dung **"Javanull"**: toán tử nối chuỗi chuyển tham chiếu null thành chữ **"null"**.
-- Nếu **biến nhận lời gọi concat() là null**, ví dụ **prefix.concat(" 17")**, cũng ném **NullPointerException**.
-- **String.concat() không sửa String gốc**: String bất biến, kết quả phải được sử dụng hoặc gán cho một biến.
+- **"Java".concat(" 17")** returns a String with content **"Java 17"**.
+- **"Java".concat(null)** throws **NullPointerException**.
+- **"Java" + null** creates a String with content **"Javanull"**: the concatenation operator converts a null reference into the text **"null"**.
+- If **the variable receiving the concat() call is null**, e.g., **prefix.concat(" 17")**, it also throws **NullPointerException**.
+- **String.concat() does not modify the original String**: String is immutable, so the result must be used or assigned to a variable.
 
-Sự khác nhau không chỉ là vấn đề cú pháp; nó còn quyết định cách ứng dụng diễn đạt dữ liệu vắng mặt. Chữ "null" xuất hiện trong kết quả nối chuỗi thường là **dấu hiệu dữ liệu chưa được xử lý theo chính sách nghiệp vụ**, không mặc nhiên là nội dung người dùng muốn nhìn thấy.
+The difference is not merely syntactic; it also determines how an application represents missing data. The word "null" appearing in concatenated output is usually **a sign that missing data was not handled according to business policy**, not content the user naturally expects to see.
 
-## 1. Hiểu đúng chữ ký của String.concat()
+## 1. Understanding the signature of String.concat()
 
-Phương thức của lớp String có dạng:
+The String class method has the signature:
 
 ~~~java
 public String concat(String str)
 ~~~
 
-Đây là **chữ ký API để giải thích**, không phải một phương thức bạn cần tự định nghĩa. **str** phải là tham chiếu tới một String hợp lệ; phương thức không có hợp đồng chuyển null thành văn bản.
+This is an **API signature for explanation**, not a method you need to define yourself. **str** must be a reference to a valid String; the method has no contract to convert null into text.
 
-Ví dụ cơ bản:
+Basic example:
 
 ~~~java
 String first = "Java";
@@ -30,9 +30,9 @@ System.out.println(first);  // Java
 System.out.println(result); // Java 17
 ~~~
 
-Biến first vẫn tham chiếu tới String có nội dung "Java". concat() tạo/trả về giá trị kết quả; muốn dùng nội dung đã nối, phải giữ giá trị trả về.
+The variable first still refers to the String with content "Java". concat() creates/returns a result value; to use the concatenated content, you must keep the return value.
 
-Nếu tham số là String rỗng, nội dung không đổi:
+If the parameter is an empty String, the content does not change:
 
 ~~~java
 String value = "Java";
@@ -42,9 +42,9 @@ System.out.println(result);       // Java
 System.out.println(value.equals(result)); // true
 ~~~
 
-Theo API của String.concat(), nếu đối số có độ dài 0, phương thức trả về chính String nhận lời gọi. Tuy vậy, khi so sánh **nội dung**, hãy ưu tiên equals() thay vì dựa vào toán tử == để quyết định giá trị chuỗi bằng nhau.
+According to the String.concat() API, if the argument has length 0, the method returns the receiver String itself. Even so, when comparing **content**, prefer equals() rather than relying on the == operator to decide string equality.
 
-### Điều gì xảy ra nếu đối số null?
+### What happens if the argument is null?
 
 ~~~java
 String text = "Hello";
@@ -53,13 +53,13 @@ String extra = null;
 String result = text.concat(extra); // NullPointerException
 ~~~
 
-Đây là **đoạn mã minh họa lỗi**. Vấn đề không phải chuỗi text không hợp lệ: receiver text là một String bình thường. Chính đối số extra không cung cấp String để nối; concat() không coi null là chuỗi rỗng và cũng không tự viết ra chữ "null".
+This is an **error-demonstration snippet**. The problem is not that text is invalid: the receiver text is a normal String. It is the argument extra that fails to supply a String to concatenate; concat() neither treats null as an empty string nor writes out the word "null".
 
-**Nguyên tắc:** tham số của concat() phải là String không-null. Nếu nguồn dữ liệu nullable, hãy xử lý trước khi gọi.
+**Rule:** the argument to concat() must be a non-null String. If the data source is nullable, handle it before calling concat().
 
-## 2. So sánh với toán tử + và +=
+## 2. Comparing with the + and += operators
 
-Trong ngữ cảnh có một toán hạng là String, toán tử **+** dùng cơ chế nối chuỗi của Java. Các toán hạng không phải String được chuyển thành biểu diễn String; với **tham chiếu null**, biểu diễn là **"null"**.
+In a context where one operand is a String, the **+** operator uses Java's string concatenation mechanism. Non-String operands are converted to their String representation; for a **null reference**, the representation is **"null"**.
 
 ~~~java
 String first = "Java";
@@ -70,11 +70,11 @@ System.out.println(missing + first); // nullJava
 System.out.println("Value: " + missing); // Value: null
 ~~~
 
-Toán tử + không gọi **missing.concat(...)**. Vì vậy, việc biến missing null **không làm phép cộng chuỗi ở trên ném NullPointerException**.
+The + operator does not call **missing.concat(...)**. Therefore, having a null variable missing **does not make the string concatenation above throw NullPointerException**.
 
-Nhưng điều này không bảo đảm ứng dụng đã xử lý đúng dữ liệu. Ví dụ **"Hello null"** có thể gây hiểu nhầm nếu "null" vốn biểu thị không có tên khách hàng.
+However, this does not guarantee the application handled the data properly. For instance, **"Hello null"** can be misleading when "null" actually meant there was no customer name.
 
-### += cũng sử dụng quy tắc nối bằng +
+### += also uses the + concatenation rules
 
 ~~~java
 String message = "Hello";
@@ -84,46 +84,46 @@ message += " " + name;
 System.out.println(message); // Hello null
 ~~~
 
-Biểu thức gán nối **+=** tương đương về ý nghĩa với tạo kết quả nối rồi gán lại biến. Nó không biến String thành mutable và không tự kiểm tra null.
+The compound concatenation assignment **+=** is semantically equivalent to creating the concatenated result and reassigning the variable. It does not make String mutable and does not check for null automatically.
 
-So sánh:
+Comparison:
 
-| Biểu thức | Khi phần tham chiếu null | Kết quả |
+| Expression | When the reference part is null | Result |
 |---|---|---|
-| **"A".concat((String) null)** | null là đối số của concat | NullPointerException |
-| **"A" + (String) null** | null tham gia phép nối chuỗi | "Anull" |
-| **(String) null + "A"** | null tham gia phép nối chuỗi | "nullA" |
-| **"A" + 42** | Số được chuyển thành String | "A42" |
-| **"A".concat("42")** | Đối số là String hợp lệ | "A42" |
-| **"A".concat("")** | Đối số là String rỗng | "A" |
-| **"A" + ""** | Phép nối có một chuỗi rỗng | "A" |
+| **"A".concat((String) null)** | null is the argument to concat | NullPointerException |
+| **"A" + (String) null** | null participates in string concatenation | "Anull" |
+| **(String) null + "A"** | null participates in string concatenation | "nullA" |
+| **"A" + 42** | Number is converted to String | "A42" |
+| **"A".concat("42")** | Argument is a valid String | "A42" |
+| **"A".concat("")** | Argument is an empty String | "A" |
+| **"A" + ""** | Concatenation includes an empty string | "A" |
 
-Toán tử + chấp nhận nhiều kiểu giá trị khi nối với String; concat() nhận **String**. Viết **"A".concat(42)** không hợp lệ về kiểu ở thời điểm biên dịch, trong khi **"A" + 42** là hợp lệ.
+The + operator accepts many value types when concatenating with String; concat() accepts **String**. Writing **"A".concat(42)** is a compile-time type error, whereas **"A" + 42** is valid.
 
-### Không nhầm nối chuỗi với cộng số
+### Do not confuse string concatenation with numeric addition
 
 ~~~java
 System.out.println("Total: " + 1 + 2);   // Total: 12
 System.out.println("Total: " + (1 + 2)); // Total: 3
 ~~~
 
-Biểu thức + được đánh giá theo thứ tự và kiểu toán hạng. Khi quá trình đã thành nối chuỗi, các toán hạng số tiếp theo được chuyển thành văn bản. Dùng ngoặc để yêu cầu phép cộng số học trước khi nối.
+A + expression is evaluated according to operand order and types. Once the process has become string concatenation, subsequent numeric operands are converted to text. Use parentheses to request arithmetic addition before concatenation.
 
-## 3. Phân biệt null ở vị trí receiver và null ở vị trí đối số
+## 3. Distinguishing null as receiver vs. null as argument
 
-Hai biểu thức sau đều ném NullPointerException, nhưng không cùng nguyên nhân:
+Both expressions below throw NullPointerException, though not for the same reason:
 
 ~~~java
 String first = "Hello";
 String missing = null;
 
-first.concat(missing);       // Receiver tồn tại, đối số null
-missing.concat(" World");    // Receiver null, không gọi được instance method
+first.concat(missing);       // Receiver exists, argument is null
+missing.concat(" World");    // Receiver is null, cannot invoke instance method
 ~~~
 
-Trong dòng đầu, String.concat() cần một String đối số nhưng nhận null. Trong dòng thứ hai, lời gọi phương thức instance không có đối tượng nhận.
+On the first line, String.concat() requires a String argument but receives null. On the second line, the instance method call has no receiver object.
 
-Điều này quan trọng khi bạn viết xử lý đầu vào:
+This matters when writing input processing:
 
 ~~~java
 static String unsafeConcat(String left, String right) {
@@ -131,9 +131,9 @@ static String unsafeConcat(String left, String right) {
 }
 ~~~
 
-Đây là **phương thức minh họa**, cần đặt trong một lớp Java. Nó yêu cầu **cả left lẫn right đều không-null**; chỉ kiểm tra right là chưa đủ nếu left có thể null.
+This is an **illustrative method**, meant to be placed inside a Java class. It requires **both left and right to be non-null**; checking only right is insufficient if left can be null.
 
-Ngược lại, với biểu thức:
+Conversely, with the expression:
 
 ~~~java
 static String stringifyWithPlus(String left, String right) {
@@ -141,13 +141,13 @@ static String stringifyWithPlus(String left, String right) {
 }
 ~~~
 
-Java có thể tạo một String kết quả khi một hoặc cả hai tham chiếu null, chẳng hạn **null + null** trong hai biến kiểu String cho ra chữ **"nullnull"**. Nhưng đó chỉ là quy tắc biểu diễn tham chiếu khi nối, không phải chính sách kiểm tra hợp lệ của dữ liệu.
+Java can produce a resulting String when one or both references are null—for example, **null + null** with two String variables yields the text **"nullnull"**. But that is merely the reference conversion rule during concatenation, not a data validation policy.
 
-**Cẩn trọng khi phân tích lỗi:** một chuỗi đã nối thành "null" không cho biết chắc phần tử ban đầu là null hay người dùng thật sự đã nhập bốn ký tự n-u-l-l. Muốn giữ được thông tin này, cần quản lý null trước bước chuyển thành văn bản.
+**Caution during debugging:** a concatenated string ending up as "null" does not tell you for sure whether the original element was null or the user actually entered the four letters n-u-l-l. To preserve that distinction, manage null before the text-conversion step.
 
-## 4. Chương trình Java 17+ độc lập: quan sát mọi trường hợp
+## 4. Standalone Java 17+ program: observing every case
 
-Lưu thành tệp **StringConcatNullDemo.java**:
+Save as file **StringConcatNullDemo.java**:
 
 ~~~java
 import java.util.Objects;
@@ -189,14 +189,14 @@ public class StringConcatNullDemo {
 }
 ~~~
 
-Biên dịch/chạy trên JDK 17+:
+Compile/run on JDK 17+:
 
 ~~~bash
 javac StringConcatNullDemo.java
 java StringConcatNullDemo
 ~~~
 
-Đầu ra chính xác:
+Exact output:
 
 ~~~text
 concat-ok=Java 17
@@ -210,25 +210,25 @@ explicit-value-of=null
 ignored-result=J
 ~~~
 
-**Giải thích theo dòng:**
+**Line-by-line explanation:**
 
-1. **concat-ok** là trường hợp cả receiver và tham số String đều hợp lệ.
-2. **plus-right-null** và **plus-left-null** minh họa + chuyển tham chiếu null thành chữ "null", bất kể nó nằm trước hay sau chuỗi còn lại.
-3. Hai dòng **...=NPE** xuất hiện vì hai lỗi NullPointerException được bắt riêng; chương trình không dừng giữa chừng.
-4. **StringBuilder.append((String) null)** có hợp đồng riêng và nối chữ "null". Điều này không làm String.concat(null) trở nên hợp lệ.
-5. **Objects.toString(right, "")** chuyển null thành chuỗi rỗng theo chính sách đã chỉ định, nên việc gọi concat() sau đó an toàn.
-6. **String.valueOf((Object) right)** minh họa chuyển Object null thành chuỗi "null" một cách tường minh.
-7. **ignored-result=J** chứng minh String.concat() không thay đổi đối tượng String đã tồn tại.
+1. **concat-ok** is the case where both receiver and String parameter are valid.
+2. **plus-right-null** and **plus-left-null** illustrate + converting a null reference to the text "null", regardless of whether it appears before or after the other string.
+3. The two **...=NPE** lines appear because both NullPointerException errors are caught separately; the program does not terminate partway through.
+4. **StringBuilder.append((String) null)** has its own contract and appends the text "null". That does not make String.concat(null) valid.
+5. **Objects.toString(right, "")** turns null into an empty string per the specified policy, making the subsequent concat() call safe.
+6. **String.valueOf((Object) right)** illustrates explicitly converting a null Object into the string "null".
+7. **ignored-result=J** proves that String.concat() does not mutate an existing String object.
 
-Việc in **NPE** là chữ do khối catch quyết định, không phải toàn bộ thông báo ngoại lệ tự sinh từ JVM. Nội dung message của NullPointerException có thể khác nhau; không nên dựa vào nó khi cần output ổn định.
+Printing **NPE** is text chosen by the catch block, not the full exception message generated by the JVM. The message text of NullPointerException can vary; do not depend on it when stable output is needed.
 
-## 5. Xử lý null có chủ đích: bốn chính sách phổ biến
+## 5. Intentional null handling: four common policies
 
-Trước khi nối dữ liệu nullable, hãy lựa chọn rõ: **từ chối**, **coi như rỗng**, **dùng nhãn mặc định**, hay **giữ trạng thái vắng mặt**. Mỗi chính sách phù hợp với yêu cầu khác nhau.
+Before concatenating nullable data, make an explicit choice: **reject**, **treat as empty**, **use a default label**, or **preserve absence**. Each policy suits different requirements.
 
-### 5.1. Từ chối null nếu dữ liệu bắt buộc
+### 5.1. Reject null if data is required
 
-Nếu cả hai phần phải có giá trị:
+If both parts must have values:
 
 ~~~java
 import java.util.Objects;
@@ -252,7 +252,7 @@ public class StrictConcatDemo {
 }
 ~~~
 
-Lưu **StrictConcatDemo.java**, chạy:
+Save **StrictConcatDemo.java**, run:
 
 ~~~bash
 javac StrictConcatDemo.java
@@ -266,11 +266,11 @@ Java 17
 Missing right
 ~~~
 
-**Ưu điểm:** không âm thầm tạo chuỗi "Javanull" hoặc che giấu dữ liệu thiếu. Với đầu vào đến từ người dùng, hệ thống thường nên chuyển lỗi thành thông báo validation phù hợp thay vì để ngoại lệ không được xử lý lan ra giao diện.
+**Advantage:** avoids silently producing "Javanull" or masking missing data. For user-supplied input, systems should usually translate the failure into an appropriate validation message rather than letting an unhandled exception propagate to the UI.
 
-### 5.2. Coi null là chuỗi rỗng
+### 5.2. Treat null as an empty string
 
-Nếu phần tùy chọn vắng mặt tương đương không thêm gì:
+If an absent optional part is equivalent to adding nothing:
 
 ~~~java
 static String appendOptional(String base, String extra) {
@@ -281,15 +281,15 @@ static String appendOptional(String base, String extra) {
 }
 ~~~
 
-Đây là **phương thức minh họa** để đặt bên trong lớp Java. Nếu base="Java" và extra=null, kết quả là "Java". Nếu extra=" 17", kết quả là "Java 17".
+This is an **illustrative method** to place inside a Java class. If base="Java" and extra=null, the result is "Java". If extra=" 17", the result is "Java 17".
 
-Một lựa chọn khác là **Objects.toString(extra, "")**, nhưng dùng toán tử ba ngôi thể hiện rõ rằng extra có kiểu String và null được đổi thành một String rỗng.
+Another option is **Objects.toString(extra, "")**, though using the ternary operator makes clear that extra has type String and null is replaced with an empty String.
 
-**Không đồng nhất null và chuỗi rỗng nếu nghiệp vụ phân biệt hai trạng thái này**, chẳng hạn trong cập nhật từng phần dữ liệu.
+**Do not equate null with an empty string if the business domain distinguishes those two states**, such as in partial data updates.
 
-### 5.3. Dùng văn bản mặc định có ý nghĩa
+### 5.3. Use meaningful default text
 
-Nếu giao diện yêu cầu một nhãn thay thế, ví dụ khách chưa có tên:
+If the UI requires a fallback label, for example for an unnamed customer:
 
 ~~~java
 String customerName = null;
@@ -299,11 +299,11 @@ String greeting = "Hello, ".concat(shownName);
 System.out.println(greeting); // Hello, (unknown)
 ~~~
 
-Văn bản **"(unknown)"** là quyết định thiết kế, không phải quy tắc tự động của concat(). Một số ứng dụng chọn "Guest", "N/A" hoặc bỏ hẳn phần thông tin; cần thống nhất với yêu cầu sản phẩm và ngôn ngữ giao diện.
+The text **"(unknown)"** is a design decision, not an automatic rule of concat(). Some applications choose "Guest", "N/A", or omit that piece of information altogether; align with product requirements and UI language.
 
-### 5.4. Giữ null như một trạng thái, chưa nối vội
+### 5.4. Keep null as a state without concatenating prematurely
 
-Khi null mang nghĩa “chưa có dữ liệu”, có thể trả về null hoặc một kiểu thể hiện sự vắng mặt, chỉ nối khi các điều kiện thỏa:
+When null means “no data yet”, you can return null or a type representing absence, concatenating only when conditions are met:
 
 ~~~java
 static String combineIfPresent(String left, String right) {
@@ -314,24 +314,24 @@ static String combineIfPresent(String left, String right) {
 }
 ~~~
 
-Đây là **phương thức minh họa**. Nó khác chính sách chuyển null thành chuỗi rỗng: thiếu một trong hai phần làm cho **toàn bộ kết quả không có giá trị**, thay vì trả về phần còn lại.
+This is an **illustrative method**. It differs from the policy of converting null to an empty string: missing either part makes the **entire result absent**, rather than returning the remaining part.
 
-Không có một nhánh xử lý null đúng cho mọi ứng dụng. Điều quan trọng là có **quy tắc minh bạch và nhất quán**.
+No single null-handling branch fits every application. What matters is having a **transparent and consistent rule**.
 
-## 6. Khác biệt giữa concat(), +, StringBuilder.append() và String.join()
+## 6. Differences among concat(), +, StringBuilder.append(), and String.join()
 
-Các API này phục vụ các tình huống nối chuỗi tương tự nhưng **không có hợp đồng null giống hệt nhau**:
+These APIs serve similar string-concatenation scenarios but **do not share identical null contracts**:
 
-| Cách nối | Đầu vào | Hành vi với null | Dùng khi |
+| Concatenation method | Input | Behavior with null | Use when |
 |---|---|---|---|
-| **left.concat(right)** | Cả hai cần là String | Receiver null hoặc đối số null → NullPointerException | Đã xác nhận các phần String bắt buộc hợp lệ |
-| **left + right** với ngữ cảnh nối String | Nhiều kiểu giá trị | Tham chiếu null chuyển thành "null" | Nối vài phần ngắn, xây thông báo khi biểu diễn null được kiểm soát |
-| **StringBuilder.append((String) value)** | Giá trị String | Đối số String null được thêm chữ "null" | Xây văn bản theo nhiều bước; cần xử lý null trước nếu không muốn chữ "null" |
-| **String.join(", ", elements...)** | Dấu phân cách và các phần String | Phần tử null được thêm chữ "null"; delimiter null gây NullPointerException | Nối danh sách phần tử với dấu phân cách |
-| **String.valueOf((Object) value)** | Object | Object null → "null" | Chuyển thành biểu diễn văn bản một cách tường minh |
-| **Objects.toString(value, fallback)** | Object và chuỗi fallback | value null → dùng fallback | Lựa chọn chuỗi mặc định do ứng dụng quy định |
+| **left.concat(right)** | Both must be String | Null receiver or null argument → NullPointerException | Required String parts are already validated |
+| **left + right** in String concatenation context | Many value types | Null reference becomes "null" | Joining a few short parts, building messages when null display is controlled |
+| **StringBuilder.append((String) value)** | String value | Null String argument appends the text "null" | Building text over multiple steps; handle null beforehand if "null" is unwanted |
+| **String.join(", ", elements...)** | Delimiter and String parts | Null element appends the text "null"; null delimiter throws NullPointerException | Joining a list of elements with a separator |
+| **String.valueOf((Object) value)** | Object | Null Object → "null" | Converting explicitly to a textual representation |
+| **Objects.toString(value, fallback)** | Object and fallback string | Null value → uses fallback | Choosing an application-defined default string |
 
-Ví dụ StringBuilder:
+StringBuilder example:
 
 ~~~java
 StringBuilder sb = new StringBuilder("Hello");
@@ -342,27 +342,27 @@ sb.append(name);
 System.out.println(sb); // Hello null
 ~~~
 
-**StringBuilder không đồng nghĩa với concat()** về chính sách null, dù cả hai đều có thể được dùng để ghép văn bản. Ngoài ra, StringBuilder là **mutable**: append() thay đổi nội dung bộ đệm, khác với String.concat() vốn trả về String mà không thay đổi đối tượng gốc.
+**StringBuilder is not synonymous with concat()** in null policy, even though both can be used to join text. In addition, StringBuilder is **mutable**: append() alters the buffer's contents, unlike String.concat(), which returns a String without altering the original object.
 
-**Lưu ý về overload:** StringBuilder có nhiều phương thức append() nhận các kiểu khác nhau. Ví dụ **append((char[]) null)** không có cùng hành vi với **append((String) null)** và có thể ném NullPointerException. Khi cần phân tích chính xác null, phải xét **kiểu tham số và overload được chọn**, không chỉ tên hàm.
+**Note on overloads:** StringBuilder has multiple append() methods accepting different types. For example, **append((char[]) null)** does not have the same behavior as **append((String) null)** and can throw NullPointerException. When analyzing null behavior precisely, inspect **the parameter type and chosen overload**, not just the method name.
 
-### Tránh hiểu nhầm String.valueOf(null)
+### Avoiding misunderstanding with String.valueOf(null)
 
-Phương thức String.valueOf() có nhiều overload, trong đó có **valueOf(Object)** và **valueOf(char[])**. Viết trực tiếp **String.valueOf(null)** có thể chọn overload **char[]** và ném NullPointerException, thay vì tạo chữ "null".
+String.valueOf() has multiple overloads, including **valueOf(Object)** and **valueOf(char[])**. Writing **String.valueOf(null)** directly can select the **char[]** overload and throw NullPointerException instead of producing the text "null".
 
-Do đó, khi muốn minh họa rõ quy tắc **Object null → "null"**, hãy dùng **String.valueOf((Object) null)**. Hoặc nếu mục tiêu là thay thế null thành rỗng/nhãn khác, dùng Objects.toString(value, fallback) và chọn fallback rõ ràng.
+Therefore, when you want to clearly demonstrate the rule **null Object → "null"**, use **String.valueOf((Object) null)**. Or if the goal is to replace null with an empty string or another label, use Objects.toString(value, fallback) and choose an explicit fallback.
 
-### String.join() không tự bỏ qua phần tử null
+### String.join() does not skip null elements automatically
 
 ~~~java
 System.out.println(String.join(", ", "A", null, "B")); // A, null, B
 ~~~
 
-Nếu nghiệp vụ muốn **bỏ qua** phần tử null, phải lọc hoặc quy định cách xử lý trước khi gọi. Không nên đoán API nào cũng ngầm bỏ null để tiện trình bày.
+If business logic requires **skipping** null elements, filter them or define handling rules before calling join(). Never assume an API silently drops null for presentation convenience.
 
-## 7. So sánh với "null" và chuỗi rỗng: vấn đề dữ liệu, không chỉ cú pháp
+## 7. Comparing null, "null", and empty string: a data issue, not just syntax
 
-Ba giá trị sau khác nhau:
+The following three values are distinct:
 
 ~~~java
 String missing = null;
@@ -370,11 +370,11 @@ String empty = "";
 String literal = "null";
 ~~~
 
-- **missing**: tham chiếu không trỏ đến String.
-- **empty**: String tồn tại, dài 0.
-- **literal**: String có bốn ký tự n, u, l, l.
+- **missing**: a reference not pointing to any String.
+- **empty**: an existing String of length 0.
+- **literal**: a String containing the four characters n, u, l, l.
 
-Bởi vậy:
+Therefore:
 
 ~~~java
 System.out.println(missing == null);         // true
@@ -383,30 +383,30 @@ System.out.println("null".equals(literal));  // true
 System.out.println("null".equals(missing));  // false
 ~~~
 
-Sau khi thực hiện **"prefix" + missing**, kết quả chứa bốn chữ "null" giống như khi nối **"prefix" + literal**. Nếu chỉ giữ String kết quả, thông tin ban đầu có phải null hay không đã bị mất.
+After executing **"prefix" + missing**, the result contains the four letters "null" just as when concatenating **"prefix" + literal**. If only the resulting String is kept, the information of whether the original value was null is lost.
 
-Trong ứng dụng thực tế, điều này có thể dẫn đến lỗi như:
+In real applications, this can lead to bugs such as:
 
-- **Tên hiển thị:** "Hello null" thay vì "Hello Guest".
-- **Đường dẫn:** "/users/null" tạo địa chỉ trông hợp lệ nhưng dựa trên dữ liệu thiếu.
-- **Khóa cache hoặc mã định danh:** giá trị thiếu và giá trị chữ "null" bị gom vào cùng một khóa sau khi chuyển thành String.
-- **Log và thông báo:** văn bản chứa "null" không đủ để phân biệt tham chiếu null với giá trị người dùng nhập.
+- **Display names:** "Hello null" instead of "Hello Guest".
+- **Paths:** "/users/null" creates an address that looks valid but is based on missing data.
+- **Cache keys or identifiers:** a missing value and the literal text "null" collapse into the same key after conversion to String.
+- **Logs and messages:** text containing "null" is insufficient to distinguish a null reference from user-entered input.
 
-Nếu phải giữ ngữ nghĩa dữ liệu, hãy **kiểm tra null trước khi chuyển thành văn bản**, hoặc lưu cấu trúc dữ liệu gồm giá trị và trạng thái rõ ràng.
+If data semantics must be preserved, **check for null before converting to text**, or store a data structure with explicit value and status.
 
-## 8. Có nên dùng concat() thay cho + để tối ưu hiệu năng?
+## 8. Should you use concat() instead of + for performance optimization?
 
-`concat()` không mặc nhiên nhanh hơn `+`. Với một vài thành phần, `+` thường rõ ý và compiler/JVM hiện đại có thể tối ưu. Với quá trình tích lũy nhiều lượt, `StringBuilder` giúp xây dựng kết quả trong bộ đệm mutable. Bài **Nối trong một biểu thức so với tích lũy qua vòng lặp** giải thích lựa chọn và đo hiệu năng; tại đây nên ưu tiên **hợp đồng null** khi quyết định gọi `concat`.
+`concat()` is not inherently faster than `+`. For a few components, `+` is usually clearer in intent and modern compilers/JVMs can optimize it. For multi-step accumulation, `StringBuilder` builds the result in a mutable buffer. The lesson **Concatenation in a single expression vs. accumulation across loops** explains the trade-offs and benchmarking; here, prioritize the **null contract** when deciding whether to call `concat`.
 
-## 9. Phân tích tình huống thực tế: xây lời chào từ tên tùy chọn
+## 9. Practical scenario analysis: building a greeting from an optional name
 
-Giả sử API trả về tên khách có thể null:
+Suppose an API returns a customer name that may be null:
 
 ~~~java
 String nameFromApi = null;
 ~~~
 
-Ba cách viết có ý nghĩa khác nhau:
+Three ways of writing it have different meanings:
 
 ~~~java
 String unsafe = "Hello, " + nameFromApi;
@@ -416,10 +416,10 @@ String safeDisplay = "Hello, "
         + (nameFromApi == null ? "Guest" : nameFromApi);
 // safeDisplay: "Hello, Guest"
 
-// "Hello, ".concat(nameFromApi) sẽ ném NullPointerException.
+// "Hello, ".concat(nameFromApi) will throw NullPointerException.
 ~~~
 
-Đây là **mã minh họa**, không phải ba phương án tương đương nghiệp vụ. Nếu người dùng có tên rỗng hoặc chỉ có whitespace, cả điều kiện **nameFromApi == null** vẫn chưa đủ. Có thể cần:
+This is **illustrative code**, not three business-equivalent alternatives. If the user has an empty name or only whitespace, even checking **nameFromApi == null** is not enough. You might need:
 
 ~~~java
 static String greeting(String name) {
@@ -430,24 +430,24 @@ static String greeting(String name) {
 }
 ~~~
 
-Hàm này định nghĩa rõ: null, rỗng hoặc chỉ whitespace đều thành "Guest"; tên có nội dung được strip() ở hai đầu. Nó phù hợp khi **hợp đồng UI cho phép** xử lý như vậy. Nếu khoảng trắng là thông tin quan trọng, không được tự strip.
+This function explicitly defines: null, empty, or whitespace-only all become "Guest"; names with content are stripped on both ends via strip(). This is appropriate when **the UI contract permits** such handling. If whitespace is significant information, do not strip automatically.
 
-Phương thức **greeting()** ở trên là minh họa và cần đặt trong một lớp Java khi biên dịch.
+The **greeting()** method above is illustrative and must be placed inside a Java class to compile.
 
-## 10. Lỗi phổ biến cần tránh
+## 10. Common mistakes to avoid
 
-- `concat(null)` ném `NullPointerException`, còn `"A" + (String) null` cho `"Anull"`.
-- `left.concat(right)` yêu cầu **cả receiver và đối số** khác `null`.
-- `concat()` trả kết quả, không sửa chuỗi cũ; lời gọi mà bỏ kết quả không đổi giá trị biến.
-- `concat(String)` không nhận trực tiếp `int` hay một đối tượng tùy ý, khác với `+` trong ngữ cảnh nối chuỗi.
-- `String.valueOf(null)` phải xét overload: ép `(Object) null` khi cần đúng hợp đồng `valueOf(Object)`.
-- Trước khi dựng hiển thị, khóa, URL, SQL hoặc log, xác định chính sách dữ liệu thiếu; dùng prepared statement cho SQL và serializer phù hợp cho dữ liệu cấu trúc.
+- `concat(null)` throws `NullPointerException`, whereas `"A" + (String) null` gives `"Anull"`.
+- `left.concat(right)` requires **both receiver and argument** to be non-null.
+- `concat()` returns a result without modifying the old string; calling it and discarding the return value does not change the variable.
+- `concat(String)` does not directly accept `int` or an arbitrary object, unlike `+` in a string concatenation context.
+- `String.valueOf(null)` requires considering overloads: cast `(Object) null` when you specifically need the `valueOf(Object)` contract.
+- Before constructing UI text, keys, URLs, SQL, or logs, define a missing-data policy; use prepared statements for SQL and proper serializers for structured data.
 
-**Trọng tâm:** null và chữ `"null"` là hai trạng thái khác nhau; cần quyết định trước khi tạo văn bản.
+**Core takeaway:** null and the text `"null"` are two different states; decide how to handle them before generating text.
 
-## 11. Bài tập và đáp án
+## 11. Exercises and answers
 
-Xét đoạn sau:
+Consider the following snippet:
 
 ~~~java
 String a = "A";
@@ -455,26 +455,26 @@ String b = null;
 String c = "";
 ~~~
 
-Hãy tự trả lời trước khi xem đáp án:
+Try answering before checking the solutions:
 
-1. **a.concat(c)** trả về nội dung gì?
-2. **a.concat(b)** tạo kết quả hay ném ngoại lệ?
-3. **a + b** có nội dung gì?
-4. **b + a** có nội dung gì?
-5. **a + c** khác **a.concat(c)** về nội dung không?
-6. Nếu gọi **b.concat(a)** thì có khác nguyên nhân lỗi ở câu 2 không?
-7. Khi nào nên sử dụng **Objects.toString(b, "")**?
-8. Nếu cần phân biệt null với chuỗi có nội dung "null", có nên nối bằng + ngay từ đầu không?
+1. What content does **a.concat(c)** return?
+2. Does **a.concat(b)** produce a result or throw an exception?
+3. What is the content of **a + b**?
+4. What is the content of **b + a**?
+5. Does **a + c** differ in content from **a.concat(c)**?
+6. If you call **b.concat(a)**, is the error cause different from question 2?
+7. When should you use **Objects.toString(b, "")**?
+8. If you need to distinguish null from a string containing "null", should you concatenate with + right away?
 
-**Đáp án:**
+**Answers:**
 
-1. **"A"**: nối String rỗng không thêm ký tự nào.
-2. **NullPointerException**: đối số của concat() là null.
-3. **"Anull"**: toán tử + chuyển tham chiếu null thành chữ "null".
-4. **"nullA"**: null cũng được chuyển thành "null" khi ở phía trước.
-5. **Không khác về nội dung**, đều là "A"; không nên dựa vào danh tính tham chiếu để so nội dung.
-6. **Có**: câu 2 lỗi vì đối số null; b.concat(a) lỗi vì receiver null.
-7. Khi **có chủ đích** muốn coi null là String rỗng trước khi nối, không phải khi nghiệp vụ cần bảo toàn trạng thái vắng mặt.
-8. **Không nên**, nếu kết quả cần giữ thông tin null thật. Hãy quyết định chính sách hoặc giữ dữ liệu có cấu trúc trước khi biểu diễn thành văn bản.
+1. **"A"**: concatenating an empty String adds no characters.
+2. **NullPointerException**: the argument to concat() is null.
+3. **"Anull"**: the + operator converts a null reference into the text "null".
+4. **"nullA"**: null is also converted to "null" when it appears first.
+5. **No difference in content**, both are "A"; do not rely on reference identity to compare content.
+6. **Yes**: question 2 fails because of a null argument; b.concat(a) fails because of a null receiver.
+7. When you **intentionally** want to treat null as an empty String before concatenating, not when business logic needs to preserve the absent state.
+8. **No**, if the result must preserve real null information. Decide on a policy or keep structured data before converting to text.
 
-**Ghi nhớ:** **concat(null) → NullPointerException; nối String bằng + với tham chiếu null → chữ "null"**. Đối với dữ liệu thật, hãy kiểm tra receiver, đối số và chính sách xử lý null trước khi nối; đồng thời sử dụng kết quả trả về của concat() vì String là bất biến.
+**Takeaway:** **concat(null) → NullPointerException; String concatenation via + with a null reference → text "null"**. For real data, check receiver, argument, and null-handling policy before concatenating; and always use the return value of concat() because String is immutable.

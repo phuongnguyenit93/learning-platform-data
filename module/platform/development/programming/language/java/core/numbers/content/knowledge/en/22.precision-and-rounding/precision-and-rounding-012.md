@@ -1,102 +1,102 @@
-# Không mặc định `Math.round` tương đương mọi chế độ `HALF_UP`
+# Do Not Assume `Math.round` Equals Every `HALF_UP` Mode
 
-## 1. Điều cần nhớ
+## 1. Key Points to Remember
 
-Trong Java, **`Math.round` không phải tên gọi khác của `RoundingMode.HALF_UP`**. Hai cơ chế đều có thể cho kết quả giống nhau trong nhiều trường hợp, nhưng **khác nhau ở điểm đúng nửa khi giá trị âm**, khác loại dữ liệu đầu vào/đầu ra, cách xử lý độ chính xác và các giá trị đặc biệt.
+In Java, **`Math.round` is not another name for `RoundingMode.HALF_UP`**. The two mechanisms can produce the same result in many cases, yet they **differ at exact-half points when the value is negative**, differ in input/output data types, precision handling, and special values.
 
-- `Math.round(float)` trả về `int`; `Math.round(double)` trả về `long`. Nó chọn **số nguyên gần nhất**, và nếu nằm đúng giữa hai số nguyên thì chọn số lớn hơn, tức **hướng về dương vô cực** (`+∞`).
-- `RoundingMode.HALF_UP` là quy tắc làm tròn dùng với những API như `BigDecimal.setScale`, `divide` hoặc `MathContext`. Nó chọn kết quả gần nhất; nếu **đúng nửa**, chọn kết quả **xa số 0 hơn**.
-- `Math.round(-1.5) == -1` nhưng `new BigDecimal("-1.5").setScale(0, RoundingMode.HALF_UP)` cho `-2`. Đây là phản ví dụ đủ để bác bỏ kết luận hai cơ chế tương đương.
+- `Math.round(float)` returns `int`; `Math.round(double)` returns `long`. It selects **the nearest integer**, and if lying exactly halfway between two integers, it chooses the larger one, meaning **toward positive infinity** (`+∞`).
+- `RoundingMode.HALF_UP` is a rounding rule used with APIs such as `BigDecimal.setScale`, `divide`, or `MathContext`. It chooses the nearest result; if **exact halfway**, it chooses the result **farther from 0**.
+- `Math.round(-1.5) == -1` whereas `new BigDecimal("-1.5").setScale(0, RoundingMode.HALF_UP)` gives `-2`. This counterexample suffices to disprove the claim that the two mechanisms are equivalent.
 
-Mục tiêu là chọn **quy tắc nghiệp vụ** trước rồi mới chọn API, thay vì nhìn một vài ví dụ dương và suy rộng cho mọi đầu vào.
+The goal is to choose the **business rule** first and then choose the API, rather than looking at a few positive examples and generalizing to all inputs.
 
-## 2. Quy tắc ở điểm đúng nửa: khác nhau chính xác ở đâu?
+## 2. The Rule at Exact Halfway: Where Exactly Do They Differ?
 
-Xét số cần làm tròn đến số nguyên, hai số nguyên lân cận có khoảng cách bằng nhau ở đầu vào `n + 0.5`.
+Consider rounding a number to an integer: the two adjacent integers are equidistant at inputs of `n + 0.5`.
 
-Với `Math.round`, tại điểm đúng nửa Java chọn số nguyên lớn hơn về mặt số học. Ví dụ `-2` lớn hơn `-3`, nên `Math.round(-2.5)` cho `-2`.
+With `Math.round`, at the exact halfway point Java picks the numerically larger integer. For example, `-2` is greater than `-3`, so `Math.round(-2.5)` gives `-2`.
 
-Với `HALF_UP`, “UP” trong tên của `RoundingMode` **không có nghĩa tăng giá trị về `+∞`**. Nó có nghĩa **tăng độ lớn tuyệt đối, tức đi xa số 0** khi gặp đúng nửa. Do đó `-2.5` thành `-3`.
+With `HALF_UP`, "UP" in the name of `RoundingMode` **does not mean increasing value toward `+∞`**. It means **increasing absolute magnitude, i.e., moving away from 0** on exact halves. Therefore, `-2.5` becomes `-3`.
 
-| Giá trị đầu vào | `Math.round(double)` | `BigDecimal.setScale(0, HALF_UP)` | Nhận xét |
+| Input value | `Math.round(double)` | `BigDecimal.setScale(0, HALF_UP)` | Remark |
 | ---: | ---: | ---: | --- |
-| `2.4` | `2` | `2` | Cả hai chọn số gần nhất. |
-| `2.5` | `3` | `3` | Đúng nửa dương: trùng kết quả. |
-| `1.5` | `2` | `2` | Đúng nửa dương: trùng kết quả. |
-| `0.5` | `1` | `1` | Đúng nửa dương: trùng kết quả. |
-| `-0.5` | `0` | `-1` | Đúng nửa âm: **khác**. |
-| `-1.5` | `-1` | `-2` | Đúng nửa âm: **khác**. |
-| `-2.5` | `-2` | `-3` | Đúng nửa âm: **khác**. |
-| `-2.4` | `-2` | `-2` | Không đúng nửa: cùng chọn số gần nhất. |
+| `2.4` | `2` | `2` | Both choose the nearest integer. |
+| `2.5` | `3` | `3` | Positive exact half: matching result. |
+| `1.5` | `2` | `2` | Positive exact half: matching result. |
+| `0.5` | `1` | `1` | Positive exact half: matching result. |
+| `-0.5` | `0` | `-1` | Negative exact half: **different**. |
+| `-1.5` | `-1` | `-2` | Negative exact half: **different**. |
+| `-2.5` | `-2` | `-3` | Negative exact half: **different**. |
+| `-2.4` | `-2` | `-2` | Not exact half: both choose the nearest integer. |
 
-Các đầu vào `.5` trong bảng biểu diễn chính xác được bằng `double`, nên khác biệt này thực sự đến từ **chính sách xử lý điểm hòa**, không phải sai số dấu phẩy động.
+The `.5` inputs in the table are exactly representable in `double`, so this difference truly stems from **the tie-breaking policy**, not floating-point error.
 
-Không thể giải thích `Math.round(x)` bằng “luôn làm tròn lên” vì `Math.round(2.1) == 2`, cũng không thể nói nó luôn làm tròn về phía số 0 vì `Math.round(-1.6) == -2`. Quy tắc đầy đủ là: **số nguyên gần nhất; nếu hòa, chọn số lớn hơn**.
+You cannot explain `Math.round(x)` as "always round up" because `Math.round(2.1) == 2`, nor can you say it always rounds toward 0 because `Math.round(-1.6) == -2`. The complete rule is: **nearest integer; on a tie, choose the larger number**.
 
-Một cách nhớ đơn giản: với các đầu vào hữu hạn mà kết quả trong miền biểu diễn và không vướng chi tiết độ chính xác của phép cộng dấu phẩy động, quy tắc `Math.round` giống làm tròn đến số nguyên gần nhất với điểm hòa hướng về `+∞`. Không nên tự thay toàn bộ hiện thực bằng công thức dấu phẩy động `(long)Math.floor(x + 0.5)`: phép cộng `x + 0.5` còn chịu làm tròn nhị phân, và ép kiểu/giới hạn miền giá trị có những quy tắc riêng.
+A simple way to remember: for finite inputs whose result is within the representable range and free from floating-point addition precision subtleties, `Math.round`'s rule acts like rounding to the nearest integer with ties breaking toward `+∞`. Do not replace the entire implementation with the floating-point formula `(long)Math.floor(x + 0.5)`: the addition `x + 0.5` is also subject to binary rounding, and casting/range clamping have separate rules.
 
-## 3. Phân biệt các `RoundingMode` dễ nhầm
+## 3. Distinguishing Easily Confused `RoundingMode` Values
 
-Để so sánh cho công bằng, đặt cùng mục tiêu **scale = 0** trong `BigDecimal` (không còn chữ số thập phân):
+For a fair comparison, set the same target **scale = 0** in `BigDecimal` (no remaining decimal places):
 
-| Chế độ | Quy tắc ở điểm đúng nửa | `2.5` | `-2.5` |
+| Mode | Rule at exact halfway | `2.5` | `-2.5` |
 | --- | --- | ---: | ---: |
-| `HALF_UP` | Xa số 0 | `3` | `-3` |
-| `HALF_DOWN` | Về số 0 | `2` | `-2` |
-| `HALF_EVEN` | Chọn láng giềng chẵn | `2` | `-2` |
-| `UP` | Xa số 0 với mọi phần lẻ khác 0 | `3` | `-3` |
-| `DOWN` | Về số 0 với mọi phần lẻ khác 0 | `2` | `-2` |
-| `CEILING` | Hướng `+∞` | `3` | `-2` |
-| `FLOOR` | Hướng `-∞` | `2` | `-3` |
+| `HALF_UP` | Away from 0 | `3` | `-3` |
+| `HALF_DOWN` | Toward 0 | `2` | `-2` |
+| `HALF_EVEN` | Choose the even neighbor | `2` | `-2` |
+| `UP` | Away from 0 for any non-zero fraction | `3` | `-3` |
+| `DOWN` | Toward 0 for any non-zero fraction | `2` | `-2` |
+| `CEILING` | Toward `+∞` | `3` | `-2` |
+| `FLOOR` | Toward `-∞` | `2` | `-3` |
 
-Chú ý `CEILING` cũng không phải cách thay thế tổng quát cho `Math.round`: `CEILING` biến `2.1` thành `3`, còn `Math.round(2.1)` trả `2`. Tương tự, `FLOOR` không phải phép làm tròn gần nhất vì `Math.floor(-1.1) == -2.0`.
+Note that `CEILING` is also not a general substitute for `Math.round`: `CEILING` turns `2.1` into `3`, whereas `Math.round(2.1)` returns `2`. Likewise, `FLOOR` is not nearest-rounding because `Math.floor(-1.1) == -2.0`.
 
-`HALF_EVEN` chỉ chọn số chẵn khi đúng nửa: `2.5 → 2`, `3.5 → 4`, `-2.5 → -2`, `-3.5 → -4`. Nó không cùng quy tắc với `Math.round`, và `Math.rint(double)` dù có xử lý điểm hòa theo số nguyên chẵn thì **trả `double`**, có thể giữ dấu của số 0, đồng thời vẫn chịu hạn chế biểu diễn nhị phân.
+`HALF_EVEN` chooses the even number only on exact halves: `2.5 → 2`, `3.5 → 4`, `-2.5 → -2`, `-3.5 → -4`. It does not share the same rule as `Math.round`, and even though `Math.rint(double)` resolves ties to even integers, it **returns a `double`**, can preserve the sign of zero, and still suffers from binary representation limitations.
 
-Từ “làm tròn lên” trong hội thoại thường mơ hồ: có thể chỉ `UP` (xa số 0), `CEILING` (về `+∞`) hoặc `HALF_UP` (chỉ xử lý điểm nửa). Trong mã, hãy dùng **tên chế độ cụ thể** thay cho cụm từ chung chung.
+The phrase "round up" in conversation is often ambiguous: it could mean `UP` (away from 0), `CEILING` (toward `+∞`), or `HALF_UP` (handling half points only). In code, use **specific mode names** instead of vague phrases.
 
-## 4. Khác biệt về API và kiểu dữ liệu
+## 4. Differences in API and Data Types
 
-### 4.1. `Math.round` trả về kiểu nguyên cố định
+### 4.1. `Math.round` Returns a Fixed Integer Type
 
-Hai overload chuẩn là:
+The two standard overloads are:
 
 ~~~java
 int nearestInt = Math.round(2.5f);    // float -> int
 long nearestLong = Math.round(2.5d);  // double -> long
 ~~~
 
-`Math.round` không nhận `RoundingMode` hay số chữ số sau dấu phẩy. Nó làm tròn về **số nguyên**, không có phiên bản `Math.round(x, 2)` chuẩn nào trong JDK để làm tròn hai chữ số thập phân.
+`Math.round` does not accept a `RoundingMode` or number of decimal places. It rounds to **an integer**; there is no standard `Math.round(x, 2)` version in the JDK for rounding to two decimal places.
 
-Việc trả về `int`/`long` cũng có hệ quả về **tràn miền giá trị**: kết quả vượt giới hạn sẽ bị chặn ở cực trị tương ứng, không thể mang mọi chữ số của đầu vào. Đây không phải là một phép kiểm tra số học chính xác hoặc một cơ chế báo lỗi vượt phạm vi.
+Returning `int`/`long` also has **range overflow** consequences: out-of-bounds results are clamped at the corresponding extrema, unable to carry all digits of the input. This is neither an exact arithmetic check nor an out-of-range error reporting mechanism.
 
-### 4.2. `BigDecimal` có thể làm tròn ở scale hoặc precision
+### 4.2. `BigDecimal` Can Round by Scale or Precision
 
 ~~~java
 BigDecimal amount = new BigDecimal("-2.5");
 BigDecimal asInteger = amount.setScale(0, RoundingMode.HALF_UP);
-// -3: trả về BigDecimal mới, amount không đổi.
+// -3: returns a new BigDecimal, amount is unchanged.
 
 BigDecimal price = new BigDecimal("12.345");
 BigDecimal cents = price.setScale(2, RoundingMode.HALF_UP);
-// 12.35: chính xác hai chữ số sau dấu phẩy.
+// 12.35: exactly two digits after the decimal point.
 ~~~
 
-`setScale(2, ...)` là yêu cầu **hai chữ số thập phân** (scale 2). Trong khi đó:
+`setScale(2, ...)` requests **two decimal places** (scale 2). Meanwhile:
 
 ~~~java
 MathContext mc = new MathContext(3, RoundingMode.HALF_UP);
 BigDecimal result = new BigDecimal("123.45").round(mc);
-// 123: giữ 3 chữ số có nghĩa, không phải 3 chữ số sau dấu phẩy.
+// 123: keeps 3 significant digits, not 3 digits after the decimal point.
 ~~~
 
-`MathContext` giới hạn **chữ số có nghĩa của kết quả**, nên `round(mc)` với precision 3 không tương đương `setScale(3, ...)`, cũng không tương đương `Math.round`.
+`MathContext` limits **the result's significant digits**, so `round(mc)` with precision 3 is equivalent neither to `setScale(3, ...)` nor to `Math.round`.
 
-Ở ví dụ nguồn decimal, ưu tiên `new BigDecimal("...")` để giữ chính xác giá trị văn bản. Khi đầu vào đã ở kiểu `double`, `BigDecimal.valueOf(value)` chuyển theo biểu diễn thập phân chuẩn của `Double.toString(value)`; đó là giá trị dựa trên **double đã có**, không phục hồi được thông tin đã mất trong các phép tính trước đó. `new BigDecimal(value)` lại biểu diễn chính xác giá trị nhị phân của `double`, có thể tạo ra chuỗi thập phân dài ngoài dự kiến.
+In decimal source examples, prefer `new BigDecimal("...")` to preserve exact textual values. When the input is already a `double`, `BigDecimal.valueOf(value)` converts using the canonical decimal representation of `Double.toString(value)`; that is a value based on the **existing double**, unable to recover information lost in earlier calculations. Meanwhile, `new BigDecimal(value)` represents the exact binary value of `double`, which can produce an unexpectedly long decimal string.
 
-## 5. Chương trình Java 17+ chạy được và đầu ra
+## 5. Runnable Java 17+ Program and Output
 
-Tạo file `RoundingComparison.java`:
+Create the file `RoundingComparison.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -143,14 +143,14 @@ public class RoundingComparison {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac RoundingComparison.java
 java RoundingComparison
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 2.5 | Math.round=3 | HALF_UP=3 | HALF_EVEN=2
@@ -174,19 +174,19 @@ decimal HALF_EVEN = 1.00
 rint 2.5=2.0, rint -1.5=-2.0
 ~~~
 
-**Đọc output:** Bốn hàng `-2.5`, `-1.5`, `-0.5` và `0.5` cho thấy chính sách làm tròn khác nhau. Dòng `0.5` còn giúp phân biệt `HALF_UP` với `HALF_EVEN`. `Math.rint` là ví dụ bổ sung về quy tắc “tie to even”; khác cả kiểu trả về so với `Math.round`.
+**Reading the output:** The four rows `-2.5`, `-1.5`, `-0.5`, and `0.5` show the different rounding policies. The `0.5` row also helps distinguish `HALF_UP` from `HALF_EVEN`. `Math.rint` is an extra example of the "tie to even" rule; it also differs in return type from `Math.round`.
 
-## 6. Điểm khó: nhị phân `double` khiến “.5” tưởng tượng không đúng .5
+## 6. Tricky Point: Binary `double` Makes Perceived ".5" Not Exactly .5
 
-Các số thập phân như `0.1`, `1.005` thường **không có biểu diễn chính xác bằng `double`**. Vì vậy kết quả của phép nhân, phép chia trước khi làm tròn có thể nằm hơi lệch phía trên hoặc dưới điểm hòa thập phân mà mắt thường thấy.
+Decimal numbers like `0.1` and `1.005` generally **have no exact representation in `double`**. Thus the result of multiplication or division before rounding may lie slightly above or below the decimal tie point that the human eye expects.
 
-Một cách viết phổ biến để lấy hai chữ số sau dấu phẩy:
+A common idiom for getting two digits after the decimal point:
 
 ~~~java
 double rounded = Math.round(1.005 * 100) / 100.0;
 ~~~
 
-Chương trình ở trên cho thấy:
+The program above shows:
 
 ~~~text
 scaled = 100.49999999999999
@@ -194,14 +194,14 @@ scaled Math.round = 1.0
 decimal HALF_UP = 1.01
 ~~~
 
-`1.005 * 100` dưới dạng `double` tạo `100.49999999999999`, **nhỏ hơn 100.5**, nên `Math.round` trả `100` và sau chia là `1.0`. Ngược lại `new BigDecimal("1.005")` giữ chính xác đầu vào thập phân, nên `setScale(2, HALF_UP)` trả `1.01`. Đây là **hai vấn đề tách biệt**:
+`1.005 * 100` in `double` produces `100.49999999999999`, **less than 100.5**, so `Math.round` returns `100` and after division gives `1.0`. Conversely, `new BigDecimal("1.005")` preserves the exact decimal input, so `setScale(2, HALF_UP)` returns `1.01`. These are **two separate issues**:
 
-1. **Quy tắc hòa nửa:** `Math.round` chọn hướng `+∞`; `HALF_UP` chọn xa số 0.
-2. **Biểu diễn đầu vào:** phép tính `double` có thể khiến một điểm hòa thập phân không còn thực sự ở đúng nửa.
+1. **Tie-breaking rule:** `Math.round` picks toward `+∞`; `HALF_UP` picks away from 0.
+2. **Input representation:** `double` operations can cause a decimal tie point to no longer lie at exact half.
 
-Không thể kết luận mọi biểu thức `Math.round(value * 100) / 100.0` đều sai: nó có thể phù hợp khi kết quả gần đúng kiểu `double` là chấp nhận được, phạm vi nhỏ và quy tắc ở điểm nửa đã được thỏa thuận. Nhưng với giá tiền hoặc quy định làm tròn thập phân, cách này thường không diễn đạt đúng hợp đồng nghiệp vụ, chưa kể nguy cơ tràn `int`/`long` nếu nhân hệ số lớn.
+One cannot conclude every `Math.round(value * 100) / 100.0` expression is wrong: it may be acceptable when an approximate `double` result is fine, the range is small, and the tie rule is agreed upon. However, for monetary prices or decimal rounding regulations, this approach usually fails to express the business contract accurately, not to mention `int`/`long` overflow risk when multiplying by large factors.
 
-Khi dùng `BigDecimal` cho tiền hoặc định lượng thập phân theo hợp đồng, hãy xác định rõ: **đầu vào từ đâu, bao nhiêu chữ số sau dấu phẩy, làm tròn theo mode nào, và ở bước nào**. Ví dụ:
+When using `BigDecimal` for money or contractually decimal quantities, clearly determine: **where the input comes from, how many digits after the decimal point, which rounding mode, and at which step**. For example:
 
 ~~~java
 BigDecimal amount = new BigDecimal("1.005");
@@ -209,35 +209,35 @@ BigDecimal rounded = amount.setScale(2, RoundingMode.HALF_UP);
 // 1.01
 ~~~
 
-Nếu phép toán trước đó đã làm việc trên `double` và bị mất chính xác, chỉ chuyển sang `BigDecimal` ở bước cuối **không bảo đảm** khôi phục giá trị thập phân ban đầu.
+If earlier operations already ran on `double` and lost precision, merely converting to `BigDecimal` at the final step **does not guarantee** recovering the original decimal value.
 
-## 7. `NaN`, vô cực, số rất lớn và số âm bằng 0
+## 7. `NaN`, Infinity, Very Large Numbers, and Negative Zero
 
-Tài liệu Java quy định các trường hợp đặc biệt cho `Math.round`:
+Java documentation specifies special cases for `Math.round`:
 
-- Đầu vào `NaN` → `0`.
-- `Math.round(double)` với `+Infinity` hoặc giá trị quá lớn dương → `Long.MAX_VALUE`; với `-Infinity` hoặc quá lớn âm → `Long.MIN_VALUE`.
-- `Math.round(float)` áp dụng tương tự với `Integer.MAX_VALUE` và `Integer.MIN_VALUE`.
-- `Math.round(-0.0)` trả số nguyên `0`; kiểu nguyên không giữ dấu của zero.
+- Input `NaN` → `0`.
+- `Math.round(double)` with `+Infinity` or too large positive values → `Long.MAX_VALUE`; with `-Infinity` or too large negative values → `Long.MIN_VALUE`.
+- `Math.round(float)` applies similarly with `Integer.MAX_VALUE` and `Integer.MIN_VALUE`.
+- `Math.round(-0.0)` returns integer `0`; integer types do not retain the sign of zero.
 
-Đây là **giá trị trả về theo đặc tả**, không phải ngoại lệ và cũng không chứng minh rằng đầu vào hợp lệ cho nghiệp vụ. Ví dụ, `Math.round(Double.NaN) == 0` có thể làm mất tín hiệu dữ liệu lỗi nếu bạn coi `0` là một số bình thường.
+These are **specified return values**, not exceptions and not proof that the input is valid for business logic. For example, `Math.round(Double.NaN) == 0` can lose the signal of invalid data if you treat `0` as a normal number.
 
-Đầu vào cần làm tròn chính xác sang `long`? Với `BigDecimal`, sau khi làm tròn theo mode đã chọn, `longValueExact()` ném `ArithmeticException` nếu giá trị không thể biểu diễn chính xác dưới dạng `long`. Có thể kiểm tra rõ `Double.isFinite(value)` trước khi đưa `double` qua pipeline. Hãy chọn rõ chính sách xử lý vô cực, `NaN` và quá miền thay vì dựa ngầm vào cơ chế chặn của `Math.round`.
+Need an input rounded exactly to `long`? With `BigDecimal`, after rounding with the chosen mode, `longValueExact()` throws `ArithmeticException` if the value cannot be represented exactly as a `long`. You can explicitly check `Double.isFinite(value)` before sending a `double` through a pipeline. Choose an explicit policy for infinity, `NaN`, and out-of-range values instead of relying implicitly on `Math.round`'s clamping behavior.
 
-## 8. Chọn phương án theo yêu cầu
+## 8. Choosing an Option Based on Requirements
 
-| Yêu cầu | API thường phù hợp | Điểm cần xác nhận |
+| Requirement | Usually suitable API | Points to verify |
 | --- | --- | --- |
-| Giá trị `float`/`double` sang số nguyên gần nhất, đúng nửa hướng `+∞` | `Math.round(value)` | Nhận `int` hoặc `long`; kiểm tra `NaN`, vô cực và quá miền nếu dữ liệu yêu cầu. |
-| Thập phân đúng nửa **xa số 0** | `BigDecimal.setScale(scale, HALF_UP)` | Scale và cách tạo `BigDecimal` phải phản ánh đầu vào mong muốn. |
-| Thập phân đúng nửa về số 0 | `setScale(scale, HALF_DOWN)` | Khác `Math.round` ở điểm nửa dương. |
-| Thập phân đúng nửa chọn chữ số chẵn | `setScale(scale, HALF_EVEN)` | Dùng khi hợp đồng nghiệp vụ cho phép; không mặc định cho mọi ứng dụng. |
-| Mọi phần lẻ đều làm tròn về `+∞` | `CEILING` hoặc `Math.ceil` theo kiểu đầu vào | Khác làm tròn đến số gần nhất. |
-| Làm tròn đến 2 chữ số **sau dấu phẩy** | `setScale(2, mode)` | Không nhầm với `MathContext(2, mode)` chỉ 2 chữ số có nghĩa. |
-| Cần giữ chữ số có nghĩa tối đa theo phép toán thập phân | `MathContext(precision, mode)` | Precision khác scale; không tương đương `Math.round`. |
-| Phải phát hiện làm tròn ngoài yêu cầu | `setScale(scale, UNNECESSARY)` | Ném ngoại lệ nếu loại bỏ chữ số khác 0. |
+| `float`/`double` value to nearest integer, exact half toward `+∞` | `Math.round(value)` | Returns `int` or `long`; check `NaN`, infinity, and out-of-range if data requires. |
+| Decimal exact half **away from 0** | `BigDecimal.setScale(scale, HALF_UP)` | Scale and how `BigDecimal` is created must reflect intended input. |
+| Decimal exact half toward 0 | `setScale(scale, HALF_DOWN)` | Differs from `Math.round` at positive half points. |
+| Decimal exact half choosing even digit | `setScale(scale, HALF_EVEN)` | Use when business contract allows; do not default for every app. |
+| Any fraction rounded toward `+∞` | `CEILING` or `Math.ceil` depending on input type | Differs from rounding to nearest number. |
+| Round to 2 digits **after the decimal point** | `setScale(2, mode)` | Do not confuse with `MathContext(2, mode)` which is 2 significant digits. |
+| Keep max significant digits in decimal operations | `MathContext(precision, mode)` | Precision differs from scale; not equivalent to `Math.round`. |
+| Must detect unintended rounding | `setScale(scale, UNNECESSARY)` | Throws exception if a non-zero digit would be dropped. |
 
-Trường hợp chuyển từ decimal đã làm tròn về kiểu nguyên:
+Case of converting from rounded decimal to integer type:
 
 ~~~java
 BigDecimal input = new BigDecimal("-2.5");
@@ -245,47 +245,47 @@ long result = input.setScale(0, RoundingMode.HALF_UP).longValueExact();
 // result == -3L
 ~~~
 
-Đoạn này phải nằm trong lớp/phương thức hợp lệ có các import của `java.math`; đây là **đoạn minh họa**, không phải chương trình độc lập.
+This snippet must sit inside a valid class/method with `java.math` imports; this is an **illustrative snippet**, not a standalone program.
 
-## 9. Checklist review và lỗi thường gặp
+## 9. Review Checklist and Common Mistakes
 
-1. **Chỉ thử số dương** như `1.5`, `2.5` rồi kết luận `Math.round == HALF_UP`. Phải thử ít nhất `-0.5`, `-1.5`, `-2.5`.
-2. **Hiểu “UP” là hướng số lớn hơn.** `HALF_UP` đi xa số 0 khi đúng nửa; `CEILING` mới là hướng `+∞`.
-3. **Viết `Math.round(x * 100) / 100` và tưởng kết quả hai chữ số thập phân kiểu decimal.** `/ 100` với hai toán hạng nguyên có thể còn chia nguyên; `/ 100.0` cho `double`, vẫn có sai số nhị phân.
-4. **Cho rằng `Math.round` nhận mọi độ chính xác.** Nó chỉ làm tròn `float`/`double` sang `int`/`long`.
-5. **Bỏ qua `NaN`, vô cực hoặc tràn miền.** API trả 0/các cực trị thay vì báo lỗi, có thể che khuất dữ liệu bất thường.
-6. **Dùng `new BigDecimal(double)` vô điều kiện.** Constructor này phản ánh đúng giá trị nhị phân của `double`, không nhất thiết là chuỗi thập phân người dùng nhìn thấy.
-7. **So `Math.round` với `setScale(2)` rồi quy khác biệt cho rounding mode.** Phải đồng nhất đích làm tròn (ở ví dụ đầu bài là scale 0) trước khi so sánh.
-8. **Làm tròn ở mỗi bước không có chủ đích.** Kết quả có thể khác khi chỉ làm tròn một lần ở cuối; cần quy định rõ thời điểm làm tròn.
-9. **Nhầm `Math.rint` là `Math.round`.** Cả hai nhận `double`, nhưng `rint` trả `double` và chọn số chẵn ở điểm hòa, `round` trả `long` và chọn về `+∞` ở điểm hòa.
+1. **Testing only positive numbers** like `1.5`, `2.5` and concluding `Math.round == HALF_UP`. You must test at least `-0.5`, `-1.5`, `-2.5`.
+2. **Reading "UP" as toward larger numbers.** `HALF_UP` moves away from 0 on exact halves; `CEILING` is what moves toward `+∞`.
+3. **Writing `Math.round(x * 100) / 100` and assuming a decimal two-place result.** `/ 100` with two integer operands performs integer division; `/ 100.0` produces a `double`, still carrying binary error.
+4. **Assuming `Math.round` accepts arbitrary precision.** It only rounds `float`/`double` to `int`/`long`.
+5. **Ignoring `NaN`, infinity, or range overflow.** The API returns 0/extrema instead of throwing errors, which can mask anomalous data.
+6. **Using `new BigDecimal(double)` unconditionally.** This constructor reflects the exact binary value of `double`, not necessarily the decimal string a user sees.
+7. **Comparing `Math.round` with `setScale(2)` and blaming differences on rounding mode.** Align the rounding target (in the opening example, scale 0) before comparing.
+8. **Rounding at every step unintentionally.** Results can differ from rounding once at the end; clearly specify when rounding occurs.
+9. **Confusing `Math.rint` with `Math.round`.** Both accept `double`, yet `rint` returns `double` and chooses even on ties, while `round` returns `long` and chooses toward `+∞` on ties.
 
-## 10. Bài tập tự kiểm tra
+## 10. Self-Check Exercises
 
-**Bài 1.** Dự đoán `Math.round(-3.5)` và `new BigDecimal("-3.5").setScale(0, HALF_UP)`.
+**Exercise 1.** Predict `Math.round(-3.5)` and `new BigDecimal("-3.5").setScale(0, HALF_UP)`.
 
-**Đáp án:** `-3` và `-4`. Đầu vào cách đều `-3` và `-4`, nhưng chọn hướng khác nhau.
+**Answer:** `-3` and `-4`. The input is equidistant from `-3` and `-4`, yet they choose opposite directions.
 
-**Bài 2.** Hai biểu thức này có luôn tương đương không?
+**Exercise 2.** Are these two expressions always equivalent?
 
 ~~~java
 Math.round(x)
 BigDecimal.valueOf(x).setScale(0, RoundingMode.HALF_UP)
 ~~~
 
-**Đáp án:** Không. Chúng khác ở các giá trị âm đúng nửa; ngoài ra khác loại kết quả và xử lý giá trị đặc biệt, miền số, precision/biểu diễn.
+**Answer:** No. They differ on negative exact-half values; in addition, they differ in return type and handling of special values, numeric range, and precision/representation.
 
-**Bài 3.** Tại sao `Math.round(1.005 * 100) / 100.0` có thể ra `1.0`, còn `new BigDecimal("1.005").setScale(2, HALF_UP)` ra `1.01`?
+**Exercise 3.** Why can `Math.round(1.005 * 100) / 100.0` produce `1.0`, while `new BigDecimal("1.005").setScale(2, HALF_UP)` gives `1.01`?
 
-**Đáp án:** Phép nhân trên `double` tạo `100.49999999999999`, nhỏ hơn điểm nửa `100.5`; còn chuỗi thập phân trong `BigDecimal` giữ giá trị `1.005` chính xác.
+**Answer:** Multiplication on `double` yields `100.49999999999999`, smaller than the half point `100.5`; whereas the decimal string in `BigDecimal` keeps the value `1.005` exactly.
 
-**Bài 4.** Muốn làm tròn `-2.5` về `-2` theo quy tắc chọn số nguyên gần nhất và hòa về phía `+∞`, gọi API nào?
+**Exercise 4.** To round `-2.5` to `-2` under the rule of picking the nearest integer with ties toward `+∞`, which API should be called?
 
-**Đáp án:** `Math.round(-2.5d)`. Nếu muốn trình bày quy tắc cho decimal, có thể tính bằng `BigDecimal` với một giải pháp đặt mode phù hợp theo điều kiện; không được mặc định gọi `HALF_UP`.
+**Answer:** `Math.round(-2.5d)`. If expressing the rule for decimals, you can compute with `BigDecimal` using a solution that selects the appropriate mode conditionally; do not default to calling `HALF_UP`.
 
-## 11. Tài liệu Java để đối chiếu
+## 11. Java Documentation for Reference
 
-- [`Math.round(float)`, `Math.round(double)` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html#round(double)): định nghĩa số nguyên gần nhất và trường hợp hòa hướng `+∞`; các trường hợp đặc biệt.
-- [`RoundingMode` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/RoundingMode.html): mô tả `HALF_UP`, `HALF_DOWN`, `HALF_EVEN`, `UP`, `DOWN`, `CEILING` và `FLOOR`.
-- [`BigDecimal` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): `setScale`, `round`, `valueOf` và `longValueExact`.
+- [`Math.round(float)`, `Math.round(double)` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html#round(double)): defines nearest integer and tie-breaking toward `+∞`; special cases.
+- [`RoundingMode` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/RoundingMode.html): describes `HALF_UP`, `HALF_DOWN`, `HALF_EVEN`, `UP`, `DOWN`, `CEILING`, and `FLOOR`.
+- [`BigDecimal` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): `setScale`, `round`, `valueOf`, and `longValueExact`.
 
-**Ghi nhớ:** `Math.round` = gần nhất, **hòa về `+∞`**; `HALF_UP` = gần nhất, **hòa xa số 0**. Với số âm ở điểm `.5`, kết quả thường khác. Hãy kiểm soát thêm kiểu dữ liệu và biểu diễn nhị phân trước khi dùng một phép làm tròn để thay thế phép khác.
+**Takeaway:** `Math.round` = nearest, **ties toward `+∞`**; `HALF_UP` = nearest, **ties away from 0**. For negative numbers at `.5` points, results often differ. Also control data types and binary representation before using one rounding operation in place of another.

@@ -1,40 +1,40 @@
-# Đặt tên rõ nghĩa, thụt lề và tránh số không giải thích trong Java
+# Clear Naming, Indentation, and Avoiding Magic Numbers in Java
 
-Mã dễ đọc giúp người khác hiểu **ý nghĩa và ý định** mà không phải đoán từ cách triển khai. Với Java 17+, ba thói quen có tác dụng trực tiếp là đặt tên thể hiện vai trò, định dạng khối lệnh nhất quán và thay các con số mang quy tắc nghiệp vụ bằng tên có nghĩa.
+Readable code helps others understand **meaning and intent** without having to guess from the implementation. In Java 17+, three habits have an immediate impact: naming things to show their role, formatting blocks consistently, and replacing numbers that encode business rules with meaningful names.
 
-## 1. Đặt tên nói rõ dữ liệu và hành động
+## 1. Naming things to state data and actions clearly
 
-| Thành phần | Quy ước phổ biến trong Java | Ví dụ |
+| Element | Common Java convention | Example |
 | --- | --- | --- |
-| Lớp, interface, enum | `UpperCamelCase`, thường là danh từ/vai trò | `TicketPricing`, `PaymentService` |
-| Phương thức | `lowerCamelCase`, thường bắt đầu bằng động từ | `calculateTicketPriceVnd()`, `sendNotification()` |
-| Biến, tham số | `lowerCamelCase`, đặt theo ý nghĩa và phạm vi | `customerAge`, `orderTotalVnd` |
-| Hằng số `static final` | `UPPER_SNAKE_CASE` | `MINIMUM_ADULT_AGE`, `MAX_RETRY_COUNT` |
-| Tên package | Chữ thường, phân cấp theo miền chức năng | `com.example.tickets` |
-| Biến `boolean` | Tên đọc được như câu hỏi đúng/sai | `isChild`, `hasPermission`, `canRetry` |
+| Class, interface, enum | `UpperCamelCase`, usually a noun/role | `TicketPricing`, `PaymentService` |
+| Method | `lowerCamelCase`, usually starting with a verb | `calculateTicketPriceVnd()`, `sendNotification()` |
+| Variable, parameter | `lowerCamelCase`, named for meaning and scope | `customerAge`, `orderTotalVnd` |
+| `static final` constant | `UPPER_SNAKE_CASE` | `MINIMUM_ADULT_AGE`, `MAX_RETRY_COUNT` |
+| Package name | Lowercase, hierarchical by functional domain | `com.example.tickets` |
+| `boolean` variable | Name that reads like a true/false question | `isChild`, `hasPermission`, `canRetry` |
 
-Nguyên tắc chọn tên:
+Naming principles:
 
-- **Nói lên mục đích:** `customerAge` rõ hơn `a`; `calculateTicketPriceVnd` rõ hơn `calc()`. Tránh `data`, `result`, `temp`, `value` khi có thể nêu chính xác chúng chứa gì.
-- **Ghi đơn vị nếu dễ nhầm:** `timeoutMillis`, `priceVnd`, `fileSizeBytes`. Một tên `timeout` không nói được là mili giây hay giây.
-- **Phân biệt khái niệm gần nhau:** `totalPriceVnd` và `discountAmountVnd` khác `discountPercent`; một số tiền khác một tỷ lệ.
-- **Đúng phạm vi:** biến vòng lặp rất ngắn có thể là `i` nếu rõ ràng, nhưng tên có ý nghĩa cần dùng cho biến nghiệp vụ hoặc biến sống qua nhiều bước.
-- **Nhất quán từ vựng:** chọn một cách gọi, chẳng hạn `customer`, rồi dùng xuyên suốt thay vì xen kẽ `client`, `buyer`, `user` cho cùng một khái niệm.
-- **Không lạm dụng viết tắt:** `numberOfItems` dễ hiểu hơn `nItm`. Tránh ký tự dễ nhầm như `l` (chữ L thường), `I` (i hoa) hoặc `O` (o hoa) đứng riêng.
-- **Tên hợp lệ vẫn có thể khó đọc:** Java cho phép nhiều ký tự Unicode trong identifier nhưng mã nguồn thường dễ cộng tác hơn với tên tiếng Anh, ký tự ASCII và quy ước nhất quán. Không dùng từ khóa Java làm tên biến.
+- **Express purpose:** `customerAge` is clearer than `a`; `calculateTicketPriceVnd` is clearer than `calc()`. Avoid `data`, `result`, `temp`, `value` when you can state specifically what they hold.
+- **Include units if easily confused:** `timeoutMillis`, `priceVnd`, `fileSizeBytes`. A name like `timeout` does not tell whether it is milliseconds or seconds.
+- **Distinguish close concepts:** `totalPriceVnd` and `discountAmountVnd` differ from `discountPercent`; an amount of money is different from a percentage.
+- **Match the scope:** a very short loop variable can be `i` if obvious, but meaningful names are needed for business variables or variables that live across multiple steps.
+- **Keep vocabulary consistent:** pick one term, such as `customer`, and use it consistently rather than alternating between `client`, `buyer`, and `user` for the same concept.
+- **Do not overuse abbreviations:** `numberOfItems` is easier to understand than `nItm`. Avoid easily confused characters like `l` (lowercase L), `I` (uppercase i), or `O` (uppercase o) on their own.
+- **Valid names can still be hard to read:** Java allows many Unicode characters in identifiers, but source code is usually easier to collaborate on with English names, ASCII characters, and consistent conventions. Never use Java keywords as variable names.
 
-Tên nên phản ánh hành vi thực tế. Chẳng hạn, một hàm kiểm tra rồi ghi dữ liệu không nên gọi `validate()` nếu nó còn tạo tác dụng phụ. Khi API được dùng ở nhiều nơi, đổi tên nên thực hiện bằng chức năng **Rename/Refactor** của IDE để cập nhật tất cả chỗ tham chiếu.
+Names should reflect actual behavior. For example, a function that validates and then writes data should not be called `validate()` if it also causes side effects. When an API is used in many places, renaming should be done using your IDE's **Rename/Refactor** tool to update all references.
 
-## 2. Thụt lề và dấu ngoặc nhọn giúp nhìn đúng luồng điều khiển
+## 2. Indentation and braces make control flow clear
 
-Một phong cách thông dụng cho Java:
+A standard style for Java:
 
-1. Thụt **4 dấu cách cho mỗi cấp khối**; thiết lập formatter thống nhất trong dự án, không trộn tab và dấu cách.
-2. Luôn dùng `{` và `}` cho thân `if`, `else`, vòng lặp, kể cả thân chỉ có một lệnh; đặt dấu mở khối sau điều kiện, dấu đóng khối thẳng hàng với cấu trúc điều khiển.
-3. Dùng khoảng trắng quanh toán tử, sau dấu phẩy; cách nhóm các phương thức và biến nhất quán; tách các biểu thức quá dài ở vị trí hợp lý.
-4. Căn lề theo **cấu trúc cú pháp**, không căn cho đẹp bằng số lượng dấu cách tùy ý. Chạy công cụ formatter trước khi đưa mã vào review.
+1. Indent **4 spaces per block level**; configure a consistent formatter in the project and do not mix tabs and spaces.
+2. Always use `{` and `}` for the body of `if`, `else`, and loops, even when the body has only one statement; place the opening brace after the condition, and align the closing brace with the control structure.
+3. Put spaces around operators and after commas; group methods and variables consistently; break overly long expressions at sensible positions.
+4. Indent according to **syntactic structure**, not by aligning arbitrarily with spaces just to look pretty. Run a formatter tool before submitting code for review.
 
-Ví dụ sau **chỉ là đoạn mã trong một phương thức** và dễ gây lỗi:
+The following example is **just a snippet inside a method** and is prone to bugs:
 
 ```java
 if (isMember)
@@ -42,7 +42,7 @@ if (isMember)
     System.out.println("Đã áp dụng giảm giá");
 ```
 
-Dòng `println` **luôn chạy**, dù `isMember` là `false`: Java xác định thân `if` theo dấu ngoặc hoặc đúng một statement, không dựa vào thụt lề. Sửa bằng khối lệnh rõ ràng:
+The `println` statement **always executes**, even when `isMember` is `false`: Java determines an `if` body by braces or exactly one statement, not by indentation. Fix it with an explicit block:
 
 ```java
 if (isMember) {
@@ -51,11 +51,11 @@ if (isMember) {
 }
 ```
 
-Thụt lề tốt giúp đọc luồng, nhưng dấu ngoặc nhọn mới xác định ranh giới khối. Tương tự, đặt `else` sát khối `if` tương ứng để tránh hiểu sai các nhánh lồng nhau. Không nên sửa lỗi điều khiển chỉ bằng formatter: phải rà soát cấu trúc chương trình.
+Good indentation helps you read the flow, but curly braces define the actual block boundaries. Similarly, keep `else` next to its corresponding `if` block to avoid misreading nested branches. Do not rely on a formatter alone to fix control-flow errors: review the program structure itself.
 
-## 3. Tránh “magic numbers” (số không giải thích)
+## 3. Avoiding "magic numbers" (unexplained numbers)
 
-**Magic number** là số được viết trực tiếp trong biểu thức khi người đọc không biết ý nghĩa hoặc lý do chọn nó:
+A **magic number** is a number written directly in an expression when the reader cannot tell its meaning or why it was chosen:
 
 ```java
 int age = 10;
@@ -65,23 +65,23 @@ if (age < 12) {
 }
 ```
 
-Đọc riêng đoạn này không rõ `12` là mốc tuổi nào, `200000` có đơn vị gì, `75` biểu thị mức giá hay giảm giá. Những quy tắc này dễ bị sửa thiếu ở một trong nhiều chỗ.
+Reading this snippet alone, it is unclear what age threshold `12` represents, what unit `200000` is in, or whether `75` is a price level or a discount. Such rules are easily missed in one of several places during updates.
 
-Cách cải thiện phụ thuộc vào **bản chất** của giá trị:
+How to improve it depends on the **nature** of the value:
 
-| Trường hợp | Cách diễn đạt nên dùng |
+| Case | Recommended expression |
 | --- | --- |
-| Ngưỡng, giới hạn, phí hay tỷ lệ nghiệp vụ cố định trong phiên bản mã | Hằng `private static final` với tên giải thích chính sách, ví dụ `MAX_RETRY_COUNT` |
-| Khoảng thời gian | `Duration.ofSeconds(5)`, `Duration.ofMinutes(2)` thay vì số mili giây không rõ đơn vị |
-| Giá trị cấu hình thay đổi theo môi trường hoặc vận hành | Đưa vào cấu hình có tên và kiểm tra hợp lệ, không cố định mã nguồn |
-| Tập giá trị trạng thái có ý nghĩa | `enum` hay kiểu riêng thay cho số `0`, `1`, `2` khó hiểu |
-| Số mang ý nghĩa toán học rõ ràng hoặc chỉ số cơ bản | `0`, `1` có thể giữ nguyên nếu ngữ cảnh thật sự hiển nhiên |
+| Thresholds, limits, fees, or business rates fixed in a code version | `private static final` constants with policy-explaining names, e.g., `MAX_RETRY_COUNT` |
+| Time durations | `Duration.ofSeconds(5)`, `Duration.ofMinutes(2)` instead of unitless milliseconds |
+| Configuration values that vary by environment or operations | Move into named, validated configuration rather than hardcoding in source |
+| Sets of meaningful status values | `enum` or dedicated types instead of cryptic numbers `0`, `1`, `2` |
+| Numbers with clear mathematical meaning or basic indices | `0`, `1` can remain literals if the context is truly obvious |
 
-Không cần tạo hằng số cho *mọi* số. Chỉ đặt tên khi nó giúp nêu quy tắc, giải thích đơn vị, tránh trùng lặp hoặc gom một điểm thay đổi. Đặt tên `NUMBER_12` không cải thiện gì: **tên phải giải thích ý nghĩa, không lặp lại giá trị**. Hằng số `static final` chỉ bất biến theo tham chiếu/giá trị trường; đối tượng mutable mà nó trỏ tới vẫn có thể thay đổi.
+You do not need a constant for *every* number. Name a number only when it states a rule, clarifies units, avoids duplication, or centralizes a point of change. Naming something `NUMBER_12` improves nothing: **the name must explain the meaning, not repeat the value**. A `static final` constant is only immutable in its reference or primitive field value; a mutable object it points to can still change.
 
-## 4. Chương trình Java 17+ chạy độc lập
+## 4. Standalone Java 17+ program
 
-Lưu đúng tên tệp **`TicketPricing.java`** (không có khai báo `package`) với nội dung sau:
+Save with the exact filename **`TicketPricing.java`** (with no `package` declaration) containing the following:
 
 ```java
 public final class TicketPricing {
@@ -122,28 +122,28 @@ public final class TicketPricing {
 }
 ```
 
-Chạy trong thư mục chứa tệp bằng JDK 17 trở lên (PowerShell, CMD, macOS hoặc Linux):
+Run in the directory containing the file using JDK 17 or later (PowerShell, CMD, macOS, or Linux):
 
 ```bash
 javac -encoding UTF-8 TicketPricing.java
 java TicketPricing
 ```
 
-**Kết quả chuẩn trên stdout:**
+**Expected output on stdout:**
 
 ```text
 Khách 10 tuổi: 150000 VND
 Khách 12 tuổi: 200000 VND
 ```
 
-Giải thích: `MINIMUM_ADULT_AGE` làm rõ chính sách **dưới 12 tuổi** được giảm 25%; khách đúng 12 tuổi trả giá chuẩn. `STANDARD_TICKET_PRICE_VND` giải thích đơn vị, `PERCENT_BASE` làm rõ phép tính phần trăm, còn `calculateTicketPriceVnd` nói rõ kết quả trả về. Dấu `_` trong literal số `200_000` chỉ giúp đọc mã; giá trị vẫn là số nguyên `200000`. Ví dụ dùng số nguyên VND và mức giảm chia hết, nên không phát sinh vấn đề làm tròn; nghiệp vụ tiền tệ có phần lẻ thường cần `BigDecimal` hoặc số đơn vị nhỏ nhất cùng quy tắc làm tròn rõ ràng.
+Explanation: `MINIMUM_ADULT_AGE` clarifies the policy that **under age 12** receives a 25% discount; a customer who is exactly 12 pays the standard price. `STANDARD_TICKET_PRICE_VND` clarifies the unit, `PERCENT_BASE` clarifies the percentage arithmetic, and `calculateTicketPriceVnd` makes the return value clear. The `_` in the numeric literal `200_000` is just for readability; the value is still the integer `200000`. The example uses integer VND and a divisible discount rate so no rounding issue arises; monetary business rules with fractional parts typically need `BigDecimal` or smallest-unit integers along with explicit rounding rules.
 
-## 5. Áp dụng khi sửa mã có sẵn
+## 5. Applying this when editing existing code
 
-1. **Đọc ý nghĩa trước khi đổi tên:** xác định biến đại diện cho dữ liệu nào, đơn vị và phạm vi sống; chọn tên phù hợp hành vi thực tế.
-2. **Đặt tên cho quy tắc:** thay ngưỡng và tỷ lệ khó hiểu bằng hằng số hoặc cấu hình có tên; tránh để cùng một chính sách có nhiều giá trị sao chép.
-3. **Chuẩn hóa khối điều khiển:** thêm dấu ngoặc nếu cần, rà soát `if/else` và vòng lặp, rồi áp dụng formatter thống nhất.
-4. **Kiểm tra hành vi sau khi sửa:** biên dịch và thử tại ngưỡng, ngay dưới/trên ngưỡng; với ví dụ trên là tuổi `11`, `12`, `13` và trường hợp tuổi âm. Việc thay tên hay format đơn thuần không được làm đổi logic.
-5. **Giữ thay đổi dễ review:** thay đổi API công khai có thể ảnh hưởng mã gọi, reflection, tên JSON hoặc cấu hình ràng buộc bên ngoài; cần rà soát trước khi đổi tên.
+1. **Understand the meaning before renaming:** identify what data a variable represents, its unit, and its lifetime; choose a name that matches actual behavior.
+2. **Name the rules:** replace cryptic thresholds and rates with named constants or configuration; avoid duplicating the same policy value in multiple places.
+3. **Standardize control blocks:** add braces where needed, review `if/else` and loops, then apply a consistent formatter.
+4. **Verify behavior after editing:** compile and test at the threshold, just below it, and just above it; in the example above, test ages `11`, `12`, `13` and a negative age. Simple renaming or reformatting must not alter logic.
+5. **Keep changes easy to review:** modifying a public API can affect callers, reflection, JSON field names, or external configuration bindings; review those before renaming.
 
-**Tự kiểm tra:** Người đọc có hiểu mỗi tên khi tách khỏi đoạn code không? Các đơn vị có rõ không? Có số nào chứa chính sách cần giải thích không? Các nhánh có ngoặc và thụt lề phản ánh đúng điều kiện chạy không? Nếu hai người cùng sửa file, formatter có tạo ra khác biệt không cần thiết không? Đó là những dấu hiệu thực tế của mã Java dễ bảo trì.
+**Self-check:** Can a reader understand each name out of context? Are the units clear? Are there any numbers hiding a policy that needs explanation? Do braces and indentation on branches accurately reflect execution conditions? If two people edit the same file, will the formatter avoid unnecessary diffs? Those are practical signs of maintainable Java code.

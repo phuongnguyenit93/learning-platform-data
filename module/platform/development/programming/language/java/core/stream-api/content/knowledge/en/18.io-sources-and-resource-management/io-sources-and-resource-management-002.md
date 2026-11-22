@@ -1,31 +1,31 @@
-# Liệt kê và duyệt cây thư mục bằng `Files.list`, `Files.walk` và `Files.find`
+# Listing and Traversing Directory Trees with `Files.list`, `Files.walk`, and `Files.find`
 
-## 1. Mục tiêu và bối cảnh
+## 1. Objectives and Context
 
-Trong module **`JAVA_STREAM_API`**, một pipeline thường bắt đầu từ nguồn dữ liệu, ghép các thao tác lazy như `filter` và `map`, rồi kết thúc bằng `count`, `collect` hoặc `findFirst`. Ngoài `List`, mảng và dãy số, hệ thống tệp cũng có thể cung cấp một nguồn **`Stream<Path>`**.
+In the **`JAVA_STREAM_API`** module, a pipeline typically starts from a data source, chains lazy operations such as `filter` and `map`, and ends with `count`, `collect`, or `findFirst`. Besides `List`, arrays, and number sequences, the file system can also provide a **`Stream<Path>`** source.
 
-Trong Java 8 trở lên, `java.nio.file.Files` có ba phương thức đáng chú ý:
+In Java 8 and later, `java.nio.file.Files` offers three notable methods:
 
-- **`Files.list(dir)`:** liệt kê các mục nằm **trực tiếp** trong một thư mục.
-- **`Files.walk(root, ...)`:** duyệt **cây thư mục** từ gốc tới những cấp sâu hơn.
-- **`Files.find(root, maxDepth, matcher, ...)`:** duyệt cây và chỉ phát ra đường dẫn khớp một điều kiện dựa trên `Path` và `BasicFileAttributes`.
+- **`Files.list(dir)`:** lists entries located **directly** inside a directory.
+- **`Files.walk(root, ...)`:** traverses a **directory tree** from the root down to deeper levels.
+- **`Files.find(root, maxDepth, matcher, ...)`:** traverses the tree and emits only paths matching a condition based on `Path` and `BasicFileAttributes`.
 
-Khác stream từ collection trong bộ nhớ, các stream này có thể **giữ tài nguyên I/O** như directory handle. Vì vậy, phải đóng chúng bằng `try-with-resources`, kể cả khi terminal operation dừng sớm hoặc thất bại.
+Unlike streams from in-memory collections, these streams can **hold I/O resources** such as directory handles. Therefore, you must close them with `try-with-resources`, even if the terminal operation stops early or fails.
 
-Sau bài học, bạn có thể:
+After this lesson, you can:
 
-1. Chọn đúng `list`, `walk` hay `find` theo phạm vi duyệt.
-2. Hiểu ý nghĩa `maxDepth`, đường dẫn gốc và cách lấy tệp thay vì thư mục.
-3. Dùng `BasicFileAttributes` để tìm tệp theo loại, dung lượng hoặc thời gian sửa.
-4. Xử lý lazy evaluation, các ngoại lệ I/O và vòng đời của nguồn stream.
-5. Nhận biết giới hạn khi gặp symbolic link, cây lớn, thứ tự duyệt không xác định và nhu cầu cắt nhánh.
-6. Viết những pipeline đếm, tìm kiếm và thống kê tệp có kiểm soát tài nguyên.
+1. Choose `list`, `walk`, or `find` appropriately based on the traversal scope.
+2. Understand the meaning of `maxDepth`, the root path, and how to select files rather than directories.
+3. Use `BasicFileAttributes` to find files by type, size, or modification time.
+4. Handle lazy evaluation, I/O exceptions, and the stream source lifecycle.
+5. Recognize limitations involving symbolic links, large trees, unspecified traversal order, and the need for subtree pruning.
+6. Write file-counting, search, and aggregation pipelines with proper resource control.
 
-Bài thuộc chương **Nguồn vào ra và quản lý tài nguyên**. Những nguyên tắc này cũng quan trọng khi học Spliterator, pipeline song song hoặc Stream Gatherers, nơi việc giữ trạng thái và quản lý tài nguyên cần được cân nhắc cẩn thận.
+This lesson belongs to the **I/O Sources and Resource Management** chapter. These principles are also important when studying Spliterators, parallel pipelines, or Stream Gatherers, where state retention and resource management require careful consideration.
 
-## 2. Khác biệt nhanh giữa ba API
+## 2. Quick Differences Between the Three APIs
 
-Giả sử có cấu trúc:
+Suppose we have the following structure:
 
 ```text
 du-lieu/
@@ -37,20 +37,20 @@ du-lieu/
     └── logo.png
 ```
 
-| Phương thức | Phạm vi duyệt | Bao gồm chính `root`? | Kết quả |
+| Method | Traversal scope | Includes `root` itself? | Result |
 | --- | --- | --- | --- |
-| `Files.list(root)` | Chỉ các mục trực tiếp của thư mục `root` | Không | `Stream<Path>` |
-| `Files.walk(root)` | Cây bắt đầu từ `root`, mặc định mọi độ sâu | Có | `Stream<Path>` |
-| `Files.walk(root, 2)` | `root` và các mục ở độ sâu tối đa 2 | Có | `Stream<Path>` |
-| `Files.find(root, 2, matcher)` | Duyệt tới độ sâu 2, chỉ trả đường dẫn matcher chấp nhận | Có nếu matcher khớp gốc | `Stream<Path>` |
+| `Files.list(root)` | Only direct entries of the `root` directory | No | `Stream<Path>` |
+| `Files.walk(root)` | Tree starting from `root`, all depths by default | Yes | `Stream<Path>` |
+| `Files.walk(root, 2)` | `root` and entries up to depth 2 | Yes | `Stream<Path>` |
+| `Files.find(root, 2, matcher)` | Traverses up to depth 2, returns only paths accepted by `matcher` | Yes if `matcher` matches root | `Stream<Path>` |
 
-Với cây trên, `list` thấy `readme.txt`, `src`, `assets`; `walk` còn thấy chính `du-lieu` và các tệp sâu hơn; `find` có thể trả riêng `App.java` và `Util.java`.
+With the tree above, `list` sees `readme.txt`, `src`, and `assets`; `walk` also sees `du-lieu` itself and deeper files; `find` can return `App.java` and `Util.java` specifically.
 
-**Thứ tự các mục con không được bảo đảm theo bảng chữ cái.** `walk` duyệt theo chiều sâu (*depth-first*), nhưng thứ tự các mục anh em phụ thuộc hệ thống tệp. Nếu báo cáo cần thứ tự ổn định, hãy sắp xếp tường minh, đồng thời xét chi phí bộ nhớ.
+**Child entry order is not guaranteed to be alphabetical.** `walk` performs a *depth-first* traversal, but sibling order depends on the file system. If a report requires a deterministic order, sort explicitly while accounting for memory cost.
 
-## 3. Ví dụ Java 8 hoàn chỉnh: thử cả ba phương thức
+## 3. Complete Java 8 Example: Trying All Three Methods
 
-Chương trình sau tự tạo một cây nhỏ trong thư mục tạm và dọn dẹp khi kết thúc. Việc dọn sử dụng `Files.walk` trên **cây tạm do chương trình tạo**; không sao chép logic xóa sang thư mục thật nếu chưa xác minh phạm vi.
+The following program creates a small tree in a temporary directory and cleans up when finished. Cleanup uses `Files.walk` on the **temporary tree created by the program**; do not copy deletion logic onto a real directory without verifying the scope.
 
 ```java
 import java.io.IOException;
@@ -70,7 +70,7 @@ public class ThuFilesStream {
             Path src = Files.createDirectories(root.resolve("src"));
             Files.createDirectories(root.resolve("assets"));
             Files.write(root.resolve("readme.txt"),
-                Arrays.asList("Tai lieu"), StandardCharsets.UTF_8);
+                Arrays.asList("Documentation"), StandardCharsets.UTF_8);
             Files.write(src.resolve("App.java"),
                 Arrays.asList("class App {}"), StandardCharsets.UTF_8);
             Files.write(src.resolve("Util.java"),
@@ -103,7 +103,7 @@ public class ThuFilesStream {
                     .forEach(System.out::println);
             }
         } finally {
-            // Chỉ xóa nội dung của thư mục tạm đã tạo.
+            // Only delete the contents of the created temporary directory.
             try (Stream<Path> paths = Files.walk(root)) {
                 paths.sorted(Comparator.reverseOrder())
                     .forEach(p -> {
@@ -119,7 +119,7 @@ public class ThuFilesStream {
 }
 ```
 
-Kết quả mang ý nghĩa:
+Representative output:
 
 ```text
 LIST:
@@ -140,21 +140,21 @@ src/App.java
 src/Util.java
 ```
 
-Trên Windows, dấu phân cách đường dẫn trong ví dụ `WALK` và `FIND` có thể là dấu gạch chéo ngược thay vì dấu `/`. Dấu `.` là đường dẫn tương đối của chính gốc `root`.
+On Windows, the path separator in the `WALK` and `FIND` examples may be a backslash instead of `/`. The `.` represents the relative path of `root` itself.
 
-Chương trình cố ý dùng `sorted` để dễ đối chiếu kết quả. Với cây rất lớn, `sorted` thường cần nhận đủ các phần tử trước khi phát kết quả đã sắp xếp.
+The program intentionally uses `sorted` to make comparing results easier. For very large trees, `sorted` usually needs to receive all elements before emitting sorted results.
 
-## 4. `Files.list`: duyệt một cấp
+## 4. `Files.list`: Traversing One Level
 
-Chữ ký:
+Signature:
 
 ```java
 public static Stream<Path> list(Path dir) throws IOException
 ```
 
-`Files.list` trả các `Path` ứng với **mục trực tiếp** bên trong thư mục, gồm tệp, thư mục con và các mục khác. Nó không duyệt tiếp xuống bên dưới và không bao gồm chính `dir`.
+`Files.list` returns `Path` objects corresponding to **direct entries** inside the directory, including files, subdirectories, and other entries. It does not descend further and does not include `dir` itself.
 
-Ví dụ một chương trình đọc thư mục đã tồn tại:
+Example program reading an existing directory:
 
 ```java
 import java.io.IOException;
@@ -174,9 +174,9 @@ public class LietKeThuMuc {
 }
 ```
 
-Điều kiện chạy: thư mục `du-lieu` phải tồn tại tương ứng với thư mục làm việc của tiến trình. Nếu đường dẫn không tồn tại, không phải thư mục hoặc thiếu quyền truy cập, API có thể báo lỗi I/O.
+Precondition to run: the `du-lieu` directory must exist relative to the process's working directory. If the path does not exist, is not a directory, or lacks access permissions, the API may report an I/O error.
 
-### 4.1. Chỉ lấy tệp thường
+### 4.1. Selecting Regular Files Only
 
 ```java
 Path dir = Paths.get("du-lieu");
@@ -187,9 +187,9 @@ try (Stream<Path> entries = Files.list(dir)) {
 }
 ```
 
-`Files.isRegularFile(path)` kiểm tra loại tệp, mặc định **có thể theo symbolic link** tới tệp đích. Nếu nghiệp vụ chỉ muốn tệp thường, không tính symbolic link, dùng `Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)`.
+`Files.isRegularFile(path)` checks the file type and by default **may follow symbolic links** to the target file. If your business logic wants only regular files and not symbolic links, use `Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)`.
 
-### 4.2. Đếm mục trực tiếp
+### 4.2. Counting Direct Entries
 
 ```java
 try (Stream<Path> entries = Files.list(dir)) {
@@ -198,13 +198,13 @@ try (Stream<Path> entries = Files.list(dir)) {
 }
 ```
 
-Đếm ở đây bao gồm **cả thư mục con**. Thêm `filter(Files::isRegularFile)` nếu chỉ cần đếm tệp thường ở đúng cấp hiện tại.
+The count here includes **subdirectories as well**. Add `filter(Files::isRegularFile)` if you only need to count regular files at the current level.
 
-Đừng thay `list(root)` bằng `walk(root)` cho yêu cầu một cấp đơn giản: `walk` bao gồm gốc và có thể duyệt sâu hơn rất nhiều.
+Do not replace `list(root)` with `walk(root)` for a simple single-level listing: `walk` includes the root and can traverse much deeper.
 
-## 5. `Files.walk`: duyệt cây và giới hạn độ sâu
+## 5. `Files.walk`: Tree Traversal and Depth Limits
 
-Hai overload từ Java 8:
+Two overloads since Java 8:
 
 ```java
 public static Stream<Path> walk(
@@ -219,9 +219,9 @@ public static Stream<Path> walk(
 ) throws IOException;
 ```
 
-`walk` tạo nguồn duyệt **depth-first** bắt đầu từ `start`; `start` cũng là một phần tử của kết quả. Mặc định traversal không đi theo symbolic link để vào cây thư mục đích.
+`walk` creates a **depth-first** traversal source starting from `start`; `start` is also an element of the result. By default, traversal does not follow symbolic links into target directory trees.
 
-### 5.1. Tìm tất cả tệp `.java` trong cây
+### 5.1. Finding All `.java` Files in a Tree
 
 ```java
 Path root = Paths.get("du-lieu");
@@ -234,9 +234,9 @@ try (Stream<Path> paths = Files.walk(root)) {
 }
 ```
 
-`filter` chỉ ảnh hưởng tới **đường dẫn được phát ra kết quả**, không đồng nghĩa với việc ngăn `walk` duyệt bên trong một thư mục không khớp.
+`filter` only affects **which paths are emitted in the result**; it does not prevent `walk` from traversing inside a non-matching directory.
 
-### 5.2. Ý nghĩa `maxDepth`
+### 5.2. Meaning of `maxDepth`
 
 ```text
 root/                      depth = 0
@@ -247,15 +247,15 @@ root/                      depth = 0
         └── More.java      depth = 3
 ```
 
-| Lời gọi | Kết quả có thể chứa |
+| Call | Results can contain |
 | --- | --- |
-| `Files.walk(root, 0)` | Chỉ đường dẫn `root`. |
-| `Files.walk(root, 1)` | Gốc và mọi mục trực tiếp bên dưới. |
-| `Files.walk(root, 2)` | Thêm `App.java` và `nested`. |
-| `Files.walk(root, 3)` | Thêm `More.java`. |
-| `Files.walk(root)` | Toàn bộ độ sâu mà traversal có thể đi tới. |
+| `Files.walk(root, 0)` | Only the `root` path. |
+| `Files.walk(root, 1)` | The root and all direct entries beneath it. |
+| `Files.walk(root, 2)` | Adds `App.java` and `nested`. |
+| `Files.walk(root, 3)` | Adds `More.java`. |
+| `Files.walk(root)` | The full depth that traversal can reach. |
 
-`maxDepth` phải **không âm**. Độ sâu của gốc là 0. `Files.walk(root, 1)` gần với liệt kê một cấp nhưng **vẫn gồm chính root**:
+`maxDepth` must be **non-negative**. The depth of the root is 0. `Files.walk(root, 1)` is close to a single-level listing, except it **still includes `root` itself**:
 
 ```java
 try (Stream<Path> paths = Files.walk(root, 1)) {
@@ -264,9 +264,9 @@ try (Stream<Path> paths = Files.walk(root, 1)) {
 }
 ```
 
-Muốn liệt kê một cấp mà không có gốc, `Files.list(root)` vẫn rõ nghĩa hơn.
+If you want a single-level listing without the root, `Files.list(root)` remains clearer.
 
-### 5.3. Tên tệp và đường dẫn tương đối
+### 5.3. File Names and Relative Paths
 
 ```java
 try (Stream<Path> paths = Files.walk(root, 3)) {
@@ -277,11 +277,11 @@ try (Stream<Path> paths = Files.walk(root, 3)) {
 }
 ```
 
-`getFileName()` lấy phần tên cuối, khác với kiểm tra toàn bộ đường dẫn. `root.relativize(p)` giúp báo cáo bớt phụ thuộc vị trí cài đặt; các path trong ví dụ cùng hệ thống tệp và đều được sinh từ `root`.
+`getFileName()` retrieves the final name element, unlike inspecting the entire path. `root.relativize(p)` makes reports less dependent on installation location; all paths in the example belong to the same file system and are derived from `root`.
 
-## 6. `Files.find`: tìm kiếm bằng thuộc tính tệp
+## 6. `Files.find`: Searching Using File Attributes
 
-Chữ ký:
+Signature:
 
 ```java
 public static Stream<Path> find(
@@ -292,14 +292,14 @@ public static Stream<Path> find(
 ) throws IOException;
 ```
 
-Tham số `matcher` nhận đồng thời:
+The `matcher` parameter receives both:
 
-- `Path path`: đường dẫn đang xét.
-- `BasicFileAttributes attrs`: metadata cơ bản có được khi duyệt, gồm loại, kích thước và thời gian sửa.
+- `Path path`: the path being evaluated.
+- `BasicFileAttributes attrs`: basic metadata obtained during traversal, including type, size, and modification time.
 
-Khác với `Files.walk(...).filter(...)`, matcher của `Files.find` có thể sử dụng các thuộc tính đã đọc trong quá trình duyệt, tránh tự gọi `Files.readAttributes` chỉ để kiểm tra cùng thông tin thêm một lần nữa.
+Unlike `Files.walk(...).filter(...)`, the `matcher` in `Files.find` can use attributes already read during traversal, avoiding redundant `Files.readAttributes` calls just to check the same information again.
 
-### 6.1. Tìm tệp Java đến độ sâu 5
+### 6.1. Finding Java Files up to Depth 5
 
 ```java
 import java.io.IOException;
@@ -326,7 +326,7 @@ public class TimTepJava {
 }
 ```
 
-### 6.2. Tìm tệp lớn hơn 10 MiB
+### 6.2. Finding Files Larger Than 10 MiB
 
 ```java
 long nguong = 10L * 1024 * 1024;
@@ -341,9 +341,9 @@ try (Stream<Path> matches = Files.find(
 }
 ```
 
-`attrs.size()` thường biểu diễn độ dài tệp tính bằng byte. Đừng suy diễn kích thước thư mục từ giá trị metadata của chính directory entry; nó không phải tổng kích thước tệp con.
+`attrs.size()` typically represents file length in bytes. Do not infer directory size from the metadata value of the directory entry itself; it is not the sum of child file sizes.
 
-### 6.3. Tìm tệp sửa sau một mốc thời gian
+### 6.3. Finding Files Modified After a Timestamp
 
 ```java
 import java.nio.file.attribute.FileTime;
@@ -363,17 +363,17 @@ try (Stream<Path> matches = Files.find(
 }
 ```
 
-Dùng `FileTime` giúp làm rõ mốc thời gian, nhưng không biến metadata thành một **snapshot bất biến**: tệp có thể bị sửa hoặc xóa trong khi đang duyệt.
+Using `FileTime` makes the timestamp explicit, but does not turn metadata into an **immutable snapshot**: files can still be modified or deleted during traversal.
 
-### 6.4. `find` có tự bỏ qua thư mục không khớp không?
+### 6.4. Does `find` Automatically Skip Non-Matching Directories?
 
-Không nên hiểu `matcher` là lệnh cắt nhánh. Nó quyết định **đường dẫn nào được trả về**, nhưng một thư mục không khớp vẫn có thể cần được mở để kiểm tra các tệp con.
+Do not treat `matcher` as a subtree-pruning directive. It decides **which paths are returned**, but a non-matching directory may still need to be opened to inspect its child files.
 
-Nếu mục tiêu là **không đi vào thư mục build**, một bộ lọc kết quả đơn thuần như `!p.toString().contains("build")` vừa có thể loại nhầm tệp hợp lệ, vừa không bảo đảm cắt toàn bộ subtree. Dùng `Files.walkFileTree` với `SKIP_SUBTREE` khi cần quyền điều khiển traversal theo nhánh.
+If the goal is **not to enter `build` directories**, a simple result filter such as `!p.toString().contains("build")` can both accidentally exclude valid files and fail to prevent traversing the subtree. Use `Files.walkFileTree` with `SKIP_SUBTREE` when you need branch-level traversal control.
 
-## 7. Đóng stream: `try-with-resources` là bắt buộc
+## 7. Closing the Stream: `try-with-resources` Is Mandatory
 
-Các stream nguồn I/O này có thể giữ directory handle mở trong suốt quá trình duyệt. Hãy đóng cả khi chỉ `count` hoặc `findFirst`:
+These I/O-backed streams can keep directory handles open throughout traversal. Close them even when only calling `count` or `findFirst`:
 
 ```java
 try (Stream<Path> paths = Files.walk(root)) {
@@ -382,15 +382,15 @@ try (Stream<Path> paths = Files.walk(root)) {
         .count();
 
     System.out.println(soTep);
-} // close() tự động khi kết thúc khối try
+} // close() runs automatically at the end of the try block
 ```
 
-`collect` và `count` **không tự bảo đảm đóng** stream nguồn. `try-with-resources` giải phóng tài nguyên khi xong hoặc gặp ngoại lệ.
+`collect` and `count` **do not guarantee closing** the source stream. `try-with-resources` releases the resource upon completion or exception.
 
-### 7.1. Sai: trả stream từ trong khối `try`
+### 7.1. Wrong: Returning a Stream from Inside a `try` Block
 
 ```java
-// KHÔNG NÊN: stream trả ra đã bị đóng.
+// AVOID: the returned stream is already closed.
 static Stream<Path> timSai(Path root) throws IOException {
     try (Stream<Path> paths = Files.walk(root)) {
         return paths.filter(Files::isRegularFile);
@@ -398,9 +398,9 @@ static Stream<Path> timSai(Path root) throws IOException {
 }
 ```
 
-Khi phương thức trả về, khối `try` đã kết thúc và stream bị đóng. Code bên ngoài không nên tiêu thụ pipeline này.
+When the method returns, the `try` block has exited and the stream is closed. External code cannot safely consume this pipeline.
 
-Nếu dữ liệu đủ nhỏ, thu kết quả ngay bên trong khối:
+If the data is small enough, collect the results directly inside the block:
 
 ```java
 import java.util.List;
@@ -414,27 +414,27 @@ static List<Path> timTep(Path root) throws IOException {
 }
 ```
 
-`List<Path>` ở đây chỉ lưu đường dẫn, không mở nội dung từng tệp. Với cây khổng lồ, đừng thu hết đường dẫn vào RAM; cân nhắc xử lý từng mục trong phạm vi stream hoặc một API theo batch.
+`List<Path>` here stores only paths, without opening the contents of each file. For huge trees, avoid collecting all paths into RAM; consider processing each entry within the stream scope or using a batched API.
 
-### 7.2. Một stream chỉ tiêu thụ được một lần
+### 7.2. A Stream Can Only Be Consumed Once
 
 ```java
 try (Stream<Path> entries = Files.list(root)) {
     long soMuc = entries.count();
 
-    // KHÔNG ĐƯỢC: stream đã tiêu thụ.
+    // NOT ALLOWED: the stream has already been consumed.
     // entries.forEach(System.out::println);
 }
 ```
 
-Nếu cần đếm rồi liệt kê, tạo một stream mới từ cùng nguồn, hoặc thu dữ liệu rồi dùng collection nếu dữ liệu nhỏ và yêu cầu phù hợp. `try-with-resources` không làm stream tái sử dụng được.
+If you need both to count and to list, create a new stream from the same source, or collect the data into a collection if the data is small and requirements allow it. `try-with-resources` does not make a stream reusable.
 
 
-## 8. Lazy evaluation và các phép kết thúc ngắn mạch
+## 8. Lazy Evaluation and Short-Circuiting Terminal Operations
 
-Các stream do `Files.list`, `Files.walk` và `Files.find` trả về được **làm đầy lazily**: hệ thống tệp có thể được duyệt theo nhu cầu của terminal operation thay vì lấy toàn bộ tên tệp trước. Tuy nhiên, **lời gọi tạo stream vẫn có thể làm I/O ban đầu** và ném `IOException` ngay lúc khởi tạo.
+Streams returned by `Files.list`, `Files.walk`, and `Files.find` are **lazily populated**: the file system can be traversed on demand by the terminal operation rather than fetching all file names up front. However, **calling the stream-creating method may still perform initial I/O** and throw `IOException` at initialization time.
 
-### 8.1. Kiểm tra có tệp `.java` hay không
+### 8.1. Checking Whether Any `.java` File Exists
 
 ```java
 try (Stream<Path> paths = Files.walk(root)) {
@@ -446,9 +446,9 @@ try (Stream<Path> paths = Files.walk(root)) {
 }
 ```
 
-`anyMatch` là terminal operation có khả năng **short-circuit**: có thể dừng khi gặp phần tử thỏa điều kiện. Nhưng do thứ tự các phần tử cùng cấp không được bảo đảm, không được dựa vào việc *tệp cụ thể nào* được kiểm tra đầu tiên.
+`anyMatch` is a **short-circuiting** terminal operation: it can stop once it encounters a matching element. Because sibling order is not guaranteed, you must not rely on *which specific file* gets inspected first.
 
-### 8.2. `limit` giới hạn kết quả, không bảo đảm chỉ đọc đúng bấy nhiêu mục
+### 8.2. `limit` Bounds Output, Not Guaranteed Entry Reads
 
 ```java
 try (Stream<Path> paths = Files.walk(root)) {
@@ -457,7 +457,7 @@ try (Stream<Path> paths = Files.walk(root)) {
 }
 ```
 
-Với pipeline này, chỉ có tối đa 10 đường dẫn được chuyển đến `forEach`. Nếu đặt `filter` trước `limit`, hệ thống có thể phải xét nhiều hơn 10 mục để có 10 đường dẫn phù hợp:
+With this pipeline, at most 10 paths are passed to `forEach`. If you place a `filter` before `limit`, the system may have to examine far more than 10 entries to obtain 10 matching paths:
 
 ```java
 try (Stream<Path> paths = Files.walk(root)) {
@@ -468,9 +468,9 @@ try (Stream<Path> paths = Files.walk(root)) {
 }
 ```
 
-Nếu không có tệp `.rare`, toàn bộ cây trong phạm vi duyệt có thể được kiểm tra trước khi kết thúc. `limit` không phải cơ chế cắt những thư mục con khỏi quá trình traversal.
+If no `.rare` files exist, the entire tree within the traversal scope may be inspected before finishing. `limit` is not a mechanism for pruning subdirectories out of traversal.
 
-### 8.3. `sorted` thường phải quan sát toàn bộ nguồn
+### 8.3. `sorted` Usually Needs to Observe the Entire Source
 
 ```java
 try (Stream<Path> paths = Files.walk(root, 2)) {
@@ -481,15 +481,15 @@ try (Stream<Path> paths = Files.walk(root, 2)) {
 }
 ```
 
-`sorted` là phép toán trung gian **có trạng thái**: với đầu vào hữu hạn, nó thường cần tập hợp các giá trị trước khi phát kết quả theo thứ tự mới. Vì vậy `sorted().limit(10)` không đồng nghĩa chỉ truy cập 10 đường dẫn. Đảo thành `limit(10).sorted()` có thể giảm dữ liệu phải sắp xếp nhưng cũng **thay đổi yêu cầu**: khi đó chỉ sắp xếp 10 mục đầu được gặp, không phải 10 mục nhỏ nhất trên toàn bộ cây.
+`sorted` is a **stateful** intermediate operation: for a finite input, it generally needs to gather the values before emitting results in the new order. Thus `sorted().limit(10)` does not mean only 10 paths are visited. Reordering to `limit(10).sorted()` reduces the data sorted, but also **changes the requirement**: it then sorts only the first 10 entries encountered, not the 10 smallest entries across the whole tree.
 
-Khi chọn các tệp lớn nhất hoặc mới nhất từ cây khổng lồ, có thể cần một thuật toán top-k dùng bộ nhớ hữu hạn thay vì `sorted` trên toàn bộ phần tử.
+When selecting the largest or newest files from a massive tree, you may need a bounded-memory top-k algorithm instead of calling `sorted` over all elements.
 
-## 9. Symbolic link và `FOLLOW_LINKS`
+## 9. Symbolic Links and `FOLLOW_LINKS`
 
-Theo mặc định, `Files.walk` và `Files.find` không đi vào một cây thư mục được tham chiếu qua **symbolic link**. Đường dẫn link vẫn có thể được phát ra, nhưng traversal không theo link để duyệt sâu hơn.
+By default, `Files.walk` and `Files.find` do not descend into a directory tree referenced through a **symbolic link**. The link path itself may still be emitted, but traversal does not follow the link deeper.
 
-Nếu nghiệp vụ thật sự yêu cầu, có thể bật `FileVisitOption.FOLLOW_LINKS`:
+If business requirements genuinely call for it, you can enable `FileVisitOption.FOLLOW_LINKS`:
 
 ```java
 import java.nio.file.FileVisitOption;
@@ -503,18 +503,18 @@ try (Stream<Path> paths = Files.walk(
 }
 ```
 
-Phải cân nhắc các nguy cơ:
+Risks to weigh:
 
-- Link có thể trỏ **ra ngoài phạm vi thư mục gốc** mà ứng dụng được phép đọc.
-- Hai link có thể tạo **chu trình**, dẫn đến lỗi trong quá trình duyệt, ví dụ `FileSystemLoopException`.
-- Quyền truy cập hoặc đích của link có thể thay đổi khi đang quét.
-- `maxDepth` chỉ giới hạn **độ sâu**, không phải chính sách bảo mật về đường dẫn đích.
+- A link may point **outside the root directory scope** that the application is permitted to read.
+- Two links can form a **cycle**, causing errors during traversal such as `FileSystemLoopException`.
+- Permissions or link targets can change during scanning.
+- `maxDepth` only limits **depth**, not security policies on target paths.
 
-**Không bật `FOLLOW_LINKS` mặc định** trong công cụ quét thư mục mà chưa có chính sách về phạm vi và quyền truy cập.
+**Do not enable `FOLLOW_LINKS` by default** in directory-scanning tools without an explicit policy on scope and access permissions.
 
-### `Files.isRegularFile` và link có thể cho kết quả dễ nhầm
+### `Files.isRegularFile` and Links Can Produce Surprising Results
 
-`Files.isRegularFile(path)` theo symbolic link theo mặc định. Bởi vậy:
+`Files.isRegularFile(path)` follows symbolic links by default. Therefore:
 
 ```java
 try (Stream<Path> paths = Files.walk(root)) {
@@ -523,7 +523,7 @@ try (Stream<Path> paths = Files.walk(root)) {
 }
 ```
 
-`walk` không đi vào thư mục được link trỏ tới, nhưng bộ lọc `isRegularFile` có thể coi một link đến **tệp thường** là tệp thường. Nếu muốn kiểm tra bản thân mục mà không theo link:
+`walk` does not enter a directory pointed to by a link, but the `isRegularFile` filter may treat a link to a **regular file** as a regular file. If you want to check the entry itself without following links:
 
 ```java
 import java.nio.file.LinkOption;
@@ -535,19 +535,19 @@ try (Stream<Path> paths = Files.walk(root)) {
 }
 ```
 
-Khi dùng `Files.find`, `BasicFileAttributes` trong matcher phản ánh chính sách theo link của quá trình duyệt; `attrs.isRegularFile()` phù hợp hơn việc gọi một phép kiểm tra thuộc tính mới với chính sách khác.
+When using `Files.find`, `BasicFileAttributes` in the matcher reflects the link-following policy of the traversal itself; `attrs.isRegularFile()` is more consistent than issuing a separate attribute check with a different policy.
 
-## 10. Lỗi I/O: `IOException`, `UncheckedIOException` và sự thay đổi của cây
+## 10. I/O Errors: `IOException`, `UncheckedIOException`, and Tree Mutations
 
-Đọc cây thư mục có thể thất bại vì tệp không tồn tại, không có quyền, thư mục bị di chuyển, symbolic link lỗi hoặc sự cố hệ thống tệp. Hai thời điểm lỗi thường gặp:
+Reading a directory tree can fail due to missing files, lack of permissions, moved directories, broken symbolic links, or file system issues. Two common error points:
 
-| Thời điểm | Loại lỗi tiêu biểu | Vì sao |
+| Stage | Typical error type | Why |
 | --- | --- | --- |
-| Gọi `Files.list` / `Files.walk` / `Files.find` | `IOException` (checked) | Không thể khởi tạo truy cập, mở đường dẫn hoặc lấy thông tin cần thiết. |
-| Duyệt trong terminal operation | `UncheckedIOException` | Stream lazy bọc một lỗi I/O phát sinh khi đang đọc thêm phần tử. |
-| Chạy lambda thao tác I/O tùy chỉnh | Checked `IOException` cần xử lý trong lambda | Functional interface phổ biến không khai báo checked exception. |
+| Calling `Files.list` / `Files.walk` / `Files.find` | `IOException` (checked) | Cannot initialize access, open the path, or fetch required info. |
+| Traversing inside a terminal operation | `UncheckedIOException` | The lazy stream wraps an I/O error raised while reading additional entries. |
+| Running a custom I/O lambda | Checked `IOException` to handle in the lambda | Standard functional interfaces do not declare checked exceptions. |
 
-Một phương thức đếm tệp cơ bản:
+A basic file-counting method:
 
 ```java
 import java.io.IOException;
@@ -562,9 +562,9 @@ static long demTep(Path root) throws IOException {
 }
 ```
 
-`IOException` khi khởi tạo được khai báo bằng `throws IOException`; `UncheckedIOException` trong lúc duyệt vẫn có thể lan ra vì là runtime exception.
+Startup `IOException` is declared via `throws IOException`; `UncheckedIOException` during traversal can still propagate because it is a runtime exception.
 
-Nếu lambda gọi trực tiếp một thao tác I/O có checked exception, hãy xử lý tường minh:
+If a lambda directly calls an I/O operation that throws a checked exception, handle it explicitly:
 
 ```java
 import java.io.UncheckedIOException;
@@ -581,19 +581,19 @@ try (Stream<Path> paths = Files.walk(root)) {
 }
 ```
 
-Trong ứng dụng thực, tầng gọi có thể bắt cả `IOException` và `UncheckedIOException` để báo rõ thư mục và nguyên nhân. Đừng âm thầm bắt mọi lỗi rồi trả về số `0`: "**không có tệp**" khác hoàn toàn "**không đọc được tệp**".
+In a real application, the calling layer can catch both `IOException` and `UncheckedIOException` to report the directory and cause clearly. Never silently catch all errors and return `0`: "**there are no files**" is completely different from "**the files could not be read**".
 
-### Tình huống tệp thay đổi giữa lúc kiểm tra và sử dụng
+### Case Where a File Changes Between Check and Use
 
-`Path` trong stream chỉ là một đường dẫn, **không phải bản sao nội dung tệp**. Sau khi matcher kết luận `attrs.isRegularFile()`, một tiến trình khác vẫn có thể xóa, đổi quyền hoặc ghi đè tệp trước khi ứng dụng mở nó.
+A `Path` in the stream is only a path reference, **not a copy of file contents**. After the matcher concludes `attrs.isRegularFile()`, another process can delete, change permissions on, or overwrite the file before your application opens it.
 
-Đó là tình huống *time-of-check to time-of-use* (TOCTOU). Đối với thao tác nhạy cảm hoặc đòi hỏi tính nhất quán, cần xác thực khi thực sự sử dụng tài nguyên và tuân thủ chính sách mở tệp an toàn; không coi kết quả quét metadata là trạng thái bất biến.
+That is a *time-of-check to time-of-use* (TOCTOU) condition. For sensitive operations or where consistency is required, validate when actually opening/using the resource and follow safe file-opening practices; do not treat scanned metadata as immutable state.
 
-## 11. Cắt cả một nhánh thư mục: khi nào chuyển sang `Files.walkFileTree`?
+## 11. Pruning an Entire Subtree: When to Switch to `Files.walkFileTree`?
 
-`filter` sau `walk` và `matcher` của `find` chỉ có nhiệm vụ **chọn đường dẫn đưa vào kết quả**. Chúng không phải lệnh tổng quát để **cấm traversal đi vào một thư mục con**.
+`filter` after `walk` and the `matcher` in `find` only **select paths to include in the output**. They are not a general command to **prevent traversal from entering a subdirectory**.
 
-Khi cần bỏ qua nội dung các thư mục `build`, dùng `Files.walkFileTree` với `FileVisitResult.SKIP_SUBTREE`:
+When you need to skip the contents of `build` directories, use `Files.walkFileTree` with `FileVisitResult.SKIP_SUBTREE`:
 
 ```java
 import java.io.IOException;
@@ -633,15 +633,15 @@ static void duyetBoQuaBuild(Path root) throws IOException {
 }
 ```
 
-`preVisitDirectory` chạy trước khi duyệt nội dung thư mục; `SKIP_SUBTREE` bỏ qua phần bên dưới. `visitFile` nhận những tệp được duyệt.
+`preVisitDirectory` runs before visiting a directory's contents; `SKIP_SUBTREE` skips everything underneath. `visitFile` receives the visited files.
 
-`walkFileTree` dùng mô hình **visitor callback**, không trả `Stream<Path>`. Nó thích hợp khi cần can thiệp traversal, xử lý lỗi theo từng tệp, sao chép hoặc xóa cây có kiểm soát. Đối với nhu cầu đơn giản "lấy mọi tệp Java trong cây", `Files.find` hay `Files.walk` vẫn dễ đọc hơn.
+`walkFileTree` uses a **visitor callback** model and does not return a `Stream<Path>`. It is well suited when you need to control traversal, handle errors per file, or perform controlled tree copying or deletion. For a straightforward need like "get all Java files in a tree", `Files.find` or `Files.walk` remains easier to read.
 
-## 12. Một số công thức thực tế
+## 12. Practical Recipes
 
-Các đoạn ngắn dưới đây giả định `Path root` đã tồn tại; khi đặt riêng trong lớp Java, cần các import như `java.nio.file.*`, `java.util.*`, `java.util.stream.*` và `java.io.*`.
+The short snippets below assume `Path root` already exists; when placed inside a standalone Java class, add imports such as `java.nio.file.*`, `java.util.*`, `java.util.stream.*`, and `java.io.*`.
 
-### 12.1. Đếm tệp thường ở đúng một cấp
+### 12.1. Counting Regular Files at Exactly One Level
 
 ```java
 try (Stream<Path> entries = Files.list(root)) {
@@ -653,7 +653,7 @@ try (Stream<Path> entries = Files.list(root)) {
 }
 ```
 
-### 12.2. Tìm mọi tệp Java nhưng chỉ đến độ sâu ba
+### 12.2. Finding All Java Files Only Up to Depth Three
 
 ```java
 try (Stream<Path> matches = Files.find(
@@ -667,7 +667,7 @@ try (Stream<Path> matches = Files.find(
 }
 ```
 
-### 12.3. Thu đường dẫn về list sau khi đóng nguồn
+### 12.3. Collecting Paths into a List After Closing the Source
 
 ```java
 import java.util.List;
@@ -680,13 +680,13 @@ try (Stream<Path> paths = Files.walk(root, 2)) {
         .collect(Collectors.toList());
 }
 
-// Có thể dùng List<Path> khi nguồn I/O đã đóng.
+// List<Path> can be used after the I/O source has closed.
 System.out.println(ketQua.size());
 ```
 
-Dữ liệu trong `ketQua` là các `Path`, không phải nội dung tệp. Việc mở tệp qua những path này trong tương lai vẫn có thể thất bại nếu cây đã thay đổi. Thu tất cả đường dẫn về list cũng tiêu tốn bộ nhớ, không phù hợp cho cây không có giới hạn.
+The elements in `ketQua` are `Path` objects, not file contents. Opening files via those paths later can still fail if the tree has changed. Collecting all paths into a list also consumes memory and is unsuitable for unbounded trees.
 
-### 12.4. Tổng số byte của các tệp ở độ sâu tối đa hai
+### 12.4. Total Bytes of Files at Maximum Depth Two
 
 ```java
 try (Stream<Path> matches = Files.find(
@@ -706,9 +706,9 @@ try (Stream<Path> matches = Files.find(
 }
 ```
 
-Ví dụ này đọc `Files.size(p)` thêm một lần sau matcher và có thể gặp tình trạng tệp thay đổi hoặc bị xóa. Nếu cần tổng hợp trực tiếp từ `BasicFileAttributes` trong một lượt duyệt, `Files.walkFileTree` với `visitFile` và `attrs.size()` là lựa chọn phù hợp. Ngoài ra, `long` cũng có thể tràn nếu tổng vượt miền biểu diễn.
+This example calls `Files.size(p)` a second time after the matcher and may encounter files that changed or were deleted. If you want to sum directly from `BasicFileAttributes` in a single pass, `Files.walkFileTree` with `visitFile` and `attrs.size()` is a suitable choice. Also note that `long` can overflow if the total exceeds its representable range.
 
-### 12.5. In đường dẫn tương đối theo thứ tự ổn định
+### 12.5. Printing Relative Paths in Deterministic Order
 
 ```java
 try (Stream<Path> paths = Files.walk(root, 2)) {
@@ -719,39 +719,39 @@ try (Stream<Path> paths = Files.walk(root, 2)) {
 }
 ```
 
-`sorted` làm kết quả dễ kiểm thử nhưng có chi phí sắp xếp toàn bộ đường dẫn trong phạm vi đã duyệt.
+`sorted` makes output easy to test, but incurs the cost of sorting all paths within the traversed scope.
 
-## 13. Bảng chọn API và những lỗi thường gặp
+## 13. API Selection Table and Common Mistakes
 
-| Nhu cầu | Lựa chọn | Điểm cần nhớ |
+| Need | Choice | Key point to remember |
 | --- | --- | --- |
-| Liệt kê đúng một cấp | `Files.list(dir)` | Không có chính `dir`. |
-| Duyệt cây tới độ sâu N | `Files.walk(root, N)` | Có cả `root`; độ sâu của root là 0. |
-| Lọc theo loại, kích thước hoặc thời gian sửa | `Files.find(root, N, matcher)` | `matcher` nhận sẵn `BasicFileAttributes`. |
-| Muốn bỏ qua cả một nhánh | `Files.walkFileTree` | Dùng `SKIP_SUBTREE`. |
-| Chỉ cần biết có một tệp phù hợp | `anyMatch` / `findFirst` | Có thể short-circuit; vẫn phải đóng. |
-| Có symbolic link nhưng không muốn theo đích | Không dùng `FOLLOW_LINKS` | Kiểm tra thêm `NOFOLLOW_LINKS` khi cần. |
-| Muốn in theo thứ tự nhất định | `sorted` / comparator | Cần xử lý và giữ dữ liệu trước khi sắp xếp. |
-| Dữ liệu quá lớn | Giới hạn phạm vi, độ sâu hoặc xử lý theo batch | Không thu/sắp xếp toàn bộ cây vô điều kiện. |
+| List exactly one level | `Files.list(dir)` | Excludes `dir` itself. |
+| Traverse tree to depth N | `Files.walk(root, N)` | Includes `root`; root depth is 0. |
+| Filter by type, size, or modification time | `Files.find(root, N, matcher)` | `matcher` receives `BasicFileAttributes` directly. |
+| Skip an entire branch | `Files.walkFileTree` | Use `SKIP_SUBTREE`. |
+| Only need to know if one matching file exists | `anyMatch` / `findFirst` | Can short-circuit; still must be closed. |
+| Symbolic links exist, do not follow targets | Do not pass `FOLLOW_LINKS` | Add `NOFOLLOW_LINKS` checks when needed. |
+| Want deterministic print order | `sorted` / comparator | Requires processing and holding data before sorting. |
+| Data is too large | Limit scope, depth, or process in batches | Do not unconditionally collect/sort the entire tree. |
 
-Các lỗi phổ biến:
+Common mistakes:
 
-- **Quên `try-with-resources`:** bỏ sót đóng directory handle dù đã gọi `count` hoặc `collect`.
-- **Nhầm `walk(root, 1)` với `list(root)`:** quên rằng `walk` còn phát `root`.
-- **Dùng `walk(root)` khi chỉ cần một cấp:** duyệt sâu không cần thiết.
-- **Dùng `filter` để "ngăn vào thư mục con":** bộ lọc chỉ loại phần tử kết quả.
-- **Dùng `contains("build")` trên chuỗi path để cắt nhánh:** dễ loại nhầm, không kiểm soát traversal.
-- **Dựa vào thứ tự duyệt mặc định:** thứ tự mục trong thư mục không phải thứ tự chữ cái được bảo đảm.
-- **Tự động bật `FOLLOW_LINKS`:** có nguy cơ vòng lặp và truy cập vượt phạm vi.
-- **Trả stream ra ngoài `try`:** stream đã đóng khi bên gọi nhận được.
-- **Dùng lại stream sau terminal operation:** stream chỉ được tiêu thụ một lần.
-- **Nuốt `IOException` rồi trả kết quả rỗng:** che giấu lỗi hệ thống.
-- **Sắp xếp cả cây rất lớn để lấy vài phần tử:** làm giảm lợi ích xử lý lazy.
-- **Giả định tệp không đổi sau khi matcher kiểm tra:** có nguy cơ TOCTOU.
+- **Forgetting `try-with-resources`:** leaving directory handles unclosed even after calling `count` or `collect`.
+- **Confusing `walk(root, 1)` with `list(root)`:** forgetting that `walk` also emits `root`.
+- **Using `walk(root)` when only one level is needed:** unnecessarily traversing deep trees.
+- **Using `filter` to "prevent entering subdirectories":** filters only exclude output elements.
+- **Using `contains("build")` on path strings to prune branches:** prone to false exclusions and does not stop traversal.
+- **Relying on default traversal order:** directory entry order is not guaranteed to be alphabetical.
+- **Enabling `FOLLOW_LINKS` automatically:** risks cycles and out-of-scope access.
+- **Returning a stream out of a `try` block:** the stream is already closed when the caller receives it.
+- **Reusing a stream after a terminal operation:** a stream can only be consumed once.
+- **Swallowing `IOException` and returning an empty result:** hides system errors.
+- **Sorting an entire huge tree just to take a few elements:** undermines lazy processing benefits.
+- **Assuming files cannot change after the matcher checks them:** creates TOCTOU risks.
 
-## 14. Bài tập thực hành
+## 14. Practice Exercises
 
-Giả sử có cây:
+Suppose you have this tree:
 
 ```text
 kho/
@@ -767,31 +767,31 @@ kho/
     └── classes.bin
 ```
 
-### Bài 1 — So sánh `list` và `walk`
+### Exercise 1 — Compare `list` and `walk`
 
-Với `root = Paths.get("kho")`, `Files.list(root)` trả những đường dẫn nào? `Files.walk(root, 1)` có thêm phần tử gì? `Files.walk(root, 2)` có chứa `src/nested/Test.java` không?
+Given `root = Paths.get("kho")`, which paths does `Files.list(root)` return? What extra element does `Files.walk(root, 1)` include? Does `Files.walk(root, 2)` contain `src/nested/Test.java`?
 
-### Bài 2 — Tìm tệp Java
+### Exercise 2 — Find Java Files
 
-Viết `Files.find(root, 3, matcher)` để lấy các tệp thường có đuôi `.java`. Đóng nguồn bằng `try-with-resources`. Dự đoán các tệp kết quả.
+Write `Files.find(root, 3, matcher)` to get regular files ending with `.java`. Close the source with `try-with-resources`. Predict the resulting files.
 
-### Bài 3 — Đếm tệp ở đúng một cấp
+### Exercise 3 — Count Files at Exactly One Level
 
-Dùng `Files.list` để đếm các tệp thường trực tiếp dưới `kho`, không tính thư mục. Kết quả là bao nhiêu?
+Use `Files.list` to count regular files directly under `kho`, excluding directories. What is the result?
 
-### Bài 4 — Chỉ cần hai tệp có đuôi hiếm
+### Exercise 4 — Only Need Two Files with a Rare Extension
 
-Nếu gọi `Files.walk(root).filter(p -> p.toString().endsWith(".jar")).limit(2)`, nhưng cây không có `.jar`, có phải Java chỉ kiểm tra hai đường dẫn rồi dừng? Vì sao? Có phải đóng stream không?
+If you call `Files.walk(root).filter(p -> p.toString().endsWith(".jar")).limit(2)`, and the tree has no `.jar` files, does Java inspect only two paths and stop? Why? Do you still have to close the stream?
 
-### Bài 5 — Yêu cầu không truy cập thư mục `build`
+### Exercise 5 — Requirement to Avoid Accessing the `build` Directory
 
-Vì sao `Files.find` với matcher loại đường dẫn chứa chuỗi `build` chưa đáp ứng yêu cầu? Nên dùng API gì và giá trị trả nào để bỏ toàn bộ subtree?
+Why does `Files.find` with a matcher rejecting paths containing `"build"` fail to satisfy the requirement? Which API and return value should be used to skip the entire subtree?
 
-### Đáp án tham khảo
+### Reference Answers
 
-**Bài 1:** `Files.list(root)` trả `notes.txt`, `src`, `docs`, `build`; thứ tự không xác định. `Files.walk(root, 1)` còn chứa chính `root`. `src/nested/Test.java` nằm ở độ sâu **3**, nên không nằm trong `walk(root, 2)`.
+**Exercise 1:** `Files.list(root)` returns `notes.txt`, `src`, `docs`, and `build` in unspecified order. `Files.walk(root, 1)` also includes `root` itself. `src/nested/Test.java` is at depth **3**, so it is not included in `walk(root, 2)`.
 
-**Bài 2:**
+**Exercise 2:**
 
 ```java
 try (Stream<Path> matches = Files.find(
@@ -807,9 +807,9 @@ try (Stream<Path> matches = Files.find(
 }
 ```
 
-Kết quả là `src/Main.java`, `src/Model.java` và `src/nested/Test.java` (dấu phân cách tùy hệ điều hành).
+The output is `src/Main.java`, `src/Model.java`, and `src/nested/Test.java` (path separators depend on the OS).
 
-**Bài 3:**
+**Exercise 3:**
 
 ```java
 try (Stream<Path> entries = Files.list(root)) {
@@ -818,24 +818,24 @@ try (Stream<Path> entries = Files.list(root)) {
 }
 ```
 
-**Bài 4:** Không. `limit(2)` áp dụng cho **số phần tử vượt qua `filter`**; nếu không có `.jar`, traversal có thể phải kiểm tra hết cây. Vẫn phải đóng stream dù không có kết quả.
+**Exercise 4:** No. `limit(2)` applies to **the number of elements passing `filter`**; if there are no `.jar` files, traversal may inspect the entire tree. The stream still must be closed even when there are no results.
 
-**Bài 5:** Matcher của `find` chọn đường dẫn trả ra nhưng không cung cấp lệnh cắt subtree. `Files.walkFileTree` cho phép override `preVisitDirectory` và trả `FileVisitResult.SKIP_SUBTREE` khi gặp thư mục tên `build`; các thư mục khác trả `CONTINUE`.
+**Exercise 5:** The matcher in `find` chooses which paths are emitted, but provides no subtree-pruning command. `Files.walkFileTree` allows overriding `preVisitDirectory` and returning `FileVisitResult.SKIP_SUBTREE` when encountering a directory named `build`; other directories return `CONTINUE`.
 
-## 15. Tổng kết
+## 15. Summary
 
 ```java
-// Chỉ các mục trực tiếp:
+// Direct entries only:
 try (Stream<Path> s = Files.list(root)) {
     s.forEach(System.out::println);
 }
 
-// Cây tới độ sâu 3, gồm cả root:
+// Tree up to depth 3, including root:
 try (Stream<Path> s = Files.walk(root, 3)) {
     s.forEach(System.out::println);
 }
 
-// Chỉ phát đường dẫn matcher chấp nhận:
+// Only emit paths accepted by matcher:
 try (Stream<Path> s = Files.find(
         root, 3,
         (p, attrs) -> attrs.isRegularFile()
@@ -844,11 +844,11 @@ try (Stream<Path> s = Files.find(
 }
 ```
 
-- **`Files.list`** chỉ liệt kê một cấp; **`Files.walk`** duyệt cây; **`Files.find`** duyệt cây với điều kiện nhận `BasicFileAttributes`.
-- Luôn dùng **`try-with-resources`** để đóng nguồn stream I/O, kể cả khi không nhận được phần tử nào.
-- `maxDepth` giới hạn độ sâu tính từ gốc; mặc định không theo symbolic link.
-- `filter` và `matcher` chọn đầu ra, **không cắt nhánh traversal**. Muốn bỏ subtree cần `Files.walkFileTree` và `SKIP_SUBTREE`.
-- Xử lý `IOException` khi khởi tạo và `UncheckedIOException` có thể phát sinh trong lúc duyệt; không đánh đồng lỗi I/O với tập dữ liệu rỗng.
-- Thứ tự thư mục không được bảo đảm; sắp xếp khi có yêu cầu xác định nhưng cân nhắc chi phí trên cây lớn.
+- **`Files.list`** lists a single level; **`Files.walk`** traverses a tree; **`Files.find`** traverses a tree with a predicate receiving `BasicFileAttributes`.
+- Always use **`try-with-resources`** to close I/O stream sources, even when no elements are emitted.
+- `maxDepth` limits depth from the root; symbolic links are not followed by default.
+- `filter` and `matcher` select outputs; they **do not prune traversal branches**. To skip a subtree, use `Files.walkFileTree` and `SKIP_SUBTREE`.
+- Handle `IOException` at initialization and `UncheckedIOException` that may occur during traversal; never equate I/O errors with an empty dataset.
+- Directory order is not guaranteed; sort when deterministic output is required, while weighing cost on large trees.
 
-Kết hợp ba nguồn tệp này với `filter`, `map`, `count` và `collect` đúng cách giúp tạo công cụ khám phá hệ thống tệp rõ ràng, tiết kiệm tài nguyên và an toàn hơn trước những thay đổi của môi trường I/O.
+Combining these three file sources properly with `filter`, `map`, `count`, and `collect` helps build file-system exploration tools that are clear, resource-efficient, and resilient to I/O environment changes.

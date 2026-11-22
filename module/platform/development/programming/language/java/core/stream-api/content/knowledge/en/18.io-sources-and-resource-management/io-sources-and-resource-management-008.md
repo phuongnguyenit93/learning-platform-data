@@ -1,61 +1,61 @@
-# Đóng nguồn khi dừng sớm hoặc khi pipeline phát sinh ngoại lệ
+# Closing Sources on Early Termination or Pipeline Exceptions
 
-## Mục tiêu
+## Objectives
 
-Khi dùng **Java Stream API** để xử lý dữ liệu khai báo, ta thường ghép các bước `filter`, `map`, `reduce`, `collect` thành một pipeline rồi kích hoạt xử lý bằng terminal operation. Đối với nguồn từ tệp hoặc thư mục, việc xử lý lười (*lazy evaluation*) đặt ra một trách nhiệm bổ sung: **đóng tài nguyên I/O dù pipeline kết thúc bình thường, dừng sớm hay ném ngoại lệ**.
+When using the **Java Stream API** to process data declaratively, we typically chain `filter`, `map`, `reduce`, and `collect` into a pipeline and trigger execution with a terminal operation. For sources backed by files or directories, *lazy evaluation* brings an extra responsibility: **closing I/O resources whether the pipeline completes normally, stops early, or throws an exception**.
 
-Sau bài học này, bạn có thể:
+After this lesson, you can:
 
-- Giải thích vì sao `findFirst()`, `anyMatch()` hoặc `limit(...)` không tự đóng tệp đang mở.
-- Đặt `try-with-resources` đúng phạm vi để nguồn được đóng cả khi `return` hoặc có ngoại lệ.
-- Phân biệt ngoại lệ lúc mở nguồn với ngoại lệ phát sinh khi stream đọc dữ liệu lười.
-- Xác định tài nguyên thật sự cần đóng, kể cả khi stream được tạo từ `BufferedReader`.
-- Thiết kế phương thức trả về kết quả an toàn, không để rò rỉ tài nguyên hoặc trả ra stream đã đóng.
+- Explain why `findFirst()`, `anyMatch()`, or `limit(...)` do not automatically close an open file.
+- Scope `try-with-resources` properly so the source closes even on `return` or exceptions.
+- Distinguish exceptions when opening the source from exceptions raised while the stream reads data lazily.
+- Identify the actual resource that must be closed, even when a stream is created from a `BufferedReader`.
+- Design methods that return results safely without leaking resources or returning an already-closed stream.
 
-## 1. Kết thúc pipeline khác với đóng tài nguyên
+## 1. Finishing a Pipeline Differs from Closing a Resource
 
-Stream gồm **nguồn dữ liệu**, các thao tác trung gian (*intermediate operations*) và một thao tác kết thúc (*terminal operation*). Phần lớn thao tác trung gian chỉ mô tả cách xử lý; dữ liệu được lấy từ nguồn khi thao tác kết thúc chạy.
+A Stream consists of a **data source**, intermediate operations, and a terminal operation. Most intermediate operations only describe how to process elements; data is pulled from the source when the terminal operation runs.
 
-Với `List.stream()` hoặc `Stream.of(...)`, thường không có tài nguyên hệ điều hành cần giải phóng. Nhưng những API như `Files.lines(...)`, `Files.list(...)` hay `Files.walk(...)` có thể giữ tệp, luồng thư mục hoặc handle hệ điều hành đang mở. Java Stream triển khai `AutoCloseable` để người gọi chủ động đóng các nguồn như vậy.
+With `List.stream()` or `Stream.of(...)`, there is normally no OS resource to release. However, APIs like `Files.lines(...)`, `Files.list(...)`, or `Files.walk(...)` can hold files, directory streams, or OS handles open. Java Stream implements `AutoCloseable` so callers can explicitly close such sources.
 
 ```text
-Mở nguồn I/O
+Open I/O source
     |
     v
-Stream (có thể giữ file descriptor / directory handle)
+Stream (may hold file descriptor / directory handle)
     |
-    +--> filter / map / ... (xử lý lười)
+    +--> filter / map / ... (lazy processing)
     |
     +--> terminal operation
              |
-             +--> đọc hết dữ liệu
-             +--> dừng sớm (short-circuit)
-             +--> phát sinh ngoại lệ
+             +--> read all data
+             +--> stop early (short-circuit)
+             +--> throw exception
                          |
                          v
-             Không có bước tự động close ở đây
+             No automatic close step here
                          |
                          v
-             Đóng nguồn bằng try-with-resources
+             Close source with try-with-resources
 ```
 
-Một terminal operation **tiêu thụ** pipeline; nó không mặc nhiên gọi `Stream.close()`. Ngay cả khi đã đọc đến cuối tệp, không nên suy đoán tài nguyên được đóng. Vì thế, phải quản lý vòng đời của nguồn I/O một cách tường minh.
+A terminal operation **consumes** the pipeline; it does not implicitly call `Stream.close()`. Even when the end of the file has been reached, do not assume the resource has been closed. Therefore, manage the lifecycle of I/O sources explicitly.
 
-| Nguồn stream | Tài nguyên cần quản lý | Cách quản lý |
+| Stream source | Resource to manage | How to manage |
 | --- | --- | --- |
-| `Stream.of(...)`, `list.stream()` | Thông thường không có handle I/O | Không cần `try-with-resources` chỉ để đóng nguồn này |
-| `Files.lines(path)` | Tệp đang mở phục vụ việc đọc lười | Đóng `Stream<String>` |
-| `Files.list(dir)` | Tài nguyên duyệt thư mục | Đóng `Stream<Path>` |
-| `Files.walk(dir)`, `Files.find(...)` | Tài nguyên duyệt cây thư mục | Đóng `Stream<Path>` |
-| `reader.lines()` từ `BufferedReader` | Chính `BufferedReader` sở hữu nguồn đọc | Đóng `BufferedReader`; đừng chỉ trông chờ vào `Stream.close()` |
+| `Stream.of(...)`, `list.stream()` | Typically no I/O handle | No `try-with-resources` needed solely to close this source |
+| `Files.lines(path)` | Open file for lazy reading | Close `Stream<String>` |
+| `Files.list(dir)` | Directory-listing resource | Close `Stream<Path>` |
+| `Files.walk(dir)`, `Files.find(...)` | Directory-tree traversal resource | Close `Stream<Path>` |
+| `reader.lines()` from `BufferedReader` | `BufferedReader` itself owns the reading source | Close `BufferedReader`; do not rely solely on `Stream.close()` |
 
-Quy tắc thực dụng: **nguồn nào mở tài nguyên thì phải xác định rõ ai sở hữu và ai đóng nó**. Với một stream trả về bởi API I/O, hãy đọc hợp đồng của API và thường bọc stream đó bằng `try-with-resources`.
+Practical rule: **whenever a source opens a resource, identify clearly who owns it and who closes it**. For a stream returned by an I/O API, read the API contract and usually wrap that stream in `try-with-resources`.
 
-## 2. Dừng sớm vẫn phải đóng nguồn
+## 2. Early Termination Still Requires Closing the Source
 
-Các thao tác `findFirst()`, `findAny()`, `anyMatch()`, `allMatch()` và `noneMatch()` có thể dừng sau khi đã đọc một phần dữ liệu. `limit(n)` và `takeWhile(...)` là *intermediate operations* có thể khiến việc tiêu thụ ở downstream kết thúc sớm. Khả năng dừng sớm còn phụ thuộc các bước khác của pipeline; chẳng hạn, `sorted()` thường cần nhìn toàn bộ đầu vào trước khi trả kết quả.
+Operations like `findFirst()`, `findAny()`, `anyMatch()`, `allMatch()`, and `noneMatch()` can stop after reading only part of the data. `limit(n)` and `takeWhile(...)` are *intermediate operations* that can cause downstream consumption to finish early. Whether early stopping actually occurs also depends on other pipeline stages; for example, `sorted()` typically needs to inspect the entire input before returning results.
 
-Giả sử cần tìm dòng đầu tiên chứa mã lỗi trong một tệp log lớn:
+Suppose we need to find the first line containing an error code in a large log file:
 
 ```java
 import java.io.IOException;
@@ -77,26 +77,26 @@ public class LogSearch {
 }
 ```
 
-Điều gì xảy ra?
+What happens?
 
-1. `Files.lines(...)` mở nguồn đọc và trả về stream có thể đóng.
-2. `map` và `filter` chưa đọc tệp ngay; `findFirst()` mới kích hoạt pipeline.
-3. Khi thấy dòng lỗi đầu tiên, `findFirst()` có thể dừng mà không đọc phần còn lại.
-4. Khi rời khối `try`, Java gọi `close()`, kể cả trường hợp có `return` ở bên trong.
-5. Giá trị `Optional<String>` chứa dữ liệu đã thu được nên vẫn dùng được sau khi tệp đóng.
+1. `Files.lines(...)` opens the reading source and returns a closeable stream.
+2. `map` and `filter` do not read the file yet; `findFirst()` triggers the pipeline.
+3. Upon seeing the first error line, `findFirst()` can stop without reading the remainder.
+4. When exiting the `try` block, Java calls `close()`, even when `return` appears inside.
+5. The `Optional<String>` holds the already-fetched data, so it remains usable after the file closes.
 
-**Phản ví dụ – để nguồn mở sau khi dừng sớm:**
+**Counter-example – leaving the source open after early stopping:**
 
 ```java
-// Không nên: terminal operation không tự đóng stream của Files.lines.
+// Avoid: terminal operations do not automatically close a Files.lines stream.
 Optional<String> result = Files.lines(logFile, StandardCharsets.UTF_8)
         .filter(line -> line.contains("ERROR"))
         .findFirst();
 ```
 
-Lệnh trên có thể trả đúng kết quả, nhưng không bảo đảm tài nguyên tệp được giải phóng đúng lúc. Nếu gọi lặp đi lặp lại, ứng dụng có thể tích lũy file descriptor/handle, gặp lỗi mở tệp hoặc bị cản trở khi đổi tên, xóa tệp trên một số hệ điều hành.
+The statement above may return the right result, yet it does not guarantee timely release of the file resource. If called repeatedly, the application can accumulate file descriptors/handles, fail to open files, or run into trouble renaming or deleting files on certain operating systems.
 
-Mẫu tương tự áp dụng cho việc tìm một tệp đầu tiên trong cây thư mục:
+The same pattern applies when finding the first matching file in a directory tree:
 
 ```java
 import java.io.IOException;
@@ -115,18 +115,18 @@ public static Optional<Path> firstJavaFile(Path root) throws IOException {
 }
 ```
 
-Khi `findFirst()` dừng sớm, việc duyệt cây còn dang dở; đóng stream là bước cần thiết để giải phóng những tài nguyên mà `Files.walk` đang giữ. Đừng dựa vào việc thao tác kết thúc đã trả về `Optional<Path>`.
+When `findFirst()` stops early, tree traversal is left incomplete; closing the stream is essential to release the resources held by `Files.walk`. Do not assume returning `Optional<Path>` releases them.
 
-## 3. Ngoại lệ trong pipeline cũng phải đóng nguồn
+## 3. Exceptions in the Pipeline Must Also Close the Source
 
-Ngoại lệ có thể đến từ nhiều vị trí:
+Exceptions can originate from several places:
 
-- **Khi mở nguồn:** `Files.lines(path)` hoặc `Files.walk(path)` có thể ném `IOException`.
-- **Khi đọc lười:** lỗi I/O xảy ra lúc terminal operation tiêu thụ dữ liệu thường được bọc trong `UncheckedIOException`.
-- **Trong logic xử lý:** hàm truyền cho `map`, `filter`, `forEach` hay collector có thể ném ngoại lệ runtime, ví dụ `IllegalArgumentException`.
-- **Khi đóng:** thao tác giải phóng tài nguyên hoặc close handler cũng có thể ném ngoại lệ.
+- **When opening the source:** `Files.lines(path)` or `Files.walk(path)` can throw `IOException`.
+- **During lazy reading:** I/O errors occurring while the terminal operation consumes data are typically wrapped in `UncheckedIOException`.
+- **In processing logic:** functions passed to `map`, `filter`, `forEach`, or collectors can throw runtime exceptions, such as `IllegalArgumentException`.
+- **When closing:** resource-release operations or close handlers can also throw exceptions.
 
-`try-with-resources` giúp bảo đảm gọi `close()` khi thoát khỏi khối, kể cả khi một bước của pipeline ném ngoại lệ:
+`try-with-resources` ensures `close()` is invoked upon exiting the block, even if a pipeline stage throws an exception:
 
 ```java
 import java.io.IOException;
@@ -142,18 +142,18 @@ public static long countValidRecords(Path input) throws IOException {
                 .filter(line -> !line.isEmpty())
                 .map(line -> {
                     if (line.equals("INVALID")) {
-                        throw new IllegalArgumentException("Bản ghi không hợp lệ");
+                        throw new IllegalArgumentException("Invalid record");
                     }
                     return line;
                 })
                 .count();
-    } // Stream được đóng dù count() ném IllegalArgumentException.
+    } // Stream closes even if count() throws IllegalArgumentException.
 }
 ```
 
-Điểm quan trọng: `catch` **không phải điều kiện để tài nguyên được đóng**. Khối `try-with-resources` tự thực hiện việc đóng khi thoát khỏi `try`. Bạn chỉ thêm `catch` khi cần chuyển đổi, ghi nhận hoặc xử lý ngoại lệ ở tầng thích hợp.
+Important point: `catch` **is not a prerequisite for closing the resource**. `try-with-resources` closes automatically on exiting `try`. Add `catch` only when you need to translate, log, or handle exceptions at the appropriate layer.
 
-Chẳng hạn, để phân biệt lỗi mở tệp và lỗi đọc phát sinh muộn:
+For instance, to distinguish file-open errors from deferred read errors:
 
 ```java
 import java.io.IOException;
@@ -167,39 +167,39 @@ public static long countLines(Path path) throws IOException {
     try (Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8)) {
         return lines.count();
     } catch (UncheckedIOException ex) {
-        // Lỗi I/O xảy ra khi stream đang được tiêu thụ.
+        // I/O error occurred while the stream was being consumed.
         throw ex.getCause();
     }
-    // IOException lúc mở nguồn đã là checked exception,
-    // được khai báo bởi throws IOException ở chữ ký phương thức.
+    // IOException when opening the source is already a checked exception,
+    // declared via throws IOException in the method signature.
 }
 ```
 
-Trong thực tế, cách API và thao tác cụ thể đọc dữ liệu có thể khác nhau; đừng giả định mọi lỗi I/O trong pipeline đều xuất hiện dưới dạng checked `IOException`. Khi cần bao quát, xem xét cả `UncheckedIOException` ở lúc thực hiện terminal operation.
+In practice, how specific APIs and operations read data can differ; do not assume all I/O errors in a pipeline surface as checked `IOException`. When comprehensive handling is needed, watch for `UncheckedIOException` during terminal operation execution as well.
 
-### Nếu xử lý lỗi và đóng nguồn cùng thất bại?
+### What If Both Processing and Closing Fail?
 
-Giả sử `map` ném một ngoại lệ, rồi `close()` cũng ném ngoại lệ khi giải phóng tài nguyên. Với `try-with-resources`, ngoại lệ ban đầu từ khối `try` vẫn là ngoại lệ chính; ngoại lệ khi đóng thường được lưu trong danh sách *suppressed exceptions*, truy xuất qua `getSuppressed()`. Điều này giúp giữ nguyên nguyên nhân gây thất bại đầu tiên.
+Suppose `map` throws an exception, and then `close()` also throws an exception while releasing the resource. With `try-with-resources`, the initial exception from the `try` body remains the primary exception; the close exception is typically recorded in the *suppressed exceptions* list, accessible via `getSuppressed()`. This preserves the original cause of failure.
 
 ```java
 try (Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8)) {
     lines.forEach(line -> process(line));
 } catch (RuntimeException ex) {
-    System.err.println("Lỗi chính: " + ex);
+    System.err.println("Primary error: " + ex);
     for (Throwable suppressed : ex.getSuppressed()) {
-        System.err.println("Lỗi khi đóng tài nguyên: " + suppressed);
+        System.err.println("Error closing resource: " + suppressed);
     }
     throw ex;
 }
 ```
 
-Ở ví dụ này, `process` là một hàm xử lý do ứng dụng cung cấp. Nếu dùng `catch` rồi bỏ qua ngoại lệ, chương trình có thể che mất lỗi nghiệp vụ hoặc lỗi I/O. Nên ghi nhận đủ ngữ cảnh và để tầng thích hợp quyết định cách phục hồi.
+In this example, `process` is an application-provided processing function. If you catch and ignore exceptions, the program can mask business errors or I/O failures. Log sufficient context and let the appropriate layer decide recovery.
 
-## 4. Đóng đúng đối tượng sở hữu tài nguyên
+## 4. Closing the Right Resource-Owning Object
 
-Đối tượng cần đóng không phải lúc nào cũng là đối tượng `Stream`.
+The object that needs closing is not always the `Stream` object.
 
-### `Files.lines()`: stream quản lý việc đóng nguồn
+### `Files.lines()`: the stream manages closing the source
 
 ```java
 try (Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8)) {
@@ -207,9 +207,9 @@ try (Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8)) {
 }
 ```
 
-Trong trường hợp này, đóng stream từ `Files.lines` là đúng hợp đồng API.
+In this case, closing the stream from `Files.lines` matches the API contract.
 
-### `BufferedReader.lines()`: đóng reader
+### `BufferedReader.lines()`: close the reader
 
 ```java
 import java.io.BufferedReader;
@@ -227,21 +227,21 @@ public static boolean hasHeader(Path path) throws IOException {
 }
 ```
 
-Ở đây, chính `BufferedReader` là tài nguyên cần đóng. Không nên giả định gọi `close()` trên stream sinh bởi `reader.lines()` sẽ đóng reader. Bọc `BufferedReader` trong `try-with-resources` giúp giữ quyền sở hữu và thời điểm đóng rõ ràng, kể cả khi `anyMatch()` kết thúc sớm.
+Here, `BufferedReader` itself is the resource to close. Do not assume calling `close()` on the stream produced by `reader.lines()` closes the reader. Wrapping `BufferedReader` in `try-with-resources` keeps ownership and close timing explicit, even when `anyMatch()` finishes early.
 
-### Nếu phương thức tạo stream cho bên gọi thì sao?
+### What If a Method Creates a Stream for the Caller?
 
-Đoạn sau dễ gây rò rỉ vì không xác định rõ ai đóng:
+The following snippet risks leaks because closing ownership is not clearly established:
 
 ```java
-// Không nên nếu hợp đồng API không buộc caller đóng stream.
+// Avoid unless the API contract requires the caller to close the stream.
 static Stream<String> errorLines(Path path) throws IOException {
     return Files.lines(path, StandardCharsets.UTF_8)
             .filter(line -> line.contains("ERROR"));
 }
 ```
 
-Nếu phương thức cần trả kết quả sẵn sàng sử dụng, hãy tiêu thụ dữ liệu khi nguồn còn mở rồi trả về giá trị độc lập:
+If the method needs to return ready-to-use results, consume the data while the source is open and return an independent value:
 
 ```java
 static java.util.List<String> loadErrors(Path path) throws IOException {
@@ -253,7 +253,7 @@ static java.util.List<String> loadErrors(Path path) throws IOException {
 }
 ```
 
-Nếu thực sự cần trả một stream lười để xử lý từ bên ngoài, API phải nêu rõ **caller sở hữu trách nhiệm đóng** và bên gọi phải dùng `try-with-resources`:
+If you genuinely need to return a lazy stream for external processing, the API must explicitly state **the caller owns closing responsibility** and the caller must use `try-with-resources`:
 
 ```java
 try (Stream<String> errors = errorLines(path)) {
@@ -261,11 +261,11 @@ try (Stream<String> errors = errorLines(path)) {
 }
 ```
 
-Không được tạo stream trong khối `try`, đóng tài nguyên, rồi trả stream đó để tiêu thụ sau: pipeline lười sẽ truy cập nguồn đã đóng. Việc chọn trả `List` hay trả `Stream` có hợp đồng đóng rõ ràng phụ thuộc nhu cầu bộ nhớ, độ trễ và khả năng xử lý dữ liệu lớn.
+Never create a stream inside a `try` block, close the resource, and return that stream for later consumption: the lazy pipeline would attempt to access a closed source. Choosing between returning a `List` or a `Stream` with an explicit close contract depends on memory, latency, and large-data requirements.
 
-## 5. `onClose()` hữu ích, nhưng không tự động kích hoạt
+## 5. `onClose()` Is Useful, But Does Not Trigger Automatically
 
-`BaseStream.onClose(Runnable)` đăng ký một hành động sẽ chạy **khi stream được đóng**. Nó hữu ích để ghi log, đếm lần đóng hoặc dọn tài nguyên phụ trong pipeline do mình xây dựng. Tuy nhiên, `findFirst()`, `count()` hoặc `forEach()` không tự gọi close handler này.
+`BaseStream.onClose(Runnable)` registers an action that runs **when the stream is closed**. It is helpful for logging, counting closes, or cleaning up auxiliary resources in a pipeline you build. However, `findFirst()`, `count()`, or `forEach()` do not invoke this close handler automatically.
 
 ```java
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -276,39 +276,39 @@ AtomicBoolean closed = new AtomicBoolean(false);
 try (Stream<Integer> numbers = Stream.of(10, 20, 30)
         .onClose(() -> closed.set(true))) {
     boolean found = numbers.anyMatch(number -> number == 10);
-    System.out.println(found); // true: dừng sau khi khớp phần tử đầu
+    System.out.println(found); // true: stops after matching the first element
 }
 
-System.out.println(closed.get()); // true: do try-with-resources gọi close()
+System.out.println(closed.get()); // true: because try-with-resources called close()
 ```
 
-Đây là ví dụ kiểm tra callback, không mô phỏng file descriptor thật. Với `Files.lines`, `onClose` chỉ nên bổ sung hành vi cần thiết; vẫn phải bảo đảm stream được đóng bằng cơ chế quản lý vòng đời thích hợp. Nếu nhiều close handler ném ngoại lệ, Java thực hiện các handler và có thể giữ ngoại lệ phụ dưới dạng suppressed.
+This is a callback test example, not a simulation of an actual file descriptor. With `Files.lines`, `onClose` should only add necessary behavior; you still must ensure the stream closes via proper lifecycle management. If multiple close handlers throw exceptions, Java runs all handlers and can preserve secondary exceptions as suppressed.
 
-## 6. Các lỗi thiết kế dễ gặp
+## 6. Common Design Mistakes
 
-| Tình huống | Vấn đề | Cách làm đúng |
+| Situation | Problem | Correct practice |
 | --- | --- | --- |
-| Gọi `Files.lines(...).findFirst()` trực tiếp | Dừng sớm nhưng nguồn có thể còn mở | Bọc stream nguồn trong `try-with-resources` |
-| Nghĩ `forEach()` hoặc `collect()` tự đóng | Terminal operation không bảo đảm đóng tài nguyên | Đóng nguồn cả khi xử lý hết dữ liệu |
-| Gọi `stream.close()` sau dòng xử lý | Nếu dòng xử lý ném ngoại lệ, lệnh `close()` bị bỏ qua | Dùng `try-with-resources` |
-| Bọc `reader.lines()` nhưng không đóng reader | Có thể bỏ sót tài nguyên thật sự sở hữu nguồn | Bọc `BufferedReader` trong `try-with-resources` |
-| Trả stream vừa tạo trong khối `try` đã kết thúc | Caller nhận stream dựa trên nguồn đã đóng | Trả kết quả đã materialize hoặc chuyển rõ trách nhiệm đóng cho caller |
-| Chỉ xử lý `IOException` khi đọc bằng `Files.lines` | Lỗi đọc lười có thể được bọc thành `UncheckedIOException` | Xem xét cả ngoại lệ được bọc |
-| Dùng `parallel()` và nghĩ việc đóng tự xảy ra | Parallelism không thay đổi hợp đồng quản lý tài nguyên | Đóng nguồn sau terminal operation, xem lại chi phí I/O |
+| Calling `Files.lines(...).findFirst()` directly | Stops early while source may stay open | Wrap source stream in `try-with-resources` |
+| Thinking `forEach()` or `collect()` auto-closes | Terminal operations do not guarantee resource release | Close source even when reading all data |
+| Calling `stream.close()` after the processing line | If processing throws, `close()` is skipped | Use `try-with-resources` |
+| Wrapping `reader.lines()` without closing reader | May miss the true resource owner | Wrap `BufferedReader` in `try-with-resources` |
+| Returning a stream created inside an exited `try` block | Caller receives a stream backed by a closed source | Return materialized results or transfer closing ownership to caller |
+| Only catching `IOException` when reading with `Files.lines` | Lazy read errors can be wrapped in `UncheckedIOException` | Account for wrapped exceptions too |
+| Using `parallel()` thinking closing happens automatically | Parallelism does not alter resource management contracts | Close source after terminal operation; review I/O cost |
 
-Việc sử dụng `parallelStream()` hoặc `stream.parallel()` không thay đổi quy tắc vòng đời: nếu nguồn giữ tài nguyên, nó vẫn phải được đóng. Cần đo đạc trước khi song song hóa I/O vì chi phí đồng bộ, đọc đĩa và xử lý lỗi có thể lớn hơn lợi ích.
+Using `parallelStream()` or `stream.parallel()` does not change lifecycle rules: if a source holds resources, it still must be closed. Benchmark before parallelizing I/O because synchronization, disk reading, and error-handling overhead can outweigh any gains.
 
-## 7. Checklist áp dụng khi viết code thực tế
+## 7. Practical Code-Review Checklist
 
-Khi review một pipeline đọc tệp hoặc thư mục, hãy tự hỏi:
+When reviewing a pipeline that reads files or directories, ask yourself:
 
-1. **Nguồn đến từ đâu?** `Files.lines`, `Files.walk`, `BufferedReader` hay chỉ từ collection trong bộ nhớ?
-2. **Ai sở hữu tài nguyên?** Là stream do API trả về, reader bên dưới hay một đối tượng khác?
-3. **Chỗ nào phát sinh terminal operation?** `findFirst` và các phép dừng sớm đã nằm trong phạm vi `try-with-resources` chưa?
-4. **Nếu pipeline ném ngoại lệ thì sao?** Tài nguyên có vẫn được đóng? Lỗi đọc lười được báo cáo đúng dạng chưa?
-5. **Giá trị trả về có còn cần tài nguyên không?** `String`, `Optional<String>`, `List<String>` đã thu thập có thể tồn tại sau `close`; stream lười thì cần một vòng đời rõ ràng.
+1. **Where does the source come from?** `Files.lines`, `Files.walk`, `BufferedReader`, or just an in-memory collection?
+2. **Who owns the resource?** Is it the stream returned by the API, an underlying reader, or another object?
+3. **Where does the terminal operation run?** Are `findFirst` and other early-stopping operations inside the `try-with-resources` scope?
+4. **What if the pipeline throws an exception?** Is the resource still closed? Are lazy read errors reported in the expected form?
+5. **Does the return value still need the resource?** Collected `String`, `Optional<String>`, and `List<String>` can outlive `close`; a lazy stream needs an explicit lifecycle.
 
-Ví dụ hoàn chỉnh kết hợp tìm sớm, đóng nguồn và xử lý lỗi đọc lười:
+Complete example combining early finding, resource closing, and lazy read-error handling:
 
 ```java
 import java.io.IOException;
@@ -329,12 +329,12 @@ public final class AuditLog {
                     .filter(line -> line.startsWith("WARN"))
                     .findFirst();
         } catch (UncheckedIOException ex) {
-            throw ex.getCause(); // trả lỗi đọc I/O về hợp đồng throws IOException
+            throw ex.getCause(); // restore I/O read error to throws IOException contract
         }
     }
 }
 ```
 
-Hàm này phù hợp cho log lớn vì thường chỉ đọc đến dòng `WARN` đầu tiên; đồng thời nguồn vẫn được đóng nếu không tìm thấy dòng nào hoặc phát sinh ngoại lệ. Việc trả `Optional<String>` giúp caller không phải quản lý một stream còn gắn với tệp.
+This method suits large log files because it typically reads only up to the first `WARN` line, while still closing the source if no line matches or an exception occurs. Returning `Optional<String>` spares the caller from managing a file-backed stream.
 
-**Ghi nhớ:** Trong Java Stream API, *short-circuiting* quyết định có thể dừng **đọc dữ liệu** sớm đến đâu; `try-with-resources` quyết định **khi nào tài nguyên được đóng**. Hai cơ chế phục vụ hai mục đích độc lập và thường phải dùng cùng nhau khi pipeline làm việc với nguồn I/O.
+**Key takeaway:** In the Java Stream API, *short-circuiting* determines how early **reading data** can stop; `try-with-resources` determines **when resources are closed**. The two mechanisms serve independent purposes and normally must be used together whenever a pipeline works with I/O sources.

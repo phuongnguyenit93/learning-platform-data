@@ -1,22 +1,22 @@
-# --add-exports mở export tạm thời
+# --add-exports: Opening Temporary Exports
 
-## 1. Mục tiêu
+## 1. Objectives
 
-Java Platform Module System (JPMS) kiểm soát package nào của một module được module khác truy cập. Một module có thể khai báo package được export công khai bằng directive **exports**, hoặc chỉ export cho một số module cụ thể bằng qualified export. Các package không được export sẽ được đóng đối với truy cập thông thường từ module khác.
+The Java Platform Module System (JPMS) controls which packages of a module can be accessed by other modules. A module can declare a package as publicly exported using the **exports** directive, or export it only to specific modules using a qualified export. Unexported packages are closed to normal access from other modules.
 
-Tùy chọn **--add-exports** của JDK cho phép bổ sung một export trong lúc biên dịch hoặc khởi chạy ứng dụng. Đây là cách cấp quyền truy cập có phạm vi hẹp để tương thích với thư viện cũ, kiểm tra một module hoặc xử lý tình huống triển khai cần thiết mà không sửa module descriptor của module nguồn.
+The JDK **--add-exports** option allows adding an export during compilation or application launch. It provides a narrow-scoped way to grant access for compatibility with legacy libraries, module testing, or necessary deployment scenarios without modifying the source module's descriptor.
 
-Sau bài học, bạn có thể:
-- Đọc và viết đúng cú pháp **--add-exports**.
-- Chọn đúng module nguồn, package và module đích.
-- Phân biệt quyền export với quyền đọc module và quyền truy cập reflection sâu.
-- Cấp quyền ở compile time và runtime khi cần.
-- Dùng **ALL-UNNAMED** cho mã chạy trong unnamed module.
-- Nhận biết giới hạn và rủi ro khi phụ thuộc vào API nội bộ của JDK.
+After this lesson, you will be able to:
+- Read and write **--add-exports** syntax correctly.
+- Choose the correct source module, package, and target module.
+- Distinguish export permissions from module readability and deep reflection access.
+- Grant permissions at compile time and runtime when needed.
+- Use **ALL-UNNAMED** for code running in unnamed modules.
+- Recognize the limitations and risks of depending on internal JDK APIs.
 
-## 2. Vì sao cần --add-exports?
+## 2. Why Is --add-exports Needed?
 
-Trong JPMS, mỗi package thuộc về một module. Module nguồn có thể công khai package của nó cho module khác bằng directive trong **module-info.java**:
+In JPMS, every package belongs to a module. A source module can expose its package to other modules via a directive in **module-info.java**:
 
 ~~~java
 module com.example.library {
@@ -24,141 +24,141 @@ module com.example.library {
 }
 ~~~
 
-Ở ví dụ này, module khác đọc được module **com.example.library** và có thể truy cập các kiểu public trong package **com.example.api**.
+In this example, another module that reads **com.example.library** can access the public types in package **com.example.api**.
 
-Nếu package không được export, một module khác không thể truy cập các public type của package đó theo quy tắc truy cập module thông thường. Việc class hoặc method được khai báo public trong mã nguồn không đủ để vượt qua ranh giới module: module system còn kiểm tra package có được export cho module đang truy cập hay không.
+If a package is not exported, another module cannot access the public types of that package under standard module access rules. Declaring a class or method as public in source code is not sufficient to cross module boundaries: the module system also checks whether the package is exported to the accessing module.
 
-Có trường hợp ứng dụng cần truy cập một package chưa được export:
+There are cases where an application needs to access an unexported package:
 
-- Thư viện cũ phụ thuộc vào một API nội bộ của JDK.
-- Một ứng dụng cần dùng package chỉ được export có điều kiện cho module khác.
-- Nhóm phát triển cần chạy một kiểm thử tương thích trong môi trường có cấu hình module chặt chẽ.
-- Ứng dụng đang chuyển đổi dần sang API công khai và cần một giải pháp tạm thời trong thời gian migration.
+- A legacy library depends on an internal JDK API.
+- An application needs to use a package that is only conditionally exported to another module.
+- A development team needs to run a compatibility test in an environment with strict module configuration.
+- An application is gradually migrating to public APIs and needs a temporary workaround during migration.
 
-**--add-exports** bổ sung một quan hệ export khi chạy hoặc biên dịch. Tùy chọn này không sửa file **module-info.class**, không thay đổi JAR trên đĩa và không tạo ra một export vĩnh viễn trong module nguồn. Quyền bổ sung chỉ áp dụng cho tiến trình hoặc môi trường biên dịch được cấu hình bằng tùy chọn đó.
+**--add-exports** adds an export relationship at runtime or compile time. This option does not modify the **module-info.class** file, does not alter the JAR on disk, and does not create a permanent export in the source module. The additional permission applies only to the process or compilation environment configured with that option.
 
-## 3. Cú pháp và cách đọc
+## 3. Syntax and How to Read It
 
-Cú pháp tổng quát:
+General syntax:
 
 ~~~text
 --add-exports source-module/package=target-module(,target-module)*
 ~~~
 
-Có thể đọc thành:
+It can be read as:
 
-> Export package **package** của module **source-module** cho module đích **target-module**.
+> Export package **package** of module **source-module** to target module **target-module**.
 
-Ví dụ:
+Example:
 
 ~~~bash
 java --add-exports java.base/sun.nio.ch=ALL-UNNAMED -cp app.jar com.example.Main
 ~~~
 
-Trong lệnh trên:
+In the command above:
 
-- **java.base** là module nguồn chứa package cần truy cập.
-- **sun.nio.ch** là package được export bổ sung.
-- **ALL-UNNAMED** là module đích, nghĩa là tất cả unnamed module.
-- Phần còn lại là classpath và lớp main được khởi chạy.
+- **java.base** is the source module containing the package to access.
+- **sun.nio.ch** is the additionally exported package.
+- **ALL-UNNAMED** is the target module, meaning all unnamed modules.
+- The remainder is the classpath and the main class to launch.
 
-Tên module và tên package phân biệt chữ hoa/chữ thường. Dấu gạch chéo phân tách module nguồn với package; dấu bằng phân tách package với module đích. Không thêm dấu gạch chéo ở cuối package, không ghi tên class thay cho package, và không bỏ tên module nguồn.
+Module names and package names are case-sensitive. A slash separates the source module from the package; an equals sign separates the package from the target module. Do not append a trailing slash to the package, do not specify a class name instead of a package, and do not omit the source module name.
 
-Có thể cấp quyền cho nhiều module đích bằng danh sách phân tách bởi dấu phẩy:
+You can grant access to multiple target modules using a comma-separated list:
 
 ~~~text
 --add-exports java.base/sun.nio.ch=com.example.app,com.example.test
 ~~~
 
-Hoặc lặp lại tùy chọn để export nhiều package:
+Or repeat the option to export multiple packages:
 
 ~~~text
 --add-exports java.base/sun.nio.ch=ALL-UNNAMED
 --add-exports java.base/jdk.internal.misc=com.example.app
 ~~~
 
-Mỗi tùy chọn chỉ chỉ định một cặp module nguồn/package. Nếu có nhiều package cần truy cập, khai báo từng package riêng để phạm vi quyền được thể hiện rõ ràng.
+Each option specifies a single source-module/package pair. If multiple packages need access, declare each package separately so that the scope of permissions remains clear.
 
-## 4. Module nguồn và module đích
+## 4. Source Module and Target Module
 
-### Module nguồn
+### Source Module
 
-Module nguồn là module **sở hữu package**. Trong ví dụ **java.base/sun.nio.ch**, module **java.base** sở hữu package **sun.nio.ch**.
+The source module is the module that **owns the package**. In the example **java.base/sun.nio.ch**, module **java.base** owns package **sun.nio.ch**.
 
-Có thể xem module và package thuộc về JDK bằng công cụ:
+You can inspect JDK modules and packages using the tool:
 
 ~~~bash
 java --describe-module java.base
 ~~~
 
-Để xem descriptor của một modular JAR:
+To inspect the descriptor of a modular JAR:
 
 ~~~bash
 jar --describe-module --file library.jar
 ~~~
 
-Không suy đoán module nguồn chỉ từ tên package. Hãy xác định package thực sự thuộc module nào trong JDK hoặc trong module ứng dụng.
+Do not guess the source module solely from the package name. Verify which module actually owns the package in the JDK or in the application modules.
 
-### Module đích
+### Target Module
 
-Module đích là module được cấp quyền truy cập package. Nếu ứng dụng là named module, hãy dùng đúng tên module trong module descriptor.
+The target module is the module granted access to the package. If the application is a named module, use the exact module name from the module descriptor.
 
-Ví dụ:
+Example:
 
 ~~~bash
 java --add-exports java.base/sun.nio.ch=com.example.app --module-path mods --module com.example.app/com.example.Main
 ~~~
 
-Ở đây chỉ module **com.example.app** nhận export bổ sung. Các module khác không tự động nhận quyền truy cập package đó.
+Here, only module **com.example.app** receives the additional export. Other modules do not automatically gain access to that package.
 
-Nếu ứng dụng chạy trên classpath, các lớp ứng dụng thuộc unnamed module. Khi đó dùng **ALL-UNNAMED**:
+If the application runs on the classpath, the application classes belong to an unnamed module. In that case, use **ALL-UNNAMED**:
 
 ~~~bash
 java --add-exports java.base/sun.nio.ch=ALL-UNNAMED -cp app.jar com.example.Main
 ~~~
 
-**ALL-UNNAMED** bao gồm các unnamed module, thường gặp khi chạy ứng dụng hoặc thư viện trên classpath. Nó không có nghĩa là export cho tất cả named module. Dùng giá trị này sẽ cấp quyền rộng hơn so với việc chỉ định một named module cụ thể.
+**ALL-UNNAMED** covers unnamed modules, commonly encountered when running applications or libraries on the classpath. It does not mean exporting to all named modules. Using this value grants broader access than specifying a particular named module.
 
-## 5. Export và readability là hai điều kiện khác nhau
+## 5. Export and Readability Are Two Different Conditions
 
-Để module đích truy cập một public type trong module nguồn, hai điều kiện quan trọng là:
+For the target module to access a public type in the source module, two important conditions apply:
 
-1. Module đích phải **đọc được (read)** module nguồn.
-2. Package chứa type phải được **export** cho module đích.
+1. The target module must **read** the source module.
+2. The package containing the type must be **exported** to the target module.
 
-**--add-exports** chỉ bổ sung điều kiện thứ hai. Nó không tự động tạo quan hệ readability.
+**--add-exports** only supplies the second condition. It does not automatically create a readability relationship.
 
-Trong nhiều ví dụ với **java.base**, module ứng dụng đã đọc được module này vì mọi module đều có readability tới java.base. Nhưng với một module thư viện khác, ứng dụng có thể cần thêm directive **requires** trong module-info.java.
+In many examples with **java.base**, the application module already reads it because every module has readability to java.base. However, with another library module, the application may need to add a **requires** directive in module-info.java.
 
-Nếu không thể sửa module descriptor của module đích, tùy chọn **--add-reads** có thể bổ sung quan hệ đọc trong thời gian chạy:
+If you cannot modify the target module's descriptor, the **--add-reads** option can add a read relationship at runtime:
 
 ~~~text
 --add-reads target-module=source-module
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~bash
 java --add-reads com.example.app=com.example.library --add-exports com.example.library/com.example.internal=com.example.app --module-path mods --module com.example.app/com.example.Main
 ~~~
 
-Lệnh minh họa bổ sung hai quyền riêng biệt: module **com.example.app** đọc được **com.example.library**, và package **com.example.internal** được export cho ứng dụng. Nếu module descriptor đã có **requires com.example.library**, phần **--add-reads** thường không cần thiết.
+The command illustrates adding two separate permissions: module **com.example.app** reads **com.example.library**, and package **com.example.internal** is exported to the application. If the module descriptor already has **requires com.example.library**, the **--add-reads** part is usually unnecessary.
 
-Đừng dùng **--add-exports** để sửa lỗi module không đọc được dependency. Hãy xác định điều kiện nào đang thiếu và chỉ bổ sung đúng quyền cần thiết.
+Do not use **--add-exports** to fix an error where a module cannot read a dependency. Identify which condition is missing and add only the required permission.
 
-## 6. --add-exports ở compile time
+## 6. --add-exports at Compile Time
 
-Nếu mã nguồn tham chiếu một public type thuộc package chưa được export, trình biên dịch có thể từ chối mã dù type đó là public.
+If source code references a public type belonging to an unexported package, the compiler may reject the code even though the type is public.
 
-Có thể truyền **--add-exports** cho **javac**:
+You can pass **--add-exports** to **javac**:
 
 ~~~bash
 javac --add-exports java.base/sun.nio.ch=ALL-UNNAMED -d out src/com/example/Main.java
 ~~~
 
-Tùy chọn này cho phép trình biên dịch xem package **sun.nio.ch** của module **java.base** là được export cho unnamed module trong lần biên dịch đó.
+This option allows the compiler to treat package **sun.nio.ch** of module **java.base** as exported to unnamed modules during that compilation.
 
-Ví dụ minh họa mã nguồn tham chiếu một type nội bộ:
+Example illustrating source code referencing an internal type:
 
 ~~~java
 package com.example;
@@ -176,65 +176,65 @@ public class Main {
 }
 ~~~
 
-Khi biên dịch, JDK có thể phát cảnh báo rằng **DirectBuffer** là API nội bộ và có thể bị loại bỏ hoặc thay đổi trong bản phát hành tương lai. **--add-exports** xử lý ranh giới export của module; nó không biến API nội bộ thành API công khai, ổn định hoặc được hỗ trợ.
+During compilation, the JDK may issue a warning that **DirectBuffer** is an internal API and may be removed or changed in a future release. **--add-exports** handles the module export boundary; it does not turn an internal API into a public, stable, or supported API.
 
-Với named module, dùng tên module đích:
+For a named module, use the target module name:
 
 ~~~bash
 javac --add-exports java.base/sun.nio.ch=com.example.app --module-path mods -d out --module-source-path src -m com.example.app
 ~~~
 
-Ví dụ này minh họa vị trí của tùy chọn khi biên dịch module; cấu trúc source tree và danh sách module phải phù hợp với dự án thực tế.
+This example illustrates the placement of the option when compiling a module; the source tree structure and module list must match the actual project.
 
-## 7. --add-exports ở runtime
+## 7. --add-exports at Runtime
 
-Việc biên dịch thành công không có nghĩa là chương trình sẽ chạy được. Tùy chọn cấp export cho **javac** chỉ áp dụng trong môi trường biên dịch. Khi chạy, JVM tạo module graph riêng và cần được cấp export tương ứng.
+Successful compilation does not mean the program will run. The export option passed to **javac** applies only in the compilation environment. At runtime, the JVM creates its own module graph and must be granted the corresponding export.
 
-Với ứng dụng trên classpath:
+For an application on the classpath:
 
 ~~~bash
 java --add-exports java.base/sun.nio.ch=ALL-UNNAMED -cp out com.example.Main
 ~~~
 
-Với ứng dụng là named module:
+For an application that is a named module:
 
 ~~~bash
 java --module-path mods --add-exports java.base/sun.nio.ch=com.example.app --module com.example.app/com.example.Main
 ~~~
 
-Các tùy chọn JVM phải được đặt trước phần chỉ định ứng dụng hoặc module cần chạy. Ví dụ, đặt **--add-exports** trước **--module** trong lệnh chạy modular application.
+JVM options must be placed before the part specifying the application or module to run. For example, place **--add-exports** before **--module** in the modular application launch command.
 
-Nếu ứng dụng được khởi chạy bởi script, service manager, IDE, application server, test runner hoặc container, phải cấu hình tùy chọn ở đúng nơi tạo tiến trình JVM. Thêm tùy chọn vào một lệnh build không đảm bảo nó xuất hiện trong tiến trình runtime.
+If the application is launched by a script, service manager, IDE, application server, test runner, or container, the option must be configured in the exact place that creates the JVM process. Adding the option to a build command does not guarantee it appears in the runtime process.
 
-Khi chạy ứng dụng bằng **java -jar**, ứng dụng JAR được chạy theo cơ chế classpath/unnamed module. Nếu muốn chạy một modular JAR như named module, hãy dùng **--module-path** và **--module** thay vì dựa vào **-jar**.
+When running an application with **java -jar**, the application JAR is run under the classpath/unnamed module mechanism. If you want to run a modular JAR as a named module, use **--module-path** and **--module** instead of relying on **-jar**.
 
-## 8. Phân biệt --add-exports và --add-opens
+## 8. Distinguishing --add-exports and --add-opens
 
-Hai tùy chọn có tên gần giống nhau nhưng mục đích khác nhau.
+The two options have similar names but different purposes.
 
-| Tùy chọn | Mục đích | Thời điểm |
+| Option | Purpose | Timing |
 |---|---|---|
-| **--add-exports** | Cho module đích truy cập các public type và public/protected member của package được export | Có thể dùng khi biên dịch và khi chạy |
-| **--add-opens** | Cho phép deep reflection vào package, kể cả truy cập reflective tới thành viên không public theo các điều kiện reflection | Runtime |
-| **--add-reads** | Bổ sung quan hệ readability để module đích đọc module nguồn | Runtime |
+| **--add-exports** | Allows the target module to access public types and public/protected members of the exported package | Can be used at compile time and runtime |
+| **--add-opens** | Allows deep reflection into a package, including reflective access to non-public members subject to reflection rules | Runtime |
+| **--add-reads** | Adds a readability relationship so the target module reads the source module | Runtime |
 
-Nếu mã nguồn có câu lệnh import và gọi một public class nằm trong package chưa export, hãy xem xét **--add-exports**.
+If source code has an import statement and calls a public class in an unexported package, consider **--add-exports**.
 
-Nếu framework dùng reflection để truy cập private field, private constructor hoặc thành viên không public của một package thuộc named module, vấn đề thường liên quan đến **--add-opens**. Ví dụ:
+If a framework uses reflection to access a private field, private constructor, or non-public member of a package belonging to a named module, the issue usually relates to **--add-opens**. Example:
 
 ~~~bash
 java --add-opens java.base/java.lang=ALL-UNNAMED -cp app.jar com.example.Main
 ~~~
 
-Tùy chọn trên mở package **java.lang** cho deep reflection từ unnamed module. Nó không làm cho mã nguồn có thể import một class nội bộ của package đó khi biên dịch.
+The option above opens package **java.lang** for deep reflection from unnamed modules. It does not allow source code to import an internal class from that package at compile time.
 
-**--add-opens** không phải cách thay thế tổng quát cho **--add-exports**. Ngược lại, **--add-exports** cũng không cho phép framework bỏ qua mọi ranh giới reflection để đọc/ghi thành viên private.
+**--add-opens** is not a general replacement for **--add-exports**. Conversely, **--add-exports** does not allow frameworks to bypass all reflection boundaries to read/write private members.
 
-## 9. Quan hệ với exports trong module-info.java
+## 9. Relationship with exports in module-info.java
 
-Có hai cách tạo quan hệ export:
+There are two ways to create an export relationship:
 
-**Export lâu dài do module nguồn khai báo:**
+**Permanent export declared by the source module:**
 
 ~~~java
 module com.example.library {
@@ -243,26 +243,26 @@ module com.example.library {
 }
 ~~~
 
-Directive thứ nhất export **com.example.api** cho mọi module đọc module nguồn. Directive thứ hai chỉ export **com.example.legacy** cho **com.example.app**.
+The first directive exports **com.example.api** to every module that reads the source module. The second directive exports **com.example.legacy** only to **com.example.app**.
 
-**Export bổ sung từ dòng lệnh:**
+**Additional export from the command line:**
 
 ~~~bash
 java --add-exports com.example.library/com.example.internal=com.example.app --module-path mods --module com.example.app/com.example.Main
 ~~~
 
-Cách thứ hai không sửa module descriptor. Nó thêm một export trong module configuration của tiến trình. Vì vậy:
+The second approach does not modify the module descriptor. It adds an export in the process's module configuration. Therefore:
 
-- Nếu bạn sở hữu module nguồn và package là API mà các module khác cần dùng lâu dài, hãy cân nhắc khai báo **exports** trong module-info.java.
-- Nếu chỉ cần cấp quyền tương thích cho một ứng dụng cụ thể, tùy chọn dòng lệnh có thể phù hợp hơn.
-- Nếu package là API nội bộ của JDK, hãy ưu tiên API công khai được hỗ trợ thay vì biến tùy chọn này thành phụ thuộc lâu dài.
-- Nếu module nguồn thay đổi tên hoặc package, dòng lệnh cũ có thể không còn đúng.
+- If you own the source module and the package is an API that other modules need over the long term, consider declaring **exports** in module-info.java.
+- If you only need to grant compatibility access for a specific application, the command-line option may be more appropriate.
+- If the package is an internal JDK API, prefer a supported public API rather than turning this option into a long-term dependency.
+- If the source module changes its name or packages, the old command line may no longer be valid.
 
-Qualified export trong module descriptor có thể chỉ cho một số module truy cập. **--add-exports** bổ sung target module khác vào phạm vi export ở runtime/compile-time tương ứng; nó không viết lại directive gốc.
+A qualified export in a module descriptor can allow only certain modules to access it. **--add-exports** adds another target module to the export scope at runtime/compile time accordingly; it does not rewrite the original directive.
 
-## 10. Ví dụ đầy đủ: ứng dụng trên classpath
+## 10. Complete Example: Application on the Classpath
 
-Giả sử ứng dụng có một class dùng type **sun.nio.ch.DirectBuffer**:
+Suppose an application has a class using the **sun.nio.ch.DirectBuffer** type:
 
 ~~~java
 package com.example;
@@ -279,25 +279,25 @@ public class Main {
 }
 ~~~
 
-Biên dịch:
+Compile:
 
 ~~~bash
 javac --add-exports java.base/sun.nio.ch=ALL-UNNAMED -d out src/com/example/Main.java
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 java --add-exports java.base/sun.nio.ch=ALL-UNNAMED -cp out com.example.Main
 ~~~
 
-Cả hai giai đoạn đều cần tùy chọn. Nếu bỏ tùy chọn ở compile time, javac có thể báo package không được export. Nếu biên dịch đã thành công nhưng bỏ tùy chọn ở runtime, JVM có thể ném **IllegalAccessError** khi mã cố truy cập type đó.
+Both phases require the option. If the option is omitted at compile time, javac may report that the package is not exported. If compilation succeeds but the option is omitted at runtime, the JVM may throw **IllegalAccessError** when the code attempts to access that type.
 
-Ví dụ dùng API nội bộ chỉ nhằm minh họa cơ chế. Trong ứng dụng thực tế, hãy tìm API được hỗ trợ thay thế trước khi áp dụng cách này.
+The example using an internal API is solely to illustrate the mechanism. In real applications, look for a supported alternative API before applying this approach.
 
-## 11. Ví dụ đầy đủ: ứng dụng trên module path
+## 11. Complete Example: Application on the Module Path
 
-Giả sử module ứng dụng có descriptor:
+Suppose the application module has the descriptor:
 
 ~~~java
 module com.example.app {
@@ -305,102 +305,102 @@ module com.example.app {
 }
 ~~~
 
-Mã nguồn trong module sử dụng một public type thuộc package **sun.nio.ch**. Có thể biên dịch với export bổ sung:
+Source code in the module uses a public type belonging to package **sun.nio.ch**. It can be compiled with an additional export:
 
 ~~~bash
 javac --add-exports java.base/sun.nio.ch=com.example.app --module-source-path src -d mods -m com.example.app
 ~~~
 
-Sau khi biên dịch, chạy module với cùng export:
+After compiling, run the module with the same export:
 
 ~~~bash
 java --module-path mods --add-exports java.base/sun.nio.ch=com.example.app --module com.example.app/com.example.Main
 ~~~
 
-Ở đây module đích là **com.example.app**, vì mã đang chạy trong named module. Không dùng **ALL-UNNAMED** cho ví dụ này vì ứng dụng không thuộc unnamed module.
+Here, the target module is **com.example.app**, because the code is running inside a named module. Do not use **ALL-UNNAMED** for this example because the application does not belong to an unnamed module.
 
-Nếu ứng dụng phụ thuộc vào module khác ngoài java.base, hãy bảo đảm descriptor có **requires** tương ứng hoặc cấu hình readability thích hợp. Export bổ sung không thay thế dependency của ứng dụng.
+If the application depends on modules other than java.base, ensure the descriptor has the corresponding **requires** or configure appropriate readability. Additional exports do not replace application dependencies.
 
-## 12. Cấu hình trong build và môi trường chạy
+## 12. Configuration in Build and Runtime Environments
 
-Trong dự án dùng Maven hoặc Gradle, cần phân biệt compiler arguments và runtime JVM arguments.
+In Maven or Gradle projects, distinguish between compiler arguments and runtime JVM arguments.
 
-- **Compile:** truyền tùy chọn cho compiler plugin hoặc task biên dịch để mã nguồn nhìn thấy package cần dùng.
-- **Test:** truyền tùy chọn cho JVM chạy test. Một số test runner fork tiến trình riêng nên cấu hình ở JVM của Maven/Gradle không nhất thiết tự động áp dụng cho tiến trình fork.
-- **Run:** truyền tùy chọn cho application run task, script khởi chạy hoặc cấu hình JVM của IDE.
-- **Deploy:** cập nhật cấu hình của service/container thực sự khởi chạy ứng dụng; sau đó kiểm tra command line hoặc log khởi động để xác nhận tùy chọn đã được áp dụng.
+- **Compile:** pass the option to the compiler plugin or compile task so source code can see the required package.
+- **Test:** pass the option to the JVM running tests. Some test runners fork a separate process, so configuration on Maven/Gradle's own JVM does not necessarily apply automatically to the forked process.
+- **Run:** pass the option to the application run task, launch script, or IDE JVM configuration.
+- **Deploy:** update the configuration of the service/container that actually launches the application; then inspect the command line or startup logs to verify that the option was applied.
 
-Đừng chỉ thêm **--add-exports** vào cấu hình compile rồi cho rằng vấn đề đã được giải quyết. Hãy xác định tiến trình nào thực sự cần truy cập package và cấu hình ở đúng giai đoạn.
+Do not simply add **--add-exports** to the compile configuration and assume the problem is solved. Identify which process actually needs package access and configure it at the right phase.
 
-Trong môi trường CI, có thể đưa tùy chọn vào cấu hình tập trung để các lệnh compile, test và run sử dụng nhất quán. Ghi chú rõ module/package/target và lý do cần quyền truy cập để nhóm vận hành biết khi nào có thể gỡ bỏ.
+In CI environments, you can place the option in a centralized configuration so compile, test, and run commands use it consistently. Clearly document the module/package/target and the reason access is needed so the operations team knows when it can be removed.
 
-## 13. Giới hạn và rủi ro
+## 13. Limitations and Risks
 
-**--add-exports** là một cơ chế tương thích, không phải lời hứa về ổn định API.
+**--add-exports** is a compatibility mechanism, not a promise of API stability.
 
-Các package như **sun.nio.ch**, **jdk.internal.misc** hoặc những package nội bộ khác không thuộc API công khai được hỗ trợ. Cấu trúc, tên lớp, method và hành vi có thể thay đổi giữa các phiên bản JDK. Một lệnh chạy được trên JDK hiện tại có thể thất bại sau khi nâng cấp JDK.
+Packages such as **sun.nio.ch**, **jdk.internal.misc**, or other internal packages are not part of the supported public API. Structure, class names, methods, and behavior can change between JDK versions. A command that works on the current JDK may fail after a JDK upgrade.
 
-Tùy chọn này cũng làm yếu ranh giới đóng gói module cho module đích. Nếu cấp export cho **ALL-UNNAMED**, mọi unnamed module trong tiến trình có thể truy cập package được export. Điều đó rộng hơn việc cấp cho một named module cụ thể.
+This option also weakens module encapsulation boundaries for the target module. If an export is granted to **ALL-UNNAMED**, every unnamed module in the process can access the exported package. That is broader than granting it to a specific named module.
 
-Một số nguyên tắc vận hành:
+Some operational principles:
 
-1. Cấp quyền cho đúng package và đúng target module.
-2. Tránh export cho **ALL-UNNAMED** nếu có thể chỉ định một named module.
-3. Không cấp quyền rộng chỉ để làm một lỗi khác biến mất.
-4. Ghi rõ lý do, người sở hữu và điều kiện gỡ bỏ tùy chọn.
-5. Kiểm tra lại khi nâng cấp JDK hoặc thư viện.
-6. Theo dõi cảnh báo compiler về API nội bộ và lập kế hoạch thay thế.
-7. Không nhầm việc truy cập thành công với việc API đó được hỗ trợ hoặc bảo đảm tương thích.
+1. Grant access to the exact package and the exact target module.
+2. Avoid exporting to **ALL-UNNAMED** if a named module can be specified.
+3. Do not grant broad permissions just to make another error disappear.
+4. Document the reason, owner, and condition for removing the option.
+5. Re-verify when upgrading the JDK or libraries.
+6. Monitor compiler warnings about internal APIs and plan for replacements.
+7. Do not confuse successful access with that API being supported or guaranteed compatible.
 
-Từ JDK 17, strong encapsulation của các package nội bộ trong JDK được áp dụng chặt chẽ hơn. Tùy chọn **--illegal-access** cũ không còn là cách chung để mở các package này. Nếu cần truy cập một package cụ thể, hãy hiểu rõ và dùng đúng tùy chọn **--add-exports** hoặc **--add-opens** theo loại truy cập.
+Since JDK 17, strong encapsulation of internal packages in the JDK has been enforced more strictly. The old **--illegal-access** option is no longer a general way to open these packages. If you need access to a specific package, understand and use the right **--add-exports** or **--add-opens** option according to the type of access.
 
-## 14. Lỗi thường gặp và cách chẩn đoán
+## 14. Common Errors and Diagnosis
 
-| Triệu chứng | Nguyên nhân có thể | Hướng xử lý |
+| Symptom | Possible Cause | Resolution |
 |---|---|---|
-| javac báo package không được export | Thiếu export ở compile time hoặc sai module/package | Thêm --add-exports vào javac với đúng source module và target |
-| Chạy gặp IllegalAccessError | Compile có quyền nhưng JVM runtime không có export | Thêm cùng tùy chọn vào lệnh java |
-| Module không đọc được type của module khác | Thiếu readability, không phải export | Kiểm tra requires hoặc --add-reads |
-| Reflection báo InaccessibleObjectException | Cần deep reflection vào package chưa mở | Xem xét --add-opens cho target module |
-| Vẫn lỗi dù đã thêm tùy chọn | Sai module nguồn, package, target module hoặc tùy chọn đặt sai tiến trình | Xác định module chứa class, module gọi và JVM thực sự khởi chạy |
-| Classpath chạy được nhưng named module lỗi | Target module khác nhau hoặc descriptor thiếu requires | Dùng đúng tên named module và kiểm tra module graph |
-| Nâng cấp JDK thì lỗi | API nội bộ đã thay đổi hoặc bị loại bỏ | Chuyển sang API công khai và kiểm tra release notes |
+| javac reports package is not exported | Missing export at compile time or wrong module/package | Add --add-exports to javac with the right source module and target |
+| Runtime throws IllegalAccessError | Compile has permission but runtime JVM lacks the export | Add the same option to the java command |
+| Module cannot read type of another module | Missing readability, not export | Check requires or --add-reads |
+| Reflection reports InaccessibleObjectException | Needs deep reflection into an unopened package | Consider --add-opens for the target module |
+| Still fails even after adding option | Wrong source module, package, target module, or option placed on wrong process | Identify the module containing the class, the calling module, and the JVM actually launched |
+| Classpath works but named module fails | Target module differs or descriptor lacks requires | Use the right named module name and check the module graph |
+| Fails after JDK upgrade | Internal API changed or was removed | Migrate to a public API and check release notes |
 
-Khi chẩn đoán, hãy lấy thông báo lỗi đầy đủ, xác định class đang truy cập, package chứa class, module sở hữu package và module đích. Sau đó kiểm tra cả command line của compiler lẫn command line runtime. Không suy luận rằng tùy chọn đã có trong một file cấu hình nghĩa là tiến trình JVM chắc chắn đã nhận được nó.
+When diagnosing, obtain the full error message, identify the accessing class, the package containing the class, the module owning the package, and the target module. Then check both the compiler command line and the runtime command line. Do not assume that having the option in a configuration file means the JVM process definitely received it.
 
-## 15. Tự kiểm tra
+## 15. Self-Check
 
-**1. --add-exports java.base/sun.nio.ch=ALL-UNNAMED có nghĩa gì?**
+**1. What does --add-exports java.base/sun.nio.ch=ALL-UNNAMED mean?**
 
-Nó bổ sung export package **sun.nio.ch** của module **java.base** cho tất cả unnamed module trong phạm vi cấu hình. Đây thường là cách cấp quyền cho mã ứng dụng chạy trên classpath.
+It adds an export of package **sun.nio.ch** from module **java.base** to all unnamed modules within the configured scope. This is commonly how permissions are granted to application code running on the classpath.
 
-**2. --add-exports có sửa module-info.class không?**
+**2. Does --add-exports modify module-info.class?**
 
-Không. Tùy chọn chỉ bổ sung export trong môi trường compile hoặc runtime tương ứng; file module descriptor trên đĩa không bị thay đổi.
+No. The option only adds the export in the respective compile or runtime environment; the module descriptor file on disk is not altered.
 
-**3. Vì sao cần thêm tùy chọn cả khi biên dịch và khi chạy?**
+**3. Why is the option needed both at compile time and at runtime?**
 
-Vì javac và JVM có module configuration riêng. Tùy chọn lúc biên dịch cho phép mã nguồn tham chiếu package; tùy chọn runtime cho phép bytecode thực sự truy cập package khi ứng dụng chạy.
+Because javac and the JVM have separate module configurations. The compile-time option allows source code to reference the package; the runtime option allows bytecode to actually access the package when the application runs.
 
-**4. --add-exports có cho phép truy cập private field bằng reflection không?**
+**4. Does --add-exports allow accessing private fields via reflection?**
 
-Không. Nó export package cho truy cập thông thường tới public type/member. Deep reflection vào thành viên không public thường cần **--add-opens** ở runtime.
+No. It exports the package for normal access to public types/members. Deep reflection into non-public members typically requires **--add-opens** at runtime.
 
-**5. --add-exports có tự động làm module đích đọc được module nguồn không?**
+**5. Does --add-exports automatically make the target module read the source module?**
 
-Không. Export và readability là hai điều kiện khác nhau. Nếu module đích không đọc module nguồn, cần sửa **requires** hoặc xem xét **--add-reads**.
+No. Export and readability are two different conditions. If the target module does not read the source module, you must fix **requires** or consider **--add-reads**.
 
-**6. ALL-UNNAMED có bao gồm tất cả named module không?**
+**6. Does ALL-UNNAMED include all named modules?**
 
-Không. Nó chỉ áp dụng cho unnamed module, thường là mã trên classpath. Named module phải được nêu đích danh.
+No. It applies only to unnamed modules, typically code on the classpath. Named modules must be specified explicitly by name.
 
-## 16. Ghi nhớ
+## 16. Key Takeaways
 
-**--add-exports** tạo một export bổ sung có phạm vi xác định bởi module nguồn, package và module đích. Nó hữu ích cho biên dịch hoặc chạy ứng dụng cần truy cập package chưa được export, nhưng không sửa module descriptor, không bổ sung readability và không mở private member cho deep reflection.
+**--add-exports** creates an additional export scoped by source module, package, and target module. It is useful for compiling or running applications that need access to an unexported package, but it does not modify the module descriptor, does not add readability, and does not open private members for deep reflection.
 
-Hãy dùng đúng target module, cấp quyền ở cả compile time và runtime khi cần, và ưu tiên API công khai thay cho phụ thuộc vào package nội bộ của JDK. Xem tùy chọn này như một biện pháp tương thích có thể gỡ bỏ khi ứng dụng đã chuyển sang API được hỗ trợ.
+Use the correct target module, grant permissions at both compile time and runtime when needed, and prefer public APIs over depending on internal JDK packages. Treat this option as a compatibility measure that can be removed once the application has migrated to supported APIs.
 
-## Tài liệu tham khảo
+## References
 
 - [The java Command — Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html)
 - [The javac Command — Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/specs/man/javac.html)

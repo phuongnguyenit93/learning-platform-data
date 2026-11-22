@@ -1,38 +1,38 @@
-# Nạp lớp khác khởi tạo lớp như thế nào trong Java?
+# How Does Class Loading Differ from Class Initialization in Java?
 
-Khi làm việc với **đối tượng `Class<?>`** và Reflection, hai thao tác rất dễ bị nhầm là **nạp lớp (class loading)** và **khởi tạo lớp (class initialization)**. Một lớp có thể đã được JVM nhận diện, có đối tượng `Class` và có thể được kiểm tra metadata mà **chưa thực thi bất kỳ khối `static` nào** của chính lớp đó.
+When working with **`Class<?>` objects** and Reflection, two operations that are very easy to confuse are **class loading** and **class initialization**. A class can already be recognized by the JVM, have a `Class` object, and have its metadata inspected without **executing any `static` block** of that class itself.
 
-Mục tiêu bài học: phân biệt loading, linking, initialization và tạo đối tượng; dự đoán thời điểm khối `static` chạy; chọn đúng API `Class.forName`/`ClassLoader.loadClass`; và nhận biết các tình huống Reflection vô tình kích hoạt khởi tạo lớp.
+Lesson objectives: distinguish loading, linking, initialization, and object instantiation; predict when `static` blocks run; choose the right `Class.forName`/`ClassLoader.loadClass` API; and recognize Reflection scenarios that inadvertently trigger class initialization.
 
-## 1. Bốn việc khác nhau trong vòng đời lớp
+## 1. Four distinct things in the class lifecycle
 
-| Hoạt động | JVM làm gì? | Có bắt buộc chạy `static { ... }` của lớp đích? |
+| Activity | What does the JVM do? | Must the target class's `static { ... }` run? |
 |---|---|---|
-| **Loading (nạp)** | Tìm định nghĩa nhị phân của lớp, đọc/diễn giải dữ liệu class và tạo biểu diễn runtime tương ứng, trong đó có đối tượng `Class`. | **Không**. |
-| **Linking (liên kết)** | Verify bytecode; prepare bộ nhớ cho các biến `static` và gán giá trị mặc định; resolve tham chiếu ký hiệu khi thích hợp. Resolution có thể thực hiện muộn. | **Không**. |
-| **Initialization (khởi tạo lớp)** | Chạy phương thức khởi tạo lớp `<clinit>`: các biểu thức khởi tạo trường `static` và khối `static`, theo thứ tự trong mã nguồn. | **Có**: đây chính là giai đoạn thực thi phần khởi tạo tĩnh. |
-| **Instance initialization (khởi tạo đối tượng)** | Tạo một instance, thực hiện quy trình khởi tạo instance và constructor `<init>`. | Lớp thích hợp phải được khởi tạo trước khi tạo instance; constructor là công việc **riêng**, có thể chạy nhiều lần. |
+| **Loading** | Finds the binary definition of the class, reads/interprets the class data, and creates the corresponding runtime representation, including the `Class` object. | **No**. |
+| **Linking** | Verifies bytecode; prepares memory for `static` variables and assigns default values; resolves symbolic references when appropriate. Resolution can be performed lazily. | **No**. |
+| **Initialization** | Runs the class initialization method `<clinit>`: `static` field initializers and `static` blocks, in source-code order. | **Yes**: this is the phase that executes static initialization. |
+| **Instance initialization** | Creates an instance, executes the instance initialization sequence and constructor `<init>`. | The appropriate class must be initialized before creating an instance; the constructor is a **separate** job that can run multiple times. |
 
-Các giá trị mặc định trong bước **preparation** không đồng nghĩa với việc đã chạy biểu thức khởi tạo trong mã nguồn. Ví dụ, với `static int count = calculate();`, bước preparation chuẩn bị giá trị mặc định `0`; lời gọi `calculate()` thuộc initialization. Một số trường là **constant variable** có cách xử lý đặc biệt; xem mục 4.
+Default values during the **preparation** step do not mean the initializer expressions in the source code have run. For example, with `static int count = calculate();`, the preparation step prepares the default value `0`; the `calculate()` call belongs to initialization. Certain fields that are **constant variables** receive special handling; see section 4.
 
-Một điểm quan trọng về thứ tự: JVM có thể chủ động nạp, verify hoặc resolve lớp sớm hơn thời điểm chương trình chủ động dùng lớp. Vì vậy, **thấy một đối tượng `Class` tồn tại không chứng minh khối `static` đã chạy**. Quy tắc về thời điểm initialization được ràng buộc chặt hơn bởi ngữ nghĩa ngôn ngữ.
+An important point about ordering: the JVM may eagerly load, verify, or resolve classes earlier than the moment the program actively uses them. Therefore, **seeing that a `Class` object exists does not prove the `static` block has run**. Rules for when initialization occurs are much more strictly bound by language semantics.
 
-### Đối tượng `Class` đại diện cho điều gì?
+### What does the `Class` object represent?
 
-`Class<?>` là đối tượng runtime đại diện cho kiểu: có thể đọc tên, superclass, interface, annotation, constructor, field và method. Các đường lấy tham chiếu thường gặp là:
+`Class<?>` is the runtime object representing a type: you can read its name, superclass, interfaces, annotations, constructors, fields, and methods. Common ways to obtain a reference are:
 
-- `MyType.class`: lấy đối tượng `Class` cho kiểu đã biết khi biên dịch; **không tự kích hoạt initialization** của `MyType`.
-- `object.getClass()`: lấy lớp runtime của **một đối tượng đã tồn tại**; thao tác lấy metadata này không tự khởi tạo lại lớp.
-- `ClassLoader.loadClass("pkg.MyType")`: yêu cầu loader nạp lớp theo **binary name**; bản thân lời gọi thông thường không khởi tạo lớp.
-- `Class.forName("pkg.MyType")`: phiên bản một tham số **yêu cầu khởi tạo lớp** sau khi tìm/nạp lớp thành công.
-- `Class.forName(name, false, loader)`: tìm/nạp lớp với yêu cầu **chưa khởi tạo**.
-- `Class.forName(name, true, loader)`: tìm/nạp và **yêu cầu khởi tạo** lớp.
+- `MyType.class`: gets the `Class` object for a compile-time known type; **does not trigger initialization** of `MyType` by itself.
+- `object.getClass()`: gets the runtime class of **an existing object**; reading this metadata does not re-initialize the class.
+- `ClassLoader.loadClass("pkg.MyType")`: asks the loader to load the class by **binary name**; an ordinary call by itself does not initialize the class.
+- `Class.forName("pkg.MyType")`: the single-parameter overload **requests class initialization** after successfully finding/loading the class.
+- `Class.forName(name, false, loader)`: finds/loads the class while requesting **no initialization yet**.
+- `Class.forName(name, true, loader)`: finds/loads and **requests initialization** of the class.
 
-Tên nhị phân của nested class dùng ký tự `$`, ví dụ `demo.Outer$Inner`, không dùng `demo.Outer.Inner` trong lời gọi `Class.forName` thông thường.
+The binary name of a nested class uses the `$` character, e.g. `demo.Outer$Inner`, not `demo.Outer.Inner` in ordinary `Class.forName` calls.
 
-## 2. Ví dụ Java 17+: nhìn thấy chính xác lúc khối static chạy
+## 2. Java 17+ example: seeing the exact moment the static block runs
 
-Lưu toàn bộ chương trình sau thành tệp **`ClassLifecycleDemo.java`**:
+Save the entire following program as **`ClassLifecycleDemo.java`**:
 
 ```java
 import java.lang.reflect.Method;
@@ -84,14 +84,14 @@ public class ClassLifecycleDemo {
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa tệp:
+Compile and run from the directory containing the file:
 
 ```bash
 javac ClassLifecycleDemo.java
 java ClassLifecycleDemo
 ```
 
-**Stdout dự kiến (chạy trên Java 17+):**
+**Expected stdout (running on Java 17+):**
 
 ```text
 1. class literal
@@ -110,47 +110,47 @@ Target.hello()
 Target constructor
 ```
 
-**Giải thích từng mốc:**
+**Step-by-step explanation:**
 
-1. `Target.class` cho phép lấy tên lớp, nhưng chưa chạy `Target <clinit>`.
-2. `loadClass(binaryName)` trả về cùng đối tượng `Class` do cùng kiểu và cùng defining class loader, vẫn chưa có initializer tĩnh được chạy.
-3. `Class.forName(..., false, ...)` cũng lấy đối tượng `Class` mà chưa yêu cầu initialization.
-4. `getDeclaredMethod("hello")` đọc thông tin method, chưa **gọi** method.
-5. `Class.forName(..., true, ...)` là điểm đầu tiên **kích hoạt khởi tạo lớp**; `<clinit>` in ra đúng một lần.
-6. `method.invoke(null)` gọi method `static` (đối số receiver `null`); lúc này lớp đã được khởi tạo nên không chạy lại `<clinit>`.
-7. `Constructor.newInstance()` tạo một đối tượng và gọi constructor, vì vậy xuất hiện `Target constructor`, **không phải** một lần khởi tạo lớp nữa.
+1. `Target.class` allows reading the class name, but has not run `Target <clinit>` yet.
+2. `loadClass(binaryName)` returns the same `Class` object because it is the same type and same defining class loader; still no static initializer has been run.
+3. `Class.forName(..., false, ...)` also obtains the `Class` object without requesting initialization.
+4. `getDeclaredMethod("hello")` reads method metadata, without **invoking** the method.
+5. `Class.forName(..., true, ...)` is the first point that **triggers class initialization**; `<clinit>` prints exactly once.
+6. `method.invoke(null)` invokes the `static` method (`null` receiver argument); at this point the class is already initialized so `<clinit>` does not run again.
+7. `Constructor.newInstance()` creates an object and calls the constructor, which is why `Target constructor` appears—this is **not** another class initialization.
 
-Lưu ý: `Target` ở đây là **static nested class**. Vì mã gọi và `Target` cùng một nest, ví dụ có thể gọi method/constructor bằng Reflection mà không cần thay đổi quyền truy cập. Với lớp ở package/module khác, kiểm tra khả năng truy cập riêng.
+Note: `Target` here is a **static nested class**. Because the calling code and `Target` are in the same nest, the example can invoke the method/constructor via Reflection without altering access permissions. For classes in another package/module, check accessibility separately.
 
-## 3. Những thao tác thực sự kích hoạt initialization
+## 3. Operations that actually trigger initialization
 
-Theo quy tắc về initialization của Java (JLS §12.4.1), các tình huống chủ động sử dụng thường gặp gồm:
+Under Java's initialization rules (JLS §12.4.1), common active-use scenarios include:
 
-- Tạo instance bằng `new SomeClass()`.
-- Gọi phương thức `static` được khai báo trong lớp (`SomeClass.run()`).
-- Gán hoặc đọc một trường `static` được khai báo trong lớp, **ngoại trừ** trường là *constant variable* theo định nghĩa của Java.
-- Yêu cầu khởi tạo qua `Class.forName(name)` hoặc `Class.forName(name, true, loader)`.
-- Một số thao tác Reflection tương ứng với việc sử dụng chủ động, chẳng hạn `Method.invoke` cho static method, `Field.get`/`Field.set` cho static field, hoặc `Constructor.newInstance`.
+- Creating an instance with `new SomeClass()`.
+- Calling a `static` method declared in the class (`SomeClass.run()`).
+- Assigning or reading a `static` field declared in the class, **except** fields that are *constant variables* as defined by Java.
+- Requesting initialization via `Class.forName(name)` or `Class.forName(name, true, loader)`.
+- Certain Reflection operations corresponding to active use, such as `Method.invoke` for a static method, `Field.get`/`Field.set` for a static field, or `Constructor.newInstance`.
 
-Những thao tác **không tự yêu cầu khởi tạo lớp đích**:
+Operations that **do not by themselves request initialization of the target class**:
 
-- Lấy `SomeClass.class`.
-- Dùng `ClassLoader.loadClass(name)` thông thường.
-- Dùng `Class.forName(name, false, loader)`.
-- Chỉ kiểm tra metadata qua các phương thức như `getName()`, `getDeclaredMethods()`, `getDeclaredFields()`, `getDeclaredConstructors()`, `getAnnotations()`.
-- Khai báo biến tham chiếu kiểu `SomeClass`, ép kiểu, kiểm tra `instanceof` hoặc tạo mảng `new SomeClass[3]` mà chưa tạo instance `SomeClass`.
+- Obtaining `SomeClass.class`.
+- Using regular `ClassLoader.loadClass(name)`.
+- Using `Class.forName(name, false, loader)`.
+- Merely inspecting metadata via methods such as `getName()`, `getDeclaredMethods()`, `getDeclaredFields()`, `getDeclaredConstructors()`, `getAnnotations()`.
+- Declaring a reference variable of type `SomeClass`, casting, checking `instanceof`, or creating an array `new SomeClass[3]` without creating a `SomeClass` instance.
 
-**Cẩn thận với sự khác nhau giữa “tìm method” và “gọi method”:** `getDeclaredMethod` chỉ cung cấp đối tượng `Method`; `invoke` mới thực hiện invocation. Khi invocation là phương thức `static`, lớp khai báo method sẽ được khởi tạo trước nếu chưa khởi tạo.
+**Be careful with the difference between "finding a method" and "calling a method":** `getDeclaredMethod` only provides a `Method` object; `invoke` actually performs the invocation. When the invocation is a `static` method, the class declaring the method is initialized beforehand if not yet initialized.
 
-**Cẩn thận với quyền sở hữu trường `static`:** truy cập `Child.inheritedField` có thể chỉ khởi tạo `Parent` nếu trường thật sự **được khai báo** ở `Parent`. Không suy ra “tên lớp xuất hiện trước dấu chấm” luôn là lớp cần khởi tạo.
+**Be careful with ownership of `static` fields:** accessing `Child.inheritedField` may only initialize `Parent` if the field is actually **declared** in `Parent`. Do not assume "the class name before the dot" is always the class that needs to be initialized.
 
-Khi khởi tạo một class, JVM bảo đảm superclass cần thiết được khởi tạo trước; các superinterface có khai báo default method cũng có quy tắc khởi tạo liên quan. Không được suy rộng rằng mọi interface mà class implements đều sẽ được khởi tạo ngay.
+When initializing a class, the JVM ensures necessary superclasses are initialized first; superinterfaces that declare default methods also have related initialization rules. Do not generalize that every interface a class implements will be initialized immediately.
 
-## 4. Ngoại lệ quan trọng: hằng compile-time không kích hoạt initialization
+## 4. Important exception: compile-time constants do not trigger initialization
 
-Một `static final` chưa chắc là hằng lúc biên dịch. Một *constant variable* phải có kiểu primitive hoặc `String`, được khai báo `final`, và được khởi tạo bằng *constant expression*.
+A `static final` field is not necessarily a compile-time constant. A *constant variable* must have a primitive type or `String`, be declared `final`, and be initialized with a *constant expression*.
 
-Lưu chương trình độc lập sau thành **`ConstantsDemo.java`**:
+Save the following standalone program as **`ConstantsDemo.java`**:
 
 ```java
 public class ConstantsDemo {
@@ -160,7 +160,7 @@ public class ConstantsDemo {
         }
 
         static final String LABEL = "DEV"; // constant variable
-        static final Integer PORT = 8080;  // KHÔNG là constant variable
+        static final Integer PORT = 8080;  // NOT a constant variable
     }
 
     public static void main(String[] args) {
@@ -171,7 +171,7 @@ public class ConstantsDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac ConstantsDemo.java
@@ -187,15 +187,15 @@ Config initialized
 8080
 ```
 
-`Config.LABEL` là compile-time constant nên code sử dụng có thể được compiler thay trực tiếp bằng `"DEV"`; cách truy cập này **không khởi tạo** `Config`. Trong khi đó `Config.PORT` là một đối tượng `Integer`, không phải constant variable; đọc trường `static` này kích hoạt `Config` initialization trước khi in `8080`.
+`Config.LABEL` is a compile-time constant so calling code can have it directly substituted by `"DEV"` by the compiler; such access **does not initialize** `Config`. Meanwhile `Config.PORT` is an `Integer` object, not a constant variable; reading this `static` field triggers `Config` initialization before printing `8080`.
 
-Vì vậy, câu “đọc một `static final` sẽ khởi tạo class” **không đúng cho mọi trường hợp**. Đừng dựa riêng vào hai từ khóa `static final`; phải xét kiểu và biểu thức khởi tạo.
+Therefore, the statement "reading a `static final` initializes the class" is **not true in all cases**. Do not rely solely on the two keywords `static final`; you must consider the type and initializer expression.
 
-## 5. Cách dùng đúng trong Reflection và hệ thống plugin
+## 5. Proper usage in Reflection and plugin systems
 
-### Trường hợp chỉ muốn khám phá metadata
+### When you only want to inspect metadata
 
-Ví dụ loader đang có một tên lớp plugin và cần kiểm tra interface hoặc constructor trước khi quyết định sử dụng:
+For example, a loader has a plugin class name and needs to check its interface or constructor before deciding to use it:
 
 ```java
 Class<?> candidate = Class.forName(pluginClassName, false, pluginLoader);
@@ -207,74 +207,74 @@ if (!Runnable.class.isAssignableFrom(candidate)) {
 var constructor = candidate.getDeclaredConstructor();
 ```
 
-Đây là **đoạn minh họa** đặt trong luồng xử lý đã có biến `pluginClassName` và `pluginLoader`, không phải chương trình độc lập. Kiểm tra `isAssignableFrom` và lấy metadata constructor không tự yêu cầu chạy khối `static` của candidate. Việc nạp/link có thể vẫn xảy ra, nên các lỗi class/dependency vẫn có thể xuất hiện trước initialization.
+This is an **illustrative snippet** placed in a processing flow that already has the variables `pluginClassName` and `pluginLoader`, not a standalone program. Checking `isAssignableFrom` and fetching constructor metadata does not by itself request running the candidate's `static` block. Loading/linking can still happen, so class/dependency errors can still appear before initialization.
 
-### Trường hợp thực sự cần tạo plugin
+### When you actually need to instantiate the plugin
 
-Sau khi xác thực metadata và bảo đảm quyền truy cập:
+After validating metadata and ensuring accessibility:
 
 ```java
 Runnable plugin = (Runnable) constructor.newInstance();
 plugin.run();
 ```
 
-`newInstance()` là bước có khả năng kích hoạt **initialization class**, sau đó mới tạo instance. Ví dụ giả định class có constructor không tham số mà mã gọi được phép truy cập. Nếu plugin không có constructor thích hợp, bị giới hạn module/package hoặc có lỗi trong constructor, cần xử lý riêng.
+`newInstance()` is the step that can trigger **class initialization**, and then create the instance. The example assumes the class has a no-argument constructor accessible to the caller. If the plugin lacks an appropriate constructor, is restricted by module/package boundaries, or throws an error inside the constructor, handle those separately.
 
-Nếu chỉ cần tra cứu cấu trúc class, hãy chủ động chọn `Class.forName(name, false, loader)`. Nếu mục tiêu là thực thi logic khởi tạo, phiên bản `true` hoặc một thao tác sử dụng chủ động là thích hợp hơn. Tránh dùng `Class.forName(name)` chỉ để “lấy metadata” trong ứng dụng có static initializer gây side effect (đăng ký driver, mở kết nối, nạp cấu hình, thao tác file...).
+If you only need to look up class structure, deliberately choose `Class.forName(name, false, loader)`. If the goal is to execute initialization logic, the `true` overload or an active-use operation is more appropriate. Avoid using `Class.forName(name)` just to "get metadata" in applications whose static initializers have side effects (registering drivers, opening connections, loading configuration, file operations, etc.).
 
-## 6. Lỗi và hiện tượng thường gặp
+## 6. Common errors and phenomena
 
-| Hiện tượng / exception | Nguyên nhân thường gặp | Hướng kiểm tra |
+| Phenomenon / exception | Common cause | What to check |
 |---|---|---|
-| `ClassNotFoundException` | Loader không tìm được tên nhị phân được yêu cầu qua API nạp lớp. | Kiểm tra binary name, classpath/module path và loader được truyền vào. |
-| `NoClassDefFoundError` | Định nghĩa cần thiết không sẵn sàng ở runtime hoặc JVM đã đánh dấu lớp bị lỗi khởi tạo ở lần trước. | Kiểm tra dependency runtime và lỗi gốc xuất hiện trước đó. |
-| `ExceptionInInitializerError` | Logic khởi tạo tĩnh ném exception không phải `Error`; lỗi được JVM bọc khi initialization thất bại. | Xem cause và code trong field initializer / `static` block. |
-| `IllegalAccessException` hoặc `InaccessibleObjectException` | Reflection truy cập member không phù hợp access rules hay module encapsulation. | Kiểm tra visibility, module `exports`/`opens`; không mặc định rằng `setAccessible(true)` luôn thành công. |
-| `InvocationTargetException` | Method hoặc constructor được gọi qua Reflection đã ném exception. | Đọc `getCause()` để biết lỗi của code được gọi. |
+| `ClassNotFoundException` | The loader could not find the requested binary name via the class-loading API. | Check binary name, classpath/module path, and the loader passed in. |
+| `NoClassDefFoundError` | A needed definition is unavailable at runtime, or the JVM previously marked the class as erroneous during initialization. | Check runtime dependencies and the earlier root error. |
+| `ExceptionInInitializerError` | Static initialization logic threw a non-`Error` exception; the JVM wraps the error when initialization fails. | Inspect the cause and code inside field initializers / `static` blocks. |
+| `IllegalAccessException` or `InaccessibleObjectException` | Reflection accessed a member violating access rules or module encapsulation. | Check visibility, module `exports`/`opens`; do not assume `setAccessible(true)` always succeeds. |
+| `InvocationTargetException` | A method or constructor invoked via Reflection threw an exception. | Read `getCause()` to see the error thrown by the invoked code. |
 
-Nếu `<clinit>` thất bại, JVM coi class ở trạng thái khởi tạo lỗi; lần sử dụng tiếp theo có thể nhận `NoClassDefFoundError`, chứ không tự chạy lại toàn bộ `static` initializer như chưa có chuyện gì xảy ra.
+If `<clinit>` fails, the JVM treats the class as being in an erroneous initialization state; subsequent usage attempts can receive `NoClassDefFoundError` rather than re-running the entire `static` initializer as if nothing happened.
 
-JVM phối hợp initialization giữa các thread: khi một thread đang khởi tạo lớp, thread khác cần dùng chủ động thường phải chờ. Với một đối tượng `Class` đã khởi tạo thành công, `<clinit>` không chạy lại ở mỗi lần gọi method hay tạo instance. Tuy nhiên, cùng **binary name** nhưng được định nghĩa bởi **hai class loader khác nhau** là hai runtime class khác nhau và mỗi class có vòng đời khởi tạo riêng.
+The JVM coordinates initialization across threads: while one thread is initializing a class, another thread needing active use usually must wait. For a `Class` object that has been initialized successfully, `<clinit>` does not run again on each method call or instance creation. However, the same **binary name** defined by **two different class loaders** yields two distinct runtime classes, and each class has its own initialization lifecycle.
 
-Để chẩn đoán thời điểm JVM nạp/khởi tạo lớp, Java hiện đại có unified logging:
+To diagnose when the JVM loads/initializes classes, modern Java provides unified logging:
 
 ```bash
 java -Xlog:class+load=info ClassLifecycleDemo
 ```
 
-Lệnh sẽ tạo **rất nhiều** dòng log từ JVM/JDK; hãy lọc theo tên class quan tâm. Log `class+load` thể hiện sự kiện nạp, **không nên dùng riêng nó để kết luận lúc `<clinit>` thực thi**. Dòng `Target <clinit>` do ví dụ chủ động in ra là bằng chứng trực tiếp cho initialization của `Target`.
+The command produces **a great many** log lines from the JVM/JDK; filter by the class name of interest. The `class+load` log shows loading events and **should not be used alone to conclude when `<clinit>` executes**. The `Target <clinit>` line explicitly printed by the example is direct evidence of `Target`'s initialization.
 
-## 7. Những nhầm lẫn cần tránh
+## 7. Misconceptions to avoid
 
-1. **“Đã gọi `SomeClass.class` nghĩa là khối `static` đã chạy.”** Sai: đó là thao tác lấy `Class` reference.
-2. **“`ClassLoader.loadClass` và `Class.forName(String)` giống nhau.”** Sai về tác dụng mặc định: lời gọi `forName` một tham số yêu cầu initialization.
-3. **“Đọc metadata bằng Reflection luôn thực thi code của class.”** Sai: tra cứu `Method`/`Field` khác với invocation hoặc truy cập giá trị trường tĩnh.
-4. **“Mỗi lần tạo đối tượng thì khối `static` chạy lại.”** Sai: initializer tĩnh chạy theo vòng đời khởi tạo của runtime class; constructor chạy cho từng lần tạo instance.
-5. **“Mọi `static final` đều kích hoạt class khi được đọc.”** Sai: constant variable có thể được inline, như `Config.LABEL`.
-6. **“Tên class giống nhau nghĩa là cùng `Class`.”** Chưa đủ: định danh runtime phụ thuộc **binary name và defining class loader**.
+1. **"Calling `SomeClass.class` means the `static` block has already run."** False: that operation obtains a `Class` reference.
+2. **"`ClassLoader.loadClass` and `Class.forName(String)` are the same."** False regarding default effect: the single-argument `forName` call requests initialization.
+3. **"Reading metadata via Reflection always executes the class's code."** False: looking up `Method`/`Field` differs from invocation or accessing static field values.
+4. **"Every time an object is created, the `static` block runs again."** False: static initializers run according to the runtime class's initialization lifecycle; constructors run per instance creation.
+5. **"Every `static final` triggers the class when read."** False: constant variables can be inlined, like `Config.LABEL`.
+6. **"Same class name means same `Class`."** Insufficient: runtime identity depends on **binary name and defining class loader**.
 
-## 8. Tự kiểm tra nhanh
+## 8. Quick self-check
 
-**Câu 1.** `Class<?> c = Service.class;` rồi `c.getDeclaredMethods();` có bắt buộc chạy `Service` static block không?
+**Question 1.** Does `Class<?> c = Service.class;` followed by `c.getDeclaredMethods();` require `Service`'s static block to run?
 
-**Trả lời:** Không. Hai bước này lấy đối tượng `Class` và metadata; chúng không phải hành động chủ động khởi tạo `Service`.
+**Answer:** No. Those two steps obtain the `Class` object and metadata; they are not active actions initializing `Service`.
 
-**Câu 2.** `Class.forName("demo.Service", false, loader)` trả về `Class` thành công. Khi nào static initializer sẽ chạy?
+**Question 2.** `Class.forName("demo.Service", false, loader)` returns `Class` successfully. When will the static initializer run?
 
-**Trả lời:** Khi có yêu cầu initialization sau đó, như `Class.forName(..., true, loader)`, gọi static method hay tạo instance; lớp cũng có thể được khởi tạo bởi hành động chủ động khác theo JLS.
+**Answer:** When a subsequent initialization request occurs, such as `Class.forName(..., true, loader)`, calling a static method, or creating an instance; the class can also be initialized by other active-use actions per the JLS.
 
-**Câu 3.** Vì sao `Constructor.newInstance()` có thể in hai nhóm log: static initializer và constructor?
+**Question 3.** Why can `Constructor.newInstance()` print two sets of logs: static initializer and constructor?
 
-**Trả lời:** Nếu class chưa được khởi tạo, JVM thực hiện class initialization trước; tiếp theo Reflection tạo instance và gọi constructor. Các lần tạo instance kế tiếp vẫn gọi constructor nhưng không lặp lại static initializer thành công.
+**Answer:** If the class has not yet been initialized, the JVM performs class initialization first; next, Reflection creates the instance and invokes the constructor. Subsequent instance creations still call the constructor without repeating a successful static initializer.
 
-**Câu 4.** Cùng tên `demo.Plugin` được nạp bởi hai class loader độc lập có dùng chung một lần khởi tạo không?
+**Question 4.** Does the same name `demo.Plugin` loaded by two independent class loaders share a single initialization?
 
-**Trả lời:** Không, nếu mỗi loader thực sự **định nghĩa** một class riêng. Mỗi runtime class có đối tượng `Class` và trạng thái khởi tạo riêng; nếu loader chỉ ủy quyền và cùng nhận một class đã được loader cha định nghĩa thì chúng vẫn tham chiếu cùng runtime class.
+**Answer:** No, if each loader actually **defines** a separate class. Each runtime class has its own `Class` object and initialization state; if a loader merely delegates and both receive the same class defined by a parent loader, they still reference the same runtime class.
 
-## Tài liệu chuẩn
+## Authoritative references
 
-- **Java Language Specification §12.2–§12.4**: loading, linking, initialization; đặc biệt §12.4.1 về thời điểm initialization.
-- **Java Virtual Machine Specification §5**: loading, linking, initialization và trạng thái runtime.
-- Java SE API: `java.lang.Class` (đặc biệt `forName`), `java.lang.ClassLoader`, `java.lang.reflect.Method`, `java.lang.reflect.Constructor`.
+- **Java Language Specification §12.2–§12.4**: loading, linking, initialization; especially §12.4.1 on initialization timing.
+- **Java Virtual Machine Specification §5**: loading, linking, initialization, and runtime state.
+- Java SE API: `java.lang.Class` (especially `forName`), `java.lang.ClassLoader`, `java.lang.reflect.Method`, `java.lang.reflect.Constructor`.
 
-**Ghi nhớ:** **Loading giúp JVM biết lớp là gì; linking chuẩn bị và kiểm tra định nghĩa; initialization mới chạy khối/biểu thức `static`; tạo instance mới chạy constructor.** Reflection có thể làm việc với metadata trước khi class được khởi tạo, nên hãy chọn API theo đúng mục đích.
+**Remember:** **Loading lets the JVM know what the class is; linking prepares and checks the definition; initialization runs `static` blocks/expressions; instance creation runs constructors.** Reflection can work with metadata before a class is initialized, so choose the API according to your exact intent.

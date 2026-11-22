@@ -1,41 +1,41 @@
-# ModuleLayer xác định class loader cho module trong Java
+# ModuleLayer Determines the Class Loader for Modules in Java
 
-`ModuleLayer` là cơ chế của Java Platform Module System (JPMS, từ Java 9) dùng để tạo một tập module đã được giải quyết phụ thuộc và **gắn mỗi module với một class loader cụ thể**. Muốn biết class loader nào chịu trách nhiệm nạp lớp của một module trong layer, gọi `layer.findLoader(moduleName)`; muốn biết lớp đã nạp thực sự thuộc module nào, kiểm tra `clazz.getModule()`.
+`ModuleLayer` is the mechanism of the Java Platform Module System (JPMS, since Java 9) used to create a set of modules whose dependencies have been resolved and **associate each module with a specific class loader**. To find out which class loader is responsible for loading classes of a module in a layer, call `layer.findLoader(moduleName)`; to find out which module a loaded class actually belongs to, inspect `clazz.getModule()`.
 
-Bài này tập trung vào quan hệ giữa `ModuleLayer`, `Configuration`, `Module` và `ClassLoader`; cách định nghĩa layer con; cách lấy đúng loader; và những giới hạn khi áp dụng cho plugin hoặc ứng dụng cần tách biệt các bộ module.
+This lesson focuses on the relationship among `ModuleLayer`, `Configuration`, `Module`, and `ClassLoader`; how to define child layers; how to retrieve the right loader; and the limitations when applying them to plugins or applications that need to isolate sets of modules.
 
-## 1. Phân biệt bốn thành phần
+## 1. Distinguishing the Four Components
 
-| Thành phần | Trách nhiệm |
+| Component | Responsibility |
 | --- | --- |
-| `module-info.java` / `ModuleDescriptor` | Khai báo tên module, `requires`, `exports`, `opens`, `uses`, `provides`. |
-| `Configuration` | Mô tả tập **resolved modules** và đồ thị phụ thuộc sau quá trình resolution; chưa tạo các đối tượng `Module` chạy thực tế. |
-| `ModuleLayer` | Chứa các module lúc chạy cùng quan hệ layer cha; khi định nghĩa layer, Java xác lập module nào đi với class loader nào. |
-| `ClassLoader` | Nạp các `Class`; một loader có thể được gắn với nhiều module, hoặc mỗi module có loader riêng, tùy cách tạo layer. |
+| `module-info.java` / `ModuleDescriptor` | Declares the module name, `requires`, `exports`, `opens`, `uses`, `provides`. |
+| `Configuration` | Describes the set of **resolved modules** and the dependency graph after resolution; does not yet create the actual runtime `Module` objects. |
+| `ModuleLayer` | Contains the runtime modules along with parent layer relationships; when defining the layer, Java establishes which module goes with which class loader. |
+| `ClassLoader` | Loads `Class` objects; one loader can be associated with multiple modules, or each module can have its own loader, depending on how the layer is created. |
 
-Có thể hình dung:
+You can visualize it as:
 
 ```text
-ModuleLayer.boot()                     (layer cha, có các module nền tảng)
+ModuleLayer.boot()                     (parent layer, containing platform modules)
        |
-       | định nghĩa layer con từ Configuration
+       | defines child layer from Configuration
        v
-ModuleLayer pluginLayer                (layer con)
+ModuleLayer pluginLayer                (child layer)
   +-- module com.demo.api    -------> ClassLoader L
   +-- module com.demo.impl   -------> ClassLoader L  (one-loader)
 ```
 
-Đồ thị **quan hệ cha giữa các layer** và chuỗi **ủy quyền cha giữa các class loader** là hai quan hệ khác nhau. Khi truyền `parentLoader` vào phương thức tạo layer, bạn chỉ định cha của loader mới được tạo, chứ không biến mọi loader trong layer cha thành một loader duy nhất.
+The **parent relationship graph between layers** and the **parent delegation chain between class loaders** are two different relationships. When you pass `parentLoader` to a layer creation method, you specify the parent of the newly created loader, rather than turning all loaders in the parent layer into a single loader.
 
-## 2. Từ module path đến class loader: trình tự hoạt động
+## 2. From Module Path to Class Loader: Sequence of Operations
 
-1. **Tìm module:** `ModuleFinder` đọc modular JAR hoặc thư mục module đã biên dịch.
-2. **Giải quyết phụ thuộc:** `Configuration.resolve(...)` xác định các module cần thiết cho tập root modules và nối chúng với cấu hình cha.
-3. **Định nghĩa layer:** Một trong các phương thức `defineModules...` tạo module lúc chạy và xác lập ánh xạ `tên module → class loader`.
-4. **Truy xuất ánh xạ:** `layer.findLoader("ten.module")` trả về loader gắn với module được định nghĩa **trong layer đó**.
-5. **Nạp lớp:** Dùng loader này để nạp một lớp thuộc module, rồi kiểm tra `Class.getModule()` và `Module.getLayer()` để thấy kết quả.
+1. **Find modules:** `ModuleFinder` reads modular JARs or compiled module directories.
+2. **Resolve dependencies:** `Configuration.resolve(...)` determines the required modules for the set of root modules and links them with the parent configuration.
+3. **Define the layer:** One of the `defineModules...` methods creates the runtime modules and establishes the `module name → class loader` mapping.
+4. **Query the mapping:** `layer.findLoader("module.name")` returns the loader associated with a module defined **in that layer**.
+5. **Load classes:** Use this loader to load a class belonging to the module, then inspect `Class.getModule()` and `Module.getLayer()` to see the result.
 
-Ví dụ luồng API rút gọn:
+Abbreviated API flow example:
 
 ```java
 ModuleLayer parent = ModuleLayer.boot();
@@ -57,29 +57,29 @@ Class<?> greetingClass =
     loader.loadClass("com.example.greeting.api.Greeter");
 ```
 
-`Configuration` quyết định **module nào** tham gia và phụ thuộc vào ai; `defineModulesWithOneLoader` quyết định **loader nào** được dùng để định nghĩa những module đó. Chỉ `resolve` thì chưa có layer con và chưa có class loader mới cho các module.
+`Configuration` determines **which modules** participate and whom they depend on; `defineModulesWithOneLoader` determines **which loader** is used to define those modules. Calling `resolve` alone does not yet create a child layer or new class loaders for the modules.
 
-## 3. Ba cách xác định loader cho một layer
+## 3. Three Ways to Specify Loaders for a Layer
 
-| API | Ánh xạ module → loader | Phù hợp khi |
+| API | Mapping module → loader | Suitable when |
 | --- | --- | --- |
-| `defineModulesWithOneLoader(config, parentLoader)` | Các module mới của layer **dùng chung một loader mới** có `parentLoader` làm cha. | Nhóm module có thể chia sẻ không gian nạp lớp trong một plugin hoặc một tính năng. |
-| `defineModulesWithManyLoaders(config, parentLoader)` | **Mỗi module mới có loader riêng**; các loader mới cùng ủy quyền lên `parentLoader`. | Cần tách biệt loader của từng module trong cùng layer. |
-| `defineModules(config, moduleName -> loader)` | Chương trình cung cấp loader cho **từng tên module** qua hàm ánh xạ. | Đã có chiến lược custom class loader và kiểm soát được việc nạp lớp của các module. |
+| `defineModulesWithOneLoader(config, parentLoader)` | New modules of the layer **share a single new loader** whose parent is `parentLoader`. | A group of modules can share a class-loading namespace within a plugin or feature. |
+| `defineModulesWithManyLoaders(config, parentLoader)` | **Each new module has its own loader**; the new loaders all delegate up to `parentLoader`. | Separate loaders are needed for individual modules within the same layer. |
+| `defineModules(config, moduleName -> loader)` | The program supplies a loader for **each module name** via a mapping function. | You already have a custom class loader strategy and control class loading for the modules. |
 
-Các overload dạng instance ở bảng trên sử dụng layer nhận lời gọi làm layer cha. Java còn có các factory tĩnh nhận `List<ModuleLayer>` để cấu hình nhiều layer cha; chúng trả về `ModuleLayer.Controller`, từ đó lấy layer bằng `controller.layer()` và có thể điều chỉnh một số quan hệ đọc, export, open khi thật sự cần.
+The instance overloads in the table above use the receiving layer as the parent layer. Java also has static factories that take a `List<ModuleLayer>` to configure multiple parent layers; they return a `ModuleLayer.Controller`, from which you obtain the layer via `controller.layer()` and can adjust certain read, export, and open relationships when truly necessary.
 
-Cần hiểu rõ:
+Keep in mind:
 
-- **One loader** không có nghĩa tất cả module được nhập thành một module. Mỗi module vẫn giữ tên, descriptor, quan hệ `requires`, `exports` và quy tắc truy cập riêng.
-- **Many loaders** không làm cho mỗi module thành một tiến trình hay sandbox bảo mật. Đây là cách chia không gian nạp lớp, không phải cơ chế cách ly tài nguyên hệ điều hành.
-- **Custom mapping** đòi hỏi class loader bạn cung cấp thực sự nạp được các lớp thuộc module được gán cho nó, đồng thời đáp ứng các ràng buộc của JPMS. Không nên chuyển tùy tiện nhiều module có package xung đột vào cùng loader.
+- **One loader** does not mean all modules are merged into a single module. Each module still retains its own name, descriptor, `requires`, `exports`, and access rules.
+- **Many loaders** do not turn each module into a separate process or security sandbox. It is a way to partition the class-loading namespace, not an OS resource isolation mechanism.
+- **Custom mapping** requires that the class loader you provide can actually load the classes belonging to the modules assigned to it, while satisfying JPMS constraints. Do not arbitrarily assign multiple modules with conflicting packages to the same loader.
 
-## 4. Ví dụ đầy đủ có thể biên dịch và chạy
+## 4. Complete Compilable and Runnable Example
 
-Ví dụ sử dụng Java 17+ (các API layer đã có từ Java 9). Ta tạo một module `com.example.greeting` rồi nạp nó từ ứng dụng chạy trên classpath.
+This example uses Java 17+ (the layer APIs have been available since Java 9). We create a `com.example.greeting` module and load it from an application running on the classpath.
 
-Cấu trúc thư mục:
+Directory structure:
 
 ```text
 src/
@@ -90,7 +90,7 @@ src/
     └── Main.java
 ```
 
-**Tệp `src/com.example.greeting/module-info.java`**
+**File `src/com.example.greeting/module-info.java`**
 
 ```java
 module com.example.greeting {
@@ -98,7 +98,7 @@ module com.example.greeting {
 }
 ```
 
-**Tệp `src/com.example.greeting/com/example/greeting/api/Greeter.java`**
+**File `src/com.example.greeting/com/example/greeting/api/Greeter.java`**
 
 ```java
 package com.example.greeting.api;
@@ -107,13 +107,13 @@ public final class Greeter {
     private Greeter() {}
 
     public static String message() {
-        return "Xin chào từ module "
+        return "Hello from module "
             + Greeter.class.getModule().getName();
     }
 }
 ```
 
-**Tệp `src/app/Main.java`**
+**File `src/app/Main.java`**
 
 ```java
 package app;
@@ -125,44 +125,44 @@ import java.util.Set;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        // 1. Chọn layer cha đang hoạt động.
+        // 1. Select the active parent layer.
         ModuleLayer boot = ModuleLayer.boot();
 
-        // 2. Tìm các module đã biên dịch.
+        // 2. Find the compiled modules.
         ModuleFinder finder = ModuleFinder.of(Path.of("build/modules"));
 
-        // 3. Giải quyết com.example.greeting cùng các phụ thuộc.
+        // 3. Resolve com.example.greeting along with its dependencies.
         Configuration config = boot.configuration().resolve(
             finder,
             ModuleFinder.of(),
             Set.of("com.example.greeting")
         );
 
-        // 4. Tạo layer con; module của layer dùng chung loader mới.
+        // 4. Create a child layer; the layer's modules share a new loader.
         ModuleLayer child = boot.defineModulesWithOneLoader(
             config,
             ClassLoader.getSystemClassLoader()
         );
 
-        // 5. Lấy loader qua layer thay vì đoán loader hệ thống.
+        // 5. Retrieve the loader through the layer instead of guessing the system loader.
         ClassLoader loader = child.findLoader("com.example.greeting");
 
-        // 6. Dùng loader tương ứng để nạp lớp của module.
+        // 6. Use the corresponding loader to load the module's class.
         Class<?> clazz =
             loader.loadClass("com.example.greeting.api.Greeter");
 
         Module module = clazz.getModule();
 
         System.out.println("Module: " + module.getName());
-        System.out.println("Đúng layer: " + (module.getLayer() == child));
-        System.out.println("Đúng loader: "
+        System.out.println("Correct layer: " + (module.getLayer() == child));
+        System.out.println("Correct loader: "
             + (module.getClassLoader() == loader));
         System.out.println(clazz.getMethod("message").invoke(null));
     }
 }
 ```
 
-Tại thư mục gốc của ví dụ, biên dịch và chạy:
+From the root directory of the example, compile and run:
 
 ```bash
 javac --module-source-path src -d build/modules -m com.example.greeting
@@ -170,29 +170,29 @@ javac -d build/app src/app/Main.java
 java -cp build/app app.Main
 ```
 
-Kết quả dự kiến:
+Expected output:
 
 ```text
 Module: com.example.greeting
-Đúng layer: true
-Đúng loader: true
-Xin chào từ module com.example.greeting
+Correct layer: true
+Correct loader: true
+Hello from module com.example.greeting
 ```
 
-Giải thích từng điểm:
+Point-by-point explanation:
 
-- `ModuleFinder.of(Path.of("build/modules"))` tìm module đã biên dịch trong thư mục chứa các module con.
-- `boot.configuration().resolve(...)` dùng cấu hình của boot layer làm cha; những module nền tảng cần thiết được giải quyết theo quan hệ phụ thuộc.
-- `boot.defineModulesWithOneLoader(...)` tạo layer con và class loader mới. `ClassLoader.getSystemClassLoader()` ở đây là **loader cha**, không đồng nghĩa loader được trả về bởi `child.findLoader(...)`.
-- `clazz.getModule()` trả về module đã định nghĩa chính lớp đó. `module.getLayer() == child` và `module.getClassLoader() == loader` xác nhận ánh xạ thực tế.
-- Lời gọi reflective `getMethod("message").invoke(null)` hợp lệ vì lớp và phương thức là `public`, còn package `com.example.greeting.api` được `exports`.
+- `ModuleFinder.of(Path.of("build/modules"))` locates compiled modules in the directory containing the sub-modules.
+- `boot.configuration().resolve(...)` uses the boot layer's configuration as the parent; the required platform modules are resolved according to dependency relationships.
+- `boot.defineModulesWithOneLoader(...)` creates the child layer and a new class loader. `ClassLoader.getSystemClassLoader()` here is the **parent loader**, which is not synonymous with the loader returned by `child.findLoader(...)`.
+- `clazz.getModule()` returns the module that defined that class. `module.getLayer() == child` and `module.getClassLoader() == loader` confirm the actual mapping.
+- The reflective call `getMethod("message").invoke(null)` is valid because the class and method are `public`, and the `com.example.greeting.api` package is `exports`-ed.
 
-Trong ví dụ này, gọi `Class.forName("com.example.greeting.api.Greeter")` từ `app.Main` bằng loader mặc định có thể thất bại: loader đang chạy ứng dụng trên classpath không tự tìm vào loader con của `ModuleLayer`. Hãy lấy loader từ đúng layer.
+In this example, calling `Class.forName("com.example.greeting.api.Greeter")` from `app.Main` using the default loader can fail: the loader running the application on the classpath does not automatically search into the child loader of a `ModuleLayer`. Obtain the loader from the right layer.
 
-## 5. Quy tắc tra cứu module và loader
+## 5. Module and Loader Lookup Rules
 
 ```java
-ModuleLayer layer = /* layer đã tạo */;
+ModuleLayer layer = /* created layer */;
 
 Module module = layer.findModule("com.example.greeting")
     .orElseThrow();
@@ -202,53 +202,53 @@ System.out.println(module.getName());
 System.out.println(module.getClassLoader() == loader);
 ```
 
-`findModule(name)` tìm module trong layer và có thể đi lên các layer cha. `findLoader(name)` yêu cầu tên module **được định nghĩa ngay trong layer nhận lời gọi**; nếu tên module không có ở layer đó, phương thức ném `IllegalArgumentException`. Vì vậy, nếu cần loader của một module thuộc layer cha, hãy tra cứu trên chính layer đã định nghĩa module đó.
+`findModule(name)` searches for a module in the layer and can traverse up to parent layers. `findLoader(name)` requires the module name **to be defined directly in the receiving layer**; if the module name is not in that layer, the method throws `IllegalArgumentException`. Therefore, if you need the loader of a module belonging to a parent layer, look it up on the layer that actually defined that module.
 
-Không phải module nào cũng dùng class loader do ứng dụng tạo. Các module nền tảng có thể được nạp bởi bootstrap class loader; với trường hợp đó, `Module.getClassLoader()` hoặc `findLoader(...)` có thể trả về `null`. `null` trong ngữ cảnh này không có nghĩa là module chưa được nạp.
+Not every module uses an application-created class loader. Platform modules may be loaded by the bootstrap class loader; in that case, `Module.getClassLoader()` or `findLoader(...)` can return `null`. `null` in this context does not mean the module has not been loaded.
 
-Một layer có thể chứa nhiều module; một module thuộc đúng một layer tại thời điểm nó được định nghĩa. Hai layer khác nhau có thể chứa module **cùng tên** nhưng là những đối tượng `Module` khác nhau, với lớp và loader riêng. Do đó, khi quản lý plugin, khóa nhận dạng theo mỗi tên module đơn lẻ thường chưa đủ: phải xét layer chứa module.
+A layer can contain multiple modules; a module belongs to exactly one layer at the time it is defined. Two different layers can contain modules **with the same name**, yet they are distinct `Module` objects with separate classes and loaders. Consequently, when managing plugins, keying solely by a single module name is often insufficient: you must consider the layer containing the module.
 
-## 6. Phân biệt tải lớp, đọc module và truy cập package
+## 6. Distinguishing Class Loading, Module Readability, and Package Access
 
-Đúng loader chỉ giải quyết việc **tìm và định nghĩa lớp**. Việc chương trình có được phép sử dụng lớp hay thành viên của nó còn phụ thuộc vào quy tắc JPMS:
+Having the right loader only solves **locating and defining the class**. Whether the program is allowed to use the class or its members also depends on JPMS rules:
 
-- `requires` thiết lập quan hệ module này đọc module khác; `Configuration` phân giải đồ thị đó.
-- `exports p` cho phép mã ở module khác truy cập các kiểu `public` trong package `p` theo quy tắc của module.
-- `opens p` hỗ trợ truy cập phản chiếu sâu vào package `p`; `exports` thông thường không cấp quyền truy cập vào thành viên `private`.
-- `uses` và `provides ... with ...` khai báo giao tiếp dịch vụ. `ServiceLoader.load(layer, ServiceType.class)` là một cách tìm provider nằm trong layer được cung cấp.
+- `requires` establishes the relationship where one module reads another; `Configuration` resolves that graph.
+- `exports p` allows code in other modules to access `public` types in package `p` according to module rules.
+- `opens p` enables deep reflective access to package `p`; ordinary `exports` does not grant access to `private` members.
+- `uses` and `provides ... with ...` declare service interactions. `ServiceLoader.load(layer, ServiceType.class)` is one way to find providers located in the given layer.
 
-Vì vậy, `loader.loadClass("a.b.C")` có thể tìm được đối tượng `Class` nhưng thao tác truy cập `C` vẫn thất bại khi package không được export hoặc open thích hợp. Việc nạp lớp thành công không xóa bỏ kiểm soát truy cập theo module.
+Therefore, `loader.loadClass("a.b.C")` can find the `Class` object, yet operations accessing `C` still fail when the package is not appropriately exported or opened. Successful class loading does not bypass module access control.
 
-## 7. Khi nào nên tạo layer riêng?
+## 7. When Should You Create a Separate Layer?
 
-**Hệ thống plugin.** Mỗi nhóm plugin có thể được giải quyết thành một `Configuration` rồi định nghĩa trong một layer con. Ứng dụng giữ lại layer và gọi `findLoader` khi cần nạp entry point của plugin. Muốn nhận các implementation theo chuẩn dịch vụ, ưu tiên `ServiceLoader` thay vì hardcode tên lớp.
+**Plugin systems.** Each group of plugins can be resolved into a `Configuration` and then defined in a child layer. The application retains the layer and calls `findLoader` when it needs to load a plugin's entry point. To receive implementations according to the standard service pattern, prefer `ServiceLoader` rather than hard-coding class names.
 
-**Nhiều phiên bản thư viện.** Những tập module ở layer khác nhau có thể có tên trùng nhau nhưng không chia sẻ cùng định danh lớp. Đây là công cụ để thiết kế việc cô lập phụ thuộc, với điều kiện các dependency và loader delegation được tổ chức phù hợp. Hai lớp cùng tên binary nhưng được định nghĩa bởi hai loader khác nhau không phải cùng một kiểu đối với JVM.
+**Multiple library versions.** Sets of modules in different layers can share the same names without sharing the same class identities. This is a tool for designing dependency isolation, provided that dependencies and loader delegation are organized properly. Two classes with the same binary name defined by two different loaders are not the same type to the JVM.
 
-**Ứng dụng chia thành nhóm tính năng.** Có thể dùng `defineModulesWithOneLoader` để nhóm module liên quan hoặc `defineModulesWithManyLoaders` để tách loader theo module. Lựa chọn phải phản ánh nhu cầu về tính tương thích kiểu, giải quyết phụ thuộc và tài nguyên.
+**Applications split into feature groups.** You can use `defineModulesWithOneLoader` to group related modules or `defineModulesWithManyLoaders` to separate loaders per module. The choice must reflect requirements for type compatibility, dependency resolution, and resources.
 
-Một `ModuleLayer` không tự thực hiện hot reload. Để thay một phiên bản module đã nạp, ứng dụng thường tạo configuration/layer/loader mới và chuyển tham chiếu sang đối tượng mới. Layer và các class loader cũ chỉ có thể được thu gom rác khi ứng dụng không còn giữ các tham chiếu ngăn việc thu gom.
+A `ModuleLayer` does not perform hot reload on its own. To replace an already loaded module version, an application typically creates a new configuration/layer/loader and switches references to the new objects. The old layer and class loaders can only be garbage-collected when the application no longer holds references preventing collection.
 
-## 8. Lỗi thường gặp và cách kiểm tra
+## 8. Common Errors and How to Diagnose Them
 
-| Hiện tượng | Nguyên nhân khả dĩ | Hướng xử lý |
+| Symptom | Possible cause | How to address |
 | --- | --- | --- |
-| `FindException`: không tìm thấy module | Sai đường dẫn module path, tên root module hoặc thiếu module artifact. | Kiểm tra `ModuleFinder.of(...)`, thư mục đầu ra và tên trong `module-info.java`. |
-| `ResolutionException` khi `resolve` | Đồ thị phụ thuộc hoặc tập module không hợp lệ. | Kiểm tra `requires`, các module cùng tham gia và thông báo resolution cụ thể. |
-| `LayerInstantiationException` khi định nghĩa layer | Ánh xạ module → loader không hợp lệ, chẳng hạn package xung đột trong cùng loader. | Kiểm tra trùng package và chiến lược `one/many/custom loader`. |
-| `IllegalArgumentException` từ `findLoader` | Tra cứu module không thuộc layer hiện tại. | Lấy đúng layer đã định nghĩa module; đối chiếu bằng `module.getLayer()`. |
-| `ClassNotFoundException` | Dùng sai loader hoặc sai tên đầy đủ của lớp. | Lấy loader bằng `layer.findLoader(moduleName)` và dùng tên lớp đầy đủ dạng `package.ClassName`. |
-| `IllegalAccessException` / `InaccessibleObjectException` | Quy tắc `exports`/`opens` hoặc mức truy cập của lớp, thành viên không cho phép thao tác. | Kiểm tra API public, descriptor module và loại reflection đang sử dụng. |
-| `ClassCastException` giữa hai lớp có tên giống nhau | Hai loader đã định nghĩa hai đối tượng `Class` khác nhau. | Dùng API chia sẻ có cùng danh tính lớp và thiết kế ranh giới loader rõ ràng. |
+| `FindException`: module not found | Wrong module path, wrong root module name, or missing module artifact. | Check `ModuleFinder.of(...)`, output directories, and the name in `module-info.java`. |
+| `ResolutionException` during `resolve` | Invalid dependency graph or module set. | Check `requires`, participating modules, and the specific resolution message. |
+| `LayerInstantiationException` when defining a layer | Invalid module → loader mapping, such as conflicting packages in the same loader. | Check for duplicate packages and the `one/many/custom loader` strategy. |
+| `IllegalArgumentException` from `findLoader` | Looking up a module that does not belong to the current layer. | Retrieve the exact layer that defined the module; verify with `module.getLayer()`. |
+| `ClassNotFoundException` | Wrong loader or wrong fully qualified class name. | Obtain the loader via `layer.findLoader(moduleName)` and use the fully qualified class name in `package.ClassName` form. |
+| `IllegalAccessException` / `InaccessibleObjectException` | `exports`/`opens` rules or member/class visibility do not allow the operation. | Check the public API, module descriptor, and type of reflection being used. |
+| `ClassCastException` between two classes with the same name | Two loaders defined two different `Class` objects. | Use a shared API with the same class identity and design clear loader boundaries. |
 
-Không chữa lỗi truy cập bằng cách tự động mở toàn bộ package hoặc chuyển mọi module về cùng loader. Cần xác định trước vấn đề thuộc **resolution**, **loader mapping**, **class identity** hay **module access**.
+Do not fix access errors by blindly opening every package or moving every module into the same loader. First determine whether the issue belongs to **resolution**, **loader mapping**, **class identity**, or **module access**.
 
-## 9. Ghi nhớ khi triển khai
+## 9. Implementation Takeaways
 
-1. `ModuleFinder` tìm module, `Configuration` giải quyết phụ thuộc, `ModuleLayer` định nghĩa module và gắn loader, `ClassLoader` nạp lớp.
-2. Để biết loader của module được định nghĩa trong layer: `layer.findLoader(moduleName)`. Để kiểm tra một lớp đã nạp: `clazz.getModule().getClassLoader()`.
-3. Chọn `defineModulesWithOneLoader` khi muốn các module mới dùng chung loader; chọn `defineModulesWithManyLoaders` khi muốn mỗi module có loader riêng; chỉ dùng mapping tùy chỉnh khi kiểm soát được class loader.
-4. Phân biệt **layer parent**, **loader parent**, **readability** và **exports/opens** vì chúng giải quyết các vấn đề khác nhau.
-5. Khi debug, in `clazz.getName()`, `clazz.getModule().getName()`, `clazz.getModule().getLayer()` và `clazz.getClassLoader()`; dữ liệu này giúp biết lớp thực sự do module/layer/loader nào định nghĩa.
+1. `ModuleFinder` locates modules, `Configuration` resolves dependencies, `ModuleLayer` defines modules and attaches loaders, and `ClassLoader` loads classes.
+2. To get the loader of a module defined in a layer: `layer.findLoader(moduleName)`. To inspect a loaded class: `clazz.getModule().getClassLoader()`.
+3. Choose `defineModulesWithOneLoader` when you want new modules to share a loader; choose `defineModulesWithManyLoaders` when you want each module to have its own loader; use custom mapping only when you control the class loaders.
+4. Distinguish **layer parent**, **loader parent**, **readability**, and **exports/opens** because they solve different problems.
+5. When debugging, print `clazz.getName()`, `clazz.getModule().getName()`, `clazz.getModule().getLayer()`, and `clazz.getClassLoader()`; this data shows which module/layer/loader actually defined the class.
 
-**API nên tra cứu thêm:** `java.lang.ModuleLayer`, `java.lang.ModuleLayer.Controller`, `java.lang.Module`, `java.lang.ClassLoader`, `java.lang.module.Configuration`, `java.lang.module.ModuleFinder` và `java.util.ServiceLoader` trong tài liệu JDK đang dùng.
+**APIs for further reference:** `java.lang.ModuleLayer`, `java.lang.ModuleLayer.Controller`, `java.lang.Module`, `java.lang.ClassLoader`, `java.lang.module.Configuration`, `java.lang.module.ModuleFinder`, and `java.util.ServiceLoader` in the documentation for the JDK you are using.

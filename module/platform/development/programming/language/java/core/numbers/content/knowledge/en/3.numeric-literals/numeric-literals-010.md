@@ -1,97 +1,97 @@
-# Đọc mẫu bit của literal hex khi bit dấu được bật trong Java
+# Reading Bit Patterns of Hex Literals with the Sign Bit Set in Java
 
-Với Java, literal thập lục phân như `0x8000_0000` thường khiến người mới học ngạc nhiên: khi in ra dưới dạng `int`, kết quả là **-2_147_483_648** chứ không phải số dương 2_147_483_648. Tương tự, `0xFFFF_FFFF` có giá trị **-1** nếu là `int`; nhưng `0xFFFF_FFFFL` có giá trị **4_294_967_295** khi là `long`.
+In Java, a hexadecimal literal like `0x8000_0000` often surprises beginners: when printed as an `int`, the result is **-2_147_483_648** rather than positive 2_147_483_648. Similarly, `0xFFFF_FFFF` has the value **-1** as an `int`; yet `0xFFFF_FFFFL` has the value **4_294_967_295** as a `long`.
 
-Không có sự thay đổi tùy ý của các chữ số hex. Điều cần xác định là **mẫu bit có bao nhiêu bit, bit cao nhất của kiểu có được bật hay không, và ta đang đọc mẫu bit đó như số nguyên có dấu hay không dấu**.
+There is no arbitrary alteration of hex digits happening. What matters is **how many bits the pattern has, whether the type's highest bit is set, and whether we are reading that bit pattern as a signed or unsigned integer**.
 
-## 1. Từ chữ số hex đến mẫu bit
+## 1. From Hex Digits to Bit Patterns
 
-Hệ thập lục phân có 16 ký hiệu `0`–`9` và `A`–`F`. Mỗi chữ số hex tương ứng **4 bit**. Ví dụ:
+Hexadecimal has 16 symbols `0`–`9` and `A`–`F`. Each hex digit corresponds to **4 bits**. For example:
 
-| Hex | Nhị phân 4 bit | Giá trị hex |
+| Hex | 4-Bit Binary | Hex Value |
 | --- | --- | ---: |
 | `0` | `0000` | 0 |
 | `7` | `0111` | 7 |
 | `8` | `1000` | 8 |
 | `F` | `1111` | 15 |
 
-Mỗi chữ số hex ghép vào mẫu bit theo thứ tự từ trái sang phải. Ví dụ, `0x8000_0000` tương ứng mẫu `10000000 00000000 00000000 00000000` (32 bit): chỉ bit ở vị trí cao nhất được bật. `0xFFFF_FFFF` biểu diễn 32 bit bằng 1.
+Each hex digit combines into the bit pattern from left to right. For example, `0x8000_0000` corresponds to `10000000 00000000 00000000 00000000` (32 bits): only the bit in the highest position is set. `0xFFFF_FFFF` represents 32 bits all equal to 1.
 
-Tiền tố `0x` (hoặc `0X`) chỉ cho trình biên dịch biết literal dùng **cơ số 16**; chữ `L` cuối literal chọn kiểu `long`. Dấu gạch dưới `_` chỉ giúp nhóm chữ số cho dễ đọc: `0xFFFF_FFFF` và `0xFFFFFFFF` hoàn toàn tương đương.
+The `0x` (or `0X`) prefix simply tells the compiler the literal uses **base 16**; the trailing `L` selects type `long`. Underscores `_` only group digits for readability: `0xFFFF_FFFF` and `0xFFFFFFFF` are completely equivalent.
 
-## 2. Phạm vi của `int` và `long`: bit nào là bit dấu?
+## 2. Ranges of `int` and `long`: Which Bit Is the Sign Bit?
 
-Java dùng kiểu nguyên có dấu `int` **32 bit** và `long` **64 bit**, với biểu diễn **bù hai (two's complement)**. Vị trí bit được đánh số từ 0 ở phía phải.
+Java uses signed **32-bit** `int` and **64-bit** `long` integer types, with **two's complement** representation. Bit positions are numbered starting from 0 on the right.
 
-| Kiểu | Tổng số bit | Bit dấu | Mẫu có bit dấu = 0 | Mẫu có bit dấu = 1 |
+| Type | Total Bits | Sign Bit | Pattern with Sign Bit = 0 | Pattern with Sign Bit = 1 |
 | --- | ---: | ---: | --- | --- |
-| `int` | 32 | bit 31 | Giá trị không âm | Giá trị âm |
-| `long` | 64 | bit 63 | Giá trị không âm | Giá trị âm |
+| `int` | 32 | bit 31 | Non-negative value | Negative value |
+| `long` | 64 | bit 63 | Non-negative value | Negative value |
 
-- `0x7FFF_FFFF`: bit 31 bằng 0, giá trị `int` bằng **2_147_483_647**.
-- `0x8000_0000`: bit 31 bằng 1, giá trị `int` bằng **-2_147_483_648** (`Integer.MIN_VALUE`).
-- `0xFFFF_FFFF`: mọi bit đều bằng 1, giá trị `int` bằng **-1**.
-- `0x7FFF_FFFF_FFFF_FFFFL`: bit 63 bằng 0, giá trị `long` bằng **9_223_372_036_854_775_807**.
-- `0x8000_0000_0000_0000L`: bit 63 bằng 1, giá trị `long` bằng **-9_223_372_036_854_775_808** (`Long.MIN_VALUE`).
-- `0xFFFF_FFFF_FFFF_FFFFL`: mọi bit đều bằng 1, giá trị `long` bằng **-1**.
+- `0x7FFF_FFFF`: bit 31 is 0, `int` value equals **2_147_483_647**.
+- `0x8000_0000`: bit 31 is 1, `int` value equals **-2_147_483_648** (`Integer.MIN_VALUE`).
+- `0xFFFF_FFFF`: all bits are 1, `int` value equals **-1**.
+- `0x7FFF_FFFF_FFFF_FFFFL`: bit 63 is 0, `long` value equals **9_223_372_036_854_775_807**.
+- `0x8000_0000_0000_0000L`: bit 63 is 1, `long` value equals **-9_223_372_036_854_775_808** (`Long.MIN_VALUE`).
+- `0xFFFF_FFFF_FFFF_FFFFL`: all bits are 1, `long` value equals **-1**.
 
-**Quan trọng:** một chữ số hex bắt đầu bằng `8` hoặc `F` **không tự động** biến cả literal thành số âm. Chẳng hạn `0x8` là `int` dương 8, `0xFF` là `int` dương 255, vì bit dấu ở vị trí 31 vẫn bằng 0. Chỉ khi bit dấu của **độ rộng kiểu thực tế** được bật thì diễn giải có dấu mới là âm. Đối với `int`, 8 chữ số hex có thể phủ hết 32 bit; đối với `long`, 16 chữ số hex có thể phủ hết 64 bit.
+**Important:** a hex literal starting with `8` or `F` does **not automatically** make the entire literal negative. For instance, `0x8` is positive `int` 8, and `0xFF` is positive `int` 255, because the sign bit at position 31 is still 0. Only when the sign bit of the **actual type width** is set does signed interpretation become negative. For `int`, 8 hex digits cover all 32 bits; for `long`, 16 hex digits cover all 64 bits.
 
-## 3. Đọc số có dấu từ mẫu bit bù hai
+## 3. Reading Signed Numbers from Two's Complement Bit Patterns
 
-Hãy tưởng tượng cùng một mẫu bit có giá trị **không dấu** `U` với độ rộng `w` bit. Giá trị **có dấu** là:
+Imagine the same bit pattern has an **unsigned** value `U` of width `w` bits. The **signed** value is:
 
 ```text
-signed = U                  nếu bit dấu = 0
-signed = U - 2^w            nếu bit dấu = 1
+signed = U                  if sign bit = 0
+signed = U - 2^w            if sign bit = 1
 ```
 
-Với `int` (`w = 32`):
+For `int` (`w = 32`):
 
-1. `0x8000_0000` có giá trị không dấu `U = 2^31 = 2_147_483_648`. Vì bit 31 bằng 1, giá trị có dấu là `2_147_483_648 - 4_294_967_296 = -2_147_483_648`.
-2. `0xFFFF_FFFF` có giá trị không dấu `U = 2^32 - 1 = 4_294_967_295`. Giá trị có dấu là `4_294_967_295 - 4_294_967_296 = -1`.
-3. `0xF000_0000` có giá trị không dấu `4_026_531_840`, còn giá trị có dấu là **-268_435_456**.
+1. `0x8000_0000` has unsigned value `U = 2^31 = 2_147_483_648`. Since bit 31 is 1, the signed value is `2_147_483_648 - 4_294_967_296 = -2_147_483_648`.
+2. `0xFFFF_FFFF` has unsigned value `U = 2^32 - 1 = 4_294_967_295`. The signed value is `4_294_967_295 - 4_294_967_296 = -1`.
+3. `0xF000_0000` has unsigned value `4_026_531_840`, while its signed value is **-268_435_456**.
 
-Với `long` (`w = 64`), `0x8000_0000_0000_0000L` là `-2^63`, còn `0xFFFF_FFFF_FFFF_FFFFL` là `-1L`. Nếu diễn giải mẫu toàn bit 1 dưới dạng **không dấu 64 bit**, giá trị của nó là `2^64 - 1 = 18_446_744_073_709_551_615`; giá trị này không chứa được trong `long` dương có dấu.
+For `long` (`w = 64`), `0x8000_0000_0000_0000L` is `-2^63`, and `0xFFFF_FFFF_FFFF_FFFFL` is `-1L`. If the all-ones pattern is interpreted as **unsigned 64-bit**, its value is `2^64 - 1 = 18_446_744_073_709_551_615`; that value cannot fit in a positive signed `long`.
 
-Đây là **hai cách diễn giải cùng mẫu bit**. Java không cần đảo bit hoặc sửa literal để in ra số âm: cách đọc là hệ quả của định nghĩa kiểu `int` và `long`.
+These are **two interpretations of the same bit pattern**. Java does not need to flip bits or alter the literal to print a negative number: the interpretation follows directly from the definition of `int` and `long`.
 
-## 4. Vì sao literal hex có thể bật bit dấu mà vẫn hợp lệ?
+## 4. Why Can Hex Literals Set the Sign Bit and Remain Valid?
 
-Ở literal **thập phân**, `2_147_483_648` không có hậu tố `L` thường vượt phạm vi `int` và gây lỗi biên dịch. Ở literal **không thập phân** như hex, Java cho phép mô tả trực tiếp mẫu 32 bit của `int`, kể cả bit cao nhất bằng 1. Vì vậy đoạn sau hợp lệ:
+In **decimal** literals, `2_147_483_648` without an `L` suffix normally exceeds the `int` range and causes a compile error. In **non-decimal** literals like hex, Java allows directly describing the 32-bit pattern of an `int`, including having the highest bit set to 1. Therefore, the following snippet is valid:
 
 ```java
 int a = 0x8000_0000; // -2147483648
 int b = 0xFFFF_FFFF; // -1
 ```
 
-Hai dòng trên là **mảnh mã** có thể đặt trong phương thức. Không nên suy rằng `0xFFFF_FFFF` lớn hơn `Integer.MAX_VALUE` sẽ làm Java tự nâng thành `long`: literal không `L` vẫn thuộc `int`, và diễn giải thành số âm theo mẫu bit. Tuy nhiên, mẫu đòi hỏi hơn 32 bit **có nghĩa** không thể dùng làm `int` literal, chẳng hạn `0x1_0000_0000` (không có `L`) không hợp lệ; dạng `0x1_0000_0000L` là `long` hợp lệ.
+The two lines above are a **code fragment** that can be placed inside a method. Do not assume that `0xFFFF_FFFF` being greater than `Integer.MAX_VALUE` makes Java promote it to `long`: a literal without `L` still belongs to `int`, and is interpreted as a negative number according to its bit pattern. However, a pattern requiring more than 32 **significant** bits cannot be used as an `int` literal—for example, `0x1_0000_0000` (without `L`) is invalid; `0x1_0000_0000L` is a valid `long`.
 
-Với `long`, literal hex có hậu tố `L` có thể mô tả mẫu 64 bit, kể cả bật bit 63:
+For `long`, a hex literal with the `L` suffix can describe a 64-bit pattern, including setting bit 63:
 
 ```java
 long c = 0x8000_0000_0000_0000L; // Long.MIN_VALUE
 long d = 0xFFFF_FFFF_FFFF_FFFFL; // -1L
 ```
 
-Chữ `L` xác định **độ rộng 64 bit**, không có nghĩa “giá trị chắc chắn dương”. Nếu bit 63 bằng 1, một `long` vẫn là số âm.
+The letter `L` specifies **64-bit width**, and does not mean "guaranteed positive value." If bit 63 is 1, a `long` is still a negative number.
 
-## 5. Cùng chữ số hex nhưng thêm `L` có thể đổi kết quả
+## 5. Same Hex Digits, Adding `L` Can Change the Result
 
-Một tình huống quan trọng là so sánh **`0xFFFF_FFFF`** với **`0xFFFF_FFFFL`**:
+An important case is comparing **`0xFFFF_FFFF`** with **`0xFFFF_FFFFL`**:
 
-| Biểu thức | Kiểu literal | Mẫu bit của kiểu | Giá trị có dấu |
+| Expression | Literal Type | Bit Pattern of Type | Signed Value |
 | --- | --- | --- | ---: |
-| `0xFFFF_FFFF` | `int` | 32 bit 1 | -1 |
-| `0xFFFF_FFFFL` | `long` | 32 bit thấp 1, **32 bit cao 0** | 4_294_967_295 |
-| `0x8000_0000` | `int` | chỉ bit 31 bằng 1 | -2_147_483_648 |
-| `0x8000_0000L` | `long` | chỉ bit 31 bằng 1; bit 63 bằng 0 | 2_147_483_648 |
+| `0xFFFF_FFFF` | `int` | 32 bits of 1 | -1 |
+| `0xFFFF_FFFFL` | `long` | low 32 bits 1, **high 32 bits 0** | 4_294_967_295 |
+| `0x8000_0000` | `int` | only bit 31 is 1 | -2_147_483_648 |
+| `0x8000_0000L` | `long` | only bit 31 is 1; bit 63 is 0 | 2_147_483_648 |
 
-Đây chính là lý do cần nhìn **kiểu literal** trước khi kết luận một chữ số hex biểu diễn số âm hay dương. Chẳng hạn `0x8000_0000` có bit 31 bật nên âm đối với `int`. Nhưng `0x8000_0000L` là `long`: bit 31 chỉ là một bit giá trị, còn bit dấu 63 bằng 0, nên dương.
+This is precisely why you must look at **the literal type** before concluding whether hex digits represent a negative or positive number. For example, `0x8000_0000` has bit 31 set, so it is negative for `int`. However, `0x8000_0000L` is `long`: bit 31 is just a value bit, while sign bit 63 is 0, so it is positive.
 
-## 6. Gán `int` âm vào `long`: mở rộng dấu và mở rộng bằng 0
+## 6. Assigning Negative `int` to `long`: Sign Extension vs. Zero Extension
 
-Khi chuyển `int` âm sang `long`, Java dùng **mở rộng dấu (sign extension)**: giữ nguyên giá trị số học bằng cách điền thêm bit 1 ở phía cao. Vì vậy:
+When converting a negative `int` to `long`, Java uses **sign extension**: preserving the arithmetic value by filling the upper bits with 1s. Therefore:
 
 ```java
 int bits = 0xFFFF_FFFF;                 // -1
@@ -100,18 +100,18 @@ long unsigned = Integer.toUnsignedLong(bits); // 4294967295L
 long masked = bits & 0xFFFF_FFFFL;      // 4294967295L
 ```
 
-Các khai báo này là mảnh mã. Với `signed`, mẫu `int` gồm 32 bit 1 được sign-extend thành `0xFFFF_FFFF_FFFF_FFFF` (64 bit 1), vẫn mang giá trị `-1L`. Với `unsigned` và `masked`, mục tiêu là **diễn giải 32 bit gốc như số không dấu**, tức điền 32 bit cao bằng 0 để có `0x0000_0000_FFFF_FFFF` = `4_294_967_295L`.
+These declarations are a code fragment. For `signed`, the `int` pattern of 32 ones is sign-extended to `0xFFFF_FFFF_FFFF_FFFF` (64 ones), retaining the value `-1L`. For `unsigned` and `masked`, the goal is **interpreting the original 32 bits as an unsigned number**, i.e., filling the upper 32 bits with 0 to get `0x0000_0000_FFFF_FFFF` = `4_294_967_295L`.
 
-Hai cách chuyển quan trọng khi giữ nguyên thông tin mẫu bit:
+Two important ways to convert while preserving bit-pattern information:
 
-- `Integer.toUnsignedLong(bits)`: thể hiện rõ ý định coi 32 bit của `int` như một giá trị không dấu từ 0 tới `2^32 - 1`.
-- `bits & 0xFFFF_FFFFL`: thực hiện phép AND với một mặt nạ **`long`**, khiến phép toán ở 64 bit và chỉ giữ 32 bit thấp. Nếu dùng `bits & 0xFFFF_FFFF` (hai toán hạng đều `int`) thì vẫn nhận `int` có dấu; phép gán tiếp sang `long` lại mở rộng dấu.
+- `Integer.toUnsignedLong(bits)`: clearly expresses the intent to treat the 32 bits of `int` as an unsigned value from 0 to `2^32 - 1`.
+- `bits & 0xFFFF_FFFFL`: performs a bitwise AND with a **`long`** mask, forcing the operation to 64 bits and keeping only the low 32 bits. Using `bits & 0xFFFF_FFFF` (both operands `int`) still yields a signed `int`; subsequent assignment to `long` will sign-extend it again.
 
-Đừng nhầm **`long signed = 0xFFFF_FFFF;`** với **`long unsigned = 0xFFFF_FFFFL;`**. Trong trường hợp đầu, literal là `int` -1 rồi được mở rộng dấu thành `long` -1; trong trường hợp sau, bản thân literal là `long` dương `4_294_967_295L`.
+Do not confuse **`long signed = 0xFFFF_FFFF;`** with **`long unsigned = 0xFFFF_FFFFL;`**. In the first case, the literal is `int` -1 which gets sign-extended to `long` -1; in the latter case, the literal itself is positive `long` `4_294_967_295L`.
 
-## 7. Chương trình hoàn chỉnh chạy trên Java 17+
+## 7. Complete Program Runnable on Java 17+
 
-Tạo tệp **`HexSignBitDemo.java`** với nội dung sau:
+Create the file **`HexSignBitDemo.java`** with the following content:
 
 ```java
 public class HexSignBitDemo {
@@ -148,14 +148,14 @@ public class HexSignBitDemo {
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa tệp:
+Compile and run from the directory containing the file:
 
 ```bash
 javac --release 17 -encoding UTF-8 HexSignBitDemo.java
 java HexSignBitDemo
 ```
 
-Kết quả stdout:
+Stdout output:
 
 ```text
 max positive int=2147483647
@@ -178,18 +178,18 @@ unsigned right shift=1
 parse unsigned hex=4294967295
 ```
 
-Các dòng đáng chú ý:
+Notable lines:
 
-- `int hex=80000000` và `int binary=1000...` cho thấy **mẫu bit 32 bit**; dòng `int sign bit=-2147483648` cho thấy **giá trị có dấu** của chính mẫu đó.
-- `widened hex=ffffffffffffffff` minh họa mở rộng dấu của `int` -1 sang `long`; `zero extended hex=ffffffff` hiển thị không có chữ số 0 dẫn đầu, nhưng giá trị tương đương mẫu 64 bit `00000000ffffffff`.
-- `same digits with L=4294967295` cho thấy khi literal được khai báo là `long` ngay từ đầu, bit dấu 63 không được bật.
-- `long all ones=-1` nhưng `long all ones unsigned=18446744073709551615` là hai cách hiển thị có dấu và không dấu của **cùng 64 bit toàn 1**.
-- `unsigned mask=2147483648` minh họa mặt nạ `long` giữ giá trị không dấu của `0x8000_0000`.
-- `signed right shift=-1` và `unsigned right shift=1` cho thấy khác biệt giữa `>>` và `>>>` khi dịch bit của số âm.
+- `int hex=80000000` and `int binary=1000...` show the **32-bit pattern**; `int sign bit=-2147483648` shows the **signed value** of that exact pattern.
+- `widened hex=ffffffffffffffff` illustrates sign extension of `int` -1 to `long`; `zero extended hex=ffffffff` displays without leading zeros, yet its value equals the 64-bit pattern `00000000ffffffff`.
+- `same digits with L=4294967295` shows that when the literal is declared as `long` from the outset, sign bit 63 is not set.
+- `long all ones=-1` vs. `long all ones unsigned=18446744073709551615` are signed and unsigned displays of **the same 64 all-one bits**.
+- `unsigned mask=2147483648` illustrates a `long` mask preserving the unsigned value of `0x8000_0000`.
+- `signed right shift=-1` and `unsigned right shift=1` show the difference between `>>` and `>>>` when shifting bits of a negative number.
 
-## 8. In ra mẫu bit thay vì chỉ xem giá trị thập phân
+## 8. Printing Bit Patterns Instead of Only Viewing Decimal Values
 
-`System.out.println(value)` sử dụng giá trị `int`/`long` **có dấu**. Khi cần quan sát mẫu bit, dùng:
+`System.out.println(value)` uses the **signed** `int`/`long` value. When you need to observe the bit pattern, use:
 
 ```java
 int x = 0x8000_0000;
@@ -198,27 +198,27 @@ System.out.println(Integer.toBinaryString(x)); // "10000000000000000000000000000
 System.out.printf("%08X%n", x);                // 80000000
 ```
 
-Đây là các câu lệnh đặt trong `main`. `Integer.toHexString` và `Integer.toBinaryString` cho chuỗi biểu diễn mẫu bit theo cơ số tương ứng; `printf("%08X%n", x)` yêu cầu ít nhất 8 ký tự hex, thêm các số 0 dẫn đầu nếu thiếu. Với `long`, có thể dùng `Long.toHexString(value)` hoặc `%016X` nếu muốn hiển thị đủ 16 chữ số.
+These are statements placed inside `main`. `Integer.toHexString` and `Integer.toBinaryString` return strings representing the bit pattern in the respective base; `printf("%08X%n", x)` requests at least 8 hex characters, padding with leading zeros if needed. For `long`, you can use `Long.toHexString(value)` or `%016X` if you want all 16 hex digits displayed.
 
-Phân biệt **hình thức trình bày** và **giá trị lưu**: `Integer.toHexString(-1)` là `"ffffffff"`, không có dấu trừ, nhưng `Integer.toString(-1)` là `"-1"`. Chỉ vì chuỗi hex không có dấu `-` không có nghĩa số `int` hiện tại dương.
+Distinguish **display representation** from **stored value**: `Integer.toHexString(-1)` is `"ffffffff"`, with no minus sign, yet `Integer.toString(-1)` is `"-1"`. Just because a hex string has no `-` sign does not mean the current `int` number is positive.
 
-## 9. Dịch phải có dấu và dịch phải không dấu
+## 9. Signed Right Shift vs. Unsigned Right Shift
 
-Khi bit dấu đã bật, hai toán tử dịch phải có ý nghĩa khác nhau:
+When the sign bit is set, the two right-shift operators have different semantics:
 
 ```java
 int x = 0x8000_0000;
-int arithmetic = x >> 31; // -1: điền thêm 1 ở phía trái.
-int logical = x >>> 31;   // 1: điền thêm 0 ở phía trái.
+int arithmetic = x >> 31; // -1: fills with 1s on the left.
+int logical = x >>> 31;   // 1: fills with 0s on the left.
 ```
 
-`>>` là **dịch phải giữ dấu (arithmetic shift)**; `>>>` là **dịch phải không giữ dấu (logical shift)**. Hai toán tử này đều làm việc với mẫu bit, còn cách biểu diễn kết quả vẫn phụ thuộc kiểu `int` hoặc `long` của toán hạng. Chúng không thay đổi kiểu của biến thành kiểu “unsigned”; Java vẫn lưu `int`/`long` có dấu.
+`>>` is **signed (arithmetic) right shift**; `>>>` is **unsigned (logical) right shift**. Both operators work on bit patterns, while the interpretation of the result still depends on the operand's `int` or `long` type. They do not change a variable's type into an "unsigned" type; Java still stores signed `int`/`long`.
 
-Để kiểm tra bit dấu của `int`, có thể viết `(x & 0x8000_0000) != 0` hoặc đơn giản `x < 0`. Với `long`, dùng mặt nạ `0x8000_0000_0000_0000L`. Đừng dùng `x > 0` để phát hiện xem bất kỳ bit nào được bật: ví dụ `-1` có **mọi bit bật** nhưng lại nhỏ hơn 0.
+To test the sign bit of an `int`, you can write `(x & 0x8000_0000) != 0` or simply `x < 0`. For `long`, use the mask `0x8000_0000_0000_0000L`. Never use `x > 0` to detect whether any bit is set: for example, `-1` has **all bits set** yet is less than 0.
 
-## 10. Đọc hex từ chuỗi và giữ cách diễn giải không dấu
+## 10. Parsing Hex from Strings and Preserving Unsigned Interpretation
 
-Khi giá trị hex nằm trong văn bản, phải phân biệt cách phân tích có dấu/không dấu:
+When a hex value is in text, distinguish signed vs. unsigned parsing:
 
 ```java
 int signedBits = Integer.parseUnsignedInt("FFFFFFFF", 16);
@@ -227,32 +227,32 @@ long unsignedValue = Integer.toUnsignedLong(signedBits);   // 4294967295L
 long parsedLong = Long.parseLong("FFFFFFFF", 16);           // 4294967295L
 ```
 
-Đoạn trên là mảnh mã hợp lệ trong một phương thức. `Integer.parseUnsignedInt` cho phép phân tích mẫu thuộc khoảng không dấu 32 bit, nhưng **kết quả lưu trong `int`**; vì vậy `signedBits` có giá trị số học có dấu `-1`. Dùng `Integer.toUnsignedString` hoặc `Integer.toUnsignedLong` khi muốn diễn giải thành không dấu.
+The snippet above is a valid code fragment inside a method. `Integer.parseUnsignedInt` allows parsing patterns in the 32-bit unsigned range, yet **the result is stored in an `int`**; hence `signedBits` has the signed arithmetic value `-1`. Use `Integer.toUnsignedString` or `Integer.toUnsignedLong` when you want an unsigned interpretation.
 
-`Integer.parseInt("FFFFFFFF", 16)` sẽ báo `NumberFormatException` do giá trị hex dương tương ứng vượt `Integer.MAX_VALUE` trong cách parse có dấu. Trong khi đó, `Long.parseLong("FFFFFFFF", 16)` thành công vì giá trị đó vẫn nằm trong phạm vi dương của `long`.
+`Integer.parseInt("FFFFFFFF", 16)` throws `NumberFormatException` because the corresponding positive hex value exceeds `Integer.MAX_VALUE` under signed parsing. Meanwhile, `Long.parseLong("FFFFFFFF", 16)` succeeds because that value still fits within the positive range of `long`.
 
-Đối với mẫu không dấu **64 bit** có giá trị lớn hơn `Long.MAX_VALUE`, `Long.parseUnsignedLong("FFFFFFFFFFFFFFFF", 16)` trả về mẫu bit nằm trong `long` (biểu diễn có dấu là `-1L`); `Long.toUnsignedString(-1L)` hiển thị giá trị không dấu `18446744073709551615`. Nếu muốn một **đối tượng số nguyên dương thật sự** lưu giá trị đó để tính toán tùy độ lớn, dùng `new java.math.BigInteger("FFFFFFFFFFFFFFFF", 16)`.
+For a **64-bit** unsigned pattern larger than `Long.MAX_VALUE`, `Long.parseUnsignedLong("FFFFFFFFFFFFFFFF", 16)` returns the bit pattern stored in `long` (whose signed value is `-1L`); `Long.toUnsignedString(-1L)` displays the unsigned value `18446744073709551615`. If you want a **true positive integer object** holding that value for arbitrary-magnitude arithmetic, use `new java.math.BigInteger("FFFFFFFFFFFFFFFF", 16)`.
 
-## 11. Những nhầm lẫn phổ biến
+## 11. Common Misconceptions
 
-| Nhầm lẫn | Thực tế | Cách đọc đúng |
+| Misconception | Reality | Correct Reading |
 | --- | --- | --- |
-| `0x8` âm vì hex bắt đầu bằng 8 | `int` vẫn có bit 31 bằng 0 | `0x8 == 8` |
-| `0x8000_0000` là số dương 2_147_483_648 | `int` có bit 31 bằng 1 | `-2_147_483_648` |
-| `0xFFFF_FFFF` không thể là `int` vì “quá lớn” | Literal hex có thể diễn tả 32 bit toàn 1 | `int` bằng `-1` |
-| Thêm `L` luôn biến mẫu hex thành số dương | `long` cũng có bit dấu 63 | `0xFFFF_FFFF_FFFF_FFFFL == -1L` |
-| `long x = 0xFFFF_FFFF;` thành 4_294_967_295 | Literal có kiểu `int` âm rồi được mở rộng dấu | `x == -1L` |
-| `x & 0xFFFF_FFFF` làm `int` thành số dương không dấu | AND trên hai `int` vẫn cho `int` | Dùng `Integer.toUnsignedLong(x)` hoặc mặt nạ `0xFFFF_FFFFL` |
-| `Integer.toHexString(-1)` không có dấu trừ nên số dương | Chuỗi hex thể hiện mẫu bit | `"ffffffff"` là mẫu của `int` -1 |
-| `>>` và `>>>` luôn giống nhau | Với bit dấu bật, cách điền bit phía trái khác nhau | `0x80000000 >> 31 == -1`, nhưng `>>> 31 == 1` |
+| `0x8` is negative because hex starts with 8 | `int` still has bit 31 equal to 0 | `0x8 == 8` |
+| `0x8000_0000` is positive 2_147_483_648 | `int` has bit 31 equal to 1 | `-2_147_483_648` |
+| `0xFFFF_FFFF` cannot be `int` because it is "too big" | Hex literals can express 32 all-one bits | `int` equal to `-1` |
+| Adding `L` always makes a hex pattern positive | `long` also has sign bit 63 | `0xFFFF_FFFF_FFFF_FFFFL == -1L` |
+| `long x = 0xFFFF_FFFF;` becomes 4_294_967_295 | Literal has negative `int` type and is sign-extended | `x == -1L` |
+| `x & 0xFFFF_FFFF` turns `int` into positive unsigned | AND on two `int`s still yields `int` | Use `Integer.toUnsignedLong(x)` or mask `0xFFFF_FFFFL` |
+| `Integer.toHexString(-1)` lacks a minus sign so it is positive | Hex string shows the bit pattern | `"ffffffff"` is the pattern of `int` -1 |
+| `>>` and `>>>` are always the same | With sign bit set, left bit-filling differs | `0x80000000 >> 31 == -1`, whereas `>>> 31 == 1` |
 
-## 12. Tự kiểm tra
+## 12. Self-Check
 
-1. **`int x = 0x7FFF_FFFF;`** có giá trị gì? **2_147_483_647**, vì bit 31 chưa được bật.
-2. **`int x = 0xFFFF_FFFF;`** có giá trị gì? **-1**, vì đó là 32 bit toàn 1 ở dạng bù hai.
-3. **`long x = 0xFFFF_FFFF;`** và **`long y = 0xFFFF_FFFFL;`** có bằng nhau không? **Không**: `x == -1L`, `y == 4_294_967_295L`.
-4. **`0x8000_0000`** và **`0x8000_0000L`** có cùng giá trị số học không? **Không**: lần lượt là `-2_147_483_648` và `2_147_483_648L`.
-5. **Muốn đọc `int x = 0xFFFF_FFFF;` như số không dấu, phải làm gì?** Dùng `Integer.toUnsignedLong(x)` để nhận `4_294_967_295L`, hoặc `Integer.toUnsignedString(x)` để nhận văn bản `"4294967295"`.
-6. **`0x8000_0000_0000_0000L` âm hay dương?** **Âm**, bằng `Long.MIN_VALUE`, vì bit 63 đã bật.
+1. **What value does `int x = 0x7FFF_FFFF;` have?** **2_147_483_647**, because bit 31 is not set.
+2. **What value does `int x = 0xFFFF_FFFF;` have?** **-1**, because it is 32 all-one bits in two's complement.
+3. **Are `long x = 0xFFFF_FFFF;` and `long y = 0xFFFF_FFFFL;` equal?** **No**: `x == -1L`, `y == 4_294_967_295L`.
+4. **Do `0x8000_0000` and `0x8000_0000L` have the same arithmetic value?** **No**: `-2_147_483_648` and `2_147_483_648L`, respectively.
+5. **What must you do to read `int x = 0xFFFF_FFFF;` as an unsigned number?** Use `Integer.toUnsignedLong(x)` to get `4_294_967_295L`, or `Integer.toUnsignedString(x)` to get the text `"4294967295"`.
+6. **Is `0x8000_0000_0000_0000L` negative or positive?** **Negative**, equal to `Long.MIN_VALUE`, because bit 63 is set.
 
-**Kết luận:** khi gặp literal hex có bit dấu bật, hãy xác định **kiểu literal (32 hay 64 bit)**, tìm **bit dấu ở vị trí 31 hay 63**, rồi diễn giải mẫu bit theo **bù hai**. Nếu cần giá trị không dấu, dùng API unsigned hoặc mở rộng bằng 0; nếu gán một `int` âm sang `long`, nhớ rằng Java sẽ **mở rộng dấu**, không tự biến mẫu bit thành giá trị dương.
+**Conclusion:** when encountering a hex literal with the sign bit set, identify the **literal type (32 or 64 bits)**, locate the **sign bit at position 31 or 63**, and interpret the bit pattern in **two's complement**. If an unsigned value is needed, use unsigned APIs or zero extension; when assigning a negative `int` to `long`, remember that Java **sign-extends**, and does not automatically turn the bit pattern into a positive value.

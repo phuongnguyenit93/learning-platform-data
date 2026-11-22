@@ -1,40 +1,40 @@
-# Chuyển Optional thành Stream bằng Optional.stream
+# Converting Optional to Stream with Optional.stream
 
-## 1. Vấn đề: có thể có một giá trị hoặc không có giá trị
+## 1. The Problem: Potentially Having One Value or No Value
 
-Trong chương **Tạo Stream từ dữ liệu có sẵn** của **JAVA_STREAM_API**, không phải mọi nguồn dữ liệu đều là danh sách, tập hợp hay mảng. Một phương thức truy vấn có thể trả về `Optional<T>` để biểu diễn **có đúng một giá trị hoặc không có giá trị**. Khi muốn kết hợp kết quả truy vấn đó với pipeline khai báo của Java Stream API, `Optional.stream()` là cầu nối trực tiếp.
+In the **Streams from Existing Data** chapter of **JAVA_STREAM_API**, not every data source is a list, set, or array. A query method may return `Optional<T>` to represent **having either one value or no value**. When you want to combine that query result with the declarative pipeline of the Java Stream API, `Optional.stream()` is the direct bridge.
 
-Ví dụ, một hệ thống tra cứu khách hàng có thể tìm thấy hoặc không tìm thấy số điện thoại. Với một khách hàng, ta có một `Optional<String>`. Với nhiều khách hàng, ta có thể có `Stream<Optional<String>>` và muốn nhận về `Stream<String>` chỉ gồm các số thực sự tồn tại.
+For example, a customer lookup system may find or not find a phone number. For one customer, we have an `Optional<String>`. For many customers, we may have a `Stream<Optional<String>>` and want to receive back a `Stream<String>` containing only the numbers that actually exist.
 
 ~~~text
 Optional<T>
-  ├── Optional.of(value) ──► stream() ──► Stream<T> chứa 1 phần tử
-  └── Optional.empty() ────► stream() ──► Stream<T> rỗng
+  ├── Optional.of(value) ──► stream() ──► Stream<T> containing 1 element
+  └── Optional.empty() ────► stream() ──► empty Stream<T>
 
 Stream<Optional<T>>
   └── flatMap(Optional::stream) ─────────► Stream<T>
-                                           (bỏ các Optional rỗng)
+                                           (drops empty Optionals)
 ~~~
 
-**Ý nghĩa chính:** `Optional.stream()` trả về một Stream tuần tự có **0 hoặc 1 phần tử**. Phương thức này được giới thiệu từ **Java 9**. Bài học dùng thêm `Stream.toList()` (có từ Java 16), vì vậy các ví dụ có thể chạy với **Java 17+**.
+**Main takeaway:** `Optional.stream()` returns a sequential Stream with **0 or 1 element**. This method was introduced in **Java 9**. The lesson also uses `Stream.toList()` (available since Java 16), so the examples can be run with **Java 17+**.
 
-## 2. Cú pháp và hành vi cơ bản
+## 2. Syntax and Basic Behavior
 
-Chữ ký của phương thức:
+Method signature:
 
 ~~~java
 public Stream<T> stream()
 ~~~
 
-`Optional<T>.stream()` biến một đối tượng Optional thành một Stream với hai khả năng:
+`Optional<T>.stream()` turns an Optional object into a Stream with two possibilities:
 
-| Optional đầu vào | Kết quả `stream()` | Kết quả `toList()` |
+| Input Optional | `stream()` result | `toList()` result |
 | --- | --- | --- |
-| `Optional.of("An")` | Một phần tử `"An"` | `["An"]` |
-| `Optional.empty()` | Không có phần tử | `[]` |
-| `Optional.ofNullable(null)` | Không có phần tử | `[]` |
+| `Optional.of("An")` | One element `"An"` | `["An"]` |
+| `Optional.empty()` | No elements | `[]` |
+| `Optional.ofNullable(null)` | No elements | `[]` |
 
-Ví dụ:
+Example:
 
 ~~~java
 import java.util.List;
@@ -54,13 +54,13 @@ public class BasicOptionalStreamDemo {
 }
 ~~~
 
-Ở đây không cần gọi `isPresent()` hay `get()` để lấy giá trị trước khi tạo Stream. `Optional.stream()` tự xử lý trường hợp rỗng. Không có phần tử `null` nào được sinh ra khi Optional rỗng.
+Here there is no need to call `isPresent()` or `get()` to extract the value before creating the Stream. `Optional.stream()` handles the empty case by itself. No `null` element is produced when the Optional is empty.
 
-Một đối tượng `Optional` **không chứa nhiều giá trị**: khi cần một luồng nhiều phần tử, giá trị đó phải đến từ các nguồn khác (ví dụ `List`, `Set`, `Stream.of(...)` hoặc một hàm chuyển một giá trị thành nhiều giá trị). `Optional.stream()` chỉ làm nhiệm vụ nối trường hợp 0–1 phần tử với cơ chế pipeline.
+An `Optional` object **does not hold multiple values**: when a multi-element stream is needed, those values must come from other sources (e.g., `List`, `Set`, `Stream.of(...)`, or a function mapping one value to many values). `Optional.stream()` only bridges the 0–1 element case into the pipeline mechanism.
 
-## 3. Ứng dụng quan trọng nhất: làm phẳng Stream của nhiều Optional
+## 3. Most Important Use Case: Flattening a Stream of Multiple Optionals
 
-Giả sử có danh sách kết quả tra cứu; một số kết quả có giá trị, một số rỗng.
+Suppose we have a list of lookup results; some results have values, some are empty.
 
 ~~~java
 import java.util.List;
@@ -81,14 +81,14 @@ List<String> names = maybeNames.stream()
 System.out.println(names); // [An, Bình, Chi]
 ~~~
 
-Các bước của pipeline:
+Pipeline steps:
 
-1. `maybeNames.stream()` tạo `Stream<Optional<String>>`.
-2. `Optional::stream` gọi phương thức `stream()` trên từng `Optional<String>`, sinh luồng 0 hoặc 1 phần tử.
-3. `flatMap(...)` nối các luồng con thành một `Stream<String>` duy nhất.
-4. `toList()` là terminal operation thu thập các giá trị hiện diện.
+1. `maybeNames.stream()` creates a `Stream<Optional<String>>`.
+2. `Optional::stream` calls the `stream()` method on each `Optional<String>`, producing a 0- or 1-element stream.
+3. `flatMap(...)` concatenates the sub-streams into a single `Stream<String>`.
+4. `toList()` is the terminal operation that collects the present values.
 
-Mô phỏng:
+Illustration:
 
 ~~~text
 [Some("An"), Empty, Some("Bình"), Empty, Some("Chi")]
@@ -101,32 +101,32 @@ Mô phỏng:
              ["An", "Bình", "Chi"]
 ~~~
 
-Với nguồn có **encounter order** như `List`, `flatMap(Optional::stream)` bảo toàn thứ tự tương đối của các phần tử còn lại. Nếu nguồn ban đầu không có thứ tự thì kết quả cũng không tự có bảo đảm về thứ tự.
+With a source having an **encounter order** like `List`, `flatMap(Optional::stream)` preserves the relative order of the remaining elements. If the original source is unordered, the result does not automatically gain an ordering guarantee either.
 
-### Vì sao phải dùng `flatMap` thay vì `map`?
+### Why Must We Use `flatMap` Instead of `map`?
 
 ~~~java
-// Mỗi Optional được đổi thành một Stream con:
+// Each Optional is converted into a sub-Stream:
 var nested = maybeNames.stream()
     .map(Optional::stream); // Stream<Stream<String>>
 
-// Các Stream con được nối thành một Stream các giá trị:
+// Sub-Streams are joined into one Stream of values:
 var flattened = maybeNames.stream()
     .flatMap(Optional::stream); // Stream<String>
 ~~~
 
-`map` ánh xạ **một phần tử đầu vào thành một phần tử đầu ra**: ở đây phần tử đầu ra lại là một `Stream<String>`. `flatMap` vừa ánh xạ sang Stream con vừa làm phẳng chúng. Vì vậy, dạng thường gặp là:
+`map` maps **one input element to one output element**: here that output element is itself a `Stream<String>`. `flatMap` both maps to sub-Streams and flattens them. Therefore, the common pattern is:
 
 ~~~java
-Stream<Optional<T>> input = /* nhiều kết quả Optional */;
+Stream<Optional<T>> input = /* multiple Optional results */;
 Stream<T> output = input.flatMap(Optional::stream);
 ~~~
 
-Ví dụ này mang tính mẫu; mỗi biến `input` cần được khởi tạo bằng nguồn dữ liệu thực tế. Không nên viết `map(Optional::stream).toList()` nếu mục tiêu là lấy danh sách các giá trị `T`, bởi cách đó tạo một danh sách **các Stream con**.
+This example is a template; each `input` variable must be initialized with an actual data source. Do not write `map(Optional::stream).toList()` if the goal is to get a list of `T` values, because that produces a list of **sub-Streams**.
 
-## 4. Kết hợp với `map`, `filter` và `collect` trong bài toán thực tế
+## 4. Combining with `map`, `filter`, and `collect` in Real Problems
 
-Giả sử một khách hàng có thể chưa cung cấp email. Ta muốn tạo danh sách email hợp lệ từ dữ liệu đang có.
+Suppose a customer may not have provided an email yet. We want to build a list of valid emails from the available data.
 
 ~~~java
 import java.util.List;
@@ -152,9 +152,9 @@ System.out.println(emails);
 // [an@example.com, dung@example.com]
 ~~~
 
-Ở bước `map`, mỗi `Customer` sinh một `Optional<String>`. Email `null` trở thành `Optional.empty()` nhờ `ofNullable`; email chỉ có khoảng trắng cũng bị loại nhờ `filter` trên Optional. Tiếp theo, `flatMap(Optional::stream)` bỏ Optional rỗng và đưa các giá trị còn lại vào cùng pipeline.
+At the `map` step, each `Customer` produces an `Optional<String>`. A `null` email becomes `Optional.empty()` via `ofNullable`; a whitespace-only email is also filtered out via `filter` on the Optional. Next, `flatMap(Optional::stream)` drops empty Optionals and sends the remaining values into the same pipeline.
 
-Ta cũng có thể đưa việc tra cứu vào một hàm riêng. Điều này giúp phân biệt **quy tắc chọn dữ liệu** với **cách ghép kết quả**:
+We can also move the lookup into a separate helper method. This separates the **data selection rule** from **how results are combined**:
 
 ~~~java
 import java.util.Optional;
@@ -165,18 +165,18 @@ static Optional<String> normalizedEmail(Customer customer) {
         .filter(email -> !email.isBlank());
 }
 
-// Trong phương thức sử dụng danh sách customers:
+// In a method using the customers list:
 List<String> emails = customers.stream()
     .map(customer -> normalizedEmail(customer))
     .flatMap(Optional::stream)
     .toList();
 ~~~
 
-Đoạn mã là phần mở rộng của ví dụ `Customer` phía trên: hàm `normalizedEmail` cần được khai báo trong lớp chứa code sử dụng nó. Khi một phương thức đã trả về Optional, tổ hợp `map(...).flatMap(Optional::stream)` giúp tránh những khối `if` lồng nhau.
+The snippet is an extension of the `Customer` example above: the `normalizedEmail` method must be declared inside the class containing the code that uses it. When a method already returns an Optional, combining `map(...).flatMap(Optional::stream)` avoids nested `if` blocks.
 
-### So sánh với cách dùng `isPresent()` và `get()`
+### Comparison with Using `isPresent()` and `get()`
 
-Trước Java 9, một cách viết thường gặp là:
+Before Java 9, a common way to write this was:
 
 ~~~java
 List<String> names = maybeNames.stream()
@@ -185,7 +185,7 @@ List<String> names = maybeNames.stream()
     .toList();
 ~~~
 
-Cách này có thể cho ra cùng kết quả nếu mọi phần tử của Stream đều là Optional khác `null`, nhưng có hai bước riêng và gọi `get()`. Từ Java 9, có thể viết rõ mục tiêu hơn:
+This approach can yield the same result if all Stream elements are non-`null` Optionals, but it has two separate steps and calls `get()`. Since Java 9, the intent can be written more clearly:
 
 ~~~java
 List<String> names = maybeNames.stream()
@@ -193,13 +193,13 @@ List<String> names = maybeNames.stream()
     .toList();
 ~~~
 
-Không nên gọi `get()` mà chưa kiểm tra tính hiện diện; với Optional rỗng, `get()` ném `NoSuchElementException`.
+Do not call `get()` without checking presence; on an empty Optional, `get()` throws `NoSuchElementException`.
 
-## 5. Pipeline hoàn chỉnh: lọc mã đầu vào và tính tổng
+## 5. Complete Pipeline: Filtering Input IDs and Summing
 
-Một trường hợp phổ biến là chuyển dữ liệu chuỗi không đáng tin cậy thành giá trị số. Hàm parse trả `Optional<Integer>` vì một chuỗi có thể không hợp lệ hoặc không đạt điều kiện.
+A common scenario is converting untrusted string data into numeric values. A parse function returns `Optional<Integer>` because a string may be invalid or fail a condition.
 
-Ví dụ sau là chương trình có thể biên dịch và chạy độc lập bằng Java 17+:
+The following example is a standalone compilable and runnable program in Java 17+:
 
 ~~~java
 import java.util.List;
@@ -237,13 +237,13 @@ public class ParseIdsWithOptionalStream {
 }
 ~~~
 
-Trong bài toán này:
+In this problem:
 
-- `map` chuyển từng chuỗi thành một kết quả tra cứu/chuyển đổi có thể vắng mặt.
-- `flatMap(Optional::stream)` giữ lại các số nguyên dương được parse thành công.
-- `toList` trả về danh sách kết quả; `mapToInt(...).sum()` tính tổng qua phép toán terminal riêng.
+- `map` converts each string into a possibly absent lookup/conversion result.
+- `flatMap(Optional::stream)` keeps the successfully parsed positive integers.
+- `toList` returns the list of results; `mapToInt(...).sum()` computes the sum via a separate terminal operation.
 
-Nếu chỉ cần tổng, có thể giữ tất cả trong **một pipeline**:
+If only the sum is needed, you can keep everything in **a single pipeline**:
 
 ~~~java
 int total = rawIds.stream()
@@ -253,20 +253,20 @@ int total = rawIds.stream()
     .sum(); // 49
 ~~~
 
-Tùy yêu cầu nghiệp vụ, một kết quả parse thất bại có thể cần được ghi nhận thành lỗi thay vì tự động bị bỏ qua. Khi đó, không nên dùng `Optional.stream()` để âm thầm loại tất cả giá trị vắng mặt; hãy thiết kế kiểu kết quả chứa nguyên nhân lỗi hoặc xử lý dữ liệu không hợp lệ trước khi thu thập.
+Depending on business requirements, a failed parse result may need to be recorded as an error rather than automatically skipped. In that case, do not use `Optional.stream()` to silently drop all absent values; design a result type carrying the error reason or handle invalid data before collecting.
 
-## 6. Phân biệt `Optional.stream()` với `Stream.ofNullable()` và `Optional.flatMap()`
+## 6. Distinguishing `Optional.stream()` from `Stream.ofNullable()` and `Optional.flatMap()`
 
-Ba phương thức đều hữu ích khi xử lý dữ liệu có thể vắng mặt, nhưng **đầu vào và đầu ra khác nhau**.
+All three methods are useful when dealing with possibly absent data, but their **inputs and outputs differ**.
 
-| Phương thức | Áp dụng lên | Kết quả | Sử dụng khi |
+| Method | Applies to | Result | Use when |
 | --- | --- | --- | --- |
-| `Optional<T>.stream()` | Một `Optional<T>` | `Stream<T>` chứa 0 hoặc 1 phần tử | Muốn đưa Optional vào pipeline Stream. |
-| `Stream.ofNullable(value)` | Một tham chiếu `T` có thể là `null` | `Stream<T>` chứa 0 hoặc 1 phần tử | Nguồn dữ liệu trực tiếp có thể là `null`. |
-| `Optional<T>.flatMap(f)` | Một `Optional<T>` | `Optional<U>` | Muốn ghép các phép tra cứu trả về Optional và **vẫn giữ kết quả dạng Optional**. |
-| `Stream<T>.flatMap(f)` | Một `Stream<T>` | `Stream<U>` | Muốn nối nhiều Stream con thành một Stream. |
+| `Optional<T>.stream()` | An `Optional<T>` | `Stream<T>` with 0 or 1 element | Want to feed an Optional into a Stream pipeline. |
+| `Stream.ofNullable(value)` | A potentially `null` reference `T` | `Stream<T>` with 0 or 1 element | Direct data source may be `null`. |
+| `Optional<T>.flatMap(f)` | An `Optional<T>` | `Optional<U>` | Want to chain Optional-returning lookups and **keep the result as an Optional**. |
+| `Stream<T>.flatMap(f)` | A `Stream<T>` | `Stream<U>` | Want to join multiple sub-Streams into one Stream. |
 
-### `Stream.ofNullable` dành cho một tham chiếu có thể là `null`
+### `Stream.ofNullable` Is for a Potentially `null` Reference
 
 ~~~java
 import java.util.List;
@@ -278,9 +278,9 @@ List<String> values = Stream.ofNullable(nickname).toList();
 // []
 ~~~
 
-`Stream.ofNullable` cũng có từ Java 9. Phương thức này rất phù hợp khi API cũ trả về `null`, nhưng nếu đã có `Optional<String>` thì `optional.stream()` diễn đạt trực tiếp hơn và không cần `orElse(null)`.
+`Stream.ofNullable` has also been available since Java 9. This method fits well when a legacy API returns `null`, whereas if you already have an `Optional<String>`, `optional.stream()` expresses it more directly without needing `orElse(null)`.
 
-### `Optional.flatMap` giữ kiểu Optional
+### `Optional.flatMap` Preserves the Optional Type
 
 ~~~java
 import java.util.List;
@@ -293,25 +293,25 @@ Optional<Profile> maybeProfile = Optional.of(
 );
 
 Optional<String> maybePhone = maybeProfile.flatMap(Profile::phone);
-// Optional chứa "0900000000"
+// Optional containing "0900000000"
 
 List<String> phones = maybePhone.stream().toList();
 // ["0900000000"]
 ~~~
 
-Ở đây `Optional.flatMap` không tạo Stream: nó nối hai phép tính có kết quả là Optional. Chỉ khi cần chuyển sang pipeline Stream mới sử dụng `Optional.stream()`.
+Here `Optional.flatMap` does not create a Stream: it chains two computations that return Optionals. Only when switching to a Stream pipeline do you use `Optional.stream()`.
 
-## 7. Optional của kiểu nguyên thủy cũng có `stream()`
+## 7. Primitive Optionals Also Have `stream()`
 
-Java có ba kiểu Optional chuyên biệt: `OptionalInt`, `OptionalLong`, `OptionalDouble`. Từ Java 9, các kiểu này cũng hỗ trợ `stream()`, nhưng trả về primitive stream tương ứng.
+Java has three specialized Optional types: `OptionalInt`, `OptionalLong`, and `OptionalDouble`. Since Java 9, these types also support `stream()`, returning the corresponding primitive stream.
 
-| Đầu vào | Phương thức | Kiểu trả về |
+| Input | Method | Return type |
 | --- | --- | --- |
 | `OptionalInt` | `stream()` | `IntStream` |
 | `OptionalLong` | `stream()` | `LongStream` |
 | `OptionalDouble` | `stream()` | `DoubleStream` |
 
-Ví dụ gom các phép đo có thể bị thiếu:
+Example of collecting measurements that might be missing:
 
 ~~~java
 import java.util.List;
@@ -331,18 +331,18 @@ int sum = readings.stream()
 System.out.println(sum); // 50
 ~~~
 
-Dùng `flatMapToInt` thay vì `flatMap` vì các Stream con có kiểu `IntStream`. Cùng nguyên tắc, `Stream<OptionalLong>` có thể dùng `flatMapToLong(OptionalLong::stream)` và `Stream<OptionalDouble>` có thể dùng `flatMapToDouble(OptionalDouble::stream)`. Cách này giữ dữ liệu ở dạng primitive, tránh phải đóng hộp từng phần tử thành `Integer`, `Long` hoặc `Double`.
+Use `flatMapToInt` instead of `flatMap` because the sub-Streams have type `IntStream`. By the same principle, `Stream<OptionalLong>` can use `flatMapToLong(OptionalLong::stream)` and `Stream<OptionalDouble>` can use `flatMapToDouble(OptionalDouble::stream)`. This keeps data in primitive form, avoiding boxing each element into `Integer`, `Long`, or `Double`.
 
-## 8. Kết hợp với pipeline lazy, terminal operation và thứ tự phần tử
+## 8. Combining with Lazy Pipelines, Terminal Operations, and Element Ordering
 
-`Optional.stream()` tạo ra một Stream, nên các quy tắc vòng đời của Stream API vẫn áp dụng:
+`Optional.stream()` creates a Stream, so the lifecycle rules of the Stream API still apply:
 
-- `filter`, `map` và `flatMap` là intermediate operations; pipeline thường được xử lý **lazily** khi có terminal operation.
-- `toList`, `collect`, `count`, `sum` và `findFirst` là những terminal operations thường gặp.
-- Một Stream đã dùng terminal operation thì không được tái sử dụng; nếu cần một phép tính khác, hãy tạo Stream mới từ nguồn hoặc giữ kết quả trong collection.
-- `findFirst`, `anyMatch` và các phép toán short-circuit khác có thể kết thúc sớm; đừng dùng tác dụng phụ trong hàm ánh xạ Optional để đếm chắc chắn số phần tử đã xử lý.
+- `filter`, `map`, and `flatMap` are intermediate operations; the pipeline is usually processed **lazily** when a terminal operation is present.
+- `toList`, `collect`, `count`, `sum`, and `findFirst` are common terminal operations.
+- A Stream that has used a terminal operation cannot be reused; if another computation is needed, create a new Stream from the source or store the result in a collection.
+- `findFirst`, `anyMatch`, and other short-circuiting operations can terminate early; do not put side effects inside an Optional-mapping function to reliably count how many elements were processed.
 
-Ví dụ tìm email hợp lệ đầu tiên từ danh sách ở mục 4:
+Example of finding the first valid email from the list in section 4:
 
 ~~~java
 Optional<String> firstEmail = customers.stream()
@@ -352,56 +352,56 @@ Optional<String> firstEmail = customers.stream()
     .flatMap(Optional::stream)
     .findFirst();
 
-// Optional chứa "an@example.com".
+// Optional containing "an@example.com".
 ~~~
 
-`findFirst()` trả về `Optional<String>` vì pipeline có thể không còn email nào sau khi loại các Optional rỗng. Với nguồn có encounter order như `List`, kết quả là giá trị đầu tiên thỏa mãn theo thứ tự đó. Việc Stream được phép dừng sớm là lý do không nên dựa vào số lần gọi của bước `map` để ghi nhận hoạt động nghiệp vụ.
+`findFirst()` returns `Optional<String>` because the pipeline might have no emails left after dropping empty Optionals. With an ordered source like `List`, the result is the first matching value in that order. The fact that a Stream is allowed to stop early is why you should not rely on how many times the `map` step executes to record business activity.
 
-### Tài nguyên và thực thi song song
+### Resources and Parallel Execution
 
-Bản thân `Optional.stream()` không mở file hoặc kết nối, và chỉ chứa tối đa một giá trị. Nhưng nếu nguồn bên ngoài pipeline là một Stream từ file hay tài nguyên I/O, trách nhiệm đóng tài nguyên đó vẫn còn; dùng `try-with-resources` khi API nguồn yêu cầu.
+`Optional.stream()` itself does not open files or connections, and contains at most one value. However, if the outer pipeline source is a Stream from a file or I/O resource, the responsibility of closing that resource remains; use `try-with-resources` when the source API requires it.
 
-Nếu Stream bên ngoài chạy song song, các phép tra cứu tạo Optional phải tuân thủ hợp đồng **không can thiệp** và **không trạng thái** của các lambda dùng trong Stream API. Việc `Optional.stream()` tạo luồng 0–1 phần tử không biến lời gọi I/O, cập nhật cơ sở dữ liệu hay ghi biến dùng chung thành an toàn để song song hóa. Chỉ dùng parallel stream khi công việc đủ lớn, độc lập và đã đo được lợi ích.
+If the outer Stream runs in parallel, lookup operations producing Optionals must follow the **non-interference** and **stateless** contracts for lambdas used in the Stream API. The fact that `Optional.stream()` creates a 0–1 element stream does not make I/O calls, database updates, or shared-variable writes safe to parallelize. Only use parallel streams when the work is sufficiently large, independent, and shows measured gains.
 
-## 9. Các lỗi và hiểu nhầm thường gặp
+## 9. Common Mistakes and Misconceptions
 
-### Lỗi 1: tưởng `Optional.stream()` tự làm phẳng cả collection
+### Mistake 1: Thinking `Optional.stream()` Automatically Flattens the Whole Collection
 
 ~~~java
 List<Optional<Integer>> items = List.of(
     Optional.of(1), Optional.empty(), Optional.of(3)
 );
 
-// SAI MỤC TIÊU: tạo Stream<Stream<Integer>>.
+// WRONG GOAL: creates Stream<Stream<Integer>>.
 var nested = items.stream().map(Optional::stream);
 
-// ĐÚNG: tạo Stream<Integer>, sau đó có thể collect.
+// RIGHT: creates Stream<Integer>, which can then be collected.
 List<Integer> values = items.stream()
     .flatMap(Optional::stream)
     .toList(); // [1, 3]
 ~~~
 
-### Lỗi 2: trả về `null` thay cho `Optional.empty()`
+### Mistake 2: Returning `null` Instead of `Optional.empty()`
 
 ~~~java
-// Không viết hàm kiểu này:
+// Do not write a method like this:
 // Optional<String> lookup(int id) {
 //     return id > 0 ? Optional.of("ok") : null;
 // }
 
-// Hàm trả Optional phải trả chính Optional:
+// A method returning Optional must return an actual Optional:
 static Optional<String> lookup(int id) {
     return id > 0 ? Optional.of("ok") : Optional.empty();
 }
 ~~~
 
-`Optional.stream()` xử lý **Optional rỗng**, không xử lý một tham chiếu **Optional bằng null**. Nếu phần tử của `Stream<Optional<T>>` là `null`, `flatMap(Optional::stream)` sẽ ném `NullPointerException` khi gọi phương thức trên phần tử đó. Giải pháp đúng ở tầng API là duy trì hợp đồng trả về Optional thực sự.
+`Optional.stream()` handles an **empty Optional**, not a **null Optional reference**. If an element of `Stream<Optional<T>>` is `null`, `flatMap(Optional::stream)` will throw `NullPointerException` when calling the method on that element. The proper API-level fix is to uphold the contract of returning a real Optional.
 
-### Lỗi 3: coi thiếu dữ liệu và dữ liệu lỗi là tương đương
+### Mistake 3: Treating Missing Data and Erroneous Data as Equivalent
 
-`flatMap(Optional::stream)` loại bỏ cả những kết quả `Optional.empty()`. Đây là hành vi đúng khi nghiệp vụ cho phép bỏ giá trị thiếu (ví dụ chỉ lấy những email đã được cung cấp). Tuy nhiên, nếu việc thiếu giá bắt buộc phải báo lỗi để ngăn thanh toán, thì tự động lọc bỏ dòng đơn hàng là sai logic.
+`flatMap(Optional::stream)` discards `Optional.empty()` results. This is the right behavior when business logic permits skipping missing values (e.g., collecting only emails that were provided). However, if a missing price must report an error to prevent checkout, automatically filtering out the order line is a logic bug.
 
-Ví dụ, khi không tìm được giá sản phẩm cần **dừng xử lý**:
+For example, when failing to find a product price must **halt processing**:
 
 ~~~java
 import java.util.Map;
@@ -413,20 +413,20 @@ Map<String, Long> prices = Map.of(
 
 List<String> skus = List.of("BOOK", "UNKNOWN", "PEN");
 
-// Ở bài toán này, thiếu giá là lỗi thay vì một giá trị được phép bỏ:
+// In this problem, a missing price is an error rather than a skippable value:
 List<Long> requiredPrices = skus.stream()
     .map(sku -> Optional.ofNullable(prices.get(sku))
-        .orElseThrow(() -> new IllegalArgumentException("Thiếu giá: " + sku)))
+        .orElseThrow(() -> new IllegalArgumentException("Missing price: " + sku)))
     .toList();
 
-// Ném IllegalArgumentException tại SKU "UNKNOWN".
+// Throws IllegalArgumentException at SKU "UNKNOWN".
 ~~~
 
-Vì vậy, trước khi flatten, hãy hỏi: **Optional rỗng có nghĩa là phần tử này được phép bỏ qua không?** Nếu câu trả lời là không, cần xử lý lỗi ở nơi phát sinh hoặc giữ thông tin thiếu để báo cáo.
+Therefore, before flattening, ask: **Does an empty Optional mean this element is allowed to be skipped?** If the answer is no, handle the error where it occurs or retain the missing information for reporting.
 
-### Lỗi 4: mong đợi `toList()` là danh sách có thể chỉnh sửa
+### Mistake 4: Expecting `toList()` to Be a Modifiable List
 
-Từ Java 16, `Stream.toList()` trả danh sách không sửa đổi được. Vì vậy:
+Since Java 16, `Stream.toList()` returns an unmodifiable list. Thus:
 
 ~~~java
 List<String> selected = maybeNames.stream()
@@ -436,7 +436,7 @@ List<String> selected = maybeNames.stream()
 // selected.add("Dung"); // UnsupportedOperationException.
 ~~~
 
-Nếu cần chỉnh sửa kết quả, dùng collector tạo collection có thể thay đổi:
+If you need to modify the result, use a collector that creates a mutable collection:
 
 ~~~java
 import java.util.ArrayList;
@@ -446,27 +446,27 @@ ArrayList<String> mutable = maybeNames.stream()
     .flatMap(Optional::stream)
     .collect(Collectors.toCollection(ArrayList::new));
 
-mutable.add("Dung"); // Hợp lệ.
+mutable.add("Dung"); // Valid.
 ~~~
 
-## 10. Nên sử dụng `Optional.stream()` khi nào?
+## 10. When Should You Use `Optional.stream()`?
 
-| Tình huống | Cách viết phù hợp | Lý do |
+| Scenario | Suitable approach | Reason |
 | --- | --- | --- |
-| Một truy vấn có thể không trả kết quả | `maybeValue.stream()` | Đưa trường hợp 0–1 giá trị vào Stream. |
-| Danh sách `Optional<T>` | `list.stream().flatMap(Optional::stream)` | Thu các giá trị hiện diện về một Stream. |
-| Mỗi phần tử cần tra cứu một giá trị tùy chọn | `source.stream().map(this::lookup).flatMap(Optional::stream)` | Kết hợp truy vấn và loại giá trị vắng mặt. |
-| Một tham chiếu Java có thể bằng `null` | `Stream.ofNullable(value)` | Tạo Stream 0–1 trực tiếp từ tham chiếu. |
-| Kết quả là `OptionalInt` | `flatMapToInt(OptionalInt::stream)` | Xử lý số nguyên bằng primitive stream. |
-| Giá trị thiếu là lỗi nghiệp vụ | `orElseThrow(...)` hoặc kiểu kết quả có lỗi | Không âm thầm loại dữ liệu bắt buộc. |
+| A query may return no result | `maybeValue.stream()` | Feeds the 0–1 value case into a Stream. |
+| List of `Optional<T>` | `list.stream().flatMap(Optional::stream)` | Collects present values into one Stream. |
+| Each element needs an optional lookup | `source.stream().map(this::lookup).flatMap(Optional::stream)` | Combines querying and dropping absent values. |
+| A Java reference that might be `null` | `Stream.ofNullable(value)` | Creates a 0–1 Stream directly from the reference. |
+| Result is `OptionalInt` | `flatMapToInt(OptionalInt::stream)` | Processes integers with a primitive stream. |
+| Missing value is a business error | `orElseThrow(...)` or an error-carrying result type | Do not silently drop required data. |
 
-## 11. Câu hỏi tự kiểm tra
+## 11. Self-Check Questions
 
-1. **`Optional.empty().stream().count()` trả bao nhiêu?** Trả `0` vì Stream không có phần tử.
-2. **`Optional.of(42).stream().findFirst()` trả kiểu gì?** Trả `Optional<Integer>` chứa `42`.
-3. **Vì sao `map(Optional::stream)` không đủ để thu các giá trị?** Vì kết quả của `map` là `Stream<Stream<T>>`; dùng `flatMap` để nối các Stream con.
-4. **Khi nào dùng `flatMapToInt(OptionalInt::stream)`?** Khi đầu vào là `Stream<OptionalInt>` và muốn một `IntStream` để tính toán bằng kiểu nguyên thủy.
-5. **Có nên dùng `Optional.stream()` để bỏ bản ghi thanh toán không tìm thấy giá?** Không, nếu thiếu giá là lỗi cần thông báo; flatten sẽ loại bản ghi đó khỏi kết quả mà không mang theo nguyên nhân.
-6. **Dùng `Optional.stream()` có nghĩa là source Stream sẽ tự đóng tài nguyên I/O không?** Không; vẫn cần quản lý vòng đời của nguồn có tài nguyên, ví dụ với `try-with-resources`.
+1. **What does `Optional.empty().stream().count()` return?** Returns `0` because the Stream has no elements.
+2. **What type does `Optional.of(42).stream().findFirst()` return?** Returns `Optional<Integer>` containing `42`.
+3. **Why is `map(Optional::stream)` not enough to collect the values?** Because the result of `map` is `Stream<Stream<T>>`; use `flatMap` to concatenate the sub-Streams.
+4. **When do you use `flatMapToInt(OptionalInt::stream)`?** When the input is `Stream<OptionalInt>` and you want an `IntStream` to compute with primitive types.
+5. **Should you use `Optional.stream()` to drop a checkout item whose price was not found?** No, if a missing price is an error to report; flattening removes that item from the result without carrying the reason.
+6. **Does using `Optional.stream()` mean the source Stream will automatically close I/O resources?** No; you still need to manage the lifecycle of resource-backed sources, for example with `try-with-resources`.
 
-**Ghi nhớ:** `Optional.stream()` nối mô hình **0 hoặc 1 giá trị** của Optional với mô hình **0 đến nhiều phần tử** của Stream. Với nhiều Optional, công thức quan trọng nhất là `streamOfOptionals.flatMap(Optional::stream)`. Khi kết hợp với `filter`, `map`, `reduce` hoặc `collect`, công thức này làm pipeline khai báo rõ ràng và chỉ giữ những giá trị thực sự hiện diện, với điều kiện nghiệp vụ cho phép bỏ giá trị vắng mặt.
+**Key takeaway:** `Optional.stream()` bridges Optional's **0 or 1 value** model with Stream's **0 to many elements** model. With multiple Optionals, the most important recipe is `streamOfOptionals.flatMap(Optional::stream)`. Combined with `filter`, `map`, `reduce`, or `collect`, this recipe makes declarative pipelines clear and retains only actually present values, provided business rules allow skipping absent ones.

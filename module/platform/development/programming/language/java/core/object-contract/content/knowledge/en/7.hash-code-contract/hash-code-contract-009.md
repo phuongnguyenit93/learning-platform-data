@@ -1,60 +1,60 @@
-# Không dùng `hashCode()` làm mã định danh duy nhất hoặc mã bảo mật
+# Do Not Use `hashCode()` as a Unique Identifier or Security Code
 
-Trong Java, `hashCode()` trả về một số nguyên `int` dùng chủ yếu để hỗ trợ các cấu trúc dữ liệu dựa trên băm như `HashMap` và `HashSet`. Số này giúp phân phối và tra cứu phần tử hiệu quả, nhưng **không phải mã định danh duy nhất**, **không phải bí mật**, và **không phải hàm băm mật mã**. Hai đối tượng khác nhau có thể có cùng `hashCode()`, còn một hash dễ tính lại không chứng minh được ai đã tạo ra dữ liệu.
+In Java, `hashCode()` returns an `int` integer used primarily to support hash-based data structures such as `HashMap` and `HashSet`. This number helps distribute and look up elements efficiently, but it is **not a unique identifier**, **not a secret**, and **not a cryptographic hash function**. Two different objects can have the same `hashCode()`, and an easily computed hash does not prove who created the data.
 
-Bài học nằm trong **hợp đồng `hashCode` của Java**: hiểu chính xác điều gì được bảo đảm, vì sao dùng hash làm ID hoặc cơ chế bảo mật là sai, và chọn công cụ thay thế theo mục đích.
+This lesson sits within **Java's `hashCode` contract**: understanding exactly what is guaranteed, why using a hash as an ID or security mechanism is wrong, and choosing replacement tools according to purpose.
 
-## 1. Hợp đồng `hashCode()` thực sự nói gì?
+## 1. What Does the `hashCode()` Contract Actually Say?
 
-Mỗi lớp Java đều có `hashCode()` kế thừa từ `Object`, và lớp có thể ghi đè phương thức đó. Hợp đồng cốt lõi là:
+Every Java class has `hashCode()` inherited from `Object`, and a class can override that method. The core contract is:
 
-1. Khi trạng thái tham gia `equals` không thay đổi trong **cùng một lần thực thi ứng dụng**, các lần gọi `hashCode()` trên một đối tượng phải cho kết quả nhất quán.
-2. **Nếu `a.equals(b)` là `true`, thì `a.hashCode() == b.hashCode()` bắt buộc đúng.**
-3. Nếu `a.equals(b)` là `false`, hai hash code **được phép bằng nhau**. Sinh hai giá trị khác nhau thường giúp hiệu năng tốt hơn, nhưng không phải yêu cầu bắt buộc.
+1. When state participating in `equals` does not change within **the same application execution**, repeated calls to `hashCode()` on an object must yield consistent results.
+2. **If `a.equals(b)` is `true`, then `a.hashCode() == b.hashCode()` must be true.**
+3. If `a.equals(b)` is `false`, the two hash codes **are allowed to be equal**. Producing different values usually improves performance, but is not a mandatory requirement.
 
-Diễn đạt bằng logic:
+Expressed logically:
 
 ```text
 a.equals(b) == true  => a.hashCode() == b.hashCode()
 a.hashCode() == b.hashCode() =/=> a.equals(b) == true
 ```
 
-Chiều suy luận thứ hai **không hợp lệ**. Hash là công cụ thu hẹp các khả năng tra cứu, không thay thế bước kiểm tra bằng nhau.
+The second implication is **invalid**. A hash is a tool for narrowing down lookup candidates, not a substitute for the equality check.
 
-Một lưu ý về `null`: không được gọi `null.hashCode()`. Nếu cần hash an toàn với `null`, dùng `Objects.hashCode(x)` (trả về `0` với `null`) hoặc `Objects.hash(...)` khi tính băm kết hợp nhiều trường.
+A note on `null`: you cannot call `null.hashCode()`. If you need a `null`-safe hash, use `Objects.hashCode(x)` (returns `0` for `null`) or `Objects.hash(...)` when computing a combined hash across multiple fields.
 
-## 2. Vì sao hash code không thể được coi là mã duy nhất?
+## 2. Why Can a Hash Code Never Be Treated as a Unique Code?
 
-### 2.1. Miền giá trị `int` có giới hạn
+### 2.1. The `int` Value Range Is Finite
 
-`hashCode()` trả về **`int` 32 bit**, tức chỉ có `2^32` (4.294.967.296) mẫu bit khác nhau, bao gồm cả số âm. Tập đối tượng hoặc giá trị đầu vào có thể cần phân biệt không bị giới hạn bởi số mẫu bit của một `int`. Theo nguyên lý chuồng bồ câu, nếu số giá trị cần gán vượt số hash khả dụng, **va chạm (collision) là điều không tránh khỏi**.
+`hashCode()` returns a **32-bit `int`**, meaning there are only `2^32` (4,294,967,296) distinct bit patterns, including negative numbers. The set of objects or input values that may need to be distinguished is not limited by the bit patterns of an `int`. By the pigeonhole principle, if the number of values to assign exceeds the available hashes, **collisions are inevitable**.
 
-Ngay cả trước khi đạt giới hạn trên, một thuật toán băm cụ thể đã có thể tạo va chạm. Không có hợp đồng nào nói phải dùng hết `2^32` giá trị hoặc phân phối các giá trị một cách hoàn hảo.
+Even before reaching that limit, a specific hash algorithm can already produce collisions. No contract states that all `2^32` values must be used or that values must be distributed perfectly.
 
-### 2.2. Hai giá trị khác nhau có thể cho hash giống nhau
+### 2.2. Two Different Values Can Produce the Same Hash
 
-Trong Java, hai chuỗi **`"FB"` và `"Ea"`** có nội dung khác nhau nhưng có cùng `String.hashCode()`:
+In Java, the two strings **`"FB"` and `"Ea"`** have different contents yet share the same `String.hashCode()`:
 
 ```text
 "FB": 31 * 'F' + 'B' = 31 * 70 + 66 = 2236
 "Ea": 31 * 'E' + 'a' = 31 * 69 + 97 = 2236
 ```
 
-Với chuỗi hai ký tự trên, phép tính tuân theo thuật toán `String.hashCode()` được Java quy định; đây là **va chạm xác định**, không phải điều cần chờ ngẫu nhiên xảy ra. `"FB".equals("Ea")` vẫn là `false`.
+For these two-character strings, the calculation follows the `String.hashCode()` algorithm specified by Java; this is a **deterministic collision**, not something you have to wait to happen by chance. `"FB".equals("Ea")` is still `false`.
 
-Lớp tự định nghĩa `hashCode()` cũng có thể trả về cùng một số cho mọi đối tượng. Điều đó gây hiệu năng băm kém nhưng **không tự nó vi phạm hợp đồng** nếu `equals` và `hashCode` vẫn nhất quán.
+A custom `hashCode()` class can also return the exact same number for every object. That causes poor hash performance, but **does not by itself violate the contract** as long as `equals` and `hashCode` remain consistent.
 
-### 2.3. Hash trùng không có nghĩa là cùng instance
+### 2.3. Matching Hashes Do Not Mean the Same Instance
 
-`System.identityHashCode(obj)` bỏ qua cách lớp ghi đè `hashCode()` và lấy hash theo ngữ nghĩa danh tính mặc định của `Object`. Tuy nhiên, **identity hash code vẫn có thể va chạm** và không phải địa chỉ bộ nhớ. Nếu cần kiểm tra hai tham chiếu có trỏ tới cùng một đối tượng trong Java hay không, dùng `a == b`.
+`System.identityHashCode(obj)` bypasses a class's `hashCode()` override and retrieves the hash according to `Object`'s default identity semantics. However, **identity hash codes can still collide** and are not memory addresses. If you need to check whether two references point to the same object in Java, use `a == b`.
 
-Không được tạo một bản đồ `Map<Integer, Object>` với `obj.hashCode()` làm khóa duy nhất rồi kết luận hash trùng là cùng đối tượng. Cách làm này có thể ghi đè nhầm bản ghi của đối tượng khác.
+Do not create a `Map<Integer, Object>` using `obj.hashCode()` as a unique key and assume matching hashes represent the same object. Doing so can wrongly overwrite another object's record.
 
-## 3. Ví dụ Java 17+: HashMap xử lý va chạm bằng `equals`
+## 3. Java 17+ Example: `HashMap` Resolves Collisions Using `equals`
 
-Chương trình dưới đây kết hợp va chạm có thật của `String` với một lớp cố tình trả về cùng một hash, để làm rõ rằng **băm trùng không xóa bỏ tính khác nhau của các khóa**.
+The program below combines a real `String` collision with a class that intentionally returns the same hash, to make clear that **matching hashes do not erase the distinctness of keys**.
 
-Lưu thành `HashCodeNotIdentityDemo.java`:
+Save as `HashCodeNotIdentityDemo.java`:
 
 ```java
 import java.util.HashMap;
@@ -83,7 +83,7 @@ final class Key {
 
     @Override
     public int hashCode() {
-        return 7; // Hợp đồng vẫn đúng nhưng mọi Key đều va chạm.
+        return 7; // Contract still holds, but every Key collides.
     }
 }
 
@@ -118,14 +118,14 @@ public class HashCodeNotIdentityDemo {
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa tệp:
+Compile and run from the folder containing the file:
 
 ```bash
 javac HashCodeNotIdentityDemo.java
 java HashCodeNotIdentityDemo
 ```
 
-Đầu ra **xác định**:
+**Deterministic** output:
 
 ```text
 FB hash: 2236
@@ -139,67 +139,67 @@ HashMap size: 2
 Lookup new A: first
 ```
 
-Các điều cần hiểu từ kết quả:
+Points to understand from the output:
 
-- `"FB"` và `"Ea"` có cùng hash 2236, nhưng `equals` trả `false`, nên `HashSet` lưu được cả hai.
-- `Key.hashCode()` cố ý trả `7` cho mọi instance; `Key("A")` và `Key("B")` vẫn là hai khóa khác nhau vì `Key.equals` so sánh `id`.
-- Hai `Key("A")` có cùng giá trị `id` và cùng hash nên `labels.get(a2)` tìm được bản ghi đặt bằng `a1`, dù `a1` và `a2` là hai instance.
-- `HashMap` sử dụng hash để chọn vùng tra cứu, rồi dùng cơ chế so khớp khóa (trong đó có `equals`) để phân biệt phần tử va chạm. **Tự lấy `hashCode` làm ID và bỏ qua `equals` sẽ làm mất bước phân biệt quan trọng này.**
-- Trả một hằng số trong `Key.hashCode()` chỉ nhằm minh họa tính đúng đắn khi có va chạm; **không phải cách cài đặt được khuyến nghị** vì nhiều va chạm làm giảm hiệu năng. Thực tế nên băm các trường tham gia `equals` bằng `Objects.hash(...)` hoặc thuật toán nhất quán phù hợp.
+- `"FB"` and `"Ea"` have the same hash 2236, yet `equals` returns `false`, so `HashSet` stores both.
+- `Key.hashCode()` intentionally returns `7` for every instance; `Key("A")` and `Key("B")` remain two distinct keys because `Key.equals` compares `id`.
+- Both `Key("A")` instances share the same `id` value and the same hash, so `labels.get(a2)` finds the record put under `a1`, even though `a1` and `a2` are two distinct instances.
+- `HashMap` uses the hash to pick a lookup area, then uses key-matching logic (including `equals`) to distinguish colliding elements. **Using `hashCode` directly as an ID and bypassing `equals` loses this vital distinction step.**
+- Returning a constant in `Key.hashCode()` is only to demonstrate correctness under collisions; **it is not a recommended implementation** because excessive collisions degrade performance. In practice, hash the fields participating in `equals` using `Objects.hash(...)` or an appropriate consistent algorithm.
 
-## 4. Vì sao không dùng `hashCode()` làm ID lưu trữ lâu dài?
+## 4. Why Should You Not Use `hashCode()` as a Long-Term Stored ID?
 
-Ngay cả khi tạm thời chưa quan sát va chạm, một hash code vẫn thiếu những tính chất cần có ở mã định danh.
+Even when collisions have not been observed yet, a hash code lacks the properties required of an identifier.
 
-| Yêu cầu đối với ID | Giới hạn của `hashCode()` |
+| Requirement for an ID | Limitation of `hashCode()` |
 | --- | --- |
-| Phân biệt duy nhất các thực thể trong phạm vi hệ thống | Hash có thể va chạm, kể cả hai đối tượng không bằng nhau |
-| Giữ ổn định qua vòng đời lưu trữ, tái khởi động và triển khai | `Object.hashCode()`/identity hash không có bảo đảm ổn định giữa các lần chạy; cách lớp ghi đè hash cũng có thể đổi |
-| Không thay đổi khi thuộc tính trình bày thay đổi | Hash dựa trên các trường có thể thay đổi sẽ đổi theo trạng thái |
-| Tương thích giữa các dịch vụ hoặc ngôn ngữ | Không có hợp đồng chung đảm bảo thuật toán `hashCode` tự định nghĩa tương thích giữa các hệ thống |
-| Không để lộ một giá trị có thể đoán trước trong tình huống nhạy cảm | `hashCode()` không được thiết kế có tính bí mật hoặc khó dự đoán |
+| Uniquely distinguish entities within the system scope | Hashes can collide, even for two unequal objects |
+| Stay stable across storage lifecycle, restarts, and deployments | `Object.hashCode()`/identity hash has no stability guarantee across runs; how a class overrides hash can also change |
+| Not change when presentation attributes change | Hashes based on mutable fields will change with state |
+| Compatible across services or languages | No general contract ensures a custom `hashCode` algorithm is compatible across systems |
+| Not expose a predictable value in sensitive contexts | `hashCode()` is not designed to be secret or unpredictable |
 
-Cần phân biệt hai trường hợp:
+Distinguish two cases:
 
-1. **`String.hashCode()`** được quy định theo nội dung ký tự, nên với cùng chuỗi, thuật toán cho cùng kết quả qua các lần chạy Java. Điều này **không biến nó thành ID duy nhất hoặc bảo mật**: chuỗi khác nhau vẫn có thể trùng hash và ai cũng có thể tính lại kết quả.
-2. **`Object.hashCode()` mặc định** gắn với cơ chế hashing danh tính của JVM, không mang hợp đồng ổn định xuyên các lần chạy. Không thể coi mã hash đó là khóa database hay địa chỉ đối tượng.
+1. **`String.hashCode()`** is specified by character contents, so for the same string, the algorithm produces the same result across Java runs. This **does not turn it into a unique or secure ID**: different strings can still share a hash and anyone can recompute the result.
+2. **Default `Object.hashCode()`** is tied to the JVM's identity hashing mechanism and carries no stability contract across runs. That hash code cannot be treated as a database key or object address.
 
-Nếu lớp override `hashCode()` bằng các trường mutable, giá trị băm còn có thể thay đổi khi trường thay đổi. Việc dùng đối tượng ấy làm khóa `HashMap` trước và sau khi thay đổi thường dẫn tới lỗi tra cứu. Hãy ưu tiên giá trị khóa bất biến, và cấp **ID riêng không phụ thuộc hash** khi đối tượng cần được nhận diện lâu dài.
+If a class overrides `hashCode()` using mutable fields, the hash value can even change when a field changes. Using that object as a `HashMap` key before and after mutation often leads to lookup bugs. Prefer immutable key values, and assign a **separate hash-independent ID** when objects need long-term identification.
 
-### Chọn ID thay thế theo phạm vi
+### Choosing an Alternative ID by Scope
 
-- **ID cơ sở dữ liệu:** khóa chính được database quản lý, như `BIGINT` sinh theo sequence/identity hoặc UUID; áp đặt ràng buộc `PRIMARY KEY`/`UNIQUE` để ngăn bản ghi trùng trong phạm vi quy định.
-- **ID trao đổi giữa nhiều tiến trình hoặc dịch vụ:** UUID do hệ thống cấp phát (ví dụ `UUID.randomUUID()`) là lựa chọn thông dụng khi không có bộ cấp phát tập trung. UUID ngẫu nhiên giảm xác suất trùng xuống rất thấp trong điều kiện sử dụng phù hợp, nhưng **không phải bảo đảm toán học tuyệt đối**; nơi lưu trữ vẫn nên kiểm tra duy nhất.
-- **Chỉ cần kiểm tra cùng đối tượng trong một JVM:** dùng `==` trên các reference; với map cần phân biệt instance, cân nhắc `IdentityHashMap` nếu đúng ngữ nghĩa bài toán.
-- **ID tăng tuần tự trong một tiến trình:** một bộ đếm như `AtomicLong` có thể cấp các số phân biệt khi không vượt phạm vi, nhưng phải tự quản lý khởi tạo lại, tràn số và tính duy nhất giữa các tiến trình. Đây là giải pháp cấp ID có chủ đích, không phải `hashCode()`.
+- **Database ID:** a primary key managed by the database, such as a sequence/identity-generated `BIGINT` or UUID; enforce `PRIMARY KEY`/`UNIQUE` constraints to prevent duplicate records within the specified scope.
+- **ID exchanged across multiple processes or services:** a system-allocated UUID (for example `UUID.randomUUID()`) is a common choice when there is no centralized allocator. Random UUIDs reduce collision probability to very low levels under proper usage, though **not an absolute mathematical guarantee**; storage should still check uniqueness.
+- **Only need to check for the same object within one JVM:** use `==` on references; for maps needing instance distinction, consider `IdentityHashMap` if it fits the problem semantics.
+- **Monotonically increasing ID within a single process:** a counter like `AtomicLong` can issue distinct numbers within range, though restarts, overflow, and cross-process uniqueness must be managed explicitly. This is an intentional ID-allocation solution, not `hashCode()`.
 
-Đừng dùng `Integer.toHexString(obj.hashCode())` rồi coi chuỗi hệ 16 là một ID mới; chuyển cách biểu diễn **không tăng thông tin hoặc ngăn va chạm**.
+Do not call `Integer.toHexString(obj.hashCode())` and treat the hexadecimal string as a new ID; changing representation **adds no information and does not prevent collisions**.
 
-## 5. Vì sao `hashCode()` không phải mã bảo mật?
+## 5. Why Is `hashCode()` Not a Security Code?
 
-Một hàm băm dùng cho collection và một công cụ mật mã có mục tiêu khác nhau:
+A hash function for collections and a cryptographic primitive have different goals:
 
-| Tính chất | `hashCode()` Java | Công cụ phù hợp với bảo mật |
+| Property | Java `hashCode()` | Appropriate Security Tool |
 | --- | --- | --- |
-| Mục tiêu chính | Phân phối khóa, hỗ trợ tra cứu | Chống giả mạo, dẫn xuất khóa, lưu mật khẩu hoặc tạo token tùy mục đích |
-| Đầu ra | `int` 32 bit | Kích thước và thuật toán tùy yêu cầu, thường lớn hơn nhiều |
-| Chống tìm giá trị đầu vào khi biết hash | Không bảo đảm | Password hashing/KDF chậm, có salt và chi phí tính toán |
-| Chống kẻ tấn công cố tìm va chạm | Không bảo đảm | Hàm băm mật mã khi cần khả năng chống va chạm |
-| Xác thực nguồn gốc dữ liệu | Không | HMAC hoặc chữ ký số dựa trên khóa đúng cách |
-| Tạo chuỗi bí mật khó đoán để xác thực | Không | Bộ sinh số ngẫu nhiên mật mã như `SecureRandom` |
+| Primary goal | Distributing keys, supporting lookups | Tamper resistance, key derivation, password storage, or purpose-specific token generation |
+| Output | 32-bit `int` | Size and algorithm per requirement, typically much larger |
+| Resisting input recovery given the hash | No guarantee | Slow password hashing/KDF with salt and computational cost |
+| Resisting an attacker deliberately finding collisions | No guarantee | Cryptographic hash function when collision resistance is required |
+| Authenticating data origin | No | Properly keyed HMAC or digital signature |
+| Generating unpredictable secrets for authentication | No | Cryptographic random generator such as `SecureRandom` |
 
-Các sai lầm thường gặp:
+Common mistakes:
 
-- **Lưu mật khẩu thành `password.hashCode()`:** miền 32 bit rất nhỏ, thuật toán rẻ, không salt và dễ tính thử hàng loạt. Khi cần lưu mật khẩu, dùng thuật toán chuyên dụng như **Argon2id**, **scrypt**, **bcrypt** hoặc **PBKDF2**, với salt ngẫu nhiên, tham số chi phí phù hợp và thư viện được bảo trì.
-- **Dùng `userId.hashCode()` làm session ID, mã khôi phục mật khẩu, mã xác nhận hoặc API token:** đầu vào có thể đoán được và hash có thể bị tính lại. Kẻ tấn công không cần biết bí mật để tạo lại giá trị.
-- **Gắn `message.hashCode()` để chứng minh dữ liệu không bị sửa trái phép:** bất kỳ ai sửa dữ liệu cũng có thể tính lại hash; hơn nữa va chạm rất dễ xuất hiện. Để kiểm chứng tính toàn vẹn và nguồn gốc trong mô hình có khóa chia sẻ, dùng **HMAC**; trong mô hình khóa công khai, cân nhắc **chữ ký số**.
-- **Cho rằng chỉ cần chuyển hash sang hex hoặc Base64 sẽ an toàn:** đây chỉ là mã hóa biểu diễn, không tạo tính bí mật hoặc xác thực.
+- **Storing passwords as `password.hashCode()`:** the 32-bit space is tiny, the algorithm is cheap, unsalted, and trivial to brute-force. When storing passwords, use a dedicated algorithm such as **Argon2id**, **scrypt**, **bcrypt**, or **PBKDF2**, with a random salt, appropriate cost parameters, and a maintained library.
+- **Using `userId.hashCode()` as a session ID, password reset code, confirmation code, or API token:** inputs are predictable and hashes can be recomputed. An attacker needs no secret to reproduce the value.
+- **Attaching `message.hashCode()` to prove data was not tampered with:** anyone who modifies the data can recompute the hash; furthermore, collisions are trivial to produce. To verify integrity and origin under a shared-key model, use **HMAC**; under a public-key model, consider **digital signatures**.
+- **Assuming converting the hash to hex or Base64 makes it secure:** that is merely representation encoding, providing neither secrecy nor authentication.
 
-`MessageDigest` với SHA-256 cung cấp **hàm băm mật mã**, nhưng bản thân SHA-256 không phải cơ chế lưu mật khẩu tối ưu (vì quá nhanh), cũng không phải cơ chế xác thực người gửi khi thiếu khóa. Mỗi nhu cầu bảo mật cần đúng primitive.
+`MessageDigest` with SHA-256 provides a **cryptographic hash function**, yet SHA-256 itself is neither an optimal password storage mechanism (because it is too fast) nor a sender authentication mechanism without a key. Each security need requires the right primitive.
 
-### Ví dụ tạo token bí mật với `SecureRandom`
+### Example: Generating a Secret Token with `SecureRandom`
 
-Để có thể biên dịch và chạy độc lập, lưu ví dụ Java 17 sau vào `SecureTokenDemo.java`. Chương trình chỉ in **độ dài** của token, không làm lộ token bí mật ra stdout.
+To compile and run standalone, save the following Java 17 example as `SecureTokenDemo.java`. The program prints only the **length** of the token, avoiding leaking secret tokens to stdout.
 
 ```java
 import java.security.SecureRandom;
@@ -208,7 +208,7 @@ import java.util.Base64;
 public class SecureTokenDemo {
     public static void main(String[] args) {
         SecureRandom secureRandom = new SecureRandom();
-        byte[] bytes = new byte[32]; // 256 bit ngẫu nhiên
+        byte[] bytes = new byte[32]; // 256 random bits
         secureRandom.nextBytes(bytes);
 
         String token = Base64.getUrlEncoder()
@@ -219,39 +219,39 @@ public class SecureTokenDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --release 17 -encoding UTF-8 SecureTokenDemo.java
 java SecureTokenDemo
 ```
 
-Stdout (256 bit = 32 byte, Base64 URL-safe không padding nên có 43 ký tự):
+Stdout (256 bits = 32 bytes, unpadded URL-safe Base64 yields 43 characters):
 
 ```text
 token length = 43
 ```
 
-`SecureRandom` tạo byte khó đoán theo cơ chế mật mã; Base64 URL-safe chỉ biểu diễn số byte đó thành chuỗi thuận tiện để gửi qua HTTP. Token là một **bí mật truy cập**: cần truyền qua HTTPS, giới hạn thời gian và quyền sử dụng, bảo vệ khi lưu trữ và không ghi nguyên token vào log. Không có giá trị stdout cố định vì token được sinh ngẫu nhiên. Không nên thay `SecureRandom` bằng `hashCode()`, `System.currentTimeMillis()` hay `java.util.Random` khi cần bí mật.
+`SecureRandom` generates cryptographically unpredictable bytes; URL-safe Base64 simply represents those bytes as a string convenient for sending over HTTP. A token is an **access secret**: transmit it over HTTPS, limit its lifetime and permissions, protect it at rest, and never log raw tokens. There is no fixed token stdout value because tokens are generated randomly. Do not replace `SecureRandom` with `hashCode()`, `System.currentTimeMillis()`, or `java.util.Random` when secrecy is required.
 
-## 6. Phân biệt các API dễ bị nhầm
+## 6. Distinguishing Easily Confused APIs
 
-- **`obj.hashCode()`:** theo cài đặt của lớp; với value object thường phụ thuộc các trường có ý nghĩa trong `equals`.
-- **`Objects.hashCode(obj)`:** tiện ích an toàn `null`, trả `0` cho `null`, còn lại gọi `obj.hashCode()`.
-- **`Objects.hash(a, b, ...)`:** hash tổng hợp nhiều giá trị, hữu ích khi tự viết `hashCode()`. Vẫn chỉ là băm dạng `int`, không duy nhất và không có bảo đảm mật mã.
-- **`System.identityHashCode(obj)`:** hash theo danh tính mặc định, kể cả khi lớp override `hashCode`; vẫn có va chạm, không phải địa chỉ bộ nhớ hay ID ổn định xuyên phiên chạy.
-- **`MessageDigest` (ví dụ SHA-256):** công cụ băm mật mã cho dữ liệu byte; không thay `equals` trong collection và không tự tạo bí mật.
-- **`SecureRandom`:** sinh giá trị ngẫu nhiên mật mã để tạo token/nonce phù hợp. Mã định danh ngẫu nhiên cũng cần quy trình kiểm soát va chạm và vòng đời.
-- **`UUID.randomUUID()`:** tiện ích sinh UUID phiên bản 4; hữu ích cho ID phân tán, nhưng UUID hiển thị công khai không mặc nhiên đóng vai trò mật khẩu hoặc quyền truy cập.
+- **`obj.hashCode()`:** per class implementation; for value objects, typically depends on fields significant to `equals`.
+- **`Objects.hashCode(obj)`:** `null`-safe utility returning `0` for `null`, otherwise calling `obj.hashCode()`.
+- **`Objects.hash(a, b, ...)`:** combined hash of multiple values, useful when writing `hashCode()` manually. Still just an `int` hash, neither unique nor cryptographically backed.
+- **`System.identityHashCode(obj)`:** default identity-based hash, even when the class overrides `hashCode`; still has collisions, and is neither a memory address nor a stable cross-run ID.
+- **`MessageDigest` (such as SHA-256):** cryptographic hashing tool for byte data; does not replace `equals` in collections and does not create secrets on its own.
+- **`SecureRandom`:** generates cryptographically random values for appropriate tokens/nonces. Random identifiers also need collision and lifecycle management.
+- **`UUID.randomUUID()`:** utility generating version 4 UUIDs; useful for distributed IDs, though publicly visible UUIDs do not inherently act as passwords or access credentials.
 
-## 7. Checklist thiết kế
+## 7. Design Checklist
 
-Trước khi chọn một trường làm khóa, hãy tự hỏi:
+Before choosing a field as a key, ask yourself:
 
-1. **Cần so sánh bằng nhau hay cần duy nhất?** Nếu dùng collection dựa trên hash, viết `equals`/`hashCode` đúng hợp đồng; collection tự xử lý va chạm. Nếu cần ID duy nhất, cấp và quản lý ID riêng.
-2. **Khóa có vượt phạm vi một lần chạy JVM không?** Nếu có, đừng dựa vào identity hash hoặc bất kỳ hash code nào không có hợp đồng ổn định phù hợp.
-3. **Dữ liệu được dùng để xác thực hay ngăn giả mạo không?** Nếu có, dùng API mật mã tương ứng; `hashCode` không cung cấp bảo vệ này.
-4. **Có cần giữ bí mật một token không?** Nếu có, token phải khó đoán, đủ entropy và có vòng đời phù hợp; không suy từ thông tin công khai bằng `hashCode()`.
-5. **Các trường tham gia `equals`/`hashCode` có thay đổi không?** Nếu thay đổi sau khi đối tượng được dùng làm key, cơ chế tra cứu có thể hỏng; ưu tiên bất biến hoặc chọn khóa khác.
+1. **Do you need equality comparison or uniqueness?** If using hash-based collections, write `equals`/`hashCode` per the contract; collections handle collisions themselves. If you need a unique ID, allocate and manage a separate ID.
+2. **Does the key outlive a single JVM run?** If so, do not rely on identity hashes or any hash code without an appropriate stability contract.
+3. **Is the data used for authentication or tamper prevention?** If so, use the corresponding cryptographic APIs; `hashCode` provides no such protection.
+4. **Does a token need to remain secret?** If so, the token must be unpredictable, have sufficient entropy, and have an appropriate lifecycle; do not derive it from public info via `hashCode()`.
+5. **Can fields participating in `equals`/`hashCode` change?** If they change after the object is used as a key, lookup mechanisms can break; prefer immutability or choose a different key.
 
-**Ghi nhớ:** `hashCode()` là một **gợi ý phân nhóm/tra cứu**; nhiều đối tượng khác nhau có thể dùng chung một số băm. Nó không chứng minh danh tính, không thay thế ID lưu trữ và không đáp ứng yêu cầu mật mã. Hãy dùng `equals` khi cần xác định bằng nhau, cấp ID theo phạm vi dữ liệu, và chọn primitive bảo mật chuyên dụng cho xác thực hoặc tạo bí mật.
+**Takeaway:** `hashCode()` is a **grouping/lookup hint**; many distinct objects can share the same hash number. It does not prove identity, does not replace stored IDs, and does not satisfy security requirements. Use `equals` when you need to determine equality, assign IDs scoped to your data, and pick dedicated security primitives for authentication or secret generation.

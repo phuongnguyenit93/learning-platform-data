@@ -1,25 +1,25 @@
-# Kiểm tra descriptor trước khi phát hành module
+# Verifying a Descriptor Before Releasing a Module
 
-## 1. Vì sao cần kiểm tra module descriptor?
+## 1. Why Verify the Module Descriptor?
 
-Trong JPMS (Java Platform Module System), `module-info.java` là hợp đồng mô tả một module: tên module, dependency mà module đọc, package được công bố, package mở cho reflection và các dịch vụ mà module sử dụng hoặc cung cấp.
+In JPMS (Java Platform Module System), `module-info.java` is the contract describing a module: the module name, dependencies the module reads, published packages, packages opened for reflection, and services that the module uses or provides.
 
-Một descriptor có thể biên dịch thành công nhưng vẫn chưa phù hợp để phát hành. Ví dụ:
+A descriptor can compile successfully yet still be unsuitable for release. For example:
 
-- Khai báo `requires` thiếu dependency cần thiết hoặc giữ lại dependency không còn dùng.
-- API public trả về kiểu của một module khác nhưng dependency đó chưa được khai báo `requires transitive`.
-- Package nội bộ bị export rộng ngoài ý muốn.
-- Framework cần reflection sâu nhưng package tương ứng chưa được `opens`.
-- Tên module trong descriptor không khớp với tên mà ứng dụng tiêu thụ đang yêu cầu.
-- JAR phát hành không chứa đúng `module-info.class` hoặc nội dung được build không khớp với cấu hình đã kiểm tra.
+- `requires` declarations are missing needed dependencies or retain unused dependencies.
+- A public API returns types from another module, yet that dependency has not been declared `requires transitive`.
+- An internal package is accidentally exported broadly.
+- A framework needs deep reflection, yet the corresponding package has not been opened with `opens`.
+- The module name in the descriptor does not match the name expected by consuming applications.
+- The released JAR does not contain the right `module-info.class`, or the built content does not match the tested configuration.
 
-Kiểm tra trước khi phát hành giúp phát hiện các vấn đề này ở thời điểm build và thử nghiệm, thay vì để người dùng gặp lỗi khi tích hợp thư viện.
+Verifying before release helps catch these issues at build and test time, rather than letting users encounter errors when integrating the library.
 
-## 2. Kiểm tra cấu trúc và tên module
+## 2. Checking Module Structure and Naming
 
-Một explicit named module có file `module-info.java` tại gốc source module. Sau khi biên dịch, file tương ứng `module-info.class` nằm ở gốc output module hoặc gốc modular JAR.
+An explicit named module has a `module-info.java` file at the root of the module source. After compilation, the corresponding `module-info.class` file sits at the root of the module output or the root of the modular JAR.
 
-Ví dụ cấu trúc:
+Example structure:
 
 ~~~text
 customer-module/
@@ -42,7 +42,7 @@ customer-module/
             internal/
 ~~~
 
-Descriptor tối giản:
+Minimal descriptor:
 
 ~~~java
 module com.acme.customer {
@@ -50,18 +50,18 @@ module com.acme.customer {
 }
 ~~~
 
-Khi kiểm tra tên module:
+When verifying the module name:
 
-- Dùng tên ổn định, dễ nhận diện và theo quy ước reverse-domain, ví dụ `com.acme.customer`.
-- Không dùng namespace dành cho nền tảng Java như `java.*` cho module của ứng dụng.
-- Kiểm tra mọi chỉ thị `requires`, `exports ... to`, `opens ... to`, `uses` và `provides` tham chiếu đúng tên module hoặc service.
-- Nếu thư viện cần hỗ trợ cả classpath và module path, cân nhắc giữ tên module ổn định trong các bản phát hành; đổi tên module là thay đổi ảnh hưởng trực tiếp tới người tiêu thụ đang khai báo `requires`.
+- Use a stable, recognizable name following reverse-domain convention, such as `com.acme.customer`.
+- Do not use namespaces reserved for the Java platform such as `java.*` for application modules.
+- Verify that every `requires`, `exports ... to`, `opens ... to`, `uses`, and `provides` directive references the right module or service name.
+- If the library must support both classpath and module path, consider keeping the module name stable across releases; renaming a module directly breaks consumers declaring `requires`.
 
-Tên module là một phần của hợp đồng tích hợp. Không nên để tên module vô tình thay đổi theo tên file JAR nếu người dùng cần phụ thuộc lâu dài vào tên đó.
+The module name is part of the integration contract. Do not let the module name inadvertently change with the JAR filename if users need to depend on that name long-term.
 
-## 3. Kiểm tra dependency và readability
+## 3. Checking Dependencies and Readability
 
-Mỗi `requires` cần tương ứng với dependency thực sự của module. Đọc lại mã nguồn và public API để xác định module cần đọc:
+Each `requires` should correspond to an actual dependency of the module. Review source code and public APIs to determine which modules need to be read:
 
 ~~~java
 module com.acme.customer {
@@ -72,17 +72,17 @@ module com.acme.customer {
 }
 ~~~
 
-Một số điểm cần rà soát:
+Points to review:
 
-- Dependency được dùng trực tiếp trong mã nguồn phải có mặt trong cấu hình compile.
-- Dependency cần thiết khi chạy phải có mặt trong runtime image hoặc runtime module path.
-- Không giữ các `requires` không còn cần thiết nếu chúng làm tăng ràng buộc phát hành.
-- `java.base` được mọi named module đọc ngầm; không cần khai báo `requires java.base`.
-- Module có thể đọc dependency gián tiếp qua `requires transitive`, nhưng nên khai báo trực tiếp dependency mà mã nguồn của module thực sự sử dụng để hợp đồng dễ hiểu và bền vững.
+- Dependencies used directly in source code must be present in the compile configuration.
+- Dependencies needed at runtime must be present in the runtime image or runtime module path.
+- Do not keep unnecessary `requires` if they increase release constraints.
+- `java.base` is implicitly read by every named module; there is no need to declare `requires java.base`.
+- A module can read a dependency indirectly via `requires transitive`, yet you should directly declare dependencies that the module's source code actually uses so the contract stays easy to understand and durable.
 
-### Khi nào dùng requires transitive?
+### When to Use requires transitive?
 
-Nếu API public của module để lộ kiểu từ dependency khác, người dùng API có thể cần đọc dependency đó để biên dịch. Khi đó xem xét:
+If the module's public API exposes types from another dependency, API consumers may need to read that dependency in order to compile. In that case, consider:
 
 ~~~java
 module com.acme.customer {
@@ -91,7 +91,7 @@ module com.acme.customer {
 }
 ~~~
 
-Ví dụ API:
+Example API:
 
 ~~~java
 package com.acme.customer.api;
@@ -103,9 +103,9 @@ public interface CustomerService {
 }
 ~~~
 
-Module tiêu thụ chỉ khai báo `requires com.acme.customer` vẫn có readability tới `com.acme.domain` nhờ `requires transitive`. Chỉ dùng modifier này khi dependency thực sự xuất hiện trong hợp đồng API công khai; dependency chỉ dùng nội bộ thường nên là `requires` thông thường.
+A consuming module declaring only `requires com.acme.customer` still gains readability to `com.acme.domain` thanks to `requires transitive`. Use this modifier only when the dependency genuinely appears in the public API contract; internal-only dependencies should normally use regular `requires`.
 
-### Khi nào dùng requires static?
+### When to Use requires static?
 
 ~~~java
 module com.acme.customer {
@@ -113,11 +113,11 @@ module com.acme.customer {
 }
 ~~~
 
-`requires static` yêu cầu dependency ở compile time nhưng cho phép nó vắng mặt ở runtime. Hãy xác nhận mã chạy không thực sự cần lớp của dependency khi module đó vắng mặt. Nếu runtime path có dùng lớp ấy, dependency phải được cung cấp ở runtime; chỉ khai báo `requires static` không tự tạo implementation thay thế.
+`requires static` requires the dependency at compile time while allowing it to be absent at runtime. Confirm that runtime code does not genuinely need classes from that dependency when the module is absent. If a runtime code path uses that class, the dependency must be supplied at runtime; declaring `requires static` alone does not generate a substitute implementation.
 
-## 4. Kiểm tra exports và ranh giới API
+## 4. Checking exports and API Boundaries
 
-Trong explicit named module, package không được công bố mặc định. Chỉ export package thuộc API mà người dùng module cần truy cập.
+In an explicit named module, packages are not exposed by default. Export only packages belonging to the API that module users need to access.
 
 ~~~java
 module com.acme.customer {
@@ -125,14 +125,14 @@ module com.acme.customer {
 }
 ~~~
 
-Trước khi phát hành, kiểm tra:
+Before releasing, check:
 
-- Package được export có thực sự chứa API được hỗ trợ không?
-- Các package `internal`, `impl`, `spi` hoặc package chỉ phục vụ triển khai có đang bị export ngoài ý muốn không?
-- API public có dùng kiểu thuộc package hoặc module khác mà người tiêu thụ không thể truy cập không?
-- Có thể dùng qualified export để giới hạn quyền cho module tiêu thụ cụ thể không?
+- Do exported packages genuinely contain supported APIs?
+- Are `internal`, `impl`, `spi`, or implementation-only packages being exported unintentionally?
+- Does the public API use types belonging to other packages or modules that consumers cannot access?
+- Can qualified exports be used to restrict permissions to specific consuming modules?
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.customer {
@@ -141,13 +141,13 @@ module com.acme.customer {
 }
 ~~~
 
-`exports com.acme.customer.api` cho phép mọi module đọc module customer truy cập các kiểu public trong package API. Qualified export chỉ công bố package cho những module được liệt kê.
+`exports com.acme.customer.api` allows any module reading the customer module to access public types in the API package. A qualified export exposes the package only to the listed modules.
 
-Export package không làm mọi thành viên trở thành public. Quy tắc truy cập Java thông thường vẫn có hiệu lực. Ngược lại, package không export vẫn có thể chứa lớp được dùng nội bộ bên trong module.
+Exporting a package does not make every member public. Standard Java access rules remain in effect. Conversely, unexported packages can still contain classes used internally within the module.
 
-## 5. Kiểm tra opens và nhu cầu reflection
+## 5. Checking opens and Reflection Requirements
 
-Framework persistence, dependency injection, serialization hoặc binding có thể cần reflection sâu để truy cập constructor hay field không public. Khi đó cần mở đúng package cho đúng module.
+Persistence, dependency injection, serialization, or binding frameworks may need deep reflection to access non-public constructors or fields. In that case, open the right packages to the right modules.
 
 ~~~java
 module com.acme.customer {
@@ -158,22 +158,22 @@ module com.acme.customer {
 }
 ~~~
 
-Phân biệt:
+Distinguish:
 
-- `exports` cho phép mã Java của module khác truy cập các kiểu public trong package.
-- `opens` cho phép reflection sâu trên package ở runtime.
-- `opens package to module` giới hạn quyền reflection cho module được chỉ định.
-- `open module` mở tất cả package của module cho reflection sâu.
+- `exports` allows Java code in other modules to access public types in the package.
+- `opens` allows deep reflection on the package at runtime.
+- `opens package to module` restricts reflection permissions to the specified module.
+- `open module` opens all packages of the module for deep reflection.
 
-Không cần mở toàn bộ module nếu framework chỉ truy cập một package. Ngoài ra, một module được khai báo bằng `open module` không được đồng thời chứa các chỉ thị `opens` riêng trong descriptor. Nếu cần kiểm soát theo package, dùng khai báo `module` thông thường với các chỉ thị `opens` có chọn lọc.
+There is no need to open the entire module if the framework accesses only one package. In addition, a module declared with `open module` must not simultaneously contain individual `opens` directives in the descriptor. If package-level control is needed, use a regular `module` declaration with selective `opens` directives.
 
-Hãy thử đúng framework và cấu hình runtime dự kiến phát hành. Kiểm tra compile thành công không chứng minh reflection sẽ hoạt động khi chạy.
+Test with the exact framework and runtime configuration intended for release. A successful compilation does not prove that reflection will work at runtime.
 
-## 6. Kiểm tra uses và provides nếu module dùng ServiceLoader
+## 6. Checking uses and provides When the Module Uses ServiceLoader
 
-JPMS hỗ trợ khai báo quan hệ dịch vụ trong module descriptor.
+JPMS supports declaring service relationships in the module descriptor.
 
-Module tiêu thụ dịch vụ khai báo `uses`:
+A service-consuming module declares `uses`:
 
 ~~~java
 module com.acme.application {
@@ -182,7 +182,7 @@ module com.acme.application {
 }
 ~~~
 
-Module cung cấp implementation khai báo `provides ... with ...`:
+A module supplying an implementation declares `provides ... with ...`:
 
 ~~~java
 module com.acme.payment.card {
@@ -193,25 +193,25 @@ module com.acme.payment.card {
 }
 ~~~
 
-Trước khi phát hành, kiểm tra:
+Before releasing, check:
 
-- Service type có phải đúng kiểu mà module tiêu thụ dùng không?
-- Provider implementation có tồn tại trong module cung cấp không?
-- Provider đáp ứng quy tắc khởi tạo của `ServiceLoader` (public no-argument constructor hoặc public static method tên `provider` với chữ ký phù hợp) không?
-- Module provider và module consumer có nằm trong cấu hình runtime/layer mà ứng dụng sử dụng không?
-- Có thử gọi `ServiceLoader.load(...)` trong một bài chạy tích hợp thực tế không?
+- Is the service type the exact type used by the consuming module?
+- Does the provider implementation exist in the supplying module?
+- Does the provider satisfy `ServiceLoader` instantiation rules (a public no-argument constructor or a public static method named `provider` with a matching signature)?
+- Are both the provider module and consumer module present in the runtime configuration/layer used by the application?
+- Has calling `ServiceLoader.load(...)` been tested in an actual integration run?
 
-Package chứa provider implementation không nhất thiết phải export chỉ để `ServiceLoader` tìm provider. Hãy export service API ở module sở hữu API, và chỉ export package implementation nếu có nhu cầu truy cập trực tiếp khác.
+The package containing the provider implementation does not necessarily need to be exported solely for `ServiceLoader` to locate the provider. Export the service API in the module owning the API, and export the implementation package only if there is another need for direct access.
 
-## 7. Biên dịch và kiểm tra descriptor
+## 7. Compiling and Inspecting the Descriptor
 
-Có thể biên dịch module bằng `javac` với module source path:
+You can compile a module using `javac` with the module source path:
 
 ~~~bash
 javac -d mods --module-source-path src -m com.acme.customer
 ~~~
 
-Nếu module được biên dịch riêng từ một thư mục source đã xác định:
+If the module is compiled separately from an identified source directory:
 
 ~~~bash
 javac -d out/customer-module \
@@ -219,35 +219,35 @@ javac -d out/customer-module \
   src/customer-module/com/acme/customer/api/Customer.java
 ~~~
 
-Trong dự án Gradle hoặc Maven, ưu tiên task build chính thức của dự án vì task đó còn áp dụng đúng dependency, compiler options, toolchain và quy trình đóng gói. Kiểm tra rằng build đang dùng JDK và target release mà dự án công bố hỗ trợ.
+In Gradle or Maven projects, prefer the project's official build task because that task also applies the proper dependencies, compiler options, toolchain, and packaging workflow. Verify that the build uses the JDK and target release the project claims to support.
 
-Sau khi biên dịch, xem descriptor của output module:
+After compiling, inspect the descriptor of the output module:
 
 ~~~bash
 jar --describe-module --file build/libs/customer-module.jar
 ~~~
 
-Lệnh này cho biết tên module, các package, dependency và các chỉ thị module mà JAR cung cấp. Đối chiếu kết quả với `module-info.java` và hợp đồng dự kiến.
+This command shows the module name, packages, dependencies, and module directives provided by the JAR. Cross-check the output against `module-info.java` and the intended contract.
 
-Có thể liệt kê nội dung JAR để xác nhận descriptor nằm đúng vị trí:
+You can list JAR contents to confirm the descriptor is in the right place:
 
 ~~~bash
 jar --list --file build/libs/customer-module.jar
 ~~~
 
-Với modular JAR, cần thấy `module-info.class` ở gốc archive. Nếu JAR không chứa descriptor, Java có thể nhận diện nó theo cách khác khi đặt trên module path.
+For a modular JAR, `module-info.class` should appear at the root of the archive. If the JAR does not contain a descriptor, Java may recognize it differently when placed on the module path.
 
-## 8. Dùng jdeps và module resolution để phát hiện vấn đề
+## 8. Using jdeps and Module Resolution to Detect Issues
 
-`jdeps` giúp phân tích dependency mà bytecode thực tế sử dụng. Với module đã biên dịch, có thể kiểm tra descriptor và dependency như sau:
+`jdeps` helps analyze dependencies actually used by bytecode. For a compiled module, you can inspect the descriptor and dependencies as follows:
 
 ~~~bash
 jdeps --check com.acme.customer --module-path mods
 ~~~
 
-Lệnh này hỗ trợ kiểm tra module descriptor so với dependency được phát hiện, đồng thời đưa ra gợi ý khi quan hệ module chưa được khai báo phù hợp. Đọc cảnh báo và đánh giá theo API mà module muốn công bố; không tự động biến mọi dependency được phát hiện thành `requires transitive`.
+This command helps verify the module descriptor against detected dependencies, while offering suggestions when module relationships are not declared appropriately. Read the warnings and evaluate them against the API the module intends to expose; do not automatically turn every detected dependency into `requires transitive`.
 
-Để xem các module được phân giải lúc chạy:
+To see modules resolved at runtime:
 
 ~~~bash
 java --show-module-resolution \
@@ -255,59 +255,59 @@ java --show-module-resolution \
   -m com.acme.application/com.acme.application.Main
 ~~~
 
-Để yêu cầu runtime kiểm tra các module trên module path:
+To ask the runtime to validate modules on the module path:
 
 ~~~bash
 java --module-path mods --validate-modules
 ~~~
 
-Khi chạy các lệnh này, hãy dùng cùng module path và các module artifact như cấu hình phát hành. Nếu chỉ kiểm tra trên thư mục build tạm thời, kết quả có thể khác với JAR đã upload hoặc image được triển khai.
+When running these commands, use the same module path and module artifacts as the release configuration. Testing only against a temporary build directory may yield different results from the uploaded JAR or deployed image.
 
-## 9. Kiểm tra chính artifact sẽ phát hành
+## 9. Verifying the Exact Artifact to Be Released
 
-Một descriptor đúng trong source chưa bảo đảm JAR cuối cùng chứa đúng descriptor. Hãy kiểm tra artifact sau khi đóng gói:
+A valid descriptor in source does not guarantee the final JAR contains the right descriptor. Verify the artifact after packaging:
 
-1. Xác nhận build hoàn tất và JAR được tạo ở đúng đường dẫn.
-2. Dùng `jar --describe-module` để đọc tên và descriptor từ chính JAR đó.
-3. Dùng `jar --list` để kiểm tra `module-info.class` và các package/class được đóng gói.
-4. Kiểm tra không có package nội bộ bị export ngoài ý muốn.
-5. Chạy ứng dụng tiêu thụ hoặc một module thử nghiệm nhỏ trên module path chỉ với các dependency phát hành.
-6. Nếu module dùng reflection, chạy thử framework thật để xác nhận `opens` đúng.
-7. Nếu module dùng `ServiceLoader`, kiểm tra cả discovery lẫn khởi tạo provider.
-8. Lặp lại kiểm tra sau khi thay đổi build script, compiler version hoặc quy trình shading/relocation JAR.
+1. Confirm the build completed and the JAR was generated at the expected path.
+2. Use `jar --describe-module` to read the name and descriptor from that exact JAR.
+3. Use `jar --list` to check `module-info.class` and the packaged packages/classes.
+4. Verify no internal packages are exported unintentionally.
+5. Run a consuming application or a small test module on the module path using only the release dependencies.
+6. If the module uses reflection, run the actual framework to confirm `opens` is right.
+7. If the module uses `ServiceLoader`, verify both discovery and provider instantiation.
+8. Repeat verification after changing build scripts, compiler version, or JAR shading/relocation workflows.
 
-Đặc biệt lưu ý quy trình tạo fat JAR hoặc shading. Nếu công cụ đóng gói gộp nhiều module thành một JAR classpath, kết quả có thể không còn giữ nguyên ranh giới JPMS. Chỉ phát hành modular JAR khi artifact cuối cùng thực sự bảo toàn cấu trúc module đã thiết kế.
+Pay particular attention to workflows that create fat JARs or use shading. If a packaging tool merges multiple modules into one classpath JAR, the result may no longer preserve JPMS boundaries. Release a modular JAR only when the final artifact genuinely preserves the designed module structure.
 
-## 10. Kiểm tra tương thích trước khi đổi descriptor
+## 10. Checking Compatibility Before Changing a Descriptor
 
-Descriptor là một phần của API module. Một thay đổi tưởng như nhỏ cũng có thể ảnh hưởng tới người tiêu thụ:
+The descriptor is part of the module API. A seemingly small change can affect consumers:
 
-- Đổi tên module làm hỏng các khai báo `requires` đang dùng tên cũ.
-- Bỏ một package khỏi `exports` có thể khiến mã consumer không biên dịch hoặc không truy cập được API.
-- Bỏ một dependency khỏi `requires transitive` có thể làm consumer mất readability tới kiểu xuất hiện trong API.
-- Thu hẹp qualified exports có thể chặn một module tích hợp đã được hỗ trợ.
-- Bỏ `opens` có thể khiến framework lỗi ở runtime dù mã ứng dụng vẫn biên dịch.
-- Bỏ `uses` hoặc `provides` có thể làm service discovery không tìm thấy implementation.
+- Renaming a module breaks `requires` declarations using the old name.
+- Removing a package from `exports` can prevent consumer code from compiling or accessing the API.
+- Removing a dependency from `requires transitive` can cause consumers to lose readability to types appearing in the API.
+- Narrowing qualified exports can block a supported integration module.
+- Removing `opens` can cause frameworks to fail at runtime even though application code still compiles.
+- Removing `uses` or `provides` can prevent service discovery from locating implementations.
 
-Vì vậy, hãy kiểm tra descriptor cùng với kiểm thử consumer: biên dịch một module khác chỉ phụ thuộc vào API được công bố, chạy ứng dụng trên module path, và thử các đường reflection/service mà thư viện cam kết hỗ trợ.
+Therefore, verify the descriptor alongside consumer tests: compile another module that depends only on the published API, run the application on the module path, and test the reflection/service paths the library commits to supporting.
 
-## 11. Checklist phát hành
+## 11. Release Checklist
 
-Trước khi gắn nhãn hoặc upload artifact, có thể dùng checklist ngắn sau:
+Before tagging or uploading an artifact, you can use the following short checklist:
 
-- [ ] Tên module ổn định và khớp với tên trong tài liệu tích hợp.
-- [ ] `module-info.class` có trong JAR cuối cùng ở đúng vị trí.
-- [ ] Mọi `requires` cần thiết đều có mặt; dependency không còn dùng đã được xem xét loại bỏ.
-- [ ] `requires transitive` chỉ áp dụng cho dependency thực sự xuất hiện trong API công khai.
-- [ ] `requires static` không che giấu dependency bắt buộc ở runtime.
-- [ ] `exports` chỉ công bố các package thuộc API được hỗ trợ.
-- [ ] `opens` chỉ mở các package cần reflection và đúng module tiêu thụ.
-- [ ] `uses` và `provides` khớp với service/provider thực tế nếu có dùng ServiceLoader.
-- [ ] `jar --describe-module`, `jdeps --check` và kiểm tra module resolution đã được chạy trên artifact phát hành.
-- [ ] Một consumer độc lập đã biên dịch và chạy được bằng module path thực tế.
+- [ ] The module name is stable and matches the name in integration documentation.
+- [ ] `module-info.class` is present in the final JAR in the right location.
+- [ ] All needed `requires` are present; unused dependencies have been reviewed for removal.
+- [ ] `requires transitive` is applied only to dependencies genuinely appearing in the public API.
+- [ ] `requires static` does not mask a mandatory runtime dependency.
+- [ ] `exports` exposes only packages belonging to the supported API.
+- [ ] `opens` opens only packages needing reflection and to the right consuming modules.
+- [ ] `uses` and `provides` match actual services/providers if ServiceLoader is used.
+- [ ] `jar --describe-module`, `jdeps --check`, and module resolution checks have been run on the release artifact.
+- [ ] An independent consumer compiles and runs on the actual module path.
 
-## Kết luận
+## Conclusion
 
-Kiểm tra descriptor trước khi phát hành cần nhìn cả ba lớp: cấu trúc module, hợp đồng truy cập và artifact được đóng gói. `module-info.java` phải mô tả đúng dependency, package API, nhu cầu reflection và dịch vụ; JAR cuối cùng phải giữ nguyên descriptor đó; ứng dụng tiêu thụ phải biên dịch và chạy được trong cấu hình module thực tế.
+Verifying a descriptor before release requires looking at three layers: module structure, access contract, and packaged artifact. `module-info.java` must accurately describe dependencies, API packages, reflection needs, and services; the final JAR must preserve that descriptor; and a consuming application must compile and run in an actual module configuration.
 
-Khi kiểm tra bằng `jar --describe-module`, `jdeps --check`, `java --validate-modules` và một consumer độc lập, nhóm phát triển có bằng chứng cụ thể rằng module đã sẵn sàng để tích hợp.
+When verified with `jar --describe-module`, `jdeps --check`, `java --validate-modules`, and an independent consumer, the development team has concrete evidence that the module is ready for integration.

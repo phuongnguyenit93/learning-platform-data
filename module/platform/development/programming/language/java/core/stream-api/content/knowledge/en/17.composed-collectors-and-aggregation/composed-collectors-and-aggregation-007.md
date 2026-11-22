@@ -1,10 +1,10 @@
-# Rút gọn từng nhóm bằng reducing
+# Reducing Each Group with reducing
 
-## 1. Từ phân nhóm đến một giá trị tổng hợp cho mỗi nhóm
+## 1. From grouping to a single aggregated value per group
 
-Trong chương **Collector nhiều tầng và tổng hợp** của **JAVA_STREAM_API**, `Collectors.groupingBy` không chỉ có thể gom các bản ghi vào `List`. Mỗi nhóm còn có thể được **rút gọn trực tiếp thành một giá trị**: khoản doanh thu, đơn hàng lớn nhất, chuỗi mã, hoặc đối tượng thống kê gồm nhiều chỉ tiêu.
+In the **Composed Collectors and Aggregation** chapter of **JAVA_STREAM_API**, `Collectors.groupingBy` can do more than collect records into a `List`. Each group can also be **reduced directly to a single value**: a revenue figure, the largest order, a concatenated code string, or a summary object with multiple metrics.
 
-Ví dụ, hệ thống bán hàng muốn tạo báo cáo theo khu vực. Với mỗi khu vực, thay vì giữ toàn bộ đơn hàng rồi duyệt lại danh sách, ta có thể dùng một *downstream collector* để tính kết quả ngay trong lúc thu thập:
+For example, a sales system wants to generate a regional report. For each region, instead of keeping all orders and iterating over the list afterward, we can use a *downstream collector* to compute the result right during collection:
 
 ~~~text
 Stream<Order>
@@ -12,35 +12,35 @@ Stream<Order>
      ▼
 groupingBy(Order::region, downstream)
      │
-     ├─ Khu vực "Nam" ──► reducing(...) ──► Tổng hợp vùng Nam
-     ├─ Khu vực "Bắc" ──► reducing(...) ──► Tổng hợp vùng Bắc
-     └─ Khu vực "Trung" ► reducing(...) ──► Tổng hợp vùng Trung
+     ├─ Region "Nam"   ──► reducing(...) ──► Region Nam summary
+     ├─ Region "Bắc"   ──► reducing(...) ──► Region Bắc summary
+     └─ Region "Trung" ──► reducing(...) ──► Region Trung summary
      │
      ▼
-Map<String, KếtQuảNhóm>
+Map<String, GroupResult>
 ~~~
 
-`Collectors.reducing` đóng vai trò **downstream reduction**: thu các phần tử trong một nhóm thành một kết quả, tuân theo identity và phép kết hợp. Kết quả của `groupingBy` vẫn là `Map<K,D>` nhưng `D` không nhất thiết là `List<T>`.
+`Collectors.reducing` acts as a **downstream reduction**: combining the elements within a group into one result, honoring the identity and combining operation. The result of `groupingBy` is still `Map<K,D>`, yet `D` does not have to be `List<T>`.
 
-Bài tập trung vào ba overload của `reducing`, cách ghép với `groupingBy`, cách xử lý nhóm rỗng, cách xây dựng kết quả bất biến và những điều kiện để phép gộp đúng khi pipeline chạy song song. Các ví dụ sử dụng Java 17+; `Collectors.reducing` và `groupingBy` đã có từ Java 8.
+This lesson focuses on the three overloads of `reducing`, composing with `groupingBy`, handling empty groups, building immutable results, and conditions for a reduction to be valid in parallel pipelines. Examples use Java 17+; `Collectors.reducing` and `groupingBy` have been available since Java 8.
 
-## 2. Ba overload của Collectors.reducing
+## 2. The three overloads of Collectors.reducing
 
-Chữ ký khái niệm trong `java.util.stream.Collectors`:
+Conceptual signatures in `java.util.stream.Collectors`:
 
 ~~~java
-// 1. Không có identity: có thể không có kết quả.
+// 1. No identity: may have no result.
 static <T> Collector<T, ?, Optional<T>> reducing(
     BinaryOperator<T> op
 );
 
-// 2. Có identity, phần tử và kết quả cùng kiểu T.
+// 2. With identity, element and result share the same type T.
 static <T> Collector<T, ?, T> reducing(
     T identity,
     BinaryOperator<T> op
 );
 
-// 3. Có identity, chuyển phần tử T thành U trước khi gộp.
+// 3. With identity, maps element T to U before combining.
 static <T, U> Collector<T, ?, U> reducing(
     U identity,
     Function<? super T, ? extends U> mapper,
@@ -48,19 +48,19 @@ static <T, U> Collector<T, ?, U> reducing(
 );
 ~~~
 
-| Dạng | Đầu vào mỗi nhóm | Kết quả mỗi nhóm | Tình huống thường dùng |
+| Form | Input per group | Result per group | Typical use cases |
 | --- | --- | --- | --- |
-| `reducing(op)` | `T` | `Optional<T>` | Lấy phần tử tốt nhất, kết hợp khi không có phần tử đơn vị thích hợp |
-| `reducing(identity, op)` | `T` | `T` | Cộng các số hoặc ghép giá trị cùng kiểu |
-| `reducing(identity, mapper, op)` | `T` | `U` | Tính tổng doanh thu từ Order, tạo value object thống kê |
+| `reducing(op)` | `T` | `Optional<T>` | Picking the best element, combining when no suitable identity element exists |
+| `reducing(identity, op)` | `T` | `T` | Summing numbers or combining values of the same type |
+| `reducing(identity, mapper, op)` | `T` | `U` | Summing revenue from `Order`, building summary value objects |
 
-**Khác biệt với `Stream.reduce`:** `Stream.reduce(...)` là terminal operation gọi trực tiếp trên một Stream; `Collectors.reducing(...)` trả về một **Collector**, thường dùng làm đối số `downstream` của `groupingBy` hoặc `partitioningBy`. Chẳng hạn, một tổng toàn Stream có thể viết bằng `stream.reduce(...)`, còn một tổng **cho từng khóa** thường viết bằng `stream.collect(groupingBy(key, reducing(...)))`.
+**Difference from `Stream.reduce`:** `Stream.reduce(...)` is a terminal operation called directly on a Stream; `Collectors.reducing(...)` returns a **Collector**, typically passed as the `downstream` argument of `groupingBy` or `partitioningBy`. For example, a stream-wide sum can be written with `stream.reduce(...)`, whereas a sum **for each key** is typically written with `stream.collect(groupingBy(key, reducing(...)))`.
 
-`reducing` không nhận trực tiếp ba tham số `identity, accumulator, combiner` như overload `Stream.reduce(identity, accumulator, combiner)`. Overload ba tham số của **collector** là `identity, mapper, binaryOperator`; hiểu nhầm hai chữ ký dễ dẫn tới lỗi biên dịch.
+`reducing` does not directly take three parameters `identity, accumulator, combiner` like `Stream.reduce(identity, accumulator, combiner)`. The three-parameter overload of the **collector** is `identity, mapper, binaryOperator`; confusing the two signatures easily leads to compilation errors.
 
-## 3. Bộ dữ liệu dùng xuyên suốt bài
+## 3. Dataset used throughout the lesson
 
-Ví dụ sau có thể chạy độc lập. Tiền được giữ ở dạng `BigDecimal` để tránh sai số dấu chấm động khi cộng giá trị thập phân; giả định tất cả đơn cùng đơn vị tiền tệ.
+The following example runs standalone. Money is stored as `BigDecimal` to avoid floating-point errors when adding decimal values; all orders are assumed to share the same currency unit.
 
 ~~~java
 import java.math.BigDecimal;
@@ -98,19 +98,19 @@ public class OrderData {
 }
 ~~~
 
-Trong các snippet ngắn sau, `Order` và `orders` được hiểu là `OrderData.Order` và kết quả từ `OrderData.orders()`, hoặc các thành phần tương đương khai báo trong cùng lớp. Ba nhóm có dữ liệu:
+In the short snippets below, `Order` and `orders` refer to `OrderData.Order` and the result of `OrderData.orders()`, or equivalent declarations in the same class. Three groups have data:
 
-| Khu vực | Mã đơn | Số dòng | Tổng doanh thu |
+| Region | Order IDs | Line count | Total revenue |
 | --- | --- | ---: | ---: |
 | Nam | O1, O3 | 2 | 110.00 |
 | Bắc | O2, O5 | 2 | 80.00 |
 | Trung | O4 | 1 | 30.00 |
 
-Các kết quả được so sánh theo khóa bằng `Map.get(...)`; **không dựa vào thứ tự in ra của Map mặc định**, vì `groupingBy` không cam kết kiểu Map hoặc thứ tự duyệt khóa.
+Results are checked by key using `Map.get(...)`; **do not rely on the print order of the default Map**, because `groupingBy` does not guarantee a Map implementation or key iteration order.
 
-## 4. Dạng thứ nhất: reducing(BinaryOperator) trả Optional cho mỗi nhóm
+## 4. First form: reducing(BinaryOperator) returning Optional per group
 
-Khi muốn lấy **đơn hàng có giá trị lớn nhất** của từng khu vực, không có một đơn hàng “số 0” tự nhiên để dùng làm identity. Vì vậy, dùng overload một tham số:
+When you want **the highest-value order** in each region, there is no natural “zero” order to serve as an identity. Therefore, use the single-parameter overload:
 
 ~~~java
 import java.util.Comparator;
@@ -119,7 +119,7 @@ import java.util.Optional;
 import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
 
-// Trong ngữ cảnh đã có List<Order> orders:
+// Given List<Order> orders in scope:
 Comparator<Order> byValueThenId = Comparator
     .comparing(Order::lineTotal)
     .thenComparing(Order::id);
@@ -135,18 +135,18 @@ System.out.println(biggestOrderByRegion.get("Bắc").orElseThrow().id()); // O5
 System.out.println(biggestOrderByRegion.get("Trung").orElseThrow().id()); // O4
 ~~~
 
-Giải thích:
+Explanation:
 
-1. `Order::region` tạo khóa nhóm.
-2. `BinaryOperator.maxBy(byValueThenId)` so sánh hai đơn theo thành tiền, sau đó theo mã đơn nếu cần phá hòa.
-3. `Collectors.reducing(...)` dùng phép chọn “lớn hơn” để gộp các đơn trong **một nhóm**.
-4. Giá trị tương ứng với mỗi khóa có kiểu `Optional<Order>`.
+1. `Order::region` produces the group key.
+2. `BinaryOperator.maxBy(byValueThenId)` compares two orders by line total, then by order ID to break ties.
+3. `Collectors.reducing(...)` uses this “greater-than” selection to combine orders within **one group**.
+4. The value associated with each key has type `Optional<Order>`.
 
-Tại sao Map chứa Optional dù các nhóm được tạo ra từ bản ghi thực tế? Vì collector này phải hỗ trợ việc **không nhận phần tử nào**, nhất là khi kết hợp với downstream `filtering`. Không nên tùy tiện gọi `get()` trên Optional; hãy dùng `orElseThrow` nếu chắc chắn không rỗng theo nghiệp vụ hoặc xử lý nhánh rỗng một cách rõ ràng.
+Why does the Map hold `Optional` even though groups are formed from actual records? Because this collector must support **receiving zero elements**, especially when combined with downstream `filtering`. Do not blindly call `get()` on `Optional`; use `orElseThrow` when non-emptiness is guaranteed by business logic, or handle the empty branch explicitly.
 
-### 4.1. Khi nào dùng maxBy thay vì reducing?
+### 4.1. When to use maxBy instead of reducing?
 
-Với trường hợp chọn max, thư viện đã có collector chuyên dụng:
+For selecting a maximum, the library already provides a dedicated collector:
 
 ~~~java
 Map<String, Optional<Order>> biggest = orders.stream()
@@ -156,17 +156,17 @@ Map<String, Optional<Order>> biggest = orders.stream()
     ));
 ~~~
 
-`Collectors.maxBy(comparator)` tương đương về ngữ nghĩa với `Collectors.reducing(BinaryOperator.maxBy(comparator))`. Dạng chuyên dụng thường ngắn và thể hiện rõ chủ đích hơn. Tương tự, chọn min dùng `Collectors.minBy(...)`.
+`Collectors.maxBy(comparator)` is semantically equivalent to `Collectors.reducing(BinaryOperator.maxBy(comparator))`. The dedicated form is usually shorter and states intent more clearly. Similarly, use `Collectors.minBy(...)` for minimum selection.
 
-Dùng `reducing(BinaryOperator)` khi phép kết hợp có ý nghĩa nghiệp vụ riêng, ví dụ chọn một phiên bản theo quy tắc so sánh nhiều trường, hoặc hợp nhất hai value object bằng một operator đã định nghĩa.
+Use `reducing(BinaryOperator)` when the combining operation has custom business semantics, such as selecting a version via multi-field rules or merging two value objects using a custom operator.
 
-### 4.2. Lưu ý với dữ liệu bằng nhau theo comparator
+### 4.2. Note on records tied under the comparator
 
-Nếu comparator coi hai bản ghi khác nhau là tương đương, việc giữ **bản ghi đại diện nào** có thể phụ thuộc vào thứ tự và cách kết hợp. Khi danh tính bản ghi có ý nghĩa, hãy thiết kế comparator phá hòa bằng khóa ổn định (ví dụ mã duy nhất) hoặc xác định chính sách chọn đại diện tường minh.
+If the comparator treats two distinct records as equal, which **representative record** is retained can depend on encounter order and combining order. When record identity matters, design the comparator with a stable tie-breaker (such as a unique ID) or define an explicit selection policy.
 
-## 5. Dạng thứ hai: reducing(identity, op) trên các giá trị cùng kiểu
+## 5. Second form: reducing(identity, op) on values of the same type
 
-Nếu đầu vào của downstream đã là `BigDecimal`, ta có thể dùng `BigDecimal.ZERO` làm identity và `BigDecimal::add` để gộp:
+If the downstream input is already `BigDecimal`, we can use `BigDecimal.ZERO` as the identity and `BigDecimal::add` to combine:
 
 ~~~java
 import java.math.BigDecimal;
@@ -190,16 +190,16 @@ System.out.println(revenueByRegion.get("Bắc"));   // 80.00
 System.out.println(revenueByRegion.get("Trung")); // 30.00
 ~~~
 
-Ở đây có **hai collector phía sau lồng nhau**:
+Here there are **two nested downstream collectors**:
 
-- `mapping(Order::lineTotal, ...)` chuyển mỗi `Order` trong nhóm thành `BigDecimal`.
-- `reducing(BigDecimal.ZERO, BigDecimal::add)` gộp các khoản tiền đã chuyển.
+- `mapping(Order::lineTotal, ...)` converts each `Order` in the group into a `BigDecimal`.
+- `reducing(BigDecimal.ZERO, BigDecimal::add)` sums the converted amounts.
 
-Kết quả của `groupingBy` là `Map<String, BigDecimal>` chứ không phải Map chứa danh sách hay Optional.
+The result of `groupingBy` is `Map<String, BigDecimal>`, not a Map of lists or Optionals.
 
-`BigDecimal.ZERO` là identity hợp lệ **về giá trị số** của phép cộng. `BigDecimal.add` không làm tròn khi không truyền `MathContext`, nên thích hợp để cộng những lượng tiền có cùng đơn vị trong ví dụ. Khi hệ thống có nhiều loại tiền tệ, phải nhóm theo đồng tiền hoặc quy đổi với chính sách tỷ giá rõ ràng; phép cộng không tự làm việc đó.
+`BigDecimal.ZERO` is a valid **numeric-value** identity for addition. `BigDecimal.add` does not round when no `MathContext` is supplied, making it suitable for summing amounts in the same currency in this example. When a system has multiple currencies, you must group by currency or convert under an explicit exchange-rate policy; addition will not do that automatically.
 
-### 5.1. Cùng ý nghĩa bằng dạng thứ ba, ít lớp lồng hơn
+### 5.1. Same meaning using the third form, with fewer nested layers
 
 ~~~java
 Map<String, BigDecimal> revenueByRegion = orders.stream()
@@ -213,14 +213,14 @@ Map<String, BigDecimal> revenueByRegion = orders.stream()
     ));
 ~~~
 
-Cách này thường rõ hơn khi chỉ cần một bước ánh xạ rồi cộng: `reducing(identity, mapper, op)` đã tích hợp việc biến `Order` thành `BigDecimal`.
+This form is usually clearer when only one mapping step followed by addition is needed: `reducing(identity, mapper, op)` already incorporates turning `Order` into `BigDecimal`.
 
-### 5.2. Khi chỉ cần tổng số nguyên
+### 5.2. When only an integer sum is needed
 
-Nếu tiền đã được mô hình hóa hợp lệ bằng `long` theo đơn vị nhỏ nhất và không có nguy cơ tràn, collector chuyên dụng thường đơn giản hơn:
+If money is properly modeled as `long` in minor units and there is no overflow risk, a specialized collector is usually simpler:
 
 ~~~java
-// Giả sử Order có phương thức long totalInMinorUnits().
+// Assume Order has a method long totalInMinorUnits().
 Map<String, Long> sums = orders.stream()
     .collect(Collectors.groupingBy(
         Order::region,
@@ -228,13 +228,13 @@ Map<String, Long> sums = orders.stream()
     ));
 ~~~
 
-Đoạn trên là mẫu cho một model khác có method `totalInMinorUnits`; nó không thuộc record `Order` được khai báo ở mục 3. `summingLong` có thể tràn `long` nếu tổng quá lớn; nó không tự kiểm soát overflow. Cần chọn kiểu số và chính sách kiểm tra phù hợp nghiệp vụ.
+This snippet illustrates a different model with a `totalInMinorUnits` method; it is not part of the `Order` record declared in section 3. `summingLong` can overflow `long` if the sum is too large; it does not check for overflow automatically. Choose numeric types and validation policies suited to the business domain.
 
-## 6. Dạng thứ ba: reducing(identity, mapper, op) cho kiểu kết quả khác kiểu nguồn
+## 6. Third form: reducing(identity, mapper, op) when result type differs from source type
 
-Đây là dạng rất hữu ích khi `groupingBy` cần một **value object tổng hợp** cho mỗi nhóm, thay vì chỉ đếm hoặc cộng một trường.
+This form is very useful when `groupingBy` needs an **aggregated value object** per group, instead of merely counting or summing a single field.
 
-Giả sử mỗi khu vực phải có ba chỉ tiêu: số đơn, tổng đơn vị và doanh thu. Ta định nghĩa `Summary` là record bất biến.
+Suppose each region needs three metrics: order count, total units, and revenue. We define `Summary` as an immutable record.
 
 ~~~java
 import java.math.BigDecimal;
@@ -313,25 +313,25 @@ public class GroupedSalesSummary {
 }
 ~~~
 
-Các thành phần làm việc như sau:
+How the components work together:
 
-| Thành phần | Chức năng | Kiểu |
+| Component | Role | Type |
 | --- | --- | --- |
-| `Order::region` | Tính khóa nhóm | `Order → String` |
-| `TreeMap::new` | Tạo Map có khóa sắp xếp | `TreeMap<String, Summary>` |
-| `Summary.zero()` | Kết quả trung hòa của mỗi nhóm | `Summary` |
-| `Summary::from` | Chuyển một đơn thành summary một phần tử | `Order → Summary` |
-| `Summary::merge` | Gộp hai kết quả summary | `(Summary, Summary) → Summary` |
+| `Order::region` | Computes group key | `Order → String` |
+| `TreeMap::new` | Creates a Map with sorted keys | `TreeMap<String, Summary>` |
+| `Summary.zero()` | Neutral result for each group | `Summary` |
+| `Summary::from` | Converts one order into a single-element summary | `Order → Summary` |
+| `Summary::merge` | Combines two summary results | `(Summary, Summary) → Summary` |
 
-Do `Summary` không bị thay đổi tại chỗ, mỗi phép `merge` tạo record mới. Thiết kế này giúp tránh tình trạng nhiều nhánh xử lý cùng sửa một đối tượng tích lũy dùng chung.
+Because `Summary` is not mutated in place, each `merge` produces a new record. This design avoids situations where multiple processing branches mutate a shared accumulator object.
 
-**Giới hạn dữ liệu:** Ví dụ giả định số lượng và đơn giá hợp lệ, cùng một đơn vị tiền tệ, các phép cộng `long` không tràn. Trong hệ thống thực, cần kiểm tra các điều kiện đó. Khi phép cộng không được làm tròn tùy tiện, `BigDecimal` là một lựa chọn hữu ích cho tổng thập phân.
+**Data bounds:** The example assumes valid quantities and unit prices, a single currency, and `long` additions without overflow. In a real system, validate those conditions. When additions must not round arbitrarily, `BigDecimal` is a useful choice for decimal sums.
 
-## 7. Nhóm rỗng: phân biệt không có khóa, Optional.empty và identity
+## 7. Empty groups: distinguishing missing key, Optional.empty, and identity
 
-Đây là một khác biệt quan trọng giữa các overload của `reducing`.
+This is an important distinction among the overloads of `reducing`.
 
-### 7.1. Một khóa chưa hề xuất hiện thì không tồn tại trong groupingBy
+### 7.1. A key that never appeared does not exist in groupingBy
 
 ~~~java
 import java.util.List;
@@ -351,11 +351,11 @@ Map<String, Integer> sums = List.of(
 System.out.println(sums.containsKey("Trung")); // false
 ~~~
 
-`groupingBy` **không tự tạo** khóa `"Trung"` nếu nguồn không có dòng nào thuộc vùng đó, dù downstream có identity bằng `0`.
+`groupingBy` **does not create** the `"Trung"` key if the source has no rows for that region, even though the downstream has identity `0`.
 
-### 7.2. filtering downstream có thể tạo một nhóm với 0 phần tử phù hợp
+### 7.2. Downstream filtering can create a group with 0 matching elements
 
-`Collectors.filtering` (Java 9+) hoạt động **bên trong** nhóm, sau khi classifier đã nhận diện khóa:
+`Collectors.filtering` (Java 9+) operates **inside** the group, after the classifier has recognized the key:
 
 ~~~java
 import java.util.List;
@@ -389,9 +389,9 @@ System.out.println(qualifiedMax.get("Bắc"));   // Optional.empty
 System.out.println(qualifiedMax.containsKey("Trung")); // false
 ~~~
 
-`"Bắc"` **có mặt trong Map** vì đã có một phần tử mang khóa này, nhưng downstream `filtering` loại phần tử đó. Kết quả reducer không có identity nên là `Optional.empty()`. Trong khi đó, `"Trung"` chưa từng xuất hiện nên không có key trong Map.
+`"Bắc"` **is present in the Map** because an element carried that key, yet downstream `filtering` excluded it. Because the reducer has no identity, its result is `Optional.empty()`. Meanwhile, `"Trung"` never appeared and thus has no key in the Map.
 
-### 7.3. Có identity thì nhóm lọc rỗng nhận identity
+### 7.3. With an identity, a filtered-empty group receives the identity
 
 ~~~java
 Map<String, Integer> qualifiedSum = rows.stream()
@@ -412,12 +412,12 @@ System.out.println(qualifiedSum.get("Bắc")); // 0
 System.out.println(qualifiedSum.containsKey("Trung")); // false
 ~~~
 
-Dạng có identity phù hợp nếu số `0` chính là ý nghĩa tổng của **nhóm hiện diện nhưng không có phần tử được chọn**. Tuy nhiên, “không có quan sát” và “giá trị quan sát bằng 0” đôi khi phải được phân biệt; khi đó dạng Optional có thể phù hợp hơn.
+The form with an identity fits when `0` represents the valid sum of a **present group with no selected elements**. However, “no observations” and “an observed value of 0” must sometimes be distinguished; in that case, the `Optional` form may be more appropriate.
 
-### 7.4. filtering upstream và downstream không tương đương
+### 7.4. Upstream and downstream filtering are not equivalent
 
 ~~~java
-// Có thể loại hẳn nhóm Bắc.
+// May eliminate the Bắc group completely.
 Map<String, Integer> upstream = rows.stream()
     .filter(row -> row.value() >= 5)
     .collect(Collectors.groupingBy(
@@ -425,7 +425,7 @@ Map<String, Integer> upstream = rows.stream()
         Collectors.reducing(0, Row::value, Integer::sum)
     ));
 
-// Vẫn giữ khóa Bắc với tổng 0.
+// Keeps the Bắc key with sum 0.
 Map<String, Integer> downstream = rows.stream()
     .collect(Collectors.groupingBy(
         Row::region,
@@ -436,15 +436,15 @@ Map<String, Integer> downstream = rows.stream()
     ));
 ~~~
 
-Nếu dashboard cần hiển thị các nhóm đã có dữ liệu đầu vào kể cả khi tổng hợp sau lọc bằng 0, dùng `filtering` làm downstream. Nếu chỉ hiển thị nhóm còn phần tử hợp lệ, lọc trước `groupingBy` phù hợp hơn.
+If a dashboard must display groups that had input data even when the post-filter aggregate is 0, use `filtering` as a downstream. If only groups with qualifying elements should appear, filtering before `groupingBy` is better.
 
-## 8. Kết hợp reducing với mapping và groupingBy nhiều tầng
+## 8. Combining reducing with mapping and multi-level groupingBy
 
-Downstream có thể được **lồng nhau** để tạo các báo cáo khác nhau mà không phải xây dựng Map thủ công.
+Downstreams can be **nested** to build different reports without constructing Maps manually.
 
-### 8.1. mapping trước reducing
+### 8.1. mapping before reducing
 
-Ví dụ muốn nối các mã đơn theo một khu vực thành một chuỗi không có dấu phân cách:
+For example, concatenating order IDs per region into a string without a delimiter:
 
 ~~~java
 import java.util.Map;
@@ -462,7 +462,7 @@ Map<String, String> idsByRegion = orders.stream()
 System.out.println(idsByRegion.get("Nam")); // O1O3
 ~~~
 
-`String::concat` có identity `""` và có tính kết hợp khi giữ thứ tự các chuỗi. Tuy nhiên, việc nối nhiều chuỗi bất biến bằng reducer có thể tạo nhiều chuỗi trung gian và tốn chi phí sao chép. Khi chỉ cần ghép văn bản, `Collectors.joining(delimiter)` thường ngắn gọn, hiệu quả và tự mô tả hơn:
+`String::concat` has identity `""` and is associative when string order is preserved. However, concatenating many immutable strings via a reducer can allocate many intermediate strings and incur copying overhead. When you only need to join text, `Collectors.joining(delimiter)` is usually shorter, more efficient, and more self-descriptive:
 
 ~~~java
 Map<String, String> prettyIds = orders.stream()
@@ -474,11 +474,11 @@ Map<String, String> prettyIds = orders.stream()
 System.out.println(prettyIds.get("Nam")); // O1, O3
 ~~~
 
-Phép nối chuỗi **không giao hoán**: `"O1O3"` khác `"O3O1"`. Nếu cần thứ tự xác định, giữ encounter order hoặc sắp xếp rõ ràng; đừng gọi `unordered()` trước phép gộp phụ thuộc thứ tự.
+String concatenation is **not commutative**: `"O1O3"` differs from `"O3O1"`. If a deterministic order is needed, preserve encounter order or sort explicitly; do not call `unordered()` before an order-dependent reduction.
 
-### 8.2. groupingBy nhiều cấp và reducing ở cấp cuối
+### 8.2. Multi-level groupingBy with reducing at the leaf level
 
-Bài toán: doanh thu của từng SKU **trong mỗi khu vực**.
+Problem: revenue for each SKU **within each region**.
 
 ~~~java
 import java.math.BigDecimal;
@@ -505,9 +505,9 @@ System.out.println(byRegionAndSku.get("Nam").get("BOOK")); // 100.00
 System.out.println(byRegionAndSku.get("Nam").get("PEN"));  // 10.00
 ~~~
 
-Ở đây có ba quyết định độc lập: **khóa nhóm ngoài** là khu vực, **khóa nhóm trong** là SKU và **phép reduction cuối** là cộng thành tiền. `TreeMap` bảo đảm các khóa Map được sắp xếp theo `String.compareTo`; nó **không** thay đổi quy tắc cộng tiền.
+Here there are three independent decisions: the **outer group key** is region, the **inner group key** is SKU, and the **final reduction** sums line totals. `TreeMap` ensures Map keys are sorted by `String.compareTo`; it **does not** alter the monetary addition rule.
 
-Nếu cấu trúc lồng nhau khiến mã khó đọc, hãy tách downstream thành một biến collector có kiểu rõ ràng hoặc một phương thức đặt tên theo nghiệp vụ:
+If nesting makes the code hard to read, extract the downstream into an explicitly typed collector variable or a business-named helper method:
 
 ~~~java
 import java.math.BigDecimal;
@@ -529,13 +529,13 @@ Map<String, Map<String, BigDecimal>> report =
     ));
 ~~~
 
-Đặt tên `revenueCollector` giúp làm rõ chức năng và dễ tái sử dụng trong các pipeline khác.
+Naming `revenueCollector` clarifies its purpose and makes it easy to reuse across other pipelines.
 
-## 9. Identity và tính kết hợp: điều kiện để kết quả đúng
+## 9. Identity and associativity: requirements for correct results
 
-Một downstream reducer có thể được chia thành các phần rồi ghép lại khi pipeline xử lý song song. `identity` và `op` phải tạo thành phép gộp **có phần tử trung hòa và tính kết hợp** trên miền giá trị được hỗ trợ.
+A downstream reducer can be split into parts and combined when a pipeline executes in parallel. `identity` and `op` must form an operation **with a neutral identity element and associativity** over the supported value domain.
 
-Với mọi kết quả hợp lệ `a`, `b`, `c` và identity `e`:
+For all valid results `a`, `b`, `c` and identity `e`:
 
 ~~~text
 op(e, a) = a
@@ -543,14 +543,14 @@ op(a, e) = a
 op(op(a, b), c) = op(a, op(b, c))
 ~~~
 
-| Phép gộp | Identity | Hợp lệ khi |
+| Combining op | Identity | Valid when |
 | --- | --- | --- |
-| `BigDecimal::add` | `BigDecimal.ZERO` | Cùng miền/đơn vị tiền, không dùng chính sách làm tròn phá tính kết hợp |
-| `Integer::sum` | `0` | Chấp nhận ngữ nghĩa số nguyên Java; nếu cần tổng toán học không tràn, phải chọn kiểu/kiểm tra phù hợp |
-| `String::concat` | `""` | Cần giữ encounter order nếu thứ tự ký tự có ý nghĩa |
-| `Summary::merge` | `Summary.zero()` | Các thành phần summary có identity và phép gộp tương thích |
+| `BigDecimal::add` | `BigDecimal.ZERO` | Same currency/domain, without rounding policies that break associativity |
+| `Integer::sum` | `0` | Java integer semantics is acceptable; for overflow-free math sums, pick suitable types/checks |
+| `String::concat` | `""` | Encounter order must be preserved when character order matters |
+| `Summary::merge` | `Summary.zero()` | All summary fields have compatible identities and merge operations |
 
-### 9.1. Sai: chọn identity không trung hòa
+### 9.1. Wrong: choosing a non-neutral identity
 
 ~~~java
 import java.util.List;
@@ -559,53 +559,53 @@ import java.util.stream.Collectors;
 int wrong = List.of(2, 3).stream()
     .collect(Collectors.reducing(10, Integer::sum));
 
-System.out.println(wrong); // 15; không phải tổng 5.
+System.out.println(wrong); // 15; not the sum 5.
 ~~~
 
-`10` không phải identity của phép cộng. Với `groupingBy`, giá trị này còn làm mỗi nhóm bị cộng thêm một lượng không mong muốn.
+`10` is not an identity for addition. With `groupingBy`, this value would also add an unwanted offset to every group.
 
-### 9.2. Sai: dùng phép trừ hoặc phép chia như phép gộp kết hợp
+### 9.2. Wrong: using subtraction or division as an associative combiner
 
 ~~~java
 int wrong = List.of(10, 3, 2).stream()
     .collect(Collectors.reducing(0, (left, right) -> left - right));
 ~~~
 
-Phép trừ không kết hợp và `0` không là identity hai phía. Kết quả quan sát được khi chạy tuần tự không biến công thức này thành phép reduction có hợp đồng đúng cho parallel stream.
+Subtraction is not associative and `0` is not a two-sided identity. Observing a result in sequential execution does not make this formula a valid reduction contract for parallel streams.
 
-Nếu cần tính “10 trừ tổng các khoản giảm”, hãy cộng **các khoản giảm** trước, sau đó trừ tổng đúng một lần ở bước nghiệp vụ cuối.
+If you need “10 minus the sum of discounts”, sum **the discounts** first, then subtract the total once at the final business step.
 
-### 9.3. Sai: dùng object mutable làm identity rồi sửa nó
+### 9.3. Wrong: using a mutable object as identity and mutating it
 
 ~~~java
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-// CHỐNG CHỈ ĐỊNH: minh họa cách viết sai.
+// ANTI-PATTERN: illustrates wrong usage.
 List<String> broken = List.of("A", "B").parallelStream()
     .collect(Collectors.reducing(
         new ArrayList<String>(),
         value -> new ArrayList<>(List.of(value)),
         (left, right) -> {
-            left.addAll(right); // Sửa object accumulator.
+            left.addAll(right); // Mutates the accumulator object.
             return left;
         }
     ));
 ~~~
 
-Dạng `reducing(identity, mapper, op)` không được thiết kế để mutation vào cùng một identity do các nhánh dùng chung. Khi combiner sửa List, có thể xảy ra dữ liệu trùng, race condition hoặc sai kết quả. Hãy dùng `toList`/`toCollection` hoặc custom collector đúng hợp đồng nếu cần mutable reduction:
+`reducing(identity, mapper, op)` is not designed to mutate a single shared identity across branches. When the combiner mutates a List, duplicate entries, race conditions, or wrong results can occur. Use `toList`/`toCollection` or a contract-compliant custom collector when mutable reduction is needed:
 
 ~~~java
 List<String> good = List.of("A", "B").parallelStream()
     .collect(Collectors.toList());
 ~~~
 
-Tương tự, không tăng biến toàn cục hoặc ghi I/O trong `classifier`, `mapper` và `op` để đếm số lần callback chạy. Stream có thể tối ưu hóa và phân chia công việc; các side effect này không phải cơ chế tích lũy đúng.
+Similarly, do not increment global counters or perform I/O inside `classifier`, `mapper`, or `op` to count callback invocations. Streams may optimize and partition work; such side effects are not a valid accumulation mechanism.
 
-## 10. Thứ tự, Map đầu ra và xử lý song song
+## 10. Ordering, output Maps, and parallel execution
 
-`Collectors.groupingBy` và `Collectors.reducing` có thể được dùng trên **parallel stream**, nhưng `groupingBy` không phải concurrent collector. Khi song song, implementation có thể tạo các Map trung gian rồi hợp nhất, dẫn đến chi phí phối hợp và cấp phát.
+`Collectors.groupingBy` and `Collectors.reducing` can be used on **parallel streams**, yet `groupingBy` is not a concurrent collector. In parallel, the implementation may create intermediate Maps and merge them, incurring coordination and allocation overhead.
 
 ~~~java
 import java.math.BigDecimal;
@@ -623,17 +623,17 @@ Map<String, BigDecimal> parallelRevenue = orders.parallelStream()
     ));
 ~~~
 
-Vì phép cộng tiền trong ví dụ có identity hợp lệ và có tính kết hợp về giá trị số, việc chia các đơn thành những nhánh khác nhau vẫn cho tổng đúng. Tuy nhiên, sự đúng đắn không tự kéo theo hiệu năng nhanh hơn: nguồn nhỏ, nhóm phân bố lệch và chi phí gộp Map có thể làm parallel chậm hơn tuần tự.
+Because monetary addition in this example has a valid identity and is associative on numeric values, splitting orders across branches still produces the right total. However, correctness does not automatically imply faster performance: small sources, skewed groups, and Map merge cost can make parallel slower than sequential.
 
-### 10.1. Vị trí của ràng buộc thứ tự
+### 10.1. Where ordering constraints apply
 
-Map mặc định từ `groupingBy` không cam kết thứ tự duyệt **khóa**. Nếu cần khóa theo thứ tự so sánh, truyền `TreeMap::new` vào overload ba tham số. Nếu cần thứ tự xuất hiện đầu của nhóm trên một pipeline tuần tự có encounter order, dùng `LinkedHashMap::new`.
+The default Map from `groupingBy` does not guarantee **key** iteration order. If keys must be in comparable order, pass `TreeMap::new` to the three-parameter overload. If first-seen group order on a sequential pipeline with encounter order is needed, use `LinkedHashMap::new`.
 
-Thứ tự duyệt **các khóa Map** là một vấn đề khác với encounter order của **các phần tử được đưa vào reducer**. Khi `op` là nối chuỗi, thứ tự dữ liệu có thể ảnh hưởng kết quả; khi `op` là cộng số trong miền thích hợp, thứ tự thường không ảnh hưởng đến tổng về mặt toán học.
+**Map key** iteration order is a separate issue from the encounter order of **elements fed into the reducer**. When `op` is string concatenation, element order can affect the result; when `op` is numeric addition in an appropriate domain, order usually does not affect the mathematical sum.
 
-### 10.2. groupingByConcurrent có dùng với reducing được không?
+### 10.2. Can groupingByConcurrent be used with reducing?
 
-Có thể dùng `Collectors.reducing` làm downstream cho `groupingByConcurrent` nếu phép reduction tuân thủ hợp đồng:
+`Collectors.reducing` can be used as the downstream of `groupingByConcurrent` provided the reduction obeys the contract:
 
 ~~~java
 import java.math.BigDecimal;
@@ -651,29 +651,29 @@ ConcurrentMap<String, BigDecimal> totals = orders.parallelStream()
     ));
 ~~~
 
-`groupingByConcurrent` trả `ConcurrentMap` và là collector **unordered**; không phù hợp khi kết quả reducer yêu cầu giữ đúng thứ tự phần tử của nguồn. Downstream `reducing` không vì được đặt trong `groupingByConcurrent` mà có thể tự ý mutation vào trạng thái dùng chung.
+`groupingByConcurrent` returns a `ConcurrentMap` and is an **unordered** collector; it is unsuitable when the reducer result depends on preserving source element order. Placing downstream `reducing` inside `groupingByConcurrent` does not grant permission to arbitrarily mutate shared state.
 
-Việc tích lũy song song có lợi hay không còn phụ thuộc contention giữa các nhóm, kích thước dữ liệu, độ nặng của mapper và số lượng phần tử từng nhóm. Không mặc định concurrent luôn nhanh hơn.
+Whether parallel accumulation helps also depends on key contention across groups, dataset size, mapper cost, and element counts per group. Never assume concurrent is always faster.
 
-## 11. Khi nào nên dùng collector chuyên dụng thay vì reducing?
+## 11. When should you use a specialized collector instead of reducing?
 
-`reducing` là công cụ tổng quát và rất hữu ích để tạo giá trị miền nghiệp vụ. Nhưng khi bài toán chỉ là một phép thống kê phổ biến, collector chuyên dụng thường gọn hơn, tránh boxing hoặc hoạt động hiệu quả hơn.
+`reducing` is general-purpose and very useful for producing domain value objects. However, when the task is a standard statistical operation, a specialized collector is usually shorter, avoids boxing, or works more efficiently.
 
-| Mục tiêu theo từng nhóm | Chọn thường hợp lý | Dạng reducing tương đương |
+| Goal per group | Usually preferred choice | Equivalent reducing form |
 | --- | --- | --- |
-| Số phần tử trong nhóm | `counting()` | `reducing(0L, x -> 1L, Long::sum)` |
-| Tổng số lượng kiểu `int` | `summingInt(Order::quantity)` | `reducing(0, Order::quantity, Integer::sum)` |
-| Tổng số lượng kiểu `long` | `summingLong(...)` | `reducing(0L, mapper, Long::sum)` |
-| Giá trị lớn nhất | `maxBy(comparator)` | `reducing(BinaryOperator.maxBy(comparator))` |
-| Giá trị nhỏ nhất | `minBy(comparator)` | `reducing(BinaryOperator.minBy(comparator))` |
-| Nối chuỗi có dấu phân cách | `mapping(mapper, joining(", "))` | `mapping(mapper, reducing(...))` nhưng thường dài và tạo thêm chuỗi |
-| Count/min/max/sum/average chuẩn | `summarizingInt/Long/Double(...)` | Tự dựng đối tượng thống kê rồi `reducing(...)` |
-| Hai phép thống kê tạo một record | `teeing(...)` | Có thể dựng record trung gian rồi `reducing(...)` |
-| Gộp một value object đặc thù | `reducing(identity, mapper, op)` | Đây thường là mục tiêu phù hợp nhất |
+| Element count in group | `counting()` | `reducing(0L, x -> 1L, Long::sum)` |
+| Sum of `int` quantities | `summingInt(Order::quantity)` | `reducing(0, Order::quantity, Integer::sum)` |
+| Sum of `long` quantities | `summingLong(...)` | `reducing(0L, mapper, Long::sum)` |
+| Maximum value | `maxBy(comparator)` | `reducing(BinaryOperator.maxBy(comparator))` |
+| Minimum value | `minBy(comparator)` | `reducing(BinaryOperator.minBy(comparator))` |
+| Join strings with delimiter | `mapping(mapper, joining(", "))` | `mapping(mapper, reducing(...))` (usually verbose and allocates extra strings) |
+| Standard count/min/max/sum/average | `summarizingInt/Long/Double(...)` | Building a custom statistics object then `reducing(...)` |
+| Two metrics forming one record | `teeing(...)` | Building an intermediate record then `reducing(...)` |
+| Merging a domain value object | `reducing(identity, mapper, op)` | Typically the most natural use case |
 
-`Collectors.summingDouble` và `DoubleSummaryStatistics` còn chịu tác động của số thực dấu chấm động và thứ tự cộng. Không dựa vào tính kết hợp toán học tuyệt đối của `double`: làm tròn có thể khiến kết quả tuần tự và song song chênh lệch.
+`Collectors.summingDouble` and `DoubleSummaryStatistics` are also affected by floating-point arithmetic and addition order. Do not rely on exact mathematical associativity of `double`: rounding can cause sequential and parallel results to differ.
 
-Ví dụ dùng `teeing` để gộp hai chỉ tiêu thành record trong mỗi nhóm, không cần viết operator gộp record thủ công:
+Example using `teeing` to combine two metrics into a record per group without writing a manual record merge operator:
 
 ~~~java
 import java.math.BigDecimal;
@@ -697,17 +697,17 @@ Map<String, Totals> totals = orders.stream()
     ));
 ~~~
 
-`teeing` có từ Java 12; nó đưa từng bản ghi của một nhóm qua hai downstream rồi kết hợp kết quả của chúng bằng `Totals::new`. Nếu hệ thống có nhiều chỉ tiêu liên quan nhau, một summary bất biến như mục 6 có thể biểu diễn miền nghiệp vụ rõ hơn.
+`teeing` has existed since Java 12; it feeds each record in a group to two downstreams and combines their results with `Totals::new`. If a system has several closely related metrics, an immutable summary like in section 6 can express the business domain more clearly.
 
-## 12. Kiểm thử kết quả đúng với nhóm, nguồn rỗng và thứ tự
+## 12. Testing correctness with groups, empty sources, and ordering
 
-Cách thử tốt nhất không phải chỉ nhìn chuỗi `Map.toString()`, bởi Map mặc định không cam kết thứ tự. Hãy kiểm tra trực tiếp giá trị ứng với từng khóa và phân biệt ba trường hợp:
+The best way to test is not just eyeballing `Map.toString()`, because the default Map does not guarantee order. Assert directly on the value for each key and distinguish three cases:
 
-1. **Nhóm có dữ liệu:** kiểm tra tổng/đại diện được chọn.
-2. **Nhóm xuất hiện nhưng downstream lọc hết:** kiểm tra identity hoặc `Optional.empty()`.
-3. **Nhóm không tồn tại:** kiểm tra `Map.containsKey(...) == false`.
+1. **Group with data:** verify the computed sum or selected representative.
+2. **Group that appeared but downstream filtered everything out:** verify the identity or `Optional.empty()`.
+3. **Nonexistent group:** verify `Map.containsKey(...) == false`.
 
-Ví dụ kiểm tra nhanh bằng Java thuần:
+Quick verification example in plain Java:
 
 ~~~java
 import java.math.BigDecimal;
@@ -746,19 +746,19 @@ public class GroupedReducingChecks {
             ));
 
         if (serial.get("A").compareTo(new BigDecimal("3.75")) != 0) {
-            throw new AssertionError("Tổng nhóm A sai");
+            throw new AssertionError("Wrong sum for group A");
         }
 
         if (serial.get("B").compareTo(new BigDecimal("4.00")) != 0) {
-            throw new AssertionError("Tổng nhóm B sai");
+            throw new AssertionError("Wrong sum for group B");
         }
 
         if (serial.containsKey("C")) {
-            throw new AssertionError("Không được tự tạo nhóm C");
+            throw new AssertionError("Must not invent group C");
         }
 
         if (!serial.equals(parallel)) {
-            throw new AssertionError("Kết quả tuần tự và song song khác nhau");
+            throw new AssertionError("Sequential and parallel results differ");
         }
 
         System.out.println("PASS");
@@ -766,19 +766,19 @@ public class GroupedReducingChecks {
 }
 ~~~
 
-Trong ví dụ này, cùng các `BigDecimal` đầu vào và cùng cách gộp không làm tròn, giá trị tổng được giữ nhất quán khi phân nhánh. Nếu miền thực tế có dữ liệu null, giá trị tiền âm, tiền nhiều đơn vị hoặc các phép tính số nguyên có nguy cơ tràn, phải bổ sung kiểm thử và kiểm soát nghiệp vụ.
+In this example, given the same `BigDecimal` inputs and non-rounding addition, sums stay consistent across parallel splitting. If the real domain has null values, negative amounts, multiple currencies, or integer arithmetic prone to overflow, add corresponding tests and business guards.
 
-## 13. Những lỗi thường gặp khi reducing từng nhóm
+## 13. Common mistakes when reducing per group
 
-### Lỗi 1: gộp toàn Stream rồi mới nghĩ đến nhóm
+### Mistake 1: reducing the whole Stream before thinking about groups
 
 ~~~java
-// Chỉ tính MỘT tổng cho toàn bộ Stream:
+// Computes ONE total for the entire Stream:
 BigDecimal overall = orders.stream()
     .map(Order::lineTotal)
     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-// Tính MỘT tổng CHO MỖI khu vực:
+// Computes ONE total PER region:
 Map<String, BigDecimal> perRegion = orders.stream()
     .collect(Collectors.groupingBy(
         Order::region,
@@ -790,12 +790,12 @@ Map<String, BigDecimal> perRegion = orders.stream()
     ));
 ~~~
 
-`Stream.reduce` không tự phân nhóm; muốn có nhiều kết quả theo khóa phải kết hợp `groupingBy` với downstream collector.
+`Stream.reduce` does not group elements; to get per-key results, compose `groupingBy` with a downstream collector.
 
-### Lỗi 2: kỳ vọng overload không identity trả T trực tiếp
+### Mistake 2: expecting the no-identity overload to return T directly
 
 ~~~java
-// reducing(BinaryOperator<T>) trả Optional<T> cho mỗi nhóm.
+// reducing(BinaryOperator<T>) returns Optional<T> for each group.
 Map<String, Optional<Order>> selected = orders.stream()
     .collect(Collectors.groupingBy(
         Order::region,
@@ -805,12 +805,12 @@ Map<String, Optional<Order>> selected = orders.stream()
     ));
 ~~~
 
-`Map<String, Order>` không phải kiểu đúng của kết quả trên. Nếu cần bỏ Optional, hãy thiết kế chính sách cho trường hợp rỗng (đặc biệt nếu dùng downstream `filtering`).
+`Map<String, Order>` is not the right type for the expression above. If you need to unwrap `Optional`, define a policy for empty cases (especially when using downstream `filtering`).
 
-### Lỗi 3: đặt identity thành một giá trị nghiệp vụ không trung hòa
+### Mistake 3: setting identity to a non-neutral business value
 
 ~~~java
-// Sai nếu muốn tổng bình thường: mỗi nhóm sẽ bị cộng thêm 100.
+// Wrong for a normal sum: every group gets an extra 100 added.
 Collectors.reducing(
     new BigDecimal("100"),
     Order::lineTotal,
@@ -818,57 +818,57 @@ Collectors.reducing(
 );
 ~~~
 
-Dùng `BigDecimal.ZERO` cho tổng, hoặc định nghĩa identity đúng cho value object cụ thể.
+Use `BigDecimal.ZERO` for sums, or define the proper identity for your specific value object.
 
-### Lỗi 4: làm biến dạng kết quả bằng mutable identity và side effect
+### Mistake 4: corrupting results with mutable identity and side effects
 
 ~~~java
-// Không tăng một biến đếm mutable bên ngoài mapper/operator để xây báo cáo;
-// không sửa một List/Map dùng chung từ phép gộp reducing trong parallel stream.
+// Do not increment a mutable counter outside mapper/operator to build reports;
+// do not mutate a shared List/Map from a reducing combiner in a parallel stream.
 ~~~
 
-Hãy để collector quản lý tích lũy, hoặc dùng `toList` / `toMap` / `groupingBy` / collector tùy chỉnh đúng hợp đồng khi thực sự cần mutable reduction.
+Let the collector manage accumulation, or use `toList` / `toMap` / `groupingBy` / a contract-compliant custom collector when mutable reduction is truly needed.
 
-### Lỗi 5: đặt filter sai tầng
+### Mistake 5: placing the filter at the wrong layer
 
-Nếu cần giữ mọi nhóm đã từng xuất hiện, đặt `Collectors.filtering` **bên trong** `groupingBy`. Nếu chỉ muốn các nhóm có phần tử phù hợp, lọc **trước** `groupingBy`. Hai dạng có thể khác nhau dù tổng của các nhóm còn lại giống nhau.
+If all previously seen groups must be preserved, place `Collectors.filtering` **inside** `groupingBy`. If only groups with matching elements should appear, filter **before** `groupingBy`. The two forms can differ even when the sums of remaining groups match.
 
-### Lỗi 6: tưởng parallel sẽ luôn tăng tốc
+### Mistake 6: assuming parallel will always speed things up
 
-Reduction tùy biến có thể tạo nhiều object trung gian; grouping còn có chi phí gộp Map. Với nguồn nhỏ hoặc nhóm quá lệch, parallel có thể chậm hơn. Đo bằng dữ liệu đại diện và xác minh tính kết hợp trước khi tối ưu.
+Custom reductions can allocate many intermediate objects; grouping also pays Map merging overhead. On small sources or heavily skewed groups, parallel can be slower. Measure on representative data and verify associativity before optimizing.
 
-## 14. Bảng ra quyết định
+## 14. Decision table
 
-| Câu hỏi | Lựa chọn nên cân nhắc |
+| Question | Option to consider |
 | --- | --- |
-| Cần một giá trị trên toàn bộ nguồn? | `Stream.reduce` hoặc collector terminal phù hợp |
-| Cần một giá trị trên từng khóa? | `groupingBy(classifier, reducing(...))` |
-| Không có identity hợp lệ? | `reducing(BinaryOperator)` → `Optional<T>` |
-| Có identity, phần tử và kết quả cùng kiểu? | `reducing(identity, op)` |
-| Cần biến phần tử `T` thành kết quả kiểu `U`? | `reducing(identityU, mapper, op)` |
-| Chỉ cần đếm/tổng/min/max chuẩn? | `counting`, `summingX`, `minBy`, `maxBy` |
-| Cần thống kê nhiều trường gộp được? | `reducing` với record bất biến hoặc `teeing` |
-| Muốn giữ nhóm lọc rỗng? | `groupingBy(key, filtering(predicate, reducing(...)))` |
-| Cần báo cáo hai cấp? | `groupingBy(key1, groupingBy(key2, reducing(...)))` |
-| Cần thứ tự duyệt khóa Map? | Thêm `LinkedHashMap::new` hoặc `TreeMap::new` |
-| Muốn xử lý song song không quan tâm thứ tự? | Kiểm tra luật gộp; cân nhắc `groupingByConcurrent` và benchmark |
+| Need one value across the whole source? | `Stream.reduce` or an appropriate terminal collector |
+| Need one value per key? | `groupingBy(classifier, reducing(...))` |
+| No valid identity exists? | `reducing(BinaryOperator)` → `Optional<T>` |
+| Have identity, elements and result share the same type? | `reducing(identity, op)` |
+| Need to map element `T` to result type `U`? | `reducing(identityU, mapper, op)` |
+| Only need standard count/sum/min/max? | `counting`, `summingX`, `minBy`, `maxBy` |
+| Need combinable multi-field statistics? | `reducing` with immutable record or `teeing` |
+| Want to keep empty filtered groups? | `groupingBy(key, filtering(predicate, reducing(...)))` |
+| Need a two-level report? | `groupingBy(key1, groupingBy(key2, reducing(...)))` |
+| Need Map key iteration order? | Pass `LinkedHashMap::new` or `TreeMap::new` |
+| Want order-independent parallel processing? | Verify combining laws; consider `groupingByConcurrent` and benchmark |
 
-## 15. Câu hỏi tự kiểm tra
+## 15. Self-check questions
 
-1. **Ba overload của `Collectors.reducing` khác nhau ở đâu?** Dạng một trả `Optional<T>`, dạng hai dùng identity cho các phần tử kiểu `T`, dạng ba thêm mapper từ `T` sang `U`.
-2. **Vì sao `groupingBy(region, reducing(...))` khác `stream.reduce(...)`?** Dạng đầu tạo kết quả riêng cho từng khóa; dạng sau chỉ tạo một kết quả toàn nguồn.
-3. **Khi dùng `reducing(BinaryOperator.maxBy(...))`, mỗi giá trị Map có kiểu gì?** `Optional<T>`.
-4. **Nhóm không tồn tại có tự xuất hiện với identity của reducer không?** Không; `groupingBy` chỉ tạo các khóa mà classifier đã nhận diện.
-5. **Nhóm có phần tử nhưng downstream `filtering` bỏ hết thì dạng reducing không identity cho gì?** `Optional.empty()`.
-6. **Nếu cùng trường hợp nhưng reducer có identity `0`?** Giá trị của nhóm là `0` (nếu identity là 0 và phép gộp phù hợp).
-7. **Tại sao `BigDecimal.ZERO` là identity hợp lý khi cộng doanh thu cùng đơn vị?** Vì cộng 0 không thay đổi giá trị số của tổng.
-8. **Tại sao không dùng phép trừ để gộp các summary khi cần parallel?** Phép trừ không kết hợp và thường không có identity hai phía phù hợp.
-9. **Trong overload `reducing(identity, mapper, op)`, mapper nhận Order hay Summary?** Nhận Order (phần tử đầu vào), trả Summary hoặc kiểu `U` tương ứng.
-10. **`groupingBy(..., TreeMap::new, reducing(...))` thay đổi điều gì?** Thứ tự duyệt khóa Map; không đổi cách reducer tính giá trị nhóm.
-11. **Khi chỉ cần số lượng đơn mỗi vùng, cách nào ngắn hơn?** `groupingBy(Order::region, counting())`.
-12. **Khi kết quả cần hai chỉ tiêu độc lập, có công cụ nào thay cho việc tự viết record merge?** `Collectors.teeing` kết hợp hai downstream.
-13. **`groupingByConcurrent` có bảo đảm thứ tự phần tử của nguồn trong mỗi nhóm không?** Không; đó là concurrent, unordered collector.
-14. **Vì sao không dùng `StringBuilder` mutable làm identity trong reducing?** Phá giả định tích lũy dạng giá trị; dùng collector chuyên dụng như `joining` khi ghép chuỗi.
-15. **Làm sao kiểm tra reducer đúng trên parallel stream?** Kiểm tra identity, tính kết hợp, miền giá trị, nhóm rỗng và so sánh kết quả tuần tự/song song với bộ dữ liệu đại diện.
+1. **How do the three overloads of `Collectors.reducing` differ?** The first returns `Optional<T>`, the second uses an identity for `T` elements, and the third adds a mapper from `T` to `U`.
+2. **Why does `groupingBy(region, reducing(...))` differ from `stream.reduce(...)`?** The former produces a separate result per key; the latter produces one result for the entire source.
+3. **When using `reducing(BinaryOperator.maxBy(...))`, what type is each Map value?** `Optional<T>`.
+4. **Does a nonexistent group automatically appear with the reducer's identity?** No; `groupingBy` creates keys only for elements seen by the classifier.
+5. **If a group has elements but downstream `filtering` rejects all of them, what does the no-identity `reducing` form return?** `Optional.empty()`.
+6. **What about the same case if the reducer has identity `0`?** The group's value is `0` (when the identity is 0 and the combining op is compatible).
+7. **Why is `BigDecimal.ZERO` a reasonable identity when summing same-currency revenue?** Because adding 0 does not change the numeric value of the sum.
+8. **Why not use subtraction to merge summaries when parallelism is needed?** Subtraction is not associative and generally lacks a suitable two-sided identity.
+9. **In `reducing(identity, mapper, op)`, does the mapper receive Order or Summary?** It receives Order (the input element) and returns Summary or the corresponding `U` type.
+10. **What does `groupingBy(..., TreeMap::new, reducing(...))` change?** Map key iteration order; it does not change how the reducer computes each group's value.
+11. **When you only need order count per region, which form is shorter?** `groupingBy(Order::region, counting())`.
+12. **When a result needs two independent metrics, what tool replaces manually writing a record merge?** `Collectors.teeing` combining two downstreams.
+13. **Does `groupingByConcurrent` guarantee source element order inside each group?** No; it is a concurrent, unordered collector.
+14. **Why not use a mutable `StringBuilder` as the identity in `reducing`?** It breaks value-based accumulation assumptions; use a dedicated collector like `joining` for string concatenation.
+15. **How do you verify a reducer is correct on a parallel stream?** Check identity, associativity, value domain, empty groups, and compare sequential vs. parallel results on representative datasets.
 
-**Ghi nhớ:** `Collectors.reducing` cho phép **tổng hợp trực tiếp mỗi nhóm** khi được dùng làm downstream của `groupingBy`. Dạng không identity cho `Optional`; dạng có identity cho giá trị trực tiếp; dạng có mapper giúp kết hợp `Order` thành tiền hoặc summary bất biến. Chọn phép gộp có identity và tính kết hợp phù hợp, phân biệt nhóm vắng mặt với nhóm lọc rỗng, rồi cân nhắc collector chuyên dụng và hiệu năng song song trước khi tối ưu.
+**Key takeaway:** `Collectors.reducing` enables **direct per-group aggregation** when used as a downstream of `groupingBy`. The no-identity form yields `Optional`; the identity form yields the value directly; the mapper form helps combine `Order` into revenue or immutable summaries. Choose an operation with a valid identity and associativity, distinguish missing keys from filtered-empty groups, and evaluate specialized collectors and parallel overhead before optimizing.

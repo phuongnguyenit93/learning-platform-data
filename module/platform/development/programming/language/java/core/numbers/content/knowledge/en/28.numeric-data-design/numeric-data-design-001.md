@@ -1,49 +1,49 @@
-# Ghi rõ miền giá trị, đơn vị và giới hạn khi thiết kế dữ liệu số trong Java
+# Explicitly Specifying Value Ranges, Units, and Limits When Designing Numeric Data in Java
 
-Một trường số như `amount`, `distance`, `quantity` hay `rate` không được mô tả đầy đủ chỉ bằng kiểu `int`, `long`, `double` hoặc `BigDecimal`. Cùng một giá trị `100` có thể là 100 đồng, 100 cent, 100 mét, 100 mili giây hoặc 100 phần trăm. Tương tự, kiểu `long` có thể lưu một số âm rất lớn, nhưng một số lượng hàng hóa trong miền nghiệp vụ lại chỉ được phép từ 0 đến 10.000. Sử dụng kiểu Java phù hợp là cần thiết; **hợp đồng dữ liệu số phải ghi rõ miền giá trị, đơn vị, độ chính xác và cách xử lý khi vượt giới hạn**.
+A numeric field such as `amount`, `distance`, `quantity`, or `rate` is not completely described by a type like `int`, `long`, `double`, or `BigDecimal` alone. The same value `100` could mean 100 dong, 100 cents, 100 meters, 100 milliseconds, or 100 percent. Similarly, the `long` type can store a very large negative number, yet a product quantity in a business domain might only be allowed from 0 to 10,000. Using an appropriate Java type is necessary; **a numeric data contract must explicitly specify the value range, unit, precision, and how out-of-bounds values are handled**.
 
-Bài này tập trung vào cách mô tả và thực thi hợp đồng số tại ranh giới API, DTO, model, lưu trữ và phép tính. Kết quả mong muốn: hai người phát triển độc lập có thể đọc đặc tả và hiểu giống nhau về ý nghĩa của một con số, thay vì tự suy đoán từ tên biến hay kiểu primitive.
+This article focuses on how to describe and enforce numeric contracts at API, DTO, model, storage, and calculation boundaries. The desired outcome: two independent developers can read the specification and share the exact same understanding of what a number means, instead of guessing from variable names or primitive types.
 
-## 1. Phân biệt phạm vi của kiểu Java và phạm vi nghiệp vụ
+## 1. Distinguishing Java Type Ranges from Business Domain Ranges
 
-**Miền biểu diễn của kiểu** là mọi giá trị mà kiểu dữ liệu lưu được. **Miền hợp lệ của nghiệp vụ** là tập con được hệ thống cho phép.
+**The representation range of a type** is every value that the data type can store. **The valid business range** is the subset permitted by the system.
 
-| Dữ liệu | Kiểu Java khả dĩ | Miền nghiệp vụ ví dụ | Đơn vị |
+| Data | Possible Java Type | Example Business Range | Unit |
 | --- | --- | --- | --- |
-| Số lượng mặt hàng | `int` | 0 đến 10.000 | sản phẩm |
-| Thời hạn yêu cầu | `long` | 1 đến 120.000 | mili giây |
-| Quãng đường | `long` | 0 đến 10.000.000 | milimét |
-| Giá không âm | `long` | 0 đến 100.000.000 | đơn vị tiền tệ nhỏ nhất |
-| Tỷ lệ chiết khấu | `int` | 0 đến 10.000 | basis point, 1 bp = 0,01% |
-| Khối lượng | `BigDecimal` | 0 đến 1.000, độ phân giải 0,001 | kilôgam |
+| Item quantity | `int` | 0 to 10,000 | items |
+| Request timeout | `long` | 1 to 120,000 | milliseconds |
+| Distance | `long` | 0 to 10,000,000 | millimeters |
+| Non-negative price | `long` | 0 to 100,000,000 | smallest currency unit |
+| Discount rate | `int` | 0 to 10,000 | basis points, 1 bp = 0.01% |
+| Mass | `BigDecimal` | 0 to 1,000, resolution 0.001 | kilograms |
 
-**Các con số trong bảng là ví dụ về một hợp đồng cụ thể**, không phải giới hạn mặc định do Java hoặc từng ngành nghề áp đặt. Mỗi sản phẩm phải tự quyết định phạm vi của mình.
+**The numbers in this table are examples of a specific contract**, not default limits imposed by Java or by any industry. Each product must determine its own ranges.
 
-Về kỹ thuật:
+Technically:
 
-- `byte`: từ -128 đến 127.
-- `short`: từ -32.768 đến 32.767.
-- `int`: từ -2.147.483.648 đến 2.147.483.647.
-- `long`: từ -9.223.372.036.854.775.808 đến 9.223.372.036.854.775.807.
-- `BigInteger`: biểu diễn số nguyên độ lớn thay đổi, không bị giới hạn ở 32/64 bit nhưng vẫn chịu giới hạn tài nguyên.
-- `BigDecimal`: biểu diễn số thập phân chính xác theo phần nguyên không tỉ lệ (`unscaled value`) và `scale`; vẫn cần xác định miền, độ phân giải và quy tắc làm tròn phù hợp.
-- `float` và `double`: số dấu phẩy động nhị phân, có `NaN`, vô cực dương/âm và sai số biểu diễn; chỉ nên chọn nếu các đặc tính đó phù hợp miền dữ liệu.
+- `byte`: from -128 to 127.
+- `short`: from -32,768 to 32,767.
+- `int`: from -2,147,483,648 to 2,147,483,647.
+- `long`: from -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807.
+- `BigInteger`: represents variable-magnitude integers, not limited to 32/64 bits, though still subject to resource limits.
+- `BigDecimal`: represents exact decimal numbers via an unscaled integer value (`unscaled value`) and `scale`; still requires defining appropriate range, resolution, and rounding rules.
+- `float` and `double`: binary floating-point numbers, having `NaN`, positive/negative infinity, and representation error; should only be chosen if those characteristics fit the data domain.
 
-Chẳng hạn, nếu `quantity` là `int`, Java không ngăn người gọi truyền `-5` hoặc `2_000_000`. Điều kiện “0 đến 10.000” phải được **nêu trong hợp đồng và kiểm tra trong chương trình**, không được suy ra từ kiểu `int`.
+For example, if `quantity` is an `int`, Java does not prevent callers from passing `-5` or `2_000_000`. The condition "0 to 10,000" must be **stated in the contract and validated in code**, not inferred from the `int` type.
 
-Đặc tả cần nói rõ hai đầu biên là **bao gồm** hay **loại trừ**. Ví dụ `0 <= count && count <= 10_000` khác với `0 < count && count < 10_000`. Một trường cho phép 0 cũng khác trường luôn phải dương.
+The specification must clarify whether both endpoints are **inclusive** or **exclusive**. For instance, `0 <= count && count <= 10_000` differs from `0 < count && count < 10_000`. A field that allows 0 also differs from one that must always be positive.
 
-## 2. Ghi rõ đơn vị và ý nghĩa của mỗi trường
+## 2. Explicitly Specifying Units and Semantics of Each Field
 
-Các con số cùng kiểu Java vẫn có thể là những đại lượng không tương thích về đơn vị. Đoạn mã dưới đây biên dịch nhưng rất dễ sai:
+Numbers of the same Java type can still be quantities with incompatible units. The snippet below compiles, yet is very error-prone:
 
 ```java
-long timeout = 5;       // 5 giây hay 5 mili giây?
-long distance = 1200;   // 1200 mét hay 1200 milimét?
-long price = 1999;      // 1999 đồng hay 19,99 đơn vị tiền?
+long timeout = 5;       // 5 seconds or 5 milliseconds?
+long distance = 1200;   // 1200 meters or 1200 millimeters?
+long price = 1999;      // 1999 dong or 19.99 currency units?
 ```
 
-Không đủ thông tin để biết các giá trị trên có chính xác không. Hãy ghi rõ ý nghĩa và, khi hợp lý, đưa đơn vị vào tên biến/API:
+There is not enough information to tell whether these values are correct. Make the meaning explicit and, where appropriate, include the unit in variable/API names:
 
 ```java
 long timeoutMillis = 5_000L;
@@ -51,40 +51,40 @@ long distanceMillimeters = 1_200L;
 long priceMinorUnits = 1_999L;
 ```
 
-Hợp đồng cho một trường số nên mô tả ít nhất:
+A contract for a numeric field should describe at least:
 
-1. **Tên đại lượng:** số lượng, thời gian, chiều dài, giá, tỷ lệ hay mã định danh.
-2. **Đơn vị gốc (canonical unit):** mili giây, milimét, cent, basis point, byte...
-3. **Miền hợp lệ:** min/max, có bao gồm biên không, có cho phép số âm và số 0 không.
-4. **Độ phân giải và độ chính xác:** bước tăng nhỏ nhất, số chữ số thập phân được chấp nhận.
-5. **Chính sách với giá trị thiếu:** `null` có hợp lệ hay không; 0 có mang nghĩa “chưa biết” hay không.
-6. **Chính sách chuyển đổi và làm tròn:** chuyển đơn vị theo hệ số nào; loại bỏ hay làm tròn phần dư; nếu làm tròn thì theo quy tắc nào.
-7. **Hành vi khi vi phạm:** từ chối với ngoại lệ/kết quả lỗi, hay xử lý theo quy định nghiệp vụ.
+1. **Quantity name:** count, duration, length, price, rate, or identifier.
+2. **Canonical unit:** milliseconds, millimeters, cents, basis points, bytes...
+3. **Valid range:** min/max, whether bounds are inclusive, whether negative numbers and 0 are allowed.
+4. **Resolution and precision:** smallest increment, accepted number of decimal places.
+5. **Missing value policy:** whether `null` is valid; whether 0 means "unknown".
+6. **Conversion and rounding policy:** what factor to convert units by; whether to discard or round remainders; if rounding, according to which rule.
+7. **Behavior on violation:** reject with an exception/error result, or handle per business rules.
 
-Ví dụ, trường thời gian có thể được đặc tả: “`timeoutMillis`: số nguyên mili giây; từ 1 đến 120.000 tính cả hai đầu; bắt buộc có; giá trị 0 và âm không hợp lệ; giá trị vượt giới hạn bị từ chối.” Đây là hợp đồng có thể dùng để triển khai và kiểm thử.
+For example, a duration field can be specified as: "`timeoutMillis`: integer milliseconds; from 1 to 120,000 inclusive; required; zero and negative values invalid; out-of-range values rejected." That is a contract ready for implementation and testing.
 
-### Tránh phép cộng trộn đơn vị
+### Avoiding Mixed-Unit Addition
 
 ```java
 long durationSeconds = 3;
 long durationMillis = 500;
 
-// Sai nghĩa: 3 giây + 500 mili giây không phải là 503 mili giây.
+// Wrong semantics: 3 seconds + 500 milliseconds is not 503 milliseconds.
 long wrong = durationSeconds + durationMillis;
 
-// Đúng: cùng đơn vị mili giây trước khi cộng.
+// Correct: convert to the same unit (milliseconds) before adding.
 long correct = Math.addExact(
         Math.multiplyExact(durationSeconds, 1_000L), durationMillis);
 // correct = 3500
 ```
 
-`Math.multiplyExact` và `Math.addExact` giúp phát hiện tràn trong chuyển đổi/cộng nguyên. Đây là mảnh mã minh họa đặt trong một phương thức. Nếu đầu vào từ các hệ thống khác nhau, hãy chuyển tất cả về cùng đơn vị **trước khi tính**, đồng thời nêu rõ nơi phép chuyển đổi được thực hiện.
+`Math.multiplyExact` and `Math.addExact` help detect overflow during integer conversion and addition. This is an illustrative snippet placed inside a method. If inputs come from different systems, convert all of them to the same unit **before calculating**, and document clearly where the conversion happens.
 
-Java có các kiểu làm rõ một số miền dữ liệu, ví dụ `java.time.Duration` cho khoảng thời gian. Khi dùng `Duration`, không nên coi hai tham số `long` tùy ý mang cùng ý nghĩa. Các API như `Duration.ofSeconds(3)` và `Duration.ofMillis(500)` nói rõ đơn vị ngay ở chỗ tạo dữ liệu.
+Java provides types that clarify certain data domains, such as `java.time.Duration` for time intervals. When using `Duration`, two arbitrary `long` parameters should not be treated as sharing the same meaning. APIs like `Duration.ofSeconds(3)` and `Duration.ofMillis(500)` make the unit explicit right at the point of creation.
 
-## 3. Độ phân giải và chính sách decimal thuộc hợp đồng trường
+## 3. Resolution and Decimal Policy Belong to the Field Contract
 
-Ngay cả khi biết **đơn vị** của một số, API vẫn phải quy định bước nhỏ nhất, ví dụ 0,001 kg hoặc 0,01 đơn vị tiền. `BigDecimal.scale()` là bậc lũy thừa 10 của biểu diễn, còn `precision()` là số chữ số có nghĩa của hệ số. Chúng không tự định nghĩa đơn vị hoặc quy tắc nghiệp vụ.
+Even when the **unit** of a number is known, the API must still specify the smallest step, such as 0.001 kg or 0.01 currency units. `BigDecimal.scale()` is the power-of-10 exponent of the representation, while `precision()` is the number of significant digits in the coefficient. They do not by themselves define units or business rules.
 
 ```java
 BigDecimal value = new BigDecimal("12.30");
@@ -93,13 +93,13 @@ System.out.println(value.precision()); // 4
 BigDecimal accepted = value.setScale(2, RoundingMode.UNNECESSARY);
 ```
 
-Với yêu cầu **không được làm tròn**, `setScale(2, RoundingMode.UNNECESSARY)` chấp nhận `12.30` nhưng từ chối `12.345`. Điều này kiểm tra khả năng biểu diễn ở độ phân giải 0,01, không buộc token gốc có đúng hai ký tự sau dấu thập phân. Nếu hệ thống cho phép làm tròn, phải ghi rõ thời điểm và `RoundingMode` (không mặc định một mode cho mọi đồng tiền). Bài `Đưa precision, scale và rounding vào hợp đồng` triển khai đầy đủ chính sách và các phép chia.
+When the requirement is **no rounding allowed**, `setScale(2, RoundingMode.UNNECESSARY)` accepts `12.30` but rejects `12.345`. This checks representability at a resolution of 0.01 without forcing the original token to have literally two digits after the decimal point. If the system allows rounding, it must state when it happens and the `RoundingMode` (do not assume one mode fits all currencies). The article `Putting Precision, Scale, and Rounding into the Numeric Data Design Contract in Java` covers the full policy and division operations.
 
-Đối với tiền, số nguyên của **đơn vị nhỏ nhất** có thể thích hợp nếu đồng tiền và tỉ lệ giữa hai đơn vị được đặc tả. Không tự giả định mọi đồng tiền có đúng hai chữ số thập phân hoặc có thể cộng số tiền khác đơn vị.
+For money, an integer count of the **smallest unit** can be appropriate if the currency and the ratio between the two units are specified. Do not assume all currencies have exactly two decimal places or that amounts in different units can be added together.
 
-## 4. Giới hạn phải bao phủ cả phép tính trung gian
+## 4. Limits Must Cover Intermediate Calculations
 
-Miền của mỗi trường có thể nhỏ nhưng **tổng hoặc tích** vượt kiểu primitive của toán hạng. Nếu số lượng tối đa là 50.000 và đơn giá tối đa là 100.000 đơn vị nhỏ, tích có thể đến 5.000.000.000, vượt `int`:
+Individual field ranges may be small, yet their **sum or product** can exceed the primitive type of the operands. If the maximum quantity is 50,000 and the maximum unit price is 100,000 minor units, the product can reach 5,000,000,000, exceeding `int`:
 
 ```java
 int quantity = 50_000;
@@ -107,23 +107,23 @@ int unitPriceMinor = 100_000;
 long correct = (long) quantity * unitPriceMinor; // 5000000000
 ```
 
-Thăng hạng phải xảy ra **trước khi nhân**, không đợi tới biến nhận kết quả. Sử dụng `Math.multiplyExact`, `Math.addExact`, `Math.toIntExact` hoặc kiểu `BigInteger` theo giới hạn của nghiệp vụ. Nếu kết quả cuối nhỏ nhưng bước trung gian tràn, phải xác định hợp đồng từ chối trung gian hay tính với kiểu rộng rồi xét kết quả cuối.
+Type promotion must occur **before multiplying**, not wait for the variable receiving the result. Use `Math.multiplyExact`, `Math.addExact`, `Math.toIntExact`, or `BigInteger` according to business limits. If the final result is small but an intermediate step overflows, the contract must specify whether intermediate overflow is rejected or computed in a wider type before checking the final result.
 
-Bài `Chọn kiểu tính toán trung gian riêng với kiểu lưu trữ` phân tích đầy đủ `IntStream`, các phép toán trung gian, thu hẹp và ranh giới lưu trữ.
+The article `Choosing Intermediate Calculation Types Separately from Storage Types in Java` thoroughly analyzes `IntStream`, intermediate operations, narrowing conversions, and storage boundaries.
 
-## 5. Cùng hợp đồng phải có hiệu lực từ Java đến hệ thống nhận
+## 5. The Same Contract Must Hold from Java to Receiving Systems
 
-Hợp đồng dữ liệu số cần khớp giữa model Java, DTO/API, JSON, cơ sở dữ liệu và biểu diễn trong file. Một `long` hợp lệ tại backend có thể vượt `Number.MAX_SAFE_INTEGER` của client JavaScript; nếu cần số nguyên chính xác hai chiều, phải thống nhất schema, ví dụ truyền chuỗi decimal với parser tương ứng. Một cột `DECIMAL(p,s)` vẫn cần quy tắc nghiệp vụ về miền, dấu, precision, scale.
+The numeric data contract must align across Java models, DTOs/APIs, JSON, databases, and file representations. A `long` that is valid in the backend can exceed JavaScript's `Number.MAX_SAFE_INTEGER` on the client; if exact two-way integers are needed, agree on a schema—for example, transmitting decimal strings with a matching parser. A `DECIMAL(p,s)` column still needs business rules for range, sign, precision, and scale.
 
-Các giao diện có thể nhập **mét** nhưng model lưu **milimét**; phải chuyển đơn vị ở ranh giới rõ ràng, kiểm tra tràn và xuất đúng đơn vị được công bố. Không được tự dùng chuỗi đã phân nhóm hoặc làm tròn cho người đọc làm payload chuẩn. Bài `Tách định dạng hiển thị khỏi tính toán và trao đổi` mở rộng phần giao thức và locale.
+Interfaces may accept **meters** while the model stores **millimeters**; convert units at clear boundaries, check for overflow, and output the published unit. Never use strings formatted with grouping separators or rounded for human display as canonical payloads. The article `Separating Display Formatting from Calculation and Exchange of Numeric Data in Java` expands on protocols and locales.
 
-## 6. Từ trường primitive đến kiểu đại diện miền dữ liệu
+## 6. From Primitive Fields to Domain-Representing Types
 
-Trường `long` có thể phù hợp khi code nhỏ và mọi nơi cùng hiểu hợp đồng. Với API quan trọng, có thể bọc giá trị trong một **value object** để kiểm tra miền ngay lúc tạo:
+A `long` field can be suitable when the codebase is small and everyone shares the same understanding of the contract. For critical APIs, wrap the value in a **value object** to validate the range upon creation:
 
 ```java
 record DistanceMillimeters(long value) {
-    static final long MAX_VALUE = 10_000_000L; // Ví dụ giới hạn 10 km.
+    static final long MAX_VALUE = 10_000_000L; // Example 10 km limit.
 
     DistanceMillimeters {
         if (value < 0 || value > MAX_VALUE) {
@@ -133,9 +133,9 @@ record DistanceMillimeters(long value) {
 }
 ```
 
-Đây là một `record` Java 17 và là **mảnh mã minh họa**. Constructor compact được gọi khi tạo record và từ chối mọi giá trị ngoài miền. `DistanceMillimeters` giúp hạn chế việc truyền nhầm milli giây cho tham số quãng đường; compiler chỉ nhìn `long` sẽ không có khả năng phân biệt hai đại lượng.
+This is a Java 17 `record` and an **illustrative snippet**. The compact constructor is invoked when creating the record and rejects any value outside the range. `DistanceMillimeters` helps prevent accidentally passing milliseconds to a distance parameter; a compiler seeing only `long` cannot distinguish the two quantities.
 
-Có thể mở rộng value object để nhận đầu vào theo mét rồi chuyển sang milimét:
+The value object can be extended to accept input in meters and convert it to millimeters:
 
 ```java
 static DistanceMillimeters fromMeters(String meters) {
@@ -146,17 +146,17 @@ static DistanceMillimeters fromMeters(String meters) {
 }
 ```
 
-Phương thức này nằm **bên trong** record `DistanceMillimeters` và cần import `java.math.BigDecimal`. `movePointRight(3)` chuyển mét sang milimét; `longValueExact()` từ chối nếu có phần lẻ nhỏ hơn 1 milimét (mà không thể chuyển chính xác sang số nguyên milimét) hoặc nếu số ngoài miền `long`. Constructor tiếp tục từ chối giá trị âm hoặc vượt 10.000.000 milimét.
+This method lives **inside** the `DistanceMillimeters` record and requires importing `java.math.BigDecimal`. `movePointRight(3)` converts meters to millimeters; `longValueExact()` rejects values with fractional parts smaller than 1 millimeter (which cannot be converted exactly to integer millimeters) or values outside the `long` range. The constructor then rejects negative values or values exceeding 10,000,000 millimeters.
 
-Ví dụ `fromMeters("1.250")` lưu 1.250 mm; `fromMeters("0.0005")` bị từ chối vì tương đương 0,5 mm và hợp đồng này **không cho phép làm tròn**. Nếu sản phẩm muốn cho phép làm tròn nửa milimét, phải mô tả `RoundingMode` và quyết định đó trước khi triển khai.
+For example, `fromMeters("1.250")` stores 1,250 mm; `fromMeters("0.0005")` is rejected because it equals 0.5 mm and this contract **does not allow rounding**. If the product wants to allow rounding half-millimeters, it must document the `RoundingMode` and decide that before implementation.
 
-Các đơn vị vật lý có thể có cả giá trị âm (ví dụ nhiệt độ Celsius) hoặc không (ví dụ độ dài). Không nên áp quy tắc “mọi đại lượng không được âm” một cách mặc định; đặt giới hạn đúng với từng miền.
+Physical quantities can have negative values (such as Celsius temperature) or not (such as length). Do not apply a "no quantity may be negative" rule by default; set limits that match each domain.
 
-## 7. Chương trình Java 17+ hoàn chỉnh: ràng buộc đơn vị, miền và độ phân giải
+## 7. Complete Java 17+ Program: Enforcing Units, Ranges, and Resolution
 
-Ví dụ sau giả định một miền giá có **hai chữ số thập phân**, cùng một đồng tiền, chỉ nhận giá **không âm** và không vượt 1.000.000 đơn vị tiền lớn. Quãng đường được nhập bằng **mét**, lưu dưới dạng **milimét**, không âm và không vượt 10 km. Các giới hạn được chọn để minh họa cách viết hợp đồng, không phải quy tắc chung của thương mại hoặc đo lường.
+The following example assumes a price domain with **two decimal places**, a single currency, allowing only **non-negative** prices not exceeding 1,000,000 major currency units. Distance is entered in **meters**, stored as **millimeters**, non-negative, and not exceeding 10 km. These limits are chosen to illustrate how to write a contract, not as universal rules of commerce or measurement.
 
-Lưu tệp **`NumericContractDemo.java`**:
+Save the file **`NumericContractDemo.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -247,14 +247,14 @@ public final class NumericContractDemo {
 }
 ```
 
-Biên dịch và chạy trong thư mục chứa tệp:
+Compile and run in the directory containing the file:
 
 ```bash
 javac -encoding UTF-8 NumericContractDemo.java
 java NumericContractDemo
 ```
 
-Stdout kỳ vọng:
+Expected stdout:
 
 ```text
 total price = 15.00
@@ -265,33 +265,33 @@ negative price = rejected
 int widened sum = 2147483648
 ```
 
-**Giải thích:**
+**Explanation:**
 
-- `"12.34"` và `"2.66"` được nhân chính xác với 100 và lưu dưới dạng `long` cent. Tổng 1.500 cent hiển thị thành `15.00`.
-- `"1.250"` mét chuyển chính xác thành 1.250 milimét. Khi hiển thị bằng `BigDecimal.valueOf(value, 3)`, nó trở về `1.250`.
-- `"1.234"` ở đơn vị tiền lớn tương ứng 123,4 cent; `longValueExact()` từ chối vì phần nhỏ hơn 1 cent. Hợp đồng ví dụ **không làm tròn**.
-- `"10000.001"` mét tương ứng 10.000.001 mm, vượt giới hạn 10.000.000 mm nên bị từ chối.
-- `"-1.00"` bị từ chối do miền không cho phép giá âm, mặc dù `long` hoàn toàn biểu diễn được -100.
-- Biểu thức `(long) Integer.MAX_VALUE + 1` chuyển sang `long` **trước phép cộng**, vì vậy không tràn `int`.
+- `"12.34"` and `"2.66"` are multiplied exactly by 100 and stored as `long` cents. The sum of 1,500 cents is displayed as `15.00`.
+- `"1.250"` meters converts exactly to 1,250 millimeters. When formatted with `BigDecimal.valueOf(value, 3)`, it returns to `1.250`.
+- `"1.234"` in major currency units corresponds to 123.4 cents; `longValueExact()` rejects it because of the fractional part smaller than 1 cent. The example contract **does not round**.
+- `"10000.001"` meters corresponds to 10,000,001 mm, exceeding the 10,000,000 mm limit and is therefore rejected.
+- `"-1.00"` is rejected because the domain forbids negative prices, even though `long` can easily represent -100.
+- The expression `(long) Integer.MAX_VALUE + 1` promotes to `long` **before the addition**, so `int` does not overflow.
 
-Chương trình này dùng `record` có từ Java 16, tương thích Java 17+. Nó cố ý không chứa mã tiền tệ hoặc quy tắc quy đổi tỷ giá vì hợp đồng ví dụ giả định **một loại tiền đã được thống nhất**. Nếu ứng dụng xử lý nhiều tiền tệ, kiểu giá phải gắn rõ mã tiền tệ và không cho phép cộng trực tiếp khác mã khi chưa có quy tắc đổi.
+This program uses `record`, available since Java 16 and compatible with Java 17+. It intentionally omits currency codes or exchange rate conversion rules because the example contract assumes **a single agreed currency**. If the application handles multiple currencies, the price type must explicitly carry the currency code and disallow direct addition across different codes without a conversion rule.
 
-## 8. Mô tả trường số trong API và tài liệu
+## 8. Describing Numeric Fields in APIs and Documentation
 
-Một đặc tả rõ ràng có thể được viết thành bảng để frontend, backend, kiểm thử và lưu trữ cùng sử dụng:
+A clear specification can be written as a table for frontend, backend, QA, and storage teams to share:
 
-| Trường | Kiểu truyền | Ý nghĩa/đơn vị | Miền/độ phân giải | Khi không hợp lệ |
+| Field | Wire Type | Meaning/Unit | Range/Resolution | On Invalid Input |
 | --- | --- | --- | --- | --- |
-| `quantity` | JSON integer | sản phẩm | 0–10.000, bước 1 | Trả lỗi miền |
-| `timeoutMillis` | JSON integer | mili giây | 1–120.000, bước 1 | Trả lỗi miền |
-| `distanceMillimeters` | JSON integer | milimét | 0–10.000.000, bước 1 | Trả lỗi miền |
-| `priceMinorUnits` | JSON integer hoặc chuỗi số nếu client cần độ chính xác 64 bit | đơn vị nhỏ của một đồng tiền đã xác định | 0–100.000.000, bước 1 | Trả lỗi miền |
-| `discountBasisPoints` | JSON integer | basis point | 0–10.000, bước 1 (= 0,01%) | Trả lỗi miền |
-| `massKg` | chuỗi số decimal | kilôgam | 0–1.000, bước 0,001 kg | Từ chối số quá chi tiết |
+| `quantity` | JSON integer | items | 0–10,000, step 1 | Return range error |
+| `timeoutMillis` | JSON integer | milliseconds | 1–120,000, step 1 | Return range error |
+| `distanceMillimeters` | JSON integer | millimeters | 0–10,000,000, step 1 | Return range error |
+| `priceMinorUnits` | JSON integer or numeric string if client needs 64-bit precision | minor unit of a specified currency | 0–100,000,000, step 1 | Return range error |
+| `discountBasisPoints` | JSON integer | basis points | 0–10,000, step 1 (= 0.01%) | Return range error |
+| `massKg` | decimal numeric string | kilograms | 0–1,000, step 0.001 kg | Reject overly granular numbers |
 
-Mọi miền ví dụ đều **bao gồm hai đầu biên**. Nếu chọn JSON string để bảo toàn số nguyên lớn, tài liệu API phải ghi **kiểu dữ liệu thực tế** là chuỗi và định nghĩa định dạng hợp lệ; không được ghi JSON integer rồi âm thầm trả chuỗi.
+All example ranges are **inclusive at both endpoints**. If a JSON string is chosen to preserve large integers, the API documentation must declare the **actual data type** as string and define the valid format; never document a JSON integer and silently return a string.
 
-Ví dụ JSON minh họa một đối tượng số lượng và thời gian:
+JSON example illustrating a quantity and duration object:
 
 ```json
 {
@@ -301,90 +301,90 @@ Ví dụ JSON minh họa một đối tượng số lượng và thời gian:
 }
 ```
 
-Tài liệu phải nói rõ `distanceMillimeters: 1250` là 1,25 mét, không phải 1.250 mét. Trường có hậu tố đơn vị thường giảm nhầm lẫn đáng kể khi tích hợp.
+Documentation must clarify that `distanceMillimeters: 1250` means 1.25 meters, not 1,250 meters. Fields with unit suffixes significantly reduce integration confusion.
 
-Nếu có trường nullable, cần ghi rõ cách diễn giải: `null` là “không biết” hay “không áp dụng”, nó có bị từ chối ở request hay được giữ lại trong database, và **không** dùng `0` hoặc `-1` làm sentinel tùy tiện nếu những giá trị này có thể hợp lệ. Một trường hợp khác là **giá trị không đo được**; có thể cần kiểu trạng thái riêng để phân biệt `NOT_MEASURED`, `UNAVAILABLE` và giá trị số thực.
+If there are nullable fields, explicitly document how they are interpreted: whether `null` means "unknown" or "not applicable", whether it is rejected in requests or persisted in the database, and **do not** use `0` or `-1` as arbitrary sentinels if those values could be valid. Another case is an **unmeasured value**; a dedicated status type may be needed to distinguish `NOT_MEASURED`, `UNAVAILABLE`, and actual numeric values.
 
-## 9. Kiểm tra giá trị ở đúng ranh giới
+## 9. Validating Values at the Right Boundaries
 
-Ràng buộc dữ liệu nên xuất hiện ở nơi tạo/nhận giá trị từ bên ngoài: khi parse request, tạo value object, chuyển đổi đơn vị hoặc ghi xuống kho dữ liệu.
+Data constraints should appear wherever values are created or received from outside: when parsing requests, constructing value objects, converting units, or writing to a data store.
 
-Một chuỗi xử lý thường hợp lý:
+A typical, sound processing pipeline:
 
-1. **Nhận đầu vào:** xác định loại dữ liệu, đơn vị, locale và quy tắc thiếu giá trị.
-2. **Parse không làm mất chính xác:** ưu tiên `BigDecimal(String)` cho dữ liệu decimal; tránh đi qua `double` nếu cần decimal chính xác.
-3. **Chuyển về đơn vị chuẩn:** nhân/chia theo hệ số xác định bằng arithmetic phù hợp; kiểm tra độ phân giải và làm tròn nếu hợp đồng có cho phép.
-4. **Kiểm tra miền:** min/max và các ràng buộc của nghiệp vụ; thất bại rõ khi không hợp lệ.
-5. **Lưu trữ và xử lý:** giữ nguyên đơn vị chuẩn; không lặp đi lặp lại chuyển đổi bằng những quy tắc khác nhau.
-6. **Trả dữ liệu:** phản ánh đúng đơn vị và độ chính xác; cập nhật API schema tương ứng.
+1. **Receive input:** identify data type, unit, locale, and missing-value rules.
+2. **Parse without precision loss:** prefer `BigDecimal(String)` for decimal data; avoid going through `double` when exact decimals are required.
+3. **Convert to canonical unit:** multiply/divide by the defined factor using appropriate arithmetic; check resolution and round if the contract allows it.
+4. **Validate range:** min/max and business constraints; fail explicitly when invalid.
+5. **Store and process:** keep the canonical unit; do not repeatedly convert using different rules.
+6. **Return data:** reflect the exact unit and precision; update the API schema accordingly.
 
-`Objects.requireNonNull` dùng khi trường bắt buộc; với đầu vào không hợp lệ từ người dùng, API có thể chuyển lỗi parse/miền sang một mã lỗi có cấu trúc như `INVALID_FORMAT`, `OUT_OF_RANGE`, `INVALID_PRECISION`, `UNSUPPORTED_UNIT`. Không dựa vào thông báo nguyên văn của JDK làm hợp đồng công khai vì thông báo có thể thay đổi.
+`Objects.requireNonNull` is used for required fields; for invalid user input, the API can translate parse/range failures into structured error codes such as `INVALID_FORMAT`, `OUT_OF_RANGE`, `INVALID_PRECISION`, `UNSUPPORTED_UNIT`. Do not rely on verbatim JDK exception messages as a public contract because those messages can change.
 
-Đối với đối tượng bất biến, đưa kiểm tra vào constructor/factory giúp tránh tạo trạng thái không hợp lệ. Nhưng vẫn nên có xác thực ở API boundary để trả về thông báo dễ hiểu thay vì để lỗi lan sâu.
+For immutable objects, placing validation in constructors/factories prevents invalid states from ever being created. Still, validation at the API boundary is worthwhile to return clear error messages instead of letting errors propagate deep into the system.
 
-## 10. Những quyết định dễ bị bỏ sót
+## 10. Decisions Easily Overlooked
 
-### Không dựa vào tên kiểu nguyên thủy để suy ra đại lượng
+### Do Not Rely on Primitive Type Names to Infer Quantities
 
-`long` không có nghĩa là “mili giây”, cũng không có nghĩa là “giá tiền lớn”. Nếu nhiều tầng dùng cùng một `long` cho quãng đường, thời gian và số tiền, cần tên trường, value object hoặc schema làm rõ sự khác biệt.
+`long` does not mean "milliseconds," nor does it mean "large monetary amount." If multiple layers use the same `long` for distance, duration, and money, field names, value objects, or schemas must make the distinction clear.
 
-### Không tự xem `null` là 0
+### Do Not Automatically Treat `null` as 0
 
-`0` có thể là dữ liệu hợp lệ; `null` có thể là thiếu dữ liệu. Một model có thể quy định giá tối thiểu là 0, đồng thời một trường giá nhập chưa được cung cấp là không hợp lệ hoặc chưa xác định. Tài liệu cần nói rõ.
+`0` can be valid data; `null` can mean missing data. A model might specify a minimum price of 0 while treating an unprovided input price as invalid or undefined. Documentation must state this explicitly.
 
-### Không đồng nhất “hai số như nhau” với “hai chuỗi biểu diễn như nhau”
+### Do Not Equate "Numerically Equal" with "Identical String Representations"
 
-Với `BigDecimal`, `"1.0"` và `"1.00"` có cùng giá trị số nhưng khác `scale`. `compareTo` trả 0, còn `equals` trả `false`. Nếu scale hoặc số chữ số thập phân là một phần của dữ liệu, quy tắc equality phải được mô tả rõ; nếu chỉ cần số học, tránh vô tình dùng `equals` để quyết định hai số tiền khác nhau.
+For `BigDecimal`, `"1.0"` and `"1.00"` have the same numeric value but different `scale`. `compareTo` returns 0, whereas `equals` returns `false`. If scale or the number of decimal digits is part of the data, equality rules must be clearly documented; if only arithmetic equality is needed, avoid accidentally using `equals` to decide that two monetary amounts differ.
 
-### Không làm tròn mà không có hợp đồng
+### Do Not Round Without a Contract
 
-Một API chấp nhận giá `"1.234"` rồi âm thầm biến thành `"1.23"` có thể khác với yêu cầu từ chối độ phân giải không hỗ trợ. Quy tắc làm tròn cần định nghĩa cả rounding mode, thời điểm làm tròn và đơn vị đích.
+An API that accepts a price `"1.234"` and silently turns it into `"1.23"` may violate a requirement to reject unsupported resolution. A rounding rule needs to specify the rounding mode, when rounding occurs, and the target unit.
 
-### Không chấp nhận mọi giá trị `double` theo mặc định
+### Do Not Accept All `double` Values by Default
 
-`Double.NaN`, `Double.POSITIVE_INFINITY` và `Double.NEGATIVE_INFINITY` có thể truyền qua kiểu `double`, dù một đại lượng nghiệp vụ yêu cầu số hữu hạn. Có thể dùng `Double.isFinite(value)` khi hợp đồng chỉ nhận số hữu hạn, đồng thời kiểm tra min/max phù hợp. Với tiền tệ decimal chính xác, dùng kiểu dữ liệu decimal thích hợp.
+`Double.NaN`, `Double.POSITIVE_INFINITY`, and `Double.NEGATIVE_INFINITY` can pass through a `double` type, even when a business quantity requires a finite number. Use `Double.isFinite(value)` when the contract only accepts finite numbers, alongside appropriate min/max checks. For exact decimal currency, use an appropriate decimal data type.
 
-### Không trông chờ database tự thay thế quy tắc nghiệp vụ
+### Do Not Expect the Database to Replace Business Rules
 
-Kiểu SQL xác định miền biểu diễn, nhưng giới hạn số lượng, đơn vị hoặc “tỷ lệ không vượt 100%” cần được xác minh trong ứng dụng và/hoặc ràng buộc database. Không nên để frontend, backend và database mỗi nơi chọn một biên khác nhau.
+SQL types define representation ranges, but quantity limits, units, or "rates must not exceed 100%" must be enforced in the application and/or database constraints. Never let the frontend, backend, and database each choose a different boundary.
 
-## 11. Bộ kiểm thử hợp đồng số
+## 11. Numeric Contract Test Suite
 
-Một bộ kiểm thử có giá trị cần thử **tại biên và ngoài biên**, thay vì chỉ dùng các giá trị bình thường. Với trường `quantity` từ 0 đến 10.000:
+A valuable test suite should test **at the boundaries and outside the boundaries**, rather than only normal values. For a `quantity` field from 0 to 10,000:
 
-| Giá trị | Kỳ vọng |
+| Value | Expected |
 | --- | --- |
-| `0` | Hợp lệ nếu biên dưới được bao gồm |
-| `1` | Hợp lệ |
-| `10_000` | Hợp lệ nếu biên trên được bao gồm |
-| `-1` | Bị từ chối |
-| `10_001` | Bị từ chối |
-| `null` | Theo hợp đồng bắt buộc/nullable |
-| `"1.5"` | Bị từ chối nếu chỉ nhận số nguyên |
+| `0` | Valid if lower bound is inclusive |
+| `1` | Valid |
+| `10_000` | Valid if upper bound is inclusive |
+| `-1` | Rejected |
+| `10_001` | Rejected |
+| `null` | Per required/nullable contract |
+| `"1.5"` | Rejected if integers only |
 
-Với trường có đơn vị và độ phân giải, thử thêm: `1.250 m` → 1.250 mm; `0.0005 m` → từ chối nếu không được làm tròn; 10.000 m là biên tối đa và 10.000,001 m vượt giới hạn. Với tiền 2 chữ số decimal: thử `"0"`, `"0.01"`, `"1000000.00"`, `"1000000.01"`, `"-0.01"` và `"1.234"`. Kiểm tra cả phép tính trung gian (cộng/nhân vượt `int`, `long`), chuyển sang kiểu nhỏ hơn và serialize đến client JavaScript.
+For fields with units and resolution, also test: `1.250 m` → 1,250 mm; `0.0005 m` → rejected if rounding is disallowed; 10,000 m is the maximum boundary and 10,000.001 m exceeds the limit. For 2-decimal money: test `"0"`, `"0.01"`, `"1000000.00"`, `"1000000.01"`, `"-0.01"`, and `"1.234"`. Also test intermediate calculations (additions/multiplications exceeding `int` or `long`), narrowing conversions, and serialization to JavaScript clients.
 
-Nếu yêu cầu “tổng cuối phải nằm trong phạm vi” khác với “không phép cộng trung gian nào được vượt phạm vi”, cần kiểm thử trường hợp các số dương và âm triệt tiêu nhau. Điều này giúp khẳng định chính xác hợp đồng thay vì chỉ dựa vào tình cờ của cách triển khai.
+If the requirement "the final sum must stay within range" differs from "no intermediate addition may exceed the range," test cases where positive and negative numbers cancel each other out. This verifies the exact contract rather than relying on an accident of the implementation.
 
-## 12. Checklist dùng cho mọi trường số mới
+## 12. Checklist for Every New Numeric Field
 
-Trước khi phát hành một trường số trong API hay lưu trữ, trả lời được:
+Before releasing a numeric field in an API or storage schema, you should be able to answer:
 
-- **Nó đo/cố định đại lượng gì?** Đây là số lượng, thời gian, tiền hay mã định danh (mã định danh dạng số chưa chắc thích hợp cho arithmetic)?
-- **Đơn vị là gì?** Tên trường và tài liệu có thể hiện cùng một đơn vị chuẩn không? Nếu có chuyển đổi, quy tắc là gì?
-- **Giá trị nhỏ nhất/lớn nhất hợp lệ là bao nhiêu?** Biên đóng hay mở, có cho phép âm hoặc 0 không?
-- **Độ phân giải và scale là gì?** Có được làm tròn không và dùng quy tắc nào?
-- **Giá trị thiếu có nghĩa gì?** `null`, trường vắng mặt, số 0 và sentinel có bị lẫn nhau không?
-- **Phép tính trung gian có an toàn không?** Nâng kiểu trước cộng/nhân; dùng kiểm tra exact hoặc `BigInteger` khi cần.
-- **Các lớp có hiểu giống nhau không?** Java, JSON/client, SQL, CSV và tài liệu có thống nhất đơn vị, biên, precision và cách xử lý lỗi không?
-- **Kiểm thử biên đã có chưa?** Gồm biên, ngoài biên, chuyển đổi có phần dư, overflow và serializing giá trị lớn.
+- **What quantity does it measure or identify?** Is it a count, duration, money, or identifier (numeric identifiers are not necessarily suitable for arithmetic)?
+- **What is the unit?** Do the field name and documentation express the same canonical unit? If conversions exist, what are the rules?
+- **What are the valid minimum/maximum values?** Are bounds closed or open, and are negatives or 0 allowed?
+- **What are the resolution and scale?** Is rounding allowed, and using which rule?
+- **What do missing values mean?** Are `null`, absent fields, 0, and sentinels confused with one another?
+- **Are intermediate calculations safe?** Promote types before adding/multiplying; use exact checks or `BigInteger` where needed.
+- **Do all layers share the same understanding?** Do Java, JSON/clients, SQL, CSV, and documentation agree on units, bounds, precision, and error handling?
+- **Are boundary tests in place?** Covering bounds, out-of-bounds, conversions with remainders, overflow, and serializing large values.
 
-**Thông điệp chính:** Kiểu dữ liệu nói “máy tính lưu giá trị như thế nào”; hợp đồng số còn phải nói **giá trị nào hợp lệ, nó mang đơn vị gì, chính xác tới đâu, và khi vượt giới hạn thì hệ thống làm gì**. Ghi rõ các điều đó từ đầu giúp tránh lỗi âm thầm trong tính toán, API và lưu trữ.
+**Key takeaway:** A data type tells "how the computer stores a value"; a numeric contract must also state **which values are valid, what unit it carries, how precise it is, and what the system does when limits are exceeded**. Specifying these upfront prevents silent bugs in calculations, APIs, and storage.
 
-### Tài liệu tham khảo Java SE 21
+### Java SE 21 References
 
-- [`Integer` và giới hạn kiểu `int`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Integer.html)
-- [`Long` và giới hạn kiểu `long`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Long.html)
-- [`BigDecimal`: scale, precision, conversion exact](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html)
+- [`Integer` and `int` type limits](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Integer.html)
+- [`Long` and `long` type limits](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Long.html)
+- [`BigDecimal`: scale, precision, exact conversion](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html)
 - [`Math`: addExact, multiplyExact, toIntExact](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Math.html)
-- [`Duration`: biểu diễn và chuyển đổi thời lượng](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/Duration.html)
+- [`Duration`: representing and converting durations](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/Duration.html)

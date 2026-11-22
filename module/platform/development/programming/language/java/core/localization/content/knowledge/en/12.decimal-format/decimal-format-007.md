@@ -1,19 +1,19 @@
-# DecimalFormat: RoundingMode và kiểm soát số chữ số trong Java
+# DecimalFormat: RoundingMode and Digit Count Control in Java
 
-## 1. Mục tiêu: số vừa đúng quy tắc làm tròn, vừa đúng cách hiển thị
+## 1. Goal: numbers that satisfy both rounding rules and display format
 
-Khi bản địa hóa số trong Java, chỉ chọn dấu thập phân và dấu phân nhóm theo `Locale` là chưa đủ. Một ứng dụng có thể cần hiển thị `1234.5` thành `1,234.50`, làm tròn `2.345` thành hai chữ số thập phân, hoặc giữ tối đa ba chữ số sau dấu phân cách nhưng không thêm số 0 không cần thiết.
+When localizing numbers in Java, selecting the decimal and grouping separators by `Locale` alone is not enough. An application may need to display `1234.5` as `1,234.50`, round `2.345` to two decimal places, or keep at most three digits after the decimal separator without adding unnecessary zeros.
 
-Hai nhóm cấu hình quan trọng của `java.text.DecimalFormat` là:
+Two key configuration groups on `java.text.DecimalFormat` are:
 
-- **Chính sách làm tròn**, điều khiển bằng `setRoundingMode(java.math.RoundingMode)`. Nó quyết định kết quả khi không thể biểu diễn toàn bộ phần dư trong độ chính xác hiển thị được yêu cầu.
-- **Số chữ số tối thiểu/tối đa**, điều khiển bằng `setMinimumFractionDigits`, `setMaximumFractionDigits`, `setMinimumIntegerDigits`, `setMaximumIntegerDigits` hoặc pattern. Chúng quyết định độ dài/độ chính xác của chuỗi kết quả.
+- **Rounding policy**, controlled via `setRoundingMode(java.math.RoundingMode)`. It decides the outcome when the full remainder cannot be represented within the requested display precision.
+- **Minimum/maximum digit counts**, controlled via `setMinimumFractionDigits`, `setMaximumFractionDigits`, `setMinimumIntegerDigits`, `setMaximumIntegerDigits`, or the pattern. They determine the length/precision of the resulting string.
 
-Đó là **hai trách nhiệm khác nhau**. Cấu hình “hai chữ số thập phân” xác định *vị trí cần làm tròn*; `RoundingMode` xác định *hướng làm tròn* tại vị trí đó.
+These are **two distinct responsibilities**. Configuring "two decimal digits" determines *where to round*; `RoundingMode` determines *which direction to round* at that position.
 
-Ví dụ với `Locale.US` và hai chữ số sau dấu thập phân:
+Examples with `Locale.US` and two digits after the decimal separator:
 
-| Giá trị gốc | Mode | Chuỗi hiển thị |
+| Original value | Mode | Displayed string |
 |---:|---|---|
 | `2.345` | `HALF_UP` | `2.35` |
 | `2.345` | `HALF_EVEN` | `2.34` |
@@ -21,11 +21,11 @@ Ví dụ với `Locale.US` và hai chữ số sau dấu thập phân:
 | `-2.345` | `CEILING` | `-2.34` |
 | `-2.345` | `FLOOR` | `-2.35` |
 
-Bài này dùng **Java 17+**, phân biệt các mode làm tròn, giới hạn chữ số phần nguyên/phần thập phân, pattern, các lỗi precision và nguyên tắc xử lý số tiền. Để có kết quả thực nghiệm nhất quán, ví dụ truyền `BigDecimal` được tạo từ **chuỗi thập phân** và định dạng bằng `DecimalFormatSymbols` của `Locale.US`.
+This lesson uses **Java 17+**, distinguishes the rounding modes, integer/fractional digit bounds, patterns, precision pitfalls, and monetary handling principles. For consistent experimental results, examples pass `BigDecimal` values constructed from **decimal strings** and format using `DecimalFormatSymbols` for `Locale.US`.
 
-## 2. Khởi tạo DecimalFormat đúng Locale
+## 2. Initializing DecimalFormat with the right Locale
 
-Một cách rõ ràng:
+An explicit approach:
 
 ```java
 import java.text.DecimalFormat;
@@ -37,49 +37,49 @@ DecimalFormat formatter = new DecimalFormat(
         DecimalFormatSymbols.getInstance(Locale.US));
 ```
 
-Đây là **mảnh code** để đặt trong một class/phương thức Java; các chương trình chạy hoàn chỉnh nằm ở những mục sau.
+This is a **code snippet** meant to go inside a Java class/method; complete runnable programs appear in later sections.
 
-`#,##0.00` là **pattern không bản địa hóa**, trong đó:
+`#,##0.00` is a **non-localized pattern**, in which:
 
-- `0` là chữ số bắt buộc: thiếu chữ số ở vị trí đó thì có thể thêm số 0 khi hiển thị.
-- `#` là chữ số tùy chọn: không bắt buộc thêm số 0 vào những vị trí này.
-- `,` trong pattern biểu diễn **grouping separator** theo ký pháp pattern, không nhất thiết là dấu phẩy literal trên màn hình.
-- `.` trong pattern biểu diễn **decimal separator** theo ký pháp pattern, không nhất thiết là dấu chấm literal trên màn hình.
+- `0` is a required digit: if a digit is missing at that position, a zero can be padded when displaying.
+- `#` is an optional digit: padding zeros at these positions is not forced.
+- `,` in the pattern represents the **grouping separator** in pattern syntax, not necessarily a literal comma on screen.
+- `.` in the pattern represents the **decimal separator** in pattern syntax, not necessarily a literal period on screen.
 
-`DecimalFormatSymbols.getInstance(Locale.US)` quy định những ký hiệu hiển thị tương ứng. Với `Locale.GERMANY`, ký hiệu thập phân/nhóm số khác; không nên cố định dấu `.` và `,` vào đầu ra ứng dụng rồi gọi đó là bản địa hóa.
+`DecimalFormatSymbols.getInstance(Locale.US)` specifies the corresponding display symbols. Under `Locale.GERMANY`, the decimal/grouping symbols differ; never hardcode `.` and `,` into application output and call it localization.
 
-Có thể tạo formatter bằng:
+You can obtain a formatter via:
 
 ```java
 DecimalFormat formatter =
         (DecimalFormat) java.text.NumberFormat.getNumberInstance(Locale.US);
 ```
 
-Tuy nhiên, các formatter từ `NumberFormat.get...Instance` có thể phụ thuộc nhà cung cấp dữ liệu locale và cấu hình; cast như trên không nhất thiết được bảo đảm cho mọi implementation. Khi cần API riêng của `DecimalFormat` và pattern do ứng dụng sở hữu, tạo trực tiếp `new DecimalFormat(pattern, symbols)` là cách minh bạch trong các ví dụ.
+However, formatters from `NumberFormat.get...Instance` can depend on the locale data provider and configuration; a cast like the above is not guaranteed across all implementations. When you need `DecimalFormat`-specific APIs and application-owned patterns, instantiating `new DecimalFormat(pattern, symbols)` directly keeps the examples transparent.
 
-## 3. Bốn giới hạn chữ số chính
+## 3. Four main digit limits
 
-`DecimalFormat` kế thừa bốn cặp getter/setter từ `NumberFormat`:
+`DecimalFormat` inherits four getter/setter pairs from `NumberFormat`:
 
-| Phương thức | Tác dụng |
+| Method | Effect |
 |---|---|
-| `setMinimumFractionDigits(n)` | Ít nhất `n` chữ số sau dấu thập phân; có thể thêm số 0 |
-| `setMaximumFractionDigits(n)` | Nhiều nhất `n` chữ số sau dấu thập phân; có thể cần làm tròn |
-| `setMinimumIntegerDigits(n)` | Ít nhất `n` chữ số phần nguyên; có thể thêm số 0 ở đầu |
-| `setMaximumIntegerDigits(n)` | Giới hạn chữ số phần nguyên mà formatter được phép hiển thị; **có thể mất các chữ số bên trái** |
+| `setMinimumFractionDigits(n)` | At least `n` digits after the decimal separator; may pad zeros |
+| `setMaximumFractionDigits(n)` | At most `n` digits after the decimal separator; may require rounding |
+| `setMinimumIntegerDigits(n)` | At least `n` integer digits; may pad leading zeros |
+| `setMaximumIntegerDigits(n)` | Caps integer digits the formatter is allowed to display; **can drop leftmost digits** |
 
-Các getter tương ứng là `getMinimumFractionDigits()`, `getMaximumFractionDigits()`, `getMinimumIntegerDigits()`, `getMaximumIntegerDigits()`.
+The corresponding getters are `getMinimumFractionDigits()`, `getMaximumFractionDigits()`, `getMinimumIntegerDigits()`, and `getMaximumIntegerDigits()`.
 
-### Cách hiểu minimum và maximum fraction digits
+### How to interpret minimum and maximum fraction digits
 
-Ví dụ:
+Example:
 
 ```java
 DecimalFormat optional = new DecimalFormat(
         "0.##", DecimalFormatSymbols.getInstance(Locale.US));
 ```
 
-Khi format `BigDecimal("12")`, `BigDecimal("12.3")` và `BigDecimal("12.345")`:
+When formatting `BigDecimal("12")`, `BigDecimal("12.3")`, and `BigDecimal("12.345")`:
 
 ```text
 12
@@ -87,55 +87,55 @@ Khi format `BigDecimal("12")`, `BigDecimal("12.3")` và `BigDecimal("12.345")`:
 12.34
 ```
 
-- `0.##` có **tối thiểu 0** và **tối đa 2** chữ số phần thập phân.
-- Nếu không có phần thập phân cần hiển thị, dấu thập phân cũng không phải xuất hiện.
-- Với `12.345` và mode làm tròn mặc định `HALF_EVEN`, kết quả là `12.34` ở hai chữ số; quyết định này phụ thuộc giá trị và mode.
+- `0.##` has **minimum 0** and **maximum 2** fractional digits.
+- When there are no fractional digits to show, the decimal separator need not appear either.
+- For `12.345` with the default `HALF_EVEN` rounding mode, the two-digit result is `12.34`; this outcome depends on both value and mode.
 
-Ngược lại, pattern `0.00` quy định **tối thiểu 2** và **tối đa 2**, nên `12` sẽ thành `12.00`. Số 0 ở cuối là yêu cầu **hiển thị**, không chứng minh giá trị có độ chính xác đo lường đến hai chữ số.
+Conversely, the pattern `0.00` specifies **minimum 2** and **maximum 2**, so `12` becomes `12.00`. Trailing zeros are a **display** requirement, not proof that the underlying measurement is accurate to two decimal places.
 
-### Các setter tự duy trì minimum không vượt maximum
+### Setters automatically keep minimum from exceeding maximum
 
-Khi đặt giới hạn mới làm cặp min/max mâu thuẫn, Java có thể điều chỉnh giới hạn còn lại. Ví dụ bắt đầu từ `#,##0.00`:
+When setting a new limit creates a min/max conflict, Java can adjust the other bound. For instance, starting from `#,##0.00`:
 
 - `setMinimumFractionDigits(0)` → min 0, max 2.
 - `setMaximumFractionDigits(0)` → min 0, max 0.
 - `setMaximumFractionDigits(3)` → min 0, max 3.
-- `setMinimumFractionDigits(4)` → min 4, max cũng thành 4.
+- `setMinimumFractionDigits(4)` → min 4, max also becomes 4.
 
-Vì vậy, **thứ tự các lời gọi setter ảnh hưởng cấu hình cuối cùng**. Không chỉ giả định formatter vẫn giữ maximum cũ sau khi tăng minimum. Sau khi thay đổi cấu hình có tính động, đọc lại getter hoặc có test để xác nhận.
+Therefore, **the order of setter calls affects the final configuration**. Never simply assume the formatter kept its old maximum after increasing the minimum. After dynamic configuration changes, inspect getters or write tests to verify.
 
-## 4. Tám chế độ java.math.RoundingMode
+## 4. The eight java.math.RoundingMode modes
 
-`DecimalFormat.setRoundingMode(...)` chấp nhận enum `java.math.RoundingMode`, cùng các tên mode được dùng trong `BigDecimal`.
+`DecimalFormat.setRoundingMode(...)` accepts the `java.math.RoundingMode` enum, with the same mode names used in `BigDecimal`.
 
-| Mode | Quy tắc khi phải bỏ phần dư | Với `2.345`, giữ 2 chữ số | Với `-2.345`, giữ 2 chữ số |
+| Mode | Rule when discarding remainder | For `2.345`, keep 2 digits | For `-2.345`, keep 2 digits |
 |---|---|---|---|
-| `UP` | Ra xa số 0 | `2.35` | `-2.35` |
-| `DOWN` | Về phía số 0 | `2.34` | `-2.34` |
-| `CEILING` | Về phía dương vô cùng | `2.35` | `-2.34` |
-| `FLOOR` | Về phía âm vô cùng | `2.34` | `-2.35` |
-| `HALF_UP` | Gần nhất; đúng nửa thì ra xa 0 | `2.35` | `-2.35` |
-| `HALF_DOWN` | Gần nhất; đúng nửa thì về 0 | `2.34` | `-2.34` |
-| `HALF_EVEN` | Gần nhất; đúng nửa thì chọn chữ số cuối chẵn | `2.34` | `-2.34` |
-| `UNNECESSARY` | Cấm làm tròn nếu phải bỏ chữ số có ý nghĩa | Ném `ArithmeticException` | Ném `ArithmeticException` |
+| `UP` | Away from 0 | `2.35` | `-2.35` |
+| `DOWN` | Toward 0 | `2.34` | `-2.34` |
+| `CEILING` | Toward positive infinity | `2.35` | `-2.34` |
+| `FLOOR` | Toward negative infinity | `2.34` | `-2.35` |
+| `HALF_UP` | Nearest; exact half goes away from 0 | `2.35` | `-2.35` |
+| `HALF_DOWN` | Nearest; exact half goes toward 0 | `2.34` | `-2.34` |
+| `HALF_EVEN` | Nearest; exact half picks even last digit | `2.34` | `-2.34` |
+| `UNNECESSARY` | Forbids rounding if significant digits must be dropped | Throws `ArithmeticException` | Throws `ArithmeticException` |
 
-**Điểm dễ nhầm nhất:** `CEILING`/`FLOOR` phụ thuộc **trục số**, trong khi `UP`/`DOWN` phụ thuộc **khoảng cách tới số 0**. Chúng chỉ trùng một số trường hợp. Với số âm, `CEILING` tiến về 0, nhưng `FLOOR` đi về phía âm lớn hơn về độ lớn.
+**Most common confusion:** `CEILING`/`FLOOR` depend on the **number line**, whereas `UP`/`DOWN` depend on **distance from 0**. They coincide only in some cases. For negative numbers, `CEILING` moves toward 0, while `FLOOR` moves toward larger negative magnitude.
 
-Ba mode `HALF_*` chỉ khác nhau khi giá trị cần làm tròn nằm đúng **điểm giữa** hai kết quả có thể biểu diễn. Nếu gần kết quả nào hơn, cả ba chọn kết quả gần đó.
+The three `HALF_*` modes differ only when the value being rounded sits at the exact **midpoint** between two representable results. Whenever it is closer to one result, all three pick the closer one.
 
-### HALF_EVEN: làm tròn về chữ số chẵn ở vị trí giữ lại
+### HALF_EVEN: rounding toward the even digit at the retained position
 
-Giữ hai chữ số sau dấu thập phân:
+Keeping two digits after the decimal point:
 
-- `2.345` nằm đúng giữa `2.34` và `2.35`: `HALF_EVEN` chọn `2.34`, vì chữ số cuối được giữ là **4** (chẵn).
-- `2.355` nằm đúng giữa `2.35` và `2.36`: `HALF_EVEN` chọn `2.36`, vì chữ số cuối được giữ là **6** (chẵn).
-- `HALF_UP` chọn `2.35` và `2.36` tương ứng.
+- `2.345` sits halfway between `2.34` and `2.35`: `HALF_EVEN` chooses `2.34`, because the last retained digit is **4** (even).
+- `2.355` sits halfway between `2.35` and `2.36`: `HALF_EVEN` chooses `2.36`, because the last retained digit is **6** (even).
+- `HALF_UP` chooses `2.35` and `2.36`, respectively.
 
-`HALF_EVEN` thường còn gọi là *banker's rounding*, có thể giảm thiên lệch thống kê qua nhiều lần làm tròn. Nhưng quy tắc tiền tệ cụ thể phải được xác định theo sản phẩm/quy định, không mặc định rằng ngân hàng hoặc tất cả quốc gia đều dùng một mode duy nhất.
+`HALF_EVEN` is often called *banker's rounding* and can reduce statistical bias over many rounding operations. Yet specific monetary rules must be defined by product/regulation; never assume banks or every country use a single mode.
 
-## 5. Chương trình Java 17+: kiểm chứng mọi RoundingMode
+## 5. Java 17+ program: verifying every RoundingMode
 
-Lưu vào `RoundingModesDemo.java`:
+Save to `RoundingModesDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -169,14 +169,14 @@ public class RoundingModesDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac RoundingModesDemo.java
 java RoundingModesDemo
 ```
 
-Đầu ra đã kiểm tra trên JDK:
+Verified output on the JDK:
 
 ```text
 UP: 2.35 | -2.35
@@ -189,13 +189,13 @@ HALF_EVEN: 2.34 | -2.34
 UNNECESSARY: ArithmeticException
 ```
 
-Ở đây `new BigDecimal("2.345")` biểu diễn chính xác giá trị decimal cần thử, nên các trường hợp đúng nửa được tái hiện rõ ràng. Nếu truyền trực tiếp giá trị `double` tạo bởi phép tính hoặc literal, kết quả có thể khác do **biểu diễn nhị phân**; xem mục 9.
+Here `new BigDecimal("2.345")` represents the exact decimal value under test, so exact midpoint cases reproduce cleanly. Passing a `double` produced by arithmetic or a literal directly may yield different results due to **binary representation**; see section 9.
 
-`UNNECESSARY` không có nghĩa “đừng in số sau dấu thập phân”. Nó có nghĩa **không được thực hiện thao tác làm tròn làm mất thông tin**. Ví dụ nếu format `2.340` theo hai chữ số thập phân, việc bỏ số 0 tận cùng không làm đổi giá trị số và có thể được chấp nhận; với `2.345` thì không thể bỏ chữ số 5 mà vẫn giữ nguyên giá trị, nên ném lỗi.
+`UNNECESSARY` does not mean "do not print digits after the decimal point." It means **no rounding that loses information may occur**. For instance, formatting `2.340` to two decimal places drops a trailing zero without altering numeric value and can succeed; for `2.345`, dropping the digit 5 cannot preserve the value, so an error is thrown.
 
-## 6. Chương trình Java 17+: min/max fraction và zero padding
+## 6. Java 17+ program: min/max fraction and zero padding
 
-Lưu vào `DigitLimitsDemo.java`:
+Save to `DigitLimitsDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -247,14 +247,14 @@ public class DigitLimitsDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac DigitLimitsDemo.java
 java DigitLimitsDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 initial min=2 max=2 text=1,234.50
@@ -264,19 +264,19 @@ max3 min=0 max=3 text=1,234.5
 min4 min=4 max=4 text=1,234.5000
 ```
 
-Các thay đổi có ý nghĩa:
+Meaningful transitions:
 
-1. **Ban đầu:** pattern `#,##0.00` buộc hiện hai chữ số: `1,234.50`.
-2. **Min = 0:** không cần đệm `0` cuối; giá trị `1234.5` trở thành `1,234.5`, dù max vẫn cho phép 2 chữ số.
-3. **Max = 0:** bỏ phần thập phân; mode mặc định ở ví dụ là `HALF_EVEN`. Giá trị 1234.5 đúng nửa giữa 1234 và 1235, nên chọn **1234** (chẵn).
-4. **Max = 3:** formatter được phép hiện tới 3 chữ số thập phân nhưng không bắt buộc thêm 0.
-5. **Min = 4:** Java nâng max lên 4 để không còn mâu thuẫn; chuỗi được đệm thành `1,234.5000`.
+1. **Initial:** pattern `#,##0.00` forces two fractional digits: `1,234.50`.
+2. **Min = 0:** no trailing `0` padding needed; `1234.5` becomes `1,234.5`, even though max still permits 2 digits.
+3. **Max = 0:** drops fractional part; the default mode in the example is `HALF_EVEN`. `1234.5` lies halfway between 1234 and 1235, so **1234** (even) is chosen.
+4. **Max = 3:** the formatter is allowed to show up to 3 fractional digits without forcing zero padding.
+5. **Min = 4:** Java raises max to 4 to avoid conflict; the string is padded to `1,234.5000`.
 
-Không nên xem số lượng chữ số sau dấu thập phân được in ra là độ chính xác của **giá trị trong bộ nhớ**; đó là lựa chọn cách trình bày. Điều này đặc biệt cần lưu ý khi làm tròn số tiền hoặc số đo.
+Do not treat the number of printed fractional digits as the precision of the **in-memory value**; it is a presentation choice. Keep this especially in mind when rounding monetary amounts or measurements.
 
-## 7. Kiểm soát phần nguyên: minimum và maximum có ý nghĩa khác
+## 7. Controlling the integer part: minimum and maximum mean different things
 
-Với phần nguyên, `setMinimumIntegerDigits(n)` thường được dùng để **thêm zero padding**:
+For the integer part, `setMinimumIntegerDigits(n)` is commonly used to **add zero padding**:
 
 ```java
 DecimalFormat code = new DecimalFormat(
@@ -284,11 +284,11 @@ DecimalFormat code = new DecimalFormat(
 System.out.println(code.format(42));
 ```
 
-Kết quả là `0042`. Đây là kiểu hiển thị hợp lệ cho một mã số hoặc số thứ tự, nhưng **không nên dùng DecimalFormat thay cho định dạng mã định danh tổng quát** nếu mã chứa chữ cái, dấu gạch hoặc cần giữ nguyên chuỗi đầu vào.
+The output is `0042`. This is a valid display style for a numeric code or sequence number, but **you should not use DecimalFormat as a general identifier formatter** if the code contains letters, hyphens, or must preserve the exact input string.
 
-`setMaximumIntegerDigits(n)` khác biệt và nguy hiểm hơn: với `DecimalFormat`, nó có thể **cắt bỏ các chữ số bên trái** khi phần nguyên quá dài.
+`setMaximumIntegerDigits(n)` is different and more dangerous: with `DecimalFormat`, it can **truncate leftmost digits** when the integer part is too long.
 
-Ví dụ mảnh code:
+Snippet example:
 
 ```java
 DecimalFormat limited = new DecimalFormat(
@@ -298,21 +298,21 @@ limited.setMaximumIntegerDigits(3);
 System.out.println(limited.format(12345));
 ```
 
-Với cấu hình này, kết quả kiểm chứng là:
+With this configuration, the verified output is:
 
 ```text
 345
 ```
 
-Vì `setMaximumIntegerDigits(3)` làm maximum thành 3 và có thể điều chỉnh minimum xuống 3, `12345` mất hai chữ số quan trọng bên trái. Đừng sử dụng maximum integer digits để **validate độ lớn số** hoặc để che bớt số mà vẫn mong kết quả giữ nguyên giá trị. Nếu miền dữ liệu yêu cầu tối đa ba chữ số, hãy kiểm tra giá trị trước khi format và báo lỗi nếu vượt phạm vi.
+Because `setMaximumIntegerDigits(3)` sets maximum to 3 and can adjust minimum down to 3, `12345` loses its two most significant digits on the left. Never use maximum integer digits to **validate numeric magnitude** or mask part of a number while expecting the output to retain the value. If the data domain permits at most three digits, validate the value before formatting and report an error if out of range.
 
-Khi muốn kiểm soát **tổng số chữ số có nghĩa** thay vì số chữ số nguyên/thập phân, cần thiết kế quy tắc khác (chẳng hạn thao tác với `BigDecimal` theo `MathContext`), không giả định `setMaximumIntegerDigits` là một “significant digits limit”.
+When you want to control the **total number of significant digits** rather than integer/fractional digit counts, design a different rule (such as working with `BigDecimal` using `MathContext`) instead of assuming `setMaximumIntegerDigits` is a "significant digits limit."
 
-## 8. Pattern và setters: cái nào có quyền quyết định?
+## 8. Pattern vs. setters: which takes precedence?
 
-`DecimalFormat` lấy min/max chữ số ban đầu từ pattern. Ví dụ:
+`DecimalFormat` takes its initial min/max digit limits from the pattern. For example:
 
-| Pattern | Minimum fraction | Maximum fraction | Ví dụ giá trị `12` |
+| Pattern | Minimum fraction | Maximum fraction | Example value `12` |
 |---|---:|---:|---|
 | `0` | 0 | 0 | `12` |
 | `0.0` | 1 | 1 | `12.0` |
@@ -320,9 +320,9 @@ Khi muốn kiểm soát **tổng số chữ số có nghĩa** thay vì số ch�
 | `0.##` | 0 | 2 | `12` |
 | `#,##0.000` | 3 | 3 | `12.000` |
 
-Sau khi áp dụng pattern, có thể thay đổi các giới hạn bằng setter. Nhưng gọi `applyPattern(...)` **sau đó** có thể đặt lại các giới hạn phù hợp với pattern mới.
+After applying a pattern, you can change the limits with setters. However, calling `applyPattern(...)` **afterward** can reset the limits to match the new pattern.
 
-Ví dụ:
+Example:
 
 ```java
 DecimalFormat df = new DecimalFormat(
@@ -334,22 +334,22 @@ System.out.println(df.getMinimumFractionDigits());
 System.out.println(df.getMaximumFractionDigits());
 ```
 
-Kết quả:
+Output:
 
 ```text
 3
 3
 ```
 
-Vì `applyPattern("0.000")` đã cập nhật min/max theo pattern mới. Nếu cần vừa dùng pattern vừa cấu hình bằng setters, **áp dụng pattern trước rồi mới đặt min/max và rounding mode**. Kiểm tra getter trong tests để phát hiện thứ tự sai khi refactor.
+Because `applyPattern("0.000")` updated min/max to match the new pattern. If you need both a pattern and setter overrides, **apply the pattern first and configure min/max and rounding mode afterward**. Check getters in tests to catch wrong ordering during refactoring.
 
-Các pattern có phần dấu phần trăm (`%`), phần tiền tệ (`¤`), khoa học (`E`) hoặc các mẫu số có nghĩa đặc biệt có thể thay đổi cách hiểu số chữ số. Bài này tập trung vào pattern thập phân thông thường như `#,##0.00`; không nên suy ra toàn bộ logic của định dạng khoa học chỉ từ ví dụ decimal cơ bản.
+Patterns containing percent (`%`), currency (`¤`), scientific (`E`), or special numeric patterns can change how digit counts are interpreted. This lesson focuses on ordinary decimal patterns like `#,##0.00`; do not extrapolate all scientific-formatting rules solely from basic decimal examples.
 
-## 9. double, BigDecimal và hiện tượng “làm tròn bất ngờ”
+## 9. double, BigDecimal, and "unexpected rounding"
 
-`double` dùng biểu diễn nhị phân, không lưu chính xác mọi phân số thập phân. Trong một số trường hợp, giá trị gần `2.675` nhưng **nhỏ hơn** điểm giữa thực sự; với hai chữ số thập phân, kết quả có thể là `2.67` thay vì `2.68`.
+`double` uses binary representation and cannot store every decimal fraction accurately. In some cases, a value near `2.675` is slightly **less than** the true midpoint; to two decimal places, the result can be `2.67` instead of `2.68`.
 
-Ví dụ Java 17+ độc lập, lưu `DecimalPrecisionDemo.java`:
+Standalone Java 17+ example, saved as `DecimalPrecisionDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -376,14 +376,14 @@ public class DecimalPrecisionDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac DecimalPrecisionDemo.java
 java DecimalPrecisionDemo
 ```
 
-Kết quả kiểm chứng:
+Verified output:
 
 ```text
 double=2.67
@@ -391,18 +391,18 @@ stringBD=2.68
 newBDdouble=2.67
 ```
 
-Giải thích:
+Explanation:
 
-- `double` không biểu diễn chính xác decimal `2.675`; kết quả làm tròn phụ thuộc giá trị binary thực sự được nhận.
-- `new BigDecimal("2.675")` biểu diễn decimal đúng như văn bản.
-- `new BigDecimal(primitive)` phản ánh chi tiết giá trị `double` đã bị xấp xỉ, không tự sửa thành decimal mong muốn.
-- `BigDecimal.valueOf(primitive)` lại sử dụng dạng thập phân từ `Double.toString` làm căn cứ, nên có thể phù hợp hơn `new BigDecimal(double)` khi muốn chuyển giá trị `double` hiện hữu sang decimal có cách biểu diễn dễ hiểu. Tuy nhiên, nếu độ chính xác ban đầu đã bị mất trong những phép tính trước đó, `valueOf` không thể khôi phục dữ liệu không còn tồn tại.
+- `double` does not represent decimal `2.675` accurately; rounding depends on the actual binary value received.
+- `new BigDecimal("2.675")` represents the exact decimal as written.
+- `new BigDecimal(primitive)` reflects the exact approximated `double` value and does not automatically fix it to the intended decimal.
+- `BigDecimal.valueOf(primitive)` uses the decimal string from `Double.toString`, making it better suited than `new BigDecimal(double)` when converting an existing `double` to a human-expected decimal. However, if precision was already lost in earlier calculations, `valueOf` cannot recover data that no longer exists.
 
-Nếu dữ liệu nghiệp vụ vốn xuất phát từ một chuỗi decimal như số tiền từ input hoặc database, hãy phân tích/lưu thành `BigDecimal` ngay từ đầu thay vì đi vòng qua `double`. Không nên viết tests làm tròn tie-case bằng các literal `double` rồi kết luận phương thức format làm sai quy tắc HALF_EVEN.
+If business data originates from a decimal string such as an input amount or database field, parse/store it as `BigDecimal` from the start instead of detouring through `double`. Never write tie-case rounding tests using `double` literals and conclude that the format method broke `HALF_EVEN`.
 
-## 10. Làm tròn khi định dạng khác với thay đổi giá trị
+## 10. Rounding during formatting vs. changing the value
 
-`DecimalFormat.format(number)` tạo **chuỗi hiển thị**. Nó không sửa nội dung `BigDecimal` hoặc `double` đã truyền vào.
+`DecimalFormat.format(number)` creates a **display string**. It does not modify the `BigDecimal` or `double` passed in.
 
 ```java
 BigDecimal value = new BigDecimal("12.345");
@@ -412,48 +412,48 @@ formatter.setRoundingMode(RoundingMode.HALF_UP);
 
 String text = formatter.format(value);
 // text = "12.35"
-// value vẫn bằng 12.345
+// value still equals 12.345
 ```
 
-Đây là mảnh code minh họa trong phương thức đã có import thích hợp. Nếu cần **giá trị số đã lượng hóa** thành hai chữ số để lưu hoặc tính tiếp, làm rõ quy tắc bằng:
+This is an illustrative code snippet inside a method with appropriate imports. If you need a **quantized numeric value** to two decimal places for storage or further math, make the rule explicit via:
 
 ```java
 BigDecimal rounded = value.setScale(2, RoundingMode.HALF_UP);
 ```
 
-Kết quả `rounded` là một `BigDecimal` mới có scale 2. `BigDecimal` là immutable; `setScale` không sửa `value` gốc.
+The result `rounded` is a new `BigDecimal` with scale 2. `BigDecimal` is immutable; `setScale` does not mutate the original `value`.
 
-**Không** lấy chuỗi đã định dạng theo locale rồi truyền ngay cho `new BigDecimal(text)`. Ví dụ `"1,234.50"` là cách hiển thị ở US có dấu grouping, không phải cú pháp decimal chuẩn mà constructor nhận; ở locale khác dấu phẩy có thể là decimal separator. Tách bạch:
+**Never** take a locale-formatted string and pass it directly to `new BigDecimal(text)`. For instance, `"1,234.50"` is US display output with a grouping comma, not the standard decimal syntax that the constructor accepts; in another locale, a comma may be the decimal separator. Keep separate:
 
-1. **Lưu trữ/tính toán:** chọn kiểu và quy tắc làm tròn số chính xác, thường `BigDecimal` với tiền.
-2. **Trình bày cho người dùng:** dùng `DecimalFormat` theo `Locale`, giới hạn chữ số và mode tương ứng.
-3. **Phân tích input đã bản địa hóa:** dùng parser được cấu hình rõ ràng và kiểm tra việc parse tiêu thụ đầy đủ chuỗi; không đồng nhất parsing hiển thị với parsing định dạng máy.
+1. **Storage/computation:** choose exact numeric types and rounding rules, usually `BigDecimal` for money.
+2. **User presentation:** use `DecimalFormat` with `Locale`, digit bounds, and the appropriate mode.
+3. **Parsing localized input:** use a properly configured parser and verify full string consumption; do not conflate display parsing with machine-format parsing.
 
-Không nên lấy một giá trị đã được làm tròn để hiển thị rồi dùng ngược làm cơ sở cho tính toán tài chính, vì có thể gây sai lệch tích lũy.
+Do not take a value rounded for display and feed it back as the basis for financial calculations, as this can introduce cumulative drift.
 
-## 11. Chọn số chữ số cho tiền tệ, tỉ lệ và số đo
+## 11. Choosing digit counts for currency, ratios, and measurements
 
-### Tiền tệ
+### Currency
 
-Một cách thực tế là lấy `NumberFormat.getCurrencyInstance(locale)` và đặt `Currency` phù hợp. Số chữ số thập phân mặc định có thể theo currency; ví dụ một số currency có 0, 2 hoặc 3 chữ số thập phân thông dụng.
+A practical approach is using `NumberFormat.getCurrencyInstance(locale)` and setting the appropriate `Currency`. Default fractional digits can follow the currency; for example, different currencies commonly have 0, 2, or 3 decimal places.
 
-Nhưng **đừng nghĩ mọi nghiệp vụ tiền tệ đều có đúng hai chữ số** hoặc các quy tắc cash rounding đều được giải quyết chỉ bởi `setRoundingMode`. Một số tiền có thể cần làm tròn theo bội số (như đơn vị nhỏ nhất được phép thu tiền mặt), chứ không đơn thuần chọn bao nhiêu decimal places. Trường hợp đó cần nghiệp vụ lượng hóa theo bước/bội số trước khi hiển thị.
+However, **do not assume every currency workflow has exactly two digits** or that cash-rounding rules are solved solely by `setRoundingMode`. Some monetary amounts must be rounded to a multiple (such as the smallest payable cash denomination), not merely a number of decimal places. Those cases require business quantization by step/multiple before display.
 
-Nếu phải dùng `DecimalFormat` cho số tiền, đảm bảo currency symbol, số chữ số và mode được áp dụng đúng chính sách; test với từng currency được hệ thống hỗ trợ.
+If you must use `DecimalFormat` for currency, ensure the currency symbol, digit counts, and rounding mode comply with policy; test with every supported currency.
 
-### Tỉ lệ phần trăm
+### Percentages
 
-`NumberFormat.getPercentInstance(locale)` / `DecimalFormat` có thể nhân giá trị đầu vào với 100 khi hiển thị. Ví dụ một tỉ lệ `0.125` có thể được trình bày là `12.5%` nếu cho phép một chữ số thập phân. Vì phép nhân và chữ số hiển thị là hai ý nghĩa riêng, đừng kết luận `setMaximumFractionDigits(1)` tương đương với làm tròn tỉ lệ gốc đến 1 decimal place.
+`NumberFormat.getPercentInstance(locale)` / `DecimalFormat` can multiply the input value by 100 on display. For example, a ratio `0.125` can be rendered as `12.5%` when one fractional digit is allowed. Because multiplication and display digit counts are separate concepts, do not equate `setMaximumFractionDigits(1)` with rounding the raw ratio to 1 decimal place.
 
-### Số đo liên tục
+### Continuous measurements
 
-Với nhiệt độ, chiều dài, vận tốc hay dữ liệu sensor, số chữ số tối đa cho phần thập phân có thể phụ thuộc độ chính xác của nguồn đo. `setMinimumFractionDigits` giúp giao diện nhất quán; `setMaximumFractionDigits` và `RoundingMode` điều chỉnh rounding presentation. Không được dùng số chữ số in ra để tuyên bố độ tin cậy hoặc độ chính xác đo lường ngoài những gì nguồn dữ liệu hỗ trợ.
+For temperature, length, velocity, or sensor readings, maximum fractional digits can depend on measurement source accuracy. `setMinimumFractionDigits` keeps UI columns consistent; `setMaximumFractionDigits` and `RoundingMode` govern presentation rounding. Do not use printed digits to imply reliability or measurement precision beyond what the data source actually supports.
 
-## 12. UNNECESSARY: phát hiện nhu cầu làm tròn không được phép
+## 12. UNNECESSARY: detecting disallowed rounding
 
-Mode `RoundingMode.UNNECESSARY` đặc biệt hữu ích nếu ứng dụng **đòi hỏi giá trị đã phù hợp với độ chính xác chỉ định** và không muốn mất chữ số có ý nghĩa.
+`RoundingMode.UNNECESSARY` is especially useful when an application **requires values to already fit the specified precision** and refuses to discard significant digits.
 
-Ví dụ:
+Example:
 
 ```java
 DecimalFormat strict = new DecimalFormat(
@@ -463,20 +463,20 @@ strict.setRoundingMode(RoundingMode.UNNECESSARY);
 System.out.println(strict.format(new BigDecimal("12.30")));
 // 12.30
 System.out.println(strict.format(new BigDecimal("12.345")));
-// Ném ArithmeticException vì cần làm tròn
+// Throws ArithmeticException because rounding is required
 ```
 
-Ở đây `12.30` đã vừa hai chữ số decimal, còn `12.345` không thể giữ nguyên giá trị khi chỉ in hai chữ số decimal.
+Here `12.30` already fits two decimal digits, whereas `12.345` cannot preserve its value when printing only two decimal digits.
 
-Cần bắt ngoại lệ đúng chỗ khi dữ liệu không đáng tin cậy hoặc khi có thể gửi đến nhiều luồng xử lý. `UNNECESSARY` không phải “cắt phần dư mà không làm tròn” — điều đó gần với `DOWN`, và `DOWN` vẫn có thể làm mất giá trị.
+Catch the exception appropriately when data is untrusted or flows through multiple pipelines. `UNNECESSARY` does not mean "truncate remainder without rounding" — that is closer to `DOWN`, and `DOWN` can still lose value.
 
-Trong lớp xử lý tiền hoặc validate payload, một lối thiết kế dễ kiểm soát hơn là kiểm tra scale bằng `BigDecimal.setScale(expectedScale, RoundingMode.UNNECESSARY)` để fail sớm trước khi tạo string hiển thị, nếu quy tắc nghiệp vụ thực sự yêu cầu scale cố định.
+In monetary processors or payload validators, a cleaner design is checking scale via `BigDecimal.setScale(expectedScale, RoundingMode.UNNECESSARY)` to fail fast before building display strings when business rules strictly require a fixed scale.
 
-## 13. Kiểm thử các biên làm tròn quan trọng
+## 13. Testing critical rounding boundaries
 
-Không chỉ test một số dương. Với hai chữ số thập phân và các mode thường dùng, test tối thiểu:
+Do not test only a single positive number. With two decimal places and common modes, test at minimum:
 
-| Giá trị | HALF_UP | HALF_DOWN | HALF_EVEN |
+| Value | HALF_UP | HALF_DOWN | HALF_EVEN |
 |---|---|---|---|
 | `2.344` | `2.34` | `2.34` | `2.34` |
 | `2.345` | `2.35` | `2.34` | `2.34` |
@@ -484,77 +484,77 @@ Không chỉ test một số dương. Với hai chữ số thập phân và các
 | `-2.345` | `-2.35` | `-2.34` | `-2.34` |
 | `-2.355` | `-2.36` | `-2.35` | `-2.36` |
 
-Ở các giá trị `2.344`, tất cả mode gần nhất giống nhau vì không đúng điểm giữa. `UP`/`DOWN` và `CEILING`/`FLOOR` cần test riêng số âm để phát hiện nhầm hướng.
+At `2.344`, all nearest modes agree because it is not a midpoint. `UP`/`DOWN` and `CEILING`/`FLOOR` must be tested specifically on negative numbers to catch directional mistakes.
 
-Ngoài ra cần test:
+Additionally test:
 
-- `minFraction=0/maxFraction=2` với giá trị nguyên: có thêm `.00` không? (Không.)
-- `minFraction=2/maxFraction=2` với giá trị nguyên: có thêm `.00` không? (Có.)
-- `maxFraction=0` với tie-case `1234.5`, `1235.5` dưới `HALF_EVEN`.
-- `minFraction > maxFraction` qua thứ tự setters: getter có bị tự điều chỉnh không?
-- `applyPattern` sau khi gọi setter: các giới hạn có bị đặt lại không?
-- `maxIntegerDigits` nhỏ hơn độ dài phần nguyên: có bị mất chữ số bên trái không?
-- Format cùng giá trị ở nhiều locale: dấu nhóm, dấu thập phân và chữ số có thể khác.
-- Giá trị `double` sát một decimal tie, ví dụ `2.675`, so với `BigDecimal` tạo từ chuỗi.
-- `UNNECESSARY` với giá trị vừa scale và giá trị buộc phải làm tròn.
-- Kiểm thử số rất lớn, số gần 0, số âm, số có độ chính xác cao và các trường hợp sử dụng scientific notation nếu ứng dụng cho phép.
+- `minFraction=0/maxFraction=2` with integers: does it append `.00`? (No.)
+- `minFraction=2/maxFraction=2` with integers: does it append `.00`? (Yes.)
+- `maxFraction=0` with tie-cases `1234.5`, `1235.5` under `HALF_EVEN`.
+- `minFraction > maxFraction` across setter ordering: are getters auto-adjusted?
+- `applyPattern` after calling setters: are limits reset?
+- `maxIntegerDigits` smaller than integer length: are leftmost digits lost?
+- Formatting the same value across multiple locales: grouping, decimal separators, and digits may differ.
+- `double` values near a decimal tie, e.g., `2.675`, vs. `BigDecimal` created from a string.
+- `UNNECESSARY` with values matching scale vs. values requiring rounding.
+- Very large numbers, values near 0, negative numbers, high-precision values, and scientific-notation cases if the app permits them.
 
-## 14. Những lỗi phổ biến
+## 14. Common mistakes
 
-1. **Nhầm số chữ số tối thiểu với tối đa.** Min thêm số 0 để hiển thị; max có thể làm tròn/mất chữ số.
-2. **Dùng mặc định HALF_EVEN mà nghiệp vụ cần HALF_UP.** Mode mặc định của `DecimalFormat` là `HALF_EVEN`; đặt rõ mode khi yêu cầu cụ thể.
-3. **Cho rằng UP luôn là về dương vô cùng.** `UP` đi xa số 0; `CEILING` mới hướng về dương vô cùng.
-4. **Cho rằng DOWN luôn là về âm vô cùng.** `DOWN` đi về 0; `FLOOR` mới hướng về âm vô cùng.
-5. **Test tie-case bằng literal double và mong luôn chính xác.** Dùng `BigDecimal` từ chuỗi để kiểm soát giá trị decimal.
-6. **Giả định thay min không ảnh hưởng max.** Các setter duy trì quan hệ min <= max, có thể tự điều chỉnh phía còn lại.
-7. **Gọi applyPattern sau setters rồi quên giới hạn bị cập nhật.** Áp dụng pattern trước, chỉnh setters sau.
-8. **Dùng maxIntegerDigits để chặn số quá lớn.** Formatter có thể cắt các chữ số có nghĩa bên trái; validation phải thực hiện riêng.
-9. **Coi format làm thay đổi giá trị số.** Nó chỉ tạo chuỗi; dùng `BigDecimal.setScale` khi cần giá trị đã được làm tròn.
-10. **Dùng chuỗi định dạng locale làm input của BigDecimal constructor.** Dấu nhóm và decimal separator của locale không phải cú pháp constructor.
-11. **Định dạng tiền bằng đúng 2 decimals cho mọi currency.** Quy tắc số chữ số và cash rounding phụ thuộc currency/nghiệp vụ.
-12. **Chia sẻ DecimalFormat mutable giữa các thread.** `DecimalFormat` không thread-safe; tạo instance phù hợp cho mỗi luồng/ngữ cảnh.
-13. **Không validate số đếm, số lượng hoặc thang đo.** Formatting đẹp không đảm bảo input nằm trong miền hợp lệ.
-14. **Bỏ qua kết quả UNNECESSARY.** Đây là mode yêu cầu tính chính xác, có thể ném `ArithmeticException` khi cần làm tròn.
-15. **Tự đoán dấu thập phân/nhóm số từ Locale.** Dùng `DecimalFormatSymbols` và kiểm thử kết quả thật.
+1. **Confusing minimum and maximum digit counts.** Min pads zeros for display; max can round/drop digits.
+2. **Relying on default HALF_EVEN when business rules require HALF_UP.** `DecimalFormat`'s default mode is `HALF_EVEN`; set the mode explicitly when required.
+3. **Assuming UP always moves toward positive infinity.** `UP` moves away from 0; `CEILING` moves toward positive infinity.
+4. **Assuming DOWN always moves toward negative infinity.** `DOWN` moves toward 0; `FLOOR` moves toward negative infinity.
+5. **Testing tie-cases with double literals and expecting exact decimals.** Use `BigDecimal` from strings to control decimal values.
+6. **Assuming changing min never affects max.** Setters preserve `min <= max` and can auto-adjust the opposite bound.
+7. **Calling applyPattern after setters and forgetting limits were reset.** Apply patterns first, configure setters afterward.
+8. **Using maxIntegerDigits to block oversized numbers.** The formatter may strip significant left digits; perform validation separately.
+9. **Assuming format mutates the numeric value.** It only builds a string; use `BigDecimal.setScale` when a rounded value is needed.
+10. **Passing locale-formatted strings to the BigDecimal constructor.** Locale grouping and decimal separators are not constructor syntax.
+11. **Formatting money with strictly 2 decimals for all currencies.** Digit counts and cash-rounding rules depend on currency/business policy.
+12. **Sharing mutable DecimalFormat instances across threads.** `DecimalFormat` is not thread-safe; instantiate per thread/context.
+13. **Skipping validation of counts, quantities, or scales.** Pretty formatting does not guarantee valid input domains.
+14. **Ignoring UNNECESSARY outcomes.** This mode enforces exactness and throws `ArithmeticException` when rounding is needed.
+15. **Guessing decimal/grouping symbols from Locale.** Use `DecimalFormatSymbols` and verify real outputs.
 
-## 15. Câu hỏi tự kiểm tra
+## 15. Self-check questions
 
-**Câu 1.** Muốn `12` hiển thị thành `12.00`, cần điều chỉnh gì?
+**Question 1.** To display `12` as `12.00`, what needs to be configured?
 
-**Đáp án:** Tối thiểu 2 chữ số thập phân, ví dụ pattern `0.00` hoặc `setMinimumFractionDigits(2)` với maximum đủ lớn.
+**Answer:** Minimum 2 fractional digits, such as pattern `0.00` or `setMinimumFractionDigits(2)` with a sufficiently large maximum.
 
-**Câu 2.** Giữ 2 chữ số thập phân, `2.345` dưới HALF_UP và HALF_EVEN khác nhau thế nào?
+**Question 2.** Keeping 2 decimal digits, how does `2.345` differ under HALF_UP vs. HALF_EVEN?
 
-**Đáp án:** HALF_UP → `2.35`, HALF_EVEN → `2.34` vì chữ số 4 của kết quả `2.34` là chẵn.
+**Answer:** HALF_UP → `2.35`, HALF_EVEN → `2.34` because digit 4 in `2.34` is even.
 
-**Câu 3.** Với `-2.345`, mode CEILING và FLOOR trả gì khi giữ 2 chữ số?
+**Question 3.** For `-2.345`, what do CEILING and FLOOR return when keeping 2 digits?
 
-**Đáp án:** CEILING → `-2.34`, FLOOR → `-2.35`.
+**Answer:** CEILING → `-2.34`, FLOOR → `-2.35`.
 
-**Câu 4.** Nếu từ pattern `0.00` đặt `setMaximumFractionDigits(0)`, minimum fraction là bao nhiêu?
+**Question 4.** Starting from pattern `0.00`, if you call `setMaximumFractionDigits(0)`, what is minimum fraction?
 
-**Đáp án:** Minimum được điều chỉnh thành 0 để không vượt maximum.
+**Answer:** Minimum is adjusted down to 0 so it does not exceed maximum.
 
-**Câu 5.** `setMaximumIntegerDigits(3)` có phải validation ngăn số nguyên 5 chữ số không?
+**Question 5.** Is `setMaximumIntegerDigits(3)` a validation preventing 5-digit integers?
 
-**Đáp án:** Không. `DecimalFormat` có thể chỉ hiển thị ba chữ số cuối; phải validate giá trị trước khi format.
+**Answer:** No. `DecimalFormat` may simply display the last three digits; validate the value before formatting.
 
-**Câu 6.** Vì sao `format(2.675)` và `format(new BigDecimal("2.675"))` có thể khác dưới HALF_EVEN?
+**Question 6.** Why can `format(2.675)` and `format(new BigDecimal("2.675"))` differ under HALF_EVEN?
 
-**Đáp án:** `double` biểu diễn nhị phân xấp xỉ, còn `BigDecimal` tạo từ chuỗi biểu diễn chính xác decimal 2.675.
+**Answer:** `double` uses an approximate binary representation, whereas `BigDecimal` from a string represents exact decimal 2.675.
 
-**Câu 7.** `RoundingMode.UNNECESSARY` cho phép truncate im lặng không?
+**Question 7.** Does `RoundingMode.UNNECESSARY` allow silent truncation?
 
-**Đáp án:** Không. Nếu cần bỏ phần có ý nghĩa để đáp ứng giới hạn chữ số, nó ném `ArithmeticException`.
+**Answer:** No. If significant digits would be dropped to meet digit limits, it throws `ArithmeticException`.
 
-**Câu 8.** Format thành `1,234.50` có sửa giá trị `BigDecimal("1234.5")` thành `1234.50` không?
+**Question 8.** Does formatting into `1,234.50` modify `BigDecimal("1234.5")` into `1234.50`?
 
-**Đáp án:** Không. Formatting là phép biểu diễn; muốn thay đổi scale theo quy tắc đã thống nhất, tạo `BigDecimal` mới bằng `setScale`.
+**Answer:** No. Formatting is presentation; to change scale under an agreed policy, create a new `BigDecimal` via `setScale`.
 
-## 16. Tổng kết
+## 16. Summary
 
-`DecimalFormat` kết hợp **pattern/Locale** để quyết định hình thức chữ số với **`RoundingMode`** để quyết định làm tròn. `minimumFractionDigits` điều khiển zero padding; `maximumFractionDigits` điều khiển điểm làm tròn. `minimumIntegerDigits` có thể đệm số 0 đầu, còn `maximumIntegerDigits` cần dùng thận trọng vì có thể cắt chữ số bên trái.
+`DecimalFormat` combines **pattern/Locale** to control digit layout with **`RoundingMode`** to control rounding. `minimumFractionDigits` controls zero padding; `maximumFractionDigits` controls the rounding point. `minimumIntegerDigits` can pad leading zeros, while `maximumIntegerDigits` must be used carefully because it can truncate leftmost digits.
 
-Đối với logic tài chính hoặc dữ liệu yêu cầu precision cao, lưu/tính bằng `BigDecimal`, đặt chính sách làm tròn và scale rõ ràng ở lớp nghiệp vụ, rồi định dạng theo locale ở bước hiển thị. Kiểm thử số dương, âm, tie-case, min/max và thứ tự setters là cách tránh lỗi số học lẫn lỗi bản địa hóa.
+For financial logic or high-precision data, store/compute using `BigDecimal`, establish rounding and scale policies explicitly in the business layer, and format by locale at the display step. Testing positive numbers, negatives, tie-cases, min/max bounds, and setter ordering prevents both arithmetic and localization bugs.
 
-**Tài liệu chính thức:** [Java SE 17 — DecimalFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/DecimalFormat.html) · [Java SE 17 — NumberFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.html) · [Java SE 17 — RoundingMode](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/RoundingMode.html) · [Java SE 17 — BigDecimal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html).
+**Official documentation:** [Java SE 17 — DecimalFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/DecimalFormat.html) · [Java SE 17 — NumberFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.html) · [Java SE 17 — RoundingMode](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/RoundingMode.html) · [Java SE 17 — BigDecimal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html).

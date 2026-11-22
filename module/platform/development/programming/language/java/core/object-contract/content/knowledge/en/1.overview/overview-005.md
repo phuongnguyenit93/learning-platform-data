@@ -1,18 +1,18 @@
-# Vai trò của `toString()`, `getClass()` và `clone()` trong Java
+# The Roles of `toString()`, `getClass()`, and `clone()` in Java
 
-## 1. Bức tranh tổng quan
+## 1. The Big Picture
 
-Mọi đối tượng thuộc kiểu tham chiếu trong Java đều kế thừa các phương thức từ `java.lang.Object` (trực tiếp hoặc gián tiếp). Ba phương thức sau giải quyết ba nhu cầu khác nhau:
+Every reference-type object in Java inherits methods from `java.lang.Object` (directly or indirectly). The following three methods address three different needs:
 
-| Phương thức | Câu hỏi mà phương thức trả lời | Kết quả chính |
+| Method | Question the method answers | Main result |
 | --- | --- | --- |
-| `toString()` | “Biểu diễn đối tượng này thành văn bản như thế nào?” | Một `String` mô tả đối tượng, thường phục vụ đọc hiểu, gỡ lỗi và ghi log. |
-| `getClass()` | “Đối tượng này thực sự thuộc lớp nào tại thời điểm chạy?” | Đối tượng `Class<?>` biểu diễn lớp runtime chính xác. |
-| `clone()` | “Có thể tạo bản sao của đối tượng này bằng cơ chế `Object.clone()` không?” | Một đối tượng mới, với các trường được sao chép ở mức nông; việc gọi hợp lệ phụ thuộc vào giao ước `Cloneable`. |
+| `toString()` | "How should this object be represented as text?" | A `String` describing the object, commonly used for readability, debugging, and logging. |
+| `getClass()` | "Which class does this object actually belong to at runtime?" | A `Class<?>` object representing the exact runtime class. |
+| `clone()` | "Can a copy of this object be created via the `Object.clone()` mechanism?" | A new object, with fields copied at a shallow level; whether calling it is valid depends on the `Cloneable` contract. |
 
-Ba phương thức không thay thế cho nhau và cũng không phải ba cách kiểm tra đối tượng “bằng nhau”. Đặc biệt, `clone()` không mặc nhiên tạo một bản sao độc lập hoàn toàn. Khi học *object contract*, cần liên hệ chúng với `equals()` và `hashCode()` nhưng phân biệt rõ trách nhiệm.
+The three methods do not substitute for one another, nor are they three ways to test whether objects are "equal". In particular, `clone()` does not automatically create a completely independent copy. When studying *object contracts*, it is necessary to relate them to `equals()` and `hashCode()` while keeping their responsibilities distinct.
 
-Chữ ký đáng chú ý của `Object`:
+Notable signatures of `Object`:
 
 ```java
 public String toString();
@@ -20,21 +20,21 @@ public final native Class<?> getClass();
 protected native Object clone() throws CloneNotSupportedException;
 ```
 
-Đây là **các khai báo minh họa API trong `java.lang.Object`**, không phải ba phương thức để dán độc lập vào một tệp Java. Từ khóa `native` thể hiện phần triển khai của `getClass()` và `clone()` gắn với JVM; người sử dụng chỉ cần nắm giao ước hành vi.
+These are **illustrative API declarations in `java.lang.Object`**, not three methods to paste standalone into a Java file. The `native` keyword indicates that the implementations of `getClass()` and `clone()` are tied to the JVM; users only need to understand the behavioral contract.
 
-## 2. `toString()`: biểu diễn đối tượng thành chuỗi
+## 2. `toString()`: Representing an Object as a String
 
-### Hành vi mặc định và lý do ghi đè
+### Default Behavior and Reasons to Override
 
-`Object.toString()` có thể trả về chuỗi theo dạng:
+`Object.toString()` can return a string in the form:
 
 ```text
-ten.lop.DayDu@chuoiHex
+fully.qualified.ClassName@hexString
 ```
 
-Cách biểu diễn mặc định tương ứng với tên lớp từ `getClass().getName()`, ký tự `@` và dạng thập lục phân của giá trị `hashCode()`. **Không** suy luận phần sau `@` là địa chỉ bộ nhớ, mã định danh duy nhất hay `System.identityHashCode()` trong mọi trường hợp: `hashCode()` có thể đã được ghi đè và các giá trị hash có thể trùng nhau.
+The default representation corresponds to the class name from `getClass().getName()`, the `@` character, and the hexadecimal form of the `hashCode()` value. Do **not** infer that the part after `@` is a memory address, a unique identifier, or `System.identityHashCode()` in all cases: `hashCode()` may have been overridden, and hash values can collide.
 
-Ví dụ một lớp mang dữ liệu nên ghi đè để tạo mô tả có ý nghĩa:
+For example, a class carrying data should override it to produce a meaningful description:
 
 ```java
 final class Product {
@@ -53,26 +53,26 @@ final class Product {
 }
 ```
 
-*Đây là đoạn định nghĩa lớp minh họa; chương trình hoàn chỉnh có `main` nằm ở mục 5.* Với `new Product("P01", 120)`, khi gọi `toString()` sẽ thu được:
+*This is an illustrative class definition; a complete program with `main` is in section 5.* With `new Product("P01", 120)`, calling `toString()` produces:
 
 ```text
 Product{sku='P01', price=120}
 ```
 
-Các tình huống thường gọi `toString()` gồm `System.out.println(product)`, nối chuỗi `"item=" + product`, và nhiều công cụ debug/log khi chúng cần biểu diễn văn bản của đối tượng. Với biến có thể `null`, `String.valueOf(value)` trả về `"null"` thay vì gọi phương thức trên tham chiếu `null` gây `NullPointerException`. Một hệ thống logging có thể dùng cơ chế định dạng riêng hoặc gọi `toString()` trễ, nên hành vi cụ thể phụ thuộc thư viện.
+Common situations that invoke `toString()` include `System.out.println(product)`, string concatenation `"item=" + product`, and many debug/logging tools when they need a text representation of an object. For a potentially `null` variable, `String.valueOf(value)` returns `"null"` instead of calling a method on a `null` reference and causing a `NullPointerException`. A logging framework may use its own formatting mechanism or invoke `toString()` lazily, so exact behavior depends on the library.
 
-### Thiết kế `toString()` tốt
+### Designing a Good `toString()`
 
-- Ưu tiên những trường giúp người đọc nhận ra trạng thái hoặc ý nghĩa của đối tượng; giữ định dạng dễ hiểu và nhất quán.
-- Không tiết lộ mật khẩu, token, khóa riêng, dữ liệu cá nhân hoặc thông tin nội bộ nhạy cảm khi log.
-- Tránh tác dụng phụ, thay đổi trạng thái, truy vấn mạng/cơ sở dữ liệu hay phép tính nặng chỉ để tạo chuỗi. Chú ý quan hệ tham chiếu vòng: gọi `toString()` đệ quy trên cả hai phía có thể dẫn đến `StackOverflowError`.
-- Không xem `toString()` như định dạng truyền dữ liệu chính thức. Nếu cần hợp đồng ổn định cho JSON, CSV, giao thức hoặc persistence, hãy dùng serializer/DTO thích hợp.
+- Prioritize fields that help readers recognize the state or meaning of the object; keep the format clear and consistent.
+- Do not expose passwords, tokens, private keys, personal data, or sensitive internal information when logging.
+- Avoid side effects, state mutation, network/database queries, or heavy computations just to build a string. Watch out for circular reference relationships: calling `toString()` recursively on both sides can lead to `StackOverflowError`.
+- Do not treat `toString()` as an official data-transfer format. If a stable contract is needed for JSON, CSV, protocols, or persistence, use an appropriate serializer/DTO.
 
-**Quan hệ với `equals()/hashCode()`:** Hai đối tượng `equals()` nhau không bị bắt buộc phải có chuỗi `toString()` giống nhau. Ngược lại, hai chuỗi `toString()` giống nhau không chứng minh hai đối tượng bằng nhau. `toString()` phục vụ biểu diễn, không định nghĩa bình đẳng.
+**Relationship with `equals()/hashCode()`:** Two objects that are `equals()` to each other are not required to have identical `toString()` strings. Conversely, two identical `toString()` strings do not prove two objects are equal. `toString()` serves representation, not equality definition.
 
-## 3. `getClass()`: nhận diện kiểu thực tế lúc chạy
+## 3. `getClass()`: Identifying the Actual Type at Runtime
 
-`getClass()` là phương thức `public final` của `Object` nên lớp con không ghi đè được. Nó trả về đối tượng `Class` mô tả **đúng lớp runtime** của đối tượng nhận lời gọi, bất kể kiểu khai báo của biến tham chiếu rộng đến đâu.
+`getClass()` is a `public final` method of `Object`, so subclasses cannot override it. It returns the `Class` object describing the **exact runtime class** of the target object, regardless of how broad the reference variable's declared type is.
 
 ```java
 Object value = "Hello";
@@ -83,69 +83,69 @@ System.out.println(value.getClass() == String.class); // true
 System.out.println(value instanceof CharSequence);   // true
 ```
 
-*Đây là các câu lệnh minh họa đặt bên trong một phương thức; các chú thích là kết quả dự kiến.* `value` được khai báo kiểu `Object` nhưng đối tượng đang giữ là `String`. Vì vậy `getClass()` cho biết lớp thực của đối tượng, không trả về `Object.class` chỉ vì kiểu của biến là `Object`.
+*These are illustrative statements placed inside a method; the comments show the expected results.* `value` is declared with type `Object`, while the object being held is a `String`. Therefore `getClass()` reports the actual class of the object rather than returning `Object.class` just because the variable's type is `Object`.
 
-Các phép kiểm tra không đồng nghĩa:
+The type checks are not synonymous:
 
-| Cách kiểm tra | Ý nghĩa |
+| Check | Meaning |
 | --- | --- |
-| `obj.getClass() == SomeType.class` | Lớp runtime **chính xác** là `SomeType`, không chấp nhận lớp con. |
-| `obj instanceof SomeType` | Đối tượng thuộc `SomeType` hoặc một kiểu con/kiểu triển khai tương ứng. Với `obj == null`, kết quả là `false`. |
-| `SomeType.class.isAssignableFrom(obj.getClass())` | `SomeType` có thể nhận đối tượng có lớp runtime đó qua quan hệ kiểu; phải bảo đảm `obj` không `null` trước khi gọi `getClass()`. |
+| `obj.getClass() == SomeType.class` | The runtime class is **exact** `SomeType`; subclasses are not accepted. |
+| `obj instanceof SomeType` | The object belongs to `SomeType` or a corresponding subtype/implementing type. For `obj == null`, the result is `false`. |
+| `SomeType.class.isAssignableFrom(obj.getClass())` | `SomeType` can accept an object of that runtime class through type relationship; you must ensure `obj` is not `null` before calling `getClass()`. |
 
-Ứng dụng thường gặp: ghi nhận lớp thực khi chẩn đoán lỗi, chọn chiến lược xử lý theo kiểu, làm việc với reflection (xem tên lớp, phương thức, annotation) và hiểu các đối tượng được tạo bởi framework/proxy. Chẳng hạn trong `equals()`, một số lớp value object dùng `getClass()` để yêu cầu hai đối tượng có đúng cùng lớp runtime; lớp khác dùng `instanceof` để cho phép quan hệ kế thừa. Lựa chọn đó ảnh hưởng tính đối xứng và khả năng tương thích với subclass/proxy, nên phải thiết kế theo giao ước bình đẳng của cả lớp, không thay máy móc mọi `instanceof` bằng `getClass()`.
+Common applications: recording the actual class during error diagnostics, selecting a handling strategy by type, working with reflection (inspecting class names, methods, annotations), and understanding objects generated by frameworks/proxies. For example, in `equals()`, some value object classes use `getClass()` to require two objects to have the exact same runtime class; others use `instanceof` to allow inheritance relationships. That choice affects symmetry and compatibility with subclasses/proxies, so it must be designed according to the equality contract of the entire class rather than mechanically replacing every `instanceof` with `getClass()`.
 
-**Lưu ý:**
+**Notes:**
 
-- Gọi `null.getClass()` không hợp lệ và gây `NullPointerException`; không tồn tại “lớp runtime của null”.
-- `getClass()` không cần ép kiểu hay tạo đối tượng `Class` mới mỗi lần. Hai đối tượng có cùng lớp runtime sẽ nhận cùng đối tượng `Class` tương ứng trong ngữ cảnh nạp lớp của chúng.
-- `getClass()` chỉ có trên giá trị tham chiếu đối tượng; với kiểu nguyên thủy, có thể lấy class literal như `int.class` thay vì gọi phương thức trên giá trị `int`.
-- `getName()`, `getSimpleName()` và `getCanonicalName()` là các cách lấy tên khác nhau; với lớp lồng, anonymous class và array, kết quả có thể khác trực giác. Không mặc định `getSimpleName()` là khóa định danh ổn định.
+- Calling `null.getClass()` is invalid and causes `NullPointerException`; there is no "runtime class of null".
+- `getClass()` does not require casting or creating a new `Class` object each time. Two objects with the same runtime class receive the same corresponding `Class` object within their class-loading context.
+- `getClass()` exists only on object reference values; for primitive types, you can obtain a class literal such as `int.class` instead of calling a method on an `int` value.
+- `getName()`, `getSimpleName()`, and `getCanonicalName()` are different ways of retrieving names; for nested classes, anonymous classes, and arrays, the results may be counterintuitive. Do not assume `getSimpleName()` is a stable identifier key.
 
-## 4. `clone()`: cơ chế sao chép nông và hợp đồng `Cloneable`
+## 4. `clone()`: Shallow Copying Mechanism and the `Cloneable` Contract
 
-### Vì sao `clone()` khác hai phương thức trước?
+### Why Is `clone()` Different From the Previous Two Methods?
 
-`Object.clone()` có mức truy cập `protected`, nên mã bên ngoài một lớp thường **không thể** gọi `object.clone()` trực tiếp trên mọi đối tượng. Một lớp muốn cung cấp API sao chép thường:
+`Object.clone()` has `protected` visibility, so code outside a class typically **cannot** call `object.clone()` directly on any arbitrary object. A class that wants to provide a cloning API typically:
 
-1. Khai báo `implements Cloneable`.
-2. Ghi đè `clone()` thành `public` nếu muốn mã gọi bên ngoài có thể sử dụng.
-3. Gọi `super.clone()` bên trong phương thức ghi đè.
-4. Xử lý `CloneNotSupportedException` nếu cần và quyết định có sao chép sâu dữ liệu tham chiếu hay không.
+1. Declares `implements Cloneable`.
+2. Overrides `clone()` as `public` if external calling code should be able to use it.
+3. Calls `super.clone()` inside the overridden method.
+4. Handles `CloneNotSupportedException` if needed and decides whether to deep-copy referenced data.
 
-`Cloneable` là **marker interface**, không định nghĩa phương thức `clone()`. Chỉ việc viết `implements Cloneable` không tự tạo một phương thức `clone()` công khai. Nếu dùng `Object.clone()` trên một đối tượng không triển khai `Cloneable` (ngoại lệ riêng dành cho array), cơ chế đó ném `CloneNotSupportedException`.
+`Cloneable` is a **marker interface** and does not define a `clone()` method. Simply writing `implements Cloneable` does not automatically create a public `clone()` method. If `Object.clone()` is used on an object that does not implement `Cloneable` (with a special exception for arrays), that mechanism throws `CloneNotSupportedException`.
 
-Theo cơ chế chuẩn, `super.clone()` tạo đối tượng mới cùng lớp runtime và chép giá trị từng trường:
+By standard mechanism, `super.clone()` creates a new object of the same runtime class and copies each field's value:
 
-- Trường nguyên thủy (`int`, `boolean`, …) được chép giá trị.
-- Trường tham chiếu được chép **địa chỉ tham chiếu tới cùng đối tượng con**, không tự dựng bản sao của đối tượng con.
-- Constructor của đối tượng đích không được gọi như khi viết `new`. Vì vậy, không dựa vào constructor để “sửa” trạng thái sau khi gọi `super.clone()`.
+- Primitive fields (`int`, `boolean`, ...) are copied by value.
+- Reference fields copy the **reference address to the same child object**, without automatically creating a copy of the child object.
+- The target object's constructor is not called as when writing `new`. Therefore, do not rely on a constructor to "fix" state after calling `super.clone()`.
 
-Hình dung với `Customer` giữ tham chiếu `Address`:
+Visualize with `Customer` holding a reference to `Address`:
 
 ```text
-Trước khi sao chép:
+Before copying:
 original ──> Customer A ──address──> Address X
 
-Sau super.clone() (shallow copy):
+After super.clone() (shallow copy):
 original ──> Customer A ──address──┐
                                   ├──> Address X
 shallow  ──> Customer B ──address──┘
 
-Sau khi tạo bản sao độc lập cho Address:
+After creating an independent copy for Address:
 original ──> Customer A ──address──> Address X
 deep     ──> Customer C ──address──> Address Y
 ```
 
-Tên `deep` trong sơ đồ chỉ bản sao được tạo chủ động cho *đồ thị đối tượng của ví dụ*. Nó không có nghĩa Java cung cấp một thao tác deep clone tổng quát cho mọi đồ thị đối tượng.
+The name `deep` in the diagram denotes a copy created deliberately for *the example's object graph*. It does not mean Java provides a general-purpose deep-clone operation for arbitrary object graphs.
 
-### Vì sao cần cân nhắc sao chép sâu?
+### Why Consider Deep Copying?
 
-Nếu `Customer A` và `Customer B` cùng giữ `Address X` thì thay đổi `Address X.city` thông qua một bản sẽ hiển thị ở bản kia. Nếu các thành phần tham chiếu là bất biến (ví dụ `String`), chia sẻ chúng thường an toàn; với thành phần mutable, cần quyết định rõ có muốn chia sẻ hay không. Một `final` trên trường tham chiếu chỉ ngăn gán lại tham chiếu đó, **không** làm đối tượng được tham chiếu trở thành bất biến.
+If `Customer A` and `Customer B` both hold `Address X`, modifying `Address X.city` through one copy will be visible in the other. If referenced components are immutable (for example, `String`), sharing them is generally safe; for mutable components, you must explicitly decide whether sharing is desired. A `final` modifier on a reference field only prevents reassigning that reference—it does **not** make the referenced object immutable.
 
-## 5. Ví dụ Java 17+ chạy được: ba phương thức trong cùng một tình huống
+## 5. Runnable Java 17+ Example: All Three Methods in One Scenario
 
-Lưu toàn bộ mã bên dưới vào tệp `ObjectMethodsDemo.java`.
+Save all of the code below to the file `ObjectMethodsDemo.java`.
 
 ```java
 public class ObjectMethodsDemo {
@@ -177,29 +177,29 @@ public class ObjectMethodsDemo {
             try {
                 return (Customer) super.clone();
             } catch (CloneNotSupportedException ex) {
-                // Customer triển khai Cloneable nên nhánh này không được mong đợi.
+                // Customer implements Cloneable so this branch is not expected.
                 throw new AssertionError(ex);
             }
         }
 
-        // Tạo bản sao độc lập cho Address mà không dựa vào Object.clone().
+        // Create an independent copy for Address without relying on Object.clone().
         public Customer copyIndependent() {
             return new Customer(name, new Address(address.city));
         }
     }
 
     public static void main(String[] args) {
-        Customer original = new Customer("An", new Address("Hà Nội"));
+        Customer original = new Customer("An", new Address("Hanoi"));
         Customer shallow = original.clone();
         Customer independent = original.copyIndependent();
 
-        System.out.println(original); // Gọi toString().
+        System.out.println(original); // Calls toString().
         System.out.println(original.getClass().getSimpleName());
         System.out.println(original == shallow);
         System.out.println(original.address == shallow.address);
         System.out.println(original.address == independent.address);
 
-        shallow.address.city = "Đà Nẵng";
+        shallow.address.city = "Da Nang";
 
         System.out.println(original.address.city);
         System.out.println(independent.address.city);
@@ -207,91 +207,91 @@ public class ObjectMethodsDemo {
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa tệp:
+Compile and run from the directory containing the file:
 
 ```bash
 javac ObjectMethodsDemo.java
 java ObjectMethodsDemo
 ```
 
-Đầu ra chính xác:
+Exact output:
 
 ```text
-Customer{name='An', city='Hà Nội'}
+Customer{name='An', city='Hanoi'}
 Customer
 false
 true
 false
-Đà Nẵng
-Hà Nội
+Da Nang
+Hanoi
 ```
 
-Giải thích tuần tự:
+Step-by-step explanation:
 
-1. `println(original)` dùng `Customer.toString()` nên hiển thị dữ liệu có ý nghĩa thay cho chuỗi mặc định của `Object`.
-2. `getClass().getSimpleName()` cho biết lớp runtime của `original` là `Customer`.
-3. `original == shallow` là `false`: `clone()` tạo một đối tượng `Customer` mới, không trả về chính đối tượng cũ.
-4. `original.address == shallow.address` là `true`: `super.clone()` chỉ chép tham chiếu `address`.
-5. `original.address == independent.address` là `false`: `copyIndependent()` đã tạo một `Address` khác bằng `new`.
-6. Đổi `shallow.address.city` cũng đổi giá trị quan sát qua `original.address.city` vì hai tham chiếu trỏ tới cùng `Address`. Bản `independent` vẫn lưu “Hà Nội”.
+1. `println(original)` uses `Customer.toString()`, displaying meaningful data instead of `Object`'s default string.
+2. `getClass().getSimpleName()` shows that the runtime class of `original` is `Customer`.
+3. `original == shallow` is `false`: `clone()` creates a new `Customer` object rather than returning the original object itself.
+4. `original.address == shallow.address` is `true`: `super.clone()` only copies the `address` reference.
+5. `original.address == independent.address` is `false`: `copyIndependent()` created a different `Address` using `new`.
+6. Changing `shallow.address.city` also changes the value observed through `original.address.city` because both references point to the same `Address`. The `independent` copy still stores "Hanoi".
 
-Ở ví dụ này, `name` là `String` bất biến nên có thể chia sẻ tham chiếu an toàn; `Address` mutable nên cần sao chép riêng nếu yêu cầu độc lập. `Customer.address` được khai báo `final` vẫn chia sẻ `Address` sau shallow clone như bình thường.
+In this example, `name` is an immutable `String` so its reference can be shared safely; `Address` is mutable so it must be copied separately if independence is required. Even though `Customer.address` is declared `final`, it still shares `Address` after a shallow clone as usual.
 
-### Một điểm dễ nhầm: mảng cũng có `clone()`
+### A Common Pitfall: Arrays Also Have `clone()`
 
-Array trong Java hỗ trợ `clone()` và bản sao mảng mới có cùng độ dài/kiểu thành phần. Với phần tử tham chiếu, đó vẫn là sao chép nông:
+Arrays in Java support `clone()`, and the new array copy has the same length and component type. For reference elements, it is still a shallow copy:
 
 ```java
 StringBuilder[] a = {new StringBuilder("A")};
 StringBuilder[] b = a.clone();
 
-System.out.println(a == b);       // false: hai mảng khác nhau
-System.out.println(a[0] == b[0]); // true: cùng phần tử tham chiếu
+System.out.println(a == b);       // false: two different arrays
+System.out.println(a[0] == b[0]); // true: same referenced element
 ```
 
-*Đoạn trên là các câu lệnh minh họa bên trong một phương thức.* Chỉnh sửa `b[0].append("!")` cũng khiến `a[0].toString()` trả về `"A!"`. Trong khi đó, thay trực tiếp `b[0] = new StringBuilder("B")` không thay phần tử `a[0]`, vì hai mảng là hai container riêng.
+*The snippet above contains illustrative statements inside a method.* Modifying `b[0].append("!")` also makes `a[0].toString()` return `"A!"`. Meanwhile, directly reassigning `b[0] = new StringBuilder("B")` does not change element `a[0]`, because the two arrays are separate containers.
 
-## 6. Khi nào nên dùng cách nào?
+## 6. When Should You Use Which Approach?
 
-| Nhu cầu | Lựa chọn hợp lý | Cảnh báo |
+| Need | Reasonable choice | Warnings |
 | --- | --- | --- |
-| In trạng thái đối tượng cho người đọc hoặc debug | Ghi đè `toString()` | Không đưa dữ liệu bí mật vào chuỗi; không dùng làm định dạng lưu trữ chính thức. |
-| Biết chính xác lớp runtime | `obj.getClass()` | Kiểm tra `null` trước; không nhầm với quan hệ đa hình. |
-| Kiểm tra đối tượng có thuộc một hệ kiểu | `instanceof` (hoặc `Class.isInstance()` khi biết kiểu lúc chạy) | `getClass() == ...` chỉ nhận một lớp chính xác. |
-| Sao chép trạng thái phẳng hoặc dữ liệu bất biến từ lớp đã hỗ trợ `clone()` đúng cách | `clone()` theo giao ước của lớp đó | Vẫn kiểm tra mức độ sao chép và khả năng gọi public. |
-| Tạo đối tượng mới có chủ đích, kiểm soát bất biến và thành phần mutable | Copy constructor, factory/copy method hoặc mô hình immutable | Cần xác định rõ trường nào sao chép và trường nào được phép chia sẻ. |
+| Print object state for readers or debugging | Override `toString()` | Do not include secret data in the string; do not use as an official storage format. |
+| Know the exact runtime class | `obj.getClass()` | Check for `null` first; do not confuse with polymorphic relationships. |
+| Check whether an object belongs to a type hierarchy | `instanceof` (or `Class.isInstance()` when the type is known at runtime) | `getClass() == ...` only matches one exact class. |
+| Copy flat state or immutable data from a class that properly supports `clone()` | `clone()` per that class's contract | Still check the depth of copying and public accessibility. |
+| Create a new object deliberately, controlling immutability and mutable components | Copy constructor, factory/copy method, or immutable model | Must clearly determine which fields are copied and which are allowed to be shared. |
 
-Với API mới, **copy constructor hoặc factory method** thường dễ diễn đạt hơn `Cloneable/clone()`, nhất là khi đối tượng chứa tài nguyên, tham chiếu vòng, trường `final` mutable, invariant cần bảo đảm hoặc quan hệ kế thừa phức tạp. Ví dụ `new Customer(old.name, new Address(old.address.city))` làm chính sách sao chép hiển lộ; với cấu trúc sâu hơn phải tiếp tục sao chép các thành phần mutable liên quan. Không có một thuật toán sao chép sâu mặc định đúng cho mọi loại đối tượng.
+For new APIs, **a copy constructor or factory method** is usually clearer to express than `Cloneable/clone()`, especially when the object holds resources, circular references, mutable `final` fields, invariants to maintain, or complex inheritance relationships. For example, `new Customer(old.name, new Address(old.address.city))` makes the copying policy explicit; for deeper structures, you must continue copying the relevant mutable components. There is no single default deep-copy algorithm that is correct for every kind of object.
 
-## 7. Lỗi thường gặp và cách kiểm tra
+## 7. Common Mistakes and How to Check
 
-**Lỗi 1: Dùng chuỗi `toString()` để so sánh đối tượng.** Hai đối tượng có thể hiển thị giống nhau nhưng khác nhau theo `equals()`; hoặc đối tượng bằng nhau có phần mô tả khác. Hãy dùng `equals()` cho bình đẳng logic được lớp định nghĩa, `==` cho đồng nhất tham chiếu và bảo đảm `hashCode()` tương thích khi ghi đè `equals()`.
+**Mistake 1: Using `toString()` strings to compare objects.** Two objects can display identically yet differ under `equals()`; or equal objects can have different descriptions. Use `equals()` for logical equality defined by the class, `==` for reference identity, and ensure `hashCode()` is compatible when overriding `equals()`.
 
-**Lỗi 2: Coi phần `@...` trong `Object.toString()` là địa chỉ bộ nhớ.** Nó biểu diễn giá trị hash dạng hex, không phải địa chỉ tin cậy hoặc định danh duy nhất.
+**Mistake 2: Treating the `@...` part in `Object.toString()` as a memory address.** It represents a hexadecimal hash value, not a reliable address or unique identifier.
 
-**Lỗi 3: Dùng `getClass() == Parent.class` khi muốn chấp nhận lớp con.** Phép so sánh đó loại đối tượng là subclass. Dùng `instanceof Parent` khi thật sự muốn chấp nhận quan hệ kế thừa/triển khai interface.
+**Mistake 3: Using `getClass() == Parent.class` when subclasses should be accepted.** That comparison rejects subclass objects. Use `instanceof Parent` when inheritance/interface implementation relationships really should be accepted.
 
-**Lỗi 4: Gọi `clone()` trên mọi `Object`.** `Object.clone()` là `protected`; `Cloneable` không tự cung cấp method public. Phải xem API cụ thể của lớp, quyền truy cập và điều kiện hỗ trợ.
+**Mistake 4: Calling `clone()` on any `Object`.** `Object.clone()` is `protected`; `Cloneable` does not provide a public method on its own. You must check the class's specific API, visibility, and support conditions.
 
-**Lỗi 5: Tưởng `super.clone()` sao chép luôn các đối tượng lồng.** Hãy kiểm tra từng trường mutable; dùng copy method/copy constructor hoặc sao chép chọn lọc khi cần tính độc lập.
+**Mistake 5: Assuming `super.clone()` also copies nested objects.** Inspect every mutable field; use a copy method/copy constructor or selective copying when independence is needed.
 
-**Lỗi 6: Quên rằng constructor không chạy trong thao tác `super.clone()`.** Khi lớp có invariant, khóa, handle tệp, socket hoặc tài nguyên bên ngoài, sao chép từng trường có thể cho trạng thái nguy hiểm hoặc vô nghĩa; chọn cách tạo mới phù hợp với semantics của lớp.
+**Mistake 6: Forgetting that constructors do not run during `super.clone()`.** When a class has invariants, locks, file handles, sockets, or external resources, field-by-field copying can produce a dangerous or meaningless state; choose a creation approach suited to the class's semantics.
 
-## 8. Tự kiểm tra kiến thức
+## 8. Self-Check Knowledge Quiz
 
-**Câu 1.** Biến `Object x = new String("Hi")` trả về gì từ `x.getClass() == String.class`?  
-**Đáp án:** `true`, vì `getClass()` nhìn lớp runtime thực tế.
+**Question 1.** What does `x.getClass() == String.class` return for `Object x = new String("Hi")`?  
+**Answer:** `true`, because `getClass()` inspects the actual runtime class.
 
-**Câu 2.** Hai đối tượng khác nhau in `toString()` giống hệt nhau có nhất thiết `equals()` nhau không?  
-**Đáp án:** Không; chuỗi mô tả không phải giao ước bình đẳng.
+**Question 2.** Must two different objects that print identical `toString()` output necessarily be `equals()` to each other?  
+**Answer:** No; descriptive strings are not an equality contract.
 
-**Câu 3.** Sau khi shallow clone một object có trường `List<String> items`, thay đổi `clone.items.add("x")` có thể ảnh hưởng bản gốc không?  
-**Đáp án:** Có, nếu cả hai cùng giữ một `List` mutable do chép tham chiếu. Muốn container riêng có thể tạo `new ArrayList<>(items)`, nhưng nếu phần tử là object mutable thì đó vẫn chưa phải sao chép sâu phần tử.
+**Question 3.** After shallow cloning an object that has a `List<String> items` field, can calling `clone.items.add("x")` affect the original?  
+**Answer:** Yes, if both hold the same mutable `List` due to reference copying. To get a separate container, you can create `new ArrayList<>(items)`, though if the elements are mutable objects, that is still not a deep copy of the elements.
 
-**Câu 4.** Một class `implements Cloneable` nhưng không khai báo `public clone()` thì code bên ngoài có tự gọi `instance.clone()` được không?  
-**Đáp án:** Không mặc nhiên; `Cloneable` không khai báo `clone()` và phương thức kế thừa từ `Object` là `protected`.
+**Question 4.** If a class `implements Cloneable` without declaring `public clone()`, can external code automatically call `instance.clone()`?  
+**Answer:** Not by default; `Cloneable` does not declare `clone()`, and the method inherited from `Object` is `protected`.
 
-**Câu 5.** Lớp con cần được chấp nhận khi kiểm tra kiểu: nên dùng `getClass() == Base.class` hay `instanceof Base`?  
-**Đáp án:** Thường dùng `instanceof Base` để nhận cả subtype. Nếu cần đúng một lớp runtime (ví dụ một chính sách equality cụ thể), mới cân nhắc `getClass() == Base.class`.
+**Question 5.** Subclasses must be accepted during a type check: should you use `getClass() == Base.class` or `instanceof Base`?  
+**Answer:** Usually use `instanceof Base` to accept subtypes as well. Only consider `getClass() == Base.class` when an exact single runtime class is required (for example, a specific equality policy).
 
-Điểm cần nhớ để vận dụng đúng: `toString()` là **biểu diễn**, `getClass()` là **thông tin kiểu runtime chính xác**, còn `clone()` là **cơ chế sao chép nông có điều kiện và giới hạn truy cập**. Thiết kế sao chép độc lập và định nghĩa bình đẳng là những quyết định riêng của lớp.
+Key takeaway for proper application: `toString()` is **representation**, `getClass()` is **exact runtime type information**, and `clone()` is a **conditional shallow-copy mechanism with restricted visibility**. Designing independent copying and defining equality are separate class-level decisions.

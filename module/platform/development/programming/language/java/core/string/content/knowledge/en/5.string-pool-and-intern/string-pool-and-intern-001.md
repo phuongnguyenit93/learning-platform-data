@@ -1,8 +1,8 @@
-# String pool và việc dùng chung literal trong Java
+# String Pool and Literal Sharing in Java
 
-## 1. String pool là gì?
+## 1. What Is the String Pool?
 
-**String pool** (hay *string intern pool*) là cơ chế Java dùng để quản lý các chuỗi đã được *intern*: mỗi nội dung chuỗi có một tham chiếu chuẩn (*canonical reference*) trong pool tại một thời điểm. Khi mã Java sử dụng literal như `"Java"`, JVM dùng tham chiếu của chuỗi đã được intern tương ứng; nhiều lần xuất hiện cùng literal có thể dùng chung một đối tượng `String`.
+The **String pool** (or *string intern pool*) is the mechanism Java uses to manage *interned* strings: each string content has one *canonical reference* in the pool at a given time. When Java code uses a literal such as `"Java"`, the JVM uses the reference of the corresponding interned string; multiple occurrences of the same literal can share a single `String` object.
 
 ```java
 String first = "Java";
@@ -12,18 +12,18 @@ System.out.println(first == second);      // true
 System.out.println(first.equals(second)); // true
 ```
 
-Hai phép so sánh đều trả về `true`, nhưng **vì hai lý do khác nhau**:
+Both comparisons return `true`, but **for two different reasons**:
 
-- `first == second` đúng vì hai biến tham chiếu **cùng đối tượng** `String` đã được intern.
-- `first.equals(second)` đúng vì hai chuỗi có **cùng nội dung**.
+- `first == second` is true because both variables reference **the same interned `String` object**.
+- `first.equals(second)` is true because the two strings have **the same content**.
 
-Bản thân `String` là kiểu **bất biến** (*immutable*): sau khi đối tượng được tạo, các ký tự của đối tượng không thay đổi. Nhờ đó, các nơi giữ chung tham chiếu đến một literal không thể sửa nội dung và làm ảnh hưởng nhau. Đây là một cơ sở quan trọng cho việc chia sẻ chuỗi an toàn qua pool.
+`String` itself is **immutable**: once an object is created, its characters do not change. Because of that, places sharing a reference to a literal cannot modify its content and affect one another. This is an important foundation for safely sharing strings through the pool.
 
-**Giới hạn cần nhớ:** Pool không có nghĩa mọi đối tượng `String` có cùng nội dung đều là cùng một đối tượng. Java vẫn cho phép tạo các đối tượng `String` khác nhau nhưng `equals()` trả về `true`.
+**Limitation to remember:** The pool does not mean that every `String` object with the same content is the same object. Java still allows creating distinct `String` objects for which `equals()` returns `true`.
 
-## 2. Literal được dùng chung như thế nào?
+## 2. How Are Literals Shared?
 
-**String literal** là chuỗi viết trực tiếp trong mã nguồn, ví dụ `""`, `"hello"`, `"Xin chào"`. Java Language Specification quy định literal chuỗi (và kết quả biểu thức hằng kiểu chuỗi) được intern, qua đó cùng nội dung sẽ có tham chiếu chuẩn.
+A **string literal** is a string written directly in source code, for example `""`, `"hello"`, `"Hello, Java"`. The Java Language Specification specifies that string literals (and the values of constant expressions of type `String`) are interned, so that equal contents share a canonical reference.
 
 ```java
 String a = "hello";
@@ -34,12 +34,12 @@ System.out.println(a == b); // true
 System.out.println(a == c); // false
 ```
 
-Dòng thứ nhất so sánh hai literal giống nhau nên `true`. Dòng thứ hai là hai nội dung khác nhau nên không thể là cùng chuỗi, trả về `false`.
+The first line compares two identical literals, so it is `true`. The second line has two different contents, so they cannot be the same string, returning `false`.
 
-Có thể hình dung:
+You can picture it as:
 
 ```text
-                  String pool (mô hình khái niệm)
+                  String pool (conceptual model)
 
 a --------------------+
                       +----> String "hello"
@@ -48,17 +48,17 @@ b --------------------+
 c --------------------------> String "world"
 ```
 
-Sơ đồ chỉ minh họa việc **dùng chung tham chiếu**, không khẳng định bố trí ô nhớ, địa chỉ hay thuật toán thực thi của một JVM cụ thể.
+The diagram only illustrates **reference sharing**; it does not assert the memory layout, addresses, or implementation algorithm of any specific JVM.
 
-### Literal giống nhau có thể nằm ở nhiều nơi trong chương trình
+### Identical literals can appear in multiple places in a program
 
-Nếu các lớp, phương thức hay phần khác nhau của một chương trình chạy trong cùng JVM sử dụng các chuỗi literal giống nội dung, các literal đó được intern và có thể cùng tham chiếu đến chuỗi chuẩn. Cơ chế này không đòi hỏi lập trình viên tự gọi `intern()` trên từng literal.
+If different classes, methods, or parts of a program running in the same JVM use string literals with the same content, those literals are interned and can share references to the canonical string. This mechanism does not require the programmer to manually call `intern()` on each literal.
 
-**Không suy ra số lượng đối tượng chỉ bằng cách đếm dòng mã:** Một literal xuất hiện nhiều lần không hàm ý có chừng ấy đối tượng, và thời điểm đối tượng được tạo/lấy từ pool phụ thuộc quá trình tải, liên kết, thực thi lớp cũng như chi tiết triển khai.
+**Do not infer the number of objects merely by counting lines of code:** A literal appearing multiple times does not imply that many objects exist, and when objects are created or retrieved from the pool depends on class loading, linking, execution, and implementation details.
 
-## 3. Kiểm chứng việc chia sẻ literal qua hai lớp
+## 3. Verifying Literal Sharing Across Two Classes
 
-Ví dụ trên chỉ dùng một phương thức; hãy thử viết literal cùng nội dung ở **hai lớp khác nhau** trong tệp `LiteralAcrossClasses.java`:
+The example above used only one method; let's try writing literals with the same content in **two different classes** in the file `LiteralAcrossClasses.java`:
 
 ~~~java
 class LiteralProvider {
@@ -91,11 +91,11 @@ false
 true
 ~~~
 
-Hai literal giống nhau dùng chung tham chiếu dù nằm ở hai lớp. `constructed` là đối tượng riêng do `new` tạo nhưng có nội dung bằng nhau. Việc các class file có bảng constant pool riêng **không** đồng nghĩa mỗi lớp có một string pool riêng: metadata của class file và đối tượng interned lúc chạy là hai tầng khác nhau.
+Two identical literals share a reference even across two classes. `constructed` is a separate object created by `new`, yet it has equal content. The fact that class files have their own constant pool tables does **not** mean each class has its own separate string pool: class file metadata and runtime interned objects are two different layers.
 
-## 4. Liên hệ với tính bất biến và cấu trúc dữ liệu
+## 4. Connection to Immutability and Data Structures
 
-Pool hoạt động an toàn vì `String` bất biến. Ví dụ:
+The pool works safely because `String` is immutable. For example:
 
 ```java
 String one = "color";
@@ -107,9 +107,9 @@ System.out.println(one); // Color
 System.out.println(two); // color
 ```
 
-`replace()` trả về một chuỗi có nội dung khác; đối tượng `"color"` gốc không bị sửa. Việc `one` đổi tham chiếu không ảnh hưởng `two`.
+`replace()` returns a string with different content; the original `"color"` object is not modified. Changing `one`'s reference does not affect `two`.
 
-Tương tự, `String` thích hợp làm khóa cho `HashMap` vì nội dung dùng bởi `equals()` và `hashCode()` không biến đổi sau khi chèn. Việc được intern **không phải điều kiện** để `HashMap` nhận diện hai khóa chuỗi bằng nhau:
+Similarly, `String` is suitable as a key for `HashMap` because the content used by `equals()` and `hashCode()` does not mutate after insertion. Being interned is **not a requirement** for `HashMap` to recognize two string keys as equal:
 
 ```java
 java.util.Map<String, Integer> counts = new java.util.HashMap<>();
@@ -119,21 +119,21 @@ String key = new String("Java");
 System.out.println(counts.get(key)); // 5
 ```
 
-`HashMap` dùng `hashCode()` và `equals()` theo hợp đồng của khóa, không bắt buộc hai khóa phải trỏ cùng đối tượng.
+`HashMap` uses `hashCode()` and `equals()` according to the key contract; it does not require two keys to point to the same object.
 
-Pool và tính bất biến cũng không tự làm mọi thao tác với biến `String` chia sẻ giữa các thread trở nên an toàn về thứ tự thực thi/khả năng quan sát. Chia sẻ **nội dung đối tượng bất biến** và cập nhật **biến tham chiếu chung** là hai việc khác nhau; trường hợp thứ hai vẫn phải tuân theo Java Memory Model và chiến lược đồng bộ phù hợp.
+Nor do the pool and immutability automatically make every operation on a `String` variable shared across threads safe with respect to execution order or visibility. Sharing **immutable object content** and updating a **shared reference variable** are two different things; the latter still must follow the Java Memory Model and an appropriate synchronization strategy.
 
-## 5. Giới hạn của điều quan sát được
+## 5. Limits of What Can Be Observed
 
-- Pool quản lý **chuỗi đã intern**, không phải mọi `String` được tạo từ file, request, JSON hay phép nối runtime.
-- `"Ja" + "va"` là biểu thức hằng có kết quả `"Java"` nên được intern; phép nối với biến không phải constant variable là một tình huống khác. Bài về biểu thức hằng và nối runtime sẽ phân tích ranh giới này.
-- `intern()` lấy **tham chiếu chuẩn** cho nội dung; nó không chỉnh sửa biến gọi phương thức và không chuyển đổi chữ hoa/thường, khoảng trắng hay Unicode.
-- Không suy diễn vị trí bộ nhớ hoặc số lần cấp phát từ số literal trong source. Phân giải class, thời điểm sử dụng và tối ưu JVM có thể khác nhau.
-- Trong logic kiểm tra nội dung, dùng `equals()`; một kết quả `== true` trên literal chỉ chứng minh hai tham chiếu đang cùng đối tượng.
+- The pool manages **interned strings**, not every `String` created from files, requests, JSON, or runtime concatenation.
+- `"Ja" + "va"` is a constant expression whose value is `"Java"`, so it is interned; concatenation with a non-constant variable is a different case. The lesson on constant expressions and runtime concatenation analyzes this boundary.
+- `intern()` retrieves the **canonical reference** for the content; it does not modify the variable on which the method is called, nor does it normalize letter case, whitespace, or Unicode.
+- Do not infer memory locations or allocation counts from the number of literals in source code. Class resolution, timing of use, and JVM optimizations may vary.
+- In content-checking logic, use `equals()`; a `== true` result on literals only proves that two references point to the same object.
 
-## 6. Tự kiểm tra
+## 6. Self-Check
 
-Hãy dự đoán bốn kết quả sau:
+Predict the following four outputs:
 
 ```java
 String x = "code";
@@ -148,7 +148,7 @@ System.out.println(x == t);
 System.out.println(z.intern() == x);
 ```
 
-Kết quả:
+Output:
 
 ```text
 true
@@ -157,6 +157,6 @@ false
 true
 ```
 
-Giải thích: `y` là kết quả biểu thức hằng được intern; `z` là phép nối với biến thực hiện lúc chạy; `t` là đối tượng tạo riêng bằng `new`; `z.intern()` trả về tham chiếu chuẩn của literal `"code"`.
+Explanation: `y` is the result of a constant expression and is interned; `z` is a concatenation with a variable performed at runtime; `t` is a separate object created via `new`; `z.intern()` returns the canonical reference of the literal `"code"`.
 
-**Ghi nhớ:** *Cùng nội dung* (`equals`) và *cùng đối tượng* (`==`) là hai khái niệm khác nhau. String pool giúp literal và chuỗi đã intern chia sẻ tham chiếu chuẩn; nó không phải quy tắc so sánh nội dung cho chương trình Java.
+**Remember:** *Same content* (`equals`) and *same object* (`==`) are two different concepts. The String pool lets literals and interned strings share a canonical reference; it is not the content-comparison rule for Java programs.

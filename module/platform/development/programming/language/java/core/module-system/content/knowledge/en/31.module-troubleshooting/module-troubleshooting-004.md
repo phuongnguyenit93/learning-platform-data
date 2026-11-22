@@ -1,17 +1,17 @@
-# LayerInstantiationException khi tạo layer
+# LayerInstantiationException When Creating a Layer
 
-## 1. LayerInstantiationException báo hiệu điều gì?
+## 1. What does LayerInstantiationException indicate?
 
-Trong Java Platform Module System (JPMS), `ModuleLayer` là một tập hợp các module đã được định nghĩa tại runtime. Ứng dụng có thể tạo custom layer để nạp plugin, extension hoặc các module không nằm trong boot layer.
+In the Java Platform Module System (JPMS), a `ModuleLayer` is a collection of modules defined at runtime. An application can create custom layers to load plugins, extensions, or modules that do not reside in the boot layer.
 
-`java.lang.LayerInstantiationException` là runtime exception cho biết **JVM không thể định nghĩa các module của một `Configuration` thành một `ModuleLayer` theo ánh xạ class loader được yêu cầu**. Lỗi thường phát sinh ở bước gọi các phương thức như:
+`java.lang.LayerInstantiationException` is a runtime exception indicating that **the JVM cannot define the modules of a `Configuration` into a `ModuleLayer` under the requested class loader mapping**. The error typically arises when calling methods such as:
 
 - `ModuleLayer.defineModulesWithOneLoader(...)`.
 - `ModuleLayer.defineModulesWithManyLoaders(...)`.
 - `ModuleLayer.defineModules(...)`.
-- Các overload instance tương ứng được gọi trên một `ModuleLayer` cha.
+- The corresponding instance overloads invoked on a parent `ModuleLayer`.
 
-Điểm quan trọng: **module resolution** và **layer instantiation** là hai giai đoạn khác nhau.
+Key point: **module resolution** and **layer instantiation** are two distinct stages.
 
 ~~~text
 ModuleFinder
@@ -19,22 +19,22 @@ ModuleFinder
     v
 Configuration.resolve / resolveAndBind
     |
-    | Thành công: đã có module graph
+    | Success: module graph obtained
     v
 ModuleLayer.defineModules...
     |
-    | Thành công: mỗi module được gắn với một defining class loader
+    | Success: each module is bound to a defining class loader
     v
-ModuleLayer sẵn sàng nạp class
+ModuleLayer ready to load classes
 ~~~
 
-Một cấu hình module có thể được resolve thành công nhưng vẫn không thể instantiate khi nhiều module buộc phải chia sẻ một loader, khi delegation không nhất quán hoặc khi ánh xạ module vào loader vi phạm các ràng buộc của JVM.
+A module configuration can resolve successfully yet still fail to instantiate when multiple modules are forced to share a single loader, when delegation is inconsistent, or when the module-to-loader mapping violates JVM constraints.
 
-Vì vậy, nếu gặp `LayerInstantiationException`, cần xác định **lỗi ở bước định nghĩa layer**, không chỉ nhìn danh sách dependency hoặc sửa `requires` một cách tùy tiện.
+Therefore, if you encounter `LayerInstantiationException`, identify that **the failure is at the layer definition step**, rather than looking only at the dependency list or arbitrarily modifying `requires`.
 
-## 2. Ví dụ tạo custom ModuleLayer
+## 2. Example of creating a custom ModuleLayer
 
-Giả sử host muốn nạp một module plugin từ thư mục `plugins`:
+Suppose the host wants to load a plugin module from the `plugins` directory:
 
 ~~~java
 import java.lang.module.Configuration;
@@ -62,28 +62,28 @@ public final class PluginLayers {
 }
 ~~~
 
-Đoạn code gồm hai phần có thể thất bại độc lập:
+The code consists of two parts that can fail independently:
 
-1. `resolve(...)` tìm root module và phân giải dependency.
-2. `defineModulesWithOneLoader(...)` định nghĩa các module đã resolve vào một class loader mới chung.
+1. `resolve(...)` locates the root module and resolves dependencies.
+2. `defineModulesWithOneLoader(...)` defines the resolved modules into a single new shared class loader.
 
-Nếu module path thiếu dependency, bước 1 có thể ném `FindException` hoặc `ResolutionException` tùy nguyên nhân. Nếu configuration đã hợp lệ nhưng mô hình class loader không đáp ứng ràng buộc, bước 2 có thể ném `LayerInstantiationException`.
+If the module path is missing a dependency, step 1 may throw `FindException` or `ResolutionException` depending on the cause. If the configuration is valid yet the class loader model does not satisfy constraints, step 2 may throw `LayerInstantiationException`.
 
-Không nên viết một khối `catch (RuntimeException)` duy nhất rồi báo chung là “module not found”. Nó làm mất thông tin giai đoạn và khiến người điều tra sửa nhầm cấu hình.
+Do not write a single `catch (RuntimeException)` block that generically reports "module not found". It erases stage information and misleads investigators into editing the wrong configuration.
 
-## 3. Ba thành phần cần ghi lại trước khi sửa lỗi
+## 3. Three components to record before fixing the error
 
-Khi phân tích lỗi tạo layer, ghi lại tối thiểu:
+When analyzing a layer creation failure, record at minimum:
 
-| Thành phần | Ví dụ | Vì sao cần biết? |
+| Component | Example | Why you need to know it |
 |---|---|---|
-| Parent layer | `ModuleLayer.boot()` | Xác định module/package đã có ở layer cha |
-| Configuration | `Configuration` được trả về từ `resolve` | Xác định những module dự kiến đưa vào layer mới |
-| Loader strategy | One loader, many loaders hoặc custom mapping | Xác định vì sao các package/module bị ánh xạ vào loader không phù hợp |
+| Parent layer | `ModuleLayer.boot()` | Identifies modules/packages already present in parent layers |
+| Configuration | `Configuration` returned from `resolve` | Identifies which modules are intended for the new layer |
+| Loader strategy | One loader, many loaders, or custom mapping | Identifies why packages/modules are mapped to an unsuitable loader |
 
-Cùng một `Configuration` có thể thành công với chiến lược loader này nhưng thất bại với chiến lược khác.
+The exact same `Configuration` can succeed with one loader strategy yet fail with another.
 
-Ví dụ:
+Example:
 
 ~~~java
 ModuleLayer parent = ModuleLayer.boot();
@@ -97,13 +97,13 @@ ModuleLayer layer = parent.defineModulesWithOneLoader(
         cf, ClassLoader.getSystemClassLoader());
 ~~~
 
-Khi đọc stack trace, phân biệt lỗi đến từ `resolve` hay `defineModulesWithOneLoader`. Đây là bước định hướng quan trọng nhất.
+When reading the stack trace, distinguish whether the error came from `resolve` or `defineModulesWithOneLoader`. That is the single most important directional step.
 
-## 4. Nguyên nhân phổ biến: hai module chứa cùng package
+## 4. Common cause: two modules contain the same package
 
-Với `defineModulesWithOneLoader`, tất cả module thuộc configuration mới được định nghĩa vào **cùng một class loader**. Một loader không thể định nghĩa cùng một package như package của hai module khác nhau theo mô hình này.
+With `defineModulesWithOneLoader`, all modules belonging to the new configuration are defined into **the same class loader**. A single loader cannot define the same package as belonging to two different modules under this model.
 
-Ví dụ về cấu trúc có nguy cơ xung đột:
+Example of a structure at risk of conflict:
 
 ~~~text
 plugins/
@@ -113,43 +113,43 @@ plugins/
     └── com/acme/shared/BetaHelper.class
 ~~~
 
-Hai named module đều chứa package:
+Both named modules contain the package:
 
 ~~~text
 com.acme.shared
 ~~~
 
-Nếu cả hai module cùng được đưa vào configuration rồi gọi `defineModulesWithOneLoader`, bước định nghĩa layer có thể bị từ chối vì **overlapping packages**.
+If both modules are included in the configuration and `defineModulesWithOneLoader` is called, the layer definition step may be rejected due to **overlapping packages**.
 
-Điểm đáng lưu ý:
+Notable points:
 
-- Không cần có hai class trùng tên; chỉ cần **tên package giống nhau** trong hai module đã đủ tạo xung đột đối với chiến lược một loader.
-- Modifier `public` và `exports` không làm xung đột package biến mất.
-- Hai JAR có package chung nhưng dùng classpath truyền thống không chứng minh chúng có thể cùng hoạt động như explicit named modules với một loader.
-- Tên package phải được so sánh theo tên đầy đủ; chia sẻ prefix, ví dụ `com.acme`, không tự tạo xung đột nếu package thực tế khác nhau.
+- There does not need to be two identically named classes; having **the same package name** in two modules is already enough to create a conflict under the one-loader strategy.
+- The `public` modifier and `exports` do not make the package conflict disappear.
+- Two JARs sharing a package while working on the traditional classpath do not prove they can operate together as explicit named modules with one loader.
+- Package names are compared by full name; sharing a prefix, such as `com.acme`, does not by itself create a conflict if the actual packages differ.
 
-Cách sửa ưu tiên là **đặt mỗi package thuộc một module rõ ràng**. Có thể chuyển code chia sẻ vào module API hoặc common module riêng, rồi để các plugin dùng `requires` thay vì sao chép package.
+The preferred fix is to **assign each package to one clear module**. Move shared code into an API module or a separate common module, then have plugins use `requires` instead of duplicating the package.
 
-## 5. Phân biệt split package và split delegation
+## 5. Distinguishing split package and split delegation
 
-Hai khái niệm dễ bị nhầm:
+Two concepts that are easily confused:
 
 ### 5.1. Overlapping packages / split package
 
-Hai module trong configuration chứa cùng package, ví dụ:
+Two modules in the configuration contain the same package, for example:
 
 ~~~text
 Module A: com.acme.shared
 Module B: com.acme.shared
 ~~~
 
-Điều này trực tiếp gây vấn đề khi cố ánh xạ cả hai module vào một loader.
+This directly causes trouble when trying to map both modules to a single loader.
 
 ### 5.2. Split delegation
 
-Một class loader mới có thể cần chuyển yêu cầu nạp các class cùng một package tới **nhiều parent class loader khác nhau** vì những module ở các parent layer được ánh xạ khác nhau.
+A new class loader may need to delegate loading requests for classes in the same package to **multiple different parent class loaders** because modules in parent layers are mapped differently.
 
-Ví dụ tình huống khái niệm:
+Conceptual scenario:
 
 ~~~text
                    Custom Layer
@@ -160,15 +160,15 @@ Ví dụ tình huống khái niệm:
  Module A exports p             Module B exports p
 ~~~
 
-Nếu loader của layer mới phải chọn hơn một loader đích cho cùng package `p`, direct delegation không còn duy nhất. `defineModulesWithOneLoader` có thể thất bại do **split delegation**, dù từng module riêng lẻ đã hợp lệ.
+If the new layer's loader would have to choose among more than one target loader for the same package `p`, direct delegation is no longer unique. `defineModulesWithOneLoader` can fail due to **split delegation**, even though each individual module is valid.
 
-Đây là lý do cần kiểm tra cả parent layers và class loaders, không chỉ tìm package trùng trong chính configuration mới.
+This is why you must inspect parent layers and class loaders as well, not only look for duplicate packages inside the new configuration itself.
 
-Việc đổi sang `defineModulesWithManyLoaders` có thể phù hợp với một số kiến trúc nhưng không phải phương thuốc mặc định. Nếu module graph hoặc package ownership vẫn không nhất quán, cần sửa thiết kế và cách phân giải dependency trước.
+Switching to `defineModulesWithManyLoaders` may suit certain architectures, yet it is not a default panacea. If the module graph or package ownership remains inconsistent, fix the design and dependency resolution first.
 
-## 6. Định nghĩa module vào class loader đã chứa module trùng tên
+## 6. Defining a module into a class loader that already contains a module with the same name
 
-Với phương thức ánh xạ tùy biến:
+With the custom mapping method:
 
 ~~~java
 ModuleLayer.defineModules(
@@ -177,87 +177,87 @@ ModuleLayer.defineModules(
         moduleName -> someLoader);
 ~~~
 
-JVM kiểm tra các ràng buộc liên quan class loader. Một nguyên nhân gây `LayerInstantiationException` là cố định nghĩa một module vào loader **đã có module cùng tên**.
+the JVM checks constraints related to class loaders. One cause of `LayerInstantiationException` is attempting to define a module into a loader that **already has a module with the same name**.
 
-Ví dụ một plugin host giữ lại loader từ lần triển khai trước rồi tiếp tục dùng loader đó cho cùng module name ở một layer mới.
+For example, a plugin host retains a loader from a previous deployment and reuses that same loader for the same module name in a new layer.
 
-Điều cần nhớ:
+Things to keep in mind:
 
-- Một module name có thể xuất hiện ở những layer khác nhau khi được tổ chức theo class loader phù hợp.
-- Nhưng không thể mặc định rằng cùng một class loader có thể được dùng nhiều lần để định nghĩa lại một module cùng tên.
-- Hot reload thường cần **loader mới** cho phiên bản plugin mới, cùng chiến lược giải phóng tham chiếu tới loader cũ.
+- A module name can appear in different layers when organized with appropriate class loaders.
+- However, you cannot assume the same class loader can be reused repeatedly to redefine a module with the same name.
+- Hot reload normally requires a **new loader** for a new plugin version, along with a strategy for releasing references to the old loader.
 
-Nếu host cache `ClassLoader` toàn cục và map mọi phiên bản plugin mới vào loader cũ, hãy kiểm tra đây có phải nguồn lỗi hay không.
+If the host caches a `ClassLoader` globally and maps every new plugin version to the old loader, check whether that is the source of the error.
 
-## 7. Loader đã định nghĩa class trong package của module mới
+## 7. A loader has already defined classes in the new module's package
 
-Một trường hợp quan trọng của custom mapping là ánh xạ module vào loader đã tự định nghĩa các type thuộc package mà module sắp sở hữu.
+An important custom-mapping case is mapping a module to a loader that has already independently defined types belonging to a package the module is about to own.
 
-Ví dụ một URLClassLoader đã nạp:
+For example, a `URLClassLoader` has already loaded:
 
 ~~~text
 com.acme.plugin.internal.Helper
 ~~~
 
-Sau đó ứng dụng muốn gán module `com.acme.plugin` chứa cùng package `com.acme.plugin.internal` vào chính loader này.
+Later the application tries to assign the `com.acme.plugin` module containing that same `com.acme.plugin.internal` package to this very loader.
 
-JVM có thể từ chối vì loader đã định nghĩa class trong package trước khi module được định nghĩa vào loader.
+The JVM may reject it because the loader already defined a class in the package before the module was defined into the loader.
 
-Vì vậy, khi xây dựng custom plugin loader:
+Therefore, when building a custom plugin loader:
 
-1. Tạo hoặc chuẩn bị loader trước.
-2. Định nghĩa module/layer đúng trình tự.
-3. Chỉ sau đó mới bắt đầu nạp class từ các module của layer.
-4. Không gọi `Class.forName(...)` hoặc `loader.loadClass(...)` quá sớm để “kiểm tra” class trong package sắp được định nghĩa.
+1. Create or prepare the loader first.
+2. Define the module/layer in the proper order.
+3. Only afterward begin loading classes from the layer's modules.
+4. Do not call `Class.forName(...)` or `loader.loadClass(...)` prematurely to "probe" classes in packages about to be defined.
 
-Một lỗi phổ biến là code discovery/inspection nạp class trước khi layer được tạo, vô tình làm thay đổi trạng thái class loader và gây xung đột khi instantiate.
+A common bug is discovery/inspection code loading classes before the layer is created, inadvertently mutating the class loader's state and causing a conflict upon instantiation.
 
-## 8. Hạn chế với module java.base và package java.*
+## 8. Restrictions on the java.base module and java.* packages
 
-Các API tạo custom layer không cho phép tự do định nghĩa lại những thành phần lõi thuộc namespace dành riêng cho nền tảng.
+Custom layer creation APIs do not permit freely redefining core components belonging to the reserved platform namespace.
 
-Những cấu hình như sau không hợp lệ:
+Configurations like the following are invalid:
 
-- Cấu hình cố đưa module tên `java.base` vào layer mới.
-- Module mới chứa package tên `java` hoặc bắt đầu bằng `java.`, ví dụ `java.acme.plugin`.
-- Với custom module-to-loader mapping, một số class loader đặc biệt bị cấm làm loader đích theo contract API.
+- A configuration attempting to put a module named `java.base` into a new layer.
+- A new module containing a package named `java` or starting with `java.`, such as `java.acme.plugin`.
+- With custom module-to-loader mapping, certain special class loaders are forbidden as target loaders under the API contract.
 
-Ví dụ một plugin vô tình tạo package:
+For example, a plugin accidentally declares the package:
 
 ~~~java
 package java.acme.plugin;
 ~~~
 
-đây không phải cách đặt tên package hợp lệ cho custom module layer. Đổi sang namespace do ứng dụng sở hữu, ví dụ:
+this is not a valid package naming choice for a custom module layer. Rename it to a namespace owned by the application, for example:
 
 ~~~java
 package com.acme.plugin;
 ~~~
 
-Không dùng `--add-exports` hoặc `--add-opens` để khắc phục trường hợp này: các tùy chọn đó liên quan quyền truy cập package, không trao quyền định nghĩa lại package nền tảng.
+Do not use `--add-exports` or `--add-opens` to work around this case: those options govern package access permissions and do not grant permission to redefine platform packages.
 
-## 9. Lựa chọn defineModulesWithOneLoader, ManyLoaders và custom mapping
+## 9. Choosing among defineModulesWithOneLoader, ManyLoaders, and custom mapping
 
-Ba chiến lược có đặc điểm khác nhau:
+The three strategies have distinct characteristics:
 
-| Cách tạo layer | Ánh xạ loader | Thích hợp khi |
+| Layer creation method | Loader mapping | Appropriate when |
 |---|---|---|
-| `defineModulesWithOneLoader` | Các module trong configuration mới chia sẻ một loader | Nhóm module phối hợp chặt chẽ, không xung đột package/delegation |
-| `defineModulesWithManyLoaders` | Mỗi module trong layer nhận loader riêng do API tạo | Muốn phân tách module theo loader và để API quản lý delegation |
-| `defineModules` | Hàm tùy biến quyết định loader cho từng module | Host có hệ thống class loader riêng và kiểm soát đầy đủ ánh xạ |
+| `defineModulesWithOneLoader` | Modules in the new configuration share one loader | Tightly cooperating group of modules with no package/delegation conflicts |
+| `defineModulesWithManyLoaders` | Each module in the layer gets its own loader created by the API | Wanting to isolate modules by loader and let the API manage delegation |
+| `defineModules` | Custom function decides the loader for each module | Host has its own class loader system and full control over the mapping |
 
-Chọn phương án dựa trên kiến trúc. Nhiều loader có thể giúp tránh một số xung đột do gom quá nhiều module vào một loader, nhưng:
+Choose an option based on architecture. Many loaders can help avoid certain conflicts caused by packing too many modules into one loader, yet:
 
-- Module graph vẫn phải hợp lệ.
-- Không thể dựa vào việc nhiều loader để hợp thức hóa mọi split package giữa các module có quan hệ readability.
-- Service API truyền qua biên giới plugin phải dùng cùng class identity.
-- Với custom mapping, loader phải tuân thủ những ràng buộc về module definition và class loading/delegation.
+- The module graph must still be valid.
+- You cannot rely on multiple loaders to legitimize all split packages between modules that have readability relationships.
+- Service APIs crossing plugin boundaries must share the same class identity.
+- With custom mapping, loaders must obey constraints on module definition and class loading/delegation.
 
-Không nên chuyển sang many-loaders chỉ để làm exception biến mất mà bỏ qua nguyên nhân. Hãy ghi lại tại sao mô hình loader mới đúng với yêu cầu hệ thống.
+Do not switch to many-loaders just to make an exception disappear while ignoring the root cause. Document why the new loader model fits system requirements.
 
-## 10. Ví dụ chuyển từ one loader sang many loaders
+## 10. Example of switching from one loader to many loaders
 
-Với configuration đã resolve:
+Given a resolved configuration:
 
 ~~~java
 ModuleLayer parent = ModuleLayer.boot();
@@ -268,7 +268,7 @@ Configuration cf = parent.configuration().resolve(
         Set.of("com.acme.plugin.alpha", "com.acme.plugin.beta"));
 ~~~
 
-Phiên bản một loader:
+One-loader version:
 
 ~~~java
 ModuleLayer layer = parent.defineModulesWithOneLoader(
@@ -276,7 +276,7 @@ ModuleLayer layer = parent.defineModulesWithOneLoader(
         ClassLoader.getSystemClassLoader());
 ~~~
 
-Nếu cấu trúc module thỏa các ràng buộc phù hợp, có thể dùng nhiều loader:
+If the module structure satisfies the appropriate constraints, multiple loaders can be used:
 
 ~~~java
 ModuleLayer layer = parent.defineModulesWithManyLoaders(
@@ -284,7 +284,7 @@ ModuleLayer layer = parent.defineModulesWithManyLoaders(
         ClassLoader.getSystemClassLoader());
 ~~~
 
-Sau khi tạo layer, có thể tìm loader gắn với từng module:
+After creating the layer, you can inspect the loader attached to each module:
 
 ~~~java
 ClassLoader alphaLoader =
@@ -296,23 +296,23 @@ ClassLoader betaLoader =
 System.out.println(alphaLoader == betaLoader);
 ~~~
 
-Với phương thức many-loaders, các module trong layer được định nghĩa vào loader riêng. Dù vậy, điều này không có nghĩa hai plugin được phép định nghĩa riêng service interface mà host và plugin trao đổi qua API.
+With the many-loaders method, modules in the layer are defined into separate loaders. Even so, this does not mean two plugins are allowed to define their own copies of a service interface exchanged between host and plugin via an API.
 
-Nếu host sử dụng `com.acme.plugin.api.Plugin` từ parent layer, provider ở layer con phải triển khai đúng service interface đó. Nếu plugin tự đóng gói bản sao API dưới loader khác, lỗi class identity có thể xuất hiện sau khi layer được tạo.
+If the host uses `com.acme.plugin.api.Plugin` from a parent layer, providers in the child layer must implement that exact service interface. If a plugin bundles its own copy of the API under a different loader, class identity errors can appear after the layer is created.
 
-## 11. Module resolution failure không phải layer instantiation failure
+## 11. Module resolution failure is not layer instantiation failure
 
-Một troubleshooting flow nên phân biệt ba nhóm exception:
+A troubleshooting flow should distinguish three exception groups:
 
-| Giai đoạn | Exception thường gặp | Bản chất |
+| Stage | Common exception | Nature |
 |---|---|---|
-| Find module | `FindException` | Không tìm được module, artifact không đọc được hoặc lỗi phát hiện module |
-| Resolve configuration | `ResolutionException` | Module graph không thỏa ràng buộc resolution |
-| Define layer | `LayerInstantiationException` | Không thể định nghĩa các module vào loader theo mapping yêu cầu |
+| Find module | `FindException` | Module not found, unreadable artifact, or module discovery error |
+| Resolve configuration | `ResolutionException` | Module graph does not satisfy resolution constraints |
+| Define layer | `LayerInstantiationException` | Cannot define modules into loaders under the requested mapping |
 
-Ngoài ra, nếu parent configuration và parent layers được truyền không tương ứng, API có thể ném `IllegalArgumentException`. Các lỗi từ mapping function cũng có thể được truyền ra ngoài, chứ không tự biến thành `LayerInstantiationException` trong mọi trường hợp.
+In addition, if mismatched parent configurations and parent layers are passed, the API may throw `IllegalArgumentException`. Errors from the mapping function can also propagate outward rather than automatically turning into `LayerInstantiationException` in all cases.
 
-Ví dụ logging theo giai đoạn:
+Example of stage-by-stage logging:
 
 ~~~java
 ModuleLayer parent = ModuleLayer.boot();
@@ -343,13 +343,13 @@ try {
 }
 ~~~
 
-Ở ví dụ hoàn chỉnh, phương thức chứa đoạn code trên cần trả về `ModuleLayer` và khai báo các biến đầu vào phù hợp.
+In a complete example, the method containing the snippet above must return `ModuleLayer` and declare appropriate input parameters.
 
-Phân tách như vậy giúp log chỉ ra đúng giai đoạn; không nên viết fallback lặp vô hạn hoặc retry tạo layer với cùng input khi chưa hiểu nguyên nhân.
+Separating catches like this ensures logs pinpoint the exact stage; do not write infinite retry fallbacks or retry layer creation with the same input without understanding the cause.
 
-## 12. Bẫy parent configuration không khớp parent layer
+## 12. Trap of parent configuration mismatching parent layer
 
-Ví dụ:
+Example:
 
 ~~~java
 ModuleLayer boot = ModuleLayer.boot();
@@ -360,14 +360,14 @@ Configuration cf = boot.configuration().resolve(
         Set.of("com.acme.plugin"));
 ~~~
 
-Cấu hình trên có parent là configuration của boot layer. Nếu sau đó gọi phương thức định nghĩa layer với một tập parent layers không tương ứng, API có thể ném `IllegalArgumentException`.
+The configuration above has the boot layer's configuration as its parent. If you then call a layer definition method with a non-matching set of parent layers, the API may throw `IllegalArgumentException`.
 
-Điều này khác với `LayerInstantiationException`:
+This differs from `LayerInstantiationException`:
 
-- `IllegalArgumentException`: caller truyền một tổ hợp configuration/parent layers không hợp lệ theo contract phương thức.
-- `LayerInstantiationException`: thao tác định nghĩa module/layer không thể hoàn thành vì những ràng buộc instantiation.
+- `IllegalArgumentException`: the caller passed an invalid combination of configuration/parent layers according to the method contract.
+- `LayerInstantiationException`: the module/layer definition operation cannot complete due to instantiation constraints.
 
-Khi dùng static API với nhiều parent layers:
+When using the static API with multiple parent layers:
 
 ~~~java
 ModuleLayer.defineModulesWithOneLoader(
@@ -376,15 +376,15 @@ ModuleLayer.defineModulesWithOneLoader(
         ClassLoader.getSystemClassLoader());
 ~~~
 
-hãy đảm bảo danh sách parent layers đúng thứ tự và khớp với các parent configurations của `cf`.
+ensure the list of parent layers is in the exact order and matches the parent configurations of `cf`.
 
-Không dùng một `Configuration` của cây layer này rồi gắn nhầm sang cây layer khác chỉ vì các module name nhìn giống nhau.
+Do not take a `Configuration` from one layer tree and mistakenly attach it to another layer tree merely because the module names look alike.
 
-## 13. Kiểm tra module descriptor và package ownership
+## 13. Checking module descriptors and package ownership
 
-Một cách điều tra có hệ thống là đọc descriptor của mọi module trong `Configuration` rồi nhóm package theo owner.
+A systematic way to investigate is reading the descriptors of all modules in the `Configuration` and grouping packages by owner.
 
-Ví dụ helper:
+Helper example:
 
 ~~~java
 import java.lang.module.Configuration;
@@ -427,125 +427,125 @@ public final class PackageInspector {
 }
 ~~~
 
-Sử dụng:
+Usage:
 
 ~~~java
-Configuration cf = /* configuration đã resolve */;
+Configuration cf = /* resolved configuration */;
 PackageInspector.printOverlaps(cf);
 ~~~
 
-Nếu có:
+If this prints:
 
 ~~~text
 Overlapping package com.acme.shared in
 [com.acme.plugin.alpha, com.acme.plugin.beta]
 ~~~
 
-đây là dấu hiệu rất mạnh cho việc `defineModulesWithOneLoader` sẽ không phù hợp với configuration đó.
+it is a very strong indicator that `defineModulesWithOneLoader` will not be suitable for that configuration.
 
-Lưu ý: helper trên chỉ phát hiện package trùng **trong configuration đang xét**. Nó không tự kiểm tra split delegation qua parent loaders hay trạng thái class đã được loader định nghĩa trước đó. Nếu helper không in lỗi, không nên kết luận rằng layer chắc chắn instantiate thành công.
+Note: the helper above only detects duplicate packages **within the configuration under examination**. It does not automatically check split delegation across parent loaders or classes previously defined by a loader. If the helper prints no errors, do not conclude that layer instantiation is guaranteed to succeed.
 
-## 14. Cách kiểm tra JAR thực tế
+## 14. How to inspect actual JARs
 
-Khi package overlap xuất hiện, cần xem artifact được đặt trên module path, không chỉ source trong repository.
+When package overlap appears, inspect the artifacts placed on the module path, not just the source tree in the repository.
 
-Với explicit modular JAR:
+For explicit modular JARs:
 
 ~~~bash
 jar --describe-module --file plugins/com.acme.plugin.alpha.jar
 jar --describe-module --file plugins/com.acme.plugin.beta.jar
 ~~~
 
-Để xem class entries:
+To view class entries:
 
 ~~~bash
 jar --list --file plugins/com.acme.plugin.alpha.jar
 jar --list --file plugins/com.acme.plugin.beta.jar
 ~~~
 
-Ví dụ một package được đóng gói ở cả hai JAR:
+For example, a package packaged in both JARs:
 
 ~~~text
 com/acme/shared/Utils.class
 ~~~
 
-Ngay cả khi tên class không giống nhau, chỉ việc có hai entry dưới cùng package ở hai module đã là dấu hiệu nên xem lại package ownership.
+Even when class names differ, merely having two entries under the same package in two modules is a sign to review package ownership.
 
-Nếu build tool shading hoặc repackaging dependency đã copy package vào plugin JAR, hãy kiểm tra cấu hình shading. Một dependency tưởng như “dùng chung” có thể vô tình bị đóng gói bên trong nhiều modular JAR và tạo split package.
+If build-tool shading or dependency repackaging copied a package into plugin JARs, inspect the shading configuration. A seemingly "shared" dependency can accidentally be bundled inside multiple modular JARs and create a split package.
 
-Giải pháp thường là:
+Typical solutions are:
 
-- Đưa code dùng chung vào module có package owner duy nhất.
-- Sử dụng `requires` tới module chung.
-- Hoặc relocate package của dependency khi thực sự cần và bảo đảm descriptor/artifact được cập nhật nhất quán.
+- Place shared code into a module with a single package owner.
+- Use `requires` to the shared module.
+- Or relocate the dependency's package when truly necessary and ensure descriptors/artifacts are updated consistently.
 
-Không nên chỉ xóa một class để tránh trùng tên; cần giải quyết quyền sở hữu toàn package.
+Do not simply delete one class to avoid a name collision; resolve ownership of the entire package.
 
-## 15. Phân biệt module path với classpath
+## 15. Distinguishing module path from classpath
 
-Khi ứng dụng trước đây chạy trên classpath, các class có thể được nạp từ nhiều JAR mà không có module descriptor tường minh. Sau khi chuyển plugin sang named module trên module path, JPMS áp dụng những ràng buộc mới về package ownership, readability và loader mapping.
+When an application previously ran on the classpath, classes could be loaded from multiple JARs without explicit module descriptors. After moving plugins to named modules on the module path, JPMS enforces new constraints on package ownership, readability, and loader mapping.
 
-Ví dụ một framework cũ có:
+For example, an older framework has:
 
 ~~~text
 legacy-a.jar -> com.acme.util
 legacy-b.jar -> com.acme.util
 ~~~
 
-Khi cả hai JAR trở thành automatic modules hoặc explicit modules, tình huống chia package có thể dẫn đến lỗi module resolution hoặc layer instantiation, tùy module graph và cách tạo layer.
+When both JARs become automatic modules or explicit modules, splitting a package can cause module resolution errors or layer instantiation errors, depending on the module graph and how the layer is created.
 
-Đừng đánh đồng “chạy được trên classpath” với “có thể đưa nguyên xi lên module path”.
+Do not equate "runs on the classpath" with "can be moved as-is onto the module path".
 
-Một kế hoạch migration thường cần:
+A migration plan typically needs to:
 
-1. Xác định các JAR chứa package trùng.
-2. Tách package dùng chung ra module riêng.
-3. Cập nhật module descriptors.
-4. Kiểm tra graph bằng công cụ JDK.
-5. Chạy lại đúng cơ chế tạo custom layer mà host sử dụng.
+1. Identify JARs containing duplicate packages.
+2. Extract shared packages into separate modules.
+3. Update module descriptors.
+4. Verify the graph with JDK tools.
+5. Re-run the exact custom layer creation mechanism that the host uses.
 
-## 16. Automatic module có thể ảnh hưởng thế nào?
+## 16. How can automatic modules affect this?
 
-JAR không có `module-info.class` khi đặt trên module path có thể được coi là automatic module. Tên module có thể được lấy từ manifest hoặc suy ra từ file name.
+A JAR without `module-info.class` placed on the module path can be treated as an automatic module. Its module name can come from the manifest or be derived from the filename.
 
-Automatic modules thường export packages rộng để hỗ trợ migration, nhưng điều này không loại bỏ các hạn chế của class loader mapping.
+Automatic modules export packages broadly to assist migration, yet this does not remove class loader mapping restrictions.
 
-Nếu một automatic module và một explicit module chứa cùng package, hoặc hai automatic modules trùng package, có thể gặp conflict khi cả hai cùng phải được đọc hoặc định nghĩa vào loader theo cấu hình cụ thể.
+If an automatic module and an explicit module contain the same package, or two automatic modules overlap on a package, a conflict can occur when both must be read or defined into a loader under a specific configuration.
 
-Hãy kiểm tra tên module và package của từng JAR:
+Check the module name and packages of each JAR:
 
 ~~~bash
 jar --describe-module --file libs/legacy-a.jar
 jar --describe-module --file libs/legacy-b.jar
 ~~~
 
-Đặc biệt cần để ý automatic module name được suy ra từ file name có thể không ổn định nếu artifact đổi tên.
+Pay special attention to automatic module names derived from filenames, which can be unstable if artifacts are renamed.
 
-Việc thêm `Automatic-Module-Name` có thể ổn định tên module chuyển tiếp, nhưng **không sửa split package**. Package ownership vẫn phải được xử lý bằng thiết kế hoặc packaging.
+Adding `Automatic-Module-Name` can stabilize a transitional module name, yet it **does not fix split packages**. Package ownership still has to be resolved through design or packaging.
 
-## 17. Kiểm tra cấu hình bằng công cụ JDK
+## 17. Checking the configuration with JDK tools
 
-Một vài lệnh hỗ trợ điều tra:
+Several commands support investigation:
 
 ~~~bash
 java --module-path plugins --list-modules
 ~~~
 
-Lệnh này liệt kê các observable modules của module path đang dùng.
+This command lists the observable modules for the module path in use.
 
 ~~~bash
 java --module-path plugins --describe-module com.acme.plugin
 ~~~
 
-Lệnh này mô tả module descriptor mà launcher có thể quan sát.
+This command describes the module descriptor observable by the launcher.
 
 ~~~bash
 java --module-path plugins --validate-modules
 ~~~
 
-Tùy phiên bản JDK, `--validate-modules` kiểm tra module path và báo các vấn đề metadata/module conflict mà launcher phát hiện.
+Depending on the JDK version, `--validate-modules` checks the module path and reports metadata/module conflicts detected by the launcher.
 
-Khi chạy một ứng dụng modular:
+When running a modular application:
 
 ~~~bash
 java --show-module-resolution \
@@ -553,13 +553,13 @@ java --show-module-resolution \
   -m com.acme.host/com.acme.host.Main
 ~~~
 
-`--show-module-resolution` hữu ích cho graph được phân giải khi **launcher khởi chạy ứng dụng**. Tuy nhiên, nếu host tạo custom layer sau đó bằng code, output của launcher không nhất thiết hiển thị đầy đủ các module được resolve động trong custom layer. Với lỗi layer runtime, cần log riêng configuration và module-to-loader mapping trong host.
+`--show-module-resolution` is helpful for the graph resolved when **the launcher starts the application**. However, if the host creates custom layers later in code, launcher output does not necessarily show all modules dynamically resolved in custom layers. For runtime layer errors, log the configuration and module-to-loader mapping separately inside the host.
 
-Trên Windows, dấu phân cách module path thường là dấu chấm phẩy thay vì dấu hai chấm. Điều chỉnh lệnh theo hệ điều hành và shell.
+On Windows, the module path separator is usually a semicolon instead of a colon. Adjust commands for your operating system and shell.
 
-## 18. Thêm logging đúng vị trí tạo layer
+## 18. Adding logging right where the layer is created
 
-Để debug production, nên log những thông tin có giá trị trước khi gọi define:
+For production debugging, log valuable details before calling define:
 
 ~~~java
 static void logConfiguration(Configuration cf) {
@@ -571,7 +571,7 @@ static void logConfiguration(Configuration cf) {
 }
 ~~~
 
-Ví dụ gọi:
+Example invocation:
 
 ~~~java
 Configuration cf = /* resolved configuration */;
@@ -591,98 +591,98 @@ try {
 }
 ~~~
 
-Để dùng helper này, import `java.lang.module.ResolvedModule`. Với hệ thống lớn, log thêm:
+To use this helper, import `java.lang.module.ResolvedModule`. For larger systems, also log:
 
-- Danh sách parent layer và module trong parent configuration.
-- Loader strategy đã chọn.
-- Loader instance được mapping function trả về nếu dùng custom mapping.
-- File/JAR location của từng module reference.
-- Package overlap và các package được export từ parent layers.
-- Root module names được truyền vào `resolve` hoặc `resolveAndBind`.
+- The list of parent layers and modules in parent configurations.
+- The chosen loader strategy.
+- The loader instance returned by the mapping function if using custom mapping.
+- The file/JAR location of each module reference.
+- Package overlaps and packages exported from parent layers.
+- Root module names passed into `resolve` or `resolveAndBind`.
 
-Tránh in thông tin nhạy cảm hoặc toàn bộ đường dẫn nội bộ ra log công khai nếu môi trường bảo mật yêu cầu giới hạn dữ liệu chẩn đoán.
+Avoid printing sensitive information or full internal paths to public logs if security environments require restricting diagnostic data.
 
-## 19. Một chiến lược sửa lỗi theo từng nhóm nguyên nhân
+## 19. A fix strategy by cause category
 
-### Trường hợp A: module có package trùng trong one-loader layer
+### Case A: modules have overlapping packages in a one-loader layer
 
-Cách xử lý:
+How to handle:
 
-1. Xác nhận package trùng trong configuration.
-2. Xác định package owner đúng.
-3. Di chuyển class dùng chung sang một named module riêng hoặc đổi package ownership.
-4. Cập nhật `requires` và đường dẫn import.
-5. Build lại modular JARs.
-6. Thử tạo layer lại với đúng configuration.
+1. Confirm the duplicate package in the configuration.
+2. Identify the proper package owner.
+3. Move shared classes to a separate named module or change package ownership.
+4. Update `requires` and import paths.
+5. Rebuild the modular JARs.
+6. Retry creating the layer with the fixed configuration.
 
-Không nên chỉ dùng `--add-exports`, vì export quyền truy cập không giải quyết xung đột package owner.
+Do not merely use `--add-exports`, because exporting access rights does not resolve a package owner conflict.
 
-### Trường hợp B: split delegation tới parent loaders
+### Case B: split delegation to parent loaders
 
-Cách xử lý:
+How to handle:
 
-1. Xác định package nào được yêu cầu delegate.
-2. Xem những parent module nào export package đó.
-3. Xác định defining loader của từng module.
-4. Thiết kế lại việc chia sẻ API/module giữa parent layers nếu cần.
-5. Xem xét many-loaders hoặc custom loader mapping chỉ khi chúng thực sự tạo ánh xạ delegation nhất quán.
+1. Identify which package is requested for delegation.
+2. Check which parent modules export that package.
+3. Identify the defining loader of each module.
+4. Redesign API/module sharing across parent layers if necessary.
+5. Consider many-loaders or custom loader mapping only when they genuinely yield a consistent delegation mapping.
 
-### Trường hợp C: custom loader đã giữ module/class cũ
+### Case C: custom loader already holds an old module/class
 
-Cách xử lý:
+How to handle:
 
-1. Xem loader mapping có trả về loader đã dùng cho phiên bản module trước hay không.
-2. Kiểm tra loader có định nghĩa class trong package của module mới hay không.
-3. Tạo loader mới cho thế hệ plugin mới, theo thiết kế lifecycle phù hợp.
-4. Không nạp class trước khi định nghĩa module.
-5. Tránh giữ class loader cũ qua cache, thread context loader hoặc static registry không cần thiết.
+1. Check whether the loader mapping returns a loader already used for a previous version of the module.
+2. Check whether the loader has already defined classes in a package of the new module.
+3. Create a fresh loader for the new plugin generation, following an appropriate lifecycle design.
+4. Do not load classes before defining modules.
+5. Avoid retaining old class loaders via caches, thread context loaders, or unnecessary static registries.
 
-### Trường hợp D: package hoặc module dùng namespace bị cấm
+### Case D: package or module uses a forbidden namespace
 
-Cách xử lý:
+How to handle:
 
-1. Tìm package `java` hoặc `java.*` trong artifact plugin.
-2. Đổi package sang namespace thuộc ứng dụng.
-3. Loại cấu hình cố định nghĩa module `java.base` ở layer tùy chỉnh.
-4. Build lại và kiểm tra descriptor/package list.
+1. Search plugin artifacts for packages named `java` or `java.*`.
+2. Rename packages to an application-owned namespace.
+3. Remove configurations trying to define module `java.base` in a custom layer.
+4. Rebuild and inspect the descriptor/package list.
 
-## 20. Không nhầm với ClassNotFoundException, ClassCastException và InaccessibleObjectException
+## 20. Do not confuse with ClassNotFoundException, ClassCastException, and InaccessibleObjectException
 
-Có những lỗi xuất hiện **sau** khi layer đã được tạo:
+Some errors appear **after** the layer has already been created:
 
-| Exception | Thời điểm thường gặp | Câu hỏi chính |
+| Exception | When it typically occurs | Main question |
 |---|---|---|
-| `LayerInstantiationException` | Khi định nghĩa custom layer | Module-to-loader mapping có hợp lệ không? |
-| `ClassNotFoundException` | Khi tìm/nạp một class | Class có nằm trong loader/module được tìm kiếm không? |
-| `NoClassDefFoundError` | Khi liên kết hoặc khởi tạo đường sử dụng class | Dependency/class trước đó có thất bại hoặc không thể tìm được không? |
-| `ClassCastException` | Khi ép kiểu object | Hai type có cùng class identity không? |
-| `IllegalAccessError` | Khi truy cập bị JVM từ chối | Readability, exports và Java access có cho phép không? |
-| `InaccessibleObjectException` | Khi deep reflection không được phép | Package đã open cho module caller chưa? |
-| `ServiceConfigurationError` | Khi tìm/khởi tạo service provider | `uses`, `provides`, resolution và provider hợp lệ chưa? |
+| `LayerInstantiationException` | When defining a custom layer | Is the module-to-loader mapping valid? |
+| `ClassNotFoundException` | When looking up/loading a class | Is the class in the loader/module being searched? |
+| `NoClassDefFoundError` | When linking or initializing a class usage path | Did a dependency/class earlier fail or become unfindable? |
+| `ClassCastException` | When casting an object | Do the two types share the same class identity? |
+| `IllegalAccessError` | When access is denied by the JVM | Do readability, exports, and Java access permit it? |
+| `InaccessibleObjectException` | When deep reflection is denied | Is the package open to the caller module? |
+| `ServiceConfigurationError` | When finding/instantiating a service provider | Are `uses`, `provides`, resolution, and the provider valid? |
 
-Nếu `ModuleLayer.defineModules...` đã trả về layer thành công, lỗi sau đó thường cần được debug theo cơ chế class loading hoặc service loading, thay vì tiếp tục gọi chung là layer instantiation failure.
+If `ModuleLayer.defineModules...` has returned a layer successfully, subsequent errors usually need to be debugged via class loading or service loading mechanisms rather than continuing to call them layer instantiation failures.
 
-## 21. Đừng retry mù khi layer creation thất bại
+## 21. Do not blindly retry when layer creation fails
 
-Tạo layer không phải thao tác nên retry vô điều kiện. Với custom loader mapping, API không đảm bảo mọi trường hợp định nghĩa layer đều là thao tác nguyên tử; có thể có module đã được định nghĩa trước khi một phần thao tác thất bại.
+Layer creation is not an operation to retry unconditionally. With custom loader mapping, the API does not guarantee that every layer definition operation is atomic; some modules may have been defined before part of the operation failed.
 
-Điều này đặc biệt quan trọng nếu ứng dụng map module mới vào **loader dùng lại**. Việc gọi lại với cùng loader mà không điều tra trạng thái đã thay đổi có thể làm lỗi khó chẩn đoán hơn.
+This is especially important if the application maps new modules into a **reused loader**. Calling again with the same loader without inspecting the altered state can make the error harder to diagnose.
 
-Một chính sách an toàn hơn:
+A safer policy:
 
-1. Giữ nguyên stack trace và thông tin configuration.
-2. Không tự thử lại vào cùng loader sau exception.
-3. Phân tích mapping/package conflict.
-4. Chỉnh sửa artifact hoặc tạo bộ loader mới khi thiết kế cho phép.
-5. Chạy test định nghĩa layer độc lập trước khi cho phép host nạp plugin vào production.
+1. Preserve the stack trace and configuration details.
+2. Do not automatically retry into the same loader after an exception.
+3. Analyze the mapping/package conflict.
+4. Fix the artifacts or create a new loader set when the design allows.
+5. Run standalone layer-definition tests before allowing the host to load plugins in production.
 
-Không nên xóa cache hoặc đổi class loader global như một biện pháp cứu vãn không kiểm soát.
+Do not clear caches or swap global class loaders as an uncontrolled rescue measure.
 
-## 22. Ví dụ test đơn vị kiểm tra layer có tạo được không
+## 22. Example unit test checking whether the layer can be created
 
-Trong dự án plugin, nên có một integration test sử dụng **chính modular JARs cuối** và chiến lược loader của host.
+In a plugin project, include an integration test using the **actual final modular JARs** and the host's loader strategy.
 
-Ví dụ JUnit 5:
+JUnit 5 example:
 
 ~~~java
 import org.junit.jupiter.api.Test;
@@ -717,43 +717,43 @@ final class ModuleLayerIntegrationTest {
 }
 ~~~
 
-Test này cần thư mục `build/plugin-modules` thực sự chứa artifact module hợp lệ khi được chạy. Nó không chứng minh mọi class/plugin behavior hoạt động; test tiếp theo cần xác nhận service discovery và lời gọi API nếu host yêu cầu.
+This test requires the `build/plugin-modules` directory to actually contain valid module artifacts when run. It does not prove every class/plugin behavior works; subsequent tests must verify service discovery and API calls if the host requires them.
 
-Nếu ứng dụng dùng many-loaders, test phải dùng chính `defineModulesWithManyLoaders`; nếu dùng custom mapping, test phải mô phỏng loader mapping thực tế. Thử một chiến lược khác rồi xem như đã xác nhận production là chưa đủ.
+If the application uses many-loaders, the test must use `defineModulesWithManyLoaders` itself; if it uses custom mapping, the test must mirror the actual loader mapping. Testing a different strategy and treating that as production verification is insufficient.
 
-## 23. Checklist trước khi triển khai custom layer
+## 23. Checklist before deploying a custom layer
 
-- [ ] Đã xác định đúng root modules cần resolve.
-- [ ] `ModuleFinder` trỏ tới đúng modular JARs hoặc exploded modules.
-- [ ] `Configuration` được resolve từ đúng parent configuration.
-- [ ] Parent layers được truyền đúng thứ tự và khớp với parent configurations.
-- [ ] Biết sẽ dùng one-loader, many-loaders hay custom mapping.
-- [ ] Với one-loader, không có overlapping packages trong configuration.
-- [ ] Không có split delegation không thể giải quyết giữa các parent loaders.
-- [ ] Với custom mapping, loader chưa định nghĩa trùng module name.
-- [ ] Với custom mapping, loader chưa định nghĩa class thuộc package của module mới.
-- [ ] Không cố định nghĩa module `java.base` hoặc package `java.*` trong custom layer.
-- [ ] Plugin JAR không vô tình chứa bản sao package của module API dùng chung.
-- [ ] Đã kiểm tra descriptor/JAR thực tế chứ không chỉ source.
-- [ ] Đã ghi log phân biệt lỗi find, resolve và define.
-- [ ] Không retry mù sau `LayerInstantiationException`.
-- [ ] Có integration test tạo layer bằng artifact và loader strategy dùng ở production.
+- [ ] Identified the exact root modules to resolve.
+- [ ] `ModuleFinder` points to the right modular JARs or exploded modules.
+- [ ] `Configuration` is resolved from the right parent configuration.
+- [ ] Parent layers are passed in the exact order matching parent configurations.
+- [ ] Know whether one-loader, many-loaders, or custom mapping will be used.
+- [ ] For one-loader, no overlapping packages exist in the configuration.
+- [ ] No unresolvable split delegation exists across parent loaders.
+- [ ] For custom mapping, the loader has not already defined a duplicate module name.
+- [ ] For custom mapping, the loader has not already defined a class in the new module's packages.
+- [ ] Not attempting to define module `java.base` or `java.*` packages in a custom layer.
+- [ ] Plugin JARs do not accidentally contain copies of a shared API module's packages.
+- [ ] Inspected the actual descriptors/JARs rather than only sources.
+- [ ] Logged distinctions among find, resolve, and define failures.
+- [ ] No blind retries after `LayerInstantiationException`.
+- [ ] Have an integration test creating the layer with production artifacts and loader strategy.
 
-## 24. Ghi nhớ
+## 24. Key takeaways
 
-`LayerInstantiationException` xuất hiện khi **không thể định nghĩa các module đã resolve thành một layer theo ánh xạ class loader được yêu cầu**. Đây là lỗi của giai đoạn định nghĩa layer; nó không đồng nghĩa mọi lỗi JPMS đều phát sinh từ dependency thiếu.
+`LayerInstantiationException` occurs when **resolved modules cannot be defined into a layer under the requested class loader mapping**. It is an error of the layer definition stage; it does not mean all JPMS errors stem from missing dependencies.
 
-Những nhóm nguyên nhân đáng kiểm tra trước:
+Cause groups worth checking first:
 
-1. Hai hoặc nhiều module chứa **cùng package** khi buộc dùng một loader.
-2. Một loader phải **delegate cùng package tới nhiều loader khác nhau**.
-3. Custom loader đã có module cùng tên hoặc đã định nghĩa class trong package mà module mới muốn sở hữu.
-4. Configuration chứa module/package thuộc namespace nền tảng bị cấm.
-5. Parent layers, configuration và loader strategy không được phối hợp đúng (một số trường hợp cho ra exception khác, chẳng hạn `IllegalArgumentException`).
+1. Two or more modules contain the **same package** when forced to use one loader.
+2. One loader must **delegate the same package to multiple different loaders**.
+3. A custom loader already has a module with the same name or has defined classes in a package the new module wants to own.
+4. The configuration contains a module/package in a forbidden platform namespace.
+5. Parent layers, configuration, and loader strategy are not coordinated properly (some cases produce another exception, such as `IllegalArgumentException`).
 
-Hướng điều tra hiệu quả là **ghi lại stack trace → xác định resolve hay define → liệt kê module/package owners → kiểm tra loader mapping và parent layers → sửa package ownership hoặc loader strategy → thử lại từ cấu hình sạch**. Không dùng `--add-exports` hoặc `--add-opens` để “chữa” xung đột định nghĩa module, vì các cờ đó điều chỉnh truy cập package chứ không thay đổi ràng buộc layer instantiation.
+An effective investigation path is **record the stack trace → determine resolve vs. define → list modules/package owners → check loader mapping and parent layers → fix package ownership or loader strategy → retry from a clean configuration**. Do not use `--add-exports` or `--add-opens` to "cure" module definition conflicts, because those flags adjust package access rather than altering layer instantiation constraints.
 
-### Tham khảo API
+### API References
 
 - Java SE 21, `java.lang.ModuleLayer`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/ModuleLayer.html
 - Java SE 21, `java.lang.LayerInstantiationException`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/LayerInstantiationException.html

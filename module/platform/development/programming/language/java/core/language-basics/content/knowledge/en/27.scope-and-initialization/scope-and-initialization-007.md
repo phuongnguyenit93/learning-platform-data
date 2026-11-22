@@ -1,33 +1,33 @@
-# `final` có thể được gán trong các nhánh loại trừ nhau — Java 17+
+# `final` Can Be Assigned in Mutually Exclusive Branches — Java 17+
 
-> **Java core — language-basics / Phạm vi và khởi tạo**  
-> **Yêu cầu:** JDK 17+; ví dụ một file, chạy bằng `javac` và `java`.  
-> **Mục tiêu:** Hiểu vì sao một biến `final` chưa khởi tạo có thể được gán **một lần trên mỗi đường thực thi**, chẳng hạn trong hai nhánh `if/else`; biết phân biệt *definite assignment* với *definite unassignment*, tránh thiếu gán/gán hai lần và áp dụng cho trường `final` trong constructor.
+> **Java core — language-basics / Scope and Initialization**  
+> **Requirements:** JDK 17+; single-file example, run with `javac` and `java`.  
+> **Objective:** Understand why an uninitialized `final` variable can be assigned **once per execution path**, such as in two `if/else` branches; distinguish *definite assignment* from *definite unassignment*, avoid missing assignments or double assignments, and apply this to `final` fields in constructors.
 
-## 1. `final` giới hạn việc gán lại, không bắt buộc gán ngay
+## 1. `final` restricts reassignment, not immediate assignment
 
-Với biến cục bộ (*local variable*), có hai cách khai báo `final`:
+For a *local variable*, there are two ways to declare `final`:
 
 ~~~java
-final int fixed = 10; // Có giá trị ngay khi khai báo.
+final int fixed = 10; // Has a value immediately at declaration.
 
-// Trong một phương thức:
-final int selected;   // Blank final: chưa có initializer.
+// Inside a method:
+final int selected;   // Blank final: no initializer yet.
 if (true) {
-    selected = 20;    // Lần gán đầu tiên.
+    selected = 20;    // First assignment.
 }
 System.out.println(selected); // 20.
 ~~~
 
-*Blank final* là biến `final` được khai báo **chưa có initializer**. Nó có thể nhận giá trị sau, miễn việc gán tuân theo quy tắc kiểm tra luồng điều khiển của Java.
+A *blank final* is a `final` variable declared **without an initializer**. It can receive a value later, provided the assignment obeys Java's control-flow checking rules.
 
-- `final` không có nghĩa “mỗi nhánh được phép gán một lần rồi cộng lại”; tại **mỗi lần thực thi**, một biến `final` chỉ được nhận giá trị trong những trường hợp mà ngôn ngữ chứng minh được nó **chưa được gán** trước phép gán ấy.
-- Để **đọc** một biến cục bộ, trình biên dịch phải xác định nó **chắc chắn đã được gán** (*definitely assigned*, DA) trên mọi đường đi tới vị trí đọc.
-- Để **gán** cho một biến `final` chưa có initializer, trình biên dịch phải xác định nó **chắc chắn chưa được gán** (*definitely unassigned*, DU) ngay trước phép gán.
+- `final` does not mean "each branch is allowed to assign once and combine them"; during **each execution**, a `final` variable may only receive a value in cases where the language can prove it was **not yet assigned** prior to that assignment.
+- To **read** a local variable, the compiler must determine that it is **definitely assigned** (DA) on every path leading to the read location.
+- To **assign** to a `final` variable without an initializer, the compiler must determine that it is **definitely unassigned** (DU) immediately before the assignment.
 
-Các kiểm tra DA và DU được thực hiện khi **biên dịch**, dựa trên cấu trúc chương trình, không đợi đến lúc chạy rồi mới xem nhánh nào xảy ra.
+DA and DU checks are performed at **compile time**, based on program structure, without waiting until runtime to see which branch executes.
 
-## 2. Hai nhánh `if/else` loại trừ nhau: cách viết chuẩn
+## 2. Two mutually exclusive `if/else` branches: standard style
 
 ~~~java
 static int select(boolean flag) {
@@ -43,46 +43,46 @@ static int select(boolean flag) {
 }
 ~~~
 
-Hai nhánh của một câu lệnh `if/else` **không chạy đồng thời trong cùng một lượt gọi**. Khi tới `return result`, bất kể `flag` là `true` hay `false`, **đúng một nhánh** đã gán `result`. Vì vậy:
+The two branches of an `if/else` statement **do not execute simultaneously in the same call**. Upon reaching `return result`, regardless of whether `flag` is `true` or `false`, **exactly one branch** has assigned `result`. Therefore:
 
 ~~~java
 System.out.println(select(true));  // 11
 System.out.println(select(false)); // 22
 ~~~
 
-**Phân tích đường đi:**
+**Path analysis:**
 
-| Giá trị `flag` | Nhánh thực thi | Giá trị gán cho `result` | Đã gán trước `return`? |
+| `flag` value | Executed branch | Value assigned to `result` | Assigned before `return`? |
 | --- | --- | --- | --- |
-| `true` | `if` | `11` | Có |
-| `false` | `else` | `22` | Có |
+| `true` | `if` | `11` | Yes |
+| `false` | `else` | `22` | Yes |
 
-Điểm quan trọng không phải biến `result` xuất hiện trong **hai câu lệnh gán ở mã nguồn**, mà là **không có đường thực thi hợp lệ nào đi qua cả hai phép gán đó**. Java xác minh sự loại trừ qua cấu trúc `if/else`.
+The key point is not that the variable `result` appears in **two assignment statements in source code**, but that **no valid execution path passes through both of those assignments**. Java verifies mutual exclusion via the `if/else` structure.
 
-Cách viết tương đương, ngắn hơn khi mỗi nhánh chỉ chọn một giá trị:
+An equivalent, shorter way when each branch simply selects one value:
 
 ~~~java
 final int result = flag ? 11 : 22;
 ~~~
 
-Toán tử điều kiện `?:` trả một giá trị được lựa chọn để khởi tạo `result` đúng một lần; hãy dùng khi biểu thức đủ đơn giản để đọc.
+The conditional operator `?:` returns a chosen value to initialize `result` exactly once; use it when the expression is simple enough to read.
 
-## 3. Thiếu một nhánh gán: lỗi *might not have been initialized*
+## 3. Missing an assignment branch: *might not have been initialized* error
 
-Đoạn sau **không biên dịch** nếu bỏ comment:
+The following snippet **does not compile** if uncommented:
 
 ~~~java
-// KHÔNG BIÊN DỊCH:
+// DOES NOT COMPILE:
 // static int missing(boolean flag) {
 //     final int result;
 //     if (flag) {
 //         result = 11;
 //     }
-//     return result; // flag=false: result chưa hề được gán.
+//     return result; // flag=false: result has never been assigned.
 // }
 ~~~
 
-Một nhánh có thể không gán gì, nhưng **không được đọc biến khi có đường đi tới chỗ đọc mà chưa gán**. Nếu cần một giá trị cho cả hai trường hợp, dùng `else`:
+A branch may choose not to assign anything, but **you cannot read the variable when a path reaches the read location without assigning it**. If a value is needed in both cases, use `else`:
 
 ~~~java
 static int withElse(boolean flag) {
@@ -96,37 +96,37 @@ static int withElse(boolean flag) {
 }
 ~~~
 
-Hoặc sắp xếp luồng điều khiển để đường không gán **kết thúc trước khi đọc**:
+Or structure control flow so that the unassigned path **terminates before the read**:
 
 ~~~java
 static int withEarlyReturn(boolean enabled) {
     final int code;
     if (!enabled) {
-        return -1; // Đường này không bao giờ tới return code.
+        return -1; // This path never reaches return code.
     }
     code = 42;
     return code;
 }
 ~~~
 
-Với `enabled == false`, phương thức trả `-1` ngay, nên không đọc `code`. Với `enabled == true`, `code` được gán `42` trước khi trả. Trình biên dịch có thể chứng minh `code` đã được gán trên mọi đường thực sự tới `return code`.
+With `enabled == false`, the method returns `-1` immediately, so `code` is never read. With `enabled == true`, `code` is assigned `42` before returning. The compiler can prove `code` is assigned on every path that actually reaches `return code`.
 
-Tương tự, một nhánh có thể `throw` thay vì gán nếu nó **không tiếp tục** tới chỗ dùng biến. Việc có nhánh `return` hoặc `throw` không tự tạo thêm quyền gán nhiều lần cho `final`.
+Similarly, a branch can `throw` instead of assigning if it **does not continue** to where the variable is used. Having a `return` or `throw` branch does not grant extra permission to assign a `final` variable multiple times.
 
-## 4. Gán lần thứ hai: vẫn là lỗi dù gán cùng giá trị
+## 4. Second assignment: still an error even with the same value
 
-Một biến `final` đã có giá trị không thể gán lại:
+A `final` variable that already has a value cannot be reassigned:
 
 ~~~java
-// KHÔNG BIÊN DỊCH:
+// DOES NOT COMPILE:
 // final int limit = 10;
-// limit = 10; // Lỗi: gán lại dù giá trị không thay đổi.
+// limit = 10; // Error: reassigning even though the value does not change.
 ~~~
 
-Điều tương tự xảy ra khi đã gán qua một trong hai nhánh rồi tiếp tục gán sau đó:
+The same happens when assigning through one of two branches and then assigning again afterward:
 
 ~~~java
-// KHÔNG BIÊN DỊCH:
+// DOES NOT COMPILE:
 // static int assignedTwice(boolean flag) {
 //     final int result;
 //     if (flag) {
@@ -134,18 +134,18 @@ Một biến `final` đã có giá trị không thể gán lại:
 //     } else {
 //         result = 2;
 //     }
-//     result = 3; // Lỗi: result chắc chắn đã được gán.
+//     result = 3; // Error: result is definitely already assigned.
 //     return result;
 // }
 ~~~
 
-Không nên viết hai câu `if` độc lập để thay thế một `if/else` trong bài toán lựa chọn một giá trị. Trình biên dịch kiểm tra DA/DU theo quy tắc luồng điều khiển cụ thể; nó **không phải bộ chứng minh tùy ý mọi quan hệ logic** giữa các điều kiện. Cấu trúc `if/else` truyền đạt ý định “chính xác một nhánh” rõ ràng và dễ kiểm chứng hơn.
+Do not write two independent `if` statements to replace an `if/else` when choosing a single value. The compiler checks DA/DU using specific control-flow rules; it is **not an arbitrary theorem prover for logical relationships** between conditions. The `if/else` structure communicates the "exactly one branch" intent clearly and is easier to verify.
 
-Với biến `final`, phép `++`, `--` và phép gán kết hợp như `+=` cũng là những thao tác gán lại và không thể dùng sau khi biến đã khởi tạo. `final` bảo vệ **giá trị được giữ trong biến**, không tự đảm bảo kết quả tính toán hay đối tượng là bất biến.
+For a `final` variable, `++`, `--`, and compound assignments like `+=` are also reassignment operations and cannot be used after the variable has been initialized. `final` protects **the value held in the variable**; it does not by itself guarantee that a computed result or object is immutable.
 
-## 5. Nhiều nhánh `else if` và `switch`
+## 5. Multiple `else if` branches and `switch`
 
-Khi có ba hoặc nhiều lựa chọn, cần bao phủ mọi đường đi tới chỗ đọc:
+When there are three or more choices, all paths reaching the read must be covered:
 
 ~~~java
 static String classify(int number) {
@@ -163,9 +163,9 @@ static String classify(int number) {
 }
 ~~~
 
-Các nhánh trong cùng chuỗi `if/else if/else` loại trừ nhau. Nhánh `else` bảo đảm rằng khi không thỏa hai điều kiện trước, biến vẫn được khởi tạo.
+Branches in the same `if/else if/else` chain are mutually exclusive. The `else` branch ensures that when neither of the previous two conditions holds, the variable is still initialized.
 
-Trong Java 17, `switch` dùng **arrow cases** (`->`) giúp tránh lỗi chạy xuyên xuống case tiếp theo (*fall-through*):
+In Java 17, `switch` with **arrow cases** (`->`) prevents *fall-through* bugs into the next case:
 
 ~~~java
 static String fromSwitch(int code) {
@@ -181,9 +181,9 @@ static String fromSwitch(int code) {
 }
 ~~~
 
-Ở đây mỗi nhánh `switch` chỉ thực thi một phép gán và `default` bao phủ các giá trị còn lại. Nếu bỏ `default` khỏi ví dụ này, còn đường đi không gán `label` khi `code` khác 0 và 1.
+Here each `switch` branch executes only one assignment and `default` covers the remaining values. If you remove `default` from this example, a path exists where `label` is unassigned when `code` is not 0 or 1.
 
-Một cách ngắn gọn khác là **switch expression** trả giá trị khởi tạo trực tiếp:
+Another concise approach is a **switch expression** returning the initialization value directly:
 
 ~~~java
 static String fromExpression(int code) {
@@ -196,11 +196,11 @@ static String fromExpression(int code) {
 }
 ~~~
 
-Trong `switch expression`, tất cả nhánh của biểu thức phải đáp ứng quy tắc tạo kết quả/hoàn tất của biểu thức. Cả `fromSwitch` và `fromExpression` cho `code=0` kết quả `"ZERO"`, `code=1` kết quả `"ONE"`, và các giá trị khác kết quả `"OTHER"`.
+In a `switch expression`, all branches of the expression must satisfy the rules for producing a result or completing normally. Both `fromSwitch` and `fromExpression` yield `"ZERO"` for `code=0`, `"ONE"` for `code=1`, and `"OTHER"` for other values.
 
-## 6. Trường `final` chưa có initializer trong constructor
+## 6. `final` fields without an initializer in constructors
 
-Quy tắc tương tự còn rất quan trọng với **blank final instance field**:
+The same rule is also very important for a **blank final instance field**:
 
 ~~~java
 class Plan {
@@ -223,7 +223,7 @@ class Plan {
 }
 ~~~
 
-Mỗi đối tượng `Plan` có các trường `tier` và `quota` riêng; constructor gán đúng một lần cho mỗi trường trên mọi đường kết thúc bình thường. Có thể tạo hai đối tượng có giá trị cuối khác nhau:
+Each `Plan` object has its own `tier` and `quota` fields; the constructor assigns each field exactly once on every normal completion path. You can create two objects with different final values:
 
 ~~~java
 Plan first = new Plan(true);
@@ -232,18 +232,18 @@ Plan second = new Plan(false);
 // second.summary() -> "BASIC:10"
 ~~~
 
-Các điểm cần phân biệt:
+Points to distinguish:
 
-- **Biến cục bộ blank final:** muốn **đọc** phải thỏa DA; nếu không đọc, vẫn cần tuân thủ quy tắc DU khi gán.
-- **Blank final instance field:** phải được khởi tạo theo quy tắc Java trước khi constructor hoàn tất bình thường; nếu có nhiều constructor, các đường khởi tạo tương ứng đều phải hợp lệ.
-- **Blank static final field:** được khởi tạo trong phạm vi khởi tạo static hợp lệ của lớp, không phải riêng mỗi lần tạo đối tượng.
-- Không thể tạo thêm quyền gán field `final` sau khi đã khởi tạo bằng cách dùng một setter thông thường.
+- **Blank final local variable:** to **read** it, DA must hold; even if unread, DU rules must still be obeyed when assigning.
+- **Blank final instance field:** must be initialized according to Java rules before the constructor completes normally; if there are multiple constructors, all corresponding initialization paths must be valid.
+- **Blank static final field:** initialized within a valid static initialization scope of the class, not per object creation.
+- You cannot grant extra permission to assign a `final` field after initialization by using a regular setter.
 
-`final` trên trường không đồng nghĩa mọi đối tượng có trường đó là “hằng số tại thời điểm biên dịch”. Chỉ những trường hợp phù hợp quy tắc *constant variable* (ví dụ một số trường primitive/`String` có constant expression) mới có tính chất đó.
+`final` on a field does not mean every object with that field is a "compile-time constant". Only cases satisfying *constant variable* rules (for example, certain primitive/`String` fields initialized with constant expressions) have that property.
 
-## 7. `final` tham chiếu: cấm đổi tham chiếu, không cấm sửa mảng
+## 7. `final` references: forbids changing the reference, not modifying an array
 
-Trường hợp nhánh chọn một trong hai **mảng**:
+Case where branches select one of two **arrays**:
 
 ~~~java
 static int[] chooseArray(boolean shortArray) {
@@ -255,25 +255,25 @@ static int[] chooseArray(boolean shortArray) {
         values = new int[] {3, 4, 5};
     }
 
-    values[0] = 9; // HỢP LỆ: sửa nội dung mảng.
+    values[0] = 9; // VALID: modifies array contents.
     return values;
 }
 ~~~
 
-Sau một trong hai nhánh, biến `values` chỉ giữ một tham chiếu được gán đúng một lần. `values[0] = 9` **không gán lại biến tham chiếu**; nó sửa phần tử của đối tượng mảng:
+After either branch, `values` holds a single reference assigned exactly once. `values[0] = 9` **does not reassign the reference variable**; it modifies an element of the array object:
 
 ~~~java
-// KHÔNG BIÊN DỊCH nếu đặt sau phần if/else:
-// values = new int[] {8}; // Gán lại biến final đã khởi tạo.
+// DOES NOT COMPILE if placed after the if/else:
+// values = new int[] {8}; // Reassigning an already initialized final variable.
 ~~~
 
-Tương tự, một `final StringBuilder` vẫn có thể gọi `append(...)` để đổi trạng thái của đối tượng; còn phép `builder = new StringBuilder()` bị cấm sau lần gán ban đầu. Vì vậy **`final` không đồng nghĩa đối tượng bất biến (*immutable*)**.
+Similarly, a `final StringBuilder` can still call `append(...)` to mutate the object's state, whereas `builder = new StringBuilder()` is forbidden after initial assignment. Therefore, **`final` does not mean the object is *immutable***.
 
-Với mỗi lần gọi phương thức, biến cục bộ mới được tạo theo ngữ cảnh lời gọi. Nếu khai báo `final` ở bên trong thân vòng lặp và khởi tạo đúng cách, từng lượt lặp cũng có biến cục bộ theo phạm vi riêng; không được suy diễn rằng một biến `final` duy nhất nằm **ngoài vòng lặp** có thể liên tục nhận giá trị mới.
+With each method call, new local variables are created for that call context. If you declare `final` inside a loop body and initialize it properly, each iteration also has its own local variable within its scope; you must not infer that a single `final` variable declared **outside the loop** can continuously receive new values.
 
-## 8. Ví dụ Java 17+ chạy độc lập
+## 8. Standalone Java 17+ example
 
-Tạo file **FinalExclusiveBranchesDemo.java**:
+Create the file **FinalExclusiveBranchesDemo.java**:
 
 ~~~java
 import java.util.Arrays;
@@ -415,14 +415,14 @@ public final class FinalExclusiveBranchesDemo {
 }
 ~~~
 
-Biên dịch và chạy tại thư mục chứa file trong Bash, PowerShell hoặc Command Prompt:
+Compile and run in the directory containing the file in Bash, PowerShell, or Command Prompt:
 
 ~~~bash
 javac -encoding UTF-8 FinalExclusiveBranchesDemo.java
 java FinalExclusiveBranchesDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 trueBranch=11
@@ -445,34 +445,34 @@ throwValid=7
 throwInvalid=IllegalArgumentException
 ~~~
 
-`trueBranch` và `falseBranch` chứng minh hai nhánh có thể gán cho cùng một blank final; `guardOff` chứng minh một nhánh kết thúc sớm không cần gán giá trị để đi tiếp; `switchZero/One/Other` chứng minh các case loại trừ nhau. Hai trường `final` của constructor được gán trong mỗi nhánh; `shortArray` và `longArray` cho thấy `final` không cấm sửa phần tử mảng.
+`trueBranch` and `falseBranch` demonstrate that two branches can assign to the same blank final; `guardOff` demonstrates that an early-terminating branch does not need to assign a value to proceed; `switchZero/One/Other` demonstrate mutually exclusive cases. The constructor's two `final` fields are assigned in each branch; `shortArray` and `longArray` show that `final` does not forbid modifying array elements.
 
-## 9. Lỗi thường gặp và bài tập
+## 9. Common errors and exercises
 
-| Hiểu nhầm / vấn đề | Cách kiểm tra hoặc sửa |
+| Misconception / issue | How to check or fix |
 | --- | --- |
-| Biến `final` phải được gán ngay tại chỗ khai báo | Không bắt buộc với *blank final*; có thể gán hợp lệ ở các nhánh |
-| Hai phép gán xuất hiện trong `if/else` là gán hai lần | Sai nếu mỗi đường thực thi chỉ chạy một nhánh |
-| Chỉ `if(flag) value=1;` rồi dùng `value` | Thiếu gán khi `flag=false`, không đạt DA |
-| `if/else` đã gán rồi lại `value=3` | Gán lần hai, vi phạm quy tắc của `final` |
-| Bỏ `default` trong `switch` rồi vẫn đọc biến | Có thể còn đường không gán |
-| `final int[] values` không cho sửa `values[0]` | Sai; cấm gán lại tham chiếu, không cấm sửa mảng |
-| Trường blank `final` có thể để không gán khi constructor kết thúc | Không; phải khởi tạo hợp lệ trên mọi đường hoàn tất bình thường |
-| Nhiều câu `if` độc lập luôn được phân tích như một `if/else` | Không nên giả định; dùng cấu trúc nhánh rõ ràng |
-| `final` làm một đối tượng bất biến hoàn toàn | Không; tính bất biến của đối tượng còn phụ thuộc thiết kế kiểu |
+| A `final` variable must be assigned at its declaration site | Not required for a *blank final*; it can validly be assigned in branches |
+| Two assignments appearing in `if/else` count as assigning twice | False if each execution path runs only one branch |
+| Only `if(flag) value=1;` then using `value` | Missing assignment when `flag=false`, fails DA |
+| Already assigned in `if/else` and then `value=3` | Second assignment, violating `final` rules |
+| Omitting `default` in `switch` and still reading the variable | An unassigned path may remain |
+| `final int[] values` prevents modifying `values[0]` | False; forbids reassigning the reference, not mutating the array |
+| A blank `final` field can be left unassigned when the constructor ends | No; must be validly initialized on every normal completion path |
+| Multiple independent `if` statements are always analyzed like one `if/else` | Do not assume this; use an explicit branching structure |
+| `final` makes an object completely immutable | No; object immutability also depends on the type's design |
 
-**Bài 1.** Viết `static int pick(boolean flag)` có `final int n;`, gán `5` trong nhánh `if` và `8` trong nhánh `else`. Dự đoán kết quả với hai giá trị `flag`.
+**Exercise 1.** Write `static int pick(boolean flag)` with `final int n;`, assigning `5` in the `if` branch and `8` in the `else` branch. Predict the result for both values of `flag`.
 
-**Bài 2.** Bỏ nhánh `else` của bài 1 nhưng giữ `return n;`. Giải thích lỗi DA; sửa bằng cách trả sớm hoặc bao phủ đủ các nhánh.
+**Exercise 2.** Remove the `else` branch from Exercise 1 while keeping `return n;`. Explain the DA error; fix it via early return or covering all branches.
 
-**Bài 3.** Sau `if/else` hợp lệ, thêm `n = 100;`. Giải thích vì sao dù gán cùng giá trị cũ hay khác giá trị, lệnh vẫn bị từ chối.
+**Exercise 3.** After a valid `if/else`, add `n = 100;`. Explain why the statement is rejected regardless of whether the assigned value is the same as the old value or different.
 
-**Bài 4.** Khai báo lớp có trường `private final String category;` và constructor nhận số. Trong `if/else if/else`, gán các nhãn phù hợp; kiểm tra mọi đường constructor kết thúc.
+**Exercise 4.** Declare a class with field `private final String category;` and a constructor taking a number. In `if/else if/else`, assign appropriate labels; verify all constructor exit paths.
 
-**Bài 5.** Thay `if/else` bằng `switch` có `default` hoặc `switch expression` trên Java 17. So sánh khả năng bao phủ nhánh và độ rõ ràng.
+**Exercise 5.** Replace `if/else` with a `switch` having `default` or a `switch expression` on Java 17. Compare branch coverage and clarity.
 
-**Bài 6.** Dùng `final int[] selected;`, chọn một trong hai mảng theo `boolean`, sau đó sửa `selected[0]`. Vì sao sửa phần tử hợp lệ nhưng `selected = new int[2]` thì không?
+**Exercise 6.** Use `final int[] selected;`, pick one of two arrays based on a `boolean`, then modify `selected[0]`. Why is modifying an element valid while `selected = new int[2]` is not?
 
-### Ghi nhớ
+### Key Takeaway
 
-**Một blank `final` có thể xuất hiện trong nhiều phép gán ở các nhánh loại trừ nhau**, miễn trình biên dịch chứng minh nó **chưa được gán trước từng phép gán** và **đã được gán trước mọi lần đọc**. `if/else` và `switch` bao phủ đầy đủ trường hợp giúp diễn đạt quy tắc này rõ nhất; `return`/`throw` có thể kết thúc sớm một đường đi. `final` cấm đổi giá trị biến sau khi khởi tạo, nhưng không tự làm đối tượng tham chiếu trở nên bất biến.
+**A blank `final` can appear in multiple assignments across mutually exclusive branches**, provided the compiler can prove it is **definitely unassigned before each assignment** and **definitely assigned before every read**. Exhaustive `if/else` and `switch` constructs express this rule most clearly; `return`/`throw` can terminate a path early. `final` forbids changing a variable's value after initialization, but does not by itself make the referenced object immutable.

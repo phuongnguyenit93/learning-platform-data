@@ -1,40 +1,40 @@
-# Trường biểu diễn dữ liệu và phương thức biểu diễn hành vi — Java 17+
+# Fields Represent Data and Methods Represent Behavior — Java 17+
 
-## 1. Hai thành phần cơ bản của một lớp
+## 1. Two Fundamental Components of a Class
 
-Trong Java, **lớp (class)** mô tả kiểu đối tượng. Một lớp thường tập hợp:
+In Java, a **class** describes an object type. A class typically groups together:
 
-- **Trường (field)** để lưu **dữ liệu/trạng thái** của đối tượng, chẳng hạn tên sách và tình trạng đang được mượn.
-- **Phương thức (method)** để mô tả **hành vi/thao tác**, chẳng hạn mượn sách, trả sách hoặc hiển thị tình trạng.
+- **Fields** to store an object's **data/state**, such as a book's title and whether it is currently borrowed.
+- **Methods** to describe **behavior/operations**, such as borrowing a book, returning a book, or displaying its status.
 
 ~~~java
 class Book {
-    String title;       // Field: dữ liệu về cuốn sách.
-    boolean borrowed;   // Field: trạng thái hiện tại.
+    String title;       // Field: data about the book.
+    boolean borrowed;   // Field: current state.
 
-    void borrow() {     // Method: một hành vi.
+    void borrow() {     // Method: one behavior.
         borrowed = true;
     }
 
-    void giveBack() {   // Method: một hành vi khác.
+    void giveBack() {   // Method: another behavior.
         borrowed = false;
     }
 }
 ~~~
 
-Ví dụ này chỉ giới thiệu cấu trúc. Code hoàn chỉnh bên dưới sẽ dùng `private` và kiểm tra điều kiện để ngăn mượn một cuốn sách đang được mượn.
+This example only introduces the structure. The complete code below will use `private` and check conditions to prevent borrowing a book that is already borrowed.
 
-**Phân biệt quan trọng:** một trường mô tả “đối tượng **đang có gì/ở trạng thái nào**”; một phương thức mô tả “đối tượng **có thể làm gì**”. Hai thành phần không tách rời: hành vi có thể **đọc hoặc cập nhật** trạng thái nhưng cần tuân thủ quy tắc của lớp.
+**Important distinction:** a field describes "what an object **currently has / what state it is in**"; a method describes "what an object **can do**". The two components are inseparable: behavior can **read or update** state, while obeying the class's rules.
 
-## 2. Khai báo và truy cập field
+## 2. Declaring and Accessing Fields
 
-Cú pháp khái quát:
+General syntax:
 
 ~~~java
 [accessModifier] [static] [final] Type fieldName;
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~java
 class Student {
@@ -44,33 +44,33 @@ class Student {
 }
 ~~~
 
-`name`, `score`, `active` là ba **instance fields** — mỗi đối tượng `Student` có phần trạng thái riêng. Khi tạo hai đối tượng bằng hai lần `new`, thay đổi field của đối tượng thứ nhất không tự làm thay đổi đối tượng thứ hai.
+`name`, `score`, and `active` are three **instance fields** — each `Student` object has its own state. When creating two objects with two `new` calls, changing a field of the first object does not automatically change the second object.
 
-Với field không được khởi tạo tường minh, Java thiết lập **giá trị mặc định** khi đối tượng được tạo:
+For fields that are not explicitly initialized, Java sets **default values** when the object is created:
 
-| Kiểu field | Giá trị mặc định |
+| Field type | Default value |
 |---|---|
-| `int`, `long`, các kiểu số nguyên | `0` tương ứng |
-| `double`, `float` | `0.0` tương ứng |
+| `int`, `long`, integer types | Corresponding `0` |
+| `double`, `float` | Corresponding `0.0` |
 | `boolean` | `false` |
 | `char` | `'\\u0000'` |
-| Kiểu tham chiếu như `String`, `int[]` | `null` |
+| Reference types such as `String`, `int[]` | `null` |
 
-**Khác biệt:** biến cục bộ khai báo `int n;` **không có giá trị mặc định để đọc ngay**. Với field, Java khởi tạo mặc định trước khi constructor hoàn tất.
+**Difference:** a local variable declared as `int n;` **has no default value that can be read immediately**. For fields, Java performs default initialization before the constructor completes.
 
-Trong code dùng `private`, mã bên ngoài lớp **không được viết trực tiếp** `book.borrowed = true;`. Lớp nên công khai một hành vi hợp lệ như `book.borrow()` nếu việc chuyển trạng thái cần quy tắc kiểm tra.
+In code using `private`, code outside the class **cannot directly write** `book.borrowed = true;`. The class should expose a valid behavior such as `book.borrow()` if the state transition requires validation rules.
 
-## 3. Khai báo method và gọi hành vi
+## 3. Declaring Methods and Invoking Behavior
 
-Cú pháp khái quát của một phương thức:
+General syntax of a method:
 
 ~~~java
 [accessModifier] [static] ReturnType methodName(ParameterList) {
-    // Thân phương thức.
+    // Method body.
 }
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~java
 class Counter {
@@ -90,10 +90,10 @@ class Counter {
 }
 ~~~
 
-- `void increase()`: hành vi không nhận đối số, không trả một giá trị.
-- `void add(int amount)`: nhận **đối số** khi gọi (ví dụ `add(3)`) qua tham số `amount`.
-- `int getValue()`: trả về `int` bằng lệnh `return value;`.
-- `getValue()` **đọc** trạng thái; `increase()`, `add(...)` **thay đổi** trạng thái.
+- `void increase()`: a behavior that takes no arguments and returns no value.
+- `void add(int amount)`: receives an **argument** when called (e.g., `add(3)`) through the parameter `amount`.
+- `int getValue()`: returns an `int` via the statement `return value;`.
+- `getValue()` **reads** state; `increase()` and `add(...)` **modify** state.
 
 ~~~java
 Counter counter = new Counter();
@@ -108,10 +108,10 @@ System.out.println(counter.getValue());
 4
 ~~~
 
-Ví dụ trên sử dụng lớp `Counter` ngay phía trên; không phải chương trình độc lập nếu chỉ sao chép riêng bốn dòng gọi. Chương trình hoàn chỉnh để chạy bằng CLI được cung cấp ở mục 9.
+The snippet above uses the `Counter` class immediately above it; it is not a standalone program if you copy only those four call lines. A complete program to run via CLI is provided in Section 9.
 
 
-## 4. Constructor cung cấp trạng thái bắt đầu cho field
+## 4. Constructors Provide Initial State for Fields
 
 ~~~java
 class Student {
@@ -128,17 +128,17 @@ class Student {
 }
 ~~~
 
-Constructor kiểm tra và gán field của instance mới. Một field `final` không được gán lại sau khi hoàn tất khởi tạo theo quy tắc Java; field khác vẫn có thể đổi qua hành vi có kiểm tra. Từ khóa `this` chọn **field của object hiện tại** khi tên field trùng tham số. Ở bài này, quan trọng là **dữ liệu ban đầu và các method cập nhật sau đó tuân thủ cùng hợp đồng trạng thái**. Các biến thể constructor và `this(...)` có bài riêng.
+A constructor validates and assigns fields of the new instance. A `final` field cannot be reassigned after initialization finishes according to Java rules; other fields can still change through validated behaviors. The `this` keyword selects **the current object's field** when a field name matches a parameter name. In this lesson, what matters is that **initial data and subsequent update methods obey the same state contract**. Constructor variants and `this(...)` have their own lesson.
 
-## 5. Method thao tác trên trạng thái của receiver
+## 5. Methods Operate on the Receiver's State
 
-Nếu `student.addScore(5)` là một lời gọi instance, `addScore` sẽ đọc/cập nhật field của object mà `student` đang trỏ đến. Có thể viết `this.score += points;` hoặc `score += points;` khi tên không bị che khuất. Để phân biệt field với tham số cùng tên, viết rõ `this.score = score;`.
+If `student.addScore(5)` is an instance call, `addScore` reads/updates the field of the object `student` points to. You can write `this.score += points;` or `score += points;` when the name is not shadowed. To distinguish a field from a parameter of the same name, explicitly write `this.score = score;`.
 
-Hai object được tạo riêng có field instance riêng; hai biến cùng tham chiếu một object sẽ quan sát cùng trạng thái. Phần này giúp đọc hành vi `Book.borrow()` ở dưới, không yêu cầu học lại toàn bộ phép gán tham chiếu.
+Two separately created objects have separate instance fields; two variables referencing the same object observe the same state. This section helps you read the `Book.borrow()` behavior below without needing to relearn all reference assignment mechanics.
 
-## 6. Tại sao nên để field `private`?
+## 6. Why Make Fields `private`?
 
-Ví dụ phản diện:
+Counter-example:
 
 ~~~java
 class Book {
@@ -146,9 +146,9 @@ class Book {
 }
 ~~~
 
-Code khác có thể đặt `book.borrowed = true;` hoặc `false` từ bất kỳ đâu cho phép truy cập, ngay cả khi quy trình mượn/trả còn phải cập nhật thống kê hoặc kiểm tra điều kiện. Trạng thái dễ trở nên **không nhất quán**.
+Other code can set `book.borrowed = true;` or `false` from anywhere access is permitted, even when the borrow/return workflow must also update statistics or check conditions. State easily becomes **inconsistent**.
 
-Đóng gói (*encapsulation*) giúp lớp tự quản lý dữ liệu:
+Encapsulation helps the class manage its own data:
 
 ~~~java
 class Book {
@@ -174,33 +174,33 @@ class Book {
 }
 ~~~
 
-Hợp đồng:
+Contract:
 
-- `borrow()` trả `true` nếu mượn thành công và **chuyển trạng thái** sang đang mượn; trả `false` nếu đã được mượn, không tăng `borrowCount`.
-- `returnBook()` trả `true` khi cuốn sách đang được mượn và được trả thành công; nếu đã có sẵn thì trả `false`.
-- `isBorrowed()` chỉ **đọc trạng thái**, không sửa dữ liệu.
+- `borrow()` returns `true` if borrowing succeeds and **transitions state** to borrowed; returns `false` if already borrowed, without incrementing `borrowCount`.
+- `returnBook()` returns `true` when the book is currently borrowed and is returned successfully; if already available, returns `false`.
+- `isBorrowed()` only **reads state**, without modifying data.
 
-`private` không tự đảm bảo mọi thiết kế đều đúng; lợi ích là các thay đổi trạng thái có thể tập trung trong những phương thức kiểm soát quy tắc. Không nhất thiết phải tạo setter cho mọi field: một setter công khai không có kiểm tra có thể làm mất ý nghĩa đóng gói.
+`private` does not automatically guarantee every design is right; the benefit is that state changes can be centralized inside methods that enforce rules. You do not necessarily have to create a setter for every field: a public setter without validation can defeat encapsulation.
 
 
-## 7. Field và method instance là trọng tâm của mô hình Book
+## 7. Instance Fields and Methods Are Central to the Book Model
 
-Trong ví dụ `Book`, `borrowed` và `borrowCount` là **instance fields**: mỗi sách giữ tình trạng và số lượt mượn của mình. `borrow()`, `returnBook()`, `summary()` là **instance methods** đọc hoặc thay đổi những field ấy.
+In the `Book` example, `borrowed` and `borrowCount` are **instance fields**: each book keeps its own borrowed status and borrow count. `borrow()`, `returnBook()`, and `summary()` are **instance methods** that read or mutate those fields.
 
-`createdCount` và `getCreatedCount()` là thành viên **static**, dùng chung ở cấp lớp để minh họa bộ đếm số đối tượng tạo thành công. Gọi `Book.getCreatedCount()` qua tên lớp. Static method không có `this` để truy cập trạng thái của một sách cụ thể; bài riêng về `static` sẽ giải thích sâu hơn thời điểm khởi tạo, chia sẻ trạng thái và đa luồng.
+`createdCount` and `getCreatedCount()` are **static** members, shared at the class level to illustrate a counter of successfully created objects. Call `Book.getCreatedCount()` via the class name. A static method does not have `this` to access a specific book's state; the dedicated lesson on `static` will explain initialization timing, shared state, and multithreading in more depth.
 
-## 8. Dữ liệu, hành vi và tính nhất quán của đối tượng
+## 8. Data, Behavior, and Object Consistency
 
-Một mô hình đơn giản:
+A simple model:
 
 ~~~text
                   class Book
          +--------------------------+
-FIELDS   | title: String            |  Trạng thái
+FIELDS   | title: String            |  State
          | borrowed: boolean        |
          | borrowCount: int         |
          +--------------------------+
-METHODS  | borrow(): boolean        |  Hành vi
+METHODS  | borrow(): boolean        |  Behavior
          | returnBook(): boolean    |
          | summary(): String        |
          +--------------------------+
@@ -209,15 +209,15 @@ bookA ──> {title="Java", borrowed=true,  borrowCount=2}
 bookB ──> {title="OOP",  borrowed=false, borrowCount=0}
 ~~~
 
-Hai đối tượng cùng kiểu `Book` có thể ở **hai trạng thái khác nhau**. Các phương thức được khai báo trong một định nghĩa lớp và hoạt động trên đối tượng nhận lời gọi.
+Two objects of the same `Book` type can be in **two different states**. Methods are declared in a single class definition and operate on the object receiving the call.
 
-**Bất biến nghiệp vụ** (*invariant*) của ví dụ: `borrowCount` không âm; mỗi lần mượn thành công mới tăng bộ đếm; trả sách không làm giảm tổng số lượt đã mượn. Constructor kiểm tra `title` không rỗng để tránh tạo object thiếu tên hợp lệ.
+**Business invariant** of the example: `borrowCount` is non-negative; only each successful borrow increments the counter; returning a book does not decrease the total borrow count. The constructor checks that `title` is non-blank to avoid creating an object without a valid name.
 
-Một getter thường **trả về** thông tin, còn một phương thức hành vi như `borrow()` truyền đạt rõ hơn mục đích nghiệp vụ so với cho phép bên ngoài sửa trực tiếp field `borrowed`.
+A getter typically **returns** information, whereas a behavioral method like `borrow()` communicates business intent more clearly than letting external code mutate the `borrowed` field directly.
 
-## 9. Chương trình Java 17+ hoàn chỉnh
+## 9. Complete Java 17+ Program
 
-Lưu file đúng tên **`FieldsMethodsDemo.java`**:
+Save the file with the exact name **`FieldsMethodsDemo.java`**:
 
 ~~~java
 public final class FieldsMethodsDemo {
@@ -235,7 +235,7 @@ public final class FieldsMethodsDemo {
                 throw new IllegalArgumentException("title must not be blank");
             }
             this.title = title.strip();
-            // borrowed mặc định false, borrowCount mặc định 0.
+            // borrowed defaults to false, borrowCount defaults to 0.
             createdCount++;
         }
 
@@ -308,7 +308,7 @@ public final class FieldsMethodsDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17+; không cần thư viện ngoài, Maven, Gradle hoặc preview features. Mã dùng một `public class` có tên trùng tên file và một lớp `Book` lồng nhau để mọi thứ có thể chạy từ một file.
+**Requirements:** JDK 17+; no external libraries, Maven, Gradle, or preview features needed. The code uses one `public class` matching the filename and a nested `Book` class so everything can run from a single file.
 
 **Bash (Linux/macOS):**
 
@@ -346,33 +346,33 @@ invalid title=title must not be blank
 total after invalid=2
 ~~~
 
-**Giải thích từng pha:**
+**Phase-by-phase explanation:**
 
-1. Khi mới chạy, `createdCount` mặc định bằng 0. Hai `new Book(...)` thành công khiến số đó thành 2.
-2. `borrowed` và `borrowCount` là **instance fields** mặc định `false` và `0` cho **mỗi** đối tượng.
-3. Mượn sách `Java` lần thứ nhất thành công; lần thứ hai bị từ chối, nên `times` vẫn bằng 1. Sách `Algorithms` không đổi.
-4. Trả sách lần thứ nhất thành công, lần thứ hai trả `false` vì sách không còn được mượn.
-5. `alias` và `javaBook` cùng chỉ đến một object; mượn qua `alias` khiến `javaBook.summary()` hiển thị `times=2`.
-6. Constructor bị lỗi với tiêu đề toàn khoảng trắng **trước** dòng tăng bộ đếm, nên `createdCount` vẫn là 2.
+1. At startup, `createdCount` defaults to 0. Two successful `new Book(...)` calls make it 2.
+2. `borrowed` and `borrowCount` are **instance fields** defaulting to `false` and `0` for **each** object.
+3. Borrowing the `Java` book the first time succeeds; the second attempt is rejected, so `times` remains 1. The `Algorithms` book is unchanged.
+4. Returning the book the first time succeeds; the second attempt returns `false` because the book is no longer borrowed.
+5. `alias` and `javaBook` point to the same object; borrowing via `alias` causes `javaBook.summary()` to display `times=2`.
+6. The constructor fails on a whitespace-only title **before** the line that increments the counter, so `createdCount` remains 2.
 
-## 10. Lỗi phổ biến
+## 10. Common Mistakes
 
-| Nhầm lẫn | Điều cần hiểu |
+| Confusion | What to understand |
 |---|---|
-| Nghĩ field và method đều là “biến” | Field lưu dữ liệu; method là khai báo hành vi có thể được gọi |
-| Tưởng `Book a;` đã tạo object | Đây chỉ là khai báo biến tham chiếu; cần `new Book(...)` |
-| Nghĩ hai đối tượng cùng lớp chia sẻ mọi field | **Instance fields** là trạng thái từng object; **static fields** mới gắn với lớp |
-| Viết `score = score;` khi tên tham số trùng field | Dùng `this.score = score;` để gán cho field |
-| Cho mọi field thành `public` để sửa tùy ý | Có thể phá vỡ quy tắc của lớp; cân nhắc `private` và phương thức kiểm soát |
-| Gọi method `borrow()` rồi coi giá trị trả về là field | Giá trị `boolean` được method tính/trả, không phải khai báo field mới |
-| Gọi instance method từ `static main` mà không có object | Tạo/lấy tham chiếu object rồi gọi `book.borrow()` |
-| Dùng `this` trực tiếp trong static method | Static context không có receiver instance |
-| Nghĩ `final String title` khiến cả object bất biến | Chỉ field `title` không được gán lại; `borrowed` và `borrowCount` vẫn có thể thay đổi |
-| Gán `Book alias = book;` rồi nghĩ có bản sao object | Chỉ sao chép giá trị tham chiếu, hai biến chỉ cùng object |
+| Thinking fields and methods are both "variables" | Fields store data; methods are callable behavior declarations |
+| Thinking `Book a;` creates an object | That is only a reference variable declaration; `new Book(...)` is required |
+| Thinking two objects of the same class share all fields | **Instance fields** are per-object state; only **static fields** belong to the class |
+| Writing `score = score;` when parameter name matches field | Use `this.score = score;` to assign to the field |
+| Making every field `public` for arbitrary edits | Can break class rules; consider `private` and controlled methods |
+| Calling `borrow()` and treating its return value as a field | The `boolean` value is computed/returned by the method, not a new field declaration |
+| Calling an instance method from `static main` without an object | Create/obtain an object reference and call `book.borrow()` |
+| Using `this` directly in a static method | A static context has no instance receiver |
+| Thinking `final String title` makes the whole object immutable | Only the `title` field cannot be reassigned; `borrowed` and `borrowCount` can still change |
+| Assigning `Book alias = book;` and thinking there is a copy of the object | Only copies the reference value; both variables point to the same object |
 
-## 11. Bài tập có đáp án
+## 11. Exercises with Answers
 
-**A.** Phân loại các thành viên sau:
+**A.** Classify the following members:
 
 ~~~java
 private int balance;
@@ -380,34 +380,34 @@ void deposit(int amount) { balance += amount; }
 int getBalance() { return balance; }
 ~~~
 
-**Đáp án:** `balance` là **instance field**; `deposit` là method **thay đổi trạng thái**; `getBalance` là method **đọc/trả trạng thái**.
+**Answer:** `balance` is an **instance field**; `deposit` is a **state-mutating** method; `getBalance` is a **state-reading/returning** method.
 
-**B.** Nếu tạo `Book first = new Book("A")` và `Book second = new Book("B")`, rồi chỉ gọi `first.borrow()`, trường `borrowed` của `second` là gì?  
-**Đáp án:** `false`, vì đó là instance field riêng của `second`.
+**B.** If you create `Book first = new Book("A")` and `Book second = new Book("B")`, then call only `first.borrow()`, what is `second`'s `borrowed` field?  
+**Answer:** `false`, because it is `second`'s own instance field.
 
-**C.** Vì sao `private boolean borrowed` giúp thiết kế hợp lý hơn `public boolean borrowed`?  
-**Đáp án:** caller không thể tùy tiện gán field từ ngoài lớp, nên lớp có thể đảm bảo chuyển trạng thái qua `borrow()`/`returnBook()` đúng quy tắc.
+**C.** Why is `private boolean borrowed` a better design than `public boolean borrowed`?  
+**Answer:** callers cannot arbitrarily assign the field from outside the class, so the class can ensure state transitions through `borrow()`/`returnBook()` follow the rules.
 
-**D.** `Book alias = first;` rồi `alias.borrow()` có tác động đối tượng `first` không?  
-**Đáp án:** **Có**, vì hai tham chiếu cùng trỏ tới một đối tượng.
+**D.** If `Book alias = first;` and then `alias.borrow()`, does it affect the `first` object?  
+**Answer:** **Yes**, because both references point to the same object.
 
-**E.** Một static method có gọi trực tiếp `this.summary()` được không?  
-**Đáp án:** **Không**. Static method không có receiver instance mặc định; cần tham chiếu object cụ thể.
+**E.** Can a static method call `this.summary()` directly?  
+**Answer:** **No**. A static method has no default instance receiver; a specific object reference is required.
 
-**F.** Tại sao lần tạo `new Book(" ")` của chương trình hoàn chỉnh không tăng `createdCount`?  
-**Đáp án:** constructor ném `IllegalArgumentException` trong bước kiểm tra, trước khi thực hiện `createdCount++`.
+**F.** Why does `new Book(" ")` in the complete program not increment `createdCount`?  
+**Answer:** the constructor throws `IllegalArgumentException` during validation, before `createdCount++` executes.
 
-## 12. Checklist và kết luận
+## 12. Checklist and Conclusion
 
-- [ ] Biết **field lưu dữ liệu/trạng thái** và **method thể hiện hành vi**.
-- [ ] Phân biệt khai báo lớp với tạo đối tượng bằng `new`.
-- [ ] Nhận diện instance fields, instance methods và các thành viên `static`.
-- [ ] Hiểu constructor thiết lập trạng thái ban đầu.
-- [ ] Dùng `this.field` phân biệt field và tham số cùng tên.
-- [ ] Hiểu method có thể đọc, cập nhật field và trả kết quả.
-- [ ] Dùng `private` và hành vi có kiểm tra để giữ trạng thái hợp lệ.
-- [ ] Phân biệt thay đổi trạng thái một object và thay đổi object khác.
-- [ ] Biết alias là nhiều tham chiếu cùng một object, không phải bản sao mới.
-- [ ] Đọc và đối chiếu exact stdout của `FieldsMethodsDemo.java` trên JDK 17+.
+- [ ] Know that **fields store data/state** and **methods represent behavior**.
+- [ ] Distinguish declaring a class from creating an object with `new`.
+- [ ] Identify instance fields, instance methods, and `static` members.
+- [ ] Understand that constructors establish initial state.
+- [ ] Use `this.field` to distinguish a field from a parameter of the same name.
+- [ ] Understand that methods can read, update fields, and return results.
+- [ ] Use `private` and validated behaviors to keep state valid.
+- [ ] Distinguish changing one object's state from changing another object.
+- [ ] Know that an alias is multiple references to one object, not a new copy.
+- [ ] Read and verify exact stdout of `FieldsMethodsDemo.java` on JDK 17+.
 
-**Kết luận:** Lớp Java gom **dữ liệu** trong các field và **hành vi** trong các method. Field thể hiện trạng thái của từng object; method sử dụng và thay đổi trạng thái theo quy tắc của lớp. Thiết kế field `private`, constructor hợp lệ và những method có mục đích rõ ràng giúp chương trình dễ hiểu, an toàn và dễ mở rộng.
+**Conclusion:** Java classes group **data** in fields and **behavior** in methods. Fields represent each object's state; methods use and modify state according to the class's rules. Designing `private` fields, valid constructors, and clearly purposed methods makes programs easy to understand, safe, and extensible.

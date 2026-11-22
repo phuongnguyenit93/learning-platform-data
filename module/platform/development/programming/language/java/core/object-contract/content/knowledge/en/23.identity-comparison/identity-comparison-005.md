@@ -1,53 +1,53 @@
-# Không thay HashMap bằng IdentityHashMap nếu nghiệp vụ cần bằng nhau theo giá trị
+# Do Not Replace HashMap with IdentityHashMap When Business Logic Needs Value Equality
 
-## 1. Quyết định quan trọng: “cùng khóa” nghĩa là gì?
+## 1. Key decision: what does "same key" mean?
 
-Khi chọn một cấu trúc Map trong Java, trước hết phải trả lời **hai khóa nào được coi là cùng một khóa**. Với các đối tượng Java, có hai khái niệm khác nhau:
+When choosing a Map structure in Java, you must first answer **which two keys are considered the same key**. For Java objects, there are two distinct concepts:
 
-- **Bằng nhau theo giá trị (logical equality)**: hai object có thể là hai instance khác nhau nhưng đại diện cùng giá trị nghiệp vụ. Quy tắc này được diễn đạt bằng **equals(Object)** và hợp đồng đi kèm **hashCode()**.
-- **Cùng một đối tượng (reference identity)**: hai tham chiếu trỏ tới **chính cùng một instance**. Java kiểm tra bằng toán tử **==** trên các tham chiếu.
+- **Logical equality**: two objects can be two separate instances yet represent the same business value. This rule is expressed through **equals(Object)** and its companion contract **hashCode()**.
+- **Same object (reference identity)**: two references point to **the exact same instance**. Java checks this with the **==** operator on references.
 
-**HashMap** chọn ngữ nghĩa **giá trị**: các khóa khác instance nhưng **equals true** (với hashCode tương thích) phải được nhận diện là cùng khóa. **IdentityHashMap** chọn ngữ nghĩa **danh tính tham chiếu**: chỉ những tham chiếu **==** mới được coi là cùng khóa. Vì vậy, đổi **HashMap** thành **IdentityHashMap** là **thay đổi logic nghiệp vụ**, không đơn thuần là đổi cách tối ưu bộ nhớ, tốc độ hoặc thuật toán băm.
+**HashMap** chooses **value** semantics: keys that are different instances yet have **equals true** (with compatible hashCode) must be recognized as the same key. **IdentityHashMap** chooses **reference identity** semantics: only references where **==** holds are treated as the same key. Therefore, switching **HashMap** to **IdentityHashMap** is **a change in business logic**, not merely a memory, speed, or hashing algorithm optimization.
 
-Ví dụ: hai đối tượng **CustomerId("C-17")** được tạo từ hai request khác nhau. Nếu nghiệp vụ quy định cùng mã khách hàng là cùng một khách hàng, HashMap phải cho phép dùng instance thứ hai để tìm bản ghi được chèn bằng instance thứ nhất. IdentityHashMap không bảo đảm và thường trả về không tìm thấy, dù **equals** giữa chúng trả true.
+Example: two **CustomerId("C-17")** objects created from two different requests. If business rules specify that the same customer code means the same customer, HashMap must allow using the second instance to find the record inserted with the first instance. IdentityHashMap does not guarantee this and usually returns not found, even though **equals** between them returns true.
 
-**Quy tắc chọn mặc định:** Khi khóa là mã khách hàng, mã đơn hàng, UUID, String, record, value object, hoặc tổ hợp thuộc tính định danh nghiệp vụ, thông thường hãy dùng **HashMap<K,V>** (hoặc LinkedHashMap nếu cần thứ tự). Chỉ dùng **IdentityHashMap** khi yêu cầu thực sự là phân biệt từng object **theo tham chiếu**.
+**Default selection rule:** When keys are customer IDs, order IDs, UUIDs, Strings, records, value objects, or combinations of business-identifying attributes, normally use **HashMap<K,V>** (or LinkedHashMap if order is needed). Only use **IdentityHashMap** when the requirement is genuinely to distinguish individual objects **by reference**.
 
-## 2. Hợp đồng equals/hashCode của HashMap
+## 2. HashMap's equals/hashCode contract
 
-**HashMap<K,V>** sử dụng **hashCode()** để hỗ trợ xác định vị trí tìm kiếm và **equals(Object)** để kiểm tra sự tương đương của khóa. Điều kiện nền tảng của hợp đồng Java:
+**HashMap<K,V>** uses **hashCode()** to help locate lookup buckets and **equals(Object)** to check key equivalence. Foundational conditions of the Java contract:
 
-1. **Phản xạ:** a.equals(a) phải true.
-2. **Đối xứng:** a.equals(b) có cùng kết quả với b.equals(a).
-3. **Bắc cầu:** a bằng b, b bằng c thì a bằng c.
-4. **Nhất quán:** khi dữ liệu tham gia so sánh không đổi, kết quả equals ổn định.
-5. **Với null:** a.equals(null) là false đối với a khác null.
-6. **Hash tương thích:** nếu a.equals(b) true thì a.hashCode() **bắt buộc bằng** b.hashCode().
+1. **Reflexive:** a.equals(a) must be true.
+2. **Symmetric:** a.equals(b) has the same result as b.equals(a).
+3. **Transitive:** if a equals b and b equals c, then a equals c.
+4. **Consistent:** when data participating in comparison does not change, equals results remain stable.
+5. **With null:** a.equals(null) is false for non-null a.
+6. **Compatible hash:** if a.equals(b) is true, then a.hashCode() **must equal** b.hashCode().
 
-Điều ngược lại của quy tắc hash **không** đúng: hai khóa có cùng hashCode có thể không bằng nhau. HashMap xử lý va chạm băm bằng cách tiếp tục kiểm tra khóa.
+The converse of the hash rule is **not** true: two keys with the same hashCode may be unequal. HashMap handles hash collisions by continuing to inspect keys.
 
-Khi một khóa mới được đưa vào **put** và nó tương đương một khóa đã tồn tại, giá trị gắn với khóa đó được **thay thế**; size không tăng. Trong triển khai HashMap thông thường, khóa đại diện đã lưu được giữ lại khi chỉ thay giá trị của cùng logical key. Không nên dựa vào tham chiếu của “khóa đại diện” trừ khi API hoặc yêu cầu thực sự cần.
+When a new key is inserted via **put** and is equivalent to an existing key, the value associated with that key is **replaced**; size does not increase. In ordinary HashMap implementations, the stored representative key is kept when only updating the value for the same logical key. Do not rely on the "representative key" reference unless an API or requirement truly needs it.
 
-**HashMap** cho phép một khóa null và các giá trị null. Vì **get(key)** có thể trả null khi không có ánh xạ hoặc khi ánh xạ tới giá trị null, dùng **containsKey(key)** để phân biệt nếu cần. Đây là thuộc tính Map độc lập với việc chọn equals hay reference identity.
+**HashMap** allows one null key and null values. Because **get(key)** can return null either when there is no mapping or when mapped to null, use **containsKey(key)** to distinguish if needed. This is a Map property independent of choosing equals or reference identity.
 
-## 3. IdentityHashMap thay thế equals bằng ==
+## 3. IdentityHashMap replaces equals with ==
 
-**java.util.IdentityHashMap<K,V>** là Map đặc biệt:
+**java.util.IdentityHashMap<K,V>** is a specialized Map:
 
-- So sánh **khóa** bằng **==**, thay vì gọi equals theo giá trị.
-- Băm khóa theo **System.identityHashCode(key)**, thay vì hashCode được override trong lớp khóa.
-- Hai object có cùng nội dung và equals true nhưng **khác tham chiếu** vẫn là **hai khóa**.
-- Hai biến tham chiếu cùng instance là **một khóa**, kể cả khi object đó override equals một cách đặc biệt.
-- Cho phép khóa null và giá trị null; hành vi kiểm tra danh tính với null vẫn được xử lý như khóa riêng của Map.
-- Không bảo đảm thứ tự duyệt. Không dùng kết quả lặp qua entrySet để suy ra thứ tự chèn.
+- Compares **keys** using **==**, instead of calling value-based equals.
+- Hashes keys using **System.identityHashCode(key)**, instead of hashCode overridden in the key class.
+- Two objects with the same content and equals true that have **different references** are still **two keys**.
+- Two variables referencing the same instance are **one key**, even if that object overrides equals unusually.
+- Allows a null key and null values; identity checks with null are still handled as a distinct Map key.
+- Does not guarantee iteration order. Do not use entrySet iteration results to infer insertion order.
 
-IdentityHashMap **cố ý không tuân quy ước equals theo giá trị** thường dùng cho Map và các view liên quan. Đặc biệt, trong các chương trình trộn Map thường với IdentityHashMap, đừng giả định kiểm tra **mapA.equals(mapB)** luôn có cùng ý nghĩa hoặc đối xứng như giữa hai Map thông thường; tài liệu Java cảnh báo về việc này.
+IdentityHashMap **intentionally violates the value-based equals convention** commonly used by Maps and related views. In particular, in programs mixing regular Maps with IdentityHashMap, do not assume checking **mapA.equals(mapB)** always has the same meaning or symmetry as between two ordinary Maps; the Java documentation warns about this.
 
-**System.identityHashCode(obj)** không phải địa chỉ bộ nhớ được Java bảo đảm và không đảm bảo duy nhất giữa các object. Có thể xảy ra va chạm identity hash; IdentityHashMap vẫn dựa trên **tham chiếu ==** để phân biệt khóa. Không dùng số identity hash như một ID vĩnh viễn hay khóa nghiệp vụ.
+**System.identityHashCode(obj)** is not a Java-guaranteed memory address and is not guaranteed unique across objects. Identity hash collisions can occur; IdentityHashMap still relies on **reference ==** to distinguish keys. Do not use identity hash numbers as permanent IDs or business keys.
 
-## 4. Ví dụ Java 17: cùng giá trị, hai kết quả Map khác nhau
+## 4. Java 17 example: same value, two different Map results
 
-Tạo file **HashVsIdentityMapDemo.java**:
+Create the file **HashVsIdentityMapDemo.java**:
 
 ~~~java
 import java.util.HashMap;
@@ -91,14 +91,14 @@ public class HashVsIdentityMapDemo {
 }
 ~~~
 
-Chạy với JDK 17 trở lên:
+Run with JDK 17 or later:
 
 ~~~bash
 javac HashVsIdentityMapDemo.java
 java HashVsIdentityMapDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 same reference: false
@@ -112,25 +112,25 @@ IdentityHashMap second: updated
 IdentityHashMap fresh: null
 ~~~
 
-**Vì sao HashMap chỉ có một entry?** Record **CustomerId** tự sinh equals/hashCode theo component String. Cả first và second đều chứa "C-17", nên hai khóa bằng nhau. Lần put thứ hai cập nhật giá trị của logical key. Một instance CustomerId thứ ba với cùng mã vẫn tìm thấy **"updated"**.
+**Why does HashMap have only one entry?** Record **CustomerId** auto-generates equals/hashCode from its String component. Both first and second contain "C-17", so the two keys are equal. The second put updates the logical key's value. A third CustomerId instance with the same code still finds **"updated"**.
 
-**Vì sao IdentityHashMap có hai entry?** first và second được tạo bằng hai biểu thức **new CustomerId(...)**, nên khác tham chiếu. IdentityHashMap không sử dụng equals/hashCode do record sinh để quyết định cùng khóa. Một instance mới **lookup** không phải first hay second, nên **get(lookup)** trả null.
+**Why does IdentityHashMap have two entries?** first and second are created by two **new CustomerId(...)** expressions, so their references differ. IdentityHashMap does not use the record-generated equals/hashCode to decide key equality. A new **lookup** instance is neither first nor second, so **get(lookup)** returns null.
 
-Nếu chương trình cần đại diện cho “khách hàng C-17”, kết quả IdentityHashMap là **sai về nghĩa nghiệp vụ**: cùng khách hàng bị chia ra nhiều entry. Không có ngoại lệ hay cảnh báo biên dịch nào nhắc về vấn đề này.
+If the program needs to represent "customer C-17", the IdentityHashMap result is **semantically wrong in business terms**: the same customer is split across multiple entries. Neither an exception nor a compiler warning flags this issue.
 
-## 5. String và wrapper: các trường hợp đánh lừa khi thử bằng ==
+## 5. String and wrappers: deceptive cases when testing with ==
 
-Một sai lầm là kiểm tra IdentityHashMap bằng **string literal** rồi tưởng rằng khóa tương đương theo nội dung:
+A mistake is testing IdentityHashMap with **string literals** and assuming keys match by content:
 
 ~~~java
 String a = "paid";
 String b = "paid";
-System.out.println(a == b); // thường true vì string literal được intern
+System.out.println(a == b); // often true because string literals are interned
 ~~~
 
-Đoạn này chỉ minh họa. Java intern các string literal tương ứng; điều này khiến hai biến trong ví dụ trỏ cùng object. Nhưng chuỗi nhận từ file, JSON, database hoặc tạo bằng **new String(...)** có thể là instance khác dù giá trị giống nhau.
+This snippet is illustrative only. Java interns corresponding string literals; this causes both variables in the example to point to the same object. However, strings read from files, JSON, databases, or created with **new String(...)** can be different instances despite identical values.
 
-Tạo file **StringIdentityDemo.java**:
+Create the file **StringIdentityDemo.java**:
 
 ~~~java
 import java.util.HashMap;
@@ -162,14 +162,14 @@ public class StringIdentityDemo {
 }
 ~~~
 
-Lệnh chạy:
+Run command:
 
 ~~~bash
 javac StringIdentityDemo.java
 java StringIdentityDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 same object: false
@@ -180,31 +180,31 @@ value lookup: 2
 identity lookup: null
 ~~~
 
-Các kiểu wrapper như **Integer** cũng có thể được cache ở một số giá trị; không suy ra ý nghĩa nghiệp vụ của **==** từ vài kết quả thử nghiệm có cache. Nếu giá trị là số, chuỗi hoặc khóa dữ liệu, phải dựa trên **equals** hoặc các phép so primitive phù hợp, không dựa trên tình cờ cùng tham chiếu.
+Wrapper types such as **Integer** may also be cached for certain values; do not infer business semantics of **==** from a few test results involving caching. If values are numbers, strings, or data keys, rely on **equals** or appropriate primitive comparisons, not on accidental reference sharing.
 
-Không “sửa” cách dùng IdentityHashMap bằng việc gọi **String.intern()** một cách tùy tiện. Interning thay đổi chính sách chia sẻ tham chiếu, không thay thế hợp đồng giá trị; việc ép mọi dữ liệu đi qua interning có thể có chi phí hoặc hậu quả quản lý bộ nhớ và vẫn dễ bị bỏ sót ở nguồn khác.
+Do not "fix" IdentityHashMap misuse by calling **String.intern()** indiscriminately. Interning alters reference-sharing policy rather than replacing a value contract; forcing all data through interning can incur memory-management costs or consequences and still easily miss other input sources.
 
-## 6. Hậu quả trong xử lý dữ liệu thật
+## 6. Consequences in real data processing
 
-Một map nghiệp vụ thường dùng để:
+A business map is commonly used to:
 
-- **Gom dữ liệu theo customerId:** khách hàng có thể xuất hiện nhiều lần trong log hoặc payload khác nhau.
-- **Khử trùng theo orderId:** hai bản ghi cùng định danh chỉ được tính là một đơn.
-- **Tra trạng thái theo correlationId:** một request đi qua nhiều tầng có thể tạo nhiều String mới nhưng cùng nội dung.
-- **Đếm số thực thể logic:** hai bản sao value object đại diện cùng ID phải gộp thành một nhóm.
-- **Lưu cache theo khóa tham số:** hai khóa có bộ tham số bằng nhau phải truy cập chung một entry.
+- **Aggregate data by customerId:** a customer may appear multiple times across different logs or payloads.
+- **Deduplicate by orderId:** two records with the same identifier must be counted as one order.
+- **Look up state by correlationId:** a request passing through multiple layers can create multiple new Strings with identical content.
+- **Count logical entities:** two value-object copies representing the same ID must collapse into one group.
+- **Cache by parameter key:** two keys with equal parameter sets must access a shared entry.
 
-Trong các bài toán này, IdentityHashMap có thể **nhân đôi entry**, tính sai số lượng, bỏ lỡ cache, mất khả năng tra cứu bằng khóa tương đương tạo mới, hoặc khiến kết quả phụ thuộc vào **việc hệ thống có tái sử dụng cùng instance hay không**.
+In these problems, IdentityHashMap can **duplicate entries**, miscount totals, miss caches, lose the ability to look up using newly constructed equivalent keys, or make results depend on **whether the system happens to reuse the same instance**.
 
-Ví dụ: xử lý dữ liệu phân tán thường deserialize hai bản JSON độc lập thành hai object Java độc lập. Chúng có thể **equals true**, nhưng không cùng object. IdentityHashMap sẽ đối xử như hai khách hàng khác nhau nếu dùng object đó làm khóa, mặc dù miền nghiệp vụ coi cùng ID là một khách hàng.
+For example, distributed data processing often deserializes two independent JSON payloads into two independent Java objects. They may have **equals true**, yet not be the same object. IdentityHashMap treats them as two different customers if that object is used as the key, even though the business domain considers the same ID one customer.
 
-Đây là lý do không nên chọn IdentityHashMap chỉ vì thấy tên có chữ **HashMap** và suy đoán nó “tối ưu hơn”. Nó là **cấu trúc có semantics riêng**, dành cho bài toán cần tham chiếu vật lý.
+This is why you should not pick IdentityHashMap just because its name contains **HashMap** and assume it is "more optimized". It is **a structure with its own semantics**, intended for problems requiring physical references.
 
-## 7. Ví dụ: khóa tổ hợp nghiệp vụ từ record
+## 7. Example: composite business key from a record
 
-Một lỗi khác là gom theo mã ID nhưng quên namespace. Trong hệ thống đa tenant, cùng mã khách hàng ở hai tenant có thể đại diện hai khách hàng khác nhau. **HashMap** vẫn cần khóa logic được thiết kế đúng.
+Another mistake is grouping by ID code while forgetting the namespace. In a multi-tenant system, the same customer code in two tenants can represent two different customers. **HashMap** still needs a properly designed logical key.
 
-Tạo file **BusinessKeyDemo.java**:
+Create the file **BusinessKeyDemo.java**:
 
 ~~~java
 import java.util.HashMap;
@@ -232,14 +232,14 @@ public class BusinessKeyDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac BusinessKeyDemo.java
 java BusinessKeyDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 entries: 2
@@ -247,42 +247,42 @@ tenant A: 2
 tenant B: 1
 ~~~
 
-Record **CustomerKey** tự sinh equals/hashCode theo **cả hai component**. Hai bản ghi cùng tenant và cùng customerCode là một khóa, còn cùng customerCode ở tenant khác thì không. HashMap thể hiện chính xác hợp đồng khóa này.
+Record **CustomerKey** auto-generates equals/hashCode from **both components**. Two records with the same tenant and same customerCode form one key, whereas the same customerCode in another tenant does not. HashMap accurately expresses this key contract.
 
-Nếu dùng IdentityHashMap, hai bản ghi của tenant A lại thành hai khóa vì được tạo riêng. Nếu chỉ dùng String customerCode làm khóa HashMap mà bỏ tenant, các khách hàng khác tenant sẽ bị gộp sai. Do đó **chọn HashMap và thiết kế khóa đúng** là hai việc đều quan trọng.
+If IdentityHashMap were used, tenant A's two records would become two keys because they were created separately. If only String customerCode were used as the HashMap key without tenant, customers across different tenants would be wrongly merged. Hence **choosing HashMap and designing the key properly** are both essential.
 
-## 8. Khi nào IdentityHashMap thực sự phù hợp?
+## 8. When is IdentityHashMap actually appropriate?
 
-IdentityHashMap được thiết kế cho các tình huống **danh tính đối tượng có ý nghĩa riêng biệt so với giá trị equals**.
+IdentityHashMap is designed for situations where **object identity has a distinct meaning apart from equals value**.
 
-Ví dụ:
+Examples:
 
-1. **Theo dõi object trong thuật toán xử lý đồ thị object:** hai node có cùng dữ liệu nhưng là hai node vật lý khác nhau; thuật toán cần ghi nhớ từng node đã thăm.
-2. **Sao chép sâu hoặc serialize đồ thị với tham chiếu chia sẻ:** cần ánh xạ **object gốc → object sao chép**, trong đó hai object gốc có nội dung bằng nhau vẫn phải tạo hai bản sao riêng khi chúng là hai node khác nhau.
-3. **Theo dõi trạng thái phụ cho từng instance:** công cụ chẩn đoán, phân tích heap hoặc trình duyệt cấu trúc object cần phân biệt tham chiếu.
-4. **Kiểm tra tính đồng nhất tham chiếu:** lưu một thuộc tính gắn với **chính object cụ thể**, không gắn với bất kỳ object nào có cùng giá trị.
+1. **Tracking objects in object-graph algorithms:** two nodes have identical data yet are two distinct physical nodes; the algorithm must remember each visited node.
+2. **Deep copying or serializing graphs with shared references:** requires mapping **original object → cloned object**, where two original objects with equal content still need two separate clones when they are two different nodes.
+3. **Tracking auxiliary state per instance:** diagnostics, heap analysis, or object-structure walkers needing to distinguish references.
+4. **Checking reference identity:** storing an attribute tied to **a specific object itself**, not to any object having the same value.
 
-Trong những tình huống đó, nếu dùng HashMap và lớp node override equals theo dữ liệu, **hai node riêng** có thể vô tình bị gộp. IdentityHashMap làm đúng yêu cầu phân biệt instance.
+In such situations, if you used HashMap and the node class overrode equals by data, **two distinct nodes** could accidentally be merged. IdentityHashMap fulfills the requirement to distinguish instances.
 
-Nếu theo dõi các node bằng `Collections.newSetFromMap(new IdentityHashMap<>())`, một lần thêm mỗi instance giữ hai node riêng dù nhãn bằng nhau. Thuật toán DFS/BFS và nhận biết chu kỳ được triển khai đầy đủ ở bài **Dùng danh tính khi duyệt và theo dõi đồ thị đối tượng**.
+If tracking nodes with `Collections.newSetFromMap(new IdentityHashMap<>())`, adding each instance once keeps two distinct nodes even if their labels match. DFS/BFS algorithms and cycle detection are covered in full in the lesson **Using Identity When Traversing and Tracking Object Graphs**.
 
-**Cẩn trọng:** IdentityHashMap giữ tham chiếu mạnh tới khóa và giá trị như một map thông thường trong khi entry còn tồn tại; không dùng nó như cơ chế weak reference. Nếu cần liên kết metadata với object nhưng muốn cho phép garbage collection, phải xem xét cấu trúc như **WeakHashMap** và hợp đồng riêng của nó. Không đánh đồng hai cấu trúc chỉ vì chúng đều chứa chữ Map.
+**Caution:** IdentityHashMap holds strong references to keys and values like a normal map while entries remain; do not use it as a weak-reference mechanism. If you need to associate metadata with objects while allowing garbage collection, evaluate structures like **WeakHashMap** and its own contract. Do not equate the two structures merely because both contain the word Map.
 
-## 9. Trường hợp đặc biệt: hai object equals sai hợp đồng
+## 9. Special case: objects with a broken equals contract
 
-Có thể có người đổi HashMap thành IdentityHashMap vì **HashMap “không tìm thấy” khóa**. Nhưng nguyên nhân thường là:
+Someone might switch HashMap to IdentityHashMap because **HashMap "cannot find" keys**. Yet the usual root causes are:
 
-- Lớp override **equals** nhưng quên override **hashCode** tương thích.
-- Những field tham gia equals/hashCode thay đổi sau khi dùng object làm khóa.
-- Các trường mảng dùng equals/hashCode theo danh tính dù nghiệp vụ yêu cầu so nội dung.
-- Khóa chỉ chứa một phần định danh nên gộp nhầm các bản ghi khác nhau.
-- Sử dụng **LocalDateTime**, **OffsetDateTime**, **BigDecimal** hoặc loại giá trị khác với hợp đồng equals không khớp yêu cầu nghiệp vụ.
+- A class overrides **equals** but forgets to override a compatible **hashCode**.
+- Fields participating in equals/hashCode mutate after the object is used as a key.
+- Array fields use identity equals/hashCode even though business rules require content comparison.
+- Keys contain only part of the identifier, wrongly merging distinct records.
+- Using **LocalDateTime**, **OffsetDateTime**, **BigDecimal**, or another value type whose equals contract does not match business requirements.
 
-**IdentityHashMap có thể che một số triệu chứng** vì nó bỏ qua equals/hashCode tùy biến, nhưng hậu quả là đổi từ “một khóa cho mỗi giá trị” sang “một khóa cho mỗi instance”. Nếu hệ thống cần equals theo giá trị, cách sửa đúng là **khắc phục hợp đồng của kiểu khóa và làm khóa ổn định**, hoặc rút ra một value key bất biến chuyên dụng.
+**IdentityHashMap can mask some symptoms** because it bypasses custom equals/hashCode, but the consequence is changing "one key per value" into "one key per instance". If the system needs value-based equals, the proper fix is to **repair the key type's contract and make keys immutable**, or extract a dedicated immutable value key.
 
-### Ví dụ khóa mutable: đây không phải lý do đổi IdentityHashMap
+### Mutable key example: this is not a reason to switch to IdentityHashMap
 
-Tạo file **MutableKeyDemo.java**:
+Create the file **MutableKeyDemo.java**:
 
 ~~~java
 import java.util.HashMap;
@@ -330,14 +330,14 @@ public class MutableKeyDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac MutableKeyDemo.java
 java MutableKeyDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 HashMap after edit: null
@@ -345,60 +345,60 @@ IdentityHashMap after edit: found
 IdentityHashMap equivalent new key: null
 ~~~
 
-**Giải thích:** HashMap lưu khóa ở vị trí tổ chức theo hash của String **"A"**. Sau khi sửa code thành **"B"**, hashCode đổi, nên một lần get mới theo hash của B không tìm đúng entry cũ trong ví dụ này. IdentityHashMap vẫn tìm được khi dùng **cùng tham chiếu key**, vì identity không đổi; nhưng với object khác có cùng code B, nó vẫn không tìm thấy.
+**Explanation:** HashMap stores the key in a bucket organized by the hash of String **"A"**. After editing code to **"B"**, hashCode changes, so a new get using B's hash fails to find the old entry in this example. IdentityHashMap still finds it when using **the same key reference**, because identity does not change; however, for another object with the same code B, it still does not find it.
 
-**Cách sửa nghiệp vụ:** dùng **record MutableKeySnapshot(String code)** hoặc một lớp khóa bất biến; khi cần thay đổi code, tạo **khóa mới** và cập nhật Map có chủ đích. Không thay loại Map chỉ để tránh biểu hiện của mutable key.
+**Business fix:** use **record MutableKeySnapshot(String code)** or an immutable key class; when code needs to change, create **a new key** and update the Map intentionally. Do not change the Map type merely to avoid symptoms of mutable keys.
 
-## 10. Không dùng identityHashCode làm giá trị ID
+## 10. Do not use identityHashCode as an ID value
 
-Hai khái niệm quan trọng:
+Two important concepts:
 
-- **obj == other** chứng minh hai tham chiếu là cùng object trong ngữ cảnh chạy.
-- **System.identityHashCode(obj) == System.identityHashCode(other)** **không chứng minh** hai tham chiếu là cùng object, vì identity hash có thể va chạm.
+- **obj == other** proves two references are the same object in the running context.
+- **System.identityHashCode(obj) == System.identityHashCode(other)** **does not prove** two references are the same object, because identity hashes can collide.
 
-Không ghi identityHashCode vào database như khóa duy nhất hoặc dùng để liên kết đối tượng giữa các tiến trình/lần khởi động JVM. Số đó không mang ý nghĩa định danh nghiệp vụ hay địa chỉ bộ nhớ bền vững.
+Do not write identityHashCode to a database as a unique key or use it to correlate objects across processes or JVM restarts. That number carries neither business identification meaning nor a durable memory address.
 
-Nếu ứng dụng cần ID thực thể, dùng ID được quản lý rõ ràng trong model (ví dụ UUID hoặc khóa database). Nếu cần phân biệt tham chiếu trong thuật toán tạm thời, dùng **==** hoặc IdentityHashMap/identity set để duy trì quan hệ tham chiếu trực tiếp.
+If the application needs entity IDs, use explicitly managed IDs in the model (such as UUIDs or database keys). If a temporary algorithm needs to distinguish references, use **==** or IdentityHashMap/identity set to preserve direct reference relationships directly.
 
-## 11. HashMap và IdentityHashMap trong API công khai
+## 11. HashMap and IdentityHashMap in public APIs
 
-Chữ ký **Map<K,V>** che đi sự khác biệt về cách so khóa. Hai implementation đều có thể được truyền vào một hàm nhận Map, nhưng hành vi lookup/put phụ thuộc instance map thực tế.
+The **Map<K,V>** signature hides differences in key comparison. Both implementations can be passed into a method accepting Map, yet lookup/put behavior depends on the actual map instance.
 
-Ví dụ một hàm dùng **containsKey(new CustomerId("C-17"))** có thể đúng với HashMap và sai với IdentityHashMap đã nhận một CustomerId tương đương nhưng khác tham chiếu. Nếu API yêu cầu “logical key equality”, việc chấp nhận IdentityHashMap là **sai tiền điều kiện**. Tài liệu và test cần diễn đạt điều kiện này, hoặc module chủ động tạo HashMap với khóa value object rõ ràng.
+For instance, a method calling **containsKey(new CustomerId("C-17"))** may work with HashMap and fail with an IdentityHashMap that received an equivalent CustomerId with a different reference. If an API requires "logical key equality", passing IdentityHashMap **violates a precondition**. Documentation and tests must express this condition, or the module should proactively construct a HashMap with explicit value-object keys.
 
-Một số nơi cố dùng IdentityHashMap để “tăng tốc” vì nó không gọi equals phức tạp. Điều đó thay đổi kết quả nghiệp vụ, không phải tối ưu an toàn. Chỉ tối ưu sau khi chứng minh dữ liệu thật và có một phép chuyển đổi **bảo toàn semantics**. Với Map theo giá trị, có thể cải thiện hashCode, tính bất biến của khóa, phân bổ dung lượng hoặc thiết kế khóa chuyên biệt trong khi vẫn giữ HashMap.
+Some places attempt to use IdentityHashMap to "speed up" by skipping complex equals calls. That alters business outcomes rather than being a safe optimization. Optimize only after proving with real data and applying a **semantics-preserving** transformation. For value-based Maps, you can improve hashCode, key immutability, capacity allocation, or dedicated key design while keeping HashMap.
 
-Không dùng **IdentityHashMap** để suy luận rằng **equals** của khóa không quan trọng với hệ thống: các API khác vẫn dùng equals, ví dụ HashSet, HashMap khác, List.contains và nhiều nghiệp vụ so sánh giá trị.
+Do not use **IdentityHashMap** to infer that a key's **equals** does not matter to the system: other APIs still use equals, such as HashSet, other HashMaps, List.contains, and many value-comparison operations.
 
-## 12. Kiểm tra đúng ngữ nghĩa bằng bộ test tối thiểu
+## 12. Verifying semantics with a minimal test suite
 
-Đối với bài toán cần gộp theo giá trị, hãy kiểm tra ít nhất:
+For problems that need grouping by value, test at least:
 
-1. **Hai instance được tạo độc lập, cùng giá trị:** equals true, hashCode bằng nhau; khi put vào HashMap, size chỉ tăng một lần.
-2. **Lookup bằng instance thứ ba:** HashMap trả đúng giá trị dù tham chiếu khác khóa đã put.
-3. **Khác giá trị nghiệp vụ:** equals false và được giữ thành hai khóa; hashCode có thể tình cờ trùng nhưng vẫn không bị gộp.
-4. **Khóa tổ hợp:** những thành phần như tenantId, loại thực thể, mã và phiên bản được xét theo đúng định nghĩa miền.
-5. **Khóa ổn định:** không sửa field ảnh hưởng equals/hashCode khi khóa còn ở trong Map.
-6. **Null:** nếu null được phép, kiểm tra containsKey để phân biệt “không có entry” với “entry có value null”.
-7. **Mảng:** nếu nghiệp vụ coi nội dung là giá trị, dùng Arrays.equals/hashCode hoặc wrapper đúng hợp đồng.
-8. **Các phiên bản dữ liệu:** deserialize cùng bản ghi hai lần, tạo hai object độc lập rồi thử lookup/gom nhóm.
-9. **Nếu thực sự dùng identity:** khẳng định bằng test rằng hai object equals nhưng khác tham chiếu **phải** là hai khóa riêng.
+1. **Two independently created instances, same value:** equals true, hashCode equal; when put into HashMap, size increases only once.
+2. **Lookup with a third instance:** HashMap returns the right value even though the reference differs from the inserted key.
+3. **Different business values:** equals false and kept as two keys; hashCode may happen to collide yet must not merge.
+4. **Composite keys:** components such as tenantId, entity type, code, and version are evaluated per domain definition.
+5. **Stable keys:** do not mutate fields affecting equals/hashCode while the key remains in the Map.
+6. **Null:** if null is allowed, check containsKey to distinguish "no entry" from "entry with null value".
+7. **Arrays:** if business rules treat content as value, use Arrays.equals/hashCode or a contract-compliant wrapper.
+8. **Data instances:** deserialize the same record twice, creating two independent objects, then test lookup/grouping.
+9. **If truly using identity:** assert via tests that two equals objects with different references **must** be two separate keys.
 
-Test theo dữ liệu độc lập quan trọng vì String literal, boxing hoặc các cơ chế tái sử dụng instance có thể làm ví dụ quá đơn giản vô tình trùng identity và che lỗi.
+Testing with independent data matters because string literals, boxing, or instance-reuse mechanisms can cause overly simple examples to accidentally share identity and hide bugs.
 
-## 13. Bảng quyết định cho ứng dụng
+## 13. Decision table for applications
 
-| Nhu cầu thực sự | Cấu trúc thường phù hợp | Tiêu chí bằng nhau |
+| Real requirement | Typically suitable structure | Equality criterion |
 | --- | --- | --- |
-| Trạng thái theo **customerId**, **orderId**, UUID, record key | **HashMap** | **equals/hashCode** của khóa |
-| Tra cứu theo **String** tạo từ nhiều nguồn | **HashMap<String,V>** | Nội dung String |
-| Gom nhóm theo **tenant + id** | **HashMap<BusinessKey,V>** | equals/hashCode của value key tổ hợp |
-| Cần thứ tự các nhóm theo lần xuất hiện | **LinkedHashMap** | Vẫn là **equals/hashCode** |
-| Cần thứ tự sắp xếp theo Comparator | **TreeMap** | **compare == 0** theo comparator; phải kiểm tra nhất quán với equals |
-| Theo dõi **từng node object** kể cả khi equals nhau | **IdentityHashMap** | **==** và identity hash |
-| Tập hợp các object **theo danh tính** | **Collections.newSetFromMap(new IdentityHashMap<>())** | **==** |
-| Metadata gắn với object, cần quản lý theo tham chiếu yếu | Xem xét **WeakHashMap** hoặc cơ chế reference phù hợp | **WeakHashMap vẫn có semantics riêng và dùng equals**, không phải thay thế IdentityHashMap |
+| State by **customerId**, **orderId**, UUID, record key | **HashMap** | Key's **equals/hashCode** |
+| Lookup by **String** constructed from multiple sources | **HashMap<String,V>** | String content |
+| Grouping by **tenant + id** | **HashMap<BusinessKey,V>** | Composite value key's equals/hashCode |
+| Need group ordering by insertion order | **LinkedHashMap** | Still **equals/hashCode** |
+| Need sorted order by Comparator | **TreeMap** | **compare == 0** per comparator; must check consistency with equals |
+| Tracking **individual node objects** even when equals matches | **IdentityHashMap** | **==** and identity hash |
+| Set of objects **by identity** | **Collections.newSetFromMap(new IdentityHashMap<>())** | **==** |
+| Metadata attached to objects, needing weak-reference management | Consider **WeakHashMap** or an appropriate reference mechanism | **WeakHashMap still has its own semantics and uses equals**, not a drop-in replacement for IdentityHashMap |
 
-**Ghi nhớ cốt lõi:** **HashMap** và **IdentityHashMap** trả lời hai câu hỏi khác nhau. Nếu hệ thống cần “hai bản ghi có cùng giá trị nghiệp vụ là một khóa”, hãy giữ **HashMap** với khóa có equals/hashCode đúng và ổn định. **IdentityHashMap** chỉ phù hợp khi yêu cầu chính là **cùng tham chiếu object**; thay nó vào Map theo giá trị sẽ làm mất tính đúng đắn của dữ liệu mà không gây lỗi biên dịch.
+**Core takeaway:** **HashMap** and **IdentityHashMap** answer two different questions. If the system requires "two records with the same business value are one key", keep **HashMap** with keys having a correct and stable equals/hashCode. **IdentityHashMap** is only appropriate when the primary requirement is **the same object reference**; substituting it into a value-based Map breaks data correctness without causing a compilation error.
 
-Tham khảo chính thức: [HashMap (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/HashMap.html), [IdentityHashMap (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/IdentityHashMap.html), [Object.equals/hashCode (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html).
+Official references: [HashMap (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/HashMap.html), [IdentityHashMap (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/IdentityHashMap.html), [Object.equals/hashCode (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html).

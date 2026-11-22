@@ -1,73 +1,73 @@
-# Kết thúc bình thường hoặc đột ngột do ngoại lệ — Java 17+
+# Normal or Abrupt Completion Due to Exceptions — Java 17+
 
-Khi Java **đánh giá một biểu thức** (*expression evaluation*), việc đánh giá có thể:
+When Java **evaluates an expression**, the evaluation can either:
 
-- **Kết thúc bình thường** (*completes normally*): biểu thức được đánh giá xong; nếu biểu thức có giá trị thì giá trị đó sẵn sàng để dùng trong biểu thức bao ngoài, phép gán, đối số hoặc câu lệnh.
-- **Kết thúc đột ngột** (*completes abruptly*): một phần của quá trình đánh giá thất bại, ví dụ ném ngoại lệ (*exception*). Biểu thức **không hoàn tất theo đường bình thường**; các bước phụ thuộc phía sau bị bỏ qua và luồng điều khiển chuyển tới cơ chế xử lý ngoại lệ phù hợp.
+- **Complete normally**: the expression finishes evaluating; if the expression produces a value, that value is ready for use in an enclosing expression, assignment, argument, or statement.
+- **Complete abruptly**: part of the evaluation fails—for example, throwing an **exception**. The expression **does not complete along the normal path**; dependent subsequent steps are skipped and control transfers to an appropriate exception handler.
 
 ~~~java
-int sum = 2 + 3;    // Binh thuong: sum nhan 5.
+int sum = 2 + 3;    // Normal: sum receives 5.
 
-// int bad = 10 / 0; // Khi chay: ArithmeticException.
-// Khong co ket qua int binh thuong de gan cho bad.
+// int bad = 10 / 0; // At runtime: ArithmeticException.
+// No normal int result to assign to bad.
 ~~~
 
-Trong Java, một lời gọi trả `void` cũng có thể **kết thúc bình thường** dù không sinh ra giá trị để cộng/gán. Vì vậy không đồng nhất “bình thường” với “luôn trả một đối tượng hoặc một con số”.
+In Java, an invocation returning `void` can also **complete normally** even though it does not produce a value to add or assign. Therefore, do not equate "normal" with "always returning an object or a number."
 
-**Trọng tâm:** khi một biểu thức con ném ngoại lệ, việc đánh giá biểu thức lớn bị dừng; những tác dụng phụ **đã diễn ra trước lỗi** không tự động được hoàn tác.
+**Core focus:** when a sub-expression throws an exception, evaluation of the larger expression stops; side effects that **already occurred before the error** are not automatically rolled back.
 
-## 1. Hai kết quả của đánh giá biểu thức
+## 1. Two Outcomes of Expression Evaluation
 
-| Tình huống | Hoàn tất thế nào? | Hệ quả |
+| Situation | How does it complete? | Consequence |
 | --- | --- | --- |
-| `4 + 5` | Bình thường | Có giá trị `int 9` |
-| `"Java".length()` | Bình thường | Có giá trị `int 4` |
-| `System.out.println("Hi")` | Bình thường nếu in thành công | Lời gọi `void` không cung cấp một giá trị có thể đem cộng |
-| `10 / 0` với toán hạng `int` | Đột ngột | Ném `ArithmeticException` |
-| `((String) null).length()` | Đột ngột | Ném `NullPointerException` |
-| `array[99]` nếu mảng quá ngắn | Đột ngột | Ném `ArrayIndexOutOfBoundsException` |
-| `Integer.parseInt("abc")` | Đột ngột | Ném `NumberFormatException` |
-| `false && risky()` | Bình thường với `false` | `risky()` **không được gọi** |
-| `true ? 1 : riskyInt()` | Bình thường với `1` | Nhánh không được chọn **không được đánh giá** |
+| `4 + 5` | Normally | Yields `int 9` |
+| `"Java".length()` | Normally | Yields `int 4` |
+| `System.out.println("Hi")` | Normally if printing succeeds | `void` call provides no value that can be added |
+| `10 / 0` with `int` operands | Abruptly | Throws `ArithmeticException` |
+| `((String) null).length()` | Abruptly | Throws `NullPointerException` |
+| `array[99]` if array is too short | Abruptly | Throws `ArrayIndexOutOfBoundsException` |
+| `Integer.parseInt("abc")` | Abruptly | Throws `NumberFormatException` |
+| `false && risky()` | Normally with `false` | `risky()` **is not called** |
+| `true ? 1 : riskyInt()` | Normally with `1` | Unselected branch **is not evaluated** |
 
-Một ngoại lệ được **ném** tại một điểm sẽ tìm khối `catch` phù hợp ở ngăn xếp lời gọi. Nếu không có nơi xử lý, ngoại lệ có thể làm luồng đang chạy chấm dứt. Một `catch` xử lý thành công **không làm Java quay lại tính tiếp biểu thức bị ngắt**; chương trình tiếp tục từ vị trí hợp lệ **sau cấu trúc xử lý**.
+An exception **thrown** at one point searches for a matching `catch` block up the call stack. If none handles it, the exception can terminate the running thread. A `catch` that handles the error **does not make Java jump back to finish the interrupted expression**; the program continues from a valid position **after the handling construct**.
 
-## 2. Quy tắc lan truyền từ biểu thức con
+## 2. Propagation Rules from Sub-Expressions
 
-Các toán hạng và đối số thông thường được đánh giá **từ trái sang phải**. Nếu một biểu thức con ném ngoại lệ:
+Ordinary operands and arguments are evaluated **from left to right**. If a sub-expression throws an exception:
 
-1. Các biểu thức con **đã hoàn tất trước đó** vẫn đã được đánh giá; những thay đổi trạng thái trước lỗi vẫn còn, trừ khi ứng dụng có cơ chế hoàn tác riêng.
-2. Các biểu thức con **phía sau chưa tới lượt** sẽ không được đánh giá trong cùng phép tính hoặc lời gọi đó.
-3. Toàn bộ biểu thức bao ngoài **kết thúc đột ngột**, không trả giá trị bình thường cho phép gán hoặc lời gọi bên ngoài.
-4. `catch` phù hợp có thể xử lý lỗi và cho phép chương trình tiếp tục ở một câu lệnh sau `try/catch`.
+1. Sub-expressions **already completed earlier** remain evaluated; state changes prior to the error persist unless the application provides its own undo mechanism.
+2. Sub-expressions **later in line whose turn has not come** will not be evaluated within that same calculation or invocation.
+3. The entire enclosing expression **completes abruptly**, returning no normal value to an outer assignment or invocation.
+4. A matching `catch` can handle the error and allow the program to continue at a statement after `try/catch`.
 
-Ví dụ:
+Example:
 
 ~~~java
 int result = left() + fail() + right();
 ~~~
 
-Nếu `left()` trả giá trị bình thường rồi `fail()` ném exception, `right()` **không chạy** và phép gán cho `result` không hoàn tất. Nếu `left()` đã ghi log hoặc tăng bộ đếm thì thay đổi đó vẫn tồn tại.
+If `left()` returns a normal value and then `fail()` throws an exception, `right()` **does not run** and the assignment to `result` does not complete. If `left()` already wrote a log or incremented a counter, that change remains.
 
-Sơ đồ luồng:
+Flow diagram:
 
 ~~~text
-Danh gia left() ----> Danh gia fail() ----> Danh gia right()
-       |                    |
-    thanh cong          nem exception
-                            |
-                            v
-                  Bo qua right() va phep gan
-                            |
-                            v
-                    Tim catch phu hop
+Evaluate left() ----> Evaluate fail() ----> Evaluate right()
+       |                     |
+    succeeds          throws exception
+                             |
+                             v
+                  Skip right() and assignment
+                             |
+                             v
+                   Search for matching catch
 ~~~
 
-Sơ đồ chỉ thể hiện một nhánh thất bại minh họa; nếu `fail()` thành công, việc đánh giá sẽ đi tiếp sang `right()`.
+The diagram illustrates only a failure branch; if `fail()` succeeds, evaluation proceeds to `right()`.
 
-## 3. Demo Java 17+ chạy độc lập
+## 3. Standalone Runnable Java 17+ Demo
 
-Tạo file UTF-8 tên **`ExpressionCompletionDemo.java`**:
+Create a UTF-8 file named **`ExpressionCompletionDemo.java`**:
 
 ~~~java
 public class ExpressionCompletionDemo {
@@ -185,7 +185,7 @@ public class ExpressionCompletionDemo {
 }
 ~~~
 
-Mở PowerShell (Windows) hoặc Bash (Linux/macOS) trong thư mục chứa file, dùng **JDK 17 trở lên**:
+Open PowerShell (Windows) or Bash (Linux/macOS) in the folder containing the file, using **JDK 17 or newer**:
 
 ~~~bash
 java -version
@@ -194,7 +194,7 @@ javac -encoding UTF-8 ExpressionCompletionDemo.java
 java ExpressionCompletionDemo
 ~~~
 
-**Exact expected output** của lệnh `java ExpressionCompletionDemo` (không bao gồm đầu ra các lệnh `-version`):
+**Exact expected output** of `java ExpressionCompletionDemo` (excluding the output of the `-version` commands):
 
 ~~~text
 == normal ==
@@ -237,61 +237,61 @@ recoveredValue=99
 program=continued
 ~~~
 
-Những dòng có tiền tố `unexpected=` **không xuất hiện** vì biểu thức tương ứng đã ném ngoại lệ trước khi hoàn tất bình thường.
+Lines prefixed with `unexpected=` **do not appear** because the corresponding expression threw an exception before completing normally.
 
-## 4. Đọc kết quả của demo
+## 4. Reading the Demo Output
 
-### 4.1. Kết thúc bình thường
+### 4.1. Normal Completion
 
 ~~~java
 int normal = mark("left", 2) + mark("right", 3);
 ~~~
 
-`mark("left", 2)` và `mark("right", 3)` chạy theo thứ tự trái → phải, cùng trả `int` bình thường. Phép cộng nhận hai giá trị 2 và 3, hoàn tất với 5, nên phép gán cho `normal` thành công.
+`mark("left", 2)` and `mark("right", 3)` run left → right, both returning normal `int`s. Addition receives 2 and 3, completes with 5, and the assignment to `normal` succeeds.
 
-### 4.2. Biểu thức con ném exception: phần sau không được chạy
+### 4.2. Sub-Expression Throws Exception: Later Parts Do Not Run
 
 ~~~java
 mark("before", 1) + fail("middle") + mark("after", 9)
 ~~~
 
-`mark("before", 1)` đã chạy. `fail("middle")` ghi dấu rồi ném `IllegalStateException`. Vì vậy:
+`mark("before", 1)` ran. `fail("middle")` logged and then threw `IllegalStateException`. Therefore:
 
-- `mark("after", 9)` **không được gọi**.
-- Phép cộng lớn **không có giá trị bình thường**.
-- `catch (IllegalStateException ex)` nhận exception và in `boom-middle`.
+- `mark("after", 9)` **is not called**.
+- The outer addition **has no normal value**.
+- `catch (IllegalStateException ex)` catches the exception and prints `boom-middle`.
 
-Biểu thức trong khối `try` không được tiếp tục tại chỗ sau khi exception đã xử lý.
+The expression inside the `try` block does not resume in place after the exception is handled.
 
-### 4.3. Đối số thất bại: phương thức đích chưa được gọi
+### 4.3. Argument Fails: Target Method Is Never Called
 
 ~~~java
 combine(mark("arg-1", 10), fail("arg-2"), mark("arg-3", 30))
 ~~~
 
-Đối số đầu tiên chạy, đối số thứ hai ném exception. Đối số thứ ba **không được đánh giá**, và bản thân phương thức `combine` **không được gọi**; vì vậy sẽ không có dòng `combine=called`.
+The first argument runs; the second argument throws an exception. The third argument **is not evaluated**, and the `combine` method itself **is not called**; hence there is no `combine=called` line.
 
-Việc phương thức nhận ba tham số không có nghĩa Java đánh giá đồng thời hoặc đánh giá tất cả bất chấp lỗi.
+A method taking three parameters does not mean Java evaluates them concurrently or evaluates all of them regardless of errors.
 
-### 4.4. Ngoại lệ do phép toán
+### 4.4. Exceptions from Operations
 
-`int` chia cho số nguyên 0 ném `ArithmeticException`. Hai toán hạng trong:
+`int` division by integer 0 throws `ArithmeticException`. Both operands in:
 
 ~~~java
 mark("numerator", 10) / mark("denominator", 0)
 ~~~
 
-đều được đánh giá trước khi phép chia phát hiện mẫu số bằng 0. Do đó có cả hai dòng `eval=...`, nhưng không có kết quả `quotient`.
+are evaluated before division detects the zero divisor. Thus both `eval=...` lines appear, yet there is no `quotient` result.
 
-**Lưu ý khác biệt:** `double` chia cho `0.0` tuân theo quy tắc số thực, có thể tạo `Infinity` hoặc `NaN` thay vì `ArithmeticException`. Không áp dụng máy móc quy tắc chia cho 0 của số nguyên cho mọi kiểu số.
+**Important difference:** `double` divided by `0.0` follows floating-point rules and can produce `Infinity` or `NaN` instead of `ArithmeticException`. Do not mechanically apply integer division-by-zero rules to all numeric types.
 
-### 4.5. Null và truy cập mảng
+### 4.5. Null and Array Access
 
-Gọi `text.length()` khi `text == null` ném `NullPointerException`. Trong `values[mark("bad-index", 3)]`, chỉ số 3 được đánh giá xong rồi thao tác truy cập mảng ném `ArrayIndexOutOfBoundsException` vì mảng chỉ có hai phần tử, chỉ số hợp lệ là 0 và 1.
+Calling `text.length()` when `text == null` throws `NullPointerException`. In `values[mark("bad-index", 3)]`, index 3 finishes evaluating and then the array access throws `ArrayIndexOutOfBoundsException` because the array has only two elements, with valid indices 0 and 1.
 
-Tên lớp của ngoại lệ trong log giúp phân biệt **loại thất bại**, nhưng không phải thông báo đầy đủ của ngoại lệ nào cũng giống nhau giữa các JDK. Demo chỉ in `getClass().getSimpleName()` để stdout ổn định.
+The exception class name in logs helps distinguish **the kind of failure**, though not every exception's full message is identical across JDKs. The demo prints only `getClass().getSimpleName()` to keep stdout stable.
 
-### 4.6. Phần bị bỏ qua là ngữ nghĩa bình thường, không phải exception
+### 4.6. Skipped Evaluation Is Normal Semantics, Not an Exception
 
 ~~~java
 boolean a = false && check("skip-and", true);
@@ -299,11 +299,11 @@ boolean b = true || check("skip-or", false);
 int c = true ? mark("selected", 7) : fail("skip-branch");
 ~~~
 
-Ở hai biểu thức boolean, vế trái đã đủ xác định kết quả nên không gọi vế phải. Với toán tử ba ngôi, chỉ nhánh được chọn được đánh giá. Tất cả các biểu thức này **kết thúc bình thường**, mặc dù không đánh giá một phần cú pháp.
+In the two boolean expressions, the left side already determines the result, so the right side is not called. With the ternary operator, only the chosen branch is evaluated. All of these expressions **complete normally**, even though part of the syntax is not evaluated.
 
-Vì vậy, **“biểu thức con không được chạy” không đồng nghĩa “có exception”**.
+Therefore, **"a sub-expression did not run" does not mean "an exception occurred."**
 
-### 4.7. Tác dụng phụ trước lỗi không tự được hoàn tác
+### 4.7. Side Effects Before an Error Are Not Automatically Rolled Back
 
 ~~~java
 int counter = 0;
@@ -311,68 +311,68 @@ int value = mark("counter-start", counter++)
         + fail("counter-fail");
 ~~~
 
-`counter++` trả giá trị cũ và tăng `counter` lên 1 trước khi `fail(...)` ném exception. `value` không nhận được một kết quả gán bình thường, nhưng `counter` vẫn bằng 1 sau khi exception được bắt.
+`counter++` returns the old value and increments `counter` to 1 before `fail(...)` throws an exception. `value` does not receive a normal assignment result, yet `counter` remains 1 after the exception is caught.
 
-Đây không phải transaction. Muốn khôi phục trạng thái cần có thiết kế xử lý/hoàn tác phù hợp; `try/catch` tự thân không khôi phục mọi biến hay thao tác I/O trước đó.
+This is not a transaction. Restoring state requires explicit handling/undo design; `try/catch` by itself does not restore prior variables or I/O operations.
 
-### 4.8. `catch` và `finally` có vai trò khác nhau
+### 4.8. `catch` and `finally` Have Different Roles
 
-Trong phần cuối demo, phép tính cho `recovered` kết thúc đột ngột, nhưng `catch` bắt exception và **chủ động gán giá trị dự phòng 99**. Khối `finally` in dòng dọn dẹp và sau đó chương trình tiếp tục.
+In the last part of the demo, the computation for `recovered` completes abruptly, yet `catch` catches the exception and **actively assigns a fallback value of 99**. The `finally` block prints the cleanup line and then the program continues.
 
-- `catch` xử lý loại exception phù hợp; không tự sinh kết quả cho biểu thức đã hỏng.
-- `finally` thông thường được thực thi khi rời `try/catch`, kể cả khi có exception, nhưng cũng có các trường hợp JVM/tiến trình không thể hoàn tất dọn dẹp (ví dụ bị kết thúc cưỡng bức).
-- Nếu bản thân `finally` ném exception mới, exception đó có thể làm thay đổi cách khối hoàn tất. Tránh `return` hoặc ném exception mới trong `finally` trừ khi thực sự có chủ đích.
+- `catch` handles matching exception types; it does not automatically synthesize a result for the broken expression.
+- `finally` normally executes when leaving `try/catch`, even if an exception occurred, though there are cases where the JVM/process cannot finish cleanup (such as forced termination).
+- If `finally` itself throws a new exception, that exception can override how the block completes. Avoid `return` or throwing new exceptions inside `finally` unless genuinely intentional.
 
-Trong mã ứng dụng, ưu tiên **try-with-resources** để đóng các tài nguyên hỗ trợ `AutoCloseable`, thay vì tự xử lý nhiều đường thoát phức tạp khi không cần.
+In application code, prefer **try-with-resources** to close `AutoCloseable` resources instead of manually managing multiple complex exit paths unnecessarily.
 
-## 5. Chỉ cần một phần lỗi, toàn bộ biểu thức bao ngoài bị ảnh hưởng
+## 5. One Failing Part Affects the Entire Enclosing Expression
 
-Ví dụ:
+Example:
 
 ~~~java
 int total = 5 + Integer.parseInt("abc") * 2;
 ~~~
 
-Biểu thức có cách nhóm `5 + (parseInt("abc") * 2)`. Khi `parseInt` ném `NumberFormatException`:
+The expression is grouped as `5 + (parseInt("abc") * 2)`. When `parseInt` throws `NumberFormatException`:
 
-1. Lời gọi không trả `int` bình thường.
-2. Phép nhân không có đủ toán hạng để tính giá trị.
-3. Phép cộng không nhận được giá trị cho toán hạng phải.
-4. Phép gán cho `total` không hoàn tất.
-5. Luồng xử lý chuyển theo quy tắc exception.
+1. The invocation does not return a normal `int`.
+2. Multiplication lacks enough operands to compute a value.
+3. Addition receives no value for its right operand.
+4. Assignment to `total` does not complete.
+5. Control transfers according to exception-handling rules.
 
-Nếu đây là bước xử lý dữ liệu người dùng, nên bắt `NumberFormatException` tại nơi có thể thông báo lỗi, yêu cầu nhập lại hoặc áp dụng một giá trị dự phòng **đã được đặc tả**, không lặng lẽ đoán thay.
+If this is user-input processing, catch `NumberFormatException` where you can report an error, request re-entry, or apply a **specified** fallback value rather than silently guessing a replacement.
 
-## 6. Checked và unchecked exceptions
+## 6. Checked and Unchecked Exceptions
 
-Sự khác biệt **checked / unchecked** liên quan tới yêu cầu **khai báo hoặc xử lý tại compile time**; không làm thay đổi nguyên tắc một biểu thức ném exception sẽ kết thúc đột ngột.
+The **checked / unchecked** distinction concerns compile-time **declaration or handling requirements**; it does not change the rule that an expression throwing an exception completes abruptly.
 
-| Loại | Ví dụ | Compiler yêu cầu gì? |
+| Kind | Examples | What does the compiler require? |
 | --- | --- | --- |
-| Checked exception | `java.io.IOException` | Thông thường phải `catch` hoặc khai báo `throws` |
-| Unchecked exception | `ArithmeticException`, `NullPointerException`, `NumberFormatException` | Không buộc phải `catch` hoặc khai báo `throws` |
-| Lỗi nghiêm trọng thuộc `Error` | `OutOfMemoryError` | Cũng unchecked; thường không nên cố xử lý như lỗi nhập liệu |
+| Checked exception | `java.io.IOException` | Normally must be caught with `catch` or declared with `throws` |
+| Unchecked exception | `ArithmeticException`, `NullPointerException`, `NumberFormatException` | Not required to be caught or declared with `throws` |
+| Serious error under `Error` | `OutOfMemoryError` | Also unchecked; generally should not be handled like an input error |
 
-Một exception có thể phát sinh sâu trong lời gọi phương thức rồi lan qua các biểu thức bao ngoài. Dù thuộc loại checked hay unchecked, nếu không được xử lý phù hợp thì đường thực thi bình thường không thể hoàn tất như dự kiến.
+An exception can arise deep inside a method call and propagate out through enclosing expressions. Whether checked or unchecked, if unhandled appropriately, the normal execution path cannot finish as expected.
 
-## 7. Phân biệt “kết thúc đột ngột” của biểu thức với câu lệnh
+## 7. Distinguish Abrupt Expression Completion from Statements
 
-**Biểu thức** có thể kết thúc đột ngột do exception. **Câu lệnh** trong Java còn có các dạng hoàn tất đột ngột khác như `return`, `break` hoặc `continue` ở ngữ cảnh phù hợp.
+An **expression** can complete abruptly due to an exception. Java **statements** also have other forms of abrupt completion such as `return`, `break`, or `continue` in appropriate contexts.
 
 ~~~java
 static int example(boolean stop) {
     if (stop) {
-        return 1; // Phương thuc roi tai return.
+        return 1; // Method exits at return.
     }
     return 2;
 }
 ~~~
 
-`return` ở ví dụ là **câu lệnh điều khiển**, không phải một toán tử số hoặc giá trị exception. Do đó khi bàn riêng về **biểu thức ném ngoại lệ**, tránh đánh đồng `return` với “exception được ném từ phép cộng”.
+`return` in the example is a **control-flow statement**, not a numeric operator or an exception value. Thus, when specifically discussing **expressions throwing exceptions**, avoid conflating `return` with "an exception thrown by addition."
 
-## 8. Cách viết mã dễ bảo trì hơn
+## 8. Writing More Maintainable Code
 
-Khi một biểu thức có nhiều lời gọi có thể thất bại, thường nên tách các bước để xác định rõ điểm lỗi và chính sách dự phòng:
+When an expression contains multiple calls that can fail, it is often better to separate steps to clearly define failure points and fallback policies:
 
 ~~~java
 String text = "42";
@@ -380,46 +380,46 @@ int parsed;
 try {
     parsed = Integer.parseInt(text);
 } catch (NumberFormatException ex) {
-    parsed = 0; // Chi dung neu bai toan cho phep fallback 0.
+    parsed = 0; // Use only if the problem allows a fallback of 0.
 }
 int total = parsed * 2;
 ~~~
 
-Cách này làm rõ:
+This makes clear:
 
-- Dữ liệu nào cần được parse.
-- Loại exception nào có thể phát sinh và được bắt.
-- Giá trị dự phòng có thực sự được cho phép hay không.
-- Phép nhân chỉ bắt đầu **sau khi** bước parse đã được giải quyết.
+- Which input needs to be parsed.
+- Which exception type can occur and is caught.
+- Whether a fallback value is actually permitted.
+- Multiplication begins **only after** the parse step has been resolved.
 
-Không cần bắt mọi `RuntimeException` hoặc `Exception` một cách vô điều kiện. Nên bắt **lỗi có thể xử lý hợp lý tại đúng ranh giới nghiệp vụ**, để các lỗi lập trình không bị che giấu.
+There is no need to catch every `RuntimeException` or `Exception` unconditionally. Catch **errors that can be handled meaningfully at the right business boundary**, so programming bugs are not hidden.
 
-## 9. Bài tập tự kiểm tra
+## 9. Self-Check Exercises
 
-1. **Bình thường:** `int n = 3 * (2 + 1);` kết thúc ra sao?  
-   *Đáp án:* Bình thường, `n = 9`.
-2. **Dừng sớm:** Trong `first() + fail() + last()`, nếu `fail()` ném exception thì `last()` chạy không?  
-   *Đáp án:* Không; toàn bộ phép cộng kết thúc đột ngột.
-3. **Đối số:** Nếu đối số thứ hai của lời gọi ba đối số ném exception, đối số thứ ba và thân phương thức có chạy không?  
-   *Đáp án:* Không.
-4. **Ngắn mạch:** `false && risky()` không gọi `risky()`; đây có phải kết thúc đột ngột không?  
-   *Đáp án:* Không; toàn biểu thức kết thúc bình thường với `false`.
-5. **Trạng thái:** `int x = 0;` rồi đánh giá `x++ + fail()`; bắt exception xong `x` bằng bao nhiêu?  
-   *Đáp án:* `1` vì phép tăng đã diễn ra trước khi ném exception.
-6. **Chia cho 0:** `int x = 10 / 0;` và `double y = 10.0 / 0.0;` khác nhau ra sao?  
-   *Đáp án:* Phép thứ nhất ném `ArithmeticException`; phép thứ hai cho số thực dương vô cực theo quy tắc floating-point.
-7. **`catch`:** Bắt được exception từ `Integer.parseInt("abc")` có nghĩa biểu thức ban đầu tự tính tiếp không?  
-   *Đáp án:* Không; phải chọn luồng xử lý mới (ví dụ nhập lại hoặc gán fallback hợp lệ).
+1. **Normal:** How does `int n = 3 * (2 + 1);` complete?  
+   *Answer:* Normally, `n = 9`.
+2. **Early stop:** In `first() + fail() + last()`, if `fail()` throws an exception, does `last()` run?  
+   *Answer:* No; the entire addition completes abruptly.
+3. **Arguments:** If the second argument of a three-argument call throws an exception, do the third argument and the method body run?  
+   *Answer:* No.
+4. **Short-circuiting:** `false && risky()` does not call `risky()`; is this abrupt completion?  
+   *Answer:* No; the entire expression completes normally with `false`.
+5. **State:** `int x = 0;` then evaluate `x++ + fail()`; after catching the exception, what is `x`?  
+   *Answer:* `1`, because the increment already occurred before the exception was thrown.
+6. **Division by 0:** How do `int x = 10 / 0;` and `double y = 10.0 / 0.0;` differ?  
+   *Answer:* The first throws `ArithmeticException`; the second produces positive floating-point infinity per floating-point rules.
+7. **`catch`:** Does catching an exception from `Integer.parseInt("abc")` mean the original expression resumes computing?  
+   *Answer:* No; a new control-flow path must be chosen (such as re-prompting or assigning a valid fallback).
 
 ## Checklist
 
-- [ ] Phân biệt kết thúc **bình thường** với kết thúc **đột ngột do exception**.
-- [ ] Khi một biểu thức con thất bại, biểu thức bao ngoài không tạo kết quả bình thường.
-- [ ] Những toán hạng/đối số chưa tới lượt sẽ **không được đánh giá** sau exception.
-- [ ] Tác dụng phụ đã diễn ra **không tự động rollback**.
-- [ ] Hiểu `&&`, `||`, `?:` có thể bỏ qua nhánh **mà vẫn hoàn tất bình thường**.
-- [ ] Phân biệt trách nhiệm của `try`, `catch`, `finally`.
-- [ ] Biết checked/unchecked là vấn đề hợp đồng compile-time, không thay đổi cơ chế lan truyền exception.
-- [ ] Bắt và xử lý lỗi tại nơi ứng dụng có thể đưa ra quyết định chính xác.
+- [ ] Distinguish **normal** completion from **abrupt completion due to an exception**.
+- [ ] When a sub-expression fails, the enclosing expression produces no normal result.
+- [ ] Operands/arguments whose turn has not arrived **will not be evaluated** after an exception.
+- [ ] Side effects that already happened **do not automatically roll back**.
+- [ ] Understand that `&&`, `||`, and `?:` can skip branches **and still complete normally**.
+- [ ] Distinguish the responsibilities of `try`, `catch`, and `finally`.
+- [ ] Know that checked/unchecked is a compile-time contract issue and does not change exception propagation mechanics.
+- [ ] Catch and handle errors where the application can make an accurate decision.
 
-**Kết luận:** Đánh giá một biểu thức Java có thể **hoàn thành với kết quả bình thường** hoặc **dừng đột ngột vì ngoại lệ**. Khi ngoại lệ phát sinh, các bước phía sau không tiếp tục, nhưng những tác dụng phụ trước đó vẫn còn; xử lý bằng `catch` là **một luồng điều khiển mới**, không phải “chạy tiếp” phép tính đã hỏng.
+**Conclusion:** Evaluating a Java expression can either **complete with a normal result** or **stop abruptly due to an exception**. When an exception occurs, subsequent steps do not proceed, while prior side effects remain; handling via `catch` is **a new control-flow path**, not "continuing" the broken computation.

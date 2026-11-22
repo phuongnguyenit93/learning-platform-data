@@ -1,60 +1,60 @@
-# Kiểm thử ranh giới năm–tuần, lịch và múi giờ trong Java
+# Testing Year–Week, Calendar, and Time-Zone Boundaries in Java
 
-Một tính năng ngày giờ có thể chạy đúng suốt phần lớn năm nhưng phát sinh lỗi đúng vào đêm 31/12, ngày 01/01, ngày nhuận 29/02 hoặc giờ hệ điều hành chuyển sang mùa hè (DST). Những lỗi này dễ bị bỏ sót vì bộ test chỉ dùng ngày bình thường, lấy `LocalDate.now()` và `ZoneId.systemDefault()`, hoặc nhầm **năm lịch** với **năm theo tuần**.
+A date-time feature can work smoothly most of the year yet fail precisely on the night of December 31, on January 1, on leap day February 29, or when the OS transitions to Daylight Saving Time (DST). These bugs easily slip past test suites that use ordinary dates, call `LocalDate.now()` and `ZoneId.systemDefault()`, or confuse **calendar year** with **week-based year**.
 
-Bài Knowledge thuộc nhóm **Kiểm thử và lỗi** trong **Java core - localization**. Mục tiêu là xây một bộ kiểm thử Java 17+ phát hiện chính xác các lỗi ở ba ranh giới liên quan nhưng khác nhau:
+This Knowledge lesson belongs to **Testing and Pitfalls** in **Java core - localization**. Its goal is to build a Java 17+ test suite that accurately catches bugs at three related yet distinct boundaries:
 
-1. **Năm lịch và năm theo tuần**: `2021-01-01` thuộc **năm lịch 2021** nhưng thuộc **tuần ISO 53 của năm-tuần 2020**.
-2. **Ngày lịch và quy tắc tháng/năm nhuận**: `2024-02-29` hợp lệ, `2023-02-29` không hợp lệ; xử lý `STRICT` có thể khác `SMART`.
-3. **Múi giờ, DST và thời điểm tuyệt đối**: một local time có thể **không tồn tại** hoặc **tồn tại hai lần**, và một ngày lịch không bắt buộc dài đúng 24 giờ.
+1. **Calendar year and week-based year**: `2021-01-01` belongs to **calendar year 2021** yet falls in **ISO week 53 of week-based year 2020**.
+2. **Calendar dates and month/leap-year rules**: `2024-02-29` is valid, `2023-02-29` is invalid; `STRICT` resolution can differ from `SMART`.
+3. **Time zones, DST, and instants**: a local time may **not exist** or may **occur twice**, and a calendar day does not have to be exactly 24 hours long.
 
-Tất cả ví dụ sử dụng **Java 17+**. Các chương trình chỉ dùng thư viện chuẩn, không phụ thuộc JUnit hay mạng, có lệnh `javac`/`java` riêng. Với các trường hợp thay đổi theo tzdb hoặc dữ liệu locale, bài chỉ rõ chính sách kiểm thử phiên bản; không giả định một snapshot định dạng theo ngôn ngữ là vĩnh viễn.
+All examples use **Java 17+**. The programs use only the standard library—no JUnit or network dependencies—with dedicated `javac`/`java` commands. For cases that vary with tzdb or locale data, this lesson specifies a versioned testing policy rather than treating a localized format snapshot as permanent.
 
-## 1. Chọn đúng kiểu thời gian trước khi xây test
+## 1. Choosing the Right Temporal Type Before Writing Tests
 
-| Kiểu Java | Biểu diễn | Ví dụ nghiệp vụ | Có zone/offset? |
+| Java type | Representation | Business example | Has zone/offset? |
 | --- | --- | --- | --- |
-| `LocalDate` | Ngày lịch ISO | Ngày sinh, hạn nộp theo ngày | Không |
-| `LocalTime` | Giờ địa phương không kèm ngày | Giờ mở cửa hằng ngày | Không |
-| `LocalDateTime` | Ngày và giờ địa phương | Cuộc hẹn 09:00 theo lịch địa phương | Không |
-| `Instant` | Một điểm trên trục thời gian UTC | Thời điểm thanh toán, audit timestamp | UTC timeline, không mang vùng người xem |
-| `OffsetDateTime` | Ngày-giờ kèm offset cụ thể | Payload `2024-10-27T02:30+02:00` | Có offset, không có toàn bộ quy tắc vùng |
-| `ZonedDateTime` | Ngày-giờ, vùng và offset được resolve | Lịch tại `Europe/Berlin` | Có `ZoneId` và offset |
-| `YearWeek` | **Không phải kiểu built-in của Java SE 17** | Năm và số tuần theo ISO | Cần tự mô hình hóa hoặc lấy `WeekFields` |
+| `LocalDate` | ISO calendar date | Birth date, date-based deadline | No |
+| `LocalTime` | Local time without date | Daily opening hours | No |
+| `LocalDateTime` | Local date and time | 09:00 appointment on a local calendar | No |
+| `Instant` | A point on the UTC timeline | Payment timestamp, audit timestamp | UTC timeline; carries no viewer zone |
+| `OffsetDateTime` | Date-time with a specific offset | Payload `2024-10-27T02:30+02:00` | Has offset, lacks full zone rules |
+| `ZonedDateTime` | Date-time, zone, and resolved offset | Schedule in `Europe/Berlin` | Has `ZoneId` and offset |
+| `YearWeek` | **Not a built-in Java SE 17 type** | Year and ISO week number | Must model explicitly or query `WeekFields` |
 
-Hai biến kiểu `LocalDate` ở hai máy có cùng năm-tháng-ngày nếu được tạo từ các thành phần giống nhau. Nhưng `LocalDate.now()` không có tham số sẽ dùng clock và zone mặc định, nên cùng **instant** trên hai máy có thể dẫn đến **ngày khác nhau**. Khi cần test deterministic, tránh `now()` trực tiếp hoặc cung cấp `Clock.fixed(...)`.
+Two `LocalDate` instances on two machines share the same year-month-day when constructed from identical components. However, parameterless `LocalDate.now()` uses the default clock and zone, so the **same instant** on two machines can yield **different dates**. For deterministic tests, avoid calling `now()` directly or supply `Clock.fixed(...)`.
 
-Không biến ngày không có múi giờ thành instant bằng cách tùy tiện chọn UTC lúc 00:00 nếu nghiệp vụ thực sự là ngày lịch trong một vùng khác. Ngược lại, không lưu chuỗi local datetime không có offset làm dấu thời gian audit toàn cầu.
+Never convert a zone-less date into an instant by arbitrarily picking 00:00 UTC if the business meaning is a calendar date in another region. Conversely, never store an offset-less local datetime string as a global audit timestamp.
 
-## 2. Ba khái niệm thường bị nhầm ở ngày đầu và cuối năm
+## 2. Three Concepts Commonly Confused at Year Start and Year End
 
-**Năm lịch** của `LocalDate` được lấy bằng `getYear()` hoặc trường `ChronoField.YEAR`.
+The **calendar year** of a `LocalDate` is retrieved via `getYear()` or `ChronoField.YEAR`.
 
-**Năm theo tuần** (*week-based-year*) được xác định bằng hai quy tắc: **thứ đầu tuần** và **số ngày tối thiểu trong tuần đầu năm**. Theo ISO-8601:
+The **week-based year** is defined by two rules: **first day of the week** and **minimum days in the first week of the year**. Under ISO-8601:
 
-- Tuần bắt đầu vào **thứ Hai**.
-- Tuần đầu năm phải chứa **ít nhất bốn ngày của năm mới**.
-- Một tuần luôn có **bảy ngày**.
-- Tuần ISO có thể bắt đầu trong tháng 12 của năm trước hoặc kéo dài sang đầu tháng 1 của năm sau.
-- Một năm-tuần có **52 hoặc 53 tuần**, không được tự áp dụng modulus 52.
+- Weeks start on **Monday**.
+- The first week of the year must contain **at least four days of the new year**.
+- Every week has **seven days**.
+- An ISO week can begin in December of the previous year or extend into early January of the next year.
+- A week-based year has **52 or 53 weeks**; never apply modulo 52 blindly.
 
-**Số thứ tự tuần trong năm lịch** (`weekOfYear`) và **số tuần của năm-tuần** (`weekOfWeekBasedYear`) cũng không đồng nghĩa. Theo quy tắc WeekFields, `weekOfYear` có thể bằng **0** vào các ngày trước tuần đầu tiên của năm lịch; `weekOfWeekBasedYear` thuộc tuần của một week-based-year cụ thể. Với báo cáo ISO theo năm-tuần, nên dùng **cặp** `weekBasedYear` + `weekOfWeekBasedYear`, không ghép `date.getYear()` với số tuần của năm-tuần.
+**Week number within the calendar year** (`weekOfYear`) and **week of the week-based year** (`weekOfWeekBasedYear`) are not synonymous either. Under `WeekFields` rules, `weekOfYear` can be **0** on days before the first week of the calendar year; `weekOfWeekBasedYear` belongs to a specific week-based year. For ISO year-week reports, use the **pair** `weekBasedYear` + `weekOfWeekBasedYear`, never combining `date.getYear()` with the week-based week number.
 
-### Các mốc phải có trong test
+### Boundary Dates That Must Be in Your Tests
 
-| Ngày Gregorian/ISO | Năm lịch | Năm-tuần ISO | Tuần ISO | Thứ ISO |
+| Gregorian/ISO date | Calendar year | ISO week-year | ISO week | ISO day of week |
 | --- | ---: | ---: | ---: | --- |
-| `2018-12-31` | 2018 | 2019 | 01 | 1 (thứ Hai) |
-| `2020-12-31` | 2020 | 2020 | 53 | 4 (thứ Năm) |
-| `2021-01-01` | 2021 | 2020 | 53 | 5 (thứ Sáu) |
-| `2022-01-01` | 2022 | 2021 | 52 | 6 (thứ Bảy) |
-| `2023-01-01` | 2023 | 2022 | 52 | 7 (Chủ nhật) |
+| `2018-12-31` | 2018 | 2019 | 01 | 1 (Monday) |
+| `2020-12-31` | 2020 | 2020 | 53 | 4 (Thursday) |
+| `2021-01-01` | 2021 | 2020 | 53 | 5 (Friday) |
+| `2022-01-01` | 2022 | 2021 | 52 | 6 (Saturday) |
+| `2023-01-01` | 2023 | 2022 | 52 | 7 (Sunday) |
 
-Dữ liệu này là **quy tắc ISO**, không phải định dạng tuần theo mọi locale. Những locale có tuần bắt đầu Chủ nhật và tiêu chí tuần đầu khác sẽ cho kết quả khác ở ngày ranh giới. Trong bộ test, phải ghi chính xác bạn đang kiểm tra ISO hay quy tắc `WeekFields.of(locale)`.
+These values follow **ISO rules**, not week conventions for every locale. Locales whose week starts on Sunday with different first-week criteria produce different results on boundary dates. In your test suite, document explicitly whether you are testing ISO or `WeekFields.of(locale)`.
 
-## 3. Chương trình 1: kiểm thử tuần ISO tại ranh giới năm
+## 3. Program 1: Testing ISO Weeks at Year Boundaries
 
-Tạo file **`IsoWeekBoundaryDemo.java`**:
+Create **`IsoWeekBoundaryDemo.java`**:
 
 ```java
 import java.time.LocalDate;
@@ -101,20 +101,20 @@ Stdout:
 2022-01-01: calendar=2022, weekYear=2021, week=52, ISO=2021-W52-6
 ```
 
-**Những điều chương trình chứng minh:**
+**What this program proves:**
 
-1. `date.getYear()` là năm theo lịch, còn `weekBasedYear()` có thể khác.
-2. `ISO_WEEK_DATE` ghi rõ **năm-tuần, số tuần và thứ** theo chuẩn ISO, thay vì tự nối `getYear()` với số tuần.
-3. Một tuần mang nhãn 2019-W01 đã bắt đầu từ 31/12/2018.
-4. 01/01/2021 thuộc 2020-W53; code thống kê `getYear() + "-W" + week` sẽ ghi sai thành 2021-W53.
+1. `date.getYear()` is the calendar year, while `weekBasedYear()` can differ.
+2. `ISO_WEEK_DATE` records the **week-based year, week number, and weekday** per ISO, rather than concatenating `getYear()` with week number.
+3. Week `2019-W01` already began on December 31, 2018.
+4. `2021-01-01` belongs to `2020-W53`; analytics code computing `getYear() + "-W" + week` would wrongly record `2021-W53`.
 
-**Khi lưu dữ liệu:** nếu nghiệp vụ thật sự là kỳ ISO tuần, hãy lưu **(weekBasedYear, weekOfWeekBasedYear)** hoặc ISO week-date đã được parse/validate. Không lưu mỗi `weekNumber` vì nó không xác định một khoảng thời gian duy nhất.
+**When persisting data:** if business logic actually tracks ISO week periods, store **(weekBasedYear, weekOfWeekBasedYear)** or a parsed/validated ISO week-date. Never store `weekNumber` alone because it does not uniquely identify a time span.
 
-## 4. WeekFields.ISO khác WeekFields theo Locale
+## 4. WeekFields.ISO Differs from Locale-Based WeekFields
 
-`WeekFields.ISO` cố định thứ Hai và tối thiểu bốn ngày cho tuần đầu. `WeekFields.of(Locale.US)` có thể sử dụng Chủ nhật và một ngày tối thiểu theo dữ liệu locale của runtime; một số vùng sử dụng quy tắc khác.
+`WeekFields.ISO` fixes Monday and at least four days for the first week. `WeekFields.of(Locale.US)` can use Sunday and one minimal day per runtime locale data; other regions apply different rules.
 
-`WeekFields.SUNDAY_START` là một tập quy tắc **cố định** (Chủ nhật, tối thiểu một ngày). Nó rất hữu ích để viết test minh họa mà không phụ thuộc dữ liệu locale của JDK.
+`WeekFields.SUNDAY_START` is a **fixed** rule set (Sunday, minimum one day). It is handy for writing illustrative tests independent of JDK locale data.
 
 **`WeekRuleComparisonDemo.java`**:
 
@@ -164,30 +164,30 @@ ISO year/week: 2020/53
 Sunday year/week: 2021/1
 ```
 
-Không có kết quả nào “sai” tự thân: chúng trả lời **hai định nghĩa tuần khác nhau**. Kết quả đúng phụ thuộc yêu cầu: báo cáo ISO dùng `WeekFields.ISO`, lịch vùng dùng `WeekFields.of(userLocale)` và cần test với dữ liệu provider/JDK mục tiêu.
+Neither result is inherently "wrong": they answer **two different week definitions**. The right answer depends on requirements: ISO reports use `WeekFields.ISO`, while regional calendars use `WeekFields.of(userLocale)` and must be tested against the target JDK/provider data.
 
-Khi tạo cache key cho tuần, **không dùng locale mặc định server** để tính tuần nếu schema đã quy định ISO. Nếu doanh nghiệp dùng lịch tuần riêng (ví dụ tuần bắt đầu Chủ nhật nhưng tối thiểu bốn ngày), tạo `WeekFields.of(DayOfWeek.SUNDAY, 4)` rồi kiểm thử rõ.
+When building cache keys for weeks, **do not use the server's default locale** to compute the week if the schema specifies ISO. If an enterprise uses a custom weekly calendar (e.g., weeks starting Sunday with at least four days), construct `WeekFields.of(DayOfWeek.SUNDAY, 4)` and test it explicitly.
 
-## 5. Bẫy pattern: yyyy, uuuu và YYYY
+## 5. Pattern Traps: yyyy, uuuu, and YYYY
 
-Trong `DateTimeFormatter`:
+In `DateTimeFormatter`:
 
-| Pattern | Ý nghĩa | Tình huống |
+| Pattern | Meaning | Usage context |
 | --- | --- | --- |
-| `uuuu` | Proleptic calendar year | ISO LocalDate, parse STRICT |
-| `yyyy` | Year-of-era | Năm theo kỷ nguyên; parse STRICT cần xử lý era |
-| `YYYY` | Localized week-based-year | Tuần-năm theo quy tắc locale, có thể khác năm lịch |
-| `MM` | Tháng | Không phải phút |
-| `mm` | Phút | Không phải tháng |
-| `dd` | Ngày trong tháng | Không phải ngày trong năm |
-| `DD` | Ngày trong năm | Không phải ngày trong tháng |
-| `ww` | Tuần của năm-tuần | Phải ghép đúng week-based-year và weekday |
+| `uuuu` | Proleptic calendar year | ISO `LocalDate`, `STRICT` parsing |
+| `yyyy` | Year-of-era | Year within an era; `STRICT` parsing requires era handling |
+| `YYYY` | Localized week-based-year | Week-year per locale rules; can differ from calendar year |
+| `MM` | Month | Not minute |
+| `mm` | Minute | Not month |
+| `dd` | Day of month | Not day of year |
+| `DD` | Day of year | Not day of month |
+| `ww` | Week of week-based-year | Must pair with the right week-based year and weekday |
 
-**Lỗi thường gặp:** copy mẫu `YYYY-MM-dd` để lưu ngày ISO. Ở các mốc đầu/cuối năm, `YYYY` có thể mang năm của **tuần**, còn `MM-dd` lại là tháng/ngày lịch; một chuỗi như vậy dễ trở nên tự mâu thuẫn. Dùng `DateTimeFormatter.ISO_LOCAL_DATE` cho ngày ISO máy đọc hoặc `"uuuu-MM-dd"` với resolver phù hợp.
+**Common bug:** copying `YYYY-MM-dd` to store ISO dates. Around year boundaries, `YYYY` can carry the **week-based** year while `MM-dd` holds the calendar month and day—producing a self-contradictory string. Use `DateTimeFormatter.ISO_LOCAL_DATE` for machine-readable ISO dates, or `"uuuu-MM-dd"` with an appropriate resolver.
 
-`DateTimeFormatter.ofPattern("YYYY", locale)` là pattern theo **localized week-based-year**, không đảm bảo cùng ISO ở mọi locale. Với các dữ liệu cần tuần ISO, ưu tiên `DateTimeFormatter.ISO_WEEK_DATE` hoặc trường `WeekFields.ISO`; với giao diện theo người dùng, có thể tạo formatter localized nhưng phải test locale/provider cụ thể.
+`DateTimeFormatter.ofPattern("YYYY", locale)` formats the **localized week-based year**, not guaranteed to match ISO in every locale. For data needing ISO weeks, prefer `DateTimeFormatter.ISO_WEEK_DATE` or `WeekFields.ISO` fields; for user-facing UIs, localized formatters may be used, tested with the specific locale/provider.
 
-### Chương trình 3: năm lịch khác năm-tuần
+### Program 3: Calendar Year vs. Week-Based Year
 
 **`PatternYearBoundaryDemo.java`**:
 
@@ -228,41 +228,41 @@ ISO week: 2020-W53-5
 yyyy year-of-era: 2021
 ```
 
-Ở đây `yyyy` và `uuuu` đều in năm 2021 vì ngày thuộc kỷ nguyên hiện đại; chúng **không hoàn toàn tương đương** khi parse nghiêm ngặt hoặc với năm ngoài Common Era. Không thay `yyyy` bằng `YYYY` vì nhầm chữ hoa là “bốn chữ số năm”.
+Here `yyyy` and `uuuu` both print `2021` because the date falls in the modern era; they are **not strictly interchangeable** under strict parsing or for years outside the Common Era. Never replace `yyyy` with `YYYY` mistaking uppercase for "four-digit year."
 
-## 6. Test với nhiều năm thay vì chỉ một ngày 01/01
+## 6. Testing Across Multiple Years Instead of a Single January 1
 
-Không thể suy ra mọi năm đều có số tuần giống nhau. Một số năm ISO có 53 tuần, một số 52 tuần; cách tuần giao sang năm kế bên phải được kiểm tra theo hai hướng. Để phát hiện regression, xây bộ dữ liệu gồm:
+Do not assume every year has the same number of weeks. Some ISO years have 53 weeks and others 52; how weeks span into the next year must be checked in both directions. To catch regressions, build a dataset covering:
 
-- 28–31/12 năm trước.
-- 01–04/01 năm sau.
-- Ngày thứ Hai cuối/đầu năm.
-- Năm nhuận và năm không nhuận.
-- Các năm ISO có 53 tuần (ví dụ 2020) và 52 tuần (ví dụ 2021).
-- Các quy tắc tuần khác nếu ứng dụng hỗ trợ locale riêng.
+- Dec 28–31 of the preceding year.
+- Jan 1–4 of the following year.
+- The last/first Monday of the year.
+- Leap years and common years.
+- 53-week ISO years (such as 2020) and 52-week ISO years (such as 2021).
+- Other week rules if the application supports region-specific calendars.
 
-Trong test logic, không chỉ so chuỗi hiển thị. Hãy kiểm tra **bất biến**: các ngày liên tiếp trong một tuần chia sẻ cùng cặp `weekBasedYear` + `weekOfWeekBasedYear`; mỗi tuần có bảy ngày; `DateTimeFormatter.ISO_WEEK_DATE` parse/format round-trip đúng trong phạm vi được hỗ trợ.
+In logic tests, check **invariants**, not just formatted strings: consecutive days within a week share the same `weekBasedYear` + `weekOfWeekBasedYear` pair; every week has seven days; `DateTimeFormatter.ISO_WEEK_DATE` round-trips cleanly across supported ranges.
 
-### Kiểm thử round-trip không nhầm định dạng
+### Round-Trip Testing Without Confusing Formats
 
-Nếu nguồn đã là một ISO week-date, `LocalDate.parse(weekText, DateTimeFormatter.ISO_WEEK_DATE)` chuyển về ngày lịch ISO. Đừng parse `2020-W53-5` bằng `ISO_LOCAL_DATE` vì đó là **hai loại dữ liệu khác nhau**, không phải hai cách viết của cùng một chuỗi ngày mà parser có thể tự đoán.
+When the source is already an ISO week-date, `LocalDate.parse(weekText, DateTimeFormatter.ISO_WEEK_DATE)` converts back to an ISO calendar date. Never parse `2020-W53-5` with `ISO_LOCAL_DATE` because those are **two different data formats**, not two spellings of the same date string for a parser to guess.
 
-## 7. Ngày nhuận, cuối tháng và năm lịch
+## 7. Leap Days, Month Ends, and Calendar Years
 
-Trong lịch ISO proleptic Gregorian, **năm nhuận** có tháng 2 ngày 29. Quy tắc cơ bản: năm chia hết cho 4, ngoại trừ năm chia hết 100 nhưng không chia hết 400.
+In the proleptic Gregorian ISO calendar, a **leap year** has February 29. Basic rule: divisible by 4, except years divisible by 100 that are not divisible by 400.
 
-| Trường hợp | Kết quả |
+| Case | Result |
 | --- | --- |
-| `2024-02-29` | Hợp lệ |
-| `2023-02-29` | Không hợp lệ |
-| `2000-02-29` | Hợp lệ (chia hết cho 400) |
-| `1900-02-29` | Không hợp lệ (chia hết cho 100 nhưng không chia hết cho 400) |
-| `2024-04-31` | Không hợp lệ, tháng 4 có 30 ngày |
+| `2024-02-29` | Valid |
+| `2023-02-29` | Invalid |
+| `2000-02-29` | Valid (divisible by 400) |
+| `1900-02-29` | Invalid (divisible by 100, not by 400) |
+| `2024-04-31` | Invalid, April has 30 days |
 | `2024-12-31.plusDays(1)` | `2025-01-01` |
 
-**`LocalDate.of(2023,2,29)` ném `DateTimeException`**, không trả null. Điều đó khác với việc parse văn bản theo một formatter dùng `ResolverStyle.SMART`, vốn có thể điều chỉnh một số ngày vượt cuối tháng về ngày cuối hợp lệ.
+**`LocalDate.of(2023,2,29)` throws `DateTimeException`** instead of returning `null`. That differs from parsing text with a formatter using `ResolverStyle.SMART`, which may clamp certain out-of-range days at month end to the last valid day.
 
-### Chương trình 4: ngày nhuận và bước sang năm
+### Program 4: Leap Days and Year Rollover
 
 **`LeapBoundaryDemo.java`**:
 
@@ -312,21 +312,21 @@ Year end: 2025-01-01
 Invalid date rejected
 ```
 
-Không dùng `new Date(year, month, day)` kiểu legacy (constructor cũ và index tháng khác) cho test mới. `java.time.LocalDate` thể hiện rõ ý nghĩa ngày lịch và fail sớm khi đầu vào không hợp lệ.
+Do not use legacy `new Date(year, month, day)` (deprecated constructor and 0-based months) in new tests. `java.time.LocalDate` expresses calendar-date semantics clearly and fails fast on invalid inputs.
 
-## 8. ResolverStyle: SMART không đồng nghĩa STRICT
+## 8. ResolverStyle: SMART Is Not STRICT
 
-Một lớp lỗi quan trọng là parser **chấp nhận chuỗi ngày không hợp lệ** rồi tự điều chỉnh mà caller không biết. `DateTimeFormatter.ofPattern(...)` thường dùng `ResolverStyle.SMART` mặc định; `DateTimeFormatter.ISO_LOCAL_DATE` dùng `STRICT`.
+A critical class of bugs occurs when a parser **accepts invalid date strings** and quietly adjusts them without notifying the caller. `DateTimeFormatter.ofPattern(...)` defaults to `ResolverStyle.SMART`; `DateTimeFormatter.ISO_LOCAL_DATE` uses `STRICT`.
 
-Với `2023-02-29`:
+For `2023-02-29`:
 
-- `SMART` có thể resolve về `2023-02-28`.
-- `STRICT` từ chối vì ngày 29/02 không tồn tại trong năm 2023.
-- `LENIENT` có quy tắc cộng/trừ các trường theo cách nới lỏng hơn; không nên dùng cho hợp đồng machine-readable không cho phép điều chỉnh im lặng.
+- `SMART` can resolve it to `2023-02-28`.
+- `STRICT` rejects it because February 29 does not exist in 2023.
+- `LENIENT` applies relaxed field overflow arithmetic; avoid it for machine-readable contracts that forbid silent adjustment.
 
-**Quan trọng về ký hiệu năm:** pattern `yyyy` là *year-of-era*, còn `uuuu` là proleptic year. Khi dùng `STRICT` và không cung cấp era, `"yyyy-MM-dd"` có thể không resolve thành `LocalDate` dù ngày hợp lệ. Do đó, với năm ISO kiểm thử nghiêm ngặt, chọn `uuuu-MM-dd` hoặc `ISO_LOCAL_DATE`.
+**Important regarding year symbols:** `yyyy` is *year-of-era*, whereas `uuuu` is proleptic year. Under `STRICT` without an era field, `"yyyy-MM-dd"` can fail to resolve to `LocalDate` even for valid dates. Therefore, for strict ISO year parsing, use `uuuu-MM-dd` or `ISO_LOCAL_DATE`.
 
-### Chương trình 5: SMART vs STRICT
+### Program 5: SMART vs. STRICT
 
 **`ResolverBoundaryDemo.java`**:
 
@@ -375,24 +375,24 @@ STRICT: rejected
 Valid leap day: 2024-02-29
 ```
 
-**Kiểm thử an toàn:** Với dữ liệu API, lịch tài chính và thông tin cần chính xác, quyết định rõ có cho phép sửa ngày sai hay không. Thường nên **reject** input sai và báo lỗi xác thực thay vì im lặng điều chỉnh.
+**Safe testing:** for API payloads, financial schedules, and data requiring accuracy, decide explicitly whether clamping invalid dates is permitted. Usually you should **reject** bad input with a validation error rather than silently adjusting it.
 
-## 9. ZoneId, ZoneOffset, Instant và local datetime
+## 9. ZoneId, ZoneOffset, Instant, and Local Datetime
 
-Bốn khái niệm này phải có test tách biệt:
+These four concepts require separate tests:
 
-| Khái niệm | Ví dụ | Ý nghĩa |
+| Concept | Example | Meaning |
 | --- | --- | --- |
-| `Instant` | `2024-01-01T00:30:00Z` | Một thời điểm tuyệt đối |
-| `ZoneOffset` | `+07:00` | Chênh lệch so với UTC tại một thời điểm |
-| `ZoneId` | `Europe/Berlin` | Quy tắc vùng, có thay đổi offset theo thời gian |
-| `LocalDateTime` | `2024-10-27T02:30` | Giờ tường thuật địa phương, chưa rõ instant |
+| `Instant` | `2024-01-01T00:30:00Z` | An absolute point in time |
+| `ZoneOffset` | `+07:00` | Offset from UTC at a given moment |
+| `ZoneId` | `Europe/Berlin` | Regional rules, whose offset can change over time |
+| `LocalDateTime` | `2024-10-27T02:30` | Local wall-clock time; not yet anchored to an instant |
 
-`ZoneId.of("Asia/Ho_Chi_Minh")` không đồng nghĩa với `ZoneOffset.ofHours(7)` cho **mọi thời điểm lịch sử**: ZoneId có quy tắc vùng theo tzdb, còn offset cố định không thể biểu diễn thay đổi lịch sử và DST của vùng khác.
+`ZoneId.of("Asia/Ho_Chi_Minh")` is not equivalent to `ZoneOffset.ofHours(7)` for **all historical moments**: `ZoneId` carries tzdb regional rules, whereas a fixed offset cannot represent historical changes or DST transitions of another zone.
 
-**Một `Instant` có thể ứng với hai ngày lịch khác nhau ở hai vùng.** Vì vậy, nếu hệ thống lọc giao dịch “ngày hôm nay” cho người dùng, phải xác định ngày theo **userZone** rồi tính ranh giới thời điểm cho ngày đó; đừng lấy ngày UTC và cho rằng ở mọi quốc gia nó vẫn là ngày ấy.
+**A single `Instant` can map to two different calendar dates in two zones.** Thus, if a system filters "today's transactions" for a user, compute the date in **`userZone`** and derive the time bounds for that day; never take the UTC date and assume it is the same calendar date in every country.
 
-### Chương trình 6: cùng instant, hai ngày lịch
+### Program 6: Same Instant, Two Calendar Dates
 
 **`ZoneCalendarBoundaryDemo.java`**:
 
@@ -426,7 +426,7 @@ javac -encoding UTF-8 ZoneCalendarBoundaryDemo.java
 java ZoneCalendarBoundaryDemo
 ```
 
-Stdout theo tzdb thông dụng có quy tắc lịch sử tương ứng:
+Stdout under standard tzdb historical rules:
 
 ```text
 UTC date: 2024-01-01
@@ -435,17 +435,17 @@ Tokyo date: 2024-01-01
 Same instant: true
 ```
 
-Bộ test này **không gọi `ZoneId.systemDefault()`** và không dùng thời điểm hiện tại; kết quả có thể tái lập giữa các máy cùng tzdb phù hợp. Với hệ thống yêu cầu tái lập tuyệt đối trên nhiều năm, ghi phiên bản tzdb trong môi trường CI và test integration.
+This test **never calls `ZoneId.systemDefault()`** and does not use the current wall-clock time; results are reproducible across machines with matching tzdb. For systems needing multi-year reproducibility, log the tzdb version in CI and integration tests.
 
-## 10. DST gap: một local time không tồn tại
+## 10. DST Gap: A Local Time That Does Not Exist
 
-Tại `Europe/Berlin` vào **31/03/2024**, đồng hồ nhảy từ 02:00 sang 03:00. Vì vậy local time **2024-03-31T02:30** không có offset hợp lệ trong vùng này: đó là một **gap**.
+In `Europe/Berlin` on **2024-03-31**, clocks spring forward from 02:00 to 03:00. Hence local time **2024-03-31T02:30** has no valid offset in this zone: it is a **gap**.
 
-`LocalDateTime.of(2024,3,31,2,30)` vẫn **tạo được**: đối tượng chỉ biết thành phần ngày-giờ, không có zone rules. Nhưng khi gọi `atZone(berlin)`, `ZonedDateTime` mặc định điều chỉnh local time qua gap để tạo thời điểm hợp lệ, từ 02:30 thành 03:30 với offset `+02:00`.
+`LocalDateTime.of(2024,3,31,2,30)` still **constructs cleanly**: the object holds date-time fields with no zone rules. When calling `atZone(berlin)`, however, `ZonedDateTime` defaults to shifting the local time forward past the gap to form a valid instant, turning 02:30 into 03:30 at offset `+02:00`.
 
-**Không được suy ra điều chỉnh mặc định là chính sách nghiệp vụ đúng.** Một hệ thống đặt lịch khám có thể cần **từ chối giờ không tồn tại** và yêu cầu người dùng chọn lại, thay vì tự dời cuộc hẹn một giờ.
+**Do not assume the default adjustment is the right business policy.** A medical booking system might need to **reject nonexistent times** and ask the user to pick another slot, rather than silently moving the appointment forward one hour.
 
-### Chương trình 7: quan sát DST gap
+### Program 7: Observing a DST Gap
 
 File **`DstGapDemo.java`**:
 
@@ -481,7 +481,7 @@ javac -encoding UTF-8 DstGapDemo.java
 java DstGapDemo
 ```
 
-Stdout theo dữ liệu tzdb về Berlin năm 2024:
+Stdout per 2024 Berlin tzdb rules:
 
 ```text
 Valid offsets: 0
@@ -490,28 +490,28 @@ Resolved local: 2024-03-31T03:30
 Resolved offset: +02:00
 ```
 
-**Lý do:** `ZoneRules.getValidOffsets(localDateTime)` cho một danh sách có thể chứa **0**, **1** hoặc **2** offset. Trong gap, kết quả có 0 offset; `getTransition` cung cấp chuyển tiếp khi có. Nếu input là một ngày thường không chuyển giờ, `getTransition(...)` thường trả `null` — không gọi `isGap()` khi chưa kiểm tra null trong code dùng cho mọi input.
+**Why:** `ZoneRules.getValidOffsets(localDateTime)` returns a list containing **0**, **1**, or **2** offsets. Inside a gap, it returns 0 offsets; `getTransition` provides the transition when one applies. For an ordinary non-transition time, `getTransition(...)` normally returns `null` — never call `isGap()` without a null check in general-purpose code.
 
-### Định nghĩa chính sách xử lý gap
+### Defining a Gap-Handling Policy
 
-Chọn một trong các quy tắc được sản phẩm công bố:
+Pick one product-documented rule:
 
-- **Reject:** từ chối local time không tồn tại.
-- **Shift forward:** chuyển sang thời điểm hợp lệ sau gap theo quy tắc rõ, ví dụ hành vi mặc định `atZone`.
-- **Use explicit instant/offset:** chỉ khi nguồn thực sự đã xác định một thời điểm; không tự gán offset cho dữ liệu mơ hồ.
+- **Reject:** refuse nonexistent local times.
+- **Shift forward:** move to the next valid time after the gap under an explicit rule, such as `atZone`'s default behavior.
+- **Use explicit instant/offset:** only when the source already specified a concrete instant; never fabricate offsets for ambiguous data.
 
-Với lịch hẹn người dùng tự chọn, reject thường dễ giải thích hơn shift âm thầm. Với lịch chạy tác vụ lặp, cần định nghĩa rõ khi một lần chạy rơi vào gap: bỏ qua, dời đi, hay chạy theo elapsed time.
+For user-chosen appointments, rejecting is usually easier to explain than silent shifting. For recurring scheduled jobs, define clearly what happens when a run falls in a gap: skip, shift, or run on elapsed intervals.
 
-## 11. DST overlap: một local time có hai thời điểm
+## 11. DST Overlap: One Local Time with Two Instants
 
-Tại `Europe/Berlin` vào **27/10/2024**, đồng hồ lùi từ 03:00 mùa hè về 02:00 mùa đông. Local time **2024-10-27T02:30** xảy ra **hai lần**:
+In `Europe/Berlin` on **2024-10-27**, clocks fall back from 03:00 summer time to 02:00 winter time. Local time **2024-10-27T02:30** occurs **twice**:
 
-- Với offset `+02:00`, tương ứng instant `2024-10-27T00:30:00Z`.
-- Với offset `+01:00`, tương ứng instant `2024-10-27T01:30:00Z`.
+- With offset `+02:00`, corresponding to instant `2024-10-27T00:30:00Z`.
+- With offset `+01:00`, corresponding to instant `2024-10-27T01:30:00Z`.
 
-Chỉ lưu `LocalDateTime` sẽ **không thể phân biệt** hai lần 02:30. `ZonedDateTime.ofLocal` hoặc `LocalDateTime.atZone` theo mặc định chọn **offset sớm hơn theo chuyển tiếp** khi có overlap (ở ví dụ là `+02:00`); `withLaterOffsetAtOverlap()` cho phép chọn offset còn lại.
+Storing only `LocalDateTime` makes it **impossible to distinguish** the two 02:30 occurrences. `ZonedDateTime.ofLocal` or `LocalDateTime.atZone` defaults to the **earlier offset across the transition** during an overlap (`+02:00` here); `withLaterOffsetAtOverlap()` selects the later offset.
 
-### Chương trình 8: hai instant trong overlap
+### Program 8: Two Instants in an Overlap
 
 File **`DstOverlapDemo.java`**:
 
@@ -553,7 +553,7 @@ javac -encoding UTF-8 DstOverlapDemo.java
 java DstOverlapDemo
 ```
 
-Stdout theo tzdb Berlin năm 2024:
+Stdout per 2024 Berlin tzdb rules:
 
 ```text
 Valid offsets: 2
@@ -563,11 +563,11 @@ Same local time: true
 Instant difference (min): 60
 ```
 
-**Bẫy kiểm thử:** nếu hai cuộc hẹn có cùng `LocalDateTime` tại overlap, chúng có thể là hai thời điểm khác nhau. Cần lưu offset/zone và chính sách resolve hoặc instant đã xác nhận. `ZoneOffset` đơn lẻ xác định chênh lệch tại thời điểm nhưng không ghi toàn bộ vùng/quy tắc lâu dài.
+**Testing trap:** if two appointments share the same `LocalDateTime` during an overlap, they may represent two different instants. Store the offset/zone and resolution policy, or the confirmed instant. A bare `ZoneOffset` records the offset at that moment without capturing the full regional rules over time.
 
-## 12. API kiểm tra giờ hợp lệ theo ZoneRules
+## 12. Validating Local Times via ZoneRules
 
-Một hàm validation hữu ích có thể phân loại **NORMAL**, **GAP**, **OVERLAP** thay vì chỉ trả true/false. Dưới đây là chương trình Java 17 độc lập.
+A useful validation helper classifies times as **NORMAL**, **GAP**, or **OVERLAP** instead of returning only true/false. Below is a standalone Java 17 program.
 
 **`LocalTimeClassificationDemo.java`**:
 
@@ -608,7 +608,7 @@ javac -encoding UTF-8 LocalTimeClassificationDemo.java
 java LocalTimeClassificationDemo
 ```
 
-Stdout theo tzdb Berlin năm 2024:
+Stdout per 2024 Berlin tzdb rules:
 
 ```text
 GAP
@@ -616,13 +616,13 @@ NORMAL
 OVERLAP
 ```
 
-Khi xây API đặt lịch, cần thêm **chính sách cho overlap**: cho người dùng chọn offset, chọn sớm/muộn theo hợp đồng, hoặc yêu cầu timestamp có offset rõ. Chỉ kiểm tra `getValidOffsets.size() >= 1` rồi luôn chọn phần tử 0 là một chính sách **chọn thời điểm sớm** chưa chắc được người dùng đồng ý.
+When building scheduling APIs, add an **overlap policy**: let the user pick the offset, pick earlier/later by contract, or require an explicit offset in the timestamp. Checking `getValidOffsets.size() >= 1` and silently picking element 0 is an implicit **pick-earlier-instant** policy that users may not agree with.
 
-**Đừng gọi `rules.getOffset(localDateTime)` rồi tin đó là kiểm tra duy nhất:** method này trả một offset “phù hợp” ngay cả trong gap/overlap theo hợp đồng, nên nó không tự báo rằng local time là duy nhất. Dùng `getValidOffsets` để phân loại.
+**Do not call `rules.getOffset(localDateTime)` and treat it as a uniqueness check:** that method returns a "best matching" offset by contract even inside gaps and overlaps, so it does not indicate whether a local time is unique. Use `getValidOffsets` to classify.
 
-## 13. Ngày đổi giờ không nhất thiết dài 24 giờ
+## 13. Transition Days Are Not Always 24 Hours Long
 
-Nếu business yêu cầu “mọi giao dịch trong ngày 31/03/2024 tại Berlin”, khoảng đúng là:
+If business logic requests "all transactions on March 31, 2024 in Berlin," the true interval is:
 
 ```text
 start = 2024-03-31 atStartOfDay(Europe/Berlin)
@@ -630,11 +630,11 @@ end   = 2024-04-01 atStartOfDay(Europe/Berlin)
 Interval = [start.toInstant(), end.toInstant())
 ```
 
-Khoảng này chỉ dài **23 giờ** vì DST gap. Ngày 27/10/2024 tại Berlin lại dài **25 giờ** vì overlap.
+This span is only **23 hours** long because of the DST gap. Conversely, October 27, 2024 in Berlin is **25 hours** long due to the overlap.
 
-**Không dùng `startInstant.plus(24, HOURS)` làm “ngày mai” theo lịch địa phương** trong mọi vùng, vì đó là 24 giờ elapsed time chứ không phải điểm đầu ngày sau của một ngày có DST.
+**Do not use `startInstant.plus(24, HOURS)` as "tomorrow" on a local calendar** across zones, because that adds 24 hours of elapsed time rather than finding the start of the next calendar day across DST.
 
-### Chương trình 10: 23 giờ và 25 giờ
+### Program 10: 23 Hours and 25 Hours
 
 **`DstDayLengthDemo.java`**:
 
@@ -677,7 +677,7 @@ javac -encoding UTF-8 DstDayLengthDemo.java
 java DstDayLengthDemo
 ```
 
-Stdout theo tzdb Berlin năm 2024:
+Stdout per 2024 Berlin tzdb rules:
 
 ```text
 Spring hours: 23
@@ -685,18 +685,18 @@ Autumn hours: 25
 Spring +24h local: 01:00
 ```
 
-**Phân biệt:**
+**Distinguish:**
 
-- `plusDays(1)` trên `LocalDate` là một bước theo **lịch**.
-- `Instant.plus(Duration.ofDays(1))` là **24 giờ tuyệt đối**.
-- `ZonedDateTime.plusDays(1)` là thao tác theo **local timeline** và resolve zone; `plusHours(24)` tính theo **instant timeline**.
-- Với báo cáo theo ngày, phải tạo hai mốc **start-of-day cho hai ngày lịch** rồi đổi sang instant, thay vì cộng 86.400 giây mặc định.
+- `plusDays(1)` on `LocalDate` is a **calendar** step.
+- `Instant.plus(Duration.ofDays(1))` is **24 absolute hours**.
+- `ZonedDateTime.plusDays(1)` operates on the **local timeline** with zone resolution; `plusHours(24)` operates on the **instant timeline**.
+- For daily reports, compute **start-of-day for two consecutive calendar dates** and convert to instants rather than blindly adding 86,400 seconds.
 
-**Một số vùng có chuyển tiếp ngay lúc nửa đêm:** `LocalDate.atStartOfDay(zone)` trả thời điểm hợp lệ đầu tiên của ngày theo zone, có thể không phải 00:00 nếu có gap. Một số vùng còn từng bỏ hẳn một ngày lịch khi thay đổi đường đổi ngày; không giả định mọi vùng có đầy đủ ngày giờ lịch sử.
+**Some zones transition right at midnight:** `LocalDate.atStartOfDay(zone)` returns the first valid instant of the day in that zone, which may not be `00:00` if a gap occurs at midnight. Some zones have even skipped an entire calendar date when shifting across the International Date Line; do not assume every region has continuous historical days.
 
-## 14. Khoảng thời gian đúng cho truy vấn database
+## 14. Correct Time Intervals for Database Queries
 
-Giả sử user muốn lọc các bản ghi của một `LocalDate` tại một `ZoneId`. Phương pháp chuẩn là khoảng **nửa mở**:
+Suppose a user wants records for a `LocalDate` in a given `ZoneId`. The standard approach is a **half-open** interval:
 
 ```text
 Instant startInclusive = day.atStartOfDay(zone).toInstant();
@@ -706,27 +706,27 @@ Instant endExclusive =
 Filter: instant >= startInclusive AND instant < endExclusive
 ```
 
-Đây là **pseudocode dạng Java fragment**, cần khai báo `day` kiểu `LocalDate` và `zone` kiểu `ZoneId`. Khoảng nửa mở không chồng lấn ranh giới giữa các ngày và không cần suy đoán nanosecond cuối ngày.
+This is **Java-like pseudocode**, assuming `day` of type `LocalDate` and `zone` of type `ZoneId`. Half-open intervals never overlap adjacent days and avoid guessing the final nanosecond of the day.
 
-**Không dùng** `BETWEEN start AND end` nếu ý định là kết thúc exclusive, vì `BETWEEN` thường nhận cả hai đầu. Dùng điều kiện riêng `>=` và `<`; trong SQL phải parameterize các instant bằng driver/type tương ứng, không nối chuỗi format theo locale.
+**Do not use** `BETWEEN start AND end` when an exclusive upper bound is intended, as SQL `BETWEEN` is inclusive at both ends. Use separate `>=` and `<` predicates; parameterize instants via the appropriate driver/type rather than concatenating locale-formatted strings.
 
-Nếu một hệ quản trị lưu timestamp không có zone, hợp đồng mapping sang instant phải được định nghĩa rõ: không tự cho rằng một `TIMESTAMP WITHOUT TIME ZONE` là UTC hoặc giờ địa phương của server. Việc lưu `Instant`, UTC hoặc timezone ID cần được thống nhất từ đầu.
+If a database stores timestamps without zones, define the instant-mapping contract explicitly: never casually assume a `TIMESTAMP WITHOUT TIME ZONE` is UTC or the server's local time. Storing `Instant`, UTC, or an explicit time-zone ID must be agreed upon up front.
 
-## 15. Đừng phụ thuộc đồng hồ thật hoặc timezone mặc định của CI
+## 15. Never Depend on the Real Clock or CI's Default Time Zone
 
-Một unit test nguy hiểm:
+A dangerous unit test:
 
 ```java
-// Anti-pattern: kết quả đổi theo giờ máy test chạy.
+// Anti-pattern: result changes depending on when the test machine runs.
 LocalDate today = LocalDate.now();
 ZoneId zone = ZoneId.systemDefault();
 ```
 
-Đây là fragment minh họa anti-pattern. Khi CI chạy vào cuối năm, ở container UTC hay khi máy đổi timezone, kết quả biến động ngoài ý muốn.
+This fragment illustrates an anti-pattern. When CI runs at year-end, in a UTC container, or when a developer machine changes time zones, results fluctuate unpredictably.
 
-**Clock** có thể được inject để kiểm soát thời điểm, và **ZoneId** phải được chọn tường minh theo nghiệp vụ. `Clock.fixed(...)` giúp test một thời điểm giống nhau trên mọi máy.
+**`Clock`** can be injected to control time, and **`ZoneId`** must be chosen explicitly per business requirements. `Clock.fixed(...)` ensures every machine tests the exact same instant.
 
-### Chương trình 11: cùng Instant nhưng ngày khác ở hai zone
+### Program 11: Same Instant, Different Dates in Two Zones
 
 **`FixedClockBoundaryDemo.java`**:
 
@@ -767,11 +767,11 @@ Tokyo today: 2021-01-01
 Same instant: true
 ```
 
-Nó chứng minh một hệ thống có thể đồng thời cần **Instant cố định** và **ngày lịch theo vùng người dùng**. Nếu business báo cáo theo ngày Việt Nam, lựa chọn timezone phải là thông tin của contract, không được suy từ `Locale` hoặc từ host của backend.
+This demonstrates that a system can simultaneously require a **fixed `Instant`** and a **calendar date in the user's zone**. If business reporting follows Vietnam dates, the time zone must be part of the contract—never inferred from `Locale` or the backend host.
 
-## 16. Unit test không cần thư viện ngoài: kiểm tra điều kiện tự động
+## 16. Library-Free Unit Tests: Automated Condition Checks
 
-Một chương trình test nên **fail có chủ đích** khi quy tắc sai, không chỉ in output để người lập trình quan sát. Java có `assert` nhưng assertion Java **mặc định có thể bị tắt nếu không bật `-ea`**. Để ví dụ luôn kiểm tra, ta dùng helper ném `AssertionError`.
+A test program should **fail intentionally** when rules break, not merely print output for a developer to inspect. Java has `assert`, yet Java assertions **can be disabled by default unless `-ea` is passed**. To ensure our example always checks, we use a helper that throws `AssertionError`.
 
 **`CalendarRegressionTest.java`**:
 
@@ -832,162 +832,162 @@ javac -encoding UTF-8 CalendarRegressionTest.java
 java CalendarRegressionTest
 ```
 
-Stdout nếu dữ liệu tzdb hỗ trợ các quy tắc Berlin 2024:
+Stdout if tzdb supports the 2024 Berlin rules:
 
 ```text
 All calendar checks passed
 ```
 
-Nếu một assertion thất bại, chương trình ném `AssertionError` và dừng với exit status không thành công; đây là đặc điểm mong muốn của kiểm thử. Trong dự án có JUnit 5, có thể viết các test case tương ứng bằng `@ParameterizedTest`/`@MethodSource`, nhưng cần dependency JUnit và runner riêng. Bài này chọn Java SE thuần để mọi ví dụ có thể chạy với JDK 17.
+If any assertion fails, the program throws `AssertionError` and exits with a non-zero status; that is the desired test behavior. In projects using JUnit 5, equivalent cases can be written with `@ParameterizedTest`/`@MethodSource`, though that requires JUnit dependencies and a test runner. This lesson chooses pure Java SE so every example runs on JDK 17.
 
-## 17. Property-based và metamorphic tests cho lịch
+## 17. Property-Based and Metamorphic Tests for Calendars
 
-Ngoài các mốc cố định, có thể kiểm thử những **bất biến tổng quát** cho nhiều ngày sinh ngẫu nhiên (với seed xác định):
+Beyond fixed boundary dates, test **general invariants** across generated dates (using a fixed seed):
 
-- **Round-trip date:** `LocalDate.parse(date.toString())` bằng `date` khi dùng ISO.
-- **Ngày liên tiếp:** `date.plusDays(1).minusDays(1).equals(date)` trong phạm vi hợp lệ.
+- **Date round-trip:** `LocalDate.parse(date.toString())` equals `date` for ISO dates.
+- **Consecutive days:** `date.plusDays(1).minusDays(1).equals(date)` within valid range.
 - **ISO week-date:** `LocalDate.parse(ISO_WEEK_DATE.format(date), ISO_WEEK_DATE).equals(date)`.
-- **Năm lịch không thay tùy formatter UI:** dữ liệu `LocalDate` ban đầu giữ nguyên sau format.
-- **Đổi instant theo zone:** `instant.atZone(zone).toInstant().equals(instant)` với vùng hợp lệ.
-- **Overlap:** hai offset hợp lệ khác nhau phải cho hai instant riêng, nhưng cùng local datetime.
-- **Gap:** danh sách offset hợp lệ có độ dài 0, và mọi cách resolve đều phải có chính sách nghiệp vụ rõ.
-- **Ngày theo region:** khoảng `[startOfDay, nextStartOfDay)` không chồng với khoảng ngày kề bên, ngay cả ngày dài 23/25 giờ.
-- **Thời gian hiển thị:** format/parse phải dùng cùng zone/offset/locale/resolver và precision nếu hợp đồng cho phép round-trip.
+- **Calendar year invariant across UI formatters:** the underlying `LocalDate` remains unchanged after formatting.
+- **Zone round-trip on instants:** `instant.atZone(zone).toInstant().equals(instant)` for valid zones.
+- **Overlap:** two distinct valid offsets yield two distinct instants with the same local datetime.
+- **Gap:** the valid-offsets list has length 0, and every resolution path follows an explicit business policy.
+- **Regional day bounds:** `[startOfDay, nextStartOfDay)` never overlaps an adjacent day's interval, even on 23- or 25-hour days.
+- **Displayed timestamps:** formatting/parsing must use the same zone/offset/locale/resolver and precision when the contract promises round-trip.
 
-Không tạo nhiều ngày ngẫu nhiên với seed thay đổi liên tục để rồi test thất bại không thể tái hiện. Chọn seed cố định, log seed và dữ liệu đầu vào khi fail (không có PII). Với ngày lịch xa và các vùng có quy tắc lịch sử phức tạp, không kỳ vọng mọi property đều hợp lệ ngoài phạm vi đối tượng đã định nghĩa.
+Do not generate random dates with an unseeded RNG so failures become unreproducible. Fix a seed, and log both the seed and failing input (without PII) on failure. For distant dates or regions with complex historical rules, do not assume every property holds outside the defined domain bounds.
 
-## 18. Thứ tự test: unit, integration và snapshot locale
+## 18. Test Ordering: Unit, Integration, and Locale Snapshots
 
-**Unit tests deterministic** nên dùng:
+**Deterministic unit tests** should use:
 
-- `LocalDate.of(...)` / `Instant.parse(...)` cố định.
-- `WeekFields.ISO` hoặc `WeekFields.of(firstDay,minimalDays)` cố định.
-- `ZoneId` cụ thể và các mốc tzdb đã biết.
-- `ResolverStyle.STRICT` cho grammar API cần hợp đồng rõ.
-- `Clock.fixed` thay vì đồng hồ hệ thống.
+- Fixed `LocalDate.of(...)` / `Instant.parse(...)`.
+- Fixed `WeekFields.ISO` or `WeekFields.of(firstDay,minimalDays)`.
+- Explicit `ZoneId` and known tzdb transitions.
+- `ResolverStyle.STRICT` for API grammars needing strict contracts.
+- `Clock.fixed` instead of the system clock.
 
-**Integration tests** nên kiểm tra:
+**Integration tests** should verify:
 
-- Tzdb mà runtime production thực sự dùng.
-- Locale data/CLDR và formatter localized theo các `Locale` sản phẩm hỗ trợ.
-- Mapping database/JDBC của `Instant`/timestamp.
-- Serialization JSON/CSV và timezone metadata.
-- Runtime trên Windows/Linux/container hoặc JDK vendor khác nếu đó là nền tảng được hỗ trợ.
-- Hành vi lịch cũ `java.util.Calendar`/`SimpleDateFormat` nếu đang migrate.
+- The exact tzdb used by the production runtime.
+- Locale/CLDR data and localized formatters for product-supported `Locale`s.
+- Database/JDBC mapping of `Instant`/timestamps.
+- JSON/CSV serialization and time-zone metadata.
+- Execution on Windows/Linux/containers or alternate JDK vendors if supported.
+- Legacy `java.util.Calendar`/`SimpleDateFormat` behavior during migrations.
 
-**Snapshot string** của `DateTimeFormatter.ofLocalizedDate(...)`, tên tháng, zone name hay `WeekFields.of(Locale)` có thể thay khi nâng cấp dữ liệu CLDR/JDK. Snapshot nên khóa môi trường hoặc so các invariants ý nghĩa thay vì dùng giá trị copy từ một máy như chuẩn vĩnh viễn.
+**Snapshot strings** from `DateTimeFormatter.ofLocalizedDate(...)`, month names, zone names, or `WeekFields.of(Locale)` can change across CLDR/JDK upgrades. Snapshots should pin the environment or assert semantic invariants rather than treating values copied from one machine as eternal constants.
 
-Đừng trộn test “format số theo locale” với test “thời điểm là đúng instant”. Locale ảnh hưởng trình bày, **không** tự xác định vùng thời gian và không tự biến năm lịch thành năm-tuần.
+Never mix "locale number/date formatting" tests with "instant correctness" tests. Locale affects presentation; it **does not** determine time zones or turn calendar years into week-based years.
 
-## 19. Lỗi di trú từ Date, Calendar và SimpleDateFormat
+## 19. Migration Pitfalls from Date, Calendar, and SimpleDateFormat
 
-Trong code Java cũ, các yếu tố sau dễ tạo regression:
+In legacy Java code, these patterns frequently cause regressions:
 
-| Legacy API/thói quen | Rủi ro khi di trú | Test cần thêm |
+| Legacy API / habit | Migration risk | Tests to add |
 | --- | --- | --- |
-| `SimpleDateFormat("YYYY-MM-dd")` | Week-year khác calendar year quanh 01/01 | 31/12, 01/01, locale khác |
-| `SimpleDateFormat("yyyy-MM-dd")` | Calendar/leniency/timezone của formatter cũ | Ngày sai, zone cụ thể |
-| `Calendar.WEEK_OF_YEAR` | Phụ thuộc ngày đầu tuần/minimal days và `Calendar.getWeekYear()` | Năm ISO 53 tuần và đầu năm |
-| `new Date(...)` constructor deprecated | Tháng đếm từ 0, năm có offset lịch sử | Chọn `LocalDate.of` thay |
-| `DateFormat.parse` | Có thể đọc prefix, lenient normalization | Validate full input và strict |
-| `Calendar.add(DATE, 1)` | Local date và instant elapsed khác nhau ở DST | 23/25 giờ quanh transition |
-| `Date.getTime()` | Millisecond epoch, không mang zone hiển thị | Convert `Instant` và `ZoneId` rõ |
-| `TimeZone.getDefault()` | Phụ thuộc JVM/host | Test với zone được inject |
-| `SimpleDateFormat` dùng static cho multi-thread | Mutable, không thread-safe | Không chia sẻ hoặc dùng java.time |
-| Calendar của locale không ISO | Quy tắc lịch/era có thể khác | Chọn Chronology rõ cho nghiệp vụ |
+| `SimpleDateFormat("YYYY-MM-dd")` | Week-year diverges from calendar year around Jan 1 | Dec 31, Jan 1, multiple locales |
+| `SimpleDateFormat("yyyy-MM-dd")` | Legacy formatter calendar/leniency/timezone | Invalid dates, explicit zones |
+| `Calendar.WEEK_OF_YEAR` | Depends on first day / minimal days and `Calendar.getWeekYear()` | 53-week ISO years and year start |
+| Deprecated `new Date(...)` constructor | 0-indexed months, offset years | Replace with `LocalDate.of` |
+| `DateFormat.parse` | Prefix parsing, lenient normalization | Full-input validation and strict mode |
+| `Calendar.add(DATE, 1)` | Local date vs. elapsed instant diverges across DST | 23/25-hour days around transitions |
+| `Date.getTime()` | Epoch millis carrying no display zone | Convert explicitly with `Instant` and `ZoneId` |
+| `TimeZone.getDefault()` | Depends on JVM/host | Test with injected zones |
+| Static `SimpleDateFormat` across threads | Mutable, not thread-safe | Do not share, or migrate to `java.time` |
+| Non-ISO locale calendars | Calendar/era rules can differ | Pick `Chronology` explicitly for domain |
 
-**Gregorian cutover:** `GregorianCalendar` legacy mặc định dùng một điểm chuyển đổi Julian/Gregorian, còn `LocalDate` dùng proleptic Gregorian theo ISO. Với dữ liệu lịch sử xa, hai API không nhất thiết cho cùng ngày trong mọi khoảng thời gian. Không dùng vài test năm hiện đại để kết luận phép di trú đúng cho toàn bộ dữ liệu lịch sử.
+**Gregorian cutover:** legacy `GregorianCalendar` defaults to a Julian/Gregorian cutover date, whereas `LocalDate` uses proleptic Gregorian per ISO. For distant historical dates, the two APIs do not necessarily yield the same date across every era. Do not treat a handful of modern-year tests as proof that a migration preserves all historical data.
 
-### Năm theo tuần của SimpleDateFormat
+### Week-Based Year in SimpleDateFormat
 
-Trong `SimpleDateFormat`, `Y` cũng mang nghĩa *week-year* trong calendar có hỗ trợ. Nhưng cơ chế `Calendar` và quy tắc tuần locale có thể khác JDK provider/chronology, nên không đổi ký tự `Y`/`y` trong một pattern rồi coi là xử lý xong. Nếu dữ liệu nghiệp vụ là ISO, hãy định nghĩa ISO từ đầu ở cả hai phía khi migrate và đối chiếu các ngày biên.
+In `SimpleDateFormat`, `Y` also denotes *week-year* in calendars that support it. Yet `Calendar` mechanics and locale week rules can vary by JDK provider/chronology, so never swap `Y`/`y` in a pattern and assume the migration is done. If business data follows ISO, specify ISO explicitly on both sides during migration and cross-check boundary dates.
 
-## 20. Test ma trận ưu tiên
+## 20. Prioritized Test Matrix
 
-Một ma trận nhỏ vẫn bao phủ nhiều lỗi nếu chọn đúng dữ liệu:
+A compact matrix still catches many bugs when inputs are chosen well:
 
-| Nhóm | Đầu vào | Kết quả cần kiểm tra |
+| Category | Input | Outcome to verify |
 | --- | --- | --- |
-| ISO năm-tuần | 2018-12-31 | 2019-W01-1 |
-| ISO năm-tuần | 2020-12-31 | 2020-W53-4 |
-| ISO năm-tuần | 2021-01-01 | 2020-W53-5 |
-| ISO năm-tuần | 2022-01-01 | 2021-W52-6 |
-| Khác quy tắc tuần | 2021-01-01 | ISO 2020/53, SUNDAY_START 2021/1 |
-| Năm nhuận | 2024-02-29 | Hợp lệ |
-| Năm không nhuận | 2023-02-29 | STRICT từ chối |
-| Tháng không có ngày 31 | 2024-04-31 | STRICT từ chối |
-| SMART parser | 2023-02-29 | Có thể thành 2023-02-28 |
-| DST gap Berlin | 2024-03-31 02:30 | 0 offset hợp lệ |
-| DST overlap Berlin | 2024-10-27 02:30 | 2 offset hợp lệ |
-| Ngày DST gap | 2024-03-31 | Khoảng giữa hai midnight dài 23 giờ |
-| Ngày DST overlap | 2024-10-27 | Khoảng giữa hai midnight dài 25 giờ |
-| Ranh giới ngày theo zone | 2024-01-01T00:30Z | Ngày LA = 2023-12-31 |
-| Clock fixed | 2020-12-31T23:30Z | UTC ngày 31/12, Tokyo ngày 01/01 |
-| Query interval | Berlin 2024-03-31 | Khoảng `[start,end)` tính theo zone, không cộng 24h |
-| Format ISO | `2021-01-01` | `ISO_LOCAL_DATE`; không nhầm `YYYY` |
-| Legacy compatibility | Date/Calendar | Test timezone, leniency, lịch sử |
+| ISO week-year | `2018-12-31` | `2019-W01-1` |
+| ISO week-year | `2020-12-31` | `2020-W53-4` |
+| ISO week-year | `2021-01-01` | `2020-W53-5` |
+| ISO week-year | `2022-01-01` | `2021-W52-6` |
+| Differing week rules | `2021-01-01` | ISO `2020/53`, `SUNDAY_START` `2021/1` |
+| Leap day | `2024-02-29` | Valid |
+| Common year | `2023-02-29` | Rejected by `STRICT` |
+| Month without 31st | `2024-04-31` | Rejected by `STRICT` |
+| `SMART` parser | `2023-02-29` | May clamp to `2023-02-28` |
+| Berlin DST gap | `2024-03-31 02:30` | 0 valid offsets |
+| Berlin DST overlap | `2024-10-27 02:30` | 2 valid offsets |
+| DST gap day | `2024-03-31` | Span between midnights is 23 hours |
+| DST overlap day | `2024-10-27` | Span between midnights is 25 hours |
+| Date boundary across zones | `2024-01-01T00:30Z` | LA date = `2023-12-31` |
+| Fixed clock | `2020-12-31T23:30Z` | UTC Dec 31, Tokyo Jan 1 |
+| Query interval | Berlin `2024-03-31` | `[start,end)` computed by zone, not +24h |
+| ISO format | `2021-01-01` | `ISO_LOCAL_DATE`; do not confuse `YYYY` |
+| Legacy compatibility | `Date`/`Calendar` | Test time zone, leniency, historical dates |
 
-Khi báo lỗi production, ghi lại **instant/LocalDateTime đầu vào, zone ID, offset nếu có, phiên bản tzdb/JDK và locale/rule tuần**. Nếu không có dữ liệu này, hai người ở hai môi trường có thể tái hiện hai kết quả khác nhau mà không biết nguyên nhân.
+When filing production bug reports, record the **input `Instant`/`LocalDateTime`, zone ID, offset if present, tzdb/JDK version, and locale/week rule**. Without these details, two engineers in different environments can observe conflicting reproductions with no clear cause.
 
-## 21. Tình huống kiểm thử thực tế
+## 21. Real-World Testing Scenarios
 
-### Tình huống A — Báo cáo tuần cuối năm
+### Scenario A — Year-End Weekly Report
 
-Yêu cầu: doanh nghiệp tính doanh thu tuần ISO. Dữ liệu phát sinh ngày 01/01/2021. Nếu code ghi `getYear()=2021` và `week=53`, báo cáo bị nhóm vào kỳ **2021-W53** không tồn tại theo ISO. Sửa bằng cách lấy **cặp** `WeekFields.ISO.weekBasedYear()` và `weekOfWeekBasedYear()`, rồi test các ngày đầu/cuối năm.
+Requirement: compute weekly revenue per ISO week. An event occurs on `2021-01-01`. If code writes `getYear()=2021` and `week=53`, the report groups it under **`2021-W53`**, which does not exist in ISO. Fix by reading the **pair** `WeekFields.ISO.weekBasedYear()` and `weekOfWeekBasedYear()`, and test year-start/year-end dates.
 
-### Tình huống B — Lịch hẹn 02:30 bị mất
+### Scenario B — Disappearing 02:30 Appointment
 
-Khách đặt lịch lúc 02:30 ngày 31/03/2024 ở Berlin. `LocalDateTime` nhận giá trị, nhưng giờ đó không tồn tại khi đổi DST. Nếu hệ thống âm thầm gọi `atZone`, lịch được dời thành 03:30. Thay vì dựa vào điều chỉnh ngầm, hãy dùng `ZoneRules.getValidOffsets`, báo giờ không hợp lệ và yêu cầu chọn lại, hoặc áp dụng chính sách dịch giờ đã công bố.
+A customer books `02:30` on `2024-03-31` in Berlin. `LocalDateTime` accepts the values, yet that time does not exist across the DST transition. If the system silently calls `atZone`, the appointment shifts to `03:30`. Instead of relying on silent shifting, use `ZoneRules.getValidOffsets`, report an invalid time and prompt for another slot, or apply a documented shift policy.
 
-### Tình huống C — Hai tác vụ cùng xuất hiện lúc 02:30
+### Scenario C — Two Jobs Running at 02:30
 
-Ngày 27/10/2024 tại Berlin có hai lần 02:30. Nếu log chỉ lưu `"2024-10-27 02:30"` mà không có offset, sau này không thể xác định thứ tự thực tế giữa hai tác vụ. Lưu `Instant` để audit, cộng `ZoneId` hoặc offset nếu cần tái dựng thông tin người dùng nhìn thấy.
+On `2024-10-27` in Berlin, `02:30` occurs twice. If logs record only `"2024-10-27 02:30"` without an offset, later analysis cannot determine which job ran first. Store `Instant` for auditing, plus `ZoneId` or offset when reconstructing what the user saw.
 
-### Tình huống D — Báo cáo theo ngày bị thiếu một giờ
+### Scenario D — Daily Report Missing an Hour
 
-Report chạy với tiêu chí local date 31/03/2024 Berlin. Nếu query lấy `startInstant` rồi cộng 24 giờ, nó kéo thêm thời gian của ngày 01/04. Nếu date rơi vào DST overlap, cộng 24 giờ lại bỏ sót giờ cuối của ngày. Cần dùng `day.atStartOfDay(zone)` và `day.plusDays(1).atStartOfDay(zone)`.
+A report filters for local date `2024-03-31` in Berlin. If the query takes `startInstant` and adds 24 hours, it spills into `2024-04-01`. On a DST overlap day, adding 24 hours misses the day's final hour. Always use `day.atStartOfDay(zone)` and `day.plusDays(1).atStartOfDay(zone)`.
 
-### Tình huống E — CI chỉ fail khi chạy ở Nhật
+### Scenario E — CI Failing Only in Japan
 
-Test dùng `LocalDate.now()` và máy development ở UTC, trong khi CI chạy ở timezone Asia/Tokyo. Ở ranh giới ngày, cùng instant cho ngày khác. Sửa bằng cách inject `Clock.fixed` và zone tường minh; tách test “ngày theo zone user” khỏi test “thời điểm UTC”.
+Tests call `LocalDate.now()`, with developer laptops in UTC and CI runners in `Asia/Tokyo`. Around midnight UTC, the same instant falls on different dates. Fix by injecting `Clock.fixed` and explicit zones; separate "date in user zone" tests from "UTC instant" tests.
 
-## 22. Bài tập
+## 22. Exercises
 
-**Bài 1 — Năm-tuần:** viết bảng ISO week-date cho 2018-12-31, 2020-12-31, 2021-01-01, 2022-01-01 bằng `ISO_WEEK_DATE`. So với `getYear()` và giải thích hai mốc có weekBasedYear khác calendar year.
+**Exercise 1 — Week-year:** Produce the ISO week-date table for `2018-12-31`, `2020-12-31`, `2021-01-01`, and `2022-01-01` using `ISO_WEEK_DATE`. Compare against `getYear()` and explain two dates whose `weekBasedYear` differs from their calendar year.
 
-**Bài 2 — Quy tắc tuần:** tạo `WeekFields.of(DayOfWeek.SUNDAY, 1)` và `WeekFields.ISO`. Kiểm tra 2021-01-01; đổi minimalDaysInFirstWeek thành 4 và quan sát thay đổi.
+**Exercise 2 — Week rules:** Create `WeekFields.of(DayOfWeek.SUNDAY, 1)` and `WeekFields.ISO`. Test `2021-01-01`; change `minimalDaysInFirstWeek` to 4 and observe the change.
 
-**Bài 3 — Strict parser:** thử parse `2023-02-29`, `2024-02-29` và `2024-04-31` bằng `ISO_LOCAL_DATE`. So với `DateTimeFormatter.ofPattern("uuuu-MM-dd")` SMART; viết assertion rằng chỉ những ngày hợp lệ được nhận theo hợp đồng.
+**Exercise 3 — Strict parser:** Attempt to parse `2023-02-29`, `2024-02-29`, and `2024-04-31` with `ISO_LOCAL_DATE`. Compare against `SMART` `DateTimeFormatter.ofPattern("uuuu-MM-dd")`; write assertions that only valid dates are accepted per contract.
 
-**Bài 4 — Gap/overlap:** dùng `Europe/Berlin` để kiểm tra `getValidOffsets` tại 2024-03-31 02:30 và 2024-10-27 02:30. Trong overlap, dùng `withLaterOffsetAtOverlap()` và so hai instant.
+**Exercise 4 — Gap/overlap:** Using `Europe/Berlin`, check `getValidOffsets` at `2024-03-31 02:30` and `2024-10-27 02:30`. Inside the overlap, call `withLaterOffsetAtOverlap()` and compare the two instants.
 
-**Bài 5 — Số giờ trong ngày:** tính `Duration` giữa hai `atStartOfDay(zone)` liên tiếp cho 31/03 và 27/10/2024. Vì sao kết quả không phải 24h? Viết query interval half-open.
+**Exercise 5 — Hours in a day:** Compute `Duration` between consecutive `atStartOfDay(zone)` calls for March 31 and October 27, 2024. Why is the result not 24h? Write the half-open query interval.
 
-**Bài 6 — Clock cố định:** tạo `Clock.fixed(Instant.parse("2020-12-31T23:30:00Z"), ZoneOffset.UTC)`. Chuyển Clock sang `Asia/Tokyo` và so `LocalDate.now(clock)`; không dùng giờ máy đang chạy.
+**Exercise 6 — Fixed clock:** Create `Clock.fixed(Instant.parse("2020-12-31T23:30:00Z"), ZoneOffset.UTC)`. Convert the clock to `Asia/Tokyo` and compare `LocalDate.now(clock)` without using the current host time.
 
-**Bài 7 — Hệ thống nhiều vùng:** thiết kế hợp đồng lưu cho event giao dịch và cuộc hẹn: trường nào là `Instant`, `LocalDate`, `LocalDateTime`, `ZoneId`, `ZoneOffset`? Xử lý gap/overlap thế nào?
+**Exercise 7 — Multi-zone system:** Design a storage contract for transaction events and appointments: which fields are `Instant`, `LocalDate`, `LocalDateTime`, `ZoneId`, or `ZoneOffset`? How are gaps and overlaps handled?
 
-**Bài 8 — Legacy:** lập bảng chuyển từ `Calendar.getWeekYear`/`SimpleDateFormat` sang `WeekFields.ISO` và `DateTimeFormatter.ISO_WEEK_DATE`; chọn ca test cho vùng dữ liệu lịch sử nếu hệ thống có dùng Julian/Gregorian cutover.
+**Exercise 8 — Legacy:** Map a migration plan from `Calendar.getWeekYear`/`SimpleDateFormat` to `WeekFields.ISO` and `DateTimeFormatter.ISO_WEEK_DATE`; include test cases for historical dates if the system relies on Julian/Gregorian cutovers.
 
-## 23. Tài liệu chính thức và kiểm chứng
+## 23. Official Documentation and Verification
 
-- [Java SE 17 — WeekFields](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/temporal/WeekFields.html): ISO và localized week rules, `weekBasedYear`, `weekOfWeekBasedYear`, week 0.
-- [Java SE 17 — DateTimeFormatter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html): `uuuu`/`yyyy`/`YYYY`, `ISO_WEEK_DATE`, `ISO_LOCAL_DATE` và resolver styles.
-- [Java SE 17 — ZonedDateTime](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/ZonedDateTime.html): xử lý gap/overlap, `withLaterOffsetAtOverlap`, calendar vs instant timeline.
-- [Java SE 17 — ZoneRules](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/zone/ZoneRules.html): `getValidOffsets`, `getTransition` và timezone rules.
-- [Java SE 17 — LocalDate](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/LocalDate.html): ngày ISO, leap days, `atStartOfDay(zone)`.
-- [Java SE 17 — Clock](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/Clock.html): `Clock.fixed` và thử nghiệm không phụ thuộc thời gian thực.
+- [Java SE 17 — WeekFields](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/temporal/WeekFields.html): ISO and localized week rules, `weekBasedYear`, `weekOfWeekBasedYear`, week 0.
+- [Java SE 17 — DateTimeFormatter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html): `uuuu`/`yyyy`/`YYYY`, `ISO_WEEK_DATE`, `ISO_LOCAL_DATE`, and resolver styles.
+- [Java SE 17 — ZonedDateTime](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/ZonedDateTime.html): gap/overlap handling, `withLaterOffsetAtOverlap`, calendar vs. instant timeline.
+- [Java SE 17 — ZoneRules](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/zone/ZoneRules.html): `getValidOffsets`, `getTransition`, and time-zone rules.
+- [Java SE 17 — LocalDate](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/LocalDate.html): ISO dates, leap days, `atStartOfDay(zone)`.
+- [Java SE 17 — Clock](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/Clock.html): `Clock.fixed` and wall-clock-independent testing.
 - [Java SE 17 — ResolverStyle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/ResolverStyle.html): `STRICT`, `SMART`, `LENIENT`.
-- [IANA Time Zone Database](https://www.iana.org/time-zones): dữ liệu quy tắc timezone mà JDK/tzdb provider dùng; cập nhật có thể thay đổi khi chính sách quốc gia đổi.
+- [IANA Time Zone Database](https://www.iana.org/time-zones): time-zone rule data used by the JDK/tzdb provider; updates can alter rules when national policies change.
 
-## 24. Ghi nhớ
+## 24. Key Takeaways
 
-- **Năm lịch ≠ năm-tuần.** ISO week-year có thể lệch so với calendar year ở đầu/cuối năm; tính `weekBasedYear` và `weekOfWeekBasedYear` như một cặp.
-- **`yyyy`, `uuuu` và `YYYY` không hoán đổi.** Tránh `YYYY-MM-dd` cho ngày ISO; dùng `ISO_LOCAL_DATE` hoặc `uuuu-MM-dd` với strict parsing.
-- **Ngày lịch có quy tắc nhuận.** Kiểm tra 29/02, ngày cuối tháng và parser `STRICT`; `SMART` có thể điều chỉnh ngày sai.
-- **Một local datetime có thể không tồn tại hoặc tồn tại hai lần trong DST.** Dùng `ZoneRules.getValidOffsets` để phân biệt 0/1/2 offset.
-- **Ngày địa phương không nhất thiết 24 giờ.** Tính ranh giới `[startOfDay(day), startOfDay(day+1))` bằng `ZoneId`, không cộng cố định 24 giờ cho báo cáo theo ngày.
-- **Không dùng default timezone và `now()` trong unit test định lượng.** Inject `Clock.fixed`, zone và locale/rule tuần cụ thể; ghi nhận tzdb/JDK khi dùng những mốc lịch sử.
-- **Unit test phải tự fail khi sai.** Dùng assertion helper/JUnit cùng dữ liệu biên; đừng chỉ chạy và nhìn một ngày bình thường.
+- **Calendar year ≠ week-based year.** ISO week-year can diverge from calendar year at year start/end; compute `weekBasedYear` and `weekOfWeekBasedYear` as a pair.
+- **`yyyy`, `uuuu`, and `YYYY` are not interchangeable.** Avoid `YYYY-MM-dd` for ISO dates; use `ISO_LOCAL_DATE` or `uuuu-MM-dd` with strict parsing.
+- **Calendar dates obey leap rules.** Test February 29, month-end boundaries, and `STRICT` parsing; `SMART` can clamp invalid dates.
+- **A local datetime may not exist or may occur twice during DST.** Use `ZoneRules.getValidOffsets` to distinguish 0/1/2 offsets.
+- **A local day is not necessarily 24 hours.** Compute `[startOfDay(day), startOfDay(day+1))` via `ZoneId`, never adding a fixed 24 hours for daily reports.
+- **Avoid default time zones and `now()` in deterministic unit tests.** Inject `Clock.fixed`, explicit zones, and explicit locale/week rules; record tzdb/JDK versions for historical boundaries.
+- **Unit tests must fail automatically when wrong.** Use assertion helpers or JUnit with boundary inputs rather than running and eyeballing an ordinary date.
 
-Một bộ kiểm thử ranh giới đáng tin không cần rất nhiều ngày ngẫu nhiên; nó cần **đúng các mốc khiến những khái niệm dễ nhầm trở nên khác nhau**, rồi xác nhận hợp đồng nghiệp vụ đúng trên cả lịch, năm-tuần và trục thời gian.
+A reliable boundary test suite does not need thousands of random dates; it needs **the exact boundary cases that separate easily confused concepts**, confirming business contracts hold across calendars, week-years, and the timeline.

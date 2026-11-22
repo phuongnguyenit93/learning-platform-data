@@ -1,76 +1,76 @@
-# RecordComponent: tên, kiểu, generic type và accessor
+# RecordComponent: name, type, generic type, and accessor
 
-## 1. RecordComponent mô tả điều gì?
+## 1. What does RecordComponent describe?
 
-Phần đầu một khai báo record liệt kê các **thành phần (record component)**:
+The header of a record declaration lists the **record components**:
 
 ~~~java
 record Position(int x, int y) {
 }
 ~~~
 
-Ở đây có hai thành phần tên `x` và `y`, cùng kiểu `int`. Java tạo các trường lưu trữ và các phương thức truy cập tương ứng, nhưng bản thân **thành phần record**, **trường** và **phương thức** là những khái niệm khác nhau.
+Here there are two components named `x` and `y`, both of type `int`. Java generates the backing fields and the corresponding accessor methods, but **record component**, **field**, and **method** themselves are different concepts.
 
-`java.lang.reflect.RecordComponent` cung cấp metadata của một thành phần được khai báo trong phần đầu record. Từ metadata đó, ta có thể biết:
+`java.lang.reflect.RecordComponent` provides metadata for a component declared in the record header. From that metadata, we can learn:
 
-- Tên thành phần.
-- Kiểu biểu diễn bằng `Class<?>`.
-- Cấu trúc kiểu generic biểu diễn bằng `Type`.
-- Phương thức truy cập, gọi là **accessor**, của thành phần.
-- Lớp record khai báo thành phần đó.
+- The component name.
+- The type represented as a `Class<?>`.
+- The generic type structure represented as a `Type`.
+- The access method, called the **accessor**, of the component.
+- The record class that declares that component.
 
-Điều này hữu ích cho công cụ sinh tài liệu, khảo sát mô hình dữ liệu hoặc đọc các thành phần theo thứ tự khai báo. Thay vì đoán từ mọi trường và phương thức của một lớp, công cụ có thể bắt đầu từ danh sách thành phần record.
+This is useful for documentation generators, data model inspectors, or reading components in declaration order. Instead of guessing from all fields and methods of a class, a tool can start from the list of record components.
 
-API `RecordComponent` có từ Java 16. Các chương trình trong bài dùng Java 17 trở lên và không cần tính năng preview.
+The `RecordComponent` API has been available since Java 16. The programs in this article use Java 17 or later and do not require preview features.
 
-## 2. Đi từ Class đến danh sách thành phần
+## 2. Going from Class to the component list
 
-Điểm vào là `Class.getRecordComponents()`:
+The entry point is `Class.getRecordComponents()`:
 
 ~~~java
 RecordComponent[] components = Position.class.getRecordComponents();
 ~~~
 
-Đoạn trên là minh họa; cần import `java.lang.reflect.RecordComponent` và khai báo `Position` khi đặt trong chương trình.
+The snippet above is for illustration; you need to import `java.lang.reflect.RecordComponent` and declare `Position` when placing it in a program.
 
-Có ba trường hợp phải phân biệt:
+There are three cases to distinguish:
 
-| Token lớp | `isRecord()` | `getRecordComponents()` |
+| Class token | `isRecord()` | `getRecordComponents()` |
 | --- | --- | --- |
-| Lớp record có thành phần | `true` | Mảng khác `null`, chứa các thành phần |
-| Lớp record không có thành phần, như `record Empty() {}` | `true` | Mảng rỗng |
-| Lớp không phải record | `false` | `null` |
+| Record class with components | `true` | Non-`null` array containing the components |
+| Record class without components, such as `record Empty() {}` | `true` | Empty array |
+| Non-record class | `false` | `null` |
 
-Các thành phần được trả về **theo đúng thứ tự khai báo trong phần đầu record**. Đây là hợp đồng của [Class.getRecordComponents](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html#getRecordComponents()).
+The components are returned **in the exact order declared in the record header**. This is the contract of [Class.getRecordComponents](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html#getRecordComponents()).
 
-Ví dụ `record Position(int x, int y)` có thứ tự `x`, rồi `y`. Không nên suy ra thứ tự này bằng cách duyệt `getDeclaredFields()` hoặc `getDeclaredMethods()`, vì các API đó không bảo đảm thứ tự khai báo.
+For example, `record Position(int x, int y)` has the order `x`, then `y`. Do not infer this order by iterating over `getDeclaredFields()` or `getDeclaredMethods()`, because those APIs do not guarantee declaration order.
 
-Các trường `static` bổ sung hoặc phương thức tiện ích trong thân record cũng không tự trở thành thành phần record.
+Additional `static` fields or helper methods in the record body do not become record components either.
 
-## 3. Bốn nhóm thông tin chính
+## 3. Four main groups of information
 
-| API trên `RecordComponent` | Kiểu trả về | Ý nghĩa |
+| API on `RecordComponent` | Return type | Meaning |
 | --- | --- | --- |
-| `getName()` | `String` | Tên thành phần được khai báo |
-| `getType()` | `Class<?>` | Token kiểu; với generic, đây là kiểu sau xóa kiểu |
-| `getGenericType()` | `Type` | Kiểu khai báo, có thể giữ cấu trúc tham số hóa hoặc biến kiểu |
-| `getAccessor()` | `Method` | Phương thức truy cập tương ứng |
-| `getDeclaringRecord()` | `Class<?>` | Record khai báo thành phần |
+| `getName()` | `String` | Declared component name |
+| `getType()` | `Class<?>` | Type token; for generics, this is the erased type |
+| `getGenericType()` | `Type` | Declared type, which can preserve parameterized structure or type variables |
+| `getAccessor()` | `Method` | Corresponding accessor method |
+| `getDeclaringRecord()` | `Class<?>` | Record declaring the component |
 
-Tài liệu [RecordComponent](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/RecordComponent.html) mô tả các API này.
+The [RecordComponent](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/RecordComponent.html) documentation describes these APIs.
 
-`RecordComponent` không phải là `Field`. Không có thao tác `component.get(record)` hoặc `component.set(record, value)` tương tự thao tác đọc/ghi trường. Muốn đọc giá trị thông qua accessor, lấy `Method` rồi gọi nó trên một đối tượng record.
+`RecordComponent` is not a `Field`. There is no `component.get(record)` or `component.set(record, value)` operation similar to reading/writing a field. To read a value via the accessor, obtain the `Method` and invoke it on a record object.
 
-## 4. Chương trình đầy đủ: tên, kiểu, generic và giá trị
+## 4. Complete program: name, type, generics, and values
 
-Ví dụ sau có bốn dạng thành phần:
+The following example has four kinds of components:
 
-- `String code`: kiểu lớp thông thường.
-- `int priority`: kiểu nguyên thủy.
-- `T weight`, với `T extends Number`: biến kiểu có cận.
-- `List<String> tags`: kiểu tham số hóa.
+- `String code`: ordinary class type.
+- `int priority`: primitive type.
+- `T weight`, with `T extends Number`: bounded type variable.
+- `List<String> tags`: parameterized type.
 
-Lưu vào `RecordComponentDemo.java`:
+Save into `RecordComponentDemo.java`:
 
 ~~~java
 import java.lang.reflect.Method;
@@ -153,14 +153,14 @@ public class RecordComponentDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 RecordComponentDemo.java
 java RecordComponentDemo
 ~~~
 
-Kết quả chính xác:
+Exact output:
 
 ~~~text
 components: [code, priority, weight, tags]
@@ -183,132 +183,132 @@ declaring record: true
 same runtime class: true
 ~~~
 
-Chương trình kiểm tra loại `Type` qua các interface công khai như `ParameterizedType` và `TypeVariable`. Nó không in tên lớp triển khai nội bộ của JDK để suy luận loại generic.
+The program checks the kind of `Type` through public interfaces such as `ParameterizedType` and `TypeVariable`. It does not print JDK internal implementation class names to infer generic kinds.
 
-### 4.1. Tên thành phần là tên trong khai báo
+### 4.1. Component name is the name in the declaration
 
-`getName()` cho `code`, `priority`, `weight` và `tags`, đúng theo phần đầu của `Parcel`.
+`getName()` yields `code`, `priority`, `weight`, and `tags`, matching the header of `Parcel`.
 
-Tên này không phải:
+This name is not:
 
-- Giá trị chuỗi đang lưu trong thành phần, như `P-7`.
-- Tên của lớp triển khai một giá trị.
-- Tên getter theo quy ước JavaBeans.
+- The string value stored in the component, such as `P-7`.
+- The name of the class implementing a value.
+- A getter name following JavaBeans conventions.
 
-Accessor record dùng tên thành phần: `code()`, `priority()`, `weight()`, `tags()`. Không mặc định chúng có dạng `getCode()` hoặc `getWeight()`.
+Record accessors use the component name: `code()`, `priority()`, `weight()`, `tags()`. Do not assume they take the form `getCode()` or `getWeight()`.
 
-Không cần tùy chọn `javac -parameters` để `RecordComponent.getName()` biết tên thành phần. Đây là metadata thành phần record, không phải việc đoán tên tham số của một phương thức tùy ý.
+The `javac -parameters` option is not required for `RecordComponent.getName()` to know component names. This is record component metadata, not guessing parameter names of an arbitrary method.
 
-### 4.2. getType cho token Class
+### 4.2. getType gives a Class token
 
-Với `code`, token là `String.class`. Với `priority`, token là `int.class`.
+For `code`, the token is `String.class`. For `priority`, the token is `int.class`.
 
-Với thành phần `weight` được khai báo là `T`, mà `T extends Number`, kiểu sau xóa kiểu là `Number`; vì vậy `getType()` cho `Number.class`.
+For the `weight` component declared as `T`, where `T extends Number`, the erased type is `Number`; therefore `getType()` gives `Number.class`.
 
-Với `tags`, token là `List.class`. Không có một class literal `List<String>.class` để trả về.
+For `tags`, the token is `List.class`. There is no class literal `List<String>.class` to return.
 
-Điểm này giúp chọn công cụ đúng: dùng `getType()` khi cần token lớp để đối chiếu hoặc tìm chữ ký Reflection; dùng `getGenericType()` khi cần hiểu cấu trúc kiểu khai báo đầy đủ hơn.
+This helps choose the right tool: use `getType()` when you need a class token for matching or looking up Reflection signatures; use `getGenericType()` when you need to understand the fuller declared type structure.
 
-### 4.3. getGenericType giữ thông tin của khai báo
+### 4.3. getGenericType preserves declaration information
 
-Các kết quả trong chương trình:
+The results in the program:
 
-| Thành phần | `getType()` | `getGenericType()` |
+| Component | `getType()` | `getGenericType()` |
 | --- | --- | --- |
-| `code` | `String.class` | Một `Class` biểu diễn `String` |
-| `priority` | `int.class` | Một `Class` biểu diễn `int` |
-| `weight` | `Number.class` | `TypeVariable` tên `T` |
-| `tags` | `List.class` | `ParameterizedType` biểu diễn `List<String>` |
+| `code` | `String.class` | A `Class` representing `String` |
+| `priority` | `int.class` | A `Class` representing `int` |
+| `weight` | `Number.class` | `TypeVariable` named `T` |
+| `tags` | `List.class` | `ParameterizedType` representing `List<String>` |
 
-Vì `Class` cũng triển khai `Type`, kết quả `getGenericType()` không phải lúc nào cũng là `ParameterizedType`. Ép mọi kết quả sang `ParameterizedType` sẽ làm chương trình lỗi với các thành phần như `code` và `priority`.
+Because `Class` also implements `Type`, the result of `getGenericType()` is not always a `ParameterizedType`. Casting every result to `ParameterizedType` will make the program fail on components like `code` and `priority`.
 
-Trong thí nghiệm, biến kiểu `T` có cận `Number`, đọc được bằng `TypeVariable.getBounds()`. Kiểu tham số hóa của `tags` có đối số `String`, đọc được bằng `ParameterizedType.getActualTypeArguments()`.
+In the experiment, the type variable `T` has the bound `Number`, readable via `TypeVariable.getBounds()`. The parameterized type of `tags` has the argument `String`, readable via `ParameterizedType.getActualTypeArguments()`.
 
-### 4.4. Metadata T không tự đổi thành Integer theo đối tượng
+### 4.4. Metadata T does not automatically change to Integer per object
 
-Đối tượng `parcel` được tạo qua khai báo `Parcel<Integer>`, nhưng metadata của thành phần `weight` vẫn là `T`, không tự trở thành `Integer`.
+The `parcel` object is created via the declaration `Parcel<Integer>`, yet the metadata of the `weight` component is still `T`, not automatically `Integer`.
 
-Cuối chương trình, đối tượng `Parcel<Double>` và đối tượng `Parcel<Integer>` có cùng lớp thực tế. `RecordComponent` được lấy từ lớp khai báo `Parcel`, nên không lưu riêng đối số generic của từng biến bên ngoài.
+At the end of the program, the `Parcel<Double>` object and the `Parcel<Integer>` object have the same runtime class. `RecordComponent` is obtained from the declaring class `Parcel`, so it does not separately store the generic arguments of each external variable.
 
-Nếu công cụ có ngữ cảnh bổ sung, chẳng hạn một trường được khai báo là `Parcel<Integer>`, nó có thể phân tích `Type` của ngữ cảnh đó và xây dựng ánh xạ `T -> Integer`. Đó là bước phân giải generic riêng; `component.getGenericType()` tự nó không làm bước này chỉ từ một instance.
+If a tool has additional context, such as a field declared as `Parcel<Integer>`, it can analyze the `Type` of that context and build a `T -> Integer` mapping. That is a separate generic resolution step; `component.getGenericType()` by itself does not perform this step from an instance alone.
 
-Cũng không suy luận rằng nhìn thấy giá trị `3` chứng minh mọi giá trị của `T` là `Integer`. Giá trị đang đọc và kiểu khai báo là hai loại thông tin khác nhau.
+Nor should you infer that seeing the value `3` proves every value of `T` is `Integer`. The value being read and the declared type are two different kinds of information.
 
-## 5. Type có cấu trúc, không chỉ là một chuỗi để in
+## 5. Type is structured, not just a string to print
 
-`getTypeName()` hữu ích khi trình bày kết quả cho người đọc. Nếu công cụ cần xử lý kiểu, hãy dùng các interface của `Type` để đi theo cấu trúc.
+`getTypeName()` is useful when presenting results to readers. If a tool needs to process types, use the `Type` interfaces to traverse the structure.
 
-Một số trường hợp có thể gặp:
+Some cases you may encounter:
 
-| Kiểu thành phần trong khai báo | Kiểu sau xóa kiểu, với `T extends Number` nếu có | Dạng `Type` thường cần xử lý |
+| Component type in declaration | Erased type, with `T extends Number` if applicable | `Type` form usually needing handling |
 | --- | --- | --- |
 | `String` | `String` | `Class` |
-| `int` | `int` | `Class` của kiểu nguyên thủy |
-| `String[]` | `String[]` | `Class` của mảng |
+| `int` | `int` | `Class` of primitive type |
+| `String[]` | `String[]` | `Class` of array |
 | `List<String>` | `List` | `ParameterizedType` |
 | `T` | `Number` | `TypeVariable` |
 | `T[]` | `Number[]` | `GenericArrayType` |
 
-Với một thành phần như `List<? extends Number>`, đối tượng ở cấp ngoài cùng là `ParameterizedType`; đối số kiểu bên trong là một `WildcardType`. Nếu công cụ khảo sát generic đầy đủ, cần xử lý lồng nhau thay vì chỉ kiểm tra một cấp.
+For a component like `List<? extends Number>`, the outermost object is a `ParameterizedType`; the inner type argument is a `WildcardType`. If a tool inspects generics thoroughly, it needs to handle nesting instead of checking only one level.
 
-Không nên phân tích chuỗi `getTypeName()` bằng cách tách dấu phẩy và dấu ngoặc nhọn để thay cho các API cấu trúc. Kiểu generic có thể lồng nhiều cấp, có wildcard, biến kiểu và mảng generic.
+Do not parse the `getTypeName()` string by splitting commas and angle brackets instead of using the structural APIs. Generic types can be nested multiple levels deep, with wildcards, type variables, and generic arrays.
 
-`getGenericSignature()` cung cấp biểu diễn chữ ký generic ở dạng chuỗi metadata. Nếu mục đích là hiểu kiểu khai báo, `getGenericType()` thường là điểm bắt đầu rõ ràng hơn.
+`getGenericSignature()` provides the generic signature representation as a metadata string. If the goal is to understand the declared type, `getGenericType()` is usually a clearer starting point.
 
-Generic metadata cũng không thay thế việc kiểm tra dữ liệu. Việc đọc được khai báo `List<String>` không tự duyệt và xác minh mọi phần tử trong một danh sách đang chạy.
+Generic metadata does not replace data validation either. Reading the `List<String>` declaration does not automatically iterate over and verify every element in a running list.
 
-## 6. Accessor nối metadata với một đối tượng cụ thể
+## 6. Accessors connect metadata to a specific object
 
-`getAccessor()` trả về `java.lang.reflect.Method`. Với record Java hợp lệ, đó là phương thức truy cập tương ứng, có tên thành phần, không nhận tham số và trả về kiểu của thành phần.
+`getAccessor()` returns `java.lang.reflect.Method`. For a valid Java record, that is the corresponding accessor method, having the component's name, taking no parameters, and returning the component's type.
 
-Ví dụ trong chương trình:
+Example in the program:
 
 ~~~java
 Method accessor = component.getAccessor();
 Object value = accessor.invoke(parcel);
 ~~~
 
-Đoạn này phân tách hai việc:
+This snippet separates two tasks:
 
-1. `getAccessor()` lấy metadata phương thức.
-2. `invoke(parcel)` thực thi phương thức trên đối tượng `parcel`.
+1. `getAccessor()` retrieves the method metadata.
+2. `invoke(parcel)` executes the method on the `parcel` object.
 
-`RecordComponent` tự nó không chứa giá trị của một instance. Hai đối tượng cùng lớp record dùng chung mô tả thành phần nhưng có thể có các giá trị khác nhau.
+`RecordComponent` itself does not hold an instance's value. Two objects of the same record class share the component description but can have different values.
 
-### Kiểu nguyên thủy được đóng hộp khi đi qua Object
+### Primitive types are boxed when passing through Object
 
-Trong ví dụ, `priority()` trả về `int`. Tuy nhiên `Method.invoke(...)` trả về `Object`, nên kết quả số nguyên được đóng hộp thành `Integer`.
+In the example, `priority()` returns `int`. However, `Method.invoke(...)` returns `Object`, so the integer result is boxed into `Integer`.
 
-Vì vậy:
+Therefore:
 
-- `component.getType()` của `priority` vẫn là `int.class`.
-- Đối tượng nhận được từ `invoke(...)` có lớp `Integer`.
-- Đây không phải việc metadata của thành phần bị đổi từ `int` sang `Integer`.
+- `component.getType()` of `priority` is still `int.class`.
+- The object received from `invoke(...)` has the class `Integer`.
+- This is not the component's metadata changing from `int` to `Integer`.
 
-Nếu thành phần có kiểu tham chiếu và accessor trả về `null`, kết quả Reflection cũng có thể là `null`. Không gọi `getClass()` trên giá trị vừa đọc khi chưa xét trường hợp đó.
+If a component has a reference type and the accessor returns `null`, the Reflection result can also be `null`. Do not call `getClass()` on the value just read without accounting for that case.
 
-### Điều kiện và lỗi khi gọi accessor
+### Conditions and errors when calling an accessor
 
-| Tình huống | Kết quả cần chú ý |
+| Situation | Outcome to watch for |
 | --- | --- |
-| Truyền một instance không phù hợp với lớp khai báo phương thức | Có thể ném `IllegalArgumentException` |
-| Truyền `null` thay đối tượng nhận cho accessor instance | Ném `NullPointerException` |
-| Gọi phương thức không truy cập được từ mã hiện tại | Có thể ném `IllegalAccessException` |
-| Accessor tự ném ngoại lệ khi thực thi | Ngoại lệ được bọc trong `InvocationTargetException` |
+| Passing an instance incompatible with the method's declaring class | Can throw `IllegalArgumentException` |
+| Passing `null` as the receiver object for an instance accessor | Throws `NullPointerException` |
+| Calling a method not accessible from the current code | Can throw `IllegalAccessException` |
+| Accessor itself throws an exception during execution | Exception is wrapped in `InvocationTargetException` |
 
-Accessor là `public` không có nghĩa một lớp record không truy cập được hoặc một ranh giới module tự động bị bỏ qua. Ví dụ hoàn chỉnh dùng record lồng `public` trong lớp `public`, nên không cần mở truy cập bằng `setAccessible(true)`.
+An accessor being `public` does not mean an inaccessible record class or a module boundary is automatically bypassed. The complete example uses a `public` nested record inside a `public` class, so it does not need to open access with `setAccessible(true)`.
 
-## 7. Accessor có thể do người viết định nghĩa
+## 7. Accessors can be user-defined
 
-Không mặc định rằng gọi accessor luôn tương đương với lấy nguyên tham chiếu đang lưu trong trường private. Record có thể khai báo accessor tường minh có phần thân riêng.
+Do not assume that calling an accessor is always equivalent to returning the exact reference stored in the private field. A record can declare an explicit accessor with its own body.
 
-Ví dụ sau sử dụng sao chép bảo vệ cho thành phần mảng:
+The following example uses defensive copying for an array component:
 
-- Constructor sao chép mảng đầu vào.
-- Accessor trả về một bản sao.
-- Reflection gọi accessor đó như một lời gọi phương thức bình thường.
+- The constructor copies the input array.
+- The accessor returns a copy.
+- Reflection invokes that accessor like a normal method call.
 
-Lưu vào `RecordAccessorDemo.java`:
+Save into `RecordAccessorDemo.java`:
 
 ~~~java
 import java.lang.reflect.RecordComponent;
@@ -351,14 +351,14 @@ public class RecordAccessorDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 RecordAccessorDemo.java
 java RecordAccessorDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 accessor: bytes
@@ -368,61 +368,61 @@ same as original: false
 after changing result: [1, 2]
 ~~~
 
-Sau khi sửa mảng nhận được ở lần đọc đầu, lần đọc sau vẫn cho `[1, 2]`. `getAccessor().invoke(packet)` đã thực thi mã `bytes.clone()`, không trả trực tiếp trường lưu trữ.
+After modifying the array received on the first read, the subsequent read still gives `[1, 2]`. `getAccessor().invoke(packet)` executed the `bytes.clone()` code rather than returning the backing field directly.
 
-Ví dụ này không có nghĩa mọi record đều tự sao chép mảng hoặc tập hợp. Record không tự bảo đảm bất biến sâu cho dữ liệu tham chiếu. Hành vi sao chép trong chương trình đến từ constructor và accessor được viết tường minh.
+This example does not mean every record automatically copies arrays or collections. Records do not guarantee deep immutability for reference data. The copying behavior in the program comes from the explicitly written constructor and accessor.
 
-Khi xây dựng công cụ đọc record, việc chọn accessor hay đọc trực tiếp trường là một quyết định về hành vi quan sát. Accessor là giao diện phương thức của record và có thể có logic; đọc trường là thao tác khác, thường còn cần xử lý truy cập private.
+When building a record-reading tool, choosing the accessor or reading the field directly is a decision about observed behavior. The accessor is the record's method interface and can contain logic; reading a field is a different operation that often also requires handling private access.
 
-## 8. Chọn dữ liệu đầu ra: lược đồ thành phần và giá trị runtime
+## 8. Choosing output data: component schema and runtime values
 
-Khi thiết kế công cụ khảo sát record, nên tách hai sản phẩm có mục đích khác nhau:
+When designing a record inspection tool, separate two outputs with different purposes:
 
-| Đầu ra | Nguồn dữ liệu | Ví dụ với `Parcel<T>` |
+| Output | Data source | Example with `Parcel<T>` |
 | --- | --- | --- |
-| Lược đồ (*schema*) | `getName()`, `getType()`, `getGenericType()` | Thành phần `weight` khai báo kiểu `T extends Number` |
-| Giá trị của một instance | `getAccessor().invoke(instance)` | `weight` đang có giá trị `3` |
+| Schema (*schema*) | `getName()`, `getType()`, `getGenericType()` | Component `weight` declared with type `T extends Number` |
+| Values of an instance | `getAccessor().invoke(instance)` | `weight` currently has value `3` |
 
-Lược đồ có thể được lập một lần từ `Parcel.class`; để đọc giá trị phải có một instance phù hợp. Nếu dùng `LinkedHashMap` ghép tên thành phần với giá trị accessor, hãy duyệt mảng `RecordComponent[]` theo thứ tự header. Đối tượng kết quả chỉ là ảnh chụp các giá trị mà accessor trả về; nó không tự sao chép sâu danh sách hoặc những đối tượng mutable trong record.
+The schema can be built once from `Parcel.class`; reading values requires a suitable instance. If using `LinkedHashMap` to pair component names with accessor values, iterate over the `RecordComponent[]` array in header order. The resulting object is only a snapshot of the values returned by the accessors; it does not automatically deep-copy lists or mutable objects inside the record.
 
-Việc xây một bộ đọc giá trị hoàn chỉnh phải quyết định thêm cách xử lý `null`, lỗi truy cập và `InvocationTargetException`. Metadata generic không thay thế các kiểm tra dữ liệu đó.
+Building a complete value reader must also decide how to handle `null`, access errors, and `InvocationTargetException`. Generic metadata does not replace those data checks.
 
-## 9. Những lỗi thường gặp
+## 9. Common pitfalls
 
-**Đồng nhất RecordComponent với Field.** Thành phần record có quan hệ với trường lưu trữ và accessor, nhưng là một loại metadata riêng. Muốn có trường theo tên phải dùng API trường; muốn đọc qua accessor phải gọi `getAccessor()`.
+**Equating RecordComponent with Field.** A record component is related to a backing field and an accessor, but it is a distinct kind of metadata. To get a field by name, use the field APIs; to read via the accessor, call `getAccessor()`.
 
-**Dùng getType để kết luận mọi thông tin generic đã biến mất.** `getType()` cho token sau xóa kiểu; `getGenericType()` có thể giữ biến kiểu và cấu trúc tham số hóa của khai báo.
+**Using getType to conclude all generic information is lost.** `getType()` gives the erased token; `getGenericType()` can preserve type variables and the parameterized structure of the declaration.
 
-**Ép mọi Type sang ParameterizedType.** Thành phần `int`, `String` hoặc `T` không có cùng dạng `Type` với `List<String>`.
+**Casting every Type to ParameterizedType.** Components of type `int`, `String`, or `T` do not have the same `Type` form as `List<String>`.
 
-**Cho rằng có `Parcel<Integer>` thì metadata weight phải là `Integer`.** Metadata thành phần thuộc lớp khai báo generic; muốn thay `T` bằng đối số cụ thể cần ngữ cảnh phân giải bổ sung.
+**Assuming that having `Parcel<Integer>` means the weight metadata must be `Integer`.** Component metadata belongs to the generic declaring class; replacing `T` with a concrete argument requires additional resolution context.
 
-**Tự tạo tên getter getX theo JavaBeans.** Accessor record dùng tên thành phần. Lấy trực tiếp `getAccessor()` tránh phụ thuộc quy tắc đặt tên sai.
+**Constructing getter names getX following JavaBeans.** Record accessors use the component name. Getting `getAccessor()` directly avoids relying on an incorrect naming convention.
 
-**Quên rằng invoke thực thi mã.** Accessor tường minh có thể sao chép dữ liệu, kiểm tra điều kiện hoặc ném ngoại lệ.
+**Forgetting that invoke executes code.** An explicit accessor can copy data, check conditions, or throw exceptions.
 
-**Dùng null như thể record không có thành phần.** `getRecordComponents() == null` nghĩa là lớp không phải record; record không có thành phần cho mảng rỗng.
+**Using null as if it meant a record without components.** `getRecordComponents() == null` means the class is not a record; a record without components gives an empty array.
 
-**Dựa vào thứ tự các field hoặc method.** Cần thứ tự thành phần thì lấy chính danh sách `RecordComponent`.
+**Relying on field or method order.** When component order is needed, get the `RecordComponent` list itself.
 
-## 10. Tự kiểm tra
+## 10. Self-check
 
-1. Với `record Position(int x, int y)`, accessor của `x` tên là `x` hay `getX`?
-2. Trong ví dụ `Parcel<T extends Number>`, vì sao `weight.getType()` là `Number.class` còn `weight.getGenericType()` biểu diễn `T`?
-3. `getGenericType()` của `List<String> tags` có thể ép sang `Class<?>` để lấy `List<String>.class` không?
-4. Kết quả `getRecordComponents()` của một lớp thường khác record không có thành phần như thế nào?
-5. Vì sao giá trị đọc qua accessor của `int priority` lại là một `Integer` khi được chứa trong `Object`?
-6. Nếu accessor tự sao chép một mảng, Reflection gọi accessor có tự bỏ qua logic sao chép đó không?
-7. `RecordComponent` có tự cho biết giá trị của thành phần nếu chưa có một đối tượng record không?
-8. Vì sao hàm `readComponents` dùng `LinkedHashMap` thay vì dựa vào thứ tự lặp tùy ý của một map khác?
+1. For `record Position(int x, int y)`, is the accessor of `x` named `x` or `getX`?
+2. In the `Parcel<T extends Number>` example, why is `weight.getType()` equal to `Number.class` while `weight.getGenericType()` represents `T`?
+3. Can `getGenericType()` of `List<String> tags` be cast to `Class<?>` to obtain `List<String>.class`?
+4. How does the `getRecordComponents()` result of an ordinary class differ from that of a record without components?
+5. Why is the value read via the accessor of `int priority` an `Integer` when held in `Object`?
+6. If an accessor copies an array itself, does calling the accessor with Reflection skip that copying logic?
+7. Can `RecordComponent` tell the value of a component on its own without a record object?
+8. Why does a `readComponents` function use `LinkedHashMap` instead of relying on the arbitrary iteration order of another map?
 
-Đáp án:
+Answers:
 
-1. Tên là `x`, và lời gọi trong mã Java là `position.x()`.
-2. `getType()` dùng kiểu sau xóa kiểu; biến `T` có cận `Number`. `getGenericType()` mô tả biến kiểu của khai báo.
-3. Không. Đây là `ParameterizedType`; không có class literal cho một kiểu tham số hóa như vậy.
-4. Lớp thường cho `null`; record không có thành phần cho mảng rỗng.
-5. `Method.invoke` trả về `Object`, nên kết quả nguyên thủy được đóng hộp.
-6. Không. Reflection thực thi chính phương thức accessor đó.
-7. Không. Nó mô tả khai báo; muốn đọc giá trị qua accessor phải cung cấp một instance phù hợp.
-8. Để giữ đúng thứ tự thành phần được `getRecordComponents()` cung cấp.
+1. The name is `x`, and the call in Java code is `position.x()`.
+2. `getType()` uses the erased type; the variable `T` has bound `Number`. `getGenericType()` describes the declaration's type variable.
+3. No. It is a `ParameterizedType`; there is no class literal for such a parameterized type.
+4. An ordinary class gives `null`; a record without components gives an empty array.
+5. `Method.invoke` returns `Object`, so primitive results are boxed.
+6. No. Reflection executes that accessor method itself.
+7. No. It describes the declaration; to read values via the accessor, you must provide an appropriate instance.
+8. To preserve the exact component order provided by `getRecordComponents()`.

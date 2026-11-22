@@ -1,80 +1,80 @@
-# Unicode, code point, UTF-16 code unit và ký tự người dùng nhìn thấy trong Java
+# Unicode, Code Points, UTF-16 Code Units, and User-Perceived Characters in Java
 
-## 1. Vì sao một “ký tự” không nhất thiết có độ dài 1?
+## 1. Why Does a "Character" Not Necessarily Have a Length of 1?
 
-Trong lập trình xử lý văn bản đa ngôn ngữ, chữ **ký tự** có thể được dùng cho nhiều khái niệm khác nhau. Giả sử màn hình hiển thị chữ **é**, emoji **😀**, cờ **🇻🇳** hoặc hình gia đình **👩‍👩‍👧‍👦**. Mỗi ví dụ có thể trông như một ký tự độc lập đối với người đọc, nhưng cách lưu trữ và số lượng phần tử Unicode bên trong hoàn toàn khác nhau.
+In multilingual text processing, the word **character** can refer to several different concepts. Suppose the screen displays the letter **é**, the emoji **😀**, the flag **🇻🇳**, or the family icon **👩‍👩‍👧‍👦**. Each example may look like a single standalone character to the reader, yet their internal storage and number of Unicode elements are completely different.
 
-Trong Java, `String.length()` trả **số UTF-16 code unit**, không phải số code point và càng không phải số ký tự người dùng nhìn thấy. Sử dụng `length()` như phép đếm chữ trong một ô nhập liệu, hoặc cắt chuỗi bằng `substring(0, 1)`, có thể tạo lỗi với emoji, dấu thanh kết hợp, cờ và những chuỗi viết theo hệ chữ phức tạp.
+In Java, `String.length()` returns the **number of UTF-16 code units**, not the number of code points and certainly not the number of user-perceived characters. Using `length()` as a character count in an input field, or slicing a string with `substring(0, 1)`, can introduce bugs with emojis, combining diacritics, flags, and strings written in complex scripts.
 
-Bài học làm rõ ba tầng:
+This lesson clarifies three layers:
 
-1. **Unicode code point**: một giá trị định danh trong không gian mã Unicode, ví dụ chữ `A` là `U+0041`, emoji 😀 là `U+1F600`.
-2. **UTF-16 code unit**: đơn vị 16 bit dùng trong `char` và các chỉ số chuỗi Java; một code point bổ sung (*supplementary*) cần **hai** code unit liên tiếp.
-3. **Grapheme cluster**, gần với “ký tự người dùng nhìn thấy” (*user-perceived character*): một cụm có thể chứa **nhiều code point**, chẳng hạn `e` + dấu sắc kết hợp hoặc một chuỗi emoji có ký tự nối.
+1. **Unicode code point**: an identifier value in the Unicode code space; for example, the letter `A` is `U+0041`, and the emoji 😀 is `U+1F600`.
+2. **UTF-16 code unit**: the 16-bit unit used in `char` and Java string indices; a *supplementary* code point requires **two** consecutive code units.
+3. **Grapheme cluster**, close to a *user-perceived character*: a cluster can contain **multiple code points**, such as `e` + combining acute accent or an emoji sequence with joiners.
 
-**Thông điệp chính:** code unit, code point và grapheme cluster là ba đơn vị đếm khác nhau. Lựa chọn đơn vị phải dựa trên mục đích: thao tác với biểu diễn UTF-16, xử lý Unicode scalar, hay chỉnh sửa văn bản mà người dùng nhận thức thành một đơn vị.
+**Key takeaway:** code units, code points, and grapheme clusters are three different counting units. Choosing a unit must be based on your goal: working with UTF-16 representation, processing Unicode scalars, or editing text that the user perceives as a single unit.
 
-## 2. Bức tranh tổng quan với ví dụ
+## 2. Overview with Examples
 
-Bảng sau dùng Java 17+ và `java.util.regex.Pattern` với biểu thức `\\X` để đếm **extended grapheme clusters**:
+The following table uses Java 17+ and `java.util.regex.Pattern` with the expression `\\X` to count **extended grapheme clusters**:
 
-| Chuỗi minh họa | Diễn giải | UTF-16 code units (`length()`) | Code points | Grapheme clusters (`\\X`) |
+| Sample string | Interpretation | UTF-16 code units (`length()`) | Code points | Grapheme clusters (`\\X`) |
 | --- | --- | ---: | ---: | ---: |
-| `A` | Chữ Latin cơ bản | 1 | 1 | 1 |
-| `é` (U+00E9) | Chữ có dấu dạng dựng sẵn | 1 | 1 | 1 |
+| `A` | Basic Latin letter | 1 | 1 | 1 |
+| `é` (U+00E9) | Precomposed accented letter | 1 | 1 | 1 |
 | `e\u0301` | `e` + combining acute accent | 2 | 2 | 1 |
-| `😀` | Emoji ngoài BMP | 2 | 1 | 1 |
-| `🇻🇳` | Hai regional indicators tạo hình cờ | 4 | 2 | 1 |
-| `👍🏽` | Emoji + modifier màu da | 4 | 2 | 1 |
-| `👩‍👩‍👧‍👦` | Bốn emoji + ba ZWJ | 11 | 7 | 1 |
+| `😀` | Non-BMP emoji | 2 | 1 | 1 |
+| `🇻🇳` | Two regional indicators forming a flag | 4 | 2 | 1 |
+| `👍🏽` | Emoji + skin tone modifier | 4 | 2 | 1 |
+| `👩‍👩‍👧‍👦` | Four emojis + three ZWJs | 11 | 7 | 1 |
 
-Các con số không thể thay thế cho nhau. Ví dụ, với cờ `🇻🇳`:
+The numbers are not interchangeable. For example, with the flag `🇻🇳`:
 
-- **4 code unit** vì hai regional indicator đều nằm ngoài BMP và mỗi cái dùng surrogate pair.
-- **2 code point** vì lá cờ trong ví dụ được mã hóa bằng hai regional indicator.
-- **1 extended grapheme cluster** theo quy tắc phân đoạn Unicode áp dụng cho cặp regional indicators.
+- **4 code units** because both regional indicators are outside the BMP and each uses a surrogate pair.
+- **2 code points** because the flag in the example is encoded with two regional indicators.
+- **1 extended grapheme cluster** according to the Unicode segmentation rules applied to a pair of regional indicators.
 
-Chuỗi gia đình `👩‍👩‍👧‍👦` gồm bốn code point emoji (mỗi cái hai UTF-16 code unit) và ba ký tự nối *zero-width joiner* `U+200D` (mỗi cái một code unit): tổng **11 code unit** và **7 code point** nhưng thường được hiển thị thành **một cụm emoji** trên hệ thống có hỗ trợ.
+The family sequence `👩‍👩‍👧‍👦` consists of four emoji code points (each taking two UTF-16 code units) and three *zero-width joiner* characters `U+200D` (each taking one code unit): a total of **11 code units** and **7 code points**, yet it is typically displayed as **one emoji cluster** on systems that support it.
 
-Một grapheme cluster **không bảo đảm** luôn chiếm đúng một ô ký tự monospace, đúng một glyph trong font, hoặc đúng một vị trí con trỏ trên mọi trình duyệt. Kết quả render còn phụ thuộc font, hệ điều hành, Unicode version, shaping engine và cách hỗ trợ emoji.
+A grapheme cluster is **not guaranteed** to always occupy exactly one monospace character cell, one glyph in a font, or one cursor position in every browser. Rendering output also depends on fonts, operating systems, Unicode versions, shaping engines, and emoji support.
 
-## 3. Unicode code point là gì?
+## 3. What Is a Unicode Code Point?
 
-Một code point là một giá trị số trong khoảng từ `U+0000` đến `U+10FFFF`. Người ta viết code point theo hệ thập lục phân với tiền tố `U+`.
+A code point is a numeric value in the range from `U+0000` to `U+10FFFF`. Code points are written in hexadecimal with the `U+` prefix.
 
-Ví dụ:
+Examples:
 
-- `U+0041` — chữ Latin `A`.
-- `U+0065` — chữ `e` thường.
-- `U+0301` — dấu sắc kết hợp (*combining acute accent*).
-- `U+00E9` — chữ `é` dựng sẵn.
-- `U+1F600` — emoji mặt cười 😀.
-- `U+200D` — *zero-width joiner* (ZWJ) dùng để liên kết một số emoji sequences và cách trình bày văn bản.
+- `U+0041` — Latin letter `A`.
+- `U+0065` — lowercase letter `e`.
+- `U+0301` — *combining acute accent*.
+- `U+00E9` — precomposed letter `é`.
+- `U+1F600` — grinning face emoji 😀.
+- `U+200D` — *zero-width joiner* (ZWJ) used to link certain emoji sequences and text presentation.
 
-Không phải mọi code point đều là một chữ hoặc một biểu tượng hiển thị. Có code point điều khiển, kết hợp dấu, ký tự không in, mã chưa được gán hoặc những giá trị được dành riêng.
+Not every code point is a visible letter or symbol. There are control code points, combining marks, non-printing characters, unassigned codes, and reserved values.
 
-Trong không gian code point, miền từ `U+D800` đến `U+DFFF` được dành cho **surrogate code points**; chúng **không** phải Unicode scalar values có thể xuất hiện độc lập trong văn bản Unicode hợp lệ. Unicode scalar value là code point không thuộc miền surrogate.
+Within the code point space, the range from `U+D800` to `U+DFFF` is reserved for **surrogate code points**; they are **not** Unicode scalar values that can appear standalone in valid Unicode text. A Unicode scalar value is a code point outside the surrogate range.
 
-Dù Unicode đặt tên nhiều ký tự bằng một code point, một grapheme cluster có thể gồm nhiều code point, và quá trình vẽ chữ có thể kết hợp hoặc chia tách glyph theo script và font. Không nên định nghĩa “một ký tự nhìn thấy” đơn giản là “một code point”.
+Although Unicode assigns a name to many characters by a single code point, a grapheme cluster can consist of multiple code points, and the text rendering process can combine or split glyphs depending on the script and font. You should not define "a visible character" simply as "one code point".
 
-## 4. UTF-16 và Java `char`: tại sao emoji chiếm hai phần tử?
+## 4. UTF-16 and Java `char`: Why Does an Emoji Take Two Elements?
 
-UTF-16 mã hóa:
+UTF-16 encodes:
 
-- Code point thuộc **Basic Multilingual Plane (BMP)** ngoài miền surrogate bằng **một** code unit 16 bit.
-- Code point trong khoảng `U+10000` đến `U+10FFFF` bằng **hai** code unit: một **high surrogate** (`U+D800`–`U+DBFF`) và một **low surrogate** (`U+DC00`–`U+DFFF`).
+- Code points in the **Basic Multilingual Plane (BMP)** outside the surrogate range using **one** 16-bit code unit.
+- Code points in the range `U+10000` to `U+10FFFF` using **two** code units: a **high surrogate** (`U+D800`–`U+DBFF`) and a **low surrogate** (`U+DC00`–`U+DFFF`).
 
-Trong Java:
+In Java:
 
-- `char` biểu diễn **một UTF-16 code unit**, tức giá trị 16 bit. Nó **không luôn biểu diễn một code point hoàn chỉnh**.
-- `String.length()` đếm code unit.
-- `String.charAt(index)` trả code unit ở chỉ số UTF-16.
-- `String.substring(start, end)` dùng **chỉ số code unit**.
-- `String.codePointAt(index)` đọc code point tại vị trí code unit, ghép surrogate pair hợp lệ khi có.
-- `String.codePointCount(beginIndex, endIndex)` đếm code point trong đoạn chỉ số UTF-16.
-- `String.offsetByCodePoints(index, codePointOffset)` di chuyển theo code point, trả về **chỉ số code unit**.
+- `char` represents **one UTF-16 code unit**, i.e., a 16-bit value. It **does not always represent a complete code point**.
+- `String.length()` counts code units.
+- `String.charAt(index)` returns the code unit at a UTF-16 index.
+- `String.substring(start, end)` uses **code unit indices**.
+- `String.codePointAt(index)` reads the code point at a code unit position, combining a valid surrogate pair when present.
+- `String.codePointCount(beginIndex, endIndex)` counts code points in a range of UTF-16 indices.
+- `String.offsetByCodePoints(index, codePointOffset)` moves by code points and returns a **code unit index**.
 
-Chuỗi emoji 😀 có code point `U+1F600`, được UTF-16 mã hóa thành:
+The emoji string 😀 has code point `U+1F600`, which is UTF-16 encoded as:
 
 ```text
 U+1F600
@@ -82,13 +82,13 @@ U+1F600
   -> low  surrogate U+DE00
 ```
 
-Do đó `"😀".length() == 2` dù đây là một code point.
+Therefore `"😀".length() == 2` even though it is a single code point.
 
-**Không nhầm UTF-16 code unit với byte.** `char` có 16 bit; khi serialize thành UTF-8, số byte lại khác (emoji 😀 chiếm 4 byte UTF-8). `String.length()` không đo số byte của nội dung trên mạng hoặc tệp.
+**Do not confuse a UTF-16 code unit with a byte.** A `char` is 16 bits; when serialized to UTF-8, the byte count is different (the emoji 😀 takes 4 UTF-8 bytes). `String.length()` does not measure the byte count of content on the network or in a file.
 
-## 5. Chương trình Java 17+: duyệt code point đúng cách
+## 5. Java 17+ Program: Iterating Over Code Points Properly
 
-Tạo file `CodePointWalkDemo.java`. Để chương trình không phụ thuộc vào việc gõ emoji trực tiếp trong source, ví dụ dùng Unicode escapes cho surrogate pair:
+Create the file `CodePointWalkDemo.java`. So that the program does not depend on typing emojis directly in source code, the example uses Unicode escapes for the surrogate pair:
 
 ```java
 public class CodePointWalkDemo {
@@ -115,14 +115,14 @@ public class CodePointWalkDemo {
 }
 ```
 
-Lưu thành `CodePointWalkDemo.java`, biên dịch/chạy bằng Java 17+:
+Save as `CodePointWalkDemo.java`, compile and run with Java 17+:
 
 ```bash
 javac -encoding UTF-8 CodePointWalkDemo.java
 java CodePointWalkDemo
 ```
 
-Stdout đã kiểm tra:
+Verified stdout:
 
 ```text
 units=4 points=3
@@ -132,20 +132,20 @@ index=3 U+42 units=1
 first2units=3
 ```
 
-Đọc kết quả:
+Reading the output:
 
-- Chuỗi `A😀B` có **4 UTF-16 code unit**, nhưng **3 code point**.
-- Chỉ số code unit của `A` là `0`, của 😀 là `1`, của `B` là `3`.
-- `Character.charCount(U+1F600)` bằng `2`, do đó vòng lặp nhảy từ chỉ số `1` đến `3`.
-- Hai code point đầu tiên là `A` và 😀, nhưng đoạn `substring(0, end)` cần **3 code unit**.
+- The string `A😀B` has **4 UTF-16 code units**, but **3 code points**.
+- The code unit index of `A` is `0`, of 😀 is `1`, and of `B` is `3`.
+- `Character.charCount(U+1F600)` equals `2`, so the loop jumps from index `1` to `3`.
+- The first two code points are `A` and 😀, yet the slice `substring(0, end)` requires **3 code units**.
 
-Nếu viết `for (int i=0; i<text.length(); i++)` và coi `text.charAt(i)` như một ký tự Unicode độc lập, vòng lặp sẽ đi qua cả hai nửa surrogate của emoji. Nếu cần xử lý code point, hãy dùng cách duyệt ở trên hoặc `text.codePoints()`.
+If you write `for (int i=0; i<text.length(); i++)` and treat `text.charAt(i)` as an independent Unicode character, the loop will step through both surrogate halves of the emoji. When you need to process code points, use the traversal above or `text.codePoints()`.
 
-**Giới hạn:** duyệt theo code point vẫn có thể tách một grapheme cluster thành nhiều phần. Với chuỗi `e\u0301`, vòng lặp sẽ thấy `e` và `U+0301` là hai code point dù người đọc thường thấy một chữ `é`.
+**Limitation:** iterating by code point can still split a grapheme cluster into multiple parts. For the string `e\u0301`, the loop will see `e` and `U+0301` as two code points even though the reader typically sees a single letter `é`.
 
-## 6. `charAt`, surrogate pair và cách cắt chuỗi dễ gây lỗi
+## 6. `charAt`, Surrogate Pairs, and Error-Prone String Slicing
 
-Với `String smile = "\uD83D\uDE00";`:
+With `String smile = "\uD83D\uDE00";`:
 
 ```java
 char first = smile.charAt(0);  // high surrogate: U+D83D
@@ -153,7 +153,7 @@ char second = smile.charAt(1); // low surrogate:  U+DE00
 int whole = smile.codePointAt(0); // U+1F600
 ```
 
-Đây là **đoạn minh họa trong một phương thức**, có biến `smile` cần khai báo như ở đầu đoạn. Có thể xác nhận:
+This is an **illustrative snippet inside a method**, with the variable `smile` declared as at the start of the snippet. You can verify:
 
 ```java
 Character.isHighSurrogate(first); // true
@@ -162,32 +162,32 @@ Character.toCodePoint(first, second); // 0x1F600
 Character.charCount(whole); // 2
 ```
 
-Các lời gọi trên minh họa API; các biểu thức không phải chương trình độc lập in stdout.
+The calls above demonstrate the API; these expressions are not a standalone program that prints to stdout.
 
-**Cắt sai:**
+**Incorrect slicing:**
 
 ```java
 String broken = smile.substring(0, 1);
 ```
 
-`broken` chỉ chứa high surrogate, không phải emoji hoàn chỉnh. Chuỗi Java có thể chứa một code unit surrogate đứng đơn lẻ, nhưng đó là một **chuỗi UTF-16 không hợp lệ về mặt cặp surrogate cho văn bản Unicode thông thường**. Khi mã hóa sang UTF-8, thư viện có thể thay phần không hợp lệ bằng ký tự thay thế hoặc áp dụng chính sách lỗi; không nên dựa vào một biểu diễn hiển thị nhất định.
+`broken` contains only the high surrogate, not a complete emoji. A Java string can contain an isolated surrogate code unit, but that is an **invalid UTF-16 string in terms of surrogate pairs for ordinary Unicode text**. When encoded to UTF-8, libraries may replace the invalid part with a replacement character or apply an error policy; you should not rely on any particular display representation.
 
-**Cắt theo code point:**
+**Slicing by code point:**
 
 ```java
 int end = smile.offsetByCodePoints(0, 1);
 String complete = smile.substring(0, end);
 ```
 
-`end == 2`, giúp giữ nguyên code point 😀. Tuy nhiên, nếu chuỗi là `"e\u0301"`, cắt sau một code point vẫn bỏ rơi dấu sắc kết hợp. Khi thao tác theo “ký tự mà người dùng thấy”, cần phân đoạn **grapheme cluster**, không chỉ nhảy qua surrogate pair.
+`end == 2`, which preserves the code point 😀. However, if the string is `"e\u0301"`, slicing after one code point still drops the combining acute accent. When operating on "user-perceived characters", you need **grapheme cluster** segmentation, not merely stepping over surrogate pairs.
 
-**Tạo chuỗi từ code point:** `Character.toChars(0x1F600)` trả hai `char` tương ứng surrogate pair. `StringBuilder.appendCodePoint(0x1F600)` là cách chèn code point đúng mà không tự ghép high/low surrogate. Luôn kiểm tra tính hợp lệ của dữ liệu ngoài nếu nó có thể chứa surrogate đứng đơn lẻ.
+**Building a string from a code point:** `Character.toChars(0x1F600)` returns two `char` values corresponding to the surrogate pair. `StringBuilder.appendCodePoint(0x1F600)` is the proper way to append a code point without manually computing high/low surrogates. Always validate external data if it might contain lone surrogates.
 
-## 7. `String.codePoints()`: duyệt từng code point bằng Stream
+## 7. `String.codePoints()`: Iterating Over Code Points with a Stream
 
-Từ Java 9, `String.codePoints()` trả một `IntStream` duyệt code point. Đối với đoạn có surrogate pair hợp lệ, stream trả **một số `int`** cho cả cặp, không phải hai số của hai `char`.
+Since Java 9, `String.codePoints()` returns an `IntStream` iterating over code points. For a segment containing a valid surrogate pair, the stream emits **one `int`** for the entire pair, rather than two numbers for the two `char` values.
 
-Ví dụ:
+Example:
 
 ```java
 public class CodePointStreamDemo {
@@ -201,7 +201,7 @@ public class CodePointStreamDemo {
 }
 ```
 
-Lưu thành `CodePointStreamDemo.java` rồi chạy:
+Save as `CodePointStreamDemo.java` and run:
 
 ```bash
 javac -encoding UTF-8 CodePointStreamDemo.java
@@ -216,36 +216,36 @@ U+1F600
 U+42
 ```
 
-So sánh với `s.chars()`: luồng `chars()` trả **từng UTF-16 code unit** dưới dạng số `int`; với emoji, stream đó chứa high surrogate và low surrogate riêng biệt. Tên `chars()` dễ gây nhầm, nhưng nó không tương đương `codePoints()`.
+Compare with `s.chars()`: the `chars()` stream returns **each UTF-16 code unit** as an `int`; for an emoji, that stream contains the high surrogate and low surrogate separately. The name `chars()` is easily misleading, as it is not equivalent to `codePoints()`.
 
-Một `int` code point cho phép biểu diễn giá trị ngoài BMP; đó là lý do các API Java Unicode thường trả `int` chứ không phải `char`.
+An `int` code point allows representing values outside the BMP; that is why Java Unicode APIs typically return `int` rather than `char`.
 
-## 8. Grapheme cluster: đơn vị gần với “ký tự người dùng nhìn thấy”
+## 8. Grapheme Cluster: The Unit Closest to a "User-Perceived Character"
 
-Unicode định nghĩa thuật toán phân đoạn thành *extended grapheme clusters* (UAX #29), phục vụ nhiều thao tác chỉnh sửa và điều hướng văn bản. Một grapheme cluster có thể bao gồm:
+Unicode defines an algorithm for segmenting into *extended grapheme clusters* (UAX #29) to support many text editing and navigation operations. A grapheme cluster can include:
 
-- Một chữ đơn lẻ như `A`.
-- Một chữ cơ sở và nhiều dấu kết hợp: `e` + `U+0301`.
-- Một emoji và modifier, ví dụ `👍🏽`.
-- Một cặp regional indicators tạo cờ, ví dụ `🇻🇳`.
-- Một chuỗi emoji với *zero-width joiner* `U+200D`, như emoji gia đình `👩‍👩‍👧‍👦`.
+- A single letter such as `A`.
+- A base letter and multiple combining marks: `e` + `U+0301`.
+- An emoji and a modifier, such as `👍🏽`.
+- A pair of regional indicators forming a flag, such as `🇻🇳`.
+- An emoji sequence with *zero-width joiner* `U+200D`, such as the family emoji `👩‍👩‍👧‍👦`.
 
-Các thành phần trên **không nhất thiết thành nhiều ký tự theo cảm nhận của người dùng**, dù code point count lớn hơn 1.
+These components **do not necessarily represent multiple characters in the user's perception**, even though the code point count is greater than 1.
 
-**Khác biệt then chốt:**
+**Key distinctions:**
 
-- **Code point** là đơn vị của mô hình mã Unicode.
-- **Grapheme cluster** là đơn vị phân đoạn chuỗi gần với cách một người tương tác với ký tự trên giao diện.
-- **Glyph** là hình dạng được font và bộ máy dựng chữ vẽ ra. Một cluster có thể được thể hiện bằng nhiều glyph hoặc những hình dạng khác nhau tùy hệ thống.
-- **Số cột hiển thị trên terminal**, kích thước pixel và vị trí caret **không** thể suy trực tiếp từ số grapheme clusters.
+- **Code point** is a unit of the Unicode coded character model.
+- **Grapheme cluster** is a string segmentation unit close to how a person interacts with characters in a UI.
+- **Glyph** is the visual shape drawn by a font and text shaping engine. A cluster can be rendered using multiple glyphs or different shapes depending on the system.
+- **Terminal display column count**, pixel dimensions, and caret positions **cannot** be inferred directly from the number of extended grapheme clusters.
 
-Có thể dùng các thư viện theo UAX #29/CLDR hoặc regex `\\X` của Java để phân đoạn. Với những giao diện phức tạp, cần kiểm thử đúng bản Unicode/JDK, font, trình duyệt và các kiểu văn bản thực tế.
+You can use libraries following UAX #29/CLDR or Java's `\\X` regex for segmentation. For complex UIs, you must test against the actual Unicode/JDK version, fonts, browsers, and real text types.
 
-## 9. Java 17+: đếm code unit, code point và grapheme bằng `\\X`
+## 9. Java 17+: Counting Code Units, Code Points, and Graphemes with `\\X`
 
-Java `java.util.regex.Pattern` hỗ trợ `\\X` là một **Unicode extended grapheme cluster**. Mẫu `\\X` khớp một cụm khi regex duyệt qua chuỗi; trong Java source phải viết `"\\X"` (hai dấu gạch chéo ngược trong string literal) để regex engine nhận đúng ký hiệu.
+Java `java.util.regex.Pattern` supports `\\X` as a **Unicode extended grapheme cluster**. The pattern `\\X` matches one cluster as the regex scans through the string; in Java source code you must write `"\\X"` (two backslashes in a string literal) so the regex engine receives the proper symbol.
 
-Tạo file `UnicodeCountDemo.java`:
+Create the file `UnicodeCountDemo.java`:
 
 ```java
 import java.util.regex.Pattern;
@@ -287,14 +287,14 @@ public class UnicodeCountDemo {
 }
 ```
 
-Lưu `UnicodeCountDemo.java` với UTF-8 và chạy:
+Save `UnicodeCountDemo.java` with UTF-8 and run:
 
 ```bash
 javac -encoding UTF-8 UnicodeCountDemo.java
 java UnicodeCountDemo
 ```
 
-Stdout đã được xác nhận bằng JVM:
+Stdout confirmed by the JVM:
 
 ```text
 ASCII | units=1 | points=1 | graphemes=1
@@ -306,15 +306,15 @@ SKIN | units=4 | points=2 | graphemes=1
 FAMILY | units=11 | points=7 | graphemes=1
 ```
 
-Tên `NFC`/`NFD` ở đây là nhãn cho ví dụ chữ é dựng sẵn và chữ e + dấu kết hợp, không phải bằng chứng rằng mọi chuỗi tự động được normalize.
+The names `NFC`/`NFD` here are labels for the precomposed `é` and `e` + combining mark examples, not proof that all strings are automatically normalized.
 
-`Matcher.results()` tồn tại trong Java 9+; code chạy trên Java 17. `Pattern` có thể được dùng lại, còn `Matcher` là đối tượng trạng thái tạo theo chuỗi. Trong ví dụ, `grapheme` được compile một lần và mỗi vòng lặp dùng một matcher mới.
+`Matcher.results()` exists in Java 9+; the code runs on Java 17. A `Pattern` can be reused, whereas `Matcher` is a stateful object created per string. In the example, `grapheme` is compiled once and each loop iteration uses a new matcher.
 
-**Giới hạn về Unicode version:** `\\X` dựa trên thuật toán Unicode mà runtime Java hỗ trợ. Quy tắc emoji/grapheme được cập nhật theo các bản Unicode, nên những emoji sequence mới có thể có hành vi phân đoạn khác giữa các JDK. Đừng khẳng định mọi môi trường đều luôn đếm mọi emoji mới thành một cluster.
+**Unicode version limitation:** `\\X` relies on the Unicode algorithm supported by the Java runtime. Emoji/grapheme rules are updated across Unicode versions, so newer emoji sequences may exhibit different segmentation behavior across JDKs. Do not assume every environment will always count every new emoji as a single cluster.
 
-## 10. Cắt chuỗi theo grapheme cluster thay vì cắt code point
+## 10. Slicing Strings by Grapheme Cluster Instead of by Code Point
 
-Khi UI cần lấy “ký tự người dùng nhìn thấy đầu tiên”, `offsetByCodePoints(0,1)` chưa đủ cho `e\u0301` hoặc cờ emoji. Có thể lấy ranh giới cluster bằng matcher của `\\X`:
+When a UI needs to take the "first user-perceived character", `offsetByCodePoints(0,1)` is insufficient for `e\u0301` or flag emojis. You can obtain cluster boundaries using a matcher for `\\X`:
 
 ```java
 import java.util.regex.Matcher;
@@ -348,7 +348,7 @@ public class FirstGraphemeDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 FirstGraphemeDemo.java
@@ -364,28 +364,28 @@ flag units=4
 flag points=2
 ```
 
-Bằng cách lấy `matcher.group()`, chương trình không cắt rời dấu sắc khỏi chữ `e` hoặc cắt đôi cặp regional indicators của cờ trong các ví dụ này.
+By taking `matcher.group()`, the program does not sever the acute accent from the letter `e` or split the pair of regional indicators of the flag in these examples.
 
-Nếu đang xây một trình soạn thảo, chức năng xóa grapheme, đặt caret hoặc giới hạn độ dài đầu vào, còn phải cân nhắc xử lý CRLF, ZWJ, biến thể emoji, script phức tạp và cấu hình Unicode thực tế. Regex phân đoạn là một bước cơ bản; UI editing còn phụ thuộc bộ máy layout của nền tảng.
+If you are building an editor, grapheme deletion, caret placement, or input length limiting, you also need to consider handling CRLF, ZWJ, emoji variants, complex scripts, and the actual Unicode configuration. Regex segmentation is a basic step; UI editing also depends on the platform's layout engine.
 
-## 11. Unicode normalization: giống nhau về hiển thị nhưng chưa chắc bằng nhau về String
+## 11. Unicode Normalization: Visually Identical Does Not Mean String-Equal
 
-Unicode cho phép một số văn bản có **nhiều cách biểu diễn chuẩn tắc**. Chữ `é` là ví dụ nổi bật:
+Unicode allows certain text to have **multiple canonically equivalent representations**. The letter `é` is a classic example:
 
 ```text
-Dựng sẵn: U+00E9            (é)
-Phân rã:  U+0065 + U+0301   (e + dấu sắc kết hợp)
+Precomposed: U+00E9            (é)
+Decomposed:  U+0065 + U+0301   (e + combining acute accent)
 ```
 
-Hai chuỗi này thường nhìn rất giống nhau, nhưng Java `String.equals` kiểm tra **dãy code unit**, nên chúng không bằng nhau trước khi chuẩn hóa.
+These two strings usually look very similar, but Java `String.equals` checks the **sequence of code units**, so they are not equal before normalization.
 
-API `java.text.Normalizer` hỗ trợ các form như `NFC`, `NFD`, `NFKC`, `NFKD`:
+The `java.text.Normalizer` API supports forms such as `NFC`, `NFD`, `NFKC`, and `NFKD`:
 
-- **NFC** (*Canonical Composition*): chuẩn hóa và có xu hướng ghép những tổ hợp chuẩn tắc thành dạng dựng sẵn khi có thể.
-- **NFD** (*Canonical Decomposition*): phân rã chuẩn tắc.
-- **NFKC/NFKD** thêm các biến đổi tương thích và **có thể làm thay đổi phân biệt trình bày/ý nghĩa**, nên không áp dụng tùy tiện cho mọi loại dữ liệu như tên người hoặc nội dung ký tự tự do.
+- **NFC** (*Canonical Composition*): normalizes and tends to compose canonical combinations into precomposed forms when possible.
+- **NFD** (*Canonical Decomposition*): performs canonical decomposition.
+- **NFKC/NFKD** add compatibility transformations and **can alter presentation/semantic distinctions**, so they should not be applied indiscriminately to all data types such as personal names or free-form character content.
 
-### Ví dụ runnable với Normalizer
+### Runnable Example with Normalizer
 
 ```java
 import java.text.Normalizer;
@@ -410,7 +410,7 @@ public class UnicodeNormalizationDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 UnicodeNormalizationDemo.java
@@ -425,25 +425,25 @@ NFC equals=true
 units: 1 vs 2
 ```
 
-Normalization không phải transliteration, không phải dịch ngôn ngữ và không phải biện pháp an ninh đầy đủ đối với ký tự dễ nhầm (*confusables*). Khi cần tìm kiếm, so sánh, định danh hoặc xử lý bảo mật, hãy thiết kế chính sách chuẩn hóa/case folding/collation phù hợp với loại dữ liệu và hệ thống đích.
+Normalization is not transliteration, not language translation, and not a complete security measure against visually similar characters (*confusables*). When you need search, comparison, identifiers, or security handling, design a normalization/case folding/collation policy suited to the data type and target system.
 
-Đặc biệt, normalization **không** đồng nghĩa gom mọi grapheme cluster thành một code point. Cờ emoji và nhiều emoji ZWJ sequences vẫn gồm nhiều code point sau NFC.
+In particular, normalization **does not** mean collapsing every grapheme cluster into a single code point. Flag emojis and many ZWJ emoji sequences still consist of multiple code points after NFC.
 
-## 12. Kích thước UTF-8 khác kích thước UTF-16
+## 12. UTF-8 Size Differs from UTF-16 Size
 
-Một chuỗi Java được đánh chỉ số theo code unit UTF-16, nhưng khi lưu file hoặc truyền HTTP, encoding thường là **UTF-8**. Số byte hoàn toàn khác số `char`, code point hoặc cluster.
+A Java string is indexed by UTF-16 code units, whereas when saving files or transmitting over HTTP, the encoding is typically **UTF-8**. The byte count is completely different from the number of `char` values, code points, or clusters.
 
-Ví dụ:
+Examples:
 
-| Chuỗi | UTF-16 code units | Code points | Số byte UTF-8 |
+| String | UTF-16 code units | Code points | UTF-8 byte count |
 | --- | ---: | ---: | ---: |
 | `A` | 1 | 1 | 1 |
-| `é` dựng sẵn | 1 | 1 | 2 |
+| Precomposed `é` | 1 | 1 | 2 |
 | `e\u0301` | 2 | 2 | 3 |
 | `😀` | 2 | 1 | 4 |
 | `🇻🇳` | 4 | 2 | 8 |
 
-Có thể kiểm tra bằng Java:
+You can verify this in Java:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -467,7 +467,7 @@ public class UnicodeBytesDemo {
 }
 ```
 
-Lưu `UnicodeBytesDemo.java`, biên dịch/chạy:
+Save `UnicodeBytesDemo.java`, compile and run:
 
 ```bash
 javac -encoding UTF-8 UnicodeBytesDemo.java
@@ -482,13 +482,13 @@ NFD bytes=3
 EMOJI bytes=4
 ```
 
-Lưu ý: UTF-8 không phải một byte cho mỗi code point. Với chữ Unicode ngoài ASCII, một code point có thể cần từ 2 đến 4 byte UTF-8; với ASCII cơ bản cần 1 byte. Byte count phụ thuộc **chuỗi code point và encoding**, không phụ thuộc riêng số grapheme.
+Note: UTF-8 is not one byte per code point. For non-ASCII Unicode characters, a code point can require 2 to 4 UTF-8 bytes; basic ASCII requires 1 byte. Byte count depends on the **sequence of code points and the encoding**, not solely on the number of graphemes.
 
-Khi kiểm tra giới hạn payload HTTP, file hoặc cơ sở dữ liệu có giới hạn byte, hãy tính **byte theo charset thực tế**. Khi kiểm tra giới hạn số code unit của Java/Google Sheets, dùng phép đo mà hệ thống đích công bố. Không hoán đổi giữa ba phép đếm.
+When checking HTTP payload limits, file limits, or database columns with byte limits, measure **bytes in the actual charset**. When checking UTF-16 code unit limits of Java/Google Sheets, use the metric published by the target system. Do not interchange the three counts.
 
-## 13. BreakIterator và thư viện phân đoạn văn bản
+## 13. BreakIterator and Text Segmentation Libraries
 
-Java cung cấp `java.text.BreakIterator.getCharacterInstance(locale)` để tìm ranh giới ký tự phục vụ lặp/biên tập text. Ví dụ API:
+Java provides `java.text.BreakIterator.getCharacterInstance(locale)` to find character boundaries for iterating over or editing text. API example:
 
 ```java
 BreakIterator iterator =
@@ -500,23 +500,23 @@ for (int end = iterator.next();
         end != BreakIterator.DONE;
         start = end, end = iterator.next()) {
     String segment = text.substring(start, end);
-    // Xử lý segment ở ranh giới do BreakIterator trả về.
+    // Process segment at boundaries returned by BreakIterator.
 }
 ```
 
-Đây là **mã minh họa nằm trong một phương thức**, giả định `locale` là `java.util.Locale` và `text` là `String`, có import `java.text.BreakIterator`. Nó không phải chương trình độc lập để chạy.
+This is **illustrative code inside a method**, assuming `locale` is a `java.util.Locale` and `text` is a `String`, with `import java.text.BreakIterator;`. It is not a standalone runnable program.
 
-Cả `BreakIterator` lẫn regex `\\X` đều hướng đến các quy tắc phân đoạn văn bản, nhưng chi tiết có thể khác theo runtime/provider và bản Unicode, nhất là với một số emoji ZWJ sequences mới. Nếu sản phẩm xử lý chat, trình soạn thảo hay nhập liệu đa script ở quy mô lớn, cần kiểm thử hành vi thực tế của JDK đang dùng; có thể cân nhắc ICU4J hoặc bộ phân đoạn theo Unicode version do sản phẩm kiểm soát.
+Both `BreakIterator` and the `\\X` regex aim at text segmentation rules, though details may differ by runtime/provider and Unicode version, especially for newer ZWJ emoji sequences. If a product handles chat, editors, or multi-script input at scale, test the actual behavior of the JDK in use; consider ICU4J or a segmenter tied to a Unicode version controlled by the product.
 
-Không dùng `BreakIterator` để suy ra chiều rộng hiển thị. Cột terminal, glyph và thao tác caret là những vấn đề giao diện bổ sung.
+Do not use `BreakIterator` to infer display width. Terminal columns, glyphs, and caret operations are additional UI concerns.
 
-## 14. Dữ liệu UTF-16 không hợp lệ và cách kiểm tra
+## 14. Invalid UTF-16 Data and How to Validate It
 
-Một `String` Java có thể chứa surrogate đứng đơn lẻ, ví dụ chỉ có `"\uD83D"`. Đây không phải chuỗi Unicode scalar values hợp lệ. Những API như `codePointAt` hoặc `codePoints()` vẫn có thể xử lý dãy UTF-16 như dữ liệu trong bộ nhớ và trả giá trị code unit surrogate khi không tạo thành cặp hợp lệ.
+A Java `String` can contain a lone surrogate, such as just `"\uD83D"`. This is not a valid sequence of Unicode scalar values. APIs such as `codePointAt` or `codePoints()` may still treat the UTF-16 sequence as in-memory data and return the surrogate code unit value when it does not form a valid pair.
 
-Do đó, **`codePointCount` không phải bộ kiểm tra tính hợp lệ của chuỗi Unicode**. Nó có thể đếm một surrogate không ghép cặp như một phần tử. Khi nhận dữ liệu từ nguồn có thể lỗi, hãy kiểm tra cặp surrogate hoặc sử dụng decoder với chính sách báo lỗi rõ ràng.
+Therefore, **`codePointCount` is not a validator for Unicode string validity**. It may count an unpaired surrogate as a single element. When receiving data from potentially faulty sources, validate surrogate pairs or use a decoder with an explicit error-reporting policy.
 
-Ví dụ kiểm tra một code unit có bị bỏ lẻ hay không:
+Example checking whether any code unit is orphaned:
 
 ```java
 public class SurrogateValidationDemo {
@@ -545,7 +545,7 @@ public class SurrogateValidationDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 SurrogateValidationDemo.java
@@ -559,97 +559,97 @@ true
 false
 ```
 
-Hàm này chỉ kiểm tra **cặp surrogate đúng về UTF-16**. Nó không xác nhận văn bản được chuẩn hóa, không lọc ký tự điều khiển, không xác nhận danh sách script được phép và không phát hiện mọi ký tự gây nhầm lẫn hình dạng. Các chính sách đó cần được thiết kế riêng.
+This function only checks for **well-formed UTF-16 surrogate pairs**. It does not verify that the text is normalized, does not filter control characters, does not validate an allowlist of scripts, and does not detect visually confusable characters. Those policies must be designed separately.
 
-## 15. Các thao tác dễ sai trong ứng dụng thực tế
+## 15. Error-Prone Operations in Real-World Applications
 
-### 15.1. Giới hạn “tối đa 20 ký tự” của ô nhập
+### 15.1. "Maximum 20 Characters" Limit on an Input Field
 
-Cần xác định “ký tự” ở đây là gì:
+You must define what "character" means here:
 
-- Nếu giao thức giới hạn **UTF-8 bytes**, đếm `getBytes(StandardCharsets.UTF_8).length`.
-- Nếu API/ràng buộc Java giới hạn **UTF-16 code units**, dùng `String.length()`.
-- Nếu bài toán liên quan đến số **code points**, dùng `codePointCount(0, length())`.
-- Nếu muốn hạn chế các đơn vị **người dùng có thể thao tác như một cụm**, dùng bộ phân đoạn grapheme phù hợp; `\\X` có thể là lựa chọn cho Java 17+.
-- Nếu UI có ràng buộc chiều rộng thực, cần đo text layout/font; không dựa vào bất kỳ số lượng đơn vị nào ở trên.
+- If the protocol limits **UTF-8 bytes**, count `getBytes(StandardCharsets.UTF_8).length`.
+- If a Java API/constraint limits **UTF-16 code units**, use `String.length()`.
+- If the requirement concerns the number of **code points**, use `codePointCount(0, length())`.
+- If you want to limit the units **a user can manipulate as a single cluster**, use an appropriate grapheme segmenter; `\\X` can be an option for Java 17+.
+- If the UI has a physical width constraint, measure text layout/fonts; do not rely on any of the unit counts above.
 
-Không tuyên bố “20 ký tự” nếu chưa định nghĩa rõ đơn vị tính. Một emoji gia đình là 11 UTF-16 code units nhưng có thể chỉ một grapheme cluster; UI nếu tính bằng `length()` sẽ tiêu tốn 11/20 hạn mức cho một biểu tượng.
+Do not declare "20 characters" without clearly defining the counting unit. A family emoji is 11 UTF-16 code units but can be just one grapheme cluster; a UI that counts using `length()` will consume 11/20 of the quota for a single icon.
 
-### 15.2. Xóa một ký tự từ cuối chuỗi
+### 15.2. Deleting One Character from the End of a String
 
-`substring(0, s.length()-1)` xóa **một code unit**, có thể để lại surrogate lẻ hoặc dấu kết hợp. Xóa một code point bằng `offsetByCodePoints` tránh tách surrogate pair nhưng vẫn có thể tách cluster; chức năng Backspace của editor thường cần xử lý grapheme boundaries và quy tắc nền tảng.
+`substring(0, s.length()-1)` deletes **one code unit**, which can leave behind an orphaned surrogate or a combining mark. Deleting one code point via `offsetByCodePoints` avoids splitting a surrogate pair, yet can still split a cluster; an editor's Backspace behavior usually needs to handle grapheme boundaries and platform rules.
 
-### 15.3. Đảo ngược chuỗi
+### 15.3. Reversing a String
 
-Đảo theo code unit thô có thể đổi thứ tự high/low surrogate. `StringBuilder.reverse()` có hỗ trợ giữ surrogate pairs hợp lệ, nhưng **không bảo đảm đảo đúng grapheme cluster**; chữ có dấu kết hợp hoặc chuỗi emoji ZWJ có thể bị đảo thành các cụm khác. Đảo văn bản tự nhiên còn phụ thuộc hướng viết, BiDi và ngữ nghĩa ngôn ngữ.
+Reversing by raw code units can swap the order of high/low surrogates. `StringBuilder.reverse()` handles preserving valid surrogate pairs, yet **does not guarantee reversing grapheme clusters properly**; letters with combining marks or ZWJ emoji sequences can be reversed into different clusters. Reversing natural text also depends on writing direction, BiDi, and linguistic semantics.
 
-### 15.4. Chuẩn hóa và so sánh
+### 15.4. Normalization and Comparison
 
-Hai chuỗi render gần giống nhau chưa chắc `equals()` true. Dùng normalization khi bài toán yêu cầu canonical equivalence, nhưng không biến NFC/NFKC thành một hệ thống tự động xử lý toàn bộ vấn đề search, nhận diện người dùng hoặc chống tấn công Unicode confusables.
+Two strings that render nearly identically are not guaranteed to return `equals()` true. Use normalization when the problem requires canonical equivalence, but do not turn NFC/NFKC into an automatic system for handling all search, user identification, or protection against Unicode confusable attacks.
 
-### 15.5. Cắt ở ranh giới byte
+### 15.5. Slicing at Byte Boundaries
 
-Tránh cắt byte UTF-8 giữa một sequence nhiều byte; nếu cần chia payload, phải giữ ranh giới code point khi decode. Nhưng giữ ranh giới code point vẫn chưa bảo đảm không chia một grapheme cluster.
+Avoid slicing UTF-8 bytes in the middle of a multi-byte sequence; if you need to split a payload, preserve code point boundaries when decoding. Still, preserving code point boundaries does not guarantee avoiding splitting a grapheme cluster.
 
-## 16. Những ngộ nhận thường gặp
+## 16. Common Misconceptions
 
-| Ngộ nhận | Thực tế | Phương án phù hợp |
+| Misconception | Reality | Appropriate Approach |
 | --- | --- | --- |
-| `char` là một ký tự Unicode hoàn chỉnh | `char` là một UTF-16 code unit | Dùng `int` code point khi xử lý scalar |
-| `String.length()` là số chữ nhìn thấy | Nó đếm UTF-16 code units | Chọn code points hoặc graphemes theo mục tiêu |
-| `substring(0,1)` luôn lấy chữ đầu tiên | Có thể lấy một nửa surrogate pair | Dùng code point/grapheme boundary |
-| Mỗi emoji bằng một code point | Cờ, modifiers và ZWJ sequences có thể nhiều code point | Hiểu extended grapheme clusters |
-| `codePointCount` luôn đếm ký tự người dùng | Dấu kết hợp và ZWJ tạo nhiều code point/cluster | Dùng `\\X` hoặc segmentation API |
-| UTF-8 byte và UTF-16 code unit giống nhau | Chúng là hai encoding với kích thước khác nhau | Đếm bytes khi đo payload, units khi đo UTF-16 |
-| Hai chuỗi nhìn giống nhau thì `equals` true | NFC/NFD có thể khác dãy code units | Chuẩn hóa có chủ đích |
-| Regex `\\X` đảm bảo một glyph/ô terminal | Cluster không tương đương layout width | Đo layout nếu mục tiêu là hiển thị |
-| `codePointCount` phát hiện surrogate lỗi | Có thể vẫn đếm phần tử surrogate đứng riêng | Validate UTF-16/decoder nếu cần |
-| Emoji hiển thị giống nhau trên mọi hệ thống | Phụ thuộc font, Unicode version, renderer | Kiểm thử trên nền tảng đích |
-| Mọi ký tự hợp lệ phải nằm trong BMP | Code points bổ sung rất phổ biến | Hỗ trợ surrogate pairs đúng |
-| `Normalizer` giải quyết mọi vấn đề Unicode security | Nó chỉ chuẩn hóa theo form được chọn | Áp dụng chính sách bảo mật/ngôn ngữ riêng |
+| `char` is a complete Unicode character | `char` is a UTF-16 code unit | Use `int` code points when processing scalars |
+| `String.length()` is the number of visible letters | It counts UTF-16 code units | Choose code points or graphemes based on the goal |
+| `substring(0,1)` always gets the first character | It may take half of a surrogate pair | Use code point/grapheme boundaries |
+| Every emoji equals one code point | Flags, modifiers, and ZWJ sequences can have multiple code points | Understand extended grapheme clusters |
+| `codePointCount` always counts user characters | Combining marks and ZWJ create multiple code points per cluster | Use `\\X` or a segmentation API |
+| UTF-8 bytes and UTF-16 code units are the same | They are two encodings with different sizes | Count bytes when measuring payloads, units when measuring UTF-16 |
+| Two visually identical strings have `equals` true | NFC/NFD can have different code unit sequences | Normalize intentionally |
+| Regex `\\X` guarantees one glyph/terminal cell | A cluster is not equivalent to layout width | Measure layout if the goal is display |
+| `codePointCount` detects invalid surrogates | It can still count isolated surrogate elements | Validate UTF-16 / use a decoder if needed |
+| Emojis display identically on every system | Depends on font, Unicode version, and renderer | Test on target platforms |
+| Every valid character must fit in the BMP | Supplementary code points are very common | Support surrogate pairs properly |
+| `Normalizer` solves all Unicode security issues | It only normalizes according to the chosen form | Apply dedicated security/linguistic policies |
 
-## 17. Checklist kiểm thử
+## 17. Testing Checklist
 
-Với code xử lý chuỗi đa ngôn ngữ, nên kiểm tra ít nhất:
+For multilingual string processing code, test at least:
 
-1. **ASCII**: `A`, `abc` — 1 code unit cho mỗi ký tự cơ bản.
-2. **BMP có dấu dựng sẵn**: `é` (`U+00E9`) — 1 unit/1 point/1 cluster.
-3. **Dấu kết hợp**: `e\u0301` — 2 units/2 points/1 cluster.
-4. **Emoji bổ sung**: 😀 — 2 units/1 point/1 cluster.
-5. **Cờ regional indicator**: 🇻🇳 — 4 units/2 points/1 cluster.
-6. **Emoji modifier**: 👍🏽 — 4 units/2 points/1 cluster.
-7. **ZWJ emoji**: 👩‍👩‍👧‍👦 — 11 units/7 points/1 cluster trên runtime được kiểm tra.
-8. **Cắt code point**: `offsetByCodePoints` không cắt đôi surrogate pair.
-9. **Cắt grapheme**: regex `\\X` không tách `e\u0301` trong ví dụ.
-10. **Normalization**: NFC của `e\u0301` bằng `é`.
-11. **Malformed UTF-16**: surrogate cao đứng đơn lẻ bị validation từ chối.
-12. **UTF-8 size**: `é` dựng sẵn 2 bytes, phân rã 3 bytes, 😀 4 bytes.
-13. **Version**: kiểm tra các emoji cluster mới trên đúng bản JDK/Unicode dữ liệu sẽ chạy.
-14. **UI behavior**: caret, Backspace, chọn text và độ rộng chữ không bị suy trực tiếp từ `String.length()`.
+1. **ASCII**: `A`, `abc` — 1 code unit per basic character.
+2. **Precomposed accented BMP**: `é` (`U+00E9`) — 1 unit / 1 point / 1 cluster.
+3. **Combining mark**: `e\u0301` — 2 units / 2 points / 1 cluster.
+4. **Supplementary emoji**: 😀 — 2 units / 1 point / 1 cluster.
+5. **Regional indicator flag**: 🇻🇳 — 4 units / 2 points / 1 cluster.
+6. **Emoji modifier**: 👍🏽 — 4 units / 2 points / 1 cluster.
+7. **ZWJ emoji**: 👩‍👩‍👧‍👦 — 11 units / 7 points / 1 cluster on the tested runtime.
+8. **Code point slicing**: `offsetByCodePoints` does not split a surrogate pair in half.
+9. **Grapheme slicing**: regex `\\X` does not split `e\u0301` in the example.
+10. **Normalization**: NFC of `e\u0301` equals `é`.
+11. **Malformed UTF-16**: a lone high surrogate is rejected by validation.
+12. **UTF-8 size**: precomposed `é` is 2 bytes, decomposed is 3 bytes, 😀 is 4 bytes.
+13. **Version**: test newer emoji clusters on the exact JDK/Unicode version the data will run on.
+14. **UI behavior**: caret, Backspace, text selection, and character width are not inferred directly from `String.length()`.
 
-### Bài tập thực hành
+### Practice Exercises
 
-- Viết một hàm in từng code point của câu `"Chào 😀"` dưới dạng `U+XXXX`; so sánh số code unit với số code point.
-- Viết hàm `firstCodePoint(String s)` dùng `offsetByCodePoints`, và `firstGrapheme(String s)` dùng `Pattern.compile("\\X")`. Thử với `"e\u0301"` và cờ emoji, giải thích vì sao kết quả khác.
-- Viết validator cho giới hạn **10 grapheme clusters** và so sánh kết quả với validator giới hạn **10 UTF-16 code units** trên emoji gia đình.
-- Chuẩn hóa danh sách chuỗi với `Normalizer.Form.NFC`, kiểm tra `equals` trước/sau. Giải thích vì sao dùng NFKC tùy tiện có thể làm thay đổi dạng tương thích.
-- Thử tạo một chuỗi chỉ gồm high surrogate (`"\uD83D"`) và xác nhận `isWellFormedUtf16` trả false. Tìm lý do tại sao `codePointCount` không phải validator.
-- Thử đếm byte UTF-8 và code unit của cùng chuỗi có tiếng Việt, emoji, dấu kết hợp. Quyết định loại giới hạn phù hợp cho UI và API.
-- Dựng thử một nút Backspace chỉ xóa một code point, rồi đối chiếu với Backspace ở trình soạn thảo dùng grapheme clusters; đánh giá các trường hợp dấu kết hợp.
+- Write a function that prints each code point of the string `"Chào 😀"` as `U+XXXX`; compare the code unit count with the code point count.
+- Write a function `firstCodePoint(String s)` using `offsetByCodePoints`, and `firstGrapheme(String s)` using `Pattern.compile("\\X")`. Test with `"e\u0301"` and a flag emoji, and explain why the results differ.
+- Write a validator for a limit of **10 grapheme clusters** and compare its result with a validator limiting **10 UTF-16 code units** on the family emoji.
+- Normalize a list of strings with `Normalizer.Form.NFC`, and check `equals` before/after. Explain why using NFKC indiscriminately can alter compatibility forms.
+- Try creating a string containing only a high surrogate (`"\uD83D"`) and confirm `isWellFormedUtf16` returns false. Find out why `codePointCount` is not a validator.
+- Try counting UTF-8 bytes and code units of the same string containing Vietnamese text, emojis, and combining marks. Decide which limit type fits the UI and the API.
+- Build a prototype Backspace button that deletes only one code point, then compare it with Backspace in an editor using grapheme clusters; evaluate cases with combining marks.
 
-## 18. Kết luận
+## 18. Conclusion
 
-Để xử lý Unicode đúng trong Java, phải biết bạn đang làm việc ở **tầng nào**:
+To handle Unicode correctly in Java, you must know which **layer** you are working at:
 
-- `String.length()`, `charAt()`, `substring()`: **UTF-16 code units và chỉ số code unit**.
+- `String.length()`, `charAt()`, `substring()`: **UTF-16 code units and code unit indices**.
 - `codePointAt()`, `codePointCount()`, `codePoints()`, `offsetByCodePoints()`: **Unicode code points**.
-- `Pattern.compile("\\X")` hoặc bộ phân đoạn Unicode thích hợp: **extended grapheme clusters**, gần với đơn vị văn bản mà người dùng cảm nhận.
-- `Normalizer`: giúp xử lý **canonical/compatibility normalization**, không phải phép đếm hay trình dựng glyph.
-- `getBytes(StandardCharsets.UTF_8)`: **byte size khi mã hóa**, không phải số ký tự.
+- `Pattern.compile("\\X")` or an appropriate Unicode segmenter: **extended grapheme clusters**, close to the text unit perceived by users.
+- `Normalizer`: handles **canonical/compatibility normalization**, not counting or glyph rendering.
+- `getBytes(StandardCharsets.UTF_8)`: **encoded byte size**, not character count.
 
-Mọi phép đếm/cắt/định dạng phải được gắn với đúng yêu cầu nghiệp vụ: **độ dài bộ nhớ/serialization, xử lý Unicode, hay thao tác trên văn bản nhìn thấy**. Không dùng một phép đếm duy nhất cho mọi tình huống và không coi “một code point = một ký tự người dùng nhìn thấy”.
+Every counting, slicing, or formatting operation must be tied to the exact business requirement: **memory/serialization length, Unicode processing, or operations on visible text**. Do not use a single counting method for every situation, and do not assume "one code point = one user-perceived character".
 
-## Tài liệu tham khảo
+## References
 
 - [Oracle Java 21 — String](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html)
 - [Oracle Java 21 — Character](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Character.html)

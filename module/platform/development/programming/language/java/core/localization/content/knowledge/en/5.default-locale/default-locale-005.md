@@ -1,22 +1,22 @@
-# Truyền locale tường minh tới từng thao tác định dạng trong Java
+# Passing an Explicit Locale to Each Formatting Operation in Java
 
-## 1. Vấn đề cần giải quyết
+## 1. Problem to Solve
 
-Một chương trình Java có thể chạy trên máy chủ ở Việt Nam, xử lý dữ liệu của khách hàng Đức và hiển thị kết quả cho người dùng Mỹ. Nếu gọi các API định dạng mà **không chỉ định `Locale`**, kết quả có thể phụ thuộc **locale mặc định của JVM**. Điều này khiến cùng một dữ liệu có cách hiển thị khác nhau khi chạy trên máy phát triển, môi trường kiểm thử hoặc production.
+A Java program might run on a server in Vietnam, process data for a German customer, and display results to an American user. If formatting APIs are called **without specifying a `Locale`**, the result may depend on the **JVM's default locale**. This causes the same data to be displayed differently across a developer's machine, a testing environment, and production.
 
-Hãy xem cùng giá trị số `1234.5`:
+Look at the same numeric value `1234.5`:
 
-| Locale định dạng | Cách hiển thị số thường gặp | Ý nghĩa dấu phân tách |
+| Formatting Locale | Typical Number Display | Meaning of Separators |
 | --- | --- | --- |
-| `Locale.US` (`en-US`) | `1,234.50` | Dấu phẩy nhóm hàng nghìn, dấu chấm phần thập phân |
-| `Locale.GERMANY` (`de-DE`) | `1.234,50` | Dấu chấm nhóm hàng nghìn, dấu phẩy phần thập phân |
-| `Locale.FRANCE` (`fr-FR`) | `1 234,50` | Dấu nhóm thường là khoảng trắng hẹp không ngắt trong dữ liệu CLDR hiện đại |
+| `Locale.US` (`en-US`) | `1,234.50` | Comma groups thousands, period marks decimal point |
+| `Locale.GERMANY` (`de-DE`) | `1.234,50` | Period groups thousands, comma marks decimal point |
+| `Locale.FRANCE` (`fr-FR`) | `1 234,50` | Grouping separator is typically a narrow no-break space in modern CLDR data |
 
-Giá trị số **không đổi**; chỉ có chuỗi trình bày thay đổi. Dấu nhóm của một locale có thể khác theo phiên bản JDK, provider và dữ liệu CLDR, nên không nên tự viết logic thay thế `,` thành `.` hoặc giả định mọi dấu cách đều là ASCII.
+The numeric value **does not change**; only the presentation string changes. Grouping separators for a locale can vary across JDK versions, providers, and CLDR data, so you should not write custom logic replacing `,` with `.` or assume every whitespace character is ASCII.
 
-**Nguyên tắc của bài:** Khi biết đối tượng nhận kết quả và quy ước cần dùng, hãy **truyền `Locale` tường minh cho từng thao tác định dạng hoặc phân tích dữ liệu**, thay vì dựa vào locale mặc định mang tính toàn cục.
+**Principle of this lesson:** When you know the recipient and the convention to apply, **pass an explicit `Locale` to each formatting or parsing operation**, instead of relying on the global default locale.
 
-Ví dụ:
+Example:
 
 ~~~java
 NumberFormat number = NumberFormat.getNumberInstance(Locale.GERMANY);
@@ -26,24 +26,24 @@ DateTimeFormatter date = DateTimeFormatter
 String summary = String.format(Locale.US, "Total: %.2f", 1234.5);
 ~~~
 
-Đây là các **mảnh lệnh minh họa**; đặt trong mã có import `java.text.NumberFormat`, `java.time.format.DateTimeFormatter`, `java.time.format.FormatStyle` và `java.util.Locale`. Cần phân biệt: `Locale` quyết định quy ước ngôn ngữ/vùng, còn múi giờ, đơn vị tiền tệ, chronology và dữ liệu nghiệp vụ có thể cần chỉ định riêng.
+These are **illustrative snippets**; place them in code that imports `java.text.NumberFormat`, `java.time.format.DateTimeFormatter`, `java.time.format.FormatStyle`, and `java.util.Locale`. Note the distinction: `Locale` governs language/regional conventions, whereas time zone, currency unit, chronology, and business data may need to be specified separately.
 
-## 2. Locale mặc định và locale tường minh
+## 2. Default Locale vs. Explicit Locale
 
-### Locale mặc định hoạt động như thế nào?
+### How does the default locale work?
 
-Một số factory hoặc hàm Java không nhận tham số `Locale` sẽ dựa vào locale mặc định của quá trình JVM, ví dụ:
+Some Java factories or methods that do not take a `Locale` parameter rely on the JVM process's default locale, for example:
 
 ~~~java
 NumberFormat implicit = NumberFormat.getNumberInstance();
 String text = String.format("%,.2f", 1234.5);
 ~~~
 
-Nếu không chủ động truyền locale, đầu ra chịu ảnh hưởng của `Locale.getDefault()` hoặc mặc định cho danh mục `Locale.Category.FORMAT` theo từng API. Máy chủ hoặc tiến trình có thể dùng locale khác dự kiến. Java còn có `Locale.Category.DISPLAY` phục vụ tên hiển thị, khác với danh mục `FORMAT` dùng cho nhiều API định dạng.
+Without actively passing a locale, output is affected by `Locale.getDefault()` or the default for the `Locale.Category.FORMAT` category depending on the API. A server or process may use a different locale than expected. Java also has `Locale.Category.DISPLAY` for display names, separate from the `FORMAT` category used by many formatting APIs.
 
-Một thao tác như `Locale.setDefault(Locale.GERMANY)` thay đổi trạng thái dùng chung của JVM. Nếu ứng dụng phục vụ nhiều request đồng thời, thay đổi mặc định để định dạng một request rồi đổi lại có thể làm request khác nhận nhầm quy ước. Vì vậy **không gọi `Locale.setDefault` cho từng người dùng, từng request hoặc từng thao tác**.
+An operation like `Locale.setDefault(Locale.GERMANY)` alters shared JVM state. If an application handles multiple concurrent requests, changing the default to format one request and changing it back can cause another request to pick up the wrong convention. Therefore, **never call `Locale.setDefault` per user, per request, or per operation**.
 
-### Locale tường minh đem lại điều gì?
+### What does an explicit locale provide?
 
 ~~~java
 NumberFormat germanNumber =
@@ -52,19 +52,19 @@ NumberFormat usNumber =
         NumberFormat.getNumberInstance(Locale.US);
 ~~~
 
-Hai formatter dùng hai quy ước độc lập về locale. Chúng có thể được dùng trong cùng chương trình mà không cần sửa mặc định JVM. Cách này:
+The two formatters use two locale-independent conventions. They can be used in the same program without modifying the JVM default. This approach:
 
-- Làm yêu cầu định dạng hiển thị ngay tại nơi gọi API.
-- Hạn chế phụ thuộc vào cấu hình máy hoặc thứ tự chạy test.
-- Phục vụ nhiều người dùng có locale khác nhau trong cùng tiến trình.
-- Giúp kiểm tra đầu ra và đường xử lý lỗi theo từng locale.
-- Giữ lựa chọn locale gần dữ liệu hoặc ngữ cảnh giao diện cần định dạng.
+- Makes the formatting requirement visible right at the API call site.
+- Reduces dependence on machine configuration or test execution order.
+- Serves multiple users with different locales within the same process.
+- Makes it easy to verify outputs and error-handling paths per locale.
+- Keeps the locale choice close to the data or UI context being formatted.
 
-`Locale` là đối tượng bất biến, có thể chia sẻ an toàn. **Nhưng không suy ra mọi formatter đều bất biến**: các lớp `NumberFormat`, `DecimalFormat`, `DateFormat` và `MessageFormat` có trạng thái thay đổi; đừng chia sẻ một instance mutable giữa nhiều luồng mà không có thiết kế đồng bộ phù hợp. `DateTimeFormatter` của `java.time` là bất biến và an toàn để tái sử dụng giữa các luồng.
+`Locale` is an immutable object and can be shared safely. **However, do not infer that every formatter is immutable**: classes like `NumberFormat`, `DecimalFormat`, `DateFormat`, and `MessageFormat` have mutable state; do not share a mutable instance across multiple threads without proper synchronization design. `DateTimeFormatter` from `java.time` is immutable and safe to reuse across threads.
 
-## 3. Ví dụ đầy đủ: định dạng số, ngày và chuỗi cho từng locale
+## 3. Complete Example: Formatting Numbers, Dates, and Strings per Locale
 
-Ví dụ dưới đây dùng ngày và số cố định để tránh phụ thuộc thời điểm hiện tại. Lưu vào tệp `ExplicitLocaleDemo.java`:
+The example below uses a fixed date and number to avoid depending on the current time. Save to `ExplicitLocaleDemo.java`:
 
 ~~~java
 import java.text.NumberFormat;
@@ -105,14 +105,14 @@ public class ExplicitLocaleDemo {
 }
 ~~~
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or higher:
 
 ~~~bash
 javac -encoding UTF-8 ExplicitLocaleDemo.java
 java ExplicitLocaleDemo
 ~~~
 
-Với dữ liệu locale CLDR thông dụng của JDK, đầu ra là:
+With standard JDK CLDR locale data, the output is:
 
 ~~~text
 US number: 1,234.50
@@ -123,21 +123,21 @@ US printf: 1234.50
 DE printf: 1234,50
 ~~~
 
-Giải thích:
+Explanation:
 
-1. Cùng một `amount` và `day` được đưa qua hai bộ định dạng. Không cần thay đổi dữ liệu hay default locale.
-2. `NumberFormat.getNumberInstance(locale)` dùng quy ước phân nhóm và dấu thập phân của locale. Ở đây đặt rõ hai chữ số phần thập phân để kết quả minh họa dễ đối chiếu.
-3. `DateTimeFormatter.ofPattern(pattern, locale)` truyền locale ngay lúc tạo formatter, do đó tên tháng bằng tiếng Anh hoặc tiếng Đức. `uuuu` biểu thị năm theo hệ năm proleptic của ISO date trong ví dụ này.
-4. `String.format(locale, ...)` chuyển cùng giá trị số theo locale. Mẫu `%.2f` làm tròn để hiển thị hai chữ số phần thập phân nhưng **không** tự thêm dấu nhóm; muốn nhóm chữ số có thể dùng `%,.2f`.
-5. Trong ví dụ có pattern và format riêng của `NumberFormat`/`String.format`; không được mong `String.format` và `NumberFormat` luôn tạo cùng mẫu chuỗi nếu cấu hình khác nhau.
+1. The same `amount` and `day` are passed through two formatters. No changes to data or the default locale are required.
+2. `NumberFormat.getNumberInstance(locale)` uses the grouping and decimal-separator conventions of the locale. Here two fraction digits are set explicitly so the demonstration outputs are easy to compare.
+3. `DateTimeFormatter.ofPattern(pattern, locale)` passes the locale right when creating the formatter, so month names appear in English or German. `uuuu` denotes the proleptic year of the ISO date in this example.
+4. `String.format(locale, ...)` converts the same numeric value according to the locale. The `%.2f` specifier rounds to display two decimal places but does **not** automatically add grouping separators; to group digits, you can use `%,.2f`.
+5. In the example, `NumberFormat` and `String.format` have their own patterns and formats; do not expect `String.format` and `NumberFormat` to always produce identical string patterns if their configurations differ.
 
-Tên tháng và ký hiệu phân tách có thể bị ảnh hưởng bởi provider/JDK hoặc phiên bản dữ liệu locale. Nếu sản phẩm cần cố định chính xác cách trình bày trên nhiều nền tảng, cần kiểm tra cấu hình provider và kiểm thử ở môi trường triển khai. **Không nên dùng chuỗi số/ngày đã bản địa hóa làm khóa giao tiếp giữa các hệ thống.**
+Month names and separator symbols can be affected by the provider/JDK or locale data version. If a product requires exact presentation consistency across platforms, verify provider configuration and test in the target deployment environment. **Do not use localized number/date strings as communication keys between systems.**
 
-## 4. Truyền locale cho từng API định dạng thường dùng
+## 4. Passing Locales to Common Formatting APIs
 
-### 4.1. Số thường, phần trăm, tiền tệ
+### 4.1. Regular Numbers, Percentages, Currency
 
-`java.text.NumberFormat` cung cấp các factory tường minh:
+`java.text.NumberFormat` provides explicit factories:
 
 ~~~java
 Locale userLocale = Locale.forLanguageTag("vi-VN");
@@ -153,16 +153,16 @@ String c = percent.format(0.125);
 String d = money.format(1234.5);
 ~~~
 
-Đây là mã minh họa đặt trong method với import `java.text.NumberFormat` và `java.util.Locale`. Mỗi factory chọn quy ước phù hợp với loại dữ liệu cần trình bày:
+This is illustrative code inside a method with imports `java.text.NumberFormat` and `java.util.Locale`. Each factory chooses conventions suited to the type of data being presented:
 
-| Factory | Ý nghĩa đầu vào | Điểm dễ nhầm |
+| Factory | Input Meaning | Common Pitfall |
 | --- | --- | --- |
-| `getNumberInstance(locale)` | Số thông thường | Số chữ số thập phân mặc định và việc làm tròn cần được thiết kế rõ |
-| `getIntegerInstance(locale)` | Hiển thị/phân tích theo kiểu số nguyên | Không sử dụng để bảo toàn phần thập phân |
-| `getPercentInstance(locale)` | Tỷ lệ, ví dụ `0.125` biểu thị 12,5% tùy quy tắc | Không đưa `12.5` nếu nghĩa nghiệp vụ là 12,5% |
-| `getCurrencyInstance(locale)` | Giá trị tiền có ký hiệu/định dạng địa phương | Locale không nhất thiết xác định **đồng tiền giao dịch** |
+| `getNumberInstance(locale)` | Regular numbers | Default fraction digits and rounding must be designed explicitly |
+| `getIntegerInstance(locale)` | Display/parse as integers | Do not use when fractional parts must be preserved |
+| `getPercentInstance(locale)` | Ratio, e.g., `0.125` represents 12.5% depending on rules | Do not pass `12.5` if the business meaning is 12.5% |
+| `getCurrencyInstance(locale)` | Monetary value with local symbol/formatting | The locale does not necessarily determine the **transaction currency** |
 
-**Tiền tệ cần hai thông tin tách biệt:** locale người đọc và `Currency` thực tế của số tiền. Ví dụ một khách hàng tại Đức có thể xem số tiền tính bằng USD:
+**Currency requires two separate pieces of information:** the reader's locale and the actual `Currency` of the amount. For instance, a customer in Germany may view an amount denominated in USD:
 
 ~~~java
 Locale viewer = Locale.GERMANY;
@@ -172,11 +172,11 @@ usd.setCurrency(java.util.Currency.getInstance("USD"));
 String displayed = usd.format(1234.50);
 ~~~
 
-Không giả định `Locale.GERMANY` đồng nghĩa mọi số tiền đều bằng EUR. Mẫu hiển thị vẫn tùy locale/provider. Với tiền trong nghiệp vụ, ưu tiên `BigDecimal` cho tính toán chính xác và quy tắc làm tròn được xác định, rồi mới định dạng để hiển thị. Dùng `double` như trong ví dụ đơn giản là để minh họa API định dạng.
+Do not assume `Locale.GERMANY` means every monetary amount is in EUR. The display pattern still depends on the locale/provider. For monetary values in business logic, prefer `BigDecimal` for exact calculations and defined rounding rules before formatting for display. Using `double` in simple examples is solely to illustrate formatting APIs.
 
-### 4.2. Ngày giờ với `java.time`
+### 4.2. Date and Time with `java.time`
 
-Có hai cách truyền locale tường minh:
+There are two ways to pass a locale explicitly:
 
 ~~~java
 Locale language = Locale.forLanguageTag("fr-FR");
@@ -192,14 +192,14 @@ String first = LocalDate.of(2025, 7, 14).format(localized);
 String second = LocalDate.of(2025, 7, 14).format(custom);
 ~~~
 
-Đây là đoạn minh họa trong method, cần import `java.time.LocalDate`, `java.time.format.DateTimeFormatter`, `java.time.format.FormatStyle` và `java.util.Locale`.
+This is an illustrative snippet inside a method, requiring imports `java.time.LocalDate`, `java.time.format.DateTimeFormatter`, `java.time.format.FormatStyle`, and `java.util.Locale`.
 
-- `ofLocalizedDate(FormatStyle.LONG)` dùng kiểu trình bày ngày phù hợp locale; `withLocale(locale)` chọn locale cho formatter.
-- `ofPattern("d MMMM uuuu", locale)` sử dụng pattern do ứng dụng quyết định, nhưng tên tháng vẫn nhận ngôn ngữ từ locale.
-- Hai lựa chọn có mục đích khác nhau: **localized style** cho quyền quyết định bố cục ngày theo quy tắc địa phương; **custom pattern** cho bố cục mà ứng dụng muốn giữ cố định.
-- `LocalDate` chỉ là ngày, không chứa giờ hay múi giờ. `Locale` không tự xác định `ZoneId`.
+- `ofLocalizedDate(FormatStyle.LONG)` uses a date presentation style suited to the locale; `withLocale(locale)` selects the locale for the formatter.
+- `ofPattern("d MMMM uuuu", locale)` uses a pattern decided by the application, while month names still come from the locale's language.
+- Both options serve different goals: **localized style** delegates date layout decisions to regional rules; **custom pattern** enforces a layout the application wants to keep fixed.
+- `LocalDate` is only a date, containing no time or time zone. `Locale` does not automatically determine `ZoneId`.
 
-Khi định dạng `Instant` hoặc lịch hẹn thực tế, hãy xác định múi giờ của người dùng bên cạnh locale:
+When formatting an `Instant` or a real appointment, determine the user's time zone alongside the locale:
 
 ~~~java
 Instant instant = Instant.parse("2025-07-14T10:00:00Z");
@@ -214,13 +214,13 @@ DateTimeFormatter formatter = DateTimeFormatter
 String shown = formatter.format(instant);
 ~~~
 
-Đoạn mã minh họa này cần import `java.time.Instant`, `java.time.ZoneId`, `java.time.format.DateTimeFormatter`, `java.time.format.FormatStyle`, `java.util.Locale`. Cùng locale vẫn có thể hiển thị các giờ khác nhau khi timezone khác nhau; ngược lại, cùng timezone có thể có bản dịch tên tháng, bố cục ngày và cách hiển thị khác nhau theo locale.
+This illustrative snippet requires imports `java.time.Instant`, `java.time.ZoneId`, `java.time.format.DateTimeFormatter`, `java.time.format.FormatStyle`, and `java.util.Locale`. The same locale can still display different times when the timezone differs; conversely, the same timezone can have different month name translations, date layouts, and formatting styles depending on the locale.
 
-**Không dùng `LocalDateTime` như thể đã chứa múi giờ**; đây là kiểu ngày giờ chưa gắn zone/offset. Khi chuyển từ thời điểm tuyệt đối, chọn zone có chủ đích.
+**Do not treat `LocalDateTime` as if it already carries a time zone**; it is a date-time type without a zone or offset attached. When converting from an absolute instant, choose the zone intentionally.
 
-### 4.3. `String.format`, `Formatter` và `printf`
+### 4.3. `String.format`, `Formatter`, and `printf`
 
-Các API này đặc biệt dễ vô tình sử dụng mặc định JVM:
+These APIs make it especially easy to accidentally use the JVM default:
 
 ~~~java
 double result = 1234.5;
@@ -232,13 +232,13 @@ System.out.printf(Locale.US, "US: %,.2f%n", result);
 System.out.printf(Locale.GERMANY, "DE: %,.2f%n", result);
 ~~~
 
-Đặt trong method, import `java.util.Locale`. `%,.2f` yêu cầu phân nhóm và hai chữ số thập phân; dấu cụ thể theo locale. `printf(locale, ...)` cũng nhận locale tường minh; phiên bản không có locale có thể dùng mặc định `FORMAT`.
+Placed inside a method, importing `java.util.Locale`. `%,.2f` requests digit grouping and two decimal places; the exact symbols depend on the locale. `printf(locale, ...)` also accepts an explicit locale; the version without a locale may use the `FORMAT` default.
 
-Đừng nhầm `Locale` của bộ định dạng với encoding của đầu ra. `Locale` chọn quy ước số/ngày/từ ngữ; encoding của console, stream và file quyết định cách ký tự được mã hóa. Nếu Unicode bị lỗi khi ghi file, kiểm tra `Charset` độc lập với `Locale`.
+Do not confuse the formatter's `Locale` with the output's character encoding. `Locale` chooses number/date/word conventions; the encoding of the console, stream, or file determines how characters are encoded into bytes. If Unicode appears garbled when writing a file, check the `Charset` independently of `Locale`.
 
-### 4.4. Thông điệp có nhiều tham số bằng `MessageFormat`
+### 4.4. Multi-Argument Messages with `MessageFormat`
 
-Nếu một câu hiển thị bao gồm số hoặc ngày, `MessageFormat` có thể dùng locale để định dạng các tham số:
+If a display sentence includes numbers or dates, `MessageFormat` can use a locale to format its arguments:
 
 ~~~java
 Locale locale = Locale.GERMANY;
@@ -249,15 +249,15 @@ MessageFormat message = new MessageFormat(
 String text = message.format(new Object[]{1234.5});
 ~~~
 
-Đây là đoạn mã minh họa với import `java.text.MessageFormat` và `java.util.Locale`; định dạng số dùng locale Đức. `MessageFormat` có quy tắc quoting đặc biệt với dấu nháy đơn trong pattern. Với ứng dụng dịch đa ngôn ngữ, nên lấy cả mẫu câu theo locale và dùng formatter phù hợp cho tham số; không giả định cùng một câu có thể dịch an toàn chỉ bằng thay từng từ.
+This is an illustrative code snippet importing `java.text.MessageFormat` and `java.util.Locale`; number formatting uses the German locale. `MessageFormat` has special quoting rules for single quotes in patterns. In multilingual applications, fetch the whole sentence pattern per locale and use appropriate formatters for arguments; do not assume the same sentence can be safely translated just by swapping individual words.
 
-`MessageFormat` có thể thay đổi trạng thái, nên tạo instance theo ngữ cảnh hoặc dùng chiến lược chia sẻ an toàn khi xử lý đồng thời. Một pattern `{0,number}` được format với locale khác có thể cho kết quả khác dù các đối số không đổi.
+`MessageFormat` is stateful/mutable, so create instances per context or use a safe sharing strategy under concurrency. A pattern `{0,number}` formatted with different locales can yield different results even when the arguments are unchanged.
 
-## 5. Truyền locale rõ ràng khi phân tích dữ liệu đầu vào
+## 5. Passing an Explicit Locale When Parsing Input
 
-Định dạng (**formatting**) là từ số/ngày thành chuỗi; phân tích (**parsing**) là đi theo chiều ngược lại. Khi người dùng nhập `1.234,50`, phải biết locale của biểu mẫu để hiểu chính xác dấu nhóm và dấu thập phân.
+**Formatting** turns numbers/dates into strings; **parsing** goes in the reverse direction. When a user enters `1.234,50`, you must know the form's locale to correctly interpret the grouping and decimal separators.
 
-Ví dụ đầy đủ dùng một số kiểu Đức và kiểm tra **đã tiêu thụ toàn bộ chuỗi**. Lưu vào `ParseLocaleDemo.java`:
+Full example using a German-formatted number and checking that **the entire string was consumed**. Save to `ParseLocaleDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -291,26 +291,26 @@ public class ParseLocaleDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 ParseLocaleDemo.java
 java ParseLocaleDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 1234.50
 ~~~
 
-Vì sao không chỉ dùng `NumberFormat.parse(input)` rồi tin ngay kết quả? Một số parser có thể **chấp nhận tiền tố hợp lệ** và không tiêu thụ hết chuỗi. Kiểm tra `ParsePosition.getIndex() == input.length()` giúp phát hiện ký tự thừa; tuy nhiên parser bản địa hóa có thể vẫn dung thứ các dấu nhóm đặt không đúng vị trí. Nếu cần xác thực nghiêm ngặt biểu mẫu tài chính, thiết kế thêm quy tắc validation, kiểm tra phạm vi và dấu phân cách được chấp nhận, rồi mới dùng giá trị đã parse.
+Why not just call `NumberFormat.parse(input)` and immediately trust the result? Some parsers may **accept a valid prefix** without consuming the entire string. Checking `ParsePosition.getIndex() == input.length()` catches trailing characters; however, localized parsers may still tolerate misplaced grouping separators. If strict validation of financial input is required, design additional validation rules, check allowed ranges and separators, and only then use the parsed value.
 
-`DecimalFormat` trong ví dụ được tạo mới và cấu hình để nhận `BigDecimal`. Không chia sẻ cùng instance mutable cho các request đồng thời. Đối với input giao tiếp giữa các dịch vụ hoặc lưu trữ máy, ưu tiên định dạng có quy ước cố định được tài liệu hóa (`ISO-8601`, JSON number, hoặc định dạng giao thức đã quy định), **không** dùng giao diện người dùng như giao thức truyền dữ liệu.
+`DecimalFormat` in the example is freshly created and configured to return `BigDecimal`. Do not share the same mutable instance across concurrent requests. For inter-service communication or machine storage input, prefer fixed, documented conventions (`ISO-8601`, JSON numbers, or defined protocol formats), **never** user-facing presentation formats as a data transport protocol.
 
-### Ngày tháng cũng phải parse bằng locale thích hợp
+### Dates Must Also Be Parsed Using the Appropriate Locale
 
-Nếu nhập tên tháng theo ngôn ngữ người dùng, cấu hình `DateTimeFormatter` có locale trước khi parse:
+If month names are entered in the user's language, configure `DateTimeFormatter` with the locale before parsing:
 
 ~~~java
 Locale locale = Locale.US;
@@ -319,32 +319,32 @@ DateTimeFormatter parser =
 LocalDate date = LocalDate.parse("14 July 2025", parser);
 ~~~
 
-Đoạn minh họa cần import `java.util.Locale`, `java.time.LocalDate` và `java.time.format.DateTimeFormatter`. Nếu dùng pattern và locale Đức tương ứng, tên tháng cần khớp quy ước ngôn ngữ Đức. Với dữ liệu nội bộ, ISO-8601 như `2025-07-14` thường dễ trao đổi hơn.
+This illustrative snippet requires imports `java.util.Locale`, `java.time.LocalDate`, and `java.time.format.DateTimeFormatter`. If using a German pattern and locale, the month name must match German linguistic conventions. For internal data, ISO-8601 such as `2025-07-14` is usually much easier to exchange.
 
-## 6. Chọn locale ở đúng lớp và truyền qua lời gọi
+## 6. Selecting the Locale at the Right Layer and Passing It Through Calls
 
-Trong một ứng dụng server, locale có thể đến từ lựa chọn người dùng, hồ sơ, yêu cầu HTTP hoặc chính sách nội dung. Sau khi xác định, chuyển locale đó vào các lời gọi định dạng cụ thể:
+In a server application, the locale may come from user preferences, a profile, an HTTP request, or content policy. Once determined, pass that locale into specific formatting calls:
 
 ~~~text
-Yêu cầu người dùng / hồ sơ
-              |
-              v
-      Xác định Locale
-              |
-       +------+------+
-       |      |      |
-       v      v      v
-     Số     Ngày    Thông điệp
- NumberFormat      MessageFormat
-          DateTimeFormatter
-       |      |      |
-       +------+------+
-              |
-              v
-       Chuỗi hiển thị
+User request / profile
+          |
+          v
+    Determine Locale
+          |
+   +------+------+
+   |      |      |
+   v      v      v
+Numbers  Dates  Messages
+NumberFormat   MessageFormat
+      DateTimeFormatter
+   |      |      |
+   +------+------+
+          |
+          v
+   Display string
 ~~~
 
-Trong service, một cách thiết kế đơn giản là truyền tham số `Locale` tường minh:
+In a service, a simple design is to pass an explicit `Locale` parameter:
 
 ~~~java
 public static String formatAmount(
@@ -359,55 +359,55 @@ public static String formatAmount(
 }
 ~~~
 
-Đây là **phương thức minh họa**, chưa phải chương trình đầy đủ; import `java.math.BigDecimal`, `java.text.NumberFormat` và `java.util.Locale`. Instance formatter được tạo riêng cho lời gọi nên tránh việc nhiều luồng thay đổi cùng một formatter. Trong trường hợp xử lý khối lượng lớn, có thể tối ưu bằng cơ chế tạo/copy formatter hoặc cache cấu hình phù hợp, nhưng không chia sẻ mutable formatter một cách vô điều kiện.
+This is an **illustrative method**, not a full program; import `java.math.BigDecimal`, `java.text.NumberFormat`, and `java.util.Locale`. The formatter instance is created per call, avoiding multiple threads mutating the same formatter. In high-throughput scenarios, you can optimize via formatter creation/copy mechanisms or caching immutable configurations, but never share a mutable formatter unconditionally.
 
-**Lưu ý chính sách locale thiếu hoặc sai:** nếu locale chưa được cung cấp, ứng dụng nên có chính sách fallback tường minh; ví dụ lấy locale từ hồ sơ, sau đó ngôn ngữ yêu cầu, sau đó locale mặc định của sản phẩm. Không âm thầm sử dụng `Locale.getDefault()` ở mọi bước. Đầu vào từ người dùng phải được kiểm tra thẻ BCP 47 và các locale mà sản phẩm hỗ trợ; một thẻ hợp cú pháp chưa chắc có đủ bản dịch hoặc dữ liệu định dạng theo ý người dùng.
+**Note on missing or invalid locale policy:** if no locale is provided, the application should have an explicit fallback policy—for example, taking the locale from the profile, then the request language, then the product's default locale. Do not silently fall back to `Locale.getDefault()` at every step. User-supplied input must be validated against BCP 47 tags and the locales the product supports; a syntactically valid tag does not guarantee complete translations or formatting data matching the user's expectations.
 
-### Tách locale hiển thị khỏi các quyết định nghiệp vụ
+### Separating Display Locale from Business Decisions
 
-| Khía cạnh | Biến/đối tượng thường cần truyền | Vì sao độc lập |
+| Aspect | Variable/object typically passed | Why independent |
 | --- | --- | --- |
-| Ngôn ngữ, dấu số, tên tháng | `Locale` | Quy ước của người nhận thông tin |
-| Múi giờ | `ZoneId` | Xác định giờ địa phương cho một thời điểm |
-| Loại tiền | `Currency` hoặc mã ISO 4217 | Giao dịch USD vẫn là USD dù người xem ở Đức |
-| Hệ lịch đặc biệt | `Chronology` / Unicode locale extension khi API hỗ trợ | Có thể khác cách biểu diễn ISO mặc định |
-| Giá trị tiền | `BigDecimal` cùng quy tắc làm tròn | Đảm bảo tính toán trước khi trình bày |
-| Ngôn ngữ của bản dịch | `ResourceBundle` hoặc hệ thống i18n | Dịch nội dung và định dạng số/ngày là hai phần của localization |
+| Language, number symbols, month names | `Locale` | Convention of the information recipient |
+| Time zone | `ZoneId` | Determines local time for an instant |
+| Currency | `Currency` or ISO 4217 code | A USD transaction stays USD even if the viewer is in Germany |
+| Special calendar system | `Chronology` / Unicode locale extension when API supports it | May differ from the default ISO representation |
+| Monetary value | `BigDecimal` with rounding rules | Ensures exact calculation prior to presentation |
+| Translation language | `ResourceBundle` or i18n system | Content translation and number/date formatting are two parts of localization |
 
-Locale có thể có Unicode extension như `th-TH-u-nu-thai`. Hãy giữ đầy đủ thẻ khi đây là sở thích có ý nghĩa và xác nhận API định dạng thực sự hỗ trợ; chỉ tạo `Locale` không bảo đảm mọi formatter tôn trọng mọi extension.
+A `Locale` may carry Unicode extensions such as `th-TH-u-nu-thai`. Preserve the full tag when it represents a meaningful preference and verify that the formatting API actually supports it; merely constructing a `Locale` does not guarantee every formatter honors every extension.
 
-## 7. Kiểm thử và phòng lỗi
+## 7. Testing and Error Prevention
 
-### Các kịch bản quan trọng
+### Key Scenarios
 
-1. **Cùng giá trị, hai locale:** dùng một `BigDecimal` và một `LocalDate` cố định với `Locale.US` và `Locale.GERMANY`; bảo đảm mỗi lời gọi tạo đầu ra phù hợp, không phụ thuộc vào thứ tự gọi.
-2. **Locale mặc định của JVM khác người xem:** chạy test dưới locale mặc định khác và tiếp tục truyền locale tường minh; xác nhận kết quả vẫn phù hợp locale được truyền.
-3. **Định dạng và parse hai chiều:** dữ liệu người dùng Đức nhập theo định dạng Đức phải được parse bằng quy ước Đức và trả về giá trị kỳ vọng. Test cả ký tự thừa, chuỗi rỗng, giá trị ngoài phạm vi.
-4. **Xử lý đồng thời:** nhiều request có locale khác nhau không được thao tác `Locale.setDefault` của JVM. Formatter mutable phải có phạm vi sống hoặc đồng bộ hợp lý.
-5. **Thời gian và tiền:** test timezone và `Currency` riêng; cùng locale không bảo đảm cùng cách hiển thị giờ hoặc cùng đồng tiền.
-6. **Unicode và dữ liệu CLDR:** nếu so khớp chuỗi kết quả chính xác, kiểm thử trên JDK/provider production; các dấu cách, ký tự số và tên tháng có thể thay đổi theo dữ liệu locale.
-7. **Fallback:** thử locale được hỗ trợ, không được hỗ trợ và không khai báo; bảo đảm quy tắc lựa chọn được áp dụng nhất quán.
+1. **Same value, two locales:** use a fixed `BigDecimal` and `LocalDate` with `Locale.US` and `Locale.GERMANY`; ensure each call produces the right output regardless of call order.
+2. **JVM default locale differs from the viewer:** run tests under a different default locale while continuing to pass explicit locales; confirm outputs still match the passed locale.
+3. **Round-trip formatting and parsing:** German-formatted user input must be parsed using German conventions and yield the expected value. Also test trailing characters, empty strings, and out-of-range values.
+4. **Concurrency:** multiple requests with different locales must never call `Locale.setDefault` on the JVM. Mutable formatters must have proper scope or synchronization.
+5. **Time and money:** test timezone and `Currency` separately; the same locale does not guarantee the same time display or the same currency.
+6. **Unicode and CLDR data:** if matching exact output strings, test on the production JDK/provider; spaces, digits, and month names may vary with locale data.
+7. **Fallback:** test supported, unsupported, and unspecified locales; ensure the selection rules are applied consistently.
 
-### Những nhầm lẫn cần tránh
+### Misconceptions to Avoid
 
-| Nhầm lẫn | Cách làm đúng |
+| Misconception | Right Practice |
 | --- | --- |
-| “Ứng dụng chỉ có một locale mặc định nên mọi request dùng chung cũng được.” | Request có thể đại diện người dùng khác nhau; truyền locale từ ngữ cảnh của request đến từng formatter. |
-| “Đổi `Locale.setDefault` tạm thời rồi đổi lại là an toàn.” | Đây là trạng thái toàn cục, có nguy cơ race giữa các luồng. Không dùng như cơ chế chọn locale cho request. |
-| “Truyền `Locale` sẽ tự đổi timezone.” | Timezone là `ZoneId`/`TimeZone` riêng. |
-| “Truyền `Locale` cho formatter tiền sẽ đổi giá trị hoặc đơn vị tiền.” | Formatter chỉ trình bày; cần `Currency`/đồng tiền nghiệp vụ và chuyển đổi tiền tệ độc lập nếu có. |
-| “`String.format` luôn hiển thị dấu chấm thập phân.” | Bản không truyền locale có thể theo mặc định FORMAT; bản truyền `Locale.GERMANY` có thể dùng dấu phẩy. |
-| “`NumberFormat` dùng chung nhiều luồng giống `DateTimeFormatter`.” | `NumberFormat` mutable và nhìn chung không an toàn để chia sẻ tự do giữa nhiều luồng; `DateTimeFormatter` bất biến. |
-| “Chuỗi `1.234,50` là số có thể parse thống nhất ở mọi locale.” | Dấu phân cách phụ thuộc locale; xác định nguồn và parse theo đúng locale rồi validate. |
-| “Đầu ra UI có thể ghi trực tiếp thành dữ liệu JSON/CSV cho máy.” | Dữ liệu giao tiếp máy cần quy ước chuẩn và nhất quán, tách khỏi định dạng địa phương dành cho người đọc. |
+| “The application only has one default locale, so all requests can share it.” | Requests may represent different users; pass the locale from the request context to each formatter. |
+| “Temporarily changing `Locale.setDefault` and restoring it afterward is safe.” | It is global state with race risks across threads. Do not use it as a per-request locale selection mechanism. |
+| “Passing `Locale` automatically changes the timezone.” | Timezone is a separate `ZoneId`/`TimeZone`. |
+| “Passing `Locale` to a currency formatter converts the amount or currency unit.” | Formatters only present data; `Currency`/business currency and any currency conversion must be handled independently. |
+| “`String.format` always displays a decimal dot.” | The no-locale overload may follow the FORMAT default; passing `Locale.GERMANY` can use a comma. |
+| “`NumberFormat` is thread-safe across threads like `DateTimeFormatter`.” | `NumberFormat` is mutable and generally unsafe to share freely across threads; `DateTimeFormatter` is immutable. |
+| “The string `1.234,50` is a number that parses identically across all locales.” | Separators depend on the locale; identify the source, parse with the matching locale, and validate. |
+| “UI output can be written directly as machine-readable JSON/CSV data.” | Machine-to-machine data needs standardized, consistent conventions separated from human-facing regional formatting. |
 
-## 8. Bài tập củng cố
+## 8. Reinforcement Exercises
 
-1. Viết một chương trình in `1234.5` theo `Locale.US`, `Locale.GERMANY`, `Locale.FRANCE` bằng `NumberFormat.getNumberInstance(locale)`. Quan sát dấu nhóm và thập phân, ghi nhận JDK/provider đã dùng.
-2. Dùng một `LocalDate` cố định để tạo hai formatter `ofPattern("d MMMM uuuu", locale)` cho tiếng Anh và tiếng Đức. Vì sao không cần gọi `Locale.setDefault`?
-3. Một máy chủ ở Việt Nam trả hóa đơn USD cho người dùng Đức. Nêu các thông tin phải xử lý độc lập: locale, currency, amount và timezone nếu trên hóa đơn có thời điểm giao dịch.
-4. Một biểu mẫu nhận `1.234,50abc`. Thử parse với `DecimalFormat` và `ParsePosition`; vì sao phải kiểm tra vị trí kết thúc thay vì chỉ kiểm tra `parsed != null`?
-5. Nếu hệ thống dùng một `DecimalFormat` chung cho tất cả request và thay `DecimalFormatSymbols` trước mỗi lần gọi, vấn đề gì có thể xảy ra khi nhiều request chạy đồng thời?
-6. Thiết kế hàm `formatReport(BigDecimal amount, LocalDate date, Locale locale)` sao cho kết quả không phụ thuộc locale mặc định của JVM.
+1. Write a program that prints `1234.5` in `Locale.US`, `Locale.GERMANY`, and `Locale.FRANCE` using `NumberFormat.getNumberInstance(locale)`. Observe the grouping and decimal symbols, and note the JDK/provider used.
+2. Use a fixed `LocalDate` to create two `ofPattern("d MMMM uuuu", locale)` formatters for English and German. Why is there no need to call `Locale.setDefault`?
+3. A server in Vietnam returns a USD invoice to a German user. List the pieces of information that must be handled independently: locale, currency, amount, and timezone if the invoice includes a transaction timestamp.
+4. A form receives `1.234,50abc`. Try parsing with `DecimalFormat` and `ParsePosition`; why must you check the ending index rather than just checking `parsed != null`?
+5. If a system uses one shared `DecimalFormat` across all requests and swaps `DecimalFormatSymbols` before each call, what problem can happen when multiple requests run concurrently?
+6. Design a `formatReport(BigDecimal amount, LocalDate date, Locale locale)` method whose output does not depend on the JVM's default locale.
 
-**Ghi nhớ:** **Hãy xác định locale của người nhận và truyền nó tại từng điểm định dạng hoặc phân tích đầu vào.** `Locale.getDefault()` phù hợp làm chính sách mặc định được kiểm soát ở một số ngữ cảnh, nhưng không nên để lựa chọn ngầm này chi phối mọi thao tác của ứng dụng nhiều người dùng. Truyền locale tường minh giúp hành vi rõ ràng, dễ kiểm thử và không phải thay trạng thái toàn cục của JVM.
+**Key takeaway:** **Determine the recipient's locale and pass it at every formatting or input-parsing point.** `Locale.getDefault()` is suitable as a controlled default policy in certain contexts, but do not let this implicit choice govern every operation in a multi-user application. Passing explicit locales keeps behavior clear, easy to test, and free from mutating global JVM state.

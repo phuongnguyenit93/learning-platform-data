@@ -1,40 +1,40 @@
-# Primitive và wrapper không có quan hệ kế thừa thay cho boxing
+# Primitives and Wrappers Do Not Have an Inheritance Relationship in Place of Boxing
 
-Khi làm việc với Java Reflection, ta thường gặp hai kiểu biểu diễn có vẻ liên quan: kiểu nguyên thủy như `int` và lớp bao như `Integer`. Cả hai đều có đối tượng `Class<?>` tương ứng, nhưng **boxing/unboxing là quy tắc chuyển đổi giá trị của ngôn ngữ Java, không phải quan hệ kế thừa giữa hai kiểu**. Vì vậy, API kiểm tra quan hệ kiểu và API gọi phương thức bằng reflection có thể cho kết quả khác nhau mà vẫn hoàn toàn nhất quán.
+When working with Java Reflection, we often encounter two seemingly related representations: a primitive type like `int` and a wrapper class like `Integer`. Both have corresponding `Class<?>` objects, yet **boxing/unboxing is a value conversion rule of the Java language, not an inheritance relationship between two types**. Therefore, type-relationship inspection APIs and reflective method-invocation APIs can yield different results while remaining completely consistent.
 
-Bài này tập trung vào việc đọc chính xác `Class`, `isAssignableFrom`, `isInstance`, tra cứu chữ ký phương thức, truyền đối số qua `Method.invoke` và truy cập `Field`.
+This article focuses on accurately reading `Class`, `isAssignableFrom`, `isInstance`, looking up method signatures, passing arguments via `Method.invoke`, and accessing `Field`.
 
-## 1. Phân biệt primitive, wrapper và boxing
+## 1. Distinguishing Primitives, Wrappers, and Boxing
 
-Java có các kiểu primitive như `boolean`, `byte`, `short`, `char`, `int`, `long`, `float`, `double`. Mỗi primitive có một lớp wrapper tương ứng: `Boolean`, `Byte`, `Short`, `Character`, `Integer`, `Long`, `Float`, `Double`.
+Java has primitive types such as `boolean`, `byte`, `short`, `char`, `int`, `long`, `float`, `double`. Each primitive has a corresponding wrapper class: `Boolean`, `Byte`, `Short`, `Character`, `Integer`, `Long`, `Float`, `Double`.
 
-| Góc nhìn | `int` | `Integer` |
+| Perspective | `int` | `Integer` |
 | --- | --- | --- |
-| Loại kiểu | Primitive | Reference type (class) |
-| Giá trị | Giá trị số nguyên trực tiếp | Tham chiếu đến đối tượng chứa số nguyên |
-| `Class` token | `int.class` hay `Integer.TYPE` | `Integer.class` |
+| Type kind | Primitive | Reference type (class) |
+| Value | Direct integer value | Reference to an object holding an integer |
+| `Class` token | `int.class` or `Integer.TYPE` | `Integer.class` |
 | `isPrimitive()` | `true` | `false` |
-| Kế thừa từ `Number`/`Object` | Không | `Integer` kế thừa `Number`, và `Number` kế thừa `Object` |
-| Có thể nhận `null` | Không | Có |
-| `instanceof` | Không dùng trực tiếp trên giá trị primitive | Có thể dùng trên đối tượng wrapper |
+| Inherits from `Number`/`Object` | No | `Integer` inherits from `Number`, and `Number` inherits from `Object` |
+| Can accept `null` | No | Yes |
+| `instanceof` | Cannot be used directly on primitive values | Can be used on wrapper objects |
 
-Ví dụ Java biên dịch tự động chèn chuyển đổi thích hợp:
+Example where the Java compiler automatically inserts appropriate conversions:
 
 ```java
 int primitive = 7;
 Integer boxed = primitive;   // boxing: int -> Integer
 int restored = boxed;       // unboxing: Integer -> int
-Number number = primitive;  // boxing int -> Integer, rồi widening reference -> Number
-Object object = primitive;  // boxing int -> Integer, rồi widening reference -> Object
+Number number = primitive;  // boxing int -> Integer, then widening reference -> Number
+Object object = primitive;  // boxing int -> Integer, then widening reference -> Object
 ```
 
-`Integer` không `extends int`; primitive không phải lớp trong cây kế thừa. **Gán được nhờ chuyển đổi** không có nghĩa **có quan hệ subtype**.
+`Integer` does not `extends int`; primitives are not classes in the inheritance tree. **Being assignable thanks to conversion** does not mean **having a subtype relationship**.
 
-Cũng cần tách hai khái niệm khác: `int` có thể *widen* thành `long` trong ngữ cảnh chuyển đổi số, nhưng `long` không phải lớp cha của `int`. Và không có quy tắc tổng quát tự động chuyển `Integer` thành `Long` chỉ vì giá trị số có thể đổi từ `int` sang `long`.
+We also need to separate two other concepts: `int` can *widen* to `long` in numeric conversion contexts, yet `long` is not a superclass of `int`. And there is no general rule automatically converting `Integer` to `Long` just because the numeric value can change from `int` to `long`.
 
-## 2. Class token biểu diễn danh tính kiểu, không thực hiện boxing
+## 2. Class Tokens Represent Type Identity, Not Boxing
 
-`int.class` và `Integer.class` là hai đối tượng `Class` khác nhau. `Integer.TYPE` chỉ là hằng tham chiếu tới `int.class`, **không** phải `Integer.class`:
+`int.class` and `Integer.class` are two distinct `Class` objects. `Integer.TYPE` is merely a constant referencing `int.class`, **not** `Integer.class`:
 
 ```java
 System.out.println(int.class == Integer.TYPE);       // true
@@ -43,29 +43,29 @@ System.out.println(int.class.isPrimitive());         // true
 System.out.println(Integer.class.isPrimitive());     // false
 ```
 
-Bản thân `Class` có thể mô tả primitive dù primitive không phải đối tượng thuộc hệ kế thừa `Object`. Chẳng hạn `int.class.getSuperclass()` trả về `null`; `Integer.class.getSuperclass()` trả về `Number.class`.
+`Class` itself can describe primitives even though primitives are not objects in the `Object` inheritance hierarchy. For example, `int.class.getSuperclass()` returns `null`; `Integer.class.getSuperclass()` returns `Number.class`.
 
-`value.getClass()` luôn được gọi trên một **đối tượng**. Với `int n = 7;`, biểu thức `((Object) n).getClass()` trả về `Integer.class` vì compiler đã boxing `n` khi ép sang `Object`. Không thể suy ra từ đó rằng đối tượng lúc chạy có lớp `int.class`.
+`value.getClass()` is always called on an **object**. With `int n = 7;`, the expression `((Object) n).getClass()` returns `Integer.class` because the compiler boxed `n` when casting to `Object`. You cannot infer from this that the object at runtime has class `int.class`.
 
-## 3. `isAssignableFrom` kiểm tra quan hệ kiểu, không mô phỏng phép gán có chuyển đổi
+## 3. `isAssignableFrom` Checks Type Relationships, Does Not Simulate Assignment with Conversion
 
-Đọc biểu thức `Destination.class.isAssignableFrom(Source.class)` là: một giá trị có **kiểu Source** có thể được coi là **kiểu Destination** bằng quan hệ cùng kiểu hoặc quan hệ mở rộng kiểu thích hợp hay không? Với reference types, kiểm tra này xét kế thừa/lớp và interface. Với primitive, chỉ chính kiểu primitive đó mới tương thích theo phép kiểm tra này. API **không** tính boxing, unboxing hay widening primitive như `int → long`.
+Read the expression `Destination.class.isAssignableFrom(Source.class)` as: can a value of **Source type** be treated as **Destination type** via the same type or an appropriate widening type relationship? For reference types, this check inspects class/interface inheritance. For primitives, only that exact primitive type itself is compatible under this check. The API does **not** account for boxing, unboxing, or primitive widening like `int → long`.
 
-| Biểu thức | Kết quả | Lý do |
+| Expression | Result | Reason |
 | --- | --- | --- |
-| `Integer.class.isAssignableFrom(int.class)` | `false` | `int` không là subtype của `Integer` |
-| `int.class.isAssignableFrom(Integer.class)` | `false` | `Integer` không là subtype của `int` |
-| `Object.class.isAssignableFrom(int.class)` | `false` | Primitive không kế thừa `Object` |
-| `Object.class.isAssignableFrom(Integer.class)` | `true` | `Integer` là reference subtype của `Object` |
+| `Integer.class.isAssignableFrom(int.class)` | `false` | `int` is not a subtype of `Integer` |
+| `int.class.isAssignableFrom(Integer.class)` | `false` | `Integer` is not a subtype of `int` |
+| `Object.class.isAssignableFrom(int.class)` | `false` | Primitives do not inherit from `Object` |
+| `Object.class.isAssignableFrom(Integer.class)` | `true` | `Integer` is a reference subtype of `Object` |
 | `Number.class.isAssignableFrom(Integer.class)` | `true` | `Integer extends Number` |
-| `long.class.isAssignableFrom(int.class)` | `false` | Primitive widening không phải assignability theo API |
-| `int.class.isAssignableFrom(int.class)` | `true` | Cùng một kiểu |
+| `long.class.isAssignableFrom(int.class)` | `false` | Primitive widening is not assignability per the API |
+| `int.class.isAssignableFrom(int.class)` | `true` | Same type |
 
-Lưu ý: mô tả «có thể gán» ở tên API dễ gây hiểu nhầm nếu suy diễn rằng nó thực hiện mọi conversion mà cú pháp gán Java chấp nhận. Ví dụ `Integer boxed = 7;` hợp lệ nhờ boxing, nhưng `Integer.class.isAssignableFrom(int.class)` vẫn `false`.
+Note: the "assignable" phrasing in the API name can be misleading if you infer that it performs every conversion accepted by Java assignment syntax. For example, `Integer boxed = 7;` is valid thanks to boxing, yet `Integer.class.isAssignableFrom(int.class)` is still `false`.
 
-## 4. `isInstance` kiểm tra đối tượng lúc chạy
+## 4. `isInstance` Checks Runtime Objects
 
-`someClass.isInstance(value)` kiểm tra xem `value` là một instance của reference type được đại diện hay không; `null` luôn cho `false`. `int.class.isInstance(...)` luôn `false` vì không có đối tượng Java nào thuộc lớp runtime `int`:
+`someClass.isInstance(value)` checks whether `value` is an instance of the represented reference type; `null` always yields `false`. `int.class.isInstance(...)` is always `false` because no Java object has runtime class `int`:
 
 ```java
 Integer value = Integer.valueOf(7);
@@ -77,26 +77,26 @@ System.out.println(int.class.isInstance(value));     // false
 System.out.println(Integer.class.isInstance(null));  // false
 ```
 
-Ở đây `value` là đối tượng `Integer`. Khi viết `int.class.isInstance(7)`, số `7` được boxing trước để đưa vào tham số kiểu `Object` của `isInstance`, nhưng token `int.class` vẫn không đại diện cho kiểu runtime của đối tượng đó.
+Here `value` is an `Integer` object. When writing `int.class.isInstance(7)`, the number `7` is boxed first to pass into the `Object` parameter of `isInstance`, yet the `int.class` token still does not represent the runtime type of that object.
 
-**Quy tắc chọn API:** `isPrimitive()` để nhận diện loại `Class`; `isAssignableFrom` để kiểm tra quan hệ kiểu; `isInstance` để kiểm tra một đối tượng thực tại runtime. Không API nào thay thế đầy đủ bộ quy tắc conversion của compiler.
+**API selection rule:** `isPrimitive()` to identify the kind of `Class`; `isAssignableFrom` to check type relationships; `isInstance` to check an actual object at runtime. None of these APIs replaces the full set of compiler conversion rules.
 
-## 5. Tra cứu phương thức bằng chữ ký chính xác; gọi phương thức có chuyển đổi đối số
+## 5. Looking Up Methods by Exact Signature; Invoking Methods Performs Argument Conversion
 
-Đây là điểm dễ nhầm nhất của Reflection: **tra cứu phương thức** và **gọi phương thức** là hai bước khác nhau.
+This is the easiest point to confuse in Reflection: **method lookup** and **method invocation** are two distinct steps.
 
-Giả sử lớp có `void consume(int n)`:
+Suppose a class has `void consume(int n)`:
 
-- `getMethod("consume", int.class)` tìm đúng chữ ký và thành công; `getMethod("consume", Integer.class)` không tìm được chữ ký đó và ném `NoSuchMethodException`.
-- Sau khi có `Method` tương ứng với `int`, `method.invoke(target, Integer.valueOf(5))` có thể chạy: đối số của `Method.invoke` đi qua `Object...` và khi gọi phương thức đích, reflection unbox `Integer` thành `int`.
-- Nếu phương thức đích nhận `long`, một đối số `Integer` có thể được **unbox sang `int` rồi widening sang `long`**.
-- Reflection không tự chọn overload từ đối tượng đối số: bạn phải tra cứu đúng `int.class`, `long.class` hoặc `Integer.class` theo phương thức muốn gọi.
+- `getMethod("consume", int.class)` finds the exact signature and succeeds; `getMethod("consume", Integer.class)` cannot find that signature and throws `NoSuchMethodException`.
+- Once you have the `Method` corresponding to `int`, `method.invoke(target, Integer.valueOf(5))` can run: arguments to `Method.invoke` pass through `Object...`, and when invoking the target method, reflection unboxes `Integer` to `int`.
+- If the target method takes `long`, an `Integer` argument can be **unboxed to `int` and then widened to `long`**.
+- Reflection does not automatically choose an overload from argument objects: you must look up the exact `int.class`, `long.class`, or `Integer.class` for the method you want to call.
 
-Các quy tắc trên không biến `Integer` thành subtype của `int` hoặc `long`; đây là **invocation conversion tại thời điểm gọi**. Một `Long` truyền cho tham số `int` bị từ chối vì cần narrowing; `Integer` truyền cho tham số `Long` cũng bị từ chối vì không có conversion wrapper-sang-wrapper như thế. Với tham số primitive, `null` không unbox được và bị từ chối.
+These rules do not turn `Integer` into a subtype of `int` or `long`; this is **invocation conversion at call time**. A `Long` passed to an `int` parameter is rejected because it requires narrowing; an `Integer` passed to a `Long` parameter is also rejected because no such wrapper-to-wrapper conversion exists. For a primitive parameter, `null` cannot be unboxed and is rejected.
 
-### Ví dụ Java 17+ chạy độc lập
+### Standalone Runnable Java 17+ Example
 
-Lưu đoạn sau vào `BoxingAndReflectionDemo.java`. Chương trình phân biệt rõ kiểm tra `Class`, tìm chữ ký, `Method.invoke`, và đọc/ghi field primitive.
+Save the following snippet into `BoxingAndReflectionDemo.java`. The program clearly distinguishes `Class` checks, signature lookup, `Method.invoke`, and reading/writing a primitive field.
 
 ```java
 public class BoxingAndReflectionDemo {
@@ -169,7 +169,7 @@ public class BoxingAndReflectionDemo {
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa tệp:
+Compile and run from the directory containing the file:
 
 ```bash
 javac BoxingAndReflectionDemo.java
@@ -196,34 +196,34 @@ field int after set: 9
 null -> primitive: REJECTED
 ```
 
-Giải thích ba kết quả quan trọng:
+Explanation of three key results:
 
-1. `getMethod("takeInt", Integer.class)` thất bại vì khai báo dùng `int`; chữ ký Java không «tương đương» chỉ vì compiler có boxing.
-2. `takeInt=5` và `takeLong=8` xảy ra vì API gọi reflection nhận giá trị wrapper rồi áp dụng **unboxing**, kết hợp **widening primitive** khi hợp lệ. Đây không phải kết quả của `isAssignableFrom`.
-3. `Field.get(target)` trả về `Object`; khi đọc field `int count`, reflection tạo/đưa ra wrapper `Integer`. Ngược lại, `Field.set(target, Integer.valueOf(9))` unbox để ghi field `int`. `null` không thể gán cho primitive.
+1. `getMethod("takeInt", Integer.class)` fails because the declaration uses `int`; Java signatures are not "equivalent" merely because the compiler has boxing.
+2. `takeInt=5` and `takeLong=8` occur because the reflective invocation API receives wrapper values and then applies **unboxing**, combined with **primitive widening** when valid. This is not the result of `isAssignableFrom`.
+3. `Field.get(target)` returns `Object`; when reading the `int count` field, reflection creates/returns an `Integer` wrapper. Conversely, `Field.set(target, Integer.valueOf(9))` unboxes to write the `int` field. `null` cannot be assigned to a primitive.
 
-## 6. Bảng chuyển đổi đối số cần nhớ
+## 6. Argument Conversion Table to Remember
 
-Bảng này mô tả **đối số truyền tới tham số phương thức đích bằng `Method.invoke`**, không phải kết quả `Class.isAssignableFrom` và không phải quy tắc tra cứu `getMethod`.
+This table describes **arguments passed to target method parameters via `Method.invoke`**, not the result of `Class.isAssignableFrom` and not the lookup rules of `getMethod`.
 
-| Kiểu đối tượng đối số thực tế | Tham số khai báo | Khi gọi bằng reflection | Lý do |
+| Actual argument object type | Declared parameter | On reflective invocation | Reason |
 | --- | --- | --- | --- |
-| `Integer` | `int` | Chấp nhận | Unboxing |
-| `Integer` | `long` | Chấp nhận | Unboxing rồi widening primitive |
-| `Byte` | `double` | Chấp nhận | Unboxing rồi widening primitive |
-| `Long` | `int` | Từ chối | Không implicit narrowing primitive |
-| `Integer` | `Long` | Từ chối | Không có conversion ngầm từ wrapper này sang wrapper kia |
-| `Integer` | `Number` hoặc `Object` | Chấp nhận | Widening reference |
-| `null` | `int` | Từ chối | Primitive không nhận `null` |
-| `null` | `Integer` | Chấp nhận | Reference type nhận `null` |
+| `Integer` | `int` | Accepted | Unboxing |
+| `Integer` | `long` | Accepted | Unboxing then primitive widening |
+| `Byte` | `double` | Accepted | Unboxing then primitive widening |
+| `Long` | `int` | Rejected | No implicit primitive narrowing |
+| `Integer` | `Long` | Rejected | No implicit conversion from one wrapper to another |
+| `Integer` | `Number` or `Object` | Accepted | Reference widening |
+| `null` | `int` | Rejected | Primitives do not accept `null` |
+| `null` | `Integer` | Accepted | Reference types accept `null` |
 
-Vì khai báo `Method.invoke(Object obj, Object... args)` nhận đối số qua `Object...`, nếu ở mã gọi bạn viết `invoke(target, 5)`, compiler Java trước hết boxing `5` thành `Integer` để đưa vào mảng `Object[]`. Reflection sau đó có thể unbox lại `Integer` cho tham số đích `int`. **Hai thời điểm chuyển đổi khác nhau**, không phải hai kiểu có quan hệ kế thừa.
+Because the declaration `Method.invoke(Object obj, Object... args)` accepts arguments via `Object...`, if in caller code you write `invoke(target, 5)`, the Java compiler first boxes `5` into `Integer` to place it into the `Object[]` array. Reflection can then unbox `Integer` back to the target `int` parameter. **Two different conversion points**, not two types having an inheritance relationship.
 
-Nếu truyền sai kiểu ở tầng reflection, thường nhận `IllegalArgumentException`. Nếu *mã bên trong phương thức đích* tự ném exception thì `Method.invoke` bọc nguyên nhân trong `InvocationTargetException`; đừng nhầm hai trường hợp khi chẩn đoán lỗi.
+If an argument of the wrong type is passed at the reflection layer, you usually get `IllegalArgumentException`. If *code inside the target method itself* throws an exception, `Method.invoke` wraps the cause in `InvocationTargetException`; do not confuse the two cases when diagnosing errors.
 
-## 7. Field và mảng primitive cũng theo nguyên tắc tương tự
+## 7. Fields and Primitive Arrays Follow the Same Principle
 
-Với `Field`, kiểu khai báo được mô tả chính xác bằng `field.getType()`. Nếu field khai báo `int`, kết quả là `int.class`, **không** phải `Integer.class`:
+For a `Field`, the declared type is accurately described by `field.getType()`. If the field is declared `int`, the result is `int.class`, **not** `Integer.class`:
 
 ```java
 java.lang.reflect.Field field =
@@ -231,46 +231,46 @@ java.lang.reflect.Field field =
 System.out.println(field.getType() == int.class); // true
 ```
 
-`Field.get(Object)` luôn trả về `Object`, nên giá trị primitive được boxing trong kết quả. Khi ghi bằng `Field.set(Object, Object)`, API có thể unbox wrapper và thực hiện widening primitive được phép; `Field.setInt`, `Field.getInt` và các getter/setter chuyên biệt cho primitive là lựa chọn khi muốn biểu đạt loại dữ liệu rõ hơn.
+`Field.get(Object)` always returns `Object`, so primitive values are boxed in the result. When writing via `Field.set(Object, Object)`, the API can unbox wrappers and perform permitted primitive widening; `Field.setInt`, `Field.getInt`, and specialized primitive getters/setters are options when you want to express the data type more explicitly.
 
-Mảng `int[]` và `Integer[]` vẫn khác kiểu:
+Arrays `int[]` and `Integer[]` remain different types:
 
 ```java
 System.out.println(int[].class.isAssignableFrom(Integer[].class)); // false
 System.out.println(Integer[].class.isAssignableFrom(int[].class)); // false
 ```
 
-Phản chiếu `java.lang.reflect.Array.get(intArray, index)` trả về `Object` nên phần tử `int` được boxing. Điều đó không làm `int[]` kế thừa `Integer[]` hoặc ngược lại.
+Reflective `java.lang.reflect.Array.get(intArray, index)` returns `Object`, so the `int` element is boxed. That does not make `int[]` inherit from `Integer[]` or vice versa.
 
-## 8. Những lỗi thường gặp khi thiết kế code Reflection
+## 8. Common Mistakes When Designing Reflection Code
 
-**Lỗi 1 — Dùng `isAssignableFrom` để kiểm tra xem một đối số có thể truyền tới primitive hay không.** Ví dụ `long.class.isAssignableFrom(Integer.class)` là `false`, nhưng một `Integer` có thể được unbox rồi widen để truyền cho tham số `long` khi gọi bằng reflection. Muốn tự xây dựng bộ kiểm tra đối số, phải xét rõ `null`, reference subtype, wrapper tương ứng và bảng widening primitive thay vì chỉ dùng một phép `isAssignableFrom`.
+**Mistake 1 — Using `isAssignableFrom` to check whether an argument can be passed to a primitive.** For example, `long.class.isAssignableFrom(Integer.class)` is `false`, yet an `Integer` can be unboxed and widened to be passed to a `long` parameter in a reflective call. If you want to build your own argument checker, you must explicitly account for `null`, reference subtypes, the corresponding wrapper, and the primitive widening table rather than relying on a single `isAssignableFrom` call.
 
-**Lỗi 2 — Thay `int.class` bằng `Integer.class` khi tìm `Method`/`Constructor`.** Các API `getMethod`, `getDeclaredMethod` và tra cứu constructor dùng kiểu tham số khai báo cụ thể; sự tồn tại của boxing không đổi chữ ký. Ví dụ `void save(int id)` phải được tìm với `int.class`. Nếu có cả `save(int)` và `save(Integer)`, đó là **hai overload riêng biệt**.
+**Mistake 2 — Replacing `int.class` with `Integer.class` when looking up a `Method`/`Constructor`.** `getMethod`, `getDeclaredMethod`, and constructor lookup APIs use exact declared parameter types; the existence of boxing does not change the signature. For example, `void save(int id)` must be looked up with `int.class`. If both `save(int)` and `save(Integer)` exist, those are **two separate overloads**.
 
-**Lỗi 3 — Tưởng `getClass()` trên giá trị đã boxing cho biết kiểu primitive gốc.** `Object obj = 10;` chứa tham chiếu tới một `Integer`, nên `obj.getClass() == Integer.class`. Thông tin «ban đầu từng là `int`» không còn được giữ trong runtime class của đối tượng.
+**Mistake 3 — Thinking `getClass()` on a boxed value reveals the original primitive type.** `Object obj = 10;` holds a reference to an `Integer`, so `obj.getClass() == Integer.class`. The information "originally was `int`" is no longer retained in the object's runtime class.
 
-**Lỗi 4 — Gộp numeric widening với inheritance.** `int → long` là phép chuyển đổi primitive, không làm `int.class.isAssignableFrom(long.class)` hoặc chiều ngược lại thành `true`. Tương tự, widening `int → long` không tạo ra phép `Integer → Long`.
+**Mistake 4 — Conflating numeric widening with inheritance.** `int → long` is a primitive conversion; it does not make `int.class.isAssignableFrom(long.class)` or the reverse become `true`. Similarly, widening `int → long` does not create an `Integer → Long` conversion.
 
-**Lỗi 5 — Bỏ qua `null` và exception.** Unboxing biến `null` thành lỗi; qua reflection, `null` tới primitive bị từ chối ở lớp gọi. Đừng tự động bắt mọi exception rồi coi như «không tương thích», vì lỗi do thân phương thức ném ra có ý nghĩa khác lỗi truyền đối số.
+**Mistake 5 — Ignoring `null` and exceptions.** Unboxing turns `null` into an error; via reflection, `null` to a primitive is rejected at the invocation layer. Do not automatically catch every exception and treat it as "incompatible", because an error thrown by the method body means something different from an argument-passing error.
 
-## 9. Quy trình xử lý khi viết thư viện Reflection
+## 9. Workflow When Writing a Reflection Library
 
-Khi nhìn thấy một giá trị và một kiểu đích, hãy phân biệt câu hỏi trước khi chọn API:
+When looking at a value and a target type, distinguish the question before choosing an API:
 
-1. **Đang phân tích khai báo?** Dùng `getParameterTypes()`, `getReturnType()`, `Field.getType()` và lưu nguyên token primitive như `int.class`.
-2. **Đang kiểm tra quan hệ kiểu thuần túy?** Dùng `isAssignableFrom` cho đúng ngữ nghĩa subtype/identity; đừng thêm boxing vào kết luận.
-3. **Đang kiểm tra một instance hiện có?** Dùng `isInstance` cho reference object, xử lý `null` riêng.
-4. **Đang truyền giá trị vào lời gọi?** Xác định primitive hay reference; với primitive, xét wrapper/unboxing và widening; với reference, xét `null` và quan hệ reference.
-5. **Đang tra cứu overload?** Chỉ định đúng danh sách `Class<?>` theo chữ ký; `Method.invoke` không tự chọn overload thay bạn.
-6. **Đang đọc kết quả hoặc field?** Nhớ rằng giao diện reflection trả về `Object` có thể boxing giá trị primitive; đừng kết luận ngược rằng kiểu khai báo là wrapper.
+1. **Analyzing declarations?** Use `getParameterTypes()`, `getReturnType()`, `Field.getType()`, and preserve primitive tokens like `int.class`.
+2. **Checking pure type relationships?** Use `isAssignableFrom` for true subtype/identity semantics; do not add boxing into the conclusion.
+3. **Checking an existing instance?** Use `isInstance` for reference objects, handling `null` separately.
+4. **Passing values into an invocation?** Determine primitive vs. reference; for primitives, check wrapper/unboxing and widening; for references, check `null` and reference relationships.
+5. **Looking up overloads?** Specify the exact `Class<?>` list matching the signature; `Method.invoke` does not choose an overload for you.
+6. **Reading results or fields?** Remember that the reflection interface returns `Object` which may box primitive values; do not infer backward that the declared type is a wrapper.
 
-**Tự kiểm tra nhanh:** Nếu `Method m` biểu diễn `void f(long n)`, cả `m.getParameterTypes()[0] == long.class` và `long.class.isAssignableFrom(Integer.class) == false` đều đúng; song `m.invoke(instance, Integer.valueOf(3))` vẫn có thể gọi `f` thành công. Khả năng gọi đó đến từ *unboxing + widening primitive*, tuyệt đối không đến từ kế thừa.
+**Quick self-check:** If `Method m` represents `void f(long n)`, both `m.getParameterTypes()[0] == long.class` and `long.class.isAssignableFrom(Integer.class) == false` are true; yet `m.invoke(instance, Integer.valueOf(3))` can still invoke `f` successfully. That invocation capability comes from *unboxing + primitive widening*, never from inheritance.
 
-## Ghi nhớ
+## Key Takeaways
 
-- **Quan hệ kiểu:** `int` và `Integer` là hai kiểu khác nhau, không kế thừa lẫn nhau; `Integer` nằm trong cây lớp `Number → Object`.
-- **Chuyển đổi giá trị:** boxing/unboxing và widening là conversion tại những ngữ cảnh được Java cho phép.
-- **API Reflection:** `isAssignableFrom`/`isInstance` mô tả kiểu và đối tượng; `getMethod` yêu cầu chữ ký chính xác; `Method.invoke` và `Field.set` có quy tắc chuyển đổi đối số riêng.
+- **Type relationships:** `int` and `Integer` are two distinct types that do not inherit from each other; `Integer` sits in the class hierarchy `Number → Object`.
+- **Value conversions:** boxing/unboxing and widening are conversions in contexts permitted by Java.
+- **Reflection APIs:** `isAssignableFrom`/`isInstance` describe types and objects; `getMethod` requires exact signatures; `Method.invoke` and `Field.set` have their own argument conversion rules.
 
-Phân biệt ba tầng **type identity → method lookup → invocation conversion** sẽ giúp giải thích đúng mọi kết quả tưởng như «mâu thuẫn» giữa primitive và wrapper trong Java Reflection.
+Distinguishing the three layers **type identity → method lookup → invocation conversion** will help accurately explain every seemingly "contradictory" result between primitives and wrappers in Java Reflection.

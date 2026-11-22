@@ -1,32 +1,32 @@
-# Trường `null` và `Objects.hashCode()` trong Java
+# `null` Fields and `Objects.hashCode()` in Java
 
-## 1. Vấn đề khi trường tham gia `hashCode()` có thể bằng `null`
+## 1. The Problem When a Field Participating in `hashCode()` Can Be `null`
 
-Một đối tượng có thể chứa trường tham chiếu chưa được gán giá trị, chẳng hạn `customerId` hoặc `region`. Nếu trường này là một phần bản sắc logic của đối tượng, `equals()` và `hashCode()` phải xử lý nó **nhất quán**, kể cả khi giá trị là `null`.
+An object may contain a reference field that has not been assigned a value, such as `customerId` or `region`. If this field is part of the object's logical identity, `equals()` and `hashCode()` must handle it **consistently**, even when its value is `null`.
 
-Gọi trực tiếp phương thức trên tham chiếu rỗng:
+Calling a method directly on a null reference:
 
 ```java
 String region = null;
 int hash = region.hashCode(); // NullPointerException
 ```
 
-Phần code trên là **fragment minh họa lỗi**, không phải chương trình chạy an toàn. Lỗi xảy ra vì `region` không trỏ đến đối tượng để gọi phương thức. Ta có thể dùng điều kiện `region == null ? 0 : region.hashCode()`, nhưng Java đã cung cấp một công cụ chuyên cho thao tác này: **`java.util.Objects.hashCode(Object)`**.
+The code above is an **error-illustration fragment**, not a safely runnable program. The error occurs because `region` does not point to an object on which to invoke the method. You could write `region == null ? 0 : region.hashCode()`, but Java already provides a dedicated utility for this operation: **`java.util.Objects.hashCode(Object)`**.
 
-## 2. `Objects.hashCode(Object)` hoạt động thế nào?
+## 2. How Does `Objects.hashCode(Object)` Work?
 
-Phương thức tĩnh:
+The static method:
 
 ```java
 int hash = java.util.Objects.hashCode(value);
 ```
 
-trả về:
+returns:
 
-- **`0`** nếu `value == null`;
-- **`value.hashCode()`** nếu `value != null`.
+- **`0`** if `value == null`;
+- **`value.hashCode()`** if `value != null`.
 
-Có thể hiểu quy tắc bằng biểu thức tương đương:
+You can think of the rule via this equivalent expression:
 
 ```java
 static int nullSafeHash(Object value) {
@@ -34,26 +34,26 @@ static int nullSafeHash(Object value) {
 }
 ```
 
-Đây là một đoạn khai báo phương thức minh họa; chỉ chứa một phương thức, chưa phải tệp Java hoàn chỉnh có `main`. `Objects.hashCode(value)` bảo vệ **lời gọi hash khi giá trị null**. Nó không tự tính “mã băm tối ưu”, không kiểm tra hay sửa hợp đồng của lớp cung cấp `value`.
+This is an illustrative method declaration; it contains only one method and is not a complete Java file with `main`. `Objects.hashCode(value)` guards the **hash call when the value is null**. It does not compute an "optimal hash code" on its own, nor does it check or fix the contract of the class providing `value`.
 
-Ví dụ:
+Examples:
 
-| Giá trị `value` | `Objects.hashCode(value)` |
+| Value of `value` | `Objects.hashCode(value)` |
 | --- | --- |
 | `null` | `0` |
-| `"A1"` | `2064`, bằng `"A1".hashCode()` |
-| `Integer.valueOf(7)` | `7`, bằng `Integer.hashCode()` |
-| Một đối tượng khác `null` | Kết quả của chính `value.hashCode()` |
+| `"A1"` | `2064`, equal to `"A1".hashCode()` |
+| `Integer.valueOf(7)` | `7`, equal to `Integer.hashCode()` |
+| Another non-`null` object | The result of `value.hashCode()` itself |
 
-Với chuỗi `"A1"`, `String.hashCode()` theo công thức đa thức: `31 * 'A' + '1' = 31 * 65 + 49 = 2064`.
+For the string `"A1"`, `String.hashCode()` uses the polynomial formula: `31 * 'A' + '1' = 31 * 65 + 49 = 2064`.
 
-**Đừng diễn giải `0` thành “chắc chắn null”.** Một đối tượng khác null vẫn được phép có mã băm `0`; các đối tượng không bằng nhau cũng có thể có cùng hash. Hash chỉ là giá trị phục vụ phân vùng/tìm kiếm, không phải bằng chứng tuyệt đối về tính bằng nhau.
+**Do not interpret `0` as "definitely null".** A non-null object is still allowed to have hash code `0`; unequal objects may also share the same hash. A hash is only a value for partitioning/lookup, not absolute proof of equality.
 
-## 3. Ví dụ Java 17+ chạy được
+## 3. Runnable Java 17+ Example
 
-Trong ví dụ sau, `CustomerKey` đại diện cho khóa logic gồm hai trường `tenant` và `externalId`; cả hai có thể null. Ta dùng `Objects.equals()` khi so sánh và `Objects.hashCode()` khi tính mã băm từng trường. Hai phương thức tuân theo cùng tập trường nên tránh được việc `equals()` cho là bằng nhau nhưng `hashCode()` tính theo dữ liệu khác.
+In the following example, `CustomerKey` represents a logical key made up of two fields `tenant` and `externalId`; either may be `null`. We use `Objects.equals()` for comparison and `Objects.hashCode()` for hashing each field. Both methods follow the same set of fields, preventing cases where `equals()` says two keys match while `hashCode()` hashes different data.
 
-Tạo tệp `NullHashCodeDemo.java` chứa toàn bộ nội dung:
+Create the file `NullHashCodeDemo.java` with the following complete contents:
 
 ```java
 import java.util.HashSet;
@@ -123,14 +123,14 @@ public class NullHashCodeDemo {
 }
 ```
 
-Chạy từ thư mục lưu tệp:
+Run from the directory where the file is saved:
 
 ```bash
 javac NullHashCodeDemo.java
 java NullHashCodeDemo
 ```
 
-Stdout dự kiến chính xác:
+Exact expected stdout:
 
 ```text
 Objects.hashCode(null): 0
@@ -147,26 +147,26 @@ set contains b: true
 set contains c: false
 ```
 
-Giải thích phép tính:
+Calculation breakdown:
 
-- Với `a`, ta khởi tạo `result = 1`; trường `tenant = null` cho `31 * 1 + 0 = 31`. Tiếp theo `externalId = "A1"` có hash `2064` nên kết quả là `31 * 31 + 2064 = 3025`.
-- Với `d`, cả hai trường null: `31 * (31 * 1 + 0) + 0 = 961`. Điều này **không mâu thuẫn** với việc `Objects.hashCode(null) = 0`: `d.hashCode()` là hash **của cả đối tượng**, được kết hợp từ nhiều thành phần, còn `Objects.hashCode(null)` chỉ hash **một giá trị null**.
-- `a` và `b` là hai instance khác nhau nhưng cùng `tenant` và `externalId`, vì vậy `equals()` đúng và hai hash đều bằng `3025`.
-- `a` và `c` không bằng nhau vì `"A1"` khác `"B2"`. Mã băm khác hay trùng trong trường hợp không bằng nhau đều hợp lệ.
-- `HashSet.contains(b)` trả về `true` sau khi thêm `a` vì cặp bằng nhau về logic và cùng hash. `contains(c)` là `false` vì không có khóa tương đương `c` trong tập.
+- For `a`, we initialize `result = 1`; the `tenant = null` field gives `31 * 1 + 0 = 31`. Next, `externalId = "A1"` has hash `2064`, so the result is `31 * 31 + 2064 = 3025`.
+- For `d`, both fields are `null`: `31 * (31 * 1 + 0) + 0 = 961`. This **does not contradict** `Objects.hashCode(null) = 0`: `d.hashCode()` is the hash **of the entire object**, combined from multiple components, whereas `Objects.hashCode(null)` hashes only **a single null value**.
+- `a` and `b` are different instances with the same `tenant` and `externalId`, so `equals()` is true and both hashes equal `3025`.
+- `a` and `c` are not equal because `"A1"` differs from `"B2"`. Whether their hashes differ or collide is both valid when objects are unequal.
+- `HashSet.contains(b)` returns `true` after adding `a` because the pair is logically equal and shares the same hash. `contains(c)` is `false` because no key equivalent to `c` exists in the set.
 
-Ví dụ cố ý dùng các trường `final String` để bản sắc logic không thay đổi khi khóa đang ở trong collection. `String` bất biến, do đó `hashCode()` cũng ổn định cho vòng đời đối tượng.
+The example deliberately uses `final String` fields so logical identity cannot change while the key resides in a collection. `String` is immutable, so `hashCode()` is also stable for the object's lifetime.
 
-## 4. Đặc biệt chú ý: `Objects.hashCode(value)` khác `Objects.hash(values...)`
+## 4. Watch Out: `Objects.hashCode(value)` Differs from `Objects.hash(values...)`
 
-Hai phương thức có tên gần giống nhau nhưng chức năng **khác nhau**:
+These two methods have similar names but **different** behavior:
 
-| Phương thức | Cơ chế | Khi nào dùng |
+| Method | Mechanism | When to use |
 | --- | --- | --- |
-| `Objects.hashCode(Object value)` | Null → `0`; còn lại gọi `value.hashCode()` | Lấy hash an toàn cho **một** giá trị nullable |
-| `Objects.hash(Object... values)` | Kết hợp các phần tử qua thuật toán tương đương `Arrays.hashCode(Object[])` | Lấy hash kết hợp của **nhiều** trường |
+| `Objects.hashCode(Object value)` | `null` → `0`; otherwise calls `value.hashCode()` | Safely get the hash of **one** nullable value |
+| `Objects.hash(Object... values)` | Combines elements via an algorithm equivalent to `Arrays.hashCode(Object[])` | Get the combined hash of **multiple** fields |
 
-Ví dụ:
+Examples:
 
 ```java
 Objects.hashCode(null);       // 0
@@ -176,24 +176,24 @@ Objects.hash("A1");           // 2095
 Objects.hash(null, "A1");     // 3025
 ```
 
-Đoạn trên là **fragment các biểu thức và kết quả**, không phải một chương trình riêng.
+The snippet above is an **expression-and-result fragment**, not a standalone program.
 
-Tại sao `Objects.hash("A1") = 2095`? Với mảng varargs một phần tử, thuật toán `Arrays.hashCode` bắt đầu `result = 1` và tính `31 * 1 + 2064 = 2095`. Tương tự, mảng varargs một phần tử null cho `31 * 1 + 0 = 31`.
+Why does `Objects.hash("A1") = 2095`? For a one-element varargs array, the `Arrays.hashCode` algorithm starts with `result = 1` and computes `31 * 1 + 2064 = 2095`. Similarly, a one-element varargs array containing `null` yields `31 * 1 + 0 = 31`.
 
-Phép gọi `Objects.hash((Object) null)` cố ý ép kiểu thành `Object`: nó chỉ định rõ **một phần tử null được truyền vào mảng varargs**, tránh nhầm với việc truyền trực tiếp một tham số có kiểu mảng null. Khi làm việc với varargs, `Objects.hash((Object[]) null)` có nghĩa khác: truyền **mảng tham số null**, và `Arrays.hashCode` của mảng null trả `0`. Không dựa vào các cách gọi mơ hồ để định nghĩa hash.
+The call `Objects.hash((Object) null)` intentionally casts to `Object`: it explicitly specifies **a single null element passed into the varargs array**, avoiding confusion with passing a null array argument directly. When working with varargs, `Objects.hash((Object[]) null)` means something different: passing a **null parameter array**, and `Arrays.hashCode` on a null array returns `0`. Do not rely on ambiguous calls to define a hash.
 
-Quan trọng: chỉ cần tuân thủ **bằng nhau thì hash bằng nhau**. Không có yêu cầu `hashCode()` phải dùng đúng công thức của `Objects.hash()`; cách kết hợp `31 * result + ...` ở ví dụ và `Objects.hash(tenant, externalId)` là tương đương ở đây vì cùng khởi tạo `result = 1` và lần lượt xử lý hai trường.
+Importantly, you only need to obey **equal objects have equal hashes**. There is no requirement for `hashCode()` to use the exact formula of `Objects.hash()`; the `31 * result + ...` combination in the example and `Objects.hash(tenant, externalId)` are equivalent here because both start at `result = 1` and process the two fields in order.
 
-`Objects.hash(...)` gọn và thường dễ đọc với vài trường, nhưng tạo một mảng varargs (có thể gây cấp phát/tốn tài nguyên tùy tối ưu runtime). Trong đoạn code thực thi cực thường xuyên, phép kết hợp thủ công có thể hữu ích sau khi đo lường. Không nên “tối ưu” khi chưa xác định nhu cầu.
+`Objects.hash(...)` is concise and usually readable for a few fields, but it creates a varargs array (which may incur allocation/resource cost depending on runtime optimizations). In extremely hot code paths, manual combination can be useful after profiling. Do not "optimize" before confirming a need.
 
-## 5. Quan hệ giữa `equals()` và `hashCode()` khi có null
+## 5. Relationship Between `equals()` and `hashCode()` with `null`
 
-Hợp đồng cốt lõi của `Object` quy định: nếu `x.equals(y)` trả `true` thì **`x.hashCode() == y.hashCode()` bắt buộc đúng**. Chiều ngược lại không đúng: hai hash trùng nhau không buộc hai đối tượng bằng nhau.
+The core `Object` contract states: if `x.equals(y)` returns `true`, then **`x.hashCode() == y.hashCode()` must be true**. The converse does not hold: two colliding hashes do not force two objects to be equal.
 
-Với trường nullable, hãy duy trì **cùng quy tắc xử lý null và cùng tập trường**:
+For nullable fields, maintain **the same null-handling rule and the same set of fields**:
 
 ```java
-// Hai đoạn sau thuộc cùng class minh họa có field 'code':
+// The following two snippets belong to the same illustrative class with field 'code':
 @Override
 public boolean equals(Object obj) {
     return obj instanceof Item that
@@ -206,82 +206,82 @@ public int hashCode() {
 }
 ```
 
-Đây là **fragment minh họa đặt trong class tên `Item` có trường `code`**, không phải chương trình hoàn chỉnh. Nó đúng về tính nhất quán trường `code` khi lớp là `final` hoặc chính sách bình đẳng theo lớp đã được thiết kế phù hợp. Trong thực tế vẫn cần xem xét lớp cha/lớp con, các thuộc tính khác và tính bất biến.
+This is an **illustrative fragment placed inside a class named `Item` with field `code`**, not a complete program. It is consistent with respect to the `code` field when the class is `final` or when the class-hierarchy equality policy is properly designed. In practice, you still need to consider superclasses/subclasses, other attributes, and immutability.
 
-`Objects.equals(a, b)` hoạt động như sau: nếu hai tham chiếu cùng bằng null thì `true`; nếu chỉ một bên null thì `false`; nếu cả hai có giá trị thì gọi `a.equals(b)`. `Objects.hashCode(a)` không phải “phiên bản hash của hai đối số”, mà chỉ lấy hash một tham chiếu theo quy tắc null-safe.
+`Objects.equals(a, b)` works as follows: if both references are `null`, it returns `true`; if only one is `null`, it returns `false`; if both are non-null, it calls `a.equals(b)`. `Objects.hashCode(a)` is not a "two-argument hash version", it simply takes one reference's hash in a null-safe manner.
 
-Một cách cài đặt trực tiếp cũng hợp lệ:
+A direct implementation is also valid:
 
 ```java
 int codeHash = code == null ? 0 : code.hashCode();
 ```
 
-Tuy nhiên `Objects.hashCode(code)` ngắn và dễ đọc hơn, đặc biệt khi có nhiều trường nullable. Đừng viết `code.hashCode()` trước khi kiểm tra null.
+However, `Objects.hashCode(code)` is shorter and easier to read, especially when there are multiple nullable fields. Never write `code.hashCode()` before checking for `null`.
 
-### Điều gì xảy ra nếu một trường không tham gia `equals()`?
+### What Happens If a Field Does Not Participate in `equals()`?
 
-Nếu `equals()` chỉ dựa trên `id` nhưng `hashCode()` tính thêm `description`, hai đối tượng có cùng `id` nhưng `description` khác nhau có thể có hash khác nhau, **vi phạm hợp đồng**. Ngược lại, hash bỏ bớt một số trường tham gia `equals()` có thể vẫn đúng về hợp đồng, nhưng gây nhiều va chạm. Tốt nhất nên tính hash trên các trường nhận diện giống `equals()`, trừ khi có lý do thiết kế được chứng minh.
+If `equals()` relies solely on `id` while `hashCode()` also includes `description`, two objects with the same `id` but different `description` values can have different hashes, **violating the contract**. Conversely, a hash that omits some fields participating in `equals()` can still satisfy the contract, though it causes more collisions. It is best to compute the hash over the same identifying fields as `equals()`, unless there is a proven design reason otherwise.
 
-Cả `equals()` và `hashCode()` đều phải ổn định khi những thông tin liên quan không thay đổi. Với đối tượng làm khóa trong `HashMap` hoặc phần tử của `HashSet`, tránh sửa các trường liên quan đến hash sau khi thêm vào collection; nếu giá trị thay đổi, tìm kiếm và xóa phần tử có thể thất bại.
+Both `equals()` and `hashCode()` must stay stable when the relevant information does not change. For objects used as `HashMap` keys or `HashSet` elements, avoid modifying hash-related fields after inserting into the collection; if values change, lookups and removals can fail.
 
-## 6. Các bẫy cần tránh
+## 6. Pitfalls to Avoid
 
-### Bẫy A — nhầm `Objects.hashCode(null)` với hash toàn bộ đối tượng
+### Pitfall A — Confusing `Objects.hashCode(null)` with the Hash of the Whole Object
 
-`Objects.hashCode(null)` cho `0` nhưng object có hai trường null không nhất thiết cho hash `0`. Công thức kết hợp có seed, hệ số nhân hoặc dữ liệu kiểu khác có thể cho `961`, `31` hoặc giá trị khác. **Chỉ tính nhất quán với `equals()` mới là ràng buộc bắt buộc**, không có con số cố định dành cho đối tượng “có các trường null”.
+`Objects.hashCode(null)` yields `0`, yet an object with two `null` fields does not necessarily hash to `0`. Combining formulas involve seeds, multipliers, or other typed data that may produce `961`, `31`, or another value. **Only consistency with `equals()` is a mandatory constraint**; there is no fixed number reserved for an object "with null fields".
 
-### Bẫy B — gọi `Objects.hashCode(this)` bên trong chính `hashCode()`
+### Pitfall B — Calling `Objects.hashCode(this)` Inside `hashCode()` Itself
 
-Ví dụ sai:
+Wrong example:
 
 ```java
 @Override
 public int hashCode() {
-    return Objects.hashCode(this); // Sai: đệ quy vô hạn
+    return Objects.hashCode(this); // Wrong: infinite recursion
 }
 ```
 
-Vì `this` không null, `Objects.hashCode(this)` gọi lại `this.hashCode()` liên tục cho đến khi gây `StackOverflowError`. Hãy hash **các trường xác định bản sắc**, không gọi hash của chính đối tượng từ trong hàm đó.
+Because `this` is non-null, `Objects.hashCode(this)` keeps calling `this.hashCode()` repeatedly until it causes a `StackOverflowError`. Hash **the fields that define identity**, never the object itself from inside that method.
 
-### Bẫy C — mảng không được hash theo nội dung nếu chỉ dùng `Objects.hashCode(array)`
+### Pitfall C — Arrays Are Not Hashed by Content If You Only Use `Objects.hashCode(array)`
 
-Một mảng Java thông thường kế thừa `Object.equals()/hashCode()`, nên hai mảng khác tham chiếu dù cùng phần tử vẫn không được xem là bằng nhau và có thể có hash khác nhau. Nếu định nghĩa bằng nhau **theo nội dung mảng**, chọn cặp thuật toán phù hợp:
+A standard Java array inherits `Object.equals()/hashCode()`, so two arrays with different references—even with identical elements—are not considered equal and may have different hashes. If equality is defined **by array content**, pick the appropriate algorithm pair:
 
-- Mảng một chiều: `Arrays.equals(a, b)` và `Arrays.hashCode(a)` (có overload cho mảng nguyên thủy và object).
-- Mảng nhiều tầng chứa mảng: khi cần so sánh nội dung lồng nhau, dùng `Arrays.deepEquals(a, b)` và `Arrays.deepHashCode(a)` cho các mảng `Object[]` thích hợp.
+- One-dimensional arrays: `Arrays.equals(a, b)` and `Arrays.hashCode(a)` (with overloads for primitive and object arrays).
+- Multi-level arrays containing arrays: when nested content comparison is needed, use `Arrays.deepEquals(a, b)` and `Arrays.deepHashCode(a)` for appropriate `Object[]` arrays.
 
-Nếu `equals()` so sánh nội dung mảng bằng `Arrays.equals` còn `hashCode()` dùng `Objects.hashCode(array)` thì hai đối tượng có mảng khác tham chiếu nhưng cùng nội dung có thể bằng nhau mà hash không bằng nhau. Đây là lỗi hợp đồng.
+If `equals()` compares array content using `Arrays.equals` while `hashCode()` uses `Objects.hashCode(array)`, two objects with differently referenced arrays holding identical content can be equal yet have unequal hashes. That is a contract bug.
 
-### Bẫy D — dùng hash làm kết quả so sánh bằng nhau
+### Pitfall D — Using Hashes as Equality Comparison Results
 
-Không viết `return this.hashCode() == other.hashCode();` để cài đặt `equals()`. Hai đối tượng khác nhau có thể va chạm hash, nên phương thức như vậy có nguy cơ coi nhầm chúng bằng nhau. Cần so sánh dữ liệu nghiệp vụ xác định bản sắc.
+Do not write `return this.hashCode() == other.hashCode();` to implement `equals()`. Two distinct objects can collide on hash, so such a method risks falsely treating them as equal. You must compare the business data that defines identity.
 
-### Bẫy E — tin rằng `Objects.hashCode` sửa được một lớp có `hashCode()` sai
+### Pitfall E — Believing `Objects.hashCode` Can Fix a Class with a Broken `hashCode()`
 
-`Objects.hashCode(nonNullValue)` chỉ ủy quyền sang `nonNullValue.hashCode()`. Nếu lớp đó vi phạm hợp đồng với `equals()` hoặc tạo kết quả không ổn định, `Objects.hashCode` không thể tự khắc phục. Chức năng đảm bảo duy nhất ở đây là **không gọi phương thức trên null**.
+`Objects.hashCode(nonNullValue)` simply delegates to `nonNullValue.hashCode()`. If that class violates the contract with `equals()` or produces unstable results, `Objects.hashCode` cannot fix it. Its sole guarantee here is **not invoking a method on `null`**.
 
-## 7. Khi nào không cần viết `hashCode()` thủ công?
+## 7. When Do You Not Need to Write `hashCode()` Manually?
 
-Với một value object có vài trường phù hợp để so sánh theo giá trị, Java `record` có thể tự sinh `equals()` và `hashCode()`:
+For a value object with a few fields suitable for value-based comparison, a Java `record` can automatically generate `equals()` and `hashCode()`:
 
 ```java
 record CustomerKeyRecord(String tenant, String externalId) {}
 ```
 
-Đây là **đoạn khai báo type minh họa**, có thể đặt trong một tệp Java phù hợp. Hai record cùng kiểu và cùng cặp giá trị thành phần được xem bằng nhau, kể cả khi một hoặc hai thành phần null. Cách này giảm khả năng một phương thức dùng thiếu trường so với phương thức còn lại.
+This is an **illustrative type declaration** that can be placed in an appropriate Java file. Two records of the same type with matching component values are considered equal, even when one or both components are `null`. This reduces the chance that one method omits a field included by the other.
 
-Tuy vậy, record **không tự biến dữ liệu mutable thành immutable sâu**. Nếu thành phần là mảng hoặc đối tượng có trạng thái thay đổi, cần xem xét chính sách sao chép, so sánh và hash. Record cũng không thay thế việc quyết định trường nào tạo nên bản sắc của bài toán.
+However, a record **does not automatically make mutable data deeply immutable**. If a component is an array or an object with mutable state, you must review copying, comparison, and hashing policies. Nor does a record replace deciding which fields form the identity for the problem.
 
-## 8. Checklist kiểm tra nhanh
+## 8. Quick Verification Checklist
 
-1. **Xác định trường nào tham gia bản sắc:** `equals()` so sánh những trường nào và `hashCode()` có sử dụng cùng thông tin tương ứng không?
-2. **Kiểm tra null cả hai phía:** hai đối tượng cùng null ở một trường vẫn nên được xử lý an toàn và theo đúng quy tắc bằng nhau của trường đó; một bên null, một bên khác null cần phân biệt.
-3. **Dùng đúng API:** `Objects.hashCode(field)` để hash một field nullable; `Objects.hash(field1, field2, ...)` để kết hợp nhiều trường. Không mặc định hai phương thức cho cùng kết quả nếu chỉ có một đối số.
-4. **Xác nhận hợp đồng:** với mọi cặp `x, y` có `x.equals(y)` đúng, cần `x.hashCode() == y.hashCode()`. Hash giống nhau ở cặp không bằng nhau được phép.
-5. **Tránh trạng thái thay đổi khi làm khóa:** ưu tiên đối tượng bất biến; nếu có trường mảng/nested object, kiểm tra định nghĩa so sánh và khả năng thay đổi nội dung.
-6. **Thử trong collection:** thêm một key vào `HashSet`, tìm bằng một instance khác cùng dữ liệu và thử cả trường null/không null. Đây là bài kiểm chứng bổ sung, không thay thế việc kiểm tra hợp đồng.
+1. **Identify which fields participate in identity:** which fields does `equals()` compare, and does `hashCode()` use the corresponding information?
+2. **Test `null` on both sides:** two objects both having `null` in a field should be handled safely and per that field's equality rule; one `null` and one non-null must be distinguished.
+3. **Use the right API:** `Objects.hashCode(field)` to hash one nullable field; `Objects.hash(field1, field2, ...)` to combine multiple fields. Do not assume both methods return the same result for a single argument.
+4. **Verify the contract:** for every pair `x, y` where `x.equals(y)` is true, `x.hashCode() == y.hashCode()` is required. Equal hashes for unequal pairs are allowed.
+5. **Avoid mutable state when used as keys:** prefer immutable objects; if array/nested object fields exist, check comparison semantics and content mutability.
+6. **Test in collections:** insert a key into a `HashSet`, look it up with another instance holding the same data, and test both `null` and non-null field cases. This is a supplementary check, not a substitute for contract verification.
 
-Một kiểm thử nhỏ về cặp tương đương có thể viết như sau (fragment đặt trong test khi đã có `x` và `y`):
+A small equivalence-pair check can be written as follows (fragment placed in a test where `x` and `y` already exist):
 
 ```java
 if (x.equals(y) && x.hashCode() != y.hashCode()) {
@@ -289,11 +289,11 @@ if (x.equals(y) && x.hashCode() != y.hashCode()) {
 }
 ```
 
-Thử thêm bộ dữ liệu null và không null. Một số test hữu hạn không đủ chứng minh mọi trường hợp; cần xem lại logic chọn trường và tính ổn định.
+Test additional `null` and non-null datasets. A finite set of tests cannot prove all cases; review field-selection logic and stability as well.
 
-## 9. Tóm tắt kiến thức
+## 9. Summary
 
-- `Objects.hashCode(value)` trả `0` nếu `value` null, còn lại trả `value.hashCode()`. Nó giúp viết `hashCode()` không gặp `NullPointerException` với trường nullable.
-- `Objects.hash(values...)` kết hợp nhiều giá trị theo thuật toán của `Arrays.hashCode(Object[])`; kể cả khi chỉ truyền một giá trị, kết quả **thường không trùng** `Objects.hashCode(value)`.
-- Khi override `hashCode()`, dùng **cùng bản sắc logic** với `equals()`, luôn bảo đảm `x.equals(y) => x.hashCode() == y.hashCode()` và hạn chế dùng dữ liệu có thể thay đổi làm khóa.
-- `null` cho mã băm `0` ở cấp **một giá trị** không có nghĩa cả đối tượng chứa nhiều trường null phải hash ra `0`. Các va chạm mã băm là hợp lệ và khác với quan hệ bằng nhau.
+- `Objects.hashCode(value)` returns `0` if `value` is `null`, otherwise `value.hashCode()`. It helps write `hashCode()` without `NullPointerException` for nullable fields.
+- `Objects.hash(values...)` combines multiple values using the `Arrays.hashCode(Object[])` algorithm; even when passing a single value, the result **usually does not match** `Objects.hashCode(value)`.
+- When overriding `hashCode()`, use the **same logical identity** as `equals()`, always guarantee `x.equals(y) => x.hashCode() == y.hashCode()`, and avoid using mutable data as keys.
+- `null` yielding `0` at the **single-value** level does not mean an entire object containing multiple `null` fields must hash to `0`. Hash collisions are valid and distinct from the equality relation.

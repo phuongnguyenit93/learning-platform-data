@@ -1,36 +1,36 @@
-# public, protected, private và package-private trong Java Reflection
+# public, protected, private, and package-private in Java Reflection
 
-## 1. Mục tiêu và bối cảnh
+## 1. Goal and context
 
-Khi dùng Java Reflection để khám phá một lớp ở thời điểm chạy, hai câu hỏi cần tách bạch:
+When using Java Reflection to inspect a class at runtime, two questions must be kept separate:
 
-1. **Thành viên được khai báo với mức truy cập nào?** Đọc cờ của lớp, phương thức, trường hoặc constructor qua `getModifiers()` và `java.lang.reflect.Modifier`.
-2. **Mã hiện tại có thể sử dụng thành viên đó không?** Quy tắc truy cập của Java vẫn được kiểm tra khi gọi phương thức, đọc/ghi trường hoặc tạo đối tượng qua reflection. Việc tìm thấy một thành viên không tự động cấp quyền sử dụng nó.
+1. **What access level is the member declared with?** Read the flags of the class, method, field, or constructor via `getModifiers()` and `java.lang.reflect.Modifier`.
+2. **Can the current code use that member?** Java's access rules are still checked when invoking a method, reading/writing a field, or instantiating an object via reflection. Finding a member does not automatically grant permission to use it.
 
-Ví dụ, `getDeclaredMethod("secretCode")` có thể tìm một phương thức `private`; lời gọi `Method.invoke(...)` từ một lớp bên ngoài vẫn có thể ném `IllegalAccessException`.
+For example, `getDeclaredMethod("secretCode")` can find a `private` method; calling `Method.invoke(...)` from an external class can still throw `IllegalAccessException`.
 
-Bài này tập trung vào **bốn mức truy cập**, cách đọc chúng qua reflection, khác biệt giữa API lấy thành viên `get...` và `getDeclared...`, cùng giới hạn của việc vượt kiểm tra truy cập. Các cờ khác như `static`, `final`, `abstract` chỉ được nhắc khi cần phân biệt với access modifier.
+This lesson focuses on the **four access levels**, how to read them via reflection, the difference between the `get...` and `getDeclared...` member-lookup APIs, and the limits of overriding access checks. Other flags such as `static`, `final`, and `abstract` are mentioned only when needed to distinguish them from access modifiers.
 
-## 2. Quy tắc truy cập của ngôn ngữ Java
+## 2. Java language access rules
 
-| Mức truy cập | Khai báo | Ai có thể truy cập theo quy tắc ngôn ngữ? |
+| Access level | Declaration | Who can access under language rules? |
 | --- | --- | --- |
-| `public` | Có từ khóa `public` | Mã ở mọi package, miễn chính kiểu khai báo cũng có thể truy cập; module có thể bổ sung ranh giới `exports`. |
-| `protected` | Có từ khóa `protected` | Mã trong cùng package; ngoài package, mã của lớp con được phép trong những điều kiện của quy tắc `protected`, bao gồm giới hạn về đối tượng nhận đối với thành viên instance. |
-| package-private | **Không** viết từ khóa truy cập | Mã trong cùng package. “Default access” đôi khi được dùng để gọi mức này nhưng không tồn tại từ khóa `package-private` trong Java. |
-| `private` | Có từ khóa `private` | Chỉ trong phạm vi kiểu khai báo và các kiểu lồng nhau có quyền truy cập tương ứng theo quy tắc Java. |
+| `public` | Has the `public` keyword | Code in any package, provided the declaring type itself is also accessible; modules may add `exports` boundaries. |
+| `protected` | Has the `protected` keyword | Code in the same package; outside the package, subclass code is permitted under the conditions of the `protected` rule, including restrictions on the receiver object for instance members. |
+| package-private | **No** access keyword written | Code in the same package. "Default access" is sometimes used to refer to this level, though no `package-private` keyword exists in Java. |
+| `private` | Has the `private` keyword | Only within the declaring type and nested types that have corresponding access under Java rules. |
 
-Các điểm dễ nhầm:
+Common points of confusion:
 
-- **Cùng package không có nghĩa là cùng thư mục bất kỳ:** package xác định bởi khai báo `package`; `com.example` và `com.example.internal` là hai package khác nhau.
-- **`protected` không có nghĩa là mọi mã ngoài package đều dùng được:** quan hệ kế thừa và kiểu của biểu thức tham chiếu đến đối tượng đều có thể ảnh hưởng tới quyền truy cập.
-- **`private` không có nghĩa reflection không nhìn thấy:** Reflection có thể đọc thông tin khai báo; thao tác sử dụng lại là bước riêng.
-- **Mức truy cập của lớp và của thành viên cùng có tác dụng:** một phương thức `public` nằm trong kiểu top-level package-private không tự biến kiểu đó thành công khai đối với mã ở package khác.
-- Kiểu top-level chỉ có thể khai báo `public` hoặc package-private. Các kiểu thành viên lồng trong kiểu khác có thể khai báo `protected` hoặc `private`; lớp cục bộ và lớp vô danh có quy tắc riêng.
+- **Same package does not mean any arbitrary directory:** a package is defined by the `package` declaration; `com.example` and `com.example.internal` are two different packages.
+- **`protected` does not mean all code outside the package can use it:** the inheritance relationship and the type of the expression referencing the object can both affect access rights.
+- **`private` does not mean reflection cannot see it:** Reflection can read declaration information; performing the operation is a separate step.
+- **Both the class's and the member's access levels apply:** a `public` method inside a package-private top-level type does not automatically make that type public to code in another package.
+- Top-level types can only be declared `public` or package-private. Member types nested inside another type can be declared `protected` or `private`; local classes and anonymous classes have their own rules.
 
-## 3. Đọc mức truy cập bằng Modifier
+## 3. Reading access levels with Modifier
 
-Các đối tượng `Class<?>`, `Method`, `Field` và `Constructor<?>` đều cung cấp `getModifiers()`, trả về một **bit mask `int`**. Dùng phương thức kiểm tra bit thay vì so sánh số cờ với một hằng duy nhất:
+`Class<?>`, `Method`, `Field`, and `Constructor<?>` all provide `getModifiers()`, which returns an **`int` bit mask**. Use the bit-checking methods instead of comparing the flag number to a single constant:
 
 ~~~java
 int flags = method.getModifiers();
@@ -42,48 +42,48 @@ if (Modifier.isPublic(flags)) {
 } else if (Modifier.isPrivate(flags)) {
     // private
 } else {
-    // package-private đối với access modifier của method
+    // package-private for a method's access modifier
 }
 ~~~
 
-Đoạn trên là mã minh họa trong một ngữ cảnh đã có biến `method` và import `java.lang.reflect.Modifier`; chương trình hoàn chỉnh nằm ở phần 5.
+The snippet above is illustrative code in a context that already has a `method` variable and imports `java.lang.reflect.Modifier`; the complete program is in section 5.
 
-- `Modifier.isPublic(flags)`, `isProtected(flags)`, `isPrivate(flags)` kiểm tra đúng từng bit truy cập.
-- **Không có `Modifier.isPackagePrivate(...)`.** Với một phương thức/trường/constructor/lớp mà mức truy cập được xét, package-private nghĩa là *không có cả ba bit* `public`, `protected`, `private`.
-- `Modifier.toString(flags)` biểu diễn chuỗi từ khóa mà mask mang theo. Nếu chỉ có quyền package-private và không có cờ khác, chuỗi có thể rỗng (`""`). Nếu có cờ `static` hoặc `final`, chuỗi có thể chứa các từ đó; do vậy không kết luận rằng `toString(flags)` rỗng mới là package-private.
-- `flags == Modifier.PUBLIC` dễ sai: một phương thức `public static` có cả bit `PUBLIC` và `STATIC`; hãy dùng `Modifier.isPublic(flags)`.
+- `Modifier.isPublic(flags)`, `isProtected(flags)`, and `isPrivate(flags)` accurately check each access bit.
+- **There is no `Modifier.isPackagePrivate(...)`.** For a method/field/constructor/class whose access level is being inspected, package-private means *none of the three bits* `public`, `protected`, `private` are set.
+- `Modifier.toString(flags)` renders the string of keywords carried by the mask. If it is only package-private and has no other flags, the string may be empty (`""`). If there are `static` or `final` flags, the string may contain those words; therefore do not conclude that only an empty `toString(flags)` means package-private.
+- `flags == Modifier.PUBLIC` is error-prone: a `public static` method has both the `PUBLIC` and `STATIC` bits; use `Modifier.isPublic(flags)`.
 
-Ví dụ:
+Example:
 
 ~~~java
 Method method = SomeClass.class.getDeclaredMethod("run");
 System.out.println(Modifier.toString(method.getModifiers()));
 ~~~
 
-Đây cũng là mã minh họa, giả sử `SomeClass` khai báo `run()` không tham số. Nếu phương thức có khai báo `public static void run()`, chuỗi in ra là `public static`. Không dựa vào thứ tự của các phần tử `getDeclaredMethods()` khi sinh báo cáo; API không cam kết thứ tự.
+This is also illustrative code, assuming `SomeClass` declares a no-argument `run()`. If the method is declared `public static void run()`, the printed string is `public static`. Do not rely on the element order of `getDeclaredMethods()` when generating reports; the API does not guarantee ordering.
 
-## 4. Tìm thành viên khác với được quyền truy cập
+## 4. Finding a member vs being permitted to access it
 
-| API của `Class` | Thành viên có thể tìm thấy | Phạm vi kế thừa |
+| `Class` API | Members that can be found | Inheritance scope |
 | --- | --- | --- |
-| `getMethod(name, parameterTypes...)` / `getMethods()` | Phương thức `public` | Bao gồm các phương thức public được kế thừa theo quy tắc của API |
-| `getDeclaredMethod(name, parameterTypes...)` / `getDeclaredMethods()` | Mọi mức truy cập, miễn khai báo trong chính lớp/interface đó | Không tự tìm trong lớp cha |
-| `getField(name)` / `getFields()` | Trường `public` | Có tính đến các trường public được kế thừa |
-| `getDeclaredField(name)` / `getDeclaredFields()` | Mọi mức truy cập của trường khai báo trực tiếp | Không tìm trong lớp cha |
-| `getConstructor(parameterTypes...)` / `getConstructors()` | Constructor `public` | Constructor không được kế thừa |
-| `getDeclaredConstructor(parameterTypes...)` / `getDeclaredConstructors()` | Constructor khai báo trực tiếp, mọi mức truy cập | Constructor không được kế thừa |
+| `getMethod(name, parameterTypes...)` / `getMethods()` | `public` methods | Includes inherited public methods per API rules |
+| `getDeclaredMethod(name, parameterTypes...)` / `getDeclaredMethods()` | All access levels, provided declared in that class/interface itself | Does not search superclasses automatically |
+| `getField(name)` / `getFields()` | `public` fields | Accounts for inherited public fields |
+| `getDeclaredField(name)` / `getDeclaredFields()` | All access levels of directly declared fields | Does not search superclasses |
+| `getConstructor(parameterTypes...)` / `getConstructors()` | `public` constructors | Constructors are not inherited |
+| `getDeclaredConstructor(parameterTypes...)` / `getDeclaredConstructors()` | Directly declared constructors, all access levels | Constructors are not inherited |
 
-Ví dụ: với một phương thức `private void check()`, `getDeclaredMethod("check")` có thể trả về `Method`, trong khi `getMethod("check")` ném `NoSuchMethodException`. Ngoại lệ *không tìm thấy* (`NoSuchMethodException`) khác với ngoại lệ *không có quyền gọi* (`IllegalAccessException`).
+For example: for a `private void check()` method, `getDeclaredMethod("check")` can return the `Method`, whereas `getMethod("check")` throws `NoSuchMethodException`. A *not found* exception (`NoSuchMethodException`) is different from a *not permitted to invoke* exception (`IllegalAccessException`).
 
-Chữ ký phương thức còn chứa danh sách kiểu tham số: nếu có `void check(String value)`, cần gọi `getDeclaredMethod("check", String.class)`; chỉ truyền `"check"` sẽ không tìm thấy phương thức một tham số. Với phương thức overload, luôn truyền đúng kiểu tham số.
+A method signature also includes its parameter type list: if there is `void check(String value)`, you need to call `getDeclaredMethod("check", String.class)`; passing only `"check"` will not find the one-parameter method. For overloaded methods, always pass the exact parameter types.
 
-Sau khi đã tìm được `Method`, `Field` hoặc `Constructor`, Java vẫn kiểm tra tính hợp lệ khi `invoke(...)`, `get(...)`, `set(...)` hoặc `newInstance(...)`. Đọc metadata không đồng nghĩa với quyền gọi/đọc/ghi.
+After finding a `Method`, `Field`, or `Constructor`, Java still checks validity when calling `invoke(...)`, `get(...)`, `set(...)`, or `newInstance(...)`. Reading metadata is not the same as permission to invoke/read/write.
 
-## 5. Chương trình Java 17 chạy được: đọc và thử truy cập cả bốn mức
+## 5. Runnable Java 17 program: reading and attempting access across all four levels
 
-Ta đặt lớp chứa thành viên trong package `lesson.api`, còn mã reflection trong package `lesson.client` để thấy rõ việc vượt ranh giới package.
+We place the class containing the members in package `lesson.api`, and the reflection code in package `lesson.client` to clearly see crossing package boundaries.
 
-**Tệp 1 — `src/lesson/api/MemberBox.java`:**
+**File 1 — `src/lesson/api/MemberBox.java`:**
 
 ~~~java
 package lesson.api;
@@ -96,7 +96,7 @@ public class MemberBox {
 }
 ~~~
 
-**Tệp 2 — `src/lesson/client/ReflectAccess.java`:**
+**File 2 — `src/lesson/client/ReflectAccess.java`:**
 
 ~~~java
 package lesson.client;
@@ -145,7 +145,7 @@ public class ReflectAccess {
 }
 ~~~
 
-**Biên dịch và chạy từ thư mục chứa `src/` (Java 17 trở lên, dùng classpath):**
+**Compile and run from the directory containing `src/` (Java 17 or later, using classpath):**
 
 ~~~bash
 mkdir -p out
@@ -153,9 +153,9 @@ javac --release 17 -d out src/lesson/api/MemberBox.java src/lesson/client/Reflec
 java -cp out lesson.client.ReflectAccess
 ~~~
 
-Trên PowerShell, có thể thay `mkdir -p out` bằng `New-Item -ItemType Directory -Force out`. Thư mục `out` chứa các file `.class` đúng cấu trúc package.
+On PowerShell, you can replace `mkdir -p out` with `New-Item -ItemType Directory -Force out`. The `out` directory contains `.class` files matching the package structure.
 
-**Stdout chính xác trong ví dụ classpath trên:**
+**Exact stdout in the classpath example above:**
 
 ~~~text
 publicCode: public
@@ -169,55 +169,55 @@ trySetAccessible(secretCode): true
 invoke after override: private value
 ~~~
 
-**Giải thích kết quả:**
+**Output explanation:**
 
-1. `getDeclaredMethod` truy xuất được cả bốn khai báo, nên ta đọc được bốn mức bằng `getModifiers()`.
-2. `getMethod("publicCode")` tìm thành viên công khai; `getMethod("secretCode")` không tìm thành viên private và ném `NoSuchMethodException`.
-3. `ReflectAccess` ở package khác và không thuộc phạm vi được phép truy cập `private secretCode()`; lời gọi `invoke` ban đầu ném `IllegalAccessException`.
-4. `trySetAccessible()` trả về `true` ở đây vì cả hai lớp là mã trên classpath, thuộc unnamed module, và không có rào cản module ngăn truy cập sâu. Khi thành công, cùng đối tượng `Method` có thể được gọi bằng `invoke`. Điều này **không bảo đảm** sẽ thành công với mọi lớp trong named module hoặc thư viện khác.
+1. `getDeclaredMethod` retrieves all four declarations, so we can read all four levels using `getModifiers()`.
+2. `getMethod("publicCode")` finds the public member; `getMethod("secretCode")` does not find the private member and throws `NoSuchMethodException`.
+3. `ReflectAccess` is in a different package and is outside the scope permitted to access `private secretCode()`; the initial `invoke` call throws `IllegalAccessException`.
+4. `trySetAccessible()` returns `true` here because both classes are code on the classpath, belong to the unnamed module, and have no module barrier blocking deep reflection. Once successful, the same `Method` object can be invoked via `invoke`. This is **not guaranteed** to succeed for every class in a named module or another library.
 
-Nếu muốn thử phương thức `protectedCode` hoặc `packageCode`, đổi tên khi lấy `getDeclaredMethod`. Từ `lesson.client.ReflectAccess`, thao tác `invoke` thông thường cũng bị kiểm tra truy cập; có metadata không làm mã trở thành lớp con hay cùng package.
+If you want to test `protectedCode` or `packageCode`, change the name when calling `getDeclaredMethod`. From `lesson.client.ReflectAccess`, a normal `invoke` call is also access-checked; having metadata does not make the code a subclass or in the same package.
 
-## 6. `canAccess`, `trySetAccessible` và hệ thống module
+## 6. `canAccess`, `trySetAccessible`, and the module system
 
-Java cung cấp ba thao tác thường gặp trên đối tượng reflective:
+Java provides three common operations on reflective objects:
 
-- `method.canAccess(receiver)`: hỏi tại thời điểm đó caller hiện tại có thể truy cập bằng đối tượng `Method` này không; dùng `receiver` là instance đúng loại cho phương thức instance, hoặc `null` cho phương thức static. Đối với trường hoặc constructor, tham số nhận cũng phải đúng theo hợp đồng API tương ứng.
-- `method.trySetAccessible()`: **thử** tắt việc kiểm tra quyền truy cập của ngôn ngữ Java đối với đối tượng reflection; trả về `true` nếu thành công và `false` khi không thể bật quyền này vì giới hạn truy cập. Trong một số tình huống có thể xuất hiện ngoại lệ bảo mật.
-- `method.setAccessible(true)`: yêu cầu tắt kiểm tra truy cập; nếu rào cản module không cho phép, có thể ném `java.lang.reflect.InaccessibleObjectException`.
+- `method.canAccess(receiver)`: asks whether at that moment the current caller can access via this `Method` object; use an instance of the right type as `receiver` for instance methods, or `null` for static methods. For fields or constructors, the receiver argument must also match the corresponding API contract.
+- `method.trySetAccessible()`: **attempts** to suppress Java language access checks for the reflection object; returns `true` if successful and `false` when access cannot be enabled due to access restrictions. In some situations a security exception may occur.
+- `method.setAccessible(true)`: requests disabling access checks; if a module barrier disallows it, it may throw `java.lang.reflect.InaccessibleObjectException`.
 
-Từ Java 9, JPMS (Java Platform Module System) phân biệt:
+Since Java 9, JPMS (Java Platform Module System) distinguishes:
 
-| Khai báo module | Ý nghĩa thực tế |
+| Module declaration | Practical meaning |
 | --- | --- |
-| `exports p;` | Cho phép module khác sử dụng các kiểu `public` và thành viên `public` có thể truy cập của package `p` qua API thông thường; không mặc nhiên cho phép reflection mở thành viên private. |
-| `opens p;` | Cho phép truy cập sâu bằng reflection vào package `p` theo cơ chế mở package, bao gồm thành viên không public khi thao tác hợp lệ. |
-| Không `exports` hay `opens` | Mã ở module khác thường bị hạn chế hơn, kể cả khi reflection thấy tên thành viên. |
+| `exports p;` | Allows other modules to use `public` types and accessible `public` members of package `p` via normal APIs; does not by default allow reflection to open private members. |
+| `opens p;` | Allows deep reflection access into package `p` under the package-opening mechanism, including non-public members when the operation is valid. |
+| Neither `exports` nor `opens` | Code in other modules is generally more restricted, even if reflection can see member names. |
 
-Có thể mở có mục tiêu một package khi chạy để chẩn đoán, ví dụ tùy cấu hình: `--add-opens java.base/java.lang=ALL-UNNAMED`. Đây là một cơ chế cấp phép mạnh; không nên thêm rộng khắp hoặc dựa vào nó như thiết kế API bình thường. Với mã ở các named module khác nhau, kết quả `trySetAccessible()` phụ thuộc quan hệ module, package và quyền mở thực tế.
+A package can be targetedly opened at runtime for diagnostics, e.g. depending on configuration: `--add-opens java.base/java.lang=ALL-UNNAMED`. This is a powerful permission mechanism; you should not add it broadly or rely on it as normal API design. For code in different named modules, the result of `trySetAccessible()` depends on module relationships, packages, and actual open permissions.
 
-**Không nhầm `AccessibleObject` với thay đổi khai báo:** gọi `trySetAccessible` không biến phương thức private thành public trong class file. `method.getModifiers()` vẫn báo `private`. Nó chỉ ảnh hưởng việc kiểm tra quyền trên đối tượng reflection được điều chỉnh trong phạm vi được phép. Các giới hạn khác như tính bất biến của một số trường `final` vẫn tồn tại.
+**Do not confuse `AccessibleObject` with changing the declaration:** calling `trySetAccessible` does not turn a private method into a public one in the class file. `method.getModifiers()` still reports `private`. It only affects access checks on the adjusted reflection object within permitted bounds. Other restrictions, such as the immutability of certain `final` fields, still remain.
 
-## 7. Sai lầm thường gặp và cách xử lý
+## 7. Common mistakes and how to handle them
 
-| Hiểu nhầm / lỗi | Vì sao sai | Cách làm |
+| Misconception / error | Why it is wrong | What to do |
 | --- | --- | --- |
-| `getMethods()` trả về mọi phương thức | Nó chỉ chọn phương thức public theo quy tắc API | Dùng `getDeclaredMethods()` khi cần xem các khai báo không public, và duyệt lớp cha riêng nếu cần |
-| `getDeclaredMethods()` chứa cả khai báo lớp cha | Nó chỉ trả về phương thức khai báo trong chính lớp/interface đang hỏi | Duyệt `getSuperclass()` và `getDeclaredMethods()` từng cấp nếu đó là mục tiêu |
-| Tìm được `Method` tức là gọi được | Khám phá metadata và quyền thực thi là hai bước khác nhau | Phân biệt `NoSuchMethodException`, `IllegalAccessException`, `InvocationTargetException` |
-| `Modifier.toString(flags).isEmpty()` là cách duy nhất nhận package-private | Một khai báo package-private vẫn có thể mang cờ như `static` hoặc `final` | Kiểm tra cả ba bit `public/protected/private` đều không có |
-| `flags == Modifier.PUBLIC` nhận diện mọi public method | Một method có thể đồng thời là `public static` hoặc `public final` | Dùng `Modifier.isPublic(flags)` |
-| `protected` luôn truy cập được từ package khác nếu có subclass ở đâu đó | Quy tắc kiểm tra dựa trên vị trí mã truy cập và đối tượng nhận, không chỉ sự tồn tại của subclass | Kiểm tra ngữ cảnh package/kế thừa của chính caller |
-| `setAccessible(true)` luôn thành công | Module có thể không mở package cho caller | Ưu tiên API public; nếu cần, thiết kế `opens` có chủ đích và xử lý thất bại |
-| `private` là “bảo mật dữ liệu tuyệt đối” | Modifier chủ yếu là ranh giới đóng gói API ở cấp ngôn ngữ, không phải cơ chế bảo mật mọi môi trường chạy | Dùng các cơ chế bảo mật phù hợp cho dữ liệu nhạy cảm, đồng thời giữ đóng gói tốt |
+| `getMethods()` returns every method | It only selects public methods per the API rules | Use `getDeclaredMethods()` when you need to inspect non-public declarations, and traverse superclasses separately if needed |
+| `getDeclaredMethods()` includes superclass declarations | It only returns methods declared in the queried class/interface itself | Traverse `getSuperclass()` and `getDeclaredMethods()` at each level if that is the goal |
+| Finding a `Method` means you can invoke it | Discovering metadata and having execution permission are two different steps | Distinguish `NoSuchMethodException`, `IllegalAccessException`, and `InvocationTargetException` |
+| `Modifier.toString(flags).isEmpty()` is the only way to detect package-private | A package-private declaration can still carry flags like `static` or `final` | Check that all three bits `public/protected/private` are absent |
+| `flags == Modifier.PUBLIC` identifies every public method | A method can simultaneously be `public static` or `public final` | Use `Modifier.isPublic(flags)` |
+| `protected` is always accessible from another package if a subclass exists somewhere | The access rule is based on the access site and the receiver object, not just the existence of a subclass | Check the package/inheritance context of the caller itself |
+| `setAccessible(true)` always succeeds | A module may not open the package to the caller | Prefer public APIs; if needed, design `opens` deliberately and handle failure |
+| `private` is "absolute data security" | Modifiers are primarily language-level API encapsulation boundaries, not a security mechanism across all runtime environments | Use appropriate security mechanisms for sensitive data while maintaining good encapsulation |
 
-Khi tìm phương thức trên lớp kế thừa, hãy phân biệt `getMethod` có thể tìm public method kế thừa với `getDeclaredMethod` chỉ tìm khai báo trực tiếp. Khi in danh sách `getDeclaredMethods()`, sắp xếp theo tên/chữ ký nếu cần đầu ra ổn định vì thứ tự mảng reflection không được bảo đảm.
+When looking up methods on an inheritance hierarchy, distinguish `getMethod` (which can find inherited public methods) from `getDeclaredMethod` (which only finds direct declarations). When printing lists from `getDeclaredMethods()`, sort by name/signature if deterministic output is needed because reflection array order is not guaranteed.
 
-## 8. Bài tập tự kiểm tra
+## 8. Self-check exercises
 
-1. Thêm `public static String sharedCode()` vào `MemberBox`. Dự đoán kết quả `Modifier.isPublic(method.getModifiers())` và `Modifier.toString(method.getModifiers())`. **Đáp án:** `true`; chuỗi chứa `public static`.
-2. Thêm `private MemberBox(int seed)` bên cạnh constructor không tham số được khai báo tường minh là public. Hỏi `getConstructor(int.class)` và `getDeclaredConstructor(int.class)` khác nhau ra sao? **Đáp án:** API thứ nhất ném `NoSuchMethodException`, API thứ hai tìm được constructor private nhưng việc gọi còn phải kiểm tra quyền truy cập.
-3. Chuyển `ReflectAccess` vào package `lesson.api`. Với `packageCode()`, thao tác `invoke` có được phép không? **Đáp án:** được phép nếu lớp gọi đúng cùng package và nhận đúng đối tượng; với `private`, ranh giới private vẫn còn.
-4. Chuyển `MemberBox` sang named module có package không mở. Có thể kết luận `trySetAccessible()` chắc chắn trả về `true` như ví dụ classpath không? **Đáp án:** không; cần xét package được mở cho module của caller hay chưa.
+1. Add `public static String sharedCode()` to `MemberBox`. Predict the results of `Modifier.isPublic(method.getModifiers())` and `Modifier.toString(method.getModifiers())`. **Answer:** `true`; the string contains `public static`.
+2. Add `private MemberBox(int seed)` alongside a no-arg constructor explicitly declared as public. How do `getConstructor(int.class)` and `getDeclaredConstructor(int.class)` differ? **Answer:** The first API throws `NoSuchMethodException`, while the second finds the private constructor, though invoking it still requires checking access rights.
+3. Move `ReflectAccess` into package `lesson.api`. For `packageCode()`, is `invoke` permitted? **Answer:** permitted if the calling class is indeed in the same package and receives a valid object; for `private`, the private boundary still applies.
+4. Move `MemberBox` into a named module with an unopened package. Can you conclude that `trySetAccessible()` will definitely return `true` as in the classpath example? **Answer:** no; it depends on whether the package is opened to the caller's module.
 
-**Ghi nhớ:** Reflection có thể *quan sát* các mức truy cập qua `getModifiers()`, nhưng thao tác thực tế vẫn phải vượt qua phép kiểm tra quyền của Java và ranh giới module. Hãy chọn `getDeclared...` để khám phá khai báo nội bộ, `get...` để tìm thành viên public phù hợp, và chỉ yêu cầu truy cập sâu khi thực sự cần thiết.
+**Key takeaway:** Reflection can *observe* access levels via `getModifiers()`, but actual operations must still pass Java's access checks and module boundaries. Choose `getDeclared...` to inspect internal declarations, `get...` to find appropriate public members, and only request deep access when truly necessary.

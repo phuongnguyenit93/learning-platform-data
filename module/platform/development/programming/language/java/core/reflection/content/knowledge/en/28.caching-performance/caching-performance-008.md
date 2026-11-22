@@ -1,56 +1,56 @@
-# Không chia sẻ khả năng truy cập private ngoài phạm vi cần thiết
+# Never Share Private Access Capabilities Beyond the Necessary Scope
 
-## 1. Vấn đề trong reflection và cache
+## 1. The Issue in Reflection and Caching
 
-Reflection cho phép chương trình tìm và gọi một thành viên lớp thông qua các đối tượng như `Method`, `Field` hoặc `Constructor`. Theo mặc định, API vẫn tuân thủ các kiểm tra truy cập của Java; các thành viên `private` không đương nhiên được phép gọi từ mọi nơi.
+Reflection lets a program look up and invoke a class member through objects such as `Method`, `Field`, or `Constructor`. By default, the API enforces Java's access checks; `private` members are not automatically callable from everywhere.
 
-`java.lang.reflect.AccessibleObject` (lớp cha của `Method`, `Field`, `Constructor`) có các thao tác `setAccessible(true)` và `trySetAccessible()` để yêu cầu **bỏ qua một số kiểm tra truy cập ngôn ngữ Java** đối với đối tượng phản chiếu cụ thể, trong giới hạn mà Java Platform Module System (JPMS) cho phép. Khi trạng thái này bật, mã khác **được trao chính đối tượng `Method`/`Field` đó** có thể sử dụng khả năng truy cập mà bên sở hữu đã bật.
+`java.lang.reflect.AccessibleObject` (the superclass of `Method`, `Field`, and `Constructor`) provides `setAccessible(true)` and `trySetAccessible()` to request **suppressing Java language access checks** for a specific reflective object, within the limits allowed by the Java Platform Module System (JPMS). Once enabled, other code **handed that exact `Method`/`Field` object** can exercise the access capability enabled by its owner.
 
-Vì thế, trong module **Cache và hiệu năng**, nguyên tắc thực hành là:
+Therefore, in the **Caching and Performance** module, the practical rule is:
 
-> **Chỉ giữ và chia sẻ metadata hoặc khả năng gọi đúng với những nơi thật sự cần. Không đưa đối tượng reflection đã được bật quyền private vào cache dùng chung hoặc API công khai.**
+> **Keep and share metadata or invocation capabilities strictly with components that genuinely need them. Never place reflection objects with private access enabled into shared caches or public APIs.**
 
-Ví dụ rủi ro: component chẩn đoán được phép truy cập phương thức private của một plugin để kiểm tra nội bộ. Nó gọi `method.trySetAccessible()` rồi lưu `Method` trong `public static Map<String, Method>`. Một component khác lấy được reference này có thể gọi `method.invoke(...)` mà không phải tự thiết lập quyền trên cùng đối tượng. Một cache được đặt tên là “tối ưu hiệu năng” lúc này vô tình trở thành nơi **phân phối quyền truy cập mạnh hơn mức cần thiết**.
+Example risk: a diagnostics component is permitted to access a plugin's private method for internal inspection. It calls `method.trySetAccessible()` and then stores the `Method` in a `public static Map<String, Method>`. Another component that obtains this reference can call `method.invoke(...)` without having to establish permissions on the same object itself. A cache labeled “performance optimization” thus unintentionally becomes a **distribution channel for broader access than necessary**.
 
-Điểm cần phân biệt: quyền kiểm tra truy cập của Java/JPMS không phải cơ chế cô lập chống mọi mã độc chạy trong cùng JVM. Việc kiểm soát API, reference và quyền lookup vẫn quan trọng để bảo toàn **đóng gói**, tránh dùng nhầm và hạn chế năng lực được trao ngoài ý muốn.
+An important distinction: Java/JPMS access checks are not an isolation boundary against malicious code running in the same JVM. Controlling APIs, references, and lookup privileges remains essential to preserve **encapsulation**, prevent misuse, and limit unintended capability exposure.
 
-## 2. Cơ chế quyền trên `AccessibleObject`
+## 2. Access Control Mechanisms on `AccessibleObject`
 
-| API hoặc thao tác | Ý nghĩa | Lưu ý bảo toàn phạm vi |
+| API or Operation | Meaning | Scope-Preservation Note |
 | --- | --- | --- |
-| `getDeclaredMethod`, `getDeclaredField` | Tra metadata kể cả thành viên không public được khai báo trực tiếp | Tìm thấy metadata không đồng nghĩa được phép gọi/đọc |
-| `Method.invoke`, `Field.get/set` | Thực thi thao tác reflection | Tuân thủ kiểm tra truy cập trừ khi các kiểm tra đó được bỏ qua hợp lệ |
-| `canAccess(receiver)` | Kiểm tra có truy cập được qua đối tượng reflection này với receiver thích hợp hay không | Chỉ đọc trạng thái, không mở quyền; `null` cho static member/constructor, instance thật cho instance member |
-| `trySetAccessible()` | Cố bật trạng thái bỏ qua kiểm tra truy cập, trả `true` nếu thành công; `false` nếu không thể bật | **Làm thay đổi trạng thái** đối tượng khi thành công |
-| `setAccessible(true)` | Yêu cầu bật trạng thái bỏ qua kiểm tra truy cập | Có thể ném `InaccessibleObjectException` nếu JPMS không cho phép |
-| `setAccessible(false)` | Tắt trạng thái bỏ qua kiểm tra truy cập trên **đối tượng này** | Không phải cơ chế thu hồi mọi reference/handle đã phát tán |
-| `MethodHandles.privateLookupIn` | Tạo `Lookup` có quyền truy cập phù hợp vào lớp đích khi đủ điều kiện | `Lookup` cũng là capability nhạy cảm; không cung cấp cho nơi không cần |
+| `getDeclaredMethod`, `getDeclaredField` | Looks up metadata including non-public members declared directly | Finding metadata does not grant permission to invoke/read |
+| `Method.invoke`, `Field.get/set` | Executes the reflective operation | Enforces access checks unless validly suppressed |
+| `canAccess(receiver)` | Checks whether access is permitted via this reflection object for the given receiver | Read-only check, does not grant access; `null` for static members/constructors, actual instance for instance members |
+| `trySetAccessible()` | Attempts to enable suppressing access checks, returning `true` on success and `false` otherwise | **Mutates the state** of the object on success |
+| `setAccessible(true)` | Requests enabling suppression of access checks | Can throw `InaccessibleObjectException` if JPMS forbids it |
+| `setAccessible(false)` | Disables suppressing access checks on **this object** | Not a mechanism to revoke already-distributed references/handles |
+| `MethodHandles.privateLookupIn` | Creates a `Lookup` with appropriate access rights to the target class when eligible | `Lookup` is also a sensitive capability; do not hand it where unneeded |
 
-Một `Method` đã bật `setAccessible(true)` vẫn phải đáp ứng những điều kiện khác của phép gọi như receiver đúng lớp, số lượng/kiểu tham số tương thích. Bật accessible **không biến phương thức thành public trong bytecode**, không đổi modifiers và không cho quyền vô hạn với mọi package/module.
+A `Method` with `setAccessible(true)` enabled must still satisfy other invocation conditions such as compatible receiver class and argument count/types. Enabling accessibility **does not make the method `public` in bytecode**, does not alter modifiers, and does not grant unlimited access across all packages/modules.
 
-Với Java 9+, JPMS giới hạn deep reflection. Nếu package của module đích không được mở phù hợp cho module gọi, `trySetAccessible()` có thể trả `false`, còn `setAccessible(true)` có thể ném `InaccessibleObjectException`. Đừng coi `setAccessible(true)` là cách đi vòng mọi ranh giới module.
+In Java 9+, JPMS restricts deep reflection. If the target module's package is not suitably opened to the calling module, `trySetAccessible()` can return `false`, and `setAccessible(true)` can throw `InaccessibleObjectException`. Do not treat `setAccessible(true)` as a way around all module boundaries.
 
-### Quyền gắn với đối tượng đã trao
+### Capability Travels with the Handed-Out Object
 
-Xét đoạn mã sau (minh họa hành vi cần tránh):
+Consider the following snippet (illustrating behavior to avoid):
 
 ```java
-// MÃ MINH HỌA ANTI-PATTERN, KHÔNG CHẠY ĐỘC LẬP:
-// Method được tạo ở một thành phần được tin cậy:
+// ANTI-PATTERN ILLUSTRATION, NOT STANDALONE RUNNABLE:
+// Method created in a trusted component:
 Method privateMethod = Target.class.getDeclaredMethod("secret");
 privateMethod.setAccessible(true);
 
-// Sai phạm vi: đưa đối tượng đã bật quyền vào registry/cache công khai:
+// Wrong scope: putting the access-enabled object into a public registry/cache:
 sharedRegistry.put("secretMethod", privateMethod);
 ```
 
-Sau khi reference `privateMethod` thoát ra ngoài, bên nhận có thể sử dụng khả năng đang gắn trên **reference đó**. Việc “ẩn” field cache bằng `private` không đủ nếu một public getter hoặc callback lại trả thẳng đối tượng `Method`. Tương tự, trả một `MethodHandle` đã được tạo với lookup quyền private cũng trao khả năng gọi mà nó chứa.
+Once the `privateMethod` reference escapes, recipients can exercise the capability attached to **that reference**. Making the cache field `private` is insufficient if a public getter or callback returns the `Method` object directly. Likewise, returning a `MethodHandle` created with a private-privileged lookup also hands out the invocation capability it holds.
 
-## 3. Ví dụ Java 17+: mở quyền cục bộ rồi đóng lại
+## 3. Java 17+ Example: Enabling Access Locally and Closing It Again
 
-Ví dụ này cố tình có **hai top-level class** trong cùng một tệp: lớp `Ticket` có phương thức private; tiện ích `ScopedPrivateAccessDemo` thuộc **nest khác**, nên ban đầu không có quyền gọi phương thức private qua reflection. Chạy trên **class path/unnamed module** để việc mở quyền trong ví dụ được chấp nhận.
+This example deliberately puts **two top-level classes** in one file: `Ticket` has a private method; `ScopedPrivateAccessDemo` belongs to a **different nest**, so initially it has no permission to invoke the private method via reflection. Run on the **class path/unnamed module** so opening access in the example is permitted.
 
-Lưu vào `ScopedPrivateAccessDemo.java`:
+Save to `ScopedPrivateAccessDemo.java`:
 
 ```java
 import java.lang.reflect.Method;
@@ -59,7 +59,7 @@ public class ScopedPrivateAccessDemo {
     static final class Diagnostics {
         static boolean suffixMatches(Ticket ticket, String expected)
                 throws ReflectiveOperationException {
-            // Mỗi lần gọi tạo đối tượng Method riêng, không đưa vào cache chung.
+            // Each call creates its own Method object, without placing it in a shared cache.
             Method method = Ticket.class.getDeclaredMethod("lastFour");
 
             System.out.println("before=" + method.canAccess(ticket));
@@ -72,7 +72,7 @@ public class ScopedPrivateAccessDemo {
                 System.out.println("during=" + method.canAccess(ticket));
                 String suffix = (String) method.invoke(ticket);
 
-                // Trả một kết quả nghiệp vụ tối thiểu, không trả Method.
+                // Return a minimal business result, not the Method.
                 return suffix.equals(expected);
             } finally {
                 method.setAccessible(false);
@@ -106,14 +106,14 @@ final class Ticket {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac --release 17 -encoding UTF-8 ScopedPrivateAccessDemo.java
 java ScopedPrivateAccessDemo
 ```
 
-Stdout dự kiến:
+Expected stdout:
 
 ```text
 label=ticket
@@ -123,45 +123,45 @@ after=false
 matched=true
 ```
 
-Giải thích:
+Explanation:
 
-1. `method.canAccess(ticket)` ban đầu là `false` vì phương thức `Ticket.lastFour()` là private và code gọi thuộc một nest khác.
-2. `trySetAccessible()` được phép trong ví dụ chạy trên class path; đối tượng `Method` cục bộ được bật khả năng gọi.
-3. `invoke(ticket)` thực thi phương thức và trả chuỗi. Tiện ích trả **boolean** cho caller; không trả chuỗi nội bộ hoặc `Method`.
-4. `finally` tắt accessible flag trên **chính đối tượng `Method` cục bộ** trước khi phương thức kết thúc, kể cả nếu `invoke` ném ngoại lệ.
-5. `matched=true` chứng minh kết quả sau cùng là dữ liệu tối thiểu đã chủ đích cung cấp, không phải quyền phản chiếu.
+1. `method.canAccess(ticket)` is initially `false` because `Ticket.lastFour()` is private and the calling code belongs to a different nest.
+2. `trySetAccessible()` succeeds in this example running on the class path; the local `Method` object has invocation access enabled.
+3. `invoke(ticket)` runs the method and returns the string. The utility returns a **boolean** to the caller; it neither returns the internal string nor the `Method`.
+4. `finally` disables the accessible flag on **that local `Method` object** before the method returns, even if `invoke` throws an exception.
+5. `matched=true` confirms the final output is only the intentionally exposed minimal result, not reflective capability.
 
-**Giới hạn quan trọng:** ví dụ làm rõ vòng đời cục bộ; không khẳng định `setAccessible(false)` là một cơ chế thu hồi quyền tuyệt đối. Nếu trước đó đã phát tán đối tượng, một bản sao/reference khác hoặc handle độc lập vẫn có thể tồn tại. Cũng không nên bật/tắt accessible flag **trên cùng `Method` được dùng đồng thời bởi nhiều thread**: một thread tắt flag có thể làm thread khác bất ngờ thất bại khi gọi.
+**Important limitation:** the example clarifies local lifecycle; it does not claim `setAccessible(false)` is an absolute capability-revocation mechanism. If the object was leaked earlier, another copy/reference or independent handle may still exist. You must also never toggle the accessible flag **on the same `Method` used concurrently by multiple threads**: one thread disabling the flag can cause another thread's call to fail unexpectedly.
 
-Trong ứng dụng thông thường, tốt hơn cả là **không dùng reflection vào private** nếu một phương thức public/package-private thích hợp có thể biểu đạt điều cần làm. Phương thức `publicLabel()` trong ví dụ thể hiện lối truy cập hẹp hơn cho nhu cầu phổ biến.
+In ordinary applications, it is best **not to reflect into private members at all** when an appropriate public/package-private method can express what is needed. `publicLabel()` in the example illustrates a narrower access path for common needs.
 
-## 4. Thiết kế cache đúng phạm vi
+## 4. Designing Caches at the Right Scope
 
-Tối ưu reflection thường hướng tới giảm chi phí **tra cứu metadata lặp lại**. Nhưng cache càng chia sẻ rộng, càng nhiều code có thể giữ reference đến đối tượng truy cập nhạy cảm.
+Reflection optimization usually aims to reduce the cost of **repeated metadata lookups**. Yet the more widely a cache is shared, the more code can obtain references to sensitive access objects.
 
-So sánh các thiết kế:
+Comparing designs:
 
-| Thiết kế | Đánh giá |
+| Design | Evaluation |
 | --- | --- |
-| Cache toàn cục ánh xạ tên → `Method` đã bật accessible và cho mọi component lấy ra | **Tránh**: phát tán reference được cấp khả năng private |
-| Cache metadata của public method để phục vụ các thao tác public | Phù hợp hơn nếu có nhu cầu thực tế và quản lý class loader |
-| Cache `Method` private bên trong một helper được tin cậy; chỉ xuất API nghiệp vụ hẹp | Có thể chấp nhận khi thật sự cần hiệu năng, nhưng phải kiểm soát caller, luồng sử dụng và vòng đời cache |
-| Tìm private method cục bộ mỗi lần, trả kết quả đã kiểm tra | Đơn giản, dễ kiểm toán; đổi lại chi phí lookup lặp lại |
-| Dùng `MethodHandle` quyền private rồi công khai handle ra ngoài | Cũng là phát tán khả năng gọi; không phải giải pháp an toàn tự động |
+| Global cache mapping names → accessible-enabled `Method` accessible by any component | **Avoid**: distributes references granted private capability |
+| Caching metadata of public methods for public operations | More suitable when genuinely needed and classloaders are managed |
+| Caching private `Method` inside a trusted helper; exposing only a narrow business API | Acceptable when performance is truly needed, provided callers, concurrency, and cache lifecycle are controlled |
+| Looking up the private method locally each time and returning checked results | Simple and easy to audit; trades off repeated lookup cost |
+| Using a private-privileged `MethodHandle` and exposing the handle externally | Also distributes invocation capability; not automatically safe |
 
-Nếu phương thức thực sự cần được cache, phạm vi nên là **component sở hữu công việc**, ví dụ:
+If a method truly must be cached, the scope should be the **component owning the work**, for instance:
 
-- Đặt cache ở class/service nội bộ, không có getter trả `Method` hoặc `Lookup`.
-- Chỉ trả về giá trị đã giới hạn qua method nghiệp vụ như `boolean matches(...)` hoặc DTO không chứa nội bộ nhạy cảm.
-- Không dùng khóa chuỗi tên phương thức một cách mơ hồ; xem xét declaring `Class<?>`, tên, danh sách tham số, static/instance và module/loader khi cần.
-- Lựa chọn chính sách eviction/lifecycle phù hợp vì cache giữ `Method`/`Class` lâu có thể giữ tham chiếu đến **class loader của plugin**, làm cản trở việc dỡ phiên bản plugin.
-- Dùng cơ chế cache thread-safe (`ConcurrentHashMap`, `ClassValue` khi phù hợp) để tránh thay đổi cấu trúc cache đồng thời; **thread-safe map không biến trạng thái accessible của phần tử thành thread-safe**.
+- Keep the cache inside an internal class/service, with no getter returning `Method` or `Lookup`.
+- Return only bounded values through business methods like `boolean matches(...)` or DTOs without sensitive internals.
+- Do not use ambiguous method-name string keys; include declaring `Class<?>`, name, parameter list, static/instance, and module/loader where needed.
+- Choose an appropriate eviction/lifecycle policy because caches retaining `Method`/`Class` long-term can retain references to a **plugin's classloader**, preventing plugin versions from unloading.
+- Use thread-safe cache structures (`ConcurrentHashMap`, `ClassValue` where appropriate) to avoid concurrent map corruption; **a thread-safe map does not make an element's accessible state thread-safe**.
 
-Không nên quyết định cache private reflection chỉ vì “reflection chậm”. Benchmark đúng workload trước; chi phí lookup, invoke, boxing và tạo adapter phụ thuộc JDK, kiểu gọi và tần suất. Nếu logic có thể dùng lời gọi Java trực tiếp, đó thường là đường đơn giản và dễ bảo trì nhất.
+Do not decide to cache private reflection just because “reflection is slow.” Benchmark the real workload first; lookup, invoke, boxing, and adapter costs depend on the JDK, call shape, and frequency. If the logic can use direct Java calls, that is usually the simplest and most maintainable path.
 
-### Không bật/tắt quyền trên một đối tượng chia sẻ giữa nhiều thread
+### Do Not Toggle Access on an Object Shared Across Threads
 
-Giả sử `Method cached` đã được chia sẻ, một thread làm:
+Suppose `Method cached` is already shared, and one thread executes:
 
 ```java
 // Thread A — anti-pattern:
@@ -173,16 +173,16 @@ try {
 }
 ```
 
-Trong lúc đó thread B cũng sử dụng `cached`. Vì flag là trạng thái trên đối tượng reflection, thread B có thể quan sát nó ở những thời điểm không dự kiến. `finally` chỉ bảo đảm thread A **cố đóng sau thao tác**, không tạo một đoạn truy cập nguyên tử cho mọi thread.
+Meanwhile, Thread B also uses `cached`. Because the flag is state on the reflection object, Thread B can observe it at unexpected moments. `finally` only ensures Thread A **attempts to close it after the operation**, without creating an atomic access section across threads.
 
-Nếu phải dùng private access trong code đồng thời, hãy tránh chia sẻ đối tượng đang bị toggle, cân nhắc tạo đối tượng cục bộ hoặc thiết kế một component sở hữu quyền ổn định và không để capability thoát ra; kiểm tra an toàn luồng và các invariant nghiệp vụ riêng. Khóa đồng bộ chỉ có ý nghĩa nếu **mọi caller** truy cập cùng trạng thái đều dùng đúng khóa, điều mà một reference đã rò rỉ không bảo đảm.
+If private access must be used in concurrent code, avoid sharing an object whose flag is toggled; consider creating local objects or designing a component that owns stable privileges without letting capabilities escape, and verify thread safety and business invariants separately. Synchronization locks only work if **every caller** accessing the same state uses the exact same lock—something a leaked reference cannot guarantee.
 
-## 5. `MethodHandles.Lookup` cũng là một capability
+## 5. `MethodHandles.Lookup` Is Also a Capability
 
-`MethodHandles.Lookup` đại diện ngữ cảnh truy cập của code tạo ra nó. Đôi khi framework cần `MethodHandles.privateLookupIn(Target.class, callerLookup)` để tạo lookup có quyền cần thiết cho target, nếu điều kiện module/readability/openness được đáp ứng. Sau đó:
+`MethodHandles.Lookup` represents the access context of the code that created it. Sometimes a framework needs `MethodHandles.privateLookupIn(Target.class, callerLookup)` to create a lookup with required access to the target, if module/readability/openness conditions are satisfied. Then:
 
 ```java
-// Đoạn minh họa, cần import và điều kiện quyền/module phù hợp:
+// Illustrative snippet, requires imports and appropriate permission/module conditions:
 MethodHandles.Lookup privateLookup =
         MethodHandles.privateLookupIn(Target.class,
                 MethodHandles.lookup());
@@ -192,82 +192,82 @@ MethodHandle privateHandle = privateLookup.findVirtual(
         MethodType.methodType(void.class));
 ```
 
-**Không tự biến thành an toàn chỉ vì đã chuyển từ `Method` sang `MethodHandle`**:
+**Switching from `Method` to `MethodHandle` does not automatically make it safe**:
 
-- `Lookup` có quyền private nên chỉ đưa vào những đoạn code được tin cậy và cần quyền đó.
-- `MethodHandle` trỏ tới private operation cũng trao khả năng gọi; thành phần nhận handle có thể gọi mà không phải tra cứu quyền lại như lúc tạo.
-- Không cache private lookup/handle ở registry dùng chung cho những plugin không tin cậy.
-- Ưu tiên đóng gói trong helper, chỉ xuất các thao tác đã được kiểm tra và đầu ra được giới hạn.
+- A `Lookup` with private privileges should only be passed to trusted code that needs those privileges.
+- A `MethodHandle` pointing to a private operation also confers invocation capability; any component receiving the handle can invoke it without re-checking permissions as at creation time.
+- Do not cache private lookups/handles in registries shared with untrusted plugins.
+- Prefer encapsulating inside a helper that exposes only validated operations and restricted outputs.
 
-Java modules vẫn có quyền quyết định package nào mở cho deep reflection. Không dùng `--add-opens` toàn cục chỉ để làm tắt ngoại lệ; thay đổi mở module có thể cấp quyền rộng cho mã khác trong module nhận quyền.
+Java modules still control which packages are opened for deep reflection. Do not add global `--add-opens` flags merely to silence exceptions; opening a module can grant broad access to other code in the receiving module.
 
-## 6. Thiết kế API thay thế để tránh phải phân phối private access
+## 6. Alternative API Designs to Avoid Distributing Private Access
 
-Một số lựa chọn thường tốt hơn:
+Several alternatives are usually better:
 
-**API công khai tối thiểu.** Nếu các bên chỉ cần câu trả lời “mã có hợp lệ không?”, tạo `boolean isValidCode(String input)` thay vì trả `Field` chứa mã.
+**Minimal public API.** If callers only need the answer to “is the code valid?”, provide `boolean isValidCode(String input)` instead of returning the `Field` holding the code.
 
-**Interface dành cho tích hợp.** Plugin cung cấp interface public cho chức năng được phép dùng, thay vì cho host đi tìm member private theo chuỗi tên. Điều này có hợp đồng biên dịch và ít phụ thuộc cấu trúc nội bộ.
+**Integration interfaces.** Have plugins implement public interfaces for permitted functionality, rather than letting the host look up private members by string name. This gives compile-time contracts and reduces coupling to internal structure.
 
-**Adapter hoặc service sở hữu quyền.** Nếu framework buộc phải reflection vào private để tương thích legacy, đặt quyền ở một adapter nội bộ; caller truyền yêu cầu đã kiểm tra và chỉ nhận dữ liệu cần thiết.
+**Privileged adapter or service.** If a framework must reflect into private members for legacy compatibility, isolate the privilege inside an internal adapter; callers pass validated requests and receive only the necessary data.
 
-**Thay thế cho public API và cache metadata.** Đối với phương thức public ổn định, nếu cần, giữ metadata trong cache riêng mà không bật accessible. Vẫn nên xem xét loader lifecycle.
+**Alternatives using public APIs and metadata caching.** For stable public methods, keep metadata in a private cache without enabling `setAccessible` when needed. Still account for loader lifecycle.
 
-**Module openness ở mức tối thiểu.** Khi plugin là named module, chỉ mở package cần thiết tới module chẩn đoán cụ thể (`opens package.to.inspect to module.diagnostics;`) thay vì `open module` hoặc `--add-opens ...=ALL-UNNAMED` trên toàn bộ ứng dụng. “Mở package” là quyền **ở cấp package/module**, không giới hạn riêng một hàm; vì thế càng cần kiểm soát API component nhận quyền.
+**Minimal module openness.** When a plugin is a named module, open only the required package to the specific diagnostics module (`opens package.to.inspect to module.diagnostics;`) rather than `open module` or `--add-opens ...=ALL-UNNAMED` across the whole application. “Opening a package” is a **package/module-level** permission, not scoped to a single method; that makes controlling the API of the receiving component even more important.
 
-## 7. Kiểm tra và xử lý ngoại lệ
+## 7. Testing and Exception Handling
 
-Các vấn đề phổ biến khi xây capability nội bộ:
+Common issues when building internal capabilities:
 
-| Tình huống | Nguyên nhân/cách xử lý |
+| Scenario | Cause / How to Handle |
 | --- | --- |
-| `getDeclaredMethod` ném `NoSuchMethodException` | Kiểm tra đúng tên và danh sách kiểu tham số (primitive khác wrapper), overload và bản class đang nạp |
-| `trySetAccessible()` trả `false` | JPMS hoặc quy tắc truy cập không cho phép; từ chối hành động và sửa cấu hình module theo quyền cần thiết |
-| `setAccessible(true)` ném `InaccessibleObjectException` | Đích không mở package phù hợp; không retry mù quáng hoặc mở cả module |
-| `Method.invoke` ném `IllegalAccessException` | Access check còn hiệu lực hoặc context không đủ quyền; không giả định mở quyền đã thành công |
-| `InvocationTargetException` | Mã đích thực sự ném ngoại lệ; xem `getCause()` để chẩn đoán, không đổ lỗi cho accessibility |
-| `IllegalArgumentException` khi invoke | Receiver hoặc số/kiểu đối số sai; mở quyền không khắc phục |
-| Sau khi unload plugin, class loader vẫn còn tham chiếu | Kiểm tra cache chứa `Class`, `Method`, `Lookup`, handle hay lambda liên quan plugin |
-| Test chạy được trên class path nhưng lỗi trên module path | Kiểm tra `opens`, `exports`, module caller/target và class loader |
+| `getDeclaredMethod` throws `NoSuchMethodException` | Verify exact name and parameter type list (primitives vs. wrappers), overloads, and the loaded class version |
+| `trySetAccessible()` returns `false` | JPMS or access rules forbid it; reject the action and fix module configuration according to required privileges |
+| `setAccessible(true)` throws `InaccessibleObjectException` | Target does not open the required package; do not retry blindly or open the entire module |
+| `Method.invoke` throws `IllegalAccessException` | Access checks still apply or context lacks permission; do not assume access opening succeeded |
+| `InvocationTargetException` | Target code actually threw an exception; inspect `getCause()` to diagnose rather than blaming accessibility |
+| `IllegalArgumentException` on invoke | Wrong receiver or argument count/types; opening access will not fix this |
+| Classloader still retained after plugin unload | Check caches holding plugin-related `Class`, `Method`, `Lookup`, handles, or lambdas |
+| Tests pass on class path but fail on module path | Check `opens`, `exports`, caller/target modules, and classloaders |
 
-Không ghi secret, token hay toàn bộ đối số private vào log khi reflection thất bại. Chỉ ghi đủ loại exception, member signature, defining class, module/loader và bước thất bại theo quy tắc bảo vệ dữ liệu của ứng dụng.
+Never log secrets, tokens, or full private arguments when reflection fails. Log only the exception type, member signature, declaring class, module/loader, and failing step according to your application's data-protection rules.
 
-## 8. Checklist review dành cho cache reflection
+## 8. Review Checklist for Reflection Caches
 
-Trước khi cho một cache/reflection helper vào production, kiểm tra:
+Before shipping a reflection cache/helper to production, verify:
 
-1. Thành viên private có thật sự cần truy cập không? Có API public/package-private rõ ràng hơn không?
-2. Caller nào được gọi helper? Có kiểm tra điều kiện nghiệp vụ trước khi mở quyền?
-3. Có đối tượng `Method`/`Field`, `Lookup` hoặc `MethodHandle` nhạy cảm nào thoát ra qua getter, callback, map, event, log hay object được trả về không?
-4. Cache nằm đúng nơi sở hữu quyền, hay đang được chia sẻ cho toàn ứng dụng/plugin?
-5. Nếu một đối tượng accessible có thể dùng đồng thời, code có dựa vào thao tác bật/tắt flag dễ tranh chấp không?
-6. Cache có vòng đời phù hợp với class loader/redeploy/hot reload không?
-7. Quyền module có thật sự chỉ mở những package/module cần thiết không?
-8. Có test cả trường hợp được phép và từ chối truy cập, sai receiver/đối số, và ngoại lệ từ target không?
-9. Đã đo hiệu năng trước khi đánh đổi phạm vi cache lấy tốc độ chưa?
+1. Is accessing the private member truly necessary? Is there a cleaner public/package-private API?
+2. Which callers may invoke the helper? Are business conditions checked before enabling access?
+3. Can any sensitive `Method`/`Field`, `Lookup`, or `MethodHandle` escape through getters, callbacks, maps, events, logs, or return objects?
+4. Is the cache placed in the component that owns the privilege, or shared across the entire application/plugins?
+5. If an accessible object may be used concurrently, does the code rely on contentious flag toggling?
+6. Does the cache's lifecycle align with classloader/redeploy/hot-reload lifecycles?
+7. Are module permissions truly opening only the necessary packages/modules?
+8. Are both allowed and denied access cases, wrong receiver/arguments, and target exceptions tested?
+9. Was performance measured before trading cache scope for speed?
 
-## 9. Câu hỏi tự kiểm tra
+## 9. Self-Check Questions
 
-**Câu 1.** Nếu một method private được bật `trySetAccessible()`, rồi `Method` đó đưa vào cache công khai, rủi ro chính là gì?
+**Question 1.** If `trySetAccessible()` is enabled on a private method, and that `Method` is placed into a public cache, what is the primary risk?
 
-**Đáp án:** Các thành phần lấy được **reference tới chính `Method` đã bật quyền** có thể sử dụng capability truy cập private đó; biện pháp là giữ nó trong component đáng tin cậy và chỉ xuất API nghiệp vụ hẹp.
+**Answer:** Components that obtain a **reference to that access-enabled `Method`** can exercise that private-access capability; the remedy is keeping it inside a trusted component and exposing only a narrow business API.
 
-**Câu 2.** Gọi `setAccessible(false)` trên Method cục bộ có giúp thu hồi mọi handle đã phát tán không?
+**Question 2.** Does calling `setAccessible(false)` on a local `Method` revoke all handles already distributed?
 
-**Đáp án:** Không. Nó chỉ chỉnh flag trên đối tượng reflection tương ứng, không vô hiệu hóa các capability độc lập khác hoặc xóa mọi reference đã trao.
+**Answer:** No. It only changes the flag on that specific reflection object; it does not disable other independent capabilities or erase references already handed out.
 
-**Câu 3.** Vì sao dùng `ConcurrentHashMap` không giải quyết toàn bộ rủi ro?
+**Question 3.** Why does using `ConcurrentHashMap` not solve all the risks?
 
-**Đáp án:** Map thread-safe chỉ bảo vệ thao tác map; giá trị `Method` bên trong vẫn có accessible flag riêng và có thể bị thay đổi đồng thời.
+**Answer:** A thread-safe map only protects map operations; the `Method` values inside still have their own accessible flag that can be mutated concurrently.
 
-**Câu 4.** `MethodHandles.privateLookupIn` có thay được quản lý phạm vi quyền không?
+**Question 4.** Can `MethodHandles.privateLookupIn` replace access-scope management?
 
-**Đáp án:** Không. `Lookup` và các private handle được tạo ra cũng mang capability; chỉ trao trong phạm vi cần thiết.
+**Answer:** No. The resulting `Lookup` and private handles also carry capability; only hand them out within the necessary scope.
 
-**Câu 5.** Có nên bật `--add-opens ...=ALL-UNNAMED` mỗi khi reflection bị từ chối?
+**Question 5.** Should you add `--add-opens ...=ALL-UNNAMED` whenever reflection is denied?
 
-**Đáp án:** Không. Trước hết phải xác định ai cần truy cập, package nào cần mở và liệu API public/adapter có giải quyết được không.
+**Answer:** No. First identify who needs access, which package must be opened, and whether a public API or adapter can solve the problem.
 
-**Ghi nhớ:** **Cache metadata để tiết kiệm công tra cứu, nhưng giữ capability truy cập private ở đúng nơi sở hữu và đúng thời hạn.** Với reflection, quyền nằm cả ở **cách tạo đối tượng**, **trạng thái accessible** và **reference bạn trao cho mã khác**; tối ưu hiệu năng không được làm mở rộng phạm vi truy cập ngoài nhu cầu.
+**Takeaway:** **Cache metadata to save lookup cost, but keep private-access capabilities with the right owner and for the right duration.** In reflection, privilege resides in **how objects are created**, **their accessible state**, and **references you hand to other code**; performance optimization must never widen access scope beyond what is needed.
 
-Tham khảo: [`AccessibleObject` Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html), [`Method`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html), [`MethodHandles.Lookup`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodHandles.Lookup.html), [`Module`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Module.html).
+References: [`AccessibleObject` Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html), [`Method`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html), [`MethodHandles.Lookup`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodHandles.Lookup.html), [`Module`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Module.html).

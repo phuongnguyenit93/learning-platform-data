@@ -1,14 +1,14 @@
-# module-info.java và vai trò của module descriptor
+# module-info.java and the Role of the Module Descriptor
 
-Java Platform Module System (JPMS) bổ sung một lớp cấu trúc cho ứng dụng Java: thay vì chỉ đưa các thư mục và JAR vào classpath, ta có thể khai báo module nào tồn tại, module đó cần những module nào và package nào được phép sử dụng từ bên ngoài. Điểm khai báo ở mã nguồn của một named module là tệp `module-info.java`.
+The Java Platform Module System (JPMS) adds a structural layer to Java applications: instead of merely placing directories and JARs on the classpath, you can declare which modules exist, which other modules a module requires, and which packages are allowed to be used from the outside. The source-level declaration point of a named module is the `module-info.java` file.
 
-Tệp này được biên dịch thành `module-info.class`, chứa metadata được gọi là **module descriptor**. Descriptor không chứa logic nghiệp vụ. Nó mô tả hợp đồng của module với hệ thống: danh tính, dependency, API công khai, quyền reflection và các dịch vụ mà module sử dụng hoặc cung cấp.
+This file is compiled into `module-info.class`, which contains metadata called the **module descriptor**. The descriptor does not contain business logic. It describes the module's contract with the system: identity, dependencies, public API, reflection permissions, and the services that the module uses or provides.
 
-## 1. module-info.java là gì?
+## 1. What Is module-info.java?
 
-`module-info.java` là một compilation unit đặc biệt của Java. Nó chứa một khai báo module ở cấp cao nhất, không khai báo một class thông thường và không nằm trong package của các lớp nghiệp vụ.
+`module-info.java` is a special Java compilation unit. It contains a top-level module declaration, does not declare a regular class, and does not reside inside the packages of business classes.
 
-Ví dụ một module có tên `com.example.catalog`:
+Example of a module named `com.example.catalog`:
 
 ```text
 catalog/
@@ -24,16 +24,16 @@ catalog/
                         └── ProductRepository.java
 ```
 
-Tệp descriptor nằm ở gốc source root của module. Các lớp còn lại vẫn được tổ chức trong package Java bình thường.
+The descriptor file sits at the module's source root. The remaining classes are still organized into regular Java packages.
 
-Một module có thể bắt đầu bằng descriptor rỗng:
+A module can start with an empty descriptor:
 
 ```java
 module com.example.catalog {
 }
 ```
 
-Khi cần sử dụng module khác hoặc công khai package, ta thêm các chỉ thị:
+When you need to use other modules or expose packages, you add directives:
 
 ```java
 module com.example.catalog {
@@ -43,43 +43,43 @@ module com.example.catalog {
 }
 ```
 
-Trong ví dụ, module có tên `com.example.catalog`, cần đọc module `java.sql` và công khai package `com.example.catalog.api`.
+In this example, the module is named `com.example.catalog`, needs to read the `java.sql` module, and exposes the `com.example.catalog.api` package.
 
-Tên module thường theo quy ước tên miền đảo ngược, chẳng hạn `com.example.catalog`, để giảm khả năng xung đột tên. Tên module và tên package là hai khái niệm riêng: một module có thể chứa nhiều package.
+Module names usually follow the reverse domain name convention, such as `com.example.catalog`, to reduce the chance of name collisions. Module names and package names are two separate concepts: a single module can contain multiple packages.
 
-## 2. Từ module-info.java đến module descriptor
+## 2. From module-info.java to Module Descriptor
 
-Khi biên dịch một module, `javac` xử lý `module-info.java` cùng các tệp mã nguồn của module. Tệp descriptor ở dạng mã nguồn được chuyển thành `module-info.class`.
+When compiling a module, `javac` processes `module-info.java` together with the module's source files. The source-form descriptor file is transformed into `module-info.class`.
 
 ```text
-module-info.java + các tệp .java
+module-info.java + .java files
              |
              | javac
              v
        module-info.class
-       các tệp .class
+       .class files
              |
-             | đóng gói JAR
+             | JAR packaging
              v
        modular JAR
              |
              | module path
              v
-       module resolution và module graph
+       module resolution and module graph
 ```
 
-Cần phân biệt hai thuật ngữ:
+Two terms should be distinguished:
 
-- **`module-info.java`** là tệp nguồn mà lập trình viên viết.
-- **Module descriptor** là metadata mô tả module; trong artifact đã biên dịch, metadata này được lưu trong `module-info.class`.
+- **`module-info.java`** is the source file written by the developer.
+- **Module descriptor** is the metadata describing the module; in compiled artifacts, this metadata is stored in `module-info.class`.
 
-Một modular JAR thường đặt `module-info.class` ở gốc JAR, bên cạnh các package và lớp đã biên dịch. Khi JAR được đặt trên module path, công cụ Java đọc descriptor để nhận diện module và các chỉ thị của nó.
+A modular JAR typically places `module-info.class` at the root of the JAR, alongside the compiled packages and classes. When the JAR is placed on the module path, Java tools read the descriptor to recognize the module and its directives.
 
-Descriptor không chứa mã xử lý nghiệp vụ và cũng không phải toàn bộ module graph của ứng dụng. Mỗi descriptor mô tả module mà nó thuộc về. Khi chạy, Java kết hợp descriptor của các module có liên quan để phân giải module graph cho môi trường đó.
+The descriptor does not contain business logic code, nor is it the entire module graph of the application. Each descriptor describes the module it belongs to. At runtime, Java combines the descriptors of the relevant modules to resolve the module graph for that environment.
 
-## 3. Cú pháp tổng quát
+## 3. General Syntax
 
-Một module declaration có dạng:
+A module declaration has the form:
 
 ```java
 [open] module module.name {
@@ -92,20 +92,20 @@ Một module declaration có dạng:
 }
 ```
 
-Các thành phần:
+Components:
 
-- `module` bắt đầu khai báo module.
-- `module.name` là tên module.
-- Từ khóa `open` là tùy chọn, dùng để mở tất cả package cho deep reflection.
-- Các chỉ thị trong thân khai báo mô tả dependency, package, reflection và dịch vụ.
+- `module` begins the module declaration.
+- `module.name` is the module name.
+- The `open` keyword is optional, used to open all packages for deep reflection.
+- Directives inside the declaration body describe dependencies, packages, reflection, and services.
 
-Một descriptor có thể không có chỉ thị nào. Khi module cần thêm khả năng, ta chỉ khai báo những quan hệ thực sự cần thiết. Các chỉ thị có thể được sắp xếp theo nhóm để người đọc dễ nhận ra dependency và API công khai.
+A descriptor may have no directives at all. When a module needs additional capabilities, you declare only the relationships that are genuinely required. Directives can be grouped so readers can easily spot dependencies and the public API.
 
-## 4. Các chỉ thị trong module descriptor
+## 4. Directives in a Module Descriptor
 
-### 4.1. requires: khai báo dependency
+### 4.1. requires: Declaring Dependencies
 
-`requires` khai báo module hiện tại cần đọc một module khác:
+`requires` declares that the current module needs to read another module:
 
 ```java
 module com.example.orders {
@@ -114,11 +114,11 @@ module com.example.orders {
 }
 ```
 
-Nếu mã nguồn của `com.example.orders` sử dụng các kiểu được công khai bởi `com.example.catalog`, module orders cần khai báo quan hệ này. Java dùng thông tin đó khi biên dịch và phân giải module graph.
+If the source code of `com.example.orders` uses types exposed by `com.example.catalog`, the orders module must declare this relationship. Java uses this information during compilation and when resolving the module graph.
 
-Mọi named module đều có quan hệ đọc tới `java.base` một cách ngầm định, vì vậy không cần viết `requires java.base;`. Những module JDK khác như `java.sql`, `java.logging` hoặc `java.xml` cần được khai báo khi module sử dụng chúng.
+Every named module implicitly has a readability relationship to `java.base`, so you do not need to write `requires java.base;`. Other JDK modules such as `java.sql`, `java.logging`, or `java.xml` must be declared when the module uses them.
 
-Có hai modifier thường gặp:
+There are two common modifiers:
 
 **`requires transitive`**
 
@@ -129,9 +129,9 @@ module com.example.catalog {
 }
 ```
 
-`transitive` công bố dependency cho các module đọc module hiện tại. Nếu API public của catalog sử dụng kiểu thuộc `com.example.money`, module sử dụng catalog có thể cần đọc cả money để biên dịch và sử dụng API đó. Khi đó, `requires transitive` thể hiện rằng dependency này là một phần của hợp đồng API.
+`transitive` exposes the dependency to modules that read the current module. If catalog's public API uses types belonging to `com.example.money`, a module using catalog may also need to read money to compile and use that API. In that case, `requires transitive` expresses that this dependency is part of the API contract.
 
-Không nên dùng `transitive` chỉ để tiện truyền dependency. Nó ảnh hưởng đến khả năng đọc của các module phụ thuộc vào module hiện tại.
+You should not use `transitive` merely as a convenience to pass dependencies along. It affects the readability of modules that depend on the current module.
 
 **`requires static`**
 
@@ -141,19 +141,19 @@ module com.example.reporting {
 }
 ```
 
-`static` biểu thị dependency cần có khi biên dịch nhưng không bắt buộc phải có ở runtime chỉ vì descriptor khai báo nó. Modifier này thường phù hợp với một số thư viện annotation hoặc dependency chỉ phục vụ compile time. Nếu mã thực tế cần lớp đó khi chạy, ứng dụng vẫn phải cung cấp dependency runtime tương ứng.
+`static` indicates a dependency that is required at compile time but not mandatory at runtime solely because the descriptor declares it. This modifier is typically suitable for certain annotation libraries or compile-time-only dependencies. If the actual code needs that class when running, the application must still provide the corresponding runtime dependency.
 
-Có thể kết hợp hai modifier:
+The two modifiers can be combined:
 
 ```java
 requires static transitive com.example.annotations;
 ```
 
-Chỉ dùng tổ hợp này khi cả ngữ nghĩa compile-time và dependency bắc cầu đều phù hợp với hợp đồng module.
+Use this combination only when both compile-time semantics and transitive dependency match the module contract.
 
-### 4.2. exports: công khai package
+### 4.2. exports: Exposing Packages
 
-`exports` cho phép module khác truy cập các kiểu public trong package được công khai:
+`exports` allows other modules to access public types in the exposed package:
 
 ```java
 module com.example.catalog {
@@ -161,7 +161,7 @@ module com.example.catalog {
 }
 ```
 
-Giả sử module có hai package:
+Suppose the module has two packages:
 
 ```text
 com.example.catalog
@@ -169,9 +169,9 @@ com.example.catalog
 └── internal
 ```
 
-Trong descriptor trên, `com.example.catalog.api` được công khai. Package `com.example.catalog.internal` không tự động trở thành API chỉ vì nó chứa các lớp có modifier `public`.
+In the descriptor above, `com.example.catalog.api` is exposed. The `com.example.catalog.internal` package does not automatically become API just because it contains classes with the `public` modifier.
 
-Có thể giới hạn việc export cho một số module cụ thể bằng qualified exports:
+You can restrict exporting to specific modules using qualified exports:
 
 ```java
 module com.example.catalog {
@@ -181,13 +181,13 @@ module com.example.catalog {
 }
 ```
 
-Trong ví dụ, package integration chỉ được export cho hai module được nêu tên. Cách này hữu ích khi một package chỉ phục vụ một số thành phần tích hợp đã xác định.
+In this example, the integration package is exported only to the two named modules. This approach is useful when a package serves only certain identified integration components.
 
-Export không bỏ qua access modifier của Java. Lớp hoặc thành viên vẫn phải đáp ứng các quy tắc truy cập thông thường như `public`, `protected`, package-private và `private`. `exports` thiết lập ranh giới ở cấp package/module; nó không biến thành viên private thành public.
+Exporting does not bypass Java's access modifiers. Classes or members must still satisfy normal access rules such as `public`, `protected`, package-private, and `private`. `exports` establishes boundaries at the package/module level; it does not turn private members into public ones.
 
-### 4.3. opens: cho phép deep reflection
+### 4.3. opens: Allowing Deep Reflection
 
-Một số framework cần reflection sâu để truy cập thành viên không public, ví dụ framework ánh xạ object, dependency injection hoặc serialization. `opens` cho phép hoạt động đó trên package được chỉ định:
+Some frameworks need deep reflection to access non-public members, such as object-mapping, dependency injection, or serialization frameworks. `opens` permits that operation on the specified package:
 
 ```java
 module com.example.catalog {
@@ -198,26 +198,26 @@ module com.example.catalog {
 }
 ```
 
-Ở đây, package model được mở cho module `com.example.json`. Phạm vi mở có thể giới hạn theo module đích, giúp framework được cấp quyền cần thiết.
+Here, the model package is opened to the `com.example.json` module. The open scope can be restricted by target module, giving the framework the permissions it needs.
 
-Cần phân biệt:
+A distinction should be made:
 
-- `exports` công khai API Java thông thường.
-- `opens` cho phép deep reflection tại runtime.
-- Một package được export không mặc nhiên được mở cho reflection sâu.
-- Một package được mở không tự động trở thành API công khai cho mã Java thông thường.
+- `exports` exposes regular Java API.
+- `opens` allows deep reflection at runtime.
+- An exported package is not implicitly opened for deep reflection.
+- An opened package does not automatically become public API for regular Java code.
 
-Nếu muốn mở package cho mọi module, có thể dùng:
+If you want to open a package to all modules, you can use:
 
 ```java
 opens com.example.catalog.model;
 ```
 
-Nên giới hạn phạm vi mở vào package và framework thực sự cần sử dụng.
+You should limit the open scope to the packages and frameworks that genuinely need it.
 
-### 4.4. open module: mở mọi package cho reflection
+### 4.4. open module: Opening All Packages for Reflection
 
-Có thể khai báo toàn module là open:
+You can declare the entire module as open:
 
 ```java
 open module com.example.legacy {
@@ -226,15 +226,15 @@ open module com.example.legacy {
 }
 ```
 
-Với `open module`, tất cả package của module được mở cho deep reflection tại runtime. Tuy nhiên, các package vẫn cần `exports` nếu muốn công khai API Java thông thường.
+With `open module`, all packages of the module are opened for deep reflection at runtime. However, packages still need `exports` if you want to expose regular Java API.
 
-Một open module không khai báo các chỉ thị `opens` riêng lẻ bên trong. Chỉ nên dùng cách này khi framework thực sự cần reflection rộng; nếu chỉ một vài package cần thiết, qualified `opens` giữ ranh giới rõ hơn.
+An open module does not declare individual `opens` directives inside. You should use this approach only when frameworks truly need broad reflection; if only a few packages need it, qualified `opens` maintains clearer boundaries.
 
-### 4.5. uses và provides: khai báo dịch vụ
+### 4.5. uses and provides: Declaring Services
 
-JPMS tích hợp mô hình dịch vụ với `ServiceLoader`.
+JPMS integrates the service model with `ServiceLoader`.
 
-Module sử dụng service khai báo `uses`:
+A module that uses a service declares `uses`:
 
 ```java
 module com.example.application {
@@ -244,7 +244,7 @@ module com.example.application {
 }
 ```
 
-Module cung cấp implementation khai báo `provides ... with ...`:
+A module that supplies an implementation declares `provides ... with ...`:
 
 ```java
 module com.example.catalog.provider {
@@ -255,7 +255,7 @@ module com.example.catalog.provider {
 }
 ```
 
-Ứng dụng có thể tìm provider bằng API `ServiceLoader`:
+The application can look up providers using the `ServiceLoader` API:
 
 ```java
 ServiceLoader<PriceProvider> providers =
@@ -266,41 +266,41 @@ for (PriceProvider provider : providers) {
 }
 ```
 
-Service interface thường nằm trong package được export để module tiêu thụ có thể tham chiếu. Lớp triển khai provider không cần được export chỉ để ServiceLoader phát hiện provider đã khai báo trong descriptor.
+The service interface usually resides in an exported package so consuming modules can reference it. The provider implementation class does not need to be exported solely for ServiceLoader to discover the provider declared in the descriptor.
 
-Cơ chế này cho phép module sử dụng phụ thuộc vào service interface thay vì gắn chặt vào một lớp triển khai cụ thể.
+This mechanism allows a consuming module to depend on a service interface rather than being tightly coupled to a specific implementation class.
 
-## 5. Module descriptor tham gia vào những giai đoạn nào?
+## 5. Which Stages Does the Module Descriptor Participate In?
 
-### 5.1. Nhận diện module
+### 5.1. Module Identification
 
-Tên trong descriptor giúp công cụ Java nhận diện explicit named module trên module path. Tên module là danh tính được dùng trong các chỉ thị `requires` và khi phân giải module graph.
+The name in the descriptor helps Java tools identify an explicit named module on the module path. The module name is the identity used in `requires` directives and when resolving the module graph.
 
-Một JAR chưa có `module-info.class` vẫn có thể được dùng như automatic module khi đặt trên module path. Tên của nó có thể đến từ thuộc tính `Automatic-Module-Name` trong manifest hoặc được suy ra từ tên JAR. Automatic module hỗ trợ chuyển đổi thư viện cũ, nhưng không cung cấp descriptor tường minh với ranh giới API chi tiết như explicit module.
+A JAR without `module-info.class` can still be used as an automatic module when placed on the module path. Its name can come from the `Automatic-Module-Name` manifest attribute or be derived from the JAR filename. Automatic modules assist with migrating legacy libraries, but do not provide an explicit descriptor with fine-grained API boundaries like an explicit module.
 
-### 5.2. Phân giải module graph
+### 5.2. Resolving the Module Graph
 
-Các chỉ thị `requires` tạo quan hệ dependency. Khi khởi chạy ứng dụng modular, Java bắt đầu từ các root module và phân giải các module cần thiết dựa trên descriptor cùng những module có sẵn trên module path.
+`requires` directives establish dependency relationships. When launching a modular application, Java starts from the root modules and resolves the required modules based on descriptors and the modules available on the module path.
 
-Nếu một dependency bắt buộc không tìm thấy hoặc module graph không thể phân giải hợp lệ, ứng dụng có thể thất bại trước khi logic nghiệp vụ chạy. Nhờ đó, một số lỗi cấu trúc được phát hiện sớm.
+If a required dependency cannot be found or the module graph cannot be validly resolved, the application can fail before business logic runs. As a result, certain structural errors are caught early.
 
-Module descriptor của từng module chỉ mô tả các quan hệ mà module đó khai báo. Module graph hoàn chỉnh là kết quả của quá trình phân giải trong môi trường chạy cụ thể.
+Each module's descriptor describes only the relationships that module declares. The complete module graph is the result of the resolution process in a specific execution environment.
 
-### 5.3. Kiểm soát khả năng đọc và truy cập
+### 5.3. Controlling Readability and Accessibility
 
-`requires` xác định quan hệ đọc giữa các module. `exports` xác định package nào được truy cập như API công khai. `opens` xác định package nào được phép deep reflection.
+`requires` determines readability relationships between modules. `exports` determines which packages are accessible as public API. `opens` determines which packages are allowed for deep reflection.
 
-Khi biên dịch, `javac` có thể báo lỗi nếu mã nguồn sử dụng một module chưa được đọc hoặc truy cập package không được export. Ở runtime, module system tiếp tục áp dụng các quy tắc truy cập tương ứng.
+At compile time, `javac` can report errors if source code uses a module that is not read or accesses a package that is not exported. At runtime, the module system continues to enforce the corresponding access rules.
 
-### 5.4. Công bố dịch vụ
+### 5.4. Publishing Services
 
-`uses` và `provides` mô tả module tiêu thụ và module cung cấp service. Runtime có thể sử dụng metadata này khi tìm implementation thông qua `ServiceLoader`.
+`uses` and `provides` describe service-consuming and service-providing modules. The runtime can use this metadata when locating implementations via `ServiceLoader`.
 
-Nhờ đó, ứng dụng có thể thay đổi provider mà không phải sửa mọi nơi đang sử dụng service interface, miễn là provider mới đáp ứng cùng hợp đồng.
+As a result, an application can swap providers without modifying every call site using the service interface, provided the new provider satisfies the same contract.
 
-### 5.5. Hỗ trợ công cụ Java
+### 5.5. Supporting Java Tools
 
-Các công cụ JDK đọc module descriptor để hiển thị thông tin module, phân tích dependency hoặc tạo runtime image. Một số lệnh hữu ích:
+JDK tools read the module descriptor to display module information, analyze dependencies, or build runtime images. Some useful commands:
 
 ```shell
 jar --describe-module --file libs/catalog.jar
@@ -308,11 +308,11 @@ java --describe-module java.sql
 jdeps --summary libs/catalog.jar
 ```
 
-`jar --describe-module` hiển thị thông tin module của JAR; `java --describe-module` hiển thị thông tin module trong runtime image; `jdeps` hỗ trợ phân tích dependency từ artifact. Các công cụ này giúp kiểm tra metadata và đối chiếu descriptor với cấu trúc mã đã biên dịch.
+`jar --describe-module` displays module information for a JAR; `java --describe-module` displays module information in the runtime image; `jdeps` assists in analyzing dependencies from artifacts. These tools help inspect metadata and cross-check the descriptor against compiled code structure.
 
-## 6. Ví dụ hoàn chỉnh về module descriptor
+## 6. Complete Example of a Module Descriptor
 
-Giả sử module geometry có package API, package nội bộ và một lớp chạy ứng dụng:
+Suppose the geometry module has an API package, an internal package, and a class to run the application:
 
 ```text
 src/
@@ -327,7 +327,7 @@ src/
             └── Main.java
 ```
 
-Tệp `Shape.java`:
+The `Shape.java` file:
 
 ```java
 package com.example.geometry.api;
@@ -337,7 +337,7 @@ public interface Shape {
 }
 ```
 
-Tệp `Circle.java`:
+The `Circle.java` file:
 
 ```java
 package com.example.geometry.internal;
@@ -358,7 +358,7 @@ public final class Circle implements Shape {
 }
 ```
 
-Tệp `Main.java`:
+The `Main.java` file:
 
 ```java
 package com.example.geometry.app;
@@ -381,27 +381,27 @@ module com.example.geometry {
 }
 ```
 
-Module geometry chỉ export package API. Lớp `Main` vẫn có thể dùng `Circle` vì chúng thuộc cùng module. Module bên ngoài chỉ có thể sử dụng các kiểu public trong package API đã export.
+The geometry module exports only the API package. The `Main` class can still use `Circle` because they belong to the same module. External modules can only use public types in the exported API package.
 
-Với cấu trúc source root ở trên, có thể biên dịch bằng:
+With the source root structure above, you can compile with:
 
 ```shell
 javac --module-source-path src -d out -m com.example.geometry
 ```
 
-Sau khi biên dịch, chạy lớp main:
+After compiling, run the main class:
 
 ```shell
 java --module-path out -m com.example.geometry/com.example.geometry.app.Main
 ```
 
-Tùy chọn `-m` chỉ định module và lớp main. Cú pháp `module-info.java` không có chỉ thị khai báo main class; lớp main được chỉ định khi chạy hoặc thông qua metadata đóng gói phù hợp.
+The `-m` option specifies the module and the main class. The `module-info.java` syntax has no directive for declaring a main class; the main class is specified at launch time or via appropriate packaging metadata.
 
-## 7. Descriptor khác gì cấu hình Maven hoặc Gradle?
+## 7. How Does a Descriptor Differ from Maven or Gradle Configuration?
 
-`module-info.java` thuộc mô hình module của nền tảng Java. Nó không thay thế `build.gradle`, `pom.xml` hay cấu hình dependency của công cụ build.
+`module-info.java` belongs to the Java platform's module model. It does not replace `build.gradle`, `pom.xml`, or build tool dependency configurations.
 
-Ví dụ, Gradle khai báo dependency artifact:
+For example, Gradle declares artifact dependencies:
 
 ```groovy
 dependencies {
@@ -410,7 +410,7 @@ dependencies {
 }
 ```
 
-Descriptor khai báo quan hệ module mà mã Java cần đọc:
+The descriptor declares the module relationships that Java code needs to read:
 
 ```java
 module com.example.orders {
@@ -419,67 +419,67 @@ module com.example.orders {
 }
 ```
 
-Hai lớp thông tin này có mục tiêu khác nhau:
+These two layers of information have different goals:
 
-- Gradle/Maven quản lý project, artifact, phiên bản, repository, plugin và task build.
-- JPMS mô tả danh tính module, quan hệ đọc và ranh giới package.
-- Cấu hình build phải cung cấp dependency trên đúng đường dẫn biên dịch và runtime để các module được phân giải.
+- Gradle/Maven manage projects, artifacts, versions, repositories, plugins, and build tasks.
+- JPMS describes module identity, readability relationships, and package boundaries.
+- The build configuration must supply dependencies on the right compile and runtime paths so that modules can be resolved.
 
-Tên project Gradle, tên artifact Maven, tên JAR và tên module JPMS có thể khác nhau. Khi tích hợp thư viện, cần kiểm tra tên module thực tế mà JAR công bố, nhất là với automatic module hoặc thư viện bên thứ ba.
+Gradle project names, Maven artifact names, JAR filenames, and JPMS module names can differ. When integrating a library, you should check the actual module name published by the JAR, especially for automatic modules or third-party libraries.
 
-## 8. Những nhầm lẫn thường gặp
+## 8. Common Misconceptions
 
-**Nhầm module-info.java là một class cấu hình.**
+**Mistaking module-info.java for a configuration class.**
 
-Đây là compilation unit đặc biệt chỉ chứa module declaration. Nó không có method để chạy và không phải nơi đặt logic nghiệp vụ.
+This is a special compilation unit containing only a module declaration. It has no runnable methods and is not a place for business logic.
 
-**Nhầm tên module với tên package.**
+**Confusing module names with package names.**
 
-Module có danh tính riêng và có thể chứa nhiều package. Một package không tự động là một module.
+A module has its own identity and can contain multiple packages. A package is not automatically a module.
 
-**Nhầm exports với opens.**
+**Confusing exports with opens.**
 
-Export công khai API Java thông thường; open cho phép deep reflection. Framework cần reflection không nhất thiết yêu cầu export mọi package.
+Export exposes regular Java API; open allows deep reflection. A framework needing reflection does not necessarily require exporting every package.
 
-**Cho rằng export package làm mọi thành viên trở nên public.**
+**Assuming exporting a package makes all members public.**
 
-Các access modifier của Java vẫn có hiệu lực. Export không làm thành viên private hoặc package-private trở thành public.
+Java's access modifiers remain in effect. Exporting does not turn private or package-private members into public ones.
 
-**Khai báo quá nhiều requires.**
+**Declaring too many requires.**
 
-Mỗi dependency là một quan hệ kiến trúc được công bố. Dependency không cần thiết làm module graph phức tạp và che khuất quan hệ thực sự.
+Each dependency is a published architectural relationship. Unnecessary dependencies complicate the module graph and obscure true relationships.
 
-**Dùng requires transitive cho mọi dependency.**
+**Using requires transitive for every dependency.**
 
-Modifier này ảnh hưởng tới khả năng đọc của module phụ thuộc. Chỉ dùng khi dependency đó là một phần của hợp đồng API.
+This modifier affects the readability of dependent modules. Use it only when the dependency is part of the API contract.
 
-**Mở toàn module để sửa một lỗi reflection.**
+**Opening the entire module to fix a single reflection error.**
 
-Nếu chỉ một package cần framework truy cập sâu, hãy cân nhắc qualified opens để giới hạn quyền.
+If only one package needs deep access by a framework, consider qualified opens to limit permissions.
 
-**Cho rằng descriptor quản lý phiên bản thư viện.**
+**Assuming the descriptor manages library versions.**
 
-JPMS khai báo quan hệ module, không chọn phiên bản artifact. Maven hoặc Gradle vẫn đảm nhiệm việc giải quyết dependency.
+JPMS declares module relationships; it does not select artifact versions. Maven or Gradle still handles dependency resolution.
 
-## 9. Nguyên tắc thiết kế module-info.java
+## 9. Principles for Designing module-info.java
 
-Khi viết descriptor, nên áp dụng các nguyên tắc sau:
+When writing a descriptor, you should apply the following principles:
 
-1. **Đặt tên module ổn định:** dùng quy ước nhất quán và giảm khả năng trùng tên.
-2. **Khai báo dependency thực sự cần:** chỉ thêm `requires` cho module mà mã nguồn hoặc API sử dụng.
-3. **Export API có chủ đích:** công khai những package mà người dùng module cần phụ thuộc.
-4. **Giữ implementation nội bộ:** không export package chỉ để truy cập tiện hơn từ module khác.
-5. **Mở reflection theo phạm vi hẹp:** ưu tiên qualified `opens` khi chỉ framework cụ thể cần quyền này.
-6. **Dùng service cho điểm mở rộng:** cân nhắc `uses` và `provides` khi muốn tách module tiêu thụ khỏi implementation.
-7. **Kiểm soát dependency bắc cầu:** chỉ dùng `requires transitive` khi API thực sự công bố dependency đó.
-8. **Đối chiếu descriptor với build:** đảm bảo module path cung cấp đủ module và tên module khớp với khai báo.
+1. **Choose a stable module name:** use a consistent convention and minimize the chance of name collisions.
+2. **Declare only genuinely needed dependencies:** add `requires` only for modules used by your source code or API.
+3. **Export API intentionally:** expose the packages that consumers of the module need to depend on.
+4. **Keep implementations internal:** do not export packages just for more convenient access from another module.
+5. **Open reflection narrowly:** prefer qualified `opens` when only specific frameworks need this permission.
+6. **Use services for extension points:** consider `uses` and `provides` when you want to decouple consuming modules from implementations.
+7. **Control transitive dependencies:** use `requires transitive` only when the API genuinely exposes that dependency.
+8. **Cross-check the descriptor with the build:** ensure the module path provides all required modules and module names match the declarations.
 
-Một descriptor rõ ràng thường ngắn và thể hiện được dependency cùng API cốt lõi. Nếu phải export gần như mọi package hoặc mở toàn bộ module, nên xem lại ranh giới module và cách tích hợp framework.
+A clear descriptor is usually short and expresses core dependencies and API. If you have to export nearly every package or open the entire module, you should revisit module boundaries and how frameworks are integrated.
 
-## Kết luận
+## Conclusion
 
-`module-info.java` là nơi khai báo module ở mã nguồn. Khi biên dịch, nó tạo ra `module-info.class`, tức module descriptor mà công cụ Java sử dụng. Descriptor xác định tên module, dependency, package được export hoặc mở cho reflection và các quan hệ dịch vụ.
+`module-info.java` is where a module is declared in source code. When compiled, it produces `module-info.class`, the module descriptor used by Java tools. The descriptor specifies the module name, dependencies, packages exported or opened for reflection, and service relationships.
 
-Descriptor cung cấp dữ liệu để trình biên dịch kiểm tra khả năng đọc và truy cập, để JVM phân giải module graph và thực thi ranh giới module, đồng thời hỗ trợ các công cụ phân tích và đóng gói runtime.
+The descriptor supplies data for the compiler to check readability and accessibility, for the JVM to resolve the module graph and enforce module boundaries, and supports runtime analysis and packaging tools.
 
-Hãy xem `module-info.java` như hợp đồng giữa một module với phần còn lại của ứng dụng: module cần gì, cung cấp API nào và package nào được giữ lại bên trong. Một hợp đồng rõ ràng giúp cấu trúc ứng dụng dễ hiểu và giúp nhóm phát triển thay đổi phần triển khai với ít rủi ro hơn.
+Think of `module-info.java` as the contract between a module and the rest of the application: what the module needs, which APIs it provides, and which packages remain internal. A clear contract makes application structure easier to understand and helps development teams change implementation details with lower risk.

@@ -1,43 +1,43 @@
-# Bất biến sao chép qua accessor và hàm khởi tạo chuẩn của `record`
+# Defensive Copy Immutability via Accessors and Canonical Constructors of `record`
 
-## 1. Vấn đề: `record` có trường `final` nhưng thành phần vẫn có thể thay đổi
+## 1. The Problem: A `record` Has `final` Fields, Yet Components Can Still Mutate
 
-`record` (Java 16+, ổn định trong Java 17) là kiểu dữ liệu nhằm mô tả **bộ giá trị được xác định bởi các thành phần (record components)**. Khi khai báo:
+`record` (Java 16+, finalized in Java 17) is a data type designed to describe **a tuple of values defined by its components (record components)**. When declaring:
 
 ```java
 record Report(int id, int[] scores) {}
 ```
 
-trình biên dịch cung cấp các thành phần cơ bản như trường riêng `private final` cho từng component, constructor chuẩn (canonical constructor), accessor `id()`/`scores()`, cùng `equals`, `hashCode` và `toString`. Nhưng `final` **chỉ cố định tham chiếu trong trường**; nó không khiến đối tượng mà trường trỏ tới trở nên bất biến.
+the compiler provides core members such as `private final` fields for each component, a canonical constructor, `id()`/`scores()` accessors, along with `equals`, `hashCode`, and `toString`. However, `final` **only fixes the reference inside the field**; it does not make the object the field points to immutable.
 
-Vì vậy:
+Therefore:
 
-- Một đối tượng gọi `new Report(1, array)` mặc định **giữ chính tham chiếu mảng đầu vào**.
-- Gọi `report.scores()` mặc định **trả lại tham chiếu mảng nội bộ ấy**.
-- Người bên ngoài có thể sửa mảng qua biến đầu vào hoặc qua accessor, khiến trạng thái quan sát được của `report` thay đổi sau khi tạo.
+- An object constructed via `new Report(1, array)` by default **holds the exact input array reference**.
+- Calling `report.scores()` by default **returns that internal array reference**.
+- External code can modify the array via the input variable or via the accessor, causing the observable state of `report` to change after creation.
 
-Đây là **bất biến nông** (shallow immutability): tham chiếu component cố định nhưng nội dung có thể thay đổi. Muốn xây dựng record có **giá trị ổn định**, cần bảo vệ cả hai đường truy cập:
+This is **shallow immutability**: the component reference is fixed, yet its contents can change. To build a record with **stable values**, both access paths must be protected:
 
-1. **Đường vào**: trong constructor chuẩn, lưu một **bản sao phòng vệ** (defensive copy) hoặc một biểu diễn bất biến thay cho dữ liệu mutable do bên ngoài truyền tới.
-2. **Đường ra**: accessor không trả trực tiếp một đối tượng nội bộ mutable; trả bản sao phù hợp hoặc một giao diện bất biến an toàn.
+1. **Incoming path**: in the canonical constructor, store a **defensive copy** or an immutable representation instead of the mutable data passed in from outside.
+2. **Outgoing path**: the accessor must not directly return a mutable internal object; return an appropriate copy or a safe immutable view.
 
-Bài học này tập trung vào hai điểm trên, cách viết đúng trong canonical constructor của Java record, và tác động lên hợp đồng `equals`/`hashCode`.
+This lesson focuses on these two points, how to write them properly in a Java record's canonical constructor, and the impact on the `equals`/`hashCode` contract.
 
-## 2. Canonical constructor và accessor của record hoạt động ra sao?
+## 2. How Do a Record's Canonical Constructor and Accessors Work?
 
-Với:
+Given:
 
 ```java
 record OrderLine(String sku, int[] quantities) {}
 ```
 
-các component được biểu diễn bằng trường riêng, `final`. Canonical constructor nhận tham số đúng thứ tự/kiểu của các component, và accessor công khai `sku()`, `quantities()` có kiểu trả về tương ứng. Trong khai báo cơ bản, việc khởi tạo `quantities` tương đương lưu tham chiếu truyền vào; accessor trả lại tham chiếu đó. Không có cơ chế tự sao chép phần tử mảng.
+the components are represented by private, `final` fields. The canonical constructor receives parameters matching the exact order and types of the components, and the public `sku()`, `quantities()` accessors have corresponding return types. In the basic declaration, initializing `quantities` is equivalent to storing the passed reference; the accessor returns that reference. There is no built-in mechanism to copy array elements automatically.
 
-**Canonical constructor có hai dạng chính** cần phân biệt:
+**The canonical constructor has two main forms** to distinguish:
 
-### Constructor chuẩn đầy đủ (explicit canonical constructor)
+### Explicit Canonical Constructor
 
-Khi cần kiểm soát mọi phép gán, viết đầy đủ danh sách tham số:
+When full control over every assignment is needed, write the complete parameter list:
 
 ```java
 import java.util.Arrays;
@@ -55,11 +55,11 @@ record Scores(int[] values) {
 }
 ```
 
-Đoạn này là một record hợp lệ (đặt trong tệp `Scores.java` cùng import); nó thể hiện cách sao chép hai hướng. Trong constructor chuẩn đầy đủ, phải khởi tạo các trường component theo quy tắc definite assignment, và không bỏ sót component nào. Ở đây `this.values` nhận **mảng mới**, không nhận mảng do caller sở hữu.
+This snippet is a valid record (placed in `Scores.java` with the imports); it demonstrates two-way copying. In an explicit canonical constructor, all component fields must be initialized according to definite assignment rules, without omitting any component. Here `this.values` receives **a new array**, not the array owned by the caller.
 
-### Constructor chuẩn rút gọn (compact canonical constructor)
+### Compact Canonical Constructor
 
-Java cho phép bỏ phần danh sách tham số; tham số component được khai báo ngầm và **các trường component được gán tự động từ giá trị tham số khi phần thân compact constructor kết thúc bình thường**:
+Java allows omitting the parameter list; component parameters are declared implicitly and **the component fields are automatically assigned from the parameter values when the compact constructor body completes normally**:
 
 ```java
 import java.util.Objects;
@@ -67,7 +67,7 @@ import java.util.Objects;
 record Scores(int[] values) {
     public Scores {
         Objects.requireNonNull(values, "values");
-        values = values.clone(); // Gán lại tham số của compact constructor.
+        values = values.clone(); // Reassign the compact constructor parameter.
     }
 
     public int[] values() {
@@ -76,80 +76,80 @@ record Scores(int[] values) {
 }
 ```
 
-Hai ví dụ cho cùng chính sách bảo vệ: **sao chép khi nhận** và **sao chép khi trả**. Trong compact constructor, dòng `values = values.clone()` cập nhật **tham số cục bộ**; phần gán ngầm cuối constructor đưa tham số mới vào trường component. Không viết `this.values = ...` trong phần thân compact constructor: việc gán trường component trực tiếp ở đây không hợp lệ; cơ chế gán ngầm chịu trách nhiệm cho nó.
+Both examples enforce the same protection policy: **copy on input** and **copy on output**. In the compact constructor, `values = values.clone()` updates the **local parameter**; the implicit assignment at the end of the constructor writes the new parameter into the component field. Do not write `this.values = ...` inside the compact constructor body: assigning component fields directly there is invalid; the implicit assignment mechanism handles it.
 
-Lưu ý đây là **hai cách triển khai thay thế của cùng record `Scores`**. Nếu thử biên dịch, chọn một đoạn làm nội dung của `Scores.java`, không đặt cả hai định nghĩa record cùng tên trong một tệp.
+Note that these are **two alternative implementations of the same `Scores` record**. When trying to compile, choose one snippet as the contents of `Scores.java`; do not place two record definitions with the same name in one file.
 
-## 3. Hai hướng “rò rỉ” dữ liệu mutable
+## 3. Two Paths Where Mutable Data "Leaks"
 
-Giả sử record chưa có biện pháp bảo vệ:
+Suppose a record has no protective measures yet:
 
 ```java
 record UnsafeScores(int[] values) {}
 ```
 
-**Rò rỉ từ constructor (đường vào):**
+**Leak from the constructor (incoming path):**
 
 ```java
 int[] source = {10, 20};
 UnsafeScores report = new UnsafeScores(source);
 source[0] = 99;
 
-// report.values()[0] lúc này là 99.
+// report.values()[0] is now 99.
 ```
 
-Caller nắm `source` và record cũng dùng chính mảng đó. Việc sửa đầu vào sau khi tạo record làm thay đổi trạng thái được record biểu diễn.
+The caller holds `source` and the record also uses that exact array. Modifying the input after creating the record alters the state represented by the record.
 
-**Rò rỉ từ accessor (đường ra):**
+**Leak from the accessor (outgoing path):**
 
 ```java
 UnsafeScores report = new UnsafeScores(new int[] {10, 20});
 int[] leaked = report.values();
 leaked[1] = 88;
 
-// report.values()[1] lúc này là 88.
+// report.values()[1] is now 88.
 ```
 
-Mỗi đoạn trên là **ví dụ minh họa**, không phải chương trình độc lập. Dù component là `private final`, dữ liệu vẫn mutable qua đường tham chiếu.
+Each snippet above is an **illustrative example**, not a standalone program. Even though the component is `private final`, the data remains mutable through references.
 
-| Record làm gì? | Sau đó ai có thể sửa dữ liệu nội bộ? | Kết quả |
+| What the Record Does | Who Can Later Mutate Internal Data? | Result |
 | --- | --- | --- |
-| Không sao chép ở constructor, không bảo vệ accessor | Cả caller giữ đầu vào và caller nhận từ accessor | Rò rỉ cả hai hướng. |
-| Sao chép ở constructor nhưng trả trực tiếp từ accessor | Caller lấy mảng từ accessor | Vẫn không bất biến. |
-| Giữ trực tiếp tham chiếu đầu vào nhưng sao chép ở accessor | Caller còn giữ mảng đầu vào | Vẫn không bất biến. |
-| Sao chép ở constructor và sao chép ở accessor | Caller không thể sửa trực tiếp các phần tử mảng nội bộ qua hai đường này | Đủ cho mảng **một chiều chứa giá trị nguyên thủy**, nếu lớp không còn lộ tham chiếu mutable qua đường khác. |
+| No copy in constructor, no accessor protection | Both callers holding input and callers receiving from accessor | Leaks in both directions. |
+| Copy in constructor but return directly from accessor | Callers obtaining the array from the accessor | Still not immutable. |
+| Keep input reference directly but copy in accessor | Callers still holding the input array | Still not immutable. |
+| Copy in constructor and copy in accessor | Callers cannot directly mutate internal array elements via these two paths | Sufficient for **1D arrays containing primitive values**, provided the class does not expose mutable references through any other path. |
 
-**Chỉ một hướng sao chép là chưa đủ.** Cần kiểm tra toàn bộ điểm nhận và xuất dữ liệu, kể cả phương thức được tự viết thêm trong record.
+**Copying in only one direction is not enough.** Check all points receiving and exposing data, including any additional custom methods written inside the record.
 
-## 4. Chọn phương pháp sao chép theo kiểu component
+## 4. Choosing a Copy Method by Component Type
 
-Không có một hàm sao chép chung đúng cho mọi loại dữ liệu.
+There is no single copy function that is right for every kind of data.
 
-| Component | Giải pháp thông thường | Giới hạn cần hiểu |
+| Component | Common Solution | Limitations to Understand |
 | --- | --- | --- |
-| `int[]`, `byte[]`, `char[]` | `clone()` hoặc `Arrays.copyOf` khi nhập và xuất | Mảng một chiều chứa các giá trị nguyên thủy; một lần copy là đủ để tách các phần tử. |
-| `String[]` | Sao chép mảng khi nhập/xuất; `String` bất biến | Mảng ngoài mới nhưng các chuỗi được chia sẻ an toàn do bản thân `String` bất biến. |
-| `Object[]` chứa đối tượng mutable | Sao chép mảng **và** sao chép/đóng băng các phần tử theo chính sách | `clone()` chỉ sao chép mảng ngoài; phần tử vẫn là cùng tham chiếu. |
-| `int[][]` hoặc mảng nhiều chiều | Tạo mảng ngoài và sao chép **từng mảng con** | `matrix.clone()` chỉ nông; cần lặp từng hàng hoặc xử lý cấu trúc lồng sâu hơn. |
-| `List<String>` | `List.copyOf(input)` trong constructor; accessor có thể trả list này | Tập phần tử bất biến (`String`) và list không cho sửa cấu trúc. |
-| `List<MutableItem>` | Tạo bản sao bất biến **của từng item** rồi `List.copyOf` | `List.copyOf` không tự sao chép sâu phần tử. |
-| `Map<K, V>`, `Set<E>` | `Map.copyOf`, `Set.copyOf` nếu phù hợp | Đây là sao chép cấu trúc bất biến ở cấp collection, không đảm bảo các khóa/giá trị là bất biến sâu. |
-| `String`, `Integer`, `LocalDate` hoặc value object thật sự bất biến | Có thể giữ trực tiếp | Không cần sao chép khi đối tượng thành phần vốn bất biến và đáp ứng ngữ nghĩa muốn có. |
+| `int[]`, `byte[]`, `char[]` | `clone()` or `Arrays.copyOf` on input and output | 1D arrays containing primitive values; a single copy suffices to isolate elements. |
+| `String[]` | Copy array on input/output; `String` is immutable | New outer array, while strings are safely shared because `String` itself is immutable. |
+| `Object[]` containing mutable objects | Copy array **and** copy/freeze elements per policy | `clone()` only copies the outer array; elements still share the same references. |
+| `int[][]` or multi-dimensional arrays | Create outer array and copy **each sub-array** | `matrix.clone()` is only shallow; must loop over rows or handle deeper nesting. |
+| `List<String>` | `List.copyOf(input)` in constructor; accessor can return this list | Immutable element types (`String`) and structurally unmodifiable list. |
+| `List<MutableItem>` | Create an immutable copy **of each item**, then `List.copyOf` | `List.copyOf` does not automatically deep-copy elements. |
+| `Map<K, V>`, `Set<E>` | `Map.copyOf`, `Set.copyOf` where appropriate | These are unmodifiable structural copies at the collection level, not guaranteeing keys/values are deeply immutable. |
+| `String`, `Integer`, `LocalDate`, or truly immutable value objects | Can be kept directly | No copying needed when the component object is already immutable and satisfies desired semantics. |
 
-Khi dùng `List.copyOf`, `Set.copyOf`, `Map.copyOf`, cần hiểu điều kiện của API, gồm việc không chấp nhận phần tử `null` (`Map.copyOf` cũng không nhận khóa/giá trị `null`). Quy tắc này có thể là ưu điểm về tính nhất quán, nhưng nếu nghiệp vụ cho phép `null` thì phải chọn biểu diễn hoặc chính sách kiểm tra phù hợp.
+When using `List.copyOf`, `Set.copyOf`, `Map.copyOf`, understand the API's preconditions, including rejecting `null` elements (`Map.copyOf` also rejects `null` keys/values). This rule can be an advantage for consistency, yet if the domain allows `null`, you must choose an appropriate representation or validation policy.
 
-`List.copyOf` trả về **list không thể sửa cấu trúc thông qua API list**. Không nhầm nó với `Collections.unmodifiableList(input)`: một unmodifiable **view** có thể vẫn phản chiếu các thay đổi được thực hiện thông qua chính `input` gốc. Nếu cần ảnh chụp tách khỏi nguồn, dùng bản sao phù hợp, chẳng hạn `List.copyOf(input)`.
+`List.copyOf` returns a **list that cannot be structurally modified through the list API**. Do not confuse it with `Collections.unmodifiableList(input)`: an unmodifiable **view** can still reflect modifications made through the original `input` itself. If a snapshot isolated from the source is needed, use an appropriate copy such as `List.copyOf(input)`.
 
-## 5. Ví dụ Java 17+ chạy được: constructor, accessor và `equals`
+## 5. Runnable Java 17+ Example: Constructor, Accessor, and `equals`
 
-Chương trình sau minh họa bốn trường hợp:
+The following program illustrates four scenarios:
 
-1. `UnsafeNumbers` giữ và lộ mảng trực tiếp, nên bị sửa qua cả hai hướng.
-2. `ImmutableTags` tạo bản snapshot bằng `List.copyOf`. Vì phần tử là `String` bất biến, accessor mặc định có thể trả list đó an toàn.
-3. `NumberSnapshot` sao chép mảng cả khi nhập và khi xuất, đồng thời **ghi đè `equals`/`hashCode` theo nội dung** để phù hợp ngữ nghĩa value object.
-4. `ShallowBox` dùng `List.copyOf` nhưng vẫn chứa phần tử mutable: sửa phần tử làm thay đổi trạng thái quan sát được.
+1. `UnsafeNumbers` holds and exposes the array directly, so it is mutated via both paths.
+2. `ImmutableTags` creates a snapshot via `List.copyOf`. Because elements are immutable `String`s, the default accessor can safely return that list.
+3. `NumberSnapshot` copies the array both on input and on output, and also **overrides `equals`/`hashCode` by contents** to match value-object semantics.
+4. `ShallowBox` uses `List.copyOf` yet still holds mutable elements: mutating an element changes the observable state.
 
-Lưu vào tệp `RecordDefensiveCopyDemo.java`:
+Save to `RecordDefensiveCopyDemo.java`:
 
 ```java
 import java.util.ArrayList;
@@ -175,7 +175,7 @@ public class RecordDefensiveCopyDemo {
             numbers = numbers.clone();
         }
 
-        // Accessor tường minh: trả mảng mới mỗi lần gọi.
+        // Explicit accessor: returns a new array on each call.
         public int[] numbers() {
             return numbers.clone();
         }
@@ -266,14 +266,14 @@ public class RecordDefensiveCopyDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 RecordDefensiveCopyDemo.java
 java RecordDefensiveCopyDemo
 ```
 
-Kết quả dự kiến chính xác:
+Exact expected output:
 
 ```text
 unsafe input leak: [99, 2]
@@ -289,23 +289,23 @@ default array component equals: false
 shallow element edit: 8
 ```
 
-### Đọc kết quả theo từng lớp
+### Reading Output by Class
 
-**`UnsafeNumbers`:** constructor mặc định lưu `unsafeSource`; sửa `unsafeSource[0]` được phản ánh trong record. Accessor mặc định trả đúng mảng nội bộ, cho phép sửa thêm phần tử thứ hai. Đây là ví dụ không có defensive copy.
+**`UnsafeNumbers`:** the default constructor stores `unsafeSource`; mutating `unsafeSource[0]` is reflected in the record. The default accessor returns the exact internal array, allowing further mutation of the second element. This is an example with no defensive copying.
 
-**`ImmutableTags`:** constructor chuẩn rút gọn chuyển danh sách thành `List.copyOf(tags)`, rồi Java gán danh sách mới (hoặc một biểu diễn bất biến tương đương) vào trường component khi kết thúc constructor. Sửa `sourceTags` sau đó không ảnh hưởng `tags.tags()`. Accessor mặc định trả list không cho thêm/xóa/phần tử. Vì `String` bất biến, không có lỗ hổng sửa phần tử ở đây.
+**`ImmutableTags`:** the compact canonical constructor converts the list via `List.copyOf(tags)`, then Java assigns the new list (or an equivalent immutable representation) to the component field when the constructor finishes. Modifying `sourceTags` afterward does not affect `tags.tags()`. The default accessor returns a list that disallows adding/removing/replacing elements. Because `String` is immutable, there is no element-mutation loophole here.
 
-**`NumberSnapshot`:** constructor nhận một bản sao `int[]`; accessor mỗi lần lại tạo mảng mới. Sửa mảng đầu vào lẫn mảng lấy từ accessor không tác động tới nội bộ. `equals` và `hashCode` đều dựa trên các giá trị phần tử, nên hai snapshot độc lập có cùng nội dung bằng nhau và tra cứu chính xác trong `HashSet`.
+**`NumberSnapshot`:** the constructor receives a copy of `int[]`; the accessor creates a new array each time. Modifying either the input array or the array obtained from the accessor does not affect internal state. Both `equals` and `hashCode` rely on element values, so two independent snapshots with identical contents are equal and look up accurately in `HashSet`.
 
-**`UnsafeNumbers` theo `equals` sinh tự động:** hai record có mảng con riêng nhưng cùng `{10,20}` không bằng nhau. Đây không phải lỗi riêng của record; `int[].equals` vốn kiểm tra danh tính. `record` sinh `equals` dựa theo component, và với component là mảng, phép so sánh đó phản ánh danh tính mảng, không so từng phần tử.
+**`UnsafeNumbers` under auto-generated `equals`:** two records with separate child arrays yet identical `{10,20}` are not equal. This is not a record-specific bug; `int[].equals` inherently checks identity. `record` generates `equals` based on components, and for array components, that comparison reflects array identity rather than individual elements.
 
-**`ShallowBox`:** `List.copyOf` đóng băng **cấu trúc list**, nhưng mỗi phần tử vẫn là `MutableCell`. Sửa `cell.value` khiến accessor quan sát được giá trị `8`. Điều này minh họa rằng **collection unmodifiable không đồng nghĩa deep immutability**.
+**`ShallowBox`:** `List.copyOf` freezes **the list structure**, yet each element remains a `MutableCell`. Modifying `cell.value` causes the accessor to observe the value `8`. This demonstrates that **an unmodifiable collection does not imply deep immutability**.
 
-## 6. Bẫy quan trọng: defensive copy và `equals`/`hashCode` sinh tự động của record
+## 6. Critical Trap: Defensive Copying and Auto-Generated `equals`/`hashCode` of Records
 
-Record thông thường cung cấp `equals` và `hashCode` từ các component. Đối với component tham chiếu, quy tắc bằng nhau dùng ngữ nghĩa so sánh component phù hợp; với mảng, các phương thức mặc định của mảng là **theo danh tính**.
+Regular records provide `equals` and `hashCode` from their components. For reference components, the equality rule uses the component's appropriate comparison semantics; for arrays, the default array methods are **identity-based**.
 
-Xét record sau:
+Consider the following record:
 
 ```java
 import java.util.Objects;
@@ -320,13 +320,13 @@ record DefensiveButIdentity(int[] values) {
         return values.clone();
     }
 
-    // equals() và hashCode() được Java tự sinh.
+    // equals() and hashCode() are auto-generated by Java.
 }
 ```
 
-Record này đã bảo vệ mảng nội bộ hai hướng, nhưng hai instance tạo từ những mảng cùng nội dung vẫn **không bằng nhau** theo `equals` sinh tự động vì chúng giữ hai mảng component khác nhau. Nghiêm trọng hơn, một bất biến thiết kế quan trọng của record là bản sao được tạo bằng cách truyền lại kết quả accessor của mọi component thường phải tương đương với record gốc về `equals` (copy invariant). Trong trường hợp mảng, accessor tạo mảng mới khiến record mới dùng một tham chiếu mảng khác; `equals` tự sinh không coi hai record đó bằng nhau.
+This record protects the internal array in both directions, yet two instances created from arrays with identical contents still **are not equal** under auto-generated `equals` because they hold two different component arrays. More seriously, a key design invariant of records is that a copy constructed by passing back the accessor results of every component should normally be equivalent to the original record under `equals` (copy invariant). In the array case, the accessor creates a new array causing the new record to use a different array reference; auto-generated `equals` does not treat those two records as equal.
 
-Ví dụ minh họa:
+Illustrative example:
 
 ```java
 DefensiveButIdentity a =
@@ -334,20 +334,20 @@ DefensiveButIdentity a =
 DefensiveButIdentity b =
         new DefensiveButIdentity(a.values());
 
-// a.equals(b) trả về false theo equals() sinh tự động.
+// a.equals(b) returns false under auto-generated equals().
 ```
 
-**Vì thế, nếu record có component mảng và định dùng như một giá trị bất biến theo nội dung, chỉ viết defensive copy chưa đủ.** Cần lựa chọn ngữ nghĩa đúng:
+**Therefore, if a record has an array component and is intended as a content-immutable value, defensive copying alone is not enough.** You must choose the right semantics:
 
-- **Muốn bằng nhau theo nội dung:** như `NumberSnapshot`, tự viết `equals` dùng `Arrays.equals`, tự viết `hashCode` dùng `Arrays.hashCode`. Với mảng lồng thông thường, dùng cặp `Arrays.deepEquals`/`Arrays.deepHashCode` và bảo vệ tính bất biến của mảng lồng.
-- **Muốn dùng so sánh sinh tự động:** chọn kiểu component bản thân đã có ngữ nghĩa bằng nhau theo giá trị và có thể bất biến, ví dụ `List<Integer>` đã sao chép bất biến hoặc một value object được thiết kế phù hợp. Khi đó record có thể dựa vào `equals`/`hashCode` sinh tự động.
-- **Muốn thật sự đại diện cho danh tính của một mảng cụ thể:** cần cân nhắc liệu sao chép mảng có trái với chính sách danh tính ấy không; record value object có thể không phải mô hình hợp lý nhất cho nhu cầu này.
+- **Want equality by contents:** like `NumberSnapshot`, manually write `equals` using `Arrays.equals` and `hashCode` using `Arrays.hashCode`. For regular nested arrays, use the `Arrays.deepEquals`/`Arrays.deepHashCode` pair and protect the immutability of nested arrays.
+- **Want to use auto-generated comparison:** choose a component type that itself has value-based equality semantics and can be immutable, such as an immutably copied `List<Integer>` or a suitably designed value object. Then the record can rely on auto-generated `equals`/`hashCode`.
+- **Truly want to represent the identity of a specific array:** consider whether copying the array contradicts that identity policy; a value-object record may not be the most appropriate model for this need.
 
-Đừng “sửa” bằng cách so sánh `Arrays.hashCode(values)` để suy ra hai mảng có nội dung bằng nhau. Hash có thể va chạm. `equals` xác nhận bằng phần tử; `hashCode` chỉ hỗ trợ định hướng tìm kiếm.
+Do not "fix" this by comparing `Arrays.hashCode(values)` to infer that two arrays have identical contents. Hashes can collide. `equals` verifies element-by-element; `hashCode` only assists in directing lookup.
 
-## 7. Cách dùng `List.copyOf` và accessor mặc định cho collection
+## 7. Using `List.copyOf` and Default Accessors for Collections
 
-Khi component là collection **đã bất biến và phần tử cũng bất biến**, không nhất thiết trả một bản sao collection ở mỗi lần gọi accessor. Một record như sau thường đủ:
+When a component is a collection **that is already immutable and whose elements are also immutable**, returning a collection copy on every accessor call is unnecessary. A record like the following is usually sufficient:
 
 ```java
 import java.util.List;
@@ -361,23 +361,23 @@ record Permissions(List<String> names) {
 }
 ```
 
-Sau khi constructor kết thúc, trường `names` giữ một danh sách unmodifiable không bị thay đổi bởi thao tác thêm/xóa trên danh sách nguồn. `String` là immutable nên nội dung cũng ổn định. Accessor sinh tự động `names()` có thể trả chính danh sách đó mà không tạo lỗ hổng mutate thông qua API danh sách.
+After the constructor finishes, the `names` field holds an unmodifiable list unaffected by add/remove operations on the source list. `String` is immutable so contents stay stable too. The auto-generated `names()` accessor can return that exact list without opening a mutation loophole through the list API.
 
-Lý do phải phân biệt:
+Why the distinction matters:
 
-- `Collections.unmodifiableList(source)` tạo **view không cho sửa qua view**, nhưng `source.add(...)` bên ngoài vẫn có thể khiến nội dung quan sát qua view thay đổi.
-- `List.copyOf(source)` cung cấp một danh sách unmodifiable chứa snapshot của các phần tử tại thời điểm sao chép (hoặc có thể tái sử dụng list đã bất biến), không bị thay đổi bởi các thao tác thêm/xóa trên `source` sau đó.
-- Cả hai đều **không sao chép sâu** các đối tượng phần tử mutable. Đối với `List<MutableAddress>`, phải copy/chuyển mỗi địa chỉ thành value object bất biến trước khi dùng `List.copyOf`.
-- `List.copyOf` không bảo đảm bảo toàn **danh tính tham chiếu** của đối tượng list; code nên dựa vào giá trị và hợp đồng danh sách.
-- Với record có list bất biến, `equals`/`hashCode` tự sinh dựa trên `List.equals`/`List.hashCode` vốn so theo phần tử, nếu thành phần phần tử có ngữ nghĩa hợp lệ.
+- `Collections.unmodifiableList(source)` creates a **view disallowing modification through the view**, yet external `source.add(...)` can still cause the contents observed through the view to change.
+- `List.copyOf(source)` provides an unmodifiable list containing a snapshot of the elements at the time of copying (or may reuse an already immutable list), unaffected by subsequent add/remove operations on `source`.
+- Neither **deep-copies** mutable element objects. For `List<MutableAddress>`, each address must be copied/converted into an immutable value object before using `List.copyOf`.
+- `List.copyOf` does not guarantee preserving the **reference identity** of the list object; code should rely on value and the list contract.
+- For records with an immutable list, auto-generated `equals`/`hashCode` rely on `List.equals`/`List.hashCode`, which compare element-by-element, provided the element type has valid semantics.
 
-Một chính sách thiết kế hữu ích: **sao chép một lần ở constructor, trả trực tiếp qua accessor khi đối tượng đã thực sự bất biến**; nếu component là mutable array thì **sao chép cả lúc nhập lẫn lúc xuất**.
+A useful design policy: **copy once in the constructor and return directly via the accessor when the object is genuinely immutable**; if the component is a mutable array, **copy on both input and output**.
 
-## 8. Sao chép sâu: mảng nhiều chiều và phần tử mutable
+## 8. Deep Copying: Multi-Dimensional Arrays and Mutable Elements
 
-### 8.1. Mảng hai chiều
+### 8.1. Two-Dimensional Arrays
 
-`int[][]` thực chất là mảng chứa tham chiếu tới các `int[]`. Do đó `input.clone()` chỉ sao chép mảng ngoài. Nếu muốn snapshot độc lập, phải sao chép **từng hàng**. Ví dụ đoạn logic cho mảng không có hàng `null`:
+`int[][]` is actually an array holding references to `int[]` arrays. Thus `input.clone()` only copies the outer array. To get an independent snapshot, you must copy **each row**. Example logic for an array with no `null` rows:
 
 ```java
 private static int[][] copyMatrix(int[][] source) {
@@ -392,17 +392,17 @@ private static int[][] copyMatrix(int[][] source) {
 }
 ```
 
-Đây là **đoạn minh họa cần đặt trong lớp có import `java.util.Objects`**, không phải chương trình độc lập. Nếu quy tắc cho phép hàng `null`, cần xác định cách xử lý khác một cách tường minh.
+This is an **illustrative snippet to be placed inside a class importing `java.util.Objects`**, not a standalone program. If rules permit `null` rows, you must explicitly define how to handle them differently.
 
-Trong record nhận ma trận có thể gọi `matrix = copyMatrix(matrix);` trong compact canonical constructor và `return copyMatrix(matrix);` trong accessor. Để đồng thời có ngữ nghĩa theo nội dung, triển khai `equals` bằng `Arrays.deepEquals(matrix, other.matrix)` và `hashCode` bằng `Arrays.deepHashCode(matrix)`.
+Inside a record receiving a matrix, you can call `matrix = copyMatrix(matrix);` in the compact canonical constructor and `return copyMatrix(matrix);` in the accessor. To also have content-based semantics, implement `equals` with `Arrays.deepEquals(matrix, other.matrix)` and `hashCode` with `Arrays.deepHashCode(matrix)`.
 
-Lưu ý `deepEquals`/`deepHashCode` phù hợp với cấu trúc mảng lồng không có chu trình; chúng không phải thuật toán tổng quát để so sánh đồ thị có vòng tham chiếu. Trong những mô hình đó cần quy tắc riêng.
+Note that `deepEquals`/`deepHashCode` are suitable for acyclic nested array structures; they are not general algorithms for comparing graphs with cyclic references. Those models require separate rules.
 
-### 8.2. List chứa phần tử thay đổi được
+### 8.2. Lists Containing Mutable Elements
 
-`List.copyOf` giữ cùng tham chiếu tới từng phần tử. Nếu một record chứa `List<MutableAddress>` và code khác còn tham chiếu tới các đối tượng địa chỉ, sửa địa chỉ vẫn làm thay đổi giá trị quan sát từ record.
+`List.copyOf` keeps the same references to each element. If a record contains `List<MutableAddress>` and other code still holds references to the address objects, mutating an address still alters the values observed from the record.
 
-Một cách tiếp cận rõ ràng là **chuyển về value object immutable** ngay lúc nhận:
+A clear approach is to **convert into immutable value objects** immediately on receipt:
 
 ```java
 record AddressSnapshot(String city, String street) {}
@@ -414,22 +414,22 @@ record ShippingAddresses(List<AddressSnapshot> entries) {
 }
 ```
 
-Ví dụ này an toàn theo hướng bất biến nếu `AddressSnapshot` chỉ chứa `String` bất biến như hai component trên, không có đường ghi đè accessor trả mutable content. Nếu dữ liệu nhập ban đầu là `MutableAddress`, cần ánh xạ từng item vào `new AddressSnapshot(...)` trước khi tạo record hoặc trong constructor/chức năng factory phù hợp. Chỉ thay khai báo generic từ `MutableAddress` sang kiểu khác mà không thực hiện conversion không tự giải quyết được vấn đề.
+This example is safe toward immutability if `AddressSnapshot` contains only immutable `String`s like the two components above, with no accessor override returning mutable content. If the initial input data is `MutableAddress`, map each item into `new AddressSnapshot(...)` before creating the record or in an appropriate constructor/factory method. Merely changing the generic declaration from `MutableAddress` to another type without performing conversion does not solve the problem.
 
-### 8.3. Giới hạn của “bất biến sâu”
+### 8.3. Limits of "Deep Immutability"
 
-Tính bất biến cần đánh giá theo **toàn bộ đồ thị đối tượng mà record bộc lộ**:
+Immutability must be evaluated across **the entire object graph exposed by the record**:
 
-- Nếu record chứa `List<List<String>>`, phải bảo đảm từng list con cũng không thể bị sửa. `List.copyOf(outer)` chỉ bao ngoài.
-- Nếu record chứa `Date`, `Calendar`, `StringBuilder`, `ByteBuffer` hoặc object mutable, cần sao chép/chuyển đổi theo API và semantics tương ứng.
-- Sao chép dữ liệu lớn mỗi lần gọi accessor có chi phí CPU/bộ nhớ; đôi khi phù hợp hơn là lưu một cấu trúc bất biến chuyên dụng hoặc cung cấp API đọc không lộ dữ liệu mutable.
-- Nếu một component là đối tượng không thể sao chép an toàn hoặc ràng buộc tài nguyên, record có thể chưa phải biểu diễn phù hợp cho giá trị bất biến.
+- If a record contains `List<List<String>>`, ensure each inner list also cannot be modified. `List.copyOf(outer)` only wraps the outside.
+- If a record contains `Date`, `Calendar`, `StringBuilder`, `ByteBuffer`, or mutable objects, copy/convert according to their respective APIs and semantics.
+- Copying large data on every accessor call incurs CPU/memory cost; sometimes it is more appropriate to store a dedicated immutable structure or provide a read API that does not expose mutable data.
+- If a component is an object that cannot be safely copied or represents a resource handle, a record may not be the right representation for an immutable value.
 
-Không có quy tắc “mọi record đều tự động deep immutable”. Record hỗ trợ mô hình dữ liệu cô đọng; thiết kế bất biến thực sự vẫn là trách nhiệm của lập trình viên.
+There is no rule that "all records are automatically deep immutable". Records support concise data modeling; true immutability design remains the programmer's responsibility.
 
-## 9. Kiểm tra tính hợp lệ và chuẩn hóa trong compact canonical constructor
+## 9. Validation and Normalization in the Compact Canonical Constructor
 
-Ngoài sao chép, compact constructor phù hợp để kiểm tra invariant và chuẩn hóa thành phần. Ví dụ:
+Besides copying, a compact constructor is ideal for checking invariants and normalizing components. Example:
 
 ```java
 import java.util.List;
@@ -449,82 +449,82 @@ record Job(String name, List<String> labels) {
 }
 ```
 
-Khi kết thúc phần thân compact constructor, Java mới gán những tham số đã xử lý vào trường `final`. Do đó `name` lưu dạng đã `strip()` và `labels` lưu snapshot bất biến. Nếu validation thất bại, constructor ném ngoại lệ và không tạo thành công record không hợp lệ.
+At the end of the compact constructor body, Java assigns the processed parameters into the `final` fields. Hence `name` is stored in its `strip()`ped form and `labels` is stored as an immutable snapshot. If validation fails, the constructor throws an exception and no invalid record is created.
 
-Một số nguyên tắc:
+Some rules:
 
-1. **Không gọi phương thức accessor của `this` để đọc component chưa được gán** trong quá trình compact constructor. Khi đang thực hiện phần thân, các trường component chưa được khởi tạo bởi phép gán ngầm cuối constructor. Hãy dùng **tham số constructor** cho validation và normalization.
-2. **Không gán trực tiếp `this.component` trong compact constructor.** Dùng phép gán lại tham số như `labels = List.copyOf(labels)`.
-3. **Không để `this` thoát khỏi constructor** trước khi record được khởi tạo đầy đủ (ví dụ đăng ký listener hoặc lưu vào nơi dùng chung).
-4. **Không trả một tham chiếu mutable từ accessor tự viết** nếu constructor đã bảo vệ dữ liệu đầu vào; làm vậy triệt tiêu hiệu lực của defensive copy.
-5. **Không thay đổi giả tạo nội dung trả về bởi accessor** theo cách phá tính nhất quán của record hoặc vi phạm ý nghĩa `equals`.
+1. **Do not call `this` accessor methods to read unassigned components** during a compact constructor. While executing its body, component fields have not yet been initialized by the implicit assignment at the end of the constructor. Use **constructor parameters** for validation and normalization.
+2. **Do not assign `this.component` directly in a compact constructor.** Use parameter reassignment such as `labels = List.copyOf(labels)`.
+3. **Do not let `this` escape the constructor** before the record is fully initialized (e.g., registering a listener or storing it in a shared location).
+4. **Do not return a mutable reference from a custom accessor** if the constructor protected the input data; doing so nullifies defensive copying.
+5. **Do not artificially alter contents returned by an accessor** in a way that breaks record consistency or violates `equals` semantics.
 
-Trình tự quan trọng: với compact canonical constructor, *validate/normalize/copy trên tham số* → *gán ngầm vào trường component* → *record hình thành với giá trị đã chuẩn hóa*.
+The sequence matters: with a compact canonical constructor, *validate/normalize/copy on parameters* → *implicit assignment to component fields* → *record formed with normalized values*.
 
-## 10. Bất biến bản sao và hợp đồng value object của record
+## 10. The Copy Invariant and the Value-Object Contract of Records
 
-Một thuộc tính của record là các component mô tả **toàn bộ trạng thái lưu trữ** liên quan đến giá trị. Vì vậy thường mong đợi phép “sao chép bằng accessor” giữ nguyên quan hệ bằng nhau:
+A property of records is that components describe **all stored state** relevant to the value. Therefore, "copying via accessors" is expected to preserve equality:
 
 ```java
-// Minh họa với record R có các component c1(), c2().
+// Illustration with record R having components c1(), c2().
 // R copied = new R(original.c1(), original.c2());
-// original.equals(copied) nên đúng theo thiết kế giá trị.
+// original.equals(copied) should hold by value design.
 ```
 
-Với component thật sự bất biến và `equals` theo giá trị, thuộc tính đó tự nhiên được duy trì. Với component mutable, defensive copy có thể sinh tham chiếu mới; nếu `equals` mặc định dùng danh tính phần tử (như mảng), bản sao record có thể không bằng bản gốc. Vì thế phải chọn một trong các cách:
+With genuinely immutable components and value-based `equals`, that property is naturally preserved. With mutable components, defensive copying may produce new references; if default `equals` uses element identity (like arrays), the record copy may not equal the original. Thus one of the following must be chosen:
 
-- Thiết kế component theo **giá trị bất biến**, chẳng hạn list bất biến của các value object bất biến, để `equals` sinh tự động phù hợp.
-- Tự định nghĩa **`equals` và `hashCode` theo nội dung** với component là mảng đã bảo vệ bằng defensive copy, để bản sao qua accessor vẫn tương đương.
-- Không dùng record như một value object nếu yêu cầu thực sự dựa vào danh tính tài nguyên, đối tượng có vòng đời riêng hay cấu trúc mutable không thích hợp.
+- Design components as **immutable values**, such as an immutable list of immutable value objects, so auto-generated `equals` fits naturally.
+- Manually define **content-based `equals` and `hashCode`** for array components protected by defensive copies, so a copy via accessors remains equivalent.
+- Do not use a record as a value object if requirements genuinely depend on resource identity, objects with independent lifecycles, or unsuitable mutable structures.
 
-Với mọi triển khai `equals` theo nội dung, hash phải dựa **đúng những trường đã dùng trong `equals`**. Cấu trúc `HashSet`/`HashMap` đòi hỏi cặp này ổn định khi đối tượng làm khóa: nếu hàm hash dựa trên dữ liệu nội bộ còn thay đổi sau khi thêm vào collection, thao tác tìm có thể không tìm lại phần tử.
+For any content-based `equals` implementation, the hash must be based on **the exact same fields used in `equals`**. `HashSet`/`HashMap` structures require this pair to remain stable when the object serves as a key: if the hash function depends on internal data that still mutates after adding to the collection, lookup operations may fail to find the element again.
 
-## 11. Chi phí, tương thích API và quyết định thiết kế
+## 11. Cost, API Compatibility, and Design Decisions
 
-Defensive copy tăng độ an toàn nhưng không miễn phí. Với mảng dài `n`, `clone()` thường phải cấp phát mảng mới và sao chép `n` phần tử, tức chi phí tỷ lệ với kích thước mảng. Nếu mỗi lần accessor đều gọi `clone()`, đọc nhiều lần có thể tạo nhiều mảng. Tuy vậy việc trả mảng mutable trực tiếp có thể mở đường sửa trái phép trạng thái, rất khó gỡ lỗi về sau.
+Defensive copying increases safety, yet is not free. For an array of length `n`, `clone()` typically allocates a new array and copies `n` elements, costing proportional to array size. If every accessor call invokes `clone()`, frequent reads can allocate many arrays. Even so, returning a mutable array directly can open a path to unauthorized state mutation, which is very difficult to debug later.
 
-Những lựa chọn thực tế:
+Practical options:
 
-- **Nhỏ và đơn giản:** record chứa mảng một chiều nguyên thủy, clone khi nhập/xuất và dùng `Arrays.equals`/`hashCode` nếu giá trị được xác định bằng nội dung.
-- **Collection của phần tử bất biến:** record dùng `List.copyOf` một lần trong constructor; accessor mặc định trả list bất biến, tránh cấp phát bản sao trên mỗi lần truy cập.
-- **Dữ liệu lớn hoặc cần cập nhật thường xuyên:** cân nhắc class có API kiểm soát đọc/ghi, persistent collection, immutable snapshot theo phiên bản hoặc tách riêng mô hình mutable và snapshot. Record chưa chắc là mô hình tốt cho đối tượng cần thay đổi liên tục.
-- **Yêu cầu serialization hoặc giao tiếp API:** không nên giả định một thư viện serialization sẽ tạo/đọc record bằng cùng đường constructor trong mọi cấu hình. Cần kiểm thử đường giải mã của thư viện đang dùng để bảo đảm validation và defensive copy được thực thi.
+- **Small and simple:** a record containing a 1D primitive array, cloning on input/output and using `Arrays.equals`/`hashCode` if the value is defined by contents.
+- **Collections of immutable elements:** a record using `List.copyOf` once in the constructor; the default accessor returns the immutable list, avoiding allocations on every access.
+- **Large data or frequent updates:** consider a class with controlled read/write APIs, persistent collections, versioned immutable snapshots, or separating mutable and snapshot models. A record is not necessarily a good model for objects needing continuous mutation.
+- **Serialization or API transport requirements:** do not assume a serialization library constructs/reads records via the same constructor path under all configurations. Test the decoding path of the library in use to ensure validation and defensive copying execute.
 
-Trong Java object serialization chuẩn dành cho record, canonical constructor tham gia quá trình dựng record khi giải mã; tuy nhiên hệ thống có thể dùng nhiều framework với cơ chế riêng. Đừng để validation/copy chỉ tồn tại ở một factory không được các đường dựng đối tượng khác gọi tới.
+In standard Java object serialization for records, the canonical constructor participates in reconstructing the record during deserialization; however, systems may use various frameworks with their own mechanisms. Do not leave validation/copying only inside a factory method that other object-construction paths bypass.
 
-## 12. Các lỗi phổ biến và cách sửa
+## 12. Common Mistakes and How to Fix Them
 
-| Lỗi | Vì sao sai | Cách sửa |
+| Mistake | Why It Is Wrong | How to Fix |
 | --- | --- | --- |
-| Nghĩ rằng `record` hoặc `final` làm mảng tự bất biến | `final` cố định tham chiếu, phần tử vẫn thay đổi được. | Sao chép mutable component theo đường vào và đường ra. |
-| Chỉ clone trong constructor | Accessor mặc định vẫn lộ mảng nội bộ. | Khai báo accessor trả `clone()` hoặc bản sao phù hợp. |
-| Chỉ clone trong accessor | Caller vẫn giữ tham chiếu đầu vào, có thể sửa record từ ngoài. | Sao chép trong canonical constructor trước khi lưu. |
-| Trong compact constructor viết `this.values = values.clone()` | Không phù hợp quy tắc gán trường component của compact constructor. | Viết `values = values.clone()`; Java gán ngầm sau phần thân. |
-| Dùng `List.copyOf` cho `List<MutableItem>` rồi gọi là bất biến sâu | List không cho đổi cấu trúc nhưng item vẫn bị sửa được. | Sao chép/chuyển item thành value object bất biến trước. |
-| Dùng `Collections.unmodifiableList(source)` như snapshot | View có thể phản ánh sửa đổi qua nguồn `source`. | Dùng `List.copyOf` hoặc tự tạo bản sao theo policy. |
-| Dùng `array.clone()` cho mảng lồng và nghĩ đã deep copy | Các mảng con vẫn được chia sẻ. | Sao chép từng mảng con hoặc đệ quy theo cấu trúc. |
-| Clone mảng trong constructor và accessor nhưng giữ `equals` tự sinh | Hai record có nội dung mảng giống nhau vẫn có thể không bằng nhau vì danh tính mảng. | Dùng giá trị bất biến có `equals` theo nội dung hoặc ghi đè cặp `equals`/`hashCode`. |
-| Chỉ ghi đè `equals` theo `Arrays.equals` | `hashCode` sinh sẵn có thể dùng cách tính khác, phá hợp đồng hash. | Luôn ghi đè `hashCode` tương ứng bằng `Arrays.hashCode` (hoặc cặp deep). |
-| Trả bản sao mutable nhưng giả định các lớp client sẽ sửa vào record | Thao tác trên bản sao không làm thay đổi record. | Cung cấp phương thức tạo snapshot mới, ví dụ `withValues` trả record mới, nếu cần cập nhật giá trị. |
-| Quên xác định chính sách `null` | `clone()` trên `null` ném NPE; `List.copyOf` từ chối phần tử `null`. | Kiểm tra `Objects.requireNonNull` hoặc thiết kế giá trị mặc định/tùy chọn rõ ràng. |
+| Thinking `record` or `final` makes arrays automatically immutable | `final` fixes the reference, while elements remain mutable. | Copy mutable components on both incoming and outgoing paths. |
+| Cloning only in the constructor | The default accessor still exposes the internal array. | Declare an accessor returning `clone()` or an appropriate copy. |
+| Cloning only in the accessor | The caller still holds the input reference and can mutate the record from outside. | Copy in the canonical constructor before storing. |
+| Writing `this.values = values.clone()` inside a compact constructor | Does not conform to component-field assignment rules of compact constructors. | Write `values = values.clone()`; Java assigns implicitly after the body. |
+| Using `List.copyOf` for `List<MutableItem>` and calling it deeply immutable | The list prevents structural edits, yet items can still be mutated. | Copy/convert items into immutable value objects first. |
+| Using `Collections.unmodifiableList(source)` as a snapshot | The view can reflect modifications through the `source` reference. | Use `List.copyOf` or create your own copy per policy. |
+| Using `array.clone()` on nested arrays and thinking it deep-copied | Sub-arrays remain shared. | Copy each sub-array or recurse through the structure. |
+| Cloning the array in constructor and accessor while keeping auto-generated `equals` | Two records with identical array contents may still be unequal due to array identity. | Use immutable values with content-based `equals` or override the `equals`/`hashCode` pair. |
+| Overriding only `equals` with `Arrays.equals` | Auto-generated `hashCode` may compute differently, breaking the hash contract. | Always override matching `hashCode` with `Arrays.hashCode` (or the deep pair). |
+| Returning a mutable copy while assuming client classes will mutate the record | Operations on the copy do not alter the record. | Provide a method returning a new snapshot, e.g., `withValues` returning a new record, if value updates are needed. |
+| Forgetting to define a `null` policy | `clone()` on `null` throws NPE; `List.copyOf` rejects `null` elements. | Check `Objects.requireNonNull` or design clear default/optional values. |
 
-## 13. Checklist kiểm thử record bất biến
+## 13. Checklist for Testing Record Immutability
 
-Tạo một record chứa mutable component và kiểm thử cả hai hướng:
+Create a record containing mutable components and test both directions:
 
-1. **Input aliasing:** truyền mảng/list vào record, sửa dữ liệu nguồn sau khi tạo, xác nhận accessor vẫn cho snapshot ban đầu.
-2. **Output aliasing:** nhận mảng từ accessor, sửa bản sao, gọi accessor lần nữa, xác nhận record không đổi.
-3. **Collection snapshot:** thêm/xóa trong list nguồn sau khi tạo, kiểm tra record không đổi; thử sửa list trả về phải bị chặn khi policy yêu cầu unmodifiable.
-4. **Mutable elements:** nếu list chứa object mutable, thử sửa chính object đó; nếu giá trị record đáng ra bất biến mà kết quả thay đổi, chính sách copy còn thiếu.
-5. **Nested arrays:** sửa hàng `int[]` của ma trận nguồn và của kết quả accessor; không được ảnh hưởng ma trận bên trong record snapshot.
-6. **Value equality:** tạo hai record độc lập có dữ liệu tương đương; kiểm tra `equals` trả kết quả đúng theo chính sách nội dung.
-7. **Hash agreement:** mọi cặp record bằng nhau phải có `hashCode` bằng nhau; sau mọi nỗ lực sửa nguồn/đầu ra, hash của record bất biến vẫn không thay đổi.
-8. **Copy invariant:** tạo record mới từ chính các accessor của record gốc; kết quả phải tương đương theo `equals` nếu record được thiết kế là value object.
-9. **Validation:** đưa dữ liệu `null`, thiếu hoặc sai định dạng; xác nhận constructor từ chối hay chuẩn hóa đúng chính sách, không tạo trạng thái không hợp lệ.
-10. **Collection behavior:** dùng record làm phần tử `HashSet` hoặc khóa `HashMap`, rồi thử sửa mọi dữ liệu nguồn hoặc bản sao xuất ra. Tra cứu bằng một record tương đương vẫn phải thành công.
+1. **Input aliasing:** pass an array/list into the record, mutate the source data after creation, and confirm the accessor still yields the original snapshot.
+2. **Output aliasing:** obtain the array from the accessor, mutate the copy, call the accessor again, and confirm the record did not change.
+3. **Collection snapshot:** add/remove in the source list after creation and verify the record is unchanged; attempting to mutate the returned list must be blocked when policy requires unmodifiable.
+4. **Mutable elements:** if the list contains mutable objects, try mutating the object itself; if the record's value is supposed to be immutable yet the result changes, the copy policy is incomplete.
+5. **Nested arrays:** mutate an `int[]` row of the source matrix and of the accessor result; it must not affect the matrix inside the record snapshot.
+6. **Value equality:** create two independent records with equivalent data; check `equals` returns the right result according to content policy.
+7. **Hash agreement:** any pair of equal records must have equal `hashCode`; after all attempts to mutate source/output, the immutable record's hash remains unchanged.
+8. **Copy invariant:** construct a new record from the accessors of the original record itself; the result must be equivalent under `equals` if the record is designed as a value object.
+9. **Validation:** supply `null`, missing, or malformed data; verify the constructor rejects or normalizes per policy without creating invalid state.
+10. **Collection behavior:** use the record as a `HashSet` element or `HashMap` key, then attempt to mutate any source data or returned copies. Lookup using an equivalent record must still succeed.
 
-Đây là các kiểm tra hành vi bên ngoài của đối tượng. Chúng tìm thấy hai nhóm lỗi lớn: record chưa thật sự bất biến và record bất biến nhưng `equals`/`hashCode` không phản ánh nội dung cần so sánh.
+These are tests of the object's external behavior. They uncover two major classes of bugs: records that are not truly immutable, and immutable records whose `equals`/`hashCode` do not reflect the contents to be compared.
 
-## 14. Ghi nhớ
+## 14. Key Takeaways
 
-**Record không tự bảo đảm bất biến sâu.** Với component mutable, cần chặn aliasing từ **canonical constructor** (sao chép khi nhận) và từ **accessor** (sao chép khi trả hoặc xuất biểu diễn immutable an toàn). Compact canonical constructor cho phép gán lại tham số, rồi Java tự gán chúng vào trường component khi constructor kết thúc. `List.copyOf` hữu ích với collection của phần tử bất biến, còn mảng và đối tượng lồng phải xem xét cả các thành phần bên trong. Với mảng làm component, việc defensive copy còn phải đi kèm ngữ nghĩa `equals`/`hashCode` thích hợp; nếu muốn so nội dung, không dựa vào cơ chế mặc định theo danh tính của mảng. Chọn quy tắc sao chép và bằng nhau cùng lúc sẽ giúp record giữ được giá trị ổn định, an toàn khi truyền qua API và tin cậy khi dùng làm khóa băm.
+**Records do not automatically guarantee deep immutability.** With mutable components, block aliasing from **the canonical constructor** (copying on input) and from **the accessor** (copying on output or returning a safe immutable representation). Compact canonical constructors allow reassigning parameters, which Java then automatically assigns to component fields when the constructor completes. `List.copyOf` is useful for collections of immutable elements, whereas arrays and nested objects require examining inner components as well. With array components, defensive copying must also accompany appropriate `equals`/`hashCode` semantics; if content comparison is desired, do not rely on the array's default identity-based mechanism. Choosing copying and equality rules together helps records preserve stable values, remain safe across APIs, and stay reliable as hash keys.

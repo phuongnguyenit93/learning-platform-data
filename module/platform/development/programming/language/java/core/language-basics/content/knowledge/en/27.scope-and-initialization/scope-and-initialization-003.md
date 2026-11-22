@@ -1,41 +1,41 @@
-# Biến cục bộ trùng tên trong khối lồng và các khai báo không hợp lệ — Java 17+
+# Duplicate Local Variable Names in Nested Blocks and Invalid Declarations — Java 17+
 
-## 1. Quy tắc cốt lõi
+## 1. Core rule
 
-**Phạm vi (scope)** của một biến cục bộ xác định vùng mã nơi tên của nó có thể được sử dụng. Trong Java, khi một biến cục bộ đã nằm trong phạm vi, **không được khai báo một biến cục bộ khác cùng tên ở khối lồng bên trong**. Java báo lỗi biên dịch, ngay cả khi lập trình viên muốn biến trong “che” biến ngoài.
+The **scope** of a local variable determines the region of code where its name can be used. In Java, once a local variable is already in scope, **you cannot declare another local variable with the same name in a nested inner block**. Java reports a compile error, even if the programmer intends for the inner variable to "shadow" the outer variable.
 
 ~~~java
 static void invalid() {
     int count = 10;
     {
-        // int count = 20; // LỖI BIÊN DỊCH: count đã được khai báo.
-        System.out.println(count); // Hợp lệ: dùng count của khối ngoài.
+        // int count = 20; // COMPILE ERROR: count is already declared.
+        System.out.println(count); // Valid: uses count from the outer block.
     }
 }
 ~~~
 
-Điều này khác với việc **biến cục bộ hoặc tham số che khuất trường (field) của lớp**; trường vẫn có thể được truy cập qua `this.field` hoặc `ClassName.field`.
+This differs from **a local variable or parameter shadowing a class field**; the field can still be accessed via `this.field` or `ClassName.field`.
 
-**Phân biệt cần nhớ:** cùng tên trong hai khối **có phạm vi không chồng lấn** có thể hợp lệ; cùng tên trong hai khối **lồng nhau khi biến ngoài còn trong phạm vi** thì không.
+**Distinction to remember:** using the same name in two blocks with **non-overlapping scopes** can be valid; using the same name in two **nested blocks while the outer variable is still in scope** is not.
 
-## 2. Các trường hợp hợp lệ và không hợp lệ
+## 2. Valid and invalid cases
 
-| Tình huống | Hợp lệ? | Giải thích |
+| Situation | Valid? | Explanation |
 |---|---|---|
-| `int x=1; int x=2;` trong cùng khối | **Không** | Khai báo trùng tên biến cục bộ |
-| Khai báo `x` trong khối con khi `x` của khối cha đang trong phạm vi | **Không** | Java cấm khai báo lại biến cục bộ trong phạm vi chồng lấn |
-| Dùng lại `x` trong hai khối ngang hàng | **Có** | Hai phạm vi tách biệt |
-| Khai báo `x` sau khi khối chứa một `x` khác đã kết thúc | **Có** | Phạm vi cũ không kéo dài ra ngoài khối |
-| Tham số `x`, rồi khai báo `int x` trong thân hoặc khối con của phương thức | **Không** | Trùng tên với tham số còn trong phạm vi |
-| Biến cục bộ `name` cùng tên field `name` | **Có** | Biến cục bộ che khuất field |
-| Tham số `name` cùng tên field `name` | **Có** | Dùng `this.name` để truy cập instance field |
-| Hai vòng `for (int i=...)` tuần tự | **Có** | `i` của vòng thứ nhất hết phạm vi trước vòng kế |
-| Khai báo `int i` trong thân của vòng `for (int i=...)` | **Không** | `i` vòng ngoài còn trong phạm vi |
-| Lambda khai báo tham số cùng tên local đang trong phạm vi | **Không** | Tham số lambda không được khai báo trùng biến cục bộ bao quanh |
+| `int x=1; int x=2;` in the same block | **No** | Duplicate local variable declaration |
+| Declaring `x` in an inner block while the outer block's `x` is in scope | **No** | Java forbids redeclaring a local variable in overlapping scopes |
+| Reusing `x` in two sibling blocks | **Yes** | Two separate scopes |
+| Declaring `x` after a block containing another `x` has ended | **Yes** | The previous scope does not extend outside the block |
+| Parameter `x`, then declaring `int x` in the method body or an inner block | **No** | Conflicts with the parameter still in scope |
+| Local variable `name` with the same name as field `name` | **Yes** | Local variable shadows the field |
+| Parameter `name` with the same name as field `name` | **Yes** | Use `this.name` to access the instance field |
+| Two sequential `for (int i=...)` loops | **Yes** | The first loop's `i` goes out of scope before the next loop |
+| Declaring `int i` inside the body of a `for (int i=...)` loop | **No** | The outer loop's `i` is still in scope |
+| Lambda declaring a parameter with the same name as an enclosing local in scope | **No** | A lambda parameter cannot duplicate an enclosing local variable |
 
-**Lưu ý thuật ngữ:** *shadowing* của một field bởi local là hợp lệ; việc khai báo lại local đang trong phạm vi ở khối con không phải một cơ chế shadowing được Java cho phép.
+**Terminology note:** *shadowing* of a field by a local is valid; redeclaring an in-scope local in an inner block is not a shadowing mechanism permitted by Java.
 
-## 3. Hai khối độc lập được phép dùng cùng tên
+## 3. Two independent blocks are allowed to use the same name
 
 ~~~java
 static void siblings() {
@@ -54,7 +54,7 @@ static void siblings() {
 }
 ~~~
 
-**Exact stdout khi gọi `siblings()`:**
+**Exact stdout when calling `siblings()`:**
 
 ~~~text
 first=1
@@ -62,48 +62,48 @@ second=2
 after=3
 ~~~
 
-Mỗi `value` được khai báo khi `value` ở khối trước **đã ra khỏi phạm vi**. Không có ba biến cùng tên cùng tồn tại trong một vùng khai báo chồng lấn.
+Each `value` is declared after the `value` in the previous block **has gone out of scope**. There are never three variables with the same name coexisting in an overlapping declaration region.
 
-Ngược lại:
+Conversely:
 
 ~~~java
-// KHÔNG BIÊN DỊCH nếu bỏ chú thích:
+// DOES NOT COMPILE if uncommented:
 static void duplicate() {
     int value = 1;
-    // int value = 2; // Trùng tên trong cùng khối.
+    // int value = 2; // Duplicate name in the same block.
     {
-        // int value = 3; // Trùng local ở khối ngoài.
+        // int value = 3; // Conflicts with local in the outer block.
     }
 }
 ~~~
 
-Việc **gán lại** thì hoàn toàn khác với **khai báo lại**:
+**Reassignment** is completely different from **redeclaration**:
 
 ~~~java
 int value = 1;
-value = 2; // Hợp lệ: cập nhật biến đã tồn tại.
+value = 2; // Valid: updates the existing variable.
 ~~~
 
-## 4. Tham số và biến đếm `for` cũng có phạm vi
+## 4. Parameters and `for` counter variables also have scope
 
-Tham số phương thức có thể được đọc trong thân và các khối con của phương thức. Không được khai báo biến local trùng tên nó ở đó:
+A method parameter can be read in the method body and its inner blocks. You cannot declare a local variable with the same name there:
 
 ~~~java
 static void process(int total) {
-    // int total = 0; // Lỗi: trùng tham số.
+    // int total = 0; // Error: conflicts with parameter.
     {
-        // int total = 5; // Cũng lỗi.
+        // int total = 5; // Also an error.
         System.out.println(total);
     }
 }
 ~~~
 
-Với vòng `for`:
+For the `for` loop:
 
 ~~~java
 for (int i = 0; i < 2; i++) {
     System.out.println("loopA=" + i);
-    // int i = 99; // Lỗi: i của for đang trong phạm vi.
+    // int i = 99; // Error: i from for is in scope.
 }
 
 for (int i = 2; i < 4; i++) {
@@ -120,38 +120,38 @@ loopB=2
 loopB=3
 ~~~
 
-Tên `i` có thể được sử dụng lại vì vòng `for` thứ nhất đã kết thúc **vùng phạm vi khai báo `i`**. Nhưng nếu khai báo `int i = 10;` ở khối bao quanh cả hai vòng, việc khai báo `for (int i = ...)` bên trong sẽ bị cấm.
+The name `i` can be reused because the first `for` loop has ended the **scope region of its `i` declaration**. However, if you declare `int i = 10;` in a block enclosing both loops, declaring `for (int i = ...)` inside is forbidden.
 
-## 5. Field shadowing là trường hợp khác
+## 5. Field shadowing is a different case
 
-Một local/parameter cùng tên **field** vẫn hợp lệ, vì field không phải local của khối chứa method:
+A local/parameter having the same name as a **field** is valid, because a field is not a local of the method's enclosing block:
 
 ~~~java
 class Person {
     private String name = "FIELD";
     void print(String name) {
-        System.out.println(name);      // Tham số
+        System.out.println(name);      // Parameter
         System.out.println(this.name); // Field
     }
 }
 ~~~
 
-Trong `static` context, dùng tên lớp để chỉ field `static` bị che khuất. Điều này khác hoàn toàn với khai báo lại local/parameter trong khối lồng đang chồng phạm vi; bài về field shadowing đi sâu vào việc cập nhật đúng field.
+In a `static` context, use the class name to refer to a shadowed `static` field. This is completely different from redeclaring a local/parameter in a nested block with overlapping scope; the lesson on field shadowing goes into detail on updating the right field.
 
-## 6. Khai báo trùng tên khác lỗi gán chưa chắc chắn
+## 6. Duplicate name declaration differs from definite assignment errors
 
 ~~~java
 static int choose(boolean flag) {
     int result;
     if (flag) result = 1;
     else result = 2;
-    return result; // Đã gán ở cả hai đường tới return.
+    return result; // Assigned on both paths to return.
 }
 ~~~
 
-Ở đây chỉ có **một** biến `result` và không có khai báo trùng tên. Nếu bỏ `else`, lỗi khi đọc `result` là *definite assignment*, vì nhánh `false` có thể chưa gán; đây là phép kiểm tra khác với kiểm tra khai báo trùng phạm vi.
+Here there is only **one** variable `result` and no duplicate declaration. If you remove `else`, the error when reading `result` is *definite assignment*, because the `false` branch might leave it unassigned; this is a different check from checking duplicate overlapping declarations.
 
-## 7. Lambda: không khai báo tham số trùng local bao quanh
+## 7. Lambdas: do not declare a parameter with the same name as an enclosing local
 
 ~~~java
 static void lambdaExample() {
@@ -169,19 +169,19 @@ static void lambdaExample() {
 lambda=7
 ~~~
 
-Nếu dùng `bonus -> bonus + 1` làm tham số lambda ngay tại đây, tên tham số `bonus` sẽ trùng với local `bonus` bao quanh và không hợp lệ.
+If you used `bonus -> bonus + 1` as the lambda parameter right here, the parameter name `bonus` would conflict with the enclosing local `bonus` and be invalid.
 
-Biến local được lambda **capture** phải là `final` hoặc *effectively final* (không được gán lại sau khi khởi tạo). Đây là một yêu cầu khác ngoài quy tắc trùng tên:
+A local variable **captured** by a lambda must be `final` or *effectively final* (not reassigned after initialization). This is another requirement in addition to the duplicate-name rule:
 
 ~~~java
 // int bonus = 3;
 // bonus++;
-// IntUnaryOperator op = x -> x + bonus; // Không hợp lệ: bonus không effectively final.
+// IntUnaryOperator op = x -> x + bonus; // Invalid: bonus is not effectively final.
 ~~~
 
-## 8. Chương trình Java 17+ hoàn chỉnh
+## 8. Complete Java 17+ program
 
-Lưu đúng file **`LocalScopeNameDemo.java`**:
+Save as the exact file **`LocalScopeNameDemo.java`**:
 
 ~~~java
 public final class LocalScopeNameDemo {
@@ -193,7 +193,7 @@ public final class LocalScopeNameDemo {
         {
             int increment = 5;
             System.out.println("nested total=" + (count + increment));
-            // int count = 20; // Không hợp lệ.
+            // int count = 20; // Invalid.
         }
         System.out.println("outer count=" + count);
     }
@@ -292,23 +292,23 @@ assigned false=2
 lambda=7
 ~~~
 
-**Giải thích:** khối lồng đọc `count` của khối ngoài, nhưng không khai báo lại nó; ba khối không chồng lấn dùng lại tên `value`; hai vòng `for` tuần tự dùng lại `i`. Tham số `name` che khuất instance field, được phân biệt bằng `this.name`; local `label` che khuất static field, được phân biệt bằng tên lớp.
+**Explanation:** the inner block reads `count` from the outer block without redeclaring it; three non-overlapping blocks reuse the name `value`; two sequential `for` loops reuse `i`. Parameter `name` shadows the instance field, distinguished via `this.name`; local `label` shadows the static field, distinguished via the class name.
 
-## 9. Lỗi thường gặp và bài tập
+## 9. Common errors and exercises
 
-| Sai lầm | Nguyên nhân | Cách sửa |
+| Mistake | Cause | Fix |
 |---|---|---|
-| `int x=1;` rồi `int x=2;` | Trùng tên local cùng khối | Gán `x=2;` hoặc đổi tên |
-| Khai báo `int x` ở khối trong khi local `x` ngoài còn hiệu lực | Phạm vi chồng lấn | Dùng biến cũ, hoặc chọn tên mới |
-| Khai báo local trùng tham số | Tham số vẫn trong phạm vi | Đổi tên local |
-| Khai báo local trùng biến đếm `for` bên trong thân `for` | `i` của vòng còn hiệu lực | Dùng chỉ số sẵn có |
-| Nghĩ local trùng field luôn bị cấm | Field có thể bị local che khuất | Dùng `this.field` hoặc `ClassName.field` khi cần |
-| Dùng biến sau khi ra khỏi khối khai báo | Tên hết phạm vi | Khai báo ở khối phù hợp |
-| Sử dụng local chưa gán ở mọi đường | Definite assignment chưa thỏa | Gán ở tất cả đường đi |
-| Lambda tham số trùng local bao quanh | Khai báo trùng tên | Đổi tên tham số lambda |
-| Lambda capture local bị gán lại | Không effectively final | Không gán lại hoặc chuyển cách lưu trạng thái |
+| `int x=1;` then `int x=2;` | Duplicate local name in the same block | Assign `x=2;` or rename |
+| Declaring `int x` in an inner block while outer local `x` is in effect | Overlapping scopes | Use the existing variable, or pick a new name |
+| Declaring a local with the same name as a parameter | Parameter is still in scope | Rename the local |
+| Declaring a local with the same name as the `for` counter inside the `for` body | Loop `i` is still in effect | Use the existing index |
+| Thinking a local matching a field name is always forbidden | Fields can be shadowed by locals | Use `this.field` or `ClassName.field` when needed |
+| Using a variable after leaving its declaration block | Name is out of scope | Declare in an appropriate enclosing block |
+| Using a local not assigned on all paths | Definite assignment not satisfied | Assign on all paths |
+| Lambda parameter matching an enclosing local | Duplicate name declaration | Rename the lambda parameter |
+| Lambda capturing a reassigned local | Not effectively final | Do not reassign, or change how state is stored |
 
-**Bài A.** Đoạn nào hợp lệ?
+**Exercise A.** Which snippet is valid?
 
 ~~~java
 {
@@ -319,9 +319,9 @@ lambda=7
 }
 ~~~
 
-**Đáp án:** hợp lệ, vì hai phạm vi riêng biệt.
+**Answer:** valid, because the two scopes are separate.
 
-**Bài B.** Vì sao đoạn này sai?
+**Exercise B.** Why is this snippet invalid?
 
 ~~~java
 int n = 1;
@@ -330,23 +330,23 @@ int n = 1;
 }
 ~~~
 
-**Đáp án:** `n` bên ngoài vẫn trong phạm vi tại khối con, nên không thể khai báo local `n` lần nữa ở đó.
+**Answer:** outer `n` is still in scope in the inner block, so local `n` cannot be declared again there.
 
-**Bài C.** Với instance field `name` và tham số `name`, truy cập field ra sao? **`this.name`**.
+**Exercise C.** Given instance field `name` and parameter `name`, how do you access the field? **`this.name`**.
 
-**Bài D.** `int result;` rồi chỉ gán `result` trong `if (flag)` có dùng được sau `if` không? **Không chắc**; nếu `flag == false`, biến chưa khởi tạo. Cần gán ở nhánh `else` hoặc trước `if`.
+**Exercise D.** With `int result;` followed by assigning `result` only inside `if (flag)`, can it be used after `if`? **Not guaranteed**; if `flag == false`, the variable is uninitialized. It must be assigned in an `else` branch or before `if`.
 
-## 10. Checklist và kết luận
+## 10. Checklist and conclusion
 
-- [ ] Biết phạm vi tên của biến cục bộ bắt đầu từ khai báo trong khối tương ứng.
-- [ ] Không khai báo local trùng tên trong cùng khối hoặc khối con có phạm vi chồng lấn.
-- [ ] Dùng lại tên trong hai khối tuần tự không chồng lấn khi hợp lý.
-- [ ] Phân biệt khai báo lại với gán lại.
-- [ ] Hiểu tham số và biến `for` cũng có phạm vi riêng.
-- [ ] Phân biệt shadowing **field** hợp lệ với redeclaration **local** bị cấm.
-- [ ] Dùng `this.field` hoặc `ClassName.field` để truy cập field bị che khuất.
-- [ ] Phân biệt lỗi trùng tên với lỗi definite assignment.
-- [ ] Nhớ lambda parameter không được trùng local bao quanh.
-- [ ] Chạy `LocalScopeNameDemo.java` bằng Java 17+ và đối chiếu exact stdout.
+- [ ] Know that a local variable's name scope starts from its declaration in the corresponding block.
+- [ ] Do not declare duplicate local names in the same block or inner blocks with overlapping scopes.
+- [ ] Reuse names in two sequential non-overlapping blocks when appropriate.
+- [ ] Distinguish redeclaration from reassignment.
+- [ ] Understand that parameters and `for` variables also have their own scopes.
+- [ ] Distinguish valid **field** shadowing from forbidden **local** redeclaration.
+- [ ] Use `this.field` or `ClassName.field` to access shadowed fields.
+- [ ] Distinguish duplicate-name errors from definite assignment errors.
+- [ ] Remember a lambda parameter must not duplicate an enclosing local.
+- [ ] Run `LocalScopeNameDemo.java` with Java 17+ and compare against exact stdout.
 
-**Kết luận:** Java không cho khai báo một biến cục bộ hoặc tham số mới **trùng tên local đang nằm trong phạm vi bao quanh**. Tên có thể tái sử dụng khi phạm vi trước đã kết thúc, và local/parameter có thể **che khuất field** của lớp. Xác định đúng phạm vi của từng tên sẽ tránh lỗi biên dịch và giúp chọn cách đặt tên dễ đọc.
+**Conclusion:** Java does not allow declaring a new local variable or parameter with the **same name as a local currently in an enclosing scope**. Names can be reused once the previous scope has ended, and locals/parameters can **shadow class fields**. Accurately identifying each name's scope prevents compile errors and helps choose readable names.

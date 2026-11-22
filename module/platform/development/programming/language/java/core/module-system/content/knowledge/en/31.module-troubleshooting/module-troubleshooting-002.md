@@ -1,8 +1,8 @@
-# FindException khi resolve module
+# FindException During Module Resolution
 
-Trong Java Platform Module System (JPMS), một ứng dụng modular chỉ có thể khởi chạy khi Java tìm được các module cần thiết và xây dựng được module graph hợp lệ. Nếu quá trình **tìm module** thất bại, ứng dụng có thể gặp `java.lang.module.FindException`. Lỗi thường xuất hiện khi chạy bằng `java -m`, gọi `Configuration.resolve(...)` hoặc `Configuration.resolveAndBind(...)`, hoặc khi `ModuleFinder` đọc một nguồn module không hợp lệ.
+In the Java Platform Module System (JPMS), a modular application can only start when Java locates the required modules and builds a valid module graph. If **module lookup** fails, the application may encounter `java.lang.module.FindException`. This error commonly appears when launching with `java -m`, calling `Configuration.resolve(...)` or `Configuration.resolveAndBind(...)`, or when `ModuleFinder` reads an invalid module source.
 
-Ví dụ thông báo thường gặp:
+Example of a common message:
 
 ~~~text
 Error occurred during initialization of boot layer
@@ -10,54 +10,54 @@ java.lang.module.FindException:
 Module com.example.catalog not found, required by com.example.app
 ~~~
 
-Thông báo này không có nghĩa JVM không thể tìm một class đơn lẻ. Nó cho biết **module resolution** không tìm được một named module mà module graph cần dùng, hoặc module finder gặp sự cố khi đọc và nhận diện module.
+This message does not mean the JVM failed to find a single class. It indicates that **module resolution** could not locate a named module required by the module graph, or that the module finder encountered a failure while reading and identifying a module.
 
-Bài học này trình bày cách xác định module bị thiếu, nguồn tìm kiếm thực tế, nguyên nhân của `FindException` và quy trình sửa lỗi không làm suy yếu cấu trúc JPMS.
+This lesson explains how to identify the missing module, the actual search sources, the causes of `FindException`, and a troubleshooting workflow that does not weaken JPMS structure.
 
-## 1. FindException thuộc giai đoạn nào?
+## 1. Which stage does FindException belong to?
 
-Một chương trình modular trải qua nhiều bước:
+A modular program goes through several steps:
 
 ~~~text
 module-info.java
        |
        v
-  javac biên dịch
+  javac compiles
        |
        v
-module-info.class và modular JAR
+module-info.class and modular JAR
        |
        v
-ModuleFinder tìm module
+ModuleFinder locates modules
        |
        v
 Configuration.resolve / resolveAndBind
        |
        v
-Module graph hợp lệ
+Valid module graph
        |
        v
-ModuleLayer hoặc boot layer
+ModuleLayer or boot layer
        |
        v
-Class loading và chạy main
+Class loading and running main
 ~~~
 
-`FindException` liên quan chủ yếu tới bước **ModuleFinder** và **resolution**: không tìm được module theo tên, hoặc không thể đọc metadata module cần thiết từ nguồn cung cấp.
+`FindException` is mainly associated with the **ModuleFinder** and **resolution** steps: a module cannot be found by name, or required module metadata cannot be read from the supplied source.
 
-Nên phân biệt:
+Distinguish among these:
 
-- **Không tìm được module:** thường thấy `FindException`.
-- **Đã tìm thấy module nhưng module graph mâu thuẫn:** thường thấy `ResolutionException`.
-- **Module graph đã resolve nhưng tạo layer không hợp lệ:** có thể gặp `LayerInstantiationException`.
-- **Module đã tạo nhưng không tìm thấy class lúc thực thi:** có thể gặp `ClassNotFoundException` hoặc `NoClassDefFoundError`.
-- **Provider service lỗi khi được khởi tạo:** có thể gặp `ServiceConfigurationError`.
+- **Cannot find a module:** typically `FindException`.
+- **Modules found, but the module graph conflicts:** typically `ResolutionException`.
+- **Module graph resolved, but layer creation is invalid:** may throw `LayerInstantiationException`.
+- **Module created, but class not found at execution time:** may throw `ClassNotFoundException` or `NoClassDefFoundError`.
+- **Service provider fails during instantiation:** may throw `ServiceConfigurationError`.
 
-Tên exception giúp khoanh vùng giai đoạn đầu tiên cần kiểm tra; không nên sửa classpath, module descriptor và code nghiệp vụ cùng lúc.
+The exception type helps narrow down the first stage to inspect; avoid changing the classpath, module descriptors, and business code all at once.
 
-## 2. Ví dụ tối thiểu: một dependency module bị thiếu
+## 2. Minimal example: a missing dependency module
 
-Giả sử có hai named module:
+Suppose there are two named modules:
 
 ~~~text
 src/
@@ -69,7 +69,7 @@ src/
     └── com/example/app/Main.java
 ~~~
 
-Descriptor của module thư viện:
+Descriptor of the library module:
 
 ~~~java
 module com.example.catalog {
@@ -77,7 +77,7 @@ module com.example.catalog {
 }
 ~~~
 
-Descriptor của ứng dụng:
+Descriptor of the application:
 
 ~~~java
 module com.example.app {
@@ -97,7 +97,7 @@ public final class Main {
 }
 ~~~
 
-Biên dịch các module:
+Compile the modules:
 
 ~~~bash
 javac --module-source-path src \
@@ -105,7 +105,7 @@ javac --module-source-path src \
       -m com.example.catalog,com.example.app
 ~~~
 
-Khi biên dịch thành công, output thường là:
+When compilation succeeds, the output is typically:
 
 ~~~text
 mods/
@@ -117,105 +117,105 @@ mods/
     └── com/example/app/Main.class
 ~~~
 
-Chạy với module path bao gồm cả hai module:
+Run with a module path containing both modules:
 
 ~~~bash
 java --module-path mods \
      -m com.example.app/com.example.app.Main
 ~~~
 
-Trường hợp này cho phép resolver tìm cả module app lẫn catalog.
+In this case, the resolver can find both the app module and the catalog module.
 
-Nếu sau đó đóng gói hoặc triển khai **chỉ module app** mà bỏ module catalog, chạy app với module path thiếu catalog có thể báo:
+If you later package or deploy **only the app module** while omitting the catalog module, running the app with a module path lacking catalog may report:
 
 ~~~text
 java.lang.module.FindException:
 Module com.example.catalog not found, required by com.example.app
 ~~~
 
-Tên sau `Module` là dependency không tìm được. Tên sau `required by` là module trực tiếp khai báo dependency cần thiết đó.
+The name after `Module` is the unfound dependency. The name after `required by` is the module that directly declares that required dependency.
 
-**Hướng sửa:** đưa đúng artifact của `com.example.catalog` vào module path hoặc cập nhật dependency/module name nếu descriptor đã thay đổi. Không thêm `--add-exports` hay `--add-opens` để xử lý việc module chưa hề được tìm thấy.
+**Fix:** place the right `com.example.catalog` artifact onto the module path, or update the dependency/module name if the descriptor changed. Do not add `--add-exports` or `--add-opens` to deal with a module that has not even been found.
 
-## 3. Thiếu root module và thiếu dependency khác nhau thế nào?
+## 3. How do a missing root module and a missing dependency differ?
 
-Có hai kiểu thông báo quan trọng.
+There are two important message patterns.
 
-**Root module không được tìm thấy:**
+**Root module not found:**
 
 ~~~text
 java.lang.module.FindException:
 Module com.example.app not found
 ~~~
 
-Đây là trường hợp tên module được chỉ định trực tiếp làm root, chẳng hạn `-m com.example.app`, nhưng module finder không thấy module đó từ các nguồn hiện tại.
+This occurs when the module name is specified directly as a root, such as `-m com.example.app`, but the module finder cannot see that module from the current sources.
 
-Kiểm tra:
+Check:
 
-- Module app đã được biên dịch hoặc đóng gói chưa?
-- `--module-path` có trỏ đúng thư mục hoặc modular JAR không?
-- Tên trong `-m` có khớp tên module thực tế không?
-- Đường dẫn có bị sai do working directory hoặc quoting không?
+- Has the app module been compiled or packaged yet?
+- Does `--module-path` point to the right directory or modular JAR?
+- Does the name in `-m` match the actual module name?
+- Is the path wrong due to the working directory or quoting?
 
-**Dependency của một module không được tìm thấy:**
+**Dependency of a module not found:**
 
 ~~~text
 java.lang.module.FindException:
 Module com.example.catalog not found, required by com.example.app
 ~~~
 
-Ở đây resolver đã tìm được `com.example.app` và đọc descriptor của nó, nhưng `requires com.example.catalog;` không thể được thỏa mãn.
+Here the resolver found `com.example.app` and read its descriptor, but `requires com.example.catalog;` cannot be satisfied.
 
-Kiểm tra module catalog trên module path trước khi sửa module app. Module được yêu cầu có thể nằm trong một JAR khác, một thư mục exploded module hoặc module runtime image của JDK.
+Check the catalog module on the module path before editing the app module. The required module may live in another JAR, an exploded module directory, or the JDK's module runtime image.
 
-Lưu ý: thông báo lỗi chỉ nêu mắt xích đang thiếu tại thời điểm resolver phát hiện. Một graph có thể thiếu nhiều module; sau khi sửa lỗi đầu tiên, resolver có thể báo lỗi kế tiếp.
+Note: the error message only names the missing link at the moment the resolver detects it. A graph may be missing multiple modules; after fixing the first error, the resolver may report the next one.
 
-## 4. Module path là nguồn đầu tiên cần đối chiếu
+## 4. The module path is the first source to verify
 
-Cú pháp chạy named module:
+Syntax for running a named module:
 
 ~~~bash
 java --module-path <module-path> \
      -m <module-name>/<main-class>
 ~~~
 
-Dạng ngắn:
+Short form:
 
 ~~~bash
 java -p <module-path> \
      -m <module-name>/<main-class>
 ~~~
 
-Trên Linux/macOS, nhiều phần tử đường dẫn thường được phân cách bằng dấu hai chấm:
+On Linux/macOS, multiple path entries are normally separated by colons:
 
 ~~~bash
 java --module-path "mods:lib:plugins" \
      -m com.example.app/com.example.app.Main
 ~~~
 
-Trên Windows, đường dẫn được phân cách bằng dấu chấm phẩy:
+On Windows, paths are separated by semicolons:
 
 ~~~powershell
 java --module-path "mods;lib;plugins" -m com.example.app/com.example.app.Main
 ~~~
 
-Những lỗi cấu hình phổ biến:
+Common configuration mistakes:
 
-1. Trỏ tới thư mục không tồn tại.
-2. Trỏ nhầm sang source directory thay vì output chứa module đã biên dịch.
-3. Chỉ thêm thư mục của app mà quên dependency.
-4. Đặt JAR trên `--class-path` trong khi module khác khai báo `requires` tới nó.
-5. Dùng dấu phân cách path không đúng hệ điều hành.
-6. Chạy lệnh từ working directory khác nên relative path không còn đúng.
-7. CI và IDE dùng hai module path khác nhau.
+1. Pointing to a nonexistent directory.
+2. Pointing by mistake to the source directory instead of the compiled module output.
+3. Adding only the app's directory while forgetting dependencies.
+4. Placing a JAR on `--class-path` while another module declares `requires` on it.
+5. Using the wrong path separator for the operating system.
+6. Running the command from a different working directory so relative paths are no longer valid.
+7. CI and the IDE using two different module paths.
 
-**Module path không phải classpath.** JAR trên classpath thuộc unnamed module; nó không tự trở thành named module có thể được tham chiếu bằng `requires com.example.catalog;`.
+**The module path is not the classpath.** A JAR on the classpath belongs to the unnamed module; it does not automatically become a named module that can be referenced with `requires com.example.catalog;`.
 
-## 5. Kiểm tra module name thực tế
+## 5. Checking the actual module name
 
-Tên file JAR không nhất thiết là tên module.
+A JAR filename is not necessarily the module name.
 
-Ví dụ:
+Example:
 
 ~~~text
 lib/
@@ -223,15 +223,15 @@ lib/
 └── catalog-api-1.0.jar
 ~~~
 
-Một JAR explicit module có tên được khai báo trong `module-info.class`. Một JAR không có descriptor, khi được đặt trên module path, có thể trở thành **automatic module**; tên automatic module có thể đến từ `Automatic-Module-Name` trong manifest hoặc được suy ra từ tên file.
+An explicit module JAR has its name declared in `module-info.class`. A JAR without a descriptor, when placed on the module path, can become an **automatic module**; an automatic module's name may come from `Automatic-Module-Name` in the manifest or be derived from the filename.
 
-Dùng công cụ JDK để kiểm tra:
+Use the JDK tool to inspect it:
 
 ~~~bash
 jar --describe-module --file lib/catalog-utils-2.4.jar
 ~~~
 
-Kết quả có thể cho biết:
+The output might show:
 
 ~~~text
 com.example.catalog
@@ -239,28 +239,28 @@ requires java.base mandated
 exports com.example.catalog.api
 ~~~
 
-Nếu tên thực tế là `catalog.utils` nhưng descriptor của app yêu cầu `com.example.catalog`, resolver sẽ không coi hai tên là cùng một module.
+If the actual name is `catalog.utils` while the app descriptor requires `com.example.catalog`, the resolver will not treat the two names as the same module.
 
-Để xem nội dung JAR:
+To view the JAR contents:
 
 ~~~bash
 jar --list --file lib/catalog-utils-2.4.jar
 ~~~
 
-Với explicit modular JAR, cần kiểm tra `module-info.class` có tồn tại ở vị trí phù hợp. Với automatic module, cần kiểm tra tên module suy ra có đúng với tên trong `requires` không.
+For an explicit modular JAR, check that `module-info.class` exists in the appropriate location. For an automatic module, check whether the derived module name matches the name in `requires`.
 
-Không nên sửa tên JAR ngẫu nhiên và kỳ vọng luôn sửa được dependency. Đối với explicit module, tên nằm trong descriptor, không phụ thuộc tên file.
+Do not rename JARs arbitrarily expecting that to always fix dependencies. For an explicit module, the name lives in the descriptor and does not depend on the filename.
 
-## 6. ModuleFinder: kiểm tra khả năng tìm module trước khi resolve
+## 6. ModuleFinder: checking module lookup before resolution
 
-Khi ứng dụng tạo module layer động, ta thường bắt đầu từ:
+When an application creates a dynamic module layer, we typically start from:
 
 ~~~java
 ModuleFinder finder =
     ModuleFinder.of(Path.of("plugins"));
 ~~~
 
-Có thể hỏi finder có nhận diện được một module cụ thể không:
+You can ask whether the finder recognizes a specific module:
 
 ~~~java
 Optional<ModuleReference> reference =
@@ -269,9 +269,9 @@ Optional<ModuleReference> reference =
 System.out.println("Found: " + reference.isPresent());
 ~~~
 
-Nếu `reference.isEmpty()`, module đó không được finder hiện tại nhận diện dưới tên yêu cầu.
+If `reference.isEmpty()`, that module is not recognized by the current finder under the requested name.
 
-Có thể liệt kê các module được nhận diện:
+You can list the recognized modules:
 
 ~~~java
 finder.findAll().stream()
@@ -280,7 +280,7 @@ finder.findAll().stream()
     .forEach(System.out::println);
 ~~~
 
-Cần imports:
+Required imports:
 
 ~~~java
 import java.lang.module.ModuleFinder;
@@ -289,9 +289,9 @@ import java.nio.file.Path;
 import java.util.Optional;
 ~~~
 
-**Quan trọng:** `find` và `findAll` cũng có thể ném `FindException` nếu việc đọc nguồn module bị lỗi. Vì vậy, không phải trường hợp nào cũng chỉ nhận `Optional.empty()`; đôi khi chính finder không thể diễn giải artifact trong thư mục.
+**Important:** `find` and `findAll` can also throw `FindException` if reading the module source fails. Therefore, you do not always merely get `Optional.empty()`; sometimes the finder itself cannot interpret an artifact in the directory.
 
-Ví dụ chẩn đoán có bắt exception:
+Diagnostic example that catches the exception:
 
 ~~~java
 import java.lang.module.FindException;
@@ -317,11 +317,11 @@ public final class InspectModules {
 }
 ~~~
 
-Class này giúp tách hai vấn đề: **finder không thể đọc nguồn** và **resolver tìm được nguồn nhưng thiếu dependency**.
+This class helps separate two issues: **the finder cannot read the source** versus **the resolver found the source but is missing a dependency**.
 
-## 7. Configuration.resolve và FindException
+## 7. Configuration.resolve and FindException
 
-Khi xây dựng custom ModuleLayer, ví dụ:
+When building a custom `ModuleLayer`, for example:
 
 ~~~java
 import java.lang.module.Configuration;
@@ -350,20 +350,20 @@ try {
 }
 ~~~
 
-Các tham số cần hiểu:
+Parameters to understand:
 
-- `finder` đầu tiên là nguồn tìm module trong nhóm ưu tiên trước parent.
-- `parent` là configuration đã có ở layer cha.
-- `ModuleFinder.of()` là finder rỗng dùng cho nguồn tìm kiếm sau parent.
-- `Set.of("com.example.plugin")` là tập **root module** cần resolve.
+- The first `finder` is the module lookup source searched before the parent.
+- `parent` is the configuration already present in the parent layer.
+- `ModuleFinder.of()` is an empty finder used for the lookup source searched after the parent.
+- `Set.of("com.example.plugin")` is the set of **root modules** to resolve.
 
-Nếu root module hoặc một dependency bắt buộc không có trong tập module có thể quan sát từ các nguồn này, `FindException` có thể được ném.
+If a root module or a required dependency is not among the modules observable from these sources, `FindException` can be thrown.
 
-Đừng chỉ kiểm tra `finder.find("com.example.plugin")` rồi kết luận mọi dependency đã đủ. Root có thể tồn tại nhưng `requires` của nó, hoặc `requires` của dependency bắc cầu, vẫn không resolve được.
+Do not merely check `finder.find("com.example.plugin")` and conclude all dependencies are sufficient. The root may exist, yet its `requires`, or the `requires` of a transitive dependency, may still fail to resolve.
 
-## 8. Resolve thành công không đồng nghĩa đã tạo ModuleLayer
+## 8. Successful resolution does not mean ModuleLayer creation succeeded
 
-Quy trình dynamic module loading thường có hai giai đoạn:
+Dynamic module loading typically has two phases:
 
 ~~~java
 Configuration configuration =
@@ -380,15 +380,15 @@ ModuleLayer pluginLayer =
     );
 ~~~
 
-Giai đoạn đầu tạo **configuration** đã resolve. Giai đoạn sau định nghĩa các module runtime và gắn class loader.
+The first phase produces the resolved **configuration**. The second phase defines the runtime modules and attaches a class loader.
 
-Nếu lỗi xuất hiện trong `resolve`, việc kiểm tra logic tạo class loader hoặc API trên `ModuleLayer` thường chưa giúp xác định nguyên nhân chính. Trước tiên, hãy đảm bảo module graph đã được resolver chấp nhận.
+If the error occurs inside `resolve`, inspecting class loader creation logic or `ModuleLayer` APIs generally will not pinpoint the primary cause. First, ensure the module graph is accepted by the resolver.
 
-Ngược lại, nếu `resolve` thành công nhưng `defineModulesWithOneLoader` thất bại, cần xem nguyên nhân trong giai đoạn layer definition thay vì tự động coi đó là `FindException`.
+Conversely, if `resolve` succeeds but `defineModulesWithOneLoader` fails, investigate the layer definition stage instead of automatically assuming it is a `FindException`.
 
-## 9. Đọc dependency từ module descriptor
+## 9. Reading dependencies from the module descriptor
 
-Một cách chẩn đoán hữu ích là in các directive `requires` của module tìm được:
+A useful diagnostic technique is printing the `requires` directives of a found module:
 
 ~~~java
 ModuleFinder finder =
@@ -405,19 +405,19 @@ finder.find("com.example.app").ifPresent(ref -> {
 });
 ~~~
 
-Những dependency có thể là:
+Dependencies can be:
 
-- `requires com.example.catalog;`: dependency thông thường.
-- `requires transitive com.example.api;`: dependency được truyền tiếp về readability theo quy tắc JPMS.
-- `requires static com.example.optional;`: dependency tại compile-time, nhưng không nhất thiết phải hiện diện khi chạy.
+- `requires com.example.catalog;`: a regular dependency.
+- `requires transitive com.example.api;`: a dependency whose readability is propagated according to JPMS rules.
+- `requires static com.example.optional;`: a compile-time dependency, not necessarily required to be present at runtime.
 
-Với `requires static`, cần hiểu đúng: dependency có thể vắng mặt trong một lần resolution runtime. Không nên ép thêm module tùy chọn chỉ để loại bỏ một lỗi khác khi descriptor không thật sự yêu cầu sự hiện diện của nó. Tuy nhiên, nếu ứng dụng gọi class của optional dependency khi nó không được cung cấp, lỗi class loading vẫn có thể xảy ra ở giai đoạn sau.
+For `requires static`, understand it properly: the dependency may be absent during a runtime resolution. Do not force adding an optional module just to silence another error when the descriptor does not actually require its presence. However, if the application invokes a class from the optional dependency when it is not provided, a class loading error can still occur at a later stage.
 
-Nếu `requires transitive` của module thư viện kéo theo một dependency thiếu, thông báo `required by` có thể chỉ tới module thư viện chứ không nhất thiết root app. Hãy lần theo chuỗi dependency thực tế thay vì chỉ xem module root.
+If a library module's `requires transitive` pulls in a missing dependency, the `required by` message may point to the library module rather than necessarily the root app. Trace the actual dependency chain rather than looking only at the root module.
 
-## 10. Kiểm tra artifact trên module path
+## 10. Inspecting artifacts on the module path
 
-Cấu trúc triển khai thường gặp:
+A common deployment layout:
 
 ~~~text
 deployment/
@@ -428,9 +428,9 @@ deployment/
 └── start.sh
 ~~~
 
-Nếu start script trỏ tới `deployment/modules` khi working directory không phải `deployment`, relative path có thể được diễn giải sai.
+If the start script points to `deployment/modules` when the working directory is not `deployment`, the relative path can be misinterpreted.
 
-Trên Linux/macOS, có thể kiểm tra:
+On Linux/macOS, you can check:
 
 ~~~bash
 pwd
@@ -439,7 +439,7 @@ java --module-path modules \
      -m com.example.app/com.example.app.Main
 ~~~
 
-Trong PowerShell:
+In PowerShell:
 
 ~~~powershell
 Get-Location
@@ -447,45 +447,45 @@ Get-ChildItem .\modules
 java --module-path modules -m com.example.app/com.example.app.Main
 ~~~
 
-Với JAR nghi ngờ:
+For a suspect JAR:
 
 ~~~bash
 jar --describe-module --file modules/com.example.catalog.jar
 jar --list --file modules/com.example.catalog.jar
 ~~~
 
-Hãy xác nhận:
+Confirm:
 
-1. File JAR thực sự tồn tại ở vị trí mà process nhìn thấy.
-2. File không rỗng, bị cắt cụt hoặc hỏng.
-3. Descriptor chứa đúng module name.
-4. JAR cung cấp đúng module version/artifact dự kiến.
-5. Dependency bắc cầu của nó cũng có mặt hoặc ở parent configuration.
+1. The JAR file actually exists at the location seen by the process.
+2. The file is not empty, truncated, or corrupted.
+3. The descriptor contains the right module name.
+4. The JAR provides the expected module version/artifact.
+5. Its transitive dependencies are also present or in the parent configuration.
 
-Nếu dùng exploded module, kiểm tra thư mục có `module-info.class` và class files bên dưới đúng cấu trúc module.
+If using exploded modules, check that the directory has `module-info.class` and class files underneath in the proper module layout.
 
-## 11. Lỗi đọc module descriptor và modular JAR
+## 11. Errors reading module descriptors and modular JARs
 
-`FindException` không chỉ xuất hiện khi thiếu một tên module. Nó cũng có thể xuất hiện khi module finder gặp một artifact mà nó không thể đọc hoặc diễn giải như module hợp lệ.
+`FindException` does not only occur when a module name is missing. It can also occur when the module finder encounters an artifact that it cannot read or interpret as a valid module.
 
-Một số tình huống:
+Some scenarios:
 
-- `module-info.class` bị hỏng hoặc descriptor không hợp lệ.
-- Modular JAR bị cắt cụt, không đọc được hoặc không phải nội dung ZIP hợp lệ.
-- Metadata module không phù hợp với runtime/tool đang dùng.
-- Module path trỏ tới file hoặc thư mục không có nội dung module hợp lệ theo quy tắc mà finder kỳ vọng.
-- Có sự cố I/O hoặc quyền đọc đối với nguồn module.
+- `module-info.class` is corrupted or the descriptor is invalid.
+- The modular JAR is truncated, unreadable, or not valid ZIP content.
+- Module metadata is incompatible with the runtime/tool being used.
+- The module path points to a file or directory lacking valid module content under the rules expected by the finder.
+- There is an I/O or read-permission issue with the module source.
 
-Thông báo thường có thể chứa phần như:
+The message may contain something like:
 
 ~~~text
 java.lang.module.FindException:
 Error reading module: ... 
 ~~~
 
-Với một số nguyên nhân descriptor, exception gốc có thể được lồng trong cause chain. Do đó, hãy giữ stack trace và các `Caused by` thay vì chỉ trích dòng đầu tiên.
+For some descriptor issues, the underlying exception may be nested in the cause chain. Therefore, keep the stack trace and `Caused by` entries rather than extracting only the first line.
 
-Ví dụ:
+Example:
 
 ~~~java
 try {
@@ -504,13 +504,13 @@ try {
 }
 ~~~
 
-Không nên chỉ thêm một JAR bất kỳ cùng tên vào module path khi bản thực tế bị hỏng. Hãy sửa nguồn artifact, xác minh checksum hoặc build lại modular JAR từ input đáng tin cậy.
+Do not just drop an arbitrary JAR with the same name onto the module path when the actual copy is corrupted. Fix the artifact source, verify checksums, or rebuild the modular JAR from reliable inputs.
 
-## 12. Version JDK và tính tương thích module descriptor
+## 12. JDK version and module descriptor compatibility
 
-Nếu JAR được build bằng JDK mới hơn runtime đang sử dụng, có thể xuất hiện lỗi đọc class/descriptor hoặc lỗi định dạng class ở các giai đoạn khác nhau. Không phải mọi lỗi version đều là `FindException`, nhưng đây là một yếu tố cần kiểm tra khi module lookup bất thường.
+If a JAR was built with a newer JDK than the runtime being used, class/descriptor reading errors or class format errors may appear at different stages. Not every version error is a `FindException`, yet this is a factor to check when module lookup behaves abnormally.
 
-Kiểm tra:
+Check:
 
 ~~~bash
 java -version
@@ -518,23 +518,23 @@ javac -version
 jar --describe-module --file modules/com.example.catalog.jar
 ~~~
 
-Trong hệ thống CI/CD, nên cố định Java toolchain/baseline phù hợp cho build và runtime. Không trộn artifact được build từ cấu hình JDK khác nhau mà không biết mức bytecode và API tối thiểu của chúng.
+In CI/CD systems, pin an appropriate Java toolchain/baseline for build and runtime. Do not mix artifacts built from different JDK configurations without knowing their bytecode level and minimum API level.
 
-Nếu artifact dùng multi-release JAR, tên module và descriptor có thể phụ thuộc nội dung phù hợp với phiên bản runtime. Cần dùng đúng công cụ JDK và kiểm tra output mà môi trường triển khai thật sự nhìn thấy.
+If an artifact uses a multi-release JAR, the module name and descriptor may depend on content matching the runtime version. Use the appropriate JDK tools and inspect the output actually seen by the deployment environment.
 
-## 13. Automatic module và tên suy ra
+## 13. Automatic modules and derived names
 
-Một JAR trên module path nhưng không có `module-info.class` có thể trở thành automatic module.
+A JAR on the module path without `module-info.class` can become an automatic module.
 
-Ví dụ JAR:
+Example JAR:
 
 ~~~text
 shared-utils-3.2.jar
 ~~~
 
-Tên module automatic có thể được suy ra từ tên file (theo quy tắc của Java) hoặc lấy từ manifest `Automatic-Module-Name`.
+The automatic module name can be derived from the filename (according to Java's rules) or taken from `Automatic-Module-Name` in the manifest.
 
-Nếu app khai báo:
+If the app declares:
 
 ~~~java
 module com.example.app {
@@ -542,26 +542,26 @@ module com.example.app {
 }
 ~~~
 
-nhưng JAR trên module path lại có automatic module name khác, resolver sẽ không nhận diện dependency `com.example.shared` từ JAR đó.
+but the JAR on the module path has a different automatic module name, the resolver will not recognize the `com.example.shared` dependency from that JAR.
 
-Lệnh kiểm tra:
+Verification command:
 
 ~~~bash
 jar --describe-module --file lib/shared-utils-3.2.jar
 ~~~
 
-Nếu kết quả báo tên khác, hãy chọn cách sửa phù hợp:
+If the output reports a different name, choose an appropriate fix:
 
-- Dùng đúng module name được artifact công bố nếu thiết kế chấp nhận automatic module.
-- Chuyển thư viện thành explicit module có descriptor ổn định.
-- Dùng artifact/version phù hợp có `Automatic-Module-Name` được định nghĩa nhất quán.
-- Tránh đổi tên JAR tạm thời để giải quyết lỗi nếu điều đó tạo hợp đồng dependency không ổn định.
+- Use the exact module name published by the artifact if the design accepts an automatic module.
+- Convert the library to an explicit module with a stable descriptor.
+- Use an appropriate artifact/version that has `Automatic-Module-Name` defined consistently.
+- Avoid temporarily renaming the JAR to fix the error if doing so creates an unstable dependency contract.
 
-Khi migration từ classpath sang module path, quản lý module names là một phần quan trọng của thiết kế dependency.
+When migrating from the classpath to the module path, managing module names is an important part of dependency design.
 
-## 14. --add-modules không tạo ra module bị thiếu
+## 14. --add-modules does not create a missing module
 
-Tùy chọn `--add-modules` bổ sung module vào **root set** của resolution:
+The `--add-modules` option adds modules to the **root set** of resolution:
 
 ~~~bash
 java --module-path mods \
@@ -569,24 +569,24 @@ java --module-path mods \
      -m com.example.app/com.example.app.Main
 ~~~
 
-Nó không tải JAR từ Internet, không tự copy module dependency và không biến một tên không tồn tại thành module thật.
+It does not download JARs from the Internet, automatically copy module dependencies, or turn a nonexistent name into a real module.
 
-Nếu `com.example.catalog` không được finder nhìn thấy, chỉ thêm `--add-modules com.example.catalog` có thể làm lỗi xuất hiện sớm hơn hoặc cho ra thông báo thiếu root module.
+If `com.example.catalog` is not visible to the finder, merely adding `--add-modules com.example.catalog` may trigger the error earlier or produce a missing root module message.
 
-Tương tự:
+Similarly:
 
-- `--add-reads` thay đổi readability trong hoàn cảnh phù hợp, không tạo module source mới.
-- `--add-exports` mở quyền truy cập package, không tìm hoặc khôi phục JAR thiếu.
-- `--add-opens` liên quan reflection sâu, không liên quan module lookup.
-- `--module-path` mới là nơi cần kiểm tra khi resolver không thể tìm module artifact.
+- `--add-reads` changes readability in appropriate contexts; it does not create a new module source.
+- `--add-exports` opens package access; it does not find or restore a missing JAR.
+- `--add-opens` relates to deep reflection, not module lookup.
+- `--module-path` is what needs checking when the resolver cannot find a module artifact.
 
-Chỉ sử dụng `--add-modules` khi module có thể tìm được và bạn thực sự cần bổ sung root cho lần resolve.
+Only use `--add-modules` when the module can be found and you genuinely need to add a root for that resolution.
 
-## 15. Service binding có thể làm lộ dependency thiếu
+## 15. Service binding can expose missing dependencies
 
-Khi ứng dụng sử dụng service trong JPMS, `Configuration.resolveAndBind(...)` có thể bổ sung provider module ngoài các dependency thông thường.
+When an application uses services in JPMS, `Configuration.resolveAndBind(...)` can pull in provider modules beyond regular dependencies.
 
-Ví dụ:
+Example:
 
 ~~~java
 Configuration configuration =
@@ -597,7 +597,7 @@ Configuration configuration =
     );
 ~~~
 
-Một module app khai báo:
+An app module declares:
 
 ~~~java
 module com.example.app {
@@ -607,7 +607,7 @@ module com.example.app {
 }
 ~~~
 
-Một module provider có thể khai báo:
+A provider module may declare:
 
 ~~~java
 module com.example.provider.json {
@@ -619,132 +619,132 @@ module com.example.provider.json {
 }
 ~~~
 
-Nếu service binding đưa provider `com.example.provider.json` vào configuration nhưng `com.example.json.core` không tìm được, quá trình resolve có thể báo `FindException` liên quan dependency của provider.
+If service binding brings the `com.example.provider.json` provider into the configuration, but `com.example.json.core` cannot be found, resolution may report a `FindException` related to the provider's dependency.
 
-Vì vậy, khi lỗi chỉ xảy ra với `resolveAndBind` mà không xảy ra với `resolve`, hãy kiểm tra **các provider module được phát hiện** và toàn bộ dependency của chúng.
+Therefore, when the error occurs only with `resolveAndBind` and not with `resolve`, inspect the **discovered provider modules** and all of their dependencies.
 
-Không nên vô hiệu service binding một cách mù quáng nếu ứng dụng cần service. Thay vào đó, làm rõ module provider nào được đưa vào graph và bảo đảm các artifact của provider đầy đủ, tương thích.
+Do not blindly disable service binding if the application needs services. Instead, clarify which provider modules are brought into the graph and ensure the provider artifacts are complete and compatible.
 
-## 16. Custom ModuleFinder và nguồn module không nằm trên filesystem
+## 16. Custom ModuleFinders and non-filesystem module sources
 
-JPMS cho phép ứng dụng cung cấp `ModuleFinder` tùy biến, ví dụ đọc module từ repository hoặc bộ nhớ. Một custom finder cần trả về `ModuleReference` có descriptor hợp lệ và khả năng đọc nội dung module.
+JPMS allows applications to provide a custom `ModuleFinder`, for example reading modules from a repository or memory. A custom finder must return a `ModuleReference` with a valid descriptor and the ability to read module contents.
 
-Khi ứng dụng dùng custom finder:
+When an application uses a custom finder:
 
-- `find(name)` cần trả về đúng module theo tên descriptor.
-- `findAll()` cần công bố tập module khả dụng nhất quán.
-- `ModuleReference.descriptor()` cần phản ánh đúng dependency và package thực tế.
-- `ModuleReference.open()` phải cung cấp `ModuleReader` đọc được class và resources.
-- Cần có chính sách version/tenant để tránh thay đổi tập module giữa các bước resolve.
+- `find(name)` must return the right module by descriptor name.
+- `findAll()` must publish a consistent set of available modules.
+- `ModuleReference.descriptor()` must accurately reflect the actual dependencies and packages.
+- `ModuleReference.open()` must provide a `ModuleReader` able to read classes and resources.
+- There must be a version/tenant policy to avoid changing the module set between resolution steps.
 
-Nếu repository có artifact nhưng finder trả về `Optional.empty()` vì mapping tên sai, resolver vẫn coi module là không tìm thấy. Nếu metadata descriptor bị lỗi, finder có thể ném `FindException` trước khi tạo configuration.
+If the repository has the artifact yet the finder returns `Optional.empty()` because of a wrong name mapping, the resolver still considers the module not found. If descriptor metadata is broken, the finder may throw `FindException` before creating a configuration.
 
-Đừng chỉ debug filesystem nếu ứng dụng sử dụng một custom source. Hãy quan sát chính logic của finder và danh sách module mà nó công bố.
+Do not only debug the filesystem if the application uses a custom source. Observe the finder's own logic and the list of modules it publishes.
 
-## 17. FindException khác ResolutionException ra sao?
+## 17. How does FindException differ from ResolutionException?
 
-Hai exception này thường bị nhầm:
+These two exceptions are often confused:
 
-| Loại lỗi | Giai đoạn chủ yếu | Ví dụ |
+| Error type | Primary stage | Examples |
 |---|---|---|
-| `FindException` | Tìm/đọc module | Root không tồn tại, dependency không tìm được, không đọc được descriptor |
-| `ResolutionException` | Kiểm tra module graph đã tìm thấy | Module graph xung đột do nhiều module cung cấp package không tương thích |
-| `LayerInstantiationException` | Định nghĩa runtime layer | Không thể áp dụng module configuration vào layer/loader |
-| `ClassNotFoundException` | Nạp class theo tên | Loader không tìm thấy một class |
-| `NoClassDefFoundError` | Link/load class lúc dùng | Class cần thiết không thể được định nghĩa hoặc nạp |
-| `IllegalAccessError` | Runtime access check | Truy cập tới class/member bị chặn bởi Java/JPMS rules |
+| `FindException` | Finding/reading modules | Root does not exist, dependency not found, cannot read descriptor |
+| `ResolutionException` | Validating found module graph | Module graph conflicts because multiple modules supply incompatible packages |
+| `LayerInstantiationException` | Defining runtime layer | Cannot apply module configuration to layer/loaders |
+| `ClassNotFoundException` | Loading a class by name | Loader cannot find a class |
+| `NoClassDefFoundError` | Linking/loading class on use | Required class cannot be defined or found |
+| `IllegalAccessError` | Runtime access check | Access to class/member blocked by Java/JPMS rules |
 
-Ví dụ hai module đã có mặt đầy đủ nhưng đều khiến cùng một consumer đọc package trùng nhau, lỗi đó thiên về **module graph conflict**, không phải thiếu module artifact. Khi ấy, tăng `--module-path` bằng cách thêm nhiều JAR chưa chắc giúp; thậm chí làm xung đột phức tạp hơn.
+For example, if two modules are both present yet cause the same consumer to read overlapping packages, that error leans toward a **module graph conflict**, not a missing module artifact. In that case, expanding `--module-path` by adding more JARs will not necessarily help; it can even make the conflict worse.
 
-Ngược lại, nếu thông báo là `Module X not found`, trước tiên hãy tìm đúng artifact có module name X.
+Conversely, if the message says `Module X not found`, first locate the exact artifact with module name X.
 
-## 18. Module path, classpath và các giới hạn root set
+## 18. Module path, classpath, and root set limits
 
-Một số tùy chọn runtime làm thay đổi tập module mà resolver có thể quan sát:
+Several runtime options change the set of modules observable to the resolver:
 
-- `--module-path`: nơi tìm application modules.
-- `--upgrade-module-path`: nơi cung cấp các module nâng cấp nếu môi trường cho phép.
-- `--limit-modules`: giới hạn tập module có thể quan sát, có thể khiến module cần thiết trở nên không khả dụng.
-- `--add-modules`: bổ sung roots mà resolver phải xét.
-- `-m`: chỉ định named root module được khởi chạy.
+- `--module-path`: where to find application modules.
+- `--upgrade-module-path`: where to provide upgradeable modules if the environment permits.
+- `--limit-modules`: restricts the observable module set, which can make a needed module unavailable.
+- `--add-modules`: adds roots that the resolver must consider.
+- `-m`: specifies the named root module to launch.
 
-Nếu một module có trên filesystem nhưng bị loại khỏi tập module quan sát do cách thiết lập giới hạn hoặc nguồn tìm kiếm, lỗi vẫn có thể là không tìm thấy từ góc nhìn resolver.
+If a module exists on the filesystem yet is excluded from the observable module set due to limiting settings or search sources, the error can still be "not found" from the resolver's perspective.
 
-Ví dụ, khi debug `--limit-modules`, hãy thử một cấu hình kiểm tra không có giới hạn đó trong môi trường test để xác định liệu giới hạn đang ẩn dependency hay không. Không nên xóa vĩnh viễn chính sách giới hạn production nếu chưa hiểu mục tiêu vận hành hoặc bảo mật của nó.
+For example, when debugging `--limit-modules`, try a test configuration without that limit in a test environment to determine whether the limit is hiding a dependency. Do not permanently remove a production limiting policy without understanding its operational or security goals.
 
-Hãy phân biệt **module artifact tồn tại trên đĩa** với **module name được finder chọn và hiện diện trong lần resolution cụ thể**. Hai điều này không luôn tương đương.
+Distinguish between **a module artifact existing on disk** and **a module name being selected by the finder and present in a specific resolution**. The two are not always equivalent.
 
-## 19. JDK tools phục vụ chẩn đoán
+## 19. JDK tools for diagnostics
 
-Những lệnh hữu ích:
+Useful commands:
 
 ~~~bash
-# Kiểm tra phiên bản Java
+# Check Java version
 java -version
 javac -version
 
-# Kiểm tra descriptor và tên module
+# Check descriptor and module name
 jar --describe-module --file lib/com.example.catalog.jar
 
-# Kiểm tra class và module-info.class
+# Check classes and module-info.class
 jar --list --file lib/com.example.catalog.jar
 
-# Liệt kê module của runtime image
+# List runtime image modules
 java --list-modules
 
-# In thông tin quá trình resolution khi khởi chạy
+# Print resolution process on launch
 java --show-module-resolution \
      --module-path "mods:lib" \
      -m com.example.app/com.example.app.Main
 ~~~
 
-Nếu muốn xem dependency giữa các module đã build, có thể dùng `jdeps` với module path phù hợp:
+If you want to inspect dependencies among built modules, you can use `jdeps` with the appropriate module path:
 
 ~~~bash
 jdeps --module-path "mods:lib" \
       --check com.example.app
 ~~~
 
-Các lệnh giúp xác định những thông tin khác nhau:
+These commands help determine different pieces of information:
 
-- `jar --describe-module`: artifact tự nhận có tên module gì và khai báo gì.
-- `jar --list`: artifact có thực sự chứa class files/descriptor không.
-- `java --list-modules`: runtime image hiện có module JDK nào.
-- `--show-module-resolution`: giúp quan sát graph được launcher resolve nếu tiến trình tới được phần báo cáo phù hợp.
-- `jdeps`: hỗ trợ kiểm tra dependency/đồ thị module ở mức artifact.
+- `jar --describe-module`: what module name the artifact claims and what it declares.
+- `jar --list`: whether the artifact actually contains class files/descriptor.
+- `java --list-modules`: which JDK modules the runtime image currently has.
+- `--show-module-resolution`: helps observe the graph resolved by the launcher if execution reaches the relevant reporting phase.
+- `jdeps`: assists in checking dependencies/module graph at the artifact level.
 
-Nếu command line dài hoặc do build tool sinh ra, hãy log **lệnh/argument list thực tế** thay vì chỉ tin vào file cấu hình IDE hoặc Gradle/Maven.
+If the command line is long or generated by a build tool, log the **actual command/argument list** rather than trusting only IDE or Gradle/Maven configuration files.
 
-## 20. Quy trình xử lý FindException theo thứ tự
+## 20. Ordered workflow for handling FindException
 
-Khi gặp `FindException`, thực hiện theo các bước sau:
+When encountering `FindException`, follow these steps:
 
-1. **Đọc nguyên thông báo.** Xác định tên module sau `Module ... not found` và module ở phần `required by` nếu có.
-2. **Ghi lại lệnh đang chạy.** Bao gồm Java version, working directory, module path, main module, `--add-modules` và các option giới hạn.
-3. **Kiểm tra artifact thực tế.** Tệp/thư mục có ở đúng nơi JVM chạy không?
-4. **Đọc module name bằng JDK tool.** Dùng `jar --describe-module`; không suy đoán theo tên file.
-5. **Kiểm tra descriptor của module yêu cầu.** Directive `requires`, `requires transitive` hoặc `requires static` có đúng tên và ngữ nghĩa không?
-6. **Kiểm tra dependency bắc cầu.** Module cần tìm có phụ thuộc vào module khác chưa được cung cấp không?
-7. **Kiểm tra custom finder nếu có.** `find` và `findAll` có thấy đúng module name không?
-8. **Nếu báo error reading module**, kiểm tra JAR, descriptor, I/O, checksum và cause chain.
-9. **Nếu chỉ lỗi khi bind services**, kiểm tra provider module mới được resolve và dependency của chúng.
-10. **Chạy lại với module path tối thiểu, tường minh.** Không thêm flags mở access không liên quan.
-11. **Kiểm tra cả build và runtime.** Một module có thể có lúc compile nhưng thiếu ở môi trường deploy.
-12. **Xác nhận module graph.** Chỉ sau khi resolution thành công mới debug class loading hoặc truy cập package.
+1. **Read the entire message.** Identify the module name after `Module ... not found` and the module in `required by` if present.
+2. **Record the running command.** Include Java version, working directory, module path, main module, `--add-modules`, and limiting options.
+3. **Check the actual artifact.** Is the file/directory in the right place where the JVM runs?
+4. **Read the module name with a JDK tool.** Use `jar --describe-module`; do not guess from the filename.
+5. **Check the requiring module's descriptor.** Do `requires`, `requires transitive`, or `requires static` directives have the right name and semantics?
+6. **Check transitive dependencies.** Does the module being looked up depend on another module that has not been supplied?
+7. **Check any custom finder.** Do `find` and `findAll` see the right module name?
+8. **If it reports error reading module**, check the JAR, descriptor, I/O, checksum, and cause chain.
+9. **If it fails only when binding services**, check newly resolved provider modules and their dependencies.
+10. **Re-run with a minimal, explicit module path.** Do not add unrelated flags that open access.
+11. **Check both build and runtime.** A module may be present at compile time yet missing in the deployment environment.
+12. **Confirm the module graph.** Only after resolution succeeds should you debug class loading or package access.
 
-Quy trình có thứ tự giúp tránh sửa sai tầng, chẳng hạn thay đổi `exports` khi artifact đang thiếu hoàn toàn.
+An ordered workflow prevents fixing the wrong layer, such as changing `exports` when the artifact is completely missing.
 
-## 21. Các trường hợp thực tế
+## 21. Real-world scenarios
 
-### 21.1. Chạy từ IDE được nhưng chạy JAR thất bại
+### 21.1. Running from the IDE works, but running the JAR fails
 
-IDE có thể tự thêm dependency lên module path khi chạy. Script triển khai chỉ copy một modular JAR nên thiếu những dependency trực tiếp hoặc bắc cầu.
+The IDE may automatically add dependencies to the module path when running. The deployment script copies only one modular JAR, missing direct or transitive dependencies.
 
-Cách xử lý là xem JVM args do IDE tạo, đối chiếu với command line production và đóng gói đầy đủ các module cần thiết.
+The fix is to inspect the JVM args generated by the IDE, compare them against the production command line, and package all required modules.
 
-### 21.2. Refactor tên module nhưng quên cập nhật requires
+### 21.2. Refactoring a module name while forgetting to update requires
 
-Trước đây:
+Previously:
 
 ~~~java
 module com.example.catalog {
@@ -752,7 +752,7 @@ module com.example.catalog {
 }
 ~~~
 
-Sau refactor thành:
+Refactored to:
 
 ~~~java
 module com.example.catalog.core {
@@ -760,7 +760,7 @@ module com.example.catalog.core {
 }
 ~~~
 
-Nhưng app vẫn có:
+Yet the app still has:
 
 ~~~java
 module com.example.app {
@@ -768,11 +768,11 @@ module com.example.app {
 }
 ~~~
 
-Dù artifact mới tồn tại, resolver không có module tên cũ `com.example.catalog`. Cần cập nhật descriptor app và các dependency tương ứng hoặc giữ lại một module compatibility hợp lệ nếu chiến lược migration đòi hỏi.
+Even though the new artifact exists, the resolver has no module named `com.example.catalog`. Update the app descriptor and corresponding dependencies, or retain a valid compatibility module if a migration strategy requires it.
 
-### 21.3. Thư viện được đặt trên classpath
+### 21.3. A library is placed on the classpath
 
-App yêu cầu named module `com.example.catalog` nhưng người triển khai chạy:
+The app requires the named module `com.example.catalog`, but the deployer runs:
 
 ~~~bash
 java -cp "lib/*" \
@@ -780,63 +780,63 @@ java -cp "lib/*" \
      -m com.example.app/com.example.app.Main
 ~~~
 
-Nếu catalog JAR chỉ nằm trên classpath, resolver không thể thỏa mãn `requires com.example.catalog;` bằng JAR đó. Chuyển đúng artifact sang module path hoặc điều chỉnh kiến trúc phụ thuộc phù hợp; không mong classpath cung cấp named module.
+If the catalog JAR sits only on the classpath, the resolver cannot satisfy `requires com.example.catalog;` with that JAR. Move the right artifact to the module path or adjust the dependency architecture accordingly; do not expect the classpath to supply named modules.
 
-### 21.4. Plugin tồn tại nhưng không nằm trong ModuleFinder
+### 21.4. A plugin exists but is not inside ModuleFinder
 
-Ứng dụng dùng:
+The application uses:
 
 ~~~java
 ModuleFinder finder =
     ModuleFinder.of(Path.of("plugins/active"));
 ~~~
 
-Trong khi artifact được triển khai tại `plugins/available`. Dù JAR nằm trên đĩa, finder không tìm thấy nó từ thư mục `active`.
+While the artifact is deployed at `plugins/available`. Even though the JAR is on disk, the finder does not find it from the `active` directory.
 
-Đổi đường dẫn finder đúng nguồn dự kiến, hoặc có chính sách active plugin rõ ràng. Không sửa tên module chỉ vì cấu hình thư mục triển khai sai.
+Point the finder path to the intended source, or establish a clear plugin activation policy. Do not change module names just because the deployment directory configuration is wrong.
 
-### 21.5. Provider service kéo theo một dependency mới
+### 21.5. A service provider pulls in a new dependency
 
-Một provider được thêm vào thư mục plugins có `requires com.example.codec;`. Nếu repository chưa triển khai module codec, `resolveAndBind` có thể thất bại dù root app vẫn không đổi. Kiểm tra dependency của provider và phạm vi tìm kiếm module.
+A provider added to the plugins directory has `requires com.example.codec;`. If the repository has not deployed the codec module, `resolveAndBind` can fail even though the root app did not change. Check the provider's dependencies and the module search scope.
 
-## 22. Những cách xử lý sai thường gặp
+## 22. Common wrong fixes
 
-**Thêm `--add-exports` để sửa module not found.** Export chỉ ảnh hưởng quyền truy cập package; không làm module xuất hiện.
+**Adding `--add-exports` to fix module not found.** Exports only affect package access permissions; they do not make a module appear.
 
-**Thêm `--add-modules` cho một module không tồn tại.** Lựa chọn root không tạo ra artifact. Trước tiên phải đưa đúng module vào phạm vi finder.
+**Adding `--add-modules` for a nonexistent module.** Selecting a root does not create an artifact. First bring the right module into the finder's scope.
 
-**Chỉ sửa tên JAR.** Với explicit module, tên module đến từ descriptor; đổi filename không thay đổi tên module.
+**Only renaming the JAR.** For an explicit module, the module name comes from the descriptor; changing the filename does not change the module name.
 
-**Chuyển toàn bộ JAR sang classpath.** Điều này có thể loại bỏ module graph dự kiến và thay đổi mô hình encapsulation, không phải cách sửa tối thiểu khi dự án được thiết kế theo JPMS.
+**Moving all JARs to the classpath.** This can eliminate the intended module graph and alter the encapsulation model; it is not a minimal fix when the project is designed around JPMS.
 
-**Bỏ dòng `requires` để runtime hết báo lỗi.** Nếu app thật sự phụ thuộc API của module bị thiếu, xóa dependency có thể tạo lỗi compile hoặc runtime khác. Chỉ sửa descriptor khi quan hệ dependency không còn hợp lệ trong kiến trúc.
+**Removing the `requires` line to stop the runtime error.** If the app genuinely depends on the missing module's API, removing the dependency can cause another compile or runtime error. Only edit the descriptor when the dependency relationship is no longer valid in the architecture.
 
-**Nuốt FindException rồi tiếp tục chạy plugin như thể đã resolve.** Nếu configuration chưa được tạo thành công, việc tiếp tục định nghĩa layer hoặc gọi service là không đáng tin cậy. Bắt exception để báo lỗi giàu ngữ cảnh rồi dừng hoặc chọn fallback đã được thiết kế.
+**Swallowing FindException and continuing to run the plugin as if resolved.** If a configuration was not created successfully, proceeding to define a layer or invoke services is unreliable. Catch the exception to report a context-rich error and then stop or select a designed fallback.
 
-**Nhầm FindException với ResolutionException.** Nếu module đã tìm được nhưng graph xung đột, cần phân tích package/readability và lựa chọn version chứ không chỉ kiểm tra JAR có tồn tại hay không.
+**Confusing FindException with ResolutionException.** If the modules were found but the graph conflicts, analyze packages/readability and version selection rather than merely checking whether the JAR exists.
 
-**Sửa mọi cấu hình cùng lúc.** Điều chỉnh một biến theo từng bước: working directory, module path, module names, dependency, provider finder. Cách này giúp xác định nguyên nhân chính xác.
+**Changing all configurations at once.** Adjust one variable step by step: working directory, module path, module names, dependencies, provider finder. This approach helps pinpoint the exact cause.
 
-## 23. Checklist tự kiểm tra
+## 23. Self-check checklist
 
-1. Module root được chỉ định trong `-m` có nằm trên module path không?
-2. Tên module trong descriptor có đúng với tên mà lệnh `java` và `requires` sử dụng không?
-3. Module thiếu là root hay dependency của module khác?
-4. Có `requires transitive` kéo theo dependency bắc cầu không?
-5. Có đang nhầm `requires static` với dependency runtime bắt buộc không?
-6. JAR là explicit module hay automatic module?
-7. Có module nào chỉ được đặt trên classpath nên resolver không nhìn thấy không?
-8. Java version ở máy build và runtime có tương thích với artifact không?
-9. ModuleFinder có đọc được nguồn mà không ném FindException không?
-10. Trong custom finder, tên module có trùng với descriptor.name() không?
-11. Có `--limit-modules` hoặc cấu hình finder nào đang ẩn module cần thiết không?
-12. `resolveAndBind` có đưa provider mới và dependency mới vào graph không?
-13. Có giữ đủ stack trace và `Caused by` khi báo lỗi không?
-14. Đã phân biệt lỗi finding với graph conflict và class loading chưa?
-15. Lệnh triển khai production có đầy đủ module path mà IDE/CI đã dùng khi build không?
+1. Is the root module specified in `-m` present on the module path?
+2. Does the module name in the descriptor match the name used by the `java` command and `requires`?
+3. Is the missing module a root or a dependency of another module?
+4. Is there a `requires transitive` pulling in a transitive dependency?
+5. Are you confusing `requires static` with a mandatory runtime dependency?
+6. Is the JAR an explicit module or an automatic module?
+7. Is any module placed only on the classpath so the resolver cannot see it?
+8. Are the Java versions on the build machine and runtime compatible with the artifacts?
+9. Can `ModuleFinder` read the source without throwing `FindException`?
+10. In a custom finder, does the module name match `descriptor.name()`?
+11. Is any `--limit-modules` or finder configuration hiding a required module?
+12. Does `resolveAndBind` bring new providers and new dependencies into the graph?
+13. Are the full stack trace and `Caused by` preserved when reporting the error?
+14. Have you distinguished finding errors from graph conflicts and class loading?
+15. Does the production launch command include the full module path that the IDE/CI used during the build?
 
-## 24. Kết luận
+## 24. Conclusion
 
-`java.lang.module.FindException` là tín hiệu rằng Java không thể **tìm hoặc đọc một module cần thiết** trong quá trình xây dựng module graph. Cách xử lý đúng không phải là mở rộng exports, chỉnh reflection hay thử nhiều JVM flags một cách ngẫu nhiên. Hãy bắt đầu từ **tên module trong thông báo**, tìm module bằng `ModuleFinder` hoặc `jar --describe-module`, kiểm tra module path, dependency trực tiếp/bắc cầu và trạng thái artifact. Nếu dùng dynamic `ModuleLayer` hoặc service binding, hãy kiểm tra cả finder và các provider được resolve.
+`java.lang.module.FindException` is a signal that Java cannot **find or read a required module** while constructing the module graph. The right fix is not widening exports, adjusting reflection, or trying random JVM flags. Start from **the module name in the message**, locate the module with `ModuleFinder` or `jar --describe-module`, check the module path, direct/transitive dependencies, and artifact state. If using a dynamic `ModuleLayer` or service binding, check both the finder and the resolved providers.
 
-Khi module được tìm thấy và descriptor hợp lệ, quá trình resolution mới có thể tiếp tục kiểm tra tính nhất quán của module graph. Phân biệt rõ những giai đoạn đó giúp sửa lỗi đúng nguyên nhân, bảo toàn cấu trúc module và vận hành ứng dụng JPMS đáng tin cậy.
+Once the module is found and its descriptor is valid, resolution can proceed to validate the consistency of the module graph. Clearly distinguishing these stages helps fix errors at their true cause, preserve module structure, and operate JPMS applications reliably.

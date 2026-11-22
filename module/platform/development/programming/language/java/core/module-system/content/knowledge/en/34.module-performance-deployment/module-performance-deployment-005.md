@@ -1,24 +1,24 @@
-# Resource lookup trong modular JAR
+# Resource Lookup in Modular JARs
 
-## 1. Mục tiêu
+## 1. Objectives
 
-JAR có thể chứa class, cấu hình, template, schema, ảnh, file ngôn ngữ và nhiều tài nguyên khác. Ứng dụng thường đọc những tài nguyên này bằng **Class.getResource()**, **ClassLoader.getResource()** hoặc **getResourceAsStream()**.
+A JAR can contain classes, configuration files, templates, schemas, images, localization files, and many other resources. Applications typically read these resources using **Class.getResource()**, **ClassLoader.getResource()**, or **getResourceAsStream()**.
 
-Khi một JAR được dùng như named module trên module path, resource lookup còn chịu quy tắc encapsulation của Java Platform Module System (JPMS). Một resource có thể nằm trong JAR nhưng vẫn không được module khác nhìn thấy nếu package chứa resource chưa được mở phù hợp. Vì vậy, việc đóng gói đúng file và việc cấp quyền truy cập resource là hai phần riêng biệt cần kiểm tra.
+When a JAR is used as a named module on the module path, resource lookup is also subject to the encapsulation rules of the Java Platform Module System (JPMS). A resource may exist inside the JAR yet still be invisible to another module if the package containing the resource has not been opened appropriately. Therefore, packaging the right file and granting permission to access the resource are two separate aspects to check.
 
-Bài này giải thích cách đặt resource trong modular JAR, khác biệt giữa các API lookup, quy tắc **opens**, cách đọc resource từ module hoặc module layer, và cách chẩn đoán trường hợp resource tồn tại nhưng lookup trả về null.
+This lesson explains how to place resources in a modular JAR, differences between lookup APIs, **opens** rules, how to read resources from a module or module layer, and how to diagnose cases where a resource exists yet lookup returns null.
 
-Sau bài học, bạn có thể:
-- Đặt resource đúng đường dẫn trong JAR và kiểm tra nội dung artifact.
-- Phân biệt đường dẫn tương đối/tuyệt đối của Class với đường dẫn của ClassLoader.
-- Hiểu resource encapsulation trong named module.
-- Dùng **opens** hoặc **--add-opens** khi module khác cần đọc resource trong package.
-- Chọn API phù hợp khi resource thuộc classpath, module hoặc plugin layer.
-- Tránh các lỗi phổ biến liên quan tới duplicate resource, URL của JAR và cache.
+After this lesson, you will be able to:
+- Place resources at the right path inside a JAR and inspect artifact contents.
+- Distinguish Class relative/absolute paths from ClassLoader paths.
+- Understand resource encapsulation in named modules.
+- Use **opens** or **--add-opens** when another module needs to read resources in a package.
+- Choose the right API when resources belong to the classpath, a module, or a plugin layer.
+- Avoid common pitfalls related to duplicate resources, JAR URLs, and caching.
 
-## 2. Resource trong JAR và modular JAR
+## 2. Resources in JARs and Modular JARs
 
-Resource là dữ liệu được đóng gói cùng ứng dụng hoặc thư viện để chương trình đọc khi chạy. Ví dụ:
+Resources are data packaged alongside an application or library for the program to read at runtime. Example:
 
 ~~~text
 com/example/app/
@@ -33,7 +33,7 @@ com/example/app/
     messages_vi.properties
 ~~~
 
-Một modular JAR còn chứa **module-info.class** ở thư mục gốc của archive:
+A modular JAR also contains **module-info.class** at the root of the archive:
 
 ~~~text
 app.jar
@@ -43,7 +43,7 @@ app.jar
   com/example/app/templates/invoice.html
 ~~~
 
-Resource thường được giữ theo package hoặc thư mục tương ứng với thành phần sở hữu nó. Ví dụ, cấu trúc dự án Maven/Gradle có thể là:
+Resources are normally organized by the package or directory corresponding to the owning component. For example, a Maven/Gradle project structure might be:
 
 ~~~text
 src/
@@ -56,33 +56,33 @@ src/
       com/example/app/templates/invoice.html
 ~~~
 
-Trong quá trình build, resource từ **src/main/resources** được sao chép vào output directory và sau đó đóng gói vào JAR theo đúng đường dẫn tương đối. Với Gradle, bước xử lý resource thường do task **processResources** thực hiện; với Maven, resource được xử lý trong lifecycle resources. Cấu hình build có thể thay đổi đường dẫn hoặc lọc nội dung, nên hãy kiểm tra artifact cuối cùng.
+During the build, resources from **src/main/resources** are copied to the output directory and then packaged into the JAR at the same relative path. In Gradle, resource processing is typically performed by the **processResources** task; in Maven, resources are handled in the resources lifecycle phase. Build configuration can alter paths or filter content, so inspect the final artifact.
 
-Lệnh liệt kê nội dung JAR:
+Command to list JAR contents:
 
 ~~~bash
 jar --list --file app.jar
 ~~~
 
-Hoặc dạng ngắn tương đương:
+Or the short equivalent form:
 
 ~~~bash
 jar -tf app.jar
 ~~~
 
-Kiểm tra module descriptor:
+Inspect the module descriptor:
 
 ~~~bash
 jar --describe-module --file app.jar
 ~~~
 
-**Có file trong source tree không đồng nghĩa file đã được đóng gói.** Resource có thể bị bỏ qua bởi cấu hình build, nằm sai thư mục, bị đổi tên khi filtering hoặc không được đưa vào artifact phát hành. Khi lookup thất bại, hãy kiểm tra JAR thực tế trước khi thay đổi code.
+**Having a file in the source tree does not mean the file was packaged.** A resource may be excluded by build configuration, placed in the wrong directory, renamed during filtering, or omitted from the release artifact. When lookup fails, inspect the actual JAR before changing code.
 
-## 3. Quy tắc đặt tên resource
+## 3. Resource Naming Rules
 
-Resource path dùng dấu gạch chéo xuôi **/** để phân tách thư mục, kể cả khi ứng dụng chạy trên Windows. Không dùng dấu gạch chéo ngược trong resource name.
+Resource paths use forward slashes **/** as directory separators, even when the application runs on Windows. Do not use backslashes in resource names.
 
-Ví dụ:
+Example:
 
 ~~~text
 com/example/app/config/defaults.properties
@@ -90,22 +90,22 @@ com/example/app/templates/invoice.html
 com/example/app/messages/messages_vi.properties
 ~~~
 
-Tên resource là đường dẫn bên trong archive, không phải đường dẫn file trên máy. Vì vậy, không truyền đường dẫn như **C:\project\resources\defaults.properties** cho ClassLoader.
+A resource name is a path inside the archive, not a filesystem path on disk. Therefore, do not pass paths like **C:\project\resources\defaults.properties** to ClassLoader.
 
-Một số nguyên tắc:
+Several guidelines:
 
-- Dùng tên package/path ổn định và nhất quán với module sở hữu resource.
-- Phân biệt chữ hoa/chữ thường; JAR và nhiều môi trường chạy xử lý resource path theo đúng tên entry.
-- Không thêm ký tự **.** để thay dấu **/** trong resource path.
-- Không giả định resource nằm cạnh thư mục làm việc hiện tại.
-- Tránh tên resource chung chung như **config.properties** nếu nhiều thư viện có thể đóng gói cùng tên.
-- Không đặt thông tin bí mật như password, private key hoặc token vào resource trong JAR; nội dung archive có thể được đọc.
+- Use stable package/path names consistent with the module owning the resource.
+- Be case-sensitive; JARs and many runtime environments resolve resource paths by exact entry name.
+- Do not use **.** characters in place of **/** in a resource path.
+- Do not assume resources sit next to the current working directory.
+- Avoid generic resource names like **config.properties** if multiple libraries might package the same name.
+- Do not put secrets such as passwords, private keys, or tokens into resources inside a JAR; archive contents can be read.
 
-## 4. Class.getResource(): lookup theo class
+## 4. Class.getResource(): Class-Based Lookup
 
-**Class.getResource(String name)** tìm resource gắn với class cụ thể. Quy tắc đường dẫn của API này có hai dạng.
+**Class.getResource(String name)** searches for a resource relative to a specific class. This API's path rules have two forms.
 
-**Tên tương đối:** nếu name không bắt đầu bằng dấu **/**, đường dẫn được tính tương đối với package của class.
+**Relative name:** if `name` does not start with **/**, the path is resolved relative to the class's package.
 
 ~~~java
 package com.example.app;
@@ -118,13 +118,13 @@ public class Main {
 }
 ~~~
 
-Với class **com.example.app.Main**, đường dẫn được tìm là:
+For class **com.example.app.Main**, the path searched is:
 
 ~~~text
 com/example/app/config/defaults.properties
 ~~~
 
-**Tên tuyệt đối:** nếu name bắt đầu bằng **/**, dấu gạch chéo đầu tiên được bỏ đi và phần còn lại được tính từ gốc resource của module/JAR.
+**Absolute name:** if `name` starts with **/**, the leading slash is stripped and the remainder is resolved from the resource root of the module/JAR.
 
 ~~~java
 var url = Main.class.getResource(
@@ -132,15 +132,15 @@ var url = Main.class.getResource(
 );
 ~~~
 
-Hai cách trên trỏ tới cùng resource trong ví dụ.
+Both approaches point to the same resource in the example.
 
-Có thể đọc trực tiếp thành InputStream:
+You can read directly as an InputStream:
 
 ~~~java
 try (var input = Main.class.getResourceAsStream(
         "config/defaults.properties")) {
     if (input == null) {
-        throw new IllegalStateException("Không tìm thấy defaults.properties");
+        throw new IllegalStateException("defaults.properties not found");
     }
 
     var properties = new java.util.Properties();
@@ -148,13 +148,13 @@ try (var input = Main.class.getResourceAsStream(
 }
 ~~~
 
-**Class.getResource()** thường phù hợp khi resource thuộc về chính class hoặc package của class. Nó giúp code tránh phụ thuộc vào thread context class loader và làm rõ thành phần sở hữu resource.
+**Class.getResource()** is generally suitable when the resource belongs to the class itself or its package. It keeps code from depending on the thread context class loader and makes resource ownership clear.
 
-Lưu ý: **getResource()** trả về **null** khi không tìm thấy hoặc khi resource không được phép truy cập theo quy tắc encapsulation của module. Hãy kiểm tra cả đường dẫn lẫn module access.
+Note: **getResource()** returns **null** when the resource is not found or when access is disallowed under module encapsulation rules. Check both the path and module access.
 
-## 5. ClassLoader.getResource(): lookup từ gốc class loader
+## 5. ClassLoader.getResource(): Root Lookup from a Class Loader
 
-**ClassLoader.getResource(String name)** luôn nhận tên resource tính từ gốc, không có dấu **/** ở đầu.
+**ClassLoader.getResource(String name)** always takes a resource name relative to the root, without a leading **/**.
 
 ~~~java
 ClassLoader loader = Main.class.getClassLoader();
@@ -164,7 +164,7 @@ var url = loader.getResource(
 );
 ~~~
 
-Nếu dùng tên có dấu **/**:
+If you use a name with a leading **/**:
 
 ~~~java
 loader.getResource(
@@ -172,15 +172,15 @@ loader.getResource(
 );
 ~~~
 
-thì thông thường lookup không tìm thấy entry vì ClassLoader không loại bỏ dấu gạch chéo đầu tiên như **Class.getResource()**.
+lookup will normally not find the entry because ClassLoader does not strip the leading slash the way **Class.getResource()** does.
 
-Đọc bằng stream:
+Reading via stream:
 
 ~~~java
 try (var input = loader.getResourceAsStream(
         "com/example/app/config/defaults.properties")) {
     if (input == null) {
-        throw new IllegalStateException("Resource không tồn tại hoặc không truy cập được");
+        throw new IllegalStateException("Resource does not exist or is not accessible");
     }
 
     var properties = new java.util.Properties();
@@ -188,36 +188,36 @@ try (var input = loader.getResourceAsStream(
 }
 ~~~
 
-Một số API ClassLoader thường dùng:
+Common ClassLoader APIs:
 
-- **getResource(name)**: trả về URL của resource đầu tiên được tìm thấy.
-- **getResources(name)**: trả về Enumeration gồm các resource cùng tên mà loader tìm được.
-- **getResourceAsStream(name)**: mở resource thành InputStream; trả về null nếu không tìm thấy hoặc không truy cập được.
+- **getResource(name)**: returns the URL of the first resource found.
+- **getResources(name)**: returns an Enumeration of all resources with the same name found by the loader.
+- **getResourceAsStream(name)**: opens the resource as an InputStream; returns null if not found or inaccessible.
 
-ClassLoader phù hợp khi ứng dụng cần tra cứu resource từ một loader cụ thể, đặc biệt trong framework, application server hoặc hệ thống plugin. Tuy nhiên, cần nhớ context class loader của thread có thể khác với defining class loader của class hiện tại.
+ClassLoader is appropriate when the application needs to look up resources from a specific loader, especially in frameworks, application servers, or plugin systems. However, remember that the thread's context class loader may differ from the defining class loader of the current class.
 
-## 6. So sánh Class và ClassLoader
+## 6. Comparing Class and ClassLoader
 
-| Tiêu chí | Class.getResource(name) | ClassLoader.getResource(name) |
+| Criterion | Class.getResource(name) | ClassLoader.getResource(name) |
 |---|---|---|
-| Đường dẫn tương đối | Tính từ package của class | Không có khái niệm tương đối theo package |
-| Đường dẫn tuyệt đối | Bắt đầu bằng **/** | Không bắt đầu bằng **/** |
-| Ví dụ | **Main.class.getResource("config/app.properties")** | **loader.getResource("com/example/config/app.properties")** |
-| Resource sở hữu bởi | Class/module chứa class | Class loader được chọn |
-| Khi phù hợp | Resource thuộc một class hoặc package cụ thể | Lookup theo loader, framework hoặc plugin |
-| Kết quả | URL hoặc null | URL hoặc null |
+| Relative path | Resolved from the class's package | No concept of package-relative path |
+| Absolute path | Starts with **/** | Does not start with **/** |
+| Example | **Main.class.getResource("config/app.properties")** | **loader.getResource("com/example/config/app.properties")** |
+| Resource owned by | Class/module containing the class | Selected class loader |
+| When suitable | Resource belongs to a specific class or package | Loader-based lookup, frameworks, or plugins |
+| Result | URL or null | URL or null |
 
-Một lỗi phổ biến là chuyển code từ Class sang ClassLoader nhưng giữ nguyên dấu **/** đầu path. Hãy điều chỉnh đường dẫn theo API đang dùng.
+A common mistake is switching code from Class to ClassLoader while keeping the leading **/** on the path. Adjust the path to match the API in use.
 
-Nếu code chạy trong môi trường có nhiều class loader, không nên tùy tiện dùng **ClassLoader.getSystemClassLoader()**. System loader có thể không nhìn thấy resource của plugin hoặc application server. Hãy chọn loader được kiến trúc ứng dụng quy định.
+If code runs in an environment with multiple class loaders, do not arbitrarily use **ClassLoader.getSystemClassLoader()**. The system loader may not see resources of plugins or application servers. Choose the loader dictated by the application architecture.
 
-## 7. Resource encapsulation trong named module
+## 7. Resource Encapsulation in Named Modules
 
-Trên classpath, resource thường được tìm thông qua class loader và có thể được nhiều thành phần nhìn thấy theo thứ tự tìm kiếm của loader.
+On the classpath, resources are usually looked up via a class loader and can be seen by many components according to the loader's search order.
 
-Trong named module, resource nằm trong package của module chịu quy tắc encapsulation. **Resource không phải class** trong package của named module chỉ được module khác truy cập nếu package đó được mở cho module gọi. Một resource có thể tồn tại trong modular JAR nhưng lookup từ module khác vẫn trả về null vì package chưa được mở.
+In a named module, resources located inside a module's packages are subject to encapsulation rules. **Non-class resources** in a named module's package can only be accessed by another module if that package is opened to the calling module. A resource can exist inside the modular JAR yet lookup from another module still returns null because the package has not been opened.
 
-Ví dụ module nguồn:
+Example source module:
 
 ~~~java
 module com.example.settings {
@@ -231,9 +231,9 @@ Resource:
 com/example/settings/config/defaults.properties
 ~~~
 
-Module consumer có thể đọc public API của **com.example.settings.api** nhưng chưa chắc đọc được resource trong package **com.example.settings.config**. Directive **exports** không mở package cho deep reflection hoặc resource access.
+A consumer module can read the public API of **com.example.settings.api** but cannot necessarily read resources in package **com.example.settings.config**. The **exports** directive does not open a package for deep reflection or resource access.
 
-Nếu module khác cần đọc resource trong package config, module nguồn có thể khai báo qualified open:
+If another module needs to read resources in the config package, the source module can declare a qualified open:
 
 ~~~java
 module com.example.settings {
@@ -244,7 +244,7 @@ module com.example.settings {
 }
 ~~~
 
-Trong ví dụ này, package **com.example.settings.config** được mở cho module **com.example.settings.reader**. Module consumer vẫn cần đọc module nguồn, thường bằng **requires**:
+In this example, package **com.example.settings.config** is opened to module **com.example.settings.reader**. The consumer module still needs to read the source module, typically with **requires**:
 
 ~~~java
 module com.example.settings.reader {
@@ -252,13 +252,13 @@ module com.example.settings.reader {
 }
 ~~~
 
-Nếu cần cho mọi module đọc resource trong package, có thể dùng unqualified open:
+If all modules need to read resources in the package, you can use an unqualified open:
 
 ~~~java
 opens com.example.settings.config;
 ~~~
 
-Hoặc mở tất cả package của module:
+Or open all packages of the module:
 
 ~~~java
 open module com.example.settings {
@@ -266,40 +266,40 @@ open module com.example.settings {
 }
 ~~~
 
-**open module** cho phép deep reflection vào các package ở runtime; nó không tự động export tất cả package cho truy cập code thông thường.
+**open module** allows deep reflection into packages at runtime; it does not automatically export all packages for ordinary code access.
 
-## 8. Dùng opens hay exports?
+## 8. Use opens or exports?
 
-Chọn directive theo loại truy cập:
+Choose the directive according to the type of access:
 
-| Nhu cầu | Cơ chế phù hợp |
+| Need | Suitable Mechanism |
 |---|---|
-| Consumer import và gọi public class trong package | **exports p** hoặc **exports p to m** |
-| Framework đọc resource không phải class trong package của named module | **opens p** hoặc **opens p to m** |
-| Framework dùng reflection sâu vào private field/constructor | **opens p** hoặc **opens p to m** |
-| Chỉ cần cấp quyền mở ở runtime mà không sửa module descriptor | **--add-opens** |
-| Cấp export tạm thời cho public API ở runtime/compile time | **--add-exports** |
+| Consumer imports and calls public classes in a package | **exports p** or **exports p to m** |
+| Framework reads non-class resources in a named module's package | **opens p** or **opens p to m** |
+| Framework uses deep reflection on private fields/constructors | **opens p** or **opens p to m** |
+| Only need to grant open access at runtime without editing the module descriptor | **--add-opens** |
+| Grant temporary export for public API at runtime/compile time | **--add-exports** |
 
-Ví dụ, nếu module **com.example.settings.reader** chỉ cần đọc file properties trong package config, không cần export package đó cho code import class. Có thể dùng:
+For example, if module **com.example.settings.reader** only needs to read properties files in the config package, there is no need to export that package for importing classes. You can use:
 
 ~~~java
 opens com.example.settings.config
     to com.example.settings.reader;
 ~~~
 
-Nếu consumer vừa cần gọi public type trong package đó vừa cần đọc resource, có thể khai báo cả **exports** và **opens**. Tuy nhiên, chỉ cấp đúng quyền mà integration thực sự cần.
+If the consumer both needs to call public types in that package and read resources, you can declare both **exports** and **opens**. However, grant only the exact access the integration actually needs.
 
-Nếu consumer chạy trong unnamed module trên classpath, có thể mở package ở runtime bằng:
+If the consumer runs in the unnamed module on the classpath, you can open the package at runtime with:
 
 ~~~bash
 java --add-opens com.example.settings/com.example.settings.config=ALL-UNNAMED -cp app.jar com.example.Main
 ~~~
 
-**ALL-UNNAMED** áp dụng cho các unnamed module trong tiến trình. Đây là phạm vi rộng hơn một qualified open tới named module cụ thể.
+**ALL-UNNAMED** applies to unnamed modules in the process. This is a broader scope than a qualified open to a specific named module.
 
-## 9. Module.getResourceAsStream(): đọc resource từ module cụ thể
+## 9. Module.getResourceAsStream(): Reading Resources from a Specific Module
 
-Khi đã có đối tượng **Module**, có thể đọc resource trực tiếp từ module đó:
+Once you have a **Module** object, you can read resources directly from that module:
 
 ~~~java
 Module module = Main.class.getModule();
@@ -307,7 +307,7 @@ Module module = Main.class.getModule();
 try (var input = module.getResourceAsStream(
         "com/example/app/config/defaults.properties")) {
     if (input == null) {
-        throw new IllegalStateException("Không tìm thấy resource trong module");
+        throw new IllegalStateException("Resource not found in module");
     }
 
     var properties = new java.util.Properties();
@@ -315,17 +315,17 @@ try (var input = module.getResourceAsStream(
 }
 ~~~
 
-Tên resource truyền cho **Module.getResourceAsStream()** là path phân tách bằng **/** và không dùng dấu **/** đầu như dạng absolute của Class.getResource().
+The resource name passed to **Module.getResourceAsStream()** is a **/**-separated path without a leading **/** like the absolute form of Class.getResource().
 
-API này hữu ích khi code muốn chỉ rõ resource thuộc module nào thay vì để class loader tìm trong một tập resource rộng hơn. Nó cũng tuân theo encapsulation: nếu resource nằm trong package của named module và package không mở cho module gọi, phương thức có thể trả về null.
+This API is useful when code wants to specify which module owns the resource rather than letting a class loader search across a broader set of resources. It also respects encapsulation: if the resource lies in a named module's package and the package is not open to the calling module, the method may return null.
 
-Nếu resource được đọc bởi code ngay trong module sở hữu nó, module có thể truy cập resource nội bộ của mình theo quy tắc của API. Nếu module khác cần đọc, hãy mở package cho module đó.
+If a resource is read by code inside the module that owns it, the module can access its own internal resources per the API's rules. If another module needs to read it, open the package to that module.
 
-## 10. ModuleReader: đọc nội dung module ở mức thấp
+## 10. ModuleReader: Low-Level Module Content Reading
 
-**ModuleReader** là API cấp thấp dùng để đọc nội dung của một module. Nó thường hữu ích cho công cụ module, custom class loader hoặc hệ thống cần duyệt resource của một module cụ thể.
+**ModuleReader** is a low-level API for reading the contents of a module. It is typically useful for module tooling, custom class loaders, or systems that need to list/inspect resources of a specific module.
 
-Có thể tìm module bằng **ModuleFinder** và mở **ModuleReference**:
+You can locate a module with **ModuleFinder** and open a **ModuleReference**:
 
 ~~~java
 ModuleFinder finder = ModuleFinder.of(Path.of("mods"));
@@ -339,7 +339,7 @@ try (ModuleReader reader = reference.open()) {
     );
 
     if (resource.isEmpty()) {
-        throw new IllegalStateException("Resource không có trong module");
+        throw new IllegalStateException("Resource not present in module");
     }
 
     try (var input = resource.get()) {
@@ -349,74 +349,74 @@ try (ModuleReader reader = reference.open()) {
 }
 ~~~
 
-Các API liên quan:
+Related APIs:
 
-- **ModuleFinder** tìm module từ module path hoặc nguồn module khác.
-- **ModuleReference** đại diện cho một module có thể được đọc.
-- **ModuleReader.open(name)** mở resource thành InputStream nếu tìm thấy.
-- **ModuleReader.read(name)** có thể trả về ByteBuffer.
-- **ModuleReader.find(name)** tìm URI của resource.
-- **ModuleReader.list()** liệt kê tên resource trong module.
-- **close()** đóng reader và giải phóng resource liên quan.
+- **ModuleFinder** locates modules from the module path or other module sources.
+- **ModuleReference** represents a module whose contents can be read.
+- **ModuleReader.open(name)** opens a resource as an InputStream if found.
+- **ModuleReader.read(name)** can return a ByteBuffer.
+- **ModuleReader.find(name)** finds the URI of a resource.
+- **ModuleReader.list()** lists resource names in the module.
+- **close()** closes the reader and releases associated resources.
 
-Hãy đóng ModuleReader và InputStream bằng try-with-resources. Nếu dùng **read(name)** để nhận ByteBuffer, hãy gọi **release(buffer)** theo hợp đồng của ModuleReader sau khi không còn sử dụng buffer.
+Always close ModuleReader and InputStream with try-with-resources. If using **read(name)** to obtain a ByteBuffer, call **release(buffer)** per ModuleReader's contract when finished using the buffer.
 
-ModuleReader là công cụ cho thao tác module ở mức thấp. Với code ứng dụng thông thường chỉ cần đọc một file cấu hình, **Class.getResourceAsStream()** hoặc **Module.getResourceAsStream()** thường đơn giản hơn. ModuleReader cũng không phải một cơ chế để bỏ qua các chính sách truy cập của ứng dụng; hãy chỉ dùng nó trong thành phần có trách nhiệm quản lý module content và class loading.
+ModuleReader is a tool for low-level module operations. For ordinary application code that just needs to read a config file, **Class.getResourceAsStream()** or **Module.getResourceAsStream()** is usually simpler. ModuleReader is also not a mechanism to bypass application access policies; use it only in components responsible for managing module content and class loading.
 
-## 11. Resource lookup trong plugin và module layer
+## 11. Resource Lookup in Plugins and Module Layers
 
-Plugin có thể nằm trong một modular JAR riêng và được nạp vào **ModuleLayer**. Khi đó, resource của plugin thuộc module/plugin layer tương ứng.
+A plugin may live in a separate modular JAR and be loaded into a **ModuleLayer**. In that case, the plugin's resources belong to the corresponding module/plugin layer.
 
-Nếu code đã có class của plugin, cách đơn giản nhất thường là lấy resource qua class đó:
+If code already has a plugin class, the simplest approach is usually to load the resource via that class:
 
 ~~~java
 try (var input = PluginImplementation.class.getResourceAsStream(
         "config/plugin-defaults.properties")) {
     if (input == null) {
-        throw new IllegalStateException("Plugin thiếu resource mặc định");
+        throw new IllegalStateException("Plugin missing default resource");
     }
 
-    // Đọc cấu hình plugin.
+    // Read plugin configuration.
 }
 ~~~
 
-Cách này gắn resource với module sở hữu implementation và tránh phải đoán class loader.
+This ties the resource to the module owning the implementation and avoids guessing the class loader.
 
-Nếu cần tìm resource theo module layer, hãy xác định module/plugin cụ thể rồi dùng API module hoặc ModuleReader phù hợp. Không giả định **ClassLoader.getSystemClassLoader()** có thể nhìn thấy mọi resource của module layer tùy chỉnh.
+If you need to look up resources by module layer, identify the specific module/plugin and use the appropriate module API or ModuleReader. Do not assume **ClassLoader.getSystemClassLoader()** can see all resources of a custom module layer.
 
-Khi dùng ServiceLoader cho plugin, provider và resource vẫn là hai việc riêng:
-- **ServiceLoader** tìm implementation của service theo module descriptor hoặc provider configuration.
-- Resource lookup tìm dữ liệu đi kèm implementation.
-- Việc tìm thấy provider không tự mở mọi package resource của module plugin cho ứng dụng.
+When using ServiceLoader for plugins, providers and resources remain two separate concerns:
+- **ServiceLoader** locates service implementations according to module descriptors or provider configurations.
+- Resource lookup locates data accompanying the implementation.
+- Discovering a provider does not automatically open all resource packages of the plugin module to the application.
 
-Nếu plugin cần cung cấp cấu hình cho host, hãy thiết kế API rõ ràng: plugin có thể tự đọc resource nội bộ rồi trả cấu hình qua interface, hoặc mở package resource cụ thể cho module host. Cách plugin tự đọc resource thường giúp giảm bề mặt package phải mở.
+If a plugin needs to supply configuration to the host, design a clear API: the plugin can read its internal resource itself and return configuration through an interface, or open the specific resource package to the host module. Having the plugin read its own resources generally reduces the package surface that must be opened.
 
-## 12. Resource trên classpath và module path
+## 12. Resources on the Classpath vs. Module Path
 
-| Đặc điểm | Classpath | Module path |
+| Characteristic | Classpath | Module path |
 |---|---|---|
-| Cách tổ chức | JAR/thư mục trong unnamed module | Named module hoặc automatic module |
-| Lookup phổ biến | ClassLoader/Class | Class/ClassLoader/Module |
-| Encapsulation theo package | Không áp dụng JPMS như named module | Resource trong package chịu quy tắc encapsulation |
-| Mở package | Không có module-info để khai báo opens cho unnamed module | Dùng opens/open module hoặc --add-opens |
-| Xác định chủ sở hữu | Thường dựa vào loader và resource path | Có thể xác định rõ module sở hữu |
-| Duplicate resource | Loader có thể trả entry đầu tiên theo thứ tự tìm kiếm | Nên xác định module cụ thể để tránh nhập nhằng |
+| Organization | JARs/directories in the unnamed module | Named module or automatic module |
+| Common lookup | ClassLoader/Class | Class/ClassLoader/Module |
+| Package-level encapsulation | JPMS not enforced as for named modules | Resources in packages are subject to encapsulation rules |
+| Opening packages | No module-info to declare opens for unnamed module | Use opens/open module or --add-opens |
+| Identifying owner | Usually based on loader and resource path | Owning module can be identified clearly |
+| Duplicate resources | Loader may return the first entry by search order | Specify the target module to avoid ambiguity |
 
-Một modular JAR khi đặt trên classpath được xử lý như JAR thông thường trong unnamed module; module descriptor không được dùng để tạo named module. Khi đặt trên module path, module descriptor được dùng để phân giải module và các quy tắc encapsulation có hiệu lực.
+A modular JAR placed on the classpath is treated like an ordinary JAR in the unnamed module; its module descriptor is not used to create a named module. When placed on the module path, the module descriptor is used to resolve the module and encapsulation rules take effect.
 
-Vì vậy, cùng một JAR có thể cho kết quả resource lookup khác nhau tùy cách chạy. Nếu ứng dụng hoạt động trên classpath nhưng trả null khi chuyển sang module path, hãy kiểm tra package chứa resource có được mở cho module gọi hay không.
+Therefore, the exact same JAR can produce different resource lookup results depending on how it is launched. If an application works on the classpath yet returns null when moved to the module path, check whether the package containing the resource is opened to the calling module.
 
-## 13. Duplicate resource và thứ tự tìm kiếm
+## 13. Duplicate Resources and Search Order
 
-Nhiều JAR có thể chứa resource cùng tên, ví dụ:
+Multiple JARs can contain a resource with the same name, for example:
 
 ~~~text
 config/defaults.properties
 ~~~
 
-Trên classpath, **ClassLoader.getResource(name)** trả về một resource được tìm thấy đầu tiên theo cơ chế tìm kiếm của loader. Nếu nhiều thư viện đóng gói cùng tên, kết quả có thể phụ thuộc thứ tự classpath hoặc parent delegation.
+On the classpath, **ClassLoader.getResource(name)** returns the first resource found according to the loader's search mechanism. If multiple libraries package the same name, the result may depend on classpath ordering or parent delegation.
 
-Dùng **getResources(name)** khi cần liệt kê mọi resource cùng tên:
+Use **getResources(name)** when you need to list all resources with the same name:
 
 ~~~java
 Enumeration<URL> resources =
@@ -429,22 +429,22 @@ while (resources.hasMoreElements()) {
 }
 ~~~
 
-Không giả định thứ tự kết quả là một hợp đồng ưu tiên cấu hình trừ khi loader/ứng dụng của bạn quy định rõ. Nếu có nhiều file cấu hình cần hợp nhất, hãy định nghĩa thứ tự và quy tắc merge trong ứng dụng.
+Do not assume the result order is a configuration precedence contract unless your loader/application explicitly defines it. If multiple config files must be merged, define the order and merge rules in the application.
 
-Trong modular application, nếu cần resource của một module cụ thể, dùng class/module sở hữu resource thay vì lookup toàn cục qua system loader. Cách này giảm nguy cơ đọc nhầm file cùng tên từ dependency khác.
+In a modular application, if you need a resource from a specific module, use the class/module owning the resource instead of doing a global lookup via the system loader. This reduces the risk of reading the wrong file with the same name from another dependency.
 
-## 14. URL của resource không nhất thiết là file trên ổ đĩa
+## 14. Resource URLs Are Not Necessarily Files on Disk
 
-Một resource trong thư mục output khi chạy IDE có thể có URL dạng **file:**. Nhưng khi đóng gói trong JAR, URL thường có dạng **jar:** hoặc một dạng URL do class loader cung cấp.
+A resource in an output directory when running in an IDE may have a **file:** URL. However, when packaged inside a JAR, the URL typically has a **jar:** scheme or a URL form supplied by the class loader.
 
-Ví dụ minh họa:
+Illustrative example:
 
 ~~~text
 file:/app/classes/com/example/config/defaults.properties
 jar:file:/app/lib/app.jar!/com/example/config/defaults.properties
 ~~~
 
-Không nên làm như sau:
+Do not do the following:
 
 ~~~java
 File file = new File(
@@ -452,28 +452,28 @@ File file = new File(
 );
 ~~~
 
-Cách trên có thể hoạt động khi resource nằm trong thư mục file nhưng thất bại khi resource ở bên trong JAR. URL của JAR không phải đường dẫn file thông thường.
+This may work when the resource is in a filesystem directory but fails when the resource is inside a JAR. A JAR URL is not a regular filesystem path.
 
-Hãy đọc resource bằng stream:
+Read the resource via a stream instead:
 
 ~~~java
 try (var input = Main.class.getResourceAsStream(
         "config/defaults.properties")) {
     if (input == null) {
-        throw new IllegalStateException("Không tìm thấy resource");
+        throw new IllegalStateException("Resource not found");
     }
 
-    // Xử lý dữ liệu từ input.
+    // Process data from input.
 }
 ~~~
 
-Nếu thực sự cần thao tác với URL, dùng **toURI()** và xử lý scheme phù hợp. Với URL dạng **jar:**, có thể cần **JarURLConnection** hoặc API FileSystem cho JAR. Không ép mọi URL thành **Path** bằng cách giả định scheme luôn là file.
+If you genuinely need to work with the URL, use **toURI()** and handle the appropriate scheme. For **jar:** URLs, you may need **JarURLConnection** or the JAR FileSystem API. Do not coerce every URL into a **Path** by assuming the scheme is always `file`.
 
-## 15. Encoding và cách đọc nội dung
+## 15. Encoding and How to Read Content
 
-Resource dạng text cần chỉ định encoding rõ ràng. **Properties.load(InputStream)** sử dụng quy tắc ISO-8859-1 cho dạng properties truyền thống, trong khi file UTF-8 có thể được đọc bằng **Reader**.
+Text resources need explicit encoding. **Properties.load(InputStream)** uses ISO-8859-1 rules for traditional properties format, whereas UTF-8 files can be read using a **Reader**.
 
-Ví dụ đọc properties UTF-8:
+Example reading UTF-8 properties:
 
 ~~~java
 Properties properties = new Properties();
@@ -481,7 +481,7 @@ Properties properties = new Properties();
 try (var input = Main.class.getResourceAsStream(
         "config/defaults.properties")) {
     if (input == null) {
-        throw new IllegalStateException("Không tìm thấy defaults.properties");
+        throw new IllegalStateException("defaults.properties not found");
     }
 
     try (var reader = new java.io.InputStreamReader(
@@ -492,13 +492,13 @@ try (var input = Main.class.getResourceAsStream(
 }
 ~~~
 
-Với JSON, XML hoặc template, cũng nên chỉ định UTF-8:
+For JSON, XML, or templates, also specify UTF-8:
 
 ~~~java
 try (var input = Main.class.getResourceAsStream(
         "schema/customer.json")) {
     if (input == null) {
-        throw new IllegalStateException("Không tìm thấy schema");
+        throw new IllegalStateException("Schema not found");
     }
 
     String json = new String(
@@ -508,91 +508,91 @@ try (var input = Main.class.getResourceAsStream(
 }
 ~~~
 
-Nếu resource lớn, tránh đọc toàn bộ vào byte array hoặc String khi không cần. Dùng stream và parser có khả năng xử lý dữ liệu tuần tự để giảm bộ nhớ.
+If a resource is large, avoid reading the entire content into a byte array or String unnecessarily. Use streams and parsers capable of sequential processing to reduce memory usage.
 
-## 16. Hiệu năng và cache
+## 16. Performance and Caching
 
-Resource lookup thường rẻ hơn việc đọc và parse lại nội dung nhiều lần, nhưng chi phí thực tế phụ thuộc class loader, JAR, filesystem và cách xử lý dữ liệu.
+Resource lookup is usually cheaper than reading and parsing content repeatedly, though actual cost depends on the class loader, JAR, filesystem, and how data is processed.
 
-Một số nguyên tắc:
+Several guidelines:
 
-1. **Không lookup và parse lặp lại trong hot path:** đọc cấu hình một lần khi khởi tạo component nếu nội dung không thay đổi.
-2. **Cache dữ liệu đã parse khi phù hợp:** cache Properties/metadata đã đọc thay vì giữ InputStream mở.
-3. **Luôn đóng stream:** không giữ file handle hoặc JAR connection lâu hơn cần thiết.
-4. **Chọn loader ổn định:** tránh tra cứu qua context class loader nếu ứng dụng không kiểm soát thread context.
-5. **Chú ý vòng đời plugin:** cache Class, URL, resource hoặc object từ plugin có thể giữ class loader/module layer sống lâu hơn dự kiến.
-6. **Xử lý reload rõ ràng:** nếu hỗ trợ reload cấu hình, xác định thời điểm cache hết hiệu lực và tránh dùng dữ liệu cũ.
-7. **Đo trước khi tối ưu:** không tạo cache phức tạp cho resource nhỏ nếu lookup không nằm trên đường thực thi quan trọng.
+1. **Do not look up and parse repeatedly on hot paths:** read configuration once when initializing a component if the content does not change.
+2. **Cache parsed data when appropriate:** cache parsed Properties/metadata instead of keeping an InputStream open.
+3. **Always close streams:** do not hold file handles or JAR connections longer than necessary.
+4. **Choose a stable loader:** avoid looking up via the context class loader if the application does not control thread context.
+5. **Watch plugin lifecycles:** caching Class, URL, resource, or plugin objects can keep a class loader/module layer alive longer than expected.
+6. **Handle reload explicitly:** if configuration reload is supported, define when caches expire and avoid serving stale data.
+7. **Measure before optimizing:** do not build complex caches for small resources if lookup is not on a critical execution path.
 
-Nếu mở URL connection trực tiếp và cần thay resource trong lúc chạy hoặc tránh giữ cache URLConnection, có thể cấu hình **setUseCaches(false)** trước khi mở stream. Hành vi cache phụ thuộc URL handler; hãy kiểm tra trên môi trường triển khai thực tế.
+If opening a URL connection directly and needing to replace resources at runtime or avoid holding a URLConnection cache, you can configure **setUseCaches(false)** before opening the stream. Caching behavior depends on the URL handler; test on the actual deployment environment.
 
-## 17. Lỗi thường gặp và cách chẩn đoán
+## 17. Common Errors and How to Diagnose Them
 
-| Triệu chứng | Nguyên nhân có thể | Hướng xử lý |
+| Symptom | Possible Cause | How to Handle |
 |---|---|---|
-| **getResource() trả null** | Sai path, resource không được đóng gói hoặc bị encapsulate | Kiểm tra JAR và package opens |
-| Class.getResource tìm được nhưng ClassLoader.getResource không tìm được | Dùng path tương đối theo package hoặc có dấu / đầu path | Chuyển sang path root-relative, bỏ dấu / |
-| Chạy classpath được nhưng module path trả null | Package chứa resource chưa mở cho module gọi | Thêm opens có phạm vi hẹp |
-| **FileNotFoundException** khi chuyển URL sang File | Resource nằm trong JAR, URL không phải file path | Dùng getResourceAsStream hoặc xử lý jar URI |
-| Đọc nhầm cấu hình | Nhiều JAR có resource cùng tên | Dùng class/module sở hữu resource hoặc getResources để kiểm tra |
-| Resource không có trong artifact | Build tool không copy resource hoặc path source sai | Kiểm tra src/main/resources, output và jar --list |
-| Resource tiếng Việt bị lỗi ký tự | Đọc bằng encoding không phù hợp | Dùng Reader và StandardCharsets.UTF_8 |
-| JAR bị khóa hoặc không reload được | URLConnection/JAR cache hoặc stream chưa đóng | Đóng stream, xem xét setUseCaches(false) và thiết kế reload |
-| Plugin không tìm được resource | Dùng system loader thay vì loader/module layer của plugin | Lookup qua class plugin hoặc module layer tương ứng |
+| **getResource() returns null** | Wrong path, resource not packaged, or encapsulated | Inspect the JAR and package opens |
+| Class.getResource finds it but ClassLoader.getResource does not | Using a package-relative path or leading / | Switch to root-relative path and remove leading / |
+| Works on classpath but returns null on module path | Package containing resource not opened to calling module | Add narrowly scoped opens |
+| **FileNotFoundException** when converting URL to File | Resource is inside a JAR; URL is not a file path | Use getResourceAsStream or handle jar URIs |
+| Wrong config read | Multiple JARs contain a resource with the same name | Use the owning class/module or getResources to inspect |
+| Resource missing from artifact | Build tool did not copy resource or source path is wrong | Check src/main/resources, output, and jar --list |
+| Vietnamese text resource has garbled characters | Read using an unsuitable encoding | Use Reader and StandardCharsets.UTF_8 |
+| JAR locked or cannot reload | URLConnection/JAR cache or unclosed stream | Close streams, consider setUseCaches(false), and design reload |
+| Plugin cannot find resource | Using system loader instead of plugin's loader/module layer | Look up via plugin class or corresponding module layer |
 
-Quy trình điều tra:
+Investigation workflow:
 
-1. Ghi lại resource path chính xác và API lookup đang dùng.
-2. Xác định path đó là tương đối theo class hay root-relative theo class loader.
-3. Dùng **jar --list --file app.jar** xác nhận entry có trong artifact.
-4. Xác định class/module sở hữu resource và module gọi lookup.
-5. Nếu resource thuộc package của named module, kiểm tra **opens** tới module gọi.
-6. Nếu dùng plugin, kiểm tra class loader, module layer và module graph.
-7. Đóng gói lại và chạy trên đúng môi trường module path như production.
+1. Record the exact resource path and lookup API being used.
+2. Determine whether the path is class-relative or class-loader root-relative.
+3. Use **jar --list --file app.jar** to confirm the entry exists in the artifact.
+4. Identify the class/module owning the resource and the module calling the lookup.
+5. If the resource belongs to a named module's package, check **opens** to the calling module.
+6. If using plugins, inspect the class loader, module layer, and module graph.
+7. Repackage and run on the exact same module path environment as production.
 
-## 18. Bảo mật khi đọc resource
+## 18. Security When Reading Resources
 
-Resource trong JAR không phải vùng lưu trữ bí mật. Bất kỳ ai có artifact đều có thể giải nén và đọc nội dung resource. Không đặt secret, credential, private key hoặc dữ liệu người dùng nhạy cảm vào file cấu hình đóng gói.
+Resources inside a JAR are not secret storage. Anyone with the artifact can unpack and read resource contents. Do not put secrets, credentials, private keys, or sensitive user data into packaged config files.
 
-Nếu resource path đến từ input bên ngoài, không nối trực tiếp path tùy ý vào một thư mục hoặc file hệ thống. Hãy xác thực tên resource theo allowlist và tránh path traversal như **../** khi ứng dụng chuyển resource name thành đường dẫn filesystem.
+If a resource path comes from external input, do not directly concatenate arbitrary paths onto a filesystem directory or file. Validate resource names against an allowlist and prevent path traversal such as **../** when converting resource names into filesystem paths.
 
-Khi đọc resource từ plugin, hãy xem nội dung như dữ liệu do plugin cung cấp. Chữ ký JAR có thể giúp xác định nguồn ký và tính toàn vẹn theo trust policy, nhưng không chứng minh resource hoặc code là an toàn.
+When reading resources from a plugin, treat the content as plugin-supplied data. JAR signatures can help verify the signer and integrity under a trust policy, but do not prove the resource or code is safe.
 
-**opens** kiểm soát khả năng truy cập package theo module; nó không mã hóa resource, không xác thực người dùng và không tạo sandbox. Chỉ mở package cho module cần thiết và không dùng open module rộng nếu ứng dụng chỉ cần một resource nhỏ.
+**opens** controls package accessibility across modules; it does not encrypt resources, authenticate users, or create a sandbox. Open packages only to the modules that need them and avoid broad open modules if the application only needs a small resource.
 
-## 19. Tự kiểm tra
+## 19. Self-Check
 
-**1. Vì sao Class.getResource("config/app.properties") và ClassLoader.getResource("config/app.properties") có thể tìm hai đường dẫn khác nhau?**
+**1. Why can Class.getResource("config/app.properties") and ClassLoader.getResource("config/app.properties") search two different paths?**
 
-Vì Class tính path tương đối theo package của class nếu tên không bắt đầu bằng dấu /, còn ClassLoader luôn tìm từ gốc resource path.
+Because Class resolves paths relative to the class's package when the name does not start with /, whereas ClassLoader always searches from the root of the resource path.
 
-**2. Resource có trong modular JAR nhưng ClassLoader.getResource() từ module khác trả null. Nguyên nhân có thể là gì?**
+**2. A resource exists in a modular JAR, yet ClassLoader.getResource() from another module returns null. What could be the cause?**
 
-Resource nằm trong package của named module chưa được mở cho module gọi. Hãy kiểm tra directive opens hoặc cấu hình --add-opens.
+The resource resides in a named module's package that has not been opened to the calling module. Check the opens directive or --add-opens configuration.
 
-**3. exports package có đủ để module khác đọc resource trong package không?**
+**3. Is exporting a package sufficient for another module to read resources in that package?**
 
-Không nhất thiết. Exports dành cho public API; resource và deep reflection cần package được mở theo quy tắc JPMS.
+Not necessarily. Exports is for public API access; resources and deep reflection require the package to be opened under JPMS rules.
 
-**4. Vì sao không nên chuyển URL của resource trực tiếp thành File?**
+**4. Why should you not convert a resource URL directly into a File?**
 
-Vì resource có thể nằm bên trong JAR và URL có scheme jar:, không phải file path thông thường. Dùng InputStream hoặc xử lý URL/URI theo scheme.
+Because the resource may reside inside a JAR and the URL has a jar: scheme rather than a normal file path. Use InputStream or handle the URL/URI by scheme.
 
-**5. Khi nào nên dùng ModuleReader?**
+**5. When should ModuleReader be used?**
 
-Khi cần đọc hoặc liệt kê nội dung của module ở mức thấp, chẳng hạn trong custom class loader hoặc công cụ module. Với ứng dụng thông thường, Class hoặc Module resource API đơn giản hơn.
+When you need to read or list module contents at a low level, such as in a custom class loader or module tooling. For ordinary applications, Class or Module resource APIs are simpler.
 
-**6. Vì sao resource lookup của plugin nên gắn với class/module plugin?**
+**6. Why should plugin resource lookup be tied to the plugin class/module?**
 
-Vì system class loader có thể không nhìn thấy plugin layer. Lookup qua class/module sở hữu resource giúp xác định đúng module và tránh nhầm resource cùng tên.
+Because the system class loader may not see the plugin layer. Looking up through the owning class/module identifies the right module and avoids picking up same-named resources by mistake.
 
-## 20. Ghi nhớ
+## 20. Takeaways
 
-Resource trong modular JAR được tìm bằng các API quen thuộc của Java, nhưng named module bổ sung quy tắc encapsulation. **Class.getResource()** hỗ trợ path tương đối theo package hoặc tuyệt đối từ gốc; **ClassLoader.getResource()** luôn nhận path từ gốc; **Module.getResourceAsStream()** đọc resource từ module cụ thể; **ModuleReader** phục vụ thao tác module ở mức thấp.
+Resources in modular JARs are located using familiar Java APIs, while named modules add encapsulation rules. **Class.getResource()** supports package-relative or root-absolute paths; **ClassLoader.getResource()** always takes root-relative paths; **Module.getResourceAsStream()** reads resources from a specific module; **ModuleReader** supports low-level module operations.
 
-Nếu module khác cần đọc resource nằm trong package của named module, hãy mở package bằng **opens** hoặc **--add-opens** cho đúng module gọi. Luôn kiểm tra artifact thực tế, đóng stream, xử lý URL theo scheme, quản lý duplicate resource và không xem resource trong JAR là dữ liệu bí mật.
+If another module needs to read resources located in a named module's package, open the package with **opens** or **--add-opens** for the calling module. Always inspect the actual artifact, close streams, handle URLs by scheme, manage duplicate resources, and never treat JAR resources as secret data.
 
-## Tài liệu tham khảo
+## References
 
 - [Class — Java SE 21 API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html)
 - [ClassLoader — Java SE 21 API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/ClassLoader.html)

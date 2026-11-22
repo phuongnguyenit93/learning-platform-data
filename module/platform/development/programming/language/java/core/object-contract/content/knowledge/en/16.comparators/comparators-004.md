@@ -1,31 +1,31 @@
-# `Comparator.thenComparing()`: tạo thứ tự theo nhiều khóa trong Java
+# `Comparator.thenComparing()`: Creating Multi-Key Orderings in Java
 
-## 1. Bài toán và nguyên tắc thứ tự ưu tiên
+## 1. The Problem and Precedence Principles
 
-Khi sắp xếp danh sách đối tượng, một trường thường không đủ để quyết định vị trí. Ví dụ, yêu cầu của hệ thống nhân sự có thể là:
+When sorting a list of objects, a single field is often insufficient to determine position. For example, an HR system's requirement might be:
 
-1. Sắp xếp **phòng ban tăng dần**.
-2. Trong cùng phòng ban, sắp xếp **cấp bậc giảm dần**.
-3. Nếu cấp bậc bằng nhau, sắp xếp **tên tăng dần**.
-4. Nếu vẫn bằng nhau, sắp xếp **mã nhân viên tăng dần** để có kết quả xác định.
+1. Sort **department ascending**.
+2. Within the same department, sort **level descending**.
+3. If levels tie, sort **name ascending**.
+4. If still tied, sort **employee ID ascending** for a deterministic result.
 
-Đây là thứ tự **nhiều khóa** (*multi-key sorting*), hay so sánh kiểu từ điển (*lexicographic ordering*): xét khóa đầu tiên trước; chỉ khi hai giá trị bằng nhau theo comparator đang dùng mới chuyển sang khóa kế tiếp.
+This is **multi-key sorting**, or *lexicographic ordering*: evaluate the first key first; only when two values compare equal under the current comparator do you move on to the next key.
 
-Trong Java, `Comparator<T>` diễn tả quy tắc thứ tự của hai đối tượng `T`. Kết quả của `compare(a, b)` là:
+In Java, `Comparator<T>` expresses an ordering rule between two objects of type `T`. The result of `compare(a, b)` is:
 
-- Số âm: `a` đứng trước `b`.
-- Số không: `a` và `b` được xem là **tương đương theo thứ tự sắp xếp**.
-- Số dương: `a` đứng sau `b`.
+- Negative: `a` comes before `b`.
+- Zero: `a` and `b` are considered **equivalent under the sort order**.
+- Positive: `a` comes after `b`.
 
-Giá trị trả về **không** bắt buộc là `-1`, `0` hoặc `1`; chỉ dấu âm/không/dương có ý nghĩa. Quan hệ “`compare(a, b) == 0`” không tự động có nghĩa “`a.equals(b)`”.
+The return value does **not** have to be `-1`, `0`, or `1`; only the negative/zero/positive sign matters. The relation "`compare(a, b) == 0`" does not automatically mean "`a.equals(b)`".
 
-Phương thức `thenComparing()` ghép các comparator theo quy tắc đó, giúp code giữ nguyên **thứ tự ưu tiên khóa** mà không cần nhiều khối `if`.
+The `thenComparing()` method chains comparators according to that rule, keeping **key precedence** clear in code without needing nested `if` blocks.
 
-## 2. Cơ chế của `thenComparing()`
+## 2. How `thenComparing()` Works
 
-`Comparator.comparing(keyExtractor)` tạo comparator dựa trên một khóa có thể so sánh tự nhiên (*natural order*) như `String` hoặc `LocalDate`. `thenComparing(nextComparator)` thêm một bộ so sánh dự phòng khi comparator trước trả về `0`.
+`Comparator.comparing(keyExtractor)` creates a comparator based on a key with a *natural order* such as `String` or `LocalDate`. `thenComparing(nextComparator)` adds a fallback comparator used when the preceding comparator returns `0`.
 
-Ví dụ:
+Example:
 
 ```java
 Comparator<Person> byLastThenFirst =
@@ -33,18 +33,18 @@ Comparator<Person> byLastThenFirst =
               .thenComparing(Person::firstName);
 ```
 
-Đây là mảnh code minh họa; giả sử có lớp `Person` với hai getter `lastName()` và `firstName()` trả giá trị `String` khác `null`, cùng `import java.util.Comparator;`.
+This is an illustrative snippet; assume a `Person` class with two getters `lastName()` and `firstName()` returning non-`null` `String` values, along with `import java.util.Comparator;`.
 
-Khi so hai người:
+When comparing two people:
 
-1. `lastName` khác nhau → dùng ngay kết quả khóa họ, **không cần xét** tên.
-2. `lastName` được comparator coi bằng nhau → xét `firstName`.
-3. Cả hai khóa đều tương đương → kết quả so sánh là `0`.
+1. `lastName` differs -> use the surname key result immediately, **without examining** the first name.
+2. `lastName` is considered equal by the comparator -> examine `firstName`.
+3. Both keys are equivalent -> the comparison result is `0`.
 
-Diễn đạt gần với thuật toán (chỉ để hiểu cơ chế):
+Expressed algorithmically (only to understand the mechanism):
 
 ```java
-// Logic tương đương về ý nghĩa, không phải mã bắt buộc viết tay.
+// Equivalent logic in meaning, not code you are required to hand-write.
 int primary = byLastName.compare(a, b);
 if (primary != 0) {
     return primary;
@@ -52,36 +52,36 @@ if (primary != 0) {
 return byFirstName.compare(a, b);
 ```
 
-Việc nối nhiều khóa tạo một comparator **mới**. `thenComparing()` không thay đổi comparator đã có, vì thế phải dùng giá trị được trả về khi xây chuỗi so sánh.
+Chaining multiple keys produces a **new** comparator. `thenComparing()` does not mutate an existing comparator, so you must use the returned value when building a comparison chain.
 
-### 2.1. Các overload hay dùng
+### 2.1. Commonly used overloads
 
-| Cách gọi | Dùng khi nào | Ví dụ ý nghĩa |
+| Call | When to use | Example meaning |
 | --- | --- | --- |
-| `thenComparing(Comparator<? super T>)` | Đã có comparator cho toàn đối tượng | Sau khóa chính, dùng comparator cấp bậc giảm dần |
-| `thenComparing(Function<? super T, ? extends U>)` | Khóa phụ có kiểu hỗ trợ natural order | Sau họ, so tên |
-| `thenComparing(Function, Comparator<? super U>)` | Khóa phụ cần quy tắc riêng: `null`, không phân biệt hoa/thường, đảo chiều | Sau đội, so tên theo `String.CASE_INSENSITIVE_ORDER` |
-| `thenComparingInt(ToIntFunction<? super T>)` | Khóa số nguyên `int` | Sau tên, so ID dạng `int` |
-| `thenComparingLong(ToLongFunction<? super T>)` | Khóa `long` | Sau trạng thái, so thời điểm dạng epoch |
-| `thenComparingDouble(ToDoubleFunction<? super T>)` | Khóa `double` | Sau nhóm, so điểm số |
+| `thenComparing(Comparator<? super T>)` | Already have a comparator for the whole object | After primary key, use descending level comparator |
+| `thenComparing(Function<? super T, ? extends U>)` | Secondary key type supports natural order | After surname, compare first name |
+| `thenComparing(Function, Comparator<? super U>)` | Secondary key needs a custom rule: `null`, case-insensitive, reversed | After team, compare name using `String.CASE_INSENSITIVE_ORDER` |
+| `thenComparingInt(ToIntFunction<? super T>)` | `int` integer key | After name, compare `int` ID |
+| `thenComparingLong(ToLongFunction<? super T>)` | `long` key | After status, compare epoch timestamp |
+| `thenComparingDouble(ToDoubleFunction<? super T>)` | `double` key | After group, compare score |
 
-Các phương thức tiện ích cho primitive tránh boxing không cần thiết. Ở khóa đầu tiên cũng có `Comparator.comparingInt`, `comparingLong` và `comparingDouble`.
+The primitive convenience methods avoid unnecessary boxing. For the first key, there are also `Comparator.comparingInt`, `comparingLong`, and `comparingDouble`.
 
-**Chú ý:** `Comparator.comparing(Person::name)` giả định khóa có `Comparable` và có chính sách cho `null` phù hợp. Nếu khóa có thể `null`, dùng comparator xử lý null cụ thể; không tự mặc định phép so sánh tự nhiên chấp nhận `null`.
+**Note:** `Comparator.comparing(Person::name)` assumes the key implements `Comparable` and has a suitable `null` policy. If the key can be `null`, use a comparator that explicitly handles null; never assume natural comparison accepts `null`.
 
-## 3. Ví dụ Java 17 hoàn chỉnh: bốn khóa, hai hướng sắp xếp
+## 3. Complete Java 17 Example: Four Keys, Two Sort Directions
 
-Định nghĩa dữ liệu:
+Data definition:
 
-- `department`: String, A → Z.
-- `level`: int, lớn hơn đứng trước.
-- `name`: String, A → Z.
-- `employeeId`: int, nhỏ hơn đứng trước.
-- `salary`: long, thông tin phụ **không tham gia** thứ tự đang chọn.
+- `department`: String, A -> Z.
+- `level`: int, larger comes first.
+- `name`: String, A -> Z.
+- `employeeId`: int, smaller comes first.
+- `salary`: long, extra information **not participating** in the chosen order.
 
-Một kỹ thuật rõ nghĩa khi có khóa phụ giảm dần là truyền **comparator phụ đã đảo chiều** vào `thenComparing`, thay vì gọi `reversed()` lên toàn bộ chuỗi.
+A clear technique when a secondary key is descending is passing an **already-reversed secondary comparator** into `thenComparing`, rather than calling `reversed()` on the entire chain.
 
-Lưu vào tệp **`MultiKeyComparatorDemo.java`**:
+Save to **`MultiKeyComparatorDemo.java`**:
 
 ```java
 import java.util.ArrayList;
@@ -138,14 +138,14 @@ public class MultiKeyComparatorDemo {
 }
 ```
 
-Biên dịch và chạy bằng **JDK 17+** trong thư mục chứa tệp:
+Compile and run with **JDK 17+** in the directory containing the file:
 
 ```bash
 javac MultiKeyComparatorDemo.java
 java MultiKeyComparatorDemo
 ```
 
-Kết quả chuẩn:
+Exact result:
 
 ```text
 Core | 5 | An | 101
@@ -158,22 +158,22 @@ Record equals: false
 TreeSet size: 1
 ```
 
-**Giải thích thứ tự:**
+**Order explanation:**
 
-1. Các nhân viên `Core` đứng trước `Web` vì `department` tăng dần; cấp bậc của `Web` không được dùng để vượt lên trên khác phòng ban.
-2. Trong `Core`, cấp `5` đứng trước cấp `3` do comparator `comparingInt(Employee::level).reversed()`.
-3. Trong nhóm `Core` cấp `5`, tên `An` đứng trước `Binh`.
-4. Hai nhân viên `An` ở cùng `Core`, cấp `5` được phân biệt bằng `employeeId`: `101` trước `105`.
-5. `salary` không được đưa vào comparator. Hai record `original` và `otherSalary` chỉ khác salary nên comparator trả `0`, nhưng `record.equals` so **tất cả component** và cho `false`.
-6. `TreeSet` xem hai phần tử tương đương theo comparator, vì vậy chỉ giữ một phần tử. Kết quả `TreeSet size: 1` là lời nhắc rằng **comparator còn quyết định tính trùng trong các tập hợp có thứ tự**, không chỉ thứ tự hiển thị.
+1. `Core` employees come before `Web` because `department` is ascending; `Web`'s level is never used to jump ahead across departments.
+2. Within `Core`, level `5` comes before level `3` due to `comparingInt(Employee::level).reversed()`.
+3. Within `Core` level `5`, the name `An` comes before `Binh`.
+4. The two `An` employees in `Core` level `5` are distinguished by `employeeId`: `101` before `105`.
+5. `salary` is excluded from the comparator. The two records `original` and `otherSalary` differ only in salary so the comparator returns `0`, yet `record.equals` compares **all components** and returns `false`.
+6. `TreeSet` considers the two elements equivalent under the comparator, so it keeps only one element. The result `TreeSet size: 1` is a reminder that **the comparator also governs uniqueness in ordered sets**, not just display order.
 
-Trong yêu cầu chỉ sắp xếp danh sách, salary có thể không thuộc quy tắc thứ tự. Nhưng nếu comparator được dùng làm định nghĩa khóa trong `TreeSet` hoặc `TreeMap`, bỏ qua trường quan trọng có thể vô tình gộp những đối tượng mà `equals()` coi khác nhau.
+In a requirement that only sorts a list, salary might not belong in the ordering rule. However, if the comparator is used as the key definition in `TreeSet` or `TreeMap`, omitting an important field can unintentionally merge objects that `equals()` treats as distinct.
 
-## 4. Viết khóa tăng dần và giảm dần cho đúng vị trí
+## 4. Placing Ascending and Descending Keys in the Right Spot
 
-### 4.1. Đảo chiều đúng **khóa phụ**
+### 4.1. Reversing the right **secondary key**
 
-Để khóa `department` tăng dần nhưng `level` giảm dần:
+To make `department` ascending yet `level` descending:
 
 ```java
 Comparator<Employee> order =
@@ -183,11 +183,11 @@ Comparator<Employee> order =
         );
 ```
 
-Đây là mảnh code minh họa dùng `Employee` từ chương trình hoàn chỉnh. Comparator phụ `comparingInt(...).reversed()` chỉ đảo thứ tự `level` trong nhóm có department bằng nhau.
+This is an illustrative snippet using `Employee` from the complete program. The secondary comparator `comparingInt(...).reversed()` reverses only the `level` order within groups sharing the same department.
 
-### 4.2. `reversed()` ở cuối đảo **toàn bộ comparator**
+### 4.2. `reversed()` at the end reverses the **entire comparator**
 
-Cần phân biệt:
+Note the distinction:
 
 ```java
 Comparator<Employee> allReversed =
@@ -196,13 +196,13 @@ Comparator<Employee> allReversed =
         .reversed();
 ```
 
-Ở đây `reversed()` được gọi trên kết quả **cả chuỗi** `department` rồi `level`, nên **cả department và level** cùng bị đảo. Nó không chỉ đảo trường gần nhất.
+Here `reversed()` is called on the result of **the whole chain** `department` then `level`, so **both department and level** are reversed together. It does not reverse only the nearest field.
 
-Nếu yêu cầu là “department tăng, level giảm”, cách viết ở 4.1 mới diễn tả đúng. Nếu yêu cầu là “cả hai khóa giảm”, `allReversed` là phù hợp.
+If the requirement is "department ascending, level descending," the syntax in 4.1 expresses it accurately. If the requirement is "both keys descending," `allReversed` is appropriate.
 
-### 4.3. Thay đổi thứ tự chuỗi sẽ đổi ưu tiên
+### 4.3. Changing chain order changes priority
 
-Hai biểu thức này không tương đương:
+These two expressions are not equivalent:
 
 ```java
 Comparator<Employee> byDepartmentThenLevel =
@@ -214,19 +214,19 @@ Comparator<Employee> byLevelThenDepartment =
         .thenComparing(Employee::department);
 ```
 
-Khóa **nằm trước** luôn có quyền ưu tiên cao hơn. Chuyển vị trí `thenComparing` không phải tái cấu trúc code vô hại mà là thay đổi luật nghiệp vụ.
+The key **appearing earlier** always has higher precedence. Swapping `thenComparing` positions is not a harmless code refactoring—it alters the business rule.
 
-### 4.4. Thêm khóa cuối để có kết quả quyết định
+### 4.4. Adding a final key for a deterministic result
 
-Nếu chỉ dùng `department`, `level` và `name`, các đối tượng có cùng ba khóa sẽ có `compare == 0`. `List.sort` và `Collections.sort` được Java quy định **sắp xếp ổn định** (*stable*): phần tử được xem bằng nhau theo comparator giữ thứ tự tương đối ban đầu. Tuy nhiên, nếu thứ tự đầu vào đến từ API, database hoặc HashSet không có thứ tự ổn định, kết quả có thể khác giữa các lần lấy dữ liệu.
+If using only `department`, `level`, and `name`, objects sharing all three keys will have `compare == 0`. `List.sort` and `Collections.sort` are specified by Java as **stable sorts**: elements considered equal by the comparator preserve their original relative order. However, if the input order comes from an API, database, or `HashSet` without a stable order, results may vary across data fetches.
 
-Thêm một khóa ổn định, duy nhất theo miền như `employeeId` (nếu đúng là duy nhất trong phạm vi đang sắp xếp) giúp thứ tự có tính quyết định. Không tự thêm tiêu chí mà nghiệp vụ không chấp nhận, và đừng dùng `hashCode` hay `identityHashCode` làm khóa cuối để kỳ vọng duy nhất hoặc ổn định xuyên JVM.
+Adding a stable, domain-unique final key such as `employeeId` (if truly unique within the sorted scope) makes the order deterministic. Do not invent criteria rejected by the business logic, and do not use `hashCode` or `identityHashCode` as a final key expecting uniqueness or stability across JVMs.
 
-## 5. Khóa `null`: đặt trước hay sau phải rõ ràng
+## 5. `null` Keys: First or Last Must Be Explicit
 
-Các extractor của `Comparator.comparing` có thể trả về `null`. Nếu comparator khóa không xử lý null, so sánh thường phát sinh `NullPointerException` khi gặp giá trị null.
+Extractors of `Comparator.comparing` can return `null`. If the key comparator does not handle null, comparisons typically throw `NullPointerException` upon encountering a null value.
 
-Để giá trị `name == null` đứng **sau** tên không null:
+To place `name == null` **after** non-null names:
 
 ```java
 Comparator<Employee> byNameNullsLast =
@@ -236,7 +236,7 @@ Comparator<Employee> byNameNullsLast =
     );
 ```
 
-Để `department` tăng dần và `name` null đứng cuối **trong mỗi department**:
+To sort `department` ascending with null `name` last **within each department**:
 
 ```java
 Comparator<Employee> byDepartmentThenName =
@@ -247,29 +247,29 @@ Comparator<Employee> byDepartmentThenName =
         );
 ```
 
-Đây là mảnh code minh họa dùng `Employee` có `name()` trả String. Nếu bản thân `Employee` có thể `null` (không chỉ field bên trong null), có thể bọc **comparator toàn đối tượng** bằng `Comparator.nullsFirst(...)` hoặc `nullsLast(...)`. Cần phân biệt hai chính sách:
+This is an illustrative snippet using `Employee` whose `name()` returns a String. If `Employee` itself can be `null` (not just an inner field being null), you can wrap the **whole-object comparator** with `Comparator.nullsFirst(...)` or `nullsLast(...)`. Distinguish the two policies:
 
-- `Comparator.comparing(Employee::name, nullsLast(...))` xử lý **khóa name null**.
-- `Comparator.nullsLast(byDepartmentThenName)` xử lý **cả phần tử Employee null**.
+- `Comparator.comparing(Employee::name, nullsLast(...))` handles a **null name key**.
+- `Comparator.nullsLast(byDepartmentThenName)` handles **a null Employee element itself**.
 
-Đặt `nullsLast` ở vị trí nào sẽ quyết định phạm vi áp dụng. Nếu đảo chiều một comparator đã `nullsLast` bằng `reversed()`, quy tắc null cũng bị đảo theo: `nullsLast(...).reversed()` đưa null lên đầu. Nếu mong muốn tên giảm dần nhưng null vẫn cuối, hãy viết:
+Where `nullsLast` is placed determines its scope. If you reverse a comparator that already uses `nullsLast` via `reversed()`, the null rule reverses too: `nullsLast(...).reversed()` moves nulls to the front. If you want names descending while keeping nulls last, write:
 
 ```java
 Comparator<String> descendingWithNullLast =
     Comparator.nullsLast(Comparator.reverseOrder());
 ```
 
-Dùng comparator này cho **khóa String** phù hợp bằng overload `thenComparing(Employee::name, descendingWithNullLast)`.
+Use this comparator for the **String key** via the `thenComparing(Employee::name, descendingWithNullLast)` overload.
 
-Lưu ý: `Comparator.nullsFirst(null)` và `nullsLast(null)` vẫn chấp nhận comparator khóa `null` theo API Java và coi các giá trị không null là tương đương; trường hợp này chỉ hữu ích khi thật sự muốn bỏ qua thứ tự giữa các giá trị không null.
+Note: `Comparator.nullsFirst(null)` and `nullsLast(null)` still accept a `null` key comparator per the Java API and treat non-null values as equivalent; this is only useful when you genuinely want to ignore ordering among non-null values.
 
-## 6. So chuỗi theo chính sách phù hợp
+## 6. Comparing Strings Under the Right Policy
 
-### 6.1. Phân biệt hay không phân biệt chữ hoa/thường?
+### 6.1. Case-sensitive or case-insensitive?
 
-`String` sắp xếp tự nhiên theo thứ tự từ điển dựa trên mã ký tự Unicode (UTF-16 code units), không tự động phù hợp thứ tự chữ cái tiếng Việt hay yêu cầu không phân biệt hoa/thường.
+`String` sorts naturally in lexicographical order based on Unicode character codes (UTF-16 code units), which does not automatically match Vietnamese alphabetical order or case-insensitive requirements.
 
-Với mã kỹ thuật hoặc tên cần so không phân biệt hoa/thường, bạn có thể dùng:
+For technical codes or names requiring case-insensitive comparison, you can use:
 
 ```java
 Comparator<Employee> byDepartmentThenNameIgnoreCase =
@@ -280,18 +280,18 @@ Comparator<Employee> byDepartmentThenNameIgnoreCase =
         );
 ```
 
-Nhưng `CASE_INSENSITIVE_ORDER` không cam kết trùng với bộ quy tắc sắp xếp ngôn ngữ tự nhiên ở mọi locale. Nó cũng có thể trả `0` cho hai chuỗi khác nhau theo `String.equals`. Khi sắp xếp hiển thị, thêm một khóa phụ phân biệt chữ hoa/thường hoặc ID ổn định nếu cần tổng thứ tự cụ thể.
+However, `CASE_INSENSITIVE_ORDER` does not guarantee matching natural-language sorting rules in every locale. It can also return `0` for two strings that differ under `String.equals`. When sorting for display, add a case-sensitive secondary key or a stable ID if a specific total order is needed.
 
-### 6.2. Tên tiếng Việt và `Collator`
+### 6.2. Vietnamese names and `Collator`
 
-Nếu giao diện cần thứ tự phù hợp với quy tắc ngôn ngữ, cân nhắc `java.text.Collator` và `Locale` thích hợp. Một ví dụ minh họa:
+If the UI requires an order conforming to language rules, consider `java.text.Collator` and an appropriate `Locale`. An illustrative example:
 
 ```java
 import java.text.Collator;
 import java.util.Comparator;
 import java.util.Locale;
 
-// Ví dụ minh họa, biến Employee từ chương trình mẫu.
+// Illustrative example using Employee from the sample program.
 Collator vietnamese = Collator.getInstance(
     Locale.forLanguageTag("vi-VN")
 );
@@ -299,19 +299,19 @@ Comparator<Employee> byVietnameseName =
     Comparator.comparing(Employee::name, vietnamese);
 ```
 
-`Collator` có cấu hình mức độ so sánh và hành vi phụ thuộc dữ liệu locale của môi trường Java. Nếu cần kết quả hoàn toàn cố định qua môi trường, phải xác định chính sách collation và phiên bản nguồn dữ liệu; đừng dự đoán một danh sách tên có dấu sẽ ra cùng thứ tự trong mọi cấu hình.
+`Collator` has configurable comparison strength and behavior depending on the Java environment's locale data. If completely fixed results across environments are required, specify the collation policy and data-source version; do not assume a list of accented names will sort identically in every configuration.
 
-Các đối tượng `Collator` là mutable và không đảm bảo an toàn luồng khi cùng một instance bị dùng đồng thời mà có thay đổi. Khi cần chia sẻ giữa threads, hãy dùng phương án phù hợp như mỗi luồng có bản riêng hoặc kiểm soát truy cập, đồng thời không thay đổi quy tắc trong quá trình sắp xếp.
+`Collator` objects are mutable and are not guaranteed thread-safe if the same instance is used concurrently while being modified. When sharing across threads is needed, use an appropriate strategy such as per-thread instances or controlled access, and never alter rules during sorting.
 
-### 6.3. Giá trị khóa được chuẩn hóa
+### 6.3. Normalized key values
 
-Nếu code dùng `String.toLowerCase()` làm khóa phụ, cần xác định locale và null policy. Với mã định danh kỹ thuật có quy tắc case-insensitive, dùng `Locale.ROOT` khi phù hợp sẽ rõ hơn việc dựa vào locale mặc định máy chạy. Tránh tạo nhiều biểu diễn chuẩn hóa khác nhau giữa sorting, `equals`, hash và tra cứu nghiệp vụ.
+If code uses `String.toLowerCase()` as a secondary key, specify the locale and null policy. For technical identifiers with case-insensitive rules, using `Locale.ROOT` where appropriate is clearer than relying on the host machine's default locale. Avoid producing different normalized representations across sorting, `equals`, hashing, and business lookups.
 
-## 7. Khóa số, ngày giờ và các comparator chuyên biệt
+## 7. Numeric, Date/Time Keys, and Specialized Comparators
 
-Với số nguyên, sử dụng `comparingInt` / `thenComparingInt`; với `long`, sử dụng `comparingLong` / `thenComparingLong`; với `double`, sử dụng `comparingDouble` / `thenComparingDouble`. Các overload primitive tiết kiệm boxing và tránh tự trừ số để so sánh.
+For integers, use `comparingInt` / `thenComparingInt`; for `long`, use `comparingLong` / `thenComparingLong`; for `double`, use `comparingDouble` / `thenComparingDouble`. Primitive overloads save boxing and avoid subtracting numbers manually to compare.
 
-Ví dụ mã minh họa cho class `Event` có `LocalDateTime createdAt()` và `long sequence()`:
+Illustrative snippet for an `Event` class with `LocalDateTime createdAt()` and `long sequence()`:
 
 ```java
 Comparator<Event> newestFirstThenSequence =
@@ -319,60 +319,60 @@ Comparator<Event> newestFirstThenSequence =
         .thenComparingLong(Event::sequence);
 ```
 
-Đoạn này cần `java.util.Comparator` và class `Event` tương ứng; không phải chương trình biên dịch độc lập. Với ngày giờ, cần chọn đúng kiểu biểu diễn: `LocalDateTime` không mang múi giờ; `Instant` phù hợp hơn khi mục tiêu là thứ tự thời điểm tuyệt đối.
+This snippet requires `java.util.Comparator` and the corresponding `Event` class; it is not a standalone compilable program. For date/time, choose the right representation type: `LocalDateTime` carries no time zone; `Instant` is more suitable when the goal is ordering absolute points in time.
 
-**Tránh cách viết dễ lỗi này:**
+**Avoid this error-prone pattern:**
 
 ```java
-// KHÔNG nên dùng cho int lớn: có thể tràn số.
+// DO NOT use for large ints: can overflow.
 Comparator<Employee> risky =
     (left, right) -> left.employeeId() - right.employeeId();
 ```
 
-Nếu `left.employeeId() == Integer.MIN_VALUE` và `right.employeeId() == 1`, phép trừ tràn `int` có thể cho dấu sai, làm comparator vi phạm thứ tự. Dùng `Integer.compare(left.employeeId(), right.employeeId())` hoặc `Comparator.comparingInt(Employee::employeeId)`.
+If `left.employeeId() == Integer.MIN_VALUE` and `right.employeeId() == 1`, `int` subtraction overflows and can yield the wrong sign, causing the comparator to violate ordering. Use `Integer.compare(left.employeeId(), right.employeeId())` or `Comparator.comparingInt(Employee::employeeId)`.
 
-Với `double`, `Double.compare` và `comparingDouble` có quy tắc tổng thứ tự cho NaN và số 0 có dấu phù hợp API Java; nếu miền nghiệp vụ muốn xử lý NaN hoặc `-0.0` khác đi, phải nêu rõ chính sách và kiểm thử. Comparator nhiều khóa không tự xác định quy tắc đó.
+For `double`, `Double.compare` and `comparingDouble` define total-order rules for NaN and signed zero matching the Java API; if the business domain wants to handle NaN or `-0.0` differently, state the policy explicitly and test it. Multi-key comparators do not establish that rule automatically.
 
-## 8. `thenComparing()` và hợp đồng của `Comparator`
+## 8. `thenComparing()` and the `Comparator` Contract
 
-Ghép nhiều khóa có ý nghĩa như so từ điển: khóa chính quyết định trước, khóa phụ chỉ được dùng khi khóa chính trả `0`. Các comparator thành phần phải có quan hệ thứ tự hợp lệ, ổn định; việc nối chúng không khắc phục một comparator có chu kỳ, phụ thuộc random hoặc dữ liệu đang bị sửa.
+Chaining multiple keys works like lexicographical comparison: the primary key decides first, and a secondary key is consulted only when the primary key returns `0`. Component comparators must define valid, stable ordering relations; chaining them does not fix a comparator that has cycles, depends on randomness, or reads data being mutated.
 
-Hai khái niệm cần tách trong ứng dụng:
+Two concepts to keep separate in applications:
 
-- **Khóa sắp xếp:** chuỗi khóa `department → level → name → employeeId` có thể cho `compare(a,b)==0` khi hai đối tượng ngang nhau trên tất cả các khóa ấy.
-- **Định danh dữ liệu:** `equals(a,b)` của một record còn có thể xét trường khác như `salary`. Trong ví dụ ở mục 3, hai record khác salary vẫn so bằng 0.
+- **Sort key:** the key chain `department -> level -> name -> employeeId` can return `compare(a,b)==0` when two objects tie on all those keys.
+- **Data identity:** a record's `equals(a,b)` may also inspect another field like `salary`. In the example in section 3, two records differing in salary still compare equal to 0.
 
-`List.sort` giữ cả hai bản ghi ngang hàng. `TreeSet` và `TreeMap` dùng kết quả bằng 0 làm quan hệ trùng khóa, vì vậy phải quyết định **khóa cuối cùng có cần phân biệt các bản ghi theo `equals` hay không**. Nếu entity định danh chỉ bằng ID nhưng comparator dùng trường hiển thị thay đổi trước ID, thêm ID ở cuối vẫn chưa chắc nhất quán với `equals`. Bài về quan hệ bằng nhau đi sâu vào hai chiều sai lệch này.
-## 9. Hiệu năng và thời điểm trích xuất khóa
+`List.sort` keeps both tied records. `TreeSet` and `TreeMap` treat a zero result as key equivalence, so you must decide **whether the final key needs to distinguish records according to `equals`**. If an entity's identity is solely its ID yet the comparator puts mutable display fields before ID, appending ID at the end still may not be consistent with `equals`. The lesson on equality relations explores both mismatch directions in depth.
+## 9. Performance and Key Extraction Timing
 
-Comparator dạng chuỗi có thể đọc nhiều trường qua getter. `thenComparing` chỉ xét khóa phụ **khi khóa trước hòa** nên thứ tự trường cũng có thể ảnh hưởng số lần gọi extractor, nhưng hãy ưu tiên đúng yêu cầu nghiệp vụ trước.
+Chained comparators can read multiple fields via getters. `thenComparing` only evaluates a secondary key **when the preceding key ties**, so field ordering can also affect the number of extractor calls, though business requirements should always take priority.
 
-Với extractor tốn kém, ví dụ chuẩn hóa tên, chuyển định dạng ngày, truy vấn nguồn ngoài hoặc tính toán dài, bộ sắp xếp có thể gọi chúng **nhiều lần**. Hướng thiết kế đáng cân nhắc là tiền tính khóa vào một đối tượng bất biến/record, sau đó sort theo các khóa đã tính. Tránh gọi API bên ngoài, thay đổi trạng thái hay phát sinh hiệu ứng phụ trong comparator.
+For expensive extractors—such as normalizing names, formatting dates, querying external sources, or heavy computation—the sorter may invoke them **multiple times**. A design worth considering is precomputing keys into an immutable object/record, then sorting by the precomputed keys. Avoid calling external APIs, mutating state, or causing side effects inside a comparator.
 
-`List.sort` và `Collections.sort` không chỉ gọi comparator đúng một lần trên mỗi phần tử. Comparator cần là **pure** theo nghĩa kết quả cho một cặp không đổi trong suốt lượt sort. Sửa các field được dùng làm khóa đồng thời với sort có thể gây lỗi, thậm chí vi phạm hợp đồng comparator.
+`List.sort` and `Collections.sort` do not call the comparator only once per element. The comparator must be **pure** in the sense that its result for any pair remains unchanged throughout the sort pass. Modifying fields used as keys concurrently with sorting can cause bugs or even violate the comparator contract.
 
-`thenComparingInt`, `thenComparingLong`, `thenComparingDouble` phù hợp cho primitive keys; không phải mọi lambda đều cần tối ưu thủ công. Nếu bộ dữ liệu nhỏ, biểu thức comparator rõ ràng thường quan trọng hơn vài cấp phát nhỏ.
+`thenComparingInt`, `thenComparingLong`, and `thenComparingDouble` fit primitive keys well; not every lambda needs manual micro-optimization. On small datasets, a clear comparator expression usually matters more than a few minor allocations.
 
-## 10. Những lỗi phổ biến
+## 10. Common Mistakes
 
-| Lỗi | Kết quả có thể xảy ra | Cách sửa |
+| Mistake | Possible outcome | Fix |
 | --- | --- | --- |
-| Đặt `reversed()` ở cuối chuỗi, trong khi chỉ muốn đảo khóa cuối | Đảo toàn bộ khóa đã ghép | Đảo comparator của riêng khóa tương ứng rồi truyền vào `thenComparing` |
-| Đổi thứ tự các lời gọi `thenComparing` | Đổi độ ưu tiên nghiệp vụ | Viết thứ tự khóa theo yêu cầu bằng lời trước |
-| Bỏ khóa phân biệt cuối | Nhiều đối tượng có `compare == 0`; TreeSet gộp dữ liệu | Cân nhắc ID ổn định phù hợp miền |
-| Dùng `String.CASE_INSENSITIVE_ORDER` rồi coi `compare == 0` tương đương `String.equals` | Hai chuỗi khác viết hoa/thường bị xem là một trong sorted set | Tách semantics hiển thị khỏi semantics nhận diện |
-| Quên chính sách `null` | Ném `NullPointerException` trong sort | Sử dụng `nullsFirst/nullsLast` đúng phạm vi |
-| Dùng subtraction `a.id() - b.id()` | Tràn số làm đảo dấu hoặc phá hợp đồng | Dùng `comparingInt` hay `Integer.compare` |
-| Dùng comparator phụ trên mutable state | Kết quả không nhất quán giữa các lượt so | Dùng khóa ổn định trong quá trình sort và lưu collection có thứ tự |
-| Dùng comparator có hiệu ứng phụ/random | Vi phạm bắc cầu hoặc tính nhất quán | Biến comparator thành phép so sánh xác định |
-| Mặc định thứ tự tự nhiên của String là thứ tự ngôn ngữ Việt | Kết quả hiển thị không phù hợp | Chọn collation theo locale hoặc quy tắc ứng dụng |
-| Giả định `thenComparing()` sửa comparator gốc tại chỗ | Bỏ quên comparator phụ vì không giữ giá trị trả về | Gán kết quả chuỗi vào một biến comparator mới |
+| Putting `reversed()` at the end of the chain when intending to reverse only the last key | Reverses all chained keys | Reverse only that key's comparator and pass it into `thenComparing` |
+| Changing the order of `thenComparing` calls | Alters business precedence | Write out the required key order in plain words first |
+| Omitting a final distinguishing key | Many objects have `compare == 0`; `TreeSet` merges entries | Consider a domain-appropriate stable ID |
+| Using `String.CASE_INSENSITIVE_ORDER` and assuming `compare == 0` equals `String.equals` | Two strings differing in case are treated as one in a sorted set | Separate display semantics from identity semantics |
+| Forgetting a `null` policy | Throws `NullPointerException` during sort | Apply `nullsFirst/nullsLast` at the proper scope |
+| Using subtraction `a.id() - b.id()` | Overflow flips signs or breaks contract | Use `comparingInt` or `Integer.compare` |
+| Using a secondary comparator over mutable state | Inconsistent results across comparisons | Use stable keys during sorting and while stored in ordered collections |
+| Using a comparator with side effects or randomness | Violates transitivity or consistency | Make the comparator a deterministic comparison |
+| Assuming String natural order equals Vietnamese linguistic order | Inappropriate display order | Choose locale collation or application-specific rules |
+| Assuming `thenComparing()` mutates the original comparator in place | Drops the secondary comparator because return value is discarded | Assign the chained result to a new comparator variable |
 
-## 11. Bài tập tự kiểm tra
+## 11. Self-Check Exercises
 
-**Câu 1.** Cho một lớp `Order` có `status()` trả String, `priority()` trả int. Yêu cầu: trạng thái tăng dần, trong cùng trạng thái ưu tiên lớn hơn trước. Viết comparator thế nào?
+**Exercise 1.** Given an `Order` class with `status()` returning String and `priority()` returning int. Requirement: status ascending, and within the same status, higher priority first. How should the comparator be written?
 
-**Đáp án (mảnh code):**
+**Answer (snippet):**
 
 ```java
 Comparator<Order> order =
@@ -382,15 +382,15 @@ Comparator<Order> order =
         );
 ```
 
-### Câu 2. Vì sao `compare(a, b) == 0` không đồng nghĩa `a.equals(b)`?
+### Exercise 2. Why does `compare(a, b) == 0` not imply `a.equals(b)`?
 
-Vì comparator chỉ dựa vào tập khóa được chọn; `equals` có thể dựa vào tập trường khác. Ví dụ một record có salary khác nhưng comparator chỉ xét department, level, name và employeeId. Trong `TreeSet`, điều này còn ảnh hưởng đến số phần tử được lưu.
+Because the comparator inspects only the chosen set of keys; `equals` may inspect a different set of fields. For instance, a record with a different salary still yields 0 if the comparator only checks department, level, name, and employeeId. In `TreeSet`, this also affects the number of stored elements.
 
-### Câu 3. `Comparator.comparing(Employee::department).thenComparingInt(Employee::level).reversed()` đảo khóa nào?
+### Exercise 3. Which key does `Comparator.comparing(Employee::department).thenComparingInt(Employee::level).reversed()` reverse?
 
-Đảo **cả chuỗi department rồi level**, vì `reversed()` được gọi trên comparator đã ghép. Nếu chỉ muốn level giảm, hãy đảo `Comparator.comparingInt(Employee::level)` bên trong `thenComparing(...)`.
+It reverses **the entire chain department then level**, because `reversed()` is called on the combined comparator. If you only want `level` descending, reverse `Comparator.comparingInt(Employee::level)` inside `thenComparing(...)`.
 
-### Câu 4. Nếu tên có thể `null` và cần null cuối nhưng tên còn lại giảm dần, dùng gì?
+### Exercise 4. If name can be `null` and nulls must come last while remaining names sort descending, what should be used?
 
 ```java
 Comparator<Employee> byName =
@@ -400,20 +400,20 @@ Comparator<Employee> byName =
     );
 ```
 
-Với comparator cho **khóa tên** như trên, null đứng sau các tên khác; những tên không null được sắp giảm dần.
+With the comparator for the **name key** above, nulls appear after other names; non-null names are sorted descending.
 
-### Câu 5. Một `TreeSet` dùng comparator chỉ dựa trên `age`. Hai object tuổi `20` nhưng ID khác nhau sẽ thế nào?
+### Exercise 5. A `TreeSet` uses a comparator based solely on `age`. What happens to two objects of age `20` with different IDs?
 
-Cả hai có `compare == 0`, nên `TreeSet` coi chúng tương đương và chỉ giữ một phần tử. Nếu muốn lưu cả hai, comparator cần thêm khóa phân biệt thích hợp như ID.
+Both have `compare == 0`, so `TreeSet` considers them equivalent and keeps only one element. To store both, the comparator needs a suitable tie-breaking key such as ID.
 
-### Câu 6. `thenComparingInt` khác `thenComparing(Person::age)` ở điểm thực tiễn nào?
+### Exercise 6. How does `thenComparingInt` differ practically from `thenComparing(Person::age)`?
 
-`thenComparingInt` lấy primitive `int`, phù hợp getter trả `int` và tránh boxing sang `Integer` khi so sánh. Với các getter nullable `Integer`, không thể dùng trực tiếp một primitive extractor mà vẫn giữ được ý nghĩa `null`; cần comparator cho wrapper với chính sách null.
+`thenComparingInt` takes a primitive `int`, matching a getter returning `int` and avoiding boxing to `Integer` during comparison. With nullable `Integer` getters, you cannot directly use a primitive extractor while preserving `null` semantics; you need a wrapper comparator with a null policy.
 
-### Câu 7. Danh sách đã được sort theo khóa `team` rồi tiếp tục gọi sort theo `name`. Có luôn giống so nhiều khóa bằng `thenComparing` không?
+### Exercise 7. A list is sorted by `team`, and then sorted again by `name`. Is that always the same as multi-key sorting with `thenComparing`?
 
-Không. Vì `List.sort` ổn định, nếu trước tiên sort theo **khóa phụ `name`**, sau đó sort theo **khóa chính `team`**, kết quả có thể tương đương với thứ tự `team → name` khi các comparator hợp lệ và dữ liệu không đổi. Nhưng nếu sort theo khóa chính trước rồi sort theo khóa phụ sau, khóa phụ sẽ trở thành ưu tiên chính. Dùng `thenComparing` trực tiếp rõ ràng hơn và tránh phụ thuộc thứ tự nhiều lượt sort.
+No. Because `List.sort` is stable, if you first sort by the **secondary key `name`** and then sort by the **primary key `team`**, the result can match `team -> name` when comparators are valid and data does not change. However, if you sort by the primary key first and the secondary key second, the secondary key becomes the main priority. Using `thenComparing` directly is clearer and avoids depending on the order of multiple sort passes.
 
 ---
 
-**Ghi nhớ:** `Comparator.comparing(...)` xác định **khóa ưu tiên cao nhất**; mỗi `thenComparing(...)` thêm **khóa dự phòng** chỉ khi các khóa đứng trước hòa. Chọn rõ tăng/giảm ở từng khóa, chính sách `null` và quy tắc so chuỗi. Khi dùng comparator cho `TreeSet`/`TreeMap`, đặc biệt chú ý ý nghĩa của `compare == 0` vì nó quyết định hai khóa có bị coi là trùng hay không.
+**Takeaway:** `Comparator.comparing(...)` defines the **highest-priority key**; each `thenComparing(...)` adds a **fallback key** used only when preceding keys tie. Explicitly choose ascending/descending per key, the `null` policy, and string comparison rules. When using a comparator with `TreeSet`/`TreeMap`, pay close attention to `compare == 0` because it determines whether two keys are treated as duplicates.

@@ -1,14 +1,14 @@
-# Constructor<T> và constructor không được kế thừa trong Java Reflection
+# Constructor<T> and Non-Inherited Constructors in Java Reflection
 
-Trong Java Reflection, **java.lang.reflect.Constructor<T>** biểu diễn một constructor được khai báo bởi một class, cho phép kiểm tra tham số, mức truy cập, annotation và tạo instance qua **newInstance(...)**. Ký hiệu `<T>` ở `Constructor<T>` biểu thị **kiểu đối tượng mà constructor tạo ra**, thường gắn với `Class<T>` đang được tra cứu.
+In Java Reflection, **java.lang.reflect.Constructor<T>** represents a constructor declared by a class, allowing you to inspect parameters, access levels, annotations, and create instances via **newInstance(...)**. The `<T>` notation in `Constructor<T>` denotes **the type of object that the constructor creates**, typically tied to the `Class<T>` being looked up.
 
-Điểm dễ nhầm là **constructor của superclass không được subclass kế thừa**. Khi tạo subclass, constructor superclass vẫn **được gọi** trong chuỗi khởi tạo (`super(...)`), nhưng không trở thành một constructor thuộc subclass. Reflection phản ánh quy tắc này: `Child.class.getConstructors()` không liệt kê constructor của `Parent`; `Child.class.getConstructor(...)` cũng không tìm constructor chỉ được khai báo trên `Parent`.
+An easy point of confusion is that **a superclass constructor is not inherited by a subclass**. When creating a subclass, the superclass constructor is still **invoked** in the initialization chain (`super(...)`), but it does not become a constructor belonging to the subclass. Reflection reflects this rule: `Child.class.getConstructors()` does not list constructors of `Parent`; `Child.class.getConstructor(...)` also does not find constructors declared only on `Parent`.
 
-Bài học phân tích cả hai phần: cách hiểu `Constructor<T>` cùng generic constructor, và cách tra cứu/khởi tạo đúng theo quan hệ superclass–subclass.
+This lesson analyzes both parts: how to understand `Constructor<T>` along with generic constructors, and how to properly look up/instantiate according to the superclass–subclass relationship.
 
-## 1. Constructor<T> đại diện cho điều gì?
+## 1. What Does Constructor<T> Represent?
 
-Các kiểu liên quan trong Java 17:
+The related types in Java 17:
 
 ~~~java
 Class<StringBuilder> type = StringBuilder.class;
@@ -16,29 +16,29 @@ Constructor<StringBuilder> constructor = type.getConstructor();
 StringBuilder value = constructor.newInstance();
 ~~~
 
-Đây là mảnh code minh họa đặt trong method có `throws ReflectiveOperationException` (hoặc xử lý checked exceptions); cần `import java.lang.reflect.Constructor;`.
+This is an illustrative snippet placed inside a method with `throws ReflectiveOperationException` (or handling checked exceptions); it requires `import java.lang.reflect.Constructor;`.
 
-- `StringBuilder.class` có kiểu `Class<StringBuilder>`.
-- `getConstructor()` trả `Constructor<StringBuilder>` vì constructor được yêu cầu từ `Class<StringBuilder>`.
-- `constructor.newInstance()` trả đối tượng kiểu `StringBuilder`.
-- Đối số kiểu `T` trong `Constructor<T>` **không phải là kiểu từng tham số constructor** và **không phải kiểu tham số generic riêng của constructor**.
-- `Constructor<T>` extends `Executable`; có API như `getParameterTypes()`, `getGenericParameterTypes()`, `getTypeParameters()`, `getModifiers()`, `getExceptionTypes()`, `isVarArgs()`, `getDeclaringClass()`.
+- `StringBuilder.class` has type `Class<StringBuilder>`.
+- `getConstructor()` returns `Constructor<StringBuilder>` because the constructor is requested from `Class<StringBuilder>`.
+- `constructor.newInstance()` returns an object of type `StringBuilder`.
+- The type argument `T` in `Constructor<T>` **is not the type of an individual constructor parameter** and **is not the constructor's own generic type parameter**.
+- `Constructor<T>` extends `Executable`; it has APIs such as `getParameterTypes()`, `getGenericParameterTypes()`, `getTypeParameters()`, `getModifiers()`, `getExceptionTypes()`, `isVarArgs()`, `getDeclaringClass()`.
 
-Ví dụ `Constructor<Child>` biểu diễn constructor của **Child**; nó không mô tả một constructor kế thừa từ Parent và không thể dùng để tạo loại đối tượng khác tùy ý.
+For example, `Constructor<Child>` represents a constructor of **Child**; it does not describe a constructor inherited from Parent and cannot be used to create an arbitrary other object type.
 
-| Biểu thức | Ý nghĩa |
+| Expression | Meaning |
 | --- | --- |
-| `Class<T>` | Đối tượng mô tả một runtime class; `T` là kiểu class trong hệ thống generic Java |
-| `Constructor<T>` | Constructor của class mang kiểu `T`, dùng để tạo `T` qua `newInstance` |
-| `Constructor<?>` | Có constructor nhưng chưa biết chính xác class ở compile time; `newInstance` chỉ suy ra Object |
-| `Constructor.getTypeParameters()` | Khai báo type variables **riêng của constructor** như `<U>`, không phải `T` của `Constructor<T>` |
-| `Class.getTypeParameters()` | Type variables khai báo bởi class, ví dụ `E` trong `Box<E>` |
+| `Class<T>` | An object describing a runtime class; `T` is the class type in the Java generic system |
+| `Constructor<T>` | A constructor of the class with type `T`, used to create `T` via `newInstance` |
+| `Constructor<?>` | Holds a constructor whose exact class is unknown at compile time; `newInstance` only infers `Object` |
+| `Constructor.getTypeParameters()` | Declares type variables **specific to the constructor** such as `<U>`, not `T` of `Constructor<T>` |
+| `Class.getTypeParameters()` | Type variables declared by the class, for example `E` in `Box<E>` |
 
-Trong generic class `Box<E>`, biểu thức `Box.class` đại diện runtime class raw `Box`; không tồn tại `Box<String>.class` tách biệt với `Box<Integer>.class`. Các argument `String` và `Integer` của instance thường bị **type erasure**.
+In the generic class `Box<E>`, the expression `Box.class` represents the raw runtime class `Box`; there is no `Box<String>.class` separate from `Box<Integer>.class`. The `String` and `Integer` arguments of an instance normally undergo **type erasure**.
 
-## 2. Constructor không được kế thừa: phân biệt “gọi” và “sở hữu”
+## 2. Constructors Are Not Inherited: Distinguishing "Calling" and "Owning"
 
-Theo **Java Language Specification §8.2 và §8.8**, constructor **không phải class member** theo nghĩa được kế thừa; constructor không inherited, không hidden và không overridden.
+According to **Java Language Specification §8.2 and §8.8**, a constructor **is not a class member** in the sense of being inherited; constructors are not inherited, not hidden, and not overridden.
 
 ~~~java
 class Parent {
@@ -52,31 +52,31 @@ class Child extends Parent {
 }
 ~~~
 
-- `Child(String)` là constructor được **Child khai báo**.
-- `Parent(int)` thuộc **Parent**, không phải overload `Child(int)`.
-- `super(7)` là **constructor invocation** dùng để khởi tạo phần trạng thái superclass trong cùng đối tượng Child; nó không biến `Parent(int)` thành constructor của Child.
-- Việc `Parent(int)` là `protected` cho phép gọi qua `super` từ subclass phù hợp, nhưng không đồng nghĩa nó là `public Child(int)`.
-- Constructor không có kiểu trả về, không tham gia overriding/polymorphic dispatch như instance method.
+- `Child(String)` is a constructor **declared by Child**.
+- `Parent(int)` belongs to **Parent**, not an overload `Child(int)`.
+- `super(7)` is a **constructor invocation** used to initialize the superclass state portion within the same Child object; it does not turn `Parent(int)` into a constructor of Child.
+- The fact that `Parent(int)` is `protected` allows calling it via `super` from an appropriate subclass, but does not mean it is `public Child(int)`.
+- Constructors have no return type and do not participate in overriding/polymorphic dispatch like instance methods.
 
-Một đối tượng Child thường được khởi tạo theo chuỗi constructor của các superclass trước khi chạy phần thân constructor Child. Nhưng **kết quả của `Parent.class.getDeclaredConstructor(int.class)` luôn mô tả constructor của Parent**.
+A Child object is typically initialized along the constructor chain of its superclasses before running the Child constructor body. However, **the result of `Parent.class.getDeclaredConstructor(int.class)` always describes the constructor of Parent**.
 
-### Vì sao không tự xuất hiện no-arg constructor?
+### Why Doesn't a No-Arg Constructor Automatically Appear?
 
-Java chỉ cung cấp một **default constructor** khi class **không khai báo constructor nào**. Nếu class đã tự khai báo `Child(String)`, compiler **không sinh thêm `Child()`**. Khi subclass không khai báo constructor, default constructor của subclass sẽ cố gọi `super()` theo quy tắc ngôn ngữ; nếu superclass không có constructor không tham số khả dụng, việc biên dịch thất bại.
+Java only provides a **default constructor** when a class **declares no constructors**. If a class has already declared `Child(String)`, the compiler **does not generate `Child()`**. When a subclass declares no constructors, the subclass's default constructor attempts to call `super()` according to language rules; if the superclass has no available no-arg constructor, compilation fails.
 
-Ví dụ cố ý không biên dịch được:
+An intentionally uncompilable example:
 
 ~~~java
 class Base {
     Base(int id) {}
 }
 class MissingConstructor extends Base {
-    // Không có constructor được khai báo.
-    // Default constructor sẽ cố gọi super(), nhưng Base() không tồn tại.
+    // No constructor is declared.
+    // The default constructor will attempt to call super(), but Base() does not exist.
 }
 ~~~
 
-Cách sửa là khai báo constructor của subclass và gọi super bằng tham số tương ứng:
+The fix is to declare a constructor on the subclass and call super with matching arguments:
 
 ~~~java
 class Base {
@@ -89,33 +89,33 @@ class ValidChild extends Base {
 }
 ~~~
 
-Đoạn trên chỉ minh họa quan hệ constructor trong một compilation unit; không phải chương trình độc lập có main. Việc superclass có public/protected/package-private constructor không làm subclass kế thừa chúng.
+The snippet above only illustrates the constructor relationship in a single compilation unit; it is not a standalone program with `main`. Having a `public`/`protected`/package-private constructor in the superclass does not cause the subclass to inherit them.
 
-## 3. API Reflection để tra cứu constructor
+## 3. Reflection APIs for Constructor Lookup
 
-Các phương thức trên `Class<T>` khác nhau ở mức truy cập, **không có nhánh tìm constructor kế thừa**:
+The methods on `Class<T>` differ in access level, **with no branch that searches for inherited constructors**:
 
-| API trên Class<T> | Kết quả | Có tìm ở superclass không? |
+| API on Class<T> | Result | Searches superclass? |
 | --- | --- | --- |
-| `getConstructor(Class<?>... parameterTypes)` | `Constructor<T>`: constructor **public** của chính class, khớp danh sách tham số | **Không** |
-| `getConstructors()` | `Constructor<?>[]`: tất cả constructor public của chính class | **Không** |
-| `getDeclaredConstructor(Class<?>... parameterTypes)` | `Constructor<T>`: constructor của chính class, gồm private/protected/package-private/public | **Không** |
-| `getDeclaredConstructors()` | `Constructor<?>[]`: tất cả constructor được khai báo trong class, mọi mức truy cập | **Không** |
+| `getConstructor(Class<?>... parameterTypes)` | `Constructor<T>`: a **public** constructor of the class itself matching the parameter list | **No** |
+| `getConstructors()` | `Constructor<?>[]`: all public constructors of the class itself | **No** |
+| `getDeclaredConstructor(Class<?>... parameterTypes)` | `Constructor<T>`: a constructor of the class itself, including private/protected/package-private/public | **No** |
+| `getDeclaredConstructors()` | `Constructor<?>[]`: all constructors declared in the class, of any access level | **No** |
 
-Đối với `Child` ở mục trước:
+For `Child` in the previous section:
 
 ~~~java
-Child.class.getConstructor(String.class);       // đúng: public Child(String)
-Child.class.getDeclaredConstructor(String.class); // đúng
+Child.class.getConstructor(String.class);       // valid: public Child(String)
+Child.class.getDeclaredConstructor(String.class); // valid
 Child.class.getConstructor(int.class);          // NoSuchMethodException
-Parent.class.getDeclaredConstructor(int.class); // đúng: Parent(int)
+Parent.class.getDeclaredConstructor(int.class); // valid: Parent(int)
 ~~~
 
-Trong API này `parameterTypes` được so khớp theo **thứ tự, số lượng và chính xác runtime parameter Class<?>**. Java Reflection không áp dụng cơ chế overload resolution của javac để tự tìm constructor “gần đúng”; ví dụ `int.class` khác `Integer.class`, và `List<String>` bị xóa còn `List.class`. Khi không khớp, `getConstructor/getDeclaredConstructor` ném `NoSuchMethodException`.
+In this API, `parameterTypes` is matched by **order, count, and exact runtime parameter `Class<?>`**. Java Reflection does not apply javac's overload resolution mechanism to automatically find a "closest" constructor; for example, `int.class` differs from `Integer.class`, and `List<String>` is erased to `List.class`. When there is no match, `getConstructor`/`getDeclaredConstructor` throws `NoSuchMethodException`.
 
-Khi danh sách rỗng, `getConstructor()` tìm một constructor **public không tham số**. Không thể giả định class nào cũng có constructor này. `getDeclaredConstructor()` có thể tìm constructor không tham số private nếu được khai báo/thực sự tồn tại; có thể cần quyền để gọi.
+When the list is empty, `getConstructor()` looks for a **public no-arg** constructor. You cannot assume every class has this constructor. `getDeclaredConstructor()` can find a private no-arg constructor if declared/actually present; permissions may be required to invoke it.
 
-### Đọc thông tin của Constructor
+### Reading Constructor Information
 
 ~~~java
 Constructor<?> c = Child.class.getDeclaredConstructor(String.class);
@@ -124,13 +124,13 @@ System.out.println(c.getParameterCount()); // 1
 System.out.println(c.isVarArgs());         // false
 ~~~
 
-Đây là đoạn trích sử dụng `Child` từ mục 2, sau khi import `java.lang.reflect.Constructor`; các comment nêu ý nghĩa, output khi chạy trong default package có thể mang tên class khác tùy nesting. `getDeclaringClass()` là cách xác nhận constructor **thuộc class nào**; kết quả không tự đổi thành subclass khi bạn dùng constructor của Parent.
+This snippet uses `Child` from section 2, after importing `java.lang.reflect.Constructor`; the comments show the meaning, and the output when run in the default package may carry a different class name depending on nesting. `getDeclaringClass()` is the way to verify **which class** a constructor belongs to; the result does not automatically change to the subclass when you use a Parent constructor.
 
-## 4. Ví dụ Java 17+ chạy độc lập
+## 4. Standalone Runnable Java 17+ Example
 
-Ví dụ sau minh họa chuỗi `super(...)`, lookup thất bại vì constructor không kế thừa, và khác biệt giữa type variable của generic class với generic constructor.
+The following example illustrates the `super(...)` chain, lookup failure because constructors are not inherited, and the difference between a generic class's type variable and a generic constructor's type variable.
 
-Lưu nguyên văn vào **ConstructorInheritanceDemo.java**:
+Save verbatim to **ConstructorInheritanceDemo.java**:
 
 ~~~java
 import java.lang.reflect.Constructor;
@@ -196,14 +196,14 @@ public class ConstructorInheritanceDemo {
 }
 ~~~
 
-Từ thư mục có file, biên dịch bằng Java 17 và chạy:
+From the directory containing the file, compile with Java 17 and run:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 ConstructorInheritanceDemo.java
 java ConstructorInheritanceDemo
 ~~~
 
-Stdout (đã thực thi với `javac --release 17` trên JDK 21):
+Stdout (executed with `javac --release 17` on JDK 21):
 
 ~~~text
 Parent(7)
@@ -221,20 +221,20 @@ class type parameter=E
 box declaring=Box
 ~~~
 
-Cách diễn giải:
+Interpretation:
 
-1. `childCtor.newInstance("Ada")` tạo **Child**, chạy `Parent(int)` do `super(7)`, sau đó chạy phần thân constructor Child. Điều đó **không phải thừa kế constructor**.
-2. `Child.class.getConstructors().length` là 1 vì Child chỉ khai báo một constructor public `Child(String)`; public `Parent()` không được liệt kê cho Child.
-3. `Child.class.getConstructor(int.class)` thất bại vì Child không sở hữu `Child(int)`, dù Parent có `Parent(int)`.
-4. `Parent.class.getDeclaredConstructor(int.class)` tìm được constructor protected do Parent khai báo. `getDeclaringClass()` trả Parent.
-5. `Box<E>` có constructor generic `<U> Box(E value, U marker)`. Sau erasure, hai kiểu tham số runtime đều là `Object`, nên lookup nhận `Object.class, Object.class`.
-6. `getGenericParameterTypes()` phản ánh chữ ký khai báo `E,U`; `getTypeParameters()` **trên Constructor** chỉ trả `U`, trong khi `Box.class.getTypeParameters()` trả `E`. `Constructor<Box>` biểu diễn kiểu class được tạo (raw Box trong ví dụ), **không biểu diễn U**.
+1. `childCtor.newInstance("Ada")` creates **Child**, runs `Parent(int)` due to `super(7)`, then runs the Child constructor body. That **is not constructor inheritance**.
+2. `Child.class.getConstructors().length` is 1 because Child only declares one public constructor `Child(String)`; public `Parent()` is not listed for Child.
+3. `Child.class.getConstructor(int.class)` fails because Child does not own `Child(int)`, even though Parent has `Parent(int)`.
+4. `Parent.class.getDeclaredConstructor(int.class)` finds the protected constructor declared by Parent. `getDeclaringClass()` returns Parent.
+5. `Box<E>` has a generic constructor `<U> Box(E value, U marker)`. After erasure, both runtime parameter types are `Object`, so lookup takes `Object.class, Object.class`.
+6. `getGenericParameterTypes()` reflects the declared signature `E,U`; `getTypeParameters()` **on Constructor** returns only `U`, whereas `Box.class.getTypeParameters()` returns `E`. `Constructor<Box>` represents the type of class being created (raw Box in the example), **not U**.
 
-Ví dụ dùng `Constructor<Box>` raw để truy vấn trực tiếp `Box.class`; trong code thư viện generic nghiêm ngặt, hãy quản lý type safety riêng và tránh giả định Reflection biết `Box<String>` từ runtime `Box.class`. Việc `newInstance("payload", 123)` chấp nhận String/Integer không làm thay đổi erased parameter types.
+The example uses raw `Constructor<Box>` to query `Box.class` directly; in strict generic library code, manage type safety separately and avoid assuming Reflection knows `Box<String>` from runtime `Box.class`. The fact that `newInstance("payload", 123)` accepts String/Integer does not change the erased parameter types.
 
-## 5. Generic class và generic constructor: ba kiểu khác nhau
+## 5. Generic Class and Generic Constructor: Three Different Types
 
-Xét:
+Consider:
 
 ~~~java
 class Packet<E> {
@@ -242,98 +242,98 @@ class Packet<E> {
 }
 ~~~
 
-Có ba khái niệm:
+There are three concepts:
 
-- `E` thuộc về **Packet<E>**, được truy vấn bởi `Packet.class.getTypeParameters()`.
-- `U` thuộc về **chính constructor**, được truy vấn bởi `Constructor.getTypeParameters()`; bound của U là Number.
-- `T` trong API `Constructor<T>` là **class được tạo** (chẳng hạn Packet), không liên quan đến tên biến kiểu E/U ở mã khai báo.
+- `E` belongs to **Packet<E>**, queried by `Packet.class.getTypeParameters()`.
+- `U` belongs to **the constructor itself**, queried by `Constructor.getTypeParameters()`; U's bound is Number.
+- `T` in the `Constructor<T>` API is **the class being created** (such as Packet), unrelated to the E/U type variable names in the declaration code.
 
-Với `Packet.class.getConstructor(Object.class, Number.class)`, lookup dùng **erasure**: E thành Object vì E không có bound, U thành Number do có bound. Truy vấn `getGenericParameterTypes()` đọc được ký hiệu E, U nếu metadata được bảo toàn trong class file. Lưu ý `Class<Packet>` và `Constructor<Packet>` dùng **raw Packet** vì Java không có literal `Packet<String>.class`.
+With `Packet.class.getConstructor(Object.class, Number.class)`, the lookup uses **erasure**: E becomes Object because E is unbounded, and U becomes Number because of its bound. Querying `getGenericParameterTypes()` reads the symbols E, U if metadata is preserved in the class file. Note that `Class<Packet>` and `Constructor<Packet>` use **raw Packet** because Java has no `Packet<String>.class` literal.
 
-Nếu cần mô tả một type parameterized của class tại runtime, ta phải nắm giữ `Type`/`ParameterizedType` từ trường, phương thức, superclass, hoặc token kiểu thích hợp. Chỉ `Constructor<T>` không thể tái tạo type argument của mọi instance mà constructor tạo.
+If you need to describe a parameterized type of a class at runtime, you must hold a `Type`/`ParameterizedType` from a field, method, superclass, or an appropriate type token. `Constructor<T>` alone cannot reconstruct the type arguments of every instance the constructor creates.
 
-### Từ chữ ký generic sang lookup thực tế
+### From Generic Signature to Actual Lookup
 
-| Khai báo constructor | `getDeclaredConstructor(...)` nhận |
+| Constructor Declaration | `getDeclaredConstructor(...)` accepts |
 | --- | --- |
-| `Box(E value, U tag)` với E, U không bound | `Object.class, Object.class` |
+| `Box(E value, U tag)` with unbounded E, U | `Object.class, Object.class` |
 | `Packet(E value, U num)`, U extends Number | `Object.class, Number.class` |
 | `Child(String name)` | `String.class` |
 | `Sample(int count, List<String> values)` | `int.class, List.class` |
 | `Logger(String... messages)` | `String[].class` |
 
-Đây là ví dụ về quy tắc tìm constructor; các class `Packet`, `Sample`, `Logger` là tên mô tả tình huống tương ứng chứ không phải một chương trình đã định nghĩa đầy đủ.
+These are examples of constructor lookup rules; the classes `Packet`, `Sample`, `Logger` are names describing the corresponding scenarios rather than a fully defined program.
 
-Không dùng wildcard hoặc `ParameterizedType` làm tham số cho `getDeclaredConstructor`: API này nhận `Class<?>...`, phù hợp kiểu sau erasure.
+Do not pass wildcards or `ParameterizedType` as arguments to `getDeclaredConstructor`: this API takes `Class<?>...`, matching the post-erasure types.
 
-## 6. Gọi constructor và phân biệt các nhóm lỗi
+## 6. Invoking Constructors and Distinguishing Error Categories
 
-Sau khi tìm được `Constructor<T>`, `newInstance(Object... initargs)` tạo object của declaring class; Reflection không truyền receiver như `Method.invoke`. Việc tìm thấy metadata chưa đủ để bảo đảm quyền truy cập hoặc đối số hợp lệ.
+After finding `Constructor<T>`, `newInstance(Object... initargs)` creates an object of the declaring class; Reflection does not pass a receiver like `Method.invoke`. Finding metadata is not enough to guarantee access permission or valid arguments.
 
-| Bước | Lỗi điển hình | Ý nghĩa |
+| Step | Typical Error | Meaning |
 | --- | --- | --- |
-| Lookup | `NoSuchMethodException` | Sai danh sách kiểu runtime hoặc không có constructor phù hợp |
-| Truy cập | `IllegalAccessException`, `InaccessibleObjectException` | Caller không có quyền gọi hoặc JPMS không cho phép mở quyền |
-| Khởi tạo | `InstantiationException`, `IllegalArgumentException` | Kiểu không thể tạo trực tiếp hoặc đối số không hợp lệ |
-| Thực thi constructor | `InvocationTargetException` | Mã trong quá trình khởi tạo instance ném lỗi; xem `getCause()` |
-| Khởi tạo class | `ExceptionInInitializerError` | Static initialization thất bại trước khi chạy constructor |
+| Lookup | `NoSuchMethodException` | Wrong runtime type list or no matching constructor |
+| Access | `IllegalAccessException`, `InaccessibleObjectException` | Caller lacks permission to invoke or JPMS does not allow opening access |
+| Instantiation | `InstantiationException`, `IllegalArgumentException` | Type cannot be instantiated directly or arguments are invalid |
+| Constructor execution | `InvocationTargetException` | Code during instance initialization threw an error; inspect `getCause()` |
+| Class initialization | `ExceptionInInitializerError` | Static initialization failed before running the constructor |
 
-Với constructor `private`, `getDeclaredConstructor` chỉ lấy metadata. `trySetAccessible()` có thể thất bại nếu module không mở package cho deep reflection; `exports` không thay thế `opens`. `Class.newInstance()` là API đã deprecated, nên ưu tiên chọn chữ ký qua `getDeclaredConstructor(...).newInstance(...)` và xử lý lỗi theo giai đoạn.
+For a `private` constructor, `getDeclaredConstructor` only retrieves metadata. `trySetAccessible()` can fail if a module does not open the package for deep reflection; `exports` does not replace `opens`. `Class.newInstance()` is a deprecated API, so prefer selecting a signature via `getDeclaredConstructor(...).newInstance(...)` and handling errors by stage.
 
-## 7. Các trường hợp đặc biệt cần nhận biết
+## 7. Special Cases to Recognize
 
-- **Abstract class** có constructor để subclass gọi, nhưng không thể tạo trực tiếp instance của abstract class; interface không có constructor tạo object.
-- **Enum** có constructor nội bộ nhưng `Constructor.newInstance` từ chối tạo thêm enum constant; record có canonical constructor tương ứng với các component, không kế thừa từ `Record`.
-- **Non-static inner class** nhận enclosing instance dưới dạng tham số constructor đầu tiên ở runtime. Ví dụ `Outer.Inner(Outer, int)` có thể tương ứng với khai báo source `Inner(int)`.
-- **Varargs** được biểu diễn bằng tham số mảng (như `String[].class`); khi gọi `newInstance`, truyền nguyên mảng thành một argument bằng cast `(Object)` khi cần.
-- **Compiler-generated parameters** có thể xuất hiện với enum, local/anonymous class hoặc inner class. Đọc `getParameterTypes()` và metadata `Parameter`, không suy luận từ thứ tự liệt kê constructor hay tên tham số compiler sinh.
+- **Abstract class** has constructors for subclasses to call, but cannot be instantiated directly; interfaces have no object-creating constructors.
+- **Enum** has internal constructors, but `Constructor.newInstance` refuses to create additional enum constants; records have a canonical constructor corresponding to their components, not inherited from `Record`.
+- **Non-static inner class** receives the enclosing instance as the first constructor parameter at runtime. For example, `Outer.Inner(Outer, int)` may correspond to the source declaration `Inner(int)`.
+- **Varargs** are represented by an array parameter (such as `String[].class`); when calling `newInstance`, pass the entire array as a single argument using an `(Object)` cast when needed.
+- **Compiler-generated parameters** can appear with enums, local/anonymous classes, or inner classes. Read `getParameterTypes()` and `Parameter` metadata, rather than inferring from constructor listing order or compiler-generated parameter names.
 
-Các bài tiếp theo phân tích từng trường hợp với ví dụ chạy được. Trong bài này, điểm chính vẫn là `Constructor<T>` gắn với class khai báo và constructor của superclass không trở thành constructor của subclass.
+Subsequent lessons analyze each case with runnable examples. In this lesson, the main point remains that `Constructor<T>` is tied to the declaring class and a superclass constructor never becomes a constructor of a subclass.
 
-## 8. Quy trình áp dụng thực tế
+## 8. Practical Application Workflow
 
-Khi một DI container, serializer, CLI parser hoặc factory dựa Reflection cần tạo instance:
+When a Reflection-based DI container, serializer, CLI parser, or factory needs to create an instance:
 
-1. **Chọn class thực sự định tạo.** Nếu cần Child, tra trên `Child.class`, không lấy `Constructor<Parent>` rồi mong tạo Child.
-2. **Chọn phạm vi quyền.** `getConstructor` khi cần public API; `getDeclaredConstructor` khi code có lý do hợp lệ để dùng constructor non-public.
-3. **Xác định tham số runtime chính xác.** Phân biệt primitive/boxed, varargs array, kiểu đã erasure và enclosing instance của inner class.
-4. **Xem danh sách constructor nếu chưa biết signature.** Dùng `getDeclaredConstructors()`, `getParameterTypes()`, `getModifiers()`, `getGenericParameterTypes()` và lọc theo tiêu chí đã xác định; không đoán ngẫu nhiên qua thứ tự.
-5. **Đối chiếu module access.** Nếu private/package-private nằm trong named module khác, cân nhắc factory API hoặc `opens` đúng package/caller thay vì mở rộng toàn bộ module.
-6. **Gọi `newInstance` và bắt lỗi chính xác.** `InvocationTargetException.getCause()` giúp tìm lỗi do constructor; `NoSuchMethodException` thường là lỗi chọn signature.
-7. **Không nhầm chuỗi constructor với inheritance.** Java sẽ chạy superclass constructor trong quá trình tạo subclass, nhưng Reflection vẫn giữ mỗi constructor thuộc đúng declaring class.
+1. **Choose the actual class you intend to instantiate.** If you need Child, look up on `Child.class`, rather than grabbing `Constructor<Parent>` and expecting to create Child.
+2. **Choose the access scope.** `getConstructor` when you need public API; `getDeclaredConstructor` when code has a valid reason to use non-public constructors.
+3. **Determine exact runtime parameters.** Distinguish primitive/boxed, varargs array, erased types, and an inner class's enclosing instance.
+4. **Inspect the constructor list if the signature is unknown.** Use `getDeclaredConstructors()`, `getParameterTypes()`, `getModifiers()`, `getGenericParameterTypes()` and filter by defined criteria; do not guess randomly by order.
+5. **Check module access.** If private/package-private lives in another named module, consider a factory API or `opens` for the exact package/caller rather than opening the entire module.
+6. **Call `newInstance` and catch errors accurately.** `InvocationTargetException.getCause()` helps find errors thrown by the constructor; `NoSuchMethodException` is usually a signature selection error.
+7. **Do not confuse the constructor chain with inheritance.** Java will run the superclass constructor while creating a subclass, but Reflection still keeps each constructor belonging to its declaring class.
 
-## 9. Câu hỏi tự kiểm tra
+## 9. Self-Check Questions
 
-**1.** Parent có `public Parent(int id)`, Child extends Parent và chỉ có `public Child()` gọi `super(5)`. `Child.class.getConstructor(int.class)` tìm được không?
+**1.** Parent has `public Parent(int id)`, Child extends Parent and only has `public Child()` calling `super(5)`. Can `Child.class.getConstructor(int.class)` find it?
 
-**Đáp án:** Không. Parent(int) không được kế thừa; Child chỉ khai báo Child().
+**Answer:** No. Parent(int) is not inherited; Child only declares Child().
 
-**2.** `Constructor<Child> ctor = Child.class.getConstructor()`; `ctor.newInstance()` có thể trả Parent thay vì Child không?
+**2.** `Constructor<Child> ctor = Child.class.getConstructor()`; can `ctor.newInstance()` return Parent instead of Child?
 
-**Đáp án:** Không. Generic type T và declaring class của Constructor là Child. Nếu tạo được, đối tượng là Child; constructor Parent có thể chạy như một phần khởi tạo đối tượng Child.
+**Answer:** No. The generic type T and the Constructor's declaring class are Child. If creation succeeds, the object is Child; the Parent constructor may run as part of initializing the Child object.
 
-**3.** `class Box<E> { public <U extends Number> Box(E value, U version) {} }`. Có thể tìm bằng `Box.class.getConstructor(String.class, Integer.class)` không?
+**3.** `class Box<E> { public <U extends Number> Box(E value, U version) {} }`. Can it be found with `Box.class.getConstructor(String.class, Integer.class)`?
 
-**Đáp án:** Không theo chữ ký được khai báo. Erasure là `Object.class, Number.class`. `String` và `Integer` là kiểu argument của một lần gọi cụ thể, không phải parameter types trong constructor descriptor.
+**Answer:** Not according to the declared signature. Erasure is `Object.class, Number.class`. `String` and `Integer` are the argument types of a specific call, not the parameter types in the constructor descriptor.
 
-**4.** `Constructor.getTypeParameters()` trên constructor ở câu 3 có trả E không?
+**4.** Does `Constructor.getTypeParameters()` on the constructor in question 3 return E?
 
-**Đáp án:** Không. Nó trả U của constructor; E là type variable thuộc Box, xem `Box.class.getTypeParameters()`.
+**Answer:** No. It returns U of the constructor; E is a type variable belonging to Box, see `Box.class.getTypeParameters()`.
 
-**5.** `getDeclaredConstructor()` tìm private no-arg constructor rồi: có luôn gọi được `newInstance()` không?
+**5.** After `getDeclaredConstructor()` finds a private no-arg constructor: can `newInstance()` always be called?
 
-**Đáp án:** Không. Tra cứu metadata và quyền gọi khác nhau; cần Java access/JMPS opens phù hợp, hoặc dùng factory công khai.
+**Answer:** No. Metadata lookup and invocation permission are different; appropriate Java access/JPMS opens is required, or use a public factory.
 
-**6.** Vì sao `Outer.Inner.class.getDeclaredConstructor(int.class)` có thể thất bại dù source có `Inner(int)`?
+**6.** Why might `Outer.Inner.class.getDeclaredConstructor(int.class)` fail even though the source has `Inner(int)`?
 
-**Đáp án:** Non-static inner class có tham số enclosing instance được thêm vào constructor runtime; cần `Outer.class, int.class`.
+**Answer:** A non-static inner class has an enclosing instance parameter added to its runtime constructor; `Outer.class, int.class` is needed.
 
-**Ghi nhớ:** `Constructor<T>` mang kiểu class được khởi tạo; một generic constructor còn có type variables riêng, tra cứu theo erased parameter types. Constructor của superclass **được gọi khi khởi tạo subclass nhưng không bao giờ được kế thừa**. Luôn tra cứu constructor trên class bạn thực sự muốn tạo.
+**Key takeaway:** `Constructor<T>` carries the type of the class being instantiated; a generic constructor also has its own type variables and is looked up by erased parameter types. Superclass constructors **are invoked when initializing a subclass, but are never inherited**. Always look up constructors on the class you actually want to create.
 
-### Tài liệu tham khảo
+### References
 
-- Java Language Specification 17, §8.2 (Class Members) và §8.8 (Constructor Declarations): https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html
+- Java Language Specification 17, §8.2 (Class Members) and §8.8 (Constructor Declarations): https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html
 - Java SE 17, `Class.getConstructor/getDeclaredConstructor`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html
-- Java SE 17, `Constructor<T>` và `newInstance`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Constructor.html
+- Java SE 17, `Constructor<T>` and `newInstance`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Constructor.html
 - Java SE 17, `Executable` (type parameters, generic parameter types): https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Executable.html
 - dev.java — Invoking Constructors: https://dev.java/learn/api/reflection-method-handles/reflection/constructors/

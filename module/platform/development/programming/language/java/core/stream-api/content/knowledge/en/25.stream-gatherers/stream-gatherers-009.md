@@ -1,64 +1,64 @@
-# Xử lý thứ tự, nguồn vô hạn và dừng sớm khi dùng Gatherer
+# Handling Ordering, Infinite Sources, and Short-Circuiting with Gatherers
 
-## 1. Bài toán: một phép biến đổi không chỉ nhận một phần tử và trả một phần tử
+## 1. Problem: a transformation does more than take one element and return one element
 
-Trong module **JAVA_STREAM_API**, những pipeline dùng `filter`, `map`, `reduce` và `collect` đã giải quyết nhiều yêu cầu xử lý dữ liệu khai báo. Tuy nhiên, có các phép biến đổi phải **nhớ trạng thái**, **phát nhiều hoặc ít phần tử hơn số phần tử nhận vào**, hoặc **quyết định dừng xử lý nguồn ngay khi đủ điều kiện**:
+In the **JAVA_STREAM_API** module, pipelines using `filter`, `map`, `reduce`, and `collect` solve many declarative data-processing requirements. However, some transformations must **remember state**, **emit more or fewer elements than received**, or **decide to stop processing the source as soon as a condition is met**:
 
-- Gom các phép đo liên tiếp thành cửa sổ 3 phần tử.
-- Tính tổng tích lũy sau mỗi giao dịch, thay vì chỉ trả tổng cuối.
-- Tìm các sự kiện đến **và bao gồm** sự kiện đánh dấu kết thúc.
-- Đọc luồng có thể vô hạn, chỉ lấy 5 kết quả đầu tiên mà không tiêu thụ hết nguồn.
-- Ánh xạ đồng thời những phần tử tốn công xử lý, nhưng vẫn cần trả kết quả theo encounter order.
+- Group consecutive measurements into 3-element windows.
+- Compute a running total after each transaction, instead of returning only a final sum.
+- Take events up to **and including** an end-marker event.
+- Read a potentially infinite stream, taking only the first 5 results without exhausting the source.
+- Concurrently map expensive elements while still returning results in encounter order.
 
-Từ **Java 24**, giao diện `Gatherer` và phương thức `Stream.gather(...)` là API chuẩn. Các phép biến đổi có sẵn trong `Gatherers` gồm `windowFixed`, `windowSliding`, `scan`, `fold` và `mapConcurrent`. Một custom gatherer còn có thể kiểm soát thời điểm yêu cầu **short-circuit**.
+Starting from **Java 24**, the `Gatherer` interface and `Stream.gather(...)` method are standard APIs. Built-in transformations in `Gatherers` include `windowFixed`, `windowSliding`, `scan`, `fold`, and `mapConcurrent`. A custom gatherer can also control when to request **short-circuiting**.
 
-Trong bài thuộc chương **Stream Gatherer**, chúng ta tập trung vào **ba trục tính đúng**:
+In this lesson from the **Stream Gatherer** chapter, we focus on **three axes of correctness**:
 
-1. **Thứ tự**: phân biệt encounter order, thứ tự làm việc của các thread và thứ tự kết quả cuối.
-2. **Nguồn vô hạn**: xác định phép biến đổi có sinh kết quả từng bước hay phải đợi nguồn kết thúc.
-3. **Dừng sớm**: hiểu hai tín hiệu `Integrator.integrate(...)` trả `false` và `Downstream.push(...)` trả `false`; phối hợp với `limit`, `findFirst` và các terminal operation khác.
+1. **Ordering**: distinguishing encounter order, worker thread execution order, and final output order.
+2. **Infinite sources**: determining whether a transformation produces results incrementally or must wait for the source to end.
+3. **Short-circuiting**: understanding the two signals `Integrator.integrate(...)` returning `false` and `Downstream.push(...)` returning `false`; coordinating with `limit`, `findFirst`, and other terminal operations.
 
-Sau bài học, người học có thể tự thiết kế custom gatherer tuần tự có trạng thái riêng, giải thích vì sao một pipeline có thể chạy mãi dù có `limit(1)`, kiểm thử kết quả mà không dựa vào timing/thread scheduling, và quản lý nguồn I/O đúng vòng đời.
+After this lesson, learners can design stateful sequential custom gatherers, explain why a pipeline can hang forever even with `limit(1)`, test results without relying on timing/thread scheduling, and manage I/O source lifecycles properly.
 
-### 1.1. Sơ đồ ba tầng
+### 1.1. Three-tier diagram
 
 ```text
-Nguồn                            Gatherer                        Downstream
+Source                           Gatherer                        Downstream
 ┌─────────────────┐             ┌────────────────────────┐      ┌─────────────────────┐
 │ Stream<T>       │  input T    │ initializer()          │  R   │ filter/map/limit   │
 │ ordered?        ├────────────►│ integrator()           ├─────►│ findFirst/toList   │
 │ finite/infinite?│             │ state A                │      │                     │
-│ resource-backed?│             │ combiner()/finisher()  │      │ chấp nhận thêm?     │
+│ resource-backed?│             │ combiner()/finisher()  │      │ accept more?        │
 └─────────────────┘             └────────────────────────┘      └─────────────────────┘
                                            │                            │
-                                           │  false: ngừng nhận input   │
+                                           │  false: stop intake        │
                                            ◄────────────────────────────┘
                                                push() == false
 ```
 
-Một gatherer có thể **không phát** kết quả cho một input, phát **một**, hoặc phát **nhiều**. Tính đúng phụ thuộc cả vào **điều kiện phát** và **điều kiện ngừng**.
+A gatherer can **emit nothing** for an input, emit **one**, or emit **many**. Correctness depends on both **emission conditions** and **stopping conditions**.
 
-## 2. Phiên bản JDK và cấu hình chạy ví dụ
+## 2. JDK version and running the examples
 
-| Phiên bản | Trạng thái của Stream Gatherers | Lưu ý |
+| Version | Status of Stream Gatherers | Notes |
 | --- | --- | --- |
-| Java 8–21 | Chưa có `Gatherer` trong API chuẩn | Dùng các phép Stream hiện có hoặc viết logic riêng |
-| JDK 22 | Stream Gatherers ở **preview lần đầu** | Cần `--enable-preview`, API có thể đổi |
-| JDK 23 | **Preview lần thứ hai** | Vẫn cần `--enable-preview` |
-| **JDK 24 trở lên** | **API chính thức** | Không cần bật preview cho `Gatherer` |
+| Java 8–21 | No `Gatherer` in standard API | Use existing Stream operations or write custom logic |
+| JDK 22 | Stream Gatherers in **first preview** | Requires `--enable-preview`, API may change |
+| JDK 23 | **Second preview** | Still requires `--enable-preview` |
+| **JDK 24 and later** | **Official API** | No preview flag needed for `Gatherer` |
 
-Toàn bộ **mã hoàn chỉnh** và kiểm thử trong bài lấy **JDK 24+** làm phiên bản đích. Không sao chép nguyên mã Java 24 để biên dịch với `--release 22` hoặc `--release 23` rồi kỳ vọng tương thích 100% với preview API: hãy đọc đúng Javadoc của release đang sử dụng.
+All **complete code** and tests in this lesson target **JDK 24+**. Do not copy Java 24 code verbatim to compile with `--release 22` or `--release 23` expecting 100% compatibility with preview APIs: read the exact Javadoc of the release you use.
 
-Ví dụ với máy dùng JDK 24:
+Example on a machine with JDK 24:
 
 ```bash
 javac --release 24 GathererOrderAndStopDemo.java
 java GathererOrderAndStopDemo
 ```
 
-Không thêm `--enable-preview` cho ví dụ JDK 24. Với một dự án buộc chạy trên JDK 17 hoặc JDK 21, cần phương án thay thế và không được viện dẫn một API mà runtime đích không có.
+Do not add `--enable-preview` for JDK 24 examples. For a project constrained to JDK 17 or JDK 21, choose an alternative approach and do not invoke an API missing from the target runtime.
 
-Tài liệu tham chiếu chính thức:
+Official reference documentation:
 
 - [`Gatherer` — JDK 24](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.html)
 - [`Gatherer.Integrator` — JDK 24](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.Integrator.html)
@@ -66,25 +66,25 @@ Tài liệu tham chiếu chính thức:
 - [`Gatherers` — JDK 24](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherers.html)
 - [`Stream.gather` — JDK 24](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Stream.html#gather(java.util.stream.Gatherer))
 
-## 3. Hợp đồng cơ bản của `Gatherer<T,A,R>`
+## 3. Core contract of `Gatherer<T,A,R>`
 
-Một gatherer có ba kiểu:
+A gatherer has three type parameters:
 
-- `T`: kiểu phần tử nguồn mà gatherer nhận.
-- `A`: kiểu trạng thái tích lũy trung gian, có thể mutable.
-- `R`: kiểu phần tử kết quả đẩy về downstream.
+- `T`: type of source elements the gatherer receives.
+- `A`: type of intermediate accumulated state, which may be mutable.
+- `R`: type of result elements pushed downstream.
 
-Các phần quan trọng:
+Key components:
 
-| Thành phần | Chức năng | Điều cần kiểm tra |
+| Component | Function | What to check |
 | --- | --- | --- |
-| `initializer()` | Tạo trạng thái `A` mới nếu cần | Không chia sẻ nhầm state giữa những lần chạy |
-| `integrator()` | Nhận từng `T`, cập nhật `A`, gọi downstream để phát `R` | Xử lý đúng tín hiệu stop và thứ tự |
-| `combiner()` | Gộp trạng thái khi có thể đánh giá song song | Chỉ cung cấp nếu chứng minh tính đúng khi phân hoạch/gộp |
-| `finisher()` | Thực hiện bước kết thúc và có thể phát kết quả cuối | Có cần đợi EOF? Có biết downstream từ chối chưa? |
-| `andThen(...)` | Ghép các gatherer | Tín hiệu dừng phải truyền hợp lệ qua chuỗi |
+| `initializer()` | Creates new state `A` if needed | Never accidentally share state across runs |
+| `integrator()` | Receives each `T`, updates `A`, calls downstream to emit `R` | Handle stop signals and ordering properly |
+| `combiner()` | Merges states when parallel evaluation is possible | Provide only if correctness under partition/merge is proven |
+| `finisher()` | Runs final step and may emit final results | Does it wait for EOF? Does it check if downstream is rejecting? |
+| `andThen(...)` | Composes gatherers | Stop signals must propagate validly through the chain |
 
-Chữ ký của integrator:
+Integrator signature:
 
 ```java
 @FunctionalInterface
@@ -97,19 +97,19 @@ interface Integrator<A, T, R> {
 }
 ```
 
-Ý nghĩa của giá trị trả về:
+Meaning of the return value:
 
-- `true`: gatherer **có thể tiếp tục nhận** các phần tử nguồn nếu pipeline còn nhu cầu.
-- `false`: gatherer yêu cầu **ngừng cung cấp thêm input** cho nó; coi như không còn input để tích lũy.
+- `true`: the gatherer **can continue receiving** source elements if the pipeline still demands them.
+- `false`: the gatherer requests **stopping further input** to it; no more inputs remain to integrate.
 
-Tín hiệu dừng này là **điều khiển pipeline**, không phải kết quả boolean của phần tử đang được lọc. Trả `false` không tự phát phần tử nào; muốn đưa phần tử cuối ra kết quả, phải gọi `downstream.push(element)` đúng thời điểm.
+This stop signal is **pipeline control**, not a boolean filter predicate for the current element. Returning `false` emits no element on its own; to include the final element in results, call `downstream.push(element)` at the right moment.
 
-### 3.1. Không dùng state chung giữa hai pipeline
+### 3.1. Do not share state between two pipelines
 
-Sai về lifecycle:
+Lifecycle mistake:
 
 ```java
-// Phản ví dụ: counter bị capture ngoài gatherer và chia sẻ giữa các lần dùng.
+// Counterexample: counter captured outside gatherer and shared across runs.
 // AtomicInteger global = new AtomicInteger();
 // Gatherer<Integer, ?, Integer> g = Gatherer.ofSequential(
 //     (ignored, n, downstream) ->
@@ -117,17 +117,17 @@ Sai về lifecycle:
 // );
 ```
 
-Ngay cả khi `AtomicInteger` an toàn cho phép cộng đồng thời, state dùng chung làm các lần chạy stream **ảnh hưởng nhau**. Với gatherer stateful, đặt trạng thái vào `initializer()` để mỗi lần đánh giá có state riêng.
+Even though `AtomicInteger` is safe for concurrent increments, shared state makes separate stream runs **interfere with each other**. For a stateful gatherer, place state in `initializer()` so every evaluation gets its own state.
 
-### 3.2. Không giữ state hoặc downstream để phát về sau
+### 3.2. Do not retain state or downstream to emit later
 
-Theo hợp đồng `Gatherer`, không giữ, phát tán hoặc chia sẻ tham chiếu state hay `Downstream` ra ngoài phạm vi invocation đang xử lý. Đừng cất `downstream` vào trường static rồi dùng callback bất đồng bộ vài giây sau để `push`: đó không phải mô hình reactive stream, cũng không có hợp đồng an toàn cho thao tác ấy.
+Per the `Gatherer` contract, do not retain, leak, or share references to state or `Downstream` beyond the scope of the invocation currently running. Never stash `downstream` in a static field and call `push` from an asynchronous callback seconds later: that is neither a reactive stream model nor contract-safe.
 
-## 4. Encounter order: thứ tự nguồn khác thứ tự thực thi
+## 4. Encounter order: source order differs from execution order
 
-**Encounter order** là thứ tự các phần tử được xác định bởi nguồn và các intermediate operation. Ví dụ `List`, mảng và `IntStream.range` có encounter order. Một số nguồn như `HashSet` không cam kết thứ tự, và `BaseStream.unordered()` có thể bỏ yêu cầu duy trì encounter order.
+**Encounter order** is the order of elements defined by the source and intermediate operations. For example, `List`, arrays, and `IntStream.range` have encounter order. Some sources such as `HashSet` do not promise order, and `BaseStream.unordered()` can drop the requirement to maintain encounter order.
 
-Ví dụ ordered:
+Ordered example:
 
 ```java
 import java.util.List;
@@ -142,11 +142,11 @@ System.out.println(windows);
 // [[1, 2, 3], [4, 5, 6], [7]]
 ```
 
-Các cửa sổ gồm **những phần tử liên tiếp theo encounter order**, không phải những giá trị được tự động sắp số tăng dần. Nếu nguồn là `List.of(7, 1, 5, 4)`, cửa sổ kích thước 2 sẽ là `[7,1]` và `[5,4]`.
+Windows consist of **consecutive elements in encounter order**, not values automatically sorted ascending. If the source is `List.of(7, 1, 5, 4)`, windows of size 2 will be `[7,1]` and `[5,4]`.
 
-### 4.1. `parallel()` không có nghĩa kết quả ordered bị đảo
+### 4.1. `parallel()` does not mean ordered results get scrambled
 
-`parallel()` chỉ biểu thị ý định đánh giá song song. Với pipeline có encounter order và các thao tác phải duy trì thứ tự, kết quả `toList()` vẫn phải theo encounter order. Nhưng **các lời gọi mapper ở nhiều worker có thể xảy ra theo thứ tự khác**.
+`parallel()` only expresses an intent for parallel evaluation. For a pipeline with encounter order and order-preserving operations, `toList()` must still follow encounter order. However, **mapper invocations across workers may occur in a different order**.
 
 ```java
 import java.util.stream.IntStream;
@@ -161,9 +161,9 @@ System.out.println(ordered);
 // [10, 20, 30, 40, 50, 60, 70, 80, 90]
 ```
 
-`Gatherers.mapConcurrent` dùng **virtual threads**, giới hạn số tác vụ đồng thời theo `maxConcurrency` và **bảo toàn thứ tự kết quả của stream** theo Javadoc. Điều này không nói mapper thực thi theo thứ tự 1 → 9. Mỗi tác vụ có thể hoàn thành ở những thời điểm khác nhau. Nếu đầu vào đã unordered, không tự áp đặt một thứ tự mà nguồn không có.
+`Gatherers.mapConcurrent` uses **virtual threads**, bounds concurrent tasks by `maxConcurrency`, and **preserves the stream's result order** per Javadoc. This does not mean mappers execute sequentially from 1 → 9. Tasks can finish at different times. If the input is already unordered, do not impose an order the source does not have.
 
-### 4.2. `forEach` và `forEachOrdered`
+### 4.2. `forEach` and `forEachOrdered`
 
 ```java
 List<Integer> input = List.of(1, 2, 3, 4);
@@ -171,17 +171,17 @@ List<Integer> input = List.of(1, 2, 3, 4);
 input.parallelStream()
     .gather(Gatherers.mapConcurrent(2, n -> n * 2))
     .forEach(System.out::println);
-// Không cam kết thứ tự dòng in.
+// Print line order is not guaranteed.
 
 input.parallelStream()
     .gather(Gatherers.mapConcurrent(2, n -> n * 2))
     .forEachOrdered(System.out::println);
-// 2, 4, 6, 8 theo encounter order.
+// 2, 4, 6, 8 in encounter order.
 ```
 
-`forEachOrdered` giữ thứ tự ở terminal stage nhưng có chi phí phối hợp. Đừng dùng thứ tự log hoặc tên thread để kiểm chứng thứ tự dữ liệu cuối cùng.
+`forEachOrdered` preserves order at the terminal stage, though with coordination cost. Do not use log order or thread names to assert final data ordering.
 
-### 4.3. Khi gọi `unordered()`
+### 4.3. When calling `unordered()`
 
 ```java
 var result = IntStream.range(1, 7)
@@ -191,13 +191,13 @@ var result = IntStream.range(1, 7)
     .toList();
 ```
 
-Pipeline trên **không nên được kiểm thử với giả định nhóm chính xác luôn là `[1,2]`, `[3,4]`, `[5,6]`** theo hợp đồng có thứ tự từ đầu nguồn. `unordered()` bỏ ràng buộc đó. Nếu nghiệp vụ yêu cầu “ba sự kiện liên tiếp”, giữ nguồn có encounter order và không tự ý gọi `unordered()` để tối ưu.
+The pipeline above **must not be tested assuming groups are always `[1,2]`, `[3,4]`, `[5,6]`** under an ordered source contract. `unordered()` drops that constraint. If the business rule requires "three consecutive events", keep an ordered source and do not blindly call `unordered()` as an optimization.
 
-**Quy tắc:** nếu một phép biến đổi cần khái niệm **phần tử trước/sau**, phải định nghĩa “trước/sau” bằng một thứ tự dữ liệu đáng tin. Thời điểm thread hoàn tất không thay được encounter order.
+**Rule:** if a transformation relies on **preceding/following elements**, define "before/after" with a reliable data ordering. Thread completion timing cannot substitute for encounter order.
 
-## 5. `Gatherers.windowFixed`: gom cửa sổ cố định và thứ tự
+## 5. `Gatherers.windowFixed`: fixed batching and ordering
 
-`Gatherers.windowFixed(windowSize)` gom các phần tử liên tiếp thành các cửa sổ **không chồng lấn**:
+`Gatherers.windowFixed(windowSize)` groups consecutive elements into **non-overlapping** windows:
 
 ```java
 List<List<Integer>> result = List.of(10, 20, 30, 40, 50, 60, 70)
@@ -209,16 +209,16 @@ System.out.println(result);
 // [[10, 20, 30], [40, 50, 60], [70]]
 ```
 
-Đặc điểm:
+Characteristics:
 
-- `windowSize` phải **lớn hơn 0**, ngược lại ném `IllegalArgumentException`.
-- Mỗi cửa sổ gồm các phần tử liên tiếp theo encounter order.
-- Khi nguồn hữu hạn còn dư ít hơn `windowSize`, cửa sổ **cuối có thể nhỏ hơn kích thước yêu cầu**.
-- Nguồn rỗng không tạo cửa sổ.
-- Các `List` cửa sổ trả ra **không sửa đổi được**; không phụ thuộc implementation cụ thể hoặc serialization.
-- Kích thước cửa sổ lớn có thể làm tốn bộ nhớ ngay cả khi luồng nguồn nhỏ.
+- `windowSize` must be **greater than 0**, otherwise `IllegalArgumentException` is thrown.
+- Each window consists of consecutive elements in encounter order.
+- When a finite source has a remainder smaller than `windowSize`, **the final window can be smaller than requested**.
+- An empty source creates no windows.
+- Returned window `List`s are **unmodifiable**; do not rely on a specific implementation class or serialization.
+- A huge window size can consume significant memory even when the source stream is small.
 
-### 5.1. Cửa sổ cố định trên nguồn vô hạn
+### 5.1. Fixed windows on an infinite source
 
 ```java
 import java.util.stream.Stream;
@@ -232,15 +232,15 @@ System.out.println(firstTwo);
 // [[1, 2, 3], [4, 5, 6]]
 ```
 
-Nguồn `Stream.iterate(1L, n -> n + 1L)` **không có điểm kết thúc tự nhiên**. Pipeline trên vẫn có thể hoàn thành vì:
+The `Stream.iterate(1L, n -> n + 1L)` source **has no natural endpoint**. The pipeline above still completes because:
 
-1. Gatherer phát một cửa sổ sau khi đủ ba phần tử.
-2. `limit(2)` cần hai cửa sổ rồi dừng nhận kết quả.
-3. Tín hiệu dừng truyền qua pipeline, nên không cần đợi nguồn vô hạn kết thúc.
+1. The gatherer emits a window once three elements accumulate.
+2. `limit(2)` needs two windows and then stops accepting results.
+3. The stop signal propagates through the pipeline without waiting for the infinite source to end.
 
-**Không khẳng định framework chỉ gọi đúng 6 lần hàm tạo nguồn trong mọi chế độ hoặc mọi implementation.** Pipeline có thể có buffering, lookahead hoặc công việc đã bắt đầu trước khi downstream dừng. Điều có thể kiểm chứng theo hợp đồng là **nội dung hai cửa sổ** và việc phép tính có đường kết thúc.
+**Never assert that the framework calls the source generator exactly 6 times in every mode or implementation.** Pipelines may perform buffering, lookahead, or start work before downstream stops. What can be verified per contract is **the contents of the two windows** and that the computation has a termination path.
 
-### 5.2. Nguồn không đủ một cửa sổ
+### 5.2. Source smaller than one window
 
 ```java
 List<List<Integer>> partial = Stream.of(1, 2)
@@ -250,11 +250,11 @@ List<List<Integer>> partial = Stream.of(1, 2)
 System.out.println(partial); // [[1, 2]]
 ```
 
-Ở đây, `finisher`/giai đoạn hoàn tất của gatherer có thể phát cửa sổ cuối chưa đủ kích thước khi nguồn hữu hạn **đã kết thúc**. Với nguồn vô hạn không đạt kích thước cửa sổ và không có điểm kết thúc, không có cách tự nhiên để “kết thúc rồi phát cửa sổ dư”.
+Here, the gatherer's `finisher`/completion stage emits the incomplete final window once the finite source **has ended**. With an infinite source that never reaches window size and never ends, there is no natural way to "end and emit the remaining window".
 
-## 6. `Gatherers.windowSliding`: các cửa sổ chồng lấn
+## 6. `Gatherers.windowSliding`: overlapping windows
 
-`windowSliding(size)` duy trì một cửa sổ trượt: phần tử đầu của cửa sổ cũ bị bỏ, phần tử mới được thêm vào.
+`windowSliding(size)` maintains a sliding window: the first element of the old window is dropped, and the new element is appended.
 
 ```java
 List<List<Integer>> windows = Stream.of(1, 2, 3, 4, 5)
@@ -265,7 +265,7 @@ System.out.println(windows);
 // [[1, 2, 3], [2, 3, 4], [3, 4, 5]]
 ```
 
-Các `List` cửa sổ **không sửa đổi được**. Với nguồn có ít phần tử hơn `size`, Javadoc quy định **một cửa sổ chứa toàn bộ phần tử** nếu nguồn không rỗng:
+Window `List`s are **unmodifiable**. For a source with fewer elements than `size`, Javadoc specifies **one window containing all elements** if the source is non-empty:
 
 ```java
 System.out.println(Stream.of(5, 9)
@@ -274,9 +274,9 @@ System.out.println(Stream.of(5, 9)
 // [[5, 9]]
 ```
 
-Nguồn rỗng cho danh sách cửa sổ rỗng. `windowSize < 1` là không hợp lệ.
+An empty source gives an empty list of windows. `windowSize < 1` is invalid.
 
-### 6.1. Nguồn vô hạn cần giới hạn kết quả
+### 6.1. Infinite sources need output limits
 
 ```java
 List<List<Integer>> firstThree = Stream.iterate(1, n -> n + 1)
@@ -288,19 +288,19 @@ System.out.println(firstThree);
 // [[1, 2, 3], [2, 3, 4], [3, 4, 5]]
 ```
 
-Sau khi đã đủ dữ liệu cho cửa sổ đầu, gatherer có thể phát thêm cửa sổ mỗi khi nhận một phần tử tiếp theo. `limit(3)` phía sau tạo điều kiện dừng với một kết quả hữu hạn.
+Once enough data arrives for the first window, the gatherer emits another window for each subsequent element received. A trailing `limit(3)` supplies a stopping condition with a finite result.
 
-### 6.2. Kích thước cửa sổ quyết định độ trễ đầu ra
+### 6.2. Window size determines output latency
 
-Với cửa sổ kích thước 1.000.000, phép `findFirst()` **không nhất thiết có kết quả ngay**, vì gatherer cần tích lũy đủ dữ liệu cho một cửa sổ hoàn chỉnh hoặc đợi nguồn hữu hạn kết thúc để phát phần cửa sổ cuối. Nếu nguồn vô hạn liên tục sinh dữ liệu thì cuối cùng có thể đủ, nhưng thời gian và bộ nhớ phụ thuộc tốc độ nguồn và kích thước cửa sổ.
+With a window size of 1,000,000, `findFirst()` **will not necessarily return immediately**, because the gatherer must accumulate enough data for one complete window or wait for a finite source to finish to emit the trailing partial window. If an infinite source keeps producing data, it can eventually fill, though latency and memory depend on source speed and window size.
 
-**Không** xem `limit(1)` hoặc `findFirst()` là bảo đảm “đọc một phần tử nguồn rồi trả kết quả”. Chúng giới hạn **phần tử đầu ra**, không mặc nhiên giới hạn **số phần tử đầu vào gatherer phải nhận**.
+**Do not** treat `limit(1)` or `findFirst()` as a guarantee of "read one source element and return a result". They cap **output elements**, not automatically **how many input elements the gatherer must consume**.
 
-## 7. `scan` và `fold`: hai cách tích lũy có hành vi kết thúc khác nhau
+## 7. `scan` and `fold`: two accumulations with different completion behavior
 
-`Gatherers.scan(initial, scanner)` phát kết quả **sau mỗi input**. `Gatherers.fold(initial, folder)` chỉ phát **một kết quả tích lũy cuối** khi quá trình thu thập kết thúc bình thường.
+`Gatherers.scan(initial, scanner)` emits a result **after every input**. `Gatherers.fold(initial, folder)` emits only **one final accumulated result** when collection finishes normally.
 
-### 7.1. `scan`: có đầu ra tăng dần
+### 7.1. `scan`: incremental output
 
 ```java
 List<Long> prefixSums = Stream.of(2L, 3L, 5L)
@@ -313,9 +313,9 @@ List<Long> prefixSums = Stream.of(2L, 3L, 5L)
 System.out.println(prefixSums); // [2, 5, 10]
 ```
 
-Số `0L` chỉ là trạng thái khởi tạo; nó **không được phát như một phần tử kết quả riêng**. Sau input đầu tiên `2`, kết quả là `2`.
+The `0L` is only the initial state; it is **not emitted as a separate result element**. After the first input `2`, the result is `2`.
 
-### 7.2. `scan` trên nguồn vô hạn
+### 7.2. `scan` on an infinite source
 
 ```java
 List<Long> runningTotals = Stream.iterate(1L, n -> n + 1L)
@@ -330,9 +330,9 @@ System.out.println(runningTotals);
 // [1, 3, 6, 10, 15]
 ```
 
-Mỗi input sinh được một prefix sum. `limit(5)` phía sau có thể lấy năm kết quả mà không cần chờ EOF của nguồn vô hạn.
+Each input yields one prefix sum. A trailing `limit(5)` can take five results without waiting for EOF on the infinite source.
 
-### 7.3. `fold`: đợi kết thúc nguồn
+### 7.3. `fold`: waits for the source to end
 
 ```java
 List<Long> oneTotal = Stream.of(2L, 3L, 5L)
@@ -345,19 +345,19 @@ List<Long> oneTotal = Stream.of(2L, 3L, 5L)
 System.out.println(oneTotal); // [10]
 ```
 
-Với nguồn vô hạn, đoạn sau **không có đường kết thúc tự nhiên**:
+With an infinite source, the code below **has no natural termination path**:
 
 ```java
-// KHÔNG CHẠY trong demo hoặc unit test:
+// DO NOT RUN in demos or unit tests:
 // Stream.iterate(1L, n -> n + 1L)
 //     .gather(Gatherers.fold(() -> 0L, Long::sum))
 //     .limit(1)
 //     .toList();
 ```
 
-`limit(1)` yêu cầu một **kết quả của fold**, nhưng fold thường không phát kết quả cho tới khi đã tiêu thụ hết input. Nguồn vô hạn không tự kết thúc, nên fold không có kết quả để downstream nhận. Đây là ví dụ điển hình rằng **short-circuit phía sau không bảo đảm hoàn tất nếu giai đoạn trước không phát phần tử**.
+`limit(1)` asks for one **fold result**, yet fold normally does not emit a result until all input has been consumed. The infinite source never ends, so fold has no result for downstream to receive. This is a classic example showing **downstream short-circuiting does not guarantee termination if an earlier stage emits nothing**.
 
-Nếu yêu cầu là “tổng của 100 số đầu”, đặt `limit` **trước `fold`**:
+If the requirement is "sum of the first 100 numbers", place `limit` **before `fold`**:
 
 ```java
 List<Long> first100Total = Stream.iterate(1L, n -> n + 1L)
@@ -371,81 +371,81 @@ List<Long> first100Total = Stream.iterate(1L, n -> n + 1L)
 System.out.println(first100Total); // [5050]
 ```
 
-**Đặt `limit` ở đâu là lựa chọn ngữ nghĩa**, không chỉ tối ưu:
+**Where `limit` is placed is a semantic choice**, not just an optimization:
 
 ```text
-Nguồn vô hạn → limit(100) → fold → một tổng cuối       (có đường kết thúc)
-Nguồn vô hạn → fold → limit(1)   → đợi tổng cuối mãi   (không có EOF)
-Nguồn vô hạn → scan → limit(100) → 100 tổng tích lũy   (có đường kết thúc)
+Infinite source → limit(100) → fold → one final sum       (has termination path)
+Infinite source → fold → limit(1)   → waits forever       (no EOF)
+Infinite source → scan → limit(100) → 100 running totals  (has termination path)
 ```
 
-## 8. Hai tín hiệu dừng phải được hiểu riêng
+## 8. Two stop signals that must be understood separately
 
-### 8.1. `Integrator.integrate` trả `false`
+### 8.1. `Integrator.integrate` returns `false`
 
-Một custom gatherer có thể quyết định “đã gặp mốc dừng, không nhận thêm phần tử nguồn”. Đây là **short-circuit chủ động từ gatherer**.
+A custom gatherer can decide "stop milestone reached, accept no more source elements". This is **active short-circuiting initiated by the gatherer**.
 
-Ví dụ yêu cầu lấy giá trị đến **và bao gồm** số đầu tiên lớn hơn hoặc bằng 5:
+For example, taking values up to **and including** the first number greater than or equal to 5:
 
 ```java
-// [1, 2, 3, 4, 5], sau đó yêu cầu dừng nguồn.
+// [1, 2, 3, 4, 5], then requests stopping the source.
 Stream.iterate(1, n -> n + 1)
     .gather(takeUntilInclusive(n -> n >= 5))
     .toList();
 ```
 
-Hàm `takeUntilInclusive` sẽ được cài đặt đầy đủ ở mục 11.
+`takeUntilInclusive` is implemented in full in section 11.
 
-### 8.2. `Downstream.push(value)` trả `false`
+### 8.2. `Downstream.push(value)` returns `false`
 
-`downstream.push(value)` chuyển giá trị sang giai đoạn tiếp theo và trả:
+`downstream.push(value)` forwards the value to the next stage and returns:
 
-- `true` khi downstream còn có khả năng nhận thêm.
-- `false` khi downstream **không nhận thêm phần tử nữa**. Những lần `push` tiếp theo trên cùng downstream cũng sẽ trả `false`.
+- `true` when downstream can still accept more.
+- `false` when downstream **will accept no more elements**. Subsequent `push` calls on the same downstream will also return `false`.
 
-Một integrator muốn hỗ trợ dừng sớm cần **quan sát và truyền lại** tín hiệu đó, ví dụ:
+An integrator wishing to support short-circuiting should **observe and propagate** that signal, for instance:
 
 ```java
 boolean wantsMore = downstream.push(element);
 return wantsMore;
 ```
 
-Nếu downstream đã nhận đủ một kết quả do `findFirst` hoặc đủ `N` phần tử do `limit(N)`, việc tiếp tục gọi `push` là làm việc thừa, và có thể khiến logic trở nên khó lý giải.
+Once downstream has received the single result needed by `findFirst` or the `N` elements needed by `limit(N)`, continuing to call `push` does wasted work and can make logic harder to reason about.
 
-### 8.3. `Downstream.isRejecting()` là tín hiệu hỗ trợ, không phải dự đoán tuyệt đối
+### 8.3. `Downstream.isRejecting()` is a helper signal, not an absolute prediction
 
-`downstream.isRejecting()` trả `true` nếu downstream **đã biết** là không muốn nhận thêm; đây là kiểm tra **best effort**. Trả `false` **không bảo đảm** lần `push` kế tiếp chắc chắn được chấp nhận.
+`downstream.isRejecting()` returns `true` if downstream is **already known** to want no more; this is a **best-effort** check. Returning `false` **does not guarantee** that the next `push` will definitely be accepted.
 
-Do đó:
+Therefore:
 
-- Khi chuẩn bị làm một thao tác tạo đầu ra tốn kém, có thể kiểm tra `isRejecting()`.
-- Vẫn phải kiểm tra **giá trị trả về từ `push`** khi thực sự phát dữ liệu.
-- Không dùng `isRejecting()` như một cơ chế pause/resume hay backpressure bất đồng bộ.
+- Before doing an expensive operation to construct an output, you may check `isRejecting()`.
+- Still check **the return value from `push`** when actually emitting data.
+- Never use `isRejecting()` as a pause/resume mechanism or asynchronous backpressure.
 
-### 8.4. Sơ đồ điều khiển dừng
+### 8.4. Stop control flow diagram
 
 ```text
                   integrator(state, input, downstream)
                                 │
-                     Có phần tử cần phát?
+                     Any element to emit?
                          /             \
-                        Không          Có
+                        No            Yes
                          │              │
-             Cần ngừng input?      downstream.push(output)
+              Stop input?          downstream.push(output)
                    /     \              │
-                 Có     Không      true / false
+                 Yes     No        true / false
                  │        │          │     │
-              return    return   có thể   ngừng phát,
-              false     true     nhận tiếp trả false
+              return    return     may     stop emitting,
+              false     true    accept more return false
 ```
 
-Tín hiệu `integrator == false` còn có thể xuất hiện **mà không phát output**, ví dụ khi phát hiện một điều kiện lỗi hoặc một marker phải dừng trước khi đưa vào kết quả.
+The `integrator == false` signal can also happen **without emitting output**, such as when detecting an error condition or a stop marker that should not enter the results.
 
-## 9. `Integrator.ofGreedy` không dùng để chủ động short-circuit
+## 9. `Integrator.ofGreedy` is not for active short-circuiting
 
-`Gatherer.Integrator.Greedy` biểu thị integrator **không tự khởi xướng dừng nguồn**; nó chỉ phản ánh việc downstream không muốn nhận thêm. Vì thế JDK có thể tối ưu mà không cần kiểm tra giá trị boolean của integrator greedy trong một số tình huống.
+`Gatherer.Integrator.Greedy` indicates an integrator that **never initiates stopping the source itself**; it only reflects downstream's unwillingness to accept more. Therefore, the JDK may optimize by skipping the boolean check on a greedy integrator in certain scenarios.
 
-Ví dụ dùng đúng:
+Valid usage example:
 
 ```java
 Gatherer<Integer, ?, Integer> doubleValues =
@@ -461,22 +461,22 @@ List<Integer> result = Stream.of(1, 2, 3)
 // [2, 4, 6]
 ```
 
-Vì integrator chỉ biến đổi phần tử và truyền `push`, nó không cần tự đặt mốc dừng. Nhưng nếu muốn **gặp số 5 thì ngừng nhận input kể cả downstream vẫn sẵn sàng**, phải dùng **Integrator thường** (`ofSequential` với lambda thông thường hoặc `Integrator.of(...)`), **không dùng `ofGreedy`** để trả `false` cho điều kiện riêng.
+Because the integrator simply transforms the element and returns `push`, it needs no stop milestone of its own. However, if you want to **stop accepting input when encountering 5 even while downstream is still ready**, you must use a **regular Integrator** (`ofSequential` with a regular lambda or `Integrator.of(...)`), **not `ofGreedy`** returning `false` for a custom condition.
 
-**Sai về hợp đồng:**
+**Contract violation:**
 
 ```java
-// Phản ví dụ: greedy nhưng chủ động trả false khi n == 5.
+// Counterexample: greedy yet actively returns false when n == 5.
 // Gatherer.Integrator.ofGreedy(
 //     (state, n, downstream) -> n != 5 && downstream.push(n)
 // )
 ```
 
-Trong implementation cho phép tối ưu bỏ việc kiểm tra boolean của greedy, quy tắc dừng của đoạn phản ví dụ có thể không được thực thi như mong muốn.
+In an implementation that optimizes away checking the greedy boolean return value, the counterexample's stop rule may fail to execute as intended.
 
-## 10. Dừng sớm từ downstream không đồng nghĩa đúng một lần gọi upstream
+## 10. Downstream short-circuiting does not mean upstream is called exactly once
 
-Với một pipeline:
+Given a pipeline:
 
 ```java
 var first = Stream.iterate(0, n -> n + 1)
@@ -487,59 +487,59 @@ var first = Stream.iterate(0, n -> n + 1)
     .findFirst();
 ```
 
-Kết quả có thể nhận được từ lần đầu gatherer phát giá trị, nhưng **không nên viết đặc tả bắt buộc mapper, supplier, finisher hoặc upstream phải được gọi đúng một lần**. Stream API có quyền sử dụng buffering, speculative work hoặc tối ưu hóa, nhất là khi xử lý song song.
+The result can be obtained as soon as the gatherer first emits a value, yet **you should not write specifications requiring mapper, supplier, finisher, or upstream to be called an exact number of times**. The Stream API is permitted to use buffering, speculative work, or optimizations, especially in parallel execution.
 
-### 10.1. Không đặt side effect nghiệp vụ trong mapper với mong muốn “chỉ chạy N lần”
+### 10.1. Do not place business side effects in mapper expecting "runs only N times"
 
 ```java
-// Không làm:
+// Do not do:
 // Stream.generate(() -> paymentApi.chargeCard())
 //     .gather(Gatherers.mapConcurrent(8, this::validate))
 //     .limit(1)
 //     .findFirst();
 ```
 
-Khi gatherer hoặc upstream có concurrency, nhiều tác vụ có thể đã được khởi động trước khi downstream quyết định dừng. `Gatherers.mapConcurrent` chỉ **cố gắng hủy** công việc chưa hoàn thành theo cơ chế best effort; nó không bảo đảm mọi side effect bên ngoài chưa xảy ra sẽ được thu hồi.
+When the gatherer or upstream has concurrency, multiple tasks may already have started before downstream decides to stop. `Gatherers.mapConcurrent` only **attempts to cancel** unfinished work on a best-effort basis; it does not guarantee that all external side effects not yet completed will be retracted.
 
-Nếu là thanh toán, ghi cơ sở dữ liệu hoặc gửi thông báo, hãy tách thao tác không thể đảo ngược khỏi một pipeline có speculative work, hoặc thiết kế **idempotency**, transaction và chính sách retry/cancellation ở tầng ứng dụng.
+For payments, database writes, or notifications, separate irreversible operations from a pipeline with speculative work, or design **idempotency**, transactions, and retry/cancellation policies at the application layer.
 
-### 10.2. Các loại “đã dừng” khác nhau
+### 10.2. Different kinds of "stopped"
 
-| Cơ chế | Ai phát tín hiệu? | Tác động |
+| Mechanism | Who emits the signal? | Effect |
 | --- | --- | --- |
-| `integrate(...) == false` | Gatherer | Ngừng nhận input theo hợp đồng gatherer |
-| `downstream.push(...) == false` | Downstream | Không muốn nhận thêm output |
-| `limit(N)` | Intermediate stage phía sau | Chỉ cần tối đa `N` phần tử đầu ra |
-| `findFirst` | Terminal operation | Chỉ cần phần tử đầu tiên theo encounter order |
-| `anyMatch` / `noneMatch` | Terminal operation | Dừng khi đủ điều kiện xác định kết quả |
-| `takeWhile` | Intermediate stage | Ngừng khi predicate không còn đúng trên ordered stream |
-| `Stream.close()` | Owner/caller | Giải phóng tài nguyên, **không phải** một phép tính terminal thay `collect` |
+| `integrate(...) == false` | Gatherer | Stops receiving input per gatherer contract |
+| `downstream.push(...) == false` | Downstream | Wants to receive no more output |
+| `limit(N)` | Subsequent intermediate stage | Needs at most `N` output elements |
+| `findFirst` | Terminal operation | Needs only the first element in encounter order |
+| `anyMatch` / `noneMatch` | Terminal operation | Stops as soon as the result is determined |
+| `takeWhile` | Intermediate stage | Stops when predicate ceases to hold on an ordered stream |
+| `Stream.close()` | Owner/caller | Releases resources, **not** a terminal computation replacing `collect` |
 
-**Ghi nhớ:** ngừng tính toán, ngừng phát dữ liệu và đóng tài nguyên là ba trách nhiệm khác nhau.
+**Remember:** stopping computation, stopping data emission, and closing resources are three distinct responsibilities.
 
-## 11. Custom Gatherer: lấy đến và bao gồm phần tử đánh dấu
+## 11. Custom Gatherer: taking up to and including a marker element
 
-`Stream.takeWhile(predicate)` (Java 9+) lấy phần tử **trong khi điều kiện còn đúng** và **không phát phần tử đầu tiên khiến predicate sai** trên ordered stream. Trong khi đó, một số bài toán yêu cầu **giữ lại marker kết thúc**:
+`Stream.takeWhile(predicate)` (Java 9+) takes elements **while the condition remains true** and **does not emit the first element that fails the predicate** on an ordered stream. Meanwhile, some problems require **keeping the closing marker**:
 
 ```text
 Input:  [10, 20, 30, -1, 40, 50, ...]
-Mục tiêu: [10, 20, 30, -1]
-                            ^
-                      giữ phần tử đánh dấu
+Target: [10, 20, 30, -1]
+                      ^
+                keep marker element
 ```
 
-Đây là một trường hợp Gatherer phù hợp hơn `takeWhile(n -> n != -1)`, bởi `takeWhile` sẽ chỉ trả `[10,20,30]`.
+This is a case where a Gatherer fits better than `takeWhile(n -> n != -1)`, because `takeWhile` would only return `[10,20,30]`.
 
-### 11.1. Ý tưởng thuật toán
+### 11.1. Algorithm idea
 
-Với từng phần tử:
+For each element:
 
-1. Gọi `downstream.push(element)` **trước** để phần tử hiện tại (kể cả marker) được phát.
-2. Kiểm tra predicate có phải phần tử dừng hay không.
-3. Trả `false` nếu downstream từ chối **hoặc** predicate báo đã tới mốc dừng.
-4. Trả `true` trong các trường hợp còn lại.
+1. Call `downstream.push(element)` **first** so the current element (including the marker) is emitted.
+2. Check whether the predicate indicates this is a stop element.
+3. Return `false` if downstream rejects **or** the predicate signals the stop milestone was reached.
+4. Return `true` otherwise.
 
-Vì gatherer cần chủ động dừng trên predicate, **không dùng `Integrator.ofGreedy`**.
+Because the gatherer needs to actively stop on the predicate, **do not use `Integrator.ofGreedy`**.
 
 ```java
 import java.util.Objects;
@@ -559,9 +559,9 @@ static <T> Gatherer<T, ?, T> takeUntilInclusive(
 }
 ```
 
-Ở đây, overload `ofSequential(Integrator<Void,T,R>)` không cần state vì điều kiện dừng chỉ phụ thuộc **phần tử hiện tại** và predicate. `Void` là kiểu state mặc định của overload này; `unusedState` không được sử dụng.
+Here, the `ofSequential(Integrator<Void,T,R>)` overload needs no state because the stopping condition depends only on **the current element** and the predicate. `Void` is the default state type of this overload; `unusedState` is unused.
 
-### 11.2. Nguồn hữu hạn và nguồn vô hạn
+### 11.2. Finite and infinite sources
 
 ```java
 List<Integer> finite = Stream.of(10, 20, 30, -1, 40)
@@ -577,35 +577,35 @@ List<Integer> infinite = Stream.iterate(1, n -> n + 1)
 System.out.println(infinite); // [1, 2, 3, 4, 5]
 ```
 
-Ví dụ thứ hai **không đặt `limit` phía sau**. Nó vẫn có đường kết thúc vì chính Gatherer sẽ trả `false` sau khi đẩy phần tử 5. Đây là **short-circuit chủ động** từ integrator, khác với downstream `limit(5)`.
+The second example **does not put `limit` afterward**. It still terminates because the Gatherer itself returns `false` after pushing element 5. This is **active short-circuiting** from the integrator, distinct from downstream `limit(5)`.
 
-### 11.3. Mốc dừng không bao giờ xuất hiện?
+### 11.3. What if the stop milestone never appears?
 
-Nếu nguồn hữu hạn không có marker, Gatherer trên phát toàn bộ dữ liệu rồi kết thúc khi nguồn hết. Nếu nguồn vô hạn không bao giờ thỏa `stopWhen` và downstream cũng không dừng, pipeline **không hoàn tất**:
+If a finite source has no marker, the Gatherer above emits all data and finishes when the source ends. If an infinite source never satisfies `stopWhen` and downstream does not stop either, the pipeline **never completes**:
 
 ```java
-// KHÔNG CHẠY: nguồn vô hạn luôn phát 1L, predicate luôn sai.
+// DO NOT RUN: infinite source always emits 1L, predicate is always false.
 // Stream.iterate(1L, n -> n)
 //     .gather(takeUntilInclusive(n -> n < 0L))
 //     .toList();
 ```
 
-Trong hệ thống thật, nên có **một giới hạn phòng vệ** (số phần tử, deadline, giới hạn tài nguyên) nếu marker có thể thiếu. Nhưng chỉ thêm `limit` mà không xác định dữ liệu bị cắt ở đâu sẽ biến báo cáo đầy đủ thành báo cáo một phần; phải nêu rõ hợp đồng.
+In real systems, include **a safeguard limit** (element count, deadline, resource limit) if the marker might be missing. However, adding `limit` without specifying where data is truncated turns a complete report into a partial report; document the contract explicitly.
 
-### 11.4. Cẩn thận nếu predicate có side effect
+### 11.4. Be careful if the predicate has side effects
 
-Ví dụ dùng `downstream.push(element)` rồi mới tính `stopWhen.test(element)`. Nếu downstream đã từ chối phần tử tiếp, biểu thức `&&` không gọi predicate nữa. Do đó **không đưa hành động bắt buộc** vào predicate (ghi hóa đơn, tăng audit counter, gọi API bên ngoài). Predicate nên thuần và non-interfering.
+The example calls `downstream.push(element)` before evaluating `stopWhen.test(element)`. If downstream already rejected the next element, the `&&` expression does not invoke the predicate. Therefore, **never place mandatory actions** inside the predicate (writing invoices, incrementing audit counters, calling external APIs). Predicates should be pure and non-interfering.
 
-## 12. Custom Gatherer có state: lấy tối đa N phần tử
+## 12. Stateful custom Gatherer: taking at most N elements
 
-`Stream.limit(N)` đã giải quyết bài toán này trong hầu hết tình huống. Ta cài một Gatherer tương đương cho **N > 0** để hiểu cách quản lý **state riêng cho mỗi lần chạy** và phối hợp hai loại tín hiệu dừng.
+`Stream.limit(N)` already solves this problem in most situations. Let's implement an equivalent Gatherer for **N > 0** to understand how to manage **per-run private state** and coordinate both kinds of stop signals.
 
 ```java
 import java.util.stream.Gatherer;
 
 static <T> Gatherer<T, ?, T> firstN(int max) {
     if (max <= 0) {
-        throw new IllegalArgumentException("max phải lớn hơn 0");
+        throw new IllegalArgumentException("max must be greater than 0");
     }
 
     class Counter {
@@ -627,15 +627,15 @@ static <T> Gatherer<T, ?, T> firstN(int max) {
 }
 ```
 
-**Phân tích:**
+**Analysis:**
 
-- `Counter::new` tạo state mới; không có một biến đếm dùng chung ở bên ngoài.
-- Mỗi element được phát một lần; biến `emitted` tăng trước khi đánh giá giới hạn.
-- Khi đạt `max`, integrator trả `false` **ngay sau khi phát phần tử thứ N**, không chờ nhận thêm input rồi mới phát hiện.
-- Khi downstream đã trả `false`, integrator cũng trả `false` dù chưa đạt `max`.
-- Với `max == 0`, ví dụ cố ý từ chối đầu vào để tránh giả vờ không đọc phần tử nào; dùng **`Stream.limit(0)`** nếu mục tiêu là kết quả rỗng ngay tại nguồn.
+- `Counter::new` creates fresh state; there is no shared external counter variable.
+- Each element is emitted once; `emitted` increments before checking the limit.
+- When `max` is reached, the integrator returns `false` **immediately after emitting the N-th element**, without waiting to receive one more input to discover it.
+- When downstream returns `false`, the integrator also returns `false` even before reaching `max`.
+- For `max == 0`, the example intentionally rejects the input to avoid pretending no elements were read; use **`Stream.limit(0)`** if the goal is an empty result directly at the source.
 
-Sử dụng:
+Usage:
 
 ```java
 List<Integer> firstFour = Stream.iterate(1, n -> n + 1)
@@ -645,13 +645,13 @@ List<Integer> firstFour = Stream.iterate(1, n -> n + 1)
 System.out.println(firstFour); // [1, 2, 3, 4]
 ```
 
-### 12.1. Vì sao `ofSequential` phù hợp hơn một combiner tự tạo?
+### 12.1. Why does `ofSequential` fit better than a DIY combiner?
 
-`firstN` phụ thuộc **thứ tự các phần tử** và số đã phát trong phần tiền tố. Nếu chia nguồn thành hai nửa, không thể chỉ lấy counter của mỗi nửa rồi cộng mà vẫn bảo đảm “đúng N phần tử đầu tiên” và dừng ở vị trí mong muốn.
+`firstN` depends on **element order** and the count already emitted in the prefix. If the source is split into two halves, you cannot simply take each half's counter and add them while guaranteeing "the exact first N elements" and stopping at the desired point.
 
-`Gatherer.ofSequential` cung cấp **default combiner yêu cầu gatherer đánh giá tuần tự**. Nó tránh việc ta viết một combiner giả đúng trên dữ liệu nhỏ nhưng sai khi chạy song song.
+`Gatherer.ofSequential` provides **a default combiner requiring the gatherer to be evaluated sequentially**. This avoids writing a bogus combiner that seems to work on small data yet breaks under parallel execution.
 
-### 12.2. Mã chạy song song vẫn phải đúng kết quả
+### 12.2. Parallel execution must still yield the right result
 
 ```java
 List<Integer> result = java.util.stream.IntStream.rangeClosed(1, 10)
@@ -659,14 +659,14 @@ List<Integer> result = java.util.stream.IntStream.rangeClosed(1, 10)
     .parallel()
     .gather(firstN(4))
     .toList();
-// Kết quả cần tuân semantics firstN trên ordered source.
+// Result must obey firstN semantics on an ordered source.
 ```
 
-Không suy ra từ lời gọi `parallel()` rằng tích lũy có state phải chạy trên nhiều nhánh đồng thời. Gatherer không có combiner phù hợp chỉ được đánh giá **tuần tự ở chính giai đoạn gather**. Các phần khác của pipeline có thể có chiến lược thực thi riêng; không viết test về số thread hoặc thời điểm đánh giá.
+Do not infer from calling `parallel()` that stateful accumulation must run across multiple branches simultaneously. A Gatherer without a suitable combiner is evaluated **sequentially at the gather stage itself**. Other parts of the pipeline may have their own execution strategies; never write tests asserting thread counts or evaluation timing.
 
-## 13. Chương trình Java 24 đầy đủ: ba cách dừng và hai loại nguồn
+## 13. Complete Java 24 program: three stopping styles and two source types
 
-Chương trình sau độc lập với các đoạn mã rời phía trên. Lưu trong file `GathererOrderAndStopDemo.java` và chạy trên **JDK 24+**.
+The following program is independent of the isolated snippets above. Save it in `GathererOrderAndStopDemo.java` and run on **JDK 24+**.
 
 ```java
 import java.util.List;
@@ -695,7 +695,7 @@ public final class GathererOrderAndStopDemo {
     public static <T> Gatherer<T, ?, T> firstN(int max) {
         if (max <= 0) {
             throw new IllegalArgumentException(
-                "max phải lớn hơn 0"
+                "max must be greater than 0"
             );
         }
 
@@ -743,7 +743,7 @@ public final class GathererOrderAndStopDemo {
 
     public static List<Long> foldFirstFive() {
         return Stream.iterate(1L, n -> n + 1L)
-            .limit(5) // Quan trọng: giới hạn INPUT trước fold.
+            .limit(5) // Important: cap INPUT before fold.
             .gather(Gatherers.fold(
                 () -> 0L,
                 (sum, next) -> Math.addExact(sum, next)
@@ -794,31 +794,31 @@ public final class GathererOrderAndStopDemo {
 }
 ```
 
-Điểm nổi bật: chương trình có **nguồn vô hạn** nhưng **không có phép terminal đợi nguồn vô hạn tự kết thúc**. Mỗi pipeline hoặc sử dụng gatherer phát tăng dần kết hợp `limit`, hoặc tự trả `false` để dừng nguồn, hoặc cắt nguồn thành hữu hạn **trước `fold`**.
+Key takeaway: the program uses **infinite sources**, yet **has no terminal operation waiting for an infinite source to finish on its own**. Each pipeline either uses an incrementally emitting gatherer combined with `limit`, returns `false` on its own to stop the source, or caps the source to finite size **before `fold`**.
 
-### 13.1. Cách biên dịch
+### 13.1. How to compile
 
 ```bash
 javac --release 24 GathererOrderAndStopDemo.java
 java GathererOrderAndStopDemo
 ```
 
-Các lệnh này yêu cầu trình biên dịch hỗ trợ `--release 24`; không dùng `--release 17` vì Java 17 chưa có `Stream.gather`. Với Java 24, Gatherers đã là API chính thức.
+These commands require a compiler supporting `--release 24`; do not use `--release 17` because Java 17 lacks `Stream.gather`. With Java 24, Gatherers are an official API.
 
-### 13.2. Tại sao ví dụ dùng `Stream.iterate` thay vì `Stream.generate`?
+### 13.2. Why does the example use `Stream.iterate` instead of `Stream.generate`?
 
-`Stream.iterate(seed, next)` có encounter order, hữu ích khi bài toán kiểm chứng “những giá trị đầu tiên” hoặc các cửa sổ liên tiếp. `Stream.generate(supplier)` được đặc tả như một nguồn **unordered**, mặc dù khi chạy tuần tự supplier vẫn được gọi để sinh giá trị. Nếu cần kết quả mang nghĩa vị trí theo thứ tự, dùng nguồn và thao tác có encounter order rõ ràng.
+`Stream.iterate(seed, next)` has encounter order, useful when testing "the first N values" or consecutive windows. `Stream.generate(supplier)` is specified as an **unordered** source, even though when run sequentially the supplier is still called to generate values. When results carry positional meaning in order, use a source and operations with explicit encounter order.
 
-## 14. Một custom Gatherer cần `finisher`: xử lý phần cửa sổ cuối
+## 14. A custom Gatherer needing `finisher`: handling the trailing window
 
-`Gatherers.windowFixed` đã có hành vi cửa sổ cuối ngắn hơn kích thước yêu cầu. Nhưng để hiểu rõ vai trò `finisher`, ta có thể tự xây một gatherer gom theo lô.
+`Gatherers.windowFixed` already implements the behavior of a final window shorter than the requested size. However, to clearly understand the role of `finisher`, we can build a batching gatherer ourselves.
 
-**Yêu cầu:**
+**Requirements:**
 
-- Phát một `List<T>` mỗi khi gom đủ `size` phần tử.
-- Khi input hữu hạn kết thúc mà còn phần dư, phát **một lô cuối**.
-- Không phát tiếp nếu downstream đã từ chối.
-- Không giữ tham chiếu mutable của buffer trong kết quả.
+- Emit a `List<T>` whenever `size` elements are collected.
+- When finite input ends with a remainder, emit **one final batch**.
+- Stop emitting if downstream is already rejecting.
+- Do not retain a mutable reference to the internal buffer in emitted results.
 
 ```java
 import java.util.ArrayList;
@@ -829,7 +829,7 @@ import java.util.stream.Gatherer;
 static <T> Gatherer<T, ?, List<T>> batches(int size) {
     if (size < 1) {
         throw new IllegalArgumentException(
-            "size phải lớn hơn 0"
+            "size must be greater than 0"
         );
     }
 
@@ -861,9 +861,9 @@ static <T> Gatherer<T, ?, List<T>> batches(int size) {
 }
 ```
 
-**Chính sách dữ liệu:** ví dụ chủ động từ chối phần tử `null` bằng `Objects.requireNonNull`; `List.copyOf` cũng không nhận null. Nếu nguồn có null hợp lệ, cần thiết kế cách biểu diễn khác thay vì giả vờ không có null.
+**Data policy:** the example explicitly rejects `null` elements via `Objects.requireNonNull`; `List.copyOf` also rejects null. If the source has valid nulls, design another representation instead of pretending nulls cannot occur.
 
-### 14.1. Thử trên nguồn hữu hạn
+### 14.1. Testing on finite sources
 
 ```java
 System.out.println(Stream.of("A", "B", "C", "D", "E")
@@ -877,11 +877,11 @@ System.out.println(Stream.<String>empty()
 // []
 ```
 
-Với lô cuối `[E]`, giai đoạn hoàn tất sau EOF phát phần còn lại; không cần gọi `push` trên mỗi input.
+For the final batch `[E]`, the completion stage after EOF emits the remainder; there is no need to call `push` on every input.
 
-### 14.2. Cẩn thận trên nguồn vô hạn
+### 14.2. Caution on infinite sources
 
-Nguồn vô hạn **không có EOF** để kích hoạt ý nghĩa “phát lô dư sau cùng”, nhưng gatherer có thể phát **những lô đầy đủ** liên tục:
+An infinite source **has no EOF** to trigger "emit the trailing remainder batch", though the gatherer can continuously emit **full batches**:
 
 ```java
 List<List<Integer>> firstTwo = Stream.iterate(1, n -> n + 1)
@@ -893,19 +893,19 @@ System.out.println(firstTwo);
 // [[1, 2], [3, 4]]
 ```
 
-Nếu size rất lớn và downstream cần chỉ một lô, gatherer vẫn phải gom đủ `size` input trước khi phát. Nếu nguồn có tốc độ đầu vào thấp, `findFirst` không làm xuất hiện lô sớm hơn yêu cầu tích lũy.
+If `size` is very large and downstream only needs one batch, the gatherer still has to accumulate `size` inputs before emitting. If the source produces items slowly, `findFirst` does not make the batch appear earlier than the accumulation requirement allows.
 
-### 14.3. Tại sao phải sao chép buffer khi phát?
+### 14.3. Why copy the buffer when emitting?
 
-Nếu gọi `downstream.push(state.pending)` rồi `state.pending.clear()`, những danh sách đã được phát sẽ **bị xóa dữ liệu** vì cùng tham chiếu mutable. `List.copyOf(state.pending)` tạo snapshot cấu trúc không sửa đổi được cho từng lô.
+If you call `downstream.push(state.pending)` and then `state.pending.clear()`, previously emitted lists will **lose their data** because they share the same mutable reference. `List.copyOf(state.pending)` creates a structurally unmodifiable snapshot for each batch.
 
-Với phần tử object mutable, các object bên trong list vẫn có thể đổi; `List.copyOf` không phải deep copy. Với pipeline song song, implementation `ofSequential` giữ logic stateful theo thứ tự mà không cần một combiner không chính xác.
+With mutable element objects, the objects inside the list can still change; `List.copyOf` is not a deep copy. With parallel pipelines, `ofSequential` keeps stateful logic ordered without needing an incorrect combiner.
 
-## 15. `andThen` và nhiều Gatherer trong một pipeline
+## 15. `andThen` and multiple Gatherers in one pipeline
 
-`Gatherer.andThen(other)` tạo một gatherer tổng hợp: kết quả `R` của gatherer đầu trở thành input của gatherer tiếp. Một cách viết khác là gọi nhiều lần `Stream.gather(...)`.
+`Gatherer.andThen(other)` creates a composite gatherer: the `R` output of the first gatherer becomes the input of the next. An alternative syntax is calling `Stream.gather(...)` multiple times.
 
-Ví dụ: chia cửa sổ cố định rồi tiếp tục scan theo **kích thước cửa sổ**:
+Example: split fixed windows and then scan **window sizes**:
 
 ```java
 List<Integer> runningCounts = Stream.of(1, 2, 3, 4, 5, 6, 7)
@@ -920,67 +920,67 @@ List<Integer> runningCounts = Stream.of(1, 2, 3, 4, 5, 6, 7)
 System.out.println(runningCounts); // [3, 6, 7]
 ```
 
-Trong pipeline này:
+In this pipeline:
 
-1. `windowFixed(3)` phát `[1,2,3]`, `[4,5,6]`, `[7]`.
-2. `map(List::size)` phát `3`, `3`, `1`.
-3. `scan` cộng tích lũy thành `3`, `6`, `7`.
+1. `windowFixed(3)` emits `[1,2,3]`, `[4,5,6]`, `[7]`.
+2. `map(List::size)` emits `3`, `3`, `1`.
+3. `scan` accumulates into `3`, `6`, `7`.
 
-Đừng nhầm `limit(2)` trước và sau `windowFixed`:
+Do not confuse `limit(2)` before and after `windowFixed`:
 
 ```java
-// Giới hạn số input: 2 phần tử -> một cửa sổ ngắn.
+// Limit input count: 2 elements -> one short window.
 Stream.of(1, 2, 3, 4, 5)
     .limit(2)
     .gather(Gatherers.windowFixed(3))
     .toList(); // [[1, 2]]
 
-// Giới hạn số OUTPUT: 2 cửa sổ -> có thể chứa tới 6 input.
+// Limit OUTPUT count: 2 windows -> may contain up to 6 inputs.
 Stream.of(1, 2, 3, 4, 5)
     .gather(Gatherers.windowFixed(3))
     .limit(2)
     .toList(); // [[1, 2, 3], [4, 5]]
 ```
 
-JDK được phép tối ưu một chuỗi gatherer, nhưng **không** được làm thay đổi ngữ nghĩa được cam kết. Không viết chương trình phụ thuộc một giai đoạn gatherer nhất định chắc chắn được thực thi trên một thread/được gọi đúng một lần nếu API không hứa điều đó.
+The JDK may optimize a gatherer chain, yet **must not** alter the contracted semantics. Do not write programs that depend on a particular gatherer stage running on a specific thread or being invoked an exact number of times unless guaranteed by the API.
 
-## 16. Song song, combiner và giới hạn của cách chia nguồn
+## 16. Parallelism, combiners, and limits of source splitting
 
-### 16.1. Không có combiner thì gatherer stateful thường tuần tự
+### 16.1. Without a combiner, a stateful gatherer is usually sequential
 
-Với một gatherer có trạng thái phụ thuộc tiền tố, ví dụ `scan` hay `takeUntilInclusive`, việc chia input thành nhiều vùng và gộp state ở cuối **không đơn giản**. `ofSequential` cung cấp một lựa chọn an toàn: gatherer **được đánh giá tuần tự**, ngay cả khi stream phía ngoài bật parallel.
+For a gatherer with prefix-dependent state, such as `scan` or `takeUntilInclusive`, splitting input into multiple regions and merging state at the end **is not trivial**. `ofSequential` offers a safe choice: the gatherer **is evaluated sequentially**, even when the outer stream has parallel mode enabled.
 
-Không suy ra `ofSequential` biến **toàn bộ pipeline** thành một thread đơn duy nhất ở mọi giai đoạn. Điều quan trọng là gatherer không bị framework chia state tùy tiện rồi gọi một combiner không tồn tại.
+Do not conclude `ofSequential` turns **the entire pipeline** into a single thread across every stage. What matters is that the framework does not arbitrarily split the gatherer's state and attempt to call a nonexistent combiner.
 
-### 16.2. Nếu tự cung cấp combiner, phải chứng minh tính kết hợp
+### 16.2. If providing your own combiner, you must prove associativity
 
-Với `Gatherer.of(initializer, integrator, combiner, finisher)`, framework có thể:
+With `Gatherer.of(initializer, integrator, combiner, finisher)`, the framework may:
 
-1. Chia nguồn thành các phân vùng.
-2. Tạo một state độc lập cho mỗi vùng.
-3. Tích lũy từng vùng.
-4. Gộp kết quả qua combiner phù hợp.
-5. Thực hiện finisher.
+1. Split the source into partitions.
+2. Create an independent state per partition.
+3. Accumulate each partition.
+4. Merge results via the appropriate combiner.
+5. Run the finisher.
 
-Nếu phép tính có quy tắc **“đến marker đầu tiên theo encounter order thì dừng”**, chỉ cộng bộ đếm giữa các vùng không đủ. Combiner phải hiểu **vị trí marker**, phần input đã thuộc tiền tố nào và dữ liệu nào cần bỏ; điều đó khó hơn một phép cộng đơn giản.
+If the computation has a rule **"stop at the first marker in encounter order"**, simply adding counters across partitions is insufficient. The combiner must understand **marker position**, which prefix an input slice belongs to, and which data must be discarded; that is much harder than simple addition.
 
-**Phản mẫu:**
+**Anti-pattern:**
 
 ```java
-// Ý tưởng sai:
-// State có ArrayList<T> đã thấy và flag stopped.
+// Wrong idea:
+// State has seen ArrayList<T> and stopped flag.
 // combiner = (left, right) -> {
 //     left.seen.addAll(right.seen);
 //     return left;
 // };
-// Không xử lý flag stopped, thứ tự tiền tố và vị trí marker.
+// Does not handle stopped flag, prefix order, or marker position.
 ```
 
-Kết quả có thể đúng trên nguồn nhỏ hoặc khi không chia, rồi sai ở parallel stream. Nếu không chứng minh được associativity và tính đúng theo encounter order, **đừng tự thêm combiner chỉ để “bật song song”**.
+The result may look right on small sources or when unsplit, then fail on a parallel stream. If you cannot prove associativity and correctness under encounter order, **never add a combiner just to "enable parallelism"**.
 
-### 16.3. `mapConcurrent` khác parallel stream thông thường
+### 16.3. `mapConcurrent` differs from regular parallel streams
 
-`Gatherers.mapConcurrent(maxConcurrency, mapper)` dùng **virtual threads** để thực hiện mapper đồng thời, có giới hạn. API giữ thứ tự kết quả. Đối với mapper làm I/O blocking hoặc việc độc lập có thể được thực thi đồng thời, nó là một lựa chọn đáng thử.
+`Gatherers.mapConcurrent(maxConcurrency, mapper)` uses **virtual threads** to execute the mapper concurrently with a bound. The API preserves result ordering. For mappers doing blocking I/O or independent tasks that can run concurrently, it is worth evaluating.
 
 ```java
 List<String> values = Stream.of("a", "bb", "ccc", "dddd")
@@ -993,43 +993,43 @@ List<String> values = Stream.of("a", "bb", "ccc", "dddd")
 System.out.println(values); // [A, BB, CCC, DDDD]
 ```
 
-`maxConcurrency` phải lớn hơn hoặc bằng 1. **Không** kết luận có đúng `maxConcurrency` tác vụ chạy ở mọi thời điểm, hoặc tối ưu này nhất định nhanh hơn `map`; chi phí điều phối, đặc tính nguồn, khóa nóng ở downstream và độ trễ I/O đều ảnh hưởng.
+`maxConcurrency` must be greater than or equal to 1. Do **not** conclude that exactly `maxConcurrency` tasks run at every instant, or that this optimization is always faster than `map`; coordination overhead, source traits, downstream contention, and I/O latency all matter.
 
-### 16.4. Hủy tác vụ là best effort
+### 16.4. Task cancellation is best-effort
 
-Khi downstream không muốn nhận thêm, `mapConcurrent` **cố gắng hủy** tác vụ đang thực hiện, nhưng không thể bảo đảm mọi mapper đã bắt đầu sẽ dừng ngay hoặc không còn side effect. Bởi vậy, không dùng nó như một cơ chế giao dịch rollback.
+When downstream no longer wants more, `mapConcurrent` **attempts to cancel** in-flight tasks, yet cannot guarantee every already-started mapper stops immediately or avoids side effects. Therefore, never use it as a transactional rollback mechanism.
 
-## 17. Nguồn vô hạn: bảng đánh giá khả năng hoàn tất
+## 17. Infinite sources: completion-feasibility table
 
-| Pipeline trên nguồn vô hạn | Có đường hoàn tất? | Vì sao |
+| Pipeline on an infinite source | Has a completion path? | Why |
 | --- | --- | --- |
-| `scan(...).limit(5).toList()` | Có | `scan` phát từng bước, `limit` chặn output |
-| `windowFixed(3).limit(2).toList()` | Có | Phát một kết quả mỗi ba input, sau đó đủ hai output |
-| `windowSliding(3).limit(2).toList()` | Có | Phát cửa sổ trượt khi đủ dữ liệu |
-| `takeUntilInclusive(n >= 5).toList()` | Có với nguồn tăng từ 1 | Integrator tự trả `false` tại marker |
-| `firstN(5).toList()` | Có | Integrator tự dừng sau N output |
-| `limit(5).fold(...).toList()` | Có | Nguồn đã hữu hạn **trước** fold |
-| `fold(...).limit(1).toList()` | Không có đường hoàn tất tự nhiên | Fold chờ EOF để phát |
-| `filter(n -> false).limit(1).toList()` | Không có đường hoàn tất tự nhiên | Không phần tử nào vượt qua filter |
-| `takeUntilInclusive(n < 0).toList()` với input dương mãi | Không | Predicate dừng không bao giờ đúng |
-| `windowFixed(1_000_000).findFirst()` | Có nếu nguồn tiếp tục đủ input | Cần đủ dữ liệu cho cửa sổ; có thể rất chậm/tốn bộ nhớ |
+| `scan(...).limit(5).toList()` | Yes | `scan` emits step-by-step, `limit` caps output |
+| `windowFixed(3).limit(2).toList()` | Yes | Emits one result per three inputs, then stops at two outputs |
+| `windowSliding(3).limit(2).toList()` | Yes | Emits sliding windows once enough data arrives |
+| `takeUntilInclusive(n >= 5).toList()` | Yes for source ascending from 1 | Integrator itself returns `false` at marker |
+| `firstN(5).toList()` | Yes | Integrator self-stops after N outputs |
+| `limit(5).fold(...).toList()` | Yes | Source is already finite **before** fold |
+| `fold(...).limit(1).toList()` | No natural completion path | Fold waits for EOF to emit |
+| `filter(n -> false).limit(1).toList()` | No natural completion path | No element passes the filter |
+| `takeUntilInclusive(n < 0).toList()` with forever-positive inputs | No | Stopping predicate is never true |
+| `windowFixed(1_000_000).findFirst()` | Yes if source keeps supplying enough inputs | Needs enough data for one window; may be very slow/memory-heavy |
 
-### 17.1. Bốn câu hỏi kiểm tra liveness
+### 17.1. Four liveness check questions
 
-Trước khi đặt một gatherer sau `Stream.iterate` hoặc `Stream.generate`, hãy tự hỏi:
+Before placing a gatherer after `Stream.iterate` or `Stream.generate`, ask yourself:
 
-1. Gatherer có **phát đầu ra trước EOF** không?
-2. Downstream có **điều kiện dừng** như `limit` hoặc `findFirst` không?
-3. Gatherer có **tự ngừng nguồn** qua `integrate == false` không?
-4. Nếu không có đầu ra trong thời gian dài, chương trình cần deadline, cancellation hoặc giới hạn dữ liệu nào?
+1. Does the gatherer **emit output before EOF**?
+2. Does downstream have a **stopping condition** such as `limit` or `findFirst`?
+3. Does the gatherer **stop the source itself** via `integrate == false`?
+4. If no output arrives for a long time, what deadline, cancellation, or data bound does the program need?
 
-Nếu câu 1, 2, 3 đều không tạo ra một cơ chế hoàn tất, pipeline có khả năng **chạy vô thời hạn**. Không chạy thử một pipeline vô hạn mà chưa có cách hủy trong bài tập tự động.
+If questions 1, 2, and 3 provide no completion mechanism, the pipeline will likely **run indefinitely**. Do not run an infinite pipeline without a cancellation mechanism in automated tests.
 
-## 18. Vòng đời tài nguyên khi Gatherer nằm giữa pipeline
+## 18. Resource lifecycles when a Gatherer sits mid-pipeline
 
-Gatherer không có nghĩa là nguồn I/O sẽ được đóng tự động khi terminal operation hoàn tất. Ví dụ `Files.lines` mở tài nguyên đọc file, nên caller phải dùng `try-with-resources`.
+A Gatherer does not mean an I/O source will be closed automatically when the terminal operation completes. For example, `Files.lines` opens a file-reading resource, so the caller must use `try-with-resources`.
 
-### 18.1. Lấy hai cửa sổ đầu từ file lớn
+### 18.1. Taking the first two windows from a large file
 
 ```java
 import java.io.IOException;
@@ -1052,17 +1052,17 @@ static List<List<String>> firstTwoBatches(Path path)
 }
 ```
 
-Đặc điểm:
+Characteristics:
 
-- `Files.lines` trả một stream **đọc lười**, giúp không cần nạp cả file bằng `readAllLines`.
-- `windowFixed(3)` gom các dòng theo thứ tự file.
-- `limit(2)` chỉ cần tối đa hai cửa sổ đầu ra, không yêu cầu đọc hết một file rất lớn.
-- `toList()` hoàn thành **không tự đóng** stream `lines`.
-- `try-with-resources` đóng stream nguồn cả khi đọc bình thường hoặc một giai đoạn ném ngoại lệ.
+- `Files.lines` returns a **lazily reading** stream, avoiding loading the whole file with `readAllLines`.
+- `windowFixed(3)` groups lines in file order.
+- `limit(2)` needs at most two output windows, avoiding reading an entire huge file.
+- `toList()` completing **does not automatically close** the `lines` stream.
+- `try-with-resources` closes the source stream both on normal reads and when a stage throws an exception.
 
-**Không khẳng định chỉ có chính xác sáu lần đọc vật lý ở mọi implementation**: buffering, read-ahead và mã hóa có thể làm tầng I/O đọc dữ liệu trước khi pipeline cần đến tất cả các dòng.
+**Never assert that exactly six physical reads occur on every implementation:** buffering, read-ahead, and character decoding may cause the I/O layer to read ahead before the pipeline needs all lines.
 
-### 18.2. `findFirst` không phải `close`
+### 18.2. `findFirst` is not `close`
 
 ```java
 try (Stream<String> lines = Files.lines(path)) {
@@ -1073,28 +1073,28 @@ try (Stream<String> lines = Files.lines(path)) {
 }
 ```
 
-`findFirst` có thể short-circuit sau khi nhận cửa sổ đầu; nhưng việc **đóng descriptor** xảy ra khi thoát `try`, không phải một tác dụng phụ được đảm bảo của `findFirst`.
+`findFirst` can short-circuit after receiving the first window; however, **closing the file descriptor** happens on exiting `try`, not as a guaranteed side effect of `findFirst`.
 
-### 18.3. Khi Gatherer tự mở tài nguyên
+### 18.3. When a Gatherer opens resources itself
 
-Nếu custom Gatherer mở một file, stream con hoặc kết nối ở `initializer`/`integrator`, phải chỉ rõ:
+If a custom Gatherer opens a file, sub-stream, or connection in `initializer`/`integrator`, you must specify:
 
-- Ai là **owner**?
-- Có cơ chế đóng khi dừng sớm hay ngoại lệ không?
-- Có thể phát sinh nhiều state song song không?
-- Finisher có thật sự được gọi trên mọi đường đi mà tài nguyên cần giải phóng không?
+- Who is the **owner**?
+- Is there a closing mechanism on short-circuit or exception?
+- Can multiple states be created in parallel?
+- Is `finisher` actually invoked on every path where resources must be freed?
 
-Không đặt toàn bộ trách nhiệm dọn tài nguyên vào `finisher` rồi ngầm coi nó là một `finally` thay cho `try-with-resources`. Nguồn có tài nguyên nên được đóng ở một phạm vi sở hữu rõ ràng bên ngoài pipeline, hoặc thiết kế close handler/owner riêng có thể kiểm thử.
+Do not put the entire resource-cleanup responsibility in `finisher` and implicitly treat it like a `finally` replacing `try-with-resources`. Resource-backed sources should be closed in an explicit owning scope outside the pipeline, or via a testable close handler/owner.
 
-### 18.4. Dừng sớm không đồng nghĩa huỷ công việc nền
+### 18.4. Short-circuiting does not mean canceling background work
 
-Khi dùng `mapConcurrent` với mapper chờ I/O, downstream có thể đã nhận đủ kết quả và yêu cầu dừng. Gatherer cố gắng hủy công việc đang chạy theo cơ chế **best effort**, nhưng thời gian phản hồi còn phụ thuộc API I/O, interruptibility và những tác vụ đã được khởi động.
+When using `mapConcurrent` with I/O-waiting mappers, downstream may already have enough results and request stopping. The gatherer attempts to cancel running work on a **best-effort** basis, yet response time depends on the I/O API, interruptibility, and tasks already launched.
 
-Thiết kế hệ thống không nên phụ thuộc vào “đã gọi `limit(1)` nên chỉ có đúng một HTTP request được gửi”. Nếu cần bảo đảm exactly-once, đó là vấn đề **giao thức và idempotency**, không phải tác dụng phụ tự động của gatherer.
+System design must not rely on "we called `limit(1)` so only one HTTP request was sent". If exactly-once guarantees are needed, that is a **protocol and idempotency** issue, not an automatic side effect of the gatherer.
 
-## 19. Kiểm thử JUnit 5: thứ tự, nguồn vô hạn và dừng sớm
+## 19. JUnit 5 testing: ordering, infinite sources, and short-circuiting
 
-Các phép thử sau dùng class `GathererOrderAndStopDemo` từ mục 13 trên **JDK 24+**. Nên chạy chúng với JUnit Jupiter của dự án. Ví dụ dùng `@Timeout` cho các pipeline bắt đầu từ nguồn vô hạn; đây là **hàng rào kiểm thử**, không phải API hủy tác vụ production.
+The tests below use `GathererOrderAndStopDemo` from section 13 on **JDK 24+**. Run them with the project's JUnit Jupiter setup. The example uses `@Timeout` on pipelines starting from infinite sources; this is a **test guardrail**, not a production task-cancellation API.
 
 ```java
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -1292,32 +1292,32 @@ class GathererOrderAndStopDemoTest {
 }
 ```
 
-**Lưu ý quan trọng về `@Timeout`:** timeout trong test giúp phát hiện hành vi treo, nhưng một tác vụ bị kẹt trong I/O hoặc vòng lặp không đáp ứng interrupt có thể cần cơ chế cách ly/cancel mạnh hơn ở môi trường kiểm thử. Không chạy pipeline `fold` trên nguồn vô hạn để “chứng minh nó treo”; giải thích từ ngữ nghĩa của API và kiểm thử phiên bản được giới hạn **trước fold** là đủ.
+**Important note on `@Timeout`:** timeouts in tests help detect hangs, yet a task stuck in I/O or a non-interruptible loop may require stronger isolation/cancellation mechanisms in the test environment. Do not run a `fold` pipeline on an infinite source to "prove it hangs"; explaining from API semantics and testing the version bounded **before fold** is enough.
 
-### 19.1. Test thứ tự khác test số lần gọi hàm
+### 19.1. Testing order vs. testing invocation counts
 
-Các test ở trên so sánh danh sách kết quả với **dữ liệu kỳ vọng**. Chúng không buộc supplier/mapper được gọi chính xác N lần; API có thể cho phép buffering, cancellation muộn hoặc speculative work, nhất là với `mapConcurrent`.
+The tests above compare the result list against **expected data**. They do not require supplier/mapper to be called an exact number of times N; the API allows buffering, delayed cancellation, or speculative work, especially with `mapConcurrent`.
 
-### 19.2. Test tách state giữa các lần chạy
+### 19.2. Testing state isolation across runs
 
-Test `customGathererDoesNotLeakStateBetweenRuns` đặc biệt quan trọng: sử dụng **cùng một instance Gatherer** trên hai stream mới. Nếu code lưu một counter bên ngoài thay vì tạo state qua initializer, lần chạy thứ hai có thể chỉ phát 0 phần tử hoặc ít hơn mong muốn.
+The `customGathererDoesNotLeakStateBetweenRuns` test is especially important: it reuses **the same Gatherer instance** on two fresh streams. If the code kept an external counter instead of creating state via initializer, the second run might emit 0 elements or fewer than expected.
 
-### 19.3. Test không được phụ thuộc thứ tự thread completion
+### 19.3. Tests must not depend on thread completion order
 
-Nếu thay ví dụ `mapConcurrent` bằng mapper có `Thread.sleep` ngẫu nhiên, **không** kiểm thử thứ tự log “start/end”. Hãy kiểm tra thứ tự danh sách cuối với ordered source; nếu cần kiểm thử concurrency thực, dùng một bài kiểm thử/benchmark chuyên biệt tránh phụ thuộc vào clock và lập lịch.
+If you replace the `mapConcurrent` example with a mapper using random `Thread.sleep`, do **not** assert "start/end" log order. Verify the final list order on an ordered source; if real concurrency verification is needed, use a dedicated test/benchmark avoiding dependence on clocks and scheduling.
 
-## 20. Property-based checks: thay ví dụ đơn lẻ bằng bất biến
+## 20. Property-based checks: replacing isolated examples with invariants
 
-Ngoài một vài ví dụ cố định, có thể kiểm chứng `windowFixed`/`windowSliding` với mọi độ dài nguồn nhỏ và nhiều kích thước cửa sổ.
+Beyond a few fixed examples, you can verify `windowFixed`/`windowSliding` across all small source lengths and multiple window sizes.
 
-### 20.1. Bất biến của `windowFixed`
+### 20.1. Invariants of `windowFixed`
 
-Với nguồn có `n >= 0` phần tử và cửa sổ `size > 0`:
+For a source of `n >= 0` elements and window `size > 0`:
 
-- Số cửa sổ bằng `n / size` cộng thêm 1 nếu `n % size != 0`.
-- Mọi cửa sổ trừ cửa sổ cuối có độ dài `size`.
-- Cửa sổ cuối dài trong khoảng `[1, size]` nếu nguồn không rỗng.
-- Ghép các cửa sổ theo thứ tự phải thu lại **đúng danh sách gốc**, không mất hoặc lặp phần tử.
+- Window count equals `n / size` plus 1 if `n % size != 0`.
+- Every window except the last has length `size`.
+- The last window has length in `[1, size]` if the source is non-empty.
+- Flattening the windows in order must recover **the exact original list**, with no missing or duplicated elements.
 
 ```java
 import java.util.List;
@@ -1337,31 +1337,31 @@ for (int n = 0; n <= 40; n++) {
             n / size + (n % size == 0 ? 0 : 1);
 
         if (windows.size() != expectedCount) {
-            throw new AssertionError("Sai số cửa sổ");
+            throw new AssertionError("Incorrect window count");
         }
 
         List<Integer> flattened = windows.stream()
             .flatMap(List::stream)
             .toList();
         if (!source.equals(flattened)) {
-            throw new AssertionError("Mất/trùng phần tử");
+            throw new AssertionError("Missing/duplicate element");
         }
     }
 }
 ```
 
-Với `windowFixed`, phép kiểm tra **flatten** đặc biệt hiệu quả vì các cửa sổ không chồng lấn và giữ encounter order. Nó phát hiện lỗi thiếu/trùng phần tử mà một phép kiểm tra tổng số cửa sổ đơn lẻ có thể bỏ qua.
+For `windowFixed`, the **flatten** check is particularly effective because windows do not overlap and preserve encounter order. It catches missing/duplicated element bugs that checking total window count alone might miss.
 
-### 20.2. Bất biến của `windowSliding`
+### 20.2. Invariants of `windowSliding`
 
-Với `n > 0`:
+For `n > 0`:
 
-- Nếu `n < size`: có một cửa sổ chứa toàn bộ nguồn.
-- Nếu `n >= size`: có `n - size + 1` cửa sổ.
-- Với mỗi hai cửa sổ kế tiếp đầy đủ, **đuôi dài `size - 1` của cửa sổ trước bằng đầu dài `size - 1` của cửa sổ sau**.
-- Nếu `n == 0`: không có cửa sổ.
+- If `n < size`: there is one window containing the entire source.
+- If `n >= size`: there are `n - size + 1` windows.
+- For every two consecutive full windows, **the trailing `size - 1` elements of the previous window equal the leading `size - 1` elements of the next window**.
+- If `n == 0`: there are no windows.
 
-Ví dụ kiểm tra trên một dãy:
+Example check on a sequence:
 
 ```java
 List<List<Integer>> windows = Stream.of(1, 2, 3, 4, 5)
@@ -1373,134 +1373,134 @@ for (int i = 1; i < windows.size(); i++) {
     List<Integer> curr = windows.get(i);
 
     if (!prev.subList(1, 3).equals(curr.subList(0, 2))) {
-        throw new AssertionError("Cửa sổ trượt sai");
+        throw new AssertionError("Incorrect sliding window");
     }
 }
 ```
 
-### 20.3. Bất biến của custom `takeUntilInclusive`
+### 20.3. Invariants of custom `takeUntilInclusive`
 
-Trên nguồn ordered hữu hạn:
+On a finite ordered source:
 
-1. Nếu có marker, kết quả là **tiền tố kết thúc tại marker đầu tiên**.
-2. Nếu không có marker, kết quả bằng toàn bộ nguồn.
-3. Không có phần tử sau marker trong kết quả.
-4. Các phần tử trước và tại marker giữ nguyên thứ tự và số lần xuất hiện.
+1. If a marker exists, the result is **the prefix ending at the first marker**.
+2. If no marker exists, the result equals the entire source.
+3. No element after the marker appears in the result.
+4. Elements before and at the marker preserve their order and occurrence counts.
 
-Với nguồn cho phép trùng giá trị, **không** chỉ so sánh `Set`; `Set` sẽ loại mất thông tin tần suất. Dùng `List.equals` để kiểm chứng tiền tố trong trường hợp ordered.
+For sources allowing duplicate values, do **not** compare only as a `Set`; `Set` discards frequency information. Use `List.equals` to verify prefixes in the ordered case.
 
-## 21. Các phản mẫu thường gặp
+## 21. Common anti-patterns
 
-| Sai lầm | Vì sao sai? | Cách sửa |
+| Mistake | Why is it wrong? | Fix |
 | --- | --- | --- |
-| Dùng `fold(...).limit(1)` trên nguồn vô hạn | Fold đợi kết thúc nguồn để phát kết quả | Cắt input **trước fold**, hoặc dùng `scan` |
-| Cho rằng `limit(2)` sau `windowFixed(3)` nghĩa là đọc hai input | Limit tính theo số cửa sổ **đầu ra** | Xác định số input cần cho mỗi output |
-| Gắn `unordered()` vào nguồn cần thứ tự sự kiện | Encounter order không còn được cam kết | Giữ ordered source hoặc định nghĩa thứ tự khác |
-| Cho rằng `parallel()` làm `ofSequential` chạy state song song | Gatherer dùng default combiner phải được đánh giá tuần tự | Chỉ viết combiner khi chứng minh đúng |
-| Trả `false` từ `Integrator.ofGreedy` để tự dừng | Greedy cam kết không tự khởi xướng short-circuit | Dùng integrator thông thường |
-| Bỏ qua `downstream.push(...) == false` | Downstream đã từ chối output tiếp | Truyền lại tín hiệu dừng |
-| Tin `isRejecting() == false` nghĩa là `push` chắc chắn thành công | Đây là kiểm tra best effort | Luôn kiểm tra kết quả `push` |
-| Dùng một counter mutable ngoài initializer | Nhiều lần chạy có thể dùng chung state | Tạo state mới trong `initializer` |
-| Gọi `push` với `ArrayList` rồi `clear` | Kết quả đã phát bị thay đổi qua cùng tham chiếu | Tạo snapshot `List.copyOf` |
-| Giữ `Downstream` cho callback bất đồng bộ | Vi phạm vòng đời tham chiếu | Phát đồng bộ trong integrator/finisher |
-| Dùng `mapConcurrent` cho thao tác có side effect không idempotent | Có tác vụ bắt đầu trước khi downstream dừng | Tách giao dịch/thiết kế idempotency |
-| Đòi mapper chạy đúng N lần khi dùng `limit` | Buffering, speculative work, tối ưu hóa | Kiểm thử kết quả và ranh giới tài nguyên |
-| Quên `Files.lines.close` sau `findFirst` | Terminal operation không tự đóng tài nguyên | `try-with-resources` |
-| Dùng cửa sổ cực lớn không tính bộ nhớ | Gatherer phải đệm dữ liệu | Giới hạn kích thước, đo peak memory |
-| Chạy test “pipeline vô hạn phải treo” | Có thể treo bộ test | Kiểm tra bằng lập luận và test nhánh hữu hạn |
-| Biên dịch `Stream.gather` bằng `--release 17` | API chưa tồn tại | JDK 24+ hoặc phương án fallback |
+| Using `fold(...).limit(1)` on an infinite source | Fold waits for source completion to emit a result | Cap input **before fold**, or use `scan` |
+| Thinking `limit(2)` after `windowFixed(3)` means reading two inputs | Limit counts **output** windows | Determine how many inputs are needed per output |
+| Attaching `unordered()` to a source needing event order | Encounter order is no longer guaranteed | Keep ordered source or define another order |
+| Thinking `parallel()` runs `ofSequential` state in parallel | A Gatherer using the default combiner must evaluate sequentially | Only write a combiner when correctness is proven |
+| Returning `false` from `Integrator.ofGreedy` to self-stop | Greedy promises never to initiate short-circuiting itself | Use a regular integrator |
+| Ignoring `downstream.push(...) == false` | Downstream already rejected further output | Propagate the stop signal appropriately |
+| Trusting `isRejecting() == false` means `push` will surely succeed | It is a best-effort check | Always check the return value of `push` |
+| Using a mutable counter outside initializer | Multiple runs can share state | Create fresh state inside `initializer` |
+| Calling `push` with an `ArrayList` then `clear` | Emitted results get mutated via the shared reference | Create a `List.copyOf` snapshot |
+| Retaining `Downstream` for async callbacks | Violates reference lifetime | Emit synchronously inside integrator/finisher |
+| Using `mapConcurrent` for non-idempotent side effects | Tasks may start before downstream stops | Isolate transactions/design idempotency |
+| Requiring mapper to run exactly N times with `limit` | Buffering, speculative work, optimizations | Test results and resource boundaries |
+| Forgetting `Files.lines` closing after `findFirst` | Terminal operations do not auto-close resources | Use `try-with-resources` |
+| Using huge windows without memory planning | Gatherer must buffer data | Bound size, measure peak memory |
+| Running a test asserting "infinite pipeline must hang" | Can hang the test suite | Prove by reasoning and test bounded variants |
+| Compiling `Stream.gather` with `--release 17` | API does not exist | Use JDK 24+ or a fallback solution |
 
-## 22. Bài tập thực hành có định hướng
+## 22. Guided practice exercises
 
-### Bài 1 — Cửa sổ cố định trên log hữu hạn
+### Exercise 1 — Fixed windows on a finite log
 
-Cho `List<String> events = List.of("A", "B", "C", "D", "E", "F", "G")`. Dùng `windowFixed(3)` và kiểm tra:
+Given `List<String> events = List.of("A", "B", "C", "D", "E", "F", "G")`. Use `windowFixed(3)` and verify:
 
-- Có ba cửa sổ.
-- Cửa sổ cuối chỉ có `G`.
-- Ghép các cửa sổ bằng `flatMap(List::stream)` thu lại đúng nguồn.
-- Không thể gọi `add` lên cửa sổ kết quả.
+- There are three windows.
+- The last window contains only `G`.
+- Flattening windows via `flatMap(List::stream)` recovers the exact source.
+- Calling `add` on a result window fails.
 
-### Bài 2 — Cửa sổ trượt và thứ tự
+### Exercise 2 — Sliding windows and ordering
 
-Dùng `Stream.of(5, 1, 9, 3, 2)` và `windowSliding(3)`. Viết ra chính xác ba cửa sổ, kiểm tra hai phần tử cuối của cửa sổ trước khớp hai phần tử đầu của cửa sổ sau. Sau đó thử `unordered()` và giải thích vì sao không thể khẳng định **thứ tự cửa sổ** tương ứng với nguồn ban đầu nếu ràng buộc encounter order đã bị bỏ.
+Use `Stream.of(5, 1, 9, 3, 2)` and `windowSliding(3)`. Write out the exact three windows, verify that the last two elements of the previous window match the first two elements of the next window. Then try `unordered()` and explain why you cannot assert **window order** matches the original source once the encounter-order constraint is dropped.
 
-### Bài 3 — Tổng tích lũy từ nguồn vô hạn
+### Exercise 3 — Running totals from an infinite source
 
-Tính 10 số tam giác đầu bằng `scan(() -> 0L, Math::addExact)` và `limit(10)`. Kiểm chứng phần tử thứ 10 bằng `55` và giải thích vì sao `fold(...).limit(10)` không thay thế được `scan` trên nguồn vô hạn.
+Compute the first 10 triangular numbers using `scan(() -> 0L, Math::addExact)` and `limit(10)`. Verify the 10th element equals `55` and explain why `fold(...).limit(10)` cannot replace `scan` on an infinite source.
 
-### Bài 4 — Dừng tại marker, có bao gồm marker
+### Exercise 4 — Stopping at a marker, inclusive
 
-Với nguồn `[10,20,30,-1,40,50]`, dùng `takeUntilInclusive(n -> n == -1)`. Đối chiếu với `takeWhile(n -> n != -1)`. Viết test chứng minh trường hợp có marker, không có marker, marker ở phần tử đầu và nguồn rỗng.
+With source `[10,20,30,-1,40,50]`, use `takeUntilInclusive(n -> n == -1)`. Compare against `takeWhile(n -> n != -1)`. Write tests covering marker present, marker absent, marker at first element, and empty source.
 
-### Bài 5 — Giới hạn input hay output?
+### Exercise 5 — Limiting input or output?
 
-Trên `Stream.iterate(1, n -> n + 1)`:
+On `Stream.iterate(1, n -> n + 1)`:
 
 1. `limit(5).gather(windowFixed(3)).toList()`.
 2. `gather(windowFixed(3)).limit(5).toList()`.
 
-Dự đoán hai kết quả và giải thích tại sao chúng không tương đương về số phần tử nguồn cần xem. Không đưa số lần gọi supplier chính xác vào điều kiện test.
+Predict both results and explain why they are not equivalent in the number of source elements consumed. Do not put exact supplier call counts in test assertions.
 
-### Bài 6 — Lỗi state dùng chung
+### Exercise 6 — Shared-state bug
 
-Viết một gatherer “lấy 3 phần tử” nhưng counter bị capture từ bên ngoài. Dùng cùng instance gatherer trên hai stream hữu hạn và quan sát lỗi. Sửa lại bằng `Gatherer.ofSequential(Counter::new, integrator)`, viết test chứng minh các lần chạy độc lập.
+Write a "take 3 elements" gatherer where the counter is captured from outside. Reuse the same gatherer instance on two finite streams and observe the failure. Fix it using `Gatherer.ofSequential(Counter::new, integrator)`, and write a test proving runs are independent.
 
-### Bài 7 — `Integrator.Greedy` có thích hợp không?
+### Exercise 7 — Is `Integrator.Greedy` appropriate?
 
-Một integrator phát gấp đôi mỗi số và **không tự dừng** nguồn có thể dùng `ofGreedy` không? Một integrator **dừng khi gặp 0** thì sao? Giải thích vì sao JDK có quyền bỏ qua giá trị trả về của greedy trong các tối ưu hóa.
+Can an integrator that emits double each number and **does not self-stop** the source use `ofGreedy`? What about an integrator that **stops when encountering 0**? Explain why the JDK is allowed to ignore the greedy return value in optimizations.
 
-### Bài 8 — Nguồn I/O và dừng sớm
+### Exercise 8 — I/O sources and short-circuiting
 
-Đọc file văn bản lớn bằng `Files.lines`. Tìm hai cửa sổ ba dòng đầu, đóng file đúng cách và nêu cách kiểm chứng tài nguyên được đóng trong cả thành công và lỗi. Không coi `limit(2)` là bảo đảm tầng I/O chỉ đọc chính xác 6 dòng vật lý.
+Read a large text file with `Files.lines`. Find the first two three-line windows, close the file properly, and explain how to verify the resource is closed in both success and failure cases. Do not treat `limit(2)` as a guarantee that the I/O layer reads only 6 physical lines.
 
-### Bài 9 — `mapConcurrent` và mapper chậm
+### Exercise 9 — `mapConcurrent` and slow mappers
 
-Cho 30 ID yêu cầu gọi một dịch vụ giả lập mất thời gian. Dùng `mapConcurrent(4, mapper)` để tính giá trị, kiểm tra kết quả **theo encounter order**. Bổ sung `limit(3)` phía sau rồi phân tích vì sao một số tác vụ đã bắt đầu có thể còn làm việc và vì sao cần idempotency nếu mapper có side effect.
+Given 30 request IDs calling a simulated time-consuming service. Use `mapConcurrent(4, mapper)` to compute values, verifying results **in encounter order**. Add a trailing `limit(3)` and analyze why some already-started tasks may still be running and why idempotency is needed if the mapper has side effects.
 
-### Bài 10 — Tự viết batch gatherer có finisher
+### Exercise 10 — Writing a batch gatherer with a finisher
 
-Cài `batches(4)` theo mục 14. Trên nguồn 10 phần tử, kiểm tra kích thước các lô là `4,4,2`. Dùng nguồn vô hạn và `limit(2)` để nhận hai lô đủ bốn phần tử. Chứng minh các list đã phát không bị thay đổi khi state nội bộ được xóa để nhận lô mới.
+Implement `batches(4)` following section 14. On a 10-element source, verify batch sizes are `4,4,2`. Use an infinite source and `limit(2)` to obtain two full 4-element batches. Prove already-emitted lists are unaffected when internal state is cleared for the next batch.
 
-### Bài 11 — Cần một combiner thật sự
+### Exercise 11 — Needing a real combiner
 
-Đề xuất cách thiết kế một gatherer có thể gộp các phân vùng cho phép tổng hợp **kết hợp, độc lập thứ tự**, rồi so sánh với `takeUntilInclusive` phụ thuộc **marker đầu tiên**. Chỉ viết combiner nếu có thể chứng minh tính đúng trong mọi cách chia và mọi thứ tự gộp hợp lệ. Nếu chỉ cần tổng, vì sao `mapToLong(...).sum()` hoặc `Collectors.summingLong` thường đơn giản hơn?
+Propose a design for a gatherer capable of merging partitions for an **associative, order-independent** aggregation, and compare it with `takeUntilInclusive` which depends on **the first marker**. Only write a combiner if correctness can be proved across all valid splits and merge orders. If only a sum is needed, why is `mapToLong(...).sum()` or `Collectors.summingLong` usually simpler?
 
-### Bài 12 — Liveness có giới hạn
+### Exercise 12 — Bounded liveness
 
-Thiết kế một ứng dụng đọc các sự kiện tiềm năng vô hạn, tìm sự kiện đáp ứng điều kiện rồi dừng. Yêu cầu có **giới hạn số sự kiện** hoặc deadline rõ ràng, phân biệt:
+Design an application reading potentially infinite events, finding an event matching a condition, and stopping. Require an explicit **event-count cap** or deadline, distinguishing:
 
-- Không có sự kiện thỏa trong khoảng đã kiểm tra.
-- Nguồn kết thúc thật sự.
-- Nguồn bị hủy hoặc không đọc được.
+- No matching event within the inspected window.
+- Genuine end of source.
+- Source canceled or unreadable.
 
-Không đánh đồng ba tình huống thành “kết quả rỗng” và không dùng pipeline vô hạn không có đường hủy trong bài test.
+Do not conflate all three scenarios into "empty result" and do not use an uncancelable infinite pipeline in tests.
 
-## 23. Bảng quyết định và tổng kết
+## 23. Decision table and summary
 
-| Bài toán | Cách làm | Điểm cần kiểm chứng |
+| Problem | Approach | What to verify |
 | --- | --- | --- |
-| Gom các phần tử liên tiếp theo từng lô cố định | `Gatherers.windowFixed(size)` | Thứ tự, lô cuối ngắn, kích thước bộ đệm |
-| Cửa sổ chồng lấn | `Gatherers.windowSliding(size)` | Vùng chồng lấn, nguồn ngắn, số cửa sổ |
-| Tổng/tình trạng tích lũy sau từng input | `Gatherers.scan(initial, scanner)` | Mỗi input phát một output; xử lý overflow |
-| Chỉ cần một tổng cuối trên nguồn hữu hạn | `Gatherers.fold(initial, folder)` | Cần EOF để phát kết quả |
-| Nguồn vô hạn + tổng của N input đầu | `limit(N)` **trước `fold`** | Giới hạn input, không phải output |
-| Nguồn vô hạn + N kết quả đầu từ cửa sổ/scan | `gather(...).limit(N)` | Gatherer phát từng bước; bộ đệm vừa phải |
-| Giữ luôn marker dừng | Custom `ofSequential` integrator trả `false` | Phát marker trước khi dừng, thứ tự rõ |
-| Lấy tối đa N phần tử đơn giản | `Stream.limit(N)` | Ưu tiên API có sẵn, không viết gatherer vô ích |
-| Downstream đã đủ kết quả | `push(...) == false` | Dừng phát, truyền tín hiệu phù hợp |
-| Downstream có thể đã từ chối | `isRejecting()` | Best effort, không thay kiểm tra `push` |
-| Integrator chủ động short-circuit | Integrator thường, **không** `ofGreedy` | Giữ đúng tín hiệu dừng |
-| Gatherer có state và phụ thuộc thứ tự | `Gatherer.ofSequential` | State riêng mỗi lần chạy, không combiner giả |
-| Mapper độc lập, có thể thực hiện đồng thời | `Gatherers.mapConcurrent(k, mapper)` | Thứ tự output và hủy best effort |
-| Cần sắp thứ tự từ nguồn unordered | `sorted` hoặc thứ tự nghiệp vụ tường minh | Không dựa vào timing worker |
-| Nguồn là file/tài nguyên I/O | `try-with-resources` quanh owner | Short-circuit không auto-close |
-| Kiểm thử nguồn vô hạn | Pipeline có đường dừng và `@Timeout` | Không để test treo |
-| Chạy trên JDK 17/21 | Dùng Stream operations cũ | Không có `Gatherer` API chuẩn |
-| Chạy trên JDK 24+ | `Stream.gather` API chính thức | Không cần `--enable-preview` |
+| Group consecutive elements into fixed batches | `Gatherers.windowFixed(size)` | Ordering, short final batch, buffer size |
+| Overlapping windows | `Gatherers.windowSliding(size)` | Overlap region, short source, window count |
+| Running total/state after each input | `Gatherers.scan(initial, scanner)` | One output per input; overflow handling |
+| Only one final sum on a finite source | `Gatherers.fold(initial, folder)` | Requires EOF to emit result |
+| Infinite source + sum of first N inputs | `limit(N)` **before `fold`** | Caps input, not output |
+| Infinite source + first N results from windows/scan | `gather(...).limit(N)` | Gatherer emits incrementally; reasonable buffer |
+| Keep the stopping marker too | Custom `ofSequential` integrator returning `false` | Emit marker before stopping, clear order |
+| Simply take at most N elements | `Stream.limit(N)` | Prefer built-in API, avoid needless gatherer |
+| Downstream already has enough results | `push(...) == false` | Stop emitting, propagate signal properly |
+| Downstream may already be rejecting | `isRejecting()` | Best effort, does not replace checking `push` |
+| Integrator actively short-circuits | Regular integrator, **not** `ofGreedy` | Preserves stop signal |
+| Stateful, order-dependent Gatherer | `Gatherer.ofSequential` | Fresh state per run, no fake combiner |
+| Independent mappers runnable concurrently | `Gatherers.mapConcurrent(k, mapper)` | Output order and best-effort cancellation |
+| Need sorting from an unordered source | `sorted` or explicit business order | Never rely on worker timing |
+| Source is a file/I/O resource | `try-with-resources` around owner | Short-circuiting does not auto-close |
+| Testing infinite sources | Pipeline with stop path and `@Timeout` | Never let tests hang |
+| Running on JDK 17/21 | Use legacy Stream operations | No standard `Gatherer` API |
+| Running on JDK 24+ | Official `Stream.gather` API | No `--enable-preview` needed |
 
-### Kết luận
+### Conclusion
 
-**Xử lý thứ tự, nguồn vô hạn và dừng sớm khi dùng Gatherer** đòi hỏi ba loại suy luận khác nhau. **Thứ tự** đến từ encounter order của nguồn và hợp đồng biến đổi, không phải thứ tự các thread kết thúc. **Nguồn vô hạn** chỉ xử lý được thành kết quả hữu hạn khi có cơ chế phát output và điều kiện kết thúc thực sự; `scan` và cửa sổ có thể phát tăng dần, còn `fold` phải đợi kết thúc input. **Dừng sớm** có thể bắt đầu từ integrator hoặc downstream, nhưng vẫn phải quản lý tài nguyên bằng owner rõ ràng.
+**Handling ordering, infinite sources, and short-circuiting with Gatherers** requires three distinct lines of reasoning. **Ordering** comes from source encounter order and transformation contracts, not thread completion order. **Infinite sources** can only produce finite results when there is an incremental emission mechanism and a genuine stopping condition; `scan` and windows can emit incrementally, whereas `fold` must wait for input completion. **Short-circuiting** can be initiated by the integrator or downstream, yet still requires managing resources through an explicit owner.
 
-Khi viết custom gatherer, hãy dùng state khởi tạo **riêng cho mỗi lần đánh giá**, tôn trọng `Downstream.push` và đừng sử dụng `Integrator.ofGreedy` nếu chính gatherer cần chủ động short-circuit. Chỉ bổ sung combiner khi chứng minh được tính đúng trong các cách phân hoạch song song. Bắt đầu bằng những API có sẵn, kiểm thử nội dung và liveness trên nguồn hữu hạn/vô hạn đã kiểm soát, rồi mới đo hiệu năng và cân nhắc dùng Gatherer cho các pipeline thực tế.
+When writing custom gatherers, use initialized state **private to each evaluation**, respect `Downstream.push`, and never use `Integrator.ofGreedy` if the gatherer itself needs to actively short-circuit. Only add a combiner when correctness is proven across parallel partitions. Start with built-in APIs, test contents and liveness on controlled finite/infinite sources, and only then measure performance and consider Gatherers for production pipelines.

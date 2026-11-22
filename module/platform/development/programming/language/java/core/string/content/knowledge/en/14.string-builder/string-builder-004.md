@@ -1,65 +1,65 @@
-# appendCodePoint và dữ liệu ngoài BMP trong StringBuilder
+# appendCodePoint and Non-BMP Data in StringBuilder
 
-Khi dựng chuỗi Java từ dữ liệu Unicode, không phải mọi “ký tự” đều vừa trong một `char`. Một code point ngoài **Basic Multilingual Plane (BMP)**, chẳng hạn emoji 😊 (`U+1F60A`), cần **hai code unit UTF-16**. Nếu ép code point đó về `char` rồi gọi `StringBuilder.append(char)`, dữ liệu bị cắt mất. `StringBuilder.appendCodePoint(int)` là API dành cho việc thêm **một code point Unicode** vào bộ dựng chuỗi, sử dụng một hoặc hai code unit UTF-16 theo giá trị code point.
+When building Java strings from Unicode data, not every "character" fits in a single `char`. A code point outside the **Basic Multilingual Plane (BMP)**, such as the emoji 😊 (`U+1F60A`), requires **two UTF-16 code units**. If you cast that code point to `char` and call `StringBuilder.append(char)`, the data is truncated. `StringBuilder.appendCodePoint(int)` is the API designed for adding **a single Unicode code point** to the string builder, using one or two UTF-16 code units depending on the code point value.
 
-Mục tiêu của bài là hiểu cơ chế, biết khi nào dùng `appendCodePoint` thay cho `append`, phân biệt dữ liệu ngoài BMP với surrogate pair, kiểm tra giá trị đầu vào, và tránh nhầm code point với cụm ký tự hiển thị (*grapheme cluster*).
+The goal of this lesson is to understand the mechanism, know when to use `appendCodePoint` instead of `append`, distinguish non-BMP data from surrogate pairs, validate input values, and avoid confusing code points with display character clusters (*grapheme clusters*).
 
-## 1. BMP, code point, `char` và UTF-16
+## 1. BMP, Code Points, `char`, and UTF-16
 
-Một **Unicode code point** là giá trị số được ký hiệu `U+XXXX`, thuộc khoảng `U+0000` đến `U+10FFFF`. Java thường biểu diễn giá trị code point bằng `int`. `char` trong Java chỉ chứa **một đơn vị mã UTF-16 16 bit**, nên không thể chứa trực tiếp mọi code point Unicode.
+A **Unicode code point** is a numeric value denoted `U+XXXX`, within the range `U+0000` to `U+10FFFF`. Java typically represents code point values using `int`. Java's `char` holds only **a single 16-bit UTF-16 code unit**, so it cannot directly hold every Unicode code point.
 
-Unicode chia không gian code point thành các *plane*. **BMP**, hay Plane 0, bao phủ `U+0000`–`U+FFFF`. Những plane còn lại chứa các code point lớn hơn `U+FFFF`, gọi là **supplementary code points**. Một số emoji, chữ lịch sử, ký hiệu âm nhạc và ký tự toán học thuộc các plane bổ sung.
+Unicode divides the code point space into *planes*. The **BMP**, or Plane 0, covers `U+0000`–`U+FFFF`. The remaining planes contain code points greater than `U+FFFF`, called **supplementary code points**. Some emojis, historical scripts, musical symbols, and mathematical characters belong to the supplementary planes.
 
-Với UTF-16:
+In UTF-16:
 
-- Một code point thuộc BMP **không ở vùng surrogate** (`U+D800`–`U+DFFF`) được biểu diễn bằng **một code unit**.
-- Một code point ngoài BMP (`U+10000`–`U+10FFFF`) được biểu diễn bằng **hai code unit**: một *high surrogate* (`0xD800`–`0xDBFF`) và một *low surrogate* (`0xDC00`–`0xDFFF`).
-- Vùng surrogate là phần đặc biệt dành cho mã hóa UTF-16. Một giá trị như `U+D800` không phải **Unicode scalar value** hợp lệ để biểu diễn độc lập thành một ký tự văn bản Unicode hoàn chỉnh.
+- A BMP code point **not in the surrogate range** (`U+D800`–`U+DFFF`) is represented by **one code unit**.
+- A non-BMP code point (`U+10000`–`U+10FFFF`) is represented by **two code units**: a *high surrogate* (`0xD800`–`0xDBFF`) and a *low surrogate* (`0xDC00`–`0xDFFF`).
+- The surrogate range is reserved specifically for UTF-16 encoding. A value such as `U+D800` is not a valid **Unicode scalar value** to stand alone as a complete Unicode text character.
 
-Ví dụ:
+Examples:
 
-| Code point | Biểu diễn | Code unit UTF-16 | Ghi chú |
+| Code point | Representation | UTF-16 code units | Notes |
 |---|---|---:|---|
-| `U+0041` | `A` | 1 | Chữ Latin thuộc BMP |
-| `U+00E9` | `é` | 1 | Ký tự dựng sẵn thuộc BMP |
-| `U+1F60A` | 😊 | 2 | Emoji ngoài BMP: `D83D DE0A` |
-| `U+1F1FB` | Regional indicator V | 2 | Một nửa của cờ 🇻🇳 |
-| `U+1F1F3` | Regional indicator N | 2 | Một nửa còn lại của cờ 🇻🇳 |
+| `U+0041` | `A` | 1 | Latin letter in the BMP |
+| `U+00E9` | `é` | 1 | Precomposed character in the BMP |
+| `U+1F60A` | 😊 | 2 | Non-BMP emoji: `D83D DE0A` |
+| `U+1F1FB` | Regional indicator V | 2 | One half of the 🇻🇳 flag |
+| `U+1F1F3` | Regional indicator N | 2 | The other half of the 🇻🇳 flag |
 
-Một flag emoji 🇻🇳 có **hai code point ngoài BMP**, tổng cộng **bốn code unit UTF-16**, nhưng thường được hiển thị thành **một grapheme cluster**. Như vậy: **số code unit ≠ số code point ≠ số ký tự người dùng cảm nhận**.
+One flag emoji 🇻🇳 has **two non-BMP code points**, totaling **four UTF-16 code units**, yet is usually rendered as **one grapheme cluster**. Thus: **code unit count ≠ code point count ≠ user-perceived character count**.
 
-## 2. `StringBuilder.appendCodePoint(int)` thực hiện gì?
+## 2. What Does `StringBuilder.appendCodePoint(int)` Do?
 
-Chữ ký phương thức:
+Method signature:
 
 ```java
 StringBuilder appendCodePoint(int codePoint)
 ```
 
-Đây là chữ ký API minh họa; `StringBuilder` có phương thức thực trả về chính builder để hỗ trợ gọi nối chuỗi kiểu `builder.appendCodePoint(cp).append("...")`.
+This is an illustrative API signature; `StringBuilder` actually returns the builder itself to support method chaining such as `builder.appendCodePoint(cp).append("...")`.
 
-Với giá trị code point trong phạm vi hợp lệ của API:
+For a code point value within the API's valid range:
 
-1. Nếu thuộc BMP (bao gồm cả mã surrogate đơn lẻ ở cấp độ API), phương thức thêm **một code unit `char`**.
-2. Nếu là code point ngoài BMP, phương thức chuyển thành **cặp surrogate UTF-16** và thêm **hai code unit theo đúng thứ tự**.
-3. Builder tăng độ dài theo **số code unit** đã thêm. Nội dung của builder thay đổi; phương thức trả về tham chiếu đến **cùng builder**.
-4. Nếu giá trị ngoài khoảng code point Unicode do Java chấp nhận, chẳng hạn `-1` hay `0x110000`, phương thức ném `IllegalArgumentException`.
+1. If it belongs to the BMP (including lone surrogate codes at the API level), the method appends **one `char` code unit**.
+2. If it is a non-BMP code point, the method converts it into a **UTF-16 surrogate pair** and appends **two code units in the proper order**.
+3. The builder's length increases by the **number of code units** appended. The builder's content changes; the method returns a reference to **the same builder**.
+4. If the value is outside the Unicode code point range accepted by Java, such as `-1` or `0x110000`, the method throws `IllegalArgumentException`.
 
-Do đó, với builder ban đầu rỗng:
+Therefore, starting with an empty builder:
 
 ```java
 StringBuilder builder = new StringBuilder();
-builder.appendCodePoint(0x41);       // A: thêm 1 char
-builder.appendCodePoint(0x1F60A);    // 😊: thêm 2 char
+builder.appendCodePoint(0x41);       // A: appends 1 char
+builder.appendCodePoint(0x1F60A);    // 😊: appends 2 chars
 ```
 
-Sau hai lời gọi, `builder.length() == 3` nhưng `builder.codePointCount(0, builder.length()) == 2`. Độ dài mà `StringBuilder.length()` trả về là số **code unit UTF-16**, không phải số code point.
+After both calls, `builder.length() == 3` whereas `builder.codePointCount(0, builder.length()) == 2`. The length returned by `StringBuilder.length()` is the number of **UTF-16 code units**, not the number of code points.
 
-`appendCodePoint` **không chuẩn hóa Unicode**, không kiểm tra ranh giới grapheme cluster và không chuyển chữ hoa/thường. Chức năng của nó là thêm *một giá trị code point* theo quy tắc UTF-16.
+`appendCodePoint` **does not perform Unicode normalization**, does not check grapheme cluster boundaries, and does not change letter case. Its job is to append *a single code point value* according to UTF-16 rules.
 
-## 3. Ví dụ đầy đủ: thêm code point ngoài BMP
+## 3. Complete Example: Appending Non-BMP Code Points
 
-Lưu thành **`AppendCodePointDemo.java`**:
+Save as **`AppendCodePointDemo.java`**:
 
 ```java
 public class AppendCodePointDemo {
@@ -91,7 +91,7 @@ public class AppendCodePointDemo {
 }
 ```
 
-Biên dịch và chạy trên JDK 17+:
+Compile and run on JDK 17+:
 
 ```bash
 javac AppendCodePointDemo.java
@@ -110,31 +110,31 @@ valid surrogate pair: true
 content matches: true
 ```
 
-Giải thích:
+Explanation:
 
-- `A` chiếm một code unit, emoji chiếm hai, `B` chiếm một: tổng `length() == 4`.
-- `codePointCount(...)` nhận diện cặp surrogate hợp lệ và đếm emoji như **một code point**, nên tổng số code point là 3.
-- `charAt(1)` và `charAt(2)` lần lượt cho hai nửa UTF-16 `D83D` và `DE0A`. Cả hai **không** phải hai emoji riêng.
-- `codePointAt(1)` đọc code point bắt đầu ở offset UTF-16 `1`, trả `U+1F60A`.
-- `toString()` tạo kết quả chuỗi chứa đúng các code unit đã thêm. So với literal được viết bằng cặp surrogate `"\uD83D\uDE0A"`, nội dung bằng nhau theo `String.equals()`.
+- `A` takes one code unit, the emoji takes two, and `B` takes one: total `length() == 4`.
+- `codePointCount(...)` recognizes the valid surrogate pair and counts the emoji as **one code point**, so the total code point count is 3.
+- `charAt(1)` and `charAt(2)` return the two UTF-16 halves `D83D` and `DE0A` respectively. Neither is a separate emoji on its own.
+- `codePointAt(1)` reads the code point starting at UTF-16 offset `1`, returning `U+1F60A`.
+- `toString()` produces a string containing the exact code units that were appended. Compared to a literal written with the surrogate pair `"\uD83D\uDE0A"`, the contents are equal according to `String.equals()`.
 
-**Đừng nhầm chỉ số:** tham số `index` của `codePointAt(index)` cũng là **offset code unit UTF-16**. Nó không phải “chỉ số code point thứ index”. Nếu cần dịch theo code point, xem `offsetByCodePoints(...)` ở phần sau.
+**Do not confuse indices:** the `index` parameter of `codePointAt(index)` is also a **UTF-16 code unit offset**. It is not "the index-th code point". If you need to advance by code points, see `offsetByCodePoints(...)` later in the lesson.
 
-## 4. Phân biệt `append(int)`, `append(char)` và `appendCodePoint(int)`
+## 4. Distinguishing `append(int)`, `append(char)`, and `appendCodePoint(int)`
 
-Ba phương thức có **ý nghĩa khác nhau**. Khi một biến `int` đang chứa code point, đây là lỗi rất thường gặp:
+The three methods have **different meanings**. When an `int` variable holds a code point, this is a very common mistake:
 
 ```java
 int smile = 0x1F60A;
 
-new StringBuilder().append(smile);          // thêm chữ số "128522"
-new StringBuilder().append((char) smile);   // mất phần giá trị cao của int
-new StringBuilder().appendCodePoint(smile); // thêm UTF-16 của emoji 😊
+new StringBuilder().append(smile);          // appends the digits "128522"
+new StringBuilder().append((char) smile);   // loses the upper bits of the int
+new StringBuilder().appendCodePoint(smile); // appends the UTF-16 units of emoji 😊
 ```
 
-Đây là đoạn mã minh họa. `append(int)` chuyển số nguyên thành **văn bản thập phân**. `append((char) smile)` thực hiện ép kiểu thu hẹp, giữ lại 16 bit thấp và không thể biểu diễn trọn code point `U+1F60A`. `appendCodePoint(smile)` mới giữ đúng code point ngoài BMP.
+This is an illustrative snippet. `append(int)` converts the integer into **decimal text**. `append((char) smile)` performs a narrowing cast, keeping only the lower 16 bits and failing to represent the full `U+1F60A` code point. Only `appendCodePoint(smile)` preserves the non-BMP code point properly.
 
-Ví dụ chạy được **`AppendOverloadsDemo.java`**:
+Runnable example **`AppendOverloadsDemo.java`**:
 
 ```java
 public class AppendOverloadsDemo {
@@ -176,24 +176,24 @@ appendCodePoint value: U+1F60A
 correct smile: true
 ```
 
-Sự sai khác là **mất dữ liệu**, không chỉ khác cách hiển thị. Sau khi ép `(char) smile`, giá trị `U+1F60A` đã trở thành `U+F60A` và không thể tự khôi phục bằng `append`.
+The discrepancy is **data loss**, not just a display difference. After casting `(char) smile`, the value `U+1F60A` has become `U+F60A` and cannot be recovered by `append`.
 
-Nếu đã có một **`String` hoàn chỉnh và hợp lệ** chứa emoji, `builder.append(string)` cũng giữ nguyên toàn bộ code unit của nó. `appendCodePoint` hữu ích nhất khi **đầu vào là một giá trị `int` biểu diễn code point**, chẳng hạn kết quả duyệt `codePoints()` hoặc dữ liệu mã Unicode.
+If you already have a **complete and valid `String`** containing an emoji, `builder.append(string)` also preserves all of its code units. `appendCodePoint` is most useful when **the input is an `int` representing a code point**, such as results from iterating `codePoints()` or raw Unicode code point data.
 
-## 5. Kiểm tra giá trị đầu vào và surrogate đơn lẻ
+## 5. Input Validation and Lone Surrogates
 
-`Character.isValidCodePoint(int)` kiểm tra giá trị số có nằm trong dải `U+0000` đến `U+10FFFF` hay không. Tuy nhiên, **dải này chứa cả mã surrogate `U+D800`–`U+DFFF`**, nên kết quả `true` của `isValidCodePoint` **chưa đủ** để kết luận đầu vào là một *Unicode scalar value* có thể đứng độc lập trong văn bản hợp lệ.
+`Character.isValidCodePoint(int)` checks whether a numeric value lies in the range `U+0000` to `U+10FFFF`. However, **this range includes the surrogate codes `U+D800`–`U+DFFF`**, so a `true` result from `isValidCodePoint` **is not sufficient** to conclude that the input is a *Unicode scalar value* able to stand alone in valid text.
 
-Phân biệt:
+Distinguish:
 
-- **Code point nằm trong dải hợp lệ của Java:** `0 <= cp <= 0x10FFFF`. `Character.isValidCodePoint(cp)` kiểm tra điều này.
-- **Unicode scalar value:** code point hợp lệ **không thuộc vùng surrogate** `0xD800..0xDFFF`.
-- **Code point được gán ký tự (*assigned*):** còn là một khái niệm khác; không phải mọi scalar value đều đã có ký tự được gán trong phiên bản Unicode của JDK.
-- **Grapheme cluster hợp lệ cho UI:** phải xét quy tắc phân đoạn Unicode, có thể gồm nhiều scalar value.
+- **Code point within Java's valid range:** `0 <= cp <= 0x10FFFF`. `Character.isValidCodePoint(cp)` checks this.
+- **Unicode scalar value:** a valid code point **not in the surrogate range** `0xD800..0xDFFF`.
+- **Assigned code point:** yet another concept; not every scalar value has a character assigned in the JDK's Unicode version.
+- **Valid grapheme cluster for UI:** requires Unicode segmentation rules, and may consist of multiple scalar values.
 
-`appendCodePoint` nhận cả giá trị surrogate nằm trong dải code point Java, và sẽ thêm một `char` surrogate đứng lẻ nếu bạn truyền `0xD800`. Về mặt cấu trúc `StringBuilder` có thể chứa code unit đó, nhưng đây **không phải** cách tạo văn bản Unicode scalar sequence hợp lệ. Khi dữ liệu đến từ hệ thống ngoài, hãy xác thực theo mục tiêu sử dụng.
+`appendCodePoint` accepts surrogate values within Java's code point range and will append a lone surrogate `char` if you pass `0xD800`. Structurally `StringBuilder` can hold that code unit, but that is **not** how to construct a valid Unicode scalar sequence. When data comes from external systems, validate it according to your intended use.
 
-Ví dụ **`SafeCodePointDemo.java`**:
+Example **`SafeCodePointDemo.java`**:
 
 ```java
 public class SafeCodePointDemo {
@@ -260,13 +260,13 @@ rejected out-of-range value
 builder unchanged: true
 ```
 
-`appendScalar` là **hàm bao ngoài tự định nghĩa** nhằm áp dụng hợp đồng đầu vào chặt hơn `appendCodePoint`. Java không tự áp dụng chính sách “không nhận surrogate code point” cho mọi trường hợp xây chuỗi. Nếu cần xử lý dữ liệu có surrogate lẻ, phải quyết định riêng: từ chối, thay bằng ký tự thay thế `U+FFFD`, hay giữ nguyên code unit để phục vụ một mục đích kỹ thuật cụ thể.
+`appendScalar` is a **custom wrapper function** designed to enforce a stricter input contract than `appendCodePoint`. Java does not automatically enforce a "no surrogate code points" policy for all string construction. If you must handle data containing lone surrogates, decide explicitly: reject it, replace with the replacement character `U+FFFD`, or preserve the code unit for a specific technical purpose.
 
-**Lưu ý:** `Character.isValidCodePoint` cũng không kiểm tra điều kiện “ký tự đã được gán”, không xác nhận tính hợp lệ của một grapheme cluster hay nội dung văn bản theo ngôn ngữ cụ thể.
+**Note:** `Character.isValidCodePoint` also does not check whether a character is "assigned", nor does it validate a grapheme cluster or language-specific text content.
 
-## 6. Tạo chuỗi từ mảng code point hoặc luồng `codePoints()`
+## 6. Building Strings from a Code Point Array or `codePoints()` Stream
 
-Một trường hợp sử dụng thường gặp là nhận dữ liệu dưới dạng các số nguyên Unicode rồi dựng văn bản. Khi danh sách đầu vào là các *scalar values* đã được kiểm tra, có thể append từng giá trị:
+A common use case is receiving data as Unicode integers and constructing text. When the input list consists of validated *scalar values*, you can append each value:
 
 ```java
 int[] codePoints = {0x41, 0x1F60A, 0x42};
@@ -277,11 +277,11 @@ for (int cp : codePoints) {
 String text = builder.toString();
 ```
 
-Đây là đoạn mã minh họa; kết quả `text` là `"A😊B"` và có `length() == 4`. Nếu cần constructor thay vì builder, `new String(int[] codePoints, int offset, int count)` cũng nhận dữ liệu code point và mã hóa sang UTF-16 theo API. Builder có lợi khi dữ liệu đến từng phần hoặc cần phối hợp nhiều loại phần tử.
+This is an illustrative snippet; the resulting `text` is `"A😊B"` and has `length() == 4`. If you need a constructor rather than a builder, `new String(int[] codePoints, int offset, int count)` also accepts code point data and encodes it to UTF-16 per the API. A builder is beneficial when data arrives incrementally or needs to combine multiple kinds of elements.
 
-Với `String.codePoints()`, mỗi giá trị luồng là một `int` đại diện code point theo quy tắc Java. Có thể dựng lại chuỗi bằng `appendCodePoint`. Nhưng lưu ý: khi nguồn chứa **surrogate đứng lẻ**, `codePoints()` vẫn có thể trả giá trị code unit lẻ đó như một phần tử. Tái dựng giữ lại dữ liệu nguồn không đồng nghĩa nguồn là chuỗi Unicode scalar sequence hoàn chỉnh.
+With `String.codePoints()`, each stream value is an `int` representing a code point per Java rules. You can rebuild the string with `appendCodePoint`. Note, however, that when the source contains a **lone surrogate**, `codePoints()` can still yield that lone code unit as an element. Rebuilding faithfully preserves the source data, which does not imply the source was a complete Unicode scalar sequence.
 
-**Ví dụ chạy được `CodePointRoundTripDemo.java`:**
+**Runnable example `CodePointRoundTripDemo.java`:**
 
 ```java
 public class CodePointRoundTripDemo {
@@ -320,21 +320,21 @@ after emoji offset: 3
 code point at 1: U+1F60A
 ```
 
-Trong ví dụ, `offsetByCodePoints(1, 1)` bắt đầu tại offset UTF-16 `1` (ngay trước emoji), đi qua một code point và trả offset `3` (ngay sau cặp surrogate). Nếu viết `substring(1, 2)` sẽ cắt đôi emoji, trong khi `substring(1, 3)` lấy trọn.
+In this example, `offsetByCodePoints(1, 1)` starts at UTF-16 offset `1` (right before the emoji), advances past one code point, and returns offset `3` (right after the surrogate pair). Calling `substring(1, 2)` would split the emoji in half, whereas `substring(1, 3)` captures it completely.
 
-Cảnh báo về reference trong Java: việc method reference `rebuilt::appendCodePoint` dùng với `IntConsumer` là hợp lệ; mặc dù phương thức trả về `StringBuilder`, kết quả trả về bị bỏ qua bởi chức năng consumer.
+Java method reference note: using the method reference `rebuilt::appendCodePoint` as an `IntConsumer` is valid; even though the method returns `StringBuilder`, the return value is ignored by the consumer interface.
 
-## 7. Xây nhiều code point vẫn có thể chỉ tạo một grapheme cluster
+## 7. Appending Multiple Code Points May Still Form Just One Grapheme Cluster
 
-`appendCodePoint` xử lý **một code point tại một thời điểm**, không tạo hoặc phân đoạn “một ký tự hiển thị” theo ý nghĩa UI. Một số tổ hợp quan trọng:
+`appendCodePoint` processes **one code point at a time**, and does not create or segment "one visible character" in the UI sense. Several important combinations:
 
-- Chữ `e` (`U+0065`) và dấu sắc kết hợp (`U+0301`) là **hai code point**, nhưng thường được nhóm thành **một extended grapheme cluster**.
-- Cờ 🇻🇳 gồm hai **regional indicator** `U+1F1FB` và `U+1F1F3`, tổng cộng hai code point, bốn code unit UTF-16, nhưng **một cluster** theo quy tắc phân đoạn.
-- Emoji gia đình 👨‍👩‍👧‍👦 gồm bốn emoji người và ba ký tự nối `U+200D` (*Zero Width Joiner*), tổng cộng bảy code point, 11 code unit UTF-16, thường là một grapheme cluster.
+- The letter `e` (`U+0065`) and a combining acute accent (`U+0301`) are **two code points**, yet are normally grouped into **one extended grapheme cluster**.
+- The flag 🇻🇳 consists of two **regional indicators** `U+1F1FB` and `U+1F1F3`, totaling two code points and four UTF-16 code units, yet **one cluster** under segmentation rules.
+- The family emoji 👨‍👩‍👧‍👦 consists of four person emojis and three `U+200D` (*Zero Width Joiner*) characters, totaling seven code points and 11 UTF-16 code units, typically forming one grapheme cluster.
 
-Có thể tạo các tổ hợp này bằng nhiều lời gọi `appendCodePoint(...)` liên tiếp. Phương thức không tự ghép bảy code point thành một code point; nó chỉ mã hóa từng giá trị và nối các code unit.
+You can build these combinations with consecutive `appendCodePoint(...)` calls. The method does not merge seven code points into one code point; it simply encodes each value and appends the code units.
 
-Ví dụ **`GraphemeBuilderDemo.java`**:
+Example **`GraphemeBuilderDemo.java`**:
 
 ```java
 import java.util.regex.Pattern;
@@ -386,28 +386,28 @@ flag: units=4, points=2, clusters=1
 family: units=11, points=7, clusters=1
 ```
 
-Java regex `\X` hỗ trợ phân đoạn **Unicode extended grapheme cluster**. Trong Java string literal phải viết `"\\X"` để regex nhận được `\X`. Kết quả phân đoạn có thể chịu ảnh hưởng bởi phiên bản dữ liệu Unicode trong JDK, nhất là với emoji mới; còn số code unit và code point của các ví dụ trên không phụ thuộc font.
+Java regex `\X` supports **Unicode extended grapheme cluster** segmentation. In a Java string literal, you must write `"\\X"` so the regex engine receives `\X`. Segmentation results can be affected by the Unicode data version in the JDK, especially for newer emojis; meanwhile, the code unit and code point counts in the examples above do not depend on fonts.
 
-Ngay cả một cluster cũng không nhất thiết thành **một glyph duy nhất**, vì font và nền tảng hiển thị quyết định việc ghép hình. Khi thiết kế cắt chuỗi theo “ký tự người dùng nhìn thấy”, dùng ranh giới grapheme cluster của thư viện phù hợp, không dùng `appendCodePoint` hay `length()` làm phép đếm ký tự hiển thị.
+Even a single cluster does not necessarily render as **a single glyph**, because fonts and rendering platforms control glyph shaping. When designing string truncation by "user-perceived characters", use grapheme cluster boundaries from an appropriate library rather than using `appendCodePoint` or `length()` as a display-character counter.
 
-## 8. Tránh phá surrogate pair khi sửa `StringBuilder`
+## 8. Avoiding Breaking Surrogate Pairs When Editing `StringBuilder`
 
-`StringBuilder` là **mutable**: có thể thêm, xóa, thay thế hoặc đảo nội dung. Tuy nhiên, nhiều API chỉnh sửa của builder vẫn làm việc theo **chỉ số code unit UTF-16**, nên có thể tạo ra surrogate lẻ nếu thao tác giữa một cặp.
+`StringBuilder` is **mutable**: you can insert, delete, replace, or reverse its content. However, many builder editing APIs still operate on **UTF-16 code unit indices**, so they can create lone surrogates if applied inside a pair.
 
-Xét builder chứa `"A😊B"` với code unit ở offset:
+Consider a builder containing `"A😊B"` with code units at offsets:
 
 ```text
 Offset: 0      1        2       3
         A   high-D83D low-DE0A   B
-Ranh giới UTF-16: 0 | 1 | 2 | 3 | 4
+UTF-16 boundaries: 0 | 1 | 2 | 3 | 4
 ```
 
-- `builder.delete(1, 3)` xóa đủ hai code unit emoji, giữ `"AB"`.
-- `builder.delete(1, 2)` chỉ xóa high surrogate, để lại low surrogate đứng lẻ.
-- `builder.setCharAt(1, 'X')` thay high surrogate bằng `X`, cũng để lại low surrogate đứng lẻ.
-- `builder.insert(2, "...")` có thể chèn giữa high và low surrogate; hãy tránh đặt điểm chèn ở đó nếu dữ liệu cần hợp lệ.
+- `builder.delete(1, 3)` deletes both emoji code units, keeping `"AB"`.
+- `builder.delete(1, 2)` deletes only the high surrogate, leaving a lone low surrogate.
+- `builder.setCharAt(1, 'X')` replaces the high surrogate with `X`, also leaving a lone low surrogate.
+- `builder.insert(2, "...")` can insert between the high and low surrogates; avoid placing insertion points there if data must remain valid.
 
-**Ví dụ `BuilderBoundaryDemo.java`:**
+**Example `BuilderBoundaryDemo.java`:**
 
 ```java
 public class BuilderBoundaryDemo {
@@ -445,55 +445,55 @@ lone low surrogate: true
 code point deletion: AB
 ```
 
-`offsetByCodePoints(1, 1)` đưa vị trí từ offset 1 qua trọn một code point, nên end = 3 trong ví dụ. Đây là lựa chọn tốt hơn cho các thao tác cắt **theo code point**, nhưng vẫn có thể cắt giữa chữ cơ sở và dấu kết hợp. Nếu cần giữ **grapheme cluster**, hãy xác định ranh giới grapheme trước khi thao tác.
+`offsetByCodePoints(1, 1)` moves the position from offset 1 past one full code point, giving end = 3 in this example. This is a better choice for operations slicing **by code point**, though it can still split between a base letter and a combining mark. If you need to preserve **grapheme clusters**, determine grapheme boundaries before editing.
 
-**Về `reverse()`:** `StringBuilder.reverse()` có xử lý riêng để giữ thứ tự đúng bên trong các surrogate pair hợp lệ, nhưng nó không có nghĩa phép đảo luôn giữ nguyên các grapheme cluster có nhiều code point (như e + dấu, emoji kết hợp). Không dùng `reverse()` như một bộ đảo “ký tự người dùng nhìn thấy” cho mọi hệ chữ.
+**About `reverse()`:** `StringBuilder.reverse()` has special handling to keep the proper order within valid surrogate pairs, but that does not mean reversing always preserves multi-code-point grapheme clusters (such as e + combining mark, or composite emojis). Do not use `reverse()` as a "user-perceived character" reverser across all writing systems.
 
-## 9. Giới hạn độ dài, capacity và xử lý đầu vào
+## 9. Length Limits, Capacity, and Input Handling
 
-Vì builder lưu dữ liệu theo UTF-16 ở mức API:
+Because a builder stores data as UTF-16 at the API level:
 
-- `length()` và `capacity()` đo bằng **số code unit `char`**, không đo bằng số code point, grapheme cluster hay byte khi xuất UTF-8.
-- `appendCodePoint(0x1F60A)` tăng `length()` thêm **2**, không phải 1.
-- `ensureCapacity(n)` yêu cầu builder chuẩn bị capacity tối thiểu theo đơn vị **code unit UTF-16**; không làm tăng `length()` và không tự thêm nội dung.
-- Nếu cần giới hạn “tối đa N code point”, không thể chỉ kiểm tra `builder.length() <= N`. Với văn bản ngoài BMP, `length` có thể lớn hơn số code point.
-- Nếu giới hạn byte cho giao thức hoặc tệp, hãy mã hóa theo charset mục tiêu (ví dụ UTF-8) rồi đo số byte. Số byte khác cả code unit, code point và grapheme.
+- `length()` and `capacity()` measure **numbers of `char` code units**, not code points, grapheme clusters, or UTF-8 output bytes.
+- `appendCodePoint(0x1F60A)` increases `length()` by **2**, not 1.
+- `ensureCapacity(n)` asks the builder to prepare a minimum capacity in **UTF-16 code units**; it does not increase `length()` and does not automatically add content.
+- If you need a limit of "at most N code points", checking `builder.length() <= N` alone is wrong. With non-BMP text, `length` can exceed the code point count.
+- If limiting bytes for a protocol or file, encode with the target charset (for example UTF-8) and measure the byte count. Byte count differs from code units, code points, and graphemes.
 
-Đầu vào từ nguồn ngoài có thể là số âm, vượt `U+10FFFF`, surrogate đơn lẻ hoặc code point chưa được gán trong phiên bản Unicode đang dùng. Chính sách nhận dữ liệu phải do **hợp đồng của ứng dụng** xác định. Bài học này dùng `appendScalar` để loại surrogate đơn lẻ, nhưng một trình xử lý dữ liệu UTF-16 thô có thể cần chính sách khác nhằm bảo toàn thông tin.
+Inputs from external sources can be negative, exceed `U+10FFFF`, be lone surrogates, or be unassigned code points in the current Unicode version. The acceptance policy must be defined by the **application's contract**. This lesson used `appendScalar` to reject lone surrogates, whereas a raw UTF-16 data processor might need a different policy to preserve information.
 
-### Lựa chọn API theo dạng dữ liệu
+### Choosing an API by Data Shape
 
-| Đầu vào hiện có | API phù hợp | Chú ý |
+| Available Input | Appropriate API | Notes |
 |---|---|---|
-| Một code point dưới dạng `int` | `appendCodePoint(cp)` | Nên xác thực scalar value nếu xây Unicode text hợp lệ |
-| Một code unit UTF-16 dưới dạng `char` | `append(ch)` | Có thể là một nửa cặp surrogate |
-| Một chuỗi `String` đã hoàn chỉnh | `append(text)` | Giữ nguyên dãy code unit của chuỗi |
-| Mảng `char[]` UTF-16 | `append(chars)` | Chịu trách nhiệm bảo vệ cặp surrogate nếu nguồn có thể không hợp lệ |
-| Mảng code point `int[]` | Lặp `appendCodePoint(cp)`, hoặc constructor `String(int[],...)` | Đừng ép mảng `int[]` thẳng thành `char[]` |
-| Luồng `String.codePoints()` | Lặp appendCodePoint hoặc `new String(codePoints, ...)` | Nguồn có thể có surrogate lẻ, cần chính sách hợp lệ hóa |
-| Cần thao tác theo ký tự hiển thị | Phân đoạn grapheme trước | Một cluster có thể chứa nhiều code point |
+| A code point as an `int` | `appendCodePoint(cp)` | Validate scalar value if building valid Unicode text |
+| A UTF-16 code unit as a `char` | `append(ch)` | May be one half of a surrogate pair |
+| A complete `String` | `append(text)` | Preserves the string's code unit sequence |
+| A UTF-16 `char[]` array | `append(chars)` | Responsible for protecting surrogate pairs if source may be invalid |
+| An `int[]` code point array | Loop `appendCodePoint(cp)`, or `String(int[],...)` constructor | Do not cast an `int[]` array directly to `char[]` |
+| A `String.codePoints()` stream | Loop `appendCodePoint` or `new String(codePoints, ...)` | Source may contain lone surrogates; a validation policy is needed |
+| Need to edit by visible character | Segment graphemes first | One cluster can contain multiple code points |
 
-Đối với builder được dùng trong nhiều luồng, cần chú ý thêm `StringBuilder` **không đồng bộ hóa**; đồng bộ truy cập hoặc chọn cấu trúc phù hợp nếu thực sự chia sẻ mutable builder. Điều này độc lập với đặc tính Unicode của `appendCodePoint`.
+For builders used across multiple threads, also keep in mind that `StringBuilder` is **not synchronized**; synchronize access or choose an appropriate structure if a mutable builder is actually shared. This is independent of the Unicode behavior of `appendCodePoint`.
 
-## 10. Lỗi thường gặp và cách tránh
+## 10. Common Mistakes and How to Avoid Them
 
-| Lỗi | Hậu quả | Cách xử lý |
+| Mistake | Consequence | Fix |
 |---|---|---|
-| `builder.append(0x1F60A)` để thêm emoji | Thêm chuỗi chữ số `"128522"` | `appendCodePoint(0x1F60A)` |
-| `builder.append((char) 0x1F60A)` | Chỉ giữ 16 bit thấp, mất code point ngoài BMP | Giữ `int` và dùng `appendCodePoint` |
-| Cho rằng `appendCodePoint` luôn tăng length 1 | Đếm sai độ dài khi có supplementary code points | Với ngoài BMP, tăng 2 code unit |
-| Cho rằng `Character.isValidCodePoint` là kiểm tra scalar value | Surrogate `U+D800` vẫn được coi là giá trị nằm trong khoảng code point | Loại riêng `0xD800..0xDFFF` nếu dữ liệu cần scalar |
-| Chỉ kiểm tra `cp >= 0` | Giá trị `cp > 0x10FFFF` gây `IllegalArgumentException` | Xác thực giới hạn trên và surrogate theo chính sách |
-| Truy cập `charAt(i)` như một code point | Có thể chỉ lấy high hoặc low surrogate | Dùng `codePointAt(i)` và `offsetByCodePoints(...)` |
-| Xóa `delete(i, i+1)` để xóa emoji | Có thể chỉ xóa một nửa surrogate | Tính ranh giới code point/grapheme phù hợp |
-| Coi hai code point cờ là hai ký tự người dùng nhìn thấy | Flag có thể là một grapheme cluster | Phân đoạn grapheme bằng quy tắc Unicode |
-| Nghĩ `appendCodePoint` tự chuẩn hóa NFC | Dãy code point vẫn được nối nguyên vẹn | Dùng `Normalizer` riêng khi yêu cầu |
-| Giới hạn nội dung bằng `capacity` hoặc chỉ dựa `length` để đếm code point | Đếm sai đơn vị | Định nghĩa rõ UTF-16 units, code points, clusters hay bytes |
-| Nghĩ builder chứa surrogate lẻ sẽ luôn ném lỗi ngay | `StringBuilder` cho phép dãy code unit không tạo Unicode scalar text hợp lệ | Kiểm tra/giữ nguyên/thay thế theo hợp đồng đầu vào |
+| `builder.append(0x1F60A)` to add an emoji | Appends the digit string `"128522"` | `appendCodePoint(0x1F60A)` |
+| `builder.append((char) 0x1F60A)` | Keeps only lower 16 bits, losing the non-BMP code point | Keep `int` and use `appendCodePoint` |
+| Assuming `appendCodePoint` always increments length by 1 | Miscounts length when supplementary code points exist | Non-BMP code points add 2 code units |
+| Thinking `Character.isValidCodePoint` checks for scalar values | Surrogate `U+D800` is still considered within the code point range | Explicitly exclude `0xD800..0xDFFF` if data requires scalars |
+| Checking only `cp >= 0` | Values `cp > 0x10FFFF` throw `IllegalArgumentException` | Validate upper bound and surrogates per policy |
+| Accessing `charAt(i)` as a code point | May read only a high or low surrogate | Use `codePointAt(i)` and `offsetByCodePoints(...)` |
+| Calling `delete(i, i+1)` to delete an emoji | May delete only half of a surrogate pair | Compute proper code point/grapheme boundaries |
+| Treating two flag code points as two user-perceived characters | A flag can be one grapheme cluster | Segment graphemes using Unicode rules |
+| Thinking `appendCodePoint` automatically normalizes to NFC | The code point sequence is appended verbatim | Use `Normalizer` separately when required |
+| Bounding content by `capacity` or relying on `length` to count code points | Miscounts units | Clearly define UTF-16 units, code points, clusters, or bytes |
+| Thinking a builder holding lone surrogates will immediately throw | `StringBuilder` allows code unit sequences that do not form valid Unicode scalar text | Validate/preserve/replace per input contract |
 
-## 11. Tự kiểm tra
+## 11. Self-Check
 
-Dự đoán kết quả của chương trình **`AppendCodePointSelfCheck.java`** trước khi chạy:
+Predict the output of **`AppendCodePointSelfCheck.java`** before running it:
 
 ```java
 public class AppendCodePointSelfCheck {
@@ -538,12 +538,12 @@ true
 false
 ```
 
-Giải thích: `a` chứa emoji (hai code unit, một code point) và chữ `A` (một code unit, một code point). `b.append(cp)` chọn overload số nguyên và chuyển thành chữ số. `c.append((char) cp)` cắt mất phần cao của `int` nên giá trị đọc lại không thể bằng `U+1F60A`.
+Explanation: `a` holds the emoji (two code units, one code point) and the letter `A` (one code unit, one code point). `b.append(cp)` selects the integer overload and converts it to digits. `c.append((char) cp)` truncates the upper bits of the `int`, so the read-back value cannot equal `U+1F60A`.
 
-**Ba câu hỏi khi quyết định API:**
+**Three questions when choosing an API:**
 
-1. Giá trị đang cầm là **một `char` UTF-16**, **một `int` code point**, hay **một chuỗi hoàn chỉnh**?
-2. Giá trị có nằm ngoài BMP hoặc là surrogate đơn lẻ không, và hợp đồng của ứng dụng có yêu cầu Unicode scalar sequence hợp lệ không?
-3. Bài toán muốn đếm/giới hạn/xóa theo **code unit**, **code point**, **grapheme cluster**, hay số **byte mã hóa**?
+1. Is the value in hand **a UTF-16 `char`**, **an `int` code point**, or **a complete string**?
+2. Could the value be non-BMP or a lone surrogate, and does the application contract require a valid Unicode scalar sequence?
+3. Does the problem count, bound, or delete by **code unit**, **code point**, **grapheme cluster**, or **encoded byte** count?
 
-Khi dữ liệu đầu vào là code point hợp lệ và mục tiêu là tạo chuỗi Unicode, `StringBuilder.appendCodePoint(int)` giúp mã hóa đúng các giá trị ngoài BMP thành surrogate pair. Phần còn lại của tính đúng đắn nằm ở việc kiểm tra đầu vào, chọn ranh giới thao tác và định nghĩa chính xác “ký tự” theo yêu cầu.
+When the input is a valid code point and the goal is building a Unicode string, `StringBuilder.appendCodePoint(int)` properly encodes non-BMP values into surrogate pairs. The rest of correctness lies in validating inputs, choosing operation boundaries, and accurately defining "character" for your requirements.

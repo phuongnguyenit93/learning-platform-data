@@ -1,33 +1,33 @@
-# Phân biệt MessageFormat với String.format và Formatter
+# Distinguishing MessageFormat from String.format and Formatter
 
-## 1. Ba API cùng tạo chuỗi, nhưng giải quyết những việc khác nhau
+## 1. Three APIs That All Build Strings, Solving Different Problems
 
-Khi xây dựng ứng dụng Java có nhiều ngôn ngữ, chúng ta thường cần chèn tên người dùng, số tiền, ngày hoặc số lượng vào văn bản. Java cung cấp ba công cụ dễ bị nhầm:
+When building a multilingual Java application, we often need to insert user names, monetary amounts, dates, or counts into text. Java provides three tools that are easily confused:
 
-- **`java.text.MessageFormat`**: tạo **thông điệp cho người dùng** từ một *mẫu câu* với đối số được đánh số `{0}`, `{1}`. Mẫu câu có thể dịch sang các ngôn ngữ khác, thay đổi vị trí các đối số, và chọn định dạng số/ngày theo `Locale`.
-- **`String.format(...)`**: tạo một chuỗi bằng cú pháp **`printf`**, chẳng hạn `%s`, `%d`, `%,.2f`, `%1$s`. Phù hợp cho trình bày số, căn lề, tạo log, kết quả kiểm tra hoặc chuỗi có cấu trúc.
-- **`java.util.Formatter`**: là **bộ máy đứng sau kiểu định dạng `printf`**, có thể ghi nhiều lần vào một `Appendable` như `StringBuilder`, `Writer` hoặc `System.out` và có trạng thái/chu kỳ sử dụng riêng.
+- **`java.text.MessageFormat`**: builds **user-facing messages** from a *sentence pattern* with numbered arguments `{0}`, `{1}`. Patterns can be translated into other languages, reorder arguments, and choose number/date formatting per `Locale`.
+- **`String.format(...)`**: builds a string using **`printf`** syntax, such as `%s`, `%d`, `%,.2f`, `%1$s`. Suited for number presentation, alignment, logging, test output, or structured strings.
+- **`java.util.Formatter`**: the **engine behind `printf`-style formatting**, able to write multiple times into an `Appendable` such as `StringBuilder`, `Writer`, or `System.out`, with its own state and lifecycle.
 
-Cả ba đều có thể nhận `Locale`, nhưng **cú pháp mẫu, cách xử lý đối số, khả năng bản địa hóa, hành vi với ngày giờ và đặc tính quản lý đối tượng khác nhau**.
+All three can accept a `Locale`, yet **their pattern syntax, argument handling, localization suitability, date/time behavior, and object lifecycle characteristics differ**.
 
-| Câu hỏi | `MessageFormat` | `String.format` | `Formatter` |
+| Question | `MessageFormat` | `String.format` | `Formatter` |
 | --- | --- | --- | --- |
-| Đầu vào mẫu | `"Xin chào {0}"` | `"Xin chào %s"` | `formatter.format("Xin chào %s", name)` |
-| Đối số | Chỉ số **0-based** `{0}`, `{1}` | Mặc định theo thứ tự; chỉ số tường minh **1-based** `%1$s`, `%2$d` | Cùng cú pháp với `String.format` |
-| Trọng tâm | Câu dịch, sắp xếp lại thành phần thông điệp | Chuỗi trình bày, độ rộng, precision, flags | Ghi nối nhiều kết quả vào một destination |
-| Số/ngày theo locale | Qua `{0,number}`, `{0,date}` và subformat | Qua conversion tương ứng như `%,.2f`, `%tF` | Cùng semantics kiểu `printf` |
-| Đổi vị trí tham số khi dịch | Tự nhiên với `{1}`, `{0}` | Có `%2$s`, `%1$s` nhưng pattern khó đọc hơn cho biên dịch viên | Tương tự `String.format` |
-| Mẫu thường đặt trong ResourceBundle | Rất phù hợp | Có thể dùng nhưng đòi hỏi hiểu cú pháp `printf` | Có thể dùng, cùng ràng buộc `printf` |
-| Kiểu kết quả | `String` hoặc ghi vào `StringBuffer` | Trả `String` | Ghi vào `Appendable`, trả `Formatter` để nối thao tác |
-| Đa luồng | `MessageFormat` không synchronized | Mỗi lời gọi tạo công việc định dạng riêng | Một `Formatter` dùng chung không bảo đảm thread-safe |
+| Pattern input | `"Hello {0}"` | `"Hello %s"` | `formatter.format("Hello %s", name)` |
+| Arguments | **0-based** indices `{0}`, `{1}` | Positional by default; explicit **1-based** indices `%1$s`, `%2$d` | Same syntax as `String.format` |
+| Primary focus | Translated sentences, reordering message components | Presentation strings, width, precision, flags | Appending multiple formatted outputs to one destination |
+| Locale-sensitive numbers/dates | Via `{0,number}`, `{0,date}`, and subformats | Via corresponding conversions like `%,.2f`, `%tF` | Same `printf`-style semantics |
+| Reordering parameters in translations | Natural with `{1}`, `{0}` | Possible with `%2$s`, `%1$s`, but patterns are harder for translators to read | Same as `String.format` |
+| Patterns typically stored in ResourceBundle | Very well suited | Usable, but requires understanding `printf` syntax | Usable, same `printf` constraints |
+| Return type | `String` or writes into `StringBuffer` | Returns `String` | Writes to `Appendable`, returns `Formatter` for chaining |
+| Multithreading | `MessageFormat` is not synchronized | Each call performs independent formatting work | A shared `Formatter` is not guaranteed thread-safe |
 
-**Quy tắc lựa chọn:** với **câu cần dịch**, ưu tiên `ResourceBundle` + `MessageFormat`; với **chuỗi kỹ thuật, biểu bảng, độ rộng cột, precision, số liệu**, dùng `String.format`; khi cần **ghi nhiều đoạn đã format vào cùng đích**, dùng `Formatter`.
+**Selection rule:** for **translatable sentences**, prefer `ResourceBundle` + `MessageFormat`; for **technical strings, tables, column widths, precision, and metrics**, use `String.format`; when you need to **write multiple formatted segments into the same destination**, use `Formatter`.
 
-## 2. Cú pháp: `{0}` so với `%s`
+## 2. Syntax: `{0}` vs. `%s`
 
-### 2.1. MessageFormat: đánh số đối số từ 0
+### 2.1. MessageFormat: 0-Based Argument Indexing
 
-Cấu trúc các phần thay thế của `MessageFormat`:
+Structure of `MessageFormat` replacement elements:
 
 ~~~text
 {argumentIndex}
@@ -35,20 +35,20 @@ Cấu trúc các phần thay thế của `MessageFormat`:
 {argumentIndex,formatType,formatStyle}
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~text
-"Chào {0}, bạn có {1,number,integer} thông báo."
+"Hello {0}, you have {1,number,integer} notifications."
 ~~~
 
-Trong đó:
+Where:
 
-- `{0}` là **đối số đầu tiên**.
-- `{1,number,integer}` là **đối số thứ hai**, được định dạng bằng quy tắc số nguyên phù hợp `Locale`.
-- Các loại `formatType` chuẩn của Java 17 gồm `number`, `date`, `time`, `choice`.
-- Một số `formatStyle` hợp lệ gồm `integer`, `currency`, `percent`, `short`, `medium`, `long`, `full` hoặc pattern dành riêng cho subformatter.
+- `{0}` is the **first argument**.
+- `{1,number,integer}` is the **second argument**, formatted using integer rules appropriate for the `Locale`.
+- Standard Java 17 `formatType` values are `number`, `date`, `time`, and `choice`.
+- Valid `formatStyle` values include `integer`, `currency`, `percent`, `short`, `medium`, `long`, `full`, or a subformatter-specific pattern.
 
-Ví dụ trực tiếp:
+Direct example:
 
 ~~~java
 MessageFormat message = new MessageFormat(
@@ -58,33 +58,33 @@ MessageFormat message = new MessageFormat(
 String output = message.format(new Object[]{"Lan", 3});
 ~~~
 
-Đoạn trên là **mảnh mã trong phương thức**, cần import `java.text.MessageFormat` và `java.util.Locale`. Kết quả phụ thuộc quy ước số của locale (đối số `3` không cần dấu nhóm). Quan trọng là thứ tự đối số có thể thay đổi trong **pattern** mà không cần thay mã cung cấp dữ liệu.
+This is an **in-method code fragment**, requiring imports for `java.text.MessageFormat` and `java.util.Locale`. The result follows the locale's numeric conventions (the argument `3` needs no grouping separator). Crucially, argument order can change in the **pattern** without changing the data-supplying code.
 
-### 2.2. String.format và Formatter: cú pháp printf
+### 2.2. String.format and Formatter: `printf` Syntax
 
-Với conversion thông thường:
+For a typical conversion:
 
 ~~~text
 %[argument_index$][flags][width][.precision]conversion
 ~~~
 
-Một vài thành phần:
+Common components:
 
-| Cú pháp | Công dụng |
+| Syntax | Purpose |
 | --- | --- |
-| `%s` | Biểu diễn đối tượng thành chuỗi |
-| `%d` | Số nguyên |
-| `%f` / `%.2f` | Số thực / hai chữ số sau dấu thập phân |
-| `%,.2f` | Thêm phân nhóm theo locale, hiển thị hai chữ số thập phân |
-| `%10s` / `%-10s` | Độ rộng tối thiểu 10, căn phải / căn trái |
-| `%04d` | Bổ sung số 0 theo độ rộng 4 |
-| `%1$s` / `%2$s` | Tham chiếu đối số **thứ nhất / thứ hai** |
-| `%%` | In dấu phần trăm `%` theo nghĩa ký tự |
-| `%n` | In dấu xuống dòng theo hệ thống, không lấy đối số |
+| `%s` | String representation of an object |
+| `%d` | Integer |
+| `%f` / `%.2f` | Floating-point / two digits after the decimal point |
+| `%,.2f` | Adds locale grouping, displays two decimal places |
+| `%10s` / `%-10s` | Minimum width 10, right-aligned / left-aligned |
+| `%04d` | Zero-padded to width 4 |
+| `%1$s` / `%2$s` | References the **first / second** argument |
+| `%%` | Prints a literal percent sign `%` |
+| `%n` | Prints a platform-specific line separator, consuming no argument |
 
-**Lưu ý chỉ số:** `MessageFormat` bắt đầu từ **`0`**, trong khi chỉ số tường minh của `Formatter` bắt đầu từ **`1$`**. `%0$s` không phải chỉ số đối số hợp lệ của cú pháp `printf`.
+**Indexing note:** `MessageFormat` starts at **`0`**, whereas explicit indices in `Formatter` start at **`1$`**. `%0$s` is not a valid argument index in `printf` syntax.
 
-Ví dụ:
+Example:
 
 ~~~java
 String output = String.format(
@@ -94,17 +94,17 @@ String output = String.format(
 );
 ~~~
 
-Đây là mảnh mã trong method với import `java.util.Locale`. Kết quả:
+This is an in-method snippet importing `java.util.Locale`. Output:
 
 ~~~text
 Hello Lan, count=0007, cost=1,234.50
 ~~~
 
-`String.format` chỉ định rõ precision/width/flags; những điều đó giúp tạo dòng báo cáo có bố cục cố định. `MessageFormat` mạnh hơn ở việc biểu diễn **mẫu câu có thể dịch** và sử dụng subformat địa phương hóa.
+`String.format` specifies precision/width/flags explicitly, which helps produce fixed-layout report lines. `MessageFormat` is stronger at representing **translatable sentence patterns** and using localized subformats.
 
-## 3. Ví dụ chạy được: cùng một dữ liệu, ba cách
+## 3. Runnable Example: Same Data, Three Approaches
 
-Tạo tệp `FormatComparisonDemo.java`:
+Create the file `FormatComparisonDemo.java`:
 
 ~~~java
 import java.text.MessageFormat;
@@ -116,7 +116,7 @@ public class FormatComparisonDemo {
         String name = "Lan";
         double amount = 1234.5;
 
-        // 1. Mẫu câu có tham số đánh số từ 0.
+        // 1. Sentence pattern with 0-based numbered parameters.
         MessageFormat message = new MessageFormat(
                 "Hello {0}, balance: {1,number,#,##0.00}",
                 Locale.US
@@ -124,7 +124,7 @@ public class FormatComparisonDemo {
         System.out.println("MessageFormat: "
                 + message.format(new Object[]{name, amount}));
 
-        // 2. Mẫu kiểu printf, đối số bắt đầu từ 1.
+        // 2. printf-style pattern, arguments starting at 1.
         String oneShot = String.format(
                 Locale.US,
                 "Hello %1$s, balance: %2$,.2f",
@@ -132,7 +132,7 @@ public class FormatComparisonDemo {
         );
         System.out.println("String.format: " + oneShot);
 
-        // 3. Ghi nhiều lần vào cùng một StringBuilder.
+        // 3. Writing multiple times into the same StringBuilder.
         StringBuilder destination = new StringBuilder();
         try (Formatter formatter =
                      new Formatter(destination, Locale.US)) {
@@ -144,14 +144,14 @@ public class FormatComparisonDemo {
 }
 ~~~
 
-Biên dịch và chạy trên Java 17+:
+Compile and run on Java 17+:
 
 ~~~bash
 javac -encoding UTF-8 FormatComparisonDemo.java
 java FormatComparisonDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 MessageFormat: Hello Lan, balance: 1,234.50
@@ -159,19 +159,19 @@ String.format: Hello Lan, balance: 1,234.50
 Formatter: Hello Lan, balance: 1,234.50
 ~~~
 
-Cùng kết quả nhưng cơ chế khác:
+Identical output, different mechanisms:
 
-1. `MessageFormat` nhận `Object[]`, chèn theo `{0}` và `{1}`. Subpattern `#,##0.00` do `DecimalFormat` diễn giải với ký hiệu địa phương của `Locale.US`.
-2. `String.format` nhận các đối số varargs, xử lý `%1$s` và `%2$,.2f` bằng cú pháp `Formatter`. Nó không đọc mẫu của `MessageFormat`.
-3. `Formatter` nhận một `StringBuilder` làm đích và nối hai lần format. Đóng `Formatter` hoàn tất việc dùng đối tượng; `StringBuilder` vẫn giữ văn bản và có thể đọc bằng `toString()`.
+1. `MessageFormat` accepts `Object[]`, substituting `{0}` and `{1}`. Subpattern `#,##0.00` is interpreted by `DecimalFormat` using `Locale.US` symbols.
+2. `String.format` accepts varargs, processing `%1$s` and `%2$,.2f` using `Formatter` syntax. It does not parse `MessageFormat` patterns.
+3. `Formatter` takes a `StringBuilder` as its destination and appends two format calls. Closing `Formatter` finishes using the formatter object; `StringBuilder` still retains the text and can be read via `toString()`.
 
-**Không thể thay máy móc** `"Hello {0}"` thành đầu vào `String.format`, cũng không thể đưa `"Hello %s"` thẳng vào `MessageFormat` rồi mong cú pháp được diễn giải. Mỗi công cụ có parser pattern riêng.
+**You cannot mechanically pass** `"Hello {0}"` as input to `String.format`, nor pass `"Hello %s"` directly into `MessageFormat` expecting its syntax to be interpreted. Each tool has its own pattern parser.
 
-## 4. Bản địa hóa thông điệp: vì sao MessageFormat phù hợp hơn
+## 4. Localizing Messages: Why MessageFormat Fits Better
 
-Một bản dịch tốt có thể phải đổi **thứ tự các thành phần**, không chỉ đổi từng từ. Ví dụ ngôn ngữ A muốn “{tên} đã đặt {số lượng}”, còn ngôn ngữ B muốn “Đã đặt {số lượng} cho {tên}”. Nếu ghép chuỗi bằng toán tử `+` hoặc dựa hoàn toàn vào thứ tự lập trình viên viết trong mã, biên dịch viên khó điều chỉnh trật tự câu.
+A good translation may need to change **the order of components**, not just translate word for word. For example, language A wants "{name} ordered {quantity}", while language B wants "Ordered {quantity} for {name}". If you concatenate strings with `+` or rely purely on the programmer's code order, translators struggle to adjust sentence structure.
 
-`MessageFormat` dùng chỉ số đối số để biên dịch viên giữ đúng dữ liệu và thay đổi trật tự:
+`MessageFormat` uses argument indices so translators keep the right data while changing order:
 
 ~~~java
 MessageFormat first = new MessageFormat(
@@ -187,18 +187,18 @@ System.out.println(first.format(args));
 System.out.println(second.format(args));
 ~~~
 
-Đoạn trên là mảnh mã có `import java.text.MessageFormat;` và `import java.util.Locale;`. Với số `3`, hai kết quả:
+The snippet above imports `java.text.MessageFormat;` and `java.util.Locale;`. With count `3`, the two outputs are:
 
 ~~~text
 Lan ordered 3 items.
 Đã đặt 3 món cho Lan.
 ~~~
 
-**Phân biệt với `String.format`:** cú pháp `%2$d` và `%1$s` cũng cho phép đổi vị trí đối số, nhưng người dịch phải hiểu conversion phù hợp với kiểu dữ liệu, flags, precision và escape dấu `%`. Với một **câu dịch** cần định dạng số/ngày và thay đổi cấu trúc câu, `MessageFormat` có ý nghĩa ngữ nghĩa trực tiếp hơn.
+**Distinction from `String.format`:** `%2$d` and `%1$s` syntax also allows reordering arguments, but translators have to understand data-type-specific conversions, flags, precision, and `%` escaping. For a **translated sentence** needing number/date formatting and structural reordering, `MessageFormat` expresses intent more directly.
 
-### Kết hợp ResourceBundle đúng cách
+### Combining Properly with `ResourceBundle`
 
-Trong ứng dụng, pattern không nên bị hard-code cho mọi ngôn ngữ. Một cấu trúc đơn giản:
+In an application, patterns should not be hardcoded for every language. A simple structure:
 
 ~~~text
 demo/
@@ -219,7 +219,7 @@ receipt=Hello {0}, total: {1,number,#,##0.00}.
 receipt=Hallo {0}, Gesamtbetrag: {1,number,#,##0.00}.
 ~~~
 
-Tạo `LocalizedMessageDemo.java`:
+Create `LocalizedMessageDemo.java`:
 
 ~~~java
 import java.text.MessageFormat;
@@ -244,66 +244,66 @@ public class LocalizedMessageDemo {
 }
 ~~~
 
-Lưu các file trong cùng thư mục, dùng JDK 17+:
+Save the files in the same directory, using JDK 17+:
 
 ~~~bash
 javac -encoding UTF-8 LocalizedMessageDemo.java
 java -cp . LocalizedMessageDemo
 ~~~
 
-Đầu ra với dữ liệu locale Đức thông dụng trong JDK:
+Output with standard German locale data in the JDK:
 
 ~~~text
 Hallo Lan, Gesamtbetrag: 1.234,50.
 ~~~
 
-Trong ví dụ, `ResourceBundle` chọn **mẫu câu**, còn `MessageFormat` dùng **Locale.GERMANY` để định dạng tham số số. Hai việc liên quan nhưng không trùng nhau: khi bundle fallback sang một locale khác, ứng dụng cần có chính sách rõ ràng về locale dùng định dạng số/ngày. Dùng `bundle.getLocale()` hay requested locale là quyết định của sản phẩm, không phải một chân lý áp dụng cho mọi hệ thống.
+In this example, `ResourceBundle` selects the **sentence pattern**, while `MessageFormat` uses **`Locale.GERMANY`** to format the numeric argument. The two tasks are related but distinct: when a bundle falls back to another locale, the application needs a clear policy on which locale formats numbers and dates. Whether to use `bundle.getLocale()` or the requested locale is a product decision, not a universal rule for every system.
 
-Các file `.properties` ở Java 17 có thể chứa Unicode UTF-8; kiểm soát encoding trong build và runtime để tránh lỗi dấu tiếng Việt/ký tự quốc tế.
+`.properties` files in Java 17 can contain UTF-8 Unicode; manage encoding consistently in build and runtime to prevent corrupted Vietnamese diacritics or international characters.
 
-## 5. Locale và kiểu dữ liệu: các API có giới hạn khác nhau
+## 5. Locale and Data Types: Different Limits Across APIs
 
-### 5.1. Cách truyền locale
+### 5.1. How Locales Are Passed
 
-Các phiên bản phổ biến:
+Common signatures:
 
 ~~~java
-// MessageFormat: constructor nhận locale.
+// MessageFormat: constructor accepts locale.
 MessageFormat message =
         new MessageFormat("{0,number,#,##0.00}", Locale.GERMANY);
 
-// String.format: locale là đối số đầu.
+// String.format: locale is the first argument.
 String s = String.format(Locale.GERMANY, "%,.2f", 1234.5);
 
-// Formatter: locale được chỉ định khi tạo instance.
+// Formatter: locale is specified when constructing the instance.
 StringBuilder out = new StringBuilder();
 try (Formatter formatter = new Formatter(out, Locale.GERMANY)) {
     formatter.format("%,.2f", 1234.5);
 }
 ~~~
 
-Đây là các đoạn minh họa trong method với import tương ứng. Nếu bỏ `Locale`:
+These are illustrative in-method snippets with corresponding imports. If `Locale` is omitted:
 
-- `new MessageFormat(pattern)` sử dụng locale mặc định cho danh mục `Locale.Category.FORMAT`.
-- `MessageFormat.format(pattern, args...)` là **static convenience method**, tạo một instance dùng locale mặc định; nó **không có overload đầu tiên là `Locale`** giống `String.format(Locale, ...)`.
-- `String.format(pattern, args...)` dùng locale mặc định danh mục `FORMAT`; `String.format(locale, pattern, args...)` cho phép truyền tường minh.
-- `new Formatter()` và các constructor không nhận locale dùng locale mặc định thích hợp; các constructor nhận `Locale` giúp xác định quy ước ngay khi tạo.
-- `Formatter.format(Locale, pattern, args...)` cho phép chỉ định locale cho một lần format trên instance nếu cần.
+- `new MessageFormat(pattern)` uses the default locale for the `Locale.Category.FORMAT` category.
+- `MessageFormat.format(pattern, args...)` is a **static convenience method** that constructs an instance using the default locale; it **does not have a `Locale`-first overload** like `String.format(Locale, ...)`.
+- `String.format(pattern, args...)` uses the default `FORMAT` category locale; `String.format(locale, pattern, args...)` lets you pass it explicitly.
+- `new Formatter()` and constructors without a locale parameter use the appropriate default locale; constructors accepting `Locale` establish conventions upon creation.
+- `Formatter.format(Locale, pattern, args...)` lets you specify a locale for a single formatting call on an instance when needed.
 
-Trong ứng dụng phục vụ nhiều người dùng, truyền locale của người nhận cho từng thao tác sẽ rõ ràng và tránh phụ thuộc vào mặc định JVM. **Không nên thay `Locale.setDefault(...)` mỗi khi xử lý request**, vì đó là trạng thái dùng chung có thể tác động luồng khác.
+In multi-user applications, passing the recipient's locale for each operation is explicit and avoids relying on JVM defaults. **Do not mutate `Locale.setDefault(...)` per request**, as it is shared state that can affect other threads.
 
-### 5.2. Số và tiền
+### 5.2. Numbers and Currency
 
-Đối với số:
+For numbers:
 
 ~~~text
 MessageFormat : {0,number,#,##0.00}
 printf        : %,.2f
 ~~~
 
-Hai mẫu có thể hiển thị cùng một số nhưng **không có quy tắc chuyển đổi cú pháp một-một**. Pattern của `MessageFormat` còn chứa cấu trúc thông điệp; pattern của `Formatter` có flags, width, precision và conversion.
+Both patterns can display the same number, yet **there is no one-to-one syntax conversion rule**. `MessageFormat` patterns also hold message structure; `Formatter` patterns have flags, width, precision, and conversions.
 
-Đối với tiền:
+For currency:
 
 ~~~java
 MessageFormat moneyMessage = new MessageFormat(
@@ -315,15 +315,15 @@ String withPrintf = String.format(
 );
 ~~~
 
-Đây là các mảnh mã minh họa. Dòng thứ nhất tạo số tiền theo `NumberFormat.getCurrencyInstance(Locale.US)` ở cấp subformat; dòng thứ hai đặt ký hiệu `$` **bằng literal trong pattern**. Dòng thứ hai có thể sai nếu người dùng muốn EUR, VND hay nếu ký hiệu tiền phải đặt ở vị trí khác. Khi xử lý tiền thực tế, phải biết **Currency của giao dịch** và có thể cấu hình `NumberFormat` hoặc `MessageFormat.setFormatByArgumentIndex(...)` theo yêu cầu nghiệp vụ; không suy diễn đồng tiền chỉ từ địa chỉ người dùng.
+These are illustrative snippets. The first formats the amount via `NumberFormat.getCurrencyInstance(Locale.US)` at the subformat level; the second hardcodes the `$` sign **as a literal in the pattern**. The second breaks if the user expects EUR or VND, or if the currency symbol must appear in another position. When handling real money, you must know **the transaction's `Currency`** and configure `NumberFormat` or `MessageFormat.setFormatByArgumentIndex(...)` per business requirements; never infer currency solely from user location.
 
-### 5.3. Ngày giờ và java.time
+### 5.3. Dates, Times, and `java.time`
 
-`MessageFormat` ở Java 17 dùng các subformat kế thừa như `DateFormat` cho `{0,date}`/`{0,time}`, và chúng thường mong đợi `java.util.Date` hoặc kiểu phù hợp với subformat. Không giả định rằng truyền thẳng `LocalDate` hoặc `LocalDateTime` vào `{0,date}` sẽ hoạt động.
+`MessageFormat` in Java 17 uses legacy subformats like `DateFormat` for `{0,date}`/`{0,time}`, which typically expect `java.util.Date` or a subformat-compatible type. Do not assume passing `LocalDate` or `LocalDateTime` directly into `{0,date}` will work.
 
-`Formatter` hỗ trợ các conversion ngày giờ `%t...`/`%T...` cho những kiểu đối số thời gian được Javadoc liệt kê; ví dụ `Date`, `Calendar`, `long` và các `TemporalAccessor` thích hợp. Nhưng điều đó **không** có nghĩa `MessageFormat` và `Formatter` dùng cùng API định dạng ngày.
+`Formatter` supports `%t...`/`%T...` date/time conversions for temporal argument types listed in its Javadoc—such as `Date`, `Calendar`, `long`, and appropriate `TemporalAccessor` types. However, that **does not** mean `MessageFormat` and `Formatter` share the same date-formatting API.
 
-Với `java.time` hiện đại, khi chỉ cần tạo riêng một chuỗi ngày/giờ, thường nên dùng `DateTimeFormatter` tường minh:
+With modern `java.time`, when you simply need to build a standalone date/time string, prefer explicit `DateTimeFormatter`:
 
 ~~~java
 LocalDate date = LocalDate.of(2025, 7, 14);
@@ -336,17 +336,17 @@ MessageFormat message = new MessageFormat(
 String output = message.format(new Object[]{dateText});
 ~~~
 
-Đây là đoạn minh họa trong method, cần import `java.time.LocalDate`, `java.time.format.DateTimeFormatter`, `java.text.MessageFormat` và `java.util.Locale`.
+This is an illustrative in-method snippet requiring imports for `java.time.LocalDate`, `java.time.format.DateTimeFormatter`, `java.text.MessageFormat`, and `java.util.Locale`.
 
-Cách này tạo `dateText` theo locale trước rồi chèn như chuỗi. Tuy nhiên, nếu muốn mẫu câu dịch **tự chọn cách biểu diễn ngày** thì cần thiết kế rõ trách nhiệm của dịch vụ định dạng. `Locale` không tự xác định múi giờ: khi định dạng một thời điểm tuyệt đối phải chọn `ZoneId` riêng.
+This approach builds `dateText` for the locale first and inserts it as a string. However, if you want translated sentence patterns to **choose the date style themselves**, design the formatting service's responsibilities clearly. `Locale` does not determine time zones: when formatting an absolute instant, select `ZoneId` separately.
 
-## 6. Cú pháp escape: nguồn lỗi rất thường gặp
+## 6. Escaping Syntax: A Very Common Source of Bugs
 
-### 6.1. MessageFormat có quy tắc dấu nháy đơn đặc biệt
+### 6.1. MessageFormat Has Special Single-Quote Rules
 
-Trong `MessageFormat`, ký tự **single quote** `'` là ký hiệu dùng để quote cú pháp. Muốn hiển thị dấu nháy đơn thật trong phần pattern, dùng **hai dấu nháy đơn `''`**. Muốn in một dấu ngoặc nhọn `{` hoặc `}` mà không khiến parser hiểu là tham số, phải quote phần literal đó thích hợp.
+In `MessageFormat`, the **single quote** `'` is the syntactic quoting symbol. To display a literal single quote in a pattern, use **two single quotes `''`**. To print a curly brace `{` or `}` without the parser treating it as a placeholder, quote the literal segment appropriately.
 
-Ví dụ độc lập:
+Standalone example:
 
 ~~~java
 import java.text.MessageFormat;
@@ -363,26 +363,26 @@ public class QuoteDemo {
 }
 ~~~
 
-Biên dịch/chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 QuoteDemo.java
 java QuoteDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 It's {ok}: yes
 ~~~
 
-Giải thích: `''` biểu thị dấu nháy đơn thật; `'{'` và `'}'` biểu thị dấu ngoặc nhọn theo nghĩa literal, còn `{0}` là placeholder thực sự.
+Explanation: `''` denotes a literal single quote; `'{'` and `'}'` denote literal curly braces, while `{0}` is an actual placeholder.
 
-**Bẫy:** một dấu nháy đơn đơn lẻ trong mẫu như `"It's {0}"` có thể vô tình kích hoạt chế độ quote, khiến `{0}` không được thay như mong muốn. Khi đọc pattern từ `ResourceBundle`, người dịch phải được hướng dẫn rõ quy tắc này.
+**Pitfall:** a single unescaped quote in a pattern like `"It's {0}"` can accidentally activate quoting mode, preventing `{0}` from being substituted as intended. When loading patterns from `ResourceBundle`, translators must be clearly instructed on this rule.
 
-### 6.2. Formatter có quy tắc dấu phần trăm
+### 6.2. Formatter Has Percent-Sign Rules
 
-Trong `String.format` và `Formatter`, dấu `%` mở đầu conversion. Nếu muốn in literal `%`, viết `%%`:
+In `String.format` and `Formatter`, `%` introduces a conversion. To print a literal `%`, write `%%`:
 
 ~~~java
 String output = String.format(
@@ -391,19 +391,19 @@ String output = String.format(
 System.out.println(output);
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Progress: 75%
 ~~~
 
-Trong pattern `printf`, dấu nháy đơn `'` **không** phải escape cấu trúc tương tự `MessageFormat`. Ngược lại, dấu `%` trong mẫu của `MessageFormat` thường là ký tự bình thường nếu nó không nằm trong subpattern có quy tắc riêng.
+In `printf` patterns, the single quote `'` is **not** a structural escape like in `MessageFormat`. Conversely, `%` in a `MessageFormat` pattern is normally a plain character unless it appears inside a subpattern with its own rules.
 
-**Không chuyển đổi pattern bằng tìm-thay đơn giản** giữa hai API: có thể tạo câu sai, thiếu đối số hoặc lỗi parser. Khi biên tập viên được phép thay đổi pattern, nên có kiểm tra syntax và bài test định dạng từng locale.
+**Never convert patterns with simple find-and-replace** between the two APIs: it can produce broken sentences, missing arguments, or parser errors. Whenever editors are allowed to edit patterns, include syntax checks and per-locale formatting tests.
 
-## 7. Format số lượng, số ít/số nhiều
+## 7. Formatting Quantities, Singular/Plural
 
-`MessageFormat` có `choice`, có thể lựa chọn một đoạn văn bản theo ngưỡng giá trị:
+`MessageFormat` includes `choice`, which can pick a text segment based on numeric thresholds:
 
 ~~~java
 import java.text.MessageFormat;
@@ -424,14 +424,14 @@ public class ChoiceDemo {
 }
 ~~~
 
-Biên dịch/chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 ChoiceDemo.java
 java ChoiceDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 No files
@@ -439,15 +439,15 @@ One file
 Many files
 ~~~
 
-Đây chỉ là ví dụ ngưỡng cho tập số lượng **không âm**; `choice` **không tự cung cấp** toàn bộ các quy tắc plural phức tạp của mọi ngôn ngữ (ví dụ các dạng ngữ pháp theo 0, 1, 2, vài hoặc nhiều ở một số ngôn ngữ). `String.format`/`Formatter` không có conversion `%plural`: dùng chúng để in số không đồng nghĩa lựa chọn câu văn đúng ngữ pháp.
+This is only a threshold example for **non-negative** counts; `choice` **does not automatically provide** the full set of complex plural rules across all languages (such as grammatical forms for 0, 1, 2, few, or many in certain languages). `String.format`/`Formatter` has no `%plural` conversion: using them to print a number does not select grammatically accurate prose.
 
-Khi sản phẩm cần pluralization theo chuẩn CLDR, nên cân nhắc engine i18n có hỗ trợ plural rules (chẳng hạn ICU MessageFormat hoặc thư viện được sản phẩm chọn). Cú pháp và feature set của thư viện ngoài có thể khác `java.text.MessageFormat` trong Java 17; cần kiểm tra API và định dạng pattern trước khi thay thế.
+When a product requires CLDR-compliant pluralization, consider an i18n engine that supports plural rules (such as ICU MessageFormat or a library chosen for the product). External libraries' syntax and feature sets can differ from `java.text.MessageFormat` in Java 17; verify APIs and pattern formats before migrating.
 
-## 8. Stateful Formatter, String.format tiện ích, và MessageFormat có thể cấu hình
+## 8. Stateful Formatter, Convenient String.format, and Configurable MessageFormat
 
-### 8.1. Khi nào dùng Formatter trực tiếp?
+### 8.1. When to Use `Formatter` Directly?
 
-`String.format` thường đủ cho việc tạo **một chuỗi**:
+`String.format` is usually sufficient for creating **a single string**:
 
 ~~~java
 String line = String.format(
@@ -455,7 +455,7 @@ String line = String.format(
 );
 ~~~
 
-`Formatter` hợp lý khi đang xây dựng nhiều phần của cùng output:
+`Formatter` makes sense when building multiple parts of the same output:
 
 ~~~java
 StringBuilder buffer = new StringBuilder();
@@ -469,83 +469,83 @@ try (Formatter formatter = new Formatter(buffer, Locale.US)) {
 String report = buffer.toString();
 ~~~
 
-Những đoạn này cần import `java.util.Locale` và `java.util.Formatter`; đây là các mảnh mã có thể đặt trong method.
+These snippets require importing `java.util.Locale` and `java.util.Formatter`; they are code fragments suitable for placing inside a method.
 
-Với `Formatter`, destination có thể là `Appendable`. Khi gắn với `Writer`/stream có tài nguyên bên ngoài, việc `close()` có thể **đóng destination** nếu nó triển khai `Closeable`; xác định rõ quyền sở hữu tài nguyên. Đóng `Formatter` rồi gọi `formatter.format(...)` nữa sẽ gây lỗi trạng thái. Nếu chỉ cần tạo `String` từ một lần định dạng, `String.format` ngắn và dễ quản lý hơn.
+With `Formatter`, the destination can be any `Appendable`. When wrapping a `Writer`/stream backed by external resources, calling `close()` may **close the destination** if it implements `Closeable`; define resource ownership clearly. Calling `formatter.format(...)` after closing `Formatter` throws a state error. If you only need a `String` from a single format call, `String.format` is shorter and easier to manage.
 
-### 8.2. MessageFormat là một đối tượng có thể sửa pattern/subformat
+### 8.2. `MessageFormat` Can Mutate Its Pattern and Subformats
 
-`MessageFormat` cung cấp `applyPattern`, `setLocale`, `setFormatByArgumentIndex` và các phương thức khác để thay đổi cách định dạng. Nó **không bất biến** và **không synchronized**. Cùng một instance bị các luồng thay pattern hay subformat trong lúc đang format có thể gây kết quả không mong muốn.
+`MessageFormat` exposes `applyPattern`, `setLocale`, `setFormatByArgumentIndex`, and other methods to alter formatting behavior. It is **not immutable** and **not synchronized**. Having threads mutate the pattern or subformats on the same instance while formatting can produce unexpected results.
 
-`Formatter` cũng không bảo đảm an toàn khi nhiều luồng cùng sử dụng. Một cách xử lý rõ ràng là tạo instance theo lời gọi hoặc dùng biện pháp đồng bộ phù hợp. Ngược lại, `String` kết quả là bất biến; bản thân lời gọi tĩnh `String.format(locale, ...)` không yêu cầu bạn chia sẻ `Formatter` có trạng thái với các request khác nhau.
+`Formatter` is likewise not guaranteed safe for concurrent multi-threaded use. A clean approach is to create instances per call or apply appropriate synchronization. By contrast, the resulting `String` is immutable; calling static `String.format(locale, ...)` does not require sharing a stateful `Formatter` across requests.
 
-Nếu tối ưu hiệu năng bằng cache `MessageFormat`, có thể lưu pattern đã xác thực và tạo bản sao phù hợp trước khi dùng, hoặc quản lý đồng bộ; không nên chia sẻ trực tiếp một instance mutable không được bảo vệ.
+If optimizing performance by caching `MessageFormat`, you can store validated patterns and clone or instantiate copies before use, or manage synchronization; never share an unprotected mutable instance directly.
 
-### 8.3. Ngoại lệ khi truyền sai pattern hoặc kiểu
+### 8.3. Exceptions When Passing Invalid Patterns or Types
 
-| Lỗi đầu vào | Khả năng gặp |
+| Input error | Likely outcome |
 | --- | --- |
-| `MessageFormat` có dấu ngoặc nhọn không cân bằng | `IllegalArgumentException` khi phân tích pattern |
-| `MessageFormat` yêu cầu `{0,number}` nhưng nhận kiểu không thích hợp | `IllegalArgumentException` từ quá trình định dạng |
-| `String.format` dùng `%d` cho một `String` | `IllegalFormatConversionException` hoặc ngoại lệ họ `IllegalFormatException` |
-| `String.format` có conversion hợp lệ nhưng thiếu tham số | `MissingFormatArgumentException` |
-| `Formatter` đã đóng rồi vẫn format | `FormatterClosedException` |
-| Pattern từ bản dịch có `%` hay dấu `'` sai quy tắc | Mất placeholder, sai chuỗi hoặc lỗi parser |
+| `MessageFormat` with unbalanced curly braces | `IllegalArgumentException` when parsing pattern |
+| `MessageFormat` expects `{0,number}` but receives an incompatible type | `IllegalArgumentException` during formatting |
+| `String.format` uses `%d` for a `String` | `IllegalFormatConversionException` or another `IllegalFormatException` |
+| `String.format` has a valid conversion but missing argument | `MissingFormatArgumentException` |
+| Formatting after `Formatter` is closed | `FormatterClosedException` |
+| Translated pattern has malformed `%` or `'` rules | Lost placeholders, wrong string, or parser error |
 
-Vì pattern có thể do người biên tập cung cấp qua file dịch, **kiểm thử bằng dữ liệu mẫu cho từng locale** là rất hữu ích. Đừng coi lỗi định dạng lúc runtime là chuyện chỉ ảnh hưởng mỹ thuật: giao diện có thể không hiển thị thông điệp hoặc mất thông tin quan trọng.
+Because patterns may be supplied by editors via translation files, **testing with sample data for every locale** is highly valuable. Do not treat runtime formatting errors as merely cosmetic issues: the UI may fail to render messages or lose critical information.
 
-## 9. Phân biệt chuỗi hiển thị với định dạng dữ liệu trao đổi
+## 9. Distinguishing Display Strings from Data-Interchange Formats
 
-Cả ba API đều thiên về **presentation**. Các định dạng số/ngày theo locale thường phù hợp với người đọc, nhưng không lý tưởng để làm dữ liệu máy trao đổi.
+All three APIs focus on **presentation**. Locale-dependent number/date formats are generally suited for human readers, not for machine-to-machine data exchange.
 
-Ví dụ, cùng số `1234.5` có thể biểu diễn là `1,234.50` hoặc `1.234,50`. Nếu dùng chuỗi này làm số trong JSON, CSV hoặc chuỗi truy vấn mà không có quy ước rõ ràng, phía nhận có thể hiểu sai.
+For example, the same number `1234.5` can render as `1,234.50` or `1.234,50`. Using that string as a number in JSON, CSV, or query strings without an explicit contract can cause the receiver to misinterpret it.
 
-- Dữ liệu trao đổi: dùng JSON number, `BigDecimal`/giao thức số nhất quán, ngày theo ISO-8601 khi phù hợp.
-- Dữ liệu hiển thị: dùng `Locale` tường minh và API tương ứng.
-- Văn bản cần dịch: lấy mẫu câu từ `ResourceBundle`/hệ thống i18n, sau đó format bằng cơ chế thích hợp.
-- Báo cáo có căn lề: `Formatter`/`String.format` phù hợp cho cột và độ rộng; với định dạng Unicode và bảng phức tạp, độ rộng ký tự hiển thị trên terminal còn phụ thuộc font và ký tự nhiều code point.
+- Interchange data: use JSON numbers, `BigDecimal`/consistent numeric protocols, and ISO-8601 dates where appropriate.
+- Display data: use an explicit `Locale` and the corresponding API.
+- Translatable text: fetch sentence patterns from `ResourceBundle`/i18n systems, then format with the appropriate mechanism.
+- Aligned reports: `Formatter`/`String.format` suits columns and widths; for Unicode text and complex tables, display width on a terminal also depends on fonts and multi-codepoint characters.
 
-Một nội dung dịch không trở nên đúng ngữ pháp chỉ vì mọi biến đã được chèn và con số đã có dấu phân nhóm thích hợp. Khi văn bản là câu hoàn chỉnh, phải xem xét ngữ pháp và cấu trúc của ngôn ngữ đích.
+Translated content does not become grammatically sound merely because every variable was inserted and numbers have the right grouping separators. When text forms complete sentences, you must evaluate the grammar and structure of the target language.
 
-## 10. Hướng dẫn chọn API theo tình huống
+## 10. API Selection Guide by Scenario
 
-| Tình huống | Lựa chọn thường phù hợp | Lý do |
+| Scenario | Typically best choice | Why |
 | --- | --- | --- |
-| “Xin chào {tên}, bạn có {số} thông báo” bằng nhiều ngôn ngữ | `ResourceBundle` + `MessageFormat` | Người dịch chủ động đặt vị trí đối số và định dạng |
-| Một dòng kiểm tra `"x=12.30; y=4.50"` | `String.format(Locale.ROOT, ...)` hoặc locale xác định | Ngắn gọn, precision rõ ràng; dùng locale thống nhất cho dữ liệu kỹ thuật |
-| Căn lề nhiều dòng trong report text | `Formatter` gắn với `StringBuilder`/`Writer` | Ghi nối nhiều lần vào cùng destination |
-| Chỉ tạo một nhãn số `1.234,50` | `NumberFormat.getNumberInstance(locale)` | Định dạng số theo locale không cần mẫu thông điệp |
-| Chỉ tạo ngày `14 July 2025` từ `LocalDate` | `DateTimeFormatter` với locale | API hiện đại cho ngày giờ |
-| Dịch thông điệp có 0/1/nhiều hoặc quy tắc plural phức tạp | `MessageFormat` với `choice` đơn giản; thư viện i18n/CLDR khi phức tạp | Chọn đúng ngữ pháp từng ngôn ngữ |
-| In log/diagnostic dùng định dạng ổn định | `String.format(Locale.ROOT, ...)` hoặc format kỹ thuật nhất quán | Tránh phụ thuộc locale mặc định của host |
-| Format ngày trong `MessageFormat` | `Date`/subformat được hỗ trợ, hoặc format riêng bằng `DateTimeFormatter` | Tránh truyền trực tiếp `LocalDate` vào subformat kế thừa khi không được hỗ trợ |
+| "Hello {name}, you have {count} notifications" in multiple languages | `ResourceBundle` + `MessageFormat` | Translators control argument position and formatting |
+| A diagnostic line `"x=12.30; y=4.50"` | `String.format(Locale.ROOT, ...)` or fixed locale | Concise, explicit precision; uniform locale for technical data |
+| Multi-line column alignment in a text report | `Formatter` bound to `StringBuilder`/`Writer` | Appends multiple times to the same destination |
+| Formatting a standalone number label `1.234,50` | `NumberFormat.getNumberInstance(locale)` | Locale number formatting without needing a message pattern |
+| Formatting a standalone date `14 July 2025` from `LocalDate` | `DateTimeFormatter` with locale | Modern date/time API |
+| Translating 0/1/many messages or complex plural rules | `MessageFormat` with simple `choice`; i18n/CLDR library when complex | Chooses accurate per-language grammar |
+| Printing logs/diagnostics with stable formatting | `String.format(Locale.ROOT, ...)` or consistent technical format | Avoids depending on the host's default locale |
+| Formatting dates inside `MessageFormat` | Supported `Date`/subformat, or pre-format with `DateTimeFormatter` | Avoids passing `LocalDate` directly to unsupported legacy subformats |
 
-### Một checklist ngắn cho code review
+### A Quick Code-Review Checklist
 
-1. Mẫu là câu dịch được lấy từ nơi lưu bản dịch, hay chỉ là chuỗi kỹ thuật cần trình bày?
-2. Các tham số trong pattern dùng đúng **0-based** (`MessageFormat`) hoặc **1-based** khi chỉ định tường minh (`Formatter`)?
-3. `Locale` được truyền rõ ràng chưa? Có đang dựa vô tình vào locale mặc định của JVM không?
-4. Có dùng đúng conversion và kiểu đối số? Ngày giờ đã xử lý đúng kiểu dữ liệu và múi giờ chưa?
-5. Pattern từ bản dịch có dấu nháy đơn/ngoặc nhọn hoặc dấu `%` cần escape không?
-6. Có chia sẻ `MessageFormat`/`Formatter` mutable giữa nhiều luồng không?
-7. Thông điệp số lượng có cần pluralization phức tạp hơn `choice`?
-8. Output là văn bản cho người đọc hay dữ liệu trao đổi máy? Có nên dùng locale-dependent format ở đây không?
+1. Is the pattern a translated sentence loaded from translation resources, or just a technical display string?
+2. Do pattern parameters correctly use **0-based** (`MessageFormat`) or explicit **1-based** (`Formatter`) indexing?
+3. Is `Locale` passed explicitly? Is anything accidentally relying on the JVM default locale?
+4. Are the conversions and argument types matched? Are dates/times handled with the right data types and time zones?
+5. Do translated patterns have single quotes/curly braces or `%` signs requiring escaping?
+6. Is any mutable `MessageFormat`/`Formatter` shared across threads?
+7. Do quantity messages require more sophisticated pluralization than `choice`?
+8. Is the output human-readable prose or machine-exchange data? Should a locale-dependent format be used here at all?
 
-## 11. Bài tập thực hành
+## 11. Hands-On Exercises
 
-1. Viết hai pattern `MessageFormat` tiếng Anh và tiếng Việt sử dụng cùng `Object[] {"Lan", 3}` nhưng đổi vị trí đối số. Dùng `Locale` tường minh khi tạo instance.
-2. Thực hiện cùng kết quả `"Lan: 1,234.50"` bằng `MessageFormat`, `String.format` và `Formatter`, rồi đổi `Locale.US` sang `Locale.GERMANY` và so sánh.
-3. Sửa chương trình `QuoteDemo` để hiển thị một câu có dấu nháy đơn và dấu ngoặc nhọn. Giải thích tại sao pattern `MessageFormat` cần quote khác cú pháp `printf`.
-4. Tạo `String.format(Locale.US, "Value=%08d", 42)`. Thử truyền `"42"` thay vì `42` và quan sát ngoại lệ.
-5. Xây dựng mẫu thông điệp theo `ResourceBundle` có tên người và tổng tiền; xác định locale nào dùng để chọn mẫu, locale nào dùng để định dạng số khi xảy ra fallback.
-6. Viết một `Formatter` nối ba dòng vào `StringBuilder`; giải thích khi nào phải đóng destination và khi nào chỉ đóng wrapper.
-7. Lấy một ngày cố định `LocalDate.of(2025, 7, 14)`, format qua `DateTimeFormatter` thành văn bản ngày rồi chèn vào `MessageFormat`. Vì sao thiết kế này tránh được nhầm lẫn giữa `java.time` và subformat `DateFormat` cũ?
+1. Write two `MessageFormat` patterns—English and Vietnamese—using the same `Object[] {"Lan", 3}` while reversing argument order. Pass explicit `Locale` instances at construction.
+2. Produce the same output `"Lan: 1,234.50"` using `MessageFormat`, `String.format`, and `Formatter`, then switch `Locale.US` to `Locale.GERMANY` and compare.
+3. Modify `QuoteDemo` to display a sentence containing both single quotes and curly braces. Explain why `MessageFormat` quoting differs from `printf` syntax.
+4. Call `String.format(Locale.US, "Value=%08d", 42)`. Try passing `"42"` instead of `42` and observe the exception.
+5. Build a `ResourceBundle`-backed message pattern with a person's name and a total amount; identify which locale selects the pattern and which locale formats the number when fallback occurs.
+6. Write a `Formatter` appending three lines to a `StringBuilder`; explain when the destination must be closed versus when only the wrapper is closed.
+7. Take a fixed date `LocalDate.of(2025, 7, 14)`, format it via `DateTimeFormatter` into date text, and insert it into `MessageFormat`. Why does this design avoid confusion between `java.time` and legacy `DateFormat` subformats?
 
-**Ghi nhớ:** `MessageFormat` được thiết kế cho **thông điệp có thể bản địa hóa**, sử dụng placeholder `{0}` bắt đầu từ 0 và các subformat phù hợp locale. `String.format` và `Formatter` sử dụng cú pháp **`printf`**, với tham chiếu tường minh `%1$s` bắt đầu từ 1, mạnh về precision, độ rộng, flags và bố cục. `String.format` tiện cho một lần tạo chuỗi; `Formatter` phù hợp khi ghi nhiều lần vào đích. Chọn API theo bản chất nội dung và luôn kiểm soát locale, kiểu dữ liệu, escape cùng an toàn đa luồng.
+**Takeaway:** `MessageFormat` is designed for **localizable messages**, using 0-based `{0}` placeholders and locale-aware subformats. `String.format` and `Formatter` use **`printf`** syntax, with explicit 1-based `%1$s` references, excelling at precision, width, flags, and layout. `String.format` is convenient for creating one string; `Formatter` fits repeated writes to a destination. Choose the API based on the nature of the content and always control locale, data types, escaping, and thread safety.
 
-### Tài liệu tham khảo
+### References
 
-- [Java SE 17 — MessageFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/MessageFormat.html) — cú pháp `{index}`, subformat, dấu nháy đơn, `choice` và đồng bộ.
-- [Java SE 17 — Formatter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Formatter.html) — cú pháp `printf`, conversion, flags, width, locale, Appendable và an toàn đa luồng.
+- [Java SE 17 — MessageFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/MessageFormat.html) — `{index}` syntax, subformats, single quotes, `choice`, and synchronization.
+- [Java SE 17 — Formatter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Formatter.html) — `printf` syntax, conversions, flags, width, locale, Appendable, and thread safety.
 - [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html) — `String.format(...)`.
-- [Java SE 17 — DateTimeFormatter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html) — định dạng ngày giờ thuộc `java.time`.
+- [Java SE 17 — DateTimeFormatter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html) — `java.time` date and time formatting.

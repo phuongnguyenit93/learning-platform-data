@@ -1,61 +1,61 @@
-# Chuẩn hóa kết thúc dòng trong Java text block
+# Line Ending Normalization in Java Text Blocks
 
-## 1. Vấn đề: source code có CR, LF hoặc CRLF
+## 1. The problem: source code with CR, LF, or CRLF
 
-**Text block** là cú pháp chuỗi nhiều dòng trong Java (chính thức từ Java 15), mở và đóng bằng ba dấu nháy kép `"""`. Nội dung của một file `.java` có thể sử dụng nhiều kiểu kết thúc dòng khác nhau:
+A **text block** is Java's multiline string syntax (standard since Java 15), opened and closed with three double quotes `"""`. The contents of a `.java` file can use different line-ending styles:
 
-| Tên | Ký hiệu | Mã Unicode | Escape trong chuỗi Java |
+| Name | Symbol | Unicode Code | Escape in Java Strings |
 | --- | --- | --- | --- |
 | Line Feed | LF | U+000A | `\n` |
 | Carriage Return | CR | U+000D | `\r` |
 | Carriage Return + Line Feed | CRLF | U+000D U+000A | `\r\n` |
 
-Một số trình soạn thảo lưu code bằng CRLF, nơi khác lưu bằng LF. Khi dùng text block, bạn thường muốn giá trị chuỗi giống nhau dù file nguồn được định dạng trên Windows hay Linux.
+Some editors save code with CRLF, while others save with LF. When using a text block, you usually want the same string value regardless of whether the source file was formatted on Windows or Linux.
 
-**Quy tắc cốt lõi:** Java chuẩn hóa tất cả **dấu kết thúc dòng vật lý nằm trong nội dung text block của mã nguồn** thành **LF (`\n`)** khi biên dịch. Cụ thể:
+**Core rule:** Java normalizes all **physical line terminators inside the source code content of a text block** to **LF (`\n`)** at compile time. Specifically:
 
-- Một CRLF trong source được đổi thành **một** LF.
-- Một CR đơn trong source được đổi thành LF.
-- Một LF trong source được giữ nguyên.
+- A CRLF in source is converted to **one** LF.
+- A lone CR in source is converted to LF.
+- An LF in source is kept as is.
 
-Vì vậy, cùng một text block nếu chỉ thay định dạng dấu kết thúc dòng vật lý trong source sẽ cho cùng một giá trị chuỗi. Việc này **không có nghĩa mọi `String` trong Java tự động được chuẩn hóa**: chuỗi đọc từ file, socket hoặc database vẫn giữ dấu kết thúc dòng vốn có, trừ khi ứng dụng xử lý thêm.
+Therefore, the same text block with only its physical line endings changed in source yields the exact same string value. This **does not mean every `String` in Java is automatically normalized**: strings read from files, sockets, or databases still keep their existing line endings unless the application processes them further.
 
-## 2. Java xử lý text block theo thứ tự nào?
+## 2. In what order does Java process a text block?
 
-Theo *Java Language Specification* (JLS §3.10.6), nội dung text block được chuyển thành chuỗi qua ba giai đoạn, theo đúng thứ tự sau:
+According to the *Java Language Specification* (JLS §3.10.6), text block content is converted into a string in three stages, in this exact order:
 
-1. **Chuẩn hóa line terminators:** CRLF → LF, CR → LF; LF giữ nguyên.
-2. **Loại bỏ khoảng trắng không chủ ý:** bỏ incidental indentation và khoảng trắng cuối dòng theo quy tắc tương đương `String.stripIndent()`.
-3. **Giải mã escape:** xử lý `\n`, `\r`, `\t`, `\s`, `\\` và escape nối dòng bằng dấu `\`, theo quy tắc tương đương `String.translateEscapes()`.
+1. **Normalize line terminators:** CRLF → LF, CR → LF; LF stays unchanged.
+2. **Strip incidental whitespace:** remove incidental indentation and trailing whitespace per line according to rules equivalent to `String.stripIndent()`.
+3. **Interpret escapes:** process `\n`, `\r`, `\t`, `\s`, `\\`, and line-continuation escapes with `\`, according to rules equivalent to `String.translateEscapes()`.
 
 ```text
-Text block trong source file
+Text block in source file
             |
             v
-Chuẩn hóa CRLF và CR thành LF
+Normalize CRLF and CR to LF
             |
             v
-Xử lý incidental whitespace
+Process incidental whitespace
             |
             v
-Giải mã các escape sequence
+Interpret escape sequences
             |
             v
-Giá trị String khi chương trình chạy
+String value at runtime
 ```
 
-Tại sao thứ tự này quan trọng? Một CR xuất hiện **thực sự trong source file** thuộc bước 1 nên bị đổi thành LF. Nhưng khi bạn viết escape `\r` bằng hai ký tự dấu gạch chéo ngược và chữ `r`, ký tự CR chỉ được **tạo ra ở bước 3**. Khi đó bước chuẩn hóa đã kết thúc, nên CR này vẫn tồn tại trong giá trị `String`.
+Why does this order matter? A CR that appears **literally in the source file** belongs to step 1 and is converted to LF. However, when you write the escape `\r` using two characters—backslash and the letter `r`—the CR character is only **produced in step 3**. By then normalization has already finished, so this CR remains in the `String` value.
 
-Hai khái niệm cần phân biệt rõ:
+Two concepts to distinguish clearly:
 
-- **Physical line terminator:** ký tự xuống dòng thực tế giữa các dòng văn bản trong file mã nguồn.
-- **Escape sequence:** cách viết `\n` hoặc `\r` dưới dạng mã Java; trình biên dịch chỉ diễn giải chúng thành ký tự điều khiển ở giai đoạn giải mã escape.
+- **Physical line terminator:** the actual newline characters between lines of text in the source code file.
+- **Escape sequence:** writing `\n` or `\r` in Java syntax; the compiler only interprets them into control characters during the escape-interpretation stage.
 
-Không nên coi `\r\n` được viết bằng escape là dấu CRLF vật lý của source.
+Do not treat `\r\n` written via escapes as a physical CRLF in the source file.
 
-## 3. Giá trị text block với ba kiểu xuống dòng nguồn
+## 3. Text block values across three source line-ending styles
 
-Ví dụ Java:
+Java example:
 
 ```java
 String colors = """
@@ -65,41 +65,41 @@ String colors = """
     """;
 ```
 
-Dù file chứa ví dụ trên được lưu bằng LF, CRLF hay CR cho các dòng nằm trong text block, giá trị cuối cùng vẫn tương đương với:
+Whether the file containing this example is saved with LF, CRLF, or CR for the lines inside the text block, the final value is still equivalent to:
 
 ```java
 String colors = "red\n" + "green\n" + "blue\n";
 ```
 
-Chuỗi `colors` có **15 ký tự**, gồm ba LF và không có CR.
+The `colors` string has **15 characters**, consisting of three LFs and zero CRs.
 
-Có thể hình dung cùng một source theo ba biểu diễn dưới đây. Ký hiệu `␍` chỉ CR và `␊` chỉ LF; đây là ký hiệu minh họa, không phải nội dung phải gõ vào chương trình:
+You can visualize the same source under the three representations below. The symbols `␍` denote CR and `␊` denote LF; these are illustrative notations, not characters to type into the program:
 
 ```text
-Source lưu bằng LF:
+Source saved with LF:
 """␊
     red␊
     blue␊
     """
 
-Source lưu bằng CRLF:
+Source saved with CRLF:
 """␍␊
     red␍␊
     blue␍␊
     """
 
-Source có lẫn CR và LF:
+Source mixing CR and LF:
 """␍
     red␍
     blue␊
     """
 ```
 
-Ba biến thể đều biểu diễn `"red\nblue\n"` sau khi chuẩn hóa và xử lý thụt lề. CRLF không tạo hai ký tự LF vì cả cặp được xem là một dấu kết thúc dòng.
+All three variants represent `"red\nblue\n"` after normalization and indentation processing. CRLF does not create two LF characters because the pair is treated as a single line terminator.
 
-### Dấu xuống dòng đầu và cuối
+### Leading and trailing newlines
 
-Cú pháp mở text block yêu cầu có dấu kết thúc dòng ngay sau `"""`. Dấu xuống dòng bắt buộc sau dấu mở **không phải ký tự đầu tiên của chuỗi**. Nhưng dấu xuống dòng trước dấu đóng được giữ nếu dấu đóng đặt trên một dòng riêng:
+Text block opening syntax requires a line terminator immediately after `"""`. The mandatory newline after the opening delimiter **is not the first character of the string**. However, the newline before the closing delimiter is kept if the closing delimiter is placed on its own line:
 
 ```java
 String hasFinal = """
@@ -115,11 +115,11 @@ String noFinal = """
 // noFinal.equals("red\ngreen") == true
 ```
 
-Nếu cần chuỗi không kết thúc bằng LF, cách đặt dấu đóng như `noFinal` là một lựa chọn rõ ràng. Không nên nhầm thay đổi này với thay đổi kiểu CRLF/LF trong file nguồn.
+If you need a string that does not end with LF, placing the closing delimiter as in `noFinal` is a clear choice. Do not confuse this change with changing the CRLF/LF style of the source file.
 
-## 4. Escape tạo ra CR hoặc CRLF sau bước chuẩn hóa
+## 4. Escapes produce CR or CRLF after the normalization step
 
-Text block vẫn hỗ trợ escape của Java string. Vì chúng được diễn giải ở giai đoạn cuối, bạn có thể chủ động tạo CR hoặc CRLF:
+Text blocks still support Java string escapes. Because they are interpreted in the final stage, you can explicitly produce CR or CRLF:
 
 ```java
 String withCr = """
@@ -135,17 +135,17 @@ String withLf = """
     """;
 ```
 
-Với dấu đóng trên dòng riêng, giá trị tương ứng là:
+With the closing delimiter on its own line, the corresponding values are:
 
-| Biến | Giá trị runtime, viết ở dạng Java literal | Giải thích |
+| Variable | Runtime value, written as a Java literal | Explanation |
 | --- | --- | --- |
-| `withCr` | `"A\rB\n"` | `\r` tạo CR; LF cuối đến từ dòng vật lý |
-| `withCrLf` | `"A\r\nB\n"` | Hai escape tạo một CR và một LF; thêm LF cuối |
-| `withLf` | `"A\nB\n"` | `\n` tạo LF; thêm LF cuối |
+| `withCr` | `"A\rB\n"` | `\r` produces CR; the trailing LF comes from the physical line |
+| `withCrLf` | `"A\r\nB\n"` | Two escapes produce one CR and one LF; plus trailing LF |
+| `withLf` | `"A\nB\n"` | `\n` produces LF; plus trailing LF |
 
-Ở đây, `withCrLf` chứa CRLF thực sự dù source code có thể được lưu bằng LF. Quy tắc chuẩn hóa dấu xuống dòng vật lý **không xóa CR do escape tạo ra**.
+Here, `withCrLf` contains a real CRLF even though the source code may be saved with LF. Physical line-ending normalization **does not remove a CR created by an escape**.
 
-Một cú pháp khác dễ gây nhầm là dấu `\` ở cuối dòng vật lý, thường gọi là *line continuation escape*:
+Another syntax easily confused here is `\` at the end of a physical line, commonly called a *line continuation escape*:
 
 ```java
 String joined = """
@@ -156,11 +156,11 @@ String joined = """
 // joined.equals("helloworld\n") == true
 ```
 
-Dấu `\` ngay trước xuống dòng vật lý khiến newline đó **không xuất hiện** trong giá trị `String`. Ngược lại, `\n` được viết trên cùng dòng là escape **tạo** một LF. Quy tắc về khoảng trắng của text block vẫn có thể ảnh hưởng các dấu cách đặt cạnh dấu nối dòng.
+A `\` immediately before a physical newline causes that newline **not to appear** in the `String` value. By contrast, `\n` written on the same line is an escape that **creates** an LF. Text block whitespace rules can still affect spaces placed next to a line continuation.
 
-## 5. Chương trình Java 17+ độc lập, kiểm tra được
+## 5. Self-contained, verifiable Java 17+ program
 
-Lưu đoạn sau vào tệp **`TextBlockLineEndingsDemo.java`**:
+Save the following snippet in **`TextBlockLineEndingsDemo.java`**:
 
 ```java
 public class TextBlockLineEndingsDemo {
@@ -211,14 +211,14 @@ public class TextBlockLineEndingsDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 TextBlockLineEndingsDemo.java
 java TextBlockLineEndingsDemo
 ```
 
-Đầu ra chính xác:
+Exact output:
 
 ```text
 basic = alpha\nbeta\n
@@ -230,22 +230,22 @@ basic has CR = false
 basic equals literal = true
 ```
 
-Trong output trên, `\r` và `\n` là **các ký tự hiển thị** do hàm `visible` thay thế; chúng giúp quan sát sự khác biệt vốn khó nhìn trong terminal. Hàm `visible` không sửa giá trị chuỗi gốc.
+In the output above, `\r` and `\n` are **visible characters** substituted by `visible`; they let you observe differences that are otherwise hard to see in a terminal. The `visible` method does not mutate the original string value.
 
-Để kiểm tra tính ổn định khi đổi nền tảng, hãy chạy chương trình, sau đó dùng editor thay kiểu kết thúc dòng của file nguồn từ LF thành CRLF (hoặc ngược lại), biên dịch và chạy lại. Nếu chỉ thay dấu xuống dòng vật lý của file, output sẽ không đổi.
+To test cross-platform stability, run the program, then use an editor to switch the source file's line endings from LF to CRLF (or vice versa), recompile, and run it again. If only the file's physical line endings change, the output will not change.
 
-### Vì sao không chỉ dùng println để quan sát?
+### Why not use only println to inspect?
 
-Nếu in trực tiếp `basic` hoặc `escapedCrLf`, terminal thường thể hiện LF và CRLF gần giống nhau. Khi cần kết luận về **ký tự thực tế**, dùng một trong những cách sau:
+If you print `basic` or `escapedCrLf` directly, terminals often display LF and CRLF almost identically. When you need to verify the **actual characters**, use one of the following approaches:
 
-- `equals("alpha\nbeta\n")` để so sánh chính xác.
-- `indexOf('\r')` hoặc `indexOf('\n')` để tìm ký tự.
-- `length()`, `charAt()` hoặc duyệt code point nếu cần kiểm tra cấu trúc.
-- Biến dấu điều khiển thành ký hiệu hiển thị như hàm `visible` ở trên.
+- `equals("alpha\nbeta\n")` for an exact comparison.
+- `indexOf('\r')` or `indexOf('\n')` to search for characters.
+- `length()`, `charAt()`, or iterating over code points when inspecting structure.
+- Converting control characters into visible markers like the `visible` method above.
 
-## 6. Khi nào nên chủ động đổi LF sang CRLF?
+## 6. When should you explicitly convert LF to CRLF?
 
-Text block tạo LF nhất quán. Phần mềm có thể cần chuyển đổi thành dạng khác **vì yêu cầu đầu ra**, chẳng hạn một giao thức hoặc định dạng file quy định CRLF. Đó là thao tác runtime riêng biệt:
+Text blocks produce consistent LFs. Software may need to convert them to another form **for output requirements**, such as a protocol or file format specifying CRLF. That is a separate runtime operation:
 
 ```java
 String content = """
@@ -257,33 +257,33 @@ String crlf = content.replace("\n", "\r\n");
 System.out.println(crlf.equals("first\r\nsecond\r\n")); // true
 ```
 
-Đoạn trên phù hợp khi **đầu vào chỉ chứa LF**. Nếu chuỗi ban đầu đã có CRLF do escape hoặc do ghép với dữ liệu khác, thay mọi LF như vậy sẽ biến `\r\n` thành `\r\r\n`. Đừng áp dụng chuyển đổi mù quáng cho chuỗi chưa biết trạng thái.
+The snippet above works when **the input contains only LF**. If the original string already has CRLF from escapes or concatenation with other data, replacing every LF like that turns `\r\n` into `\r\r\n`. Do not apply this conversion blindly to strings of unknown state.
 
-Nếu đích yêu cầu dấu xuống dòng theo **hệ điều hành đang chạy** thay vì một dạng cố định:
+If the destination requires line endings matching the **current operating system** rather than a fixed form:
 
 ```java
 String nativeText = content.replace("\n", System.lineSeparator());
 ```
 
-`System.lineSeparator()` trên Windows thông thường là CRLF; trên nhiều hệ Unix là LF. Đây là lựa chọn theo runtime và không làm thay đổi quy tắc chuẩn hóa của text block. Nếu đặc tả giao thức yêu cầu CRLF bất kể máy chạy, dùng `"\r\n"` rõ ràng hơn `System.lineSeparator()`.
+`System.lineSeparator()` on Windows is typically CRLF; on many Unix systems it is LF. This is a runtime choice and does not alter text block normalization rules. If a protocol specification mandates CRLF regardless of the host machine, `"\r\n"` is clearer than `System.lineSeparator()`.
 
-Khi ghi file, `Files.writeString(path, content, StandardCharsets.UTF_8)` ghi ra đúng các dấu kết thúc dòng **đã tồn tại trong `content`**. API ghi file không tự động đổi LF do text block sinh ra thành CRLF theo hệ điều hành.
+When writing files, `Files.writeString(path, content, StandardCharsets.UTF_8)` writes out the exact line terminators **already present in `content`**. The file-writing API does not automatically convert LFs produced by a text block into OS-specific CRLFs.
 
-## 7. Khác nhau giữa chuẩn hóa lúc biên dịch và lúc chạy
+## 7. Compile-time normalization vs. runtime normalization
 
-Đối tượng `String` có thể được tạo từ nhiều nguồn. Chỉ text block literal trong mã Java mới được compiler xử lý theo ba bước đã nêu.
+`String` objects can come from many sources. Only text block literals in Java source code are processed by the compiler according to the three steps above.
 
-| Nguồn/cơ chế | Thời điểm | Quy tắc với CR/LF |
+| Source / mechanism | Timing | Rule for CR/LF |
 | --- | --- | --- |
-| Text block literal `"""..."""` | Biên dịch | Chuẩn hóa dấu kết thúc dòng **vật lý** thành LF |
-| String literal thường `"a\r\nb"` | Biên dịch | Escape tạo CR và LF; không đi qua bước chuẩn hóa nội dung text block |
-| `String.stripIndent()` | Runtime | Bỏ incidental indentation; không phải lệnh tự động chuyển mọi CRLF thành LF trong mọi đầu vào |
-| `String.translateEscapes()` | Runtime | Giải mã escape; có thể tạo CR và LF |
-| `String.lines()` | Runtime | Tách dòng theo CR, LF, CRLF; stream kết quả không giữ dấu kết thúc dòng |
-| `System.lineSeparator()` | Runtime | Cung cấp dấu xuống dòng của nền tảng, không sửa text block |
-| `String.replace(...)` | Runtime | Thay ký tự/chùm ký tự theo quy tắc được lập trình |
+| Text block literal `"""..."""` | Compile time | Normalizes **physical** line terminators to LF |
+| Regular string literal `"a\r\nb"` | Compile time | Escapes produce CR and LF; does not go through text block content normalization |
+| `String.stripIndent()` | Runtime | Strips incidental indentation; not a command that automatically converts all CRLFs to LF in arbitrary input |
+| `String.translateEscapes()` | Runtime | Interprets escapes; can produce CR and LF |
+| `String.lines()` | Runtime | Splits lines on CR, LF, CRLF; the resulting stream does not retain line terminators |
+| `System.lineSeparator()` | Runtime | Provides the platform's line separator, does not modify text blocks |
+| `String.replace(...)` | Runtime | Replaces characters/substrings according to programmed rules |
 
-Ví dụ dữ liệu đến từ bên ngoài có thể chứa CRLF/CR dù text block của bạn toàn LF:
+For example, external data can contain CRLF/CR even if your text blocks contain only LF:
 
 ```java
 String received = "a\r\nb\rc\n";
@@ -292,22 +292,22 @@ String lfOnly = received.replace("\r\n", "\n").replace("\r", "\n");
 System.out.println(lfOnly.equals("a\nb\nc\n")); // true
 ```
 
-Tại đây ứng dụng đang thực hiện **chuẩn hóa runtime**, độc lập với cơ chế của text block. Thứ tự thay `"\r\n"` trước rồi thay `"\r"` giúp xử lý cả CRLF lẫn CR đơn.
+Here the application performs **runtime normalization**, independent of the text block mechanism. Replacing `"\r\n"` first and then `"\r"` handles both CRLF and lone CR.
 
-## 8. Lỗi thường gặp
+## 8. Common mistakes
 
-1. **Cho rằng file Java lưu bằng CRLF sẽ tạo text block chứa CRLF.** Thực tế CRLF vật lý được chuyển thành LF trong bước đầu.
-2. **Cho rằng text block không thể chứa CR.** Escape `\r` có thể tạo CR sau bước chuẩn hóa.
-3. **Nhầm newline bắt buộc sau dấu mở với newline cuối chuỗi.** Newline sau dấu mở `"""` là cú pháp; newline cuối phụ thuộc dấu đóng đứng cùng dòng nội dung cuối hay dòng riêng.
-4. **Nhầm `\n` với dấu `\` nối dòng.** `\n` thêm LF; dấu `\` ngay trước physical newline bỏ newline đó.
-5. **Không tính đến incidental indentation.** Sau chuẩn hóa line terminator, Java còn xóa khoảng trắng đầu và cuối dòng theo quy tắc text block; kết quả không chỉ phụ thuộc newline.
-6. **Dùng println để chứng minh giá trị newline.** Console có thể làm CRLF và LF nhìn giống nhau; hãy kiểm tra bằng `equals` hoặc mã hóa ký tự thành ký hiệu dễ đọc.
-7. **Đổi LF thành CRLF khi chuỗi đã có CRLF.** Thay thế không kiểm soát có thể sinh `\r\r\n`.
-8. **Phụ thuộc hệ điều hành mà không có yêu cầu rõ.** LF của text block được thiết kế để ổn định xuyên nền tảng; đầu ra có quy tắc riêng mới cần chuyển đổi.
+1. **Assuming a Java file saved with CRLF creates a text block containing CRLF.** In reality, physical CRLFs are converted to LF in the first step.
+2. **Assuming a text block cannot contain CR.** The `\r` escape can produce CR after the normalization step.
+3. **Confusing the mandatory newline after the opening delimiter with a trailing newline.** The newline after the opening `"""` is syntax; the trailing newline depends on whether the closing delimiter is on the same line as the last content or on its own line.
+4. **Confusing `\n` with the line-continuation `\` escape.** `\n` adds an LF; `\` immediately before a physical newline removes that newline.
+5. **Forgetting incidental indentation.** After normalizing line terminators, Java also strips leading and trailing whitespace according to text block rules; the result does not depend solely on newlines.
+6. **Using `println` to prove newline values.** The console can make CRLF and LF look identical; verify using `equals` or by encoding characters into readable symbols.
+7. **Converting LF to CRLF when the string already contains CRLF.** Unchecked replacement can produce `\r\r\n`.
+8. **Depending on the OS without a clear requirement.** Text block LFs are designed to be consistent across platforms; only convert when the output format specifically requires it.
 
-## 9. Tự kiểm tra
+## 9. Self-check
 
-**Câu 1:** File Java có text block sau và được lưu bằng CRLF. Giá trị `s` là gì?
+**Question 1:** A Java file has the following text block and is saved with CRLF. What is the value of `s`?
 
 ```java
 String s = """
@@ -316,9 +316,9 @@ String s = """
     """;
 ```
 
-**Đáp án:** `"A\nB\n"`; dấu kết thúc dòng vật lý CRLF được chuẩn hóa thành LF. Giá trị không có CR.
+**Answer:** `"A\nB\n"`; physical CRLF line terminators are normalized to LF. The value contains no CR.
 
-**Câu 2:** Text block sau chứa bao nhiêu CR và LF?
+**Question 2:** How many CRs and LFs does the following text block contain?
 
 ```java
 String s = """
@@ -326,19 +326,19 @@ String s = """
     """;
 ```
 
-**Đáp án:** **Một CR và hai LF**. Cặp escape `\r\n` tạo CRLF, còn newline vật lý cuối text block tạo thêm LF. `s.equals("A\r\nB\n")` là `true`.
+**Answer:** **One CR and two LFs**. The `\r\n` escape pair creates CRLF, and the physical newline at the end of the text block creates an additional LF. `s.equals("A\r\nB\n")` is `true`.
 
-**Câu 3:** Vì sao không dùng `System.lineSeparator()` một cách vô điều kiện để ghi giao thức yêu cầu CRLF?
+**Question 3:** Why should you not unconditionally use `System.lineSeparator()` when writing a protocol that requires CRLF?
 
-**Đáp án:** Vì ký hiệu từ `System.lineSeparator()` phụ thuộc môi trường chạy. Giao thức yêu cầu CRLF cố định thì phải tạo chính xác `"\r\n"` bất kể hệ điều hành.
+**Answer:** Because the value returned by `System.lineSeparator()` depends on the runtime environment. A protocol requiring fixed CRLF must explicitly generate `"\r\n"` regardless of the operating system.
 
-**Câu 4:** Tại sao đổi source code từ CRLF sang LF không làm thay đổi `String` text block, nhưng đổi `"\r\n"` thành `"\n"` trong một escape lại có thể làm thay đổi?
+**Question 4:** Why does changing source code from CRLF to LF not change a text block `String`, whereas changing `"\r\n"` to `"\n"` in an escape can change it?
 
-**Đáp án:** Trường hợp đầu là thay đổi dấu xuống dòng **vật lý** được chuẩn hóa khi biên dịch. Trường hợp sau là thay đổi **escape sequence** được dịch ở giai đoạn cuối, nên làm đổi các ký tự thực của chuỗi.
+**Answer:** The first case changes **physical** line endings that are normalized at compile time. The second case changes an **escape sequence** interpreted in the final stage, which alters the actual characters in the string.
 
-## Tài liệu tham khảo
+## References
 
-- [Java Language Specification, Java SE 21 — §3.10.6 Text Blocks](https://docs.oracle.com/javase/specs/jls/se21/html/jls-3.html#jls-3.10.6): thứ tự chuẩn hóa line terminators, xử lý incidental whitespace và dịch escape.
-- [Oracle Programmer's Guide to Text Blocks, Java SE 21](https://docs.oracle.com/en/java/javase/21/text-blocks/index.html): hướng dẫn thực tế, ví dụ CR/LF/CRLF, newline cuối và thay đổi dấu xuống dòng theo nền tảng.
+- [Java Language Specification, Java SE 21 — §3.10.6 Text Blocks](https://docs.oracle.com/javase/specs/jls/se21/html/jls-3.html#jls-3.10.6): order of line terminator normalization, incidental whitespace processing, and escape translation.
+- [Oracle Programmer's Guide to Text Blocks, Java SE 21](https://docs.oracle.com/en/java/javase/21/text-blocks/index.html): practical guide, CR/LF/CRLF examples, trailing newlines, and platform-dependent line-ending conversion.
 
-Các ví dụ áp dụng cho Java 17 trở lên; text block là tính năng ngôn ngữ chính thức từ Java 15.
+The examples apply to Java 17 and later; text blocks became a standard language feature in Java 15.

@@ -1,18 +1,18 @@
-# Enhanced `for` để duyệt mảng hoặc `Iterable` trong Java
+# Enhanced `for` to Iterate Over Arrays or `Iterable` in Java
 
-> **Java core — language-basics / Duyệt và chuyển luồng**  
-> **Phiên bản:** JDK 17+, một file Java độc lập, chỉ dùng thư viện chuẩn.  
-> **Mục tiêu:** Dùng đúng vòng lặp *enhanced for* (`for-each`) với mảng và `Iterable`; hiểu cách lấy từng phần tử, thứ tự duyệt, tác dụng của biến vòng lặp, những giới hạn khi cần chỉ số hoặc xóa phần tử.
+> **Java core — language-basics / Iteration and Control Flow**  
+> **Version:** JDK 17+, single standalone Java file, standard library only.  
+> **Goal:** Properly use the *enhanced for* (`for-each`) loop with arrays and `Iterable`; understand how each element is retrieved, iteration order, the effect of the loop variable, and limitations when needing indices or removing elements.
 
-## 1. Cú pháp và ý nghĩa
+## 1. Syntax and Meaning
 
 ~~~java
 for (ElementType element : source) {
-    // Xử lý element.
+    // Process element.
 }
 ~~~
 
-`source` phải là **mảng** hoặc biểu thức có kiểu triển khai `java.lang.Iterable`. Trong mỗi lượt, Java lấy một phần tử và gán vào biến cục bộ `element`. Vòng lặp dừng sau khi duyệt hết, hoặc bị ngắt sớm bằng `break`, `return` hay ngoại lệ.
+`source` must be an **array** or an expression whose type implements `java.lang.Iterable`. On each iteration, Java retrieves one element and assigns it to the local variable `element`. The loop stops after iterating through all elements, or is terminated early by `break`, `return`, or an exception.
 
 ~~~java
 int[] scores = {3, 5, 8};
@@ -24,13 +24,13 @@ for (int score : scores) {
 System.out.println(sum); // 16
 ~~~
 
-`for-each` phù hợp khi chỉ cần **giá trị từng phần tử**, không cần tự quản lý chỉ số. Nó không phải cơ chế tự động chạy song song và cũng không trả về một tập kết quả mới; các thao tác trong thân vẫn được thực hiện tuần tự.
+`for-each` is suitable when you only need **each element's value**, without manually managing an index. It is not an automatic parallel execution mechanism and does not return a new result collection; operations inside the body are still executed sequentially.
 
-Trong Java 17 cũng có thể viết `for (var item : source)` nếu trình biên dịch suy ra được kiểu phần tử. Với bài nhập môn, viết kiểu rõ như `int` hoặc `String` thường dễ đọc hơn.
+In Java 17, you can also write `for (var item : source)` if the compiler can infer the element type. For introductory exercises, writing explicit types like `int` or `String` is usually easier to read.
 
-## 2. Duyệt mảng: từ đầu đến cuối
+## 2. Iterating Over Arrays: From Start to End
 
-`for-each` hỗ trợ mảng kiểu nguyên thủy như `int[]`, `double[]` và mảng tham chiếu như `String[]`:
+`for-each` supports primitive arrays such as `int[]`, `double[]` and reference arrays such as `String[]`:
 
 ~~~java
 String[] names = {"An", "Binh", "Chi"};
@@ -38,10 +38,10 @@ String[] names = {"An", "Binh", "Chi"};
 for (String name : names) {
     System.out.println(name);
 }
-// In An, Binh, Chi theo thứ tự chỉ số 0, 1, 2.
+// Prints An, Binh, Chi in index order 0, 1, 2.
 ~~~
 
-Về hành vi duyệt phần tử, Java xử lý mảng gần tương đương:
+In terms of element-traversal behavior, Java handles arrays roughly equivalently to:
 
 ~~~java
 for (int index = 0; index < names.length; index++) {
@@ -50,19 +50,19 @@ for (int index = 0; index < names.length; index++) {
 }
 ~~~
 
-**Khác biệt:** Với `for-each`, chỉ số không có sẵn dưới tên biến riêng. Nếu cần sửa phần tử tại vị trí cụ thể, duyệt ngược, bỏ qua vị trí chẵn/lẻ hoặc biết chính xác index, dùng vòng `for` theo chỉ số.
+**Difference:** With `for-each`, the index is not available under its own variable name. If you need to modify an element at a specific position, iterate in reverse, skip even/odd positions, or know the exact index, use an indexed `for` loop.
 
-| Nhu cầu | Cách thường phù hợp |
+| Need | Usually suitable approach |
 | --- | --- |
-| Đọc mọi phần tử theo thứ tự | `for (T x : array)` |
-| Cập nhật phần tử mảng tại từng chỉ số | `for (int i = 0; i < array.length; i++)` |
-| Duyệt từ cuối về đầu | `for` theo chỉ số giảm dần |
-| Tính tổng, đếm phần tử, tìm max | `for-each` và biến tích lũy |
-| Dừng sớm khi gặp giá trị | `break` hoặc `return` |
+| Read every element in order | `for (T x : array)` |
+| Update array elements at each index | `for (int i = 0; i < array.length; i++)` |
+| Iterate from end to start | `for` with descending index |
+| Compute sum, count elements, find max | `for-each` and an accumulator variable |
+| Stop early when a value is encountered | `break` or `return` |
 
-## 3. Duyệt `Iterable`: Java sử dụng `Iterator`
+## 3. Iterating Over `Iterable`: Java Uses `Iterator`
 
-`Iterable<T>` là giao diện định nghĩa phương thức `iterator()`. Nhiều collection như `List` và `Set` triển khai `Iterable`:
+`Iterable<T>` is an interface that defines the `iterator()` method. Many collections such as `List` and `Set` implement `Iterable`:
 
 ~~~java
 java.util.List<String> colors =
@@ -71,10 +71,10 @@ java.util.List<String> colors =
 for (String color : colors) {
     System.out.println(color.toUpperCase(java.util.Locale.ROOT));
 }
-// In RED, GREEN, BLUE.
+// Prints RED, GREEN, BLUE.
 ~~~
 
-Về ý tưởng, Java thực hiện tương đương với việc lấy một `Iterator` rồi lặp:
+Conceptually, Java performs the equivalent of obtaining an `Iterator` and looping:
 
 ~~~java
 java.util.Iterator<String> it = colors.iterator();
@@ -85,15 +85,15 @@ while (it.hasNext()) {
 }
 ~~~
 
-`Iterable` **không đồng nghĩa** `Iterator`: cái đầu cung cấp `iterator()`, cái sau cung cấp `hasNext()` và `next()` để đi qua dữ liệu. Một `Iterator` đơn lẻ không thể tự đặt sau dấu `:` trong enhanced for nếu không có nguồn `Iterable` thích hợp.
+`Iterable` **is not synonymous with** `Iterator`: the former provides `iterator()`, while the latter provides `hasNext()` and `next()` to traverse data. A standalone `Iterator` cannot be placed directly after the `:` in an enhanced for without a suitable `Iterable` source.
 
-**Thứ tự:** Mảng luôn duyệt theo chỉ số tăng. `List` duyệt theo thứ tự phần tử của list. Với các collection khác, thứ tự phụ thuộc vào contract của iterator; **không nên giả định `HashSet` luôn có thứ tự cố định**. Nếu expected stdout cần xác định, chọn mảng, list hoặc nguồn iterable có thứ tự đã định.
+**Order:** Arrays always iterate in increasing index order. `List` iterates in the list's element order. For other collections, the order depends on the iterator's contract; **do not assume `HashSet` always has a fixed order**. If expected stdout needs to be deterministic, choose an array, a list, or an iterable source with a defined order.
 
-`String` không trực tiếp triển khai `Iterable<Character>`; muốn duyệt ký tự của chuỗi, có thể dùng chỉ số với `charAt` hoặc duyệt mảng từ `toCharArray()`. `Map` không trực tiếp là `Iterable`; để duyệt các cặp key/value, dùng `map.entrySet()`.
+`String` does not directly implement `Iterable<Character>`; to iterate over characters of a string, you can use indices with `charAt` or iterate over the array from `toCharArray()`. `Map` is not directly an `Iterable`; to iterate over key/value pairs, use `map.entrySet()`.
 
-## 4. Viết `Iterable` đơn giản của riêng mình
+## 4. Writing Your Own Simple `Iterable`
 
-Không nhất thiết phải dùng collection có sẵn. Lớp tự định nghĩa có thể triển khai `Iterable<Integer>` và cung cấp một `Iterator<Integer>`:
+You do not necessarily have to use a built-in collection. A custom class can implement `Iterable<Integer>` and provide an `Iterator<Integer>`:
 
 ~~~java
 static final class Range implements Iterable<Integer> {
@@ -126,35 +126,35 @@ static final class Range implements Iterable<Integer> {
 }
 ~~~
 
-Dùng như mảng hoặc list:
+Use it like an array or list:
 
 ~~~java
 int total = 0;
 for (int value : new Range(2, 5)) {
     total += value;
 }
-// Duyệt 2, 3, 4; total == 9.
+// Iterates 2, 3, 4; total == 9.
 ~~~
 
-Đây là minh họa đơn giản với khoảng tăng và `from <= toExclusive`. Mỗi lần gọi `iterator()` tạo một iterator riêng. Đối với dữ liệu thực, iterator cần duy trì đầy đủ quy tắc `hasNext()/next()`, xác định cách báo hết dữ liệu và cân nhắc thay đổi dữ liệu trong lúc duyệt.
+This is a simple illustration for an ascending range with `from <= toExclusive`. Each call to `iterator()` creates a separate iterator. For real-world data, an iterator needs to maintain the full `hasNext()/next()` contract, define how exhaustion is signaled, and account for data changes during iteration.
 
-## 5. Giá trị biến vòng lặp không phải ô chứa phần tử gốc
+## 5. The Loop Variable's Value Is Not the Original Element Slot
 
-Trong enhanced `for`, mỗi lượt biến cục bộ nhận **bản sao giá trị phần tử**. Với `int[]`, gán lại biến không ghi ngược vào mảng:
+In enhanced `for`, on each iteration the local variable receives **a copy of the element's value**. With `int[]`, reassigning the variable does not write back into the array:
 
 ~~~java
 int[] numbers = {2, 4};
 for (int number : numbers) {
     number *= 10;
 }
-// numbers vẫn là [2, 4]; muốn cập nhật, dùng numbers[i] *= 10.
+// numbers is still [2, 4]; to update, use numbers[i] *= 10.
 ~~~
 
-Với phần tử kiểu tham chiếu, bản sao tham chiếu vẫn trỏ đến **cùng đối tượng**: `StringBuilder.append` có thể sửa trạng thái đối tượng, nhưng `builder = new StringBuilder("X")` chỉ đổi biến cục bộ. Vì vậy hãy phân biệt *thay đổi đối tượng đang có* với *thay thế phần tử nguồn*. Phần chương trình ở mục 8 cho phép quan sát cả hai trường hợp; các bài tiếp theo đào sâu quy tắc sao chép giá trị và thao tác cập nhật.
+With reference-type elements, the copied reference still points to **the same object**: `StringBuilder.append` can mutate the object's state, but `builder = new StringBuilder("X")` only changes the local variable. Therefore, distinguish between *mutating an existing object* and *replacing the source element*. The program in section 8 lets you observe both cases; subsequent lessons delve deeper into value-copying rules and update operations.
 
-## 6. `break`, `continue` và thay đổi collection khi duyệt
+## 6. `break`, `continue`, and Modifying Collections While Iterating
 
-`continue` bỏ qua phần còn lại của lượt hiện tại và lấy phần tử tiếp theo; `break` thoát toàn bộ vòng enhanced for hiện tại:
+`continue` skips the rest of the current iteration and takes the next element; `break` exits the entire current enhanced for loop:
 
 ~~~java
 int[] values = {1, -2, 0, 5, 7};
@@ -162,30 +162,30 @@ int counted = 0;
 
 for (int value : values) {
     if (value < 0) {
-        continue; // Bỏ số âm.
+        continue; // Skip negative numbers.
     }
     if (value == 5) {
-        break; // Không xét 5 và 7.
+        break; // Do not check 5 and 7.
     }
-    counted++; // Chỉ tính 1 và 0.
+    counted++; // Only counts 1 and 0.
 }
 // counted == 2.
 ~~~
 
-**Không nên thêm/xóa phần tử trực tiếp khỏi một `ArrayList` bên trong `for-each`**:
+**Do not add/remove elements directly from an `ArrayList` inside `for-each`**:
 
 ~~~java
-// Không nên làm:
+// Avoid doing this:
 // for (String item : list) {
 //     if (item.equals("B")) {
-//         list.remove(item); // Có thể gây ConcurrentModificationException.
+//         list.remove(item); // May cause ConcurrentModificationException.
 //     }
 // }
 ~~~
 
-Nhiều iterator của collection thông dụng có cơ chế *fail-fast*, có thể ném `ConcurrentModificationException` khi collection bị thay đổi cấu trúc ngoài iterator. Cơ chế này **không phải bảo đảm đồng bộ hoặc cơ chế phát hiện lỗi tuyệt đối**.
+Many common collection iterators have a *fail-fast* mechanism that may throw `ConcurrentModificationException` when the collection is structurally modified outside the iterator. This mechanism **is not a synchronization guarantee or an absolute error-detection mechanism**.
 
-Khi cần xóa phần tử trong lúc duyệt một `ArrayList` có thể thay đổi, dùng `Iterator.remove()` sau `next()` nếu iterator hỗ trợ:
+When you need to remove elements while iterating over a mutable `ArrayList`, use `Iterator.remove()` after `next()` if the iterator supports it:
 
 ~~~java
 java.util.List<String> list = new java.util.ArrayList<>(
@@ -200,27 +200,27 @@ while (it.hasNext()) {
 // list = [A, C].
 ~~~
 
-Nếu chỉ cần lọc và không phải xử lý thêm trong cùng lượt, `list.removeIf(predicate)` cũng là lựa chọn rõ ràng. Với collection bất biến như `List.of(...)`, không thể xóa/thay phần tử; tạo một danh sách mới nếu cần kết quả biến đổi.
+If you only need to filter and do not need further processing in the same iteration, `list.removeIf(predicate)` is also a clear option. With immutable collections like `List.of(...)`, you cannot remove/replace elements; create a new list if you need a transformed result.
 
-## 7. `null`, nguồn rỗng và bẫy khi chọn cách duyệt
+## 7. `null`, Empty Sources, and Pitfalls When Choosing an Iteration Style
 
-- Mảng rỗng `new int[0]` hoặc `List.of()`: thân không chạy lần nào; các biến tích lũy giữ giá trị ban đầu.
-- **Nguồn là null**: enhanced for cần truy cập mảng hoặc gọi `iterator()`, nên gây `NullPointerException`. Guard trước vòng khi dữ liệu có thể null.
-- **Phần tử null** trong mảng/list vẫn có thể được duyệt: vòng lặp không tự bỏ qua. Khi gọi phương thức trên phần tử đó, kiểm tra null.
-- `Iterable` có thể trả iterator chạy trên dữ liệu đắt đỏ hoặc biến động; không giả định mọi nguồn duyệt đều rẻ hay lặp lại được như một list.
-- Nếu cần biết index, có thể duy trì bộ đếm thủ công cho Iterable, nhưng với mảng/list truy cập chỉ số thì `for` có chỉ số thường dễ rõ ràng hơn.
+- Empty array `new int[0]` or `List.of()`: the body runs zero times; accumulator variables keep their initial values.
+- **Null source**: enhanced for needs to access the array or call `iterator()`, so it throws `NullPointerException`. Guard before the loop when data may be null.
+- **Null elements** inside an array/list can still be iterated over: the loop does not automatically skip them. When calling methods on that element, check for null.
+- An `Iterable` can return an iterator that runs over expensive or volatile data; do not assume every iterable source is cheap or repeatable like a list.
+- If you need to know the index, you can maintain a manual counter for an `Iterable`, but with index-accessible arrays/lists, an indexed `for` is usually clearer.
 
-| Tình huống | Kết quả / lựa chọn |
+| Situation | Outcome / Choice |
 | --- | --- |
-| `for (int x : new int[0])` | 0 lượt |
-| `for (String s : List.of("A", "B"))` | 2 lượt theo thứ tự A, B |
+| `for (int x : new int[0])` | 0 iterations |
+| `for (String s : List.of("A", "B"))` | 2 iterations in order A, B |
 | `for (int x : (int[]) null)` | `NullPointerException` |
-| Thay biến `x` trong `for (int x : arr)` | Không sửa phần tử của mảng |
-| Thay đổi cấu trúc `ArrayList` lúc for-each | Tránh; dùng iterator hỗ trợ `remove()` hoặc xử lý sau |
+| Changing variable `x` in `for (int x : arr)` | Does not modify the array's elements |
+| Structurally modifying `ArrayList` during for-each | Avoid; use an iterator supporting `remove()` or process afterward |
 
-## 8. Chương trình Java 17+ chạy độc lập
+## 8. Standalone Java 17+ Program
 
-Tạo file **EnhancedForDemo.java**:
+Create the file **EnhancedForDemo.java**:
 
 ~~~java
 import java.util.ArrayList;
@@ -342,14 +342,14 @@ public final class EnhancedForDemo {
 }
 ~~~
 
-Biên dịch và chạy tại thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Compile and run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 EnhancedForDemo.java
 java EnhancedForDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 arraySum=16
@@ -364,24 +364,24 @@ emptyVisits=0
 nullArray=NullPointerException
 ~~~
 
-Kết quả `arrayReassign` và `arrayIndexed` làm rõ khác biệt giữa thay **biến vòng lặp** với thay **phần tử thật**. `objectMutation` cho thấy thay đổi trạng thái đối tượng được phản ánh trong list. `customRangeSum` minh họa `Iterable` tự tạo, không cần là một `List`.
+The results `arrayReassign` and `arrayIndexed` clarify the difference between changing the **loop variable** versus changing the **actual element**. `objectMutation` shows that mutating object state is reflected in the list. `customRangeSum` illustrates a custom `Iterable`, without needing to be a `List`.
 
-## 9. Checklist và bài tập
+## 9. Checklist and Exercises
 
-**Bài 1.** Dùng enhanced for tính tổng và số phần tử dương trong `int[] {4, -3, 0, 7}`. Dự đoán tổng và số đếm.
+**Exercise 1.** Use enhanced for to compute the sum and count of positive elements in `int[] {4, -3, 0, 7}`. Predict the sum and count.
 
-**Bài 2.** Viết enhanced for duyệt `List<String>` và nối các chuỗi bằng dấu phẩy. Nếu danh sách rỗng, kết quả ra sao?
+**Exercise 2.** Write an enhanced for loop iterating over `List<String>` and joining the strings with commas. If the list is empty, what is the result?
 
-**Bài 3.** Dự đoán mảng sau `for (int value : numbers) { value++; }` rồi sửa bằng vòng lặp có chỉ số để tăng trực tiếp mọi phần tử.
+**Exercise 3.** Predict the array after `for (int value : numbers) { value++; }` and then fix it using an indexed loop to increment every element directly.
 
-**Bài 4.** Viết lớp triển khai `Iterable<Integer>` trả các số từ 1 đến 4, kết thúc đúng khi `hasNext()` là false.
+**Exercise 4.** Write a class implementing `Iterable<Integer>` that yields the numbers from 1 to 4, ending properly when `hasNext()` is false.
 
-**Bài 5.** Với `ArrayList<String>`, xóa các phần tử bằng `"B"` an toàn bằng `Iterator.remove()`. Vì sao không nên sửa cấu trúc list ngay trong vòng for-each?
+**Exercise 5.** With an `ArrayList<String>`, safely remove elements equal to `"B"` using `Iterator.remove()`. Why should you not modify the list structure directly inside a for-each loop?
 
-**Bài 6.** Xử lý một mảng nullable: khi null, trả thông báo rõ ràng; khi rỗng, trả tổng 0; khi có dữ liệu, tính tổng bằng enhanced for.
+**Exercise 6.** Handle a nullable array: when null, return a clear message; when empty, return a sum of 0; when populated, compute the sum using enhanced for.
 
-**Checklist:** Nguồn là mảng hoặc `Iterable` chưa? Có phụ thuộc index/thứ tự không? Có thay cấu trúc collection khi đang duyệt không? Có phân biệt nguồn null với nguồn rỗng không? Nếu muốn cập nhật giá trị gốc, đã chọn cách gán đúng phần tử chưa?
+**Checklist:** Is the source an array or `Iterable`? Does it depend on index/order? Are you modifying the collection structure while iterating? Did you distinguish a null source from an empty source? If you want to update the original values, did you choose the proper element assignment approach?
 
-### Ghi nhớ
+### Key Takeaways
 
-**Enhanced `for (T element : source)`** là cách duyệt ngắn gọn mảng hoặc `Iterable` khi chỉ cần từng phần tử. Với mảng, duyệt từ chỉ số 0 đến cuối; với `Iterable`, thứ tự do iterator quyết định. Biến `element` không phải địa chỉ để gán lại phần tử nguồn; hãy dùng chỉ số/iterator phù hợp khi cần sửa. Kiểm tra nguồn null, tránh thay đổi cấu trúc collection ngoài iterator và chọn `for` có chỉ số khi cần index.
+**Enhanced `for (T element : source)`** is a concise way to iterate over arrays or `Iterable` when you only need each element. For arrays, it iterates from index 0 to the end; for `Iterable`, the order is determined by the iterator. The variable `element` is not a slot address for reassigning the source element; use an index or appropriate iterator when modifications are needed. Check for null sources, avoid structurally modifying collections outside the iterator, and choose an indexed `for` when an index is needed.

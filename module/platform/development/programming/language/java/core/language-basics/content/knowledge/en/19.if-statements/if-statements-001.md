@@ -1,48 +1,48 @@
-# Cú pháp `if`, `else` và chuỗi `else if` — Java 17+
+# `if`, `else`, and `else if` Chain Syntax — Java 17+
 
-`if` là câu lệnh **rẽ nhánh theo điều kiện**: chương trình đánh giá một biểu thức `boolean` và chỉ chạy khối lệnh phù hợp. Có thể viết một `if` đơn, thêm nhánh `else`, hoặc nối các trường hợp bằng `else if`.
+`if` is a **conditional branching** statement: the program evaluates a `boolean` expression and runs only the matching block. You can write a single `if`, add an `else` branch, or chain cases with `else if`.
 
 ~~~java
 int age = 20;
 
 if (age >= 18) {
-    System.out.println("Đủ tuổi");
+    System.out.println("Adult");
 } else {
-    System.out.println("Chưa đủ tuổi");
+    System.out.println("Minor");
 }
 ~~~
 
-Ở ví dụ này, điều kiện `age >= 18` là `true` nên chỉ nhánh đầu tiên chạy. Không có cơ chế tự động chạy tiếp nhánh `else`.
+In this example, the condition `age >= 18` is `true`, so only the first branch runs. There is no automatic fall-through into the `else` branch.
 
-## 1. Ba dạng cú pháp nền tảng
+## 1. Three fundamental syntactic forms
 
-### Dạng 1 — Chỉ `if`
+### Form 1 — `if` only
 
 ~~~java
 int quantity = 3;
 
 if (quantity > 0) {
-    System.out.println("Có hàng");
+    System.out.println("In stock");
 }
 ~~~
 
-Nếu điều kiện false, khối bị bỏ qua; chương trình tiếp tục ở câu lệnh sau `if`. **`else` không bắt buộc**.
+If the condition is false, the block is skipped; the program continues at the statement after `if`. **`else` is optional**.
 
-### Dạng 2 — `if / else`
+### Form 2 — `if / else`
 
 ~~~java
 int balance = 50;
 
 if (balance >= 100) {
-    System.out.println("Đủ tiền");
+    System.out.println("Sufficient funds");
 } else {
-    System.out.println("Chưa đủ tiền");
+    System.out.println("Insufficient funds");
 }
 ~~~
 
-Chọn **một trong hai** khối. `else` không có điều kiện riêng: nó được chọn khi điều kiện `if` là false.
+Chooses **one of two** blocks. `else` has no condition of its own: it is selected when the `if` condition is false.
 
-### Dạng 3 — Chuỗi `if / else if / else`
+### Form 3 — `if / else if / else` chain
 
 ~~~java
 int score = 83;
@@ -58,40 +58,40 @@ if (score >= 90) {
 }
 ~~~
 
-Java đánh giá các điều kiện **từ trên xuống**. Gặp điều kiện true đầu tiên thì chạy nhánh tương ứng và **bỏ qua tất cả nhánh còn lại**. `else` cuối cùng là nhánh mặc định, có thể bỏ nếu không cần.
+Java evaluates the conditions **from top to bottom**. When it encounters the first true condition, it runs the corresponding branch and **skips all remaining branches**. The final `else` is the default branch and can be omitted if not needed.
 
-**`else if` không phải từ khóa ghép riêng:** về cú pháp, đó là một `else` theo sau bởi một câu lệnh `if`; cách viết liền mạch tạo thành chuỗi nhiều trường hợp.
+**`else if` is not a separate compound keyword:** syntactically, it is an `else` followed by an `if` statement; writing them inline forms a multi-case chain.
 
-## 2. Sơ đồ lựa chọn nhánh
+## 2. Branch selection flowchart
 
 ~~~mermaid
 flowchart TD
-    Start["Bắt đầu"] --> C1{"Điều kiện 1?"}
-    C1 -- true --> B1["Chạy nhánh if"]
-    C1 -- false --> C2{"Điều kiện 2?"}
-    C2 -- true --> B2["Chạy nhánh else if"]
-    C2 -- false --> B3["Chạy else (nếu có)"]
-    B1 --> End["Lệnh sau chuỗi"]
+    Start["Start"] --> C1{"Condition 1?"}
+    C1 -- true --> B1["Run if branch"]
+    C1 -- false --> C2{"Condition 2?"}
+    C2 -- true --> B2["Run else if branch"]
+    C2 -- false --> B3["Run else (if present)"]
+    B1 --> End["Statement after chain"]
     B2 --> End
     B3 --> End
 ~~~
 
-Sơ đồ minh họa một `else if`. Có thể thêm nhiều `else if` theo cách tương tự; nguyên tắc vẫn là **nhánh đúng đầu tiên thắng**.
+The diagram illustrates one `else if`. You can add more `else if` branches in the same way; the rule remains **the first true branch wins**.
 
-| Cấu trúc | Điều kiện được xét | Số nhánh có thể chạy trong một lần đi qua |
+| Structure | Conditions evaluated | Branches that can run in a single pass |
 | --- | --- | --- |
-| `if (c) {...}` | Một điều kiện | 0 hoặc 1 |
-| `if (c) {...} else {...}` | Một điều kiện | Đúng 1 nếu điều kiện hoàn tất bình thường |
-| `if (a) {...} else if (b) {...} else {...}` | Lần lượt `a` rồi `b` khi cần | Đúng 1 nếu có `else` và không có ngoại lệ |
-| Hai câu `if` độc lập | Mỗi câu có điều kiện riêng | Có thể chạy cả hai |
+| `if (c) {...}` | One condition | 0 or 1 |
+| `if (c) {...} else {...}` | One condition | Exactly 1 if the condition completes normally |
+| `if (a) {...} else if (b) {...} else {...}` | `a` then `b` sequentially when needed | Exactly 1 if `else` is present and no exception occurs |
+| Two independent `if` statements | Each statement has its own condition | Both may run |
 
-Nếu một điều kiện đang được đánh giá ném ngoại lệ, chuỗi không hoàn tất theo đường đi bình thường; các bảng trên giả định điều kiện được đánh giá thành công.
+If an exception is thrown while evaluating a condition, the chain does not complete along the normal path; the table above assumes conditions evaluate successfully.
 
-## 3. Chương trình Java 17+ có thể biên dịch và chạy
+## 3. Compilable and runnable Java 17+ program
 
-Ví dụ này tập trung vào ba dạng cú pháp vừa học. Các kỹ thuật như `Boolean` nullable, `if` độc lập, khối lệnh và guard clause được thực hành riêng ở các bài tiếp theo.
+This example focuses on the three syntactic forms just covered. Techniques such as nullable `Boolean`, independent `if` statements, blocks, and guard clauses are practiced separately in subsequent lessons.
 
-Tạo tệp UTF-8 tên **`IfElseChainDemo.java`**:
+Create a UTF-8 file named **`IfElseChainDemo.java`**:
 
 ~~~java
 public class IfElseChainDemo {
@@ -134,14 +134,14 @@ public class IfElseChainDemo {
 }
 ~~~
 
-Trong thư mục chứa tệp, dùng **JDK 17 trở lên** với PowerShell hoặc Bash:
+In the directory containing the file, use **JDK 17 or later** with PowerShell or Bash:
 
 ~~~bash
 javac -encoding UTF-8 IfElseChainDemo.java
 java IfElseChainDemo
 ~~~
 
-**Exact expected stdout** của lệnh `java IfElseChainDemo`:
+**Exact expected stdout** of the command `java IfElseChainDemo`:
 
 ~~~text
 == if ==
@@ -158,28 +158,28 @@ age=adult
 end
 ~~~
 
-Cả ba dạng đều có thể chạy độc lập. `grade` còn xác thực điểm ngoài miền trước khi phân loại, giúp đầu vào không hợp lệ không bị gán nhãn.
+All three forms can run independently. `grade` also validates out-of-range scores before classifying, preventing invalid inputs from being assigned a grade label.
 
-## 4. Điều kiện của `if`: boolean, không phải truthiness
+## 4. `if` condition: boolean, not truthiness
 
-Java chỉ chấp nhận biểu thức điều kiện có kiểu `boolean` hoặc `Boolean` có thể **unbox**. Số, chuỗi hay đối tượng không tự chuyển thành true/false:
+Java only accepts conditional expressions of type `boolean` or `Boolean` that can be **unboxed**. Numbers, strings, or objects are not automatically converted to true/false:
 
 ~~~java
 int count = 3;
 if (count > 0) {
     System.out.println("has items");
 }
-// if (count) { } // Lỗi biên dịch: int không phải boolean.
+// if (count) { } // Compile error: int is not boolean.
 ~~~
 
-Một biến `Boolean` có thể null; `if (nullableFlag)` sẽ ném `NullPointerException` khi unbox nếu giá trị null. Muốn chỉ chấp nhận true, dùng `Boolean.TRUE.equals(nullableFlag)`; với `String`, guard `s != null && !s.isBlank()` tránh gọi phương thức trên null.
+A `Boolean` variable can be null; `if (nullableFlag)` will throw `NullPointerException` during unboxing if its value is null. To accept only true, use `Boolean.TRUE.equals(nullableFlag)`; with `String`, guarding with `s != null && !s.isBlank()` avoids calling methods on null.
 
-Cẩn thận `if (flag = true)`: đây là **phép gán boolean**, có thể biên dịch và khiến nhánh chạy, không phải phép kiểm tra thuần túy. Chủ đề `Boolean` nullable, unboxing, biểu thức điều kiện và short-circuit được giải thích sâu ở bài chuyên `boolean/Boolean`.
+Be careful with `if (flag = true)`: this is a **boolean assignment**, which compiles and causes the branch to run rather than being a pure check. Nullable `Boolean`, unboxing, conditional expressions, and short-circuiting are explained in depth in the dedicated `boolean/Boolean` lesson.
 
 
-## 5. Nhánh đúng đầu tiên thắng: sắp điều kiện có chủ đích
+## 5. First true branch wins: order conditions intentionally
 
-Với điểm từ 0 đến 100, phải kiểm tra **ngưỡng hẹp/cao** trước ngưỡng rộng/thấp:
+For scores from 0 to 100, you must check **narrower/higher thresholds** before broader/lower ones:
 
 ~~~java
 if (score >= 90) {
@@ -193,12 +193,12 @@ if (score >= 90) {
 }
 ~~~
 
-Nếu đảo thành `if (score >= 60) ... else if (score >= 90)`, điểm 95 rơi vào nhánh đầu và bị phân loại sai. Trong chương trình chính, `grade` còn kiểm tra `score < 0 || score > 100` trước khi xếp loại.
+If reversed to `if (score >= 60) ... else if (score >= 90)`, a score of 95 enters the first branch and is misclassified. In the main program, `grade` also checks `score < 0 || score > 100` before grading.
 
-Khi lập quy tắc phân loại, hãy xác định miền hợp lệ, **nhánh ưu tiên** và giá trị tại đúng biên. Bài điều kiện biên sẽ xây dựng bảng điểm ngay dưới/đúng/trên các ngưỡng và phân tích nhánh bị che khuất.
+When defining classification rules, determine the valid domain, **priority branches**, and exact boundary values. The boundary conditions lesson builds a test table right below, at, and above thresholds and analyzes shadowed branches.
 
 
-## 6. Nhiều `if` độc lập có thể cùng chạy
+## 6. Multiple independent `if` statements can all run
 
 ~~~java
 int value = 5;
@@ -210,21 +210,21 @@ if (value < 10) {
 }
 ~~~
 
-Hai điều kiện đều đúng nên cả hai dòng được in. Nếu đổi `if` thứ hai thành `else if`, nó **không được xét** sau khi nhánh đầu đã chạy. Dùng nhiều `if` khi cần nhiều hành động đồng thời; dùng một chuỗi `else if` khi chỉ chọn **một** hành động/nhãn.
+Both conditions are true, so both lines are printed. If you change the second `if` to `else if`, it is **not evaluated** after the first branch runs. Use multiple `if` statements when multiple actions are needed together; use a single `else if` chain when choosing only **one** action/label.
 
-Quy tắc này còn ảnh hưởng tới **việc điều kiện sau có được đánh giá không**, đặc biệt nếu chứa lời gọi phương thức có tác dụng phụ. Bài chuyên so sánh `if` độc lập và chuỗi loại trừ phân tích bảng hành vi, cảnh báo tích lũy và trace của hai cách viết.
+This rule also affects **whether subsequent conditions are evaluated**, especially if they contain method calls with side effects. The dedicated lesson comparing independent `if` statements and exclusive chains analyzes behavior tables, cumulative alerts, and execution traces of both approaches.
 
 
-## 7. Ngoặc nhọn xác định đúng thân nhánh
+## 7. Braces define the exact branch body
 
 ~~~java
 boolean authorized = false;
 if (authorized)
     System.out.println("authorized");
-System.out.println("always"); // Luôn chạy.
+System.out.println("always"); // Always runs.
 ~~~
 
-Khi bỏ `{}`, chỉ **một câu lệnh** ngay sau điều kiện là thân `if`; mức thụt lề không thay đổi ngữ pháp. Với `if` lồng nhau, `else` gắn với `if` gần nhất chưa có `else`:
+When omitting `{}`, only **a single statement** immediately following the condition belongs to the `if` body; indentation does not change syntax. With nested `if` statements, `else` binds to the nearest `if` that does not yet have an `else`:
 
 ~~~java
 if (outer) {
@@ -236,12 +236,12 @@ if (outer) {
 }
 ~~~
 
-Dùng ngoặc nhọn ngay cả khi chỉ có một câu lệnh để bảo vệ phạm vi và tránh lỗi sau khi bổ sung code. Đừng đặt dấu `;` thừa sau `if (condition)`, vì `;` có thể trở thành **empty statement** làm thân `if` rỗng. Hai bài chuyên về khối lệnh và `dangling else` trình bày chi tiết phạm vi biến, các cách ghép `else` và ví dụ gây lỗi logic.
+Use braces even when there is only one statement to protect scope and prevent bugs when code is added later. Do not place an extra `;` after `if (condition)`, because `;` can become an **empty statement**, making the `if` body empty. Two dedicated lessons on blocks and `dangling else` cover variable scope, `else` pairing rules, and logic-bug examples in detail.
 
 
-## 8. `return` sớm cho trường hợp đã kết luận
+## 8. Early `return` for conclusive cases
 
-Một phương thức có thể **kết thúc ngay** khi đã biết kết quả, nhờ vậy không cần lồng mọi trường hợp vào nhiều nhánh:
+A method can **return immediately** once the result is known, avoiding nesting every case into multiple branches:
 
 ~~~java
 static String sign(int n) {
@@ -255,52 +255,52 @@ static String sign(int n) {
 }
 ~~~
 
-Hai `if` ở đây không cần `else if` vì `return` đã kết thúc phương thức ở nhánh được chọn. Tuy nhiên, nếu nhánh trước **không `return`/`throw`**, thay `else if` bằng `if` độc lập có thể đổi hành vi. Dùng guard clause khi cần loại trường hợp không hợp lệ hoặc kết thúc sớm trước đường xử lý chính; bài guard clause đi sâu vào thứ tự, ngoại lệ, vòng lặp và dọn dẹp tài nguyên.
+The two `if` statements here do not need `else if` because `return` exits the method in the chosen branch. However, if the earlier branch does **not `return`/`throw`**, replacing `else if` with an independent `if` can change behavior. Use guard clauses when you need to reject invalid cases or exit early before the main processing path; the guard clause lesson dives into ordering, exceptions, loops, and resource cleanup.
 
 
-## 9. Các lỗi thường gặp
+## 9. Common mistakes
 
-| Sai lầm | Cách hiểu đúng |
+| Misconception | Correct understanding |
 | --- | --- |
-| “`if (1)` hợp lệ vì 1 nghĩa là true.” | Java yêu cầu `boolean`, không có truthiness cho số |
-| “`else` bắt buộc sau mọi `if`.” | `else` là tùy chọn |
-| “Mọi `else if` đều được chạy để tìm tất cả nhánh đúng.” | Chỉ kiểm tra đến **nhánh true đầu tiên** |
-| “Hai `if` liên tiếp giống `if / else if`.” | Hai `if` độc lập có thể cùng chạy |
-| “Thứ tự điều kiện không quan trọng.” | Điều kiện rộng đặt trước có thể che điều kiện cụ thể |
-| “`if (flag = true)` tương đương kiểm tra flag.” | Đó là phép gán true, có thể tạo bug |
-| “`Boolean null` tự hiểu là false.” | Unboxing null gây `NullPointerException` |
-| “Nếu bỏ ngoặc nhọn, mọi dòng thụt đầu dòng đều thuộc `if`.” | Chỉ **một câu lệnh** ngay sau điều kiện |
-| “`else` luôn gắn với `if` ngoài cùng.” | Gắn với `if` gần nhất chưa có `else` |
-| “`if (condition);` có khối điều kiện phía sau.” | Dấu `;` làm thân `if` trở thành câu lệnh rỗng |
+| “`if (1)` is valid because 1 means true.” | Java requires `boolean`; there is no truthiness for numbers |
+| “`else` is mandatory after every `if`.” | `else` is optional |
+| “Every `else if` is executed to find all true branches.” | Only checks up to the **first true branch** |
+| “Two consecutive `if` statements are the same as `if / else if`.” | Two independent `if` statements can both run |
+| “Condition order does not matter.” | A broad condition placed first can shadow specific conditions |
+| “`if (flag = true)` is equivalent to checking flag.” | It is an assignment to true, which can introduce a bug |
+| “`Boolean null` is automatically treated as false.” | Unboxing null causes `NullPointerException` |
+| “If braces are omitted, all indented lines belong to `if`.” | Only **one statement** immediately after the condition |
+| “`else` always binds to the outermost `if`.” | Binds to the nearest `if` without an `else` |
+| “`if (condition);` has a conditional block after it.” | The `;` turns the `if` body into an empty statement |
 
-## 10. Bài tập tự kiểm tra
+## 10. Self-check exercises
 
-1. `int x = 7; if (x > 5) {...} else {...}` chạy nhánh nào?  
-   *Đáp án:* Nhánh `if`.
-2. `int x = 5; if (x > 0) {...} if (x < 10) {...}` có thể chạy bao nhiêu nhánh?  
-   *Đáp án:* Cả hai.
-3. Với `score = 95`, vì sao `if (score >= 60) ... else if (score >= 90) ...` sai ý định phân loại?  
-   *Đáp án:* Nhánh `>= 60` đã đúng nên `>= 90` không được xét.
-4. `if (0)` có biên dịch không?  
-   *Đáp án:* Không; điều kiện phải có kiểu boolean.
-5. `Boolean b = null; if (b) {...}` có hành vi gì khi chạy?  
-   *Đáp án:* Ném `NullPointerException` do unboxing.
-6. `if (n > 0);` có tác dụng gì?  
-   *Đáp án:* Điều kiện được kiểm tra, nhưng thân là **câu lệnh rỗng**.
-7. Với hai `if` lồng không có ngoặc nhọn, `else` gắn với nhánh nào?  
-   *Đáp án:* `if` gần nhất còn chưa có `else`.
-8. Chuỗi `else if` có thể kết thúc không có `else` không?  
-   *Đáp án:* Có; nếu không nhánh nào đúng thì không khối nào được chạy.
+1. `int x = 7; if (x > 5) {...} else {...}` runs which branch?  
+   *Answer:* The `if` branch.
+2. `int x = 5; if (x > 0) {...} if (x < 10) {...}` can run how many branches?  
+   *Answer:* Both.
+3. With `score = 95`, why does `if (score >= 60) ... else if (score >= 90) ...` fail the classification intent?  
+   *Answer:* The `>= 60` branch is already true, so `>= 90` is never evaluated.
+4. Does `if (0)` compile?  
+   *Answer:* No; the condition must have a boolean type.
+5. What happens at runtime for `Boolean b = null; if (b) {...}`?  
+   *Answer:* Throws `NullPointerException` due to unboxing.
+6. What does `if (n > 0);` do?  
+   *Answer:* The condition is evaluated, but the body is an **empty statement**.
+7. With two nested `if` statements without braces, which branch does `else` bind to?  
+   *Answer:* The nearest `if` that does not yet have an `else`.
+8. Can an `else if` chain end without an `else`?  
+   *Answer:* Yes; if no branch is true, no block runs.
 
 ## Checklist
 
-- [ ] Viết đúng `if (booleanCondition) { ... }`.
-- [ ] Biết `else` là tùy chọn và `else if` nối thêm những trường hợp theo thứ tự.
-- [ ] Hiểu **chỉ nhánh đúng đầu tiên** trong chuỗi được chạy.
-- [ ] Phân biệt nhiều `if` độc lập với chuỗi `else if`.
-- [ ] Kiểm tra kiểu `boolean`, wrapper null và các điều kiện ngắn mạch.
-- [ ] Đặt điều kiện cụ thể trước điều kiện rộng khi có chồng lấp.
-- [ ] Luôn ưu tiên dấu ngoặc nhọn để tránh lỗi `dangling else` và thụt dòng gây hiểu nhầm.
-- [ ] Không vô tình thêm `;` ngay sau `if (...)` hoặc gán `=` thay cho kiểm tra.
+- [ ] Write `if (booleanCondition) { ... }` correctly.
+- [ ] Know that `else` is optional and `else if` appends cases in order.
+- [ ] Understand that **only the first true branch** in a chain runs.
+- [ ] Distinguish multiple independent `if` statements from an `else if` chain.
+- [ ] Check `boolean` types, nullable wrappers, and short-circuiting conditions.
+- [ ] Place specific conditions before broad conditions when they overlap.
+- [ ] Always prefer braces to avoid `dangling else` bugs and misleading indentation.
+- [ ] Do not accidentally add `;` right after `if (...)` or use assignment `=` instead of a check.
 
-**Kết luận:** `if`, `else` và chuỗi `else if` là công cụ rẽ nhánh cốt lõi của Java. Đọc đúng **điều kiện boolean**, **thứ tự đánh giá**, **phạm vi ngoặc nhọn** và **mối quan hệ giữa các nhánh** giúp tránh lỗi logic mà trình biên dịch không nhất thiết phát hiện.
+**Conclusion:** `if`, `else`, and `else if` chains are Java's core branching tools. Reading **boolean conditions**, **evaluation order**, **brace scope**, and **branch relationships** accurately helps prevent logic bugs that the compiler will not necessarily catch.

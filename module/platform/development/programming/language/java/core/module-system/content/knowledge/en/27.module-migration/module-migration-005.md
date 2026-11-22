@@ -1,63 +1,63 @@
-# Tạo module-info.java cho ứng dụng
+# Creating module-info.java for an Application
 
-Khi chuyển một ứng dụng Java từ **classpath** sang Java Platform Module System (JPMS), bước quan trọng là tạo file `module-info.java` để khai báo danh tính module, những module ứng dụng cần đọc và các package hoặc service mà ứng dụng muốn công bố. File này được gọi là **module descriptor**.
+When migrating a Java application from the **classpath** to the Java Platform Module System (JPMS), a key step is creating the `module-info.java` file to declare the module's identity, which modules the application needs to read, and which packages or services the application wishes to expose. This file is called the **module descriptor**.
 
-Thêm `module-info.java` không chỉ là một thay đổi cú pháp. Ứng dụng chuyển từ mô hình classpath, nơi nhiều package được tìm qua một không gian nạp class rộng, sang mô hình **named modules** với ranh giới rõ ràng. Vì vậy, cần khảo sát dependency, chọn ranh giới module, bổ sung descriptor và kiểm thử cách chạy trên module path.
+Adding `module-info.java` is not merely a syntax change. The application moves from the classpath model, where many packages are looked up across one broad class-loading space, to the **named modules** model with explicit boundaries. Therefore, you need to survey dependencies, choose module boundaries, add the descriptor, and test execution on the module path.
 
-Bài hướng dẫn này trình bày quy trình từ ứng dụng Java thông thường đến một modular JAR chạy được bằng `java --module-path`.
+This guide walks through the workflow from a regular Java application to a modular JAR runnable with `java --module-path`.
 
-## 1. Module descriptor giải quyết việc gì?
+## 1. What Does a Module Descriptor Solve?
 
-Một descriptor tối thiểu:
+A minimal descriptor:
 
 ```java
 module com.acme.app {
 }
 ```
 
-Khi biên dịch, `javac` tạo `module-info.class`. Nếu được đóng gói trong JAR, artifact có thể được nhận diện là **explicit named module** khi đặt trên module path.
+When compiled, `javac` produces `module-info.class`. When packaged inside a JAR, the artifact can be recognized as an **explicit named module** when placed on the module path.
 
-Module descriptor cho JVM và các công cụ biết:
+The module descriptor tells the JVM and tools:
 
-- **Tên module**, ví dụ `com.acme.app`.
-- **Dependency** được đọc bằng `requires`.
-- **Package API** mà module khác được phép truy cập bằng `exports`.
-- **Package cho deep reflection** bằng `opens`.
-- **Service consumer** bằng `uses`.
-- **Service provider** bằng `provides ... with ...`.
+- **Module name**, such as `com.acme.app`.
+- **Dependencies** read via `requires`.
+- **API packages** other modules are allowed to access via `exports`.
+- **Packages for deep reflection** via `opens`.
+- **Service consumers** via `uses`.
+- **Service providers** via `provides ... with ...`.
 
-Descriptor không liệt kê từng file JAR, không thay thế công cụ quản lý dependency và không tự đưa dependency bị thiếu vào module path. Nó mô tả quan hệ module; build tool và lệnh chạy vẫn phải cung cấp các artifact tương ứng.
+A descriptor does not list individual JAR files, does not replace a dependency management tool, and does not automatically put missing dependencies onto the module path. It describes module relationships; the build tool and launch command must still supply the corresponding artifacts.
 
-## 2. Xác định ứng dụng đang có những dependency nào
+## 2. Identifying What Dependencies the Application Has
 
-Trước khi tạo descriptor, hãy phân loại các dependency của ứng dụng:
+Before creating the descriptor, classify the application's dependencies:
 
-| Nhóm | Ví dụ | Cách xử lý khi modular hóa |
+| Group | Example | How to handle during modularization |
 |---|---|---|
-| API chuẩn Java SE | Logging, JDBC, XML, HTTP Client | Khai báo `requires java.logging`, `java.sql`... nếu thực sự dùng |
-| Thư viện đã có module-info | Modular JAR của nhóm phát triển hoặc bên thứ ba | Dùng tên module mà descriptor công bố |
-| JAR không có descriptor | Thư viện cũ trên classpath | Có thể hoạt động như automatic module trên module path trong giai đoạn chuyển đổi |
-| Annotation processor | Lombok, processor sinh mã | Cấu hình processor path/module path ở build time, không tự động thêm làm dependency runtime |
-| Framework dùng reflection | ORM, JSON serializer, dependency injection | Xác định package cần `opens` cho đúng module framework |
-| Service provider | JDBC driver, plugin, codec | Kiểm tra `uses`, `provides` và cơ chế đưa provider vào graph |
+| Standard Java SE APIs | Logging, JDBC, XML, HTTP Client | Declare `requires java.logging`, `java.sql`, etc., if actually used |
+| Libraries with module-info | Team-owned or third-party modular JARs | Use the module name published by the descriptor |
+| JARs without descriptors | Legacy classpath libraries | Can operate as automatic modules on the module path during transition |
+| Annotation processors | Lombok, code-generating processors | Configure processor path/module path at build time; do not add blindly as runtime dependencies |
+| Frameworks using reflection | ORMs, JSON serializers, dependency injection | Identify packages needing `opens` for the exact framework module |
+| Service providers | JDBC drivers, plugins, codecs | Verify `uses`, `provides`, and how providers enter the graph |
 
-Dùng `jdeps` để khảo sát dependency tĩnh:
+Use `jdeps` to inspect static dependencies:
 
 ```shell
 jdeps --summary --recursive --class-path "libs/*" app.jar
 ```
 
-Nếu ứng dụng đã có modular JAR và module path, có thể kiểm tra bằng:
+If the application already has modular JARs and a module path, you can check with:
 
 ```shell
 jdeps --module-path mods --check com.acme.app
 ```
 
-`jdeps` hữu ích để nhận diện dependency giữa package và module, nhưng không phát hiện đầy đủ những dependency chỉ được dùng qua reflection, `Class.forName`, cấu hình framework hoặc service discovery. Kết hợp kết quả phân tích tĩnh với dependency tree của Maven/Gradle và hiểu biết về những tính năng chạy thật.
+`jdeps` is useful for identifying package and module dependencies, but does not fully detect dependencies used solely via reflection, `Class.forName`, framework configuration, or service discovery. Combine static analysis results with Maven/Gradle dependency trees and knowledge of live runtime features.
 
-## 3. Chọn tên module và vị trí module-info.java
+## 3. Choosing the Module Name and Placing module-info.java
 
-Tên module thường theo quy ước reverse-DNS, ví dụ:
+Module names typically follow reverse-DNS conventions, for example:
 
 ```text
 com.acme.app
@@ -65,9 +65,9 @@ com.acme.core
 com.acme.greeting
 ```
 
-Tên module cần ổn định vì module khác có thể khai báo `requires` tới tên đó. Không nên đổi tên module chỉ để phù hợp với một cấu trúc thư mục tạm thời.
+The module name must be stable because other modules may declare `requires` against it. Do not rename a module merely to match a temporary directory layout.
 
-Với ứng dụng gồm một module, có thể tổ chức source:
+For a single-module application, source can be organized as:
 
 ```text
 src/
@@ -78,26 +78,26 @@ src/
             └── Main.java
 ```
 
-Với dự án Maven hoặc Gradle theo quy ước thông dụng, descriptor của phần chính thường đặt ở:
+In conventional Maven or Gradle projects, the main descriptor is typically placed at:
 
 ```text
 src/main/java/module-info.java
 ```
 
-Không đặt `module-info.java` bên trong package `com.acme.app`. Descriptor khai báo module ở cấp module source root, chứ không phải một class thuộc package.
+Do not place `module-info.java` inside the `com.acme.app` package. The descriptor declares the module at the module source root, not as a class inside a package.
 
-Nếu dự án có nhiều named modules trong cùng một source tree dùng `--module-source-path`, mỗi module có thư mục root và descriptor riêng. Mỗi named module cần một `module-info.java` tương ứng.
+If a project has multiple named modules in one source tree using `--module-source-path`, each module has its own root directory and descriptor. Each named module requires a corresponding `module-info.java`.
 
-## 4. Viết requires theo dependency thực tế
+## 4. Writing requires Based on Actual Dependencies
 
-Giả sử ứng dụng dùng một thư viện greeting và Java Logging:
+Suppose the application uses a greeting library and Java Logging:
 
 ```java
 import com.acme.greeting.Greeter;
 import java.util.logging.Logger;
 ```
 
-Descriptor ứng dụng có thể là:
+The application descriptor might be:
 
 ```java
 module com.acme.app {
@@ -106,15 +106,15 @@ module com.acme.app {
 }
 ```
 
-`requires com.acme.greeting` cho phép module ứng dụng đọc module greeting. `requires java.logging` cho phép ứng dụng dùng các package thuộc module logging khi chúng được export.
+`requires com.acme.greeting` lets the application module read the greeting module. `requires java.logging` lets the application use packages belonging to the logging module when exported.
 
-`java.base` là dependency ngầm định của mọi named module, nên không cần ghi `requires java.base;`.
+`java.base` is an implicit dependency of every named module, so you do not need to write `requires java.base;`.
 
-Quan trọng: `requires` **không tự cho phép dùng mọi package** của module phụ thuộc. Module được yêu cầu vẫn phải export package chứa các kiểu public cần dùng. Nếu import một kiểu từ package internal không export, compiler sẽ chặn truy cập dù `requires` đã đúng.
+Important: `requires` **does not automatically grant access to every package** of the required module. The required module must still export the packages containing the public types you need. If you import a type from an unexported internal package, the compiler will block access even when `requires` is correct.
 
-### requires, requires transitive và requires static
+### requires, requires transitive, and requires static
 
-Có ba dạng thường gặp:
+There are three common forms:
 
 ```java
 requires com.acme.greeting;
@@ -122,17 +122,17 @@ requires transitive com.acme.api;
 requires static com.acme.annotations;
 ```
 
-- `requires M;`: module hiện tại đọc được `M`.
-- `requires transitive M;`: ngoài việc đọc `M`, các module đọc module hiện tại còn được hưởng readability tới `M`. Thường dùng khi public API của thư viện lộ kiểu từ `M`.
-- `requires static M;`: dependency bắt buộc ở compile time nhưng là tùy chọn ở runtime. Phù hợp với một số annotation/API compile-only, nếu thiết kế thực sự không cần chúng khi chạy.
+- `requires M;`: the current module can read `M`.
+- `requires transitive M;`: in addition to reading `M`, modules reading the current module also gain readability to `M`. Typically used when a library's public API exposes types from `M`.
+- `requires static M;`: a mandatory compile-time dependency that is optional at runtime. Suitable for certain compile-only annotations/APIs, if the design truly does not need them when running.
 
-Không thêm `transitive` cho mọi dependency chỉ vì tiện. Đối với module ứng dụng không được dùng như thư viện, phần lớn dependency thông thường chỉ cần `requires`.
+Do not add `transitive` to every dependency just for convenience. For an application module not consumed as a library, most ordinary dependencies only need `requires`.
 
-## 5. Ví dụ hoàn chỉnh với hai module
+## 5. Complete Example with Two Modules
 
-Ví dụ gồm thư viện `com.acme.greeting` và ứng dụng `com.acme.app`.
+This example includes library `com.acme.greeting` and application `com.acme.app`.
 
-Cấu trúc source:
+Source layout:
 
 ```text
 project/
@@ -144,7 +144,7 @@ project/
     └── com/acme/app/Main.java
 ```
 
-Descriptor thư viện:
+Library descriptor:
 
 ```java
 // src-lib/module-info.java
@@ -153,7 +153,7 @@ module com.acme.greeting {
 }
 ```
 
-Code thư viện:
+Library code:
 
 ```java
 // src-lib/com/acme/greeting/Greeter.java
@@ -164,12 +164,12 @@ public final class Greeter {
     }
 
     public static String sayHello(String name) {
-        return "Xin chào, " + name + "!";
+        return "Hello, " + name + "!";
     }
 }
 ```
 
-Descriptor ứng dụng:
+Application descriptor:
 
 ```java
 // src-app/module-info.java
@@ -198,13 +198,13 @@ public class Main {
 }
 ```
 
-Đáng chú ý: ứng dụng **không cần export** package `com.acme.app` chỉ để JVM chạy `Main.main` với `-m`. Export package chỉ cần khi module khác phải truy cập API public của package đó.
+Notably, the application **does not need to export** package `com.acme.app` just for the JVM to run `Main.main` with `-m`. Exporting a package is only needed when other modules must access public APIs in that package.
 
-## 6. Biên dịch, đóng gói và chạy ứng dụng
+## 6. Compiling, Packaging, and Running the Application
 
-Ví dụ sau dùng command line, phù hợp khi chạy từ thư mục `project`. Tạo các thư mục `build/library`, `build/app` và `mods` trước khi biên dịch.
+The following example uses the command line, suitable when run from the `project` directory. Create `build/library`, `build/app`, and `mods` directories before compiling.
 
-Biên dịch thư viện:
+Compile the library:
 
 ```shell
 javac -d build/library \
@@ -212,14 +212,14 @@ javac -d build/library \
   src-lib/com/acme/greeting/Greeter.java
 ```
 
-Đóng gói modular JAR của thư viện:
+Package the library's modular JAR:
 
 ```shell
 jar --create --file mods/com.acme.greeting.jar \
   -C build/library .
 ```
 
-Biên dịch ứng dụng với module path trỏ tới thư viện:
+Compile the application with the module path pointing to the library:
 
 ```shell
 javac --module-path mods -d build/app \
@@ -227,36 +227,36 @@ javac --module-path mods -d build/app \
   src-app/com/acme/app/Main.java
 ```
 
-Đóng gói ứng dụng:
+Package the application:
 
 ```shell
 jar --create --file mods/com.acme.app.jar \
   -C build/app .
 ```
 
-Chạy bằng module path:
+Run using the module path:
 
 ```shell
 java --module-path mods \
   --module com.acme.app/com.acme.app.Main
 ```
 
-Trên Windows, dấu `\` cuối dòng trong ví dụ shell không phải cú pháp nối dòng cho PowerShell/cmd; hãy chạy thành một dòng hoặc dùng cú pháp xuống dòng tương ứng. Nếu module path chứa nhiều thư mục/JAR, dấu phân cách là `:` trên Linux/macOS và `;` trên Windows.
+On Windows, trailing `\` characters in shell examples are not line-continuation syntax for PowerShell/cmd; run on one line or use the appropriate line-continuation syntax. If a module path contains multiple directories/JARs, the separator is `:` on Linux/macOS and `;` on Windows.
 
-Có thể kiểm tra descriptor sau khi đóng gói:
+You can inspect the descriptors after packaging:
 
 ```shell
 jar --describe-module --file mods/com.acme.app.jar
 jar --describe-module --file mods/com.acme.greeting.jar
 ```
 
-Đầu ra giúp xác nhận tên module, dependency và package exports của đúng artifact cuối cùng.
+The output confirms the module name, dependencies, and package exports of the actual final artifacts.
 
-## 7. exports dành cho thư viện; không phải package nào cũng cần export
+## 7. exports Is for Libraries; Not Every Package Needs Exporting
 
-Module chỉ nên export các package mà module khác cần sử dụng như public API.
+A module should only export the packages other modules need to use as a public API.
 
-Ví dụ:
+Example:
 
 ```java
 module com.acme.greeting {
@@ -264,11 +264,11 @@ module com.acme.greeting {
 }
 ```
 
-Implementation có thể ở `com.acme.greeting.internal` mà không export. Một public class trong package internal vẫn không tự trở thành API mà module khác truy cập được.
+Implementation can live in `com.acme.greeting.internal` without being exported. A public class in an internal package still does not automatically become an API accessible to other modules.
 
-Nếu ứng dụng chia thành module UI, service và data, mỗi module thư viện nên công bố đúng package API. Module chứa logic khởi động, CLI hoặc entry point thường không cần export toàn bộ package nội bộ.
+If an application is split into UI, service, and data modules, each library module should expose only its API packages. A module holding startup logic, CLI, or entry points typically does not need to export all internal packages.
 
-Qualified export dành cho trường hợp chỉ một module cụ thể cần API:
+Qualified exports are meant for cases where only a specific module needs an API:
 
 ```java
 module com.acme.greeting {
@@ -276,13 +276,13 @@ module com.acme.greeting {
 }
 ```
 
-Cách này chỉ cấp quyền truy cập package cho `com.acme.app`, không phải mọi module.
+This grants access to the package solely to `com.acme.app`, not to every module.
 
-## 8. opens dành cho framework dùng deep reflection
+## 8. opens Is for Frameworks Using Deep Reflection
 
-Framework ORM, serializer hoặc dependency-injection container có thể truy cập constructor/field không public qua reflection. Khi chuyển sang named module, hành vi reflection từng hoạt động trên classpath có thể bị chặn bởi strong encapsulation.
+ORM frameworks, serializers, or dependency-injection containers may access non-public constructors/fields via reflection. When migrating to named modules, reflection behavior that worked on the classpath may be blocked by strong encapsulation.
 
-Ví dụ:
+Example:
 
 ```java
 module com.acme.app {
@@ -292,20 +292,20 @@ module com.acme.app {
 }
 ```
 
-Ở đây `com.acme.json` là tên **module thực tế** của framework trong ví dụ, không phải tên package. Khi triển khai, thay bằng module name được framework sử dụng.
+Here `com.acme.json` is the framework's **actual module name** in the example, not a package name. In practice, replace it with the module name used by your framework.
 
-Phân biệt:
+Distinctions:
 
-- `exports P;` cho phép module khác sử dụng các kiểu public của package `P` theo quyền Java thông thường.
-- `opens P;` mở package `P` cho deep reflection ở runtime.
-- `opens P to M;` chỉ mở package `P` cho module `M`.
-- `open module X { ... }` mở toàn bộ package của module, thường quá rộng cho ứng dụng muốn đóng gói chặt.
+- `exports P;` allows other modules to use public types in package `P` under standard Java access rules.
+- `opens P;` opens package `P` for deep reflection at runtime.
+- `opens P to M;` opens package `P` solely to module `M`.
+- `open module X { ... }` opens all packages of the module, usually too broad for an application seeking tight encapsulation.
 
-Không dùng `opens` thay cho `exports` khi một module khác cần import và gọi public API. Ngược lại, `exports` không tự cho phép framework đọc field private bằng deep reflection.
+Do not use `opens` in place of `exports` when another module needs to import and call public APIs. Conversely, `exports` does not automatically allow frameworks to read private fields via deep reflection.
 
-## 9. Khai báo service consumer và provider
+## 9. Declaring Service Consumers and Providers
 
-JPMS tích hợp cơ chế `ServiceLoader` với module descriptor. Nếu ứng dụng dùng một SPI được định nghĩa trong module API:
+JPMS integrates the `ServiceLoader` mechanism with module descriptors. If an application uses an SPI defined in an API module:
 
 ```java
 package com.acme.spi;
@@ -315,7 +315,7 @@ public interface ReportExporter {
 }
 ```
 
-Module ứng dụng khai báo nhu cầu:
+The application module declares its requirement:
 
 ```java
 module com.acme.app {
@@ -324,18 +324,18 @@ module com.acme.app {
 }
 ```
 
-Ứng dụng có thể gọi:
+The application can call:
 
 ```java
 ServiceLoader<ReportExporter> exporters =
     ServiceLoader.load(ReportExporter.class);
 
 for (ReportExporter exporter : exporters) {
-    exporter.export("Báo cáo");
+    exporter.export("Report");
 }
 ```
 
-Một provider ở module khác khai báo:
+A provider in another module declares:
 
 ```java
 module com.acme.export.csv {
@@ -346,17 +346,17 @@ module com.acme.export.csv {
 }
 ```
 
-Module API cần export package chứa `ReportExporter`. Module provider không cần export implementation package chỉ để `ServiceLoader` khởi tạo provider.
+The API module must export the package containing `ReportExporter`. The provider module does not need to export its implementation package just for `ServiceLoader` to instantiate the provider.
 
-Tách service interface, consumer và provider giúp ứng dụng giảm dependency tới implementation cụ thể. Tuy nhiên, provider module phải thực sự được đưa vào graph hoặc layer phù hợp, thông qua root modules hoặc service binding; `ServiceLoader` không tự tạo module từ một JAR chưa được resolve.
+Separating service interfaces, consumers, and providers helps reduce coupling to concrete implementations. However, the provider module must actually be included in the appropriate graph or layer via root modules or service binding; `ServiceLoader` does not automatically create modules from an unresolved JAR.
 
-## 10. Đối phó với thư viện chưa modular hóa
+## 10. Handling Unmodularized Libraries
 
-Trong giai đoạn migration, nhiều thư viện bên thứ ba chỉ có JAR thông thường.
+During migration, many third-party libraries only provide traditional JARs.
 
-Khi đặt JAR không có `module-info.class` trên module path, Java có thể xử lý nó như **automatic module**: module được gán tên từ metadata hoặc tên artifact, export các package của JAR và có khả năng đọc rộng hơn explicit module.
+When a JAR without `module-info.class` is placed on the module path, Java can handle it as an **automatic module**: a module assigned a name from metadata or the artifact filename, exporting all packages in the JAR, and having broader readability than an explicit module.
 
-Ví dụ:
+Example:
 
 ```java
 module com.acme.app {
@@ -364,21 +364,21 @@ module com.acme.app {
 }
 ```
 
-Phải xác nhận `legacy.utilities` đúng là module name của artifact, không suy đoán từ Maven `artifactId` nếu chưa kiểm tra:
+You must verify that `legacy.utilities` is indeed the artifact's module name, rather than guessing from Maven's `artifactId` without checking:
 
 ```shell
 jar --describe-module --file libs/legacy-utils.jar
 ```
 
-Một thư viện có thể khai báo tên ổn định bằng manifest `Automatic-Module-Name`; nếu không, tên tự suy ra từ tên file có thể thay đổi khi artifact được đổi tên.
+A library may declare a stable name via the `Automatic-Module-Name` manifest entry; otherwise, a name derived from the filename can change if the artifact is renamed.
 
-Automatic module là bước trung gian hữu ích, nhưng không phải thay thế vĩnh viễn cho explicit module. Nó có tính đóng gói yếu và có thể gây khó khăn khi muốn tạo runtime image bằng `jlink`. Hãy ưu tiên thư viện có module descriptor rõ ràng khi kiến trúc cho phép.
+Automatic modules are a useful intermediate step, not a permanent replacement for explicit modules. They have weak encapsulation and can create hurdles when building a runtime image with `jlink`. Prefer libraries with explicit module descriptors when architecture allows.
 
-Nếu một thư viện chỉ có thể chạy trên classpath, cần cân nhắc ranh giới migration: ứng dụng modular không nên mặc định rằng nó có thể khai báo `requires` tới classpath JAR. Việc trộn classpath và module path cần thiết kế rõ ràng, thay vì lặp lại cách chạy cũ và chỉ thêm `module-info.java`.
+If a library can only run on the classpath, reconsider migration boundaries: a modular application should not assume it can declare `requires` against classpath JARs. Mixing classpath and module path requires explicit design rather than repeating the old launch pattern and merely adding `module-info.java`.
 
-## 11. Tránh split package khi chia module
+## 11. Avoiding Split Packages When Splitting Modules
 
-**Split package** xuất hiện khi cùng một package có class ở nhiều module khác nhau. Ví dụ:
+A **split package** occurs when the same package has classes in multiple different modules. Example:
 
 ```text
 com.acme.api:
@@ -388,9 +388,9 @@ com.acme.impl:
     com.acme.shared.CustomerMapper
 ```
 
-Hai module cùng chứa `com.acme.shared`. Tùy graph và loader, việc này có thể dẫn đến lỗi vì một consumer đọc cùng package từ nhiều nguồn hoặc vì ràng buộc package ownership.
+Both modules contain `com.acme.shared`. Depending on the graph and loaders, this can fail because a consumer reads the same package from multiple sources or due to package ownership rules.
 
-Cách sửa là tách package theo ranh giới module:
+The fix is separating packages along module boundaries:
 
 ```text
 com.acme.api:
@@ -400,51 +400,51 @@ com.acme.impl:
     com.acme.impl.CustomerMapper
 ```
 
-Hoặc chuyển các class cùng một package thực sự phải gắn kết vào một module thống nhất.
+Or moving cohesive classes belonging to the same package into one unified module.
 
-Thêm `exports`, `opens` hoặc `--add-exports` không tự giải quyết split package; những cơ chế đó chỉ đổi quyền truy cập chứ không đổi package thuộc module nào.
+Adding `exports`, `opens`, or `--add-exports` does not solve split packages; those mechanisms change access permissions, not which module owns a package.
 
-Khi chia một ứng dụng lớn thành nhiều named modules, hãy xác định **mỗi package sẽ được một module nào sở hữu** trước khi tạo hàng loạt descriptor.
+When splitting a large application into multiple named modules, determine **which single module will own each package** before creating descriptors en masse.
 
-## 12. Chọn cách migration theo giai đoạn
+## 12. Adopting a Phased Migration Approach
 
-Không nhất thiết chia toàn bộ ứng dụng thành nhiều module ngay lập tức. Một lộ trình thực tế có thể là:
+You do not need to split the entire application into many modules right away. A realistic roadmap can be:
 
-**Giai đoạn 1 — Kiểm kê:** xác định các JAR đang dùng, dependency trực tiếp/bắc cầu, entry point, reflection, service providers và những thư viện chỉ cần ở build time.
+**Phase 1 — Inventory:** identify JARs in use, direct/transitive dependencies, entry points, reflection, service providers, and build-time-only libraries.
 
-**Giai đoạn 2 — Tạo một application module:** thêm `module-info.java` cho ứng dụng, khai báo `requires` và thử chuyển một tập dependency sang module path.
+**Phase 2 — Create one application module:** add `module-info.java` for the application, declare `requires`, and try moving a set of dependencies onto the module path.
 
-**Giai đoạn 3 — Xử lý dependency chưa modular:** ưu tiên modular JAR, chấp nhận automatic modules như bước chuyển tiếp khi phù hợp, phát hiện split packages và làm rõ module name ổn định.
+**Phase 3 — Address unmodularized dependencies:** prefer modular JARs, accept automatic modules as a transitional step where suitable, detect split packages, and verify stable module names.
 
-**Giai đoạn 4 — Khắc phục encapsulation:** khai báo `exports` cho API cần công bố, `opens` cho framework thực sự cần reflection và `uses`/`provides` cho SPI.
+**Phase 4 — Resolve encapsulation:** declare `exports` for exposed APIs, `opens` for frameworks that genuinely need reflection, and `uses`/`provides` for SPIs.
 
-**Giai đoạn 5 — Chạy kiểm thử thật:** compile, unit/integration tests, chạy `java -m`, kiểm tra module resolution và các code path dùng reflection/plugin.
+**Phase 5 — Run real tests:** compile, run unit/integration tests, run `java -m`, and verify module resolution and reflection/plugin code paths.
 
-**Giai đoạn 6 — Tối ưu triển khai:** sau khi graph ổn định, cân nhắc tạo runtime image bằng `jlink` nếu các module và kiểu dependency cho phép.
+**Phase 6 — Optimize deployment:** once the graph is stable, consider building a runtime image with `jlink` if modules and dependency types permit.
 
-Migration theo giai đoạn giúp phân biệt lỗi do descriptor, lỗi do dependency, lỗi do reflection và lỗi ứng dụng vốn đã tồn tại.
+Phased migration separates descriptor errors, dependency errors, reflection errors, and pre-existing application bugs.
 
-## 13. Các lệnh hỗ trợ chẩn đoán
+## 13. Diagnostic Commands
 
-Kiểm tra các module có sẵn trong JDK:
+Check modules available in the JDK:
 
 ```shell
 java --list-modules
 ```
 
-Xem descriptor module JDK:
+View a JDK module descriptor:
 
 ```shell
 java --describe-module java.logging
 ```
 
-Xem descriptor của JAR đã đóng gói:
+View a packaged JAR's descriptor:
 
 ```shell
 jar --describe-module --file mods/com.acme.app.jar
 ```
 
-Theo dõi resolution của ứng dụng:
+Trace application module resolution:
 
 ```shell
 java --show-module-resolution \
@@ -452,57 +452,57 @@ java --show-module-resolution \
   -m com.acme.app/com.acme.app.Main
 ```
 
-Xem dependency bằng `jdeps`:
+Inspect dependencies with `jdeps`:
 
 ```shell
 jdeps --module-path mods --check com.acme.app
 ```
 
-Những lệnh này trả lời các câu hỏi khác nhau. `jar --describe-module` xem hợp đồng module được đóng gói; `--show-module-resolution` cho biết graph runtime; `jdeps` phân tích dependency tĩnh. Kết hợp chúng với thông báo lỗi cụ thể sẽ hữu ích hơn việc thêm bừa các cờ `--add-exports`.
+These commands answer different questions. `jar --describe-module` inspects the packaged module contract; `--show-module-resolution` shows the runtime graph; `jdeps` analyzes static dependencies. Combining them with specific error messages is far more effective than blindly adding `--add-exports` flags.
 
-## 14. Lỗi thường gặp sau khi thêm module-info.java
+## 14. Common Errors After Adding module-info.java
 
-| Triệu chứng | Nguyên nhân có thể | Cách khắc phục |
+| Symptom | Possible cause | Fix |
 |---|---|---|
-| `module not found: com.acme.greeting` | Dependency không có trên module path hoặc tên module sai | Kiểm tra `--module-path`, descriptor và tên artifact |
-| `package ... is not visible` | Chưa `requires` module hoặc package chưa được export | Kiểm tra readability và `exports` |
-| `reads package ... from both ...` | Split package hoặc nhiều module cùng export một package tới consumer | Tách package, loại dependency trùng, hợp nhất artifact |
-| `InaccessibleObjectException` | Framework cần deep reflection vào package chưa open | Mở đúng package cho đúng module framework |
-| `ServiceConfigurationError` | Thiếu `uses`, provider declaration sai hoặc provider không hợp lệ | Kiểm tra descriptor consumer/provider |
-| `ClassNotFoundException` trong plugin | Class/module không nằm trong loader hoặc layer mà code đang sử dụng | Kiểm tra module resolution và class loading |
-| JAR chạy được trên classpath nhưng lỗi trên module path | Đổi semantics của package visibility, service discovery hoặc automatic module | Kiểm tra descriptor và cách deploy |
-| `IllegalAccessError` khi chạy | Compile và runtime khác nhau về exports, module graph hoặc access modifier | Đồng bộ artifact và kiểm tra module access tại runtime |
+| `module not found: com.acme.greeting` | Dependency missing from module path or wrong module name | Check `--module-path`, descriptor, and artifact name |
+| `package ... is not visible` | Missing `requires` on module or package not exported | Check readability and `exports` |
+| `reads package ... from both ...` | Split package or multiple modules exporting the same package to consumer | Separate packages, remove duplicate dependencies, merge artifacts |
+| `InaccessibleObjectException` | Framework needs deep reflection into an unopened package | Open the right package to the right framework module |
+| `ServiceConfigurationError` | Missing `uses`, wrong provider declaration, or invalid provider | Check consumer/provider descriptors |
+| `ClassNotFoundException` in plugin | Class/module not in the loader or layer the code uses | Check module resolution and class loading |
+| JAR works on classpath but fails on module path | Changed package visibility, service discovery, or automatic module semantics | Check descriptor and deployment layout |
+| `IllegalAccessError` at runtime | Compile and runtime differ in exports, module graph, or access modifiers | Align artifacts and verify module access at runtime |
 
-Khi gặp lỗi, nên tìm **root cause đầu tiên** trong stack trace hoặc output compiler. Đừng sửa descriptor theo hướng mở toàn bộ package chỉ để một đường chạy tạm thời hoạt động.
+When encountering an error, look for the **first root cause** in the stack trace or compiler output. Do not edit descriptors to open every package just to make one code path work temporarily.
 
-## 15. module-info.java và công cụ build
+## 15. module-info.java and Build Tools
 
-Với Maven, `module-info.java` thường thuộc `src/main/java`, còn dependency nằm trong `pom.xml`. Plugin biên dịch phù hợp với JDK có thể phát hiện và biên dịch modular source khi dependency được tổ chức đúng.
+With Maven, `module-info.java` typically belongs in `src/main/java`, while dependencies live in `pom.xml`. A compiler plugin compatible with the JDK can detect and compile modular sources when dependencies are organized properly.
 
-Với Gradle, descriptor cũng thường nằm trong `src/main/java`. Hãy bảo đảm Java toolchain và cách suy luận module path của build được cấu hình tương thích với phiên bản Gradle đang dùng.
+With Gradle, the descriptor also typically lives in `src/main/java`. Ensure the Java toolchain and module-path inference are configured compatibly with your Gradle version.
 
-Có hai tầng cấu hình khác nhau:
+There are two distinct configuration layers:
 
-1. **Build file** cho biết tọa độ artifact, version, repository và scope dependency.
-2. **Module descriptor** cho biết tên module được đọc, package được export/open và service bindings.
+1. **Build file** specifies artifact coordinates, versions, repositories, and dependency scopes.
+2. **Module descriptor** specifies module names to read, packages to export/open, and service bindings.
 
-Ví dụ, Maven dependency `com.acme:greeting-library:1.0` không có nghĩa tên JPMS module là `greeting-library`. Descriptor của JAR mới là nơi xác định module name.
+For example, Maven dependency `com.acme:greeting-library:1.0` does not mean the JPMS module name is `greeting-library`. The JAR's descriptor determines the module name.
 
-Đối với annotation processors, dependency của processor thường phải được cấu hình ở annotation processor path/module path riêng, thay vì chỉ thêm `requires` vào application module.
+For annotation processors, processor dependencies usually must be configured on a separate annotation processor path/module path rather than merely adding `requires` to the application module.
 
-## 16. Kiểm tra trước khi phát hành
+## 16. Pre-Release Checklist
 
-Một application module sẵn sàng chuyển sang module path khi có thể xác nhận:
+An application module is ready for the module path when you can confirm:
 
-- `module-info.java` dùng tên module nhất quán và khai báo đúng dependency thực sự.
-- Các modular JAR được phân phối với descriptor và module name như kỳ vọng.
-- Không có split package gây xung đột trong graph.
-- Package API được export có chủ đích; implementation package vẫn đóng gói.
-- Framework cần reflection có `opens` thích hợp.
-- Service consumer/provider có `uses` và `provides` tương ứng.
-- Ứng dụng biên dịch và chạy bằng `java --module-path ... --module ...`.
-- Bộ test thực sự bao phủ JDBC, reflection, serializer, plugin và các tính năng cấu hình động khi có.
-- Build output và runtime dùng cùng dependency version, tránh trường hợp compile đúng nhưng runtime thiếu export hoặc API.
-- Artifact cuối cùng được kiểm tra bằng `jar --describe-module` và graph bằng `--show-module-resolution`.
+- `module-info.java` uses consistent module names and declares actual dependencies.
+- Modular JARs are distributed with expected descriptors and module names.
+- No conflicting split packages exist in the graph.
+- API packages are intentionally exported; implementation packages remain encapsulated.
+- Frameworks needing reflection have appropriate `opens`.
+- Service consumers/providers have matching `uses` and `provides`.
+- The application compiles and runs with `java --module-path ... --module ...`.
+- The test suite genuinely covers JDBC, reflection, serializers, plugins, and dynamic configuration features if present.
+- Build output and runtime use identical dependency versions, avoiding cases where compilation succeeds but runtime lacks exports or APIs.
+- Final artifacts are checked with `jar --describe-module` and the graph with `--show-module-resolution`.
 
-**Kết luận:** `module-info.java` là hợp đồng module của ứng dụng, không phải danh sách JAR. Bắt đầu bằng descriptor nhỏ, khai báo đúng `requires`, chỉ dùng `exports`/`opens` khi có nhu cầu thực và xác minh bằng quá trình biên dịch/chạy trên module path. Cách tiếp cận đó giúp chuyển ứng dụng từ classpath sang JPMS theo từng bước mà vẫn giữ ranh giới module dễ hiểu và dễ duy trì.
+**Conclusion:** `module-info.java` is the application's module contract, not a list of JARs. Start with a small descriptor, declare accurate `requires`, use `exports`/`opens` only where genuinely needed, and verify by compiling and running on the module path. That approach migrates an application from the classpath to JPMS step by step while keeping module boundaries understandable and maintainable.

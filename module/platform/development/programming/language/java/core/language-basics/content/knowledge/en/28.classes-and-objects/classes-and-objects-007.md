@@ -1,73 +1,73 @@
-# Nhận diện `public`, `private` và truy cập trong gói trong Java
+# Recognizing `public`, `private`, and Package Access in Java
 
-> **Java core — language-basics / Lớp và đối tượng**  
-> **Môi trường:** JDK 17+, không dùng thư viện ngoài.  
-> **Mục tiêu:** Đọc được modifier truy cập của lớp, constructor, trường và phương thức; phân biệt `public`, `private` và **package-private** (không viết modifier); sử dụng API công khai để bảo vệ trạng thái; biết khi nào mã cùng hoặc khác package được truy cập thành viên.
+> **Java core — language-basics / Classes and Objects**  
+> **Environment:** JDK 17+, no external libraries.  
+> **Goal:** Read access modifiers on classes, constructors, fields, and methods; distinguish `public`, `private`, and **package-private** (no modifier written); use public APIs to protect state; know when code in the same or different packages can access members.
 
-## 1. Ba mức truy cập cần nhận diện đầu tiên
+## 1. The First Three Access Levels to Recognize
 
-Trong Java, *access modifier* quy định vị trí mã được phép sử dụng một lớp hoặc thành viên. Với các thành viên thông thường:
+In Java, an *access modifier* specifies where code is allowed to use a class or member. For ordinary members:
 
-| Khai báo | Trong lớp khai báo | Lớp khác cùng package | Lớp không liên quan khác package |
+| Declaration | Inside declaring class | Other class in same package | Unrelated class in different package |
 | --- | --- | --- | --- |
-| `public` | Có | Có | Có, nếu lớp khai báo cũng truy cập được |
-| `private` | Có | Không | Không |
-| **Không có modifier** (*package-private*) | Có | Có | Không |
+| `public` | Yes | Yes | Yes, if the declaring class is also accessible |
+| `private` | Yes | No | No |
+| **No modifier** (*package-private*) | Yes | Yes | No |
 
-Ví dụ nhận diện ba mức:
+Example illustrating the three levels:
 
 ~~~java
 class Sample {
     public int shown = 10;
     private int hidden = 20;
-    int sharedWithinPackage = 30; // KHÔNG có access modifier.
+    int sharedWithinPackage = 30; // NO access modifier.
 }
 ~~~
 
-- `public` cho phép sử dụng từ mã có quyền nhìn thấy lớp/kiểu chứa thành viên.
-- `private` giữ thành viên trong phạm vi truy cập của lớp khai báo và những cấu trúc lồng nhau được ngôn ngữ cho phép; **một top-level class khác** dù cùng package không được đọc trực tiếp.
-- Bỏ trống modifier được gọi là **package-private** hoặc *package access*: các lớp cùng package có thể truy cập, kể cả nằm ở file `.java` khác nhau.
-- Không tồn tại từ khóa Java `package-private` hoặc `default` để viết trước khai báo; chỉ **bỏ trống** modifier.
+- `public` allows usage from any code that has permission to see the containing class/type.
+- `private` keeps the member within the access scope of the declaring class and nested structures permitted by the language; **another top-level class**, even in the same package, cannot read it directly.
+- Omitting the modifier is called **package-private** or *package access*: classes in the same package can access it, even if located in different `.java` files.
+- There is no Java keyword `package-private` or `default` to write before a declaration; simply **omit** the modifier.
 
-Java còn có `protected`: mã cùng package được truy cập và lớp con ở package khác có quyền theo các quy tắc kế thừa đặc biệt. Bài này chỉ tập trung nhận diện ba trường hợp cơ bản; **không** hiểu `protected` đơn thuần là `public` cho mọi subclass trong mọi tình huống.
+Java also has `protected`: code in the same package can access it, and subclasses in other packages have access according to specific inheritance rules. This lesson focuses only on recognizing the three basic cases; do **not** treat `protected` as simply `public` for all subclasses in every situation.
 
-## 2. Package là gì, và không đồng nghĩa cùng một file
+## 2. What Is a Package, and Why It Does Not Mean "Same File"
 
-Một file Java có thể mở đầu bằng khai báo:
+A Java file can begin with a declaration:
 
 ~~~java
 package school.model;
 ~~~
 
-Các lớp có cùng tên package như `school.model` được xem là cùng package dù nằm ở **nhiều file mã nguồn**. Ngược lại, hai lớp khác package không được phép dùng member package-private của nhau, dù chúng nằm gần nhau trong cấu trúc thư mục.
+Classes with the same package name such as `school.model` are considered in the same package even across **multiple source files**. Conversely, two classes in different packages are not allowed to use each other's package-private members, even if they sit near each other in the directory structure.
 
-Java dùng dấu `.` để tách các phần trong tên package, nhưng tính cùng package dựa vào **tên package đầy đủ**, không phải tiền tố tên:
+Java uses `.` to separate segments of a package name, but being in the same package is determined by the **full package name**, not a name prefix:
 
-- `school.model` và `school.model`: cùng package.
-- `school.model` và `school.app`: khác package.
-- `school.model` và `school.model.extra`: **cũng khác package**; package con không tự kế thừa quyền package-private của package cha.
+- `school.model` and `school.model`: same package.
+- `school.model` and `school.app`: different packages.
+- `school.model` and `school.model.extra`: **also different packages**; a subpackage does not automatically inherit package-private access from a parent package.
 
-Một lớp không khai báo `package` thuộc **unnamed package** (thường gọi là *default package*) trong ví dụ nhập môn. Khi viết ứng dụng thật, nên dùng package có tên để tổ chức mã và tránh hạn chế khi tích hợp.
+A class without a `package` declaration belongs to the **unnamed package** (often called the *default package*) in introductory examples. When writing real applications, use named packages to organize code and avoid integration limitations.
 
-**Không trộn lẫn:** Cùng **project**, cùng **thư mục**, hoặc cùng **package cha** không mặc nhiên đồng nghĩa có quyền truy cập package-private. `import` cũng chỉ hỗ trợ tham chiếu theo tên; nó **không mở thêm quyền truy cập**.
+**Do not confuse:** Being in the same **project**, same **directory**, or same **parent package** does not implicitly grant package-private access. `import` also only assists referencing by name; it **does not grant extra access permissions**.
 
-## 3. Modifier trên lớp và trên thành viên là hai tầng khác nhau
+## 3. Modifiers on Classes vs. Members Are Two Different Layers
 
-Với **top-level class** (lớp không lồng trong lớp khác), hai mức cần nhớ:
+For a **top-level class** (a class not nested inside another class), there are two levels to remember:
 
 ~~~java
 public class PublicType {
-    // Được nhìn thấy bên ngoài package khi môi trường cho phép.
+    // Visible outside the package when the environment permits.
 }
 
 class PackageType {
-    // Chỉ truy cập trực tiếp từ cùng package.
+    // Directly accessible only from the same package.
 }
 ~~~
 
-Khi viết thành file riêng, lớp top-level `public` phải nằm trong file có tên phù hợp, ví dụ `PublicType.java`. Một file nguồn thông thường không thể có hai lớp top-level `public` cùng được khai báo và biên dịch hợp lệ. Không dùng `private class Hidden { ... }` cho **top-level class**: modifier `private` không hợp lệ ở đây. Với **lớp lồng nhau** (`nested class`), `private` có thể hợp lệ.
+When placed in a separate file, a `public` top-level class must reside in a matching filename, such as `PublicType.java`. An ordinary source file cannot have two `public` top-level classes declared and validly compiled together. Do not use `private class Hidden { ... }` for a **top-level class**: the `private` modifier is invalid here. For a **nested class**, `private` can be valid.
 
-Một member `public` nằm trong lớp top-level package-private **không biến lớp chứa nó thành public**:
+A `public` member inside a package-private top-level class **does not make its enclosing class public**:
 
 ~~~java
 class PackageType {
@@ -77,11 +77,11 @@ class PackageType {
 }
 ~~~
 
-Mã ở package khác vẫn không thể đặt tên và sử dụng `PackageType` trực tiếp chỉ vì `run()` được khai báo public. Muốn cung cấp API xuyên package, lớp/kiểu lộ ra cũng phải đủ mức truy cập, ngoài những điều kiện của module và ngữ cảnh biên dịch.
+Code in another package still cannot name and use `PackageType` directly just because `run()` is declared `public`. To provide a cross-package API, the exposed class/type itself must also have sufficient access, in addition to module and compilation context conditions.
 
-## 4. `private` giúp đóng gói trạng thái
+## 4. `private` Helps Encapsulate State
 
-Thông lệ nhập môn: giữ các trường có thể thay đổi ở `private`, rồi cung cấp phương thức công khai có kiểm tra điều kiện khi cần:
+Introductory convention: keep mutable fields `private`, then provide public methods with validation when needed:
 
 ~~~java
 class Wallet {
@@ -115,46 +115,46 @@ class Wallet {
 }
 ~~~
 
-`balance` và `hasEnough` là các thành viên private; mã ở lớp khác không thể gọi `wallet.hasEnough(...)` hay đọc `wallet.balance` trực tiếp. Phương thức `balance()`, `deposit(...)` và `canPay(...)` tạo API công khai và có thể gọi qua tham chiếu tới đối tượng `Wallet` tại nơi có quyền nhìn thấy `Wallet`.
+`balance` and `hasEnough` are private members; code in another class cannot call `wallet.hasEnough(...)` or read `wallet.balance` directly. The methods `balance()`, `deposit(...)`, and `canPay(...)` form the public API and can be invoked through a reference to a `Wallet` object wherever `Wallet` is visible.
 
-**Lưu ý:** `private` là kiểm soát truy cập ở mức ngôn ngữ, không phải cơ chế mã hóa dữ liệu hoặc ranh giới bảo mật giữa các tiến trình. Đừng cho rằng một field private tự bảo vệ được mật khẩu hay dữ liệu nhạy cảm trước mọi hình thức quan sát.
+**Note:** `private` is language-level access control, not data encryption or a security boundary between processes. Do not assume a private field by itself protects passwords or sensitive data against all forms of inspection.
 
-## 5. Truy cập package-private: dùng có chủ đích
+## 5. Package-Private Access: Use Intentionally
 
-Nếu không viết modifier trên **trường**, **phương thức** hoặc **constructor**, mặc định đó là package-private:
+If no modifier is written on a **field**, **method**, or **constructor**, it defaults to package-private:
 
 ~~~java
 class Task {
-    String phase = "NEW";             // Field package-private.
+    String phase = "NEW";             // Package-private field.
 
-    Task() {                          // Constructor package-private.
+    Task() {                          // Package-private constructor.
     }
 
-    void markStarted() {              // Method package-private.
+    void markStarted() {              // Package-private method.
         phase = "STARTED";
     }
 
-    public String status() {          // Method public.
+    public String status() {          // Public method.
         return phase;
     }
 
-    private void resetInternally() {  // Method private.
+    private void resetInternally() {  // Private method.
         phase = "NEW";
     }
 }
 ~~~
 
-Một lớp **khác trong cùng package** có thể gọi `new Task()`, đọc `task.phase`, gọi `task.markStarted()` và `task.status()`, nhưng không gọi `task.resetInternally()` vì private.
+**Another class in the same package** can call `new Task()`, read `task.phase`, and call `task.markStarted()` and `task.status()`, but cannot call `task.resetInternally()` because it is private.
 
-Package-private thường phù hợp cho mã **hỗ trợ nội bộ trong cùng package**. Tuy nhiên, gán trực tiếp trường package-private có thể bỏ qua kiểm tra bất biến trạng thái; không nên mở trường chỉ để “tiện” nếu getter/phương thức nghiệp vụ sẽ rõ ràng hơn.
+Package-private is often suitable for **internal helper code within the same package**. However, directly assigning a package-private field can bypass invariant checks; do not expose fields just for "convenience" when a getter or business method would be clearer.
 
-Khai báo access modifier cho constructor độc lập với các phương thức khác: `public class Type` có thể có constructor private hoặc package-private. Vì vậy nhìn thấy **lớp public** chưa chắc đã gọi được `new Type()` từ mọi package.
+Declaring an access modifier for a constructor is independent of other methods: a `public class Type` can have a `private` or package-private constructor. Therefore, seeing a **public class** does not automatically guarantee you can call `new Type()` from every package.
 
-## 6. Ví dụ một file: phân biệt public, private và trong gói
+## 6. Single-File Example: Distinguishing `public`, `private`, and Package Access
 
-Chương trình sau cố ý chứa một lớp top-level `public` và hai lớp top-level **không ghi modifier**, nên cả ba lớp ở **cùng một package**. Nó minh họa lớp khác gọi được method/field package-private nhưng không đọc được field private.
+The following program intentionally includes one `public` top-level class and two top-level classes **with no modifier**, so all three classes are in **the same package**. It demonstrates that another class can call package-private methods/fields, yet cannot read `private` fields.
 
-Tạo file **AccessLevelsDemo.java**:
+Create file **AccessLevelsDemo.java**:
 
 ~~~java
 public final class AccessLevelsDemo {
@@ -179,18 +179,18 @@ public final class AccessLevelsDemo {
                 + account.sameInternalId(other));
         System.out.println("sameReference=" + (account == other));
 
-        account.category = "VIP"; // Được phép vì cùng package.
+        account.category = "VIP"; // Allowed because same package.
         System.out.println("afterPackageField=" + account.summary());
         System.out.println("readerSummary="
                 + SamePackageReader.readSummary(account));
 
-        // KHÔNG BIÊN DỊCH nếu bỏ comment:
+        // DOES NOT COMPILE if uncommented:
         // System.out.println(account.internalId); // private.
         // account.privateTag();                    // private.
     }
 }
 
-// Top-level class package-private: không ghi public/private.
+// Package-private top-level class: neither public nor private written.
 final class Account {
     private final String name;
     private int balance;
@@ -231,12 +231,12 @@ final class Account {
     }
 
     String privateInfoThroughClass() {
-        return privateTag(); // Chính lớp này được gọi private.
+        return privateTag(); // This class itself can call private.
     }
 
     public boolean sameInternalId(Account other) {
-        // Trong lớp Account có thể đọc private field
-        // của một đối tượng Account KHÁC.
+        // Inside the Account class, it can read a private field
+        // of ANOTHER Account object.
         return internalId.equals(other.internalId);
     }
 
@@ -245,7 +245,7 @@ final class Account {
     }
 }
 
-// Lớp thứ ba cùng package, truy cập được thành viên package-private.
+// Third class in the same package, can access package-private members.
 final class SamePackageReader {
     static String readCode(Account account) {
         return account.internalCode();
@@ -257,14 +257,14 @@ final class SamePackageReader {
 }
 ~~~
 
-Biên dịch và chạy trong thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Compile and run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 AccessLevelsDemo.java
 java AccessLevelsDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 initial=Lan:100:BASIC
@@ -281,11 +281,11 @@ afterPackageField=Lan:130:VIP
 readerSummary=Lan:130:VIP
 ~~~
 
-**Quan sát:** `SamePackageReader` gọi được `Account.internalCode()` vì các top-level classes nằm trong cùng package, dù là lớp khác. `internalId` và `privateTag()` vẫn không thể truy cập trực tiếp từ `AccessLevelsDemo` vì `private`. Bên trong chính `Account`, phương thức `sameInternalId` được đọc private field của **đối tượng `Account` khác**; private giới hạn mã truy cập theo lớp, **không** chỉ cho riêng `this`.
+**Observation:** `SamePackageReader` can call `Account.internalCode()` because the top-level classes are in the same package, even though they are different classes. `internalId` and `privateTag()` remain inaccessible directly from `AccessLevelsDemo` because they are `private`. Inside `Account` itself, `sameInternalId` can read the private field of **another `Account` object**; `private` restricts access by class, **not** only to `this`.
 
-## 7. Qua hai package: điều gì còn truy cập được?
+## 7. Across Two Packages: What Remains Accessible?
 
-Khi đi sang package khác, điều kiện truy cập trở nên rõ hơn. Có thể thử hai file độc lập như sau.
+When moving to another package, access conditions become clearer. You can test two standalone files as follows.
 
 **File `src/school/model/Student.java`:**
 
@@ -314,51 +314,51 @@ public final class Main {
         Student student = new Student();
         System.out.println("outside=" + student.score());
 
-        // KHÔNG BIÊN DỊCH nếu bỏ comment:
+        // DOES NOT COMPILE if uncommented:
         // System.out.println(student.score); // private.
         // System.out.println(student.note);  // package-private.
     }
 }
 ~~~
 
-Biên dịch và chạy tại thư mục chứa `src`:
+Compile and run in the directory containing `src`:
 
 ~~~bash
 javac -encoding UTF-8 -d out src/school/model/Student.java src/school/app/Main.java
 java -cp out school.app.Main
 ~~~
 
-**Expected stdout:**
+**Exact expected stdout:**
 
 ~~~text
 outside=8
 ~~~
 
-`import school.model.Student;` làm tên lớp dễ dùng hơn nhưng không cho phép truy cập `note` hoặc `score` trực tiếp. Gọi `student.score()` hợp lệ vì **cả lớp `Student` và phương thức `score()` đều public**. Nếu đổi `public final class Student` thành `final class Student`, class trở thành package-private và `Main` ở package khác không thể sử dụng kiểu này trực tiếp.
+`import school.model.Student;` makes the class name easier to use, but does not allow accessing `note` or `score` directly. Calling `student.score()` is valid because **both the `Student` class and the `score()` method are public**. If you change `public final class Student` to `final class Student`, the class becomes package-private and `Main` in another package can no longer use this type directly.
 
-## 8. Phân biệt lỗi truy cập với các lỗi khác
+## 8. Distinguishing Access Errors from Other Errors
 
-| Tình huống | Nguyên nhân chính | Cách xử lý |
+| Situation | Main cause | How to handle |
 | --- | --- | --- |
-| `account.internalId` từ top-level class khác | Field `private` | Dùng API hợp lệ hoặc đưa logic vào lớp sở hữu |
-| `student.note` từ `school.app` | Field package-private, khác package | Cân nhắc public API; không lách quyền bằng `import` |
-| `new HiddenType()` từ package khác | Top-level class package-private | Thiết kế kiểu public cần thiết hoặc giữ mã trong package |
-| `new PublicType()` không hợp lệ vì constructor ẩn | Class public nhưng constructor không public | Dùng factory hợp lệ hoặc điều chỉnh API |
-| `obj.method()` không truy cập được | Method private/package-private hoặc lớp khai báo không nhìn thấy | Kiểm tra cả class và method |
-| `obj == null` rồi gọi instance method | `NullPointerException` lúc chạy; không phải access modifier | Tạo đối tượng/kiểm tra null |
-| `private class X` ở cấp top-level | Modifier private không hợp lệ cho top-level class | Bỏ modifier hoặc biến thành nested class |
-| `cannot find symbol` tên class | Có thể thiếu import, classpath hoặc tên | Kiểm tra tên/package trước khi kết luận lỗi access |
+| `account.internalId` from another top-level class | `private` field | Use a valid API or move logic into the owning class |
+| `student.note` from `school.app` | Package-private field, different package | Consider a public API; do not bypass access with `import` |
+| `new HiddenType()` from another package | Package-private top-level class | Design a needed public type or keep code inside the package |
+| `new PublicType()` invalid due to hidden constructor | Public class, non-public constructor | Use a valid factory or adjust the API |
+| `obj.method()` inaccessible | Private/package-private method or declaring class not visible | Check both the class and the method |
+| `obj == null` then calling an instance method | `NullPointerException` at runtime; not an access modifier issue | Create an object / check for null |
+| `private class X` at top level | `private` modifier invalid on a top-level class | Remove the modifier or make it a nested class |
+| `cannot find symbol` for class name | Could be missing import, classpath, or typo | Verify name/package before concluding it is an access error |
 
-Một API nhỏ, rõ ràng thường dùng **field private** và **method public cần thiết**, còn package-private dành cho thành viên thực sự chỉ sử dụng nội bộ cùng package. Tránh đặt mọi field public chỉ để làm ví dụ chạy nhanh.
+A small, clear API typically uses **`private` fields** and **necessary `public` methods**, reserving package-private for members genuinely used only internally within the same package. Avoid making all fields public just for quick example code.
 
-### Bài tập tự kiểm tra
+### Self-Check Exercises
 
-1. Trong cùng package, tạo hai file `Book.java` và `BookDemo.java`. Cho `Book` có field package-private và field private; thử truy cập cả hai từ `BookDemo`.
-2. Tách `BookDemo` sang package khác, thay `Book` thành `public class Book`. Những truy cập nào không còn biên dịch?
-3. Định nghĩa class top-level không modifier nhưng có một phương thức public. Vì sao mã khác package vẫn không thể dùng class đó trực tiếp?
-4. Viết constructor package-private và một static factory public trong lớp public. Khi nào mã khác package phải dùng factory?
-5. Giải thích vì sao phương thức của `Account` có thể đọc `other.internalId` trong khi `SamePackageReader` không thể đọc cùng field.
+1. In the same package, create two files `Book.java` and `BookDemo.java`. Give `Book` a package-private field and a private field; try accessing both from `BookDemo`.
+2. Move `BookDemo` to another package and change `Book` to `public class Book`. Which accesses no longer compile?
+3. Define a top-level class with no modifier that has a `public` method. Why can code in another package still not use that class directly?
+4. Write a package-private constructor and a `public static` factory in a `public` class. When must code in another package use the factory?
+5. Explain why a method of `Account` can read `other.internalId` while `SamePackageReader` cannot read the same field.
 
-### Ghi nhớ
+### Takeaways
 
-**`public` mở truy cập theo API; `private` giữ thành viên trong phạm vi lớp/nested structure phù hợp; bỏ access modifier nghĩa là package-private — chỉ cùng package.** Quyền truy cập cần xét **cả kiểu khai báo và thành viên**. Cùng package không bắt buộc cùng file; package con vẫn là package khác; `import` không vượt qua access control. Hãy ưu tiên đóng gói trường private và cung cấp phương thức công khai có chủ đích.
+**`public` opens access per the API; `private` keeps members within the declaring class/appropriate nested structure; omitting the access modifier means package-private — same package only.** Access checks consider **both the declaring type and the member**. Same package does not require same file; a subpackage is still a different package; `import` does not bypass access control. Prefer encapsulating `private` fields and providing intentional public methods.

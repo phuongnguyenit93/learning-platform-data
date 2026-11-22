@@ -1,36 +1,36 @@
-# MessageFormat: đối số thiếu, giá trị null, parse và giới hạn đảo ngược thông điệp
+# MessageFormat: Missing Arguments, Null Values, Parsing, and Message Reversibility Limits
 
-## Mục tiêu
+## Objectives
 
-`java.text.MessageFormat` giúp tạo thông điệp có các đối số đánh số như `{0}`, `{1}` và các tùy chọn định dạng số, ngày, giờ hoặc lựa chọn. Khi trình bày thông điệp cho người dùng, điều dễ bỏ sót là **đầu vào bị thiếu hoặc là null không nhất thiết gây exception**, còn `parse(...)` không phải thao tác đảo ngược đáng tin cậy của `format(...)`.
+`java.text.MessageFormat` builds messages with numbered arguments like `{0}`, `{1}` and options for formatting numbers, dates, times, or choices. When displaying messages to users, it is easy to overlook that **missing or null inputs do not necessarily throw an exception**, and `parse(...)` is not a reliable inverse of `format(...)`.
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-- Phân biệt **không có phần tử đối số** và **phần tử có mặt nhưng bằng `null`** trong `Object[]`.
-- Dự đoán kết quả của `MessageFormat` khi placeholder trỏ đến index vượt quá số đối số được cung cấp.
-- Hiểu cách `MessageFormat.parse(...)` dùng pattern để nhận lại một mảng `Object[]` và lúc nào nó thất bại.
-- Kiểm tra `ParsePosition`, phân biệt parse thành công với parse hết toàn bộ chuỗi.
-- Giải thích những trường hợp không thể khôi phục chính xác đầu vào: placeholder lặp, phép làm tròn, `choice`, nội dung nhập có dấu phân cách, đối số không được nhắc trong pattern.
-- Thiết kế xử lý lỗi và kiểm thử cho bản địa hóa mà không phụ thuộc giả định `parse(format(args)) == args`.
+- Distinguish between **a missing argument element** and **an element that is present but `null`** in `Object[]`.
+- Predict `MessageFormat` output when a placeholder points to an index beyond the supplied arguments.
+- Understand how `MessageFormat.parse(...)` uses a pattern to extract an `Object[]` array and when it fails.
+- Inspect `ParsePosition` and distinguish partial parse success from consuming the entire string.
+- Explain cases where exact input recovery is impossible: repeated placeholders, rounding, `choice`, delimiter-containing inputs, and arguments unreferenced in the pattern.
+- Design error handling and testing for localization without assuming `parse(format(args)) == args`.
 
-Bài tập trung vào **hành vi biên của MessageFormat trong Java 17+**. Các cơ chế chọn `Locale`, dịch bản gốc và quản lý `ResourceBundle` chỉ được đề cập tại nơi chúng ảnh hưởng đến tính đúng đắn của pattern.
+This lesson focuses on **edge-case behavior of MessageFormat in Java 17+**. Mechanisms for selecting `Locale`, translating source text, and managing `ResourceBundle` are mentioned only where they affect pattern correctness.
 
-## 1. MessageFormat làm gì với đối số?
+## 1. What Does MessageFormat Do with Arguments?
 
-Một mẫu thông điệp:
+A message pattern:
 
 ```text
 Hello {0}! Your order {1} is ready.
 ```
 
-Các thành phần:
+Components:
 
-- Phần văn bản tĩnh `Hello` và `Your order ... is ready.` được chép ra kết quả theo pattern.
-- `{0}` lấy đối số ở vị trí **0** trong mảng đối số.
-- `{1}` lấy đối số ở vị trí **1**.
-- Phần tử mở rộng như `{2,number,integer}` hoặc `{3,date,short}` yêu cầu bộ định dạng tương ứng.
+- Static text `Hello` and `Your order ... is ready.` is copied to the output per the pattern.
+- `{0}` reads the argument at index **0** in the argument array.
+- `{1}` reads the argument at index **1**.
+- Extended elements like `{2,number,integer}` or `{3,date,short}` invoke the corresponding formatter.
 
-Ví dụ:
+Example:
 
 ```java
 MessageFormat mf = new MessageFormat(
@@ -40,19 +40,19 @@ MessageFormat mf = new MessageFormat(
 String text = mf.format(new Object[] {"Ana", "A-42"});
 ```
 
-Đây là đoạn minh họa trong phương thức với `import java.text.MessageFormat;` và `import java.util.Locale;`. Giá trị `text` là:
+This is an in-method illustrative snippet with `import java.text.MessageFormat;` and `import java.util.Locale;`. The value of `text` is:
 
 ```text
 Hello Ana! Your order A-42 is ready.
 ```
 
-Các index trong pattern không phải tên biến. Chúng chỉ vị trí trong mảng `Object[]` được cung cấp khi `format`. Pattern có thể đảo thứ tự hiển thị: `{1}` có thể xuất hiện trước `{0}`; điều này hữu ích cho ngữ pháp của các ngôn ngữ.
+Indices in a pattern are not variable names. They specify positions in the `Object[]` array supplied to `format`. Patterns can reverse display order: `{1}` can appear before `{0}`; this is helpful for language grammar.
 
-**Hợp đồng của MessageFormat là trình bày chuỗi theo pattern**, không phải đảm bảo chuỗi kết quả có thể được phân tích để khôi phục dữ liệu ban đầu.
+**MessageFormat's contract is to render a string according to a pattern**, not to guarantee that the resulting string can be parsed back to recover the original data.
 
-## 2. Đối số thiếu: giữ nguyên dấu {n}, không tự ném lỗi
+## 2. Missing Arguments: Keeps `{n}` Intact Without Throwing
 
-Giả sử pattern tham chiếu đến `{0}` và `{1}`, nhưng mã gọi chỉ truyền một phần tử:
+Suppose a pattern references `{0}` and `{1}`, yet the caller passes only one element:
 
 ```java
 MessageFormat mf = new MessageFormat(
@@ -61,17 +61,17 @@ MessageFormat mf = new MessageFormat(
 System.out.println(mf.format(new Object[] {"Ana"}));
 ```
 
-Kết quả:
+Output:
 
 ```text
 Hello Ana! State={1}.
 ```
 
-`{1}` **không được thay thế** vì mảng không có phần tử index 1. Theo hợp đồng Java 17 của `MessageFormat`, nếu đối số không có sẵn (mảng `null` hoặc không đủ phần tử), phần định dạng tương ứng được phát ra như `{argumentIndex}`.
+`{1}` is **not substituted** because the array has no element at index 1. Under the Java 17 `MessageFormat` contract, if an argument is unavailable (the array is `null` or lacks enough elements), the corresponding format element is emitted as `{argumentIndex}`.
 
-Các trường hợp đáng phân biệt:
+Cases worth distinguishing:
 
-| Mảng truyền vào | Kết quả với pattern `Hello {0}! State={1}.` |
+| Array passed | Output with pattern `Hello {0}! State={1}.` |
 | --- | --- |
 | `new Object[] {"Ana", "ready"}` | `Hello Ana! State=ready.` |
 | `new Object[] {"Ana"}` | `Hello Ana! State={1}.` |
@@ -79,17 +79,17 @@ Các trường hợp đáng phân biệt:
 | `new Object[] {"Ana", null}` | `Hello Ana! State=null.` |
 | `new Object[] {null, "ready"}` | `Hello null! State=ready.` |
 
-**Không nhầm với `String.format` hoặc `Formatter`.** Các API dùng cú pháp format khác (ví dụ `%s`) và có hợp đồng riêng đối với thiếu đối số. Với `MessageFormat`, placeholder thiếu trong trường hợp trên còn nguyên dưới dạng `{n}`; không tự suy rằng nó sẽ ném `MissingFormatArgumentException`.
+**Do not confuse this with `String.format` or `Formatter`.** Those APIs use different format syntax (such as `%s`) and have their own contract for missing arguments. With `MessageFormat`, missing placeholders in the cases above remain as `{n}`; do not assume it will throw `MissingFormatArgumentException`.
 
-Hệ quả:
+Implications:
 
-1. Nếu một màn hình bất ngờ hiển thị `{1}`, cần kiểm tra mảng đối số và pattern đã được dịch.
-2. Đừng hiểu việc `format(...)` chạy thành công là bằng chứng ứng dụng đã cung cấp đủ dữ liệu.
-3. Đừng coi chuỗi `{1}` xuất hiện là phương pháp kiểm tra thiếu đối số duy nhất: văn bản tĩnh cũng có thể chứa ký tự tương tự nếu pattern có escape hợp lệ.
+1. If a screen unexpectedly displays `{1}`, inspect both the argument array and the translated pattern.
+2. Do not treat `format(...)` completing without error as proof that the application supplied all required data.
+3. Do not treat the appearance of `{1}` as the sole check for missing arguments: static text can also contain similar characters if the pattern has valid escaping.
 
-### Phát hiện thiếu đối số trước khi format
+### Detecting Missing Arguments Before Formatting
 
-Khi hợp đồng nội dung cố định, cách rõ ràng là kiểm tra số lượng và kiểu đầu vào ở API nghiệp vụ:
+When the content contract is fixed, the clearest approach is to validate input count and types at the business API:
 
 ```java
 static String orderNotice(String customer, String orderId, Locale locale) {
@@ -103,15 +103,15 @@ static String orderNotice(String customer, String orderId, Locale locale) {
 }
 ```
 
-Đây là **phương thức minh họa**, đặt trong một lớp có import `MessageFormat` và `Locale`. Kiểm tra đầu vào dựa trên ý nghĩa nghiệp vụ, không phải dựa vào việc MessageFormat có ném exception hay không.
+This is an **illustrative method**, placed in a class importing `MessageFormat` and `Locale`. Validate inputs based on business semantics, not on whether `MessageFormat` throws an exception.
 
-Với pattern nhận từ `ResourceBundle` và có khả năng được người dịch thay đổi thứ tự các index, không nên đếm “có hai dấu ngoặc” bằng regex đơn giản. Pattern có escape, định dạng lồng (đặc biệt với `choice`) và index lặp. Hãy định nghĩa **hợp đồng các tham số** độc lập, dùng parser/kiểm tra pattern thích hợp và test ở từng locale.
+With patterns loaded from `ResourceBundle` where translators can reorder indices, do not count "whether two brace pairs exist" with simple regex. Patterns support escaping, nested formats (especially with `choice`), and repeated indices. Define an independent **parameter contract**, use an appropriate pattern parser/validator, and test each locale.
 
-## 3. Đối số null: một trường hợp khác với thiếu đối số
+## 3. Null Arguments: A Different Case from Missing Arguments
 
-`new Object[] {"Ana"}` không có phần tử index 1. Ngược lại, `new Object[] {"Ana", null}` có đủ hai phần tử nhưng **giá trị ở index 1 là `null`**.
+`new Object[] {"Ana"}` has no element at index 1. By contrast, `new Object[] {"Ana", null}` has two elements, with **the value at index 1 being `null`**.
 
-Theo quy tắc `MessageFormat.format`, một đối số có mặt nhưng bằng `null` được biểu diễn bằng chuỗi ký tự `"null"`.
+By `MessageFormat.format` rules, an argument that is present and `null` is rendered as the string `"null"`.
 
 ```java
 MessageFormat mf = new MessageFormat(
@@ -127,16 +127,16 @@ Stdout:
 Item=null; Quantity=null
 ```
 
-Trước khi áp dụng một subformat cụ thể như `number`, `MessageFormat` đã xử lý đối số `null` thành văn bản `null`. Do đó trường hợp null ở `{1,number,integer}` trong ví dụ không tự động tạo số 0 hay buộc ném lỗi kiểu dữ liệu.
+Before applying a specific subformat such as `number`, `MessageFormat` converts a `null` argument into the text `null`. Thus a `null` at `{1,number,integer}` in this example does not automatically produce `0` or force a type error.
 
-Điều này có nhiều hệ quả:
+This has several implications:
 
-- `null` không có nghĩa “dùng chuỗi rỗng”.
-- `null` không có nghĩa “không hiển thị phần tử thông điệp”.
-- `null` không có nghĩa “lấy giá trị mặc định từ ResourceBundle”.
-- Chuỗi `"null"` xuất hiện trong thông điệp là dấu hiệu cần điều tra dữ liệu, **không phải thông báo thân thiện để hiển thị cho người dùng**.
+- `null` does not mean "use an empty string".
+- `null` does not mean "omit this message element".
+- `null` does not mean "fall back to a default value from ResourceBundle".
+- The string `"null"` appearing in a message is a sign to investigate data, **not a user-friendly message to display**.
 
-Nếu nghiệp vụ yêu cầu thông báo khác khi dữ liệu thiếu, hãy lựa chọn có chủ đích ở tầng ứng dụng:
+If the domain requires a different message when data is absent, choose explicitly at the application layer:
 
 ```java
 String nameToShow = (name == null || name.isBlank())
@@ -148,11 +148,11 @@ String text = new MessageFormat(
         .format(new Object[] {nameToShow});
 ```
 
-Đây là đoạn minh họa bên trong phương thức, đã khai báo biến `name` kiểu `String`. Với ứng dụng đa ngôn ngữ, từ `guest` nên được cung cấp từ tài nguyên bản địa hóa hoặc dùng pattern thông điệp riêng, không nên gắn cứng tiếng Anh vào code production.
+This is an illustrative snippet inside a method, where `name` is declared as a `String`. In a multilingual application, the word `guest` should come from localized resources or use a separate message pattern rather than hardcoding English in production code.
 
-### null và chuỗi "null" không thể phân biệt ở đầu ra
+### `null` and the String `"null"` Are Indistinguishable in Output
 
-So sánh:
+Compare:
 
 ```java
 MessageFormat mf = new MessageFormat("{0}", Locale.US);
@@ -160,23 +160,23 @@ String fromNull = mf.format(new Object[] {null});
 String fromText = mf.format(new Object[] {"null"});
 ```
 
-Hai chuỗi kết quả đều là `"null"`. Thông tin “đây là null hay chuỗi gốc có bốn chữ n-u-l-l” đã bị mất. Ngay cả khi có parser, không có cách suy ngược chắc chắn từ đầu ra này để nhận lại đối tượng ban đầu.
+Both resulting strings are `"null"`. Information about "whether this was `null` or an original four-letter string n-u-l-l" has been lost. Even with a parser, there is no reliable way to work backward from this output to recover the original object.
 
-Đây là một ví dụ đơn giản cho thấy format không nhất thiết là phép biến đổi một-một.
+This is a simple example showing that formatting is not necessarily a one-to-one mapping.
 
-## 4. parse(String) và parse(String, ParsePosition) khác nhau thế nào?
+## 4. How Do `parse(String)` and `parse(String, ParsePosition)` Differ?
 
-`MessageFormat` có khả năng **parse**: phân tích một chuỗi dựa trên các phần văn bản tĩnh và format element trong pattern để trả về mảng `Object[]`.
+`MessageFormat` supports **parsing**: analyzing a string against the static text segments and format elements in a pattern to return an `Object[]`.
 
-Hai API chính:
+Three related APIs:
 
-| API | Khi thành công | Khi thất bại |
+| API | On success | On failure |
 | --- | --- | --- |
-| `parse(String source)` | Trả `Object[]` lấy từ phần đầu chuỗi được parse | Ném `ParseException` nếu không parse được từ đầu vào |
-| `parse(String source, ParsePosition pos)` | Trả `Object[]` và cập nhật `pos.getIndex()` | Trả `null`, cập nhật `pos.getErrorIndex()`; vị trí hiện tại không được tiến qua đoạn lỗi |
-| `parseObject(String, ParsePosition)` | Cũng parse ra một `Object[]` nhưng kiểu trả về là `Object` theo hợp đồng `Format` | Trả `null` khi parse thất bại |
+| `parse(String source)` | Returns `Object[]` parsed from the beginning of the string | Throws `ParseException` if unable to parse from the start of input |
+| `parse(String source, ParsePosition pos)` | Returns `Object[]` and advances `pos.getIndex()` | Returns `null`, sets `pos.getErrorIndex()`; current index does not advance past the error |
+| `parseObject(String, ParsePosition)` | Also parses into an `Object[]`, with return type `Object` per `Format` contract | Returns `null` when parsing fails |
 
-Ví dụ đơn giản:
+Simple example:
 
 ```java
 MessageFormat fmt = new MessageFormat(
@@ -186,13 +186,13 @@ Object[] values = fmt.parse("ID=42;");
 System.out.println(values[0]);
 ```
 
-Đây là đoạn minh họa trong một phương thức khai báo hoặc xử lý `ParseException`, đã import `MessageFormat`, `ParseException` và `Locale`. Stdout là `42` (một `String` vì placeholder `{0}` không chỉ định subformat).
+This is an illustrative snippet inside a method declaring or handling `ParseException`, importing `MessageFormat`, `ParseException`, and `Locale`. Stdout is `42` (a `String` because `{0}` specifies no subformat).
 
-Nếu pattern dùng `{0,number}`, kết quả parse có thể là đối tượng kiểu `Number` do bộ định dạng số xác định; đừng ép kiểu thành `String` trong mọi trường hợp.
+If the pattern uses `{0,number}`, the parsed result may be a `Number` object determined by the numeric formatter; do not cast unconditionally to `String`.
 
-### parse có thể chỉ tiêu thụ tiền tố
+### `parse` May Consume Only a Prefix
 
-Đối với `ParsePosition`:
+With `ParsePosition`:
 
 ```java
 MessageFormat fmt = new MessageFormat("ID={0};", Locale.US);
@@ -205,7 +205,7 @@ System.out.println(pos.getIndex());
 System.out.println(input.length());
 ```
 
-Đây là đoạn minh họa trong một phương thức, với import `java.text.ParsePosition` và các loại tương ứng. Stdout:
+This is an illustrative snippet inside a method importing `java.text.ParsePosition` and related types. Stdout:
 
 ```text
 42
@@ -213,9 +213,9 @@ System.out.println(input.length());
 10
 ```
 
-Parser khớp phần `ID=42;` (6 ký tự) và **chưa tiêu thụ** `tail`. `parse(String)` cũng **không cam kết** tiêu thụ toàn bộ đầu vào: nó chỉ cố phân tích từ đầu chuỗi.
+The parser matches `ID=42;` (6 characters) and **leaves `tail` unconsumed**. `parse(String)` likewise **does not promise** to consume the entire input: it only parses starting from the beginning of the string.
 
-Nếu ứng dụng yêu cầu toàn bộ input phải khớp, hãy dùng `ParsePosition` rồi kiểm tra:
+If the application requires the entire input to match, use `ParsePosition` and check:
 
 ```java
 ParsePosition pos = new ParsePosition(0);
@@ -223,11 +223,11 @@ Object[] parsed = fmt.parse(input, pos);
 boolean complete = parsed != null && pos.getIndex() == input.length();
 ```
 
-Đây chỉ là một **điều kiện cần cho việc parse trọn chuỗi**, không đảm bảo dữ liệu khôi phục chính xác đối số gốc; các trường hợp mất thông tin sẽ được trình bày bên dưới.
+This is only a **necessary condition for full-string parsing**, not a guarantee that the original arguments are faithfully recovered; information-loss cases are covered below.
 
-### Khi parse thất bại
+### When Parsing Fails
 
-Giả sử pattern `"ID={0};"` nhưng input `"BAD=42;"`. Phần đầu không khớp `ID=`, nên:
+Suppose the pattern is `"ID={0};"` and the input is `"BAD=42;"`. The prefix does not match `ID=`, so:
 
 ```java
 ParsePosition pos = new ParsePosition(0);
@@ -238,7 +238,7 @@ System.out.println(pos.getIndex());
 System.out.println(pos.getErrorIndex());
 ```
 
-Với `fmt` đã tạo ở ví dụ trên, kết quả là:
+With `fmt` created above, the output is:
 
 ```text
 true
@@ -246,19 +246,19 @@ true
 0
 ```
 
-`getErrorIndex()` cho biết vị trí mà parser phát hiện lỗi (ở đây là ký tự đầu tiên). Khi dùng các subformat phức tạp, chỉ số lỗi không phải báo cáo ngữ nghĩa hoàn chỉnh: nó hỗ trợ chẩn đoán, không thay thế thông báo lỗi do ứng dụng định nghĩa.
+`getErrorIndex()` indicates the position where the parser detected the error (here, the first character). When using complex subformats, the error index is not a complete semantic diagnostic: it aids troubleshooting, rather than replacing application-defined error messages.
 
-Nếu dùng `parse(String)` thay vì overload có `ParsePosition`, cùng trường hợp này sẽ ném `ParseException`. Hãy bắt lỗi và báo lý do phù hợp khi xử lý đầu vào thực.
+If you use `parse(String)` instead of the `ParsePosition` overload, this same case throws `ParseException`. Catch the error and report an appropriate reason when handling real inputs.
 
-## 5. Vì sao parse không phải phép đảo ngược đáng tin của format?
+## 5. Why `parse` Is Not a Reliable Inverse of `format`
 
-Một phép biến đổi được gọi là đảo ngược hoàn toàn nếu từ kết quả cuối có thể xác định duy nhất đầu vào ban đầu. `MessageFormat` không đảm bảo tính chất này vì nó dành cho **hiển thị thông điệp**, còn các format element có thể rút gọn hoặc kết hợp nhiều giá trị thành cùng một chuỗi.
+A transformation is fully invertible only if the original input can be uniquely determined from the final output. `MessageFormat` does not guarantee this property because it is designed for **message display**, and format elements can truncate or collapse multiple values into the same string.
 
-Có năm nhóm vấn đề quan trọng.
+There are five important categories of issues.
 
-### 5.1. Phần tử không xuất hiện trong pattern bị mất
+### 5.1. Elements Absent from the Pattern Are Lost
 
-Giả sử mảng gốc có ba phần tử:
+Suppose the original array has three elements:
 
 ```java
 Object[] args = {"Ana", "A-42", "hidden"};
@@ -267,13 +267,13 @@ MessageFormat mf = new MessageFormat(
 String result = mf.format(args);
 ```
 
-Không có `{2}` trong pattern, nên `hidden` không xuất hiện trong output. Parser không thể tái tạo phần tử đó từ chuỗi. **Mọi phần tử không được biểu diễn đều bị mất thông tin**.
+There is no `{2}` in the pattern, so `hidden` never appears in the output. The parser cannot reconstruct that element from the string. **Every unrepresented element loses its information.**
 
-Tương tự, có thể có hai mảng khác nhau cùng tạo một thông điệp vì một số đối số không được sử dụng.
+Likewise, two distinct arrays can produce the exact same message because some arguments are unused.
 
-### 5.2. Một đối số xuất hiện nhiều lần: kết quả parse cuối ghi đè
+### 5.2. An Argument Appearing Multiple Times: Last Parse Wins
 
-Pattern có thể tái sử dụng `{0}` nhiều lần:
+A pattern can reuse `{0}` multiple times:
 
 ```java
 MessageFormat repeated = new MessageFormat("{0}|{0}", Locale.US);
@@ -281,31 +281,31 @@ Object[] parsed = repeated.parse("A|B");
 System.out.println(Arrays.toString(parsed));
 ```
 
-Đây là đoạn minh họa trong một phương thức có import `java.util.Arrays`, với xử lý hoặc khai báo `ParseException`. Stdout:
+This is an illustrative snippet inside a method importing `java.util.Arrays`, handling or declaring `ParseException`. Stdout:
 
 ```text
 [B]
 ```
 
-Cùng index `{0}` được parse hai lần; **lần khớp sau có giá trị cuối cùng**. Parser không kiểm chứng rằng `A` và `B` là cùng một giá trị. Đây cũng không phải quy tắc validate dữ liệu lặp; cần kiểm tra riêng nếu văn bản đầu vào yêu cầu hai vị trí giống nhau.
+The same index `{0}` is parsed twice; **the later match supplies the final value**. The parser does not verify that `A` and `B` are equal. Nor is this a validation rule for repeated data; check consistency explicitly if the input requires both positions to match.
 
-Các format element cùng index nhưng dùng định dạng khác nhau càng dễ làm mất dữ liệu; chỉ một phần của kết quả được trả về theo index.
+Format elements sharing the same index with different formats lose data even more easily; only one parsed result is returned per index.
 
-### 5.3. Dấu phân cách nằm trong dữ liệu gây nhập nhằng
+### 5.3. Delimiters Inside Data Cause Ambiguity
 
-Với pattern:
+Given the pattern:
 
 ```text
 {0},{1}
 ```
 
-Nếu `args[0]` là `"a,b"` và `args[1]` là `"c"`, kết quả format là:
+If `args[0]` is `"a,b"` and `args[1]` is `"c"`, the formatted output is:
 
 ```text
 a,b,c
 ```
 
-Nhưng khi parse, dấu phẩy đầu tiên có thể được hiểu là dấu phân tách của pattern:
+When parsing back, however, the first comma can be interpreted as the pattern's delimiter:
 
 ```java
 MessageFormat mf = new MessageFormat("{0},{1}", Locale.US);
@@ -316,28 +316,28 @@ System.out.println(rendered);
 System.out.println(restored[0] + "|" + restored[1]);
 ```
 
-Kết quả:
+Output:
 
 ```text
 a,b,c
 a|b,c
 ```
 
-Đối số gốc là `["a,b", "c"]`, nhưng parse trả `["a", "b,c"]`. Cả hai cách tách đều có thể dẫn tới cùng thông điệp hiển thị. Không thể xác định cách tách mong muốn khi dấu phân cách cũng được phép trong dữ liệu mà không có cơ chế escape/độ dài rõ ràng.
+The original arguments were `["a,b", "c"]`, yet parsing returns `["a", "b,c"]`. Both splits produce the exact same rendered message. It is impossible to determine the intended split when delimiters are permitted inside values without an explicit escaping or length-prefixing scheme.
 
-Nếu ứng dụng cần truyền dữ liệu có cấu trúc, hãy dùng JSON hoặc một định dạng dữ liệu có hợp đồng parse rõ ràng; đừng dùng thông điệp bản địa hóa làm protocol.
+If the application needs to transmit structured data, use JSON or a data format with a clear parsing contract; never use localized messages as a protocol.
 
-### 5.4. Subformat làm mất độ chính xác hoặc danh tính kiểu
+### 5.4. Subformats Lose Precision or Type Identity
 
-`{0,number,integer}` có thể tạo chuỗi số đã làm tròn hoặc bỏ chi tiết phần thập phân; `{0,number,#.##}` có thể bỏ các chữ số sau dấu thập phân thứ hai. `{0,date,short}` có thể không giữ giờ/phút/giây và thông tin múi giờ gốc.
+`{0,number,integer}` can produce a rounded number or discard fractional digits; `{0,number,#.##}` can drop digits past the second decimal place. `{0,date,short}` can omit hours, minutes, seconds, and original time zone information.
 
-Ví dụ, hai số `3.141` và `3.142` khi định dạng theo pattern giới hạn một chữ số thập phân đều có thể thành `3.1`. Phân tích `3.1` không thể biết số nào là đầu vào ban đầu.
+For example, formatting both `3.141` and `3.142` with a pattern limited to one decimal place yields `3.1`. Parsing `3.1` cannot tell which number was the original input.
 
-`MessageFormat` có thể gọi các subformat trả `Number` hoặc `Date` khi parse. Nhưng **cùng giá trị hiển thị không có nghĩa cùng kiểu dữ liệu hoặc cùng độ chính xác**. Đừng tự giả định đối tượng trả về có chính xác kiểu Java gốc (`BigDecimal`, `Integer`, `Long`, v.v.).
+`MessageFormat` can delegate to subformats that return `Number` or `Date` when parsing. However, **identical displayed values do not imply identical Java types or precision**. Do not assume the returned object has the exact original Java type (`BigDecimal`, `Integer`, `Long`, etc.).
 
-### 5.5. ChoiceFormat gom nhiều giá trị thành một thông điệp
+### 5.5. ChoiceFormat Collapses Ranges of Values into One Message
 
-Một pattern `choice` có thể ánh xạ cả một khoảng giá trị sang một nhãn:
+A `choice` pattern can map an entire range of values to a single label:
 
 ```java
 MessageFormat choice = new MessageFormat(
@@ -352,20 +352,20 @@ System.out.println(text);
 System.out.println(parsed[0]);
 ```
 
-Đây là đoạn minh họa trong một phương thức với xử lý `ParseException`. Stdout:
+This is an illustrative snippet inside a method handling `ParseException`. Stdout:
 
 ```text
 many
 2.0
 ```
 
-Đầu vào `999` trở thành `many`, nhưng khi parse Java trả giá trị giới hạn gắn với nhánh đó (`2.0`), **không phải `999`**. Đây là mất thông tin có chủ đích của phép chọn thông điệp theo khoảng.
+Input `999` becomes `many`, yet when parsing, Java returns the threshold value bound to that branch (`2.0`), **not `999`**. This is intentional information loss from interval-based message selection.
 
-`ChoiceFormat` còn có trường hợp pattern lồng tham chiếu như `{0}`. Tài liệu `MessageFormat` cảnh báo parser không xử lý đầy đủ trường hợp đệ quy; không xây hợp đồng parse đối xứng dựa trên pattern choice lồng phức tạp.
+`ChoiceFormat` also has cases where subpatterns reference placeholders like `{0}`. The `MessageFormat` documentation warns that the parser does not fully handle recursive cases; do not build symmetric round-trip parsing contracts on complex nested `choice` patterns.
 
-## 6. null cũng gây giới hạn đảo ngược
+## 6. `null` Also Limits Reversibility
 
-Xét:
+Consider:
 
 ```java
 MessageFormat plain = new MessageFormat("{0}", Locale.US);
@@ -376,25 +376,25 @@ String b = plain.format(new Object[] {"null"});
 System.out.println(a.equals(b));
 ```
 
-Kết quả:
+Output:
 
 ```text
 true
 ```
 
-Khi gọi `plain.parse("null")`, với placeholder không có subformat, phần đối số nhận được là chuỗi `"null"`, không thể chứng minh đầu vào trước kia là tham chiếu `null`. Ngược lại, nếu pattern là `"{0,number,integer}"`, lệnh format đối số `null` vẫn có thể tạo văn bản `null`, nhưng parse thông điệp chữ `null` bằng subformat số có thể thất bại.
+Calling `plain.parse("null")` with an untyped placeholder yields the string `"null"`, which cannot prove the prior input was a `null` reference. Conversely, if the pattern is `"{0,number,integer}"`, formatting a `null` argument still produces the text `null`, while parsing the literal text `null` with a numeric subformat may fail.
 
-Nói cách khác:
+In other words:
 
-- **Hiển thị được** không đồng nghĩa **có thể parse về dạng ban đầu**.
-- **Parse được** không đồng nghĩa **giữ được nghĩa null**.
-- Pattern có kiểu vẫn không tạo bảo đảm round-trip hoàn hảo.
+- **Being formatable** does not mean **parseable back to the original form**.
+- **Being parseable** does not mean **preserving `null` semantics**.
+- Even typed patterns provide no perfect round-trip guarantee.
 
-Đối với dữ liệu đầu vào có trạng thái “chưa biết”, “không cung cấp” hay “không áp dụng”, hãy lưu trạng thái đó trong model (ví dụ `Optional` hoặc field trạng thái riêng) và chọn câu thông báo tương ứng. Đừng yêu cầu người dùng hoặc hệ thống khác suy ra trạng thái từ chữ `null` trong UI.
+For input data with states such as "unknown", "not provided", or "not applicable", model that state explicitly (e.g., `Optional` or a dedicated status field) and select the corresponding sentence pattern. Never ask users or other systems to infer state from the word `null` in the UI.
 
-## 7. Ví dụ tổng hợp Java 17+: quan sát các trường hợp biên
+## 7. Comprehensive Java 17+ Example: Observing Edge Cases
 
-Tạo tệp `MessageFormatEdgeDemo.java`:
+Create the file `MessageFormatEdgeDemo.java`:
 
 ```java
 import java.text.MessageFormat;
@@ -444,14 +444,14 @@ public class MessageFormatEdgeDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 MessageFormatEdgeDemo.java
 java MessageFormatEdgeDemo
 ```
 
-Stdout xác định với pattern và `Locale.US` nêu trên:
+Deterministic stdout with the patterns and `Locale.US` above:
 
 ```text
 Hello Ana! State={1}.
@@ -465,28 +465,28 @@ value=42, consumed=6/10
 failed=true, errorIndex=0
 ```
 
-Điểm quan sát:
+Observations:
 
-1. `{1}` còn nguyên khi mảng không có phần tử index 1; khi index đó tồn tại và là `null`, kết quả hiện `null`.
-2. `parse("A|B")` chỉ trả phần tử `B` đối với hai lần dùng index 0.
-3. `"a,b,c"` bị phân tích thành hai phần `a` và `b,c`, khác mảng gốc.
-4. `choice` biến số lớn thành nhãn `many`; parse nhãn nhận lại `2.0`, không phải `999`.
-5. `ParsePosition` dừng ở index 6 trong chuỗi dài 10; parse một phần không được tự xem là dữ liệu đầu vào hợp lệ hoàn toàn.
-6. `BAD=42;` không khớp văn bản tĩnh `ID=` nên parse trả `null` với `errorIndex=0`.
+1. `{1}` stays intact when the array lacks index 1; when that index exists and is `null`, the output shows `null`.
+2. `parse("A|B")` returns only `B` for the two uses of index 0.
+3. `"a,b,c"` is parsed into `a` and `b,c`, differing from the original array.
+4. `choice` turns a large number into the label `many`; parsing the label yields `2.0`, not `999`.
+5. `ParsePosition` stops at index 6 in a 10-character string; a partial parse must not automatically count as fully valid input.
+6. `BAD=42;` does not match static text `ID=`, so `parse` returns `null` with `errorIndex=0`.
 
-Đây là ví dụ minh họa hành vi API, không phải đề xuất dùng `MessageFormat.parse` để xử lý dữ liệu từ người dùng trong ứng dụng thực tế.
+This example demonstrates API behavior, not a recommendation to use `MessageFormat.parse` to handle user input in production applications.
 
-## 8. Kiểm tra parse thành công một cách đúng đắn
+## 8. Properly Validating Parse Success
 
-Khi thật sự cần dùng `parse` cho một thông điệp có cấu trúc tương đối đơn giản, nên kiểm tra ít nhất:
+When you genuinely need `parse` for a relatively simple structured message, verify at least:
 
-1. **Có kết quả:** `parsed != null` (với overload có `ParsePosition`).
-2. **Đã tiêu thụ hết input:** `position.getIndex() == input.length()`.
-3. **Số lượng và kiểu giá trị:** kết quả gồm các đối số cần thiết và đúng kiểu kỳ vọng; nhớ rằng index không xuất hiện trong pattern không thể khôi phục.
-4. **Quy tắc nghiệp vụ:** chẳng hạn số lượng nằm trong miền cho phép, mã ID đúng cú pháp, ngày giờ hợp lệ với yêu cầu thật.
-5. **Không có nhập nhằng thiết kế:** pattern có dấu phân cách nằm trong giá trị hay subformat mất thông tin có thể làm parse “thành công” với kết quả sai.
+1. **A result exists:** `parsed != null` (with the `ParsePosition` overload).
+2. **Entire input consumed:** `position.getIndex() == input.length()`.
+3. **Value count and types:** the result includes the required arguments with expected types; remember that indices absent from the pattern cannot be recovered.
+4. **Business rules:** e.g., quantities within valid bounds, well-formed IDs, valid dates/times per domain rules.
+5. **No design ambiguity:** patterns where values can contain delimiters or subformats lose data can make parsing "succeed" with wrong results.
 
-Có thể viết một helper kiểm tra parse toàn phần:
+You can write a helper that enforces a full-string parse:
 
 ```java
 import java.text.MessageFormat;
@@ -513,13 +513,13 @@ public final class CompleteMessageParse {
 }
 ```
 
-Đây là một lớp có thể biên dịch thành `CompleteMessageParse.java`, nhưng không có `main` để chạy trực tiếp. Hàm này giúp **từ chối input không khớp đầy đủ**; nó **không giải quyết** trường hợp dấu phân cách nhập nhằng, mất độ chính xác, đối số lặp hoặc null. Đừng gọi nó là parser tổng quát không mất dữ liệu.
+This is a compilable class `CompleteMessageParse.java`, though it has no `main` method to run directly. This function helps **reject inputs that do not match completely**; it **does not solve** ambiguous delimiters, precision loss, repeated arguments, or `null`. Do not call it a lossless general-purpose parser.
 
-Với đầu vào quan trọng (API, lưu trữ, tài chính, cấu hình), nên dùng schema, parser và kiểu dữ liệu được thiết kế dành riêng cho đầu vào. Thông điệp đã dịch là **định dạng trình bày**, có thể được chỉnh sửa bởi người dịch và thay đổi theo locale; nó không phải giao thức dữ liệu ổn định.
+For critical inputs (APIs, persistence, finance, configuration), use schemas, parsers, and data types designed specifically for input. Translated messages are a **presentation format**, editable by translators and varying by locale; they are not a stable data protocol.
 
-## 9. MessageFormat, ResourceBundle và rủi ro bản địa hóa
+## 9. MessageFormat, ResourceBundle, and Localization Risks
 
-Ứng dụng thường tải pattern theo locale:
+Applications typically load patterns by locale:
 
 ```properties
 # messages.properties
@@ -531,7 +531,7 @@ order.status=Order {0} contains {1,number,integer} items.
 order.status=Đơn hàng {0} có {1,number,integer} sản phẩm.
 ```
 
-Khi code format:
+When formatting in code:
 
 ```java
 ResourceBundle bundle =
@@ -541,69 +541,69 @@ String text = new MessageFormat(pattern, locale)
         .format(new Object[] {"A-42", 3});
 ```
 
-Đây là đoạn minh họa trong một phương thức có `locale` kiểu `Locale`; tệp properties phải nằm trên classpath với base name `messages`.
+This is an illustrative snippet inside a method with `locale` of type `Locale`; the properties files must reside on the classpath with base name `messages`.
 
-Có những nguy cơ đặc biệt với missing/null/parse:
+There are specific risks related to missing/null/parsing:
 
-- Người dịch có thể vô tình xóa `{1}` hoặc đổi thành `{2}`. Khi chạy, một placeholder bị thiếu có thể hiện nguyên dạng; nếu bỏ placeholder khỏi pattern thì phần tử tương ứng không còn hiển thị.
-- Người dịch có thể thay cách đặt dấu câu, thứ tự từ hoặc dấu phân cách. Pattern vẫn format đúng nhưng parse thông điệp dịch có thể đổi cách tách và đối tượng được trả về.
-- Dấu nháy đơn `'` và ngoặc nhọn có nghĩa đặc biệt trong cú pháp `MessageFormat`. Một chuỗi dịch chứa apostrophe chưa escape có thể làm placeholder bị coi là văn bản tĩnh. Trong MessageFormat, để biểu diễn nháy đơn literal thường cần `''`; phải test bằng parser thật, không chỉ nhìn file.
-- Số/ngày phụ thuộc locale và dữ liệu định dạng. Chuỗi xuất ra từ `Locale.US` không đảm bảo parse đúng bằng `Locale.FRANCE`.
-- Đầu vào `null` có thể in thành từ `null` ở bất cứ locale nào; hãy chọn thông điệp fallback riêng phù hợp văn phong ứng dụng.
+- Translators may accidentally delete `{1}` or change it to `{2}`. At runtime, a missing placeholder can appear verbatim; if a placeholder is omitted from the pattern, the corresponding element disappears.
+- Translators may change punctuation placement, word order, or separators. The pattern still formats properly, yet parsing a translated message can alter splits and returned objects.
+- Single quotes `'` and curly braces have special meaning in `MessageFormat` syntax. A translated string containing an unescaped apostrophe can turn placeholders into static text. In `MessageFormat`, a literal single quote typically requires `''`; test with the real parser rather than just eyeing the file.
+- Numbers/dates depend on locale and formatting data. A string emitted under `Locale.US` is not guaranteed to parse properly under `Locale.FRANCE`.
+- A `null` input can print the word `null` in any locale; choose dedicated fallback messages fitting the application's tone.
 
-Vì vậy, pipeline kiểm thử cần đánh giá **pattern từng locale**, số index, subformat, placeholder lặp và các trường hợp missing/null. Đặc biệt không dùng “format thử thành công” làm kiểm tra duy nhất: API có thể chấp nhận đầu vào thiếu và trả placeholder `{n}`.
+Therefore, your test pipeline must evaluate **each locale's patterns**, index counts, subformats, repeated placeholders, and missing/null cases. Specifically, never use "trial formatting succeeds" as the sole check: the API can accept missing inputs and leave `{n}` placeholders behind.
 
-### Quản lý hợp đồng tham số
+### Managing Parameter Contracts
 
-Một hợp đồng tốt cho key thông điệp nên ghi:
+A solid contract for message keys should document:
 
-| Key | Đối số | Ý nghĩa |
+| Key | Argument | Meaning |
 | --- | --- | --- |
-| `order.status` | `{0}` | Mã đơn hàng, `String`, bắt buộc |
-| `order.status` | `{1}` | Số lượng sản phẩm, `Number`, bắt buộc, định dạng integer |
-| `account.greeting` | `{0}` | Tên hiển thị, bắt buộc; có nhánh riêng cho khách chưa đăng nhập |
+| `order.status` | `{0}` | Order ID, `String`, required |
+| `order.status` | `{1}` | Item count, `Number`, required, integer format |
+| `account.greeting` | `{0}` | Display name, required; separate branch for unauthenticated guests |
 
-Điều này giúp phát hiện bản dịch lược nhầm index hoặc đưa sai kiểu dữ liệu. Số lượng đối số **không thể được xác thực đầy đủ chỉ bằng việc chạy format** vì missing index không luôn gây exception.
+This helps catch translations that accidentally drop an index or expect the wrong data type. Argument count **cannot be fully validated merely by running `format`** because missing indices do not always throw exceptions.
 
-Khi người dùng có thể gửi tên chứa dấu phẩy, dấu nháy hoặc ký tự tùy ý, thông điệp vẫn có thể dùng để hiển thị bình thường; hạn chế parse đảo ngược lại càng quan trọng. Nếu cần đọc dữ liệu máy, giữ đối tượng gốc bên cạnh thông điệp.
+When users can submit names containing commas, quotes, or arbitrary characters, messages can still display normally; avoiding reverse parsing becomes all the more important. If machine-readable data is needed, keep the original objects alongside the formatted message.
 
-## 10. Sai lầm phổ biến và cách sửa
+## 10. Common Mistakes and Fixes
 
-| Sai lầm | Kết quả/rủi ro | Cách đúng |
+| Mistake | Result / risk | Correct approach |
 | --- | --- | --- |
-| Nghĩ thiếu `{1}` sẽ ném exception | MessageFormat có thể hiển thị `{1}` nguyên dạng | Validate hợp đồng tham số trước khi format |
-| Nghĩ đối số `null` tạo chuỗi rỗng | Java thường in chữ `null` | Chọn thông báo dự phòng hoặc xử lý giá trị thiếu rõ ràng |
-| Coi chữ `null` là bằng chứng dữ liệu gốc null | Chuỗi literal `"null"` cũng hiển thị giống vậy | Giữ trạng thái nguồn trong model |
-| Dùng `parse(String)` và không kiểm tra phần dư | Parser có thể chỉ đọc một tiền tố | Dùng `ParsePosition` và kiểm tra index cuối |
-| Coi parse thành công là đảo ngược chính xác | Dấu phân cách, choice, rounding làm mất dữ liệu | Dùng dữ liệu có cấu trúc cho các thao tác cần round-trip |
-| Nhắc `{0}` hai lần rồi tin parser đối chiếu chúng bằng nhau | Lần parse sau ghi đè lần trước | Tự validate tính nhất quán nếu cần |
-| Thấy parse trả `Number` rồi cast chắc chắn `Integer` | NumberFormat/ChoiceFormat có thể trả kiểu số khác | Kiểm tra kiểu/giá trị và chuyển đổi có kiểm soát |
-| Dùng pattern dịch làm protocol | Người dịch có thể thay dấu câu, thứ tự và ngữ pháp | Tách định dạng giao diện khỏi giao thức dữ liệu |
-| Dùng parser MessageFormat để kiểm chứng placeholder trọn vẹn trong bản dịch | Parser không có hợp đồng validate toàn bộ nội dung i18n | Lint pattern và đối chiếu hợp đồng đối số từng locale |
-| Không chú ý nháy đơn hoặc `{ }` | Placeholder có thể trở thành literal hoặc lỗi pattern | Kiểm thử pattern thực tế qua MessageFormat |
-| Dùng locale mặc định ẩn trong test | Kết quả số/ngày có thể khác CI | Truyền `Locale` tường minh |
-| Chia sẻ và sửa cùng một MessageFormat trong nhiều luồng | Format instance có trạng thái mutable, format/parse không được đảm bảo thread-safe | Dùng instance riêng, đồng bộ hợp lý hoặc thiết kế không chia sẻ mutable object |
+| Assuming missing `{1}` throws an exception | `MessageFormat` may display `{1}` literally | Validate the parameter contract before formatting |
+| Assuming a `null` argument yields an empty string | Java typically prints the text `null` | Choose a fallback message or handle missing values explicitly |
+| Treating the text `null` as proof the original data was `null` | Literal string `"null"` renders identically | Preserve source state in the model |
+| Calling `parse(String)` without checking remaining characters | Parser may consume only a prefix | Use `ParsePosition` and verify the final index |
+| Treating parse success as an exact inverse | Delimiters, `choice`, and rounding lose data | Use structured data for operations needing round-tripping |
+| Mentioning `{0}` twice and trusting the parser to verify equality | Later parsed value overwrites earlier one | Validate consistency explicitly if needed |
+| Seeing `parse` return `Number` and casting unconditionally to `Integer` | `NumberFormat`/`ChoiceFormat` may return other numeric types | Check type/value and convert safely |
+| Using translated patterns as a protocol | Translators can alter punctuation, order, and grammar | Separate UI formatting from data protocols |
+| Using `MessageFormat`'s parser to verify complete placeholders in translations | The parser does not enforce an i18n content contract | Lint patterns and check argument contracts per locale |
+| Ignoring single quotes or `{ }` | Placeholders can become literals or cause pattern errors | Test actual patterns through `MessageFormat` |
+| Relying on an implicit default locale in tests | Number/date outputs can differ on CI | Pass `Locale` explicitly |
+| Sharing and mutating one `MessageFormat` across threads | Format instances hold mutable state; format/parse are not thread-safe | Use separate instances, proper synchronization, or avoid sharing mutable objects |
 
-## 11. Bài tập tự kiểm tra
+## 11. Self-Check Exercises
 
-**Bài 1 — thiếu và null.** Với pattern `"Name={0}; Age={1,number,integer}"`, dự đoán kết quả khi truyền `new Object[] {"Linh"}` và `new Object[] {"Linh", null}`. Vì sao các kết quả khác nhau dù đều “không có tuổi” về mặt nghiệp vụ?
+**Exercise 1 — Missing vs. null.** Given the pattern `"Name={0}; Age={1,number,integer}"`, predict the output when passing `new Object[] {"Linh"}` versus `new Object[] {"Linh", null}`. Why do the outputs differ even though both mean "no age" from a business perspective?
 
-**Bài 2 — parse phần dư.** Với pattern `"ID={0};"` và chuỗi `"ID=42;ignored"`, hãy dùng `ParsePosition` xác định số ký tự được tiêu thụ. Vì sao chỉ kiểm tra `parsed != null` là chưa đủ?
+**Exercise 2 — Unconsumed tail in parse.** Given the pattern `"ID={0};"` and the string `"ID=42;ignored"`, use `ParsePosition` to determine how many characters are consumed. Why is checking `parsed != null` alone insufficient?
 
-**Bài 3 — repeated index.** Với pattern `"{0}|{0}"`, parse input `"A|B"` trả gì? Có cơ chế tự động nào buộc hai lần xuất hiện của `{0}` phải giống nhau không?
+**Exercise 3 — Repeated index.** With the pattern `"{0}|{0}"`, what does parsing `"A|B"` return? Is there any automatic mechanism requiring both occurrences of `{0}` to be equal?
 
-**Bài 4 — dấu phân cách.** Dùng `"{0},{1}"` để format `["x,y", "z"]`. Tại sao parse kết quả không thể chắc chắn tìm được mảng gốc? Nêu một định dạng dữ liệu thích hợp hơn cho trao đổi giữa hai dịch vụ.
+**Exercise 4 — Delimiters.** Use `"{0},{1}"` to format `["x,y", "z"]`. Why can parsing the output not reliably recover the original array? Name a more suitable data format for exchange between two services.
 
-**Bài 5 — precision.** Dùng `{0,number,#.#}` với `3.14` và `3.11`. Hai kết quả đều có thể thành `3.1`; khi parse, có thể lấy lại phần thập phân đã bị bỏ không?
+**Exercise 5 — Precision.** Use `{0,number,#.#}` with `3.14` and `3.11`. Both outputs can become `3.1`; when parsing, can the dropped fractional digits be recovered?
 
-**Bài 6 — choice.** Với pattern `"{0,choice,0#none|1#one|2#many}"` và đầu vào `999`, kết quả format/parse thế nào? Vì sao parser trả một mốc của nhánh chứ không trả số ban đầu?
+**Exercise 6 — Choice.** Given the pattern `"{0,choice,0#none|1#one|2#many}"` and input `999`, what are the format and parse results? Why does the parser return a branch threshold instead of the original number?
 
-**Bài 7 — bản địa hóa.** Một dịch giả thay `"Order {0}: {1,number,integer} items"` bằng `"Đơn hàng {0}: {2} sản phẩm"`. Hãy chỉ ra hợp đồng đối số nào bị phá vỡ và cách phát hiện qua kiểm thử.
+**Exercise 7 — Localization.** A translator replaces `"Order {0}: {1,number,integer} items"` with `"Đơn hàng {0}: {2} sản phẩm"`. Identify which argument contract rule is broken and how to catch it in tests.
 
-## 12. Ghi nhớ
+## 12. Key Takeaways
 
-`MessageFormat` được thiết kế để **tạo thông điệp đã định dạng**, không phải để làm trình mã hóa/giải mã dữ liệu đảo ngược hoàn toàn. Nếu mảng đối số thiếu index được tham chiếu, Java có thể giữ `{n}` nguyên dạng; nếu phần tử tồn tại và là `null`, Java hiển thị văn bản `null`. Hai trường hợp mang ý nghĩa khác nhau và cần xử lý ở lớp nghiệp vụ.
+`MessageFormat` is designed to **produce formatted messages**, not to serve as a lossless, fully invertible data encoder/decoder. If the argument array lacks a referenced index, Java may leave `{n}` intact; if the element exists and is `null`, Java displays the text `null`. Both cases have distinct meanings and must be handled at the business layer.
 
-`parse` có thể nhận lại một số đối số theo pattern, nhưng **thành công không đồng nghĩa đúng toàn bộ, càng không đồng nghĩa không mất dữ liệu**. Phải kiểm tra `ParsePosition` khi cần tiêu thụ hết chuỗi, đồng thời nhận diện các trường hợp nhập nhằng, index lặp, subformat làm tròn, choice, dữ liệu bị lược và null. Với dữ liệu phải giữ nguyên, hãy truyền/lưu **đối tượng nguồn có cấu trúc**, dùng `MessageFormat` ở lớp trình bày, và kiểm thử mọi pattern đã dịch theo hợp đồng tham số.
+`parse` can extract some arguments matching a pattern, yet **success does not imply a complete match, much less lossless recovery**. Always check `ParsePosition` when full-string consumption is required, and recognize ambiguity, repeated indices, rounding subformats, `choice`, omitted data, and `null`. For data that must stay intact, transmit and store **structured source objects**, use `MessageFormat` at the presentation layer, and test every translated pattern against its parameter contract.
 
-Tài liệu API: [`MessageFormat` (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/MessageFormat.html), [`ParsePosition` (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/ParsePosition.html).
+API documentation: [`MessageFormat` (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/MessageFormat.html), [`ParsePosition` (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/ParsePosition.html).

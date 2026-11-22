@@ -1,11 +1,11 @@
-# Literal dấu phẩy động thập lục phân trong Java
+# Hexadecimal Floating-Point Literals in Java
 
-> **Java core – numbers / Literal và cơ số**  
-> Mục tiêu: đọc và tự viết hexadecimal floating-point literals, tính giá trị bằng tay, phân biệt chúng với literal số nguyên hệ 16 và số thực thập phân, hiểu lợi ích của cách viết theo lũy thừa của 2 khi kiểm tra `float`/`double`.
+> **Java core – numbers / Literals and Bases**  
+> Goal: read and write hexadecimal floating-point literals yourself, calculate their values by hand, distinguish them from base-16 integer literals and decimal floating-point numbers, and understand the benefit of power-of-2 notation when inspecting `float`/`double`.
 
-## 1. Khái niệm và động cơ
+## 1. Concept and Motivation
 
-Java có **literal dấu phẩy động thập lục phân** (*hexadecimal floating-point literal*): viết một giá trị `float` hoặc `double` trong mã nguồn bằng **phần trị hệ 16** và **số mũ hệ 2**. Ví dụ:
+Java supports **hexadecimal floating-point literals**: writing a `float` or `double` value in source code using a **base-16 significand** and a **base-2 exponent**. Example:
 
 ```java
 double a = 0x1.8p1;   // 3.0
@@ -13,71 +13,71 @@ double b = 0x1.0p-2;  // 0.25
 float  c = 0x1.Ap2f;  // 6.5f
 ```
 
-Điểm quan trọng nằm ở chữ **`p`**: nó tách phần trị (*significand*) khỏi số mũ nhị phân. Mặc dù phần trị viết bằng chữ số hệ 16, số mũ sau `p` biểu thị **lũy thừa của 2**, không phải lũy thừa của 16. Cú pháp này được Java hỗ trợ từ Java 5 và vẫn dùng được với Java 17+.
+The key point lies in the letter **`p`**: it separates the *significand* from the binary exponent. Even though the significand is written in base-16 digits, the exponent after `p` denotes a **power of 2**, not a power of 16. This syntax has been supported in Java since Java 5 and still works in Java 17+.
 
-Vì `float` và `double` lưu số theo dạng dấu phẩy động **nhị phân** (IEEE 754), cách ghi hex này đặc biệt hữu ích để:
+Because `float` and `double` store numbers in **binary** floating-point format (IEEE 754), this hex notation is especially useful to:
 
-- mô tả một giá trị nhị phân chính xác và có thể tái lập trong mã nguồn;
-- viết các giới hạn, hằng số dạng `2^k` và các giá trị sát nhau ở mức bit;
-- kiểm tra phép làm tròn và sự khác nhau giữa giá trị `double` với biểu diễn thập phân trên màn hình;
-- đọc kết quả của `Double.toHexString` và `Float.toHexString` khi gỡ lỗi tính toán.
+- describe an exact, reproducible binary value in source code;
+- write boundaries, `2^k` constants, and bit-adjacent values;
+- examine rounding and the difference between a `double` value and its decimal display on screen;
+- read the output of `Double.toHexString` and `Float.toHexString` when debugging calculations.
 
-Đây vẫn là literal cho **`float`/`double`**; không liên quan đến bù hai của số nguyên âm, không phải cú pháp `BigDecimal` và không tự tạo một loại số chính xác vô hạn.
+These are still literals for **`float`/`double`**; they have nothing to do with two's complement of negative integers, are not `BigDecimal` syntax, and do not automatically create an infinite-precision numeric type.
 
-## 2. Cú pháp: `0x...p...` và hậu tố kiểu
+## 2. Syntax: `0x...p...` and Type Suffixes
 
-Một dạng tổng quát dễ nhớ:
+An easy-to-remember general form:
 
 ```text
 [+|-]  0x<hex-significand> p<decimal-exponent> [f|F|d|D]
-       └── số hệ 16 ────┘   └──── số mũ 10 chữ số, tính theo cơ số 2 ────┘
+       └── base-16 digits ─┘   └─── base-10 digits, power of 2 ────┘
 
-Ví dụ: 0x1.8p+1
-       |  |  | |
-       |  |  | +-- số mũ +1, nghĩa là nhân 2^1
-       |  |  +---- p: dấu mở đầu phần số mũ nhị phân
-       |  +------- 1.8: phần trị hex, tương đương 1 + 8/16
-       +---------- 0x: nhận diện hệ 16
+Example: 0x1.8p+1
+         |  |  | |
+         |  |  | +-- exponent +1, meaning multiply by 2^1
+         |  |  +---- p: marker starting the binary exponent
+         |  +------- 1.8: hex significand, equivalent to 1 + 8/16
+         +---------- 0x: identifies base 16
 ```
 
-Các thành phần:
+Components:
 
-1. **Tiền tố** `0x` hoặc `0X`: báo hiệu phần trị hệ 16.
-2. **Phần trị (*significand*)** gồm chữ số `0–9` và `A–F`/`a–f`; có thể có dấu chấm `.` làm dấu phân cách phần nguyên và phần lẻ trong hệ 16. Cần ít nhất một chữ số hex.
-3. **`p` hoặc `P` là bắt buộc** trong literal floating-point hex; ngay sau nó là số mũ thập phân có thể có dấu `+`/`-`. Các chữ số của số mũ phải là `0–9`.
-4. **Hậu tố** `f`/`F` làm literal mang kiểu `float`; `d`/`D` hoặc không có hậu tố làm literal mang kiểu `double`.
-5. Dấu `-` đầu biểu thức là **toán tử âm đơn ngôi**, không phải một phần chữ số của literal. Điều này ít khi ảnh hưởng đến sử dụng thông thường nhưng quan trọng trong cách Java phân tích cú pháp.
+1. **Prefix** `0x` or `0X`: signals a base-16 significand.
+2. **Significand** consisting of digits `0–9` and `A–F`/`a–f`; may contain a dot `.` separating the integer and fractional parts in base 16. At least one hex digit is required.
+3. **`p` or `P` is mandatory** in a hex floating-point literal; immediately following it is a decimal exponent that may have a `+`/`-` sign. The exponent digits must be `0–9`.
+4. **Suffix** `f`/`F` gives the literal type `float`; `d`/`D` or no suffix gives the literal type `double`.
+5. A leading `-` at the start of the expression is the **unary minus operator**, not part of the literal's digits. This rarely affects everyday use, but is important in how Java parses syntax.
 
-Các cách viết hợp lệ:
+Valid ways to write them:
 
 ```java
-double one       = 0x1p0;        // 1.0: không cần dấu chấm
-double half      = 0x.8p0;       // 0.5: không cần chữ số trước dấu chấm
-double two       = 0x1.p1;       // 2.0: không cần chữ số sau dấu chấm
-double six       = 0X1.8P+2D;    // 6.0: viết hoa cũng hợp lệ
+double one       = 0x1p0;        // 1.0: no decimal point needed
+double half      = 0x.8p0;       // 0.5: no digit needed before decimal point
+double two       = 0x1.p1;       // 2.0: no digit needed after decimal point
+double six       = 0X1.8P+2D;    // 6.0: uppercase is also valid
 float eighth     = 0x1p-3F;     // 0.125f
-double sixteen   = 0x1_0p0;     // 16.0: dấu _ nằm giữa các chữ số
+double sixteen   = 0x1_0p0;     // 16.0: _ placed between digits
 ```
 
-Chữ `E`/`e` ở phần trị **là chữ số hệ 16 có giá trị 14**, không phải ký hiệu số mũ. Trong `0x1.ep3`, `e` thuộc phần trị, còn `p3` mới là số mũ. Tương tự, hậu tố `F`/`f` chỉ được hiểu là hậu tố kiểu khi nằm **sau toàn bộ số mũ**; `f` nằm trước `p` là chữ số hệ 16 có giá trị 15.
+The letter `E`/`e` in the significand **is a base-16 digit with value 14**, not an exponent marker. In `0x1.ep3`, `e` belongs to the significand, while `p3` is the exponent. Similarly, the `F`/`f` suffix is only interpreted as a type suffix when placed **after the entire exponent**; an `f` appearing before `p` is the base-16 digit with value 15.
 
-## 3. Công thức tính giá trị
+## 3. Value Calculation Formula
 
-Viết phần trị hệ 16 là `H` và số mũ sau `p` là số nguyên `E`. Giá trị toán học trước khi làm tròn về `float`/`double` là:
+Write the base-16 significand as `H` and the integer exponent after `p` as `E`. The mathematical value before rounding to `float`/`double` is:
 
 \[
-\boxed{\text{Giá trị} = H_{16}\times 2^E}
+\boxed{\text{Value} = H_{16}\times 2^E}
 \]
 
-Ví dụ `0x1.8p1`:
+Example `0x1.8p1`:
 
-- `0x1.8` = `1 + 8/16 = 1.5` (trong hệ thập phân).
-- `p1` nghĩa là nhân `2^1 = 2`.
-- Kết quả `1.5 × 2 = 3.0`.
+- `0x1.8` = `1 + 8/16 = 1.5` (in decimal).
+- `p1` means multiply by `2^1 = 2`.
+- Result: `1.5 × 2 = 3.0`.
 
-Với phần trị có nhiều chữ số sau dấu chấm, chữ số ngay sau dấu chấm mang trọng số `16^(-1)`, chữ số thứ hai mang trọng số `16^(-2)`, tiếp tục như vậy.
+For a significand with multiple digits after the dot, the digit immediately after the dot has weight `16^(-1)`, the second digit has weight `16^(-2)`, and so on.
 
-Ví dụ `0xA.Cp-2`:
+Example `0xA.Cp-2`:
 
 \[
 0xA.C=10+\frac{12}{16}=10.75
@@ -87,9 +87,9 @@ Ví dụ `0xA.Cp-2`:
 0xA.Cp-2=10.75\times 2^{-2}=10.75/4=2.6875
 \]
 
-Bảng đối chiếu:
+Reference table:
 
-| Literal | Phần trị đổi sang thập phân | Hệ số `2^E` | Giá trị |
+| Literal | Significand in Decimal | Factor `2^E` | Value |
 | --- | ---: | ---: | ---: |
 | `0x1p0` | 1 | 1 | 1.0 |
 | `0x1.8p1` | 1.5 | 2 | 3.0 |
@@ -101,11 +101,11 @@ Bảng đối chiếu:
 | `0x1.2p3` | 1.125 | 8 | 9.0 |
 | `0x1_0.8p+2` | 16.5 | 4 | 66.0 |
 
-**Không nhầm với số mũ của cơ số 16.** Nếu `p1` nghĩa là nhân 16, `0x1.8p1` sẽ thành 24; Java quy định nó bằng **3** vì `p1` là nhân 2.
+**Do not confuse with a power of 16.** If `p1` meant multiplying by 16, `0x1.8p1` would become 24; Java specifies that it equals **3** because `p1` multiplies by 2.
 
-## 4. Tại sao hệ 16 lại đi kèm lũy thừa của 2?
+## 4. Why Is Base 16 Paired with Powers of 2?
 
-Một chữ số hex tương ứng đúng **4 bit nhị phân**:
+One hex digit corresponds to exactly **4 binary bits**:
 
 ```text
 hex:   1   .   8
@@ -113,27 +113,27 @@ bits:  0001 . 1000
            = 1 + 1/2 = 1.5
 
 0x1.8p1:
-1.1 (nhị phân) × 2^1 = 11.0 (nhị phân) = 3.0
+1.1 (binary) × 2^1 = 11.0 (binary) = 3.0
 ```
 
-Ví dụ khác: số `10.625` trong hệ 10 là `1010.101` trong hệ 2. Ta có thể viết:
+Another example: the base-10 number `10.625` is `1010.101` in base 2. We can write:
 
 ```text
-10.625 (thập phân)
-= 1010.101 (nhị phân)
+10.625 (decimal)
+= 1010.101 (binary)
 = 0xA.Ap0  (A + A/16 = 10 + 10/16)
 = 0x1.54p3 (1 + 5/16 + 4/256) × 8
 ```
 
-Cả `0xA.Ap0` và `0x1.54p3` cùng biểu diễn số `10.625`. Dạng `0x1.54p3` có phần trị bắt đầu bằng `1`, gần với cách hiển thị **chuẩn hóa** mà API Java thường tạo cho số dấu phẩy động hữu hạn bình thường (*normal*).
+Both `0xA.Ap0` and `0x1.54p3` represent `10.625`. The form `0x1.54p3` has a significand starting with `1`, close to the **normalized** display format that Java APIs typically produce for finite *normal* floating-point numbers.
 
-Đối với các số có thể biểu diễn bằng hữu hạn chữ số nhị phân, hệ 16 rất thuận tiện: ví dụ `1/8 = 2^(-3) = 0x1p-3`. Ngược lại, `0.1` trong hệ 10 không thể biểu diễn bằng hữu hạn chữ số nhị phân; muốn ghi **giá trị `double` gần 0.1**, cần một mẫu nhị phân đã được làm tròn.
+For numbers representable with a finite number of binary digits, hex is very convenient: e.g., `1/8 = 2^(-3) = 0x1p-3`. Conversely, `0.1` in base 10 cannot be represented with finitely many binary digits; to write the **`double` value closest to 0.1**, a rounded binary pattern is needed.
 
-## 5. Phân biệt literal số nguyên hex và literal floating-point hex
+## 5. Distinguishing Hex Integer Literals from Hex Floating-Point Literals
 
-`0x...` tự nó **chưa đủ** để là literal dấu phẩy động. Phần `pE` tạo khác biệt:
+`0x...` by itself is **not enough** to make a floating-point literal. The `pE` part makes the difference:
 
-| Mã nguồn | Kiểu của literal | Giá trị |
+| Source Code | Literal Type | Value |
 | --- | --- | --- |
 | `0x10` | `int` | 16 |
 | `0x10L` | `long` | 16 |
@@ -144,72 +144,72 @@ Cả `0xA.Ap0` và `0x1.54p3` cùng biểu diễn số `10.625`. Dạng `0x1.54p
 | `0x1e3p0` | `double` | 483.0 |
 | `0x1.8p1` | `double` | 3.0 |
 
-Điểm tinh tế: `double value = 0x10;` có thể biên dịch vì Java chuyển `int 16` sang `double 16.0` khi gán. **Bản thân `0x10` vẫn là integer literal**. Còn `0x10p0` từ đầu đã là floating-point literal.
+A subtle point: `double value = 0x10;` compiles because Java converts `int 16` to `double 16.0` on assignment. **`0x10` itself is still an integer literal**. In contrast, `0x10p0` is a floating-point literal from the start.
 
-Hai cú pháp sai thường gặp:
+Common invalid syntax forms:
 
 ```java
-// KHÔNG biên dịch: phần trị có dấu chấm nhưng thiếu số mũ p...
+// DOES NOT compile: significand has a dot but lacks exponent p...
 // double wrong1 = 0x1.8;
 
-// KHÔNG biên dịch: e không thay thế được p trong literal hex
+// DOES NOT compile: e cannot replace p in a hex literal
 // double wrong2 = 0x1.8e2;
 
-// KHÔNG biên dịch: gán double literal sang float không qua phép chuyển kiểu
+// DOES NOT compile: assigning a double literal to float without a cast/suffix
 // float wrong3 = 0x1.8p1;
 ```
 
-Cách đúng là `0x1.8p0` cho `1.5`; `0x1.8p1` cho `3.0`; và `0x1.8p1f` cho `float 3.0f`. Khi muốn `float` hãy ghi hậu tố `f`/`F` hoặc thực hiện chuyển kiểu có chủ đích, chú ý khả năng làm tròn.
+The right ways are `0x1.8p0` for `1.5`; `0x1.8p1` for `3.0`; and `0x1.8p1f` for `float 3.0f`. When you want `float`, write the `f`/`F` suffix or perform an intentional cast, keeping rounding in mind.
 
-## 6. Hậu tố, dấu gạch dưới và số mũ âm
+## 6. Suffixes, Underscores, and Negative Exponents
 
-Cú pháp hậu tố có cùng ý nghĩa như với literal dấu phẩy động thập phân:
+Suffix syntax has the same meaning as in decimal floating-point literals:
 
 ```java
-double d1 = 0x1.4p2;   // 5.0, double mặc định
-double d2 = 0x1.4p2D;  // 5.0, ghi rõ double
+double d1 = 0x1.4p2;   // 5.0, default double
+double d2 = 0x1.4p2D;  // 5.0, explicit double
 float f1 = 0x1.4p2f;   // 5.0f, float
-float f2 = 0X1.4P+2F;  // 5.0f, chữ hoa hợp lệ
+float f2 = 0X1.4P+2F;  // 5.0f, uppercase valid
 ```
 
-Số mũ `p-4` có nghĩa nhân với `2^(-4)`, **không** phải “phần trị âm”; dấu của toàn giá trị vẫn phụ thuộc dấu ở đầu biểu thức.
+Exponent `p-4` means multiplying by `2^(-4)`, **not** a "negative significand"; the sign of the overall value still depends on the sign at the start of the expression.
 
 ```java
 double x = 0x1p-4;   // +0.0625
 double y = -0x1p-4;  // -0.0625
 ```
 
-Dấu `_` được dùng để nhóm chữ số như trong các numeric literal khác, nhưng phải đặt **giữa các chữ số** của phần trị hoặc của số mũ, không đặt ở vị trí tùy ý.
+`_` is used to group digits just like in other numeric literals, but must be placed **between digits** of the significand or the exponent, not at arbitrary positions.
 
 ```java
 double valid = 0x1_0.8p1_0; // 16.5 × 2^10 = 16896.0
 
-// SAI cú pháp: dấu _ không được đặt ngay sau 0x, bên cạnh
-// dấu chấm, ngay sau p hoặc ngay trước hậu tố:
+// SYNTAX ERROR: _ cannot be placed right after 0x, next to
+// the dot, right after p, or right before the suffix:
 // double a = 0x_1.8p0;
 // double b = 0x1_.8p0;
 // double c = 0x1.8p_2;
 // float  d = 0x1.8p0_f;
 ```
 
-Đối với cả hai dạng chữ hoa/thường, chữ số của phần số mũ vẫn là **chữ số thập phân**. Ví dụ `0x1p10` mang số mũ mười (nhân `2^10`), **không** phải số mũ 16 vì `10` trông giống hai chữ số hex.
+For both uppercase and lowercase forms, the digits of the exponent part are still **decimal digits**. For example, `0x1p10` has exponent ten (multiply by `2^10`), **not** exponent 16 just because `10` looks like two hex digits.
 
-## 7. Quan hệ với IEEE 754 và khả năng biểu diễn chính xác
+## 7. Relationship with IEEE 754 and Exact Representability
 
-Một giá trị `double` bình thường hữu hạn theo IEEE 754 có 1 bit dấu, 11 bit số mũ và 52 bit phần phân số (tổng 64 bit). Đối với giá trị **normal** khác 0, phần trị hiệu dụng là `1.<fraction bits>` trong hệ 2 (bit 1 dẫn đầu không lưu tường minh). `float` có tổng 32 bit: 1 bit dấu, 8 bit số mũ và 23 bit phần phân số.
+A finite normal IEEE 754 `double` value has 1 sign bit, 11 exponent bits, and 52 fraction bits (64 bits total). For non-zero **normal** values, the effective significand is `1.<fraction bits>` in base 2 (the leading 1 bit is implicit). `float` has 32 bits total: 1 sign bit, 8 exponent bits, and 23 fraction bits.
 
-Đây là lý do literal hex thuận tiện: chuỗi chữ số hex mô tả trực tiếp các nhóm bit của phần trị nhị phân. Ví dụ, trong `double`:
+This is why hex literals are convenient: a sequence of hex digits directly describes bit groups of the binary significand. For example, in `double`:
 
 ```java
-double exact = 0x1.8p1;                  // 3.0, đúng tuyệt đối
-double oneTenth = 0x1.999999999999ap-4; // giá trị double gần 0.1
+double exact = 0x1.8p1;                  // 3.0, strictly exact
+double oneTenth = 0x1.999999999999ap-4; // double value closest to 0.1
 ```
 
-Giá trị `oneTenth` có cách hiển thị thập phân ngắn thường gặp là `0.1`, nhưng **giá trị nhị phân lưu bên trong không bằng chính xác 1/10**. Cú pháp literal hex ở đây mô tả rõ số `double` đã được làm tròn.
+The value `oneTenth` has the common short decimal display `0.1`, yet **the stored binary value is not strictly equal to 1/10**. Here, hex literal syntax explicitly describes the rounded `double` number.
 
-Đừng hiểu rằng “mọi literal hex tự động chính xác tuyệt đối”. Nếu phần trị cung cấp nhiều bit hơn độ chính xác `float`/`double`, hoặc giá trị quá sát một điểm giữa hai số có thể biểu diễn, compiler vẫn áp dụng quy tắc làm tròn của kiểu đích. Ưu điểm của hex là cách ghi tương thích trực tiếp với cơ số 2, đặc biệt khi ghi **giá trị vốn đã biểu diễn được** trong `double`/`float`.
+Do not assume "every hex literal is automatically strictly exact." If the significand provides more bits than `float`/`double` precision, or if the value falls exactly midway between two representable numbers, the compiler still applies the target type's rounding rules. Hex's advantage is a notation directly compatible with base 2, especially when writing **values already representable** in `double`/`float`.
 
-Các giới hạn điển hình có thể ghi bằng hex:
+Typical boundaries that can be written in hex:
 
 ```java
 double maxFinite      = 0x1.fffffffffffffp1023; // Double.MAX_VALUE
@@ -221,13 +221,13 @@ float minNormalFloat  = 0x1.0p-126f;          // Float.MIN_NORMAL
 float minSubFloat     = 0x1p-149f;            // Float.MIN_VALUE
 ```
 
-**Phân biệt `MIN_VALUE` và số âm nhỏ nhất:** trong `Double` và `Float`, `MIN_VALUE` là **số dương hữu hạn nhỏ nhất khác 0**, tức số *subnormal*; nó không phải giá trị âm lớn về độ lớn. Số âm hữu hạn có độ lớn lớn nhất là `-Double.MAX_VALUE` hoặc `-Float.MAX_VALUE`.
+**Distinguish `MIN_VALUE` from the most negative number:** in `Double` and `Float`, `MIN_VALUE` is the **smallest non-zero positive finite value**, i.e., a *subnormal* number; it is not the negative value of largest magnitude. The finite negative number with the largest magnitude is `-Double.MAX_VALUE` or `-Float.MAX_VALUE`.
 
-Literal hữu hạn cũng không thể chỉ cần tăng số mũ vô hạn: các literal khác 0 mà phép làm tròn khiến vượt thành vô cực hoặc thành 0 sẽ bị Java báo lỗi biên dịch. Khi cần tạo `NaN` hoặc các giá trị vô cực, dùng các hằng như `Double.NaN`, `Double.POSITIVE_INFINITY`, `Float.NEGATIVE_INFINITY`; đó không phải các hexadecimal floating-point literals.
+Finite literals also cannot increase the exponent indefinitely: non-zero literals whose rounding pushes them to infinity or to 0 are rejected by Java with a compile error. When you need `NaN` or infinity values, use constants such as `Double.NaN`, `Double.POSITIVE_INFINITY`, and `Float.NEGATIVE_INFINITY`; those are not hexadecimal floating-point literals.
 
-## 8. `Double.toHexString`, `Float.toHexString` và parse
+## 8. `Double.toHexString`, `Float.toHexString`, and Parsing
 
-Java có API để **xuất dạng hex của giá trị đã lưu**:
+Java has APIs to **output the hex form of a stored value**:
 
 ```java
 Double.toHexString(3.0);        // "0x1.8p1"
@@ -236,13 +236,13 @@ Double.toHexString(0.1);        // "0x1.999999999999ap-4"
 Double.toHexString(-0.0);       // "-0x0.0p0"
 ```
 
-Không phải mọi giá trị sẽ hiện đúng như dạng bạn gõ. Ví dụ `0xA.Ap0` và `0x1.54p3` đều biểu diễn `10.625`; `Double.toHexString(10.625)` trả dạng chuẩn hóa `"0x1.54p3"`.
+Not every value prints in the exact form you typed. For instance, `0xA.Ap0` and `0x1.54p3` both represent `10.625`; `Double.toHexString(10.625)` returns the normalized form `"0x1.54p3"`.
 
-- `Double.toHexString` và `Float.toHexString` trả **chuỗi ký tự**, hữu ích khi đối chiếu các giá trị nhị phân.
-- `Double.parseDouble`/`Double.valueOf` và `Float.parseFloat`/`Float.valueOf` có thể đọc dạng chuỗi floating-point hex hợp lệ, ví dụ `"0x1.8p1"`.
-- Khi kiểm tra bit thô, `Double.doubleToRawLongBits` và `Float.floatToRawIntBits` có vai trò khác: chúng trả **các bit mã hóa IEEE 754** dưới dạng `long`/`int`. Các bit thô này bao gồm cả bit dấu, số mũ thiên lệch và fraction; không phải chính chuỗi hexadecimal literal của giá trị.
+- `Double.toHexString` and `Float.toHexString` return **character strings**, useful when comparing binary values.
+- `Double.parseDouble`/`Double.valueOf` and `Float.parseFloat`/`Float.valueOf` can parse valid hex floating-point string forms, such as `"0x1.8p1"`.
+- When inspecting raw bits, `Double.doubleToRawLongBits` and `Float.floatToRawIntBits` serve a different role: they return **the IEEE 754 encoded bits** as `long`/`int`. These raw bits include the sign bit, biased exponent, and fraction; they are not the hex literal string representation of the value.
 
-Thử nghiệm:
+Experiment:
 
 ```java
 String representation = Double.toHexString(0.1);
@@ -251,13 +251,13 @@ System.out.println(representation);                   // 0x1.999999999999ap-4
 System.out.println(parsed == 0.1);                    // true
 ```
 
-Phép so sánh trên có ý nghĩa: sau khi phân tích chuỗi hex, `parsed` và literal decimal `0.1` tạo cùng một **giá trị `double` đã được làm tròn**. Nó **không** chứng minh `double` lưu phân số toán học 1/10 một cách tuyệt đối chính xác.
+The comparison above makes sense: after parsing the hex string, `parsed` and the decimal literal `0.1` produce the same **rounded `double` value**. It does **not** prove that `double` stores the mathematical fraction 1/10 with absolute exactness.
 
-Các trường hợp `NaN` và vô cực xuất thành chuỗi đặc biệt như `"NaN"`, `"Infinity"` (không phải `0x...p...`); dấu `−0.0` được giữ khi xuất hex.
+`NaN` and infinity cases output as special strings like `"NaN"` and `"Infinity"` (not `0x...p...`); the sign of `-0.0` is preserved in hex output.
 
-## 9. Chương trình Java 17+ chạy độc lập
+## 9. Standalone Runnable Java 17+ Program
 
-Tạo file **`HexFloatLiteralDemo.java`**:
+Create the file **`HexFloatLiteralDemo.java`**:
 
 ```java
 public class HexFloatLiteralDemo {
@@ -295,14 +295,14 @@ public class HexFloatLiteralDemo {
 }
 ```
 
-Từ thư mục chứa file:
+From the directory containing the file:
 
 ```bash
 javac HexFloatLiteralDemo.java
 java HexFloatLiteralDemo
 ```
 
-**Kết quả dự kiến với Java 17+:**
+**Expected output with Java 17+:**
 
 ```text
 0x1.8p1 = 3.0
@@ -318,31 +318,31 @@ Double.MIN_VALUE as hex = 0x0.0000000000001p-1022
 Float.MIN_VALUE as hex = 0x0.000002p-126
 ```
 
-Phân tích kết quả:
+Analysis of results:
 
-1. Ba literal đầu biểu diễn lần lượt `3`, `2.6875` và `6.5`; hậu tố `f` của `c` lựa chọn kiểu `float`.
-2. `0x10` và `0x10p0` có cùng độ lớn, nhưng kiểu literal khác nhau.
-3. `Double.toHexString(10.625)` đưa phần trị về dạng chuẩn hóa `1.54 × 2^3`.
-4. Chuỗi cho `double 0.1` thể hiện giá trị nhị phân gần nhất, không phải phân số 1/10 chính xác.
-5. `Double.MIN_VALUE`, `Float.MIN_VALUE` là các số **subnormal**. Cách xuất hex của API có phần trị dạng `0.000...` và số mũ tối thiểu cho số bình thường, nên **khác hình thức** literal ngắn `0x1p-1074` hoặc `0x1p-149f` nhưng cùng giá trị. Định dạng này không có nghĩa các hằng ở trên sai.
+1. The first three literals represent `3`, `2.6875`, and `6.5` respectively; the `f` suffix on `c` selects type `float`.
+2. `0x10` and `0x10p0` have the same magnitude, but different literal types.
+3. `Double.toHexString(10.625)` puts the significand in normalized form `1.54 × 2^3`.
+4. The string for `double 0.1` shows the nearest binary value, not the exact fraction 1/10.
+5. `Double.MIN_VALUE` and `Float.MIN_VALUE` are **subnormal** numbers. The API's hex output uses a significand of the form `0.000...` and the minimum exponent for normal numbers, so it **differs in form** from short literals like `0x1p-1074` or `0x1p-149f` while having the same value. This formatting does not mean the constants above are wrong.
 
-## 10. Quy trình đọc và chuyển một giá trị sang hex floating-point
+## 10. Step-by-Step Procedure to Read and Convert a Value to Hex Floating-Point
 
-Giả sử cần biểu diễn giá trị toán học `13.25` bằng cách chắc chắn mô tả theo cơ số hai.
+Suppose you need to represent the mathematical value `13.25` in a way that clearly describes it in base two.
 
-**Bước 1: Đổi phần nguyên và phần lẻ sang nhị phân.**
+**Step 1: Convert integer and fractional parts to binary.**
 
 - `13 = 1101₂`.
 - `0.25 = 0.01₂`.
 - `13.25 = 1101.01₂`.
 
-**Bước 2: Nhóm bit theo bốn bit để lấy chữ số hex.**
+**Step 2: Group bits into fours to obtain hex digits.**
 
-`1101.0100₂ = D.4₁₆`. Vậy biểu diễn chưa chuẩn hóa là `0xD.4p0`.
+`1101.0100₂ = D.4₁₆`. Thus, the unnormalized representation is `0xD.4p0`.
 
-**Bước 3: Chuyển về phần trị gần dạng chuẩn hóa `1.x × 2^E` (nếu muốn).**
+**Step 3: Shift to a normalized-style significand `1.x × 2^E` (if desired).**
 
-`1101.01₂ = 1.10101₂ × 2³`. Nhóm fraction thành `1010 1000...₂`, tức `A8₁₆`. Ta có:
+`1101.01₂ = 1.10101₂ × 2³`. Group the fraction into `1010 1000...₂`, which is `A8₁₆`. We get:
 
 ```text
 13.25₁₀ = 1101.01₂
@@ -353,54 +353,54 @@ Giả sử cần biểu diễn giá trị toán học `13.25` bằng cách chắ
          = 13.25
 ```
 
-`Double.toHexString(13.25)` trả `"0x1.a8p3"`. Trong dạng chuẩn hóa, số mũ `3` chỉ số vị trí dịch dấu phẩy nhị phân, **không** phụ thuộc bao nhiêu chữ số hex của phần trị.
+`Double.toHexString(13.25)` returns `"0x1.a8p3"`. In normalized form, the exponent `3` indicates how many positions the binary point shifted, and does **not** depend on how many hex digits the significand has.
 
-**Bước 4: Chọn kiểu và hậu tố.** Nếu API cần `double`, `0x1.A8p3` đủ. Nếu cần `float`, viết `0x1.A8p3f`. Vì 13.25 có biểu diễn nhị phân hữu hạn và đủ ngắn, cả hai biểu diễn được chính xác.
+**Step 4: Choose type and suffix.** If an API requires `double`, `0x1.A8p3` suffices. If it requires `float`, write `0x1.A8p3f`. Because 13.25 has a finite and short binary representation, both represent it exactly.
 
-## 11. Dùng literal hex ở đâu, tránh ở đâu?
+## 11. Where to Use Hex Literals, and Where to Avoid Them
 
-**Nên dùng** khi đề bài gắn với bit, độ chính xác nhị phân hoặc các hằng đặc biệt:
+**Use them** when the problem involves bits, binary precision, or special constants:
 
-- kiểm thử phép toán bit ở mức `float`/`double` và so sánh với giá trị IEEE 754 dự kiến;
-- kiểm thử ranh giới trên/dưới giữa normal và subnormal;
-- tái tạo một giá trị `double` đã nhìn thấy từ `Double.toHexString`;
-- biểu diễn các số dễ viết bằng lũy thừa 2 như `0x1p-10` (1/1024) hoặc `0x1p20` (1,048,576).
+- testing bit-level operations on `float`/`double` and comparing against expected IEEE 754 values;
+- testing upper/lower boundaries between normal and subnormal numbers;
+- reproducing a `double` value observed from `Double.toHexString`;
+- expressing numbers easily written as powers of 2, such as `0x1p-10` (1/1024) or `0x1p20` (1,048,576).
 
-**Ưu tiên literal thập phân** khi giá trị mang ý nghĩa nghiệp vụ theo hệ 10, như cân nặng hiển thị, đơn giá và tỉ lệ phần trăm trong tài liệu mà người đọc mong đợi số thập phân. Nếu bài toán yêu cầu **tính tiền thập phân chính xác và quy tắc làm tròn**, dùng `BigDecimal` từ chuỗi (ví dụ `new BigDecimal("0.1")`) thay vì cố gắng giải quyết bằng `double` viết hex. Literal hex giúp biểu diễn chính xác **một giá trị nhị phân của float/double**, không biến IEEE 754 thành số thập phân chính xác vô hạn.
+**Prefer decimal literals** when the value carries base-10 business meaning, such as displayed weights, unit prices, and percentages in code/docs where readers expect decimal numbers. If the task requires **exact decimal monetary calculations and rounding rules**, use `BigDecimal` from strings (e.g., `new BigDecimal("0.1")`) instead of trying to solve it with hex-written `double`. Hex literals help express **a binary value of float/double** accurately; they do not turn IEEE 754 into infinite-precision decimal numbers.
 
-**Tính dễ đọc:** tên hằng và lời giải thích lý do lựa chọn giúp người đọc hiểu tại sao viết `0x1.0p-1022` thay cho một chuỗi thập phân dài. Với số thông dụng như 3.0, cú pháp `3.0` thường đơn giản hơn `0x1.8p1` nếu không nghiên cứu biểu diễn bit.
+**Readability:** named constants and comments explaining the choice help readers understand why `0x1.0p-1022` was written instead of a long decimal string. For ordinary numbers like 3.0, writing `3.0` is usually simpler than `0x1.8p1` when not studying bit representations.
 
-## 12. Lỗi thường gặp
+## 12. Common Mistakes
 
-| Sai lầm | Hậu quả / cách sửa |
+| Mistake | Consequence / Fix |
 | --- | --- |
-| Nghĩ `p3` là nhân `16^3` | Phải nhân `2^3` |
-| Bỏ `p` vì đã có `0x` | Nếu phần trị có dấu chấm, literal hex floating-point phải có số mũ `p` |
-| Dùng `e` làm số mũ hex | Trong phần trị hex, `e` là chữ số 14; phải dùng `p` hoặc `P` |
-| Nghĩ `0x1e3` là số thực `1×10³` | Đó là integer literal hệ 16 có giá trị 483 |
-| Gán `0x1p0` cho `float` mà không có hậu tố | Literal mặc định `double`; viết `0x1p0f` |
-| Dùng dấu `_` cạnh `0x`, `.`, `p`, `f` | Sai quy tắc đặt underscore; chỉ nhóm chữ số |
-| Tưởng literal hex không bao giờ làm tròn | Nếu quá nhiều bit hoặc vượt độ chính xác kiểu đích vẫn có làm tròn |
-| Tưởng `0x1.999...p-4` là giá trị toán học 1/10 chính xác | Đây là `double` nhị phân gần 0.1 |
-| Nhầm `Double.MIN_VALUE` là số âm lớn nhất | Nó là số dương subnormal nhỏ nhất khác 0 |
-| Nhầm `Double.toHexString` với raw bits | Chuỗi hex là dạng số `significand × 2^exponent`, không phải 16 chữ số hex của toàn bộ 64 bit |
+| Thinking `p3` multiplies by `16^3` | It multiplies by `2^3` |
+| Omitting `p` because `0x` is present | If the significand has a dot, a hex floating-point literal must have a `p` exponent |
+| Using `e` as the hex exponent | In a hex significand, `e` is digit 14; must use `p` or `P` |
+| Thinking `0x1e3` is the float `1×10³` | It is a base-16 integer literal with value 483 |
+| Assigning `0x1p0` to `float` without suffix | Default literal is `double`; write `0x1p0f` |
+| Placing `_` next to `0x`, `.`, `p`, `f` | Violates underscore rules; group only digits |
+| Assuming hex literals never round | If too many bits or exceeding target precision, rounding still occurs |
+| Assuming `0x1.999...p-4` is exact mathematical 1/10 | It is the binary `double` nearest to 0.1 |
+| Mistaking `Double.MIN_VALUE` for the largest negative number | It is the smallest non-zero positive subnormal number |
+| Confusing `Double.toHexString` with raw bits | The hex string is in `significand × 2^exponent` form, not 16 hex digits of all 64 bits |
 
-## 13. Bài tập tự kiểm tra và đáp án
+## 13. Self-Check Exercises and Answers
 
-**Bài 1.** Tính `0x1.Cp2` bằng tay.  
-**Bài 2.** Phân biệt giá trị và loại literal của `0x10`, `0x10p1` và `0x10p1f`.  
-**Bài 3.** Biểu diễn `0.375` thành hexadecimal floating-point literal.  
-**Bài 4.** `0x1ep1` có phải giá trị `1 × 10¹` không? Tính kết quả.  
-**Bài 5.** `Double.toHexString(0.1)` trả `0x1.999999999999ap-4`. Điều này chứng minh và không chứng minh điều gì?  
-**Bài 6.** Viết literal `float` cho `5.5` và literal `double` cho `2^20`.
+**Exercise 1.** Calculate `0x1.Cp2` by hand.  
+**Exercise 2.** Distinguish the value and literal type of `0x10`, `0x10p1`, and `0x10p1f`.  
+**Exercise 3.** Express `0.375` as a hexadecimal floating-point literal.  
+**Exercise 4.** Does `0x1ep1` have the value `1 × 10¹`? Compute the result.  
+**Exercise 5.** `Double.toHexString(0.1)` returns `0x1.999999999999ap-4`. What does this prove, and what does it not prove?  
+**Exercise 6.** Write a `float` literal for `5.5` and a `double` literal for `2^20`.
 
-**Lời giải:**
+**Solutions:**
 
-1. `C₁₆ = 12`, nên `0x1.C = 1+12/16 = 1.75`; nhân `2²=4` cho `7.0`.
-2. `0x10` là `int 16`; `0x10p1` là `double 32.0`; `0x10p1f` là `float 32.0f`.
-3. `0.375 = 3/8 = 0.011₂ = 0x0.6p0`; cũng có thể viết `0x1.8p-2`.
-4. Không. `e` là chữ số 14 nên `0x1e = 30`; `p1` nhân 2, kết quả **60.0**.
-5. Nó cho biết chính xác **giá trị nhị phân đã được lưu** cho literal `double 0.1`. Nó không chứng minh rằng `double` lưu chính xác phân số toán học `1/10`.
-6. `5.5 = 0x1.6p2f` vì `1.375 × 4 = 5.5`; `2^20 = 0x1p20` (kiểu `double`).
+1. `C₁₆ = 12`, so `0x1.C = 1+12/16 = 1.75`; multiplying by `2²=4` gives `7.0`.
+2. `0x10` is `int 16`; `0x10p1` is `double 32.0`; `0x10p1f` is `float 32.0f`.
+3. `0.375 = 3/8 = 0.011₂ = 0x0.6p0`; can also be written as `0x1.8p-2`.
+4. No. `e` is digit 14 so `0x1e = 30`; `p1` multiplies by 2, giving **60.0**.
+5. It reveals the exact **stored binary value** for the `double` literal `0.1`. It does not prove that `double` stores the exact mathematical fraction `1/10`.
+6. `5.5 = 0x1.6p2f` because `1.375 × 4 = 5.5`; `2^20 = 0x1p20` (type `double`).
 
-**Ghi nhớ:** Chữ số **hex** ở phần trị, chữ **`p`** đi với số mũ **cơ số 2**, hậu tố **`f`/`F`** để chọn `float` và mặc định là **`double`**. Cách viết này đặc biệt mạnh khi muốn hiểu hoặc tái tạo các giá trị dấu phẩy động nhị phân một cách rõ ràng.
+**Remember:** **Hex** digits in the significand, **`p`** with a **base-2** exponent, **`f`/`F`** suffix to choose `float`, and **`double`** by default. This notation is especially powerful when you want to understand or reproduce binary floating-point values unambiguously.

@@ -1,69 +1,69 @@
-# Proxy và InvocationHandler trong Java
+# Proxy and InvocationHandler in Java
 
-## 1. Từ lời gọi interface đến một bộ xử lý chung
+## 1. From an interface call to a shared handler
 
-Giả sử nhiều thao tác cần ghi log trước và sau khi chạy. Nếu viết phần log vào từng method nghiệp vụ, mã lặp lại và phần nghiệp vụ bị trộn với việc theo dõi lời gọi.
+Suppose multiple operations need to log before and after running. If logging code is written into every business method, code is duplicated and business logic gets mixed with call tracing.
 
-**Proxy động của JDK (dynamic proxy)** tạo một đối tượng triển khai các interface được chọn lúc chạy. Khi mã gọi sử dụng đối tượng ấy qua interface, lời gọi được chuyển đến một bộ xử lý chung: `InvocationHandler`.
+**JDK dynamic proxy** creates an object implementing the chosen interfaces at runtime. When calling code uses that object through an interface, the call is routed to a shared handler: `InvocationHandler`.
 
-Bộ xử lý có thể:
+The handler can:
 
-- Thêm hành vi trước hoặc sau lời gọi.
-- Ủy quyền cho một đối tượng thật.
-- Tự tính kết quả mà không có đối tượng thật.
-- Từ chối một thao tác hoặc chuyển đổi lỗi theo hợp đồng interface.
+- Add behavior before or after the call.
+- Delegate to a real object.
+- Compute a result itself without a real object.
+- Reject an operation or translate errors according to the interface contract.
 
-Các vai trò cần giữ riêng:
+Roles to keep separate:
 
-| Vai trò | Trách nhiệm |
+| Role | Responsibility |
 | --- | --- |
-| Interface | Hợp đồng mà mã gọi nhìn thấy |
-| Proxy instance | Đối tượng nhận lời gọi qua interface |
-| InvocationHandler | Quyết định cách xử lý lời gọi đã được mô tả |
-| Đối tượng đích, nếu có | Thực hiện nghiệp vụ được handler ủy quyền |
+| Interface | Contract seen by the calling code |
+| Proxy instance | Object receiving calls through the interface |
+| InvocationHandler | Decides how to handle the described call |
+| Target object, if any | Executes the business logic delegated by the handler |
 
-Proxy không mặc nhiên đồng nghĩa với một đối tượng đích ẩn bên trong. Đối tượng đích là một lựa chọn của cách viết handler.
+A proxy does not automatically imply a hidden target object inside. A target object is one choice of how to write the handler.
 
-## 2. Cơ chế chuyển lời gọi
+## 2. Call dispatch mechanism
 
-Một luồng ủy quyền điển hình:
+A typical delegation flow:
 
 ~~~text
-Mã gọi
-  -> phương thức trên proxy qua interface
+Calling code
+  -> method on proxy via interface
   -> InvocationHandler.invoke(proxy, method, args)
-  -> xử lý bổ sung
-  -> method.invoke(target, args), nếu chọn ủy quyền
-  -> kết quả hoặc ngoại lệ quay lại mã gọi
+  -> additional processing
+  -> method.invoke(target, args), if delegating
+  -> result or exception returns to calling code
 ~~~
 
-Hai API chính:
+Two main APIs:
 
 ~~~java
 Proxy.newProxyInstance(loader, interfaces, handler)
 ~~~
 
-Đây là biểu thức minh họa, với các biến đã được chuẩn bị. Phương thức trả về `Object`; mã gọi ép về interface mà proxy được tạo để triển khai.
+This is an illustrative expression, with variables already prepared. The method returns `Object`; calling code casts it to the interface the proxy was created to implement.
 
-Handler thực hiện phương thức:
+The handler implements the method:
 
 ~~~java
 Object invoke(Object proxy, Method method, Object[] args) throws Throwable
 ~~~
 
-Dòng trên biểu diễn chữ ký của `InvocationHandler.invoke`, không phải một phương thức hoàn chỉnh có phần thân.
+The line above represents the signature of `InvocationHandler.invoke`, not a complete method with a body.
 
-Ý nghĩa các tham số:
+Meaning of the parameters:
 
-- `proxy`: chính đối tượng proxy đang nhận lời gọi, **không phải đối tượng đích**.
-- `method`: metadata của method interface được gọi; lớp khai báo có thể là interface cha mà interface được cung cấp kế thừa method.
-- `args`: các đối số, với giá trị primitive được đóng hộp; bằng `null` nếu method không có đối số.
+- `proxy`: the proxy object itself receiving the call, **not the target object**.
+- `method`: metadata of the invoked interface method; the declaring class may be a parent interface from which the provided interface inherits the method.
+- `args`: the arguments, with primitive values boxed; `null` if the method takes no arguments.
 
-Lấy được một `Method` mô tả lời gọi chưa có nghĩa handler phải dùng Reflection để gọi một đối tượng thật. Handler có thể chọn cách xử lý khác.
+Obtaining a `Method` describing the call does not mean the handler must use Reflection to invoke a real object. The handler can choose another handling strategy.
 
-## 3. Ví dụ hoàn chỉnh: thêm dấu vết và ủy quyền
+## 3. Complete example: adding tracing and delegation
 
-Lưu thành `ProxyHandlerDemo.java`:
+Save as `ProxyHandlerDemo.java`:
 
 ~~~java
 import java.lang.reflect.InvocationHandler;
@@ -163,14 +163,14 @@ public class ProxyHandlerDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ~~~bash
 javac --release 17 ProxyHandlerDemo.java
 java ProxyHandlerDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 isProxyClass=true
@@ -189,55 +189,55 @@ leave greet
 error=IllegalArgumentException:name is blank
 ~~~
 
-Chương trình chạy tuần tự. `RealGreetingService` giữ số lần chào hợp lệ; ví dụ không xây một bộ đếm đồng thời.
+The program runs sequentially. `RealGreetingService` tracks the count of valid greetings; the example does not build a concurrent counter.
 
-Đọc theo từng bước:
+Step-by-step walkthrough:
 
-1. `newProxyInstance` tạo một đối tượng triển khai `GreetingService`.
-2. `service.greet("Lan")` chuyển thành lời gọi `handler.invoke`.
-3. Handler in `enter`, gọi method trên `target`, rồi luôn in `leave` trong `finally`.
-4. `calls()` không có tham số, nên mảng đối số của handler là null. `Method.invoke` chấp nhận null để biểu diễn không có đối số.
-5. Kết quả `int` của `calls()` được Reflection đóng hộp khi trở về handler, rồi proxy trả lại kết quả phù hợp với kiểu `int` của interface.
-6. Khi đối tượng đích từ chối tên rỗng, handler lấy nguyên nhân gốc khỏi `InvocationTargetException`, nên phía gọi nhận `IllegalArgumentException`.
+1. `newProxyInstance` creates an object implementing `GreetingService`.
+2. `service.greet("Lan")` translates into a call to `handler.invoke`.
+3. The handler prints `enter`, invokes the method on `target`, and always prints `leave` in `finally`.
+4. `calls()` has no parameters, so the handler's arguments array is null. `Method.invoke` accepts null to represent no arguments.
+5. The `int` result of `calls()` is boxed by Reflection when returning to the handler, and then the proxy returns a result matching the interface's `int` return type.
+6. When the target object rejects a blank name, the handler unwraps the root cause from `InvocationTargetException`, so the caller receives `IllegalArgumentException`.
 
-Proxy được nhận diện bằng `Proxy.isProxyClass`, không bằng việc tìm một chuỗi tên lớp do JDK sinh. `Proxy.getInvocationHandler` lấy handler gắn với đúng proxy instance.
+A proxy is identified with `Proxy.isProxyClass`, not by looking for a JDK-generated class name string. `Proxy.getInvocationHandler` retrieves the handler attached to that exact proxy instance.
 
-## 4. Tách vai trò proxy, handler và target
+## 4. Separating the proxy, handler, and target roles
 
-Ví dụ trên có hai đối tượng **khác nhau**: `service` là proxy nhận lời gọi từ caller, còn `target` là `RealGreetingService` thực hiện nghiệp vụ. Handler nối hai đối tượng bằng `method.invoke(target, arguments)` và chỉ log quanh lần gọi được ủy quyền đó. Lời gọi `target.greet("Lan")` trực tiếp **không đi qua handler**; chỉ những lời gọi mà caller gửi đến `service` mới được chặn.
+The example above has two **distinct** objects: `service` is the proxy receiving calls from the caller, while `target` is the `RealGreetingService` performing the business logic. The handler connects the two objects via `method.invoke(target, arguments)` and only logs around that delegated call. A direct `target.greet("Lan")` call **does not go through the handler**; only calls that the caller sends to `service` are intercepted.
 
-Không có quy tắc yêu cầu handler phải sở hữu target. Một mock hoặc RPC stub có thể tự trả lời dựa trên `method` và `args`. Khi không có target, handler vẫn phải tạo kết quả đúng kiểu hoặc ném ngoại lệ phù hợp với hợp đồng của interface.
+There is no rule requiring a handler to own a target. A mock or RPC stub can answer on its own based on `method` and `args`. When there is no target, the handler must still produce a result of the right type or throw an exception consistent with the interface contract.
 
-**Không ủy quyền ngược về proxy:** `method.invoke(proxy, arguments)` thực hiện lại cùng phương thức trên đối tượng proxy, nên lại kích hoạt handler và có thể gây vòng lặp đến `StackOverflowError`. Khi log, tránh nối chuỗi với chính `proxy` nếu chưa có chính sách xử lý `toString()` rõ ràng.
+**Do not delegate back to the proxy:** `method.invoke(proxy, arguments)` executes the same method again on the proxy object, which triggers the handler again and can loop until `StackOverflowError`. When logging, avoid concatenating strings with `proxy` itself unless a clear `toString()` policy is in place.
 
-## 5. Bốn ranh giới mà một handler cần giữ đúng
+## 5. Four boundaries a handler must uphold
 
-| Ranh giới | Điều cần biết khi viết handler |
+| Boundary | What to know when writing a handler |
 | --- | --- |
-| Đối số | `args == null` nếu method không nhận tham số; primitive được boxing. |
-| Giá trị trả về | Một `int` cần `Integer` tương ứng; `null` với kiểu primitive gây `NullPointerException`; kiểu object sai có thể gây `ClassCastException`. |
-| Ngoại lệ | `Method.invoke(target, args)` bọc lỗi của target bằng `InvocationTargetException`; nếu chuyển tiếp lỗi thật, thường lấy `getCause()`. Checked exception ra khỏi handler phải phù hợp với `throws` của interface, nếu không proxy có thể bọc `UndeclaredThrowableException`. |
-| `Object` methods | `equals`, `hashCode` và `toString` cũng tới handler; ví dụ dùng identity của proxy cho equality/hash và chuỗi `GreetingProxy`. |
+| Arguments | `args == null` if the method takes no parameters; primitives are boxed. |
+| Return value | An `int` requires a corresponding `Integer`; `null` for a primitive type causes `NullPointerException`; a wrong object type can cause `ClassCastException`. |
+| Exceptions | `Method.invoke(target, args)` wraps errors from the target in `InvocationTargetException`; to forward the real error, typically extract `getCause()`. A checked exception leaving the handler must match the interface's `throws` clause, otherwise the proxy may wrap it in `UndeclaredThrowableException`. |
+| `Object` methods | `equals`, `hashCode`, and `toString` also reach the handler; the example uses proxy identity for equality/hash and the string `GreetingProxy`. |
 
-Với default method của interface, lời gọi vẫn đi qua handler. Nếu thật sự muốn chạy phần thân mặc định, từ Java 16 có `InvocationHandler.invokeDefault`; không sử dụng `Method.invoke(proxy, args)` để thay thế. Các bài riêng về giá trị trả về, checked exception, default method và các phương thức của `Object` sẽ đi sâu vào các điều kiện cụ thể.
+For interface default methods, the call still goes through the handler. If you genuinely want to run the default body, since Java 16 there is `InvocationHandler.invokeDefault`; do not use `Method.invoke(proxy, args)` as a substitute. Separate articles on return values, checked exceptions, default methods, and `Object` methods will go deeper into specific conditions.
 
-## 6. Khi nào sử dụng mô hình này?
+## 6. When to use this pattern?
 
-Chọn JDK dynamic proxy nếu caller làm việc qua một **interface** và bạn muốn thay đổi cách lời gọi được xử lý tại runtime: kiểm tra, ghi log, đo đạc, mock hay gọi dịch vụ từ xa. `newProxyInstance` tạo lớp proxy implements các interface đó; nó không làm proxy trở thành subclass của lớp `RealGreetingService`.
+Choose JDK dynamic proxy if callers work through an **interface** and you want to alter how calls are handled at runtime: validation, logging, metrics, mocking, or remote service calls. `newProxyInstance` creates a proxy class implementing those interfaces; it does not make the proxy a subclass of `RealGreetingService`.
 
-Bộ nạp lớp phải nhìn thấy đúng từng interface được yêu cầu. Cần xét thêm ranh giới Java modules, interface `sealed`/`hidden`, các method trùng chữ ký và quyền truy cập của interface `non-public` nếu dùng trong môi trường plugin/module. Chỉ một interface public ở classpath thông thường, như ví dụ, giúp tập trung vào luồng lời gọi trước khi chuyển sang các trường hợp khó.
+The class loader must see each requested interface properly. Additional considerations include Java module boundaries, `sealed`/`hidden` interfaces, methods with identical signatures, and access rules for `non-public` interfaces when used in plugin/module environments. Using a single public interface on the regular classpath, as in the example, helps focus on the call flow before moving to harder cases.
 
-## 7. Tự kiểm tra từ ví dụ
+## 7. Self-check from the example
 
-1. `Proxy.newProxyInstance` có tự khởi tạo `RealGreetingService` không? **Không**; target được tạo độc lập và handler nhận target do code ứng dụng cung cấp.
-2. Vì sao `service.greet("Lan")` có in `enter/leave`, nhưng `target.greet("Lan")` không? **Đối tượng nhận lời gọi khác nhau**; chỉ proxy chuyển lời gọi qua handler.
-3. `calls()` không có tham số; handler có nhận mảng một phần tử không? **Không**; `arguments` là `null`.
-4. Vì sao cần tháo `InvocationTargetException` khi chuyển tiếp lỗi gốc? Để giữ nguyên nhân nghiệp vụ và tránh đưa một checked wrapper ngoài `throws` của interface ra phía caller.
-5. Có bắt buộc dùng `Method.invoke(target, arguments)` không? **Không**; handler có thể tự thực thi một chiến lược khác và trả giá trị đúng hợp đồng.
+1. Does `Proxy.newProxyInstance` instantiate `RealGreetingService` automatically? **No**; the target is created independently and the handler receives the target provided by application code.
+2. Why does `service.greet("Lan")` print `enter/leave`, while `target.greet("Lan")` does not? **The objects receiving the call are different**; only the proxy routes calls through the handler.
+3. `calls()` takes no parameters; does the handler receive a single-element array? **No**; `arguments` is `null`.
+4. Why is it necessary to unwrap `InvocationTargetException` when forwarding the original error? To preserve the business cause and avoid exposing an undeclared checked wrapper outside the interface's `throws` clause to the caller.
+5. Is using `Method.invoke(target, arguments)` mandatory? **No**; the handler can execute another strategy itself and return a value matching the contract.
 
-**Ghi nhớ:** JDK proxy cung cấp một đối tượng gọi được qua interface, còn `InvocationHandler` định nghĩa hành vi của lời gọi. Target, nếu có, là lựa chọn của handler. Luôn tách **proxy nhận lời gọi**, **handler điều phối** và **target xử lý nghiệp vụ** để tránh vô tình gọi ngược vào proxy.
+**Takeaway:** JDK proxy provides an object callable through an interface, while `InvocationHandler` defines the call behavior. The target, if any, is a choice of the handler. Always separate the **proxy receiving calls**, the **handler coordinating execution**, and the **target executing business logic** to avoid accidentally calling back into the proxy.
 
-### Tài liệu chính thức
+### Official Documentation
 
 - [Java SE 17 — Proxy](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Proxy.html)
 - [Java SE 17 — InvocationHandler](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/InvocationHandler.html)

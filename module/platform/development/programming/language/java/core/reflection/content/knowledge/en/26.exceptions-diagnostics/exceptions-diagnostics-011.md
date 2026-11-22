@@ -1,102 +1,102 @@
-# Phân biệt lỗi ở công cụ Reflection với lỗi trong mã đích (Java)
+# Distinguishing Reflection-Tool Errors from Target-Code Errors in Java
 
-## 1. Vì sao phải phân biệt hai nguồn lỗi?
+## 1. Why Must You Distinguish the Two Error Sources?
 
-Với Java Reflection, lời gọi nhìn giống `method.invoke(receiver, args)` nhưng thực tế trải qua hai lớp xử lý:
+With Java Reflection, a call looks like `method.invoke(receiver, args)`, yet in reality it goes through two processing layers:
 
-1. **Lớp hạ tầng Reflection**: tìm `Class`, tìm metadata của field/method/constructor, kiểm tra đối tượng nhận, quyền truy cập, số lượng và kiểu đối số, rồi điều phối lời gọi.
-2. **Mã đích (target)**: thân method hoặc constructor được chạy và có thể trả kết quả hay ném exception/error vì chính logic nghiệp vụ.
+1. **The Reflection infrastructure layer**: looks up `Class`, finds field/method/constructor metadata, checks the receiver object, access permissions, argument count and types, and dispatches the call.
+2. **The target code (target)**: the method or constructor body runs and may return a result or throw an exception/error due to its own business logic.
 
-Nếu lỗi xảy ra ở bước chuẩn bị/kiểm tra của Reflection, API thường ném **trực tiếp** exception tương ứng, như `NoSuchMethodException`, `IllegalAccessException` hoặc `IllegalArgumentException`. Nếu lời gọi đã vào thân method/constructor rồi mã đích ném ra `Throwable`, các API `Method.invoke` và `Constructor.newInstance` thường bọc lỗi đó trong **`InvocationTargetException`**.
+If an error occurs during Reflection's preparation/validation step, the API typically throws the corresponding exception **directly**, such as `NoSuchMethodException`, `IllegalAccessException`, or `IllegalArgumentException`. If the call has entered the method/constructor body and the target code throws a `Throwable`, `Method.invoke` and `Constructor.newInstance` typically wrap that error in **`InvocationTargetException`**.
 
-Ví dụ hai trường hợp nhìn gần giống:
+Example of two similar-looking cases:
 
 ```java
-// Sai số kiểu đối số: lỗi do Reflection kiểm tra trước lời gọi.
-method.invoke(target, 123); // Nếu method nhận String: IllegalArgumentException.
+// Wrong argument type: error from Reflection checking before the call.
+method.invoke(target, 123); // If method takes String: IllegalArgumentException.
 
-// Kiểu đối số đúng nhưng bên trong method lại ném IllegalArgumentException.
-// Kết quả của Method.invoke là InvocationTargetException;
-// getCause() là IllegalArgumentException của chính method đích.
+// Correct argument type, yet inside the method it throws IllegalArgumentException.
+// The result of Method.invoke is InvocationTargetException;
+// getCause() is the IllegalArgumentException from the target method itself.
 method.invoke(target, "invalid");
 ```
 
-Đây là **mảnh code minh họa**; `method` và `target` phải được khai báo trong chương trình cụ thể. Không thể kết luận nguồn lỗi chỉ bằng từ khóa `IllegalArgumentException` trong log: cần xem **exception lớp ngoài, cause và giai đoạn xử lý**.
+This is an **illustrative code snippet**; `method` and `target` must be declared in a concrete program. You cannot conclude the error source solely from the keyword `IllegalArgumentException` in the logs: you must inspect **the outer exception, the cause, and the processing phase**.
 
-## 2. Sơ đồ luồng lỗi
+## 2. Error Flow Diagram
 
 ```text
-Class / tên thành viên / tham số
+Class / member name / parameters
               |
               v
- [Reflection: tra cứu member]
+ [Reflection: member lookup]
       |                 |
-   thất bại          tìm thấy
+    failed            found
       |                 |
 NoSuchMethodException  v
-NoSuchFieldException   [Kiểm tra quyền, receiver, đối số]
+NoSuchFieldException   [Check access, receiver, arguments]
                               |                 |
-                           thất bại          hợp lệ
+                            failed            valid
                               |                 |
                     IllegalAccessException     v
-                    IllegalArgumentException [Khởi tạo lớp nếu cần]
+                    IllegalArgumentException [Class initialization if needed]
                     NullPointerException       |
-                                             [Chạy mã đích]
+                                             [Run target code]
                                               /         \
-                                        trả về         ném Throwable
-                                          |                  |
-                                      kết quả      InvocationTargetException
-                                                        |
-                                                    getCause()
-                                                        |
-                                                Throwable của mã đích
+                                          returns    throws Throwable
+                                            |                  |
+                                         result    InvocationTargetException
+                                                               |
+                                                           getCause()
+                                                               |
+                                                   Target code's Throwable
 ```
 
-Sơ đồ là luồng **điển hình**, không phải danh sách đầy đủ mọi lỗi JVM. Đặc biệt, class initialization và linkage có thể thất bại trước khi thân method chạy; một số `Error` như `ExceptionInInitializerError` hoặc `LinkageError` có thể xuất hiện trực tiếp mà không qua `InvocationTargetException`. Do đó, đừng viết một khối `catch (InvocationTargetException)` rồi coi nó bao phủ mọi kiểu thất bại của Reflection.
+The diagram shows the **typical** flow, not an exhaustive list of every JVM error. In particular, class initialization and linkage can fail before the method body runs; certain `Error`s such as `ExceptionInInitializerError` or `LinkageError` can surface directly without going through `InvocationTargetException`. Therefore, do not write a single `catch (InvocationTargetException)` block and assume it covers every kind of Reflection failure.
 
-## 3. Bảng phân loại theo nguồn phát sinh
+## 3. Classification Table by Origin
 
-| Dấu hiệu thấy được | Nơi phát sinh thường gặp | Cách hiểu/chẩn đoán |
+| Observed symptom | Typical origin | Interpretation / diagnosis |
 |---|---|---|
-| `ClassNotFoundException` | `Class.forName(name)` khi không tải được class theo tên | Tên/loader/classpath không tìm được lớp, chưa phải mã nghiệp vụ đích |
-| `NoSuchMethodException` | `Class.getMethod`, `getDeclaredMethod`, `getConstructor`, `getDeclaredConstructor` | Không tìm được method/constructor theo phạm vi và danh sách **kiểu tham số** |
-| `NoSuchFieldException` | `Class.getField` / `getDeclaredField` | Không tìm được field theo tên và phạm vi tra cứu |
-| `IllegalAccessException` | `Method.invoke`, `Field.get/set`, `Constructor.newInstance` | Reflection tìm được metadata nhưng không có quyền thực hiện thao tác |
-| `InaccessibleObjectException` | Ví dụ `AccessibleObject.setAccessible(true)` khi module không mở package thích hợp | Từ chối mở quyền truy cập sâu; đây là runtime exception của cơ chế truy cập |
-| `IllegalArgumentException` trực tiếp | `Method.invoke` khi receiver không tương thích, sai số/kiểu đối số; `Field.get/set` dùng receiver/value không hợp lệ | Lỗi trong bước kiểm tra/call contract của Reflection |
-| `NullPointerException` trực tiếp | `Method.invoke` trên instance method với receiver `null`; hoặc đối số bắt buộc của một API Reflection là `null` | Lỗi trước khi chạy thân method, tùy API và vị trí null |
-| `InvocationTargetException` | `Method.invoke` hoặc `Constructor.newInstance` **sau khi mã đích ném lỗi** | Wrapper hạ tầng: dùng `getCause()` để nhận `Throwable` thực sự |
-| `ExceptionInInitializerError` | Khởi tạo lớp thất bại do initializer ném exception không phải `Error` | Lỗi giai đoạn class initialization; có thể xảy ra trước thân method |
-| `NoClassDefFoundError`, `NoSuchMethodError`, `NoSuchFieldError` | Class/linkage/runtime binary compatibility | Là `Error` cấp JVM; **khác** checked lookup exception có tên gần giống |
-| `UndeclaredThrowableException` | Chẳng hạn dynamic proxy nhận checked exception từ `InvocationHandler` nhưng interface method không khai báo tương thích | Đặc thù cơ chế lời gọi JDK proxy; không phải wrapper mặc định của `Method.invoke` |
+| `ClassNotFoundException` | `Class.forName(name)` when the class cannot be loaded by name | Name/loader/classpath could not locate the class; not target business code yet |
+| `NoSuchMethodException` | `Class.getMethod`, `getDeclaredMethod`, `getConstructor`, `getDeclaredConstructor` | Could not find method/constructor matching scope and **parameter type** list |
+| `NoSuchFieldException` | `Class.getField` / `getDeclaredField` | Could not find field matching name and lookup scope |
+| `IllegalAccessException` | `Method.invoke`, `Field.get/set`, `Constructor.newInstance` | Reflection found metadata but lacks permission to perform the operation |
+| `InaccessibleObjectException` | E.g., `AccessibleObject.setAccessible(true)` when a module does not open the appropriate package | Deep access request denied; this is a runtime exception of the access mechanism |
+| Direct `IllegalArgumentException` | `Method.invoke` with incompatible receiver or wrong argument count/types; `Field.get/set` with invalid receiver/value | Error in Reflection's validation/call-contract step |
+| Direct `NullPointerException` | `Method.invoke` on an instance method with `null` receiver; or a required argument to a Reflection API is `null` | Error before running the method body, depending on the API and null position |
+| `InvocationTargetException` | `Method.invoke` or `Constructor.newInstance` **after target code threw an error** | Infrastructure wrapper: use `getCause()` to obtain the real `Throwable` |
+| `ExceptionInInitializerError` | Class initialization failed because the initializer threw a non-`Error` exception | Class-initialization phase error; can occur before the method body |
+| `NoClassDefFoundError`, `NoSuchMethodError`, `NoSuchFieldError` | Class/linkage/runtime binary compatibility | JVM-level `Error`; **differs** from similarly named checked lookup exceptions |
+| `UndeclaredThrowableException` | E.g., dynamic proxy receives a checked exception from `InvocationHandler` not compatibly declared on the interface method | Specific to JDK proxy dispatch; not the default wrapper of `Method.invoke` |
 
-**Lưu ý:** `IllegalArgumentException`, `NullPointerException` hay `AssertionError` cũng có thể được **mã đích chủ động ném**. Trong trường hợp đó, khi gọi qua `Method.invoke`, chúng thường nằm **bên trong `InvocationTargetException.getCause()`**; không được phân loại đơn giản theo tên loại lỗi.
+**Note:** `IllegalArgumentException`, `NullPointerException`, or `AssertionError` can also be **intentionally thrown by target code**. In that case, when invoked via `Method.invoke`, they normally sit **inside `InvocationTargetException.getCause()`**; do not classify simply by exception type name.
 
-## 4. Hai giai đoạn dễ nhầm: tra cứu metadata và thực thi
+## 4. Two Easily Confused Phases: Metadata Lookup and Execution
 
-Tra cứu:
+Lookup:
 
 ```java
 Class<?> type = Class.forName("java.lang.String");
 java.lang.reflect.Method method = type.getMethod("substring", int.class);
 ```
 
-Hai lời gọi trên tìm lớp và lấy metadata. Chúng **không chạy** thân `String.substring(...)`. Tên sai hoặc chữ ký không đúng có thể dẫn đến `ClassNotFoundException` hay `NoSuchMethodException`. Với `getDeclaredMethod`, không nên nhầm “declared” với “public”: nó chỉ tìm trong chính lớp đó và có thể tìm thấy thành viên private, nhưng tìm được chưa có nghĩa được phép gọi.
+These two calls locate the class and retrieve metadata. They **do not execute** the body of `String.substring(...)`. A wrong name or signature can lead to `ClassNotFoundException` or `NoSuchMethodException`. With `getDeclaredMethod`, do not confuse “declared” with “public”: it searches only within that class itself and can find private members, yet finding one does not mean you are allowed to call it.
 
-Thực thi:
+Execution:
 
 ```java
 Object result = method.invoke("abcd", 2);
 System.out.println(result); // cd
 ```
 
-`Method.invoke` kiểm tra receiver và kiểu tham số, sau đó mới chạy thân method. Với method không có tham số có thể gọi `invoke(receiver)`. Với static method, đối số receiver của `invoke` có thể là `null`. Với instance method, receiver phải là một instance hợp lệ và không được null.
+`Method.invoke` checks the receiver and parameter types before running the method body. For a zero-parameter method, you can call `invoke(receiver)`. For a static method, the receiver argument to `invoke` can be `null`. For an instance method, the receiver must be a valid non-null instance.
 
-Với constructor, dùng `getDeclaredConstructor`/`getConstructor` để lấy metadata và `Constructor.newInstance(args)` để chạy thân constructor. `Class.newInstance()` đã deprecated và không có cùng hợp đồng bọc exception như `Constructor.newInstance()`; tránh dùng nó trong code mới.
+For constructors, use `getDeclaredConstructor`/`getConstructor` to obtain metadata and `Constructor.newInstance(args)` to run the constructor body. `Class.newInstance()` is deprecated and does not share the same exception-wrapping contract as `Constructor.newInstance()`; avoid using it in new code.
 
-## 5. Ví dụ Java 17+ hoàn chỉnh: từng nguồn lỗi được tách rõ
+## 5. Complete Java 17+ Example: Each Error Source Isolated Clearly
 
-Tạo file **`ReflectionFaultsDemo.java`** chứa cả hai top-level class sau (chỉ `ReflectionFaultsDemo` là `public`):
+Create the file **`ReflectionFaultsDemo.java`** containing both of the following top-level classes (only `ReflectionFaultsDemo` is `public`):
 
 ```java
 import java.io.IOException;
@@ -194,14 +194,14 @@ class Target {
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa file:
+Compile and run from the directory containing the file:
 
 ```bash
 javac ReflectionFaultsDemo.java
 java ReflectionFaultsDemo
 ```
 
-Stdout đã được kiểm tra:
+Verified stdout:
 
 ```text
 lookup: NoSuchMethodException
@@ -217,111 +217,111 @@ constructor target: IllegalStateException
 initialization: ExceptionInInitializerError
 ```
 
-### Phân tích kết quả theo giai đoạn
+### Phase-by-Phase Output Analysis
 
-1. `getMethod("missing")` thất bại ngay khi **lookup** vì `Target` không có public method tương ứng, nên trả trực tiếp `NoSuchMethodException`.
-2. `hidden` và `secret` thực sự tồn tại, vì `getDeclaredMethod` / `getDeclaredField` tìm được. Tuy nhiên, chúng là private members của **top-level class `Target` độc lập**; truy cập từ `ReflectionFaultsDemo` không được phép, nên `Method.invoke` và `Field.get` ném trực tiếp `IllegalAccessException`. Nếu chuyển `Target` thành nested class cùng nest với caller, kết quả quyền truy cập có thể khác.
-3. `greet(String)` tồn tại nhưng truyền `42` (an `int` boxed thành `Integer`) không phù hợp với `String`. Reflection ném trực tiếp `IllegalArgumentException` trước khi chạy `Target.greet`.
-4. Receiver `null` của `greet(String)` là không hợp lệ vì đây là instance method. `Method.invoke` ném trực tiếp `NullPointerException`. Nếu một **static** method được gọi bằng `invoke(null, ...)` thì tình huống khác.
-5. Với receiver và argument hợp lệ, `greet` chạy bình thường và kết quả trả về qua `invoke`.
-6. Các method `unchecked()`, `checked()`, `fatal()` cố ý ném `IllegalStateException`, `IOException` và `AssertionError`. `Method.invoke` bọc **cả runtime exception, checked exception và Error từ thân method đích** trong `InvocationTargetException`; `getCause()` cho ra đúng kiểu gốc.
-7. Thân constructor `Target("bad")` ném `IllegalStateException`; `Constructor.newInstance` cũng bọc lỗi đích trong `InvocationTargetException`.
-8. `Broken` được lấy `Class` với `initialize=false`, rồi gọi static method qua Reflection. Trước khi thân `ping` chạy, JVM phải khởi tạo lớp; initializer thất bại nên ném **`ExceptionInInitializerError`**. Đây là lỗi khởi tạo lớp, không phải method `ping` ném `InvocationTargetException`.
+1. `getMethod("missing")` fails right at **lookup** because `Target` has no matching public method, so it returns `NoSuchMethodException` directly.
+2. `hidden` and `secret` genuinely exist, since `getDeclaredMethod` / `getDeclaredField` find them. However, they are private members of an **independent top-level class `Target`**; access from `ReflectionFaultsDemo` is not allowed, so `Method.invoke` and `Field.get` throw `IllegalAccessException` directly. Moving `Target` into a nested class in the same nest as the caller could yield a different access result.
+3. `greet(String)` exists, yet passing `42` (an `int` boxed into `Integer`) is incompatible with `String`. Reflection throws `IllegalArgumentException` directly before running `Target.greet`.
+4. A `null` receiver for `greet(String)` is invalid because it is an instance method. `Method.invoke` throws `NullPointerException` directly. If a **static** method were called with `invoke(null, ...)`, the situation would differ.
+5. With a valid receiver and argument, `greet` runs normally and returns its result via `invoke`.
+6. `unchecked()`, `checked()`, and `fatal()` intentionally throw `IllegalStateException`, `IOException`, and `AssertionError`. `Method.invoke` wraps **runtime exceptions, checked exceptions, and Errors from the target method body alike** in `InvocationTargetException`; `getCause()` yields the exact original type.
+7. The `Target("bad")` constructor body throws `IllegalStateException`; `Constructor.newInstance` likewise wraps the target error in `InvocationTargetException`.
+8. `Broken`'s `Class` is obtained with `initialize=false`, then a static method is invoked via Reflection. Before `ping`'s body runs, the JVM must initialize the class; the initializer fails and throws **`ExceptionInInitializerError`**. This is a class initialization error, not `ping` throwing `InvocationTargetException`.
 
-Ví dụ sử dụng Java syntax tương thích Java 17+ và đã chạy thành công. Nó không gọi `setAccessible(true)` vì mục tiêu là quan sát rõ ranh giới quyền truy cập của Reflection.
+The example uses Java 17+ compatible syntax and ran cleanly. It does not call `setAccessible(true)` because the goal is to observe Reflection's access boundaries clearly.
 
-## 6. Cách đọc InvocationTargetException đúng cách
+## 6. How to Read InvocationTargetException Properly
 
-`InvocationTargetException` là một **checked exception của lớp Reflection**, nhưng nội dung quan trọng thường nằm trong `getCause()` (tương đương `getTargetException()` theo API cũ):
+`InvocationTargetException` is a **checked exception of the Reflection layer**, yet the key information usually lives in `getCause()` (equivalent to `getTargetException()` from the older API):
 
 ```java
 try {
     Object result = method.invoke(receiver, arguments);
-    // Chỉ tới đây khi method đích hoàn tất bình thường.
+    // Reached only when the target method finishes normally.
 } catch (InvocationTargetException e) {
     Throwable original = e.getCause();
-    // original xuất phát từ method đích.
+    // original came from the target method.
     throw new IllegalStateException("Target method failed", original);
 } catch (IllegalAccessException e) {
-    // Lỗi quyền truy cập từ Reflection.
+    // Access permission error from Reflection.
     throw new IllegalStateException("Cannot invoke the target method", e);
 } catch (IllegalArgumentException e) {
-    // Có thể là receiver/arguments không hợp lệ ở tầng Reflection.
+    // Possibly invalid receiver/arguments at the Reflection layer.
     throw new IllegalArgumentException("Invalid reflective invocation", e);
 }
 ```
 
-Đây là **mảnh code minh họa** trong một phương thức có quyền throw runtime exceptions; `method`, `receiver`, `arguments` phải được định nghĩa. Nếu `original` là `InterruptedException`, `IOException` hoặc exception nghiệp vụ được phép xử lý tường minh, hãy xử lý đúng hợp đồng thay vì gộp tất cả vào một runtime exception.
+This is an **illustrative snippet** inside a method allowed to throw runtime exceptions; `method`, `receiver`, and `arguments` must be defined. If `original` is `InterruptedException`, `IOException`, or a business exception that may be handled explicitly, handle it per contract instead of collapsing everything into one runtime exception.
 
-**Không nên** log duy nhất `e.getMessage()`: wrapper có thể không nêu được nguyên nhân nghiệp vụ. Khi log, giữ stack trace của `cause`, tên operation, signature, target class và request/correlation ID phù hợp. Không in raw arguments chứa mật khẩu, access token hay dữ liệu nhạy cảm.
+**Do not** log only `e.getMessage()`: the wrapper may fail to convey the business cause. When logging, preserve the `cause`'s stack trace, operation name, signature, target class, and an appropriate request/correlation ID. Do not print raw arguments containing passwords, access tokens, or sensitive data.
 
-### Khi cần chuyển tiếp ngoại lệ gốc
+### When You Need to Propagate the Original Exception
 
-Ở một API đã khai báo checked exception cụ thể, có thể gỡ `InvocationTargetException` rồi ném lại đúng loại: chẳng hạn `if (cause instanceof IOException io) throw io;` trong method có `throws IOException`. Với `RuntimeException` hoặc `Error`, quyết định truyền tiếp theo hợp đồng của tầng gọi; với checked exception bất ngờ, tạo wrapper **giữ cause**. Cách nhận diện từng kiểu và chính sách giữ stack trace được minh họa sâu ở bài về `InvocationTargetException` (hàng 299). Ở bài này, điều quan trọng là xác nhận mã đích **đã chạy** trước khi phân loại lỗi.
+In an API that already declares a specific checked exception, you can unwrap `InvocationTargetException` and rethrow the exact type: for instance `if (cause instanceof IOException io) throw io;` in a method with `throws IOException`. For `RuntimeException` or `Error`, decide propagation per the calling layer's contract; for an unexpected checked exception, create a wrapper **preserving the cause**. Recognizing each type and policies for preserving stack traces are covered in depth in the `InvocationTargetException` article (item 299). In this article, the key point is confirming the target code **actually ran** before classifying the error.
 
-## 7. Field.get/set và method/constructor invoke không có cùng hành vi
+## 7. Field.get/set and Method/Constructor Invocation Do Not Behave Identically
 
-Một trường hợp dễ sai là nghĩ *mọi* thao tác Reflection đều bọc lỗi mã đích trong `InvocationTargetException`. Thực tế:
+A common mistake is thinking *every* Reflection operation wraps target-code errors in `InvocationTargetException`. In practice:
 
-- `Field.get(target)` / `Field.set(target, value)` chủ yếu kiểm tra quyền truy cập, receiver và kiểu dữ liệu rồi đọc/ghi field; chúng **không gọi thân method nghiệp vụ**, nên không có quy tắc bọc “exception của thân method” như `Method.invoke`.
-- `Class.getMethod/getDeclaredMethod/getField/getDeclaredField` là các thao tác metadata lookup: có thể ném checked lookup exception nhưng **chưa gọi target method/constructor**.
-- `Method.invoke` chạy thân method sau kiểm tra. Nếu chính thân method ném `Throwable`, thường nhận `InvocationTargetException`.
-- `Constructor.newInstance` thực thi constructor. Nếu thân constructor ném exception/error, cũng thường nhận `InvocationTargetException`.
-- `MethodHandles.Lookup`, `MethodHandle.invoke/invokeExact` và invocation trực tiếp có **hợp đồng khác**. Chẳng hạn exception từ target của `MethodHandle` không mặc định bị bọc bởi `InvocationTargetException`. Không áp quy tắc của `Method.invoke` cho toàn bộ Java invocation API.
+- `Field.get(target)` / `Field.set(target, value)` primarily check access permissions, receiver, and data type before reading/writing the field; they **do not invoke a business method body**, so they have no “method-body exception” wrapping rule like `Method.invoke`.
+- `Class.getMethod/getDeclaredMethod/getField/getDeclaredField` are metadata lookup operations: they can throw checked lookup exceptions yet **have not called the target method/constructor**.
+- `Method.invoke` runs the method body after checks. If the method body itself throws a `Throwable`, you typically receive `InvocationTargetException`.
+- `Constructor.newInstance` executes the constructor. If the constructor body throws an exception/error, you also typically receive `InvocationTargetException`.
+- `MethodHandles.Lookup`, `MethodHandle.invoke/invokeExact`, and direct invocation have **different contracts**. For example, exceptions from a `MethodHandle`'s target are not wrapped in `InvocationTargetException` by default. Do not apply `Method.invoke`'s rules to every Java invocation API.
 
-Trước khi quyết định catch kiểu gì, phải đọc đúng API cụ thể đang được gọi và giai đoạn phát sinh lỗi.
+Before deciding what to catch, check the exact API being called and the phase where the failure occurs.
 
-## 8. Phân biệt lỗi trước khi mã đích chạy
+## 8. Distinguishing Errors Before Target Code Runs
 
-Ngoài kiểm tra quyền và đối số, JVM có thể thất bại ở giai đoạn **tải, liên kết hoặc khởi tạo lớp**, trước khi method/constructor body chạy. Các tín hiệu quan trọng:
+Besides permission and argument checks, the JVM can fail during **class loading, linking, or initialization**, before the method/constructor body executes. Key signals:
 
-| Tín hiệu | Nơi kiểm tra trước |
+| Signal | Where to check first |
 | --- | --- |
-| `ClassNotFoundException` | Tên binary, class loader và classpath của thao tác tìm class theo tên |
-| `NoClassDefFoundError` | Dependency thiếu khi linkage, hoặc lần khởi tạo class trước đã thất bại |
-| `ExceptionInInitializerError` | Cause gốc trong static initializer; đừng gộp vào `InvocationTargetException` của mã đích |
-| `NoSuchMethodError`, `NoSuchFieldError`, `UnsupportedClassVersionError` | Class file và phiên bản phụ thuộc không tương thích runtime |
+| `ClassNotFoundException` | Binary name, class loader, and classpath of the name-based class lookup |
+| `NoClassDefFoundError` | Missing dependency at linkage, or an earlier class initialization failed |
+| `ExceptionInInitializerError` | Root cause inside the static initializer; do not lump into target code's `InvocationTargetException` |
+| `NoSuchMethodError`, `NoSuchFieldError`, `UnsupportedClassVersionError` | Class file and dependency versions incompatible at runtime |
 
-`Class.forName(name, false, loader)` có thể trì hoãn initialization lúc khám phá metadata, nhưng một lời gọi static sau đó vẫn có thể kích hoạt initializer và gặp lỗi. Bài 294 phân tích loading/linking và bài 300 phân tích riêng lỗi class initialization; bảng này dùng để **xác định tầng lỗi** trong luồng điều tra tổng hợp.
+`Class.forName(name, false, loader)` can defer initialization while discovering metadata, yet a subsequent static call can still trigger the initializer and fail. Article 294 analyzes loading/linking and article 300 specifically analyzes class initialization errors; this table is for **pinpointing the error layer** in an overall investigation flow.
 
-## 9. Trường hợp đặc biệt: JDK dynamic proxy và InvocationHandler
+## 9. Special Case: JDK Dynamic Proxy and InvocationHandler
 
-Trong `java.lang.reflect.Proxy`, lời gọi interface được chuyển vào `InvocationHandler.invoke`. Một handler có thể dùng Reflection để gọi target:
+In `java.lang.reflect.Proxy`, interface calls are routed to `InvocationHandler.invoke`. A handler may use Reflection to invoke the target:
 
 ```java
-// Mảnh code minh họa trong một InvocationHandler.
-// targetMethod, realTarget và args do handler quản lý.
+// Illustrative snippet inside an InvocationHandler.
+// targetMethod, realTarget, and args are managed by the handler.
 try {
     return targetMethod.invoke(realTarget, args);
 } catch (InvocationTargetException e) {
-    throw e.getCause(); // InvocationHandler.invoke cho phép throws Throwable.
+    throw e.getCause(); // InvocationHandler.invoke allows throws Throwable.
 }
 ```
 
-Nếu handler không gỡ wrapper, client có thể nhìn thấy `InvocationTargetException` hoặc một wrapper khác phát sinh khi proxy cần áp quy tắc checked exceptions. Vì vậy một handler forwarding điển hình **unwrap `InvocationTargetException`** để đưa exception thực của target trở lại cơ chế dispatch proxy.
+If the handler does not unwrap it, the client may see `InvocationTargetException` or another wrapper arising when the proxy must enforce checked-exception rules. Therefore, a typical forwarding handler **unwraps `InvocationTargetException`** to pass the target's real exception back into the proxy dispatch mechanism.
 
-Với JDK dynamic proxy:
+With JDK dynamic proxies:
 
-- Một checked exception do `InvocationHandler.invoke` ném ra mà **không phù hợp với `throws` của method interface** có thể được bọc trong `UndeclaredThrowableException`.
-- Runtime exception và `Error` không cần được khai báo qua `throws`.
-- Exception nhìn thấy ở client còn phụ thuộc implementation handler/framework và những lớp interception xếp chồng.
+- A checked exception thrown by `InvocationHandler.invoke` that is **incompatible with the interface method's `throws` clause** can be wrapped in `UndeclaredThrowableException`.
+- Runtime exceptions and `Error`s do not need to be declared via `throws`.
+- What the client observes also depends on the handler/framework implementation and stacked interception layers.
 
-Không nhầm `UndeclaredThrowableException` với `InvocationTargetException`: cái đầu thuộc hợp đồng **proxy dispatch đối với checked exception không khai báo**, cái sau thuộc hợp đồng **Method.invoke/Constructor.newInstance khi mã đích ném lỗi**.
+Do not confuse `UndeclaredThrowableException` with `InvocationTargetException`: the first belongs to **proxy dispatch for undeclared checked exceptions**, while the second belongs to **`Method.invoke`/`Constructor.newInstance` when target code throws**.
 
-## 10. Quy trình chẩn đoán theo sự kiện
+## 10. Event-Based Diagnostic Workflow
 
-### Bước 1 — Xác định thao tác gây lỗi
+### Step 1 — Identify the Failing Operation
 
-Ghi tên API đang gọi: `Class.forName`, `getDeclaredMethod`, `Method.invoke`, `Field.get`, `Constructor.newInstance` hoặc `InvocationHandler.invoke`. Không chỉ dựa vào “stack trace có `java.lang.reflect`”.
+Record the exact API called: `Class.forName`, `getDeclaredMethod`, `Method.invoke`, `Field.get`, `Constructor.newInstance`, or `InvocationHandler.invoke`. Do not stop at “the stack trace has `java.lang.reflect`.”
 
-### Bước 2 — Quan sát outer exception và chuỗi cause
+### Step 2 — Inspect the Outer Exception and Cause Chain
 
-- Nếu outer là `InvocationTargetException`, xem `getCause()` đầu tiên.
-- Nếu outer là `IllegalAccessException` hoặc `IllegalArgumentException` ném trực tiếp từ invocation, kiểm tra quyền, receiver, parameter count/types.
-- Nếu là `ExceptionInInitializerError` hoặc `LinkageError`, phân tích class init/dependency trước khi quy lỗi cho body.
-- Nếu qua nhiều framework/proxy, có thể có nhiều tầng wrapper. Theo chuỗi `getCause()` một cách có giới hạn và có cơ chế chống vòng lặp.
+- If the outer exception is `InvocationTargetException`, inspect `getCause()` first.
+- If the outer exception is `IllegalAccessException` or `IllegalArgumentException` thrown directly by invocation, check permissions, receiver, and parameter count/types.
+- If it is `ExceptionInInitializerError` or `LinkageError`, analyze class init/dependencies before blaming the method body.
+- If passing through multiple frameworks/proxies, there may be several wrapper layers. Walk the `getCause()` chain with a bound and cycle protection.
 
-### Bước 3 — So sánh actual với expected metadata
+### Step 3 — Compare Actual vs. Expected Metadata
 
 ```java
 System.out.println(method.toGenericString());
@@ -329,46 +329,46 @@ System.out.println(java.util.Arrays.toString(method.getParameterTypes()));
 System.out.println(method.getDeclaringClass().getName());
 ```
 
-Đây là **mảnh code minh họa**: `method` phải tồn tại trong ngữ cảnh. Có thể bổ sung loại và class loader của receiver, không log object hoặc tham số nhạy cảm. Lưu ý Reflection metadata có thể biểu thị bridge/synthetic method do compiler sinh ra.
+This is an **illustrative code snippet**: `method` must exist in scope. You can add the receiver's type and class loader, without logging sensitive objects or arguments. Note that Reflection metadata can represent compiler-generated bridge/synthetic methods.
 
-### Bước 4 — Chọn hành động đúng với lỗi
+### Step 4 — Choose the Action Matching the Error
 
-| Nguồn lỗi | Hướng xử lý |
+| Error source | Resolution direction |
 |---|---|
-| Lookup: tên hoặc signature không khớp | Sửa tên, parameter classes, thứ tự, overload; chọn `get...` hay `getDeclared...` đúng phạm vi |
-| Access: visibility hoặc JPMS | Dùng API public, điều chỉnh thiết kế/module exports/opens một cách có chủ đích |
-| Invocation arguments: receiver/arity/types sai | Sửa đối tượng và argument list, bao gồm primitive/wrapper/varargs |
-| Target exception từ `getCause()` | Xử lý theo hợp đồng nghiệp vụ, giữ cause và stack trace |
-| Initialization/linkage | Sửa lỗi static initialization hoặc dependency/runtime version |
-| Proxy wrappers | Xem handler, declared exceptions và lớp interception thực tế |
+| Lookup: name or signature mismatch | Fix name, parameter classes, order, overload; pick `get...` or `getDeclared...` for the right scope |
+| Access: visibility or JPMS | Use public APIs; adjust design/module exports/opens intentionally |
+| Invocation arguments: wrong receiver/arity/types | Fix target object and argument list, including primitives/wrappers/varargs |
+| Target exception from `getCause()` | Handle per business contract, preserving cause and stack trace |
+| Initialization/linkage | Fix static initialization error or dependency/runtime version |
+| Proxy wrappers | Inspect handler, declared exceptions, and actual interception layers |
 
-**Bước 5 — Test đúng cả hai đường đi.** Viết riêng test cho tình huống Reflection có metadata/arguments không hợp lệ và test target chủ động ném lỗi. Assert **outer exception và cause**; đừng chỉ so sánh chuỗi message vì message phụ thuộc implementation và môi trường.
+**Step 5 — Test both paths properly.** Write separate tests for Reflection with invalid metadata/arguments and for the target intentionally throwing errors. Assert **both the outer exception and the cause**; do not rely solely on message-string comparisons since messages vary across implementations and environments.
 
-## 11. Những lỗi phổ biến khi xử lý exception Reflection
+## 11. Common Mistakes When Handling Reflection Exceptions
 
-1. **`catch (Exception ignored)` rồi trả `null`:** làm mất lỗi cấu hình và stack trace; ứng dụng sau đó có thể ném `NullPointerException` ở chỗ hoàn toàn khác.
-2. **Bắt `IllegalArgumentException` và kết luận target sai:** nếu nó được ném trực tiếp từ `Method.invoke` thì thường là receiver/argument sai; nếu nó nằm trong `InvocationTargetException.getCause()` thì mới là lỗi target.
-3. **Bắt mọi `InvocationTargetException` thành “Reflection bị hỏng”:** exception này thường chỉ báo **mã đích đã được gọi và ném lỗi**.
-4. **Bỏ cause khi đổi exception:** `throw new RuntimeException("failed")` không giữ nguyên nguồn lỗi; dùng constructor nhận `cause` hoặc rethrow có chủ đích.
-5. **Lẫn checked exception và `Error`:** `catch (Exception)` không bao `Error`; không nuốt `OutOfMemoryError`, `LinkageError` hoặc các lỗi JVM nặng bằng xử lý fallback chung.
-6. **Cố gọi private method bằng `setAccessible(true)` vô điều kiện:** module mạnh có thể từ chối, và việc mở truy cập sâu có thể vi phạm thiết kế encapsulation.
-7. **Đánh đồng proxy dispatch với Reflection invoke:** `UndeclaredThrowableException` không phải kết quả mặc định của mọi `Method.invoke`.
-8. **Dựa vào chỉ một dòng log:** ưu tiên outer class, cause chain, operation, target metadata và thời điểm xảy ra lỗi.
+1. **`catch (Exception ignored)` and returning `null`:** loses configuration errors and stack traces; the application may later throw `NullPointerException` somewhere completely unrelated.
+2. **Catching `IllegalArgumentException` and blaming the target:** if thrown directly by `Method.invoke`, it is usually a wrong receiver/argument; only when inside `InvocationTargetException.getCause()` is it a target error.
+3. **Treating every `InvocationTargetException` as “Reflection is broken”:** this exception usually just reports that **target code was invoked and threw an error**.
+4. **Dropping the cause when translating exceptions:** `throw new RuntimeException("failed")` loses the error origin; use a constructor taking `cause` or rethrow intentionally.
+5. **Conflating checked exceptions and `Error`s:** `catch (Exception)` does not catch `Error`; do not swallow `OutOfMemoryError`, `LinkageError`, or severe JVM errors in a generic fallback.
+6. **Trying to call private methods unconditionally with `setAccessible(true)`:** strong modules can reject it, and opening deep access may violate encapsulation design.
+7. **Equating proxy dispatch with Reflection invoke:** `UndeclaredThrowableException` is not the default result of every `Method.invoke`.
+8. **Relying on a single log line:** prioritize outer class, cause chain, operation, target metadata, and timing of failure.
 
-## 12. Tự kiểm tra
+## 12. Self-Check
 
-1. `type.getMethod("run")` không tìm được method public `run()` thì exception chính là gì? — `NoSuchMethodException`, ở giai đoạn tra cứu.
-2. `method.invoke(target, wrongArg)` với kiểu argument không hợp lệ? — Thường `IllegalArgumentException` **trực tiếp** từ Reflection.
-3. `method.invoke(target)` gọi vào thân method và thân ném `IOException`? — `InvocationTargetException`; `getCause()` là `IOException`.
-4. Nếu thân method ném `AssertionError`? — Nó vẫn có thể được `Method.invoke` bọc trong `InvocationTargetException`; kiểm tra `cause`.
-5. `Field.get(receiver)` bị từ chối vì field private? — `IllegalAccessException` trực tiếp, không cần `InvocationTargetException`.
-6. Static initializer thất bại trước thân method? — Có thể `ExceptionInInitializerError` trực tiếp; xử lý lỗi khởi tạo.
-7. `NoSuchMethodError` có giống `NoSuchMethodException` không? — Không; một bên là `LinkageError`, một bên là checked Reflection lookup exception.
+1. `type.getMethod("run")` cannot find a public `run()` method—what is the primary exception? — `NoSuchMethodException`, at the lookup phase.
+2. `method.invoke(target, wrongArg)` with an invalid argument type? — Usually `IllegalArgumentException` **directly** from Reflection.
+3. `method.invoke(target)` enters the method body and the body throws `IOException`? — `InvocationTargetException`; `getCause()` is `IOException`.
+4. What if the method body throws `AssertionError`? — It can still be wrapped by `Method.invoke` in `InvocationTargetException`; inspect `cause`.
+5. `Field.get(receiver)` is denied because the field is private? — `IllegalAccessException` directly, without `InvocationTargetException`.
+6. Static initializer fails before the method body? — Potentially `ExceptionInInitializerError` directly; fix the initialization error.
+7. Is `NoSuchMethodError` the same as `NoSuchMethodException`? — No; one is a `LinkageError`, the other is a checked Reflection lookup exception.
 
-## 13. Ghi nhớ
+## 13. Takeaways
 
-- **Phân loại theo giai đoạn**: lookup, access/argument checks, class initialization/linkage, rồi mới tới thân method/constructor.
-- **Phân loại theo lớp ngoài và `cause`**: `InvocationTargetException` là wrapper; `getCause()` thường cho biết exception của chính mã đích.
-- **Không mọi lỗi Reflection đều được bọc**: `NoSuchMethodException`, `IllegalAccessException`, `IllegalArgumentException` và nhiều JVM `Error` có thể đi trực tiếp.
-- **API khác nhau có hợp đồng khác nhau**: `Field.get`, `Method.invoke`, `Constructor.newInstance`, `MethodHandle` và dynamic proxy không hoàn toàn giống nhau.
-- **Giữ ngữ cảnh chẩn đoán**: operation + signature + class/loader + cause chain, cùng cách xử lý riêng cho lỗi hạ tầng và lỗi nghiệp vụ.
+- **Classify by phase**: lookup, access/argument checks, class initialization/linkage, and only then the method/constructor body.
+- **Classify by outer layer and `cause`**: `InvocationTargetException` is a wrapper; `getCause()` typically reveals the target code's own exception.
+- **Not all Reflection errors are wrapped**: `NoSuchMethodException`, `IllegalAccessException`, `IllegalArgumentException`, and many JVM `Error`s can arrive directly.
+- **Different APIs have different contracts**: `Field.get`, `Method.invoke`, `Constructor.newInstance`, `MethodHandle`, and dynamic proxies are not all identical.
+- **Preserve diagnostic context**: operation + signature + class/loader + cause chain, with separate handling for infrastructure vs. business errors.

@@ -1,41 +1,41 @@
-# Mối liên hệ giữa mã nguồn, trình biên dịch, bytecode và JVM
+# Relationship Between Source Code, Compiler, Bytecode, and the JVM
 
-## 1. Bức tranh tổng thể
+## 1. The Big Picture
 
-Khi viết Java, bạn tạo **mã nguồn** (thường là tệp `.java`) để con người đọc và chỉnh sửa. Công cụ **`javac`** trong JDK biên dịch mã nguồn thành **bytecode** ở tệp `.class`. Khi chạy, chương trình **`java`** khởi động JVM, JVM tải những class cần thiết, kiểm tra và liên kết chúng, rồi thực thi bytecode bằng cơ chế thông dịch hoặc biên dịch JIT tùy JVM và quá trình chạy.
+When writing Java, you create **source code** (usually `.java` files) for humans to read and edit. The **`javac`** tool in the JDK compiles source code into **bytecode** in `.class` files. When running, the **`java`** program starts the JVM, the JVM loads the needed classes, verifies and links them, and then executes the bytecode via interpretation or JIT compilation depending on the JVM and the execution profile.
 
-Mục tiêu của bài này là trả lời chính xác bốn câu hỏi:
+The goal of this lesson is to answer four questions accurately:
 
-1. `.java` và `.class` chứa những gì, chúng khác nhau ra sao?
-2. `javac` làm việc lúc **biên dịch**, còn `java` và JVM làm việc lúc **chạy** như thế nào?
-3. Vì sao bytecode Java thường dùng được trên nhiều hệ điều hành, và giới hạn của điều đó là gì?
-4. Làm sao tự biên dịch, chạy, xem bytecode và chẩn đoán lỗi ở từng giai đoạn?
+1. What do `.java` and `.class` contain, and how do they differ?
+2. How does `javac` work at **compile time**, and how do `java` and the JVM work at **run time**?
+3. Why does Java bytecode generally work across multiple operating systems, and what are the limits of that?
+4. How can you compile, run, inspect bytecode, and diagnose errors at each stage yourself?
 
 ~~~mermaid
 flowchart LR
-    SRC["HelloPipeline.java<br/>Mã nguồn Java"] -->|"javac"| CLS["HelloPipeline.class<br/>Bytecode"]
-    CLS -->|"java: khởi động JVM"| JVM["JVM<br/>Nạp, xác minh, liên kết,<br/>khởi tạo và thực thi class"]
-    JVM -->|"Thông dịch hoặc JIT<br/>khi thích hợp"| NATIVE["Lệnh máy chạy trên<br/>CPU và hệ điều hành"]
+    SRC["HelloPipeline.java<br/>Java source code"] -->|"javac"| CLS["HelloPipeline.class<br/>Bytecode"]
+    CLS -->|"java: starts JVM"| JVM["JVM<br/>Loads, verifies, links,<br/>initializes, and executes class"]
+    JVM -->|"Interpretation or JIT<br/>when appropriate"| NATIVE["Machine instructions running on<br/>CPU and operating system"]
 ~~~
 
-Sơ đồ mô tả luồng phổ biến khi **biên dịch trước rồi chạy**. Nó không có nghĩa mọi bytecode đều được JIT biên dịch, cũng không có nghĩa JVM luôn nạp tất cả class của ứng dụng ngay khi khởi động.
+The diagram illustrates the common flow when **compiling ahead of time and then running**. It does not mean every bytecode instruction is compiled by JIT, nor does it mean the JVM always loads all classes of the application right at startup.
 
-## 2. Phân biệt bốn thành phần
+## 2. Distinguishing the Four Components
 
-| Thành phần | Vai trò | Thời điểm và kết quả |
+| Component | Role | Timing and Result |
 |---|---|---|
-| **Mã nguồn Java** | Biểu diễn lớp, phương thức, câu lệnh theo cú pháp Java | Người học tạo `HelloPipeline.java` |
-| **Trình biên dịch `javac`** | Kiểm tra cú pháp, tên, kiểu và nhiều ràng buộc tĩnh; tạo bytecode | `javac HelloPipeline.java` tạo `HelloPipeline.class` nếu thành công |
-| **Bytecode / tệp `.class`** | Chứa biểu diễn class đã biên dịch: metadata, constant pool, phương thức và chỉ thị bytecode | Là đầu vào cho JVM; **không phải** mã máy trực tiếp của Windows/Linux |
-| **JVM** | Môi trường thực thi Java bytecode; quản lý tải class, bộ nhớ, exception và runtime | Một JVM thích hợp thực hiện lời gọi `main` cùng các class được sử dụng |
+| **Java source code** | Represents classes, methods, and statements in Java syntax | Learner creates `HelloPipeline.java` |
+| **Compiler `javac`** | Checks syntax, names, types, and many static constraints; generates bytecode | `javac HelloPipeline.java` produces `HelloPipeline.class` if successful |
+| **Bytecode / `.class` file** | Contains compiled class representation: metadata, constant pool, methods, and bytecode instructions | Input for the JVM; **not** direct native machine code for Windows/Linux |
+| **JVM** | Execution environment for Java bytecode; manages class loading, memory, exceptions, and runtime | An appropriate JVM executes the `main` call along with the classes used |
 
-**JDK** (Java Development Kit) cung cấp các công cụ phát triển, tiêu biểu là `javac`, `java`, `javap`, cùng runtime Java. **JVM** là máy ảo thực thi bytecode, không phải tên khác của trình biên dịch. Trong cách phân phối Java hiện đại, thường cài **JDK** để vừa biên dịch vừa chạy; tài liệu cũ có thể gọi phần runtime riêng là **JRE**.
+The **JDK** (Java Development Kit) provides the development tools—notably `javac`, `java`, `javap`—along with the Java runtime. The **JVM** is the virtual machine that executes bytecode, not another name for the compiler. In modern Java distributions, people usually install the **JDK** to both compile and run; older documentation may refer to the separate runtime portion as the **JRE**.
 
-Phân biệt thêm: chương trình `java` là **launcher** (lệnh khởi động runtime); JVM là môi trường thực thi mà launcher khởi tạo. Nói ngắn gọn “chạy bằng Java” thường chỉ cả quá trình này, nhưng khi chẩn đoán lỗi, nên biết bước nào đã thất bại.
+Further distinction: the `java` program is the **launcher** (the command that starts the runtime); the JVM is the execution environment initialized by the launcher. Saying “run with Java” in short usually refers to this entire process, but when diagnosing errors, you should know which step failed.
 
-## 3. Ví dụ Java có thể tự chạy
+## 3. A Runnable Java Example
 
-Tạo tệp **`HelloPipeline.java`** (đúng chữ hoa/thường của public class) với nội dung:
+Create the file **`HelloPipeline.java`** (matching the exact capitalization of the public class) with this content:
 
 ~~~java
 public class HelloPipeline {
@@ -52,52 +52,52 @@ public class HelloPipeline {
 }
 ~~~
 
-Giả sử đã cài **JDK 17 hoặc mới hơn**. Mở terminal trong thư mục chứa tệp. Kiểm tra:
+Assume **JDK 17 or newer** is installed. Open a terminal in the directory containing the file. Check:
 
 ~~~bash
 java -version
 javac -version
 ~~~
 
-Biên dịch và chạy (ví dụ cố định đích bytecode Java 17):
+Compile and run (this example targets Java 17 bytecode):
 
 ~~~bash
 javac --release 17 -encoding UTF-8 HelloPipeline.java
 java -cp . HelloPipeline
 ~~~
 
-Kết quả dự kiến:
+Expected output:
 
 ~~~text
 Xin chao, Java
 2 * 3 = 6
 ~~~
 
-Thử truyền một đối số từ dòng lệnh:
+Try passing a command-line argument:
 
 ~~~bash
 java -cp . HelloPipeline Linh
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Xin chao, Linh
 2 * 3 = 6
 ~~~
 
-Giải thích chính xác:
+Exact explanation:
 
-- `javac` đọc nội dung tệp nguồn, kiểm tra mã rồi tạo `HelloPipeline.class` trong thư mục hiện hành. Nếu biên dịch báo lỗi, bạn cần sửa source và biên dịch lại.
-- `java -cp . HelloPipeline` yêu cầu launcher tìm **class tên `HelloPipeline` trên classpath** (dấu `.` là thư mục hiện hành), sau đó JVM thực hiện phương thức `public static void main(String[] args)` của class ấy.
-- Khi chạy class đã biên dịch, tham số cho `java` là **tên class**, không phải tên tệp `.class`. Đúng: `java HelloPipeline`; sai trong chế độ này: `java HelloPipeline.class`.
-- `args` chứa các đối số **sau** tên class. Trường hợp không có đối số đã được bảo vệ bằng `args.length == 0`, vì truy cập thẳng `args[0]` khi mảng trống sẽ gây `ArrayIndexOutOfBoundsException`.
+- `javac` reads the source file contents, checks the code, and creates `HelloPipeline.class` in the current directory. If compilation reports an error, you need to fix the source and recompile.
+- `java -cp . HelloPipeline` tells the launcher to look for the **class named `HelloPipeline` on the classpath** (`.` is the current directory), and then the JVM executes the `public static void main(String[] args)` method of that class.
+- When running a compiled class, the argument to `java` is the **class name**, not the `.class` file name. Correct: `java HelloPipeline`; wrong in this mode: `java HelloPipeline.class`.
+- `args` holds the arguments **after** the class name. The no-argument case is already guarded by `args.length == 0`, because accessing `args[0]` directly on an empty array would cause `ArrayIndexOutOfBoundsException`.
 
-**Lưu ý về `-encoding UTF-8`:** cờ này hướng dẫn `javac` đọc mã nguồn bằng UTF-8; nó **không tự thay đổi encoding của terminal**. Nếu chuỗi có dấu tiếng Việt in ra sai trên một số console, cần kiểm tra encoding của console và môi trường chạy riêng.
+**Note on `-encoding UTF-8`:** this flag instructs `javac` to read the source code as UTF-8; it **does not automatically change the terminal encoding**. If strings with Vietnamese diacritics print incorrectly on some consoles, check the console and runtime environment encoding separately.
 
-## 4. `javac` kiểm tra và tạo bytecode như thế nào?
+## 4. How Does `javac` Check Code and Generate Bytecode?
 
-Xét đoạn mã trong ví dụ:
+Consider this snippet in the example:
 
 ~~~java
 private static int twice(int value) {
@@ -105,102 +105,102 @@ private static int twice(int value) {
 }
 ~~~
 
-Ở mức ý tưởng, trình biên dịch phải xác minh rằng:
+Conceptually, the compiler must verify that:
 
-1. Cú pháp khai báo lớp, phương thức và câu lệnh hợp lệ.
-2. Biến `value` được khai báo, có kiểu `int` và phép nhân `value * 2` hợp lệ.
-3. Giá trị trả về phù hợp với kiểu khai báo `int`.
-4. Lời gọi `twice(3)` từ `main` có thể được giải quyết tới phương thức tương ứng.
+1. The syntax of the class, method, and statement declarations is valid.
+2. The variable `value` is declared, has type `int`, and the multiplication `value * 2` is valid.
+3. The return value matches the declared return type `int`.
+4. The call `twice(3)` from `main` can be resolved to the corresponding method.
 
-Nếu viết `return "sai kiểu";`, `javac` sẽ từ chối bởi phương thức khai báo trả `int` nhưng biểu thức trả `String`. Lỗi này xảy ra **trước khi chương trình được chạy**.
+If you write `return "sai kiểu";`, `javac` will reject it because the method is declared to return `int` while the expression returns `String`. This error occurs **before the program is ever run**.
 
-Sau khi kiểm tra thành công, trình biên dịch tạo tệp `.class`. Một tệp class có thể chứa thông tin như tên class và superclass, các field/method, mô tả kiểu, constant pool và phần mã bytecode của method. Mức chi tiết phụ thuộc compiler, phiên bản Java và các tùy chọn biên dịch.
+After checking succeeds, the compiler creates the `.class` file. A class file can contain information such as the class name and superclass, fields/methods, type descriptors, the constant pool, and the bytecode of methods. The exact level of detail depends on the compiler, Java version, and compiler options.
 
-**Không nên đồng nhất việc “biên dịch thành công” với “chương trình đúng”.** `javac` không tự chứng minh mọi quy tắc nghiệp vụ, không chạy thử mọi nhánh, và thường không phát hiện lỗi như chia cho 0 ở một đường thực thi runtime, file không tồn tại hay `NullPointerException` phát sinh bởi dữ liệu thực.
+**Do not equate “compiles successfully” with “correct program”.** `javac` does not automatically prove every business rule, does not test every branch, and usually does not detect errors such as division by zero on a runtime execution path, missing files, or a `NullPointerException` triggered by real data.
 
-## 5. Tự xem bytecode thay vì chỉ tưởng tượng
+## 5. Inspecting Bytecode Yourself Instead of Just Imagining It
 
-JDK có công cụ **`javap`** để xem cấu trúc một tệp `.class`. Sau khi biên dịch thành công, chạy:
+The JDK includes the **`javap`** tool to inspect the structure of a `.class` file. After compiling successfully, run:
 
 ~~~bash
 javap -c -p HelloPipeline
 ~~~
 
-Các phần có thể quan sát:
+Things you can observe:
 
-- Phương thức `twice(int)`, `main(java.lang.String[])` và constructor mặc định.
-- Các chỉ thị thực hiện phép toán và lời gọi phương thức, chẳng hạn `iload`, `imul`, `ireturn` ở `twice`.
-- Các thao tác truy cập `System.out` và gọi `println` trong `main`.
-- Với phép nối chuỗi trên các JDK hiện đại, compiler có thể dùng `invokedynamic` thay vì một chuỗi lệnh nối `StringBuilder` dễ đoán.
+- The `twice(int)`, `main(java.lang.String[])`, and default constructor methods.
+- Instructions performing arithmetic operations and method calls, such as `iload`, `imul`, and `ireturn` in `twice`.
+- Operations accessing `System.out` and calling `println` in `main`.
+- For string concatenation on modern JDKs, the compiler may use `invokedynamic` rather than a predictable sequence of `StringBuilder` concatenation calls.
 
-Muốn xem metadata/class file version:
+To view metadata and the class file version:
 
 ~~~bash
 javap -verbose HelloPipeline
 ~~~
 
-Nếu đã biên dịch bằng `--release 17`, phần class file thường hiển thị **`major version: 61`**. Đây là định dạng class file Java 17, không phải phiên bản hệ điều hành và cũng không phải số phiên bản của mã nguồn.
+If compiled with `--release 17`, the class file section typically displays **`major version: 61`**. This is the Java 17 class file format, not an operating system version and not a source code version number.
 
-`javap` là công cụ **disassembler/inspector**: nó trình bày bytecode và metadata theo dạng người đọc được, không chạy ứng dụng. Không cần thuộc lòng từng opcode; hãy nhận ra **bytecode là lớp biểu diễn trung gian**, khác mã nguồn và khác mã máy của CPU.
+`javap` is a **disassembler/inspector** tool: it presents bytecode and metadata in human-readable form without running the application. You do not need to memorize every opcode; simply recognize that **bytecode is an intermediate representation**, distinct from both source code and CPU machine code.
 
-### Kiểm chứng bằng một thay đổi có chủ đích
+### Verifying with an Intentional Change
 
-Đổi `return value * 2;` thành `return value * 3;`, **lưu tệp rồi chỉ chạy lại `java HelloPipeline` mà không biên dịch lại**. Kết quả vẫn đến từ `.class` cũ: `2 * 3 = 6`. Khi chạy lại `javac --release 17 -encoding UTF-8 HelloPipeline.java`, kết quả mới thành `2 * 3 = 9`. **Chú ý:** chuỗi nhãn `2 * 3 = ` trong `println` vẫn giữ nguyên, nhưng phép tính bên trong đã đổi thành nhân 3. Vì vậy, nhãn lúc này không mô tả đúng phép toán thực tế; đây là một ví dụ nhỏ về **kết quả trình bày sai ý nghĩa dù mã hợp lệ**. Hãy đổi nhãn nếu muốn thông tin hiển thị chính xác.
+Change `return value * 2;` to `return value * 3;`, **save the file, and then just run `java HelloPipeline` again without recompiling**. The result still comes from the old `.class`: `2 * 3 = 6`. Only after running `javac --release 17 -encoding UTF-8 HelloPipeline.java` again does the result become `2 * 3 = 9`. **Note:** the label string `2 * 3 = ` in `println` stays the same, while the internal calculation changed to multiplying by 3. As a result, the label no longer accurately describes the actual operation; this is a small example of **output presenting a misleading meaning even though the code is valid**. Change the label if you want the displayed information to be accurate.
 
-Đây là cách thực nghiệm rất rõ để phân biệt **source hiện tại** với **bytecode mà JVM đang thực thi**. Sau bài tập, hãy khôi phục `twice` về phép nhân 2 để các ví dụ còn lại nhất quán.
+This is a very clear experiment for distinguishing **current source** from the **bytecode the JVM is executing**. After this exercise, restore `twice` to multiply by 2 so the remaining examples stay consistent.
 
-## 6. JVM làm gì sau lệnh `java`?
+## 6. What Does the JVM Do After the `java` Command?
 
-Với chế độ chạy class đã biên dịch, tiến trình diễn ra gần đúng như sau:
+In the mode that runs a compiled class, the process goes roughly as follows:
 
-1. **Khởi động runtime:** launcher `java` xử lý tùy chọn, classpath/module path và yêu cầu class chính.
-2. **Class loading:** JVM dùng các class loader để tìm, đọc và định nghĩa những class cần thiết. Nhiều class chỉ được tải khi được sử dụng.
-3. **Linking:** JVM xác minh tính hợp lệ của class file (*verification*), chuẩn bị các cấu trúc/static storage cần thiết (*preparation*) và giải quyết symbolic references (*resolution*). Một số bước có thể được thực hiện trễ khi cần theo quy tắc JVM.
-4. **Initialization:** trước khi dùng một class theo các trường hợp kích hoạt khởi tạo, JVM thực hiện static field initializer/static block của class ấy theo quy tắc ngôn ngữ.
-5. **Execution:** JVM gọi `main`, thực hiện bytecode của chương trình, tạo object, gọi method, xử lý exception và quản lý bộ nhớ trong runtime.
+1. **Runtime startup:** the `java` launcher processes options, classpath/module path, and requests the main class.
+2. **Class loading:** the JVM uses class loaders to find, read, and define the needed classes. Many classes are loaded only when used.
+3. **Linking:** the JVM checks the validity of the class file (*verification*), prepares the necessary structures/static storage (*preparation*), and resolves symbolic references (*resolution*). Some steps may be performed lazily when needed according to JVM rules.
+4. **Initialization:** before using a class under initialization-triggering conditions, the JVM executes that class's static field initializers/static blocks according to language rules.
+5. **Execution:** the JVM invokes `main`, executes the program's bytecode, creates objects, calls methods, handles exceptions, and manages memory at runtime.
 
-JVM triển khai phổ biến có thể **thông dịch** bytecode ban đầu và dùng **JIT compiler** để tối ưu/biên dịch một số đoạn chạy nhiều lần thành native machine code. Điều đó thường cải thiện tốc độ, nhưng không bảo đảm mọi method đều được JIT. Các JVM khác nhau có thể chọn chiến lược thực thi khác nhau mà vẫn hỗ trợ cùng mô hình Java.
+Common JVM implementations can **interpret** bytecode initially and use a **JIT compiler** to optimize/compile frequently executed segments into native machine code. That often improves speed, but does not guarantee that every method is JIT-compiled. Different JVMs may choose different execution strategies while still supporting the same Java model.
 
-**Garbage collection (GC)** là dịch vụ runtime liên quan đến quản lý bộ nhớ object. Nó không thuộc nhiệm vụ `javac`, cũng không biến bytecode thành native code; GC và JIT là hai cơ chế khác nhau.
+**Garbage collection (GC)** is a runtime service related to object memory management. It is not the job of `javac`, nor does it turn bytecode into native code; GC and JIT are two different mechanisms.
 
-## 7. Vì sao Java được nói là “viết một lần, chạy nhiều nơi”?
+## 7. Why Is Java Said to Be “Write Once, Run Anywhere”?
 
-Cùng một tệp `.class` hợp lệ có thể chạy trên các hệ điều hành khác nhau **nếu** ở đó có JVM tương thích với phiên bản class file và các API mà chương trình sử dụng.
+The same valid `.class` file can run on different operating systems **if** there is a JVM compatible with the class file version and the APIs the program uses.
 
-| Thành phần | Có phụ thuộc hệ điều hành/kiến trúc không? |
+| Component | Does it depend on the OS/architecture? |
 |---|---|
-| `HelloPipeline.java` | Mã nguồn thường có thể chia sẻ; môi trường build vẫn có thể khác |
-| `HelloPipeline.class` | Bytecode được chuẩn hóa và thường có thể chuyển nền tảng |
-| Bản cài JVM/JDK | Có bản build theo OS và CPU (Windows x64, Linux ARM, …) |
-| Native library qua JNI, công cụ hệ thống, đường dẫn file | Có thể phụ thuộc nền tảng và cần xử lý riêng |
+| `HelloPipeline.java` | Source code can usually be shared; build environments may still differ |
+| `HelloPipeline.class` | Bytecode is standardized and generally portable across platforms |
+| JVM/JDK installation | Built specifically per OS and CPU (Windows x64, Linux ARM, …) |
+| Native libraries via JNI, system tools, file paths | Can be platform-dependent and require separate handling |
 
-Vì vậy **portable bytecode** không có nghĩa “chạy được trên mọi máy mà không cài gì”. Máy chạy cần runtime phù hợp; ứng dụng có thể phụ thuộc vào thư viện, quyền truy cập file, cấu hình, native component hoặc phiên bản Java cụ thể.
+Therefore, **portable bytecode** does not mean “runs on every machine with nothing installed”. The target machine needs a suitable runtime; an application may also depend on libraries, file permissions, configuration, native components, or a specific Java version.
 
-Ví dụ, tệp class tạo bằng JDK mới có thể dùng **class file version cao hơn** JVM cũ hỗ trợ. Trường hợp đó xảy ra lỗi `UnsupportedClassVersionError` khi JVM cố nạp class, dù mã Java của bạn không có lỗi cú pháp.
+For example, a class file built with a newer JDK may use a **higher class file version** than an older JVM supports. In that case, `UnsupportedClassVersionError` occurs when the JVM tries to load the class, even though your Java code has no syntax errors.
 
-## 8. Phiên bản JDK, `--release` và khả năng tương thích
+## 8. JDK Versions, `--release`, and Compatibility
 
-Khi phát triển trên JDK mới nhưng cần chạy trên Java 17, hãy biên dịch với:
+When developing on a newer JDK while needing to run on Java 17, compile with:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 HelloPipeline.java
 ~~~
 
-`--release 17` yêu cầu `javac` dùng quy tắc ngôn ngữ, class file target và tập public API tiêu chuẩn tương ứng với Java 17. Nó thường đáng tin cậy hơn việc chỉ đổi class-file target mà vẫn vô tình gọi API Java mới.
+`--release 17` instructs `javac` to use the language rules, class file target, and standard public API set corresponding to Java 17. It is usually more reliable than changing only the class-file target while accidentally calling a newer Java API.
 
-Điều kiện: **trình biên dịch phải hỗ trợ release được chọn**. Một JDK cũ hơn không thể biên dịch cho ngôn ngữ/release mới mà nó chưa biết.
+Condition: **the compiler must support the chosen release**. An older JDK cannot compile for a newer language/release it does not know about.
 
-Không nhầm ba thứ:
+Do not confuse three things:
 
-- **JDK đang dùng để build**: kiểm tra bằng `javac -version`.
-- **Mức tương thích của class file**: chịu ảnh hưởng bởi `--release`; xem bằng `javap -verbose`.
-- **JVM thật sự chạy ứng dụng**: kiểm tra bằng `java -version`.
+- **The JDK used to build**: check with `javac -version`.
+- **The class file compatibility level**: affected by `--release`; inspect with `javap -verbose`.
+- **The JVM actually running the application**: check with `java -version`.
 
-Trong môi trường cài nhiều JDK, `java` và `javac` có thể trỏ tới **hai phiên bản khác nhau** qua `PATH`/cấu hình công cụ. Chẩn đoán phiên bản phải kiểm tra **cả hai lệnh**, không dựa vào tên thư mục dự án.
+In an environment with multiple JDKs installed, `java` and `javac` can point to **two different versions** via `PATH`/tool configuration. Diagnosing versions must check **both commands**, not rely on the project folder name.
 
-## 9. Thư mục, package, classpath và tên class
+## 9. Directories, Packages, Classpath, and Class Names
 
-Ví dụ đầu dùng **default package** để người mới chạy dễ dàng. Trong dự án, bạn thường đặt tên package. Giả sử có:
+The first example uses the **default package** so beginners can run it easily. In projects, you usually declare a package name. Suppose you have:
 
 ~~~text
 src/
@@ -208,7 +208,7 @@ src/
     └── Welcome.java
 ~~~
 
-Tệp `src/demo/Welcome.java`:
+File `src/demo/Welcome.java`:
 
 ~~~java
 package demo;
@@ -220,87 +220,87 @@ public class Welcome {
 }
 ~~~
 
-Biên dịch vào thư mục output (tạo thư mục `out` trước bằng công cụ file/terminal của hệ điều hành):
+Compile into an output directory (create the `out` directory beforehand using OS file/terminal tools):
 
 ~~~bash
 javac --release 17 -d out src/demo/Welcome.java
 java -cp out demo.Welcome
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Welcome from demo
 ~~~
 
-Khi có package `demo`, launcher cần **tên đủ điều kiện** `demo.Welcome`; classpath `out` phải trỏ tới **thư mục gốc chứa `demo/`**, không phải thư mục `out/demo`. `javac -d out` sẽ đặt class dưới cấu trúc package phù hợp.
+When there is a `demo` package, the launcher requires the **fully qualified name** `demo.Welcome`; the classpath `out` must point to the **root directory containing `demo/`**, not the `out/demo` directory. `javac -d out` places the class under the appropriate package directory structure.
 
-Một số lỗi hay gặp:
+Some common mistakes:
 
-- Gõ `java Welcome` dù class thuộc package `demo`.
-- Đặt `-cp out/demo` thay vì `-cp out`.
-- Chạy lệnh từ thư mục khác với nơi tưởng tượng, làm `.` hoặc `out` trỏ sai.
-- Đưa đường dẫn đến `.java` hoặc `.class` thay vì tên class khi đang chạy ở chế độ class.
+- Typing `java Welcome` even though the class belongs to package `demo`.
+- Setting `-cp out/demo` instead of `-cp out`.
+- Running the command from a directory different from what you think, causing `.` or `out` to point to the wrong place.
+- Passing the path to `.java` or `.class` instead of the class name when running in class mode.
 
-Classpath còn có thể chứa thư mục và các `.jar` phụ thuộc. Bài này chỉ cần hiểu: **compile cần tìm được các kiểu được tham chiếu; run cần tìm được các class ứng dụng thực sự sử dụng**. Đường dẫn compile và runtime không nhất thiết là một, nên thiếu phụ thuộc có thể chỉ lộ ra lúc chạy.
+The classpath can also contain directories and `.jar` dependencies. For this lesson, you only need to understand: **compile time needs to find referenced types; run time needs to find the classes the application actually uses**. The compile and runtime paths are not necessarily identical, so a missing dependency may only surface at runtime.
 
-## 10. Phân loại lỗi theo giai đoạn
+## 10. Classifying Errors by Stage
 
-| Triệu chứng | Giai đoạn thường gặp | Cách kiểm tra đầu tiên |
+| Symptom | Common Stage | First Thing to Check |
 |---|---|---|
-| `';' expected`, `cannot find symbol`, `incompatible types` | Biên dịch | Kiểm tra tệp nguồn, cú pháp, tên/kiểu và thư viện có trên classpath biên dịch |
-| `class HelloPipeline is public, should be declared in a file named HelloPipeline.java` | Biên dịch | Khớp tên public class và tên tệp, kể cả chữ hoa/thường |
-| `javac: command not found` hoặc “not recognized” | Trước biên dịch | Kiểm tra cài JDK, `PATH`, terminal đang dùng |
-| `Could not find or load main class` | Launcher/class loading | Kiểm tra classpath, package, vị trí file sau biên dịch và tên class |
-| `Main method not found` | Khởi động chương trình | Kiểm tra class có phương thức entry point phù hợp, ví dụ `public static void main(String[] args)` |
-| `UnsupportedClassVersionError` | Nạp class | So sánh class file target với `java -version` |
-| `NoClassDefFoundError` khi gọi chức năng | Runtime/linking/loading | Kiểm tra class phụ thuộc có hiện diện và tương thích tại runtime |
-| `NullPointerException`, chia cho 0, lỗi file | Trong lúc thực thi | Đọc stack trace, dữ liệu đầu vào và đường gọi thực tế |
+| `';' expected`, `cannot find symbol`, `incompatible types` | Compile time | Check source file, syntax, names/types, and libraries on the compile classpath |
+| `class HelloPipeline is public, should be declared in a file named HelloPipeline.java` | Compile time | Match the public class name and file name, including case |
+| `javac: command not found` or “not recognized” | Before compilation | Check JDK installation, `PATH`, and the terminal being used |
+| `Could not find or load main class` | Launcher/class loading | Check classpath, package, compiled file location, and class name |
+| `Main method not found` | Program startup | Check that the class has a suitable entry point method, e.g., `public static void main(String[] args)` |
+| `UnsupportedClassVersionError` | Class loading | Compare the class file target with `java -version` |
+| `NoClassDefFoundError` when invoking functionality | Runtime/linking/loading | Check that the dependent class is present and compatible at runtime |
+| `NullPointerException`, division by zero, file errors | During execution | Read the stack trace, input data, and actual call path |
 
-**Phân biệt quan trọng:** `cannot find symbol` từ `javac` là lỗi về mã/tham chiếu ở thời điểm **compile**. `Could not find or load main class` là lỗi trong quá trình **launch/run**: một class có thể đã được biên dịch, nhưng launcher không tìm thấy nó trong classpath yêu cầu.
+**Important distinction:** `cannot find symbol` from `javac` is a code/reference error at **compile** time. `Could not find or load main class` is an error during **launch/run**: a class may have already been compiled, yet the launcher cannot find it on the requested classpath.
 
-Nếu lỗi chỉ xuất hiện khi chạy, “biên dịch lại y nguyên” không nhất thiết giải quyết được. Hãy đọc tên exception, thông báo, vị trí trên stack trace và xác minh môi trường chạy.
+If an error only appears at runtime, “recompiling identically” will not necessarily fix it. Read the exception name, message, stack trace location, and verify the runtime environment.
 
-## 11. Ngoại lệ thú vị: chạy trực tiếp tệp `.java`
+## 11. An Interesting Exception: Running a `.java` File Directly
 
-Từ Java 11, với source-file launching, có thể chạy một chương trình một tệp đơn giản bằng:
+Since Java 11, with source-file launching, a simple single-file program can be run with:
 
 ~~~bash
 java HelloPipeline.java
 ~~~
 
-Trong **chế độ này**, launcher yêu cầu biên dịch nguồn phục vụ lần chạy rồi thực thi; bạn không cần tự gọi `javac` trước và không nhất thiết nhận được `.class` được lưu ra đĩa như lệnh `javac` truyền thống.
+In **this mode**, the launcher invokes compilation of the source for that run and then executes it; you do not need to call `javac` beforehand, and you do not necessarily get `.class` files saved to disk like with the traditional `javac` command.
 
-Vì vậy cần phân biệt:
+Therefore, distinguish between:
 
-- `javac HelloPipeline.java` rồi `java HelloPipeline`: **biên dịch trước, chạy class**.
-- `java HelloPipeline.java`: **chạy từ tệp nguồn** qua source-file mode (khi môi trường/phiên bản hỗ trợ).
+- `javac HelloPipeline.java` then `java HelloPipeline`: **compile first, run the class**.
+- `java HelloPipeline.java`: **run from source file** via source-file mode (when the environment/version supports it).
 
-Điều này **không phủ định vai trò của bytecode/JVM**. Trong bài học về chuỗi build và quan sát class file, hãy sử dụng cặp lệnh `javac` + `java` và `javap` trước để thấy rõ các thành phần.
+This **does not negate the role of bytecode/JVM**. In lessons about the build chain and inspecting class files, use the `javac` + `java` pair and `javap` first so you clearly see each component.
 
-## 12. Edge cases cần biết từ sớm
+## 12. Edge Cases to Know Early
 
-**1. Sửa source nhưng không build lại.** Khi chạy class mode, JVM đọc bytecode có sẵn, không tự so sánh ngày sửa `.java` để biên dịch thay bạn. Dễ gây nhầm “tại sao chương trình vẫn in kết quả cũ?”.
+**1. Editing source without rebuilding.** In class-running mode, the JVM reads existing bytecode and does not compare `.java` modification dates to recompile for you. This easily causes the confusion “why is the program still printing the old output?”.
 
-**2. Compile thành công nhưng thiếu thư viện lúc chạy.** Một class có thể dùng kiểu từ thư viện lúc compile, nhưng khi chạy thiếu `.jar` chứa class cần thiết. Tùy thời điểm JVM cần class ấy, lỗi có thể chỉ xuất hiện khi đi tới chức năng liên quan.
+**2. Compilation succeeds, but a library is missing at runtime.** A class may use types from a library at compile time, yet at runtime the `.jar` containing the needed class is missing. Depending on when the JVM needs that class, the error might only appear when execution reaches the related feature.
 
-**3. Classpath đúng tệp nhưng sai thư mục gốc.** Với `demo.Welcome`, đưa `out/demo` vào `-cp` là sai vị trí gốc; phải đưa `out`.
+**3. Classpath points to the right file's folder but the wrong root.** For `demo.Welcome`, passing `out/demo` to `-cp` is the wrong root location; you must pass `out`.
 
-**4. Có nhiều class trong một source.** Một tệp Java có thể khai báo thêm các top-level class không public hoặc nested class; `javac` có thể tạo **nhiều tệp `.class`** từ một `.java`. Không suy ra lúc nào cũng có quan hệ một-một giữa file source và class file.
+**4. Multiple classes in one source file.** One Java file can declare additional non-public top-level classes or nested classes; `javac` can generate **multiple `.class` files** from a single `.java` file. Do not assume there is always a one-to-one relationship between source files and class files.
 
-**5. Static initializer bị lỗi.** Một class có thể qua được compile nhưng lỗi lúc JVM khởi tạo class, ví dụ static initialization ném exception. Lỗi này khác hoàn toàn lỗi cú pháp ở `javac`.
+**5. A static initializer fails.** A class can pass compilation yet fail when the JVM initializes the class—for example, static initialization throws an exception. This error is completely different from a syntax error in `javac`.
 
-**6. Console khác UTF-8.** Đọc source UTF-8 đúng chưa chắc console hiển thị ký tự Unicode đúng. Đây là sự khác biệt giữa bytecode, encoding source và encoding đầu ra.
+**6. Console encoding other than UTF-8.** Reading UTF-8 source accurately does not guarantee the console displays Unicode characters properly. This is the difference between bytecode, source encoding, and output encoding.
 
-**7. Chạy JDK quá cũ.** Một JVM không hỗ trợ class file version đã build có thể từ chối nạp file. Hãy chỉnh target/release phù hợp hoặc nâng runtime; đừng chỉnh nội dung bytecode bằng tay.
+**7. Running on an older JDK.** A JVM that does not support the built class file version may refuse to load the file. Adjust the target/release appropriately or upgrade the runtime; do not edit bytecode contents by hand.
 
-**8. Không có quyền hoặc thiếu tài nguyên.** Bytecode hợp lệ vẫn có thể thất bại khi truy cập file bị cấm, thiếu cấu hình, cổng mạng đã sử dụng hoặc bộ nhớ bị giới hạn. Compile-time checks không thay thế xử lý lỗi runtime.
+**8. Missing permissions or insufficient resources.** Valid bytecode can still fail when file access is denied, configuration is missing, a network port is already in use, or memory is limited. Compile-time checks do not replace runtime error handling.
 
-## 13. Bài tập thực hành với đáp án kiểm chứng
+## 13. Practice Exercises with Verification Answers
 
-### Bài A — xác định sản phẩm của từng lệnh
+### Exercise A — Identify Each Command's Output
 
-Cho ba lệnh:
+Given three commands:
 
 ~~~bash
 javac --release 17 HelloPipeline.java
@@ -308,54 +308,54 @@ javap -c HelloPipeline
 java -cp . HelloPipeline
 ~~~
 
-Hãy ghép:
+Match:
 
-1. Tạo bytecode từ source.
-2. Hiển thị thông tin/chỉ thị của bytecode.
-3. Nạp và thực thi chương trình trên JVM.
+1. Produces bytecode from source.
+2. Displays bytecode information/instructions.
+3. Loads and executes the program on the JVM.
 
-**Đáp án:** 1 là `javac`, 2 là `javap`, 3 là `java`. Lệnh `javap` không thực hiện method `main`.
+**Answer:** 1 is `javac`, 2 is `javap`, 3 is `java`. The `javap` command does not execute the `main` method.
 
-### Bài B — dự đoán lỗi
+### Exercise B — Predict the Error
 
-Bạn có `src/demo/Welcome.java` khai báo `package demo;`, đã compile `-d out`. Bạn chạy:
+You have `src/demo/Welcome.java` declaring `package demo;`, compiled with `-d out`. You run:
 
 ~~~bash
 java -cp out Welcome
 ~~~
 
-Điều gì có thể xảy ra? **Đáp án:** launcher không tìm được class có tên `Welcome` ở default package. Lệnh đúng là `java -cp out demo.Welcome`.
+What might happen? **Answer:** the launcher cannot find a class named `Welcome` in the default package. The correct command is `java -cp out demo.Welcome`.
 
-### Bài C — nhận diện giai đoạn
+### Exercise C — Identify the Stage
 
-Bạn sửa tệp nguồn thành:
+You edit the source file to:
 
 ~~~java
 int number = "sai";
 ~~~
 
-Bạn nhận được thông báo lỗi ngay khi chạy `javac`. Lỗi xảy ra ở JVM hay compiler? **Đáp án:** trình biên dịch `javac` phát hiện không tương thích kiểu `String` → `int`; `main` không được thực thi vì compilation thất bại.
+You receive an error message immediately when running `javac`. Does the error happen in the JVM or the compiler? **Answer:** the `javac` compiler detects the type incompatibility `String` → `int`; `main` is not executed because compilation failed.
 
-### Bài D — phiên bản class file
+### Exercise D — Class File Version
 
-Bạn biên dịch bằng `--release 17` rồi xem `javap -verbose`. Tìm `major version: 61`. Hãy giải thích vì sao Java runtime cũ hơn mức hỗ trợ class file này có thể không chạy được, dù tệp `.class` không chứa đường dẫn Windows/Linux.
+You compile with `--release 17` and inspect with `javap -verbose`. You find `major version: 61`. Explain why a Java runtime older than what supports this class file might fail to run it, even though the `.class` file contains no Windows/Linux paths.
 
-**Đáp án:** khả năng chuyển nền tảng của bytecode là một chuyện, khả năng **phiên bản runtime hiểu định dạng class file** là chuyện khác. JVM cần hỗ trợ class file version tương ứng.
+**Answer:** bytecode portability across platforms is one thing, while **whether a runtime version understands the class file format** is another. The JVM must support the corresponding class file version.
 
-### Bài E — chứng minh class file là đầu vào chạy
+### Exercise E — Prove That the Class File Is the Execution Input
 
-Sau khi biên dịch `HelloPipeline`, đổi một dòng thông báo trong source rồi chỉ chạy `java HelloPipeline`. Ghi kết quả. Biên dịch lại và ghi kết quả mới.
+After compiling `HelloPipeline`, change a message line in the source and then only run `java HelloPipeline`. Record the result. Recompile and record the new result.
 
-**Đáp án kỳ vọng:** lần chạy đầu tiếp tục lấy hành vi từ `.class` cũ; sau biên dịch, `.class` cập nhật nên kết quả phản ánh source mới. Đừng nhầm với `java HelloPipeline.java` vì đó là source-file mode.
+**Expected answer:** the first run continues using the behavior from the old `.class`; after recompiling, `.class` updates so the output reflects the new source. Do not confuse this with `java HelloPipeline.java`, because that is source-file mode.
 
-## 14. Ghi nhớ và tiêu chí hoàn thành
+## 14. Takeaways and Completion Criteria
 
-- [ ] Giải thích được **`.java` → `javac` → `.class` → `java`/JVM** bằng lời của mình.
-- [ ] Biên dịch và chạy thành công `HelloPipeline.java` trên JDK có hỗ trợ Java 17.
-- [ ] Dùng `javap -c` để thấy bytecode mà không nhầm nó với native machine code.
-- [ ] Biết khác biệt giữa compile-time error, class loading/launcher error và exception runtime.
-- [ ] Hiểu classpath là nơi JVM tìm class, còn package quyết định tên class đầy đủ.
-- [ ] Biết `--release` và `java -version` giải quyết hai câu hỏi về tương thích khác nhau.
-- [ ] Không khẳng định mọi bytecode đều phải JIT biên dịch; không khẳng định ứng dụng Java chạy được khi không có runtime tương thích.
+- [ ] Explain **`.java` → `javac` → `.class` → `java`/JVM** in your own words.
+- [ ] Successfully compile and run `HelloPipeline.java` on a JDK that supports Java 17.
+- [ ] Use `javap -c` to view bytecode without confusing it with native machine code.
+- [ ] Know the differences between compile-time errors, class loading/launcher errors, and runtime exceptions.
+- [ ] Understand that the classpath is where the JVM searches for classes, while the package determines the fully qualified class name.
+- [ ] Know that `--release` and `java -version` answer two different compatibility questions.
+- [ ] Do not claim that all bytecode must be JIT-compiled; do not claim a Java application runs without a compatible runtime.
 
-**Kết luận:** Mã Java không được CPU thực thi trực tiếp từ tệp `.java` trong quy trình build thông thường. `javac` biến mã nguồn thành bytecode chuẩn hóa; launcher `java` và JVM tải, kiểm tra, liên kết, khởi tạo và thực thi các class cần thiết. Nhờ lớp bytecode/JVM, một ứng dụng có thể chuyển nền tảng dễ hơn, nhưng vẫn phải đáp ứng đúng phiên bản runtime, thư viện và điều kiện môi trường.
+**Conclusion:** In a standard build workflow, Java code is not executed directly by the CPU from `.java` files. `javac` turns source code into standardized bytecode; the `java` launcher and the JVM load, verify, link, initialize, and execute the needed classes. Thanks to the bytecode/JVM layer, an application can be moved across platforms more easily, but it still must satisfy the right runtime version, libraries, and environmental requirements.

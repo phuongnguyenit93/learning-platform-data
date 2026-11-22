@@ -1,36 +1,36 @@
-# Liệt kê module có thể quan sát bằng java --list-modules
+# Listing Observable Modules with `java --list-modules`
 
-## 1. Mục tiêu
+## 1. Objectives
 
-Java Platform Module System (JPMS) chia runtime và ứng dụng thành các module có tên, descriptor và quan hệ phụ thuộc rõ ràng. Khi làm việc với một modular application, đôi khi cần biết JDK hiện tại cung cấp những module nào hoặc một thư mục module path đang chứa những module nào.
+The Java Platform Module System (JPMS) divides the runtime and application into modules with explicit names, descriptors, and dependency relationships. When working with a modular application, you sometimes need to know which modules the current JDK provides or which modules a module path directory contains.
 
-Lệnh launcher:
-
-~~~bash
-java --list-modules
-~~~
-
-in danh sách các module mà runtime có thể quan sát được theo cấu hình tìm kiếm hiện tại, sau đó kết thúc. Đây là lệnh kiểm tra môi trường module; nó không khởi chạy main class của ứng dụng.
-
-Bài này hướng dẫn cách đọc kết quả, bổ sung module path, lọc danh sách và phân biệt danh sách module observable với graph thực tế được resolve cho một ứng dụng.
-
-Sau bài này, bạn có thể:
-
-- Liệt kê các module có sẵn trong runtime đang dùng.
-- Liệt kê thêm modular JAR hoặc exploded module trên module path.
-- Hiểu ý nghĩa tên module và version hiển thị.
-- Phân biệt module observable, module được resolve và service provider được khởi tạo.
-- Dùng các tùy chọn chẩn đoán liên quan khi cần điều tra một modular application.
-
-## 2. Liệt kê module của JDK hiện tại
-
-Mở terminal và chạy:
+The launcher command:
 
 ~~~bash
 java --list-modules
 ~~~
 
-Kết quả trên một JDK có thể có dạng:
+prints the list of modules observable by the runtime under the current search configuration, and then exits. This is a module environment inspection command; it does not launch the application's main class.
+
+This lesson explains how to read the output, add a module path, filter the list, and distinguish observable modules from the actual graph resolved for an application.
+
+After this lesson, you can:
+
+- List the modules available in the runtime currently in use.
+- Additionally list modular JARs or exploded modules on the module path.
+- Understand the meaning of module names and displayed versions.
+- Distinguish observable modules, resolved modules, and instantiated service providers.
+- Use related diagnostic options when investigating a modular application.
+
+## 2. Listing Modules of the Current JDK
+
+Open a terminal and run:
+
+~~~bash
+java --list-modules
+~~~
+
+Output on a JDK may look like:
 
 ~~~text
 java.base@21
@@ -55,43 +55,43 @@ jdk.jlink@21
 jdk.unsupported@21
 ~~~
 
-Danh sách thực tế phụ thuộc vào bản JDK, nhà cung cấp JDK, cách runtime được đóng gói và các tùy chọn launcher. Ví dụ trên chỉ minh họa định dạng; không phải danh sách cố định cho mọi máy.
+The actual list depends on the JDK build, JDK vendor, how the runtime was packaged, and launcher options. The example above illustrates the format; it is not a fixed list for every machine.
 
-Mỗi dòng thường có dạng:
+Each line typically has the format:
 
 ~~~text
 module.name@version
 ~~~
 
-Trong đó:
+Where:
 
-- Phần trước dấu @ là tên module.
-- Phần sau dấu @ là version được module cung cấp, nếu có.
-- Module không khai báo version có thể được hiển thị mà không có phần version.
+- The part before `@` is the module name.
+- The part after `@` is the version provided by the module, if present.
+- Modules that do not declare a version may be displayed without a version part.
 
-Một vài module quen thuộc:
+A few familiar modules:
 
-| Module | Vai trò khái quát |
+| Module | General Role |
 | --- | --- |
-| java.base | Module nền tảng, chứa các API cốt lõi như java.lang và java.util. |
-| java.logging | API và hạ tầng logging của Java. |
-| java.sql | API JDBC và các kiểu dữ liệu SQL. |
-| java.xml | API xử lý XML. |
-| java.desktop | AWT, Swing và các API desktop liên quan. |
-| jdk.compiler | Các công cụ compiler, bao gồm javac. |
-| jdk.jlink | Công cụ tạo custom runtime image. |
+| java.base | Foundational module containing core APIs such as java.lang and java.util. |
+| java.logging | Java logging API and infrastructure. |
+| java.sql | JDBC API and SQL data types. |
+| java.xml | XML processing APIs. |
+| java.desktop | AWT, Swing, and related desktop APIs. |
+| jdk.compiler | Compiler tools, including javac. |
+| jdk.jlink | Tool for creating custom runtime images. |
 
-Module java.base là module nền tảng mà các named module khác mặc định đọc được; các module khác có thể được ứng dụng yêu cầu trực tiếp hoặc gián tiếp.
+The `java.base` module is the foundational module that other named modules read by default; other modules can be requested directly or indirectly by the application.
 
-## 3. Liệt kê module trên module path
+## 3. Listing Modules on the Module Path
 
-Không có tham số bổ sung, launcher liệt kê các module observable từ runtime hiện tại. Để kiểm tra các module ứng dụng tự đóng gói, truyền module path:
+Without additional arguments, the launcher lists observable modules from the current runtime. To inspect custom-packaged application modules, pass the module path:
 
 ~~~bash
 java --module-path mods --list-modules
 ~~~
 
-Giả sử thư mục mods chứa:
+Suppose the `mods` directory contains:
 
 ~~~text
 project/
@@ -104,9 +104,9 @@ project/
 └── src/
 ~~~
 
-Trong đó hai file JAR là modular JAR có module descriptor, còn thư mục com.example.tools là một exploded module. Khi các artifact có cấu trúc hợp lệ và nằm đúng vị trí mà module path chỉ định, chúng có thể xuất hiện trong danh sách module observable.
+Here, the two JAR files are modular JARs with module descriptors, and the `com.example.tools` directory is an exploded module. When artifacts have a valid structure and reside in the proper location pointed to by the module path, they can appear in the observable module list.
 
-Kết quả minh họa:
+Sample output:
 
 ~~~text
 java.base@21
@@ -118,87 +118,87 @@ com.example.greeting.provider
 com.example.tools
 ~~~
 
-Lưu ý:
+Notes:
 
-- Thư mục mods trong ví dụ là module path entry chứa các module.
-- Một modular JAR có module descriptor module-info.class.
-- Exploded module là thư mục module đã có module-info.class và các class đã biên dịch theo package.
-- Tên module được xác định bởi module descriptor, không nhất thiết giống tên file JAR.
-- Một JAR không có module descriptor có thể được xem là automatic module khi đặt trên module path; tên automatic module được suy ra theo quy tắc đặt tên hoặc manifest. JAR trên classpath không trở thành một named module observable theo cách này.
+- The `mods` directory in the example is a module path entry containing modules.
+- A modular JAR has the `module-info.class` module descriptor.
+- An exploded module is a module directory containing `module-info.class` and compiled classes arranged by package.
+- The module name is determined by the module descriptor, and is not necessarily the same as the JAR filename.
+- A JAR without a module descriptor can be treated as an automatic module when placed on the module path; the automatic module name is derived according to naming rules or the manifest. A JAR on the classpath does not become an observable named module in this way.
 
-Nếu dùng nhiều module path entry, truyền danh sách theo dấu phân tách của hệ điều hành. Trên Windows, path-list thường dùng dấu chấm phẩy; trên Linux và macOS, path-list thường dùng dấu hai chấm.
+If using multiple module path entries, pass the list using the operating system's separator. On Windows, a path-list typically uses a semicolon; on Linux and macOS, a path-list typically uses a colon.
 
-Ví dụ Windows:
+Windows example:
 
 ~~~powershell
 java --module-path "mods;plugins" --list-modules
 ~~~
 
-Ví dụ Linux/macOS:
+Linux/macOS example:
 
 ~~~bash
 java --module-path "mods:plugins" --list-modules
 ~~~
 
-## 4. Giới hạn danh sách bằng --limit-modules
+## 4. Limiting the List with `--limit-modules`
 
-Một runtime có thể quan sát nhiều module hơn số module mà ứng dụng thực sự cần. Tùy chọn --limit-modules giới hạn tập module observable theo các module được nêu và dependency closure cần thiết của chúng.
+A runtime may observe more modules than an application actually needs. The `--limit-modules` option restricts the set of observable modules to the specified modules and their required dependency closure.
 
-Ví dụ:
+Example:
 
 ~~~bash
 java --limit-modules java.base,java.logging --list-modules
 ~~~
 
-Lệnh này yêu cầu launcher giới hạn tập module theo java.base và java.logging cùng các dependency cần thiết theo quy tắc module resolution. Kết quả giúp khảo sát một runtime/module universe nhỏ hơn.
+This command instructs the launcher to limit the module set to `java.base` and `java.logging` along with the dependencies required by module resolution rules. The output helps inspect a smaller runtime/module universe.
 
-Có thể kết hợp với module path:
+It can be combined with a module path:
 
 ~~~bash
 java --module-path mods --limit-modules java.base,com.example.greeting.app --list-modules
 ~~~
 
-Việc giới hạn có thể làm một số module không còn observable hoặc khiến ứng dụng không resolve được nếu chúng nằm ngoài tập được phép. Chỉ dùng tùy chọn này khi muốn chủ động kiểm soát tập module có thể dùng.
+Limiting modules may make certain modules unobservable or prevent the application from resolving if they lie outside the allowed set. Only use this option when you want to actively control the set of usable modules.
 
-## 5. Lọc kết quả để tìm module cần thiết
+## 5. Filtering Output to Find Needed Modules
 
-Kết quả có thể dài, đặc biệt trên JDK đầy đủ. Có thể chuyển output qua công cụ lọc của hệ điều hành.
+The output can be long, especially on a full JDK. You can pipe the output through an operating system filtering tool.
 
-Trên Linux/macOS:
+On Linux/macOS:
 
 ~~~bash
 java --list-modules | grep java.sql
 ~~~
 
-Trên Windows PowerShell:
+On Windows PowerShell:
 
 ~~~powershell
 java --list-modules | Select-String "java.sql"
 ~~~
 
-Hoặc dùng findstr trong Command Prompt:
+Or use `findstr` in Command Prompt:
 
 ~~~cmd
 java --list-modules | findstr java.sql
 ~~~
 
-Ví dụ, tìm module HTTP client:
+For example, finding the HTTP client module:
 
 ~~~bash
 java --list-modules | grep java.net.http
 ~~~
 
-Các công cụ lọc chỉ xử lý văn bản được in ra. Chúng không thay đổi module graph hoặc cấu hình runtime.
+Filtering tools only process the printed text. They do not alter the module graph or runtime configuration.
 
-## 6. Phân biệt observable modules và resolved modules
+## 6. Distinguishing Observable Modules and Resolved Modules
 
-Đây là điểm rất dễ nhầm khi đọc kết quả.
+This is a very easy point to confuse when reading output.
 
-**Observable modules** là những module mà hệ thống module có thể tìm thấy trong phạm vi cấu hình tìm kiếm hiện tại, ví dụ runtime image và module path. Lệnh --list-modules phục vụ việc liệt kê tập này.
+**Observable modules** are the modules that the module system can find within the current search configuration, such as the runtime image and module path. The `--list-modules` command serves to list this set.
 
-**Resolved modules** là các module thực sự được đưa vào Configuration khi resolver giải quyết một tập root modules và dependency của chúng. Một module có thể observable nhưng không được resolve cho ứng dụng đang chạy.
+**Resolved modules** are the modules actually placed into a `Configuration` when the resolver resolves a set of root modules and their dependencies. A module can be observable without being resolved for the running application.
 
-Ví dụ, module path có thể chứa cả ba module:
+For example, the module path might contain all three modules:
 
 ~~~text
 com.example.app
@@ -206,60 +206,60 @@ com.example.api
 com.example.optional-plugin
 ~~~
 
-Nếu app chỉ yêu cầu com.example.api và không dùng hoặc yêu cầu optional plugin, plugin có thể vẫn xuất hiện trong danh sách observable nhưng không nằm trong configuration được resolve cho app.
+If the app only requires `com.example.api` and neither uses nor requires the optional plugin, the plugin may still appear in the observable list while not being part of the resolved configuration for the app.
 
-Vì vậy, không thể kết luận một module đã được ứng dụng nạp vào graph chỉ vì tên của nó xuất hiện trong kết quả --list-modules.
+Therefore, you cannot conclude that a module has been loaded into the application's graph just because its name appears in `--list-modules` output.
 
-## 7. Các lệnh chẩn đoán liên quan
+## 7. Related Diagnostic Commands
 
-### Xem descriptor của một module
+### Viewing a Module's Descriptor
 
-Dùng --describe-module để xem thông tin descriptor của một module cụ thể:
+Use `--describe-module` to view descriptor details for a specific module:
 
 ~~~bash
 java --describe-module java.sql
 ~~~
 
-Có thể mô tả module ứng dụng trên module path:
+You can describe an application module on the module path:
 
 ~~~bash
 java --module-path mods --describe-module com.example.greeting.app
 ~~~
 
-Thông tin có thể bao gồm module name, version, các package được export, các module được require, service được uses và service được provides. Đây là cách xem metadata của một module mà không cần chạy main class.
+Information can include the module name, version, exported packages, required modules, `uses` services, and `provides` services. This is a way to inspect a module's metadata without running the main class.
 
-### Xem quá trình resolve khi khởi chạy ứng dụng
+### Viewing Resolution When Launching the Application
 
-Dùng --show-module-resolution cùng lệnh chạy module:
+Use `--show-module-resolution` alongside the module run command:
 
 ~~~bash
 java --show-module-resolution --module-path mods --module com.example.greeting.app/com.example.greeting.app.Main
 ~~~
 
-Tùy chọn này in thông tin về quá trình module resolution khi launcher khởi chạy ứng dụng. Nó hữu ích khi cần biết module nào được resolve và dependency nào dẫn tới chúng.
+This option prints information about the module resolution process when the launcher starts the application. It is useful when you need to know which modules are resolved and which dependencies led to them.
 
-Nếu cần quan sát service provider được thêm qua service binding, hãy bảo đảm cách khởi chạy thực hiện service binding phù hợp. Chỉ nhìn danh sách --list-modules không thể thay thế việc xem resolution của ứng dụng cụ thể.
+If you need to observe service providers added through service binding, ensure the launch method performs appropriate service binding. Looking at the `--list-modules` list alone cannot substitute for inspecting the resolution of a specific application.
 
-### So sánh ba lệnh
+### Comparing the Three Commands
 
-| Lệnh | Câu hỏi được trả lời |
+| Command | Question Answered |
 | --- | --- |
-| java --list-modules | Runtime có thể quan sát những module nào? |
-| java --describe-module module.name | Descriptor của module này khai báo điều gì? |
-| java --show-module-resolution ... | Launcher resolve những module nào khi khởi chạy ứng dụng? |
+| java --list-modules | Which modules can the runtime observe? |
+| java --describe-module module.name | What does this module's descriptor declare? |
+| java --show-module-resolution ... | Which modules does the launcher resolve when starting the application? |
 
-## 8. Quan hệ với ServiceLoader
+## 8. Relationship with ServiceLoader
 
-Một provider module có thể xuất hiện trong kết quả --list-modules nếu module đó observable trên module path hoặc trong runtime image. Tuy nhiên, điều đó không có nghĩa provider đã được chọn hoặc service instance đã được tạo.
+A provider module may appear in `--list-modules` output if that module is observable on the module path or in the runtime image. However, that does not mean the provider was selected or a service instance was created.
 
-Cần tách các bước:
+Separate the steps:
 
-1. Provider module được đặt trong phạm vi module finder có thể quan sát.
-2. Module resolver đưa provider vào configuration nếu service binding hoặc dependency resolution yêu cầu.
-3. Ứng dụng gọi ServiceLoader để khám phá provider.
-4. Ứng dụng yêu cầu instance bằng Provider.get() hoặc duyệt instance qua iterator.
+1. The provider module is placed within the scope of an observable module finder.
+2. The module resolver includes the provider in the configuration if service binding or dependency resolution requires it.
+3. The application calls `ServiceLoader` to discover providers.
+4. The application requests an instance via `Provider.get()` or iterates through instances via an iterator.
 
-Ví dụ, module descriptor của provider có thể khai báo:
+For example, the provider's module descriptor might declare:
 
 ~~~java
 module com.example.greeting.provider {
@@ -270,7 +270,7 @@ module com.example.greeting.provider {
 }
 ~~~
 
-Module consumer khai báo:
+The consumer module declares:
 
 ~~~java
 module com.example.greeting.app {
@@ -280,50 +280,50 @@ module com.example.greeting.app {
 }
 ~~~
 
-Lệnh --list-modules có thể giúp xác nhận provider module có thể được tìm thấy qua module path. Khi cần xác nhận provider được đưa vào graph cho ứng dụng, hãy kiểm tra resolution bằng cách khởi chạy với --show-module-resolution hoặc kiểm tra Configuration trong code. Khi cần xác nhận implementation được khởi tạo, quan sát vị trí ứng dụng gọi ServiceLoader và Provider.get().
+The `--list-modules` command can help confirm that the provider module can be found via the module path. When you need to confirm the provider is brought into the graph for the application, check resolution by launching with `--show-module-resolution` or inspecting `Configuration` in code. When you need to confirm an implementation is instantiated, observe where the application calls `ServiceLoader` and `Provider.get()`.
 
-## 9. Một số tình huống thực tế
+## 9. Some Practical Scenarios
 
-**Kiểm tra máy có module java.sql không**
+**Checking whether the machine has the `java.sql` module**
 
 ~~~bash
 java --list-modules
 ~~~
 
-Tìm dòng java.sql trong kết quả. Nếu cần lọc nhanh, dùng grep hoặc Select-String theo hệ điều hành.
+Find the `java.sql` line in the output. If you need quick filtering, use `grep` or `Select-String` depending on your operating system.
 
-**Kiểm tra một modular JAR có được tìm thấy không**
+**Checking whether a modular JAR is found**
 
 ~~~bash
 java --module-path mods --list-modules
 ~~~
 
-Đối chiếu tên module hiển thị với module name trong module-info.java. Nếu không xuất hiện, kiểm tra file JAR có modular descriptor không, vị trí file có nằm trực tiếp trong module path entry phù hợp không và tên module có đúng không.
+Compare the displayed module name with the module name in `module-info.java`. If it does not appear, check whether the JAR file has a module descriptor, whether the file sits directly in an appropriate module path entry, and whether the module name is correct.
 
-**Kiểm tra descriptor của module provider**
+**Inspecting a provider module's descriptor**
 
 ~~~bash
 java --module-path mods --describe-module com.example.greeting.provider
 ~~~
 
-Tìm directive provides và service type tương ứng.
+Look for the `provides` directive and the corresponding service type.
 
-**Điều tra vì sao ứng dụng không tìm thấy một dependency**
+**Investigating why an application cannot find a dependency**
 
 ~~~bash
 java --show-module-resolution --module-path mods --module com.example.greeting.app/com.example.greeting.app.Main
 ~~~
 
-Kiểm tra root module, các dependency được resolve và module path thực tế. Đồng thời xem module descriptor của consumer có requires hoặc uses phù hợp hay không.
+Check the root module, resolved dependencies, and actual module path. Also check whether the consumer's module descriptor has the appropriate `requires` or `uses`.
 
-## 10. Ghi nhớ
+## 10. Takeaways
 
-- java --list-modules liệt kê module observable trong cấu hình tìm kiếm hiện tại rồi kết thúc.
-- Dùng --module-path để thêm modular JAR hoặc exploded module cần khảo sát.
-- Dòng kết quả thường có dạng module.name@version; version có thể không xuất hiện nếu module không khai báo.
-- Observable không đồng nghĩa với resolved; resolved cũng không đồng nghĩa với service instance đã được khởi tạo.
-- Dùng --describe-module để xem descriptor của một module.
-- Dùng --show-module-resolution khi cần chẩn đoán graph được resolve cho một lần chạy cụ thể.
-- Với ServiceLoader, cần phân biệt provider có mặt trên module path, provider được bind vào graph và implementation được khởi tạo.
+- `java --list-modules` lists observable modules in the current search configuration and then exits.
+- Use `--module-path` to add modular JARs or exploded modules to inspect.
+- Output lines typically have the form `module.name@version`; the version may not appear if the module does not declare one.
+- Observable does not mean resolved; resolved also does not mean a service instance has been instantiated.
+- Use `--describe-module` to view a module's descriptor.
+- Use `--show-module-resolution` when you need to diagnose the graph resolved for a specific run.
+- With `ServiceLoader`, distinguish between a provider present on the module path, a provider bound into the graph, and an implementation instantiated.
 
-Khi bắt đầu điều tra một modular application, hãy dùng --list-modules để kiểm tra nguồn module có thể quan sát, --describe-module để đọc contract của module và --show-module-resolution để hiểu graph mà launcher thực sự xây dựng.
+When starting to investigate a modular application, use `--list-modules` to verify observable module sources, `--describe-module` to read module contracts, and `--show-module-resolution` to understand the graph the launcher actually builds.

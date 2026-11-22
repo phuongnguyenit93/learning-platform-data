@@ -1,15 +1,15 @@
-# Nhầm precision với số chữ số sau dấu thập phân trong Java `BigDecimal`
+# Confusing Precision with Decimal Places in Java `BigDecimal`
 
-## 1. Sai lầm cốt lõi
+## 1. The Core Mistake
 
-Trong Java, **precision** và **scale** của `BigDecimal` là hai khái niệm khác nhau:
+In Java, **precision** and **scale** of `BigDecimal` are two distinct concepts:
 
-- **Precision (độ chính xác chữ số):** số chữ số có nghĩa trong biểu diễn thập phân của giá trị không scale. `BigDecimal.precision()` trả số chữ số của unscaled value, bỏ dấu; riêng zero có precision 1.
-- **Scale:** số mũ điều chỉnh vị trí dấu thập phân trong công thức `unscaledValue × 10^(-scale)`. Với dạng thập phân thông thường có scale không âm, scale thường tương ứng số chữ số sau dấu thập phân của **biểu diễn hiện tại**. Scale cũng có thể âm.
+- **Precision (significant digits):** the number of significant digits in the decimal representation of the unscaled value. `BigDecimal.precision()` returns the digit count of the unscaled value, ignoring sign; zero itself has precision 1.
+- **Scale:** the exponent adjusting the decimal point position in `unscaledValue × 10^(-scale)`. For ordinary decimal notation with a non-negative scale, scale corresponds to the number of digits after the decimal point in the **current representation**. Scale can also be negative.
 
-Ví dụ, `new BigDecimal("123.4500")` có **precision = 7**, **scale = 4**, không phải precision = 4. Khi viết `new MathContext(3, HALF_UP)`, số 3 **không** có nghĩa “giữ ba chữ số sau dấu thập phân”; nó có nghĩa “tối đa ba chữ số có nghĩa”.
+For example, `new BigDecimal("123.4500")` has **precision = 7** and **scale = 4**, not precision = 4. When writing `new MathContext(3, HALF_UP)`, the number 3 does **not** mean "keep three digits after the decimal point"; it means "at most three significant digits".
 
-So sánh:
+Compare:
 
 ~~~java
 BigDecimal number = new BigDecimal("1234.567");
@@ -19,26 +19,26 @@ System.out.println(number.round(mc));                         // 1.23E+3
 System.out.println(number.setScale(3, RoundingMode.HALF_UP));  // 1234.567
 ~~~
 
-Đây là **đoạn minh họa cần import `java.math.*` và đặt trong phương thức**; chương trình chạy độc lập ở phần 9.
+This is an **illustrative snippet requiring `import java.math.*` and placement inside a method**; the standalone runnable program is in Section 9.
 
-Cả hai lời gọi đều chứa số 3, nhưng có ý nghĩa hoàn toàn khác:
+Both calls contain the number 3, yet they mean completely different things:
 
-- `round(mc)`: chỉ giữ ba chữ số có nghĩa, nên 1234.567 trở thành khoảng 1230, được in `1.23E+3`.
-- `setScale(3, ...)`: yêu cầu đúng ba chữ số sau dấu thập phân, mà `1234.567` đã có sẵn, nên không cần làm tròn.
+- `round(mc)`: keeps only three significant digits, so 1234.567 becomes roughly 1230, printed as `1.23E+3`.
+- `setScale(3, ...)`: requires three digits after the decimal point, which `1234.567` already has, so no rounding occurs.
 
-**Cách ghi nhớ:** `MathContext` điều khiển **số chữ số có nghĩa của toàn bộ kết quả**; `setScale` điều khiển **vị trí dấu thập phân/số chữ số thập phân của biểu diễn**.
+**How to remember:** `MathContext` controls **the number of significant digits of the entire result**; `setScale` controls **the decimal point position / fractional digit count of the representation**.
 
-## 2. Công thức nền tảng: `unscaledValue`, scale, precision
+## 2. Fundamental Formula: `unscaledValue`, Scale, and Precision
 
-Một `BigDecimal` gồm một số nguyên không scale và một scale nguyên:
+A `BigDecimal` consists of an unscaled integer and an integer scale:
 
 ~~~text
 numericValue = unscaledValue × 10^(-scale)
 ~~~
 
-Ví dụ:
+Examples:
 
-| Chuỗi đầu vào | Unscaled value | Scale | Precision |
+| Input String | Unscaled value | Scale | Precision |
 | --- | ---: | ---: | ---: |
 | `"12"` | 12 | 0 | 2 |
 | `"12.0"` | 120 | 1 | 3 |
@@ -48,29 +48,29 @@ Ví dụ:
 | `"0.0000"` | 0 | 4 | 1 |
 | `"1E+3"` | 1 | -3 | 1 |
 
-Đọc bảng đúng cách:
+Reading the table accurately:
 
-1. `"0.00120"` có 5 vị trí sau dấu thập phân nhưng chỉ có **3 chữ số có nghĩa**: 1, 2 và 0 tận cùng. Các zero đứng trước chữ số 1 chỉ xác định vị trí dấu thập phân.
-2. `"123.4500"` có **7 chữ số có nghĩa** trong unscaled value 1234500. Các zero tận cùng vẫn là chữ số được lưu trong biểu diễn và được tính vào precision của đối tượng hiện tại.
-3. `"1E+3"` có giá trị toán học 1000 nhưng scale **-3**: `1 × 10^3`. Không thể định nghĩa scale chỉ bằng cách “đếm dấu chấm” trên chuỗi `toString()`.
-4. Zero có precision 1, nhưng có thể có nhiều scale khác nhau. `"0"` và `"0.0000"` bằng nhau về giá trị, không giống nhau về scale.
+1. `"0.00120"` has 5 places after the decimal point yet only **3 significant digits**: 1, 2, and the trailing 0. Leading zeros before digit 1 only establish the decimal point position.
+2. `"123.4500"` has **7 significant digits** in its unscaled value 1234500. Trailing zeros are still digits stored in the representation and count toward the current object's precision.
+3. `"1E+3"` has mathematical value 1000 yet scale **-3**: `1 × 10^3`. You cannot define scale simply by "counting after the dot" on `toString()`.
+4. Zero has precision 1, yet can have many different scales. `"0"` and `"0.0000"` are equal in value, not in scale.
 
-Không nên suy đoán precision hoặc scale chỉ từ độ lớn số, cũng không nên bỏ qua trailing zeros nếu hợp đồng dữ liệu cần giữ chúng.
+Do not guess precision or scale merely from magnitude, and do not discard trailing zeros if the data contract needs to preserve them.
 
-### 2.1. `toString()` không nhất thiết cho dạng thập phân thường
+### 2.1. `toString()` Does Not Always Produce Plain Decimal Format
 
-Sau phép làm tròn hoặc normalize, `BigDecimal.toString()` có thể dùng ký pháp mũ như `1.23E+3`. Điều này không có nghĩa số đã biến thành kiểu `double`, cũng không phải lỗi tính toán; đó là cách biểu diễn văn bản của `BigDecimal` với precision/scale hiện tại.
+After rounding or normalization, `BigDecimal.toString()` may use scientific notation such as `1.23E+3`. This does not mean the number turned into `double`, nor is it a calculation bug; it is `BigDecimal`'s text format for its current precision and scale.
 
-`toPlainString()` cho chuỗi không sử dụng ký pháp mũ. Tuy nhiên, không nên dùng chuỗi hiển thị để xác định precision hoặc scale; dùng trực tiếp `precision()` và `scale()`.
+`toPlainString()` produces a string without exponent notation. However, do not inspect display strings to determine precision or scale; call `precision()` and `scale()` directly.
 
-## 3. `precision()` của đối tượng và precision trong `MathContext`
+## 3. Object `precision()` vs. Precision in `MathContext`
 
-Hai chữ “precision” liên quan nhưng có vai trò khác nhau:
+The two occurrences of "precision" are related yet play different roles:
 
-- `value.precision()` **đọc trạng thái hiện tại** của `BigDecimal`: bao nhiêu chữ số có nghĩa đang được lưu trong unscaled value.
-- `new MathContext(p, mode)` **đặt giới hạn precision cho kết quả phép toán sử dụng context**, với `p > 0` là số chữ số có nghĩa tối đa.
+- `value.precision()` **reads the current state** of a `BigDecimal`: how many significant digits are currently stored in its unscaled value.
+- `new MathContext(p, mode)` **sets a precision cap for results of operations using that context**, where `p > 0` is the maximum number of significant digits.
 
-Ví dụ:
+Example:
 
 ~~~java
 BigDecimal value = new BigDecimal("123.4500");
@@ -84,32 +84,32 @@ System.out.println(rounded.precision()); // 4
 System.out.println(rounded.scale());     // 1
 ~~~
 
-`MathContext` không chỉ “đặt cờ metadata”. Khi kết quả chính xác có nhiều chữ số có nghĩa hơn giới hạn, `BigDecimal` **làm tròn giá trị** theo rounding mode. Có trường hợp làm tròn chỉ loại bỏ zero tận cùng mà không đổi giá trị; có trường hợp làm tròn thật sự thay đổi số.
+`MathContext` does not merely "set a metadata flag". When an exact result has more significant digits than the limit, `BigDecimal` **rounds the value** according to the rounding mode. Sometimes rounding only drops trailing zeros without changing numeric value; other times rounding genuinely alters the number.
 
-### 3.1. Precision = 0 trong `MathContext`
+### 3.1. Precision = 0 in `MathContext`
 
 ~~~java
 MathContext unlimited = MathContext.UNLIMITED;
 // unlimited.getPrecision() == 0
 ~~~
 
-Precision bằng 0 trong `MathContext` có nghĩa **không giới hạn chữ số có nghĩa**, không phải “giữ 0 chữ số” và không phải “giữ 0 số sau dấu thập phân”. Nó không khiến các phép toán thập phân không có kết quả hữu hạn, như `1 ÷ 3`, tự có biểu diễn `BigDecimal` chính xác hữu hạn.
+Precision 0 in `MathContext` means **unlimited significant digits**, not "keep 0 digits" and not "keep 0 digits after the decimal point". It does not magically give non-terminating decimal operations, such as `1 ÷ 3`, a finite exact `BigDecimal` representation.
 
-`MathContext.DECIMAL32`, `DECIMAL64`, `DECIMAL128` lần lượt có precision 7, 16 và 34, sử dụng `HALF_EVEN`. Chúng cũng điều khiển **chữ số có nghĩa**, không phải scale 7/16/34.
+`MathContext.DECIMAL32`, `DECIMAL64`, and `DECIMAL128` have precisions 7, 16, and 34 respectively, using `HALF_EVEN`. They likewise control **significant digits**, not scales of 7/16/34.
 
-## 4. `setScale()`: quy tắc về vị trí dấu thập phân
+## 4. `setScale()`: Rules for Decimal Point Position
 
-Khi yêu cầu là “giá trị có **đúng hai chữ số sau dấu chấm**”, thường dùng:
+When the requirement is "a value with **exact two digits after the decimal point**", you typically use:
 
 ~~~java
 BigDecimal stored = value.setScale(2, RoundingMode.HALF_EVEN);
 ~~~
 
-`setScale(2, ...)` trả `BigDecimal` có scale đúng 2 hoặc ném ngoại lệ nếu không thực hiện được theo quy tắc đã chỉ định. Với dạng thường, kết quả có đúng hai chữ số thập phân khi in theo biểu diễn scale 2.
+`setScale(2, ...)` returns a `BigDecimal` with scale exactly 2 or throws an exception if that cannot be achieved under the specified rule. In standard notation, the result has exactly two decimal places when printed in scale-2 form.
 
-Các ví dụ:
+Examples:
 
-| Giá trị ban đầu | Gọi | Kết quả |
+| Initial Value | Call | Result |
 | --- | --- | --- |
 | `12` | `setScale(2, HALF_UP)` | `12.00` |
 | `12.3` | `setScale(2, HALF_UP)` | `12.30` |
@@ -118,36 +118,36 @@ Các ví dụ:
 | `-1.236` | `setScale(2, HALF_UP)` | `-1.24` |
 | `12.3400` | `setScale(2, UNNECESSARY)` | `12.34` |
 
-`setScale` có thể tăng scale bằng cách thêm zero mà không đổi giá trị; khi giảm scale, nó cần bỏ bớt chữ số và có thể phải làm tròn. Vì vậy, phải xác định **rounding mode** theo yêu cầu nghiệp vụ, không chỉ đặt scale.
+`setScale` can increase scale by appending zeros without changing numeric value; when decreasing scale, it must drop digits and may need to round. Therefore, specify the **rounding mode** per business requirements, not just the scale.
 
-Nếu cấm thay đổi giá trị, dùng `RoundingMode.UNNECESSARY`:
+If changing the value is forbidden, use `RoundingMode.UNNECESSARY`:
 
 ~~~java
 BigDecimal exact = new BigDecimal("12.3400")
         .setScale(2, RoundingMode.UNNECESSARY); // 12.34
 
-// Ném ArithmeticException nếu thực thi:
+// Throws ArithmeticException if executed:
 // new BigDecimal("12.345").setScale(2, RoundingMode.UNNECESSARY);
 ~~~
 
-**`UNNECESSARY` không có nghĩa là làm tròn xuống hoặc bỏ qua chữ số:** nó yêu cầu việc điều chỉnh scale phải **chính xác**, nếu không báo lỗi.
+**`UNNECESSARY` does not mean rounding down or ignoring digits:** it requires the scale adjustment to be **exact**, otherwise failing with an error.
 
-## 5. `round(new MathContext(...))`: giới hạn chữ số có nghĩa
+## 5. `round(new MathContext(...))`: Capping Significant Digits
 
-Xét cùng một số dưới hai phép biến đổi:
+Consider the same number under both transformations:
 
-| Đầu vào | Precision 3 với `HALF_UP` | Scale 3 với `HALF_UP` |
+| Input | Precision 3 with `HALF_UP` | Scale 3 with `HALF_UP` |
 | --- | --- | --- |
 | `1234.567` | `1.23E+3` (= 1230) | `1234.567` |
 | `0.0012345` | `0.00123` | `0.001` |
 | `9.995` | `10.0` | `9.995` |
 | `12.34` | `12.3` | `12.340` |
 
-Tại sao `0.0012345` với precision 3 được `0.00123`? Các số 0 trước chữ số 1 không chiếm precision. Trong khi đó, `setScale(3)` chỉ cho phép ba chữ số sau dấu chấm nên phải đổi thành `0.001`.
+Why does `0.0012345` with precision 3 become `0.00123`? Leading zeros before the digit 1 do not consume precision. Meanwhile, `setScale(3)` allows only three digits after the decimal point, so it must round to `0.001`.
 
-### 5.1. Carry làm thay đổi phần nguyên và scale
+### 5.1. Carries Change Integer Length and Scale
 
-Ví dụ:
+Example:
 
 ~~~java
 BigDecimal value = new BigDecimal("9.995");
@@ -164,11 +164,11 @@ System.out.println(scaled.precision());   // 4
 System.out.println(scaled.scale());       // 2
 ~~~
 
-Cả hai đều có giá trị số học bằng 10 sau khi làm tròn, nhưng **precision và scale của kết quả khác nhau**. Chúng không thể thay thế nhau trong một hợp đồng yêu cầu scale 2.
+Both have numeric value 10 after rounding, yet **the precision and scale of the results differ**. They are not interchangeable in a contract requiring scale 2.
 
-Khi phép làm tròn tạo carry từ 9 lên 10, độ dài phần nguyên có thể tăng. Điều này rất quan trọng khi kiểm tra giới hạn cột database, miền giá trị tiền tệ hoặc độ rộng báo cáo.
+When rounding causes a carry from 9 to 10, the number of integer digits can increase. This matters greatly when checking database column limits, monetary value ranges, or report widths.
 
-### 5.2. Trailing zeros vẫn ảnh hưởng precision
+### 5.2. Trailing Zeros Still Affect Precision
 
 ~~~java
 BigDecimal value = new BigDecimal("1000.00");
@@ -180,13 +180,13 @@ BigDecimal result = value.round(
 System.out.println(result);            // 1.00E+3
 ~~~
 
-Ở ví dụ này, phép làm tròn có thể **loại bỏ chữ số 0 dư** mà không mất giá trị toán học. Kết quả `1.00E+3` có precision 3 và scale -1, không phải scale 2.
+In this example, rounding can **drop excess zero digits** without losing mathematical value. The result `1.00E+3` has precision 3 and scale -1, not scale 2.
 
-Nếu yêu cầu là giữ hai chữ số sau dấu chấm trong đầu ra, **`MathContext(3)` không thực hiện yêu cầu ấy**.
+If the requirement is to keep two digits after the decimal point in the output, **`MathContext(3)` does not fulfill that requirement**.
 
-## 6. `MathContext` trong các phép tính không giống `setScale` cuối cùng
+## 6. `MathContext` in Arithmetic Operations Is Not the Same as Final `setScale`
 
-Một số phương thức `BigDecimal` nhận `MathContext`:
+Several `BigDecimal` methods accept a `MathContext`:
 
 ~~~java
 BigDecimal total = left.add(right, mc);
@@ -194,23 +194,23 @@ BigDecimal product = left.multiply(right, mc);
 BigDecimal quotient = left.divide(right, mc);
 ~~~
 
-Khi context giới hạn precision, **kết quả của từng phép toán** có thể bị làm tròn tới số chữ số có nghĩa được cho phép. Điều này khác với chiến lược:
+When a context caps precision, **the result of each individual operation** can be rounded to the allowed significant digits. This differs from the strategy:
 
 ~~~java
 BigDecimal exactTotal = left.add(right);
 BigDecimal stored = exactTotal.setScale(2, RoundingMode.HALF_EVEN);
 ~~~
 
-Cách thứ nhất hạn chế **chữ số có nghĩa ở mỗi kết quả của phép toán**; cách thứ hai lấy tổng chính xác rồi chuẩn hóa về **scale 2** theo chính sách lưu trữ.
+The first approach restricts **significant digits at every operation result**; the second computes the exact sum and then normalizes to **scale 2** per storage policy.
 
-Nếu cộng nhiều khoản tiền, hai quy tắc có thể cho tổng khác nhau. Ví dụ với `1.234 + 0.004 + 0.004` và `MathContext(3, HALF_UP)`:
+When adding many amounts, the two rules can yield different sums. For example, with `1.234 + 0.004 + 0.004` and `MathContext(3, HALF_UP)`:
 
-- Cộng chính xác được `1.242`, rồi `round(mc)` thành `1.24`.
-- Dùng `add(x, mc)` ở **từng lần cộng** có thể ra `1.23`, vì các phần nhỏ đã mất khi làm tròn trung gian.
+- Exact addition yields `1.242`, then `round(mc)` gives `1.24`.
+- Using `add(x, mc)` on **each addition** can yield `1.23`, because small increments are lost during intermediate rounding.
 
-Nếu hợp đồng chỉ yêu cầu “tổng cuối cùng có hai chữ số sau dấu chấm”, không được tự coi `new MathContext(2, ...)` là cùng một yêu cầu. Nó sẽ giới hạn toàn bộ tổng chỉ còn **hai chữ số có nghĩa**, kể cả các chữ số phần nguyên.
+If the contract only states "the final total has two digits after the decimal point", never assume `new MathContext(2, ...)` expresses the same requirement. It would restrict the entire sum to just **two significant digits**, including integer digits.
 
-### 6.1. Phép chia cho thấy khác biệt rõ hơn
+### 6.1. Division Shows the Difference Even More Clearly
 
 ~~~java
 BigDecimal one = BigDecimal.ONE;
@@ -223,9 +223,9 @@ BigDecimal byPrecision = one.divide(
         eight, new MathContext(2, RoundingMode.HALF_UP)); // 0.13
 ~~~
 
-Hai kết quả **tình cờ bằng nhau trong phép chia này**. Nhưng nếu đổi số bị chia hoặc tỷ lệ, ý nghĩa vẫn khác: `divide(divisor, scale, mode)` chọn scale kết quả; `divide(divisor, MathContext)` chọn precision kết quả. Không suy ra hai overload tương đương từ một test đơn lẻ.
+The two results **happen to match in this division**. However, if you change the dividend or ratio, their meanings remain distinct: `divide(divisor, scale, mode)` selects the result scale; `divide(divisor, MathContext)` selects the result precision. Never conclude two overloads are equivalent from a single test case.
 
-Ví dụ phân biệt rõ:
+A clearer distinguishing example:
 
 ~~~java
 BigDecimal numerator = new BigDecimal("1234");
@@ -238,49 +238,49 @@ BigDecimal byPrecision = numerator.divide(
         denominator, new MathContext(2, RoundingMode.HALF_UP)); // 1.5E+2
 ~~~
 
-Với context precision 2, kết quả 154.25 phải làm tròn còn 150, còn scale 2 giữ kết quả chính xác 154.25.
+With precision-2 context, 154.25 must be rounded down to 150, whereas scale 2 preserves the exact result 154.25.
 
-## 7. Thiết kế dữ liệu: precision và scale trong database
+## 7. Data Design: Precision and Scale in Databases
 
-Trong nhiều hệ quản trị cơ sở dữ liệu, `DECIMAL(p, s)` hoặc `NUMERIC(p, s)` dùng:
+In many database management systems, `DECIMAL(p, s)` or `NUMERIC(p, s)` uses:
 
-- `p`: tổng số chữ số thập phân được phép theo định nghĩa cột.
-- `s`: số chữ số sau dấu thập phân, theo quy định của hệ quản trị/cột.
+- `p`: total number of decimal digits allowed by the column definition.
+- `s`: number of digits after the decimal point, per the DBMS/column definition.
 
-Ví dụ thông thường `DECIMAL(5,2)` cho phép các giá trị như `999.99`, nhưng `1234.56` vượt phần nguyên tối đa ba chữ số của định dạng đó.
+Typically `DECIMAL(5,2)` allows values like `999.99`, whereas `1234.56` exceeds the maximum three integer digits of that format.
 
-Điều này **không có nghĩa** cứ dùng `new MathContext(5, ...)` là đã đảm bảo tương thích `DECIMAL(5,2)`. Context không cố định scale và có thể đổi giá trị. Cần hai bước kiểm tra theo chính sách rõ:
+This **does not mean** using `new MathContext(5, ...)` guarantees compatibility with `DECIMAL(5,2)`. A context does not fix the scale and can alter the value. A two-step check under an explicit policy is needed:
 
 ~~~java
 BigDecimal scaled = value.setScale(2, RoundingMode.UNNECESSARY);
 if (scaled.precision() > 5) {
-    throw new IllegalArgumentException("Gia tri qua gioi han DECIMAL(5,2)");
+    throw new IllegalArgumentException("Value exceeds DECIMAL(5,2) limit");
 }
 ~~~
 
-Đây là **đoạn minh họa**, phải đặt trong phương thức có biến `value` kiểu `BigDecimal`. Với hợp đồng cấm làm tròn, `UNNECESSARY` bảo đảm không đổi giá trị; sau đó `precision() > 5` từ chối các giá trị vượt tổng chữ số của biểu diễn đã chuẩn hóa. Nếu ứng dụng cho phép làm tròn trước lưu, chính sách khác sẽ dùng rounding mode được phê duyệt trước bước kiểm tra precision.
+This is an **illustrative snippet** that must be placed inside a method with a `BigDecimal value` variable. Under a contract forbidding rounding, `UNNECESSARY` ensures the value is not altered; then `precision() > 5` rejects values exceeding the total digit count of the normalized representation. If the application permits rounding before storage, a different policy applies the approved rounding mode prior to checking precision.
 
-**Cẩn trọng:** mỗi database có quy tắc riêng về giới hạn miền số, xử lý overflow, quy tắc rounding khi ghi, và khả năng hỗ trợ scale âm. Cần đọc schema và kiểm chứng database/driver thực tế. Ví dụ ở đây nhằm diễn đạt hai điều kiện độc lập, không thay thế kiểm thử tích hợp.
+**Caution:** each database has its own rules for range limits, overflow handling, write-time rounding behavior, and negative scale support. Read the schema and verify against the actual database/driver. The example here expresses two independent checks, not a substitute for integration testing.
 
-### 7.1. Tràn sau khi làm tròn
+### 7.1. Overflow After Rounding
 
-Một số nằm sát ngưỡng có thể thành số **nhiều chữ số phần nguyên hơn** sau làm tròn. Ví dụ nếu chuẩn hóa scale 2, giá trị `999.995` với `HALF_UP` thành `1000.00`. Giá trị sau làm tròn này không phù hợp với `DECIMAL(5,2)` thông thường, dù giá trị nguồn có thể trông gần giới hạn.
+A value sitting right on the threshold can gain **more integer digits** after rounding. For example, when normalizing to scale 2, `999.995` with `HALF_UP` becomes `1000.00`. This post-rounding value no longer fits in a typical `DECIMAL(5,2)`, even though the source value looked close to the limit.
 
-Vì thế kiểm tra precision/miền giá trị **sau khi áp quy tắc scale đã chọn**, không chỉ trước khi làm tròn.
+Therefore, check precision/value range **after applying the chosen scale rule**, not only before rounding.
 
-## 8. Kiểm thử đúng hợp đồng: số, scale, precision và chuỗi
+## 8. Testing Against the Right Contract: Value, Scale, Precision, and Text
 
-Một bộ assertion tốt phân biệt bốn điều kiện:
+A good assertion suite distinguishes four conditions:
 
-| Hợp đồng | Kiểm tra gợi ý |
+| Contract | Suggested Check |
 | --- | --- |
-| Giá trị toán học bằng nhau | `expected.compareTo(actual) == 0` |
-| Giá trị và scale cùng đúng | `expected.equals(actual)` hoặc hai assertion riêng |
-| Scale chính xác bằng 2 | `actual.scale() == 2` |
-| Precision không vượt 5 | `actual.precision() <= 5` sau bước normalize phù hợp |
-| Chuỗi trao đổi đúng dạng `"12.00"` | Test riêng kết quả serialize hoặc format |
+| Mathematically equal values | `expected.compareTo(actual) == 0` |
+| Both value and scale match | `expected.equals(actual)` or two separate assertions |
+| Scale equals exactly 2 | `actual.scale() == 2` |
+| Precision does not exceed 5 | `actual.precision() <= 5` after appropriate normalization |
+| Wire string matches format `"12.00"` | Test serialized or formatted output separately |
 
-Ví dụ JUnit 5, **đặt trong một phương thức test và thêm dependencies JUnit**:
+JUnit 5 example (**place inside a test method and add JUnit dependencies**):
 
 ~~~java
 BigDecimal actual = new BigDecimal("12.00");
@@ -290,11 +290,11 @@ assertEquals(2, actual.scale());
 assertTrue(actual.precision() <= 5);
 ~~~
 
-Các assertion trên dùng `org.junit.jupiter.api.Assertions.assertEquals` và `assertTrue`. Chúng kiểm tra ba yêu cầu **riêng**. `actual.equals(new BigDecimal("12"))` sẽ `false` vì khác scale mặc dù giá trị bằng nhau.
+These assertions use `org.junit.jupiter.api.Assertions.assertEquals` and `assertTrue`. They test three **separate** requirements. `actual.equals(new BigDecimal("12"))` would be `false` because their scales differ despite equal numeric values.
 
-Nếu cần một số không âm có chính xác hai vị trí thập phân, ngoài scale còn có thể phải kiểm tra miền giá trị (ví dụ `signum() >= 0`). Không dùng precision/scale để suy ra tất cả ràng buộc nghiệp vụ.
+If a non-negative number with two decimal places is needed, beyond scale you must also check value bounds (e.g., `signum() >= 0`). Do not use precision/scale to infer all business constraints.
 
-### 8.1. `stripTrailingZeros` thay đổi precision và scale
+### 8.1. `stripTrailingZeros` Changes Precision and Scale
 
 ~~~java
 BigDecimal raw = new BigDecimal("1000.00");
@@ -305,13 +305,13 @@ System.out.println(compact.precision()); // 1
 System.out.println(compact.scale());     // -3
 ~~~
 
-`stripTrailingZeros()` loại zero tận cùng mà vẫn giữ **giá trị toán học**. Vì vậy nó thường làm precision giảm và scale giảm; scale có thể **âm**. Nó không phải phương thức đặt “số chữ số sau dấu thập phân” và không nên được dùng để che lỗi scale của một API cam kết `scale == 2`.
+`stripTrailingZeros()` removes trailing zeros while preserving **mathematical value**. Thus it typically lowers both precision and scale; scale can become **negative**. It is not a method for setting "number of decimal places" and should not be used to mask a scale bug in an API promising `scale == 2`.
 
-Với zero, `stripTrailingZeros()` có thể trả `BigDecimal.ZERO` có scale 0, dù ban đầu là `0.0000`. Nếu kiểm thử yêu cầu giữ scale của zero, phải kiểm tra riêng.
+For zero, `stripTrailingZeros()` can return `BigDecimal.ZERO` with scale 0, even if the input was `0.0000`. If tests require preserving zero's scale, check that separately.
 
-## 9. Chương trình Java 17+ hoàn chỉnh
+## 9. Complete Java 17+ Program
 
-Tạo tệp **PrecisionVsScaleDemo.java**:
+Create **PrecisionVsScaleDemo.java**:
 
 ~~~java
 import java.math.BigDecimal;
@@ -371,14 +371,14 @@ public class PrecisionVsScaleDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac PrecisionVsScaleDemo.java
 java PrecisionVsScaleDemo
 ~~~
 
-Đầu ra chính xác:
+Exact output:
 
 ~~~text
 literal: 123.4500 (precision=7, scale=4)
@@ -397,83 +397,83 @@ same value and scale: false
 strict scale: ArithmeticException
 ~~~
 
-Chương trình này chỉ dùng Java standard library. Các dòng `inspect` cho thấy một số 3 trong `MathContext` và một số 3 trong `setScale` tác động đến **hai thuộc tính khác nhau**. Chú ý số `9.995` sau làm tròn có cùng giá trị 10 nhưng biểu diễn `10.0` hoặc `10.00` tùy chính sách.
+This program uses only the Java standard library. The `inspect` lines demonstrate that the 3 in `MathContext` and the 3 in `setScale` affect **two distinct properties**. Notice that `9.995` after rounding has the same numeric value 10 yet is represented as `10.0` or `10.00` depending on the policy.
 
-## 10. Quy tắc lựa chọn đúng API
+## 10. Rules for Choosing the Right API
 
-### Muốn đúng N chữ số có nghĩa
+### Want Exactly N Significant Digits
 
-Sử dụng `MathContext`:
+Use `MathContext`:
 
 ~~~java
 MathContext mc = new MathContext(4, RoundingMode.HALF_EVEN);
 BigDecimal rounded = value.round(mc);
 ~~~
 
-Giới hạn **precision tối đa 4** của kết quả, không ép scale thành 4. Nó thích hợp khi hợp đồng mô tả kết quả theo chữ số có nghĩa, ví dụ báo cáo đo lường hoặc tính toán có giới hạn precision.
+This caps the result's **precision to at most 4**, without forcing scale to 4. It fits when the contract specifies results in significant digits, such as measurement reports or precision-bounded calculations.
 
-### Muốn đúng N chữ số sau dấu thập phân
+### Want Exactly N Digits After the Decimal Point
 
-Sử dụng `setScale`:
+Use `setScale`:
 
 ~~~java
 BigDecimal scaled = value.setScale(2, RoundingMode.HALF_EVEN);
 ~~~
 
-Kết quả có **scale đúng 2** khi thành công. Nó phù hợp với một số hợp đồng lưu trữ, hiển thị thập phân có scale cố định, hoặc quy tắc tiền tệ đã định nghĩa rõ thời điểm làm tròn.
+The result has **scale exactly 2** on success. It fits fixed-scale storage contracts, fixed-scale decimal displays, or monetary rules with well-defined rounding points.
 
-### Muốn không được thay đổi giá trị
+### Want No Value Change Allowed
 
-Đặt `UNNECESSARY` trong phép chuẩn hóa hoặc phép toán tương ứng:
+Specify `UNNECESSARY` in the corresponding normalization or operation:
 
 ~~~java
 BigDecimal exactAtTwoPlaces =
         value.setScale(2, RoundingMode.UNNECESSARY);
 ~~~
 
-Nếu không thể biểu diễn chính xác giá trị ở scale yêu cầu, sẽ có `ArithmeticException`. `UNNECESSARY` không tự bảo đảm miền giá trị hay số chữ số phần nguyên.
+If the value cannot be represented exactly at the requested scale, `ArithmeticException` is thrown. `UNNECESSARY` does not automatically enforce value bounds or integer digit counts.
 
-### Muốn vừa scale 2 vừa giới hạn tổng chữ số
+### Want Both Scale 2 and Total Digit Limit
 
-Chuẩn hóa **theo policy được duyệt**, rồi kiểm tra cả scale lẫn precision/miền giá trị, ví dụ:
+Normalize **according to the approved policy**, then check both scale and precision/range, for example:
 
 ~~~java
 BigDecimal normalized =
         value.setScale(2, RoundingMode.UNNECESSARY);
 
 if (normalized.precision() > 5) {
-    throw new IllegalArgumentException("Precision vuot 5");
+    throw new IllegalArgumentException("Precision exceeds 5");
 }
 ~~~
 
-Nếu hợp đồng cho phép rounding, thay `UNNECESSARY` bằng mode được phê duyệt và kiểm tra dữ liệu **sau** làm tròn. Không dùng `round(new MathContext(5, ...))` để thay thế hoàn toàn kiểm tra `DECIMAL(5,2)`.
+If the contract permits rounding, replace `UNNECESSARY` with the approved mode and validate data **after** rounding. Never use `round(new MathContext(5, ...))` as a full replacement for checking `DECIMAL(5,2)`.
 
-## 11. Những lỗi hay gặp
+## 11. Common Mistakes
 
-| Hiểu lầm | Điều đúng |
+| Misconception | Correct Fact |
 | --- | --- |
-| `MathContext(2)` có nghĩa hai số sau dấu chấm | Precision 2 là hai chữ số có nghĩa trên toàn bộ kết quả |
-| `precision()` đếm chữ số sau dấu chấm | Nó đếm chữ số trong unscaled value, bỏ dấu; zero có precision 1 |
-| `scale()` luôn không âm | Scale có thể âm, chẳng hạn `1E+3` có scale -3 |
-| `0.00120` có precision 5 | Precision là 3, còn scale là 5 |
-| Rounding chỉ thay phần thập phân | `MathContext` có thể làm tròn cả chữ số phần nguyên và đổi dạng sang ký pháp mũ |
-| `setScale` luôn chỉ thêm số 0 | Khi giảm scale, nó có thể đổi giá trị theo mode hoặc ném lỗi |
-| `UNNECESSARY` nghĩa là bỏ qua rounding | Nó từ chối thao tác phải thay đổi giá trị |
-| `BigDecimal.toString()` luôn in dấu chấm thông thường | Có thể in dạng mũ, tùy scale và cách biểu diễn |
-| Bằng giá trị số thì bằng scale | `compareTo == 0` không bảo đảm `equals == true` |
-| `DECIMAL(5,2)` chỉ cần `MathContext(5)` | Phải kiểm tra cả scale, precision và giới hạn của DB |
-| `stripTrailingZeros()` đặt scale thành 0 | Nó có thể tạo scale âm và thay đổi biểu diễn của zero |
+| `MathContext(2)` means two decimal places | Precision 2 means two significant digits across the entire result |
+| `precision()` counts digits after the decimal point | It counts digits in the unscaled value, ignoring sign; zero has precision 1 |
+| `scale()` is always non-negative | Scale can be negative, e.g. `1E+3` has scale -3 |
+| `0.00120` has precision 5 | Precision is 3, while scale is 5 |
+| Rounding only changes the fractional part | `MathContext` can round integer digits and switch to scientific notation |
+| `setScale` only appends zeros | When decreasing scale, it can change the value per mode or throw an error |
+| `UNNECESSARY` means skip rounding | It rejects any operation that would alter the value |
+| `BigDecimal.toString()` always prints ordinary decimal point format | Can print exponential notation depending on scale and representation |
+| Equal numeric value implies equal scale | `compareTo == 0` does not guarantee `equals == true` |
+| `DECIMAL(5,2)` only needs `MathContext(5)` | Must check scale, precision, and DB bounds |
+| `stripTrailingZeros()` sets scale to 0 | It can produce a negative scale and change zero's representation |
 
-## 12. Tự kiểm tra
+## 12. Self-Check
 
-1. `new BigDecimal("123.4500").precision()` là bao nhiêu? **7**; scale là **4**.
-2. `new BigDecimal("0.00120")` có precision 5 vì có 5 chữ số sau dấu chấm không? **Không**; precision là **3**, scale là **5**.
-3. Với `1234.567`, `MathContext(3, HALF_UP)` và `setScale(3, HALF_UP)` lần lượt trả gì? **`1.23E+3`** và **`1234.567`**.
-4. Vì sao `new BigDecimal("1E+3").scale()` bằng -3? **Giá trị = 1 × 10^3**, theo công thức scale là -3.
-5. `new BigDecimal("12").setScale(2)` có thay giá trị số không? **Không**; nó trở thành `12.00` với scale 2.
-6. `new BigDecimal("12.345").setScale(2, UNNECESSARY)` có thành công không? **Không**; phải bỏ chữ số 5, nên ném `ArithmeticException`.
-7. Vì sao `9.995` có thể thành `10.0` với precision 3, còn thành `10.00` với scale 2? **Hai ràng buộc biểu diễn khác nhau dù giá trị sau làm tròn bằng nhau**.
-8. Nếu API yêu cầu scale đúng 2 và giá trị chính xác, chỉ `MathContext(2)` có đủ không? **Không**; phải dùng `setScale(2, UNNECESSARY)` hoặc kiểm tra tương đương, cùng các ràng buộc còn lại.
-9. Khi hai `BigDecimal` có giá trị bằng nhau nhưng scale khác nhau, nên kiểm tra bằng gì? **`compareTo == 0`** nếu hợp đồng chỉ xét giá trị; **`equals`** hoặc kiểm tra riêng scale nếu hợp đồng yêu cầu cả hai.
+1. What is `new BigDecimal("123.4500").precision()`? **7**; scale is **4**.
+2. Does `new BigDecimal("0.00120")` have precision 5 because it has 5 digits after the dot? **No**; precision is **3**, scale is **5**.
+3. For `1234.567`, what do `MathContext(3, HALF_UP)` and `setScale(3, HALF_UP)` return respectively? **`1.23E+3`** and **`1234.567`**.
+4. Why is `new BigDecimal("1E+3").scale()` equal to -3? **Value = 1 × 10^3**, so by formula scale is -3.
+5. Does `new BigDecimal("12").setScale(2)` change the numeric value? **No**; it becomes `12.00` with scale 2.
+6. Does `new BigDecimal("12.345").setScale(2, UNNECESSARY)` succeed? **No**; digit 5 would have to be dropped, so it throws `ArithmeticException`.
+7. Why can `9.995` become `10.0` with precision 3, yet `10.00` with scale 2? **Two different representation constraints even though the rounded value is the same**.
+8. If an API requires exact scale 2 and exact value, is `MathContext(2)` alone enough? **No**; use `setScale(2, UNNECESSARY)` or an equivalent check, along with any remaining constraints.
+9. When two `BigDecimal`s have equal numeric value but different scales, how should you check them? **`compareTo == 0`** if the contract only cares about value; **`equals`** or separate scale checks if the contract requires both.
 
-**Ghi nhớ cuối cùng:** **Precision = số chữ số có nghĩa; scale = vị trí dấu thập phân trong biểu diễn.** Dùng `MathContext` khi cần giới hạn precision của phép toán, dùng `setScale` khi cần đúng số chữ số sau dấu thập phân, và kiểm tra cả hai khi hợp đồng dữ liệu yêu cầu.
+**Final takeaway:** **Precision = significant digits; scale = decimal point position in the representation.** Use `MathContext` when limiting operation precision, use `setScale` when fixing the number of decimal places, and verify both when the data contract demands it.

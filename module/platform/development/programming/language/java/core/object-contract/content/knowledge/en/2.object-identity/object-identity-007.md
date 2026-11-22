@@ -1,43 +1,43 @@
-# Identity hash code có thể trùng và không phải địa chỉ bộ nhớ
+# Identity Hash Codes Can Collide and Are Not Memory Addresses
 
-Trong Java, một đối tượng có **danh tính** riêng, ngay cả khi dữ liệu bên trong nó giống hệt một đối tượng khác. `System.identityHashCode(Object)` cung cấp một giá trị băm gắn với danh tính đó, hữu ích khi quan sát hoặc theo dõi các instance. Tuy nhiên, **giá trị băm không phải mã định danh duy nhất và không phải địa chỉ của đối tượng trong RAM**.
+In Java, an object has its own **identity**, even when the data inside it is identical to another object's. `System.identityHashCode(Object)` provides a hash value tied to that identity, which is useful when observing or tracking instances. However, **the hash value is not a unique identifier and is not the object's address in RAM**.
 
-## 1. Danh tính, bằng nhau và mã băm là ba khái niệm khác nhau
+## 1. Identity, Equality, and Hash Codes Are Three Different Concepts
 
-- **`a == b` với hai reference:** kiểm tra hai biến có tham chiếu **cùng một đối tượng** hay không; hai instance khác nhau luôn cho `false`, kể cả khi nội dung bằng nhau.
-- **`a.equals(b)`:** kiểm tra bằng nhau theo quy ước của lớp. Nếu không ghi đè `Object.equals`, quy ước mặc định chính là đồng nhất tham chiếu; các lớp như `String` thường ghi đè để so sánh giá trị.
-- **`a.hashCode()`:** gọi phương thức có thể đã bị lớp ghi đè. Hợp đồng `equals`/`hashCode` yêu cầu hai đối tượng bằng nhau theo `equals` phải có cùng hash code; chiều ngược lại không đúng. Hai đối tượng không bằng nhau vẫn có thể có cùng hash code.
-- **`System.identityHashCode(a)`:** lấy hash code theo cách `Object.hashCode()` mặc định sẽ làm, **bất kể lớp của `a` có ghi đè `hashCode()` hay không**. Giá trị này không được suy ra từ `equals` theo giá trị do lớp tự định nghĩa.
+- **`a == b` with two references:** checks whether two variables reference **the same object**; two different instances always give `false`, even when their contents are equal.
+- **`a.equals(b)`:** checks equality according to the class's convention. If `Object.equals` is not overridden, the default convention is reference identity; classes such as `String` usually override it to compare values.
+- **`a.hashCode()`:** calls a method that may have been overridden by the class. The `equals`/`hashCode` contract requires two objects equal by `equals` to have the same hash code; the converse is not true. Two unequal objects can still have the same hash code.
+- **`System.identityHashCode(a)`:** retrieves the hash code the way the default `Object.hashCode()` would, **regardless of whether `a`'s class overrides `hashCode()` or not**. This value is not derived from a class-defined value-based `equals`.
 
-Ví dụ, hai `new String("java")` là hai instance khác nhau nên `==` trả về `false`, nhưng `equals` trả về `true` và `String.hashCode()` của chúng bằng nhau. **Không thể từ đó suy ra** hai giá trị `System.identityHashCode` của chúng chắc chắn khác nhau hoặc chắc chắn bằng nhau.
+For example, two `new String("java")` objects are two different instances so `==` returns `false`, yet `equals` returns `true` and their `String.hashCode()` values are equal. **You cannot infer from that** that their two `System.identityHashCode` values are necessarily different or necessarily equal.
 
-## 2. Những gì identity hash code bảo đảm
+## 2. What Identity Hash Codes Guarantee
 
-Với một đối tượng không đổi trong cùng một lần chạy chương trình, gọi `System.identityHashCode` nhiều lần trả lại cùng một giá trị. Hai reference cùng trỏ đến một đối tượng đương nhiên nhận cùng identity hash code. `System.identityHashCode(null)` trả về `0`.
+For a given object within the same program run, calling `System.identityHashCode` multiple times returns the same value. Two references pointing to the same object naturally receive the same identity hash code. `System.identityHashCode(null)` returns `0`.
 
-Nhưng API **không bảo đảm** hai đối tượng khác nhau có hai identity hash code khác nhau:
+However, the API **does not guarantee** that two different objects have two different identity hash codes:
 
-- Giá trị trả về có kiểu `int`, tức chỉ có tối đa `2^32` mẫu bit có thể biểu diễn, trong khi số danh tính đối tượng có thể xuất hiện không bị giới hạn bởi một tập giá trị băm duy nhất trên mọi lần chạy.
-- Cơ chế sinh băm của JVM chỉ cố gắng phân biệt các đối tượng trong điều kiện thực tế; nó không cấp số thứ tự độc nhất. **Va chạm (collision)** có nghĩa `a != b` nhưng `System.identityHashCode(a) == System.identityHashCode(b)`.
-- Hai đối tượng khác nhau có thể va chạm; phép so sánh hai số băm bằng nhau **không chứng minh** hai reference trỏ cùng một đối tượng. Ngược lại, nếu hai identity hash code khác nhau thì các reference đó không thể cùng trỏ một đối tượng tại thời điểm so sánh trong cùng lần chạy.
-- Giá trị băm không được bảo đảm giữ nguyên giữa các lần khởi động JVM, giữa máy, phiên bản JVM hoặc cách cấu hình runtime. Đừng lưu nó như khóa danh tính bền vững.
+- The return value has type `int`, meaning at most `2^32` bit patterns can be represented, whereas the number of object identities that can appear is not bounded by a unique set of hash values across all executions.
+- The JVM's hash generation mechanism only attempts to distinguish objects under practical conditions; it does not assign unique sequence numbers. A **collision** means `a != b` yet `System.identityHashCode(a) == System.identityHashCode(b)`.
+- Two different objects can collide; comparing two hash numbers for equality **does not prove** that two references point to the same object. Conversely, if two identity hash codes differ, those references cannot point to the same object at the time of comparison within the same run.
+- Hash values are not guaranteed to remain the same across JVM restarts, across machines, JVM versions, or runtime configurations. Do not store them as persistent identity keys.
 
-Nguyên lý chiếc hộp (pigeonhole principle) cho thấy không thể dùng một số `int` làm mã duy nhất cho số lượng danh tính tùy ý. **Không cần tạo hàng tỷ đối tượng để chứng minh giới hạn này**, và một ví dụ nhỏ không xảy ra va chạm cũng không chứng minh rằng va chạm là bất khả thi.
+The pigeonhole principle shows that an `int` cannot be used as a unique code for an arbitrary number of identities. **You do not need to create billions of objects to prove this limit**, and a small example without a collision does not prove that collisions are impossible.
 
-## 3. Vì sao identity hash code không phải địa chỉ bộ nhớ?
+## 3. Why Is an Identity Hash Code Not a Memory Address?
 
-Java cung cấp *reference* để truy cập đối tượng, nhưng Java API không công bố địa chỉ vật lý hoặc địa chỉ bộ nhớ máy ảo của đối tượng thông qua `System.identityHashCode`. JVM được quyền tổ chức heap và cài đặt identity hashing theo nhiều cách.
+Java provides *references* to access objects, but the Java API does not expose an object's physical address or virtual machine memory address through `System.identityHashCode`. The JVM is free to organize the heap and implement identity hashing in various ways.
 
-- Bộ gom rác có thể **di chuyển đối tượng** trong bộ nhớ, trong khi identity của đối tượng và identity hash code trong một lần chạy vẫn giữ được ý nghĩa. Vì vậy không thể đồng nhất giá trị hash với vị trí bộ nhớ tại một thời điểm.
-- Chi tiết lưu trữ hash (chẳng hạn trong metadata của object hoặc cấu trúc bên ngoài) là chi tiết triển khai JVM, **không phải hợp đồng của Java**.
-- Biểu diễn thường gặp như `java.lang.Object@4e25154f` đến từ cách `Object.toString()` mặc định ghép tên lớp với `Integer.toHexString(hashCode())`. Chuỗi hex sau `@` là **hash code ở hệ 16**, không phải con trỏ. Nếu lớp ghi đè `toString()` hoặc `hashCode()`, kết quả hiển thị còn có thể khác.
-- Dù một JVM cụ thể dùng thông tin liên quan đến địa chỉ trong thuật toán hashing, từ đó vẫn **không thể suy ngược một địa chỉ chính xác hay ổn định** theo đặc tả Java.
+- The garbage collector can **move objects** in memory while object identity and identity hash codes within a single run retain their meaning. Therefore, a hash value cannot be equated with a memory location at a single point in time.
+- Details of how the hash is stored (such as in object metadata or an external structure) are JVM implementation details, **not part of the Java contract**.
+- A common representation such as `java.lang.Object@4e25154f` comes from how default `Object.toString()` concatenates the class name with `Integer.toHexString(hashCode())`. The hex string after `@` is the **hash code in base 16**, not a pointer. If a class overrides `toString()` or `hashCode()`, the displayed output can also differ.
+- Even if a specific JVM uses address-related information in its hashing algorithm, **an exact or stable address cannot be reverse-engineered from it** under the Java specification.
 
-Vì vậy, không nên đọc các số như `0x4e25154f` thành địa chỉ heap, dùng chúng để tính khoảng cách giữa các object, hoặc giả định object sẽ nằm mãi ở một vị trí.
+Therefore, you should not read numbers like `0x4e25154f` as heap addresses, use them to calculate distances between objects, or assume an object will remain in one place forever.
 
-## 4. Ví dụ Java 17+ có thể chạy trực tiếp
+## 4. Directly Runnable Java 17+ Example
 
-Lưu đoạn sau trong tệp `IdentityHashCodeDemo.java`:
+Save the following snippet in the file `IdentityHashCodeDemo.java`:
 
 ```java
 import java.util.HashMap;
@@ -77,14 +77,14 @@ public class IdentityHashCodeDemo {
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa tệp:
+Compile and run from the directory containing the file:
 
 ```bash
 javac IdentityHashCodeDemo.java
 java IdentityHashCodeDemo
 ```
 
-Kết quả chuẩn, không phụ thuộc các con số hash cụ thể:
+Standard output, independent of specific hash numbers:
 
 ```text
 alias == original: true
@@ -99,33 +99,33 @@ HashMap size: 1
 IdentityHashMap size: 2
 ```
 
-**Đọc kết quả đúng cách:**
+**Reading the output correctly:**
 
-1. `original` và `alias` cùng trỏ tới một instance, nên `==` và phép đối chiếu identity hash code đều cho `true`. `another` là một instance mới nên `==` với `original` cho `false`; ví dụ **không khẳng định** identity hash code của hai instance này bắt buộc khác nhau.
-2. `original` thuộc đúng lớp `Object`, không ghi đè `hashCode()`, nên `original.hashCode()` và `System.identityHashCode(original)` bằng nhau. Điều đó **không áp dụng mặc định cho mọi lớp có ghi đè `hashCode()`**.
-3. `one` và `two` có nội dung giống nhau nên `String.equals` và `String.hashCode` xem chúng như các giá trị bằng nhau. `HashMap` thay thế giá trị của khóa tương đương nên còn 1 entry.
-4. `IdentityHashMap` dùng **`==` cho key**, nên `one` và `two` là hai key khác nhau và map có 2 entry. Nó sử dụng identity hash code phục vụ tra cứu nhưng **vẫn đối chiếu danh tính thực tế để xử lý va chạm**; không coi số hash trùng là cùng một key.
+1. `original` and `alias` point to the same instance, so both `==` and the identity hash code comparison yield `true`. `another` is a new instance so `==` with `original` yields `false`; the example **does not assert** that the identity hash codes of these two instances must differ.
+2. `original` is of exact class `Object`, which does not override `hashCode()`, so `original.hashCode()` and `System.identityHashCode(original)` are equal. That **does not apply by default to every class that overrides `hashCode()`**.
+3. `one` and `two` have identical content, so `String.equals` and `String.hashCode` treat them as equal values. `HashMap` replaces the value for the equivalent key, leaving 1 entry.
+4. `IdentityHashMap` uses **`==` for keys**, so `one` and `two` are two different keys and the map has 2 entries. It uses identity hash codes for lookup but **still compares actual identity to handle collisions**; it does not treat matching hash numbers as the same key.
 
-Ví dụ chủ ý **không in một số identity hash code cố định**, vì những số đó phụ thuộc runtime. Nó cũng không dùng phép `identityHashCode(one) != identityHashCode(two)` như bằng chứng hai instance khác nhau: điều đó có thể đúng ở một lần chạy mà không phải bảo đảm của API.
+The example deliberately **does not print a fixed identity hash code number**, because those numbers depend on the runtime. Nor does it use `identityHashCode(one) != identityHashCode(two)` as proof that two instances are different: that may hold in one run, but it is not an API guarantee.
 
-## 5. Cách áp dụng và những sai lầm cần tránh
+## 5. How to Apply and Mistakes to Avoid
 
-| Mục đích | Cách phù hợp | Cách dễ sai |
+| Purpose | Appropriate Approach | Error-Prone Approach |
 | --- | --- | --- |
-| Kiểm tra hai reference có cùng đối tượng | `a == b` | `System.identityHashCode(a) == System.identityHashCode(b)` |
-| So sánh hai giá trị logic | `equals` và `hashCode` đúng hợp đồng của lớp | Dùng identity hash code thay cho so sánh giá trị |
-| Tạo map phân biệt instance, kể cả khi `equals` bằng nhau | `IdentityHashMap` trong trường hợp thật sự cần identity semantics | Lấy identity hash code làm key `Integer` và bỏ qua va chạm |
-| Ghi log để liên hệ các lần xuất hiện của một instance trong một lần chạy | Có thể hiển thị tên lớp cùng identity hash code **như nhãn gợi ý**, và xác nhận bằng reference khi cần | Coi nhãn đó là ID độc nhất qua mọi object và mọi lần chạy |
-| Cần ID độc nhất, lưu lâu dài hoặc trao đổi giữa tiến trình | Cấp ID riêng theo bài toán, ví dụ UUID hoặc bộ sinh ID có quản lý vòng đời | Lưu `System.identityHashCode` hoặc hậu tố `Object.toString()` |
-| Cần điều tra vị trí object trong bộ nhớ | Dùng công cụ chẩn đoán JVM phù hợp và chấp nhận tính phụ thuộc môi trường | Suy ra địa chỉ từ số hash hoặc chuỗi hex sau `@` |
+| Checking if two references share the same object | `a == b` | `System.identityHashCode(a) == System.identityHashCode(b)` |
+| Comparing two logical values | `equals` and `hashCode` following the class's contract | Using identity hash codes instead of value comparison |
+| Creating a map that distinguishes instances even when `equals` is true | `IdentityHashMap` when identity semantics are genuinely needed | Using identity hash code as an `Integer` key and ignoring collisions |
+| Logging to correlate occurrences of an instance in a single run | Display class name with identity hash code **as a hint label**, and confirm by reference when needed | Treating that label as a unique ID across all objects and all runs |
+| Needing a unique ID, persisted long-term or exchanged across processes | Issue a domain-specific ID, such as a UUID or lifecycle-managed ID generator | Storing `System.identityHashCode` or the suffix of `Object.toString()` |
+| Investigating an object's location in memory | Use appropriate JVM diagnostic tools while accepting environment dependence | Inferring addresses from hash numbers or the hex string after `@` |
 
-**Lưu ý khi debug:** hai dòng log có identity hash code giống nhau vẫn có thể đến từ hai instance khác nhau. Khi sự khác biệt danh tính có ảnh hưởng đến đúng/sai của chương trình, phải dựa trên reference hoặc một cơ chế gắn ID riêng được thiết kế để không nhập nhằng trong phạm vi yêu cầu.
+**Debugging note:** two log lines with the same identity hash code can still come from two different instances. When distinguishing identity affects program correctness, rely on references or a dedicated ID mechanism designed to be unambiguous within your requirements.
 
-## 6. Tự kiểm tra kiến thức
+## 6. Knowledge Self-Check
 
-- Nếu `a == b` là `true`, hai lần gọi `System.identityHashCode(a)` và `System.identityHashCode(b)` trong cùng lần chạy có bằng nhau không? **Có**, vì đó là cùng một đối tượng.
-- Nếu hai identity hash code bằng nhau, có kết luận `a == b` không? **Không**, vì có thể xảy ra va chạm.
-- Nếu `a.equals(b)` là `true`, identity hash code có bắt buộc bằng nhau không? **Không**, bởi `equals` có thể so sánh giá trị của hai instance khác nhau; hợp đồng bắt buộc áp dụng cho `a.hashCode()` và `b.hashCode()`, không phải identity hash code.
-- Có thể lấy địa chỉ bộ nhớ bằng `Integer.toHexString(System.identityHashCode(a))` không? **Không**: thao tác đó chỉ đổi cách biểu diễn cùng một số băm sang hệ 16.
+- If `a == b` is `true`, will two calls to `System.identityHashCode(a)` and `System.identityHashCode(b)` in the same run be equal? **Yes**, because it is the same object.
+- If two identity hash codes are equal, can you conclude `a == b`? **No**, because collisions can occur.
+- If `a.equals(b)` is `true`, must their identity hash codes be equal? **No**, because `equals` can compare the values of two different instances; the mandatory contract applies to `a.hashCode()` and `b.hashCode()`, not identity hash codes.
+- Can you obtain the memory address using `Integer.toHexString(System.identityHashCode(a))`? **No**: that operation merely converts the representation of the same hash number to base 16.
 
-**Ghi nhớ:** danh tính được quyết định bởi **cùng reference** (`==`); identity hash code là **giá trị băm hỗ trợ**, có thể va chạm và không biểu diễn địa chỉ bộ nhớ.
+**Remember:** identity is determined by **the same reference** (`==`); an identity hash code is a **supporting hash value** that can collide and does not represent a memory address.

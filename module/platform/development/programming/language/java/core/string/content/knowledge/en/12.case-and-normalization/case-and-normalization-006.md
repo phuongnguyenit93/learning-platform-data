@@ -1,66 +1,66 @@
-# Chuỗi nhìn giống nhau nhưng khác dãy Unicode code point
+# Strings That Look Identical Yet Have Different Unicode Code Point Sequences
 
-## 1. Vì sao đây là một vấn đề thực tế?
+## 1. Why is this a practical issue?
 
-Hai chuỗi có thể **trông giống hệt nhau hoặc rất giống nhau trên màn hình** nhưng vẫn chứa **các dãy Unicode code point khác nhau**. Trong Java, điều này ảnh hưởng trực tiếp đến:
+Two strings can **look identical or nearly identical on screen** while still containing **different Unicode code point sequences**. In Java, this directly affects:
 
-- `String.equals(...)`, `compareTo(...)` và `indexOf(...)` khi đối chiếu nội dung.
-- Tìm kiếm, lọc trùng, thống kê, sắp xếp và tạo khóa cho `Map`/`Set`.
-- Kiểm tra username, mã định danh, tên tệp, địa chỉ hoặc dữ liệu do người dùng nhập.
-- Cắt chuỗi, đếm ký tự và xử lý dấu tiếng Việt/emoji.
+- `String.equals(...)`, `compareTo(...)`, and `indexOf(...)` when comparing content.
+- Searching, deduplicating, counting, sorting, and building keys for `Map`/`Set`.
+- Validating usernames, identifiers, filenames, addresses, or user-entered data.
+- Slicing strings, counting characters, and processing Vietnamese diacritics or emojis.
 
-**Ký tự nhìn thấy** là kết quả của bộ dựng chữ (*text rendering*), font và quy tắc tổ hợp Unicode. **Giá trị `String`** là dãy đơn vị mã UTF-16. Vì vậy, sự giống nhau về hình ảnh không tự động tạo ra bằng nhau về dữ liệu.
+**What you see** is the result of the *text rendering* engine, fonts, and Unicode composition rules. **A `String` value** is a sequence of UTF-16 code units. Therefore, visual similarity does not automatically produce data equality.
 
-Sau bài học, bạn sẽ phân biệt code point, UTF-16 code unit và grapheme cluster; phát hiện khác biệt bằng `codePoints()`; sử dụng bốn dạng Unicode normalization (`NFC`, `NFD`, `NFKC`, `NFKD`) qua `java.text.Normalizer`; và hiểu giới hạn của việc chuẩn hóa khi đối mặt với chữ thuộc các hệ chữ khác nhau, hoa/thường hoặc những ký tự vô hình.
+After this lesson, you will be able to distinguish code points, UTF-16 code units, and grapheme clusters; detect differences using `codePoints()`; use the four Unicode normalization forms (`NFC`, `NFD`, `NFKC`, `NFKD`) via `java.text.Normalizer`; and understand the limits of normalization when dealing with different scripts, casing, or invisible characters.
 
-## 2. Phân biệt ba khái niệm
+## 2. Distinguishing the three concepts
 
-**Unicode code point:** giá trị số như `U+0061` (Latin `a`), `U+00E9` (`é`), `U+0301` (dấu sắc kết hợp) hoặc `U+1F600` (emoji 😀).
+**Unicode code point:** a numeric value such as `U+0061` (Latin `a`), `U+00E9` (`é`), `U+0301` (combining acute accent), or `U+1F600` (emoji 😀).
 
-**UTF-16 code unit:** đơn vị 16 bit mà `char` của Java lưu. Một code point thuộc Basic Multilingual Plane (BMP) thường chiếm một code unit; code point supplementary như `U+1F600` cần hai code unit tạo thành *surrogate pair*.
+**UTF-16 code unit:** the 16-bit unit stored by Java's `char`. A code point in the Basic Multilingual Plane (BMP) typically takes one code unit; a supplementary code point like `U+1F600` needs two code units forming a *surrogate pair*.
 
-**Grapheme cluster:** đơn vị văn bản mà người dùng thường nhận thức như một ký tự. Một grapheme cluster có thể chứa nhiều code point, ví dụ chữ cái kèm dấu kết hợp hoặc một emoji được tạo từ nhiều code point và ký tự nối.
+**Grapheme cluster:** a unit of text that a user typically perceives as one character. A grapheme cluster can contain multiple code points, such as a base letter with combining marks or an emoji built from multiple code points and joiners.
 
-| Văn bản nhìn thấy | Dãy code point | Số code point | Số UTF-16 code unit |
+| Visible text | Code point sequence | Code points | UTF-16 code units |
 | --- | --- | ---: | ---: |
 | `A` | `U+0041` | 1 | 1 |
-| `é` (dạng dựng sẵn) | `U+00E9` | 1 | 1 |
-| `é` (chữ `e` + dấu sắc kết hợp) | `U+0065 U+0301` | 2 | 2 |
+| `é` (precomposed form) | `U+00E9` | 1 | 1 |
+| `é` (`e` + combining acute accent) | `U+0065 U+0301` | 2 | 2 |
 | `😀` | `U+1F600` | 1 | 2 |
 
-**Lưu ý khi đọc bảng:** `é` ở hàng thứ hai và tổ hợp `e` + `U+0301` ở hàng thứ ba thường hiển thị gần như nhau. Khả năng hiển thị chính xác phụ thuộc font, phần mềm dựng chữ và môi trường.
+**Note on reading the table:** `é` in the second row and the sequence `e` + `U+0301` in the third row usually render almost identically. Exact rendering depends on fonts, text-shaping software, and environment.
 
-Trong Java:
+In Java:
 
 ~~~java
-String composed = "caf\u00E9";  // café: ký tự é dựng sẵn U+00E9
-String decomposed = "cafe\u0301"; // cafe + dấu sắc kết hợp U+0301
+String composed = "caf\u00E9";  // café: precomposed character é U+00E9
+String decomposed = "cafe\u0301"; // cafe + combining acute accent U+0301
 
 System.out.println(composed.length());  // 4 UTF-16 code units
 System.out.println(decomposed.length()); // 5 UTF-16 code units
 System.out.println(composed.equals(decomposed)); // false
 ~~~
 
-Hai chuỗi gần như có cùng hình ảnh nhưng khác dãy dữ liệu. `String.length()` và `equals` đang làm việc đúng theo hợp đồng API.
+The two strings look nearly the same visually yet have different data sequences. `String.length()` and `equals` are working strictly according to the API contract.
 
-## 3. Khác dãy code point, nhìn giống: ví dụ `café`
+## 3. Different code point sequences, same appearance: the `café` example
 
-Có hai biểu diễn thường gặp của chữ `é`:
+There are two common representations of the letter `é`:
 
-1. **Precomposed:** một code point `U+00E9`, tên Unicode là *LATIN SMALL LETTER E WITH ACUTE*.
-2. **Decomposed:** code point `U+0065` (*LATIN SMALL LETTER E*) đi cùng `U+0301` (*COMBINING ACUTE ACCENT*).
+1. **Precomposed:** one code point `U+00E9`, Unicode name *LATIN SMALL LETTER E WITH ACUTE*.
+2. **Decomposed:** code point `U+0065` (*LATIN SMALL LETTER E*) followed by `U+0301` (*COMBINING ACUTE ACCENT*).
 
-Tương ứng:
+Correspondingly:
 
 ~~~text
-Cách 1: "café"
+Form 1: "café"
 U+0063 U+0061 U+0066 U+00E9
 
-Cách 2: "cafe" + U+0301
+Form 2: "cafe" + U+0301
 U+0063 U+0061 U+0066 U+0065 U+0301
 ~~~
 
-Cả hai có thể hiển thị thành chữ `café`. Nhưng:
+Both can render as `café`. However:
 
 ~~~java
 String a = "caf\u00E9";
@@ -72,26 +72,26 @@ System.out.println(a.length());     // 4
 System.out.println(b.length());     // 5
 ~~~
 
-Đây là sự khác biệt **canonical representation**, thuộc nhóm mà chuẩn hóa Unicode có thể giải quyết. Đừng kết luận một bên “sai Unicode”: cả hai là các dãy được Unicode cho phép. Muốn ứng dụng coi chúng như nhau, hãy định nghĩa chính sách **canonical normalization** trước khi so sánh.
+This is a **canonical representation** difference, which Unicode normalization can resolve. Do not conclude that one side is "invalid Unicode": both are valid sequences allowed by Unicode. If your application wants to treat them as equal, define a **canonical normalization** policy before comparing.
 
-### Việc viết `\uXXXX` trong mã nguồn có ảnh hưởng không?
+### Does writing `\uXXXX` in source code matter?
 
-Trong tệp `.java`, `\u00E9` là một Unicode escape của **mã nguồn**, được trình biên dịch xử lý trước bước nhận diện literal chuỗi. Nếu tệp nguồn trực tiếp chứa `é` và được đọc đúng encoding, cả hai cách viết có thể dẫn đến **cùng code point**.
+In a `.java` file, `\u00E9` is a **source-code** Unicode escape processed by the compiler before string-literal recognition. If the source file directly contains `é` and is read with the right encoding, both ways of writing it can result in the **same code point**.
 
-Sự khác biệt quan trọng ở đây là **`U+00E9` so với `U+0065 U+0301`**, không phải “dùng escape hay gõ ký tự trực tiếp”. Tương tự, một chuỗi nhận từ file/HTTP/database có thể mang dạng chuẩn hóa khác mà ứng dụng không nhận thấy bằng mắt.
+The important distinction here is **`U+00E9` versus `U+0065 U+0301`**, not "using an escape versus typing the character directly." Likewise, a string received from a file, HTTP, or database can carry a different normalization form that is invisible to the naked eye.
 
-## 4. `String.equals` so sánh giá trị, không so sánh hình ảnh
+## 4. `String.equals` compares values, not visual appearance
 
-`String.equals(Object)` trả `true` khi các chuỗi chứa cùng **thứ tự đơn vị mã UTF-16**; nó không tự:
+`String.equals(Object)` returns `true` when strings contain the same **sequence of UTF-16 code units**; it does not automatically:
 
-- Chuẩn hóa Unicode theo NFC/NFD/NFKC/NFKD.
-- Bỏ qua chữ hoa hoặc chữ thường.
-- Bỏ dấu tiếng Việt.
-- Loại ký tự zero-width hoặc variation selector.
-- Nhận biết hai glyph nhìn giống nhau thuộc các hệ chữ khác nhau.
-- Sử dụng phép so khớp theo ngôn ngữ hoặc thiết lập locale.
+- Normalize Unicode according to NFC/NFD/NFKC/NFKD.
+- Ignore uppercase or lowercase.
+- Strip Vietnamese diacritics.
+- Remove zero-width characters or variation selectors.
+- Recognize two visually similar glyphs belonging to different scripts.
+- Use language-specific matching or locale settings.
 
-Ví dụ:
+Example:
 
 ~~~java
 String first = "caf\u00E9";
@@ -100,13 +100,13 @@ String second = "cafe\u0301";
 boolean equalRaw = first.equals(second); // false
 ~~~
 
-`==` lại có nghĩa **so identity tham chiếu** và càng không phù hợp để so sánh nội dung. Chuyển `==` thành `equals` chỉ giải quyết bài toán **identity vs value**; vấn đề canonical equivalence vẫn đòi hỏi bước chuẩn hóa theo chính sách ứng dụng.
+`==` tests **reference identity** and is even less appropriate for comparing content. Switching `==` to `equals` only solves **identity vs. value**; canonical equivalence still requires a normalization step per application policy.
 
-Đối với `HashMap` và `HashSet`, `String.hashCode()` cũng dựa vào giá trị chuỗi. Hai cách biểu diễn `café` có thể trở thành **hai khóa khác nhau** nếu không được chuẩn hóa trước khi nhập vào cấu trúc dữ liệu.
+For `HashMap` and `HashSet`, `String.hashCode()` is also computed from the string's code unit values. Two representations of `café` can become **two separate keys** if not normalized before insertion into data structures.
 
-## 5. Dùng normalization để xác định hai dãy có tương đương hay không
+## 5. Using normalization to determine whether two sequences are equivalent
 
-Khi hai chuỗi giống nhau nhưng `equals` là `false`, hãy thử **cả hai phía** với cùng một dạng:
+When two strings look alike yet `equals` returns `false`, try normalizing **both sides** to the same form:
 
 ```java
 String a = "caf\u00E9";
@@ -116,13 +116,13 @@ System.out.println(java.text.Normalizer.normalize(a, java.text.Normalizer.Form.N
         .equals(java.text.Normalizer.normalize(b, java.text.Normalizer.Form.NFC))); // true
 ```
 
-`NFC/NFD` dùng **tương đương chuẩn tắc** (ví dụ `é` và `e + ◌́`), còn `NFKC/NFKD` xét thêm **tương đương tương thích** (ví dụ `ﬃ` và `ffi`). Bài này tập trung **chẩn đoán sự khác nhau**; bài `Normalizer` trình bày sâu bốn dạng và chính sách chọn dạng.
+`NFC/NFD` handle **canonical equivalence** (e.g., `é` and `e + ◌́`), while `NFKC/NFKD` also consider **compatibility equivalence** (e.g., `ﬃ` and `ffi`). This lesson focuses on **diagnosing differences**; the `Normalizer` lesson covers the four forms and form-selection policies in depth.
 
-Nếu hai chuỗi **vẫn khác nhau** sau NFKC, chúng không nhất thiết sai Unicode: chữ Latin `a` (`U+0061`) và chữ Cyrillic `а` (`U+0430`) nhìn giống nhưng khác code point. Normalization không phải công cụ nhận diện tất cả confusable; cần xem code point, hệ chữ và mục đích so sánh.
+If two strings **still differ** after NFKC, they are not necessarily invalid Unicode: Latin `a` (`U+0061`) and Cyrillic `а` (`U+0430`) look alike yet have different code points. Normalization is not a detector for all confusables; you must inspect code points, scripts, and comparison goals.
 
-## 6. Ví dụ Java 17+ đầy đủ: in code point và kiểm tra các trường hợp
+## 6. Complete Java 17+ example: printing code points and testing cases
 
-Tạo tệp **`UnicodeLookalikeDemo.java`** với nội dung sau:
+Create **`UnicodeLookalikeDemo.java`** with the following content:
 
 ~~~java
 import java.text.Normalizer;
@@ -181,14 +181,14 @@ public class UnicodeLookalikeDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 UnicodeLookalikeDemo.java
 java UnicodeLookalikeDemo
 ~~~
 
-Kết quả `stdout` đã được đối chiếu bằng trình biên dịch Java và JVM:
+Verified `stdout` output from the Java compiler and JVM:
 
 ~~~text
 composed=U+0063 U+0061 U+0066 U+00E9
@@ -211,20 +211,20 @@ turkishLower=U+0069
 caseStillDifferent=false
 ~~~
 
-**Ý nghĩa các nhóm kết quả:**
+**Meaning of the result groups:**
 
-1. `composed` và `decomposed` khác độ dài và khác dãy code point nên `equals` trả `false`. Sau chuẩn hóa `NFC` hoặc `NFD` theo cùng dạng, chúng bằng nhau.
-2. `NFC` không biến ligature `ﬃ` thành ba chữ `ffi`, còn `NFKC` thì có thể; `NFKC` cũng chuyển fullwidth `Ａ` thành `A`.
-3. Chữ `a` Latin (`U+0061`) và chữ `а` Cyrillic (`U+0430`) có thể trông giống nhau nhưng `NFKC` vẫn **không** biến chúng thành cùng một code point.
-4. Đổi chữ hoa/chữ thường là một phép biến đổi **khác với normalization**. Ký tự `İ` (Latin Capital I With Dot Above, `U+0130`) viết thường theo `Locale.ROOT` trở thành hai code point `U+0069 U+0307`; theo locale Thổ Nhĩ Kỳ (`tr`) thành một code point `U+0069`.
+1. `composed` and `decomposed` differ in length and code point sequence, so `equals` returns `false`. After normalizing both to `NFC` or `NFD`, they are equal.
+2. `NFC` does not turn the ligature `ﬃ` into three `ffi` letters, whereas `NFKC` does; `NFKC` also converts fullwidth `Ａ` into `A`.
+3. Latin `a` (`U+0061`) and Cyrillic `а` (`U+0430`) can look alike, yet `NFKC` still does **not** turn them into the same code point.
+4. Changing case is a **different transformation from normalization**. Lowercasing `İ` (Latin Capital I With Dot Above, `U+0130`) with `Locale.ROOT` produces two code points `U+0069 U+0307`; with the Turkish locale (`tr`), it produces one code point `U+0069`.
 
-Hàm `points` dùng `String.codePoints()`, vì thế có thể in đầy đủ code point supplementary dưới dạng `U+1F600`, không chia thành hai ký tự surrogate như khi lặp theo `charAt`.
+The `points` helper uses `String.codePoints()`, so it can print supplementary code points like `U+1F600` in full rather than splitting them into two surrogate `char`s as `charAt` looping would.
 
-## 7. Một nhóm khác: chữ khác hệ chữ nhưng gần giống nhau
+## 7. Another category: characters from different scripts that look alike
 
-Không phải mọi cặp nhìn giống nhau đều tương đương canonical hay compatibility. Ví dụ:
+Not every visually similar pair is canonically or compatibility equivalent. For example:
 
-| Ký tự | Hệ chữ | Code point |
+| Character | Script | Code point |
 | --- | --- | --- |
 | `a` | Latin small letter a | `U+0061` |
 | `а` | Cyrillic small letter a | `U+0430` |
@@ -233,9 +233,9 @@ Không phải mọi cặp nhìn giống nhau đều tương đương canonical h
 | `О` | Cyrillic capital letter O | `U+041E` |
 | `O` | Latin capital letter O | `U+004F` |
 
-Các ký tự đó có thể có nét chữ tương tự, tùy font. Tuy nhiên, chúng là **code point khác nhau** trong các hệ chữ khác nhau. `Normalizer.normalize(..., NFKC)` không được thiết kế để giải quyết toàn bộ hiện tượng chữ gần giống (*confusable characters*, *homoglyphs*).
+Depending on the font, those characters can have similar glyphs. However, they are **distinct code points** in different scripts. `Normalizer.normalize(..., NFKC)` is not designed to resolve the general problem of lookalike characters (*confusable characters*, *homoglyphs*).
 
-Ví dụ:
+Example:
 
 ~~~java
 String latin = "a";          // U+0061
@@ -249,20 +249,20 @@ System.out.println(
 ); // false
 ~~~
 
-Đây là rủi ro khi hệ thống cho phép tạo username/identifier “nhìn giống nhau”. Hai tài khoản có tên hiển thị gần như nhau vẫn có thể có dãy Unicode khác nhau.
+This is a risk when a system allows creating usernames/identifiers that "look identical." Two accounts with nearly indistinguishable display names can still have different Unicode sequences.
 
-**Phân biệt mục tiêu:** canonical normalization giúp đồng nhất một số cách viết tương đương của *cùng văn bản*. Chính sách chống giả mạo tên định danh cần thêm quy tắc hệ chữ, kiểm tra ký tự gây nhầm lẫn và quy trình xử lý confusables theo chuẩn như Unicode Technical Standard #39. Không dùng `NFKC` đơn lẻ như một “bộ chống giả mạo” hoàn chỉnh.
+**Separate the goals:** canonical normalization unifies equivalent spellings of *the same text*. Anti-spoofing policies for identifiers additionally require script rules, confusable checks, and confusable-handling procedures per standards such as Unicode Technical Standard #39. Do not rely on `NFKC` alone as a complete "anti-spoofing filter."
 
-## 8. Ký tự kết hợp, zero-width, variation selector và emoji
+## 8. Combining marks, zero-width characters, variation selectors, and emojis
 
-Hai chuỗi không chỉ khác nhau bởi dấu dựng sẵn hay chữ ở các hệ chữ khác nhau. Các **code point ảnh hưởng đến hiển thị** cũng có thể gây nhầm lẫn:
+Two strings do not differ only by precomposed marks or letters from different scripts. **Code points that affect rendering** can also cause confusion:
 
-- **Combining mark:** dấu kết hợp như `U+0301` nối với chữ đứng trước để tạo một grapheme cluster. Chuỗi có nhiều code point nhưng có thể xuất hiện thành một chữ có dấu.
-- **Zero-width joiner (ZWJ, `U+200D`):** tham gia một số chuỗi emoji và quy tắc nối ký tự; có thể không hiển thị như một ký tự độc lập.
-- **Variation selector:** ví dụ `U+FE0F` có thể yêu cầu cách trình bày dạng emoji ở những chuỗi hỗ trợ. Sự hiện diện/thiếu nó khiến dãy code point khác nhau dù các phần mềm hiển thị có thể làm kết quả trông tương tự.
-- **Ký tự điều khiển hoặc định dạng vô hình:** có thể ảnh hưởng khoảng cách, thứ tự hiển thị, hướng chữ hoặc so khớp, tùy từng ký tự và môi trường.
+- **Combining mark:** a combining diacritic such as `U+0301` attaches to the preceding letter to form one grapheme cluster. The string has multiple code points yet may appear as a single accented letter.
+- **Zero-width joiner (ZWJ, `U+200D`):** participates in certain emoji sequences and character-joining rules; it may not render as an independent visible glyph.
+- **Variation selector:** for example, `U+FE0F` can request emoji-style presentation on supported sequences. Its presence or absence changes the code point sequence even if rendering software makes them look similar.
+- **Invisible control or formatting characters:** can affect spacing, visual ordering, text direction, or matching, depending on the character and environment.
 
-Chẳng hạn, hai chuỗi sau có giá trị khác nhau:
+For instance, these two strings have different values:
 
 ~~~java
 String plain = "\u2764";        // U+2764, HEAVY BLACK HEART
@@ -273,27 +273,27 @@ System.out.println(plain.codePointCount(0, plain.length())); // 1
 System.out.println(emojiStyle.codePointCount(0, emojiStyle.length())); // 2
 ~~~
 
-Tùy font và nền tảng, chúng có thể đều hiển thị như trái tim hoặc có hai cách trình bày khác nhau. Không thể đánh giá `String` chỉ bằng ảnh chụp màn hình.
+Depending on the font and platform, both may render as hearts or have two distinct styles. You cannot evaluate a `String` from a screenshot alone.
 
-Các phép chuẩn hóa `NFC`/`NFD` không có mục đích xóa tùy tiện ZWJ, variation selector hay các ký tự định dạng khác. **Không tự xóa các code point vô hình** chỉ vì chúng không dễ thấy: nhiều code point trong số đó có vai trò chính đáng đối với ngôn ngữ và emoji. Hãy xác định quy tắc xử lý đúng theo loại trường dữ liệu.
+`NFC`/`NFD` normalizations are not meant to arbitrarily strip ZWJ, variation selectors, or other formatting characters. **Do not blindly delete invisible code points** just because they are hard to see: many of them serve legitimate linguistic and emoji roles. Define proper processing rules for each field type.
 
-## 9. Hoa/thường và locale là vấn đề riêng với chuẩn hóa
+## 9. Casing and locale are separate concerns from normalization
 
-Trong nhóm kiến thức **hoa thường và chuẩn hóa**, cần phân biệt ít nhất ba cách đối chiếu:
+Within the **case and normalization** topic, distinguish at least three comparison modes:
 
-1. **Code-unit exact equality:** `a.equals(b)`; không chuẩn hóa, không bỏ qua hoa/thường.
-2. **Canonical-normalized equality:** `Normalizer.normalize(a, NFC).equals(Normalizer.normalize(b, NFC))`; vẫn phân biệt hoa/thường.
-3. **So sánh không phân biệt hoa/thường hoặc theo quy tắc ngôn ngữ:** cần quyết định đúng API và locale, chẳng hạn `equalsIgnoreCase` cho một số bài toán đơn giản hoặc `Collator` theo ngôn ngữ, và có thể kết hợp normalization khi hợp đồng yêu cầu.
+1. **Code-unit exact equality:** `a.equals(b)`; no normalization, no case folding.
+2. **Canonical-normalized equality:** `Normalizer.normalize(a, NFC).equals(Normalizer.normalize(b, NFC))`; still case-sensitive.
+3. **Case-insensitive or language-aware comparison:** requires choosing the right API and locale, such as `equalsIgnoreCase` for simple problems or a language-configured `Collator`, combined with normalization when the contract requires it.
 
-Ví dụ chữ `İ` (`U+0130`) trong chương trình ở phần 6 cho thấy một chuyển đổi chữ thường có thể trả **một hoặc nhiều code point** và phụ thuộc locale. Với một số ngôn ngữ, chọn locale không đúng dẫn đến sai nghĩa; với các khóa kỹ thuật không phụ thuộc ngôn ngữ, `Locale.ROOT` có thể thích hợp hơn locale máy chạy, nhưng điều đó **không tự giải quyết mọi yêu cầu Unicode case folding**.
+The `İ` (`U+0130`) example in section 6 shows that a lowercasing operation can return **one or multiple code points** and depends on locale. In some languages, choosing the wrong locale distorts meaning; for language-independent technical keys, `Locale.ROOT` can be preferable to the host locale, yet it **does not automatically satisfy all Unicode case-folding requirements**.
 
-Không nên mặc định rằng `equalsIgnoreCase` luôn xem tất cả các chuỗi tương đương về mặt ngôn ngữ hoặc về canonical normalization là bằng nhau. Tương tự, `Collator` phục vụ **so sánh văn bản theo locale** và có cấu hình phân rã/mức độ so sánh; lựa chọn đúng tùy mục tiêu, không phải một phép thay thế vô điều kiện cho `equals`.
+Do not assume `equalsIgnoreCase` always considers all linguistically or canonically equivalent strings equal. Similarly, `Collator` serves **locale-aware text comparison** and has decomposition/strength settings; picking the right tool depends on the goal, not as an unconditional drop-in replacement for `equals`.
 
-Lưu ý: thao tác đổi hoa/thường hoặc chuẩn hóa **có thể thay đổi độ dài và chỉ số UTF-16**. Nếu đã tìm một vị trí trong chuỗi trước biến đổi, không tự áp dụng index đó lên chuỗi sau biến đổi.
+Note: case conversion or normalization **can change length and UTF-16 indices**. If you found a position in the string before transforming it, do not apply that index directly to the transformed string.
 
-## 10. Quy trình so sánh dữ liệu đáng tin cậy
+## 10. A reliable data comparison workflow
 
-Giả sử nghiệp vụ quy định hai chuỗi được xem là giống nhau nếu **canonical equivalent**, bất kể được nhập ở dạng dựng sẵn hay phân rã. Có thể viết:
+Suppose business rules define two strings as equal if they are **canonically equivalent**, regardless of whether they were entered in precomposed or decomposed form. You can write:
 
 ~~~java
 import java.text.Normalizer;
@@ -316,33 +316,33 @@ public class CanonicalComparison {
 }
 ~~~
 
-Khi biên dịch và chạy class này, chương trình in `true`. Phần xử lý `null` được định nghĩa rõ bằng `Objects.requireNonNull`; nếu nghiệp vụ coi null là một giá trị đặc biệt, bạn cần sửa hợp đồng kiểm tra cho phù hợp.
+When compiled and run, this class prints `true`. Null handling is defined explicitly with `Objects.requireNonNull`; if business logic treats `null` as a special value, adjust the contract accordingly.
 
-Nếu dùng chuỗi làm **khóa tra cứu**:
+When using strings as **lookup keys**:
 
 ~~~java
-// Snippet minh họa: map là Map<String, Integer> đã được tạo.
+// Illustrative snippet: map is an already-created Map<String, Integer>.
 map.put(nfc(userInput), 1);
 Integer value = map.get(nfc(query));
 ~~~
 
-Đây là snippet minh họa, không tự chạy độc lập. Chuẩn hóa thống nhất **khi ghi và khi đọc** để cùng một dạng canonical mang về một key. Nếu lưu cả dạng gốc để hiển thị, tách biệt **original value** và **normalized lookup key**. Điều này cho phép giữ nguyên cách người dùng nhập và vẫn có thể so khớp theo quy tắc xác định.
+This is an illustrative snippet, not standalone runnable code. Normalize consistently **at write time and read time** so canonically identical text maps to the same key. If you also keep the original form for display, separate the **original value** from the **normalized lookup key**. This preserves how the user typed the text while still enabling deterministic matching.
 
-### Chính sách chuẩn hóa cần trả lời rõ
+### Normalization policy questions to answer explicitly
 
-| Loại dữ liệu | Hướng xử lý cần cân nhắc |
+| Data type | Approach to consider |
 | --- | --- |
-| Nội dung hiển thị tự do | Giữ bản gốc; chỉ chuẩn hóa nếu có lý do kỹ thuật/nghiệp vụ |
-| Tên sản phẩm, từ khóa tìm kiếm | Quy định chuẩn hóa và xử lý hoa/thường, dấu theo ngôn ngữ; chỉ số tìm kiếm xây trên cùng chính sách |
-| Username/mã định danh | Xác định tập ký tự, chuẩn hóa, case rules, kiểm tra confusables và uniqueness; không chỉ dựa vào hình ảnh |
-| Dữ liệu có chữ kiểu mẫu hoặc ký hiệu học thuật | Thận trọng với `NFKC`/`NFKD` vì có thể làm mất phân biệt compatibility |
-| Văn bản đa ngôn ngữ | Chọn chính sách phù hợp ngôn ngữ; không đồng nhất mọi quy tắc hoa/thường và collation |
+| Free-form display content | Preserve original; normalize only if there is a technical/business reason |
+| Product names, search keywords | Specify normalization, casing, and diacritic rules by language; build search index on the same policy |
+| Usernames/identifiers | Define allowed character set, normalization, case rules, confusable checks, and uniqueness; never rely on visual appearance alone |
+| Data with stylized letters or academic symbols | Be cautious with `NFKC`/`NFKD` as they can erase compatibility distinctions |
+| Multilingual text | Pick language-appropriate policies; do not unify all casing and collation rules |
 
-Một chiến lược đơn giản cho canonical equality là chọn `NFC` và áp dụng nhất quán. Nhưng **không có một dạng chuẩn hóa tối ưu cho mọi hệ thống**: mục đích sử dụng, khả năng truy vết dữ liệu gốc và chính sách định danh mới quyết định.
+A straightforward strategy for canonical equality is choosing `NFC` and applying it consistently. However, **there is no single optimal normalization form for every system**: intended use, traceability to original input, and identifier policies determine the choice.
 
-## 11. Kiểm tra dãy code point khi hai chuỗi “nhìn y như nhau”
+## 11. Inspecting code point sequences when two strings "look identical"
 
-Khi xảy ra lỗi so sánh, đừng bắt đầu bằng việc đổi font rồi đoán. Hãy kiểm tra **độ dài, code point và dạng normalization**:
+When a comparison bug occurs, do not start by switching fonts and guessing. Inspect **length, code points, and normalization form**:
 
 ~~~java
 String text = "cafe\u0301";
@@ -352,7 +352,7 @@ System.out.println(text.codePointCount(0, text.length()));
 text.codePoints().forEach(cp -> System.out.printf("U+%04X%n", cp));
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 5
@@ -364,68 +364,68 @@ U+0065
 U+0301
 ~~~
 
-Mỗi code point bổ sung như `U+1F600` xuất hiện thành **một** giá trị `int` khi dùng `codePoints()`; nếu duyệt bằng `charAt`, nó xuất hiện thành hai `char` surrogate. Vì vậy `codePoints()` hữu ích hơn khi cần chẩn đoán vấn đề Unicode ở mức code point.
+Each supplementary code point such as `U+1F600` appears as **one** `int` value when using `codePoints()`; if iterated with `charAt`, it appears as two surrogate `char`s. Thus `codePoints()` is far more useful when diagnosing Unicode issues at the code point level.
 
-Một quy trình debug có thể gồm:
+A practical debugging workflow:
 
-1. In code point bằng dạng `U+XXXX` cho **cả hai** chuỗi.
-2. So `length()`, `codePointCount(...)` và `equals(...)`, xem khác biệt nằm ở đâu.
-3. Thử chuẩn hóa cả hai về `NFC` để biết có cùng canonical form không; nếu cần nghiên cứu compatibility, thử `NFKC` **chỉ cho mục đích chẩn đoán**, tránh áp đặt chính sách biến đổi mới lên dữ liệu sản xuất.
-4. Nếu vẫn khác, kiểm tra hệ chữ, dấu kết hợp, variation selector, ZWJ và ký tự định dạng; với identifiers, áp dụng kiểm tra confusable theo đặc tả riêng.
-5. Xác định quy tắc ứng dụng mong muốn: *nội dung y hệt*, *canonical equivalent*, *không phân biệt hoa/thường*, *ngang nhau theo locale*, hay *trông tương tự*. Đây là các yêu cầu khác nhau.
+1. Print code points in `U+XXXX` format for **both** strings.
+2. Compare `length()`, `codePointCount(...)`, and `equals(...)` to see where they differ.
+3. Try normalizing both to `NFC` to check whether they share a canonical form; if investigating compatibility, try `NFKC` **for diagnostic purposes only**, avoiding imposing new transformation policies onto production data.
+4. If they still differ, check scripts, combining marks, variation selectors, ZWJ, and formatting characters; for identifiers, apply confusable checks per your specification.
+5. Clarify the desired application rule: *byte/code-unit identical*, *canonically equivalent*, *case-insensitive*, *locale-equivalent*, or *visually similar*. These are distinct requirements.
 
-Không sử dụng code point log chứa dữ liệu nhạy cảm trong môi trường sản xuất nếu không có kiểm soát phù hợp; khi debug, giới hạn dữ liệu được ghi theo nhu cầu thực tế.
+Avoid logging code points of sensitive data in production without proper controls; when debugging, limit logged data to what is actually needed.
 
-## 12. Những lỗi thường gặp
+## 12. Common mistakes
 
-1. **Cho rằng hai chữ nhìn giống nhau thì `equals` phải trả true.** `equals` so sánh dữ liệu, không so ảnh glyph.
-2. **Cho rằng hai cách viết `café` khác nhau là một bên sai Unicode.** Cả dạng dựng sẵn lẫn dạng chữ cơ sở + dấu kết hợp đều hợp lệ; quyết định canonical equality do nghiệp vụ quy định.
-3. **Nhầm `String.length()` là số ký tự nhìn thấy.** Nó đếm UTF-16 code units; `codePointCount` cũng chưa đếm grapheme clusters.
-4. **Dùng `==` để so sánh nội dung.** `==` chỉ so identity; `equals` là phép so sánh giá trị, sau bước chuẩn hóa nếu cần.
-5. **Chuẩn hóa một bên mà không chuẩn hóa bên còn lại.** Khi mục tiêu là canonical equality, dùng cùng `Normalizer.Form` cho cả hai.
-6. **Dùng NFKC như cách sửa mọi chuỗi nhìn giống nhau.** NFKC không hợp nhất tất cả chữ Latin/Cyrillic/Greek giống nét; nó cũng có thể làm mất các khác biệt compatibility.
-7. **Bỏ qua locale khi đổi hoa/thường.** Ký tự `İ` cho thấy phép lowercasing có thể cho các kết quả khác nhau theo locale và làm đổi số code point.
-8. **Tùy tiện xóa dấu kết hợp, zero-width hoặc variation selector.** Có thể phá hỏng nội dung hợp lệ, đặc biệt trong tiếng Việt, văn bản đa ngôn ngữ và emoji.
-9. **Dùng index cũ sau khi chuẩn hóa.** Vì normalization có thể đổi độ dài code unit, các vị trí `substring`/`charAt` thuộc chuỗi trước chuẩn hóa không luôn dùng được trên chuỗi sau.
-10. **Chỉ chuẩn hóa khi truy vấn mà không chuẩn hóa khi lưu khóa.** Một map hoặc index tìm kiếm sẽ không tra đúng nếu hai bên dùng hai chính sách biểu diễn khác nhau.
-11. **Tự xây cơ chế chống giả mạo bằng vài thay thế ký tự.** Confusable handling là vấn đề riêng; cần chính sách identifier và công cụ phù hợp.
+1. **Assuming two visually identical characters make `equals` return true.** `equals` compares data, not glyph appearance.
+2. **Assuming one of two different `café` representations is invalid Unicode.** Both precomposed and base-letter + combining-mark forms are valid; canonical equality is a business decision.
+3. **Confusing `String.length()` with visible character count.** It counts UTF-16 code units; `codePointCount` still does not count grapheme clusters.
+4. **Using `==` to compare content.** `==` checks reference identity only; `equals` compares values, after normalization if needed.
+5. **Normalizing one side without normalizing the other.** When canonical equality is the goal, apply the same `Normalizer.Form` to both sides.
+6. **Using NFKC as a cure-all for lookalike strings.** NFKC does not merge visually similar Latin/Cyrillic/Greek letters, and it can erase meaningful compatibility distinctions.
+7. **Ignoring locale during case conversion.** The character `İ` shows that lowercasing can produce different results by locale and change the code point count.
+8. **Arbitrarily stripping combining marks, zero-width characters, or variation selectors.** This can corrupt valid content, especially in Vietnamese, multilingual text, and emojis.
+9. **Reusing old indices after normalization.** Because normalization can change code unit length, `substring`/`charAt` positions from before normalization are not always valid afterward.
+10. **Normalizing only at query time and not when storing keys.** A map or search index will fail to match if both sides use different representation policies.
+11. **Building an anti-spoofing mechanism out of a few character substitutions.** Confusable handling is a specialized problem requiring proper identifier policies and tooling.
 
-## 13. Bài tập tự kiểm tra
+## 13. Self-check exercises
 
-**Câu 1.** Tại sao `"caf\u00E9".equals("cafe\u0301")` trả `false`?
+**Question 1.** Why does `"caf\u00E9".equals("cafe\u0301")` return `false`?
 
-**Đáp án:** vế trái có `U+00E9`, vế phải có `U+0065 U+0301`; hai dãy code point và UTF-16 code unit khác nhau dù hiển thị tương đương canonical.
+**Answer:** The left side has `U+00E9` while the right side has `U+0065 U+0301`; the two code point and UTF-16 code unit sequences differ despite being canonically equivalent visually.
 
-**Câu 2.** Biến đổi thế nào để so sánh canonical equivalence?
+**Question 2.** How do you transform them to test canonical equivalence?
 
-**Đáp án:** chuẩn hóa **cả hai** về cùng dạng `NFC` hoặc `NFD` rồi gọi `equals`.
+**Answer:** Normalize **both** to the same form (`NFC` or `NFD`) and then call `equals`.
 
-**Câu 3.** `NFC` có đổi `ﬃ` thành `ffi` không? `NFKC` thì sao?
+**Question 3.** Does `NFC` convert `ﬃ` to `ffi`? What about `NFKC`?
 
-**Đáp án:** `NFC` không; `NFKC` thực hiện compatibility decomposition và có thể đổi ligature `U+FB03` thành ba chữ `ffi`.
+**Answer:** `NFC` does not; `NFKC` performs compatibility decomposition and converts the ligature `U+FB03` into the three letters `ffi`.
 
-**Câu 4.** Vì sao `Normalizer.normalize("a", NFKC)` và `Normalizer.normalize("\u0430", NFKC)` vẫn khác nhau?
+**Question 4.** Why do `Normalizer.normalize("a", NFKC)` and `Normalizer.normalize("\u0430", NFKC)` still differ?
 
-**Đáp án:** chúng thuộc hai hệ chữ khác nhau, Latin `U+0061` và Cyrillic `U+0430`. Giống về hình ảnh không có nghĩa tương đương Unicode normalization.
+**Answer:** They belong to different scripts: Latin `U+0061` and Cyrillic `U+0430`. Visual similarity does not imply Unicode normalization equivalence.
 
-**Câu 5.** `String.length()` có đo được số grapheme cluster không?
+**Question 5.** Does `String.length()` measure the number of grapheme clusters?
 
-**Đáp án:** không. Nó đếm UTF-16 code unit. `codePointCount` đếm code point, vẫn không phải grapheme cluster.
+**Answer:** No. It counts UTF-16 code units. `codePointCount` counts code points, which still is not grapheme clusters.
 
-**Câu 6.** Có thể dùng `NFKC` mặc định cho mọi dữ liệu nhập không?
+**Question 6.** Can `NFKC` be used by default for all user input?
 
-**Đáp án:** không. NFKC có thể gộp những khác biệt compatibility có ý nghĩa; cần lựa chọn theo mục tiêu của trường dữ liệu.
+**Answer:** No. NFKC can merge meaningful compatibility distinctions; choose the form according to the field's purpose.
 
-**Câu 7.** Vì sao nên giữ bản gốc khi xây khóa tìm kiếm chuẩn hóa?
+**Question 7.** Why keep the original string when building a normalized search key?
 
-**Đáp án:** khóa đã chuẩn hóa giúp tìm kiếm nhất quán, còn bản gốc giữ đúng cách người dùng nhập, hỗ trợ hiển thị và kiểm tra khi cần. Hai vai trò này không nên đánh đồng.
+**Answer:** The normalized key enables consistent searching, while the original preserves what the user actually entered for display and auditing when needed. These two roles should not be conflated.
 
-## 14. Tài liệu chuẩn
+## 14. References
 
-- [Java SE 17 — `java.text.Normalizer`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Normalizer.html): bốn dạng chuẩn hóa và cách sử dụng trong Java.
-- [Java SE 17 — `String`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): `equals`, `length`, `codePoints`, `codePointCount` và chuyển đổi hoa/thường.
-- [Unicode Standard Annex #15 — Unicode Normalization Forms](https://www.unicode.org/reports/tr15/): định nghĩa NFC, NFD, NFKC và NFKD.
-- [Unicode Standard Annex #29 — Unicode Text Segmentation](https://www.unicode.org/reports/tr29/): grapheme cluster và phân đoạn văn bản.
-- [Unicode Technical Standard #39 — Unicode Security Mechanisms](https://www.unicode.org/reports/tr39/): nhận diện các dạng ký tự confusable trong identifier.
+- [Java SE 17 — `java.text.Normalizer`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Normalizer.html): the four normalization forms and how to use them in Java.
+- [Java SE 17 — `String`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): `equals`, `length`, `codePoints`, `codePointCount`, and case conversion.
+- [Unicode Standard Annex #15 — Unicode Normalization Forms](https://www.unicode.org/reports/tr15/): definitions of NFC, NFD, NFKC, and NFKD.
+- [Unicode Standard Annex #29 — Unicode Text Segmentation](https://www.unicode.org/reports/tr29/): grapheme clusters and text segmentation.
+- [Unicode Technical Standard #39 — Unicode Security Mechanisms](https://www.unicode.org/reports/tr39/): identifying confusable characters in identifiers.
 
-**Ghi nhớ:** “nhìn giống” là đặc điểm hiển thị, còn `String` chứa **dãy UTF-16 code unit cụ thể**. Dùng `codePoints()` để xem dữ liệu thật; dùng `Normalizer` khi cần chuẩn hóa canonical/compatibility theo một **chính sách đã xác định**; và xử lý riêng trường hợp chữ gần giống khác hệ chữ, Unicode case rules cùng các grapheme cluster phức tạp.
+**Key takeaway:** "Looking alike" is a rendering property, whereas a `String` holds a **specific sequence of UTF-16 code units**. Use `codePoints()` to inspect the real data; use `Normalizer` when canonical or compatibility normalization is needed under a **defined policy**; and handle cross-script lookalikes, Unicode casing rules, and complex grapheme clusters separately.

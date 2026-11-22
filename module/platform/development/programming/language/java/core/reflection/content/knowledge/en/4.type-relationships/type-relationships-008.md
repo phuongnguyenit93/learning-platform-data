@@ -1,59 +1,59 @@
-# Chọn kiểu khai báo hoặc kiểu thực tế khi khám phá thành viên bằng Java Reflection
+# Choosing Declared Type or Actual Type When Discovering Members with Java Reflection
 
-Khi một biến được khai báo bằng lớp cha hoặc interface nhưng đang tham chiếu đến một đối tượng thuộc lớp con, Reflection có thể khám phá **hai tập thành viên khác nhau** tùy theo đối tượng `Class<?>` được chọn. Quyết định này ảnh hưởng đến phương thức, trường dữ liệu, kết quả tra cứu và tính ổn định của công cụ sử dụng Reflection.
+When a variable is declared with a superclass or interface yet is referencing an object of a subclass, Reflection can discover **two different sets of members** depending on which `Class<?>` object is chosen. This decision affects methods, fields, lookup results, and the stability of tools using Reflection.
 
-## 1. Phân biệt ba khái niệm về kiểu
+## 1. Distinguishing Three Concepts of Type
 
-Xét:
+Consider:
 
 ```java
 Animal animal = new Dog();
 ```
 
-- **Kiểu khai báo (declared/static type)** của biến `animal` là `Animal`. Trình biên dịch kiểm tra những lời gọi thông thường như `animal.speak()` dựa trên hợp đồng của `Animal`. Kiểu này được biết từ khai báo trong mã nguồn, hoặc từ metadata của trường, tham số, kiểu trả về.
-- **Kiểu thực tế (runtime type)** của đối tượng là `Dog`. Biểu thức `animal.getClass()` trả về đối tượng `Class` mô tả `Dog`, bất kể biến đang mang kiểu `Animal`.
-- **Lớp khai báo thành viên (declaring class)** là nơi một `Method` hoặc `Field` thực sự được khai báo. Kiểm tra bằng `member.getDeclaringClass()`; lớp này có thể khác lớp `Class` dùng để tìm kiếm.
+- **Declared/static type** of the variable `animal` is `Animal`. The compiler checks ordinary calls like `animal.speak()` based on `Animal`'s contract. This type is known from the declaration in source code, or from metadata of a field, parameter, or return type.
+- **Actual/runtime type** of the object is `Dog`. The expression `animal.getClass()` returns the `Class` object describing `Dog`, regardless of the variable carrying type `Animal`.
+- **Declaring class of a member** is where a `Method` or `Field` is actually declared. Check with `member.getDeclaringClass()`; this class may differ from the `Class` used for the lookup.
 
-Hai cách bắt đầu Reflection vì vậy mang ý nghĩa khác nhau:
+The two starting points for Reflection therefore carry different meanings:
 
 ```java
-Class<?> contractType = Animal.class;       // Khám phá từ kiểu khai báo
-Class<?> runtimeType = animal.getClass();   // Khám phá từ kiểu thực tế: Dog
+Class<?> contractType = Animal.class;       // Discover from the declared type
+Class<?> runtimeType = animal.getClass();   // Discover from the actual type: Dog
 ```
 
-`Animal.class` là lựa chọn tường minh của lập trình viên; Java không tự suy ra kiểu khai báo của biến từ một đối tượng đã được truyền vào phương thức chỉ nhận `Object`. Còn `getClass()` luôn dựa trên đối tượng thực tế và sẽ ném `NullPointerException` nếu tham chiếu là `null`.
+`Animal.class` is an explicit choice by the programmer; Java does not automatically infer the declared type of a variable from an object passed into a method that only accepts `Object`. Meanwhile `getClass()` is always based on the actual object and will throw `NullPointerException` if the reference is `null`.
 
-**Điểm mấu chốt:** chọn `Class<?>` nào quyết định **điểm xuất phát để khám phá metadata**. Điều đó không đồng nghĩa với việc chỉ định phương thức thực thi khi gọi một phương thức instance có thể override.
+**Key point:** which `Class<?>` you choose determines **the starting point for discovering metadata**. It does not mean specifying which method implementation executes when invoking an overridable instance method.
 
-## 2. Chọn kiểu nào dẫn đến tập thành viên nào?
+## 2. Which Type Choice Leads to Which Member Set?
 
-Giả sử `Parent` khai báo `parentOnly()`, còn `Child extends Parent` khai báo thêm `childOnly()` và override `describe()`.
+Suppose `Parent` declares `parentOnly()`, while `Child extends Parent` additionally declares `childOnly()` and overrides `describe()`.
 
-| Cách lấy `Class<?>` | Ý nghĩa khi khám phá | Thành viên `childOnly()` |
+| How `Class<?>` is obtained | Meaning during discovery | Member `childOnly()` |
 | --- | --- | --- |
-| `Parent.class` | Khám phá API xuất phát từ `Parent` | Không xuất hiện |
-| `Child.class` | Khám phá API xuất phát từ `Child` | Có thể xuất hiện |
-| `parentRef.getClass()`, khi `parentRef = new Child()` | Khám phá đúng lớp runtime `Child` | Có thể xuất hiện |
-| `method.getDeclaringClass()` | Xác định nơi phương thức được khai báo, không tự khám phá lại | Phụ thuộc chính `method` |
+| `Parent.class` | Discover API starting from `Parent` | Does not appear |
+| `Child.class` | Discover API starting from `Child` | Can appear |
+| `parentRef.getClass()`, when `parentRef = new Child()` | Discover the exact runtime class `Child` | Can appear |
+| `method.getDeclaringClass()` | Identify where the method is declared, does not re-discover | Depends on `method` itself |
 
-Tuy nhiên, kết quả còn phụ thuộc **họ API Reflection** được gọi trên `Class<?>`:
+However, the result also depends on **which Reflection API family** is called on `Class<?>`:
 
-| API | Khám phá gì? | Có bao gồm thành viên kế thừa? |
+| API | What does it discover? | Includes inherited members? |
 | --- | --- | --- |
-| `getDeclaredMethods()` / `getDeclaredMethod(name, parameterTypes...)` | Phương thức khai báo trực tiếp ở kiểu đang xét, bất kể `public`, `protected`, package-private hoặc `private` | Không |
-| `getMethods()` / `getMethod(name, parameterTypes...)` | Phương thức `public` của kiểu và phương thức `public` được kế thừa; có thể gồm phương thức từ interface và `Object` | Có, theo quy tắc kế thừa |
-| `getDeclaredFields()` / `getDeclaredField(name)` | Trường khai báo trực tiếp ở kiểu đang xét, với mọi mức truy cập | Không |
-| `getFields()` / `getField(name)` | Các trường `public` của kiểu và những trường `public` kế thừa theo quy tắc Java | Có |
-| `getDeclaredConstructors()` / `getDeclaredConstructor(...)` | Constructor khai báo trên chính lớp, mọi mức truy cập | Không; constructor không được kế thừa |
-| `getConstructors()` / `getConstructor(...)` | Constructor `public` của chính lớp | Không; constructor không được kế thừa |
+| `getDeclaredMethods()` / `getDeclaredMethod(name, parameterTypes...)` | Methods declared directly on the inspected type, whether `public`, `protected`, package-private, or `private` | No |
+| `getMethods()` / `getMethod(name, parameterTypes...)` | `public` methods of the type and inherited `public` methods; may include methods from interfaces and `Object` | Yes, per inheritance rules |
+| `getDeclaredFields()` / `getDeclaredField(name)` | Fields declared directly on the inspected type, at any access level | No |
+| `getFields()` / `getField(name)` | `public` fields of the type and inherited `public` fields per Java rules | Yes |
+| `getDeclaredConstructors()` / `getDeclaredConstructor(...)` | Constructors declared on the class itself, any access level | No; constructors are not inherited |
+| `getConstructors()` / `getConstructor(...)` | `public` constructors of the class itself | No; constructors are not inherited |
 
-Lưu ý rằng từ `declared` trong tên API nghĩa là “**được khai báo trực tiếp trên kiểu đang xét**”, **không** có nghĩa là “theo kiểu khai báo của biến”. Ví dụ, `object.getClass().getDeclaredMethods()` vẫn liệt kê các phương thức khai báo tại lớp runtime của `object`.
+Note that the word `declared` in the API name means "**declared directly on the queried type**", **not** "according to the declared type of the variable". For example, `object.getClass().getDeclaredMethods()` still lists methods declared on the runtime class of `object`.
 
-Các phương thức `getDeclared*` vẫn có thể trả về metadata của thành viên không public; **nhìn thấy metadata không đồng nghĩa có quyền truy cập hoặc gọi thành viên đó**. Việc sử dụng `setAccessible(true)` có thể bị giới hạn bởi cơ chế module (JPMS), quyền truy cập hoặc môi trường chạy.
+The `getDeclared*` methods can still return metadata for non-public members; **seeing metadata does not mean having permission to access or invoke that member**. Using `setAccessible(true)` can be restricted by the module system (JPMS), access permissions, or the runtime environment.
 
-## 3. Ví dụ Java 17+ chạy được: lớp cha, lớp con và lời gọi thực tế
+## 3. Runnable Java 17+ Example: Superclass, Subclass, and Actual Invocation
 
-Tạo tệp `ReflectionTypeChoiceDemo.java`:
+Create a file named `ReflectionTypeChoiceDemo.java`:
 
 ```java
 import java.lang.reflect.Field;
@@ -137,14 +137,14 @@ public class ReflectionTypeChoiceDemo {
 }
 ```
 
-Chạy bằng JDK 17 trở lên:
+Run with JDK 17 or higher:
 
 ```bash
 javac ReflectionTypeChoiceDemo.java
 java ReflectionTypeChoiceDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Declared type: Parent
@@ -158,23 +158,23 @@ Child declares childCount: true
 Child declares secret: false
 ```
 
-Giải thích các điểm dễ nhầm:
+Explanation of easily confused points:
 
-1. `declaredType` đại diện cho `Parent`; nó không có metadata của `childOnly()`. Trong mã Java thông thường, `reference.childOnly()` cũng không biên dịch được vì biến `reference` mang kiểu `Parent`.
-2. `runtimeType.getDeclaredMethods()` chỉ có phương thức được **khai báo trực tiếp** tại `Child`, không chứa `parentOnly()`. Nhưng `runtimeType.getMethod("parentOnly")` tìm thấy phương thức `public` kế thừa, và `getDeclaringClass()` trả về `Parent`.
-3. `Parent.class.getMethod("describe")` trả về metadata của `Parent.describe()`. Khi `invoke(reference)` trên đối tượng `Child`, cơ chế dispatch động của phương thức instance dẫn tới phiên bản override `Child.describe()`, nên in ra `Child`. Phương thức `static` hoặc `private` không tham gia override theo cách này.
-4. `Child.class.getDeclaredField("childCount")` tồn tại; `Child.class.getDeclaredField("secret")` sẽ ném `NoSuchFieldException` vì `secret` được khai báo ở `Parent`. Ví dụ dùng vòng lặp để kiểm tra thay vì ném exception.
+1. `declaredType` represents `Parent`; it has no metadata for `childOnly()`. In normal Java code, `reference.childOnly()` does not compile either because the variable `reference` has type `Parent`.
+2. `runtimeType.getDeclaredMethods()` only contains methods **directly declared** on `Child`, not containing `parentOnly()`. Yet `runtimeType.getMethod("parentOnly")` finds the inherited `public` method, and `getDeclaringClass()` returns `Parent`.
+3. `Parent.class.getMethod("describe")` returns metadata for `Parent.describe()`. When calling `invoke(reference)` on the `Child` object, dynamic dispatch of instance methods leads to the overridden version `Child.describe()`, so it prints `Child`. `static` or `private` methods do not participate in overriding this way.
+4. `Child.class.getDeclaredField("childCount")` exists; `Child.class.getDeclaredField("secret")` would throw `NoSuchFieldException` because `secret` is declared in `Parent`. The example uses a loop to check instead of throwing an exception.
 
-Hai hàm `declaresMethod` và `declaresField` trong ví dụ chỉ kiểm tra **tên**, phù hợp vì các tên đang xét không quá tải. Khi tra cứu một phương thức cụ thể trong ứng dụng thật, phải xét cả danh sách kiểu tham số, ví dụ `getMethod("find", String.class, int.class)`.
+The two functions `declaresMethod` and `declaresField` in the example check only the **name**, which works because the names under inspection are not overloaded. When looking up a specific method in a real application, you must also include the parameter type list, e.g., `getMethod("find", String.class, int.class)`.
 
-## 4. Phân biệt khám phá metadata và cách Java dispatch lời gọi
+## 4. Distinguishing Metadata Discovery from How Java Dispatches Calls
 
-Có hai câu hỏi độc lập:
+There are two independent questions:
 
-- **Có tìm ra `Method` hay không?** Phụ thuộc `Class<?>` bắt đầu tìm và việc dùng `getMethod` hay `getDeclaredMethod`.
-- **Khi `Method.invoke(receiver, args)`, phần thân nào chạy?** Với phương thức instance có thể override, Java áp dụng dispatch động theo lớp thực tế của `receiver`; đối tượng nhận vẫn phải tương thích với phương thức được khai báo và phải thỏa điều kiện truy cập.
+- **Is a `Method` found or not?** Depends on the starting `Class<?>` for the lookup and whether `getMethod` or `getDeclaredMethod` is used.
+- **When calling `Method.invoke(receiver, args)`, which body runs?** For overridable instance methods, Java applies dynamic dispatch based on the actual class of `receiver`; the receiver object must still be compatible with the declared method and must satisfy access checks.
 
-Do đó:
+Therefore:
 
 ```java
 Parent instance = new Child();
@@ -182,15 +182,15 @@ Method method = Parent.class.getMethod("describe");
 Object value = method.invoke(instance); // "Child"
 ```
 
-Không nên hiểu `Parent.class` là cách “ép chạy thân `Parent.describe()`” khi có override. Nếu yêu cầu thực sự là gọi implementation cụ thể của lớp cha, đó là bài toán cơ chế gọi phương thức khác, không giải được chỉ bằng việc đổi `Class<?>` cho `getMethod()`.
+Do not view `Parent.class` as a way to "force running the body of `Parent.describe()`" when an override exists. If the real requirement is to invoke a specific superclass implementation, that is a different invocation mechanism problem, not solved merely by changing the `Class<?>` passed to `getMethod()`.
 
-Ngược lại, Reflection trên lớp runtime có thể nhìn thấy method riêng của lớp con, dù biến trong Java chỉ là `Parent`. Điều này hữu ích cho chẩn đoán hoặc framework, nhưng có thể làm code phụ thuộc vào implementation không nằm trong hợp đồng public.
+Conversely, Reflection on the runtime class can see methods specific to the subclass, even though the variable in Java is only `Parent`. This is useful for diagnostics or frameworks, yet can couple code to implementation details outside the public contract.
 
-## 5. Khám phá trường kế thừa: đi qua cây lớp khi cần
+## 5. Discovering Inherited Fields: Walking the Class Tree When Needed
 
-Các trường (fields) **không có dispatch động như phương thức instance**. Khi lớp con che khuất tên trường ở lớp cha (field hiding), hai khai báo vẫn là hai `Field` riêng và `getDeclaringClass()` giúp phân biệt nguồn gốc của chúng.
+Fields **do not have dynamic dispatch like instance methods**. When a subclass hides a field name from a superclass (field hiding), the two declarations remain two separate `Field` objects and `getDeclaringClass()` helps distinguish their origin.
 
-Để biết những trường được khai báo **trên từng lớp** từ lớp runtime đến `Object`, duyệt cây lớp:
+To learn which fields are declared **on each class** from the runtime class up to `Object`, traverse the class tree:
 
 ```java
 Class<?> type = instance.getClass();
@@ -203,31 +203,31 @@ while (type != null) {
 }
 ```
 
-Đây là **đoạn minh họa** sử dụng biến `instance` đã tồn tại, không phải một chương trình độc lập. Kết quả thứ tự của `getDeclaredFields()` không được API bảo đảm; nếu cần thứ tự ổn định thì sắp xếp trước khi xử lý.
+This is an **illustrative snippet** using an already-existing `instance` variable, not a standalone program. The order of results from `getDeclaredFields()` is not guaranteed by the API; if you need a deterministic order, sort before processing.
 
-Vòng lặp `getSuperclass()` chỉ đi theo **chuỗi lớp cha**, không tự đi sâu vào các interface. Nếu cần khám phá interface, xét `getInterfaces()`, cây interface và quy tắc thành viên tương ứng. Không sử dụng vòng lặp này để mặc định bỏ qua kiểm tra quyền truy cập; liệt kê tên trường khác với đọc giá trị trường.
+The `getSuperclass()` loop only follows the **superclass chain** and does not automatically descend into interfaces. If you need to discover interfaces, examine `getInterfaces()`, the interface hierarchy, and the corresponding member rules. Do not use this loop to bypass access checks by default; listing field names differs from reading field values.
 
-Khi đã có đối tượng `Field`, hãy xem `field.getDeclaringClass()` và `field.getType()` để biết lớp khai báo và kiểu khai báo của trường. `field.getType()` cũng không tự biến thành kiểu thực tế của giá trị đang nằm trong trường; nếu cần phân tích giá trị, phải đọc giá trị hợp lệ trước rồi mới cân nhắc `value.getClass()` khi `value != null`.
+Once you have a `Field` object, inspect `field.getDeclaringClass()` and `field.getType()` to know the field's declaring class and declared type. `field.getType()` also does not turn into the actual type of the value sitting inside the field; if you need to analyze the value, you must read a valid value first and only then consider `value.getClass()` when `value != null`.
 
-## 6. Khi nào nên chọn kiểu khai báo, khi nào chọn kiểu thực tế?
+## 6. When Should You Choose the Declared Type, and When the Actual Type?
 
-### Chọn kiểu khai báo hoặc interface khi làm việc theo hợp đồng
+### Choose the Declared Type or Interface When Working Against a Contract
 
-Thích hợp khi tạo bộ gọi API, kiểm tra annotation trên một hợp đồng đã xác định, xác minh phương thức mà người dùng được phép gọi, hoặc cần kết quả không phụ thuộc vào lớp implementation có thể thay đổi.
+Appropriate when building API callers, checking annotations on a defined contract, verifying methods users are permitted to call, or needing results independent of implementation classes that may change.
 
 ```java
 Class<?> apiType = Runnable.class;
 Method method = apiType.getMethod("run");
 ```
 
-`Runnable.class` thể hiện đúng hợp đồng `Runnable`. Việc đối tượng runtime có thêm phương thức phụ không làm mở rộng danh sách API mà thành phần của bạn dự định hỗ trợ. Nhưng nếu nghiệp vụ cần annotation khai báo trên implementation, Reflection chỉ trên interface có thể **không đủ**: phải thiết kế chính sách tìm annotation cụ thể và kiểm tra vị trí khai báo phù hợp.
+`Runnable.class` represents the exact `Runnable` contract. Having extra helper methods on the runtime object does not expand the API list your component intends to support. However, if business logic needs annotations declared on the implementation, Reflection on the interface alone may be **insufficient**: you must design a specific annotation-lookup policy and check the appropriate declaration locations.
 
-### Chọn kiểu thực tế khi cần biết đối tượng thực sự có gì
+### Choose the Actual Type When You Need to Know What the Object Actually Has
 
-Thích hợp khi viết công cụ debug, serializer có chính sách rõ ràng, diagnostic inspector hoặc code dùng metadata riêng của implementation:
+Appropriate when writing debug tools, serializers with an explicit policy, diagnostic inspectors, or code that uses implementation-specific metadata:
 
 ```java
-Object value = obtainValue(); // Hàm ứng dụng cung cấp, chỉ là minh họa
+Object value = obtainValue(); // Application-provided function, illustrative only
 if (value != null) {
     Class<?> runtimeType = value.getClass();
     for (Method method : runtimeType.getDeclaredMethods()) {
@@ -236,17 +236,17 @@ if (value != null) {
 }
 ```
 
-Đây cũng là **đoạn minh họa**, chưa phải chương trình chạy độc lập do `obtainValue()` là hàm do ứng dụng định nghĩa. `getDeclaredMethods()` ở đây chỉ thu phương thức khai báo trực tiếp của implementation. Nếu cần danh sách API `public` mà đối tượng có thể sử dụng, xem xét `getMethods()` thay cho `getDeclaredMethods()`.
+This is also an **illustrative snippet**, not yet a standalone runnable program because `obtainValue()` is an application-defined function. `getDeclaredMethods()` here only collects methods directly declared on the implementation. If you need the list of `public` APIs the object can use, consider `getMethods()` instead of `getDeclaredMethods()`.
 
-**Trường hợp proxy/framework:** đối tượng runtime có thể là proxy hoặc lớp sinh tự động. `getClass()` khi đó trả về kiểu proxy, không nhất thiết là lớp nghiệp vụ bạn dự kiến. Với code dựa trên hợp đồng, ưu tiên `interface.class` hoặc `Class<?>` được chỉ định rõ; với việc bóc tách kiểu đích của proxy, sử dụng cơ chế mà framework thực tế cung cấp thay vì đoán lớp cha.
+**Proxy/framework case:** a runtime object may be a proxy or dynamically generated class. `getClass()` then returns the proxy type, not necessarily the domain class you expect. For contract-based code, prefer `interface.class` or an explicitly specified `Class<?>`; for unwrapping a proxy's target type, use the mechanism provided by the actual framework rather than guessing the superclass.
 
-### Muốn tìm đúng thành viên đang được khai báo ở đâu
+### Wanting to Find Where a Member Is Actually Declared
 
-Dùng `getDeclaringClass()` sau khi tìm thấy `Method` hoặc `Field`. Một phương thức trả về từ `Child.class.getMethod("parentOnly")` có thể thuộc `Parent`; đây không phải lỗi hay một bản sao của phương thức trên `Child`.
+Use `getDeclaringClass()` after finding a `Method` or `Field`. A method returned from `Child.class.getMethod("parentOnly")` can belong to `Parent`; this is not an error or a duplicate of the method on `Child`.
 
-### Muốn xử lý lớp con an toàn từ biến kiểu cha
+### Wanting to Handle a Subclass Safely from a Superclass-Typed Variable
 
-Nếu thực sự cần một hành vi chỉ `Child` có, trước hết xác định đối tượng có đúng kiểu không:
+If you genuinely need behavior that only `Child` has, first verify that the object has the right type:
 
 ```java
 if (Child.class.isInstance(reference)) {
@@ -255,37 +255,37 @@ if (Child.class.isInstance(reference)) {
 }
 ```
 
-Đây là đoạn minh họa dùng các lớp và biến của ví dụ phía trên. `isInstance` cho biết đối tượng có tương thích với kiểu được kiểm tra hay không; `cast` thực hiện ép kiểu có kiểm tra, giúp tránh `ClassCastException`. Đừng chọn `getClass()` chỉ để lách thiết kế API khi có thể biểu diễn hợp đồng bằng interface hoặc lớp cha.
+This is an illustrative snippet using the classes and variables from the example above. `isInstance` indicates whether the object is compatible with the checked type; `cast` performs a checked cast, helping avoid `ClassCastException`. Do not choose `getClass()` just to bypass API design when the contract can be expressed with an interface or superclass.
 
-## 7. Lỗi phổ biến và cách kiểm tra
+## 7. Common Mistakes and How to Check
 
-| Nhầm lẫn | Vì sao sai | Cách làm đúng |
+| Misconception | Why it is wrong | Correct approach |
 | --- | --- | --- |
-| `reference.getClass()` trả về kiểu khai báo của biến | Nó trả về kiểu runtime | Dùng `DeclaredType.class`, hoặc metadata của chính khai báo nếu đang phân tích source/field/parameter |
-| `getDeclaredMethods()` lấy tất cả phương thức có thể gọi, kể cả kế thừa | Nó chỉ lấy khai báo trực tiếp trên `Class<?>` được chọn | Dùng `getMethods()` nếu cần phương thức public kế thừa; hoặc duyệt hierarchy theo chính sách |
-| `getMethods()` cho thấy cả phương thức private | API này chỉ liệt kê phương thức public phù hợp | Với metadata khai báo riêng, dùng `getDeclaredMethods()` và xử lý quyền truy cập |
-| `Child.class.getDeclaredField("baseField")` tìm được trường của cha | Trường khai báo tại lớp cha không nằm trong `getDeclaredFields()` của con | Tra tại `Parent.class` hoặc duyệt `getSuperclass()` |
-| Phương thức lấy từ `Parent.class` luôn chạy phiên bản `Parent` | Override instance được dispatch động khi `invoke` | Phân biệt phương thức được tìm thấy với phần thân được thực thi |
-| Chỉ lọc `Method.getName()` là đủ trong mọi trường hợp | Một tên có thể có nhiều overload; trình biên dịch có thể tạo bridge/synthetic method | Kèm kiểu tham số, kiểm tra `isBridge()`/`isSynthetic()` khi phù hợp |
-| Tin vào thứ tự của `getDeclaredMethods()` hay `getDeclaredFields()` | API không cam kết thứ tự ổn định | Sắp xếp bằng tiêu chí minh bạch nếu thứ tự có ý nghĩa |
-| Xem được một `private Field` nghĩa là đọc được giá trị | Metadata không tự cấp quyền truy cập | Tôn trọng truy cập Java và giới hạn module; chỉ truy cập khi có quyền và lý do hợp lệ |
+| `reference.getClass()` returns the variable's declared type | It returns the runtime type | Use `DeclaredType.class`, or the declaration's own metadata if analyzing source/field/parameter |
+| `getDeclaredMethods()` gets all callable methods, including inherited ones | It only gets direct declarations on the chosen `Class<?>` | Use `getMethods()` if inherited public methods are needed; or traverse the hierarchy per policy |
+| `getMethods()` shows private methods too | This API only lists matching public methods | For private declaration metadata, use `getDeclaredMethods()` and handle access permissions |
+| `Child.class.getDeclaredField("baseField")` finds a superclass field | Fields declared in the superclass are not in the subclass's `getDeclaredFields()` | Look up on `Parent.class` or traverse `getSuperclass()` |
+| A method retrieved from `Parent.class` always runs the `Parent` version | Instance overrides are dynamically dispatched on `invoke` | Distinguish the found method from the executed body |
+| Filtering only `Method.getName()` is sufficient in all cases | One name can have multiple overloads; the compiler can generate bridge/synthetic methods | Include parameter types, and check `isBridge()`/`isSynthetic()` when appropriate |
+| Relying on the order of `getDeclaredMethods()` or `getDeclaredFields()` | The API does not guarantee a stable order | Sort by explicit criteria if order matters |
+| Being able to see a `private Field` means being able to read its value | Metadata does not automatically grant access permission | Respect Java access rules and module restrictions; access only when authorized and justified |
 
-Một quy trình lựa chọn ngắn cho công cụ Reflection:
+A short selection workflow for Reflection tools:
 
-1. Xác định mục tiêu: **kiểm tra hợp đồng** hay **khám phá implementation thực tế**.
-2. Chọn nguồn `Class<?>`: `Contract.class` khi theo API, hoặc `obj.getClass()` khi theo đối tượng và `obj != null`.
-3. Chọn phạm vi thành viên: `getDeclared*` để xem khai báo tại chính lớp; `get*` khi cần thành viên public, bao gồm các thành viên có thể kế thừa.
-4. Kiểm tra `getDeclaringClass()` để không nhầm thành viên kế thừa với thành viên tự khai báo. Nếu phải khám phá private/protected ở cha, duyệt hierarchy có chủ đích.
-5. Nếu chuẩn bị gọi bằng `invoke`, kiểm tra signature, receiver, quyền truy cập và lưu ý dispatch động; không suy luận execution chỉ từ đối tượng `Class<?>` dùng để tìm.
+1. Identify the goal: **inspecting a contract** or **discovering an actual implementation**.
+2. Choose the `Class<?>` source: `Contract.class` when following an API, or `obj.getClass()` when following an object and `obj != null`.
+3. Choose member scope: `getDeclared*` to view declarations on the class itself; `get*` when needing public members, including inherited ones.
+4. Check `getDeclaringClass()` so inherited members are not mistaken for self-declared members. If you must discover private/protected members on superclasses, traverse the hierarchy intentionally.
+5. If preparing to call via `invoke`, check the signature, receiver, access permissions, and note dynamic dispatch; do not infer execution solely from the `Class<?>` object used for lookup.
 
-## 8. Tự kiểm tra
+## 8. Self-Check
 
-Với `Parent parent = new Child();` trong chương trình ở mục 3, thử tự trả lời:
+With `Parent parent = new Child();` in the program from section 3, try answering yourself:
 
-- `parent.getClass() == Child.class` có đúng không? **Đúng**, vì đối tượng thực tế là `Child`.
-- `Child.class.getDeclaredMethod("parentOnly")` có thành công không? **Không**, sẽ ném `NoSuchMethodException` do phương thức được khai báo ở `Parent`.
-- `Child.class.getMethod("parentOnly").getDeclaringClass()` trả về gì? **`Parent.class`**, do đây là phương thức public được kế thừa.
-- `Parent.class.getMethod("describe").invoke(parent)` cho kết quả gì? **`"Child"`**, do dispatch động chọn phần override ở lớp runtime.
-- Nếu cần kiểm tra tất cả trường được khai báo trực tiếp trên từng lớp trong hệ phân cấp, nên dùng gì? **`getDeclaredFields()` trên từng `Class<?>`**, kết hợp duyệt `getSuperclass()` và chính sách xử lý interface nếu cần.
+- Is `parent.getClass() == Child.class` true? **True**, because the actual object is `Child`.
+- Does `Child.class.getDeclaredMethod("parentOnly")` succeed? **No**, it throws `NoSuchMethodException` because the method is declared in `Parent`.
+- What does `Child.class.getMethod("parentOnly").getDeclaringClass()` return? **`Parent.class`**, because this is an inherited public method.
+- What does `Parent.class.getMethod("describe").invoke(parent)` return? **`"Child"`**, because dynamic dispatch selects the override on the runtime class.
+- If you need to inspect all fields directly declared on each class in the hierarchy, what should you use? **`getDeclaredFields()` on each `Class<?>`**, combined with traversing `getSuperclass()` and an interface-handling policy if needed.
 
-Kết luận cho bài này: **kiểu khai báo trả lời câu hỏi về hợp đồng; kiểu thực tế trả lời câu hỏi về đối tượng hiện có; lớp khai báo thành viên trả lời câu hỏi về nguồn gốc metadata**. Chọn đúng điểm xuất phát rồi mới quyết định `get*` hay `getDeclared*` sẽ giúp tránh bỏ sót thành viên kế thừa, nhầm method override và vô tình ràng buộc code vào chi tiết implementation.
+Conclusion for this article: **the declared type answers questions about the contract; the actual type answers questions about the existing object; the member's declaring class answers questions about the origin of metadata**. Choosing the right starting point before deciding between `get*` and `getDeclared*` will help avoid missing inherited members, misunderstanding overridden methods, and accidentally coupling code to implementation details.

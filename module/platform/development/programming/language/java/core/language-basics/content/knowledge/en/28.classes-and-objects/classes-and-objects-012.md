@@ -1,12 +1,12 @@
-# Nhận diện annotation `@Override` và `@Deprecated` trong Java
+# Recognizing `@Override` and `@Deprecated` Annotations in Java
 
-> **Java core — language-basics / Lớp và đối tượng**  
-> **Môi trường:** Java 17+, chỉ cần JDK.  
-> **Mục tiêu:** Biết mục đích, vị trí và tác dụng của `@Override`, `@Deprecated`; phân biệt ghi đè với nạp chồng/che khuất phương thức; nhận diện API cũ và cách thay thế an toàn.
+> **Java core — language-basics / Classes and Objects**  
+> **Environment:** Java 17+, JDK only.  
+> **Goal:** Know the purpose, placement, and effect of `@Override` and `@Deprecated`; distinguish overriding from overloading and method hiding; identify legacy APIs and how to migrate safely.
 
-## 1. Annotation là gì?
+## 1. What Is an Annotation?
 
-*Annotation* là thông tin bổ sung được đặt trên khai báo (và một số vị trí khác tùy loại annotation), thường bắt đầu bằng dấu `@`. Nó giúp trình biên dịch, công cụ hoặc thư viện nhận biết ý định của mã:
+An *annotation* is supplemental metadata placed on a declaration (and certain other positions depending on the annotation type), usually starting with `@`. It helps the compiler, tools, or libraries recognize the code's intent:
 
 ~~~java
 @Override
@@ -15,16 +15,16 @@ public String toString() {
 }
 ~~~
 
-Annotation **không phải** lời gọi phương thức. Đặt `@Override` trước khai báo phương thức không làm thân tự chạy; phương thức vẫn chạy khi được gọi theo quy tắc Java.
+An annotation is **not** a method call. Placing `@Override` before a method declaration does not execute its body automatically; the method still runs when called under Java's rules.
 
-| Annotation | Ý nghĩa chính | Tác dụng dễ quan sát |
+| Annotation | Primary meaning | Observable effect |
 | --- | --- | --- |
-| `@Override` | Khai báo này dự định ghi đè/triển khai một phương thức hợp lệ từ lớp cha/interface | Trình biên dịch báo lỗi nếu thực tế không ghi đè/triển khai đúng |
-| `@Deprecated` | API đã không còn được khuyến nghị sử dụng | Công cụ/trình biên dịch có thể cảnh báo khi mã khác dùng API cũ |
+| `@Override` | This declaration is intended to override/implement a valid method from a superclass/interface | The compiler reports an error if it does not actually override/implement properly |
+| `@Deprecated` | The API is no longer recommended for use | Tools/compilers can warn when other code uses the legacy API |
 
-Hai annotation này nằm trong `java.lang` nên không cần `import`. Không nhầm `@Deprecated` với một lệnh xóa mã và không nhầm `@Override` với từ khóa bắt buộc để Java có đa hình.
+Both annotations live in `java.lang`, so no `import` is needed. Do not confuse `@Deprecated` with a command that deletes code, and do not confuse `@Override` with a mandatory keyword required for Java polymorphism.
 
-## 2. `@Override` trên phương thức ghi đè từ lớp cha
+## 2. `@Override` on Methods Overridden from a Superclass
 
 ~~~java
 class Animal {
@@ -41,18 +41,18 @@ class Dog extends Animal {
 }
 ~~~
 
-`Dog.speak()` ghi đè `Animal.speak()`: cùng tên và danh sách kiểu tham số, kiểu trả về tương thích và đáp ứng các quy tắc về quyền truy cập/ngoại lệ. Gọi qua tham chiếu kiểu cha vẫn thực thi phiên bản ở đối tượng thực:
+`Dog.speak()` overrides `Animal.speak()`: same name and parameter type list, compatible return type, and satisfying access/exception rules. Calling through a superclass-typed reference still executes the version on the actual object:
 
 ~~~java
 Animal pet = new Dog();
 System.out.println(pet.speak()); // woof
 ~~~
 
-`@Override` yêu cầu compiler kiểm tra ý định này. Nếu vô tình viết `speek()` thay `speak()` rồi vẫn gắn `@Override`, trình biên dịch báo lỗi thay vì âm thầm tạo một phương thức **mới**.
+`@Override` asks the compiler to verify this intent. If you accidentally write `speek()` instead of `speak()` while keeping `@Override`, the compiler reports an error rather than silently creating a **new** method.
 
-**Không có `@Override` thì ghi đè hợp lệ vẫn xảy ra**, nhưng thêm annotation giúp phát hiện sai chữ ký sớm và làm mã rõ hơn.
+**Without `@Override`, valid overriding still happens**, yet adding the annotation catches signature mistakes early and makes code clearer.
 
-Có thể ghi đè các phương thức instance phù hợp của `Object`, chẳng hạn `toString()`:
+You can override appropriate instance methods of `Object`, such as `toString()`:
 
 ~~~java
 @Override
@@ -61,9 +61,9 @@ public String toString() {
 }
 ~~~
 
-## 3. `@Override` khi triển khai interface
+## 3. `@Override` When Implementing an Interface
 
-Một lớp triển khai interface thường ghi `@Override` trước phương thức hiện thực hóa hợp đồng:
+A class implementing an interface typically writes `@Override` before the method fulfilling the contract:
 
 ~~~java
 interface Audible {
@@ -78,23 +78,23 @@ class Bird implements Audible {
 }
 ~~~
 
-`Bird.sound()` phải đáp ứng chữ ký và kiểu trả về của `Audible.sound()`. Vì phương thức trong interface ở ví dụ này là `public`, phương thức triển khai cũng phải `public`; không được làm giảm quyền truy cập.
+`Bird.sound()` must match the signature and return type of `Audible.sound()`. Because the interface method in this example is `public`, the implementing method must also be `public`; you cannot reduce visibility.
 
-Trong Java 17, `@Override` cũng được dùng khi ghi đè một `default method` phù hợp của interface. Annotation không tự thay thế từ khóa `implements`/`extends`: quan hệ kiểu và định nghĩa phương thức phải có sẵn.
+In Java 17, `@Override` is also used when overriding a matching `default method` of an interface. An annotation does not replace `implements`/`extends` keywords: the type relationship and method definition must already exist.
 
-## 4. Những trường hợp `@Override` không hợp lệ
+## 4. Cases Where `@Override` Is Invalid
 
-| Tình huống | Có phải ghi đè hợp lệ để dùng `@Override`? | Lý do |
+| Situation | Is it a valid override for `@Override`? | Reason |
 | --- | --- | --- |
-| Viết sai tên `speek()` thay `speak()` | Không | Không khớp phương thức cha |
-| `speak(int n)` trong khi cha chỉ có `speak()` | Không | Đây là **overload**, danh sách tham số khác |
-| Định nghĩa một phương thức mới chỉ có trong lớp con | Không | Không có phương thức phù hợp để ghi đè |
-| Viết constructor `Dog()` | Không | Constructor không phải phương thức ghi đè |
-| Khai báo `static` trùng với static method cha | Không | Đây là **method hiding**, không phải overriding |
-| Cố ghi đè phương thức `private` của cha | Không | Phương thức private không được kế thừa để ghi đè |
-| Cố ghi đè phương thức `final` của cha | Không | `final` chặn việc ghi đè |
+| Misspelling `speek()` instead of `speak()` | No | Does not match superclass method |
+| `speak(int n)` when superclass only has `speak()` | No | This is **overloading**, different parameter list |
+| Defining a new method that only exists in the subclass | No | No matching method to override |
+| Writing constructor `Dog()` | No | Constructors are not overridden methods |
+| Declaring `static` matching a superclass static method | No | This is **method hiding**, not overriding |
+| Trying to override a superclass `private` method | No | Private methods are not inherited to be overridden |
+| Trying to override a superclass `final` method | No | `final` prevents overriding |
 
-Ví dụ dưới đây **cố ý không biên dịch**, chỉ dùng để nhận diện lỗi:
+The example below **intentionally does not compile**, solely for identifying errors:
 
 ~~~java
 class Parent {
@@ -103,18 +103,18 @@ class Parent {
 
 class Child extends Parent {
     // @Override
-    // public void run(int times) {} // Lỗi: chỉ nạp chồng, không ghi đè.
+    // public void run(int times) {} // Error: only overloads, does not override.
 
     // @Override
-    // public void rnu() {} // Lỗi: gõ sai tên phương thức.
+    // public void rnu() {} // Error: misspelled method name.
 }
 ~~~
 
-Bỏ comment `@Override` trong một ví dụ sai sẽ khiến lỗi được phát hiện ngay khi biên dịch. Đừng bỏ annotation chỉ để che lỗi: hãy xem tên, kiểu tham số, kiểu trả về và quan hệ kế thừa/triển khai.
+Uncommenting `@Override` in a broken example causes the error to be caught immediately at compile time. Do not remove the annotation just to hide an error: check the name, parameter types, return type, and inheritance/implementation relationship.
 
-`@Override` cũng không biến lời gọi static thành đa hình. Sự phân giải **overload** dựa vào kiểu biểu thức tại thời điểm biên dịch, trong khi **overriding** của phương thức instance hỗ trợ dispatch theo đối tượng thực lúc chạy.
+`@Override` also does not make static calls polymorphic. **Overload** resolution is based on expression types at compile time, whereas instance method **overriding** supports dynamic dispatch based on the actual object at runtime.
 
-## 5. `@Deprecated`: đánh dấu API cũ, chưa phải xóa API
+## 5. `@Deprecated`: Marking an Old API, Not Deleting It
 
 ~~~java
 class LabelService {
@@ -132,7 +132,7 @@ class LabelService {
 }
 ~~~
 
-Dù phương thức `oldLabel` đã được gắn `@Deprecated`, lời gọi vẫn có thể biên dịch và chạy khi API đó còn tồn tại:
+Even though `oldLabel` is annotated with `@Deprecated`, calls still compile and run while that API exists:
 
 ~~~java
 LabelService service = new LabelService();
@@ -140,41 +140,41 @@ System.out.println(service.modernLabel("Java")); // new:Java
 System.out.println(service.oldLabel("Java"));    // old:Java
 ~~~
 
-Trình biên dịch/công cụ có thể báo cảnh báo về cách dùng API deprecated; cảnh báo **không đồng nghĩa lỗi biên dịch**, và annotation không tự làm phương thức bị gỡ khỏi class.
+The compiler/tools may emit warnings about using deprecated APIs; a warning **is not a compile error**, and the annotation does not automatically remove the method from the class.
 
-Có thể đánh dấu deprecated cho **class**, **constructor**, **method**, **field** và các loại khai báo mà annotation cho phép. Vì người dùng API cần biết đường thay thế, nên viết tài liệu migration rõ ràng.
+You can mark **classes**, **constructors**, **methods**, **fields**, and other declaration kinds permitted by the annotation as deprecated. Because API users need to know the replacement path, write clear migration documentation.
 
-**Hai phần khác nhau:**
+**Two different parts:**
 
-- `@Deprecated` là **annotation** có ý nghĩa được trình biên dịch/công cụ nhận biết.
-- `@deprecated` viết thường trong `/** ... */` là **Javadoc tag**, để giải thích lý do và gợi ý API thay thế cho người đọc tài liệu.
+- `@Deprecated` is an **annotation** recognized by the compiler and tools.
+- Lowercase `@deprecated` inside `/** ... */` is a **Javadoc tag**, explaining the reason and suggesting the replacement API for documentation readers.
 
-Nên dùng **cả hai** khi xuất bản API cũ. Chỉ viết Javadoc `@deprecated` mà thiếu annotation sẽ không cung cấp đầy đủ tín hiệu deprecated chuẩn cho công cụ.
+Use **both** when publishing a legacy API. Writing only the `@deprecated` Javadoc tag without the annotation will not provide the standard deprecation signal to tools.
 
-## 6. `since`, `forRemoval` và xử lý cảnh báo
+## 6. `since`, `forRemoval`, and Handling Warnings
 
-Từ Java 9, `@Deprecated` có hai thành phần tùy chọn, đều dùng được trên Java 17:
+Since Java 9, `@Deprecated` has two optional elements, both usable on Java 17:
 
-| Cú pháp | Diễn giải |
+| Syntax | Interpretation |
 | --- | --- |
-| `@Deprecated` | Đánh dấu deprecated, không khai báo thêm thông tin |
-| `@Deprecated(since = "17")` | Cho biết từ phiên bản được tác giả ghi là `17`; chuỗi này không tự xác minh version |
-| `@Deprecated(forRemoval = true)` | API được đánh dấu là **dự định loại bỏ** trong tương lai |
-| `@Deprecated(since = "17", forRemoval = false)` | Deprecated từ mốc mô tả `17`, chưa đánh dấu dự định loại bỏ |
+| `@Deprecated` | Marks deprecated, without providing extra metadata |
+| `@Deprecated(since = "17")` | Indicates the author-recorded version `17`; this string does not automatically verify the version |
+| `@Deprecated(forRemoval = true)` | The API is marked as **intended for removal** in the future |
+| `@Deprecated(since = "17", forRemoval = false)` | Deprecated since descriptive version `17`, not yet marked for removal |
 
-`forRemoval = true` **không** cam kết API sẽ biến mất vào một ngày cố định. Nếu ứng dụng đang dùng API này, hãy xem tài liệu và kế hoạch migration của nhà cung cấp; tránh tự suy ra thời hạn loại bỏ.
+`forRemoval = true` **does not** promise the API will disappear on a fixed date. If an application uses this API, consult the provider's documentation and migration plan; avoid inferring a removal timeline on your own.
 
-Để xem thông tin cảnh báo deprecated khi tự biên dịch dự án:
+To view deprecation warnings when compiling a project yourself:
 
 ~~~bash
 javac -Xlint:deprecation -encoding UTF-8 AnnotationBasicsDemo.java
 ~~~
 
-Cảnh báo của `javac` thuộc luồng thông báo biên dịch, **không** phải stdout của chương trình chạy, và nội dung có thể tùy vị trí file/JDK. `@SuppressWarnings("deprecation")` có thể tắt cảnh báo tương ứng trong phạm vi được gắn, nhưng nên dành cho trường hợp có lý do rõ ràng thay vì dùng để che việc đang phụ thuộc API cũ. `forRemoval=true` có thể tạo cảnh báo thuộc nhóm `removal` riêng.
+`javac` warnings belong to the compiler diagnostic output stream, **not** the running program's stdout, and wording may vary by file path/JDK. `@SuppressWarnings("deprecation")` can suppress the corresponding warning within the annotated scope, but should be reserved for well-justified cases rather than used to hide reliance on legacy APIs. `forRemoval=true` can produce warnings under the separate `removal` category.
 
-## 7. Ví dụ Java 17+ tự chứa, chạy được
+## 7. Self-Contained, Runnable Java 17+ Example
 
-Tạo file **AnnotationBasicsDemo.java**. Những khai báo trong một file sau đều biên dịch hợp lệ:
+Create file **AnnotationBasicsDemo.java**. All declarations in this single file compile cleanly:
 
 ~~~java
 public final class AnnotationBasicsDemo {
@@ -214,7 +214,7 @@ public final class AnnotationBasicsDemo {
             return "Dog(" + name + ")";
         }
 
-        // Cùng tên nhưng tham số khác: overload, không phải override.
+        // Same name, different parameter: overload, not override.
         public String speak(int times) {
             return "woof x" + times;
         }
@@ -260,7 +260,7 @@ public final class AnnotationBasicsDemo {
         System.out.println("modern=" + labels.modernLabel("Java"));
         System.out.println("legacy=" + labels.oldLabel("Java"));
 
-        // Minh họa annotation Deprecated có thể đọc bằng reflection.
+        // Illustrates that the Deprecated annotation can be read via reflection.
         Deprecated info = LegacyApi.class
                 .getDeclaredMethod("oldLabel", String.class)
                 .getAnnotation(Deprecated.class);
@@ -271,14 +271,14 @@ public final class AnnotationBasicsDemo {
 }
 ~~~
 
-Biên dịch/chạy trong thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Compile/run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 AnnotationBasicsDemo.java
 java AnnotationBasicsDemo
 ~~~
 
-**Expected stdout chính xác khi chạy `java AnnotationBasicsDemo`:**
+**Exact expected stdout when running `java AnnotationBasicsDemo`:**
 
 ~~~text
 parent=generic
@@ -295,34 +295,34 @@ since=17
 forRemoval=false
 ~~~
 
-Giải thích: `dynamic=woof` và `kind=DOG` là ghi đè động qua biến kiểu `Animal`; `interface=chirp` minh họa triển khai interface; `overload=woof x2` gọi hàm khác danh sách tham số, không phải một override. `legacy` vẫn hoạt động mặc dù API cũ bị đánh dấu deprecated.
+Explanation: `dynamic=woof` and `kind=DOG` show dynamic overriding through an `Animal`-typed variable; `interface=chirp` illustrates interface implementation; `overload=woof x2` calls a method with a different parameter list, not an override. `legacy` still works even though the old API is marked deprecated.
 
-Ba dòng cuối dùng **reflection** của JDK để đọc `@Deprecated`; đây là phần quan sát bổ sung, không bắt buộc để hiểu API. `@Override` chủ yếu hỗ trợ kiểm tra lúc biên dịch và không dùng theo cách quan sát reflection này.
+The last three lines use JDK **reflection** to read `@Deprecated`; this is supplemental observation, not required for understanding the API. `@Override` mainly supports compile-time checking and is not used for this reflection inspection.
 
-## 8. Lỗi thường gặp, checklist và bài tập
+## 8. Common Mistakes, Checklist, and Exercises
 
-| Hiểu nhầm | Cách hiểu đúng |
+| Misconception | Correct understanding |
 | --- | --- |
-| Phải viết `@Override` thì đa hình mới hoạt động | Không: annotation giúp kiểm tra ý định ghi đè |
-| `@Override` được đặt trên mọi overload | Sai: overload khác danh sách tham số không phải override |
-| Ghi đè static method như instance method | Sai: static method có thể bị che khuất, không override |
-| Có thể `@Override` trên constructor | Không: constructor không phải phương thức ghi đè |
-| `@Deprecated` khiến code không chạy | Không: vẫn chạy nếu API còn và lời gọi hợp lệ |
-| `@Deprecated` tự cung cấp API thay thế | Không: cần đọc Javadoc/changelog để migration |
-| Javadoc `@deprecated` và annotation `@Deprecated` là một | Khác nhau: tài liệu giải thích vs tín hiệu compiler/tool |
-| `forRemoval=true` nghĩa là đã bị xóa | Chỉ là ý định loại bỏ; chưa phải xóa tức thời |
-| Tắt mọi cảnh báo deprecated để code “sạch” | Nên xác định API thay thế và lộ trình migration |
+| Must write `@Override` for polymorphism to work | No: the annotation helps verify override intent |
+| `@Override` can be placed on any overload | Wrong: an overload with a different parameter list is not an override |
+| Overriding a static method like an instance method | Wrong: static methods can be hidden, not overridden |
+| Can place `@Override` on a constructor | No: constructors are not overridden methods |
+| `@Deprecated` stops code from running | No: it still runs if the API exists and the call is valid |
+| `@Deprecated` automatically provides the replacement API | No: check Javadoc/changelog for migration |
+| Javadoc `@deprecated` and annotation `@Deprecated` are the same | Different: documentation explanation vs. compiler/tool signal |
+| `forRemoval=true` means already removed | Only an intent to remove; not immediate deletion |
+| Suppressing all deprecation warnings to keep code "clean" | Identify replacement APIs and a migration path instead |
 
-**Bài 1.** Tạo lớp `Vehicle` có `move()`, lớp `Bike` ghi đè với `@Override`; gọi qua biến `Vehicle` để thấy dispatch theo đối tượng thực.
+**Exercise 1.** Create class `Vehicle` with `move()`, and class `Bike` overriding it with `@Override`; call it via a `Vehicle` variable to observe dispatch based on the actual object.
 
-**Bài 2.** Cố ý viết sai `move` thành `mvoe` và giữ `@Override`. Ghi lại lỗi biên dịch; sửa tên để thành override hợp lệ.
+**Exercise 2.** Intentionally misspell `move` as `mvoe` while keeping `@Override`. Record the compile error; fix the name to make it a valid override.
 
-**Bài 3.** Tạo interface `Greeting` có `hello()`, lớp triển khai ghi `@Override`. Vì sao phương thức triển khai phải có quyền truy cập phù hợp?
+**Exercise 3.** Create interface `Greeting` with `hello()`, and an implementing class using `@Override`. Why must the implementing method have appropriate access visibility?
 
-**Bài 4.** Đánh dấu phương thức `oldSum(int,int)` bằng `@Deprecated(since = "17", forRemoval = false)`, viết `sum(int,int)` thay thế và thêm Javadoc hướng dẫn chuyển đổi.
+**Exercise 4.** Mark method `oldSum(int,int)` with `@Deprecated(since = "17", forRemoval = false)`, write `sum(int,int)` as its replacement, and add Javadoc guiding the migration.
 
-**Bài 5.** Thử `javac -Xlint:deprecation`, xác định nguồn cảnh báo. Giải thích tại sao dù có cảnh báo, `java` vẫn có thể gọi phương thức cũ.
+**Exercise 5.** Try `javac -Xlint:deprecation` and identify the warning source. Explain why, despite the warning, `java` can still invoke the old method.
 
-### Ghi nhớ
+### Takeaways
 
-**`@Override` cho biết “tôi định ghi đè một phương thức hợp lệ” và nhờ compiler bắt sai chữ ký. `@Deprecated` cho biết “API này không còn được khuyến nghị” nhưng không tự xóa hay ngăn runtime gọi nó.** Dùng Javadoc `@deprecated` để hướng dẫn thay thế; phân biệt overriding, overloading và static hiding; xử lý cảnh báo bằng hiểu rõ API thay vì chỉ che chúng.
+**`@Override` states "I intend to override a valid method" and asks the compiler to catch signature mismatches. `@Deprecated` states "this API is no longer recommended" without deleting it or stopping runtime calls.** Use Javadoc `@deprecated` to guide replacement; distinguish overriding, overloading, and static hiding; address warnings by understanding the API instead of merely hiding them.

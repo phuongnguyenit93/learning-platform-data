@@ -1,84 +1,84 @@
-# Tra cứu thấy thành viên không đồng nghĩa được quyền sử dụng
+# Looking up a member does not mean having permission to use it
 
-## 1. Ý tưởng cốt lõi: tìm thấy metadata khác với được truy cập
+## 1. Core idea: finding metadata is different from being allowed access
 
-Trong Java Reflection, một chương trình có thể **tìm thấy mô tả của thành viên** (`Field`, `Method`, `Constructor`) mà vẫn **không có quyền đọc trường, ghi trường, gọi phương thức hoặc tạo đối tượng qua constructor**. Đây là điểm dễ nhầm khi bắt đầu dùng `getDeclaredField()`, `getDeclaredMethod()` và `getDeclaredConstructor()`.
+In Java Reflection, a program can **find a member's descriptor** (`Field`, `Method`, `Constructor`) and still **lack permission to read a field, write a field, invoke a method, or create an object via a constructor**. This is an easy point of confusion when starting out with `getDeclaredField()`, `getDeclaredMethod()`, and `getDeclaredConstructor()`.
 
-Ví dụ tưởng tượng:
+Imagine an example:
 
 ```java
 Field secret = Account.class.getDeclaredField("passwordHash");
 ```
 
-Nếu lớp `Account` có trường `private` tên `passwordHash`, lệnh trên vẫn có thể trả một đối tượng `Field`. Điều đó chỉ chứng minh rằng trường được **khai báo** và được Reflection **phát hiện**. Lệnh tiếp theo như `secret.get(account)` vẫn có thể ném `IllegalAccessException` vì mã gọi không có quyền truy cập.
+If class `Account` has a `private` field named `passwordHash`, the statement above can still return a `Field` object. That only proves the field is **declared** and **discovered** by Reflection. The next statement such as `secret.get(account)` can still throw `IllegalAccessException` because the calling code does not have access permission.
 
-Nên phân biệt ít nhất ba bước:
+At least three steps should be distinguished:
 
-1. **Tra cứu thành viên:** Xác định lớp, tên, chữ ký và nhận metadata.
-2. **Kiểm tra quyền:** Quyết định mã gọi có thể sử dụng thành viên đó hay có được phép yêu cầu bỏ qua kiểm tra quyền Java thông thường hay không.
-3. **Thao tác thực sự:** `Field.get/set`, `Method.invoke` hoặc `Constructor.newInstance`, với đối tượng đích và đối số hợp lệ.
+1. **Member lookup:** Specify the class, name, signature, and obtain metadata.
+2. **Access check:** Decide whether the calling code can use that member or is allowed to request suppressing normal Java access checks.
+3. **Actual operation:** `Field.get/set`, `Method.invoke`, or `Constructor.newInstance`, with a valid target object and arguments.
 
 ```text
-Class<?> và tên/chữ ký thành viên
+Class<?> and member name/signature
               |
               v
      getDeclaredXxx / getXxx
               |
-      Có tìm thấy không?
+         Is it found?
          /           \
-      Không           Có
+       No            Yes
        |               |
 NoSuch...Exception     v
-              Đã có Field/Method/Constructor
+              Field/Method/Constructor obtained
                          |
                          v
-              Kiểm tra quyền truy cập
+              Access permission check
                    /            \
-             Không đủ          Đủ quyền
+            Insufficient     Sufficient
                  |                |
-        Không thể sử dụng     get/set/invoke/
-        trực tiếp             newInstance
+        Cannot be used       get/set/invoke/
+        directly             newInstance
 ```
 
-**Khả năng tra cứu và khả năng truy cập là hai câu hỏi độc lập.** Có metadata không làm biến mất `private`, giới hạn package, quan hệ kế thừa hoặc quy tắc Java Platform Module System (JPMS).
+**Lookup ability and accessibility are two independent questions.** Having metadata does not eliminate `private`, package boundaries, inheritance relationships, or Java Platform Module System (JPMS) rules.
 
-## 2. Tìm thành viên bằng `getXxx` và `getDeclaredXxx`
+## 2. Finding members with `getXxx` and `getDeclaredXxx`
 
-`Class<?>` cung cấp hai họ API quan trọng:
+`Class<?>` provides two important API families:
 
-| Thành viên | Tra cứu dạng public | Tra cứu do chính kiểu khai báo |
+| Member | Public lookup | Lookup declared by the type itself |
 |---|---|---|
-| Trường | `getField(name)`, `getFields()` | `getDeclaredField(name)`, `getDeclaredFields()` |
-| Phương thức | `getMethod(name, parameterTypes...)`, `getMethods()` | `getDeclaredMethod(name, parameterTypes...)`, `getDeclaredMethods()` |
+| Field | `getField(name)`, `getFields()` | `getDeclaredField(name)`, `getDeclaredFields()` |
+| Method | `getMethod(name, parameterTypes...)`, `getMethods()` | `getDeclaredMethod(name, parameterTypes...)`, `getDeclaredMethods()` |
 | Constructor | `getConstructor(parameterTypes...)`, `getConstructors()` | `getDeclaredConstructor(parameterTypes...)`, `getDeclaredConstructors()` |
 
-Cách hiểu:
+How to understand them:
 
-- `getField` và `getMethod` tìm các thành viên **public** theo quy tắc của API, có thể bao gồm thành viên thừa kế.
-- `getDeclaredField` và `getDeclaredMethod` xem các thành viên **khai báo trong chính lớp/interface đang xét**, kể cả `private`, `protected` và package-private. Các API declared không tự cộng thêm thành viên kế thừa.
-- Constructor không được kế thừa; sự khác biệt giữa `getConstructor` và `getDeclaredConstructor` chủ yếu là phạm vi `public` hay mọi mức truy cập.
-- `getDeclaredXxx` không có nghĩa “cho phép dùng private member”. Từ *declared* mô tả **phạm vi tìm kiếm**, không phải quyền.
-- `getXxx` tìm được một thành viên `public` cũng chưa bảo đảm thao tác phản chiếu thành công: lớp khai báo có thể không truy cập được từ mã gọi, package có thể không được module xuất, hoặc đối tượng đích/đối số không hợp lệ.
+- `getField` and `getMethod` look up **public** members according to the API rules, which may include inherited members.
+- `getDeclaredField` and `getDeclaredMethod` inspect members **declared in the class/interface under consideration itself**, including `private`, `protected`, and package-private ones. The declared APIs do not automatically include inherited members.
+- Constructors are not inherited; the difference between `getConstructor` and `getDeclaredConstructor` is mainly `public` scope versus any access level.
+- `getDeclaredXxx` does not mean "allowed to use private members". The word *declared* describes **search scope**, not permission.
+- Finding a `public` member with `getXxx` also does not guarantee the reflective operation will succeed: the declaring class may be inaccessible from the calling code, the package may not be exported by its module, or the target object/arguments may be invalid.
 
-Ví dụ minh họa (giả sử `Profile` có trường `private String token`):
+Illustrative example (assuming `Profile` has a `private String token` field):
 
 ```java
 Field f = Profile.class.getDeclaredField("token");
 System.out.println(f.getName()); // token
 
-// Dòng dưới đây KHÔNG được bảo đảm thành công:
+// The line below is NOT guaranteed to succeed:
 Object value = f.get(profile);
 ```
 
-Đoạn này chỉ minh họa ý nghĩa API; `Profile` và `profile` là thành phần giả định, chưa phải chương trình độc lập. Chương trình đầy đủ có thể chạy được trình bày ở mục 3.
+This snippet only illustrates API semantics; `Profile` and `profile` are hypothetical elements, not a standalone program. A complete runnable program is presented in section 3.
 
-Lỗi `NoSuchFieldException` hoặc `NoSuchMethodException` có nghĩa **không tìm thấy thành viên theo tên/chữ ký/phạm vi tra cứu đã chọn**. Nó khác `IllegalAccessException`, khi metadata đã tồn tại nhưng thao tác bị từ chối. Ví dụ `getDeclaredMethod("pay", int.class)` không tìm `pay(Integer)`, dù Java có cơ chế boxing trong lời gọi mã nguồn thông thường.
+A `NoSuchFieldException` or `NoSuchMethodException` means **the member was not found under the chosen name/signature/lookup scope**. It differs from `IllegalAccessException`, where metadata already exists but the operation is denied. For example, `getDeclaredMethod("pay", int.class)` does not find `pay(Integer)`, even though Java has boxing in regular source-code calls.
 
-## 3. Ví dụ chạy được trên Java 17+: chứng minh “tìm thấy ≠ được dùng”
+## 3. Runnable example on Java 17+: proving "found ≠ usable"
 
-Chương trình dưới đây định nghĩa **hai lớp top-level riêng biệt trong cùng một file**. `Vault` chứa private field và private method; `AccessLookupDemo` là caller khác lớp và khác nest, vì vậy **không có quyền truy cập private theo ngôn ngữ Java**. Tuy nhiên cả hai nằm cùng unnamed module, nên `trySetAccessible` có thể bật suppression và minh họa sự khác nhau.
+The program below defines **two separate top-level classes in the same file**. `Vault` contains a private field and a private method; `AccessLookupDemo` is a caller in a different class and different nest, so it **does not have private access permission under the Java language**. However, both reside in the same unnamed module, so `trySetAccessible` can enable suppression and demonstrate the difference.
 
-Lưu nguyên văn vào file **`AccessLookupDemo.java`**:
+Save verbatim to file **`AccessLookupDemo.java`**:
 
 ```java
 import java.lang.reflect.Field;
@@ -151,14 +151,14 @@ class Vault {
 }
 ```
 
-Biên dịch/chạy bằng JDK 17+:
+Compile/run with JDK 17+:
 
 ```bash
 javac AccessLookupDemo.java
 java AccessLookupDemo
 ```
 
-Kết quả kỳ vọng khi chạy thông thường, không có agent/cấu hình thay đổi quyền Reflection:
+Expected output when running normally, without agents/configurations altering Reflection permissions:
 
 ```text
 field found: secret
@@ -175,36 +175,36 @@ method trySetAccessible: true
 method result: [abc123]
 ```
 
-Giải thích từng mốc:
+Step-by-step explanation:
 
-1. `getDeclaredField("secret")` và `getDeclaredMethod("formatSecret")` **tìm thấy** private member. Không có ngoại lệ lookup.
-2. `Modifier.isPublic(...)` trả `false`; `canAccess(vault)` ban đầu cũng trả `false` vì caller không có quyền private.
-3. `field.get(vault)` và `method.invoke(vault)` ban đầu ném `IllegalAccessException` **trước khi truy cập nội dung/thi hành phương thức**. Việc bắt ngoại lệ giúp chương trình tiếp tục.
-4. `trySetAccessible()` trả `true` trong ví dụ này vì hai top-level classes cùng unnamed module và không bị một ràng buộc access khác từ môi trường ngăn cản.
-5. Sau khi bật suppression trên từng metadata object, `field.get(vault)` và `method.invoke(vault)` thành công.
-6. `Vault` là lớp top-level thứ hai không có modifier `public`. Java cho phép khai báo nhiều lớp top-level trong cùng một `.java` nhưng chỉ một lớp `public` phù hợp tên file.
+1. `getDeclaredField("secret")` and `getDeclaredMethod("formatSecret")` **find** the private members. No lookup exception occurs.
+2. `Modifier.isPublic(...)` returns `false`; `canAccess(vault)` initially also returns `false` because the caller lacks private access permission.
+3. `field.get(vault)` and `method.invoke(vault)` initially throw `IllegalAccessException` **before reading contents/executing the method**. Catching the exception allows the program to continue.
+4. `trySetAccessible()` returns `true` in this example because the two top-level classes are in the same unnamed module and are not blocked by another access constraint from the environment.
+5. After enabling suppression on each metadata object, `field.get(vault)` and `method.invoke(vault)` succeed.
+6. `Vault` is the second top-level class without the `public` modifier. Java allows declaring multiple top-level classes in the same `.java` file, but only one `public` class matching the file name.
 
-Ví dụ cho thấy rõ **không phải metadata khiến private member sử dụng được**, mà là caller sau đó đã được runtime cho phép bật suppression trên đối tượng Reflection cụ thể.
+The example clearly shows that **it is not metadata that makes private members usable**, but rather that the caller was subsequently permitted by the runtime to enable suppression on the specific Reflection object.
 
-## 4. Chẩn đoán một lỗi truy cập theo đúng giai đoạn
+## 4. Diagnosing an access error by the right stage
 
-| Giai đoạn | Triệu chứng | Cần kiểm tra |
+| Stage | Symptom | What to check |
 | --- | --- | --- |
-| Tra cứu | `NoSuchFieldException`, `NoSuchMethodException` | Đúng tên, chữ ký, lớp khai báo, phạm vi `getXxx` hay `getDeclaredXxx` chưa? |
-| Kiểm tra quyền | `canAccess(receiver) == false` | Caller có quyền theo Java không? Lớp khai báo và package/module có truy cập được không? |
-| Mở quyền | `trySetAccessible() == false` hoặc `InaccessibleObjectException` | Named module có `opens` package cho caller không? Có thực sự cần deep reflection không? |
-| Thực thi | `IllegalAccessException` | Metadata đã tìm được, nhưng caller chưa có quyền sử dụng member |
-| Chạy mã đích | `InvocationTargetException` | Method/constructor đã chạy và ném exception; đọc `getCause()` |
-| Kiểm tra đối số | `IllegalArgumentException` | Receiver, kiểu/số đối số hoặc giá trị gán có hợp lệ không? |
+| Lookup | `NoSuchFieldException`, `NoSuchMethodException` | Are the name, signature, declaring class, and `getXxx` vs `getDeclaredXxx` scope right? |
+| Access check | `canAccess(receiver) == false` | Does the caller have permission under Java rules? Are the declaring class and package/module accessible? |
+| Opening access | `trySetAccessible() == false` or `InaccessibleObjectException` | Does the named module `opens` the package to the caller? Is deep reflection really needed? |
+| Execution | `IllegalAccessException` | Metadata was found, but the caller does not yet have permission to use the member |
+| Running target code | `InvocationTargetException` | Method/constructor ran and threw an exception; inspect `getCause()` |
+| Argument check | `IllegalArgumentException` | Are the receiver, argument types/count, or assigned value valid? |
 
-Một member `public` vẫn có thể bị chặn nếu *lớp khai báo* không truy cập được. Một member `private` có thể được gọi bình thường từ chính lớp hoặc nestmate hợp lệ; kết quả kiểm tra phụ thuộc caller. `trySetAccessible()` chỉ thử bỏ qua kiểm tra truy cập và vẫn chịu ranh giới JPMS; thành công không bảo đảm có thể ghi mọi trường `final`.
+A `public` member can still be blocked if its *declaring class* is inaccessible. A `private` member can be called normally from its own class or a valid nestmate; the check result depends on the caller. `trySetAccessible()` only attempts to bypass access checks and remains subject to JPMS boundaries; succeeding does not guarantee every `final` field can be written.
 
-## 5. Tự kiểm tra
+## 5. Self-check
 
-1. Vì sao `getDeclaredField("secret")` tìm được member dù `Field.get` có thể ném `IllegalAccessException`?
-2. Vì sao `getMethod` tìm được một method `public` vẫn chưa bảo đảm `Method.invoke` được phép?
-3. Hai lớp top-level ở cùng tệp nguồn có trở thành nestmate không? Vì sao ví dụ dùng hai lớp riêng?
-4. Vì sao `exports` và `opens` ảnh hưởng khác nhau đến public API và deep reflection?
-5. Khi `Method.invoke` trả `InvocationTargetException`, bạn cần điều tra quyền Reflection hay lỗi từ code đã chạy?
+1. Why does `getDeclaredField("secret")` find the member even though `Field.get` can throw `IllegalAccessException`?
+2. Why does finding a `public` method with `getMethod` still not guarantee `Method.invoke` is allowed?
+3. Do two top-level classes in the same source file become nestmates? Why does the example use two separate classes?
+4. Why do `exports` and `opens` affect public APIs and deep reflection differently?
+5. When `Method.invoke` throws `InvocationTargetException`, should you investigate Reflection permissions or an error from the executed code?
 
-**Bài học cần giữ:** lookup xác định metadata **tồn tại**; quyền sử dụng được quyết định riêng tại điểm thao tác. Chọn đúng họ `getXxx`/`getDeclaredXxx` trước, rồi mới đánh giá caller, receiver và module.
+**Key takeaway:** lookup determines that metadata **exists**; permission to use it is decided separately at the operation site. Choose the right `getXxx`/`getDeclaredXxx` family first, then evaluate the caller, receiver, and module.

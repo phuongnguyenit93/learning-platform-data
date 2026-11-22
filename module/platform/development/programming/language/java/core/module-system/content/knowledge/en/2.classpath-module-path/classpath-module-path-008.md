@@ -1,51 +1,51 @@
-# Chẩn đoán lỗi khi trộn classpath với module path
+# Troubleshooting Errors When Mixing Classpath and Module Path
 
-Khi ứng dụng Java vừa dùng thư viện truyền thống qua **classpath** vừa dùng **Java Platform Module System (JPMS)** qua **module path**, lỗi thường xuất hiện ở lúc biên dịch, lúc khởi động hoặc khi truy cập một lớp bằng reflection. Bài này hướng dẫn đọc thông báo lỗi, xác định lớp/module thực sự được nạp và chọn cách sửa ít rủi ro nhất trên Java 9 trở lên.
+When a Java application uses both traditional libraries via the **classpath** and the **Java Platform Module System (JPMS)** via the **module path**, errors often appear at compile time, at startup, or when accessing a class via reflection. This guide walks through reading error messages, identifying which class/module is actually loaded, and choosing the lowest-risk fix on Java 9 and later.
 
-## 1. Hiểu đúng hai đường dẫn trước khi tìm lỗi
+## 1. Understand Both Paths Before Troubleshooting
 
-| Khái niệm | Classpath (`--class-path` hoặc `-cp`) | Module path (`--module-path` hoặc `-p`) |
+| Concept | Classpath (`--class-path` or `-cp`) | Module path (`--module-path` or `-p`) |
 | --- | --- | --- |
-| Đơn vị được JVM nhìn thấy | Các lớp thuộc **unnamed module** của class loader tương ứng | Named module có `module-info.class`; JAR không có descriptor có thể thành **automatic module** |
-| Khai báo phụ thuộc | Không cần `requires` | Named module dùng `requires tên.module;`; module còn phải được **resolve** |
-| Quy tắc truy cập | Không có ranh giới `exports` nội bộ giữa các JAR classpath | Có quy tắc **readability** (module nào đọc được module nào) và **exports** (package nào được sử dụng công khai) |
-| Reflection vào thành phần không public | Phụ thuộc quyền truy cập Java/reflection và cơ chế module của đích | Có thêm yêu cầu **opens** hoặc `--add-opens` đối với deep reflection |
-| Cách chạy chính | `java -cp ... com.example.Main` | `java -p ... -m ten.module/com.example.Main` |
+| Unit seen by the JVM | Classes belonging to the **unnamed module** of the corresponding class loader | Named modules with `module-info.class`; JARs without a descriptor can become an **automatic module** |
+| Dependency declaration | No `requires` needed | Named modules use `requires module.name;`; the module must also be **resolved** |
+| Access rules | No internal `exports` boundaries between classpath JARs | Has **readability** rules (which module reads which) and **exports** rules (which packages are publicly usable) |
+| Reflection into non-public members | Depends on Java/reflection access rights and the target's module mechanism | Adds the requirement of **opens** or `--add-opens` for deep reflection |
+| Primary launch form | `java -cp ... com.example.Main` | `java -p ... -m module.name/com.example.Main` |
 
-Một JAR được chuyển từ classpath sang module path **không còn mang cùng cơ chế truy cập**. JAR có descriptor trở thành named module; JAR thông thường trên module path thường trở thành automatic module với tên suy ra từ manifest hoặc tên file. Ngược lại, khi đặt JAR có `module-info.class` lên classpath, các lớp của nó hoạt động theo cơ chế classpath và descriptor không điều khiển module như khi ở module path.
+A JAR moved from the classpath to the module path **no longer carries the same access mechanism**. A JAR with a descriptor becomes a named module; an ordinary JAR on the module path typically becomes an automatic module with a name derived from the manifest or file name. Conversely, when a JAR with `module-info.class` is placed on the classpath, its classes operate under classpath rules and the descriptor does not govern modules as it does on the module path.
 
-Ba câu hỏi phải trả lời theo đúng thứ tự:
+Three questions must be answered in order:
 
-1. **Resolution:** Module chứa lớp cần dùng đã được tìm và đưa vào cấu hình module lúc compile/run chưa?
-2. **Readability:** Module gọi có đọc được module cung cấp lớp không?
-3. **Accessibility:** Package có được `exports` cho truy cập thông thường, hoặc `opens` cho deep reflection không?
+1. **Resolution:** Has the module containing the needed class been found and included in the module configuration at compile/run time?
+2. **Readability:** Can the calling module read the module that provides the class?
+3. **Accessibility:** Is the package `exports`-ed for normal access, or `opens`-ed for deep reflection?
 
-Một lớp tồn tại trong JAR vẫn có thể không dùng được nếu một trong ba điều kiện trên chưa thỏa.
+A class that exists in a JAR can still be unusable if any of these three conditions is not satisfied.
 
-## 2. Quy trình chẩn đoán nhanh
+## 2. Quick Diagnostic Workflow
 
-**Bước 1 — Xác định lỗi ở giai đoạn nào.** Ghi lại nguyên lệnh `javac` hoặc `java`, phiên bản JDK, stack trace đầu tiên và cách chạy (IDE, Maven, Gradle, dòng lệnh). Đừng chỉ nhìn câu thông báo cuối cùng.
+**Step 1 — Determine at which stage the error occurs.** Record the full `javac` or `java` command, the JDK version, the first stack trace, and the execution method (IDE, Maven, Gradle, command line). Do not look only at the final message line.
 
 ```bash
 java -version
 javac -version
 ```
 
-**Bước 2 — Xác định điểm vào ứng dụng.** Lệnh có `-m ten.module/com.example.Main` là chạy một named module. Lệnh có `-cp ... com.example.Main` chạy main theo classpath. Có thể đồng thời khai báo `-p` và `-cp`, nhưng **khai báo cả hai không có nghĩa tất cả module/JAR tự động nhìn thấy nhau**.
+**Step 2 — Identify the application entry point.** A command with `-m module.name/com.example.Main` runs a named module. A command with `-cp ... com.example.Main` runs main via the classpath. Both `-p` and `-cp` can be specified together, but **specifying both does not mean all modules/JARs automatically see one another**.
 
-**Bước 3 — Xác nhận JAR được xem là loại module nào.**
+**Step 3 — Confirm what kind of module the JAR is treated as.**
 
 ```bash
 jar --describe-module --file libs/example-lib.jar
 ```
 
-Đầu ra có descriptor và các `requires`/`exports` cho biết JAR modular. Nếu báo automatic module hoặc derived automatic module, hãy ghi chính xác tên module mà công cụ hiển thị; đừng đoán từ tên file. Kiểm tra bên trong JAR khi cần:
+Output showing a descriptor and `requires`/`exports` indicates a modular JAR. If it reports an automatic module or derived automatic module, record the exact module name displayed by the tool; do not guess from the file name. Inspect inside the JAR when needed:
 
 ```bash
 jar --list --file libs/example-lib.jar
 ```
 
-**Bước 4 — Quan sát module thực sự được resolve.**
+**Step 4 — Observe which modules are actually resolved.**
 
 ```bash
 java --show-module-resolution --module-path mods -m com.example.app/com.example.app.Main
@@ -53,36 +53,36 @@ java --validate-modules --module-path mods
 java --list-modules
 ```
 
-`--show-module-resolution` giúp nhìn tập root module và các dependency được chọn khi khởi động. `--validate-modules` hỗ trợ phát hiện một số xung đột trên module path. `--list-modules` liệt kê các module hệ thống/đang được quan sát bởi launcher với lựa chọn tương ứng; nó không thay thế việc đọc resolution của chính lệnh chạy ứng dụng.
+`--show-module-resolution` helps show the root module set and the dependencies selected at startup. `--validate-modules` helps detect certain conflicts on the module path. `--list-modules` lists system/observable modules seen by the launcher under the given options; it does not replace reading the resolution of the actual application launch command.
 
-**Bước 5 — Kiểm tra class/module được nạp từ đâu.** Nếu nghi trùng bản JAR, kiểm tra dependency tree của build và dùng class-loading log trên Java 9+:
+**Step 5 — Check where a class/module is loaded from.** If duplicate JARs are suspected, check the build's dependency tree and use class-loading logs on Java 9+:
 
 ```bash
 java -Xlog:class+load=info --module-path mods -m com.example.app/com.example.app.Main
 ```
 
-Tìm tên lớp nghi vấn trong log để thấy nguồn nạp thực tế. Dùng lọc log khi ứng dụng quá lớn.
+Search the suspect class name in the log to see the actual loading source. Filter the log when the application is large.
 
-## 3. Bảng nhận diện lỗi và hướng xử lý
+## 3. Error Recognition and Resolution Table
 
-| Triệu chứng tiêu biểu | Nguyên nhân cần kiểm tra | Hướng sửa ưu tiên |
+| Typical symptom | Cause to check | Preferred fix |
 | --- | --- | --- |
-| `module not found: foo.bar` khi `javac` | `requires foo.bar` nhưng không có module phù hợp trên module path biên dịch, hoặc tên module không khớp | Đưa đúng module/JAR lên `--module-path` và kiểm tra tên bằng `jar --describe-module` |
-| `java.lang.module.FindException: Module foo.bar not found` | Module bị thiếu lúc chạy, dù có thể đã có lúc compile | Đồng bộ module path runtime với artifact thực tế; xem graph bằng `--show-module-resolution` |
-| `package ... is not visible`; “module ... does not read ...” | Thiếu `requires`, thiếu `--add-modules` hoặc quan hệ readability | Xác định module nguồn, thêm `requires` hợp lệ; với code classpath dùng `--add-modules` khi cần |
-| `package ... is not visible`; “does not export ...” | Module đã được đọc nhưng package không được export | Dùng API thuộc package được `exports`; sửa descriptor nếu sở hữu module |
-| `IllegalAccessError` có nhắc `does not export` | Runtime có lớp nhưng truy cập không hợp lệ theo JPMS | Căn chỉnh descriptor, phiên bản JAR và đường dẫn runtime; chỉ cân nhắc `--add-exports` khi cần tương thích |
-| `InaccessibleObjectException`: “does not opens ...” | Framework dùng deep reflection vào package chưa mở | Sử dụng `opens`/`open module` ở module mình sở hữu hoặc `--add-opens` có giới hạn |
-| `ClassNotFoundException` / `NoClassDefFoundError` | Lớp hoặc một dependency gián tiếp không nằm trong cấu hình runtime; có thể module chưa resolve | Đối chiếu classpath/module path khi chạy, dependency tree và class-load log |
-| `ResolutionException`; “reads package ... from both ...” | Split package: hai module cung cấp cùng package cho một module đọc | Loại bản trùng, nâng/căn chỉnh thư viện, hoặc tái cấu trúc package |
-| `FindException`; “Unable to derive module descriptor” | JAR legacy không phù hợp làm automatic module (ví dụ tên package hoặc phụ thuộc có vấn đề) | Kiểm tra `jar --describe-module`, nội dung JAR và bản thư viện thích hợp |
-| `NoClassDefFoundError: ...` chỉ xảy ra trong IDE/test | Classpath/module path của IDE, runner hoặc test khác lệnh chạy chuẩn | So sánh lệnh launch thực tế và cấu hình test runner, không chỉ nhìn pom/build script |
+| `module not found: foo.bar` during `javac` | `requires foo.bar` is declared, but no matching module is on the compile module path, or the module name does not match | Place the right module/JAR on `--module-path` and verify the name with `jar --describe-module` |
+| `java.lang.module.FindException: Module foo.bar not found` | Module is missing at runtime, even though it may have been present at compile time | Align the runtime module path with actual artifacts; inspect the graph with `--show-module-resolution` |
+| `package ... is not visible`; "module ... does not read ..." | Missing `requires`, missing `--add-modules`, or missing readability relationship | Identify the source module and add a valid `requires`; for classpath code use `--add-modules` when needed |
+| `package ... is not visible`; "does not export ..." | The module is read, but the package is not exported | Use an API from an `exports`-ed package; update the descriptor if you own the module |
+| `IllegalAccessError` mentioning `does not export` | The class exists at runtime, but access violates JPMS rules | Align the descriptor, JAR version, and runtime paths; consider `--add-exports` only for compatibility |
+| `InaccessibleObjectException`: "does not opens ..." | A framework uses deep reflection into a package that is not open | Use `opens`/`open module` in a module you own, or scoped `--add-opens` |
+| `ClassNotFoundException` / `NoClassDefFoundError` | The class or a transitive dependency is not in the runtime configuration; a module may not be resolved | Cross-check runtime classpath/module path, dependency tree, and class-load logs |
+| `ResolutionException`; "reads package ... from both ..." | Split package: two modules provide the same package to a reading module | Remove duplicates, upgrade/align libraries, or restructure packages |
+| `FindException`; "Unable to derive module descriptor" | Legacy JAR is unsuitable as an automatic module (e.g., problematic package names or dependencies) | Check `jar --describe-module`, JAR contents, and an appropriate library version |
+| `NoClassDefFoundError: ...` occurs only in IDE/tests | Classpath/module path of the IDE, runner, or tests differs from the standard launch command | Compare the actual launch command and test runner configuration, not just the pom/build script |
 
-Không kết luận chỉ dựa trên tên exception. Phần **“module X does not read Y”**, **“does not export P to X”**, **“does not opens P to X”** trong thông báo mới chỉ đúng bước bị chặn.
+Do not jump to conclusions from the exception name alone. The phrases **"module X does not read Y"**, **"does not export P to X"**, and **"does not opens P to X"** in the message pinpoint the blocked step.
 
-## 4. Ví dụ tối thiểu: hai named module chạy đúng
+## 4. Minimal Example: Two Named Modules Running Properly
 
-Giả sử có cấu trúc sau:
+Suppose we have the following structure:
 
 ```text
 src/
@@ -110,7 +110,7 @@ package com.example.greeter;
 public final class Greeter {
     private Greeter() {}
     public static String greet() {
-        return "Xin chào JPMS";
+        return "Hello JPMS";
     }
 }
 ```
@@ -137,7 +137,7 @@ public class Main {
 }
 ```
 
-Biên dịch và chạy từ thư mục gốc dự án:
+Compile and run from the project root directory:
 
 ```bash
 javac -d mods/com.example.greeter src/com.example.greeter/module-info.java src/com.example.greeter/com/example/greeter/Greeter.java
@@ -145,17 +145,17 @@ javac --module-path mods -d mods/com.example.app src/com.example.app/module-info
 java --module-path mods -m com.example.app/com.example.app.Main
 ```
 
-Kết quả mong đợi:
+Expected output:
 
 ```text
-Xin chào JPMS
+Hello JPMS
 ```
 
-Ở đây `mods` là thư mục chứa hai thư mục module dạng exploded. Nếu bỏ `--module-path mods` lúc biên dịch ứng dụng, dòng `requires com.example.greeter;` không được giải quyết và phát sinh `module not found`. Nếu bỏ cùng tùy chọn lúc chạy, launcher không tìm được module ứng dụng hoặc dependency của nó.
+Here `mods` is a directory containing two exploded module directories. If `--module-path mods` is omitted when compiling the application, `requires com.example.greeter;` cannot be resolved and raises `module not found`. If the same option is omitted at runtime, the launcher cannot find the application module or its dependency.
 
-## 5. Tình huống A: chương trình classpath gọi thư viện module path
+## 5. Scenario A: A Classpath Program Calling a Module-Path Library
 
-Tạo chương trình truyền thống tại `legacy/LegacyMain.java`:
+Create a traditional program at `legacy/LegacyMain.java`:
 
 ```java
 import com.example.greeter.Greeter;
@@ -167,38 +167,38 @@ public class LegacyMain {
 }
 ```
 
-Nếu thư viện `com.example.greeter` nằm ở `mods`, chỉ thêm `--module-path mods` thường **chưa đủ** để root-module resolution chọn module thư viện cho một main nằm trên classpath. Nêu module cần resolve rõ ràng khi biên dịch và khi chạy:
+If the `com.example.greeter` library is in `mods`, adding only `--module-path mods` is usually **not enough** for root-module resolution to select the library module for a main class on the classpath. Specify the module to resolve explicitly at compile time and runtime:
 
 ```bash
 javac --module-path mods --add-modules com.example.greeter -d out-legacy legacy/LegacyMain.java
 java --module-path mods --add-modules com.example.greeter --class-path out-legacy LegacyMain
 ```
 
-`--add-modules com.example.greeter` đưa thư viện vào tập root modules để lớp trong unnamed module có thể dùng package được export. Nếu còn lỗi `does not export`, thay đổi `--add-modules` không mở được package bị ẩn: cần xem `exports` của module thư viện.
+`--add-modules com.example.greeter` puts the library into the root modules set so classes in the unnamed module can use exported packages. If a `does not export` error still occurs, changing `--add-modules` cannot expose a hidden package: check the library module's `exports`.
 
-Khi chạy code classpath với nhiều JAR:
+When running classpath code with multiple JARs:
 
 ```bash
-# Linux/macOS: ngăn cách nhiều mục classpath bằng dấu hai chấm
+# Linux/macOS: separate multiple classpath entries with a colon
 java -cp "out-legacy:libs/dependency.jar" LegacyMain
 
-# Windows: dùng dấu chấm phẩy
+# Windows: use a semicolon
 java -cp "out-legacy;libs/dependency.jar" LegacyMain
 ```
 
-Dấu phân cách classpath khác nhau giữa hệ điều hành. `--module-path` nhiều phần tử cũng tuân theo dấu phân cách đường dẫn tương ứng. Ví dụ phía trên về JPMS chỉ có một mục đường dẫn nên dùng chung được.
+The classpath separator differs across operating systems. Multi-entry `--module-path` also follows the corresponding path separator. The JPMS example above has only a single path entry, so it works across both.
 
-## 6. Tình huống B: named module cần dùng thư viện legacy
+## 6. Scenario B: A Named Module Needs a Legacy Library
 
-Giả sử ứng dụng có `module-info.java` và cần thư viện `legacy-util-1.0.jar` vốn chưa khai báo module.
+Suppose the application has `module-info.java` and needs the library `legacy-util-1.0.jar`, which does not yet declare a module.
 
-**Cách chuyển tiếp thường phù hợp:** đặt JAR legacy trên module path để nó trở thành **automatic module** (nếu JAR hợp lệ), lấy tên module chính xác từ:
+**Usually suitable transition approach:** place the legacy JAR on the module path so it becomes an **automatic module** (if the JAR is valid), and obtain the exact module name from:
 
 ```bash
 jar --describe-module --file libs/legacy-util-1.0.jar
 ```
 
-Nếu công cụ xác nhận tên `legacy.util`, module ứng dụng có thể khai báo:
+If the tool confirms the name `legacy.util`, the application module can declare:
 
 ```java
 module com.example.app {
@@ -207,114 +207,114 @@ module com.example.app {
 }
 ```
 
-Và đặt cả các module ứng dụng lẫn JAR thư viện trên module path:
+And place both the application modules and the library JAR on the module path:
 
 ```bash
-# Minh họa phần đường dẫn; đặt các mục theo hệ điều hành
+# Illustrate the path portion; separate entries according to the OS
 java --module-path "mods;libs/legacy-util-1.0.jar" -m com.example.app/com.example.app.Main
 ```
 
-Ví dụ lệnh vừa rồi dùng dấu `;` theo Windows; Linux/macOS dùng `:`. Tên `legacy.util` chỉ là **ví dụ**, không được đưa vào `requires` trước khi kiểm tra JAR thật. Tên automatic module suy ra từ file có thể thay đổi khi đổi tên artifact; với thư viện do mình quản lý, thêm `Automatic-Module-Name` trong manifest giúp ổn định tên trong thời gian chuyển tiếp. Automatic module không có cùng mức đóng gói nghiêm ngặt với explicit module và vẫn có thể gặp split package, module naming hoặc lỗi phụ thuộc.
+The command above uses `;` for Windows; Linux/macOS uses `:`. The name `legacy.util` is only an **example** and must not be put into `requires` before inspecting the actual JAR. An automatic module name derived from the file name can change if the artifact is renamed; for libraries you maintain, adding `Automatic-Module-Name` in the manifest stabilizes the name during the transition. An automatic module does not have the same strict encapsulation as an explicit module and can still suffer from split-package, module-naming, or dependency errors.
 
-**Trường hợp không thể chuyển thư viện lên module path:** Một named module không thể viết `requires ALL-UNNAMED;` hay `requires ten.jar.tren.classpath;` để khai báo phụ thuộc vào unnamed module. Có thể dùng giải pháp tương thích đặc biệt với `--add-reads com.example.app=ALL-UNNAMED`, kết hợp classpath chứa JAR legacy, ở cả giai đoạn cần thiết của compile/run; nhưng cấu hình này nên được xem như bước chuyển đổi tạm thời vì làm suy yếu ranh giới module và dễ bị quên trong IDE/test/production.
+**When the library cannot be moved to the module path:** A named module cannot write `requires ALL-UNNAMED;` or `requires jar.on.classpath;` to declare a dependency on the unnamed module. A special compatibility workaround can be used with `--add-reads com.example.app=ALL-UNNAMED`, combined with the classpath containing the legacy JAR, at the required compile/run stages; however, this configuration should be treated as a temporary transition step because it weakens module boundaries and is easily forgotten in IDEs, tests, and production.
 
-## 7. Tình huống C: nhầm `exports`, `opens` và `--add-reads`
+## 7. Scenario C: Confusing `exports`, `opens`, and `--add-reads`
 
-Ba quyền khác nhau:
+Three distinct permissions:
 
-- `requires com.example.lib;`: named module **đọc** module `com.example.lib`; nó không tự xuất mọi package của thư viện.
-- `exports com.example.api;`: cho module khác dùng các kiểu `public` trong package đó theo quy tắc thông thường. Có thể giới hạn: `exports com.example.internal to com.example.client;`.
-- `opens com.example.model;`: cho phép deep reflection vào package, ví dụ framework đọc field/constructor không public, theo các kiểm tra truy cập tương ứng. Có thể giới hạn: `opens com.example.model to com.example.framework;`.
+- `requires com.example.lib;`: the named module **reads** module `com.example.lib`; it does not automatically expose all packages of the library.
+- `exports com.example.api;`: lets other modules use `public` types in that package under normal access rules. It can be restricted: `exports com.example.internal to com.example.client;`.
+- `opens com.example.model;`: allows deep reflection into the package—for example, a framework reading non-public fields/constructors—subject to corresponding access checks. It can be restricted: `opens com.example.model to com.example.framework;`.
 
-Ví dụ một framework trên classpath phản ánh vào package `java.lang` và gặp lỗi `InaccessibleObjectException`. Với trường hợp thật sự buộc tương thích, một phương án launch tạm thời là:
+For example, a framework on the classpath reflects into package `java.lang` and hits `InaccessibleObjectException`. When compatibility is genuinely required, a temporary launch option is:
 
 ```bash
 java --add-opens java.base/java.lang=ALL-UNNAMED -cp "app.jar" com.example.Main
 ```
 
-Đối với quyền truy cập thông thường vào package không export, cơ chế tương thích khác là:
+For normal access to a non-exported package, another compatibility mechanism is:
 
 ```bash
-java --add-exports ten.module/com.example.internal=ALL-UNNAMED -cp "app.jar" com.example.Main
+java --add-exports module.name/com.example.internal=ALL-UNNAMED -cp "app.jar" com.example.Main
 ```
 
-Đừng dùng `--add-exports` để chữa lỗi reflection cần `opens`, hoặc dùng `--add-opens` để chữa lỗi không tìm thấy module. Khi nguồn module do mình sở hữu, cập nhật `module-info.java` chính xác thường bền vững hơn. Với JDK internals, ưu tiên API được hỗ trợ và phiên bản framework mới; các cờ tương thích có thể không còn thích hợp sau nâng JDK.
+Do not use `--add-exports` to fix a reflection error that needs `opens`, or use `--add-opens` to fix a module-not-found error. When you own the module source, updating `module-info.java` properly is usually more sustainable. For JDK internals, prefer supported APIs and newer framework versions; compatibility flags may stop being appropriate after a JDK upgrade.
 
-## 8. Tình huống D: dependency bị nhân đôi hoặc split package
+## 8. Scenario D: Duplicate Dependencies or Split Packages
 
-Ví dụ `lib-old.jar` và `lib-new.jar` cùng chứa package `com.vendor.util`; khi cả hai là named/automatic modules trên module path và một module đọc cả hai, JPMS có thể từ chối resolution vì **split package**. Tương tự, một JAR được khai báo ở cả classpath và module path có thể gây nhầm lẫn về nguồn lớp được nạp hoặc phiên bản dependency.
+For example, `lib-old.jar` and `lib-new.jar` both contain package `com.vendor.util`; when both are named/automatic modules on the module path and a module reads both, JPMS can reject resolution due to a **split package**. Similarly, a JAR declared on both the classpath and module path can cause confusion over which source loads a class or which dependency version is used.
 
-Hãy tìm dấu vết theo thứ tự:
+Trace the issue in order:
 
-1. Chạy `jar --describe-module --file ...` với các JAR nghi vấn để biết tên module.
-2. Chạy `jar --list --file ...` để kiểm tra các package xuất hiện trong từng JAR.
-3. Đọc dependency tree/đường dẫn launch thực tế, đặc biệt khi framework tự tạo đường dẫn.
-4. Giữ một bản dependency nhất quán; loại JAR trùng hoặc điều chỉnh phiên bản ở build tool.
-5. Nếu hai module thật sự cùng chứa một package cần dùng, tái cấu trúc/shading theo chủ đích hoặc dùng phiên bản thư viện JPMS-ready; đừng chỉ thêm `--add-reads`.
+1. Run `jar --describe-module --file ...` on suspect JARs to learn their module names.
+2. Run `jar --list --file ...` to check which packages appear in each JAR.
+3. Inspect the dependency tree and actual launch paths, especially when a framework constructs paths automatically.
+4. Keep one consistent dependency version; remove duplicate JARs or adjust versions in the build tool.
+5. If two modules genuinely share a required package, intentionally refactor/shade or use JPMS-ready library versions; do not just add `--add-reads`.
 
-Classpath có cơ chế chọn lớp theo thứ tự tìm kiếm, còn JPMS kiểm soát package/module ở giai đoạn resolution. Vì vậy cùng tập JAR có thể “chạy được trên classpath” nhưng lỗi khi chuyển sang module path; đây là tín hiệu cần xử lý dependency, không phải chỉ đổi cờ JVM.
+The classpath selects classes by search order, whereas JPMS checks packages/modules at resolution time. Thus, the same set of JARs can "work on the classpath" yet fail when moved to the module path; this is a signal to fix dependencies, not merely tweak JVM flags.
 
-## 9. Tình huống E: chạy được ở CLI, lỗi trong IDE, test hoặc khi đóng gói
+## 9. Scenario E: Works on CLI, Fails in IDE, Tests, or Packaging
 
-Đừng suy luận cấu hình runtime từ thành công biên dịch. Kiểm tra **lệnh Java thực tế** mà IDE, JUnit/test plugin, Maven hoặc Gradle sinh ra:
+Do not infer runtime configuration from successful compilation. Inspect the **actual Java command** generated by the IDE, JUnit/test plugin, Maven, or Gradle:
 
-- Main class đang được chạy bằng `-cp` hay `-m`? Có nhầm chuyển named module thành chương trình classpath không?
-- `--module-path`, `--class-path`, `--add-modules`, `--add-opens` có xuất hiện đầy đủ trong **lệnh chạy và lệnh test** không?
-- Có khác phiên bản JDK giữa terminal, IDE, CI và production không?
-- Test có sử dụng `--patch-module` hoặc classpath riêng khiến các lớp test và module ứng dụng nằm ở cấu hình khác không?
-- Các JAR chạy thực tế có đúng phiên bản và cùng tên module như lúc biên dịch không?
+- Is the main class launched with `-cp` or `-m`? Was a named module accidentally launched as a classpath program?
+- Are `--module-path`, `--class-path`, `--add-modules`, and `--add-opens` all present in both the **run command and the test command**?
+- Is there a JDK version mismatch across terminal, IDE, CI, and production?
+- Do tests use `--patch-module` or a separate classpath causing test classes and application modules to sit in different configurations?
+- Do the actual runtime JARs match the exact versions and module names used at compile time?
 
-Các bản chạy `jlink` chỉ chứa module được đưa vào image và module phụ thuộc phù hợp; khi đóng gói, xác minh module cần thiết đã được đưa vào image. Với ứng dụng chạy trực tiếp, xem `--show-module-resolution` để biết chính xác graph mà launcher chọn.
+`jlink` images contain only the modules included in the image and their appropriate dependencies; when packaging, verify that required modules are included in the image. For directly launched applications, check `--show-module-resolution` to see the exact graph chosen by the launcher.
 
-## 10. Chọn giải pháp theo kiến trúc dự án
+## 10. Choosing a Solution by Project Architecture
 
-| Kiến trúc hiện tại | Cấu hình nên ưu tiên | Điểm cần kiểm tra |
+| Current architecture | Preferred configuration | Points to verify |
 | --- | --- | --- |
-| Ứng dụng và thư viện đều là named modules | `--module-path`; `requires` và `exports` đầy đủ | Tên module, graph, split package |
-| Main ở classpath, thư viện ở module path | `-cp` cho main, `-p` cho thư viện, `--add-modules` khi thư viện chưa được resolve | Package cần dùng phải export |
-| Main named module, thư viện JAR legacy | Chuyển JAR phù hợp sang automatic module; sau đó khai báo `requires` | Tên automatic module, dependency bắc cầu, split package |
-| Ứng dụng hoàn toàn legacy chưa có nhu cầu JPMS | Giữ cấu hình classpath thống nhất trong giai đoạn chuyển đổi | Tránh vô tình đưa một phần dependency sang `-p` |
-| Framework dùng reflection vào named module | `opens` package cần thiết, có thể giới hạn đích | Quyền reflection khác quyền import kiểu `public` |
+| Both application and libraries are named modules | `--module-path`; complete `requires` and `exports` | Module names, graph, split packages |
+| Main on classpath, libraries on module path | `-cp` for main, `-p` for libraries, `--add-modules` when libraries are not yet resolved | Required packages must be exported |
+| Main is a named module, legacy JAR libraries | Move eligible JARs to automatic modules; then declare `requires` | Automatic module names, transitive dependencies, split packages |
+| Fully legacy application with no JPMS need yet | Keep a unified classpath configuration during transition | Avoid accidentally placing part of dependencies on `-p` |
+| Framework uses reflection into a named module | `opens` required packages, optionally qualified to target | Reflection rights differ from `public` type import rights |
 
-**Thứ tự sửa khuyến nghị:** đúng artifact và version → đúng classpath/module path → đúng module name và root modules → đúng `requires`/readability → đúng `exports`/`opens` → chỉ sau cùng mới cân nhắc cờ tương thích. Mỗi lần chỉ thay đổi một nguyên nhân có bằng chứng từ message hoặc module-resolution log.
+**Recommended fix order:** correct artifact and version → correct classpath/module path → correct module name and root modules → correct `requires`/readability → correct `exports`/`opens` → only last, consider compatibility flags. Change only one cause at a time with evidence from the error message or module-resolution log.
 
-## 11. Bộ lệnh thực hành để lưu lại khi điều tra
+## 11. Practical Command Set to Keep When Investigating
 
 ```bash
-# JDK hiện đang dùng
+# Current JDK in use
 java -version
 javac -version
 
-# JAR modular hay automatic module? Tên module chính xác là gì?
+# Modular JAR or automatic module? What is the exact module name?
 jar --describe-module --file libs/example-lib.jar
 
-# Kiểm tra file có trong JAR
+# Check files inside the JAR
 jar --list --file libs/example-lib.jar
 
-# Module-path có xung đột rõ ràng?
+# Any obvious module-path conflicts?
 java --validate-modules --module-path mods
 
-# Launcher resolve những module nào cho entry point?
+# Which modules does the launcher resolve for the entry point?
 java --show-module-resolution --module-path mods -m com.example.app/com.example.app.Main
 
-# Lớp nào được nạp và nạp từ đâu? (Java 9+)
+# Which class is loaded and from where? (Java 9+)
 java -Xlog:class+load=info --module-path mods -m com.example.app/com.example.app.Main
 
-# Phân tích dependency của một JAR để hỗ trợ quá trình modular hóa
+# Analyze dependencies of a JAR to aid modularization
 jdeps --recursive libs/example-lib.jar
 ```
 
-Thay tên file/module và đường dẫn theo dự án thực. Nếu `jdeps` báo missing dependency, bổ sung đường dẫn thư viện cần thiết rồi chạy lại để có bức tranh phụ thuộc đầy đủ; `jdeps` phân tích dependency tĩnh, không thể chứng minh mọi tương tác qua reflection.
+Substitute file/module names and paths according to your real project. If `jdeps` reports a missing dependency, supply the necessary library paths and rerun to get the complete dependency picture; `jdeps` performs static dependency analysis and cannot prove every interaction made via reflection.
 
-## 12. Câu hỏi tự kiểm tra khi gặp lỗi mới
+## 12. Self-Check Questions When Encountering a New Error
 
-1. JAR chứa lớp đang nằm trên classpath, module path, hay cả hai?
-2. Khi kiểm tra bằng `jar --describe-module`, tên module và loại module thực tế là gì?
-3. Module đích có được resolve không? Nếu không, cần thêm `requires`, chỉnh `-p` hay `--add-modules`?
-4. Module gọi đã có quyền đọc module đích chưa?
-5. Package cần import có được export tới module gọi không?
-6. Nếu lỗi xảy ra trong reflection, package đích có được open tới đúng module/framework không?
-7. Có bản JAR trùng, split package, hoặc khác cấu hình compile/runtime/test không?
-8. Sau khi sửa, lệnh chạy thực tế có còn đúng khi đưa vào IDE, CI và bản deploy không?
+1. Is the JAR containing the class on the classpath, the module path, or both?
+2. When inspected with `jar --describe-module`, what is the actual module name and module kind?
+3. Is the target module resolved? If not, do you need `requires`, `-p`, or `--add-modules`?
+4. Does the calling module have permission to read the target module?
+5. Is the package being imported exported to the calling module?
+6. If the error occurs during reflection, is the target package opened to the right module/framework?
+7. Are there duplicate JARs, split packages, or configuration differences across compile/runtime/tests?
+8. After fixing, will the actual launch command still be valid in the IDE, CI, and deployment artifact?
 
-Khi trả lời được tám câu hỏi này bằng thông báo lỗi, thông tin JAR và dòng lệnh thực tế, phần lớn lỗi trộn classpath/module path có thể được khoanh vùng thành **thiếu resolution, thiếu readability, thiếu exports/opens hoặc xung đột dependency**.
+Once these eight questions are answered using the error message, JAR details, and actual command line, most classpath/module-path mixing errors can be narrowed down to **missing resolution, missing readability, missing exports/opens, or a dependency conflict**.

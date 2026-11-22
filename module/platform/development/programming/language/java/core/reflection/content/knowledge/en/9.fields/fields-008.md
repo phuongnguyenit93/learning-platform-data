@@ -1,49 +1,49 @@
-# Field.set với kiểu tham chiếu hoặc primitive trong Java Reflection
+# Field.set with reference or primitive types in Java Reflection
 
-## 1. Đặt vấn đề và hợp đồng của Field.set
+## 1. Problem statement and the contract of Field.set
 
-`java.lang.reflect.Field` mô tả một field **cụ thể** được khai báo trong class/interface. `Field.set(Object obj, Object value)` đặt giá trị mới cho field đó nếu quyền truy cập, quyền ghi, đối tượng đích và kiểu dữ liệu đều phù hợp. Cùng một API áp dụng cho field **kiểu tham chiếu** (ví dụ `String`, `Number`, `Integer`, `List<?>`, mảng) và field **primitive** (`boolean`, `byte`, `short`, `char`, `int`, `long`, `float`, `double`), nhưng các quy tắc kiểm tra `value` không giống nhau.
+`java.lang.reflect.Field` describes a **specific** field declared in a class/interface. `Field.set(Object obj, Object value)` assigns a new value to that field if access permission, write permission, target object, and data type are all compatible. The same API applies to **reference-type** fields (e.g., `String`, `Number`, `Integer`, `List<?>`, arrays) and **primitive** fields (`boolean`, `byte`, `short`, `char`, `int`, `long`, `float`, `double`), though the validation rules for `value` are not the same.
 
-Khi viết công cụ mapping, serializer hoặc binder, cần trả lời bốn câu hỏi độc lập:
+When writing a mapping, serialization, or binding tool, four independent questions must be answered:
 
-1. Field có kiểu gì? `field.getType()` trả về kiểu đã khai báo; `field.getType().isPrimitive()` phân biệt nhánh primitive với reference.
-2. `obj` trỏ đến đối tượng hợp lệ không? Instance field yêu cầu object của class khai báo (hoặc subtype); với static field `obj` bị bỏ qua, có thể là `null`.
-3. Field có được phép ghi không? `getDeclaredField` tìm thấy field private nhưng chưa chắc truy cập được. `trySetAccessible()` có thể thất bại do module; field `final` còn có giới hạn write access.
-4. Giá trị truyền vào có tương thích với **kiểu của field** không? Với reference, đó là quan hệ assignability của object. Với primitive, đó là **unboxing** wrapper rồi identity/widening primitive conversion.
+1. What type is the field? `field.getType()` returns the declared type; `field.getType().isPrimitive()` separates the primitive branch from reference types.
+2. Does `obj` point to a valid object? Instance fields require an object of the declaring class (or subtype); for static fields `obj` is ignored and can be `null`.
+3. Is the field writable? `getDeclaredField` finds a private field but does not guarantee accessibility. `trySetAccessible()` may fail due to module boundaries; `final` fields also have write-access restrictions.
+4. Is the passed value compatible with **the field's type**? For reference types, this is object assignability. For primitives, this is **unboxing** the wrapper followed by identity/widening primitive conversion.
 
-`Field.set` không parse số từ chuỗi, không ép kiểu tùy ý, không tự tạo object, không bảo đảm an toàn generic và không bỏ qua giới hạn của Java Platform Module System.
+`Field.set` does not parse numbers from strings, does not arbitrarily cast types, does not instantiate objects, does not guarantee generic safety, and does not bypass Java Platform Module System restrictions.
 
-Các chữ ký API liên quan:
+Related API signatures:
 
 ~~~java
-// Chữ ký API minh họa; không phải chương trình biên dịch độc lập.
+// Illustrative API signatures; not a standalone compilable program.
 public void set(Object obj, Object value)
         throws IllegalArgumentException, IllegalAccessException;
 public void setInt(Object obj, int i)
         throws IllegalArgumentException, IllegalAccessException;
 ~~~
 
-Khi viết `field.set(obj, 42)`, compiler boxing giá trị literal `42` thành `Integer` để truyền qua tham số `Object`. Nếu field thực là `int`, Reflection unboxing `Integer` thành `int` trước khi ghi. Không nhầm boxing tại chỗ gọi với unboxing trong implementation của `Field.set`.
+When writing `field.set(obj, 42)`, the compiler boxes the literal `42` into an `Integer` to pass through the `Object` parameter. If the actual field is `int`, Reflection unboxes `Integer` back to `int` before writing. Do not confuse call-site boxing with unboxing inside `Field.set`'s implementation.
 
-## 2. Quy tắc cho field kiểu tham chiếu
+## 2. Rules for reference-type fields
 
-Field tham chiếu có kiểu `T` nhận `null` hoặc một object có thể gán cho `T` theo kiểu runtime. Những giá trị không tương thích khiến `Field.set` ném `IllegalArgumentException`, dù có thể chuyển đổi được qua logic do ứng dụng tự viết.
+A reference field of type `T` accepts `null` or an object assignable to `T` at runtime. Incompatible values cause `Field.set` to throw `IllegalArgumentException`, even if they could be converted by custom application logic.
 
-| Field khai báo | Value đưa vào `set` | Kết quả |
+| Declared field | Value passed to `set` | Result |
 | --- | --- | --- |
-| `String name` | `"Lan"` | Thành công vì đúng kiểu. |
-| `CharSequence text` | `new StringBuilder("hi")` | Thành công vì implements `CharSequence`. |
-| `Number amount` | `Integer.valueOf(10)` | Thành công vì `Integer` là subtype của `Number`. |
-| `Object payload` | `new int[] {1, 2}` | Thành công, mảng cũng là object. |
-| `Integer boxed` | `Integer.valueOf(10)` | Thành công; `Integer` **không** phải primitive. |
-| `Integer boxed` | `Long.valueOf(10)` | Thất bại; không tự ép wrapper `Long` sang `Integer`. |
-| `String name` | `null` | Thành công nếu có quyền ghi field. |
-| `String name` | `Integer.valueOf(10)` | Thất bại; API không gọi `toString()`. |
+| `String name` | `"Lan"` | Succeeds because the type matches. |
+| `CharSequence text` | `new StringBuilder("hi")` | Succeeds because it implements `CharSequence`. |
+| `Number amount` | `Integer.valueOf(10)` | Succeeds because `Integer` is a subtype of `Number`. |
+| `Object payload` | `new int[] {1, 2}` | Succeeds; an array is also an object. |
+| `Integer boxed` | `Integer.valueOf(10)` | Succeeds; `Integer` is **not** primitive. |
+| `Integer boxed` | `Long.valueOf(10)` | Fails; wrapper `Long` is not automatically coerced to `Integer`. |
+| `String name` | `null` | Succeeds if the field is writable. |
+| `String name` | `Integer.valueOf(10)` | Fails; the API does not call `toString()`. |
 
-Kiểm tra thông thường trước khi ghi reference:
+Typical check before writing a reference:
 
 ~~~java
-// Đoạn chèn vào method đã có Field field, Object obj, Object value.
+// Snippet inserted into a method that already has Field field, Object obj, Object value.
 Class<?> type = field.getType();
 if (!type.isPrimitive()) {
     if (value != null && !type.isInstance(value)) {
@@ -53,47 +53,47 @@ if (!type.isPrimitive()) {
 }
 ~~~
 
-`Class.isAssignableFrom` cũng kiểm tra được quan hệ kiểu khi `value != null`, ví dụ `type.isAssignableFrom(value.getClass())`. Không gọi `value.getClass()` với `null`; cũng đừng dùng `isInstance` để suy ra phép chuyển từ wrapper sang primitive.
+`Class.isAssignableFrom` can also check type relationships when `value != null`, e.g., `type.isAssignableFrom(value.getClass())`. Do not call `value.getClass()` on `null`; also do not use `isInstance` to infer conversion from a wrapper to a primitive.
 
-**Mảng được xếp vào nhóm reference.** Field `int[] values` có kiểu runtime là array class, tức `valuesField.getType().isPrimitive() == false`. Có thể gán một `int[]` khác hoặc `null`; không gán được `Integer[]` thay `int[]` bằng auto-boxing của từng phần tử. Muốn sửa một phần tử mảng hiện có là thao tác khác (`Array.setInt` hoặc code mảng thông thường), không phải `Field.set` trên field.
+**Arrays are categorized as reference types.** A field `int[] values` has a runtime type that is an array class, meaning `valuesField.getType().isPrimitive() == false`. You can assign another `int[]` or `null`; you cannot assign an `Integer[]` in place of `int[]` via per-element auto-boxing. Modifying an element of an existing array is a different operation (`Array.setInt` or standard array code), not `Field.set` on the field.
 
-**Generic bị erasure:** Một field `List<String> names` vẫn có `getType() == List.class`. `Field.set` không kiểm tra parameter `String` của từng phần tử, do đó việc gán `List<Integer>` có thể qua được kiểm tra kiểu runtime dù sau này code đọc phần tử như `String` sẽ gặp `ClassCastException`. `getGenericType()` phản ánh khai báo tham số hóa để framework tự xây dựng kiểm tra bổ sung.
+**Generics are erased:** A field `List<String> names` still has `getType() == List.class`. `Field.set` does not check the `String` type parameter of elements, so assigning a `List<Integer>` can pass the runtime type check even though code later reading elements as `String` will encounter `ClassCastException`. `getGenericType()` reflects the parameterized declaration so frameworks can build additional checks themselves.
 
-## 3. Quy tắc cho field primitive: unboxing và widening
+## 3. Rules for primitive fields: unboxing and widening
 
-`Field.set` nhận `Object value` nên muốn ghi field primitive thì đối tượng giá trị thông thường là một trong tám wrapper: `Boolean`, `Byte`, `Short`, `Character`, `Integer`, `Long`, `Float`, `Double`. Reflection thử unboxing, sau đó dùng identity hoặc **widening primitive conversion** phù hợp với Java. API không thực hiện narrowing dù số thực tế có thể nằm gọn trong miền đích.
+`Field.set` accepts `Object value`, so to write a primitive field the value object is normally one of the eight wrappers: `Boolean`, `Byte`, `Short`, `Character`, `Integer`, `Long`, `Float`, `Double`. Reflection attempts unboxing, then applies identity or a valid **widening primitive conversion** in Java. The API does not perform narrowing even if the actual number fits within the target range.
 
-| Kiểu primitive sau khi unbox | Field đích cho phép |
+| Primitive type after unboxing | Allowed target fields |
 | --- | --- |
-| `boolean` (từ `Boolean`) | `boolean` |
-| `byte` (từ `Byte`) | `byte`, `short`, `int`, `long`, `float`, `double` |
-| `short` (từ `Short`) | `short`, `int`, `long`, `float`, `double` |
-| `char` (từ `Character`) | `char`, `int`, `long`, `float`, `double` |
-| `int` (từ `Integer`) | `int`, `long`, `float`, `double` |
-| `long` (từ `Long`) | `long`, `float`, `double` |
-| `float` (từ `Float`) | `float`, `double` |
-| `double` (từ `Double`) | `double` |
+| `boolean` (from `Boolean`) | `boolean` |
+| `byte` (from `Byte`) | `byte`, `short`, `int`, `long`, `float`, `double` |
+| `short` (from `Short`) | `short`, `int`, `long`, `float`, `double` |
+| `char` (from `Character`) | `char`, `int`, `long`, `float`, `double` |
+| `int` (from `Integer`) | `int`, `long`, `float`, `double` |
+| `long` (from `Long`) | `long`, `float`, `double` |
+| `float` (from `Float`) | `float`, `double` |
+| `double` (from `Double`) | `double` |
 
-Ví dụ có thể lý giải theo thứ tự:
+Examples explained in order:
 
-- `int count` nhận `Integer.valueOf(7)`, `Byte.valueOf((byte) 7)`, `Character.valueOf('A')`: identity hoặc widening đến `int`.
-- `long elapsed` nhận `Integer.valueOf(7)`: `Integer → int → long`.
-- `double ratio` nhận `Float.valueOf(1.5f)`: `Float → float → double`.
-- `int count` **không** nhận `Long.valueOf(7L)`: `long → int` là narrowing bị cấm.
-- `short small` **không** nhận `Integer.valueOf(1)`: số `1` nhỏ vẫn không tạo quyền narrowing `int → short`.
-- `boolean active` chỉ nhận `Boolean` phù hợp; giá trị `"true"` và `Integer.valueOf(1)` không được tự parse/coerce.
-- Mọi field primitive đều **không** nhận `null`: không unbox được, `Field.set` ném `IllegalArgumentException`. Field reference nhận `null` nếu quyền ghi hợp lệ.
+- `int count` accepts `Integer.valueOf(7)`, `Byte.valueOf((byte) 7)`, `Character.valueOf('A')`: identity or widening to `int`.
+- `long elapsed` accepts `Integer.valueOf(7)`: `Integer → int → long`.
+- `double ratio` accepts `Float.valueOf(1.5f)`: `Float → float → double`.
+- `int count` does **not** accept `Long.valueOf(7L)`: `long → int` is forbidden narrowing.
+- `short small` does **not** accept `Integer.valueOf(1)`: the small number `1` still does not grant `int → short` narrowing.
+- `boolean active` only accepts an appropriate `Boolean`; values like `"true"` and `Integer.valueOf(1)` are not automatically parsed/coerced.
+- All primitive fields do **not** accept `null`: cannot be unboxed, so `Field.set` throws `IllegalArgumentException`. Reference fields accept `null` if write permission is valid.
 
-Widening là quy tắc **kiểu**, không phải cam kết không mất precision. Ví dụ `long → float` được phép nhưng số nguyên lớn có thể mất độ chính xác; công cụ nghiệp vụ có thể áp dụng quy tắc chặt hơn khi cần bảo toàn giá trị.
+Widening is a **type** rule, not a guarantee of zero precision loss. For instance, `long → float` is allowed, yet large integers can lose accuracy; business tools can apply stricter rules when exact value preservation is required.
 
-Một công cụ nhận dữ liệu người dùng từ `String`/JSON cần **converter tường minh** trước khi gọi `set`. Chẳng hạn parse `"42"` thành `Integer.valueOf(42)`, kiểm tra tràn số rồi mới ghi `int`; không truyền thẳng `"42"` vào `Field.set` mong API tự xử lý.
+A tool receiving user input from `String`/JSON needs an **explicit converter** before calling `set`. For example, parse `"42"` into `Integer.valueOf(42)`, check for overflow, and only then write to `int`; do not pass `"42"` directly to `Field.set` expecting the API to handle it.
 
-## 4. Các phương thức setXxx cho primitive
+## 4. The setXxx methods for primitives
 
-Ngoài `set(Object, Object)`, `Field` cung cấp `setBoolean`, `setByte`, `setShort`, `setChar`, `setInt`, `setLong`, `setFloat` và `setDouble`. Kiểu của tham số thứ hai trong các phương thức này là primitive tương ứng.
+In addition to `set(Object, Object)`, `Field` provides `setBoolean`, `setByte`, `setShort`, `setChar`, `setInt`, `setLong`, `setFloat`, and `setDouble`. The type of the second parameter in these methods is the corresponding primitive.
 
 ~~~java
-// Mảnh minh họa các API, không phải source độc lập.
+// Illustrative API snippet, not standalone source.
 field.setBoolean(target, true);
 field.setByte(target, (byte) 3);
 field.setShort(target, (short) 3);
@@ -104,27 +104,27 @@ field.setFloat(target, 1.5f);
 field.setDouble(target, 1.5);
 ~~~
 
-Phải phân biệt **kiểu giá trị nguồn** và **kiểu field đích**. Ví dụ `setInt(target, 9)` trên field `long` thành công nhờ `int → long`, nhưng `setLong(target, 9L)` trên field `int` thất bại vì narrowing. Tương tự, `setDouble` không tự hạ xuống field `float`.
+You must distinguish **the source value type** from **the target field type**. For example, `setInt(target, 9)` on a `long` field succeeds due to `int → long`, whereas `setLong(target, 9L)` on an `int` field fails due to narrowing. Similarly, `setDouble` does not automatically narrow down to a `float` field.
 
-**Không dùng `setInt` để ghi field `Integer`:** Field `Integer` là reference, không phải primitive `int`. Trên Java 17/21, `setInt` vào field `Integer` ném `IllegalArgumentException`; dùng `set(target, Integer.valueOf(9))`. Trên field `Number`, cũng hãy dùng `set` với đối tượng `Integer` thay vì setter primitive. Chọn API dựa vào `field.getType()`:
+**Do not use `setInt` to write an `Integer` field:** an `Integer` field is a reference, not a primitive `int`. On Java 17/21, calling `setInt` on an `Integer` field throws `IllegalArgumentException`; use `set(target, Integer.valueOf(9))`. On a `Number` field, likewise use `set` with an `Integer` object instead of a primitive setter. Choose the API based on `field.getType()`:
 
 ~~~java
-// Mảnh minh họa: field và target đã được xác định, kiểm tra quyền riêng.
+// Illustrative snippet: field and target are already resolved, permissions checked separately.
 Class<?> type = field.getType();
 if (type == int.class) {
     field.setInt(target, 9);
 } else if (type == Integer.class) {
     field.set(target, Integer.valueOf(9));
 } else {
-    // Kiểm tra / chuyển đổi theo kiểu khai báo thực tế.
+    // Check / convert according to the actual declared type.
 }
 ~~~
 
-`int.class` và `Integer.class` là hai đối tượng `Class` khác nhau; Reflection không coi chúng là một khai báo field.
+`int.class` and `Integer.class` are two different `Class` objects; Reflection does not treat them as the same field declaration.
 
-## 5. Ví dụ Java 17+ hoàn chỉnh: các phép ghi hợp lệ và không hợp lệ
+## 5. Complete Java 17+ example: valid and invalid writes
 
-Tạo file `FieldSetTypesDemo.java`:
+Create file `FieldSetTypesDemo.java`:
 
 ~~~java
 import java.lang.reflect.Field;
@@ -177,18 +177,18 @@ public class FieldSetTypesDemo {
         Field boxed = field("boxed");
         Field visits = field("visits");
 
-        // Reference: object tương thích, hoặc null.
+        // Reference: compatible object, or null.
         amount.set(sample, Integer.valueOf(25));
         label.set(sample, null);
         boxed.set(sample, Integer.valueOf(12));
 
-        // Primitive: unboxing rồi widening nếu cần.
+        // Primitive: unbox then widen if needed.
         pieces.set(sample, Byte.valueOf((byte) 7));  // byte -> int
         ticks.setInt(sample, 9);                     // int -> long
         price.set(sample, Float.valueOf(1.5f));     // float -> double
         available.setBoolean(sample, true);
 
-        // Static field: target là null.
+        // Static field: target is null.
         visits.setInt(null, 4);
 
         System.out.println("amount=" + sample.amount
@@ -215,14 +215,14 @@ public class FieldSetTypesDemo {
 }
 ~~~
 
-Biên dịch, chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 FieldSetTypesDemo.java
 java FieldSetTypesDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 amount=25 (Integer)
@@ -234,22 +234,22 @@ instance null target -> NullPointerException
 primitive setter on wrapper -> IllegalArgumentException
 ~~~
 
-Giải thích kết quả:
+Output explanation:
 
-- `amount` khai báo `Number` nhưng giữ object `Integer`; đây là gán reference tương thích.
-- `pieces` khai báo `int`, nhận `Byte` rồi unboxing thành `byte` và widening thành `int`.
-- `ticks` khai báo `long`, nhận giá trị nguồn primitive `int` thông qua `setInt`.
-- `price` khai báo `double`, nhận `Float` unboxing và widening.
-- `boxed` là reference `Integer` nên `set` nhận `Integer` thành công; riêng `setInt` không áp dụng cho field reference.
-- `set(sample, null)` là yêu cầu ghi **giá trị null**, còn `set(null, "new")` cung cấp **target null**. Điều thứ hai gây `NullPointerException` với instance field. Với static field, target null là hợp lệ.
+- `amount` is declared `Number` yet holds an `Integer` object; this is a compatible reference assignment.
+- `pieces` is declared `int`, receives `Byte`, unboxes to `byte`, and widens to `int`.
+- `ticks` is declared `long` and receives a primitive `int` source value via `setInt`.
+- `price` is declared `double` and receives `Float` via unboxing and widening.
+- `boxed` is a `Integer` reference so `set` accepts `Integer` successfully; `setInt`, however, does not apply to reference fields.
+- `set(sample, null)` requests writing a **null value**, whereas `set(null, "new")` supplies a **null target**. The second case causes `NullPointerException` for an instance field. For a static field, a null target is valid.
 
-`trySetAccessible()` trong ví dụ có thể bật vì mã và class model thuộc cùng unnamed module; chương trình không cần thư viện bên ngoài, không truy cập field nội bộ JDK. Ở ứng dụng module tách biệt, cần kiểm tra `exports`/`opens` và caller thực tế.
+`trySetAccessible()` in the example can be enabled because the code and model classes reside in the same unnamed module; the program needs no external libraries and accesses no internal JDK fields. In modularized applications, you must check `exports`/`opens` and the actual caller.
 
-## 6. Field thuộc lớp cha, field bị che và kiểu đích
+## 6. Parent class fields, hidden fields, and target types
 
-`Field` ràng buộc với **khai báo field gốc**, không tự chọn lại theo tên ở kiểu runtime của `obj`. Nếu hai tầng phân cấp cùng tên `id`, `Parent.class.getDeclaredField("id")` và `Child.class.getDeclaredField("id")` là hai đối tượng `Field` khác nhau, có thể mang **hai kiểu khác nhau**. Các luật type conversion áp dụng theo `field.getType()` của từng đối tượng `Field`.
+`Field` binds to **the original field declaration**, and does not re-select by name on the runtime type of `obj`. If two hierarchy levels share the name `id`, `Parent.class.getDeclaredField("id")` and `Child.class.getDeclaredField("id")` are two distinct `Field` objects that can carry **two different types**. Type conversion rules apply according to the `field.getType()` of each `Field` object.
 
-Ví dụ độc lập, lưu `HiddenFieldDemo.java`:
+Standalone example, save as `HiddenFieldDemo.java`:
 
 ~~~java
 public class HiddenFieldDemo {
@@ -271,7 +271,7 @@ public class HiddenFieldDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 HiddenFieldDemo.java
@@ -285,86 +285,86 @@ Parent.id=5
 Child.id=8
 ~~~
 
-Một công cụ tự duyệt superclass cần nêu rõ chính sách khi field trùng tên: chọn field gần class con nhất, chọn field của cha hoặc báo xung đột. Không nên dùng tên `id` một mình để quyết định kiểu giá trị mà không xác định `getDeclaringClass()`.
+A tool that automatically traverses superclasses needs to specify its policy when field names collide: pick the field closest to the subclass, pick the parent's field, or report a conflict. Do not use the `id` name alone to determine the value type without checking `getDeclaringClass()`.
 
-## 7. Quyền truy cập, final và lỗi runtime
+## 7. Access permissions, final, and runtime errors
 
-Chọn value đúng kiểu **chưa đủ** để `Field.set` thành công.
+Choosing a value of the right type is **not enough** for `Field.set` to succeed.
 
-| Lỗi hoặc điều kiện | Ý nghĩa thực tế |
+| Error or condition | Practical meaning |
 | --- | --- |
-| `NoSuchFieldException` lúc tra cứu | Sai tên hoặc tìm ở class không khai báo field đó; `getDeclaredField` không tự duyệt cha. |
-| `trySetAccessible() == false` | Không thể bỏ qua access check, thường do module/package không mở. |
-| `InaccessibleObjectException` khi `setAccessible(true)` | Deep reflection bị Java Platform Module System chặn. |
-| `IllegalAccessException` ở `set` | Field không cho phép ghi hoặc access check không đạt. |
-| `IllegalArgumentException` ở `set` | Sai kiểu value, không unboxing/widening được hoặc target không đúng loại. |
-| `NullPointerException` ở `set` | Target là null cho instance field. |
-| `ExceptionInInitializerError` | Khởi tạo class của static field bị lỗi. |
+| `NoSuchFieldException` during lookup | Wrong name or querying a class that does not declare that field; `getDeclaredField` does not automatically search parents. |
+| `trySetAccessible() == false` | Cannot bypass access check, usually because the module/package is not open. |
+| `InaccessibleObjectException` on `setAccessible(true)` | Deep reflection blocked by the Java Platform Module System. |
+| `IllegalAccessException` on `set` | Field does not allow writing or access check failed. |
+| `IllegalArgumentException` on `set` | Wrong value type, cannot unbox/widen, or target has the wrong type. |
+| `NullPointerException` on `set` | Target is null for an instance field. |
+| `ExceptionInInitializerError` | Initialization of the static field's class failed. |
 
-Các field **`static final`**, field `final` trong record và field `final` trong hidden class không có quyền ghi qua `Field.set`, ngay cả khi `setAccessible(true)` đã bật được quyền đọc. `private final` instance trong class thông thường có quy tắc đặc biệt ở Java 17: đôi khi Reflection cho phép ghi nếu mở quyền hợp lệ, nhưng sửa sau khi object được công bố có thể tạo hành vi khó đoán; không dùng cách này để cập nhật trạng thái nghiệp vụ.
+**`static final`** fields, `final` fields in records, and `final` fields in hidden classes cannot be written via `Field.set`, even when `setAccessible(true)` succeeded for reading. `private final` instance fields in ordinary classes have special rules in Java 17: Reflection sometimes permits writing if access is properly opened, but mutating after object publication can cause unpredictable behavior; do not use this technique to update business state.
 
-Khi target khác `null`, nó phải là instance của class khai báo (hoặc subtype phù hợp). Khi static field được ghi, đối tượng target bị bỏ qua; thao tác có thể khiến class khai báo được khởi tạo. Vì vậy, không coi mọi lỗi tại `Field.set` là “ép kiểu thất bại”.
+When the target is non-`null`, it must be an instance of the declaring class (or a compatible subtype). When a static field is written, the target object is ignored; the operation may trigger initialization of the declaring class. Therefore, do not treat every error at `Field.set` as a "type cast failure".
 
-Quyền `setAccessible` không phải quyền cập nhật tất cả mọi field. Trong JPMS, mở private member ở module khác thường cần package được `opens` đến module của caller; `exports` cho public API không tự cấp deep reflection.
+`setAccessible` permission is not permission to update every field. Under JPMS, opening private members in another module usually requires the package to be `opens` to the caller's module; `exports` for public APIs does not automatically grant deep reflection.
 
-## 8. Thiết kế một bộ chuyển dữ liệu có chủ đích
+## 8. Designing an intentional data converter
 
-Với mapper/binder, luồng xử lý nên dựa vào **kiểu đích**, không chỉ dựa vào kiểu nguồn:
+For a mapper/binder, the processing flow should be driven by the **target type**, not solely the source type:
 
 ~~~text
 Field + target + rawValue
    |
-   +-- Xác định declaringClass, static/instance, final và quyền truy cập
+   +-- Determine declaringClass, static/instance, final, and access permissions
    |
    +-- Class<?> type = field.getType()
    |
    +-- type.isPrimitive() ?
           |
-          +-- false: rawValue == null hoặc type.isInstance(rawValue)?
-          |             đúng -> field.set(target, rawValue)
-          |             sai  -> converter riêng hoặc lỗi
+          +-- false: rawValue == null or type.isInstance(rawValue)?
+          |             true  -> field.set(target, rawValue)
+          |             false -> custom converter or error
           |
-          +-- true: rawValue là wrapper tương ứng?
-                        unboxing -> identity/widening hợp lệ?
-                           đúng -> field.set hoặc setXxx
-                           sai  -> converter có range check hoặc lỗi
+          +-- true: is rawValue the corresponding wrapper?
+                        unboxing -> valid identity/widening?
+                           true  -> field.set or setXxx
+                           false -> converter with range check or error
 ~~~
 
-Các quyết định phải được ghi rõ ở tầng nghiệp vụ:
+Decisions that must be explicitly documented at the business layer:
 
-- Với primitive nhận input `null`: báo thiếu giá trị hay dùng default đã thống nhất; không âm thầm biến `null` thành `0` hay `false`.
-- Với chuỗi số: dùng parser phù hợp, xử lý overflow và precision; `Field.set` không parse.
-- Với generic: có thể cần kiểm tra `getGenericType()` và từng phần tử, vì runtime field check không đủ.
-- Với field final hoặc object bất biến: ưu tiên constructor, factory, builder hoặc tạo object mới.
-- Với conversion thu hẹp: chỉ cho phép khi chính sách nghiệp vụ yêu cầu và có kiểm tra overflow, không giả định `Field.set` hỗ trợ.
-- Với lỗi: báo vị trí `declaringClass.fieldName`, kiểu đích và kiểu nguồn, tránh log giá trị nhạy cảm.
-- Với hiệu năng: cache metadata khi có nhiều lần gán, nhưng chú ý vòng đời `ClassLoader` và quyền truy cập.
+- For primitives receiving `null` input: report missing value or use an agreed default; do not silently turn `null` into `0` or `false`.
+- For numeric strings: use an appropriate parser, handle overflow and precision; `Field.set` does not parse.
+- For generics: you may need to inspect `getGenericType()` and individual elements, because runtime field checks are insufficient.
+- For final fields or immutable objects: prefer constructors, factories, builders, or creating a new object.
+- For narrowing conversions: only allow when business policy requires and with overflow checks; do not assume `Field.set` supports it.
+- For errors: report `declaringClass.fieldName`, target type, and source type, while avoiding logging sensitive values.
+- For performance: cache metadata when performing many assignments, but mind `ClassLoader` lifetimes and access permissions.
 
-## 9. Các bẫy thường gặp
+## 9. Common traps
 
-1. **Nhầm `Integer` với `int`:** `Integer.class.isPrimitive() == false`. `setInt` không phải lối tắt an toàn cho field `Integer`; dùng `set` với `Integer`.
-2. **Nhầm boxing với chuyển đổi tùy ý:** `field.set(obj, 3)` có boxing ở Java caller, nhưng field `short` vẫn không nhận `Integer(3)` qua narrowing `int → short`.
-3. **Nhầm `null` ở hai tham số:** `set(obj, null)` có thể ghi field reference; `set(null, value)` ném lỗi cho instance field.
-4. **Nhầm String parse với primitive widening:** `"5"` không được Reflection biến thành `int 5`. Việc chuyển kiểu dữ liệu đầu vào thuộc về bộ chuyển của ứng dụng.
-5. **Nhầm generic declaration với runtime check:** `List<String>` không bảo đảm giá trị đưa vào bằng `Field.set` chứa toàn String.
-6. **Nhầm array primitive với primitive field:** `int[]` là reference; một mảng `Integer[]` không tự thay thế được `int[]`.
-7. **Nhầm quyền truy cập với quyền ghi:** `trySetAccessible` thành công chưa chắc field final/modifier/module/target hợp lệ.
-8. **Bỏ qua mất precision ở widening số:** một phép `long → float` hợp lệ theo kiểu vẫn có thể mất thông tin số học.
+1. **Confusing `Integer` with `int`:** `Integer.class.isPrimitive() == false`. `setInt` is not a safe shortcut for an `Integer` field; use `set` with `Integer`.
+2. **Confusing boxing with arbitrary conversion:** `field.set(obj, 3)` involves boxing at the Java caller, yet a `short` field still does not accept `Integer(3)` via `int → short` narrowing.
+3. **Confusing `null` in the two parameters:** `set(obj, null)` can write a reference field; `set(null, value)` throws an error for an instance field.
+4. **Confusing String parsing with primitive widening:** `"5"` is not converted by Reflection into `int 5`. Input data conversion belongs to the application's converter.
+5. **Confusing generic declarations with runtime checks:** `List<String>` does not guarantee that a value assigned via `Field.set` contains only Strings.
+6. **Confusing primitive arrays with primitive fields:** `int[]` is a reference; an `Integer[]` array cannot automatically replace an `int[]`.
+7. **Confusing access permission with write permission:** `trySetAccessible` succeeding does not guarantee that final/modifier/module/target constraints are satisfied.
+8. **Ignoring precision loss in numeric widening:** a type-valid `long → float` conversion can still lose numeric information.
 
-## 10. Bài tập và kiểm chứng
+## 10. Exercises and verification
 
-- Với field `int`, thử các wrapper `Byte`, `Short`, `Character`, `Integer`, `Long`, `Float`, `Double`; lý giải từng kết quả từ bảng widening.
-- Với field `long`, so sánh `setInt(target, 9)` và `setDouble(target, 9.0)`.
-- Với field `Integer`, so sánh `set(target, Integer.valueOf(9))` và `setInt(target, 9)`.
-- Với field `CharSequence`, thử `String`, `StringBuilder`, `null` và `Integer`.
-- Với field `List<String>`, gán `List<Integer>` rồi đọc như String để thấy hậu quả của generic erasure.
-- Với `static int counter`, gọi `setInt(null, 4)`; so sánh với `int counter` instance, target `null`.
-- Mở rộng `HiddenFieldDemo` bằng `getDeclaringClass()` và chứng minh mỗi `Field` mang kiểu từ khai báo riêng.
+- For an `int` field, try the wrappers `Byte`, `Short`, `Character`, `Integer`, `Long`, `Float`, `Double`; explain each outcome using the widening table.
+- For a `long` field, compare `setInt(target, 9)` and `setDouble(target, 9.0)`.
+- For an `Integer` field, compare `set(target, Integer.valueOf(9))` and `setInt(target, 9)`.
+- For a `CharSequence` field, try `String`, `StringBuilder`, `null`, and `Integer`.
+- For a `List<String>` field, assign a `List<Integer>` and then read as String to observe the consequence of generic erasure.
+- For `static int counter`, call `setInt(null, 4)`; compare with an instance `int counter` and a `null` target.
+- Extend `HiddenFieldDemo` with `getDeclaringClass()` and demonstrate that each `Field` carries its type from its own declaration.
 
-## 11. Tài liệu tham khảo
+## 11. References
 
-- [Java SE 17 — Field](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html): `set`/`setXxx`, primitive unboxing/widening, target, exception, write access của field final.
-- [Java SE 17 — AccessibleObject](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html): `trySetAccessible` và quyền deep reflection dưới JPMS.
-- [Java Language Specification `5.1.2](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.1.2): các chuyển đổi widening primitive hợp lệ.
+- [Java SE 17 — Field](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html): `set`/`setXxx`, primitive unboxing/widening, target, exceptions, write access of final fields.
+- [Java SE 17 — AccessibleObject](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html): `trySetAccessible` and deep reflection permissions under JPMS.
+- [Java Language Specification `5.1.2](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.1.2): valid widening primitive conversions.
 
-**Ghi nhớ:** Field tham chiếu theo **khả năng gán object/null**; field primitive theo **wrapper → unboxing → identity/widening**. Xác định rõ kiểu field và target, sau đó mới chọn `set` hoặc `setXxx` và xử lý quyền ghi.
+**Remember:** Reference fields follow **object/null assignability**; primitive fields follow **wrapper → unboxing → identity/widening**. Determine the field type and target clearly first, then choose `set` or `setXxx` and handle write permissions.

@@ -1,17 +1,17 @@
-# Tên hiển thị bằng `Locale.getDisplayName()` và locale dùng để hiển thị tên
+# Display Names with `Locale.getDisplayName()` and the Locale Used to Display Names
 
-Khi một ứng dụng Java hiển thị danh sách ngôn ngữ hoặc vùng cho người dùng lựa chọn, nó cần chuyển mã như `en-US`, `fr-CA` hay `zh-Hant-TW` thành **tên có thể đọc được**. Java cung cấp `java.util.Locale.getDisplayName()` cho nhiệm vụ đó. Điểm quan trọng nhất: **Locale được đặt tên** và **Locale dùng làm ngôn ngữ hiển thị tên** là hai vai trò khác nhau.
+When a Java application displays a list of languages or regions for users to choose from, it needs to turn codes like `en-US`, `fr-CA`, or `zh-Hant-TW` into **human-readable names**. Java provides `java.util.Locale.getDisplayName()` for that task. The most important point: **the Locale being named** and **the Locale used as the display language** play two different roles.
 
-Ví dụ, cùng một đối tượng `Locale.forLanguageTag("de-DE")` có thể được trình bày bằng tiếng Đức trong giao diện tiếng Đức hoặc bằng tiếng Anh trong giao diện tiếng Anh. Đối tượng locale vẫn đại diện cho ngôn ngữ Đức tại Đức, chỉ có ngôn ngữ của **nhãn hiển thị** thay đổi.
+For example, the same `Locale.forLanguageTag("de-DE")` object can be presented in German in a German UI or in English in an English UI. The locale object still represents the German language in Germany; only the language of the **display label** changes.
 
-## 1. Hai vai trò của Locale: đối tượng được mô tả và ngôn ngữ mô tả
+## 1. Two Roles of Locale: The Subject Being Described and the Describing Language
 
-Giả sử:
+Suppose:
 
-- **Locale đích (target / subject locale):** `fr-CA`, nghĩa là tiếng Pháp theo vùng Canada. Đây là đối tượng mà ta muốn lấy tên.
-- **Locale hiển thị (display locale / inLocale):** `en-US`, nghĩa là yêu cầu Java diễn đạt tên đó bằng tiếng Anh theo quy ước địa phương được hỗ trợ.
+- **Target / subject locale:** `fr-CA`, meaning French in the Canada region. This is the object whose name we want to obtain.
+- **Display locale (`inLocale`):** `en-US`, meaning asking Java to express that name in English according to supported local conventions.
 
-Đoạn mã:
+The code snippet:
 
 ```java
 Locale target = Locale.forLanguageTag("fr-CA");
@@ -20,57 +20,57 @@ Locale displayLocale = Locale.forLanguageTag("en-US");
 String label = target.getDisplayName(displayLocale);
 ```
 
-là **một đoạn mã minh họa**, cần đặt trong một phương thức và có `import java.util.Locale;` để biên dịch. Nó có nghĩa: “lấy tên của `fr-CA` để hiển thị bằng ngôn ngữ/vùng của `en-US`”. Lời gọi **không thay đổi** `target`, cũng không chuyển nội dung dịch hay vùng của đối tượng thành `en-US`.
+is **an illustrative snippet**, which must be placed inside a method and have `import java.util.Locale;` to compile. It means: “get the name of `fr-CA` for display in the language/region of `en-US`”. The call **does not mutate** `target`, nor does it convert the object's translated content or region into `en-US`.
 
-Mô hình tư duy:
+Mental model:
 
 ```text
-Target locale:       fr-CA        (Đối tượng được đặt tên)
-Display locale:      en-US        (Ngôn ngữ diễn đạt nhãn)
+Target locale:       fr-CA        (The object being named)
+Display locale:      en-US        (Language expressing the label)
                     ↓
 target.getDisplayName(displayLocale)
                     ↓
-Tên hiển thị đọc được bằng tiếng Anh, chẳng hạn French (Canada)
+Readable display name in English, such as French (Canada)
 ```
 
-Chữ “chẳng hạn” ở trên có chủ ý: cách viết chính xác của tên hiển thị phụ thuộc dữ liệu locale/provider trong JDK.
+The phrase “such as” above is intentional: the exact wording of the display name depends on locale/provider data in the JDK.
 
-**Phân biệt ba loại giá trị:**
+**Distinguishing three kinds of values:**
 
-| Cách lấy | Mục đích | Có phụ thuộc locale hiển thị? |
+| Retrieval Method | Purpose | Depends on Display Locale? |
 | --- | --- | --- |
-| `target.toLanguageTag()` | Mã BCP 47 để lưu hoặc truyền, ví dụ `fr-CA` | Không |
-| `target.getLanguage()` và `target.getCountry()` | Mã thành phần ngôn ngữ/vùng, ví dụ `fr`, `CA` | Không |
-| `target.getDisplayName(displayLocale)` | Tên thân thiện với người dùng | Có: phụ thuộc `displayLocale` và dữ liệu JDK |
-| `target.getDisplayName()` | Tên theo **default DISPLAY locale** của JVM | Có: phụ thuộc mặc định của tiến trình |
+| `target.toLanguageTag()` | BCP 47 code for storage or transmission, e.g., `fr-CA` | No |
+| `target.getLanguage()` and `target.getCountry()` | Language/region component codes, e.g., `fr`, `CA` | No |
+| `target.getDisplayName(displayLocale)` | User-friendly name | Yes: depends on `displayLocale` and JDK data |
+| `target.getDisplayName()` | Name using the JVM's **default DISPLAY locale** | Yes: depends on the process default |
 
-**Quy tắc sử dụng:** dữ liệu định danh dùng `toLanguageTag()` hoặc đối tượng `Locale`; nội dung đưa ra giao diện dùng `getDisplayName(...)`.
+**Usage rule:** for identifier data use `toLanguageTag()` or the `Locale` object; for content presented in the UI use `getDisplayName(...)`.
 
-## 2. Hai overload của `getDisplayName`
+## 2. Two Overloads of `getDisplayName`
 
-`Locale` có hai phương thức trọng tâm:
+`Locale` has two central methods:
 
 ```java
 String getDisplayName();
 String getDisplayName(Locale inLocale);
 ```
 
-Đây là **chữ ký API minh họa**, không phải một chương trình Java độc lập.
+These are **illustrative API signatures**, not a standalone Java program.
 
-### `getDisplayName()` — sử dụng locale mặc định để hiển thị
+### `getDisplayName()` — Uses the Default Locale for Display
 
-Phương thức không có tham số dùng **default locale của category `Locale.Category.DISPLAY`**. Vì JVM có thể chạy trên máy khác, cấu hình khác, hoặc được một phần ứng dụng thay đổi, hai lần chạy trong các môi trường khác nhau có thể tạo nhãn bằng ngôn ngữ khác nhau.
+The no-argument method uses the **default locale of category `Locale.Category.DISPLAY`**. Because a JVM can run on different machines, under different configurations, or be changed by another part of the application, two runs in different environments can produce labels in different languages.
 
 ```java
 Locale target = Locale.forLanguageTag("de-DE");
 String label = target.getDisplayName();
 ```
 
-Nếu DISPLAY default là tiếng Anh, nhãn có thể ở dạng tiếng Anh; nếu DISPLAY default là tiếng Pháp, nhãn có thể ở dạng tiếng Pháp. Đừng hiểu rằng gọi `target.getDisplayName()` đồng nghĩa với “hiển thị bằng chính ngôn ngữ Đức” hoặc “hiển thị bằng ngôn ngữ của người dùng đang truy cập”.
+If the DISPLAY default is English, the label may be in English; if the DISPLAY default is French, the label may be in French. Do not assume calling `target.getDisplayName()` means “display in German itself” or “display in the current accessing user's language”.
 
-### `getDisplayName(Locale inLocale)` — sử dụng locale hiển thị chỉ định
+### `getDisplayName(Locale inLocale)` — Uses an Explicit Display Locale
 
-Phiên bản có tham số diễn đạt tên của **đối tượng nhận lời gọi** theo locale `inLocale`. Đây thường là lựa chọn rõ ràng hơn cho một giao diện có nhiều người dùng cùng truy cập một server:
+The parameterized version expresses the name of the **receiver object** according to `inLocale`. This is usually the clearer choice for an interface serving multiple users concurrently on one server:
 
 ```java
 Locale target = Locale.forLanguageTag("de-DE");
@@ -78,11 +78,11 @@ Locale viewer = Locale.forLanguageTag("vi-VN");
 String labelForViewer = target.getDisplayName(viewer);
 ```
 
-Ứng dụng có thể chuyển `viewer` sang `en-GB` hay `fr-FR` cho request khác mà không phải đổi cài đặt toàn cục. Nếu `inLocale` không có dữ liệu bản địa hóa tương ứng, JDK có thể dùng dữ liệu dự phòng, bao gồm tên từ ngôn ngữ khác hoặc mã chưa được dịch; vì vậy **không đảm bảo** mọi locale có đủ tên đẹp bằng mọi ngôn ngữ.
+The application can switch `viewer` to `en-GB` or `fr-FR` for another request without changing global settings. If `inLocale` lacks corresponding localization data, the JDK may fall back, including to names from another language or untranslated codes; therefore **it is not guaranteed** that every locale has a polished name in every language.
 
-## 3. Ví dụ Java 17+ chạy được: một Locale, nhiều ngôn ngữ hiển thị
+## 3. Runnable Java 17+ Example: One Locale, Multiple Display Languages
 
-Tạo file `LocaleDisplayNameDemo.java`:
+Create the file `LocaleDisplayNameDemo.java`:
 
 ```java
 import java.util.List;
@@ -114,14 +114,14 @@ public class LocaleDisplayNameDemo {
 }
 ```
 
-Lệnh chạy tại thư mục chứa file:
+Run commands in the directory containing the file:
 
 ```bash
 javac LocaleDisplayNameDemo.java
 java LocaleDisplayNameDemo
 ```
 
-Những dòng **có kết quả cố định** theo giá trị được tạo trong mã:
+Lines **with fixed output** determined by the values constructed in code:
 
 ```text
 Stored tag: fr-CA
@@ -133,20 +133,20 @@ Display locale: vi-VN
 Stored tag after display: fr-CA
 ```
 
-Chương trình thực tế in thêm **ba dòng `Display name: ...`**, mỗi dòng đứng ngay sau dòng `Display locale` tương ứng. Chúng thường có ngôn ngữ khác nhau; không chép cứng một bản dịch làm stdout chung cho mọi JDK và mọi locale provider. Kết quả quan trọng phải kiểm chứng là `target.toLanguageTag()` vẫn là `fr-CA` trước và sau các lời gọi: đây là thao tác **chỉ đọc tên**, không biến đổi locale.
+The actual program prints **three additional `Display name: ...` lines**, each immediately following its corresponding `Display locale` line. They are typically in different languages; do not hardcode a single translation as universal stdout across all JDKs and locale providers. The key result to verify is that `target.toLanguageTag()` remains `fr-CA` before and after the calls: this is a **name-reading** operation that does not mutate the locale.
 
-> Nếu cần minh họa đầu ra bằng tiếng Anh, tên như `French (Canada)` là cách biểu đạt thường gặp của `fr-CA`. Tuy nhiên chuỗi này chỉ phù hợp làm ví dụ giao diện, không phải hợp đồng API cố định xuyên mọi phiên bản/dữ liệu JDK.
+> If you need to illustrate English output, a name like `French (Canada)` is a common rendering of `fr-CA`. However, that string is only suitable as a UI example, not as a fixed API contract across all JDK versions/data.
 
-## 4. Mặc định DISPLAY khác mặc định FORMAT
+## 4. DISPLAY Default Differs from FORMAT Default
 
-Java phân biệt ít nhất hai nhóm mặc định thường quan trọng đối với bản địa hóa:
+Java distinguishes at least two default categories often important for localization:
 
-- `Locale.Category.DISPLAY`: được dùng khi lấy tên hiển thị của locale thông qua các phương thức như `getDisplayName()`, `getDisplayLanguage()`, `getDisplayCountry()` không truyền tham số.
-- `Locale.Category.FORMAT`: là mặc định phục vụ các API định dạng hỗ trợ locale, chẳng hạn một số thao tác định dạng số/ngày khi không truyền locale tường minh.
+- `Locale.Category.DISPLAY`: used when obtaining locale display names through no-argument methods such as `getDisplayName()`, `getDisplayLanguage()`, and `getDisplayCountry()`.
+- `Locale.Category.FORMAT`: the default serving locale-aware formatting APIs, such as certain number/date formatting operations when no explicit locale is passed.
 
-Không suy ra rằng “người dùng đang xem nhãn ngôn ngữ bằng tiếng Pháp” thì số, ngày hoặc tiền tệ cũng buộc phải theo quy ước Pháp. Trong một ứng dụng quốc tế, hai lựa chọn này có thể được thiết lập riêng theo yêu cầu sản phẩm.
+Do not infer that because “the user is viewing language labels in French”, numbers, dates, or currencies must also follow French conventions. In an international application, these two choices can be configured separately per product requirements.
 
-**Ví dụ chứng minh `getDisplayName()` theo DISPLAY default** — file `DisplayCategoryDemo.java`:
+**Example demonstrating `getDisplayName()` follows the DISPLAY default** — file `DisplayCategoryDemo.java`:
 
 ```java
 import java.util.Locale;
@@ -188,7 +188,7 @@ javac DisplayCategoryDemo.java
 java DisplayCategoryDemo
 ```
 
-Stdout chính xác của ví dụ trong một tiến trình đơn luồng, không có tác nhân đồng thời sửa mặc định:
+Exact stdout of the example in a single-threaded process with no concurrent actor modifying defaults:
 
 ```text
 Default: en-US
@@ -197,25 +197,25 @@ Default: fr-FR
 Matches explicit: true
 ```
 
-Đoạn chương trình **cố ý thay đổi cài đặt toàn cục để minh họa** và khôi phục trong `finally`. `Locale.setDefault(...)` ảnh hưởng đến toàn tiến trình JVM, có thể gây tác động đến các luồng/request khác, vì vậy **không gọi nó theo từng request** trong web server. Trong ứng dụng thực, nhận `displayLocale` từ ngữ cảnh người dùng và truyền tường minh vào `getDisplayName(displayLocale)`.
+This program **intentionally changes global settings for demonstration** and restores them in `finally`. `Locale.setDefault(...)` affects the entire JVM process and can impact other threads/requests, so **never call it per request** on a web server. In real applications, obtain `displayLocale` from the user context and pass it explicitly to `getDisplayName(displayLocale)`.
 
-Lưu ý thêm: `Locale.getDefault()` không có category và `Locale.getDefault(Locale.Category.DISPLAY)` là hai API có ý nghĩa khác nhau; đừng thay thế tùy tiện khi viết code phụ thuộc từng category.
+Additional note: `Locale.getDefault()` without a category and `Locale.getDefault(Locale.Category.DISPLAY)` are two APIs with different semantics; do not substitute one for the other casually when writing code that depends on a specific category.
 
-## 5. Lấy tên của từng thành phần: language, script, country, variant
+## 5. Getting Names of Individual Components: language, script, country, variant
 
-`getDisplayName(...)` là **tên tổng hợp** của một locale. Khi UI muốn chia riêng các trường “Ngôn ngữ”, “Hệ chữ viết”, “Khu vực”, “Biến thể”, hãy dùng các phương thức chuyên biệt:
+`getDisplayName(...)` is the **composite name** of a locale. When a UI wants separate fields for “Language”, “Script”, “Region”, and “Variant”, use the specialized methods:
 
-| Thành phần | Mã kỹ thuật | Tên cho người đọc |
+| Component | Technical Code | Human-Readable Name |
 | --- | --- | --- |
-| Ngôn ngữ | `getLanguage()` | `getDisplayLanguage(displayLocale)` |
-| Hệ chữ viết | `getScript()` | `getDisplayScript(displayLocale)` |
-| Vùng | `getCountry()` | `getDisplayCountry(displayLocale)` |
-| Biến thể | `getVariant()` | `getDisplayVariant(displayLocale)` |
-| Tên tổng hợp | `toLanguageTag()` để lấy mã | `getDisplayName(displayLocale)` |
+| Language | `getLanguage()` | `getDisplayLanguage(displayLocale)` |
+| Script | `getScript()` | `getDisplayScript(displayLocale)` |
+| Region | `getCountry()` | `getDisplayCountry(displayLocale)` |
+| Variant | `getVariant()` | `getDisplayVariant(displayLocale)` |
+| Composite name | `toLanguageTag()` for the code | `getDisplayName(displayLocale)` |
 
-Mỗi API tên hiển thị cũng có overload **không tham số**, trong trường hợp đó nó sử dụng default DISPLAY locale. Các phương thức riêng có thể trả chuỗi rỗng nếu thành phần chưa được khai báo, ví dụ `Locale.forLanguageTag("en").getDisplayCountry(Locale.ENGLISH)` trả chuỗi rỗng vì locale đó không có mã vùng.
+Each display-name API also has a **no-argument** overload, in which case it uses the default DISPLAY locale. Individual methods may return an empty string if the component is undeclared; for instance, `Locale.forLanguageTag("en").getDisplayCountry(Locale.ENGLISH)` returns an empty string because that locale has no region code.
 
-**Ví dụ Java 17+** — file `LocaleComponentsDemo.java`:
+**Java 17+ Example** — file `LocaleComponentsDemo.java`:
 
 ```java
 import java.util.Locale;
@@ -246,7 +246,7 @@ javac LocaleComponentsDemo.java
 java LocaleComponentsDemo
 ```
 
-Ba dòng mã kỹ thuật có kết quả ổn định:
+The three technical-code lines have stable output:
 
 ```text
 Tag: zh-Hant-TW
@@ -255,20 +255,20 @@ Script code: Hant
 Region code: TW
 ```
 
-Bốn dòng `... label:` sử dụng dữ liệu địa phương hóa của JDK và không buộc phải giống hệt nhau trên mọi môi trường. Cách gọi này hữu ích vì `getDisplayName` có thể chứa cả tên ngôn ngữ, script, vùng và variant; thành phần nào có hay không phụ thuộc cấu hình của `target`. Với những ngôn ngữ cần script để phân biệt kiểu chữ, đừng chỉ dùng `getDisplayLanguage()` rồi làm mất `Hans`/`Hant`.
+The four `... label:` lines use JDK localization data and are not required to be identical across all environments. Calling this is useful because `getDisplayName` can include language, script, region, and variant names; which components appear depends on `target`'s configuration. For languages that need a script to distinguish writing styles, do not call `getDisplayLanguage()` alone and lose `Hans`/`Hant`.
 
-**Lưu ý về variant:** variant không luôn là một tên phổ thông đã được dịch. Nếu Java không có tên bản địa hóa cho variant, giá trị dạng mã có thể xuất hiện. Unicode locale extensions và các phần mở rộng trong thẻ BCP 47 cũng không đồng nghĩa với việc `getDisplayName` sẽ cung cấp lời giải thích đầy đủ mọi lựa chọn mở rộng; thiết kế UI riêng cho các tùy chọn đặc biệt nếu cần.
+**Note on variants:** a variant does not always have a common translated name. If Java has no localized name for the variant, a code-like value may appear. Unicode locale extensions and other extensions in a BCP 47 tag also do not mean `getDisplayName` will provide a complete explanation of every extension choice; design dedicated UI for special options if needed.
 
-## 6. Hiển thị danh sách lựa chọn ngôn ngữ đúng với người dùng
+## 6. Displaying a Language Selection List Appropriately to Users
 
-Một danh sách locale có hai kiểu nhãn thường dùng:
+A locale list has two common label styles:
 
-1. **Tên theo ngôn ngữ hiện tại của giao diện (localized name):** `option.getDisplayName(uiLocale)`, ví dụ khi giao diện dùng tiếng Việt thì các nhãn cố gắng được diễn đạt bằng tiếng Việt.
-2. **Tên bằng chính ngôn ngữ mà tùy chọn đại diện (native/autonym):** `option.getDisplayName(option)`. Cách này có ích trong màn hình chọn ngôn ngữ vì người dùng chưa đọc được ngôn ngữ giao diện hiện tại vẫn có cơ hội nhận ra ngôn ngữ của mình.
+1. **Name in the UI's current language (localized name):** `option.getDisplayName(uiLocale)`, e.g., when the UI uses Vietnamese, labels are expressed in Vietnamese where possible.
+2. **Name in the language the option itself represents (native/autonym):** `option.getDisplayName(option)`. This is helpful in a language-picker screen because users who cannot read the current UI language still have a chance to recognize their own language.
 
-Hai cách đều hợp lệ nhưng phục vụ trải nghiệm khác nhau. Với danh sách nhiều vùng cùng ngôn ngữ, giữ đủ vùng/script trong locale option và hiển thị nhãn đủ rõ để phân biệt.
+Both approaches are valid but serve different experiences. For lists with multiple regions of the same language, preserve region/script in the option locale and display labels clear enough to distinguish them.
 
-**Chương trình tạo dữ liệu lựa chọn — `LanguageMenuDemo.java`:**
+**Program generating selection data — `LanguageMenuDemo.java`:**
 
 ```java
 import java.util.List;
@@ -303,7 +303,7 @@ javac LanguageMenuDemo.java
 java LanguageMenuDemo
 ```
 
-Ví dụ in **5 nhóm**, mỗi nhóm gồm dòng `value=...` và hai dòng `uiLabel=...`, `nativeLabel=...`. Các giá trị `value=` theo đúng thứ tự:
+The example prints **5 groups**, each consisting of a `value=...` line and two lines `uiLabel=...`, `nativeLabel=...`. The `value=` entries in exact order are:
 
 ```text
 value=en-US
@@ -313,115 +313,115 @@ value=de-DE
 value=zh-Hant-TW
 ```
 
-Trong stdout thật, sau mỗi dòng `value=` là hai nhãn được tính từ JDK. Đây không phải ví dụ có stdout liên tiếp chỉ gồm 5 dòng ở trên. Khi người dùng chọn một tùy chọn, **lưu `value` là thẻ ngôn ngữ**, không lưu `uiLabel` hoặc `nativeLabel`: nhãn có thể đổi khi chuyển ngôn ngữ UI hoặc nâng cấp dữ liệu JDK.
+In real stdout, each `value=` line is followed by two labels computed by the JDK. This is not an example whose consecutive stdout consists only of the 5 lines above. When the user chooses an option, **store `value` as the language tag**, not `uiLabel` or `nativeLabel`: labels can change when switching UI languages or upgrading JDK data.
 
-### Có nên dùng `option.getDisplayName(option)` cho mọi menu?
+### Should `option.getDisplayName(option)` Be Used for Every Menu?
 
-Không nhất thiết. Nhãn tự thân (autonym) hữu ích nhưng có các giới hạn:
+Not necessarily. Autonyms are helpful but have limitations:
 
-- Nếu dữ liệu tên hiển thị bằng chính ngôn ngữ đó chưa đủ, nhãn có thể fallback sang tên hoặc mã khác.
-- Cùng ngôn ngữ nhưng nhiều vùng có thể khó phân biệt nếu UI chỉ hiện `getDisplayLanguage`; hãy bao gồm vùng hoặc script.
-- Khi cần tuân thủ cách đặt tên thương hiệu, chính sách sản phẩm, hoặc tên gọi nhạy cảm theo từng thị trường, ứng dụng có thể duy trì **bảng nhãn đã được biên tập**. `getDisplayName` cung cấp dữ liệu chuẩn của runtime, không thay thế phê duyệt nội dung giao diện.
-- Các script khác nhau yêu cầu font hỗ trợ và khả năng hiển thị ký tự; tên được trả về đúng chưa đảm bảo hệ thống có font hiển thị được.
+- If display-name data in that language itself is incomplete, the label may fall back to another name or code.
+- Multiple regions of the same language can be hard to tell apart if the UI only shows `getDisplayLanguage`; include region or script.
+- When needing to comply with brand naming, product policy, or market-sensitive naming, the application can maintain an **editorially curated label table**. `getDisplayName` supplies standard runtime data, not a substitute for UI copy approval.
+- Different scripts require font support and character rendering capabilities; a correctly returned name does not guarantee the system has a font to render it.
 
-## 7. Không dùng tên hiển thị làm mã định danh hoặc logic xử lý
+## 7. Do Not Use Display Names as Identifiers or Processing Logic
 
-Xét ba nhiệm vụ hoàn toàn khác:
+Consider three completely different tasks:
 
-| Nhiệm vụ | API/dữ liệu phù hợp | Vì sao? |
+| Task | Appropriate API/Data | Why? |
 | --- | --- | --- |
-| Ghi giá trị form cho lựa chọn `en-GB` | `locale.toLanguageTag()` | Mã ổn định hơn tên bản địa hóa |
-| Hiển thị nhãn cho người dùng dùng `vi-VN` | `locale.getDisplayName(uiLocale)` | Nhãn phù hợp ngôn ngữ giao diện |
-| Kiểm tra chọn đúng vùng `GB` | `locale.getCountry()` hoặc so sánh locale | Không phụ thuộc bản dịch hoặc cách viết tên quốc gia |
+| Recording form value for the `en-GB` option | `locale.toLanguageTag()` | Code is more stable than localized names |
+| Showing label to a user using `vi-VN` | `locale.getDisplayName(uiLocale)` | Label matches the UI language |
+| Checking whether region `GB` was selected | `locale.getCountry()` or locale comparison | Independent of translations or country-name phrasing |
 
-Không parse chuỗi kết quả `getDisplayName()` để lấy mã vùng. Định dạng tên tổng hợp (cách dùng dấu ngoặc, dấu phẩy, thứ tự vùng/script...) có thể thay đổi theo dữ liệu locale. Đồng thời, không dùng `getDisplayName` làm khóa của `Map`, khóa database, route, API query hoặc giá trị `<option value>` trong HTML.
+Do not parse the string returned by `getDisplayName()` to extract a region code. Composite name formatting (parentheses, commas, order of region/script, etc.) can change with locale data. Likewise, do not use `getDisplayName` as a `Map` key, database key, route, API query, or HTML `<option value>`.
 
-Ví dụ sai ở cấp ý tưởng:
+Conceptually wrong example:
 
 ```java
-// Sai về thiết kế: label dịch sang ngôn ngữ khác sẽ làm mất khóa ổn định.
+// Poor design: labels translated to another language lose a stable key.
 String savedLocale = option.getDisplayName(uiLocale);
 ```
 
-Cách thiết kế đúng cho dữ liệu bền vững:
+Proper design for durable data:
 
 ```java
-// Lưu tag; mỗi lần render có thể tạo label với locale người xem.
+// Store the tag; each render can generate the label with the viewer's locale.
 String savedLocale = option.toLanguageTag();
 Locale restored = Locale.forLanguageTag(savedLocale);
 String label = restored.getDisplayName(uiLocale);
 ```
 
-Hai đoạn trên cần được dùng **bên trong ngữ cảnh đã khai báo** `option` và `uiLocale`; chúng chỉ minh họa cách chọn dữ liệu, không phải file Java độc lập.
+Both snippets above must be used **inside a context where `option` and `uiLocale` are already declared**; they merely illustrate data selection, not standalone Java files.
 
-## 8. Các giới hạn của tên hiển thị từ JDK
+## 8. Limitations of JDK Display Names
 
-### Phụ thuộc dữ liệu địa phương hóa của runtime
+### Dependence on Runtime Localization Data
 
-Java có nhiều bộ dữ liệu locale, phiên bản JDK và cấu hình locale provider khác nhau. Bản dịch, cách viết tên vùng, cách sắp xếp thành phần của tên có thể thay đổi. Một bản kiểm thử snapshot so sánh **chính xác** chuỗi `getDisplayName(Locale)` đôi khi thất bại khi đổi JDK hoặc locale provider dù code ứng dụng vẫn đúng.
+Java has multiple locale datasets, JDK versions, and locale provider configurations. Translations, region name spellings, and component ordering in names can change. A snapshot test comparing **exact** `getDisplayName(Locale)` strings sometimes fails when changing JDKs or locale providers even when application code is still correct.
 
-Để kiểm thử bền vững, kiểm tra các thuộc tính không phụ thuộc văn phong dịch (ví dụ thẻ lưu lại giống ban đầu, nhãn không rỗng cho các locale đã lựa chọn, UI sử dụng đúng display locale). Khi sản phẩm buộc phải có nhãn chính xác, lưu nhãn do ứng dụng kiểm soát và kiểm thử bảng nhãn đó. Không gọi `Locale.getAvailableLocales()` rồi suy ra ứng dụng tự có bản dịch giao diện cho tất cả: danh sách locale runtime có dữ liệu hỗ trợ **không phải** danh sách locale nội dung ứng dụng đã dịch.
+For resilient tests, verify properties independent of translation phrasing (e.g., stored tag matches original, label is non-empty for selected locales, UI uses the right display locale). When the product strictly requires exact labels, store application-controlled labels and test that label table. Do not call `Locale.getAvailableLocales()` and infer the application automatically has UI translations for all of them: the list of runtime locales with supporting data is **not** the list of locales the application has translated.
 
-### Phân biệt tên ngôn ngữ và mã ngôn ngữ
+### Distinguishing Language Name and Language Code
 
-`getDisplayLanguage(displayLocale)` có thể trả tên ngôn ngữ nhưng **không hiển thị đầy đủ** script và vùng. Ví dụ, hai lựa chọn `en-US` / `en-GB` có cùng tên ngôn ngữ khi diễn đạt bằng tiếng Anh, trong khi toàn bộ `getDisplayName(displayLocale)` giúp trình bày thêm vùng để phân biệt. Nếu mục tiêu là một menu chọn ngôn ngữ và vùng, kiểm tra từng locale thực tế và bổ sung chú giải có kiểm soát nếu nhãn quá giống nhau.
+`getDisplayLanguage(displayLocale)` can return a language name yet **not show the full** script and region. For example, two options `en-US` / `en-GB` have the same language name when expressed in English, whereas the full `getDisplayName(displayLocale)` helps present the region as well to tell them apart. If the goal is a language-and-region picker menu, inspect each actual locale and add controlled annotations if labels look too similar.
 
-### Không nhầm locale hiển thị với locale định dạng
+### Do Not Confuse Display Locale with Formatting Locale
 
-Một người dùng có thể xem tên ngôn ngữ bằng tiếng Việt nhưng định dạng tiền/ngày theo quy ước của thị trường khác. `getDisplayName(uiLocale)` chỉ xác định **ngôn ngữ dùng để gọi tên locale** trong trường hợp này; không cần và không nên ép toàn bộ formatter chuyển sang `uiLocale` nếu chính sách của ứng dụng yêu cầu locale định dạng khác. Múi giờ cũng là cấu hình riêng (`ZoneId`), không được suy ra từ `getDisplayName`.
+A user may view language names in Vietnamese while formatting currency/dates according to another market's conventions. `getDisplayName(uiLocale)` only determines the **language used to name locales** in this case; you do not need to and should not force all formatters to switch to `uiLocale` if application policy calls for a different formatting locale. Time zone is also a separate setting (`ZoneId`) and must not be inferred from `getDisplayName`.
 
-### Không xem tên hiển thị là công cụ dịch văn bản bất kỳ
+### Do Not Treat Display Names as a General Text Translation Tool
 
-`getDisplayName` chỉ trả tên bản địa hóa của **đối tượng Locale**, không dịch thông điệp tự do như câu chào hay nội dung trang. Tài nguyên dịch UI cần nguồn thông điệp thích hợp, chẳng hạn `ResourceBundle` hoặc hệ thống i18n được ứng dụng sử dụng. Một locale hợp lệ không đảm bảo ứng dụng có sẵn bản dịch cho nó.
+`getDisplayName` only returns the localized name of a **`Locale` object**; it does not translate arbitrary messages such as greetings or page content. UI translation resources require an appropriate message source, such as `ResourceBundle` or the i18n system used by the application. A valid locale does not guarantee the application has translations ready for it.
 
-## 9. Kiểm thử và thực hành
+## 9. Testing and Practice
 
-**Bộ kiểm thử khái niệm nên bao gồm:**
+**A conceptual test suite should include:**
 
-- **Hai display locale cho một target:** với `fr-CA`, lấy tên theo `en-US` và `fr-FR`; xác minh locale đích giữ nguyên `fr-CA` và nhãn hướng tới đúng ngôn ngữ mong muốn.
-- **Hai vùng cùng ngôn ngữ:** `en-US`, `en-GB`; đảm bảo mã lưu khác nhau, UI có thể phân biệt chúng và không bỏ thông tin vùng.
-- **Trường hợp có script:** `zh-Hans-CN` và `zh-Hant-TW`; xác minh thẻ bảo toàn script và nhãn UI đủ rõ.
-- **Locale không có vùng:** `fr`; `getDisplayCountry(Locale.ENGLISH)` phải rỗng và UI không tự bịa vùng.
-- **Default DISPLAY:** minh họa `getDisplayName()` sử dụng default DISPLAY category; code sản phẩm chuyển sang overload có tham số để tránh phụ thuộc global.
-- **Đổi ngôn ngữ giao diện:** khi `uiLocale` thay đổi, các giá trị `value=` giữ nguyên; chỉ cập nhật nhãn.
-- **Runtime khác nhau:** tránh kiểm thử tên dịch cố định xuyên JDK/provider khi sản phẩm không có cam kết về văn bản chính xác.
+- **Two display locales for one target:** for `fr-CA`, get names in `en-US` and `fr-FR`; verify the target locale stays `fr-CA` and labels aim at the intended languages.
+- **Two regions of the same language:** `en-US`, `en-GB`; ensure stored codes differ, the UI can distinguish them, and region info is not dropped.
+- **Cases with script:** `zh-Hans-CN` and `zh-Hant-TW`; verify tags preserve scripts and UI labels are sufficiently clear.
+- **Locale without region:** `fr`; `getDisplayCountry(Locale.ENGLISH)` must be empty and the UI must not invent a region.
+- **DISPLAY default:** demonstrate `getDisplayName()` uses the default DISPLAY category; production code switches to the parameterized overload to avoid global dependence.
+- **Switching UI language:** when `uiLocale` changes, `value=` identifiers remain unchanged; only labels update.
+- **Different runtimes:** avoid asserting fixed translated strings across JDKs/providers when the product makes no verbatim-text guarantee.
 
-### Bài tập 1: Nhãn theo giao diện và nhãn tự thân
+### Exercise 1: UI-Language Label and Autonym Label
 
-Tạo danh sách gồm `pt-BR`, `pt-PT`, `es-ES`, `es-MX`. Đặt `uiLocale` lần lượt là `vi-VN` và `en-US`. Với mỗi locale, in mã `toLanguageTag()`, nhãn `getDisplayName(uiLocale)` và nhãn `getDisplayName(option)`. Trả lời:
+Create a list containing `pt-BR`, `pt-PT`, `es-ES`, and `es-MX`. Set `uiLocale` to `vi-VN` and `en-US` in turn. For each locale, print `toLanguageTag()`, `getDisplayName(uiLocale)`, and `getDisplayName(option)`. Answer:
 
-1. Mã nào không đổi khi đổi ngôn ngữ giao diện?
-2. Có thể suy ra mã vùng chính xác bằng cách phân tích tên hiển thị không?
-3. Khi nào nên hiển thị cả nhãn ngôn ngữ giao diện và nhãn tự thân?
+1. Which code stays unchanged when the UI language changes?
+2. Can you reliably deduce the exact region code by parsing the display name?
+3. When should you display both the UI-language label and the autonym label?
 
-**Gợi ý:** dựa trên vòng lặp của `LanguageMenuDemo`. Nhãn là dữ liệu trình bày; mã BCP 47 giữ vai trò nhận diện lựa chọn.
+**Hint:** base it on the loop in `LanguageMenuDemo`. Labels are presentation data; BCP 47 codes serve to identify the selection.
 
-### Bài tập 2: Tránh phụ thuộc locale mặc định
+### Exercise 2: Avoiding Dependence on the Default Locale
 
-Một dịch vụ web có nhiều người dùng cùng truy cập. Đoạn sau có thiết kế không ổn:
+A web service is accessed concurrently by many users. The snippet below has a flawed design:
 
 ```java
 Locale regionChoice = Locale.forLanguageTag("fr-CA");
 String name = regionChoice.getDisplayName();
 ```
 
-Nếu request của người dùng A dùng tiếng Anh, người dùng B dùng tiếng Việt, và máy chủ thay đổi DISPLAY default, tên hiển thị có thể không phản ánh ngôn ngữ của từng người. Thay bằng:
+If user A's request uses English, user B's uses Vietnamese, and the server changes the DISPLAY default, the displayed name may fail to reflect each user's language. Replace with:
 
 ```java
 Locale regionChoice = Locale.forLanguageTag("fr-CA");
-Locale uiLocale = Locale.forLanguageTag("vi-VN"); // Ví dụ lấy từ user/request
+Locale uiLocale = Locale.forLanguageTag("vi-VN"); // Example obtained from user/request
 String name = regionChoice.getDisplayName(uiLocale);
 ```
 
-Trong thực tế, `uiLocale` phải đến từ cài đặt/ngữ cảnh hợp lệ của **request hiện tại** hoặc chính sách ứng dụng; hai đoạn này là ví dụ trong một phương thức, không phải chương trình độc lập. Không dùng `Locale.setDefault` theo request.
+In practice, `uiLocale` must come from the valid settings/context of the **current request** or application policy; these two snippets are examples inside a method, not standalone programs. Do not call `Locale.setDefault` per request.
 
-## 10. Ghi nhớ
+## 10. Key Takeaways
 
-- **`getDisplayName()`** lấy tên theo **default `Locale.Category.DISPLAY`** của JVM; kết quả có thể khác khi môi trường mặc định thay đổi.
-- **`getDisplayName(inLocale)`** lấy tên của locale đích, nhưng được diễn đạt theo **locale hiển thị chỉ định**. Đây là API nên dùng cho các UI có locale người xem rõ ràng.
-- **`getDisplayName(locale)`** là tên tổng hợp; `getDisplayLanguage/Script/Country/Variant(locale)` phục vụ nhãn của từng thành phần.
-- **`getDisplayName(option)`** giúp hiển thị tên bằng ngôn ngữ của chính tùy chọn, hữu ích cho menu chọn ngôn ngữ, nhưng vẫn cần kiểm tra fallback, script và vùng.
-- **`toLanguageTag()` là mã định danh để lưu/truyền**, còn tên hiển thị chỉ dành cho người đọc. Không dùng bản dịch của tên làm ID.
-- Nội dung tên phụ thuộc dữ liệu locale/provider của JDK; kiểm thử đúng ý nghĩa và kiểm soát nhãn bằng tài nguyên ứng dụng khi cần văn bản cố định.
+- **`getDisplayName()`** retrieves the name using the JVM's **default `Locale.Category.DISPLAY`**; results can differ when the default environment changes.
+- **`getDisplayName(inLocale)`** retrieves the target locale's name expressed in the **specified display locale**. This is the API to use for UIs with an explicit viewer locale.
+- **`getDisplayName(locale)`** is the composite name; `getDisplayLanguage/Script/Country/Variant(locale)` provide labels for individual components.
+- **`getDisplayName(option)`** helps display a name in the option's own language, useful for language selection menus, though fallback, script, and region still need checking.
+- **`toLanguageTag()` is the identifier for storage/transmission**, while display names are only for human readers. Never use translated name text as an ID.
+- Name content depends on JDK locale/provider data; test semantics properly and control labels with application resources when fixed wording is required.
 
-Khi cần diễn đạt một locale cho người dùng, luôn hỏi đủ hai câu: **đang gọi tên locale nào?** và **muốn tên đó bằng ngôn ngữ của ai?**. Hai câu trả lời tương ứng với đối tượng nhận `getDisplayName` và tham số `inLocale`.
+Whenever expressing a locale to a user, always ask two questions: **which locale is being named?** and **whose language should that name be in?** The two answers correspond to the receiver of `getDisplayName` and the `inLocale` argument.

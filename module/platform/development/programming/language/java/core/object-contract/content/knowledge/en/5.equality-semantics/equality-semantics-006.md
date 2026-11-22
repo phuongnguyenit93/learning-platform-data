@@ -1,32 +1,32 @@
-# So sánh không phân biệt hoa thường và quy tắc nghiệp vụ tường minh
+# Case-Insensitive Comparison and Explicit Business Rules
 
-## 1. Vấn đề: “bằng nhau” phụ thuộc vào quy tắc nào?
+## 1. The Problem: Which Rule Defines "Equal"?
 
-Trong Java, hai chuỗi có cùng chữ nhưng khác chữ hoa/chữ thường có thể được xem là bằng nhau hoặc khác nhau **tùy ngữ cảnh nghiệp vụ**:
+In Java, two strings with the same letters but differing uppercase/lowercase can be considered equal or different **depending on the business context**:
 
-- Mã coupon `Save10` và `SAVE10` có thể là **hai mã khác nhau** nếu hệ thống quy định mã phân biệt hoa/thường.
-- Tên đăng nhập `Alice_7` và `alice_7` có thể được xem là **cùng một username** nếu hệ thống công bố username không phân biệt hoa/thường.
-- Nhãn tìm kiếm `Java` và `JAVA` có thể được khớp không phân biệt hoa/thường, nhưng thao tác “khớp khi tìm kiếm” chưa chắc đã là quy tắc để xác định **danh tính** của đối tượng.
-- Tên người, văn bản tự nhiên và từ ngữ đa ngôn ngữ có thể cần quy tắc phụ thuộc ngôn ngữ, dấu, cách viết và mục đích sử dụng.
+- Coupon codes `Save10` and `SAVE10` may be **two different codes** if the system defines codes as case-sensitive.
+- Usernames `Alice_7` and `alice_7` may be treated as **the same username** if the system declares usernames to be case-insensitive.
+- Search tags `Java` and `JAVA` may be matched case-insensitively, yet “matching during search” is not necessarily the rule for determining an object's **identity**.
+- Personal names, natural text, and multilingual terms may require rules dependent on language, diacritics, spelling variants, and intended use.
 
-Vì vậy, câu hỏi đầu tiên không phải “dùng `equalsIgnoreCase` hay `equals`?” mà là **trường dữ liệu này cần quan hệ bằng nhau nào?** Chỉ sau khi xác định quy tắc nghiệp vụ mới chọn API Java, bước chuẩn hóa và cách lưu/truy vấn.
+Therefore, the first question is not “use `equalsIgnoreCase` or `equals`?” but **what equality relation does this field require?** Only after defining the business rule should you choose Java APIs, normalization steps, and storage/query mechanisms.
 
-Điểm giới hạn quan trọng: `String.equals(Object)` vẫn phân biệt hoa/thường. Gọi `equalsIgnoreCase` cho một thao tác không làm thay đổi định nghĩa `equals` của `String`; muốn lớp giá trị tự coi hai biểu diễn là bằng nhau, phải thiết kế `equals` và `hashCode` của **lớp đó** một cách nhất quán.
+An important limitation: `String.equals(Object)` remains case-sensitive. Calling `equalsIgnoreCase` for one operation does not change `String`'s definition of `equals`; if a value class should treat two representations as equal, you must design `equals` and `hashCode` of **that class** consistently.
 
-## 2. Những công cụ Java thường gặp
+## 2. Common Java Tools
 
-| Công cụ | Điều nó kiểm tra | Phù hợp khi nào |
+| Tool | What it checks | When it fits |
 | --- | --- | --- |
-| `left.equals(right)` | Nội dung chuỗi bằng nhau theo `String.equals`, phân biệt hoa/thường. | Mã, khóa, giá trị có quy tắc khớp chính xác. |
-| `left.equalsIgnoreCase(right)` | So sánh ký tự không phân biệt hoa/thường theo quy tắc Unicode mà Java áp dụng, **không dựa vào `Locale` được truyền vào**. | So khớp chuỗi không phân biệt hoa/thường khi quy tắc Java này đúng với nghiệp vụ. |
-| `left.toLowerCase(Locale.ROOT)` | Tạo một chuỗi đã chuyển về chữ thường theo quy tắc locale trung lập. | Một bước của chiến lược tạo **khóa chuẩn hóa** được thiết kế trước. |
-| `String.CASE_INSENSITIVE_ORDER` | `Comparator<String>` sắp thứ tự chuỗi không phân biệt hoa/thường theo quy tắc tương thích với `compareToIgnoreCase`. | Tập/cây sắp xếp có chính sách coi chữ hoa/thường là cùng khóa. |
-| `Collator` | So sánh theo quy tắc đối chiếu ngôn ngữ, locale và mức phân biệt (strength). | Sắp xếp hoặc tìm kiếm văn bản theo ngôn ngữ của người dùng. |
-| `Normalizer.normalize(text, Form.NFC)` | Chuẩn hóa những biểu diễn Unicode tương đương về một dạng chuẩn. | Khi dữ liệu có thể chứa ký tự Unicode dạng tổ hợp/dạng dựng sẵn. |
+| `left.equals(right)` | String content equality per `String.equals`, case-sensitive. | Codes, keys, values with exact matching rules. |
+| `left.equalsIgnoreCase(right)` | Case-insensitive character comparison according to Java's Unicode rules, **not based on a passed `Locale`**. | Case-insensitive string matching when this Java rule matches business requirements. |
+| `left.toLowerCase(Locale.ROOT)` | Produces a string converted to lowercase using a locale-neutral rule. | One step in a pre-designed strategy for creating a **canonical key**. |
+| `String.CASE_INSENSITIVE_ORDER` | A `Comparator<String>` ordering strings case-insensitively with rules compatible with `compareToIgnoreCase`. | Sorted sets/trees whose policy treats upper/lowercase as the same key. |
+| `Collator` | Compares according to linguistic collation rules, locale, and strength level. | Sorting or searching text in the user's language. |
+| `Normalizer.normalize(text, Form.NFC)` | Normalizes equivalent Unicode representations into one canonical form. | When data may contain composed/decomposed Unicode characters. |
 
-Các công cụ trên **không hoàn toàn thay thế được nhau**. Ví dụ, chuyển hai chuỗi sang chữ thường rồi gọi `equals` không luôn trùng với `equalsIgnoreCase` trên mọi ký tự Unicode. `Collator` còn có thể xem hai chuỗi chỉ khác dấu là tương đương ở một mức so sánh, điều mà một chính sách “bỏ qua chữ hoa/thường nhưng giữ dấu” không mong muốn.
+The tools above **are not completely interchangeable**. For example, lowercasing two strings and calling `equals` does not always agree with `equalsIgnoreCase` across all Unicode characters. `Collator` may also treat two strings differing only by accents as equivalent at a given comparison strength, which a “ignore case but preserve accents” policy does not want.
 
-### `equals` so với `equalsIgnoreCase`
+### `equals` vs `equalsIgnoreCase`
 
 ```java
 "Java".equals("JAVA");            // false
@@ -34,40 +34,40 @@ Các công cụ trên **không hoàn toàn thay thế được nhau**. Ví dụ,
 "Java".equalsIgnoreCase(null);    // false
 ```
 
-Đây là **các biểu thức minh họa**, không phải chương trình Java độc lập. Nếu tham chiếu bên trái là `null` thì cả lời gọi `left.equals(...)` lẫn `left.equalsIgnoreCase(...)` đều gây `NullPointerException`; phải quy định rõ xử lý đầu vào `null` và dùng kiểm tra hoặc tiện ích phù hợp.
+These are **illustrative expressions**, not a standalone Java program. If the left reference is `null`, both `left.equals(...)` and `left.equalsIgnoreCase(...)` throw `NullPointerException`; handling of `null` inputs must be specified and guarded with checks or appropriate utilities.
 
-Không nhầm “không phân biệt hoa/thường” với “không phân biệt dấu”, “bỏ khoảng trắng”, “không phân biệt cách viết Unicode” hoặc “gần giống khi tìm kiếm”. Mỗi yêu cầu là một quy tắc riêng.
+Do not confuse “case-insensitive” with “accent-insensitive”, “ignore whitespace”, “Unicode-representation-insensitive”, or “fuzzy search match”. Each requirement is a separate rule.
 
-## 3. Thiết kế quy tắc nghiệp vụ một cách tường minh
+## 3. Designing Business Rules Explicitly
 
-Trước khi lập trình, cần trả lời các câu hỏi sau cho **từng loại dữ liệu**:
+Before coding, answer the following questions for **each kind of data**:
 
-1. **Đối tượng so sánh là gì?** Username, coupon, SKU, mã đơn hàng, nhãn hiển thị hay từ khóa tìm kiếm? Hai trường trong cùng một đối tượng có thể có quy tắc khác nhau.
-2. **Phân biệt chữ hoa/thường hay không?** Nếu không, dùng so khớp không phân biệt case trực tiếp hay tạo khóa chuẩn hóa để lưu trữ?
-3. **Có bỏ khoảng trắng đầu/cuối không?** Nếu có, bỏ theo quy tắc nào? `strip()` và `trim()` không đồng nghĩa trên mọi ký tự; đừng tự loại bỏ khoảng trắng bên trong.
-4. **Chấp nhận ký tự nào?** Chỉ ASCII (`A-Z`, `a-z`, số, dấu gạch dưới) hay Unicode nhiều ngôn ngữ? Miền ký tự quyết định độ phức tạp của chuẩn hóa.
-5. **Có xét dấu và chuẩn hóa Unicode không?** `é` dựng sẵn và `e` + dấu sắc kết hợp có thể biểu diễn cùng văn bản nhưng là hai dãy mã khác nhau.
-6. **Locale có ảnh hưởng không?** Khớp mã máy thường cần quy tắc độc lập với locale; tên hoặc văn bản hiển thị có thể cần locale người dùng.
-7. **`null`, chuỗi rỗng và chuỗi chỉ có khoảng trắng có hợp lệ không?** Trả về `false`, coi cả hai `null` là bằng nhau hay từ chối đầu vào đều là lựa chọn nghiệp vụ cần công bố.
-8. **Định nghĩa danh tính có ổn định không?** Nếu giá trị quyết định `equals`/`hashCode` được phép thay đổi, đối tượng đang làm khóa `HashMap`/`HashSet` sẽ có rủi ro mất khả năng tra cứu.
+1. **What is being compared?** Username, coupon, SKU, order code, display tag, or search keyword? Two fields in the same object may have different rules.
+2. **Case-sensitive or not?** If not, use direct case-insensitive matching or build a canonical key for storage?
+3. **Strip leading/trailing whitespace?** If yes, by what rule? `strip()` and `trim()` are not identical for all characters; do not automatically strip internal whitespace.
+4. **Which characters are accepted?** ASCII only (`A-Z`, `a-z`, digits, underscore) or multilingual Unicode? The character domain determines normalization complexity.
+5. **Are accents and Unicode normalization considered?** Precomposed `é` and `e` + combining acute accent represent the same visual text yet are two different code sequences.
+6. **Does locale matter?** Machine-key matching typically requires locale-independent rules; human names or display text may need the user's locale.
+7. **Are `null`, empty strings, and whitespace-only strings valid?** Returning `false`, treating two `null`s as equal, or rejecting input are all business choices that must be stated.
+8. **Is the identity definition stable?** If the value determining `equals`/`hashCode` is allowed to mutate, objects used as `HashMap`/`HashSet` keys risk losing lookup reliability.
 
-Ví dụ một đặc tả username có thể viết rõ:
+For example, a username specification can be written explicitly:
 
-> “Chấp nhận 3–20 ký tự ASCII, chỉ gồm chữ cái, chữ số và `_`. Bỏ khoảng trắng đầu/cuối trước khi kiểm tra. Username là duy nhất không phân biệt chữ hoa/chữ thường ASCII. Khóa lưu/truy vấn là chữ thường theo `Locale.ROOT`. Không chấp nhận các kiểu chữ Unicode khác hoặc cách viết có dấu.”
+> “Accept 3–20 ASCII characters, consisting only of letters, digits, and `_`. Strip leading/trailing whitespace before validation. Usernames are unique ignoring ASCII case. The storage/lookup key is lowercased with `Locale.ROOT`. Other Unicode scripts or accented spellings are not accepted.”
 
-Đây chỉ là **ví dụ về chính sách**. Nó cho kết quả dự đoán được vì dữ liệu hợp lệ chỉ nằm trong ASCII; hệ thống hỗ trợ username quốc tế cần đặc tả, kiểm thử và chính sách Unicode riêng.
+This is merely **an example policy**. It produces predictable results because valid data lies strictly within ASCII; systems supporting international usernames need separate specifications, tests, and Unicode policies.
 
-Chính sách tên đăng nhập không tự áp dụng cho email, tên khách hàng hoặc mã hàng. Với địa chỉ email, phần domain không phân biệt hoa/thường, còn quy tắc xử lý phần local có thể tùy nhà cung cấp và ứng dụng; không được tự động xóa dấu chấm, dấu cộng hoặc đổi toàn bộ địa chỉ thành chữ thường rồi coi đó là danh tính chuẩn cho mọi hệ thống.
+A username policy does not automatically apply to emails, customer names, or item codes. For email addresses, the domain part is case-insensitive while handling rules for the local part depend on the provider and application; do not automatically strip dots, plus suffixes, or lowercase the entire address and treat that as canonical identity across all systems.
 
-## 4. Ví dụ Java 17+ chạy độc lập
+## 4. Standalone Runnable Java 17+ Example
 
-Chương trình sau minh họa **ba chính sách tách biệt**:
+The following program demonstrates **three separate policies**:
 
-- `sameTag` cho phép khớp nhãn không phân biệt hoa/thường bằng `equalsIgnoreCase`.
-- `sameCouponCode` dùng khớp chính xác, phân biệt hoa/thường.
-- `Username` là **lớp giá trị bất biến**; `equals`/`hashCode` cùng dựa trên một khóa username ASCII đã chuẩn hóa. Đây là ví dụ miền giá trị, không mặc định rằng danh tính của mọi tài khoản người dùng phải dựa trên username.
+- `sameTag` allows case-insensitive tag matching using `equalsIgnoreCase`.
+- `sameCouponCode` uses exact, case-sensitive matching.
+- `Username` is an **immutable value class**; `equals`/`hashCode` both rely on a normalized ASCII username key. This is a value-domain example and does not assume every user account's identity must be based on username.
 
-Lưu đúng tệp `CasePolicyDemo.java`:
+Save as exact file `CasePolicyDemo.java`:
 
 ```java
 import java.util.HashSet;
@@ -159,14 +159,14 @@ public class CasePolicyDemo {
 }
 ```
 
-Biên dịch và chạy trên JDK 17 trở lên:
+Compile and run on JDK 17 or newer:
 
 ```bash
 javac -encoding UTF-8 CasePolicyDemo.java
 java CasePolicyDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 tag ignore case: true
@@ -183,56 +183,56 @@ TreeSet strings size: 1
 sharp-s expansion: false
 ```
 
-**Giải thích:**
+**Explanation:**
 
-- `sameTag("Java", "JAVA")` trả về `true` vì thao tác so nhãn được phép bỏ qua chữ hoa/thường. `sameCouponCode("Save10", "SAVE10")` trả về `false` vì chính sách coupon phân biệt case.
-- `canonicalUsername` loại bỏ khoảng trắng ở biên theo chính sách ví dụ, sau đó **kiểm tra miền ASCII trước khi đổi chữ thường**. Vì chỉ cho phép ASCII, thao tác `toLowerCase(Locale.ROOT)` không gặp các tình huống mở rộng Unicode khó kiểm soát.
-- `Username` là lớp `final` với trường `key` bất biến. Ba đối tượng `a`, `b`, `c` có cùng khóa chuẩn hóa, nên `equals` phản xạ, đối xứng và bắc cầu trong bộ dữ liệu ví dụ. Kết quả in ra chỉ kiểm tra bộ dữ liệu này; việc đúng hợp đồng còn dựa vào định nghĩa khóa và các phép thử khác.
-- `hashCode` tính từ cùng `key` như `equals`. Vì thế `HashSet` có thể nhận ra `b` là cùng giá trị với `a` đã lưu.
-- `HashSet<String>` dùng `String.equals`/`hashCode`, nên chứa cả `Java` và `JAVA`. `TreeSet<String>` ở đây dùng comparator không phân biệt case, nên chỉ giữ một phần tử đối với cặp đó. Comparator có quan hệ tương đương **khác với `String.equals`**; đây là quyết định về semantics của tập, cần biết trước khi dùng.
-- `"straße"` và `"STRASSE"` có số ký tự khác nhau, nên `equalsIgnoreCase` trả về `false`. Nó không thực hiện mọi phép chuyển đổi nhiều ký tự được dùng trong một số khái niệm Unicode case folding.
+- `sameTag("Java", "JAVA")` returns `true` because tag matching is allowed to ignore case. `sameCouponCode("Save10", "SAVE10")` returns `false` because the coupon policy is case-sensitive.
+- `canonicalUsername` strips boundary whitespace under the example policy, then **validates the ASCII domain before lowercasing**. Because only ASCII is allowed, `toLowerCase(Locale.ROOT)` avoids hard-to-control Unicode expansion cases.
+- `Username` is a `final` class with an immutable `key` field. The three objects `a`, `b`, `c` share the same canonical key, so `equals` is reflexive, symmetric, and transitive across the sample data. The printed output only checks this dataset; contract compliance also rests on the key definition and other tests.
+- `hashCode` is computed from the same `key` as `equals`. Hence `HashSet` recognizes `b` as the same value as the stored `a`.
+- `HashSet<String>` uses `String.equals`/`hashCode`, so it holds both `Java` and `JAVA`. `TreeSet<String>` here uses a case-insensitive comparator, so it keeps only one element for that pair. The comparator's equivalence relation **differs from `String.equals`**; this is a set-semantics decision you must understand before using it.
+- `"straße"` and `"STRASSE"` have different character counts, so `equalsIgnoreCase` returns `false`. It does not perform all multi-character expansions used in certain Unicode case folding concepts.
 
-## 5. Vì sao chuẩn hóa khóa giúp thiết kế `equals` đúng?
+## 5. Why Does Key Normalization Help Design `equals` Correctly?
 
-Giả sử chỉ so sánh hai đối tượng `Username` theo chuỗi gốc bằng `String.equals`: `"Alice_7"` và `"alice_7"` khác nhau. Nhưng nghiệp vụ đã xác nhận chúng là cùng username. Vì thế lớp giá trị lưu **khóa đại diện cho quan hệ bằng nhau**, ví dụ `"alice_7"`, và dùng khóa đó nhất quán.
+Suppose two `Username` objects were compared by raw strings via `String.equals`: `"Alice_7"` and `"alice_7"` differ. Yet business rules established they are the same username. Therefore, the value class stores **the key representing the equality relation**, such as `"alice_7"`, and uses that key consistently.
 
-Nếu mọi đầu vào được chấp nhận đi qua **cùng một hàm chuẩn hóa xác định**, ta định nghĩa:
+If every accepted input passes through **the same deterministic normalization function**, we define:
 
 ```text
-x ~ y  khi và chỉ khi  canonical(x).equals(canonical(y))
+x ~ y  if and only if  canonical(x).equals(canonical(y))
 ```
 
-Đó là phép bằng nhau của các khóa chuỗi chuẩn hóa; nó có phản xạ, đối xứng và bắc cầu. Quy tắc này dễ kiểm chứng hơn một loạt điều kiện “gần giống” được viết vào `equals`. Nhớ rằng quan hệ tương đương chỉ xét **các giá trị hợp lệ trong miền dữ liệu**; đầu vào không hợp lệ nên được xử lý theo hợp đồng constructor/API.
+That is equality of canonical string keys; it is reflexive, symmetric, and transitive. This rule is easier to verify than a tangle of “approximate” conditions written inside `equals`. Remember that the equivalence relation applies only to **valid values in the domain**; invalid inputs should be handled per constructor/API contract.
 
-Quy tắc quan trọng nhất khi triển khai value object:
+Most important rules when implementing a value object:
 
-1. **Định nghĩa một hàm chuẩn hóa thống nhất** cho mọi đường tạo dữ liệu, nhập khẩu, API, batch job và tra cứu.
-2. **Không tách tiêu chí `equals` và `hashCode`.** Nếu `equals` bỏ qua chữ hoa/thường còn `hashCode` dựa vào chuỗi gốc, hai đối tượng bằng nhau có thể sinh hash khác nhau và vi phạm hợp đồng.
-3. **Khóa phải ổn định** khi đối tượng được dùng làm phần tử `HashSet` hoặc khóa `HashMap`. Trường `final` của lớp giá trị là một lựa chọn an toàn.
-4. **Định nghĩa rõ miền kiểu**. Ví dụ `Username` chỉ bằng một `Username` khác; nó không so bằng một `String` dù nội dung giống nhau. Việc cho phép `Username.equals("alice_7")` thường phá đối xứng vì `String.equals(Username)` trả về `false`.
-5. **Cùng quy tắc ở ứng dụng và nơi lưu trữ**. Nếu ứng dụng chuẩn hóa username nhưng database index chỉ kiểm tra chuỗi gốc, hai yêu cầu tạo username có thể vượt qua kiểm tra rồi gây trùng danh tính. Dùng khóa đã chuẩn hóa, unique constraint và thao tác ghi phù hợp để bảo đảm duy nhất, kể cả có request đồng thời.
+1. **Define one unified normalization function** for all creation, import, API, batch job, and lookup paths.
+2. **Do not decouple `equals` and `hashCode` criteria.** If `equals` ignores case while `hashCode` relies on the raw string, two equal objects can produce different hashes and break the contract.
+3. **Keys must be stable** when objects are used as `HashSet` elements or `HashMap` keys. A `final` field on a value class is a safe choice.
+4. **Define the type domain clearly.** For instance, `Username` equals only another `Username`; it does not equal a `String` even with the same text. Allowing `Username.equals("alice_7")` usually breaks symmetry because `String.equals(Username)` returns `false`.
+5. **Align rules between application and storage.** If the application normalizes usernames while the database index checks only raw strings, two requests creating a username can pass checks and cause duplicate identities. Use the canonical key, unique constraints, and appropriate write operations to guarantee uniqueness, even under concurrent requests.
 
-Chú ý: một **thực thể tài khoản** có thể cần định danh bằng `userId` ổn định chứ không phải username nếu tên đăng nhập được phép đổi. Lớp `Username` ở ví dụ là *value object đại diện cho tên đăng nhập*, không phải toàn bộ thực thể người dùng. Quy tắc `equals` của entity phải phản ánh danh tính thực tế của entity đó.
+Note: an **account entity** may need to be identified by a stable `userId` rather than username if usernames are allowed to change. The `Username` class in the example is a *value object representing a login name*, not the entire user entity. An entity's `equals` rule must reflect that entity's actual identity.
 
-## 6. Unicode, locale và những trường hợp dễ hiểu sai
+## 6. Unicode, Locale, and Easily Misunderstood Cases
 
-### 6.1. Không phân biệt hoa/thường không phải full Unicode case folding
+### 6.1. Case-Insensitivity Is Not Full Unicode Case Folding
 
-`String.equalsIgnoreCase` là phép so sánh không phân biệt chữ hoa/thường theo cách Java quy định. Nó **không tự động** chuẩn hóa Unicode, không chạy quy trình full Unicode case folding trên chuỗi và không dùng một locale do người dùng chỉ định.
+`String.equalsIgnoreCase` is a case-insensitive comparison as specified by Java. It **does not automatically** normalize Unicode, run full Unicode case folding across strings, or use a user-specified locale.
 
-Ví dụ `"straße".equalsIgnoreCase("STRASSE")` trả về `false` vì độ dài hai chuỗi khác nhau. Không được suy từ ví dụ ASCII `"java"` so với `"JAVA"` rằng mọi cặp cách viết tương đương theo ngôn ngữ tự nhiên đều được Java xem là giống nhau.
+For example, `"straße".equalsIgnoreCase("STRASSE")` returns `false` because the two strings have different lengths. Do not infer from the ASCII example `"java"` vs `"JAVA"` that every pair of naturally equivalent spellings is treated as equal by Java.
 
-Nếu nghiệp vụ hỗ trợ username hoặc khóa Unicode quốc tế, cần có **chính sách canonicalization riêng, phiên bản quy tắc rõ ràng và test với dữ liệu đại diện**. `toLowerCase(Locale.ROOT)` đơn lẻ không tương đương với một thuật toán nhận diện danh tính Unicode được chuẩn hóa đầy đủ.
+If business requirements support international Unicode usernames or keys, you need **an explicit canonicalization policy, clear rule versioning, and tests with representative data**. Calling `toLowerCase(Locale.ROOT)` alone is not equivalent to a full standardized Unicode identifier algorithm.
 
-### 6.2. Các dạng Unicode tổ hợp và dựng sẵn
+### 6.2. Composed and Decomposed Unicode Forms
 
-Ví dụ chữ `é` có thể biểu diễn bằng một code point dựng sẵn hoặc bằng `e` cộng dấu sắc kết hợp. Trong Java, hai chuỗi ấy khác dãy mã và thường không bằng nhau qua `String.equals` hoặc `equalsIgnoreCase`. Khi chính sách cho phép coi chúng là cùng văn bản, có thể chuẩn hóa về **NFC** trước khi so sánh:
+For example, the letter `é` can be represented by a single precomposed code point or by `e` plus a combining acute accent. In Java, those two strings have different code point sequences and usually are not equal under `String.equals` or `equalsIgnoreCase`. When policy permits treating them as the same text, normalize to **NFC** before comparing:
 
 ```java
 import java.text.Normalizer;
 
-String composed = "\u00E9";    // é dựng sẵn
-String decomposed = "e\u0301"; // e và dấu sắc kết hợp
+String composed = "\u00E9";    // precomposed é
+String decomposed = "e\u0301"; // e and combining acute accent
 
 boolean before = composed.equals(decomposed); // false
 boolean after = Normalizer.normalize(
@@ -242,19 +242,19 @@ boolean after = Normalizer.normalize(
 )); // true
 ```
 
-Đây là **đoạn minh họa**, không phải một chương trình độc lập. `NFC` bảo toàn phân biệt những văn bản khác nhau ngoài các trường hợp tương đương chuẩn; `NFKC` còn chuẩn hóa một số khác biệt tương thích và có thể hợp nhất những ký tự vốn được hiển thị hay dùng với ý nghĩa khác. Chỉ dùng `NFKC` nếu đặc tả nghiệp vụ cho phép. Chuẩn hóa Unicode cũng không có nghĩa tự động “bỏ dấu tiếng Việt”.
+This is an **illustrative snippet**, not a standalone program. `NFC` preserves distinctions among texts other than canonically equivalent cases; `NFKC` additionally normalizes certain compatibility differences and may merge characters displayed or used with different meanings. Only use `NFKC` if business specifications permit it. Unicode normalization also does not mean automatically “stripping Vietnamese accents”.
 
-### 6.3. Locale ảnh hưởng đến cách đổi hoa/thường
+### 6.3. Locale Affects Case Conversion
 
-Java có các phép đổi case phụ thuộc locale: `toLowerCase()` không truyền tham số sử dụng locale mặc định của môi trường, có thể tạo ra kết quả khác khi đổi cấu hình máy. Một ví dụ quen thuộc là quy tắc chữ `I`/`i` trong tiếng Thổ Nhĩ Kỳ.
+Java has locale-dependent case conversions: `toLowerCase()` with no arguments uses the environment's default locale, which can produce different results across machine configurations. A familiar example is the `I`/`i` rule in Turkish.
 
-- Với khóa **máy** độc lập vị trí/ngôn ngữ, hãy xét `Locale.ROOT` khi chính sách dùng chuyển case. Trong ví dụ username ASCII, điều này cho khóa có thể dự đoán được.
-- Với **văn bản dành cho con người**, hãy chọn locale của dữ liệu/người dùng và hành vi tìm kiếm được đặc tả. Tránh giả định mọi ngôn ngữ có quy tắc hoa/thường giống tiếng Anh.
-- `equalsIgnoreCase` không nhận tham số `Locale`, nên không thể điều chỉnh chính xác cho từng ngôn ngữ chỉ bằng lời gọi này.
+- For **machine keys** independent of location/language, consider `Locale.ROOT` when the policy uses case conversion. In the ASCII username example, this yields predictable keys.
+- For **human-facing text**, choose the data/user's locale and specified search behavior. Avoid assuming all languages share English casing rules.
+- `equalsIgnoreCase` does not accept a `Locale` parameter, so it cannot be tuned accurately per language with this call alone.
 
-### 6.4. Sắp xếp ngôn ngữ với `Collator`
+### 6.4. Linguistic Ordering With `Collator`
 
-Khi so sánh tên hoặc văn bản hiển thị theo ngôn ngữ, `java.text.Collator` cho phép chọn locale và độ phân biệt. Ví dụ **đoạn mã minh họa**:
+When comparing names or display text linguistically, `java.text.Collator` lets you choose a locale and comparison strength. Example **illustrative code snippet**:
 
 ```java
 import java.text.Collator;
@@ -267,54 +267,54 @@ collator.setStrength(Collator.SECONDARY);
 boolean sameForCollation = collator.compare(left, right) == 0;
 ```
 
-Trong nhiều bộ quy tắc collation, mức `SECONDARY` bỏ qua khác biệt case nhưng còn phân biệt dấu. Tuy nhiên kết quả chi tiết phụ thuộc locale, dữ liệu ngôn ngữ và nhà cung cấp collation của môi trường. Không thay `equals` của khóa lưu trữ bằng một `Collator` tùy biến mà chưa xác định chính xác hợp đồng, phiên bản và tính ổn định giữa các lần chạy.
+In many collation rule sets, `SECONDARY` strength ignores case differences while still distinguishing accents. However, detailed results depend on locale, linguistic data, and the environment's collation provider. Do not replace stored-key `equals` with a custom `Collator` without precisely specifying the contract, versioning, and stability across runs.
 
-`Collator` hữu ích cho hiển thị và tìm kiếm theo ngôn ngữ; việc dùng nó định nghĩa danh tính lâu dài trong database đòi hỏi chính sách và kiểm chứng riêng.
+`Collator` is useful for display and linguistic search; using it to define long-term database identity requires separate policies and verification.
 
-## 7. Tách “so khớp tìm kiếm” khỏi “bằng nhau của đối tượng”
+## 7. Separating "Search Matching" From "Object Equality"
 
-Một hệ thống có thể đồng thời có ba câu hỏi khác nhau:
+A system can simultaneously face three different questions:
 
-| Tình huống | Câu hỏi nghiệp vụ | Ví dụ về API/quy tắc |
+| Scenario | Business question | Example API/rule |
 | --- | --- | --- |
-| Tìm nhãn trong giao diện | “`Java` và `JAVA` có được hiển thị như cùng kết quả khớp?” | `equalsIgnoreCase` hoặc tìm kiếm dùng analyzer/collation phù hợp. |
-| Xác định mã coupon | “`SAVE10` có phải mã `Save10`?” | `equals` nếu mã phân biệt hoa/thường; lựa chọn này được ghi trong đặc tả. |
-| Ngăn trùng tên đăng nhập | “`ALICE_7` có tạo username mới so với `alice_7`?” | Dùng khóa chuẩn hóa bất biến, unique constraint trên khóa, `equals`/`hashCode` tương ứng cho value object. |
+| Searching tags in the UI | “Should `Java` and `JAVA` be shown as matching results?” | `equalsIgnoreCase` or search using an appropriate analyzer/collation. |
+| Checking a coupon code | “Is `SAVE10` the code `Save10`?” | `equals` if codes are case-sensitive; this choice is documented in the specification. |
+| Preventing duplicate usernames | “Does `ALICE_7` create a new username compared to `alice_7`?” | Use an immutable canonical key, a unique constraint on the key, and matching `equals`/`hashCode` for the value object. |
 
-Đừng triển khai một phương thức tên chung `equalsIgnoreCaseForEverything` rồi dùng cho mọi trường. Một hàm tên theo ý nghĩa như `canonicalUsername`, `sameCouponCode` hoặc `matchesSearchLabel` làm chính sách rõ ràng tại điểm gọi; khi yêu cầu thay đổi, có thể sửa theo phạm vi nghiệp vụ mà không vô tình đổi ý nghĩa các trường khác.
+Do not implement a generic `equalsIgnoreCaseForEverything` method and apply it to every field. Semantically named functions like `canonicalUsername`, `sameCouponCode`, or `matchesSearchLabel` make the policy explicit at call sites; when requirements change, you can update within the business scope without inadvertently altering other fields' semantics.
 
-Đối với dữ liệu lưu lâu dài, quy tắc tạo khóa và version/migration cần được xem như một phần của hợp đồng dữ liệu. Khi đổi chính sách chuẩn hóa, hai khóa trước đây khác nhau có thể trở thành một; cần kiểm tra và giải quyết trùng lặp trước khi chuyển index/constraint hoặc tái tạo khóa.
+For long-lived persisted data, key-generation rules and versioning/migration must be treated as part of the data contract. When changing a normalization policy, two previously distinct keys may collapse into one; duplicates must be checked and resolved before updating indexes/constraints or regenerating keys.
 
-## 8. Những sai lầm thường gặp
+## 8. Common Pitfalls
 
-| Sai lầm | Hậu quả | Cách khắc phục |
+| Pitfall | Consequence | Fix |
 | --- | --- | --- |
-| Gọi `equalsIgnoreCase` cho tất cả chuỗi “vì thân thiện” | Có thể làm hai mã bảo mật, coupon hoặc sản phẩm khác nhau bị gộp sai. | Xác định policy theo từng trường và từng thao tác. |
-| Dùng `String.equals` rồi kỳ vọng username không phân biệt case | `Alice_7` và `alice_7` bị coi là hai khóa. | Chuẩn hóa theo policy và so sánh các khóa đã chuẩn hóa. |
-| Dùng `toLowerCase()` không truyền locale cho khóa hệ thống | Khóa có thể phụ thuộc locale mặc định của môi trường. | Truyền `Locale.ROOT` khi tương ứng policy; giới hạn tập ký tự hoặc định nghĩa Unicode canonicalization kỹ hơn. |
-| Tưởng `equalsIgnoreCase` xử lý mọi phép tương đương Unicode | Không xử lý mọi biểu diễn tổ hợp hoặc phép mở rộng nhiều ký tự. | Đặc tả normalization/case folding và test Unicode nếu dữ liệu cho phép. |
-| Chỉ normalize bên lúc đăng ký, quên normalize lúc đăng nhập | Một username có thể được lưu nhưng không tìm lại được. | Dùng một đường chuẩn hóa cho tạo, tra cứu và kiểm tra uniqueness. |
-| `equals` dùng khóa chuẩn hóa, `hashCode` dùng chuỗi gốc | Đối tượng bằng nhau có hash khác nhau, làm hỏng logic collection băm. | Cùng dùng một trường key đã chuẩn hóa, bất biến. |
-| Dùng `String.CASE_INSENSITIVE_ORDER` mà tưởng `TreeSet` có quan hệ bằng nhau y như `HashSet` | Hai tập khác nhau về số phần tử với `Java`/`JAVA`. | Hiểu `TreeSet` xác định trùng bằng comparator (`compare == 0`); chọn cấu trúc/comparator theo semantics mong muốn. |
-| Coi username và tài khoản có cùng khái niệm danh tính | Đổi username có thể làm đổi quan hệ bằng nhau của account. | Phân biệt value object username với entity account định danh bằng ID ổn định. |
-| Bỏ qua trùng lặp sau chuẩn hóa trong DB | Có thể tạo hai bản ghi có khóa nghiệp vụ giống nhau, đặc biệt dưới truy cập đồng thời. | Unique constraint theo khóa chuẩn hóa đã chọn và xử lý va chạm rõ ràng. |
-| Tự ý bỏ dấu hoặc xóa dấu chấm/dấu cộng trong email | Gộp những địa chỉ không được bảo đảm là cùng mailbox. | Theo policy email được xác minh cho hệ thống; không áp quy tắc nhà cung cấp cụ thể lên mọi email. |
+| Calling `equalsIgnoreCase` for all strings “to be user-friendly” | Can wrongly merge distinct security codes, coupons, or product codes. | Define policy per field and per operation. |
+| Using `String.equals` while expecting usernames to be case-insensitive | `Alice_7` and `alice_7` are treated as two keys. | Normalize per policy and compare canonical keys. |
+| Calling `toLowerCase()` without a locale for system keys | Keys may depend on the environment's default locale. | Pass `Locale.ROOT` when appropriate for policy; restrict character set or define thorough Unicode canonicalization. |
+| Assuming `equalsIgnoreCase` handles all Unicode equivalences | Does not handle all decomposed forms or multi-character expansions. | Specify normalization/case folding and test Unicode if data allows it. |
+| Normalizing at registration but forgetting to normalize at login | A username can be stored yet never found again. | Use one normalization path for creation, lookup, and uniqueness checks. |
+| `equals` uses canonical key, `hashCode` uses raw string | Equal objects have different hashes, breaking hash collection logic. | Both use the same immutable, canonical key field. |
+| Using `String.CASE_INSENSITIVE_ORDER` thinking `TreeSet` has the same equality as `HashSet` | The two sets differ in element count for `Java`/`JAVA`. | Understand that `TreeSet` determines duplicates via comparator (`compare == 0`); choose structure/comparator to match desired semantics. |
+| Treating username and account as the same identity concept | Changing username can alter the account's equality semantics. | Distinguish the username value object from an account entity identified by a stable ID. |
+| Ignoring post-normalization duplicates in the DB | Two records with the same business key can be created, especially under concurrent access. | Enforce a unique constraint on the chosen canonical key and handle collisions explicitly. |
+| Arbitrarily stripping accents or dots/plus signs in emails | Merges addresses not guaranteed to belong to the same mailbox. | Follow the verified email policy for the system; do not apply one provider's rules to all emails. |
 
-## 9. Bộ kiểm tra nên có khi đưa vào ứng dụng
+## 9. Test Suite Checklist Before Production
 
-Với bất kỳ quy tắc so sánh case-insensitive nào, hãy xây dựng test với **giá trị thật của miền nghiệp vụ**:
+For any case-insensitive comparison rule, build tests using **real domain values**:
 
-- **ASCII case:** `Alice_7`, `alice_7`, `ALICE_7` có được coi là một khóa? Kiểm tra cả tạo và tra cứu.
-- **Phân biệt quy tắc:** `Save10` và `SAVE10` khác nhau đối với coupon nếu policy quy định chính xác, dù tag `Java` và `JAVA` có thể so khớp.
-- **Khoảng trắng:** `" Alice_7 "` có được chuẩn hóa thành `Alice_7`? Khoảng trắng giữa chuỗi hoặc ký tự không hợp lệ có bị từ chối đúng không?
-- **`null`/rỗng:** API có từ chối hoặc xử lý theo hợp đồng? Đừng để một đường gọi trả `false` còn đường khác vô tình gây lỗi không mong muốn.
-- **Unicode và locale:** Thử dữ liệu có dấu, chuỗi dựng sẵn/tổ hợp, chữ `I` trong locale đặc biệt, chữ `ß`, và xác nhận kết quả phù hợp phạm vi ký tự hỗ trợ.
-- **Hợp đồng `equals`:** Với ba value object tương đương, thử phản xạ, đối xứng, bắc cầu; với cặp bằng nhau, bảo đảm `hashCode` giống nhau; với khác kiểu và `null`, bảo đảm hành vi đúng.
-- **Tính duy nhất khi lưu trữ:** Hai yêu cầu đồng thời tạo `Alice_7` và `ALICE_7` phải được kiểm soát bằng quy tắc uniqueness ở nơi lưu, không chỉ bằng kiểm tra trước khi insert.
-- **Tính ổn định:** Kiểm tra dữ liệu cũ sau khi cập nhật Unicode rules, locale provider, database collation hoặc chính sách chuẩn hóa; nếu có thay đổi, cân nhắc migration.
+- **ASCII case:** Are `Alice_7`, `alice_7`, `ALICE_7` treated as one key? Test both creation and lookup.
+- **Rule separation:** `Save10` and `SAVE10` differ for coupons if policy mandates exact matching, even when tags `Java` and `JAVA` match.
+- **Whitespace:** Does `" Alice_7 "` normalize to `Alice_7`? Are internal spaces or invalid characters properly rejected?
+- **`null`/empty:** Does the API reject or handle them per contract? Do not let one call path return `false` while another unexpectedly throws an unintended error.
+- **Unicode and locale:** Test accented data, precomposed/decomposed strings, letter `I` under special locales, letter `ß`, and confirm behavior matches the supported character scope.
+- **`equals` contract:** For three equivalent value objects, test reflexivity, symmetry, and transitivity; for equal pairs, ensure `hashCode` matches; for different types and `null`, ensure correct behavior.
+- **Persistence uniqueness:** Two concurrent requests creating `Alice_7` and `ALICE_7` must be controlled by uniqueness rules in storage, not solely by a pre-insert check.
+- **Stability:** Verify legacy data after updating Unicode rules, locale providers, database collations, or normalization policies; if changes occur, consider migration.
 
-Có thể viết các phép kiểm tra dạng property-based tests cho rất nhiều bộ ba đầu vào, đặc biệt với Unicode. Tuy nhiên một test trả về `true` với ba chuỗi cụ thể không tự chứng minh chính sách đúng với toàn miền dữ liệu; cơ sở của tính bắc cầu phải đến từ định nghĩa quan hệ bằng nhau nhất quán.
+Property-based tests can be written over large numbers of input triples, especially for Unicode. However, a test returning `true` for three specific strings does not by itself prove the policy holds across the entire domain; transitivity must rest on a consistent equality definition.
 
-## 10. Ghi nhớ
+## 10. Takeaways
 
-“So sánh không phân biệt hoa thường” là **một lựa chọn nghiệp vụ có phạm vi**, không phải thuộc tính mặc nhiên của mọi chuỗi. `equalsIgnoreCase` là công cụ tiện cho một số phép khớp; chuẩn hóa khóa cho phép biểu diễn rõ danh tính của value object; `Collator` phục vụ so sánh văn bản theo ngôn ngữ. Hãy công bố miền ký tự, cách xử lý case, khoảng trắng, Unicode, locale và `null`, sau đó dùng cùng policy ở mọi đường tạo/truy vấn dữ liệu. Nếu policy trở thành `equals` của một lớp giá trị, `hashCode` bắt buộc dùng cùng khóa tương đương và khóa đó nên bất biến.
+“Case-insensitive comparison” is **a scoped business choice**, not an inherent property of all strings. `equalsIgnoreCase` is a convenient tool for certain matching operations; key normalization explicitly represents value object identity; `Collator` serves linguistic text comparison. Publish the character domain, handling of case, whitespace, Unicode, locale, and `null`, then use the exact same policy across all data creation and query paths. If the policy becomes a value class's `equals`, `hashCode` must use the exact same equivalence key, and that key should be immutable.

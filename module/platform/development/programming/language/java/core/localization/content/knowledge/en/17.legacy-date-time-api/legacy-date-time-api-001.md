@@ -1,55 +1,55 @@
-# DateFormat và các factory theo Locale trong Java
+# DateFormat and Locale-Based Factories in Java
 
-## 1. Tổng quan: định dạng ngày giờ theo ngôn ngữ người dùng
+## 1. Overview: formatting date and time for the user's language
 
-`java.text.DateFormat` là API định dạng và phân tích ngày giờ thuộc **Java core, nhóm API ngày giờ cũ (`java.text`/`java.util`)**. Trước khi `java.time` xuất hiện, ứng dụng Java thường kết hợp `java.util.Date`, `Calendar`, `TimeZone` và `DateFormat` để hiển thị ngày giờ theo từng ngôn ngữ, lãnh thổ.
+`java.text.DateFormat` is a date and time formatting and parsing API belonging to **Java core, the legacy date-time API group (`java.text`/`java.util`)**. Before `java.time` appeared, Java applications commonly combined `java.util.Date`, `Calendar`, `TimeZone`, and `DateFormat` to display dates and times according to each language and region.
 
-Cùng một thời điểm có thể được hiển thị khác nhau:
+The same point in time can be displayed differently:
 
-- Theo tiếng Anh (Hoa Kỳ): `January 2, 2024` hoặc `1/2/24`.
-- Theo tiếng Pháp (Pháp): `2 janvier 2024`.
-- Với cùng một locale nhưng chọn **style** khác, chuỗi ngày có thể ngắn, dài, có tên thứ hoặc không.
-- Với cùng locale và style nhưng **múi giờ khác**, một timestamp gần nửa đêm có thể thuộc hai ngày lịch khác nhau.
+- In English (United States): `January 2, 2024` or `1/2/24`.
+- In French (France): `2 janvier 2024`.
+- With the same locale but a different **style**, the date string can be short, long, include the weekday name or not.
+- With the same locale and style but a **different time zone**, a timestamp near midnight can belong to two different calendar dates.
 
-`DateFormat` cung cấp **factory methods** để chọn dạng định dạng theo `Locale` mà **không phải tự viết pattern ngày tháng cụ thể cho từng ngôn ngữ**. Thay vì cố định `"dd/MM/yyyy"` hay `"MM/dd/yyyy"`, bạn yêu cầu Java tạo formatter theo mục đích: date, time hoặc date+time.
+`DateFormat` provides **factory methods** to choose a format according to `Locale` without **having to write a specific date pattern yourself for each language**. Instead of hardcoding `"dd/MM/yyyy"` or `"MM/dd/yyyy"`, you ask Java to create a formatter by purpose: date, time, or date+time.
 
-**Mục tiêu bài học:** nắm đủ các factory của `DateFormat`, các style `FULL/LONG/MEDIUM/SHORT`, cách truyền `Locale` và `TimeZone`, cách định dạng/parse an toàn, nhận diện giới hạn legacy API, và cách chọn `java.time` cho code mới.
+**Lesson objectives:** master all `DateFormat` factories, the `FULL/LONG/MEDIUM/SHORT` styles, how to pass `Locale` and `TimeZone`, how to format/parse safely, recognize legacy API limitations, and know how to choose `java.time` for new code.
 
-## 2. DateFormat là lớp nào?
+## 2. What class is DateFormat?
 
-`DateFormat` là **lớp trừu tượng** kế thừa `java.text.Format`:
+`DateFormat` is an **abstract class** extending `java.text.Format`:
 
-- `format(Date)` chuyển giá trị ngày giờ thành chuỗi để hiển thị.
-- `parse(String)` hoặc `parse(String, ParsePosition)` đọc một chuỗi thành `java.util.Date`.
-- `setTimeZone(TimeZone)` cấu hình múi giờ cho formatter.
-- `setLenient(boolean)` điều chỉnh việc parser/calendar có cho phép xử lý mềm dẻo những ngày không hợp lệ hay không.
-- `getCalendar()` và `setCalendar(Calendar)` truy cập/cấu hình lịch do formatter dùng.
-- `getNumberFormat()` và `setNumberFormat(NumberFormat)` dùng cấu hình số ở việc định dạng các thành phần.
+- `format(Date)` converts a date-time value into a string for display.
+- `parse(String)` or `parse(String, ParsePosition)` reads a string into a `java.util.Date`.
+- `setTimeZone(TimeZone)` configures the time zone for the formatter.
+- `setLenient(boolean)` adjusts whether the parser/calendar allows lenient handling of invalid dates.
+- `getCalendar()` and `setCalendar(Calendar)` access/configure the calendar used by the formatter.
+- `getNumberFormat()` and `setNumberFormat(NumberFormat)` configure number formatting for the fields.
 
-Đối tượng được trả về bởi một factory có **kiểu khai báo là `DateFormat`**. Trong nhiều môi trường, implementation là `SimpleDateFormat`; nhưng không nên luôn ép kiểu sang `SimpleDateFormat` nếu bạn chỉ cần dùng các API chung, bởi implementation có thể phụ thuộc locale provider và môi trường JDK.
+The object returned by a factory has a **declared type of `DateFormat`**. In many environments, the implementation is `SimpleDateFormat`; however, you should not always cast to `SimpleDateFormat` if you only need to use the common APIs, because the implementation may depend on the locale provider and JDK environment.
 
-Một `Date` đại diện thời điểm (epoch milliseconds) **không tự mang cách hiển thị theo ngôn ngữ hay tên múi giờ**. `DateFormat` chịu trách nhiệm trình bày các trường lịch theo `Locale` và zone đã cấu hình. Khi parse, nó dùng những quy tắc đó để tạo `Date`. Không vì thấy chuỗi `"02/01/2024"` mà có thể suy ra chắc chắn nó thuộc ngày 2 tháng 1 hay 1 tháng 2 nếu chưa biết locale/pattern.
+A `Date` represents an instant in time (epoch milliseconds) and **does not carry a language-specific display format or time zone name on its own**. `DateFormat` is responsible for presenting calendar fields according to the configured `Locale` and zone. When parsing, it uses those rules to construct a `Date`. You cannot conclude with certainty from seeing the string `"02/01/2024"` whether it represents January 2 or February 1 without knowing the locale/pattern.
 
-## 3. Các factory chính và cách chọn
+## 3. Main factories and how to choose them
 
-Các factory là phương thức static của `DateFormat`:
+The factories are static methods of `DateFormat`:
 
-| API | Mục đích | Những tham số quan trọng |
+| API | Purpose | Important parameters |
 | --- | --- | --- |
-| `DateFormat.getDateInstance()` | Chỉ ngày, style mặc định. | Dùng `DEFAULT` và locale mặc định cho định dạng. |
-| `DateFormat.getDateInstance(int style)` | Chỉ ngày theo style. | `FULL/LONG/MEDIUM/SHORT`. |
-| `DateFormat.getDateInstance(int style, Locale locale)` | Chỉ ngày, chọn style và locale tường minh. | Phù hợp khi ứng dụng phục vụ nhiều ngôn ngữ. |
-| `DateFormat.getTimeInstance()` | Chỉ giờ, style mặc định. | Không chỉ định locale. |
-| `DateFormat.getTimeInstance(int style)` | Chỉ giờ theo style. | Không chỉ định locale. |
-| `DateFormat.getTimeInstance(int style, Locale locale)` | Chỉ giờ theo style và locale. | Có thể chọn bố cục 12h/24h theo quy ước locale. |
-| `DateFormat.getDateTimeInstance()` | Gồm ngày và giờ, style mặc định. | Hai phần đều dùng `DEFAULT`. |
-| `DateFormat.getDateTimeInstance(int dateStyle, int timeStyle)` | Ngày và giờ với hai style riêng. | Thứ tự đối số là **dateStyle trước, timeStyle sau**. |
-| `DateFormat.getDateTimeInstance(int dateStyle, int timeStyle, Locale locale)` | Ngày, giờ và locale đều được xác định. | Cách tường minh nhất khi dùng legacy API. |
-| `DateFormat.getInstance()` | Factory tiện dụng ngày+giờ ngắn. | Tương đương dùng `SHORT` cho ngày và giờ. |
+| `DateFormat.getDateInstance()` | Date only, default style. | Uses `DEFAULT` and the default locale for formatting. |
+| `DateFormat.getDateInstance(int style)` | Date only by style. | `FULL/LONG/MEDIUM/SHORT`. |
+| `DateFormat.getDateInstance(int style, Locale locale)` | Date only, explicit style and locale. | Suitable when the application serves multiple languages. |
+| `DateFormat.getTimeInstance()` | Time only, default style. | Does not specify locale. |
+| `DateFormat.getTimeInstance(int style)` | Time only by style. | Does not specify locale. |
+| `DateFormat.getTimeInstance(int style, Locale locale)` | Time only by style and locale. | Can select 12h/24h layout according to locale conventions. |
+| `DateFormat.getDateTimeInstance()` | Includes date and time, default style. | Both parts use `DEFAULT`. |
+| `DateFormat.getDateTimeInstance(int dateStyle, int timeStyle)` | Date and time with two separate styles. | Argument order is **dateStyle first, timeStyle second**. |
+| `DateFormat.getDateTimeInstance(int dateStyle, int timeStyle, Locale locale)` | Date, time, and locale are all specified. | Most explicit way when using the legacy API. |
+| `DateFormat.getInstance()` | Convenience factory for short date+time. | Equivalent to using `SHORT` for date and time. |
 
-Các phiên bản không có tham số `Locale` dựa vào locale mặc định của JVM phục vụ định dạng (liên quan `Locale.Category.FORMAT`). Trong môi trường máy chủ có nhiều người dùng, **không nên thay `Locale.setDefault(...)` theo từng request**. Hãy truyền locale của người dùng vào factory có tham số `Locale` để tránh tác động thread khác.
+Overloads without a `Locale` parameter rely on the JVM's default locale for formatting (related to `Locale.Category.FORMAT`). In a multi-user server environment, **do not change `Locale.setDefault(...)` per request**. Pass the user's locale to a factory with a `Locale` parameter to avoid affecting other threads.
 
-### Ba nhóm factory tương ứng ba nhu cầu
+### Three factory groups for three needs
 
 ```java
 Locale locale = Locale.US;
@@ -65,49 +65,49 @@ DateFormat dateAndTime =
                 DateFormat.MEDIUM, DateFormat.SHORT, locale);
 ```
 
-Đây là các câu lệnh minh họa đặt trong một phương thức Java, cần import `java.text.DateFormat` và `java.util.Locale`. Trong phần sau có chương trình hoàn chỉnh chạy bằng Java 17+.
+These are illustrative statements placed inside a Java method, requiring imports for `java.text.DateFormat` and `java.util.Locale`. A complete runnable program for Java 17+ is provided in a later section.
 
-Không dùng `getTimeInstance(...)` nếu cần hiển thị ngày; không dùng `getDateInstance(...)` khi UI cần cả giờ. Với `getDateTimeInstance(...)`, **dateStyle** và **timeStyle** được chọn riêng: ví dụ `MEDIUM` cho ngày, `SHORT` cho giờ.
+Do not use `getTimeInstance(...)` if you need to display a date; do not use `getDateInstance(...)` when the UI needs time as well. With `getDateTimeInstance(...)`, **dateStyle** and **timeStyle** are chosen separately: for example, `MEDIUM` for the date, `SHORT` for the time.
 
-### Không tự đoán pattern của factory
+### Do not guess the factory's pattern
 
-Factory có thể tạo pattern giống một `SimpleDateFormat` cụ thể, nhưng **hợp đồng của API là cung cấp dạng định dạng phù hợp với locale và style**, không hứa mọi JDK luôn dùng cùng pattern/chuỗi. Dữ liệu CLDR và nhà cung cấp locale có thể thay đổi theo phiên bản JDK, cấu hình `java.locale.providers` hoặc môi trường.
+A factory may produce a pattern like a specific `SimpleDateFormat`, but **the API contract is to provide a format appropriate for the locale and style**, not to promise that every JDK will always use the same pattern/string. CLDR data and locale providers can vary across JDK versions, `java.locale.providers` configuration, or environments.
 
-Do đó, với bài toán UI, nên xem kết quả theo style là **bản địa hóa để hiển thị**, không phải một protocol string để truyền vào API hay so sánh cứng từng byte giữa mọi phiên bản JDK.
+Therefore, for UI tasks, style-based output should be treated as **localized for display**, not as a protocol string to pass into an API or compare strictly byte-for-byte across all JDK versions.
 
-## 4. Bốn mức style và ý nghĩa thực tế
+## 4. The four style levels and practical meaning
 
-`DateFormat` định nghĩa các hằng:
+`DateFormat` defines the constants:
 
-| Hằng | Giá trị hằng trong API | Vai trò thường gặp |
+| Constant | Constant value in API | Typical role |
 | --- | ---: | --- |
-| `DateFormat.FULL` | `0` | Biểu diễn đầy đủ, thường có thứ và tên tháng (với date). |
-| `DateFormat.LONG` | `1` | Ngày giờ dạng dài, thường có tên tháng hoặc thông tin zone ở time. |
-| `DateFormat.MEDIUM` | `2` | Độ dài trung bình; `DEFAULT` tương đương `MEDIUM`. |
-| `DateFormat.SHORT` | `3` | Biểu diễn ngắn, thường dùng chữ số và thành phần tối giản. |
+| `DateFormat.FULL` | `0` | Full representation, usually includes weekday and month name (for date). |
+| `DateFormat.LONG` | `1` | Long date/time format, usually includes month name or zone info in time. |
+| `DateFormat.MEDIUM` | `2` | Medium length; `DEFAULT` is equivalent to `MEDIUM`. |
+| `DateFormat.SHORT` | `3` | Short representation, usually uses digits and minimal components. |
 
-**Style không phải bộ ký tự cố định.** Ví dụ `FULL` với `Locale.US` có thể là `Tuesday, January 2, 2024`; với locale khác, thứ và tháng có thể ở vị trí khác, dùng từ bản địa hoặc hệ chữ số khác. `SHORT` có thể không chứa năm đủ bốn chữ số; khi parse cần cẩn thận với năm hai chữ số và tính mơ hồ.
+**A style is not a fixed character set.** For example, `FULL` with `Locale.US` might be `Tuesday, January 2, 2024`; with another locale, the weekday and month might be in different positions, use native words, or use a different numbering system. `SHORT` might not include a full four-digit year; when parsing, be careful with two-digit years and ambiguity.
 
-Với cùng ngày 2/1/2024, một cấu hình Java 17 phổ biến cho `Locale.US` cho:
+For the same date Jan 2, 2024, a common Java 17 configuration for `Locale.US` produces:
 
-| Factory date-only | Ví dụ đầu ra |
+| Date-only factory | Example output |
 | --- | --- |
 | `getDateInstance(FULL, Locale.US)` | `Tuesday, January 2, 2024` |
 | `getDateInstance(LONG, Locale.US)` | `January 2, 2024` |
 | `getDateInstance(MEDIUM, Locale.US)` | `Jan 2, 2024` |
 | `getDateInstance(SHORT, Locale.US)` | `1/2/24` |
 
-Ví dụ chỉ nhằm giúp đọc style; **đừng viết code nghiệp vụ giả định cố định các dấu câu, từ viết tắt hoặc độ rộng số của mọi locale/JDK**.
+These examples are only meant to help read styles; **do not write business code that assumes fixed punctuation, abbreviations, or digit widths across all locales/JDKs**.
 
-Đối với giờ, `DateFormat.getTimeInstance(SHORT, Locale.US)` có thể thể hiện `3:04 PM`, còn ở locale ưu tiên 24 giờ thường có kiểu khác. `LONG/FULL` có thể thể hiện thêm time zone hoặc tên zone, phụ thuộc implementation và locale. Không đồng nhất `Locale.US` với múi giờ Hoa Kỳ; locale và zone là hai cấu hình độc lập.
+For time, `DateFormat.getTimeInstance(SHORT, Locale.US)` may render `3:04 PM`, whereas in locales that prefer 24-hour time it typically has a different form. `LONG/FULL` may additionally display a time zone or zone name, depending on the implementation and locale. Do not equate `Locale.US` with a US time zone; locale and zone are two independent configurations.
 
-### DEFAULT và MEDIUM
+### DEFAULT and MEDIUM
 
-`DateFormat.DEFAULT` có cùng giá trị với `DateFormat.MEDIUM`. Do đó `getDateInstance()` là dạng thông dụng tương ứng với `getDateInstance(DEFAULT)` và locale mặc định; `getDateTimeInstance()` dùng style mặc định cho cả hai thành phần. Việc “mặc định” này **không cố định ngôn ngữ**, vì default locale JVM có thể khác giữa máy developer và máy chạy CI.
+`DateFormat.DEFAULT` has the same value as `DateFormat.MEDIUM`. Therefore `getDateInstance()` is the common shorthand corresponding to `getDateInstance(DEFAULT)` and the default locale; `getDateTimeInstance()` uses the default style for both components. This "default" **does not fix the language**, because the JVM default locale can differ between a developer machine and a CI machine.
 
-## 5. Locale: ngôn ngữ, vùng và dữ liệu định dạng
+## 5. Locale: language, region, and formatting data
 
-`Locale` lưu danh tính ngôn ngữ/vùng/biến thể, ví dụ:
+`Locale` stores language/region/variant identity, for example:
 
 ```java
 Locale us = Locale.US;
@@ -122,37 +122,37 @@ DateFormat viDate =
         DateFormat.getDateInstance(DateFormat.LONG, vietnam);
 ```
 
-Với cùng `Date` và cùng `TimeZone`, ba formatter có thể tạo ba cách viết ngày khác nhau. Locale ảnh hưởng trật tự, từ vựng, tên tháng/thứ, cách viết giờ và các quy tắc có liên quan. Nó **không tự chuyển** từ đơn vị thời gian UTC sang TP.HCM, cũng không thay `Date` thành một thời điểm khác.
+With the same `Date` and the same `TimeZone`, the three formatters can produce three different ways of writing the date. Locale affects ordering, vocabulary, month/weekday names, how time is written, and related rules. It **does not automatically convert** from UTC to Ho Chi Minh City time, nor does it change `Date` to a different point in time.
 
-### Vì sao nên truyền locale tường minh?
+### Why pass locale explicitly?
 
-- Người dùng A muốn giao diện tiếng Việt, người dùng B muốn tiếng Anh; cùng một JVM phục vụ cả hai.
-- CI hoặc Docker container có thể đặt `Locale.getDefault()` khác máy lập trình.
-- Test trở nên ổn định hơn khi có tham số locale rõ ràng, không phụ thuộc thứ tự chạy các test khác.
-- Bạn không cần sửa global state bằng `Locale.setDefault(...)`; đây là thao tác có thể gây race trong ứng dụng đa luồng.
+- User A wants a Vietnamese UI, user B wants English; the same JVM serves both.
+- A CI or Docker container may set `Locale.getDefault()` differently from a developer's machine.
+- Tests become more stable with an explicit locale parameter, not depending on the execution order of other tests.
+- You do not need to mutate global state with `Locale.setDefault(...)`; this is an operation that can cause races in a multithreaded application.
 
-### Locale mặc định cho FORMAT
+### Default locale for FORMAT
 
-Java có `Locale.Category.DISPLAY` và `Locale.Category.FORMAT`. Những factory định dạng không có tham số locale sử dụng mặc định dành cho formatting; mặc định này có thể khác locale dùng để hiển thị tên ngôn ngữ.
+Java has `Locale.Category.DISPLAY` and `Locale.Category.FORMAT`. Formatting factories without a locale parameter use the default intended for formatting; this default can differ from the locale used to display language names.
 
-Ví dụ về nguy cơ (chỉ minh họa, **không khuyến nghị chạy trong web request**):
+Example of the risk (illustrative only, **not recommended in a web request**):
 
 ```java
 Locale.setDefault(Locale.Category.FORMAT, Locale.FRANCE);
 DateFormat df = DateFormat.getDateInstance(DateFormat.LONG);
 ```
 
-Điều này tác động đến cấu hình chung của JVM. Khi buộc phải thử thay đổi default locale trong unit test, cần chụp và khôi phục đầy đủ các mặc định liên quan trong `try/finally`, đồng thời tránh test song song không được điều phối. Thông thường, dùng `getDateInstance(style, locale)` là giải pháp tốt hơn.
+This affects the JVM's global configuration. When you must test changing the default locale in a unit test, capture and fully restore the relevant defaults in a `try/finally`, and avoid uncoordinated parallel tests. Normally, using `getDateInstance(style, locale)` is a better solution.
 
-### Những locale nào được hỗ trợ?
+### Which locales are supported?
 
-`DateFormat.getAvailableLocales()` trả tập locale mà các factory có thể hỗ trợ theo môi trường Java. Tập locale/data không phải lời cam kết về mọi bản dịch/tên tháng hiển thị giống hệt qua các phiên bản JDK. Với tính năng sản phẩm quan trọng, kiểm thử các locale chính mà ứng dụng cho phép; đừng tự suy từ tên quốc gia rằng mọi ngày giờ sẽ được biểu diễn đúng như người dùng mong muốn.
+`DateFormat.getAvailableLocales()` returns the set of locales that the factories can support in the Java environment. This set of locales/data is not a guarantee that all translations/month names will appear identically across JDK versions. For important product features, test the main locales your application allows; do not assume from a country name that every date and time will be formatted just as users expect.
 
-## 6. TimeZone: phần bắt buộc để kiểm soát thời điểm
+## 6. TimeZone: a required part to control the point in time
 
-`DateFormat` tạo ra đối tượng có `Calendar`/`TimeZone`; nếu bạn không chỉ định zone, nó có thể sử dụng múi giờ mặc định của JVM tại thời điểm cấu hình. Cùng một timestamp, ngày/giờ địa phương có thể khác nhau theo zone.
+`DateFormat` creates an object with a `Calendar`/`TimeZone`; if you do not specify a zone, it may use the JVM's default time zone at the time of configuration. For the same timestamp, the local date/time can differ by zone.
 
-Ví dụ:
+Example:
 
 ```java
 Date event = Date.from(
@@ -168,23 +168,23 @@ clock.setTimeZone(
 String inVietnam = clock.format(event);
 ```
 
-Đoạn này đặt trong phương thức Java và cần import `Date`, `Instant`, `DateFormat`, `TimeZone` và `Locale`. Hai chuỗi có thể khác giờ hiển thị vì cùng mốc `00:30Z` là `07:30` tại TP.HCM. **Bạn không sửa `Date event`, chỉ đổi formatter.**
+This snippet is placed inside a Java method and requires importing `Date`, `Instant`, `DateFormat`, `TimeZone`, and `Locale`. The two strings can have different displayed times because the same instant `00:30Z` is `07:30` in Ho Chi Minh City. **You do not modify `Date event`, only change the formatter.**
 
-**Một nguyên tắc đặc biệt:** `Locale` quyết định cách viết ngày giờ; `TimeZone` quyết định các trường giờ/ngày địa phương của một thời điểm. Đừng lấy locale của người dùng rồi đoán timezone bằng cách ghép mã country; một quốc gia có thể có nhiều múi giờ, và một người có thể muốn hiển thị giờ ở khu vực khác.
+**A special rule:** `Locale` determines how dates and times are written; `TimeZone` determines the local date/time fields of an instant. Do not take the user's locale and guess the timezone by appending a country code; a single country can have multiple time zones, and a person may want to display time in another region.
 
-### TimeZone, DST và ranh giới ngày
+### TimeZone, DST, and date boundaries
 
-Với múi giờ có daylight saving time, độ lệch UTC có thể thay đổi theo ngày. Không cộng trừ giờ bằng tay. Khi cần hiển thị hoặc phân tích timestamp, dùng `TimeZone` có region ID rõ ràng; với dự án mới, ưu tiên `ZoneId` và `ZonedDateTime` của `java.time`.
+For time zones with daylight saving time, the UTC offset can change by date. Do not add or subtract hours manually. When you need to display or parse timestamps, use a `TimeZone` with an explicit region ID; for new projects, prefer `ZoneId` and `ZonedDateTime` from `java.time`.
 
-Dùng một timestamp cố định trong test là chưa đủ nếu logic có lịch hẹn; nên kiểm tra thêm thời điểm gần nửa đêm và các DST transition ở vùng phù hợp.
+Using a single fixed timestamp in tests is not enough if the logic involves scheduled appointments; you should also test times near midnight and DST transitions in relevant regions.
 
-### Lưu ý về mã zone sai
+### Note on invalid zone IDs
 
-`TimeZone.getTimeZone(String)` có thể trả về `GMT` khi ID không nhận diện được, thay vì báo lỗi như kỳ vọng. Với dữ liệu múi giờ từ người dùng, không được coi kết quả này là bằng chứng zone ID hợp lệ. Dùng danh sách ID được hỗ trợ hoặc API `ZoneId.of(...)` (có lỗi rõ hơn cho ID sai) cùng quy tắc validation ở ranh giới input.
+`TimeZone.getTimeZone(String)` may return `GMT` when the ID is unrecognized, instead of reporting an error as expected. With time zone data from users, do not treat this result as proof of a valid zone ID. Use the supported ID list or the `ZoneId.of(...)` API (which throws a clearer error for invalid IDs) along with validation rules at the input boundary.
 
-## 7. Ví dụ Java 17+ chạy độc lập
+## 7. Standalone Java 17+ example
 
-Tạo tệp **`DateFormatFactoriesDemo.java`**. Chương trình tạo các formatter độc lập bằng factory, truyền `Locale` rõ ràng, đặt zone `UTC` và tắt lenient khi kiểm tra parse. Với output giờ theo `Locale.US`, hàm `view(...)` quy hai dạng khoảng trắng không ngắt thường gặp thành khoảng trắng thông thường để dễ đọc log; nó **không biến mọi format của mọi JDK thành một chuỗi bất biến**.
+Create the file **`DateFormatFactoriesDemo.java`**. The program creates independent formatters using factories, passes `Locale` explicitly, sets the `UTC` zone, and disables leniency when testing parsing. For time output under `Locale.US`, the `view(...)` helper normalizes two common forms of non-breaking spaces into regular spaces for easier log reading; it **does not turn every format across every JDK into an invariant string**.
 
 ```java
 import java.text.DateFormat;
@@ -203,8 +203,8 @@ public class DateFormatFactoriesDemo {
     }
 
     private static String view(DateFormat format, Date date) {
-        // Chuẩn hóa khoảng trắng của đầu ra demo:
-        // narrow no-break space và no-break space.
+        // Normalize whitespace of the demo output:
+        // narrow no-break space and no-break space.
         return format.format(date)
                 .replace('\u202F', ' ')
                 .replace('\u00A0', ' ');
@@ -266,14 +266,14 @@ public class DateFormatFactoriesDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17+ trong thư mục chứa tệp:
+Compile and run with JDK 17+ in the directory containing the file:
 
 ```bash
 javac -encoding UTF-8 DateFormatFactoriesDemo.java
 java DateFormatFactoriesDemo
 ```
 
-**Stdout đã kiểm tra trên một môi trường Java 17 với dữ liệu locale tương ứng:**
+**Stdout verified on a Java 17 environment with corresponding locale data:**
 
 ```text
 us.full=Tuesday, January 2, 2024
@@ -288,32 +288,32 @@ parse(January 2, 2024junk)=REJECTED; consumed=15/19
 parse(February 30, 2024)=REJECTED; consumed=0/17
 ```
 
-**Ghi chú về tính tái lập:** các chuỗi chữ ngày giờ như thứ/tên tháng, dấu câu, style `SHORT` và chữ viết tắt có thể khác giữa các cấu hình locale provider/JDK. Ví dụ dùng một runtime Java và dữ liệu mẫu cố định để có đầu ra trên; trong dự án thật, nếu muốn khẳng định chính xác từng ký tự ở mọi bản JDK, đừng dựa vào factory locale với style mặc định làm hợp đồng dữ liệu. Hãy kiểm thử theo phiên bản triển khai, hoặc dùng formatter/pattern xác định rõ khi cần chuỗi máy–máy cố định.
+**Note on reproducibility:** date-time text strings such as weekday/month names, punctuation, `SHORT` style, and abbreviations may differ across locale provider/JDK configurations. The example uses a fixed Java runtime and sample data to produce the output above; in a real project, if you want to assert every exact character across all JDK versions, do not rely on locale factories with default styles as a data contract. Test against your deployment version, or use a clearly specified formatter/pattern when fixed machine-to-machine strings are needed.
 
-### Giải thích kết quả
+### Explaining the output
 
-1. `us.full`, `us.long`, `us.medium`, `us.short` cho thấy bốn cách trình bày cùng ngày theo các style.
-2. `us.time` chỉ lấy phần giờ; `us.both` kết hợp ngày ở `MEDIUM` với giờ ở `SHORT`. Khoảng trắng không ngắt trong một số locale/JDK được chuẩn hóa để dễ đọc demo.
-3. `fr.long` minh họa **cùng một timestamp và zone** nhưng locale khác nên dùng tên tháng tiếng Pháp và trật tự ngày khác.
-4. `parse(...)=OK` cho chuỗi hợp pattern và được đọc **hết 15 ký tự**.
-5. `January 2, 2024junk` được parser đọc ra một ngày ở phần đầu nhưng còn bốn ký tự `junk`, nên hàm validation của demo từ chối dù `parsed != null`.
-6. `February 30, 2024` không tồn tại trong lịch; vì đã `setLenient(false)`, parser không sửa ngày thành tháng 3 mà từ chối.
+1. `us.full`, `us.long`, `us.medium`, and `us.short` show four ways of presenting the same date across styles.
+2. `us.time` takes only the time part; `us.both` combines the date in `MEDIUM` with the time in `SHORT`. Non-breaking spaces in some locales/JDKs are normalized for demo readability.
+3. `fr.long` illustrates **the same timestamp and zone** with a different locale, hence using French month names and a different date order.
+4. `parse(...)=OK` for a string matching the pattern and consumed **all 15 characters**.
+5. `January 2, 2024junk` is parsed into a date from the leading part, leaving four `junk` characters, so the demo's validation function rejects it even though `parsed != null`.
+6. `February 30, 2024` does not exist on the calendar; because `setLenient(false)` was called, the parser does not roll the date into March and rejects it instead.
 
-Chương trình không thay đổi locale/timezone mặc định của JVM. Mỗi factory được tạo cho một mục đích riêng; không chia sẻ formatter mutable sang thread khác.
+The program does not modify the JVM's default locale or time zone. Each factory is created for a specific purpose; mutable formatters are not shared across threads.
 
-## 8. Parse là thao tác khác format
+## 8. Parsing is a different operation from formatting
 
-`DateFormat.format(...)` nhận `Date` và tạo **chuỗi hiển thị**. `DateFormat.parse(...)` thử đọc **chuỗi đầu vào** và trả `Date`. Hai chiều này không nhất thiết đối xứng tuyệt đối:
+`DateFormat.format(...)` takes a `Date` and produces a **display string**. `DateFormat.parse(...)` tries to read an **input string** and returns a `Date`. These two directions are not necessarily strictly symmetrical:
 
-- `SHORT` có thể bỏ thế kỷ hoặc giây, nên chuỗi không giữ mọi chi tiết của timestamp nguồn.
-- `getDateInstance(...)` chỉ thể hiện ngày, không thể bảo toàn giờ/phút/giây khi format rồi parse ngược.
-- Khi parse date-only thành `Date`, time trong ngày được resolver/calendar xác lập theo quy tắc và zone; không nên coi đây là timestamp của sự kiện gốc.
-- Chuỗi nhập không có time zone sẽ được diễn giải bằng zone của formatter, điều này có thể khác timezone người nhập tưởng tượng.
-- Parser có thể chấp nhận một tiền tố hợp lệ của chuỗi và bỏ phần đuôi nếu không kiểm tra vị trí cuối.
+- `SHORT` may omit the century or seconds, so the string does not preserve all details of the source timestamp.
+- `getDateInstance(...)` only represents the date and cannot preserve hours/minutes/seconds when formatted and parsed back.
+- When parsing date-only into a `Date`, the time of day is determined by the resolver/calendar according to rules and zone; it should not be treated as the timestamp of the original event.
+- An input string without a time zone will be interpreted using the formatter's zone, which may differ from the time zone the user had in mind.
+- The parser may accept a valid prefix of the string and ignore the trailing portion if the final position is not checked.
 
-### parse(String) và ParseException
+### parse(String) and ParseException
 
-`DateFormat.parse(String)` có thể ném `java.text.ParseException` khi không đọc được chuỗi. Nếu ứng dụng cần phát hiện **chuỗi đuôi bị bỏ qua**, thường nên dùng `parse(String, ParsePosition)` rồi xác nhận:
+`DateFormat.parse(String)` can throw `java.text.ParseException` when it cannot read the string. If the application needs to detect **ignored trailing characters**, it is usually better to use `parse(String, ParsePosition)` and then verify:
 
 ```java
 ParsePosition pos = new ParsePosition(0);
@@ -323,13 +323,13 @@ boolean valid = parsed != null
         && pos.getIndex() == input.length();
 ```
 
-Đây là đoạn minh họa đặt trong phương thức Java (với `formatter`, `input` đã có và import `ParsePosition`/`Date`); ví dụ độc lập đã trình bày ở mục 7.
+This is an illustrative snippet placed inside a Java method (with `formatter` and `input` already defined, and `ParsePosition`/`Date` imported); the standalone example was presented in section 7.
 
-Với parse sai, `parse(String, ParsePosition)` có thể trả `null`, cập nhật `errorIndex`. Nhưng **đọc hết chuỗi mới chỉ chứng minh parser chấp nhận cấu trúc nó hiểu**, chưa chứng minh ngày nằm trong miền nghiệp vụ hoặc input đúng định dạng mà form yêu cầu.
+On a failed parse, `parse(String, ParsePosition)` may return `null` and update `errorIndex`. However, **consuming the entire string only proves the parser accepted a structure it understands**, not that the date lies within the business domain or that the input matches the exact format the form requires.
 
-### setLenient(false): không tự sửa ngày không tồn tại
+### setLenient(false): do not silently fix nonexistent dates
 
-`DateFormat` sử dụng một `Calendar` trong cơ chế parse. Nếu parser có tính lenient, nó có thể điều chỉnh `31/02` thành một ngày khác thay vì báo sai. Khi muốn người dùng nhập một ngày lịch thực sự hợp lệ, đặt:
+`DateFormat` uses a `Calendar` in its parsing mechanism. If the parser is lenient, it may adjust `31/02` to another date instead of reporting an error. When you want users to enter a genuinely valid calendar date, set:
 
 ```java
 DateFormat formatter =
@@ -338,66 +338,66 @@ formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
 formatter.setLenient(false);
 ```
 
-Đoạn này đặt trong phương thức Java với import phù hợp. Sau đó, **vẫn cần** kiểm tra parse tiêu thụ hết chuỗi và validation domain. Chọn `SHORT` để input có thể mang năm hai chữ số, nên trong ứng dụng mới nên dùng một pattern yêu cầu năm đầy đủ rõ ràng hơn nếu dữ liệu quan trọng.
+This snippet is placed inside a Java method with appropriate imports. Afterward, you **still need** to check that parsing consumed the entire string and perform domain validation. Choosing `SHORT` allows inputs with a two-digit year, so in new applications you should use a pattern that explicitly requires a full year if the data is important.
 
-### Năm hai chữ số và tính mơ hồ
+### Two-digit years and ambiguity
 
-Các factory `SHORT` có thể dùng năm `24` thay vì `2024`. Khi parse, một số implementation có quy tắc cửa sổ năm hai chữ số; kết quả có thể phụ thuộc thời điểm tạo formatter, cấu hình provider và implementation. Tránh lưu ngày sinh, ngày hạn hợp đồng hoặc lịch tài chính dưới dạng năm hai chữ số. Với input của người dùng, xác định format năm đầy đủ và ưu tiên `java.time.DateTimeFormatter` có resolver strict.
+`SHORT` factories may use the year `24` instead of `2024`. When parsing, some implementations have a two-digit year window rule; the result may depend on when the formatter was created, the provider configuration, and the implementation. Avoid storing birthdates, contract expiration dates, or financial schedules as two-digit years. For user input, define a full-year format and prefer `java.time.DateTimeFormatter` with a strict resolver.
 
-## 9. Những hạn chế của API ngày giờ cũ
+## 9. Limitations of the legacy date-time API
 
-### 9.1. Date và Calendar khác mục đích
+### 9.1. Date and Calendar have different purposes
 
-`java.util.Date` mô tả một mốc thời gian, còn `Calendar` quản lý các trường lịch theo timezone/locale và có thể bị thay đổi. `DateFormat` kết hợp chúng trong quá trình trình bày/parse. Điều này dễ dẫn tới nhầm lẫn: thấy `DateFormat` in ngày khác không có nghĩa `Date` nguồn đã bị sửa.
+`java.util.Date` describes an instant in time, while `Calendar` manages calendar fields according to time zone/locale and can be mutated. `DateFormat` combines them during formatting/parsing. This easily leads to confusion: seeing `DateFormat` print a different date does not mean the source `Date` was modified.
 
-`DateFormat.setCalendar(Calendar)` là thao tác cấu hình sâu; khi đổi calendar, nên xác minh lại timezone, chế độ lenient và ngữ nghĩa chronology đang dùng. Không dùng `Calendar` như kiểu dữ liệu bất biến cho mọi nghiệp vụ.
+`DateFormat.setCalendar(Calendar)` is a deep configuration operation; when changing the calendar, you should re-verify the time zone, lenient mode, and chronology semantics in use. Do not use `Calendar` as an immutable data type across all business logic.
 
-### 9.2. Factory không bảo đảm luôn trả SimpleDateFormat
+### 9.2. Factories do not guarantee always returning SimpleDateFormat
 
-Đừng viết:
+Do not write:
 
 ```java
 SimpleDateFormat df = (SimpleDateFormat)
         DateFormat.getDateInstance(DateFormat.SHORT, locale);
 ```
 
-nếu không có yêu cầu và bảo đảm về implementation. Đoạn code này là **minh họa cách ép kiểu dễ gây rủi ro**, không phải lời khuyên. Đối với API chung, giữ kiểu `DateFormat`. Nếu thực sự cần một pattern cụ thể và đang làm việc với legacy library, có thể chủ động tạo `new SimpleDateFormat(pattern, locale)`, nhưng nhớ kiểm soát calendar, timezone, lenient và thread safety.
+without a requirement and guarantee about the implementation. This code snippet **illustrates a risky cast**, not a recommendation. For general APIs, keep the `DateFormat` type. If you truly need a specific pattern and are working with a legacy library, you can intentionally instantiate `new SimpleDateFormat(pattern, locale)`, while remembering to control calendar, timezone, leniency, and thread safety.
 
-### 9.3. DateFormat mutable, không thread-safe
+### 9.3. DateFormat is mutable and not thread-safe
 
-`DateFormat` và `SimpleDateFormat` là **mutable** và không được bảo đảm thread-safe khi nhiều thread dùng cùng một instance mà không đồng bộ. `setTimeZone`, `setLenient`, `setCalendar` và các thao tác định dạng/parse có thể phụ thuộc trạng thái nội bộ.
+`DateFormat` and `SimpleDateFormat` are **mutable** and are not guaranteed to be thread-safe when multiple threads use the same instance without synchronization. `setTimeZone`, `setLenient`, `setCalendar`, and formatting/parsing operations can depend on internal state.
 
-Các lựa chọn phù hợp:
+Suitable options:
 
-1. Tạo instance formatter mới trong phương thức hoặc phạm vi request.
-2. Clone một formatter mẫu khi cần cấu hình chung và bảo đảm các bản sao riêng biệt.
-3. Đồng bộ hóa toàn bộ truy cập nếu buộc phải chia sẻ, nhưng cần hiểu chi phí contention và tránh bỏ sót điểm truy cập.
+1. Create a new formatter instance within the method or request scope.
+2. Clone a template formatter when a shared configuration is needed and ensure separate copies.
+3. Synchronize all access if sharing is mandatory, while understanding contention costs and avoiding missed access points.
 
-**Không nên tạo một `static DateFormat` rồi đổi locale/timezone theo mỗi request.** Với dự án mới, `java.time.format.DateTimeFormatter` immutable và thread-safe giúp giải quyết nhiều vấn đề này.
+**Do not create a `static DateFormat` and mutate its locale/timezone on every request.** For new projects, `java.time.format.DateTimeFormatter` is immutable and thread-safe, solving many of these issues.
 
-### 9.4. Lệ thuộc locale mặc định và TZDB
+### 9.4. Dependence on default locale and TZDB
 
-Một formatter được tạo bằng factory không có `Locale` và không gán zone có thể cho output khác khi chạy trên máy có cấu hình JVM/OS khác. Các tên zone, kiểu chữ và quy tắc địa phương cũng chịu ảnh hưởng dữ liệu locale và cơ sở dữ liệu múi giờ của môi trường Java. Trong test, truyền locale và zone rõ ràng, sử dụng timestamp cố định; không lấy ngày giờ hiện tại làm điểm chuẩn nếu muốn stdout kiểm thử ổn định.
+A formatter created by a factory without a `Locale` and without an assigned zone can produce different output when run on a machine with a different JVM/OS configuration. Zone names, typography, and local rules are also affected by the Java environment's locale data and time zone database. In tests, pass locale and zone explicitly and use fixed timestamps; do not use the current date/time as a baseline if you want stable test stdout.
 
-## 10. Khi nào dùng factory và khi nào cần pattern cụ thể?
+## 10. When to use factories vs. when a specific pattern is needed?
 
-| Yêu cầu | Lựa chọn gợi ý | Lý do |
+| Requirement | Recommended option | Reason |
 | --- | --- | --- |
-| Hiển thị ngày cho người dùng theo locale | `DateFormat.getDateInstance(style, locale)` | Có format bản địa mà không cần tự viết mẫu của mỗi ngôn ngữ. |
-| Hiển thị giờ cho người dùng | `DateFormat.getTimeInstance(style, locale)` | Theo quy tắc trình bày giờ của locale. |
-| Hiển thị ngày+giờ cùng nhau | `DateFormat.getDateTimeInstance(dateStyle, timeStyle, locale)` | Cho phép style ngày và giờ khác nhau. |
-| Format dùng trong log giao tiếp máy–máy | `DateTimeFormatter.ISO_INSTANT`/ISO formatter phù hợp | Không phụ thuộc cách viết chữ theo locale UI. |
-| Ngày sinh, lịch hẹn thuần ngày | `LocalDate` + `DateTimeFormatter` | Không ép ngày thuần túy thành một timestamp tùy múi giờ. |
-| Timestamp tuyệt đối để lưu/trao đổi | `Instant` hoặc kiểu thời gian có offset phù hợp | Định nghĩa rõ điểm trên timeline. |
-| Nhập ngày có pattern được sản phẩm quy định | `DateTimeFormatter` + `ResolverStyle.STRICT` | Bắt lỗi ngày không có thật và tránh nhiều bất định của legacy parse. |
-| Bảo trì API legacy nhận/trả `Date` | `DateFormat` + locale/zone/lenient rõ ràng | Giữ tương thích nhưng quản lý rủi ro. |
-| Formatter dùng chung nhiều thread | `DateTimeFormatter` | Immutable, phù hợp code Java hiện đại. |
+| Display date to users by locale | `DateFormat.getDateInstance(style, locale)` | Provides localized formatting without writing a pattern for every language. |
+| Display time to users | `DateFormat.getTimeInstance(style, locale)` | Follows the locale's time presentation rules. |
+| Display date+time together | `DateFormat.getDateTimeInstance(dateStyle, timeStyle, locale)` | Allows separate date and time styles. |
+| Format used in logs / machine-to-machine communication | `DateTimeFormatter.ISO_INSTANT` / suitable ISO formatter | Does not depend on UI locale wording. |
+| Birthdates, date-only schedules | `LocalDate` + `DateTimeFormatter` | Avoids forcing a pure date into a time-zone-dependent timestamp. |
+| Absolute timestamp for storage/exchange | `Instant` or appropriate offset date-time type | Clearly defines a point on the timeline. |
+| Date input with a product-specified pattern | `DateTimeFormatter` + `ResolverStyle.STRICT` | Catches nonexistent dates and avoids many legacy parsing ambiguities. |
+| Maintaining legacy API accepting/returning `Date` | `DateFormat` + explicit locale/zone/lenient | Preserves compatibility while managing risks. |
+| Formatter shared across multiple threads | `DateTimeFormatter` | Immutable, suited for modern Java code. |
 
-Các factory `DateFormat` là lựa chọn hữu ích khi **bảo trì hệ thống cũ** hoặc tích hợp với thư viện chỉ dùng `Date`/`Calendar`. Trong code mới, ưu tiên `java.time` không có nghĩa phải loại bỏ mọi factory lập tức, mà là chọn API rõ nghĩa cho domain và tránh thêm phụ thuộc vào trạng thái mutable.
+`DateFormat` factories are a useful choice when **maintaining legacy systems** or integrating with libraries that only use `Date`/`Calendar`. In new code, preferring `java.time` does not mean eliminating every factory immediately, but choosing semantically clear APIs for the domain and avoiding adding dependencies on mutable state.
 
-### Tương tác Date với Instant
+### Interoperating between Date and Instant
 
-Khi code legacy nhận `Date` nhưng domain mới dùng `Instant`:
+When legacy code takes `Date` while the new domain uses `Instant`:
 
 ```java
 Instant instant = Instant.parse("2024-01-02T15:04:05Z");
@@ -405,68 +405,68 @@ Date date = Date.from(instant);
 Instant back = date.toInstant();
 ```
 
-Đoạn này có thể chạy trong một phương thức Java với import `Instant`, `Date`. Việc chuyển đổi này giữ ý nghĩa thời điểm ở độ chính xác milliseconds của `Date`; nó **không thêm timezone hay Locale vào Instant**. Với timestamp có nano giây, cần xem xét giới hạn chính xác khi đi qua `Date`.
+This snippet can run inside a Java method with `Instant` and `Date` imported. This conversion preserves the point-in-time meaning at `Date`'s millisecond precision; it **does not attach a timezone or Locale to the Instant**. For timestamps with nanoseconds, consider the precision loss when passing through `Date`.
 
-## 11. Các lỗi phổ biến và cách khắc phục
+## 11. Common mistakes and how to fix them
 
-| Lỗi | Hậu quả | Hướng xử lý |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Dùng `getDateInstance()` cho mọi người dùng | Kết quả phụ thuộc mặc định JVM, không theo locale từng người. | Truyền `Locale` tường minh. |
-| Dùng `getDateInstance(...)` khi cần giờ | Format chỉ có ngày. | Dùng `getDateTimeInstance(...)`. |
-| Đảo `dateStyle` và `timeStyle` | Ngày và giờ nhận style không như dự định. | Luôn đọc đúng thứ tự tham số. |
-| Nghĩ `SHORT` luôn là `dd/MM/yyyy` | Locale có thể đảo ngày/tháng và rút năm. | Để factory quyết định UI; dùng input pattern rõ khi cần. |
-| Nghĩ locale tự quyết định zone | Người dùng ở cùng ngôn ngữ có thể thuộc nhiều vùng giờ. | Chọn `TimeZone`/`ZoneId` theo ngữ cảnh. |
-| Dùng `TimeZone.getTimeZone` với ID không xác minh | ID sai có thể fallback về GMT. | Validate zone ID; xem xét `ZoneId.of`. |
-| Mặc định parse thành công nghĩa input sạch | Parser có thể bỏ ký tự đuôi. | Dùng `ParsePosition` và kiểm tra đã đọc hết. |
-| Không gọi `setLenient(false)` với ngày nhập | Ngày không có thật có thể bị tự điều chỉnh. | Tắt lenient và thêm domain validation. |
-| Đưa ngày `MM/dd/yy` vào cơ sở dữ liệu | Năm hai chữ số và cách viết ngày mơ hồ. | Dùng kiểu ngày/chuẩn ISO có schema rõ ràng. |
-| Ép mọi kết quả factory sang `SimpleDateFormat` | Phụ thuộc implementation. | Giữ kiểu `DateFormat` hoặc tạo mẫu riêng có chủ đích. |
-| Dùng static `DateFormat` trong web server | Race và trạng thái chéo giữa nhiều request. | Tạo mới/clone/đồng bộ, hoặc migrate `DateTimeFormatter`. |
-| So sánh output FULL giữa mọi JDK bằng exact text | Dữ liệu CLDR và provider có thể khác. | Test chức năng, cố định môi trường khi cần snapshot test. |
+| Using `getDateInstance()` for all users | Output depends on JVM default, not each user's locale. | Pass `Locale` explicitly. |
+| Using `getDateInstance(...)` when time is needed | Format contains only the date. | Use `getDateTimeInstance(...)`. |
+| Swapping `dateStyle` and `timeStyle` | Date and time receive unintended styles. | Always double-check parameter order. |
+| Assuming `SHORT` is always `dd/MM/yyyy` | Locales can flip day/month and shorten the year. | Let factories handle UI; use explicit input patterns when needed. |
+| Assuming locale automatically determines zone | Users sharing a language may span multiple time zones. | Choose `TimeZone`/`ZoneId` based on context. |
+| Using `TimeZone.getTimeZone` with unverified IDs | Invalid IDs can fall back to GMT. | Validate zone IDs; consider `ZoneId.of`. |
+| Assuming parse success means clean input | The parser can ignore trailing characters. | Use `ParsePosition` and verify full consumption. |
+| Not calling `setLenient(false)` for input dates | Nonexistent dates may be silently adjusted. | Disable leniency and add domain validation. |
+| Storing `MM/dd/yy` dates in a database | Two-digit years and ambiguous date formatting. | Use date types/ISO standards with an explicit schema. |
+| Casting every factory result to `SimpleDateFormat` | Implementation dependence. | Keep `DateFormat` type or intentionally construct a dedicated instance. |
+| Using a static `DateFormat` in a web server | Races and cross-request state leakage. | Create new/clone/synchronize, or migrate to `DateTimeFormatter`. |
+| Comparing FULL output across all JDKs by exact text | CLDR data and providers may differ. | Test behaviorally; pin the environment if snapshot testing is needed. |
 
-## 12. Bộ test nên có
+## 12. Recommended test suite
 
-Để tự tin rằng localization bằng `DateFormat` vận hành đúng, tối thiểu cần kiểm thử:
+To be confident that localization with `DateFormat` works properly, test at minimum:
 
-- **Date/time/dateTime:** mỗi factory chỉ hiển thị thành phần đúng nhu cầu, hai style riêng của `getDateTimeInstance` được áp dụng đúng.
-- **Locale khác nhau:** cùng timestamp và timezone được biểu diễn bằng ngôn ngữ/định dạng khác nhau mà không làm thay đổi giá trị nguồn.
-- **FULL/LONG/MEDIUM/SHORT:** kiểm tra theo locale được hỗ trợ; không dựa vào một pattern cứng dùng cho mọi JDK.
-- **TimeZone:** test UTC và region zone khác, nhất là thời điểm gần ranh giới ngày.
-- **Parse thành công:** input đúng cấu trúc và được đọc hết; sau parse, thời điểm có ý nghĩa chính xác.
-- **Parse có đuôi:** từ chối chuỗi như `January 2, 2024junk` nếu form yêu cầu toàn bộ input hợp lệ.
-- **Ngày không tồn tại:** `February 30, 2024` phải bị từ chối khi `setLenient(false)`.
-- **Năm hai chữ số:** xác định policy, không âm thầm chấp nhận ngày gây mơ hồ.
-- **DST gap/overlap:** nếu domain có thời gian hẹn ở vùng có DST, kiểm tra quyết định nghiệp vụ riêng, không chỉ so chuỗi hiển thị.
-- **Concurrency:** không chia sẻ formatter mutable không có đồng bộ giữa test/thread.
-- **Dữ liệu bất thường:** null, chuỗi rỗng, giới hạn độ dài, dữ liệu có Unicode whitespace hoặc ký hiệu ngày theo locale khác.
+- **Date/time/dateTime:** each factory displays only the needed components, and the two separate styles of `getDateTimeInstance` are applied correctly.
+- **Different locales:** the same timestamp and time zone are rendered in different languages/formats without altering the source value.
+- **FULL/LONG/MEDIUM/SHORT:** verify against supported locales; do not rely on a single hardcoded pattern across all JDKs.
+- **TimeZone:** test UTC and other region zones, especially timestamps near date boundaries.
+- **Successful parse:** structurally valid input is fully consumed; after parsing, the resulting instant has the exact expected value.
+- **Parse with trailing characters:** reject strings like `January 2, 2024junk` when the form requires the entire input to be valid.
+- **Nonexistent dates:** `February 30, 2024` must be rejected when `setLenient(false)` is set.
+- **Two-digit years:** define a policy rather than silently accepting ambiguous dates.
+- **DST gaps/overlaps:** if the domain includes scheduled times in DST regions, test specific business decisions rather than just comparing formatted strings.
+- **Concurrency:** do not share unsynchronized mutable formatters across tests/threads.
+- **Abnormal inputs:** null, empty strings, length limits, inputs containing Unicode whitespace, or date symbols from other locales.
 
-Đối với code parse input từ người dùng, ngoài việc đọc hết chuỗi, còn cần validation miền dữ liệu: ngày sinh không ở tương lai nếu sản phẩm yêu cầu, ngày đến hạn trong khoảng cho phép, giờ hẹn hợp lệ ở timezone người dùng. **DateFormat không phải bộ kiểm tra toàn bộ quy tắc nghiệp vụ.**
+For code that parses user input, beyond consuming the entire string, domain validation is still required: birthdates not in the future if required by the product, due dates within allowed ranges, and appointment times valid in the user's time zone. **`DateFormat` is not a validator for all business rules.**
 
-## 13. Bài tập thực hành
+## 13. Hands-on exercises
 
-**Bài 1 — Ba factory:** cùng `Date.from(Instant.parse("2024-01-02T15:04:05Z"))`, thử `getDateInstance`, `getTimeInstance` và `getDateTimeInstance` ở `Locale.US`. Đặt `UTC` cho tất cả formatter. Giải thích khác biệt giữa ngày, giờ và cả ngày+giờ.
+**Exercise 1 — Three factories:** with the same `Date.from(Instant.parse("2024-01-02T15:04:05Z"))`, try `getDateInstance`, `getTimeInstance`, and `getDateTimeInstance` in `Locale.US`. Set `UTC` on all formatters. Explain the differences between date, time, and date+time.
 
-**Bài 2 — Bốn style:** với `FULL`, `LONG`, `MEDIUM`, `SHORT` cho ngày, thử `Locale.US` và `Locale.FRANCE`. Ghi lại cách viết ngày thay đổi; không đoán pattern dựa trên chữ viết tắt tiếng Anh.
+**Exercise 2 — Four styles:** with `FULL`, `LONG`, `MEDIUM`, and `SHORT` for date, try `Locale.US` and `Locale.FRANCE`. Note how the date formatting changes; do not guess patterns from English abbreviations.
 
-**Bài 3 — Cấu hình zone:** format `2024-01-02T00:30:00Z` theo `UTC` và `Asia/Ho_Chi_Minh` với cùng locale/style. Xác nhận `Date` không đổi, chỉ giờ hiển thị thay đổi. Thử một zone có DST ở ngày chuyển mùa và giải thích vì sao không cộng offset cố định.
+**Exercise 3 — Zone configuration:** format `2024-01-02T00:30:00Z` in `UTC` and `Asia/Ho_Chi_Minh` with the same locale/style. Confirm that `Date` does not change, only the displayed time changes. Try a zone with DST on a transition day and explain why fixed offset arithmetic should not be used.
 
-**Bài 4 — Parse và kiểm tra chuỗi thừa:** parse `January 2, 2024`, `January 2, 2024junk` và `February 30, 2024` với `getDateInstance(LONG, Locale.US)`, `UTC`, `setLenient(false)`. In kết quả, `ParsePosition.getIndex()` và `getErrorIndex()`; phân biệt thành công kỹ thuật với input hợp lệ theo policy.
+**Exercise 4 — Parsing and trailing-character checks:** parse `January 2, 2024`, `January 2, 2024junk`, and `February 30, 2024` with `getDateInstance(LONG, Locale.US)`, `UTC`, and `setLenient(false)`. Print the result, `ParsePosition.getIndex()`, and `getErrorIndex()`; distinguish technical parse success from policy-valid input.
 
-**Bài 5 — Default locale:** chạy test với mặc định FORMAT khác nhau (có cô lập và restore theo `try/finally`), so sánh factory không có locale và factory có `Locale.US` tường minh. Vì sao ứng dụng nhiều người dùng không nên đổi default locale trong mỗi request?
+**Exercise 5 — Default locale:** run tests with different FORMAT defaults (isolated and restored with `try/finally`), comparing a factory without a locale to a factory with an explicit `Locale.US`. Why should a multi-user application not change the default locale on each request?
 
-**Bài 6 — Di chuyển sang java.time:** viết cùng tính năng bằng `Instant`/`ZoneId`/`DateTimeFormatter.ofLocalizedDateTime(...)`. So sánh API bất biến với `DateFormat` mutable; xác định cách xử lý các chuỗi ngày giờ lưu trong database so với chuỗi hiển thị cho người dùng.
+**Exercise 6 — Migrating to java.time:** write the same feature using `Instant`/`ZoneId`/`DateTimeFormatter.ofLocalizedDateTime(...)`. Compare the immutable API with mutable `DateFormat`; identify how to handle date-time strings stored in a database versus strings displayed to users.
 
-## 14. Checklist kiến thức
+## 14. Knowledge checklist
 
-- [ ] Phân biệt `DateFormat` với `Date`, `Calendar`, `TimeZone` và `Locale`.
-- [ ] Sử dụng đúng `getDateInstance`, `getTimeInstance`, `getDateTimeInstance` và `getInstance`.
-- [ ] Biết ý nghĩa `FULL`, `LONG`, `MEDIUM`, `SHORT`; `DEFAULT` tương ứng `MEDIUM`.
-- [ ] Chọn và truyền `Locale` tường minh, tránh phụ thuộc default `FORMAT` trong hệ thống nhiều người dùng.
-- [ ] Cấu hình `TimeZone` rõ ràng khi cần kết quả tái lập; không tự cộng trừ giờ.
-- [ ] Nhận biết `parse` có thể chấp nhận tiền tố, dùng `ParsePosition` kiểm tra tiêu thụ hết.
-- [ ] Dùng `setLenient(false)` khi cần từ chối ngày không có thật và kiểm tra nghiệp vụ bổ sung.
-- [ ] Hiểu vì sao factory locale không phải hợp đồng serialization có chuỗi cố định.
-- [ ] Không chia sẻ `DateFormat` mutable giữa các thread một cách thiếu kiểm soát.
-- [ ] Biết khi nào nên dùng `java.time`/`DateTimeFormatter` thay cho legacy API.
+- [ ] Distinguish `DateFormat` from `Date`, `Calendar`, `TimeZone`, and `Locale`.
+- [ ] Correctly use `getDateInstance`, `getTimeInstance`, `getDateTimeInstance`, and `getInstance`.
+- [ ] Know the meaning of `FULL`, `LONG`, `MEDIUM`, and `SHORT`; `DEFAULT` corresponds to `MEDIUM`.
+- [ ] Choose and pass `Locale` explicitly, avoiding reliance on default `FORMAT` in multi-user systems.
+- [ ] Configure `TimeZone` explicitly when reproducible results are needed; do not add/subtract hours manually.
+- [ ] Recognize that `parse` can accept a prefix, and use `ParsePosition` to verify full consumption.
+- [ ] Use `setLenient(false)` when nonexistent dates must be rejected and perform additional business validation.
+- [ ] Understand why a locale factory is not a fixed-string serialization contract.
+- [ ] Do not share mutable `DateFormat` instances across threads without proper synchronization.
+- [ ] Know when to use `java.time`/`DateTimeFormatter` instead of the legacy API.
 
-**Kết luận:** các factory của `DateFormat` là công cụ tạo formatter ngày giờ theo **mục đích (date/time/dateTime)**, **độ chi tiết (style)** và **ngữ cảnh ngôn ngữ (Locale)**. Khi dùng, hãy tách biệt time zone, parse và validation; chỉ chọn API cũ khi cần tương thích, còn code mới nên ưu tiên `java.time` với mô hình thời gian rõ ràng.
+**Conclusion:** `DateFormat` factories are tools for creating date-time formatters by **purpose (date/time/dateTime)**, **granularity (style)**, and **language context (Locale)**. When using them, separate time zone, parsing, and validation; choose the legacy API only when compatibility is required, and prefer `java.time` with its explicit temporal model in new code.

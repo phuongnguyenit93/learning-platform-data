@@ -1,48 +1,48 @@
-# CharSequence không mặc nhiên bất biến hoặc có equals theo nội dung
+# CharSequence Is Not Implicitly Immutable or Content-Equal
 
-## 1. Vấn đề trong thiết kế API
+## 1. The problem in API design
 
-Khi viết một API thao tác chuỗi, ta dễ chọn tham số kiểu `CharSequence` thay vì `String` để chấp nhận được nhiều loại dữ liệu. Ví dụ, một phương thức nhận `CharSequence` có thể được gọi với `String`, `StringBuilder`, `StringBuffer` hay `CharBuffer`. Đây là một điểm mạnh của thiết kế theo giao diện, nhưng **`CharSequence` không hứa rằng đối tượng là bất biến hoặc `equals` so sánh nội dung**.
+When writing a string-handling API, it is tempting to choose a `CharSequence` parameter instead of `String` in order to accept multiple data types. For example, a method accepting `CharSequence` can be called with `String`, `StringBuilder`, `StringBuffer`, or `CharBuffer`. This is a strength of interface-based design, but **`CharSequence` does not promise that the object is immutable or that `equals` compares content**.
 
-Hai điều cần nhớ từ đầu:
+Two things to remember from the start:
 
-- **Bất biến:** `String` là immutable; `StringBuilder` và `StringBuffer` có thể thay đổi, còn `CharBuffer` có thể là một view có vị trí, giới hạn và vùng lưu trữ thay đổi. Tham số khai báo là `CharSequence` không đóng băng đối tượng bên dưới.
-- **Bình đẳng:** giao diện `CharSequence` không bắt buộc các implementation cài `equals`/`hashCode` theo một quy tắc bình đẳng chung. Hai đối tượng có dãy `char` giống nhau có thể trả `equals == false`; hành vi của `equals` còn tùy loại đối tượng cụ thể.
+- **Immutability:** `String` is immutable; `StringBuilder` and `StringBuffer` can be mutated, while `CharBuffer` can be a view with mutable position, limit, and backing storage. A parameter declared as `CharSequence` does not freeze the underlying object.
+- **Equality:** the `CharSequence` interface does not require implementations to implement `equals`/`hashCode` according to a common equality rule. Two objects with the same `char` sequence can return `equals == false`; the behavior of `equals` depends on the concrete object type.
 
-Vì thế, khi API phải **lưu lâu**, **chia sẻ giữa luồng**, **dùng làm khóa map/set**, **cache**, hoặc **kiểm tra bình đẳng theo văn bản**, cần xác định hợp đồng dữ liệu rõ ràng và thường phải chụp một bản `String` bất biến tại ranh giới API.
+Therefore, when an API must **store long-term**, **share across threads**, **use as map/set keys**, **cache**, or **check text-based equality**, you need a clear data contract and usually must capture an immutable `String` copy at the API boundary.
 
-## 2. Giao diện CharSequence thực sự bảo đảm gì?
+## 2. What does the CharSequence interface actually guarantee?
 
-`java.lang.CharSequence` biểu diễn **một dãy `char` có thể đọc**. Những thao tác cơ bản gồm:
+`java.lang.CharSequence` represents **a readable sequence of `char` values**. Its basic operations include:
 
-| Phương thức | Ý nghĩa |
+| Method | Meaning |
 | --- | --- |
-| `length()` | Số lượng UTF-16 code unit trong dãy hiện tại |
-| `charAt(index)` | Đọc UTF-16 code unit tại vị trí tương ứng |
-| `subSequence(start, end)` | Lấy một `CharSequence` đại diện cho đoạn con |
-| `toString()` | Lấy nội dung dãy dưới dạng `String` |
-| `chars()` và `codePoints()` | Duyệt qua UTF-16 code unit hoặc Unicode code point bằng `IntStream` |
+| `length()` | Number of UTF-16 code units in the current sequence |
+| `charAt(index)` | Reads the UTF-16 code unit at the corresponding position |
+| `subSequence(start, end)` | Gets a `CharSequence` representing a subsequence |
+| `toString()` | Gets the sequence content as a `String` |
+| `chars()` and `codePoints()` | Iterates over UTF-16 code units or Unicode code points via `IntStream` |
 
-**Không có** lời hứa tổng quát rằng `length()`, `charAt()` hoặc kết quả `subSequence()` luôn bất biến theo thời gian. `subSequence()` có thể trả một **view chia sẻ dữ liệu** với đối tượng gốc; loại khác có thể trả bản sao. API sử dụng `CharSequence` phải xem xét điều đó.
+There is **no** general promise that `length()`, `charAt()`, or the result of `subSequence()` remains immutable over time. `subSequence()` may return a **view sharing data** with the original object; other types may return a copy. An API using `CharSequence` must take that into account.
 
-`length()` đếm **đơn vị UTF-16**, không đếm số ký tự hiển thị hay Unicode code point. Emoji bổ sung, ví dụ 🚀 (U+1F680), cần hai UTF-16 code unit. Vì vậy chuỗi `"A🚀"` có `length() == 3` nhưng `codePoints().count() == 2`. Khi xử lý Unicode, đừng coi mỗi `charAt(i)` là một ký tự Unicode hoàn chỉnh.
+`length()` counts **UTF-16 units**, not display characters or Unicode code points. A supplementary emoji, such as 🚀 (U+1F680), requires two UTF-16 code units. Thus the string `"A🚀"` has `length() == 3` but `codePoints().count() == 2`. When handling Unicode, do not treat every `charAt(i)` as a complete Unicode character.
 
-## 3. Bốn implementation thường gặp
+## 3. Four common implementations
 
-| Implementation | Nội dung có thể đổi? | Bình đẳng `equals` mặc định của loại đó | Lưu ý khi đưa vào API |
+| Implementation | Can content change? | Default `equals` equality of that type | Notes when passing into an API |
 | --- | --- | --- | --- |
-| `String` | Không; giá trị String bất biến | Theo **nội dung**, giữa hai đối tượng `String` | Hợp lý để lưu trữ và làm khóa bất biến |
-| `StringBuilder` | Có: `append`, `setCharAt`, `delete`… | Theo **danh tính đối tượng** vì không override `Object.equals` | Hai builder có cùng ký tự vẫn `equals == false` |
-| `StringBuffer` | Có; các thao tác riêng lẻ được đồng bộ hóa | Theo **danh tính đối tượng**, không so sánh nội dung | Đồng bộ hóa từng lời gọi không biến nó thành immutable hay bảo đảm snapshot qua nhiều lời gọi |
-| `CharBuffer` | Có thể thay đổi nội dung hoặc trạng thái vị trí/giới hạn; cũng có thể là buffer chỉ đọc | Theo nội dung **các ký tự còn lại** giữa `position` và `limit`, khi đối số cũng là `CharBuffer` | `equals`/`hashCode` phụ thuộc trạng thái buffer và có thể thay đổi |
+| `String` | No; String values are immutable | By **content**, between two `String` objects | Suitable for storage and as immutable keys |
+| `StringBuilder` | Yes: `append`, `setCharAt`, `delete`… | By **object identity** because it does not override `Object.equals` | Two builders with the same characters still have `equals == false` |
+| `StringBuffer` | Yes; individual operations are synchronized | By **object identity**, does not compare content | Synchronizing individual calls does not make it immutable or guarantee a snapshot across multiple calls |
+| `CharBuffer` | Can mutate content or position/limit state; can also be a read-only buffer | By content of **remaining characters** between `position` and `limit`, when the argument is also a `CharBuffer` | `equals`/`hashCode` depend on buffer state and can change |
 
-Một `CharBuffer` chỉ đọc vẫn có thể thay đổi **position** của chính nó (trừ khi bên gọi không làm thế); bất biến nội dung vùng nhớ và bất biến đối tượng không phải một khái niệm. Thay đổi vị trí có thể làm dãy “còn lại” ngắn đi, khiến `toString()`, `equals` và `hashCode` thay đổi dù các ký tự ở vùng lưu trữ không đổi.
+A read-only `CharBuffer` can still change its own **position** (unless the caller refrains from doing so); immutability of backing memory content and object immutability are not the same concept. Changing the position can shorten the "remaining" sequence, causing `toString()`, `equals`, and `hashCode` to change even though the characters in the backing storage did not change.
 
-Đặc biệt, `StringBuilder` và `StringBuffer` không cài một quy tắc `equals` so sánh nội dung như `String`. Suy luận “cùng implements CharSequence nên có thể so sánh nội dung bằng equals” là sai.
+In particular, `StringBuilder` and `StringBuffer` do not implement a content-comparing `equals` rule like `String`. Concluding that "because they all implement CharSequence, they can be compared by content with equals" is wrong.
 
-## 4. Ví dụ: cùng nội dung nhưng equals khác nhau
+## 4. Example: same content but different equals
 
-Đây là đoạn mã minh họa đặt bên trong một phương thức:
+This is an illustrative snippet placed inside a method:
 
 ~~~java
 String a = "cat";
@@ -55,18 +55,18 @@ System.out.println(b.equals(new StringBuilder("cat"))); // false
 System.out.println(c.equals(new StringBuffer("cat")));  // false
 ~~~
 
-Giải thích:
+Explanation:
 
-1. `String.equals(Object)` chỉ cho kết quả true khi đối tượng khác cũng là `String` có cùng ký tự. `StringBuilder` không được coi là cùng kiểu.
-2. `String.contentEquals(CharSequence)` chủ ý kiểm tra **các ký tự trong CharSequence hiện tại** so với chuỗi String. Nó thích hợp khi một phía có kiểu `String` và mục đích thực sự là so sánh văn bản.
-3. `StringBuilder.equals` và `StringBuffer.equals` kế thừa ngữ nghĩa bình đẳng theo **tham chiếu** từ `Object`; hai instance khác nhau không trở thành bằng nhau vì ký tự giống nhau.
-4. `Objects.equals(a, b)` chỉ xử lý an toàn trường hợp null và sau đó gọi `a.equals(b)`; nó **không biến** phép equals thành so sánh nội dung xuyên implementation.
+1. `String.equals(Object)` returns true only when the other object is also a `String` with the same characters. `StringBuilder` is not considered the same type.
+2. `String.contentEquals(CharSequence)` intentionally checks **the characters currently in the CharSequence** against the String. It is suitable when one side has type `String` and the actual goal is text comparison.
+3. `StringBuilder.equals` and `StringBuffer.equals` inherit **reference** equality semantics from `Object`; two distinct instances do not become equal because their characters match.
+4. `Objects.equals(a, b)` only handles null safely and then calls `a.equals(b)`; it **does not turn** equals into cross-implementation content comparison.
 
-`CharBuffer.wrap("cat").equals(CharBuffer.wrap("cat"))` cho `true` vì hai buffer có cùng dãy ký tự còn lại. Nhưng `"cat".equals(CharBuffer.wrap("cat"))` vẫn là false. Do đó không thể viết một quy tắc “CharSequence.equals luôn theo nội dung” áp dụng cho mọi implementation.
+`CharBuffer.wrap("cat").equals(CharBuffer.wrap("cat"))` returns `true` because the two buffers have the same remaining character sequence. But `"cat".equals(CharBuffer.wrap("cat"))` is still false. Therefore, you cannot write a rule that "CharSequence.equals is always content-based" applying to every implementation.
 
-### Khi cần so sánh theo văn bản
+### When text-based comparison is needed
 
-Nếu một phía đã là `String`, có thể sử dụng `expected.contentEquals(actual)` khi `actual` là `CharSequence` không null. Nếu cần so sánh nhất quán ở biên API, tạo snapshot rõ ràng:
+If one side is already a `String`, you can use `expected.contentEquals(actual)` when `actual` is a non-null `CharSequence`. If consistent comparison is needed at the API boundary, create an explicit snapshot:
 
 ~~~java
 static boolean sameText(CharSequence first, CharSequence second) {
@@ -76,11 +76,11 @@ static boolean sameText(CharSequence first, CharSequence second) {
 }
 ~~~
 
-Đây là **phương thức minh họa**, không phải một chương trình độc lập. Nó định nghĩa quy tắc so sánh bằng nội dung `String` thu được lúc gọi; không áp đặt kiểu `equals` của từng implementation. Giả định quan trọng là nội dung nguồn ổn định trong khi hai snapshot được lấy. Nếu đối tượng bị thay đổi đồng thời, phải đồng bộ hóa theo hợp đồng ứng dụng.
+This is an **illustrative method**, not a standalone program. It defines a comparison rule using the `String` content obtained at call time; it does not impose each implementation's `equals` style. The key assumption is that the source content is stable while the two snapshots are taken. If the objects are modified concurrently, synchronization must follow the application contract.
 
-## 5. Mutability: giữ tham chiếu không có nghĩa là giữ nội dung
+## 5. Mutability: holding a reference does not mean holding the content
 
-Xét ví dụ:
+Consider the example:
 
 ~~~java
 StringBuilder builder = new StringBuilder("cat");
@@ -93,16 +93,16 @@ System.out.println(savedReference); // cats
 System.out.println(savedSnapshot);  // cat
 ~~~
 
-`savedReference` vẫn trỏ tới **chính builder mutable**, nên đọc sau khi sửa sẽ thấy `"cats"`. `savedSnapshot` là một `String` đã được lấy từ giá trị `"cat"` trước khi sửa, nên không đổi. Tính bất biến đến từ **đối tượng được giữ**, không đến từ kiểu biến dùng để tham chiếu nó.
+`savedReference` still points to **the same mutable builder**, so reading it after the modification yields `"cats"`. `savedSnapshot` is a `String` taken from the `"cat"` value before the modification, so it does not change. Immutability comes from **the held object**, not from the variable type used to reference it.
 
-Điều này ảnh hưởng đến các API kiểu:
+This affects APIs like:
 
 ~~~java
 final class NoteStore {
     private CharSequence title;
 
     void setTitle(CharSequence title) {
-        this.title = title; // Giữ tham chiếu tới nguồn mutable
+        this.title = title; // Holds a reference to a mutable source
     }
 
     CharSequence getTitle() {
@@ -111,9 +111,9 @@ final class NoteStore {
 }
 ~~~
 
-Đoạn `NoteStore` là **mẫu phản ví dụ**: bên gọi có thể truyền `StringBuilder`, rồi chỉnh builder sau khi lưu. Khi đó `getTitle()` trả nội dung khác lúc gọi `setTitle` mà `NoteStore` không hề sửa gì.
+The `NoteStore` snippet is an **anti-pattern**: the caller can pass a `StringBuilder`, then edit the builder after storing it. Then `getTitle()` returns different content from when `setTitle` was called without `NoteStore` modifying anything.
 
-Thiết kế an toàn hơn nếu hợp đồng muốn giữ “giá trị tại thời điểm truyền vào”:
+A safer design if the contract intends to keep "the value at the time it was passed":
 
 ~~~java
 final class StableNoteStore {
@@ -129,11 +129,11 @@ final class StableNoteStore {
 }
 ~~~
 
-Dùng `String` cho trạng thái lưu trữ giúp xác định rõ đây là **giá trị bất biến**, chứ không phải một dãy ký tự có thể đổi. Lưu ý: `toString()` lấy nội dung hiện có vào `String`; nếu implementation bị biến đổi đồng thời trong lúc snapshot, cần cơ chế khóa hoặc thỏa thuận ownership phù hợp. Không có một lệnh `toString()` tổng quát bảo đảm mọi implementation đều thread-safe.
+Using `String` for stored state makes it clear that this is an **immutable value**, not a sequence of characters that can change. Note: `toString()` captures the current content into a `String`; if the implementation is mutated concurrently during the snapshot, a locking mechanism or appropriate ownership agreement is needed. There is no universal `toString()` call that guarantees every implementation is thread-safe.
 
-## 6. subSequence có thể là view sống
+## 6. subSequence can be a live view
 
-Không nên cho rằng gọi `subSequence` luôn tạo ra một bản sao bất biến. `CharBuffer` là minh họa thực tế:
+Do not assume that calling `subSequence` always creates an immutable copy. `CharBuffer` is a practical illustration:
 
 ~~~java
 char[] data = {'c', 'a', 't'};
@@ -147,19 +147,19 @@ System.out.println(tail);       // ot
 System.out.println(stableTail); // at
 ~~~
 
-`tail` là một view liên kết với mảng ký tự `data`. Thay đổi mảng nền từ `a` sang `o` được phản ánh trong view, còn `stableTail` vẫn giữ nội dung cũ.
+`tail` is a view backed by the `data` character array. Changing the underlying array from `a` to `o` is reflected in the view, while `stableTail` retains the old content.
 
-**Kết luận về thiết kế:** trả về `CharSequence` từ một API có thể là hợp lý khi chủ đích cung cấp view, nhưng người dùng cần biết **ai sở hữu bộ đệm**, **view sống được bao lâu**, **ai được phép thay đổi**, và **khi nào cần snapshot**. Nếu yêu cầu trả về một giá trị ổn định lâu dài, trả một `String` thường đơn giản hơn.
+**Design conclusion:** returning `CharSequence` from an API can be reasonable when intentionally providing a view, but users need to know **who owns the buffer**, **how long the view lives**, **who is allowed to mutate it**, and **when a snapshot is required**. If the requirement is to return a long-term stable value, returning a `String` is usually simpler.
 
-## 7. Bẫy khi dùng CharSequence làm khóa collection
+## 7. Pitfalls when using CharSequence as a collection key
 
-Khi làm khóa trong `HashMap`/`HashSet`, đối tượng cần thỏa mãn quy tắc `equals` và `hashCode` ổn định trong lúc còn nằm trong collection.
+When serving as a key in a `HashMap`/`HashSet`, an object must satisfy stable `equals` and `hashCode` rules while residing in the collection.
 
-- Một khóa `String` bất biến có `equals`/`hashCode` theo nội dung rõ ràng, phù hợp để làm khóa.
-- Một khóa `StringBuilder` so sánh theo danh tính đối tượng; dù có cùng văn bản, hai builder riêng là **hai khóa khác nhau**. Thay đổi builder không làm `Object.hashCode` trở thành phép băm nội dung.
-- Một khóa `CharBuffer` có `equals`/`hashCode` dựa trên phần ký tự còn lại. Việc thay `position`, `limit` hoặc nội dung nền có thể làm thay đổi ngữ nghĩa bình đẳng và giá trị hash trong lúc đối tượng đang là khóa. Khi đó việc tra cứu dựa trên bucket cũ có thể hoạt động sai kỳ vọng.
+- An immutable `String` key has clear content-based `equals`/`hashCode`, making it suitable as a key.
+- A `StringBuilder` key compares by object identity; even with the same text, two separate builders are **two distinct keys**. Mutating a builder does not turn `Object.hashCode` into content hashing.
+- A `CharBuffer` key has `equals`/`hashCode` based on its remaining characters. Changing `position`, `limit`, or the underlying content can change its equality semantics and hash value while the object is a key. Lookup based on the old bucket may then behave unexpectedly.
 
-Ví dụ minh họa:
+Illustrative example:
 
 ~~~java
 java.util.Set<CharSequence> keys = new java.util.HashSet<>();
@@ -170,13 +170,13 @@ keys.add(java.nio.CharBuffer.wrap("cat"));
 System.out.println(keys.size()); // 3
 ~~~
 
-Ba đối tượng trên có cùng văn bản hiển thị nhưng mang các kiểu `equals` khác nhau, nên đều có thể tồn tại riêng. **Không dùng `CharSequence` làm khóa khi định nghĩa khóa nghiệp vụ thực chất là “cùng nội dung văn bản” mà chưa chuẩn hóa hoặc snapshot.** Hãy lấy `String normalizedKey = incoming.toString()` trước khi đưa vào `Map<String, ...>`/`Set<String>`, nếu muốn bình đẳng đúng theo `String.equals`.
+The three objects above have the same displayed text but carry different `equals` behaviors, so all three can coexist separately. **Do not use `CharSequence` as a key when the business key definition is actually "same text content" without normalizing or snapshotting.** Take `String normalizedKey = incoming.toString()` before inserting into `Map<String, ...>`/`Set<String>` if you want equality according to `String.equals`.
 
-Đừng viết kiểm thử kiểu “sửa CharBuffer xong HashMap.get luôn trả null”: kết quả có thể phụ thuộc hash bucket và trạng thái cụ thể. Thay vào đó, kiểm tra trực tiếp rằng `equals`/`hashCode` của buffer có thể đổi theo `position` và áp dụng quy tắc **không biến đổi khóa ảnh hưởng đến băm**.
+Do not write tests asserting "after mutating CharBuffer, HashMap.get always returns null": the outcome can depend on hash buckets and specific state. Instead, verify directly that a buffer's `equals`/`hashCode` can change with `position` and enforce the rule **never mutate key fields that affect hashing**.
 
-## 8. Chương trình Java 17+ hoàn chỉnh
+## 8. Complete Java 17+ program
 
-Tệp **CharSequenceApiDemo.java** bên dưới kiểm tra trực tiếp các khác biệt vừa thảo luận: `String.equals`, `contentEquals`, identity equality, bình đẳng `CharBuffer`, mutable builder, mutable view, snapshot, Unicode và null.
+The file **CharSequenceApiDemo.java** below directly checks the differences just discussed: `String.equals`, `contentEquals`, identity equality, `CharBuffer` equality, mutable builder, mutable view, snapshot, Unicode, and null.
 
 ~~~java
 import java.nio.CharBuffer;
@@ -277,14 +277,14 @@ public class CharSequenceApiDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 CharSequenceApiDemo.java
 java CharSequenceApiDemo
 ~~~
 
-Stdout chính xác nếu 19 kiểm tra thành công:
+Exact stdout if all 19 checks succeed:
 
 ~~~text
 String.equals(StringBuilder)=false
@@ -298,26 +298,26 @@ ViewSnapshot=at
 PASS: 19 checks
 ~~~
 
-Hàm `check` ném `AssertionError` nếu bất kỳ trường hợp nào sai, nên không có dòng `PASS` giả khi kết quả không đúng. Không dùng `assert` của Java, vì `assert` bị vô hiệu hóa theo mặc định nếu không bật `-ea`.
+The `check` function throws `AssertionError` if any case fails, so there is no false `PASS` line when results are wrong. Java's `assert` is not used because `assert` is disabled by default unless `-ea` is enabled.
 
-Điểm đáng chú ý trong ví dụ: `CharBuffer.equals` và `hashCode` phản ánh phần văn bản còn lại từ `position` tới `limit`; sau `charBuffer1.position(1)`, dãy hiện tại của nó đổi từ `"cat"` thành `"at"` mà mảng ký tự ban đầu không nhất thiết thay đổi. Ngược lại, bản `String` trả từ `snapshot` vẫn chứa giá trị trước lúc đối tượng được sửa.
+Notable point in the example: `CharBuffer.equals` and `hashCode` reflect the remaining text from `position` to `limit`; after `charBuffer1.position(1)`, its current sequence changes from `"cat"` to `"at"` without necessarily modifying the original character array. Conversely, the `String` returned from `snapshot` still holds the value from before the object was modified.
 
-## 9. Cách chọn tham số và kiểu trả về
+## 9. How to choose parameter and return types
 
-| Mục đích API | Gợi ý kiểu | Cách xử lý |
+| API Purpose | Type Suggestion | How to Handle |
 | --- | --- | --- |
-| Đọc đầu vào ngay trong lời gọi, không giữ lại | `CharSequence` | Có thể chấp nhận nhiều nguồn dữ liệu; ghi rõ yêu cầu nguồn không bị sửa trong lúc xử lý |
-| Lưu text, cache hoặc chuyển sang xử lý bất đồng bộ | Nhận `CharSequence` nếu cần linh hoạt; **lưu `String`** | Lấy snapshot một lần tại ranh giới ownership |
-| Dùng khóa Map/Set theo nội dung văn bản | `String` | Chuẩn hóa nếu cần, rồi lưu/so sánh bằng `String.equals` và `hashCode` |
-| Trả về một giá trị text ổn định | `String` | Bên nhận biết đây là giá trị bất biến |
-| Trả về view có thể phản ánh nguồn | `CharSequence` / `CharBuffer` | Tài liệu hóa backing storage, vòng đời, position/limit và quy tắc cập nhật |
-| Sắp xếp theo ký tự | `Comparator` được xác định rõ | Không tự đồng nhất `compare == 0` với `equals` của mọi CharSequence |
+| Read input immediately within the call, without retaining it | `CharSequence` | Can accept multiple data sources; clearly document that the source must not be modified during processing |
+| Store text, cache, or pass to asynchronous processing | Accept `CharSequence` if flexibility is needed; **store `String`** | Take a snapshot once at the ownership boundary |
+| Use as Map/Set keys by text content | `String` | Normalize if needed, then store/compare using `String.equals` and `hashCode` |
+| Return a stable text value | `String` | The receiver knows this is an immutable value |
+| Return a view that can reflect the source | `CharSequence` / `CharBuffer` | Document backing storage, lifecycle, position/limit, and update rules |
+| Sort by characters | Explicitly defined `Comparator` | Do not automatically equate `compare == 0` with `equals` for all CharSequences |
 
-Nếu API muốn **giữ nguyên cả kiểu dữ liệu mutable bên ngoài**, phải ghi rõ quy định thay đổi, thread-safety và thời gian sống của dữ liệu. Nếu API cần **giá trị snapshot độc lập**, đầu vào linh hoạt và nội bộ immutable là lựa chọn dễ chứng minh tính đúng hơn.
+If the API wants to **keep the external mutable data type as-is**, it must clearly specify mutation rules, thread-safety, and data lifetime. If the API needs an **independent snapshot value**, flexible input and immutable internals are an easier choice to prove correct.
 
-### Null và hợp đồng đầu vào
+### Null and input contracts
 
-Một tham số `CharSequence` vẫn có thể là `null`. Hãy quyết định null **bị từ chối**, **là chuỗi rỗng**, hay **được xử lý theo chính sách riêng**. Ví dụ từ chối rõ ràng:
+A `CharSequence` parameter can still be `null`. Decide whether null is **rejected**, **treated as an empty string**, or **handled by a specific policy**. Example of explicit rejection:
 
 ~~~java
 static String snapshot(CharSequence input) {
@@ -325,65 +325,65 @@ static String snapshot(CharSequence input) {
 }
 ~~~
 
-Đây là đoạn phương thức minh họa có phiên bản chạy trong chương trình ở trên. Tránh tùy tiện gọi `String.valueOf((Object) input)` khi null có ý nghĩa lỗi: nó chuyển null thành văn bản `"null"`, có thể che giấu sai dữ liệu.
+This is an illustrative method snippet whose runnable version appears in the program above. Avoid casually calling `String.valueOf((Object) input)` when null signifies an error: it converts null into the text `"null"`, which can mask invalid data.
 
-### Concurrency và ownership
+### Concurrency and ownership
 
-`StringBuilder` không thread-safe. `StringBuffer` đồng bộ hóa nhiều phương thức riêng lẻ, nhưng một quy trình gồm `length()`, rồi lặp `charAt()`, hoặc ghép nhiều lời gọi không được bảo đảm là một snapshot nguyên tử nếu luồng khác cùng sửa dữ liệu. `CharBuffer` cũng có trạng thái mutable. Nếu nhiều luồng có thể thay đổi đầu vào, cần **khóa hợp tác**, **chuyển giao ownership**, hoặc **bản sao ổn định được tạo trước khi chia sẻ**.
+`StringBuilder` is not thread-safe. `StringBuffer` synchronizes many individual methods, but a procedure consisting of `length()`, then looping `charAt()`, or combining multiple calls is not guaranteed to be an atomic snapshot if another thread modifies the data concurrently. `CharBuffer` also has mutable state. If multiple threads can modify the input, **cooperative locking**, **ownership transfer**, or **a stable copy created before sharing** is needed.
 
-Ngay cả khi API khai báo `CharSequence` như tham số `final`, từ khóa `final` chỉ ngăn **gán lại biến tham chiếu** trong phương thức; nó không làm đối tượng bất biến.
+Even when an API declares `CharSequence` as a `final` parameter, the `final` keyword only prevents **reassigning the reference variable** inside the method; it does not make the object immutable.
 
-## 10. Ma trận kiểm thử cho API nhận CharSequence
+## 10. Test matrix for APIs accepting CharSequence
 
-| Trường hợp | Kiểm thử cần có |
+| Case | Required Test |
 | --- | --- |
-| Hai `String` cùng nội dung | `equals` và `hashCode` giống nhau |
-| `String` và `StringBuilder` cùng nội dung | `String.equals` trả false; phép so sánh nội dung tường minh trả true |
-| Hai `StringBuilder` cùng nội dung | Không được giả định chúng `equals` |
-| Hai `StringBuffer` cùng nội dung | Không được giả định chúng `equals` |
-| Hai `CharBuffer` có cùng nội dung còn lại | So sánh theo nội dung còn lại |
-| `CharBuffer` đổi `position` | Nội dung logic, `equals` và `hashCode` có thể đổi |
-| `CharBuffer` view của `char[]` | Đổi mảng nền có thể đổi kết quả quan sát view |
-| `StringBuilder` thay đổi sau khi truyền | Bản tham chiếu đổi theo, snapshot `String` giữ nguyên |
-| Đối tượng làm khóa collection | Đúng quy tắc bình đẳng mong muốn; không biến đổi phần tham gia `hashCode` |
-| Nội dung có emoji bổ sung | `length()` đếm UTF-16 code unit; `codePoints()` đếm code point |
-| Input `null` | Chính sách xử lý rõ ràng, có kiểm thử |
-| Dữ liệu bị sửa từ nhiều luồng | Snapshot hoặc đồng bộ hóa theo hợp đồng; không giả định mọi CharSequence thread-safe |
+| Two `String` instances with the same content | Same `equals` and `hashCode` |
+| `String` and `StringBuilder` with the same content | `String.equals` returns false; explicit content comparison returns true |
+| Two `StringBuilder` instances with the same content | Must not assume they are `equals` |
+| Two `StringBuffer` instances with the same content | Must not assume they are `equals` |
+| Two `CharBuffer` instances with the same remaining content | Compared by remaining content |
+| `CharBuffer` changes `position` | Logical content, `equals`, and `hashCode` may change |
+| `CharBuffer` view of `char[]` | Modifying the backing array can change what the view observes |
+| `StringBuilder` modified after passing | The reference changes accordingly, while a `String` snapshot remains unchanged |
+| Object used as a collection key | Matches intended equality rules; do not mutate fields participating in `hashCode` |
+| Content with supplementary emoji | `length()` counts UTF-16 code units; `codePoints()` counts code points |
+| `null` input | Clear handling policy with tests |
+| Data modified from multiple threads | Snapshot or synchronize per contract; do not assume every CharSequence is thread-safe |
 
-## 11. Sai lầm thường gặp và cách tránh
+## 11. Common mistakes and how to avoid them
 
-1. **Viết `a.equals(b)` để so sánh hai `CharSequence` bất kỳ:** phép so sánh phụ thuộc implementation. Nếu yêu cầu là “cùng văn bản”, chuẩn hóa sang String snapshot hoặc dùng API so sánh nội dung thích hợp.
-2. **Giữ `CharSequence` lâu dài rồi coi nó như immutable:** bên ngoài vẫn có thể sửa builder hoặc backing array. Lưu `String` khi cần trạng thái ổn định.
-3. **Dùng CharBuffer như khóa hash rồi thay position:** giá trị hash có thể thay đổi, làm vi phạm điều kiện của hash collection.
-4. **Cho rằng `subSequence` luôn copy:** có implementation trả view chia sẻ nguồn. Khi cần snapshot chắc chắn, lấy một `String`.
-5. **Tin `StringBuffer` khiến mọi chuỗi thao tác trở thành atomic:** đồng bộ hóa từng phương thức không bao trùm cả thuật toán nhiều bước.
-6. **Dùng `final CharSequence` để “chống sửa”:** `final` không đóng băng đối tượng.
-7. **Sử dụng `length()` để đếm ký tự hiển thị:** UTF-16 code unit khác code point; code point lại khác grapheme cluster.
-8. **Gọi `Objects.equals` rồi tưởng có so sánh nội dung:** nó vẫn gọi `equals` của đối tượng cụ thể; chỉ thêm xử lý null.
-9. **Dùng `toString()` nhiều lần trong cùng một phép tính trên nguồn mutable:** có thể nhận các snapshot khác nhau. Nếu cần một ảnh chụp nhất quán, lấy một lần ở ranh giới phù hợp rồi xử lý String đó.
+1. **Writing `a.equals(b)` to compare two arbitrary `CharSequence` values:** comparison depends on the implementation. If the requirement is "same text", normalize to a String snapshot or use an appropriate content-comparison API.
+2. **Storing `CharSequence` long-term and treating it as immutable:** external code can still modify the builder or backing array. Store `String` when stable state is needed.
+3. **Using CharBuffer as a hash key and then changing position:** the hash value can change, violating hash collection invariants.
+4. **Assuming `subSequence` always copies:** some implementations return a view sharing the source. When a guaranteed snapshot is needed, take a `String`.
+5. **Believing `StringBuffer` makes every sequence of operations atomic:** per-method synchronization does not span a multi-step algorithm.
+6. **Using `final CharSequence` to "prevent mutation":** `final` does not freeze the object.
+7. **Using `length()` to count displayed characters:** UTF-16 code units differ from code points; code points in turn differ from grapheme clusters.
+8. **Calling `Objects.equals` thinking it compares content:** it still calls the concrete object's `equals`; it only adds null handling.
+9. **Calling `toString()` multiple times within the same calculation on a mutable source:** you may get different snapshots. If you need one consistent snapshot, take it once at an appropriate boundary and process that String.
 
-## 12. Tự kiểm tra kiến thức
+## 12. Self-check questions
 
-**Câu 1.** Một phương thức nhận `CharSequence input` và gán `this.value = input`. Người gọi truyền `StringBuilder("abc")`, sau đó append `"d"`. Nội dung đọc từ `value` là gì?
+**Question 1.** A method accepts `CharSequence input` and assigns `this.value = input`. The caller passes `StringBuilder("abc")`, then appends `"d"`. What content is read from `value`?
 
-Đáp án: theo tham chiếu tới cùng builder, nội dung hiện tại sẽ là `"abcd"`. Để lưu đúng `"abc"` tại thời điểm gọi, phải lấy bản snapshot `String`.
+Answer: following the reference to the same builder, the current content will be `"abcd"`. To store `"abc"` as of the time of the call, a `String` snapshot must be taken.
 
-**Câu 2.** Vì sao `new StringBuilder("x").equals(new StringBuilder("x"))` là false?
+**Question 2.** Why is `new StringBuilder("x").equals(new StringBuilder("x"))` false?
 
-Đáp án: `StringBuilder` không override `Object.equals` theo nội dung, nên hai đối tượng khác danh tính không bằng nhau.
+Answer: `StringBuilder` does not override `Object.equals` by content, so two objects with different identities are not equal.
 
-**Câu 3.** Vì sao hai `CharBuffer.wrap("x")` có thể bằng nhau, nhưng `"x".equals(CharBuffer.wrap("x"))` là false?
+**Question 3.** Why can two `CharBuffer.wrap("x")` instances be equal, while `"x".equals(CharBuffer.wrap("x"))` is false?
 
-Đáp án: `CharBuffer.equals` so sánh nội dung còn lại với một `CharBuffer` khác. `String.equals` chỉ coi đối tượng kiểu `String` có cùng nội dung là bằng nhau.
+Answer: `CharBuffer.equals` compares remaining content with another `CharBuffer`. `String.equals` only considers objects of type `String` with the same content to be equal.
 
-**Câu 4.** Nếu API muốn cache chuỗi do người gọi truyền trong nhiều giờ thì nên lưu `CharSequence` hay `String`?
+**Question 4.** If an API wants to cache a caller-supplied string for several hours, should it store `CharSequence` or `String`?
 
-Đáp án: nếu cần nội dung ổn định theo thời điểm nhận, lưu `String` snapshot (kèm chính sách null và đồng bộ hóa nếu nguồn có thể bị sửa đồng thời).
+Answer: if stable content as of the time received is needed, store a `String` snapshot (along with a null policy and synchronization if the source can be modified concurrently).
 
-**Câu 5.** Một `CharBuffer` đã nằm trong `HashSet`. Có an toàn khi di chuyển position rồi dùng bộ đệm đó như khóa không?
+**Question 5.** A `CharBuffer` is already inside a `HashSet`. Is it safe to advance its position and continue using that buffer as a key?
 
-Đáp án: không nên; `equals`/`hashCode` của CharBuffer phụ thuộc phần dữ liệu còn lại, việc thay position có thể khiến quy tắc tra cứu khóa không còn ổn định.
+Answer: it should not be done; `CharBuffer`'s `equals`/`hashCode` depend on the remaining data, so changing position can make key lookup rules unstable.
 
-## 13. Ghi nhớ
+## 13. Takeaways
 
-**`CharSequence` mô tả khả năng đọc một dãy UTF-16 code unit; nó không bảo đảm immutable và không thống nhất equals theo nội dung giữa các implementation.** Dùng `CharSequence` để linh hoạt nhận dữ liệu đầu vào, nhưng xác định rõ ownership, thời gian sống và cơ chế đồng bộ. Khi cần một **giá trị văn bản ổn định**, đặc biệt để cache hoặc dùng làm khóa collection, hãy tạo `String` snapshot và định nghĩa rõ phép so sánh theo nội dung.
+**`CharSequence` describes the ability to read a sequence of UTF-16 code units; it does not guarantee immutability or consistent content-based equals across implementations.** Use `CharSequence` for input flexibility, but clearly define ownership, lifetime, and synchronization mechanisms. When you need a **stable text value**, especially for caching or collection keys, create a `String` snapshot and explicitly define content-based comparison.

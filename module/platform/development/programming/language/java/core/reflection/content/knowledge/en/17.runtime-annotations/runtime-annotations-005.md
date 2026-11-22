@@ -1,14 +1,14 @@
-# @Inherited chỉ áp dụng theo các quy tắc kế thừa annotation của lớp trong Java Reflection
+# @Inherited Applies Only Under Class Annotation Inheritance Rules in Java Reflection
 
-Trong Java, **@Inherited** là một *meta-annotation* thuộc gói **java.lang.annotation**, được đặt trên **khai báo annotation type** để cho phép Reflection nhìn thấy annotation đó trên **lớp con** khi annotation được khai báo trên **lớp cha**. Tuy nhiên, phạm vi kế thừa của @Inherited hẹp hơn trực giác: nó áp dụng cho **annotation trên khai báo class** khi tra cứu theo **chuỗi superclass**, không tự truyền annotation từ interface, không truyền annotation của method/field sang method/field có cùng tên ở subclass, và không tạo bản sao annotation thực sự trong class file của lớp con.
+In Java, **@Inherited** is a *meta-annotation* in the **java.lang.annotation** package, placed on an **annotation type declaration** to allow Reflection to see that annotation on a **subclass** when the annotation is declared on a **superclass**. However, the inheritance scope of @Inherited is narrower than intuition suggests: it applies to **annotations on class declarations** when looked up along the **superclass chain**, does not automatically propagate annotations from interfaces, does not propagate annotations of methods/fields to same-named methods/fields in a subclass, and does not create an actual annotation copy in the subclass's class file.
 
-Ví dụ: nếu annotation type **@Category** được đánh dấu @Inherited, class Base có @Category("service") và class Child extends Base chưa khai báo @Category, thì **Child.class.getAnnotation(Category.class)** tìm thấy annotation từ Base. Nhưng **Child.class.getDeclaredAnnotation(Category.class)** trả null, vì Child không trực tiếp khai báo @Category.
+For example, if the annotation type **@Category** is marked @Inherited, class Base has @Category("service"), and class Child extends Base does not declare @Category, then **Child.class.getAnnotation(Category.class)** finds the annotation from Base. However, **Child.class.getDeclaredAnnotation(Category.class)** returns null, because Child does not directly declare @Category.
 
-Để hiểu đúng hành vi Reflection, cần phân biệt ba thứ: **annotation được khai báo ở đâu**, **annotation type có @Inherited và @Retention(RUNTIME) hay không**, và **API tra cứu có xét annotation kế thừa không**.
+To understand Reflection behavior accurately, distinguish three things: **where the annotation is declared**, **whether the annotation type has @Inherited and @Retention(RUNTIME)**, and **whether the lookup API considers inherited annotations**.
 
-## 1. Khai báo annotation kế thừa đúng cách
+## 1. Declaring an inheritable annotation properly
 
-Ví dụ khai báo annotation dành cho class:
+Example declaration of an annotation intended for classes:
 
 ~~~java
 import java.lang.annotation.ElementType;
@@ -25,14 +25,14 @@ import java.lang.annotation.Target;
 }
 ~~~
 
-Ý nghĩa từng meta-annotation:
+Meaning of each meta-annotation:
 
-- **@Inherited**: cho phép truy vấn annotation trên class con đi ngược chuỗi superclass nếu class hiện tại không trực tiếp có annotation cùng type.
-- **@Retention(RetentionPolicy.RUNTIME)**: giữ annotation để Reflection đọc ở runtime. Nếu không khai báo @Retention, giá trị mặc định là CLASS; annotation có thể nằm trong class file nhưng không được Reflection cung cấp qua các API runtime thông thường.
-- **@Target(ElementType.TYPE)**: cho phép annotation xuất hiện trên khai báo type, gồm class và interface. Điều này không có nghĩa annotation trên interface sẽ được kế thừa sang class triển khai.
-- **@interface Category**: khai báo một *annotation interface*, còn từ khóa @Inherited là chú thích trên chính annotation interface đó, không phải trên class Base.
+- **@Inherited**: allows annotation queries on a subclass to walk up the superclass chain if the current class does not directly have an annotation of the same type.
+- **@Retention(RetentionPolicy.RUNTIME)**: retains the annotation for Reflection to read at runtime. If @Retention is omitted, the default value is CLASS; the annotation may reside in the class file but is not exposed by Reflection through standard runtime APIs.
+- **@Target(ElementType.TYPE)**: allows the annotation to appear on type declarations, including classes and interfaces. This does not mean annotations on an interface will be inherited by implementing classes.
+- **@interface Category**: declares an *annotation interface*, while the @Inherited marker annotates that annotation interface itself, not class Base.
 
-Sử dụng:
+Usage:
 
 ~~~java
 @Category("service")
@@ -41,29 +41,29 @@ class Base {}
 class Child extends Base {}
 ~~~
 
-Các truy vấn sau có ý nghĩa khác nhau:
+The following queries have different meanings:
 
 ~~~java
-Category inherited = Child.class.getAnnotation(Category.class);         // từ Base
+Category inherited = Child.class.getAnnotation(Category.class);         // from Base
 Category direct = Child.class.getDeclaredAnnotation(Category.class);   // null
 ~~~
 
-Hai đoạn mã này là các phần minh họa, cần đặt chung trong một chương trình hoặc cùng package có khai báo Category, Base và Child.
+These two snippets are illustrative fragments and must be placed together in a program or in the same package where Category, Base, and Child are declared.
 
-**Không có sự sao chép annotation vào Child.** @Inherited tác động lên quy tắc *tra cứu* trong Reflection, không thay đổi cấu trúc class, method, field hoặc mã bytecode đã biên dịch của subclass.
+**No annotation is copied into Child.** @Inherited affects the *lookup* rule in Reflection; it does not alter the class structure, methods, fields, or compiled bytecode of the subclass.
 
-## 2. Quy tắc kế thừa chỉ đi qua superclass của class
+## 2. The inheritance rule walks only the class's superclasses
 
-Đối với một annotation type A có @Inherited và được giữ ở runtime, khi gọi **SomeClass.class.getAnnotation(A.class)**, quy tắc khái quát là:
+For an annotation type A that has @Inherited and is retained at runtime, when calling **SomeClass.class.getAnnotation(A.class)**, the general rule is:
 
-1. Nếu class đang xét có annotation A trực tiếp, trả A của chính class đó.
-2. Nếu không có A trực tiếp, kiểm tra **superclass** gần nhất.
-3. Tiếp tục đi lên các superclass cho đến khi tìm thấy A phù hợp hoặc hết chuỗi superclass (đến Object).
-4. Nếu không tìm được, trả **null**.
+1. If the class under inspection has annotation A directly, return that class's own A.
+2. If there is no direct A, check the nearest **superclass**.
+3. Continue walking up the superclasses until a matching A is found or the superclass chain ends (at Object).
+4. If none is found, return **null**.
 
-Quy tắc này **chỉ dành cho annotation của class declaration**. Nó không duyệt các implemented interfaces hay các superinterfaces.
+This rule is **only for annotations on class declarations**. It does not traverse implemented interfaces or superinterfaces.
 
-Ví dụ:
+Example:
 
 ~~~text
 @Category("root") Base
@@ -75,9 +75,9 @@ Ví dụ:
 Leaf.class.getAnnotation(Category.class) -> Category("root")
 ~~~
 
-Nếu Middle khai báo **@Category("middle")**, thì Leaf sẽ nhìn thấy **"middle"** vì đây là annotation gần Leaf hơn. Nếu Leaf tự khai báo **@Category("leaf")**, kết quả của Leaf là **"leaf"**. Một annotation trực tiếp của cùng type trên subclass **che** annotation cùng type kế thừa, chứ Java không cộng gộp cả hai.
+If Middle declares **@Category("middle")**, then Leaf will see **"middle"** because it is closer to Leaf. If Leaf declares **@Category("leaf")** itself, Leaf's result is **"leaf"**. A direct annotation of the same type on a subclass **shadows** the inherited annotation of the same type; Java does not combine both.
 
-### Interface và implements không tạo kế thừa @Inherited
+### Interfaces and implements do not create @Inherited inheritance
 
 ~~~java
 @Category("contract")
@@ -86,13 +86,13 @@ interface Contract {}
 class ContractImpl implements Contract {}
 ~~~
 
-Mặc dù Category có @Inherited, **ContractImpl.class.getAnnotation(Category.class)** trả null. Thậm chí khi một interface con extends interface cha, @Inherited **không** biến annotation trên superinterface thành annotation kế thừa trên subinterface.
+Even though Category has @Inherited, **ContractImpl.class.getAnnotation(Category.class)** returns null. Even when a subinterface extends a parent interface, @Inherited **does not** turn an annotation on a superinterface into an inherited annotation on the subinterface.
 
-Lý do là @Inherited được định nghĩa cho truy vấn trên **khai báo class** theo **superclass chain**. Quan hệ implements/extends giữa interfaces không tạo đường tra cứu này.
+The reason is that @Inherited is defined for queries on **class declarations** along the **superclass chain**. The implements/extends relationship between interfaces does not create this lookup path.
 
-Một framework có thể chủ động quét interfaces hoặc meta-annotations theo quy tắc riêng, nhưng đó là tính năng của **framework**, không phải hành vi mặc định của Class.getAnnotation trong Java core.
+A framework may actively scan interfaces or meta-annotations according to its own rules, but that is a **framework** feature, not the default behavior of Class.getAnnotation in core Java.
 
-### Nested class không tự kế thừa annotation của enclosing class
+### Nested classes do not automatically inherit annotations from their enclosing class
 
 ~~~java
 @Category("outer")
@@ -101,33 +101,33 @@ class Outer {
 }
 ~~~
 
-Nested nằm trong Outer về mặt khai báo, nhưng không **extends Outer**. Vì thế Nested.class.getAnnotation(Category.class) không nhận "outer" chỉ nhờ quan hệ lồng nhau. **Kế thừa class** và **lồng class** là hai quan hệ khác nhau.
+Nested resides inside Outer lexically, but does not **extend Outer**. Therefore Nested.class.getAnnotation(Category.class) does not receive "outer" merely from the nesting relationship. **Class inheritance** and **class nesting** are two different relationships.
 
-## 3. API Reflection: getAnnotation và getDeclaredAnnotation
+## 3. Reflection APIs: getAnnotation and getDeclaredAnnotation
 
-Interface **AnnotatedElement** cung cấp API chung để đọc annotation trên Class, Method, Field, Constructor, Parameter và các loại reflective element khác. Nhưng hành vi kế thừa phụ thuộc **loại element đang truy vấn**.
+The **AnnotatedElement** interface provides a common API for reading annotations on Class, Method, Field, Constructor, Parameter, and other reflective elements. However, inheritance behavior depends on **which kind of element is being queried**.
 
-| API | Tìm annotation trực tiếp? | Có thể thấy annotation kế thừa từ superclass? | Ghi chú |
+| API | Finds direct annotations? | Can see annotations inherited from superclass? | Notes |
 | --- | --- | --- | --- |
-| **Class.getAnnotation(A.class)** | Có | Có, nếu A có @Inherited | Trả A hoặc null |
-| **Class.isAnnotationPresent(A.class)** | Có | Có, nếu A có @Inherited | Tương đương getAnnotation(A.class) != null |
-| **Class.getAnnotations()** | Có | Có, với type inheritable theo quy tắc present | Trả Annotation[] |
-| **Class.getDeclaredAnnotation(A.class)** | Có | **Không** | Chỉ annotation trực tiếp |
-| **Class.getDeclaredAnnotations()** | Có | **Không** | Không duyệt superclass |
-| **Class.getAnnotationsByType(A.class)** | Có | Có theo quy tắc **associated**, kể cả @Repeatable | Trả A[] |
-| **Class.getDeclaredAnnotationsByType(A.class)** | Có | **Không** | Mở container @Repeatable nhưng không kế thừa |
-| **Method/Field/Constructor.getAnnotation(A.class)** | Có | **Không theo @Inherited** | Annotation trên thành viên không được chuyển sang thành viên khác |
+| **Class.getAnnotation(A.class)** | Yes | Yes, if A has @Inherited | Returns A or null |
+| **Class.isAnnotationPresent(A.class)** | Yes | Yes, if A has @Inherited | Equivalent to getAnnotation(A.class) != null |
+| **Class.getAnnotations()** | Yes | Yes, for inheritable types under present rules | Returns Annotation[] |
+| **Class.getDeclaredAnnotation(A.class)** | Yes | **No** | Direct annotations only |
+| **Class.getDeclaredAnnotations()** | Yes | **No** | Does not walk superclasses |
+| **Class.getAnnotationsByType(A.class)** | Yes | Yes under **associated** rules, including @Repeatable | Returns A[] |
+| **Class.getDeclaredAnnotationsByType(A.class)** | Yes | **No** | Unpacks @Repeatable container without inheritance |
+| **Method/Field/Constructor.getAnnotation(A.class)** | Yes | **Not via @Inherited** | Annotations on a member do not transfer to another member |
 
-Một số thuật ngữ trong Javadoc AnnotatedElement:
+Some terminology from the AnnotatedElement Javadoc:
 
-- **Directly present (trực tiếp)**: annotation type A được biểu diễn trực tiếp trên element trong thuộc tính runtime annotation tương ứng.
-- **Indirectly present (gián tiếp)**: annotation A là một phần tử bên trong **container annotation** của @Repeatable trên element.
-- **Present**: trực tiếp hiện diện hoặc được tìm theo superclass khi A inheritable và element là class.
-- **Associated**: trực tiếp/gián tiếp hiện diện, hoặc được tìm theo superclass nếu A inheritable và class hiện tại không có A trực tiếp/gián tiếp.
+- **Directly present**: annotation type A is directly represented on the element in the corresponding runtime annotation attribute.
+- **Indirectly present**: annotation A is an element inside the **container annotation** of @Repeatable on the element.
+- **Present**: directly present, or found along superclasses when A is inheritable and the element is a class.
+- **Associated**: directly/indirectly present, or found along superclasses if A is inheritable and the current class has no direct/indirect A.
 
-Phân biệt *present* và *associated* đặc biệt quan trọng với **annotation lặp**: getAnnotation/getAnnotations dùng quan hệ *present*, còn getAnnotationsByType dùng quan hệ *associated*.
+Distinguishing *present* and *associated* is especially important with **repeatable annotations**: getAnnotation/getAnnotations use the *present* relationship, while getAnnotationsByType uses the *associated* relationship.
 
-### Ví dụ ngắn phân biệt declared và inherited
+### Short example distinguishing declared and inherited
 
 ~~~java
 @Category("base")
@@ -139,19 +139,19 @@ boolean visible = Child.class.isAnnotationPresent(Category.class);       // true
 boolean own = Child.class.getDeclaredAnnotation(Category.class) != null; // false
 ~~~
 
-Child có thể “thấy” Category khi được hỏi qua getAnnotation nhưng không **khai báo** Category. Đây không phải lỗi, mà là hai chế độ tra cứu khác nhau.
+Child can “see” Category when queried via getAnnotation without **declaring** Category. This is not a bug, but two different lookup modes.
 
-## 4. Đừng nhầm kế thừa thành viên với kế thừa annotation
+## 4. Do not confuse member inheritance with annotation inheritance
 
-`@Inherited` chỉ điều chỉnh annotation trên **khai báo class**, kể cả khi annotation type có `@Target(METHOD)`. `Child.class.getDeclaredMethod("run").getAnnotation(Audited.class)` là `null` nếu `Child.run()` override `Base.run()` nhưng chính `Child.run()` không được đánh dấu `@Audited`.
+`@Inherited` governs only annotations on **class declarations**, even when the annotation type has `@Target(METHOD)`. `Child.class.getDeclaredMethod("run").getAnnotation(Audited.class)` is `null` if `Child.run()` overrides `Base.run()` while `Child.run()` itself is not marked `@Audited`.
 
-Ngược lại, nếu `Child` **không override**, `Child.class.getMethod("run")` có thể trả chính `Method` do `Base` khai báo. Khi đó `method.getDeclaringClass() == Base.class`, và annotation của `Base.run()` vẫn có mặt **trên method gốc**. Field công khai được kế thừa hoạt động tương tự khi Reflection trả `Field` của superclass; field bị hide là khai báo mới. Constructor không được kế thừa, parameter và type-use annotation cũng không tự truyền. Bài interface/method đi sâu vào cách duyệt override và interface khi framework muốn tự tìm.
+Conversely, if `Child` **does not override**, `Child.class.getMethod("run")` may return the very `Method` declared by `Base`. In that case `method.getDeclaringClass() == Base.class`, and `Base.run()`'s annotation is still present **on the original method**. Inherited public fields behave similarly when Reflection returns the superclass `Field`; a hiding field is a new declaration. Constructors are not inherited, and parameter and type-use annotations do not automatically propagate either. The interface/method lesson goes deeper into traversing overrides and interfaces when a framework wants to search on its own.
 
-## 5. Ví dụ Java 17+ chạy hoàn chỉnh
+## 5. Complete runnable Java 17+ example
 
-Ví dụ duy nhất này minh họa cùng lúc: class annotation kế thừa qua superclass; annotation không có @Inherited; annotation trên interface; annotation của method override; và @Repeatable có @Inherited.
+This single example simultaneously demonstrates: an inherited class annotation via superclass; an annotation without @Inherited; an annotation on an interface; an annotation on an overriding method; and @Repeatable with @Inherited.
 
-Lưu toàn bộ thành file **InheritedLessonDemo.java**:
+Save everything to **`InheritedLessonDemo.java`**:
 
 ~~~java
 import java.lang.annotation.*;
@@ -227,14 +227,14 @@ public class InheritedLessonDemo {
 }
 ~~~
 
-Biên dịch và chạy từ thư mục chứa file:
+Compile and run from the directory containing the file:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 InheritedLessonDemo.java
 java InheritedLessonDemo
 ~~~
 
-Stdout đã được đối chiếu khi biên dịch bằng **javac --release 17** và chạy trên JDK 24:
+Stdout verified when compiled with **javac --release 17** and run on JDK 24:
 
 ~~~text
 inherited feature=base
@@ -251,31 +251,31 @@ repeatable getAnnotation null=true
 repeatable local overrides=admin
 ~~~
 
-Đọc kết quả:
+Reading the results:
 
-1. **inherited feature=base**: Child không có @Feature trực tiếp nên Class.getAnnotation đi lên Base để tìm @Feature("base").
-2. **declared feature=false**: Class.getDeclaredAnnotation chỉ hỏi annotation trực tiếp trên Child.
-3. **noninherited local=false**: @Local có runtime retention nhưng thiếu @Inherited, vì vậy không được Class.getAnnotation của Child tìm qua superclass.
-4. **override annotation=child**: TaggedChild tự khai báo @Feature("child"), annotation trực tiếp gần nhất thắng @Feature("base") của Base.
-5. **interface annotation inherited=false**: ServiceImpl implements Service nhưng không nhận @Feature trên Service.
-6. **overridden method annotated=false**: method execute được OverrideChild override không nhận @Audited, dù @Audited type có @Inherited.
-7. **inherited method annotated=true** và **method declaring=Base**: Child không override, getMethod trả Method gốc do Base khai báo, nên annotation gốc vẫn hiện diện.
-8. **repeatable inherited=2**: RoleChild không khai báo Role, nên getAnnotationsByType tìm hai annotation Role ở superclass và mở container Roles.
-9. **repeatable declared=0**: Không có Role trực tiếp/gián tiếp trong khai báo RoleChild.
-10. **repeatable getAnnotation null=true**: trên RoleBase có hai @Role được compiler biểu diễn dưới **container @Roles**, vì thế getAnnotation(Role.class) không tự mở container để tìm phần tử Role. Dùng getAnnotationsByType(Role.class).
-11. **repeatable local overrides=admin**: RoleOwn khai báo một Role riêng nên getAnnotationsByType(Role.class) lấy local Role("admin") và không cộng gộp hai Role ở superclass.
+1. **inherited feature=base**: Child has no direct @Feature, so Class.getAnnotation walks up to Base to find @Feature("base").
+2. **declared feature=false**: Class.getDeclaredAnnotation queries only direct annotations on Child.
+3. **noninherited local=false**: @Local has runtime retention but lacks @Inherited, so it is not found via superclass by Child's Class.getAnnotation.
+4. **override annotation=child**: TaggedChild declares @Feature("child") itself; the nearest direct annotation wins over Base's @Feature("base").
+5. **interface annotation inherited=false**: ServiceImpl implements Service but does not receive @Feature on Service.
+6. **overridden method annotated=false**: method execute overridden by OverrideChild does not receive @Audited, even though the @Audited type has @Inherited.
+7. **inherited method annotated=true** and **method declaring=Base**: Child does not override, getMethod returns the original Method declared by Base, so the original annotation remains present.
+8. **repeatable inherited=2**: RoleChild does not declare Role, so getAnnotationsByType finds the two Role annotations on the superclass and unpacks the Roles container.
+9. **repeatable declared=0**: No direct/indirect Role in RoleChild's declaration.
+10. **repeatable getAnnotation null=true**: on RoleBase, the two @Roles are represented by the compiler under **container @Roles**, so getAnnotation(Role.class) does not unpack the container to find Role elements. Use getAnnotationsByType(Role.class).
+11. **repeatable local overrides=admin**: RoleOwn declares an own Role, so getAnnotationsByType(Role.class) gets the local Role("admin") and does not append the two Roles on the superclass.
 
-### Thử đổi annotation type
+### Trying changes to the annotation type
 
-Trong chương trình trên, bỏ **@Inherited** khỏi @Feature rồi biên dịch lại. Khi đó Child.class.getAnnotation(Feature.class) sẽ trả null, vì @Feature không còn inheritable; dòng gọi .value() trực tiếp sẽ gây **NullPointerException**. Để thử nghiệm an toàn, hãy sửa dòng in thành kiểm tra null trước khi đọc value.
+In the program above, remove **@Inherited** from @Feature and recompile. Then Child.class.getAnnotation(Feature.class) will return null, because @Feature is no longer inheritable; the line calling .value() directly will cause **NullPointerException**. To test safely, update the print line to check for null before reading value.
 
-Tương tự, đổi RetentionPolicy.RUNTIME của Feature thành RetentionPolicy.CLASS thì các truy vấn runtime thông thường sẽ không còn tìm được @Feature dù vẫn giữ @Inherited: cả **retention** và **inheritance lookup** đều phải phù hợp.
+Similarly, changing RetentionPolicy.RUNTIME on Feature to RetentionPolicy.CLASS will prevent standard runtime queries from finding @Feature even while keeping @Inherited: both **retention** and **inheritance lookup** must align.
 
-## 6. @Inherited kết hợp @Repeatable: cần nhìn container
+## 6. @Inherited combined with @Repeatable: look at the container
 
-Từ Java 8, annotation type có thể được đánh dấu **@Repeatable(Container.class)** để xuất hiện nhiều lần trên cùng element. Khi dùng cả @Inherited, phải hiểu **base annotation** và **container annotation**.
+Since Java 8, an annotation type can be marked **@Repeatable(Container.class)** to appear multiple times on the same element. When also using @Inherited, you must understand the **base annotation** and the **container annotation**.
 
-Khai báo mẫu đúng:
+Proper sample declaration:
 
 ~~~java
 @Retention(RetentionPolicy.RUNTIME)
@@ -294,9 +294,9 @@ Khai báo mẫu đúng:
 }
 ~~~
 
-Nếu **Role** có @Inherited, **container Roles cũng phải có @Inherited** theo quy tắc JLS về containing annotation type; nếu container không có, compiler từ chối định nghĩa @Repeatable không hợp lệ.
+If **Role** has @Inherited, **the container Roles must also have @Inherited** according to the JLS rule on containing annotation types; if the container lacks it, the compiler rejects the invalid @Repeatable definition.
 
-Với:
+With:
 
 ~~~java
 @Role("reader")
@@ -306,47 +306,47 @@ class Parent {}
 class Child extends Parent {}
 ~~~
 
-Compiler biểu diễn hai @Role trên Parent dưới một **container @Roles**. Khi đọc annotation cần quan tâm:
+The compiler represents the two @Roles on Parent under a **container @Roles**. When reading annotations, pay attention to:
 
-| Phương thức trên Child.class | Kết quả điển hình |
+| Method on Child.class | Typical result |
 | --- | --- |
-| **getAnnotationsByType(Role.class)** | Mảng hai Role ("reader", "writer") kế thừa theo quy tắc associated |
-| **getDeclaredAnnotationsByType(Role.class)** | Mảng rỗng vì Child không trực tiếp khai báo Role |
-| **getAnnotation(Role.class)** | null trong trường hợp Parent có hai Role được chứa bởi Roles |
-| **getAnnotation(Roles.class)** | Có thể tìm container Roles được kế thừa |
-| **getDeclaredAnnotation(Roles.class)** | null nếu Child không khai báo container Roles |
+| **getAnnotationsByType(Role.class)** | Array of two Roles ("reader", "writer") inherited under associated rules |
+| **getDeclaredAnnotationsByType(Role.class)** | Empty array because Child does not directly declare Role |
+| **getAnnotation(Role.class)** | null when Parent has two Roles contained by Roles |
+| **getAnnotation(Roles.class)** | Can find the inherited container Roles |
+| **getDeclaredAnnotation(Roles.class)** | null if Child does not declare container Roles |
 
-**Không đồng nhất getAnnotation(Role.class) với getAnnotationsByType(Role.class)**. Hàm thứ nhất chỉ tra một annotation *present* theo mô hình AnnotatedElement, còn hàm thứ hai có thể **mở container** và xử lý nhiều annotation liên quan (associated).
+**Do not equate getAnnotation(Role.class) with getAnnotationsByType(Role.class)**. The first only looks up a single *present* annotation under the AnnotatedElement model, while the second can **unpack the container** and handle multiple associated annotations.
 
-Với một @Role("admin") trực tiếp trên Child, getAnnotationsByType(Role.class) trả một Role trực tiếp của Child; nó không nối tiếp các Role inherited của Parent. Kế thừa annotation không tự gộp tất cả giá trị dọc cây class.
+With a direct @Role("admin") on Child, getAnnotationsByType(Role.class) returns Child's single direct Role; it does not append Parent's inherited Roles. Annotation inheritance does not automatically merge all values along the class tree.
 
-Một framework dùng annotation có thể thiết kế cơ chế merge riêng, nhưng nếu chỉ muốn hành vi Java chuẩn, hãy để getAnnotationsByType xử lý các annotation lặp và kế thừa, thay vì viết vòng quét tự động cộng dồn superclass.
+A framework using annotations can design its own merge mechanism, but if you only want standard Java behavior, let getAnnotationsByType handle repeatable and inherited annotations instead of writing a loop that automatically accumulates superclasses.
 
-## 7. Ranh giới của `@Inherited`
+## 7. Boundaries of `@Inherited`
 
-| Tình huống | `@Inherited` tự áp dụng? |
+| Situation | Does `@Inherited` apply automatically? |
 | --- | --- |
-| `class Child extends Parent` với annotation trên `Parent` | Có, nếu annotation runtime và Child không có annotation cùng type. |
-| `class Impl implements Interface` hoặc `SubInterface extends Interface` | Không, vì không phải superclass chain của class. |
-| Method override, field hiding, constructor, formal parameter | Không; mỗi declaration có metadata riêng. |
-| Nested class trong enclosing class, package/module annotation, type-use | Không; quan hệ lồng nhau/vị trí kiểu khác kế thừa lớp. |
-| Annotation gắn lên một annotation type khác | Không; `Class.getAnnotation` không tự duyệt meta-annotation graph. |
+| `class Child extends Parent` with annotation on `Parent` | Yes, if the annotation is runtime-retained and Child has no annotation of the same type. |
+| `class Impl implements Interface` or `SubInterface extends Interface` | No, because it is not a class's superclass chain. |
+| Method override, field hiding, constructor, formal parameter | No; each declaration has its own metadata. |
+| Nested class in enclosing class, package/module annotation, type-use | No; nesting/type-location relationships differ from class inheritance. |
+| Annotation attached to another annotation type | No; `Class.getAnnotation` does not automatically traverse the meta-annotation graph. |
 
-Khi framework muốn mở rộng các đường tìm kiếm này, cần định nghĩa ưu tiên và xung đột, thay vì gán khả năng đó cho `@Inherited` của Java.
+When a framework wants to extend these lookup paths, it must define precedence and conflict resolution rather than attributing that capability to Java's `@Inherited`.
 
-## 8. Ứng dụng thực tế khi quét annotation runtime
+## 8. Practical applications when scanning runtime annotations
 
-Giả sử một framework quét các class để tìm cấu hình kế thừa:
+Suppose a framework scans classes to find inherited configuration:
 
-- **Nếu annotation có @Inherited và thiết kế yêu cầu kế thừa cấu hình từ class cha**: dùng Class.getAnnotation(A.class) hoặc Class.getAnnotationsByType(A.class) với annotation repeatable.
-- **Nếu chỉ muốn biết cấu hình được ghi trực tiếp trên class**: dùng Class.getDeclaredAnnotation(A.class) hoặc Class.getDeclaredAnnotationsByType(A.class).
-- **Nếu framework cần đọc annotation trên interfaces**: chủ động dùng getInterfaces()/getGenericInterfaces() hoặc tiện ích xử lý phân cấp interface; @Inherited không tự giúp.
-- **Nếu cần đọc annotation trên method override**: xác định method đang xét và khi thích hợp truy vết overridden declarations/superinterfaces với chính sách hợp nhất rõ ràng.
-- **Nếu dùng composed/meta-annotations**: phải duyệt annotation types; Java Class.getAnnotation không làm sẵn việc này.
-- **Nếu xử lý annotation lặp**: dùng getAnnotationsByType để mở container, tránh chỉ lấy getAnnotation.
-- **Nếu annotation không có runtime retention**: Reflection không thể dựa vào Class.getAnnotation để tìm; xem lại cấu hình @Retention hoặc dùng phân tích bytecode nếu bài toán thực sự cần metadata CLASS.
+- **If the annotation has @Inherited and the design requires inheriting configuration from a superclass**: use Class.getAnnotation(A.class) or Class.getAnnotationsByType(A.class) for repeatable annotations.
+- **If you only want to know configuration written directly on the class**: use Class.getDeclaredAnnotation(A.class) or Class.getDeclaredAnnotationsByType(A.class).
+- **If the framework needs to read annotations on interfaces**: actively use getInterfaces()/getGenericInterfaces() or an interface hierarchy utility; @Inherited does not help automatically.
+- **If you need to read annotations on overriding methods**: identify the target method and, where appropriate, trace overridden declarations/superinterfaces with an explicit merge policy.
+- **If using composed/meta-annotations**: you must traverse annotation types; Java's Class.getAnnotation does not do this out of the box.
+- **If processing repeatable annotations**: use getAnnotationsByType to unpack containers rather than calling only getAnnotation.
+- **If the annotation lacks runtime retention**: Reflection cannot rely on Class.getAnnotation to find it; review the @Retention configuration or use bytecode analysis if the problem genuinely needs CLASS metadata.
 
-Ví dụ viết một helper đơn giản cho class inheritance:
+Example of writing a simple helper for class inheritance:
 
 ~~~java
 static <A extends java.lang.annotation.Annotation> A inheritedOnClass(
@@ -355,63 +355,63 @@ static <A extends java.lang.annotation.Annotation> A inheritedOnClass(
 }
 ~~~
 
-Đây là method fragment. Hàm này sử dụng chính cơ chế chuẩn của Reflection, **không** tự đi qua interfaces hoặc methods. Nếu annotationType không được đánh dấu @Inherited, kết quả chỉ là annotation trực tiếp của class (không tìm superclass theo @Inherited).
+This is a method fragment. This function uses Reflection's standard mechanism itself and does **not** automatically traverse interfaces or methods. If annotationType is not marked @Inherited, the result is only the class's direct annotation (not searching superclasses via @Inherited).
 
-### Lưu ý khi framework cho annotation nhiều nguồn
+### Notes when a framework allows annotations from multiple sources
 
-Nếu muốn gộp cả superclass, interface và annotation trên method, cần định nghĩa một hợp đồng riêng: ưu tiên class hiện tại hay superclass, có merge nhiều cấu hình hay không, khi gặp hai interface khai báo khác nhau thì bên nào thắng, và có đọc meta-annotations không. Đừng gọi tất cả những cách gộp này là hành vi chuẩn của @Inherited.
+If you want to combine superclass, interface, and method annotations, you must define a separate contract: whether the current class or superclass takes priority, whether multiple configurations are merged, which side wins when two interfaces declare different values, and whether meta-annotations are read. Do not label all of these merging strategies as standard @Inherited behavior.
 
-Việc quét sâu cũng có rủi ro hiệu năng và thứ tự: cache kết quả theo class/annotation type khi dùng nhiều lần, xử lý chu trình trong graph meta-annotations, và định nghĩa quy tắc ưu tiên rõ ràng. Với quy tắc đơn giản theo superclass thì API Class.getAnnotation đã xử lý.
+Deep scanning also carries performance and ordering risks: cache results per class/annotation type when used repeatedly, handle cycles in the meta-annotation graph, and define clear precedence rules. For simple superclass rules, the Class.getAnnotation API already handles them.
 
-## 9. Các lỗi thường gặp
+## 9. Common mistakes
 
-1. **Đánh dấu @Inherited trên annotation type rồi chờ method annotation tự kế thừa:** không đúng. Nó chỉ áp dụng cho class declaration.
-2. **Cho rằng annotated interface làm class implements tự nhận annotation:** không đúng; Class.getAnnotation không tìm qua interfaces.
-3. **Quên @Retention(RUNTIME):** annotation sẽ không xuất hiện qua Reflection runtime thông thường.
-4. **Nhầm getDeclaredAnnotation với getAnnotation:** declared bỏ qua inherited annotation, kể cả annotation type có @Inherited.
-5. **Nhầm getMethod("run") tìm được annotation là vì method override kế thừa annotation:** cần kiểm tra Method.getDeclaringClass(); có thể đó chính là method của superclass.
-6. **Giả định @Inherited tự merge annotation cùng type từ nhiều cấp:** annotation trực tiếp của subclass che annotation inherited cùng type; với repeatable, getAnnotationsByType trả nhóm liên quan gần nhất theo quy tắc associated.
-7. **Dùng getAnnotation để đọc annotation repeatable có nhiều giá trị:** có thể nhận null vì compiler lưu container. Dùng getAnnotationsByType.
-8. **Quên @Inherited trên container của một repeatable inheritable annotation:** cấu hình @Repeatable như vậy không hợp lệ theo JLS.
-9. **Cho rằng @Inherited quét các meta-annotations:** không đúng. Đây là logic framework hoặc scanner phải tự thực hiện.
-10. **Coi mọi annotation về runtime đều giống nhau:** @Target, @Retention và loại element được truy vấn đều ảnh hưởng đến kết quả.
+1. **Marking @Inherited on an annotation type and expecting method annotations to be inherited automatically:** incorrect. It applies only to class declarations.
+2. **Assuming an annotated interface causes implementing classes to receive the annotation:** incorrect; Class.getAnnotation does not search through interfaces.
+3. **Forgetting @Retention(RUNTIME):** the annotation will not appear through standard runtime Reflection.
+4. **Confusing getDeclaredAnnotation with getAnnotation:** declared skips inherited annotations, even if the annotation type has @Inherited.
+5. **Mistaking getMethod("run") finding an annotation for overriding method annotation inheritance:** check Method.getDeclaringClass(); it may actually be the superclass's method.
+6. **Assuming @Inherited automatically merges annotations of the same type across levels:** a subclass's direct annotation shadows the inherited annotation of the same type; for repeatable annotations, getAnnotationsByType returns the nearest associated group per associated rules.
+7. **Using getAnnotation to read a repeatable annotation with multiple values:** can yield null because the compiler stores a container. Use getAnnotationsByType.
+8. **Forgetting @Inherited on the container of an inheritable repeatable annotation:** such a @Repeatable configuration is invalid per JLS.
+9. **Assuming @Inherited scans meta-annotations:** incorrect. That is logic the framework or scanner must implement itself.
+10. **Treating all annotations as identical at runtime:** @Target, @Retention, and the queried element kind all affect the result.
 
-## 10. Bài tập tự kiểm tra
+## 10. Self-check exercises
 
-**Câu 1.** @Feature được khai báo @Inherited và @Retention(RUNTIME). Base có @Feature("A"), Child extends Base không khai báo annotation. Child.class.getAnnotation(Feature.class) là gì?
+**Question 1.** @Feature is declared @Inherited and @Retention(RUNTIME). Base has @Feature("A"), Child extends Base declares no annotation. What is Child.class.getAnnotation(Feature.class)?
 
-**Đáp án:** Feature("A"). Class.getDeclaredAnnotation(Feature.class) trên Child trả null.
+**Answer:** Feature("A"). Class.getDeclaredAnnotation(Feature.class) on Child returns null.
 
-**Câu 2.** Nếu Child có @Feature("B") thì getAnnotation ở Child trả A hay B?
+**Question 2.** If Child has @Feature("B"), does getAnnotation on Child return A or B?
 
-**Đáp án:** B. Annotation trực tiếp tại Child ưu tiên hơn loại cùng type trên superclass.
+**Answer:** B. Direct annotation on Child takes precedence over the same type on the superclass.
 
-**Câu 3.** Interface Contract có @Feature("I"), class Impl implements Contract. Impl.class.getAnnotation(Feature.class) có trả I không?
+**Question 3.** Interface Contract has @Feature("I"), class Impl implements Contract. Does Impl.class.getAnnotation(Feature.class) return I?
 
-**Đáp án:** Không. @Inherited không đi qua implemented interfaces.
+**Answer:** No. @Inherited does not traverse implemented interfaces.
 
-**Câu 4.** Base.run được đánh dấu annotation @Audited có @Inherited. Child override run nhưng không ghi @Audited. Child.class.getDeclaredMethod("run").isAnnotationPresent(Audited.class) trả gì?
+**Question 4.** Base.run is marked with annotation @Audited which has @Inherited. Child overrides run without writing @Audited. What does Child.class.getDeclaredMethod("run").isAnnotationPresent(Audited.class) return?
 
-**Đáp án:** false. @Inherited không truyền annotation của method override.
+**Answer:** false. @Inherited does not propagate annotations on overriding methods.
 
-**Câu 5.** Nếu Child **không override** run và Child.class.getMethod("run") tìm thấy public method ở Base, annotation @Audited có thể được đọc không?
+**Question 5.** If Child **does not override** run and Child.class.getMethod("run") finds the public method on Base, can the @Audited annotation be read?
 
-**Đáp án:** Có, vì Method được trả về thực sự là của Base. Kiểm tra Method.getDeclaringClass() để xác nhận; đây không phải annotation inheritance giữa hai Method.
+**Answer:** Yes, because the returned Method actually belongs to Base. Check Method.getDeclaringClass() to confirm; this is not annotation inheritance between two Methods.
 
-**Câu 6.** Superclass có @Role("read") và @Role("write") với Role @Repeatable và @Inherited. Subclass không khai báo Role. Nên dùng API nào để lấy đủ hai giá trị?
+**Question 6.** A superclass has @Role("read") and @Role("write") where Role is @Repeatable and @Inherited. The subclass does not declare Role. Which API should be used to get both values?
 
-**Đáp án:** Class.getAnnotationsByType(Role.class). Hàm này mở container Roles và xem xét quy tắc associated.
+**Answer:** Class.getAnnotationsByType(Role.class). It unpacks the Roles container and applies associated rules.
 
-**Câu 7.** Annotation @Meta đánh dấu annotation type @Label. Class Sample có @Label nhưng không có @Meta. @Inherited trên Meta có làm Sample.class.getAnnotation(Meta.class) tự tìm được không?
+**Question 7.** Annotation @Meta marks annotation type @Label. Class Sample has @Label but not @Meta. Does @Inherited on Meta cause Sample.class.getAnnotation(Meta.class) to find it automatically?
 
-**Đáp án:** Không. @Inherited không tự quét meta-annotations; cần một thuật toán quét annotation type riêng.
+**Answer:** No. @Inherited does not automatically scan meta-annotations; a separate annotation-type scanning algorithm is required.
 
-**Ghi nhớ:** **@Inherited chỉ thêm quy tắc tra cứu annotation runtime của khai báo class theo chuỗi superclass.** Luôn kiểm tra **@Retention(RUNTIME)**, phân biệt **getAnnotation** với **getDeclaredAnnotation**, không suy diễn sang interface/method/field/constructor, và dùng **getAnnotationsByType** cho repeatable annotations.
+**Key takeaway:** **@Inherited adds only a lookup rule for runtime annotations on class declarations along the superclass chain.** Always check **@Retention(RUNTIME)**, distinguish **getAnnotation** from **getDeclaredAnnotation**, do not extrapolate to interfaces/methods/fields/constructors, and use **getAnnotationsByType** for repeatable annotations.
 
-### Tài liệu tham khảo
+### References
 
 - Java SE 17 — java.lang.annotation.Inherited: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/annotation/Inherited.html
-- JLS 17 — §9.6.4.3 @Inherited và §9.6.3 Repeatable Annotation Interfaces: https://docs.oracle.com/javase/specs/jls/se17/html/jls-9.html
-- Java SE 17 — java.lang.reflect.AnnotatedElement, các định nghĩa directly present/present/associated: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AnnotatedElement.html
+- JLS 17 — §9.6.4.3 @Inherited and §9.6.3 Repeatable Annotation Interfaces: https://docs.oracle.com/javase/specs/jls/se17/html/jls-9.html
+- Java SE 17 — java.lang.reflect.AnnotatedElement, definitions of directly present/present/associated: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AnnotatedElement.html
 - Java SE 17 — java.lang.Class, getAnnotation/getAnnotationsByType/getDeclaredAnnotation: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html
 - Java SE 17 — java.lang.annotation.Repeatable: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/annotation/Repeatable.html

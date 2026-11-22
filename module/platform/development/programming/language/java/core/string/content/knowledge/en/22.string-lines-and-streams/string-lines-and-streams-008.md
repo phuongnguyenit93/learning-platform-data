@@ -1,10 +1,10 @@
-# Xây lại String bằng bộ đệm với appendCodePoint trong Java
+# Rebuilding a String with a StringBuilder Using appendCodePoint in Java
 
-## 1. Mục tiêu
+## 1. Objective
 
-Khi xử lý văn bản từ `String.codePoints()` hoặc một `IntStream` các mã Unicode, ta thường cần tạo lại một `String`. Cách làm trực tiếp là dùng **`StringBuilder` làm bộ đệm**, thêm lần lượt mỗi mã Unicode với **`appendCodePoint(int)`**, rồi gọi `toString()`.
+When processing text from `String.codePoints()` or an `IntStream` of Unicode code points, we often need to construct a `String` again. The direct approach is to use **`StringBuilder` as a buffer**, append each Unicode code point in order with **`appendCodePoint(int)`**, and then call `toString()`.
 
-Mẫu cơ bản:
+Basic pattern:
 
 ~~~java
 String source = "A\uD83D\uDE80B"; // "A🚀B"
@@ -13,28 +13,28 @@ source.codePoints().forEach(builder::appendCodePoint);
 String rebuilt = builder.toString();
 ~~~
 
-Đây là **đoạn minh họa đặt trong một phương thức**, không phải một tệp Java độc lập. `rebuilt.equals(source)` là `true`.
+This is an **illustrative snippet placed inside a method**, not a standalone Java file. `rebuilt.equals(source)` is `true`.
 
-Cách này đặc biệt hữu ích khi luồng xử lý cần **lọc, ánh xạ hoặc biến đổi từng Unicode code point** trước khi lắp thành chuỗi mới. Với việc sao chép nguyên xi một chuỗi mà không xử lý gì, không cần tạo bộ đệm; ta đã có chuỗi gốc.
+This approach is especially useful when the processing pipeline needs to **filter, map, or transform individual Unicode code points** before assembling a new string. For copying a string verbatim with no processing, there is no need to allocate a buffer; you already have the original string.
 
-## 2. Phân biệt `char`, code point và ký tự hiển thị
+## 2. Distinguishing `char`, Code Point, and Display Character
 
-Java `String` lưu văn bản theo **UTF-16**. Ba đơn vị đo sau khác nhau:
+Java `String` stores text in **UTF-16**. The following three units of measurement are distinct:
 
-| Khái niệm | Ví dụ/đặc điểm |
+| Concept | Example / Characteristics |
 | --- | --- |
-| **UTF-16 code unit** | Một giá trị `char`, 16 bit. `String.length()` trả số code unit, không luôn bằng số ký tự người dùng nhìn thấy. |
-| **Unicode code point** | Giá trị số của một vị trí mã Unicode. Có thể cần **một** hoặc **hai** UTF-16 code unit để biểu diễn. `String.codePoints()` trả về `IntStream` của các giá trị kiểu `int`. |
-| **Grapheme cluster** (ký tự hiển thị) | Một đơn vị người dùng nhìn như một ký tự, có thể gồm **nhiều code point**, ví dụ chữ `e` kết hợp dấu sắc `\u0301` hay emoji nối bằng ZWJ. |
+| **UTF-16 code unit** | A 16-bit `char` value. `String.length()` returns the number of code units, which does not always equal the number of characters the user sees. |
+| **Unicode code point** | The numeric value of a Unicode code position. May require **one** or **two** UTF-16 code units to represent. `String.codePoints()` returns an `IntStream` of `int` values. |
+| **Grapheme cluster** (display character) | A unit perceived by the user as one character; may consist of **multiple code points**, such as `e` combined with acute accent `\u0301` or emoji joined with ZWJ. |
 
-Ví dụ:
+Examples:
 
-- `"A"`: một code point U+0041, một UTF-16 code unit.
-- `"★"`: U+2605, một code point, một code unit.
-- `"🚀"`: U+1F680, một code point nhưng **hai** code unit (surrogate pair).
-- `"e\u0301"`: thường hiển thị thành một chữ có dấu, nhưng chứa **hai code point** (`e` và U+0301), cũng là hai code unit.
+- `"A"`: one code point U+0041, one UTF-16 code unit.
+- `"★"`: U+2605, one code point, one code unit.
+- `"🚀"`: U+1F680, one code point yet **two** code units (a surrogate pair).
+- `"e\u0301"`: usually displays as one accented letter, yet contains **two code points** (`e` and U+0301), which are also two code units.
 
-Do đó:
+Therefore:
 
 ~~~java
 String text = "A\uD83D\uDE80B"; // A🚀B
@@ -42,19 +42,19 @@ System.out.println(text.length());                       // 4
 System.out.println(text.codePointCount(0, text.length())); // 3
 ~~~
 
-`String.chars()` trả một `IntStream` nhưng mỗi phần tử chỉ là **một UTF-16 code unit mở rộng sang int**, nên surrogate pair tạo **hai phần tử**. Ngược lại, `String.codePoints()` ghép cặp surrogate hợp lệ thành **một phần tử kiểu int**. Vì vậy, khi thao tác theo code point, hãy chọn `codePoints()`.
+`String.chars()` returns an `IntStream`, but each element is only **one UTF-16 code unit widened to int**, so a surrogate pair produces **two elements**. In contrast, `String.codePoints()` merges a valid surrogate pair into **one int element**. Therefore, when operating by code point, choose `codePoints()`.
 
-Một `char` đơn lẻ không chứa trọn emoji như U+1F680. Nếu dùng `(char) cp` để ép kiểu một code point bổ sung, sẽ mất phần thông tin vượt quá 16 bit.
+A single `char` cannot hold an entire emoji such as U+1F680. Casting a supplementary code point with `(char) cp` discards information beyond 16 bits.
 
-## 3. `StringBuilder.appendCodePoint(int)` làm gì?
+## 3. What Does `StringBuilder.appendCodePoint(int)` Do?
 
-`StringBuilder.appendCodePoint(int codePoint)` thêm biểu diễn UTF-16 của code point vào cuối builder:
+`StringBuilder.appendCodePoint(int codePoint)` appends the UTF-16 representation of the code point to the end of the builder:
 
-1. Với giá trị trong **Basic Multilingual Plane (BMP)** như U+0041 hoặc U+2605, phương thức thêm **một** UTF-16 code unit.
-2. Với code point bổ sung như U+1F680, phương thức tạo **một surrogate pair**, tức **hai** code unit.
-3. Với giá trị ngoài phạm vi mã code point (ví dụ `-1` hoặc `0x110000`), phương thức ném `IllegalArgumentException`.
+1. For values in the **Basic Multilingual Plane (BMP)** such as U+0041 or U+2605, the method appends **one** UTF-16 code unit.
+2. For supplementary code points such as U+1F680, the method produces **one surrogate pair**, i.e., **two** code units.
+3. For values outside the code point range (such as `-1` or `0x110000`), the method throws `IllegalArgumentException`.
 
-Phương thức trả về chính `StringBuilder` nên có thể nối chuỗi lệnh:
+The method returns the `StringBuilder` itself so calls can be chained:
 
 ~~~java
 StringBuilder b = new StringBuilder();
@@ -64,13 +64,13 @@ b.appendCodePoint(0x41)
 String result = b.toString(); // A🚀B
 ~~~
 
-Với `StringBuilder`, `length()` đo **số UTF-16 code unit đã thêm**. Khi thêm emoji U+1F680, độ dài tăng **2**, không phải 1.
+On `StringBuilder`, `length()` measures the **number of UTF-16 code units appended**. Appending the emoji U+1F680 increases the length by **2**, not 1.
 
-**Lưu ý tinh tế:** `Character.isValidCodePoint` và `appendCodePoint` kiểm tra phạm vi code point từ U+0000 đến U+10FFFF, bao gồm cả dải giá trị surrogate U+D800–U+DFFF. Giá trị thuộc dải này khi thêm đơn lẻ tạo **unpaired surrogate** trong chuỗi UTF-16, không phải Unicode scalar value hợp lệ để trao đổi qua mọi bộ mã hóa. Với dữ liệu văn bản ngoài hệ thống, nên kiểm soát cả các surrogate lẻ, tùy hợp đồng xử lý.
+**Subtle note:** `Character.isValidCodePoint` and `appendCodePoint` check the code point range from U+0000 to U+10FFFF, which includes the surrogate range U+D800–U+DFFF. Appending a value in this range individually creates an **unpaired surrogate** in the UTF-16 string, which is not a valid Unicode scalar value for interchange across all encodings. For external text data, validate or control unpaired surrogates according to your processing contract.
 
-## 4. Ví dụ Java 17+ hoàn chỉnh và kiểm thử
+## 4. Complete Java 17+ Example and Tests
 
-Lưu chương trình sau vào tệp **AppendCodePointDemo.java**. Bài kiểm thử chạy không cần thư viện ngoài; mỗi trường hợp sai sẽ ném `AssertionError`.
+Save the following program to **`AppendCodePointDemo.java`**. The tests run without external libraries; any failing case throws `AssertionError`.
 
 ~~~java
 public class AppendCodePointDemo {
@@ -156,14 +156,14 @@ public class AppendCodePointDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 AppendCodePointDemo.java
 java AppendCodePointDemo
 ~~~
 
-Đầu ra dự kiến khi toàn bộ 11 kiểm tra thành công:
+Expected output when all 11 checks pass:
 
 ~~~text
 utf16Length=4
@@ -176,19 +176,19 @@ invalidRejected=true
 PASS: 11 checks
 ~~~
 
-Trong ví dụ:
+In the example:
 
-- `rebuild` duyệt `codePoints()` và nối từng code point theo đúng thứ tự, nên khôi phục nguyên văn chuỗi đầu vào.
-- `removeRocket` loại U+1F680 bằng `filter`; cả hai UTF-16 code unit tạo ra emoji bị loại **cùng nhau**, thay vì lọc từng nửa surrogate pair.
-- `rocketToStar` dùng `map` biến một code point bổ sung thành code point BMP U+2605, nên độ dài UTF-16 của kết quả thay đổi dù số code point vẫn bằng nhau.
-- `rebuildByIndex` cho cách tương đương khi cần nắm **vị trí trong chuỗi gốc**: `codePointAt(i)` đọc code point, `Character.charCount(cp)` giúp bước nhảy đúng 1 hoặc 2 code unit.
-- Bài kiểm thử còn gồm chuỗi rỗng, dấu kết hợp, surrogate đứng lẻ, và mã nằm ngoài U+10FFFF. Các giá trị surrogate đơn lẻ được `codePoints()` trả như giá trị code unit, rồi `appendCodePoint` có thể ghi lại, nhờ vậy việc sao chép không vô tình làm đổi chuỗi gốc.
+- `rebuild` iterates over `codePoints()` and appends each code point in order, restoring the exact original string.
+- `removeRocket` removes U+1F680 with `filter`; both UTF-16 code units forming the emoji are removed **together**, rather than filtering half of a surrogate pair.
+- `rocketToStar` uses `map` to change a supplementary code point into BMP code point U+2605, so the UTF-16 length of the result changes even though the code point count stays the same.
+- `rebuildByIndex` shows the equivalent approach when you need to track the **position in the original string**: `codePointAt(i)` reads the code point, and `Character.charCount(cp)` advances by 1 or 2 code units accurately.
+- The checks also cover empty strings, combining marks, isolated surrogates, and codes beyond U+10FFFF. Isolated surrogate values are returned by `codePoints()` as code unit values, and `appendCodePoint` can write them back, so copying does not silently alter the original string.
 
-Dùng phép kiểm tra `equals` xác nhận kết quả thực tế giúp phát hiện các khác biệt không dễ thấy bằng mắt, đặc biệt khi dữ liệu chứa emoji hoặc dấu kết hợp. Không dựa chỉ vào lệnh Java `assert`, vì `assert` có thể bị tắt nếu JVM không bật `-ea`.
+Using `equals` assertions to verify actual results helps catch differences not easily spotted by eye, especially when data contains emoji or combining marks. Do not rely solely on Java's `assert` statement, because `assert` may be disabled if the JVM is not launched with `-ea`.
 
-## 5. Cơ chế phối hợp với `IntStream`
+## 5. How It Coordinates with `IntStream`
 
-`String.codePoints()` cung cấp luồng `IntStream` tuần tự. Mỗi giá trị `int` biểu diễn một code point (hoặc một surrogate lẻ). `forEach(result::appendCodePoint)` là cách viết ngắn gọn của:
+`String.codePoints()` provides a sequential `IntStream`. Each `int` value represents a code point (or an isolated surrogate). `forEach(result::appendCodePoint)` is a concise shorthand for:
 
 ~~~java
 StringBuilder result = new StringBuilder();
@@ -196,30 +196,30 @@ text.codePoints().forEach(cp -> result.appendCodePoint(cp));
 String output = result.toString();
 ~~~
 
-Nếu cần điều kiện hoặc ánh xạ, đặt trước phép append:
+If you need conditions or mappings, place them before appending:
 
 ~~~java
 StringBuilder result = new StringBuilder();
 text.codePoints()
-    .filter(cp -> cp != 0x1F680)          // Bỏ 🚀
-    .map(cp -> cp == 'a' ? 'A' : cp)        // Đổi a thành A
+    .filter(cp -> cp != 0x1F680)          // Skip 🚀
+    .map(cp -> cp == 'a' ? 'A' : cp)        // Convert a to A
     .forEach(result::appendCodePoint);
 String output = result.toString();
 ~~~
 
-Hai đoạn là **mảnh code minh họa trong phương thức**, với `text` là một biến `String` đã có. Trong `map`, mỗi đầu ra cần là giá trị code point hợp lệ cho `appendCodePoint`. Nếu một đầu vào phải đổi thành **nhiều code point**, hãy dùng vòng lặp/`forEach` với nhiều lệnh `appendCodePoint` hoặc dùng cấu trúc xử lý phù hợp; `IntStream.map` thông thường là phép biến đổi **một sang một**.
+Both snippets are **illustrative code inside a method**, where `text` is an existing `String` variable. In `map`, each output must be a valid code point value for `appendCodePoint`. If one input must expand into **multiple code points**, use a loop/`forEach` with multiple `appendCodePoint` calls or an appropriate structure; ordinary `IntStream.map` is a **one-to-one** transformation.
 
-Lưu ý quan trọng về thứ tự: mẫu `forEach` với một `StringBuilder` dùng **luồng tuần tự**. Nếu gọi `parallel()` rồi ghi cùng một builder trong `forEach`, các thao tác có thể đua nhau, mất thứ tự, hỏng kết quả do `StringBuilder` không thread-safe. Khi cần xử lý song song, phải thiết kế phương án gom kết quả an toàn và đúng thứ tự; đừng đơn thuần thêm `parallel()` vào ví dụ.
+Important ordering note: the `forEach` pattern with a single `StringBuilder` uses a **sequential stream**. If you call `parallel()` and write to the same builder inside `forEach`, operations can race, lose ordering, and corrupt results because `StringBuilder` is not thread-safe. When parallel processing is needed, design a thread-safe, order-preserving collection strategy; do not simply add `parallel()` to this pattern.
 
-## 6. Độ phức tạp, bộ nhớ và cách chọn vòng lặp
+## 6. Complexity, Memory, and Choosing a Loop
 
-Với đầu vào gồm `n` UTF-16 code unit và xử lý tuyến tính theo từng code point, duyệt rồi append có thời gian tổng thể **O(n)**. `StringBuilder` giảm chi phí tạo các chuỗi trung gian so với nối `String` lặp lại bằng `result += ...` trong vòng lặp lớn.
+For an input of `n` UTF-16 code units with linear per-code-point processing, iterating and appending takes **O(n)** overall time. `StringBuilder` avoids the allocation of intermediate strings caused by repeated `String` concatenation with `result += ...` inside a large loop.
 
-`new StringBuilder(input.length())` cấp phát dung lượng ban đầu theo **số UTF-16 code unit**, không theo số code point. Nếu chỉ sao chép hoặc lọc bỏ code point, dung lượng đó thường đủ cho kết quả. Nếu một code point có thể được thay bằng nhiều ký tự hoặc chuỗi dài hơn, builder vẫn tự mở rộng, nhưng có thể có thêm chi phí cấp phát.
+`new StringBuilder(input.length())` allocates initial capacity based on the **number of UTF-16 code units**, not the number of code points. When simply copying or filtering out code points, that capacity is usually sufficient for the result. If a code point can be replaced by multiple characters or a longer string, the builder grows automatically, though extra allocations may occur.
 
-`StringBuilder` là mutable và thích hợp khi dựng kết quả **trong một luồng xử lý**. Sau `toString()`, kết quả là một đối tượng `String` bất biến độc lập với các thao tác thay đổi builder về sau.
+`StringBuilder` is mutable and well suited for building a result **within a single processing thread**. After `toString()`, the result is an immutable `String` independent of any subsequent mutations to the builder.
 
-Khi cần vừa xử lý vừa biết chỉ số UTF-16 trong đầu vào, vòng lặp sau có thể thuận tiện hơn stream:
+When you need to know the UTF-16 index in the input while processing, the following loop can be more convenient than a stream:
 
 ~~~java
 StringBuilder out = new StringBuilder(input.length());
@@ -231,39 +231,39 @@ for (int index = 0; index < input.length();) {
 String rebuilt = out.toString();
 ~~~
 
-Đây là mảnh code bên trong phương thức có biến `input`. **Không tăng `index++` vô điều kiện** nếu đang xử lý theo code point: với một supplementary code point, phải tiến **hai code unit**. Phương thức `Character.charCount(cp)` trả về 2 với code point bổ sung, trả về 1 với BMP hoặc surrogate đứng lẻ.
+This is a code snippet inside a method with variable `input`. **Do not unconditionally increment `index++`** when processing by code point: for a supplementary code point, you must advance by **two code units**. `Character.charCount(cp)` returns 2 for supplementary code points and 1 for BMP characters or isolated surrogates.
 
-## 7. Những điểm dễ sai trong thực tế
+## 7. Common Pitfalls in Practice
 
-1. **Dùng `chars()` khi muốn xử lý trọn code point:** `chars()` nhìn từng code unit, có thể làm tách đôi surrogate pair trong các phép lọc và biến đổi. Hãy dùng `codePoints()` nếu yêu cầu ở mức code point.
-2. **Ép kiểu `(char) cp` rồi append:** làm mất thông tin với các giá trị trên U+FFFF. Dùng `appendCodePoint(cp)`.
-3. **Nhầm code point với “một chữ người dùng thấy”:** emoji nối bằng ZWJ hoặc ký tự kết hợp dấu có thể gồm nhiều code point. `codePoints()` không tự nhóm grapheme cluster; khi cần xử lý theo cụm ký tự, cân nhắc `BreakIterator` hoặc thư viện phân đoạn Unicode phù hợp.
-4. **Duyệt song song và ghi chung builder:** `StringBuilder` không an toàn khi bị nhiều luồng ghi đồng thời. Sử dụng pipeline tuần tự hoặc kiến trúc thu gom được bảo đảm thứ tự.
-5. **Quên `toString()`:** builder là bộ đệm mutable; API yêu cầu `String` cần kết quả cuối `builder.toString()`.
-6. **Tự giả định mọi code point chỉ thêm một `char`:** supplementary code point cần surrogate pair. Kích thước builder và chỉ số trong `String` đều tính theo UTF-16.
-7. **Không kiểm tra code point sinh từ phép biến đổi:** mã âm hoặc vượt `0x10FFFF` làm `appendCodePoint` ném `IllegalArgumentException`. Nếu cần xuất bản văn bản Unicode chuẩn, chú ý cả surrogate lẻ trong vùng U+D800–U+DFFF.
-8. **Dùng builder để tái tạo nguyên xi chuỗi gốc mà không có biến đổi:** không cần thiết nếu ứng dụng đã có `String` và có thể trả trực tiếp. Builder hữu ích khi cần thực sự dựng một kết quả mới.
+1. **Using `chars()` when you intend to process full code points:** `chars()` inspects individual code units, which can split surrogate pairs during filtering and mapping. Use `codePoints()` when operating at the code point level.
+2. **Casting `(char) cp` and appending:** loses information for values above U+FFFF. Use `appendCodePoint(cp)`.
+3. **Confusing a code point with “one user-visible character”:** ZWJ emoji sequences or characters with combining marks can contain multiple code points. `codePoints()` does not group grapheme clusters; when processing by character cluster, consider `BreakIterator` or a suitable Unicode segmentation library.
+4. **Iterating in parallel and writing to a shared builder:** `StringBuilder` is not safe for concurrent writes from multiple threads. Use a sequential pipeline or an order-preserving collection architecture.
+5. **Forgetting `toString()`:** the builder is a mutable buffer; APIs expecting a `String` need the final `builder.toString()` result.
+6. **Assuming every code point adds only one `char`:** supplementary code points require surrogate pairs. Both builder length and `String` indices are measured in UTF-16.
+7. **Failing to validate code points produced by transformations:** negative values or values exceeding `0x10FFFF` cause `appendCodePoint` to throw `IllegalArgumentException`. When producing standard Unicode text, also watch out for isolated surrogates in U+D800–U+DFFF.
+8. **Using a builder to reconstruct the exact original string with no transformation:** unnecessary when the application already has the `String` and can return it directly. A builder is useful when you actually need to construct a modified result.
 
-## 8. Bài tập tự kiểm tra
+## 8. Self-Check Exercises
 
-**Bài 1.** Với `"x🚀y"`, `length()` và `codePoints().count()` bằng bao nhiêu?
+**Exercise 1.** For `"x🚀y"`, what are `length()` and `codePoints().count()`?
 
-Đáp án: `length() == 4` vì `x` và `y` mỗi ký tự một code unit, rocket hai code unit; `codePoints().count() == 3` vì có ba code point.
+Answer: `length() == 4` because `x` and `y` take one code unit each and the rocket takes two code units; `codePoints().count() == 3` because there are three code points.
 
-**Bài 2.** Vì sao `input.codePoints().filter(cp -> cp != 0x1F680).forEach(builder::appendCodePoint)` xóa emoji 🚀 một cách trọn vẹn?
+**Exercise 2.** Why does `input.codePoints().filter(cp -> cp != 0x1F680).forEach(builder::appendCodePoint)` remove the 🚀 emoji cleanly?
 
-Đáp án: luồng chứa **một phần tử int U+1F680** cho cả surrogate pair. `filter` loại chính phần tử này; không có nửa surrogate nào được append.
+Answer: the stream contains **a single int element U+1F680** for the entire surrogate pair. `filter` excludes this exact element; neither surrogate half is appended.
 
-**Bài 3.** Nếu thay U+1F680 bằng U+2605 thông qua `map`, số code point thay đổi không? Số UTF-16 code unit có thể thay đổi không?
+**Exercise 3.** If you replace U+1F680 with U+2605 via `map`, does the code point count change? Can the UTF-16 code unit count change?
 
-Đáp án: một mã đổi thành một mã nên số code point không đổi, nhưng U+1F680 dùng hai code unit còn U+2605 dùng một, nên `String.length()` giảm một.
+Answer: one code point is mapped to one code point so the code point count stays unchanged, but U+1F680 uses two code units while U+2605 uses one, so `String.length()` decreases by one.
 
-**Bài 4.** Làm sao giữ nguyên thứ tự và tránh lỗi khi dựng chuỗi bằng builder từ stream?
+**Exercise 4.** How do you preserve order and avoid bugs when building a string with a builder from a stream?
 
-Đáp án: dùng `codePoints()` **tuần tự** và append tuần tự; không ghi song song vào cùng `StringBuilder`.
+Answer: use `codePoints()` **sequentially** and append sequentially; do not write concurrently into the same `StringBuilder`.
 
-## 9. Khi nào nên dùng mẫu này?
+## 9. When Should You Use This Pattern?
 
-Dùng `codePoints() → filter/map → StringBuilder.appendCodePoint() → toString()` khi cần **chủ động dựng lại String theo code point**, ví dụ bỏ emoji cụ thể, chuẩn hóa một số ký tự, thay ký hiệu Unicode, hoặc lọc những mã không cho phép. Nếu cần xử lý theo UTF-16 code unit, grapheme cluster hoặc quy tắc ngôn ngữ tự nhiên, cần chọn mức trừu tượng tương ứng.
+Use `codePoints() → filter/map → StringBuilder.appendCodePoint() → toString()` when you need to **actively rebuild a String by code point**, such as stripping specific emoji, normalizing certain characters, replacing Unicode symbols, or filtering out disallowed code points. If you need to process by UTF-16 code unit, grapheme cluster, or natural-language rules, choose the corresponding level of abstraction.
 
-**Quy tắc nhớ:** `String.length()` đếm UTF-16 code unit, `String.codePoints()` duyệt code point, còn `StringBuilder.appendCodePoint()` biến mỗi giá trị `int` trở lại biểu diễn UTF-16 đúng độ rộng. Giữ thứ tự, kiểm tra mã đầu vào và xây dựng kết quả tuần tự để tái tạo `String` an toàn.
+**Rule of thumb:** `String.length()` counts UTF-16 code units, `String.codePoints()` iterates over code points, and `StringBuilder.appendCodePoint()` converts each `int` back into its proper-width UTF-16 representation. Maintain ordering, validate input codes, and construct the result sequentially to rebuild `String` safely.

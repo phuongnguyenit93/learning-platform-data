@@ -1,18 +1,18 @@
-# Compile module-info cùng source
+# Compiling module-info Together with Sources
 
-## 1. Vì sao module-info.java cần được biên dịch cùng module source?
+## 1. Why Does module-info.java Need to Be Compiled with Module Sources?
 
-Trong Java Platform Module System (JPMS), tệp `module-info.java` mô tả module: tên module, dependency, package được export, service được sử dụng hoặc cung cấp và các quy tắc truy cập liên quan.
+In the Java Platform Module System (JPMS), the `module-info.java` file describes the module: its module name, dependencies, exported packages, services used or provided, and related access rules.
 
-Tệp này là source code đặc biệt của module. Khi biên dịch, `javac` tạo ra `module-info.class` cùng với các class thuộc module đó. Vì vậy, khi build một module từ source, cần đưa module descriptor và các source file của module vào cùng một lần biên dịch hoặc cùng một quy trình build nhất quán.
+This file is a special source file of the module. During compilation, `javac` produces `module-info.class` alongside the classes belonging to that module. Therefore, when building a module from source, you need to include the module descriptor and the module's source files in the same compilation pass or the same consistent build process.
 
-Cách thông dụng nhất là dùng `--module-source-path` để chỉ thư mục chứa các module source, rồi chọn module cần biên dịch bằng `-m` hoặc `--module`.
+The most common approach is to use `--module-source-path` to point to the directory containing the module sources, and then select the modules to compile with `-m` or `--module`.
 
-Không cần biên dịch `module-info.java` thành một artifact độc lập trước rồi mới biên dịch các class. Compiler cần biết descriptor để áp dụng module readability, package exports và dependency trong lúc biên dịch source.
+You do not need to compile `module-info.java` into a standalone artifact first and then compile the classes afterward. The compiler needs the descriptor to enforce module readability, package exports, and dependencies while compiling the sources.
 
-## 2. Cấu trúc source chuẩn
+## 2. Standard Source Structure
 
-Giả sử có module `com.acme.hello`:
+Suppose we have a module `com.acme.hello`:
 
 ```text
 project/
@@ -25,14 +25,14 @@ project/
                     └── Main.java
 ```
 
-Tệp `src/com.acme.hello/module-info.java`:
+`src/com.acme.hello/module-info.java` file:
 
 ```java
 module com.acme.hello {
 }
 ```
 
-Tệp `src/com.acme.hello/com/acme/hello/Main.java`:
+`src/com.acme.hello/com/acme/hello/Main.java` file:
 
 ```java
 package com.acme.hello;
@@ -44,35 +44,35 @@ public class Main {
 }
 ```
 
-Các điểm cần giữ đúng:
+Key points to keep right:
 
-- Thư mục trực tiếp dưới `src` đại diện cho một module source root, ở đây là `com.acme.hello`.
-- `module-info.java` nằm ngay tại root của module source, không nằm trong package directory.
-- Source class nằm dưới đường dẫn tương ứng với package.
-- Tên trong `module-info.java` là module name, không phải package name.
-- `module-info.java` không có khai báo `package`.
+- A direct subdirectory under `src` represents a module source root, here `com.acme.hello`.
+- `module-info.java` resides directly at the module source root, not inside a package directory.
+- Class sources reside under paths matching their packages.
+- The name in `module-info.java` is the module name, not a package name.
+- `module-info.java` has no `package` declaration.
 
-## 3. Biên dịch module-info.java cùng toàn bộ source
+## 3. Compiling module-info.java Together with All Sources
 
-Đứng tại thư mục `project`, chạy:
+From the `project` directory, run:
 
 ```bash
 javac --module-source-path src -d out -m com.acme.hello
 ```
 
-Hoặc dùng tên đầy đủ của option:
+Or use the full option name:
 
 ```bash
 javac --module-source-path src -d out --module com.acme.hello
 ```
 
-Ý nghĩa:
+Meaning:
 
-- `--module-source-path src`: chỉ ra nơi chứa source của các module. Với cấu trúc mặc định, compiler tìm thư mục module bên dưới `src`.
-- `-d out`: ghi các class đã biên dịch vào thư mục output.
-- `-m com.acme.hello`: yêu cầu biên dịch module có tên này. Compiler đọc `module-info.java` và các source file của module.
+- `--module-source-path src`: specifies where module sources reside. With the default layout, the compiler looks for module directories under `src`.
+- `-d out`: writes compiled classes to the output directory.
+- `-m com.acme.hello`: requests compiling the module with this name. The compiler reads `module-info.java` and the module's source files.
 
-Kết quả có cấu trúc:
+The output has the structure:
 
 ```text
 out/
@@ -84,29 +84,29 @@ out/
                 └── Main.class
 ```
 
-Có thể kiểm tra descriptor đã được biên dịch:
+You can inspect the compiled descriptor:
 
 ```bash
 javap -p out/com.acme.hello/module-info.class
 ```
 
-Hoặc chạy:
+Or run it:
 
 ```bash
 java --module-path out -m com.acme.hello/com.acme.hello.Main
 ```
 
-Kết quả:
+Output:
 
 ```text
 Hello from a named module
 ```
 
-Điểm cần nhớ là một lần gọi `javac` đã biên dịch cả descriptor và source class thành output của cùng module.
+The key point to remember is that a single `javac` invocation compiled both the descriptor and the source classes into the same module's output.
 
-## 4. Biên dịch nhiều module cùng lúc
+## 4. Compiling Multiple Modules Together
 
-Khi các module source phụ thuộc lẫn nhau, có thể đặt chúng dưới cùng module source path:
+When module sources depend on each other, you can place them under the same module source path:
 
 ```text
 src/
@@ -126,7 +126,7 @@ module com.acme.api {
 }
 ```
 
-Class API:
+API class:
 
 ```java
 package com.acme.api;
@@ -158,13 +158,13 @@ public class Main {
 }
 ```
 
-Biên dịch cả hai module:
+Compile both modules:
 
 ```bash
 javac --module-source-path src -d out -m com.acme.api,com.acme.app
 ```
 
-Compiler biên dịch descriptor và source của cả API lẫn application. Vì cả hai module đều được chọn trong cùng invocation, dependency source giữa chúng được giải quyết trong quá trình biên dịch.
+The compiler compiles the descriptor and sources of both the API and the application. Because both modules are selected in the same invocation, source dependencies between them are resolved during compilation.
 
 Output:
 
@@ -178,25 +178,25 @@ out/
     └── com/acme/app/Main.class
 ```
 
-Chạy:
+Run:
 
 ```bash
 java --module-path out -m com.acme.app/com.acme.app.Main
 ```
 
-Kết quả:
+Output:
 
 ```text
 Ada
 ```
 
-Nếu source module có dependency tới một module khác cũng đang nằm trong source tree, hãy đưa module đó vào danh sách module cần biên dịch hoặc cung cấp bản đã biên dịch trên module path.
+If a source module has a dependency on another module that is also in the source tree, include that module in the list of modules to compile or provide its compiled version on the module path.
 
-## 5. Biên dịch application với dependency đã biên dịch
+## 5. Compiling an Application with a Compiled Dependency
 
-Trong dự án lớn, thư viện API thường được build trước và đóng gói thành modular JAR. Khi đó dùng `--module-path` cho dependency đã biên dịch và `--module-source-path` cho module source hiện tại.
+In larger projects, API libraries are often built beforehand and packaged as modular JARs. In that case, use `--module-path` for compiled dependencies and `--module-source-path` for the current module sources.
 
-Ví dụ:
+For example:
 
 ```text
 project/
@@ -208,36 +208,36 @@ project/
         └── com/acme/app/Main.java
 ```
 
-Biên dịch:
+Compile:
 
 ```bash
 javac --module-path mods --module-source-path src -d out -m com.acme.app
 ```
 
-Hai option có vai trò khác nhau:
+The two options serve different roles:
 
-| Option | Nội dung |
+| Option | Purpose |
 |---|---|
-| `--module-source-path` | Tìm source code của module đang biên dịch |
-| `--module-path` | Tìm module đã biên dịch, thường là modular JAR hoặc module directory |
-| `-d` | Thư mục ghi class output |
-| `-m` / `--module` | Module cần biên dịch |
+| `--module-source-path` | Locates source code of the modules being compiled |
+| `--module-path` | Locates compiled modules, typically modular JARs or module directories |
+| `-d` | Directory to write class output |
+| `-m` / `--module` | Module(s) to compile |
 
-Nếu API JAR không nằm trong `mods`, compiler có thể báo `module not found` dù source của application đã có `requires com.acme.api`.
+If the API JAR is not in `mods`, the compiler can report `module not found` even though the application's source already has `requires com.acme.api`.
 
-## 6. Biên dịch source file trực tiếp và vai trò của module-source-path
+## 6. Compiling Source Files Directly and the Role of module-source-path
 
-Có thể truyền danh sách source file trực tiếp cho `javac` trong những build đơn giản, nhưng khi project có nhiều module, `--module-source-path` giúp compiler xác định ranh giới module và tìm source theo module name.
+You can pass a list of source files directly to `javac` in simple builds, but when a project has multiple modules, `--module-source-path` helps the compiler identify module boundaries and locate sources by module name.
 
-Ví dụ dạng chuẩn:
+Standard example:
 
 ```bash
 javac -d out --module-source-path src -m com.acme.api,com.acme.app
 ```
 
-Không nên đặt tất cả source của nhiều named module vào một thư mục package tree duy nhất rồi biên dịch như một ứng dụng classpath. Mỗi named module cần một source root và descriptor riêng.
+Do not place all sources of multiple named modules into a single package tree directory and compile them like a classpath application. Each named module needs its own source root and descriptor.
 
-Nếu source layout khác mặc định, có thể dùng module-source-path pattern để chỉ vị trí module source. Ví dụ cấu trúc:
+If the source layout differs from the default, you can use a module-source-path pattern to indicate the location of module sources. Example structure:
 
 ```text
 src/
@@ -246,62 +246,62 @@ src/
     └── com.acme.app/
 ```
 
-Có thể chỉ định:
+You can specify:
 
 ```bash
 javac --module-source-path "src/modules/*" -d out -m com.acme.api,com.acme.app
 ```
 
-Pattern `*` đại diện phần tên module trong đường dẫn. Đảm bảo pattern khớp đúng vị trí thư mục module; nếu không, compiler sẽ không tìm thấy source hoặc module descriptor.
+The `*` pattern represents the module name segment in the path. Ensure the pattern matches the exact location of the module directories; otherwise, the compiler will not find the sources or the module descriptor.
 
-## 7. Thêm compiler options khi build
+## 7. Adding Compiler Options During the Build
 
-Có thể kết hợp các option thông dụng:
+You can combine common options:
 
 ```bash
 javac --release 21 -encoding UTF-8 -Xlint:all --module-source-path src -d out -m com.acme.api,com.acme.app
 ```
 
-- `--release 21` biên dịch theo API và ngôn ngữ của Java 21, nếu JDK đang dùng hỗ trợ release đó.
-- `-encoding UTF-8` xác định encoding của source.
-- `-Xlint:all` bật các cảnh báo compiler phổ biến.
-- `--module-source-path` và `-m` chọn source modules cần biên dịch.
+- `--release 21` compiles against Java 21 APIs and language features, if the JDK in use supports that release.
+- `-encoding UTF-8` specifies the source encoding.
+- `-Xlint:all` enables common compiler warnings.
+- `--module-source-path` and `-m` select the source modules to compile.
 
-Chọn `--release` theo baseline JDK thực tế của dự án. Không dùng một release cao hơn phiên bản runtime production nếu ứng dụng cần chạy trên runtime cũ hơn.
+Choose `--release` based on the project's actual JDK baseline. Do not use a release newer than the production runtime version if the application needs to run on an older runtime.
 
-Có thể dùng `-g` để sinh debug information hoặc `-parameters` nếu framework cần giữ tên tham số method. Các option này không thay đổi cấu trúc module graph.
+You can use `-g` to generate debug information or `-parameters` if a framework needs to preserve method parameter names. These options do not change the module graph structure.
 
-## 8. Đóng gói output thành modular JAR
+## 8. Packaging Output into Modular JARs
 
-Sau khi compile, mỗi thư mục module trong `out` có thể được đóng gói riêng:
+After compiling, each module directory in `out` can be packaged separately:
 
 ```bash
 jar --create --file mods/com.acme.api.jar -C out/com.acme.api .
 jar --create --file mods/com.acme.app.jar -C out/com.acme.app .
 ```
 
-Đảm bảo `module-info.class` nằm ở root của mỗi JAR. Kiểm tra:
+Make sure `module-info.class` is at the root of each JAR. Verify:
 
 ```bash
 jar --describe-module --file mods/com.acme.api.jar
 jar --describe-module --file mods/com.acme.app.jar
 ```
 
-Nếu đóng gói nhầm từ một thư mục cấp trên hoặc bỏ sót `module-info.class`, JAR có thể không còn là explicit named module như mong đợi.
+If packaged by mistake from a parent directory or if `module-info.class` is omitted, the JAR may no longer be an explicit named module as expected.
 
-Sau khi đóng gói, nên chạy chính các JAR đã tạo:
+After packaging, run the created JARs directly:
 
 ```bash
 java --module-path mods -m com.acme.app/com.acme.app.Main
 ```
 
-Kiểm thử từ JAR giúp phát hiện lỗi packaging mà chạy trực tiếp từ thư mục `out` có thể che khuất.
+Testing from the JAR helps catch packaging errors that running directly from the `out` directory might hide.
 
-## 9. Tích hợp vào build tool
+## 9. Integrating into Build Tools
 
 ### Maven
 
-Với Maven, source của module thường nằm trong `src/main/java`, còn `module-info.java` ở ngay root source directory:
+With Maven, module sources typically reside in `src/main/java`, and `module-info.java` sits directly at the source directory root:
 
 ```text
 src/main/java/
@@ -309,7 +309,7 @@ src/main/java/
 └── com/acme/app/Main.java
 ```
 
-Maven Compiler Plugin biên dịch source và module descriptor theo cấu hình JDK/compiler plugin. Ví dụ cấu hình tối thiểu:
+The Maven Compiler Plugin compiles sources and the module descriptor according to the JDK/compiler plugin configuration. Minimal configuration example:
 
 ```xml
 <properties>
@@ -317,11 +317,11 @@ Maven Compiler Plugin biên dịch source và module descriptor theo cấu hình
 </properties>
 ```
 
-Đảm bảo phiên bản Maven Compiler Plugin và JDK hỗ trợ release mục tiêu. Với multi-module Maven project, mỗi module Maven thường có artifact và descriptor riêng; dependency được khai báo trong POM phải tương thích với module name trong `module-info.java`.
+Ensure the Maven Compiler Plugin version and JDK support the target release. In a multi-module Maven project, each Maven module typically has its own artifact and descriptor; dependencies declared in the POM must be compatible with the module names in `module-info.java`.
 
 ### Gradle
 
-Với Gradle Java plugin, `module-info.java` được đặt trong source set cùng source Java:
+With the Gradle Java plugin, `module-info.java` is placed in the source set alongside Java sources:
 
 ```text
 src/main/java/
@@ -329,44 +329,44 @@ src/main/java/
 └── com/acme/app/Main.java
 ```
 
-Cấu hình toolchain/release theo JDK mục tiêu và đảm bảo Gradle version hỗ trợ modular compilation phù hợp. Khi cần module path inference, kiểm tra cấu hình compile/test tasks và dependency được đặt đúng module path thay vì classpath.
+Configure the toolchain/release according to the target JDK and ensure the Gradle version supports modular compilation appropriately. When module path inference is needed, check the compile/test task configuration and ensure dependencies are placed on the module path rather than the classpath.
 
-Build tool có thể tự tổ chức compiler invocation, nhưng nguyên tắc vẫn vậy: descriptor phải được compiler xử lý cùng module source và dependency phải được cung cấp đúng loại path.
+Build tools may organize compiler invocations themselves, but the principle remains the same: the descriptor must be processed by the compiler together with the module sources, and dependencies must be provided on the proper path type.
 
-## 10. Lỗi thường gặp
+## 10. Common Errors
 
-| Lỗi | Nguyên nhân | Hướng xử lý |
+| Error | Cause | How to Fix |
 |---|---|---|
-| `module not found: X` | Dependency không có trên module path hoặc source path không tìm thấy module | Kiểm tra tên module, `--module-path` và `--module-source-path` |
-| `module X does not read module Y` | Thiếu `requires Y` | Thêm dependency trong descriptor của module consumer |
-| Package is not visible | Module sở hữu package chưa export hoặc consumer không đọc module | Kiểm tra cả `requires` và `exports` |
-| `module-info.java` không được tìm thấy | Sai vị trí module source root hoặc pattern | Đặt descriptor ở root module và sửa module-source-path |
-| Package declaration does not match directory | Source file nằm sai package path | Đồng bộ khai báo package với thư mục source |
-| Main class không tìm thấy khi chạy | Sai module name, class name hoặc output layout | Kiểm tra output và dùng đúng `-m module/class` |
-| JAR không được nhận là explicit module | Thiếu `module-info.class` trong artifact | Kiểm tra cách đóng gói và `jar --describe-module` |
-| Build tool chạy được nhưng javac thủ công lỗi | Build tool đã thêm compiler/module path options | In hoặc kiểm tra compiler arguments và tái tạo đúng cấu hình |
+| `module not found: X` | Dependency is missing from the module path or source path cannot find the module | Check module name, `--module-path`, and `--module-source-path` |
+| `module X does not read module Y` | Missing `requires Y` | Add the dependency in the consumer module's descriptor |
+| Package is not visible | Owning module has not exported the package or consumer does not read the module | Check both `requires` and `exports` |
+| `module-info.java` not found | Wrong module source root location or pattern | Place the descriptor at the module root and fix `--module-source-path` |
+| Package declaration does not match directory | Source file is in the wrong package path | Align the package declaration with the source directory |
+| Main class not found when running | Wrong module name, class name, or output layout | Check output and use the correct `-m module/class` |
+| JAR is not recognized as an explicit module | Missing `module-info.class` in the artifact | Check packaging and `jar --describe-module` |
+| Build tool succeeds but manual `javac` fails | Build tool added compiler/module path options | Print or inspect compiler arguments and reproduce the exact configuration |
 
-Khi gặp lỗi, hãy đọc tên module/package trong thông báo trước khi sửa descriptor. Không thêm `exports` hoặc `requires transitive` một cách rộng rãi chỉ để làm cho compile pass.
+When encountering an error, read the module/package names in the message before editing the descriptor. Do not broadly add `exports` or `requires transitive` just to make compilation pass.
 
-## 11. Quy trình build có thể tái lập
+## 11. Reproducible Build Workflow
 
-Một quy trình build modular rõ ràng có thể gồm:
+A clear modular build workflow can include:
 
-1. Kiểm tra source layout: mỗi module có root riêng và `module-info.java` đúng vị trí.
-2. Kiểm tra tên module và dependency trong descriptor.
-3. Build các module source cùng invocation nếu chúng phụ thuộc nhau, hoặc build dependency trước rồi đưa lên module path.
-4. Dùng compiler release và encoding cố định.
-5. Đóng gói từng module, bảo đảm giữ `module-info.class`.
-6. Kiểm tra artifact bằng `jar --describe-module`.
-7. Chạy từ module path bằng đúng JAR sẽ phát hành.
-8. Lưu compiler/JDK version và build configuration để có thể tái lập.
+1. Check the source layout: each module has its own root and `module-info.java` in the right place.
+2. Verify module names and dependencies in the descriptors.
+3. Build source modules in the same invocation if they depend on each other, or build dependencies first and place them on the module path.
+4. Use a fixed compiler release and encoding.
+5. Package each module, making sure to preserve `module-info.class`.
+6. Inspect artifacts with `jar --describe-module`.
+7. Run from the module path using the exact JARs to be released.
+8. Record the compiler/JDK version and build configuration for reproducibility.
 
-## Ghi nhớ
+## Key Takeaways
 
-- `module-info.java` là source đặc biệt của module và được biên dịch thành `module-info.class`.
-- Đặt descriptor tại root của module source, bên cạnh cây package.
-- Dùng `--module-source-path` để compiler tìm module source và `-m` để chọn module cần biên dịch.
-- Biên dịch nhiều module source bằng cách liệt kê module names trong `-m`.
-- Dùng `--module-path` cho dependency đã biên dịch; không nhầm với module source path.
-- Đóng gói output sao cho `module-info.class` nằm ở root của modular JAR.
-- Luôn kiểm thử artifact đã đóng gói bằng `java --module-path`, không chỉ chạy từ thư mục class output.
+- `module-info.java` is a special source file of the module and is compiled into `module-info.class`.
+- Place the descriptor at the root of the module source, alongside the package tree.
+- Use `--module-source-path` so the compiler locates module sources and `-m` to select modules to compile.
+- Compile multiple source modules by listing module names in `-m`.
+- Use `--module-path` for compiled dependencies; do not confuse it with the module source path.
+- Package the output so that `module-info.class` sits at the root of the modular JAR.
+- Always test the packaged artifact with `java --module-path`, not only by running from the compiled classes output directory.

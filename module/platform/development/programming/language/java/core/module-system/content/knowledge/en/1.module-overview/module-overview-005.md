@@ -1,21 +1,21 @@
-# Phân biệt module với package, JAR và project build
+# Distinguishing modules from packages, JARs, and build projects
 
-Khi học Java Platform Module System (JPMS), bốn khái niệm **package**, **JAR**, **project build** và **module** thường xuất hiện cùng lúc. Chúng có thể liên quan một-một trong một dự án đơn giản, nhưng không phải cùng một đối tượng và cũng không giải quyết cùng một vấn đề.
+When learning the Java Platform Module System (JPMS), four concepts—**package**, **JAR**, **build project**, and **module**—often appear together. They can have a one-to-one relationship in a simple project, but they are not the same thing and do not solve the same problem.
 
-Hiểu ngắn gọn:
+Put briefly:
 
-- **Package** tổ chức các kiểu Java thành những không gian tên và ranh giới truy cập ở mức ngôn ngữ.
-- **JAR** là định dạng file đóng gói class, resource và metadata.
-- **Project build** là đơn vị mà Maven, Gradle hoặc công cụ build quản lý để biên dịch, kiểm thử và phát hành artifact.
-- **Java module** là đơn vị có tên trong JPMS, khai báo dependency và quyết định package nào được công khai ra bên ngoài.
+- **Package** organizes Java types into namespaces and language-level access boundaries.
+- **JAR** is a file format for packaging classes, resources, and metadata.
+- **Build project** is the unit managed by Maven, Gradle, or a build tool to compile, test, and publish artifacts.
+- **Java module** is a named unit in JPMS that declares dependencies and decides which packages are exposed externally.
 
-Điều quan trọng là **ranh giới của bốn khái niệm không tự động trùng nhau**. Một Maven project có thể tạo một JAR, JAR ấy có thể chứa một Java module, và Java module có thể chứa nhiều package. Nhưng đó là một cách tổ chức thường gặp, không phải định nghĩa bắt buộc.
+Importantly, **the boundaries of these four concepts do not automatically coincide**. A Maven project can produce one JAR, that JAR can contain one Java module, and that Java module can contain multiple packages. But that is a common arrangement, not a mandatory definition.
 
-## 1. Package là gì?
+## 1. What is a package?
 
-Package là cách nhóm class, interface, enum, record và các kiểu Java khác vào một không gian tên.
+A package is a way of grouping classes, interfaces, enums, records, and other Java types into a namespace.
 
-Ví dụ:
+Example:
 
 ~~~java
 package com.example.catalog.api;
@@ -25,20 +25,20 @@ public interface ProductCatalog {
 }
 ~~~
 
-Tên đầy đủ của kiểu này là:
+The fully qualified name of this type is:
 
 ~~~text
 com.example.catalog.api.ProductCatalog
 ~~~
 
-Một package giúp:
+A package helps:
 
-- Tránh trùng tên class giữa các phần code.
-- Tổ chức code theo tính năng hoặc trách nhiệm.
-- Hỗ trợ quyền truy cập package-private trong ngôn ngữ Java.
-- Tạo nền tảng để module export hoặc open một tập API.
+- Avoid class name collisions across different parts of code.
+- Organize code by feature or responsibility.
+- Support package-private access in the Java language.
+- Provide the basis for a module to export or open a set of APIs.
 
-Thông thường, cấu trúc source phản ánh package:
+Usually, the source directory structure reflects the package:
 
 ~~~text
 src/main/java/
@@ -46,21 +46,21 @@ src/main/java/
     └── ProductCatalog.java
 ~~~
 
-Tuy nhiên, package **không phải** file JAR, project build hay một Java module. Nhiều package có thể thuộc một module; trong môi trường classpath truyền thống, cùng một package có thể xuất hiện trong nhiều JAR.
+However, a package is **not** a JAR file, a build project, or a Java module. Many packages can belong to a single module; in a traditional classpath environment, the same package can appear in multiple JARs.
 
-Package có tên tương tự cũng không nhất thiết là cùng package. **com.example.catalog** và **com.example.catalog.internal** là hai package riêng biệt, dù một tên là tiền tố của tên kia.
+Packages with similar names are also not necessarily the same package. **com.example.catalog** and **com.example.catalog.internal** are two separate packages, even though one name is a prefix of the other.
 
-## 2. JAR là gì?
+## 2. What is a JAR?
 
-JAR là viết tắt của **Java ARchive**. Về bản chất, nó là archive theo định dạng ZIP để đóng gói các file:
+JAR stands for **Java ARchive**. Essentially, it is a ZIP-format archive used to package files:
 
-- **.class** đã biên dịch.
-- Resource như properties, JSON, template hoặc ảnh.
-- Metadata, đặc biệt là **META-INF/MANIFEST.MF**.
-- Thông tin khác như service provider configuration.
-- Với modular JAR, **module-info.class**.
+- Compiled **.class** files.
+- Resources such as properties, JSON, templates, or images.
+- Metadata, especially **META-INF/MANIFEST.MF**.
+- Other information such as service provider configuration.
+- For a modular JAR, **module-info.class**.
 
-Ví dụ:
+Example:
 
 ~~~text
 catalog-api.jar
@@ -71,27 +71,27 @@ catalog-api.jar
 └── com/example/catalog/internal/MemoryCatalog.class
 ~~~
 
-Có thể xem nội dung bằng:
+Its contents can be viewed with:
 
 ~~~bash
 jar --list --file catalog-api.jar
 ~~~
 
-JAR là **đơn vị đóng gói**, không phải tự nó luôn là một JPMS named module.
+A JAR is a **packaging unit**, not automatically a JPMS named module by itself.
 
-Cùng một JAR có thể được Java nhìn nhận khác nhau tùy vị trí và metadata:
+The same JAR can be perceived differently by Java depending on its location and metadata:
 
-- JAR có **module-info.class** hợp lệ và đặt trên module path: được nhận diện thành explicit named module.
-- JAR không có descriptor nhưng đặt trên module path: có thể trở thành automatic module.
-- JAR được nạp từ classpath: các class được định nghĩa trong unnamed module của class loader tương ứng.
+- A JAR with a valid **module-info.class** placed on the module path: recognized as an explicit named module.
+- A JAR without a descriptor placed on the module path: can become an automatic module.
+- A JAR loaded from the classpath: its classes are defined in the unnamed module of the corresponding class loader.
 
-Đặt một file tên **catalog.jar** trên module path không tự động làm Java module của nó có tên **catalog** nếu JAR có descriptor khai báo một tên khác.
+Placing a file named **catalog.jar** on the module path does not automatically give its Java module the name **catalog** if the JAR has a descriptor declaring a different name.
 
-## 3. Project build là gì?
+## 3. What is a build project?
 
-Project build là đơn vị được Maven, Gradle hoặc một hệ thống build quản lý. Nó mô tả source set, dependency, compiler options, test, packaging và artifact đầu ra.
+A build project is a unit managed by Maven, Gradle, or a build system. It describes source sets, dependencies, compiler options, tests, packaging, and output artifacts.
 
-Trong Maven, một project thường có file **pom.xml**:
+In Maven, a project typically has a **pom.xml** file:
 
 ~~~text
 catalog-api/
@@ -101,7 +101,7 @@ catalog-api/
         └── java/
 ~~~
 
-Trong Gradle, project có thể được cấu hình bằng **build.gradle**, **build.gradle.kts** và các file settings:
+In Gradle, a project can be configured with **build.gradle**, **build.gradle.kts**, and settings files:
 
 ~~~text
 catalog-api/
@@ -111,15 +111,15 @@ catalog-api/
         └── java/
 ~~~
 
-Một project build có thể:
+A build project can:
 
-- Biên dịch source thành class.
-- Resolve dependency từ repository hoặc project khác.
-- Chạy unit test/integration test.
-- Đóng gói JAR hoặc artifact khác.
-- Xuất bản artifact với version và metadata.
+- Compile source code into classes.
+- Resolve dependencies from repositories or other projects.
+- Run unit tests/integration tests.
+- Package JARs or other artifacts.
+- Publish artifacts with versions and metadata.
 
-Trong Maven, tên artifact và tọa độ thường có dạng:
+In Maven, artifact naming and coordinates typically look like:
 
 ~~~text
 groupId    = com.example
@@ -127,15 +127,15 @@ artifactId = catalog-api
 version    = 1.0.0
 ~~~
 
-Những giá trị này dùng để nhận diện **artifact trong hệ sinh thái Maven**, không tự động trở thành tên Java module trong JPMS.
+These values identify the **artifact in the Maven ecosystem**; they do not automatically become the Java module name in JPMS.
 
-Maven còn có khái niệm **multi-module reactor**, nghĩa là một POM tổng điều phối nhiều project con. Đây là “module” theo cách gọi của Maven; không đồng nghĩa mỗi project con bắt buộc là một JPMS module.
+Maven also has the concept of a **multi-module reactor**, meaning an aggregator POM coordinates multiple subprojects. This is a "module" in Maven's terminology; it does not mean each subproject must be a JPMS module.
 
-## 4. Java module trong JPMS là gì?
+## 4. What is a Java module in JPMS?
 
-Java module là một đơn vị cấu hình gồm tên module, các package mà module sở hữu và những quan hệ với module khác.
+A Java module is a configuration unit consisting of a module name, the packages owned by the module, and relationships with other modules.
 
-Một explicit named module thường có file **module-info.java**:
+An explicit named module typically has a **module-info.java** file:
 
 ~~~java
 module com.example.catalog.api {
@@ -143,15 +143,15 @@ module com.example.catalog.api {
 }
 ~~~
 
-Descriptor có thể khai báo:
+The descriptor can declare:
 
-- **requires**: module khác mà module hiện tại cần đọc.
-- **exports**: package được cho phép truy cập public API từ module khác.
-- **opens**: package được mở cho deep reflection ở runtime.
-- **uses**: service interface mà module sử dụng.
-- **provides ... with ...**: provider cho service.
+- **requires**: other modules that the current module needs to read.
+- **exports**: packages permitted for public API access from other modules.
+- **opens**: packages opened for deep reflection at runtime.
+- **uses**: service interfaces consumed by the module.
+- **provides ... with ...**: providers for a service.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.example.catalog.app {
@@ -159,28 +159,28 @@ module com.example.catalog.app {
 }
 ~~~
 
-Module **com.example.catalog.app** đọc module **com.example.catalog.api**. Để app sử dụng **ProductCatalog**, module API còn phải export package chứa kiểu đó.
+The **com.example.catalog.app** module reads the **com.example.catalog.api** module. For app to use **ProductCatalog**, the API module must also export the package containing that type.
 
-Do đó, JPMS không chỉ đặt tên nhóm class. Nó tạo ra **module graph**, giúp Java phân giải dependency và thực thi ranh giới truy cập giữa named modules.
+Thus, JPMS does more than name a group of classes. It creates a **module graph**, enabling Java to resolve dependencies and enforce access boundaries between named modules.
 
-## 5. Bảng so sánh bốn khái niệm
+## 5. Comparison table of the four concepts
 
-| Tiêu chí | Package | JAR | Project build | Java module |
+| Criterion | Package | JAR | Build project | Java module |
 |---|---|---|---|---|
-| Bản chất | Namespace của kiểu Java | File archive | Đơn vị build và quản lý artifact | Đơn vị dependency/encapsulation của JPMS |
-| Được định nghĩa bởi | Khai báo package | Cấu trúc file archive | POM, Gradle script, cấu hình build | Module descriptor hoặc quy tắc automatic module |
-| Tên ví dụ | com.example.catalog.api | catalog-api-1.0.0.jar | Maven artifactId catalog-api | com.example.catalog.api |
-| Chứa gì? | Kiểu thuộc package | Class, resource, metadata | Source, dependency, test, build tasks | Package, quan hệ đọc và chính sách export/open |
-| Mục đích chính | Tổ chức kiểu và package access | Phân phối code | Tự động hóa build/test/release | Đóng gói mạnh và kiểm soát dependency |
-| Có version riêng? | Không có cơ chế package version chuẩn trong ngôn ngữ | Có thể có tên/version metadata | Thường có version của artifact | Descriptor có thể mang version metadata; runtime resolution không vận hành như Maven dependency version |
-| Quan hệ phụ thuộc | Không khai báo kiểu requires | Có thể có metadata tùy cơ chế | Maven/Gradle dependency | requires, requires transitive, requires static |
-| Ranh giới công khai | public và package-private | Không tự tạo JPMS boundary | Không tự tạo JPMS boundary | exports, opens và readability |
+| Nature | Namespace for Java types | Archive file | Build and artifact management unit | Dependency/encapsulation unit in JPMS |
+| Defined by | Package declaration | Archive file structure | POM, Gradle script, build configuration | Module descriptor or automatic module rules |
+| Example name | com.example.catalog.api | catalog-api-1.0.0.jar | Maven artifactId catalog-api | com.example.catalog.api |
+| What does it contain? | Types belonging to the package | Classes, resources, metadata | Sources, dependencies, tests, build tasks | Packages, readability relationships, and export/open policies |
+| Primary purpose | Organize types and package access | Distribute code | Automate build/test/release | Strong encapsulation and dependency control |
+| Has its own version? | No standard package versioning mechanism in the language | Can carry name/version metadata | Usually has an artifact version | Descriptor can carry version metadata; runtime resolution does not operate like Maven dependency versions |
+| Dependency relationships | No requires-style declarations | Can have metadata depending on mechanism | Maven/Gradle dependencies | requires, requires transitive, requires static |
+| Exposure boundary | public and package-private | Does not create a JPMS boundary on its own | Does not create a JPMS boundary on its own | exports, opens, and readability |
 
-Khi nghe một câu như “đưa module vào JAR”, cần hỏi đang nói đến **Java module** hay **Maven module**. Một modular JAR là một JAR được đóng gói dưới dạng module JPMS; nó vẫn chỉ là **một cách phân phối** module.
+When hearing a phrase like "put the module into a JAR", ask whether it refers to a **Java module** or a **Maven module**. A modular JAR is a JAR packaged as a JPMS module; it is still just **one way of distributing** a module.
 
-## 6. Quan hệ giữa module, package, JAR và project
+## 6. Relationship between module, package, JAR, and project
 
-Trong một dự án nhỏ, có thể sắp xếp:
+In a small project, you might organize things as:
 
 ~~~text
 Maven project: catalog-api
@@ -189,7 +189,7 @@ Maven project: catalog-api
        v
 JAR: catalog-api-1.0.0.jar
        |
-       | chứa module-info.class
+       | contains module-info.class
        v
 Java module: com.example.catalog.api
        |
@@ -198,21 +198,21 @@ Java module: com.example.catalog.api
        +-- package com.example.catalog.internal
 ~~~
 
-Trong ví dụ:
+In the example:
 
-- Maven project chịu trách nhiệm build.
-- JAR là kết quả đóng gói.
-- module-info.class xác định JPMS module.
-- Module sở hữu nhiều package.
-- Có thể export package API mà giữ package internal không export.
+- The Maven project is responsible for building.
+- The JAR is the packaging output.
+- module-info.class defines the JPMS module.
+- The module owns multiple packages.
+- You can export the API package while keeping the internal package unexported.
 
-Nhưng không phải tất cả module đều được phân phối dưới dạng JAR. Java cũng có **exploded module** (thư mục chứa module-info.class và các class), system module trong runtime image và các dạng packaging khác của công cụ JDK.
+However, not all modules are distributed as JARs. Java also has **exploded modules** (directories containing module-info.class and classes), system modules in a runtime image, and other packaging formats used by JDK tools.
 
-Vì vậy, mệnh đề “một module luôn bằng một JAR” là **không chính xác**.
+Therefore, the statement "one module always equals one JAR" is **incorrect**.
 
-## 7. Ví dụ hoàn chỉnh: hai Java module trong hai project
+## 7. Complete example: two Java modules in two projects
 
-Giả sử muốn xây dựng ứng dụng catalog:
+Suppose you want to build a catalog application:
 
 ~~~text
 workspace/
@@ -233,9 +233,9 @@ workspace/
 └── dist/
 ~~~
 
-Đây là cấu trúc source minh họa theo **--module-source-path** của javac. Trong Maven/Gradle, có thể đặt mỗi module trong project riêng, với source nằm dưới **src/main/java** của project tương ứng.
+This is a source layout illustrating javac's **--module-source-path**. In Maven/Gradle, you can place each module in its own project, with sources under **src/main/java** of the corresponding project.
 
-### Module API: module-info.java
+### API module: module-info.java
 
 ~~~java
 module com.example.catalog.api {
@@ -243,9 +243,9 @@ module com.example.catalog.api {
 }
 ~~~
 
-Module export API package nhưng không export implementation package.
+The module exports the API package but does not export the implementation package.
 
-### Interface công khai
+### Public interface
 
 ~~~java
 package com.example.catalog.api;
@@ -255,7 +255,7 @@ public interface ProductCatalog {
 }
 ~~~
 
-### Implementation không export
+### Unexported implementation
 
 ~~~java
 package com.example.catalog.internal;
@@ -265,14 +265,14 @@ import com.example.catalog.api.ProductCatalog;
 public final class MemoryCatalog implements ProductCatalog {
     @Override
     public String titleFor(String sku) {
-        return "Sản phẩm " + sku;
+        return "Product " + sku;
     }
 }
 ~~~
 
-Class **MemoryCatalog** là public để factory của cùng module có thể khởi tạo nó, nhưng package chứa class **không được export**. Một named module khác không thể import class này theo cách thông thường chỉ vì class được khai báo public.
+The **MemoryCatalog** class is public so a factory in the same module can instantiate it, but the package containing the class is **not exported**. Another named module cannot import this class in the ordinary way merely because the class is declared public.
 
-### Factory thuộc API package
+### Factory in the API package
 
 ~~~java
 package com.example.catalog.api;
@@ -289,9 +289,9 @@ public final class Catalogs {
 }
 ~~~
 
-Các module tiêu thụ dùng interface **ProductCatalog** và factory **Catalogs**, không cần biết tên implementation.
+Consuming modules use the **ProductCatalog** interface and the **Catalogs** factory, without needing to know the implementation's name.
 
-### Module ứng dụng
+### Application module
 
 ~~~java
 module com.example.catalog.app {
@@ -315,13 +315,13 @@ public final class Main {
 }
 ~~~
 
-Trong cấu trúc này, app không phụ thuộc trực tiếp vào package implementation. Nếu module API thay MemoryCatalog bằng implementation khác nhưng giữ hợp đồng API, code của app có thể không cần thay đổi.
+In this structure, app does not depend directly on the implementation package. If the API module replaces MemoryCatalog with another implementation while preserving the API contract, app's code may not need any changes.
 
-## 8. Biên dịch các module mà không cần JAR
+## 8. Compiling modules without a JAR
 
-Ngay khi chưa đóng gói, hai module vẫn có thể được biên dịch thành **exploded modules**.
+Even before packaging, both modules can be compiled into **exploded modules**.
 
-Từ thư mục workspace, chạy:
+From the workspace directory, run:
 
 ~~~bash
 javac --module-source-path src \
@@ -329,7 +329,7 @@ javac --module-source-path src \
       -m com.example.catalog.api,com.example.catalog.app
 ~~~
 
-Sau biên dịch:
+After compilation:
 
 ~~~text
 out/
@@ -341,20 +341,20 @@ out/
     └── com/example/catalog/app/Main.class
 ~~~
 
-Chạy trực tiếp:
+Run directly:
 
 ~~~bash
 java --module-path out \
      --module com.example.catalog.app/com.example.catalog.app.Main
 ~~~
 
-Ở đây, **out** chứa các exploded modules và được sử dụng như module path. Không cần tạo JAR trước để những module này được nhận diện.
+Here, **out** contains exploded modules and is used as the module path. There is no need to create JARs first for these modules to be recognized.
 
-Đây là một minh chứng rằng **Java module là khái niệm của JPMS, không phải đồng nghĩa với file JAR**.
+This demonstrates that **a Java module is a JPMS concept, not synonymous with a JAR file**.
 
-## 9. Đóng gói module thành modular JAR
+## 9. Packaging modules into modular JARs
 
-Sau khi compile, có thể đóng gói:
+After compiling, you can package them:
 
 ~~~bash
 mkdir -p dist
@@ -368,28 +368,28 @@ jar --create \
     -C out/com.example.catalog.app .
 ~~~
 
-Hai JAR chứa các class đã biên dịch và module-info.class tương ứng.
+Both JARs contain the compiled classes and the corresponding module-info.class.
 
-Chạy từ JAR:
+Run from JARs:
 
 ~~~bash
 java --module-path dist \
      --module com.example.catalog.app/com.example.catalog.app.Main
 ~~~
 
-Ở thời điểm này:
+At this point:
 
-- Project hoặc source code không còn cần thiết cho JVM.
-- Hai modular JAR là phương tiện phân phối.
-- Java module name vẫn đến từ **module-info.class**.
-- Module graph vẫn được xây dựng dựa trên requires.
-- Module API vẫn chỉ export package được khai báo.
+- The build project or source code is no longer needed by the JVM.
+- The two modular JARs serve as the distribution medium.
+- The Java module name still comes from **module-info.class**.
+- The module graph is still constructed based on requires.
+- The API module still exports only its declared package.
 
-Tên JAR ở đây được chọn cho dễ đọc; về nguyên tắc không bắt buộc trùng với module name.
+The JAR filenames here were chosen for readability; in principle, they do not have to match the module names.
 
-## 10. Maven dependency và JPMS requires là hai quan hệ khác nhau
+## 10. Maven dependencies and JPMS requires are two distinct relationships
 
-Nếu dùng Maven với hai project **catalog-api** và **catalog-app**, POM của app có thể khai báo dependency:
+If using Maven with two projects **catalog-api** and **catalog-app**, the app's POM might declare the dependency:
 
 ~~~xml
 <dependency>
@@ -399,9 +399,9 @@ Nếu dùng Maven với hai project **catalog-api** và **catalog-app**, POM c�
 </dependency>
 ~~~
 
-Maven dependency cho biết app cần artifact **catalog-api** để build.
+The Maven dependency tells Maven that app needs the **catalog-api** artifact to build.
 
-Trong source Java của app:
+In app's Java source:
 
 ~~~java
 module com.example.catalog.app {
@@ -409,23 +409,23 @@ module com.example.catalog.app {
 }
 ~~~
 
-Directive **requires** cho biết named module app đọc named module API.
+The **requires** directive states that the named module app reads the named module API.
 
-Hai khai báo cần nhất quán nhưng **không thay thế nhau**.
+The two declarations need to be consistent, but they **do not replace each other**.
 
-Nếu chỉ có Maven dependency mà không có requires phù hợp, javac có thể báo module app không đọc module API. Nếu chỉ có requires nhưng build không cung cấp artifact, compiler có thể báo **module not found**.
+If only the Maven dependency exists without a matching requires, javac may report that the app module does not read the API module. If only requires exists without the build supplying the artifact, the compiler may report **module not found**.
 
-Tương tự, một Gradle dependency như **implementation(project(":catalog-api"))** xác định dependency của build, không tự biến nó thành directive requires trong module-info.java.
+Similarly, a Gradle dependency like **implementation(project(":catalog-api"))** defines a build dependency; it does not automatically turn into a requires directive in module-info.java.
 
-## 11. Vì sao Java module name không nhất thiết giống tên JAR?
+## 11. Why doesn't a Java module name have to match the JAR name?
 
-Ví dụ file được phát hành tên:
+Suppose the released file is named:
 
 ~~~text
 catalog-api-1.0.0.jar
 ~~~
 
-Nhưng descriptor bên trong là:
+But the descriptor inside is:
 
 ~~~java
 module com.example.catalog.api {
@@ -433,37 +433,37 @@ module com.example.catalog.api {
 }
 ~~~
 
-Tên Java module là **com.example.catalog.api**; tên file JAR chỉ là tên artifact. Đổi tên file JAR không tự đổi tên module đã khai báo.
+The Java module name is **com.example.catalog.api**; the JAR filename is only the artifact name. Renaming the JAR file does not change the declared module name.
 
-Có thể kiểm tra:
+You can check:
 
 ~~~bash
 jar --describe-module --file catalog-api-1.0.0.jar
 ~~~
 
-Lệnh này hữu ích khi đọc tài liệu build hoặc tích hợp thư viện bên thứ ba: đừng viết requires dựa trên giả định rằng artifactId chính là module name.
+This command is useful when reading build documentation or integrating third-party libraries: do not write requires based on the assumption that artifactId is the module name.
 
-Đối với JAR không có descriptor nhưng được đặt trên module path, Java có thể suy ra tên automatic module theo quy tắc riêng hoặc sử dụng manifest **Automatic-Module-Name** nếu có. Đó là cơ chế khác với explicit named module.
+For a JAR without a descriptor placed on the module path, Java can derive an automatic module name using its own rules or use the **Automatic-Module-Name** manifest attribute if present. That is a different mechanism from an explicit named module.
 
-## 12. Named, automatic và unnamed module
+## 12. Named, automatic, and unnamed modules
 
-Ba trường hợp thường gặp:
+Three common cases:
 
-| Trường hợp | Đặc điểm | Ví dụ |
+| Case | Characteristics | Example |
 |---|---|---|
-| Explicit named module | Có module descriptor tường minh | JAR có module-info.class trên module path |
-| Automatic module | JAR chưa modular hóa được đặt trên module path | legacy-util.jar trên module path |
-| Unnamed module | Class được định nghĩa từ classpath | legacy-util.jar trên classpath |
+| Explicit named module | Has an explicit module descriptor | JAR with module-info.class on the module path |
+| Automatic module | Unmodularized JAR placed on the module path | legacy-util.jar on the module path |
+| Unnamed module | Classes defined from the classpath | legacy-util.jar on the classpath |
 
-Ví dụ cùng file JAR cũ:
+Example with the same legacy JAR file:
 
 ~~~bash
 java --class-path libs/legacy-util.jar com.example.Main
 ~~~
 
-Class trong JAR được nạp qua classpath và thuộc unnamed module của class loader liên quan.
+Classes in the JAR are loaded via the classpath and belong to the unnamed module of the associated class loader.
 
-Khi đưa JAR đó lên module path, Java có thể nhận diện nó thành automatic module:
+When that JAR is placed on the module path, Java can recognize it as an automatic module:
 
 ~~~bash
 java --module-path libs \
@@ -472,64 +472,64 @@ java --module-path libs \
      com.example.Main
 ~~~
 
-Tên **legacy.util** chỉ là minh họa; tên automatic module thực tế phải được xác minh bằng công cụ JDK. Automatic module export mọi package của nó và giúp tích hợp thư viện cũ, nhưng không có ranh giới exports chọn lọc như explicit named module.
+The name **legacy.util** is only illustrative; the actual automatic module name must be verified with JDK tools. An automatic module exports all of its packages and aids legacy library integration, but does not offer selective export boundaries like an explicit named module.
 
-Điểm cần nhớ: **JAR là artifact; việc đặt artifact ở classpath hay module path và metadata bên trong sẽ ảnh hưởng cách JPMS nhận diện nó**.
+Key takeaway: **a JAR is an artifact; placing the artifact on the classpath or module path and its internal metadata determine how JPMS perceives it**.
 
-## 13. Package có thể nằm trong nhiều JAR không?
+## 13. Can a package span multiple JARs?
 
-Trong môi trường classpath truyền thống, một package có thể có các class được đóng gói trong nhiều JAR:
+In a traditional classpath environment, a package can have classes packaged across multiple JARs:
 
 ~~~text
 utils-a.jar -> com/example/common/TextUtil.class
 utils-b.jar -> com/example/common/DateUtil.class
 ~~~
 
-Class loader có thể tìm class từ cả hai JAR trong cùng classpath, dù có những rủi ro về duplicate class và phụ thuộc thứ tự tìm kiếm.
+The class loader can find classes from both JARs on the same classpath, despite risks of duplicate classes and search-order dependencies.
 
-Nhưng khi mỗi JAR trở thành **một named module riêng**, cùng package **com.example.common** xuất hiện ở hai module là **split package**.
+However, when each JAR becomes **a separate named module**, having the same **com.example.common** package appear in two modules creates a **split package**.
 
-JPMS áp dụng các ràng buộc về readability, exports và ánh xạ class loader. Split package có thể gây lỗi biên dịch, module resolution hoặc định nghĩa module khi các module liên quan được dùng cùng nhau.
+JPMS enforces constraints on readability, exports, and class loader mapping. Split packages can cause compilation, module resolution, or module definition errors when the involved modules are used together.
 
-Vì vậy, thiết kế module nên có **package ownership rõ ràng**: mỗi package thuộc một module trong cùng bộ module dự kiến hoạt động chung. Không nên coi “đang chạy tốt trên classpath” là bằng chứng rằng JAR đã phù hợp để chuyển sang module path.
+Therefore, module design should maintain **clear package ownership**: each package belongs to one module within the same set of modules intended to work together. Do not treat "runs fine on the classpath" as proof that JARs are ready to move to the module path.
 
-## 14. Một project có thể xuất nhiều JAR không?
+## 14. Can one project output multiple JARs?
 
-Có. Công cụ build có thể tạo nhiều artifact, chẳng hạn:
+Yes. Build tools can produce multiple artifacts, such as:
 
-- JAR chứa class chính.
-- JAR chứa test fixtures.
-- JAR chứa source.
-- JAR chứa Javadoc.
-- JAR có classifier khác phục vụ môi trường riêng.
-- Artifact được shading, đóng gói lại hoặc tạo theo profile.
+- A JAR containing main classes.
+- A JAR containing test fixtures.
+- A JAR containing sources.
+- A JAR containing Javadoc.
+- A JAR with another classifier for a specific environment.
+- Artifacts that are shaded, repackaged, or produced by profiles.
 
-Điều này không đồng nghĩa mỗi JAR đều là một Java module mới. Ví dụ source JAR không phải artifact chạy như named module trong module graph chỉ vì nó có đuôi **.jar**.
+This does not mean each JAR is a new Java module. For example, a source JAR is not an artifact that runs as a named module in the module graph simply because it has the **.jar** extension.
 
-Ngược lại, một Java module có thể được định nghĩa từ một thư mục exploded module thay vì một file JAR.
+Conversely, a Java module can be defined from an exploded module directory instead of a JAR file.
 
-Khi thiết kế build, cần phân biệt rõ **artifact đầu ra nào thực sự được đưa lên module path của runtime**.
+When designing a build, clearly distinguish **which output artifacts are actually placed onto the runtime module path**.
 
-## 15. Một project build có thể chứa nhiều Java module không?
+## 15. Can one build project contain multiple Java modules?
 
-Về mặt kỹ thuật, công cụ build có thể được cấu hình để quản lý và biên dịch nhiều Java module từ một tập source. **javac** có hỗ trợ **--module-source-path** và **-m** để biên dịch nhiều named module.
+Technically, build tools can be configured to manage and compile multiple Java modules from one set of sources. **javac** supports **--module-source-path** and **-m** to compile multiple named modules.
 
-Ví dụ minh họa ở trên đặt hai module dưới một thư mục **src** rồi biên dịch cùng một lệnh. Điều đó không yêu cầu phải có hai Maven project.
+The illustrative example above placed two modules under one **src** directory and compiled them in a single command. That did not require two Maven projects.
 
-Tuy nhiên, trong Maven/Gradle thông thường, mô hình dễ quản lý thường là **một project con cho mỗi modular JAR chính**, để dependency, test, packaging và publish được tổ chức rõ ràng.
+However, in typical Maven/Gradle setups, the easier-to-manage model is usually **one subproject per main modular JAR**, so dependencies, tests, packaging, and publishing stay clearly organized.
 
-Vì vậy:
+Therefore:
 
-- “Một build project = một Java module” là **quy ước kiến trúc phổ biến**.
-- “Một build project bắt buộc bằng một Java module” là **không đúng về mặt khái niệm**.
+- "One build project = one Java module" is a **common architectural convention**.
+- "One build project must equal one Java module" is **conceptually incorrect**.
 
-Hãy chọn cách tổ chức phù hợp với nhu cầu build và phiên bản công cụ, không dùng một quy ước như định nghĩa của JPMS.
+Choose an organization that fits your build needs and tool versions, rather than treating a convention as the definition of JPMS.
 
-## 16. Module boundary khác package boundary
+## 16. Module boundary vs. package boundary
 
-Package cung cấp mức truy cập **package-private** trong ngôn ngữ Java. Các kiểu và member không có modifier public/protected/private có thể được truy cập trong phạm vi package theo quy tắc Java.
+Packages provide the **package-private** access level in the Java language. Types and members without public/protected/private modifiers can be accessed within package scope according to Java rules.
 
-JPMS bổ sung cấp độ lớn hơn:
+JPMS adds a coarser level:
 
 ~~~text
 com.example.catalog.api module
@@ -540,7 +540,7 @@ com.example.catalog.api module
     └── MemoryCatalog
 ~~~
 
-Trong module descriptor:
+In the module descriptor:
 
 ~~~java
 module com.example.catalog.api {
@@ -548,19 +548,19 @@ module com.example.catalog.api {
 }
 ~~~
 
-Nếu code trong module app cố import:
+If code in the app module attempts to import:
 
 ~~~java
 import com.example.catalog.internal.MemoryCatalog;
 ~~~
 
-javac không cho phép truy cập theo cách thông thường vì package internal không được export, dù class có modifier public.
+javac forbids ordinary access because the internal package is not exported, even though the class has the public modifier.
 
-JPMS vì thế cho phép module **công khai API của một số package và giữ implementation package nội bộ**. Chỉ đặt package tên “internal” hoặc chỉ tách thư mục build chưa tạo được ranh giới kiểu này.
+JPMS thus lets a module **expose the API of certain packages and keep implementation packages internal**. Merely naming a package "internal" or separating build directories does not create this kind of boundary.
 
-## 17. requires, exports, opens và uses/provides thuộc cấp độ nào?
+## 17. At what level do requires, exports, opens, and uses/provides belong?
 
-Các directive sau nằm trong **module descriptor**:
+The following directives live in the **module descriptor**:
 
 ~~~java
 module com.example.app {
@@ -574,7 +574,7 @@ module com.example.catalog.api {
 }
 ~~~
 
-Một module dùng framework reflection có thể mở package:
+A module using a reflection-based framework can open a package:
 
 ~~~java
 module com.example.model {
@@ -583,7 +583,7 @@ module com.example.model {
 }
 ~~~
 
-Đối với service providers:
+For service providers:
 
 ~~~java
 module com.example.app {
@@ -601,94 +601,94 @@ module com.example.catalog.memory {
 }
 ~~~
 
-Vai trò từng directive:
+Role of each directive:
 
-- **requires** tạo dependency đọc module.
-- **exports** chỉ định package được công khai cho các module khác.
-- **opens** phục vụ deep reflection ở runtime.
-- **uses** công bố service mà module tiêu thụ.
-- **provides ... with ...** đăng ký provider cho service.
+- **requires** establishes a module readability dependency.
+- **exports** specifies packages exposed to other modules.
+- **opens** serves deep reflection at runtime.
+- **uses** declares a service consumed by the module.
+- **provides ... with ...** registers a provider for a service.
 
-Những thông tin này **không nằm trong khai báo package của từng class**, cũng không tự xuất hiện chỉ vì một Maven dependency được thêm vào POM.
+This information **does not live in the package declaration of individual classes**, nor does it appear automatically just because a Maven dependency is added to a POM.
 
-## 18. Các trường hợp dễ nhầm trong thực tế
+## 18. Common real-world misconceptions
 
-**“Tôi đã tạo package mới, vậy là có module mới.”**
+**"I created a new package, so I have a new module."**
 
-Sai. Package mới chỉ tổ chức thêm các kiểu. Muốn có named module riêng, cần cấu hình module độc lập tương ứng.
+False. A new package only further organizes types. To have a separate named module, you need a corresponding standalone module configuration.
 
-**“Tôi tách project Maven, vậy là hai JPMS modules.”**
+**"I split the Maven project, so that's two JPMS modules."**
 
-Chưa chắc. Hai project có thể chỉ tạo các JAR không có module descriptor và chạy trên classpath.
+Not necessarily. Two projects might just produce JARs without module descriptors and run on the classpath.
 
-**“JAR này là module vì có đuôi .jar.”**
+**"This JAR is a module because it ends in .jar."**
 
-Chưa chính xác. JAR có thể là modular JAR, automatic module khi ở module path, hoặc chỉ là classpath artifact.
+Inaccurate. A JAR may be a modular JAR, an automatic module when on the module path, or merely a classpath artifact.
 
-**“Một module chỉ được chứa một package.”**
+**"A module can only contain one package."**
 
-Sai. Một named module có thể sở hữu nhiều package, kể cả package không được export.
+False. A named module can own multiple packages, including unexported packages.
 
-**“Tất cả public class trong module đều truy cập được từ module khác.”**
+**"All public classes in a module are accessible from other modules."**
 
-Sai. Một kiểu public trong package không export không tự trở thành public API ở ranh giới module.
+False. A public type in an unexported package does not automatically become public API across the module boundary.
 
-**“Tên module phải bằng Maven artifactId.”**
+**"The module name must match the Maven artifactId."**
 
-Sai. Tên module explicit đến từ module-info.java; Maven coordinate là tên artifact của build system.
+False. An explicit module name comes from module-info.java; Maven coordinates identify the artifact for the build system.
 
-**“Classpath và module path chỉ khác tên tham số.”**
+**"Classpath and module path only differ in flag names."**
 
-Sai. Module path tham gia module resolution và áp dụng quy tắc của JPMS. Classpath truyền thống không tạo những named module boundary tương tự.
+False. The module path participates in module resolution and enforces JPMS rules. The traditional classpath does not create equivalent named module boundaries.
 
-**“module-info.java luôn là một file đóng gói độc lập.”**
+**"module-info.java is always a standalone packaged file."**
 
-Sai. Module descriptor được biên dịch thành module-info.class và thường nằm trong exploded module hoặc modular JAR.
+False. The module descriptor is compiled into module-info.class and typically lives inside an exploded module or modular JAR.
 
-## 19. Cách chọn ranh giới module khi thiết kế dự án
+## 19. How to choose module boundaries when designing a project
 
-Nên cân nhắc Java module khi muốn xác định:
+Consider Java modules when you want to define:
 
-1. Những API nào được các phần khác của hệ thống sử dụng.
-2. Những package nào cần giữ implementation riêng.
-3. Dependency giữa các thành phần lớn có hướng và được khai báo rõ.
-4. Tính năng có thể phát hành hoặc kiểm thử như một khối.
-5. Service interface và provider nào cần kết nối giữa các module.
-6. Những phần code nào có thể thay đổi implementation mà không làm gãy consumer.
+1. Which APIs are used by other parts of the system.
+2. Which packages need to keep their implementations private.
+3. Directional and explicitly declared dependencies between major components.
+4. Features that can be released or tested as a cohesive unit.
+5. Which service interfaces and providers need to connect across modules.
+6. Which parts of code can change implementation without breaking consumers.
 
-Đừng tách một module mới chỉ vì package có nhiều class. Việc tách module kéo theo descriptor, module path, dependency graph, kiểm thử và packaging.
+Do not split out a new module merely because a package has many classes. Splitting a module brings descriptors, module paths, dependency graphs, testing, and packaging overhead.
 
-Một module quá nhỏ có thể làm tăng số lượng dependency và phức tạp hóa build. Một module quá lớn có thể export nhiều package không cần thiết và khó giữ encapsulation. Ranh giới tốt thường đi theo **trách nhiệm và hợp đồng API ổn định**, không chỉ theo số lượng file.
+Too small a module can inflate the number of dependencies and complicate builds. Too large a module can export too many unnecessary packages and make encapsulation hard to maintain. Good boundaries usually follow **responsibilities and stable API contracts**, not file counts.
 
-## 20. Checklist khi thấy cấu trúc dự án Java
+## 20. Checklist when inspecting a Java project structure
 
-Khi tiếp nhận một repository, hãy trả lời theo thứ tự:
+When taking over a repository, answer in order:
 
-1. **Đâu là project build?** Tìm pom.xml, build.gradle hoặc build.gradle.kts.
-2. **Project build tạo artifact nào?** Xác định JAR và output thực tế.
-3. **Artifact có module-info.class không?** Dùng jar --list hoặc jar --describe-module.
-4. **Tên Java module là gì?** Đọc module-info.java hoặc descriptor trong JAR.
-5. **Module sở hữu package nào?** Xem source và package trong descriptor.
-6. **Package nào được export/open?** Không suy luận từ modifier public.
-7. **Module đọc module khác bằng requires nào?** Đối chiếu Maven/Gradle dependency.
-8. **Ứng dụng chạy bằng classpath hay module path?** Xem launcher/script thực tế.
-9. **Có automatic hoặc unnamed module không?** Kiểm tra dependency chưa modular hóa.
-10. **Có split package không?** Tránh cùng package tồn tại ở nhiều named modules dùng chung.
+1. **Where are the build projects?** Find pom.xml, build.gradle, or build.gradle.kts.
+2. **Which artifacts do the build projects produce?** Identify the actual JARs and outputs.
+3. **Does the artifact have module-info.class?** Use jar --list or jar --describe-module.
+4. **What is the Java module name?** Read module-info.java or the descriptor inside the JAR.
+5. **Which packages does the module own?** Inspect sources and packages in the descriptor.
+6. **Which packages are exported/opened?** Do not infer from the public modifier.
+7. **Which other modules does the module read via requires?** Cross-check with Maven/Gradle dependencies.
+8. **Does the application run via classpath or module path?** Check the actual launcher/scripts.
+9. **Are there automatic or unnamed modules?** Check unmodularized dependencies.
+10. **Are there split packages?** Avoid the same package existing in multiple co-used named modules.
 
-Một dự án có thể có POM hoàn toàn hợp lệ nhưng module graph không hợp lệ, hoặc module graph hợp lệ nhưng script runtime không cung cấp đủ JAR. Vì vậy, cần kiểm tra cả **build model** và **runtime module model**.
+A project can have a completely valid POM yet an invalid module graph, or a valid module graph yet a runtime script that fails to supply all required JARs. Thus, both the **build model** and the **runtime module model** must be verified.
 
-## 21. Ghi nhớ
+## 21. Key takeaways
 
-- **Package** tổ chức kiểu Java trong namespace; nó không phải đơn vị build hoặc artifact.
-- **JAR** là archive đóng gói code/resource; nó có thể chứa module descriptor nhưng không phải JAR nào cũng là explicit named module.
-- **Project build** là đơn vị của Maven/Gradle, quản lý source, dependency, task và artifact.
-- **Java module** là đơn vị của JPMS, có module name, package ownership và các khai báo requires/exports/opens/uses/provides.
-- Một Java module có thể chứa nhiều package.
-- Một Java module có thể tồn tại dưới dạng exploded module, không bắt buộc phải là JAR.
-- Một Maven project có thể tạo modular JAR nhưng project name và module name không buộc phải trùng.
-- **pom.xml dependency** khác với directive **requires**.
-- **public** không vượt qua được ranh giới package chưa export của named module.
-- JAR trên classpath thường thuộc unnamed module; JAR không có descriptor trên module path có thể trở thành automatic module.
-- Tách một package giữa nhiều module có thể gây split package; tách một project build chưa chắc tạo JPMS boundary.
+- **Package** organizes Java types into namespaces; it is not a build unit or artifact.
+- **JAR** is an archive packaging code/resources; it can contain a module descriptor, but not every JAR is an explicit named module.
+- **Build project** is a Maven/Gradle unit managing sources, dependencies, tasks, and artifacts.
+- **Java module** is a JPMS unit with a module name, package ownership, and requires/exports/opens/uses/provides declarations.
+- One Java module can contain multiple packages.
+- One Java module can exist as an exploded module; it does not have to be a JAR.
+- One Maven project can produce a modular JAR, and the project name and module name do not have to match.
+- A **pom.xml dependency** differs from a **requires** directive.
+- **public** does not cross an unexported package boundary of a named module.
+- JARs on the classpath typically belong to the unnamed module; JARs without descriptors on the module path can become automatic modules.
+- Splitting a package across multiple modules can cause split packages; splitting a build project does not guarantee creating a JPMS boundary.
 
-**Kết luận:** package trả lời câu hỏi “kiểu này thuộc namespace nào?”, JAR trả lời “code được đóng gói trong file nào?”, project build trả lời “artifact được xây dựng thế nào?”, còn Java module trả lời “thành phần này đọc module nào và công khai package nào?”. Phân biệt đúng bốn tầng này là nền tảng để hiểu module path, module graph và thiết kế encapsulation trong Java hiện đại.
+**Conclusion:** a package answers "which namespace does this type belong to?", a JAR answers "which file is the code packaged in?", a build project answers "how is the artifact built?", and a Java module answers "which modules does this component read and which packages does it expose?". Properly distinguishing these four layers is the foundation for understanding the module path, module graph, and encapsulation design in modern Java.

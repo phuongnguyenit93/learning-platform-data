@@ -1,39 +1,39 @@
-# Kiểm tra quyền và giới hạn dữ liệu đầu vào khi chọn lớp hoặc phương thức bằng Java Reflection
+# Authorization Checks and Input Constraints When Selecting Classes or Methods via Java Reflection
 
-## 1. Vấn đề: reflection biến tên thành hành vi thực thi
+## 1. The Problem: Reflection Turns Names into Executable Behavior
 
-Reflection cho phép chương trình tìm `Class`, `Method`, `Field` hoặc `Constructor` lúc chạy. Nếu tên lớp/phương thức, kiểu tham số hoặc đối tượng đích được chọn **trực tiếp từ request, JSON, query parameter, header, cấu hình bên ngoài hoặc thông điệp hàng đợi**, ứng dụng có thể vô tình tạo một cơ chế **gọi chức năng tùy ý**.
+Reflection lets a program look up `Class`, `Method`, `Field`, or `Constructor` at runtime. If class/method names, parameter types, or target objects are chosen **directly from a request, JSON, query parameter, header, external configuration, or queue message**, the application can inadvertently create a mechanism for **invoking arbitrary functionality**.
 
-Ví dụ nguy hiểm về mặt thiết kế, **chỉ để phân tích, không dùng trong ứng dụng**:
+A dangerous design example, **solely for analysis—do not use in applications**:
 
 ~~~java
-// Ví dụ KHÔNG AN TOÀN. Đây là đoạn trích, không phải chương trình độc lập.
+// UNSAFE example. This is an excerpt, not a standalone program.
 Class<?> clazz = Class.forName(requestedClassName);
 Object object = clazz.getDeclaredConstructor().newInstance();
 Method method = clazz.getMethod(requestedMethodName, String.class);
 Object result = method.invoke(object, requestedArgument);
 ~~~
 
-Các tên `requestedClassName` và `requestedMethodName` ở đây không được phép do client tùy ý quyết định. Nếu phần mềm chứa nhiều lớp có tác động đến dữ liệu, quyền của người dùng chỉ nên cho phép gọi một tập tác vụ hẹp; đoạn code trên không áp đặt ranh giới đó.
+Here, `requestedClassName` and `requestedMethodName` must not be arbitrarily decided by the client. If software contains many classes affecting data, a user's permissions should allow calling only a narrow set of tasks; the snippet above imposes no such boundary.
 
-**Mục tiêu bảo vệ:** người gọi chỉ được lựa chọn **hành động đã được công bố**, trên **tài nguyên mà họ có quyền**, với **đối số đã được kiểm tra**, thông qua **receiver và Method do mã đáng tin cậy kiểm soát**.
+**Protection goal:** callers may select only **published actions**, on **resources they are authorized for**, with **validated arguments**, through **receivers and Methods controlled by trusted code**.
 
-Một quy tắc quan trọng: **`public` trong Java không có nghĩa “user hiện tại được phép gọi qua API”**. Tương tự, `setAccessible(true)` có liên quan đến kiểm tra truy cập của reflection và giới hạn module, **không hề thực hiện kiểm tra quyền nghiệp vụ**.
+An important rule: **`public` in Java does not mean "the current user is allowed to call it via an API"**. Likewise, `setAccessible(true)` relates to reflection access checks and module boundaries; **it performs no business authorization checks whatsoever**.
 
-## 2. Threat model: phân biệt bốn nguồn dữ liệu
+## 2. Threat Model: Distinguishing Four Data Sources
 
-| Thành phần | Nguồn an toàn mong đợi | Rủi ro nếu để client kiểm soát |
+| Component | Expected trusted source | Risk if client-controlled |
 | --- | --- | --- |
-| **Danh tính và vai trò** | Bối cảnh xác thực đã được server kiểm tra, token được xác minh chữ ký/hiệu lực, session hợp lệ | Client tự khai là `ADMIN`, giả mạo tenant hoặc principal |
-| **Tên thao tác** | Key ngắn trong allowlist do server định nghĩa, ví dụ `profile.read` | Gọi method nội bộ như `resetAll` hoặc chọn class ngoài ý định |
-| **Receiver/Method** | Instance/Method được server resolve, đăng ký và cache trước | Tự chọn một class hoặc method bất kỳ; tạo object ngoài phạm vi |
-| **Đối số nghiệp vụ** | Chuỗi/ID/schema đã parse, validate và được kiểm tra quyền sở hữu | IDOR/BOLA, vượt phạm vi tenant, payload quá lớn, chuyển đổi kiểu sai |
+| **Identity and role** | Server-verified authentication context, signature/validity-verified token, valid session | Client claims to be `ADMIN`, spoofs tenant or principal |
+| **Operation name** | Short key in a server-defined allowlist, e.g. `profile.read` | Invoking internal methods like `resetAll` or picking unintended classes |
+| **Receiver/Method** | Instance/Method pre-resolved, registered, and cached by the server | Arbitrarily choosing a class or method; instantiating out-of-scope objects |
+| **Business arguments** | Strings/IDs/schemas parsed, validated, and ownership-checked | IDOR/BOLA, cross-tenant access, oversized payloads, wrong type conversions |
 
-*Authentication* trả lời “caller là ai?”. *Authorization* trả lời “caller có quyền thực hiện **hành động này trên tài nguyên này** không?”. *Input validation* trả lời “dữ liệu có đúng kiểu, đúng dạng, đúng giới hạn không?”. Ba bước phải được thực hiện **độc lập**; một bước không thay thế được bước còn lại.
+*Authentication* answers "who is the caller?". *Authorization* answers "is the caller allowed to perform **this action on this resource**?". *Input validation* answers "does the data have the right type, format, and bounds?". All three steps must be executed **independently**; one step cannot replace another.
 
-Ví dụ user có quyền đọc profile của chính mình nhưng **không mặc nhiên** có quyền đọc profile của người khác; admin có thể được cho phép một số thao tác đặc quyền, nhưng mỗi thao tác vẫn cần policy cụ thể. Trong hệ thống đa tenant, kiểm tra tenant của đối tượng đích còn quan trọng hơn chỉ kiểm tra tên method.
+For example, a user may be allowed to read their own profile but is **not by default** allowed to read someone else's profile; an admin may be allowed certain privileged actions, yet each action still needs a specific policy. In multi-tenant systems, checking the target object's tenant matters even more than checking only the method name.
 
-## 3. Kiến trúc nên dùng: allowlist hành động, không mở reflection theo tên tùy ý
+## 3. Recommended Architecture: Action Allowlist Instead of Arbitrary Name-Based Reflection
 
 ~~~text
 Client:
@@ -41,39 +41,39 @@ Client:
   userId = "U-0001"
       |
       v
-[1] Lấy danh tính từ phiên/token đã xác thực trên server
+[1] Obtain identity from server-authenticated session/token
       |
       v
-[2] Tra action trong allowlist cố định
+[2] Look up action in fixed allowlist
     "profile.read" -> ProfileService.read(String)
     "account.lock" -> AdminService.lock(String)
       |
       v
-[3] Validate input: kiểu, độ dài, pattern, số phần tử...
+[3] Validate input: type, length, pattern, element count...
       |
       v
-[4] Authorization: role + quyền trên tài nguyên/tenant
+[4] Authorization: role + permissions on resource/tenant
       |
       v
-[5] Invoke đúng Method/receiver server đã đăng ký
+[5] Invoke exact server-registered Method/receiver
       |
       v
-[6] Trả kết quả công khai phù hợp; log/audit có kiểm soát
+[6] Return appropriate public result; controlled logging/auditing
 ~~~
 
-Không đưa tên class đầy đủ `com.company.AdminService` hay chữ ký tùy ý của Java vào giao diện request. Hãy map một mã hành động ổn định sang receiver và method **do server sở hữu**:
+Do not expose full class names like `com.company.AdminService` or arbitrary Java signatures in the request interface. Map a stable action code to a **server-owned** receiver and method:
 
-- Allowlist cần **tường minh**: ví dụ `"profile.read"` và `"account.lock"`, không quét toàn bộ method `public` rồi tự coi tất cả được phép.
-- Cố định signature: `getMethod("read", String.class)` khác `getMethod("read", Object.class)` và khác các overload còn lại.
-- Bind **chính sách bảo mật vào route đã đăng ký**; không chỉ kiểm tra tên request rồi chọn `Method` khác sau đó.
-- Không có route khớp thì **deny by default**. Đừng fallback sang `Class.forName(userInput)` hay `getDeclaredMethod(userInput)`.
-- Nếu không cần reflection, lời gọi Java trực tiếp hoặc router kiểu interface/strategy thường dễ audit và an toàn hơn. Reflection không phải bắt buộc để làm dispatch động.
+- The allowlist must be **explicit**: for example `"profile.read"` and `"account.lock"`, not scanning all `public` methods and assuming all are allowed.
+- Fix signatures: `getMethod("read", String.class)` differs from `getMethod("read", Object.class)` and other overloads.
+- Bind the **security policy to the registered route**; do not merely validate a request name and then pick a different `Method` afterward.
+- If no route matches, **deny by default**. Do not fall back to `Class.forName(userInput)` or `getDeclaredMethod(userInput)`.
+- If reflection is unnecessary, direct Java calls or an interface/strategy router are usually easier to audit and safer. Reflection is not mandatory for dynamic dispatch.
 
-## 4. Chương trình Java 17+ đầy đủ: chọn phương thức an toàn
+## 4. Complete Java 17+ Program: Safe Method Selection
 
-Ví dụ tối giản minh họa: hai hành động được công khai, actor có `USER` hoặc `ADMIN`, quyền đọc profile **của chính mình** hoặc của admin, còn khóa tài khoản chỉ admin được phép. Các dịch vụ trong demo trả chuỗi, **không thực sự truy cập hay thay đổi tài khoản**.
+A minimal illustrative example: two actions are exposed, actors hold `USER` or `ADMIN`, reading a profile is permitted **for oneself** or an admin, while locking an account is allowed only for admins. Services in the demo return strings and **do not actually access or modify accounts**.
 
-Lưu thành **`SafeReflectionRouterDemo.java`**:
+Save as **`SafeReflectionRouterDemo.java`**:
 
 ~~~java
 import java.lang.reflect.InvocationTargetException;
@@ -85,7 +85,7 @@ public class SafeReflectionRouterDemo {
     enum Role { USER, ADMIN }
     enum Policy { SELF_OR_ADMIN, ADMIN_ONLY }
 
-    // Actor chỉ được tạo từ bối cảnh xác thực đáng tin cậy trên server.
+    // Actor is created only from a trusted server-side authentication context.
     record Actor(String userId, Role role) {}
 
     record Route(Object receiver, Method method, Policy policy) {}
@@ -102,10 +102,10 @@ public class SafeReflectionRouterDemo {
         }
     }
 
-    // Mã tài nguyên là ASCII cố định, không nhận đường dẫn hoặc class name.
+    // Resource ID is fixed ASCII; does not accept paths or class names.
     private static final Pattern USER_ID = Pattern.compile("U-[0-9]{4}");
 
-    // Method/receiver được resolve từ hằng số tin cậy, duy nhất một lần.
+    // Method/receiver are resolved from trusted constants once.
     private static final Map<String, Route> ROUTES = buildRoutes();
 
     private static Map<String, Route> buildRoutes() {
@@ -131,7 +131,7 @@ public class SafeReflectionRouterDemo {
     }
 
     static String dispatch(Actor actor, String action, String targetId) {
-        // Mã action không phải tên class hoặc tên method Java.
+        // Action code is neither a Java class name nor a method name.
         if (action == null || action.length() > 40) {
             throw new IllegalArgumentException("UNSUPPORTED_ACTION");
         }
@@ -145,7 +145,7 @@ public class SafeReflectionRouterDemo {
             throw new IllegalArgumentException("INVALID_ID");
         }
 
-        // Danh tính phải đến từ hệ thống auth, không phải JSON request.
+        // Identity must come from the auth system, not the JSON request.
         if (actor == null || actor.role() == null) {
             throw new SecurityException("DENIED");
         }
@@ -166,7 +166,7 @@ public class SafeReflectionRouterDemo {
         } catch (IllegalAccessException ex) {
             throw new IllegalStateException("SERVER_CONFIGURATION_ERROR", ex);
         } catch (InvocationTargetException ex) {
-            // Không trả stack trace hay nội dung exception đích cho client.
+            // Do not return stack traces or target exception details to the client.
             throw new IllegalStateException("OPERATION_FAILED");
         }
     }
@@ -194,14 +194,14 @@ public class SafeReflectionRouterDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 SafeReflectionRouterDemo.java
 java SafeReflectionRouterDemo
 ~~~
 
-Output kỳ vọng:
+Expected output:
 
 ~~~text
 profile.read -> profile:U-0001
@@ -212,119 +212,119 @@ java.lang.Runtime.exec -> UNSUPPORTED_ACTION
 profile.read -> INVALID_ID
 ~~~
 
-### Vì sao ví dụ này an toàn hơn cách chọn class/method tùy ý?
+### Why Is This Example Safer Than Arbitrary Class/Method Selection?
 
-1. **Client chọn key, không chọn Class.** `"java.lang.Runtime.exec"` không phải key được đăng ký nên bị từ chối; không có lệnh `Class.forName(action)`.
-2. **Receiver và Method cố định.** `ProfileService.class.getMethod(...)` và `AdminService.class.getMethod(...)` chỉ thực thi trên hằng số của server lúc khởi tạo. Không có wildcard như “mọi public method của một class”.
-3. **Policy gắn với Route.** `profile.read` chỉ chấp nhận chính chủ hoặc admin; `account.lock` chỉ chấp nhận admin. Việc có tên action hợp lệ **chưa đủ** để được phép thực thi.
-4. **Đối số được giới hạn.** `U-[0-9]{4}` là ví dụ về ID hợp lệ có đúng 6 ký tự. Chuỗi giống đường dẫn bị từ chối; regex dùng `matches()` nên phải khớp **toàn bộ** giá trị, không chỉ khớp một phần.
-5. **Mọi request vẫn được authorize.** Cache `Method` chỉ để tránh lookup lặp lại; **không cache một kết quả “đã được phép” để dùng cho người gọi khác**.
-6. **Không tăng quyền truy cập reflection.** Ví dụ chỉ dùng phương thức `public` được đăng ký. Nó không gọi `setAccessible(true)` hay `trySetAccessible()` để mở các member riêng tư.
+1. **Clients choose a key, not a Class.** `"java.lang.Runtime.exec"` is not a registered key so it is rejected; there is no `Class.forName(action)` call.
+2. **Receivers and Methods are fixed.** `ProfileService.class.getMethod(...)` and `AdminService.class.getMethod(...)` execute only on server constants resolved at startup. There is no wildcard like "every public method of a class".
+3. **Policies are bound to Routes.** `profile.read` accepts only the owner or an admin; `account.lock` accepts only an admin. Having a valid action name **is not enough** to be permitted to execute.
+4. **Arguments are constrained.** `U-[0-9]{4}` is an example of a valid ID with exactly 6 characters. Path-like strings are rejected; the regex uses `matches()`, so it must match the **entire** value rather than a partial match.
+5. **Every request is still authorized.** Caching `Method` only avoids repeated lookups; **never cache an "allowed" result to reuse for other callers**.
+6. **No elevation of reflection access.** The example uses only registered `public` methods. It does not call `setAccessible(true)` or `trySetAccessible()` to open private members.
 
-**Giới hạn của demo:** `Actor` được tạo trực tiếp trong `main` để mô phỏng môi trường đã xác thực. Trong dịch vụ thật, **không được** dựng `Actor(userId, role)` từ hai trường client tự cung cấp. Phải dùng identity/claims đã được xác minh ở lớp auth, đồng thời kiểm tra đối tượng đích qua database/service theo tenant và quyền sở hữu. `ProfileService` và `AdminService` trong ví dụ chỉ trả chuỗi nên chưa biểu diễn kiểm tra dữ liệu thật, transaction, audit hoặc rate limit.
+**Limitations of the demo:** `Actor` is constructed directly in `main` to simulate an authenticated context. In a real service, **never** construct `Actor(userId, role)` from two client-supplied fields. Use verified identity/claims from the auth layer, and check the target object via database/service by tenant and ownership. `ProfileService` and `AdminService` in the example only return strings and thus do not represent real data validation, transactions, auditing, or rate limiting.
 
-## 5. Các lớp kiểm tra phải có trong production
+## 5. Verification Layers Required in Production
 
-### 5.1. Authentication: caller lấy quyền từ đâu?
+### 5.1. Authentication: Where Do Caller Privileges Come From?
 
-- Server xác thực session hoặc token: chữ ký, issuer, audience, thời hạn, thu hồi khi hệ thống có cơ chế đó.
-- Identity, role và tenant không được quyết định chỉ bằng `request.getParameter("role")` hoặc một JSON field.
-- Khi service gọi service, cần phân biệt danh tính người dùng cuối và danh tính máy; service account không tự động được phép thay người dùng thực hiện mọi thao tác.
-- Request thiếu hoặc không hợp lệ phải fail closed trước khi gọi member tác động tới dữ liệu.
+- The server validates the session or token: signature, issuer, audience, expiration, and revocation when the system supports it.
+- Identity, role, and tenant must never be determined merely by `request.getParameter("role")` or a JSON field.
+- In service-to-service calls, distinguish end-user identity from machine identity; a service account is not automatically permitted to perform every operation on behalf of users.
+- Missing or invalid requests must fail closed before invoking members that affect data.
 
-### 5.2. Authorization: kiểm tra cả thao tác lẫn tài nguyên
+### 5.2. Authorization: Check Both Operation and Resource
 
-| Câu hỏi | Ví dụ |
+| Question | Example |
 | --- | --- |
-| Caller có quyền gọi action không? | User thường không được gọi `account.lock` |
-| Caller có quyền trên **đối tượng này** không? | Được `profile.read` nhưng chỉ với profile thuộc phạm vi được cấp |
-| Tài nguyên có thuộc đúng tenant/organization không? | Không đọc tài khoản tenant khác dù ID đúng format |
-| Trạng thái tài nguyên có cho phép thao tác không? | Tài khoản đã khóa hoặc đã xóa cần được xử lý theo state machine |
-| Có cần kiểm tra lại ngay trước thay đổi không? | Tránh TOCTOU khi quyền hoặc trạng thái dữ liệu có thể thay đổi |
-| Ai ghi nhận việc thay đổi? | Audit actor, action, resource ID, outcome; loại bỏ dữ liệu bí mật |
+| Is the caller allowed to invoke the action? | Regular users cannot invoke `account.lock` |
+| Does the caller have rights on **this object**? | Permitted for `profile.read`, but only for profiles within granted scope |
+| Does the resource belong to the right tenant/organization? | Do not read another tenant's account even if the ID format matches |
+| Does the resource state permit the operation? | Locked or deleted accounts must be handled per state machine |
+| Must rights be rechecked right before mutation? | Avoid TOCTOU when permissions or data state can change |
+| Who records the change? | Audit actor, action, resource ID, outcome; strip secret data |
 
-**ID có regex hợp lệ không phải bằng chứng sở hữu.** Ví dụ chỉ minh họa self-or-admin; trong ứng dụng thật, object-level authorization phải thực hiện theo dữ liệu đáng tin cậy. Với multi-tenant, có thể truy vấn tài nguyên bằng **cặp** `(tenantId, resourceId)` rồi kiểm tra quyền trước khi xử lý. Tầng service/domain nên có kiểm tra quyền tương ứng để không bị vượt qua nếu bị gọi từ con đường khác ngoài HTTP router.
+**An ID matching a regex is not proof of ownership.** The example illustrates only self-or-admin; in real applications, object-level authorization must be enforced against trusted data. In multi-tenant systems, you can query resources using the **pair** `(tenantId, resourceId)` and verify permissions before processing. The service/domain layer should enforce corresponding permission checks so they cannot be bypassed if invoked outside the HTTP router.
 
-### 5.3. Input validation: giới hạn chi phí và bề mặt tấn công
+### 5.3. Input Validation: Limit Cost and Attack Surface
 
-Không chỉ kiểm tra tên class/method. Mọi đối số truyền vào reflection cũng là dữ liệu đầu vào:
+Do not validate only class/method names. Every argument passed to reflection is also input data:
 
-- **Allowlist hành động:** chỉ các key đã đăng ký. Giới hạn độ dài, mã hóa và dạng thức; không nhận tên lớp fully qualified tùy ý.
-- **Arity và type:** `Method` được chọn phải có đúng chữ ký đăng ký; parse JSON thành DTO/schema cố định trước khi invoke. Không cho client truyền tên các kiểu trong mảng `Class<?>[]` để tự chọn overload.
-- **Chuỗi, ID và path:** giới hạn độ dài và tập ký tự; khi cần đường dẫn, chuẩn hóa và kiểm tra path trong root được phép **sau khi resolve**, tránh traversal và symlink ngoài phạm vi.
-- **Kích thước và độ sâu:** giới hạn request body, số lượng phần tử collection, nesting depth, số lần gọi, timeout/rate limit. Một action được phép vẫn có thể gây resource exhaustion nếu payload không có trần.
-- **Kiểu số và enum:** giới hạn min/max, overflow và giá trị hợp lệ; không dựa vào `Method.invoke` tự bắt mọi lỗi nghiệp vụ.
-- **Output:** lọc trường dữ liệu được phép trả về, không serialise toàn bộ object nội bộ hay exception/stacktrace.
-- **Ghi log:** không log password, token, PII nhạy cảm hoặc toàn bộ `args`. Có thể log action key, correlation ID và quyết định cấp quyền.
+- **Action allowlist:** only registered keys. Constrain length, encoding, and format; do not accept arbitrary fully qualified class names.
+- **Arity and types:** the selected `Method` must match the exact registered signature; parse JSON into fixed DTOs/schemas before invoking. Do not let clients pass type names in a `Class<?>[]` array to pick overloads themselves.
+- **Strings, IDs, and paths:** constrain length and character sets; when paths are needed, canonicalize and verify paths remain inside an allowed root **after resolution**, preventing traversal and out-of-scope symlinks.
+- **Size and depth:** limit request body size, collection element count, nesting depth, call count, and timeouts/rate limits. Even an allowed action can cause resource exhaustion if payloads are uncapped.
+- **Numeric types and enums:** check min/max bounds, overflow, and valid values; do not rely on `Method.invoke` to catch every business error.
+- **Output:** filter allowed return fields; do not serialize entire internal objects or exceptions/stack traces.
+- **Logging:** never log passwords, tokens, sensitive PII, or raw `args`. You may log action keys, correlation IDs, and authorization decisions.
 
-### 5.4. Lựa chọn class trong plugin/configuration
+### 5.4. Class Selection in Plugins/Configuration
 
-Có ứng dụng thật sự cần cấu hình tên lớp (ví dụ kiến trúc plugin). Khi đó:
+Some applications genuinely need configurable class names (such as plugin architectures). In that case:
 
-1. Phân biệt **config do operator quản lý** và input từ người dùng cuối. Không coi hai nguồn có cùng mức độ tin cậy.
-2. Áp dụng allowlist hoặc registry các provider được phê duyệt; kiểm tra nguồn artifact, chữ ký và phiên bản theo mô hình triển khai.
-3. Sau `Class.forName(...)`, kiểm tra `expectedInterface.isAssignableFrom(clazz)` và API/constructor được phép. **Type check chỉ xác nhận tương thích kiểu, không chứng minh code đáng tin.**
-4. Hạn chế quyền và tài nguyên ở cấp **process/container/OS/service account** cho plugin không đáng tin; class loader riêng **không phải sandbox bảo mật**.
-5. Phân quyền và validate đối số riêng cho mỗi capability. Không biến “plugin được load” thành “plugin được phép làm mọi thứ”.
-6. Ưu tiên cơ chế đăng ký capability hoặc factory có kiểm soát thay vì cho phép tên class tùy ý từ request.
+1. Distinguish **operator-managed config** from end-user input. Do not treat both sources with the same level of trust.
+2. Apply an allowlist or registry of approved providers; verify artifact origin, signatures, and versions per your deployment model.
+3. After `Class.forName(...)`, check `expectedInterface.isAssignableFrom(clazz)` and allowed APIs/constructors. **Type checking only confirms type compatibility; it does not prove the code is trustworthy.**
+4. Restrict privileges and resources at the **process/container/OS/service-account** level for untrusted plugins; a separate class loader **is not a security sandbox**.
+5. Authorize and validate arguments separately for each capability. Do not turn "loaded plugin" into "plugin allowed to do anything".
+6. Prefer controlled capability registration or factories instead of accepting arbitrary class names from requests.
 
-Lưu ý `Class.forName(String)` không phải thao tác kiểm chứng vô hại: overload một đối số có thể dẫn đến **khởi tạo class** theo ngữ nghĩa API, nên code `static` của class cũng đáng quan tâm. Overload `Class.forName(name, false, loader)` có thể tránh khởi tạo tại bước đó nhưng **không biến việc load class tùy ý thành an toàn**, cũng không thay kiểm soát quyền.
+Note that `Class.forName(String)` is not a harmless verification step: the single-argument overload can trigger **class initialization** per API semantics, so `static` initializers in the class also matter. The `Class.forName(name, false, loader)` overload can avoid initialization at that step, yet **does not make arbitrary class loading safe**, nor does it replace access control.
 
-## 6. Reflection access khác quyền nghiệp vụ
+## 6. Reflection Access Differs from Business Authorization
 
-Java có nhiều tầng kiểm soát, không được lẫn chúng:
+Java has multiple layers of control; do not confuse them:
 
-| Tầng | Cơ chế | Không bảo đảm điều gì |
+| Layer | Mechanism | What it does not guarantee |
 | --- | --- | --- |
-| Ngôn ngữ Java | `public`, `protected`, package-private, `private` | Không xác nhận user HTTP có quyền nghiệp vụ |
-| Reflection API | `getMethod`/`getDeclaredMethod`, `canAccess`, `trySetAccessible` | Không kiểm tra ownership, role, tenant |
-| Java module system (JPMS) | `exports`, `opens` và quy tắc deep reflection | Không xác nhận một request hợp lệ về hành vi |
-| Ứng dụng | Authentication, authorization, tenant/object policy, validation, audit | Cần lập trình rõ ràng; JVM không tự hiểu quy tắc nghiệp vụ |
+| Java language | `public`, `protected`, package-private, `private` | Does not verify an HTTP user has business rights |
+| Reflection API | `getMethod`/`getDeclaredMethod`, `canAccess`, `trySetAccessible` | Does not check ownership, role, or tenant |
+| Java module system (JPMS) | `exports`, `opens`, and deep reflection rules | Does not confirm a request is behaviorally valid |
+| Application | Authentication, authorization, tenant/object policy, validation, audit | Must be explicitly programmed; the JVM does not infer business rules |
 
-`getDeclaredMethod(...)` có thể **tìm được** private method nhưng không có nghĩa caller được phép invoke. `setAccessible(true)` chỉ yêu cầu bỏ qua một số kiểm tra access **trong phạm vi module cho phép** và có thể ném `InaccessibleObjectException`; không làm một thao tác trở thành đúng về security. Tránh dùng `--add-opens` để mở module chỉ nhằm “chạy được mọi request”.
+`getDeclaredMethod(...)` can **locate** a private method, which does not mean the caller is permitted to invoke it. `setAccessible(true)` only requests bypassing certain access checks **within module-permitted boundaries** and can throw `InaccessibleObjectException`; it does not make an operation valid for security. Avoid using `--add-opens` to open modules merely to "make every request run".
 
-Ngoài ra, Java reflection có ngoại lệ runtime cần xử lý đúng: `NoSuchMethodException` khi lookup không có kết quả, `IllegalAccessException` khi invoke không được phép truy cập, `IllegalArgumentException` khi receiver/argument sai, và `InvocationTargetException` bao nguyên nhân do thân method ném. Những lỗi này **không thay thế** logic từ chối yêu cầu trước khi thực hiện.
+In addition, Java reflection has runtime exceptions that must be handled properly: `NoSuchMethodException` when lookup finds nothing, `IllegalAccessException` when invocation is not permitted, `IllegalArgumentException` when receiver/arguments are wrong, and `InvocationTargetException` wrapping causes thrown by the method body. These errors **do not replace** logic that rejects requests before execution.
 
-## 7. Anti-pattern và cách thay thế
+## 7. Anti-Patterns and Alternatives
 
-| Anti-pattern | Vì sao nguy hiểm | Thiết kế thay thế |
+| Anti-pattern | Why it is dangerous | Alternative design |
 | --- | --- | --- |
-| `Class.forName(request.className)` trên input tùy ý | Chọn class ngoài tập chức năng dự kiến, có thể kích hoạt initialization | Registry/allowlist class tin cậy hoặc không cho chọn class |
-| `clazz.getMethod(request.methodName, ...)` rồi invoke | Public method không đồng nghĩa được expose cho request | Action key cố định → `Route` chứa Method và policy |
-| `setAccessible(true)` để gọi private API | Mở rộng khả năng deep reflection; bỏ qua ranh giới thiết kế | Public facade đã được audit; quyền OS/module tối thiểu |
-| `isAdmin = request.get("admin")` | Client tự quyết định đặc quyền | Principal và claims từ auth server đã verify |
-| Chỉ kiểm tra `id.matches(...)` | Đúng dạng nhưng có thể là tài nguyên người khác | Object/tenant authorization từ nguồn dữ liệu tin cậy |
-| Cache quyết định authorize theo method | User khác nhau có quyền khác nhau | Cache metadata, **evaluate policy cho từng lời gọi** |
-| Auto-expose mọi method có annotation `@Action` | Annotation không đủ nếu không có kiểm soát review/policy | Registry được phê duyệt, policy rõ ràng, quét có kiểm soát |
-| Trả `ex.getCause().toString()` cho client | Rò rỉ nội bộ và có thể lộ dữ liệu | Mã lỗi công khai chuẩn hóa, log nội bộ có bảo vệ |
-| So `startsWith("com.safe.")` rồi nhận mọi class | Namespace/package không chứng minh code hoặc capability đáng tin | Allowlist type cụ thể và kiểm soát artifact/source |
+| `Class.forName(request.className)` on arbitrary input | Selects classes outside intended functionality, may trigger initialization | Trusted class registry/allowlist or disallow class selection |
+| `clazz.getMethod(request.methodName, ...)` then invoke | A public method is not synonymous with exposed to requests | Fixed action key → `Route` containing Method and policy |
+| `setAccessible(true)` to call private APIs | Expands deep reflection surface; bypasses design boundaries | Audited public facade; least-privilege OS/module permissions |
+| `isAdmin = request.get("admin")` | Client decides its own privileges | Principal and claims from verified auth server |
+| Checking only `id.matches(...)` | Well-formed, yet may belong to another user | Object/tenant authorization from trusted data sources |
+| Caching authorization decisions per method | Different users have different rights | Cache metadata, **evaluate policy per call** |
+| Auto-exposing every method annotated with `@Action` | Annotations are insufficient without review/policy control | Approved registry, explicit policies, controlled scanning |
+| Returning `ex.getCause().toString()` to clients | Leaks internals and potentially sensitive data | Standardized public error codes, protected internal logs |
+| Checking `startsWith("com.safe.")` and accepting any class | Package/namespace does not prove code or capabilities are trusted | Concrete type allowlist and artifact/source control |
 
-## 8. Checklist trước khi đưa vào production
+## 8. Pre-Production Checklist
 
-1. Giao diện request chỉ chọn **mã hành động đã công bố**; không nhận tên class, private method hay constructor tùy ý.
-2. Registry lưu **receiver + Method + policy** do server thiết lập. Không có route → từ chối.
-3. Identity/role/tenant đến từ nguồn **đã xác thực**; không đọc trực tiếp từ payload để xác định quyền.
-4. Kiểm tra quyền **mỗi lần gọi** cả theo action lẫn resource/tenant; với thao tác thay đổi trạng thái, xét cả race/TOCTOU.
-5. Giới hạn schema/kiểu/độ dài/số lượng/depth/rate; không giao việc validate cho `Method.invoke`.
-6. Không dùng `setAccessible` hoặc `--add-opens` như cơ chế phân quyền; coi public API và authorization là hai vấn đề khác nhau.
-7. Test các case: action lạ, method overload, user không có role, cross-tenant ID, request kích thước lớn, null input, và exception từ target.
-8. Audit các từ chối và thao tác quan trọng bằng dữ liệu tối thiểu; thông báo lỗi cho client không tiết lộ stacktrace/nội bộ.
-9. Cache `Method` để giảm lookup là được, **không được bỏ qua policy check** chỉ vì Method đã cache.
-10. Với plugin class động, yêu cầu allowlist/quản trị artifact và cơ chế isolation ở cấp hệ thống nếu code không đáng tin.
+1. The request interface selects only **published action codes**; it does not accept arbitrary class names, private methods, or constructors.
+2. The registry stores **receiver + Method + policy** established by the server. No route → deny.
+3. Identity/role/tenant come from an **authenticated source**; never read directly from payload to determine privileges.
+4. Enforce authorization **on every call** for both action and resource/tenant; for state-mutating operations, also consider race/TOCTOU conditions.
+5. Constrain schemas/types/lengths/counts/depth/rates; do not delegate validation to `Method.invoke`.
+6. Never use `setAccessible` or `--add-opens` as an authorization mechanism; treat public APIs and authorization as two separate concerns.
+7. Test cases: unknown actions, method overloads, users lacking roles, cross-tenant IDs, oversized requests, null inputs, and target exceptions.
+8. Audit denials and critical operations with minimal data; client-facing error messages must not leak stack traces/internals.
+9. Caching `Method` to reduce lookups is fine, **never skip policy checks** just because the Method is cached.
+10. For dynamic plugin classes, require allowlists/artifact governance and system-level isolation if code is untrusted.
 
-## 9. Tự kiểm tra
+## 9. Self-Check
 
-- Vì sao `getMethod(...)` trả được public method nhưng vẫn phải kiểm tra authorization riêng?
-- Nếu user có quyền `profile.read`, tại sao họ chưa chắc có quyền với mọi user ID hợp lệ?
-- Sự khác nhau giữa **allowlist action** và **lọc package bằng prefix** là gì?
-- Vì sao gọi `Class.forName(untrustedName)` từ request có rủi ro ngay cả trước `Method.invoke(...)`?
-- Có nên cache cả kết quả `"được phép gọi Method này"` cho mọi user? Vì sao?
-- Khi plugin chạy code ngoài tổ chức, chỉ tạo `ClassLoader` mới đã đủ tạo sandbox chưa?
+- Why must authorization still be checked separately even though `getMethod(...)` returns a public method?
+- If a user has the `profile.read` permission, why are they not necessarily authorized for every valid user ID?
+- What is the difference between an **action allowlist** and **filtering packages by prefix**?
+- Why is calling `Class.forName(untrustedName)` from a request risky even before `Method.invoke(...)`?
+- Should you cache `"allowed to invoke this Method"` across all users? Why?
+- When plugins run external organization code, is creating a new `ClassLoader` alone sufficient to create a sandbox?
 
-### Tài liệu chính thức
+### Official Documentation
 
-- Java SE 21 — `Class` và `Class.forName`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html
-- Java SE 21 — `Method` và `Method.invoke`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Method.html
+- Java SE 21 — `Class` and `Class.forName`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html
+- Java SE 21 — `Method` and `Method.invoke`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Method.html
 - Java SE 21 — `AccessibleObject`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AccessibleObject.html
 - Java SE 21 — `InaccessibleObjectException`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/InaccessibleObjectException.html
 - OWASP Authorization Cheat Sheet: https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html

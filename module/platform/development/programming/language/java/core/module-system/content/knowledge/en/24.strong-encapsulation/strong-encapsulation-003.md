@@ -1,14 +1,14 @@
-# InaccessibleObjectException khi reflection sâu
+# InaccessibleObjectException During Deep Reflection
 
-## 1. InaccessibleObjectException là gì?
+## 1. What Is InaccessibleObjectException?
 
-**InaccessibleObjectException** là unchecked exception trong Java Reflection, xuất hiện khi chương trình cố gắng mở quyền truy cập sâu vào một thành viên mà JPMS không cho phép truy cập. Lỗi thường gặp khi framework gọi **setAccessible(true)** trên field, method hoặc constructor private thuộc một package của named module chưa được mở cho module gọi.
+**InaccessibleObjectException** is an unchecked exception in Java Reflection that occurs when a program attempts to grant deep access to a member that JPMS does not allow accessing. The error commonly occurs when a framework calls **setAccessible(true)** on a private field, method, or constructor belonging to a package of a named module that has not been opened to the calling module.
 
-Từ Java 9, Java Platform Module System (JPMS) bổ sung ranh giới đóng gói giữa các module. Một package có thể tồn tại và class có thể được nạp, nhưng điều đó không có nghĩa module khác được phép truy cập mọi thành viên bên trong package.
+Starting in Java 9, the Java Platform Module System (JPMS) added encapsulation boundaries between modules. A package may exist and a class may be loadable, but that does not mean other modules are allowed to access every member inside the package.
 
-Ví dụ, một framework có thể tìm thấy class entity và đọc metadata của nó, nhưng khi cố gắng truy cập field private để ánh xạ dữ liệu, JVM từ chối thao tác. Khi đó, việc tìm thấy class không đồng nghĩa với việc reflection sâu được cho phép.
+For example, a framework may discover an entity class and read its metadata, but when it tries to access a private field to map data, the JVM rejects the operation. In that case, finding the class does not mean deep reflection is permitted.
 
-Thông báo lỗi thường có dạng:
+The error message typically has the form:
 
 ~~~text
 java.lang.reflect.InaccessibleObjectException:
@@ -16,36 +16,36 @@ Unable to make ... accessible:
 module ... does not "opens ..." to ...
 ~~~
 
-Phần thông báo nêu module sở hữu package, package bị chặn và module đang yêu cầu quyền truy cập. Đây là thông tin quan trọng để xác định cần mở package nào và mở cho ai.
+The message states the module owning the package, the blocked package, and the module requesting access. This is important information for determining which package needs to be opened and to whom.
 
-## 2. Vì sao JPMS chặn reflection sâu?
+## 2. Why Does JPMS Block Deep Reflection?
 
-Trước JPMS, nhiều thư viện thường dựa vào reflection để truy cập field private, constructor hoặc method nội bộ. Một số framework dùng cách này cho dependency injection, ORM, serialization, proxy hoặc mapping.
+Before JPMS, many libraries relied on reflection to access private fields, constructors, or internal methods. Some frameworks use this technique for dependency injection, ORM, serialization, proxies, or mapping.
 
-JPMS bổ sung hai khái niệm đóng gói quan trọng:
+JPMS adds two important encapsulation concepts:
 
-- **exports** cho phép module khác truy cập các kiểu public trong một package.
-- **opens** cho phép module khác dùng reflection sâu vào các thành viên trong package, kể cả thành viên không public.
+- **exports** allows other modules to access public types in a package.
+- **opens** allows other modules to use deep reflection on members in a package, including non-public members.
 
-Vì vậy, khai báo **exports** không tự động cho phép framework gọi **setAccessible(true)** lên field private. Nếu framework cần truy cập sâu, package phải được mở bằng **opens** hoặc bằng tùy chọn runtime phù hợp.
+Therefore, declaring **exports** does not automatically allow a framework to call **setAccessible(true)** on a private field. If a framework needs deep access, the package must be opened using **opens** or an appropriate runtime option.
 
-JDK cũng áp dụng strong encapsulation cho các package nội bộ. Những package như **sun.* ** hoặc các package nội bộ khác không phải API công khai được bảo đảm tương thích. Một framework cũ có thể hoạt động trên JDK trước đây nhưng phát sinh lỗi khi chạy trên JDK mới vì nó dựa vào truy cập nội bộ.
+The JDK also applies strong encapsulation to its internal packages. Packages such as **sun.* ** or other internal packages are not public APIs guaranteed for compatibility. An older framework might work on an earlier JDK but fail on a newer JDK because it relies on internal access.
 
-Từ JDK 17, strong encapsulation được áp dụng mặc định đối với các package nội bộ của JDK. Tùy chọn cũ **--illegal-access** không còn là cách để mở lại hàng loạt package nội bộ. Cần cập nhật thư viện hoặc mở đúng package nếu có lý do triển khai cụ thể.
+Starting in JDK 17, strong encapsulation is applied by default to internal JDK packages. The old **--illegal-access** option is no longer a way to reopen internal packages wholesale. You must update the library or open the exact package if there is a specific implementation reason.
 
-## 3. Phân biệt tìm class, truy cập public và reflection sâu
+## 3. Distinguishing Class Discovery, Public Access, and Deep Reflection
 
-Khi điều tra lỗi reflection, hãy tách riêng ba bước:
+When investigating reflection errors, separate three steps:
 
-1. **Discovery:** framework tìm class hoặc tài nguyên bằng package scan, annotation, ServiceLoader hoặc cấu hình.
-2. **Loading:** classloader hoặc module layer nạp được class.
-3. **Access:** framework được phép đọc hoặc thay đổi thành viên mà nó cần.
+1. **Discovery:** the framework finds classes or resources via package scanning, annotations, ServiceLoader, or configuration.
+2. **Loading:** a classloader or module layer successfully loads the class.
+3. **Access:** the framework is permitted to read or modify the members it needs.
 
-Ví dụ, một module có thể xuất package API để framework gọi phương thức public. Framework vẫn có thể không truy cập được field private trong cùng package nếu package chưa được mở cho nó.
+For example, a module might export an API package so a framework can invoke public methods. The framework may still fail to access private fields in the same package if the package has not been opened to it.
 
-### Truy cập public qua package đã export
+### Public access through an exported package
 
-Module chứa API:
+Module containing the API:
 
 ~~~java
 module com.example.model {
@@ -53,7 +53,7 @@ module com.example.model {
 }
 ~~~
 
-Framework có thể sử dụng kiểu public trong package đã export nếu module framework đọc module model:
+A framework can use public types in the exported package if the framework module reads the model module:
 
 ~~~java
 module com.example.framework {
@@ -61,11 +61,11 @@ module com.example.framework {
 }
 ~~~
 
-Đây là truy cập API Java thông thường. Không cần mở package cho deep reflection nếu framework chỉ gọi các phương thức public được phép truy cập.
+This is regular Java API access. There is no need to open the package for deep reflection if the framework only calls permitted public methods.
 
-### Truy cập private bằng reflection
+### Private access via reflection
 
-Giả sử class có field private:
+Suppose a class has a private field:
 
 ~~~java
 package com.example.model.api;
@@ -79,7 +79,7 @@ public class Customer {
 }
 ~~~
 
-Framework muốn truy cập field private:
+The framework wants to access the private field:
 
 ~~~java
 Field field = Customer.class.getDeclaredField("email");
@@ -88,11 +88,11 @@ field.setAccessible(true);
 String value = (String) field.get(customer);
 ~~~
 
-Nếu package **com.example.model.api** chỉ được export mà không được mở cho module framework, lệnh **setAccessible(true)** có thể ném **InaccessibleObjectException**. Quyền truy cập public và quyền reflection sâu là hai quyền khác nhau.
+If the **com.example.model.api** package is only exported and not opened to the framework module, the **setAccessible(true)** call can throw **InaccessibleObjectException**. Public access permission and deep reflection permission are two separate permissions.
 
-## 4. Đọc đúng nội dung lỗi
+## 4. Reading the Error Message Correctly
 
-Một thông báo điển hình:
+A typical message:
 
 ~~~text
 Unable to make field private ... accessible:
@@ -100,22 +100,22 @@ module com.example.model does not "opens com.example.model.api"
 to module com.example.framework
 ~~~
 
-Có thể đọc thông báo theo các phần:
+You can read the message in parts:
 
-- **com.example.model** là module sở hữu class và package.
-- **com.example.model.api** là package đang bị truy cập sâu.
-- **com.example.framework** là module gọi reflection và cần được cấp quyền.
-- Từ khóa **opens** cho biết thao tác cần quyền deep reflection.
+- **com.example.model** is the module owning the class and package.
+- **com.example.model.api** is the package being accessed deeply.
+- **com.example.framework** is the module invoking reflection and needing permission.
+- The **opens** keyword indicates the operation requires deep reflection permission.
 
-Nếu thông báo nói package không được mở cho **ALL-UNNAMED**, caller đang thuộc unnamed module, thường là thư viện chạy từ classpath. Nếu thông báo nêu tên module cụ thể, cần mở package cho đúng named module đó.
+If the message states the package is not open to **ALL-UNNAMED**, the caller belongs to the unnamed module, usually a library running from the classpath. If the message names a specific module, you must open the package to that exact named module.
 
-Không nên mở một package bất kỳ chỉ vì tên package xuất hiện trong stack trace. Hãy xác định class thực sự được truy cập và module caller được ghi trong thông báo.
+Do not open an arbitrary package just because its name appears in the stack trace. Identify the class actually being accessed and the caller module recorded in the message.
 
-## 5. Cách 1: Mở package trong module-info.java
+## 5. Approach 1: Open the Package in module-info.java
 
-Nếu bạn sở hữu module chứa class cần reflection, có thể khai báo **opens** trong module descriptor.
+If you own the module containing the class needing reflection, you can declare **opens** in the module descriptor.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.example.model {
@@ -126,9 +126,9 @@ module com.example.model {
 }
 ~~~
 
-Khai báo này cho phép module **com.example.framework** truy cập sâu bằng reflection vào package **com.example.model.api**. Module khác không được hưởng quyền mở này.
+This declaration allows the **com.example.framework** module to perform deep reflection into the **com.example.model.api** package. Other modules do not receive this open permission.
 
-Nếu framework cần reflection sâu vào một package riêng, nên mở đúng package đó:
+If the framework needs deep reflection into a separate package, open only that package:
 
 ~~~java
 module com.example.model {
@@ -139,9 +139,9 @@ module com.example.model {
 }
 ~~~
 
-Trong ví dụ này, API công khai nằm ở package **com.example.model.api**, còn package implementation **com.example.model.internal** được mở có mục tiêu cho framework.
+In this example, the public API resides in the **com.example.model.api** package, while the implementation package **com.example.model.internal** is opened selectively to the framework.
 
-Có thể mở package không chỉ định module đích:
+You can open a package without specifying a target module:
 
 ~~~java
 module com.example.model {
@@ -149,11 +149,11 @@ module com.example.model {
 }
 ~~~
 
-Dạng này mở package cho mọi module có quyền truy cập sâu. Chỉ dùng khi phạm vi đó thực sự cần thiết.
+This form opens the package to every module for deep reflection access. Use it only when that scope is genuinely necessary.
 
 ### open module
 
-Có thể khai báo toàn module là open:
+You can declare the entire module as open:
 
 ~~~java
 open module com.example.model {
@@ -161,21 +161,21 @@ open module com.example.model {
 }
 ~~~
 
-Một **open module** mở tất cả package của module cho deep reflection. Cách này phù hợp khi framework cần truy cập nhiều package và việc mở toàn bộ đã được chấp nhận trong thiết kế. Với ứng dụng thông thường, mở có mục tiêu bằng **opens package to module** thường dễ kiểm soát hơn.
+An **open module** opens all of the module's packages for deep reflection. This approach is appropriate when a framework needs access to many packages and opening everything is acceptable in the design. For typical applications, targeted opening using **opens package to module** is easier to control.
 
-Không thể khai báo các chỉ thị **opens** riêng lẻ bên trong một **open module**; trạng thái mở đã áp dụng cho tất cả package.
+You cannot declare individual **opens** directives inside an **open module**; the open status already applies to all packages.
 
-## 6. Cách 2: Dùng --add-opens khi khởi chạy
+## 6. Approach 2: Use --add-opens at Launch
 
-Nếu không thể sửa module descriptor, hoặc muốn thử nghiệm một thay đổi trước khi đưa vào mã nguồn, có thể dùng tùy chọn **--add-opens** của Java launcher.
+If you cannot modify the module descriptor, or want to test a change before committing it to source code, you can use the **--add-opens** option of the Java launcher.
 
-Cú pháp:
+Syntax:
 
 ~~~text
 --add-opens <source-module>/<package>=<target-module>
 ~~~
 
-Ví dụ mở package của module ứng dụng cho framework:
+Example opening an application module's package to a framework:
 
 ~~~bash
 java \
@@ -184,13 +184,13 @@ java \
   -m com.example.app/com.example.app.Main
 ~~~
 
-Trong đó:
+Where:
 
-- **com.example.model** là module sở hữu package.
-- **com.example.model.api** là package cần mở.
-- **com.example.framework** là module được phép deep reflection.
+- **com.example.model** is the module owning the package.
+- **com.example.model.api** is the package to open.
+- **com.example.framework** is the module permitted to perform deep reflection.
 
-Nếu framework chạy từ classpath, caller thuộc unnamed module. Có thể mở package cho tất cả unnamed module bằng **ALL-UNNAMED**:
+If the framework runs from the classpath, the caller belongs to an unnamed module. You can open the package to all unnamed modules using **ALL-UNNAMED**:
 
 ~~~bash
 java \
@@ -198,9 +198,9 @@ java \
   -jar app.jar
 ~~~
 
-Lệnh này minh họa việc mở package **java.lang** trong module **java.base** cho code chạy trong unnamed module. Nó thường xuất hiện khi thư viện cũ cần reflection sâu vào một số class JDK.
+This command illustrates opening the **java.lang** package in the **java.base** module to code running in the unnamed module. It commonly appears when legacy libraries require deep reflection into certain JDK classes.
 
-Nếu framework là named module, hãy chỉ định tên module cụ thể thay cho **ALL-UNNAMED**:
+If the framework is a named module, specify the exact module name instead of **ALL-UNNAMED**:
 
 ~~~bash
 java \
@@ -209,26 +209,26 @@ java \
   -m com.example.app/com.example.app.Main
 ~~~
 
-Có thể mở cho nhiều module đích bằng danh sách phân tách dấu phẩy:
+You can open to multiple target modules using a comma-separated list:
 
 ~~~bash
 java --add-opens com.example.model/com.example.model.api=com.example.framework,com.example.test
 ~~~
 
-**--add-opens** là tùy chọn runtime của Java launcher. Đặt nó trong lệnh **javac** không giải quyết lỗi deep reflection khi ứng dụng chạy. Nếu ứng dụng khởi chạy qua script, service hoặc container, hãy thêm tùy chọn vào đúng cấu hình khởi chạy của process Java đó.
+**--add-opens** is a runtime option of the Java launcher. Placing it in a **javac** command will not solve deep reflection errors when the application runs. If the application launches via a script, service, or container, add the option to the launch configuration of that exact Java process.
 
-## 7. Phân biệt exports, opens, --add-exports và --add-opens
+## 7. Distinguishing exports, opens, --add-exports, and --add-opens
 
-Bốn cơ chế này có mục đích khác nhau:
+These four mechanisms serve different purposes:
 
-| Cơ chế | Phạm vi | Mục đích |
+| Mechanism | Scope | Purpose |
 |---|---|---|
-| **exports package** | Module descriptor | Công khai kiểu public trong package cho module khác |
-| **opens package** | Module descriptor | Cho phép deep reflection vào package |
-| **--add-exports** | Tùy chọn dòng lệnh biên dịch/runtime | Bổ sung quyền truy cập các kiểu public trong package chưa export |
-| **--add-opens** | Tùy chọn Java launcher lúc runtime | Mở package cho deep reflection trong process hiện tại |
+| **exports package** | Module descriptor | Exposes public types in the package to other modules |
+| **opens package** | Module descriptor | Allows deep reflection into the package |
+| **--add-exports** | Compile/runtime command-line option | Adds access to public types in an unexported package |
+| **--add-opens** | Java launcher runtime option | Opens a package for deep reflection in the current process |
 
-Ví dụ, nếu mã nguồn cần import một kiểu public nằm trong package chưa export của module khác, **--add-exports** có thể giải quyết lỗi truy cập kiểu public:
+For example, if source code needs to import a public type residing in an unexported package of another module, **--add-exports** can resolve the public type access error:
 
 ~~~bash
 javac \
@@ -238,15 +238,15 @@ javac \
   src/com/example/Main.java
 ~~~
 
-Tuy nhiên, **--add-exports** không cho phép reflection sâu vào private field hoặc private method. Với trường hợp đó, cần **opens** hoặc **--add-opens**.
+However, **--add-exports** does not allow deep reflection into private fields or private methods. For that case, **opens** or **--add-opens** is needed.
 
-Ngược lại, **--add-opens** không làm package trở thành API public có thể import trong mã nguồn. Nó chỉ cấp quyền reflection sâu ở runtime.
+Conversely, **--add-opens** does not turn a package into a public API importable in source code. It only grants deep reflection permission at runtime.
 
-Nếu lỗi xuất hiện khi biên dịch do module không đọc module khác, hãy xem **requires** hoặc **--add-reads**. Nếu lỗi do package chưa export, xem **exports** hoặc **--add-exports**. Nếu lỗi do truy cập private qua reflection, xem **opens** hoặc **--add-opens**.
+If an error occurs during compilation because a module does not read another module, check **requires** or **--add-reads**. If the error is due to an unexported package, check **exports** or **--add-exports**. If the error is due to accessing private members via reflection, check **opens** or **--add-opens**.
 
-## 8. trySetAccessible và cách xử lý trong code
+## 8. trySetAccessible and How to Handle It in Code
 
-Thay vì giả định reflection luôn thành công, framework có thể dùng **trySetAccessible()** để kiểm tra quyền truy cập:
+Instead of assuming reflection will always succeed, a framework can use **trySetAccessible()** to check access permission:
 
 ~~~java
 Field field = Customer.class.getDeclaredField("email");
@@ -260,90 +260,90 @@ if (!field.trySetAccessible()) {
 String value = (String) field.get(customer);
 ~~~
 
-Nếu module không mở package phù hợp, **trySetAccessible()** trả về **false**. Đây là cách xử lý có kiểm soát để framework đưa ra thông báo rõ ràng hoặc chuyển sang API public.
+If the module does not open the appropriate package, **trySetAccessible()** returns **false**. This is a controlled way for a framework to provide a clear message or fall back to a public API.
 
-Nếu gọi trực tiếp:
+If calling directly:
 
 ~~~java
 field.setAccessible(true);
 ~~~
 
-JVM có thể ném **InaccessibleObjectException** khi không thể cho phép truy cập sâu. Nên bắt lỗi ở lớp tích hợp reflection nếu cần bổ sung thông tin về module, package và tùy chọn cấu hình.
+The JVM can throw **InaccessibleObjectException** when deep access cannot be granted. Catch the error at the reflection integration layer if you need to add information about the module, package, and configuration option.
 
-**canAccess(target)** có thể dùng để kiểm tra trạng thái truy cập hiện tại. Với field hoặc method instance, truyền đối tượng đích; với thành viên static, truyền **null**.
+**canAccess(target)** can be used to check the current access status. For instance fields or methods, pass the target object; for static members, pass **null**.
 
-Không nên bắt **InaccessibleObjectException** rồi âm thầm bỏ qua mọi field. Việc bỏ qua có thể làm mất dữ liệu, khiến mapping sai hoặc tạo ra lỗi khó phát hiện ở bước sau.
+Do not catch **InaccessibleObjectException** and silently skip every field. Skipping can cause data loss, produce incorrect mappings, or create hard-to-detect errors downstream.
 
-## 9. Vì sao lỗi thường xuất hiện trên JDK mới?
+## 9. Why Do Errors Often Appear on Newer JDKs?
 
-Một số thư viện được viết từ thời chưa có JPMS dựa vào cấu trúc nội bộ của JDK. Chúng có thể truy cập field private của class JDK, hoặc dùng package nội bộ để tối ưu.
+Some libraries written before JPMS existed rely on internal JDK structures. They may access private fields of JDK classes, or use internal packages for optimization.
 
-Khi chạy trên JDK mới:
+When running on newer JDKs:
 
-- Package nội bộ có thể bị đóng gói mạnh hơn.
-- Reflection vào thành viên private có thể bị từ chối.
-- Một API nội bộ trước đây dùng được có thể đã thay đổi hoặc bị loại bỏ.
-- Tùy chọn tương thích cũ có thể không còn hiệu lực.
+- Internal packages may be more strongly encapsulated.
+- Reflection on private members may be denied.
+- An internal API that previously worked may have changed or been removed.
+- Legacy compatibility options may no longer be in effect.
 
-Từ JDK 17, không nên dựa vào **--illegal-access** để khôi phục hành vi truy cập nội bộ như trước. Cách xử lý bền vững là nâng cấp thư viện, chuyển sang API công khai hoặc chỉ mở package cần thiết nếu nhà cung cấp thư viện yêu cầu và việc đó được chấp nhận.
+Starting in JDK 17, you should not rely on **--illegal-access** to restore previous internal access behavior. The sustainable fix is to upgrade the library, switch to public APIs, or open only the required package if the library vendor requires it and it is acceptable.
 
-Có thể dùng jdeps để tìm một số tham chiếu bytecode tới API nội bộ:
+You can use jdeps to find some bytecode references to internal APIs:
 
 ~~~bash
 jdeps --jdk-internals app.jar
 ~~~
 
-Lệnh này hỗ trợ phát hiện tham chiếu tĩnh. Những tên class được tạo từ chuỗi cấu hình hoặc reflection động không nhất thiết được phát hiện, vì vậy vẫn cần xem stack trace và cấu hình framework.
+This command helps detect static references. Class names constructed from configuration strings or dynamic reflection are not necessarily detected, so you still need to inspect stack traces and framework configuration.
 
-## 10. Quy trình điều tra và sửa lỗi
+## 10. Troubleshooting and Fixing Workflow
 
-Khi gặp **InaccessibleObjectException**, có thể thực hiện theo trình tự:
+When encountering **InaccessibleObjectException**, you can follow this sequence:
 
-1. Đọc đầy đủ thông báo lỗi để xác định source module, package và caller module.
-2. Xác định framework đang truy cập public API hay cần deep reflection vào private member.
-3. Kiểm tra module descriptor của module chứa class và caller.
-4. Nếu package thuộc module do dự án sở hữu, thêm **opens package to framework.module** đúng phạm vi.
-5. Nếu chưa thể sửa descriptor, thử **--add-opens source.module/package=framework.module** trong lệnh khởi chạy.
-6. Nếu caller thuộc classpath, dùng **ALL-UNNAMED** khi cần và giới hạn package được mở.
-7. Nếu package thuộc JDK, tìm API công khai hoặc nâng cấp thư viện trước khi quyết định mở package JDK.
-8. Chạy lại đúng process Java và kiểm thử các chức năng reflection liên quan.
+1. Read the full error message to identify the source module, package, and caller module.
+2. Determine whether the framework is accessing a public API or needs deep reflection into a private member.
+3. Inspect the module descriptors of the module containing the class and the caller.
+4. If the package belongs to a module owned by the project, add **opens package to framework.module** with the proper scope.
+5. If the descriptor cannot be modified yet, try **--add-opens source.module/package=framework.module** in the launch command.
+6. If the caller is on the classpath, use **ALL-UNNAMED** when needed and limit the opened packages.
+7. If the package belongs to the JDK, look for a public API or upgrade the library before deciding to open a JDK package.
+8. Re-run the exact Java process and test the relevant reflection features.
 
-Khi sửa xong, xác nhận rằng ứng dụng không chỉ khởi động được mà còn thực hiện thành công các thao tác thực sự cần reflection: tạo entity, inject dependency, serialize/deserialize, tạo proxy hoặc ánh xạ dữ liệu tùy trường hợp.
+Once fixed, verify not only that the application starts, but also that operations actually requiring reflection succeed: entity creation, dependency injection, serialization/deserialization, proxy generation, or data mapping as applicable.
 
-## 11. Các lỗi cấu hình thường gặp
+## 11. Common Configuration Mistakes
 
-**Mở nhầm module hoặc package**
+**Opening the wrong module or package**
 
-Tên trong **--add-opens** phải là tên module và tên package thực tế. Package dùng dấu chấm, không phải đường dẫn thư mục. Module đích phải là module framework đang gọi reflection.
+Names in **--add-opens** must be actual module and package names. Packages use dots, not directory paths. The target module must be the framework module invoking reflection.
 
-**Dùng ALL-UNNAMED cho framework dạng named module**
+**Using ALL-UNNAMED for a named module framework**
 
-**ALL-UNNAMED** chỉ áp dụng cho unnamed module, thường là code trên classpath. Nếu framework nằm trong named module, hãy chỉ định tên module framework.
+**ALL-UNNAMED** applies only to unnamed modules, typically code on the classpath. If the framework is in a named module, specify the framework module name.
 
-**Dùng exports để sửa lỗi private reflection**
+**Using exports to fix private reflection errors**
 
-**exports** cho phép truy cập kiểu public. Nó không cấp quyền truy cập sâu vào private field hoặc method. Hãy dùng **opens**.
+**exports** permits access to public types. It does not grant deep access to private fields or methods. Use **opens**.
 
-**Thêm --add-opens vào javac**
+**Adding --add-opens to javac**
 
-Tùy chọn này thuộc Java launcher ở runtime. Nếu lỗi xảy ra khi ứng dụng chạy, hãy cấu hình process Java thực tế.
+This option belongs to the Java launcher at runtime. If the error occurs when the application runs, configure the actual Java process.
 
-**Đã mở package nhưng vẫn lỗi**
+**Package already opened but still failing**
 
-Kiểm tra package có đúng là package khai báo trong lỗi hay không, caller module có đúng không, lệnh khởi chạy có thực sự nhận tùy chọn hay không và ứng dụng có đang chạy trong một module layer/process khác không.
+Check whether the package matches the package reported in the error, whether the caller module is correct, whether the launch command actually receives the option, and whether the application is running in a different module layer/process.
 
-**Mở toàn bộ JDK**
+**Opening the entire JDK**
 
-Mở rộng quyền cho nhiều package của JDK làm giảm tính đóng gói và tăng phụ thuộc vào implementation nội bộ. Hãy mở đúng package, đúng caller và chỉ khi không có giải pháp API công khai phù hợp.
+Broadly opening many JDK packages reduces encapsulation and increases dependence on internal implementation. Open only the exact package, for the exact caller, and only when no suitable public API solution exists.
 
-## 12. Ghi nhớ
+## 12. Takeaways
 
-- **InaccessibleObjectException** thường báo rằng reflection sâu không được JPMS cho phép.
-- **exports** cho phép truy cập kiểu public; **opens** cho phép deep reflection.
-- **--add-opens** cấp quyền deep reflection khi khởi chạy process Java; nó không sửa module descriptor.
-- **ALL-UNNAMED** dùng cho code thuộc unnamed module, thường là thư viện trên classpath.
-- **trySetAccessible()** cho phép kiểm tra khả năng mở quyền trước khi thao tác.
-- Strong encapsulation của JDK giúp bảo vệ implementation nội bộ; ưu tiên API công khai và thư viện đã hỗ trợ JPMS.
-- Chỉ mở package thực sự cần thiết cho đúng module framework.
+- **InaccessibleObjectException** usually indicates that deep reflection is not permitted by JPMS.
+- **exports** allows access to public types; **opens** allows deep reflection.
+- **--add-opens** grants deep reflection permission when launching a Java process; it does not modify the module descriptor.
+- **ALL-UNNAMED** is used for code in unnamed modules, typically libraries on the classpath.
+- **trySetAccessible()** lets you check whether access can be opened before acting.
+- Strong encapsulation of the JDK protects internal implementations; prefer public APIs and JPMS-aware libraries.
+- Open only the packages truly required for the specific framework module.
 
-Khi hiểu rõ module sở hữu package, caller module và loại truy cập mà framework cần, có thể sửa lỗi reflection với phạm vi quyền nhỏ và dễ kiểm soát. Hãy xem **opens** hoặc **--add-opens** là cấu hình truy cập có chủ đích, đồng thời kiểm thử lại ứng dụng trên đúng phiên bản JDK triển khai.
+When you clearly understand the module owning the package, the caller module, and the type of access the framework needs, you can resolve reflection errors with a small, well-controlled permission scope. Treat **opens** or **--add-opens** as intentional access configuration, and retest the application on the exact JDK version used in deployment.

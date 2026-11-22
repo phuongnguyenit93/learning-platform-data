@@ -1,77 +1,77 @@
-# Xác thực kiểu và khả năng truy cập trước khi chạy hàng loạt bằng Java Reflection
+# Validating Types and Accessibility Before Batch Execution with Java Reflection
 
-Một công cụ batch dùng Reflection có thể nhận nhiều class/method từ cấu hình. Nếu vừa tìm thấy đã `invoke`, mục thứ bảy sai chữ ký có thể bị phát hiện **sau khi sáu mục trước đã tạo side effect**. Bài này xây bước **preflight toàn lô**: kiểm tra contract, receiver, chữ ký, quyền truy cập và đầu vào; tạo kế hoạch đã xác thực rồi mới chạy.
+A batch tool using Reflection may receive multiple classes/methods from configuration. If it calls `invoke` as soon as it finds each one, the seventh item having a signature mismatch could be discovered **after the first six items have already caused side effects**. This article builds a **whole-batch preflight** step: checking contract, receiver, signature, accessibility, and inputs; producing a validated plan before running anything.
 
-Preflight chỉ chặn những lỗi có thể phát hiện sớm. Nó không bảo đảm method đích không ném lỗi, không tự cung cấp transaction hay rollback và không thay thế authorization tại thời điểm thực thi. Các phần dưới tập trung vào độ chính xác của kiểm tra `isAssignableFrom`, `canAccess`, và cách giữ plan/caller nhất quán.
+Preflight only blocks errors detectable early. It does not guarantee the target method will not throw, does not itself provide transactions or rollbacks, and does not replace execution-time authorization. The sections below focus on the accuracy of `isAssignableFrom` and `canAccess` checks, and on keeping the plan and caller consistent.
 
-## 1. Bài toán: tránh thực thi nửa chừng vì lỗi có thể phát hiện trước
+## 1. The problem: avoiding partial execution due to pre-detectable errors
 
-Giả sử một batch nhận ba bước:
+Suppose a batch receives three steps:
 
-1. `TextNormalizer.normalize(String)` trả về `String`.
-2. `EmailValidator.validate(String)` trả về `String`.
-3. `ReportExporter.export(int)` nhưng runner sẽ truyền `String`.
+1. `TextNormalizer.normalize(String)` returns `String`.
+2. `EmailValidator.validate(String)` returns `String`.
+3. `ReportExporter.export(int)` while the runner will pass a `String`.
 
-Cách thực thi ngay khi duyệt:
-
-```text
-for từng mục:
-    tìm method từ metadata
-    gọi method ngay
-    nếu lỗi thì dừng
-```
-
-Khi mục thứ ba sai chữ ký, chương trình mới phát hiện lỗi sau khi hai mục đầu đã chạy. Hậu quả có thể là gửi email, ghi file, thay đổi DB hoặc phát sinh sự kiện mà không thể đảo ngược dễ dàng.
-
-Cách **lập kế hoạch trước khi gọi**:
+Executing immediately during traversal:
 
 ```text
-[Input/cấu hình]
-       |
-       v
-[Tra cứu class, method, constructor]
-       |
-       v
-[Kiểm tra kiểu + chữ ký + receiver + quyền truy cập]
-       |
-       +---- Có lỗi? ----> [Từ chối cả lô, báo mục lỗi, chưa invoke]
-       |
-       v
-[Tạo danh sách lời gọi đã xác thực]
-       |
-       v
-[Thực thi theo chính sách: tuần tự / song song / retry / transaction]
-       |
-       v
-[Thu thập kết quả và xử lý lỗi runtime]
+for each item:
+    look up method from metadata
+    invoke method immediately
+    if error then stop
 ```
 
-**Nguyên tắc:** lỗi cấu hình hoặc mismatch Reflection có thể biết trước nên được phát hiện trước lời gọi đầu tiên. Lỗi bên trong code người dùng, race condition, I/O, timeout hoặc thay đổi hệ thống vẫn phải xử lý ở pha thực thi.
+When the third item has a signature mismatch, the program only discovers the error after the first two items have already run. The consequences could be sent emails, written files, DB mutations, or emitted events that cannot be easily reversed.
 
-## 2. Các tầng kiểm tra cần có
+The **plan-before-invoke** approach:
 
-| Tầng | Điều cần chứng minh | API gợi ý | Nếu sai |
+```text
+[Input / configuration]
+       |
+       v
+[Look up class, method, constructor]
+       |
+       v
+[Validate type + signature + receiver + access rights]
+       |
+       +---- Any error? ----> [Reject whole batch, report failing items, no invoke]
+       |
+       v
+[Build validated invocation plan]
+       |
+       v
+[Execute per policy: sequential / parallel / retry / transaction]
+       |
+       v
+[Collect results and handle runtime errors]
+```
+
+**Principle:** configuration errors or Reflection mismatches knowable upfront should be detected before the very first call. Errors inside user code, race conditions, I/O, timeouts, or system changes still must be handled in the execution phase.
+
+## 2. Verification layers required
+
+| Layer | What to prove | Suggested API | If invalid |
 | --- | --- | --- | --- |
-| Kiểu đầu vào | Giá trị không `null`; class thuộc nhóm được phép | `Objects.requireNonNull`, `Class.isInstance`, allowlist | Từ chối item |
-| Quan hệ kế thừa / interface | Class là một implementation của contract cần thiết | `RequiredType.class.isAssignableFrom(candidateClass)` | Từ chối item |
-| Metadata thành viên | Method/constructor tồn tại và được chọn duy nhất | `getMethod`, `getDeclaredMethod`, `getDeclaredMethods`, `getDeclaredConstructor` | Thiếu/trùng thì từ chối |
-| Chữ ký | Số lượng và kiểu tham số, return type, static/instance, varargs khớp contract | `getParameterTypes`, `getReturnType`, `Modifier`, `isVarArgs` | Từ chối trước `invoke` |
-| Quyền truy cập | Caller có thể gọi method với receiver thực tế không? | `Method.canAccess(receiver)` | Từ chối hoặc áp dụng chính sách mở quyền có kiểm soát |
-| Quy tắc nghiệp vụ | Class, package, annotation, hành động có được phép chạy không? | allowlist, registry, annotation được giữ tại runtime, quyền người dùng | Từ chối dù Java reflection có thể gọi |
-| Kế hoạch thực thi | Mọi mục được xác thực trước khi side effect bắt đầu | danh sách bất biến chứa `target` và `Method` | Không tạo kế hoạch nếu có lỗi |
+| Input type | Value is non-`null`; class is in allowed group | `Objects.requireNonNull`, `Class.isInstance`, allowlist | Reject item |
+| Inheritance / interface relationship | Class implements the required contract | `RequiredType.class.isAssignableFrom(candidateClass)` | Reject item |
+| Member metadata | Method/constructor exists and is uniquely selected | `getMethod`, `getDeclaredMethod`, `getDeclaredMethods`, `getDeclaredConstructor` | Reject if missing/duplicate |
+| Signature | Parameter count and types, return type, static/instance, varargs match contract | `getParameterTypes`, `getReturnType`, `Modifier`, `isVarArgs` | Reject before `invoke` |
+| Accessibility | Can the caller invoke the method with the actual receiver? | `Method.canAccess(receiver)` | Reject or apply controlled access-opening policy |
+| Business rules | Are the class, package, annotation, and action permitted to run? | allowlist, registry, runtime-retained annotations, user permissions | Reject even if Java reflection could invoke |
+| Execution plan | Every item is validated before side effects start | immutable list containing `target` and `Method` | Do not build plan if any error exists |
 
-Quan trọng: **“có thể truy cập theo ngôn ngữ Java” không đồng nghĩa “được phép chạy theo nghiệp vụ”**. Một method `public` có thể hợp lệ với Reflection nhưng vẫn nguy hiểm nếu nhận từ cấu hình không đáng tin cậy. Phải xác thực cả quyền và danh sách chức năng được cho phép.
+Important: **"accessible in the Java language" does not mean "permitted to run by business rules"**. A `public` method can be valid for Reflection yet still dangerous if received from untrusted configuration. You must verify both access rights and the list of permitted operations.
 
-## 3. Xác thực kiểu: hiểu đúng `isInstance`, `isAssignableFrom` và chữ ký
+## 3. Type validation: properly understanding `isInstance`, `isAssignableFrom`, and signatures
 
-### 3.1. Kiểu đối tượng thực tế
+### 3.1. Actual object types
 
-- `Expected.class.isInstance(value)` kiểm tra một **đối tượng** có phải instance của kiểu yêu cầu không; với `null` kết quả là `false`.
-- `Expected.class.isAssignableFrom(Candidate.class)` kiểm tra một **kiểu** có thể gán vào biến khai báo `Expected` hay không, kể cả quan hệ extends/implements.
-- Hướng gọi không được đảo: `Runnable.class.isAssignableFrom(MyRunnable.class)` có thể đúng, nhưng `MyRunnable.class.isAssignableFrom(Runnable.class)` thường sai.
-- Khi chỉ cần kiểm tra một đối tượng theo interface có sẵn, `value instanceof MyInterface` hoặc `Expected.class.isInstance(value)` thường rõ nghĩa hơn.
+- `Expected.class.isInstance(value)` checks whether an **object** is an instance of the required type; for `null` the result is `false`.
+- `Expected.class.isAssignableFrom(Candidate.class)` checks whether a **type** can be assigned to a variable declared as `Expected`, including extends/implements relationships.
+- Call direction must not be reversed: `Runnable.class.isAssignableFrom(MyRunnable.class)` may be true, whereas `MyRunnable.class.isAssignableFrom(Runnable.class)` is usually false.
+- When you only need to check an object against a known interface, `value instanceof MyInterface` or `Expected.class.isInstance(value)` is usually clearer.
 
-Ví dụ:
+Example:
 
 ```java
 interface Task {}
@@ -82,11 +82,11 @@ boolean b = EmailTask.class.isAssignableFrom(Task.class); // false
 boolean c = Task.class.isInstance(new EmailTask());       // true
 ```
 
-Khi định chạy nhiều plugin, hãy định nghĩa contract ổn định như interface marker, base class hoặc registry, rồi kiểm tra contract trước khi tìm thành viên động. Trường hợp API nghiệp vụ đã có interface với phương thức phù hợp, **gọi trực tiếp qua interface thường đơn giản và an toàn kiểu hơn Reflection**; chỉ dùng Reflection cho phần khám phá/cấu hình động thật sự cần.
+When running multiple plugins, define a stable contract such as a marker interface, base class, or registry, and validate the contract before dynamically looking up members. When the business API already has an interface with the right method, **calling directly through the interface is usually simpler and more type-safe than Reflection**; reserve Reflection for dynamic discovery/configuration where truly needed.
 
-### 3.2. Kiểu tham số và return type
+### 3.2. Parameter types and return type
 
-Phương thức cùng tên không nhất thiết cùng chữ ký:
+Methods with the same name do not necessarily share the same signature:
 
 ```java
 void process(String text) {}
@@ -94,10 +94,10 @@ void process(Integer number) {}
 String process(String text, int retry) { return text; }
 ```
 
-Đoạn trên chỉ minh họa overload hợp lệ; runner yêu cầu `process(String)` trả `String` thì phải kiểm tra **cả parameter types lẫn return type**, bởi Reflection không tự buộc kiểu kết quả cho kế hoạch:
+The snippet above only illustrates valid overloads; a runner requiring `process(String)` returning `String` must check **both parameter types and return type**, because Reflection does not automatically enforce result types for the plan:
 
 ```java
-// Giả sử method là java.lang.reflect.Method đã tìm được.
+// Assume method is a java.lang.reflect.Method already looked up.
 boolean takesExactlyOneString =
         java.util.Arrays.equals(
                 method.getParameterTypes(),
@@ -105,91 +105,91 @@ boolean takesExactlyOneString =
 boolean returnsString = method.getReturnType() == String.class;
 ```
 
-Trong contract có chữ ký **chính xác**, so sánh `Class<?>` bằng `==` là đúng vì đối tượng `Class` đại diện cho runtime type; điều này khác so sánh nội dung đối tượng dữ liệu.
+In a contract with an **exact** signature, comparing `Class<?>` with `==` is right because `Class` objects represent runtime types; this differs from comparing data object contents.
 
-Trong contract cho phép kiểu con, sử dụng `isAssignableFrom` theo chiều phù hợp và xét cả primitive, boxing/unboxing, `null`, varargs. Đừng dùng `String.class.isAssignableFrom(paramType)` một cách vô thức: API nhận `CharSequence` vẫn có thể tiếp nhận chuỗi `String`, dù hướng kiểm tra đó trả `false`.
+In a contract permitting subtypes, use `isAssignableFrom` in the right direction and account for primitives, boxing/unboxing, `null`, and varargs. Never blindly use `String.class.isAssignableFrom(paramType)`: an API accepting `CharSequence` can still accept a `String`, even though that check direction returns `false`.
 
-Với generic như `List<String>`, `getParameterTypes()` nhìn thấy `List.class` do **type erasure**. Nếu batch cần ràng buộc generic, có thể xem `getGenericParameterTypes()` nhưng metadata generic **không tự kiểm tra từng phần tử lúc runtime**; cần validator riêng.
+For generics such as `List<String>`, `getParameterTypes()` sees `List.class` due to **type erasure**. If a batch requires generic constraints, you can inspect `getGenericParameterTypes()`, though generic metadata **does not automatically validate individual elements at runtime**; a separate validator is required.
 
-### 3.3. Static / instance, receiver và varargs
+### 3.3. Static / instance, receiver, and varargs
 
-`Method.invoke` có cách truyền receiver khác nhau:
+`Method.invoke` passes the receiver differently depending on member kind:
 
-| Dạng thành viên | Receiver cho `invoke` / `canAccess` | Cần kiểm tra |
+| Member kind | Receiver for `invoke` / `canAccess` | What to check |
 | --- | --- | --- |
-| Instance method | Một object đúng kiểu declaring class hoặc subtype | Receiver không `null`, `declaringClass.isInstance(receiver)` |
+| Instance method | An object of the declaring class or a subtype | Receiver is non-`null`, `declaringClass.isInstance(receiver)` |
 | Static method | `null` | `Modifier.isStatic(method.getModifiers())` |
-| Constructor | Không dùng `Method.invoke`; dùng `Constructor.newInstance` | Kiểu, đối số và quyền constructor |
-| Varargs method | Có tham số mảng cuối | `method.isVarArgs()` và chính sách đóng gói đối số |
+| Constructor | Do not use `Method.invoke`; use `Constructor.newInstance` | Types, arguments, and constructor accessibility |
+| Varargs method | Has trailing array parameter | `method.isVarArgs()` and argument-packing policy |
 
-Ví dụ, `canAccess(null)` không hợp lệ với một instance method. Đối với static method, `canAccess(nonNullReceiver)` cũng sai. Hãy xác định loại thành viên trước khi gọi kiểm tra quyền.
+For instance, `canAccess(null)` is invalid for an instance method. For a static method, `canAccess(nonNullReceiver)` is also wrong. Determine the member kind before calling the accessibility check.
 
-**Varargs** cần thiết kế rõ: ở Reflection, `Method.invoke` có tham số varargs của chính API đó, và method đích có thể là varargs. Nếu runner không hỗ trợ, hãy từ chối `isVarArgs() == true`; nếu có hỗ trợ thì chủ động đóng gói thành mảng đúng kiểu để tránh truyền sai.
+**Varargs** needs explicit design: in Reflection, `Method.invoke` itself has a varargs parameter, and the target method may also be varargs. If the runner does not support it, reject `isVarArgs() == true`; if supported, explicitly pack into an array of the proper type to avoid passing mismatched arguments.
 
-### 3.4. Kiểm tra một hay nhiều method khi quét annotation
+### 3.4. Checking for one or multiple methods when scanning annotations
 
-Đối với công cụ quét `@BatchAction`:
+For a tool scanning `@BatchAction`:
 
-- `getDeclaredMethods()` chỉ lấy method **khai báo trực tiếp trên class đó**; bao gồm non-public, không tự tìm inherited methods.
-- `getMethods()` trả các method `public` (kể cả được kế thừa), theo chính sách khác.
-- Khi quét annotation, cần quyết định áp dụng annotation trên declared hay inherited method, xử lý overload ra sao, có cho nhiều entry point trên cùng class không.
-- Chú ý method `synthetic` hoặc `bridge` do compiler sinh, nhất là class generic. Có thể loại bỏ bằng `isSynthetic()`/`isBridge()` khi quét entry point.
-- Annotation dùng để tra cứu tại runtime phải được khai báo `@Retention(RetentionPolicy.RUNTIME)`; mặc định không giữ đủ cho kiểu quét này.
+- `getDeclaredMethods()` only retrieves methods **declared directly on that class**; includes non-public, does not automatically find inherited methods.
+- `getMethods()` returns `public` methods (including inherited ones), under a different policy.
+- When scanning annotations, decide whether annotations apply to declared or inherited methods, how overloads are handled, and whether multiple entry points are allowed on the same class.
+- Watch out for compiler-generated `synthetic` or `bridge` methods, especially on generic classes. Filter them out with `isSynthetic()`/`isBridge()` when scanning entry points.
+- Annotations used for runtime lookup must declare `@Retention(RetentionPolicy.RUNTIME)`; the default does not retain them for this type of scan.
 
-Nếu contract yêu cầu **đúng một** method có annotation, cần xác nhận `count == 1` trước khi thực thi. Không chọn ngẫu nhiên “method đầu tiên” vì thứ tự `getDeclaredMethods()` không phải contract có thứ tự ổn định.
+If the contract requires **exactly one** annotated method, verify `count == 1` before execution. Never arbitrarily pick "the first method" because `getDeclaredMethods()` order is not a stable ordering contract.
 
-## 4. Xác thực khả năng truy cập: `canAccess` và giới hạn JPMS
+## 4. Validating accessibility: `canAccess` and JPMS limits
 
-Tìm được metadata không có nghĩa là gọi được member.
+Finding metadata does not mean the member can be invoked.
 
-### 4.1. `public` là điều kiện đơn giản, chưa phải toàn bộ câu chuyện
+### 4.1. `public` is a simple condition, not the whole story
 
-`Modifier.isPublic(method.getModifiers())` chỉ nhìn access modifier của method. Với method thực tế, khả năng gọi còn phụ thuộc declaring class, package, module và caller.
+`Modifier.isPublic(method.getModifiers())` only inspects the method's access modifier. For actual methods, invocability also depends on the declaring class, package, module, and caller.
 
-`Method.canAccess(receiver)` hỏi quyền truy cập **từ class đang gọi API kiểm tra đó**, với receiver cụ thể. Nên gọi nó trong cùng lớp/tầng executor sau này thực hiện `invoke`:
+`Method.canAccess(receiver)` checks access rights **from the class calling that check API**, with the specific receiver. Call it in the same class/executor layer that will later execute `invoke`:
 
 ```java
-// Giả sử method là instance method và target đã xác minh đúng kiểu.
+// Assume method is an instance method and target's type is verified.
 if (!method.getDeclaringClass().isInstance(target)
         || !method.canAccess(target)) {
-    throw new IllegalArgumentException("Method không truy cập được");
+    throw new IllegalArgumentException("Method is not accessible");
 }
 ```
 
-Không nên áp dụng `canAccess` của một helper ở module khác rồi mặc nhiên cho rằng executor có quyền như vậy. Với phương thức static, phải truyền `null`. `canAccess` không chạy nội dung method đích.
+Do not apply `canAccess` from a helper in a different module and assume the executor has the same rights. For static methods, pass `null`. `canAccess` does not execute the target method's body.
 
-### 4.2. `getMethod` và `getDeclaredMethod` khác nhau
+### 4.2. `getMethod` and `getDeclaredMethod` differ
 
-- `getMethod("run", String.class)` tìm method `public` theo tên và kiểu tham số, bao gồm method phù hợp được kế thừa.
-- `getDeclaredMethod("run", String.class)` tìm method khai báo trong class hiện tại, bất kể private/protected/package-private/public; **không** tự bao gồm inherited.
-- Cả hai có thể ném `NoSuchMethodException`; nên chuyển thành lỗi cấu hình có ngữ cảnh rõ “class nào, method nào, chữ ký nào”.
+- `getMethod("run", String.class)` finds a `public` method by name and parameter types, including matching inherited methods.
+- `getDeclaredMethod("run", String.class)` finds a method declared in the current class, regardless of private/protected/package-private/public; does **not** automatically include inherited methods.
+- Both can throw `NoSuchMethodException`; convert it into a configuration error with clear context: "which class, which method, which signature".
 
-Dùng `getDeclaredMethod` để tìm private method **không cấp thêm quyền** để gọi nó.
+Using `getDeclaredMethod` to find a private method **does not grant extra permission** to invoke it.
 
-### 4.3. `trySetAccessible`, `setAccessible` và module
+### 4.3. `trySetAccessible`, `setAccessible`, and modules
 
-`trySetAccessible()` có thể bật chế độ bỏ qua access checks **nếu** môi trường/module cho phép; nếu không cho phép, thường trả `false`. `setAccessible(true)` có thể ném `InaccessibleObjectException` khi không thể mở quyền. Đây không phải các API để “phá” mọi ranh giới module.
+`trySetAccessible()` can enable bypassing access checks **if** the environment/module permits it; when disallowed, it normally returns `false`. `setAccessible(true)` can throw `InaccessibleObjectException` when access cannot be opened. These are not APIs to "break" every module boundary.
 
-Với module có tên (Java Platform Module System):
+With named modules (Java Platform Module System):
 
-- `exports p` cho phép API public trong package `p` được truy cập thông thường bởi module đọc nó.
-- `opens p` hoặc `opens p to other.module` cho phép các cơ chế deep reflection phù hợp trên package đó.
-- `privateLookupIn` với `MethodHandles.Lookup` cũng phải tuân theo các điều kiện access/module; không có quyền tự động chỉ vì biết tên method.
+- `exports p` allows public APIs in package `p` to be accessed normally by modules reading it.
+- `opens p` or `opens p to other.module` allows appropriate deep reflection mechanisms on that package.
+- `privateLookupIn` with `MethodHandles.Lookup` must also satisfy access/module conditions; knowing a method name confers no automatic rights.
 
-Với **công cụ chạy batch**, mặc định nên từ chối nếu `canAccess` trả `false`, và mô tả cách sửa bằng public API, module descriptor hoặc plugin contract. Chỉ cân nhắc `trySetAccessible` khi đó là chính sách đã được chủ động phê duyệt, đối tượng nằm trong phạm vi được tin cậy, và có kiểm soát quyền rõ ràng.
+For **batch runner tools**, default to rejecting when `canAccess` returns `false`, and describe how to fix it via public API, module descriptor, or plugin contract. Consider `trySetAccessible` only when it is an explicitly approved policy, target objects lie within a trusted boundary, and access control is clear.
 
-## 5. Ví dụ Java 17+: xác thực cả lô rồi mới thực thi
+## 5. Java 17+ example: validate the whole batch before executing
 
-Ví dụ tạo một batch runner đọc danh sách object theo contract `Job`, tìm đúng **một** method `@BatchAction` trên mỗi class, yêu cầu chữ ký chính xác `public String execute(String)` và chỉ thực thi **sau khi mọi bước đã được xác minh**.
+The example builds a batch runner reading a list of objects under the `Job` contract, finding **exactly one** `@BatchAction` method per class, requiring the exact signature `public String execute(String)`, and executing **only after all steps have been verified**.
 
-Đặc điểm thiết kế:
+Design characteristics:
 
-- `preflight` chỉ kiểm tra metadata và tạo `List<Invocation>`; **không gọi** business method.
-- Một method có return type `int` sẽ bị từ chối trước khi bất kỳ `execute` nào chạy.
-- `List.copyOf` tạo danh sách kế hoạch bất biến về cấu trúc; điều này **không** làm các object mục tiêu trở thành immutable.
-- `runs` minh chứng rõ lô sai không có side effect từ business method.
+- `preflight` only inspects metadata and creates `List<Invocation>`; it **never calls** business methods.
+- A method with return type `int` is rejected before any `execute` runs.
+- `List.copyOf` creates a structurally immutable plan list; this does **not** make target objects immutable.
+- `runs` clearly proves an invalid batch causes no side effects from business methods.
 
-Tạo file **`BatchPreflightDemo.java`**:
+Create file **`BatchPreflightDemo.java`**:
 
 ```java
 import java.lang.annotation.ElementType;
@@ -242,19 +242,19 @@ public class BatchPreflightDemo {
         List<Invocation> plan = new ArrayList<>();
         for (Object target : targets) {
             if (target == null) {
-                throw new IllegalArgumentException("Đối tượng null");
+                throw new IllegalArgumentException("Null target");
             }
             Class<?> type = target.getClass();
             if (!Job.class.isAssignableFrom(type)) {
                 throw new IllegalArgumentException(type.getSimpleName()
-                        + " không implements Job");
+                        + " does not implement Job");
             }
             List<Method> methods = Arrays.stream(type.getDeclaredMethods())
                     .filter(m -> m.isAnnotationPresent(BatchAction.class))
                     .toList();
             if (methods.size() != 1) {
                 throw new IllegalArgumentException(type.getSimpleName()
-                        + " phải có đúng một @BatchAction");
+                        + " must have exactly one @BatchAction");
             }
             Method method = methods.get(0);
             if (!Modifier.isPublic(method.getModifiers())
@@ -263,21 +263,21 @@ public class BatchPreflightDemo {
                     || method.isBridge()
                     || method.isVarArgs()) {
                 throw new IllegalArgumentException(type.getSimpleName()
-                        + ".execute phải là instance method public hợp lệ");
+                        + ".execute must be a valid public instance method");
             }
             if (!Arrays.equals(method.getParameterTypes(),
                     new Class<?>[]{String.class})) {
                 throw new IllegalArgumentException(type.getSimpleName()
-                        + ".execute phải nhận String");
+                        + ".execute must accept String");
             }
             if (method.getReturnType() != String.class) {
                 throw new IllegalArgumentException(type.getSimpleName()
-                        + ".execute phải trả về String");
+                        + ".execute must return String");
             }
             if (!method.getDeclaringClass().isInstance(target)
                     || !method.canAccess(target)) {
                 throw new IllegalArgumentException(type.getSimpleName()
-                        + ".execute không thể truy cập");
+                        + ".execute is not accessible");
             }
             plan.add(new Invocation(target, method));
         }
@@ -293,7 +293,7 @@ public class BatchPreflightDemo {
                 System.out.println(step.target().getClass().getSimpleName()
                         + " -> " + result);
             } catch (InvocationTargetException ex) {
-                throw new IllegalStateException("Lỗi khi thực thi "
+                throw new IllegalStateException("Error executing "
                         + step.target().getClass().getSimpleName(),
                         ex.getCause());
             }
@@ -304,50 +304,50 @@ public class BatchPreflightDemo {
         try {
             List<Invocation> invalid =
                     preflight(List.of(new Upper(), new Wrong()));
-            execute(invalid, "xin chào");
+            execute(invalid, "hello");
         } catch (IllegalArgumentException ex) {
-            System.out.println("Từ chối lô: " + ex.getMessage());
+            System.out.println("Batch rejected: " + ex.getMessage());
         }
-        System.out.println("Số lần đã chạy: " + runs);
+        System.out.println("Execution count: " + runs);
 
         List<Invocation> valid =
                 preflight(List.of(new Upper(), new Prefix()));
-        System.out.println("Preflight: " + valid.size() + " bước hợp lệ");
-        execute(valid, "xin chào");
-        System.out.println("Số lần đã chạy: " + runs);
+        System.out.println("Preflight: " + valid.size() + " valid steps");
+        execute(valid, "hello");
+        System.out.println("Execution count: " + runs);
     }
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac BatchPreflightDemo.java
 java BatchPreflightDemo
 ```
 
-Kết quả chạy:
+Run output:
 
 ```text
-Từ chối lô: Wrong.execute phải trả về String
-Số lần đã chạy: 0
-Preflight: 2 bước hợp lệ
-Upper -> XIN CHÀO
-Prefix -> OK: xin chào
-Số lần đã chạy: 2
+Batch rejected: Wrong.execute must return String
+Execution count: 0
+Preflight: 2 valid steps
+Upper -> HELLO
+Prefix -> OK: hello
+Execution count: 2
 ```
 
-Giải thích:
+Explanation:
 
-1. `Wrong.execute(String)` có return type `int`. `getReturnType() != String.class` nên `preflight` ném `IllegalArgumentException` **trước** `execute(invalid, ...)`. Biến `runs` vẫn bằng 0.
-2. Lô thứ hai gồm `Upper` và `Prefix`: mỗi class có đúng một method được đánh dấu annotation với signature đã yêu cầu, và `canAccess(target)` trả `true`.
-3. Chỉ sau khi `preflight` trả đầy đủ kế hoạch, `execute` mới gọi `Method.invoke` từng bước. Kết quả đúng với chương trình đã biên dịch và chạy bằng JDK.
-4. Trường hợp này cố ý dùng các nested class công khai cùng chương trình để ví dụ độc lập, nên không minh họa lỗi truy cập giữa hai named modules. Khi tích hợp plugin thật, hãy xác minh `canAccess` trong môi trường triển khai đó.
-5. Ví dụ coi các method có annotation **khai báo trực tiếp** là entry point, không xét method được kế thừa. Nếu muốn hỗ trợ inherited methods, phải thay đổi chính sách tra cứu rõ ràng.
+1. `Wrong.execute(String)` has return type `int`. Because `getReturnType() != String.class`, `preflight` throws `IllegalArgumentException` **before** `execute(invalid, ...)`. The `runs` variable remains 0.
+2. The second batch consists of `Upper` and `Prefix`: each class has exactly one annotated method with the required signature, and `canAccess(target)` returns `true`.
+3. Only after `preflight` returns the complete plan does `execute` call `Method.invoke` step by step. Output matches the program compiled and run on the JDK.
+4. This case intentionally uses public nested classes in the same program so the example is standalone, and thus does not demonstrate access failures between two named modules. When integrating real plugins, verify `canAccess` in that deployment environment.
+5. The example treats **directly declared** annotated methods as entry points, ignoring inherited methods. To support inherited methods, explicitly update the lookup policy.
 
-## 6. Khi dữ liệu cấu hình là tên class hoặc tên method
+## 6. When configuration data is a class name or method name
 
-Một số công cụ nhận cấu hình kiểu:
+Some tools receive configuration like:
 
 ```text
 implementation = "com.acme.plugins.ExportJob"
@@ -355,58 +355,58 @@ method         = "execute"
 parameterType  = "java.lang.String"
 ```
 
-Đây là **dữ liệu đầu vào cần xác thực**, không phải giấy phép gọi phương thức bất kỳ.
+This is **input data needing validation**, not a license to call any arbitrary method.
 
-Trình tự gợi ý:
+Recommended sequence:
 
-1. **Xác thực người yêu cầu, nguồn cấu hình và allowlist**: chỉ cho những plugin/class/action được chấp nhận; không cho người dùng tùy ý nhập class hệ thống hoặc method nguy hiểm.
-2. **Nạp class có kiểm soát**: chọn `ClassLoader` phù hợp; `Class.forName(name, false, loader)` có thể nạp class mà chưa yêu cầu khởi tạo ngay. Đừng hiểu bước nạp class là hoàn toàn không có rủi ro.
-3. **Kiểm tra class**: `expectedInterface.isAssignableFrom(candidate)`, không abstract/interface nếu cần tạo instance, loại bỏ class trái chính sách.
-4. **Kiểm tra constructor**: tìm chữ ký phù hợp bằng `getDeclaredConstructor(...)`; kiểm tra quyền với `constructor.canAccess(null)`. Nếu tạo instance bằng constructor, cần biết bản thân `newInstance` có thể chạy code và có side effect; tùy công cụ, nên trì hoãn tạo instance tới pha execution hoặc thiết kế nhà máy plugin riêng.
-5. **Kiểm tra method**: tên, overload, tham số, return type, modifier, annotation, receiver, quyền truy cập, context module.
-6. **Xây dựng kế hoạch**: lưu metadata và đối số đã chuyển đổi/hợp lệ. Đánh dấu nguồn gốc cấu hình để báo lỗi chính xác.
-7. **Execute**: chạy theo thứ tự xác định, xử lý failure policy, audit/log, transaction khi cần.
+1. **Authenticate requester, configuration source, and allowlist**: allow only approved plugins/classes/actions; never let users arbitrarily enter system classes or dangerous methods.
+2. **Controlled class loading**: choose an appropriate `ClassLoader`; `Class.forName(name, false, loader)` can load the class without requiring immediate initialization. Do not assume class loading is completely risk-free.
+3. **Validate class**: `expectedInterface.isAssignableFrom(candidate)`, non-abstract/non-interface if instantiation is needed, reject classes violating policy.
+4. **Validate constructor**: find the matching signature with `getDeclaredConstructor(...)`; verify access with `constructor.canAccess(null)`. If instantiating via constructor, recognize that `newInstance` itself can run code and have side effects; depending on the tool, defer instantiation to the execution phase or design a dedicated plugin factory.
+5. **Validate method**: name, overload, parameters, return type, modifiers, annotations, receiver, access rights, module context.
+6. **Build the plan**: store metadata and converted/validated arguments. Tag the configuration source for accurate error reporting.
+7. **Execute**: run in deterministic order, apply failure policy, audit/log, and use transactions when required.
 
-**Lưu ý về constructor:** Nếu muốn thật sự “không side effect trước khi mọi mục qua preflight”, không nên gọi constructor của plugin trong quá trình kiểm tra: constructor hoặc static initializer có thể thực hiện hành vi nghiệp vụ. Ví dụ ở mục 5 nhận **instance đã tạo sẵn** và chỉ bảo đảm chưa gọi method `@BatchAction` trước khi kiểm tra đủ; quá trình tạo những instance ấy nằm ngoài preflight.
+**Note on constructors:** If you truly want "no side effects before every item passes preflight", do not invoke plugin constructors during inspection: constructors or static initializers can execute business behavior. The example in section 5 accepts **pre-created instances** and only guarantees `@BatchAction` methods are not called before full validation; creating those instances lies outside preflight.
 
-### Nên kiểm tra trước bao nhiêu?
+### How much should be checked upfront?
 
-Preflight nên xác minh các điều kiện **có thể quyết định từ metadata và input**: thiếu method, sai chữ ký, quyền access không phù hợp, input không thể chuyển đổi, plugin chưa đăng ký, cấu hình xung đột, method bị cấm. Nó không thể dự đoán mọi exception của code đích hay tình trạng tài nguyên lúc thực thi.
+Preflight should verify conditions **decidable from metadata and inputs**: missing method, signature mismatch, insufficient access rights, unconvertible input, unregistered plugin, conflicting configuration, forbidden method. It cannot predict every exception from target code or runtime resource availability.
 
-Nếu batch liên quan file/DB/network, có thể bổ sung bước kiểm tra resource và quyền nghiệp vụ, nhưng đó cũng chỉ là kiểm tra tại một thời điểm. Tài nguyên có thể biến mất ngay sau khi kiểm tra; executor vẫn phải xử lý lỗi đầy đủ.
+If a batch touches files/DB/network, you can add resource and business-permission checks, though those are only point-in-time checks. A resource can vanish right after checking; the executor must still handle errors thoroughly.
 
-## 7. Preflight không phải transaction và cũng không loại bỏ mọi lỗi Reflection
+## 7. Preflight is not a transaction and does not eliminate all Reflection errors
 
-### Những gì có thể sai sau khi kiểm tra thành công
+### What can go wrong after validation succeeds
 
-- Method có thể ném exception do logic bên trong; `Method.invoke` bọc exception từ target trong `InvocationTargetException`. Muốn xem lỗi gốc dùng `getCause()`.
-- Receiver bị thay đổi trạng thái hoặc resource không còn hợp lệ.
-- Method `public` vẫn có thể ném `IllegalArgumentException` do đối số truyền tại thời điểm chạy khác với bản đã xác thực.
-- Ứng dụng có thể chạy sai thứ tự, bị hủy, timeout hoặc thực thi trùng khi retry.
-- Class loader/redeployment tạo ra class cùng tên nhưng **khác identity**; không coi chuỗi tên class là bảo chứng rằng object thuộc đúng `Class<?>` đã kiểm tra.
-- Các instance có thể giữ trạng thái nội bộ thay đổi trong lúc chờ. Kế hoạch bất biến chỉ khóa danh sách bước, không khóa thế giới bên ngoài.
+- A method may throw an exception due to internal logic; `Method.invoke` wraps exceptions from target code in `InvocationTargetException`. Use `getCause()` to inspect the root cause.
+- The receiver's state may mutate or a resource may become invalid.
+- A `public` method can still throw `IllegalArgumentException` if runtime arguments differ from the validated ones.
+- The application may run out of order, be cancelled, time out, or execute redundantly on retry.
+- Class loader/redeployment can produce a class with the same name but **different identity**; do not treat a class-name string as proof that an object belongs to the exact `Class<?>` that was checked.
+- Instances can hold mutable internal state while waiting. An immutable plan only freezes the step list, not the outside world.
 
-Vì vậy, khi batch cập nhật dữ liệu cần có chính sách rõ ràng: **fail-fast**, ghi nhận lỗi từng item, retry có giới hạn, idempotency key, bù trừ (*compensation*) hoặc transaction database nếu thích hợp. Transaction nhiều tài nguyên phân tán không được tạo ra tự động chỉ vì preflight hoàn tất.
+Therefore, when a batch mutates data it needs a clear policy: **fail-fast**, per-item error recording, bounded retries, idempotency keys, compensation, or database transactions where appropriate. Distributed multi-resource transactions do not appear automatically just because preflight completed.
 
-### Phân loại lỗi để báo cáo chính xác
+### Classifying errors for accurate reporting
 
-| Tại bước nào | Lỗi/API thường gặp | Cách báo phù hợp |
+| At which step | Common error/API | Appropriate reporting |
 | --- | --- | --- |
-| Tìm class | `ClassNotFoundException` hoặc lỗi liên quan class loading | Nêu tên/loader và cấu hình sai |
-| Tìm member | `NoSuchMethodException`, `NoSuchFieldException` | Nêu tên và signature mong muốn |
-| Quyền truy cập | `canAccess` trả `false`, `IllegalAccessException`, `InaccessibleObjectException` khi xin mở | Nêu class, package, module và contract quyền |
-| Gọi sai đối số | `IllegalArgumentException`, `WrongMethodTypeException` khi dùng API method handle | Nêu kiểu thực tế và kiểu yêu cầu |
-| Code đích ném lỗi | `InvocationTargetException` | Phân biệt lỗi business, log cause gốc |
-| Không thể tạo instance | `InstantiationException`, lỗi constructor, class abstract | Nêu loại instance cần tạo và nguyên nhân |
+| Class lookup | `ClassNotFoundException` or class-loading errors | Name/loader and invalid configuration |
+| Member lookup | `NoSuchMethodException`, `NoSuchFieldException` | Name and expected signature |
+| Access rights | `canAccess` returns `false`, `IllegalAccessException`, `InaccessibleObjectException` when requesting open | Class, package, module, and permission contract |
+| Wrong argument invocation | `IllegalArgumentException`, `WrongMethodTypeException` when using method handle APIs | Actual type and expected type |
+| Target code throws | `InvocationTargetException` | Distinguish business error, log root cause |
+| Cannot instantiate | `InstantiationException`, constructor failure, abstract class | Instance type to create and cause |
 
-Không nên in toàn bộ dữ liệu đầu vào nhạy cảm vào log; khi có batch nhiều mục, báo vị trí, mã bước và nguyên nhân đủ để sửa.
+Do not print full sensitive input data into logs; in multi-item batches, report position, step code, and cause sufficient to fix the configuration.
 
-## 8. Thiết kế kế hoạch đã kiểm tra cho hệ thống thật
+## 8. Designing a checked plan for real systems
 
-Đối với batch lớn, xây dựng kiểu dữ liệu ghi rõ thông tin của mỗi bước, ví dụ:
+For large batches, build a data type recording each step's details, for example:
 
 ```java
-// Đoạn phác thảo mô hình, không phải chương trình độc lập.
+// Model sketch, not a standalone program.
 record CheckedCall(
         String stepId,
         Object target,
@@ -414,46 +414,46 @@ record CheckedCall(
         Object[] arguments) {}
 ```
 
-Mỗi `CheckedCall` có thể mang thêm thông tin về policy, thứ tự, mục tiêu log, context quyền, deadline và kết quả validation. Chỉ đưa vào kế hoạch cuối khi mọi điều kiện hợp lệ. Trường hợp cần xử lý nhiều lỗi cùng lúc, gom tất cả diagnostics trong một lần quét rồi từ chối chạy nếu có ít nhất một lỗi; tránh sửa lỗi từng mục bằng chu kỳ chạy–fail–sửa tốn kém.
+Each `CheckedCall` can also carry policy, order, log target, permission context, deadline, and validation outcome. Only add to the final plan when every condition is valid. When multiple errors must be handled together, collect all diagnostics in a single pass and reject execution if at least one error exists; avoid fixing items one by one via costly run–fail–fix cycles.
 
-Các điểm cần cân nhắc:
+Points to consider:
 
-- **Snapshot cấu hình**: không cho một thread khác thay danh sách method/arguments sau khi preflight. Nếu argument là object mutable, cần snapshot hoặc biện pháp đồng bộ phù hợp; `List.copyOf` không đóng băng trạng thái object bên trong.
-- **Đúng caller của `canAccess`**: kiểm tra quyền tại chính tầng executor (hoặc thiết kế quyền tương đương), vì quyền Java có ngữ cảnh class/module.
-- **Sự khác biệt giữa metadata và chính sách**: annotation biểu thị ý định đăng ký, nhưng allowlist/authorization mới quyết định người dùng cụ thể được chạy.
-- **Các lời gọi lặp lại**: cache metadata hoặc plan khi thích hợp; vô hiệu hóa cache khi plugin đổi class loader/phiên bản. `Method` có thể tái sử dụng trên nhiều receiver đúng kiểu.
-- **Thứ tự xác định**: đừng dựa vào thứ tự phản hồi từ `getDeclaredMethods()`; sắp xếp hoặc lấy thứ tự từ cấu hình rõ ràng.
-- **Giới hạn tài nguyên**: xác minh kích thước lô, timeout, độ dài input, số luồng, quyền file/network trước khi chạy.
-- **Quan sát và báo lỗi**: diagnostic phải chỉ đúng bước nào, expected/actual signature, quyền truy cập và trạng thái đã/chưa thực thi.
+- **Configuration snapshot**: prevent another thread from mutating the method/argument list after preflight. If arguments are mutable objects, snapshot them or apply proper synchronization; `List.copyOf` does not freeze internal object state.
+- **Right caller for `canAccess`**: verify permissions at the executor layer itself (or equivalent permission design), because Java access checks carry class/module context.
+- **Difference between metadata and policy**: annotations express registration intent, whereas allowlists/authorization decide which specific user may run.
+- **Repeated invocations**: cache metadata or plans when appropriate; invalidate caches when plugins change class loader/version. `Method` can be reused across multiple receivers of the right type.
+- **Deterministic order**: do not rely on the return order of `getDeclaredMethods()`; sort or take order from explicit configuration.
+- **Resource limits**: verify batch size, timeouts, input lengths, thread counts, and file/network permissions before running.
+- **Observability and error reporting**: diagnostics must pinpoint which step, expected/actual signature, access rights, and whether execution had started.
 
-Nếu bài toán chỉ yêu cầu các thao tác chuẩn hóa và kiểm tra qua interface thống nhất, có thể thiết kế `List<Processor>` với lời gọi `process(...)` trực tiếp. Reflection phù hợp hơn khi framework phải **khám phá và ghép nối metadata động**, chứ không phải để thay thế mọi lời gọi có kiểu rõ ràng.
+If the problem only needs standardized operations checked through a uniform interface, you can design `List<Processor>` with direct `process(...)` calls. Reflection fits better when a framework must **dynamically discover and wire metadata**, not to replace every strongly typed call.
 
-## 9. Checklist trước khi bấm “Run batch”
+## 9. Checklist before pressing "Run batch"
 
-1. Đã xác thực nguồn cấu hình và giới hạn danh sách class/method được phép?
-2. Mọi class/receiver/constructor đúng contract và không có `null` hoặc kiểu sai?
-3. Method được tìm theo chính sách rõ ràng (declared/public/inherited, annotation, overload)?
-4. Đã kiểm tra **chính xác** số/kiểu tham số, return type, modifier, varargs, bridge/synthetic?
-5. Quyền thực sự từ executor đã được xác minh bằng `canAccess` với receiver đúng loại; JPMS có cho phép?
-6. Mọi đối số đã được xác thực hoặc chuyển đổi an toàn, không để lỗi có thể phát hiện trước dồn sang execute?
-7. Đã kiểm tra **tất cả bước** trước lời gọi nghiệp vụ đầu tiên? Kế hoạch có bị thay đổi sau preflight không?
-8. Có xử lý `InvocationTargetException`, timeout, retry, lỗi từng bước và side effects đã xảy ra?
-9. Cần transaction, idempotency hoặc rollback/compensation để bảo đảm tính toàn vẹn không?
-10. Log có đủ ngữ cảnh để sửa cấu hình và không lộ dữ liệu nhạy cảm?
+1. Are the configuration source and allowed class/method list verified?
+2. Do all classes/receivers/constructors match the contract with no `null` or wrong types?
+3. Are methods looked up under an explicit policy (declared/public/inherited, annotations, overloads)?
+4. Are parameter count/types, return type, modifiers, varargs, and bridge/synthetic checked **precisely**?
+5. Is actual permission from the executor verified via `canAccess` with the right receiver type; does JPMS allow it?
+6. Are all arguments validated or safely converted so pre-detectable errors do not leak into execute?
+7. Are **all steps** checked before the first business invocation? Can the plan be mutated after preflight?
+8. Are `InvocationTargetException`, timeouts, retries, per-step failures, and already-occurred side effects handled?
+9. Are transactions, idempotency, or rollback/compensation needed to guarantee integrity?
+10. Do logs have enough context to fix configuration without leaking sensitive data?
 
-### Câu hỏi tự kiểm tra
+### Self-check questions
 
-- Vì sao `getDeclaredMethod` tìm được một method private chưa chứng minh `invoke` sẽ được phép?
-- `isAssignableFrom` phải gọi theo chiều nào để kiểm tra plugin thực thi một interface?
-- Nếu method yêu cầu `String` nhưng runner truyền `Integer`, nên phát hiện ở pha nào?
-- `canAccess(null)` phù hợp với static method hay instance method?
-- Nếu preflight chạy xong nhưng lời gọi bước thứ 4 ném exception, hệ thống có tự rollback các bước trước không?
-- Trường hợp constructor plugin có side effect, tạo instance trong preflight có còn giữ được cam kết “chưa chạy nghiệp vụ” không?
+- Why does `getDeclaredMethod` finding a private method not prove `invoke` will be permitted?
+- In which direction must `isAssignableFrom` be called to check whether a plugin implements an interface?
+- If a method expects `String` but the runner passes `Integer`, in which phase should that be detected?
+- Is `canAccess(null)` suitable for a static method or an instance method?
+- If preflight finishes but step 4 throws an exception, does the system automatically roll back earlier steps?
+- If a plugin constructor has side effects, does instantiating it during preflight still preserve the "no business logic run yet" guarantee?
 
-### Tham khảo chính thức
+### Official references
 
-- [`Class` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html): `isInstance`, `isAssignableFrom`, tìm method và constructor.
-- [`Method` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html): chữ ký, `invoke` và metadata.
-- [`AccessibleObject` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html): `canAccess`, `trySetAccessible` và giới hạn access.
-- [`InvocationTargetException` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/InvocationTargetException.html): lỗi được bọc khi target method hoặc constructor ném exception.
-- [Java Language Specification `6.6](https://docs.oracle.com/javase/specs/jls/se17/html/jls-6.html#jls-6.6): quy tắc access control.
+- [`Class` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html): `isInstance`, `isAssignableFrom`, method and constructor lookup.
+- [`Method` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html): signatures, `invoke`, and metadata.
+- [`AccessibleObject` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html): `canAccess`, `trySetAccessible`, and access limits.
+- [`InvocationTargetException` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/InvocationTargetException.html): wrapped error when a target method or constructor throws an exception.
+- [Java Language Specification `6.6](https://docs.oracle.com/javase/specs/jls/se17/html/jls-6.html#jls-6.6): access control rules.

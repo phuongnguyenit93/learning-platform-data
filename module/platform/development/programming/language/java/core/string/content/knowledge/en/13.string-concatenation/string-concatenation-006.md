@@ -1,77 +1,77 @@
-# Chuyển Object qua toString khi tham gia nối chuỗi trong Java
+# Converting an Object via toString When Participating in String Concatenation in Java
 
-Trong Java, toán tử `+` không chỉ cộng các số. Khi **ít nhất một toán hạng là `String`**, nó thực hiện **nối chuỗi** (*string concatenation*). Nếu toán hạng còn lại là một đối tượng, Java áp dụng **string conversion** để lấy biểu diễn văn bản của giá trị đó; với đối tượng không phải `null`, hành vi thông thường được xác định thông qua phương thức `toString()`.
+In Java, the `+` operator does not only add numbers. When **at least one operand is a `String`**, it performs **string concatenation**. If the other operand is an object, Java applies **string conversion** to obtain a textual representation of that value; for a non-`null` object, the usual behavior is determined through the `toString()` method.
 
-Ví dụ:
+Example:
 
 ```java
 Object value = Integer.valueOf(42);
-String message = "Giá trị: " + value;
-System.out.println(message); // Giá trị: 42
+String message = "Value: " + value;
+System.out.println(message); // Value: 42
 ```
 
-Ở đây `Integer` cung cấp `toString()`, nên phần được nối là văn bản `42`. Tuy nhiên, **không được hiểu rằng mọi `Object` tự động có biểu diễn dễ đọc**: nếu lớp không ghi đè `toString()`, kết quả thường có dạng `TenLop@maHex`; và với `null`, Java nối chuỗi văn bản `"null"` thay vì gọi phương thức trên tham chiếu rỗng.
+Here `Integer` provides `toString()`, so the concatenated portion is the text `42`. However, **do not assume every `Object` automatically has a human-readable representation**: if a class does not override `toString()`, the result typically has the form `ClassName@hexHash`; and for `null`, Java concatenates the literal text `"null"` instead of calling a method on a null reference.
 
-Bài này tập trung vào **cách giá trị Object được chuyển thành văn bản khi tham gia phép nối**, không chỉ cách sử dụng toán tử `+`.
+This lesson focuses on **how an Object value is converted into text when participating in concatenation**, not merely on how to use the `+` operator.
 
-## 1. String conversion khi dùng toán tử +
+## 1. String conversion when using the + operator
 
-Với biểu thức:
+For the expression:
 
 ```java
 String result = "Item: " + someObject;
 ```
 
-nếu `someObject` có kiểu tham chiếu như `Book`, `Object`, `List<?>` hoặc một kiểu tự định nghĩa, Java cần một biểu diễn `String` của giá trị ở phía phải. Về mặt **mô hình ngữ nghĩa**:
+if `someObject` has a reference type such as `Book`, `Object`, `List<?>`, or a user-defined type, Java needs a `String` representation of the right-hand value. In terms of the **semantic model**:
 
-1. Đánh giá các toán hạng của phép `+` theo quy tắc đánh giá biểu thức Java.
-2. Nếu một toán hạng thuộc kiểu `String`, phép `+` là nối chuỗi; toán hạng còn lại được chuyển sang biểu diễn chuỗi thích hợp.
-3. Với một **tham chiếu đối tượng khác `null`**, hành vi biểu diễn văn bản gắn với `toString()` của kiểu thực tế.
-4. Với một **tham chiếu `null`**, kết quả string conversion là bốn chữ cái `"null"`.
-5. Kết hợp các phần văn bản để tạo giá trị `String` của biểu thức nối.
+1. Evaluate the operands of `+` according to Java's expression evaluation rules.
+2. If one operand has type `String`, `+` is string concatenation; the other operand is converted into an appropriate string representation.
+3. For a **non-`null` object reference**, the textual representation behavior is tied to the `toString()` of its runtime type.
+4. For a **`null` reference**, the result of string conversion is the four-letter text `"null"`.
+5. Combine the textual parts to produce the `String` value of the concatenation expression.
 
-**Lưu ý kỹ thuật:** Đây là quy tắc **quan sát được ở cấp ngôn ngữ**, không phải cam kết rằng bytecode phải gọi tường minh `String.valueOf(Object)` hay tạo `StringBuilder`. Trình biên dịch/JVM được phép sử dụng chiến lược tối ưu khác, miễn giữ đúng ngữ nghĩa Java.
+**Technical note:** This is the **language-level observable** rule, not a guarantee that bytecode must explicitly call `String.valueOf(Object)` or construct a `StringBuilder`. Compilers and JVMs are permitted to use other optimization strategies as long as Java semantics are preserved.
 
-Khi đọc:
+When reading:
 
 ```java
 String line = "User=" + user;
 ```
 
-có thể hình dung rằng Java cần biểu diễn `user` theo ý nghĩa của `String.valueOf(user)` nếu `user` là tham chiếu đối tượng. Nhưng đừng kết luận “Java nhất định biên dịch thành lời gọi `user.toString()` ở vị trí đó”: cơ chế thực thi cụ thể còn phụ thuộc compiler và JDK.
+you can picture that Java needs a representation of `user` matching the meaning of `String.valueOf(user)` when `user` is an object reference. Still, do not conclude “Java definitely compiles this into a `user.toString()` call at that spot”: the exact execution mechanism depends on the compiler and JDK.
 
-### Những giá trị nào được chuyển thành văn bản?
+### Which values are converted to text?
 
-| Loại toán hạng | Ví dụ | Biểu diễn khi nối |
+| Operand kind | Example | Representation when concatenated |
 |---|---|---|
-| `String` | `"abc"` | Nội dung chuỗi đó |
-| Số nguyên primitive | `42` | Văn bản `"42"` |
-| `boolean` | `true` | Văn bản `"true"` |
-| `char` | `'A'` | Văn bản `"A"` |
-| Đối tượng có `toString()` hữu ích | `new Book("Java")` | Giá trị do `Book.toString()` tạo |
-| Đối tượng không ghi đè `toString()` | `new Object()` | Mẫu mặc định `TenLop@hexHash`, không phải nội dung nghiệp vụ |
-| Tham chiếu `null` | `(Object) null` | `"null"` |
-| Array như `int[]` | `new int[]{1,2}` | Thường là biểu diễn identity mặc định, **không** phải `"[1, 2]"` |
+| `String` | `"abc"` | Content of that string |
+| Primitive integer | `42` | Text `"42"` |
+| `boolean` | `true` | Text `"true"` |
+| `char` | `'A'` | Text `"A"` |
+| Object with a useful `toString()` | `new Book("Java")` | Value produced by `Book.toString()` |
+| Object without overridden `toString()` | `new Object()` | Default pattern `ClassName@hexHash`, not business content |
+| `null` reference | `(Object) null` | `"null"` |
+| Array such as `int[]` | `new int[]{1,2}` | Usually default identity representation, **not** `"[1, 2]"` |
 
-Quy tắc với primitive liên quan đến **chuyển đổi dữ liệu nguyên thủy thành văn bản**; primitive **không có** phương thức instance `toString()`. Chỉ giá trị kiểu tham chiếu có thể gọi `toString()`.
+The rule for primitives involves **converting primitive data to text**; primitives **do not have** a `toString()` instance method. Only reference-type values can have `toString()` invoked on them.
 
-## 2. Vai trò của Object.toString()
+## 2. Role of Object.toString()
 
-Mọi lớp Java đều kế thừa hoặc có thể ghi đè `toString()` từ `java.lang.Object`. Chữ ký:
+Every Java class inherits or can override `toString()` from `java.lang.Object`. Signature:
 
 ```java
 public String toString()
 ```
 
-Phiên bản mặc định của `Object` tạo một chuỗi đại khái theo dạng:
+The default implementation in `Object` produces a string roughly of the form:
 
 ```text
-Tên_lớp@giá_trị_hash_hệ_16
+Class_name@hex_hash_value
 ```
 
-Ví dụ dạng `com.example.User@5e2de80c`. **Giá trị hash, tên lớp đầy đủ và số lần tạo đối tượng không nên được dùng làm output cố định trong bài kiểm thử.** Đây không phải định dạng dành cho người dùng cuối hoặc dữ liệu có tính ổn định.
+For example, `com.example.User@5e2de80c`. **Hash values, full class names, and object allocation counts should not be relied upon as fixed output in tests.** This is not an end-user display format or stable data.
 
-Một lớp nên ghi đè `toString()` nếu ứng dụng cần biểu diễn văn bản có ý nghĩa trong log hoặc khi ghép vào thông báo.
+A class should override `toString()` if the application needs a meaningful textual representation in logs or when embedding into messages.
 
 ```java
 final class Book {
@@ -88,31 +88,31 @@ final class Book {
 }
 ```
 
-Đây là **định nghĩa lớp minh họa**. Với `new Book("Java")`:
+This is an **illustrative class definition**. With `new Book("Java")`:
 
 ```java
 Book book = new Book("Java");
 System.out.println("Item: " + book); // Item: Book(Java)
 ```
 
-Phần văn bản `Book(Java)` do **`Book.toString()` quyết định**. Toán tử `+` không biết `title` là trường gì và không tự đọc các trường của đối tượng.
+The text `Book(Java)` is determined by **`Book.toString()`**. The `+` operator has no knowledge of what field `title` is and does not inspect object fields automatically.
 
-### Tính đa hình
+### Polymorphism
 
-Khi biến được khai báo kiểu cha `Object` nhưng thực sự trỏ đến một `Book`, `Book.toString()` vẫn được dùng:
+When a variable is declared with the supertype `Object` but actually points to a `Book`, `Book.toString()` is still used:
 
 ```java
 Object item = new Book("Java");
 String line = "Item: " + item; // Item: Book(Java)
 ```
 
-Chính **kiểu đối tượng lúc chạy** quyết định phương thức ghi đè nào được thực thi, không phải chỉ kiểu tĩnh `Object` của biến.
+It is the **runtime object type** that determines which overridden method runs, not merely the variable's static type `Object`.
 
-Nếu lớp không ghi đè `toString()`, Java sử dụng triển khai được kế thừa. Điều này giải thích vì sao đôi khi log chỉ hiện dạng `Book@...` thay vì trường `title` mong muốn.
+If a class does not override `toString()`, Java uses the inherited implementation. That explains why logs sometimes show `Book@...` instead of the expected `title` field.
 
-## 3. Null: không giống gọi toString() trực tiếp
+## 3. Null: not the same as calling toString() directly
 
-Đây là sự khác biệt dễ gây nhầm nhất:
+This is the most common source of confusion:
 
 ```java
 Object missing = null;
@@ -124,43 +124,43 @@ System.out.println(a); // Value: null
 System.out.println(b); // null
 ```
 
-Hai biểu thức trên **không ném `NullPointerException`**. Với toán tử nối chuỗi, tham chiếu `null` được chuyển thành văn bản `"null"`; `String.valueOf(Object)` cũng xử lý `null` tương ứng.
+Neither expression above **throws `NullPointerException`**. With the concatenation operator, a `null` reference is converted into the text `"null"`; `String.valueOf(Object)` handles `null` in the same way.
 
-Ngược lại:
+Conversely:
 
 ```java
 Object missing = null;
-// missing.toString(); // Nếu thực thi: NullPointerException
+// missing.toString(); // If executed: NullPointerException
 ```
 
-**Không có object nào để gọi phương thức** khi receiver là `null`. Java không lén gọi `toString()` trên `null` lúc nối chuỗi.
+**There is no object on which to invoke a method** when the receiver is `null`. Java does not secretly call `toString()` on `null` during string concatenation.
 
-Một bảng phân biệt:
+A comparison table:
 
-| Biểu thức | Kết quả |
+| Expression | Result |
 |---|---|
 | `"x=" + (Object) null` | `"x=null"` |
 | `String.valueOf((Object) null)` | `"null"` |
 | `Objects.toString(null)` | `"null"` |
 | `Objects.toString(null, "N/A")` | `"N/A"` |
-| `((Object) null).toString()` | Ném `NullPointerException` |
+| `((Object) null).toString()` | Throws `NullPointerException` |
 
-Các ví dụ với `Objects` cần `import java.util.Objects;`. Lưu ý phương thức `Objects.toString(obj, nullDefault)` cho phép chọn chuỗi thay thế khi đối tượng `null` — phù hợp khi muốn hiển thị `"(chưa có)"` hoặc `"N/A"` thay vì chuỗi `"null"`.
+The examples with `Objects` require `import java.util.Objects;`. Note that `Objects.toString(obj, nullDefault)` lets you specify a fallback string when the object is `null`—useful when you want to display `"(not available)"` or `"N/A"` instead of `"null"`.
 
-### Cẩn thận với String.valueOf(null) không ép kiểu
+### Be careful with uncast String.valueOf(null)
 
-Java có nhiều overload `String.valueOf(...)`, trong đó có `valueOf(Object)` và `valueOf(char[])`. Khi viết:
+Java has multiple `String.valueOf(...)` overloads, including `valueOf(Object)` and `valueOf(char[])`. When writing:
 
 ```java
-// String.valueOf(null); // Có thể chọn overload char[] rồi ném NullPointerException
+// String.valueOf(null); // May select the char[] overload and throw NullPointerException
 String result = String.valueOf((Object) null); // "null"
 ```
 
-Dòng được chú thích chỉ để giải thích **overload resolution**. Việc ép kiểu `(Object) null` giúp chọn đúng overload xử lý tham chiếu đối tượng. Trong mã thông thường khi biến đã có kiểu tĩnh `Object`, `String.valueOf(variable)` sẽ chọn overload `Object`.
+The commented line is only there to explain **overload resolution**. Casting `(Object) null` ensures the overload for object references is selected. In regular code where a variable already has static type `Object`, `String.valueOf(variable)` selects the `Object` overload.
 
-## 4. String.valueOf(Object) có giống toString() không?
+## 4. Is String.valueOf(Object) the same as toString()?
 
-`String.valueOf(Object obj)` cung cấp một điểm gọi dễ dùng để biến tham chiếu thành `String`. Với một object không null, hàm sử dụng biểu diễn do `obj.toString()` trả về; với `null`, hàm trả chuỗi `"null"`.
+`String.valueOf(Object obj)` provides a convenient call site to turn a reference into a `String`. For a non-null object, it uses the representation returned by `obj.toString()`; for `null`, it returns the string `"null"`.
 
 ```java
 Book book = new Book("Java");
@@ -173,21 +173,21 @@ System.out.println(a.equals(b)); // true
 System.out.println(b.equals(c)); // true
 ```
 
-Ví dụ trên giả định định nghĩa `Book` ở mục 2. Tất cả có cùng **nội dung**, không nên dùng `==` để suy luận rằng các biến nhất thiết tham chiếu cùng một object `String`.
+The example above assumes the `Book` definition from section 2. All have the same **content**; do not use `==` to infer that the variables necessarily reference the same `String` object.
 
-Cần phân biệt ba câu hỏi:
+Three questions should be kept separate:
 
-- **`toString()` trả văn bản gì?** Phụ thuộc cách lớp cài đặt.
-- **`String.valueOf(...)` xử lý null và overload ra sao?** Phụ thuộc kiểu đối số đã được trình biên dịch chọn.
-- **Toán tử `+` nối chuỗi tạo kết quả gì?** Theo quy tắc *string conversion* và *string concatenation* của Java.
+- **What text does `toString()` return?** Depends on how the class implements it.
+- **How does `String.valueOf(...)` handle null and overloads?** Depends on the argument type resolved by the compiler.
+- **What result does the `+` concatenation operator produce?** Follows Java's *string conversion* and *string concatenation* rules.
 
-Một `toString()` được thiết kế kém cũng có thể ném exception hoặc sinh văn bản không ổn định. `String.valueOf` và toán tử `+` **không tự xác thực** hay bảo đảm nội dung do `toString()` cung cấp phù hợp với nghiệp vụ.
+A poorly designed `toString()` can also throw an exception or generate unstable text. `String.valueOf` and `+` **do not validate** or guarantee that the content provided by `toString()` is business-appropriate.
 
-## 5. Chương trình Java 17+ chạy độc lập
+## 5. Standalone Java 17+ program
 
-Ví dụ dưới đây tránh in giá trị identity-hash không dự đoán được của mảng, thay vào đó **so sánh hành vi** và dùng `Arrays.toString` để in dữ liệu mảng theo định dạng rõ ràng.
+The example below avoids printing unpredictable identity hashes of arrays; instead it **compares behaviors** and uses `Arrays.toString` to print array data in a clear format.
 
-Lưu thành **`ObjectConcatDemo.java`**:
+Save as **`ObjectConcatDemo.java`**:
 
 ```java
 import java.util.Arrays;
@@ -244,14 +244,14 @@ public class ObjectConcatDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 ObjectConcatDemo.java
 java ObjectConcatDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 item: Book(Java)
@@ -267,30 +267,30 @@ math1: sum=73
 math2: sum=10
 ```
 
-**Phân tích:**
+**Analysis:**
 
-1. `book` được khai báo là `Object` nhưng trỏ đến `Book`; phương thức `Book.toString()` trả `"Book(Java)"`.
-2. `missing` là `null`, nên tham gia `"missing: " + missing` thành văn bản `"null"` và không ném exception.
-3. `String.valueOf(missing)` trả `"null"`. Với `book`, `String.valueOf(book)` có nội dung bằng `"Book(Java)"`.
-4. `book.equals("Book(Java)")` là `false` vì `Book` trong ví dụ không ghi đè `equals`; kế thừa cách so sánh identity của `Object`. **Biểu diễn text giống nhau không làm hai giá trị thuộc hai kiểu trở thành bằng nhau**.
-5. Mảng `int[]` không tự chuyển thành `"[1, 2, 3]"` khi nối. `Arrays.toString(numbers)` mới là phương pháp tường minh để hiển thị nội dung mảng một chiều.
-6. `Tracked.toString()` tăng biến đếm `calls` mỗi lần được gọi. Phép nối đơn giản `"tracked: " + tracked` tạo `tracked: tracked` và có **một lần gọi** trên đối tượng này trong chương trình.
-7. `+` là toán tử **kết hợp trái** (*left-associative*). `"sum=" + 7 + 3` được hiểu như `("sum=" + 7) + 3` nên ra `sum=73`, còn `"sum=" + (7 + 3)` cộng số trước rồi thành `sum=10`.
+1. `book` is declared as `Object` but points to a `Book`; `Book.toString()` returns `"Book(Java)"`.
+2. `missing` is `null`, so participating in `"missing: " + missing` becomes the text `"null"` without throwing an exception.
+3. `String.valueOf(missing)` returns `"null"`. For `book`, `String.valueOf(book)` has content equal to `"Book(Java)"`.
+4. `book.equals("Book(Java)")` is `false` because `Book` in the example does not override `equals`; it inherits `Object`'s identity comparison. **Having identical text representations does not make two values of different types equal**.
+5. An `int[]` array does not automatically turn into `"[1, 2, 3]"` when concatenated. `Arrays.toString(numbers)` is the explicit method for displaying one-dimensional array contents.
+6. `Tracked.toString()` increments the counter `calls` every time it is invoked. The simple concatenation `"tracked: " + tracked` produces `tracked: tracked` and makes **one call** on this object in the program.
+7. `+` is a **left-associative** operator. `"sum=" + 7 + 3` is interpreted as `("sum=" + 7) + 3`, yielding `sum=73`, whereas `"sum=" + (7 + 3)` adds the numbers first to become `sum=10`.
 
-Ví dụ cho thấy Java quyết định **khi nào `+` là phép cộng số và khi nào là nối chuỗi**, còn cách chuyển một `Object` thành văn bản là vấn đề riêng.
+This example shows that Java determines **when `+` is numeric addition and when it is string concatenation**, while how an `Object` is turned into text is a separate question.
 
-## 6. Mảng là trường hợp rất hay bị hiểu sai
+## 6. Arrays are a very commonly misunderstood case
 
-Mảng Java cũng là đối tượng, nhưng `int[]`, `String[]` và mảng nhiều chiều **không mặc nhiên override `toString()` để hiển thị từng phần tử**. Vì thế:
+Java arrays are objects as well, yet `int[]`, `String[]`, and multidimensional arrays **do not override `toString()` by default to display each element**. Therefore:
 
 ```java
 int[] scores = {7, 8, 9};
 String message = "Scores: " + scores;
 ```
 
-`message` **không** có dạng `"Scores: [7, 8, 9]"`. Nó sẽ chứa chuỗi biểu diễn đối tượng mảng, thường gồm tên kiểu JVM của mảng và mã hex liên quan identity; giá trị cụ thể không ổn định để kiểm thử bằng cách so sánh toàn bộ.
+`message` does **not** take the form `"Scores: [7, 8, 9]"`. It will contain the array object's representation string, typically the JVM array type name and a hex identity-related code; the specific value is not stable for full-string equality testing.
 
-Nếu cần trình bày dữ liệu, dùng:
+If you need to present data, use:
 
 ```java
 import java.util.Arrays;
@@ -300,7 +300,7 @@ String formatted = "Scores: " + Arrays.toString(scores);
 System.out.println(formatted); // Scores: [7, 8, 9]
 ```
 
-Với mảng nhiều chiều:
+For multidimensional arrays:
 
 ```java
 int[][] matrix = {{1, 2}, {3, 4}};
@@ -308,35 +308,35 @@ System.out.println("matrix: " + Arrays.deepToString(matrix));
 // matrix: [[1, 2], [3, 4]]
 ```
 
-Hai đoạn trên là **đoạn mã minh họa**: cần đặt trong method phù hợp và có import `java.util.Arrays`. Nếu giá trị là mảng đối tượng có cấu trúc lồng nhau, cân nhắc `Arrays.deepToString(...)`. Nó hữu ích cho debug, nhưng khi xuất định dạng trao đổi dữ liệu chính thức (JSON, CSV, v.v.) nên dùng thư viện/serializer có hợp đồng rõ ràng.
+The two snippets above are **illustrative code snippets**: place them in an appropriate method with `import java.util.Arrays`. If the value is a nested object array structure, consider `Arrays.deepToString(...)`. It is helpful for debugging, though when exporting formal data exchange formats (JSON, CSV, etc.) you should use a library/serializer with a well-defined contract.
 
-### Trường hợp đặc biệt: char[]
+### Special case: char[]
 
-Có sự khác biệt dễ gây bất ngờ giữa **nối chuỗi** và **chọn overload của println/valueOf**:
+There is a surprising difference between **string concatenation** and **overload selection of println/valueOf**:
 
 ```java
 char[] letters = {'J', 'a', 'v', 'a'};
 
 System.out.println(letters);               // Java
 System.out.println(String.valueOf(letters)); // Java
-System.out.println("prefix: " + letters);   // Thường là prefix: [C@...
+System.out.println("prefix: " + letters);   // Typically prefix: [C@...
 ```
 
-`System.out.println(char[])` có overload riêng để in **các ký tự trong mảng**, và `String.valueOf(char[])` cũng có overload chuyên biệt. Nhưng trong `"prefix: " + letters`, array được tham gia **string conversion** theo quy tắc nối, không phải tự động gọi overload in `char[]`. Không nên trông chờ kết quả giống hai dòng đầu.
+`System.out.println(char[])` has a dedicated overload to print **the characters in the array**, and `String.valueOf(char[])` also has a specialized overload. However, in `"prefix: " + letters`, the array undergoes **string conversion** under concatenation rules, rather than automatically invoking the `char[]` printing overload. Do not expect the same result as the first two lines.
 
-Đây là lý do việc chỉ nhìn kết quả `println(someValue)` có thể gây hiểu nhầm về **hành vi riêng của phép `"prefix: " + someValue`**: `println` có nhiều overload, còn toán tử `+` tuân theo quy tắc của ngôn ngữ.
+This is why looking only at `println(someValue)` output can mislead you about **the behavior of `"prefix: " + someValue`**: `println` has multiple overloads, whereas the `+` operator follows the language's rules.
 
-## 7. toString() mặc định, equals() và hashCode() không phải một
+## 7. Default toString(), equals(), and hashCode() are not the same
 
-Ba khái niệm cần tách biệt:
+Three concepts must be separated:
 
-- **`toString()`**: trả biểu diễn văn bản của đối tượng.
-- **`equals(Object)`**: định nghĩa tính bằng nhau của đối tượng (nếu lớp ghi đè).
-- **`hashCode()`**: dùng trong các cấu trúc dựa trên hash và phải tuân theo hợp đồng với `equals`.
+- **`toString()`**: returns a textual representation of the object.
+- **`equals(Object)`**: defines object equality (if overridden by the class).
+- **`hashCode()`**: used in hash-based structures and must obey its contract with `equals`.
 
-Việc ghi đè `toString()` **không tự làm thay đổi** `equals` hoặc `hashCode`. Nếu hai đối tượng có cùng `toString()`, không có nghĩa chúng bằng nhau, cũng không có nghĩa chúng là cùng tham chiếu.
+Overriding `toString()` **does not automatically alter** `equals` or `hashCode`. Having two objects with the same `toString()` does not mean they are equal, nor does it mean they are the same reference.
 
-Ví dụ:
+Example:
 
 ```java
 Book one = new Book("Java");
@@ -347,15 +347,15 @@ System.out.println(one == two);                             // false
 System.out.println(one.equals(two));                        // false
 ```
 
-Đoạn ví dụ dùng lớp `Book` đã khai báo ở trên, **không** override `equals`. Nếu một domain entity cần so sánh giá trị, hãy tự thiết kế `equals`/`hashCode` hoặc dùng một kiểu có ngữ nghĩa giá trị rõ ràng như `record` khi phù hợp. Không dùng `toString()` để thay thế phép so sánh giá trị.
+This snippet uses the `Book` class declared above, which does **not** override `equals`. If a domain entity requires value comparison, design `equals`/`hashCode` explicitly or use a type with clear value semantics such as `record` where appropriate. Never use `toString()` as a substitute for value comparison.
 
-Tương tự, `Object.toString()` mặc định thường liên quan `hashCode()` trong phần văn bản sau dấu `@`, nhưng biểu diễn hex **không phải** ID duy nhất, không ổn định giữa các lần chạy và không nên dùng làm khóa nghiệp vụ.
+Likewise, the default `Object.toString()` typically relates to `hashCode()` in the text after `@`, yet that hex representation is **not** a unique ID, is not stable across runs, and must not be used as a business key.
 
-## 8. Lúc nào toString() được gọi và có tác dụng phụ gì?
+## 8. When is toString() called and what side effects can it have?
 
-Một phương thức `toString()` có thể thực hiện công việc tùy ý: tính toán, đọc field, truy cập trạng thái hoặc thậm chí ném exception. Khi object tham gia nối chuỗi, **cách biểu diễn của nó được đánh giá trong quá trình thực thi phép nối**. Đây không phải việc Java “lưu sẵn” bản in của object khi tạo đối tượng.
+A `toString()` method can perform arbitrary work: computations, reading fields, accessing state, or even throwing exceptions. When an object participates in string concatenation, **its representation is evaluated during execution of the concatenation**. Java does not “pre-cache” a printed copy of the object when the object is constructed.
 
-Ví dụ, nếu một đối tượng thay đổi nội dung, các lần nối chuỗi diễn ra ở thời điểm khác nhau có thể sinh text khác nhau:
+For example, if an object mutates its contents, concatenations performed at different times can produce different text:
 
 ```java
 final class Counter {
@@ -368,7 +368,7 @@ final class Counter {
 }
 ```
 
-Trong một method:
+Inside a method:
 
 ```java
 Counter counter = new Counter();
@@ -380,30 +380,30 @@ System.out.println(before); // State: Counter(0)
 System.out.println(after);  // State: Counter(2)
 ```
 
-Việc dùng `toString()` chỉ để định dạng **không làm cho đối tượng bất biến**. Nếu `toString()` ném unchecked exception, thao tác tạo chuỗi cũng có thể thất bại. Điều này quan trọng khi ghi log hoặc thông báo lỗi: một `toString()` có side effect hay phụ thuộc dịch vụ ngoài có thể khiến chẩn đoán khó khăn.
+Using `toString()` purely for formatting **does not make the object immutable**. If `toString()` throws an unchecked exception, the string-building operation can also fail. This matters in logging or error messages: a `toString()` with side effects or external service dependencies can make diagnostics difficult.
 
-**Khuyến nghị thiết kế:** `toString()` nên dễ hiểu, có chi phí hợp lý, không phụ thuộc dịch vụ ngoài khi có thể, và không vô tình tiết lộ password, access token, thông tin tài chính hay dữ liệu nhạy cảm. Ghi log bằng `"user=" + user` sẽ đưa kết quả `toString()` vào log; cần chủ động kiểm soát trường nào được xuất.
+**Design recommendation:** `toString()` should be easy to understand, reasonably cheap, free of external service dependencies whenever possible, and never accidentally expose passwords, access tokens, financial details, or sensitive data. Logging `"user=" + user` puts the output of `toString()` into logs; actively control which fields are emitted.
 
-### Những vòng gọi đệ quy cần tránh
+### Recursive call cycles to avoid
 
-Nếu trong `toString()` lại nối chính `this`:
+If inside `toString()` you concatenate `this` itself:
 
 ```java
 @Override
 public String toString() {
-    return "Self: " + this; // Sai: liên tục gọi lại toString()
+    return "Self: " + this; // Wrong: repeatedly calls toString() again
 }
 ```
 
-có thể xảy ra đệ quy vô hạn cho tới `StackOverflowError`. Thay vào đó, xây dựng text từ các field cụ thể hoặc kiểu dữ liệu đơn giản. Khi object graph có chu trình, một số cách ghép `toString()` qua các đối tượng liên kết cũng có thể gây đệ quy; cần cách in có nhận diện vòng lặp nếu dữ liệu có cấu trúc như vậy.
+infinite recursion can occur until a `StackOverflowError` is thrown. Instead, build the text from specific fields or simple data types. When an object graph contains cycles, chaining `toString()` across linked objects can also cause recursion; cycle-aware printing is needed if data has that structure.
 
-## 9. Thứ tự đánh giá, cộng số và nối chuỗi
+## 9. Evaluation order, numeric addition, and string concatenation
 
-Với `String` ở bên trái, `"sum=" + 7 + 3` cho `"sum=73"`; ngoặc trong `"sum=" + (7 + 3)` cho `"sum=10"`. Quy tắc này giống các phép nối khác và không làm `Object` nguồn biến thành `String`. Bài **Thứ tự kết hợp trái–phải** dành riêng cho phân tích cú pháp, còn ở đây chú ý **hàm `toString()` của đối tượng được gọi lúc nào và có tác dụng phụ gì**.
+With a `String` on the left, `"sum=" + 7 + 3` produces `"sum=73"`; parentheses in `"sum=" + (7 + 3)` produce `"sum=10"`. This rule matches other concatenations and does not turn the source `Object` into a `String`. The lesson **Left-to-right associativity** is dedicated to expression parsing, whereas here the focus is **when an object's `toString()` is invoked and what side effects it might have**.
 
-## 10. StringBuilder.append(Object) và các cách định dạng khác
+## 10. StringBuilder.append(Object) and other formatting options
 
-Khi xây dựng text từ nhiều phần trong vòng lặp, thường sử dụng `StringBuilder`:
+When building text from many parts in a loop, `StringBuilder` is commonly used:
 
 ```java
 Object book = new Book("Java");
@@ -414,54 +414,54 @@ String message = new StringBuilder()
         .toString();
 ```
 
-`StringBuilder.append(Object)` dùng biểu diễn chuỗi của đối tượng (theo hợp đồng `String.valueOf(Object)`), do đó ví dụ cũng sinh `"Item: Book(Java)"`. Với `null`, nó đưa văn bản `"null"` vào builder.
+`StringBuilder.append(Object)` uses the object's string representation (per the `String.valueOf(Object)` contract), so the example also produces `"Item: Book(Java)"`. For `null`, it appends the text `"null"` into the builder.
 
-**Tuy nhiên `StringBuilder` có nhiều overload** như `append(char[])` và `append(int)`. Nếu truyền mảng `char[]` trực tiếp, overload `append(char[])` có thể được chọn và nối các ký tự; còn `append((Object) letters)` dùng hướng xử lý đối tượng. Vì thế, so sánh behavior luôn phải xét **kiểu tĩnh của biểu thức và overload nào được chọn**.
+**However, `StringBuilder` has multiple overloads** such as `append(char[])` and `append(int)`. Passing a `char[]` array directly may select the `append(char[])` overload and append its characters, whereas `append((Object) letters)` uses object handling. Therefore, comparing behaviors always requires checking **the static type of the expression and which overload is selected**.
 
-### Có phải nối chuỗi bằng + luôn tạo StringBuilder?
+### Does string concatenation with + always create a StringBuilder?
 
-Không. Nhiều ví dụ và tài liệu JVM cũ mô tả compiler “dịch phép nối thành `StringBuilder`”, nhưng đó không phải quy tắc bất biến của ngôn ngữ. Trên các JDK hiện đại, compiler thường dùng cơ chế **`invokedynamic` với string-concat recipes** (JEP 280) và JVM có thể tối ưu thêm. Hợp đồng mà mã ứng dụng dựa vào là **giá trị và ngữ nghĩa của biểu thức nối**, không phải một bytecode hay cấu trúc builder cụ thể.
+No. Many older examples and JVM texts state that the compiler “translates concatenation into `StringBuilder`”, but that is not an immutable language rule. On modern JDKs, the compiler often uses the **`invokedynamic` mechanism with string-concat recipes** (JEP 280) and the JVM can apply further optimizations. The contract application code relies on is **the value and semantics of the concatenation expression**, not a specific bytecode sequence or builder structure.
 
-Có thể khảo sát bằng:
+You can inspect it using:
 
 ```bash
 javac ObjectConcatDemo.java
 javap -c -p ObjectConcatDemo
 ```
 
-Trong bytecode của compiler/JDK phù hợp có thể thấy `invokedynamic` cho string concatenation. Đừng suy luận hiệu năng chỉ từ số lần nhìn thấy `new StringBuilder` trong một output: JVM có thể áp dụng nhiều tối ưu, và chi phí `toString()` do lớp tự định nghĩa đôi khi đáng kể hơn thao tác nối.
+In bytecode produced by an appropriate compiler/JDK you may see `invokedynamic` for string concatenation. Do not infer performance solely from how many `new StringBuilder` instructions appear in an output: the JVM can apply many optimizations, and the cost of a custom class's `toString()` can sometimes outweigh the concatenation itself.
 
-Nếu cần đo đạc, dùng benchmark nghiêm túc với JMH; không kết luận `+` luôn chậm hơn `StringBuilder` trong mọi ngữ cảnh.
+If measurement is needed, run proper benchmarks with JMH; do not assume `+` is always slower than `StringBuilder` in every context.
 
-### Khi nào nên định dạng rõ ràng thay vì nối Object?
+### When should you format explicitly instead of concatenating an Object?
 
-- **Mảng:** `Arrays.toString` hoặc `Arrays.deepToString`.
-- **Ngày/giờ:** dùng `java.time.format.DateTimeFormatter` khi cần format xác định.
-- **Số tiền:** dùng `NumberFormat`/`DecimalFormat` cùng locale và quy tắc làm tròn phù hợp.
-- **Dữ liệu JSON/XML:** sử dụng serializer đúng chuẩn, **không** coi `toString()` là JSON.
-- **Thông báo cho người dùng:** dùng template/formatter rõ ràng và tránh đưa toàn bộ object nội bộ ra giao diện.
-- **Log:** `toString()` có thể hữu ích khi dữ liệu không nhạy cảm, nhưng cần kiểm soát nội dung, chi phí và exception.
+- **Arrays:** `Arrays.toString` or `Arrays.deepToString`.
+- **Dates/times:** use `java.time.format.DateTimeFormatter` when a deterministic format is needed.
+- **Currency/numbers:** use `NumberFormat`/`DecimalFormat` with the appropriate locale and rounding rules.
+- **JSON/XML data:** use a standard serializer, **never** treat `toString()` as JSON.
+- **User-facing messages:** use clear templates/formatters and avoid exposing whole internal objects to the UI.
+- **Logs:** `toString()` can be useful when data is non-sensitive, while controlling content, cost, and exceptions.
 
-## 11. Các nhầm lẫn và lỗi thường gặp
+## 11. Common misunderstandings and mistakes
 
-| Nhầm lẫn | Vì sao sai | Cách hiểu/khắc phục |
+| Misunderstanding | Why it is wrong | Correct understanding / fix |
 |---|---|---|
-| “Nối Object thì Java gọi `toString()` trên cả null.” | `null` không có instance để gọi method; phép nối tạo `"null"` theo string conversion | Phân biệt `"x=" + nullReference` với `nullReference.toString()` |
-| “Mọi object tự động nối thành các giá trị field.” | `Object.toString()` mặc định thường chỉ in tên lớp và hash | Override `toString()` khi cần, hoặc định dạng trường tường minh |
-| “`"Array: " + array` liệt kê phần tử.” | Mảng không có `toString()` hiển thị nội dung | Dùng `Arrays.toString`/`deepToString` |
-| “`System.out.println(charArray)` và `"x=" + charArray` hoạt động giống nhau.” | `println` có overload `char[]`; toán tử nối dùng string conversion | Xác định API và kiểu tĩnh của đối số |
-| “`String.valueOf(null)` luôn trả `"null"`.” | Overload `char[]` có thể được chọn cho literal `null` | Chỉ rõ `String.valueOf((Object) null)` hoặc dùng biến `Object` |
-| “`toString()` cùng text thì `equals` phải true.” | Text representation không định nghĩa equality | Thiết kế `equals/hashCode` riêng |
-| “Object được đổi thành String vĩnh viễn sau phép nối.” | `+` chỉ tạo giá trị chuỗi kết quả | Biến nguồn giữ nguyên kiểu và tham chiếu |
-| “Kết quả `Object.toString()` mặc định là ID ổn định.” | Dạng `Class@hex` không phải khóa nghiệp vụ | Dùng ID do hệ thống quản lý |
-| “`toString()` không thể gây lỗi.” | Override có thể throw hoặc đệ quy | Giữ `toString()` đơn giản và an toàn |
-| “Java bắt buộc biên dịch nối chuỗi thành `new StringBuilder`.” | Chi tiết compiler/JDK có thể thay đổi | Dựa vào ngữ nghĩa JLS, không hardcode chiến lược bytecode |
+| “When concatenating an Object, Java calls `toString()` even on null.” | `null` has no instance on which to call a method; concatenation produces `"null"` via string conversion | Distinguish `"x=" + nullReference` from `nullReference.toString()` |
+| “Every object automatically concatenates into its field values.” | Default `Object.toString()` usually prints only class name and hash | Override `toString()` when needed, or format fields explicitly |
+| “`"Array: " + array` lists the elements.” | Arrays lack a `toString()` that prints elements | Use `Arrays.toString`/`deepToString` |
+| “`System.out.println(charArray)` and `"x=" + charArray` work the same.” | `println` has a `char[]` overload; concatenation uses string conversion | Check the API and the static type of the argument |
+| “`String.valueOf(null)` always returns `"null"`.” | The `char[]` overload may be selected for the `null` literal | Specify `String.valueOf((Object) null)` or use an `Object` variable |
+| “Identical `toString()` text means `equals` must be true.” | Text representation does not define equality | Design `equals/hashCode` separately |
+| “The Object is permanently converted into a String after concatenation.” | `+` only creates a result string value | The source variable retains its type and reference |
+| “Default `Object.toString()` output is a stable ID.” | The `Class@hex` form is not a business key | Use a system-managed ID |
+| “`toString()` cannot fail.” | An override can throw or recurse | Keep `toString()` simple and safe |
+| “Java must compile string concatenation into `new StringBuilder`.” | Compiler/JDK details can vary | Rely on JLS semantics, not hardcoded bytecode strategies |
 
-## 12. Bài tập tự kiểm tra
+## 12. Self-check exercises
 
-### Bài 1: null và override
+### Exercise 1: null and override
 
-Cho:
+Given:
 
 ```java
 final class User {
@@ -481,18 +481,18 @@ System.out.println("a=" + a);
 System.out.println("b=" + b);
 ```
 
-**Đáp án:**
+**Answer:**
 
 ```text
 a=User(Lan)
 b=null
 ```
 
-Dòng thứ nhất dùng `User.toString()` qua đa hình; dòng thứ hai dùng string conversion của tham chiếu null.
+The first line uses `User.toString()` through polymorphism; the second line uses string conversion for a null reference.
 
-### Bài 2: khác biệt phép cộng và phép nối
+### Exercise 2: difference between addition and concatenation
 
-Dự đoán:
+Predict:
 
 ```java
 Object number = Integer.valueOf(8);
@@ -500,18 +500,18 @@ System.out.println("n=" + number + 2);
 System.out.println("n=" + (8 + 2));
 ```
 
-**Đáp án:**
+**Answer:**
 
 ```text
 n=82
 n=10
 ```
 
-Sau khi xuất hiện `String` phía trái, các phép `+` còn lại là nối văn bản. Biểu thức trong ngoặc trước hết thực hiện cộng hai số.
+Once a `String` appears on the left, the remaining `+` operations concatenate text. The parenthesized expression performs numeric addition of the two numbers first.
 
-### Bài 3: mảng
+### Exercise 3: arrays
 
-Cho:
+Given:
 
 ```java
 String[] names = {"Lan", "Minh"};
@@ -519,18 +519,18 @@ String a = "names=" + names;
 String b = "names=" + java.util.Arrays.toString(names);
 ```
 
-Hỏi biểu thức nào hiển thị `names=[Lan, Minh]`? **Đáp án:** chỉ `b`; `a` biểu diễn đối tượng mảng chứ không tự nối các phần tử.
+Which expression displays `names=[Lan, Minh]`? **Answer:** only `b`; `a` prints the array object representation instead of joining elements automatically.
 
-### Bài 4: giá trị đối tượng và giá trị String
+### Exercise 4: object value vs. String value
 
-Một lớp `Customer` override `toString()` trả `"VIP"`. Hai đối tượng khác nhau đều có `toString()` bằng `"VIP"`. Điều đó có làm `customer1 == customer2` đúng không? **Không.** Hai tham chiếu khác nhau vẫn khác identity. Việc hai `String` có nội dung giống nhau không thay đổi equality của hai đối tượng nguồn.
+A `Customer` class overrides `toString()` to return `"VIP"`. Two distinct objects both have `toString()` equal to `"VIP"`. Does that make `customer1 == customer2` true? **No.** Two distinct references still have different identities. Having two `String` values with identical contents does not change the equality of the two source objects.
 
-## 13. Tài liệu chính thức
+## 13. Official references
 
-- [Java Language Specification `15.18.1 — String Concatenation Operator +`](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.18.1): quy tắc nối chuỗi của toán tử `+`.
-- [Java Language Specification `5.1.11 — String Conversion`](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.1.11): xử lý giá trị primitive, tham chiếu đối tượng và null khi chuyển sang chuỗi.
-- [Java SE 17 — `Object.toString()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#toString()): hành vi và mục đích của method.
-- [Java SE 17 — `String.valueOf(Object)`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html#valueOf(java.lang.Object)): chuyển object hoặc null thành text.
-- [JEP 280 — Indify String Concatenation](https://openjdk.org/jeps/280): minh họa lý do không nên đồng nhất phép nối Java với một chiến lược bytecode cụ thể.
+- [Java Language Specification `15.18.1 — String Concatenation Operator +`](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.18.1): string concatenation rules for the `+` operator.
+- [Java Language Specification `5.1.11 — String Conversion`](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.1.11): handling primitive values, object references, and null when converting to string.
+- [Java SE 17 — `Object.toString()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#toString()): behavior and purpose of the method.
+- [Java SE 17 — `String.valueOf(Object)`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html#valueOf(java.lang.Object)): converting an object or null to text.
+- [JEP 280 — Indify String Concatenation](https://openjdk.org/jeps/280): illustrates why Java concatenation should not be equated with a single bytecode strategy.
 
-**Ghi nhớ:** Khi một `Object` tham gia nối với `String` bằng `+`, Java thực hiện *string conversion*: với object khác null, biểu diễn phụ thuộc `toString()` của kiểu thực lúc chạy; với null, văn bản là `"null"`. **`toString()` chỉ là biểu diễn văn bản, không phải identity, equality hay serializer**, và với mảng hoặc dữ liệu nghiệp vụ nên định dạng tường minh khi cần đầu ra ổn định, dễ hiểu.
+**Takeaway:** When an `Object` participates in concatenation with a `String` via `+`, Java performs *string conversion*: for a non-null object, the representation depends on the `toString()` of its runtime type; for null, the text is `"null"`. **`toString()` is only a textual representation—not identity, equality, or a serializer**—and for arrays or business data you should format explicitly when stable, clear output is needed.

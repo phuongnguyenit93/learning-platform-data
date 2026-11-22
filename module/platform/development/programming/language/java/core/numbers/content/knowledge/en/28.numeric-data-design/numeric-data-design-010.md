@@ -1,83 +1,83 @@
-# Giới hạn tài nguyên cho đầu vào BigInteger hoặc BigDecimal rất lớn
+# Resource Limits for Very Large BigInteger or BigDecimal Inputs
 
-## 1. Vì sao số “chính xác, không giới hạn” vẫn cần giới hạn?
+## 1. Why Do "Exact, Unbounded" Numbers Still Need Limits?
 
-`java.math.BigInteger` và `java.math.BigDecimal` khắc phục giới hạn miền giá trị hoặc độ chính xác của các kiểu số nguyên/số thực nguyên thủy trong nhiều trường hợp. Tuy vậy, **độ lớn tùy ý** (*arbitrary precision*) không có nghĩa bộ nhớ, CPU, thời gian xử lý hoặc độ dài đầu ra đều vô hạn.
+`java.math.BigInteger` and `java.math.BigDecimal` overcome the range or precision limits of primitive integer and floating-point types in many situations. Even so, **arbitrary precision** does not mean memory, CPU, processing time, or output length are infinite.
 
-Khi nhận chuỗi số từ người dùng, API, file hoặc message queue, ứng dụng có thể đối mặt với ba loại đầu vào:
+When receiving numeric strings from users, APIs, files, or message queues, an application can face three categories of input:
 
-1. **Dãy chữ số rất dài**: ví dụ một số nguyên chứa hàng triệu chữ số. Chỉ riêng việc nhận, lưu, kiểm tra và phân tích chuỗi đã tốn tài nguyên; tạo `BigInteger` còn phải xây dựng biểu diễn số nguyên lớn.
-2. **Chuỗi ngắn nhưng số mũ rất lớn**: ví dụ `"1E+1000000000"`. Số ký tự đầu vào rất ít nhưng giá trị `BigDecimal` có scale âm rất lớn. Nếu cố xuất dạng thông thường bằng `toPlainString()` có thể phải tạo một chuỗi khổng lồ.
-3. **Giá trị đầu vào có vẻ vừa phải nhưng phép toán phình to**: ví dụ dịch trái một `BigInteger` hàng triệu bit hoặc lũy thừa với số mũ rất lớn. Kết quả trung gian có thể lớn hơn hẳn đầu vào.
+1. **Very long digit sequences**: e.g., an integer containing millions of digits. Simply receiving, storing, validating, and scanning the string consumes resources; constructing `BigInteger` must also build a huge integer representation.
+2. **Short strings with huge exponents**: e.g., `"1E+1000000000"`. The input has very few characters, yet the `BigDecimal` has a massive negative scale. Attempting plain output via `toPlainString()` can require allocating a gigantic string.
+3. **Modest-looking inputs whose operations blow up**: e.g., left-shifting a `BigInteger` by millions of bits or raising to a very large exponent. Intermediate results can dwarf the inputs.
 
-Hậu quả có thể gồm sử dụng quá nhiều RAM, áp lực GC, CPU quá tải, độ trễ lớn, lỗi `OutOfMemoryError`, quá thời gian xử lý, cạn quota của dịch vụ hoặc từ chối dịch vụ (*denial of service*). Không nên giả định constructor sẽ tự áp dụng hạn mức phù hợp với nghiệp vụ.
+Consequences can include excessive RAM usage, GC pressure, CPU saturation, high latency, `OutOfMemoryError`, timeouts, exhausted service quotas, or *denial of service*. Never assume constructors will automatically enforce business-appropriate limits.
 
-**Mục tiêu thiết kế:** đặt ngân sách tài nguyên từ trước khi parse, trước phép toán có khả năng mở rộng kích thước và trước khi chuyển số thành chuỗi đầu ra. Mọi giới hạn cần được xác định theo **ngữ cảnh nghiệp vụ**, không lấy các hằng số ví dụ trong bài làm giá trị mặc định cho sản phẩm.
+**Design goal:** establish resource budgets before parsing, before size-expanding operations, and before converting numbers into output strings. Every limit must be determined from **business context**, rather than taking example constants from this article as production defaults.
 
-## 2. Hiểu kích thước dữ liệu và chi phí
+## 2. Understanding Data Size and Cost
 
-### BigInteger: dãy chữ số và số bit
+### BigInteger: Digit Sequences and Bit Counts
 
-`BigInteger` biểu diễn số nguyên độ lớn tùy ý. Chuỗi thập phân dài `d` chữ số thường cần khoảng \(d \times \log_2(10)\), tức khoảng \(3.322d\) bit để biểu diễn độ lớn (ước lượng, không bao gồm overhead object, mảng và bộ nhớ tạm).
+`BigInteger` represents arbitrary-magnitude integers. A decimal string `d` digits long typically needs about \(d \times \log_2(10)\), or roughly \(3.322d\) bits to represent magnitude (an estimate excluding object headers, arrays, and temporary buffers).
 
-Ví dụ một triệu chữ số thập phân tương đương khoảng 3,32 triệu bit, tức hàng trăm KiB chỉ riêng dữ liệu bit ở mức lý thuyết. Nhưng quy trình thực tế còn phải giữ chuỗi đầu vào, mảng, đối tượng, cấu trúc tạm và tài nguyên của thuật toán parse/tính toán. **Không dùng ước lượng số bit làm cam kết về RAM thực tế.**
+For example, one million decimal digits corresponds to roughly 3.32 million bits—hundreds of KiB for the raw bit data alone in theory. Yet the actual pipeline must also hold the input string, arrays, objects, temporary structures, and resources for parsing/calculation algorithms. **Never treat bit-count estimates as a guarantee of actual RAM usage.**
 
-`BigInteger.bitLength()` cho biết độ dài bit tối thiểu theo hợp đồng API (cách xử lý số âm có quy tắc riêng); `toString().length()` là độ dài biểu diễn thập phân, có thể đòi hỏi chuyển đổi đáng kể. Khi đầu vào chưa được tin cậy, **đếm số chữ số trên chuỗi trước**, rồi mới dựng `BigInteger`.
+`BigInteger.bitLength()` reports the minimum bit length per the API contract (negative numbers have their own rule); `toString().length()` is the decimal representation length, which can require substantial conversion work. When inputs are untrusted, **count digits on the string first**, before constructing `BigInteger`.
 
-Các phép toán có thể làm kết quả tăng rất nhanh:
+Operations that can grow results rapidly:
 
-- `a.multiply(b)`: số bit kết quả xấp xỉ tổng số bit của hai toán hạng.
-- `a.shiftLeft(n)`: số bit có thể tăng khoảng `n` với `n` rất lớn.
-- `a.pow(n)`: số chữ số/bit kết quả có thể tăng theo `n`, ngay cả khi `a` ngắn.
-- `modPow`, chia, `gcd`, kiểm tra nguyên tố: chi phí thời gian phụ thuộc kích thước toán hạng và thuật toán; chỉ giới hạn chiều dài đầu vào là chưa đủ.
+- `a.multiply(b)`: result bit count is roughly the sum of both operands' bit counts.
+- `a.shiftLeft(n)`: bit count can grow by roughly `n` when `n` is huge.
+- `a.pow(n)`: result digit/bit count can scale with `n`, even when `a` is short.
+- `modPow`, division, `gcd`, primality testing: time cost depends on operand size and algorithm; bounding input length alone is not enough.
 
-### BigDecimal: precision, scale và exponent
+### BigDecimal: Precision, Scale, and Exponent
 
-`BigDecimal` gồm một giá trị nguyên không chia tỷ lệ (*unscaled value*) và một số `scale` kiểu `int`:
+`BigDecimal` consists of an unscaled integer value (*unscaled value*) and an `int` `scale`:
 
 \[
 \text{value} = \text{unscaledValue} \times 10^{-\text{scale}}
 \]
 
-`precision()` là số chữ số của unscaled value (trường hợp số 0 có precision 1). `scale()` có thể âm, dương hoặc bằng 0:
+`precision()` is the digit count of the unscaled value (zero has precision 1). `scale()` can be negative, positive, or zero:
 
-| Đầu vào | Precision | Scale | Ý nghĩa |
+| Input | Precision | Scale | Meaning |
 |---|---:|---:|---|
-| `"123.4500"` | 7 | 4 | Giá trị 123.4500, giữ 4 chữ số sau dấu thập phân |
-| `"1E+6"` | 1 | -6 | Giá trị một triệu |
-| `"1E-7"` | 1 | 7 | Giá trị một phần mười triệu |
-| `"0.00"` | 1 | 2 | Giá trị 0 với scale 2 |
+| `"123.4500"` | 7 | 4 | Value 123.4500, retaining 4 digits after decimal point |
+| `"1E+6"` | 1 | -6 | Value one million |
+| `"1E-7"` | 1 | 7 | Value one ten-millionth |
+| `"0.00"` | 1 | 2 | Value 0 with scale 2 |
 
-**Precision nhỏ không đồng nghĩa đầu ra nhỏ.** `new BigDecimal("1E+1000000")` có unscaled value `1` và scale `-1000000` nhưng `toPlainString()` phải trình bày số 1 và một triệu số 0. Trong khi đó `toString()` có thể giữ dạng khoa học rất ngắn. Vì vậy cần chính sách riêng cho **scale/exponent** và **độ dài chuỗi kết quả**.
+**Small precision does not mean small output.** `new BigDecimal("1E+1000000")` has unscaled value `1` and scale `-1000000`, yet `toPlainString()` must render a `1` followed by one million zeros. Meanwhile `toString()` can stay in very short scientific notation. Therefore, you need separate policies for **scale/exponent** and **output string length**.
 
-Ngay cả nếu chuỗi exponent vượt miền mà Java cho phép và constructor ném `NumberFormatException`, ứng dụng vẫn không nên giao việc phát hiện cho constructor sau khi đã nhận một payload không có hạn mức. Giới hạn sớm giúp kết quả kiểm soát được và giảm rủi ro trước khi tạo đối tượng lớn.
+Even if an exponent string exceeds Java's allowed range and the constructor throws `NumberFormatException`, the application still should not leave detection to the constructor after already ingesting an unbounded payload. Early limits keep outcomes controllable and reduce risk before allocating large objects.
 
-## 3. Lớp phòng vệ thứ nhất: giới hạn đầu vào trước parse
+## 3. First Line of Defense: Bounding Input Before Parsing
 
-Một chính sách đầu vào số cần nêu rõ:
+A numeric input policy should explicitly state:
 
-| Hạn mức | Bảo vệ điều gì? | Cách áp dụng |
+| Limit | What It Protects | How to Enforce |
 |---|---|---|
-| Tổng kích thước request/file/message | Bộ nhớ và I/O của toàn payload | Hạn mức ở HTTP gateway, message consumer, file reader |
-| `maxTextChars` hoặc `maxBytes` | Bộ nhớ chuỗi và chi phí quét | Kiểm tra trước khi dựng số, giới hạn byte từ lớp nhận dữ liệu |
-| Số chữ số mantissa/số nguyên | Chi phí parse và độ lớn unscaled value | Đếm ký tự `0..9` trước constructor |
-| Số chữ số exponent | Không nhận exponent dài bất thường | Kiểm tra phần sau `E`/`e` |
-| Độ lớn tuyệt đối của exponent | Tránh scale cực đoan và chuỗi đầu ra phình to | Parse exponent theo số nguyên có kiểm tra tràn |
-| Độ lớn tuyệt đối của scale | Giới hạn dạng thập phân/scientific và các phép toán | Xác minh `scale()` sau parse, có ngân sách parse từ trước |
-| Độ dài chuỗi cần xuất | Tránh `toPlainString()` phát sinh chuỗi quá dài | Ước tính trước khi gọi hàm tạo chuỗi |
-| Ngân sách bit và phép toán | Kết quả trung gian lớn, CPU cao | Dự báo độ lớn và từ chối phép toán vượt quota |
+| Total request/file/message size | Memory and I/O of the whole payload | Limits at HTTP gateway, message consumer, file reader |
+| `maxTextChars` or `maxBytes` | String memory and scanning cost | Check before building numbers; bound bytes at transport layer |
+| Mantissa/integer digit count | Parsing cost and unscaled value size | Count `0..9` characters before constructor |
+| Exponent digit count | Reject abnormally long exponents | Inspect part after `E`/`e` |
+| Absolute exponent magnitude | Avoid extreme scales and bloated output strings | Parse exponent as integer with overflow check |
+| Absolute scale magnitude | Bound decimal/scientific forms and operations | Verify `scale()` after parse, with pre-parse budget |
+| Output string length | Prevent `toPlainString()` from generating huge strings | Estimate before calling string-formatting methods |
+| Bit and operation budget | Huge intermediate results, high CPU | Predict growth and reject operations exceeding quota |
 
-**Không chỉ dùng `text.length()`.** Chuỗi `"1E+1000000"` chỉ có ít ký tự nhưng việc xuất số ở dạng thập phân có thể rất lớn. Ngược lại, chuỗi có hàng triệu số 0 cần chặn ngay cả khi giá trị toán học bằng 0.
+**Do not rely solely on `text.length()`.** The string `"1E+1000000"` has few characters yet its decimal form can be massive. Conversely, a string of millions of zeros must be blocked even though its mathematical value is 0.
 
-Đối với dữ liệu không tin cậy, ưu tiên một **ngữ pháp đơn giản đã thống nhất**: chỉ ký tự ASCII, dấu `+`/`-` tùy chính sách, đúng một dấu `.` nếu là số thập phân, phần exponent tùy chọn với `E`/`e`, và cấm khoảng trắng/ký tự lạ. Điều này cũng tránh nhầm dấu phân cách theo locale: parser `BigDecimal(String)` dùng cú pháp số của Java, không phải cú pháp tùy tiện của giao diện vùng miền.
+For untrusted data, prefer a **simple agreed grammar**: ASCII characters only, optional `+`/`-` per policy, at most one `.` if decimal, optional exponent with `E`/`e`, and no whitespace or foreign characters. This also avoids locale-separator confusion: `BigDecimal(String)` uses Java's numeric syntax, not arbitrary regional UI formatting.
 
-Nếu dữ liệu đến trong JSON, cân nhắc nhận giá trị thập phân chính xác dưới dạng **chuỗi** khi cần bảo toàn văn bản/precision; đặt giới hạn body và giới hạn chiều dài giá trị **trước** khi các tầng chuyển đổi tự dựng `BigInteger`/`BigDecimal`. Tránh parse một số tùy ý thành `double` trước rồi mới chuyển sang `BigDecimal` vì có thể làm mất độ chính xác.
+If data arrives in JSON, consider receiving exact decimal values as **strings** when text/precision must be preserved; set body limits and value length limits **before** deserialization layers construct `BigInteger`/`BigDecimal` automatically. Avoid parsing arbitrary numbers into `double` first and converting to `BigDecimal` afterward, as that can lose precision.
 
-## 4. Chương trình Java 17+ kiểm tra trước khi dựng số và trước khi xuất
+## 4. Java 17+ Program Validating Before Constructing and Before Formatting
 
-Đây là ví dụ có **chính sách minh họa**, không phải bộ thông số khuyến nghị cho mọi hệ thống: chuỗi tối đa 80 ký tự UTF-16, tối đa 20 chữ số trong phần số, exponent tối đa 3 ký tự và độ lớn không quá 30, `|scale| <= 30`, dạng plain tối đa 32 ký tự, kết quả dịch trái tối đa 128 bit. Trong ví dụ, toàn bộ dữ liệu đầu vào chỉ cho phép ký tự ASCII nên `String.length()` trùng số ký tự đầu vào; giới hạn byte của request vẫn cần xử lý ở lớp vận chuyển.
+This example uses an **illustrative policy**, not recommended parameters for every system: strings at most 80 UTF-16 chars, at most 20 digits in the numeric part, exponent at most 3 digits and magnitude at most 30, `|scale| <= 30`, plain form at most 32 characters, left-shift result at most 128 bits. In the example, all inputs permit ASCII characters only, so `String.length()` matches character count; request byte limits must still be handled at the transport layer.
 
-Lưu file **`SafeBigNumbers.java`**:
+Save the file **`SafeBigNumbers.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -160,7 +160,7 @@ public class SafeBigNumbers {
         }
 
         if (i < text.length()) {
-            i++; // Bỏ qua E/e.
+            i++; // Skip E/e.
             if (i < text.length()
                     && (text.charAt(i) == '+'
                             || text.charAt(i) == '-')) {
@@ -196,7 +196,7 @@ public class SafeBigNumbers {
         }
 
         BigDecimal value = new BigDecimal(text);
-        // Cast sang long trước khi dùng abs để an toàn với int MIN_VALUE.
+        // Cast to long before calling abs to be safe with int MIN_VALUE.
         if (Math.abs((long) value.scale()) > MAX_ABS_SCALE) {
             throw new IllegalArgumentException("scale too large");
         }
@@ -207,7 +207,7 @@ public class SafeBigNumbers {
         return value;
     }
 
-    // Độ dài số ký tự toPlainString() dự kiến, không tạo chuỗi lớn.
+    // Expected character length of toPlainString(), without creating a huge string.
     private static long plainLength(BigDecimal n) {
         long p = n.precision();
         long scale = n.scale();
@@ -218,9 +218,9 @@ public class SafeBigNumbers {
         } else if (scale <= 0) {
             length = p - scale;
         } else if (p > scale) {
-            length = p + 1;   // Bao gồm dấu thập phân.
+            length = p + 1;   // Includes the decimal point.
         } else {
-            length = scale + 2; // "0." và các chữ số thập phân.
+            length = scale + 2; // "0." and the fractional digits.
         }
 
         return length + (n.signum() < 0 ? 1 : 0);
@@ -270,14 +270,14 @@ public class SafeBigNumbers {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac SafeBigNumbers.java
 java SafeBigNumbers
 ```
 
-Kết quả:
+Output:
 
 ```text
 integer digits: 20
@@ -290,147 +290,147 @@ large plain output: rejected
 oversize shift: rejected
 ```
 
-### Đọc hiểu từng lớp kiểm tra
+### Understanding Each Validation Layer
 
-**`parseInteger`:** kiểm tra null/rỗng và tổng độ dài; chỉ cho phép một dấu ở đầu và tối đa 20 chữ số `0..9`, sau đó mới gọi `new BigInteger(text)`. Ký tự lạ hoặc dấu lặp bị từ chối. Các số 0 đầu vẫn **được đếm** vào hạn mức vì chúng vẫn làm dài đầu vào và gây chi phí parse.
+**`parseInteger`:** checks null/empty and total length; permits at most one leading sign and up to 20 digits `0..9`, only then calling `new BigInteger(text)`. Foreign characters or repeated signs are rejected. Leading zeros still **count** toward the limit because they lengthen the input and incur parsing cost.
 
-**`parseDecimal`:** quét phần mantissa, đếm mọi chữ số và không chấp nhận hai dấu chấm. Với exponent, chương trình kiểm soát **cả độ dài lẫn giá trị** trước khi dựng `BigDecimal`. Phép kiểm tra `magnitude > (MAX_ABS_EXPONENT - digit) / 10` phát hiện vượt giới hạn trước phép nhân 10/cộng chữ số, tránh tự làm tràn biến `int` trong quá trình parse exponent. Chính sách này chấp nhận các dạng như `1.25E+2` và `.5` nhưng không nhận khoảng trắng, ký tự phân nhóm hàng nghìn hoặc biểu diễn số theo locale.
+**`parseDecimal`:** scans the mantissa, counts all digits, and rejects two decimal points. For the exponent, the program checks **both length and value** before constructing `BigDecimal`. The check `magnitude > (MAX_ABS_EXPONENT - digit) / 10` detects overflow before multiplying by 10 and adding the digit, avoiding overflowing the `int` variable while parsing the exponent. This policy accepts forms like `1.25E+2` and `.5` while rejecting whitespace, thousands grouping characters, or locale-formatted numbers.
 
-**Kiểm soát scale:** sau khi tạo giá trị đã được giới hạn textual input, kiểm tra `Math.abs((long) value.scale())`. Việc chuyển sang `long` trước `abs` tránh lỗi đặc biệt với `Integer.MIN_VALUE`. Đây là kiểm tra **bổ sung sau parse**, không thay thế giới hạn textual input/exponent trước constructor.
+**Scale control:** after constructing the value from bounded textual input, checks `Math.abs((long) value.scale())`. Promoting to `long` before `abs` avoids the `Integer.MIN_VALUE` edge case. This is an **additional post-parse check**, not a substitute for pre-constructor textual input/exponent limits.
 
-**`plainLength`:** chỉ ước tính độ dài chuỗi thập phân thuần, không thực hiện `toPlainString()`. Công thức dùng `precision()` và `scale()`; có một trường hợp riêng cho số 0 có scale không dương và một ký tự dấu khi số âm. Trong ví dụ, `1E+30` có độ dài plain 31 nên được phép; `100.0E+30` có plain dài 33 nên bị từ chối theo ngân sách 32.
+**`plainLength`:** estimates only the plain decimal string length without calling `toPlainString()`. The formula uses `precision()` and `scale()`; there is a special case for zero with non-positive scale and one character for the minus sign when negative. In the example, `1E+30` has plain length 31 and is allowed; `100.0E+30` has plain length 33 and is rejected under the budget of 32.
 
-**`shiftLeftBounded`:** dùng tổng `bitLength + bits` làm **cận trên bảo thủ** trước `shiftLeft`. Với miền nhập và chính sách này, kiểm tra chặn các yêu cầu có thể vượt 128 bit; đôi khi nó cũng từ chối một kết quả thực tế có thể nhỏ hơn cận, điều có thể chấp nhận trong chính sách an toàn tài nguyên. Với phép dịch phải, mũ lũy thừa, nhân/chia hoặc modPow, cần xây dựng giới hạn riêng trước mỗi phép toán.
+**`shiftLeftBounded`:** uses the sum `bitLength + bits` as a **conservative upper bound** before `shiftLeft`. With this input domain and policy, the check blocks requests that could exceed 128 bits; occasionally it also rejects an actual result that might fall below the bound, which is acceptable in a resource-safety policy. For right shifts, exponentiation, multiplication/division, or `modPow`, build dedicated limits before each operation.
 
-**`expectRejected`:** minh họa các trường hợp bị từ chối bằng `IllegalArgumentException`; trong ứng dụng thực, chuyển các lỗi kiểm tra đó thành phản hồi validation có cấu trúc và **không trả dữ liệu đầu vào quá dài vào log/error response**.
+**`expectRejected`:** illustrates rejected cases via `IllegalArgumentException`; in real applications, translate those validation failures into structured validation responses and **never echo oversized input data into logs or error responses**.
 
-Các hằng số trong chương trình chỉ phục vụ ví dụ. Một hệ thống kế toán, tính toán khoa học hay xử lý mật mã có ngân sách và đặc trưng dữ liệu rất khác nhau. Hãy đặt giới hạn theo yêu cầu của sản phẩm và tài nguyên triển khai.
+Constants in this program are for illustration only. An accounting system, scientific computation, or cryptographic processor has vastly different budgets and data characteristics. Set limits according to product requirements and deployment resources.
 
-## 5. Dự đoán kích thước đầu ra trước khi chuyển chuỗi
+## 5. Predicting Output Size Before String Conversion
 
-Rất dễ bỏ sót vấn đề đầu ra. Xét:
+It is very easy to overlook output issues. Consider:
 
 ```java
 BigDecimal value = new BigDecimal("1E+1000000");
 
-String compact = value.toString();     // Dạng khoa học, ngắn.
-// String huge = value.toPlainString(); // Có thể sinh > 1 triệu ký tự.
+String compact = value.toString();     // Scientific notation, short.
+// String huge = value.toPlainString(); // Can generate > 1 million characters.
 ```
 
-`BigDecimal.toString()` chọn dạng khoa học khi phù hợp với scale/adjusted exponent. `toPlainString()` **bắt buộc không dùng E** và có thể thêm vô số chữ số 0 khi scale rất âm hoặc rất dương. `toEngineeringString()` cũng có cách trình bày khác, nhưng không nên dùng như một cơ chế giới hạn kích thước tổng quát.
+`BigDecimal.toString()` chooses scientific notation when appropriate given scale/adjusted exponent. `toPlainString()` **forbids E notation** and can pad millions of zeros when scale is extremely negative or positive. `toEngineeringString()` also has its own layout, yet must not be relied upon as a general size-limiting mechanism.
 
-Một cách dự báo độ dài plain cho phần lớn các số khác 0:
+A way to predict plain length for most non-zero numbers:
 
-- `scale <= 0`: số chữ số thường là `precision - scale`.
-- `scale > 0` và `precision > scale`: cần `precision + 1` ký tự (bao gồm dấu chấm).
-- `scale > 0` và `precision <= scale`: cần `scale + 2` ký tự, gồm `0.` và phần thập phân.
-- Nếu âm, cộng một ký tự cho dấu trừ. Với số 0 có scale không dương, `toPlainString()` là `"0"`.
+- `scale <= 0`: digit count is typically `precision - scale`.
+- `scale > 0` and `precision > scale`: requires `precision + 1` characters (including the decimal point).
+- `scale > 0` and `precision <= scale`: requires `scale + 2` characters, consisting of `0.` and fractional digits.
+- If negative, add one character for the minus sign. For zero with non-positive scale, `toPlainString()` is `"0"`.
 
-Các phép tính ước lượng cần dùng `long` hoặc phép toán kiểm tra tràn, không cộng/trừ `int` bừa bãi khi scale có thể nằm gần giới hạn kiểu `int`. Khi đã có một hạn mức nhỏ, **so sánh chiều dài dự kiến trước khi gọi phương thức tạo chuỗi**.
+Estimation arithmetic must use `long` or overflow-checked math, never careless `int` addition/subtraction when scale may lie near `int` bounds. Given a small budget, **compare the predicted length before calling string-creation methods**.
 
-Ngoài `toPlainString()`, kiểm tra đường đi dữ liệu qua JSON serialization, ghi log, sinh báo cáo, CSV, HTML, các API nhận chuỗi, hoặc trường cơ sở dữ liệu. Một giá trị dưới dạng khoa học ngắn ở tầng nhận có thể trở thành đầu ra rất lớn sau một phép chuẩn hóa định dạng.
+Beyond `toPlainString()`, audit data paths through JSON serialization, logging, report generation, CSV, HTML, string-accepting APIs, or database columns. A value in compact scientific notation at ingestion can explode into a massive output after format normalization.
 
-## 6. Giới hạn tài nguyên trước phép toán
+## 6. Resource Limits Before Operations
 
-Kể cả nếu hai toán hạng qua kiểm tra đầu vào, phép toán tiếp theo vẫn có thể tạo số vượt ngân sách:
+Even if both operands pass input validation, subsequent operations can still produce numbers exceeding the budget:
 
-| Phép toán | Rủi ro | Giới hạn nên có |
+| Operation | Risk | Recommended Limit |
 |---|---|---|
-| `BigInteger.multiply` | Kích thước kết quả xấp xỉ tổng kích thước bit của toán hạng | Ước lượng cận bit kết quả; chặn giá trị vượt ngân sách |
-| `BigInteger.shiftLeft` | `n` có thể rất lớn dù toán hạng ngắn | Giới hạn cả `n` và bit kết quả dự kiến |
-| `BigInteger.pow` | Số chữ số kết quả tăng theo số mũ | Giới hạn số mũ và ngân sách bit/precision |
-| `BigInteger.modPow` | Tốn thời gian với modulus/số mũ lớn | Giới hạn bitLength và số phép/độ trễ |
-| `BigInteger.gcd`, chia/mod | Chi phí phụ thuộc kích thước toán hạng | Giới hạn bitLength đầu vào và quota xử lý |
-| `BigDecimal.multiply` | Unscaled value và scale có thể tăng | Giới hạn precision/scale dự kiến và kết quả |
-| `BigDecimal.divide` | Có thể có khai triển thập phân vô hạn hoặc sinh nhiều chữ số | Chỉ định precision/scale và `RoundingMode` theo nghiệp vụ |
-| `BigDecimal.pow` | Precision, exponent, scale và chi phí trung gian có thể lớn | Giới hạn số mũ, precision, scale và chi phí |
-| `toPlainString` | Chuỗi đầu ra có thể lớn dù unscaled value nhỏ | Tính trước độ dài plain, chặn trước khi tạo |
+| `BigInteger.multiply` | Result size is roughly sum of operand bit lengths | Estimate result bit bound; block values exceeding budget |
+| `BigInteger.shiftLeft` | `n` can be huge even when operand is short | Bound both `n` and predicted result bits |
+| `BigInteger.pow` | Result digit count scales with exponent | Bound exponent and bit/precision budget |
+| `BigInteger.modPow` | Expensive for large modulus/exponent | Bound bitLength and operation count/latency |
+| `BigInteger.gcd`, divide/mod | Cost depends on operand size | Bound input bitLength and processing quota |
+| `BigDecimal.multiply` | Unscaled value and scale can grow | Bound predicted precision/scale and result |
+| `BigDecimal.divide` | Can have infinite decimal expansion or many digits | Specify precision/scale and `RoundingMode` per business rules |
+| `BigDecimal.pow` | Precision, exponent, scale, and intermediate cost can grow huge | Bound exponent, precision, scale, and cost |
+| `toPlainString` | Output string can be huge even for small unscaled value | Pre-calculate plain length; block before creating |
 
-Ví dụ về dự đoán:
+Prediction examples:
 
-- Với phép nhân hai số nguyên có độ dài bit `a` và `b`, bitLength kết quả không vượt quá xấp xỉ `a + b`; dùng tổng này làm cận trên bảo thủ trước khi nhân.
-- Với `shiftLeft(n)`, cộng `n` vào bitLength hiện có làm cận trên đơn giản; từ chối `n` âm hoặc lớn quá giới hạn.
-- Với `pow(exponent)`, sản phẩm `bitLength × exponent` có thể quá lớn. Dùng kiểu rộng hoặc phép kiểm tra tràn trước khi ước lượng, đặc biệt khi exponent do người dùng kiểm soát.
+- When multiplying two integers of bit lengths `a` and `b`, result `bitLength` does not exceed roughly `a + b`; use this sum as a conservative upper bound before multiplying.
+- For `shiftLeft(n)`, adding `n` to existing `bitLength` gives a simple upper bound; reject negative `n` or `n` exceeding the limit.
+- For `pow(exponent)`, the product `bitLength × exponent` can overflow. Use a wider type or overflow check when estimating, especially when `exponent` is user-controlled.
 
-`MathContext` giới hạn **precision của kết quả làm tròn** trong các API `BigDecimal` hỗ trợ, nhưng **không phải lá chắn tổng quát chống tiêu tốn bộ nhớ/CPU**. Một thuật toán có thể vẫn cần tạo intermediate lớn hoặc xử lý toán hạng khổng lồ trước khi làm tròn. `new MathContext(20)` không biến việc parse chuỗi hàng triệu ký tự hoặc tính toán lũy thừa lớn thành an toàn tài nguyên.
+`MathContext` bounds **the precision of the rounded result** in supporting `BigDecimal` APIs, yet **is not a general shield against memory/CPU exhaustion**. An algorithm may still need to build large intermediates or process gigantic operands before rounding. `new MathContext(20)` does not make parsing multi-million-character strings or computing huge powers resource-safe.
 
-Cũng cần nhớ rằng một số phép chia `BigDecimal.divide(BigDecimal)` không có scale/rounding context có thể ném `ArithmeticException` nếu thương không biểu diễn hữu hạn; điều đó là một vấn đề **khác** với việc dùng quá nhiều tài nguyên. Hãy giới hạn đầu vào trước và chỉ định cách chia thích hợp.
+Remember also that `BigDecimal.divide(BigDecimal)` without a scale/rounding context can throw `ArithmeticException` when the quotient has no finite decimal representation; that is a **separate** issue from excessive resource consumption. Bound inputs first and specify an appropriate division mode.
 
-## 7. Ngân sách ở cấp hệ thống, không chỉ trong một hàm parse
+## 7. System-Wide Budgets, Not Only Inside One Parse Function
 
-Một validator tốt không đủ nếu các tầng trước nó đã đọc toàn bộ request khổng lồ vào bộ nhớ. Hãy phân lớp:
+A good validator is insufficient if earlier layers have already read an entire gigantic request into memory. Layer your defenses:
 
-1. **Cổng tiếp nhận dữ liệu:** giới hạn byte của HTTP request, body JSON, upload, message và kích thước batch; tránh dựng object lớn khi payload đã vượt hạn mức.
-2. **Phân tích cú pháp:** quét input trong thời gian tuyến tính, hạn chế chiều dài, số chữ số, exponent và scale trước khi dựng đối tượng lớn; không dùng regex thiếu kiểm soát trên chuỗi tùy ý.
-3. **Mô hình dữ liệu:** mô tả giới hạn nghiệp vụ theo trường, ví dụ số chữ số tối đa, scale hợp lệ, miền giá trị và cách xử lý dấu/số 0.
-4. **Tính toán:** ước lượng độ phình của kết quả và số vòng lặp trước phép nhân, lũy thừa, shift, chuyển đổi định dạng; giới hạn tổng số tác vụ song song và thời lượng xử lý.
-5. **Đầu ra và lưu trữ:** giới hạn chuỗi xuất, số dòng/trường, độ dài log, kích thước database column; không vô tình chuyển số khoa học ngắn thành plain dài.
-6. **Khả năng phục hồi:** dùng timeout, quota theo request/người dùng, giới hạn concurrency/bộ nhớ, cơ chế từ chối sớm và đo lường tác vụ vượt hạn mức.
+1. **Data ingestion gateway:** bound HTTP request bytes, JSON body size, uploads, messages, and batch sizes; avoid constructing large objects once payloads exceed limits.
+2. **Parsing:** scan input in linear time, bounding length, digit count, exponent, and scale before building large objects; avoid unbounded regexes on arbitrary strings.
+3. **Data model:** express per-field business limits, such as maximum digits, valid scale, value range, and sign/zero handling.
+4. **Calculation:** estimate result expansion and iteration count before multiplication, exponentiation, shifts, or format conversions; bound total concurrent tasks and processing time.
+5. **Output and storage:** bound output strings, row/field counts, log lengths, database column sizes; never accidentally expand short scientific numbers into huge plain strings.
+6. **Resilience:** enforce timeouts, per-request/per-user quotas, concurrency/memory limits, early rejection, and metrics for limit violations.
 
-Không nên coi `try/catch (OutOfMemoryError)` là cơ chế kiểm soát đầu vào. Khi lỗi này xảy ra, JVM có thể đã ở trạng thái thiếu tài nguyên nghiêm trọng; phòng tránh bằng giới hạn trước khi cấp phát và kiểm soát tài nguyên ở mức quy trình/hạ tầng đáng tin cậy hơn.
+Never treat `try/catch (OutOfMemoryError)` as an input-validation mechanism. By the time that error fires, the JVM may already be in a severely resource-starved state; preventing via pre-allocation limits and process/infrastructure resource controls is far more reliable.
 
-Nếu thực sự cần hỗ trợ tính toán số cực lớn, hãy **thiết kế kiến trúc cho workload đó**: job bất đồng bộ có quota rõ ràng, bộ nhớ/CPU giới hạn, lưu kết quả theo định dạng phù hợp, có thể hủy/giới hạn tiến trình và theo dõi tài nguyên. Không nới tất cả giới hạn trong API đồng bộ dành cho request thông thường.
+If you genuinely need to support computing huge numbers, **architect for that workload**: asynchronous jobs with explicit quotas, bounded memory/CPU, suitable result storage formats, cancellable/throttled execution, and resource monitoring. Never relax all limits in synchronous APIs serving normal requests.
 
-## 8. Các lỗi thiết kế thường gặp
+## 8. Common Design Mistakes
 
-### “Đã giới hạn số chữ số nên chắc chắn an toàn”
+### "Digits are bounded, so it must be safe"
 
-Giới hạn mantissa 20 chữ số vẫn có thể chấp nhận `1E+1000000000` nếu không kiểm soát exponent. Giá trị có thể biểu diễn gọn nhưng `toPlainString()` cực lớn. Ngược lại, `BigInteger.ONE.shiftLeft(100000000)` có đầu vào chỉ một bit mà kết quả rất lớn. Phải kiểm tra cả **mô tả số**, **phép toán** và **cách xuất**.
+A 20-digit mantissa limit still accepts `1E+1000000000` if the exponent is unchecked. The value may be compactly represented yet `toPlainString()` is gigantic. Conversely, `BigInteger.ONE.shiftLeft(100000000)` has a one-bit input yet a huge output. Validate **numeric representation**, **operations**, and **output formatting**.
 
-### “parse xong rồi gọi precision() và bitLength() kiểm tra”
+### "Parse first, then check `precision()` and `bitLength()`"
 
-Kiểm tra sau constructor có thể hữu ích nhưng đã quá muộn để chặn tài nguyên dành cho parse một chuỗi không giới hạn. Với dữ liệu không tin cậy, luôn đặt giới hạn thô và đếm chữ số **trước** khi tạo `BigInteger`/`BigDecimal`.
+Post-constructor checks can be useful, yet are already too late to prevent spending resources parsing an unbounded string. For untrusted data, always enforce raw limits and count digits **before** constructing `BigInteger`/`BigDecimal`.
 
-### “Precision thấp thì toPlainString() ngắn”
+### "Low precision means `toPlainString()` is short"
 
-`new BigDecimal("1E+1000000")` có precision 1 nhưng chuỗi plain dài hơn một triệu ký tự. **Precision** mô tả số chữ số của unscaled value, còn **scale** quyết định vị trí dấu chấm và số lượng số 0 cần trình bày.
+`new BigDecimal("1E+1000000")` has precision 1 yet its plain string is over a million characters long. **Precision** describes digits of the unscaled value, whereas **scale** determines decimal point placement and how many zeros must be rendered.
 
-### “stripTrailingZeros() làm mọi thứ nhỏ lại”
+### "`stripTrailingZeros()` makes everything small"
 
-`stripTrailingZeros()` có thể giảm số chữ số của unscaled value và thay đổi scale, đôi khi tạo scale âm, khiến `toString()` dùng dạng khoa học. Nó không phải giải pháp kiểm soát kích thước đầu ra; sau đó gọi `toPlainString()` vẫn có thể tạo chuỗi dài. Không dùng phương thức này như thay thế cho giới hạn tài nguyên hoặc chính sách precision/scale.
+`stripTrailingZeros()` can reduce unscaled digits and alter scale, sometimes yielding a negative scale so `toString()` uses scientific notation. It is not an output-size control; calling `toPlainString()` afterward can still create a massive string. Do not use this method as a substitute for resource limits or precision/scale policies.
 
-### “Dùng BigDecimal với MathContext nhỏ là đủ”
+### "Using `BigDecimal` with a small `MathContext` is enough"
 
-Một `MathContext` nhỏ ràng buộc precision của kết quả ở những phép toán có sử dụng nó; không chặn chuỗi nhập khổng lồ, exponent ngoài chính sách, số lần gọi phép toán, hoặc mọi bộ nhớ tạm. Giới hạn tài nguyên phải xuất hiện **trước** các bước có thể tốn nhiều tài nguyên.
+A small `MathContext` bounds result precision in operations that use it; it does not block gigantic input strings, out-of-policy exponents, operation counts, or all temporary memory. Resource limits must come **before** potentially expensive steps.
 
-### “Dùng double để giảm chi phí mà không ảnh hưởng dữ liệu”
+### "Using `double` reduces cost without affecting data"
 
-`double` có miền và độ chính xác hữu hạn theo nhị phân. Chuyển số tài chính hoặc dữ liệu thập phân chính xác sang `double` có thể làm mất chữ số hoặc đổi giá trị. Nếu cần giới hạn dữ liệu `BigDecimal`, hãy **từ chối các giá trị ngoài chính sách** hoặc định nghĩa phép làm tròn tường minh, thay vì âm thầm đổi kiểu.
+`double` has finite binary range and precision. Converting financial amounts or exact decimal data to `double` can lose digits or alter values. If `BigDecimal` data must be bounded, **reject out-of-policy values** or define explicit rounding, rather than silently switching types.
 
-### “Chặn lỗi rồi log nguyên đầu vào”
+### "Reject the error and log the full input"
 
-Khi phản hồi hoặc ghi log in nguyên chuỗi có hàng triệu chữ số, chính bước báo lỗi lại gây áp lực bộ nhớ/I/O. Log chỉ thông tin an toàn như mã lỗi, tên field, độ dài đã giới hạn và request ID; tránh phản chiếu cả payload vào thông báo.
+When error responses or logs print the entire multi-million-digit string, error reporting itself causes memory/I/O pressure. Log only safe metadata such as error code, field name, bounded length, and request ID; avoid echoing the entire payload into messages.
 
-## 9. Định nghĩa chính sách theo miền nghiệp vụ
+## 9. Defining Policies by Business Domain
 
-Không có một hạn mức đúng cho mọi ứng dụng:
+No single limit fits every application:
 
-- **Tiền tệ:** thường cần giới hạn precision, scale, miền giá trị, phép làm tròn và định dạng theo đồng tiền hoặc hợp đồng. Giá trị âm, dấu cộng, số 0 cuối và số mũ có thể được cho phép hoặc cấm theo đặc tả API.
-- **Số lượng sản phẩm / bộ đếm:** nên giới hạn miền số nguyên (và không âm nếu nghiệp vụ yêu cầu); có thể chỉ cần `long` nếu miền cho phép. `BigInteger` chỉ hữu ích khi yêu cầu thật sự vượt miền kiểu nguyên thủy.
-- **Tính toán khoa học:** có thể cần exponent lớn, độ chính xác cao và dạng khoa học; nên đặt ngân sách theo độ dài unscaled value, precision, scale, số thao tác và chi phí đầu ra.
-- **Số học mật mã:** `BigInteger` có thể dùng để biểu diễn số lớn, nhưng việc xử lý bí mật cần xem xét thời gian thực thi, hạn mức, API bảo mật và các thuộc tính phụ kênh; không mặc định mọi phép toán BigInteger phù hợp cho xử lý bí mật.
-- **API công cộng:** thêm quota theo người dùng, giới hạn kích thước request, timeout và phản hồi validation rõ ràng, vì đầu vào có thể không đáng tin.
+- **Currency:** typically requires precision, scale, value range, rounding, and format limits per currency or contract. Negative values, plus signs, trailing zeros, and exponents may be allowed or forbidden per API specification.
+- **Product counts / counters:** bound the integer range (and non-negativity if business rules require); `long` alone may suffice if range permits. `BigInteger` is only helpful when requirements genuinely exceed primitive ranges.
+- **Scientific computing:** may need large exponents, high precision, and scientific notation; budget unscaled value length, precision, scale, operation counts, and output cost.
+- **Cryptographic arithmetic:** `BigInteger` can represent large integers, yet handling secrets requires considering execution timing, bounds, security APIs, and side-channel properties; never assume every `BigInteger` operation is suitable for secret handling.
+- **Public APIs:** add per-user quotas, request size limits, timeouts, and clear validation responses, because inputs may be untrusted.
 
-Ví dụ một schema có thể quy định “tối đa 30 chữ số, scale 0–4, trị tuyệt đối dưới ngưỡng X, không nhận E”; schema khác có thể cho phép `E` nhưng giới hạn exponent và chuỗi plain. Khi triển khai, cần **diễn đạt giới hạn bằng điều kiện kiểm thử được**, không chỉ ghi chú chung “số không được quá lớn”.
+For instance, one schema may specify "maximum 30 digits, scale 0–4, absolute value below threshold X, no E notation"; another may allow `E` while bounding exponent and plain string length. When implementing, **express limits as testable conditions**, not vague notes like "numbers must not be too large."
 
-## 10. Checklist kiểm thử
+## 10. Testing Checklist
 
-Kiểm thử không chỉ các giá trị hợp lệ thông thường mà cả biên tài nguyên:
+Test not only normal valid values, but also resource boundaries:
 
-- Chuỗi rỗng, chỉ dấu `+`/`-`, ký tự lạ, khoảng trắng, nhiều dấu chấm, exponent thiếu chữ số.
-- Giá trị đúng bằng hạn mức và vượt hạn mức một ký tự/chữ số.
-- Chuỗi dài toàn số 0, giá trị bằng 0 nhưng mantissa vẫn quá dài.
-- Exponent có nhiều chữ số, mang dấu âm/dương, vượt hạn mức hoặc có thể gây tràn nếu cộng dồn sai.
-- Scale dương rất lớn (`1E-1000000`) và scale âm rất lớn (`1E+1000000`).
-- Đầu vào ngắn dẫn tới phép `pow` hoặc `shiftLeft` mở rộng ngoài ngân sách.
-- `toString()` ngắn nhưng `toPlainString()` rất dài.
-- Nhiều request/tác vụ song song cùng sử dụng ngân sách gần ngưỡng.
-- Đầu ra báo lỗi/log không vô tình sao chép lại toàn bộ số lớn.
+- Empty string, lone `+`/`-` sign, foreign characters, whitespace, multiple decimal points, exponent missing digits.
+- Values exactly at the limit and one character/digit past the limit.
+- Long strings of all zeros, value equal to 0 yet mantissa still overly long.
+- Exponents with many digits, negative/positive signs, exceeding limits, or capable of overflowing if accumulated carelessly.
+- Very large positive scale (`1E-1000000`) and very large negative scale (`1E+1000000`).
+- Short inputs leading to `pow` or `shiftLeft` expanding beyond budget.
+- Short `toString()` yet very long `toPlainString()`.
+- Multiple concurrent requests/tasks using budgets near the threshold simultaneously.
+- Error/log outputs not accidentally copying back the entire huge number.
 
-**Tự kiểm tra 1:** Vì sao giới hạn “tối đa 50 ký tự đầu vào” chưa đủ để bảo vệ `toPlainString()`? Vì dạng khoa học như `1E+1000000` rất ngắn nhưng tạo hàng triệu ký tự ở dạng thập phân đầy đủ.
+**Self-check 1:** Why is a "maximum 50 input characters" limit not enough to protect `toPlainString()`? Because scientific notation such as `1E+1000000` is very short yet produces millions of characters in full decimal form.
 
-**Tự kiểm tra 2:** Vì sao kiểm tra `BigInteger.bitLength()` sau `new BigInteger(text)` không thay thế việc giới hạn chuỗi? Vì đã phải nhận và parse chuỗi, có thể gây chi phí lớn trước khi kiểm tra.
+**Self-check 2:** Why doesn't checking `BigInteger.bitLength()` after `new BigInteger(text)` replace bounding the string? Because the string already had to be received and parsed, potentially incurring high cost before the check.
 
-**Tự kiểm tra 3:** `new BigDecimal("1E+30")` có precision 1; liệu có thể kết luận phép nhân và đầu ra đều rẻ? **Không.** Precision không chứa đủ thông tin về scale, định dạng hoặc chi phí của các phép toán tiếp theo.
+**Self-check 3:** `new BigDecimal("1E+30")` has precision 1; can we conclude multiplication and output are both cheap? **No.** Precision does not contain enough information about scale, formatting, or the cost of subsequent operations.
 
-**Ghi nhớ:** `BigInteger` và `BigDecimal` cho phép biểu diễn độ chính xác lớn, nhưng an toàn tài nguyên là trách nhiệm của ứng dụng. Hãy giới hạn **đầu vào trước parse**, **scale/exponent**, **độ lớn kết quả trước phép toán**, **độ dài chuỗi trước xuất** và **quota thực thi cấp hệ thống**.
+**Key takeaway:** `BigInteger` and `BigDecimal` enable high-precision numeric representation, yet resource safety is the application's responsibility. Bound **inputs before parsing**, **scale/exponent**, **result magnitude before operations**, **string length before formatting**, and **system-level execution quotas**.

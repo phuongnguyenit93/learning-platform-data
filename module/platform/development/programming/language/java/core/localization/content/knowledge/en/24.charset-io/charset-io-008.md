@@ -1,53 +1,53 @@
-# Kiểm tra chuỗi qua ranh giới tệp, tài nguyên và đầu ra trong Java
+# Verifying Strings Across File, Resource, and Output Boundaries in Java
 
-## 1. Vì sao cùng một chuỗi lại có thể bị lỗi dấu?
+## 1. Why Can the Same String Have Corrupted Diacritics?
 
-Trong Java, `String` chứa dữ liệu ký tự Unicode (theo mô hình UTF-16). Nhưng khi lưu tệp, đọc tài nguyên, gửi HTTP hoặc in ra terminal, văn bản đi qua **ranh giới giữa ký tự và byte**:
+In Java, `String` stores Unicode character data (under the UTF-16 model). However, when saving files, reading resources, sending HTTP payloads, or printing to a terminal, text crosses the **boundary between characters and bytes**:
 
 ~~~text
 String (Unicode)
       |
-      | encode bằng một Charset
+      | encode with a Charset
       v
-bytes trên tệp / tài nguyên / mạng / stdout
+bytes in file / resource / network / stdout
       |
-      | decode bằng Charset của bên nhận
+      | decode with receiver's Charset
       v
-String hoặc chữ được render trên màn hình
+String or characters rendered on screen
 ~~~
 
-Nếu bên ghi dùng UTF-8 nhưng bên đọc hiểu ISO-8859-1, chuỗi `café` có thể thành `cafÃ©`. Nếu một ký tự không thể biểu diễn trong charset đích, hệ thống có thể thay bằng dấu `?` hoặc báo lỗi. Nếu terminal nhận đúng byte nhưng diễn giải bằng bảng mã khác, chương trình vẫn có thể đúng trong bộ nhớ mà **đầu ra nhìn thấy bị sai**.
+If the writer uses UTF-8 while the reader assumes ISO-8859-1, the string `café` can become `cafÃ©`. If a character cannot be represented in the target charset, the system may substitute `?` or throw an error. If the terminal receives the right bytes yet interprets them with another code page, the program can still be right in memory while **visible output appears corrupted**.
 
-Bài này tập trung vào **kiểm tra chuỗi qua ba ranh giới**:
+This lesson focuses on **verifying strings across three boundaries**:
 
-1. **Tệp (file I/O)**: dữ liệu đi từ `String` sang byte và trở lại.
-2. **Tài nguyên (resource files)**: `.properties`, `ResourceBundle`, cấu hình, bản dịch.
-3. **Đầu ra (output)**: console, log, stream và dữ liệu trao đổi với hệ thống khác.
+1. **Files (file I/O)**: data flowing from `String` to bytes and back.
+2. **Resources (resource files)**: `.properties`, `ResourceBundle`, configuration, translations.
+3. **Output (output)**: console, logs, streams, and data exchanged with external systems.
 
-Chúng ta dùng Java 17+ và các API `StandardCharsets`, `Files`, `InputStreamReader`, `OutputStreamWriter`, `Properties`, `ResourceBundle`, `CharsetDecoder` và `CharsetEncoder` để tìm **đúng ranh giới gây lỗi**, thay vì đoán rằng Java “không hỗ trợ tiếng Việt”.
+We use Java 17+ and the APIs `StandardCharsets`, `Files`, `InputStreamReader`, `OutputStreamWriter`, `Properties`, `ResourceBundle`, `CharsetDecoder`, and `CharsetEncoder` to pinpoint **the exact boundary causing the bug**, rather than assuming Java “does not support Vietnamese.”
 
-**Nguyên tắc:** một thao tác format theo `Locale` và một thao tác encode theo `Charset` là **hai việc khác nhau**. `Locale.forLanguageTag("vi-VN")` không tự biến byte thành UTF-8; `StandardCharsets.UTF_8` không tự dịch thông điệp sang tiếng Việt.
+**Rule:** formatting by `Locale` and encoding by `Charset` are **two different operations**. `Locale.forLanguageTag("vi-VN")` does not turn bytes into UTF-8; `StandardCharsets.UTF_8` does not translate messages into Vietnamese.
 
-## 2. Phân biệt Unicode, Charset, Locale và Encoding
+## 2. Distinguishing Unicode, Charset, Locale, and Encoding
 
-| Khái niệm | Trách nhiệm | Ví dụ |
+| Concept | Responsibility | Example |
 | --- | --- | --- |
-| Unicode code point | Nhận diện ký tự trừu tượng | `é` là `U+00E9`, `🌍` là `U+1F30D` |
-| `String` của Java | Lưu chuỗi bằng các UTF-16 code unit | `String.equals`, `length`, `codePoints` |
-| Charset | Ánh xạ giữa ký tự và byte | UTF-8, UTF-16, ISO-8859-1 |
-| Encoder | Chuyển `char`/chuỗi sang byte | `String.getBytes(UTF_8)` |
-| Decoder | Chuyển byte về ký tự | `new String(bytes, UTF_8)` |
-| Locale | Quy tắc ngôn ngữ/vùng cho format và chọn bản dịch | `Locale.US`, `vi-VN` |
-| ResourceBundle | Chọn tài nguyên theo locale và cơ chế fallback | `Messages_vi_VN.properties` |
-| Terminal/font | Nhận byte rồi chọn glyph để vẽ | Console Windows, terminal Linux, CI log |
+| Unicode code point | Abstract character identity | `é` is `U+00E9`, `🌍` is `U+1F30D` |
+| Java `String` | Stores sequences via UTF-16 code units | `String.equals`, `length`, `codePoints` |
+| Charset | Mapping between characters and bytes | UTF-8, UTF-16, ISO-8859-1 |
+| Encoder | Converts `char`/string to bytes | `String.getBytes(UTF_8)` |
+| Decoder | Converts bytes back to characters | `new String(bytes, UTF_8)` |
+| Locale | Language/regional rules for formatting and bundle selection | `Locale.US`, `vi-VN` |
+| ResourceBundle | Selects resources by locale and fallback rules | `Messages_vi_VN.properties` |
+| Terminal/font | Receives bytes and selects glyphs to draw | Windows console, Linux terminal, CI log |
 
-UTF-8 là **encoding**, không phải ngôn ngữ. Cùng chuỗi `"Xin chào"` có thể hiển thị cho người dùng ở nhiều locale nhưng vẫn được lưu bằng UTF-8 trong hệ thống.
+UTF-8 is an **encoding**, not a language. The same string `"Xin chào"` can be displayed to users across multiple locales while still stored as UTF-8 in the system.
 
-### Không lấy `String.length()` làm số byte
+### Do Not Treat `String.length()` as Byte Count
 
-`String.length()` đếm **UTF-16 code unit**; ký tự ngoài BMP như `🌍` thường chiếm 2 code unit, trong UTF-8 lại chiếm 4 byte. Một ký tự có dấu có thể ở dạng dựng sẵn hoặc dạng chữ cơ sở + dấu kết hợp, làm số code point/code unit khác nhau dù nhìn giống.
+`String.length()` counts **UTF-16 code units**; non-BMP characters like `🌍` typically occupy 2 code units, yet occupy 4 bytes in UTF-8. An accented character can be precomposed or base letter + combining mark, causing code point and code unit counts to differ despite looking identical.
 
-Ví dụ:
+Example:
 
 ~~~java
 String text = "🌍";
@@ -56,80 +56,80 @@ System.out.println(text.codePointCount(0, text.length())); // 1
 System.out.println(text.getBytes(StandardCharsets.UTF_8).length); // 4
 ~~~
 
-Đây là **mảnh mã trong method**, cần import `java.nio.charset.StandardCharsets`. Không suy số byte của file, giới hạn truyền mạng hoặc độ rộng cột từ `String.length()`.
+This is a **method-body snippet**, requiring `import java.nio.charset.StandardCharsets`. Do not infer file byte count, network transfer limits, or column widths from `String.length()`.
 
-## 3. Sơ đồ kiểm tra ranh giới: kiểm tra ở cả bên ghi và bên đọc
+## 3. Boundary Inspection Diagram: Check Both Writer and Reader
 
-Khi thấy chuỗi lỗi dấu, hãy thu thập bằng chứng ở từng điểm:
+When seeing garbled diacritics, gather evidence at each point:
 
 ~~~text
-[1] String gốc
-    - các code point là gì?
-    - có đúng dấu trước khi encode không?
+[1] Original String
+    - what are the code points?
+    - are diacritics intact before encoding?
         |
         v
-[2] byte sau encode
-    - Charset nào được chọn?
-    - hex byte có đúng không?
+[2] Bytes after encoding
+    - which Charset was chosen?
+    - are hex bytes right?
         |
         v
-[3] byte khi đọc lại
-    - còn nguyên các byte?
-    - có BOM hoặc bước chuyển đổi trung gian?
+[3] Bytes when read back
+    - are bytes intact?
+    - is there a BOM or intermediate conversion step?
         |
         v
-[4] String sau decode
-    - dùng charset gì?
-    - có xuất hiện U+FFFD hoặc mojibake?
+[4] String after decoding
+    - which charset was used?
+    - do U+FFFD or mojibake appear?
         |
         v
-[5] đầu ra hiển thị
-    - stdout/log đã encode đúng chưa?
-    - terminal/browser có decode/font phù hợp không?
+[5] Rendered output
+    - were stdout/logs encoded properly?
+    - do terminal/browser have matching decode/font?
 ~~~
 
-Nếu `String` đọc từ tệp đã sai, nguyên nhân nằm ở một bước **trước khi render**. Nếu các code point trong `String` đúng nhưng màn hình sai, xem lại **encoding của output, môi trường terminal và font**.
+If the `String` read from a file is already wrong, the cause lies in a step **before rendering**. If the code points inside `String` are right yet the screen looks wrong, inspect **output encoding, terminal environment, and fonts**.
 
-### Ba kiểu lỗi quan trọng
+### Three Key Failure Modes
 
-- **Mojibake**: byte hợp lệ bị giải mã bằng charset không khớp. Ví dụ UTF-8 của `é` là `C3 A9`, đọc hai byte như ISO-8859-1 sẽ ra `Ã©`.
-- **Replacement character**: decoder không đọc được chuỗi byte nên thay bằng `U+FFFD`, thường hiển thị `�`.
-- **Unmappable character**: encoder không thể biểu diễn ký tự trong charset đích; tùy chính sách có thể ghi `?` hoặc ném exception.
+- **Mojibake**: valid bytes decoded with a mismatched charset. For example, UTF-8 of `é` is `C3 A9`; reading those two bytes as ISO-8859-1 yields `Ã©`.
+- **Replacement character**: the decoder cannot interpret a byte sequence and substitutes `U+FFFD`, typically displayed as `�`.
+- **Unmappable character**: the encoder cannot represent a character in the target charset; depending on policy, it writes `?` or throws an exception.
 
-Không nên “sửa dấu” bằng nhiều lần `new String(old.getBytes(...), ...)` nếu chưa biết **các byte gốc và lịch sử encode/decode**. Một chuỗi đã bị thay ký tự mất mát có thể không thể khôi phục chính xác.
+Do not “fix diacritics” via repeated `new String(old.getBytes(...), ...)` calls without knowing **the original bytes and encode/decode history**. A string that underwent lossy character replacement may be unrecoverable.
 
-## 4. Chọn StandardCharsets.UTF_8 tường minh
+## 4. Choosing StandardCharsets.UTF_8 Explicitly
 
-Java cung cấp hằng `StandardCharsets.UTF_8` trong `java.nio.charset`. Đây là lựa chọn thống nhất phổ biến cho file văn bản, tài nguyên và giao thức hiện đại khi không có tiêu chuẩn khác bắt buộc.
+Java provides the `StandardCharsets.UTF_8` constant in `java.nio.charset`. This is the standard unified choice for text files, resources, and modern protocols when no other standard is mandated.
 
 ~~~java
 byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
 String decoded = new String(bytes, StandardCharsets.UTF_8);
 ~~~
 
-Đây là **mảnh mã trong method**, cần import `java.nio.charset.StandardCharsets` và biến `text` có sẵn.
+This is a **method-body snippet**, requiring `import java.nio.charset.StandardCharsets` and an existing `text` variable.
 
-**Quy tắc round-trip:** Nếu văn bản đầu vào hợp lệ, được encode và decode cùng charset có thể biểu diễn đầy đủ các ký tự, thông thường `text.equals(decoded)` phải là `true`. Khi chuyển sang ISO-8859-1, UTF-16BE hoặc charset khác mà không có hợp đồng rõ, round-trip có thể không đảm bảo.
+**Round-trip rule:** If input text is valid and encoded/decoded with the same charset capable of representing all its characters, `text.equals(decoded)` should normally be `true`. When converting to ISO-8859-1, UTF-16BE, or another charset without a clear contract, round-trip preservation may not hold.
 
-### Java 17 và Java 18+ khác nhau về default charset
+### Java 17 vs. Java 18+ Differ on the Default Charset
 
-- Trong **JDK 17 và cũ hơn**, charset mặc định của nhiều API phụ thuộc hệ điều hành, cấu hình locale/máy và cách JVM khởi động.
-- Từ **JDK 18**, JEP 400 chuyển default charset của phần lớn Java SE API sang UTF-8 theo mặc định; có những ngoại lệ liên quan I/O console và cơ chế tương thích.
-- Dù vậy, **không nên dựa vào default charset** nếu định dạng tệp/giao thức là một hợp đồng cần tái lập trên các JDK, máy chủ và CI khác nhau.
-- Các API như `Files.readString(Path)` và `Files.writeString(Path, ...)` đã chọn UTF-8 theo tài liệu của chính chúng, độc lập với việc đoán default charset của `FileReader` cũ.
+- In **JDK 17 and earlier**, the default charset of many APIs depends on the operating system, locale/machine configuration, and how the JVM was launched.
+- Starting in **JDK 18**, JEP 400 switches the default charset of most Java SE APIs to UTF-8 by default, with exceptions around console I/O and compatibility mechanisms.
+- Even so, **do not rely on the default charset** when a file/protocol format is a contract that must be reproducible across different JDKs, servers, and CI.
+- APIs such as `Files.readString(Path)` and `Files.writeString(Path, ...)` already specify UTF-8 in their own documentation, independent of legacy `FileReader`'s default-charset behavior.
 
-Để xem môi trường:
+To inspect the environment:
 
 ~~~java
 System.out.println(Charset.defaultCharset());
 System.out.println(System.getProperty("file.encoding"));
 ~~~
 
-Đây là **mảnh mã trong method**, cần import `java.nio.charset.Charset`. Đây là dữ liệu chẩn đoán, **không** phải cách cấu hình encoding cho từng tệp. Tránh dựa vào việc gọi `System.setProperty("file.encoding", ...)` lúc runtime để đổi mọi I/O đang tồn tại.
+This is a **method-body snippet**, requiring `import java.nio.charset.Charset`. This is diagnostic data, **not** a way to configure per-file encoding. Avoid relying on calling `System.setProperty("file.encoding", ...)` at runtime to alter all active I/O.
 
-## 5. Ví dụ hoàn chỉnh: ghi và đọc UTF-8 không mất thông tin
+## 5. Complete Example: Lossless UTF-8 Write and Read
 
-Tạo `Utf8RoundTripDemo.java`:
+Create `Utf8RoundTripDemo.java`:
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -166,14 +166,14 @@ public class Utf8RoundTripDemo {
 }
 ~~~
 
-Chạy trên Java 17+:
+Run on Java 17+:
 
 ~~~bash
 javac -encoding UTF-8 Utf8RoundTripDemo.java
 java Utf8RoundTripDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 Same bytes: true
@@ -181,60 +181,60 @@ Same text: true
 UTF-8 for é: c3a9
 ~~~
 
-Bài kiểm tra xác nhận hai thứ **khác nhau nhưng liên quan**:
+This test verifies two **distinct yet related** facts:
 
-1. `Same bytes`: file thực sự chứa đúng byte UTF-8 được tạo từ nguồn.
-2. `Same text`: decoder tái tạo được chính xác `String` đầu vào.
+1. `Same bytes`: the file actually contains the exact UTF-8 bytes generated from the source.
+2. `Same text`: the decoder reconstructs the exact input `String`.
 
-Nếu chỉ in văn bản ra console rồi so bằng mắt, bạn khó phân biệt lỗi xảy ra ở file, decoder hay terminal. So sánh byte/chuỗi trong chương trình giúp cô lập vấn đề **không phụ thuộc khả năng hiển thị Unicode của console**.
+If you merely print text to the console and eyeball it, it is hard to tell whether a bug occurred in the file, decoder, or terminal. Programmatic byte/string comparison isolates the problem **independently of the console's Unicode rendering capabilities**.
 
-`HexFormat` có từ Java 17; nếu dùng Java cũ hơn, có thể tự định dạng hex bằng vòng lặp hoặc công cụ phù hợp.
+`HexFormat` arrived in Java 17; on older Java versions, format hex using a loop or appropriate utility.
 
-## 6. Files.readString/writeString và các API cũ
+## 6. Files.readString/writeString and Legacy APIs
 
-### Chọn API mà bạn biết chính xác charset
+### Choose APIs Where You Know the Exact Charset
 
-| Cách dùng | Charset được chọn | Đánh giá |
+| Usage | Charset chosen | Assessment |
 | --- | --- | --- |
-| `Files.readString(path, UTF_8)` | Tường minh UTF-8 | Rõ ràng, nên dùng cho text file |
-| `Files.writeString(path, text, UTF_8)` | Tường minh UTF-8 | Dễ kiểm thử byte chính xác |
-| `Files.readString(path)` | UTF-8 theo API | Ổn khi đúng hợp đồng UTF-8 |
-| `Files.newBufferedReader(path, UTF_8)` | UTF-8 | Phù hợp đọc dòng theo stream |
-| `Files.newBufferedWriter(path, UTF_8)` | UTF-8 | Phù hợp ghi dòng theo stream |
-| `new InputStreamReader(in, UTF_8)` | UTF-8 | Phù hợp khi làm việc với byte stream |
-| `new OutputStreamWriter(out, UTF_8)` | UTF-8 | Phù hợp khi ghi ra byte stream |
-| `new InputStreamReader(in)` | Default charset | Dễ lệch hợp đồng trên Java 17 |
-| `new FileReader(file)` ở Java 17 | Default charset | Cần xem xét khi di trú code |
-| `new String(bytes)` | Default charset | Không nên dùng khi byte có encoding xác định |
-| `text.getBytes()` | Default charset | Không nên dùng làm giao thức ổn định |
+| `Files.readString(path, UTF_8)` | Explicit UTF-8 | Clear, recommended for text files |
+| `Files.writeString(path, text, UTF_8)` | Explicit UTF-8 | Easy to verify exact bytes |
+| `Files.readString(path)` | UTF-8 per API | Fine when contract is UTF-8 |
+| `Files.newBufferedReader(path, UTF_8)` | UTF-8 | Suitable for streaming line reads |
+| `Files.newBufferedWriter(path, UTF_8)` | UTF-8 | Suitable for streaming line writes |
+| `new InputStreamReader(in, UTF_8)` | UTF-8 | Suitable when working with byte streams |
+| `new OutputStreamWriter(out, UTF_8)` | UTF-8 | Suitable when writing to byte streams |
+| `new InputStreamReader(in)` | Default charset | Prone to contract drift on Java 17 |
+| `new FileReader(file)` on Java 17 | Default charset | Needs review during code migration |
+| `new String(bytes)` | Default charset | Avoid when bytes have a defined encoding |
+| `text.getBytes()` | Default charset | Avoid for stable protocols |
 
-### Đọc dạng stream
+### Streaming Reads
 
 ~~~java
 try (BufferedReader reader = Files.newBufferedReader(
         path, StandardCharsets.UTF_8)) {
     String line;
     while ((line = reader.readLine()) != null) {
-        // Xử lý một dòng đã được giải mã UTF-8.
+        // Process a UTF-8 decoded line.
     }
 }
 ~~~
 
-Đây là **mảnh mã trong method**, cần import `java.io.BufferedReader`, `java.nio.file.Files`, `java.nio.file.Path` và `java.nio.charset.StandardCharsets`; `path` đã được xác định.
+This is a **method-body snippet**, requiring imports for `java.io.BufferedReader`, `java.nio.file.Files`, `java.nio.file.Path`, and `java.nio.charset.StandardCharsets`; `path` is already defined.
 
-Chọn đọc dạng stream khi tệp lớn hoặc cần xử lý từng dòng. `Files.readString` đọc toàn bộ nội dung vào bộ nhớ, nên không nên dùng vô điều kiện cho file rất lớn hoặc file không đáng tin.
+Choose streaming reads when files are large or require line-by-line processing. `Files.readString` loads the entire content into memory, so never use it unconditionally on huge or untrusted files.
 
-### Đóng stream và flush
+### Closing Streams and Flushing
 
-Khi ghi bằng `BufferedWriter`/`OutputStreamWriter`, phải `flush`/`close` phù hợp để đảm bảo byte đã được chuyển xuống đích. Dùng `try-with-resources` để đóng và lan truyền lỗi I/O. Nhưng **đóng writer không sửa được charset sai**; hãy xác định encoding đúng ngay khi tạo writer.
+When writing with `BufferedWriter`/`OutputStreamWriter`, `flush`/`close` properly to ensure bytes reach the destination. Use `try-with-resources` to close and propagate I/O errors. However, **closing a writer does not fix a wrong charset**; specify the right encoding when creating the writer.
 
-## 7. Khi byte sai: strict decoder và chính sách thay thế
+## 7. When Bytes Are Invalid: Strict Decoders and Replacement Policies
 
-Một số API convenience có thể thay byte không hợp lệ bằng ký tự thay thế, khiến chương trình **không ném lỗi** nhưng âm thầm mất thông tin. Khi đang xử lý tệp nhập quan trọng, nên chủ động chọn `CodingErrorAction.REPORT`.
+Some convenience APIs replace invalid bytes with a replacement character, causing the program to **throw no error** while silently losing information. When processing critical input files, explicitly choose `CodingErrorAction.REPORT`.
 
-### Chương trình Java 17+ đầy đủ
+### Complete Java 17+ Program
 
-Tạo `StrictDecodeDemo.java`:
+Create `StrictDecodeDemo.java`:
 
 ~~~java
 import java.nio.ByteBuffer;
@@ -245,8 +245,8 @@ import java.util.Locale;
 
 public class StrictDecodeDemo {
     public static void main(String[] args) {
-        // C3 phải theo sau bởi UTF-8 continuation byte,
-        // nhưng 28 là dấu '(' (không hợp lệ trong vị trí đó).
+        // C3 must be followed by a UTF-8 continuation byte,
+        // yet 28 is '(' (invalid in that position).
         byte[] invalidUtf8 = {(byte) 0xC3, (byte) 0x28};
 
         try {
@@ -272,14 +272,14 @@ public class StrictDecodeDemo {
 }
 ~~~
 
-Biên dịch/chạy:
+Compile/run:
 
 ~~~bash
 javac -encoding UTF-8 StrictDecodeDemo.java
 java StrictDecodeDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 Strict decode failed: MalformedInputException
@@ -287,16 +287,16 @@ First code point after replacement: U+FFFD
 Replaced length: 2
 ~~~
 
-**Vì sao quan trọng?**
+**Why does this matter?**
 
-- `CharsetDecoder` với `REPORT` thông báo byte không hợp lệ.
-- `new String(invalidUtf8, UTF_8)` trong ví dụ dùng hành vi thay thế đối với byte không hợp lệ, đưa `U+FFFD` vào kết quả.
-- Một khi byte gốc bị thay bằng `U+FFFD` hoặc dấu `?`, thông tin gốc có thể đã mất; đừng cho rằng có thể sửa ngược một cách đáng tin.
-- Trong pipeline phải kiểm tra nghiêm ngặt, dùng decoder/encoder có chính sách rõ ràng và ghi nhận lỗi tại **ranh giới byte**.
+- `CharsetDecoder` with `REPORT` signals invalid bytes.
+- `new String(invalidUtf8, UTF_8)` in this example applies replacement for invalid bytes, putting `U+FFFD` into the result.
+- Once original bytes are replaced with `U+FFFD` or `?`, the original information may be lost; do not assume you can reliably reverse-repair it.
+- In pipelines requiring strict validation, use decoders/encoders with explicit policies and record errors at the **byte boundary**.
 
-### Encoder cũng cần chính sách lỗi
+### Encoders Also Need Error Policies
 
-Nếu đích là ISO-8859-1, các ký tự như tiếng Nhật không thể biểu diễn. Dùng `CharsetEncoder` và `CodingErrorAction.REPORT` nếu muốn thất bại rõ ràng thay vì thay ký tự:
+If the target is ISO-8859-1, characters such as Japanese cannot be represented. Use `CharsetEncoder` with `CodingErrorAction.REPORT` if you want to fail clearly instead of substituting characters:
 
 ~~~java
 CharsetEncoder encoder =
@@ -306,21 +306,21 @@ CharsetEncoder encoder =
 ByteBuffer bytes = encoder.encode(CharBuffer.wrap("日本語"));
 ~~~
 
-Đây là **mảnh mã minh họa** trong method, cần import `java.nio.charset.CharsetEncoder`, `CodingErrorAction`, `StandardCharsets`, `java.nio.CharBuffer`, `java.nio.ByteBuffer` và khai báo `throws CharacterCodingException` hoặc xử lý exception. Ví dụ này sẽ ném lỗi unmappable: tệp Latin-1 không thể chứa trực tiếp các chữ đó.
+This is an **illustrative snippet** inside a method, requiring imports for `java.nio.charset.CharsetEncoder`, `CodingErrorAction`, `StandardCharsets`, `java.nio.CharBuffer`, `java.nio.ByteBuffer`, and declaring `throws CharacterCodingException` or handling the exception. This example will throw an unmappable error: a Latin-1 file cannot directly hold those characters.
 
-Chỉ dùng charset lịch sử như ISO-8859-1 hoặc Windows code page khi đầu vào/đầu ra **đã được xác nhận** dùng charset đó. Nếu là giao thức mới, UTF-8 thường là lựa chọn rõ ràng hơn.
+Only use historical charsets like ISO-8859-1 or Windows code pages when input/output is **confirmed** to use that charset. For new protocols, UTF-8 is generally the clearer choice.
 
-## 8. Properties.load(InputStream) khác Properties.load(Reader)
+## 8. Properties.load(InputStream) Differs from Properties.load(Reader)
 
-Đây là một trong những ranh giới gây lỗi dấu nhiều nhất trong ứng dụng Java.
+This is one of the most frequent sources of diacritic bugs in Java applications.
 
-**`java.util.Properties.load(InputStream)`** định nghĩa rằng mỗi byte được hiểu theo ISO-8859-1, với Unicode escape `\uXXXX` để biểu diễn ký tự ngoài tập. Điều này **không thay đổi** chỉ vì JDK 18+ chọn UTF-8 làm default charset.
+**`java.util.Properties.load(InputStream)`** specifies that each byte is interpreted as ISO-8859-1, with `\uXXXX` Unicode escapes for characters outside that set. This **does not change** merely because JDK 18+ picks UTF-8 as the default charset.
 
-Trong khi đó, **`Properties.load(Reader)`** đọc **ký tự** từ Reader đã được giải mã; nếu Reader dùng UTF-8, nội dung properties UTF-8 được đưa vào đúng Unicode.
+Meanwhile, **`Properties.load(Reader)`** reads **characters** from an already-decoded Reader; if the Reader uses UTF-8, UTF-8 properties content enters as proper Unicode.
 
-### Ví dụ Java 17+ đầy đủ, không cần tạo file
+### Complete Java 17+ Example Without Creating Files
 
-Tạo `PropertiesEncodingDemo.java`:
+Create `PropertiesEncodingDemo.java`:
 
 ~~~java
 import java.io.ByteArrayInputStream;
@@ -353,14 +353,14 @@ public class PropertiesEncodingDemo {
 }
 ~~~
 
-Biên dịch/chạy:
+Compile/run:
 
 ~~~bash
 javac -encoding UTF-8 PropertiesEncodingDemo.java
 java PropertiesEncodingDemo
 ~~~
 
-Đầu ra khi console hiển thị Unicode đúng:
+Output when the console renders Unicode properly:
 
 ~~~text
 InputStream value: cafÃ©
@@ -368,37 +368,37 @@ Reader value: café
 Reader correct: true
 ~~~
 
-Giải thích:
+Explanation:
 
-- UTF-8 của `é` gồm hai byte `C3 A9`.
-- `Properties.load(InputStream)` đọc hai byte như hai ký tự ISO-8859-1, tạo `Ã©`.
-- `Properties.load(Reader)` nhận `é` đã giải mã bằng UTF-8, nên giữ đúng `café`.
-- Nếu terminal dùng charset sai, các dòng chứa ký tự Unicode có thể vẫn **trông khác**. Dòng `Reader correct: true` là kiểm tra trong bộ nhớ, đáng tin hơn quan sát glyph.
+- UTF-8 for `é` consists of two bytes `C3 A9`.
+- `Properties.load(InputStream)` reads those two bytes as two ISO-8859-1 characters, producing `Ã©`.
+- `Properties.load(Reader)` receives `é` already decoded as UTF-8, thus preserving `café`.
+- If the terminal uses the wrong charset, lines containing Unicode characters may still **look different**. The `Reader correct: true` line is an in-memory check, more reliable than inspecting glyphs.
 
-### Những điều cần nhớ với Properties
+### Things to Remember About Properties
 
-- `Properties.load(Reader)` không bỏ mọi quy tắc của file `.properties`: escape, dấu `=`/`:`, continuation và `\uXXXX` vẫn được xử lý theo cú pháp properties.
-- `Properties.store(OutputStream, ...)` sử dụng quy tắc byte stream truyền thống, có thể tạo Unicode escape cho các ký tự không thuộc ISO-8859-1.
-- `Properties.store(Writer, ...)` ghi các ký tự qua Writer và charset đã chọn; không phải luôn cho ra byte giống overload OutputStream.
-- Nếu lấy `InputStream` từ `ClassLoader.getResourceAsStream(...)`, bản thân `getResourceAsStream` chỉ cung cấp **byte**; bạn vẫn phải chọn đúng lớp decode sau đó.
+- `Properties.load(Reader)` does not skip `.properties` syntax rules: escapes, `=`:`:` delimiters, line continuations, and `\uXXXX` are still processed per properties syntax.
+- `Properties.store(OutputStream, ...)` uses traditional byte-stream rules, emitting Unicode escapes for characters outside ISO-8859-1.
+- `Properties.store(Writer, ...)` writes characters through the Writer and its chosen charset; it does not always produce the same bytes as the `OutputStream` overload.
+- When obtaining an `InputStream` from `ClassLoader.getResourceAsStream(...)`, `getResourceAsStream` itself only supplies **bytes**; you still must pick the right decoding layer afterward.
 
-**Đừng nhầm `Properties` và `PropertyResourceBundle`**: chúng có các quy tắc encoding khác nhau trong Java 9+.
+**Do not confuse `Properties` with `PropertyResourceBundle`**: they have different encoding rules in Java 9+.
 
-## 9. ResourceBundle .properties trong Java 9+ có quy tắc riêng
+## 9. ResourceBundle .properties in Java 9+ Has Its Own Rules
 
-`ResourceBundle.getBundle(...)` được dùng để chọn bản dịch theo locale. Với tài nguyên được cung cấp qua `PropertyResourceBundle(InputStream)` trên Java 9+, quy tắc encoding mặc định là:
+`ResourceBundle.getBundle(...)` is used to load translations by locale. For resources loaded via `PropertyResourceBundle(InputStream)` on Java 9+, the default encoding rule is:
 
-1. Thử đọc `.properties` theo **UTF-8**.
-2. Nếu xảy ra lỗi byte UTF-8 không hợp lệ theo loại lỗi được tài liệu hóa, đọc lại theo **ISO-8859-1**.
-3. Nếu muốn chỉ dùng một encoding, có thể chỉ định thuộc tính hệ thống `java.util.PropertyResourceBundle.encoding` bằng giá trị `UTF-8` hoặc `ISO-8859-1` **khi JVM khởi động, trước khi class được khởi tạo**.
+1. Try reading `.properties` as **UTF-8**.
+2. If an invalid UTF-8 byte error of the documented kind occurs, fall back to reading as **ISO-8859-1**.
+3. If you want a single strict encoding, set the system property `java.util.PropertyResourceBundle.encoding` to `UTF-8` or `ISO-8859-1` **at JVM startup, before the class is initialized**.
 
-Hệ thống đánh giá thuộc tính này **một lần tại thời điểm khởi tạo class** `PropertyResourceBundle`. Gọi `System.setProperty(...)` quá muộn hoặc `ResourceBundle.clearCache()` không biến nó thành tùy chọn encoding có thể thay đổi tùy từng lần đọc.
+The runtime evaluates this property **once when initializing the `PropertyResourceBundle` class**. Calling `System.setProperty(...)` too late or calling `ResourceBundle.clearCache()` does not turn it into a per-read encoding toggle.
 
-Đặc biệt, behavior UTF-8 mặc định của `PropertyResourceBundle` **không** làm `Properties.load(InputStream)` chuyển sang UTF-8.
+Notably, `PropertyResourceBundle`'s default UTF-8 behavior **does not** switch `Properties.load(InputStream)` to UTF-8.
 
-### Ví dụ file tài nguyên UTF-8
+### UTF-8 Resource File Example
 
-Tạo hai file cùng thư mục:
+Create two files in the same directory:
 
 ~~~text
 demo/
@@ -406,14 +406,14 @@ demo/
   Messages_vi_VN.properties
 ~~~
 
-Nội dung `Messages_vi_VN.properties` (lưu **UTF-8**):
+Contents of `Messages_vi_VN.properties` (saved as **UTF-8**):
 
 ~~~properties
 welcome=Xin chào, thế giới!
 currency=Đồng Việt Nam
 ~~~
 
-Tạo `ResourceBundleUtf8Demo.java`:
+Create `ResourceBundleUtf8Demo.java`:
 
 ~~~java
 import java.util.Locale;
@@ -433,87 +433,87 @@ public class ResourceBundleUtf8Demo {
 }
 ~~~
 
-Biên dịch/chạy tại thư mục `demo` bằng Java 17+:
+Compile/run inside `demo` using Java 17+:
 
 ~~~bash
 javac -encoding UTF-8 ResourceBundleUtf8Demo.java
 java -cp . ResourceBundleUtf8Demo
 ~~~
 
-Kết quả khi terminal hiển thị Unicode đúng:
+Output when the terminal renders Unicode properly:
 
 ~~~text
 Correct value: true
 Message: Xin chào, thế giới!
 ~~~
 
-Dòng `Correct value: true` chứng minh giá trị `String` đọc được đúng. Nếu dòng `Message` bị lỗi dấu trong terminal, kiểm tra **đầu ra**, không sửa vội nội dung bundle.
+`Correct value: true` proves the `String` value was read accurately. If the `Message` line shows garbled diacritics in the terminal, inspect **the output**, rather than immediately editing the bundle content.
 
-### Chế độ UTF-8 nghiêm ngặt
+### Strict UTF-8 Mode
 
-Khi muốn phát hiện file tài nguyên có byte không hợp lệ thay vì fallback sang Latin-1, có thể chạy:
+When you want to detect resource files containing invalid bytes instead of falling back to Latin-1, run:
 
 ~~~bash
 java -Djava.util.PropertyResourceBundle.encoding=UTF-8 -cp . ResourceBundleUtf8Demo
 ~~~
 
-Lưu ý:
+Notes:
 
-- Viết `-D...` **trước tên main class**.
-- Giá trị được hỗ trợ là `UTF-8` hoặc `ISO-8859-1` theo Javadoc.
-- Nếu cần áp dụng cho chương trình thực, cấu hình từ **lúc startup**, không gọi `System.setProperty` sau khi resource đã được sử dụng.
-- Bài test cần kiểm tra đúng base name, package, classpath, locale fallback và nội dung thực sự được đóng gói.
+- Put `-D...` **before the main class name**.
+- Supported values are `UTF-8` or `ISO-8859-1` per Javadoc.
+- To apply in real applications, configure it **at startup**, not by calling `System.setProperty` after resources have been used.
+- Tests must verify the base name, package, classpath, locale fallback, and the actual packaged content.
 
-### Resource có Unicode escape
+### Resources with Unicode Escapes
 
-Trong các hệ thống legacy, nội dung có thể được viết:
+In legacy systems, content may be written as:
 
 ~~~properties
 welcome=Xin ch\u00E0o
 ~~~
 
-Cú pháp escape giúp biểu diễn Unicode trong file properties ASCII/Latin-1. Nhưng nếu dự án Java 17+ dùng UTF-8 thống nhất, việc giữ nội dung Unicode trực tiếp có thể dễ đọc và review hơn. Chọn một chính sách encoding nhất quán, tránh vừa tự chuyển escape, vừa decode bằng charset khác, khiến khó xác định lỗi.
+Escape syntax represents Unicode inside ASCII/Latin-1 properties files. However, if a Java 17+ project standardizes on UTF-8, keeping literal Unicode content can be easier to read and review. Pick one consistent encoding policy and avoid mixing manual escape conversion with decoding in a different charset, which makes bugs harder to trace.
 
-## 10. Charset của compiler không giống Charset của tệp lúc chạy
+## 10. Compiler Charset Differs from Runtime File Charset
 
-Mã nguồn Java cũng là một **tệp có byte**. Trước khi `String` được tạo trong JVM, `javac` phải đọc source file theo encoding phù hợp.
+Java source code is also a **file of bytes**. Before a `String` exists in the JVM, `javac` must read the source file with the right encoding.
 
-Ví dụ file `Hello.java` chứa literal `"Tiếng Việt"`. Nếu file lưu UTF-8 nhưng compiler đọc bằng một charset khác, literal có thể sai ngay **trong class file**; mọi thao tác Files/ResourceBundle sau đó không thể tự sửa.
+For example, `Hello.java` contains the literal `"Tiếng Việt"`. If the file is saved as UTF-8 yet the compiler reads it with another charset, the literal is already corrupted **inside the class file**; no downstream `Files`/`ResourceBundle` call can fix it automatically.
 
-Biên dịch chỉ định charset rõ:
+Compile with an explicit charset:
 
 ~~~bash
 javac -encoding UTF-8 Hello.java
 ~~~
 
-Đây là lệnh minh họa nếu có tệp `Hello.java`. Với dự án thực tế, cấu hình encoding ở hệ thống build:
+This is an illustrative command assuming `Hello.java` exists. In real projects, configure encoding in the build tool:
 
-- Maven: source/resource encoding cần được đặt và kiểm tra theo phiên bản plugin/chuỗi build đang dùng.
-- Gradle: cấu hình encoding cho compile task và processing resources nếu có bước lọc/chuyển đổi nội dung.
-- IDE: xác minh encoding của tệp và cài đặt compiler tương ứng.
-- CI: build lại từ mã nguồn trong môi trường khác, không phụ thuộc encoding của máy dev.
+- Maven: source/resource encoding must be configured and verified for the plugin versions and build toolchain used.
+- Gradle: configure encoding for compile tasks and `processResources` if filtering/transforming content.
+- IDE: verify file encodings and matching compiler settings.
+- CI: rebuild from source in a clean environment without relying on a developer machine's encoding.
 
-**Lưu ý:** `javac -encoding UTF-8` chỉ áp dụng cho **source files do javac đọc**, không tự đặt encoding của mọi file `.properties`, dữ liệu runtime, terminal hay HTTP response.
+**Note:** `javac -encoding UTF-8` applies only to **source files read by javac**; it does not set the encoding of `.properties` files, runtime data, terminals, or HTTP responses.
 
-### Cẩn thận với tài nguyên bị build tool biến đổi
+### Watch Out for Resources Altered by Build Tools
 
-Một file `Messages_vi_VN.properties` có thể nằm trong thư mục resources, sau đó đi qua các bước lọc biến, copy, minify, merge hoặc đóng gói JAR. Nếu bản nguồn UTF-8 đúng nhưng classpath resource sau build sai byte, lỗi nằm ở **build pipeline**.
+A `Messages_vi_VN.properties` file may sit in the resources folder and then pass through variable filtering, copying, minifying, merging, or JAR packaging. If the UTF-8 source file is right yet the packaged classpath resource has wrong bytes, the bug is in the **build pipeline**.
 
-Để debug, hãy kiểm tra **file được đóng gói thật** và byte của nó, không chỉ kiểm tra bản nguồn trong IDE. Khi lấy resource từ JAR, `getResourceAsStream` cho byte của bản đóng gói chứ không nhất thiết là file gốc trên máy phát triển.
+To debug, inspect the **actually packaged file** and its bytes, not only the source file in the IDE. When loading a resource from a JAR, `getResourceAsStream` returns the packaged bytes, not necessarily the original file on a developer's disk.
 
-## 11. Byte Order Mark (BOM) và ký tự U+FEFF
+## 11. Byte Order Mark (BOM) and the U+FEFF Character
 
-Một số tệp UTF-8 bắt đầu bằng ba byte `EF BB BF`, gọi là **UTF-8 BOM**. Trong một số API đọc văn bản, ba byte này có thể được decode thành ký tự `U+FEFF` ở đầu `String`.
+Some UTF-8 files begin with three bytes `EF BB BF`, known as a **UTF-8 BOM**. In certain text-reading APIs, those three bytes can be decoded into a leading `U+FEFF` character in the `String`.
 
-Điều này tạo ra lỗi khó thấy:
+This creates subtle bugs:
 
-- File nhìn như bắt đầu bằng `"name="` nhưng key đầu có thể thực sự là `"\uFEFFname"`.
-- So sánh `text.startsWith("name")` có thể trả false.
-- Một parser theo giao thức khác có thể chủ động nhận/bỏ BOM, nhưng **không được giả định mọi API đều làm vậy**.
+- A file looks like it starts with `"name="`, yet the first key is actually `"\uFEFFname"`.
+- `text.startsWith("name")` returns false.
+- A parser for another protocol may actively detect/strip a BOM, yet **never assume all APIs do so**.
 
-### Ví dụ Java 17+ độc lập
+### Standalone Java 17+ Example
 
-Tạo `Utf8BomDemo.java`:
+Create `Utf8BomDemo.java`:
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -551,14 +551,14 @@ public class Utf8BomDemo {
 }
 ~~~
 
-Lệnh chạy:
+Run commands:
 
 ~~~bash
 javac -encoding UTF-8 Utf8BomDemo.java
 java Utf8BomDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 First character: U+FEFF
@@ -566,46 +566,46 @@ Equals Hello: false
 Without initial BOM: Hello
 ~~~
 
-Đây là **chính sách loại BOM ở đầu tệp khi hợp đồng file cho phép**, không phải giấy phép xóa mọi `U+FEFF` ở mọi vị trí trong văn bản. Với XML, CSV, JSON, source hoặc format chuyên biệt, cần theo quy định BOM của **giao thức tương ứng**. Không dùng `strip()` để suy rằng nó chắc chắn loại `U+FEFF`.
+This is a **policy of stripping a leading BOM when the file contract permits**, not a license to delete every `U+FEFF` anywhere in text. For XML, CSV, JSON, source files, or specialized formats, follow the BOM rules of **the respective protocol**. Do not call `strip()` assuming it guarantees removing `U+FEFF`.
 
-## 12. Ghi ra output: console và log là một ranh giới byte khác
+## 12. Writing Output: Console and Logs Are Another Byte Boundary
 
-Đầu ra console không đơn giản là `System.out.println(text)` rồi “Unicode tự đúng”. Có thể có các lớp:
+Console output is not simply `System.out.println(text)` and “Unicode works automatically.” Multiple layers may sit in between:
 
 ~~~text
-String Java đúng
+Valid Java String
      |
      v
-PrintStream / logger encode thành byte
+PrintStream / logger encodes to bytes
      |
      v
 stdout / terminal / CI / redirect / log collector
      |
      v
-decoder + font của nơi xem
+viewer's decoder + font
 ~~~
 
-Nếu in `"Tiếng Việt"` mà người dùng thấy chuỗi lỗi, thử xác nhận **chuỗi trong bộ nhớ** qua test và kiểm tra **byte xuất ra**. Đừng tự sửa Unicode trong business data chỉ để hợp với terminal đang cấu hình sai.
+If printing `"Tiếng Việt"` shows garbled text to the user, verify the **in-memory string** via tests and inspect the **emitted bytes**. Never alter Unicode in business data just to appease a misconfigured terminal.
 
-### Java 18+ không có nghĩa System.out luôn UTF-8
+### Java 18+ Does Not Mean System.out Is Always UTF-8
 
-JEP 400 đổi default charset cho phần lớn Java SE API sang UTF-8, nhưng `System.out`/`System.err` có các cân nhắc riêng về charset của console/host. Vì vậy không nên suy “`Charset.defaultCharset()` là UTF-8 nên mọi terminal chắc chắn đọc được UTF-8”.
+JEP 400 switched the default charset for most Java SE APIs to UTF-8, yet `System.out`/`System.err` have separate considerations for the console/host charset. Therefore never conclude “`Charset.defaultCharset()` is UTF-8, so every terminal definitely reads UTF-8.”
 
-Thực tế, cần kiểm tra:
+In practice, check:
 
-- Charset thực tế của console/terminal và cách JVM khởi tạo output stream.
-- Charset của log appender/file writer.
-- Charset của hệ thống thu thập log/CI.
-- Font có glyph cho ngôn ngữ đang in.
-- Trường hợp stdout được redirect sang file khác với console tương tác.
+- The actual charset of the console/terminal and how the JVM initializes output streams.
+- The charset of log appenders/file writers.
+- The charset of log collectors/CI systems.
+- Whether the font has glyphs for the printed language.
+- Cases where stdout is redirected to a file rather than an interactive console.
 
-Trong Java 17+, `System.console()` có thể bằng `null` nếu chạy dưới IDE/CI/redirect; nếu tồn tại, `System.console().charset()` có thể giúp chẩn đoán charset console. Không dựa vào `System.console()` luôn có giá trị.
+In Java 17+, `System.console()` can be `null` when running under an IDE/CI/redirection; if non-null, `System.console().charset()` helps diagnose the console charset. Never rely on `System.console()` always being non-null.
 
-### Ví dụ Java 17+ kiểm tra byte output trong bộ nhớ
+### Java 17+ Example Checking Output Bytes in Memory
 
-Thay vì phụ thuộc terminal, tạo một output stream với charset tường minh.
+Instead of depending on a terminal, create an output stream with an explicit charset.
 
-Lưu `OutputEncodingDemo.java`:
+Save `OutputEncodingDemo.java`:
 
 ~~~java
 import java.io.ByteArrayOutputStream;
@@ -632,35 +632,35 @@ public class OutputEncodingDemo {
 }
 ~~~
 
-Biên dịch/chạy:
+Compile/run:
 
 ~~~bash
 javac -encoding UTF-8 OutputEncodingDemo.java
 java OutputEncodingDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 Hex: 636166c3a9
 Same text: true
 ~~~
 
-Khi output được tạo bằng `OutputStreamWriter(..., UTF_8)`, có thể kiểm tra byte độc lập với terminal. `OutputStreamWriter` cần được flush/close; ví dụ dùng try-with-resources.
+When output is produced via `OutputStreamWriter(..., UTF_8)`, bytes can be verified independently of the terminal. `OutputStreamWriter` must be flushed/closed; the example uses try-with-resources.
 
-Nếu muốn dùng `PrintStream` cho destination cụ thể, có overload `new PrintStream(output, true, StandardCharsets.UTF_8)` trong Java 17. Tuy nhiên, tạo một PrintStream mới trỏ vào `System.out` không tự bảo đảm console đích diễn giải UTF-8 đúng; phải xét toàn bộ pipeline.
+If you want a `PrintStream` for a specific destination, Java 17 provides `new PrintStream(output, true, StandardCharsets.UTF_8)`. However, wrapping `System.out` in a new `PrintStream` does not guarantee the destination console decodes UTF-8 properly; you must examine the entire pipeline.
 
-## 13. Chạy chương trình với chuyển hướng output và kiểm tra hex
+## 13. Running Programs with Output Redirection and Hex Inspection
 
-Khi nghi ngờ terminal, một quy trình QA hữu ích:
+When suspecting the terminal, a useful QA workflow is:
 
-1. Chạy chương trình ghi **file UTF-8 có charset tường minh** hoặc chuyển stdout sang file trong môi trường đã biết.
-2. Kiểm tra byte hex của output ở bước gần ứng dụng nhất.
-3. Đọc lại bằng `Files.readString(path, StandardCharsets.UTF_8)`.
-4. So sánh `String` được đọc với expected text trong unit test.
-5. Nếu byte đúng mà công cụ mở file hiển thị sai, kiểm tra encoding do **công cụ mở file** lựa chọn.
+1. Run the program writing an **explicit-charset UTF-8 file** or redirect stdout to a file in a known environment.
+2. Inspect output hex bytes as close to the application as possible.
+3. Read back using `Files.readString(path, StandardCharsets.UTF_8)`.
+4. Compare the read `String` with expected text in a unit test.
+5. If bytes are right yet the file viewer displays errors, check the encoding selected by **the file viewer**.
 
-Ví dụ đọc file đã có `output.txt` được xác nhận là UTF-8:
+Example reading an existing `output.txt` confirmed to be UTF-8:
 
 ~~~java
 Path path = Path.of("output.txt");
@@ -668,60 +668,60 @@ String content = Files.readString(path, StandardCharsets.UTF_8);
 System.out.println(content.contains("Tiếng Việt"));
 ~~~
 
-Đây là **mảnh mã trong method**, cần import `java.nio.file.Path`, `java.nio.file.Files`, `java.nio.charset.StandardCharsets`; file phải được tạo từ trước bằng UTF-8. Kết quả boolean giúp biết nội dung đọc đúng hay không nhưng vẫn cần kiểm tra từng ranh giới nếu pipeline đã làm mất byte.
+This is a **method-body snippet**, requiring imports for `java.nio.file.Path`, `java.nio.file.Files`, and `java.nio.charset.StandardCharsets`; the file must have been created beforehand in UTF-8. The boolean result tells whether the content read properly, though you still must inspect each boundary if a pipeline dropped bytes.
 
-### Locale không giải quyết lỗi charset
+### Locale Does Not Fix Charset Bugs
 
-Ví dụ `NumberFormat.getNumberInstance(Locale.GERMANY)` có thể tạo dấu phẩy thập phân và dấu nhóm theo locale Đức. Nhưng khi ghi kết quả ra file, **vẫn phải chọn charset**. Đồng thời, `StandardCharsets.UTF_8` không tự tạo dấu phẩy theo locale Đức.
+For example, `NumberFormat.getNumberInstance(Locale.GERMANY)` produces decimal commas and grouping dots per German locale. Yet when writing the result to a file, **you still must choose a charset**. Likewise, `StandardCharsets.UTF_8` does not produce German decimal commas on its own.
 
-Sơ đồ trách nhiệm:
+Responsibility diagram:
 
 ~~~text
-Giá trị số/ngày
-   -> Locale: tạo String có dấu, tên tháng và định dạng đúng
-   -> Charset: chuyển String đó thành byte
-   -> Destination: nhận byte / lưu trữ
-   -> Charset của reader: khôi phục String
-   -> Font/renderer: hiển thị glyph
+Numeric/date value
+   -> Locale: produces String with proper punctuation, month names, and formatting
+   -> Charset: converts that String to bytes
+   -> Destination: receives bytes / stores
+   -> Reader's Charset: restores String
+   -> Font/renderer: displays glyphs
 ~~~
 
-Không cố xử lý lỗi ở một lớp bằng cách thay đổi một lớp hoàn toàn khác.
+Never try to fix a bug in one layer by modifying a completely unrelated layer.
 
-## 14. HTTP, JSON và dữ liệu mạng: thêm một bên quyết định encoding
+## 14. HTTP, JSON, and Network Data: Another Party Decides Encoding
 
-Khi gửi chuỗi qua mạng, cả client và server phải có hợp đồng về byte.
+When sending strings over a network, both client and server must share a byte contract.
 
-- **JSON** được dùng phổ biến với UTF-8; hãy tuân thủ quy định của giao thức/phiên bản chuẩn JSON đang sử dụng.
-- **HTTP Content-Type** và charset có thể tác động cách client hiểu body đối với các media type liên quan; cần đặt header đúng theo API/framework.
-- Thư viện HTTP, servlet, JSON mapper có thể encode/decode thay bạn; phải xem cấu hình thực tế và không double-encode.
-- Không dùng `String.getBytes()` không tham số cho một giao thức cần byte ổn định giữa máy chủ khác nhau.
-- URL encoding/percent-encoding là bài toán cấu trúc URI, **không đồng nhất** với UTF-8 text file encoding dù có liên hệ tại cấp byte.
+- **JSON** is standardly used with UTF-8; follow the specification/version of the JSON standard in use.
+- **HTTP Content-Type** and charset can affect how clients interpret bodies for relevant media types; set headers properly via your API/framework.
+- HTTP libraries, servlets, and JSON mappers may encode/decode on your behalf; inspect actual configuration and avoid double-encoding.
+- Never use parameterless `String.getBytes()` for a protocol needing consistent bytes across different servers.
+- URL encoding/percent-encoding is a URI structure concern, **not identical** to UTF-8 text file encoding even though they connect at the byte level.
 
-Ví dụ một API trả JSON chứa `"Xin chào"`: hãy kiểm tra byte response đúng, Content-Type phù hợp và parser JSON bên nhận đã diễn giải đúng. Không suy nội dung sai chỉ vì DevTools/terminal hiển thị một kiểu font lạ.
+For example, an API returns JSON containing `"Xin chào"`: verify the response bytes are right, `Content-Type` matches, and the receiving JSON parser interprets them properly. Never assume content is corrupted merely because DevTools or a terminal renders an unusual font.
 
-Nếu có bước chuyển dữ liệu qua database, cần xem **charset của kết nối, kiểu cột và driver**. Với cơ sở dữ liệu, nếu chuỗi trong JVM đúng trước insert nhưng sai sau select, so sánh dữ liệu/byte tại ranh giới driver/database để xác định nguyên nhân.
+When passing data through a database, inspect **connection charset, column types, and driver behavior**. With databases, if a string in the JVM is right before insert yet wrong after select, compare data/bytes at the driver/database boundary to isolate the root cause.
 
-## 15. Phân biệt “lỗi encoding” với “lỗi Unicode normalization”
+## 15. Distinguishing “Encoding Bugs” from “Unicode Normalization Bugs”
 
-Hai chuỗi có dấu có thể hiển thị giống nhau nhưng có code point khác:
+Two accented strings can look identical yet have different code points:
 
 ~~~text
 café       -> ... U+00E9
 cafe\u0301 -> ... U+0065 U+0301
 ~~~
 
-Đó là vấn đề **Unicode canonical equivalence**, không nhất thiết là lỗi đọc byte. Java `Normalizer.Form.NFC` có thể đưa chúng về biểu diễn tương đương chuẩn tắc, nhưng vẫn **giữ dấu**.
+This is a **Unicode canonical equivalence** concern, not necessarily a byte-reading bug. Java's `Normalizer.Form.NFC` can bring them to a canonically equivalent form while **preserving diacritics**.
 
-Ngược lại:
+Conversely:
 
-- `cafÃ©` thường gợi ý mojibake do UTF-8 bị hiểu theo một charset khác.
-- `caf�` cho thấy có khả năng byte bất hợp lệ đã bị thay bằng replacement character.
-- `caf?` có thể do encoder không biểu diễn được ký tự rồi thay thế.
-- `cafe` thay cho `café` có thể là do dữ liệu gốc không dấu hoặc phép biến đổi **cố ý** loại dấu, không nhất thiết là lỗi charset.
+- `cafÃ©` typically indicates mojibake from UTF-8 being interpreted under another charset.
+- `caf�` indicates invalid bytes were likely substituted with a replacement character.
+- `caf?` may result from an encoder unable to represent a character substituting a fallback.
+- `cafe` instead of `café` may come from unaccented source data or an **intentional** accent-stripping transform, not necessarily a charset bug.
 
-Không áp dụng `NFD + replaceAll("\\p{M}+", "")` để “sửa encoding”. Đó là phép **bỏ dấu mất thông tin**, có thể biến `má`, `mã`, `mạ` về cùng `ma`, làm nội dung sai nghĩa.
+Never apply `NFD + replaceAll("\\p{M}+", "")` to “fix encoding.” That is **lossy diacritic stripping**, which can collapse `má`, `mã`, and `mạ` into the same `ma`, altering meaning.
 
-### In code point để chẩn đoán
+### Printing Code Points for Diagnostics
 
 ~~~java
 text.codePoints().forEach(cp ->
@@ -729,104 +729,104 @@ text.codePoints().forEach(cp ->
 );
 ~~~
 
-Đây là **mảnh mã trong method** với biến `text`. Kết hợp in code point và byte hex giúp phân biệt trường hợp **ký tự đã sai trong JVM** với trường hợp **ký tự đúng nhưng renderer hiển thị không đúng**.
+This is a **method-body snippet** using `text`. Combining code-point printing with byte hex distinguishes cases where **characters are already wrong in the JVM** from cases where **characters are right yet the renderer displays them incorrectly**.
 
-Nếu làm việc với emoji hoặc ký tự ngoài BMP, `codePoints()` tốt hơn lặp từng `char` khi cần xem mã Unicode thật.
+When working with emoji or non-BMP characters, `codePoints()` is better than iterating `char` by `char` to inspect true Unicode values.
 
-## 16. Bộ kiểm thử end-to-end nên gồm những gì?
+## 16. What Should an End-to-End Test Suite Include?
 
-Một unit test chỉ kiểm `String.equals` trong bộ nhớ chưa đủ nếu ứng dụng có nhiều ranh giới. Cần dùng cả bài kiểm tra tệp/resource/output trên **đường đi thực tế**.
+A unit test checking only in-memory `String.equals` is insufficient when an application spans multiple boundaries. Include file, resource, and output tests along the **real execution path**.
 
-### Ma trận kiểm thử đề xuất
+### Recommended Test Matrix
 
-| Biên giới | Dữ liệu thử | Bằng chứng cần kiểm |
+| Boundary | Test data | Evidence to verify |
 | --- | --- | --- |
-| Source → class | `Tiếng Việt`, `café`, `日本語` | `javac -encoding UTF-8`, literal trong JVM đúng |
-| String → file | Tiếng Việt, emoji, dấu kết hợp | Byte UTF-8 khớp expected |
-| File → String | UTF-8 hợp lệ, UTF-8 lỗi | Round-trip; strict decode phải bắt lỗi |
-| Properties InputStream | `label=café` chứa byte UTF-8 | Phát hiện Latin-1 mojibake |
-| Properties Reader | Cùng file UTF-8 | Giá trị Unicode khôi phục đúng |
-| PropertyResourceBundle | `Messages_vi_VN.properties` | Bản dịch được nạp đúng; policy UTF-8 rõ ràng |
-| BOM | File bắt đầu bằng `EF BB BF` | Có/không còn `U+FEFF` theo quy tắc đích |
-| OutputWriter | `café` | Byte `63 61 66 C3 A9` |
-| Console/log | Nhiều ngôn ngữ, CI và redirect | Tách encoding của stream và decoder phía hiển thị |
-| Network/database | UTF-8, tên bản địa hóa | Cả hai phía giữ đúng chuỗi và hợp đồng giao thức |
-| Unicode normalization | `é` so với `e + ◌́` | Không nhầm NFC với loại bỏ dấu |
-| Unsupported charset | Văn bản Nhật qua Latin-1 | Encoder REPORT thay vì mất dữ liệu âm thầm |
+| Source → class | `Tiếng Việt`, `café`, `日本語` | `javac -encoding UTF-8`, in-JVM literals match |
+| String → file | Vietnamese, emoji, combining marks | UTF-8 bytes match expected |
+| File → String | Valid UTF-8, invalid UTF-8 | Round-trip; strict decode must catch errors |
+| Properties InputStream | `label=café` containing UTF-8 bytes | Detects Latin-1 mojibake |
+| Properties Reader | Same UTF-8 file | Unicode value restored accurately |
+| PropertyResourceBundle | `Messages_vi_VN.properties` | Translations loaded properly; explicit UTF-8 policy |
+| BOM | File starting with `EF BB BF` | `U+FEFF` present/stripped per target rule |
+| OutputWriter | `café` | Bytes `63 61 66 C3 A9` |
+| Console/log | Multilingual, CI, and redirection | Separate stream encoding from viewer decoder |
+| Network/database | UTF-8, localized names | Both sides preserve strings and protocol contract |
+| Unicode normalization | `é` vs. `e + ◌́` | Never confuse NFC with diacritic stripping |
+| Unsupported charset | Japanese text through Latin-1 | Encoder `REPORT` instead of silent data loss |
 
-### Dữ liệu mẫu nên đa dạng
+### Sample Data Should Be Diverse
 
-Không chỉ test ASCII `"Hello"` vì nhiều charset truyền thống có cùng byte cho ASCII. Bộ dữ liệu có giá trị:
+Do not test only ASCII `"Hello"` since many legacy charsets share the same bytes for ASCII. Valuable test data includes:
 
-- Tiếng Việt: `"Tiếng Việt, Đặng, Trường"`.
-- Latin có dấu: `"café, naïve"`.
-- Chữ Nhật: `"日本語"`.
-- Chữ Ả Rập: `"مرحبا"`.
+- Vietnamese: `"Tiếng Việt, Đặng, Trường"`.
+- Accented Latin: `"café, naïve"`.
+- Japanese: `"日本語"`.
+- Arabic: `"مرحبا"`.
 - Emoji: `"🌍"`.
-- Biểu diễn Unicode phân rã: `"cafe\u0301"`.
-- Đầu vào UTF-8 lỗi: byte `C3 28`.
-- Tệp có và không có BOM.
+- Decomposed Unicode: `"cafe\u0301"`.
+- Invalid UTF-8 input: bytes `C3 28`.
+- Files with and without a BOM.
 
-Cần kiểm tra **bản thực sự được đóng gói/deploy**, không chỉ file trong source repository. Một số lỗi chỉ xuất hiện sau resource filtering hoặc khi chuyển môi trường Windows/Linux.
+Test **the actually packaged/deployed artifact**, not only files in the source repository. Certain bugs appear only after resource filtering or when moving between Windows and Linux.
 
-## 17. Checklist xử lý sự cố theo dấu hiệu
+## 17. Symptom-Based Troubleshooting Checklist
 
-| Triệu chứng | Nguyên nhân có thể | Kiểm tra đầu tiên |
+| Symptom | Possible cause | First check |
 | --- | --- | --- |
-| `cafÃ©` | UTF-8 bị giải mã như ISO-8859-1/Windows code page | Hex byte nguồn và charset của reader |
-| `caf�` | Byte lỗi hoặc decoder đã thay thế | Có `U+FFFD` trong String không? Strict decoder |
-| `caf?` | Encoder không biểu diễn được ký tự | Charset output, chính sách encoder |
-| Console lỗi nhưng test String đúng | Charset của output/terminal hoặc font | Hex output/terminal settings, log file UTF-8 |
-| File source đúng, runtime bundle sai | Resource filtering/copy/JAR hoặc encoding bundle | Đọc byte của resource sau đóng gói |
-| `Properties.load(InputStream)` sai dấu | ISO-8859-1 semantics của API | Đổi sang Reader UTF-8 nếu hợp đồng cho phép |
-| `ResourceBundle` sai trong Java 17 | Byte tệp, fallback, config encoding hoặc nhầm resource | Kiểm tra base name, locale, classpath, property startup |
-| Key properties bắt đầu bằng ký tự lạ | UTF-8 BOM được giữ dưới dạng U+FEFF | Kiểm tra ba byte đầu và rule BOM |
-| Unicode cùng hình nhưng `equals` false | Dạng NFC/NFD khác nhau | In code point, cân nhắc NFC |
-| Java 17 OK, Java khác lỗi hoặc ngược lại | Default charset/JDK/provider khác | Truyền `StandardCharsets.UTF_8` tường minh |
-| Log ghi đúng nhưng mở file sai dấu | Viewer dùng charset không khớp | Kiểm tra byte và chế độ mở UTF-8 |
-| Có chữ sai sau khi chuyển DB | Kết nối, cột, chuyển đổi driver | So String trước insert/sau select |
+| `cafÃ©` | UTF-8 decoded as ISO-8859-1/Windows code page | Source byte hex and reader's charset |
+| `caf�` | Invalid bytes or replacing decoder | Is `U+FFFD` in the `String`? Strict decoder |
+| `caf?` | Encoder could not represent character | Output charset, encoder error policy |
+| Console broken but String tests pass | Output/terminal charset or font | Output hex/terminal settings, UTF-8 log file |
+| Source file right, runtime bundle wrong | Resource filtering/copy/JAR or bundle encoding | Inspect packaged resource bytes |
+| `Properties.load(InputStream)` mangles accents | API's ISO-8859-1 semantics | Switch to UTF-8 `Reader` if contract permits |
+| `ResourceBundle` wrong in Java 17 | File bytes, fallback, encoding config, or wrong resource | Check base name, locale, classpath, startup property |
+| Properties key starts with strange char | UTF-8 BOM retained as U+FEFF | Check first three bytes and BOM rule |
+| Same-looking Unicode fails `equals` | Different NFC/NFD forms | Print code points, consider NFC |
+| Java 17 works, another Java fails or vice versa | Different default charset/JDK/provider | Pass `StandardCharsets.UTF_8` explicitly |
+| Log written right but viewer shows wrong accents | Viewer uses mismatched charset | Check bytes and viewer's UTF-8 mode |
+| Text breaks after DB round-trip | Connection, column, driver conversion | Compare String before insert vs. after select |
 
-**Không thử ngẫu nhiên hàng loạt charset để chọn kết quả “trông ổn” rồi ghi đè dữ liệu gốc.** Hãy xác định nguồn byte và hợp đồng encoding, kiểm tra lỗi có thể tái hiện và bảo toàn bản gốc để điều tra.
+**Do not randomly try charsets to pick whichever “looks okay” and overwrite original data.** Identify the byte source and encoding contract, reproduce the bug reliably, and preserve the original copy for investigation.
 
-## 18. Quy trình kiểm soát trong ứng dụng thực tế
+## 18. Control Process in Real-World Applications
 
-Một chính sách hợp lý cho dự án Java đa ngôn ngữ:
+A sound policy for multilingual Java projects:
 
-1. **Nguồn và tài nguyên UTF-8:** đặt encoding nhất quán trong IDE/build/CI, kiểm tra nội dung JAR cuối.
-2. **Tệp và network rõ charset:** dùng overload có `Charset` tường minh; với byte stream, chọn Reader/Writer có encoding tương ứng.
-3. **Tách Locale và Charset:** định dạng ngôn ngữ trước, encode khi đi ra ngoài JVM.
-4. **Đọc nghiêm ngặt khi cần:** dùng `CharsetDecoder/Encoder` với `REPORT` cho dữ liệu quan trọng.
-5. **Không làm mất dấu để che lỗi:** không tự transliteration/strip Mark khi vấn đề là I/O encoding.
-6. **Theo dõi điểm chuyển đổi:** log charset, byte length, mã lỗi; tránh đưa thông tin nhạy cảm thô vào log.
-7. **Kiểm tra ở CI:** thử nhiều ngôn ngữ, surrogate pair, byte lỗi, BOM, file trong JAR và output redirect.
-8. **Chuẩn hóa bản dịch đúng trách nhiệm:** `ResourceBundle` chọn chuỗi theo `Locale`, byte của resource có chính sách encoding độc lập.
-9. **Không lưu output đã format làm dữ liệu nguồn:** lưu Unicode đúng và dữ liệu có kiểu; render theo ngữ cảnh người nhận.
-10. **Nâng JDK có kiểm thử:** đặc biệt chú ý Java 17 vs 18+ về default charset; giữ các hợp đồng tường minh để giảm thay đổi hành vi.
+1. **UTF-8 sources and resources:** set consistent encoding in IDE/build/CI, inspect final JAR contents.
+2. **Explicit charsets for files and networks:** use overloads taking an explicit `Charset`; for byte streams, wrap with matching-encoding Reader/Writer.
+3. **Separate Locale and Charset:** format linguistic output first, encode when leaving the JVM.
+4. **Strict reads when needed:** use `CharsetDecoder/Encoder` with `REPORT` for critical data.
+5. **Never strip diacritics to hide bugs:** never apply transliteration or mark stripping when the issue is I/O encoding.
+6. **Monitor conversion points:** log charset, byte length, and error codes; avoid putting raw sensitive info in logs.
+7. **Test in CI:** test multiple languages, surrogate pairs, invalid bytes, BOMs, packaged JAR files, and redirected output.
+8. **Standardize translation ownership:** `ResourceBundle` selects strings by `Locale`, while resource bytes have an independent encoding policy.
+9. **Never store formatted output as source data:** store clean Unicode and typed data; render per recipient context.
+10. **Test JDK upgrades thoroughly:** pay special attention to Java 17 vs. 18+ default charsets; keep contracts explicit to minimize behavior changes.
 
-### Bài tập tự luyện
+### Practice Exercises
 
-1. Giải thích vì sao `String.length()`, số Unicode code point và độ dài byte UTF-8 của `"🌍"` là ba con số khác nhau.
-2. Ghi `"Tiếng Việt 🌍"` ra tệp UTF-8, đọc lại và kiểm tra cả byte lẫn `String.equals`.
-3. Parse byte `C3 28` bằng `CharsetDecoder.REPORT` và bằng `new String(bytes, UTF_8)`. Quan sát khác biệt.
-4. Tạo properties chứa `label=café` bằng UTF-8; so kết quả `Properties.load(InputStream)` và `load(Reader UTF8)`.
-5. Đọc `Messages_vi_VN.properties` bằng `ResourceBundle.getBundle`. Vì sao kết quả có thể khác `Properties.load(InputStream)`?
-6. Chạy `ResourceBundleUtf8Demo` với `-Djava.util.PropertyResourceBundle.encoding=UTF-8` lúc startup. Vì sao đổi property sau khi class đã init không có tác dụng?
-7. Tạo file UTF-8 có BOM, dùng `Files.readString` xem ký tự đầu. Khi nào được phép bỏ `U+FEFF`?
-8. Viết `OutputStreamWriter` ra `ByteArrayOutputStream` và kiểm tra hex byte của `"café"`. Vì sao test byte mạnh hơn chỉ nhìn console?
-9. Một hệ thống có đúng `String` trước khi gọi `println` nhưng sai chữ trong terminal. Hãy liệt kê các ranh giới cần kiểm tra trước khi sửa code xử lý bản dịch.
-10. Thử `"caf\u00E9"` và `"cafe\u0301"`; phân biệt vấn đề normalization với charset khi kiểm tra equality.
-11. Đưa bài test Unicode vào build Java 17 và Java 21 trên môi trường khác nhau; kiểm chứng việc truyền charset tường minh giúp ổn định kết quả.
-12. Nếu API lấy `Locale.US` nhưng đọc file bằng Latin-1, điều gì xảy ra? Vì sao `Locale` không phải giải pháp cho lỗi byte?
+1. Explain why `String.length()`, Unicode code point count, and UTF-8 byte length of `"🌍"` are three different numbers.
+2. Write `"Tiếng Việt 🌍"` to a UTF-8 file, read it back, and verify both bytes and `String.equals`.
+3. Parse bytes `C3 28` using `CharsetDecoder.REPORT` and using `new String(bytes, UTF_8)`. Observe the difference.
+4. Create properties containing `label=café` in UTF-8; compare results of `Properties.load(InputStream)` and `load(Reader UTF8)`.
+5. Read `Messages_vi_VN.properties` with `ResourceBundle.getBundle`. Why can the result differ from `Properties.load(InputStream)`?
+6. Run `ResourceBundleUtf8Demo` with `-Djava.util.PropertyResourceBundle.encoding=UTF-8` at startup. Why does changing the property after class initialization have no effect?
+7. Create a UTF-8 file with a BOM and inspect the first character via `Files.readString`. When is stripping `U+FEFF` allowed?
+8. Write an `OutputStreamWriter` to a `ByteArrayOutputStream` and inspect the hex bytes of `"café"`. Why is a byte test stronger than looking at the console?
+9. A system has the right `String` before calling `println`, yet the terminal prints garbled text. List the boundaries to inspect before modifying translation-handling code.
+10. Test `"caf\u00E9"` and `"cafe\u0301"`; distinguish normalization from charset when checking equality.
+11. Run Unicode tests across Java 17 and Java 21 builds in different environments; verify that passing explicit charsets stabilizes results.
+12. If an API takes `Locale.US` yet reads a file as Latin-1, what happens? Why is `Locale` not a fix for byte errors?
 
-**Ghi nhớ:** kiểm tra chuỗi đúng phải đi qua **các ranh giới byte**. Dữ liệu có thể đúng trong `String` nhưng sai khi ghi file, nạp properties hoặc xuất terminal. Dùng `StandardCharsets.UTF_8` rõ ràng, kiểm tra **hex byte và Unicode code point**, round-trip file/resource/output, phân biệt `Properties.load(InputStream)` (ISO-8859-1) với `PropertyResourceBundle` Java 9+ (UTF-8 mặc định và fallback theo tài liệu), và xử lý byte lỗi bằng decoder/encoder nghiêm ngặt khi cần. **Không dùng bỏ dấu, thay ký tự hàng loạt hoặc đổi Locale để che lỗi Charset.**
+**Remember:** verifying strings properly requires checking **across byte boundaries**. Data can be right in `String` yet break when writing files, loading properties, or printing to a terminal. Use `StandardCharsets.UTF_8` explicitly, inspect **byte hex and Unicode code points**, round-trip files/resources/output, distinguish `Properties.load(InputStream)` (ISO-8859-1) from Java 9+ `PropertyResourceBundle` (UTF-8 by default with documented fallback), and handle invalid bytes with strict decoders/encoders when needed. **Never strip diacritics, batch-replace characters, or change Locale to mask Charset bugs.**
 
-### Tài liệu tham khảo
+### References
 
-- [Java SE 17 — Files](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html) — `readString`, `writeString` và reader/writer.
-- [Java SE 17 — StandardCharsets](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/StandardCharsets.html) — các charset chuẩn.
-- [Java SE 17 — CharsetDecoder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/CharsetDecoder.html) — malformed/unmappable và `CodingErrorAction`.
-- [Java SE 17 — Properties](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Properties.html) — `load(InputStream)` vs `load(Reader)`.
-- [Java SE 17 — PropertyResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/PropertyResourceBundle.html) — UTF-8 mặc định và cách điều khiển encoding.
-- [JEP 400 — UTF-8 by Default](https://openjdk.org/jeps/400) — default charset thay đổi từ Java 18 và ngoại lệ.
-- [Java SE 17 — PrintStream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/PrintStream.html) — output byte và charset.
-- [Unicode Standard Annex #15](https://www.unicode.org/reports/tr15/) — phân biệt Unicode normalization với thay đổi encoding.
+- [Java SE 17 — Files](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html) — `readString`, `writeString`, and reader/writer.
+- [Java SE 17 — StandardCharsets](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/StandardCharsets.html) — standard charsets.
+- [Java SE 17 — CharsetDecoder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/CharsetDecoder.html) — malformed/unmappable and `CodingErrorAction`.
+- [Java SE 17 — Properties](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Properties.html) — `load(InputStream)` vs. `load(Reader)`.
+- [Java SE 17 — PropertyResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/PropertyResourceBundle.html) — default UTF-8 and controlling encoding.
+- [JEP 400 — UTF-8 by Default](https://openjdk.org/jeps/400) — default charset change starting in Java 18 and exceptions.
+- [Java SE 17 — PrintStream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/PrintStream.html) — byte output and charset.
+- [Unicode Standard Annex #15](https://www.unicode.org/reports/tr15/) — distinguishing Unicode normalization from encoding changes.

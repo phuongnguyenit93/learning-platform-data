@@ -1,14 +1,14 @@
-# JUnit trên module path
+# JUnit on the Module Path
 
-Khi một ứng dụng Java sử dụng Java Platform Module System (JPMS), việc chạy unit test bằng JUnit cần quan tâm đến nhiều yếu tố hơn so với cách truyền thống trên classpath: **named module**, `requires`, `exports`, `opens`, class loader và cách JUnit Platform tìm kiếm test engine. Một bài test chạy tốt trên classpath có thể không biên dịch hoặc không được khám phá khi cùng bytecode được chuyển sang module path.
+When a Java application uses the Java Platform Module System (JPMS), running unit tests with JUnit requires attention to more factors than the traditional classpath approach: **named modules**, `requires`, `exports`, `opens`, class loaders, and how the JUnit Platform discovers test engines. A test that runs fine on the classpath may fail to compile or fail to be discovered when the same bytecode is moved onto the module path.
 
-Điểm cốt lõi: **JUnit là một framework sử dụng reflection**, trong khi JPMS thiết lập ranh giới truy cập giữa các module. Để kiểm thử hiệu quả mà vẫn giữ encapsulation của mã production, cần lựa chọn rõ một trong hai chiến lược: **test nằm trong một named module độc lập** hoặc **test được patch vào module đang kiểm thử**.
+The core point: **JUnit is a reflection-based framework**, whereas JPMS enforces access boundaries between modules. To test effectively while preserving production code encapsulation, you need to clearly choose one of two strategies: **tests in an independent named module** or **tests patched into the module under test**.
 
-Bài học này hướng dẫn cấu trúc source, các module JUnit liên quan, ví dụ test JUnit Jupiter, cấu hình Maven/Gradle, chạy JUnit Platform Console và xử lý lỗi thường gặp.
+This lesson covers source layout, relevant JUnit modules, a JUnit Jupiter test example, Maven/Gradle configuration, running the JUnit Platform Console, and handling common errors.
 
-## 1. Vì sao JUnit trên module path khác classpath?
+## 1. Why Is JUnit on the Module Path Different from the Classpath?
 
-Trên classpath thông thường, test source có thể import JUnit API và một class khác mà không có module descriptor:
+On a standard classpath, test sources can import the JUnit API and another class without a module descriptor:
 
 ```java
 import org.junit.jupiter.api.Test;
@@ -22,49 +22,49 @@ class BasicTest {
 }
 ```
 
-Các class trên classpath thuộc unnamed module tương ứng với class loader. Build tool chuẩn bị JUnit dependency, phát hiện bài test và thực thi thông qua JUnit Platform.
+Classes on the classpath belong to the corresponding class loader's unnamed module. The build tool prepares JUnit dependencies, discovers the tests, and executes them via the JUnit Platform.
 
-Với named modules, Java còn phải trả lời các câu hỏi:
+With named modules, Java also has to answer these questions:
 
-1. Module chứa test có **đọc được** module `org.junit.jupiter.api` không?
-2. Module chứa test có đọc được **module sản phẩm** đang được kiểm thử không?
-3. Package API của sản phẩm có được `exports` cho module test không?
-4. Package chứa test class/method có được `opens` cho module thực hiện reflection không?
-5. JUnit Jupiter **TestEngine** đã được phân giải vào module graph chưa?
-6. JUnit Platform launcher có tìm và chọn đúng test classes không?
-7. Những class test nằm trong cùng package với production classes có gây split package khi đặt ở một test module khác không?
+1. Does the module containing the tests **read** the `org.junit.jupiter.api` module?
+2. Does the module containing the tests read the **production module** under test?
+3. Is the production API package `exports`ed to the test module?
+4. Is the package containing test classes/methods `opens`ed to the module performing reflection?
+5. Has the JUnit Jupiter **TestEngine** been resolved into the module graph?
+6. Does the JUnit Platform launcher locate and select the right test classes?
+7. Do test classes placed in the same package as production classes cause a split package when placed in a separate test module?
 
-Những vấn đề này phát sinh từ module boundaries, không phải do assertion của JUnit thay đổi.
+These issues stem from module boundaries, not from any change in JUnit assertions.
 
-## 2. Thành phần JUnit cần phân biệt
+## 2. JUnit Components to Distinguish
 
-JUnit 5 tổ chức runtime thành **JUnit Platform**, **JUnit Jupiter** và **JUnit Vintage**. Trong môi trường JPMS, các artifact tương ứng có thể được nhận diện bằng những module name khác nhau:
+JUnit 5 organizes its runtime into **JUnit Platform**, **JUnit Jupiter**, and **JUnit Vintage**. In a JPMS environment, the corresponding artifacts may be identified by different module names:
 
-| Thành phần | Module name thường gặp | Vai trò |
+| Component | Common Module Name | Role |
 |---|---|---|
 | JUnit Jupiter API | `org.junit.jupiter.api` | `@Test`, lifecycle annotations, assertions |
-| JUnit Jupiter Engine | `org.junit.jupiter.engine` | Khám phá và chạy Jupiter tests |
-| JUnit Platform Commons | `org.junit.platform.commons` | Tiện ích nội bộ cho engine và reflection |
-| JUnit Platform Engine | `org.junit.platform.engine` | Giao diện TestEngine và discovery |
-| JUnit Platform Launcher | `org.junit.platform.launcher` | Điều phối các test engines |
-| JUnit Platform Console | `org.junit.platform.console` | Chạy test qua command line |
-| JUnit Vintage Engine | `org.junit.vintage.engine` | Chạy các JUnit 3/4 tests qua Platform |
+| JUnit Jupiter Engine | `org.junit.jupiter.engine` | Discovers and executes Jupiter tests |
+| JUnit Platform Commons | `org.junit.platform.commons` | Internal utilities for engines and reflection |
+| JUnit Platform Engine | `org.junit.platform.engine` | TestEngine interface and discovery |
+| JUnit Platform Launcher | `org.junit.platform.launcher` | Orchestrates test engines |
+| JUnit Platform Console | `org.junit.platform.console` | Runs tests from the command line |
+| JUnit Vintage Engine | `org.junit.vintage.engine` | Runs JUnit 3/4 tests via the Platform |
 
-Đây là ví dụ theo hệ module JUnit phổ biến; bộ JUnit thực tế phải có các artifact tương thích. Một module name cần được xác nhận từ JAR đang sử dụng:
+These are examples from the common JUnit module layout; your actual JUnit setup must have compatible artifacts. Verify a module name directly from the JAR in use:
 
 ```shell
 jar --describe-module --file lib/junit-jupiter-api.jar
 ```
 
-Đường dẫn file ở đây chỉ minh họa. Đối với một JAR có tên kèm phiên bản, hãy truyền đúng đường dẫn thực tế.
+The file path here is illustrative. For a JAR with a version in its name, pass the actual file path.
 
-**Jupiter API không phải Jupiter Engine.** Code có thể biên dịch được vì API tồn tại nhưng launcher không chạy được test nếu engine chưa có hoặc chưa được phân giải. Ngược lại, có engine trong thư mục `lib` cũng không bảo đảm engine sẽ được đưa vào configuration nếu cách khởi động không làm nó trở thành root hoặc dependency/service provider được chọn.
+**Jupiter API is not Jupiter Engine.** Code can compile because the API is present, yet the launcher cannot run tests if the engine is absent or unresolved. Conversely, having the engine in the `lib` directory does not guarantee the engine enters the configuration if the launch setup does not make it a root or a selected dependency/service provider.
 
-## 3. Hai mô hình kiểm thử module
+## 3. Two Module Testing Models
 
-### 3.1. Test là một named module riêng
+### 3.1. Tests as a Separate Named Module
 
-Ví dụ:
+Example:
 
 ```text
 com.example.math
@@ -75,43 +75,43 @@ com.example.math.tests
       └── requires org.junit.jupiter.api
 ```
 
-Test module khai báo trực tiếp dependency tới module sản phẩm và JUnit API. Test sử dụng package API được export, giống như một ứng dụng khách bình thường.
+The test module directly declares dependencies on the production module and the JUnit API. Tests use exported API packages, just like a normal client application.
 
-Ưu điểm:
+Strengths:
 
-- Kiểm tra được hợp đồng API công khai từ góc nhìn module bên ngoài.
-- Module test có descriptor riêng, dễ mô tả dependency.
-- Không cần thay đổi hoặc patch nội dung module production.
-- Phù hợp với API tests và nhiều integration tests.
+- Verifies the public API contract from an external module's perspective.
+- Test module has its own descriptor, making dependencies explicit.
+- No need to alter or patch production module contents.
+- Well suited for API tests and many integration tests.
 
-Giới hạn:
+Limitations:
 
-- Không import được package nội bộ chưa export.
-- Không truy cập được package-private member của module khác.
-- Test package vẫn cần mở cho JUnit reflection khi cần.
-- Cấu hình module path và discovery phải đầy đủ.
+- Cannot import non-exported internal packages.
+- Cannot access package-private members of another module.
+- Test packages still need to be opened for JUnit reflection when required.
+- Module path and discovery configuration must be complete.
 
-### 3.2. Test được patch vào module production
+### 3.2. Tests Patched into the Production Module
 
-Với `--patch-module`, compiler và runtime coi những test classes nhất định là phần bổ sung của module sản phẩm. Điều này hữu ích nếu unit test cần truy cập package-private code trong cùng package.
+With `--patch-module`, the compiler and runtime treat certain test classes as additions to the production module. This is useful when unit tests need access to package-private code in the same package.
 
-Ưu điểm:
+Strengths:
 
-- Giữ mô hình unit test nội bộ giống cách test classpath truyền thống.
-- Có thể truy cập thành viên package-private trong cùng module/package.
-- Không phải export implementation package chỉ để test.
+- Preserves an internal unit-testing model similar to traditional classpath tests.
+- Can access package-private members in the same module/package.
+- Avoids exporting implementation packages just for testing.
 
-Giới hạn:
+Limitations:
 
-- Cần khai báo quyền đọc JUnit riêng cho bước test bằng `--add-reads`.
-- Reflection có thể cần `--add-opens`.
-- Cần bảo đảm test patch chỉ dùng trong cấu hình test, không bị đóng gói vào production JAR.
+- Needs extra readability to JUnit granted for the test step via `--add-reads`.
+- Reflection may require `--add-opens`.
+- Must ensure test patches are used only in test configurations and never packaged into production JARs.
 
-Hai chiến lược không loại trừ nhau: một dự án có thể patch unit tests và chạy API/integration tests bằng test module riêng.
+The two strategies are not mutually exclusive: a project can patch unit tests and run API/integration tests in a separate test module.
 
-## 4. Ví dụ module sản phẩm
+## 4. Production Module Example
 
-Giả sử có module `com.example.math` với package API đã export:
+Suppose there is a `com.example.math` module with an exported API package:
 
 ```text
 src/main/java/
@@ -147,13 +147,13 @@ public final class Calculator {
 }
 ```
 
-Package API được export nên module khác có thể sử dụng public class `Calculator` nếu có readability tới `com.example.math`.
+Because the API package is exported, other modules can use the public class `Calculator` if they have readability to `com.example.math`.
 
-Để kiểm thử hành vi chỉ qua public contract, hãy dùng test module riêng. Nếu cần kiểm tra một class `com.example.math.internal.MathHelper` không export, hãy cân nhắc patch test vào cùng module, thay vì mở toàn bộ implementation ra bên ngoài.
+To test behavior strictly through the public contract, use a separate test module. If you need to test a non-exported class `com.example.math.internal.MathHelper`, consider patching tests into the same module instead of exposing the entire implementation externally.
 
-## 5. Cách A: named test module độc lập
+## 5. Approach A: Independent Named Test Module
 
-Một cấu trúc source minh họa:
+An illustrative source layout:
 
 ```text
 project/
@@ -166,7 +166,7 @@ project/
         └── com/example/math/tests/CalculatorTest.java
 ```
 
-Descriptor của test module:
+Test module descriptor:
 
 ```java
 module com.example.math.tests {
@@ -177,13 +177,13 @@ module com.example.math.tests {
 }
 ```
 
-Giải thích:
+Explanation:
 
-- `requires com.example.math` để test đọc module sản phẩm.
-- `requires org.junit.jupiter.api` để dùng annotation và Assertions.
-- `opens com.example.math.tests to org.junit.platform.commons` để reflection trong JUnit Platform có thể truy cập những test class/method không public theo nhu cầu.
+- `requires com.example.math` lets tests read the production module.
+- `requires org.junit.jupiter.api` provides annotations and Assertions.
+- `opens com.example.math.tests to org.junit.platform.commons` allows reflection in JUnit Platform to access non-public test classes/methods as needed.
 
-Nếu các extensions hoặc framework khác cần reflection, có thể phải mở package cho module tương ứng. Nên xác định module thực hiện reflection từ stack trace thay vì mở toàn bộ module không cần thiết.
+If extensions or other frameworks need reflection, you may need to open the package to those modules as well. Identify the reflecting module from the stack trace instead of unnecessarily opening the entire module.
 
 Test:
 
@@ -214,70 +214,70 @@ class CalculatorTest {
 }
 ```
 
-JUnit Jupiter cho phép test class và test method không public trong trường hợp thông thường. Nhưng quyền reflection xuyên ranh giới named module vẫn phải phù hợp với `opens` hoặc runtime flags.
+JUnit Jupiter normally allows non-public test classes and test methods. However, reflective access across a named module boundary must still satisfy `opens` or runtime flags.
 
-## 6. Biên dịch module sản phẩm và test module
+## 6. Compiling the Production Module and Test Module
 
-Một chuỗi lệnh minh họa trên Linux/macOS (điều chỉnh đường dẫn và shell trên Windows):
+An illustrative command sequence on Linux/macOS (adjust paths and shell syntax on Windows):
 
-Biên dịch production module:
+Compile the production module:
 
 ```shell
 javac -d out/main     src/main/java/module-info.java     src/main/java/com/example/math/api/Calculator.java
 ```
 
-Đóng gói thành modular JAR:
+Package into a modular JAR:
 
 ```shell
 mkdir -p mods
 jar --create --file mods/com.example.math.jar -C out/main .
 ```
 
-Giả sử `lib` là thư mục chứa các JUnit JAR và các dependency tương thích. Biên dịch test module:
+Assume `lib` contains the JUnit JARs and compatible dependencies. Compile the test module:
 
 ```shell
 javac --module-path "mods:lib"     -d out/test/com.example.math.tests     src/test-modules/com.example.math.tests/module-info.java     src/test-modules/com.example.math.tests/com/example/math/tests/CalculatorTest.java
 ```
 
-Sau khi biên dịch, thư mục `out/test/com.example.math.tests` là exploded named module với `module-info.class` và các test classes. Có thể dùng nó làm một phần tử của module path.
+After compilation, `out/test/com.example.math.tests` is an exploded named module containing `module-info.class` and the test classes. It can be used as a module path entry.
 
-Lưu ý:
+Notes:
 
-- `--module-path` khác `--class-path`. Với module path, hãy dùng thư mục chứa các modular JAR hoặc đường dẫn JAR cụ thể, không giả định cú pháp `lib/*` có ý nghĩa giống wildcard classpath.
-- Trên Windows, phần tử trong danh sách path được phân cách bằng `;`, không phải `:`.
-- Không đưa test module vào production image chỉ vì nó cần cho test.
-- Nếu test module phụ thuộc vào module khác, chúng phải được tìm thấy trong runtime image hoặc trên module path phù hợp.
+- `--module-path` differs from `--class-path`. For module paths, use directories containing modular JARs or explicit JAR paths; do not assume `lib/*` acts like a classpath wildcard.
+- On Windows, entries in a path list are separated by `;`, not `:`.
+- Do not include the test module in a production image just because tests need it.
+- If the test module depends on other modules, they must be found in the runtime image or on the appropriate module path.
 
-## 7. Chạy named test module với JUnit Platform Console
+## 7. Running a Named Test Module with JUnit Platform Console
 
-Một cách chạy trực tiếp bằng JUnit Platform Console (với phiên bản hỗ trợ subcommand `execute`) là:
+One way to run directly with the JUnit Platform Console (on versions supporting the `execute` subcommand) is:
 
 ```shell
 java --module-path "mods:lib:out/test/com.example.math.tests"     --add-modules com.example.math.tests,org.junit.jupiter.engine     --module org.junit.platform.console/org.junit.platform.console.ConsoleLauncher     execute --select-module com.example.math.tests
 ```
 
-Ý nghĩa:
+Explanation:
 
-1. `mods` chứa module sản phẩm.
-2. `lib` chứa JUnit Platform, Jupiter Engine và các dependency tương thích.
-3. `out/test/com.example.math.tests` là exploded test module.
-4. `--add-modules` bảo đảm test module và Jupiter Engine được chọn vào graph.
-5. `--module` khởi động ConsoleLauncher.
-6. `--select-module` yêu cầu JUnit Platform chọn test module đích.
+1. `mods` contains the production module.
+2. `lib` contains JUnit Platform, Jupiter Engine, and compatible dependencies.
+3. `out/test/com.example.math.tests` is the exploded test module.
+4. `--add-modules` ensures the test module and Jupiter Engine are included in the graph.
+5. `--module` launches ConsoleLauncher.
+6. `--select-module` instructs JUnit Platform to select the target test module.
 
-Cú pháp ConsoleLauncher thay đổi theo phiên bản. Kiểm tra trợ giúp của phiên bản đang cài:
+ConsoleLauncher syntax varies across versions. Check help for your installed version:
 
 ```shell
 java --module-path "lib"     -m org.junit.platform.console/org.junit.platform.console.ConsoleLauncher     --help
 ```
 
-Với phiên bản có lệnh con `execute`, có thể xem trợ giúp của chính subcommand đó. Không áp đặt một command-line fragment cho mọi release của JUnit.
+On versions with the `execute` subcommand, you can inspect help for that subcommand specifically. Do not assume one command-line fragment works for every JUnit release.
 
-JUnit Platform tìm TestEngine thông qua service provider mechanism. Nếu Engine JAR ở một vị trí nhưng module chưa được phân giải, launcher có thể không tìm được Jupiter Engine. Vì vậy, khi chạy thủ công trên module path, kiểm tra cả tập root modules lẫn cơ chế service binding.
+JUnit Platform discovers `TestEngine` implementations via the service provider mechanism. If the Engine JAR is present somewhere yet the module is not resolved, the launcher may fail to find Jupiter Engine. Therefore, when running manually on the module path, check both the root module set and service binding.
 
-## 8. Cách B: test trong cùng module bằng --patch-module
+## 8. Approach B: Tests in the Same Module via --patch-module
 
-Giả sử module sản phẩm còn một package implementation:
+Suppose the production module also has an implementation package:
 
 ```text
 src/main/java/
@@ -287,7 +287,7 @@ src/test/java/
 └── com/example/math/internal/MathHelperTest.java
 ```
 
-Class nội bộ:
+Internal class:
 
 ```java
 package com.example.math.internal;
@@ -299,7 +299,7 @@ final class MathHelper {
 }
 ```
 
-Unit test cùng package:
+Unit test in the same package:
 
 ```java
 package com.example.math.internal;
@@ -315,62 +315,62 @@ class MathHelperTest {
 }
 ```
 
-Nếu test được biên dịch thành một module khác, package `com.example.math.internal` không được export, và class `MathHelper` không public, nên test không thể truy cập nó trực tiếp.
+If tests are compiled into another module, package `com.example.math.internal` is not exported and class `MathHelper` is not public, so the test cannot access it directly.
 
-Trong mô hình `--patch-module`, test class được đưa vào cùng named module `com.example.math`. Khi đó, test cùng package có thể sử dụng package-private class/method như trong một compilation unit thông thường.
+Under the `--patch-module` model, the test class is placed into the same named module `com.example.math`. Tests in the same package can then use package-private classes/methods just like in a normal compilation unit.
 
-## 9. Biên dịch test bằng --patch-module và --add-reads
+## 9. Compiling Tests with --patch-module and --add-reads
 
-Giả sử module sản phẩm đã được biên dịch và `mods` chứa modular JAR của nó:
+Assuming the production module is compiled and `mods` holds its modular JAR:
 
 ```shell
 javac --module-path "mods:lib"     --add-modules org.junit.jupiter.api     --patch-module com.example.math=src/test/java     --add-reads com.example.math=org.junit.jupiter.api     -d out/test-patch     src/test/java/com/example/math/internal/MathHelperTest.java
 ```
 
-Các flags:
+Flags:
 
-- `--patch-module`: cho compiler coi test sources là phần bổ sung của module sản phẩm.
-- `--add-modules`: đảm bảo module JUnit API có thể tham gia compilation graph.
-- `--add-reads`: cho `com.example.math` đọc `org.junit.jupiter.api` trong riêng cấu hình biên dịch test.
-- `-d`: thư mục chứa test class file sau khi biên dịch.
+- `--patch-module`: tells the compiler to treat test sources as additions to the production module.
+- `--add-modules`: ensures the JUnit API module participates in the compilation graph.
+- `--add-reads`: allows `com.example.math` to read `org.junit.jupiter.api` solely for this test compilation configuration.
+- `-d`: directory storing the compiled test class files.
 
-Tại sao phải có `--add-reads`? Vì production module descriptor không chứa:
+Why is `--add-reads` required? Because the production module descriptor does not contain:
 
 ```java
 requires org.junit.jupiter.api;
 ```
 
-Và đó là điều bình thường. JUnit là dependency của test, không phải một phần contract của module production. Sửa production descriptor để thêm JUnit chỉ nhằm biên dịch test thường không phải giải pháp phù hợp.
+And that is normal. JUnit is a test dependency, not part of the production module's contract. Editing the production descriptor to add JUnit just to compile tests is usually not the right solution.
 
-Một số build tool tự tạo các flags tương đương khi nhận ra modular test project. Nếu tự chạy javac, phải giữ nhất quán giữa các tham số compiler và runtime.
+Some build tools generate equivalent flags automatically when they detect a modular test project. If invoking javac manually, keep compiler and runtime flags consistent.
 
-## 10. Chạy patch tests với JUnit Platform
+## 10. Running Patch Tests with JUnit Platform
 
-Ở runtime, lớp test đã biên dịch cần được patch vào module sản phẩm. Đồng thời, module sản phẩm phải đọc JUnit API và package chứa test phải cho phép reflection.
+At runtime, compiled test classes need to be patched into the production module. At the same time, the production module must read the JUnit API and the package containing tests must allow reflection.
 
-Lệnh minh họa:
+Illustrative command:
 
 ```shell
 java --module-path "mods:lib"     --patch-module com.example.math=out/test-patch     --add-modules com.example.math,org.junit.jupiter.api,org.junit.jupiter.engine     --add-reads com.example.math=org.junit.jupiter.api     --add-opens com.example.math/com.example.math.internal=org.junit.platform.commons     --module org.junit.platform.console/org.junit.platform.console.ConsoleLauncher     execute --select-package com.example.math.internal
 ```
 
-Giải thích:
+Explanation:
 
-- Test class được patch vào `com.example.math`.
-- `--add-reads` cấp readability test-only tới JUnit API.
-- `--add-opens` mở package test cho thành phần reflection.
-- `--add-modules` thêm các module test runtime cần được phân giải.
-- JUnit Platform Console chọn package test cần chạy.
+- Test classes are patched into `com.example.math`.
+- `--add-reads` grants test-only readability to the JUnit API.
+- `--add-opens` opens the test package to the reflection component.
+- `--add-modules` adds the test runtime modules that must be resolved.
+- JUnit Platform Console selects the test package to run.
 
-Với một số phiên bản ConsoleLauncher hoặc chiến lược test discovery, có thể cần cách lựa chọn test module hoặc test class khác. Tài liệu và flags thực tế phải phù hợp phiên bản JUnit đang dùng.
+With some ConsoleLauncher versions or test discovery strategies, a different way of selecting the test module or test classes may be required. Actual flags and documentation must match your JUnit version.
 
-**Không đưa `--patch-module`, `--add-reads` và `--add-opens` test-only vào lệnh khởi động production**. Những tùy chọn này thuộc test runtime.
+**Do not place test-only `--patch-module`, `--add-reads`, and `--add-opens` flags into production startup commands**. Those options belong strictly to the test runtime.
 
-## 11. Khi nào cần requires, add-reads và add-modules?
+## 11. When Do You Need requires, add-reads, and add-modules?
 
-Ba cơ chế này giải quyết các vấn đề khác nhau.
+These three mechanisms solve different problems.
 
-### requires trong module-info.java
+### requires in module-info.java
 
 ```java
 module com.example.math.tests {
@@ -379,7 +379,7 @@ module com.example.math.tests {
 }
 ```
 
-Đây là dependency cố định của named test module riêng. Nó được compiler và resolver dùng để thiết lập readability.
+This is a static dependency of a separate named test module. It is used by the compiler and resolver to establish readability.
 
 ### --add-reads
 
@@ -387,7 +387,7 @@ module com.example.math.tests {
 --add-reads com.example.math=org.junit.jupiter.api
 ```
 
-Bổ sung một quan hệ đọc cho một lần biên dịch/chạy mà không sửa module descriptor. Thường gặp trong test patch.
+Adds a readability edge for a single compile/run invocation without modifying the module descriptor. Common in patch tests.
 
 ### --add-modules
 
@@ -395,15 +395,15 @@ Bổ sung một quan hệ đọc cho một lần biên dịch/chạy mà không 
 --add-modules org.junit.jupiter.engine
 ```
 
-Bổ sung root module cần được resolution chọn. Nó không tự tạo readability tùy ý giữa mọi module và không export package.
+Adds a root module to be selected during resolution. It does not arbitrarily create readability between modules and does not export packages.
 
-Nếu JUnit API module đã nằm trên module path nhưng test module không đọc nó, thêm `--add-modules` chưa chắc giải quyết được lỗi import. Nếu test module có requires đúng nhưng API module không tìm thấy, cần sửa module path hoặc dependency artifact trước.
+If the JUnit API module is already on the module path yet the test module does not read it, adding `--add-modules` will not necessarily fix import errors. If the test module has the right `requires` yet the API module is not found, fix the module path or dependency artifact first.
 
-## 12. Khi nào cần opens và add-opens?
+## 12. When Do You Need opens and add-opens?
 
-JUnit Jupiter thường chạy test thông qua reflection. Package chứa class test cần cho phép reflection phù hợp với nơi JUnit Platform thực hiện lời gọi.
+JUnit Jupiter typically executes tests via reflection. The package containing test classes must permit reflection to the module where JUnit Platform makes the reflective call.
 
-Với test module riêng:
+For a separate test module:
 
 ```java
 module com.example.math.tests {
@@ -413,26 +413,26 @@ module com.example.math.tests {
 }
 ```
 
-Với patch tests:
+For patch tests:
 
 ```text
 --add-opens com.example.math/com.example.math.internal=org.junit.platform.commons
 ```
 
-Điểm phân biệt:
+Key distinction:
 
-- `exports`: mở quyền truy cập API Java thông thường tới public types.
-- `opens`: cho phép deep reflection trong một package.
-- `--add-exports`: bổ sung quyền truy cập public types cho module cụ thể.
-- `--add-opens`: bổ sung quyền deep reflection trong runtime.
+- `exports`: opens standard Java API access to public types.
+- `opens`: allows deep reflection within a package.
+- `--add-exports`: grants public type access to a specific module.
+- `--add-opens`: grants deep reflection access at runtime.
 
-Một package được export không mặc nhiên cho phép JUnit truy cập private/package-private test methods bằng reflection. Ngược lại, mở package cho reflection không có nghĩa code bên ngoài có thể import mọi kiểu nội bộ như API công khai.
+An exported package does not automatically allow JUnit to access private/package-private test methods via reflection. Conversely, opening a package for reflection does not mean external code can import all internal types as a public API.
 
-Nếu lỗi reflection đến từ thư viện khác — ví dụ Mockito, ORM, JSON serializer hoặc một Jupiter extension — module đích của `opens` có thể khác `org.junit.platform.commons`. Xem stack trace và tên module thực tế để chọn phạm vi chính xác.
+If a reflection error comes from another library — such as Mockito, an ORM, a JSON serializer, or a Jupiter extension — the target module of `opens` may differ from `org.junit.platform.commons`. Inspect the stack trace and actual module name to choose the right scope.
 
-## 13. Maven Surefire với named modules
+## 13. Maven Surefire with Named Modules
 
-Maven Surefire Plugin hỗ trợ chạy test trong dự án JPMS. Ví dụ POM cấu hình JUnit Jupiter ở scope test:
+The Maven Surefire Plugin supports running tests in JPMS projects. Example POM configuring JUnit Jupiter in test scope:
 
 ```xml
 <dependencies>
@@ -458,33 +458,33 @@ Maven Surefire Plugin hỗ trợ chạy test trong dự án JPMS. Ví dụ POM c
 </build>
 ```
 
-Các phiên bản trên là ví dụ có thật, không phải yêu cầu bắt buộc. Hãy chọn JUnit/JDK/Surefire tương thích với toolchain dự án và thống nhất các artifact JUnit trong cùng release train.
+The versions above are real examples, not mandatory requirements. Choose JUnit/JDK/Surefire versions compatible with your project toolchain and align JUnit artifacts within the same release train.
 
-Chạy:
+Run:
 
 ```shell
 mvn test
 ```
 
-Để xem chi tiết command line, classpath/module path và các flags của Surefire:
+To inspect the full command line, classpath/module path, and Surefire flags:
 
 ```shell
 mvn -X test
 ```
 
-Khi test không tìm thấy hoặc bị lỗi module access, xem các thông tin:
+When tests are not discovered or hit module access errors, check:
 
-1. Maven có nhận `module-info.java` của production không?
-2. Test classes được patch vào module production hay chạy trên classpath?
-3. JUnit API và Engine có nằm ở test runtime đúng vị trí không?
-4. Có `--patch-module`, `--add-reads`, `--add-opens` nào được Maven tạo không?
-5. JDK version của Maven và JDK chạy test có trùng nhau không?
+1. Does Maven recognize the production `module-info.java`?
+2. Are test classes patched into the production module or run on the classpath?
+3. Are the JUnit API and Engine in the right positions on the test runtime?
+4. Does Maven generate any `--patch-module`, `--add-reads`, or `--add-opens` flags?
+5. Do Maven's JDK version and the test-execution JDK match?
 
-Không chuyển dependency JUnit sang compile scope chỉ để né lỗi. Thông thường JUnit phải là test dependency.
+Do not move the JUnit dependency to compile scope just to work around errors. JUnit should normally remain a test dependency.
 
-## 14. Gradle và useJUnitPlatform()
+## 14. Gradle and useJUnitPlatform()
 
-Với Gradle Groovy DSL, một cấu hình minh họa:
+In Gradle Groovy DSL, an illustrative configuration:
 
 ```groovy
 plugins {
@@ -509,96 +509,96 @@ tasks.named('test') {
 }
 ```
 
-Các thành phần:
+Components:
 
-- `testImplementation` chứa API và dependency phục vụ biên dịch test.
-- `testRuntimeOnly` bổ sung thành phần runtime được build cần.
-- `modularity.inferModulePath` để Gradle suy luận module path khi nhận diện module descriptor.
-- `useJUnitPlatform()` chạy test qua JUnit Platform.
+- `testImplementation` holds the API and dependencies for compiling tests.
+- `testRuntimeOnly` adds runtime components needed by the build.
+- `modularity.inferModulePath` lets Gradle infer the module path when a module descriptor is detected.
+- `useJUnitPlatform()` executes tests via the JUnit Platform.
 
-Chạy:
+Run:
 
 ```shell
 ./gradlew test
 ```
 
-Trên Windows, dùng `gradlew.bat test` nếu có Gradle Wrapper.
+On Windows, use `gradlew.bat test` if using the Gradle Wrapper.
 
-Không phải mọi phiên bản Gradle hoặc plugin tự động cấu hình cùng một chiến lược module patch. Nếu test source set đã được tổ chức thành một named test module riêng, có thể cần cấu hình module source path, compilation task và test runtime riêng. Hãy kiểm tra lệnh thực tế do Gradle tạo khi có lỗi.
+Not every Gradle version or plugin automatically configures the same module-patching strategy. If your test source set is organized as a separate named test module, you may need dedicated module source path, compilation task, and test runtime configuration. Inspect the actual command generated by Gradle when troubleshooting.
 
-## 15. JUnit 4, Vintage và migration
+## 15. JUnit 4, Vintage, and Migration
 
-Một codebase lâu năm có thể chứa:
+An older codebase may contain both:
 
 ```java
 import org.junit.Test;                  // JUnit 4
 ```
 
-và:
+and:
 
 ```java
 import org.junit.jupiter.api.Test;      // JUnit Jupiter
 ```
 
-Hai annotation thuộc hai hệ test khác nhau. JUnit Platform có thể chạy JUnit 4 tests qua **Vintage Engine** khi dependency tương ứng được cung cấp, nhưng chỉ thêm Jupiter API không biến JUnit 4 tests thành Jupiter tests.
+These two annotations belong to two different test frameworks. The JUnit Platform can run JUnit 4 tests via the **Vintage Engine** when the corresponding dependency is supplied, yet merely adding the Jupiter API does not turn JUnit 4 tests into Jupiter tests.
 
-Khi kiểm kê test trước migration, nên ghi:
+When inventorying tests before migration, record:
 
-- Số lượng test JUnit 4 và Jupiter.
-- Có JUnit Vintage Engine hay runner tùy chỉnh nào không?
-- Có extensions, rules hoặc test framework tích hợp như Spring Test không?
-- Những dependency nào thuộc compile-time và runtime của test.
-- Module nào cần opens cho reflection.
-- Có test suite cần classpath thay vì module path trong giai đoạn chuyển tiếp không?
+- Counts of JUnit 4 and Jupiter tests.
+- Whether the JUnit Vintage Engine or custom runners are used.
+- Whether extensions, rules, or integrated test frameworks like Spring Test are present.
+- Which dependencies belong to test compile-time vs. test runtime.
+- Which modules need opens for reflection.
+- Whether any test suite needs the classpath instead of the module path during transition.
 
-Lộ trình thực tế có thể giữ một nhóm legacy tests trên classpath trong khi test mới được viết theo named modules, nhưng cần cấu hình CI rõ ràng để tránh “test biến mất” khỏi test report.
+A practical roadmap can keep a group of legacy tests on the classpath while new tests are written as named modules, provided CI is clearly configured to avoid "disappearing tests" from test reports.
 
-## 16. Kiểm tra module name của JUnit dependencies
+## 16. Checking Module Names of JUnit Dependencies
 
-Không nên đoán module name chỉ từ tên file hoặc artifact Maven. Kiểm tra từng artifact bằng:
+Do not guess module names solely from filenames or Maven artifact IDs. Inspect each artifact with:
 
 ```shell
 jar --describe-module --file lib/junit-jupiter-api.jar
 jar --describe-module --file lib/junit-jupiter-engine.jar
 ```
 
-Đường dẫn cần thay bằng filename thật. Có thể xem module mà launcher có thể quan sát:
+Replace paths with actual filenames. You can list modules observable by the launcher:
 
 ```shell
 java --module-path "mods:lib" --list-modules
 ```
 
-Tuy nhiên, `--list-modules` không chứng minh tất cả module sẽ được phân giải trong lần chạy test. Để xem quá trình resolution, sử dụng:
+However, `--list-modules` does not prove every module will be resolved during a test run. To inspect resolution, use:
 
 ```shell
 java --show-module-resolution     --module-path "mods:lib:out/test/com.example.math.tests"     --add-modules com.example.math.tests,org.junit.jupiter.engine     -m org.junit.platform.console/org.junit.platform.console.ConsoleLauncher     execute --select-module com.example.math.tests
 ```
 
-Khi engine không được khám phá, có thể kiểm tra cả service provider declarations và module resolution. Test discovery là một giai đoạn riêng sau khi launcher khởi động thành công.
+When an engine is not discovered, check both service provider declarations and module resolution. Test discovery is a separate phase after the launcher starts successfully.
 
-## 17. Lỗi module không đọc JUnit API
+## 17. Error: Module Does Not Read JUnit API
 
-Một lỗi điển hình:
+A typical error:
 
 ```text
 module com.example.math does not read org.junit.jupiter.api
 ```
 
-Nguyên nhân thường là test class được patch vào module production nhưng module production không có readability tới JUnit API.
+The usual cause is that test classes are patched into the production module, yet the production module lacks readability to the JUnit API.
 
-Cách xử lý:
+How to handle:
 
-- Xác định test thực sự đang chạy trong module nào.
-- Nếu test là named module riêng, thêm `requires org.junit.jupiter.api;` vào test module descriptor.
-- Nếu test được patch vào production module, dùng `--add-reads com.example.math=org.junit.jupiter.api` trong cấu hình compile test và runtime khi cần.
-- Bảo đảm artifact JUnit API nằm đúng module path và được phân giải.
-- Không thêm JUnit vào descriptor production nếu nó không phải dependency runtime/contract thật của sản phẩm.
+- Identify which module the test is actually running in.
+- If the test is a separate named module, add `requires org.junit.jupiter.api;` to the test module descriptor.
+- If the test is patched into the production module, use `--add-reads com.example.math=org.junit.jupiter.api` in test compile and runtime configuration as needed.
+- Ensure the JUnit API artifact is on the module path and resolved.
+- Do not add JUnit to the production descriptor if it is not a genuine runtime/contract dependency of the product.
 
-Nếu compiler báo `package org.junit.jupiter.api is not visible`, kiểm tra cả module path và readability. `--add-opens` không sửa được lỗi thiếu requires.
+If the compiler reports `package org.junit.jupiter.api is not visible`, check both the module path and readability. `--add-opens` cannot fix a missing requires.
 
-## 18. InaccessibleObjectException khi JUnit reflection
+## 18. InaccessibleObjectException During JUnit Reflection
 
-Một lỗi runtime có thể có dạng:
+A runtime error might look like:
 
 ```text
 java.lang.reflect.InaccessibleObjectException:
@@ -606,49 +606,49 @@ module com.example.math does not "opens com.example.math.internal"
 to module org.junit.platform.commons
 ```
 
-Tình huống này không liên quan trực tiếp tới việc JUnit API thiếu. Test class có thể đã được tìm thấy, nhưng JUnit không thể dùng reflection để gọi test method.
+This situation is not directly about a missing JUnit API. The test class may have been found, yet JUnit cannot use reflection to invoke the test method.
 
-Cách khắc phục:
+How to fix:
 
-1. Với test module riêng, `opens` test package cho module thực hiện reflection.
-2. Với patch test, thêm `--add-opens` đúng module/package/target ở runtime.
-3. Kiểm tra xem exception đến từ JUnit Platform, Mockito, framework DI hay một extension khác.
-4. Hạn chế mở package cần thiết, tránh dùng `open module` cho toàn bộ production module chỉ vì một test.
+1. For a separate test module, `opens` the test package to the module performing reflection.
+2. For patch tests, add `--add-opens` with the exact module/package/target at runtime.
+3. Check whether the exception comes from JUnit Platform, Mockito, a DI framework, or another extension.
+4. Restrict opens to necessary packages; avoid making the whole production module an `open module` just for one test.
 
-Với test phải truy cập private field của một module JDK, cần cân nhắc thay thiết kế test để dựa vào public API. Không nên mở tràn lan các JDK internals trong pipeline mặc định.
+If tests must access private fields of a JDK module, consider redesigning the test to rely on public APIs. Do not broadly open JDK internals in default pipelines.
 
-## 19. Lỗi No tests found
+## 19. Error: No Tests Found
 
-Khi launcher chạy nhưng không phát hiện test, có thể thấy thông báo:
+When the launcher runs yet discovers no tests, you may see:
 
 ```text
 No tests found
 ```
 
-Nguyên nhân có thể là:
+Possible causes:
 
-- Test class chưa được compile, hoặc được compile vào thư mục không nằm trong patch/module path.
-- Test module chưa được resolution.
-- Jupiter Engine không có ở runtime hoặc không được JUnit Platform phát hiện.
-- Selector chỉ nhầm package/module/class.
-- Test mang annotation JUnit 4 nhưng chỉ có Jupiter Engine.
-- Build tool có include/exclude pattern loại test khỏi discovery.
-- Test suite sử dụng launcher phiên bản không phù hợp với flags được truyền.
+- Test classes were not compiled, or were compiled into a directory outside the patch/module path.
+- The test module was not resolved.
+- Jupiter Engine is missing at runtime or not discovered by JUnit Platform.
+- The selector points to the wrong package/module/class.
+- Tests use JUnit 4 annotations while only Jupiter Engine is present.
+- Build tool include/exclude patterns filter out the tests from discovery.
+- The test suite uses a launcher version incompatible with the passed flags.
 
-Các bước nên thử:
+Steps to try:
 
-1. Kiểm tra `.class` đã được tạo.
-2. Kiểm tra tên module và module path.
-3. Chọn một test class cụ thể thay vì scan toàn bộ runtime.
-4. Kiểm tra JUnit Engine provider.
-5. Bật log của build tool/launcher để xem discovery.
-6. Kiểm tra module `opens` nếu discovery thấy class nhưng không thực thi được method.
+1. Check that `.class` files were generated.
+2. Check module names and the module path.
+3. Select a specific test class instead of scanning the entire runtime.
+4. Check the JUnit Engine provider.
+5. Enable build tool/launcher logs to inspect discovery.
+6. Check module `opens` if discovery sees the class yet cannot invoke methods.
 
-Không nên chỉ thêm mọi JAR vào classpath để “cho chạy” rồi kết luận module path đã được cấu hình đúng. Điều đó thay đổi mô hình runtime đang kiểm thử.
+Do not simply dump every JAR onto the classpath to "make it run" and conclude the module path is configured properly. That changes the runtime model under test.
 
-## 20. Split package giữa test và production
+## 20. Split Packages Between Tests and Production
 
-Một lỗi đặc thù của JPMS xảy ra khi test module riêng chứa cùng package với module sản phẩm:
+A JPMS-specific error occurs when a separate test module contains the same package as the production module:
 
 ```text
 com.example.math
@@ -658,47 +658,47 @@ com.example.math.tests
 └── com.example.math.internal
 ```
 
-Từ góc nhìn module, cùng một tên package tồn tại trong hai named modules. Tùy readability, exports và chiến lược class loader, cấu hình này có thể bị từ chối hoặc gây vấn đề.
+From the module perspective, the same package name exists in two named modules. Depending on readability, exports, and class loader strategy, this configuration may be rejected or cause issues.
 
-Nếu muốn test module độc lập, nên đặt test trong package riêng như:
+If you want an independent test module, place tests in a dedicated package such as:
 
 ```text
 com.example.math.tests
 ```
 
-và chỉ kiểm thử API được module sản phẩm export. Nếu muốn test cùng package để truy cập package-private, dùng `--patch-module` thay vì tạo một named test module khác sở hữu package trùng.
+and test only the API exported by the production module. If you want tests in the same package to access package-private members, use `--patch-module` instead of creating a second named test module owning the same package.
 
-Thay module name không giải quyết package trùng; phải thay tổ chức package hoặc cách định nghĩa module test.
+Changing the module name does not resolve a split package; you must change the package layout or how the test module is defined.
 
-## 21. Resource và test fixtures trên module path
+## 21. Resources and Test Fixtures on the Module Path
 
-Ngoài Java class, test có thể cần:
+Beyond Java classes, tests may need:
 
 - JSON/YAML/XML fixtures.
 - SQL seed files.
-- Properties và logging configuration.
+- Properties and logging configuration.
 - Service provider metadata.
-- Test extensions được phát hiện bằng ServiceLoader.
-- Resource được nạp bằng `Class.getResourceAsStream`.
-- File được tìm qua thread context class loader.
+- Test extensions discovered via ServiceLoader.
+- Resources loaded via `Class.getResourceAsStream`.
+- Files looked up via the thread context class loader.
 
-Khi dùng JPMS, resource lookup có thể chịu ảnh hưởng module encapsulation và class loader. Một resource nằm trên disk chưa có nghĩa nó nằm trong module artifact hoặc module patch được dùng lúc chạy.
+With JPMS, resource lookup can be affected by module encapsulation and class loaders. A resource existing on disk does not mean it is inside the module artifact or module patch used at runtime.
 
-Với test patch, nên đảm bảo `src/test/resources` hoặc output tài nguyên được đưa vào patch path theo cấu hình build. Với test module riêng, resource cần nằm trong test module hoặc được truy cập bằng đường dẫn/classloader phù hợp.
+For patch tests, ensure `src/test/resources` or the resource output is included in the patch path per build configuration. For a separate test module, resources must reside inside the test module or be accessed via the appropriate path/classloader.
 
-Khi một fixture không tìm thấy, đừng sửa `opens` ngay. Hãy kiểm tra:
+When a fixture is not found, do not immediately modify `opens`. Check:
 
-1. Resource có được copy vào build output không?
-2. Resource được đặt trong module nào?
-3. Code dùng `Class.getResourceAsStream`, `Module.getResourceAsStream` hay class loader?
-4. Đường dẫn resource tuyệt đối/tương đối có đúng không?
-5. Resource có bị encapsulation hoặc quyền mở package ảnh hưởng không?
+1. Was the resource copied to the build output?
+2. Which module is the resource placed in?
+3. Does code use `Class.getResourceAsStream`, `Module.getResourceAsStream`, or a class loader?
+4. Is the absolute/relative resource path correct?
+5. Is the resource affected by encapsulation or package opening permissions?
 
-## 22. JUnit và ServiceLoader trên module path
+## 22. JUnit and ServiceLoader on the Module Path
 
-JUnit Platform dùng cơ chế service provider để phát hiện TestEngine. Điều này gợi nhớ JPMS service binding ở ứng dụng.
+JUnit Platform uses the service provider mechanism to discover `TestEngine`s. This mirrors JPMS service binding in applications.
 
-Ví dụ một ứng dụng riêng dùng service:
+Example of a separate application using services:
 
 ```java
 module com.example.app {
@@ -717,25 +717,25 @@ module com.example.codec.json {
 }
 ```
 
-Muốn test sử dụng provider, module provider phải thực sự có mặt trong configuration/layer phù hợp. Chỉ đặt một JAR trong thư mục module path chưa chắc khiến nó trở thành module được phân giải.
+For tests to use a provider, the provider module must actually be present in the appropriate configuration/layer. Simply putting a JAR in a module path directory does not guarantee it becomes a resolved module.
 
-Với JUnit, cũng cần phân biệt:
+For JUnit, also distinguish:
 
-- API annotation/assertion: JUnit Jupiter API.
-- Engine module: cung cấp implementation của TestEngine.
-- Launcher: yêu cầu tìm engine qua service mechanism.
-- Module resolution: quyết định module nào thực sự được chọn.
-- Test discovery: quyết định test class nào được khám phá trong runtime graph.
+- Annotation/assertion API: JUnit Jupiter API.
+- Engine module: supplies the TestEngine implementation.
+- Launcher: requests engine discovery via the service mechanism.
+- Module resolution: determines which modules are actually selected.
+- Test discovery: determines which test classes are discovered in the runtime graph.
 
-Một lần build thành công chỉ xác nhận compilation. Không thể suy ra JUnit Platform đã phát hiện test engine và thực thi toàn bộ test suite.
+A successful build only confirms compilation. You cannot infer that JUnit Platform discovered the test engine and executed the entire test suite.
 
-## 23. API tests và internal unit tests
+## 23. API Tests and Internal Unit Tests
 
-Hai lớp kiểm thử thường nên có mục tiêu khác nhau:
+These two test tiers generally have different goals:
 
-### API/integration tests
+### API/Integration Tests
 
-Test chỉ import những public types trong package được export. Nó đóng vai một consumer module thật:
+Tests import only public types in exported packages. They act like a real consumer module:
 
 ```java
 module com.example.math.tests {
@@ -745,76 +745,76 @@ module com.example.math.tests {
 }
 ```
 
-Kiểu test này phát hiện các vấn đề mà test trong cùng module có thể không thấy, ví dụ quên `exports` một package API hoặc module consumer thiếu `requires`.
+This style catches issues that same-module tests can miss, such as forgetting `exports` on an API package or missing `requires` in a consumer module.
 
-### Implementation unit tests
+### Implementation Unit Tests
 
-Test cần kiểm tra các hành vi package-private ở cùng package. Có thể patch vào production module:
+Tests need to verify package-private behaviors in the same package. They can be patched into the production module:
 
 ```text
 --patch-module com.example.math=out/test-patch
 ```
 
-Kiểu test này thuận tiện cho logic nội bộ nhưng không thay thế hoàn toàn API tests. Vì test được chạy trong cùng module, nó có thể truy cập những kiểu mà consumer module không thể truy cập.
+This style is convenient for internal logic but does not completely replace API tests. Because tests run in the same module, they can access types that consumer modules cannot access.
 
-Khi thiết kế bộ test, nên giữ cả hai góc nhìn tùy độ phức tạp của hệ thống.
+When designing a test suite, keep both perspectives according to system complexity.
 
-## 24. Quy trình migration từ classpath tests
+## 24. Migration Process from Classpath Tests
 
-Một kế hoạch chuyển đổi có thể thực hiện tuần tự:
+A migration plan can proceed step by step:
 
-1. Kiểm kê JUnit versions, runners, engines và extensions đang dùng.
-2. Xác nhận phiên bản JDK mục tiêu và module name của các JUnit artifacts.
-3. Kiểm tra descriptor và những package được export của production modules.
-4. Phân loại test: public API/integration hay internal/package-private unit test.
-5. Tạo named test module cho các bài cần kiểm tra module boundary.
-6. Dùng patch-module cho các bài cần truy cập implementation nội bộ.
-7. Giữ JUnit dependency trong test scope.
-8. Cấu hình readability và opens tối thiểu cần thiết.
-9. Cấu hình test engine và launcher trên đúng module path.
-10. Chạy một bài nhỏ, quan sát test discovery rồi mở rộng sang toàn bộ suite.
-11. So sánh số lượng test được phát hiện với baseline classpath cũ.
-12. Kiểm thử tương tự trên máy local, CI và môi trường release.
+1. Inventory JUnit versions, runners, engines, and extensions currently in use.
+2. Confirm the target JDK version and module names of JUnit artifacts.
+3. Review descriptors and exported packages of production modules.
+4. Classify tests: public API/integration vs. internal/package-private unit tests.
+5. Create a named test module for tests verifying module boundaries.
+6. Use patch-module for tests needing internal implementation access.
+7. Keep JUnit dependencies in test scope.
+8. Configure the minimal required readability and opens.
+9. Configure the test engine and launcher on the right module path.
+10. Run a small test, observe test discovery, then expand to the full suite.
+11. Compare discovered test counts against the old classpath baseline.
+12. Test identically on local machines, CI, and release environments.
 
-Trong giai đoạn chuyển tiếp, có thể một phần test vẫn cần chạy trên classpath. Điều quan trọng là làm rõ **test đang kiểm tra runtime model nào**; không đánh đồng kết quả classpath với kết quả chạy trên module path.
+During transition, some tests may still need to run on the classpath. What matters is making clear **which runtime model each test is verifying**; never equate classpath results with module path results.
 
-## 25. Bảng chẩn đoán nhanh
+## 25. Quick Diagnostic Table
 
-| Triệu chứng | Lớp nguyên nhân cần kiểm tra |
+| Symptom | Cause Category to Check |
 |---|---|
-| `module ... does not read org.junit.jupiter.api` | Thiếu `requires` hoặc `--add-reads` |
+| `module ... does not read org.junit.jupiter.api` | Missing `requires` or `--add-reads` |
 | `package org.junit.jupiter.api is not visible` | JUnit API module path/readability |
-| `module ... does not open package ...` | Thiếu `opens` hoặc `--add-opens` |
-| `InaccessibleObjectException` | Reflection qua ranh giới module bị chặn |
-| `Module ... not found` | Thiếu JAR, sai module name hoặc module path |
-| `No tests found` | Test output, selector, runtime test module hoặc engine |
+| `module ... does not open package ...` | Missing `opens` or `--add-opens` |
+| `InaccessibleObjectException` | Reflection across module boundary blocked |
+| `Module ... not found` | Missing JAR, wrong module name, or module path |
+| `No tests found` | Test output, selector, runtime test module, or engine |
 | `TestEngine not found` | Engine dependency/module resolution/service discovery |
-| `package ... is not visible` | Test module không đọc hoặc package production chưa export |
-| `reads package ... from both ...` | Split package hoặc hai module export cùng package |
-| IDE chạy nhưng CI không chạy | Khác JDK, build tool, test runtime flags hoặc test selector |
+| `package ... is not visible` | Test module lacks read edge or production package not exported |
+| `reads package ... from both ...` | Split package or two modules exporting the same package |
+| Runs in IDE yet fails in CI | Different JDK, build tool, test runtime flags, or test selector |
 
-Cách debug hiệu quả là phân loại lỗi trước: **compilation**, **module resolution**, **access/reflection** hay **test discovery**. Mỗi lớp lỗi có cách sửa khác nhau.
+Effective debugging classifies the error first: **compilation**, **module resolution**, **access/reflection**, or **test discovery**. Each error category has a different fix.
 
-## 26. Checklist dự án JUnit modular
+## 26. Modular JUnit Project Checklist
 
-- [ ] Production `module-info.java` không chứa JUnit dependency không cần thiết.
-- [ ] Test classes được xây dựng theo một chiến lược rõ ràng.
-- [ ] Named test module có `requires` tới module sản phẩm và JUnit API.
-- [ ] Patch tests có `--add-reads` đúng module/target.
-- [ ] Package chứa test được mở đúng phạm vi cho reflection khi cần.
-- [ ] JUnit Jupiter Engine và JUnit Platform Launcher phù hợp đã có ở runtime.
-- [ ] Các module cần thiết đã thực sự được phân giải.
-- [ ] Test module không vô tình tạo split package với production.
-- [ ] Test resources được copy và tìm thấy theo cấu hình module.
-- [ ] Maven Surefire hoặc Gradle `useJUnitPlatform()` được cấu hình đúng.
-- [ ] Số lượng test được phát hiện đúng như dự kiến.
-- [ ] CI dùng JDK, JUnit, module path và test flags tương ứng với local.
-- [ ] Các flag mở rộng quyền truy cập không bị đưa vào production launcher.
+- [ ] Production `module-info.java` does not contain unnecessary JUnit dependencies.
+- [ ] Test classes are built under a clear strategy.
+- [ ] Named test module has `requires` on the production module and JUnit API.
+- [ ] Patch tests have `--add-reads` for the right module/target.
+- [ ] Packages containing tests are opened with minimal scope for reflection when needed.
+- [ ] Compatible JUnit Jupiter Engine and JUnit Platform Launcher are present at runtime.
+- [ ] Required modules are actually resolved.
+- [ ] Test module does not accidentally create a split package with production.
+- [ ] Test resources are copied and found under module configuration.
+- [ ] Maven Surefire or Gradle `useJUnitPlatform()` is properly configured.
+- [ ] Discovered test count matches expectations.
+- [ ] CI uses matching JDK, JUnit, module path, and test flags as local runs.
+- [ ] Broadened access flags are not carried into production launchers.
 
-## Kết luận
+## Conclusion
 
-JUnit trên module path cần phối hợp ba cơ chế: **dependency readability**, **package access cho reflection** và **test discovery qua JUnit Platform**. Named test module riêng phù hợp để kiểm tra API công khai; test patch qua `--patch-module` phù hợp khi cần kiểm tra package-private implementation ở cùng module.
+JUnit on the module path requires coordinating three mechanisms: **dependency readability**, **package access for reflection**, and **test discovery via the JUnit Platform**. A separate named test module suits verifying public APIs; patching tests via `--patch-module` suits verifying package-private implementation within the same module.
 
-`requires` và `--add-reads` giúp module test đọc JUnit API hoặc module sản phẩm; `opens` và `--add-opens` giúp engine/framework truy cập test class bằng reflection; `--add-modules` và cấu hình launcher giúp những module runtime cần thiết được phân giải. Các tùy chọn này không thay thế nhau.
+`requires` and `--add-reads` let the test module read the JUnit API or production module; `opens` and `--add-opens` let the engine/framework access test classes via reflection; `--add-modules` and launcher configuration ensure required runtime modules are resolved. These options do not substitute for one another.
 
-Hãy giữ JUnit trong test scope, chỉ mở đúng package cần thiết, xác minh Jupiter Engine đã được tìm thấy và kiểm thử trên đúng module path mà build/CI thực sự sử dụng. Khi chọn chiến lược test có chủ đích, ứng dụng có thể tận dụng JPMS encapsulation mà vẫn duy trì một bộ JUnit test đáng tin cậy.
+Keep JUnit in test scope, open only the packages actually needed, verify Jupiter Engine discovery, and test on the exact module path used by your build/CI. By choosing a deliberate test strategy, an application can benefit from JPMS encapsulation while maintaining a reliable JUnit test suite.

@@ -1,40 +1,40 @@
-# Lấy kiểu thực tế của đối tượng bằng `Object.getClass()`
+# Getting an Object's Actual Type Using `Object.getClass()`
 
-## 1. Mục tiêu
+## 1. Objectives
 
-Sau bài học, bạn có thể:
+After this lesson, you can:
 
-- Gọi `getClass()` để xác định **lớp thực tế ở thời điểm chạy** của một đối tượng.
-- Phân biệt lớp thực tế với kiểu khai báo của biến tham chiếu, đặc biệt khi dùng kế thừa và interface.
-- Đọc một số thông tin cơ bản từ đối tượng `Class<?>` được trả về và so sánh chính xác các kiểu.
-- Xử lý đúng trường hợp `null`, kiểu nguyên thủy, mảng, generic và các lớp được tạo động.
+- Call `getClass()` to determine the **actual runtime class** of an object.
+- Distinguish the actual class from the declared type of a reference variable, especially when using inheritance and interfaces.
+- Read basic information from the returned `Class<?>` object and compare types accurately.
+- Properly handle `null`, primitive types, arrays, generics, and dynamically generated classes.
 
-Phạm vi của bài là cách lấy **kiểu runtime từ một đối tượng đã có**. Các thao tác phản chiếu sâu như gọi constructor, truy cập field private hay gọi method bằng reflection là các chủ đề riêng.
+The scope of this lesson is how to obtain the **runtime type from an existing object**. Deeper reflection operations such as invoking constructors, accessing private fields, or invoking methods via reflection are separate topics.
 
-## 2. `getClass()` là gì?
+## 2. What is `getClass()`?
 
-Mọi đối tượng Java đều kế thừa phương thức `public final Class<?> getClass()` từ `java.lang.Object`. Khi gọi `obj.getClass()`, JVM trả về đối tượng `java.lang.Class` đại diện cho **lớp thực tế đã tạo ra `obj`**, không đơn thuần là kiểu ghi trước tên biến.
+Every Java object inherits the method `public final Class<?> getClass()` from `java.lang.Object`. When `obj.getClass()` is called, the JVM returns the `java.lang.Class` object representing **the actual class that created `obj`**, not merely the type written before the variable name.
 
-Ví dụ:
+Example:
 
 ```java
-Object value = "Xin chào";
+Object value = "Hello";
 Class<?> actualType = value.getClass();
 
 System.out.println(actualType == String.class); // true
 ```
 
-- Kiểu khai báo của biến `value` là `Object`.
-- Đối tượng mà `value` trỏ tới là một `String`.
-- Kết quả `getClass()` là đối tượng `Class` của `java.lang.String`.
+- The declared type of the variable `value` is `Object`.
+- The object that `value` points to is a `String`.
+- The result of `getClass()` is the `Class` object for `java.lang.String`.
 
-`Class<?>` không phải là chính đối tượng `value`, mà là đối tượng mô tả lớp của nó. Có thể dùng kết quả để hỏi tên lớp, lớp cha, interface, annotation và nhiều metadata khác. Phương thức `getClass()` là `final`, nên lớp con không thể override để giả mạo kết quả.
+`Class<?>` is not the `value` object itself, but the object describing its class. You can use the result to query the class name, superclass, interfaces, annotations, and much other metadata. The `getClass()` method is `final`, so subclasses cannot override it to spoof the result.
 
-**Quy tắc cốt lõi:** với biến tham chiếu không `null`, `x.getClass()` mô tả lớp của **đối tượng hiện được tham chiếu**, bất kể biến `x` được khai báo rộng đến đâu.
+**Core rule:** for a non-`null` reference variable, `x.getClass()` describes the class of **the object currently referenced**, regardless of how broadly the variable `x` is declared.
 
-## 3. Ví dụ Java 17+ có thể biên dịch và chạy
+## 3. Compilable and runnable Java 17+ example
 
-Tạo tệp `GetClassDemo.java`:
+Create the file `GetClassDemo.java`:
 
 ```java
 import java.util.ArrayList;
@@ -64,14 +64,14 @@ public class GetClassDemo {
 }
 ```
 
-Biên dịch và chạy trong thư mục chứa tệp:
+Compile and run in the directory containing the file:
 
 ```bash
 javac GetClassDemo.java
 java GetClassDemo
 ```
 
-Kết quả chuẩn:
+Expected output:
 
 ```text
 GetClassDemo$Dog
@@ -83,27 +83,27 @@ java.util.ArrayList
 true
 ```
 
-Giải thích:
+Explanation:
 
-1. `Animal pet = new Dog()`: kiểu khai báo của `pet` là `Animal` nhưng đối tượng được tạo bằng `new Dog()`.
-2. `pet.getClass()` trả về `Class` đại diện cho `Dog`, do đó so sánh với `Animal.class` cho `false` và với `Dog.class` cho `true`.
-3. `getSuperclass()` cho biết `Class` của lớp cha trực tiếp, vì vậy `Dog` có superclass là `Animal`.
-4. `getName()` in `GetClassDemo$Dog` vì `Dog` là lớp thành viên tĩnh nằm trong `GetClassDemo`; ký tự `$` thuộc tên nhị phân của lớp lồng nhau. `getSimpleName()` chỉ in `Dog`.
-5. `names` được khai báo là `List<String>` nhưng được tạo bởi `new ArrayList<>()`; lớp runtime của nó là `java.util.ArrayList`.
+1. `Animal pet = new Dog()`: the declared type of `pet` is `Animal`, but the object is created with `new Dog()`.
+2. `pet.getClass()` returns the `Class` representing `Dog`, so comparing with `Animal.class` gives `false` and comparing with `Dog.class` gives `true`.
+3. `getSuperclass()` gives the `Class` of the direct superclass, so `Dog` has `Animal` as its superclass.
+4. `getName()` prints `GetClassDemo$Dog` because `Dog` is a static member class nested inside `GetClassDemo`; the `$` character belongs to the binary name of a nested class. `getSimpleName()` only prints `Dog`.
+5. `names` is declared as `List<String>` but created by `new ArrayList<>()`; its runtime class is `java.util.ArrayList`.
 
-Đoạn chương trình không phụ thuộc Spring hay thư viện bên ngoài; sử dụng JDK là đủ.
+This program does not depend on Spring or external libraries; using the JDK is sufficient.
 
-## 4. Kiểu khai báo và lớp runtime khác nhau như thế nào?
+## 4. How do declared type and runtime class differ?
 
-Xét hai khái niệm:
+Consider two concepts:
 
-| Khái niệm | Câu hỏi trả lời | Ví dụ |
+| Concept | Question answered | Example |
 | --- | --- | --- |
-| Kiểu khai báo (compile-time type) | Trình biên dịch cho phép gọi những thành viên nào qua biến này? | `Animal` của biến `pet` |
-| Lớp thực tế (runtime class) | Đối tượng cụ thể được JVM tạo từ lớp nào? | `Dog` do `new Dog()` |
-| Đối tượng `Class` | Metadata đại diện cho lớp runtime đó | `pet.getClass()` là `Dog.class` |
+| Declared type (compile-time type) | Which members does the compiler allow calling through this variable? | `Animal` of variable `pet` |
+| Actual class (runtime class) | Which class did the JVM create the concrete object from? | `Dog` from `new Dog()` |
+| `Class` object | Metadata representing that runtime class | `pet.getClass()` is `Dog.class` |
 
-Một biến được gán lại có thể trỏ tới đối tượng thuộc lớp khác mà vẫn phù hợp với kiểu khai báo:
+A reassigned variable can point to an object of a different class while still remaining compatible with the declared type:
 
 ```java
 Object item = "Java";
@@ -113,44 +113,44 @@ item = Integer.valueOf(42);
 System.out.println(item.getClass() == Integer.class); // true
 ```
 
-Hai biểu thức `item.getClass()` lần lượt trả về hai `Class` khác nhau vì đối tượng được tham chiếu đã thay đổi.
+The two `item.getClass()` expressions return two different `Class` objects in turn because the referenced object has changed.
 
-Điều này đặc biệt hữu ích khi nhận giá trị dưới kiểu cha như `Object`, một interface như `List`, hay một lớp cơ sở. Tuy nhiên, **không nên ép thiết kế hướng đối tượng thành chuỗi kiểm tra kiểu** nếu có thể dùng đa hình hoặc interface để thực hiện hành vi.
+This is especially useful when receiving a value under a parent type like `Object`, an interface like `List`, or a base class. However, **you should not force object-oriented design into a chain of type checks** if polymorphism or interfaces can be used to implement the behavior.
 
-## 5. Làm việc với `Class<?>` được trả về
+## 5. Working with the returned `Class<?>`
 
-Các phương thức thông dụng:
+Commonly used methods:
 
-| Biểu thức | Ý nghĩa | Ví dụ với đối tượng `new ArrayList<>()` |
+| Expression | Meaning | Example with an `new ArrayList<>()` object |
 | --- | --- | --- |
-| `obj.getClass()` | Lấy đối tượng `Class` của lớp runtime | `ArrayList.class` |
-| `obj.getClass().getName()` | Tên nhị phân, thường có package | `java.util.ArrayList` |
-| `obj.getClass().getSimpleName()` | Tên ngắn của lớp | `ArrayList` |
-| `obj.getClass().getCanonicalName()` | Tên chuẩn nếu kiểu có tên chuẩn | `java.util.ArrayList` |
-| `obj.getClass().getSuperclass()` | `Class` của lớp cha trực tiếp, nếu có | `AbstractList.class` |
-| `obj.getClass().getInterfaces()` | Danh sách interface được lớp khai báo triển khai trực tiếp | Phụ thuộc khai báo lớp |
+| `obj.getClass()` | Gets the `Class` object of the runtime class | `ArrayList.class` |
+| `obj.getClass().getName()` | Binary name, usually with package | `java.util.ArrayList` |
+| `obj.getClass().getSimpleName()` | Short name of the class | `ArrayList` |
+| `obj.getClass().getCanonicalName()` | Canonical name if the type has one | `java.util.ArrayList` |
+| `obj.getClass().getSuperclass()` | `Class` of the direct superclass, if any | `AbstractList.class` |
+| `obj.getClass().getInterfaces()` | List of interfaces declared as directly implemented by the class | Depends on the class declaration |
 
-Lưu ý về tên: `getSimpleName()` có thể trả chuỗi rỗng cho lớp vô danh; `getCanonicalName()` có thể trả `null` cho lớp vô danh hoặc lớp cục bộ. Không giả định các phương thức tên luôn cho kết quả có thể dùng làm định danh duy nhất. Tên của lớp được tạo động, chẳng hạn proxy, không phải API ổn định để ghi cứng.
+Note on names: `getSimpleName()` can return an empty string for an anonymous class; `getCanonicalName()` can return `null` for an anonymous or local class. Do not assume name methods always yield results usable as unique identifiers. Names of dynamically generated classes, such as proxies, are not stable APIs to hardcode.
 
-Khi chưa cần ràng buộc kiểu cụ thể, khai báo biến như sau:
+When you do not yet need to constrain a specific type, declare the variable as follows:
 
 ```java
 Class<?> type = someObject.getClass();
 ```
 
-Dấu `?` nghĩa là chưa biết chính xác kiểu được mô tả, giúp tránh ép kiểu `Class` không an toàn. Lớp runtime không phụ thuộc vào việc biến tham chiếu được khai báo với generic nào.
+The `?` mark means the exact described type is unknown, helping avoid unsafe `Class` casts. The runtime class does not depend on which generic parameters the reference variable was declared with.
 
-## 6. So sánh đúng lớp hay chấp nhận cả lớp con?
+## 6. Comparing exact class or accepting subclasses too?
 
-Có ba phép kiểm tra dễ bị nhầm:
+There are three checks that are easy to confuse:
 
-| Cách kiểm tra | Ý nghĩa |
+| Check | Meaning |
 | --- | --- |
-| `obj.getClass() == Dog.class` | Đúng **chính xác** lớp runtime là `Dog` |
-| `obj instanceof Animal` | Đối tượng tương thích với `Animal`, kể cả lớp con |
-| `Animal.class.isAssignableFrom(obj.getClass())` | Lớp runtime có thể gán cho biến kiểu `Animal` |
+| `obj.getClass() == Dog.class` | Runtime class is **exactly** `Dog` |
+| `obj instanceof Animal` | Object is compatible with `Animal`, including subclasses |
+| `Animal.class.isAssignableFrom(obj.getClass())` | Runtime class can be assigned to a variable of type `Animal` |
 
-Ví dụ minh họa bên trong một phương thức có biến `pet` được khai báo `Animal pet = new Dog();`:
+Illustrative example inside a method with a `pet` variable declared as `Animal pet = new Dog();`:
 
 ```java
 System.out.println(pet.getClass() == Animal.class);                 // false
@@ -158,38 +158,38 @@ System.out.println(pet instanceof Animal);                         // true
 System.out.println(Animal.class.isAssignableFrom(pet.getClass())); // true
 ```
 
-Ở đây `Dog` **không phải chính xác** `Animal` nhưng **là một kiểu con** của `Animal`. Nếu nghiệp vụ cần hỗ trợ tất cả lớp con hoặc đối tượng thực thi interface, `instanceof` hoặc `Class.isInstance(...)` thường diễn đạt đúng ý hơn phép so sánh `getClass() == ...`.
+Here `Dog` is **not exactly** `Animal` but **is a subtype** of `Animal`. If the business requirement needs to support all subclasses or objects implementing an interface, `instanceof` or `Class.isInstance(...)` usually expresses the intent better than `getClass() == ...`.
 
-Trong cùng ngữ cảnh nạp lớp, có thể so sánh các đối tượng `Class` bằng `==` để kiểm tra danh tính lớp. Đừng dùng riêng `getName().equals(...)` làm bằng chứng hai lớp là một: hai class loader khác nhau có thể nạp các lớp có cùng tên nhị phân nhưng không cùng danh tính runtime.
+Within the same class-loading context, `Class` objects can be compared with `==` to check class identity. Do not use `getName().equals(...)` alone as proof that two classes are the same: two different class loaders can load classes with the same binary name that do not share the same runtime identity.
 
-## 7. Các trường hợp cần lưu ý
+## 7. Cases to watch out for
 
-### 7.1. Tham chiếu `null`
+### 7.1. `null` references
 
-`getClass()` là phương thức của **đối tượng**. Khi biến bằng `null` thì không có đối tượng để lấy lớp:
+`getClass()` is an **object** method. When a variable is `null`, there is no object from which to get a class:
 
 ```java
 Object value = null;
-// value.getClass(); // Ném NullPointerException tại runtime.
+// value.getClass(); // Throws NullPointerException at runtime.
 
 if (value != null) {
     System.out.println(value.getClass().getName());
 } else {
-    System.out.println("Không có đối tượng");
+    System.out.println("No object");
 }
 ```
 
-Đoạn trên là một **mảnh code đặt trong phương thức**, và nhánh `else` in `Không có đối tượng`. Đừng gọi `value.getClass()` trước khi kiểm tra `null` nếu đầu vào có thể vắng mặt. Dùng `instanceof` với `null` sẽ cho `false` thay vì ném `NullPointerException`.
+The snippet above is a **code fragment placed inside a method**, and the `else` branch prints `No object`. Do not call `value.getClass()` before checking `null` if the input can be absent. Using `instanceof` with `null` evaluates to `false` instead of throwing `NullPointerException`.
 
-### 7.2. Kiểu nguyên thủy, boxing và mảng
+### 7.2. Primitive types, boxing, and arrays
 
-Các giá trị nguyên thủy như `int`, `boolean`, `double` không phải đối tượng nên không gọi được `getClass()` trực tiếp. Có thể dùng literal kiểu (`int.class`) hoặc boxing thành đối tượng:
+Primitive values such as `int`, `boolean`, `double` are not objects, so `getClass()` cannot be called on them directly. You can use a type literal (`int.class`) or box into an object:
 
 ```java
 int count = 3;
-// count.getClass(); // Lỗi biên dịch: int không phải reference type.
+// count.getClass(); // Compile error: int is not a reference type.
 
-Object boxed = count; // Autoboxing sang Integer.
+Object boxed = count; // Autoboxing to Integer.
 System.out.println(boxed.getClass() == Integer.class); // true
 System.out.println(int.class.getName());                // int
 
@@ -198,11 +198,11 @@ System.out.println(numbers.getClass().isArray());                    // true
 System.out.println(numbers.getClass().getComponentType() == int.class); // true
 ```
 
-Mảng trong Java **là đối tượng**, kể cả mảng phần tử nguyên thủy. `numbers.getClass()` biểu diễn kiểu mảng `int[]`; `getComponentType()` trả về `int.class`. Đối với mảng, `getName()` sử dụng tên nhị phân đặc biệt, chẳng hạn `[I` cho `int[]`; khi cần trình bày dễ đọc, cân nhắc `getTypeName()`.
+Arrays in Java **are objects**, including arrays of primitive elements. `numbers.getClass()` represents the array type `int[]`; `getComponentType()` returns `int.class`. For arrays, `getName()` uses a special binary name, such as `[I` for `int[]`; when readable output is needed, consider `getTypeName()`.
 
-### 7.3. Generic và type erasure
+### 7.3. Generics and type erasure
 
-`getClass()` mô tả lớp runtime, **không tái tạo type argument** của từng biến generic:
+`getClass()` describes the runtime class; it **does not reconstruct the type arguments** of individual generic variables:
 
 ```java
 List<String> words = new ArrayList<>();
@@ -211,24 +211,24 @@ List<Integer> counts = new ArrayList<>();
 System.out.println(words.getClass() == counts.getClass()); // true
 ```
 
-Cả hai đối tượng là `ArrayList`. Không thể dùng `words.getClass()` để kết luận danh sách mang `String` hay `Integer`. Java có thể lưu một số thông tin generic ở **khai báo** (ví dụ signature của field hoặc superclass) để reflection đọc bằng các API riêng, nhưng đó không phải thông tin về type argument của hai đối tượng `ArrayList` này.
+Both objects are `ArrayList`. You cannot use `words.getClass()` to conclude whether the list holds `String` or `Integer`. Java can store certain generic information on **declarations** (for example, field or superclass signatures) for reflection to read with separate APIs, but that is not information about the type arguments of these two `ArrayList` objects.
 
-### 7.4. Proxy và các lớp được tạo động
+### 7.4. Proxies and dynamically generated classes
 
-Trong framework hoặc môi trường có proxy, `getClass()` có thể trả về **lớp proxy được tạo tại runtime** thay vì lớp nghiệp vụ mà bạn mong đợi. Đừng so sánh cứng tên lớp được tạo động hoặc cho rằng `getClass()` luôn trùng với kiểu interface của đối tượng. Nếu mục tiêu là kiểm tra đối tượng đáp ứng hợp đồng nào, dùng `instanceof` hoặc `Class.isInstance(...)` sẽ phù hợp hơn.
+In frameworks or environments with proxies, `getClass()` may return a **proxy class generated at runtime** instead of the business class you expected. Do not hardcode comparisons against dynamically generated class names or assume `getClass()` always matches the object's interface type. If the goal is to check which contract an object satisfies, using `instanceof` or `Class.isInstance(...)` is more appropriate.
 
-## 8. Dùng khi nào trong thực tế?
+## 8. When to use it in practice?
 
-Các tình huống hợp lý gồm ghi nhận loại đối tượng phục vụ chẩn đoán, phân loại chính xác các loại giá trị đã biết, truy xuất metadata phục vụ reflection hoặc kiểm tra nguyên nhân vì sao một biến kiểu interface đang chứa một implementation cụ thể.
+Reasonable scenarios include logging the object type for diagnostics, classifying exact known value types, retrieving metadata for reflection, or inspecting why an interface-typed variable holds a particular implementation.
 
-Ví dụ đoạn code sau nằm **bên trong một phương thức**:
+Example snippet located **inside a method**:
 
 ```java
 Object payload = "hello";
 Class<?> type = payload.getClass();
 
 if (type == String.class) {
-    System.out.println("Đúng lớp String");
+    System.out.println("Exact String class");
 }
 System.out.println("Runtime type: " + type.getName());
 ```
@@ -236,27 +236,27 @@ System.out.println("Runtime type: " + type.getName());
 Output:
 
 ```text
-Đúng lớp String
+Exact String class
 Runtime type: java.lang.String
 ```
 
-Trong logic nghiệp vụ thông thường, ưu tiên đa hình, interface hoặc pattern matching `instanceof` thay vì dùng `getClass()` và downcast liên tục. Sử dụng phép so sánh `==` với `Class` khi yêu cầu thật sự là **khớp đúng một implementation**.
+In regular business logic, prefer polymorphism, interfaces, or pattern matching `instanceof` rather than repeatedly using `getClass()` and downcasting. Use `==` comparison with `Class` when the requirement genuinely is **matching one exact implementation**.
 
-## 9. Lỗi thường gặp và cách tránh
+## 9. Common mistakes and how to avoid them
 
-1. **Nhầm kiểu khai báo với lớp runtime:** `Animal pet = new Dog()` không làm `pet.getClass()` trở thành `Animal.class`.
-2. **Gọi trên `null`:** kiểm tra tham chiếu trước khi gọi, nếu `null` là trường hợp hợp lệ.
-3. **Dùng so sánh chính xác trong bài toán cần đa hình:** `getClass() == Base.class` loại bỏ tất cả subclass; cân nhắc `instanceof`.
-4. **Cho rằng runtime class chứa type argument generic:** `new ArrayList<String>()` và `new ArrayList<Integer>()` có cùng lớp runtime.
-5. **Gọi `getClass()` trên primitive:** dùng `int.class` hoặc boxing khi thật sự cần `Class` của wrapper.
-6. **Dựa vào tên class để quyết định danh tính:** tên có thể chứa `$`, ký hiệu mảng hoặc tên lớp được framework sinh ra; danh tính lớp còn phụ thuộc class loader.
-7. **Lấy tên hiển thị làm khóa dữ liệu bền vững:** `getSimpleName()` không đủ duy nhất và có thể rỗng với lớp vô danh.
+1. **Confusing declared type with runtime class:** `Animal pet = new Dog()` does not make `pet.getClass()` become `Animal.class`.
+2. **Calling on `null`:** check the reference before calling if `null` is a valid case.
+3. **Using exact comparison in problems needing polymorphism:** `getClass() == Base.class` excludes all subclasses; consider `instanceof`.
+4. **Assuming runtime class contains generic type arguments:** `new ArrayList<String>()` and `new ArrayList<Integer>()` have the same runtime class.
+5. **Calling `getClass()` on primitives:** use `int.class`, or boxing when you genuinely need the wrapper's `Class`.
+6. **Relying on class names to determine identity:** names may contain `$`, array notation, or framework-generated class names; class identity also depends on the class loader.
+7. **Using the display name as a persistent data key:** `getSimpleName()` is not sufficiently unique and can be empty for anonymous classes.
 
-## 10. Tự kiểm tra
+## 10. Self-check
 
-- Với `Number number = Integer.valueOf(7);`, `number.getClass() == Number.class` là `false`; `number.getClass() == Integer.class` là `true`.
-- Với `Object x = new String[2];`, `x.getClass().isArray()` là `true` và `x.getClass().getComponentType() == String.class` là `true`.
-- Với `Object x = null;`, biểu thức `x.getClass()` ném `NullPointerException`; không có “lớp của null”.
-- Với hai biến `List<String>` và `List<Integer>` đều trỏ tới `new ArrayList<>()`, `getClass()` trả cùng đối tượng `Class` khi chúng được nạp từ cùng lớp runtime.
+- With `Number number = Integer.valueOf(7);`, `number.getClass() == Number.class` is `false`; `number.getClass() == Integer.class` is `true`.
+- With `Object x = new String[2];`, `x.getClass().isArray()` is `true` and `x.getClass().getComponentType() == String.class` is `true`.
+- With `Object x = null;`, the expression `x.getClass()` throws `NullPointerException`; there is no “class of null”.
+- With two variables `List<String>` and `List<Integer>` both pointing to `new ArrayList<>()`, `getClass()` returns the same `Class` object when they are loaded from the same runtime class.
 
-**Điểm cần nhớ:** `getClass()` trả về `Class` của **đối tượng thực sự đang tồn tại**, còn kiểu khai báo của biến quyết định khả năng kiểm tra kiểu lúc biên dịch. Hãy chọn so sánh chính xác `Class` hay kiểm tra quan hệ kiểu tùy yêu cầu.
+**Key takeaway:** `getClass()` returns the `Class` of **the object that actually exists**, while the variable's declared type governs compile-time type checking. Choose exact `Class` comparison or type-relationship checking depending on the requirement.

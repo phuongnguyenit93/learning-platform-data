@@ -1,45 +1,45 @@
-# Kiểm thử split giữ phần rỗng và splitWithDelimiters trong Java
+# Testing Split Keeping Empty Elements and splitWithDelimiters in Java
 
-## 1. Bài toán và mục tiêu kiểm thử
+## 1. Problem and Testing Objective
 
-Trong Java, `String.split(regex)` và `String.split(regex, limit)` dùng **biểu thức chính quy** để phân tách chuỗi. Kết quả là `String[]` gồm các phần văn bản nằm giữa những lần regex khớp. Một nguồn lỗi phổ biến là tưởng rằng kết quả luôn giữ mọi trường rỗng hoặc mọi dấu phân cách.
+In Java, `String.split(regex)` and `String.split(regex, limit)` use a **regular expression** to split a string. The result is a `String[]` containing the text segments between regex matches. A common source of bugs is assuming the result always preserves every empty field or every delimiter.
 
-Ví dụ dữ liệu giống CSV đơn giản:
+For example, simple CSV-like data:
 
 ```text
 name,age,city,
 ```
 
-Dấu phẩy cuối có thể biểu thị một trường cuối **rỗng**. Nếu viết:
+The trailing comma may represent an **empty** final field. If you write:
 
 ```java
 String[] fields = "name,age,city,".split(",");
 ```
 
-thì mặc định `split` **bỏ phần tử rỗng ở cuối**, khiến kết quả chỉ còn `["name", "age", "city"]`. Nếu cần xác nhận chính xác số trường, phải chọn `limit` phù hợp.
+then by default `split` **drops trailing empty elements**, leaving only `["name", "age", "city"]`. To assert the exact field count, you must choose an appropriate `limit`.
 
-Từ **Java 21**, Java còn cung cấp `String.splitWithDelimiters(regex, limit)` và `Pattern.splitWithDelimiters(input, limit)` để giữ **cả chuỗi khớp với delimiter** xen giữa các trường. Đây là một API khác với `split`: có ích khi cần phân tích, kiểm thử hoặc tái dựng dữ liệu có dấu phân cách. **Java 17 không có `splitWithDelimiters`**; các ví dụ sử dụng API này yêu cầu JDK 21 trở lên.
+Starting in **Java 21**, Java also provides `String.splitWithDelimiters(regex, limit)` and `Pattern.splitWithDelimiters(input, limit)` to keep **the delimiter matches themselves** interleaved between fields. This is a different API from `split`: useful when parsing, testing, or reconstructing delimited data. **Java 17 does not have `splitWithDelimiters`**; examples using this API require JDK 21 or later.
 
-Sau bài này, bạn sẽ biết kiểm thử: các phần rỗng **ở đầu, giữa và cuối**; các giá trị `limit` bằng 0, âm và dương; delimiter lặp; ký tự đặc biệt của regex; delimiter khớp độ dài 0; và sự khác nhau giữa `split` với `splitWithDelimiters`.
+After this lesson, you will know how to test: **leading, middle, and trailing** empty parts; zero, negative, and positive `limit` values; repeated delimiters; regex metacharacters; zero-length delimiter matches; and the difference between `split` and `splitWithDelimiters`.
 
-## 2. Cơ chế split(regex, limit)
+## 2. Mechanics of split(regex, limit)
 
-Hai overload của `String`:
+Two overloads on `String`:
 
 ```java
 String[] split(String regex)
 String[] split(String regex, int limit)
 ```
 
-`split(regex)` tương đương `split(regex, 0)`. Giá trị `limit` quyết định **số lần áp dụng delimiter và việc giữ các chuỗi rỗng cuối mảng**.
+`split(regex)` is equivalent to `split(regex, 0)`. The `limit` value controls **how many times the delimiter is applied and whether trailing empty strings are kept**.
 
-| `limit` | Số lần phân tách | Phần tử rỗng ở cuối |
+| `limit` | Number of splits | Trailing empty elements |
 | --- | --- | --- |
-| `0` (mặc định) | Áp dụng regex nhiều lần nhất có thể | **Bỏ** những phần tử `""` liên tiếp ở cuối |
-| Số âm, ví dụ `-1` | Áp dụng regex nhiều lần nhất có thể | **Giữ** các phần tử `""` ở cuối |
-| Số dương `n` | Áp dụng regex tối đa `n - 1` lần, tối đa `n` phần tử | Giữ phần cuối còn lại, kể cả `""` khi có |
+| `0` (default) | Applies the regex as many times as possible | **Discards** consecutive trailing `""` elements |
+| Negative, e.g. `-1` | Applies the regex as many times as possible | **Keeps** trailing `""` elements |
+| Positive `n` | Applies the regex at most `n - 1` times, at most `n` elements | Keeps the remaining tail, including `""` if present |
 
-Đối số `limit` **không** phải số ký tự và **không** phải số dấu phân cách xuất hiện trong chuỗi. `limit = 2` nghĩa là chỉ chia tại tối đa **một** lần khớp delimiter; phần còn lại trở thành phần tử cuối.
+The `limit` argument is **not** a character count and **not** the number of delimiters in the string. `limit = 2` means splitting at most at **one** delimiter match; the remainder becomes the final element.
 
 ```java
 String text = "a,b,,";
@@ -49,17 +49,17 @@ System.out.println(java.util.Arrays.toString(text.split(",", -1)));  // [a, b, ,
 System.out.println(java.util.Arrays.toString(text.split(",", 2)));   // [a, b,,]
 ```
 
-`Arrays.toString` không đặt dấu nháy quanh từng giá trị, vì vậy các chuỗi rỗng nhìn dễ nhầm. Khi viết test, hãy dùng `Arrays.equals` với mảng kỳ vọng hoặc hàm hiển thị có dấu nháy như ở phần chương trình đầy đủ.
+`Arrays.toString` does not put quotes around each value, so empty strings are easy to misread. When writing tests, use `Arrays.equals` with an expected array or a helper that prints quotes as shown in the full program section.
 
-### Phân biệt ba loại trường rỗng
+### Distinguishing Three Kinds of Empty Fields
 
-- **Ở đầu:** `",a"` có một delimiter khớp độ dài dương ngay tại vị trí 0 → trường rỗng `""` ở đầu **được giữ**, kể cả `limit = 0`.
-- **Ở giữa:** `"a,,b"` có hai dấu phẩy kề nhau → trường rỗng `""` nằm giữa hai delimiter **được giữ**.
-- **Ở cuối:** `"a,b,"` có dấu phẩy cuối → `limit = 0` bỏ phần tử rỗng cuối; `limit = -1` giữ.
+- **Leading:** `",a"` has a positive-length delimiter match right at index 0 → the leading empty field `""` **is kept**, even with `limit = 0`.
+- **Middle:** `"a,,b"` has two adjacent commas → the empty field `""` between the two delimiters **is kept**.
+- **Trailing:** `"a,b,"` has a trailing comma → `limit = 0` drops the trailing empty element; `limit = -1` keeps it.
 
-Bảng ví dụ cụ thể:
+Concrete example table:
 
-| Dữ liệu | Lệnh | Kết quả chính xác |
+| Input | Call | Exact Result |
 | --- | --- | --- |
 | `"a,b,,"` | `split(",")` | `["a", "b"]` |
 | `"a,b,,"` | `split(",", 0)` | `["a", "b"]` |
@@ -70,19 +70,19 @@ Bảng ví dụ cụ thể:
 | `"a,,b,"` | `split(",", -1)` | `["a", "", "b", ""]` |
 | `""` | `split(",", -1)` | `[""]` |
 
-**Cẩn thận với chuỗi rỗng:** Khi input hoàn toàn rỗng và regex như `","` không khớp, kết quả chứa **một phần tử chuỗi rỗng** `[""]` chứ không phải mảng độ dài 0. Vì thế nên khẳng định cả độ dài và nội dung phần tử trong những test này.
+**Watch out for an empty string:** When the input is completely empty and a regex like `","` does not match, the result contains **a single empty-string element** `[""]`, not a zero-length array. Therefore assert both array length and element contents in these tests.
 
-## 3. splitWithDelimiters hoạt động thế nào?
+## 3. How Does splitWithDelimiters Work?
 
-Từ Java 21:
+Starting in Java 21:
 
 ```java
 String[] splitWithDelimiters(String regex, int limit)
 ```
 
-Phương thức này cũng dùng regex làm dấu phân cách, nhưng thay vì bỏ delimiter như `split`, nó trả cả **các đoạn văn bản và các delimiter khớp regex**, đúng thứ tự xuất hiện.
+This method also uses a regex as a separator, yet instead of discarding delimiters like `split`, it returns both **text segments and regex-matched delimiters**, in order of appearance.
 
-Ví dụ:
+Example:
 
 ```java
 String input = "boo:::and::foo";
@@ -91,15 +91,15 @@ String[] parts = input.splitWithDelimiters(":+", -1);
 // ["boo", ":::", "and", "::", "foo"]
 ```
 
-`":+"` là regex khớp **một hoặc nhiều** dấu hai chấm liền kề, vì vậy `":::"` và `"::"` được giữ như hai delimiter nguyên vẹn. Chúng không bị phân tách thành từng dấu `":"`.
+`":+"` is a regex matching **one or more** consecutive colons, so `":::"` and `"::"` are preserved as two intact delimiters. They are not broken up into individual `":"` characters.
 
-Kết quả thường có dạng:
+The result typically has the structure:
 
 ```text
-[phần văn bản, delimiter, phần văn bản, delimiter, phần văn bản]
+[text segment, delimiter, text segment, delimiter, text segment]
 ```
 
-Dấu phân cách cuối được giữ nếu có, và `limit = -1` giữ cả phần văn bản rỗng ở cuối. Ví dụ:
+A trailing delimiter is preserved if present, and `limit = -1` also preserves any trailing empty text segment. For example:
 
 ```java
 String[] parts = "a,,b,".splitWithDelimiters(",", -1);
@@ -107,13 +107,13 @@ String[] parts = "a,,b,".splitWithDelimiters(",", -1);
 // ["a", ",", "", ",", "b", ",", ""]
 ```
 
-Kết quả phản ánh chính xác cả dấu phẩy liên tiếp và dấu phẩy cuối.
+The result accurately reflects both consecutive commas and the trailing comma.
 
-### Bảng so sánh split và splitWithDelimiters
+### Comparison Table: split vs. splitWithDelimiters
 
-Với chuỗi `"a,,b,"` và regex `","`:
+For `"a,,b,"` and regex `","`:
 
-| Phương thức | `limit` | Kết quả |
+| Method | `limit` | Result |
 | --- | --- | --- |
 | `split` | `0` | `["a", "", "b"]` |
 | `split` | `-1` | `["a", "", "b", ""]` |
@@ -122,11 +122,11 @@ Với chuỗi `"a,,b,"` và regex `","`:
 | `splitWithDelimiters` | `2` | `["a", ",", ",b,"]` |
 | `splitWithDelimiters` | `1` | `["a,,b,"]` |
 
-Với `limit = 0`, `splitWithDelimiters` **loại các chuỗi rỗng ở cuối mảng**, dù đó là trường hay delimiter rỗng. Các dấu phân cách có nội dung (ví dụ `","`) vẫn xuất hiện trong mảng.
+With `limit = 0`, `splitWithDelimiters` **discards trailing empty strings**, whether they are empty fields or empty delimiters. Non-empty delimiters (such as `","`) still remain in the array.
 
-### limit dương của splitWithDelimiters
+### Positive limit in splitWithDelimiters
 
-Giả sử `limit = n > 0`: regex được dùng để chia tối đa `n - 1` lần, vì vậy kết quả có **không quá `2n - 1` phần tử**. Phần cuối được giữ nguyên sau delimiter cuối đã dùng để chia.
+Suppose `limit = n > 0`: the regex is applied to split at most `n - 1` times, so the result has **at most `2n - 1` elements**. The tail remains unsplit after the last delimiter used for splitting.
 
 ```java
 System.out.println(
@@ -135,9 +135,9 @@ System.out.println(
 // [boo, :::, and::foo]
 ```
 
-Ở ví dụ này, chỉ delimiter `":::"` đầu tiên được sử dụng; `"and::foo"` là phần chưa chia. Không suy ra rằng `limit = 2` sẽ giữ đúng 2 phần tử: mảng có thể dài 3 vì nó chứa cả delimiter.
+In this example, only the first `":::"` delimiter is used; `"and::foo"` is the unsplit remainder. Do not assume `limit = 2` keeps at most 2 elements: the array can have length 3 because it includes the delimiter.
 
-Có một API tương đương trên `java.util.regex.Pattern`:
+There is an equivalent API on `java.util.regex.Pattern`:
 
 ```java
 java.util.regex.Pattern pattern =
@@ -146,11 +146,11 @@ java.util.regex.Pattern pattern =
 String[] parts = pattern.splitWithDelimiters("boo:::and::foo", -1);
 ```
 
-Cách dùng `Pattern` phù hợp khi cùng một regex được sử dụng nhiều lần hoặc cần các flags như `CASE_INSENSITIVE`. Cả `Pattern.splitWithDelimiters` và `String.splitWithDelimiters` đều được giới thiệu từ Java 21.
+Using `Pattern` fits well when the same regex is reused many times or needs flags like `CASE_INSENSITIVE`. Both `Pattern.splitWithDelimiters` and `String.splitWithDelimiters` were introduced in Java 21.
 
-## 4. Trường hợp delimiter ở đầu, ở cuối và liên tiếp
+## 4. Leading, Trailing, and Consecutive Delimiters
 
-Delimiter **khớp độ dài dương ở đầu input** tạo phần tử `""` đầu tiên:
+A delimiter **matching positive length at the start of input** produces a leading `""` element:
 
 ```java
 String[] result = ",a,".splitWithDelimiters(",", -1);
@@ -158,9 +158,9 @@ String[] result = ",a,".splitWithDelimiters(",", -1);
 // ["", ",", "a", ",", ""]
 ```
 
-Với `split(",", -1)`, kết quả tương ứng chỉ còn `["", "a", ""]` vì các delimiter không được đưa vào mảng.
+With `split(",", -1)`, the corresponding result is `["", "a", ""]` because delimiters are omitted from the array.
 
-Nếu có nhiều delimiter liền nhau, vẫn phải xem regex khớp như thế nào:
+When multiple delimiters appear consecutively, check how the regex matches:
 
 ```java
 String a = "a:::b";
@@ -174,15 +174,15 @@ System.out.println(java.util.Arrays.toString(
 // [a, :::, b]
 ```
 
-Với regex `":"`, có các đoạn rỗng giữa những delimiter kề nhau. Với regex `":+"`, cả chuỗi `":::"` là một delimiter duy nhất và **không còn các đoạn rỗng ở giữa các lần khớp** đó.
+With regex `":"`, empty segments appear between adjacent delimiters. With regex `":+"`, the entire `":::"` sequence is a single delimiter and **there are no empty segments between those characters**.
 
-Nếu yêu cầu nghiệp vụ là phân tách chính xác mỗi dấu phẩy, đừng vô tình dùng regex `",+"` vì nó gộp các dấu phẩy kề nhau và sẽ che mất các cột rỗng. Hãy khẳng định trong test rằng số lượng trường và vị trí trường rỗng đúng như định dạng quy định.
+If business rules require splitting on each individual comma, do not accidentally use regex `",+"`, as it merges adjacent commas and hides empty columns. Assert in tests that both field count and empty-field positions match the specified format.
 
-## 5. Regex có ý nghĩa đặc biệt và zero-width matches
+## 5. Regexes with Special Meaning and Zero-Width Matches
 
-`split` và `splitWithDelimiters` đều nhận **regex**, không phải ký tự phân cách literal. Dấu chấm `.` trong regex nghĩa là “một ký tự bất kỳ” (theo quy tắc của regex), không phải dấu chấm thật.
+Both `split` and `splitWithDelimiters` accept a **regex**, not a literal separator character. A dot `.` in regex means “any character” (per regex rules), not a literal dot.
 
-Ví dụ muốn chia theo dấu chấm literal:
+For example, to split on a literal dot:
 
 ```java
 String input = "a.b.";
@@ -191,7 +191,7 @@ String[] items = input.split("\\.", -1);
 // ["a", "b", ""]
 ```
 
-`"\\."` là cách escape regex `\.` trong **Java string literal**. Nếu dấu phân cách đến từ người dùng và cần hiểu hoàn toàn như văn bản literal, có thể dùng:
+`"\\."` escapes regex `\.` in a **Java string literal**. If the delimiter comes from user input and must be treated strictly as literal text, use:
 
 ```java
 String delimiter = ".";
@@ -199,16 +199,16 @@ String regex = java.util.regex.Pattern.quote(delimiter);
 String[] items = "a.b.".split(regex, -1);
 ```
 
-Khi regex là `"\\s+"`, mỗi chuỗi gồm một hay nhiều ký tự whitespace được xem là **một delimiter**. Với `splitWithDelimiters`, toàn bộ chuỗi whitespace đã khớp sẽ nằm trong phần tử delimiter; điều này hữu ích khi cần bảo toàn khoảng trắng để phân tích lại dữ liệu gốc.
+When the regex is `"\\s+"`, each run of one or more whitespace characters counts as **one delimiter**. With `splitWithDelimiters`, the entire matched whitespace run is preserved in the delimiter element; this helps when whitespace must be kept to reconstruct original data.
 
-### Regex khớp độ dài bằng 0
+### Zero-Width Regex Matches
 
-Các regex như lookahead `(?=b)` hay word boundary `\\b` có thể khớp tại một vị trí **không tiêu thụ ký tự**. Quy tắc Java có một ngoại lệ quan trọng:
+Regexes such as lookahead `(?=b)` or word boundary `\\b` can match at a position **without consuming characters**. Java's rule has an important exception:
 
-- Khi delimiter có **độ dài dương** và khớp ở đầu input, Java thêm trường rỗng `""` ở đầu.
-- Khi delimiter khớp **độ dài 0 ở đầu input**, Java **không thêm** trường rỗng đầu, và `splitWithDelimiters` cũng không thêm delimiter rỗng đầu tương ứng.
+- When a delimiter has **positive length** and matches at the start of input, Java adds a leading `""` field.
+- When a delimiter matches **zero length at the start of input**, Java **does not add** a leading empty field, and `splitWithDelimiters` likewise does not add a corresponding leading empty delimiter.
 
-Ví dụ trên Java 21+:
+Example on Java 21+:
 
 ```java
 String[] positive = "abc".splitWithDelimiters("a", -1);
@@ -219,9 +219,9 @@ String[] zeroWidthAtStart =
 // ["abc"]
 ```
 
-`(?=a)` là positive lookahead khớp vị trí trước chữ `a` mà không tiêu thụ chữ `a`. Do đó nó không tạo delimiter có nội dung ở vị trí 0.
+`(?=a)` is a positive lookahead matching the position before `a` without consuming `a`. Hence it produces no non-empty delimiter at index 0.
 
-Ở cuối chuỗi, regex `$` cũng có thể tạo match độ dài 0:
+At the end of a string, regex `$` can also produce a zero-length match:
 
 ```java
 String[] keep = "abc".splitWithDelimiters("$", -1);
@@ -231,13 +231,13 @@ String[] dropTrailing = "abc".splitWithDelimiters("$", 0);
 // ["abc"]
 ```
 
-Hai phần tử cuối của `keep` lần lượt là delimiter rỗng và phần văn bản rỗng cuối. Với `limit = 0`, các phần tử rỗng cuối bị loại. Regex khớp độ dài 0 khá tinh tế: hãy kiểm thử với đầu/cuối chuỗi và input rỗng, tránh giả định rằng mọi match đều lấy mất một ký tự.
+The last two elements of `keep` are an empty delimiter and a trailing empty text segment. With `limit = 0`, trailing empty elements are discarded. Zero-width regex matches are subtle: test start/end of strings and empty inputs, and avoid assuming every match consumes at least one character.
 
-## 6. Chương trình Java 21+ kiểm thử chính xác phần tử rỗng
+## 6. Java 21+ Program for Testing Empty Elements Accurately
 
-Để kết quả dễ kiểm chứng, ví dụ sau in **dấu nháy kép** quanh từng phần tử, thay vì dùng `Arrays.toString` vốn khiến chuỗi rỗng khó phân biệt.
+To make results easy to verify, the following example prints **double quotes** around every element rather than using `Arrays.toString`, which makes empty strings hard to spot.
 
-Lưu thành tệp `SplitEmptyAndDelimitersDemo.java` bằng UTF-8:
+Save as `SplitEmptyAndDelimitersDemo.java` in UTF-8:
 
 ```java
 import java.util.StringJoiner;
@@ -291,14 +291,14 @@ public class SplitEmptyAndDelimitersDemo {
 }
 ```
 
-Biên dịch và chạy bằng **JDK 21 trở lên**:
+Compile and run with **JDK 21 or later**:
 
 ```bash
 javac -encoding UTF-8 SplitEmptyAndDelimitersDemo.java
 java SplitEmptyAndDelimitersDemo
 ```
 
-Kết quả chuẩn, trong đó `""` biểu thị một phần tử chuỗi rỗng:
+Expected output, where `""` denotes an empty string element:
 
 ```text
 split default = ["a", "b"]
@@ -320,11 +320,11 @@ colon all = ["boo", ":::", "and", "::", "foo"]
 colon limit 2 = ["boo", ":::", "and::foo"]
 ```
 
-Chương trình xác nhận đồng thời bốn điểm: `split(regex)` bằng `split(regex, 0)`; limit âm giữ phần rỗng cuối; `splitWithDelimiters` giữ cả các delimiter đã khớp; và các match zero-width ở đầu không tạo phần tử rỗng mở đầu.
+The program confirms four points at once: `split(regex)` equals `split(regex, 0)`; negative limit keeps trailing empties; `splitWithDelimiters` preserves matched delimiters; and zero-width matches at the start do not create a leading empty element.
 
-## 7. Viết assertion thay vì chỉ nhìn output
+## 7. Writing Assertions Instead of Just Inspecting Output
 
-Khi kiểm thử tự động, nên so sánh **mảng theo giá trị và đúng thứ tự**, gồm cả chuỗi rỗng. Nếu dùng JUnit 5, có thể sử dụng `assertArrayEquals(expected, actual)`. Với Java thuần, `Arrays.equals` cũng đủ để minh họa:
+In automated tests, compare **arrays by value and order**, including empty strings. With JUnit 5, use `assertArrayEquals(expected, actual)`. In plain Java, `Arrays.equals` suffices for demonstration:
 
 ```java
 import java.util.Arrays;
@@ -367,7 +367,7 @@ public class SplitAssertions {
 }
 ```
 
-Chạy bằng JDK 21+:
+Run with JDK 21+:
 
 ```bash
 javac -encoding UTF-8 SplitAssertions.java
@@ -385,37 +385,37 @@ limit two = PASS
 empty source = PASS
 ```
 
-Đây là một chương trình kiểm thử độc lập, không cần cài JUnit. Điểm cần giữ khi chuyển sang JUnit là **assert cả toàn bộ mảng**, không chỉ kiểm tra `array.length`. Hai mảng có cùng số phần tử nhưng vị trí phần tử rỗng khác nhau vẫn là dữ liệu khác nhau.
+This is a standalone test program requiring no JUnit setup. The key habit to carry over to JUnit is **asserting the entire array**, not just `array.length`. Two arrays of identical length with empty elements at different positions represent different data.
 
-Nếu ứng dụng phải hỗ trợ Java 17, có thể giữ các assertion về `split` trên Java 17; nhưng phải bỏ hoặc thay cách kiểm thử `splitWithDelimiters` vì API này chưa tồn tại ở bản JDK đó.
+If an application must support Java 17, you can keep the `split` assertions on Java 17; however, remove or replace the `splitWithDelimiters` tests because that API does not exist in that JDK release.
 
-## 8. Bộ test biên nên có trong dự án
+## 8. Essential Boundary Test Suite for Projects
 
-Đối với code dùng `split` để parse một định dạng đơn giản, nên có các nhóm kiểm thử song song:
+For code using `split` to parse a simple format, include these parallel test groups:
 
-| Trường hợp | Input và regex điển hình | Điều cần assert |
+| Case | Typical Input and Regex | What to Assert |
 | --- | --- | --- |
-| Không có delimiter | `"abc"`, `","` | Chỉ một phần tử `"abc"` |
-| Input rỗng | `""`, `","` | `[""]` nếu regex không khớp |
-| Delimiter đầu | `",abc"`, `","` | Phần rỗng đầu được giữ nếu match có độ dài dương |
-| Delimiter cuối | `"abc,"`, `","` | So sánh khác biệt `limit = 0` và `-1` |
-| Hai delimiter liên tiếp | `"a,,b"`, `","` | Có trường rỗng giữa |
-| Nhiều delimiter cuối | `"a,b,,"`, `","` | `limit = -1` giữ đủ các trường rỗng cuối |
-| Limit dương | `"a,b,c"`, `","`, `2` | Phần cuối `"b,c"` không bị chia tiếp |
-| Regex có metacharacter | `"a.b"`, dấu chấm literal | Dùng `"\\."` hoặc `Pattern.quote(".")` |
-| Regex gộp delimiter | `"a:::b"`, `":+"` | Delimiter `":::"` giữ nguyên thành một phần tử khi dùng `splitWithDelimiters` |
-| Lookahead đầu | `"abc"`, `"(?=a)"` | Không tạo phần rỗng đầu |
-| Regex cuối chuỗi | `"abc"`, `"$"` | Kiểm tra chuỗi rỗng cuối theo `limit` |
-| Unicode | Chuỗi chứa ký tự đa đơn vị UTF-16 | Regex và kỳ vọng không vô tình tách surrogate pair |
-| Delimiter không hợp lệ | `"a[b"` với regex `"["` | Xác minh `PatternSyntaxException` được xử lý tại ranh giới nhập liệu |
+| No delimiter | `"abc"`, `","` | Single element `"abc"` |
+| Empty input | `""`, `","` | `[""]` when the regex does not match |
+| Leading delimiter | `",abc"`, `","` | Leading empty element kept if match has positive length |
+| Trailing delimiter | `"abc,"`, `","` | Contrast `limit = 0` vs. `-1` |
+| Two consecutive delimiters | `"a,,b"`, `","` | Empty field in the middle |
+| Multiple trailing delimiters | `"a,b,,"`, `","` | `limit = -1` keeps all trailing empty fields |
+| Positive limit | `"a,b,c"`, `","`, `2` | Remaining tail `"b,c"` is not split further |
+| Regex with metacharacter | `"a.b"`, literal dot | Use `"\\."` or `Pattern.quote(".")` |
+| Grouped delimiter regex | `"a:::b"`, `":+"` | Delimiter `":::"` kept as one element by `splitWithDelimiters` |
+| Leading lookahead | `"abc"`, `"(?=a)"` | Does not create a leading empty part |
+| End-of-string regex | `"abc"`, `"$"` | Check trailing empty strings according to `limit` |
+| Unicode | Strings with multi-unit UTF-16 characters | Regex and expectations do not accidentally split surrogate pairs |
+| Invalid delimiter | `"a[b"` with regex `"["` | Verify `PatternSyntaxException` is handled at the input boundary |
 
-Khi kiểm thử dữ liệu có tính nghiệp vụ, hãy xác định rõ liệu “một dấu phân cách cuối” biểu thị **một trường rỗng hợp lệ**, một dòng không hợp lệ hay chỉ là dấu kết thúc bản ghi. Java `split` không thể tự quyết định chính sách đó.
+When testing business data, clarify whether “a trailing delimiter” represents a **valid empty field**, an invalid line, or simply a record terminator. Java's `split` cannot decide that policy for you.
 
-**Đặc biệt với CSV thật:** `split(",")` hoặc `split(",", -1)` **không phải CSV parser hoàn chỉnh**. CSV có thể cho phép dấu phẩy bên trong trường được đặt dấu nháy, dấu nháy escape và newline trong trường. Khi dữ liệu có các quy tắc đó, hãy dùng parser CSV tương thích định dạng, sau đó kiểm thử các trường rỗng theo hợp đồng parser. `split` chỉ phù hợp khi delimiter là đơn giản và không cần ngữ cảnh trích dẫn.
+**Especially for real CSV:** `split(",")` or `split(",", -1)` is **not a complete CSV parser**. CSV can allow commas inside quoted fields, escaped quotes, and embedded newlines. When data follows those rules, use a format-compliant CSV parser and test empty fields against that parser's contract. `split` is only appropriate when delimiters are simple and quoting context is unnecessary.
 
-## 9. Tái dựng chuỗi và kiểm tra delimiter
+## 9. Reconstructing Strings and Checking Delimiters
 
-Với `splitWithDelimiters(regex, -1)`, kết quả giữ mọi chuỗi văn bản và delimiter theo thứ tự, nên với những regex và input phù hợp, ghép chúng lại có thể tái dựng nguyên văn input:
+With `splitWithDelimiters(regex, -1)`, the result retains every text segment and delimiter in order, so for suitable regexes and inputs, joining them reproduces the exact original input:
 
 ```java
 String original = "left==right;next";
@@ -426,9 +426,9 @@ String restored = String.join("", tokens);
 System.out.println(original.equals(restored)); // true
 ```
 
-Kiểu kiểm tra này hữu ích khi viết tokenizer nhẹ có yêu cầu không mất thông tin. Nó kiểm tra **khả năng bảo toàn văn bản**, nhưng chưa chứng minh việc phân loại token phù hợp ngữ nghĩa nghiệp vụ: vẫn cần assert các phần tử tương ứng và delimiter cụ thể.
+This style of check is useful when writing a lightweight lossless tokenizer. It verifies **text preservation**, though it does not prove token classification matches business semantics: you still must assert individual elements and specific delimiters.
 
-Một test tốt có thể kiểm tra cả hai điều:
+A good test can verify both:
 
 ```java
 String original = "a,,b,";
@@ -442,53 +442,53 @@ System.out.println(sameContent);   // true
 System.out.println(sameStructure); // true
 ```
 
-Nếu cần tách **token có loại** (text, delimiter, vị trí bắt đầu/kết thúc, whitespace), `splitWithDelimiters` chỉ cung cấp chuỗi kết quả, không cung cấp offset; khi cần vị trí match, dùng `Matcher.find()` và `start()/end()` để thu thập vị trí một cách tường minh.
+If you need **typed tokens** (text, delimiter, start/end offsets, whitespace), `splitWithDelimiters` only returns the strings, not offsets; when match positions are needed, use `Matcher.find()` with `start()/end()` to collect positions explicitly.
 
-## 10. Lỗi phổ biến
+## 10. Common Mistakes
 
-1. **Dùng `split(",")` để đếm số cột có thể rỗng ở cuối.** Overload mặc định loại bỏ rỗng cuối. Dùng `split(",", -1)` khi định dạng coi chúng là cột.
-2. **Tin vào `Arrays.toString` để đếm dấu rỗng bằng mắt.** Hãy in có dấu nháy hoặc dùng `assertArrayEquals`.
-3. **Dùng `limit = 1` rồi mong có hai phần.** Limit dương `1` cho tối đa một phần, thường là nguyên input.
-4. **Nghĩ `limit` của `splitWithDelimiters` cũng là số phần tử tối đa.** Với limit dương `n`, mảng có thể dài tới `2n - 1` do giữ delimiter.
-5. **Nhầm regex với literal.** Dấu `.` hoặc `|` có ý nghĩa regex; dùng escape đúng hoặc `Pattern.quote`.
-6. **Nhầm delimiter lặp thành nhiều trường rỗng dù regex là `,+`.** Regex có thể gộp cả đoạn delimiter thành một match.
-7. **Nhầm `splitWithDelimiters` với capturing group của `split`.** Java `split` không tự đưa nhóm capture vào kết quả; muốn giữ delimiter dùng API mới từ Java 21 hoặc tự quét `Matcher`.
-8. **Quên match zero-width ở đầu.** Quy tắc này không sinh phần rỗng dẫn đầu như match có độ dài dương.
-9. **Bỏ qua `PatternSyntaxException`.** Nếu regex được nhập động, cần có chính sách validate/parse rõ ràng.
-10. **Viết `splitWithDelimiters` rồi chạy JDK 17.** Phương thức không tồn tại ở Java 17; cần Java 21+ hoặc giải pháp tương thích phiên bản cũ.
-11. **Dùng split cho CSV/định dạng có quote phức tạp.** Những trường chứa delimiter hoặc xuống dòng được quote phải được parser tương thích xử lý.
+1. **Using `split(",")` to count columns that may be empty at the end.** The default overload drops trailing empties. Use `split(",", -1)` when the format treats them as columns.
+2. **Relying on `Arrays.toString` to count empty items by eye.** Print with quotes or use `assertArrayEquals`.
+3. **Using `limit = 1` expecting two parts.** Positive limit `1` yields at most one element, usually the entire input.
+4. **Thinking `splitWithDelimiters`'s `limit` is also the maximum element count.** With positive limit `n`, the array can contain up to `2n - 1` elements because delimiters are retained.
+5. **Confusing regex with literal text.** `.` or `|` has regex meaning; escape properly or use `Pattern.quote`.
+6. **Expecting repeated delimiters to yield multiple empty fields when the regex is `,+`.** The regex can collapse the entire delimiter run into one match.
+7. **Confusing `splitWithDelimiters` with capturing groups in `split`.** Java's `split` does not include capturing groups in the result; to retain delimiters use the Java 21 API or scan manually with `Matcher`.
+8. **Forgetting zero-width matches at the start.** This rule does not generate a leading empty part like positive-length matches do.
+9. **Ignoring `PatternSyntaxException`.** If regexes are supplied dynamically, have a clear validation/parsing policy.
+10. **Using `splitWithDelimiters` and running on JDK 17.** The method does not exist in Java 17; Java 21+ or a backward-compatible alternative is required.
+11. **Using `split` for CSV or complex quoted formats.** Fields containing quoted delimiters or quoted newlines must be handled by a compliant parser.
 
-## 11. Câu hỏi và bài tập tự luyện
+## 11. Self-Practice Questions and Exercises
 
-**Bài 1.** Với `"x,y,,"`, hai lệnh dưới đây khác nhau thế nào?
+**Exercise 1.** For `"x,y,,"`, how do these two calls differ?
 
 ```java
 "x,y,,".split(",");
 "x,y,,".split(",", -1);
 ```
 
-**Đáp án:** Lệnh đầu trả `["x", "y"]`; lệnh sau trả `["x", "y", "", ""]`. Hai phần cuối biểu thị hai trường rỗng do hai dấu phẩy cuối.
+**Answer:** The first returns `["x", "y"]`; the second returns `["x", "y", "", ""]`. The last two elements represent the two empty fields caused by the two trailing commas.
 
-**Bài 2.** Với `"a,,b,".splitWithDelimiters(",", 2)`, có bao nhiêu phần tử?
+**Exercise 2.** For `"a,,b,".splitWithDelimiters(",", 2)`, how many elements are returned?
 
-**Đáp án:** Ba phần tử: `["a", ",", ",b,"]`. `limit = 2` chỉ cho áp dụng delimiter tối đa một lần rồi giữ nguyên phần còn lại.
+**Answer:** Three elements: `["a", ",", ",b,"]`. `limit = 2` allows the delimiter to be applied at most once and keeps the rest intact.
 
-**Bài 3.** `"a::b".splitWithDelimiters(":+", -1)` cho gì?
+**Exercise 3.** What does `"a::b".splitWithDelimiters(":+", -1)` return?
 
-**Đáp án:** `["a", "::", "b"]` vì regex `:+` khớp hai dấu hai chấm như **một** delimiter.
+**Answer:** `["a", "::", "b"]` because regex `:+` matches both colons as **one** delimiter.
 
-**Bài 4.** Vì sao `"abc".splitWithDelimiters("(?=a)", -1)` không bắt đầu bằng `""`?
+**Exercise 4.** Why does `"abc".splitWithDelimiters("(?=a)", -1)` not start with `""`?
 
-**Đáp án:** `(?=a)` là match độ dài 0 ở vị trí đầu; API không thêm phần rỗng đầu hay delimiter rỗng đầu cho trường hợp đó.
+**Answer:** `(?=a)` is a zero-length match at the beginning; the API does not add a leading empty part or empty delimiter in that case.
 
-**Bài 5.** Java 17 có gọi trực tiếp `String.splitWithDelimiters` được không?
+**Exercise 5.** Can Java 17 call `String.splitWithDelimiters` directly?
 
-**Đáp án:** Không. Phương thức được giới thiệu từ Java 21. Trên Java 17, dùng `split` khi không cần delimiter hoặc tự quét bằng `Pattern`/`Matcher` nếu cần vừa giữ văn bản vừa giữ delimiter.
+**Answer:** No. The method was introduced in Java 21. On Java 17, use `split` when delimiters are not needed or scan with `Pattern`/`Matcher` if you need both text and delimiters.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 21 — String](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html): hai overload `split` và `splitWithDelimiters`, định nghĩa `limit`, quy tắc match zero-width.
-- [Java SE 21 — Pattern](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/regex/Pattern.html): `split(input, limit)`, `splitWithDelimiters(input, limit)` và các ví dụ regex.
-- [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): hợp đồng `split` trên bản Java trước khi `splitWithDelimiters` xuất hiện.
+- [Java SE 21 — String](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html): both `split` overloads and `splitWithDelimiters`, definition of `limit`, zero-width match rules.
+- [Java SE 21 — Pattern](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/regex/Pattern.html): `split(input, limit)`, `splitWithDelimiters(input, limit)`, and regex examples.
+- [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): `split` contract prior to `splitWithDelimiters`.
 
-**Ghi nhớ:** Nếu cần bảo toàn các **trường rỗng cuối**, dùng `split(regex, -1)`. Nếu cần bảo toàn cả **delimiter** và có JDK 21+, dùng `splitWithDelimiters(regex, -1)`; khi kiểm thử phải xác nhận cả nội dung, độ dài và thứ tự từng phần tử của mảng.
+**Takeaway:** When **trailing empty fields** must be preserved, use `split(regex, -1)`. When **delimiters** must also be preserved and JDK 21+ is available, use `splitWithDelimiters(regex, -1)`; when testing, assert content, length, and element order across the entire array.

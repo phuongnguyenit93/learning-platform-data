@@ -1,27 +1,27 @@
-# Chọn Reader với charset tường minh khi cần kiểm soát mã hóa tệp tài nguyên
+# Choosing a Reader with an Explicit Charset to Control Resource File Encoding
 
-Trong Java, tệp `.properties` thường chứa các nhãn giao diện, thông điệp lỗi và văn bản bản địa hóa. Khi tệp có chữ tiếng Việt hoặc ký tự ngoài ASCII, một câu hỏi quan trọng xuất hiện: **dãy byte trong tệp được giải mã theo charset nào trước khi Java đọc cặp `key=value`?**
+In Java, `.properties` files typically hold UI labels, error messages, and localized text. When a file contains Vietnamese or other non-ASCII characters, an important question arises: **which charset is used to decode the file's byte sequence before Java reads the `key=value` pairs?**
 
-Nếu ứng dụng cần kiểm soát chắc chắn cách giải mã tệp tài nguyên, hãy tạo `Reader` với charset được chỉ định và truyền vào `PropertyResourceBundle(Reader)`. Cách này đặc biệt hữu ích khi tích hợp các bộ tài nguyên có mã hóa được xác định từ trước, xử lý tệp cũ không dùng UTF-8, hoặc muốn báo lỗi rõ ràng khi dữ liệu vi phạm encoding được cam kết.
+If your application needs strict control over how resource files are decoded, create a `Reader` with an explicit charset and pass it to `PropertyResourceBundle(Reader)`. This approach is especially useful when integrating resource sets with pre-agreed encodings, handling legacy non-UTF-8 files, or reporting clear errors whenever data violates the promised encoding.
 
-Bài tập trung vào **lựa chọn Reader có charset tường minh** và hệ quả của nó trong quá trình tải tệp tài nguyên. Chúng ta cũng phân biệt với hành vi mặc định của `PropertyResourceBundle(InputStream)` trên Java 17, để tránh áp dụng nhầm các quy tắc của API khác.
+This lesson focuses on **choosing a Reader with an explicit charset** and its consequences during resource file loading. We also contrast it with the default behavior of `PropertyResourceBundle(InputStream)` on Java 17 so you avoid applying another API's rules by mistake.
 
-## 1. Tách ba bước: byte → ký tự → tài nguyên
+## 1. Separating three steps: bytes → characters → resource
 
-Đường đi của một tệp tài nguyên là:
+The path of a resource file is:
 
 ~~~text
-Tệp .properties trên đĩa hoặc trong classpath
+.properties file on disk or on the classpath
              |
-             | InputStream: dãy byte
+             | InputStream: byte sequence
              v
-  Reader dùng charset đã chọn
+  Reader using the chosen charset
              |
-             | Các ký tự Unicode trong Java
+             | Unicode characters in Java
              v
-  Bộ phân tích cú pháp .properties
+  .properties syntax parser
              |
-             | key=value, comment, escape
+             | key=value, comments, escapes
              v
        PropertyResourceBundle
              |
@@ -29,20 +29,20 @@ Tệp .properties trên đĩa hoặc trong classpath
     bundle.getString("title")
 ~~~
 
-`Reader` chịu trách nhiệm chuyển **byte thành ký tự**. Sau đó, `PropertyResourceBundle` xử lý **cú pháp tệp properties**, gồm dấu phân cách `=` hoặc `:`, khoảng trắng, comment, ký tự escape và các chuỗi `\uXXXX` theo cú pháp properties.
+The `Reader` is responsible for converting **bytes into characters**. Next, `PropertyResourceBundle` handles **properties file syntax**, including `=` or `:` separators, whitespace, comments, escape characters, and `\uXXXX` sequences according to properties rules.
 
-Hai bước này độc lập:
+These two steps are independent:
 
-- Một tệp UTF-8 chứa `title=Chào Việt Nam` cần giải mã byte theo UTF-8 trước.
-- Một tệp ASCII chứa `title=Ch\u00E0o` có thể được giải mã mà không cần byte UTF-8 cho chữ `à`; parser properties mới chuyển escape Unicode thành ký tự.
-- Chọn đúng charset **không sửa** tệp có cú pháp properties sai; parser vẫn có thể ném lỗi do Unicode escape hỏng.
-- Chọn đúng charset **không tự chọn locale**. `Locale` là cơ chế lựa chọn bộ tài nguyên, còn `Charset` là cơ chế giải mã byte.
+- A UTF-8 file containing `title=Chào Việt Nam` must have its bytes decoded as UTF-8 first.
+- An ASCII file containing `title=Ch\u00E0o` can be decoded without UTF-8 bytes for `à`; the properties parser later converts the Unicode escape into the character.
+- Choosing the right charset **does not fix** a file with broken properties syntax; the parser can still throw an error on a malformed Unicode escape.
+- Choosing the right charset **does not select a locale**. `Locale` is the mechanism for choosing a resource set, whereas `Charset` is the mechanism for decoding bytes.
 
-Ví dụ chuỗi `"Đăng nhập"` sau khi đọc đúng UTF-8 sẽ là một `String` Java bình thường. Khi gọi `getString`, charset ban đầu không còn là tham số của thao tác lấy khóa.
+For example, the string `"Đăng nhập"` after proper UTF-8 reading becomes a normal Java `String`. When calling `getString`, the original charset is no longer a parameter of key lookup.
 
-## 2. Vì sao nên chỉ định charset tường minh?
+## 2. Why specify the charset explicitly?
 
-Giả sử có tệp:
+Suppose you have the file:
 
 ~~~properties
 title=Chào Việt Nam
@@ -50,13 +50,13 @@ button.login=Đăng nhập
 notice=Đặt lịch thành công
 ~~~
 
-Nếu tệp được lưu bằng UTF-8 nhưng đọc bằng ISO-8859-1, những byte của ký tự có dấu có thể bị diễn giải thành nhiều ký tự khác, tạo hiện tượng **mojibake**. Một ví dụ điển hình là chuỗi `"Café"` trở thành dạng hỏng như `"CafÃ©"` khi byte UTF-8 bị giải mã theo Latin-1.
+If the file was saved in UTF-8 but read as ISO-8859-1, bytes of accented characters can be interpreted as multiple different characters, producing **mojibake**. A classic example is `"Café"` turning into a garbled form like `"CafÃ©"` when UTF-8 bytes are decoded as Latin-1.
 
-Đổi `Locale.forLanguageTag("vi-VN")` hoặc đổi font không thể sửa vấn đề này. Lỗi đã xảy ra tại **ranh giới byte → ký tự**.
+Changing `Locale.forLanguageTag("vi-VN")` or changing the font cannot fix this issue. The error already happened at **the byte → character boundary**.
 
-Với Java 17, chọn `StandardCharsets.UTF_8` khi tệp được chuẩn hóa UTF-8. Chỉ dùng `StandardCharsets.ISO_8859_1`, `windows-1252` hoặc charset khác khi **đã biết** nguồn dữ liệu thực sự sử dụng cách mã hóa ấy. Không đoán charset từ quốc gia hoặc từ nội dung một vài chữ có dấu.
+With Java 17, choose `StandardCharsets.UTF_8` when files are standardized in UTF-8. Use `StandardCharsets.ISO_8859_1`, `windows-1252`, or another charset only when you **already know** the data source actually uses that encoding. Never guess a charset from a country or from a few accented words.
 
-Ví dụ đọc tệp hiện có bằng charset UTF-8:
+Example of reading an existing file with UTF-8:
 
 ~~~java
 Path path = Path.of("i18n", "messages_vi.properties");
@@ -69,43 +69,43 @@ try (Reader reader =
 }
 ~~~
 
-Đây là **đoạn mã minh họa** bên trong một phương thức có thể ném hoặc xử lý `IOException`; cần import `java.nio.file.Path`, `java.nio.file.Files`, `java.nio.charset.StandardCharsets`, `java.io.Reader`, `java.util.PropertyResourceBundle`. Đường dẫn tệp chỉ là ví dụ; ứng dụng phải dùng vị trí tài nguyên thực.
+This is an **illustrative snippet** inside a method that declares or handles `IOException`; it requires imports for `java.nio.file.Path`, `java.nio.file.Files`, `java.nio.charset.StandardCharsets`, `java.io.Reader`, and `java.util.PropertyResourceBundle`. The file path is just an example; an application must use its actual resource location.
 
-`Files.newBufferedReader(path, charset)` mở `Reader` theo charset đã chọn và đóng an toàn nhờ `try-with-resources`. Việc gọi `new PropertyResourceBundle(reader)` đọc dữ liệu khi xây dựng bundle; sau khi constructor hoàn thành, đối tượng bundle có thể được sử dụng sau khi `Reader` đóng.
+`Files.newBufferedReader(path, charset)` opens a `Reader` with the selected charset and closes it safely via `try-with-resources`. Calling `new PropertyResourceBundle(reader)` reads the data while constructing the bundle; once the constructor completes, the bundle object can be used even after the `Reader` is closed.
 
-## 3. So sánh chính xác các cách nạp trong Java 17
+## 3. Accurately comparing loading approaches in Java 17
 
-Không thể suy ra charset của mọi API có tên “properties” từ một quy tắc duy nhất.
+You cannot infer the charset of every API with "properties" in its name from a single rule.
 
-| Cách đọc | Charset được quyết định thế nào? | Điều nên nhớ |
+| Reading approach | How is the charset decided? | Key takeaway |
 | --- | --- | --- |
-| `new PropertyResourceBundle(reader)` | Dữ liệu ký tự đã được `Reader` giải mã | Chọn charset ngay khi tạo Reader |
-| `new PropertyResourceBundle(inputStream)` | Java 17 ưu tiên UTF-8 và có cơ chế đọc lại bằng ISO-8859-1 khi byte UTF-8 không hợp lệ theo điều kiện API | Có thể chịu ảnh hưởng của system property riêng |
-| `ResourceBundle.getBundle("messages", locale)` | Sử dụng cơ chế tải bundle thích hợp; với bundle `.properties` thông thường áp dụng quy tắc của `PropertyResourceBundle` | Đồng thời quản lý tìm bundle theo locale và chuỗi cha |
-| `properties.load(inputStream)` với `java.util.Properties` | Đọc `.properties` theo ISO-8859-1 theo hợp đồng API | **Không giống** `PropertyResourceBundle(InputStream)` Java 17 |
-| `properties.load(reader)` | Dùng ký tự Reader cung cấp | Charset được xác định khi tạo Reader |
+| `new PropertyResourceBundle(reader)` | Character data already decoded by `Reader` | Choose the charset right when creating the Reader |
+| `new PropertyResourceBundle(inputStream)` | Java 17 prefers UTF-8 and can re-read as ISO-8859-1 when UTF-8 bytes are invalid per API conditions | Can be affected by a dedicated system property |
+| `ResourceBundle.getBundle("messages", locale)` | Uses the appropriate bundle loading mechanism; for standard `.properties` bundles, `PropertyResourceBundle` rules apply | Also manages locale bundle lookup and parent chain |
+| `properties.load(inputStream)` with `java.util.Properties` | Reads `.properties` as ISO-8859-1 per API contract | **Not the same** as Java 17 `PropertyResourceBundle(InputStream)` |
+| `properties.load(reader)` | Uses characters supplied by the Reader | Charset is determined when creating the Reader |
 
-### Hành vi mặc định của PropertyResourceBundle(InputStream)
+### Default behavior of PropertyResourceBundle(InputStream)
 
-Từ Java 9, `PropertyResourceBundle(InputStream)` mặc định đọc byte như UTF-8. Nếu gặp chuỗi byte không hợp lệ hoặc không ánh xạ được trong UTF-8, Java có thể **đọc lại bằng ISO-8859-1**, để duy trì tương thích với tệp tài nguyên cũ.
+Since Java 9, `PropertyResourceBundle(InputStream)` reads bytes as UTF-8 by default. If it encounters invalid or unmappable byte sequences in UTF-8, Java can **re-read as ISO-8859-1** to maintain compatibility with legacy resource files.
 
-Trong Java 17, system property `java.util.PropertyResourceBundle.encoding` có thể đặt thành `UTF-8` hoặc `ISO-8859-1` để bắt buộc lựa chọn tương ứng cho đường đọc `InputStream`. Khi đặt `UTF-8`, dữ liệu UTF-8 không hợp lệ gây lỗi, không áp dụng fallback Latin-1. Property này được đọc khi lớp được khởi tạo; thay đổi khi ứng dụng đang chạy không phải một phương pháp đáng tin để đổi charset giữa các request.
+In Java 17, the system property `java.util.PropertyResourceBundle.encoding` can be set to `UTF-8` or `ISO-8859-1` to force the respective choice for the `InputStream` path. When set to `UTF-8`, invalid UTF-8 data throws an error without Latin-1 fallback. This property is read at class initialization; changing it while the application is running is not a reliable way to switch charsets between requests.
 
-**Quy tắc trên thuộc constructor nhận `InputStream`, không phải cách Java tự đổi charset của Reader.** Với `PropertyResourceBundle(Reader)`, Reader được tạo bằng charset nào thì byte được giải mã theo charset đó. System property kể trên không thay charset của một Reader đã được tạo.
+**The rule above applies to the `InputStream` constructor, not to how Java handles a `Reader`'s charset.** With `PropertyResourceBundle(Reader)`, whichever charset the Reader was created with is used to decode the bytes. That system property does not alter the charset of a Reader that has already been created.
 
-Một byte stream có thể chỉ chứa các byte tạo thành UTF-8 hợp lệ nhưng vốn được một nguồn ghi với mã hóa khác. Khi ấy, cơ chế tự động không thể suy luận chắc chắn encoding gốc. Nếu hợp đồng dữ liệu đòi một charset cụ thể, chọn Reader tường minh vẫn cho kết quả dễ dự đoán hơn.
+A byte stream can happen to contain bytes that form valid UTF-8 even though a producer wrote them in another encoding. In that case, an automatic mechanism cannot deduce the original encoding with certainty. When a data contract mandates a specific charset, choosing an explicit Reader yields more predictable results.
 
-### Đừng nhầm với java.util.Properties
+### Do not confuse with java.util.Properties
 
-Trên Java 17, `Properties.load(InputStream)` vẫn diễn giải mỗi byte như một ký tự ISO-8859-1 và hỗ trợ Unicode escape trong cú pháp properties. Muốn dùng UTF-8 với `Properties`, truyền `Reader` UTF-8 vào `Properties.load(Reader)`.
+On Java 17, `Properties.load(InputStream)` still interprets each byte as an ISO-8859-1 character and supports Unicode escapes in properties syntax. To use UTF-8 with `Properties`, pass a UTF-8 `Reader` into `Properties.load(Reader)`.
 
-Việc cả `Properties` và `PropertyResourceBundle` đọc được định dạng `.properties` không có nghĩa chúng có cùng chính sách charset khi nhận `InputStream`.
+Just because both `Properties` and `PropertyResourceBundle` read the `.properties` format does not mean they share the same charset policy when given an `InputStream`.
 
-## 4. Tạo Reader từ InputStream hoặc Path
+## 4. Creating a Reader from InputStream or Path
 
-### Cách A: tệp có đường dẫn trên hệ thống
+### Approach A: a file with a path on the filesystem
 
-Khi làm việc với một tệp nằm trên ổ đĩa và có `Path`, dùng:
+When working with a file on disk via a `Path`, use:
 
 ~~~java
 try (Reader reader = Files.newBufferedReader(
@@ -117,11 +117,11 @@ try (Reader reader = Files.newBufferedReader(
 }
 ~~~
 
-Mẫu này phù hợp với trình nhập bản dịch từ thư mục, lệnh kiểm tra tài nguyên hoặc tệp cấu hình ngoài classpath. `Files.newBufferedReader` trả về BufferedReader; không cần bọc thêm một BufferedReader chỉ vì constructor nhận kiểu `Reader`.
+This pattern fits tools that import translations from directories, resource-validation CLI commands, or configuration files outside the classpath. `Files.newBufferedReader` already returns a `BufferedReader`; there is no need to wrap it in another `BufferedReader` just because the constructor accepts `Reader`.
 
-### Cách B: tài nguyên bên trong classpath
+### Approach B: a resource inside the classpath
 
-Nếu tệp được đóng gói trong JAR hoặc đặt dưới `src/main/resources`, `Path.of("...")` có thể không trỏ đúng vị trí runtime. Dùng `ClassLoader.getResourceAsStream` để lấy byte:
+If the file is packaged inside a JAR or placed under `src/main/resources`, `Path.of("...")` may not point to the right runtime location. Use `ClassLoader.getResourceAsStream` to obtain bytes:
 
 ~~~java
 ClassLoader loader = Thread.currentThread().getContextClassLoader();
@@ -143,13 +143,13 @@ try (InputStream input =
 }
 ~~~
 
-Đây là **đoạn minh họa trong một lớp tên `MyApplication`** đã khai báo và có các import `java.io.*`, `java.nio.charset.StandardCharsets`, `java.util.PropertyResourceBundle`. Hãy thay đường dẫn resource và cách chọn class loader theo kiến trúc ứng dụng; `getResourceAsStream` có thể trả `null` khi không tìm được tệp. Với JPMS named modules, cần tuân theo quy tắc đóng gói/mở tài nguyên của module.
+This is an **illustrative snippet inside a declared class named `MyApplication`** with imports for `java.io.*`, `java.nio.charset.StandardCharsets`, and `java.util.PropertyResourceBundle`. Adjust the resource path and class-loader choice to match your application architecture; `getResourceAsStream` can return `null` when the file is not found. With JPMS named modules, follow the module's resource packaging and opening rules.
 
-Phương thức `getResourceAsStream` không bảo đảm tài nguyên có charset nào; nó chỉ cung cấp byte. Chính `new InputStreamReader(input, StandardCharsets.UTF_8)` mới thể hiện quyết định giải mã.
+`getResourceAsStream` makes no guarantee about what charset the resource uses; it only supplies bytes. It is `new InputStreamReader(input, StandardCharsets.UTF_8)` that expresses the decoding decision.
 
-### Cách C: bộ tài nguyên Latin-1 cũ
+### Approach C: legacy Latin-1 resource sets
 
-Nếu biết chắc tệp `labels_legacy.properties` được tạo dưới ISO-8859-1, dùng:
+If you know for certain that `labels_legacy.properties` was created in ISO-8859-1, use:
 
 ~~~java
 try (Reader reader = Files.newBufferedReader(
@@ -160,18 +160,18 @@ try (Reader reader = Files.newBufferedReader(
 }
 ~~~
 
-**Không dùng cách này cho tệp UTF-8 hiện đại** vì sẽ làm hỏng nhiều ký tự Unicode. ISO-8859-1 cũng không biểu diễn trực tiếp nhiều chữ cái tiếng Việt; tệp cũ có thể chứa dạng `\uXXXX` mà parser properties sẽ giải mã sau khi Reader xử lý byte.
+**Do not use this for modern UTF-8 files** because it corrupts many Unicode characters. ISO-8859-1 also cannot directly represent many Vietnamese letters; legacy files may contain `\uXXXX` sequences that the properties parser decodes after the Reader processes bytes.
 
-## 5. Ví dụ Java 17+ độc lập: ba cách giải mã và dữ liệu lỗi
+## 5. Standalone Java 17+ example: three decoding modes and malformed data
 
-Chương trình sau chủ động tạo byte trong bộ nhớ để không phụ thuộc hệ điều hành, cấu hình console hay tệp bên ngoài. Nó chứng minh:
+The following program constructs bytes in memory so it does not depend on OS, console config, or external files. It demonstrates:
 
-1. Chọn UTF-8 cho dữ liệu UTF-8 sẽ giữ nguyên chuỗi Unicode.
-2. Cố đọc cùng byte UTF-8 theo ISO-8859-1 tạo chuỗi **khác**.
-3. Chọn ISO-8859-1 cho dữ liệu Latin-1 cũ cho kết quả đúng.
-4. Tạo `CharsetDecoder` với `CodingErrorAction.REPORT` giúp phát hiện byte UTF-8 không hợp lệ.
+1. Selecting UTF-8 for UTF-8 data preserves the Unicode string.
+2. Reading the same UTF-8 bytes as ISO-8859-1 produces a **different** string.
+3. Selecting ISO-8859-1 for legacy Latin-1 data gives the right result.
+4. Creating a `CharsetDecoder` with `CodingErrorAction.REPORT` catches invalid UTF-8 bytes.
 
-Tạo tệp **`ReaderCharsetDemo.java`**:
+Create **`ReaderCharsetDemo.java`**:
 
 ~~~java
 import java.io.ByteArrayInputStream;
@@ -244,14 +244,14 @@ public class ReaderCharsetDemo {
 }
 ~~~
 
-Lệnh biên dịch/chạy với JDK 17 trở lên:
+Compile and run commands with JDK 17 or later:
 
 ~~~bash
 javac -encoding UTF-8 ReaderCharsetDemo.java
 java ReaderCharsetDemo
 ~~~
 
-Stdout đã đối chiếu với chương trình tương đương ở Java:
+Stdout verified against the corresponding Java program:
 
 ~~~text
 UTF-8 title correct: true
@@ -261,26 +261,26 @@ Latin-1 title correct: true
 Malformed UTF-8 rejected: true
 ~~~
 
-**Giải thích đầu ra:**
+**Output explanation:**
 
-- Chuỗi `"Chào Việt Nam"` được mã hóa UTF-8 rồi đưa qua `InputStreamReader(..., UTF_8)`; `PropertyResourceBundle(Reader)` đọc đúng giá trị. `equals` trả `true`.
-- Cùng byte được giải mã theo ISO-8859-1 tạo chuỗi khác; `equals` với bản gốc là `false`, vì vậy dòng `Wrong charset differs` in `true`.
-- `keySet()` trả tập khóa của bundle; `TreeSet` khiến thứ tự `button`, `title` có tính xác định.
-- Tệp Latin-1 trong bộ nhớ chứa `Café` được mã hóa và giải mã bằng cùng charset nên giữ nguyên.
-- Chuỗi byte `0xC3 0x28` không hợp lệ theo UTF-8. Decoder strict báo `MalformedInputException`, được chương trình bắt và in kết quả `true`.
+- The string `"Chào Việt Nam"` is encoded as UTF-8 and passed through `InputStreamReader(..., UTF_8)`; `PropertyResourceBundle(Reader)` reads the exact value. `equals` returns `true`.
+- The same bytes decoded as ISO-8859-1 produce a different string; `equals` against the original is `false`, so `Wrong charset differs` prints `true`.
+- `keySet()` returns the bundle's key set; `TreeSet` makes the `button`, `title` ordering deterministic.
+- The in-memory Latin-1 payload containing `Café` is encoded and decoded with the same charset, preserving it intact.
+- The byte sequence `0xC3 0x28` is invalid UTF-8. The strict decoder throws `MalformedInputException`, which the program catches and prints `true`.
 
-Chương trình là tệp Java độc lập, không cần thư viện ngoài. Lệnh `-encoding UTF-8` chỉ định **mã hóa của chính file mã nguồn Java** cho trình biên dịch; nó không tự đặt charset cho `InputStreamReader`. Charset của resource vẫn là giá trị được truyền trong code.
+The program is a standalone Java file requiring no external libraries. `-encoding UTF-8` tells the compiler **the encoding of the Java source file itself**; it does not set the charset for `InputStreamReader`. The resource's charset remains whatever value is passed in code.
 
-## 6. Phân biệt chọn charset với chính sách xử lý byte hỏng
+## 6. Distinguishing charset selection from malformed-byte policy
 
-Hai câu hỏi liên quan nhưng khác nhau:
+Two related but distinct questions:
 
-- **Đọc byte theo bộ mã nào?** Chọn `Charset` khi tạo Reader.
-- **Khi byte không thể giải mã hợp lệ thì làm gì?** Chọn `CodingErrorAction` của `CharsetDecoder`.
+- **Which encoding should bytes be read as?** Choose the `Charset` when creating the Reader.
+- **What should happen when bytes cannot be validly decoded?** Choose `CodingErrorAction` on `CharsetDecoder`.
 
-Với constructor `new InputStreamReader(stream, charset)`, decoder mặc định có thể **thay thế** chuỗi byte lỗi bằng ký tự thay thế thay vì phát lỗi ngay. Đối với dữ liệu bản dịch cần kiểm định chặt, hành vi thay thế im lặng có thể khiến bản dịch hỏng lọt vào môi trường sản xuất.
+With `new InputStreamReader(stream, charset)`, the default decoder can **replace** malformed byte sequences with a replacement character instead of throwing an error right away. For translation data requiring strict validation, silent replacement can let corrupted translations slip into production.
 
-Dùng `CharsetDecoder` chủ động để phát hiện lỗi:
+Use an explicit `CharsetDecoder` to catch errors:
 
 ~~~java
 CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder()
@@ -293,76 +293,76 @@ try (Reader reader = new InputStreamReader(stream, decoder)) {
 }
 ~~~
 
-Đây là **đoạn mã minh họa** khi `stream` là `InputStream` đã mở; import `java.io.*`, `java.nio.charset.*`, `java.util.PropertyResourceBundle`. Với `REPORT`, những byte không hợp lệ có thể gây `MalformedInputException` hoặc `UnmappableCharacterException`, đều là nhánh cần xử lý theo hợp đồng dữ liệu.
+This is an **illustrative snippet** where `stream` is an already-opened `InputStream`; import `java.io.*`, `java.nio.charset.*`, and `java.util.PropertyResourceBundle`. With `REPORT`, invalid bytes can cause `MalformedInputException` or `UnmappableCharacterException`, both of which should be handled according to your data contract.
 
-Tuy nhiên, **decoder strict không xác nhận rằng bạn đã chọn đúng charset**. Một dãy byte có thể hợp lệ dưới nhiều charset nhưng mang ý nghĩa khác nhau; với ISO-8859-1, mọi byte đều biểu diễn được ký tự. Để phát hiện chọn sai encoding, phải có thông tin nguồn tin cậy (cấu hình, hợp đồng giao tiếp, metadata hoặc quy trình migrate), kết hợp kiểm thử chuỗi mong đợi.
+However, **a strict decoder does not prove you picked the right charset**. A byte sequence can be valid under multiple charsets while carrying different meanings; under ISO-8859-1, every byte represents a character. To detect choosing the wrong encoding, you need authoritative source metadata (configuration, interface contract, metadata, or migration workflow), combined with assertions on expected strings.
 
-`Reader` do `Files.newBufferedReader(path, charset)` tạo có cơ chế báo lỗi byte bất hợp lệ theo hợp đồng API; khi cần tùy biến chính xác `REPORT`/`REPLACE`/`IGNORE`, tạo `CharsetDecoder` riêng.
+The `Reader` returned by `Files.newBufferedReader(path, charset)` reports malformed bytes according to its API contract; whenever you need exact `REPORT`/`REPLACE`/`IGNORE` control, build your own `CharsetDecoder`.
 
-### Xử lý lỗi ở đúng tầng
+### Handling errors at the right layer
 
-| Lỗi | Nơi phát sinh | Cách hiểu |
+| Error | Where it occurs | Interpretation |
 | --- | --- | --- |
-| `NoSuchFileException` | Mở tệp trên đĩa | Không tồn tại đường dẫn |
-| `IOException` | I/O hoặc decoder báo lỗi | Tệp không đọc được / dữ liệu byte lỗi |
-| `IllegalArgumentException` khi có Unicode escape hỏng | Parser `.properties` | Cú pháp tài nguyên không hợp lệ |
-| `MissingResourceException` từ `getString` | Tra cứu khóa | Không có key ở bundle và chuỗi cha |
-| `ClassCastException` từ `getString` | Tra cứu giá trị không phải `String` | Loại tài nguyên không khớp API |
+| `NoSuchFileException` | Opening a file on disk | Path does not exist |
+| `IOException` | I/O or strict decoder failure | File unreadable / malformed byte data |
+| `IllegalArgumentException` on malformed Unicode escape | `.properties` parser | Invalid resource syntax |
+| `MissingResourceException` from `getString` | Key lookup | Key absent in bundle and parent chain |
+| `ClassCastException` from `getString` | Looking up a non-`String` value | Resource type mismatches the API |
 
-Không gộp mọi exception thành “không có bản dịch”. Encoding sai, tệp thiếu, key không có và cú pháp hỏng đều có cách sửa khác nhau.
+Do not lump every exception together as "missing translation." Wrong encoding, missing file, missing key, and broken syntax each have different fixes.
 
-## 7. Reader và ResourceBundle.getBundle(): giới hạn quan trọng
+## 7. Reader and ResourceBundle.getBundle(): an important limitation
 
-Tạo trực tiếp:
+Constructing directly:
 
 ~~~java
 PropertyResourceBundle bundle =
         new PropertyResourceBundle(reader);
 ~~~
 
-chỉ tạo **một bundle từ nguồn ký tự đã cung cấp**. Phép này **không tự chạy thuật toán chọn ứng viên theo Locale** như:
+creates only **a single bundle from the supplied character source**. It **does not run the Locale candidate selection algorithm** performed by:
 
 ~~~java
 ResourceBundle.getBundle("messages", Locale.forLanguageTag("vi-VN"));
 ~~~
 
-Cụ thể, khi bạn tự mở `messages_vi_VN.properties` rồi gọi constructor nhận `Reader`, đối tượng đó không tự biết rằng còn có `messages_vi.properties` và `messages.properties` để truy cập khóa chưa định nghĩa. Không nên giả định mọi khóa vắng mặt sẽ tự fallback về bundle cha.
+Specifically, if you manually open `messages_vi_VN.properties` and call the `Reader` constructor, that object does not know that `messages_vi.properties` and `messages.properties` also exist to provide undefined keys. Do not assume missing keys will automatically fall back to a parent bundle.
 
-Nếu ứng dụng chỉ muốn đọc một tệp có charset đặc biệt, constructor nhận Reader là lựa chọn đơn giản. Nếu ứng dụng cần **tự động chọn locale, tổ chức chuỗi cha và cache**, hãy giữ cơ chế `getBundle` và thiết kế cách nạp charset phù hợp với cơ chế đó.
+If an application only needs to read a single file with a special charset, the `Reader` constructor is a simple choice. If the application needs **automatic locale selection, parent chains, and caching**, keep the `getBundle` mechanism and design charset loading to fit into it.
 
-### Khi cần Reader riêng trong quy trình getBundle
+### When a custom Reader is needed inside the getBundle flow
 
-Trong ứng dụng chạy trên **classpath/unnamed module**, có thể tùy biến `ResourceBundle.Control.newBundle` để lấy stream của từng bundle candidate, tạo `InputStreamReader(stream, chosenCharset)`, rồi xây `PropertyResourceBundle(reader)`. `getBundle` vẫn tổ chức chuỗi cha theo các candidate locales và chính sách Control.
+In applications running on the **classpath / unnamed module**, you can customize `ResourceBundle.Control.newBundle` to open the stream for each candidate bundle, wrap it in `InputStreamReader(stream, chosenCharset)`, and construct `PropertyResourceBundle(reader)`. `getBundle` still organizes the parent chain across candidate locales and the Control policy.
 
-Hình dung quy trình:
+Visualizing the flow:
 
 ~~~text
 ResourceBundle.getBundle(baseName, locale, control)
            |
-           | lựa chọn candidate locale, tên tài nguyên
+           | selects candidate locales, resource names
            v
 control.newBundle(...):
            |
-           | mở InputStream phù hợp candidate
-           | tạo Reader với charset yêu cầu
+           | opens InputStream for the candidate
+           | creates Reader with the required charset
            | new PropertyResourceBundle(reader)
            v
-ResourceBundle quản lý chuỗi cha và cache theo Control
+ResourceBundle manages the parent chain and cache per Control
 ~~~
 
-Đây là **mô tả cơ chế**, không phải đoạn Java độc lập. Khi thực hiện `Control.newBundle`, cần xử lý đúng `format`, `loader`, cờ `reload`, URL connection/caching và đóng stream; không dùng một bộ tài nguyên duy nhất cho mọi candidate rồi cho rằng fallback của `getBundle` vẫn đúng.
+This is a **mechanism diagram**, not standalone Java code. When implementing `Control.newBundle`, properly handle `format`, `loader`, the `reload` flag, URL connection/caching, and stream closing; do not load one fixed resource for every candidate expecting `getBundle`'s fallback to still work properly.
 
-**Giới hạn module:** các overload `ResourceBundle.getBundle` nhận `ResourceBundle.Control` không được hỗ trợ trong ngữ cảnh named modules theo hợp đồng Java 17; có thể ném `UnsupportedOperationException`. Với JPMS named modules, cần xem xét cơ chế resource bundle provider/module thích hợp, không sao chép mẫu Control của classpath mà không kiểm tra.
+**Module limitation:** `ResourceBundle.getBundle` overloads that take `ResourceBundle.Control` are not supported in named-module contexts under the Java 17 contract and can throw `UnsupportedOperationException`. With JPMS named modules, consider an appropriate resource bundle provider/module mechanism rather than copying a classpath `Control` pattern without checking.
 
-### Có cần tùy biến Control chỉ để đọc UTF-8?
+### Do you need a custom Control just to read UTF-8?
 
-Với Java 17, `PropertyResourceBundle(InputStream)` thông thường **đã ưu tiên UTF-8**. Nếu tất cả tài nguyên được chuẩn hóa UTF-8, ứng dụng thường không cần một `Control` riêng chỉ để hỗ trợ chữ Unicode. Chỉ phát triển đường nạp Reader tùy chỉnh khi có yêu cầu cụ thể như charset khác, chính sách decoder, nguồn tài nguyên riêng, hoặc cần chống fallback encoding tự động.
+On Java 17, standard `PropertyResourceBundle(InputStream)` **already prefers UTF-8**. If all resources are standardized on UTF-8, applications usually do not need a custom `Control` just to support Unicode characters. Build a custom `Reader` loading path only when you have a specific requirement such as a different charset, custom decoder policy, custom resource source, or preventing automatic encoding fallback.
 
-Dù dùng cách nào, kiểm thử đường chạy thực tế của `getBundle` trên bản triển khai để chắc chắn tài nguyên tiếng Việt, lựa chọn locale, fallback khóa và resource caching đúng như mong muốn.
+Whichever approach you choose, test the actual `getBundle` execution path in your deployed build to verify Vietnamese text, locale selection, key fallback, and resource caching behave as expected.
 
-## 8. Ví dụ tệp properties thực tế và cách kiểm thử
+## 8. Real-world properties file example and testing checklist
 
-Một dự án Gradle/Maven thường đặt tài nguyên trong `src/main/resources`:
+A Gradle or Maven project typically places resources under `src/main/resources`:
 
 ~~~text
 src/main/resources/
@@ -372,7 +372,7 @@ src/main/resources/
     messages_vi_VN.properties
 ~~~
 
-Ví dụ `i18n/messages_vi.properties` lưu bằng UTF-8:
+Example `i18n/messages_vi.properties` saved in UTF-8:
 
 ~~~properties
 title=Chào mừng
@@ -380,7 +380,7 @@ button.login=Đăng nhập
 message=Bạn có {0} thông báo
 ~~~
 
-Khi đọc riêng file từ classpath bằng Reader UTF-8, dùng:
+When reading this file directly from the classpath with a UTF-8 Reader, use:
 
 ~~~java
 try (InputStream input = MyApplication.class.getClassLoader()
@@ -397,69 +397,69 @@ try (InputStream input = MyApplication.class.getClassLoader()
 }
 ~~~
 
-Đây là **đoạn mã minh họa** trong lớp `MyApplication` có import cần thiết, không phải chương trình độc lập. Với tệp đúng như trên, `getString("title")` trả `Chào mừng`. Mẫu chỉ đọc riêng `messages_vi.properties`, không tự kết nối `messages.properties` làm cha.
+This is an **illustrative snippet** inside `MyApplication` with the necessary imports, not a standalone program. With the file above, `getString("title")` returns `Chào mừng`. This pattern reads `messages_vi.properties` on its own without linking `messages.properties` as a parent.
 
-`{0}` trong `message` không được `PropertyResourceBundle` tự thay bằng dữ liệu đầu vào. Nếu cần định dạng tham số, kết hợp `MessageFormat` với `Locale` phù hợp; đó là bước khác với charset. Không dùng `String.format` để mong thay placeholder kiểu `{0}`.
+`{0}` in `message` is not substituted with input data by `PropertyResourceBundle`. If parameter formatting is required, combine `MessageFormat` with the appropriate `Locale`; that is a separate step from charset decoding. Do not use `String.format` expecting `{0}`-style placeholders to be replaced.
 
-### Checklist kiểm thử thực tế
+### Practical testing checklist
 
-- Kiểm tra byte tệp thật được lưu đúng encoding đã cam kết; bộ soạn thảo và công cụ build không tự đổi mã hóa.
-- Có chuỗi tiếng Việt nhiều dấu, ví dụ `Đăng nhập`, `Tạm biệt`, `Ưu đãi`, để phát hiện decode sai.
-- Kiểm tra round trip hoặc so sánh với **chuỗi Unicode mong đợi** sau `getString`, không chỉ nhìn bằng mắt.
-- Kiểm tra lỗi khi tệp biến mất; với classpath, xử lý `getResourceAsStream == null`.
-- Kiểm tra byte UTF-8 không hợp lệ và kỳ vọng trả lỗi hay thay thế được thiết kế.
-- Kiểm tra cú pháp `.properties`, đặc biệt backslash, Unicode escape `\uXXXX`, dấu `=`, `:` và khoảng trắng.
-- Nếu dùng `getBundle`, kiểm tra cả fallback locale, khóa kế thừa, tên `baseName`, đóng gói resource và cache.
-- Với tài nguyên legacy, kiểm tra rõ charset và đường chuyển đổi về UTF-8, tránh tải cùng tệp bằng hai encoding tùy môi trường.
+- Verify actual file bytes are saved in the committed encoding; editors and build tools must not silently transcode them.
+- Include Vietnamese strings with rich diacritics, such as `Đăng nhập`, `Tạm biệt`, and `Ưu đãi`, to catch wrong decoding.
+- Verify round-trips or compare against **expected Unicode strings** after `getString`, rather than just eyeballing output.
+- Test missing-file errors; for classpath loading, handle `getResourceAsStream == null`.
+- Test invalid UTF-8 bytes and verify whether raising an error or replacing matches the design.
+- Check `.properties` syntax, especially backslashes, `\uXXXX` Unicode escapes, `=`, `:`, and whitespace.
+- If using `getBundle`, also test locale fallback, inherited keys, `baseName`, resource packaging, and caching.
+- For legacy resources, verify their exact charset and migration path to UTF-8, avoiding loading the same file with two different encodings depending on the environment.
 
-## 9. Lỗi phổ biến và cách tránh
+## 9. Common mistakes and how to avoid them
 
-| Lỗi | Hệ quả | Cách làm đúng |
+| Mistake | Consequence | Correct approach |
 | --- | --- | --- |
-| Dùng `InputStreamReader(stream)` không truyền charset | Có thể phụ thuộc charset mặc định môi trường, nhất là trên Java 17 | Truyền `StandardCharsets.UTF_8` hoặc charset đã cam kết |
-| Lấy `Locale` để đoán charset | Dữ liệu bị decode sai dù locale đúng | Charset độc lập với language/region |
-| Cho rằng `Properties.load(InputStream)` và `PropertyResourceBundle(InputStream)` giống nhau | Nhầm chính sách ISO-8859-1 và UTF-8 | Đọc đúng hợp đồng từng API của Java 17 |
-| Dùng ISO-8859-1 để đọc tệp UTF-8 | Chữ có dấu bị hỏng | Chuẩn hóa UTF-8 và truyền Reader tương ứng |
-| Dựa vào fallback Latin-1 của constructor `InputStream` để phát hiện encoding đúng | Dữ liệu hợp lệ nhưng vẫn có thể bị hiểu sai | Dùng hợp đồng encoding rõ ràng, kiểm thử dữ liệu |
-| Dùng `InputStreamReader(stream, UTF_8)` rồi nghĩ mọi byte lỗi đều được báo | Decoder có thể thay byte lỗi thành ký tự thay thế | Dùng `CharsetDecoder` với `REPORT` khi yêu cầu strict |
-| Tự tạo `PropertyResourceBundle(reader)` và mong có parent từ các file locale khác | Không thấy khóa nằm ở bundle cha | Dùng cơ chế `getBundle` hoặc tự xây chuỗi cha có kiểm soát |
-| Chỉ đọc resource trên disk bằng `Path` khi app đóng gói JAR | Không tìm được tệp | Dùng class loader/module resource API khi phù hợp |
-| Không đóng `Reader` | Rò rỉ descriptor/stream | `try-with-resources` |
-| Chỉnh `java.util.PropertyResourceBundle.encoding` giữa runtime | Không điều khiển được Reader và có thể không có tác dụng | Cấu hình từ đầu hoặc tạo Reader charset tường minh |
-| Chỉ kiểm tra key có tồn tại mà bỏ qua nội dung | Mojibake vẫn được trả qua `getString` | Kiểm tra chuỗi Unicode đúng sau khi tải |
+| Using `InputStreamReader(stream)` without specifying a charset | Can depend on the environment's default charset, especially on Java 17 | Pass `StandardCharsets.UTF_8` or the committed charset |
+| Using `Locale` to guess the charset | Data is decoded wrongly even when the locale is right | Charset is independent of language/region |
+| Assuming `Properties.load(InputStream)` and `PropertyResourceBundle(InputStream)` behave identically | Confuses ISO-8859-1 and UTF-8 policies | Follow each Java 17 API's exact contract |
+| Using ISO-8859-1 to read a UTF-8 file | Accented characters become garbled | Standardize on UTF-8 and pass the matching Reader |
+| Relying on the `InputStream` constructor's Latin-1 fallback to detect the right encoding | Valid bytes in another encoding can still be misread | Use an explicit encoding contract and test data |
+| Using `InputStreamReader(stream, UTF_8)` thinking every bad byte throws an error | Default decoder can turn invalid bytes into replacement characters | Use a `CharsetDecoder` with `REPORT` when strictness is required |
+| Creating `PropertyResourceBundle(reader)` manually and expecting parents from other locale files | Keys in parent bundles are not found | Use `getBundle` or build a controlled parent chain |
+| Reading resources on disk with `Path` when packaged in a JAR | File cannot be found | Use class-loader or module resource APIs as appropriate |
+| Failing to close the `Reader` | Descriptor/stream leaks | Use `try-with-resources` |
+| Changing `java.util.PropertyResourceBundle.encoding` mid-runtime | Does not control Readers and may have no effect | Configure at startup or create a Reader with an explicit charset |
+| Checking only that a key exists while ignoring its content | Mojibake is still returned by `getString` | Assert exact Unicode strings after loading |
 
-## 10. Câu hỏi tự kiểm tra
+## 10. Self-check questions
 
-**Câu 1.** Một file properties được lưu UTF-8 có giá trị `title=Đăng nhập`. Nên mở file bằng API nào nếu yêu cầu chắc chắn giải mã UTF-8?
+**Question 1.** A properties file saved in UTF-8 has `title=Đăng nhập`. Which API should you use to open it if strict UTF-8 decoding is guaranteed?
 
-**Đáp án:** Dùng `Files.newBufferedReader(path, StandardCharsets.UTF_8)` hoặc `new InputStreamReader(input, StandardCharsets.UTF_8)`, rồi truyền Reader vào `new PropertyResourceBundle(reader)`. Nếu cần phát hiện byte hỏng nghiêm ngặt, dùng Decoder có `CodingErrorAction.REPORT`.
+**Answer:** Use `Files.newBufferedReader(path, StandardCharsets.UTF_8)` or `new InputStreamReader(input, StandardCharsets.UTF_8)`, then pass the Reader into `new PropertyResourceBundle(reader)`. If strict detection of corrupted bytes is required, use a decoder configured with `CodingErrorAction.REPORT`.
 
-**Câu 2.** Vì sao dùng `PropertyResourceBundle(InputStream)` trên Java 17 thường đọc được file UTF-8 mà không truyền charset, nhưng `Properties.load(InputStream)` lại có thể tạo lỗi chữ?
+**Question 2.** Why does `PropertyResourceBundle(InputStream)` on Java 17 usually read UTF-8 files properly without passing a charset, whereas `Properties.load(InputStream)` can produce garbled text?
 
-**Đáp án:** Hai API có hợp đồng encoding khác nhau. `PropertyResourceBundle(InputStream)` Java 17 ưu tiên UTF-8 với cơ chế tương thích ISO-8859-1; `Properties.load(InputStream)` dùng ISO-8859-1.
+**Answer:** The two APIs have different encoding contracts. Java 17 `PropertyResourceBundle(InputStream)` prefers UTF-8 with an ISO-8859-1 compatibility fallback; `Properties.load(InputStream)` uses ISO-8859-1.
 
-**Câu 3.** Tại sao đọc tệp bằng Reader UTF-8 rồi xây một `PropertyResourceBundle` trực tiếp không tự kế thừa thông điệp từ `messages.properties`?
+**Question 3.** Why does reading a file with a UTF-8 Reader and constructing a `PropertyResourceBundle` directly not automatically inherit messages from `messages.properties`?
 
-**Đáp án:** Constructor nhận Reader chỉ nạp một bundle, không chạy thuật toán `ResourceBundle.getBundle` lựa chọn candidate locale và thiết lập chuỗi parent. Quy tắc charset và quy tắc bundle fallback là hai cơ chế độc lập.
+**Answer:** The `Reader` constructor loads only one bundle; it does not execute `ResourceBundle.getBundle`'s candidate-locale selection algorithm or establish a parent chain. Charset rules and bundle-fallback rules are two independent mechanisms.
 
-**Câu 4.** CharsetReader có giúp `MessageFormat` tự thay `{0}` trong chuỗi không?
+**Question 4.** Does a charset-configured `Reader` cause `MessageFormat` to automatically substitute `{0}` in strings?
 
-**Đáp án:** Không. Reader chỉ giải mã byte; `PropertyResourceBundle` đọc khóa/giá trị. Muốn thay tham số, dùng `MessageFormat` hoặc một bộ format thông điệp phù hợp.
+**Answer:** No. The Reader only decodes bytes; `PropertyResourceBundle` reads keys and values. To substitute parameters, use `MessageFormat` or another message formatter.
 
-**Câu 5.** Một file Latin-1 cũ cần giữ nguyên đến khi migrate. Có nên sửa `Locale.setDefault(Locale.US)` để đọc đúng không?
+**Question 5.** A legacy Latin-1 file must be kept as-is until migration. Should you change `Locale.setDefault(Locale.US)` to read it properly?
 
-**Đáp án:** Không. `Locale.setDefault` không thay charset cho byte stream. Dùng Reader với `StandardCharsets.ISO_8859_1` theo hợp đồng file rồi kiểm thử, sau đó có thể chuyển đổi file sang UTF-8 theo kế hoạch.
+**Answer:** No. `Locale.setDefault` does not change the charset for byte streams. Use a Reader with `StandardCharsets.ISO_8859_1` matching the file's contract and test it, then migrate the file to UTF-8 on schedule.
 
-## 11. Kết luận và tài liệu chính thức
+## 11. Conclusion and official documentation
 
-Khi kiểm soát mã hóa tệp tài nguyên, cách ổn định là chọn **charset theo hợp đồng dữ liệu**, tạo `Reader` với charset đó, đọc `.properties` qua `PropertyResourceBundle(Reader)`, và xác minh kết quả Unicode. Với dữ liệu quan trọng, dùng decoder strict để không chấp nhận byte lỗi. Khi cần tự động lựa chọn locale và chuỗi tài nguyên cha, hãy kiểm tra riêng cơ chế `ResourceBundle.getBundle` và chỉ tùy biến đường nạp khi có lý do kỹ thuật cụ thể.
+When controlling resource file encoding, the reliable approach is to pick the **charset per the data contract**, create a `Reader` with that charset, read `.properties` via `PropertyResourceBundle(Reader)`, and verify the resulting Unicode text. For critical data, use a strict decoder so invalid bytes are never accepted silently. When automatic locale selection and parent resource chains are needed, test `ResourceBundle.getBundle` separately and customize the loading path only for concrete technical reasons.
 
-Tài liệu tham khảo:
+References:
 
-- [PropertyResourceBundle — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/PropertyResourceBundle.html): constructor `Reader` và `InputStream`, encoding và ngoại lệ.
-- [InputStreamReader — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/InputStreamReader.html): lựa chọn charset và decoder.
-- [Files.newBufferedReader — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html): đọc tệp với charset chỉ định.
-- [Properties — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Properties.html): phân biệt `load(InputStream)` và `load(Reader)`.
-- [ResourceBundle.Control — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.Control.html): tùy biến tải bundle và giới hạn trong named modules.
+- [PropertyResourceBundle — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/PropertyResourceBundle.html): `Reader` and `InputStream` constructors, encoding, and exceptions.
+- [InputStreamReader — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/InputStreamReader.html): charset and decoder selection.
+- [Files.newBufferedReader — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html): reading files with a specified charset.
+- [Properties — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Properties.html): distinguishing `load(InputStream)` and `load(Reader)`.
+- [ResourceBundle.Control — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.Control.html): customizing bundle loading and limitations in named modules.
 
-**Ghi nhớ:** `Reader + Charset` quyết định cách giải mã byte, `PropertyResourceBundle` quyết định cách phân tích các cặp khóa–giá trị, còn `ResourceBundle.getBundle` quyết định cách tìm bundle theo locale và chuỗi cha. Kiểm soát đúng từng lớp giúp bản dịch không bị hỏng và hành vi nhất quán giữa các môi trường Java.
+**Remember:** `Reader + Charset` determines how bytes are decoded, `PropertyResourceBundle` determines how key–value pairs are parsed, and `ResourceBundle.getBundle` determines how bundles are resolved by locale and parent chain. Controlling each layer properly keeps translations uncorrupted and behavior consistent across Java environments.

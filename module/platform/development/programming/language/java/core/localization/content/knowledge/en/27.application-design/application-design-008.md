@@ -1,8 +1,8 @@
-# Đổi ngôn ngữ khi đang chạy và làm mới dữ liệu đã định dạng trong Java
+# Switching Language at Runtime and Refreshing Formatted Data in Java
 
-## 1. Đổi ngôn ngữ trong ứng dụng đang hoạt động là gì?
+## 1. What Is Runtime Language Switching in a Live Application?
 
-Giả sử một ứng dụng Java đang hiển thị:
+Suppose a Java application is currently displaying:
 
 ~~~text
 [en-US] Orders
@@ -11,7 +11,7 @@ Date: March 5, 2025
 Quantity: 1,234.50
 ~~~
 
-Người dùng bấm **Tiếng Việt** mà không khởi động lại. Giao diện phải cập nhật nhãn, thông điệp và định dạng:
+The user clicks **Tiếng Việt** without restarting. The UI must update labels, messages, and formatting:
 
 ~~~text
 [vi-VN] Đơn hàng
@@ -20,90 +20,90 @@ Ngày: 5 tháng 3, 2025
 Số lượng: 1.234,50
 ~~~
 
-Đây không chỉ là thay văn bản `Orders` bằng `Đơn hàng`. Việc chọn locale mới có thể tác động:
+This is not merely swapping the text `Orders` for `Đơn hàng`. Selecting a new locale can affect:
 
-- Nhãn, tiêu đề, menu, button, tooltip, placeholder, thông báo lỗi và trợ năng.
-- Cách hiển thị số, phần trăm, đơn vị tiền, ngày giờ và tên tháng.
-- Thông điệp có tham số, thứ tự tham số, plural và lựa chọn cách diễn đạt.
-- Header bảng, cột số liệu, nhãn trục biểu đồ, mô tả trạng thái trống, thông báo đang mở.
-- Bố cục LTR/RTL, xuống dòng, hướng của đoạn chữ và font.
-- Kết quả bất đồng bộ được format trước khi người dùng đổi ngôn ngữ.
-- Các trường nhập liệu chưa commit: tránh làm mất draft hoặc đọc sai dấu nhóm khi đổi locale.
+- Labels, titles, menus, buttons, tooltips, placeholders, error messages, and accessibility text.
+- Formatting of numbers, percentages, currency units, dates/times, and month names.
+- Parameterized messages, parameter ordering, plurals, and phrasing choices.
+- Table headers, numeric columns, chart axis labels, empty-state descriptions, and open notifications.
+- LTR/RTL layout, line wrapping, text run direction, and fonts.
+- Asynchronous results formatted before the user switched languages.
+- Uncommitted input fields: avoiding losing drafts or misreading grouping marks when switching locales.
 
-**Nguyên tắc cốt lõi:** đổi locale là thay **ngữ cảnh trình bày**. Nó không làm các `String` đã format tự cập nhật, và không nên tự thay đổi dữ liệu nghiệp vụ. Hãy giữ dữ liệu ở dạng có kiểu, cập nhật trạng thái locale, chọn lại tài nguyên/formatter, rồi render lại UI.
+**Core principle:** switching locale changes the **presentation context**. It does not cause already-formatted `String`s to update themselves, nor should it alter business data. Keep data strongly typed, update locale state, reselect resources/formatters, and re-render the UI.
 
-## 2. Ba lớp không được trộn lẫn
+## 2. Three Layers That Must Not Be Mixed
 
 ~~~text
-DOMAIN MODEL (nguồn bất biến)
+DOMAIN MODEL (immutable source)
   customerName: "Lan"
   orderId: 42
   quantity: BigDecimal("1234.50")
   date: LocalDate.of(2025,3,5)
   price: Money(amount, Currency.USD)
             |
-            | áp dụng PresentationContext
+            | apply PresentationContext
             v
 PRESENTATION CONTEXT
   uiLocale: en-US / vi-VN
-  formatLocale: en-US / vi-VN (nếu ứng dụng tách)
+  formatLocale: en-US / vi-VN (if separated by app)
   zone: Asia/Ho_Chi_Minh
-  currency: USD (đúng loại tiền nghiệp vụ)
+  currency: USD (true business currency)
             |
             v
 PRESENTATION
-  ResourceBundle -> nhãn/thông báo
-  NumberFormat -> số/tiền/phần trăm
-  DateTimeFormatter -> ngày/giờ
-  MessageFormat -> thông điệp có tham số
+  ResourceBundle -> labels/messages
+  NumberFormat -> numbers/money/percentages
+  DateTimeFormatter -> dates/times
+  MessageFormat -> parameterized messages
   ComponentOrientation -> LTR/RTL
             |
             v
 UI/RENDERER
 ~~~
 
-| Thứ cần giữ | Kiểu dữ liệu | Khi đổi locale |
+| What to preserve | Data type | On locale switch |
 | --- | --- | --- |
-| Số lượng | `BigDecimal` | Gọi formatter số theo locale mới |
-| Ngày không có giờ | `LocalDate` | Format lại theo locale mới |
-| Thời điểm tuyệt đối | `Instant` | Format theo locale và `ZoneId` được chọn |
-| Loại tiền | `Currency` cùng giá trị `BigDecimal` | Thay cách hiện ký hiệu; **không tự đổi currency** |
-| Mã đơn hàng | ID, String theo schema | Thường giữ nguyên ký tự, không format như số lượng |
-| Tên khách hàng | `String` gốc | Giữ đúng tên; chỉ chèn vào message mới |
-| Ngôn ngữ UI | `Locale` hoặc language tag BCP 47 | Cập nhật state và thông báo presenters |
-| Chuỗi đã format | `String` dẫn xuất | **Tạo lại**, không dùng làm dữ liệu nguồn |
+| Quantity | `BigDecimal` | Call number formatter with new locale |
+| Calendar date without time | `LocalDate` | Reformat with new locale |
+| Absolute instant | `Instant` | Format with selected locale and `ZoneId` |
+| Currency | `Currency` alongside `BigDecimal` value | Change symbol placement/style; **never convert currency** |
+| Order ID | ID, schema-defined `String` | Normally keep characters verbatim, do not format as a number |
+| Customer name | Original `String` | Keep name intact; insert into new message |
+| UI language | `Locale` or BCP 47 language tag | Update state and notify presenters |
+| Formatted string | Derived `String` | **Regenerate**, never treat as source data |
 
-Một `BigDecimal("1234.50")` không trở thành `BigDecimal("1.234,50")` khi đổi ngôn ngữ. `"1.234,50"` chỉ là **chuỗi hiển thị**. Tương tự, nếu đang có `Instant`, đổi locale không tự thay `ZoneId` hay thời điểm của sự kiện.
+A `BigDecimal("1234.50")` does not become `BigDecimal("1.234,50")` when changing language. `"1.234,50"` is only a **display string**. Likewise, given an `Instant`, changing locale does not alter `ZoneId` or the event's point in time.
 
-**Tại sao không lưu dữ liệu dưới dạng label?** Vì bản dịch, quy tắc dấu và dữ liệu locale của JDK có thể khác giữa người dùng hoặc giữa các lần cập nhật. Một chuỗi đã format không đủ để khôi phục ý nghĩa typed một cách an toàn.
+**Why not store data as labels?** Because translations, separator conventions, and JDK locale data can differ across users or updates. A formatted string is insufficient to recover typed semantics safely.
 
-## 3. Locale.setDefault không phải nút chuyển ngôn ngữ theo người dùng
+## 3. `Locale.setDefault` Is Not a Per-User Language Switch
 
-Có cách làm tưởng đơn giản:
+An approach that looks deceptively simple:
 
 ~~~java
 Locale.setDefault(Locale.forLanguageTag("vi-VN"));
 frame.repaint();
 ~~~
 
-Đây chỉ là **mảnh mã minh họa** trong method, cần import `Locale` và biến `frame` đã có. Nó không bảo đảm UI đang mở tự đổi ngôn ngữ.
+This is just an **illustrative fragment** inside a method requiring `import Locale` and an existing `frame` variable. It does not guarantee the open UI will switch languages.
 
-Ba vấn đề:
+Three problems:
 
-1. `Locale.setDefault` thay **default locale của toàn JVM** hoặc category toàn JVM, không phải của một request hay một cửa sổ.
-2. Các `ResourceBundle`, `NumberFormat`, `MessageFormat`, `DateTimeFormatter` đã tạo trước đó **không tự đổi** nội dung khi bạn sửa default.
-3. `repaint` chỉ vẽ lại các label đang lưu; nếu `JLabel.setText` chưa được gọi với bản dịch mới, văn bản cũ vẫn hiện.
+1. `Locale.setDefault` mutates the **JVM-wide default locale** (or JVM-wide category), not a single request or window.
+2. Previously constructed `ResourceBundle`, `NumberFormat`, `MessageFormat`, and `DateTimeFormatter` instances **do not update** their contents when you mutate the default.
+3. `repaint` only redraws stored labels; unless `JLabel.setText` is called with the new translation, the old text remains.
 
-### Server đa người dùng: lỗi race
+### Multi-User Server: Race Conditions
 
 ~~~text
-Request A: chọn vi-VN -> Locale.setDefault(vi-VN)
-Request B: chọn en-US -> Locale.setDefault(en-US)
-Request A: format số bằng NumberFormat.getInstance()
-           -> có thể vô tình dùng default của B
+Request A: selects vi-VN -> Locale.setDefault(vi-VN)
+Request B: selects en-US -> Locale.setDefault(en-US)
+Request A: formats number with NumberFormat.getInstance()
+           -> may accidentally use B's default
 ~~~
 
-Không sử dụng default locale mutable để phục vụ đồng thời các user. Thay bằng:
+Never use the mutable default locale to serve concurrent users. Instead:
 
 ~~~java
 Locale locale = Locale.forLanguageTag("vi-VN");
@@ -114,31 +114,31 @@ DateTimeFormatter df = DateTimeFormatter
         .withLocale(locale);
 ~~~
 
-Đây là **mảnh mã trong method**, cần import `java.util.Locale`, `java.util.ResourceBundle`, `java.text.NumberFormat`, `java.time.format.DateTimeFormatter` và `FormatStyle`.
+This is a **fragment inside a method** requiring imports for `java.util.Locale`, `java.util.ResourceBundle`, `java.text.NumberFormat`, `java.time.format.DateTimeFormatter`, and `FormatStyle`.
 
-Một locale ứng với **phiên, màn hình hoặc request**. Không tạo một biến static `currentLocale` mutable rồi dùng chung cho tất cả client trong web server.
+A locale belongs to a **session, screen, or request**. Never keep a mutable static `currentLocale` shared across all clients in a web server.
 
-## 4. Quy trình chuyển locale đúng
+## 4. Proper Locale-Switching Flow
 
-Khi người dùng chọn ngôn ngữ mới:
+When a user selects a new language:
 
-1. **Nhận sự kiện** `LanguageChanged(newLocale)`.
-2. **Xác thực** locale thuộc tập ngôn ngữ ứng dụng hỗ trợ; không mặc định tag hợp lệ là có bản dịch.
-3. **Cập nhật state** ở phạm vi đúng (user/session/window).
-4. **Chọn tài nguyên** từ `ResourceBundle` theo locale đó.
-5. **Chuẩn bị formatter** theo locale mới; đảm bảo formatter mutable không bị tái sử dụng sai.
-6. **Dựng lại presentation model** từ dữ liệu typed và message keys, không parse lại chuỗi cũ để lấy giá trị.
-7. **Cập nhật tất cả view** phụ thuộc locale: nhãn, số, ngày, validation, tooltip, bảng, dialog, accessibility.
-8. **Cập nhật layout** nếu thay đổi chiều chữ, độ dài nhãn, căn chỉnh hoặc font.
-9. **Giữ user input** và lựa chọn hiện tại trừ khi chính sách sản phẩm yêu cầu chuyển có kiểm soát.
-10. **Loại bỏ kết quả bất đồng bộ cũ** hoặc format lại chúng bằng locale hiện hành.
-11. **Lưu lựa chọn** nếu người dùng muốn ngôn ngữ được giữ qua phiên sau.
+1. **Receive event** `LanguageChanged(newLocale)`.
+2. **Validate** that the locale is in the app's supported set; never assume a valid tag has translations.
+3. **Update state** at the proper scope (user/session/window).
+4. **Select resources** from `ResourceBundle` for that locale.
+5. **Prepare formatters** for the new locale; ensure mutable formatters are never reused improperly.
+6. **Rebuild presentation models** from typed data and message keys, never re-parsing old UI strings to recover values.
+7. **Update every view** dependent on locale: labels, numbers, dates, validation errors, tooltips, tables, dialogs, accessibility.
+8. **Update layout** if text direction, label lengths, alignment, or fonts change.
+9. **Preserve user input** and current selections unless product policy calls for controlled conversion.
+10. **Discard stale async results** or reformat them using the current locale.
+11. **Persist preference** if the user expects their language choice to survive across sessions.
 
-Một ứng dụng reactive có thể tự kích hoạt các binding phụ thuộc `locale`; ứng dụng imperative có thể gọi `applyLocale(locale)` để cập nhật component. Cả hai vẫn phải kiểm kê đủ mọi nơi đã format văn bản.
+A reactive app can trigger bindings that depend on `locale`; an imperative app can call `applyLocale(locale)` to update components. Both must inventory every place where text was formatted.
 
-## 5. Ví dụ console hoàn chỉnh: đổi en-US sang vi-VN
+## 5. Complete Console Example: Switching `en-US` to `vi-VN`
 
-Ví dụ Java 17+ có thể chạy chỉ với JDK, không cần Maven hoặc framework. Tạo thư mục sau:
+A Java 17+ example runnable with just the JDK, no Maven or framework required. Create this directory:
 
 ~~~text
 locale-console/
@@ -147,7 +147,7 @@ locale-console/
   Messages_vi.properties
 ~~~
 
-Tạo `Messages_en.properties` bằng UTF-8:
+Create `Messages_en.properties` in UTF-8:
 
 ~~~properties
 title=Orders
@@ -158,7 +158,7 @@ name=Customer
 language=Language
 ~~~
 
-Tạo `Messages_vi.properties` bằng UTF-8:
+Create `Messages_vi.properties` in UTF-8:
 
 ~~~properties
 title=Đơn hàng
@@ -169,7 +169,7 @@ name=Khách hàng
 language=Ngôn ngữ
 ~~~
 
-Tạo `LanguageSwitchDemo.java`:
+Create `LanguageSwitchDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -189,8 +189,8 @@ public class LanguageSwitchDemo {
     ) {}
 
     static final class OrderScreen {
-        private final Order order; // Dữ liệu nguồn
-        private Locale locale;     // Trạng thái trình bày
+        private final Order order; // Source data
+        private Locale locale;     // Presentation state
 
         OrderScreen(Order order, Locale locale) {
             this.order = order;
@@ -244,14 +244,14 @@ public class LanguageSwitchDemo {
 }
 ~~~
 
-Biên dịch và chạy trong thư mục `locale-console`:
+Compile and run inside `locale-console`:
 
 ~~~bash
 javac -encoding UTF-8 LanguageSwitchDemo.java
 java -cp . LanguageSwitchDemo
 ~~~
 
-Đầu ra tham khảo từ JDK có dữ liệu locale thông dụng:
+Reference output from a JDK with standard locale data:
 
 ~~~text
 [en-US] Orders
@@ -264,22 +264,22 @@ Ngày: 5 tháng 3, 2025
 Số lượng: 1.234,50
 ~~~
 
-**Chú ý:** chi tiết dấu nhóm, khoảng trắng hoặc cách viết ngày có thể thay đổi theo provider/JDK/CLDR. Các key/nhãn cố định từ properties phải khớp; đầu ra số/ngày cần được kiểm thử với môi trường được hỗ trợ.
+**Note:** exact grouping separators, spacing, or date wording may vary by provider/JDK/CLDR. Fixed keys/labels from `.properties` files must match; number/date output should be tested on the supported target environment.
 
-### Tại sao ví dụ này đúng?
+### Why Is This Example Right?
 
-- `Order` là `record` bất biến: cùng dữ liệu gốc được render hai lần.
-- `changeLanguage` cập nhật `Locale` của **screen**, không gọi `Locale.setDefault`.
-- `render` chọn lại `ResourceBundle`, `NumberFormat`, `DateTimeFormatter` và `MessageFormat` cho locale hiện tại.
-- Ngày và số được **format lại từ typed values**, không parse `"March 5, 2025"` hay `"1,234.50"` rồi đoán ngược.
-- Mỗi ngôn ngữ có **toàn câu** `welcome` với placeholder `{0}`; người dịch có thể đổi thứ tự tham số nếu cần.
-- Toàn bộ file `.properties` và Java literal được lưu UTF-8; `javac -encoding UTF-8` giúp tránh khác biệt khi biên dịch trên môi trường cũ.
+- `Order` is an immutable `record`: the exact same source data is rendered twice.
+- `changeLanguage` updates the **screen's** `Locale`, never calling `Locale.setDefault`.
+- `render` reselects `ResourceBundle`, `NumberFormat`, `DateTimeFormatter`, and `MessageFormat` for the current locale.
+- Date and number are **reformatted from typed values**, rather than parsing `"March 5, 2025"` or `"1,234.50"` and guessing backward.
+- Each language owns the **full sentence** `welcome` with placeholder `{0}`; translators can adjust parameter order if needed.
+- All `.properties` files and Java literals are saved in UTF-8; `javac -encoding UTF-8` prevents compilation differences on older environments.
 
-**Giới hạn:** ví dụ console chỉ mô phỏng sự kiện. Trong GUI, `render` sẽ cập nhật component hoặc observable state; dữ liệu nguyên tắc không đổi.
+**Scope limit:** the console example only simulates events. In a GUI, `render` updates components or observable state; underlying data rules remain identical.
 
-## 6. ResourceBundle: đổi locale khác với reload file
+## 6. `ResourceBundle`: Switching Locales Differs from Reloading Files
 
-`ResourceBundle.getBundle("Messages", locale)` chọn bundle tương ứng. Nếu đã có `ResourceBundle english`, nó **không trở thành tiếng Việt** khi state đổi.
+`ResourceBundle.getBundle("Messages", locale)` selects the matching bundle. An already-fetched `ResourceBundle english` **does not turn into Vietnamese** when state changes.
 
 ~~~java
 ResourceBundle english = ResourceBundle.getBundle(
@@ -288,30 +288,30 @@ ResourceBundle vietnamese = ResourceBundle.getBundle(
         "Messages", Locale.forLanguageTag("vi-VN"));
 ~~~
 
-Đây là mảnh mã trong method, cần import `java.util.ResourceBundle` và `java.util.Locale`.
+This is a fragment inside a method requiring imports for `java.util.ResourceBundle` and `java.util.Locale`.
 
-### Cache có phải vấn đề?
+### Is Caching a Problem?
 
-`ResourceBundle` có cache để tránh nạp lại cùng file. Khi đổi `en-US` → `vi-VN`, bạn đang **yêu cầu một locale khác**; không phải đang sửa file nguồn. Vì vậy bình thường **không gọi `ResourceBundle.clearCache()` mỗi lần switch**.
+`ResourceBundle` caches bundles to avoid reloading the same file repeatedly. Switching `en-US` → `vi-VN` **requests a different locale**; it does not modify source files. Normally, therefore, **do not call `ResourceBundle.clearCache()` on every switch**.
 
-Chỉ cân nhắc invalidation khi **nội dung file bundle thay đổi tại runtime**. Với tài nguyên đóng gói cùng JAR, thường chỉ thay trong release mới. Với nguồn live, cần policy TTL/needsReload hoặc cơ chế provider. Không nhầm việc lấy bundle khác với làm mới bản ghi trong cache.
+Consider invalidation only when **bundle file contents change at runtime**. For resources packaged inside a JAR, changes normally ship only in a new release. For live external sources, define a TTL/`needsReload` policy or custom provider mechanism. Do not confuse looking up another bundle with refreshing a cached entry.
 
-### Fallback và missing key
+### Fallback and Missing Keys
 
-`ResourceBundle` tìm các locale ứng viên và kế thừa khóa qua parent. Nếu `Messages_vi_VN.properties` không có nhưng `Messages_vi.properties` có, ứng dụng có thể dùng bản `vi`. Tuy vậy, nếu không có tài nguyên theo locale yêu cầu, thuật toán fallback mặc định còn có thể xét default locale JVM.
+`ResourceBundle` searches candidate locales and inherits keys from parent bundles. If `Messages_vi_VN.properties` is absent while `Messages_vi.properties` exists, the app can use the `vi` bundle. However, if no resource exists for the requested locale, the default fallback algorithm may consult the JVM's default locale.
 
-Để không rò ngôn ngữ server vào giao diện:
+To prevent server language from leaking into the UI:
 
-- Chỉ cho chọn **supported locales**; kiểm tra tài nguyên sẵn có.
-- Có **fallback business** có chủ đích, chẳng hạn tiếng Anh cho key thiếu.
-- Với classpath/unnamed module, có thể dùng `ResourceBundle.Control.getNoFallbackControl` nếu muốn chặn fallback sang default JVM, nhưng vẫn giữ candidate/parent root.
-- Với **named modules** (JPMS), overload `ResourceBundle.getBundle(..., Control)` không được hỗ trợ; phải dùng cơ chế module/provider.
+- Allow choosing only **supported locales**; verify available resources.
+- Define an intentional **business fallback**, such as English for missing keys.
+- On classpath/unnamed modules, you can use `ResourceBundle.Control.getNoFallbackControl` to suppress fallback to the JVM default while keeping candidate/parent root chains.
+- In **named modules** (JPMS), `ResourceBundle.getBundle(..., Control)` is unsupported; use module/provider mechanisms instead.
 
-`MissingResourceException` có thể xuất hiện khi thiếu bundle hoặc key; nên kiểm tra key đầy đủ tại build/QA và có lỗi/fallback rõ ràng, không âm thầm trả chuỗi trống.
+`MissingResourceException` can be thrown on a missing bundle or key; validate key completeness at build/QA time and define explicit error/fallback handling rather than silently returning empty strings.
 
-## 7. NumberFormat: tạo lại theo locale, giữ số gốc
+## 7. `NumberFormat`: Recreate per Locale, Keep the Underlying Number
 
-Ví dụ:
+Example:
 
 ~~~java
 BigDecimal value = new BigDecimal("1234.50");
@@ -329,18 +329,18 @@ System.out.println(en.format(value));
 System.out.println(vn.format(value));
 ~~~
 
-Đây là mảnh mã trong method, cần import `BigDecimal`, `Locale`, `NumberFormat`. Dữ liệu locale JDK thường cho:
+This is a fragment inside a method requiring imports for `BigDecimal`, `Locale`, and `NumberFormat`. Standard JDK locale data typically outputs:
 
 ~~~text
 1,234.50
 1.234,50
 ~~~
 
-`NumberFormat` và `DecimalFormat` là các đối tượng **mutable**, không được coi là thread-safe khi dùng chung không đồng bộ. Một formatter tạo với `Locale.US` không tự đổi cấu hình khi default locale thay đổi. Khi render nhiều user, tạo formatter theo request hoặc clone/cấu hình riêng cho từng tác vụ.
+`NumberFormat` and `DecimalFormat` are **mutable** and must not be treated as thread-safe when shared without synchronization. A formatter created for `Locale.US` does not change when the default locale changes. When rendering for multiple users, create formatters per request or clone/configure per task.
 
-### Ngôn ngữ không tự đổi đơn vị tiền
+### Language Does Not Automatically Change Currency Units
 
-Nếu một đơn hàng là **USD**, đổi UI sang tiếng Việt không làm nó thành VND. Để hiển thị:
+If an order is in **USD**, switching the UI to Vietnamese does not turn it into VND. To display it:
 
 ~~~java
 Currency usd = Currency.getInstance("USD");
@@ -349,11 +349,11 @@ money.setCurrency(usd);
 String shown = money.format(amount);
 ~~~
 
-Đây là mảnh mã trong method; cần import `java.util.Currency`, `java.text.NumberFormat` và có biến `locale`, `amount`. `setCurrency` thay currency được hiển thị nhưng **không thực hiện chuyển đổi tỷ giá**. Nó cũng không luôn tự điều chỉnh fraction digits đã cấu hình; đối với tiền, cần thiết kế chính sách precision/rounding và currency identity.
+This is a fragment inside a method requiring imports for `java.util.Currency` and `java.text.NumberFormat`, plus `locale` and `amount` variables. `setCurrency` changes the displayed currency without **performing exchange-rate conversion**. Nor does it always adjust configured fraction digits automatically; for money, establish explicit precision/rounding and currency-identity policies.
 
-## 8. DateTimeFormatter: có thể dùng chung theo cấu hình rõ ràng
+## 8. `DateTimeFormatter`: Shareable with Explicit Configuration
 
-`DateTimeFormatter` trong `java.time` **bất biến và thread-safe**. `withLocale` tạo formatter mới:
+`DateTimeFormatter` in `java.time` is **immutable and thread-safe**. `withLocale` returns a new formatter:
 
 ~~~java
 DateTimeFormatter base =
@@ -364,9 +364,9 @@ DateTimeFormatter vietnamese = base.withLocale(
         Locale.forLanguageTag("vi-VN"));
 ~~~
 
-Đây là mảnh mã trong method, cần import `DateTimeFormatter`, `FormatStyle`, `Locale`. `base` không thay đổi.
+This is a fragment inside a method requiring imports for `DateTimeFormatter`, `FormatStyle`, and `Locale`. `base` remains unchanged.
 
-Khi hiển thị `Instant`, cần thêm `ZoneId`:
+When displaying an `Instant`, add `ZoneId`:
 
 ~~~java
 Instant moment = Instant.parse("2025-03-05T10:15:30Z");
@@ -380,17 +380,17 @@ DateTimeFormatter f = DateTimeFormatter
 String displayed = f.format(moment);
 ~~~
 
-Đây là mảnh mã trong method, cần import `java.time.Instant`, `ZoneId`, `DateTimeFormatter`, `FormatStyle` và biến `locale`.
+This is a fragment inside a method requiring imports for `java.time.Instant`, `ZoneId`, `DateTimeFormatter`, and `FormatStyle`, plus a `locale` variable.
 
-**Đổi `Locale` khác với đổi `ZoneId`.** Người dùng có thể muốn UI tiếng Anh tại Việt Nam, hoặc UI tiếng Việt trong múi giờ Berlin. Giữ các lựa chọn tách biệt nếu nghiệp vụ yêu cầu.
+**Changing `Locale` differs from changing `ZoneId`.** A user may want an English UI in Vietnam, or a Vietnamese UI in Berlin's time zone. Keep those settings separate when business requirements allow it.
 
-## 9. MessageFormat: setLocale không cập nhật mọi subformat cũ
+## 9. `MessageFormat`: `setLocale` Does Not Update Existing Subformats
 
-`MessageFormat` hỗ trợ câu có tham số theo ngôn ngữ. Tuy nhiên, Javadoc nêu rõ **`setLocale` không tự cập nhật các đối tượng `Format` đã tạo trước đó do `applyPattern`**. Một code cũ giữ `MessageFormat` chứa `{0,number}` và chỉ gọi `setLocale` có thể vẫn in số kiểu locale cũ.
+`MessageFormat` supports localized parameterized sentences. However, its Javadoc states explicitly that **`setLocale` does not update `Format` objects previously created by `applyPattern`**. Legacy code keeping a `MessageFormat` with `{0,number}` and calling only `setLocale` can continue formatting numbers in the old locale.
 
-### Ví dụ Java 17+ đầy đủ
+### Complete Java 17+ Example
 
-Tạo `MessageFormatSwitchDemo.java`:
+Create `MessageFormatSwitchDemo.java`:
 
 ~~~java
 import java.text.MessageFormat;
@@ -423,14 +423,14 @@ public class MessageFormatSwitchDemo {
 }
 ~~~
 
-Lệnh:
+Commands:
 
 ~~~bash
 javac -encoding UTF-8 MessageFormatSwitchDemo.java
 java MessageFormatSwitchDemo
 ~~~
 
-Đầu ra đã kiểm tra trong JDK:
+Verified JDK output:
 
 ~~~text
 Before: 1,234.5
@@ -439,24 +439,24 @@ Re-apply pattern: 1.234,5
 Fresh formatter: 1.234,5
 ~~~
 
-**Khuyến nghị:** ở UI đổi locale, tạo `MessageFormat` mới với **pattern đã dịch của locale mới**. Nếu tái sử dụng, phải hiểu trạng thái mutable, `applyPattern` và các định dạng số/ngày đã được cấu hình thủ công. Không chia sẻ `MessageFormat` mutable giữa nhiều luồng không đồng bộ.
+**Recommendation:** when switching locales in a UI, construct a fresh `MessageFormat` with **the new locale's translated pattern**. If reusing instances, understand mutable state, `applyPattern`, and manually configured number/date subformats. Never share a mutable `MessageFormat` across threads without synchronization.
 
-### Câu thông điệp cần được dịch nguyên vẹn
+### Messages Must Be Translated as Complete Sentences
 
-Tránh nối:
+Avoid concatenating:
 
 ~~~java
 String s = bundle.getString("prefix")
         + " " + customer + " " + bundle.getString("suffix");
 ~~~
 
-Đây là mảnh mã trong method, có `bundle` và `customer` đã có. Cấu trúc câu giữa các ngôn ngữ có thể khác. Dùng `welcome=Welcome, {0}!` và `welcome=Xin chào, {0}!` để người dịch điều chỉnh trật tự tham số. Cần kiểm tra cách escape dấu nháy đơn trong `MessageFormat` và cân nhắc thư viện plural theo ngôn ngữ cho những thông điệp phức tạp.
+This is a fragment inside a method with existing `bundle` and `customer`. Sentence structure varies across languages. Use `welcome=Welcome, {0}!` and `welcome=Xin chào, {0}!` so translators control parameter order. Check `MessageFormat` single-quote escaping rules and consider locale-aware pluralization libraries for complex messages.
 
-## 10. GUI Swing: làm mới component khi đổi ngôn ngữ
+## 10. Swing GUI: Refreshing Components on Language Switch
 
-Một app Swing cần cập nhật **`JLabel`, title, các giá trị đã format và component orientation**, chứ không chỉ đổi một biến. Ví dụ sau dùng lại hai file `Messages_en.properties`, `Messages_vi.properties` của ví dụ 1, có đủ các key `title`, `welcome`, `date`, `quantity`, `name`, `language`.
+A Swing app needs to update **`JLabel`s, window title, formatted values, and component orientation**, not just reassign one variable. The example below reuses `Messages_en.properties` and `Messages_vi.properties` from Example 1, containing keys `title`, `welcome`, `date`, `quantity`, `name`, and `language`.
 
-Tạo `SwingLanguageSwitchDemo.java` trong cùng thư mục:
+Create `SwingLanguageSwitchDemo.java` in the same directory:
 
 ~~~java
 import java.awt.ComponentOrientation;
@@ -560,28 +560,28 @@ public class SwingLanguageSwitchDemo {
 }
 ~~~
 
-Biên dịch và chạy trong môi trường **có desktop/GUI**, không phải CI headless:
+Compile and run in a **desktop/GUI environment**, not headless CI:
 
 ~~~bash
 javac -encoding UTF-8 SwingLanguageSwitchDemo.java
 java -cp . SwingLanguageSwitchDemo
 ~~~
 
-### Những điều Swing demo đã xử lý
+### What the Swing Demo Handles
 
-- Cửa sổ mở một lần; người dùng chọn dropdown để đổi locale **ngay khi đang chạy**.
-- Event listener và cập nhật Swing được thực hiện trên **Event Dispatch Thread (EDT)** vì constructor được gọi qua `SwingUtilities.invokeLater`.
-- Cả label, tiêu đề frame, ngày, số và lời chào đều được **tính lại**.
-- `JTextField` của khách hàng được giữ nguyên; đổi ngôn ngữ **không xóa nội dung vừa nhập**.
-- `ComponentOrientation` cho phép layout nhận hướng gợi ý từ locale; với app RTL phức tạp cần kiểm tra từng widget và khả năng hỗ trợ của layout.
-- `revalidate`/`repaint`/`pack` giúp UI thích ứng khi bản dịch dài hơn.
-- Đối tượng `LocalDate` và `BigDecimal` của màn hình được giữ nguyên.
+- The window opens once; the user picks from the dropdown to switch locale **while running**.
+- Event listeners and Swing updates execute on the **Event Dispatch Thread (EDT)** because the constructor runs via `SwingUtilities.invokeLater`.
+- Labels, frame title, date, number, and greeting are all **recomputed**.
+- The customer `JTextField` is preserved; switching language **does not wipe out typed input**.
+- `ComponentOrientation` lets the layout adopt directional hints from the locale; complex RTL apps should test individual widgets and layout manager support.
+- `revalidate`/`repaint`/`pack` help the UI adapt when translations are longer.
+- The screen's `LocalDate` and `BigDecimal` objects remain intact.
 
-**Giới hạn để triển khai production:** demo không cập nhật lời chào trong lúc gõ tên; nếu cần live update, dùng `DocumentListener` phù hợp. Menu, tooltip, validation, accessible descriptions, table headers và các cửa sổ con phải có logic refresh tương tự. Một số component cần xử lý focus/selection hoặc layout riêng, không chỉ `applyComponentOrientation`.
+**Production limitations:** the demo does not update the greeting while typing the name; for live updates, attach an appropriate `DocumentListener`. Menus, tooltips, validation messages, accessible descriptions, table headers, and child windows need similar refresh logic. Some components also need focus/selection handling or custom layouts beyond `applyComponentOrientation`.
 
-## 11. Reactivity: locale là state, chuỗi được tính lại là derived data
+## 11. Reactivity: Locale Is State, Recomputed Strings Are Derived Data
 
-Trong GUI lớn, gán trực tiếp bằng hàng trăm `label.setText(...)` có thể dễ bỏ sót. Kiến trúc MVVM/reactive cho phép định nghĩa:
+In large GUIs, manually writing hundreds of `label.setText(...)` calls is error-prone. MVVM/reactive architectures let you define:
 
 ~~~text
 localeState = vi-VN
@@ -593,35 +593,35 @@ localeState = vi-VN
    +--> orientation    = direction(localeState)
    |
    v
-View theo dõi derived values và re-render
+View observes derived values and re-renders
 ~~~
 
-Với JavaFX, có thể dùng observable property/binding; với web front-end, có thể dùng state management. Dù framework nào, **mọi derived value phải khai báo phụ thuộc locale**. Nếu date text được tính một lần trong constructor rồi cache mà không có invalidation, đổi language state không làm nó tự đổi.
+In JavaFX, you can use observable properties/bindings; in web frontends, use state management. Regardless of framework, **every derived value must declare its dependency on `locale`**. If date text is computed once in a constructor and cached without invalidation, changing language state will not update it.
 
-Phân biệt hai mô hình:
+Distinguish two models:
 
-- **Imperative:** method `applyLocale(locale)` cập nhật từng component. Phù hợp app nhỏ, yêu cầu checklist kỹ.
-- **Reactive:** locale là state và nhãn/số/ngày là derived values. Phù hợp nhiều màn hình; framework hỗ trợ invalidation nhưng vẫn phải quản lý cache và asynchronous updates.
+- **Imperative:** an `applyLocale(locale)` method updates each component. Works for small apps with a thorough checklist.
+- **Reactive:** locale is state and labels/numbers/dates are derived values. Scales across many screens; frameworks assist invalidation, though caches and async updates still require management.
 
-Không tạo một số locale copy riêng ở từng dialog mà không thông báo nhau, nếu sản phẩm yêu cầu mọi cửa sổ cùng đổi ngôn ngữ.
+Avoid keeping isolated copies of locale per dialog without synchronizing them if the product expects all windows to switch language together.
 
-## 12. Chuyển locale khi field đang được chỉnh sửa
+## 12. Switching Locale While a Field Is Being Edited
 
-Giả sử form đang nhập số theo en-US:
+Suppose a form is receiving a number in `en-US`:
 
 ~~~text
 1,234.50
 ~~~
 
-Trước khi người dùng submit, họ đổi sang vi-VN. Nếu code lấy chuỗi đó rồi parse bằng parser vi-VN, dấu `,` có thể được hiểu theo quy tắc **thập phân**, còn dấu `.` có thể là dấu nhóm. Điều đó có thể tạo giá trị sai hoặc parse chỉ phần đầu.
+Before submitting, the user switches to `vi-VN`. If code takes that string and feeds it to a `vi-VN` parser, `,` may be read as the **decimal separator**, and `.` as the grouping separator. That can yield the wrong value or parse only a prefix.
 
-Chọn một chính sách rõ:
+Choose an explicit policy:
 
-**Chính sách A — Giữ draft.** Nếu input chưa commit, giữ nguyên `JTextField.getText()` và lưu `localeAtEditStart`; chỉ đổi nhãn/hint cho tới khi người dùng hoàn tất edit. Khi commit, parse theo locale đã gắn với input hoặc yêu cầu xác nhận.
+**Policy A — Preserve draft.** While input is uncommitted, keep `JTextField.getText()` untouched and store `localeAtEditStart`; update only labels/hints until editing finishes. On commit, parse with the input's associated locale or ask for confirmation.
 
-**Chính sách B — Chuyển có kiểm soát.** Trước khi đổi, parse/validate input bằng **locale cũ** thành `BigDecimal`. Nếu hợp lệ và người dùng chấp nhận, format từ typed value sang locale mới, đồng thời xử lý focus/caret/selection.
+**Policy B — Controlled conversion.** Before switching, parse/validate the input using the **old locale** into a `BigDecimal`. If valid and accepted by the user, reformat from the typed value into the new locale while handling focus/caret/selection.
 
-**Không nên làm:**
+**Do not do this:**
 
 ~~~java
 NumberFormat parser =
@@ -629,27 +629,27 @@ NumberFormat parser =
 Number value = parser.parse(uncommittedText);
 ~~~
 
-Đây là mảnh mã **minh họa cách sai**, cần xử lý `ParseException`. `currentLocale` có thể đã đổi khác locale người dùng đang dùng khi gõ chuỗi.
+This snippet **illustrates the wrong approach** (and would also need `ParseException` handling). `currentLocale` may already differ from the locale the user was using while typing.
 
-`NumberFormat.parse` còn có thể chỉ đọc **tiền tố** hợp lệ; nếu cần validation chặt, dùng `ParsePosition` xác nhận toàn bộ chuỗi được tiêu thụ và kiểm tra đúng vị trí dấu nhóm, scale/range theo nghiệp vụ.
+`NumberFormat.parse` can also consume just a valid **prefix**; when strict validation is required, use `ParsePosition` to confirm the full string was consumed and check grouping positions, scale, and business bounds.
 
-## 13. Bất đồng bộ: không để kết quả ngôn ngữ cũ ghi đè UI mới
+## 13. Asynchrony: Prevent Stale-Language Results from Overwriting the New UI
 
-Ví dụ:
+Example:
 
 ~~~text
-t0: màn hình en-US; bắt đầu fetch
-t1: người dùng đổi sang vi-VN
-t2: response tiếng Anh quay lại sau khi đổi
-t3: nếu áp trực tiếp -> UI trộn English và Tiếng Việt
+t0: screen is en-US; fetch starts
+t1: user switches to vi-VN
+t2: English response arrives after the switch
+t3: if applied blindly -> UI mixes English and Vietnamese
 ~~~
 
-Hai biện pháp quan trọng:
+Two important safeguards:
 
-1. **Fetch dữ liệu nghiệp vụ trung tính** nếu có thể, rồi format theo locale **ngay tại lúc commit/render**.
-2. Với tác vụ trả về nội dung đã dịch hoặc đã format, kèm **locale/version/generation**; khi hoàn tất, chỉ áp kết quả nếu vẫn thuộc trạng thái hiện tại.
+1. **Fetch locale-neutral business data** when possible, then format for the current locale **right at commit/render time**.
+2. For tasks returning already-translated or pre-formatted content, attach a **locale/version/generation** token; on completion, apply the result only if it still matches current state.
 
-### Mẫu generation guard (mảnh code kiến trúc)
+### Generation Guard Pattern (Architectural Snippet)
 
 ~~~java
 final AtomicLong generation = new AtomicLong();
@@ -667,7 +667,7 @@ void startLoad() {
 
     fetchAsync().thenAccept(data -> {
         runOnUiThread(() -> {
-            // Kiểm tra bên trong UI callback, không chỉ trước enqueue.
+            // Check inside the UI callback, not just before enqueuing.
             if (version != generation.get()) {
                 return;
             }
@@ -677,15 +677,15 @@ void startLoad() {
 }
 ~~~
 
-Đây là **mảnh code không độc lập**, cần `AtomicLong` từ `java.util.concurrent.atomic`. Các method `fetchAsync`, `runOnUiThread`, `renderAll`, `renderData` do framework định nghĩa.
+This is a **non-standalone fragment** requiring `AtomicLong` from `java.util.concurrent.atomic`. `fetchAsync`, `runOnUiThread`, `renderAll`, and `renderData` are framework-supplied methods.
 
-**Vì sao kiểm tra bên trong UI callback?** Nếu chỉ kiểm tra generation trước khi enqueue vào EDT, người dùng có thể đổi locale giữa lúc kiểm tra và lúc callback thực sự chạy. Tốt hơn là kiểm tra lần cuối ở điểm commit.
+**Why check inside the UI callback?** If you check `generation` only before enqueuing onto the EDT, the user could switch locale between that check and when the callback actually executes. Perform the final check at the commit point.
 
-Với một app nhiều người dùng, generation phải có phạm vi theo **user/session/window**, không phải một số đếm toàn server khiến các user vô tình huỷ job của nhau.
+In a multi-user app, `generation` must be scoped per **user/session/window**, never a server-wide counter where users accidentally cancel each other's jobs.
 
-## 14. Tách uiLocale, formatLocale, zone và currency khi cần
+## 14. Separate `uiLocale`, `formatLocale`, `zone`, and `currency` When Needed
 
-Một số ứng dụng cho phép dùng ngôn ngữ English nhưng số theo quy tắc Đức, múi giờ Việt Nam và tiền USD. Không nhất thiết gom các lựa chọn thành một locale:
+Some applications allow English UI text alongside German number rules, Vietnam time zone, and USD currency. You do not have to collapse all choices into a single `Locale`:
 
 ~~~java
 record UserPreferences(
@@ -696,60 +696,60 @@ record UserPreferences(
 ) {}
 ~~~
 
-Đây là mảnh khai báo trong class, cần import `java.util.Locale`, `java.time.ZoneId` và `java.util.Currency`.
+This is a declaration snippet inside a class requiring imports for `java.util.Locale`, `java.time.ZoneId`, and `java.util.Currency`.
 
-Các tầng dùng đúng thuộc tính:
+Each layer uses the right attribute:
 
-| Thuộc tính | Nhiệm vụ |
+| Attribute | Responsibility |
 | --- | --- |
-| `uiLocale` | Chọn `ResourceBundle`, tên nút, trợ giúp, message |
-| `formatLocale` | Format số, ngày theo quy ước được chọn |
-| `zone` | Đổi `Instant` thành giờ địa phương |
-| `currency` | Đơn vị tiền của giá trị, không phải tỷ giá |
-| `measurementSystem` (nếu có) | Chính sách đơn vị, ví dụ km/mi |
+| `uiLocale` | Picks `ResourceBundle`, button names, help text, messages |
+| `formatLocale` | Formats numbers and dates per chosen convention |
+| `zone` | Converts `Instant` into local time |
+| `currency` | Currency unit of the value, not an exchange rate |
+| `measurementSystem` (if any) | Unit policy, e.g., km/mi |
 
-Với ứng dụng nhỏ, dùng một locale chung có thể đủ. Nhưng nếu nghiệp vụ đã yêu cầu những lựa chọn độc lập thì không tự đổi zone/currency khi người dùng chỉ chọn ngôn ngữ.
+For small applications, one shared locale may suffice. Once business requirements allow independent settings, never silently alter `zone` or `currency` when the user only picks a language.
 
-## 15. Đổi ngôn ngữ còn liên quan chiều chữ, trợ năng và layout
+## 15. Language Switching Also Touches Text Direction, Accessibility, and Layout
 
-Tiếng Việt và tiếng Anh thường LTR. Ứng dụng mở rộng sang tiếng Ả Rập hoặc Hebrew có thể cần:
+Vietnamese and English are typically LTR. Expanding to Arabic or Hebrew can require:
 
-- Cập nhật hướng nền của container/paragraph theo locale phù hợp.
-- Căn chỉnh nhãn, thứ tự icon/text, vị trí button và định hướng bảng.
-- Cô lập URL/email/mã sản phẩm LTR nằm trong một câu RTL.
-- Cập nhật accessible name/description cho screen reader.
-- Cập nhật tooltip, alt text và những chuỗi đã cache trong menu/dialog.
-- Kiểm tra font fallback, dấu kết hợp và sự thay đổi chiều dài bản dịch.
-- Đảm bảo thứ tự logic của dữ liệu và ID **không bị đảo** theo thứ tự hiển thị.
+- Updating container/paragraph base direction for the target locale.
+- Aligning labels, icon/text order, button order, and table orientation.
+- Isolating LTR URLs, emails, or product codes embedded inside RTL sentences.
+- Updating accessible names/descriptions for screen readers.
+- Updating tooltips, alt text, and cached strings in menus/dialogs.
+- Checking font fallback, combining marks, and translation length changes.
+- Ensuring logical order of data and IDs is **never reversed** to match visual order.
 
-Trong Swing, `ComponentOrientation.getOrientation(locale)` là điểm bắt đầu; trong HTML có `dir` và phần tử `bdi`. Không dùng `new StringBuilder(text).reverse()` để “đổi sang RTL”: đảo chuỗi có thể làm hỏng số, dấu câu, emoji và ngữ pháp.
+In Swing, `ComponentOrientation.getOrientation(locale)` is the starting point; in HTML, use `dir` and `<bdi>`. Never call `new StringBuilder(text).reverse()` to "convert to RTL": reversing strings breaks numbers, punctuation, emojis, and grammar.
 
-Đối với một ngày đã format, dùng `DateTimeFormatter.ofLocalizedDate` thường tốt hơn việc ép một pattern ngày/tháng/năm cố định cho mọi locale. Với tên tháng đứng độc lập trong tiêu đề lịch, có thể dùng `LLLL` thay `MMMM` ở các ngôn ngữ có hai dạng tên tháng.
+For formatted dates, `DateTimeFormatter.ofLocalizedDate` is usually better than forcing a fixed day/month/year pattern across all locales. For standalone month names in calendar headers, use `LLLL` instead of `MMMM` in languages that distinguish standalone vs. formatting month forms.
 
-## 16. Các vùng UI cần refresh và tiêu chí hoàn tất
+## 16. UI Areas to Refresh and Completion Criteria
 
-| Vùng cần xem | Ví dụ | Cần làm gì |
+| Area to check | Examples | What to do |
 | --- | --- | --- |
-| Header | Tiêu đề cửa sổ, thanh điều hướng | Lấy text theo locale mới |
-| Điều khiển | Button, menu, tab | Lấy label/shortcut/tooltip phù hợp |
-| Form | Label, hint, placeholder | Đổi text nhưng giữ draft người dùng |
-| Validation | Error, warning, inline help | Dịch lại lỗi đang hiện, không bỏ mất trạng thái lỗi |
-| Thông báo | Snackbar, toast, dialog | Chọn update/đóng/để lịch sử theo policy |
-| Bảng | Header, cells số/ngày | Gọi lại renderer với locale mới |
-| Biểu đồ | Axis ticks, legends | Format lại nhãn từ số liệu nguồn |
-| Calendar | Tên tháng, thứ trong tuần | Chọn format theo locale |
-| Tài liệu | Preview, email, export | Dùng locale của recipient/job |
-| Accessibility | Accessible names, descriptions | Cập nhật văn bản trợ năng |
-| Hướng chữ | LTR/RTL | Cập nhật orientation/isolation |
-| Async | Dữ liệu đến sau | Guard version hoặc re-render với locale hiện tại |
+| Header | Window title, navigation bar | Fetch text for new locale |
+| Controls | Buttons, menus, tabs | Update labels/shortcuts/tooltips |
+| Forms | Labels, hints, placeholders | Update text while preserving user drafts |
+| Validation | Errors, warnings, inline help | Re-translate active errors without losing error state |
+| Notifications | Snackbars, toasts, dialogs | Update/dismiss/keep history per policy |
+| Tables | Headers, numeric/date cells | Re-run renderers with new locale |
+| Charts | Axis ticks, legends | Reformat labels from source numbers |
+| Calendars | Month names, weekdays | Format according to locale |
+| Documents | Previews, emails, exports | Use recipient/job locale |
+| Accessibility | Accessible names, descriptions | Refresh screen-reader text |
+| Text direction | LTR/RTL | Update orientation and isolation |
+| Async | Late-arriving data | Version guard or re-render with current locale |
 
-**Không chỉ gọi `repaint()`:** UI cần **được gán các chuỗi mới** trước khi vẽ. `repaint` chỉ dùng text đã có.
+**Never just call `repaint()`:** the UI must **receive the new strings** before painting. `repaint` only draws existing text.
 
-## 17. Ví dụ 3 — Tự kiểm thử lựa chọn tài nguyên và bảo toàn dữ liệu
+## 17. Example 3 — Self-Testing Resource Selection and Data Preservation
 
-Bài kiểm thử dưới đây không cần framework JUnit. Dùng lại `Messages_en.properties` và `Messages_vi.properties` từ ví dụ 1.
+The test below needs no JUnit framework. Reuse `Messages_en.properties` and `Messages_vi.properties` from Example 1.
 
-Tạo `LocaleSwitchSelfTest.java`:
+Create `LocaleSwitchSelfTest.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -816,14 +816,14 @@ public class LocaleSwitchSelfTest {
 }
 ~~~
 
-Biên dịch/chạy trong thư mục resources:
+Compile and run in the resources directory:
 
 ~~~bash
 javac -encoding UTF-8 LocaleSwitchSelfTest.java
 java -cp . LocaleSwitchSelfTest
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 PASS: translations selected by locale
@@ -831,44 +831,44 @@ PASS: locale-specific formatting performed
 PASS: typed domain data unchanged
 ~~~
 
-Test tập trung vào **hợp đồng**: đúng catalog, format theo locale được yêu cầu, domain data không đổi. Nó không buộc chuỗi date/number phải có từng dấu câu giống nhau ở mọi JDK/provider. Nếu sản phẩm cần exact output, hãy ràng buộc phiên bản JDK/CLDR hoặc kiểm tra môi trường triển khai thật.
+The test focuses on **the contract**: right catalog, formatting per requested locale, unchanged domain data. It does not require date/number strings to share identical punctuation across every JDK/provider. If a product requires exact literal output, pin the JDK/CLDR version or test on the actual deployment environment.
 
-## 18. Ma trận kiểm thử end-to-end
+## 18. End-to-End Test Matrix
 
-| Kịch bản | Cách thử | Kết quả mong muốn |
+| Scenario | How to test | Expected result |
 | --- | --- | --- |
-| Đổi en → vi → en | Chuyển nhiều lần trên cùng màn hình | Không còn nhãn lạc locale |
-| Định dạng | Một `BigDecimal` và `LocalDate` | Chuỗi đổi, giá trị gốc không đổi |
-| Thiếu key | Bỏ một resource key trong bản test | Fallback hoặc thông báo rõ theo policy |
-| Locale chưa hỗ trợ | Chọn `fr-CA` khi chỉ có en,vi | Không âm thầm lấy ngôn ngữ server |
-| User input | Nhập số en rồi đổi vi | Không parse nhầm, không reset field |
-| Async race | Đổi locale trước response | Không nhận stale text |
-| Multi-user | Hai request vi/en chạy song song | Không rò locale |
-| Currency | Order lưu USD | Vẫn USD sau đổi UI |
-| Zone | Instant + timezone cố định | Không lệch giờ chỉ do đổi language |
-| RTL | Chuyển sang ngôn ngữ RTL | Layout/markup không làm hỏng URL/số |
-| Swing EDT | Đổi dropdown trong UI | Không cập nhật component ngoài EDT |
-| Build resources | Đóng gói .properties vào JAR | ResourceBundle tìm được tệp |
-| Java upgrade | Chạy trên các JDK được hỗ trợ | Những khác biệt CLDR được đánh giá |
+| Switch en → vi → en | Toggle repeatedly on the same screen | No leftover labels from previous locale |
+| Formatting | One `BigDecimal` and `LocalDate` | Strings update, source values stay unchanged |
+| Missing key | Remove a resource key in a test bundle | Explicit fallback or error per policy |
+| Unsupported locale | Choose `fr-CA` when only en, vi exist | Never silently picks server language |
+| User input | Type en number then switch to vi | Does not misparse or wipe field |
+| Async race | Switch locale before response arrives | Never applies stale text |
+| Multi-user | Run vi and en requests concurrently | Zero locale leakage |
+| Currency | Order stored in USD | Remains USD after UI switch |
+| Zone | Fixed Instant + time zone | Hours do not shift just from language switch |
+| RTL | Switch to an RTL language | Layout/markup does not scramble URLs/numbers |
+| Swing EDT | Change dropdown in UI | No component updates off the EDT |
+| Build resources | Package `.properties` into JAR | `ResourceBundle` locates files properly |
+| Java upgrades | Run across supported JDKs | CLDR differences are reviewed |
 
-### Những lỗi thường gặp
+### Common Mistakes
 
-- **`Locale.setDefault` trong request:** tạo cuộc đua giữa nhiều user; truyền locale tường minh.
-- **Chỉ đổi trạng thái mà không render:** label/tooltip vẫn cũ; invalidate derived presentation.
-- **Cache chuỗi số/ngày cho mọi user:** hiển thị sai dấu; cache typed data hoặc key có locale.
-- **Giữ `MessageFormat` rồi chỉ `setLocale`:** subformat cũ tồn tại; tạo lại hoặc `applyPattern` đúng.
-- **Tái sử dụng `NumberFormat` mutable giữa request:** có thể race; tạo theo request.
-- **Đổi locale thì gọi `ResourceBundle.clearCache`:** không cần thiết nếu file không đổi.
-- **Đổi language đồng thời đổi currency/zone:** sửa nghĩa giao dịch; tách những quyết định đó.
-- **Format lại draft chưa commit:** mất dữ liệu/nhầm dấu; lưu locale của input ban đầu.
-- **Quên thông báo async:** English cũ ghi đè Vietnamese mới; generation guard ở điểm commit.
-- **Không cập nhật accessibility text và layout:** UI mới chỉ được dịch bề mặt.
-- **Dịch message bằng nối nhiều mảnh:** sai trật tự ngữ pháp; dịch cả pattern.
-- **Chỉ test English:** khó phát hiện lỗi dấu, RTL, tên tháng biến cách hoặc plural.
+- **`Locale.setDefault` per request:** creates races across users; pass `Locale` explicitly.
+- **Updating state without re-rendering:** labels/tooltips stay stale; invalidate derived presentation.
+- **Caching formatted number/date strings globally:** shows wrong separators; cache typed data or include locale in cache keys.
+- **Keeping `MessageFormat` and calling only `setLocale`:** old subformats persist; recreate or call `applyPattern` properly.
+- **Reusing mutable `NumberFormat` across requests:** risks races; instantiate per request.
+- **Calling `ResourceBundle.clearCache` on every locale switch:** unnecessary when files have not changed.
+- **Changing currency/zone when changing language:** alters transaction meaning; keep those decisions separate.
+- **Reformatting uncommitted drafts:** loses data or flips separators; track the input's original locale.
+- **Forgetting async notifications:** stale English overwrites new Vietnamese; guard with generation at commit time.
+- **Ignoring accessibility text and layout:** leaves the UI only superficially translated.
+- **Translating messages by concatenating fragments:** breaks grammar order; translate whole patterns.
+- **Testing only English:** misses separator, RTL, inflected month names, and plural bugs.
 
-## 19. Lưu ngôn ngữ người dùng cho lần mở tiếp theo
+## 19. Saving User Language for the Next Launch
 
-Dùng **BCP 47 language tag** thay vì lưu một chuỗi tùy ý:
+Store a **BCP 47 language tag** instead of an arbitrary display string:
 
 ~~~java
 Locale selected = Locale.forLanguageTag("vi-VN");
@@ -876,50 +876,50 @@ String stored = selected.toLanguageTag(); // vi-VN
 Locale restored = Locale.forLanguageTag(stored);
 ~~~
 
-Đây là mảnh mã trong method, cần import `java.util.Locale`.
+This is a fragment inside a method requiring `import java.util.Locale`.
 
-Nguồn có thể là cài đặt tài khoản, cookie/session, cấu hình trên máy, lựa chọn tạm thời của cửa sổ hoặc `Accept-Language` của request đầu tiên. Cần xác định **thứ tự ưu tiên**: lựa chọn tường minh của người dùng thường nên mạnh hơn gợi ý từ browser, trong khi cấu hình mặc định của server chỉ là fallback được định nghĩa.
+Sources may include account settings, cookies/sessions, local config, a window's temporary selection, or the initial request's `Accept-Language`. Define a **precedence order**: explicit user selection should generally override browser hints, while server defaults act only as a defined fallback.
 
-`Locale.forLanguageTag` không đảm bảo ứng dụng có đầy đủ resource cho locale đó. Luôn map sang **supported locales** đã được test; cần chính sách fallback hoặc lựa chọn gần nhất nếu bản dịch không có.
+`Locale.forLanguageTag` does not guarantee the application has complete resources for that locale. Always map to **tested supported locales**, with an explicit fallback or closest-match policy when translations are missing.
 
-## 20. Bài tập thực hành
+## 20. Practice Exercises
 
-1. Thêm `Messages_de.properties` vào console demo và cho người dùng đổi `en-US → de-DE → vi-VN`; xác nhận không sửa `Order`.
-2. Thêm một cột percentage và một giá tiền USD; phân biệt chọn locale hiển thị với loại tiền và tỷ giá.
-3. Dùng `MessageFormatSwitchDemo` giải thích tại sao `setLocale` không đủ để cập nhật subformat đã tạo.
-4. Với Swing demo, thêm một menu, tooltip và thông báo lỗi; đảm bảo các nội dung đang hiện được cập nhật khi đổi ngôn ngữ.
-5. Tạo form nhập `1,234.50` khi en-US rồi đổi vi-VN trong lúc đang gõ; thiết kế chính sách không làm mất ý nghĩa.
-6. Viết test cho hai user chạy song song, một dùng vi-VN và một dùng en-US, không có lệnh `Locale.setDefault` nào.
-7. Tạo tác vụ HTTP trả chuỗi đã format en-US sau khi UI đổi sang vi-VN; dùng generation guard để tránh stale result.
-8. Thử locale `ar-EG` để kiểm tra hướng RTL, hiển thị URL/email và layout.
-9. Tách `uiLocale` và `formatLocale`: UI English, số định dạng Đức; giải thích cách định nghĩa resource/formatter.
-10. Đặt một key thiếu trong bundle tiếng Việt; xác định chính sách fallback và cách thông báo lỗi trong QA.
-11. Giải thích khác nhau giữa đổi locale selection và cập nhật file resource đang cache.
-12. Khi ngày hoặc số hiển thị thay đổi sau nâng JDK, xác định nguyên nhân nằm ở dữ liệu CLDR, locale hay model nghiệp vụ.
+1. Add `Messages_de.properties` to the console demo and let the user cycle `en-US → de-DE → vi-VN`; verify `Order` stays untouched.
+2. Add a percentage column and a USD price; distinguish display locale selection from currency unit and exchange rate.
+3. Use `MessageFormatSwitchDemo` to explain why `setLocale` alone is not enough to update previously built subformats.
+4. In the Swing demo, add a menu, tooltip, and validation error message; ensure visible items all refresh on language switch.
+5. Build a form accepting `1,234.50` in `en-US` and switching to `vi-VN` mid-edit; design a policy that preserves meaning.
+6. Write a test for two concurrent users, one using `vi-VN` and one using `en-US`, without a single `Locale.setDefault` call.
+7. Simulate an HTTP task returning an `en-US` formatted string after the UI switched to `vi-VN`; use a generation guard to reject the stale result.
+8. Test locale `ar-EG` to verify RTL direction, URL/email display, and layout.
+9. Separate `uiLocale` and `formatLocale`: English UI, German number formatting; explain how to wire resources and formatters.
+10. Remove a key from the Vietnamese bundle; define the fallback policy and how QA reports the gap.
+11. Explain the difference between changing the selected locale and reloading a cached resource file.
+12. When displayed dates or numbers change after a JDK upgrade, determine whether the cause lies in CLDR data, locale, or the business model.
 
-## 21. Checklist triển khai
+## 21. Implementation Checklist
 
-1. Đặt **locale trong state của đúng phiên/cửa sổ/request**, không đổi default locale toàn JVM.
-2. Lưu dữ liệu typed như `BigDecimal`, `LocalDate`, `Instant`, `Currency`; coi chuỗi format là derived.
-3. Chọn `ResourceBundle` theo locale mới; định nghĩa supported locales và fallback.
-4. Chọn formatter theo locale mới; chú ý tính mutable của `NumberFormat`/`MessageFormat`.
-5. Re-render **toàn bộ** component phụ thuộc locale, không chỉ label chính.
-6. Xử lý form chưa commit, giữ draft và kiểm soát locale dùng để parse.
-7. Tách locale khỏi timezone, currency, exchange rate và đơn vị đo.
-8. Refresh accessibility, orientation và bố cục khi cần RTL.
-9. Chặn async result cũ hoặc format lúc commit theo locale hiện hành.
-10. Kiểm thử luân phiên locale, nhiều người dùng, resource thiếu, CI/headless và phiên bản JDK.
-11. Chỉ invalidate cache bundle khi **nguồn bản dịch thay đổi**, không phải mọi lần switch.
-12. Ghi nhận language tag BCP 47 để khôi phục lựa chọn của người dùng.
+1. Store **locale in the right session/window/request state**, never mutating the JVM-wide default locale.
+2. Keep typed data such as `BigDecimal`, `LocalDate`, `Instant`, and `Currency`; treat formatted strings as derived.
+3. Select `ResourceBundle` for the new locale; define supported locales and fallbacks.
+4. Select formatters for the new locale; account for mutability in `NumberFormat`/`MessageFormat`.
+5. Re-render **all** locale-dependent components, not just primary labels.
+6. Handle uncommitted forms carefully, preserving drafts and tracking the parsing locale.
+7. Keep locale separate from time zone, currency, exchange rates, and measurement units.
+8. Refresh accessibility text, orientation, and layout when RTL is needed.
+9. Reject stale async results or format at commit time using the active locale.
+10. Test repeated locale toggling, multi-user concurrency, missing resources, headless CI, and JDK versions.
+11. Invalidate bundle caches only when **translation sources change**, not on every switch.
+12. Persist a BCP 47 language tag to restore the user's choice.
 
-**Ghi nhớ:** Đổi ngôn ngữ đang chạy là **thay đổi trạng thái trình bày**, không phải phép biến đổi dữ liệu nguồn. Một `Locale` mới không tự đổi `String` hay formatter đã tạo. Hãy **giữ dữ liệu typed → đổi locale context → chọn lại bundle/formatter → làm mới UI → kiểm tra async và input đang sửa**. Đó là cơ sở để xây dựng ứng dụng Java đa ngôn ngữ hoạt động nhất quán mà không cần khởi động lại.
+**Key takeaway:** Switching language at runtime is a **presentation-state change**, not a mutation of source data. A new `Locale` never automatically updates existing `String`s or formatters. **Keep data typed → update locale context → reselect bundles/formatters → refresh UI → guard async results and in-progress inputs.** That is the foundation for multilingual Java applications that behave consistently without restarting.
 
-### Tài liệu tham khảo
+### References
 
-- [Java SE 17 — Locale](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html) — BCP 47, default locale và phạm vi locale.
-- [Java SE 17 — ResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html) — tìm tài nguyên, fallback và cache.
-- [Java SE 17 — MessageFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/MessageFormat.html) — tham số thông điệp, locale, applyPattern.
-- [Java SE 17 — NumberFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.html) — số và tiền tệ.
-- [Java SE 17 — DateTimeFormatter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html) — ngày giờ và formatter bất biến.
-- [Java SE 17 — ComponentOrientation](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/java/awt/ComponentOrientation.html) — hướng hiển thị component.
-- [Java SE 17 — SwingUtilities](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/javax/swing/SwingUtilities.html) — cập nhật Swing trên EDT.
+- [Java SE 17 — Locale](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html) — BCP 47, default locale, and locale scoping.
+- [Java SE 17 — ResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html) — resource lookup, fallback, and caching.
+- [Java SE 17 — MessageFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/MessageFormat.html) — parameterized messages, locale, `applyPattern`.
+- [Java SE 17 — NumberFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.html) — numbers and currencies.
+- [Java SE 17 — DateTimeFormatter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html) — dates/times and immutable formatters.
+- [Java SE 17 — ComponentOrientation](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/java/awt/ComponentOrientation.html) — component display direction.
+- [Java SE 17 — SwingUtilities](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/javax/swing/SwingUtilities.html) — Swing updates on the EDT.

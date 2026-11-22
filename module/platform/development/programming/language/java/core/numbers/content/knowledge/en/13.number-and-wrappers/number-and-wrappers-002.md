@@ -1,21 +1,21 @@
-# `Byte`, `Short`, `Integer`, `Long`, `Float` và `Double` trong Java
+# `Byte`, `Short`, `Integer`, `Long`, `Float`, and `Double` in Java
 
-## 1. Sáu lớp wrapper là gì?
+## 1. What Are the Six Wrapper Classes?
 
-Java có sáu kiểu nguyên thủy biểu diễn số được nhắc đến ở đây: `byte`, `short`, `int`, `long`, `float`, `double`. Mỗi kiểu có một **lớp bao (wrapper class)** tương ứng trong gói `java.lang`:
+Java has six primitive types representing numbers discussed here: `byte`, `short`, `int`, `long`, `float`, `double`. Each type has a corresponding **wrapper class** in the `java.lang` package:
 
-| Kiểu nguyên thủy | Lớp wrapper | Loại số | Độ rộng |
+| Primitive type | Wrapper class | Number kind | Width |
 | --- | --- | --- | ---: |
-| `byte` | `Byte` | Số nguyên có dấu | 8 bit |
-| `short` | `Short` | Số nguyên có dấu | 16 bit |
-| `int` | `Integer` | Số nguyên có dấu | 32 bit |
-| `long` | `Long` | Số nguyên có dấu | 64 bit |
-| `float` | `Float` | Dấu phẩy động nhị phân IEEE 754 | 32 bit |
-| `double` | `Double` | Dấu phẩy động nhị phân IEEE 754 | 64 bit |
+| `byte` | `Byte` | Signed integer | 8 bits |
+| `short` | `Short` | Signed integer | 16 bits |
+| `int` | `Integer` | Signed integer | 32 bits |
+| `long` | `Long` | Signed integer | 64 bits |
+| `float` | `Float` | IEEE 754 binary floating-point | 32 bits |
+| `double` | `Double` | IEEE 754 binary floating-point | 64 bits |
 
-Các wrapper này là những **đối tượng bất biến (immutable)**: sau khi tạo, giá trị bên trong không thay đổi. Chúng đều là lớp `final`, đều kế thừa lớp trừu tượng `java.lang.Number`, và hỗ trợ so sánh cùng kiểu qua `Comparable<T>`.
+These wrappers are **immutable objects**: once created, the internal value does not change. They are all `final` classes, all extend the abstract class `java.lang.Number`, and all support same-type comparison via `Comparable<T>`.
 
-Ví dụ:
+Example:
 
 ```java
 byte primitiveByte = 7;
@@ -28,17 +28,17 @@ double primitiveDouble = 0.5;
 Double wrappedDouble = Double.valueOf(primitiveDouble);
 ```
 
-Sự khác nhau quan trọng:
+Important differences:
 
-- **Primitive** (`int`, `double`...) trực tiếp biểu diễn giá trị kiểu nguyên thủy; không có phương thức instance và không thể là `null`.
-- **Wrapper** (`Integer`, `Double`...) là một tham chiếu tới đối tượng chứa giá trị; có phương thức hữu ích như `compareTo`, `intValue`, `toString`, `equals`, có thể là `null`, và dùng được ở nơi cần đối tượng hoặc kiểu tham số của generic.
-- `Byte`, `Short`, `Integer`, `Long` biểu diễn số nguyên theo độ rộng cố định; `Float`, `Double` biểu diễn số dấu phẩy động hữu hạn hoặc các giá trị đặc biệt như `NaN`, vô cực.
+- **Primitive** (`int`, `double`, etc.) directly represents a primitive-type value; it has no instance methods and cannot be `null`.
+- **Wrapper** (`Integer`, `Double`, etc.) is a reference to an object containing the value; it has useful methods like `compareTo`, `intValue`, `toString`, `equals`, can be `null`, and works where an object or a generic type argument is required.
+- `Byte`, `Short`, `Integer`, and `Long` represent fixed-width integers; `Float` and `Double` represent finite floating-point numbers or special values like `NaN` and infinity.
 
-Bài này tập trung vào sáu wrapper số kể trên. `Boolean`, `Character` cũng là wrapper của primitive nhưng không thuộc nhóm số kế thừa `Number`. `BigInteger` và `BigDecimal` là những kiểu số đối tượng khác, không tương ứng trực tiếp với một primitive.
+This lesson focuses on the six numeric wrappers listed above. `Boolean` and `Character` are also primitive wrappers, but do not belong to the numeric group extending `Number`. `BigInteger` and `BigDecimal` are other object numeric types that do not directly correspond to a primitive.
 
-## 2. Miền giá trị và các hằng số quan trọng
+## 2. Value Ranges and Key Constants
 
-### 2.1. Các wrapper số nguyên
+### 2.1. Integer wrappers
 
 | Wrapper | Primitive | `MIN_VALUE` | `MAX_VALUE` |
 | --- | --- | ---: | ---: |
@@ -47,7 +47,7 @@ Bài này tập trung vào sáu wrapper số kể trên. `Boolean`, `Character` 
 | `Integer` | `int` | `-2147483648` | `2147483647` |
 | `Long` | `long` | `-9223372036854775808` | `9223372036854775807` |
 
-Mỗi wrapper số nguyên có các hằng số `SIZE` (số bit), `BYTES` (số byte) và `TYPE` (đối tượng `Class` đại diện primitive tương ứng).
+Each integer wrapper has the constants `SIZE` (number of bits), `BYTES` (number of bytes), and `TYPE` (the `Class` object representing the corresponding primitive).
 
 ```java
 System.out.println(Integer.SIZE);  // 32
@@ -55,40 +55,40 @@ System.out.println(Long.BYTES);    // 8
 System.out.println(Integer.TYPE);  // int
 ```
 
-Đây là các dòng **minh họa trong một phương thức**, không phải một chương trình đầy đủ. Có thể dùng `Integer.MIN_VALUE` và `Integer.MAX_VALUE` khi kiểm tra miền trước khi chuyển từ `long` xuống `int`.
+These are **illustrative lines inside a method**, not a complete program. You can use `Integer.MIN_VALUE` and `Integer.MAX_VALUE` when checking range before narrowing from `long` to `int`.
 
-### 2.2. `Float` và `Double`: đừng hiểu sai `MIN_VALUE`
+### 2.2. `Float` and `Double`: do not misunderstand `MIN_VALUE`
 
-| Wrapper | Bit | `MAX_VALUE` | `MIN_VALUE` |
+| Wrapper | Bits | `MAX_VALUE` | `MIN_VALUE` |
 | --- | ---: | --- | --- |
-| `Float` | 32 | Khoảng `3.4028235E38` | Khoảng `1.4E-45`, **dương** |
-| `Double` | 64 | Khoảng `1.7976931348623157E308` | Khoảng `4.9E-324`, **dương** |
+| `Float` | 32 | About `3.4028235E38` | About `1.4E-45`, **positive** |
+| `Double` | 64 | About `1.7976931348623157E308` | About `4.9E-324`, **positive** |
 
-Với `Float`/`Double`, `MIN_VALUE` là **số dương khác 0 nhỏ nhất có thể biểu diễn** (số dưới chuẩn/subnormal), **không** phải số âm lớn nhất về độ lớn. Giá trị âm hữu hạn thấp nhất là `-Float.MAX_VALUE` hoặc `-Double.MAX_VALUE`.
+For `Float`/`Double`, `MIN_VALUE` is the **smallest representable nonzero positive number** (a subnormal number), **not** the negative number with the largest magnitude. The lowest finite negative value is `-Float.MAX_VALUE` or `-Double.MAX_VALUE`.
 
-Các hằng số hữu ích khác:
+Other useful constants:
 
-- `Float.MIN_NORMAL`, `Double.MIN_NORMAL`: số dương chuẩn hóa nhỏ nhất.
-- `Float.POSITIVE_INFINITY`, `Double.POSITIVE_INFINITY` và các hằng số `NEGATIVE_INFINITY`: vô cực dương/âm.
-- `Float.NaN`, `Double.NaN`: giá trị “không phải một số”.
+- `Float.MIN_NORMAL`, `Double.MIN_NORMAL`: smallest positive normal number.
+- `Float.POSITIVE_INFINITY`, `Double.POSITIVE_INFINITY` and the `NEGATIVE_INFINITY` constants: positive/negative infinity.
+- `Float.NaN`, `Double.NaN`: "Not-a-Number" value.
 - `Float.SIZE == 32`, `Double.SIZE == 64`; `Float.BYTES == 4`, `Double.BYTES == 8`.
 
-Hai kiểu dấu phẩy động có thể mất độ chính xác khi biểu diễn phân số thập phân hoặc số nguyên lớn. `Float` có khoảng 24 bit chính xác phần trị, `Double` có khoảng 53 bit; điều này khác với số bit tổng cộng của kiểu. Vì vậy, không chọn `Double` chỉ vì nó có thể chứa số rất lớn rồi mặc định mọi phép tính decimal đều chính xác tuyệt đối.
+Both floating-point types can lose precision when representing decimal fractions or large integers. `Float` has about 24 bits of significand precision, and `Double` has about 53 bits; this differs from the total bit width of the type. Therefore, do not choose `Double` just because it can hold very large numbers and assume all decimal calculations are completely exact.
 
-## 3. Mối quan hệ với `java.lang.Number`
+## 3. Relationship with `java.lang.Number`
 
-`Number` là một lớp trừu tượng để biểu diễn “một giá trị số” dưới dạng đối tượng. Cả sáu wrapper đều kế thừa nó. Các phương thức chuyển giá trị phổ biến của `Number` gồm:
+`Number` is an abstract class for representing "a numeric value" as an object. All six wrappers extend it. Common conversion methods of `Number` include:
 
-| Phương thức | Kiểu trả về | Ý nghĩa |
+| Method | Return type | Meaning |
 | --- | --- | --- |
-| `byteValue()` | `byte` | Lấy giá trị theo kiểu `byte` |
-| `shortValue()` | `short` | Lấy giá trị theo kiểu `short` |
-| `intValue()` | `int` | Lấy giá trị theo kiểu `int` |
-| `longValue()` | `long` | Lấy giá trị theo kiểu `long` |
-| `floatValue()` | `float` | Lấy giá trị theo kiểu `float` |
-| `doubleValue()` | `double` | Lấy giá trị theo kiểu `double` |
+| `byteValue()` | `byte` | Gets the value as `byte` |
+| `shortValue()` | `short` | Gets the value as `short` |
+| `intValue()` | `int` | Gets the value as `int` |
+| `longValue()` | `long` | Gets the value as `long` |
+| `floatValue()` | `float` | Gets the value as `float` |
+| `doubleValue()` | `double` | Gets the value as `double` |
 
-Ví dụ đa hình:
+Polymorphism example:
 
 ```java
 Number[] values = {
@@ -106,28 +106,28 @@ for (Number value : values) {
 }
 ```
 
-Nhờ `Number`, mã có thể đọc một **dạng giá trị số chung** từ các loại đối tượng khác nhau. Tuy nhiên, các phương thức `...Value()` không bảo đảm chuyển đổi chính xác:
+Thanks to `Number`, code can read a **common numeric form** from different kinds of objects. However, the `...Value()` methods do not guarantee exact conversions:
 
 ```java
 Number n = Integer.valueOf(257);
-byte narrowed = n.byteValue(); // 1: chỉ giữ 8 bit thấp
+byte narrowed = n.byteValue(); // 1: keeps only the low 8 bits
 ```
 
-Một `Long` lớn chuyển sang `double` có thể mất các bit phần trị; một `Double` có phần lẻ chuyển sang `int` bị cắt về 0 hoặc bão hòa tại biên; `Float.NaN` chuyển sang kiểu nguyên cho 0 theo quy tắc Java.
+A large `Long` converted to `double` can lose significand bits; a `Double` with a fractional part converted to `int` is truncated toward 0 or clamped at the boundary; `Float.NaN` converted to an integer type yields 0 per Java rules.
 
-**`Number` không định nghĩa `parse`, `valueOf`, `compareTo` hoặc `add` chung cho mọi subtype.** Những phương thức `parseXxx`, `valueOf`, `compare` là API riêng của các wrapper cụ thể. Việc một biến được khai báo `Number` không biến Java thành ngôn ngữ có toán tử số học đa hình trên đối tượng:
+**`Number` does not define a common `parse`, `valueOf`, `compareTo`, or `add` for all subtypes.** Methods like `parseXxx`, `valueOf`, and `compare` are APIs specific to concrete wrappers. Declaring a variable as `Number` does not turn Java into a language with polymorphic arithmetic operators on objects:
 
 ```java
 Number n = Integer.valueOf(12);
-int a = n.intValue();     // hợp lệ
-// int b = n + 1;         // không biên dịch: Number không tự unbox thành int
+int a = n.intValue();     // valid
+// int b = n + 1;         // does not compile: Number does not auto-unbox to int
 ```
 
-Muốn giữ nguyên kiểu cụ thể, hãy dùng `Integer`, `Long`, `Double` hoặc API/generic được thiết kế phù hợp, thay vì giả định `Number` tự động chuyển thành mọi primitive.
+When you want to preserve the concrete type, use `Integer`, `Long`, `Double`, or well-designed APIs/generics instead of assuming `Number` automatically converts to every primitive.
 
-## 4. Tạo wrapper: `valueOf`, autoboxing và constructor
+## 4. Creating Wrappers: `valueOf`, Autoboxing, and Constructors
 
-Cách thường dùng để tạo wrapper là **`valueOf`** hoặc để Java **autoboxing** (tự đóng hộp):
+The standard ways to obtain wrappers are **`valueOf`** or letting Java perform **autoboxing**:
 
 ```java
 Byte b = Byte.valueOf((byte) 10);
@@ -137,62 +137,62 @@ Long l = Long.valueOf(9_000_000_000L);
 Float f = Float.valueOf(1.25f);
 Double d = Double.valueOf(0.5);
 
-Integer autoInteger = 42; // compiler chèn thao tác boxing
-Double autoDouble = 0.5;  // autoboxing từ double
+Integer autoInteger = 42; // compiler inserts boxing operation
+Double autoDouble = 0.5;  // autoboxing from double
 ```
 
-Các wrapper là immutable; muốn có giá trị mới, gán một wrapper khác:
+Wrappers are immutable; to get a new value, assign a different wrapper:
 
 ```java
 Integer count = 5;
-count++; // unbox -> cộng 1 theo int -> box, rồi gán lại biến count
+count++; // unbox -> add 1 as int -> box, then reassign count
 ```
 
-Biến `count` đổi đối tượng mà nó tham chiếu; **đối tượng `Integer` ban đầu không bị sửa**. Do autoboxing tạo thao tác đối tượng, với vòng lặp và phép tính số học tần suất lớn thường ưu tiên primitive nếu không cần `null`/generic.
+The `count` variable switches the object it references; **the original `Integer` object is not modified**. Because autoboxing involves object operations, in tight loops and heavy arithmetic it is usually preferable to use primitives if `null`/generics are not needed.
 
-Không cần gọi `new Integer(...)`, `new Double(...)` và các constructor wrapper cổ điển. Các constructor kiểu này đã bị deprecated, nên ưu tiên `valueOf`/autoboxing để diễn đạt ý định rõ và cho phép JVM tái sử dụng đối tượng khi thích hợp.
+There is no need to call `new Integer(...)`, `new Double(...)`, or other legacy wrapper constructors. Constructors of this kind are deprecated, so prefer `valueOf`/autoboxing to express intent clearly and allow the JVM to reuse objects where appropriate.
 
-### Cảnh báo khi dùng `==` với wrapper
+### Warning when using `==` with wrappers
 
-`==` giữa **hai tham chiếu wrapper** kiểm tra chúng có chỉ vào cùng đối tượng không. `equals` kiểm tra giá trị theo hợp đồng của từng lớp. `Integer.valueOf` bắt buộc cache ít nhất các giá trị `-128` đến `127`, nhưng mã không nên phụ thuộc vào identity để so sánh số:
+`==` between **two wrapper references** checks whether they point to the same object. `equals` checks value according to each class's contract. `Integer.valueOf` is required to cache at least the values `-128` through `127`, yet code must not rely on identity to compare numbers:
 
 ```java
 Integer x = Integer.valueOf(100);
 Integer y = Integer.valueOf(100);
-System.out.println(x == y);      // true trong phạm vi cache được bảo đảm
+System.out.println(x == y);      // true within the guaranteed cache range
 
 Integer p = Integer.valueOf(200);
 Integer q = Integer.valueOf(200);
 System.out.println(p.equals(q));  // true
 ```
 
-Kết quả `p == q` **không được dùng làm quy tắc** vì phạm vi cache ngoài mức bảo đảm có thể thay đổi theo môi trường. Khi một bên là primitive và một bên wrapper, toán hạng wrapper có thể bị *unbox* để thực hiện so sánh số:
+The result of `p == q` **must not be relied upon as a rule**, because caching outside the guaranteed range can vary by environment. When one side is a primitive and the other is a wrapper, the wrapper operand can be *unboxed* to perform a numeric comparison:
 
 ```java
 Integer boxed = 42;
 int primitive = 42;
-System.out.println(boxed == primitive); // true: so sánh giá trị int
+System.out.println(boxed == primitive); // true: compares int values
 ```
 
-Vì các biểu thức nhìn giống nhau có thể mang nghĩa reference hoặc numeric, nên trong mã kiểm tra giá trị wrapper cùng kiểu hãy ưu tiên `equals` (có xử lý `null`) hoặc chuyển sang primitive một cách tường minh khi cần.
+Because expressions that look similar can carry reference or numeric semantics, when checking values of same-type wrappers, prefer `equals` (handling `null`) or convert to primitive explicitly when needed.
 
-## 5. Autoboxing, unboxing và `null`
+## 5. Autoboxing, Unboxing, and `null`
 
-**Autoboxing** là chuyển primitive thành wrapper; **unboxing** là chuyển wrapper thành primitive:
+**Autoboxing** converts a primitive into a wrapper; **unboxing** converts a wrapper into a primitive:
 
 ```java
 Integer boxed = 12; // autoboxing: int -> Integer
 int raw = boxed;     // unboxing: Integer -> int
 ```
 
-Unboxing một tham chiếu `null` ném `NullPointerException`:
+Unboxing a `null` reference throws `NullPointerException`:
 
 ```java
 Integer missing = null;
-// int n = missing; // NullPointerException khi chạy
+// int n = missing; // NullPointerException at runtime
 ```
 
-Bẫy này còn xuất hiện trong phép tính, so sánh với primitive hoặc toán tử `++`:
+This trap also shows up in arithmetic, comparisons with primitives, or the `++` operator:
 
 ```java
 Integer maybeCount = null;
@@ -200,40 +200,40 @@ Integer maybeCount = null;
 // maybeCount++;            // NullPointerException
 ```
 
-Nếu `null` mang nghĩa “chưa biết”, phải kiểm tra trước:
+If `null` means "unknown," check first:
 
 ```java
 Integer count = null;
 int safeCount = count == null ? 0 : count;
 ```
 
-Chọn giá trị mặc định 0 chỉ khi nghiệp vụ cho phép; nhiều ứng dụng phải phân biệt số 0 với dữ liệu thiếu.
+Choose a default value of 0 only when business rules allow it; many applications must distinguish zero from missing data.
 
-### Wrapper trong collection và generic
+### Wrappers in collections and generics
 
-Java generic cần kiểu tham chiếu, vì vậy:
+Java generics require reference types, so:
 
 ```java
 import java.util.ArrayList;
 import java.util.List;
 
 List<Integer> scores = new ArrayList<>();
-scores.add(10);                // 10 được box thành Integer
+scores.add(10);                // 10 is boxed into Integer
 scores.add(20);
 int first = scores.get(0);    // unboxing
 ```
 
-`List<int>` không hợp lệ trong Java 17; dùng `List<Integer>`. Tương tự, có thể tạo `List<Long>`, `Map<String, Double>` hoặc `List<Number>`.
+`List<int>` is invalid in Java 17; use `List<Integer>`. Similarly, you can create `List<Long>`, `Map<String, Double>`, or `List<Number>`.
 
-Lưu ý `List<Integer>` không phải subtype của `List<Number>`, dù `Integer` kế thừa `Number`: generic Java mặc định là **invariant**. Để đọc danh sách nhiều kiểu số, chữ ký `List<? extends Number>` có thể phù hợp, nhưng thao tác ghi vào danh sách bị giới hạn bởi wildcard. Đây là vấn đề kiểu generic, không phải khác biệt giá trị của wrapper.
+Note that `List<Integer>` is not a subtype of `List<Number>`, even though `Integer` extends `Number`: Java generics are **invariant** by default. To read a list of multiple numeric types, a signature like `List<? extends Number>` may fit, though writing to the list is restricted by the wildcard. This is a generic typing matter, not a difference in wrapper values.
 
-Collection có thể chứa wrapper `null` khi cấu trúc dữ liệu cho phép, nên đọc từ `List<Integer>` rồi unbox vẫn có nguy cơ `NullPointerException`.
+Collections can contain `null` wrappers when the data structure permits, so reading from `List<Integer>` and then unboxing still risks `NullPointerException`.
 
-## 6. Phân tích chuỗi số: `parseXxx`, `valueOf(String)` và radix
+## 6. Parsing Numeric Strings: `parseXxx`, `valueOf(String)`, and Radix
 
-Mỗi wrapper có các API phân tích chuỗi tương ứng:
+Each wrapper provides corresponding string parsing APIs:
 
-| Wrapper | Trả về primitive | Trả về wrapper |
+| Wrapper | Returns primitive | Returns wrapper |
 | --- | --- | --- |
 | `Byte` | `Byte.parseByte(text)` | `Byte.valueOf(text)` |
 | `Short` | `Short.parseShort(text)` | `Short.valueOf(text)` |
@@ -242,7 +242,7 @@ Mỗi wrapper có các API phân tích chuỗi tương ứng:
 | `Float` | `Float.parseFloat(text)` | `Float.valueOf(text)` |
 | `Double` | `Double.parseDouble(text)` | `Double.valueOf(text)` |
 
-Ví dụ:
+Example:
 
 ```java
 int a = Integer.parseInt("42");       // primitive int
@@ -251,11 +251,11 @@ long c = Long.parseLong("9000000000");
 double d = Double.parseDouble("0.5");
 ```
 
-**`parseXxx` không tạo wrapper ở kết quả** (dù JIT/runtime có thể có tối ưu nội bộ), còn `valueOf(String)` trả đối tượng wrapper. Cả hai đều có thể ném `NumberFormatException` khi chuỗi không hợp lệ hoặc vượt miền của kiểu.
+**`parseXxx` does not create a wrapper as its result** (though the JIT/runtime may have internal optimizations), whereas `valueOf(String)` returns a wrapper object. Both can throw `NumberFormatException` if the string is invalid or exceeds the type's range.
 
-### Hệ cơ số cho wrapper nguyên
+### Number bases (radix) for integer wrappers
 
-Bốn wrapper nguyên có overload nhận **radix**, thông thường từ 2 đến 36:
+The four integer wrappers have overloads taking a **radix**, typically from 2 to 36:
 
 ```java
 int hex = Integer.parseInt("FF", 16); // 255
@@ -263,38 +263,38 @@ int binary = Integer.parseInt("1010", 2); // 10
 long base36 = Long.parseLong("Z", 36); // 35
 ```
 
-Nếu chuỗi gồm tiền tố như `"0xFF"` hoặc `"0b1010"`, đừng mặc định `parseInt(text, radix)` nhận nguyên xi tiền tố:
+If the string includes a prefix such as `"0xFF"` or `"0b1010"`, do not assume `parseInt(text, radix)` accepts the prefix as-is:
 
 ```java
-int hex = Integer.parseInt("FF", 16); // hợp lệ
+int hex = Integer.parseInt("FF", 16); // valid
 int prefixed = Integer.decode("0xFF"); // 255
 // Integer.parseInt("0xFF", 16); // NumberFormatException
 ```
 
-`Integer.decode`/`Long.decode`/`Byte.decode`/`Short.decode` hỗ trợ quy tắc tiền tố thập lục phân và bát phân của các API này, nhưng không phải bộ parse tổng quát cho mọi dạng literal Java. Một số dấu phân tách hợp lệ trong mã nguồn, như dấu gạch dưới của `1_000`, **không tự được chấp nhận** khi parse chuỗi:
+`Integer.decode`/`Long.decode`/`Byte.decode`/`Short.decode` support the hexadecimal and octal prefix rules of those APIs, but they are not general parsers for every Java literal form. Some separators valid in source code, such as the underscore in `1_000`, **are not automatically accepted** when parsing strings:
 
 ```java
-int literal = 1_000;            // hợp lệ trong mã Java
+int literal = 1_000;            // valid in Java code
 // Integer.parseInt("1_000");  // NumberFormatException
 ```
 
-`Integer.parseInt(" 42 ")` cũng không tự bỏ khoảng trắng; chỉ `trim()`/`strip()` khi chính sách đầu vào cho phép. Với các định dạng theo locale (ví dụ dấu phẩy thập phân), `parseDouble` không thay thế một parser phù hợp locale.
+`Integer.parseInt(" 42 ")` also does not automatically strip whitespace; only `trim()`/`strip()` when the input policy allows. For locale-specific formats (such as a decimal comma), `parseDouble` does not replace a locale-aware parser.
 
-### Chuỗi số thực và giá trị đặc biệt
+### Floating-point strings and special values
 
-`Float.parseFloat` và `Double.parseDouble` nhận cú pháp thập phân hoặc dạng dấu phẩy động phù hợp API Java; chúng cũng có thể phân tích chuỗi `"NaN"`, `"Infinity"` và `"-Infinity"`.
+`Float.parseFloat` and `Double.parseDouble` accept decimal syntax or floating-point forms specified by the Java API; they can also parse `"NaN"`, `"Infinity"`, and `"-Infinity"`.
 
 ```java
 double half = Double.parseDouble("0.5");           // 0.5
-double infinity = Double.parseDouble("Infinity");  // dương vô cực
+double infinity = Double.parseDouble("Infinity");  // positive infinity
 boolean infinite = Double.isInfinite(infinity);    // true
 ```
 
-Đầu vào là chuỗi đúng cú pháp chưa chắc đã mang giá trị hữu hạn: phải kiểm tra `Float.isFinite` / `Double.isFinite` nếu nghiệp vụ yêu cầu hữu hạn. Không dùng `Double.parseDouble` để lưu tiền thập phân cần chính xác tuyệt đối; cân nhắc `BigDecimal` từ chuỗi đầu vào.
+Syntactically valid input strings do not necessarily carry finite values: check `Float.isFinite` / `Double.isFinite` if business logic requires finiteness. Do not use `Double.parseDouble` to store monetary decimals needing exact precision; consider `BigDecimal` from the input string.
 
-## 7. Chuyển ngược sang chuỗi và các tiện ích cho số nguyên
+## 7. Converting Back to Strings and Integer Utilities
 
-Các wrapper có `toString`, `toString(primitive)` và `valueOf`; với `Integer`/`Long`, có thêm hỗ trợ nhị phân, thập lục phân, không dấu:
+Wrappers provide `toString`, `toString(primitive)`, and `valueOf`; for `Integer`/`Long`, there is additional support for binary, hexadecimal, and unsigned formatting:
 
 ```java
 String decimal = Integer.toString(255);       // "255"
@@ -304,9 +304,9 @@ String base16 = Integer.toString(255, 16);    // "ff"
 String unsigned = Integer.toUnsignedString(-1); // "4294967295"
 ```
 
-`Integer.toUnsignedString(-1)` và `Long.toUnsignedString(-1L)` xem cùng mẫu bit 32/64 bit theo **cách diễn giải không dấu**. Chúng không làm Java có primitive `uint`/`ulong`.
+`Integer.toUnsignedString(-1)` and `Long.toUnsignedString(-1L)` treat the same 32/64-bit pattern under an **unsigned interpretation**. They do not give Java `uint`/`ulong` primitive types.
 
-Ví dụ đọc một giá trị âm theo mẫu bit không dấu:
+Example reading a negative value as an unsigned bit pattern:
 
 ```java
 int mask = -1;
@@ -314,22 +314,22 @@ System.out.println(Integer.toUnsignedString(mask));  // 4294967295
 System.out.println(Long.toUnsignedString(-1L));       // 18446744073709551615
 ```
 
-Với `byte` và `short`, có thể mở rộng không dấu:
+For `byte` and `short`, you can widen without sign extension:
 
 ```java
 int uByte = Byte.toUnsignedInt((byte) -1);   // 255
 int uShort = Short.toUnsignedInt((short) -1); // 65535
 ```
 
-`Integer` và `Long` còn cung cấp phương thức tiện ích như `bitCount`, `highestOneBit`, `lowestOneBit`, `numberOfLeadingZeros`, `numberOfTrailingZeros`, `rotateLeft`, `rotateRight` và so sánh/chia không dấu (`compareUnsigned`, `divideUnsigned`...). Các phương thức thao tác trên **mẫu bit có độ rộng cố định**. Không có nghĩa `Integer`/`Long` tự động trở thành số nguyên không dấu khi gọi chúng.
+`Integer` and `Long` also provide utility methods such as `bitCount`, `highestOneBit`, `lowestOneBit`, `numberOfLeadingZeros`, `numberOfTrailingZeros`, `rotateLeft`, `rotateRight`, and unsigned comparison/division (`compareUnsigned`, `divideUnsigned`, etc.). These methods operate on **fixed-width bit patterns**. Calling them does not automatically turn `Integer`/`Long` into unsigned integer types.
 
-Một số toán tử như `+`, `-`, `&`, `<<` áp dụng lên primitive sau khi unbox, không phải phương thức instance của wrapper.
+Operators like `+`, `-`, `&`, and `<<` apply to primitives after unboxing, not as instance methods on wrappers.
 
-## 8. So sánh, `equals`, `compareTo` và các giá trị đặc biệt
+## 8. Comparisons, `equals`, `compareTo`, and Special Values
 
-### 8.1. Wrapper nguyên
+### 8.1. Integer wrappers
 
-Với `Byte`, `Short`, `Integer`, `Long`, `equals` kiểm tra cùng **lớp wrapper** và cùng giá trị:
+For `Byte`, `Short`, `Integer`, and `Long`, `equals` checks for the same **wrapper class** and the same value:
 
 ```java
 Integer a = Integer.valueOf(10);
@@ -337,21 +337,21 @@ Integer b = Integer.valueOf(10);
 Long c = Long.valueOf(10L);
 
 System.out.println(a.equals(b)); // true
-System.out.println(a.equals(c)); // false: khác kiểu wrapper
+System.out.println(a.equals(c)); // false: different wrapper type
 ```
 
-`Integer.compare(x, y)`, `Long.compare(x, y)` hoặc `compareTo` cho thứ tự theo số nguyên có dấu. `Integer.compareUnsigned`/`Long.compareUnsigned` dùng khi cùng mẫu bit phải được đọc như số không dấu.
+`Integer.compare(x, y)`, `Long.compare(x, y)`, or `compareTo` gives signed integer ordering. `Integer.compareUnsigned`/`Long.compareUnsigned` are used when the same bit patterns must be interpreted as unsigned numbers.
 
 ```java
 System.out.println(Integer.compare(-1, 1));        // -1
 System.out.println(Integer.compareUnsigned(-1, 1)); // 1
 ```
 
-Không viết `a - b` làm `Comparator` cho `Integer` vì hiệu có thể overflow, dẫn đến sai thứ tự. Dùng `Integer.compare(a, b)` hoặc `Comparator.comparingInt(...)` tùy tình huống.
+Do not write `a - b` as an `Integer` `Comparator` because subtraction can overflow, yielding wrong ordering. Use `Integer.compare(a, b)` or `Comparator.comparingInt(...)` depending on the situation.
 
-### 8.2. `Float` và `Double`: `NaN`, dấu của 0 và thứ tự
+### 8.2. `Float` and `Double`: `NaN`, sign of zero, and ordering
 
-Đây là sự khác biệt đáng nhớ giữa toán tử so sánh primitive và hợp đồng wrapper:
+Here is a memorable difference between primitive comparison operators and the wrapper contract:
 
 ```java
 double nan = Double.NaN;
@@ -365,9 +365,9 @@ System.out.println(
         Double.valueOf(+0.0).equals(Double.valueOf(-0.0))); // false
 ```
 
-`Double.equals` coi mọi giá trị `NaN` là bằng nhau theo hợp đồng wrapper, nhưng phân biệt `+0.0` với `-0.0`. `Float.equals` có đặc điểm tương ứng. Điều này giúp `equals` và `hashCode` của wrapper có hành vi nhất quán, kể cả trong collection.
+`Double.equals` considers all `NaN` values equal under the wrapper contract, while distinguishing `+0.0` from `-0.0`. `Float.equals` has corresponding behavior. This keeps `equals` and `hashCode` of wrappers consistent, including in collections.
 
-`Double.compare(a, b)` và `Float.compare(a, b)` định nghĩa thứ tự phục vụ sorting: `-0.0` thấp hơn `+0.0`, và `NaN` được sắp cao hơn mọi giá trị số, kể cả vô cực dương.
+`Double.compare(a, b)` and `Float.compare(a, b)` define an ordering suitable for sorting: `-0.0` is ordered less than `+0.0`, and `NaN` is ordered greater than every numeric value, including positive infinity.
 
 ```java
 System.out.println(Double.compare(-0.0, +0.0)); // -1
@@ -375,21 +375,21 @@ System.out.println(
         Double.compare(Double.NaN, Double.POSITIVE_INFINITY)); // 1
 ```
 
-Không dùng `Double.compare` để kết luận hai giá trị gần bằng nhau về mặt tính toán. Nếu bài toán cần dung sai, phải đưa ra chính sách so sánh sai số riêng; quan hệ gần bằng có thể **không bắc cầu**, nên không thích hợp làm hợp đồng `equals`/`hashCode` hoặc `Comparator` sắp xếp.
+Do not use `Double.compare` to decide whether two values are numerically close enough. If a problem needs a tolerance, define an explicit epsilon comparison policy; approximate equality can be **non-transitive**, making it unsuitable for `equals`/`hashCode` contracts or sorting `Comparator`s.
 
-### 8.3. So sánh khác wrapper type
+### 8.3. Comparing across wrapper types
 
-`Integer.valueOf(10).equals(Long.valueOf(10L))` là `false`, dù hai số nguyên biểu diễn cùng giá trị toán học. Nếu cần so sánh hai giá trị kiểu `Number` khác loại, phải xác định quy tắc chuyển đổi trước:
+`Integer.valueOf(10).equals(Long.valueOf(10L))` is `false`, even though both integers represent the same mathematical value. If you need to compare two `Number` values of different types, define the conversion rule first:
 
-- Với các số nguyên có miền phù hợp, so sánh trên cùng kiểu nguyên rộng hơn có thể hợp lý.
-- Chuyển một `long` rất lớn sang `double` có thể **mất chữ số**, khiến hai giá trị khác nhau trở thành cùng một `double`.
-- Với số decimal yêu cầu chính xác, phải dùng biểu diễn decimal phù hợp từ nguồn gốc, không cast bừa mọi `Number` sang `double`.
+- For integers within suitable ranges, comparing in a wider integer type may be reasonable.
+- Converting a very large `long` to `double` can **lose digits**, causing two distinct values to become the same `double`.
+- For decimal numbers requiring exactness, use an appropriate decimal representation from the source rather than blindly casting every `Number` to `double`.
 
-Không có một phương thức `Number.equalsNumericValue` dùng chung cho tất cả subtype và mọi miền giá trị.
+There is no single `Number.equalsNumericValue` method shared across all subtypes and value ranges.
 
-## 9. Chuyển đổi qua `xxxValue()` có thể làm mất giá trị
+## 9. Converting via `xxxValue()` Can Lose Values
 
-Các wrapper cung cấp phương thức lấy giá trị ở nhiều kiểu nguyên thủy. Chúng thuận tiện nhưng thường có quy tắc giống các phép ép kiểu Java:
+Wrappers provide methods to extract values in several primitive types. They are convenient, but usually follow rules similar to Java casts:
 
 ```java
 Integer n = Integer.valueOf(257);
@@ -400,30 +400,30 @@ int truncated = d.intValue(); // -2
 
 Long large = Long.valueOf(9_007_199_254_740_993L);
 double approximate = large.doubleValue();
-// approximate mang giá trị 9_007_199_254_740_992
+// approximate holds the value 9_007_199_254_740_992
 ```
 
-Cần phân biệt:
+Distinguish among:
 
-- **Giữ nguyên giá trị:** `Integer.intValue()`, `Long.longValue()` đối với chính kiểu tương ứng, hoặc chuyển integer nhỏ sang kiểu lớn đủ miền.
-- **Thu hẹp số nguyên:** `long` → `int`, `int` → `short`/`byte` có thể bỏ các bit cao; thao tác wrapper không tự báo overflow.
-- **Thực sang nguyên:** `Double.intValue()`, `Float.longValue()` cắt phần lẻ về 0 khi hữu hạn và trong miền; NaN và giá trị ngoài miền có kết quả đặc biệt theo quy tắc Java.
-- **Nguyên sang thực:** `Long.doubleValue()` và `Integer.floatValue()` có thể làm tròn phần bit thấp.
+- **Value-preserving:** `Integer.intValue()`, `Long.longValue()` for their own corresponding types, or converting a smaller integer to a wider type with sufficient range.
+- **Integer narrowing:** `long` → `int`, `int` → `short`/`byte` can drop high bits; wrapper operations do not report overflow automatically.
+- **Floating-point to integer:** `Double.intValue()`, `Float.longValue()` truncate the fractional part toward 0 when finite and in range; NaN and out-of-range values produce special results per Java rules.
+- **Integer to floating-point:** `Long.doubleValue()` and `Integer.floatValue()` can round low-order bits.
 
-Nếu muốn kiểm tra `long` có vừa miền `int` hay không, dùng `Math.toIntExact(longValue)` thay vì `Integer.valueOf((int) longValue)`:
+If you want to check whether a `long` fits in the `int` range, use `Math.toIntExact(longValue)` instead of `Integer.valueOf((int) longValue)`:
 
 ```java
 long quantity = 3_000_000_000L;
 
-// int wrong = (int) quantity; // giá trị âm vì tràn miền int
-// int checked = Math.toIntExact(quantity); // ném ArithmeticException
+// int wrong = (int) quantity; // negative value due to int range overflow
+// int checked = Math.toIntExact(quantity); // throws ArithmeticException
 ```
 
-Với `BigInteger`, `BigDecimal`, các phương thức `intValueExact()`/`longValueExact()` áp dụng hợp đồng khác để kiểm tra mất thông tin. Sáu primitive wrapper của bài này **không phải** các kiểu decimal/số nguyên độ dài tùy ý.
+For `BigInteger` and `BigDecimal`, `intValueExact()`/`longValueExact()` apply a different contract to check for information loss. The six primitive wrappers in this lesson **are not** arbitrary-length integer or decimal types.
 
-## 10. Ví dụ Java 17 hoàn chỉnh
+## 10. Complete Java 17 Example
 
-Tạo tệp `NumberWrappersDemo.java`:
+Create the file `NumberWrappersDemo.java`:
 
 ```java
 public class NumberWrappersDemo {
@@ -468,14 +468,14 @@ public class NumberWrappersDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac NumberWrappersDemo.java
 java NumberWrappersDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Byte = 7
@@ -496,87 +496,87 @@ wrapper signed zero equals = false
 unsigned compare(-1, 1) = 1
 ```
 
-Các giá trị đặc biệt và parse trong ví dụ dùng những API có hành vi được quy định bởi Java; `valueOf(200)` chỉ được kiểm tra qua `equals`, nên kết quả không phụ thuộc cache bên ngoài miền bảo đảm.
+The special values and parsing in the example use APIs whose behavior is specified by Java; `valueOf(200)` is only checked via `equals`, so the result does not depend on caching outside the guaranteed range.
 
-## 11. Nên chọn wrapper nào?
+## 11. Which Wrapper Should You Choose?
 
-| Nhu cầu | Lựa chọn |
+| Need | Choice |
 | --- | --- |
-| Số nguyên nhỏ cần đúng miền -128..127 | `Byte` nếu API/generic yêu cầu đối tượng; `byte` nếu không |
-| Số nguyên 16 bit có dấu | `Short`/`short` khi giao thức/định dạng cần |
-| Số nguyên thông thường, chỉ số, bộ đếm | `Integer`/`int` nếu vừa miền 32 bit |
-| Số nguyên lớn hơn miền `int` | `Long`/`long` nếu vừa miền 64 bit |
-| Số thực nhị phân với yêu cầu bộ nhớ thấp, chịu sai số lớn hơn | `Float`/`float` |
-| Số thực nhị phân thông thường, cần độ chính xác cao hơn `float` | `Double`/`double` |
-| Collection, generic, dữ liệu có thể vắng mặt (`null`) | Wrapper tương ứng, với chính sách xử lý `null` rõ ràng |
-| Số nguyên vượt miền `long` | `BigInteger` |
-| Số decimal đòi hỏi chữ số thập phân chính xác, quy tắc làm tròn rõ | `BigDecimal` tạo từ nguồn decimal thích hợp |
+| Small integer guaranteed in -128..127 range | `Byte` if API/generics require an object; `byte` otherwise |
+| 16-bit signed integer | `Short`/`short` when required by a protocol/format |
+| General integers, indices, counters | `Integer`/`int` if within 32-bit range |
+| Integers larger than `int` range | `Long`/`long` if within 64-bit range |
+| Binary floating-point with lower memory requirement, tolerating larger error | `Float`/`float` |
+| General binary floating-point needing higher precision than `float` | `Double`/`double` |
+| Collections, generics, potentially absent (`null`) data | Corresponding wrapper, with an explicit `null`-handling policy |
+| Integers exceeding `long` range | `BigInteger` |
+| Decimals requiring exact decimal digits and explicit rounding rules | `BigDecimal` created from an appropriate decimal source |
 
-Không phải lúc nào `Byte`/`Short` tiết kiệm bộ nhớ hơn `Integer` khi sử dụng **đối tượng**: một wrapper có overhead của object và tham chiếu, khác với primitive nằm trong mảng nguyên thủy. Khi cần lưu hàng triệu số không nullable, các mảng `byte[]`, `int[]`, `double[]` thường tránh overhead boxing so với `List<Byte>`, `List<Integer>`, `List<Double>`.
+`Byte`/`Short` do not always save memory compared to `Integer` when used as **objects**: a wrapper incurs object and reference overhead, unlike primitives inside a primitive array. When storing millions of non-nullable numbers, `byte[]`, `int[]`, and `double[]` arrays usually avoid boxing overhead compared to `List<Byte>`, `List<Integer>`, and `List<Double>`.
 
-`Float`/`Double` không phải lựa chọn an toàn mặc định cho tiền tệ vì các số decimal như `0.1` không được biểu diễn chính xác dưới dạng nhị phân. Nếu đầu vào là decimal, `BigDecimal` từ chuỗi giúp giữ đúng chữ số nguồn; lưu dữ liệu tiền dưới dạng số nguyên của đơn vị nhỏ nhất cũng là chiến lược khả thi trong miền phù hợp.
+`Float`/`Double` are not a safe default choice for currency because decimals such as `0.1` cannot be represented exactly in binary. When inputs are decimal, `BigDecimal` from a string preserves the exact source digits; storing monetary amounts as integers in the smallest unit is also a viable strategy within an appropriate range.
 
-## 12. Lỗi phổ biến và cách khắc phục
+## 12. Common Mistakes and Fixes
 
-1. **Dùng `==` cho hai wrapper để so sánh giá trị.** Kết quả có thể phụ thuộc cache và identity. Dùng `equals`, `Objects.equals(a, b)` nếu có `null`, hoặc unbox có kiểm soát.
-2. **Unboxing `null`.** `Integer missing = null; int n = missing;` ném `NullPointerException`; kiểm tra trường hợp thiếu trước khi tính.
-3. **Nghĩ `valueOf` và `parseXxx` cùng kiểu trả về.** `Integer.parseInt` trả `int`, `Integer.valueOf` trả `Integer`.
-4. **Nhầm `Float.MIN_VALUE` là giá trị âm nhất.** Đây là số **dương khác 0 nhỏ nhất**; số hữu hạn âm nhỏ nhất là `-Float.MAX_VALUE`.
-5. **Chuyển wrapper qua `xxxValue()` rồi cho rằng không mất dữ liệu.** `Integer.valueOf(257).byteValue()` là `1`, `Long.doubleValue()` có thể mất chính xác.
-6. **Để Java tự unbox trong các phép so sánh không rõ ràng.** `Integer` so với `int` có thể unbox; nhưng hai `Integer` với `==` là so sánh tham chiếu. Hãy ghi rõ ý nghĩa bạn muốn.
-7. **Giả định mọi `Number` đều có phương thức `valueOf`, `parseInt` hay phép cộng đối tượng.** Các API này thuộc wrapper cụ thể; `Number` chỉ cung cấp giao diện trích giá trị dạng primitive.
-8. **Phân tích chuỗi khác cú pháp mà không bắt lỗi.** `Integer.parseInt("1_000")` không được hỗ trợ dù `1_000` là literal Java hợp lệ; parse chuỗi có thể ném `NumberFormatException`.
-9. **Bỏ qua `NaN` và vô cực.** `Double.valueOf("NaN")` là hợp lệ theo parser, nhưng có thể trái hợp đồng dữ liệu; dùng `isNaN`, `isInfinite`, `isFinite`.
-10. **Nhầm hợp đồng `equals` của số thực wrapper với toán tử `==` của primitive.** Wrapper coi NaN bằng NaN theo `equals` và phân biệt dấu 0; primitive thì ngược lại trong hai trường hợp đó.
-11. **Dùng trừ hai số trong comparator.** `return a-b` có thể overflow; dùng `Integer.compare(a,b)`, `Long.compare(a,b)` và comparator phù hợp.
-12. **Dùng đối tượng wrapper cho vòng lặp số học nóng mà không cần.** Boxing/unboxing có thể tăng allocation hoặc overhead và tạo nguy cơ `null`; dùng primitive và mảng primitive khi bài toán phù hợp.
-13. **Đọc số không dấu như số có dấu.** Mẫu bit `0xFFFFFFFF` là `-1` khi đọc `int` signed, nhưng `"4294967295"` khi gọi `Integer.toUnsignedString(-1)`.
-14. **Cho rằng `equals` giữa các subtype `Number` so sánh giá trị toán học.** `Integer(10)` và `Long(10)` không bằng nhau theo `equals`; chọn quy tắc ép kiểu chung một cách an toàn theo dữ liệu.
+1. **Using `==` on two wrappers to compare values.** Results can depend on caching and identity. Use `equals`, `Objects.equals(a, b)` when `null` is possible, or controlled unboxing.
+2. **Unboxing `null`.** `Integer missing = null; int n = missing;` throws `NullPointerException`; check for missing values before computing.
+3. **Thinking `valueOf` and `parseXxx` have the same return type.** `Integer.parseInt` returns `int`, whereas `Integer.valueOf` returns `Integer`.
+4. **Mistaking `Float.MIN_VALUE` for the most negative value.** It is the **smallest positive nonzero** value; the smallest finite negative value is `-Float.MAX_VALUE`.
+5. **Converting a wrapper via `xxxValue()` and assuming no data loss.** `Integer.valueOf(257).byteValue()` is `1`, and `Long.doubleValue()` can lose precision.
+6. **Letting Java implicitly unbox in ambiguous comparisons.** `Integer` compared to `int` unboxes; two `Integer`s with `==` is a reference comparison. Make your intended semantics explicit.
+7. **Assuming every `Number` has `valueOf`, `parseInt`, or object addition.** Those APIs belong to concrete wrappers; `Number` only provides an interface to extract primitive-typed values.
+8. **Parsing strings with differing syntax without error handling.** `Integer.parseInt("1_000")` is unsupported even though `1_000` is a valid Java literal; string parsing can throw `NumberFormatException`.
+9. **Ignoring `NaN` and infinity.** `Double.valueOf("NaN")` is valid to the parser, yet may violate data contracts; use `isNaN`, `isInfinite`, `isFinite`.
+10. **Confusing the floating-point wrapper `equals` contract with primitive `==`.** Wrappers treat NaN as equal to NaN under `equals` and distinguish the sign of zero; primitives do the opposite in both cases.
+11. **Using subtraction of two numbers in a comparator.** `return a-b` can overflow; use `Integer.compare(a,b)`, `Long.compare(a,b)`, and appropriate comparators.
+12. **Using wrapper objects in hot arithmetic loops unnecessarily.** Boxing/unboxing can increase allocations or overhead and introduce `null` risk; use primitives and primitive arrays when appropriate.
+13. **Reading unsigned numbers as signed.** The bit pattern `0xFFFFFFFF` is `-1` when read as signed `int`, but `"4294967295"` when calling `Integer.toUnsignedString(-1)`.
+14. **Assuming `equals` across `Number` subtypes compares mathematical values.** `Integer(10)` and `Long(10)` are not equal under `equals`; choose a common conversion rule safely based on the data.
 
-## 13. Bài tập tự kiểm tra
+## 13. Self-Check Exercises
 
-**Câu 1.** Cho hai biến:
+**Question 1.** Given two variables:
 
 ```java
 Integer a = Integer.valueOf(200);
 Integer b = Integer.valueOf(200);
 ```
 
-Nên dùng `a == b` hay `a.equals(b)` để kiểm tra cùng giá trị số nguyên?
+Should you use `a == b` or `a.equals(b)` to check for the same integer value?
 
-**Đáp án:** `a.equals(b)`. `==` kiểm tra identity của hai tham chiếu wrapper và không bảo đảm đúng cho mọi giá trị.
+**Answer:** `a.equals(b)`. `==` checks identity of the two wrapper references and is not guaranteed to hold for all values.
 
-**Câu 2.** `Float.MIN_VALUE` âm hay dương? Nếu cần số `float` âm hữu hạn nhỏ nhất về thứ tự số học, viết thế nào?
+**Question 2.** Is `Float.MIN_VALUE` negative or positive? If you need the smallest finite negative `float` in arithmetic order, how do you write it?
 
-**Đáp án:** `Float.MIN_VALUE` dương, là số dương khác 0 nhỏ nhất; cận âm hữu hạn là `-Float.MAX_VALUE`.
+**Answer:** `Float.MIN_VALUE` is positive, being the smallest nonzero positive number; the finite negative bound is `-Float.MAX_VALUE`.
 
-**Câu 3.** Điều gì xảy ra khi chạy:
+**Question 3.** What happens when running:
 
 ```java
 Integer count = null;
 int n = count;
 ```
 
-**Đáp án:** Ném `NullPointerException` tại bước unboxing.
+**Answer:** Throws `NullPointerException` at the unboxing step.
 
-**Câu 4.** Hai biểu thức `Integer.parseInt("42")` và `Integer.valueOf("42")` trả về kiểu nào?
+**Question 4.** What types do the expressions `Integer.parseInt("42")` and `Integer.valueOf("42")` return?
 
-**Đáp án:** Lần lượt là primitive `int` và wrapper `Integer`.
+**Answer:** Primitive `int` and wrapper `Integer`, respectively.
 
-**Câu 5.** Tại sao `Double.valueOf(Double.NaN).equals(Double.valueOf(Double.NaN))` là `true`, trong khi `Double.NaN == Double.NaN` là `false`?
+**Question 5.** Why is `Double.valueOf(Double.NaN).equals(Double.valueOf(Double.NaN))` `true`, whereas `Double.NaN == Double.NaN` is `false`?
 
-**Đáp án:** Wrapper `Double.equals` dùng hợp đồng giá trị đối tượng, coi NaN bằng NaN để có hành vi nhất quán với `hashCode`; toán tử primitive `==` tuân theo quy tắc số học dấu phẩy động, với NaN không bằng bất kỳ số nào, kể cả chính nó.
+**Answer:** The `Double.equals` wrapper method uses the object value contract, treating NaN as equal to NaN to stay consistent with `hashCode`; the primitive `==` operator follows floating-point arithmetic rules, under which NaN is not equal to any number, including itself.
 
-**Câu 6.** `Byte.toUnsignedInt((byte)-1)` trả gì? Còn `Integer.valueOf(257).byteValue()`?
+**Question 6.** What does `Byte.toUnsignedInt((byte)-1)` return? And `Integer.valueOf(257).byteValue()`?
 
-**Đáp án:** `255` và `1`. Trường hợp đầu diễn giải mẫu 8 bit toàn `1` như không dấu; trường hợp sau thu hẹp `int` 257 xuống 8 bit thấp.
+**Answer:** `255` and `1`. The first interprets the all-`1` 8-bit pattern as unsigned; the second narrows `int` 257 to its low 8 bits.
 
-**Câu 7.** `Number n = Long.valueOf(9_007_199_254_740_993L);` rồi gọi `n.doubleValue()` có giữ nguyên giá trị nguyên không?
+**Question 7.** Given `Number n = Long.valueOf(9_007_199_254_740_993L);`, does calling `n.doubleValue()` preserve the exact integer value?
 
-**Đáp án:** Không. `double` không biểu diễn chính xác số nguyên `2^53 + 1`; giá trị bị làm tròn thành `9_007_199_254_740_992`. Gọi `doubleValue()` không báo lỗi và không giữ thông tin đã mất.
+**Answer:** No. `double` does not represent the integer `2^53 + 1` exactly; the value is rounded to `9_007_199_254_740_992`. Calling `doubleValue()` reports no error and does not retain the lost information.
 
-**Câu 8.** Có nên dùng `List<int>` trong Java 17? Vì sao `List<Integer>` có thể chứa `null`?
+**Question 8.** Should you use `List<int>` in Java 17? Why can `List<Integer>` contain `null`?
 
-**Đáp án:** `List<int>` không hợp lệ với Java generic; dùng `List<Integer>` vì generic cần kiểu tham chiếu. `Integer` là reference nên một số collection chấp nhận phần tử `null`, khác với primitive `int`.
+**Answer:** `List<int>` is invalid in Java generics; use `List<Integer>` because generics require reference types. Because `Integer` is a reference type, some collections allow `null` elements, unlike primitive `int`.
 
-**Ghi nhớ:** `Byte`, `Short`, `Integer`, `Long`, `Float`, `Double` là sáu lớp wrapper bất biến của primitive số, cùng kế thừa `Number`. Chúng giúp parse, format, so sánh, thao tác bit và dùng generic/collection. Chọn kiểu theo miền giá trị và độ chính xác; phân biệt primitive với đối tượng, `parseXxx` với `valueOf`, `==` với `equals`, và kiểm tra `null` cũng như dữ liệu mất chính xác khi chuyển đổi.
+**Key takeaway:** `Byte`, `Short`, `Integer`, `Long`, `Float`, and `Double` are the six immutable wrapper classes for numeric primitives, all extending `Number`. They help with parsing, formatting, comparing, bit manipulation, and using generics/collections. Choose types by value range and precision; distinguish primitives from objects, `parseXxx` from `valueOf`, `==` from `equals`, and check for `null` as well as precision loss during conversion.

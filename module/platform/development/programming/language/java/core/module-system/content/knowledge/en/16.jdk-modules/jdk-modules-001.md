@@ -1,63 +1,63 @@
-# java.base và các module nền tảng trong Java Module System
+# java.base and Platform Modules in the Java Module System
 
-## 1. Mục tiêu bài học
+## 1. Lesson Objectives
 
-Sau bài này, bạn sẽ hiểu:
+After this lesson, you will understand:
 
-- Vì sao `java.base` là module đặc biệt, luôn cần thiết cho mọi ứng dụng Java modular.
-- Những API phổ biến nằm trong `java.base` và những API phải lấy từ các module Java SE khác.
-- Mối liên hệ giữa các module `java.*`, những module `jdk.*`, module ứng dụng và quá trình **module resolution**.
-- Khi nào phải khai báo `requires` trong `module-info.java`, cách xác định module chứa một package và cách đọc descriptor của module.
-- Cách dùng `java --list-modules`, `java --describe-module`, `jdeps` và API `ModuleFinder` để khảo sát runtime hiện tại.
-- Tác động của runtime image tạo bằng `jlink` đến các module có thể sử dụng khi triển khai.
+- Why `java.base` is a special module that is always required for every modular Java application.
+- Which common APIs reside in `java.base` and which APIs must be obtained from other Java SE modules.
+- The relationship between `java.*` modules, `jdk.*` modules, application modules, and the **module resolution** process.
+- When to declare `requires` in `module-info.java`, how to determine which module contains a package, and how to read a module descriptor.
+- How to use `java --list-modules`, `java --describe-module`, `jdeps`, and the `ModuleFinder` API to inspect the current runtime.
+- The impact of runtime images created with `jlink` on which modules are available at deployment time.
 
-Bài hướng tới Java 17 trở lên, đồng thời giải thích những nguyên tắc JPMS đã có từ Java 9. Danh sách module và API có thể thay đổi giữa các phiên bản JDK hoặc runtime image.
+This lesson targets Java 17 and later, while explaining JPMS principles introduced in Java 9. The list of modules and APIs may vary across JDK versions or runtime images.
 
-## 2. Java Platform Module System (JPMS) tổ chức thư viện chuẩn ra sao?
+## 2. How Does the Java Platform Module System (JPMS) Organize the Standard Library?
 
-Trước Java 9, người học thường nghĩ về thư viện Java dưới dạng tập các package luôn nằm trên classpath. Từ Java 9, Java Platform Module System chia platform và JDK thành các **named module** với ranh giới rõ ràng. Mỗi named module có:
+Before Java 9, learners often thought of the Java library as a collection of packages always residing on the classpath. Starting in Java 9, the Java Platform Module System divides the platform and JDK into **named modules** with clear boundaries. Each named module has:
 
-1. **Tên module** duy nhất trong một cấu hình, ví dụ `java.base` hoặc `java.logging`.
-2. **Module descriptor** mô tả dependency bằng `requires`, package công khai bằng `exports`, package mở cho reflection qua `opens` và hợp đồng service.
-3. **Tập package/classes/resources** được chứa trong module.
+1. A **module name** unique within a configuration, such as `java.base` or `java.logging`.
+2. A **module descriptor** describing dependencies with `requires`, public packages with `exports`, packages opened for reflection via `opens`, and service contracts.
+3. A **set of packages/classes/resources** contained within the module.
 
-Các module của platform thường được đóng gói trong **runtime image** của Java. Khi chạy `java --list-modules`, bạn thấy các module mà runtime đó cung cấp; đây không nhất thiết là toàn bộ những module đã được đưa vào boot layer của một ứng dụng cụ thể.
+Platform modules are typically packaged in Java's **runtime image**. When running `java --list-modules`, you see the modules provided by that runtime; these are not necessarily all the modules loaded into the boot layer of a specific application.
 
-Ví dụ tên module tiêu biểu:
+Examples of representative module names:
 
-| Module | Ví dụ tính năng / package |
+| Module | Example features / packages |
 | --- | --- |
 | `java.base` | `java.lang`, `java.util`, `java.io`, `java.nio`, `java.time`, `java.net`, `java.security` |
-| `java.logging` | `java.util.logging`, logging API chuẩn |
+| `java.logging` | `java.util.logging`, standard logging API |
 | `java.xml` | XML parsing, SAX, DOM, StAX |
 | `java.sql` | JDBC API, `java.sql`, `javax.sql` |
 | `java.net.http` | HTTP Client API, WebSocket client |
 | `java.management` | JMX/management API |
 | `java.naming` | JNDI |
-| `java.desktop` | AWT, Swing, Java 2D và các API desktop liên quan |
-| `java.compiler` | Java language model và công cụ compiler chuẩn |
-| `java.scripting` | Scripting API `javax.script`; engine cụ thể phải được cung cấp riêng |
-| `java.instrument` | API instrumentation và Java agent |
-| `java.security.jgss` | API GSS-API và Kerberos liên quan |
-| `jdk.compiler` | Triển khai compiler của JDK, gồm các công cụ tương ứng |
+| `java.desktop` | AWT, Swing, Java 2D, and related desktop APIs |
+| `java.compiler` | Java language model and standard compiler tools |
+| `java.scripting` | `javax.script` Scripting API; a concrete engine must be provided separately |
+| `java.instrument` | Instrumentation API and Java agents |
+| `java.security.jgss` | GSS-API and related Kerberos APIs |
+| `jdk.compiler` | JDK compiler implementation, including corresponding tools |
 | `jdk.jfr` | Java Flight Recorder |
-| `jdk.httpserver` | HTTP server nhẹ thuộc JDK |
+| `jdk.httpserver` | Lightweight HTTP server included in the JDK |
 
-Các module này là ví dụ, không phải danh mục đầy đủ. Nhóm `java.*` chủ yếu thể hiện API Java SE; nhóm `jdk.*` cung cấp những khả năng riêng của JDK. Một runtime image có thể lược bớt nhiều module kể trên.
+These modules are examples, not an exhaustive catalog. The `java.*` group mainly represents Java SE APIs; the `jdk.*` group provides JDK-specific capabilities. A runtime image may omit many of the modules listed above.
 
-## 3. Tại sao `java.base` đặc biệt?
+## 3. Why Is `java.base` Special?
 
-`java.base` là nền móng của JPMS. Nó chứa các thành phần cốt lõi mà mọi chương trình Java cần để định nghĩa đối tượng, chạy luồng điều khiển, xử lý chuỗi, tập hợp, ngoại lệ và nhiều thao tác cơ bản khác.
+`java.base` is the foundation of JPMS. It contains the core components that every Java program needs to define objects, run threads of control, handle strings, collections, exceptions, and many other fundamental operations.
 
-Các tính chất quan trọng:
+Key properties:
 
-- **Mọi named module đều đọc `java.base` một cách ngầm định.** Bạn không cần thêm `requires java.base;` trong descriptor.
-- **`java.base` không có dependency vào module platform khác.** Điều này tạo điểm bắt đầu ổn định cho đồ thị phụ thuộc module.
-- **Một runtime Java hợp lệ phải có `java.base`.** Bạn không thể dùng `jlink` để tạo runtime Java vận hành được mà loại bỏ module này.
-- **`java.base` không đồng nghĩa toàn bộ JDK.** JDBC, logging chuẩn, XML, HTTP Client hiện đại, desktop API... được đặt trong những module khác.
-- **Không phải mọi package trong `java.base` đều được export.** Các package triển khai nội bộ có thể bị đóng gói mạnh; chỉ nên dùng API được hỗ trợ và export.
+- **Every named module reads `java.base` implicitly.** You do not need to add `requires java.base;` to the descriptor.
+- **`java.base` has no dependencies on other platform modules.** This establishes a stable starting point for the module dependency graph.
+- **A valid Java runtime must contain `java.base`.** You cannot use `jlink` to create a working Java runtime while excluding this module.
+- **`java.base` is not synonymous with the entire JDK.** JDBC, standard logging, XML, the modern HTTP Client, desktop APIs, and others are placed in separate modules.
+- **Not every package in `java.base` is exported.** Internal implementation packages may be strongly encapsulated; you should only use supported and exported APIs.
 
-Ví dụ đoạn code chỉ sử dụng API thuộc `java.base`:
+Example code using only APIs from `java.base`:
 
 ~~~java
 import java.time.LocalDate;
@@ -77,37 +77,37 @@ public class BaseOnly {
 }
 ~~~
 
-`LocalDate` thuộc `java.time`, `List` và `Map` thuộc `java.util`, Stream/Collectors thuộc `java.util.stream`: tất cả đều nằm trong `java.base`. Một ứng dụng modular sử dụng duy nhất những API này không cần khai báo `requires` cho module Java SE khác.
+`LocalDate` belongs to `java.time`, `List` and `Map` belong to `java.util`, and Stream/Collectors belong to `java.util.stream`: all of them reside in `java.base`. A modular application using only these APIs does not need to declare `requires` for any other Java SE module.
 
-### 3.1. Các package nền tảng đáng nhớ
+### 3.1. Notable Foundation Packages
 
-| Nhóm | Package trong `java.base` | Ví dụ |
+| Category | Packages in `java.base` | Examples |
 | --- | --- | --- |
-| Ngôn ngữ và hệ kiểu | `java.lang`, `java.lang.annotation`, `java.lang.reflect` | `String`, `Object`, `Thread`, `Record`, reflection API |
-| Invoke động | `java.lang.invoke` | `MethodHandle`, `MethodHandles` |
-| Collection và tiện ích | `java.util`, `java.util.stream`, `java.util.function` | `List`, `Map`, `Optional`, Stream |
-| Đồng thời | `java.util.concurrent`, `java.util.concurrent.atomic` | `ExecutorService`, `CompletableFuture`, atomics |
-| Dữ liệu vào/ra | `java.io`, `java.nio`, `java.nio.file` | `InputStream`, `Path`, `Files` |
-| Mạng cơ bản | `java.net` | `URI`, `URL`, `Socket` |
-| Ngày giờ | `java.time`, `java.time.format` | `Instant`, `LocalDateTime`, `DateTimeFormatter` |
-| Toán học, văn bản | `java.math`, `java.text` | `BigDecimal`, `NumberFormat` |
-| Bảo mật | `java.security`, `javax.crypto`, `javax.net.ssl` | `MessageDigest`, `Cipher`, TLS API |
+| Language and type system | `java.lang`, `java.lang.annotation`, `java.lang.reflect` | `String`, `Object`, `Thread`, `Record`, reflection API |
+| Dynamic invocation | `java.lang.invoke` | `MethodHandle`, `MethodHandles` |
+| Collections and utilities | `java.util`, `java.util.stream`, `java.util.function` | `List`, `Map`, `Optional`, Stream |
+| Concurrency | `java.util.concurrent`, `java.util.concurrent.atomic` | `ExecutorService`, `CompletableFuture`, atomics |
+| Input/Output | `java.io`, `java.nio`, `java.nio.file` | `InputStream`, `Path`, `Files` |
+| Basic networking | `java.net` | `URI`, `URL`, `Socket` |
+| Date and time | `java.time`, `java.time.format` | `Instant`, `LocalDateTime`, `DateTimeFormatter` |
+| Math and text | `java.math`, `java.text` | `BigDecimal`, `NumberFormat` |
+| Security | `java.security`, `javax.crypto`, `javax.net.ssl` | `MessageDigest`, `Cipher`, TLS API |
 | Module metadata | `java.lang.module` | `ModuleFinder`, `ModuleDescriptor` |
 
-Hai tên package dễ nhầm:
+Two easily confused package names:
 
-- `java.net` ở `java.base` chứa mạng cơ bản. `java.net.http` nằm ở module **`java.net.http`**, vì vậy named module muốn dùng `HttpClient` phải khai báo `requires java.net.http;`.
-- `java.util` ở `java.base`, nhưng `java.util.logging` thuộc **`java.logging`**. Chỉ import `java.util.logging.Logger` không làm module ứng dụng tự động có quyền đọc `java.logging`.
+- `java.net` in `java.base` contains basic networking. `java.net.http` resides in the **`java.net.http`** module, so a named module wishing to use `HttpClient` must declare `requires java.net.http;`.
+- `java.util` is in `java.base`, whereas `java.util.logging` belongs to **`java.logging`**. Merely importing `java.util.logging.Logger` does not automatically grant the application module read access to `java.logging`.
 
-Một package có tên gần giống hoặc có chung tiền tố không có nghĩa nó thuộc cùng module. JPMS quản lý theo module descriptor thực tế.
+A package having a similar name or sharing a prefix does not mean it belongs to the same module. JPMS manages access according to the actual module descriptor.
 
-## 4. Từ `java.base` đến các module Java SE khác
+## 4. From `java.base` to Other Java SE Modules
 
-Để giảm mức phụ thuộc của một ứng dụng, hãy xem các module chuẩn như các thành phần chức năng chỉ bổ sung khi cần.
+To minimize an application's dependencies, treat standard modules as functional components added only when needed.
 
-### 4.1. `java.logging`: logging chuẩn
+### 4.1. `java.logging`: Standard Logging
 
-Module này cung cấp API Java Util Logging (JUL). Ví dụ:
+This module provides the Java Util Logging (JUL) API. Example:
 
 ~~~java
 import java.util.logging.Logger;
@@ -117,12 +117,12 @@ public class LogDemo {
             Logger.getLogger(LogDemo.class.getName());
 
     public static void main(String[] args) {
-        LOG.info("Ung dung da khoi dong");
+        LOG.info("Application started");
     }
 }
 ~~~
 
-Trong **unnamed module** hoặc chương trình classpath đơn giản, người dùng thường không phải viết `module-info.java`. Nhưng nếu `LogDemo` nằm trong named module `com.example.app`, descriptor phải nêu rõ:
+In the **unnamed module** or a simple classpath program, users typically do not have to write `module-info.java`. However, if `LogDemo` resides in the named module `com.example.app`, the descriptor must explicitly state:
 
 ~~~java
 module com.example.app {
@@ -130,11 +130,11 @@ module com.example.app {
 }
 ~~~
 
-`java.base` vẫn được đọc ngầm định. Ngược lại, quyền đọc `java.logging` không tự nhiên phát sinh chỉ vì class dùng `java.lang` hay `java.util`.
+`java.base` is still read implicitly. Conversely, read access to `java.logging` does not arise automatically just because a class uses `java.lang` or `java.util`.
 
-### 4.2. `java.sql` và `java.xml`
+### 4.2. `java.sql` and `java.xml`
 
-Các ứng dụng cần JDBC API thường khai báo:
+Applications that need the JDBC API typically declare:
 
 ~~~java
 module com.example.database {
@@ -142,7 +142,7 @@ module com.example.database {
 }
 ~~~
 
-Ứng dụng xử lý DOM/SAX/XML chuẩn có thể khai báo:
+Applications processing standard DOM/SAX/XML can declare:
 
 ~~~java
 module com.example.xml {
@@ -150,11 +150,11 @@ module com.example.xml {
 }
 ~~~
 
-Phụ thuộc của các module này được JPMS xử lý qua module resolution. Nếu một module có `requires transitive` thì quan hệ đọc có thể được lan truyền theo hợp đồng descriptor. Hãy kiểm tra descriptor thực tế bằng `java --describe-module java.sql` thay vì giả định toàn bộ dependency luôn giống nhau ở mọi phiên bản Java.
+Dependencies of these modules are handled by JPMS through module resolution. If a module has `requires transitive`, readability can propagate according to the descriptor contract. Inspect the actual descriptor with `java --describe-module java.sql` rather than assuming all dependencies are identical across every Java version.
 
-### 4.3. `java.net.http`: HTTP Client từ Java 11
+### 4.3. `java.net.http`: HTTP Client Since Java 11
 
-HTTP Client API chuẩn hiện đại thuộc `java.net.http`, không nằm trong `java.base`:
+The modern standard HTTP Client API belongs to `java.net.http`, not `java.base`:
 
 ~~~java
 module com.example.client {
@@ -180,17 +180,17 @@ public class ClientDemo {
 }
 ~~~
 
-**Lưu ý về phiên bản:** `HttpClient` chỉ triển khai `AutoCloseable` ở những phiên bản Java mới hơn; ví dụ `try-with-resources` phía trên chỉ phù hợp Java 21 trở lên. Với Java 17, tạo client thông thường như sau:
+**Version note:** `HttpClient` only implements `AutoCloseable` in newer Java versions; the `try-with-resources` example above is only suitable for Java 21 and later. For Java 17, create the client normally as follows:
 
 ~~~java
 HttpClient client = HttpClient.newHttpClient();
 ~~~
 
-Đối với module `java.net.http`, API đã được chuẩn hóa từ Java 11. Dùng cú pháp và API phù hợp với phiên bản Java mà dự án thực thi.
+For the `java.net.http` module, the API has been standardized since Java 11. Use syntax and APIs appropriate for the Java version your project runs on.
 
-### 4.4. `java.desktop` và `java.management`
+### 4.4. `java.desktop` and `java.management`
 
-Ứng dụng Swing/AWT hoặc quản lý qua JMX cần các module tương ứng:
+Swing/AWT applications or management via JMX require the corresponding modules:
 
 ~~~java
 module com.example.desktoptool {
@@ -199,30 +199,30 @@ module com.example.desktoptool {
 }
 ~~~
 
-Đưa `java.desktop` vào một ứng dụng phía server có thể làm tăng kích thước runtime image. Khi tạo runtime tối giản, nên chỉ đưa vào các module mà ứng dụng thực sự cần.
+Including `java.desktop` in a server-side application can increase the size of the runtime image. When creating a minimal runtime, you should only include the modules the application actually needs.
 
-## 5. Phân biệt module Java SE và module riêng của JDK
+## 5. Distinguishing Java SE Modules from JDK-Specific Modules
 
-Một bản phân phối JDK có thể cung cấp cả:
+A JDK distribution can provide both:
 
-- Module **`java.*`**: nhiều module mô tả API Java SE được chuẩn hóa.
-- Module **`jdk.*`**: cung cấp công cụ hoặc khả năng đặc thù JDK, chẳng hạn compiler, Java Flight Recorder, HTTP server nhẹ, hoặc các module triển khai.
+- **`java.*` modules**: many modules describing standardized Java SE APIs.
+- **`jdk.*` modules**: providing JDK-specific tools or capabilities, such as the compiler, Java Flight Recorder, the lightweight HTTP server, or implementation modules.
 
-Không suy luận rằng mọi package trong module `jdk.*` là API public ổn định. Dù module có thể được tìm thấy, một package không được `exports` vẫn không thể import bình thường từ module khác.
+Do not assume that every package in a `jdk.*` module is a stable public API. Even though a module can be found, a package that is not `exports`ed still cannot be imported normally from another module.
 
-Ví dụ, `jdk.compiler` cung cấp các package dành cho các thành phần compiler, nhưng không cho phép mặc định việc truy cập mọi class trong `com.sun.tools.javac.*`. Có thể kiểm tra phần công khai bằng:
+For example, `jdk.compiler` provides packages intended for compiler components, but does not by default allow access to every class in `com.sun.tools.javac.*`. You can inspect what is publicly exposed with:
 
 ~~~bash
 java --describe-module jdk.compiler
 ~~~
 
-Một số runtime có module tổng hợp `java.se`. Đây là **aggregator module** với các phụ thuộc transitive tới các module Java SE thích hợp, không phải nơi chứa toàn bộ các class trong Java SE và cũng không phải tên thay thế của `java.base`. Khi cần kiểm soát dependency rõ ràng, nên khai báo module thực sự được sử dụng thay vì mặc định dựa vào một aggregate module.
+Some runtimes include the aggregate module `java.se`. This is an **aggregator module** with transitive dependencies on the appropriate Java SE modules, not a container holding all classes in Java SE, nor an alias for `java.base`. When clear dependency control is needed, declare the modules actually used instead of relying on an aggregate module by default.
 
-## 6. Đọc `module-info.java` và quyền truy cập module
+## 6. Reading `module-info.java` and Module Access Rights
 
-### 6.1. `requires` là gì?
+### 6.1. What Is `requires`?
 
-`module-info.java` là nguồn khai báo descriptor của named module. Ví dụ:
+`module-info.java` is the source declaring a named module's descriptor. Example:
 
 ~~~java
 module com.example.foundation {
@@ -231,30 +231,30 @@ module com.example.foundation {
 }
 ~~~
 
-Quan hệ đọc được hình thành nhờ `requires` và các quy tắc module khác. Riêng `java.base` được đọc tự động:
+Readability relationships are formed via `requires` and other module rules. `java.base` in particular is read automatically:
 
 ~~~text
 com.example.foundation
-   +-- java.base         (ngam dinh)
-   +-- java.logging      (requires truc tiep)
-   +-- java.net.http     (requires truc tiep)
-         +-- ...         (dependency theo descriptor)
+   +-- java.base         (implicit)
+   +-- java.logging      (direct requires)
+   +-- java.net.http     (direct requires)
+         +-- ...         (dependencies per descriptor)
 ~~~
 
-**Tìm được module chưa đủ để truy cập API**. Để module A dùng một public type của module B, module A cần đọc B và package chứa type phải được B export theo phạm vi phù hợp.
+**Finding a module is not enough to access an API**. For module A to use a public type from module B, module A must read B and the package containing the type must be exported by B to an appropriate scope.
 
-### 6.2. `exports` và `opens` khác gì?
+### 6.2. How Do `exports` and `opens` Differ?
 
-- `exports com.example.api;` công khai public types trong package cho code ở module khác ở cả thời điểm biên dịch và thời điểm chạy theo quy tắc truy cập.
-- `exports com.example.internal to com.example.friend;` chỉ export package cho các module được chỉ định.
-- `opens com.example.model;` cho phép reflection sâu tới package tại runtime; không có ý nghĩa là mọi public type trong package tự động trở thành API import được từ module khác.
-- `open module com.example.app { ... }` mở toàn bộ package trong module cho reflection sâu theo mô hình module mở, nhưng cần cân nhắc tính đóng gói.
+- `exports com.example.api;` exposes public types in the package to code in other modules at both compile time and runtime according to access rules.
+- `exports com.example.internal to com.example.friend;` exports the package only to the specified modules.
+- `opens com.example.model;` allows deep reflection into the package at runtime; it does not mean every public type in the package automatically becomes an API importable from other modules.
+- `open module com.example.app { ... }` opens all packages in the module for deep reflection under the open module model, though encapsulation implications should be considered.
 
-`java.base` export nhiều API cơ bản nhưng cũng chứa package nội bộ không export. Việc dùng `--add-exports` hay `--add-opens` để vượt qua ranh giới module nên là trường hợp đặc biệt có lý do tương thích cụ thể, không phải quy tắc mặc định.
+`java.base` exports many fundamental APIs but also contains unexported internal packages. Using `--add-exports` or `--add-opens` to bypass module boundaries should be an exception for specific compatibility reasons, not the default rule.
 
-### 6.3. `requires transitive` và `requires static`
+### 6.3. `requires transitive` and `requires static`
 
-Một thư viện có thể dùng:
+A library can use:
 
 ~~~java
 module com.example.facade {
@@ -262,13 +262,13 @@ module com.example.facade {
 }
 ~~~
 
-Module khác khai báo `requires com.example.facade;` sẽ được hưởng quan hệ đọc tới `java.logging` theo quy tắc `requires transitive`.
+Another module declaring `requires com.example.facade;` will gain readability to `java.logging` under the `requires transitive` rule.
 
-`requires static module.name;` chỉ bắt buộc dependency khi biên dịch; tại runtime dependency ấy có thể không có. Nếu code thực sự gọi API tùy chọn thì chương trình vẫn cần thiết kế đường chạy phù hợp khi dependency vắng mặt.
+`requires static module.name;` only requires the dependency at compile time; at runtime that dependency may be absent. If code actually invokes an optional API, the program still needs to design an appropriate execution path when the dependency is missing.
 
-## 7. Ví dụ hoàn chỉnh: ứng dụng modular dùng `java.base` và `java.logging`
+## 7. Complete Example: A Modular Application Using `java.base` and `java.logging`
 
-Tạo cấu trúc thư mục:
+Create the directory structure:
 
 ~~~text
 src/
@@ -279,7 +279,7 @@ src/
         foundation/
           Main.java
 mods/
-  (thu muc sinh sau khi bien dich)
+  (directory generated after compilation)
 ~~~
 
 File `src/com.example.foundation/module-info.java`:
@@ -321,19 +321,19 @@ public class Main {
 }
 ~~~
 
-Biên dịch từ thư mục dự án:
+Compile from the project directory:
 
 ~~~bash
 javac -d mods/com.example.foundation src/com.example.foundation/module-info.java src/com.example.foundation/com/example/foundation/Main.java
 ~~~
 
-Khởi chạy:
+Launch:
 
 ~~~bash
 java --module-path mods --module com.example.foundation/com.example.foundation.Main
 ~~~
 
-Ví dụ đầu ra (không cố định ngày, vị trí logger hay cách trình bày):
+Example output (date, logger formatting, or layout may vary):
 
 ~~~text
 ... INFO: Running with [java.base, java.logging]
@@ -345,21 +345,21 @@ Reads java.base: true
 Reads java.logging: true
 ~~~
 
-`LocalDate`, `List`, `Object` và `Module` đều có trong `java.base`; `Logger` có trong `java.logging`. Vì thế descriptor chỉ cần `requires java.logging;`.
+`LocalDate`, `List`, `Object`, and `Module` are all in `java.base`; `Logger` is in `java.logging`. Therefore, the descriptor only needs `requires java.logging;`.
 
-Nếu xóa dòng `requires java.logging;` rồi biên dịch lại, compiler sẽ báo package `java.util.logging` không visible đối với named module do thiếu quan hệ đọc. Thêm dependency đúng vào descriptor là cách sửa cơ bản.
+If you remove the line `requires java.logging;` and recompile, the compiler will report that package `java.util.logging` is not visible to the named module due to a missing readability relationship. Adding the proper dependency to the descriptor is the fundamental fix.
 
-Chạy lại để xem resolution:
+Run again to observe resolution:
 
 ~~~bash
 java --show-module-resolution --module-path mods --module com.example.foundation/com.example.foundation.Main
 ~~~
 
-Những dòng `root ...`, `requires ...` và những quan hệ khác giúp hình dung cách JVM chọn module; chi tiết đầu ra còn phụ thuộc các lựa chọn khởi chạy và phiên bản JDK.
+The `root ...`, `requires ...`, and other relationship lines help visualize how the JVM selects modules; exact output details also depend on launch options and the JDK version.
 
-## 8. Khảo sát module trực tiếp bằng công cụ JDK
+## 8. Inspecting Modules Directly with JDK Tools
 
-### 8.1. Các lệnh thường dùng
+### 8.1. Common Commands
 
 ~~~bash
 java -version
@@ -370,21 +370,21 @@ java --describe-module java.net.http
 java --describe-module jdk.compiler
 ~~~
 
-Mỗi lệnh trả lời một câu hỏi:
+Each command answers a question:
 
-| Lệnh | Tìm hiểu điều gì? |
+| Command | What does it tell you? |
 | --- | --- |
-| `java -version` | Đang chạy đúng Java version/runtime nào? |
-| `java --list-modules` | Runtime image hiện tại cung cấp những module nào? |
-| `java --describe-module X` | Descriptor của module `X` có những `requires`, `exports`, `uses` và `provides` nào? |
-| `java --show-module-resolution ...` | JVM đã chọn những module/quan hệ nào khi chạy ứng dụng? |
-| `jdeps --print-module-deps app.jar` | Phụ thuộc module được suy ra từ phân tích bytecode của JAR. |
+| `java -version` | Which exact Java version/runtime is running? |
+| `java --list-modules` | Which modules does the current runtime image provide? |
+| `java --describe-module X` | Which `requires`, `exports`, `uses`, and `provides` does module `X`'s descriptor contain? |
+| `java --show-module-resolution ...` | Which modules/relationships did the JVM select when running the application? |
+| `jdeps --print-module-deps app.jar` | Module dependencies inferred from analyzing the JAR's bytecode. |
 
-Ở kết quả `--list-modules`, module thường được in theo dạng `module.name@version`. Phiên bản có thể khác hoặc không xuất hiện trong vài hoàn cảnh. Không mã hóa cứng phiên bản cụ thể vào ứng dụng.
+In `--list-modules` output, modules are usually printed in the form `module.name@version`. The version may differ or not appear in some circumstances. Do not hardcode a specific version into the application.
 
-### 8.2. Xác định module chứa một class
+### 8.2. Determining Which Module Contains a Class
 
-Từ Java code:
+From Java code:
 
 ~~~java
 import java.net.http.HttpClient;
@@ -401,14 +401,14 @@ public class WhereIsMyClass {
 }
 ~~~
 
-Chạy trên classpath với Java 17+:
+Run on the classpath with Java 17+:
 
 ~~~bash
 javac WhereIsMyClass.java
 java WhereIsMyClass
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 java.base
@@ -417,11 +417,11 @@ java.logging
 java.net.http
 ~~~
 
-Cách này rất hữu ích khi bạn phân vân một class thuộc module nào. Nó kiểm tra module của type trong runtime mà chương trình đã thực sự load, không thay thế việc đọc descriptor để biết package có được export hay không.
+This approach is very useful when you are unsure which module a class belongs to. It checks the module of a type in the runtime that the program actually loaded, and does not replace reading the descriptor to know whether the package is exported.
 
-### 8.3. Liệt kê bằng API `ModuleFinder.ofSystem()`
+### 8.3. Listing via the `ModuleFinder.ofSystem()` API
 
-Ngoài CLI, Java cung cấp API module tại `java.lang.module` trong `java.base`:
+In addition to the CLI, Java provides the module API in `java.lang.module` inside `java.base`:
 
 ~~~java
 import java.lang.module.ModuleFinder;
@@ -447,17 +447,17 @@ public class PlatformModules {
 }
 ~~~
 
-Ví dụ URI của một system module có dạng `jrt:/java.base`. `jrt:/` là hệ thống URI dành cho nội dung runtime image và không cần đồng nhất với một file JAR trên đĩa.
+An example URI of a system module has the form `jrt:/java.base`. `jrt:/` is the URI scheme for runtime image contents and does not need to correspond to a JAR file on disk.
 
-**Phân biệt ba lớp thông tin:**
+**Distinguish three layers of information:**
 
-- `ModuleFinder.ofSystem().findAll()`: những module runtime cung cấp cho finder.
-- `ModuleLayer.boot().configuration()`: đồ thị module được resolve cho boot layer.
-- `ModuleLayer.boot().modules()`: những module thực tế được định nghĩa trong boot layer.
+- `ModuleFinder.ofSystem().findAll()`: the modules the runtime exposes to the finder.
+- `ModuleLayer.boot().configuration()`: the resolved module graph for the boot layer.
+- `ModuleLayer.boot().modules()`: the modules actually defined in the boot layer.
 
-Việc một module xuất hiện trong finder không chứng tỏ nó đã được chọn vào boot layer của ứng dụng.
+A module appearing in the finder does not prove that it was selected into the application's boot layer.
 
-### 8.4. In descriptor bằng API
+### 8.4. Printing a Descriptor via the API
 
 ~~~java
 import java.lang.module.ModuleFinder;
@@ -480,11 +480,11 @@ public class BaseDescriptor {
 }
 ~~~
 
-Đoạn code đọc metadata thay vì tự giữ danh sách package từ một bản JDK cũ. Thông thường `java.base` không phụ thuộc module khác; các module còn lại được mô tả qua quan hệ module resolution.
+This code reads metadata rather than maintaining a package list from an older JDK release. Typically `java.base` does not depend on other modules; the remaining modules are described through module resolution relationships.
 
-## 9. Khi nào hệ thống tự resolve các module nền tảng?
+## 9. When Does the System Automatically Resolve Platform Modules?
 
-Mỗi lần khởi chạy modular application, JVM xác định **root modules** và dùng resolver truy tìm các module phụ thuộc. Quy trình khái quát:
+Each time a modular application launches, the JVM determines the **root modules** and uses the resolver to trace dependent modules. High-level flow:
 
 ~~~text
 Root: com.example.foundation
@@ -493,122 +493,122 @@ Root: com.example.foundation
              v
        java.logging
              |
-             +-----> java.base (nen tang)
+             +-----> java.base (foundation)
              ^
              |
 com.example.foundation --(implicit read)--> java.base
 ~~~
 
-Đồ thị trên chỉ thể hiện phần dependency cần để hiểu ví dụ. Mỗi runtime có thể có những chi tiết resolution bổ sung.
+The diagram above only illustrates the dependency portion needed to understand the example. Each runtime may have additional resolution details.
 
-Có hai lưu ý quan trọng:
+There are two important notes:
 
-1. `java.base` luôn là module nền; đối với named module, quan hệ đọc tới `java.base` là tự động dù `module-info.java` không ghi ra.
-2. **Observable module** chưa chắc đã được resolve. Thông tin `java --list-modules` cho thấy nguồn system modules, còn `--show-module-resolution` giúp quan sát những module được chọn khi chạy một ứng dụng cụ thể.
+1. `java.base` is always the base module; for a named module, the read relationship to `java.base` is automatic even if `module-info.java` does not write it out.
+2. An **observable module** is not necessarily resolved. `java --list-modules` shows the source of system modules, whereas `--show-module-resolution` helps observe which modules are selected when running a specific application.
 
-Nếu module cần thiết không có trong nguồn quan sát được, JVM có thể báo lỗi dạng:
+If a required module is not present in the observable sources, the JVM can report an error like:
 
 ~~~text
 java.lang.module.FindException: Module java.logging not found, required by com.example.foundation
 ~~~
 
-Điều này thường xuất hiện ở runtime image quá tối giản hoặc khi cấu hình module path không chứa module ứng dụng cần dùng. Cần kiểm tra bằng executable Java thực sự được dùng để khởi chạy.
+This often occurs with an overly minimal runtime image or when the configured module path does not contain a module the application needs. You should verify using the actual Java executable used to launch the application.
 
-## 10. Runtime image tối giản và ý nghĩa của `java.base`
+## 10. Minimal Runtime Images and the Meaning of `java.base`
 
-`jlink` (có trong JDK) tạo runtime image tùy chỉnh từ các module được lựa chọn và các dependency cần thiết.
+`jlink` (included in the JDK) creates a custom runtime image from selected modules and their required dependencies.
 
-Ví dụ trên hệ thống có JDK đầy đủ, sử dụng một thư mục đầu ra chưa tồn tại:
+Example on a system with a full JDK, using a non-existent output directory:
 
 ~~~bash
 jlink --module-path /path/to/jdk/jmods --add-modules java.base,java.logging --output runtime-small
 ~~~
 
-Trên Linux/macOS có thể thay `/path/to/jdk/jmods` bằng đường dẫn `$JAVA_HOME/jmods` khi biến môi trường đã được thiết lập đúng. Trên Windows dùng đường dẫn tới thư mục `jmods` của bản JDK thực tế, ví dụ `C:\Java\jdk-17\jmods`.
+On Linux/macOS, `/path/to/jdk/jmods` can be replaced with `$JAVA_HOME/jmods` when the environment variable is properly set. On Windows, use the path to the `jmods` directory of the actual JDK installation, such as `C:\Java\jdk-17\jmods`.
 
-Kiểm tra:
+Check:
 
 ~~~bash
 runtime-small/bin/java --list-modules
 ~~~
 
-Trên Windows thường gọi `runtime-small\bin\java.exe --list-modules`.
+On Windows, this is typically invoked as `runtime-small\bin\java.exe --list-modules`.
 
-Runtime image được tạo sẽ có `java.base`, `java.logging` và những phần phụ thuộc mà `jlink` cần đóng gói. Nhiều module khác của JDK đầy đủ có thể không hiện diện.
+The generated runtime image will contain `java.base`, `java.logging`, and the dependencies `jlink` needs to package. Many other modules from the full JDK may not be present.
 
-Tác động thực tế:
+Practical impact:
 
-- Không thể bỏ `java.base`, vì nó là nền tảng của runtime.
-- Nếu ứng dụng sử dụng `java.net.http`, `java.sql` hoặc `java.desktop`, image phải có các module tương ứng.
-- Bản JDK khi build và image khi deploy có thể khác nhau. Việc compile được trên JDK đầy đủ không bảo đảm runtime tối giản đủ module.
-- Dùng `jdeps` để gợi ý dependency tĩnh, đồng thời kiểm tra thêm reflection, service loading và những đường gọi được quyết định động.
+- `java.base` cannot be omitted because it is the foundation of the runtime.
+- If the application uses `java.net.http`, `java.sql`, or `java.desktop`, the image must include the corresponding modules.
+- The JDK used at build time and the image used at deploy time may differ. Compiling cleanly on a full JDK does not guarantee a minimal runtime has all required modules.
+- Use `jdeps` to suggest static dependencies, while also checking reflection, service loading, and dynamically determined call paths.
 
-Lệnh ví dụ phân tích modular JAR:
+Example command analyzing a modular JAR:
 
 ~~~bash
 jdeps --print-module-deps my-app.jar
 ~~~
 
-`jdeps` chỉ có thể phân tích những thông tin xuất hiện trong bytecode và cấu hình được cung cấp; nó không thể suy ra hoàn hảo mọi dependency động của ứng dụng.
+`jdeps` can only analyze information appearing in the bytecode and provided configuration; it cannot perfectly infer every dynamic dependency of an application.
 
-## 11. Những nhầm lẫn thường gặp
+## 11. Common Misconceptions
 
-### Nhầm 1: “`java.base` chứa toàn bộ thư viện chuẩn”
+### Misconception 1: "`java.base` contains the entire standard library"
 
-Không đúng. `java.base` chứa một lượng lớn API cốt lõi, nhưng logging, JDBC, XML, management, desktop, HTTP Client hiện đại và nhiều khả năng khác ở module riêng. Khi viết `module-info.java`, cần xác định chính xác module chứa package đang sử dụng.
+Incorrect. `java.base` contains a large set of core APIs, but logging, JDBC, XML, management, desktop, the modern HTTP Client, and many other capabilities reside in separate modules. When writing `module-info.java`, accurately identify the module containing the package being used.
 
-### Nhầm 2: “Thấy `java.util.logging` thì nó nằm trong `java.base`”
+### Misconception 2: "Seeing `java.util.logging` means it is in `java.base`"
 
-Package có tiền tố `java.util` chưa đủ để quyết định module. `java.util.logging` thuộc `java.logging`, còn `java.util.concurrent` ở `java.base`. Dùng `Class.getModule()` hoặc descriptor để xác minh.
+A package having the `java.util` prefix is not enough to determine its module. `java.util.logging` belongs to `java.logging`, whereas `java.util.concurrent` is in `java.base`. Use `Class.getModule()` or the descriptor to verify.
 
-### Nhầm 3: “Mọi module trong `java --list-modules` đều đã được load”
+### Misconception 3: "Every module in `java --list-modules` is already loaded"
 
-`--list-modules` cho thấy module runtime có, còn những module đã được resolve phụ thuộc roots, dependencies và tùy chọn runtime. Để quan sát graph, dùng `--show-module-resolution` hoặc kiểm tra boot layer.
+`--list-modules` shows the modules available in the runtime, while which modules are resolved depends on roots, dependencies, and runtime options. To inspect the graph, use `--show-module-resolution` or check the boot layer.
 
-### Nhầm 4: “Một module trong runtime thì package của nó luôn import được”
+### Misconception 4: "If a module is in the runtime, its packages can always be imported"
 
-Có mặt trong runtime là điều kiện cần nhưng chưa đủ. Module ứng dụng phải có **readability** phù hợp và package đích phải được export; reflection sâu có thể cần `opens`. Những package nội bộ kiểu `jdk.internal.*` không nên được xem là API công khai chỉ vì JVM sử dụng chúng.
+Being present in the runtime is a necessary condition, not a sufficient one. The application module must have appropriate **readability**, and the target package must be exported; deep reflection may require `opens`. Internal packages like `jdk.internal.*` should not be treated as public APIs simply because the JVM uses them.
 
-### Nhầm 5: “Module riêng của JDK đều xuất hiện trong mọi Java runtime”
+### Misconception 5: "JDK-specific modules appear in every Java runtime"
 
-Một image sinh bằng `jlink` có thể loại bỏ nhiều module `jdk.*` và thậm chí những module `java.*` không cần. Hãy đối chiếu runtime triển khai với module dependencies của ứng dụng.
+An image generated by `jlink` can omit many `jdk.*` modules and even unnecessary `java.*` modules. Cross-check the deployment runtime against the application's module dependencies.
 
-### Nhầm 6: “`java.se` là một bản sao lớn hơn của `java.base`”
+### Misconception 6: "`java.se` is a larger copy of `java.base`"
 
-`java.se` là aggregate module trên các runtime có cung cấp nó; nó dùng dependency để gom các module Java SE, không phải nơi lưu trữ tất cả class. `java.base` là module nền tảng độc lập với nhiệm vụ khác.
+`java.se` is an aggregate module on runtimes that provide it; it uses dependencies to group Java SE modules rather than storing all classes itself. `java.base` is an independent foundational module with a different role.
 
-### Nhầm 7: “Khai báo `requires` thay thế mọi cấu hình runtime”
+### Misconception 7: "Declaring `requires` replaces all runtime configuration"
 
-`requires` diễn đạt quan hệ module cần thiết nhưng không tự tạo ra module còn thiếu trong một runtime image, không thay thế `--module-path`, và không giải quyết các trường hợp phải mở package để reflection.
+`requires` expresses required module relationships, but does not synthesize missing modules in a runtime image, does not replace `--module-path`, and does not solve cases where packages must be opened for reflection.
 
-## 12. Bài thực hành
+## 12. Practice Exercises
 
-**Bài 1 — Xác định module theo class.** In tên module của `Object`, `Path`, `Logger`, `HttpClient`, `DocumentBuilderFactory` và `Connection` bằng `SomeClass.class.getModule().getName()`. Nhóm những class thuộc `java.base` và ngoài `java.base`. Nếu cần import, xác định module tương ứng.
+**Exercise 1 — Identify modules by class.** Print the module names of `Object`, `Path`, `Logger`, `HttpClient`, `DocumentBuilderFactory`, and `Connection` using `SomeClass.class.getModule().getName()`. Group the classes into those belonging to `java.base` and those outside `java.base`. Where imports are needed, identify the corresponding module.
 
-**Bài 2 — Mô tả `java.base`.** Chạy `java --describe-module java.base` và trả lời: module này có bao nhiêu `exports`? Nó có khai báo `requires` tới module khác không? Một package nội bộ không xuất hiện trong danh sách `exports` có thể được mã ứng dụng import bình thường không?
+**Exercise 2 — Describe `java.base`.** Run `java --describe-module java.base` and answer: how many `exports` does this module have? Does it declare `requires` on any other module? Can an internal package not appearing in the `exports` list be imported normally by application code?
 
-**Bài 3 — Thiết kế descriptor.** Cho một ứng dụng dùng `LocalDate`, `List`, `Logger`, `HttpClient` và JDBC `Connection`, hãy viết `module-info.java` tối thiểu chỉ dựa trên những module chứa các API này. Giải thích tại sao không cần `requires java.base;`.
+**Exercise 3 — Design a descriptor.** Given an application using `LocalDate`, `List`, `Logger`, `HttpClient`, and JDBC `Connection`, write a minimal `module-info.java` based solely on the modules containing these APIs. Explain why `requires java.base;` is not needed.
 
-**Bài 4 — Quan sát module resolution.** Chạy ví dụ `com.example.foundation` trong mục 7 cùng `--show-module-resolution`. Chỉ ra root module, module được yêu cầu trực tiếp và sự hiện diện của `java.base`.
+**Exercise 4 — Observe module resolution.** Run the `com.example.foundation` example from section 7 with `--show-module-resolution`. Identify the root module, directly required modules, and the presence of `java.base`.
 
-**Bài 5 — So sánh runtime.** Chạy `java --list-modules` trên JDK đầy đủ và runtime image `runtime-small` được tạo bằng `jlink`. Giải thích vì sao kết quả khác nhau và tại sao `java.base` vẫn xuất hiện ở cả hai.
+**Exercise 5 — Compare runtimes.** Run `java --list-modules` on a full JDK and on the `runtime-small` runtime image created with `jlink`. Explain why the results differ and why `java.base` still appears in both.
 
-**Bài 6 — Kiểm tra ranh giới module.** Thử loại bỏ `requires java.logging;` trong ví dụ rồi chạy lại `javac`. Đọc thông báo compiler và đưa dependency về đúng vị trí trong `module-info.java`.
+**Exercise 6 — Test module boundaries.** Try removing `requires java.logging;` in the example and re-running `javac`. Read the compiler message and restore the dependency to its proper place in `module-info.java`.
 
-Ghi lại phiên bản Java và lệnh thực thi khi làm bài. Kết quả danh sách module có thể khác nhau giữa các máy và bản phân phối JDK.
+Record the Java version and executed commands while doing the exercises. Module list outputs may vary across machines and JDK distributions.
 
-## 13. Tổng kết
+## 13. Summary
 
-- `java.base` là module cốt lõi của JPMS và được mọi named module đọc ngầm định.
-- Không phải API Java SE nào cũng ở `java.base`. Các tính năng như logging, JDBC, HTTP Client, XML, desktop và management nằm trong các module chức năng.
-- `module-info.java` dùng `requires` cho dependency ngoài `java.base`; quyền sử dụng public API còn phụ thuộc `exports` và quan hệ đọc.
-- `java --list-modules` và `ModuleFinder.ofSystem()` quan sát module runtime cung cấp; `--show-module-resolution` và `ModuleLayer.boot()` hỗ trợ quan sát các module được chọn cho quá trình chạy.
-- `jlink` cho phép tối giản runtime theo module nhưng không thể lược bỏ `java.base`.
-- Luôn kiểm tra module trên đúng phiên bản và runtime image, tránh giả định một JDK đầy đủ và runtime triển khai có danh sách module giống nhau.
+- `java.base` is the core module of JPMS and is read implicitly by every named module.
+- Not every Java SE API resides in `java.base`. Features such as logging, JDBC, HTTP Client, XML, desktop, and management live in functional modules.
+- `module-info.java` uses `requires` for dependencies outside `java.base`; permission to use public APIs also depends on `exports` and readability relationships.
+- `java --list-modules` and `ModuleFinder.ofSystem()` inspect modules provided by the runtime; `--show-module-resolution` and `ModuleLayer.boot()` help inspect the modules selected for execution.
+- `jlink` allows minimizing a runtime by module, but cannot omit `java.base`.
+- Always check modules on the exact version and runtime image, avoiding the assumption that a full JDK and a deployment runtime share the same module list.
 
-## 14. Tài liệu tham khảo
+## 14. References
 
-- Java Language Specification, phần Modules và Module Declarations.
+- Java Language Specification, Modules and Module Declarations sections.
 - Java Platform Module System — JEP 261.
 - Java SE API: `java.lang.Module`, `java.lang.ModuleLayer`, `java.lang.module.ModuleDescriptor`, `java.lang.module.ModuleFinder`.
-- JDK Tools Reference: `java`, `javac`, `jdeps`, `jlink` của phiên bản Java đang sử dụng.
+- JDK Tools Reference: `java`, `javac`, `jdeps`, `jlink` for the Java version in use.

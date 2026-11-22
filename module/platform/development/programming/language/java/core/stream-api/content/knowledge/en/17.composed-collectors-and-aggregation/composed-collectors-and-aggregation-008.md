@@ -1,50 +1,50 @@
-# Hoàn thiện kết quả bằng collectingAndThen
+# Finishing Results with collectingAndThen
 
-> **Chương:** Collector nhiều tầng và tổng hợp  
+> **Chapter:** Composed Collectors and Aggregation  
 > **Module:** JAVA_STREAM_API  
-> **Trọng tâm:** Dùng `Collectors.collectingAndThen` để áp dụng một bước **hoàn thiện kết quả** (*finishing transformation*) lên giá trị do collector bên trong tạo ra. Kỹ thuật này đặc biệt hữu ích khi kết hợp `groupingBy`, `partitioningBy`, `mapping`, `filtering`, `maxBy`, `summarizingInt` và collector tùy chỉnh.
+> **Focus:** Use `Collectors.collectingAndThen` to apply a **finishing transformation** onto the value produced by an inner collector. This technique is especially useful when combining `groupingBy`, `partitioningBy`, `mapping`, `filtering`, `maxBy`, `summarizingInt`, and custom collectors.
 
-## Mục tiêu học tập
+## Learning objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you can:
 
-1. Giải thích chính xác chữ ký `collectingAndThen(downstream, finisher)` và ba kiểu dữ liệu trung gian `T`, `A`, `R`, `RR`.
-2. Phân biệt phép biến đổi **từng phần tử** trong `map`/`mapping` với phép biến đổi **kết quả sau thu thập** trong `collectingAndThen`.
-3. Tạo kết quả không cho sửa cấu trúc bằng `List.copyOf`/`Map.copyOf`, đồng thời hiểu sự khác nhau giữa bất biến nông và bất biến sâu.
-4. Rút giá trị từ `Optional` do `maxBy`/`minBy` trả về và xử lý trường hợp dữ liệu rỗng.
-5. Hoàn thiện **từng nhóm** hoặc **toàn bộ Map** khi phối hợp nhiều tầng collector.
-6. Trả DTO/record thống kê từ `IntSummaryStatistics` hoặc các giá trị tổng hợp thay vì để lộ trạng thái mutable.
-7. Xác định tác động của `IDENTITY_FINISH`, tính kết hợp của downstream collector, thao tác song song và chi phí thực thi.
-8. Viết kiểm tra cho nguồn rỗng, nhóm rỗng, dữ liệu null, tính không thể sửa và kết quả tuần tự/song song.
+1. Accurately explain the signature `collectingAndThen(downstream, finisher)` and the type parameters `T`, `A`, `R`, `RR`.
+2. Distinguish **per-element** transformation in `map`/`mapping` from **post-collection result** transformation in `collectingAndThen`.
+3. Create structurally unmodifiable results with `List.copyOf`/`Map.copyOf`, while understanding the difference between shallow and deep immutability.
+4. Extract values from `Optional` returned by `maxBy`/`minBy` and handle empty data cases.
+5. Finish **each group** or **the entire Map** when composing multi-level collectors.
+6. Return statistics DTOs/records from `IntSummaryStatistics` or aggregated values instead of exposing mutable state.
+7. Identify the impact on `IDENTITY_FINISH`, associativity of downstream collectors, parallel execution, and runtime cost.
+8. Write checks for empty sources, empty groups, null data, unmodifiability, and sequential/parallel consistency.
 
-Các ví dụ sử dụng **Java 17+**. `collectingAndThen` và `groupingBy` có từ Java 8; `Collectors.filtering`/`flatMapping` có từ Java 9; `Collectors.teeing` có từ Java 12; `List.copyOf` có từ Java 10; `Stream.toList()` và `record` có từ Java 16.
+Examples use **Java 17+**. `collectingAndThen` and `groupingBy` have existed since Java 8; `Collectors.filtering`/`flatMapping` since Java 9; `Collectors.teeing` since Java 12; `List.copyOf` since Java 10; and `Stream.toList()` and `record` since Java 16.
 
-## 1. Vì sao cần một bước hoàn thiện sau collect?
+## 1. Why do we need a finishing step after collect?
 
-Trong Java Stream API, ta thường có pipeline khai báo:
+In the Java Stream API, we commonly write a declarative pipeline:
 
 ~~~text
-Nguồn dữ liệu
+Data source
    │
-   ├─ filter(...)       lọc phần tử
-   ├─ map(...)          biến đổi phần tử
+   ├─ filter(...)       filter elements
+   ├─ map(...)          transform elements
    │
-   └─ collect(...)      tổng hợp toàn bộ dữ liệu
+   └─ collect(...)      aggregate all data
           │
-          ├─ supplier    tạo container
-          ├─ accumulator đưa từng phần tử vào container
-          ├─ combiner    gộp container trung gian
-          └─ finisher    trả kết quả cuối
+          ├─ supplier    create container
+          ├─ accumulator add each element to container
+          ├─ combiner    merge intermediate containers
+          └─ finisher    return final result
 ~~~
 
-Nhiều collector chuẩn tạo một kết quả **chưa đúng kiểu hoặc chưa đúng ràng buộc muốn công bố**. Ví dụ:
+Many standard collectors produce a result that **does not yet match the type or constraints you want to publish**. For example:
 
-- Thu thập vào một `ArrayList` mutable, nhưng API muốn trả một `List` không cho chỉnh sửa.
-- `maxBy` trả `Optional<T>`, nhưng yêu cầu nghiệp vụ muốn trực tiếp nhận `T` hoặc phát lỗi khi không có phần tử.
-- `summarizingInt` trả `IntSummaryStatistics` mutable, nhưng API muốn một `record` bất biến.
-- `groupingBy` trả `Map<K, List<T>>`, nhưng mỗi danh sách nhóm phải được chuẩn hóa, sắp xếp hoặc đóng băng cấu trúc.
+- Collecting into a mutable `ArrayList`, when the API wants to return an unmodifiable `List`.
+- `maxBy` returns `Optional<T>`, when business rules want `T` directly or an error when no element exists.
+- `summarizingInt` returns a mutable `IntSummaryStatistics`, when the API wants an immutable `record`.
+- `groupingBy` returns `Map<K, List<T>>`, when each group's list must be normalized, sorted, or structurally frozen.
 
-Ta có thể xử lý kết quả sau khi `collect` trả về:
+We can post-process the result after `collect` returns:
 
 ~~~java
 import java.util.List;
@@ -58,7 +58,7 @@ List<String> immutable = List.copyOf(mutable);
 System.out.println(immutable); // [an, bình, chi]
 ~~~
 
-Hoặc gói luôn bước cuối vào collector:
+Or bundle the final step directly into the collector:
 
 ~~~java
 import java.util.List;
@@ -74,11 +74,11 @@ List<String> immutable = List.of(" an ", " bình ", " chi ").stream()
 System.out.println(immutable); // [an, bình, chi]
 ~~~
 
-Hai đoạn cùng giải quyết ví dụ. Giá trị của `collectingAndThen` hiện rõ hơn khi phép hoàn thiện được **lồng vào một collector khác**, chẳng hạn chỉ chuyển đổi danh sách của từng nhóm trong `groupingBy`.
+Both snippets solve the example. The value of `collectingAndThen` becomes much clearer when the finishing step is **nested inside another collector**, such as transforming only each group's list inside `groupingBy`.
 
-## 2. Hợp đồng API và dòng chảy của các kiểu dữ liệu
+## 2. API contract and flow of data types
 
-Chữ ký khái niệm của API:
+Conceptual API signature:
 
 ~~~java
 public static <T, A, R, RR> Collector<T, A, RR> collectingAndThen(
@@ -87,16 +87,16 @@ public static <T, A, R, RR> Collector<T, A, RR> collectingAndThen(
 );
 ~~~
 
-Ý nghĩa của từng kiểu:
+Meaning of each type parameter:
 
-| Ký hiệu | Vai trò | Ví dụ |
+| Symbol | Role | Example |
 |---|---|---|
-| `T` | Phần tử đầu vào của Stream | `Order` |
-| `A` | Trạng thái tích lũy bên trong downstream | `ArrayList<Order>` |
-| `R` | Kết quả mà downstream collector tạo ra | `List<Order>` |
-| `RR` | Kết quả **sau khi finisher hoàn thiện** | `List<Order>` bất biến, `Summary`, `String`... |
+| `T` | Input element of the Stream | `Order` |
+| `A` | Internal accumulation state inside downstream | `ArrayList<Order>` |
+| `R` | Result produced by the downstream collector | `List<Order>` |
+| `RR` | Result **after finisher completes** | Unmodifiable `List<Order>`, `Summary`, `String`... |
 
-Có thể mô tả quá trình:
+We can illustrate the flow:
 
 ~~~text
 Stream<T>
@@ -105,7 +105,7 @@ Stream<T>
 downstream: Collector<T, A, R>
    |   supplier / accumulator / combiner
    v
-  A (trạng thái đã hoàn tất việc gộp)
+  A (state after merging is complete)
    |
    | downstream.finisher()
    v
@@ -116,17 +116,17 @@ downstream: Collector<T, A, R>
   RR
 ~~~
 
-`collectingAndThen` không thay chức năng tích lũy của downstream: nó sử dụng các thành phần downstream rồi **nối thêm một finisher** để chuyển `R` thành `RR`.
+`collectingAndThen` does not replace the downstream's accumulation logic: it delegates to the downstream's components and then **chains an extra finisher** to convert `R` into `RR`.
 
-Những điều cần nhớ:
+Key points to remember:
 
-- Đây là **factory method tạo Collector**, không phải intermediate operation mới của Stream.
-- Lambda `finisher` hoạt động trên **kết quả của downstream**; nó không được gọi cho mỗi phần tử đầu vào.
-- Đối với một lần `collect` hoàn tất thành một kết quả duy nhất, finisher bên ngoài được áp dụng lên kết quả đã giảm gộp. Khi collector này làm downstream của `groupingBy`, finisher được áp dụng cho kết quả **của mỗi nhóm được tạo**.
-- `collectingAndThen` trả về collector **không có đặc tính `IDENTITY_FINISH`**; những characteristics hợp lệ khác được kế thừa từ downstream.
-- `finisher` phải chấp nhận trạng thái đầu ra hợp lệ của downstream, gồm cả đầu ra rỗng nếu nguồn/nhóm có thể rỗng.
+- This is a **factory method creating a Collector**, not a new Stream intermediate operation.
+- The `finisher` lambda operates on **the downstream's result**; it is not invoked per input element.
+- For a single `collect` producing one overall result, the outer finisher is applied to the reduced result. When this collector is a downstream of `groupingBy`, the finisher is applied to the result **of each created group**.
+- `collectingAndThen` returns a collector **without the `IDENTITY_FINISH` characteristic**; other valid characteristics are inherited from the downstream.
+- `finisher` must accept any valid output state of the downstream, including empty output if the source or group can be empty.
 
-### 2.1. Không nhầm finisher với map
+### 2.1. Do not confuse finisher with map
 
 ~~~java
 import java.util.List;
@@ -148,11 +148,11 @@ System.out.println(doubled); // [2, 4, 6]
 System.out.println(count);   // 3
 ~~~
 
-`map` chạy theo **từng phần tử**, còn `List::size` chỉ nhận **một danh sách đã được thu thập**. Nếu mục tiêu chỉ là đếm phần tử, `stream.count()` hoặc `Collectors.counting()` ngắn và không cần giữ toàn bộ list; ví dụ này chủ yếu để thấy vị trí của finisher.
+`map` runs **per element**, whereas `List::size` receives **the already-collected list**. If the goal is merely counting elements, `stream.count()` or `Collectors.counting()` is shorter and avoids holding the entire list; this example mainly highlights where the finisher runs.
 
-## 3. Ví dụ nền tảng: biến danh sách kết quả thành snapshot không thể sửa
+## 3. Foundational example: turning a result list into an unmodifiable snapshot
 
-Giả sử ứng dụng nhận danh sách tên, chuẩn hóa và muốn công bố kết quả chỉ đọc:
+Suppose an application receives a list of names, normalizes them, and wants to publish a read-only result:
 
 ~~~java
 import java.util.List;
@@ -169,14 +169,14 @@ List<String> result = names.stream()
 
 System.out.println(result); // [An, Bình, Chi]
 
-// result.add("Dũng"); // Ném UnsupportedOperationException khi chạy.
+// result.add("Dũng"); // Throws UnsupportedOperationException at runtime.
 ~~~
 
-`Collectors.toList()` không bảo đảm danh sách kết quả có thể hay không thể sửa, hoặc chính xác là kiểu cài đặt gì. `List.copyOf` tạo một List không thể thay đổi **cấu trúc** theo hợp đồng và **không chấp nhận phần tử null**.
+`Collectors.toList()` does not guarantee whether the resulting list is mutable or unmodifiable, nor its exact implementation class. `List.copyOf` creates a **structurally** unmodifiable List by contract and **rejects null elements**.
 
-Với dữ liệu có thể chứa null, bước hoàn thiện có thể ném `NullPointerException`; phải có chính sách xác thực hoặc loại bỏ null từ trước, không nên giả định collector này tự xử lý giá trị thiếu.
+With data that may contain null, the finishing step can throw `NullPointerException`; you must establish a policy to validate or filter out nulls beforehand rather than assuming this collector handles missing values automatically.
 
-### 3.1. So với Collectors.toUnmodifiableList và Stream.toList
+### 3.1. Comparison with Collectors.toUnmodifiableList and Stream.toList
 
 ~~~java
 import java.util.List;
@@ -197,17 +197,17 @@ List<String> c = source.stream()
         .toList();
 ~~~
 
-Cả ba kết quả trong ví dụ đều không cho thêm, xóa hoặc thay phần tử qua API List. Tuy nhiên:
+All three results in the example forbid adding, removing, or replacing elements through the List API. However:
 
-| Cách viết | Phiên bản | Khi thích hợp |
+| Form | Version | When appropriate |
 |---|---|---|
-| `collectingAndThen(toList(), List::copyOf)` | Java 10+ | Cần cấu trúc hoàn thiện tùy chỉnh, hoặc làm downstream trong collector nhiều tầng |
-| `Collectors.toUnmodifiableList()` | Java 10+ | Chỉ muốn thu thập thành list không cho sửa; từ chối null |
-| `Stream.toList()` | Java 16+ | Terminal operation đơn giản tạo list không cho sửa; không thay thế một downstream `Collector` khi phải lồng collector |
+| `collectingAndThen(toList(), List::copyOf)` | Java 10+ | Need custom finishing structure, or as a downstream in multi-level collectors |
+| `Collectors.toUnmodifiableList()` | Java 10+ | Simply want to collect into an unmodifiable list; rejects nulls |
+| `Stream.toList()` | Java 16+ | Simple terminal operation creating an unmodifiable list; cannot replace a downstream `Collector` when nesting |
 
-Đối với tác vụ chỉ cần một danh sách bất biến cấu trúc, `toUnmodifiableList` hay `Stream.toList` thường ngắn hơn. `collectingAndThen` có lợi khi cần **bước hoàn thiện không được collector chuẩn trực tiếp diễn đạt**, hoặc **một danh sách được hoàn thiện trong mỗi nhóm**.
+For tasks needing only a structurally unmodifiable list, `toUnmodifiableList` or `Stream.toList` is usually shorter. `collectingAndThen` shines when you need **a finishing step not directly expressed by standard collectors**, or **a finished list inside each group**.
 
-### 3.2. Bất biến cấu trúc không phải deep immutability
+### 3.2. Structural immutability is not deep immutability
 
 ~~~java
 import java.util.ArrayList;
@@ -219,7 +219,7 @@ final class Note {
     Note(String title) { this.title = title; }
 }
 
-Note original = new Note("Bản nháp");
+Note original = new Note("Draft");
 
 List<Note> notes = List.of(original).stream()
         .collect(Collectors.collectingAndThen(
@@ -227,16 +227,16 @@ List<Note> notes = List.of(original).stream()
                 List::copyOf
         ));
 
-original.title = "Đã sửa";
+original.title = "Edited";
 
-System.out.println(notes.get(0).title); // Đã sửa
+System.out.println(notes.get(0).title); // Edited
 ~~~
 
-`List.copyOf` không sao chép sâu từng `Note`; nó giữ tham chiếu đến đối tượng. Nếu cần snapshot bất biến **cả dữ liệu bên trong**, chuyển các đối tượng mutable thành DTO/`record` bất biến trước khi thu thập hoặc sao chép phòng vệ phù hợp.
+`List.copyOf` does not deep-copy each `Note`; it holds references to the objects. If you need an immutable snapshot of **inner data as well**, convert mutable objects to immutable DTOs/`record`s before collecting or perform appropriate defensive copying.
 
-## 4. Sắp xếp hoặc chuẩn hóa kết quả trong finisher
+## 4. Sorting or normalizing results in the finisher
 
-Một finisher có thể tạo kiểu đầu ra khác, sắp xếp danh sách hoặc diễn đạt bước hậu xử lý chỉ chạy khi downstream đã hoàn tất.
+A finisher can produce a different output type, sort a list, or express a post-processing step that runs only after the downstream finishes.
 
 ~~~java
 import java.util.ArrayList;
@@ -259,15 +259,15 @@ List<String> sorted = values.stream()
 System.out.println(sorted); // [an, binh, chi]
 ~~~
 
-Ở đây:
+Here:
 
-1. `toList()` thu thập các phần tử.
-2. Finisher nhận danh sách kết quả.
-3. Tạo một bản sao để thể hiện rõ quyền sở hữu dữ liệu.
-4. Sắp xếp bản sao.
-5. Trả danh sách không cho sửa.
+1. `toList()` collects the elements.
+2. The finisher receives the resulting list.
+3. Creates a copy to make data ownership explicit.
+4. Sorts the copy.
+5. Returns an unmodifiable list.
 
-**Có cách ngắn hơn cho bài toán toàn cục:**
+**There is a shorter way for a global sort:**
 
 ~~~java
 List<String> sorted = values.stream()
@@ -275,24 +275,24 @@ List<String> sorted = values.stream()
         .toList();
 ~~~
 
-Cách sử dụng `collectingAndThen` đáng giá hơn khi sắp xếp **riêng danh sách của từng nhóm** hoặc khi finisher thực hiện bước chuẩn hóa đặc thù.
+Using `collectingAndThen` is more worthwhile when sorting **each group's list separately** or when the finisher performs custom normalization.
 
-### 4.1. Không yêu cầu finisher phải sửa trực tiếp downstream result
+### 4.1. Do not require the finisher to mutate the downstream result in place
 
 ~~~java
 list -> {
-    list.sort(Comparator.naturalOrder()); // Có thể được nếu list mutable.
+    list.sort(Comparator.naturalOrder()); // Works if list is mutable.
     return List.copyOf(list);
 }
 ~~~
 
-Mẫu trên phù hợp nếu biết chắc downstream tạo list có thể sửa; tuy nhiên viết một finisher **không phụ thuộc vào khả năng sửa** của kết quả sẽ dễ tái sử dụng hơn. Ví dụ dùng `list.stream().sorted().toList()` khi chạy Java 16+.
+The pattern above works if you know for certain that the downstream creates a mutable list; however, writing a finisher **that does not depend on mutability** of the result is more reusable. For example, use `list.stream().sorted().toList()` on Java 16+.
 
-Một finisher có side effect lên collection được chia sẻ ngoài pipeline thường không cần thiết. Ưu tiên trả **một giá trị mới** và giữ logic hoàn thiện tường minh.
+A finisher with side effects on a collection shared outside the pipeline is usually unnecessary. Prefer returning **a new value** and keeping finishing logic explicit.
 
-## 5. Optional từ maxBy/minBy: đưa ra chính sách khi không có dữ liệu
+## 5. Optional from maxBy/minBy: defining a policy for missing data
 
-`Collectors.maxBy(comparator)` trả `Optional<T>` vì một nhóm dữ liệu có thể rỗng. `collectingAndThen` cho phép quyết định trực tiếp kiểu kết quả cuối:
+`Collectors.maxBy(comparator)` returns `Optional<T>` because a data group can be empty. `collectingAndThen` lets you decide the final result type directly:
 
 ~~~java
 import java.util.Comparator;
@@ -311,22 +311,22 @@ Product mostExpensive = products.stream()
         .collect(Collectors.collectingAndThen(
                 Collectors.maxBy(Comparator.comparingInt(Product::price)),
                 optional -> optional.orElseThrow(
-                        () -> new IllegalStateException("Danh sách rỗng")
+                        () -> new IllegalStateException("Empty list")
                 )
         ));
 
 System.out.println(mostExpensive.code()); // BAG
 ~~~
 
-Tại đây:
+Here:
 
-- Downstream `maxBy` tạo `Optional<Product>`.
-- Finisher chuyển `Optional<Product>` thành `Product` hoặc ném lỗi đã định.
-- Biểu thức `optional.orElseThrow()` chỉ phù hợp nếu hợp đồng đầu ra **bắt buộc có phần tử**.
+- Downstream `maxBy` produces `Optional<Product>`.
+- The finisher turns `Optional<Product>` into `Product` or throws the specified error.
+- `optional.orElseThrow()` is only appropriate if the output contract **requires an element to exist**.
 
-Đối với một Stream đơn thuần, `products.stream().max(comparator)` có thể rõ hơn. Cách kết hợp với `collectingAndThen` phát huy tác dụng khi nó nằm **trong `groupingBy`** để lấy một đại diện tốt nhất của mỗi nhóm.
+For a plain Stream, `products.stream().max(comparator)` can be clearer. Combining with `collectingAndThen` proves its worth when placed **inside `groupingBy`** to obtain the single best representative for each group.
 
-### 5.1. Có thể giữ Optional thay vì ép phải có giá trị
+### 5.1. You can keep Optional instead of forcing a value
 
 ~~~java
 import java.util.Optional;
@@ -337,11 +337,11 @@ Optional<Product> max = products.stream()
         ));
 ~~~
 
-Nếu nghiệp vụ cho phép nguồn rỗng, trả `Optional<Product>` thường trung thực hơn việc ném lỗi hoặc chọn một sản phẩm “mặc định” không có thật. `collectingAndThen` không buộc phải unwrap Optional; nó chỉ tạo chỗ để làm việc ấy **khi đúng yêu cầu**.
+If business rules allow an empty source, returning `Optional<Product>` is usually more honest than throwing an error or picking a fake “default” product. `collectingAndThen` does not force you to unwrap `Optional`; it simply provides a hook to do so **when requirements call for it**.
 
-## 6. groupingBy + collectingAndThen: hoàn thiện từng nhóm
+## 6. groupingBy + collectingAndThen: finishing each group
 
-Giả sử đơn hàng có nhóm danh mục. Muốn trả `Map<String, List<Order>>` sao cho **danh sách từng danh mục** không thể thay đổi cấu trúc.
+Suppose orders have a category. You want to return `Map<String, List<Order>>` such that **each category's list** is structurally unmodifiable.
 
 ~~~java
 import java.util.List;
@@ -370,7 +370,7 @@ System.out.println(byCategory.get("BOOK").size()); // 2
 // byCategory.get("BOOK").add(...); // UnsupportedOperationException.
 ~~~
 
-Nhìn vào cấu trúc:
+Looking at the structure:
 
 ~~~text
 orders.stream()
@@ -378,8 +378,8 @@ orders.stream()
    v
 groupingBy(Order::category,
      collectingAndThen(
-         toList(),       -- tạo danh sách cho từng khóa
-         List::copyOf    -- hoàn thiện mỗi danh sách
+         toList(),       -- builds list for each key
+         List::copyOf    -- finishes each list
      )
    )
    |
@@ -390,9 +390,9 @@ groupingBy(Order::category,
 }
 ~~~
 
-**Ranh giới quan trọng:** `List.copyOf` được gọi cho **mỗi giá trị nhóm** đã thu thập, không phải cho từng `Order`. Điều này cũng **không tự làm Map ngoài cùng không thể sửa**. Người gọi vẫn có thể thêm một khóa mới vào một Map mutable nếu Map được cung cấp có hỗ trợ; API `groupingBy` không bảo đảm đặc tính Map cụ thể.
+**Important boundary:** `List.copyOf` is called for **each collected group value**, not for each `Order`. It also **does not automatically make the outermost Map unmodifiable**. Callers could still insert a new key into a mutable Map if the supplied Map supports it; the `groupingBy` API guarantees no specific Map mutability contract.
 
-### 6.1. Sắp xếp từng nhóm trước khi công bố
+### 6.1. Sorting each group before publishing
 
 ~~~java
 import java.util.Comparator;
@@ -420,13 +420,13 @@ System.out.println(byAmountDesc.get("BOOK")
         .stream().map(Order::id).toList()); // [O-03, O-01]
 ~~~
 
-Với các bản ghi cùng `amount`, `thenComparing(Order::id)` xác định thứ tự ổn định theo mã đơn. `Stream.toList()` trong finisher trả list không cho sửa cấu trúc.
+For records with equal `amount`, `thenComparing(Order::id)` defines a deterministic order by order ID. `Stream.toList()` in the finisher returns a structurally unmodifiable list.
 
-Lưu ý cách viết này phải giữ toàn bộ phần tử nhóm trước khi sắp xếp; nếu chỉ cần đơn hàng có giá trị lớn nhất của mỗi nhóm, dùng `maxBy` thay vì giữ cả list.
+Note that this approach must retain all elements of a group before sorting; if you only need the highest-value order in each group, use `maxBy` instead of buffering the whole list.
 
-## 7. Hai lớp collectingAndThen: khóa Map và danh sách nhóm đều được bảo vệ
+## 7. Two layers of collectingAndThen: protecting both Map keys and group lists
 
-Nếu API muốn công bố **cả Map lẫn mọi List bên trong** dưới dạng cấu trúc không cho sửa, có thể hoàn thiện ở hai tầng:
+If an API wants to publish **both the Map and every inner List** as structurally unmodifiable, you can finish at two levels:
 
 ~~~java
 import java.util.List;
@@ -449,13 +449,13 @@ Map<String, List<Order>> immutableIndex = orders.stream()
 // immutableIndex.get("BOOK").add(...);     // UnsupportedOperationException.
 ~~~
 
-Diễn giải từ trong ra ngoài:
+Reading from inside out:
 
-1. Mỗi đơn hàng được phân loại theo `category`.
-2. Downstream `toList` xây một list cho mỗi category.
-3. Finisher **bên trong** `List.copyOf` bảo vệ cấu trúc của từng list.
-4. `groupingBy` tạo `Map<String, List<Order>>`.
-5. Finisher **bên ngoài** `Map.copyOf` bảo vệ cấu trúc của Map.
+1. Each order is classified by `category`.
+2. Downstream `toList` builds a list for each category.
+3. The **inner** `List.copyOf` finisher protects the structure of each list.
+4. `groupingBy` builds `Map<String, List<Order>>`.
+5. The **outer** `Map.copyOf` finisher protects the structure of the Map.
 
 ~~~text
 Stream<Order>
@@ -472,16 +472,16 @@ Map<String, List<Order>>
 Map.copyOf(...)
    |
    v
-Map không cho sửa + các List giá trị không cho sửa
+Unmodifiable Map + unmodifiable value Lists
 ~~~
 
-`Map.copyOf` không sao chép sâu phần tử `Order`. Trong ví dụ, `Order` là record chỉ chứa `String` và `long` nên trạng thái trường được dùng có tính ổn định; với object mutable làm giá trị, phải thiết kế snapshot sâu riêng.
+`Map.copyOf` does not deep-copy `Order` elements. In the example, `Order` is a record containing only `String` and `long`, so the fields used are stable; with mutable value objects, you must design a separate deep snapshot.
 
-**Điểm khác biệt:** đặt `collectingAndThen` **chỉ ở bên ngoài** `groupingBy` và gọi `Map.copyOf` sẽ **không** làm các list bên trong trở thành không thể sửa. Đó là lý do phải phân biệt “hoàn thiện mỗi nhóm” và “hoàn thiện toàn bộ kết quả”.
+**Key difference:** placing `collectingAndThen` **only outside** `groupingBy` and calling `Map.copyOf` will **not** make the inner lists unmodifiable. That is why we must distinguish “finishing each group” from “finishing the entire result”.
 
-## 8. groupingBy + maxBy + collectingAndThen: một đại diện cho mỗi nhóm
+## 8. groupingBy + maxBy + collectingAndThen: one representative per group
 
-Yêu cầu: lấy **đơn hàng lớn nhất của từng danh mục**, trả thẳng `Order` thay vì `Optional<Order>` trong Map.
+Requirement: get the **largest order in each category**, returning `Order` directly instead of `Optional<Order>` in the Map.
 
 ~~~java
 import java.util.Comparator;
@@ -497,7 +497,7 @@ Map<String, Order> largestByCategory = orders.stream()
                                         .thenComparing(Order::id)
                         ),
                         optional -> optional.orElseThrow(
-                                () -> new IllegalStateException("Nhóm trống")
+                                () -> new IllegalStateException("Empty group")
                         )
                 )
         ));
@@ -506,19 +506,19 @@ System.out.println(largestByCategory.get("BOOK").id()); // O-03
 System.out.println(largestByCategory.get("PEN").id());  // O-04
 ~~~
 
-Đối với `groupingBy` thông thường, mỗi khóa trong Map được tạo từ ít nhất một phần tử nguồn, nên `maxBy` cho nhóm ấy có giá trị nếu nguồn hợp lệ và không làm mất phần tử. Tuy nhiên finisher vẫn phải có chính sách rõ ràng với `Optional.empty()`, để collector có thể hiểu và kiểm thử độc lập.
+With standard `groupingBy`, every key in the Map is created from at least one source element, so `maxBy` for that group has a value if the source is valid and does not drop elements. Still, the finisher should have an explicit policy for `Optional.empty()` so the collector can be understood and tested independently.
 
-Khi **toàn bộ Stream rỗng**, `groupingBy` trả Map rỗng, **không** tạo ra một khóa giả rồi gọi finisher của nhóm đó. Đừng nhầm trường hợp này với `partitioningBy`, vốn thiết lập cả hai khóa Boolean.
+When the **entire Stream is empty**, `groupingBy` returns an empty Map; it **does not** invent a dummy key and call that group's finisher. Do not confuse this with `partitioningBy`, which populates both Boolean keys.
 
-### 8.1. Khi yêu cầu thứ tự ưu tiên phải rõ
+### 8.1. When priority order must be explicit
 
-Với nhiều đơn hàng có cùng số tiền, comparator chỉ xét `amount` có thể chọn một phần tử trong số các giá trị đồng hạng mà không diễn đạt tie-break nghiệp vụ. Dùng `thenComparing(Order::id)` khi ID là tiêu chí phù hợp, hoặc nêu chính sách xung đột rõ ràng.
+When multiple orders have the same amount, a comparator looking only at `amount` can pick any tied element without expressing a business tie-breaker. Use `thenComparing(Order::id)` when ID is an appropriate tie-breaker, or state an explicit conflict rule.
 
-Nếu giá trị tiền vượt giới hạn `long`, phải chọn kiểu dữ liệu và comparator phù hợp; finisher không sửa được một kết quả tổng hợp đã bị tràn trong các bước trước.
+If monetary values can exceed `long` limits, choose appropriate data types and comparators; a finisher cannot repair an aggregate that already overflowed in earlier steps.
 
-## 9. mapping và collectingAndThen: chuyển kiểu rồi hoàn thiện một nhóm
+## 9. mapping and collectingAndThen: convert type then finish a group
 
-Giả sử API cần chỉ mục `Map<String, List<String>>` gồm **mã đơn hàng** theo danh mục thay vì giữ toàn bộ `Order`.
+Suppose an API needs an index `Map<String, List<String>>` of **order IDs** per category instead of keeping full `Order` objects.
 
 ~~~java
 import java.util.List;
@@ -540,7 +540,7 @@ Map<String, List<String>> idsByCategory = orders.stream()
 System.out.println(idsByCategory.get("BOOK")); // [O-01, O-03]
 ~~~
 
-Dòng xử lý:
+Processing flow:
 
 ~~~text
 Order -> group(category)
@@ -555,12 +555,12 @@ Order -> group(category)
         List.copyOf()
             |
             v
-       List<String> của từng nhóm
+       List<String> per group
 ~~~
 
-`mapping` biến đổi **phần tử đi vào downstream**; `collectingAndThen` hoàn thiện **kết quả downstream**. Phối hợp chúng là một cấu trúc phổ biến trong collector nhiều tầng.
+`mapping` transforms **elements entering the downstream**; `collectingAndThen` finishes the **downstream result**. Composing them is a common pattern in multi-level collectors.
 
-### 9.1. Sắp thứ tự mã trong mỗi nhóm
+### 9.1. Sorting IDs within each group
 
 ~~~java
 Map<String, List<String>> sortedIds = orders.stream()
@@ -575,11 +575,11 @@ Map<String, List<String>> sortedIds = orders.stream()
 System.out.println(sortedIds.get("BOOK")); // [O-01, O-03]
 ~~~
 
-Với `List<String>`, `String::compareTo` xác định thứ tự tự nhiên. Nếu muốn sắp theo `amount` của `Order` rồi chỉ giữ ID, nên sắp `Order` trước khi biến thành String, hoặc chọn một downstream phù hợp hơn; khi đã mất thông tin amount, finisher không thể khôi phục nó một cách tự nhiên.
+With `List<String>`, `String::compareTo` defines natural order. If you want to sort by `Order`'s `amount` and keep only the ID, sort `Order` before mapping to `String`, or choose a more suitable downstream; once amount information is discarded, the finisher cannot naturally recover it.
 
-## 10. filtering/flatMapping trong downstream: không nhầm nhóm rỗng với khóa vắng mặt
+## 10. filtering/flatMapping in downstream: never confuse empty groups with missing keys
 
-`Collectors.filtering` (Java 9+) lọc **phần tử của downstream**, khác với `stream.filter` trước `groupingBy` ở chỗ nhóm có thể vẫn tồn tại dù tất cả phần tử của nó bị downstream bỏ.
+`Collectors.filtering` (Java 9+) filters **downstream elements**, differing from `stream.filter` before `groupingBy` in that a group can still exist even if all its elements are rejected by the downstream.
 
 ~~~java
 import java.util.List;
@@ -613,9 +613,9 @@ System.out.println(unresolvedIds.get("CORE")); // [T-01]
 System.out.println(unresolvedIds.get("UI"));   // []
 ~~~
 
-Nhóm `"UI"` **có trong Map** vì có ticket của đội UI đi vào `groupingBy`; downstream `filtering` chỉ bỏ giá trị khỏi list của nhóm ấy.
+The `"UI"` group **is in the Map** because a UI team ticket reached `groupingBy`; downstream `filtering` merely excluded values from that group's list.
 
-Nếu lọc **trước** khi nhóm:
+If filtered **before** grouping:
 
 ~~~java
 Map<String, List<String>> onlyUnresolvedGroups = tickets.stream()
@@ -628,11 +628,11 @@ Map<String, List<String>> onlyUnresolvedGroups = tickets.stream()
 System.out.println(onlyUnresolvedGroups.containsKey("UI")); // false
 ~~~
 
-Đó là **hai hợp đồng dữ liệu khác nhau**. Khi hoàn thiện kết quả bằng `List.copyOf`, danh sách rỗng vẫn là một kết quả hợp lệ nếu chính sách nghiệp vụ cho phép nhóm rỗng.
+Those are **two different data contracts**. When finishing results with `List.copyOf`, an empty list is still a valid result when business rules allow empty groups.
 
 ### 10.1. flatMapping + collectingAndThen
 
-Khi mỗi đơn hàng có nhiều mã sản phẩm, `flatMapping` (Java 9+) cho phép phát nhiều giá trị vào downstream của từng nhóm.
+When each order contains multiple product codes, `flatMapping` (Java 9+) lets you emit multiple values into each group's downstream.
 
 ~~~java
 import java.util.List;
@@ -662,13 +662,13 @@ Map<String, List<String>> codesByOwner = baskets.stream()
 System.out.println(codesByOwner.get("An")); // [PEN, BOOK, BAG]
 ~~~
 
-`flatMapping` đóng mỗi Stream con do mapper trả về theo hợp đồng. Finisher `List.copyOf` chỉ chạy trên danh sách đã thu thập xong; nó **không** tham gia đọc nguồn con hoặc quản lý tài nguyên của từng Stream con.
+`flatMapping` closes each child Stream returned by the mapper per contract. The `List.copyOf` finisher runs only on the collected list; it **does not** participate in reading child sources or managing resources of individual child Streams.
 
-Nếu danh sách mã có thể chứa null, `List.copyOf` sẽ từ chối kết quả; cần chọn chính sách null ngay ở bước nhập hoặc biến đổi phần tử.
+If the code list can contain null, `List.copyOf` will reject the result; choose a null policy right at input or element transformation time.
 
-## 11. partitioningBy + collectingAndThen: hoàn thiện cả hai nhánh Boolean
+## 11. partitioningBy + collectingAndThen: finishing both Boolean branches
 
-`partitioningBy` tạo kết quả theo hai khóa `true` và `false`. Ví dụ tách ticket đã xử lý và chưa xử lý:
+`partitioningBy` produces results under two keys `true` and `false`. Example splitting resolved vs. unresolved tickets:
 
 ~~~java
 import java.util.List;
@@ -688,14 +688,14 @@ System.out.println(partitioned.get(true).size());  // 2
 System.out.println(partitioned.get(false).size()); // 1
 ~~~
 
-Đặc điểm:
+Characteristics:
 
-- `true` biểu diễn nhóm `resolved`.
-- `false` biểu diễn nhóm chưa `resolved`.
-- Downstream collector được hoàn thiện **riêng cho từng nhánh**.
-- Khác `groupingBy`, kết quả của `partitioningBy` có cả **hai khóa Boolean**, kể cả khi một nhánh không có phần tử.
+- `true` represents the `resolved` group.
+- `false` represents the unresolved group.
+- The downstream collector is finished **separately for each branch**.
+- Unlike `groupingBy`, the result of `partitioningBy` contains **both Boolean keys**, even when one branch has no elements.
 
-### 11.1. Khi Stream rỗng
+### 11.1. When the Stream is empty
 
 ~~~java
 import java.util.List;
@@ -716,11 +716,11 @@ System.out.println(emptyPartitions.get(true));  // []
 System.out.println(emptyPartitions.get(false)); // []
 ~~~
 
-Điều đó giải thích vì sao finisher của downstream **phải xử lý được danh sách rỗng** khi dùng trong `partitioningBy`. Không nên đặt `list.get(0)` trong finisher mà không có nhánh xử lý rỗng.
+This explains why the downstream's finisher **must handle an empty list** when used inside `partitioningBy`. Never write `list.get(0)` in a finisher without handling the empty case.
 
-## 12. Biến IntSummaryStatistics thành record kết quả
+## 12. Turning IntSummaryStatistics into a result record
 
-`Collectors.summarizingInt` thu thập số lượng, tổng, giá trị min/max và trung bình vào một `IntSummaryStatistics` mutable. Nếu chỉ muốn xuất ra một đối tượng thống kê bất biến theo giao diện nghiệp vụ, `collectingAndThen` giúp chuyển kiểu.
+`Collectors.summarizingInt` collects count, sum, min/max values, and average into a mutable `IntSummaryStatistics`. If you want to expose an immutable statistics object matching a business interface, `collectingAndThen` helps convert the type.
 
 ~~~java
 import java.util.IntSummaryStatistics;
@@ -762,15 +762,15 @@ System.out.println(stats.total());               // 30
 System.out.println(stats.average().orElseThrow()); // 7.5
 ~~~
 
-Điểm cần phân biệt:
+Points to distinguish:
 
-- Downstream tính toán thống kê bằng các thao tác tích lũy và gộp riêng của nó.
-- Finisher **không** phải tính lại từ toàn bộ list; nó chỉ đọc thống kê sau thu thập.
-- Khi nguồn rỗng, `getMin()`/`getMax()` của `IntSummaryStatistics` chứa giá trị sentinel của kiểu nguyên thủy; ví dụ trên chuyển chúng thành `OptionalInt.empty()` thay vì công bố min/max không có thật.
-- `getAverage()` dùng `double`; nếu nghiệp vụ yêu cầu trung bình thập phân chính xác, cần một thuật toán cộng/đếm và làm tròn phù hợp thay cho việc chỉ bọc `IntSummaryStatistics`.
-- Tổng của `summarizingInt` dùng kiểu `long`, **vẫn có thể tràn** với khối dữ liệu vượt miền `long`. Finisher không sửa được một tổng đã sai.
+- The downstream computes statistics via its own accumulation and combining operations.
+- The finisher **does not** recompute over the whole list; it simply reads post-collection metrics.
+- On an empty source, `getMin()`/`getMax()` of `IntSummaryStatistics` hold primitive sentinel values; the example above converts them to `OptionalInt.empty()` instead of publishing nonexistent min/max values.
+- `getAverage()` uses `double`; if business rules require an exact decimal average, use a suitable sum/count and rounding algorithm instead of merely wrapping `IntSummaryStatistics`.
+- `summarizingInt`'s sum uses `long`, which **can still overflow** for datasets exceeding the `long` range. A finisher cannot fix an already-incorrect sum.
 
-### 12.1. Thống kê theo nhóm
+### 12.1. Statistics by group
 
 ~~~java
 import java.util.Map;
@@ -800,15 +800,15 @@ Map<String, Stats> statsByCategory = orders.stream()
         ));
 ~~~
 
-Ở đây `Order.amount()` trong ví dụ là `long` và được chuyển bằng `Math.toIntExact`; nếu dữ liệu có thể vượt phạm vi `int`, phép chuyển sẽ ném `ArithmeticException`. Đây **chỉ** là minh họa kết nối với `summarizingInt`; trong hệ thống thật, có thể chọn `summarizingLong(Order::amount)` hoặc accumulator `BigInteger` để phù hợp miền dữ liệu hơn.
+Here `Order.amount()` in the example is `long` and converted via `Math.toIntExact`; if data can exceed `int` range, the conversion will throw `ArithmeticException`. This is **only** an illustration connecting to `summarizingInt`; in a real system, choose `summarizingLong(Order::amount)` or a `BigInteger` accumulator to better fit the data domain.
 
-Đừng dùng `(int) order.amount()` một cách âm thầm khi giá trị có nguy cơ vượt miền `int`.
+Never silently cast `(int) order.amount()` when values risk overflowing `int`.
 
-## 13. Dùng collectingAndThen để kiểm tra ràng buộc trên kết quả cuối
+## 13. Using collectingAndThen to validate constraints on the final result
 
-Không phải finisher nào cũng chuyển sang collection bất biến. Nó có thể thực hiện **validation** trên kết quả đã tổng hợp.
+Not every finisher converts to an unmodifiable collection. It can also perform **validation** on the aggregated result.
 
-Ví dụ một batch đơn hàng **bắt buộc có ít nhất một đơn** và tổng cent phải không âm:
+For example, a batch of sales **must contain at least one sale** and the total cents must be non-negative:
 
 ~~~java
 import java.math.BigInteger;
@@ -834,10 +834,10 @@ Collector<Sale, ?, SaleSummary> validatedSummary =
                 ),
                 summary -> {
                     if (summary.count() == 0) {
-                        throw new IllegalStateException("Batch rỗng");
+                        throw new IllegalStateException("Empty batch");
                     }
                     if (summary.total().signum() < 0) {
-                        throw new IllegalStateException("Tổng tiền âm");
+                        throw new IllegalStateException("Negative total amount");
                     }
                     return summary;
                 }
@@ -849,45 +849,45 @@ SaleSummary result = sales.parallelStream().collect(validatedSummary);
 System.out.println(result); // SaleSummary[count=2, total=80]
 ~~~
 
-`Collectors.teeing` (Java 12+) chạy **hai collector downstream** song song trên cùng luồng phần tử: một nhánh đếm, một nhánh cộng BigInteger; sau đó dùng merger tạo `SaleSummary`. `collectingAndThen` tiếp tục **xác thực toàn bộ summary**.
+`Collectors.teeing` (Java 12+) feeds **two downstream collectors** over the same element stream: one branch counts, one sums `BigInteger`; then the merger creates `SaleSummary`. `collectingAndThen` then **validates the complete summary**.
 
-Mặc dù tên `teeing` là “chia hai nhánh”, không có nghĩa mỗi nhánh nhất thiết chạy trên hai thread độc lập; nó mô tả cấu trúc thu thập, không bảo đảm kế hoạch thực thi vật lý.
+Even though `teeing` means “splitting into two branches”, it does not mean each branch necessarily runs on two separate threads; it describes collection structure, not a guaranteed physical execution plan.
 
-**Khi nào không cần collectingAndThen?** Nếu logic kiểm tra và chuẩn hóa đầu ra đã đặt gọn trong merger của `teeing` hoặc finisher của collector tùy chỉnh, việc bọc thêm có thể không cần thiết. Chọn cách giúp hợp đồng rõ nhất.
+**When is collectingAndThen unnecessary?** If validation and output normalization already fit cleanly inside `teeing`'s merger or a custom collector's finisher, an extra wrapper may be unnecessary. Pick whichever makes the contract clearest.
 
-## 14. Finisher không phải một thao tác có thể sửa sai phép tích lũy
+## 14. A finisher cannot fix a broken accumulation
 
-Một Collector hợp lệ khi xử lý song song vẫn cần:
+A Collector that is valid under parallel execution still requires:
 
-- `supplier` tạo trạng thái rỗng đúng.
-- `accumulator` thêm phần tử theo hợp đồng.
-- `combiner` ghép hai trạng thái đúng **identity** và **associativity**.
-- `finisher` chuyển trạng thái đã hoàn tất thành kết quả cuối theo hợp đồng.
+- `supplier` creates a proper empty state.
+- `accumulator` adds elements per contract.
+- `combiner` merges two states preserving **identity** and **associativity**.
+- `finisher` converts the completed state into the final result per contract.
 
-`collectingAndThen` chỉ thay/chồng bước cuối. Nó **không làm một combiner sai trở thành đúng**.
+`collectingAndThen` only replaces/chains the last step. It **cannot turn a broken combiner into a valid one**.
 
 ~~~text
-Phân vùng A -> accumulator(A) ---\
-                                   combiner() -> trạng thái tổng
-Phân vùng B -> accumulator(B) ---/                  |
-                                                      v
-                                        downstream.finisher()
-                                                      |
-                                                      v
-                                         finisher thêm của
-                                         collectingAndThen
-                                                      |
-                                                      v
-                                                kết quả công bố
+Partition A -> accumulator(A) ---\
+                                   combiner() -> combined state
+Partition B -> accumulator(B) ---/                  |
+                                                    v
+                                      downstream.finisher()
+                                                    |
+                                                    v
+                                       extra finisher from
+                                        collectingAndThen
+                                                    |
+                                                    v
+                                          published result
 ~~~
 
-Ví dụ lỗi kinh điển: mỗi phân vùng tạo một mức trung bình, combiner lấy trung bình của hai mức trung bình mà không xét kích thước từng nhóm. Sau đó finisher có định dạng đẹp đến đâu thì kết quả vẫn sai nếu hai phân vùng có số phần tử khác nhau.
+Classic bug example: each partition computes an average, and the combiner takes the average of the two averages without accounting for partition sizes. No matter how nicely the finisher formats the result afterward, it will still be wrong if the two partitions had different element counts.
 
-Cách đúng: giữ `sum` và `count` trong trạng thái, combiner cộng hai trường, cuối cùng finisher mới chia theo quy tắc số học đã chọn.
+Right way: keep `sum` and `count` in the state, let the combiner add both fields, and only divide in the final finisher according to the chosen arithmetic rule.
 
-### 14.1. Làm tròn sau khi gộp, không làm tròn trong mỗi lần ghép
+### 14.1. Round after merging, not inside every merge
 
-Với tiền tệ hoặc thập phân, nếu nghiệp vụ yêu cầu **tổng các số thập phân chính xác rồi làm tròn một lần**, có thể chọn downstream dùng `BigDecimal::add` không có `MathContext` rồi dùng finisher `setScale`.
+For currency or decimals, if business rules require **summing exact decimals and rounding once at the end**, you can use a downstream with `BigDecimal::add` (without `MathContext`) and then apply `setScale` in the finisher.
 
 ~~~java
 import java.math.BigDecimal;
@@ -913,13 +913,13 @@ BigDecimal roundedTotal = amounts.parallelStream()
 System.out.println(roundedTotal); // 6.71
 ~~~
 
-Vì `1.235 + 2.235 + 3.235 = 6.705` nên làm tròn `HALF_UP` tới hai chữ số thành `6.71`. Nếu quy tắc nghiệp vụ yêu cầu **làm tròn mỗi giao dịch trước khi cộng**, kết quả có thể khác; phải xác định quy tắc trước khi chọn collector.
+Since `1.235 + 2.235 + 3.235 = 6.705`, rounding `HALF_UP` to two decimal places yields `6.71`. If business rules require **rounding each transaction before summing**, the result can differ; establish the rule before choosing the collector.
 
-Finisher là chỗ tự nhiên cho *làm tròn cuối*, nhưng không nên dùng nó để che lấp overflow đã xảy ra trong accumulator hoặc các lỗi độ chính xác do dùng `double` không phù hợp.
+The finisher is the natural place for *final rounding*, yet it must never be used to mask overflow that already occurred in the accumulator or precision loss from misusing `double`.
 
-## 15. Characteristics: vì sao IDENTITY_FINISH bị loại bỏ?
+## 15. Characteristics: why is IDENTITY_FINISH removed?
 
-Hợp đồng `Collector.Characteristics.IDENTITY_FINISH` cho phép framework bỏ qua bước finisher vì chuyển trạng thái tích lũy thành kết quả được coi là đồng nhất theo kiểu và hành vi. `collectingAndThen` thêm một bước hoàn thiện thực sự nên **loại bỏ `IDENTITY_FINISH`**.
+The `Collector.Characteristics.IDENTITY_FINISH` contract permits the framework to skip the finisher step when converting the accumulation state to the final result is considered an identity in both type and behavior. `collectingAndThen` adds a real finishing step and therefore **removes `IDENTITY_FINISH`**.
 
 ~~~java
 import java.util.List;
@@ -948,11 +948,11 @@ System.out.println(
 ); // false
 ~~~
 
-Bản in đầu có thể là `true` đối với `Collectors.toList()` theo cấu hình thông thường, nhưng điều quan trọng cần kiểm tra về `collectingAndThen` là **kết quả không còn `IDENTITY_FINISH`**. Đừng gắn cờ ấy thủ công cho collector thật sự cần chạy `List.copyOf`, chuẩn hóa thống kê hoặc validation: framework có thể bỏ qua bước cuối mà ứng dụng cần.
+The first print may be `true` for `Collectors.toList()` under typical configurations, yet the key check for `collectingAndThen` is that **the result no longer has `IDENTITY_FINISH`**. Never manually attach that flag to a collector that genuinely needs to run `List.copyOf`, statistics normalization, or validation: the framework could skip the final step your application relies on.
 
-Những đặc tính khác như `CONCURRENT` và `UNORDERED` (khi downstream có và vẫn hợp lệ) được kế thừa. Nhưng việc **collector cho phép** tích lũy đồng thời không nói rằng finisher phải tự chạy trên từng phần tử hoặc rằng mỗi lần xử lý đều sử dụng đúng một lịch trình thread.
+Other characteristics such as `CONCURRENT` and `UNORDERED` (when present on the downstream and still valid) are inherited. Still, the fact that **a collector permits** concurrent accumulation does not mean the finisher runs per element or that every run uses a single thread schedule.
 
-### 15.1. Có được dùng trên parallelStream không?
+### 15.1. Can it be used on parallelStream?
 
 ~~~java
 import java.util.List;
@@ -969,18 +969,18 @@ Map<String, List<Order>> parallelGroups = orders.parallelStream()
         ));
 ~~~
 
-Với downstream collector chuẩn có hợp đồng phù hợp, Stream có thể tạo nhiều container riêng rồi ghép trước khi hoàn thiện các nhóm. Finisher thấy kết quả **đã gộp**, không chỉ một phân vùng riêng lẻ.
+With standard downstream collectors that honor the contract, Stream can create separate containers and merge them before finishing each group. The finisher sees the **already-merged** result, not a single isolated partition.
 
-Tuy nhiên:
+However:
 
-- Phải bảo đảm các lambda lấy khóa, biến đổi dữ liệu và collector tùy chỉnh là **non-interfering/stateless** theo hợp đồng.
-- Không lấy hiệu năng song song làm mặc định; nhóm nhỏ và ít phần tử có thể chậm hơn vì chi phí gộp.
-- Nếu sắp thứ tự nhóm trong finisher, chi phí sắp xếp có thể đáng kể.
-- Nên kiểm tra kết quả tuần tự và song song theo **hợp đồng dữ liệu**, không so thứ tự duyệt của `HashMap` nếu thứ tự không được bảo đảm.
+- Ensure key-extracting lambdas, transformations, and custom collectors are **non-interfering/stateless** per contract.
+- Do not take parallel speedups for granted; small groups and few elements can run slower due to merging overhead.
+- If sorting groups inside the finisher, sorting cost can be significant.
+- Compare sequential and parallel results against the **data contract**, not `HashMap` iteration order when order is not guaranteed.
 
-## 16. Thứ tự, null và độ bất biến: ba giới hạn dễ bị hiểu sai
+## 16. Ordering, null, and immutability: three easily misunderstood limits
 
-### 16.1. collectingAndThen không tự sắp xếp
+### 16.1. collectingAndThen does not sort automatically
 
 ~~~java
 import java.util.List;
@@ -997,9 +997,9 @@ List<Integer> result = source.stream()
 System.out.println(result); // [3, 1, 2]
 ~~~
 
-`List.copyOf` không tự xếp lại phần tử; nó giữ thứ tự duyệt danh sách truyền vào. Nếu cần `[1, 2, 3]`, phải sắp xếp trước hoặc trong finisher. Với downstream collector không bảo đảm thứ tự, `collectingAndThen` không tự tạo ra bảo đảm mới.
+`List.copyOf` does not reorder elements; it preserves the iteration order of the passed-in list. If you need `[1, 2, 3]`, sort beforehand or inside the finisher. With a downstream collector that does not guarantee order, `collectingAndThen` creates no new guarantee.
 
-### 16.2. collectingAndThen không tự loại bỏ null
+### 16.2. collectingAndThen does not filter out null automatically
 
 ~~~java
 import java.util.ArrayList;
@@ -1011,14 +1011,14 @@ List<String> source = new ArrayList<>(
         Arrays.asList("A", null, "B")
 );
 
-// Ném NullPointerException khi finisher List.copyOf gặp null:
+// Throws NullPointerException when the List.copyOf finisher encounters null:
 // List<String> result = source.stream()
 //         .collect(Collectors.collectingAndThen(
 //                 Collectors.toList(), List::copyOf
 //         ));
 ~~~
 
-Nếu nghiệp vụ cho phép bỏ giá trị null, lọc trước:
+If business rules allow dropping null values, filter beforehand:
 
 ~~~java
 import java.util.Objects;
@@ -1033,9 +1033,9 @@ List<String> cleaned = source.stream()
 System.out.println(cleaned); // [A, B]
 ~~~
 
-Nếu null là lỗi dữ liệu, nên báo lỗi thay vì lặng lẽ bỏ qua phần tử. `collectingAndThen` không đặt ra chính sách null thay cho nghiệp vụ.
+If null is a data error, raise an error instead of silently dropping elements. `collectingAndThen` does not impose a null policy on behalf of business logic.
 
-### 16.3. Bảo vệ Map ngoài không đồng nghĩa bảo vệ list trong
+### 16.3. Protecting the outer Map does not protect inner lists
 
 ~~~java
 import java.util.List;
@@ -1049,9 +1049,9 @@ Map<String, List<Order>> outerOnly = orders.stream()
         ));
 ~~~
 
-Kết quả Map không cho sửa cấu trúc, nhưng **List ở mỗi nhóm vẫn có thể mutable**. Muốn bảo vệ cả hai tầng, dùng hai `collectingAndThen` như mục 7.
+The resulting Map is structurally unmodifiable, yet **the List in each group can still be mutable**. To protect both layers, use two `collectingAndThen` layers as in section 7.
 
-### 16.4. Collections.unmodifiableList là view, List.copyOf là snapshot cấu trúc
+### 16.4. Collections.unmodifiableList is a view; List.copyOf is a structural snapshot
 
 ~~~java
 import java.util.ArrayList;
@@ -1068,38 +1068,38 @@ System.out.println(view); // [A, B]
 System.out.println(copy); // [A]
 ~~~
 
-`unmodifiableList` ngăn thay đổi **qua view**, nhưng nội dung view có thể thay đổi nếu list nguồn vẫn bị sửa từ nơi khác. `List.copyOf` tạo kết quả không thay đổi cấu trúc theo thời gian bởi những sửa đổi của `original`. Cả hai đều có thể vẫn tham chiếu đến **phần tử mutable**.
+`unmodifiableList` blocks changes **through the view**, yet the view's contents can still change if the underlying list is modified elsewhere. `List.copyOf` produces a result whose structure does not change over time due to edits to `original`. Both can still reference **mutable elements**.
 
-## 17. Khi nào không nên dùng collectingAndThen?
+## 17. When should you not use collectingAndThen?
 
-Không phải mọi thao tác cuối đều cần bọc thêm finisher. Bảng sau giúp chọn giải pháp rõ ràng:
+Not every final step needs a wrapped finisher. The table below helps make clear choices:
 
-| Mục tiêu | Thường ưu tiên | Khi collectingAndThen có lợi |
+| Goal | Usually preferred | When collectingAndThen helps |
 |---|---|---|
-| Tạo List không cho sửa từ một Stream | `Stream.toList()` (Java 16+) hoặc `toUnmodifiableList` | Khi cần đặt trong downstream của `groupingBy` hoặc thêm logic cuối |
-| Tạo Set không cho sửa | `toUnmodifiableSet` | Khi cần thêm validation, chuyển dạng hoặc logic khác |
-| Lấy max/min của một Stream | `stream.max/min` | Khi muốn Map khóa → giá trị max/min không bọc Optional |
-| Chỉ đếm phần tử | `count()` hoặc `Collectors.counting()` | Khi cần đổi từ count thành DTO/nhãn tại mức nhóm |
-| Làm phẳng hoặc biến đổi phần tử | `flatMap`/`map` hoặc `flatMapping`/`mapping` | Khi còn cần hậu xử lý **toàn bộ** danh sách kết quả |
-| Nhóm và giữ List bình thường | `groupingBy(classifier)` | Khi phải sắp xếp/đóng băng danh sách nhóm |
-| Tổng chính xác | `reduce` hoặc collector số thích hợp | Khi cần validation/rounding **một lần cuối** |
-| Phân nhóm theo Boolean | `partitioningBy` | Khi cần chuẩn hóa riêng từng nhánh |
-| Tạo DTO từ hai thống kê | `teeing` với merger | Khi validation/chuẩn hóa sau merger là một bước độc lập |
+| Create an unmodifiable List from a Stream | `Stream.toList()` (Java 16+) or `toUnmodifiableList` | When placed inside `groupingBy` downstream or adding final logic |
+| Create an unmodifiable Set | `toUnmodifiableSet` | When extra validation, conversion, or logic is needed |
+| Get max/min of a Stream | `stream.max/min` | When you want a Map of key → max/min value without Optional |
+| Only count elements | `count()` or `Collectors.counting()` | When turning count into a DTO/label at the group level |
+| Flatten or transform elements | `flatMap`/`map` or `flatMapping`/`mapping` | When post-processing the **entire** collected list is also needed |
+| Group and keep regular Lists | `groupingBy(classifier)` | When group lists must be sorted/frozen |
+| Exact sum | `reduce` or appropriate numeric collector | When **one final** validation/rounding step is needed |
+| Partition by Boolean | `partitioningBy` | When each branch needs custom normalization |
+| Build a DTO from two metrics | `teeing` with merger | When post-merger validation/normalization is an independent step |
 
-`collectingAndThen` có thể không tốt khi finisher phải duyệt hoặc sao chép một collection khổng lồ trong khi bài toán thực sự chỉ cần một con số đơn giản. Với mục tiêu `count`, việc thu thập một danh sách rồi tính `size` có thể tăng chi phí bộ nhớ từ O(1) cho bộ đếm lên O(n) cho danh sách.
+`collectingAndThen` can be a poor choice when the finisher has to iterate or copy a huge collection while the problem actually only needs a single simple number. For `count`, collecting a list and calling `size` raises memory cost from O(1) for a counter to O(n) for a list.
 
-## 18. Hiệu năng và vòng đời tài nguyên
+## 18. Performance and resource lifecycle
 
-Một số lưu ý khi dùng collector nhiều tầng:
+Notes when using composed collectors:
 
-- **Phân bổ bộ nhớ:** `toList` rồi `List.copyOf` có thể phát sinh sao chép mảng/tham chiếu, tùy JDK và kiểu downstream. Đừng mặc định `collectingAndThen` “miễn phí”.
-- **Tần suất finisher:** một finisher sau khi thu thập toàn cục khác với finisher cho **mỗi nhóm**. Nếu có hàng trăm nghìn nhóm, chi phí hoàn thiện từng nhóm có thể đáng kể.
-- **Không thay thế thuật toán:** nếu chỉ cần min/max, đừng tích lũy cả list rồi `sort` để chọn một phần tử. `maxBy` thích hợp hơn.
-- **Short-circuit:** `collect` là terminal operation, thông thường phải xử lý đủ phần tử cần thu thập; `collectingAndThen` không tự thêm khả năng dừng sớm như `findFirst` hay `anyMatch`.
-- **Nguồn I/O:** nếu nguồn là `Files.lines`, phải quản lý vòng đời Stream bằng `try-with-resources`. Finisher không tự đóng nguồn I/O.
-- **Độ chính xác:** nếu downstream đã tính sai do tràn số hoặc làm tròn sai tại mỗi combiner, việc format hoặc làm tròn lại trong finisher không khôi phục kết quả đúng.
+- **Memory allocation:** `toList` followed by `List.copyOf` may copy arrays/references depending on JDK and downstream implementation. Never assume `collectingAndThen` is “free”.
+- **Finisher frequency:** a finisher after global collection differs from a finisher per **each group**. With hundreds of thousands of groups, per-group finishing cost can be substantial.
+- **No replacement for algorithms:** if you only need min/max, do not collect a whole list and `sort` just to pick one element. `maxBy` is better suited.
+- **Short-circuiting:** `collect` is a terminal operation that generally must process all required elements; `collectingAndThen` does not add early termination like `findFirst` or `anyMatch`.
+- **I/O sources:** if the source is `Files.lines`, manage the Stream lifecycle with `try-with-resources`. The finisher does not automatically close I/O sources.
+- **Precision:** if the downstream already miscalculated due to overflow or per-combiner rounding, reformatting or rounding again in the finisher cannot restore the right result.
 
-Ví dụ sử dụng `Files.lines` để thu thập các dòng không rỗng thành list snapshot:
+Example using `Files.lines` to collect non-empty lines into a list snapshot:
 
 ~~~java
 import java.io.IOException;
@@ -1121,34 +1121,34 @@ try (Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8)) {
                     List::copyOf
             ));
 
-    System.out.println("Số dòng: " + snapshot.size());
+    System.out.println("Line count: " + snapshot.size());
 } catch (IOException | UncheckedIOException ex) {
-    System.err.println("Không đọc được tệp: " + ex.getMessage());
+    System.err.println("Cannot read file: " + ex.getMessage());
 }
 ~~~
 
-`try-with-resources` quản lý đóng nguồn tệp; `List.copyOf` chỉ hoàn thiện kết quả đã đưa vào bộ nhớ, không chịu trách nhiệm vòng đời của `Files.lines`. Với tệp cực lớn, giữ mọi dòng vào bộ nhớ có thể không phù hợp; khi đó chọn một downstream tổng hợp gọn hơn.
+`try-with-resources` manages closing the file source; `List.copyOf` only finishes the in-memory result and is not responsible for the lifecycle of `Files.lines`. For huge files, holding every line in memory may be inappropriate; choose a more compact aggregating downstream instead.
 
-## 19. Kiểm thử collectingAndThen đúng hợp đồng
+## 19. Testing collectingAndThen against its contract
 
-Khi thiết kế bộ kiểm tra, xác định một **oracle** hoặc kết quả mong đợi cụ thể và thử các chiều sau:
+When designing a test suite, establish an **oracle** or specific expected results and test across these dimensions:
 
-| Ca | Cần xác nhận |
+| Case | What to verify |
 |---|---|
-| Stream rỗng | Finisher có xử lý được kết quả downstream rỗng không? |
-| Một phần tử | Kiểu và giá trị cuối đúng; không thêm dữ liệu giả |
-| Nhiều nhóm | Finisher áp dụng riêng cho từng nhóm |
-| Một nhóm không có phần tử sau downstream filtering | Danh sách rỗng hợp lệ hay phải báo lỗi? |
-| `partitioningBy` rỗng | Cả `true` và `false` vẫn được hoàn thiện |
-| Dữ liệu null | Lọc/báo lỗi theo yêu cầu; `List.copyOf`/`Map.copyOf` từ chối null |
-| Bảo vệ Map ngoài | `put` không hợp lệ nếu Map đã được đóng băng |
-| Bảo vệ List bên trong | `add` không hợp lệ nếu list nhóm đã được đóng băng |
-| Giá trị mutable trong List | Đừng nhầm bất biến cấu trúc với deep copy |
-| Sequential vs parallel | So kết quả theo hợp đồng, không dựa vào thứ tự `Map` không được bảo đảm |
-| Collector tùy chỉnh | Supplier/accumulator/combiner vẫn giữ identity và associativity |
-| Tính đúng số học | Không có overflow, làm tròn đúng thời điểm |
+| Empty Stream | Does the finisher handle an empty downstream result? |
+| Single element | Final type and value are right; no spurious data added |
+| Multiple groups | Finisher applies separately to each group |
+| Group with zero elements after downstream filtering | Is an empty list valid or should it fail? |
+| Empty `partitioningBy` | Both `true` and `false` are still finished |
+| Null data | Filtered/rejected as required; `List.copyOf`/`Map.copyOf` reject null |
+| Outer Map protection | `put` fails if the Map was frozen |
+| Inner List protection | `add` fails if group lists were frozen |
+| Mutable values inside List | Do not confuse structural immutability with deep copy |
+| Sequential vs. parallel | Compare results per contract, not unguaranteed `Map` iteration order |
+| Custom collector | Supplier/accumulator/combiner still preserve identity and associativity |
+| Arithmetic correctness | No overflow, rounding happens at the right point |
 
-### 19.1. Chương trình kiểm tra nhỏ: bảo vệ cả hai tầng
+### 19.1. Small test program: protecting both levels
 
 ~~~java
 import java.util.List;
@@ -1193,29 +1193,29 @@ public class CollectingAndThenCheck {
                 ));
 
         if (!sequential.equals(parallel)) {
-            throw new AssertionError("Parallel khác sequential");
+            throw new AssertionError("Parallel differs from sequential");
         }
         if (sequential.get("BOOK").size() != 2) {
-            throw new AssertionError("Sai số lượng BOOK");
+            throw new AssertionError("Wrong BOOK count");
         }
 
         try {
             sequential.put("OTHER", List.of());
-            throw new AssertionError("Map vẫn sửa được");
+            throw new AssertionError("Map is still mutable");
         } catch (UnsupportedOperationException expected) {
-            // PASS: Map không cho sửa.
+            // PASS: Map is unmodifiable.
         }
 
         try {
             sequential.get("BOOK").add(new Order("D", "BOOK"));
-            throw new AssertionError("List nhóm vẫn sửa được");
+            throw new AssertionError("Group list is still mutable");
         } catch (UnsupportedOperationException expected) {
-            // PASS: List nhóm không cho sửa.
+            // PASS: Group list is unmodifiable.
         }
 
         Map<String, List<Order>> empty = index(List.of());
         if (!empty.isEmpty()) {
-            throw new AssertionError("Nguồn rỗng phải cho Map rỗng");
+            throw new AssertionError("Empty source must yield empty Map");
         }
 
         System.out.println("PASS");
@@ -1223,84 +1223,84 @@ public class CollectingAndThenCheck {
 }
 ~~~
 
-Đây là ví dụ minh họa, **không thay thế một bộ kiểm thử chuyên môn đầy đủ**. Trong thực tế còn cần kiểm tra khóa/giá trị null, thứ tự theo yêu cầu, đối tượng mutable, quy mô dữ liệu lớn và collector downstream có phép tổng hợp phức tạp. Việc test tuần tự và song song giống nhau **không đủ** nếu cả hai cùng dựa trên một accumulator sai; đối chiếu thêm dữ liệu nhỏ có kết quả tính tay và các bất biến thống kê.
+This is an illustrative example, **not a substitute for a full domain test suite**. In practice, you also need to test null keys/values, required ordering, mutable objects, large data volumes, and downstream collectors with complex aggregations. Equal sequential and parallel outputs **are not enough** if both share a buggy accumulator; cross-check small datasets against hand-computed answers and statistical invariants.
 
-### 19.2. Không dùng side effect để đếm số lần finisher chạy
+### 19.2. Do not use side effects to count finisher invocations
 
 ~~~java
-// Tránh thiết kế nghiệp vụ kiểu:
+// Avoid business logic like:
 // AtomicInteger calls = new AtomicInteger();
 // collectingAndThen(toList(), list -> {
-//     calls.incrementAndGet(); // Phụ thuộc cấu trúc pipeline sử dụng collector
+//     calls.incrementAndGet(); // Depends on the pipeline structure using the collector
 //     return List.copyOf(list);
 // });
 ~~~
 
-Trong collector đặt lồng nhau, số lần hoàn thiện phụ thuộc vào số kết quả downstream được tạo (chẳng hạn số nhóm). Việc log/metric có thể hữu ích để chẩn đoán, nhưng không nên biến số lần gọi finisher thành dữ liệu nghiệp vụ hoặc dựa vào nó để đồng bộ ngoài pipeline.
+In nested collectors, the number of finishing calls depends on how many downstream results are created (such as group count). Logging/metrics can help diagnostics, yet you should never turn finisher call counts into business data or rely on them for external synchronization.
 
-## 20. Bài tập tự kiểm tra (có đáp án)
+## 20. Self-check exercises (with answers)
 
-### Bài 1. Finisher nhận gì?
+### Exercise 1. What does the finisher receive?
 
-**Đề:** Với `collectingAndThen(toList(), List::copyOf)` trên `Stream<String>`, `List::copyOf` được gọi cho từng String hay cho danh sách?
+**Prompt:** With `collectingAndThen(toList(), List::copyOf)` on `Stream<String>`, is `List::copyOf` called for each String or for the list?
 
-**Đáp án:** Nó nhận **danh sách đã được downstream thu thập**, không nhận từng String. `toList` thực hiện tích lũy; `List.copyOf` hoàn thiện kết quả List.
+**Answer:** It receives **the list collected by the downstream**, not individual Strings. `toList` performs accumulation; `List.copyOf` finishes the List result.
 
-### Bài 2. Map ngoài và list nhóm
+### Exercise 2. Outer Map and group lists
 
-**Đề:** `collectingAndThen(groupingBy(Order::category), Map::copyOf)` có bảo đảm list trong mỗi nhóm không thể chỉnh sửa không?
+**Prompt:** Does `collectingAndThen(groupingBy(Order::category), Map::copyOf)` guarantee that the list in each group is unmodifiable?
 
-**Đáp án:** Không. Nó bảo vệ cấu trúc Map ngoài, nhưng không tự bảo vệ list nhóm. Cần `collectingAndThen(toList(), List::copyOf)` ở downstream bên trong `groupingBy`.
+**Answer:** No. It protects the outer Map structure, but does not automatically protect group lists. You need `collectingAndThen(toList(), List::copyOf)` as the inner downstream of `groupingBy`.
 
-### Bài 3. maxBy và Optional
+### Exercise 3. maxBy and Optional
 
-**Đề:** Vì sao `maxBy` trả `Optional<Order>`? Khi nào nên dùng finisher `orElseThrow`?
+**Prompt:** Why does `maxBy` return `Optional<Order>`? When should you use an `orElseThrow` finisher?
 
-**Đáp án:** Nguồn có thể rỗng và không có phần tử tối đa. `orElseThrow` chỉ phù hợp khi **bắt buộc** có kết quả, ví dụ một nhóm đã tồn tại và theo nghiệp vụ không được rỗng; nếu nguồn rỗng là trạng thái bình thường, nên giữ `Optional` hoặc biểu diễn thiếu dữ liệu rõ ràng.
+**Answer:** The source can be empty and have no maximum element. `orElseThrow` is only appropriate when a result is **mandatory**, such as an existing group that by business rules cannot be empty; if an empty source is a normal state, keep `Optional` or represent missing data explicitly.
 
-### Bài 4. groupingBy và filtering
+### Exercise 4. groupingBy and filtering
 
-**Đề:** Một nhóm `UI` có ticket nhưng tất cả đã resolved. Vì sao `groupingBy(Ticket::team, filtering(notResolved, collectingAndThen(toList(), List::copyOf)))` vẫn có khóa UI?
+**Prompt:** A `UI` group has tickets, all already resolved. Why does `groupingBy(Ticket::team, filtering(notResolved, collectingAndThen(toList(), List::copyOf)))` still contain the `UI` key?
 
-**Đáp án:** `groupingBy` tạo khóa khi xử lý ticket UI, còn `filtering` downstream bỏ phần tử ra khỏi danh sách **của khóa đã hình thành**. Kết quả nhóm UI là list rỗng, không phải khóa vắng mặt.
+**Answer:** `groupingBy` creates the key when processing the UI ticket, while downstream `filtering` excludes elements from the list **of the already-created key**. The `UI` group result is an empty list, not an absent key.
 
-### Bài 5. partitioningBy rỗng
+### Exercise 5. Empty partitioningBy
 
-**Đề:** Thu thập một Stream rỗng bằng `partitioningBy(predicate, collectingAndThen(toList(), List::copyOf))` có những khóa nào?
+**Prompt:** Collecting an empty Stream with `partitioningBy(predicate, collectingAndThen(toList(), List::copyOf))` yields which keys?
 
-**Đáp án:** Có cả `true` và `false`, mỗi khóa tương ứng với list rỗng không cho sửa. Finisher ở nhánh này cần xử lý trường hợp list rỗng.
+**Answer:** Both `true` and `false`, each mapped to an unmodifiable empty list. The finisher in this branch must handle an empty list.
 
-### Bài 6. Bước làm tròn đặt ở đâu?
+### Exercise 6. Where does rounding belong?
 
-**Đề:** Tổng các giá trị `BigDecimal` được phép cộng chính xác rồi làm tròn một lần sau cùng. Finisher có phù hợp không?
+**Prompt:** `BigDecimal` values are allowed to be summed exactly and rounded once at the very end. Is a finisher appropriate?
 
-**Đáp án:** Có. Dùng downstream `reducing(BigDecimal.ZERO, BigDecimal::add)` không làm tròn trung gian, sau đó finisher `total -> total.setScale(2, RoundingMode.HALF_UP)`. Nếu nghiệp vụ yêu cầu mỗi giao dịch làm tròn riêng, phải làm điều đó trước khi gộp.
+**Answer:** Yes. Use downstream `reducing(BigDecimal.ZERO, BigDecimal::add)` with no intermediate rounding, followed by finisher `total -> total.setScale(2, RoundingMode.HALF_UP)`. If business rules require rounding each transaction individually, do that before combining.
 
-### Bài 7. IDENTITY_FINISH
+### Exercise 7. IDENTITY_FINISH
 
-**Đề:** Một collector `toList` được bọc bằng `collectingAndThen(toList(), List::copyOf)` có còn `IDENTITY_FINISH` không?
+**Prompt:** Does a `toList` collector wrapped with `collectingAndThen(toList(), List::copyOf)` still have `IDENTITY_FINISH`?
 
-**Đáp án:** Không. Bước `List.copyOf` là một finisher có ý nghĩa, nên collector kết quả loại bỏ đặc tính `IDENTITY_FINISH`. Nếu framework bỏ qua bước cuối, tính không thể sửa cấu trúc sẽ không được bảo đảm.
+**Answer:** No. `List.copyOf` is a meaningful finisher, so the resulting collector strips the `IDENTITY_FINISH` characteristic. If the framework skipped the final step, structural unmodifiability would not be guaranteed.
 
-### Bài 8. Bất biến nông
+### Exercise 8. Shallow immutability
 
-**Đề:** Danh sách được tạo bằng `List.copyOf` chứa các đối tượng `Note` mutable. Sửa `Note.title` qua tham chiếu khác có ảnh hưởng phần tử trong danh sách không?
+**Prompt:** A list created with `List.copyOf` holds mutable `Note` objects. Does modifying `Note.title` through another reference affect the element inside the list?
 
-**Đáp án:** Có thể. `List.copyOf` không sao chép sâu giá trị. Danh sách không cho thêm/bớt nhưng vẫn giữ tham chiếu tới Note có thể thay đổi. Cần mô hình DTO bất biến hoặc defensive copy sâu nếu muốn snapshot dữ liệu thật sự ổn định.
+**Answer:** Yes, it can. `List.copyOf` does not deep-copy values. The list forbids adding/removing elements, yet still holds references to mutable `Note` instances. Use an immutable DTO model or deep defensive copies if you need a truly stable data snapshot.
 
-### Bài 9. Finisher có sửa được combiner sai?
+### Exercise 9. Can a finisher fix a wrong combiner?
 
-**Đề:** Downstream collector của phép tính trung bình gộp hai phân vùng bằng cách lấy trung bình của hai trung bình không trọng số. Có thể thêm `collectingAndThen` để đảm bảo đúng không?
+**Prompt:** A downstream collector for computing an average merges two partitions by taking the unweighted average of the two averages. Can `collectingAndThen` be added to make it right?
 
-**Đáp án:** Không. Khi mất thông tin số phần tử của từng phân vùng, finisher không khôi phục đủ dữ liệu. Sửa accumulator và combiner để giữ/cộng `sum` và `count`; chỉ chia trong finisher cuối.
+**Answer:** No. Once partition element counts are lost, the finisher cannot recover enough data. Fix the accumulator and combiner to retain/sum `sum` and `count`; only divide in the final finisher.
 
-### Bài 10. Chọn API gọn nhất
+### Exercise 10. Picking the most concise API
 
-**Đề:** Chỉ cần một List không cho sửa từ Stream trên Java 17, không có grouping hoặc hậu xử lý khác. Có nhất thiết dùng `collectingAndThen` không?
+**Prompt:** You only need an unmodifiable List from a Stream on Java 17, with no grouping or other post-processing. Do you have to use `collectingAndThen`?
 
-**Đáp án:** Không. `stream.toList()` thường gọn hơn. `collectingAndThen` hữu ích khi bước hoàn thiện phải lồng vào downstream collector hoặc chuyển kết quả thành kiểu/hợp đồng khác.
+**Answer:** No. `stream.toList()` is usually cleaner. `collectingAndThen` is useful when the finishing step must be nested inside a downstream collector or transform the result into another type/contract.
 
 ---
 
-**Ghi nhớ:** `Collectors.collectingAndThen(downstream, finisher)` là cách **nối một bước hoàn thiện vào kết quả của collector**, không biến đổi từng phần tử. Đặt nó **bên trong** `groupingBy` để hoàn thiện **mỗi nhóm**, đặt **bên ngoài** để hoàn thiện **toàn bộ Map**, hoặc lồng cả hai khi cần bảo vệ nhiều tầng. Bước hoàn thiện có thể đóng băng cấu trúc, sắp xếp, unwrap `Optional`, tạo DTO thống kê hoặc xác thực kết quả. Nó không sửa được một accumulator/combiner sai, không tự tạo deep copy và không thay thế việc kiểm soát null, tài nguyên, độ chính xác hoặc hiệu năng trong Java Stream API.
+**Key takeaway:** `Collectors.collectingAndThen(downstream, finisher)` is the way to **chain a finishing step onto a collector's result**, without transforming individual elements. Place it **inside** `groupingBy` to finish **each group**, place it **outside** to finish **the entire Map**, or nest both when multi-level protection is required. The finishing step can freeze structure, sort, unwrap `Optional`, build statistics DTOs, or validate results. It cannot fix a broken accumulator/combiner, does not create a deep copy automatically, and does not replace proper handling of nulls, resources, precision, or performance in the Java Stream API.
 

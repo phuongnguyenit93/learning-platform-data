@@ -1,21 +1,21 @@
-# Tăng giảm tiền tố và hậu tố trong Java
+# Prefix and Postfix Increment and Decrement in Java
 
-> **Java core — language-basics / Gán và toán tử một ngôi**  
-> **Phiên bản:** Java 17+; ví dụ độc lập, chỉ cần JDK.  
-> **Mục tiêu:** Phân biệt `++x`, `x++`, `--x`, `x--`; xác định **giá trị của biểu thức** và **giá trị biến sau khi cập nhật**; sử dụng đúng trong vòng lặp và tránh những biểu thức chứa nhiều tác dụng phụ khó hiểu.
+> **Java core — language-basics / Assignment and Unary Operators**  
+> **Version:** Java 17+; standalone examples, only JDK required.  
+> **Objective:** Distinguish `++x`, `x++`, `--x`, `x--`; determine **the expression's value** and **the variable's value after updating**; use them properly in loops and avoid expressions containing multiple hard-to-understand side effects.
 
-## 1. Bốn cách tăng giảm một đơn vị
+## 1. Four Ways to Increment or Decrement by One
 
-`++` tăng giá trị biến thêm 1, còn `--` giảm đi 1. Hai toán tử này có hai vị trí viết:
+`++` increases a variable's value by 1, while `--` decreases it by 1. These two operators can be written in two positions:
 
-| Cú pháp | Tên | Thay đổi biến | Giá trị của biểu thức |
+| Syntax | Name | Variable Change | Expression Value |
 | --- | --- | --- | --- |
-| `++x` | Tăng **tiền tố** (*prefix increment*) | `x` tăng 1 | Giá trị **mới** |
-| `x++` | Tăng **hậu tố** (*postfix increment*) | `x` tăng 1 | Giá trị **cũ** |
-| `--x` | Giảm **tiền tố** (*prefix decrement*) | `x` giảm 1 | Giá trị **mới** |
-| `x--` | Giảm **hậu tố** (*postfix decrement*) | `x` giảm 1 | Giá trị **cũ** |
+| `++x` | **Prefix** increment | `x` increases by 1 | **New** value |
+| `x++` | **Postfix** increment | `x` increases by 1 | **Old** value |
+| `--x` | **Prefix** decrement | `x` decreases by 1 | **New** value |
+| `x--` | **Postfix** decrement | `x` decreases by 1 | **Old** value |
 
-Ví dụ ban đầu `x = 5`:
+Initial example with `x = 5`:
 
 ~~~java
 int x = 5;
@@ -23,11 +23,11 @@ int before = x++; // before = 5, x = 6.
 int after  = ++x; // x = 7, after = 7.
 ~~~
 
-Cả tiền tố và hậu tố đều thay đổi biến **một đơn vị**. Khác biệt chỉ hiện rõ khi bạn **dùng giá trị do biểu thức trả ra** trong một phép gán, phép tính, điều kiện hoặc lời gọi phương thức.
+Both prefix and postfix change the variable by **one unit**. The difference only becomes apparent when you **use the value returned by the expression** in an assignment, arithmetic operation, condition, or method call.
 
-## 2. Giá trị biểu thức khác với trạng thái biến sau câu lệnh
+## 2. Expression Value Differs from Variable State After the Statement
 
-Xét hai đoạn độc lập:
+Consider two independent snippets:
 
 ~~~java
 int a = 10;
@@ -37,10 +37,10 @@ int b = 10;
 int second = ++b; // second = 11, b = 11.
 ~~~
 
-- Với `a++`: lấy **giá trị cũ** 10 làm kết quả biểu thức, đồng thời tăng `a` thành 11.
-- Với `++b`: tăng `b` thành 11 rồi cho biểu thức giá trị **mới** 11.
+- With `a++`: takes the **old value** 10 as the expression result, while incrementing `a` to 11.
+- With `++b`: increments `b` to 11 and then gives the expression the **new value** 11.
 
-Giảm tiền tố/hậu tố tương tự:
+Prefix/postfix decrement behaves similarly:
 
 ~~~java
 int a = 10;
@@ -50,7 +50,7 @@ int b = 10;
 int now = --b;  // now = 9, b = 9.
 ~~~
 
-Nếu chỉ cần tăng/giảm biến mà **không sử dụng kết quả biểu thức**, hai cách là tương đương về giá trị sau câu lệnh:
+If you only need to increment/decrement a variable **without using the expression result**, both forms are equivalent in terms of the post-statement value:
 
 ~~~java
 int count = 0;
@@ -60,11 +60,11 @@ count--; // count = 1.
 --count; // count = 0.
 ~~~
 
-Đừng hiểu “hậu tố thực hiện sau” là biến sẽ chỉ thay đổi ở **câu lệnh tiếp theo**: tác dụng tăng/giảm đã xảy ra trong quá trình đánh giá biểu thức hiện tại.
+Do not misunderstand “postfix happens later” as meaning the variable only changes in the **next statement**: the increment/decrement effect already happens during the evaluation of the current expression.
 
-## 3. Có thể áp dụng lên đâu?
+## 3. What Can They Be Applied To?
 
-Toán hạng của `++` và `--` phải là **biến có thể cập nhật** thuộc kiểu số phù hợp (bao gồm `char` và các lớp bao số qua unboxing/boxing). Ví dụ hợp lệ:
+The operand of `++` and `--` must be an **updatable variable** of an appropriate numeric type (including `char` and numeric wrapper classes via unboxing/boxing). Valid examples:
 
 ~~~java
 int counter = 2;
@@ -83,10 +83,10 @@ char letter = 'A';
 letter++; // 'B'.
 ~~~
 
-Không thể tăng một literal, giá trị tính toán không phải biến, biến `final`, hoặc kiểu `boolean`:
+You cannot increment a literal, a computed non-variable value, a `final` variable, or a `boolean`:
 
 ~~~java
-// KHÔNG BIÊN DỊCH:
+// DOES NOT COMPILE:
 // 5++;
 // (counter + 1)++;
 // final int fixed = 2;
@@ -95,31 +95,31 @@ Không thể tăng một literal, giá trị tính toán không phải biến, b
 // enabled++;
 ~~~
 
-Đối với wrapper, giá trị `null` cần chú ý:
+For wrappers, watch out for `null`:
 
 ~~~java
 Integer boxed = 4;
-boxed++; // Hợp lệ: unbox, tăng, rồi box lại thành Integer 5.
+boxed++; // Valid: unbox, increment, then box back to Integer 5.
 
 // Integer absent = null;
-// absent++; // Nếu chạy: NullPointerException khi unboxing.
+// absent++; // At runtime: NullPointerException on unboxing.
 ~~~
 
-Thao tác với `byte`, `short` hay `char` vẫn trả kết quả theo kiểu biến; việc tăng giảm có thể vượt miền và làm thay đổi/đảo giá trị, không tự ném exception tràn số.
+Operations on `byte`, `short`, or `char` still yield a result of the variable's type; incrementing or decrementing can exceed the range and wrap/flip the value without automatically throwing an overflow exception.
 
-## 4. Dùng trong biểu thức và thứ tự đánh giá
+## 4. Use in Expressions and Evaluation Order
 
-Java đánh giá toán hạng theo quy tắc xác định. Ví dụ:
+Java evaluates operands according to well-defined rules. Example:
 
 ~~~java
 int n = 1;
 int result = n++ + ++n;
-// n++ trả 1, n trở thành 2.
-// ++n tăng n thành 3 và trả 3.
+// n++ returns 1, n becomes 2.
+// ++n increments n to 3 and returns 3.
 // result = 1 + 3 = 4; n = 3.
 ~~~
 
-Kết quả này **được Java quy định**, nhưng diễn đạt nhiều cập nhật lên cùng biến trong một biểu thức như vậy rất khó đọc và dễ sửa sai. Ưu tiên tách ra:
+This result is **specified by Java**, yet expressing multiple updates to the same variable in a single expression like this is very hard to read and easy to modify incorrectly. Prefer splitting it up:
 
 ~~~java
 int n = 1;
@@ -130,7 +130,7 @@ int newValue = n;
 int result = oldValue + newValue; // result = 4.
 ~~~
 
-Một trường hợp phổ biến, dễ hiểu hơn, là **dùng chỉ số mảng rồi tăng chỉ số**:
+A common, easier-to-understand case is **using an array index and then incrementing the index**:
 
 ~~~java
 int[] numbers = {10, 20, 30};
@@ -138,18 +138,18 @@ int i = 0;
 int selected = numbers[i++]; // selected = 10, i = 1.
 ~~~
 
-`i++` trả **0** để truy cập phần tử đầu tiên, sau đó `i` trở thành 1. Tương đương ý định với:
+`i++` returns **0** to access the first element, and then `i` becomes 1. Equivalent in intent to:
 
 ~~~java
 int selected = numbers[i];
 i++;
 ~~~
 
-**Khuyến nghị:** Chỉ dùng tiền tố/hậu tố bên trong biểu thức khi người đọc có thể hiểu ngay cả **giá trị biểu thức** lẫn **tác dụng phụ**. Khi nhiều biến bị thay đổi, dùng câu lệnh độc lập hoặc biến trung gian.
+**Recommendation:** Only use prefix/postfix inside an expression when the reader can immediately understand both the **expression value** and the **side effect**. When multiple variables are modified, use standalone statements or intermediate variables.
 
-## 5. Vòng lặp `for` và `while`
+## 5. `for` and `while` Loops
 
-Trong vòng `for`, phần cập nhật thường không cần giá trị do `i++` hay `++i` trả ra:
+In a `for` loop, the update section usually does not need the value returned by `i++` or `++i`:
 
 ~~~java
 for (int i = 0; i < 3; i++) {
@@ -157,9 +157,9 @@ for (int i = 0; i < 3; i++) {
 }
 ~~~
 
-Ở đây đổi `i++` thành `++i` **không đổi chuỗi giá trị được in**, vì kết quả biểu thức tăng không được sử dụng. Cả hai đều tăng `i` một đơn vị ở cuối mỗi lượt.
+Here changing `i++` to `++i` **does not change the sequence of printed values**, because the increment expression's result is unused. Both increment `i` by one at the end of each iteration.
 
-Vòng `while` cũng vậy:
+The same applies to `while` loops:
 
 ~~~java
 int remaining = 3;
@@ -169,42 +169,42 @@ while (remaining > 0) {
 }
 ~~~
 
-Không nên chọn tiền tố thay hậu tố chỉ vì nghĩ nó “luôn nhanh hơn”. Với kiểu nguyên primitive trong Java 17, chọn cú pháp **diễn đạt rõ ý định**; hiệu năng thực tế phụ thuộc compiler/JIT và ngữ cảnh, không dựa vào mẹo này.
+Do not choose prefix over postfix merely thinking it is “always faster”. For primitive integer types in Java 17, choose the syntax that **expresses intent clearly**; actual performance depends on the compiler/JIT and context, not on this trick.
 
-## 6. Tràn số và những bẫy khác
+## 6. Overflow and Other Pitfalls
 
-Các toán tử này không tự kiểm tra tràn cho phép tăng/giảm nguyên thông thường:
+These operators do not automatically check for overflow on standard integer increments/decrements:
 
 ~~~java
 int maximum = Integer.MAX_VALUE;
-maximum++; // -2147483648, không tự ném ArithmeticException.
+maximum++; // -2147483648, does not automatically throw ArithmeticException.
 
 byte tiny = 127;
-tiny++; // -128 vì byte có miền -128..127.
+tiny++; // -128 because byte has range -128..127.
 ~~~
 
-Nếu yêu cầu **phát hiện tràn** thay vì chấp nhận kết quả quay vòng, dùng:
+If you require **overflow detection** instead of accepting wrap-around results, use:
 
 ~~~java
-int next = Math.incrementExact(Integer.MAX_VALUE); // Ném ArithmeticException.
-int prev = Math.decrementExact(Integer.MIN_VALUE); // Ném ArithmeticException.
+int next = Math.incrementExact(Integer.MAX_VALUE); // Throws ArithmeticException.
+int prev = Math.decrementExact(Integer.MIN_VALUE); // Throws ArithmeticException.
 ~~~
 
-Một bẫy khác là kết hợp phép gán với hậu tố:
+Another pitfall is combining assignment with postfix:
 
 ~~~java
 int n = 5;
-int previous = n++; // Dễ hiểu: previous=5, n=6.
+int previous = n++; // Easy to understand: previous=5, n=6.
 
-// Tránh viết câu khó đọc kiểu: n = n++;
-// Phép gán ngoài có thể ghi đè giá trị vừa cập nhật.
+// Avoid writing hard-to-read statements like: n = n++;
+// The outer assignment can overwrite the newly updated value.
 ~~~
 
-Việc `n = n++` không làm tăng giá trị `n` cuối cùng: `n++` trả **giá trị cũ**, rồi phép gán ngoài gán lại giá trị cũ đó. Nếu muốn tăng, chỉ cần `n++;` hoặc `n += 1;`.
+Writing `n = n++` does not increase the final value of `n`: `n++` returns the **old value**, and then the outer assignment writes that old value back. If you want to increment, simply write `n++;` or `n += 1;`.
 
-## 7. Ví dụ Java 17+ runnable
+## 7. Runnable Java 17+ Example
 
-Tạo tệp **PrefixPostfixDemo.java**:
+Create the file **`PrefixPostfixDemo.java`**:
 
 ~~~java
 public final class PrefixPostfixDemo {
@@ -270,14 +270,14 @@ public final class PrefixPostfixDemo {
 }
 ~~~
 
-Chạy trong thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 PrefixPostfixDemo.java
 java PrefixPostfixDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 postIncrement=5,a=6
@@ -297,22 +297,22 @@ loop=1
 loop=2
 ~~~
 
-Các dòng `postIncrement` và `preIncrement` cho thấy biến đều tăng nhưng **giá trị được trả ra** khác nhau; `combined` xác nhận thứ tự cập nhật, `assignmentTrap` cảnh báo kết hợp hậu tố với gán ngoài, còn `byteOverflow` và `intOverflow` minh họa tràn không tự ném ngoại lệ.
+The `postIncrement` and `preIncrement` lines show that the variable increments in both cases, but **the returned value** differs; `combined` confirms the update order, `assignmentTrap` warns against combining postfix with outer assignment, and `byteOverflow` and `intOverflow` illustrate overflow without throwing an exception automatically.
 
-## 8. Bài tập tự luyện
+## 8. Practice Exercises
 
-**Bài 1.** Cho `int x = 8; int y = x++;`. Xác định `x` và `y`. So sánh với `int x = 8; int y = ++x;`.
+**Exercise 1.** Given `int x = 8; int y = x++;`, determine `x` and `y`. Compare with `int x = 8; int y = ++x;`.
 
-**Bài 2.** Cho `int x = 8; int y = x--;` và `int x = 8; int y = --x;`. Hai trường hợp khác nhau ở giá trị nào?
+**Exercise 2.** Given `int x = 8; int y = x--;` and `int x = 8; int y = --x;`, which value differs between the two cases?
 
-**Bài 3.** Dự đoán `int i = 1; int result = i++ + ++i;`. Viết lại thành nhiều câu lệnh mà không thay đổi kết quả.
+**Exercise 3.** Predict `int i = 1; int result = i++ + ++i;`. Rewrite it as multiple statements without changing the result.
 
-**Bài 4.** Với `int[] arr = {4, 5, 6}; int i = 0;`, giải thích `arr[i++]` trả phần tử nào và `i` sau đó bằng bao nhiêu.
+**Exercise 4.** Given `int[] arr = {4, 5, 6}; int i = 0;`, explain which element `arr[i++]` returns and what `i` equals afterward.
 
-**Bài 5.** Vì sao `int x = 5; x = x++;` vẫn để `x` bằng 5? Viết cách tăng đơn giản hơn.
+**Exercise 5.** Why does `int x = 5; x = x++;` still leave `x` equal to 5? Write a simpler way to increment it.
 
-**Bài 6.** Kiểm tra `byte x = 127; x++;` và nêu cách dùng `Math.incrementExact` khi chương trình cần phát hiện tràn `int`.
+**Exercise 6.** Check `byte x = 127; x++;` and explain how to use `Math.incrementExact` when a program needs to detect `int` overflow.
 
-### Ghi nhớ
+### Key Takeaway
 
-**Tiền tố `++x`/`--x` trả giá trị sau khi cập nhật; hậu tố `x++`/`x--` trả giá trị trước khi cập nhật.** Cả hai cùng thay đổi biến trong biểu thức hiện tại. Nếu không dùng giá trị biểu thức, chọn cách dễ đọc. Tránh trộn nhiều lần tăng giảm với phép gán và tác dụng phụ khác; cân nhắc `Math.incrementExact`/`decrementExact` khi yêu cầu phát hiện tràn.
+**Prefix `++x`/`--x` returns the value after updating; postfix `x++`/`x--` returns the value before updating.** Both modify the variable during the current expression. If you do not use the expression value, pick the readable form. Avoid mixing multiple increments/decrements with assignment and other side effects; consider `Math.incrementExact`/`decrementExact` when overflow detection is required.

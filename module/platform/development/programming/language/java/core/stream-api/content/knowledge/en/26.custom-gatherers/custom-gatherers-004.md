@@ -1,63 +1,63 @@
-# Phân biệt Integrator thông thường và Integrator.ofGreedy
+# Distinguishing Regular Integrator and Integrator.ofGreedy
 
-Trong Java Stream API, `Gatherer` cho phép lập trình viên tự định nghĩa một **thao tác trung gian** (*intermediate operation*) có thể nhận phần tử từ upstream, duy trì trạng thái và phát kết quả sang downstream. Trung tâm của cơ chế này là **`Gatherer.Integrator<A, T, R>`**: một hàm nhận trạng thái `A`, phần tử đầu vào `T` và đối tượng nhận đầu ra `Gatherer.Downstream<R>`.
+In the Java Stream API, `Gatherer` lets programmers define a custom **intermediate operation** that can receive elements from upstream, maintain state, and emit results downstream. At the center of this mechanism is **`Gatherer.Integrator<A, T, R>`**: a function accepting state `A`, input element `T`, and output sink `Gatherer.Downstream<R>`.
 
-Khi tạo Integrator, Java cung cấp hai factory rất dễ nhầm:
+When creating an Integrator, Java provides two factories that are easily confused:
 
-- **`Gatherer.Integrator.of(...)`:** tạo một Integrator thông thường. Integrator được phép **tự quyết định dừng nhận thêm dữ liệu**, ví dụ khi đạt ngưỡng hoặc thấy một dấu mốc.
-- **`Gatherer.Integrator.ofGreedy(...)`:** tạo một Integrator đánh dấu là **`Greedy`**. Nó cam kết **không tự khởi phát dừng sớm**; nếu trả `false` thì nguyên nhân chỉ là downstream không muốn nhận thêm kết quả.
+- **`Gatherer.Integrator.of(...)`:** creates a regular Integrator. The Integrator is allowed to **decide on its own to stop receiving more data**, for example when reaching a threshold or seeing a marker.
+- **`Gatherer.Integrator.ofGreedy(...)`:** creates an Integrator marked as **`Greedy`**. It promises **never to initiate early termination itself**; if it returns `false`, the sole reason is that downstream does not want any more results.
 
-Sự khác biệt này không nằm ở số phần tử phát ra. Greedy Integrator vẫn có thể **lọc bỏ, biến đổi hoặc phát nhiều kết quả** cho một phần tử đầu vào. Điểm khác nhau nằm ở **quyền ra quyết định kết thúc việc nhận dữ liệu từ upstream** và khả năng tối ưu của Stream.
+This difference does not lie in how many elements are emitted. A Greedy Integrator can still **filter out, transform, or emit multiple results** for a single input element. The difference lies in **the authority to end input consumption from upstream** and the Stream's optimization opportunities.
 
-Bài thuộc chương **Xây dựng Gatherer tùy biến** trong mô-đun **JAVA_STREAM_API**. Nội dung nối tiếp kiến thức về pipeline lazy, `filter`, `map`, `reduce`, `collect`, `Spliterator`, trạng thái, xử lý song song và tài nguyên; mục tiêu trực tiếp là sử dụng đúng hợp đồng `of` và `ofGreedy` trước khi tính đến hiệu năng.
+This lesson belongs to the **Building Custom Gatherers** chapter in the **JAVA_STREAM_API** module. The content builds upon lazy pipelines, `filter`, `map`, `reduce`, `collect`, `Spliterator`, state, parallel processing, and resources; the direct goal is to apply the `of` and `ofGreedy` contracts correctly before considering performance.
 
-> **Phiên bản:** `Stream.gather`, `Gatherer.Integrator` và `Integrator.ofGreedy` là API chính thức từ **Java 24** (JEP 485). Chúng từng ở giai đoạn preview trong Java 22 và 23. Các ví dụ dưới đây được viết cho **JDK 24 trở lên**, không chạy trực tiếp trên Java 17/21.
+> **Version:** `Stream.gather`, `Gatherer.Integrator`, and `Integrator.ofGreedy` are official APIs starting in **Java 24** (JEP 485). They were in preview in Java 22 and 23. The examples below are written for **JDK 24 and later** and do not run directly on Java 17/21.
 
-## 1. Vị trí của Integrator trong một Gatherer
+## 1. Position of Integrator in a Gatherer
 
-Với một pipeline điển hình:
+In a typical pipeline:
 
 ```text
-Nguồn Stream<T>
+Source Stream<T>
       |
-      | filter(...) / map(...)           (tùy chọn)
+      | filter(...) / map(...)           (optional)
       v
   gather(gatherer)
       |
-      |  initializer -> tạo trạng thái A
-      |  integrator  -> nhận T, cập nhật A, có thể push R
-      |  combiner    -> gộp các trạng thái nếu hỗ trợ chia việc
-      |  finisher    -> có thể phát thêm R khi kết thúc nguồn
+      |  initializer -> creates state A
+      |  integrator  -> receives T, updates A, may push R
+      |  combiner    -> merges states if splitting is supported
+      |  finisher    -> may emit more R at end of source
       v
 Stream<R>
       |
       | limit(...) / findFirst() / toList() / collect(...)
       v
-Kết quả terminal
+Terminal result
 ```
 
-`Gatherer<T, A, R>` có ba kiểu:
+`Gatherer<T, A, R>` has three types:
 
-| Kiểu | Vai trò | Ví dụ |
+| Type | Role | Example |
 | --- | --- | --- |
-| `T` | Phần tử đầu vào | `Integer` |
-| `A` | Trạng thái nội bộ, có thể mutable | `long[]` lưu tổng chạy |
-| `R` | Phần tử được phát sang downstream | `Long` |
+| `T` | Input element | `Integer` |
+| `A` | Internal state, may be mutable | `long[]` holding a running sum |
+| `R` | Element emitted downstream | `Long` |
 
-Các thành phần khác nhau của Gatherer:
+Different components of a Gatherer:
 
-| Thành phần | Công việc |
+| Component | Job |
 | --- | --- |
-| `initializer()` | Cấp trạng thái mới khi cần |
-| `integrator()` | Nhận từng đầu vào, xử lý trạng thái và phát số lượng đầu ra tùy ý |
-| `combiner()` | Kết hợp trạng thái nếu Gatherer có thể xử lý song song |
-| `finisher()` | Thực hiện công việc cuối nguồn, có thể phát đầu ra bổ sung |
+| `initializer()` | Allocates fresh state when needed |
+| `integrator()` | Receives each input, updates state, and emits any number of outputs |
+| `combiner()` | Combines states if the Gatherer supports parallel processing |
+| `finisher()` | Performs end-of-source work, may emit additional outputs |
 
-`Integrator` **không** phải một `Collector`. Collector thường tạo kết quả ở terminal operation `collect`, còn Gatherer là giai đoạn trung gian có thể phát nhiều kết quả trước khi toàn bộ nguồn kết thúc.
+An `Integrator` is **not** a `Collector`. A Collector usually produces a result in the terminal operation `collect`, whereas a Gatherer is an intermediate stage that can emit multiple results before the entire source ends.
 
-## 2. Giao diện Integrator và giá trị boolean
+## 2. The Integrator Interface and the Boolean Value
 
-Trong Java 24, ý tưởng của chữ ký là:
+In Java 24, the conceptual signature is:
 
 ```java
 @FunctionalInterface
@@ -70,65 +70,65 @@ interface Integrator<A, T, R> {
 }
 ```
 
-Ba tham số và kết quả có nghĩa:
+The three parameters and return value mean:
 
-| Thành phần | Ý nghĩa |
+| Component | Meaning |
 | --- | --- |
-| `state` | Trạng thái của Gatherer mà framework cung cấp |
-| `element` | Phần tử đầu vào hiện tại |
-| `downstream` | Kênh phát `R` cho giai đoạn kế tiếp |
-| `return true` | Integrator muốn tiếp tục được cung cấp phần tử |
-| `return false` | Integrator muốn **ngừng nhận phần tử tiếp theo** |
+| `state` | The Gatherer state provided by the framework |
+| `element` | The current input element |
+| `downstream` | The channel for emitting `R` to the next stage |
+| `return true` | The Integrator wants to keep being fed elements |
+| `return false` | The Integrator wants to **stop receiving further elements** |
 
-Điểm quan trọng: `boolean` **không** biểu diễn “phần tử này có được chọn không”. Một Integrator có thể **không phát phần tử nào** mà vẫn trả `true`, hoặc phát một phần tử rồi trả `false` để dừng ở ranh giới.
+Key point: `boolean` does **not** represent "whether this element was selected". An Integrator can **emit zero elements** and still return `true`, or emit one element and return `false` to stop at a boundary.
 
 ```text
 integrate(state, element, downstream)
         |
-        +-- xử lý element / cập nhật state
-        +-- có thể gọi downstream.push(result) nhiều lần
+        +-- process element / update state
+        +-- may call downstream.push(result) multiple times
         |
-        +-- true: muốn nhận thêm input
-        +-- false: yêu cầu kết thúc tích hợp input
+        +-- true: want more input
+        +-- false: request end of input integration
 ```
 
-Với **Integrator thông thường**, `false` có thể đến từ **quyết định riêng** của Integrator hoặc từ tín hiệu downstream. Với **Greedy Integrator**, `false` chỉ có thể là **sự chuyển tiếp tín hiệu downstream từ chối**.
+For a **regular Integrator**, `false` can come from the Integrator's **own decision** or from a downstream signal. For a **Greedy Integrator**, `false` can only be **the forwarding of downstream's rejection signal**.
 
-## 3. Downstream.push và Downstream.isRejecting
+## 3. Downstream.push and Downstream.isRejecting
 
-Hai phương thức liên quan trực tiếp đến hợp đồng của Integrator:
+Two methods directly tied to the Integrator contract:
 
 ```java
 boolean downstream.push(R result);
 boolean downstream.isRejecting();
 ```
 
-- `push(result)` gửi một phần tử đầu ra xuống giai đoạn tiếp theo, **nếu giai đoạn đó còn chấp nhận**.
-- `push` trả `true` nếu downstream có thể tiếp tục nhận thêm, `false` nếu downstream đã từ chối.
-- Sau khi `push` trả `false`, các lời gọi `push` tiếp theo trên cùng downstream cũng sẽ không được chấp nhận theo hợp đồng.
-- `isRejecting()` là phép kiểm tra **best-effort** xem downstream có được biết là đang từ chối hay không. Giá trị `false` không phải cam kết vĩnh viễn rằng một lần `push` trong tương lai sẽ được chấp nhận.
+- `push(result)` sends one output element to the next stage, **if that stage still accepts it**.
+- `push` returns `true` if downstream can keep accepting more, `false` if downstream has rejected.
+- After `push` returns `false`, subsequent `push` calls on the same downstream will also be rejected per contract.
+- `isRejecting()` is a **best-effort** check of whether downstream is known to be rejecting. Returning `false` is not a permanent guarantee that a future `push` will be accepted.
 
-Ví dụ phản hồi hợp lệ:
+Example of a valid response:
 
 ```java
-// Một phần tử vào -> một phần tử ra.
+// One element in -> one element out.
 return downstream.push(transformed);
 ```
 
-Khi downstream có terminal operation như `limit(3).toList()`, một lần `push` có thể báo không muốn nhận thêm. Tại thời điểm đó, Integrator nên tôn trọng tín hiệu để tránh làm việc thừa.
+When downstream has a terminal operation like `limit(3).toList()`, a `push` call may signal that it wants no more. At that point, the Integrator should honor the signal to avoid wasted work.
 
-Một nhầm lẫn phổ biến là:
+A common mistake is:
 
 ```java
 downstream.push(transformed);
-return true; // Bỏ qua thông báo downstream có thể đã từ chối.
+return true; // Ignores the notice that downstream may have rejected.
 ```
 
-Đoạn này không phải cách tốt để biểu diễn một Integrator luôn tôn trọng downstream. Khi downstream không muốn nhận nữa, việc tiếp tục tính toán hoặc đẩy kết quả mới là thừa và có thể gây tốn tài nguyên. Với Greedy Integrator, **phải phản ánh đúng** trạng thái từ chối của downstream.
+This snippet is not a good way to express an Integrator that always respects downstream. When downstream wants no more, continuing to compute or push new results is wasteful and may consume resources needlessly. With a Greedy Integrator, you **must accurately reflect** downstream's rejection status.
 
-## 4. Integrator thông thường: được tự quyết định dừng sớm
+## 4. Regular Integrator: Allowed to Decide Early Termination
 
-Ví dụ nghiệp vụ: từ chuỗi sự kiện, ghi lại mọi sự kiện **cho đến và bao gồm** dấu mốc `"STOP"`, rồi dừng việc duyệt những sự kiện tiếp theo.
+Business example: from an event stream, record every event **up to and including** the `"STOP"` marker, then stop reading subsequent events.
 
 ```java
 import java.util.List;
@@ -142,7 +142,7 @@ public class UntilMarkerDemo {
                 (unused, value, downstream) -> {
                     boolean wantsMore = downstream.push(value);
 
-                    // Dừng vì marker, dù downstream chưa hề từ chối.
+                    // Stop because of marker, even if downstream never rejected.
                     return wantsMore && !value.equals(marker);
                 }
             );
@@ -162,72 +162,72 @@ public class UntilMarkerDemo {
 }
 ```
 
-Chú ý đoạn:
+Notice the line:
 
 ```java
 return wantsMore && !value.equals(marker);
 ```
 
-Hai nguyên nhân khác nhau có thể làm Integrator trả `false`:
+Two distinct causes can make this Integrator return `false`:
 
-1. **Downstream trả `false`** qua `push`: downstream không muốn nhận thêm.
-2. **Điều kiện nghiệp vụ gặp marker**: Integrator **tự quyết định** dừng, dù downstream vẫn muốn nhận.
+1. **Downstream returns `false`** from `push`: downstream wants no more.
+2. **Business condition hits the marker**: the Integrator **decides on its own** to stop, even though downstream still wants more.
 
-Chính nguyên nhân thứ hai làm Integrator này **không thể được khai báo là Greedy**.
+It is precisely this second cause that makes this Integrator **ineligible to be declared Greedy**.
 
-### 4.1. Dừng sớm không đồng nghĩa bỏ phần tử đang xử lý
+### 4.1. Early Stopping Does Not Mean Dropping the Current Element
 
-Integrator ở trên **đẩy marker trước**, sau đó mới trả `false`. Vì vậy `"STOP"` có trong kết quả, còn các phần tử sau marker không được nhận.
+The Integrator above **pushes the marker first**, and only then returns `false`. Thus `"STOP"` is included in the result, while elements after the marker are not received.
 
-Nếu quy tắc là **không bao gồm marker**, có thể kiểm tra trước:
+If the rule is **exclude the marker**, you can check beforehand:
 
 ```java
 Gatherer.Integrator<Void, String, String> step =
     Gatherer.Integrator.of((unused, value, downstream) -> {
         if (value.equals("STOP")) {
-            return false;  // Không push marker.
+            return false;  // Do not push the marker.
         }
 
         return downstream.push(value);
     });
 ```
 
-Hai phiên bản giải quyết hai hợp đồng nghiệp vụ khác nhau.
+These two versions implement two different business contracts.
 
-### 4.2. Khi nào một Integrator thông thường hợp lý?
+### 4.2. When Is a Regular Integrator Appropriate?
 
-- Dừng sau khi nhận `k` kết quả, ngay cả khi downstream chưa đặt `limit(k)`.
-- Dừng khi gặp marker kết thúc giao thức.
-- Dừng khi chỉ số đạt ngưỡng và không cần đọc thêm đầu vào.
-- Dừng khi bộ phân tích xác định phần đầu hợp lệ đã kết thúc.
-- Cần một quy tắc short-circuit **phát sinh từ chính logic Gatherer**.
+- Stopping after receiving `k` results, even if downstream has not placed `limit(k)`.
+- Stopping when encountering a protocol termination marker.
+- Stopping when a metric reaches a threshold and no more input needs to be read.
+- Stopping when a parser determines the valid header section has ended.
+- Any short-circuit rule **originating from the Gatherer's own logic**.
 
-Có thể viết một Integrator thông thường mà **không** bao giờ tự dừng. Khi đó nó vẫn đúng, chỉ là chưa khai báo đặc tính Greedy cho framework biết.
+You can write a regular Integrator that **never** stops on its own. It is still correct; it simply has not declared the Greedy property to the framework.
 
-## 5. `Integrator.ofGreedy` thực sự cam kết điều gì?
+## 5. What Does `Integrator.ofGreedy` Actually Promise?
 
-`Gatherer.Integrator.Greedy<A, T, R>` là **giao diện con** của `Gatherer.Integrator<A, T, R>`. Factory:
+`Gatherer.Integrator.Greedy<A, T, R>` is a **subinterface** of `Gatherer.Integrator<A, T, R>`. The factory:
 
 ```java
 Gatherer.Integrator.ofGreedy(greedyIntegrator)
 ```
 
-trả về đối tượng có kiểu `Gatherer.Integrator.Greedy<A, T, R>`.
+returns an object of type `Gatherer.Integrator.Greedy<A, T, R>`.
 
-Điều kiện cốt lõi là:
+The core condition is:
 
-> **Greedy Integrator không tự bắt đầu short-circuit. Nó chỉ có thể ngừng nhận thêm dữ liệu khi downstream đã báo từ chối.**
+> **A Greedy Integrator never initiates short-circuiting itself. It may stop accepting more data only when downstream has signaled rejection.**
 
-Do đó, những dạng trả về sau phù hợp với Greedy:
+Therefore, the following return patterns fit Greedy:
 
 ```java
-// Có phát một kết quả: truyền lại tín hiệu downstream.
+// Emitted one result: propagate downstream's signal.
 return downstream.push(result);
 
-// Không phát gì, downstream chưa bị từ chối.
+// Emitted nothing, downstream has not rejected.
 return true;
 
-// Phát nhiều kết quả: dừng nếu downstream từ chối.
+// Emitted multiple results: stop if downstream rejects.
 for (R result : results) {
     if (!downstream.push(result)) {
         return false;
@@ -236,20 +236,20 @@ for (R result : results) {
 return true;
 ```
 
-Trái lại, dạng sau **vi phạm** lời hứa Greedy:
+Conversely, the following form **violates** the Greedy promise:
 
 ```java
-// Không hợp lệ cho ofGreedy: tự dừng vì quy tắc nghiệp vụ.
+// Invalid for ofGreedy: self-stops due to a business rule.
 return downstream.push(result) && !conditionForStop;
 ```
 
-`conditionForStop` ở đây có thể khiến Integrator trả `false` **dù `push` vừa trả `true`**. Khi đó nguồn dừng do quyết định riêng của Integrator — chính điều mà Greedy cam kết không làm.
+Here `conditionForStop` can cause the Integrator to return `false` **even when `push` just returned `true`**. In that case, termination originates from the Integrator's own decision — the exact thing Greedy promises never to do.
 
-### 5.1. Greedy không có nghĩa “phát mọi phần tử”
+### 5.1. Greedy Does Not Mean "Emit Every Element"
 
-Greedy mô tả **sự sẵn lòng tiếp tục nhận upstream**, không bắt buộc giữ mọi phần tử.
+Greedy describes **willingness to keep receiving from upstream**, not a requirement to retain every element.
 
-Ví dụ một Greedy Integrator chỉ phát số chẵn:
+Example of a Greedy Integrator that emits only even numbers:
 
 ```java
 import java.util.stream.Gatherer;
@@ -261,56 +261,56 @@ Gatherer.Integrator.Greedy<Void, Integer, Integer> evenStep =
                 return downstream.push(number);
             }
 
-            return true; // Bỏ phần tử lẻ, vẫn nhận phần tử tiếp.
+            return true; // Skip odd element, keep receiving next element.
         }
     );
 
 Gatherer<Integer, Void, Integer> onlyEven = Gatherer.of(evenStep);
 ```
 
-`onlyEven` có hành vi tương tự `filter(n -> n % 2 == 0)`. Integrator không push số lẻ, nhưng **không** tự dừng Stream khi thấy số lẻ.
+`onlyEven` behaves similarly to `filter(n -> n % 2 == 0)`. The Integrator does not push odd numbers, yet **does not** stop the Stream when it sees an odd number.
 
-Trong sản phẩm thực tế, hãy ưu tiên `filter` nếu nó đã diễn đạt đủ ý định; ví dụ trên để làm rõ **ngữ nghĩa Greedy**, không khuyến khích thay thế mọi thao tác chuẩn bằng Gatherer tùy chỉnh.
+In production code, prefer `filter` if it already expresses the intent clearly; the example above clarifies **Greedy semantics**, rather than encouraging replacing every standard operation with a custom Gatherer.
 
-## 6. So sánh `of` và `ofGreedy` theo hợp đồng
+## 6. Contract Comparison: `of` vs `ofGreedy`
 
-| Tiêu chí | `Integrator.of(...)` | `Integrator.ofGreedy(...)` |
+| Criterion | `Integrator.of(...)` | `Integrator.ofGreedy(...)` |
 | --- | --- | --- |
-| Kiểu tạo ra | `Integrator<A,T,R>` | `Integrator.Greedy<A,T,R>` |
-| Có thể tự dừng vì điều kiện nghiệp vụ? | **Có** | **Không** |
-| Có thể trả `false` khi downstream từ chối? | Có | Có, và đây là nguyên nhân duy nhất phù hợp |
-| Có thể không phát đầu ra cho một input? | Có | Có |
-| Có thể phát nhiều đầu ra cho một input? | Có | Có |
-| Có thể giữ trạng thái mutable nội bộ? | Có, nếu đúng hợp đồng | Có, nếu đúng hợp đồng |
-| Có nghĩa tự động chạy song song? | Không | Không |
-| Framework phải chú ý `false` của Integrator như yêu cầu tự dừng? | Có | Có thể **không cần kiểm tra** giá trị trả về |
-| Có thể hỗ trợ tối ưu? | Có tùy thiết kế | **Thông tin Greedy** mở thêm cơ hội tối ưu |
-| Phù hợp khi | Có hoặc có thể có ranh giới kết thúc do Integrator | Chắc chắn không chủ động cắt luồng |
+| Produced type | `Integrator<A,T,R>` | `Integrator.Greedy<A,T,R>` |
+| Can self-stop due to business condition? | **Yes** | **No** |
+| Can return `false` when downstream rejects? | Yes | Yes, and this is the only valid cause |
+| Can emit zero outputs for an input? | Yes | Yes |
+| Can emit multiple outputs for an input? | Yes | Yes |
+| Can hold mutable internal state? | Yes, if contract-compliant | Yes, if contract-compliant |
+| Means automatic parallel execution? | No | No |
+| Must framework inspect `false` as a self-stop request? | Yes | May **skip inspecting** the return value |
+| Can assist optimization? | Depends on design | **Greedy metadata** opens extra optimization opportunities |
+| Suitable when | There is or may be an Integrator-driven termination boundary | Definitely never proactively cuts off the stream |
 
-**Điểm then chốt về tối ưu:** Đặc tả Java 24 cho phép triển khai Stream **không kiểm tra boolean do Greedy Integrator trả về**, vì Integrator đã cam kết không tự short-circuit. Downstream có cơ chế riêng để biểu đạt việc không còn nhận kết quả.
+**Key optimization insight:** The Java 24 specification allows a Stream implementation to **skip checking the boolean returned by a Greedy Integrator**, because the Integrator promised never to self-short-circuit. Downstream has its own mechanism to express no longer accepting results.
 
-Vì thế việc gắn nhãn Greedy sai **không chỉ làm tài liệu kém chính xác**: nó có thể khiến triển khai hợp lệ bỏ qua tín hiệu `false` mà code nghiệp vụ dựa vào. Kết quả sau đó có thể tiếp tục chứa dữ liệu sau điểm đáng lẽ phải dừng.
+Thus, mislabeling an Integrator as Greedy **does not just make documentation inaccurate**: it can cause a compliant implementation to ignore the `false` signal that business logic relied on. Subsequent outputs might then contain data past the point where it was supposed to stop.
 
-### 6.1. `ofGreedy` không tự biến đổi logic của lambda
+### 6.1. `ofGreedy` Does Not Alter the Lambda's Logic
 
-`of` và `ofGreedy` đều nhận lambda có cùng hình dạng ba tham số và trả boolean. Sự khác biệt là **kiểu Integrator** và **cam kết được truyền cho framework**, không phải một thuật toán lọc hay lặp mới.
+Both `of` and `ofGreedy` accept a lambda with the same three-parameter signature returning boolean. The difference is **the Integrator type** and **the promise communicated to the framework**, not a new filtering or looping algorithm.
 
-Một Integrator thường có hành vi Greedy có thể được triển khai bằng `of` và vẫn đúng. Chỉ khi chắc chắn hợp đồng Greedy được thỏa, ta mới nên dùng `ofGreedy` để framework có cơ hội tối ưu.
+An Integrator that happens to behave greedily can be implemented with `of` and still be correct. Only once you are certain the Greedy contract holds should you use `ofGreedy` to give the framework optimization opportunities.
 
-## 7. Ví dụ đối chiếu: cùng phép ánh xạ, hai kiểu Integrator
+## 7. Side-by-Side Example: Same Mapping, Two Integrator Kinds
 
-Cùng một phép bình phương (ở miền giá trị nhỏ, không tràn):
+The same squaring operation (within a small, non-overflowing range):
 
 ```java
 import java.util.stream.Gatherer;
 
-// Integrator thông thường: hợp lệ, không tự dừng.
+// Regular Integrator: valid, does not self-stop.
 Gatherer.Integrator<Void, Integer, Integer> ordinary =
     Gatherer.Integrator.of(
         (unused, n, downstream) -> downstream.push(n * n)
     );
 
-// Greedy Integrator: cũng không tự dừng, báo cho framework biết.
+// Greedy Integrator: also does not self-stop, informs the framework.
 Gatherer.Integrator.Greedy<Void, Integer, Integer> greedy =
     Gatherer.Integrator.ofGreedy(
         (unused, n, downstream) -> downstream.push(n * n)
@@ -320,7 +320,7 @@ Gatherer<Integer, Void, Integer> g1 = Gatherer.of(ordinary);
 Gatherer<Integer, Void, Integer> g2 = Gatherer.of(greedy);
 ```
 
-Sử dụng:
+Usage:
 
 ```java
 import java.util.List;
@@ -334,18 +334,18 @@ System.out.println(input.stream().gather(g2).toList());
 // [1, 4, 9, 16]
 ```
 
-Đầu ra giống nhau. `g2` cung cấp **thêm thông tin hợp đồng** để triển khai `Stream.gather` có thể tối ưu. **Không có bảo đảm `g2` chạy nhanh hơn** trong mọi tập dữ liệu hoặc mọi JDK.
+The outputs are identical. `g2` provides **additional contract metadata** that a `Stream.gather` implementation may optimize. **There is no guarantee `g2` runs faster** across every dataset or every JDK.
 
-Nếu không cần quản lý trạng thái hay nhiều đầu ra, `map(n -> n * n)` thông thường là lựa chọn đơn giản nhất.
+If state management or multi-output emission is not needed, standard `map(n -> n * n)` is the simplest choice.
 
-## 8. Dùng Greedy với bộ lọc: bỏ phần tử không phải dừng Stream
+## 8. Using Greedy as a Filter: Skipping an Element Is Not Stopping the Stream
 
-Một lỗi thường gặp khi tự viết filter bằng Gatherer là nhầm “không chọn phần tử này” với “không muốn nhận phần tử tiếp”.
+A frequent mistake when writing a filter using Gatherer is confusing "do not select this element" with "do not want the next element".
 
-**Sai**:
+**Wrong**:
 
 ```java
-// Sai: số lẻ làm integrate trả false -> dừng cả phần nguồn.
+// Wrong: odd numbers make integrate return false -> stops the rest of the source.
 Gatherer.Integrator<Void, Integer, Integer> wrongFilter =
     Gatherer.Integrator.of(
         (unused, n, downstream) ->
@@ -353,9 +353,9 @@ Gatherer.Integrator<Void, Integer, Integer> wrongFilter =
     );
 ```
 
-Với `[2, 3, 4, 6]`, khi gặp `3`, Integrator trả `false`. Nó **không tiếp tục** đến `4` và `6`. Đó là một gatherer kiểu **take-until-failure**, không phải filter.
+With `[2, 3, 4, 6]`, upon hitting `3`, the Integrator returns `false`. It **does not continue** to `4` and `6`. That is a **take-until-failure** gatherer, not a filter.
 
-**Đúng**:
+**Right**:
 
 ```java
 Gatherer.Integrator.Greedy<Void, Integer, Integer> correctFilter =
@@ -365,15 +365,15 @@ Gatherer.Integrator.Greedy<Void, Integer, Integer> correctFilter =
     );
 ```
 
-Khi `n` lẻ, không có `push` nên trả `true` để tiếp tục. Khi `n` chẵn, kết quả từ `push` được truyền ngược lên.
+When `n` is odd, no `push` occurs so it returns `true` to continue. When `n` is even, the result of `push` is propagated back up.
 
-Ví dụ này nhấn mạnh: **`return false` luôn có ý nghĩa dừng nhận đầu vào**, không có ý nghĩa “loại một phần tử” trong `Integrator`.
+This example underscores: **`return false` always means stop receiving input**, never "filter out one element" in an `Integrator`.
 
-## 9. Greedy phát nhiều kết quả từ một phần tử
+## 9. Greedy Emitting Multiple Results from One Element
 
-Greedy vẫn có thể hoạt động theo kiểu *flat-map*: một phần tử đầu vào sinh ra 0, 1 hoặc nhiều phần tử đầu ra.
+Greedy can also operate in *flat-map* style: one input element produces 0, 1, or multiple output elements.
 
-Ví dụ mỗi đầu vào là một nhóm chuỗi, cần phát từng chuỗi trong nhóm:
+For example, each input is a group of strings, and each string in the group needs to be emitted:
 
 ```java
 import java.util.List;
@@ -384,11 +384,11 @@ Gatherer.Integrator.Greedy<Void, List<String>, String> flattenStep =
         (unused, group, downstream) -> {
             for (String item : group) {
                 if (!downstream.push(item)) {
-                    return false; // Chỉ do downstream từ chối.
+                    return false; // Solely due to downstream rejection.
                 }
             }
 
-            return true; // Nhóm có thể rỗng; vẫn chờ nhóm tiếp.
+            return true; // Group may be empty; still await next group.
         }
     );
 
@@ -405,7 +405,7 @@ List<String> words = List.of(
 System.out.println(words); // [A, B, C, D]
 ```
 
-Lưu ý cách viết:
+Notice how this is written:
 
 ```java
 for (String item : group) {
@@ -416,15 +416,15 @@ for (String item : group) {
 return true;
 ```
 
-Nó truyền tín hiệu từ chối của downstream ngay khi có. Không tiếp tục duyệt hàng nghìn phần tử trong `group` nếu downstream đã báo không cần nhận nữa.
+It propagates downstream's rejection signal immediately when it happens. Do not keep iterating over thousands of elements in `group` once downstream has signaled it wants no more.
 
-Trong trường hợp chỉ cần làm phẳng một Stream nhóm, `flatMap(List::stream)` đã có sẵn và thường ngắn hơn; Gatherer tùy chỉnh có giá trị khi còn cần quy tắc trạng thái hoặc phát dữ liệu phức tạp.
+When you only need to flatten a Stream of collections, `flatMap(List::stream)` is built-in and usually shorter; a custom Gatherer is valuable when stateful rules or complex emission logic are also required.
 
-## 10. Greedy vẫn tôn trọng dừng sớm từ downstream
+## 10. Greedy Still Honors Early Termination from Downstream
 
-Hãy phân biệt **dừng do Integrator** và **dừng do terminal/downstream**.
+Distinguish **Integrator-initiated stopping** from **terminal/downstream-initiated stopping**.
 
-Ví dụ một nguồn vô hạn:
+Example with an infinite source:
 
 ```java
 import java.util.List;
@@ -444,13 +444,13 @@ List<Integer> firstThree = Stream.iterate(1, n -> n + 1)
 System.out.println(firstThree); // [1, 4, 9]
 ```
 
-`squareStep` không có quy tắc dừng riêng: nếu downstream cần thêm, nó sẵn sàng nhận input tiếp. Nhưng `limit(3)` không muốn nhận thêm sau ba phần tử kết quả, nên pipeline có thể kết thúc.
+`squareStep` has no stop rule of its own: if downstream needs more, it is willing to keep accepting inputs. However, `limit(3)` wants no more after three output elements, so the pipeline can terminate.
 
-**Không được nói rằng Greedy “luôn phải duyệt hết nguồn bất kể downstream”.** Với nguồn vô hạn, câu đó dẫn đến mâu thuẫn ngay ở ví dụ này. Greedy chỉ nói rằng **bản thân Integrator không đặt ranh giới kết thúc độc lập với downstream**.
+**Never say that Greedy "always consumes the entire source regardless of downstream".** With an infinite source, that statement immediately contradicts this example. Greedy only states that **the Integrator itself imposes no termination boundary independent of downstream**.
 
-### 10.1. Điều gì xảy ra khi downstream không muốn nhận nữa?
+### 10.1. What Happens When Downstream Wants No More?
 
-Giả sử Greedy Integrator phát nhiều phần tử và `limit(2)` nằm sau:
+Suppose a Greedy Integrator emits multiple elements and `limit(2)` follows:
 
 ```java
 List<String> firstTwo = List.of(
@@ -464,30 +464,30 @@ List<String> firstTwo = List.of(
 System.out.println(firstTwo); // [A, B]
 ```
 
-Khi `push` báo từ chối, vòng lặp trong `flattenStep` trả `false` ngay. Việc truyền boolean này **không vi phạm Greedy**, vì nó chỉ phản ánh quyết định của downstream.
+When `push` reports rejection, the loop inside `flattenStep` returns `false` immediately. Propagating this boolean **does not violate Greedy**, because it merely reflects downstream's decision.
 
-Không dùng phép đếm side effect trong mapper, `peek` hoặc `integrate` làm cách kiểm chứng chắc chắn số phần tử đã được duyệt: Stream có quyền tối ưu các giai đoạn khi không thay đổi ngữ nghĩa công khai.
+Do not use side-effect counters in mappers, `peek`, or `integrate` as a definitive way to verify how many elements were traversed: Streams are allowed to optimize stages when public semantics do not change.
 
-## 11. Vi phạm hợp đồng `ofGreedy` nguy hiểm thế nào?
+## 11. How Dangerous Is Violating the `ofGreedy` Contract?
 
-Xem đoạn mã **cố ý sai**:
+Look at an **intentionally broken** snippet:
 
 ```java
-// KHÔNG NÊN DÙNG.
+// DO NOT USE.
 Gatherer.Integrator.Greedy<Void, String, String> bad =
     Gatherer.Integrator.ofGreedy(
         (unused, value, downstream) -> {
             boolean accepted = downstream.push(value);
 
-            // Sai: false có thể đến từ STOP dù downstream vẫn chấp nhận.
+            // Wrong: false can come from STOP even while downstream still accepts.
             return accepted && !"STOP".equals(value);
         }
     );
 ```
 
-Lập trình viên muốn cắt tại `"STOP"`, nhưng đã khai báo `Greedy`. Đặc tả cho phép triển khai Stream **không kiểm tra giá trị boolean của Greedy Integrator**. Vì vậy, mã này **không được bảo đảm** sẽ dừng ở marker.
+The programmer wanted to cut off at `"STOP"`, yet declared it `Greedy`. The specification allows a Stream implementation to **ignore the boolean of a Greedy Integrator**. Therefore, this code is **not guaranteed** to stop at the marker.
 
-Cách sửa:
+Fix:
 
 ```java
 Gatherer.Integrator<Void, String, String> correct =
@@ -497,25 +497,25 @@ Gatherer.Integrator<Void, String, String> correct =
     );
 ```
 
-Hoặc cân nhắc `takeWhile` nếu nguồn có encounter order và quy tắc nghiệp vụ phù hợp với việc lấy tiền tố (không bao gồm phần tử đầu không thỏa). Nếu phải **giữ marker**, custom Integrator như trên là một cách diễn đạt trực tiếp.
+Or consider `takeWhile` if the source has encounter order and the business rule matches taking a prefix (excluding the first non-matching element). If you must **keep the marker**, a custom Integrator like the one above is a direct way to express it.
 
-### 11.1. Những kiểu vi phạm tương tự
+### 11.1. Similar Violation Patterns
 
-| Mẫu sai | Vì sao vi phạm |
+| Broken pattern | Why it violates the contract |
 | --- | --- |
-| `ofGreedy(... -> count < limit)` | Tự dừng khi đạt limit, không do downstream |
-| `ofGreedy(... -> !isEndMarker(element))` | Tự dừng vì marker |
-| `ofGreedy(... -> !businessRuleFailed)` | Tự dừng vì thất bại nghiệp vụ |
-| `ofGreedy(... -> downstream.push(x) && count < limit)` | Có thể trả `false` vì count dù `push` trả `true` |
-| `ofGreedy(... -> false)` | Luôn tự dừng ngay nếu downstream chưa từ chối |
+| `ofGreedy(... -> count < limit)` | Self-stops when limit is reached, not due to downstream |
+| `ofGreedy(... -> !isEndMarker(element))` | Self-stops on marker |
+| `ofGreedy(... -> !businessRuleFailed)` | Self-stops on business failure |
+| `ofGreedy(... -> downstream.push(x) && count < limit)` | Can return `false` due to count even when `push` returned `true` |
+| `ofGreedy(... -> false)` | Always self-stops immediately even when downstream hasn't rejected |
 
-**Quy tắc review:** Mỗi nhánh có thể `return false` trong Greedy Integrator phải được truy ngược về **lời gọi `downstream.push(...)` đã trả `false`**. Nếu tồn tại một nhánh `false` do bộ đếm, điều kiện nghiệp vụ hoặc ngoại lệ quy đổi thành boolean, hãy dùng Integrator thông thường hoặc thay đổi thiết kế.
+**Review rule:** Every branch capable of `return false` in a Greedy Integrator must trace back to a **`downstream.push(...)` call that returned `false`**. If any `false` branch comes from a counter, business condition, or exception converted to boolean, use a regular Integrator or change the design.
 
-## 12. Greedy và trạng thái: ví dụ tổng chạy
+## 12. Greedy and State: Running Total Example
 
-Greedy **không có nghĩa stateless**. Một Integrator có thể có trạng thái riêng và vẫn luôn muốn nhận thêm phần tử, miễn là downstream còn nhận.
+Greedy **does not mean stateless**. An Integrator can maintain private state and still always accept more elements as long as downstream accepts them.
 
-Ví dụ tổng tích lũy sau mỗi phần tử:
+Example of running total after each element:
 
 ```java
 import java.util.List;
@@ -549,28 +549,28 @@ public class RunningTotalDemo {
 }
 ```
 
-Đặc điểm quan trọng:
+Key characteristics:
 
-- `initializer` tạo mảng trạng thái **mới** cho mỗi lượt xử lý được quản lý.
-- `integrate` cập nhật tổng và phát giá trị mới qua `push`.
-- `Math.addExact` ném `ArithmeticException` nếu tổng vượt miền `long`; Greedy không liên quan đến việc phát hiện tràn số.
-- `ofSequential` được chọn vì tổng chạy phụ thuộc thứ tự và ví dụ **không định nghĩa combiner**.
-- `ofGreedy` được chọn vì integrator **không có điều kiện tự dừng**; nó chỉ trả tín hiệu từ `push`.
+- `initializer` allocates a **fresh** state array for each managed execution pass.
+- `integrate` updates the sum and emits the new value via `push`.
+- `Math.addExact` throws `ArithmeticException` if the sum exceeds `long` range; Greedy is unrelated to overflow detection.
+- `ofSequential` is chosen because a running total depends on order and the example **defines no combiner**.
+- `ofGreedy` is chosen because the integrator **has no self-stop condition**; it only returns the signal from `push`.
 
-Cả hai lựa chọn **`ofSequential`** và **`ofGreedy`** đều xuất hiện trong ví dụ nhưng giải quyết **hai câu hỏi khác nhau**:
+Both **`ofSequential`** and **`ofGreedy`** appear in this example, yet answer **two separate questions**:
 
-| Câu hỏi | Lựa chọn |
+| Question | Choice |
 | --- | --- |
-| Có thể chia và gộp trạng thái để chạy song song đúng không? | `ofSequential` hoặc thiết kế `of` với combiner hợp lệ |
-| Integrator có tự khởi phát short-circuit không? | `Integrator.of` hoặc `Integrator.ofGreedy` |
+| Can state be split and merged to run in parallel correctly? | `ofSequential` or design `of` with a valid combiner |
+| Does the Integrator initiate short-circuiting itself? | `Integrator.of` or `Integrator.ofGreedy` |
 
-Nếu chỉ cần running total thông thường, `Gatherers.scan(() -> 0L, Long::sum)` đã thực hiện ý tưởng tương tự và thường nên được ưu tiên.
+If you only need a standard running total, `Gatherers.scan(() -> 0L, Long::sum)` already implements the same idea and should usually be preferred.
 
-## 13. Greedy và finisher: không phát trong integrator vẫn hợp lệ
+## 13. Greedy and finisher: Not Emitting Inside Integrator Is Still Valid
 
-Có những Gatherer **tích lũy toàn bộ nguồn rồi mới phát một kết quả** trong finisher. Integrator của chúng có thể không gọi `downstream.push` lần nào.
+Some Gatherers **accumulate the entire source and only emit one result** in the finisher. Their Integrator may never call `downstream.push`.
 
-Ví dụ đếm số phần tử đầu vào và phát kết quả lúc kết thúc:
+Example counting input elements and emitting the result at completion:
 
 ```java
 import java.util.List;
@@ -586,7 +586,7 @@ public class CountAtEndDemo {
             Gatherer.Integrator.ofGreedy(
                 (state, value, downstream) -> {
                     state.count = Math.addExact(state.count, 1L);
-                    return true; // Không push, không có lý do tự dừng.
+                    return true; // No push, no reason to self-stop.
                 }
             );
 
@@ -612,17 +612,17 @@ public class CountAtEndDemo {
 }
 ```
 
-`Integrator.ofGreedy` phù hợp ở đây dù nó **không phát dữ liệu ở mỗi bước**. Nó tiếp tục nhận input và cập nhật trạng thái; đến cuối nguồn, `finisher` phát tổng số lượng.
+`Integrator.ofGreedy` fits here even though it **emits nothing at each step**. It keeps receiving inputs and updating state; at the end of the source, `finisher` emits the total count.
 
-### 13.1. Vì sao finisher cũng phải quan tâm đến downstream?
+### 13.1. Why Must the finisher Also Care About Downstream?
 
-`finisher` có thể được gọi khi downstream không còn nhận thêm dữ liệu, tùy cách kết thúc pipeline. Với công việc phát nhiều kết quả trong finisher, nên kiểm tra `downstream.isRejecting()` nếu hữu ích và đặc biệt kiểm tra boolean từ mỗi `downstream.push(...)` để dừng việc phát khi bị từ chối.
+`finisher` may be invoked when downstream is no longer accepting data, depending on how the pipeline terminates. When emitting multiple results in the finisher, check `downstream.isRejecting()` if helpful and especially check the boolean from each `downstream.push(...)` to stop emitting upon rejection.
 
-`isRejecting()` là tín hiệu best-effort, nên vẫn phải sử dụng `push` đúng hợp đồng; không lưu `Downstream` vào một biến toàn cục hoặc giữ tham chiếu sau khi lời gọi callback kết thúc.
+`isRejecting()` is a best-effort signal, so you must still use `push` per contract; never store `Downstream` in a global variable or retain a reference after the callback invocation ends.
 
-### 13.2. Nếu chỉ cần đếm, không nên viết Gatherer
+### 13.2. If You Only Need to Count, Do Not Write a Gatherer
 
-Ví dụ trên minh họa trạng thái và finisher. Với bài toán thật, gọi:
+The example above illustrates state and finisher. In real problems, calling:
 
 ```java
 long count = List.of("A", "B", "C")
@@ -632,11 +632,11 @@ long count = List.of("A", "B", "C")
 System.out.println(count); // 3
 ```
 
-ngắn, rõ và cho phép Stream tự tối ưu. Gatherer có ích khi một phép biến đổi **trung gian** có hợp đồng riêng mà `filter`, `map`, `reduce` hay `collect` dựng sẵn không đáp ứng.
+is concise, clear, and lets the Stream optimize itself. A Gatherer is useful when an **intermediate** transformation has custom semantics that built-in `filter`, `map`, `reduce`, or `collect` cannot express.
 
-## 14. Integrator thông thường có thể “hành xử Greedy” mà vẫn đúng
+## 14. A Regular Integrator Can "Behave Greedily" and Still Be Correct
 
-Ví dụ:
+Example:
 
 ```java
 Gatherer.Integrator<Void, Integer, Integer> normal =
@@ -645,9 +645,9 @@ Gatherer.Integrator<Void, Integer, Integer> normal =
     );
 ```
 
-`normal` **không tự dừng**. Nó vẫn là một Integrator thông thường vì được tạo qua `of`, nhưng hành vi phù hợp lời hứa Greedy.
+`normal` **does not self-stop**. It remains a regular Integrator because it was created via `of`, yet its behavior satisfies the Greedy promise.
 
-Nếu đã kiểm tra chắc chắn rằng Integrator không tự short-circuit, có thể viết:
+Once you have verified with certainty that the Integrator never self-short-circuits, you can write:
 
 ```java
 Gatherer.Integrator.Greedy<Void, Integer, Integer> greedy =
@@ -656,47 +656,47 @@ Gatherer.Integrator.Greedy<Void, Integer, Integer> greedy =
     );
 ```
 
-Cả hai đều hợp lệ và cho cùng kết quả trên dữ liệu tương ứng. Khác biệt là `greedy` làm **tính chất không tự dừng** trở thành thông tin kiểu mà triển khai có thể dựa vào.
+Both are valid and yield the same results on matching data. The difference is that `greedy` turns **the non-self-stopping property** into type information that implementations can rely on.
 
-**Chiến lược thực tế:** Khi chưa chắc các nhánh kết thúc của một Integrator có đúng hợp đồng Greedy hay không, **bắt đầu bằng `Integrator.of`**. Chỉ chuyển sang `ofGreedy` sau khi rà soát tất cả đường trả về và có kiểm thử phù hợp.
+**Practical strategy:** When unsure whether all exit branches of an Integrator obey the Greedy contract, **start with `Integrator.of`**. Only switch to `ofGreedy` after auditing all return paths and writing appropriate tests.
 
-## 15. Greedy không đồng nghĩa song song, và `ofSequential` không đồng nghĩa non-greedy
+## 15. Greedy Does Not Mean Parallel, and `ofSequential` Does Not Mean Non-Greedy
 
-Đây là hai trục độc lập:
+These are two independent axes:
 
 ```text
-                             CÓ THỂ TỰ SHORT-CIRCUIT?
+                            CAN IT SELF-SHORT-CIRCUIT?
                                    |
-                          Có                 Không
-                           |                   |
-          Có combiner   Integrator.of      Integrator.ofGreedy
-          hợp lệ          + Gatherer.of       + Gatherer.of
+                          Yes                No
+                           |                  |
+          Valid           Integrator.of      Integrator.ofGreedy
+          combiner        + Gatherer.of      + Gatherer.of
                            |
-          Sequential    Integrator.of      Integrator.ofGreedy
-          (không          + ofSequential     + ofSequential
+          Sequential      Integrator.of      Integrator.ofGreedy
+          (no             + ofSequential     + ofSequential
           combiner)
 ```
 
-Đọc sơ đồ theo hai câu hỏi:
+Read the diagram via two questions:
 
-1. **Tính chất Integrator**: có tự dừng nhận dữ liệu không? Nếu có, không khai báo Greedy.
-2. **Khả năng chia trạng thái**: có combiner hợp lệ hay chỉ xử lý tuần tự? Điều này phụ thuộc cách tạo **Gatherer**, không phụ thuộc tên `ofGreedy`.
+1. **Integrator property**: can it stop receiving data on its own? If yes, do not declare Greedy.
+2. **State splittability**: is there a valid combiner or is it sequential-only? This depends on how the **Gatherer** is constructed, not on the name `ofGreedy`.
 
-`Gatherer.of(integrator)` cho **Gatherer stateless có thể parallelize** theo hợp đồng. `Gatherer.ofSequential(initializer, integrator)` tạo một **Gatherer tuần tự** khi chưa có cách chia/gộp trạng thái hợp lệ.
+`Gatherer.of(integrator)` produces a **stateless parallelizable Gatherer** per contract. `Gatherer.ofSequential(initializer, integrator)` creates a **sequential Gatherer** when no valid state-splitting/merging mechanism exists.
 
-Nếu code có một mảng `long[]` làm tổng chạy, không được đổi `ofSequential` sang một phương án chạy song song chỉ vì Integrator đã được đánh dấu Greedy. Các cửa sổ hoặc tổng chạy phụ thuộc thứ tự cần một thuật toán combiner đúng, không chỉ một nhãn tối ưu.
+If code uses a `long[]` as a running sum, do not switch `ofSequential` to a parallel factory just because the Integrator was marked Greedy. Order-dependent windows or running sums need a valid combiner algorithm, not merely an optimization marker.
 
-### 15.1. `Spliterator.CONCURRENT` và Greedy cũng khác nhau
+### 15.1. `Spliterator.CONCURRENT` and Greedy Also Differ
 
-- `Spliterator.CONCURRENT` mô tả **nguồn có thể bị sửa đồng thời** theo hợp đồng nguồn.
-- `Collector.Characteristics.CONCURRENT` mô tả bộ tích lũy cho phép cập nhật đồng thời theo hợp đồng collector.
-- `Gatherer.Integrator.Greedy` mô tả **không tự bắt đầu short-circuit**.
+- `Spliterator.CONCURRENT` describes a **source that can be concurrently modified** under the source contract.
+- `Collector.Characteristics.CONCURRENT` describes an accumulator permitting concurrent updates under the collector contract.
+- `Gatherer.Integrator.Greedy` describes **never initiating short-circuiting itself**.
 
-Không có đặc tính nào trong ba đặc tính này tự động kéo theo hai đặc tính còn lại.
+None of these three characteristics automatically implies the other two.
 
-## 16. Short-circuit từ upstream và downstream
+## 16. Short-Circuiting from Upstream and Downstream
 
-Pipeline có thể có giới hạn ở nhiều vị trí khác nhau:
+A pipeline can have limits at multiple positions:
 
 ```java
 Stream.of(1, 2, 3, 4, 5)
@@ -706,47 +706,47 @@ Stream.of(1, 2, 3, 4, 5)
     .toList();
 ```
 
-Hãy tách ba nguồn kết thúc:
+Separate the three termination sources:
 
-- **Upstream `takeWhile`** có thể ngừng cung cấp đầu vào khi predicate sai.
-- **Greedy Integrator** không tự yêu cầu ngừng; nó xử lý những phần tử được cung cấp.
-- **Downstream `limit(2)`** có thể ngừng muốn nhận đầu ra sau khi đủ hai phần tử.
+- **Upstream `takeWhile`** may stop supplying inputs when the predicate becomes false.
+- **Greedy Integrator** does not request to stop itself; it processes the elements supplied to it.
+- **Downstream `limit(2)`** may stop wanting outputs after receiving two elements.
 
-Do đó, câu “Greedy nhận hết nguồn” chỉ đúng khi nguồn thực sự tiếp tục cung cấp phần tử và downstream còn nhận; nó **không** có nghĩa chạy hết toàn bộ nguồn vật lý trong mọi pipeline.
+Therefore, the statement "Greedy receives the whole source" only holds when the source actually continues supplying elements and downstream still accepts them; it does **not** mean traversing the entire physical source in every pipeline.
 
-### 16.1. Vì sao vẫn phải truyền tín hiệu từ `push`?
+### 16.1. Why Still Propagate the Signal from `push`?
 
-Giả sử đầu ra của Gatherer rất đắt để tính. Nếu `push` trả `false` sau khi terminal operation đã đủ dữ liệu, việc tiếp tục tính những kết quả còn lại chỉ gây lãng phí. Với một Greedy Integrator, trả lại giá trị `push` thể hiện rõ việc tôn trọng downstream:
+Suppose the Gatherer's output is expensive to compute. If `push` returns `false` after the terminal operation has enough data, continuing to compute remaining results only causes waste. In a Greedy Integrator, returning the value of `push` clearly honors downstream:
 
 ```java
 return downstream.push(expensiveResult);
 ```
 
-Triển khai Stream có thể bỏ qua boolean của Greedy Integrator, nhưng bản thân downstream vẫn quản lý trạng thái từ chối. Vì vậy **không được tận dụng điểm này để lờ tín hiệu `push`** rồi thực hiện thêm công việc có tác dụng phụ.
+A Stream implementation may ignore the boolean from a Greedy Integrator, yet downstream itself still manages rejection state. Hence **do not exploit this fact to ignore the `push` signal** and perform extra work with side effects.
 
-## 17. Lỗi điển hình và cách sửa
+## 17. Typical Mistakes and How to Fix Them
 
-| Lỗi | Hậu quả | Cách sửa |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Dùng `ofGreedy` cho gatherer dừng ở marker | Vi phạm cam kết không tự dừng; boolean có thể bị bỏ qua | Dùng `Integrator.of` |
-| Dùng `ofGreedy` rồi trả `false` khi gặp phần tử không hợp lệ nhưng muốn bỏ qua | Có thể kết thúc hoặc cho hành vi không được bảo đảm | Không push và trả `true` khi chỉ muốn lọc |
-| Dùng `of` rồi trả `false` cho phần tử bị lọc | Dừng luôn luồng thay vì chỉ bỏ một phần tử | Không push, trả `true` |
-| Luôn `return true` sau `downstream.push(...)` | Không phản ánh downstream từ chối | Trả `push` hoặc ngừng vòng lặp khi `push` trả `false` |
-| Hiểu `ofGreedy` nghĩa là phải push đúng một phần tử | Không hiểu lọc, flatten, finisher | Nhớ Greedy là hợp đồng **không tự dừng** |
-| Hiểu `ofGreedy` nghĩa là xử lý nhanh hơn trong mọi trường hợp | Tối ưu không được bảo đảm | Đo bằng workload đại diện |
-| Cho rằng Greedy tự động thread-safe | Có thể có trạng thái chia sẻ sai | Quản lý initializer/combiner và confinement riêng |
-| Cho rằng `ofSequential` không được dùng Greedy | Bỏ lỡ cơ hội diễn đạt hợp đồng | Hai trục độc lập |
-| Đánh dấu Greedy khi có `return count < limit` | False do điều kiện nội bộ | Đổi sang Integrator thường |
-| Không kiểm tra `push` khi phát nhiều kết quả | Làm việc vô ích sau downstream từ chối | Dừng vòng lặp nếu `push` trả `false` |
-| Giữ `state` hoặc `downstream` trong biến static để dùng về sau | Vi phạm hợp đồng vòng đời, dễ data race | Chỉ dùng tham chiếu trong phạm vi callback hợp lệ |
-| Dùng `peek`/side effect để đo số lần Integrator được gọi | Pipeline có thể short-circuit hoặc tối ưu | Kiểm thử kết quả công khai |
-| Dùng `gather` trên JDK 17/21 | API chưa tồn tại | Dùng JDK 24+ hoặc thuật toán tương thích |
-| Trả tài nguyên I/O mà không có close handler/hợp đồng sở hữu | Rò rỉ tệp, cursor hoặc kết nối | Dùng `try-with-resources` và API nguồn đúng |
-| Dùng phép cộng kiểu `int`/`long` và cho rằng Greedy ngăn tràn | Kết quả có thể sai/tràn | `Math.addExact`, `BigInteger` theo nghiệp vụ |
+| Using `ofGreedy` for a gatherer stopping at a marker | Violates non-self-stopping promise; boolean may be ignored | Use `Integrator.of` |
+| Using `ofGreedy` and returning `false` on an invalid element to skip it | May terminate or exhibit unguaranteed behavior | Do not push and return `true` when only filtering |
+| Using `of` and returning `false` for a filtered-out element | Stops the entire stream instead of skipping one element | Do not push, return `true` |
+| Always doing `return true` after `downstream.push(...)` | Fails to reflect downstream rejection | Return `push` or break the loop when `push` returns `false` |
+| Assuming `ofGreedy` means always pushing exactly one element | Misunderstands filtering, flattening, and finishers | Remember Greedy is the **no self-stopping** contract |
+| Assuming `ofGreedy` means faster execution in all cases | Optimization is not guaranteed | Benchmark with representative workloads |
+| Assuming Greedy is automatically thread-safe | May have unsafe shared state | Manage initializer/combiner and confinement separately |
+| Assuming `ofSequential` cannot use Greedy | Misses the chance to express the contract | They are two independent axes |
+| Marking Greedy when `return count < limit` exists | False due to internal condition | Switch to a regular Integrator |
+| Failing to check `push` when emitting multiple results | Wasted work after downstream rejects | Exit the loop if `push` returns `false` |
+| Saving `state` or `downstream` in a static field for later use | Violates lifecycle contract, risks data races | Use references only within valid callback scope |
+| Using `peek`/side effects to count Integrator invocations | Pipeline may short-circuit or optimize | Test public outputs |
+| Using `gather` on JDK 17/21 | API does not exist | Use JDK 24+ or a compatible algorithm |
+| Returning I/O resources without a close handler/ownership contract | Leaks files, cursors, or connections | Use `try-with-resources` and proper source APIs |
+| Using `int`/`long` addition assuming Greedy prevents overflow | Results may wrap/overflow | Use `Math.addExact` or `BigInteger` per requirements |
 
-## 18. Ví dụ Java 24 hoàn chỉnh: cả hai loại Integrator
+## 18. Complete Java 24 Example: Both Kinds of Integrators
 
-Ví dụ sau có thể lưu thành `GreedyVsOrdinaryDemo.java` và biên dịch bằng **JDK 24**. Nó cho thấy cả Integrator thông thường **tự dừng** lẫn Greedy Integrator **tiếp tục cho đến khi downstream từ chối**.
+The following example can be saved as `GreedyVsOrdinaryDemo.java` and compiled with **JDK 24**. It shows both a regular Integrator that **self-stops** and a Greedy Integrator that **continues until downstream rejects**.
 
 ```java
 import java.util.List;
@@ -755,13 +755,13 @@ import java.util.stream.Stream;
 
 public class GreedyVsOrdinaryDemo {
 
-    // Không tự dừng: mỗi số chẵn được biến thành bình phương.
+    // Does not self-stop: each even number is transformed to its square.
     static Gatherer<Integer, Void, Integer> evenSquares() {
         Gatherer.Integrator.Greedy<Void, Integer, Integer> step =
             Gatherer.Integrator.ofGreedy(
                 (unused, n, downstream) -> {
                     if (n % 2 != 0) {
-                        return true;   // Bỏ qua số lẻ, không dừng.
+                        return true;   // Skip odd numbers, do not stop.
                     }
 
                     return downstream.push(Math.multiplyExact(n, n));
@@ -771,7 +771,7 @@ public class GreedyVsOrdinaryDemo {
         return Gatherer.of(step);
     }
 
-    // Tự dừng sau marker, kể cả khi downstream vẫn muốn nhận.
+    // Self-stops after marker, even if downstream still wants more.
     static Gatherer<String, Void, String> untilStop(String marker) {
         Gatherer.Integrator<Void, String, String> step =
             Gatherer.Integrator.of(
@@ -784,7 +784,7 @@ public class GreedyVsOrdinaryDemo {
         return Gatherer.ofSequential(step);
     }
 
-    // Có trạng thái, nhưng không tự dừng.
+    // Stateful, yet does not self-stop.
     static Gatherer<Integer, long[], Long> runningTotals() {
         Gatherer.Integrator.Greedy<long[], Integer, Long> step =
             Gatherer.Integrator.ofGreedy(
@@ -829,28 +829,28 @@ public class GreedyVsOrdinaryDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --release 24 GreedyVsOrdinaryDemo.java
 java GreedyVsOrdinaryDemo
 ```
 
-Nhận xét:
+Observations:
 
-1. `evenSquares` là Greedy vì **loại số lẻ không làm nó dừng nhận số tiếp**, và các số chẵn chỉ chuyển tín hiệu từ `push`.
-2. `untilStop` là Integrator thông thường vì **marker làm nó tự dừng**.
-3. `runningTotals` là Greedy **có trạng thái**, sử dụng `ofSequential` để không đòi một combiner cho tổng chạy.
-4. Nguồn `Stream.iterate` là vô hạn, nhưng `limit(3)` downstream có thể dừng pipeline sau ba bình phương chẵn.
-5. Kết quả được kiểm chứng qua **danh sách đầu ra**, không dựa vào số lần gọi lambda hoặc thread thực thi.
+1. `evenSquares` is Greedy because **filtering out odd numbers does not stop it from receiving subsequent numbers**, and even numbers simply forward the signal from `push`.
+2. `untilStop` is a regular Integrator because **the marker causes it to stop on its own**.
+3. `runningTotals` is a **stateful** Greedy Integrator, using `ofSequential` so it does not require a combiner for running totals.
+4. `Stream.iterate` is infinite, yet downstream `limit(3)` can stop the pipeline after three even squares.
+5. Results are verified via the **output list**, not by relying on lambda invocation counts or execution threads.
 
-## 19. Kiểm thử hợp đồng Greedy và dừng sớm
+## 19. Testing the Greedy Contract and Early Termination
 
-Với mã sản xuất, cần kiểm thử riêng **tính đúng của kết quả** và **quy tắc kết thúc**.
+For production code, test both **result correctness** and **termination rules** separately.
 
-### 19.1. Các test dữ liệu nhỏ
+### 19.1. Small Data Tests
 
-| Đầu vào | Gatherer | Kết quả mong đợi |
+| Input | Gatherer | Expected Output |
 | --- | --- | --- |
 | `[]` | `evenSquares` | `[]` |
 | `[1,3,5]` | `evenSquares` | `[]` |
@@ -858,45 +858,45 @@ Với mã sản xuất, cần kiểm thử riêng **tính đúng của kết qu�
 | `["A","STOP","B"]` | `untilStop("STOP")` | `["A","STOP"]` |
 | `["A","B"]` | `untilStop("STOP")` | `["A","B"]` |
 | `[1,2,3]` | `runningTotals` | `[1,3,6]` |
-| `[1,2,3,4]` rồi `limit(2)` | `evenSquares` | `[4,16]` |
+| `[1,2,3,4]` then `limit(2)` | `evenSquares` | `[4,16]` |
 
-Kiểm tra các tình huống:
+Test cases to cover:
 
-- Nguồn rỗng và chỉ một phần tử.
-- Predicate lọc không khớp hoặc khớp tất cả.
-- Marker ở đầu, giữa, cuối hoặc không có marker.
+- Empty source and single-element source.
+- Filter predicate matching none or matching all.
+- Marker at the beginning, middle, end, or absent.
 - Downstream `limit(0)`, `limit(1)`, `findFirst`.
-- Một Integrator phát **nhiều kết quả** cho một phần tử đầu vào.
-- Phát sinh ngoại lệ trong mapper hoặc khi đẩy dữ liệu.
-- Chạy trên nguồn có thứ tự; không suy đoán thứ tự nếu dùng `unordered()`.
+- An Integrator emitting **multiple results** for a single input element.
+- Exceptions thrown inside a mapper or when pushing data.
+- Running on ordered sources; do not assume order if using `unordered()`.
 
-### 19.2. Đừng dựa vào việc “mã sai vẫn có vẻ chạy đúng”
+### 19.2. Do Not Rely on "Broken Code Seems to Work"
 
-Một Greedy Integrator vi phạm hợp đồng có thể **tình cờ** dừng đúng trong một phiên bản JVM hoặc một trường hợp test. Điều đó không chứng minh mã hợp lệ, vì triển khai khác **được phép bỏ qua boolean** của Greedy Integrator.
+A Greedy Integrator that violates the contract may **coincidentally** stop properly on one JVM version or one test case. That does not prove the code is valid, because another implementation **is allowed to ignore the boolean** of a Greedy Integrator.
 
-Do đó, bên cạnh các test đầu ra, phải có bước **review mọi đường `return false`** của Integrator trước khi gọi `ofGreedy`. Đây là kiểm tra hợp đồng, không chỉ kiểm tra ví dụ.
+Therefore, alongside output tests, always **audit every `return false` path** of an Integrator before calling `ofGreedy`. This is a contract review, not merely example testing.
 
-### 19.3. Kiểm tra tính đúng khi song song
+### 19.3. Checking Parallel Correctness
 
-Nếu Gatherer có combiner cho phép chạy song song, hãy so sánh ngữ nghĩa của pipeline tuần tự và song song trên dữ liệu có thứ tự khi nghiệp vụ yêu cầu encounter order.
+If a Gatherer has a combiner enabling parallel execution, compare semantics between sequential and parallel pipelines on ordered data when the business logic requires encounter order.
 
-Đặc biệt với tập dữ liệu lớn và quy tắc short-circuit, cần xác minh rằng các đầu ra của nhánh sau điểm dừng không bị giữ lại sai hợp đồng. Không đặt trạng thái `HashMap` hoặc `ArrayList` toàn cục để các worker cùng ghi, và không lạm dụng `AtomicInteger` để biến side effect thành cách tổng hợp chính.
+Especially with large datasets and short-circuiting rules, verify that outputs from branches past the stopping point are not erroneously retained. Never place a global `HashMap` or `ArrayList` for workers to write into concurrently, and never abuse `AtomicInteger` to turn side effects into the main aggregation mechanism.
 
-## 20. Hiệu năng và khả năng tối ưu
+## 20. Performance and Optimization Potential
 
-Thông tin Greedy có thể giúp triển khai Stream tối ưu cách điều phối giai đoạn gather. Tuy nhiên:
+Greedy metadata can help a Stream implementation optimize how it schedules the gather stage. However:
 
-- **Không có lời hứa định lượng** rằng `ofGreedy` nhanh hơn `of`.
-- Tối ưu thực tế phụ thuộc downstream, độ dài nguồn, số kết quả phát ra và các giai đoạn khác.
-- Nếu Integrator có tính toán nặng hoặc nguồn đọc I/O, chi phí đó có thể lớn hơn phần tiết kiệm từ việc không cần kiểm tra boolean.
-- Việc chuyển sang `ofGreedy` **không** tự mở khả năng song song cho Gatherer đã được tạo với `ofSequential`.
-- Greedy không thay thế phép `filter`/`map` chuẩn, vốn có thể được triển khai tối ưu hơn cho trường hợp đơn giản.
+- **There is no quantitative guarantee** that `ofGreedy` is faster than `of`.
+- Actual optimization depends on downstream, source length, emitted result count, and other stages.
+- If the Integrator performs heavy computation or reads I/O sources, that cost can dwarf savings from skipping a boolean check.
+- Switching to `ofGreedy` does **not** automatically unlock parallelism for a Gatherer built with `ofSequential`.
+- Greedy does not replace standard `filter`/`map`, which may be optimized even further for simple cases.
 
-Khi thực sự cần đo hiệu năng, dùng dữ liệu đại diện, thử nhiều lần và công cụ phù hợp như JMH. Trước khi so tốc độ phải bảo đảm hai phiên bản **có cùng kết quả và cùng hợp đồng dừng**, không đổi `of` thành `ofGreedy` với một Integrator vốn tự short-circuit.
+When performance measurement is truly needed, use representative data, warm-up/multiple runs, and a proper tool like JMH. Before comparing speed, ensure both versions **produce identical results and have the same termination contract**; never change `of` to `ofGreedy` on an Integrator that self-short-circuits.
 
-### 20.1. Nguồn có tài nguyên vẫn phải được đóng
+### 20.1. Resource-Backed Sources Must Still Be Closed
 
-Khi nguồn là `Files.lines(path)` hoặc một Stream từ tài nguyên cần giải phóng, terminal operation `toList()`, `findFirst()` hoặc một lần dừng sớm từ Integrator **không tự thay thế `close()`**.
+When the source is `Files.lines(path)` or a Stream backed by a resource needing release, terminal operations like `toList()`, `findFirst()`, or early termination from an Integrator **do not replace `close()`**.
 
 ```java
 import java.io.IOException;
@@ -905,7 +905,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Stream;
 
-// Đặt trong phương thức có throws IOException hoặc xử lý lỗi.
+// Place inside a method with throws IOException or error handling.
 Path file = Path.of("events.txt");
 
 try (Stream<String> lines = Files.lines(file)) {
@@ -917,13 +917,13 @@ try (Stream<String> lines = Files.lines(file)) {
 }
 ```
 
-`try-with-resources` đóng nguồn tệp cả khi Gatherer dừng sớm hay khi lambda phát sinh ngoại lệ. Nếu API trả Stream còn sống, quyền sở hữu và trách nhiệm đóng phải được xác định trong hợp đồng API.
+`try-with-resources` closes the file source both when the Gatherer stops early and when a lambda throws an exception. If an API returns a live Stream, ownership and closing responsibility must be defined in the API contract.
 
-## 21. Bài tập thực hành
+## 21. Practice Exercises
 
-### Bài 1: Phân loại Integrator
+### Exercise 1: Classify Integrators
 
-Cho bốn lambda:
+Given four lambdas:
 
 ```java
 // A
@@ -944,11 +944,11 @@ Cho bốn lambda:
 }
 ```
 
-Hãy xác định lambda nào có thể khai báo `ofGreedy` và vì sao. Phân biệt trường hợp **lọc** với trường hợp **tự dừng**.
+Determine which lambdas can be declared with `ofGreedy` and why. Distinguish **filtering** from **self-stopping**.
 
-### Bài 2: Chuyển từ `of` sang `ofGreedy`
+### Exercise 2: Converting from `of` to `ofGreedy`
 
-Viết Integrator thường phát chuỗi viết hoa:
+Write a regular Integrator that emits uppercase strings:
 
 ```java
 Gatherer.Integrator<Void, String, String> upper =
@@ -958,31 +958,31 @@ Gatherer.Integrator<Void, String, String> upper =
     );
 ```
 
-Chuyển nó sang `ofGreedy` và so sánh kết quả khi downstream là `limit(2).toList()`. Giải thích vì sao không nên suy từ kết quả bằng nhau rằng hiệu năng chắc chắn bằng nhau hoặc nhanh hơn.
+Convert it to `ofGreedy` and compare outputs when downstream is `limit(2).toList()`. Explain why equal outputs do not imply performance is guaranteed to be identical or faster.
 
-### Bài 3: Marker dừng sớm
+### Exercise 3: Early Termination Marker
 
-Viết Gatherer phát các dòng log cho đến `"END"`, bao gồm marker, rồi dừng. Dùng `Integrator.of`. Vì sao dùng `ofGreedy` sẽ vi phạm hợp đồng?
+Write a Gatherer that emits log lines up to `"END"`, inclusive of the marker, then stops. Use `Integrator.of`. Why would using `ofGreedy` violate the contract?
 
-### Bài 4: Phát nhiều đầu ra
+### Exercise 4: Emitting Multiple Outputs
 
-Tạo Greedy Gatherer tách một `List<String>` thành từng chuỗi. Dùng `limit(3)` sau Gatherer để kiểm tra việc dừng phát khi downstream từ chối. Giải thích vai trò của boolean từ `push`.
+Create a Greedy Gatherer that splits a `List<String>` into individual strings. Place `limit(3)` after the Gatherer to verify stopping emission upon downstream rejection. Explain the role of the boolean returned by `push`.
 
-### Bài 5: Lọc phần tử không hợp lệ
+### Exercise 5: Filtering Out Invalid Elements
 
-Cho `[2, -1, 4, -3, 6]`. Viết Greedy Integrator chỉ phát số không âm; kết quả phải là `[2,4,6]`. Thử dùng `return false` khi số âm và giải thích vì sao nó không còn là phép lọc đúng.
+Given `[2, -1, 4, -3, 6]`. Write a Greedy Integrator that emits only non-negative numbers; the result must be `[2,4,6]`. Try returning `false` on negative numbers and explain why it is no longer a valid filter.
 
-### Bài 6: Tổng chạy có trạng thái
+### Exercise 6: Stateful Running Total
 
-Tạo `Gatherer<Integer, long[], Long>` dùng `ofSequential` và `ofGreedy` phát tổng sau từng số. Kiểm thử `[1,2,3]`, nguồn rỗng và số âm. Nếu có nguy cơ tràn `long` thì thiết kế xử lý như thế nào?
+Create a `Gatherer<Integer, long[], Long>` using `ofSequential` and `ofGreedy` that emits the sum after each number. Test with `[1,2,3]`, an empty source, and negative numbers. If there is a risk of `long` overflow, how should handling be designed?
 
-### Bài 7: Finisher chỉ phát kết quả cuối
+### Exercise 7: Finisher Emitting Only the Final Result
 
-Tạo Gatherer dùng `initializer` giữ bộ đếm, `ofGreedy` tăng đếm nhưng **không push**, rồi `finisher` phát kết quả. Khi nào nên thay Gatherer đó bằng `Stream.count()` hoặc `Collectors.counting()`?
+Create a Gatherer using `initializer` to hold a counter, `ofGreedy` to increment the counter **without pushing**, and `finisher` to emit the result. When should that Gatherer be replaced by `Stream.count()` or `Collectors.counting()`?
 
-### Bài 8: Lỗi hợp đồng khó phát hiện
+### Exercise 8: Subtle Contract Bug
 
-Cho:
+Given:
 
 ```java
 Gatherer.Integrator.ofGreedy(
@@ -994,42 +994,42 @@ Gatherer.Integrator.ofGreedy(
 );
 ```
 
-Giải thích vì sao đoạn này không hợp lệ dù đôi khi có thể dừng đúng sau 10 phần tử. Viết lại bằng Integrator thường hoặc bỏ giới hạn nội bộ để chỉ còn việc phản ánh downstream.
+Explain why this snippet is invalid even though it may sometimes stop properly after 10 elements. Rewrite it using a regular Integrator or remove the internal limit so it only reflects downstream.
 
-### Bài 9: Thứ tự và chia việc
+### Exercise 9: Ordering and Work Splitting
 
-Một Gatherer tích lũy prefix sum bằng `long[]` nhưng không có combiner chính xác. Nó có nên dùng `ofSequential` không? Có thể dùng `ofGreedy` cho Integrator của nó không? Vì sao hai câu trả lời độc lập?
+A Gatherer accumulates a prefix sum using `long[]` but has no exact combiner. Should it use `ofSequential`? Can its Integrator use `ofGreedy`? Why are the two answers independent?
 
-### Bài 10: Đánh giá tối ưu
+### Exercise 10: Benchmarking Optimization
 
-Thiết kế benchmark so sánh Integrator thường có hành vi Greedy và Integrator được đánh dấu `Greedy` trên cùng dữ liệu. Nêu các điều kiện phải giữ cố định: JDK, đầu vào, downstream, kích thước, mức độ song song và tính đúng kết quả.
+Design a benchmark comparing a regular Integrator that behaves greedily against an Integrator marked `Greedy` on the same data. List the variables that must be held constant: JDK, input, downstream, size, parallelism level, and output correctness.
 
-## 22. Tự kiểm tra kiến thức
+## 22. Self-Check Questions
 
-- `Gatherer.Integrator<A,T,R>` nhận ba đối số nào và trả kết quả kiểu gì?
-- `return false` trong `integrate` có ý nghĩa “bỏ phần tử hiện tại” hay “ngừng nhận thêm đầu vào”?
-- Điều gì phân biệt `Integrator.of` và `Integrator.ofGreedy`?
-- Có thể dùng Greedy để bỏ qua một phần tử nhưng vẫn xử lý các phần tử sau đó không?
-- Greedy có thể phát nhiều phần tử đầu ra cho một phần tử đầu vào không?
-- Tại sao `ofGreedy` không phù hợp với thuật toán “dừng ở marker”?
-- Vì sao một triển khai Stream được phép bỏ qua boolean của Greedy Integrator?
-- `downstream.push` trả `false` có ý nghĩa gì?
-- `isRejecting()` có phải một bảo đảm tuyệt đối về mọi lần `push` tương lai không?
-- Có thể xây một Greedy Integrator có trạng thái nội bộ không?
-- `ofSequential` quyết định điều gì mà `ofGreedy` không quyết định?
-- Vì sao nguồn dùng `Spliterator.CONCURRENT` không làm một Integrator tự nhiên thread-safe?
-- Khi nào nên dùng `filter`, `map` hoặc `count` thay vì Gatherer tùy chỉnh?
-- Khi nguồn là `Files.lines`, ai chịu trách nhiệm đóng sau short-circuit?
-- Những trường hợp kiểm thử nào giúp phát hiện một Gatherer tự dừng sai hợp đồng?
+- What three arguments does `Gatherer.Integrator<A,T,R>` receive and what type does it return?
+- Does `return false` inside `integrate` mean "skip the current element" or "stop receiving further inputs"?
+- What distinguishes `Integrator.of` from `Integrator.ofGreedy`?
+- Can Greedy be used to skip an element while continuing to process subsequent elements?
+- Can Greedy emit multiple output elements for a single input element?
+- Why is `ofGreedy` unsuitable for a "stop at marker" algorithm?
+- Why is a Stream implementation allowed to ignore the boolean of a Greedy Integrator?
+- What does `downstream.push` returning `false` mean?
+- Is `isRejecting()` an absolute guarantee about all future `push` calls?
+- Can a Greedy Integrator maintain internal state?
+- What does `ofSequential` decide that `ofGreedy` does not decide?
+- Why doesn't a source with `Spliterator.CONCURRENT` make an Integrator automatically thread-safe?
+- When should `filter`, `map`, or `count` be used instead of a custom Gatherer?
+- When the source is `Files.lines`, who is responsible for closing it after short-circuiting?
+- Which test cases help detect a Gatherer that self-stops in violation of its contract?
 
-## 23. Tài liệu tham khảo chính thức
+## 23. Official References
 
-- [Java SE 24 — Gatherer.Integrator](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.Integrator.html): chữ ký `integrate`, `of` và `ofGreedy`.
-- [Java SE 24 — Gatherer.Integrator.Greedy](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.Integrator.Greedy.html): cam kết không tự short-circuit.
-- [Java SE 24 — Gatherer.Downstream](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.Downstream.html): `push` và `isRejecting`.
-- [Java SE 24 — Gatherer](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.html): hợp đồng initializer/integrator/combiner/finisher và tối ưu Greedy.
-- [Oracle — Stream Gatherers Guide](https://docs.oracle.com/en/java/javase/24/core/stream-gatherers.html): ví dụ Integrator, short-circuit, finisher và parallel.
-- [Dev.java — The Gatherer API](https://dev.java/learn/api/streams/gatherers/): hướng dẫn về Greedy Integrators và cách truyền tín hiệu downstream.
-- [JEP 485 — Stream Gatherers](https://openjdk.org/jeps/485): chuẩn hóa API trong Java 24.
+- [Java SE 24 — Gatherer.Integrator](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.Integrator.html): `integrate`, `of`, and `ofGreedy` signatures.
+- [Java SE 24 — Gatherer.Integrator.Greedy](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.Integrator.Greedy.html): promise not to self-short-circuit.
+- [Java SE 24 — Gatherer.Downstream](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.Downstream.html): `push` and `isRejecting`.
+- [Java SE 24 — Gatherer](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.html): initializer/integrator/combiner/finisher contracts and Greedy optimization.
+- [Oracle — Stream Gatherers Guide](https://docs.oracle.com/en/java/javase/24/core/stream-gatherers.html): examples of Integrator, short-circuiting, finisher, and parallel execution.
+- [Dev.java — The Gatherer API](https://dev.java/learn/api/streams/gatherers/): guide on Greedy Integrators and propagating downstream signals.
+- [JEP 485 — Stream Gatherers](https://openjdk.org/jeps/485): API finalization in Java 24.
 
-**Ghi nhớ:** `Integrator.of(...)` dùng cho Integrator **có thể tự dừng nhận input**; `Integrator.ofGreedy(...)` dùng khi Integrator **không bao giờ tự khởi phát short-circuit**, chỉ phản ánh việc downstream từ chối. Greedy **không** có nghĩa luôn phát một phần tử, không tự động song song hay thread-safe và không bảo đảm tăng tốc. Việc khai báo Greedy sai có thể làm kết quả sai vì framework **được phép bỏ qua boolean** của nó. Hãy ưu tiên tính đúng của hợp đồng và chỉ dùng `ofGreedy` khi tất cả đường trả về của Integrator đều phù hợp.
+**Remember:** `Integrator.of(...)` is for Integrators that **can self-stop receiving input**; `Integrator.ofGreedy(...)` is for when the Integrator **never initiates short-circuiting itself**, only reflecting downstream rejection. Greedy does **not** mean always emitting one element, is not automatically parallel or thread-safe, and does not guarantee a speedup. Declaring Greedy incorrectly can yield wrong results because the framework **is permitted to ignore** its boolean return value. Prioritize contract correctness and only use `ofGreedy` when every return path of the Integrator complies.

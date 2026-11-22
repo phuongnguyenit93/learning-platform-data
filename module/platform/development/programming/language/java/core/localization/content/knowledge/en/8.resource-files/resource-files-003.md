@@ -1,73 +1,73 @@
-# UTF-8 của PropertyResourceBundle và cơ chế đọc lại ISO-8859-1
+# PropertyResourceBundle UTF-8 and the ISO-8859-1 Fallback Mechanism
 
-Khi ứng dụng Java đọc tài nguyên bản địa hóa từ file `.properties`, việc **lưu file bằng mã hóa nào** quyết định liệu các chữ như `Tiếng Việt`, `café`, `日本語` có được hiển thị chính xác hay không. Từ **Java 9**, `java.util.PropertyResourceBundle` đổi cách đọc từ `InputStream`: **ưu tiên UTF-8** và, theo mặc định, **đọc lại bằng ISO-8859-1 nếu gặp lỗi giải mã UTF-8**. Đây là hành vi tương thích với những bundle cũ, không phải bộ phát hiện chính xác mọi mã hóa.
+When a Java application reads localization resources from `.properties` files, **which encoding the file is saved in** determines whether characters like `Tiếng Việt`, `café`, and `日本語` display accurately. Starting in **Java 9**, `java.util.PropertyResourceBundle` changed how it reads from an `InputStream`: it **prefers UTF-8** and, by default, **re-reads using ISO-8859-1 if a UTF-8 decoding error occurs**. This is a compatibility behavior for legacy bundles, not an exact detector for every encoding.
 
-Bài này giải thích quy tắc, lúc nào fallback xảy ra, giới hạn của nó, cách kiểm soát bằng system property `java.util.PropertyResourceBundle.encoding`, sự khác biệt giữa `InputStream` và `Reader`, ví dụ Java 17+ chạy được, và cách tổ chức tài nguyên i18n để tránh chữ bị lỗi.
+This lesson explains the rule, when fallback occurs, its limitations, how to control it with the `java.util.PropertyResourceBundle.encoding` system property, the difference between `InputStream` and `Reader`, runnable Java 17+ examples, and how to organize i18n resources to avoid garbled text.
 
-## 1. Vì sao file .properties có vấn đề về mã hóa?
+## 1. Why do .properties files have encoding issues?
 
-File `.properties` được lưu thành **byte** trên đĩa; Java phải chuyển các byte ấy thành **ký tự Unicode**. Các bảng mã khác nhau có thể biểu diễn cùng ký tự bằng những dãy byte khác nhau:
+A `.properties` file is stored as **bytes** on disk; Java must convert those bytes into **Unicode characters**. Different character encodings can represent the same character with different byte sequences:
 
-| Ký tự | UTF-8 (hex) | ISO-8859-1 (hex) | Ý nghĩa |
+| Character | UTF-8 (hex) | ISO-8859-1 (hex) | Meaning |
 | --- | --- | --- | --- |
-| `A` | `41` | `41` | ASCII trùng nhau trong hai mã hóa |
-| `é` (U+00E9) | `C3 A9` | `E9` | Một ký tự, hai cách mã hóa |
-| `à` (U+00E0) | `C3 A0` | `E0` | Các dấu tiếng Việt cơ bản có thể khác cách biểu diễn |
-| `ệ` (U+1EC7) | `E1 BB 87` | Không biểu diễn trực tiếp được | ISO-8859-1 không bao phủ toàn bộ tiếng Việt |
-| `日` (U+65E5) | `E6 97 A5` | Không biểu diễn trực tiếp được | UTF-8 hỗ trợ mọi ký tự Unicode hợp lệ |
+| `A` | `41` | `41` | ASCII is identical in both encodings |
+| `é` (U+00E9) | `C3 A9` | `E9` | One character, two encodings |
+| `à` (U+00E0) | `C3 A0` | `E0` | Basic Vietnamese accents can be encoded differently |
+| `ệ` (U+1EC7) | `E1 BB 87` | Cannot be represented directly | ISO-8859-1 does not cover all of Vietnamese |
+| `日` (U+65E5) | `E6 97 A5` | Cannot be represented directly | UTF-8 supports every valid Unicode character |
 
-Nếu đọc **byte `E9`** bằng UTF-8, đây không phải một chuỗi UTF-8 hợp lệ đứng một mình; quá trình giải mã có thể phát sinh `MalformedInputException`. Nhưng byte `E9` lại là một ký tự hợp lệ trong ISO-8859-1: `é`.
+If you read **byte `E9`** as UTF-8, it is not a valid standalone UTF-8 sequence; decoding can trigger a `MalformedInputException`. Yet byte `E9` is a valid character in ISO-8859-1: `é`.
 
-Ngược lại, byte `C3 A9` là UTF-8 hợp lệ của `é`, đồng thời cũng là hai ký tự ISO-8859-1: `Ã©`. Vì vậy, **không phải lúc nào dữ liệu “đọc được” cũng là dữ liệu được đọc đúng mã hóa ban đầu**. Điểm này rất quan trọng khi đánh giá cơ chế fallback.
+Conversely, the bytes `C3 A9` are valid UTF-8 for `é`, and at the same time they are two valid ISO-8859-1 characters: `Ã©`. Therefore, **data that "can be read" is not always data read in its original encoding**. This point is critical when evaluating the fallback mechanism.
 
-### Bối cảnh thay đổi giữa Java 8 và Java 9+
+### Background of the change between Java 8 and Java 9+
 
-Ở các bản Java cũ, bundle dạng `.properties` theo `PropertyResourceBundle(InputStream)` truyền thống được đọc theo ISO-8859-1; ký tự vượt phạm vi bảng mã này phải viết bằng **Unicode escape** như `\u1EC7`. [JEP 226 — UTF-8 Property Resource Bundles](https://openjdk.org/jeps/226) đưa vào Java 9 cơ chế **UTF-8 trước, ISO-8859-1 dự phòng** cho đường đọc từ `InputStream`. Vì thế, với **Java 17+**, ta thường có thể viết trực tiếp tiếng Việt trong file `messages_vi.properties` đã được lưu bằng UTF-8.
+In older Java versions, `.properties` bundles loaded via `PropertyResourceBundle(InputStream)` were traditionally read as ISO-8859-1; characters outside that charset had to be written as **Unicode escapes** like `\u1EC7`. [JEP 226 — UTF-8 Property Resource Bundles](https://openjdk.org/jeps/226) introduced the **UTF-8 first, ISO-8859-1 fallback** mechanism in Java 9 for the `InputStream` reading path. As a result, with **Java 17+**, you can usually write Vietnamese directly in a `messages_vi.properties` file saved as UTF-8.
 
-Thay đổi này không có nghĩa là **tất cả API đọc properties** đều mặc định UTF-8. Cần phân biệt chính xác class và overload đang sử dụng.
+This change does not mean **every properties-reading API** defaults to UTF-8. You must distinguish the exact class and overload being used.
 
-## 2. Quy tắc của PropertyResourceBundle(InputStream)
+## 2. The rule of PropertyResourceBundle(InputStream)
 
-Với mặc định Java 17+ và không ép mã hóa bằng system property, luồng xử lý có thể hình dung như sau:
+With Java 17+ defaults and no encoding forced via system property, the processing flow can be visualized as follows:
 
 ```text
-File bundle .properties (byte)
+.properties bundle file (bytes)
           |
           v
 PropertyResourceBundle(InputStream)
           |
           v
-Thử giải mã TOÀN BỘ stream bằng UTF-8
+Try decoding the ENTIRE stream as UTF-8
           |
-          +-- Hợp lệ -------------> parse key=value bằng UTF-8
+          +-- Valid -----------------> parse key=value using UTF-8
           |
           +-- MalformedInputException /
           |   UnmappableCharacterException
           v
-Khôi phục trạng thái trước lần thử
+Reset stream state before the attempt
           |
           v
-Đọc lại TOÀN BỘ stream bằng ISO-8859-1
+Re-read the ENTIRE stream as ISO-8859-1
           |
           v
-Parse key=value theo ký tự đã giải mã
+Parse key=value from the decoded characters
 ```
 
-Đây là hành vi **đọc lại stream**, không phải lấy riêng ký tự bị lỗi rồi chuyển một vài byte sang bảng mã khác. Khi UTF-8 thất bại, Java chuyển hướng **cả dữ liệu** về ISO-8859-1. Nếu một file lẫn đoạn UTF-8 với đoạn Latin-1 cũ, quá trình dự phòng có thể làm những đoạn UTF-8 vốn đúng trở thành chữ lỗi.
+This is a **re-read of the stream**, not an operation that isolates a single bad character and converts a few bytes to another encoding. When UTF-8 fails, Java switches **the entire input** to ISO-8859-1. If a file mixes UTF-8 sections with old Latin-1 sections, the fallback can turn otherwise valid UTF-8 sections into garbled text.
 
-**Ba tình huống:**
+**Three scenarios:**
 
-1. File UTF-8 hợp lệ: đọc một lần bằng UTF-8; **không** thử ISO-8859-1.
-2. File ISO-8859-1 có byte không hợp lệ theo UTF-8 (như `E9` lẻ): thử UTF-8 thất bại, đọc lại bằng ISO-8859-1.
-3. File legacy có các byte *tình cờ tạo thành chuỗi UTF-8 hợp lệ*: không phát sinh lỗi UTF-8, nên **không fallback**; giá trị nhận được có thể khác nội dung tác giả định viết.
+1. Valid UTF-8 file: read once as UTF-8; ISO-8859-1 is **not** tried.
+2. ISO-8859-1 file containing bytes invalid under UTF-8 (such as a lone `E9`): the UTF-8 attempt fails, and the stream is re-read as ISO-8859-1.
+3. Legacy file whose bytes *happen to form valid UTF-8 sequences*: no UTF-8 error is raised, so **no fallback occurs**; the resulting value may differ from what the author intended to write.
 
-Đặc biệt, ISO-8859-1 giải mã được mọi giá trị byte từ `00` đến `FF`, nhưng dữ liệu giải mã thành ký tự không đồng nghĩa với nội dung hợp lệ về ngữ nghĩa hoặc đúng ngôn ngữ. Ngoài giải mã, parser `.properties` vẫn có các quy tắc key/value, escape và lỗi Unicode escape riêng; `IllegalArgumentException` do escape `\u` sai **không phải** điều kiện chuyển bảng mã.
+In particular, ISO-8859-1 can decode every byte value from `00` to `FF`, so decoding bytes into characters does not guarantee semantically valid or linguistically accurate content. Beyond character decoding, the `.properties` parser still has its own key/value, escape, and Unicode-escape error rules; an `IllegalArgumentException` caused by a malformed `\u` escape is **not** a trigger to switch charsets.
 
-## 3. Ví dụ Java 17+: kiểm chứng UTF-8 trước và fallback Latin-1
+## 3. Java 17+ example: verifying UTF-8 first and Latin-1 fallback
 
-Ví dụ này tạo hai nội dung `word=café` **có cùng văn bản nhưng mã hóa byte khác nhau** ngay trong Java, không phụ thuộc editor tạo file nào. Một dữ liệu thứ ba minh họa sự mơ hồ khi byte ISO-8859-1 hợp lệ dưới UTF-8.
+This example creates two `word=café` payloads **with the same text but different byte encodings** directly in Java, independent of any editor used to create files. A third payload illustrates the ambiguity when ISO-8859-1 bytes happen to be valid UTF-8.
 
-Tạo file **`PropertyEncodingDemo.java`**:
+Create the file **`PropertyEncodingDemo.java`**:
 
 ```java
 import java.io.ByteArrayInputStream;
@@ -109,14 +109,14 @@ public class PropertyEncodingDemo {
 }
 ```
 
-Biên dịch và chạy trên Java 17+:
+Compile and run on Java 17+:
 
 ```bash
 javac -encoding UTF-8 PropertyEncodingDemo.java
 java PropertyEncodingDemo
 ```
 
-**Stdout ở chế độ mặc định** (không có `-Djava.util.PropertyResourceBundle.encoding`):
+**Stdout in default mode** (without `-Djava.util.PropertyResourceBundle.encoding`):
 
 ```text
 UTF8: café
@@ -124,34 +124,34 @@ LATIN1: café
 AMBIGUOUS: café
 ```
 
-Giải thích cơ chế, thay vì chỉ nhìn vào chuỗi:
+Explanation of the mechanism, rather than just looking at the strings:
 
-- `UTF8`: từ `"café"` tạo các byte `63 61 66 C3 A9`; UTF-8 hợp lệ nên giải mã thành `café`.
-- `LATIN1`: từ cùng chữ đó tạo `63 61 66 E9`; byte `E9` lẻ không hợp lệ theo UTF-8, dẫn đến **đọc lại ISO-8859-1** và thu được `café`.
-- `AMBIGUOUS`: tác giả cố tình mã hóa chuỗi `cafÃ©` dưới ISO-8859-1. Nó cũng tạo các byte `63 61 66 C3 A9`, hợp lệ theo UTF-8, vì vậy Java đọc thành `café`. Chuỗi gốc có ký tự khác nhưng **không có lỗi giải mã để kích hoạt fallback**.
+- `UTF8`: from `"café"`, produces the bytes `63 61 66 C3 A9`; valid UTF-8, so it decodes to `café`.
+- `LATIN1`: from the same word, produces `63 61 66 E9`; the lone `E9` byte is invalid UTF-8, triggering an **ISO-8859-1 re-read** and producing `café`.
+- `AMBIGUOUS`: the author intentionally encodes the string `cafÃ©` under ISO-8859-1. It also produces the bytes `63 61 66 C3 A9`, which are valid UTF-8, so Java reads it as `café`. The original string had different characters, yet **there was no decoding error to trigger fallback**.
 
-Ví dụ thứ ba là bằng chứng vì sao không thể dùng cơ chế fallback này để xác nhận chắc chắn file “thuộc mã hóa nào”. **Nên chuẩn hóa tất cả bundle của dự án sang UTF-8**, không chủ đích trộn mã hóa cũ và mới.
+The third case proves why you cannot use this fallback mechanism to reliably determine "which encoding a file belongs to." **Standardize all project bundles to UTF-8** rather than intentionally mixing old and new encodings.
 
-> Đối với file dữ liệu thực, hãy kiểm tra byte nguồn; một giá trị hiển thị có vẻ hợp lý không chứng minh đúng charset. Một số chuỗi Latin-1 cũ hoàn toàn là ASCII thì cả hai cách đọc đều giống nhau, cũng không cho ta biết mã hóa ban đầu.
+> For real data files, inspect the source bytes; a value that looks reasonable when displayed does not prove the right charset was used. Legacy Latin-1 strings that are pure ASCII look identical under both encodings and reveal nothing about the original encoding either.
 
-## 4. Ép một mã hóa bằng java.util.PropertyResourceBundle.encoding
+## 4. Forcing an encoding with java.util.PropertyResourceBundle.encoding
 
-Java hỗ trợ **system property** tên chính xác:
+Java supports a **system property** with the exact name:
 
 ```text
 java.util.PropertyResourceBundle.encoding
 ```
 
-Nếu đặt giá trị bằng đúng `UTF-8` hoặc `ISO-8859-1`, `PropertyResourceBundle(InputStream)` **chỉ dùng bảng mã được chỉ định**. Chế độ thử UTF-8 rồi fallback sẽ **không chạy**.
+If set to exactly `UTF-8` or `ISO-8859-1`, `PropertyResourceBundle(InputStream)` **uses only the specified charset**. The UTF-8-then-fallback mode **will not run**.
 
-Chạy lại chương trình ở mục 3 thành **các tiến trình JVM độc lập**:
+Re-run the program from section 3 as **separate JVM processes**:
 
 ```bash
 java -Djava.util.PropertyResourceBundle.encoding=UTF-8 PropertyEncodingDemo
 java -Djava.util.PropertyResourceBundle.encoding=ISO-8859-1 PropertyEncodingDemo
 ```
 
-**Với `-D...=UTF-8`**, stdout:
+**With `-D...=UTF-8`**, stdout:
 
 ```text
 UTF8: café
@@ -159,9 +159,9 @@ LATIN1: MalformedInputException
 AMBIGUOUS: café
 ```
 
-Ở hàng `LATIN1`, byte `E9` sai UTF-8 nên ngoại lệ giải mã được báo lại, **không thử ISO-8859-1**. Đây là hành vi hữu ích khi muốn phát hiện file không hợp chuẩn UTF-8.
+On the `LATIN1` row, byte `E9` is invalid UTF-8, so a decoding exception is reported **without trying ISO-8859-1**. This behavior is useful when you want to catch files that do not conform to UTF-8.
 
-**Với `-D...=ISO-8859-1`**, stdout:
+**With `-D...=ISO-8859-1`**, stdout:
 
 ```text
 UTF8: cafÃ©
@@ -169,40 +169,40 @@ LATIN1: café
 AMBIGUOUS: cafÃ©
 ```
 
-Byte `C3 A9` trong file UTF-8 bị diễn giải thành hai ký tự `Ã©`. Do ISO-8859-1 chấp nhận mọi byte, cách đọc này không tự báo lỗi khi gặp nội dung vốn là UTF-8.
+The bytes `C3 A9` in the UTF-8 payload are interpreted as the two characters `Ã©`. Because ISO-8859-1 accepts every byte, this reading mode does not automatically throw an error when encountering UTF-8 content.
 
-| Cấu hình JVM khi khởi động | UTF-8 hợp lệ | Latin-1 chứa byte UTF-8 sai | Có chuyển bảng mã dự phòng? |
+| JVM startup configuration | Valid UTF-8 | Latin-1 containing invalid UTF-8 bytes | Fallback charset used? |
 | --- | --- | --- | --- |
-| Không đặt property | Đọc UTF-8 | Thử lại ISO-8859-1 | Có |
-| `-Djava.util.PropertyResourceBundle.encoding=UTF-8` | Đọc UTF-8 | Báo lỗi giải mã | Không |
-| `-Djava.util.PropertyResourceBundle.encoding=ISO-8859-1` | Có thể bị đọc thành chữ lỗi | Đọc bằng Latin-1 | Không |
+| Property not set | Reads UTF-8 | Retries ISO-8859-1 | Yes |
+| `-Djava.util.PropertyResourceBundle.encoding=UTF-8` | Reads UTF-8 | Reports decoding error | No |
+| `-Djava.util.PropertyResourceBundle.encoding=ISO-8859-1` | May be read as garbled text | Reads as Latin-1 | No |
 
-Một số ràng buộc quan trọng:
+Some important constraints:
 
-- Java chỉ công nhận hai giá trị `UTF-8` và `ISO-8859-1` như trên cho system property này; giá trị khác **không chọn một bảng mã tùy ý**, mà bị bỏ qua theo đặc tả.
-- Property được **đọc lúc khởi tạo class `PropertyResourceBundle`**. Đổi hoặc xóa property bằng `System.setProperty(...)` sau thời điểm đó **không làm thay đổi** cấu hình đã được chốt.
-- Đặt `-D...` **trước tên class chính** trong dòng lệnh `java`. Mỗi lệnh ở trên phải khởi động một JVM mới, không chạy luân phiên bằng cách đổi property giữa chừng trong cùng chương trình.
-- System property tác động trên toàn JVM đối với các luồng đọc bundle theo đường `InputStream` này. Không dùng nó làm lựa chọn encoding riêng cho từng người dùng.
-- Khi chuyển một dự án sang UTF-8 chuẩn, có thể ép `UTF-8` trong CI hoặc khi chạy kiểm thử để phát hiện nguồn legacy sai mã hóa. Cần đánh giá dữ liệu hiện có và đường tải resources trước khi áp dụng vào sản phẩm đang phục vụ người dùng.
+- Java recognizes only the two exact values `UTF-8` and `ISO-8859-1` for this system property; any other value **does not select an arbitrary encoding**, and is ignored according to the specification.
+- The property is **read during initialization of the `PropertyResourceBundle` class**. Changing or clearing the property with `System.setProperty(...)` after that point **does not alter** the locked-in configuration.
+- Place `-D...` **before the main class name** on the `java` command line. Each command above must start a fresh JVM rather than alternating by changing the property mid-run in the same program.
+- The system property applies JVM-wide to this `InputStream` bundle-reading path. Do not use it as a per-user encoding option.
+- When migrating a project to standard UTF-8, you can force `UTF-8` in CI or test runs to uncover misencoded legacy sources. Assess existing data and resource loading paths before enabling it in production serving users.
 
-### Vì sao không dùng -Dfile.encoding để thay thế?
+### Why not use -Dfile.encoding instead?
 
-`file.encoding` thường liên quan charset mặc định của Java I/O và môi trường chạy. Nó **không phải** công tắc xác định quy tắc UTF-8/ISO-8859-1 của `PropertyResourceBundle(InputStream)`. Hãy dùng `java.util.PropertyResourceBundle.encoding` khi muốn điều khiển riêng cơ chế này. Trong code tự tạo `InputStreamReader`, truyền `StandardCharsets.UTF_8` rõ ràng thường tốt hơn phụ thuộc charset mặc định.
+`file.encoding` generally relates to the default charset of Java I/O and the runtime environment. It is **not** the switch that controls the UTF-8/ISO-8859-1 rule of `PropertyResourceBundle(InputStream)`. Use `java.util.PropertyResourceBundle.encoding` when you want to control this specific mechanism. In your own code creating an `InputStreamReader`, passing `StandardCharsets.UTF_8` explicitly is usually better than relying on the default charset.
 
-## 5. InputStream và Reader: cùng class, hai trách nhiệm khác nhau
+## 5. InputStream vs. Reader: same class, two different responsibilities
 
-`PropertyResourceBundle` có hai constructor quan trọng:
+`PropertyResourceBundle` has two important constructors:
 
 ```java
 PropertyResourceBundle(InputStream stream)
 PropertyResourceBundle(Reader reader)
 ```
 
-- **`InputStream`:** constructor nhận **byte**; `PropertyResourceBundle` chịu trách nhiệm giải mã theo UTF-8 trước / fallback ISO-8859-1 hoặc theo system property ép mã hóa.
-- **`Reader`:** constructor nhận **ký tự đã giải mã**; việc chuyển byte sang ký tự thuộc trách nhiệm của **Reader do caller tạo**. Constructor này không tự thử lại ISO-8859-1.
-- **Unicode escape** như `\u00E9` được parser properties xử lý theo cú pháp `.properties` sau khi đã có chuỗi ký tự. Vì escape chỉ gồm byte ASCII, nó có thể giữ tính tương thích giữa UTF-8 và ISO-8859-1 khi viết đúng.
+- **`InputStream`:** the constructor receives **bytes**; `PropertyResourceBundle` is responsible for decoding using UTF-8-first / ISO-8859-1 fallback or the forced encoding system property.
+- **`Reader`:** the constructor receives **already-decoded characters**; converting bytes to characters is the responsibility of the **caller-created Reader**. This constructor does not automatically retry ISO-8859-1.
+- **Unicode escapes** like `\u00E9` are processed by the properties parser according to `.properties` syntax after the character stream is obtained. Because escapes consist only of ASCII bytes, they remain compatible between UTF-8 and ISO-8859-1 when written properly.
 
-Ví dụ Reader tường minh, file **`ReaderCharsetDemo.java`**:
+Explicit `Reader` example, file **`ReaderCharsetDemo.java`**:
 
 ```java
 import java.io.ByteArrayInputStream;
@@ -237,24 +237,24 @@ Stdout:
 café
 ```
 
-Ở đây kết quả đúng do **caller chọn ISO-8859-1 trong `InputStreamReader`**. Không có “fallback” nào xảy ra trong `PropertyResourceBundle(Reader)`. Nếu caller chọn sai charset, có thể thu được ký tự thay thế hoặc lỗi giải mã tùy cấu hình decoder của Reader; constructor không phát hiện “file này vốn là Latin-1” để cứu nội dung.
+Here the result is correct because **the caller chose ISO-8859-1 in `InputStreamReader`**. No "fallback" happens inside `PropertyResourceBundle(Reader)`. If the caller chooses the wrong charset, replacement characters or decoding errors can occur depending on the Reader's decoder configuration; the constructor does not detect "this file was originally Latin-1" to rescue the content.
 
-Đường Reader là lựa chọn phù hợp khi chương trình phải đọc một nguồn có bảng mã **đã biết trước** và cần kiểm soát khâu giải mã. Khi phát triển một hệ thống mới, ưu tiên nguồn được lưu thống nhất bằng UTF-8 thay vì đoán bảng mã bằng lỗi đọc.
+The `Reader` path is appropriate when a program must read a source with a **known** encoding and needs control over the decoding step. When building a new system, prefer sources consistently saved in UTF-8 rather than guessing encodings via read errors.
 
-## 6. Khác với java.util.Properties.load(InputStream)
+## 6. Difference from java.util.Properties.load(InputStream)
 
-Tên đuôi file `.properties` không đảm bảo mọi API Java diễn giải byte giống nhau:
+The `.properties` extension does not guarantee that every Java API interprets bytes the same way:
 
-| API | Đầu vào | Quy tắc giải mã |
+| API | Input | Decoding rule |
 | --- | --- | --- |
-| `new PropertyResourceBundle(inputStream)` trong Java 17+ | Byte | UTF-8 trước; mặc định fallback ISO-8859-1 khi lỗi giải mã; có thể ép một charset bằng system property |
-| `new PropertyResourceBundle(reader)` | Ký tự | Reader quyết định cách giải mã byte; không dùng cơ chế thử lại của InputStream |
-| `new Properties().load(inputStream)` | Byte | Theo hợp đồng API `Properties.load(InputStream)`: ISO-8859-1, ký tự ngoài phạm vi dùng escape `\uXXXX` |
-| `new Properties().load(reader)` | Ký tự | Reader quyết định cách giải mã; parser đọc cú pháp properties trên ký tự |
+| `new PropertyResourceBundle(inputStream)` in Java 17+ | Bytes | UTF-8 first; defaults to ISO-8859-1 fallback on decoding error; a single charset can be forced via system property |
+| `new PropertyResourceBundle(reader)` | Characters | The Reader decides byte decoding; does not use the `InputStream` retry mechanism |
+| `new Properties().load(inputStream)` | Bytes | Per `Properties.load(InputStream)` API contract: ISO-8859-1, out-of-range characters use `\uXXXX` escapes |
+| `new Properties().load(reader)` | Characters | The Reader decides decoding; the parser reads properties syntax over characters |
 
-**Điểm cần ghi nhớ:** JEP 226 thay đổi cách đọc *property resource bundles*, không biến `Properties.load(InputStream)` thành API đọc UTF-8 mặc định. Nếu file UTF-8 chứa dấu tiếng Việt được tải bằng `Properties.load(InputStream)`, chữ có thể bị lỗi mà không có ngoại lệ.
+**Key point to remember:** JEP 226 changed how *property resource bundles* are read; it did not turn `Properties.load(InputStream)` into a default UTF-8 API. If a UTF-8 file containing Vietnamese accents is loaded with `Properties.load(InputStream)`, characters can become garbled without any exception being thrown.
 
-Ví dụ dưới đây chạy độc lập để quan sát khác biệt. Lưu **`PropertiesVsBundleDemo.java`**:
+The standalone example below demonstrates this difference. Save as **`PropertiesVsBundleDemo.java`**:
 
 ```java
 import java.io.ByteArrayInputStream;
@@ -286,17 +286,17 @@ javac -encoding UTF-8 PropertiesVsBundleDemo.java
 java PropertiesVsBundleDemo
 ```
 
-Stdout mặc định với Java 17+:
+Default stdout on Java 17+:
 
 ```text
 Properties: cafÃ©
 Bundle: café
 ```
 
-Cả hai cùng nhận **một mảng byte**, nhưng hợp đồng giải mã khác nhau. Nếu muốn dùng `Properties` với UTF-8, hãy tạo `Reader` tường minh:
+Both receive **the exact same byte array**, yet their decoding contracts differ. If you want to use `Properties` with UTF-8, create an explicit `Reader`:
 
 ```java
-// Đoạn code trong phương thức có biến byte[] utf8.
+// Code snippet inside a method that has the byte[] utf8 variable.
 try (var reader = new java.io.InputStreamReader(
         new java.io.ByteArrayInputStream(utf8),
         java.nio.charset.StandardCharsets.UTF_8)) {
@@ -306,13 +306,13 @@ try (var reader = new java.io.InputStreamReader(
 }
 ```
 
-Đoạn này in `café` khi `utf8` chứa nội dung của ví dụ, nhưng chỉ là **fragment đặt bên trong phương thức**, không phải một file Java độc lập.
+This snippet prints `café` when `utf8` contains the example's bytes, though it is only a **fragment placed inside a method**, not a standalone Java file.
 
-## 7. Áp dụng với ResourceBundle.getBundle trên classpath
+## 7. Applying with ResourceBundle.getBundle on the classpath
 
-Trong ứng dụng thường gặp, bạn không trực tiếp `new PropertyResourceBundle(InputStream)`. Thay vào đó, `ResourceBundle.getBundle(...)` tìm tài nguyên `.properties` phù hợp trên classpath rồi tải thông qua cơ chế property bundle.
+In typical applications, you do not call `new PropertyResourceBundle(InputStream)` directly. Instead, `ResourceBundle.getBundle(...)` locates the matching `.properties` resource on the classpath and loads it via the property bundle mechanism.
 
-Ví dụ cấu trúc:
+Example structure:
 
 ```text
 i18n-demo/
@@ -321,13 +321,13 @@ i18n-demo/
 └── messages_vi.properties
 ```
 
-File **`messages.properties`** (lưu UTF-8):
+File **`messages.properties`** (saved as UTF-8):
 
 ```properties
 greeting=Hello
 ```
 
-File **`messages_vi.properties`** (lưu UTF-8):
+File **`messages_vi.properties`** (saved as UTF-8):
 
 ```properties
 greeting=Chào bạn
@@ -351,120 +351,120 @@ public class BundleOnClasspathDemo {
 }
 ```
 
-Chạy **ngay trong thư mục có cả ba file**:
+Run **directly inside the directory containing all three files**:
 
 ```bash
 javac -encoding UTF-8 BundleOnClasspathDemo.java
 java -cp . BundleOnClasspathDemo
 ```
 
-Stdout với file đã lưu UTF-8 trên Java 17+:
+Stdout with files saved in UTF-8 on Java 17+:
 
 ```text
 Chào bạn
 ```
 
-`messages_vi.properties` được chọn cho `vi-VN` vì không cần file `messages_vi_VN.properties` mới sử dụng được bản tiếng Việt chung. `Control.FORMAT_PROPERTIES` chỉ chọn dạng file properties; `getNoFallbackControl` ngăn một lượt fallback sang **default locale của JVM** khi tìm bundle, nhưng vẫn cho phép chuỗi ứng viên/cha và bundle gốc bình thường.
+`messages_vi.properties` is selected for `vi-VN` because a `messages_vi_VN.properties` file is not required to use the general Vietnamese bundle. `Control.FORMAT_PROPERTIES` selects only properties-file bundles; `getNoFallbackControl` prevents a fallback pass to **the JVM default locale** during bundle lookup, while still allowing the normal candidate/parent chain and root bundle.
 
-**Cần phân biệt hai “fallback” hoàn toàn khác nhau:**
+**Distinguish two completely different "fallbacks":**
 
-- **Fallback locale/bundle:** khi không có file cho `vi-VN`, Java xét `vi` rồi gốc tùy cách chọn bundle. Đây là logic **tìm tài nguyên**, không liên quan charset.
-- **Fallback charset:** sau khi đã có một stream của file properties, `PropertyResourceBundle` có thể **đọc lại byte ISO-8859-1** nếu thử UTF-8 thất bại. Đây là logic **giải mã nội dung của một file**.
+- **Locale/bundle fallback:** when no file exists for `vi-VN`, Java considers `vi` and then the root depending on bundle lookup rules. This is **resource lookup** logic, unrelated to charsets.
+- **Charset fallback:** once a stream for a properties file has been opened, `PropertyResourceBundle` can **re-read the bytes as ISO-8859-1** if the UTF-8 attempt fails. This is **content decoding** logic for a single file.
 
-Không dùng lỗi chữ bị mã hóa sai làm tín hiệu để tự chuyển sang bundle gốc hoặc chọn một locale khác. Ngược lại, một bundle locale được chọn đúng vẫn có thể bị lỗi chữ nếu file đã lưu sai bảng mã.
+Do not use garbled characters as a signal to switch to the root bundle or pick a different locale. Conversely, a properly selected locale bundle can still produce garbled text if the file was saved in the wrong encoding.
 
-### Lỗi có thể bị bao gói khi đọc qua getBundle
+### Errors can be wrapped when reading via getBundle
 
-Với `new PropertyResourceBundle(InputStream)` trực tiếp, ngoại lệ giải mã bị ép UTF-8 có thể xuất hiện dưới dạng `MalformedInputException` hoặc `UnmappableCharacterException`. Khi thông qua `ResourceBundle.getBundle`, lỗi nạp resource có thể được phản ánh trong quá trình tìm bundle và nằm trong **cause** của ngoại lệ ở cấp cao hoặc bị ảnh hưởng bởi việc có ứng viên dự phòng. Vì thế, khi nghiên cứu lỗi encoding trong ứng dụng thực, cần kiểm tra **chuỗi cause**, file bundle được chọn, classpath và cấu hình cache; không khẳng định mọi lỗi charset ở `getBundle` đều ném trực tiếp một loại exception duy nhất.
+With `new PropertyResourceBundle(InputStream)` directly, decoding exceptions under forced UTF-8 can surface as `MalformedInputException` or `UnmappableCharacterException`. When loading through `ResourceBundle.getBundle`, resource loading failures can be reflected during bundle lookup and appear in the **cause** of a higher-level exception or be affected by fallback candidates. Therefore, when investigating encoding bugs in real applications, inspect **the cause chain**, the selected bundle file, the classpath, and cache settings; do not assume every charset error in `getBundle` throws one single exception type directly.
 
-## 8. Trường hợp thực tế: dữ liệu Latin-1 cũ chứa dấu và dữ liệu bị pha trộn
+## 8. Real-world cases: legacy accented Latin-1 data and mixed-encoding data
 
-### File Latin-1 thực sự
+### True Latin-1 files
 
-Một bundle tiếng Pháp từ hệ thống cũ có thể chứa byte `E9` cho chữ `é`. Khi được đọc bằng default Java 17+, quá trình thử UTF-8 thất bại rồi fallback ISO-8859-1 có thể khiến nội dung **trông vẫn đúng**, dù file chưa được chuyển sang UTF-8. Đây là cơ chế hỗ trợ tương thích, không nên xem như bằng chứng toàn bộ kho file đã chuẩn hóa.
+A French bundle from a legacy system might contain byte `E9` for `é`. When read under Java 17+ defaults, the UTF-8 attempt fails and falls back to ISO-8859-1, making the content **still look right** even though the file has not been converted to UTF-8. This is a compatibility mechanism and should not be taken as proof that the entire file repository has been standardized.
 
-### Byte hợp lệ theo cả hai cách
+### Bytes valid under both encodings
 
-Nếu legacy file chứa dãy `C3 A9` với ý nghĩa Latin-1 “`Ã©`”, Java sẽ thấy một UTF-8 hợp lệ biểu diễn “`é`” và **không fallback**. Ví dụ `AMBIGUOUS` ở trên minh họa hành vi này. Một số chuỗi khác có thể trở thành chữ vô nghĩa nhưng parser vẫn hoạt động bình thường.
+If a legacy file contains the sequence `C3 A9` meaning Latin-1 "`Ã©`", Java will see valid UTF-8 representing "`é`" and **will not fall back**. The `AMBIGUOUS` example above demonstrates this behavior. Other byte sequences can turn into gibberish while the parser still runs without error.
 
-### File có đoạn thuộc nhiều mã hóa
+### Files with sections in multiple encodings
 
-Giả sử phần đầu bundle là UTF-8, phần cuối được một công cụ cũ append byte Latin-1. Một byte sai UTF-8 ở cuối làm parser quay lại đọc **toàn bộ file** theo Latin-1. Kết quả: phần cũ Latin-1 có thể đúng, nhưng phần UTF-8 bị chuyển thành chữ lỗi. Để khắc phục, phải **chuyển đổi file nguồn thành một mã hóa duy nhất**, không chèn thêm quy tắc dự phòng theo key.
+Suppose the top of a bundle is UTF-8 and an older tool appended Latin-1 bytes at the end. One invalid UTF-8 byte near the end causes the parser to re-read **the entire file** as Latin-1. Result: the old Latin-1 portion may look right, while the UTF-8 portion turns into garbled text. To fix this, you must **convert the source file to a single encoding**, not add per-key fallback rules.
 
-### Unicode escape
+### Unicode escapes
 
-Một giá trị như:
+A value such as:
 
 ```properties
 greeting=caf\u00E9
 ```
 
-chỉ chứa ký tự ASCII trong file, nên được giải mã giống nhau theo UTF-8 và ISO-8859-1 trước khi parser xử lý `\u00E9` thành `é`. Unicode escape hữu ích để giữ tương thích với công cụ cũ, nhưng không bắt buộc cho UTF-8 trong Java 17+. Nếu dùng escape cho ký tự ngoài BMP, cần biểu diễn đúng cặp UTF-16 surrogate escape theo quy tắc `\uXXXX`, không dùng mã code point tùy ý dài hơn bốn chữ số hex trong một escape.
+contains only ASCII characters in the file, so it decodes identically under UTF-8 and ISO-8859-1 before the parser turns `\u00E9` into `é`. Unicode escapes are useful for compatibility with legacy tools, though not required for UTF-8 on Java 17+. If using escapes for non-BMP characters, represent them properly with a UTF-16 surrogate escape pair per `\uXXXX` syntax, not an arbitrary code point longer than four hex digits in a single escape.
 
-## 9. Kiểm soát mã hóa và kiểm thử trong dự án
+## 9. Encoding governance and testing in projects
 
-Một quy trình chắc chắn khi quản lý các bundle `messages*.properties`:
+A reliable workflow for managing `messages*.properties` bundles:
 
-1. **Chọn UTF-8 làm chuẩn nguồn** cho toàn bộ file locale. Thiết lập editor và pipeline build tạo/sao chép resources dưới dạng byte không bị chuyển mã ngoài ý muốn.
-2. **Kiểm tra byte/tính hợp lệ UTF-8** trong CI cho các file cần chuẩn hóa. Đừng suy ra encoding chỉ từ hậu tố file hoặc việc `getBundle` chạy không lỗi.
-3. **Chạy một bộ test trong JVM riêng với `-Djava.util.PropertyResourceBundle.encoding=UTF-8`** để phát hiện bundle không hợp lệ theo UTF-8. Kết quả qua `ResourceBundle.getBundle` còn chịu ảnh hưởng fallback locale và cache, nên test cần tải trúng tài nguyên muốn kiểm tra.
-4. **Kiểm tra giá trị Unicode cụ thể** như `Chào bạn`, `Đặng`, `café`, `日本語`. Đúng key chưa có nghĩa là đúng byte/đúng chữ.
-5. **Kiểm tra cơ chế nguồn cũ**: xác định file nào là ISO-8859-1, chuyển byte sang UTF-8 bằng công cụ có charset tường minh, review diff ký tự và loại bỏ pha trộn trước khi áp dụng chế độ ép UTF-8.
-6. **Dùng tiến trình mới khi đổi system property trong test**: thuộc tính được chốt lúc `PropertyResourceBundle` khởi tạo; không làm test A rồi B trong cùng JVM bằng `System.setProperty` và kỳ vọng constructor tự đổi chế độ.
-7. **Kiểm thử classpath/packaging**: các file `.properties` phải nằm đúng đường dẫn resource, ví dụ gốc resources hoặc package tương ứng. Nếu file chưa được đóng gói vào JAR, lỗi là thiếu resource chứ không phải lỗi encoding.
-8. **Kiểm tra môi trường đầu ra**: console không hỗ trợ Unicode có thể hiển thị sai dù chuỗi Java đã đúng. Tách lỗi **giải mã nội dung** khỏi lỗi **render** bằng cách so sánh chuỗi Unicode trong test.
+1. **Standardize on UTF-8 as the source format** for all locale files. Configure editors and build pipelines to create/copy resources as bytes without unintended transcoding.
+2. **Check bytes and UTF-8 validity** in CI for files that must conform. Do not infer encoding solely from filename suffixes or from `getBundle` succeeding without errors.
+3. **Run a test suite in a separate JVM with `-Djava.util.PropertyResourceBundle.encoding=UTF-8`** to catch bundles that are invalid UTF-8. Results through `ResourceBundle.getBundle` are also affected by locale fallback and caching, so tests should load the exact resource being checked.
+4. **Verify concrete Unicode values** such as `Chào bạn`, `Đặng`, `café`, and `日本語`. Having the right keys does not guarantee the right bytes or characters.
+5. **Audit legacy sources:** identify which files are ISO-8859-1, convert bytes to UTF-8 with a tool using an explicit charset, review character diffs, and eliminate mixed encodings before enabling strict UTF-8 mode.
+6. **Use a fresh process when changing the system property in tests:** the property is locked in at `PropertyResourceBundle` initialization; do not run test A then test B in the same JVM using `System.setProperty` expecting the constructor to switch modes.
+7. **Test classpath and packaging:** `.properties` files must be at the right resource path, such as the resources root or matching package. If a file is missing from the JAR, the failure is a missing resource, not an encoding bug.
+8. **Check the output environment:** a console without Unicode support can display text wrongly even when the Java string is correct. Separate **content decoding** bugs from **rendering** bugs by comparing Unicode strings in tests.
 
-### Test nhỏ có thể kiểm tra tự động
+### Small tests that can be automated
 
-Với `PropertyEncodingDemo`:
+With `PropertyEncodingDemo`:
 
-| Chế độ | Điều cần xác minh |
+| Mode | What to verify |
 | --- | --- |
-| Default | Hai nguồn UTF-8 và Latin-1 có byte `E9` đơn đều cho `café` |
-| Ép UTF-8 | Nguồn Latin-1 có byte `E9` bị từ chối bằng lỗi giải mã |
-| Ép ISO-8859-1 | Nguồn UTF-8 `C3 A9` trở thành `Ã©` |
-| Default với byte nhập nhằng | Một legacy file có byte hợp lệ theo UTF-8 **không kích hoạt fallback** |
+| Default | Both the UTF-8 source and the Latin-1 source with a single `E9` byte produce `café` |
+| Force UTF-8 | The Latin-1 source with byte `E9` is rejected with a decoding error |
+| Force ISO-8859-1 | The UTF-8 source `C3 A9` becomes `Ã©` |
+| Default with ambiguous bytes | A legacy file whose bytes are valid UTF-8 **does not trigger fallback** |
 
-Đây là kiểm thử trực tiếp constructor nhận `InputStream` nhằm cô lập hành vi encoding. Đối với kiểm thử `ResourceBundle.getBundle` ở cấp ứng dụng, ngoài encoding còn cần kiểm tra **locale được chọn**, bundle gốc/bundle cha, key kế thừa và caching.
+These directly test the `InputStream` constructor to isolate encoding behavior. For application-level `ResourceBundle.getBundle` tests, also check **the resolved locale**, root/parent bundles, inherited keys, and caching.
 
-## 10. Sai lầm phổ biến
+## 10. Common mistakes
 
-| Sai lầm | Hậu quả | Cách làm đúng |
+| Mistake | Consequence | Correct approach |
 | --- | --- | --- |
-| Cho rằng Java luôn đọc `.properties` bằng ISO-8859-1 | Không phù hợp với `PropertyResourceBundle(InputStream)` từ Java 9 | Biết rõ API, constructor, phiên bản Java |
-| Cho rằng mọi file Latin-1 đều tự động được phát hiện | Một số chuỗi byte Latin-1 hợp lệ theo UTF-8 | Chuẩn hóa UTF-8 và kiểm tra byte |
-| Cho rằng fallback chỉ sửa ký tự lỗi | Parser đọc lại **toàn bộ** stream bằng ISO-8859-1 | Không pha mã hóa trong một file |
-| Dùng `-Dfile.encoding=UTF-8` để buộc `PropertyResourceBundle` từ chối Latin-1 | Không phải property chuyên dụng | Dùng `-Djava.util.PropertyResourceBundle.encoding=UTF-8` |
-| Gọi `System.setProperty` sau khi đã dùng `PropertyResourceBundle` | Class đã chốt cấu hình encoding | Thiết lập khi khởi động JVM |
-| Dùng `Properties.load(InputStream)` để đọc tiếng Việt UTF-8 trực tiếp | API này vẫn diễn giải ISO-8859-1 | Dùng `load(Reader)` với UTF-8 hoặc API bundle phù hợp |
-| Tưởng `PropertyResourceBundle(Reader)` tự fallback | Charset là trách nhiệm của Reader | Tạo Reader với charset rõ ràng |
-| Nhầm fallback bundle và fallback bảng mã | Chẩn đoán sai nguyên nhân nội dung lỗi | Phân tách lựa chọn locale với giải mã byte |
-| Thấy `getString` có giá trị thì cho rằng chữ đúng | Giá trị có thể bị mojibake | Kiểm thử chuỗi Unicode, kiểm tra encoding |
-| Test các chế độ `-D...` trên cùng JVM | Property chỉ được đánh giá lúc class initialization | Mỗi chế độ một JVM mới |
-| Cho rằng Unicode escape là ký tự được lưu theo bảng mã riêng | Parser xử lý escape sau bước giải mã | Viết escape đúng cú pháp `\uXXXX` |
-| Chỉ sửa console khi byte nguồn sai | Lỗi đầu vào và lỗi hiển thị là hai tầng khác nhau | Kiểm tra byte, chuỗi Java rồi đến terminal |
+| Assuming Java always reads `.properties` as ISO-8859-1 | Inaccurate for `PropertyResourceBundle(InputStream)` since Java 9 | Know the exact API, constructor, and Java version |
+| Assuming every Latin-1 file is automatically detected | Some Latin-1 byte sequences are valid UTF-8 | Standardize on UTF-8 and validate bytes |
+| Assuming fallback fixes only the failing character | The parser re-reads the **entire** stream as ISO-8859-1 | Never mix encodings in one file |
+| Using `-Dfile.encoding=UTF-8` to force `PropertyResourceBundle` to reject Latin-1 | Not the dedicated property | Use `-Djava.util.PropertyResourceBundle.encoding=UTF-8` |
+| Calling `System.setProperty` after `PropertyResourceBundle` has already been used | The class has already locked in its encoding configuration | Set it at JVM startup |
+| Using `Properties.load(InputStream)` to read UTF-8 Vietnamese directly | That API still interprets bytes as ISO-8859-1 | Use `load(Reader)` with UTF-8 or the appropriate bundle API |
+| Assuming `PropertyResourceBundle(Reader)` falls back automatically | Charset is the Reader's responsibility | Create the Reader with an explicit charset |
+| Confusing bundle fallback with charset fallback | Misdiagnosing why text is wrong | Separate locale selection from byte decoding |
+| Seeing `getString` return a value and assuming the text is right | The value may be mojibake | Assert exact Unicode strings and verify encoding |
+| Testing `-D...` modes in the same JVM | The property is evaluated only at class initialization | Use a new JVM per mode |
+| Thinking Unicode escapes are stored in a separate encoding | The parser processes escapes after decoding | Write escapes with valid `\uXXXX` syntax |
+| Fixing only the console when source bytes are wrong | Input bugs and display bugs are two different layers | Check bytes, then Java strings, then the terminal |
 
-## 11. Câu hỏi thực hành
+## 11. Practice questions
 
-**Bài tập 1.** Tạo byte của `"greeting=café"` lần lượt với `StandardCharsets.UTF_8` và `ISO_8859_1`. Dùng `new PropertyResourceBundle(InputStream)` để đọc trên Java 17+. Giải thích vì sao mặc định cả hai đều hiển thị đúng và vì sao điều đó không đảm bảo charset được phát hiện chính xác.
+**Exercise 1.** Create the bytes of `"greeting=café"` using `StandardCharsets.UTF_8` and `ISO_8859_1`. Use `new PropertyResourceBundle(InputStream)` to read both on Java 17+. Explain why both display properly by default and why that does not guarantee the charset was detected accurately.
 
-**Bài tập 2.** Chạy `PropertyEncodingDemo` ở ba JVM độc lập: mặc định, ép `UTF-8`, ép `ISO-8859-1`. Ghi lại các dòng `UTF8`, `LATIN1`, `AMBIGUOUS`; giải thích các byte `E9` và `C3 A9`.
+**Exercise 2.** Run `PropertyEncodingDemo` in three separate JVMs: default, forced `UTF-8`, and forced `ISO-8859-1`. Record the `UTF8`, `LATIN1`, and `AMBIGUOUS` output lines; explain the `E9` and `C3 A9` bytes.
 
-**Bài tập 3.** Dùng `Properties.load(InputStream)` đọc một mảng byte UTF-8 chứa `é` và so với `PropertyResourceBundle(InputStream)`. Thay `Properties.load(InputStream)` bằng `Properties.load(Reader)` với `UTF_8` rồi kiểm tra kết quả.
+**Exercise 3.** Use `Properties.load(InputStream)` to read a UTF-8 byte array containing `é` and compare it with `PropertyResourceBundle(InputStream)`. Replace `Properties.load(InputStream)` with `Properties.load(Reader)` using `UTF_8` and verify the result.
 
-**Bài tập 4.** Tạo `messages.properties` và `messages_vi.properties` lưu UTF-8, rồi gọi `ResourceBundle.getBundle("messages", Locale.forLanguageTag("vi-VN"))`. Xác minh chữ tiếng Việt và phân tích riêng ba nguyên nhân nếu nó sai: file không đúng byte UTF-8, chọn nhầm bundle, hoặc môi trường console hiển thị không đúng.
+**Exercise 4.** Create `messages.properties` and `messages_vi.properties` saved in UTF-8, then call `ResourceBundle.getBundle("messages", Locale.forLanguageTag("vi-VN"))`. Verify the Vietnamese text and separately analyze three possible causes if it fails: wrong UTF-8 file bytes, wrong bundle selected, or wrong console rendering environment.
 
-**Đáp án nguyên tắc:** Mặc định Java 17+ thử UTF-8 trước, lỗi giải mã thì đọc lại Latin-1; ép `UTF-8` loại bỏ retry; `Properties.load(InputStream)` luôn theo Latin-1; `Reader` dùng charset do caller chọn. Khi lỗi, cần tìm đúng tầng đã tạo ra khác biệt.
+**Key takeaway:** Java 17+ defaults to trying UTF-8 first and re-reading as Latin-1 on decoding errors; forcing `UTF-8` disables the retry; `Properties.load(InputStream)` always uses Latin-1; `Reader` uses the caller-chosen charset. When something breaks, identify the exact layer that introduced the discrepancy.
 
-## 12. Tài liệu chính thức
+## 12. Official documentation
 
-- [JEP 226 — UTF-8 Property Resource Bundles](https://openjdk.org/jeps/226): động lực tương thích và thay đổi mặc định từ Java 9.
-- [JDK 21 — PropertyResourceBundle](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/PropertyResourceBundle.html): constructor nhận `InputStream`/`Reader`, quy tắc fallback và system property mã hóa.
-- [JDK 21 — java.util.Properties](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Properties.html): `load(InputStream)` và `load(Reader)`.
-- [JDK 21 — ResourceBundle](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/ResourceBundle.html): cách tìm bundle từ classpath theo locale.
+- [JEP 226 — UTF-8 Property Resource Bundles](https://openjdk.org/jeps/226): compatibility motivation and the default change starting in Java 9.
+- [JDK 21 — PropertyResourceBundle](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/PropertyResourceBundle.html): `InputStream`/`Reader` constructors, fallback rules, and the encoding system property.
+- [JDK 21 — java.util.Properties](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Properties.html): `load(InputStream)` and `load(Reader)`.
+- [JDK 21 — ResourceBundle](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/ResourceBundle.html): loading bundles from the classpath by locale.
 
-## 13. Ghi nhớ
+## 13. Summary
 
-**Với Java 17+, `PropertyResourceBundle(InputStream)` ưu tiên UTF-8; nếu gặp lỗi giải mã, nó đọc lại toàn bộ stream bằng ISO-8859-1.** Cơ chế này giúp tương thích file cũ nhưng không nhận diện chính xác mọi bảng mã, và không cứu được trường hợp byte sai mã hóa mà vẫn tạo UTF-8 hợp lệ. Có thể ép một charset bằng `-Djava.util.PropertyResourceBundle.encoding=UTF-8` hoặc `ISO-8859-1` **ngay khi khởi động JVM**, khi đó không fallback. `PropertyResourceBundle(Reader)` và `Properties.load(InputStream)` có quy tắc riêng, không tự kế thừa thay đổi này.
+**On Java 17+, `PropertyResourceBundle(InputStream)` prefers UTF-8; if a decoding error occurs, it re-reads the entire stream as ISO-8859-1.** This mechanism supports legacy compatibility but does not accurately detect every encoding, nor can it rescue misencoded bytes that happen to form valid UTF-8. You can force a single charset with `-Djava.util.PropertyResourceBundle.encoding=UTF-8` or `ISO-8859-1` **at JVM startup**, in which case no fallback occurs. `PropertyResourceBundle(Reader)` and `Properties.load(InputStream)` follow their own rules and do not inherit this behavior.
 
-Trong dự án mới, hãy lưu bundle bằng **UTF-8 thống nhất**, kiểm tra byte và nội dung Unicode thật, cấu hình encoding rõ ràng ở CI khi cần, và phân biệt **fallback bảng mã** với **fallback tài nguyên theo locale**.
+In new projects, save bundles consistently in **UTF-8**, verify actual bytes and Unicode content, configure strict encoding in CI where appropriate, and keep **charset fallback** distinct from **locale-based resource fallback**.

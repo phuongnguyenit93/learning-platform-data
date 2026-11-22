@@ -1,40 +1,40 @@
-# Phân biệt hoa–thường, dấu và quy tắc ngôn ngữ khi so sánh chuỗi Java
+# Case, Accents, and Language Rules in Java String Comparison
 
-## 1. “Hai chuỗi giống nhau” là yêu cầu chưa đủ rõ
+## 1. "Two Strings Are Equal" Is Not a Clear Enough Requirement
 
-Ứng dụng Java đa ngôn ngữ thường phải tìm kiếm tên người, sắp xếp từ điển, kiểm tra mã định danh và đối chiếu nội dung. Mỗi mục tiêu cần một **chính sách so sánh khác nhau**.
+Multilingual Java applications often need to search person names, sort dictionaries, validate identifiers, and match content. Each goal requires a **different comparison policy**.
 
-| Cặp văn bản | Khác biệt | Vì sao quan trọng? |
+| Text pair | Difference | Why does it matter? |
 | --- | --- | --- |
-| `Java` / `java` | Hoa–thường | Có thể bỏ qua trong tìm kiếm nhưng không nhất thiết trong mã định danh |
-| `cafe` / `café` | Dấu | Tìm kiếm tiếng Pháp có thể chấp nhận gần đúng, bản gốc vẫn khác |
-| `ma` / `má` / `mã` / `mạ` | Thanh điệu tiếng Việt | Bỏ dấu có thể gộp **những từ khác nghĩa** |
-| `I` / `ı` / `İ` / `i` | Case theo tiếng Thổ Nhĩ Kỳ | Quy tắc đối chiếu khác tiếng Anh |
-| `Straße` / `Strasse` | `ß` và `ss` tiếng Đức | Có thể tương đương ở một mức collation nhưng không bằng nhau theo `String.equals` |
-| `café` / `cafe\u0301` | Hai biểu diễn Unicode của `é` | Tương đương chuẩn tắc, nhưng `String.equals` chưa chắc true |
+| `Java` / `java` | Case | May be ignored in search, but not necessarily in identifiers |
+| `cafe` / `café` | Accent | French search may allow fuzzy match, while the original stays distinct |
+| `ma` / `má` / `mã` / `mạ` | Vietnamese tone marks | Stripping accents can collapse **words with different meanings** |
+| `I` / `ı` / `İ` / `i` | Turkish casing | Matching rules differ from English |
+| `Straße` / `Strasse` | German `ß` and `ss` | May be equivalent at one collation level yet unequal under `String.equals` |
+| `café` / `cafe\u0301` | Two Unicode representations of `é` | Canonically equivalent, yet `String.equals` is not necessarily true |
 
-Trước khi dùng API, hãy quyết định: yêu cầu **bằng từng ký tự**, **bỏ qua case**, **so sánh theo quy tắc ngôn ngữ**, hay **tìm kiếm khoan dung dấu**? Không nên lấy cùng một phép biến đổi cho cả bốn.
+Before reaching for an API, decide: do you need **character-by-character equality**, **case-insensitive**, **linguistic rule comparison**, or **accent-tolerant search**? Never use the same transformation for all four.
 
-**Nguyên tắc chính:** khác biệt hoa–thường và dấu không chỉ là trình bày. Trong nhiều ngôn ngữ, chúng thay đổi nghĩa hoặc cách viết của từ. Collation (đối chiếu theo locale) là một **quy tắc sắp xếp/so khớp**, không phải bằng chứng hai thực thể là một.
+**Core principle:** case and accent differences are not merely presentation. In many languages, they change a word's meaning or spelling. Collation (locale-based comparison) is a **sorting/matching rule**, not proof that two entities are identical.
 
-## 2. String.equals, equalsIgnoreCase và compareTo
+## 2. String.equals, equalsIgnoreCase, and compareTo
 
-Các phương thức lõi của `String` có hợp đồng:
+Core `String` methods have specific contracts:
 
-| API | So sánh gì? | Theo Locale? |
+| API | What does it compare? | Locale-aware? |
 | --- | --- | --- |
-| `a.equals(b)` | Hai chuỗi cùng các UTF-16 code unit ở cùng vị trí | Không |
-| `a.compareTo(b)` | Thứ tự lexicographic theo UTF-16 | Không |
-| `a.equalsIgnoreCase(b)` | So case-insensitive theo thuật toán của `String` | **Không** |
-| `a.compareToIgnoreCase(b)` | Thứ tự bỏ qua case của `String` | **Không** |
-| `String.CASE_INSENSITIVE_ORDER` | Comparator theo `compareToIgnoreCase` | **Không** |
-| `Collator.getInstance(locale).compare(a,b)` | Thứ tự collation của một ngôn ngữ | **Có** |
+| `a.equals(b)` | Two strings with identical UTF-16 code units at each position | No |
+| `a.compareTo(b)` | Lexicographic order by UTF-16 | No |
+| `a.equalsIgnoreCase(b)` | Case-insensitive comparison per `String` algorithm | **No** |
+| `a.compareToIgnoreCase(b)` | Case-ignoring order of `String` | **No** |
+| `String.CASE_INSENSITIVE_ORDER` | Comparator following `compareToIgnoreCase` | **No** |
+| `Collator.getInstance(locale).compare(a,b)` | Collation order of a language | **Yes** |
 
-`equalsIgnoreCase` rất tiện khi so tên từ khóa kỹ thuật đơn giản, nhưng **không phải bộ so khớp ngôn ngữ toàn diện**. Nó không tự xóa dấu hay thực hiện mọi phép mở rộng nhiều ký tự như `ß → ss`.
+`equalsIgnoreCase` is convenient for simple technical keyword names, but is **not a comprehensive linguistic matcher**. It does not strip accents or perform multi-character expansions like `ß → ss`.
 
-### Ví dụ chạy độc lập Java 17+
+### Standalone Java 17+ Example
 
-Tạo `StringComparisonDemo.java`:
+Create `StringComparisonDemo.java`:
 
 ~~~java
 public class StringComparisonDemo {
@@ -53,14 +53,14 @@ public class StringComparisonDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 StringComparisonDemo.java
 java StringComparisonDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 equals: false
@@ -69,11 +69,11 @@ compareTo zero: false
 Accent ignored: false
 ~~~
 
-`compareTo` không phải quy tắc sắp xếp tên theo tiếng Việt, tiếng Pháp hay tiếng Đức. Nó dùng giá trị các đơn vị UTF-16. Khi cần sắp xếp theo ngôn ngữ của người đọc, dùng `Collator`.
+`compareTo` is not the rule for sorting names in Vietnamese, French, or German. It uses UTF-16 unit values. When sorting according to the reader's language, use `Collator`.
 
-## 3. Collator: so sánh chuỗi theo Locale
+## 3. Collator: Comparing Strings by Locale
 
-`java.text.Collator` cung cấp phép so sánh và sắp xếp văn bản theo locale:
+`java.text.Collator` provides locale-aware text comparison and sorting:
 
 ~~~java
 Locale locale = Locale.forLanguageTag("fr-FR");
@@ -81,30 +81,30 @@ Collator col = Collator.getInstance(locale);
 int result = col.compare("cafe", "café");
 ~~~
 
-Đây là **mảnh mã trong một phương thức**, cần import `java.text.Collator` và `java.util.Locale`.
+This is a **code snippet inside a method**, requiring imports of `java.text.Collator` and `java.util.Locale`.
 
-Quy tắc trả kết quả giống `Comparator`:
+Return conventions match `Comparator`:
 
-- Âm: chuỗi thứ nhất đứng trước.
-- `0`: hai chuỗi tương đương **theo cấu hình collator hiện tại**.
-- Dương: chuỗi thứ nhất đứng sau.
+- Negative: the first string comes before.
+- `0`: the two strings are equivalent **under the current collator configuration**.
+- Positive: the first string comes after.
 
-Không diễn giải `compare(a,b)==0` là `a.equals(b)`. Trong một chế độ so sánh ít phân biệt, `cafe` và `café` có thể ngang nhau dù chúng là hai chuỗi khác nhau.
+Do not interpret `compare(a,b)==0` as `a.equals(b)`. In a less sensitive comparison mode, `cafe` and `café` can be equal even though they are two distinct strings.
 
-### Strength: mức độ phân biệt
+### Strength: Distinction Level
 
-| Thuộc tính | Ý nghĩa thông thường | Ứng dụng |
+| Property | Typical meaning | Use case |
 | --- | --- | --- |
-| `Collator.PRIMARY` | Xét khác biệt chữ cơ sở; nhiều locale bỏ qua case và một số dấu | So gần đúng/tìm kiếm theo locale |
-| `Collator.SECONDARY` | Xét thêm các khác biệt thứ cấp, thường là dấu | Phân biệt accent khi ngôn ngữ yêu cầu |
-| `Collator.TERTIARY` | Xét thêm các khác biệt như chữ hoa–thường | Sắp xếp chi tiết hơn |
-| `Collator.IDENTICAL` | Cấp phân biệt cao nhất theo cơ chế collation | Không được nhầm với `String.equals` |
+| `Collator.PRIMARY` | Considers base letter differences; many locales ignore case and some accents | Fuzzy comparison / locale-based search |
+| `Collator.SECONDARY` | Also considers secondary differences, typically accents | Distinguishing accents when required by the language |
+| `Collator.TERTIARY` | Also considers differences such as case | More detailed sorting |
+| `Collator.IDENTICAL` | Highest distinction level in the collation mechanism | Must not be confused with `String.equals` |
 
-Các mức này không có nghĩa “PRIMARY xóa mọi dấu, SECONDARY chỉ kiểm tra dấu, TERTIARY chỉ kiểm tra hoa–thường” trong **mọi locale**. Mức độ và quy tắc thực tế phụ thuộc ngôn ngữ, provider và dữ liệu JDK.
+These levels do not mean "PRIMARY strips all accents, SECONDARY checks only accents, TERTIARY checks only case" in **every locale**. Actual sensitivity and rules depend on language, provider, and JDK data.
 
-### Ví dụ chạy độc lập
+### Standalone Example
 
-Tạo `CollatorStrengthDemo.java`:
+Create `CollatorStrengthDemo.java`:
 
 ~~~java
 import java.text.Collator;
@@ -129,14 +129,14 @@ public class CollatorStrengthDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 CollatorStrengthDemo.java
 java CollatorStrengthDemo
 ~~~
 
-Kết quả trong dữ liệu collation tiếng Pháp phổ biến:
+Result in common French collation data:
 
 ~~~text
 PRIMARY cafe/café: true
@@ -144,22 +144,22 @@ SECONDARY cafe/café: false
 TERTIARY Cafe/cafe: false
 ~~~
 
-Đây là các kết quả theo chính sách so sánh. Chúng **không sửa** ký tự trong chuỗi `"café"` và không có nghĩa mọi từ khác dấu đều là một.
+These are comparison policy results. They **do not modify** characters in `"café"` and do not mean all accent-differing words are identical.
 
-## 4. Tiếng Thổ Nhĩ Kỳ: quy tắc I, İ, i, ı
+## 4. Turkish: Rules for I, İ, i, ı
 
-Tiếng Thổ Nhĩ Kỳ là ví dụ nổi bật cho sự khác nhau giữa case-insensitive chung và đối chiếu theo locale:
+Turkish is a prominent example of the difference between generic case-insensitivity and locale-aware comparison:
 
-- `I`: chữ I hoa **không chấm**.
-- `ı`: chữ i thường **không chấm**.
-- `İ`: chữ I hoa **có chấm**.
-- `i`: chữ i thường **có chấm**.
+- `I`: uppercase **dotless** I.
+- `ı`: lowercase **dotless** i.
+- `İ`: uppercase **dotted** I.
+- `i`: lowercase **dotted** i.
 
-Trong cách chuyển chữ tiếng Thổ Nhĩ Kỳ, cặp `I/ı` đi với nhau, còn `İ/i` đi với nhau.
+In Turkish case conversion, `I/ı` pair together, while `İ/i` pair together.
 
-### Ví dụ Java 17+ đầy đủ
+### Complete Java 17+ Example
 
-Tạo `TurkishCaseDemo.java`:
+Create `TurkishCaseDemo.java`:
 
 ~~~java
 import java.text.Collator;
@@ -191,14 +191,14 @@ public class TurkishCaseDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 TurkishCaseDemo.java
 java TurkishCaseDemo
 ~~~
 
-Kết quả thông dụng của JDK:
+Common JDK output:
 
 ~~~text
 ROOT I lower: i
@@ -210,17 +210,17 @@ TR PRIMARY I/ı: true
 TR PRIMARY I/i: false
 ~~~
 
-**Ý nghĩa:** `String.equalsIgnoreCase` không biết locale tiếng Thổ Nhĩ Kỳ, còn `Collator(tr-TR, PRIMARY)` áp dụng quy tắc đối chiếu theo ngôn ngữ. Vì vậy hai phương thức có thể đưa ra **kết luận khác nhau** trên cùng cặp chuỗi.
+**Significance:** `String.equalsIgnoreCase` does not know the Turkish locale, whereas `Collator(tr-TR, PRIMARY)` applies linguistic comparison rules. Thus, the two methods can reach **different conclusions** on the same pair of strings.
 
-Trong một hệ thống có người dùng nhiều ngôn ngữ, **không** dùng `String.toLowerCase()` không tham số để tạo khóa kỹ thuật: nó dùng locale mặc định JVM. Nếu trường dữ liệu kỹ thuật được định nghĩa theo quy tắc trung lập, dùng `Locale.ROOT` **khi đúng hợp đồng**; nếu đang xử lý ngôn ngữ tự nhiên, cân nhắc locale của người dùng.
+In a system with multilingual users, do **not** call zero-arg `String.toLowerCase()` to generate technical keys: it uses the JVM default locale. If a technical field is defined by neutral rules, use `Locale.ROOT` **when matching the contract**; if processing natural language, account for the user's locale.
 
-## 5. Tiếng Đức: ß và ss
+## 5. German: ß and ss
 
-`"Straße"` và `"Strasse"` không bằng nhau theo `String.equals`. `equalsIgnoreCase` cũng không biến một ký tự `ß` thành hai ký tự `ss` để làm chúng bằng nhau.
+`"Straße"` and `"Strasse"` are not equal under `String.equals`. Nor does `equalsIgnoreCase` turn one `ß` character into two `ss` characters to make them equal.
 
-Tuy nhiên, một collator tiếng Đức ở mức PRIMARY có thể xem chúng tương đương theo quy tắc collation.
+However, a German collator at PRIMARY may consider them equivalent per collation rules.
 
-Tạo `GermanCollationDemo.java`:
+Create `GermanCollationDemo.java`:
 
 ~~~java
 import java.text.Collator;
@@ -244,14 +244,14 @@ public class GermanCollationDemo {
 }
 ~~~
 
-Lệnh chạy:
+Run command:
 
 ~~~bash
 javac -encoding UTF-8 GermanCollationDemo.java
 java GermanCollationDemo
 ~~~
 
-Kết quả với dữ liệu tiếng Đức phổ biến:
+Result with common German data:
 
 ~~~text
 equals: false
@@ -259,20 +259,20 @@ equalsIgnoreCase: false
 DE PRIMARY: true
 ~~~
 
-Kết luận là **các thuật toán đang thực hiện các mục tiêu khác nhau**, không phải `Collator` đã sửa dữ liệu gốc. Không thay tên `Straße` thành `Strasse` trong cơ sở dữ liệu chỉ vì muốn tìm kiếm gần đúng.
+The takeaway is that **the algorithms serve different goals**, not that `Collator` fixed the original data. Do not replace `Straße` with `Strasse` in the database just to support fuzzy search.
 
-## 6. Dấu và Unicode normalization không phải cùng vấn đề
+## 6. Accents and Unicode Normalization Are Not the Same Problem
 
-Hai chuỗi có thể chứa cùng chữ có dấu dưới **hai dạng Unicode tương đương chuẩn tắc**:
+Two strings can contain the same accented letter in **two canonically equivalent Unicode forms**:
 
 ~~~text
 "café"       : c a f U+00E9
 "cafe\u0301" : c a f e U+0301
 ~~~
 
-`U+0301` là *COMBINING ACUTE ACCENT*. `String.equals` so sánh UTF-16 code unit, không tự đưa hai dạng về chuẩn NFC.
+`U+0301` is *COMBINING ACUTE ACCENT*. `String.equals` compares UTF-16 code units and does not automatically normalize both forms to NFC.
 
-Java hỗ trợ `java.text.Normalizer`:
+Java provides `java.text.Normalizer`:
 
 ~~~java
 String aNfc = Normalizer.normalize(a, Normalizer.Form.NFC);
@@ -280,11 +280,11 @@ String bNfc = Normalizer.normalize(b, Normalizer.Form.NFC);
 boolean sameCanonicalText = aNfc.equals(bNfc);
 ~~~
 
-Đây là mảnh mã trong method, cần import `java.text.Normalizer`, có biến `a` và `b`.
+This is a snippet inside a method requiring import of `java.text.Normalizer` with variables `a` and `b`.
 
-### Ví dụ Java 17+ độc lập
+### Standalone Java 17+ Example
 
-Tạo `CanonicalComparisonDemo.java`:
+Create `CanonicalComparisonDemo.java`:
 
 ~~~java
 import java.text.Normalizer;
@@ -311,14 +311,14 @@ public class CanonicalComparisonDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 CanonicalComparisonDemo.java
 java CanonicalComparisonDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 Raw equals: false
@@ -327,17 +327,17 @@ NFC equals: true
 Accent retained: true
 ~~~
 
-**NFC giữ dấu**: sau normalization, `café` vẫn khác `cafe`. NFC/NFD xử lý **cách biểu diễn tương đương** chứ không nhằm bỏ thông tin ngữ nghĩa.
+**NFC preserves accents**: after normalization, `café` still differs from `cafe`. NFC/NFD addresses **equivalent representations**, not stripping semantic information.
 
-### Strength và decomposition của Collator
+### Collator Strength and Decomposition
 
-Ngoài `setStrength`, `Collator` có `setDecomposition`:
+Besides `setStrength`, `Collator` has `setDecomposition`:
 
-- `NO_DECOMPOSITION`: không yêu cầu phân rã trước khi collation.
-- `CANONICAL_DECOMPOSITION`: cho phép xử lý phân rã chuẩn tắc.
-- `FULL_DECOMPOSITION`: xét cả phân rã tương thích theo cơ chế collation.
+- `NO_DECOMPOSITION`: does not require decomposition prior to collation.
+- `CANONICAL_DECOMPOSITION`: enables canonical decomposition handling.
+- `FULL_DECOMPOSITION`: also considers compatibility decomposition in the collation mechanism.
 
-Ví dụ:
+Example:
 
 ~~~java
 Collator fr = Collator.getInstance(Locale.FRENCH);
@@ -345,13 +345,13 @@ fr.setStrength(Collator.SECONDARY);
 fr.setDecomposition(Collator.CANONICAL_DECOMPOSITION);
 ~~~
 
-Đây là mảnh mã trong method, cần import `java.text.Collator` và `java.util.Locale`.
+This is a snippet inside a method requiring imports of `java.text.Collator` and `java.util.Locale`.
 
-**Decomposition khác strength**: một thuộc tính về cách diễn giải biểu diễn Unicode, một thuộc tính về mức khác biệt trong so khớp. `FULL_DECOMPOSITION` không phải “xóa mọi dấu”; `Collator.IDENTICAL` cũng không phải tên khác của `String.equals`.
+**Decomposition differs from strength**: one controls how Unicode representations are interpreted, while the other controls the difference sensitivity during matching. `FULL_DECOMPOSITION` does not mean "strip all accents"; nor is `Collator.IDENTICAL` another name for `String.equals`.
 
-## 7. Bỏ dấu là phép biến đổi mất thông tin
+## 7. Accent Stripping Is a Lossy Transformation
 
-Một cách tạo khóa tìm kiếm khoan dung dấu thường thấy:
+A common way to build an accent-tolerant search key:
 
 ~~~java
 String searchKey = Normalizer
@@ -360,35 +360,35 @@ String searchKey = Normalizer
         .toLowerCase(Locale.ROOT);
 ~~~
 
-Đây là mảnh mã trong method, cần import `java.text.Normalizer` và `java.util.Locale`.
+This is a snippet inside a method requiring imports of `java.text.Normalizer` and `java.util.Locale`.
 
-Nó gồm **ba phép biến đổi**:
+It consists of **three transformations**:
 
-1. Phân rã Unicode canonical (NFD).
-2. Xóa ký tự có Unicode general category Mark (`\p{M}`).
-3. Chuyển chữ thường theo `Locale.ROOT`.
+1. Unicode canonical decomposition (NFD).
+2. Removing characters with Unicode general category Mark (`\p{M}`).
+3. Lowercasing with `Locale.ROOT`.
 
-Điều này **không trung lập**: `ma`, `má`, `mà`, `mả`, `mã` và `mạ` đều có thể thành `ma`, dù khác nghĩa tiếng Việt. Hơn nữa, xóa Mark có thể làm mất thành phần thiết yếu của nhiều hệ chữ khác, và **không** đảm bảo tạo ASCII: `Đ/đ` hay `ß` không nhất thiết được chuyển thành chữ Latin cơ sở.
+This is **not neutral**: `ma`, `má`, `mà`, `mả`, `mã`, and `mạ` can all become `ma`, despite having different meanings in Vietnamese. Moreover, removing Marks can destroy essential components of many other scripts, and does **not** guarantee ASCII output: `Đ/đ` or `ß` are not automatically turned into base Latin letters.
 
-| Cơ chế | Vai trò | Có thay đổi văn bản nguồn không? |
+| Mechanism | Role | Modifies source text? |
 | --- | --- | --- |
-| `Normalizer.Form.NFC` | Thống nhất tương đương chuẩn tắc | Tạo dạng khác nhưng giữ sự phân biệt dấu có nghĩa |
-| `Collator.PRIMARY` | So theo mức collation phù hợp locale | Không sửa chuỗi nguồn |
-| `NFD + xóa \p{M}` | Tạo bản không dấu gần đúng | **Có, mất thông tin** |
-| Transliteration | Chuyển hệ chữ theo quy tắc | Có thể mất thông tin; không phải normalization |
-| Case mapping | Chuyển hoa–thường | Có thể thay đổi ký tự/độ dài, tùy locale |
+| `Normalizer.Form.NFC` | Unifies canonical equivalence | Produces another form while preserving meaningful accent distinctions |
+| `Collator.PRIMARY` | Compares at locale-appropriate collation level | Does not alter source strings |
+| `NFD + strip \p{M}` | Creates an approximate accentless form | **Yes, lossy** |
+| Transliteration | Converts script by rules | Can lose information; not normalization |
+| Case mapping | Upper–lower conversion | May change characters/length depending on locale |
 
-**Thực hành an toàn:** lưu bản gốc có dấu; nếu cần tìm kiếm khoan dung, tạo search key **phụ** hoặc dùng khả năng collation của search engine/database. Giữ ID riêng để xử lý collision.
+**Safe practice:** keep the accented original; if tolerant search is needed, generate a **secondary** search key or use the collation capabilities of a search engine/database. Keep a separate ID to resolve collisions.
 
-## 8. So sánh để sắp xếp và so sánh để định danh là hai việc khác nhau
+## 8. Comparing to Sort and Comparing for Identity Are Two Different Jobs
 
-`List.sort(collator)` cho phép sắp danh sách tên theo locale. Nhưng comparator có thể xem hai chuỗi **ngang nhau** khi strength thấp.
+`List.sort(collator)` lets you sort a list of names by locale. However, the comparator may regard two strings as **equal** at low strength.
 
-Điều này ảnh hưởng đến những collection dùng comparator để quyết định tính duy nhất như `TreeSet` và `TreeMap`.
+This affects collections that rely on the comparator for uniqueness, such as `TreeSet` and `TreeMap`.
 
-### Ví dụ Java 17+ đầy đủ về TreeSet
+### Complete Java 17+ Example on TreeSet
 
-Tạo `CollationCollisionDemo.java`:
+Create `CollationCollisionDemo.java`:
 
 ~~~java
 import java.text.Collator;
@@ -416,14 +416,14 @@ public class CollationCollisionDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 CollationCollisionDemo.java
 java CollationCollisionDemo
 ~~~
 
-Kết quả thông dụng với tiếng Pháp:
+Common French output:
 
 ~~~text
 String equals: false
@@ -431,11 +431,11 @@ Collator equals: true
 TreeSet size: 1
 ~~~
 
-`TreeSet` dùng comparator để xác định hai phần tử có trùng hay không, vì vậy hai chuỗi khác nhau về UTF-16 có thể bị coi là cùng khóa. Đây **không phải lỗi của TreeSet** mà là hệ quả của chính sách so sánh bạn chọn.
+`TreeSet` uses the comparator to determine whether two elements are duplicates, so two strings differing in UTF-16 can be treated as the same key. This is **not a TreeSet bug**, but a consequence of the comparison policy you chose.
 
-### Cách giữ cả hai giá trị khi sắp xếp
+### How to Keep Both Values When Sorting
 
-Nếu chỉ cần thứ tự hiển thị, có thể dùng `List.sort(collator)` rồi giữ từng bản ghi với ID độc lập. Nếu cần comparator phân biệt các giá trị gốc, bổ sung tie-breaker:
+If only display order is needed, use `List.sort(collator)` and keep each record with an independent ID. If a comparator must distinguish raw values, add a tie-breaker:
 
 ~~~java
 Comparator<String> displayOrder = (left, right) -> {
@@ -444,13 +444,13 @@ Comparator<String> displayOrder = (left, right) -> {
 };
 ~~~
 
-Đây là mảnh mã trong method, cần import `java.util.Comparator` và có biến `collator` kiểu `Collator` đã cấu hình. Tie-breaker `String.compareTo` chỉ dùng **khi collator coi ngang nhau** để giữ một thứ tự ổn định/dễ phân biệt, không thay thế quy tắc collation chính. Với bản ghi có cùng tên nhưng ID khác, tie-break theo ID là cách làm đáng tin hơn.
+This is a snippet inside a method requiring import of `java.util.Comparator` and a configured `Collator` variable `collator`. The `String.compareTo` tie-breaker is used **only when the collator treats them as equal** to keep a stable/distinguishable order, without replacing primary collation rules. For records sharing the same name but different IDs, tie-breaking by ID is more reliable.
 
-## 9. Sắp xếp theo locale bằng List.sort
+## 9. Locale-Aware Sorting with List.sort
 
-Ví dụ Java 17+ không cố định thứ tự phụ thuộc dữ liệu provider:
+A Java 17+ example that does not pin provider-dependent order:
 
-Tạo `LocaleSortDemo.java`:
+Create `LocaleSortDemo.java`:
 
 ~~~java
 import java.text.Collator;
@@ -481,27 +481,27 @@ public class LocaleSortDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 LocaleSortDemo.java
 java LocaleSortDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 Count: 4
 Sorted using French collation: true
 ~~~
 
-Chương trình kiểm tra **tính chất được sắp xếp theo collator hiện dùng**, thay vì dựa vào một thứ tự ký tự cố định có thể đổi khi JDK cập nhật dữ liệu CLDR/provider.
+The program checks the **invariant of being sorted according to the active collator**, rather than relying on a fixed character sequence that could change when the JDK updates CLDR/provider data.
 
-`Collator` có trạng thái mutable qua `setStrength` và `setDecomposition`. Không chia sẻ một instance rồi đổi cấu hình liên tục theo từng request đa luồng. Tạo/copy cấu hình theo tác vụ hoặc kiểm soát đồng bộ phù hợp.
+`Collator` holds mutable state via `setStrength` and `setDecomposition`. Do not share one instance across multiple threads while constantly changing configuration per request. Create/copy configurations per task or synchronize properly.
 
-## 10. CollationKey cho nhiều lần so sánh
+## 10. CollationKey for Many Comparisons
 
-Nếu phải so sánh một tập chuỗi lớn rất nhiều lần, có thể tạo `CollationKey` từ collator đã cấu hình:
+If a large set of strings must be compared very many times, you can generate `CollationKey`s from a configured collator:
 
 ~~~java
 Collator fr = Collator.getInstance(Locale.FRENCH);
@@ -513,11 +513,11 @@ CollationKey second = fr.getCollationKey("café");
 int result = first.compareTo(second);
 ~~~
 
-Đây là mảnh mã trong method, cần import `java.text.Collator`, `java.text.CollationKey` và `java.util.Locale`.
+This is a snippet inside a method requiring imports of `java.text.Collator`, `java.text.CollationKey`, and `java.util.Locale`.
 
-### Ví dụ đầy đủ
+### Complete Example
 
-Tạo `CollationKeyDemo.java`:
+Create `CollationKeyDemo.java`:
 
 ~~~java
 import java.text.CollationKey;
@@ -541,66 +541,66 @@ public class CollationKeyDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 CollationKeyDemo.java
 java CollationKeyDemo
 ~~~
 
-Kết quả trong dữ liệu tiếng Pháp thông dụng:
+Result in common French data:
 
 ~~~text
 Direct equivalent: true
 Key equivalent: true
 ~~~
 
-**Chỉ so các CollationKey được tạo từ cấu hình tương thích**, tức cùng locale, strength, decomposition và các quy tắc liên quan. Không dùng byte của `CollationKey.toByteArray()` làm mã định danh, chữ ký hoặc khóa lưu trữ lâu dài mà không có hợp đồng quản lý phiên bản: dữ liệu collation có thể thay đổi khi nâng JDK/provider.
+**Only compare CollationKeys created from compatible configurations**, i.e., the same locale, strength, decomposition, and related rules. Do not use `CollationKey.toByteArray()` bytes as identifiers, signatures, or long-term storage keys without a version management contract: collation data can change when upgrading the JDK/provider.
 
-## 11. Hoa–thường không chỉ là đổi từng char
+## 11. Case Is More Than Swapping Individual chars
 
-`String.toLowerCase(Locale)` và `String.toUpperCase(Locale)` là các phép **biến đổi chuỗi**, khác với `equalsIgnoreCase`. Một phép case mapping Unicode có thể đổi độ dài chuỗi: ví dụ chữ `İ` trong một số bối cảnh lowercasing có thể được biểu diễn thành `i` + combining dot.
+`String.toLowerCase(Locale)` and `String.toUpperCase(Locale)` are **string transformations**, distinct from `equalsIgnoreCase`. A Unicode case mapping can alter string length: for example, `İ` in certain lowercasing contexts can be represented as `i` + combining dot.
 
-Những sai lầm cần tránh:
+Mistakes to avoid:
 
-- Dùng `Character.toLowerCase(char)` rồi nghĩ đã xử lý mọi phép biến đổi case nhiều code point.
-- Dùng `toLowerCase()` mặc định cho khóa hệ thống và ngạc nhiên khi đổi server locale.
-- Dùng `Locale.ROOT` cho so tên người và mặc định quy tắc ấy đúng cho mọi ngôn ngữ.
-- Dùng `equalsIgnoreCase` để suy ra hai tên chính thức hoặc hai tài khoản luôn tương đương.
+- Using `Character.toLowerCase(char)` and assuming all multi-code-point case transformations are handled.
+- Using default `toLowerCase()` for system keys and being surprised when the server locale changes.
+- Using `Locale.ROOT` for comparing personal names and assuming those rules work for every language.
+- Using `equalsIgnoreCase` to conclude two official names or two accounts are always equivalent.
 
-Khi cần đối chiếu ngôn ngữ, hãy dùng một công cụ có chính sách locale rõ. Khi cần xử lý **mã kỹ thuật**, hãy định nghĩa schema: có phân biệt ASCII hoa/thường không, có cho Unicode không, có normalization nào, có cho phép ký tự confusable không. `Collator` và xóa dấu **không phải bộ xác thực bảo mật**.
+When linguistic comparison is needed, use a tool with an explicit locale policy. When handling **technical codes**, define a schema: whether ASCII case matters, whether Unicode is allowed, what normalization applies, and whether confusable characters are permitted. `Collator` and accent stripping are **not security validators**.
 
-## 12. Thiết kế dữ liệu: giữ bản gốc và hỗ trợ tìm kiếm hợp lý
+## 12. Data Design: Preserve Originals and Support Reasonable Search
 
-Ví dụ danh bạ có ba tên `Ma`, `Má`, `Mã`. Nếu hệ thống chỉ giữ một khóa `ma` sau khi bỏ dấu, nó sẽ mất thông tin phân biệt.
+Suppose a directory has three names: `Ma`, `Má`, `Mã`. If the system retains only a single stripped key `ma`, it loses distinguishing information.
 
-Một thiết kế tốt hơn:
+A better design:
 
 ~~~text
-Bản ghi:
+Records:
   id = 101, displayName = "Ma"
   id = 102, displayName = "Má"
   id = 103, displayName = "Mã"
 
-Bộ tìm kiếm:
-  nhập "ma"
+Search engine:
+  query "ma"
        |
-       +--> kết quả so khớp chính xác theo bản gốc
-       +--> kết quả tương đương hoa/thường
-       +--> kết quả gần đúng theo chính sách không dấu
+       +--> exact match against original
+       +--> case-equivalent match
+       +--> approximate match per accent-insensitive policy
 
-Giao diện:
-  hiển thị lại đúng "Ma", "Má", "Mã"
-  giữ các ID độc lập
+UI:
+  displays exact "Ma", "Má", "Mã"
+  keeps IDs independent
 ~~~
 
-Tìm kiếm không dấu có thể là tính năng tốt nếu được người dùng mong đợi, nhưng phải có ranking và giải quyết collision. Không dựa trên nó để quyết định tính duy nhất của tài khoản hoặc văn bản pháp lý.
+Accent-insensitive search can be a good feature when users expect it, provided there is ranking and collision handling. Do not base account uniqueness or legal documents on it.
 
-Đối với password, token, khóa giao thức, mã xác thực, chữ ký số, đường dẫn bảo vệ quyền truy cập, phải tuân thủ **quy tắc so sánh của giao thức đó**. Collation theo ngôn ngữ thường không phù hợp và có thể khiến các chuỗi khác nhau bị đánh đồng.
+For passwords, tokens, protocol keys, verification codes, digital signatures, and access-controlled paths, follow **the comparison rules of that protocol**. Linguistic collation is usually inappropriate and can conflate distinct strings.
 
-## 13. Locale mặc định, provider và tính tái lập
+## 13. Default Locale, Provider, and Reproducibility
 
-`Collator.getInstance()` không có tham số có thể dùng default locale của JVM. Nếu trên máy phát triển locale mặc định khác production, thứ tự sắp xếp có thể khác. Với hệ thống nhiều người dùng:
+Zero-arg `Collator.getInstance()` can use the JVM default locale. If the development machine's default locale differs from production, sort order can diverge. For multi-user systems:
 
 ~~~java
 Locale viewer = Locale.forLanguageTag("vi-VN");
@@ -609,62 +609,62 @@ collator.setStrength(Collator.TERTIARY);
 collator.setDecomposition(Collator.CANONICAL_DECOMPOSITION);
 ~~~
 
-Đây là mảnh mã trong method, cần import `java.util.Locale` và `java.text.Collator`.
+This is a snippet inside a method requiring imports of `java.util.Locale` and `java.text.Collator`.
 
-Một phép kiểm thử collation đáng tin phải ghi rõ **locale**, **strength**, **decomposition**, **JDK/provider** và **mục tiêu**. Một phiên bản Java mới có thể cập nhật dữ liệu ngôn ngữ, khiến thứ tự các mục thay đổi mà không phải do lỗi chương trình.
+A reliable collation test must specify **locale**, **strength**, **decomposition**, **JDK/provider**, and **goal**. A newer Java release may update language data, changing item ordering without any bug in the program.
 
-Nếu sản phẩm có thứ tự từ điển pháp lý hoặc chỉ mục tìm kiếm được persisted, hãy có chiến lược versioning/rebuild khi nâng dữ liệu collation. Đừng gắn cứng output sắp xếp Unicode vào một thứ tự UTF-16 hay mặc định của máy chạy.
+If a product maintains legal dictionary orderings or persisted search indexes, have a versioning/rebuild strategy when upgrading collation data. Never hardcode Unicode sort outputs to UTF-16 order or the host machine's default.
 
-## 14. Các lỗi thường gặp
+## 14. Common Mistakes
 
-| Sai lầm | Hậu quả | Cách khắc phục |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Coi `equalsIgnoreCase` là so sánh theo locale | Sai với quan hệ `I/i/ı/İ` tiếng Thổ Nhĩ Kỳ | Dùng `Collator(locale)` khi mục tiêu là ngôn ngữ |
-| Dùng `compareTo` để sắp tên tiếng Việt | Thứ tự theo UTF-16 thay vì từ điển | Dùng collator có locale phù hợp |
-| Nghĩ `PRIMARY` chỉ xóa dấu | Có thể gộp cả case và nhiều khác biệt thứ cấp | Hiểu đây là mức tương đương collation |
-| Nghĩ `IDENTICAL` là `String.equals` | Nhầm quy tắc normalization và collation | Dùng so sánh chính xác riêng theo schema |
-| Nghĩ NFC loại bỏ dấu | Thay đổi dữ liệu ngoài ý muốn | NFC chỉ chuẩn hóa biểu diễn Unicode |
-| Xóa `\p{M}` trên bản gốc | Mất nghĩa và collision | Giữ bản gốc, search key phụ nếu cần |
-| Bỏ dấu được xem là transliteration toàn cầu | Không xử lý hết `Đ/ß/ł` và nhiều hệ chữ | Có chính sách chuyển tự theo ngôn ngữ |
-| Không truyền locale | Kết quả phụ thuộc máy chủ | Truyền `Locale` tường minh |
-| Dùng Collator.PRIMARY làm uniqueness trong TreeSet | Gộp mất mục khác nhau | Dùng ID/tie-breaker phù hợp |
-| Persist CollationKey làm identifier | Có thể không ổn định qua provider | Tái tạo key theo phiên bản quy tắc |
-| Dùng chung Collator mutable đa luồng | Trạng thái có thể thay đổi giữa request | Tạo instance theo tác vụ hoặc đồng bộ |
+| Treating `equalsIgnoreCase` as locale-aware comparison | Wrong for Turkish `I/i/ı/İ` relations | Use `Collator(locale)` when the goal is linguistic |
+| Using `compareTo` to sort Vietnamese names | UTF-16 order instead of dictionary order | Use a collator with the appropriate locale |
+| Thinking `PRIMARY` only strips accents | Can also collapse case and secondary differences | Understand it as a collation equivalence level |
+| Thinking `IDENTICAL` is `String.equals` | Confuses normalization and collation rules | Use dedicated exact comparison per schema |
+| Thinking NFC removes accents | Unintended data changes | NFC only normalizes Unicode representation |
+| Stripping `\p{M}` on original text | Loss of meaning and collisions | Keep original, use secondary search key if needed |
+| Treating accent stripping as universal transliteration | Misses `Đ/ß/ł` and many scripts | Define a language-specific transliteration policy |
+| Not passing a locale | Results depend on server host | Pass `Locale` explicitly |
+| Using Collator.PRIMARY for uniqueness in TreeSet | Merges and drops distinct items | Use appropriate ID/tie-breaker |
+| Persisting CollationKey as an identifier | May be unstable across providers | Regenerate keys per rule version |
+| Sharing a mutable Collator across threads | State may change between requests | Create instance per task or synchronize |
 
-## 15. Checklist kiểm thử và bài tập
+## 15. Testing Checklist and Exercises
 
 ### Checklist
 
-1. Kiểm thử `Java/java` với `String.equals` và `equalsIgnoreCase`.
-2. Kiểm thử `cafe/café` với `fr-FR` ở PRIMARY, SECONDARY, TERTIARY.
-3. Kiểm thử `I/ı` và `I/i` với `tr-TR`, so với `equalsIgnoreCase`.
-4. Kiểm thử `Straße/Strasse` với `de-DE`.
-5. Kiểm thử Unicode dựng sẵn/phân rã qua NFC.
-6. Kiểm thử `ma/má/mã` để bảo đảm giữ các mục khác nhau trong dữ liệu nguồn.
-7. Kiểm thử `TreeSet`/`TreeMap` khi comparator trả 0 cho hai chuỗi khác nhau.
-8. Kiểm thử các CollationKey được tạo bằng **cùng cấu hình**.
-9. Kiểm thử phiên bản Java/provider thực tế khi kết quả thứ tự phải tái lập.
-10. Kiểm thử đa luồng nếu dùng cache các collator có thể thay đổi trạng thái.
+1. Test `Java/java` with `String.equals` and `equalsIgnoreCase`.
+2. Test `cafe/café` with `fr-FR` at PRIMARY, SECONDARY, TERTIARY.
+3. Test `I/ı` and `I/i` with `tr-TR`, compared against `equalsIgnoreCase`.
+4. Test `Straße/Strasse` with `de-DE`.
+5. Test precomposed/decomposed Unicode via NFC.
+6. Test `ma/má/mã` to verify distinct items remain preserved in source data.
+7. Test `TreeSet`/`TreeMap` when the comparator returns 0 for two distinct strings.
+8. Test CollationKeys created with the **same configuration**.
+9. Test on the actual Java/provider version when ordering must be reproducible.
+10. Test multithreading if caching mutable collators.
 
-### Bài tập
+### Exercises
 
-1. Với `cafe` và `café`, giải thích tại sao `equalsIgnoreCase` trả false nhưng `Collator(fr-FR, PRIMARY)` có thể xem tương đương.
-2. Với `tr-TR`, in lowercasing của `I` và uppercasing của `i`. Giải thích quy tắc dotted/dotless I.
-3. So sánh `Straße` và `Strasse` bằng `equals`, `equalsIgnoreCase` và `Collator` tiếng Đức ở PRIMARY. Vì sao không được sửa bản gốc theo comparator?
-4. Tạo `"caf\u00E9"` và `"cafe\u0301"`. Kiểm tra trước/sau `Normalizer.Form.NFC`.
-5. Tạo `TreeSet<String>` với Collator PRIMARY, thêm `cafe` và `café`. Giải thích tại sao số lượng phần tử có thể bằng 1.
-6. Tìm cách sắp xếp danh sách tên vẫn giữ từng bản ghi bằng ID, dù có các tên tương đương collation.
-7. Thiết kế tìm kiếm không dấu cho `Ma/Má/Mã` với ranking nhưng không gộp ID.
-8. Phân biệt `Collator.setStrength` với `setDecomposition`.
-9. Tại sao không nên dùng `CollationKey.toByteArray()` làm một dạng mã định danh bền vững?
-10. Với một ứng dụng đa ngôn ngữ, xác định nơi nào cần so sánh **exact**, nơi nào cần **locale-aware**, và nơi nào cho phép **accent-insensitive**.
+1. For `cafe` and `café`, explain why `equalsIgnoreCase` returns false while `Collator(fr-FR, PRIMARY)` can treat them as equivalent.
+2. For `tr-TR`, print the lowercasing of `I` and uppercasing of `i`. Explain the dotted/dotless I rule.
+3. Compare `Straße` and `Strasse` using `equals`, `equalsIgnoreCase`, and a German `Collator` at PRIMARY. Why must the original not be overwritten based on the comparator?
+4. Construct `"caf\u00E9"` and `"cafe\u0301"`. Check before/after `Normalizer.Form.NFC`.
+5. Create a `TreeSet<String>` with a PRIMARY Collator and add `cafe` and `café`. Explain why the element count can be 1.
+6. Find a way to sort a list of names while retaining every record by ID, even when names are collation-equivalent.
+7. Design accent-insensitive search for `Ma/Má/Mã` with ranking but without merging IDs.
+8. Distinguish `Collator.setStrength` from `setDecomposition`.
+9. Why should `CollationKey.toByteArray()` not be used as a durable identifier?
+10. For a multilingual application, identify where **exact** comparison is required, where **locale-aware** comparison is needed, and where **accent-insensitive** matching is permitted.
 
-**Ghi nhớ:** hoa–thường, dấu và quy tắc sắp xếp thuộc **nhiều lớp khác nhau**. `String.equals`/`equalsIgnoreCase` không có chính sách locale; `Collator` so sánh theo locale với các mức PRIMARY/SECONDARY/TERTIARY/IDENTICAL; `Normalizer` xử lý tương đương Unicode nhưng **không** xóa dấu. Hãy chọn API theo mục tiêu, bảo toàn nội dung gốc, truyền locale rõ và không đánh đồng “tương đương khi tìm kiếm” với “cùng một định danh”.
+**Takeaway:** case, accents, and sorting rules belong to **different layers**. `String.equals`/`equalsIgnoreCase` have no locale policy; `Collator` compares by locale at PRIMARY/SECONDARY/TERTIARY/IDENTICAL levels; `Normalizer` handles Unicode equivalence but does **not** strip accents. Choose the API by intent, preserve original content, pass locale explicitly, and never equate "equivalent in search" with "same identity."
 
-### Tài liệu tham khảo
+### References
 
-- [Java SE 17 — Collator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Collator.html) — so sánh theo locale, strength và decomposition.
-- [Java SE 17 — CollationKey](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/CollationKey.html) — hiệu quả khi so sánh nhiều lần và quy tắc dùng key.
+- [Java SE 17 — Collator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Collator.html) — locale-based comparison, strength, and decomposition.
+- [Java SE 17 — CollationKey](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/CollationKey.html) — efficiency in repeated comparisons and key usage rules.
 - [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html) — equals, equalsIgnoreCase, compareTo, case conversion.
 - [Java SE 17 — Normalizer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Normalizer.html) — Unicode NFC/NFD/NFKC/NFKD.
 - [Unicode Technical Standard #10](https://www.unicode.org/reports/tr10/) — Unicode Collation Algorithm.

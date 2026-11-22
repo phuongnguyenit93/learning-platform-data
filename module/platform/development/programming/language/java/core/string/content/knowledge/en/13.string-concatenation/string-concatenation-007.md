@@ -1,24 +1,24 @@
-# Nối chuỗi trong một biểu thức so với tích lũy qua vòng lặp trong Java
+# String Concatenation in a Single Expression vs. Accumulation Across Loops in Java
 
-Trong Java, **cách nối chuỗi nên phụ thuộc vào cách dữ liệu được tạo ra**. Nếu chỉ ghép vài thành phần trong **một biểu thức**, toán tử `+` thường rõ ràng, dễ bảo trì và được trình biên dịch/JVM hiện đại tối ưu. Nếu **tích lũy văn bản sau nhiều lần lặp**, sử dụng `StringBuilder` hoặc một API ghép phù hợp thường tránh được việc liên tục tạo chuỗi trung gian và sao chép tiền tố đã có.
+In Java, **how you concatenate strings should depend on how the data is produced**. If you are only joining a few parts within **a single expression**, the `+` operator is usually clear, easy to maintain, and well-optimized by modern compilers and JVMs. If you are **accumulating text across many loop iterations**, using `StringBuilder` or an appropriate joining API generally avoids repeatedly creating intermediate strings and copying the existing prefix.
 
-Ví dụ hai cách dưới đây đều có thể cho kết quả `"Java 17"`, nhưng chúng diễn đạt những công việc khác nhau:
+For example, both approaches below produce `"Java 17"`, yet they express different kinds of work:
 
 ```java
-String oneExpression = "Java" + " " + 17; // Một biểu thức nối.
+String oneExpression = "Java" + " " + 17; // A single concatenation expression.
 
 StringBuilder builder = new StringBuilder();
 builder.append("Java");
 builder.append(" ");
 builder.append(17);
-String accumulated = builder.toString();   // Tích lũy nhiều bước.
+String accumulated = builder.toString();   // Multi-step accumulation.
 ```
 
-Không có quy tắc “**mọi phép `+` đều chậm**” hay “**luôn phải dùng `StringBuilder`**”. Cần phân biệt nơi mã nguồn tạo một biểu thức nối với nơi chương trình xây kết quả qua nhiều vòng lặp hoặc nhiều nhánh.
+There is no rule that “**every `+` is slow**” or “**you must always use `StringBuilder`**”. Distinguish between code that forms a single concatenation expression and code that builds a result across multiple loop iterations or branches.
 
-## 1. Cơ sở: `String` bất biến và kết quả của phép nối
+## 1. Foundation: `String` immutability and concatenation results
 
-Đối tượng `String` là *immutable*: giá trị văn bản bên trong một đối tượng đã tạo không thể bị sửa qua API thông thường. Do đó:
+A `String` object is *immutable*: the text value inside an already created object cannot be modified through normal APIs. Therefore:
 
 ```java
 String first = "Java";
@@ -28,25 +28,25 @@ System.out.println(first);  // Java
 System.out.println(second); // Java 17
 ```
 
-Biểu thức nối tạo ra **giá trị chuỗi kết quả**, không thêm ký tự vào đối tượng `first` đang tồn tại. Trong tình huống có giá trị mới khác giá trị cũ, cần có một đối tượng `String` biểu diễn kết quả mới. Cách JVM tạo kết quả có thể được tối ưu tùy JDK, nhưng tính bất biến của đối tượng là hợp đồng không đổi.
+A concatenation expression produces a **result string value**, rather than appending characters onto the existing `first` object. Whenever the new value differs from the old one, a `String` object is needed to represent the new result. How the JVM constructs the result may be optimized depending on the JDK, but object immutability is an invariant contract.
 
-Phép gán cộng `+=` cũng không biến `String` thành kiểu mutable:
+Compound assignment `+=` does not make `String` mutable either:
 
 ```java
 String message = "A";
 String oldMessage = message;
 
-message += "B";  // Tương đương về kết quả với message = message + "B";
+message += "B";  // Equivalent in result to message = message + "B";
 
 System.out.println(message);    // AB
 System.out.println(oldMessage); // A
 ```
 
-Biến `message` nhận tham chiếu tới giá trị mới; `oldMessage` tiếp tục giữ nội dung `"A"`. Nếu một vòng lặp thực hiện `message += item` nhiều lần, mỗi vòng về mặt ngữ nghĩa đang xây **giá trị kết quả kế tiếp** từ giá trị trước.
+The variable `message` receives a reference to the new value; `oldMessage` continues to hold `"A"`. If a loop executes `message += item` many times, each iteration semantically builds **the next result value** from the previous one.
 
-## 2. Nối vài thành phần trong **một biểu thức**: dùng `+` cho dễ đọc
+## 2. Joining a few parts in **a single expression**: use `+` for readability
 
-Cú pháp `+` với ít nhất một toán hạng là `String` thực hiện nối văn bản:
+The `+` syntax with at least one `String` operand performs text concatenation:
 
 ```java
 String user = "An";
@@ -55,33 +55,33 @@ String label = "User: " + user + ", points: " + points;
 // label = "User: An, points: 12"
 ```
 
-Một biểu thức có nhiều phần vẫn là một đơn vị mã nguồn rõ ràng: JVM có thể xây kết quả mà không cần lặp qua một chuỗi tiền tố được mở rộng thủ công. Ví dụ thường phù hợp:
+An expression with several parts is still a single clear unit of source code: the JVM can construct the result without iterating over a manually extended prefix string. Common suitable examples:
 
-- Tạo thông điệp ngắn từ hai đến vài biến: `"Hello, " + name + "!"`.
-- Tạo nhãn hiển thị: `"Score: " + score`.
-- Ghép một vài thành phần cấu hình nếu cú pháp dễ hiểu và dữ liệu đã được kiểm tra.
+- Building a short message from two to a few variables: `"Hello, " + name + "!"`.
+- Creating display labels: `"Score: " + score`.
+- Joining a few configuration components when syntax is easy to read and data is already validated.
 
-Với các toán hạng là **hằng thời gian biên dịch**, trình biên dịch có thể nối thành một hằng chuỗi ngay khi biên dịch:
+When operands are **compile-time constants**, the compiler can fold them into a single string constant at compile time:
 
 ```java
-String s = "Ja" + "va"; // Constant expression, giá trị "Java".
+String s = "Ja" + "va"; // Constant expression, value "Java".
 ```
 
-Đây là lý do không thể suy luận rằng `"Ja" + "va"` phải cấp phát các chuỗi trung gian tại mỗi lần chạy.
+This is why you cannot assume `"Ja" + "va"` must allocate intermediate strings on every run.
 
-### Java hiện đại tối ưu phép nối như thế nào?
+### How does modern Java optimize concatenation?
 
-Trước Java 9, nhiều phép nối chuỗi được trình biên dịch triển khai tương đương với tạo và sử dụng `StringBuilder`. Từ **Java 9**, JEP 280 (*Indify String Concatenation*) đưa ra cơ chế tạo bytecode bằng `invokedynamic`, cho phép runtime chọn chiến lược nối phù hợp qua `java.lang.invoke.StringConcatFactory`.
+Prior to Java 9, many string concatenations were compiled into code equivalent to creating and using a `StringBuilder`. Since **Java 9**, JEP 280 (*Indify String Concatenation*) introduced bytecode generation via `invokedynamic`, allowing the runtime to choose an appropriate concatenation strategy through `java.lang.invoke.StringConcatFactory`.
 
-Trong Java 17+, trình biên dịch thông thường có thể dùng cơ chế này cho biểu thức nối động, thay vì cố định một chuỗi lệnh tạo `StringBuilder` trực tiếp. Những tối ưu cụ thể phụ thuộc phiên bản JVM, loại giá trị và bối cảnh JIT. Tuy nhiên, điều quan trọng với người học là:
+In Java 17+, the compiler can typically use this mechanism for dynamic concatenation expressions rather than hardcoding a sequence of direct `StringBuilder` creation instructions. Specific optimizations depend on JVM version, value types, and JIT context. However, the key points for learners are:
 
-1. **Một biểu thức nối ngắn bằng `+` thường là lựa chọn tốt.** Mã rõ ràng và JVM có cơ hội tối ưu.
-2. **Đừng tự viết `new StringBuilder().append(...).append(...).toString()` cho mọi dòng `+`** khi không có lý do rõ ràng. Mã có thể dài hơn mà không nhanh hơn trong điều kiện thực tế.
-3. **Tối ưu cho một biểu thức không tự động giải quyết tích lũy qua nhiều vòng lặp.** Đó là cấu trúc thuật toán khác, cần xét riêng.
+1. **A short concatenation expression with `+` is usually a good choice.** The code is clear and the JVM has opportunities to optimize it.
+2. **Do not manually write `new StringBuilder().append(...).append(...).toString()` for every `+` line** without a clear reason. The code becomes longer without being faster in practice.
+3. **Optimizing a single expression does not automatically solve multi-iteration loop accumulation.** That is a different algorithmic pattern and must be evaluated separately.
 
-## 3. Tích lũy qua vòng lặp bằng `+=`: chi phí nằm ở tiền tố lặp lại
+## 3. Loop accumulation with `+=`: the cost lies in the repeated prefix
 
-Xét đoạn mã:
+Consider the following code:
 
 ```java
 String result = "";
@@ -93,28 +93,28 @@ for (int i = 1; i <= 4; i++) {
 System.out.println(result); // 1234
 ```
 
-Vòng lặp tạo kết quả liên tiếp:
+The loop builds successive results:
 
 ```text
-Lần 1: ""     + "1" → "1"
-Lần 2: "1"    + "2" → "12"
-Lần 3: "12"   + "3" → "123"
-Lần 4: "123"  + "4" → "1234"
+Iteration 1: ""     + "1" → "1"
+Iteration 2: "1"    + "2" → "12"
+Iteration 3: "12"   + "3" → "123"
+Iteration 4: "123"  + "4" → "1234"
 ```
 
-Ở mỗi bước, phép nối cần tạo giá trị mới từ toàn bộ phần đã tích lũy và phần tiếp theo. **Nếu các lần nối lần lượt sao chép toàn bộ tiền tố**, tổng lượng dữ liệu được xử lý trong trường hợp `n` đoạn có độ dài gần bằng nhau tăng theo dãy:
+At each step, concatenation needs to create a new value from the entire accumulated part plus the next piece. **If successive concatenations copy the entire prefix each time**, the total amount of data processed for `n` segments of roughly equal length grows as the series:
 
 ```text
 1 + 2 + 3 + ... + n = n(n + 1) / 2
 ```
 
-Đây là **mô hình chi phí có thể tiến tới bậc O(n²)** theo số đoạn khi dùng nối tạo chuỗi mới qua mỗi vòng. Thời gian thực tế có thể khác do runtime tối ưu, độ dài các đoạn, chi phí số hóa dữ liệu và JIT. Không nên tuyên bố rằng Java 17 sẽ luôn tốn đúng bậc thời gian đó với mọi đoạn mã, nhưng mô hình cho thấy **vì sao cách lặp với `+=` là lựa chọn kém ổn định khi dữ liệu tăng lớn**.
+This is a **cost model that can approach O(n²)** in the number of segments when creating a new string on every iteration. Actual runtime may differ due to runtime optimizations, segment lengths, value formatting costs, and JIT. You should not claim that Java 17 will always take that exact time bound for every snippet, yet the model explains **why looping with `+=` scales poorly as data grows large**.
 
-Việc lặp tạo các kết quả trung gian cũng có thể tăng áp lực lên bộ cấp phát và garbage collector. Nếu chuỗi chỉ có ba phần và vòng lặp chạy rất ít lần, chi phí có thể không đáng kể; nếu dựng hàng nghìn mục, vấn đề trở nên quan trọng hơn.
+Repeatedly creating intermediate results can also increase pressure on the allocator and garbage collector. If the string has only three parts and the loop runs very few times, the cost may be negligible; if building thousands of items, the issue becomes much more significant.
 
-## 4. `StringBuilder`: một vùng đệm mutable cho nhiều bước nối
+## 4. `StringBuilder`: a mutable buffer for multi-step concatenation
 
-`StringBuilder` là lớp có thể thay đổi nội dung. Nó hỗ trợ `append()`, `insert()`, `delete()`, `setCharAt()`, v.v. Thay vì liên tiếp tạo `String` trung gian làm kết quả tích lũy, mã có thể cập nhật **cùng một builder**:
+`StringBuilder` is a class with mutable contents. It supports `append()`, `insert()`, `delete()`, `setCharAt()`, and more. Instead of repeatedly creating intermediate `String` values as the accumulated result, code can update **the same builder**:
 
 ```java
 StringBuilder builder = new StringBuilder();
@@ -127,17 +127,17 @@ String result = builder.toString();
 System.out.println(result); // 1234
 ```
 
-Cơ chế cần hiểu:
+Mechanics to understand:
 
-- `new StringBuilder()` tạo một đối tượng giữ bộ đệm ký tự bên trong (chi tiết biểu diễn có thể thay đổi giữa các JDK).
-- `append(value)` thêm biểu diễn văn bản của giá trị vào cuối nội dung hiện tại, và trả về chính builder để có thể gọi liên tiếp.
-- Khi không đủ dung lượng, builder có thể mở rộng bộ đệm; việc mở rộng vẫn có chi phí, nhưng không yêu cầu tạo `String` kết quả sau **mỗi** lần thêm.
-- `toString()` tạo giá trị `String` có nội dung tại thời điểm gọi, dùng để trả về, lưu hoặc chia sẻ với phần mềm khác.
-- `StringBuilder` **không bảo đảm an toàn luồng** nếu nhiều luồng cùng sửa một instance.
+- `new StringBuilder()` creates an object holding an internal character buffer (representation details may vary across JDKs).
+- `append(value)` appends the textual representation of the value to the end of the current content and returns the builder itself for chained calls.
+- When capacity is exceeded, the builder can expand its buffer; resizing still has a cost, yet it does not require creating a result `String` after **every** append.
+- `toString()` produces a `String` value containing the content at the time of the call, for returning, storing, or sharing with other code.
+- `StringBuilder` **is not thread-safe** if multiple threads mutate the same instance concurrently.
 
-Đối với mẫu thêm tuần tự các đoạn có tổng độ dài `m`, builder thường giúp tránh việc liên tục sao chép tiền tố ở mỗi vòng. Không phải mọi thao tác trên builder đều luôn có độ phức tạp tuyến tính: `insert()` hoặc `delete()` ở vị trí giữa có thể dịch chuyển dữ liệu; tạo quá ít dung lượng ban đầu cũng có thể gây cấp phát lại.
+For the pattern of sequentially appending segments with total length `m`, a builder generally avoids repeatedly copying the prefix on each iteration. Not every builder operation is linear-time: `insert()` or `delete()` in the middle can shift data; choosing too small an initial capacity can also trigger reallocations.
 
-### Có thể nối liên tiếp bằng cách gọi chuỗi phương thức
+### You can append sequentially using method chaining
 
 ```java
 StringBuilder builder = new StringBuilder();
@@ -150,11 +150,11 @@ String output = builder.toString();
 // "Name: An, score: 12"
 ```
 
-Cách gọi này thường hữu ích trong mã cần bổ sung nhiều phần có điều kiện hoặc lặp. Với **một biểu thức ngắn** `"Name: " + name + ", score: " + score` vẫn có thể rõ ràng hơn.
+This style is often helpful in code that conditionally or iteratively adds multiple parts. For **a single short expression**, `"Name: " + name + ", score: " + score` may still be clearer.
 
-## 5. Chương trình Java 17+ hoàn chỉnh: cùng kết quả, cách tích lũy khác nhau
+## 5. Complete Java 17+ program: same result, different accumulation strategies
 
-Tạo tệp `ConcatLoopDemo.java`:
+Create the file `ConcatLoopDemo.java`:
 
 ```java
 public class ConcatLoopDemo {
@@ -196,14 +196,14 @@ public class ConcatLoopDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac ConcatLoopDemo.java
 java ConcatLoopDemo
 ```
 
-Kết quả chính xác:
+Exact output:
 
 ```text
 plusEquals = 1, 2, 3, 4
@@ -212,26 +212,26 @@ sameContent = true
 Items: 4, ready: true
 ```
 
-Hai hàm trả về **nội dung như nhau**. Điều khác là mô hình tạo kết quả: `withPlusEquals()` liên tục nối vào một biến `String` qua nhiều lượt, còn `withBuilder()` bổ sung vào một đối tượng có thể thay đổi rồi gọi `toString()` ở cuối. Vì vậy, đối với tích lũy qua vòng lặp với dữ liệu tăng, `StringBuilder` thường là lựa chọn dễ dự đoán hơn về chi phí.
+Both methods return **the same content**. What differs is the construction model: `withPlusEquals()` repeatedly concatenates onto a `String` variable across iterations, while `withBuilder()` appends into a mutable object and calls `toString()` at the end. Therefore, for loop accumulation with growing data, `StringBuilder` is usually the more predictable choice for cost.
 
-Không dùng chương trình này để “đo hiệu năng”: nó chỉ chứng minh **tính đúng đắn và sự tương đương đầu ra**. Sự khác biệt về thời gian chạy cần một phép đo benchmark phù hợp.
+Do not use this program to “measure performance”: it only demonstrates **correctness and output equivalence**. Runtime differences require a proper benchmark.
 
-## 6. Toán tử `+` có những quy tắc dễ gây sai kết quả
+## 6. The `+` operator has rules that can easily produce wrong results
 
-Phép `+` trên `String` vẫn tuân theo thứ tự kết hợp trái và string conversion. Nếu biểu thức chứa phép tính số, cần ngoặc cho rõ ý:
+The `+` operation on `String` still follows left-associativity and string conversion. If an expression contains arithmetic, parentheses are needed for clarity:
 
 ```java
 System.out.println("Sum = " + 1 + 2);   // Sum = 12
 System.out.println("Sum = " + (1 + 2)); // Sum = 3
 ```
 
-Khi đối số là `null`, phép nối có thể sinh chữ `"null"`; `concat(null)` lại có thể ném `NullPointerException`. Những quy tắc cú pháp và null này đã có bài riêng. Trong bài này, điều cần phân biệt là **một biểu thức ngắn** với **tích lũy tiền tố qua nhiều lần lặp**.
+When an argument is `null`, concatenation can produce the text `"null"`; `concat(null)` can throw `NullPointerException`. Those syntax and null rules have their own lessons. In this lesson, the distinction to focus on is **a single short expression** versus **prefix accumulation across many iterations**.
 
-## 7. Dấu phân cách: đừng nối dư dấu cuối hoặc xây chuỗi bằng cách cắt bớt
+## 7. Delimiters: avoid trailing-delimiter bugs or trimming after building
 
-Một lỗi thường gặp khi ghép danh sách là thêm dấu `, ` sau mọi phần tử rồi cắt hai ký tự ở cuối. Cách này cần xử lý danh sách rỗng và có thể dẫn đến truy cập sai chỉ số.
+A common mistake when joining a list is appending `", "` after every element and then trimming the last two characters. That approach requires special handling for empty lists and can lead to off-by-one indexing bugs.
 
-Thay vào đó, chỉ thêm dấu phân cách **trước phần tử thứ hai trở đi**:
+Instead, prepend the delimiter **only before the second element onward**:
 
 ```java
 StringBuilder builder = new StringBuilder();
@@ -247,7 +247,7 @@ for (String tag : tags) {
 System.out.println(builder); // java, core, string
 ```
 
-Đoạn này chỉ dùng được nguyên tắc `builder.length() > 0` khi các phần tử đầu tiên không phải chuỗi rỗng; với phần tử `""`, kết quả có thể thiếu dấu phân cách mong muốn. Một cách chắc chắn hơn là dùng **cờ `first`** hoặc **chỉ số vòng lặp**. Cách sau áp dụng đúng kể cả khi phần tử rỗng:
+Checking `builder.length() > 0` only works when earlier elements are not empty strings; with an element `""`, the output can miss a desired delimiter. A more reliable approach is a **`first` flag** or a **loop index**. The following handles empty elements properly:
 
 ```java
 String[] tags = {"", "java", "core"};
@@ -263,7 +263,7 @@ for (int i = 0; i < tags.length; i++) {
 System.out.println("[" + builder + "]"); // [, java, core]
 ```
 
-Đối với danh sách đã có, `String.join()` hoặc `StringJoiner` thường đơn giản hơn. Chúng có ngữ nghĩa dấu phân cách rõ ràng và tránh việc tự quản lý điều kiện phần tử đầu/cuối:
+For an existing list, `String.join()` or `StringJoiner` is often simpler. They have clear delimiter semantics and avoid manual first/last element conditions:
 
 ```java
 java.util.List<String> tags =
@@ -273,11 +273,11 @@ String joined = String.join(", ", tags);
 System.out.println(joined); // java, core, string
 ```
 
-**Chọn API dựa trên cấu trúc dữ liệu**: `String.join()` khi đã có danh sách/varargs chuỗi; `StringJoiner` khi thêm các phần tử dần dần với delimiter; `StringBuilder` khi cần xây nhiều dạng nội dung tùy biến.
+**Choose the API based on data structure**: `String.join()` when you already have a list/varargs of strings; `StringJoiner` when adding elements incrementally with a delimiter; `StringBuilder` when constructing varied custom text.
 
-## 8. `StringJoiner`: tích lũy nhiều phần với delimiter, prefix và suffix
+## 8. `StringJoiner`: accumulating parts with delimiter, prefix, and suffix
 
-Tạo tệp `StringJoinerDemo.java`:
+Create the file `StringJoinerDemo.java`:
 
 ```java
 import java.util.List;
@@ -301,14 +301,14 @@ public class StringJoinerDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac StringJoinerDemo.java
 java StringJoinerDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 joiner = [java, core, string]
@@ -316,13 +316,13 @@ stringJoin = java | core | string
 emptyJoiner = []
 ```
 
-`StringJoiner` hỗ trợ thêm phần tử dần qua `add()`, tự quản lý dấu phân cách giữa các phần tử và có thể thêm tiền tố/hậu tố. Đây là giải pháp thuận tiện khi yêu cầu chính là **nối danh sách**, thay vì xây một văn bản có cấu trúc phức tạp.
+`StringJoiner` supports adding elements gradually via `add()`, manages delimiters between elements automatically, and can include a prefix/suffix. It is convenient when the primary requirement is **joining a list**, rather than building complex structured text.
 
-Nếu cần nối các giá trị từ stream, có thể dùng `Collectors.joining(", ")`. Tuy vậy, không cần chuyển một danh sách nhỏ sang stream chỉ để thay một lời gọi `String.join()` rõ ràng.
+If you need to join values from a stream, you can use `Collectors.joining(", ")`. Still, do not convert a small list into a stream just to replace a clear `String.join()` call.
 
-## 9. Khi nào nên cấp trước dung lượng `StringBuilder`?
+## 9. When should you pre-size `StringBuilder` capacity?
 
-Bạn có thể cung cấp dung lượng ban đầu khi đã biết **ước lượng hợp lý** số UTF-16 code units của kết quả:
+You can supply an initial capacity when you have a **reasonable estimate** of the result's UTF-16 code unit count:
 
 ```java
 String[] chunks = {"abc", "def", "ghi"};
@@ -340,21 +340,21 @@ for (String chunk : chunks) {
 System.out.println(builder.toString()); // abcdefghi
 ```
 
-Ví dụ này là fragment đặt trong một phương thức; `estimatedLength` được tính đúng bằng tổng độ dài ba chuỗi. Đặt capacity ban đầu có thể giảm số lần phải mở rộng bộ đệm.
+This example is a fragment placed inside a method; `estimatedLength` equals the exact sum of the three string lengths. Setting initial capacity can reduce buffer resizes.
 
-Cần phân biệt:
+Distinguish between:
 
-- **`capacity()`** của builder: dung lượng bộ đệm có thể chứa trước khi cần mở rộng.
-- **`length()`** của builder: độ dài văn bản thực đang có, tính bằng UTF-16 code units.
-- `new StringBuilder(100)` **không** tạo sẵn một chuỗi dài 100 ký tự; ban đầu `length() == 0`.
-- `ensureCapacity(minimumCapacity)` có thể bảo đảm dung lượng tối thiểu khi cần, nhưng không thêm nội dung.
-- Dung lượng ước lượng quá lớn sẽ tiêu thụ bộ nhớ không cần thiết; đừng cấp phát quá mức theo một phỏng đoán thiếu cơ sở.
+- **Builder `capacity()`**: the buffer capacity available before resizing is needed.
+- **Builder `length()`**: the current actual text length, measured in UTF-16 code units.
+- `new StringBuilder(100)` does **not** pre-create a 100-character string; initially `length() == 0`.
+- `ensureCapacity(minimumCapacity)` can guarantee a minimum capacity when needed, without adding content.
+- Overestimating capacity wastes memory unnecessarily; do not over-allocate based on an unfounded guess.
 
-Với dữ liệu rất lớn, phép tính tổng độ dài bằng `int` cần xét giới hạn và tránh tràn số nguyên. Với công việc thông thường, dùng builder mặc định thường đã đủ; chỉ tối ưu capacity khi việc đo đạc cho thấy có lợi.
+For very large data, summing lengths in an `int` requires checking limits and avoiding integer overflow. For everyday tasks, the default builder is usually sufficient; optimize capacity only when measurements show a benefit.
 
-## 10. `StringBuilder.toString()` tạo một ảnh chụp giá trị chuỗi
+## 10. `StringBuilder.toString()` creates a snapshot of the string value
 
-Khi lấy kết quả từ builder, `String` trả về không trở thành “cửa sổ sống” vào trạng thái của builder:
+When retrieving the result from a builder, the returned `String` does not become a “live view” into the builder's state:
 
 ```java
 StringBuilder builder = new StringBuilder("A");
@@ -367,20 +367,20 @@ System.out.println("before = " + before);
 System.out.println("after = " + after);
 ```
 
-Kết quả:
+Output:
 
 ```text
 before = A
 after = AB
 ```
 
-Biến `before` vẫn là `"A"` vì đối tượng `String` bất biến. Nếu cần tạo nhiều bản ghi snapshot ở các thời điểm khác nhau, gọi `toString()` ở mỗi thời điểm là hành vi đúng, nhưng cũng tạo thêm giá trị kết quả tương ứng.
+`before` remains `"A"` because `String` objects are immutable. If you need multiple snapshots at different points in time, calling `toString()` at each point works as expected, though it also allocates corresponding result values.
 
-Thông thường, nếu chỉ cần kết quả cuối cùng, nên **tích lũy hết rồi gọi `toString()` một lần**. Đừng gọi `toString()` mỗi vòng để rồi dùng kết quả đó làm chuỗi nguồn cho vòng lặp tiếp theo; như vậy sẽ làm mất lợi ích chính của bộ đệm tích lũy.
+Usually, if you only need the final output, **accumulate everything first and call `toString()` once**. Do not call `toString()` on every iteration just to use that result as the source string for the next iteration; doing so defeats the primary benefit of the mutable buffer.
 
-## 11. Unicode không thay đổi nguyên tắc lựa chọn, nhưng ảnh hưởng độ dài
+## 11. Unicode does not change the choice rule, but affects length
 
-`String.length()` và `StringBuilder.length()` tính theo **UTF-16 code units**. Một Unicode code point ngoài BMP như nhiều emoji có thể chiếm hai code units:
+`String.length()` and `StringBuilder.length()` count **UTF-16 code units**. A Unicode code point outside the BMP, such as many emojis, can occupy two code units:
 
 ```java
 String emoji = "\uD83D\uDE00"; // 😀
@@ -394,21 +394,21 @@ System.out.println(one.length());                    // 4
 System.out.println(builder.length());                // 4
 ```
 
-Tính đúng của phép nối không bị thay đổi: cả `+` và `append()` đều giữ nguyên dãy đơn vị mã của các đoạn nguồn trong ví dụ. Tuy nhiên, khi ước lượng capacity, giới hạn độ dài hoặc cắt văn bản, không được mặc định “số ký tự nhìn thấy” luôn bằng `length()`.
+Concatenation correctness is unaffected: both `+` and `append()` preserve the code unit sequences of the source segments in this example. However, when estimating capacity, enforcing length limits, or slicing text, never assume “visible character count” always equals `length()`.
 
-Một builder cũng có thể bị sửa theo chỉ số với `setCharAt()`, `delete()` hoặc `insert()`; việc cắt giữa surrogate pair có thể tạo văn bản Unicode không hợp lệ. Nếu chỉ cần nối nguyên vẹn các đoạn Unicode đã hợp lệ, các phép `append()` tuần tự thường đơn giản hơn nhiều.
+A builder can also be modified by index with `setCharAt()`, `delete()`, or `insert()`; slicing in the middle of a surrogate pair can produce invalid Unicode text. When you only need to join intact, valid Unicode segments, sequential `append()` calls are far simpler.
 
-## 12. Giới hạn, chia sẻ nhiều luồng và API liên quan
+## 12. Limitations, multithreading, and related APIs
 
-### Không chia sẻ một `StringBuilder` để sửa đồng thời mà thiếu đồng bộ
+### Do not share a single `StringBuilder` for concurrent mutation without synchronization
 
-`StringBuilder` không đồng bộ hóa các phương thức của nó. Nếu hai luồng cùng gọi `append()` trên một instance, nội dung có thể bị race condition và không có bảo đảm đúng thứ tự hoặc toàn vẹn.
+`StringBuilder` does not synchronize its methods. If two threads call `append()` concurrently on the same instance, contents can suffer race conditions with no guarantee of order or integrity.
 
-Nếu mỗi request hoặc mỗi tác vụ tạo builder **cục bộ riêng**, không có vấn đề chia sẻ đó. Với trường hợp thực sự cần thao tác trên bộ đệm chung giữa các luồng, cân nhắc đồng bộ thích hợp hoặc `StringBuffer` (các phương thức chính được đồng bộ hóa). Dù dùng `StringBuffer`, một quy trình gồm nhiều lời gọi vẫn cần kiểm tra tính nguyên tử ở cấp quy trình.
+If each request or task creates its **own local** builder, that sharing issue does not exist. When you genuinely need to operate on a shared buffer across threads, consider proper synchronization or `StringBuffer` (whose main methods are synchronized). Even with `StringBuffer`, a multi-call workflow still needs workflow-level atomicity checks.
 
-### `StringBuilder` không cần cho mọi đoạn mã có vòng lặp
+### `StringBuilder` is not needed for every loop
 
-Trường hợp này không phải tích lũy một chuỗi qua các lượt:
+This case does not accumulate one string across iterations:
 
 ```java
 for (int i = 0; i < 3; i++) {
@@ -416,47 +416,47 @@ for (int i = 0; i < 3; i++) {
 }
 ```
 
-Mỗi vòng chỉ cần một **thông điệp độc lập**, không dựng một kết quả lớn từ các thông điệp cũ. Dùng `"Item " + i` là rõ ràng và hoàn toàn hợp lý. Vấn đề đáng cân nhắc là khi **cùng một biến chuỗi kết quả** được nối rồi gán lại liên tục, ví dụ `result += item`.
+Each iteration only needs an **independent message**, rather than building one large result from prior messages. Using `"Item " + i` is clear and completely reasonable. What warrants attention is when **the same result string variable** is concatenated and reassigned repeatedly, such as `result += item`.
 
-### Tránh ghép chuỗi vô ích khi API đã có tham số cấu trúc
+### Avoid pointless concatenation when an API already supports structured parameters
 
-Ví dụ câu SQL có tham số, logging theo mẫu placeholder hoặc API xuất CSV/JSON có quy tắc escape riêng thường nên dùng khả năng cấu trúc của API đó. Không dùng nối chuỗi thủ công để thay thế cơ chế escape, tham số hóa hoặc serialize đúng chuẩn.
+For parameterized SQL queries, placeholder-based logging, or CSV/JSON writers with specific escaping rules, prefer the structured capabilities of that API. Do not use manual string concatenation as a substitute for proper escaping, parameterization, or serialization.
 
-Lựa chọn `StringBuilder` chỉ giải quyết cách dựng chuỗi và chi phí bộ đệm; nó **không tự giải quyết** nguy cơ SQL injection, lỗi escaping JSON hay cách định dạng ngày/số theo locale.
+Choosing `StringBuilder` only addresses how strings are built and buffer costs; it **does not solve** SQL injection risks, JSON escaping bugs, or locale-specific date/number formatting.
 
-## 13. So sánh hiệu năng đúng cách
+## 13. Comparing performance properly
 
-Đừng kết luận “nhanh hơn X lần” chỉ từ một lần chạy `System.nanoTime()`. Kết quả vi mô bị ảnh hưởng bởi JIT warmup, dead-code elimination, cấp phát/GC, dữ liệu đầu vào, CPU và phiên bản JVM.
+Do not conclude “X times faster” from a single `System.nanoTime()` run. Micro-results are skewed by JIT warmup, dead-code elimination, allocation/GC, input data, CPU, and JVM version.
 
-Nếu thực sự cần so sánh:
+If you truly need to compare:
 
-1. Định nghĩa công việc giống nhau: cùng dữ liệu đầu vào, số vòng, cùng kết quả đầu ra.
-2. Tạo các phương án có cùng ngữ nghĩa; tránh trường hợp nhánh này xử lý thêm dữ liệu hoặc khác delimiter.
-3. Dùng công cụ benchmark phù hợp như **JMH**, có warmup, measurement, fork và cơ chế tiêu thụ kết quả để tránh JVM loại bỏ phép tính.
-4. Thử dữ liệu có kích thước thực tế (vài phần tử, hàng trăm, hàng nghìn…) và, khi liên quan, nhiều kiểu Unicode/độ dài đoạn.
-5. Đo cả thời gian lẫn lượng cấp phát hoặc GC nếu đó là vấn đề hiệu năng cần tối ưu.
-6. Kiểm tra kết quả trước và sau mọi thay đổi tối ưu.
+1. Define identical work: same input data, iteration count, and output result.
+2. Make the alternatives semantically equivalent; avoid one branch doing extra processing or using a different delimiter.
+3. Use a proper benchmarking tool such as **JMH**, with warmup, measurement, forks, and result consumption (blackholes) to prevent the JVM from optimizing away the computation.
+4. Test realistic data sizes (a few elements, hundreds, thousands, …) and, where relevant, varied Unicode/segment lengths.
+5. Measure both execution time and allocation/GC rate if that is the performance concern being optimized.
+6. Verify correctness before and after any optimization change.
 
-Quy tắc thiết kế vẫn hữu ích ngay cả khi chưa benchmark: **`+` cho một biểu thức ngắn; `StringBuilder` cho một tiến trình tích lũy nhiều đoạn trong vòng lặp**. Khi khác biệt không quan trọng, mã đơn giản và dễ hiểu là ưu tiên.
+The design rule remains useful even before benchmarking: **`+` for a short expression; `StringBuilder` for accumulating many segments in a loop**. When the difference is insignificant, simpler, more readable code takes priority.
 
-## 14. Lỗi phổ biến
+## 14. Common mistakes
 
-| Lỗi | Vì sao có vấn đề? | Hướng sửa |
+| Mistake | Why is it a problem? | Fix |
 | --- | --- | --- |
-| “Mỗi `+` đều chậm, phải thay bằng `StringBuilder`.” | Java hiện đại tối ưu biểu thức nối, tự viết builder có thể chỉ tăng độ phức tạp mã. | Dùng `+` cho biểu thức nhỏ; đo khi thật sự cần. |
-| “`result += part` sửa `String` hiện tại.” | `String` bất biến; biến nhận giá trị mới sau mỗi lượt nối. | Dùng builder khi cần tích lũy nhiều lần. |
-| “JDK 17 tự động biến mọi vòng lặp `+=` thành một builder duy nhất.” | Không có bảo đảm tổng quát như vậy trong hợp đồng ngôn ngữ. | Chọn cấu trúc tích lũy tường minh khi cần hiệu quả ổn định. |
-| “`"Sum: " + 1 + 2` in `Sum: 3`.” | Sau khi bắt đầu nối chuỗi, các toán hạng tiếp theo được nối theo thứ tự. | Viết `"Sum: " + (1 + 2)`. |
-| “`new StringBuilder(100)` có sẵn 100 ký tự.” | Tham số constructor là **capacity**, không phải length. | Dùng `append()` để thêm nội dung. |
-| “`StringBuilder` luôn an toàn đa luồng.” | `StringBuilder` mutable và không đồng bộ hóa. | Giữ builder cục bộ hoặc đồng bộ thích hợp. |
-| “`String.join()` chỉ hữu ích khi vòng lặp lớn.” | Đây là API diễn đạt ý định ghép danh sách và quản lý delimiter. | Dùng khi đã có các thành phần. |
-| “`builder.toString()` là một view mutable.” | Kết quả là `String` bất biến, không cập nhật khi builder đổi. | Chỉ gọi lại `toString()` nếu muốn snapshot mới. |
-| “Biến `null` được bỏ qua khi nối.” | Phép nối chuỗi có thể tạo chữ `"null"`. | Kiểm tra và đặt chính sách null rõ ràng. |
-| “Builder xử lý đúng escape JSON/CSV/SQL.” | Nó chỉ nối giá trị, không hiểu cú pháp hay an toàn của định dạng đích. | Dùng parser/serializer hoặc API tham số phù hợp. |
+| “Every `+` is slow and must be replaced with `StringBuilder`.” | Modern Java optimizes concatenation expressions; manual builders can just add code complexity. | Use `+` for small expressions; measure when genuinely needed. |
+| “`result += part` modifies the current `String`.” | `String` is immutable; the variable receives a new value on every iteration. | Use a builder when accumulating many times. |
+| “JDK 17 automatically turns every `+=` loop into a single builder.” | There is no such general guarantee in the language contract. | Choose an explicit accumulation structure when predictable efficiency matters. |
+| “`"Sum: " + 1 + 2` prints `Sum: 3`.” | Once string concatenation starts, subsequent operands are concatenated in order. | Write `"Sum: " + (1 + 2)`. |
+| “`new StringBuilder(100)` already contains 100 characters.” | The constructor argument is **capacity**, not length. | Use `append()` to add content. |
+| “`StringBuilder` is always thread-safe.” | `StringBuilder` is mutable and unsynchronized. | Keep the builder local or synchronize appropriately. |
+| “`String.join()` is only useful for large loops.” | It is an API that clearly expresses list-joining intent and handles delimiters. | Use it when you already have the elements. |
+| “`builder.toString()` is a mutable view.” | The result is an immutable `String` and does not update when the builder changes. | Call `toString()` again only when you want a new snapshot. |
+| “`null` variables are skipped during concatenation.” | String concatenation can produce the text `"null"`. | Check and set an explicit null policy. |
+| “A builder handles JSON/CSV/SQL escaping properly.” | It only appends values and knows nothing about target format syntax or safety. | Use proper parsers/serializers or parameterized APIs. |
 
-## 15. Tự kiểm tra
+## 15. Self-check
 
-**Câu 1.** Đoạn mã dưới đây tích lũy qua vòng lặp hay chỉ nối một biểu thức trong từng vòng?
+**Question 1.** Does the snippet below accumulate across the loop or just concatenate a single expression per iteration?
 
 ```java
 for (int i = 0; i < 3; i++) {
@@ -465,9 +465,9 @@ for (int i = 0; i < 3; i++) {
 }
 ```
 
-Đây là **mỗi vòng một biểu thức độc lập**, không có biến kết quả tích lũy dài thêm qua các lượt. Không bắt buộc chuyển sang `StringBuilder`.
+This is **one independent expression per iteration**, with no result variable growing longer across iterations. Converting to `StringBuilder` is not required.
 
-**Câu 2.** Đoạn mã sau có lỗi gì khi số vòng lớn?
+**Question 2.** What is wrong with the following snippet when the iteration count is large?
 
 ```java
 String output = "";
@@ -476,32 +476,32 @@ for (String item : items) {
 }
 ```
 
-Mỗi vòng xây giá trị kết quả mới từ tiền tố cũ và `item`. Với nhiều đoạn, việc phải xử lý lại tiền tố làm phát sinh chi phí; dùng `StringBuilder.append(item)` trong vòng lặp rồi `toString()` ở cuối thường thích hợp hơn. Đây là fragment giả định biến `items` đã tồn tại.
+Each iteration builds a new result value from the previous prefix and `item`. With many segments, reprocessing the prefix incurs extra cost; using `StringBuilder.append(item)` in the loop and `toString()` at the end is usually more appropriate. This fragment assumes the variable `items` already exists.
 
-**Câu 3.** Vì sao `"n=" + 1 + 2` không giống `"n=" + (1 + 2)`?
+**Question 3.** Why is `"n=" + 1 + 2` not the same as `"n=" + (1 + 2)`?
 
-Biểu thức thứ nhất là `"n=12"`, còn biểu thức thứ hai là `"n=3"`. Cần dùng dấu ngoặc khi thực sự muốn cộng số trước khi nối chuỗi.
+The first expression evaluates to `"n=12"`, whereas the second evaluates to `"n=3"`. Parentheses are required when you actually want numeric addition before string concatenation.
 
-**Câu 4.** Nếu danh sách là `["", "A"]` và cần nối bằng dấu phẩy, kết quả mong muốn là `",A"`. Kiểm tra `builder.length() > 0` để quyết định thêm dấu phẩy đã đủ chưa?
+**Question 4.** If the list is `["", "A"]` and needs to be joined with a comma, the desired result is `",A"`. Is checking `builder.length() > 0` before adding a comma sufficient?
 
-Chưa. Sau khi thêm phần tử rỗng đầu tiên, builder vẫn có `length() == 0`, nên cách đó bỏ dấu phẩy. Dùng **chỉ số/cờ phần tử đầu tiên** hoặc `StringJoiner` để không phụ thuộc vào độ dài nội dung.
+No. After appending the first empty element, the builder still has `length() == 0`, so that check omits the comma. Use an **index / first-element flag** or `StringJoiner` so it does not depend on content length.
 
-**Câu 5.** Một builder đã tạo chuỗi `"A"` qua `toString()`; sau đó `append("B")` vào builder. Chuỗi `"A"` có thành `"AB"` không?
+**Question 5.** A builder produced `"A"` via `toString()`; then `append("B")` is called on the builder. Does the string `"A"` become `"AB"`?
 
-Không. Kết quả của `toString()` là một đối tượng `String` bất biến. Muốn lấy nội dung mới, gọi `toString()` lần nữa sau khi đã `append()`.
+No. The result of `toString()` is an immutable `String` object. To obtain the new content, call `toString()` again after calling `append()`.
 
-## Kết luận
+## Conclusion
 
-- Với **một biểu thức nối ngắn** (ví dụ `"Hello, " + name + "!"`), `+` dễ đọc và thường được Java hiện đại tối ưu tốt.
-- Với **một chuỗi kết quả được tích lũy qua nhiều vòng lặp**, `StringBuilder` thường giúp tránh tạo lặp đi lặp lại các giá trị `String` trung gian và sao chép tiền tố.
-- Nếu mục đích là nối **các phần tử với dấu phân cách**, xem xét `String.join()` hoặc `StringJoiner`.
-- `String` bất biến, `StringBuilder` mutable; `toString()` cung cấp chuỗi kết quả bất biến.
-- Xử lý rõ `null`, thứ tự cộng số/nối chuỗi, Unicode, trường hợp danh sách rỗng, và đo bằng benchmark có phương pháp trước khi kết luận hiệu năng.
+- For **a single short concatenation expression** (such as `"Hello, " + name + "!"`), `+` is readable and usually well-optimized by modern Java.
+- For **a result string accumulated across many loop iterations**, `StringBuilder` generally avoids repeatedly creating intermediate `String` values and copying prefixes.
+- If the goal is joining **elements with a delimiter**, consider `String.join()` or `StringJoiner`.
+- `String` is immutable, `StringBuilder` is mutable; `toString()` provides an immutable result string.
+- Handle `null`, addition vs. concatenation order, Unicode, and empty-list edge cases explicitly, and measure with a disciplined benchmark before drawing performance conclusions.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 21 API — `java.lang.String`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html): tính bất biến, nối chuỗi, `join()`.
+- [Java SE 21 API — `java.lang.String`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html): immutability, string concatenation, `join()`.
 - [Java SE 21 API — `java.lang.StringBuilder`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/StringBuilder.html): `append()`, `capacity()`, `ensureCapacity()`, `toString()`.
-- [Java SE 21 API — `java.util.StringJoiner`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/StringJoiner.html): quy tắc delimiter, prefix và suffix.
-- [OpenJDK JEP 280 — Indify String Concatenation](https://openjdk.org/jeps/280): cách Java 9+ tối ưu mô hình nối `String` động bằng `invokedynamic`.
-- [OpenJDK JMH](https://github.com/openjdk/jmh): công cụ benchmark Java phù hợp với so sánh hiệu năng vi mô.
+- [Java SE 21 API — `java.util.StringJoiner`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/StringJoiner.html): delimiter, prefix, and suffix rules.
+- [OpenJDK JEP 280 — Indify String Concatenation](https://openjdk.org/jeps/280): how Java 9+ optimizes dynamic `String` concatenation models using `invokedynamic`.
+- [OpenJDK JMH](https://github.com/openjdk/jmh): the Java benchmarking harness suited for micro-performance comparisons.

@@ -1,59 +1,59 @@
-# Thực nghiệm va chạm hash với các đối tượng không bằng nhau
+# Experimenting with Hash Collisions on Unequal Objects
 
-**Va chạm hash (hash collision)** xảy ra khi hai đối tượng có cùng giá trị `hashCode()` nhưng **`equals()` trả về `false`**. Đây là tình huống hợp lệ theo hợp đồng của Java. Một cấu trúc như `HashMap` hoặc `HashSet` phải xử lý được va chạm để vẫn phân biệt các khóa khác nhau.
+A **hash collision** occurs when two objects have the same `hashCode()` value but **`equals()` returns `false`**. This is a valid situation under the Java contract. A structure such as `HashMap` or `HashSet` must handle collisions so that distinct keys are still kept separate.
 
-Bài thực hành này trả lời bằng mã chạy được ba câu hỏi: làm sao tạo và quan sát va chạm; vì sao hai khóa trùng hash vẫn cùng tồn tại trong collection; và đâu là ranh giới giữa tính **đúng** của `equals/hashCode` với **chất lượng phân phối** của hàm hash.
+This practice answers three questions with runnable code: how to create and observe collisions; why two keys with the same hash still coexist in a collection; and where the boundary lies between the **correctness** of `equals/hashCode` and the **distribution quality** of a hash function.
 
-## 1. Hợp đồng cần nắm trước khi thử nghiệm
+## 1. The Contract to Understand Before Experimenting
 
-Với hai tham chiếu đối tượng không `null` là `a` và `b`:
+For two non-`null` object references `a` and `b`:
 
-- Nếu `a.equals(b) == true`, **bắt buộc** `a.hashCode() == b.hashCode()`.
-- Nếu `a.hashCode() == b.hashCode()`, **không thể kết luận** `a.equals(b) == true`.
-- Nếu `a.hashCode() != b.hashCode()` và các phương thức tuân thủ hợp đồng, có thể kết luận `a` và `b` không bằng nhau.
-- Trong quá trình dữ liệu dùng để so sánh không thay đổi, `equals()` và `hashCode()` phải cho kết quả nhất quán. Tránh thay đổi trường tham gia hash khi đối tượng đang làm khóa của `HashMap` hoặc phần tử của `HashSet`.
+- If `a.equals(b) == true`, then `a.hashCode() == b.hashCode()` **must** hold.
+- If `a.hashCode() == b.hashCode()`, **you cannot conclude** `a.equals(b) == true`.
+- If `a.hashCode() != b.hashCode()` and the methods obey the contract, you can conclude `a` and `b` are not equal.
+- While the data used for comparison does not change, `equals()` and `hashCode()` must yield consistent results. Avoid mutating fields participating in the hash while the object serves as a `HashMap` key or `HashSet` element.
 
-Có thể hình dung:
+You can visualize this as:
 
 ```text
                 a.hashCode() == b.hashCode() ?
                            |
               +------------+------------+
               |                         |
-             Không                      Có
+             No                        Yes
               |                         |
-      Hai khóa không bằng nhau   Chưa biết bằng nhau
+       Two unequal keys        Equality unknown yet
                                         |
-                                  Kiểm tra equals()
+                                  Check equals()
                                     /        \
                                   true       false
                                    |           |
-                              Cùng khóa    Va chạm hash
+                               Same key   Hash collision
 ```
 
-Mũi tên **`equals == true → hashCode bằng nhau`** là một chiều. Hàm băm biến không gian giá trị đối tượng rất lớn thành một số nguyên `int` 32 bit, vì thế nhiều giá trị khác nhau có thể chia sẻ một số hash. Thậm chí một hàm trả về cùng hằng số cho mọi đối tượng vẫn có thể *đúng hợp đồng* nhưng phân phối hash cực kém.
+The implication **`equals == true → equal hashCode`** is one-way. A hash function maps a very large object value space down to a 32-bit `int`, so many distinct values can share a single hash number. Even a function returning the same constant for every object can still *obey the contract*, albeit with terrible hash distribution.
 
-## 2. Va chạm tự nhiên có thể tái hiện với `String`
+## 2. Natural Collisions Reproducible with `String`
 
-Trong Java, hai chuỗi khác nhau `"Aa"` và `"BB"` có hash code giống nhau:
+In Java, the two distinct strings `"Aa"` and `"BB"` have the exact same hash code:
 
 ```text
 "Aa": 31 × 65 + 97 = 2112
 "BB": 31 × 66 + 66 = 2112
 ```
 
-Ở đây 65/97/66 là giá trị ký tự `A`, `a`, `B` trong UTF-16; công thức đơn giản cho chuỗi dài hai ký tự là `31 * c0 + c1`. Với chuỗi dài hơn, `String.hashCode()` tích lũy theo đa thức nhân 31 trong số nguyên 32 bit, cho phép tràn theo quy tắc số học `int`.
+Here 65/97/66 are the UTF-16 character values of `A`, `a`, `B`; the simple formula for a two-character string is `31 * c0 + c1`. For longer strings, `String.hashCode()` accumulates via a polynomial with multiplier 31 in 32-bit integers, allowing overflow per `int` arithmetic rules.
 
-Nhưng `"Aa".equals("BB")` là `false` vì nội dung chuỗi khác nhau. Đây là **một va chạm thật của `String.hashCode()`**, không cần sửa JDK, can thiệp bộ nhớ hoặc dùng thư viện bên ngoài.
+Yet `"Aa".equals("BB")` is `false` because the string contents differ. This is **a real collision of `String.hashCode()`**, requiring no JDK modifications, memory tricks, or external libraries.
 
-## 3. Chương trình Java 17+ có thể chạy độc lập
+## 3. Standalone Runnable Java 17+ Program
 
-Chương trình chứa hai thí nghiệm:
+The program contains two experiments:
 
-1. **Va chạm tự nhiên:** dùng trực tiếp `String` `"Aa"` và `"BB"` làm khóa.
-2. **Va chạm có chủ đích:** định nghĩa `ProductKey` có `equals()` so sánh `sku` nhưng `hashCode()` luôn trả về `7` để buộc các khóa khác nhau đụng hash.
+1. **Natural collision:** directly use `String` `"Aa"` and `"BB"` as keys.
+2. **Intentional collision:** define `ProductKey` whose `equals()` compares `sku` while `hashCode()` always returns `7` to force distinct keys to collide on hash.
 
-Lưu nội dung sau thành tệp **`HashCollisionDemo.java`**:
+Save the following content as **`HashCollisionDemo.java`**:
 
 ```java
 import java.util.HashMap;
@@ -64,14 +64,14 @@ import java.util.Set;
 
 public class HashCollisionDemo {
     public static void main(String[] args) {
-        // Thí nghiệm 1: va chạm thật với String.
+        // Experiment 1: real collision with String.
         String a = "Aa";
         String b = "BB";
 
         System.out.println("String hash: "
                 + a.hashCode() + " / " + b.hashCode());
         System.out.println("String equals: " + a.equals(b));
-        System.out.println("Sai neu chi so hash: "
+        System.out.println("Wrong if comparing hash only: "
                 + (a.hashCode() == b.hashCode()));
 
         Set<String> stringSet = new HashSet<>();
@@ -85,7 +85,7 @@ public class HashCollisionDemo {
         System.out.println("String map values: "
                 + stringMap.get(a) + " / " + stringMap.get(b));
 
-        // Thí nghiệm 2: cố ý làm mọi ProductKey trùng hash.
+        // Experiment 2: intentionally make every ProductKey share the same hash.
         ProductKey first = new ProductKey("SKU-A");
         ProductKey second = new ProductKey("SKU-B");
         ProductKey sameAsFirst = new ProductKey("SKU-A");
@@ -104,8 +104,8 @@ public class HashCollisionDemo {
         System.out.println("Custom set size: " + productSet.size());
 
         Map<ProductKey, String> productMap = new HashMap<>();
-        productMap.put(first, "gia tri A");
-        productMap.put(second, "gia tri B");
+        productMap.put(first, "value A");
+        productMap.put(second, "value B");
         System.out.println("Custom map size: " + productMap.size());
         System.out.println("Lookup equivalent: "
                 + productMap.get(sameAsFirst));
@@ -113,8 +113,8 @@ public class HashCollisionDemo {
                 + productMap.get(second));
     }
 
-    // Ví dụ cố ý có hashCode kém để quan sát va chạm.
-    // Không sao chép chiến lược hash hằng số vào mã production.
+    // Example intentionally using a poor hashCode to observe collisions.
+    // Do not copy a constant-hash strategy into production code.
     static final class ProductKey {
         private final String sku;
 
@@ -135,25 +135,25 @@ public class HashCollisionDemo {
 
         @Override
         public int hashCode() {
-            return 7; // Cố ý gây va chạm để thực nghiệm.
+            return 7; // Intentionally cause collisions for experimentation.
         }
     }
 }
 ```
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or higher:
 
 ```bash
 javac HashCollisionDemo.java
 java HashCollisionDemo
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 String hash: 2112 / 2112
 String equals: false
-Sai neu chi so hash: true
+Wrong if comparing hash only: true
 String set size: 2
 String map values: 10 / 20
 Custom hash: 7 / 7
@@ -161,77 +161,77 @@ Distinct keys equal: false
 Equivalent keys equal: true
 Custom set size: 2
 Custom map size: 2
-Lookup equivalent: gia tri A
-Lookup second: gia tri B
+Lookup equivalent: value A
+Lookup second: value B
 ```
 
-Kết quả không phụ thuộc thứ tự duyệt của `HashMap` hay `HashSet`: chương trình chỉ in các giá trị tra cứu trực tiếp và `size()`. Nếu thay bằng vòng `for` để in toàn bộ collection, **không được giả định thứ tự phần tử ổn định**.
+The output does not depend on the iteration order of `HashMap` or `HashSet`: the program only prints direct lookup results and `size()`. If you replace this with a `for` loop to print the entire collection, **do not assume a stable element order**.
 
-## 4. Đọc kết quả thí nghiệm
+## 4. Interpreting the Experiment Results
 
-### Thí nghiệm 1: cùng hash nhưng cả hai chuỗi vẫn tồn tại
+### Experiment 1: Same hash yet both strings remain present
 
-`"Aa"` và `"BB"` có cùng hash `2112`, song `String.equals()` xác nhận chúng khác nhau. `HashSet.add(a)` và `HashSet.add(b)` đều thêm được khóa riêng, vì vậy `stringSet.size() == 2`.
+`"Aa"` and `"BB"` share the hash `2112`, yet `String.equals()` confirms they are distinct. `HashSet.add(a)` and `HashSet.add(b)` both add separate keys, so `stringSet.size() == 2`.
 
-Với `HashMap`, hai thao tác `put("Aa", 10)` và `put("BB", 20)` giữ **hai ánh xạ riêng**. `get("Aa")` trả về `10`; `get("BB")` trả về `20`. Va chạm **không tự động ghi đè** giá trị của khóa khác.
+With `HashMap`, the two calls `put("Aa", 10)` and `put("BB", 20)` keep **two separate mappings**. `get("Aa")` returns `10`; `get("BB")` returns `20`. A collision **does not automatically overwrite** another key's value.
 
-Ngược lại, câu lệnh sai sau coi hai chuỗi là bằng nhau chỉ vì hash trùng:
+Conversely, the following wrong statement treats the two strings as equal just because their hashes match:
 
 ```java
 boolean incorrect = "Aa".hashCode() == "BB".hashCode();
-// incorrect == true, dù "Aa".equals("BB") == false.
+// incorrect == true, even though "Aa".equals("BB") == false.
 ```
 
-**Không dùng hash code như ID duy nhất hoặc thay thế cho `equals()`.** Hash hữu ích để thu hẹp ứng viên cần so sánh, không chứng minh hai đối tượng có nội dung bằng nhau.
+**Do not use a hash code as a unique ID or as a substitute for `equals()`.** A hash is useful to narrow down comparison candidates, not to prove two objects have equal content.
 
-### Thí nghiệm 2: phân biệt “hash trùng” và “khóa tương đương”
+### Experiment 2: Distinguishing "colliding hash" from "equivalent key"
 
-Cả `first`, `second` và `sameAsFirst` đều trả về hash `7`. Tuy nhiên:
+`first`, `second`, and `sameAsFirst` all return hash `7`. However:
 
-| Cặp đối tượng | Kết quả `equals` | Ý nghĩa |
+| Object pair | `equals` result | Meaning |
 | --- | --- | --- |
-| `first` / `second` | `false` | SKU khác nhau; đây là một va chạm. |
-| `first` / `sameAsFirst` | `true` | SKU giống nhau; hai thể hiện của cùng một khóa logic. |
-| `second` / `sameAsFirst` | `false` | SKU khác nhau; tiếp tục là một va chạm. |
+| `first` / `second` | `false` | Different SKUs; this is a collision. |
+| `first` / `sameAsFirst` | `true` | Identical SKU; two instances of the same logical key. |
+| `second` / `sameAsFirst` | `false` | Different SKUs; another collision. |
 
-`productSet.size() == 2` vì hai giá trị SKU là khác nhau, còn đối tượng thứ ba tương đương đối tượng thứ nhất và không tạo phần tử logic mới. Tương tự, `productMap.size() == 2`; truy vấn bằng một đối tượng mới có SKU `"SKU-A"` vẫn tìm ra giá trị gắn với `first`.
+`productSet.size() == 2` because two SKU values are distinct, while the third object is equivalent to the first and does not create a new logical element. Likewise, `productMap.size() == 2`; querying with a new object having SKU `"SKU-A"` still finds the value attached to `first`.
 
-Điều này chứng minh **hash bằng nhau không đủ để xem là phần tử trùng lặp**. Collection dựa trên hash còn phải xét tính tương đương theo `equals()` (hoặc quan hệ so sánh khóa tương đương theo hợp đồng tương ứng).
+This proves **equal hashes are not enough to count as duplicate elements**. Hash-based collections also evaluate equivalence via `equals()` (or the corresponding key equivalence relation per contract).
 
-## 5. Collection giải quyết va chạm như thế nào?
+## 5. How Do Collections Resolve Collisions?
 
-Nhìn ở mức khái niệm, tra cứu trong `HashMap` gồm các bước:
+Conceptually, a lookup in `HashMap` follows these steps:
 
-1. Tính hash từ khóa được cung cấp; `HashMap` có thể biến đổi hash này thêm để chọn vị trí lưu trong bảng nội bộ.
-2. Xác định vị trí/nhóm ứng viên từ hash.
-3. Trong nhóm ứng viên, đối chiếu hash và tính bằng nhau của khóa. Khóa có cùng hash nhưng `equals() == false` vẫn là khóa khác.
-4. Nếu có khóa tương đương, `get` trả về giá trị tương ứng; nếu `put` với khóa tương đương, giá trị của ánh xạ hiện hữu được thay thế. Nếu không có, `put` tạo ánh xạ mới.
+1. Compute the hash from the provided key; `HashMap` may further transform this hash to pick a storage slot in its internal table.
+2. Locate the candidate slot/group from the hash.
+3. Within the candidate group, compare hashes and key equality. Keys with the same hash where `equals() == false` remain distinct keys.
+4. If an equivalent key exists, `get` returns its associated value; if `put` is called with an equivalent key, the existing mapping's value is replaced. Otherwise, `put` creates a new mapping.
 
-`HashSet` sử dụng cấu trúc dựa trên hash nên cũng cần phân biệt các phần tử cùng hash bằng quan hệ bằng nhau.
+`HashSet` uses a hash-backed structure, so it likewise distinguishes elements sharing a hash using the equality relation.
 
-Sơ đồ minh họa (không mô tả layout bộ nhớ chính xác của từng bản JDK):
+Illustrative diagram (not describing the exact memory layout of any specific JDK release):
 
 ```text
 hashCode("Aa") = 2112 ─┐
-                       ├── Nhóm ứng viên có hash trùng
+                       ├── Candidate group with colliding hash
 hashCode("BB") = 2112 ─┘          |
                                   +-- equals("Aa", "BB") -> false
-                                  +-- Có thể lưu/tra cứu hai khóa riêng
+                                  +-- Can store/look up two separate keys
 
 hashCode(ProductKey("SKU-A")) = 7 ─┐
-                                   ├── Nhóm ứng viên cùng hash
+                                   ├── Candidate group with same hash
 hashCode(ProductKey("SKU-A")) = 7 ─┘          |
                                               +-- equals -> true
-                                              +-- Một khóa logic
+                                              +-- One logical key
 ```
 
-Một số bản hiện thực `HashMap` có thể chuyển nhóm chứa nhiều phần tử va chạm sang cấu trúc cây dưới điều kiện nhất định. Đây là **chi tiết tối ưu của hiện thực**, không phải lý do để dựa vào bucket cụ thể, thứ tự duyệt, số lần gọi `equals` hoặc thời gian thực thi cố định trong mã ứng dụng.
+Some `HashMap` implementations may convert a group containing many colliding elements into a tree structure under certain conditions. This is an **implementation optimization detail**, not a reason to depend on specific buckets, iteration order, `equals` call counts, or fixed execution time in application code.
 
-## 6. Hàm hash tốt khác với hàm hash đúng hợp đồng
+## 6. A Good Hash Function Differs from a Contract-Compliant Hash Function
 
-Hàm `ProductKey.hashCode()` trả về `7` cho mọi trường hợp nên **không vi phạm** quy tắc “đã bằng nhau thì hash phải bằng nhau”. Nhưng nó không phân tán được các giá trị SKU khác nhau, khiến nhiều thao tác phải xử lý chung một nhóm ứng viên.
+`ProductKey.hashCode()` returning `7` in all cases **does not violate** the rule "equal objects must have equal hashes." However, it fails to spread distinct SKU values out, forcing many operations to process a single candidate group.
 
-Trong mã nghiệp vụ, phiên bản hợp lý hơn là dựa trên chính trường tham gia `equals`:
+In production code, a more reasonable version derives from the exact field participating in `equals`:
 
 ```java
 @Override
@@ -240,62 +240,62 @@ public int hashCode() {
 }
 ```
 
-Đoạn trên là **phương thức thay thế trong lớp `ProductKey` ở ví dụ**, không phải một chương trình `main` độc lập. Vì `sku` là `String` không `null` và bất biến, cách này tuân thủ hợp đồng và thông thường phân phối khóa tốt hơn hằng số `7`. Nó vẫn có thể va chạm, như `"Aa"` và `"BB"` đã chứng minh.
+The snippet above is **a replacement method inside the `ProductKey` class in the example**, not a standalone `main` program. Because `sku` is a non-`null`, immutable `String`, this approach obeys the contract and typically distributes keys far better than the constant `7`. It can still collide, as `"Aa"` and `"BB"` demonstrated.
 
-Các tiêu chí cần tách bạch:
+Criteria to keep separate:
 
-| Tiêu chí | Yêu cầu |
+| Criterion | Requirement |
 | --- | --- |
-| **Đúng hợp đồng** | Bất kỳ hai đối tượng `equals == true` đều có hash bằng nhau. |
-| **Nhất quán** | Khi dữ liệu tham gia so sánh không đổi, hash không thay đổi giữa các lần gọi theo hợp đồng. |
-| **Phân phối hợp lý** | Với dữ liệu thực tế, hạn chế việc quá nhiều khóa không bằng nhau trùng hash để cải thiện hiệu năng trung bình. |
-| **Không đòi hỏi duy nhất** | Không thể bảo đảm mỗi giá trị đối tượng có hash riêng với `int` 32 bit. |
+| **Contract-compliant** | Any two objects with `equals == true` have equal hashes. |
+| **Consistent** | While comparison data does not change, the hash does not change across calls per contract. |
+| **Reasonable distribution** | On real data, minimize having too many unequal keys share a hash to improve average performance. |
+| **Uniqueness not required** | It is impossible to guarantee every object value gets its own unique 32-bit `int` hash. |
 
-Chất lượng phân phối hash phụ thuộc dữ liệu sử dụng. Trong một ứng dụng có dữ liệu đối kháng, nhiều khóa có thể được chọn để gây va chạm hàng loạt; đây là vấn đề hiệu năng cần theo dõi, dù kết quả tra cứu vẫn đúng nếu hợp đồng được giữ.
+Hash distribution quality depends on the data used. In an application exposed to adversarial input, many keys could be chosen to trigger mass collisions; this is a performance concern to monitor, even though lookup results remain correct as long as the contract holds.
 
-## 7. Những lỗi dễ mắc khi thực nghiệm
+## 7. Common Mistakes When Experimenting
 
-### Lỗi 1: khẳng định hai đối tượng bằng nhau chỉ vì hash trùng
+### Mistake 1: Claiming two objects are equal merely because their hashes match
 
-Sai:
+Wrong:
 
 ```java
 boolean same = a.hashCode() == b.hashCode();
 ```
 
-Đúng khi cần kiểm tra bình đẳng đối tượng theo hợp đồng:
+Right when checking object equality per contract:
 
 ```java
 boolean same = Objects.equals(a, b);
 ```
 
-Với các tham chiếu có thể `null`, `Objects.equals` xử lý trường hợp `null` và gọi `equals` khi cần. Nó không biến một hiện thực `equals` sai thành đúng.
+For potentially `null` references, `Objects.equals` handles `null` and calls `equals` when needed. It does not turn a broken `equals` implementation into a correct one.
 
-### Lỗi 2: cố sửa `equals()` để “tránh va chạm”
+### Mistake 2: Trying to tweak `equals()` to "avoid collisions"
 
-Va chạm không đồng nghĩa `equals()` có lỗi. `equals()` phải biểu đạt **quan hệ bình đẳng có ý nghĩa của lớp**; `hashCode()` phải nhất quán với quan hệ đó. Việc ghép hash vào điều kiện `equals()` có thể làm kết quả phụ thuộc vào một mã băm vốn không duy nhất.
+Collisions do not mean `equals()` has a bug. `equals()` must express the class's **meaningful equality relation**; `hashCode()` must stay consistent with that relation. Folding hash checks into `equals()` conditions can make equality depend on a hash code that is inherently non-unique.
 
-### Lỗi 3: override một phương thức nhưng quên phương thức còn lại
+### Mistake 3: Overriding one method and forgetting the other
 
-Nếu override `equals()` để hai đối tượng khác địa chỉ bộ nhớ được xem là bằng nhau, cũng phải override `hashCode()` tương thích. Nếu không, `HashMap` hoặc `HashSet` có thể không tìm ra khóa tương đương, hoặc chứa hai phần tử mà `equals()` tuyên bố là bằng nhau.
+If you override `equals()` so two objects at different memory addresses are considered equal, you must also override a compatible `hashCode()`. Otherwise, `HashMap` or `HashSet` may fail to find an equivalent key, or hold two elements that `equals()` declares equal.
 
-### Lỗi 4: thay đổi khóa sau khi thêm vào hash collection
+### Mistake 4: Mutating a key after adding it to a hash collection
 
-Nếu dùng một trường có thể đổi trong `equals/hashCode`, việc cập nhật trường đó có thể đổi hash và khiến tra cứu thất bại. `HashMap` không tự chuyển mục đã lưu sang vị trí mới chỉ vì đối tượng khóa bị sửa. Trong ví dụ, `sku` là `final` để tránh sai lầm này.
+If a mutable field is used in `equals/hashCode`, updating that field can change the hash and cause lookups to fail. `HashMap` does not automatically move an already-stored entry to a new slot just because the key object was mutated. In the example, `sku` is `final` to prevent this mistake.
 
-### Lỗi 5: dùng thời gian một lần chạy làm kết luận hiệu năng
+### Mistake 5: Using single-run timing to draw performance conclusions
 
-Bài này chứng minh **tính đúng khi va chạm**, không phải benchmark. Kết quả thời gian của một lần chạy ngắn còn chịu ảnh hưởng JIT, khởi động JVM, GC, kích thước bảng và dữ liệu đầu vào. Nếu cần đánh giá tốc độ giữa hàm hash hằng số và hàm hash tốt, hãy dùng tập khóa đủ lớn, phân phối đầu vào xác định và công cụ benchmark phù hợp (ví dụ JMH) sau khi xác minh tính đúng.
+This lesson proves **correctness under collisions**, not benchmarking. Timing results from a short single run are affected by JIT compilation, JVM warmup, GC, table size, and input data. If you need to evaluate speed between a constant hash function and a good hash function, use a sufficiently large key set, a defined input distribution, and an appropriate benchmarking tool (e.g., JMH) after verifying correctness.
 
-## 8. Bài kiểm tra mở rộng
+## 8. Extended Checks
 
-Có thể chỉnh chương trình để kiểm tra thêm các tình huống sau:
+You can modify the program to test additional scenarios:
 
-1. **Thêm lại một khóa tương đương:** gọi `productMap.put(sameAsFirst, "gia tri A moi")`. Kích thước map vẫn là `2`; tra cứu bằng `first` trả về giá trị mới vì `first.equals(sameAsFirst) == true`.
-2. **Thêm khóa thứ ba không bằng hai khóa còn lại nhưng cũng có hash `7`:** dùng `new ProductKey("SKU-C")`. Kích thước map tăng lên `3` nếu `put` khóa đó; ba khóa vẫn tra cứu độc lập.
-3. **Đổi `hashCode()` sang `sku.hashCode()`:** chạy lại cùng ví dụ. Tính bằng nhau, kích thước collection và kết quả tra cứu giữ nguyên. Cặp `"SKU-A"`/`"SKU-B"` không cần cùng hash nữa.
-4. **Thử hai khóa chuỗi va chạm khác:** thay các SKU bằng `"Aa"` và `"BB"` trong phiên bản `sku.hashCode()`; cùng hash `2112` nhưng `equals()` vẫn phân biệt được hai đối tượng.
+1. **Re-adding an equivalent key:** call `productMap.put(sameAsFirst, "new value A")`. The map size stays `2`; looking up with `first` returns the new value because `first.equals(sameAsFirst) == true`.
+2. **Adding a third unequal key that also has hash `7`:** use `new ProductKey("SKU-C")`. The map size increases to `3` when that key is `put`; all three keys still look up independently.
+3. **Switching `hashCode()` to `sku.hashCode()`:** rerun the same example. Equality, collection sizes, and lookup results remain identical. The `"SKU-A"`/`"SKU-B"` pair no longer needs to share a hash.
+4. **Testing two other colliding string keys:** replace the SKUs with `"Aa"` and `"BB"` in the `sku.hashCode()` version; both have hash `2112` yet `equals()` still distinguishes the two objects.
 
-Không cần kiểm tra kích thước bucket hay truy cập cấu trúc nội bộ `HashMap` để xác nhận các kết luận trên. Các kiểm tra có giá trị nhất là **`equals`, `hashCode`, `size`, `get` và giá trị khi cập nhật một khóa tương đương**.
+There is no need to inspect bucket sizes or access internal `HashMap` structures to confirm these conclusions. The most valuable checks are **`equals`, `hashCode`, `size`, `get`, and the resulting value when updating an equivalent key**.
 
-**Kết luận kỹ thuật:** `hashCode()` giúp tổ chức và thu hẹp nhóm ứng viên; **`equals()` quyết định bình đẳng logic**. Va chạm giữa các đối tượng không bằng nhau là bình thường; cấu trúc hash đúng phải giữ được từng khóa riêng biệt, còn thiết kế hash tốt nhằm giảm chi phí xử lý va chạm.
+**Technical takeaway:** `hashCode()` helps organize and narrow down candidate groups; **`equals()` determines logical equality**. Collisions between unequal objects are normal; a correct hash structure must keep each distinct key separate, while good hash design aims to reduce the cost of handling collisions.

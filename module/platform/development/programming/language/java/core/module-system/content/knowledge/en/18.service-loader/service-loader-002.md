@@ -1,54 +1,54 @@
-# ServiceLoader.load từ caller module
+# ServiceLoader.load from the caller module
 
-> Phạm vi: Java Platform Module System (JPMS, từ Java 9). Bài này giải thích module nào phải khai báo **uses** khi gọi **ServiceLoader.load**, và cách điều đó liên quan đến việc tìm provider lúc chạy.
+> Scope: Java Platform Module System (JPMS, since Java 9). This lesson explains which module must declare **uses** when calling **ServiceLoader.load**, and how that relates to discovering providers at runtime.
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Xác định đúng **caller module** của lời gọi **ServiceLoader.load**.
-- Đặt **uses**, **requires** và **provides** vào đúng module descriptor.
-- Phân biệt module của caller, module chứa service API, module chứa provider và thread context class loader.
-- Giải thích vì sao ứng dụng không cần phụ thuộc trực tiếp vào module provider.
-- Chọn đúng overload của **ServiceLoader.load** và chẩn đoán lỗi **ServiceConfigurationError**.
+- Correctly identify the **caller module** of a **ServiceLoader.load** call.
+- Place **uses**, **requires**, and **provides** in the right module descriptors.
+- Distinguish between the caller module, the module containing the service API, the module containing the provider, and the thread context class loader.
+- Explain why an application does not need to depend directly on the provider module.
+- Choose the appropriate **ServiceLoader.load** overload and diagnose **ServiceConfigurationError** issues.
 
-## 1. Caller module là module nào?
+## 1. Which module is the caller module?
 
-**Caller module** là module chứa đoạn code trực tiếp gọi phương thức **ServiceLoader.load**. JVM xác định module này ngầm định khi phương thức được gọi; bạn không truyền module caller vào tham số.
+The **caller module** is the module containing the code that directly invokes **ServiceLoader.load**. The JVM determines this module implicitly when the method is called; you do not pass the caller module as a parameter.
 
-Ví dụ:
+Example:
 
 ~~~java
 ServiceLoader<GreetingService> loader =
         ServiceLoader.load(GreetingService.class);
 ~~~
 
-Nếu đoạn code trên nằm trong module **com.acme.app**, thì **com.acme.app** là caller module. Caller module không phải mặc nhiên là:
+If the code above resides in the **com.acme.app** module, then **com.acme.app** is the caller module. The caller module is not automatically:
 
-- module khai báo interface **GreetingService**;
-- module triển khai **GreetingService**;
-- module của thread context class loader.
+- the module declaring the **GreetingService** interface;
+- the module implementing **GreetingService**;
+- the module of the thread context class loader.
 
-Ba khái niệm này có vai trò khác nhau:
+These concepts serve different roles:
 
-| Thành phần | Vai trò |
+| Component | Role |
 |---|---|
-| Caller module | Module phải được phép sử dụng service; đây là nơi khai báo **uses**. |
-| Service module | Module chứa kiểu service; caller cần đọc được kiểu này, thường thông qua **requires** và **exports**. |
-| Provider module | Module đăng ký implementation bằng **provides ... with ...**. |
-| Thread context class loader (TCCL) | Điểm bắt đầu để **ServiceLoader.load(service)** tìm provider. |
+| Caller module | The module that must be permitted to use the service; this is where **uses** is declared. |
+| Service module | The module containing the service type; the caller needs to read this type, typically via **requires** and **exports**. |
+| Provider module | The module registering an implementation with **provides ... with ...**. |
+| Thread context class loader (TCCL) | The starting point for **ServiceLoader.load(service)** to search for providers. |
 
-Điểm quan trọng: **caller module quyết định kiểm tra uses; TCCL quyết định phạm vi class loader bắt đầu tìm provider.** Đừng gộp hai khái niệm này thành một.
+Key point: **the caller module determines the uses check; the TCCL determines the class loader scope where provider lookup begins.** Do not conflate these two concepts into one.
 
-## 2. ServiceLoader.load(Class<S>) hoạt động thế nào?
+## 2. How does ServiceLoader.load(Class<S>) work?
 
-Lời gọi:
+The call:
 
 ~~~java
 ServiceLoader.load(GreetingService.class);
 ~~~
 
-tương đương với:
+is equivalent to:
 
 ~~~java
 ServiceLoader.load(
@@ -57,7 +57,7 @@ ServiceLoader.load(
 );
 ~~~
 
-Vì vậy, overload một tham số sử dụng TCCL của thread hiện tại. Overload nhận **ClassLoader** cho phép chỉ định loader rõ ràng:
+Therefore, the single-argument overload uses the current thread's TCCL. The overload accepting a **ClassLoader** lets you specify a loader explicitly:
 
 ~~~java
 ClassLoader loader = Thread.currentThread().getContextClassLoader();
@@ -66,21 +66,21 @@ ServiceLoader<GreetingService> services =
         ServiceLoader.load(GreetingService.class, loader);
 ~~~
 
-Cả hai overload đều thực hiện kiểm tra quyền sử dụng service dựa trên caller module. Nếu caller nằm trong một **explicit named module**, module descriptor của caller phải khai báo **uses** cho service. Nếu service type không truy cập được từ caller, hoặc caller là explicit module nhưng thiếu **uses**, lời gọi có thể ném **ServiceConfigurationError**.
+Both overloads perform a service-usage permission check based on the caller module. If the caller is in an **explicit named module**, the caller's module descriptor must declare **uses** for the service. If the service type is not accessible from the caller, or if the caller is an explicit module lacking **uses**, the call can throw **ServiceConfigurationError**.
 
-**ServiceLoader.load** tạo đối tượng loader; provider được tìm và khởi tạo một cách lazy khi bạn duyệt **iterator()**, dùng **stream()** hoặc gọi thao tác tương ứng. Vì thế, lỗi provider có thể xuất hiện ở bước duyệt, sau khi lời gọi **load** đã trả về.
+**ServiceLoader.load** creates the loader object; providers are located and instantiated lazily when you iterate with **iterator()**, use **stream()**, or call an equivalent operation. Consequently, provider errors may appear during iteration, after the **load** call has already returned.
 
-## 3. Đặt requires, uses và provides đúng chỗ
+## 3. Placing requires, uses, and provides in the right places
 
-Giả sử có ba module:
+Suppose there are three modules:
 
-- **com.acme.spi**: công bố service API.
-- **com.acme.provider**: cung cấp implementation.
-- **com.acme.app**: gọi **ServiceLoader.load** để sử dụng service.
+- **com.acme.spi**: publishes the service API.
+- **com.acme.provider**: supplies the implementation.
+- **com.acme.app**: calls **ServiceLoader.load** to use the service.
 
-### Module chứa service API
+### Module containing the service API
 
-**module-info.java** của **com.acme.spi**:
+**module-info.java** of **com.acme.spi**:
 
 ~~~java
 module com.acme.spi {
@@ -88,7 +88,7 @@ module com.acme.spi {
 }
 ~~~
 
-Interface service:
+Service interface:
 
 ~~~java
 package com.acme.spi;
@@ -98,11 +98,11 @@ public interface GreetingService {
 }
 ~~~
 
-Package chứa interface cần được export để module ứng dụng có thể tham chiếu kiểu **GreetingService**.
+The package containing the interface must be exported so that the application module can reference the **GreetingService** type.
 
-### Module gọi ServiceLoader.load
+### Module calling ServiceLoader.load
 
-**module-info.java** của **com.acme.app**:
+**module-info.java** of **com.acme.app**:
 
 ~~~java
 module com.acme.app {
@@ -111,16 +111,16 @@ module com.acme.app {
 }
 ~~~
 
-Hai directive có mục đích riêng:
+The two directives have distinct purposes:
 
-- **requires com.acme.spi** cho phép code trong app đọc và sử dụng service type được export từ module SPI.
-- **uses com.acme.spi.GreetingService** khai báo rằng app tìm provider cho service này qua **ServiceLoader**.
+- **requires com.acme.spi** allows code in the app to read and use the service type exported from the SPI module.
+- **uses com.acme.spi.GreetingService** declares that the app looks up providers for this service via **ServiceLoader**.
 
-**uses phải nằm trong module trực tiếp gọi ServiceLoader.load.** Nếu code gọi API nằm trong một module tiện ích, chẳng hạn **com.acme.bootstrap**, thì **uses** phải được khai báo trong **com.acme.bootstrap**. Việc module ứng dụng gọi một hàm wrapper không tự chuyển quyền khai báo **uses** sang ứng dụng.
+**uses must reside in the module that directly calls ServiceLoader.load.** If the code calling the API lives in a utility module, such as **com.acme.bootstrap**, then **uses** must be declared in **com.acme.bootstrap**. Having the application module call a wrapper function does not transfer the **uses** declaration privilege to the application.
 
-### Module cung cấp implementation
+### Module supplying the implementation
 
-**module-info.java** của **com.acme.provider**:
+**module-info.java** of **com.acme.provider**:
 
 ~~~java
 module com.acme.provider {
@@ -150,21 +150,21 @@ public final class EnglishGreetingService implements GreetingService {
 }
 ~~~
 
-Provider module cần đọc được service API nên khai báo **requires com.acme.spi**. Directive **provides ... with ...** đăng ký implementation cho service. Trong ví dụ này, provider có constructor public không tham số.
+The provider module needs to read the service API, so it declares **requires com.acme.spi**. The **provides ... with ...** directive registers the implementation for the service. In this example, the provider has a public no-argument constructor.
 
-Package **com.acme.provider** không cần export chỉ để **ServiceLoader** sử dụng provider đã được khai báo bằng **provides**. Package chứa service API mới là package cần export cho caller.
+The **com.acme.provider** package does not need to be exported solely for **ServiceLoader** to use a provider declared with **provides**. Only the package containing the service API needs to be exported to the caller.
 
-Một provider trong named module cũng có thể khai báo public static method không tham số tên **provider**, trả về kiểu tương thích với service. Khi dùng provider method đó, chính lớp provider không bắt buộc phải implement service interface; nếu không có provider method, provider class phải đáp ứng quy tắc constructor của ServiceLoader.
+A provider in a named module can also declare a public static no-argument method named **provider**, returning a type compatible with the service. When using that provider method, the provider class itself is not required to implement the service interface; without a provider method, the provider class must satisfy ServiceLoader's constructor rules.
 
-### Vì sao app không requires com.acme.provider?
+### Why doesn't the app require com.acme.provider?
 
-App chỉ phụ thuộc vào abstraction **GreetingService**. Provider được tìm qua cơ chế service binding của module system và ServiceLoader. Khi module đã được resolve sử dụng một service, quá trình resolve có thể đưa các module provider tương ứng trên module path vào module graph.
+The app only depends on the **GreetingService** abstraction. Providers are discovered through the module system's service binding mechanism and ServiceLoader. When a resolved module uses a service, resolution can bring corresponding provider modules on the module path into the module graph.
 
-Do đó, app thường chỉ cần **requires** module chứa service API và **uses** service. Nếu app khai báo **requires com.acme.provider**, app đã phụ thuộc trực tiếp vào implementation cụ thể và mất một phần lợi ích thay thế provider độc lập.
+Thus, the app typically only needs to **requires** the module containing the service API and declare **uses** for the service. If the app declares **requires com.acme.provider**, the app becomes directly dependent on a concrete implementation and loses part of the benefit of independently replaceable providers.
 
-## 4. Ví dụ sử dụng hoàn chỉnh
+## 4. Complete usage example
 
-Trong module **com.acme.app**, lớp **Main** có thể duyệt tất cả provider:
+In module **com.acme.app**, class **Main** can iterate through all providers:
 
 ~~~java
 package com.acme.app;
@@ -185,7 +185,7 @@ public final class Main {
 }
 ~~~
 
-Một cấu trúc source đơn giản:
+A simple source layout:
 
 ~~~text
 src/
@@ -200,31 +200,31 @@ src/
     └── com/acme/app/Main.java
 ~~~
 
-Biên dịch các module:
+Compile the modules:
 
 ~~~bash
 javac --module-source-path src -d out \
   -m com.acme.spi,com.acme.provider,com.acme.app
 ~~~
 
-Chạy ứng dụng:
+Run the application:
 
 ~~~bash
 java --module-path out \
   -m com.acme.app/com.acme.app.Main
 ~~~
 
-Khi service binding được thực hiện trong quá trình resolve module, provider module khai báo **provides** cho service mà app khai báo **uses** có thể được đưa vào module graph mà app không cần **requires** trực tiếp provider đó.
+When service binding is performed during module resolution, a provider module declaring **provides** for a service that the app declares with **uses** can be added to the module graph without the app directly declaring **requires** on that provider.
 
-Kết quả với provider ở trên:
+Output with the provider above:
 
 ~~~text
 Hello, Lan!
 ~~~
 
-## 5. Phạm vi tìm provider: class loader và module layer
+## 5. Provider search scope: class loaders and module layers
 
-Caller module và nơi tìm provider là hai trục riêng biệt.
+The caller module and where providers are searched are two separate axes.
 
 ### load(service)
 
@@ -232,9 +232,9 @@ Caller module và nơi tìm provider là hai trục riêng biệt.
 ServiceLoader.load(GreetingService.class);
 ~~~
 
-Dùng TCCL của thread hiện tại làm class loader bắt đầu tìm kiếm. Cơ chế tìm provider có thể xét provider trong named module và unnamed module mà loader có thể nhìn thấy, bao gồm quan hệ parent delegation.
+Uses the current thread's TCCL as the starting class loader for discovery. The provider lookup mechanism can consider providers in named modules and unnamed modules visible to that loader, including parent delegation relationships.
 
-Nếu ứng dụng chạy trong container, application server hoặc môi trường plugin, TCCL có thể khác class loader của lớp đang gọi. Khi provider không được tìm thấy, hãy kiểm tra TCCL tại đúng thread thực hiện lời gọi.
+If the application runs in a container, application server, or plugin environment, the TCCL may differ from the class loader of the calling class. When a provider is not found, check the TCCL on the exact thread making the call.
 
 ### load(service, classLoader)
 
@@ -242,7 +242,7 @@ Nếu ứng dụng chạy trong container, application server hoặc môi trư�
 ServiceLoader.load(GreetingService.class, pluginClassLoader);
 ~~~
 
-Dùng class loader được truyền vào làm điểm bắt đầu tìm provider. Kiểm tra **uses** vẫn dựa trên caller module.
+Uses the passed-in class loader as the starting point for locating providers. The **uses** check is still based on the caller module.
 
 ### load(moduleLayer, service)
 
@@ -251,9 +251,9 @@ ServiceLoader<GreetingService> services =
         ServiceLoader.load(pluginLayer, GreetingService.class);
 ~~~
 
-Dùng khi provider nằm trong một module layer cụ thể, ví dụ layer được tạo riêng cho plugin. Phương thức này tìm provider trong layer được chỉ định và các parent layer của nó; nó không tìm provider trong unnamed module.
+Used when providers reside in a specific module layer, such as a layer created specifically for plugins. This method searches for providers in the specified layer and its parent layers; it does not search for providers in unnamed modules.
 
-Overload nhận **ModuleLayer** cũng áp dụng kiểm tra service accessibility và **uses** đối với caller module. Nếu dùng plugin layer, cần bảo đảm provider module thực sự thuộc layer đó hoặc một parent layer phù hợp.
+The **ModuleLayer** overload also applies service accessibility and **uses** checks against the caller module. If using a plugin layer, ensure that the provider module actually belongs to that layer or an appropriate parent layer.
 
 ### loadInstalled(service)
 
@@ -261,64 +261,64 @@ Overload nhận **ModuleLayer** cũng áp dụng kiểm tra service accessibilit
 ServiceLoader.loadInstalled(GreetingService.class);
 ~~~
 
-Dùng platform class loader. Phương thức này hướng đến provider được cài đặt trong runtime; provider chỉ nằm trên application module path hoặc class path sẽ không được tìm theo cách thông thường của **load(service)**.
+Uses the platform class loader. This method targets providers installed in the runtime; providers located only on the application module path or classpath will not be discovered the usual way as with **load(service)**.
 
-## 6. Nếu provider nằm trên class path
+## 6. If the provider is on the classpath
 
-ServiceLoader vẫn hỗ trợ provider theo cơ chế class path truyền thống. JAR của provider chứa file:
+ServiceLoader still supports providers using the traditional classpath mechanism. The provider JAR contains the file:
 
 ~~~text
 META-INF/services/com.acme.spi.GreetingService
 ~~~
 
-Nội dung file liệt kê tên đầy đủ của các provider class, mỗi tên trên một dòng:
+The file lists the fully qualified names of the provider classes, one name per line:
 
 ~~~text
 com.acme.provider.EnglishGreetingService
 ~~~
 
-Khi ứng dụng chạy trên class path, code thường thuộc unnamed module nên không có **module-info.java** để khai báo **uses**. Với ứng dụng chạy trong explicit named module, hãy dùng **uses** như các phần trước.
+When an application runs on the classpath, the code typically belongs to an unnamed module and therefore has no **module-info.java** to declare **uses**. For applications running in an explicit named module, use **uses** as shown in the previous sections.
 
-Không nhầm hai cơ chế đăng ký:
+Do not confuse the two registration mechanisms:
 
-- Named module: khai báo **provides ... with ...** trong **module-info.java**.
-- Class path: khai báo provider class trong **META-INF/services/<tên-đầy-đủ-của-service>**.
+- Named module: declare **provides ... with ...** in **module-info.java**.
+- Classpath: declare provider classes in **META-INF/services/<fully-qualified-service-name>**.
 
-## 7. Lỗi thường gặp và cách tìm nguyên nhân
+## 7. Common errors and root cause analysis
 
-| Triệu chứng | Nguyên nhân thường gặp | Cách xử lý |
+| Symptom | Common cause | How to resolve |
 |---|---|---|
-| **ServiceConfigurationError** ngay tại **load** | Caller là explicit module nhưng thiếu **uses**, hoặc service type không truy cập được | Xác định module trực tiếp gọi **load**; thêm **uses**; kiểm tra **requires** và **exports** của service API |
-| Không tìm thấy provider | Provider module không được resolve, provider không nằm trong phạm vi loader/layer, hoặc thiếu **provides** | Kiểm tra module path, module graph, **provides** và TCCL/layer |
-| Lỗi khi duyệt **ServiceLoader** | Provider class không load được, khai báo provider sai, constructor/provider method không hợp lệ hoặc khởi tạo provider thất bại | Đọc đầy đủ nguyên nhân của **ServiceConfigurationError**; kiểm tra class và khai báo provider |
-| App có **uses** nhưng vẫn lỗi | **uses** nằm trong module app, trong khi module khác mới là nơi trực tiếp gọi **ServiceLoader.load** | Chuyển **uses** vào module chứa lời gọi trực tiếp |
-| App phải phụ thuộc vào implementation cụ thể | App đang **requires** provider module | Để app phụ thuộc service API; đăng ký implementation bằng **provides** ở provider module |
-| Chạy được ở thread này nhưng không tìm thấy provider ở thread khác | TCCL khác nhau giữa các thread | Kiểm tra **Thread.currentThread().getContextClassLoader()** tại nơi gọi; cân nhắc truyền loader rõ ràng |
+| **ServiceConfigurationError** right at **load** | Caller is an explicit module missing **uses**, or the service type is inaccessible | Identify the module directly calling **load**; add **uses**; check **requires** and **exports** for the service API |
+| No provider found | Provider module not resolved, provider outside the loader/layer scope, or missing **provides** | Check the module path, module graph, **provides**, and TCCL/layer |
+| Error while iterating **ServiceLoader** | Provider class cannot be loaded, invalid provider declaration, invalid constructor/provider method, or provider instantiation fails | Read the full cause of **ServiceConfigurationError**; inspect the class and provider declaration |
+| App has **uses** but still fails | **uses** is in the app module, while another module is the one directly calling **ServiceLoader.load** | Move **uses** to the module containing the direct call |
+| App ends up depending on a concrete implementation | App declares **requires** on the provider module | Have the app depend on the service API; register the implementation with **provides** in the provider module |
+| Works on one thread but cannot find provider on another | TCCL differs across threads | Check **Thread.currentThread().getContextClassLoader()** at the call site; consider passing an explicit loader |
 
-Một trình tự debug thực tế:
+A practical debugging sequence:
 
-1. Tìm chính xác dòng gọi **ServiceLoader.load**.
-2. Xác định module chứa lớp thực hiện lời gọi đó.
-3. Nếu đó là explicit named module, xác nhận module descriptor có **uses** đúng service type.
-4. Xác nhận caller đọc được service type: module chứa service export package và caller có **requires** phù hợp.
-5. Kiểm tra provider module có **provides ... with ...**, có mặt trong module path và được resolve vào module layer cần tìm.
-6. Kiểm tra TCCL nếu đang dùng overload **load(service)** hoặc **load(service, loader)**.
-7. Duyệt loader để quan sát lỗi phát sinh trong quá trình tìm, load và khởi tạo provider.
+1. Find the exact line calling **ServiceLoader.load**.
+2. Identify the module containing the class making that call.
+3. If it is an explicit named module, verify the module descriptor has **uses** for the right service type.
+4. Confirm the caller can read the service type: the module containing the service exports the package and the caller has an appropriate **requires**.
+5. Check that the provider module has **provides ... with ...**, is present on the module path, and is resolved into the target module layer.
+6. Check the TCCL if using the **load(service)** or **load(service, loader)** overloads.
+7. Iterate the loader to observe errors occurring during provider discovery, loading, and instantiation.
 
-## 8. Các điểm cần nhớ
+## 8. Key points to remember
 
-- **uses** thuộc caller module — module trực tiếp gọi **ServiceLoader.load**.
-- **requires** cho phép caller sử dụng service API; **exports** công bố package chứa service API.
-- **provides ... with ...** thuộc provider module và đăng ký implementation.
-- Caller module không đồng nghĩa với service module, provider module hoặc module của TCCL.
-- **ServiceLoader.load(service)** dùng TCCL; **ServiceLoader.load(layer, service)** tìm trong module layer và các parent layer.
-- **load** trả về loader; provider được xử lý lazy khi duyệt.
-- Không cần để consumer **requires** từng provider module nếu muốn giữ kiến trúc service provider có thể thay thế.
+- **uses** belongs to the caller module — the module directly calling **ServiceLoader.load**.
+- **requires** allows the caller to use the service API; **exports** publishes the package containing the service API.
+- **provides ... with ...** belongs to the provider module and registers the implementation.
+- The caller module is not synonymous with the service module, provider module, or the TCCL's module.
+- **ServiceLoader.load(service)** uses the TCCL; **ServiceLoader.load(layer, service)** searches in the module layer and its parent layers.
+- **load** returns a loader; providers are processed lazily during iteration.
+- You do not need the consumer to **requires** each provider module if you want to preserve a replaceable service provider architecture.
 
-Một lưu ý về vòng đời: ServiceLoader không được thiết kế để dùng chung đồng thời giữa nhiều thread. Cũng không nên cache loader này trên toàn JVM một cách tùy tiện, vì các ứng dụng khác nhau có thể có TCCL khác nhau và cache toàn cục có thể giữ lại class loader lâu hơn dự kiến.
+A note on lifecycle: ServiceLoader is not designed for concurrent shared use across multiple threads. Nor should this loader be cached arbitrarily across the entire JVM, because different applications may have different TCCLs and a global cache could retain class loaders longer than expected.
 
-## Tài liệu tham khảo
+## References
 
 - [ServiceLoader — Java SE 21 API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/ServiceLoader.html)
-- [Java Language Specification — Module Declarations, Service Consumption và Service Provision](https://docs.oracle.com/javase/specs/jls/se21/html/jls-7.html#jls-7.7)
+- [Java Language Specification — Module Declarations, Service Consumption, and Service Provision](https://docs.oracle.com/javase/specs/jls/se21/html/jls-7.html#jls-7.7)
 - [Decoupling Modules with Services — Dev.java](https://dev.java/learn/organizing/modules/services/)

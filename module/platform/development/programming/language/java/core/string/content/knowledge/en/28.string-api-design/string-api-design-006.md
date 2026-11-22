@@ -1,50 +1,50 @@
-# Phân biệt văn bản thông thường với cấu trúc có ngữ pháp khi thiết kế API Java
+# Distinguishing Plain Text from Grammar-Structured Text in Java API Design
 
-## Mục tiêu
+## Objectives
 
-Một biến Java có kiểu `String` chỉ cho biết nó chứa một chuỗi ký tự Unicode. Kiểu `String` **không cho biết** nội dung đó là câu văn để hiển thị, mã đơn hàng, địa chỉ URL, biểu thức chính quy, truy vấn SQL hay tài liệu JSON. Những loại nội dung này có thể cùng được truyền qua `String`, nhưng mỗi loại có **quy tắc cấu trúc, ý nghĩa và cách xử lý khác nhau**.
+A Java variable of type `String` only tells you that it holds a sequence of Unicode characters. The `String` type **does not tell you** whether its content is a sentence for display, an order code, a URL, a regular expression, a SQL query, or a JSON document. All of these kinds of content can be passed via `String`, yet each has **different structural rules, meanings, and handling requirements**.
 
-Khi thiết kế API, cần nhận ra ranh giới quan trọng:
+When designing an API, recognize an important boundary:
 
-- **Văn bản thông thường (plain/free text):** chủ yếu là nội dung dành cho con người, ví dụ tên hiển thị, nhận xét, mô tả sản phẩm. Những ký tự như dấu phẩy, dấu ngoặc hoặc dấu `*` có thể chỉ là chính chúng.
-- **Văn bản có ngữ pháp (structured text):** dãy ký tự được đọc bởi một bộ phân tích cú pháp, ví dụ `ORD-0042` theo quy tắc mã đơn hàng, `https://example.com?q=java` theo cú pháp URI, hoặc `a.*b` theo cú pháp regular expression.
-- **Biểu diễn dữ liệu có cấu trúc:** dữ liệu có trường, phần tử, kiểu và quy tắc ràng buộc, ví dụ JSON hoặc CSV. Ở Java, có thể nhận dữ liệu dưới dạng văn bản, nhưng phải phân tích theo đúng ngữ pháp mới hiểu được cấu trúc.
+- **Plain/free text:** primarily content intended for humans, such as display names, comments, or product descriptions. Characters like commas, parentheses, or `*` may simply be literal characters.
+- **Grammar-structured text:** a character sequence read by a parser, such as `ORD-0042` following order-code rules, `https://example.com?q=java` following URI syntax, or `a.*b` following regular expression syntax.
+- **Structured data representations:** data with fields, elements, types, and constraint rules, such as JSON or CSV. In Java, data may arrive as text, but it must be parsed according to the proper grammar to understand its structure.
 
-Bài học giúp bạn xác định khi nào cần giữ nguyên chuỗi, khi nào cần parse và validate, và khi nào phải dùng API tạo cấu trúc thay vì ghép chuỗi thủ công.
+This lesson helps you determine when to keep a string verbatim, when to parse and validate, and when to use structure-building APIs instead of manual string concatenation.
 
-## 1. Cùng là `String`, nhưng không cùng ý nghĩa
+## 1. Same `String`, different meanings
 
-Hãy xét:
+Consider:
 
 ```java
-String comment = "Tôi thích ký hiệu .* trong ví dụ";
+String comment = "I like the .* symbol in the example";
 String regex = ".*";
 String productCode = "ORD-0042";
 String jsonText = "{\"name\":\"Java\",\"count\":3}";
 ```
 
-Bốn biến đều là `String`. Tuy nhiên:
+All four variables are `String`. However:
 
-| Giá trị | Vai trò | Cách xử lý đúng |
+| Value | Role | Proper Handling |
 | --- | --- | --- |
-| `comment` | Văn bản tự do để hiển thị hoặc lưu trữ | Giữ nguyên nội dung theo hợp đồng API; escape đúng khi đưa vào môi trường hiển thị có cú pháp |
-| `regex` | Biểu thức chính quy | Đưa qua `Pattern.compile` nếu ứng dụng thực sự muốn diễn giải regex |
-| `productCode` | Mã định danh có mẫu hợp lệ | Kiểm tra toàn bộ chuỗi theo quy tắc nghiệp vụ; cân nhắc value object riêng |
-| `jsonText` | Tài liệu JSON | Dùng JSON parser để kiểm tra cú pháp và dựng kiểu dữ liệu; không tự tách bằng `split` đơn giản |
+| `comment` | Free text for display or storage | Preserve content per API contract; escape properly when placed into a syntax-sensitive display environment |
+| `regex` | Regular expression | Pass through `Pattern.compile` if the application genuinely intends to interpret regex |
+| `productCode` | Identifier with a valid pattern | Validate the entire string against business rules; consider a dedicated value object |
+| `jsonText` | JSON document | Use a JSON parser to validate syntax and construct data types; do not split manually with simple `split` |
 
-**Dấu câu không có ý nghĩa cố định cho mọi `String`.** Dấu `.` trong câu văn là dấu chấm, nhưng trong regex nó có thể đại diện cho một ký tự bất kỳ. Dấu `&` là một ký tự trong tên người dùng; khi đặt trong query string URL, nó thường ngăn cách các tham số. Ký tự `"` trong câu trích dẫn không đồng nghĩa với dấu mở/đóng chuỗi trong JSON nếu chưa đi qua bộ mã hóa JSON.
+**Punctuation does not have a fixed meaning for every `String`.** A period `.` in prose is a sentence stop, whereas in regex it can represent any character. An `&` is a character in a person's name; when placed in a URL query string, it typically separates parameters. A `"` character in a quoted sentence is not equivalent to string delimiters in JSON unless it goes through a JSON encoder.
 
-Nói cách khác, **ý nghĩa đến từ hợp đồng API và parser**, không phải chỉ từ việc giá trị có kiểu `String`.
+In other words, **meaning comes from the API contract and parser**, not merely from the fact that the value has type `String`.
 
-## 2. Thiết kế API: nêu rõ đầu vào là nội dung hay cú pháp
+## 2. API design: make clear whether input is content or syntax
 
-Một API khó dùng thường gom mọi thứ vào tham số tên chung chung:
+A hard-to-use API often lumps everything into a generically named parameter:
 
 ```java
-void process(String value); // value là nội dung, URL, biểu thức hay mã?
+void process(String value); // Is value content, a URL, an expression, or a code?
 ```
 
-Các tên và kiểu có ý nghĩa giúp người gọi hiểu rõ kỳ vọng:
+Meaningful names and types help callers clearly understand expectations:
 
 ```java
 void saveDisplayName(String displayName);
@@ -54,27 +54,27 @@ void searchLiteralText(String literalText);
 void searchByPattern(java.util.regex.Pattern pattern);
 ```
 
-Đây là **chữ ký minh họa**, không phải lớp Java chạy độc lập. `OrderCode` trong ví dụ là một value object do ứng dụng định nghĩa.
+These are **illustrative signatures**, not a standalone runnable Java class. `OrderCode` in the example is an application-defined value object.
 
-Một số quy tắc thiết kế có ích:
+Several useful design rules:
 
-1. Với dữ liệu **hiển thị**, xác định có cần bảo toàn chính xác chữ hoa/thường, Unicode, dấu cách, xuống dòng và ký tự đặc biệt hay không. Đừng tự sửa văn bản gốc chỉ vì nó chứa ký tự trùng với dấu cú pháp của một định dạng khác.
-2. Với **mã định danh**, định nghĩa tập ký tự, độ dài, phần tiền tố, chính sách hoa/thường, cách báo lỗi và việc có chuẩn hóa hay không.
-3. Với **cú pháp dành cho máy**, ưu tiên loại đối tượng đã được parse khi thích hợp: `URI`, `Path`, `Pattern`, `LocalDate`, enum hoặc record giá trị đã kiểm chứng.
-4. Với tài liệu **JSON/XML/CSV**, xác định parser/serializer và mô hình dữ liệu. Một JSON string bất kỳ chưa chắc là JSON hợp lệ.
-5. Với dữ liệu người dùng được đưa vào **cú pháp khác**, hiểu cách encode hoặc parameterize đúng ngữ cảnh. Không đặt dữ liệu tùy ý vào vị trí mã lệnh bằng nối chuỗi.
+1. For **display** data, decide whether exact casing, Unicode, spaces, line breaks, and special characters must be preserved. Do not alter original text merely because it contains characters that coincide with syntax tokens of another format.
+2. For **identifiers**, define the character set, length, prefix, casing policy, error reporting, and whether normalization applies.
+3. For **machine-oriented syntax**, prefer already-parsed object types when appropriate: `URI`, `Path`, `Pattern`, `LocalDate`, enums, or validated value records.
+4. For **JSON/XML/CSV** documents, specify the parser/serializer and data model. An arbitrary JSON string is not guaranteed to be valid JSON.
+5. For user data placed into **another syntax**, know how to encode or parameterize for that exact context. Do not insert arbitrary data into command/code positions via string concatenation.
 
-API nên tách riêng hai trường hợp: **người dùng nhập các ký tự theo nghĩa nguyên văn** và **người dùng chủ động cung cấp một biểu thức theo cú pháp đã được công bố**. Ví dụ ô tìm kiếm thông thường không nên âm thầm hiểu dấu `*` hoặc `.` thành regex nếu giao diện chưa nói rõ điều đó.
+An API should separate two cases: **the user enters characters meant literally** and **the user intentionally provides an expression in a published syntax**. For example, a regular search box should not silently interpret `*` or `.` as regex if the UI has not stated so.
 
-## 3. Phân biệt xác thực dữ liệu với phân tích cú pháp
+## 3. Distinguishing data validation from parsing
 
-Ba thao tác liên quan nhưng không đồng nghĩa:
+Three related but non-synonymous operations:
 
-- **Validation:** kiểm tra giá trị có thỏa ràng buộc đã định không. Ví dụ mã đơn hàng phải khớp `ORD-` và bốn chữ số ASCII.
-- **Parsing:** diễn giải chuỗi theo ngữ pháp và chuyển thành cấu trúc hoặc kiểu có ý nghĩa. Ví dụ `LocalDate.parse("2026-10-23")` tạo đối tượng ngày hoặc báo lỗi cú pháp.
-- **Encoding/escaping:** chuyển ký tự dữ liệu thành biểu diễn hợp lệ ở một ngữ cảnh đầu ra, như tham số URL, chuỗi JSON, văn bản HTML. Việc này không tự chứng minh nội dung đầu vào là hợp lệ theo quy tắc nghiệp vụ.
+- **Validation:** checks whether a value satisfies defined constraints. For example, an order code must match `ORD-` and four ASCII digits.
+- **Parsing:** interprets a string according to a grammar and converts it into a meaningful structure or type. For example, `LocalDate.parse("2026-10-23")` creates a date object or reports a syntax error.
+- **Encoding/escaping:** converts data characters into a valid representation in an output context, such as a URL parameter, JSON string, or HTML text. This does not by itself prove the input content is valid under business rules.
 
-Ví dụ `"ORD-0042"` có thể là mã đơn hàng hợp lệ theo chính sách ứng dụng, còn `"ORD-42 abc"` không hợp lệ. Dùng `Pattern.matcher(value).matches()` để yêu cầu **khớp toàn bộ chuỗi**:
+For example, `"ORD-0042"` may be a valid order code under application policy, whereas `"ORD-42 abc"` is invalid. Use `Pattern.matcher(value).matches()` to require **matching the entire string**:
 
 ```java
 import java.util.regex.Pattern;
@@ -85,29 +85,29 @@ System.out.println(orderCode.matcher("ORD-0042").matches()); // true
 System.out.println(orderCode.matcher("ORD-42 abc").matches()); // false
 ```
 
-`find()` tìm một đoạn con khớp mẫu; `matches()` yêu cầu cả input khớp. Với mã định danh, dùng `find()` có thể vô tình cho phép tiền tố/hậu tố thừa.
+`find()` looks for a substring matching the pattern; `matches()` requires the entire input to match. For identifiers, using `find()` can accidentally allow extra prefixes/suffixes.
 
-Cần phân biệt **hợp lệ về cú pháp** và **hợp lệ về nghiệp vụ**. `ORD-0042` đúng định dạng nhưng có thể không tồn tại trong cơ sở dữ liệu, không thuộc người gọi hoặc đã hết hiệu lực. Regex không thể thay thế kiểm tra quyền, trạng thái và tính duy nhất.
+Distinguish **syntactic validity** from **business validity**. `ORD-0042` matches the format, yet it may not exist in the database, may not belong to the caller, or may have expired. Regex cannot replace permission, state, and uniqueness checks.
 
-## 4. Regex: văn bản literal và ngôn ngữ biểu thức chính quy
+## 4. Regex: literal text vs. regular expression language
 
-Regex là ví dụ dễ thấy nhất cho việc chuỗi có ngữ pháp. Trong regex:
+Regex is the clearest example of a string having a grammar. In regex:
 
-- `.` có nghĩa là một ký tự phù hợp, thay vì dấu chấm văn bản;
-- `*` là toán tử lặp cho biểu thức đứng trước;
-- `[ab]` là lớp ký tự gồm `a` hoặc `b`;
-- `|` có nghĩa là lựa chọn giữa hai nhánh.
+- `.` means a matching character, rather than a literal period;
+- `*` is a repetition quantifier for the preceding expression;
+- `[ab]` is a character class containing `a` or `b`;
+- `|` means alternation between two branches.
 
-Nếu người dùng muốn tìm đúng chuỗi `a.b`, thì:
+If a user wants to search for the exact string `a.b`, then:
 
 ```java
 Pattern wrong = Pattern.compile("a.b");
 System.out.println(wrong.matcher("axb").find()); // true
 ```
 
-Regex `a.b` cũng khớp `axb`. Đó không phải hành vi tìm kiếm literal.
+The regex `a.b` also matches `axb`. That is not literal search behavior.
 
-Khi nhận **nội dung cần tìm nguyên văn**, dùng `Pattern.quote(literal)` để tạo một regex khớp đúng các ký tự của chuỗi literal:
+When accepting **content to search literally**, use `Pattern.quote(literal)` to create a regex matching the exact characters of the literal string:
 
 ```java
 String literal = "a.b";
@@ -117,24 +117,24 @@ System.out.println(exactText.matcher("read a.b now").find()); // true
 System.out.println(exactText.matcher("read axb now").find()); // false
 ```
 
-Không cần biến mọi thao tác tìm chuỗi thành regex. Nếu yêu cầu chỉ là tìm đoạn con theo đúng ký tự, `String.contains` hoặc `indexOf` thường trực tiếp và dễ hiểu hơn:
+There is no need to turn every string search into a regex. If the requirement is simply to find an exact character substring, `String.contains` or `indexOf` is usually more direct and easier to understand:
 
 ```java
 System.out.println("read a.b now".contains("a.b")); // true
 ```
 
-**Bẫy của `String.split`:** tham số của `split(regex)` là **regex**, không phải dấu phân cách literal. Ví dụ `"A|B|C".split("|")` không thể được hiểu đơn giản là tách theo dấu `|`, vì `|` là toán tử regex. Để tách theo đúng một dấu phân cách từ biến:
+**The `String.split` pitfall:** the parameter of `split(regex)` is a **regex**, not a literal delimiter. For example, `"A|B|C".split("|")` cannot simply be assumed to split on `|`, because `|` is a regex operator. To split on an exact delimiter from a variable:
 
 ```java
 String delimiter = "|";
 String[] parts = "A|B|C".split(Pattern.quote(delimiter), -1);
 ```
 
-Tham số `-1` giữ cả các phần tử rỗng cuối chuỗi. Với định dạng CSV, chỉ dùng `split(",")` vẫn chưa đủ nếu có dấu phẩy bên trong trường được bao bởi dấu nháy; trường hợp đó cần parser CSV đúng quy tắc.
+The `-1` parameter preserves trailing empty elements. For CSV format, calling `split(",")` alone is still insufficient if there are commas inside quoted fields; that case requires a proper CSV parser.
 
-## 5. Khi chuỗi chứa URI, ý nghĩa các dấu phân cách đến từ cú pháp
+## 5. When strings contain URIs, delimiter meanings come from syntax
 
-Một người dùng có thể gõ \`An & Binh\` như tên hiển thị, nhưng khi chuỗi ấy trở thành **giá trị query** thì \`&\` có thể bị hiểu là dấu phân cách tham số nếu được nối trực tiếp. Với form-style query value, \`URLEncoder\` xử lý dữ liệu theo đúng quy tắc:
+A user might type \`An & Binh\` as a display name, but when that string becomes a **query value**, \`&\` can be interpreted as a parameter separator if concatenated directly. For form-style query values, \`URLEncoder\` encodes the data according to the proper rules:
 
 ~~~java
 String value = "An & Binh";
@@ -143,11 +143,11 @@ String encoded = java.net.URLEncoder.encode(
 System.out.println(encoded); // An+%26+Binh
 ~~~
 
-\`URLEncoder\` không phải bộ mã hóa chung cho **toàn URI, path segment hoặc fragment**. Nếu hợp đồng yêu cầu địa chỉ, dùng \`java.net.URI\`/URI builder phù hợp, phân tích scheme, host, path và kiểm tra đích sau khi resolve. Parse thành công không chứng minh địa chỉ được phép truy cập.
+\`URLEncoder\` is not a general encoder for an **entire URI, path segment, or fragment**. If the contract requires an address, use \`java.net.URI\` or an appropriate URI builder, inspect scheme, host, and path, and validate the destination after resolution. Successful parsing does not prove the address is permitted to be accessed.
 
-## 6. JSON và CSV là tài liệu có cấu trúc, không phải một danh sách ký tự
+## 6. JSON and CSV are structured documents, not a list of characters
 
-Với JSON, dấu \`",\`, backslash, cặp ngoặc, array/object và các kiểu dữ liệu mang nghĩa cú pháp. Với CSV, một dấu phẩy hoặc newline **có thể nằm bên trong trường được quote**, còn \`""\` là cách diễn tả dấu nháy trong dialect thông dụng. Vì vậy \`split(",")\` và \`split("\n")\` không đủ để phân tích tài liệu tổng quát.
+In JSON, quotes \`",\`, backslashes, braces/brackets, arrays/objects, and data types carry syntactic meaning. In CSV, a comma or newline **may appear inside a quoted field**, and \`""\` is how an embedded quote is represented in common dialects. Therefore \`split(",")\` and \`split("\n")\` are insufficient for parsing general documents.
 
 ~~~json
 {"title":"Java, Strings","completed":true}
@@ -155,27 +155,27 @@ Với JSON, dấu \`",\`, backslash, cặp ngoặc, array/object và các kiểu
 
 ~~~csv
 name,note
-"Nguyễn, An","Câu nói ""Java"" rất hay"
+"Nguyen, An","The quote ""Java"" is great"
 ~~~
 
-Dùng JSON parser/serializer như Jackson hoặc CSV parser/writer theo dialect đã thống nhất; Java SE 17 không tích hợp serializer JSON tổng quát. Truyền object/record đã parse cho domain thay vì truyền JSON/CSV string mơ hồ đi qua nhiều tầng. Bài kế tiếp trình bày riêng các edge case và cách dùng thư viện.
+Use a JSON parser/serializer such as Jackson or a CSV parser/writer following the agreed dialect; Java SE 17 does not include a general-purpose JSON serializer. Pass parsed objects/records into the domain instead of passing ambiguous raw JSON/CSV strings across multiple layers. The next lesson covers edge cases and library usage in detail.
 
-## 7. Những cú pháp có thể thực thi cần tách biệt dữ liệu
+## 7. Executable syntaxes must keep data separate
 
-Với SQL, truyền giá trị bằng \`PreparedStatement\` thay vì nối thành câu truy vấn. Với HTML, render văn bản bằng text node hoặc template có auto-escaping đúng vị trí; tránh ghép nội dung người dùng thành markup. Với lệnh hệ thống, ưu tiên \`ProcessBuilder\` truyền executable và từng đối số thay vì đưa cả chuỗi người dùng qua shell.
+For SQL, pass values using \`PreparedStatement\` instead of concatenating into the query string. For HTML, render text using text nodes or templates with context-appropriate auto-escaping; avoid concatenating user content into markup. For system commands, prefer \`ProcessBuilder\` passing the executable and each argument separately rather than passing an entire user string through a shell.
 
 ~~~java
 String sql = "SELECT id FROM users WHERE name = ?";
 try (java.sql.PreparedStatement ps = connection.prepareStatement(sql)) {
-    ps.setString(1, userInput); // userInput là dữ liệu, không phải cú pháp SQL
+    ps.setString(1, userInput); // userInput is data, not SQL syntax
 }
 ~~~
 
-Đây là đoạn code minh họa, giả định có \`java.sql.Connection connection\` và \`String userInput\`. Tham số SQL không thể thay tên bảng/cột; phần cấu trúc động vẫn cần allowlist. Trong HTML, JavaScript, CSS, SQL hoặc command, mỗi ranh giới có cú pháp riêng: một phép escape chung cho tất cả đều không đủ. Bài cuối chương đi sâu vào **trách nhiệm của từng output adapter**, bao gồm double escaping và decode nhiều lần.
+This is an illustrative snippet assuming \`java.sql.Connection connection\` and \`String userInput\` exist. SQL parameters cannot replace table/column names; dynamic structural parts still require an allowlist. Across HTML, JavaScript, CSS, SQL, or shell commands, each boundary has its own syntax: a single universal escape function is insufficient for all of them. The final lesson of the chapter dives into **the responsibilities of each output adapter**, including double escaping and multi-pass decoding.
 
-## 8. Một kiểu dữ liệu riêng giúp API rõ hợp đồng
+## 8. A dedicated data type makes the API contract clear
 
-Một value object là lựa chọn hữu ích nếu chuỗi được dùng nhiều nơi với cùng cấu trúc. Ví dụ mã đơn hàng `ORD-` cộng bốn chữ số ASCII:
+A value object is a useful choice when a string is used in many places with the same structure. For example, an order code of `ORD-` plus four ASCII digits:
 
 ```java
 import java.util.Objects;
@@ -193,21 +193,21 @@ record OrderCode(String value) {
 }
 ```
 
-Đây là định nghĩa `record` Java 17 hợp lệ để đặt ở cấp top-level không `public` hoặc lồng trong lớp. Sau khi tạo thành công, đối tượng `OrderCode` đại diện cho giá trị đã được kiểm tra **theo mẫu quy định**. Những API cần mã đơn hàng có thể nhận `OrderCode` thay vì `String` không rõ ý nghĩa. Lưu ý không dùng mã hợp lệ về mặt cú pháp làm bằng chứng rằng đơn hàng thực sự tồn tại.
+This is a valid Java 17 `record` definition suitable for package-private top-level or nested inside a class. Once constructed successfully, the `OrderCode` object represents a value validated **against the specified pattern**. APIs needing an order code can accept `OrderCode` instead of an ambiguous `String`. Note: do not use a syntactically valid code as proof that the order actually exists.
 
-Không cần tạo một lớp mới cho mọi chuỗi thông thường. Các trường tên hiển thị, nội dung ghi chú, tiêu đề bài viết có thể vẫn là `String` nếu hợp đồng đủ rõ. Value object đem lại lợi ích lớn hơn khi một chuỗi có ngữ pháp/ràng buộc lặp lại ở nhiều API hoặc dễ bị nhầm với loại chuỗi khác.
+You do not need to create a new class for every ordinary string. Fields like display name, note content, and article title can remain `String` if the contract is clear enough. Value objects provide greater value when a string has a grammar/constraint repeated across many APIs or is easily confused with other string kinds.
 
-## 9. Ví dụ Java 17+ chạy hoàn chỉnh
+## 9. Complete runnable Java 17+ example
 
-Ví dụ tổng hợp cách:
+This example combines how to:
 
-- giữ văn bản hiển thị đúng như đầu vào;
-- xác thực toàn bộ chuỗi mã bằng ngữ pháp quy định;
-- tìm literal chứa dấu chấm mà không coi nó là regex;
-- mã hóa **giá trị query form**;
-- tách bằng một delimiter literal có ý nghĩa đặc biệt trong regex.
+- keep display text intact as received;
+- validate an entire code string against a defined grammar;
+- search a literal containing a dot without treating it as regex;
+- encode a **form query value**;
+- split on a literal delimiter that has special meaning in regex.
 
-Tạo file **`TextVsSyntaxDemo.java`**:
+Create the file **`TextVsSyntaxDemo.java`**:
 
 ```java
 import java.net.URLEncoder;
@@ -256,14 +256,14 @@ public class TextVsSyntaxDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 TextVsSyntaxDemo.java
 java TextVsSyntaxDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 Display: [  Mon an #42  ]
@@ -275,57 +275,57 @@ Query component: name=An+%26+Binh
 Parts: [A, B, C]
 ```
 
-Giải thích kết quả:
+Output explanation:
 
-- `display` được in nguyên vẹn, gồm hai dấu cách ở hai đầu. Giá trị là nội dung dành cho hiển thị nên không tự cắt hoặc parse thành ngữ pháp khác.
-- `matches()` chấp nhận mã `ORD-0042` và từ chối `ORD-42 extra`, bởi regex bắt buộc toàn bộ mã có tiền tố và đúng bốn chữ số.
-- `Pattern.quote("a.b")` khiến dấu chấm được tìm đúng như ký tự thật; nó không tùy ý khớp chữ `x`.
-- `URLEncoder` xử lý dấu cách và `&` theo form encoding của giá trị tham số.
-- `Pattern.quote("|")` giúp `split` hiểu `|` là dấu phân cách nguyên văn, không phải toán tử regex.
+- `display` is printed intact, including the two leading and trailing spaces. Because the value is display content, it is neither stripped nor parsed as another grammar.
+- `matches()` accepts `ORD-0042` and rejects `ORD-42 extra`, because the regex requires the entire code to match the prefix and exactly four digits.
+- `Pattern.quote("a.b")` causes the dot to be matched as an actual character; it does not arbitrarily match `x`.
+- `URLEncoder` handles spaces and `&` according to form encoding for parameter values.
+- `Pattern.quote("|")` tells `split` to treat `|` as a literal delimiter rather than a regex operator.
 
-## 10. Bảng quyết định khi thiết kế một tham số `String`
+## 10. Decision table when designing a `String` parameter
 
-| Câu hỏi cần hỏi | Nếu câu trả lời là… | Hướng thiết kế |
+| Question to ask | If the answer is… | Design Direction |
 | --- | --- | --- |
-| Giá trị có được hiển thị nguyên văn không? | Tên, mô tả, bình luận | Bảo toàn nội dung, xác định chính sách whitespace/Unicode riêng; escape khi xuất ra định dạng khác |
-| Giá trị có một mẫu hợp lệ rõ ràng không? | Mã đơn, định danh phiên bản | Validate toàn bộ, báo lỗi rõ; cân nhắc value object |
-| Giá trị là cú pháp do người dùng chủ động nhập không? | Regex, filter expression | Công bố ngữ pháp, parse/catch lỗi; phân biệt với tìm kiếm literal |
-| Giá trị mang cấu trúc nhiều trường không? | JSON, CSV | Dùng parser/serializer phù hợp; không split hoặc nối tay |
-| Giá trị được đặt vào một văn bản có cú pháp khác không? | URL, SQL, HTML, shell | Dùng encoding, parameterization hoặc API dựng cấu trúc đúng theo ngữ cảnh |
-| Giá trị được so sánh trong collection không? | Key của map/set | Quyết định có chuẩn hóa hay giữ nguyên; kiểm tra collisions |
-| Giá trị qua nhiều tầng API không? | HTTP input → service → repository | Tách ranh giới parse/validate ở tầng thích hợp, ưu tiên truyền kiểu đã kiểm chứng vào nội bộ |
+| Is the value displayed verbatim? | Name, description, comment | Preserve content, define separate whitespace/Unicode policy; escape when outputting to another format |
+| Does the value have a clear valid pattern? | Order code, version identifier | Validate the whole string, report clear errors; consider a value object |
+| Is the value syntax intentionally entered by the user? | Regex, filter expression | Publish the grammar, parse/catch errors; distinguish from literal search |
+| Does the value carry multi-field structure? | JSON, CSV | Use an appropriate parser/serializer; do not manually split or concatenate |
+| Is the value placed inside text with another syntax? | URL, SQL, HTML, shell | Use context-appropriate encoding, parameterization, or structure-building APIs |
+| Is the value compared in a collection? | Map/set key | Decide whether to normalize or preserve; check for collisions |
+| Does the value pass through multiple API layers? | HTTP input → service → repository | Separate parse/validate boundaries at the proper layer, preferring validated types internally |
 
-Cần nhớ rằng **validation, escaping và authorization là ba việc độc lập**. Chuỗi đúng cú pháp vẫn có thể đề cập đến tài nguyên mà người dùng không có quyền truy cập; một giá trị đã được HTML-escape vẫn có thể vi phạm quy tắc dữ liệu; và giá trị hợp lệ trong JSON không có nghĩa sẽ an toàn nếu sau đó đưa nguyên văn vào câu SQL.
+Remember that **validation, escaping, and authorization are three independent tasks**. A syntactically valid string can still reference a resource the user has no permission to access; an HTML-escaped value can still violate data rules; and a valid value inside JSON is not necessarily safe if later inserted verbatim into a SQL statement.
 
-## 11. Lỗi thường gặp
+## 11. Common mistakes
 
-1. **Xem mọi `String` là plain text.** Truyền văn bản người dùng vào `Pattern.compile`, SQL hay biểu thức template khiến các dấu có nghĩa điều khiển.
-2. **Xem mọi dấu câu là cấu trúc.** Tự tách dấu phẩy, dấu chấm hoặc ký tự `&` trong tên/nhận xét dù chúng chỉ là văn bản hiển thị.
-3. **Dùng `split` thay parser chuẩn.** JSON/CSV/URL có quy tắc quoting, escaping, nesting hoặc encoding; tách chuỗi đơn giản làm hỏng dữ liệu hợp lệ.
-4. **Dùng `matches()` và `find()` lẫn lộn.** Mã định danh cần hợp lệ toàn bộ; tìm một đoạn nội dung thì cần semantics khác.
-5. **Dùng một dạng escaping cho nhiều ngữ cảnh.** SQL parameter, JSON escaping, URL encoding và HTML escaping giải quyết các ngữ pháp khác nhau.
-6. **Đổi nội dung hiển thị khi tạo khóa.** Việc chuẩn hóa để so khớp có thể cần thiết, nhưng nên giữ văn bản gốc nếu người dùng cần xem lại đúng chuỗi đã nhập.
-7. **Cho rằng parse thành công đồng nghĩa hợp lệ hoàn toàn.** URI đúng cú pháp chưa chắc có scheme/host hợp lệ cho nghiệp vụ; mã đơn hàng đúng mẫu chưa chắc tồn tại.
-8. **Xây API nhận `String` mà không ghi hợp đồng.** Người gọi không biết nên gửi văn bản nguyên dạng, mã đã chuẩn hóa, JSON raw hay đối tượng đã parse.
+1. **Treating every `String` as plain text.** Passing user text into `Pattern.compile`, SQL, or template expressions lets special characters act as control tokens.
+2. **Treating every punctuation mark as structure.** Splitting on commas, periods, or `&` in names/comments even when they are just display text.
+3. **Using `split` instead of a proper parser.** JSON/CSV/URL have quoting, escaping, nesting, or encoding rules; naive string splitting corrupts valid data.
+4. **Confusing `matches()` and `find()`.** Identifiers must match as a whole; searching for a substring requires different semantics.
+5. **Using one escaping scheme across multiple contexts.** SQL parameters, JSON escaping, URL encoding, and HTML escaping address different grammars.
+6. **Altering display content when creating keys.** Normalizing for matching may be necessary, but retain the original text if users need to view exactly what they entered.
+7. **Assuming successful parsing means full validity.** A syntactically valid URI may not have an allowed scheme/host for the business domain; a pattern-valid order code may not exist.
+8. **Building APIs accepting `String` without documenting the contract.** Callers will not know whether to send raw text, normalized codes, raw JSON, or parsed objects.
 
-## 12. Tự kiểm tra
+## 12. Self-check
 
-**Câu 1.** API tìm kiếm cho người dùng nhập `"a.b"` và muốn tìm chính xác ba ký tự `a`, `.`, `b`. Có nên gọi `Pattern.compile(userInput)` không?
+**Question 1.** A search API lets users enter `"a.b"` and wants to find the exact three characters `a`, `.`, `b`. Should it call `Pattern.compile(userInput)`?
 
-**Đáp án:** Không. Đây là tìm kiếm literal; có thể dùng `String.contains(userInput)` hoặc `Pattern.compile(Pattern.quote(userInput))` nếu cần regex API.
+**Answer:** No. This is a literal search; use `String.contains(userInput)` or `Pattern.compile(Pattern.quote(userInput))` if the regex API is needed.
 
-**Câu 2.** Vì sao `"A,B"` không đủ để xác định nó có hai cột CSV?
+**Question 2.** Why is `"A,B"` not enough to prove it has two CSV columns?
 
-**Đáp án:** Một chuỗi văn bản có dấu phẩy có thể chỉ là nội dung thông thường. Đối với CSV, số cột còn phụ thuộc quy tắc quoting, delimiter và cú pháp toàn bản ghi. Chỉ parser CSV mới xác định đúng cấu trúc theo dialect được chọn.
+**Answer:** A text string containing a comma may just be ordinary content. For CSV, column count also depends on quoting rules, delimiters, and the full record's syntax. Only a CSV parser can determine the structure under the chosen dialect.
 
-**Câu 3.** `ORD-0042` khớp regex yêu cầu. Điều đó chứng minh gì?
+**Question 3.** `ORD-0042` matches the required regex. What does that prove?
 
-**Đáp án:** Chỉ chứng minh chuỗi thỏa mẫu cú pháp. Nó chưa chứng minh có đơn hàng tương ứng, giá trị là duy nhất hoặc người gọi có quyền truy cập.
+**Answer:** It only proves the string satisfies the syntactic pattern. It does not prove a corresponding order exists, that the value is unique, or that the caller has permission to access it.
 
-**Câu 4.** Nếu một tên người dùng chứa `&`, có thể đặt trực tiếp vào query URL bằng cách nối chuỗi không?
+**Question 4.** If a username contains `&`, can it be placed directly into a URL query via string concatenation?
 
-**Đáp án:** Không nên. Khi đặt làm giá trị tham số, phải dùng cơ chế mã hóa đúng thành phần, ví dụ form encoding trong ngữ cảnh tương ứng; dấu `&` phải được bảo toàn như dữ liệu thay vì bị diễn giải làm dấu ngăn tham số.
+**Answer:** No. When placed as a parameter value, you must use the proper component encoding mechanism, such as form encoding in the corresponding context; `&` must be preserved as data rather than interpreted as a parameter delimiter.
 
-## Ghi nhớ
+## Takeaways
 
-**`String` là nơi chứa ký tự; hợp đồng API mới quyết định ký tự đó là nội dung hay cú pháp.** Với plain text, bảo toàn nội dung và xử lý đúng khi xuất. Với structured text, xác định ngữ pháp, parse/validate bằng công cụ chuyên dụng và chuyển sang kiểu dữ liệu phù hợp khi có thể. Khi dữ liệu đi vào SQL, URL, JSON, HTML, regex hay shell, phải giữ ranh giới giữa **dữ liệu** và **cú pháp điều khiển** bằng API đúng ngữ cảnh.
+**`String` is a container for characters; the API contract decides whether those characters are content or syntax.** For plain text, preserve content and handle output properly. For structured text, specify the grammar, parse/validate with dedicated tools, and convert to appropriate data types whenever possible. Whenever data enters SQL, URLs, JSON, HTML, regex, or shells, maintain the boundary between **data** and **control syntax** using context-appropriate APIs.

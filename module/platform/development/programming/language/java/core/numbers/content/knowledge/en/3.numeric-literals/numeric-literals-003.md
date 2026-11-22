@@ -1,44 +1,44 @@
-# Thập phân, nhị phân, bát phân và thập lục phân trong Java
+# Decimal, Binary, Octal, and Hexadecimal in Java
 
-## 1. Một giá trị, bốn cách biểu diễn
+## 1. One Value, Four Representations
 
-Một số nguyên là **giá trị**, còn hệ cơ số (*numeral system*) là **cách viết giá trị** đó. Ví dụ, số nguyên bốn mươi hai có thể viết:
+An integer is a **value**, while a numeral system (*base* / *radix*) is **a way of writing that value**. For example, the integer forty-two can be written as:
 
-| Hệ cơ số | Cơ số | Chữ số được phép | Cách viết số 42 trong toán học | Literal nguyên trong Java |
+| Numeral System | Base | Allowed Digits | Mathematical Notation for 42 | Java Integer Literal |
 |---|---:|---|---|---|
-| Thập phân (*decimal*) | 10 | 0–9 | \(42_{10}\) | `42` |
-| Nhị phân (*binary*) | 2 | 0, 1 | \(101010_2\) | `0b101010` |
-| Bát phân (*octal*) | 8 | 0–7 | \(52_8\) | `052` |
-| Thập lục phân (*hexadecimal*) | 16 | 0–9, A–F | \(2A_{16}\) | `0x2A` |
+| Decimal | 10 | 0–9 | \(42_{10}\) | `42` |
+| Binary | 2 | 0, 1 | \(101010_2\) | `0b101010` |
+| Octal | 8 | 0–7 | \(52_8\) | `052` |
+| Hexadecimal | 16 | 0–9, A–F | \(2A_{16}\) | `0x2A` |
 
-Các literal `42`, `0b101010`, `052` và `0x2A` đều có cùng **giá trị nguyên 42**. Chọn cơ số khác không làm biến `int` to hơn, nhanh hơn hoặc chính xác hơn: nó chỉ thay đổi cách mã nguồn biểu diễn một số.
+The literals `42`, `0b101010`, `052`, and `0x2A` all have the exact same **integer value 42**. Choosing a different base does not make an `int` variable larger, faster, or more precise: it only changes how source code represents a number.
 
-Khi đọc một literal, phân biệt **tiền tố** (cho biết hệ cơ số), **phần chữ số**, **dấu gạch dưới** (cho dễ đọc) và **hậu tố `L`** (cho biết kiểu `long`). Những thành phần này không có cùng vai trò.
+When reading a literal, distinguish the **prefix** (indicating the numeral system), the **digits**, **underscores** (for readability), and the **`L` suffix** (indicating type `long`). These parts do not play the same role.
 
-## 2. Nguyên lý của hệ giá trị theo vị trí
+## 2. Principle of Positional Value Systems
 
-Với cơ số \(b\), mỗi vị trí từ phải sang trái mang trọng số \(b^0, b^1, b^2,\ldots\). Một chuỗi chữ số \(d_nd_{n-1}\dots d_0\) biểu thị:
+For base \(b\), each position from right to left carries weight \(b^0, b^1, b^2,\ldots\). A sequence of digits \(d_nd_{n-1}\dots d_0\) represents:
 
 \[
 d_n b^n + d_{n-1}b^{n-1}+\cdots+d_1 b+d_0.
 \]
 
-Mọi chữ số \(d_i\) phải thỏa \(0 \le d_i < b\). Riêng hệ 16 dùng thêm A = 10, B = 11, C = 12, D = 13, E = 14, F = 15; chữ hoa và chữ thường đều được chấp nhận.
+Every digit \(d_i\) must satisfy \(0 \le d_i < b\). Base 16 additionally uses A = 10, B = 11, C = 12, D = 13, E = 14, F = 15; both uppercase and lowercase letters are accepted.
 
-Áp dụng với số 42:
+Applying this to the number 42:
 
-- Thập phân `42` = \(4\times10+2=42\).
-- Nhị phân `101010` = \(1\times32+0\times16+1\times8+0\times4+1\times2+0=42\).
-- Bát phân `52` = \(5\times8+2=42\).
+- Decimal `42` = \(4\times10+2=42\).
+- Binary `101010` = \(1\times32+0\times16+1\times8+0\times4+1\times2+0=42\).
+- Octal `52` = \(5\times8+2=42\).
 - Hex `2A` = \(2\times16+10=42\).
 
-Từ đó thấy rõ: không thể suy ra giá trị chỉ bằng nhìn chuỗi `10` mà bỏ qua cơ số. `10` trong hệ 2 bằng 2; trong hệ 8 bằng 8; trong hệ 10 bằng 10; trong hệ 16 bằng 16.
+From this it is clear: you cannot deduce a value merely by looking at the digit sequence `10` while ignoring the base. `10` in base 2 equals 2; in base 8 it equals 8; in base 10 it equals 10; in base 16 it equals 16.
 
-## 3. Cú pháp literal nguyên của Java
+## 3. Java Integer Literal Syntax
 
-### 3.1. Thập phân — mặc định
+### 3.1. Decimal — Default
 
-Literal không có tiền tố đặc biệt và bắt đầu bằng chữ số 1–9 được hiểu là thập phân; chữ số `0` đứng một mình cũng hợp lệ:
+A literal with no special prefix that starts with a digit 1–9 is interpreted as decimal; a standalone `0` is also valid:
 
 ```java
 int ten = 10;
@@ -47,52 +47,52 @@ long large = 3_000_000_000L;
 int zero = 0;
 ```
 
-Thêm hậu tố `L` hoặc `l` để chỉ literal kiểu `long`; nên ưu tiên **`L` viết hoa**, dễ phân biệt với chữ số 1.
+Add the `L` or `l` suffix to indicate a `long` literal; **uppercase `L`** is preferred because it is easy to distinguish from the digit 1.
 
-### 3.2. Nhị phân — tiền tố `0b` hoặc `0B`
+### 3.2. Binary — Prefix `0b` or `0B`
 
-Hỗ trợ từ Java 7, chỉ dùng 0 và 1:
-
-```java
-int flags = 0b1010;       // 10 thập phân
-int eight = 0B1000;       // 8 thập phân
-long wide = 0b1_0000L;   // 16 thập phân
-```
-
-`0b102` **không hợp lệ** vì chữ số 2 không có trong cơ số 2. Không có tiền tố nhị phân nào ngầm nói rằng literal là `byte`: `0b1111_1111` là literal `int` mang giá trị 255; `(byte) 0b1111_1111` mới tạo giá trị `byte` -1.
-
-### 3.3. Bát phân — tiền tố **chữ số 0**
-
-Java viết bát phân bằng **chữ số 0 đặt đầu literal**, theo cú pháp lịch sử:
+Supported since Java 7, using only 0 and 1:
 
 ```java
-int tenInOctal = 012;  // 1*8 + 2 = 10 thập phân
-int permission = 0755; // 7*64 + 5*8 + 5 = 493 thập phân
-int eight = 010;       // 8 thập phân, KHÔNG phải 10
+int flags = 0b1010;       // 10 decimal
+int eight = 0B1000;       // 8 decimal
+long wide = 0b1_0000L;   // 16 decimal
 ```
 
-Đây là bẫy hay gặp: `010` **không bằng** `10`. Viết `08` hoặc `09` sẽ **lỗi biên dịch**, vì 8 và 9 không phải chữ số bát phân.
+`0b102` is **invalid** because the digit 2 does not exist in base 2. No binary prefix implicitly marks a literal as `byte`: `0b1111_1111` is an `int` literal with value 255; `(byte) 0b1111_1111` produces the `byte` value -1.
 
-Java **không** dùng tiền tố `0o` kiểu Python để biểu diễn bát phân. Nếu muốn số 10 thập phân, viết `10`; nếu cần diễn đạt bát phân rõ ràng trong văn bản, ghi \(12_8\), còn trong Java dùng `012`.
+### 3.3. Octal — Prefix **Digit 0**
 
-### 3.4. Thập lục phân — tiền tố `0x` hoặc `0X`
-
-Hex dùng chữ số 0–9 và A–F (không phân biệt hoa thường):
+Java writes octal using a **leading digit 0 at the start of the literal**, following historical syntax:
 
 ```java
-int answer = 0x2A;          // 42 thập phân
-int byteMask = 0xFF;        // 255 thập phân
-int color = 0x12_AB_34;     // 1_223_476 thập phân
-long wide = 0X1_0000_0000L; // 4_294_967_296 thập phân
+int tenInOctal = 012;  // 1*8 + 2 = 10 decimal
+int permission = 0755; // 7*64 + 5*8 + 5 = 493 decimal
+int eight = 010;       // 8 decimal, NOT 10
 ```
 
-Hex thuận tiện khi thao tác byte hoặc bit: 1 chữ số hex tương ứng **4 bit**, 2 chữ số hex tương ứng **8 bit**. Ví dụ `0xFF` = `0b1111_1111` = 255.
+This is a common pitfall: `010` **does not equal** `10`. Writing `08` or `09` causes a **compile error**, because 8 and 9 are not octal digits.
 
-`0xG1` không hợp lệ vì G không phải chữ số hex. Khi viết literal hex nguyên, có thể dùng các chữ cái A–F ở cả hai dạng; Java nhận `0x2a` và `0X2A` như nhau.
+Java does **not** use a Python-style `0o` prefix to represent octal. If you want decimal 10, write `10`; if you need to express octal clearly in prose, write \(12_8\), while in Java use `012`.
 
-## 4. Dấu gạch dưới, hậu tố và kiểu của literal
+### 3.4. Hexadecimal — Prefix `0x` or `0X`
 
-Java cho phép dấu gạch dưới **giữa các chữ số** nhằm tăng khả năng đọc:
+Hex uses digits 0–9 and A–F (case-insensitive):
+
+```java
+int answer = 0x2A;          // 42 decimal
+int byteMask = 0xFF;        // 255 decimal
+int color = 0x12_AB_34;     // 1_223_476 decimal
+long wide = 0X1_0000_0000L; // 4_294_967_296 decimal
+```
+
+Hex is convenient when working with bytes or bits: 1 hex digit corresponds to **4 bits**, and 2 hex digits correspond to **8 bits**. For example, `0xFF` = `0b1111_1111` = 255.
+
+`0xG1` is invalid because G is not a hex digit. When writing integer hex literals, you can use letters A–F in either case; Java treats `0x2a` and `0X2A` identically.
+
+## 4. Underscores, Suffixes, and Literal Types
+
+Java allows underscores **between digits** to improve readability:
 
 ```java
 int population = 2_147_483_647;
@@ -101,25 +101,25 @@ int code = 0xCAFE_BABE;
 long id = 0xFFFF_FFFF_FFFF_FFFFL;
 ```
 
-Dấu gạch dưới không thay đổi giá trị. Các dạng sau **không hợp lệ**:
+Underscores do not change the value. The following forms are **invalid**:
 
 ```java
-// int bad1 = _123;      // '_' không được đứng đầu literal
-// int bad2 = 123_;      // '_' không được đứng cuối literal
-// int bad3 = 0x_FF;     // '_' không được đứng ngay sau tiền tố
-// int bad4 = 0b_1010;   // '_' không được đứng ngay sau tiền tố
-// long bad5 = 123_L;    // '_' không được đứng trước hậu tố L
+// int bad1 = _123;      // '_' cannot be at the start of a literal
+// int bad2 = 123_;      // '_' cannot be at the end of a literal
+// int bad3 = 0x_FF;     // '_' cannot be immediately after the prefix
+// int bad4 = 0b_1010;   // '_' cannot be immediately after the prefix
+// long bad5 = 123_L;    // '_' cannot precede the L suffix
 ```
 
-Các dòng này đều là comment để chương trình mẫu không gặp lỗi biên dịch. Thêm hậu tố `L` cho literal nguyên để chọn kiểu `long`; tiền tố `0b`, `0`, `0x` chỉ chọn **cơ số**, không chọn `byte`/`short` hay `long`.
+These lines are all commented out so the sample program does not encounter compile errors. Add the `L` suffix to an integer literal to choose type `long`; the `0b`, `0`, and `0x` prefixes only choose the **base**, not `byte`/`short` or `long`.
 
-Với literal nguyên chưa có `L`, kiểu là `int`; có `L`, kiểu là `long`, trong phạm vi cách viết hợp lệ. Java cho phép vài hằng số nguyên thập phân đặc biệt dưới dạng toán tử trừ đơn ngôi với trị nhỏ nhất như `-2147483648`; thường dùng `Integer.MIN_VALUE` và `Long.MIN_VALUE` để khỏi nhầm giới hạn.
+For an integer literal without `L`, the type is `int`; with `L`, the type is `long`, within the valid range of the notation. Java permits a few special decimal integer constants as unary minus expressions for the minimum values, such as `-2147483648`; normally use `Integer.MIN_VALUE` and `Long.MIN_VALUE` to avoid confusing the bounds.
 
-**Lưu ý khi gán biến nhỏ:** Java có thể cho phép `byte b = 0x7F;` vì đây là biểu thức hằng `int` mà giá trị 127 vừa `byte`. Điều đó không có nghĩa `0x7F` thuộc kiểu `byte`. `byte b = 0xFF;` lỗi biên dịch vì 255 ngoài miền `byte`, trừ khi ép kiểu chủ động.
+**Note when assigning to smaller variables:** Java allows `byte b = 0x7F;` because it is an `int` constant expression whose value 127 fits in `byte`. That does not mean `0x7F` has type `byte`. `byte b = 0xFF;` is a compile error because 255 is outside the `byte` range, unless explicitly cast.
 
-## 5. Chương trình chứng minh bốn cách viết là cùng một số
+## 5. Program Demonstrating Four Notations Are the Same Number
 
-Lưu tệp `RadixLiteralDemo.java`:
+Save the file `RadixLiteralDemo.java`:
 
 ```java
 public class RadixLiteralDemo {
@@ -143,14 +143,14 @@ public class RadixLiteralDemo {
 }
 ```
 
-Biên dịch và chạy với Java 17+:
+Compile and run with Java 17+:
 
 ```bash
 javac RadixLiteralDemo.java
 java RadixLiteralDemo
 ```
 
-Kết quả chính xác:
+Exact output:
 
 ```text
 true
@@ -163,13 +163,13 @@ hex: 2a
 0b11111111 = 255
 ```
 
-`Integer.toBinaryString`, `toOctalString` và `toHexString` **trả về chuỗi chữ số**, không tự thêm tiền tố nguồn `0b`/`0`/`0x`. Chuỗi hex mặc định dùng a–f chữ thường.
+`Integer.toBinaryString`, `toOctalString`, and `toHexString` **return digit strings**, without automatically prepending source prefixes `0b`/`0`/`0x`. Hex strings use lowercase a–f by default.
 
-## 6. Liên hệ hệ cơ số với bit và số có dấu
+## 6. Relationship Between Numeral Systems, Bits, and Signed Numbers
 
-### 6.1. Các nhóm bit đổi sang hex hoặc bát phân
+### 6.1. Grouping Bits to Convert to Hex or Octal
 
-Vì \(16=2^4\), chia biểu diễn nhị phân thành **nhóm 4 bit từ phải sang trái** để đổi sang hex:
+Because \(16=2^4\), split a binary representation into **groups of 4 bits from right to left** to convert to hex:
 
 ```text
 binary:       0010 1010
@@ -177,7 +177,7 @@ hex digits:      2    A
 hex:             0x2A
 ```
 
-Vì \(8=2^3\), chia nhị phân thành **nhóm 3 bit từ phải sang trái** để đổi sang bát phân:
+Because \(8=2^3\), split binary into **groups of 3 bits from right to left** to convert to octal:
 
 ```text
 binary:     101 010
@@ -185,60 +185,60 @@ oct digits:   5   2
 octal:        052
 ```
 
-Nếu nhóm bên trái chưa đủ 4 hoặc 3 bit, chỉ cần thêm số 0 ở **bên trái phần biểu diễn số dương** để dễ đọc, không làm thay đổi giá trị.
+If the leftmost group has fewer than 4 or 3 bits, simply pad with 0s on **the left of the positive number's representation** for readability without changing the value.
 
-### 6.2. Cơ số không làm mất quy tắc số nguyên có dấu
+### 6.2. The Base Does Not Remove Signed Integer Rules
 
-`int` luôn có 32 bit, `long` luôn có 64 bit. Cách biểu diễn số nguyên có dấu trong Java là **bù hai** (*two's complement*).
+`int` always has 32 bits, and `long` always has 64 bits. The representation for signed integers in Java is **two's complement**.
 
-Vì vậy, một literal không thập phân đủ 32 bit với bit cao nhất là 1 có thể mang giá trị `int` **âm**:
+Therefore, a full 32-bit non-decimal literal whose highest bit is 1 can carry a **negative** `int` value:
 
 ```java
-int allOnes = 0xFFFF_FFFF;        // -1 dưới dạng int 32 bit
+int allOnes = 0xFFFF_FFFF;        // -1 as a 32-bit int
 int lowest = 0x8000_0000;        // Integer.MIN_VALUE
-long positive = 0xFFFF_FFFFL;    // 4294967295L (64 bit)
-long longAllOnes = 0xFFFF_FFFF_FFFF_FFFFL; // -1 dưới dạng long
+long positive = 0xFFFF_FFFFL;    // 4294967295L (64-bit)
+long longAllOnes = 0xFFFF_FFFF_FFFF_FFFFL; // -1 as a long
 ```
 
-Sự khác nhau giữa `0xFFFF_FFFF` và `0xFFFF_FFFFL` là **hậu tố `L`**: cùng những chữ số hex nhưng được biểu diễn thành giá trị kiểu `int` hoặc `long`. Với `int`, 32 bit tất cả bằng 1 là -1; với `long`, cùng mẫu 32 bit ấy được mở rộng bằng các bit 0 phía trước, nên là số dương 4_294_967_295.
+The difference between `0xFFFF_FFFF` and `0xFFFF_FFFFL` is **the `L` suffix**: the same hex digits are represented as an `int` or a `long` value. For `int`, 32 bits all equal to 1 is -1; for `long`, that same 32-bit pattern is extended with leading 0 bits, so it is positive 4_294_967_295.
 
-Đặc biệt, `0xFFFF_FFFF` **không mang giá trị dương 4_294_967_295** nếu lưu dưới dạng `int` có dấu. Nếu cần diễn giải 32 bit không dấu, có thể dùng `Integer.toUnsignedLong(int)` hoặc `Integer.toUnsignedString(int)`.
+In particular, `0xFFFF_FFFF` **does not hold the positive value 4_294_967_295** when stored as a signed `int`. If you need an unsigned 32-bit interpretation, you can use `Integer.toUnsignedLong(int)` or `Integer.toUnsignedString(int)`.
 
-### 6.3. Một chuỗi bit có nhiều cách diễn giải
+### 6.3. One Bit Sequence Has Multiple Interpretations
 
-Ví dụ 8 bit `1111_1111` có thể là:
+For example, the 8 bits `1111_1111` can be:
 
-- **255** nếu diễn giải theo 8 bit không dấu.
-- **-1** nếu diễn giải theo kiểu `byte` có dấu và dùng bù hai.
+- **255** if interpreted as unsigned 8-bit.
+- **-1** if interpreted as a signed `byte` using two's complement.
 
-Trong Java, literal `0b1111_1111` trước tiên là `int` 255. Phép ép `(byte) 0b1111_1111` giữ 8 bit thấp rồi hiểu chúng như `byte` có dấu, cho ra -1.
+In Java, the literal `0b1111_1111` is initially the `int` 255. The cast `(byte) 0b1111_1111` keeps the low 8 bits and interprets them as a signed `byte`, yielding -1.
 
-Đừng nhầm chuyện này với việc **đổi cơ số**. Đổi từ `0xFF` sang `0b1111_1111` chỉ đổi cách viết cùng số 255; ép sang `byte` có thể đổi giá trị do thay đổi **miền kiểu dữ liệu**.
+Do not confuse this with **base conversion**. Converting from `0xFF` to `0b1111_1111` only changes how the same number 255 is written; casting to `byte` can change the value because it changes **the data type's range**.
 
-## 7. Đổi số thành chuỗi và đọc chuỗi theo cơ số
+## 7. Converting Numbers to Strings and Parsing Strings by Base
 
-Literal dùng khi viết **mã nguồn**. Dữ liệu đọc từ người dùng, file hoặc mạng là **chuỗi lúc chạy**, cần API chuyển đổi. Java cung cấp:
+Literals are used when writing **source code**. Data read from users, files, or networks is **runtime strings**, requiring conversion APIs. Java provides:
 
-| Nhu cầu | API phổ biến | Ví dụ kết quả |
+| Need | Common API | Example Result |
 |---|---|---|
-| Số nguyên → nhị phân | `Integer.toBinaryString(42)` | `"101010"` |
-| Số nguyên → bát phân | `Integer.toOctalString(42)` | `"52"` |
-| Số nguyên → hex | `Integer.toHexString(42)` | `"2a"` |
-| Số nguyên → chuỗi theo cơ số tùy chọn | `Integer.toString(42, 16)` | `"2a"` |
-| Chuỗi nhị phân → `int` | `Integer.parseInt("101010", 2)` | 42 |
-| Chuỗi bát phân → `int` | `Integer.parseInt("52", 8)` | 42 |
-| Chuỗi hex → `int` | `Integer.parseInt("2A", 16)` | 42 |
-| Chuỗi thập phân → `int` | `Integer.parseInt("42", 10)` | 42 |
+| Integer → binary | `Integer.toBinaryString(42)` | `"101010"` |
+| Integer → octal | `Integer.toOctalString(42)` | `"52"` |
+| Integer → hex | `Integer.toHexString(42)` | `"2a"` |
+| Integer → string in custom base | `Integer.toString(42, 16)` | `"2a"` |
+| Binary string → `int` | `Integer.parseInt("101010", 2)` | 42 |
+| Octal string → `int` | `Integer.parseInt("52", 8)` | 42 |
+| Hex string → `int` | `Integer.parseInt("2A", 16)` | 42 |
+| Decimal string → `int` | `Integer.parseInt("42", 10)` | 42 |
 
-`Integer.parseInt(String, int)` và `Integer.toString(int, int)` hỗ trợ hệ cơ số **2 đến 36**. Với cơ số lớn hơn 10, Java dùng các chữ cái a–z cho các chữ số bổ sung, khi cần.
+`Integer.parseInt(String, int)` and `Integer.toString(int, int)` support radixes **2 through 36**. For bases greater than 10, Java uses the letters a–z for additional digits as needed.
 
-**Bẫy tiền tố:** `Integer.parseInt("0x2A", 16)` sẽ ném `NumberFormatException` vì `parseInt` yêu cầu **các chữ số thuộc cơ số** (có thể kèm dấu) và không bỏ tiền tố `0x` như cú pháp nguồn Java. `Integer.decode("0x2A")` có thể nhận tiền tố `0x`; `Integer.decode("052")` hiểu theo bát phân, còn `Integer.decode("42")` hiểu thập phân. `Integer.decode` không nhận tiền tố nhị phân `0b`.
+**Prefix pitfall:** `Integer.parseInt("0x2A", 16)` throws `NumberFormatException` because `parseInt` expects **digits belonging to the radix** (optionally with a sign) and does not strip a `0x` prefix like Java source syntax. `Integer.decode("0x2A")` can accept the `0x` prefix; `Integer.decode("052")` interprets it as octal, while `Integer.decode("42")` interprets it as decimal. `Integer.decode` does not accept the binary prefix `0b`.
 
-Không dùng `Integer.parseInt("052")` mặc định để kỳ vọng ra 42: overload không có đối số cơ số sẽ đọc **thập phân**, nên kết quả là 52.
+Do not call `Integer.parseInt("052")` by default expecting 42: the overload without a radix argument reads **decimal**, so the result is 52.
 
-### Ví dụ chạy được: parse và định dạng
+### Runnable Example: Parsing and Formatting
 
-Lưu `RadixConversionDemo.java`:
+Save `RadixConversionDemo.java`:
 
 ```java
 public class RadixConversionDemo {
@@ -262,14 +262,14 @@ public class RadixConversionDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac RadixConversionDemo.java
 java RadixConversionDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 42, 42, 42
@@ -280,67 +280,67 @@ Kết quả:
 parseInt: invalid prefix
 ```
 
-Nếu số vượt miền `int`, dùng `Long.parseLong` khi vừa `long`; với số lớn hơn nữa, dùng `new java.math.BigInteger("FF...", 16)` và chủ động truyền đúng cơ số. `BigInteger(String, radix)` cũng nhận chuỗi chữ số theo cơ số, không tự dùng các tiền tố literal Java.
+If the number exceeds the `int` range, use `Long.parseLong` when it fits in `long`; for even larger numbers, use `new java.math.BigInteger("FF...", 16)` and explicitly pass the proper radix. `BigInteger(String, radix)` also takes a string of digits in the given radix and does not automatically handle Java literal prefixes.
 
-## 8. Cách in giá trị số theo cơ số
+## 8. How to Print Numeric Values by Base
 
-`System.out.println(number)` in số nguyên theo **thập phân**. Khi muốn in nhị phân/bát phân/hex, dùng các phương thức chuyển đổi ở trên hoặc `printf`.
+`System.out.println(number)` prints integers in **decimal**. When you want to print binary/octal/hex, use the conversion methods above or `printf`.
 
 ```java
 int n = 42;
 System.out.printf("dec=%d, oct=%o, hex=%x, HEX=%X%n", n, n, n, n);
 ```
 
-Kết quả:
+Output:
 
 ```text
 dec=42, oct=52, hex=2a, HEX=2A
 ```
 
-Trong `printf`, `%d` là thập phân, `%o` là bát phân, `%x`/`%X` là hex. **`%b` KHÔNG có nghĩa là nhị phân** trong `Formatter` của Java; nó là định dạng boolean. Để in binary, dùng `Integer.toBinaryString(n)` hoặc `Long.toBinaryString(n)`.
+In `printf`, `%d` is decimal, `%o` is octal, `%x`/`%X` is hex. **`%b` does NOT mean binary** in Java's `Formatter`; it is the boolean format specifier. To print binary, use `Integer.toBinaryString(n)` or `Long.toBinaryString(n)`.
 
-Khi in số âm với `toBinaryString`/`toHexString`, kết quả phản ánh **mẫu bit bù hai không dấu** của kiểu tương ứng; ví dụ `Integer.toHexString(-1)` trả `"ffffffff"`, không phải `"-1"`. Nếu cần biểu diễn có dấu theo một cơ số, dùng `Integer.toString(value, radix)`: `Integer.toString(-1, 16)` trả `"-1"`.
+When printing negative numbers with `toBinaryString`/`toHexString`, the output reflects the **unsigned two's complement bit pattern** of the corresponding type; for example, `Integer.toHexString(-1)` returns `"ffffffff"`, not `"-1"`. If you need a signed representation in a given base, use `Integer.toString(value, radix)`: `Integer.toString(-1, 16)` returns `"-1"`.
 
-Cũng cần phân biệt **hiển thị text** và **mã hóa nhị phân**. Chuỗi `"FF"` chứa hai ký tự F, không tự trở thành một byte `0xFF`. Phải parse theo cơ số rồi chọn cách ghi byte phù hợp.
+You must also distinguish **text display** from **binary encoding**. The string `"FF"` contains two F characters and does not automatically become a single byte `0xFF`. You must parse according to the radix and then choose the appropriate way to write bytes.
 
-## 9. Những lỗi điển hình và cách xử lý
+## 9. Typical Errors and How to Handle Them
 
-| Hiện tượng | Nguyên nhân | Cách xử lý |
+| Symptom | Cause | How to Handle |
 |---|---|---|
-| `010` cho 8 thay vì 10 | Số 0 đầu tiên biến literal thành bát phân | Viết `10` nếu muốn mười thập phân |
-| `08` không biên dịch | Số 8 không thuộc cơ số 8 | Bỏ số 0 đầu hoặc sửa chữ số |
-| `0o12` không biên dịch | Java không có tiền tố `0o` | Dùng `012` |
-| `0b102` không biên dịch | 2 không hợp lệ trong hệ 2 | Chỉ viết 0, 1 |
-| `0xGG` không biên dịch | G không thuộc các chữ số hex | Chỉ viết 0–9, A–F |
-| `0x_FF` không biên dịch | Gạch dưới sát tiền tố | Viết `0xFF` hoặc `0xF_F` |
-| `0xFFFF_FFFF` thành -1 | Mẫu bit int 32 bit có dấu | Sử dụng `0xFFFF_FFFFL` hoặc API unsigned khi phù hợp |
-| `Integer.parseInt("FF")` báo lỗi | Mặc định parse thập phân | Truyền cơ số 16 |
-| `Integer.parseInt("0xFF",16)` báo lỗi | `parseInt` không nhận `0x` | Dùng `"FF"` với radix 16 hoặc `Integer.decode` |
-| `printf("%b", 42)` in `true` | `%b` là boolean formatter | Dùng `Integer.toBinaryString(42)` |
+| `010` yields 8 instead of 10 | Leading 0 turns the literal into octal | Write `10` if you want decimal ten |
+| `08` fails to compile | Digit 8 does not belong to base 8 | Remove leading 0 or fix the digit |
+| `0o12` fails to compile | Java does not have a `0o` prefix | Use `012` |
+| `0b102` fails to compile | 2 is invalid in base 2 | Write only 0 and 1 |
+| `0xGG` fails to compile | G is not among hex digits | Write only 0–9 and A–F |
+| `0x_FF` fails to compile | Underscore adjacent to prefix | Write `0xFF` or `0xF_F` |
+| `0xFFFF_FFFF` becomes -1 | Signed 32-bit int bit pattern | Use `0xFFFF_FFFFL` or unsigned APIs where appropriate |
+| `Integer.parseInt("FF")` throws error | Parses decimal by default | Pass radix 16 |
+| `Integer.parseInt("0xFF",16)` throws error | `parseInt` does not accept `0x` | Use `"FF"` with radix 16 or `Integer.decode` |
+| `printf("%b", 42)` prints `true` | `%b` is the boolean formatter | Use `Integer.toBinaryString(42)` |
 
-Một số nguyên có thể lưu cùng các bit cho dù bạn đã viết literal ở hệ nào. Nếu thao tác bitmask, **hex dễ nhìn theo byte**; nếu cần quan sát từng bit, **binary trực quan**; bát phân thường thấy trong định dạng/quy ước cũ; thập phân dễ đọc với dữ liệu nghiệp vụ. Chọn cách viết phù hợp người đọc và định dạng dữ liệu.
+An integer stores the same bits regardless of which base you wrote the literal in. When manipulating bitmasks, **hex is easy to read by byte**; when inspecting individual bits, **binary is visual**; octal is commonly seen in legacy formats/conventions; decimal is easy to read for business data. Choose the notation that suits the reader and data format.
 
-## 10. Bài tập tự kiểm tra
+## 10. Self-Check Exercises
 
-**Bài 1.** `0b1111`, `017`, `15`, `0xF` có bằng nhau không?  
-**Đáp án:** Có, cả bốn đều bằng 15 thập phân.
+**Exercise 1.** Are `0b1111`, `017`, `15`, and `0xF` equal?  
+**Answer:** Yes, all four equal 15 in decimal.
 
-**Bài 2.** `010` và `10` có cùng giá trị không?  
-**Đáp án:** Không; `010` = 8 thập phân, `10` = 10 thập phân.
+**Exercise 2.** Do `010` and `10` have the same value?  
+**Answer:** No; `010` = 8 decimal, `10` = 10 decimal.
 
-**Bài 3.** Chuyển `0x3C` sang nhị phân và thập phân.  
-**Đáp án:** `0b0011_1100` (có thể bỏ các số 0 đầu là `0b11_1100`), bằng \(3\times16+12=60\).
+**Exercise 3.** Convert `0x3C` to binary and decimal.  
+**Answer:** `0b0011_1100` (leading zeros can be omitted as `0b11_1100`), which equals \(3\times16+12=60\).
 
-**Bài 4.** Vì sao `Integer.toBinaryString(-1)` xuất ra 32 chữ số `1`, còn `Integer.toString(-1, 2)` xuất `"-1"`?  
-**Đáp án:** Phương thức thứ nhất trình bày **mẫu bit bù hai** của `int` 32 bit; phương thức thứ hai biểu diễn **giá trị số có dấu** trong cơ số 2.
+**Exercise 4.** Why does `Integer.toBinaryString(-1)` output 32 `1` digits, while `Integer.toString(-1, 2)` outputs `"-1"`?  
+**Answer:** The first method presents the **two's complement bit pattern** of a 32-bit `int`; the second method represents the **signed numeric value** in base 2.
 
-**Bài 5.** Dùng API nào để parse chuỗi `"11111111"` thành giá trị số 255?  
-**Đáp án:** `Integer.parseInt("11111111", 2)`. Nếu ép tiếp sang `byte`, giá trị trở thành -1 vì miền kiểu `byte`.
+**Exercise 5.** Which API should be used to parse the string `"11111111"` into the numeric value 255?  
+**Answer:** `Integer.parseInt("11111111", 2)`. If subsequently cast to `byte`, the value becomes -1 because of the `byte` type range.
 
-**Bài 6.** `0xFFFF_FFFFL` có khác `0xFFFF_FFFF` không?  
-**Đáp án:** Có; dạng `L` là `long` dương 4_294_967_295, dạng không hậu tố là `int` -1.
+**Exercise 6.** Does `0xFFFF_FFFFL` differ from `0xFFFF_FFFF`?  
+**Answer:** Yes; the `L` form is a positive `long` 4_294_967_295, while the unsuffixed form is `int` -1.
 
-**Bài 7.** Vì sao `Integer.parseInt("052")` trả 52 nhưng literal `052` trong mã nguồn là 42?  
-**Đáp án:** `parseInt` không truyền radix mặc định dùng **thập phân**, còn literal có số 0 đứng đầu dùng **bát phân**.
+**Exercise 7.** Why does `Integer.parseInt("052")` return 52 while the literal `052` in source code is 42?  
+**Answer:** `parseInt` without a radix defaults to **decimal**, whereas a literal with a leading zero uses **octal**.
 
-**Ghi nhớ:** Cơ số quyết định cách *viết/đọc chữ số*; kiểu dữ liệu quyết định *miền số và độ rộng bit*. Trong Java: **thập phân** viết thường, **nhị phân** bắt đầu `0b`, **bát phân** bắt đầu `0`, **hex** bắt đầu `0x`. Khi xử lý chuỗi từ bên ngoài, truyền cơ số rõ ràng và kiểm tra miền giá trị trước khi ép kiểu.
+**Remember:** The base determines how *digits are written/read*; the data type determines *the numeric range and bit width*. In Java: **decimal** is written normally, **binary** starts with `0b`, **octal** starts with `0`, and **hex** starts with `0x`. When processing external strings, pass the radix explicitly and check the value range before casting.

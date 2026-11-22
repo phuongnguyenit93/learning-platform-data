@@ -1,74 +1,74 @@
-# Kiểm thử `trim`, `strip`, NBSP và các loại xuống dòng trong Java
+# Testing `trim`, `strip`, NBSP, and Line Endings in Java
 
-## 1. Vấn đề: “khoảng trắng” không có một định nghĩa duy nhất
+## 1. Problem: “Whitespace” Has No Single Definition
 
-Trong ứng dụng Java, dữ liệu nhận từ biểu mẫu, CSV, file, API, clipboard hoặc văn bản đa ngôn ngữ có thể chứa nhiều ký tự trông giống khoảng trắng. Hai chuỗi nhìn trên màn hình gần như giống nhau vẫn có thể khác về giá trị Unicode và hành vi của `trim()`, `strip()` hoặc phép tách dòng.
+In Java applications, data received from forms, CSVs, files, APIs, the clipboard, or multilingual text can contain many characters that look like whitespace. Two strings that appear nearly identical on screen can still differ in Unicode values and in how `trim()`, `strip()`, or line splitting behaves.
 
-Ba khái niệm cần phân biệt:
+Three concepts to distinguish:
 
-- **Khoảng trắng theo `String.trim()`:** các `char` ở **hai đầu** có giá trị không lớn hơn `U+0020`. Đây là quy tắc lịch sử, không phải toàn bộ Unicode whitespace.
-- **Khoảng trắng theo `String.strip()`:** các code point ở **hai đầu** được `Character.isWhitespace(int)` xem là whitespace. Quy tắc rộng hơn cho nhiều ký tự Unicode, nhưng **cố ý không bao gồm** ba loại khoảng trắng không ngắt: NBSP (`U+00A0`), FIGURE SPACE (`U+2007`), NARROW NO-BREAK SPACE (`U+202F`).
-- **Dấu kết thúc dòng:** tùy API có thể là LF, CR, CRLF hoặc các dấu xuống dòng Unicode như NEL, LINE SEPARATOR và PARAGRAPH SEPARATOR. Xóa whitespace đầu/cuối và *tách dòng* là hai bài toán khác nhau.
+- **Whitespace per `String.trim()`:** `char` values at **both ends** no greater than `U+0020`. This is a historical rule, not full Unicode whitespace.
+- **Whitespace per `String.strip()`:** code points at **both ends** considered whitespace by `Character.isWhitespace(int)`. This broader rule covers many Unicode characters, yet **deliberately excludes** three non-breaking spaces: NBSP (`U+00A0`), FIGURE SPACE (`U+2007`), and NARROW NO-BREAK SPACE (`U+202F`).
+- **Line terminators:** depending on the API, may be LF, CR, CRLF, or Unicode line breaks such as NEL, LINE SEPARATOR, and PARAGRAPH SEPARATOR. Stripping leading/trailing whitespace and *splitting lines* are two separate problems.
 
-Khi kiểm thử, cần làm rõ mình muốn **bỏ whitespace ở hai đầu**, **phân tách các dòng**, hay **chuẩn hóa ký tự xuống dòng**. Không được coi ba việc này là tương đương.
+When testing, clarify whether you want to **strip edge whitespace**, **split into lines**, or **normalize line-ending characters**. Never treat these three tasks as equivalent.
 
-## 2. `trim()` và `strip()`: cơ chế và ví dụ
+## 2. `trim()` and `strip()`: Mechanics and Examples
 
-`String.trim()` có từ các phiên bản Java cũ; nó trả về chuỗi bỏ dãy `char` có giá trị `<= U+0020` ở **đầu** và **cuối**. Những ký tự nằm giữa chuỗi không bị đụng tới. Vì tiêu chí dựa trên mã `char`, `trim()` có thể loại bỏ cả một số ký tự điều khiển không nhất thiết được người dùng gọi là dấu cách.
+`String.trim()` dates back to older Java releases; it returns a string with leading and trailing sequences of `char` values `<= U+0020` removed. Characters in the middle of the string are untouched. Because the criterion uses raw `char` codes, `trim()` can remove certain control characters that users would not necessarily call spaces.
 
-`String.strip()` (Java 11+) loại bỏ các code point đầu/cuối thỏa `Character.isWhitespace(int)`. Đây thường là lựa chọn phù hợp hơn với văn bản Unicode, nhưng cũng **không** có nghĩa là “loại bỏ mọi ký tự nhìn có vẻ trống”.
+`String.strip()` (Java 11+) removes leading and trailing code points satisfying `Character.isWhitespace(int)`. This is usually a better choice for Unicode text, yet it **does not** mean “remove every visually blank character.”
 
-| Đầu/cuối chuỗi là | Mã | `trim()` | `strip()` | Giải thích |
+| Leading/trailing character | Code | `trim()` | `strip()` | Explanation |
 | --- | --- | --- | --- | --- |
-| SPACE thông thường | `U+0020` | Loại bỏ | Loại bỏ | Cả hai nhận diện. |
-| TAB, LF, CR | `U+0009`, `U+000A`, `U+000D` | Loại bỏ | Loại bỏ | Các ký tự điều khiển trong cả hai tập. |
-| EM SPACE | `U+2003` | Giữ | Loại bỏ | `Character.isWhitespace` trả `true`. |
-| IDEOGRAPHIC SPACE | `U+3000` | Giữ | Loại bỏ | Một ví dụ không phải ASCII được `strip` loại bỏ. |
-| NBSP (NO-BREAK SPACE) | `U+00A0` | Giữ | **Giữ** | `Character.isWhitespace` trả `false`. |
-| FIGURE SPACE | `U+2007` | Giữ | **Giữ** | Thuộc nhóm non-breaking theo API. |
-| NARROW NO-BREAK SPACE | `U+202F` | Giữ | **Giữ** | Thuộc nhóm non-breaking theo API. |
-| LINE SEPARATOR | `U+2028` | Giữ | Loại bỏ | Là whitespace theo `Character.isWhitespace`, nhưng không phải delimiter của `String.lines()`. |
-| NEL (NEXT LINE) | `U+0085` | Giữ | Giữ | Được regex `\R` nhận diện là line break, không nằm trong định nghĩa Java whitespace của `strip`. |
+| Regular SPACE | `U+0020` | Removes | Removes | Recognized by both. |
+| TAB, LF, CR | `U+0009`, `U+000A`, `U+000D` | Removes | Removes | Control characters in both sets. |
+| EM SPACE | `U+2003` | Keeps | Removes | `Character.isWhitespace` returns `true`. |
+| IDEOGRAPHIC SPACE | `U+3000` | Keeps | Removes | A non-ASCII example removed by `strip`. |
+| NBSP (NO-BREAK SPACE) | `U+00A0` | Keeps | **Keeps** | `Character.isWhitespace` returns `false`. |
+| FIGURE SPACE | `U+2007` | Keeps | **Keeps** | Non-breaking space per API. |
+| NARROW NO-BREAK SPACE | `U+202F` | Keeps | **Keeps** | Non-breaking space per API. |
+| LINE SEPARATOR | `U+2028` | Keeps | Removes | Whitespace per `Character.isWhitespace`, yet not a delimiter for `String.lines()`. |
+| NEL (NEXT LINE) | `U+0085` | Keeps | Keeps | Recognized as a line break by regex `\R`, not in `strip`'s Java whitespace definition. |
 
-**Điểm rất dễ nhầm:** `Character.isSpaceChar(codePoint)` và `Character.isWhitespace(codePoint)` là hai phép kiểm tra **khác nhau**. NBSP, FIGURE SPACE và NARROW NO-BREAK SPACE được `isSpaceChar` nhận diện nhưng bị loại trừ có chủ đích khỏi `isWhitespace`. Vì `strip` dựa vào `isWhitespace`, chúng không bị `strip` xóa.
+**Common point of confusion:** `Character.isSpaceChar(codePoint)` and `Character.isWhitespace(codePoint)` are **different** checks. NBSP, FIGURE SPACE, and NARROW NO-BREAK SPACE are recognized by `isSpaceChar` yet intentionally excluded from `isWhitespace`. Since `strip` relies on `isWhitespace`, it does not remove them.
 
-Các API hữu ích khác (Java 11+):
+Other helpful APIs (Java 11+):
 
-- `stripLeading()`: chỉ loại bỏ whitespace theo `Character.isWhitespace` ở **đầu**.
-- `stripTrailing()`: chỉ loại bỏ ở **cuối**.
-- `isBlank()`: trả `true` nếu chuỗi rỗng hoặc toàn bộ code point là Java whitespace. Ví dụ chuỗi chỉ chứa NBSP **không** được xem là blank bằng `isBlank()`.
-- `String.stripIndent()` / text blocks giải quyết thụt lề trong những ngữ cảnh khác; không thay cho việc xác định ký tự cần làm sạch trong dữ liệu đầu vào.
+- `stripLeading()`: removes whitespace per `Character.isWhitespace` at the **start** only.
+- `stripTrailing()`: removes it at the **end** only.
+- `isBlank()`: returns `true` if the string is empty or all code points are Java whitespace. For example, a string containing only NBSP is **not** considered blank by `isBlank()`.
+- `String.stripIndent()` / text blocks address indentation in other contexts; they do not replace defining which characters to sanitize in input data.
 
-Đối với dữ liệu nghiệp vụ, nếu đặc tả yêu cầu loại bỏ **cả NBSP** ở hai đầu, hãy viết quy tắc rõ ràng và kiểm thử riêng. Không âm thầm đổi định nghĩa “blank” trên toàn ứng dụng chỉ vì một giao diện người dùng hiển thị NBSP giống SPACE.
+For business data, if the specification requires stripping **NBSP as well** at both ends, write an explicit rule and test it separately. Do not silently change the application-wide definition of “blank” just because one UI renders NBSP like SPACE.
 
-## 3. Dấu xuống dòng: LF, CR, CRLF và Unicode
+## 3. Line Breaks: LF, CR, CRLF, and Unicode
 
-Các dòng văn bản không nhất thiết sử dụng cùng chuỗi ký tự kết thúc:
+Lines of text do not necessarily use the same terminating character sequence:
 
-| Tên | Biểu diễn Java / mã Unicode | Thường gặp |
+| Name | Java representation / Unicode code | Common occurrence |
 | --- | --- | --- |
-| LF (Line Feed) | `"\n"` / `U+000A` | File Unix/Linux, nhiều API, Git |
-| CR (Carriage Return) | `"\r"` / `U+000D` | Dữ liệu cũ, một số nguồn giao tiếp |
-| CRLF | `"\r\n"` / `U+000D U+000A` | Nhiều file/định dạng Windows và giao thức |
-| VT (Vertical Tab) | `U+000B` | Dữ liệu điều khiển/format đặc biệt |
-| FF (Form Feed) | `"\f"` / `U+000C` | Phân trang hoặc dữ liệu cũ |
-| NEL (Next Line) | `U+0085` | Một số nguồn Unicode/cũ |
-| LINE SEPARATOR | `U+2028` | Dấu phân cách dòng Unicode |
-| PARAGRAPH SEPARATOR | `U+2029` | Dấu phân cách đoạn Unicode |
+| LF (Line Feed) | `"\n"` / `U+000A` | Unix/Linux files, many APIs, Git |
+| CR (Carriage Return) | `"\r"` / `U+000D` | Legacy data, some communication sources |
+| CRLF | `"\r\n"` / `U+000D U+000A` | Many Windows files/formats and protocols |
+| VT (Vertical Tab) | `U+000B` | Control data / special formats |
+| FF (Form Feed) | `"\f"` / `U+000C` | Page breaks or legacy data |
+| NEL (Next Line) | `U+0085` | Some Unicode / legacy sources |
+| LINE SEPARATOR | `U+2028` | Unicode line separator |
+| PARAGRAPH SEPARATOR | `U+2029` | Unicode paragraph separator |
 
-**Phân biệt API:**
+**API distinctions:**
 
-- `String.lines()` (Java 11+) **chỉ** tách tại LF, CR, CRLF. `"\r\n"` là **một** dấu kết thúc dòng. Dòng trả về không chứa ký tự xuống dòng.
-- `String.lines()` **không** tách tại `U+0085`, `U+2028` hoặc `U+2029`. Nó cũng không tạo một dòng rỗng bổ sung sau ký tự kết thúc dòng cuối cùng; chuỗi rỗng tạo **zero lines**.
-- Trong `java.util.regex.Pattern`, biểu thức `\R` nhận diện một chuỗi xuống dòng: `\r\n` hoặc một ký tự trong nhóm LF, VT, FF, CR, NEL, LS, PS. Trong **chuỗi Java** phải viết `"\\R"` để truyền ký hiệu regex `\R`.
-- `text.split("\\R", -1)` tách theo nhóm dấu xuống dòng Unicode và **giữ cả phần tử trống ở cuối** nhờ giới hạn âm `-1`. Nếu dùng overload `split("\\R")` (limit = 0), các phần tử rỗng ở cuối sẽ bị loại bỏ.
-- `text.replaceAll("\\R", "\n")` chuẩn hóa các chuỗi kết thúc dòng được regex nhận diện thành LF. Đừng áp dụng bừa lên dữ liệu nhị phân, chuỗi được ký số hoặc những format mà dạng xuống dòng nguyên gốc mang ý nghĩa riêng.
+- `String.lines()` (Java 11+) splits **only** on LF, CR, and CRLF. `"\r\n"` is **one** line terminator. Returned lines do not include the line terminator.
+- `String.lines()` **does not** split on `U+0085`, `U+2028`, or `U+2029`. Nor does it produce an extra empty line after a trailing line terminator; an empty string yields **zero lines**.
+- In `java.util.regex.Pattern`, `\R` matches any line-break sequence: `\r\n` or any character in LF, VT, FF, CR, NEL, LS, PS. In a **Java string literal**, write `"\\R"` to pass the regex token `\R`.
+- `text.split("\\R", -1)` splits on Unicode line breaks and **keeps trailing empty elements** thanks to the negative limit `-1`. Using the `split("\\R")` overload (limit = 0) discards trailing empty elements.
+- `text.replaceAll("\\R", "\n")` normalizes regex-recognized line-ending sequences to LF. Do not apply it indiscriminately to binary data, digitally signed strings, or formats where original line endings carry specific meaning.
 
-**Đặc biệt:** `\s`, `\h`, `\v`, `\R` và `Character.isWhitespace` có các định nghĩa riêng; dùng `split("\\s+")` để xử lý xuống dòng hoặc NBSP mà không kiểm tra cờ regex có thể cho kết quả ngoài dự kiến. `\R` biểu diễn **cả một chuỗi kết thúc dòng**, trong đó CRLF được xử lý cùng nhau, nên là lựa chọn rõ ràng khi muốn tách nhiều kiểu xuống dòng.
+**Special note:** `\s`, `\h`, `\v`, `\R`, and `Character.isWhitespace` each have their own definitions; using `split("\\s+")` to handle line breaks or NBSP without checking regex flags can yield unexpected results. `\R` represents an **entire line-ending sequence**, treating CRLF as a single unit, making it a clear choice when splitting across multiple line-ending styles.
 
-## 4. Bài kiểm thử Java 17+ chạy độc lập
+## 4. Standalone Java 17+ Test Program
 
-Tạo file **`StringWhitespaceChecks.java`**, lưu mã nguồn bằng UTF-8. Chương trình dùng các phép so sánh thực tế thay vì dựa vào mắt thường; hàm `cp(int)` tạo ký tự từ code point để NBSP và các dấu xuống dòng ẩn không bị editor tự thay thế.
+Create **`StringWhitespaceChecks.java`**, saving source code as UTF-8. The program uses concrete comparisons rather than relying on visual inspection; `cp(int)` builds characters from code points so NBSP and hidden line separators are not altered by an editor.
 
 ```java
 import java.util.Arrays;
@@ -99,7 +99,7 @@ public class StringWhitespaceChecks {
         String ps = cp(0x2029);
         String nel = cp(0x0085);
 
-        // Kiểm thử trim/strip tại hai đầu.
+        // Test trim/strip at both ends.
         String ascii = " \tA\r\n ";
         check("trim ASCII", "A", ascii.trim());
         check("strip ASCII", "A", ascii.strip());
@@ -130,7 +130,7 @@ public class StringWhitespaceChecks {
         check("trim does not change internal whitespace",
                 "A \t B", (" A \t B ").trim());
 
-        // Kiểm thử các kiểu xuống dòng.
+        // Test line-ending styles.
         String crLfOnly = "a\r\nb\nc\rd";
         check("String.lines CRLF LF CR",
                 List.of("a", "b", "c", "d"),
@@ -171,71 +171,71 @@ public class StringWhitespaceChecks {
 }
 ```
 
-Biên dịch, chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 StringWhitespaceChecks.java
 java StringWhitespaceChecks
 ```
 
-**Stdout khi tất cả kiểm thử đạt** trên Java 17+:
+**Stdout when all tests pass** on Java 17+:
 
 ```text
 PASS: 27 checks
 ```
 
-Nếu hành vi khác với kỳ vọng, `check` ném `AssertionError` kèm tên kiểm thử đầu tiên bị lỗi và chương trình dừng trước khi in dòng `PASS`. Những giá trị như NBSP, LS, NEL được tạo bằng code point nên không lệ thuộc việc terminal có thể hiển thị chúng hay không.
+If behavior differs from expectations, `check` throws `AssertionError` with the name of the first failing test and halts before printing the `PASS` line. Values like NBSP, LS, and NEL are built from code points so tests do not depend on whether the terminal can render them.
 
-### Điểm học được từ bộ kiểm thử
+### Takeaways from the Test Suite
 
-- SPACE và TAB ở biên được cả `trim` và `strip` xóa; EM SPACE chỉ bị `strip` xóa.
-- NBSP và hai biến thể non-breaking không bị cả `trim` lẫn `strip` xóa. `isSpaceChar` có thể là `true` trong khi `isWhitespace` là `false`.
-- `String.lines()` xử lý CR/LF/CRLF; `"\\R"` xử lý thêm dấu xuống dòng Unicode.
-- Dòng rỗng **ở giữa** các dấu kết thúc dòng có thể là dữ liệu có nghĩa; dòng rỗng phát sinh **sau** một dấu kết thúc cuối cùng được `String.lines()` và `split` với limit `-1` xử lý khác nhau.
-- Chuẩn hóa xuống dòng nên là một bước có chủ đích, độc lập với việc làm sạch whitespace ở biên.
+- Edge SPACE and TAB are removed by both `trim` and `strip`; EM SPACE is removed only by `strip`.
+- NBSP and the two other non-breaking variants are removed by neither `trim` nor `strip`. `isSpaceChar` can be `true` while `isWhitespace` is `false`.
+- `String.lines()` handles CR/LF/CRLF; `"\\R"` additionally handles Unicode line breaks.
+- An empty line **between** terminators can be meaningful data; an empty element **after** a final terminator is handled differently by `String.lines()` versus `split` with limit `-1`.
+- Line-ending normalization should be an intentional step, separate from stripping edge whitespace.
 
-## 5. Thiết kế kiểm thử theo ma trận thay vì chỉ thử dấu cách thông thường
+## 5. Matrix-Based Test Design Instead of Only Regular Spaces
 
-Đừng chỉ test `" text ".trim()` rồi suy ra mọi dữ liệu đều an toàn. Hãy bao phủ ít nhất các chiều sau:
+Do not only test `" text ".trim()` and assume all data is safe. Cover at least these dimensions:
 
-| Trục kiểm thử | Ca cần có | Điều xác minh |
+| Test Axis | Required Cases | What to Verify |
 | --- | --- | --- |
-| Vị trí | Đầu, cuối, cả hai đầu, ở giữa chuỗi | Chỉ vị trí định xóa bị thay đổi. |
-| Độ dài | Chuỗi rỗng, chỉ whitespace, nhiều ký tự liên tiếp | Không mất dữ liệu ngoài phạm vi. |
-| Whitespace ASCII | SPACE, TAB, LF, CR, CRLF | `trim`/`strip` xử lý đúng đầu/cuối. |
-| Whitespace Unicode | EM SPACE, IDEOGRAPHIC SPACE, LINE SEPARATOR | Phân biệt `trim` và `strip`. |
-| Non-breaking | NBSP, FIGURE SPACE, NARROW NBSP | Các ký tự được giữ theo đúng hợp đồng. |
-| Kiểu xuống dòng | LF, CR, CRLF, NEL, LS, PS | Lựa chọn đúng giữa `lines` và regex `\R`. |
-| Dòng rỗng | Hai dấu kết thúc liền nhau, đầu chuỗi, cuối chuỗi | Không bỏ/thêm dòng do hiểu nhầm `split`/`lines`. |
-| Dữ liệu Unicode | Tiếng Việt, emoji, ký tự kết hợp | Không vô tình xóa/sửa nội dung bên trong. |
+| Position | Start, end, both ends, middle of string | Only targeted positions are altered. |
+| Length | Empty string, whitespace-only, multiple consecutive characters | No data lost outside scope. |
+| ASCII whitespace | SPACE, TAB, LF, CR, CRLF | `trim`/`strip` handle start/end properly. |
+| Unicode whitespace | EM SPACE, IDEOGRAPHIC SPACE, LINE SEPARATOR | Distinguish `trim` and `strip`. |
+| Non-breaking | NBSP, FIGURE SPACE, NARROW NBSP | Characters preserved per contract. |
+| Line-ending style | LF, CR, CRLF, NEL, LS, PS | Right choice between `lines` and regex `\R`. |
+| Empty lines | Two adjacent terminators, start of string, end of string | No dropped/added lines from misunderstanding `split`/`lines`. |
+| Unicode data | Vietnamese text, emojis, combining characters | Internal content not accidentally stripped/modified. |
 
-Với JUnit 5, có thể chuyển các dòng `check` thành các ca `@ParameterizedTest` hoặc `@MethodSource`, dùng `assertEquals(expected, actual)` và đặt tên ca có cả code point (ví dụ `U+00A0`). Đây là hướng mở rộng test suite; chương trình ở trên chạy độc lập bằng JDK 17+ và **không cần thêm dependency**.
+With JUnit 5, you can convert the `check` calls into `@ParameterizedTest` or `@MethodSource` cases, use `assertEquals(expected, actual)`, and include code points (such as `U+00A0`) in test names. That is the path to extend the suite; the program above runs standalone on JDK 17+ with **no extra dependencies**.
 
-Một số kiểm thử cần chạy trên nhiều môi trường, đặc biệt khi dữ liệu đọc từ file hoặc HTTP. Tuy nhiên, nếu chuỗi `String` đã có đúng các code point, quy tắc `trim`, `strip` và `lines` phải theo hợp đồng API, không được phụ thuộc tùy tiện vào dấu xuống dòng của hệ điều hành.
+Some tests need to run across multiple environments, especially when reading from files or HTTP. Still, once a `String` already holds the right code points, `trim`, `strip`, and `lines` rules must follow API contracts rather than arbitrarily depending on the OS line separator.
 
-## 6. Khi đọc file hoặc nhận dữ liệu từ bên ngoài
+## 6. Reading Files or Receiving External Data
 
-Một file Windows thường có CRLF, file Unix thường có LF; nhưng không phải mọi file đều tuân theo quy ước môi trường chạy. Không nên dùng `System.lineSeparator()` để đoán delimiter của file bất kỳ. `System.lineSeparator()` cho biết dấu xuống dòng **mặc định của nền tảng hiện tại**, chủ yếu có ích khi **tạo** văn bản cho nền tảng đó; nó không tự phát hiện loại xuống dòng của dữ liệu nguồn.
+A Windows file typically uses CRLF and a Unix file typically uses LF, yet not every file follows the runtime environment's convention. Do not use `System.lineSeparator()` to guess the delimiter of an arbitrary file. `System.lineSeparator()` reports the **current platform's default** line separator, mainly useful when **generating** text for that platform; it does not auto-detect the line-ending style of source data.
 
-Ví dụ thao tác chuẩn hóa **minh họa** (đặt trong hàm đã có biến `text`):
+**Illustrative** normalization example (placed inside a method that already has `text`):
 
 ```java
 String normalized = text.replaceAll("\\R", "\n");
 List<String> lines = Arrays.asList(normalized.split("\n", -1));
 ```
 
-Đoạn trên dùng `java.util.Arrays` và `java.util.List`. `-1` bảo toàn phần tử rỗng cuối cùng nếu văn bản kết thúc bằng LF. Đây là lựa chọn khi dữ liệu nghiệp vụ cần lưu thông tin về dấu kết thúc dòng cuối; nếu không cần, có thể chọn chính sách khác và viết kiểm thử tương ứng.
+This snippet uses `java.util.Arrays` and `java.util.List`. `-1` preserves a trailing empty element if the text ends with LF. Choose this when business data needs to retain information about a trailing line terminator; otherwise choose another policy and write corresponding tests.
 
-Khi làm sạch đầu/cuối từng trường:
+When cleaning the start/end of individual fields:
 
 ```java
-String cleaned = field.strip();  // NBSP vẫn được giữ
+String cleaned = field.strip();  // NBSP is still preserved
 ```
 
-Đây là **một quy tắc theo Java whitespace**, không phải bộ lọc tổng quát cho mọi khoảng trắng. Nếu yêu cầu sản phẩm nói “NBSP cũng được xóa”, có thể xây một hàm theo predicate công khai:
+This is a **Java-whitespace rule**, not a universal filter for every space-like character. If product requirements state “NBSP must also be stripped,” write a helper with a published predicate:
 
 ```java
-// Mã minh họa: dùng bên trong một class và truyền vào String hợp lệ.
+// Illustrative snippet: use inside a class and pass a valid String.
 static boolean isBoundarySpace(int cp) {
     return Character.isWhitespace(cp)
             || cp == 0x00A0
@@ -260,39 +260,39 @@ static String stripIncludingNbsp(String value) {
 }
 ```
 
-Đoạn minh họa sử dụng **code point**, nên không cắt đôi surrogate pair. Hàm chỉ xóa ở hai đầu, bảo toàn phần nội dung giữa chuỗi. Chính sách xóa NBSP là lựa chọn của ứng dụng và cần kiểm thử riêng; không gán nó cho hành vi mặc định của `String.strip()`.
+This illustrative code works by **code point**, so it never splits a surrogate pair. It strips only at both ends, preserving internal content. Stripping NBSP is an application choice and needs dedicated tests; never attribute it to `String.strip()`'s default behavior.
 
-Nếu dữ liệu được giải mã sai charset trước khi vào `String`, `strip` hoặc `trim` không thể chữa mojibake. Cần biết encoding thật của file/giao thức (thường dùng UTF-8 khi do mình định nghĩa), giải mã đúng rồi mới xử lý whitespace.
+If data was decoded with the wrong charset before becoming a `String`, neither `strip` nor `trim` can fix mojibake. Know the real encoding of the file/protocol (typically UTF-8 when you define it), decode properly, and only then process whitespace.
 
-## 7. Các lỗi phổ biến cần phát hiện sớm
+## 7. Common Bugs to Catch Early
 
-**Lỗi 1 — cho rằng `strip()` loại bỏ NBSP.** Dữ liệu sao chép từ website hoặc tài liệu có thể chứa `U+00A0` ở đầu/cuối; `strip()` vẫn trả về chuỗi còn NBSP. Kiểm tra code point thực tế thay vì nhìn vào khoảng trắng trên màn hình.
+**Bug 1 — assuming `strip()` removes NBSP.** Text copied from websites or documents can contain leading/trailing `U+00A0`; `strip()` returns the string with NBSP intact. Inspect actual code points instead of eyeballing whitespace on screen.
 
-**Lỗi 2 — dùng `trim()` thay `strip()` cho whitespace Unicode.** `trim()` giữ `U+2003` và `U+3000`. Nếu đầu vào cần xử lý các dấu cách này, `strip()` thường thích hợp hơn.
+**Bug 2 — using `trim()` instead of `strip()` for Unicode whitespace.** `trim()` keeps `U+2003` and `U+3000`. If inputs require handling those spaces, `strip()` is usually more appropriate.
 
-**Lỗi 3 — lấy `String.lines()` để tách mọi loại xuống dòng Unicode.** `lines()` chỉ có ba loại delimiter LF/CR/CRLF. Dùng `split("\\R", -1)` hoặc parser chuyên dụng nếu đặc tả yêu cầu NEL, LS, PS.
+**Bug 3 — using `String.lines()` to split all Unicode line breaks.** `lines()` only recognizes LF/CR/CRLF. Use `split("\\R", -1)` or a dedicated parser if the spec requires NEL, LS, or PS.
 
-**Lỗi 4 — nghĩ CRLF là hai dòng rỗng.** `String.lines()` và regex `\R` đều nhận CRLF là **một** terminator, nên `"A\r\nB"` có hai dòng `A` và `B`.
+**Bug 4 — thinking CRLF counts as two blank lines.** Both `String.lines()` and regex `\R` treat CRLF as **one** terminator, so `"A\r\nB"` has two lines `A` and `B`.
 
-**Lỗi 5 — quên tham số `-1` của `split`.** `"A\n".split("\\R")` bỏ phần tử rỗng cuối, còn `split("\\R", -1)` giữ. Cần quyết định đầu ra mong muốn trước khi viết test.
+**Bug 5 — forgetting `-1` in `split`.** `"A\n".split("\\R")` drops the trailing empty element, whereas `split("\\R", -1)` keeps it. Decide the expected output before writing tests.
 
-**Lỗi 6 — xóa toàn bộ whitespace mà không xét ngữ nghĩa.** Trong tên, địa chỉ, văn bản pháp lý, số lượng có dấu phân cách hoặc dữ liệu có định dạng, NBSP và dòng rỗng có thể mang ý nghĩa trình bày. Tự động thay mọi whitespace bằng SPACE có thể làm thay đổi dữ liệu cần bảo toàn.
+**Bug 6 — stripping all whitespace without checking semantics.** In names, addresses, legal text, formatted numbers, or structured data, NBSP and blank lines may carry presentation meaning. Automatically replacing all whitespace with SPACE can alter data that must be preserved.
 
-**Lỗi 7 — kiểm tra bằng console.** Ký tự U+00A0, U+2003, LF và CR khó phân biệt khi in trực tiếp. Dùng biểu diễn `U+XXXX` hoặc test `codePointAt`/`equals`; không kết luận chỉ từ hình thức.
+**Bug 7 — verifying via console output.** U+00A0, U+2003, LF, and CR are hard to tell apart when printed directly. Use `U+XXXX` notation or assert `codePointAt`/`equals`; never judge by visual appearance alone.
 
-**Lỗi 8 — phụ thuộc nền tảng khi sinh dữ liệu test.** Viết literal `"\n"`/`"\r\n"` hoặc tạo code point là cách kiểm thử deterministic. Tránh tạo dữ liệu tham chiếu bằng `System.lineSeparator()` khi mục tiêu là so sánh các loại xuống dòng xuyên hệ điều hành.
+**Bug 8 — depending on platform defaults when generating test data.** Writing `"\n"`/`"\r\n"` literals or building code points makes tests deterministic. Avoid generating reference data with `System.lineSeparator()` when the goal is comparing line endings across operating systems.
 
-## 8. Checklist khi đưa vào sản phẩm
+## 8. Production Readiness Checklist
 
-1. Xác định rõ chính sách: loại bỏ whitespace kiểu `trim`, kiểu `strip`, hay thêm NBSP/nhóm ký tự riêng.
-2. Liệt kê code point cần hỗ trợ, đặc biệt `U+00A0`, `U+2007`, `U+202F`, `U+2003`, `U+0085`, `U+2028`, `U+2029`.
-3. Chọn API tách dòng theo yêu cầu: `lines()` cho CR/LF/CRLF; `"\\R"` khi cần các kiểu Unicode rộng hơn.
-4. Quyết định chính sách giữ/bỏ dòng rỗng cuối; nếu dùng `split`, đặt limit tường minh.
-5. Test cả dữ liệu ở đầu, giữa và cuối chuỗi, bao gồm chuỗi rỗng và nhiều delimiter liên tiếp.
-6. Khi chuẩn hóa, chỉ thay ký tự có chủ đích và giữ bản gốc nếu dữ liệu quan trọng.
+1. Clarify the policy: `trim`-style whitespace removal, `strip`-style, or also NBSP/custom characters.
+2. List supported code points, especially `U+00A0`, `U+2007`, `U+202F`, `U+2003`, `U+0085`, `U+2028`, `U+2029`.
+3. Choose the line-splitting API per requirements: `lines()` for CR/LF/CRLF; `"\\R"` when broader Unicode line breaks are needed.
+4. Decide whether to keep or drop trailing empty lines; if using `split`, specify the limit explicitly.
+5. Test data at the start, middle, and end of strings, including empty strings and consecutive delimiters.
+6. When normalizing, replace only intended characters and keep originals if raw data matters.
 
-## Tài liệu chính thức
+## Official Documentation
 
 - [Java 17 `String.trim`, `strip`, `lines`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html).
-- [Java 17 `Character.isWhitespace` và `Character.isSpaceChar`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html).
-- [Java 17 `Pattern`: `\R`, ký tự kết thúc dòng và `split`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html).
+- [Java 17 `Character.isWhitespace` and `Character.isSpaceChar`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html).
+- [Java 17 `Pattern`: `\R`, line terminators, and `split`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html).

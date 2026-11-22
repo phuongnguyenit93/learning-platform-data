@@ -1,63 +1,63 @@
-# BMP, ký tự bổ sung và surrogate pair trong Java String
+# BMP, Supplementary Characters, and Surrogate Pairs in Java String
 
-Java lưu và xử lý văn bản theo mô hình Unicode, trong đó mỗi **code point** được nhận diện bằng một giá trị như `U+0041` (chữ A), `U+4E2D` (chữ 中) hoặc `U+1F600` (😀). Tuy nhiên, một phần lớn API `String` của Java sử dụng **UTF-16 code unit** làm đơn vị đếm và chỉ số. Vì thế, một ký tự Unicode có thể chiếm **hai phần tử `char`** trong `String`.
+Java stores and processes text using the Unicode model, in which each **code point** is identified by a value such as `U+0041` (letter A), `U+4E2D` (character 中), or `U+1F600` (😀). However, a large portion of Java's `String` API uses **UTF-16 code units** as the unit for counting and indexing. Because of this, a single Unicode character can occupy **two `char` elements** in a `String`.
 
-Hiểu rõ Basic Multilingual Plane (BMP), ký tự bổ sung (supplementary character) và surrogate pair giúp bạn xử lý đúng `length()`, `charAt()`, `substring()`, vòng lặp và việc chuyển đổi giữa `char`, `int` và `String`.
+Understanding the Basic Multilingual Plane (BMP), supplementary characters, and surrogate pairs helps you handle `length()`, `charAt()`, `substring()`, loops, and conversions between `char`, `int`, and `String` correctly.
 
-## 1. Phân biệt code point, code unit và ký tự người dùng nhìn thấy
+## 1. Distinguishing Code Points, Code Units, and User-Perceived Characters
 
-- **Unicode code point**: một vị trí mã trong không gian `U+0000` đến `U+10FFFF`; thường viết dạng `U+XXXX` hoặc `U+XXXXX`/`U+XXXXXX`. Trong Java, nên lưu một code point bằng `int`.
-- **Unicode scalar value**: code point **không nằm trong** vùng surrogate `U+D800`–`U+DFFF`. Mỗi scalar value có thể được biểu diễn hợp lệ bằng UTF-16.
-- **UTF-16 code unit**: đơn vị 16 bit. Kiểu nguyên thủy `char` của Java chứa **một** UTF-16 code unit (giá trị `0x0000`–`0xFFFF`). Một `char` không nhất thiết tương đương một code point hoàn chỉnh.
-- **Grapheme cluster** (cụm ký tự hiển thị): thứ người đọc thường nhận là một ký tự; có thể được tạo từ nhiều code point, ví dụ `e` + dấu sắc kết hợp hoặc một emoji ghép bằng ký tự nối.
+- **Unicode code point**: a code position in the space `U+0000` to `U+10FFFF`; usually written as `U+XXXX` or `U+XXXXX`/`U+XXXXXX`. In Java, a code point should be stored as an `int`.
+- **Unicode scalar value**: a code point **not in** the surrogate range `U+D800`–`U+DFFF`. Every scalar value can be validly represented in UTF-16.
+- **UTF-16 code unit**: a 16-bit unit. Java's primitive `char` type holds **one** UTF-16 code unit (values `0x0000`–`0xFFFF`). A `char` does not necessarily correspond to a complete code point.
+- **Grapheme cluster** (display character cluster): what a reader typically perceives as one character; it can be formed from multiple code points, such as `e` + combining acute accent or an emoji joined with a connector character.
 
-Ba phép đếm này không luôn bằng nhau. `String.length()` đếm **UTF-16 code unit**, `String.codePointCount(...)` đếm **code point theo cách xử lý UTF-16 của Java**, còn số cụm ký tự hiển thị cần quy tắc phân đoạn grapheme chuyên biệt.
+These three counts are not always equal. `String.length()` counts **UTF-16 code units**, `String.codePointCount(...)` counts **code points according to Java's UTF-16 handling**, while the number of display character clusters requires dedicated grapheme segmentation rules.
 
-Ví dụ nhanh:
+Quick examples:
 
-| Văn bản | Các code point | UTF-16 code unit | `String.length()` |
+| Text | Code points | UTF-16 code units | `String.length()` |
 | --- | --- | ---: | ---: |
 | `A` | `U+0041` | 1 | 1 |
 | `中` | `U+4E2D` | 1 | 1 |
 | `😀` | `U+1F600` | 2 | 2 |
-| `é` (chữ e + dấu sắc kết hợp) | `U+0065`, `U+0301` | 2 | 2 |
+| `é` (letter e + combining acute accent) | `U+0065`, `U+0301` | 2 | 2 |
 
-Hàng cuối có hai code point trong BMP nhưng thường hiển thị thành một chữ có dấu. Vì vậy **đếm code point vẫn không đồng nghĩa đếm ký tự mà người dùng cảm nhận**.
+The last row has two code points in the BMP yet typically renders as a single accented letter. Therefore, **counting code points is still not the same as counting user-perceived characters**.
 
-## 2. BMP và supplementary planes
+## 2. BMP and Supplementary Planes
 
-Unicode chia không gian code point thành **17 plane**, mỗi plane có khả năng chứa 65.536 vị trí mã:
+Unicode divides the code point space into **17 planes**, each capable of holding 65,536 code positions:
 
-| Phân vùng | Dải giá trị | Ý nghĩa |
+| Partition | Value range | Meaning |
 | --- | --- | --- |
-| BMP (plane 0) | `U+0000`–`U+FFFF` | Chứa phần lớn chữ cái, ký hiệu phổ biến và cả vùng mã dành riêng cho surrogate |
-| Các supplementary planes (plane 1–16) | `U+10000`–`U+10FFFF` | Chứa nhiều chữ viết lịch sử, ký hiệu âm nhạc, emoji và các bộ ký tự khác |
-| Surrogate code points (nằm trong BMP) | `U+D800`–`U+DFFF` | Giá trị **dành riêng cho UTF-16**, không được dùng làm Unicode scalar value độc lập |
+| BMP (plane 0) | `U+0000`–`U+FFFF` | Contains most common letters, symbols, and the range reserved for surrogates |
+| Supplementary planes (planes 1–16) | `U+10000`–`U+10FFFF` | Contains many historic scripts, musical symbols, emojis, and other character sets |
+| Surrogate code points (inside BMP) | `U+D800`–`U+DFFF` | Values **reserved for UTF-16**, not to be used as standalone Unicode scalar values |
 
-**BMP không có nghĩa mọi vị trí trong BMP đều là ký tự hợp lệ để hiển thị.** Các vị trí surrogate là code point được dành riêng và không phải Unicode scalar value; ngoài ra còn có vị trí chưa gán hoặc không dành cho ký tự văn bản thông thường.
+**BMP does not mean every position in the BMP is a valid displayable character.** Surrogate positions are reserved code points and are not Unicode scalar values; additionally, there are unassigned positions or positions not meant for ordinary text characters.
 
-Một Unicode scalar value thuộc BMP (trừ vùng surrogate) được mã hóa bằng **một UTF-16 code unit**. Một code point thuộc supplementary planes được mã hóa bằng **hai UTF-16 code unit**, gọi là **surrogate pair**. Không có code point Unicode hợp lệ lớn hơn `U+10FFFF`.
+A Unicode scalar value in the BMP (excluding the surrogate range) is encoded as **one UTF-16 code unit**. A code point in the supplementary planes is encoded as **two UTF-16 code units**, called a **surrogate pair**. There is no valid Unicode code point greater than `U+10FFFF`.
 
-Ví dụ:
+Examples:
 
-- `U+0061` (a), `U+00E9` (é), `U+4E2D` (中): đều thuộc BMP; mỗi code point chiếm một `char`.
-- `U+1F600` (😀), `U+1D11E` (𝄞, ký hiệu khóa Sol âm nhạc): đều thuộc supplementary planes; mỗi code point cần hai `char`.
+- `U+0061` (a), `U+00E9` (é), `U+4E2D` (中): all belong to the BMP; each code point takes one `char`.
+- `U+1F600` (😀), `U+1D11E` (𝄞, musical G clef symbol): all belong to the supplementary planes; each code point requires two `char`s.
 
-## 3. Surrogate pair được ghép như thế nào?
+## 3. How Is a Surrogate Pair Assembled?
 
-UTF-16 dùng hai nhóm mã dành riêng:
+UTF-16 uses two reserved code groups:
 
 - **High surrogate (leading surrogate):** `U+D800`–`U+DBFF`.
 - **Low surrogate (trailing surrogate):** `U+DC00`–`U+DFFF`.
 
-Với code point `cp` từ `U+10000` đến `U+10FFFF`, quá trình mã hóa được mô tả như sau:
+For a code point `cp` from `U+10000` to `U+10FFFF`, the encoding process is described as follows:
 
-1. Tính `x = cp - 0x10000` (giá trị 20 bit).
-2. Lấy 10 bit cao: `high = 0xD800 + (x >> 10)`.
-3. Lấy 10 bit thấp: `low = 0xDC00 + (x & 0x3FF)`.
-4. Lưu lần lượt **high surrogate rồi low surrogate**.
+1. Compute `x = cp - 0x10000` (a 20-bit value).
+2. Extract the upper 10 bits: `high = 0xD800 + (x >> 10)`.
+3. Extract the lower 10 bits: `low = 0xDC00 + (x & 0x3FF)`.
+4. Store **high surrogate first, then low surrogate**.
 
-Để giải mã một cặp hợp lệ:
+To decode a valid pair:
 
 ```text
 codePoint = 0x10000
@@ -65,38 +65,38 @@ codePoint = 0x10000
           +  (low  - 0xDC00)
 ```
 
-Ví dụ với emoji 😀 (`U+1F600`):
+Example with the 😀 emoji (`U+1F600`):
 
 ```text
 Code point           : U+1F600
 UTF-16 high surrogate: U+D83D
 UTF-16 low surrogate : U+DE00
-Trong Java String    : [\uD83D] [\uDE00]  (2 code unit/char)
+In Java String       : [\uD83D] [\uDE00]  (2 code units/chars)
 ```
 
-Chỉ khi **high surrogate đứng ngay trước low surrogate** thì Java mới có thể kết hợp hai đơn vị thành một supplementary code point. Một high surrogate đứng lẻ, low surrogate đứng lẻ, hoặc hai surrogate sai thứ tự là **chuỗi UTF-16 không hợp lệ về mặt cặp mã** (ill-formed UTF-16). Kiểu `String` của Java vẫn có khả năng chứa các code unit lẻ như vậy; ứng dụng không được mặc định mọi `String` đều có UTF-16 được ghép cặp đầy đủ.
+Only when a **high surrogate immediately precedes a low surrogate** can Java combine the two units into a supplementary code point. A standalone high surrogate, a standalone low surrogate, or two surrogates in the wrong order is an **ill-formed UTF-16** code unit sequence. Java's `String` type can still hold such unpaired code units; applications must not assume every `String` has properly paired UTF-16.
 
-Các API liên quan trong `Character`:
+Related APIs in `Character`:
 
-| Phương thức | Công dụng |
+| Method | Purpose |
 | --- | --- |
-| `Character.isHighSurrogate(char)` | Kiểm tra một `char` thuộc vùng high surrogate |
-| `Character.isLowSurrogate(char)` | Kiểm tra một `char` thuộc vùng low surrogate |
-| `Character.isSurrogatePair(high, low)` | Kiểm tra đúng thứ tự cặp high + low |
-| `Character.toCodePoint(high, low)` | Ghép **cặp surrogate hợp lệ** thành code point dạng `int` |
-| `Character.toChars(int)` | Mã hóa một code point thành mảng `char[]` dài 1 hoặc 2 |
-| `Character.charCount(int)` | Trả về 2 nếu code point thuộc supplementary range, ngược lại trả về 1 |
+| `Character.isHighSurrogate(char)` | Checks whether a `char` is in the high surrogate range |
+| `Character.isLowSurrogate(char)` | Checks whether a `char` is in the low surrogate range |
+| `Character.isSurrogatePair(high, low)` | Checks the correct high + low pair order |
+| `Character.toCodePoint(high, low)` | Combines a **valid surrogate pair** into a code point as `int` |
+| `Character.toChars(int)` | Encodes a code point into a `char[]` array of length 1 or 2 |
+| `Character.charCount(int)` | Returns 2 if the code point is in the supplementary range, otherwise returns 1 |
 
-Lưu ý: `Character.toCodePoint()` giả định đầu vào là cặp phù hợp; nếu nhận dữ liệu không chắc chắn, hãy gọi `isSurrogatePair()` trước.
+Note: `Character.toCodePoint()` assumes the input is a valid pair; if you receive uncertain data, call `isSurrogatePair()` first.
 
-## 4. Ví dụ Java: cùng một code point nhưng có hai char
+## 4. Java Example: One Code Point with Two `char`s
 
-Tệp `UnicodeBasics.java` (Java 17+):
+File `UnicodeBasics.java` (Java 17+):
 
 ```java
 public class UnicodeBasics {
     public static void main(String[] args) {
-        String bmp = "\u4E2D"; // U+4E2D: một ký tự thuộc BMP
+        String bmp = "\u4E2D"; // U+4E2D: a BMP character
         String supplementary = new String(Character.toChars(0x1F600));
 
         System.out.printf(
@@ -123,14 +123,14 @@ public class UnicodeBasics {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 UnicodeBasics.java
 java UnicodeBasics
 ```
 
-Kết quả chuẩn:
+Expected output:
 
 ```text
 BMP: length=1, codePoints=1
@@ -142,36 +142,36 @@ codePointAt(0)=U+1F600
 toCodePoint=U+1F600
 ```
 
-Ở đây `String.length()` của emoji trả về **2**, bởi nó đếm hai UTF-16 code unit. Trong khi đó `codePointCount(0, length())` trả về **1** vì cặp surrogate hợp lệ là một code point.
+Here the emoji's `String.length()` returns **2**, because it counts two UTF-16 code units. Meanwhile, `codePointCount(0, length())` returns **1** because a valid surrogate pair is one code point.
 
-`charAt(0)` và `charAt(1)` chỉ trả về từng phần của cặp mã. Không được giả định một `charAt(index)` luôn là ký tự Unicode hoàn chỉnh. `String.codePointAt(index)` có thể ghép cặp khi `index` đứng tại **high surrogate** và ngay sau là **low surrogate**; nếu gọi bắt đầu từ low surrogate, nó không tự nhìn lùi để ghép với phần high phía trước.
+`charAt(0)` and `charAt(1)` return only individual parts of the code pair. Never assume a single `charAt(index)` is always a complete Unicode character. `String.codePointAt(index)` can assemble the pair when `index` sits at a **high surrogate** immediately followed by a **low surrogate**; if called starting at a low surrogate, it does not look backward to pair with the preceding high part.
 
-Có thể tạo cùng emoji bằng escape trong string literal:
+You can create the same emoji using escapes in a string literal:
 
 ```java
 String smile = "\uD83D\uDE00";
 ```
 
-Chuỗi escape trên cung cấp hai UTF-16 code unit. Dùng `new String(Character.toChars(0x1F600))` thường giúp thể hiện rõ hơn rằng ta bắt đầu từ một **code point**.
+The escaped string above provides two UTF-16 code units. Using `new String(Character.toChars(0x1F600))` often makes it clearer that you are starting from a **code point**.
 
-## 5. Chỉ số char khác vị trí code point
+## 5. `char` Index vs. Code Point Position
 
-Các API như `charAt(int)`, `substring(int, int)`, `indexOf(...)` theo các overload nhận/trả chỉ số, và `String.length()` làm việc với **chỉ số UTF-16 code unit**. Nhưng một code point supplementary chiếm hai chỉ số liên tiếp.
+APIs such as `charAt(int)`, `substring(int, int)`, the index-accepting/returning overloads of `indexOf(...)`, and `String.length()` work with **UTF-16 code unit indices**. Yet a supplementary code point occupies two consecutive indices.
 
-Xét chuỗi `A😀B`:
+Consider the string `A😀B`:
 
 ```text
-Chỉ số UTF-16:  0         1          2         3
-Code unit    : 'A'    high D83D   low DE00    'B'
-Code point   : U+0041        U+1F600         U+0042
-Vị trí code point: 0              1             2
+UTF-16 index     :  0         1          2         3
+Code unit        : 'A'    high D83D   low DE00    'B'
+Code point       : U+0041        U+1F600         U+0042
+Code point index :  0              1             2
 ```
 
-Tổng cộng `length() == 4` nhưng chỉ có **3 code point**.
+In total `length() == 4`, yet there are only **3 code points**.
 
-Đây là ví dụ duyệt đúng theo code point bằng `codePointAt()` kết hợp `Character.charCount()`:
+Here is an example of iterating properly by code points using `codePointAt()` combined with `Character.charCount()`:
 
-Tệp `CodePointIteration.java`:
+File `CodePointIteration.java`:
 
 ```java
 public class CodePointIteration {
@@ -198,14 +198,14 @@ public class CodePointIteration {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 CodePointIteration.java
 java CodePointIteration
 ```
 
-Kết quả:
+Output:
 
 ```text
 length=4
@@ -217,9 +217,9 @@ offsetByCodePoints(0, 2)=3
 substring(1, 3)=U+1F600
 ```
 
-Vòng lặp tăng chỉ số UTF-16 lên **1** cho code point thuộc BMP, và lên **2** cho code point supplementary. Lời gọi `offsetByCodePoints(0, 2)` chuyển vị trí **hai code point** tính từ chỉ số UTF-16 số 0 thành chỉ số UTF-16 số **3**; kết quả này hữu ích khi cần cắt chuỗi tại ranh giới code point.
+The loop advances the UTF-16 index by **1** for BMP code points and by **2** for supplementary code points. Calling `offsetByCodePoints(0, 2)` translates a position **two code points** from UTF-16 index 0 into UTF-16 index **3**; this result is useful when slicing a string at code point boundaries.
 
-Có thể duyệt ngắn gọn bằng `text.codePoints()`, trả về `IntStream` chứa giá trị dạng `int`:
+You can iterate concisely using `text.codePoints()`, which returns an `IntStream` containing `int` values:
 
 ```java
 text.codePoints().forEach(cp ->
@@ -227,20 +227,20 @@ text.codePoints().forEach(cp ->
 );
 ```
 
-Đoạn trên là phần minh họa cần đặt trong phương thức có biến `text` đã khai báo. Với chuỗi `A😀B`, nó lần lượt in `U+41`, `U+1F600`, `U+42` (mỗi giá trị trên một dòng).
+The snippet above is an illustrative fragment to place inside a method where `text` is already declared. For `A😀B`, it prints `U+41`, `U+1F600`, `U+42` in order (each value on its own line).
 
-**Phân biệt `chars()` và `codePoints()`:**
+**Distinguishing `chars()` and `codePoints()`:**
 
-- `text.chars()` tạo luồng các giá trị `int` đại diện **từng UTF-16 code unit**. Với `A😀B`, luồng có **4** phần tử: `0x41`, `0xD83D`, `0xDE00`, `0x42`.
-- `text.codePoints()` cố gắng ghép **các surrogate pair hợp lệ**; cùng ví dụ trên, luồng có **3** phần tử: `0x41`, `0x1F600`, `0x42`.
+- `text.chars()` produces a stream of `int` values representing **each UTF-16 code unit**. For `A😀B`, the stream has **4** elements: `0x41`, `0xD83D`, `0xDE00`, `0x42`.
+- `text.codePoints()` attempts to combine **valid surrogate pairs**; for the same example, the stream has **3** elements: `0x41`, `0x1F600`, `0x42`.
 
-Nếu chuỗi có surrogate đứng lẻ, `codePoints()` vẫn có thể phát ra chính giá trị surrogate chưa ghép dưới dạng `int`; đừng mặc định tất cả phần tử đều là Unicode scalar value hợp lệ.
+If the string contains an unpaired surrogate, `codePoints()` can still emit the unpaired surrogate value itself as an `int`; do not assume every element is a valid Unicode scalar value.
 
-## 6. Cắt chuỗi mà không làm hỏng surrogate pair
+## 6. Slicing Strings Without Breaking Surrogate Pairs
 
-Hai chỉ số của `substring(beginIndex, endIndex)` là vị trí UTF-16, **begin bao gồm, end không bao gồm**. Với chuỗi `A😀B`, `substring(1, 3)` giữ trọn emoji; còn `substring(1, 2)` chỉ lấy **high surrogate** và tạo ra chuỗi UTF-16 bị tách cặp.
+The two indices of `substring(beginIndex, endIndex)` are UTF-16 positions, **begin inclusive, end exclusive**. For `A😀B`, `substring(1, 3)` keeps the entire emoji, while `substring(1, 2)` extracts only the **high surrogate** and creates a UTF-16 string with a split pair.
 
-Nếu nghiệp vụ cần lấy **n code point đầu tiên**, hãy chuyển số code point sang chỉ số UTF-16 trước khi gọi `substring()`:
+If business logic needs the **first n code points**, convert the code point count to a UTF-16 index before calling `substring()`:
 
 ```java
 public class SafeSubstring {
@@ -262,7 +262,7 @@ public class SafeSubstring {
 }
 ```
 
-Lưu thành `SafeSubstring.java`, biên dịch và chạy bằng `javac -encoding UTF-8 SafeSubstring.java` và `java SafeSubstring`. Kết quả:
+Save as `SafeSubstring.java`, compile and run with `javac -encoding UTF-8 SafeSubstring.java` and `java SafeSubstring`. Output:
 
 ```text
 UTF16 length=3
@@ -270,13 +270,13 @@ codePoints=2
 lastCodePoint=U+1F600
 ```
 
-`offsetByCodePoints()` có thể ném `IndexOutOfBoundsException` khi số code point cần dịch nằm ngoài phạm vi hợp lệ. Ví dụ sử dụng thực tế nên kiểm tra `count >= 0` và `count <= text.codePointCount(0, text.length())` trước khi cắt, hoặc quy định rõ cách xử lý đầu vào không hợp lệ.
+`offsetByCodePoints()` can throw `IndexOutOfBoundsException` when the code point offset goes out of valid bounds. Real-world usage should verify `count >= 0` and `count <= text.codePointCount(0, text.length())` before slicing, or explicitly define how invalid input is handled.
 
-Giải pháp trên bảo vệ ranh giới **code point**, nhưng chưa chắc bảo toàn một **grapheme cluster**. Ví dụ cắt giữa `e` và dấu kết hợp `U+0301` vẫn có thể phá trải nghiệm hiển thị mặc dù không cắt surrogate pair.
+The solution above protects **code point** boundaries, yet does not necessarily preserve a **grapheme cluster**. For example, slicing between `e` and the combining mark `U+0301` can still break visual display even though it does not split a surrogate pair.
 
-## 7. Kiểm tra surrogate đứng lẻ và giá trị mã không hợp lệ
+## 7. Detecting Unpaired Surrogates and Invalid Code Values
 
-Một `String` có thể lưu riêng một high surrogate mà không có low surrogate kèm theo:
+A `String` can store a standalone high surrogate without an accompanying low surrogate:
 
 ```java
 String broken = "\uD83D";
@@ -285,9 +285,9 @@ System.out.println(Character.isHighSurrogate(broken.charAt(0))); // true
 System.out.printf("U+%X%n", broken.codePointAt(0));      // U+D83D
 ```
 
-Đây là các câu lệnh minh họa để đặt trong một phương thức Java. `codePointAt()` trả về giá trị code unit chưa ghép khi không có một cặp surrogate hợp lệ, vì vậy kết quả `U+D83D` ở đây **không phải Unicode scalar value**. Khi ghi dữ liệu dạng này sang một encoding hoặc một hệ thống khác, cách xử lý ký tự lỗi có thể phụ thuộc encoder và cấu hình xử lý lỗi. Không nên dựa vào việc surrogate đứng lẻ được truyền đi nguyên dạng.
+These are illustrative statements to place inside a Java method. `codePointAt()` returns the unpaired code unit value when no valid surrogate pair is present, so the `U+D83D` result here **is not a Unicode scalar value**. When writing this kind of data to another encoding or system, how invalid characters are handled can depend on the encoder and error-handling configuration. Do not rely on unpaired surrogates being transmitted intact.
 
-Để nhận biết surrogate pair khi duyệt bằng `char`:
+To recognize surrogate pairs when iterating by `char`:
 
 ```java
 static boolean hasWellFormedUtf16(String text) {
@@ -299,81 +299,81 @@ static boolean hasWellFormedUtf16(String text) {
                     !Character.isLowSurrogate(text.charAt(i + 1))) {
                 return false;
             }
-            i++; // Bỏ qua low surrogate vừa ghép cùng high surrogate
+            i++; // Skip the low surrogate just paired with the high surrogate
         } else if (Character.isLowSurrogate(current)) {
-            return false; // Low surrogate đứng lẻ
+            return false; // Standalone low surrogate
         }
     }
     return true;
 }
 ```
 
-Đây là **phương thức minh họa**, cần đặt bên trong một lớp. Nó kiểm tra tính đúng đắn của **các cặp UTF-16**, không kiểm tra việc một code point đã được Unicode gán ký tự cụ thể hay chưa.
+This is an **illustrative method** that needs to be placed inside a class. It validates the well-formedness of **UTF-16 pairs**, not whether a code point has been assigned a specific character by Unicode.
 
-Ngoài ra:
+In addition:
 
-- `Character.isValidCodePoint(cp)` chỉ kiểm tra số nguyên nằm trong dải `U+0000`–`U+10FFFF`; kiểm tra này **không loại riêng vùng surrogate**. Muốn nhận một Unicode scalar value, phải loại thêm `U+D800`–`U+DFFF`.
-- `Character.isSupplementaryCodePoint(cp)` nhận biết dải `U+10000`–`U+10FFFF`.
-- `Character.toChars(cp)` sẽ từ chối giá trị ngoài dải Unicode bằng `IllegalArgumentException`, nhưng không nên dùng nó một mình như bộ kiểm tra scalar value. Với giá trị surrogate, nó vẫn có thể tạo ra một `char` surrogate đứng lẻ.
-- Ký tự nằm trong BMP không đồng nghĩa đã được Unicode gán ý nghĩa hiển thị. Mặt khác, sự tồn tại của glyph còn phụ thuộc font và môi trường hiển thị.
+- `Character.isValidCodePoint(cp)` only checks that the integer falls within `U+0000`–`U+10FFFF`; this check **does not exclude the surrogate range**. To accept only Unicode scalar values, you must additionally exclude `U+D800`–`U+DFFF`.
+- `Character.isSupplementaryCodePoint(cp)` recognizes the range `U+10000`–`U+10FFFF`.
+- `Character.toChars(cp)` rejects values outside the Unicode range with `IllegalArgumentException`, but it should not be used alone as a scalar value validator. For a surrogate value, it can still produce an unpaired surrogate `char`.
+- Being in the BMP does not mean Unicode has assigned a displayable meaning to that position. Furthermore, glyph availability also depends on the font and rendering environment.
 
-## 8. Không đồng nhất code point với độ dài byte hay ký tự hiển thị
+## 8. Do Not Equate Code Points with Byte Length or Display Characters
 
-Cần phân biệt ba lớp biểu diễn:
+Three representation layers must be distinguished:
 
-| Câu hỏi | API/khái niệm phù hợp |
+| Question | Appropriate API/concept |
 | --- | --- |
-| Chuỗi có bao nhiêu UTF-16 code unit? | `text.length()` |
-| Có bao nhiêu code point theo quy tắc ghép surrogate của Java? | `text.codePointCount(0, text.length())` hoặc `text.codePoints().count()` |
-| Một code point ở chỉ số UTF-16 nào? | `text.codePointAt(charIndex)` |
-| Dịch n code point từ một chỉ số UTF-16? | `text.offsetByCodePoints(charIndex, n)` |
-| UTF-8 của chuỗi có bao nhiêu byte? | `text.getBytes(StandardCharsets.UTF_8).length` với lưu ý dữ liệu UTF-16 lỗi có thể bị thay thế khi encode |
-| Người dùng thấy bao nhiêu “ký tự”? | Phân đoạn grapheme cluster theo quy tắc Unicode phù hợp |
+| How many UTF-16 code units does the string have? | `text.length()` |
+| How many code points are there under Java's surrogate pairing rules? | `text.codePointCount(0, text.length())` or `text.codePoints().count()` |
+| What code point is at a given UTF-16 index? | `text.codePointAt(charIndex)` |
+| Shift n code points from a UTF-16 index? | `text.offsetByCodePoints(charIndex, n)` |
+| How many bytes does the string's UTF-8 encoding have? | `text.getBytes(StandardCharsets.UTF_8).length`, noting that ill-formed UTF-16 data may be replaced when encoding |
+| How many "characters" does the user see? | Grapheme cluster segmentation under appropriate Unicode rules |
 
-Ví dụ `😀` chiếm **2 UTF-16 code unit** nhưng **4 byte UTF-8** khi mã hóa hợp lệ. `String.length()` không phải số byte của file hay request HTTP; cũng không phải kích thước bộ nhớ nội bộ của đối tượng `String`. JVM có thể tối ưu lưu trữ chuỗi bằng biểu diễn nội bộ khác, nhưng hợp đồng công khai của API vẫn dựa trên chỉ số UTF-16.
+For example, `😀` takes **2 UTF-16 code units** but **4 UTF-8 bytes** when validly encoded. `String.length()` is neither the byte count of a file or HTTP request, nor the internal memory footprint of the `String` object. The JVM may optimize string storage using another internal representation, but the public API contract still relies on UTF-16 indices.
 
-Với dấu kết hợp:
+With combining marks:
 
 ```java
 String decomposed = "e\u0301"; // e + COMBINING ACUTE ACCENT
-String composed = "\u00E9";   // é dạng tiền tổ hợp
+String composed = "\u00E9";   // precomposed é
 
 System.out.println(decomposed.length()); // 2
 System.out.println(composed.length());   // 1
 ```
 
-Hai chuỗi có thể hiển thị tương tự nhưng khác chuỗi code point và không `equals()` nhau nếu chưa chuẩn hóa theo quy tắc thích hợp. **Unicode normalization** là chủ đề liên quan nhưng độc lập với việc ghép surrogate pair.
+Two strings can appear visually similar yet have different code point sequences and will not be `equals()` unless normalized under an appropriate rule. **Unicode normalization** is a related topic, independent of surrogate pair assembly.
 
-## 9. Lỗi phổ biến
+## 9. Common Mistakes
 
-**Lỗi 1 — Coi `char` là một ký tự Unicode hoàn chỉnh.** `char` chỉ là code unit 16 bit. Một supplementary code point cần hai `char` liên tiếp.
+**Mistake 1 — Treating `char` as a complete Unicode character.** A `char` is only a 16-bit code unit. A supplementary code point requires two consecutive `char`s.
 
-**Lỗi 2 — Dùng `length()` làm số code point.** Khi có ký tự bổ sung, `length()` lớn hơn số code point; hãy dùng `codePointCount()` để đếm code point theo mô hình của Java.
+**Mistake 2 — Using `length()` as the number of code points.** When supplementary characters are present, `length()` is greater than the code point count; use `codePointCount()` to count code points according to Java's model.
 
-**Lỗi 3 — Tăng chỉ số `i++` rồi gọi `codePointAt(i)`.** Vòng lặp có thể dừng tại low surrogate và xử lý nhầm từng nửa của ký tự. Tăng bằng `Character.charCount(codePoint)` hoặc duyệt `codePoints()`.
+**Mistake 3 — Incrementing `i++` and calling `codePointAt(i)`.** The loop can land on a low surrogate and misprocess each half of the character. Advance using `Character.charCount(codePoint)` or iterate with `codePoints()`.
 
-**Lỗi 4 — Cắt `substring()` giữa cặp surrogate.** Sử dụng `offsetByCodePoints()` để chuyển vị trí code point sang chỉ số UTF-16 trước khi cắt. Nếu thao tác hiển thị yêu cầu giữ cụm grapheme, cần giải pháp phân đoạn ở mức cao hơn.
+**Mistake 4 — Slicing with `substring()` in the middle of a surrogate pair.** Use `offsetByCodePoints()` to convert a code point position to a UTF-16 index before slicing. If display operations require keeping grapheme clusters intact, a higher-level segmentation solution is needed.
 
-**Lỗi 5 — Tin rằng surrogate nào cũng thuộc một cặp hợp lệ.** `String` có thể chứa surrogate đứng lẻ. Dữ liệu nhập từ bên ngoài cần được xác thực hoặc quy định cách xử lý ký tự lỗi khi cần.
+**Mistake 5 — Believing every surrogate belongs to a valid pair.** A `String` can contain unpaired surrogates. External input should be validated or have an invalid-character handling policy defined when needed.
 
-**Lỗi 6 — Nhầm số code unit, code point, grapheme cluster và byte.** Bốn đại lượng phục vụ các nhu cầu khác nhau: chỉ số API Java, mã Unicode, trải nghiệm văn bản và lưu trữ/truyền tải.
+**Mistake 6 — Confusing code unit count, code point count, grapheme clusters, and bytes.** These four quantities serve different needs: Java API indexing, Unicode code values, text display experience, and storage/transmission.
 
-## 10. Câu hỏi tự kiểm tra
+## 10. Self-Check Questions
 
-**Câu 1.** Vì sao `"😀".length()` bằng 2 nhưng `"😀".codePointCount(0, "😀".length())` bằng 1?
+**Question 1.** Why does `"😀".length()` equal 2 while `"😀".codePointCount(0, "😀".length())` equals 1?
 
-**Trả lời:** Emoji `U+1F600` là supplementary code point, nên UTF-16 biểu diễn bằng hai code unit `U+D83D` và `U+DE00`. `length()` đếm hai code unit; `codePointCount()` nhận ra một cặp hợp lệ và đếm một code point.
+**Answer:** Emoji `U+1F600` is a supplementary code point, so UTF-16 represents it with two code units `U+D83D` and `U+DE00`. `length()` counts the two code units; `codePointCount()` recognizes one valid pair and counts one code point.
 
-**Câu 2.** `charAt(1)` trong chuỗi `A😀B` trả về gì?
+**Question 2.** What does `charAt(1)` return in the string `A😀B`?
 
-**Trả lời:** High surrogate `U+D83D`, không phải toàn bộ code point `U+1F600`. Để đọc toàn bộ emoji, dùng `codePointAt(1)` và nhận giá trị `int`.
+**Answer:** The high surrogate `U+D83D`, not the entire code point `U+1F600`. To read the entire emoji, use `codePointAt(1)` and receive an `int` value.
 
-**Câu 3.** Tại sao `substring(1, 2)` trên `A😀B` có vấn đề, còn `substring(1, 3)` thì không?
+**Question 3.** Why is `substring(1, 2)` on `A😀B` problematic, whereas `substring(1, 3)` is not?
 
-**Trả lời:** Chỉ số của `substring()` tính theo UTF-16 code unit. Đoạn `[1,2)` chỉ lấy high surrogate; đoạn `[1,3)` lấy đủ cả high và low surrogate.
+**Answer:** `substring()` indices are measured in UTF-16 code units. Range `[1,2)` takes only the high surrogate; range `[1,3)` captures both the high and low surrogates.
 
-**Câu 4.** Một `String` có 5 code point có chắc hiển thị thành 5 ký tự không?
+**Question 4.** Is a `String` with 5 code points guaranteed to display as 5 characters?
 
-**Trả lời:** Không. Các dấu kết hợp, variation selector hoặc chuỗi emoji ghép có thể chứa nhiều code point nhưng hiển thị thành ít cụm grapheme hơn.
+**Answer:** No. Combining marks, variation selectors, or joined emoji sequences can contain multiple code points while displaying as fewer grapheme clusters.
 
-**Ghi nhớ:** BMP scalar value dùng **một** UTF-16 code unit; supplementary code point dùng **hai** code unit tạo thành **high + low surrogate**. Trong Java, `char` và chỉ số của `String` thuộc mức UTF-16 code unit; khi cần xử lý trọn vẹn code point, ưu tiên `int`, `codePointAt()`, `codePointCount()`, `offsetByCodePoints()`, `Character.charCount()` hoặc `codePoints()`.
+**Key takeaway:** BMP scalar values use **one** UTF-16 code unit; supplementary code points use **two** code units forming a **high + low surrogate** pair. In Java, `char` and `String` indices operate at the UTF-16 code unit level; when you need to process complete code points, prefer `int`, `codePointAt()`, `codePointCount()`, `offsetByCodePoints()`, `Character.charCount()`, or `codePoints()`.

@@ -1,23 +1,23 @@
-# FormatStyle: FULL, LONG, MEDIUM và SHORT trong Java
+# FormatStyle: FULL, LONG, MEDIUM, and SHORT in Java
 
-## 1. Vì sao cùng một ngày giờ có nhiều cách trình bày?
+## 1. Why Does the Same Date-Time Have Multiple Presentations?
 
-Cùng một thời điểm, ứng dụng có thể cần hiện ngày đầy đủ trong email, ngày ngắn trên danh sách, hoặc giờ có múi giờ trong lịch hẹn. Chẳng hạn một ngày được biểu diễn ngắn theo Mỹ là `10/28/26`, còn định dạng đầy đủ theo Mỹ là `Wednesday, October 28, 2026`. Quy tắc trình bày còn thay đổi theo ngôn ngữ, vùng, dữ liệu locale của JDK và loại giá trị ngày giờ.
+For the same instant, an application may need to show a full date in an email, a short date in a list, or a time with a time zone in an appointment. For example, a date is represented briefly in the US as `10/28/26`, whereas the full US format is `Wednesday, October 28, 2026`. Presentation rules also vary by language, region, JDK locale data, and date-time value type.
 
-Java hiện đại dùng `java.time.format.DateTimeFormatter` kết hợp `java.time.format.FormatStyle` để yêu cầu **mức độ chi tiết** thay vì cố định một pattern thủ công cho mọi ngôn ngữ. Bốn mức gồm:
+Modern Java uses `java.time.format.DateTimeFormatter` together with `java.time.format.FormatStyle` to request a **level of detail** rather than fixing one manual pattern for every language. The four levels are:
 
-- `FormatStyle.FULL` — mức biểu diễn đầy đủ nhất, thường có tên thứ/ngày/tháng, và thông tin múi giờ khi định dạng thời gian.
-- `FormatStyle.LONG` — dài, nhiều thông tin nhưng thường bớt một số chi tiết so với FULL.
-- `FormatStyle.MEDIUM` — trung bình, thích hợp cho nhiều vị trí hiển thị thường ngày.
-- `FormatStyle.SHORT` — gọn, thường dùng dạng số và lược bỏ giây trong thành phần giờ.
+- `FormatStyle.FULL` — the fullest representation, usually including weekday/day/month names, and time-zone information when formatting times.
+- `FormatStyle.LONG` — long and informative, though typically omitting some details compared to FULL.
+- `FormatStyle.MEDIUM` — medium length, suitable for many everyday display contexts.
+- `FormatStyle.SHORT` — compact, typically numeric and omitting seconds in the time component.
 
-**Điểm then chốt:** `FormatStyle` chỉ mô tả mức độ trình bày; **không phải** pattern cố định như `"dd/MM/yyyy"`, không phải `Locale`, không phải `ZoneId` và cũng không tự biến một ngày giờ không gắn múi giờ thành thời điểm toàn cầu.
+**Key point:** `FormatStyle` describes only the level of presentation detail; it is **not** a fixed pattern like `"dd/MM/yyyy"`, not a `Locale`, not a `ZoneId`, and it does not turn a zone-less date-time into a global instant.
 
-Mục tiêu bài học: hiểu bốn mức style, cách sử dụng với date/time/date-time, chọn đúng kiểu dữ liệu `LocalDate`/`LocalTime`/`LocalDateTime`/`ZonedDateTime`, phân biệt locale với time zone, đọc/parse theo style, kiểm thử và tránh những lỗi do kỳ vọng một chuỗi output bất biến trên mọi JDK.
+Lesson goals: understand the four style levels, how to use them with date/time/date-time, choosing the right `LocalDate`/`LocalTime`/`LocalDateTime`/`ZonedDateTime` type, distinguishing locale from time zone, parsing with styles, testing, and avoiding bugs caused by expecting an invariant output string across all JDKs.
 
-## 2. FormatStyle là enum gì?
+## 2. What Enum Is FormatStyle?
 
-`FormatStyle` là enum trong `java.time.format`:
+`FormatStyle` is an enum in `java.time.format`:
 
 ```java
 import java.time.format.FormatStyle;
@@ -28,31 +28,31 @@ FormatStyle medium = FormatStyle.MEDIUM;
 FormatStyle shortStyle = FormatStyle.SHORT;
 ```
 
-Tên bốn hằng biểu thị **độ dài tương đối** của biểu diễn đã bản địa hóa. Ý nghĩa cụ thể do dữ liệu locale quyết định. Ví dụ:
+The names of the four constants indicate the **relative length** of the localized representation. The concrete meaning is decided by locale data. For example:
 
-| Style | Ngày theo `en-US`, minh họa | Ý nghĩa |
+| Style | Illustrative date in `en-US` | Meaning |
 | --- | --- | --- |
-| `FULL` | `Wednesday, October 28, 2026` | Có tên thứ và tên tháng đầy đủ |
-| `LONG` | `October 28, 2026` | Tên tháng đầy đủ, không nhất thiết có thứ |
-| `MEDIUM` | `Oct 28, 2026` | Rút gọn tên tháng |
-| `SHORT` | `10/28/26` | Dùng dạng số gọn |
+| `FULL` | `Wednesday, October 28, 2026` | Includes full weekday and month names |
+| `LONG` | `October 28, 2026` | Full month name, not necessarily weekday |
+| `MEDIUM` | `Oct 28, 2026` | Abbreviated month name |
+| `SHORT` | `10/28/26` | Compact numeric form |
 
-Đây là **ví dụ dựa trên dữ liệu locale en-US ở JDK hiện đại**, không phải bốn chuỗi cố định do enum quy định. Với `vi-VN`, `de-DE`, `ja-JP`… thứ tự ngày/tháng/năm, dấu phân cách, tên thứ, định dạng 12/24 giờ và từ nối có thể khác. JDK có thể cập nhật dữ liệu CLDR theo phiên bản nên việc dấu câu/viết tắt thay đổi không đồng nghĩa code sai.
+These are **examples based on en-US locale data in a modern JDK**, not four fixed strings mandated by the enum. For `vi-VN`, `de-DE`, `ja-JP`, and others, day/month/year order, separators, weekday names, 12/24-hour clock format, and connecting words can differ. The JDK can update CLDR data across versions, so changes in punctuation or abbreviations do not mean your code is broken.
 
-Không có giá trị `FormatStyle.DEFAULT` và không thể truyền tên chuỗi `"FULL"` thay cho một enum mà không chuyển đổi tường minh. Trong code ứng dụng, ưu tiên dùng hằng `FormatStyle.FULL`, `LONG`, `MEDIUM`, `SHORT`.
+There is no `FormatStyle.DEFAULT` value, and you cannot pass a string name `"FULL"` in place of the enum without explicit conversion. In application code, prefer using the constants `FormatStyle.FULL`, `LONG`, `MEDIUM`, and `SHORT`.
 
-## 3. Ba factory chính của DateTimeFormatter
+## 3. Three Main Factories of DateTimeFormatter
 
-`DateTimeFormatter` cung cấp các factory chuyên dụng:
+`DateTimeFormatter` provides dedicated factories:
 
-| Factory | Dữ liệu trình bày | Ví dụ |
+| Factory | Data presented | Example |
 | --- | --- | --- |
-| `ofLocalizedDate(style)` | Chỉ ngày | `DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG)` |
-| `ofLocalizedTime(style)` | Chỉ thời gian trong ngày, có thể kèm múi giờ tùy style | `DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)` |
-| `ofLocalizedDateTime(style)` | Cả ngày và giờ với cùng style | `DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)` |
-| `ofLocalizedDateTime(dateStyle, timeStyle)` | Cả ngày và giờ, được chọn style riêng | `DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.SHORT)` |
+| `ofLocalizedDate(style)` | Date only | `DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG)` |
+| `ofLocalizedTime(style)` | Time of day only, possibly with time zone depending on style | `DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)` |
+| `ofLocalizedDateTime(style)` | Both date and time with the same style | `DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)` |
+| `ofLocalizedDateTime(dateStyle, timeStyle)` | Both date and time, with separate styles chosen | `DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.SHORT)` |
 
-**Locale được truyền bằng `withLocale(...)`**, không phải đối số trong bốn factory trên:
+**Locale is passed via `withLocale(...)`**, not as an argument to the four factories above:
 
 ```java
 import java.time.LocalDate;
@@ -68,26 +68,26 @@ DateTimeFormatter formatter = DateTimeFormatter
 String display = date.format(formatter);
 ```
 
-Đây là snippet đặt trong một phương thức. Kết quả điển hình với `Locale.US` là `Wednesday, October 28, 2026`.
+This is a snippet placed inside a method. Typical output with `Locale.US` is `Wednesday, October 28, 2026`.
 
-`DateTimeFormatter` là **immutable và thread-safe**. `withLocale(locale)` tạo một formatter được cấu hình theo locale, không sửa formatter gốc. Không cần gọi `Locale.setDefault(...)` cho từng request, vì đó là trạng thái JVM có thể ảnh hưởng các request đồng thời.
+`DateTimeFormatter` is **immutable and thread-safe**. `withLocale(locale)` creates a formatter configured for that locale without mutating the original formatter. You do not need to call `Locale.setDefault(...)` per request, as that is JVM-wide state that can affect concurrent requests.
 
-### Chọn kiểu thời gian đầu vào phù hợp
+### Choosing the right input temporal type
 
-| Kiểu đầu vào | Chứa thông tin gì? | Phù hợp |
+| Input type | What information does it contain? | Suitable for |
 | --- | --- | --- |
-| `LocalDate` | Năm/tháng/ngày, không có giờ và zone | `ofLocalizedDate(...)` |
-| `LocalTime` | Giờ/phút/giây, không có ngày/zone | `ofLocalizedTime(SHORT/MEDIUM)` khi pattern không yêu cầu zone |
-| `LocalDateTime` | Ngày và giờ địa phương, **không chứa zone/offset** | Ngày/giờ với style không cần zone, tùy dữ liệu locale |
-| `OffsetDateTime` | Ngày giờ và UTC offset | Định dạng cần offset; tên múi giờ đầy đủ có thể yêu cầu `ZoneId` |
-| `ZonedDateTime` | Ngày giờ cùng `ZoneId`/offset | An toàn cho ví dụ FULL/LONG có thể in thông tin zone |
-| `Instant` | Một thời điểm trên UTC timeline | Chuyển qua `atZone(zone)` để có ngày giờ địa phương trước khi format |
+| `LocalDate` | Year/month/day, no time or zone | `ofLocalizedDate(...)` |
+| `LocalTime` | Hour/minute/second, no date/zone | `ofLocalizedTime(SHORT/MEDIUM)` when the pattern does not require a zone |
+| `LocalDateTime` | Local date and time, **no zone/offset** | Date/time with styles not needing a zone, depending on locale data |
+| `OffsetDateTime` | Date-time and UTC offset | Formats needing an offset; full time-zone names may require `ZoneId` |
+| `ZonedDateTime` | Date-time with `ZoneId`/offset | Safe for examples like FULL/LONG that may print zone information |
+| `Instant` | A point on the UTC timeline | Convert via `atZone(zone)` to obtain local date-time before formatting |
 
-**Không được giả định rằng mọi style sẽ định dạng thành công với mọi `TemporalAccessor`.** Ví dụ `LocalDate` không có field của giờ, `LocalTime` không có field ngày; FULL/LONG time có thể yêu cầu tên zone, trong khi `LocalTime` và `LocalDateTime` không có thông tin này. Nếu thiếu field mà pattern yêu cầu, Java có thể ném `DateTimeException`, thường là `UnsupportedTemporalTypeException`.
+**Do not assume every style will format every `TemporalAccessor` successfully.** For example, `LocalDate` has no time fields and `LocalTime` has no date fields; FULL/LONG time may require a zone name, whereas `LocalTime` and `LocalDateTime` lack that information. If a field required by the pattern is missing, Java can throw `DateTimeException`, typically `UnsupportedTemporalTypeException`.
 
-## 4. Minh họa Java 17+: xem cả bốn style trên cùng một ngày giờ
+## 4. Java 17+ Demo: Inspecting All Four Styles on One Date-Time
 
-Tạo file **`FormatStyleDemo.java`** (một lớp Java độc lập):
+Create the file **`FormatStyleDemo.java`** (a standalone Java class):
 
 ```java
 import java.time.ZoneId;
@@ -120,14 +120,14 @@ public class FormatStyleDemo {
 }
 ```
 
-Biên dịch/chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or higher:
 
 ```bash
 javac -encoding UTF-8 FormatStyleDemo.java
 java FormatStyleDemo
 ```
 
-**Ví dụ output theo dữ liệu en-US của JDK 24** (ký tự khoảng trắng trước `PM` có thể là narrow no-break space, không nhất thiết là space ASCII):
+**Example output under JDK 24 en-US data** (the whitespace character before `PM` may be a narrow no-break space, not necessarily an ASCII space):
 
 ```text
 Style: FULL
@@ -148,55 +148,55 @@ Time: 2:35 PM
 DateTime: 10/28/26, 2:35 PM
 ```
 
-**Không viết automated test so sánh nguyên văn bảng output này trên mọi JDK.** Dữ liệu CLDR và locale provider có thể làm thay đổi chữ, dấu câu, tên zone hoặc loại dấu cách. Điều bền vững là: cùng một ngày giờ được biểu diễn bằng các mức độ chi tiết khác nhau; FULL thường đầy đủ hơn SHORT, còn giá trị ngày giờ gốc không thay đổi.
+**Do not write automated tests comparing this output table verbatim across all JDKs.** CLDR data and locale providers can change wording, punctuation, zone names, or space characters. What remains invariant is that the same date-time is expressed at different levels of detail; FULL is generally more detailed than SHORT, and the underlying date-time value does not change.
 
-Giải thích từng thành phần:
+Explanation of each part:
 
-1. `ZonedDateTime.of(...)` tạo ngày 28/10/2026 lúc 14:35:06 tại múi giờ `Asia/Ho_Chi_Minh`. Bằng cách truyền đối tượng **có zone**, cả FULL và LONG time đều có đủ dữ liệu nếu pattern cần tên/offset của zone.
-2. `withLocale(Locale.US)` chọn quy tắc trình bày tiếng Anh Mỹ. Không đổi thời gian hay timezone của `moment`.
-3. `ofLocalizedDate(style)` bỏ giờ khỏi chuỗi, `ofLocalizedTime(style)` bỏ ngày, và `ofLocalizedDateTime(style)` hiển thị cả hai.
-4. `SHORT` có thể bỏ giây và dùng năm hai chữ số; điều này **không có nghĩa** thời gian bị làm tròn hoặc dữ liệu năm bị rút ngắn trong đối tượng `ZonedDateTime`.
-5. Những chữ như `Indochina Time` và `GMT+07:00` là dữ liệu liên quan múi giờ/cách hiển thị, không được rút ra từ `Locale.US`.
+1. `ZonedDateTime.of(...)` creates 2026-10-28 at 14:35:06 in time zone `Asia/Ho_Chi_Minh`. By passing an object **with a zone**, both FULL and LONG time have sufficient data if the pattern needs a zone name or offset.
+2. `withLocale(Locale.US)` selects US English presentation rules. It does not change the time or time zone of `moment`.
+3. `ofLocalizedDate(style)` omits the time from the string, `ofLocalizedTime(style)` omits the date, and `ofLocalizedDateTime(style)` displays both.
+4. `SHORT` may omit seconds and use a two-digit year; this **does not mean** the time is rounded or the year data is truncated inside the `ZonedDateTime` object.
+5. Strings like `Indochina Time` and `GMT+07:00` are time-zone/display data, not derived from `Locale.US`.
 
-## 5. So sánh FULL, LONG, MEDIUM, SHORT theo mục đích UI
+## 5. Comparing FULL, LONG, MEDIUM, and SHORT by UI Purpose
 
-### FULL: ưu tiên đầy đủ, người đọc dễ hiểu
+### FULL: prioritizes completeness and clarity for readers
 
-`FULL` thích hợp khi cần đọc nguyên tên thứ/tháng và trong một số ngôn ngữ có thông tin vùng múi giờ rõ ràng. Với một lịch hẹn quan trọng hoặc email xác nhận, dạng dài có thể giảm mơ hồ so với `10/28/26`. Tuy nhiên FULL chiếm nhiều chỗ và còn phụ thuộc ngôn ngữ được chọn.
+`FULL` is suitable when readers need full weekday/month names and, in some languages, explicit time-zone information. For an important appointment or confirmation email, the long form can reduce ambiguity compared to `10/28/26`. However, FULL takes up more space and still depends on the selected language.
 
-### LONG: vẫn rõ ngữ cảnh nhưng gọn hơn FULL
+### LONG: still contextually clear, yet more compact than FULL
 
-`LONG` thường giữ tên tháng đầy đủ, và với thời gian có thể có thông tin zone/offset. Đây là lựa chọn phù hợp với nội dung giải thích dài, trang chi tiết hoặc báo cáo, nhưng không nên mặc định LONG luôn giống FULL trừ tên thứ; cấu trúc pattern là dữ liệu locale.
+`LONG` usually retains full month names, and for times may include zone/offset information. It is a good fit for detailed explanations, detail pages, or reports, though you should not assume LONG is always identical to FULL minus the weekday name; pattern structure comes from locale data.
 
-### MEDIUM: thỏa hiệp giữa rõ nghĩa và diện tích
+### MEDIUM: compromise between clarity and screen space
 
-`MEDIUM` thường rút gọn tháng hoặc dấu phân tách ngày, vẫn hiển thị giờ/phút/giây tùy ngữ cảnh. Có thể là mặc định tiện dụng trong bảng và nội dung thường ngày nếu sản phẩm không yêu cầu một format chính xác. Nếu thông tin zone cần xuất hiện, phải bổ sung phần giải thích zone theo quy tắc UI; MEDIUM không đảm bảo luôn có zone.
+`MEDIUM` typically abbreviates the month or date separators while still showing hours/minutes/seconds depending on context. It can be a convenient default in tables and everyday UI when the product does not mandate an exact format. If zone information must appear, add a zone explanation per UI rules; MEDIUM does not guarantee zone output.
 
-### SHORT: tiết kiệm diện tích nhưng dễ mơ hồ
+### SHORT: saves space, but can be ambiguous
 
-`SHORT` thường dùng các thành phần số, năm hai chữ số hoặc thời gian không có giây. Ví dụ `10/11/26` có thể bị hiểu là 10 tháng 11 hoặc 11 tháng 10 nếu đưa cho người dùng vùng khác. Chỉ dùng khi ngữ cảnh locale rõ và không làm người đọc nhầm, nhất là với hợp đồng, lịch hẹn giữa nhiều múi giờ và nội dung pháp lý.
+`SHORT` typically uses numeric components, two-digit years, or times without seconds. For example, `10/11/26` can be read as October 11 or November 10 if shown to a user from another region. Use it only when the locale context is clear and cannot mislead the reader, especially in contracts, cross-timezone appointments, and legal content.
 
-| Yêu cầu giao diện | Style tham khảo | Cần cân nhắc |
+| UI requirement | Reference style | Considerations |
 | --- | --- | --- |
-| Chi tiết lịch hẹn quan trọng | `FULL` hoặc `LONG` | Hiển thị múi giờ, ngày trong tuần |
-| Trang thông tin đơn hàng | `LONG` hoặc `MEDIUM` | Đủ rõ ngày/tháng/năm |
-| Danh sách hoặc bảng dữ liệu | `MEDIUM` hoặc `SHORT` | Kích thước cột, người xem hiểu locale nào |
-| Giờ trong lịch dạng gọn | `SHORT` | Nếu cần giây/zone thì style có thể chưa đủ |
-| Log ứng dụng/API | Không ưu tiên `FormatStyle` | Dùng ISO 8601 định dạng ổn định, độc lập locale |
+| Important appointment details | `FULL` or `LONG` | Show time zone, day of week |
+| Order information page | `LONG` or `MEDIUM` | Clear day/month/year |
+| Lists or data tables | `MEDIUM` or `SHORT` | Column width, which locale viewers understand |
+| Compact calendar time | `SHORT` | If seconds/zone are needed, style may be insufficient |
+| Application logs / APIs | Do not prefer `FormatStyle` | Use stable ISO 8601 independent of locale |
 
-Đây là gợi ý lựa chọn theo mức độ hiển thị, không phải quy định rằng mỗi style luôn chứa chính xác các thành phần như bảng.
+These are selection suggestions by display level, not a rule that every style always contains the exact components shown in the table.
 
-## 6. Locale và múi giờ là hai khái niệm độc lập
+## 6. Locale and Time Zone Are Two Independent Concepts
 
-- **`Locale`**: ngôn ngữ/vùng ưu tiên của **cách trình bày**, ví dụ `vi-VN`, `en-US`.
-- **`ZoneId`**: múi giờ dùng để suy ra **giờ địa phương từ một `Instant`**, ví dụ `Asia/Ho_Chi_Minh`, `Europe/Berlin`.
-- **`Instant`**: một thời điểm duy nhất trên UTC timeline, độc lập với các locale.
+- **`Locale`**: preferred language/region for **presentation**, such as `vi-VN`, `en-US`.
+- **`ZoneId`**: time zone used to derive **local time from an `Instant`**, such as `Asia/Ho_Chi_Minh`, `Europe/Berlin`.
+- **`Instant`**: a unique point on the UTC timeline, independent of locales.
 
-Một người dùng chọn giao diện tiếng Việt có thể đang ở Đức; người dùng chọn giao diện tiếng Anh có thể xem giờ tại Thành phố Hồ Chí Minh. Không được suy luận timezone chỉ từ language tag.
+A user who chooses a Vietnamese UI may be in Germany; a user who chooses an English UI may be viewing times in Ho Chi Minh City. Never infer a time zone solely from a language tag.
 
-### Ví dụ cùng Instant, hai múi giờ
+### Example: same Instant, two time zones
 
-Tạo file độc lập **`TimeZoneFormatDemo.java`**:
+Create the standalone file **`TimeZoneFormatDemo.java`**:
 
 ```java
 import java.time.Instant;
@@ -229,36 +229,36 @@ public class TimeZoneFormatDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 TimeZoneFormatDemo.java
 java TimeZoneFormatDemo
 ```
 
-Hai dòng đầu **ổn định theo dữ liệu `java.time` trong ví dụ**:
+The first two lines are **stable per the `java.time` data in the example**:
 
 ```text
 Vietnam: 2026-10-28T14:35:06 +07:00
 UTC: 2026-10-28T07:35:06 Z
 ```
 
-Hai dòng `formatted` cho `Locale.US` trên JDK 24 có dạng ví dụ:
+The two `formatted` lines for `Locale.US` on JDK 24 take an illustrative form such as:
 
 ```text
 Vietnam formatted: Oct 28, 2026, 2:35 PM
 UTC formatted: Oct 28, 2026, 7:35 AM
 ```
 
-Các dòng hiển thị có thể khác ký tự khoảng trắng/dấu câu trên phiên bản JDK khác, nhưng cả hai biểu diễn **cùng một `Instant`**. Phân biệt hai cấp: chuyển `Instant` sang zone để tìm thời gian địa phương, sau đó định dạng theo locale để tạo chuỗi cho người đọc.
+The displayed lines may differ in whitespace or punctuation on other JDK versions, yet both represent **the same `Instant`**. Separate the two levels: convert `Instant` to a zone to find local time, then format according to locale to produce a human-readable string.
 
-### Tại sao không lấy FULL time với LocalTime?
+### Why not use FULL time with LocalTime?
 
-`LocalTime.of(14, 35)` chỉ biết giờ/phút/giây, không biết ngày, offset hay zone. Nếu pattern cho `FormatStyle.FULL` trong locale cụ thể yêu cầu tên zone, formatter không thể suy ra nó từ `LocalTime`, dẫn đến `DateTimeException`. `LocalDateTime` cũng không mang timezone. Dùng `ZonedDateTime` cho ví dụ FULL/LONG với zone. Đừng bắt lỗi rồi áp đặt `UTC` một cách âm thầm nếu timezone thực tế của người dùng chưa được xác định.
+`LocalTime.of(14, 35)` only knows hour/minute/second; it does not know the date, offset, or zone. If the `FormatStyle.FULL` pattern in a given locale requires a zone name, the formatter cannot deduce it from `LocalTime`, leading to `DateTimeException`. `LocalDateTime` likewise carries no time zone. Use `ZonedDateTime` for FULL/LONG examples with a zone. Do not catch the exception and silently force `UTC` when the user's actual time zone has not been determined.
 
-## 7. Kết hợp hai style riêng cho phần ngày và phần giờ
+## 7. Combining Two Separate Styles for Date and Time
 
-Đôi khi UI cần ngày khá chi tiết nhưng giờ rất gọn. Factory hai tham số hỗ trợ điều này:
+Sometimes the UI needs a fairly detailed date alongside a very compact time. The two-argument factory supports this:
 
 ```java
 DateTimeFormatter mixed = DateTimeFormatter
@@ -268,28 +268,28 @@ DateTimeFormatter mixed = DateTimeFormatter
 String label = mixed.format(zonedDateTime);
 ```
 
-Đây là **snippet**, biến `zonedDateTime` phải có kiểu phù hợp như `ZonedDateTime`. Khác với một tham số `ofLocalizedDateTime(FormatStyle.MEDIUM)` (ngày và giờ đều MEDIUM), bản hai tham số cho phép:
+This is a **snippet**; the variable `zonedDateTime` must have an appropriate type such as `ZonedDateTime`. Unlike the single-argument `ofLocalizedDateTime(FormatStyle.MEDIUM)` (where both date and time are MEDIUM), the two-argument overload allows:
 
-- Ngày `LONG` + giờ `SHORT`.
-- Ngày `FULL` + giờ `MEDIUM`.
-- Ngày `SHORT` + giờ `LONG` (có thể cần timezone).
+- `LONG` date + `SHORT` time.
+- `FULL` date + `MEDIUM` time.
+- `SHORT` date + `LONG` time (which may require a time zone).
 
-Tuy nhiên, các style được chọn vẫn dẫn tới **pattern phụ thuộc locale**. Không được dự đoán đầu ra bằng cách tự nối `ofLocalizedDate(...).format(value) + ", " + ofLocalizedTime(...).format(value)`: kết hợp ngày giờ trong một ngôn ngữ có thể có từ nối hoặc thay đổi thứ tự thành phần. Hãy để `ofLocalizedDateTime(...)` dùng quy tắc kết hợp của locale.
+However, the chosen styles still result in a **locale-dependent pattern**. Do not predict the output by manually concatenating `ofLocalizedDate(...).format(value) + ", " + ofLocalizedTime(...).format(value)`: combining date and time in a language may involve connecting words or reordered components. Let `ofLocalizedDateTime(...)` apply the locale's combination rules.
 
-Nếu sản phẩm bắt buộc một layout cố định hoặc một định dạng giao thức, dùng `DateTimeFormatter.ofPattern(pattern, locale)` hay các formatter ISO chuẩn. Không dùng các localized style cho trường dữ liệu cần so sánh byte-for-byte giữa hai hệ thống.
+If the product requires a fixed layout or a protocol format, use `DateTimeFormatter.ofPattern(pattern, locale)` or standard ISO formatters. Do not use localized styles for data fields that must be compared byte-for-byte between two systems.
 
-## 8. Phân biệt FormatStyle và custom pattern
+## 8. Distinguishing FormatStyle from Custom Patterns
 
-| Chủ đề | `FormatStyle` với factory localized | `DateTimeFormatter.ofPattern(...)` |
+| Topic | `FormatStyle` with localized factories | `DateTimeFormatter.ofPattern(...)` |
 | --- | --- | --- |
-| Quy tắc thứ tự thành phần | Do locale/provider quyết định | Do người viết pattern quyết định |
-| Ký hiệu ngày/tháng/giờ | Thường bản địa hóa theo locale | Điều khiển bằng các ký tự pattern, còn tên tháng/AM-PM phụ thuộc locale |
-| Khả năng đổi theo JDK locale data | Có | Có đối với phần tên/bản địa hóa, nhưng cấu trúc pattern cố định |
-| Dùng cho giao diện đa ngôn ngữ | Thường thuận tiện | Hữu ích khi thiết kế cần bố cục cụ thể |
-| Dùng làm giao thức máy-máy | Không nên | Ưu tiên chuẩn ISO 8601 thay vì pattern locale tự tạo |
-| Khả năng thể hiện giây, zone cụ thể | Theo style và provider | Có thể điều khiển tường minh bằng pattern |
+| Component ordering rules | Determined by locale/provider | Determined by the pattern author |
+| Date/month/time symbols | Typically localized by locale | Controlled by pattern letters, while month/AM-PM names depend on locale |
+| Can change with JDK locale data | Yes | Yes for translated/localized names, but pattern structure is fixed |
+| Use for multilingual UI | Usually convenient | Useful when design requires a specific layout |
+| Use as machine-to-machine protocol | Should not | Prefer ISO 8601 rather than ad-hoc locale patterns |
+| Ability to specify exact seconds or zone | Depends on style and provider | Explicitly controllable via pattern |
 
-Ví dụ:
+Example:
 
 ```java
 DateTimeFormatter localized = DateTimeFormatter
@@ -300,13 +300,13 @@ DateTimeFormatter fixedPattern = DateTimeFormatter
         .ofPattern("dd/MM/uuuu", Locale.GERMANY);
 ```
 
-`localized` tuân theo quy tắc SHORT do locale provider xác định; `fixedPattern` cố định vị trí ngày/tháng/năm và độ dài năm bốn chữ số. Vì vậy không có bảo đảm hai formatter cho cùng một chuỗi.
+`localized` follows the SHORT rules defined by the locale provider; `fixedPattern` fixes the positions of day/month/year and a four-digit year width. Thus there is no guarantee the two formatters produce the same string.
 
-Một điểm dễ lẫn: `MM` là **tháng**, `mm` là **phút**; `HH` là giờ 24 tiếng, `hh` là giờ theo đồng hồ 12 tiếng (thường cần `a` cho AM/PM). Không nên sao chép pattern từ ví dụ tiếng Anh mà bỏ qua cách đọc của người dùng địa phương. Với năm, `uuuu` là proleptic year; `yyyy` là year-of-era. Chọn theo mô hình dữ liệu và quy tắc hệ thống.
+An easy confusion: `MM` is **month**, `mm` is **minute**; `HH` is 24-hour clock, `hh` is 12-hour clock (usually needing `a` for AM/PM). Do not copy patterns from English examples while ignoring local reading conventions. For years, `uuuu` is proleptic year and `yyyy` is year-of-era. Choose based on your data model and system rules.
 
-## 9. Parse với localized FormatStyle và những giới hạn
+## 9. Parsing with Localized FormatStyle and Its Limitations
 
-`DateTimeFormatter` không chỉ có `format` mà còn hỗ trợ `parse`. Có thể dùng cùng style/locale để phân tích một chuỗi ngày:
+`DateTimeFormatter` not only provides `format`, it also supports `parse`. You can use the same style/locale to parse a date string:
 
 ```java
 import java.time.LocalDate;
@@ -322,101 +322,101 @@ String input = "10/28/26";
 LocalDate parsed = LocalDate.parse(input, parser);
 ```
 
-Ví dụ trên tương ứng cách hiển thị en-US SHORT phổ biến và là **snippet**; kết quả mong đợi là `2026-10-28` trong môi trường áp dụng pattern đó. Nhưng pattern SHORT có thể dùng năm hai chữ số, nên việc parse chịu **quy tắc xử lý năm rút gọn**; nếu input là dữ liệu pháp lý hoặc sinh từ hệ thống máy, nên tránh năm hai chữ số và tránh phụ thuộc locale ngầm.
+The example above corresponds to common en-US SHORT display and is a **snippet**; the expected result is `2026-10-28` in an environment using that pattern. However, SHORT patterns can use two-digit years, so parsing is subject to **reduced-year resolution rules**; if the input is legal data or machine-generated, avoid two-digit years and avoid implicit locale dependence.
 
-Cần lưu ý:
+Keep in mind:
 
-1. **Locale phải khớp** với chuỗi đã nhập: `10/28/26` theo Mỹ không nên được hiểu tùy tiện bằng một formatter `vi-VN` hoặc `de-DE`.
-2. **Khi parse FULL/LONG có tên tháng/thứ**, ngôn ngữ và dạng chữ phải được provider hỗ trợ đúng. Một thứ trong tuần không khớp ngày có thể khiến parse thất bại.
-3. **Không dùng localized text làm định dạng lưu trữ**: nó phụ thuộc cấu hình JDK, ký hiệu văn hóa và có thể mơ hồ.
-4. `DateTimeFormatter` mặc định có resolver style và quy tắc chuyển trường về `LocalDate`/`LocalTime`; nếu cần kiểm tra nghiêm ngặt, xem xét `withResolverStyle(ResolverStyle.STRICT)` và kiểm thử theo trường đã chọn.
-5. Một formatter time FULL/LONG có thể yêu cầu zone khi parse; cần mô hình temporal phù hợp.
-6. **Không giả định format → parse có thể round-trip đầy đủ**: SHORT có thể bỏ giây hoặc năm đủ bốn chữ số, còn formatter chỉ ngày sẽ không lưu giờ.
+1. **The locale must match** the entered string: US `10/28/26` should not be arbitrarily interpreted with a `vi-VN` or `de-DE` formatter.
+2. **When parsing FULL/LONG with month/weekday names**, the language and word forms must be supported properly by the provider. A weekday that disagrees with the date can cause parsing to fail.
+3. **Do not use localized text as a storage format**: it depends on JDK configuration, cultural symbols, and can be ambiguous.
+4. `DateTimeFormatter` has a default resolver style and rules for resolving fields into `LocalDate`/`LocalTime`; if strict validation is needed, consider `withResolverStyle(ResolverStyle.STRICT)` and test the chosen fields.
+5. A FULL/LONG time formatter may require a zone when parsing; you need an appropriate temporal model.
+6. **Do not assume format -> parse is a lossless round-trip**: SHORT can drop seconds or full four-digit years, and a date-only formatter will not store times.
 
-Đối với API và dữ liệu giữa các dịch vụ, nên dùng những biểu diễn chuẩn như `Instant.toString()`/`Instant.parse(...)` hoặc `DateTimeFormatter.ISO_OFFSET_DATE_TIME`, tùy hợp đồng của dữ liệu. Localized style được thiết kế cho **giao tiếp với con người**.
+For APIs and data between services, use standard representations such as `Instant.toString()`/`Instant.parse(...)` or `DateTimeFormatter.ISO_OFFSET_DATE_TIME`, depending on the data contract. Localized styles are designed for **communicating with humans**.
 
-## 10. Kiểm thử đúng đối với FormatStyle
+## 10. Testing FormatStyle Properly
 
-Test tốt không chỉ so sánh một chuỗi hardcode. Cần kiểm thử:
+Good tests do not merely assert a single hardcoded string. You should test:
 
-| Trường hợp | Kiểm tra |
+| Case | Check |
 | --- | --- |
-| Bốn `FormatStyle` | Tất cả factory trả formatter hợp lệ và format được với temporal thích hợp |
-| Ngày đủ ngày/tháng/năm | Đúng ngày lịch, không lệch do đổi timezone ngoài ý muốn |
-| Time FULL/LONG | Temporal có zone nếu locale yêu cầu zone |
-| `LocalDate` với `ofLocalizedTime` | Nhận lỗi do thiếu trường giờ; không lặng lẽ gán 00:00 |
-| `LocalTime` với `ofLocalizedDate` | Nhận lỗi do thiếu ngày |
-| Locale en-US và vi-VN | Quan sát thứ tự ngày/tháng, chữ và quy ước 12/24 giờ |
-| Múi giờ khác nhau | Cùng `Instant` hiển thị giờ địa phương khác nhưng không đổi instant |
-| Ngày chuyển năm hoặc DST | Thời điểm gần ranh giới có thể rơi vào ngày khác theo zone |
-| Parse SHORT | Cẩn thận năm hai chữ số và chuỗi nhập mơ hồ |
-| Thay JDK/CLDR | Chấp nhận thay đổi trình bày hợp lệ, chỉ đặt snapshot tests có phạm vi/phiên bản rõ |
+| Four `FormatStyle` values | All factories return valid formatters and format appropriate temporals |
+| Dates with full day/month/year | Correct calendar date, not shifted by unintended time-zone conversion |
+| FULL/LONG time | Temporal has a zone if the locale requires a zone |
+| `LocalDate` with `ofLocalizedTime` | Receives an error due to missing time fields; does not silently assume 00:00 |
+| `LocalTime` with `ofLocalizedDate` | Receives an error due to missing date |
+| `en-US` and `vi-VN` locales | Observe day/month order, text, and 12/24-hour conventions |
+| Different time zones | Same `Instant` shows different local times without changing the instant |
+| Year transitions or DST | Instants near boundaries can fall on a different date depending on zone |
+| Parsing SHORT | Watch out for two-digit years and ambiguous input strings |
+| JDK/CLDR upgrades | Accept valid presentation changes; keep snapshot tests scoped with clear versions |
 
-### Tránh snapshot test phụ thuộc dữ liệu locale quá chặt
+### Avoid overly brittle snapshot tests tied to locale data
 
-Một snapshot kiểu “FULL luôn là `Wednesday, October 28, 2026 at ...`” sẽ dễ hỏng khi provider thay dấu câu, chữ nối, spacing hoặc tên zone. Nếu mục tiêu test là nghiệp vụ, hãy kiểm tra thời điểm và locale đầu vào đúng, còn output snapshot chỉ dùng trong môi trường CI có JDK/provider được ghim. Với sản phẩm cần chữ hiển thị chính xác như thiết kế, cân nhắc pattern tùy chỉnh hoặc nội dung được quản lý bằng resource.
+A snapshot like "FULL is always `Wednesday, October 28, 2026 at ...`" will easily break when a provider changes punctuation, connectors, spacing, or zone names. If the test's goal is business logic, verify the input instant and locale are correct, and use output snapshots only in CI environments with a pinned JDK/provider. For products requiring exact wording as designed, consider custom patterns or resource-managed text.
 
-### Khi tính năng cần tương thích ngược
+### When backward compatibility is required
 
-`java.time` và `FormatStyle` phù hợp với Java 8+; không phải chỉ có từ Java 17. Với hệ thống dùng `java.text.DateFormat`, có các mức `DateFormat.FULL`/`LONG`/`MEDIUM`/`SHORT` tương tự về mục đích, nhưng đó là **API khác và các formatter cũ là mutable/not generally thread-safe**. Không nhập nhằng hằng của hai API hoặc giả định một `DateFormat` và một `DateTimeFormatter` luôn cho output byte-for-byte giống nhau.
+`java.time` and `FormatStyle` work from Java 8+; they are not exclusive to Java 17. For systems using `java.text.DateFormat`, there are `DateFormat.FULL`/`LONG`/`MEDIUM`/`SHORT` constants with a similar purpose, but that is **a different API whose legacy formatters are mutable and not generally thread-safe**. Do not mix up constants between the two APIs or assume a `DateFormat` and a `DateTimeFormatter` always produce byte-for-byte identical output.
 
-## 11. Lỗi thường gặp và cách khắc phục
+## 11. Common Mistakes and Fixes
 
-| Lỗi | Hậu quả | Cách sửa |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Xem `FULL`/`LONG` là pattern toàn cầu cố định | Sai khi đổi locale hoặc JDK | Hiểu đây là mức hiển thị, không phải mẫu cố định |
-| Format `LocalTime` bằng FULL rồi gặp lỗi | Thiếu zone trong temporal cho pattern time | Dùng `ZonedDateTime` hoặc chọn style phù hợp |
-| Chọn `Locale.US` rồi nghĩ giờ đã tự chuyển sang Mỹ | Locale chỉ ảnh hưởng ngôn ngữ/cách trình bày | Chuyển `Instant` bằng `ZoneId` riêng |
-| Dùng `LocalDateTime` để diễn tả thời điểm UTC | Không có offset/zone nên không định danh instant | Dùng `Instant`/`OffsetDateTime`/`ZonedDateTime` |
-| Dùng `SHORT` khi cần giây và đầy đủ múi giờ | Có thể bị lược bỏ thông tin quan trọng | Chọn style khác hoặc pattern có yêu cầu rõ |
-| Hardcode `10/28/26` cho mọi người dùng | Người ở vùng khác đọc sai ngày/tháng | Chọn locale phù hợp, hoặc biểu diễn không mơ hồ |
-| Dùng localized formatter làm chuẩn serialization | Chuỗi thay đổi khi JDK/locale thay đổi | Dùng ISO 8601 và một hợp đồng thời gian có zone/offset |
-| Nối tay chuỗi date + time | Sai thứ tự/cấu trúc tiếng của một locale | Dùng `ofLocalizedDateTime(...)` |
-| Dùng `withLocale` rồi mong thay đổi đối tượng gốc | Formatter immutable | Giữ và sử dụng đối tượng formatter được trả về |
-| Parse SHORT hai chữ số năm không kiểm tra | Có thể hiểu năm khác mong muốn | Dùng year bốn chữ số theo hợp đồng nhập liệu |
-| Thay đổi `Locale.setDefault` cho mỗi request | Ảnh hưởng nhiều luồng trong JVM | Truyền locale tường minh cho formatter |
-| So sánh exact output của nhiều phiên bản CLDR | Test giòn, báo lỗi giả | Ghim môi trường test hoặc kiểm thử theo semantic |
-| Nhầm `FormatStyle` với hằng `DateFormat` | Sử dụng sai API hoặc kiểu tham số | Dùng import `java.time.format.FormatStyle` đúng |
+| Treating `FULL`/`LONG` as fixed global patterns | Breaks when switching locale or JDK | Understand these are display levels, not fixed templates |
+| Formatting `LocalTime` with FULL and getting an error | Temporal lacks a zone for the time pattern | Use `ZonedDateTime` or pick an appropriate style |
+| Choosing `Locale.US` and thinking time automatically converts to US time | Locale only affects language/presentation | Convert `Instant` with a separate `ZoneId` |
+| Using `LocalDateTime` to represent a UTC instant | Has no offset/zone so it does not identify an instant | Use `Instant`/`OffsetDateTime`/`ZonedDateTime` |
+| Using `SHORT` when seconds and full time zone are needed | Important information may be omitted | Pick another style or a pattern with explicit requirements |
+| Hardcoding `10/28/26` for all users | Readers in other regions misread day/month | Choose the right locale, or an unambiguous representation |
+| Using localized formatters as a serialization standard | Strings change when JDK/locale changes | Use ISO 8601 and a time contract with zone/offset |
+| Manually concatenating date + time strings | Wrong order or phrasing for a locale | Use `ofLocalizedDateTime(...)` |
+| Calling `withLocale` and expecting the original object to change | Formatters are immutable | Capture and use the returned formatter object |
+| Parsing two-digit SHORT years without checks | May resolve to a different year than intended | Use four-digit years per input contract |
+| Changing `Locale.setDefault` per request | Affects multiple threads in the JVM | Pass locale explicitly to the formatter |
+| Comparing exact output across multiple CLDR versions | Flaky tests, false failures | Pin the test environment or assert semantics |
+| Confusing `FormatStyle` with `DateFormat` constants | Wrong API or parameter type | Use the right `java.time.format.FormatStyle` import |
 
-## 12. Câu hỏi ôn tập
+## 12. Review Questions
 
-**Câu 1.** `FormatStyle.FULL` luôn chứa tên thứ và tên múi giờ trong mọi formatter?
+**Question 1.** Does `FormatStyle.FULL` always include both weekday name and time-zone name in every formatter?
 
-**Đáp án:** Không. Nội dung phụ thuộc `Locale` và factory date/time/date-time. Date-only không có thông tin múi giờ; time FULL trong nhiều locale có thể cần zone để in tên múi giờ.
+**Answer:** No. The content depends on the `Locale` and the date/time/date-time factory. Date-only formatters have no time-zone information; FULL time in many locales may require a zone to print the time-zone name.
 
-**Câu 2.** Muốn hiển thị ngày LONG nhưng giờ SHORT, cần API nào?
+**Question 2.** You want to display a LONG date with a SHORT time. Which API do you need?
 
-**Đáp án:** `DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.SHORT).withLocale(locale)`. Cách này dùng quy tắc ghép ngày/giờ của locale.
+**Answer:** `DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.SHORT).withLocale(locale)`. This uses the locale's date/time combination rules.
 
-**Câu 3.** Chỉ có `LocalDate.of(2026, 10, 28)`, có thể dùng `ofLocalizedTime(SHORT)` để tự lấy 00:00?
+**Question 3.** Given only `LocalDate.of(2026, 10, 28)`, can you use `ofLocalizedTime(SHORT)` to default to 00:00?
 
-**Đáp án:** Không. `LocalDate` không có field giờ. Java có thể ném `DateTimeException` vì temporal thiếu thông tin; nếu muốn hiển thị 00:00, phải xác định thời gian tường minh.
+**Answer:** No. `LocalDate` has no time fields. Java can throw `DateTimeException` because the temporal lacks the information; if you want to display 00:00, you must specify the time explicitly.
 
-**Câu 4.** Hai người dùng xem cùng một `Instant` nhưng khác `ZoneId`. Có phải dữ liệu sự kiện đã đổi?
+**Question 4.** Two users view the same `Instant` with different `ZoneId` values. Has the event data changed?
 
-**Đáp án:** Không. `Instant` không đổi; chỉ ngày giờ địa phương và cách hiển thị thay đổi.
+**Answer:** No. `Instant` does not change; only the local date-time and display change.
 
-**Câu 5.** `FormatStyle.SHORT` có nên dùng làm định dạng database cho ngày?
+**Question 5.** Should `FormatStyle.SHORT` be used as a database storage format for dates?
 
-**Đáp án:** Không. Đây là chuỗi bản địa hóa dành cho người đọc, có thể mơ hồ và thay đổi theo JDK/provider. Dữ liệu máy nên lưu `LocalDate` hoặc chuẩn ISO 8601 theo thiết kế.
+**Answer:** No. It is a localized string for human readers, can be ambiguous, and can vary by JDK/provider. Machine data should store `LocalDate` or ISO 8601 per design.
 
-**Câu 6.** Vì sao gọi `withLocale(Locale.forLanguageTag("vi-VN"))` chưa đảm bảo giờ hiện tại là giờ Việt Nam?
+**Question 6.** Why doesn't calling `withLocale(Locale.forLanguageTag("vi-VN"))` guarantee that the current time is Vietnam time?
 
-**Đáp án:** Locale chỉ chọn quy tắc hiển thị; cần `ZoneId.of("Asia/Ho_Chi_Minh")` hoặc zone thực tế của người dùng để chuyển `Instant`.
+**Answer:** Locale only selects display rules; you need `ZoneId.of("Asia/Ho_Chi_Minh")` or the user's actual zone to convert an `Instant`.
 
-**Câu 7.** Vì sao hai JDK có thể cho dấu câu/khoảng trắng khác nhau ở DATE FULL dù cùng input?
+**Question 7.** Why can two JDKs produce different punctuation or spacing for DATE FULL given the same input?
 
-**Đáp án:** Cách thể hiện do dữ liệu locale (thường từ CLDR) và provider của mỗi JDK cung cấp; các bản cập nhật có thể đổi pattern, tên tháng hoặc punctuation.
+**Answer:** The presentation is supplied by each JDK's locale data (usually from CLDR) and provider; updates may change patterns, month names, or punctuation.
 
-## 13. Ghi nhớ
+## 13. Key Takeaways
 
-- `FormatStyle` có bốn giá trị **FULL, LONG, MEDIUM, SHORT**, mô tả mức độ chi tiết **theo locale**, không phải pattern cố định.
-- Dùng `DateTimeFormatter.ofLocalizedDate`, `ofLocalizedTime`, `ofLocalizedDateTime`; có thể đặt **hai style độc lập** cho ngày/giờ.
-- Luôn chọn đúng temporal chứa đủ các trường formatter cần. Đặc biệt, time FULL/LONG có thể đòi hỏi thông tin zone.
-- **`Locale` điều khiển cách thể hiện; `ZoneId` điều khiển giờ địa phương**. Cùng một `Instant` không bị thay đổi khi hiển thị theo vùng khác.
-- Dùng localized style cho **UI**; dữ liệu/API nên dùng định dạng ISO và hợp đồng thời gian rõ ràng. Không so sánh output bản địa hóa như một chuỗi bất biến trên mọi JDK.
+- `FormatStyle` has four values—**FULL, LONG, MEDIUM, SHORT**—describing **locale-based** detail levels, not fixed patterns.
+- Use `DateTimeFormatter.ofLocalizedDate`, `ofLocalizedTime`, and `ofLocalizedDateTime`; you can specify **two independent styles** for date and time.
+- Always choose a temporal containing all fields the formatter needs. In particular, FULL/LONG time may require zone information.
+- **`Locale` controls presentation; `ZoneId` controls local time**. The same `Instant` is unchanged when displayed in another region.
+- Use localized styles for the **UI**; data and APIs should use ISO formats and clear time contracts. Do not compare localized output as an invariant string across all JDKs.
 
-Tài liệu chính thức:
+Official documentation:
 
 - [Java SE 21 — FormatStyle](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/format/FormatStyle.html)
 - [Java SE 21 — DateTimeFormatter](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/format/DateTimeFormatter.html)

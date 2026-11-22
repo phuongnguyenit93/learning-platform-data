@@ -1,37 +1,37 @@
-# Service binding với nhiều provider
+# Service binding with multiple providers
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Giải thích vì sao một service có thể có nhiều provider trong hệ thống module.
-- Phân biệt nhiều provider được khai báo trong cùng một module với provider nằm ở nhiều module khác nhau.
-- Hiểu vai trò của directive `uses`, `provides` và bước service binding khi resolve module.
-- Dùng `Configuration.resolveAndBind()` và `ServiceLoader` để tìm nhiều provider.
-- Xử lý thứ tự provider một cách chủ động thay vì dựa vào thứ tự phát hiện.
+- Explain why a service can have multiple providers in the module system.
+- Distinguish between multiple providers declared in the same module and providers residing in different modules.
+- Understand the role of the `uses` and `provides` directives and the service binding step during module resolution.
+- Use `Configuration.resolveAndBind()` and `ServiceLoader` to locate multiple providers.
+- Handle provider ordering deliberately rather than relying on discovery order.
 
-## 1. Service có thể có nhiều provider
+## 1. A service can have multiple providers
 
-Trong Java Platform Module System (JPMS), service là một abstraction mà module tiêu thụ muốn sử dụng. Provider là implementation cung cấp khả năng cụ thể cho service đó.
+In the Java Platform Module System (JPMS), a service is an abstraction that a consuming module wants to use. A provider is an implementation supplying concrete capability for that service.
 
-Một service có thể có nhiều implementation cùng lúc. Ví dụ, ứng dụng cần một service định dạng dữ liệu và có thể sử dụng các provider khác nhau:
+A service can have multiple implementations at the same time. For example, an application needs a data formatting service and can use different providers:
 
-- JSON provider chuyển dữ liệu sang JSON.
-- XML provider chuyển dữ liệu sang XML.
-- YAML provider chuyển dữ liệu sang YAML.
+- A JSON provider converts data to JSON.
+- An XML provider converts data to XML.
+- A YAML provider converts data to YAML.
 
-Các provider cùng implement một service interface, vì vậy module tiêu thụ chỉ cần biết API của service. Nó không cần phụ thuộc trực tiếp vào từng module triển khai.
+The providers implement the same service interface, so the consuming module only needs to know the service API. It does not need to depend directly on each implementation module.
 
-Có hai cách tổ chức phổ biến:
+There are two common ways to organize this:
 
-1. Một provider module khai báo nhiều provider class trong cùng một directive `provides`.
-2. Nhiều provider module riêng biệt cùng khai báo `provides` cho một service.
+1. One provider module declares multiple provider classes in a single `provides` directive.
+2. Multiple separate provider modules each declare `provides` for the same service.
 
-Hai cách này có thể cùng tồn tại trong một module graph.
+Both approaches can coexist in the same module graph.
 
-## 2. Khai báo một service API
+## 2. Declaring a service API
 
-Giả sử service API có module name là `com.example.format.api` và export package chứa interface:
+Suppose the service API has the module name `com.example.format.api` and exports the package containing the interface:
 
 ~~~java
 module com.example.format.api {
@@ -49,15 +49,15 @@ public interface Formatter {
 }
 ~~~
 
-Module API chỉ định nghĩa contract. Nó không cần biết provider JSON hay XML được triển khai như thế nào.
+The API module only defines the contract. It does not need to know how the JSON or XML providers are implemented.
 
-Module tiêu thụ và các provider đều cần đọc được module API. Vì thế, mỗi module sử dụng service interface sẽ khai báo `requires com.example.format.api;`.
+Both the consuming module and the providers need to read the API module. Therefore, each module using the service interface declares `requires com.example.format.api;`.
 
-## 3. Nhiều provider trong các module khác nhau
+## 3. Multiple providers in different modules
 
 ### 3.1. JSON provider
 
-Provider JSON được đặt trong module riêng:
+The JSON provider is placed in its own module:
 
 ~~~java
 module com.example.format.provider.json {
@@ -89,7 +89,7 @@ public final class JsonFormatter implements Formatter {
 
 ### 3.2. XML provider
 
-Provider XML cũng có module riêng:
+The XML provider also has its own module:
 
 ~~~java
 module com.example.format.provider.xml {
@@ -119,11 +119,11 @@ public final class XmlFormatter implements Formatter {
 }
 ~~~
 
-Hai module provider đều khai báo service giống nhau trong directive `provides`, nhưng trỏ tới implementation khác nhau. Mỗi provider class ở ví dụ này là public và có public constructor không tham số.
+Both provider modules declare the same service in the `provides` directive, but point to different implementations. Each provider class in this example is public and has a public no-argument constructor.
 
-### 3.3. Module tiêu thụ service
+### 3.3. Service consumer module
 
-Module ứng dụng khai báo module API và service mà nó sử dụng:
+The application module declares the API module and the service it uses:
 
 ~~~java
 module com.example.format.app {
@@ -133,15 +133,15 @@ module com.example.format.app {
 }
 ~~~
 
-Directive `uses` nói với hệ thống module rằng ứng dụng sử dụng service `Formatter`. Ứng dụng không cần khai báo `requires com.example.format.provider.json;` hoặc `requires com.example.format.provider.xml;` chỉ để tìm provider.
+The `uses` directive tells the module system that the application uses the `Formatter` service. The application does not need to declare `requires com.example.format.provider.json;` or `requires com.example.format.provider.xml;` merely to locate providers.
 
-Đây là điểm quan trọng của service binding: module tiêu thụ phụ thuộc vào abstraction, còn các provider có thể được bổ sung qua module resolution.
+This is the key point of service binding: the consuming module depends on an abstraction, while providers can be added through module resolution.
 
-## 4. Service binding trong quá trình resolve module
+## 4. Service binding during module resolution
 
-Service binding là bước mở rộng module graph dựa trên các service mà module đã resolve khai báo sử dụng.
+Service binding is the step that expands the module graph based on the services that resolved modules declare they use.
 
-Giả sử module graph ban đầu có ứng dụng và module API:
+Suppose the initial module graph contains the application and the API module:
 
 ~~~text
 com.example.format.app
@@ -151,13 +151,13 @@ com.example.format.app
 com.example.format.api
 ~~~
 
-Ứng dụng khai báo:
+The application declares:
 
 ~~~java
 uses com.example.format.Formatter;
 ~~~
 
-Nếu các provider module có thể quan sát được trong tập module đầu vào, quá trình service binding có thể bổ sung cả hai provider vào graph:
+If the provider modules are observable in the input module set, service binding can add both providers to the graph:
 
 ~~~text
                      +-------------------------------+
@@ -177,26 +177,26 @@ com.example.format.provider.json       com.example.format.provider.xml
                            com.example.format.app
 ~~~
 
-Với nhiều provider, hệ thống không cần chọn một provider duy nhất ở bước binding. Tất cả provider module phù hợp và có thể quan sát được đều có thể được thêm vào module graph.
+With multiple providers, the system does not need to pick a single provider during the binding step. All matching and observable provider modules can be added to the module graph.
 
-Khi provider module được thêm vào graph, các dependency mà provider khai báo bằng `requires` cũng được resolve. Quá trình service binding tiếp tục cho đến khi không còn provider module mới nào được thêm vào.
+When provider modules are added to the graph, dependencies declared by the providers via `requires` are also resolved. The service binding process continues until no new provider modules are added.
 
-### 4.1. `resolve()` và `resolveAndBind()`
+### 4.1. `resolve()` and `resolveAndBind()`
 
-API `java.lang.module.Configuration` cung cấp hai phương thức có ý nghĩa khác nhau:
+The `java.lang.module.Configuration` API provides two methods with different meanings:
 
-| Phương thức | Hành vi |
+| Method | Behavior |
 |---|---|
-| `resolve(...)` | Resolve graph dựa trên các root module và dependency `requires`. |
-| `resolveAndBind(...)` | Resolve graph và thực hiện thêm service binding dựa trên các directive `uses` / `provides`. |
+| `resolve(...)` | Resolves the graph based on root modules and `requires` dependencies. |
+| `resolveAndBind(...)` | Resolves the graph and additionally performs service binding based on `uses` / `provides` directives. |
 
-Vì vậy, khi tự tạo một module configuration và muốn tự động đưa các provider module vào graph dựa trên service, hãy dùng `resolveAndBind()`.
+Therefore, when building a module configuration manually and wanting matching provider modules to be automatically brought into the graph based on services, use `resolveAndBind()`.
 
-Service binding chỉ có thể thêm provider mà module finder hoặc parent configuration có thể quan sát được. Nếu provider JAR không nằm trong module path/finder được cung cấp, hoặc module không khai báo provider phù hợp, nó sẽ không tự xuất hiện trong graph.
+Service binding can only add providers observable by the module finders or parent configurations. If a provider JAR is not in the supplied module path/finders, or if the module does not declare a matching provider, it will not appear in the graph automatically.
 
-## 5. Tạo ModuleLayer có nhiều provider
+## 5. Creating a ModuleLayer with multiple providers
 
-Ví dụ sau tạo một layer mới từ thư mục module. Thư mục `mods` được giả định chứa các module API, app, JSON provider và XML provider dưới dạng modular JAR hoặc exploded modules.
+The following example creates a new layer from a modules directory. The `mods` directory is assumed to contain the API, app, JSON provider, and XML provider modules as modular JARs or exploded modules.
 
 ~~~java
 import com.example.format.Formatter;
@@ -237,23 +237,23 @@ public class LayerBootstrap {
 }
 ~~~
 
-Các bước chính:
+Main steps:
 
-1. `ModuleFinder.of(modulesPath)` tạo module finder cho thư mục chứa các module.
-2. `resolveAndBind(...)` bắt đầu từ root module `com.example.format.app`, resolve dependency và bổ sung provider module phù hợp.
-3. `defineModulesWithOneLoader(...)` định nghĩa các module đã resolve trong một layer mới.
-4. `ServiceLoader.load(layer, Formatter.class)` tìm service provider thuộc layer được chỉ định.
-5. Duyệt loader để nhận instance từ các provider đã tìm thấy.
+1. `ModuleFinder.of(modulesPath)` creates a module finder for the directory containing the modules.
+2. `resolveAndBind(...)` starts from the root module `com.example.format.app`, resolves dependencies, and adds matching provider modules.
+3. `defineModulesWithOneLoader(...)` defines the resolved modules in a new layer.
+4. `ServiceLoader.load(layer, Formatter.class)` locates service providers belonging to the specified layer.
+5. Iterating the loader receives instances from the discovered providers.
 
-Trong ví dụ, `ModuleFinder.of()` đầu tiên là finder rỗng cho vị trí tìm kiếm ưu tiên trước parent configuration. Finder thứ hai chứa các module của ứng dụng. Nếu module API đã có trong boot layer thì dependency đó có thể được thỏa mãn từ parent configuration; nếu chưa có, hãy đặt module API trong thư mục module đầu vào.
+In the example, the first `ModuleFinder.of()` is an empty finder in the search position before the parent configuration. The second finder contains the application's modules. If the API module is already in the boot layer, that dependency can be satisfied from the parent configuration; if not, place the API module in the input modules directory.
 
-Lưu ý rằng `resolveAndBind()` chỉ resolve module graph. Nó không tự tạo instance của provider. Việc tạo instance xảy ra khi ứng dụng tiêu thụ `ServiceLoader`, chẳng hạn bằng `forEach()`, iterator hoặc stream.
+Note that `resolveAndBind()` only resolves the module graph. It does not instantiate providers. Instantiation happens when the application consumes `ServiceLoader`, such as via `forEach()`, an iterator, or a stream.
 
-## 6. Nhiều provider trong cùng một module
+## 6. Multiple providers in the same module
 
-JPMS cũng cho phép một module khai báo nhiều provider class cho cùng một service trong một directive `provides`.
+JPMS also allows a single module to declare multiple provider classes for the same service in one `provides` directive.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.example.format.provider.bundle {
@@ -265,20 +265,20 @@ module com.example.format.provider.bundle {
 }
 ~~~
 
-Trong trường hợp này, một provider module đóng gói cả hai implementation. Khi module này được resolve vào layer, `ServiceLoader` có thể tìm thấy cả hai provider class.
+In this case, one provider module packages both implementations. When this module is resolved into a layer, `ServiceLoader` can find both provider classes.
 
-Có thể phân biệt hai cách tổ chức như sau:
+The two ways of organizing can be distinguished as follows:
 
-| Cách tổ chức | Ví dụ | Đơn vị được thêm vào module graph |
+| Organization | Example | Unit added to the module graph |
 |---|---|---|
-| Nhiều module, mỗi module một provider | `provider.json`, `provider.xml` | Từng provider module |
-| Một module, nhiều provider class | `provider.bundle` khai báo hai class | Một provider module; loader tìm các provider class được khai báo |
+| Multiple modules, one provider each | `provider.json`, `provider.xml` | Each provider module |
+| One module, multiple provider classes | `provider.bundle` declaring two classes | One provider module; the loader finds the declared provider classes |
 
-Chọn cách tổ chức theo nhu cầu đóng gói và triển khai. Tách module cho phép phân phối provider độc lập; gom nhiều provider vào một module giúp triển khai chúng như một đơn vị.
+Choose the organization based on packaging and deployment needs. Splitting modules enables independent distribution of providers; grouping multiple providers into one module lets them be deployed as a single unit.
 
-## 7. Nhận và xử lý nhiều provider bằng ServiceLoader
+## 7. Receiving and handling multiple providers with ServiceLoader
 
-Khi các provider đã nằm trong layer mà loader tìm kiếm, ứng dụng có thể lấy tất cả provider:
+Once providers are in the layer searched by the loader, the application can retrieve all providers:
 
 ~~~java
 ServiceLoader<Formatter> loader =
@@ -289,14 +289,14 @@ for (Formatter formatter : loader) {
 }
 ~~~
 
-Trong một ứng dụng dùng custom layer, hãy dùng overload nhận layer:
+In an application using a custom layer, use the overload taking a layer:
 
 ~~~java
 ServiceLoader<Formatter> loader =
         ServiceLoader.load(layer, Formatter.class);
 ~~~
 
-Nếu muốn kiểm tra kiểu provider trước khi tạo instance, sử dụng `stream()`:
+If you want to inspect provider types before creating instances, use `stream()`:
 
 ~~~java
 loader.stream()
@@ -308,13 +308,13 @@ loader.stream()
                 System.out.println(formatter.format("hello")));
 ~~~
 
-`stream()` trả về các đối tượng `ServiceLoader.Provider<Formatter>`. Ứng dụng có thể dùng `type()` để kiểm tra kiểu provider rồi mới gọi `get()` cho những provider được chọn.
+`stream()` returns `ServiceLoader.Provider<Formatter>` objects. The application can use `type()` to inspect the provider type and only then call `get()` for selected providers.
 
-### 7.1. Không phụ thuộc thứ tự phát hiện
+### 7.1. Do not rely on discovery order
 
-Không nên giả định provider luôn được trả về theo thứ tự JSON rồi XML, hoặc theo thứ tự khai báo trong module descriptor. Thứ tự phát hiện provider không phải là hợp đồng để ứng dụng dựa vào.
+You should not assume providers are always returned in JSON-then-XML order, or in the order declared in the module descriptor. Provider discovery order is not a contract for an application to rely on.
 
-Nếu cần thứ tự ổn định, hãy sắp xếp rõ ràng trước khi lấy instance:
+If a deterministic order is needed, sort explicitly before obtaining instances:
 
 ~~~java
 loader.stream()
@@ -326,30 +326,30 @@ loader.stream()
                 System.out.println(formatter.format("hello")));
 ~~~
 
-Nếu thứ tự nghiệp vụ cần dựa trên độ ưu tiên, hãy định nghĩa metadata/contract ưu tiên riêng trong service API hoặc provider, sau đó sắp xếp theo quy tắc đó. Tên lớp chỉ phù hợp khi thứ tự từ điển thực sự là điều ứng dụng mong muốn.
+If business order needs to be based on priority, define explicit priority metadata/contract in the service API or provider, then sort according to that rule. Class names are only appropriate when lexicographical order is genuinely what the application wants.
 
-## 8. Những tình huống cần kiểm tra
+## 8. Situations to check
 
-Khi một provider không xuất hiện trong kết quả, hãy kiểm tra lần lượt:
+When a provider does not appear in the results, check in order:
 
-- Consumer module đã khai báo `uses ServiceType;` chưa?
-- Provider module đã khai báo đúng `provides ServiceType with ProviderClass;` chưa?
-- Provider module có thể được quan sát qua module finder hoặc parent configuration không?
-- Module provider có được thêm vào configuration/layer đang được sử dụng không?
-- Ứng dụng có đang gọi đúng overload của `ServiceLoader.load(...)` cho boot layer hoặc custom layer không?
-- Provider class có tuân thủ quy tắc provider của ServiceLoader và có thể được khởi tạo không?
+- Has the consumer module declared `uses ServiceType;`?
+- Has the provider module properly declared `provides ServiceType with ProviderClass;`?
+- Is the provider module observable via a module finder or parent configuration?
+- Was the provider module added to the configuration/layer currently in use?
+- Is the application calling the right `ServiceLoader.load(...)` overload for the boot layer or custom layer?
+- Does the provider class follow `ServiceLoader`'s provider rules and can it be instantiated?
 
-Một lỗi thường gặp là chỉ đặt provider JAR trong thư mục trên ổ đĩa rồi kỳ vọng loader tự tìm thấy. Provider phải thuộc module configuration/layer mà loader đang tìm kiếm.
+A common mistake is merely placing the provider JAR in a directory on disk and expecting the loader to find it automatically. The provider must belong to the module configuration/layer being searched by the loader.
 
-Khi duyệt hoặc tạo instance, cấu hình provider không hợp lệ có thể dẫn tới `ServiceConfigurationError`. Hãy xử lý lỗi ở ranh giới phù hợp của ứng dụng, đồng thời giữ thông tin nguyên nhân để chẩn đoán provider nào gặp sự cố.
+During iteration or instantiation, an invalid provider configuration can lead to a `ServiceConfigurationError`. Handle the error at an appropriate application boundary while preserving cause information to diagnose which provider failed.
 
-## 9. Tóm tắt
+## 9. Summary
 
-Một service có thể được cung cấp bởi nhiều provider class trong cùng một module hoặc bởi nhiều provider module độc lập. Consumer khai báo `uses` để thể hiện nhu cầu sử dụng service; provider module khai báo `provides ... with ...` để đăng ký implementation.
+A service can be provided by multiple provider classes in the same module or by multiple independent provider modules. Consumers declare `uses` to express their need for a service; provider modules declare `provides ... with ...` to register implementations.
 
-Khi cần resolve module graph có service binding, `Configuration.resolveAndBind()` bổ sung các provider module phù hợp mà hệ thống có thể quan sát được. Sau khi các module được định nghĩa trong layer, `ServiceLoader` tìm và tạo instance của các provider. Ứng dụng nên xử lý thứ tự provider một cách tường minh nếu thứ tự đó ảnh hưởng tới nghiệp vụ.
+When you need to resolve a module graph with service binding, `Configuration.resolveAndBind()` adds matching observable provider modules. Once modules are defined in a layer, `ServiceLoader` locates and instantiates providers. Applications should handle provider ordering explicitly if order affects business logic.
 
-Tài liệu tham khảo:
+References:
 
 - [Configuration — Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/module/Configuration.html)
 - [ModuleLayer — Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/ModuleLayer.html)

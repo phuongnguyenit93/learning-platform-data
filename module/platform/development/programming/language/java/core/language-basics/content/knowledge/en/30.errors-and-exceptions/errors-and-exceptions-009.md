@@ -1,40 +1,40 @@
-# Không dùng `assert` thay kiểm tra dữ liệu đầu vào bắt buộc — Java 17+
+# Do Not Use `assert` Instead of Mandatory Input Validation — Java 17+
 
-## 1. Quy tắc cốt lõi: `assert` không phải validation
+## 1. Core Rule: `assert` Is Not Validation
 
-Trong Java, **assertion** là một phép kiểm tra giả định nội bộ dành cho quá trình phát triển và chẩn đoán. Cú pháp `assert` có thể bị **tắt khi chương trình chạy**. Vì thế, **không dùng `assert` để thay những kiểm tra dữ liệu đầu vào bắt buộc** của phương thức, constructor, API công khai hay hệ thống nghiệp vụ.
+In Java, an **assertion** is an internal assumption check meant for development and diagnostics. The `assert` statement can be **disabled when the program runs**. Therefore, **do not use `assert` to replace mandatory input validation** in methods, constructors, public APIs, or business logic.
 
 ~~~java
-// SAI: điều kiện có thể không được kiểm tra khi assertions bị tắt.
+// WRONG: condition may not be checked when assertions are disabled.
 static void registerAgeWrong(int age) {
     assert age >= 0 : "age must not be negative";
-    // Tiếp tục xử lý age ngay cả khi age âm nếu assertion bị tắt.
+    // Continues processing age even if negative when assertions are off.
 }
 ~~~
 
 ~~~java
-// ĐÚNG: kiểm tra bắt buộc chạy độc lập với tùy chọn -ea/-da.
+// RIGHT: mandatory check runs independently of -ea/-da options.
 static void registerAge(int age) {
     if (age < 0) {
         throw new IllegalArgumentException("age must not be negative");
     }
-    // Chỉ xử lý sau khi age hợp lệ.
+    // Processes only after age is valid.
 }
 ~~~
 
-**Câu hỏi quyết định:** điều kiện này có phải luôn được kiểm tra trong ứng dụng thật, kể cả khi không bật assertions? Nếu **có**, phải dùng kiểm tra chạy bình thường (`if`, validation API, `Objects.requireNonNull`, v.v.) chứ **không chỉ dùng `assert`**.
+**Deciding question:** must this condition always be checked in the real application, even when assertions are disabled? If **yes**, use an always-on check (`if`, validation API, `Objects.requireNonNull`, etc.) and **never rely only on `assert`**.
 
-## 2. Hợp đồng API phải hoạt động khi assertions tắt
+## 2. API Contracts Must Work When Assertions Are Disabled
 
-Với `-da`, JVM bỏ qua điều kiện và thông điệp trong câu lệnh `assert`, nên không thể dựa vào assertion để chặn dữ liệu sai. Cờ `-ea` hoặc `-da` thuộc lệnh **`java` lúc chạy**, đặt trước tên lớp `main`; chúng không làm thay đổi nghĩa vụ validation của ứng dụng.
+With `-da`, the JVM skips both the condition and the message in `assert` statements, so assertions cannot be relied upon to block bad data. The `-ea` and `-da` flags belong to the **`java` command at runtime**, placed before the `main` class name; they do not alter the application's validation obligations.
 
-Ví dụ ở các phần dưới cho thấy `IllegalArgumentException` và `Objects.requireNonNull` hoạt động giống nhau ở cả hai chế độ. Phần cú pháp, cấu hình assertions theo lớp/package và tác dụng phụ của biểu thức `assert` đã được giải thích trong bài trước.
+The examples below show that `IllegalArgumentException` and `Objects.requireNonNull` behave identically in both modes. Assertion syntax, class/package configuration, and side effects in `assert` expressions were covered in the previous lesson.
 
-## 3. Vì sao kiểm tra dữ liệu bên ngoài phải là bắt buộc?
+## 3. Why Must External Data Validation Be Mandatory?
 
-Dữ liệu đầu vào có thể đến từ đối số phương thức công khai, constructor, người dùng, file, mạng hoặc các hệ thống tích hợp. Những dữ liệu này **không phải giả định nội bộ** mà cần có **hợp đồng hợp lệ** được thực thi mọi lần.
+Input data can arrive from public method arguments, constructors, users, files, networks, or integrated systems. Such data is **not an internal assumption**; it requires a **validity contract** enforced every single time.
 
-Ví dụ sai:
+Wrong example:
 
 ~~~java
 static int calculateDiscountWrong(int percent) {
@@ -43,9 +43,9 @@ static int calculateDiscountWrong(int percent) {
 }
 ~~~
 
-Ở chế độ assertions tắt, `calculateDiscountWrong(150)` vẫn chạy và trả `-50`. Đây là lỗi nghiệp vụ ngay cả khi phép toán vẫn biên dịch, không phải dấu hiệu chương trình đúng.
+When assertions are disabled, `calculateDiscountWrong(150)` still runs and returns `-50`. This is a business bug even though the arithmetic compiles cleanly—not a sign of a correct program.
 
-Bản đúng:
+Correct version:
 
 ~~~java
 static int calculateDiscount(int percent) {
@@ -56,25 +56,25 @@ static int calculateDiscount(int percent) {
 }
 ~~~
 
-Dù JVM bật hay tắt assertions:
+Whether the JVM has assertions enabled or disabled:
 
-- `calculateDiscount(20)` trả `80`.
-- `calculateDiscount(150)` ném `IllegalArgumentException`.
-- Đầu vào xấu **không được phép lọt qua kiểm tra**.
+- `calculateDiscount(20)` returns `80`.
+- `calculateDiscount(150)` throws `IllegalArgumentException`.
+- Bad input is **never allowed past the check**.
 
-Validation cũng quan trọng với những ràng buộc không biểu diễn bằng một số: chuỗi không rỗng, ngày đúng miền, tệp được phép, trạng thái tài khoản, số lượng vật phẩm không âm, mã định danh hợp lệ, giới hạn tài nguyên.
+Validation is equally important for constraints not expressed as a single number: non-empty strings, in-range dates, permitted files, account states, non-negative item quantities, valid identifiers, and resource limits.
 
-## 4. Chọn ngoại lệ phù hợp khi validation thất bại
+## 4. Choosing the Right Exception When Validation Fails
 
-| Tình huống | Cách xử lý Java thường phù hợp |
+| Situation | Typically Appropriate Java Handling |
 |---|---|
-| Đối số số học ngoài miền hợp lệ | `IllegalArgumentException` |
-| Tham chiếu đối số bắt buộc khác null | `Objects.requireNonNull(value, "message")` hoặc `NullPointerException` có chủ đích |
-| Đối số chuỗi rỗng/blank | Kiểm tra và ném `IllegalArgumentException` |
-| Giá trị chuỗi không phân tích được thành số | Xử lý/để lan truyền `NumberFormatException` theo hợp đồng |
-| Thao tác không thể làm trong trạng thái hiện tại | `IllegalStateException` |
-| API trả checked exception, như đọc file | Catch hoặc declare `throws` theo hợp đồng API |
-| Giả định chỉ có thể sai khi có bug **nội bộ** | Có thể dùng `assert` để phát hiện lỗi trong lúc phát triển, không thay validation |
+| Numeric argument outside valid range | `IllegalArgumentException` |
+| Required reference argument must be non-null | `Objects.requireNonNull(value, "message")` or intentional `NullPointerException` |
+| Empty/blank string argument | Check and throw `IllegalArgumentException` |
+| String value cannot be parsed as a number | Handle or propagate `NumberFormatException` per contract |
+| Operation cannot be performed in the current state | `IllegalStateException` |
+| API declares a checked exception, such as file reading | Catch or declare `throws` per API contract |
+| Assumption can fail only due to an **internal** bug | May use `assert` to catch bugs during development, not instead of validation |
 
 ~~~java
 static String normalizeUser(String username) {
@@ -86,15 +86,15 @@ static String normalizeUser(String username) {
 }
 ~~~
 
-- `normalizeUser(null)` → ném `NullPointerException` với thông điệp `username is required`.
-- `normalizeUser("   ")` → ném `IllegalArgumentException` với thông điệp `username must not be blank`.
-- `normalizeUser(" Lan ")` → trả `"Lan"`.
+- `normalizeUser(null)` → throws `NullPointerException` with message `username is required`.
+- `normalizeUser("   ")` → throws `IllegalArgumentException` with message `username must not be blank`.
+- `normalizeUser(" Lan ")` → returns `"Lan"`.
 
-Cả ba hành vi **không phụ thuộc** vào `-ea`. Dùng đúng loại ngoại lệ còn giúp caller biết ranh giới nào cần kiểm tra dữ liệu, ranh giới nào xử lý trạng thái và ranh giới nào báo lỗi cho người dùng.
+All three behaviors are **independent of `-ea`**. Using the right exception type also tells callers which boundary validates data, which handles state, and which reports errors to users.
 
-## 5. Assertion hợp lý cho bất biến nội bộ
+## 5. Reasonable Assertions for Internal Invariants
 
-Một **bất biến (invariant)** là điều thuật toán phải duy trì khi dữ liệu đầu vào và các bước đã được xử lý đúng. Assertion có thể hỗ trợ phát hiện vi phạm bất biến nội bộ trong quá trình phát triển:
+An **invariant** is something an algorithm must maintain once input data and prior steps have been properly validated. Assertions can help detect internal invariant violations during development:
 
 ~~~java
 static int roundDownToEven(int value) {
@@ -110,36 +110,36 @@ static int roundDownToEven(int value) {
 }
 ~~~
 
-Phân biệt hai nhóm kiểm tra:
+Distinguish the two groups of checks:
 
-1. `if (value < 0)` là **validation bắt buộc** vì `value` là đối số do caller cung cấp.
-2. Những `assert` còn lại kiểm tra **kết quả nội bộ** do code tạo ra sau validation, để phát hiện khi giả định của lập trình viên bị vi phạm trong phát triển.
+1. `if (value < 0)` is **mandatory validation** because `value` is a caller-supplied argument.
+2. The remaining `assert` statements check **internal results** produced by the code after validation, catching violations of the programmer's assumptions during development.
 
-Nếu `assert` bị tắt, giá trị trả về vẫn đúng theo logic đã được thiết kế. Ngược lại, nếu bỏ `if` thì kết quả với đầu vào âm có thể không đúng hợp đồng, dù các assertions được bật ở máy phát triển.
+If `assert` is disabled, the return value is still right according to the designed logic. Conversely, removing the `if` means negative inputs violate the contract even when assertions are enabled on a developer machine.
 
-Nếu tính đúng đắn hoặc an toàn của ứng dụng đòi hỏi kiểm tra một bất biến ở **production**, hãy dùng kiểm tra **luôn chạy** thay vì trông chờ `assert` được bật.
+If application correctness or safety requires checking an invariant in **production**, use an **always-on** check instead of hoping `assert` is enabled.
 
-## 6. Tác dụng phụ không được nằm trong một kiểm tra có thể tắt
+## 6. Side Effects Must Never Live Inside a Disablable Check
 
 ~~~java
 int processed = 0;
-// Không dùng: assert ++processed == 1;
-processed++;              // Thao tác nghiệp vụ luôn chạy.
-assert processed == 1;   // Chỉ kiểm tra trạng thái nội bộ.
+// Do not write: assert ++processed == 1;
+processed++;              // Business operation always runs.
+assert processed == 1;   // Only checks internal state.
 ~~~
 
-`assert operation();` sẽ bỏ qua **cả lời gọi `operation()`** khi assertions tắt. Không được đưa ghi file, kiểm tra quyền, thay dữ liệu hoặc trừ tiền chỉ vào biểu thức assertion. Biểu thức sau dấu `:` cũng chỉ được đánh giá khi assertion bật **và sai**, nên không được dùng để tạo tác dụng phụ bắt buộc.
+`assert operation();` skips **the entire `operation()` call** when assertions are disabled. Never put file writes, permission checks, data mutations, or balance deductions solely inside an assertion expression. The expression after `:` is likewise evaluated only when assertions are enabled **and false**, so it must never be used for mandatory side effects.
 
-## 7. Từ chối input khác với báo lỗi giả định nội bộ
+## 7. Rejecting Input Differs from Reporting Internal Assumption Failures
 
-`AssertionError` kế thừa `Error`, **không** kế thừa `Exception`; `catch (Exception)` không bắt nó. Thất bại assertion thường chỉ ra bug về bất biến thuật toán, không phải dữ liệu mà người dùng được phép nhập sai.
+`AssertionError` extends `Error`, **not** `Exception`; `catch (Exception)` does not catch it. An assertion failure usually points to an algorithmic invariant bug, not data a user is allowed to enter wrongly.
 
-Với null hoặc phạm vi dữ liệu, dùng `Objects.requireNonNull`, `IllegalArgumentException` hoặc `IllegalStateException` theo ý nghĩa hợp đồng; mọi kiểm tra ấy phải làm việc dưới cả `-da` lẫn `-ea`. Bài runnable tiếp theo cố ý bắt `AssertionError` **chỉ để minh họa stdout ổn định**, không phải chính sách xử lý `Error` trong hệ thống thật.
+For nulls or data ranges, use `Objects.requireNonNull`, `IllegalArgumentException`, or `IllegalStateException` per contract semantics; all such checks must work under both `-da` and `-ea`. The runnable program below intentionally catches `AssertionError` **only to demonstrate deterministic stdout**, not as a policy for handling `Error` in production systems.
 
 
-## 8. Chương trình Java 17+ hoàn chỉnh và hai chế độ chạy
+## 8. Complete Java 17+ Program and Both Run Modes
 
-Lưu đúng tên file **`AssertVsValidationDemo.java`**:
+Save with the exact filename **`AssertVsValidationDemo.java`**:
 
 ~~~java
 import java.util.Objects;
@@ -199,7 +199,7 @@ public final class AssertVsValidationDemo {
         }
     }
 
-    // CỐ Ý CÓ BUG: chỉ dùng để so sánh -da với -ea, không dùng thực tế.
+    // INTENTIONAL BUG: used only to compare -da vs. -ea, never in real code.
     private static int buggyInternalCalculation() {
         int computed = -1;
         assert computed >= 0 : "internal computed negative";
@@ -255,7 +255,7 @@ public final class AssertVsValidationDemo {
 
         System.out.println("balance after rejection=" + wallet.getBalance());
 
-        // Khối bắt AssertionError CHỈ dành cho bài học minh họa.
+        // Catching AssertionError is ONLY for this illustrative lesson.
         try {
             System.out.println("buggy internal="
                     + buggyInternalCalculation());
@@ -268,7 +268,7 @@ public final class AssertVsValidationDemo {
 }
 ~~~
 
-**Biên dịch một lần** bằng JDK 17+, không cần Maven/Gradle, thư viện ngoài hay preview features.
+**Compile once** with JDK 17+, with no Maven/Gradle, external libraries, or preview features required.
 
 **Bash (Linux/macOS):**
 
@@ -286,7 +286,7 @@ java -da -cp . AssertVsValidationDemo
 java -ea -cp . AssertVsValidationDemo
 ~~~
 
-### Exact stdout với `-da` (assertions tắt)
+### Exact stdout with `-da` (assertions disabled)
 
 ~~~text
 assertions enabled=false
@@ -304,7 +304,7 @@ buggy internal=-1
 finished=true
 ~~~
 
-### Exact stdout với `-ea` (assertions bật)
+### Exact stdout with `-ea` (assertions enabled)
 
 ~~~text
 assertions enabled=true
@@ -322,76 +322,76 @@ internal assertion=internal computed negative
 finished=true
 ~~~
 
-**Phân tích kết quả:**
+**Output analysis:**
 
-1. Dòng `assertions enabled=...` cho biết trạng thái assertion của **chính lớp demo**.
-2. Người dùng và phần trăm hợp lệ chạy bình thường. Sau khi rút 30 từ ví có 100, số dư là 70.
-3. Đầu vào `null`, chuỗi chỉ có khoảng trắng, phần trăm `150`, lệnh rút `0` và lệnh rút vượt số dư **đều bị từ chối y hệt** ở cả hai chế độ.
-4. `roundDownToEven(7)` trả 6; các `assert` nội bộ đều đúng khi bật.
-5. `buggyInternalCalculation()` có lỗi giả định có chủ đích. Với `-da`, câu lệnh `assert` không kiểm tra gì nên trả `-1`; với `-ea`, nó ném `AssertionError` và nhánh demo in thông điệp.
-6. **Bài học quan trọng:** validation bắt buộc không đổi theo `-da/-ea`; chỉ kiểm tra assertion chẩn đoán nội bộ phụ thuộc vào cờ này.
+1. `assertions enabled=...` reports the assertion status of **the demo class itself**.
+2. Valid user and percentage inputs work normally. After withdrawing 30 from a wallet holding 100, the balance is 70.
+3. `null` input, whitespace-only string, percentage `150`, withdrawal of `0`, and withdrawal exceeding balance **are all rejected identically** in both modes.
+4. `roundDownToEven(7)` returns 6; all internal `assert` checks pass when enabled.
+5. `buggyInternalCalculation()` has an intentional assumption bug. Under `-da`, the `assert` statement checks nothing and returns `-1`; under `-ea`, it throws `AssertionError` and the demo branch prints the message.
+6. **Key takeaway:** mandatory validation does not change between `-da` and `-ea`; only internal diagnostic assertion checks depend on this flag.
 
-## 9. Viết kiểm thử đúng cho API
+## 9. Writing Proper Tests for APIs
 
-Nếu một phương thức tuyên bố chỉ chấp nhận `percent` trong `0..100`, hãy kiểm thử cả dữ liệu hợp lệ lẫn dữ liệu sai **ngay cả khi assertions đang bị tắt**.
+If a method declares that it only accepts `percent` in `0..100`, test both valid data and invalid data **even when assertions are disabled**.
 
-Ví dụ ý tưởng kiểm thử, không phụ thuộc framework:
+Conceptual test example, independent of any framework:
 
 ~~~java
-int accepted = requirePercent(50);     // Phải là 50.
+int accepted = requirePercent(50);     // Must be 50.
 try {
     requirePercent(150);
     throw new IllegalStateException("expected validation to reject input");
 } catch (IllegalArgumentException expected) {
-    // Giá trị sai đã bị từ chối đúng hợp đồng.
+    // Invalid value was rejected per contract.
 }
 ~~~
 
-Chú ý đây là **mã minh họa** dùng phương thức `requirePercent` của mục 8; kiểm thử thực tế cần đặt trong lớp kiểm thử/phạm vi truy cập hợp lệ và dùng assertions của framework hoặc cơ chế test thích hợp. Khi kiểm thử exception, không chỉ dựa vào ngôn ngữ `assert` bị vô hiệu trong runtime.
+Note that this is **illustrative code** using `requirePercent` from section 8; real tests should reside in an appropriate test class/access scope and use test framework assertions or a proper test harness. When testing exceptions, do not rely solely on the language's `assert` statement that gets disabled at runtime.
 
-Với JUnit, các phương thức kiểm thử như `assertThrows` của thư viện test không tương đương câu lệnh ngôn ngữ `assert`. Chúng chạy theo cơ chế thư viện kiểm thử, không biến thành câu lệnh `assert` bị bỏ qua theo `-da`.
+In JUnit, test methods like `assertThrows` from the test library are not equivalent to the Java `assert` statement. They execute through the test library's mechanisms and are not turned into `assert` statements skipped under `-da`.
 
-**Test hai chế độ:** cùng một bộ validation phải đạt khi chạy `-da` và `-ea`. Tùy chính sách, dùng `-ea` trong quá trình phát triển/test để sớm phát hiện bug nội bộ, nhưng tính đúng của API không được phụ thuộc vào việc người triển khai bật cờ ấy.
+**Test in both modes:** the same validation suite must pass when run with `-da` and `-ea`. Depending on policy, use `-ea` during development/testing to catch internal bugs early, while ensuring API correctness never depends on deployers enabling that flag.
 
-## 10. Khi nào có thể dùng `assert`?
+## 10. When Can `assert` Be Used?
 
-Những chỗ thường hợp lý (chỉ cho các giả định **nội bộ** không bị ảnh hưởng bởi dữ liệu không tin cậy chưa qua kiểm tra):
+Appropriate places (only for **internal** assumptions unaffected by untrusted, unvalidated data):
 
-- Kiểm tra kết quả trung gian sau một phép biến đổi mà thuật toán bảo đảm bất biến.
-- Đánh dấu nhánh nội bộ được thiết kế là không thể tới theo các điều kiện đã được chứng minh.
-- Xác minh điều kiện hậu trạng thái khi code xử lý đã hoàn tất và tính đúng vẫn được đảm bảo độc lập với assertion.
-- Hỗ trợ phát hiện lỗi lập trình khi chạy môi trường phát triển/test có bật `-ea`.
+- Checking intermediate results after a transformation whose invariant the algorithm guarantees.
+- Marking internal branches designed to be unreachable under proven conditions.
+- Verifying postconditions once processing finishes when correctness is already ensured independently of assertions.
+- Helping detect programming errors when running dev/test environments with `-ea` enabled.
 
-Ngược lại, **không dùng `assert`** làm phương thức duy nhất để:
+Conversely, **do not use `assert`** as the sole mechanism to:
 
-- Kiểm tra input của public method, REST handler, constructor, CLI argument.
-- Kiểm tra null/blank/giới hạn dữ liệu cần đảm bảo trong sản phẩm.
-- Phân quyền truy cập, xác thực và bảo đảm an toàn giao dịch.
-- Kiểm tra trạng thái bắt buộc (ví dụ đủ số dư để rút tiền).
-- Thực hiện công việc có tác dụng phụ, gọi API, sửa object hoặc cấp quyền.
+- Validate inputs of public methods, REST handlers, constructors, or CLI arguments.
+- Check null/blank/data bounds that must hold in production.
+- Enforce access control, authentication, or transaction safety.
+- Check mandatory state (such as sufficient balance for withdrawal).
+- Perform side-effecting work, call APIs, mutate objects, or grant permissions.
 
-Đừng cố “giải quyết” một kiểm tra nghiệp vụ thiếu bằng cách bắt người dùng chạy ứng dụng với `-ea`. **Chính mã validation phải luôn thực thi**.
+Never try to "fix" a missing business check by forcing users to run the application with `-ea`. **The validation code itself must always execute.**
 
-## 11. Các lỗi thường gặp
+## 11. Common Mistakes
 
-| Sai lầm | Rủi ro | Cách sửa |
+| Mistake | Risk | Fix |
 |---|---|---|
-| `assert age >= 0;` là điều kiện đầu vào duy nhất | Dữ liệu âm lọt qua nếu assertions tắt | `if (age < 0) throw new IllegalArgumentException(...)` |
-| `assert username != null;` trong API công khai | Caller null không bị từ chối ngay khi tắt | `Objects.requireNonNull(username, ...)` |
-| Cho rằng `-ea` luôn bật trong production | JVM có thể chạy mặc định không bật | Validation không phụ thuộc cờ assertion |
-| `assert ++counter > 0;` | Khi tắt, `counter` không tăng | Tách thao tác bắt buộc ra khỏi assertion |
-| `assert authorize(user);` | Khi tắt, việc kiểm tra quyền bị bỏ qua | Gọi logic phân quyền bắt buộc và xử lý kết quả bằng điều kiện thường |
-| Bắt `Exception` rồi mong xử lý `AssertionError` | `AssertionError` không kế thừa `Exception` | Sửa bug nội bộ; không dùng Error như validation |
-| Viết `assert condition : logAndReturn();` | Detail cũng không chạy khi tắt/điều kiện đúng | Không dựa vào tác dụng phụ trong assert |
-| Dùng assert để báo “hết tiền” | Đó là trạng thái nghiệp vụ dự kiến | Kiểm tra và báo `IllegalStateException`/kết quả hợp đồng |
-| Viết test validation chỉ chạy khi `-ea` | Không chứng minh an toàn khi tắt | Chạy kiểm thử với `-da` và `-ea` |
-| Bắt lỗi validation bằng `catch (AssertionError)` | Biến lỗi input thành Error ngoài hợp đồng | Ném ngoại lệ đầu vào có loại/thông điệp rõ |
-| Nghĩ `assert` được chạy ở compile time | Assertion statement được kiểm tra cú pháp khi compile, điều kiện được đánh giá khi chạy nếu bật | Phân biệt compiler check với runtime assertion |
-| Dùng một `assert` cho mọi vấn đề bất thường | Không rõ loại lỗi và không bảo đảm kiểm tra | Phân loại input, state, internal invariant và dùng cơ chế phù hợp |
+| `assert age >= 0;` as the sole input check | Negative values slip through when assertions are off | `if (age < 0) throw new IllegalArgumentException(...)` |
+| `assert username != null;` in a public API | Null callers are not rejected when disabled | `Objects.requireNonNull(username, ...)` |
+| Assuming `-ea` is always on in production | The JVM may run with assertions disabled by default | Make validation independent of assertion flags |
+| `assert ++counter > 0;` | When disabled, `counter` does not increment | Separate mandatory operations from assertions |
+| `assert authorize(user);` | When disabled, permission checks are skipped | Call mandatory authorization logic and check results with regular conditions |
+| Catching `Exception` expecting to handle `AssertionError` | `AssertionError` does not extend `Exception` | Fix internal bugs; do not use `Error` for validation |
+| Writing `assert condition : logAndReturn();` | Detail also does not run when disabled or when condition is true | Do not rely on side effects in `assert` |
+| Using `assert` to signal "insufficient funds" | That is an expected business state | Check and throw `IllegalStateException` or return a contract result |
+| Writing validation tests that only run under `-ea` | Does not prove safety when disabled | Run tests under both `-da` and `-ea` |
+| Catching validation failures with `catch (AssertionError)` | Turns input errors into an off-contract `Error` | Throw an input exception with clear type and message |
+| Thinking `assert` runs at compile time | The assertion statement is syntax-checked at compile time, while the condition is evaluated at runtime if enabled | Distinguish compiler checks from runtime assertions |
+| Using one `assert` for every abnormal issue | Obscures error types and does not guarantee checking | Separate input, state, and internal invariants and use the right mechanism |
 
-## 12. Bài tập có đáp án
+## 12. Exercises with Answers
 
-**A — Nhận diện lỗi thiết kế.** Có phương thức:
+**A — Spotting a design flaw.** Given the method:
 
 ~~~java
 static double divide(double a, double b) {
@@ -400,9 +400,9 @@ static double divide(double a, double b) {
 }
 ~~~
 
-Nếu hợp đồng yêu cầu **từ chối mẫu số 0** mọi lúc, đoạn trên có đủ không?
+If the contract requires **rejecting a zero divisor** at all times, is the snippet above sufficient?
 
-**Đáp án:** Không. Khi assertions tắt, với số thực `double`, phép chia cho 0 có thể tạo `Infinity` hoặc `NaN` thay vì bị từ chối. Thêm:
+**Answer:** No. When assertions are disabled, with floating-point `double`, dividing by 0 can produce `Infinity` or `NaN` instead of being rejected. Add:
 
 ~~~java
 if (b == 0.0) {
@@ -410,38 +410,38 @@ if (b == 0.0) {
 }
 ~~~
 
-**B — Bật/tắt assertion.** Lệnh nào bật assertion của lớp ví dụ?
+**B — Enabling/disabling assertions.** Which command enables assertions for the example class?
 
-**Đáp án:** `java -ea -cp . AssertVsValidationDemo`. Để tắt rõ ràng: `java -da -cp . AssertVsValidationDemo`.
+**Answer:** `java -ea -cp . AssertVsValidationDemo`. To disable explicitly: `java -da -cp . AssertVsValidationDemo`.
 
-**C — Vì sao `assert ++count > 0;` nguy hiểm?**
+**C — Why is `assert ++count > 0;` dangerous?**
 
-**Đáp án:** Khi `-da`, biểu thức điều kiện không được đánh giá, nên `count` **không tăng**. Không đưa cập nhật dữ liệu bắt buộc vào assertion.
+**Answer:** Under `-da`, the condition expression is not evaluated, so `count` **does not increment**. Never place mandatory data updates inside an assertion.
 
-**D — Loại lỗi.** `AssertionError` nằm dưới `Exception` hay `Error`?
+**D — Error category.** Is `AssertionError` under `Exception` or `Error`?
 
-**Đáp án:** Dưới `Error`; `catch (Exception)` không bắt `AssertionError`.
+**Answer:** Under `Error`; `catch (Exception)` does not catch `AssertionError`.
 
-**E — Phân loại điều kiện.** `user != null` của một API công khai và `computed >= 0` sau thuật toán đã xác minh giá trị đầu vào: điều kiện nào phải là validation?
+**E — Classifying conditions.** `user != null` on a public API and `computed >= 0` after an algorithm has validated input values: which condition must be validation?
 
-**Đáp án:** `user != null` là **validation bắt buộc**; `computed >= 0` có thể là assertion nội bộ nếu đó là bất biến được đảm bảo theo thuật toán và việc bỏ qua assert không làm sai hành vi production.
+**Answer:** `user != null` is **mandatory validation**; `computed >= 0` can be an internal assertion if it is an invariant guaranteed by the algorithm and skipping the assert does not break production behavior.
 
-**F — So sánh hai lần chạy.** `requirePercent(150)` sẽ thế nào dưới `-da` và `-ea`?
+**F — Comparing two runs.** What happens to `requirePercent(150)` under `-da` and `-ea`?
 
-**Đáp án:** Cả hai đều ném `IllegalArgumentException`. Chỉ `buggyInternalCalculation()` biểu lộ sự khác biệt do câu lệnh assertion.
+**Answer:** Both throw `IllegalArgumentException`. Only `buggyInternalCalculation()` shows a difference due to its assertion statement.
 
-## 13. Checklist và kết luận
+## 13. Checklist and Conclusion
 
-- [ ] Hiểu `assert` kiểm tra giả định nội bộ, có thể bị tắt khi chạy.
-- [ ] Biết `assert condition;` và `assert condition : detail;`.
-- [ ] Biết `-ea` bật, `-da` tắt assertion của ứng dụng theo cấu hình JVM.
-- [ ] Không dùng `assert` thay validation dữ liệu đầu vào bắt buộc.
-- [ ] Dùng `if`, `throw IllegalArgumentException` và `Objects.requireNonNull` phù hợp hợp đồng.
-- [ ] Dùng `IllegalStateException` cho thao tác sai trạng thái khi phù hợp.
-- [ ] Biết `AssertionError` là nhánh `Error`, không phải ngoại lệ đầu vào thông thường.
-- [ ] Không đưa tác dụng phụ, phân quyền hoặc thay đổi dữ liệu vào biểu thức assertion.
-- [ ] Nhận diện khác nhau giữa internal invariant và ràng buộc của input bên ngoài.
-- [ ] Kiểm thử validation ngay cả khi `-da`.
-- [ ] Chạy `AssertVsValidationDemo.java` trên JDK 17+ với cả `-da` và `-ea`, đối chiếu hai stdout.
+- [ ] Understand that `assert` checks internal assumptions and can be disabled at runtime.
+- [ ] Know `assert condition;` and `assert condition : detail;`.
+- [ ] Know that `-ea` enables and `-da` disables application assertions per JVM configuration.
+- [ ] Never use `assert` instead of mandatory input data validation.
+- [ ] Use `if`, `throw IllegalArgumentException`, and `Objects.requireNonNull` appropriately per contract.
+- [ ] Use `IllegalStateException` for invalid-state operations when appropriate.
+- [ ] Know that `AssertionError` belongs to the `Error` branch, not ordinary input exceptions.
+- [ ] Never place side effects, authorization, or data mutations inside assertion expressions.
+- [ ] Distinguish between internal invariants and external input constraints.
+- [ ] Test validation even under `-da`.
+- [ ] Run `AssertVsValidationDemo.java` on JDK 17+ with both `-da` and `-ea` and compare both stdout outputs.
 
-**Kết luận:** `assert` giúp tìm **lỗi giả định nội bộ** khi được bật, nhưng **không bảo đảm được thực thi trong mọi lần chạy**. Bất kỳ điều kiện đầu vào hay quy tắc nghiệp vụ nào bắt buộc phải được kiểm tra đều cần **validation luôn chạy**, ném ngoại lệ hoặc trả kết quả theo hợp đồng API; tuyệt đối không chỉ dựa vào `assert`.
+**Conclusion:** `assert` helps detect **internal assumption bugs** when enabled, but **is not guaranteed to execute on every run**. Any input condition or business rule that must be enforced requires **always-on validation** that throws exceptions or returns results per the API contract—never rely solely on `assert`.

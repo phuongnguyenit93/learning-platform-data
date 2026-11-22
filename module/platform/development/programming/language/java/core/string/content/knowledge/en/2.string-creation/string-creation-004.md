@@ -1,32 +1,32 @@
-# Tạo String từ char[] hoặc một vùng của mảng trong Java
+# Creating a `String` from `char[]` or a Slice of an Array in Java
 
-Trong Java, `char[]` là mảng chứa các giá trị `char` có thể thay đổi; `String` là chuỗi ký tự **bất biến** (immutable). Khi đã có dữ liệu ở dạng `char[]` và cần một chuỗi để hiển thị, so sánh, truyền cho API hoặc lưu kết quả xử lý, có thể tạo `String` từ **toàn bộ mảng** hoặc từ **một đoạn liên tiếp** của mảng. Hai constructor cần nắm vững là `new String(char[])` và `new String(char[], int offset, int count)`.
+In Java, `char[]` is a mutable array containing `char` values; `String` is an **immutable** sequence of characters. When you already have data in `char[]` form and need a string to display, compare, pass to an API, or store as a processing result, you can create a `String` from **the entire array** or from **a contiguous slice** of the array. The two constructors to master are `new String(char[])` and `new String(char[], int offset, int count)`.
 
-## 1. Hai cách tạo chuỗi
+## 1. Two Ways to Create the String
 
-| Cú pháp | Lấy ký tự nào? | Kết quả |
+| Syntax | Which characters are taken? | Result |
 | --- | --- | --- |
-| `new String(char[] value)` | Toàn bộ phần tử từ chỉ số `0` đến `value.length - 1` | Một `String` có nội dung tương ứng với toàn bộ mảng tại thời điểm tạo |
-| `new String(char[] value, int offset, int count)` | `count` phần tử liên tiếp bắt đầu tại `offset` | Một `String` có nội dung của đúng vùng được chọn |
+| `new String(char[] value)` | All elements from index `0` to `value.length - 1` | A `String` whose content matches the entire array at creation time |
+| `new String(char[] value, int offset, int count)` | `count` consecutive elements starting at `offset` | A `String` containing the exact selected slice |
 
-Với constructor thứ hai:
+For the second constructor:
 
-- `value`: mảng `char[]` nguồn.
-- `offset`: **chỉ số bắt đầu**, tính từ 0, bao gồm phần tử tại chỉ số đó.
-- `count`: **số phần tử cần lấy**, không phải chỉ số kết thúc.
-- Vùng được sao chép có dạng **[offset, offset + count)**: lấy từ `offset` đến `offset + count - 1`. Dấu `)` nghĩa là không lấy phần tử ở chỉ số `offset + count`.
+- `value`: the source `char[]` array.
+- `offset`: the **starting index**, zero-based, inclusive of the element at that index.
+- `count`: the **number of elements to take**, not the ending index.
+- The copied range has the form **[offset, offset + count)**: taking from `offset` through `offset + count - 1`. The `)` means the element at index `offset + count` is excluded.
 
-Ví dụ với mảng `{'J', 'a', 'v', 'a', ' ', '1', '7'}`:
+Example with the array `{'J', 'a', 'v', 'a', ' ', '1', '7'}`:
 
-| Chỉ số | 0 | 1 | 2 | 3 | 4 | 5 | 6 |
+| Index | 0 | 1 | 2 | 3 | 4 | 5 | 6 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Giá trị | J | a | v | a | khoảng trắng | 1 | 7 |
+| Value | J | a | v | a | space | 1 | 7 |
 
-`new String(chars, 0, 4)` lấy bốn ký tự tại chỉ số 0, 1, 2, 3 nên cho `"Java"`. `new String(chars, 5, 2)` lấy hai ký tự tại chỉ số 5, 6 nên cho `"17"`.
+`new String(chars, 0, 4)` takes four characters at indices 0, 1, 2, 3, yielding `"Java"`. `new String(chars, 5, 2)` takes two characters at indices 5, 6, yielding `"17"`.
 
-## 2. Ví dụ Java 17+ chạy độc lập
+## 2. Standalone Runnable Java 17+ Example
 
-Lưu chương trình sau vào tệp **CharArrayToStringDemo.java**:
+Save the following program to **`CharArrayToStringDemo.java`**:
 
 ~~~java
 public class CharArrayToStringDemo {
@@ -43,22 +43,22 @@ public class CharArrayToStringDemo {
         System.out.println("version = " + version);
         System.out.println("empty length = " + empty.length());
 
-        chars[0] = 'X'; // Thay đổi mảng sau khi đã tạo String
+        chars[0] = 'X'; // Modify the array after creating the String
         System.out.println("chars[0] = " + chars[0]);
-        System.out.println("whole sau sua mang = " + whole);
-        System.out.println("word sau sua mang = " + word);
+        System.out.println("whole after array change = " + whole);
+        System.out.println("word after array change = " + word);
     }
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ~~~bash
 javac -encoding UTF-8 CharArrayToStringDemo.java
 java CharArrayToStringDemo
 ~~~
 
-Kết quả chuẩn:
+Expected output:
 
 ~~~text
 whole = Java 17
@@ -66,36 +66,36 @@ word = Java
 version = 17
 empty length = 0
 chars[0] = X
-whole sau sua mang = Java 17
-word sau sua mang = Java
+whole after array change = Java 17
+word after array change = Java
 ~~~
 
-Điểm then chốt: các constructor **sao chép nội dung ký tự** tại thời điểm gọi. Thay `chars[0]` từ `'J'` thành `'X'` chỉ thay đổi mảng; `whole` và `word` vẫn giữ nội dung cũ. Cũng không thể sửa một ký tự trong `String` bằng phép gán như `whole.charAt(0) = 'X'` vì `charAt()` trả về giá trị, không phải vị trí có thể gán. Khi cần tạo chuỗi mới từ mảng đã sửa, hãy gọi constructor lần nữa.
+Key takeaway: the constructors **copy the character contents** at the time of invocation. Changing `chars[0]` from `'J'` to `'X'` only modifies the array; `whole` and `word` retain their old contents. You also cannot modify a character in a `String` via assignment like `whole.charAt(0) = 'X'` because `charAt()` returns a value, not an assignable location. When you need a new string from a modified array, call the constructor again.
 
-## 3. Kiểm tra vị trí bắt đầu và độ dài
+## 3. Validating Start Position and Length
 
-Đặt `n = value.length`. Một vùng hợp lệ phải thỏa mãn đồng thời:
+Let `n = value.length`. A valid range must simultaneously satisfy:
 
 - `offset >= 0`;
 - `count >= 0`;
-- `offset <= n - count` (tương đương chọn vùng không vượt quá cuối mảng; dạng phép trừ còn tránh tràn số khi tự kiểm tra trên `int`).
+- `offset <= n - count` (equivalent to choosing a range that does not exceed the end of the array; the subtraction form also avoids integer overflow when checking `int` values yourself).
 
-Nếu `offset` âm, `count` âm hoặc vùng vượt mảng, `new String(value, offset, count)` ném **`IndexOutOfBoundsException`**. Khi mảng `value` là `null`, thao tác không thể đọc ký tự và ném **`NullPointerException`**. Đây là các lỗi runtime; constructor không tự cắt vùng về giới hạn hợp lệ.
+If `offset` is negative, `count` is negative, or the range exceeds the array, `new String(value, offset, count)` throws **`IndexOutOfBoundsException`**. When `value` is `null`, the operation cannot read characters and throws **`NullPointerException`**. These are runtime errors; the constructor does not silently clamp the range to valid bounds.
 
-Một số trường hợp biên cần phân biệt:
+Several boundary cases to distinguish:
 
-| `value.length` | `offset` | `count` | Hợp lệ? | Ý nghĩa |
+| `value.length` | `offset` | `count` | Valid? | Meaning |
 | ---: | ---: | ---: | --- | --- |
-| 3 | 0 | 3 | Có | Lấy toàn bộ mảng |
-| 3 | 1 | 2 | Có | Lấy hai ký tự cuối |
-| 3 | 0 | 0 | Có | Chuỗi rỗng |
-| 3 | 3 | 0 | Có | Chuỗi rỗng bắt đầu ngay sau ký tự cuối |
-| 3 | 4 | 0 | Không | `offset` vượt quá `length` |
-| 3 | 2 | 2 | Không | Muốn lấy đến chỉ số 3, vượt mảng |
-| 3 | -1 | 1 | Không | `offset` âm |
-| 3 | 1 | -1 | Không | `count` âm |
+| 3 | 0 | 3 | Yes | Takes the entire array |
+| 3 | 1 | 2 | Yes | Takes the last two characters |
+| 3 | 0 | 0 | Yes | Empty string |
+| 3 | 3 | 0 | Yes | Empty string starting right after the last character |
+| 3 | 4 | 0 | No | `offset` exceeds `length` |
+| 3 | 2 | 2 | No | Tries to read through index 3, exceeding the array |
+| 3 | -1 | 1 | No | Negative `offset` |
+| 3 | 1 | -1 | No | Negative `count` |
 
-Có thể kiểm tra hành vi bằng chương trình độc lập **RangeValidationDemo.java**:
+You can verify this behavior with the standalone program **RangeValidationDemo.java**:
 
 ~~~java
 public class RangeValidationDemo {
@@ -120,7 +120,7 @@ public class RangeValidationDemo {
 }
 ~~~
 
-Chạy `javac -encoding UTF-8 RangeValidationDemo.java` rồi `java RangeValidationDemo`:
+Run `javac -encoding UTF-8 RangeValidationDemo.java` then `java RangeValidationDemo`:
 
 ~~~text
 valid = bc
@@ -129,9 +129,9 @@ out of range
 null array
 ~~~
 
-Cú pháp ép kiểu `(char[]) null` trong ví dụ giúp Java chọn chính xác constructor nhận `char[]`; lời gọi `new String(null)` thiếu kiểu cụ thể là **mơ hồ** vì `String` có nhiều constructor nhận kiểu tham chiếu.
+The cast syntax `(char[]) null` in the example helps Java choose the exact constructor taking `char[]`; calling `new String(null)` without a specific type is **ambiguous** because `String` has multiple constructors taking reference types.
 
-Khi các chỉ số xuất phát từ đầu vào hoặc thao tác tính toán, nên kiểm tra giới hạn trước khi tạo chuỗi. Chẳng hạn, hàm dưới đây trả về kết quả chỉ khi phạm vi hợp lệ:
+When indices come from external input or calculations, validate the bounds before creating the string. For instance, the helper method below returns a result only when the range is valid:
 
 ~~~java
 static String take(char[] source, int offset, int count) {
@@ -145,44 +145,44 @@ static String take(char[] source, int offset, int count) {
 }
 ~~~
 
-Đây là **đoạn phương thức minh họa**, cần đặt bên trong một lớp Java để biên dịch. Kiểu ngoại lệ trong ví dụ là lựa chọn của hàm `take` để báo lỗi đầu vào; constructor của `String` có các ngoại lệ như mô tả phía trên.
+This is an **illustrative method snippet** that must be placed inside a Java class to compile. The exception type in the example is the `take` method's choice for reporting invalid input; `String`'s constructors throw the exceptions described above.
 
-## 4. Sao chép, tính bất biến và vòng đời dữ liệu
+## 4. Copying, Immutability, and Data Lifecycle
 
-`char[]` là cấu trúc có thể sửa tại chỗ: `chars[i] = 'x'` làm thay đổi mảng. `String` đã tạo không thay đổi giá trị sau đó. Hai constructor `char[]` sao chép các ký tự được chọn; chúng không cung cấp “cửa sổ sống” liên kết với mảng gốc. Vì thế:
+`char[]` is an in-place mutable structure: `chars[i] = 'x'` modifies the array. The created `String` does not change its value afterward. The two `char[]` constructors copy the selected characters; they do not provide a "live window" linked to the original array. Therefore:
 
-1. Sửa mảng **trước** khi tạo chuỗi sẽ ảnh hưởng đến nội dung chuỗi được tạo sau đó.
-2. Sửa mảng **sau** khi tạo chuỗi sẽ **không** ảnh hưởng đến chuỗi cũ.
-3. Hai lần `new String(chars)` tạo hai đối tượng `String` riêng dù nội dung có thể bằng nhau; so sánh giá trị chuỗi bằng `equals()`, không dựa vào `==`.
-4. Không nên suy ra chi tiết biểu diễn nội bộ của `String` (như kích thước mảng nội bộ) từ constructor; API chỉ bảo đảm nội dung và tính bất biến.
+1. Modifying the array **before** creating the string affects the contents of the string created afterward.
+2. Modifying the array **after** creating the string does **not** affect the existing string.
+3. Calling `new String(chars)` twice creates two separate `String` objects even though their contents are equal; compare string values using `equals()`, not `==`.
+4. Do not infer internal representation details of `String` (such as internal array size) from the constructor; the API only guarantees content and immutability.
 
-Với mật khẩu hoặc dữ liệu nhạy cảm, chuyển `char[]` thành `String` tạo thêm một bản nội dung bất biến mà chương trình không thể xóa từng ký tự theo yêu cầu; hãy cân nhắc yêu cầu bảo mật và API nhận dữ liệu đầu vào trước khi tạo chuỗi.
+For passwords or sensitive data, converting `char[]` to `String` creates another immutable copy of the content that the program cannot clear character-by-character on demand; consider security requirements and the input-receiving API before creating a string.
 
-## 5. Lưu ý Unicode: `char` không luôn bằng một ký tự người đọc thấy
+## 5. Unicode Note: A `char` Is Not Always One Visible Character
 
-Mỗi `char` Java biểu diễn **một đơn vị mã UTF-16 (16 bit)**. Một ký tự Unicode nằm ngoài Basic Multilingual Plane (chẳng hạn nhiều emoji) cần **hai `char`**, gọi là một *surrogate pair*. Vì vậy `offset` và `count` đếm số phần tử `char[]`, **không đếm số ký tự hiển thị hay code point**.
+Each Java `char` represents **one UTF-16 code unit (16-bit)**. A Unicode character outside the Basic Multilingual Plane (such as many emojis) requires **two `char`s**, called a *surrogate pair*. Thus `offset` and `count` count `char[]` elements, **not visible characters or code points**.
 
-Ví dụ dưới đây là **đoạn lệnh đặt bên trong một phương thức Java**:
+The example below is a **code snippet placed inside a Java method**:
 
 ~~~java
 char[] units = "A😀B".toCharArray();
 System.out.println(units.length); // 4: A, high surrogate, low surrogate, B
 
 String emoji = new String(units, 1, 2);
-System.out.println(emoji.length()); // 2 don vi ma UTF-16
+System.out.println(emoji.length()); // 2 UTF-16 code units
 System.out.println(emoji.codePointCount(0, emoji.length())); // 1
 
-String broken = new String(units, 1, 1); // Chi lay high surrogate
-System.out.println(broken.length()); // 1, nhung khong la emoji hoan chinh
+String broken = new String(units, 1, 1); // Only takes the high surrogate
+System.out.println(broken.length()); // 1, but not a complete emoji
 ~~~
 
-Các con số được in ra tương ứng lần lượt là `4`, `2`, `1`, `1`. Vùng `[1, 3)` giữ nguyên cặp surrogate của emoji; vùng `[1, 2)` cắt đôi cặp, tạo chuỗi chứa surrogate lẻ. Khi xử lý văn bản đa ngôn ngữ, phải xác định chỉ số theo đơn vị mã UTF-16 và tránh cắt giữa cặp surrogate. Nếu ứng dụng cần chọn theo **code point**, hãy dùng các API như `codePointCount()`, `offsetByCodePoints()` hoặc thao tác trên `codePoints()` rồi mới xác định đoạn cần lấy. Cắt đúng ranh giới code point cũng chưa bảo đảm giữ nguyên mọi cụm ký tự hiển thị, ví dụ ký tự kèm dấu kết hợp.
+The printed numbers are `4`, `2`, `1`, and `1` respectively. The range `[1, 3)` keeps the emoji's surrogate pair intact; the range `[1, 2)` splits the pair in half, producing a string with an unpaired surrogate. When processing multilingual text, determine indices in UTF-16 code units and avoid slicing in the middle of a surrogate pair. If your application needs to slice by **code point**, use APIs such as `codePointCount()`, `offsetByCodePoints()`, or operate on `codePoints()` before determining the slice to take. Even slicing on code point boundaries does not guarantee keeping every visual character cluster intact, such as characters with combining marks.
 
-**Phân biệt `char[]` với `byte[]`:** constructor nhận `char[]` không giải mã encoding. Với dữ liệu là byte, phải dùng cơ chế giải mã và chỉ định charset phù hợp, chẳng hạn `new String(bytes, StandardCharsets.UTF_8)`. Không ép byte thành char một cách tùy tiện để thay cho decoding.
+**Distinguishing `char[]` from `byte[]`:** constructors taking `char[]` do not decode an encoding. For byte data, you must use a decoding mechanism and specify the appropriate charset, such as `new String(bytes, StandardCharsets.UTF_8)`. Never cast bytes to chars arbitrarily as a substitute for decoding.
 
-## 6. Cách viết tương đương và lựa chọn sử dụng
+## 6. Equivalent Forms and Usage Choices
 
-Các lời gọi sau tạo chuỗi có cùng **giá trị nội dung** khi đầu vào hợp lệ:
+The following calls create strings with the same **content value** when inputs are valid:
 
 ~~~java
 char[] data = {'H', 'e', 'l', 'l', 'o'};
@@ -195,18 +195,18 @@ String partB = String.valueOf(data, 1, 3);
 String partC = String.copyValueOf(data, 1, 3);
 ~~~
 
-Kết quả: `a`, `b`, `c` cùng có giá trị `"Hello"`; `partA`, `partB`, `partC` cùng có giá trị `"ell"`. Những lời gọi trong nhóm tạo chuỗi từ `char[]` đều lấy nội dung tại thời điểm gọi. Có thể sử dụng `new String(chars, offset, count)` khi muốn diễn đạt rõ việc tạo một phần mảng; `String.valueOf(...)` cũng là lựa chọn quen thuộc.
+Result: `a`, `b`, `c` all have the value `"Hello"`; `partA`, `partB`, `partC` all have the value `"ell"`. All calls in the group creating a string from `char[]` capture the content at invocation time. You can use `new String(chars, offset, count)` when you want to clearly express creating from a slice of an array; `String.valueOf(...)` is also a familiar choice.
 
-Không nhầm với:
+Do not confuse with:
 
-- `Arrays.toString(data)`: tạo dạng hiển thị phần tử mảng như `"[H, e, l, l, o]"`, **khác** `"Hello"`.
-- `new String(data, 1, 4)`: lấy **bốn** ký tự từ chỉ số 1, tức `"ello"`; không phải lấy từ chỉ số 1 **đến** chỉ số 4 theo nghĩa điểm cuối.
-- `new String(data, 0, data.length + 1)`: vượt vùng hợp lệ và gây ngoại lệ.
-- `StringBuilder`: hữu ích khi cần nối/thay đổi ký tự liên tục trước khi tạo kết quả `String`; nó không bắt buộc cho việc sao chép một đoạn `char[]` đã có sẵn.
+- `Arrays.toString(data)`: produces an array-element display format such as `"[H, e, l, l, o]"`, **different** from `"Hello"`.
+- `new String(data, 1, 4)`: takes **four** characters starting at index 1, i.e., `"ello"`; it does not take from index 1 **to** index 4 as an end index.
+- `new String(data, 0, data.length + 1)`: exceeds the valid range and throws an exception.
+- `StringBuilder`: useful when continuously appending/modifying characters before producing a `String` result; it is unnecessary for copying an existing `char[]` slice.
 
-## 7. Tình huống thực tế: chỉ lấy phần dữ liệu đã đọc
+## 7. Real-World Scenario: Taking Only the Data Actually Read
 
-Khi đọc vào bộ đệm `char[]` từ một `Reader`, số ký tự thực sự được đọc thường nhỏ hơn kích thước toàn bộ bộ đệm. Với đoạn mã **đặt trong phương thức có quyền ném `IOException`** và biến `reader` là một `java.io.Reader` đang mở:
+When reading into a `char[]` buffer from a `Reader`, the number of characters actually read is often smaller than the total buffer size. In a snippet **placed inside a method allowed to throw `IOException`** where `reader` is an open `java.io.Reader`:
 
 ~~~java
 char[] buffer = new char[1024];
@@ -217,27 +217,27 @@ if (count != -1) {
 }
 ~~~
 
-`reader.read(buffer)` trả về số đơn vị `char` đã được ghi vào buffer hoặc `-1` nếu hết dữ liệu; dùng `count` để chỉ lấy phần có dữ liệu. Nếu dùng `new String(buffer)`, kết quả có thể chứa các phần tử chưa được đọc hoặc còn sót từ lần đọc trước. Nếu muốn ghép toàn bộ nội dung đọc qua nhiều lần, hãy tích lũy bằng `StringBuilder` hoặc cơ chế xử lý dòng/stream phù hợp. Với dữ liệu Unicode, cần chú ý ranh giới surrogate khi xử lý độc lập từng chunk.
+`reader.read(buffer)` returns the number of `char` units written into the buffer, or `-1` on end-of-stream; use `count` to take only the populated portion. If you use `new String(buffer)`, the result may contain unread elements or leftovers from a previous read. If you want to assemble the entire content across multiple reads, accumulate using `StringBuilder` or an appropriate line/stream processing mechanism. With Unicode data, watch out for surrogate boundaries when processing each chunk independently.
 
-## 8. Tự kiểm tra
+## 8. Self-Check
 
-**Câu 1.** Cho `char[] a = {'0', '1', '2', '3', '4'};`, `new String(a, 2, 2)` trả về gì?
+**Question 1.** Given `char[] a = {'0', '1', '2', '3', '4'};`, what does `new String(a, 2, 2)` return?
 
-Đáp án: `"23"`, vì lấy các phần tử chỉ số 2 và 3.
+Answer: `"23"`, because it takes the elements at indices 2 and 3.
 
-**Câu 2.** Mảng có độ dài 5. `new String(a, 5, 0)` và `new String(a, 5, 1)` khác nhau thế nào?
+**Question 2.** An array has length 5. How do `new String(a, 5, 0)` and `new String(a, 5, 1)` differ?
 
-Đáp án: lời gọi đầu hợp lệ và tạo chuỗi rỗng; lời gọi sau yêu cầu phần tử ở chỉ số 5 (không tồn tại), nên gây `IndexOutOfBoundsException`.
+Answer: the first call is valid and creates an empty string; the second requests an element at index 5 (which does not exist), so it throws `IndexOutOfBoundsException`.
 
-**Câu 3.** Vì sao tạo `String` rồi sửa `char[]` không thay đổi giá trị `String`?
+**Question 3.** Why does modifying `char[]` after creating a `String` not change the `String`'s value?
 
-Đáp án: constructor đã sao chép nội dung mảng, còn `String` là kiểu bất biến.
+Answer: the constructor copied the array's contents, and `String` is an immutable type.
 
-**Câu 4.** `count = 1` có luôn nghĩa là một ký tự Unicode hoàn chỉnh?
+**Question 4.** Does `count = 1` always mean one complete Unicode character?
 
-Đáp án: không. `count` tính đơn vị mã UTF-16; một code point bổ sung có thể cần hai `char`, và một cụm ký tự hiển thị có thể gồm nhiều code point.
+Answer: no. `count` counts UTF-16 code units; a supplementary code point can require two `char`s, and a visible character cluster can consist of multiple code points.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 17 — String constructors](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): mô tả chính thức về sao chép mảng, `offset`, `count` và ngoại lệ.
-- [Java SE 17 — Character](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html): cách Java biểu diễn Unicode code point và surrogate pair.
+- [Java SE 17 — String constructors](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): official description of array copying, `offset`, `count`, and exceptions.
+- [Java SE 17 — Character](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html): how Java represents Unicode code points and surrogate pairs.

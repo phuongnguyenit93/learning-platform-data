@@ -1,48 +1,48 @@
-# Toán tử điều kiện `?:` và các quy tắc đặc biệt cho số trong Java
+# Conditional operator `?:` and special numeric rules in Java
 
-## 1. `?:` làm gì, và vì sao kiểu số đôi khi gây bất ngờ?
+## 1. What does `?:` do, and why do numeric types sometimes surprise you?
 
-Toán tử điều kiện ba ngôi (*conditional operator*) của Java có cú pháp:
+Java's ternary conditional operator has the syntax:
 
 ~~~java
 condition ? valueIfTrue : valueIfFalse
 ~~~
 
-Đây là **cú pháp minh họa**, không phải một chương trình Java độc lập. `condition` phải có kiểu `boolean` hoặc `Boolean` (được unbox thành `boolean`). Khi điều kiện là `true`, Java đánh giá toán hạng thứ hai; khi là `false`, Java đánh giá toán hạng thứ ba. **Chỉ nhánh được chọn mới được đánh giá khi chạy**.
+This is **illustrative syntax**, not a standalone Java program. `condition` must have type `boolean` or `Boolean` (unboxed to `boolean`). When the condition is `true`, Java evaluates the second operand; when `false`, Java evaluates the third operand. **Only the chosen branch is evaluated at runtime**.
 
-Ví dụ:
+Example:
 
 ~~~java
 int stock = 12;
 int remaining = stock > 0 ? stock : 0;
 ~~~
 
-Kết quả `remaining` bằng `12`. Với dữ liệu số học, người học thường dự đoán “Java lấy kiểu của nhánh chạy thực tế”. Điều đó **không đúng**: **kiểu của toàn bộ biểu thức `?:` được xác định lúc biên dịch từ kiểu của *cả hai nhánh***, kể cả nhánh không được chọn lúc chạy.
+The result `remaining` is `12`. With numeric data, learners often assume "Java takes the type of the branch that actually runs." That is **incorrect**: **the type of the entire `?:` expression is determined at compile time from the types of *both branches***, including the branch not chosen at runtime.
 
-Đặc biệt, `?:` có các **ngoại lệ so với nâng kiểu số thông thường (*binary numeric promotion*)**. Biểu thức `byte b = 10; byte x = flag ? b : 20;` có thể hợp lệ dù một nhánh là literal `int`, bởi `20` là biểu thức hằng `int` nằm trong miền `byte`. Nhưng thay `20` bằng một biến `int` bình thường có thể khiến kiểu kết quả trở thành `int`, không thể gán trực tiếp cho `byte`.
+In particular, `?:` has **exceptions compared to ordinary binary numeric promotion**. The expression `byte b = 10; byte x = flag ? b : 20;` can be valid even though one branch is an `int` literal, because `20` is an `int` constant expression within the `byte` range. However, replacing `20` with an ordinary `int` variable can make the result type `int`, which cannot be directly assigned to `byte`.
 
-Để dùng đúng `?:` trong phần số học Java, cần phân biệt:
+To use `?:` correctly with Java numbers, distinguish:
 
-1. **Nhánh nào chạy?** Chọn đúng một nhánh theo `boolean`.
-2. **Kiểu toàn biểu thức là gì?** Trình biên dịch quyết định theo quy tắc của `?:`.
-3. **Giá trị nhánh được chọn có cần chuyển kiểu?** Có thể có nâng kiểu số, unboxing hoặc chuyển đổi khác theo loại biểu thức.
-4. **Kết quả có an toàn không?** Chuyển sang `float`/`double` có thể mất chính xác; unboxing `null` có thể ném `NullPointerException`.
+1. **Which branch runs?** Exactly one branch is chosen based on the `boolean`.
+2. **What is the type of the whole expression?** The compiler decides according to the rules of `?:`.
+3. **Does the chosen branch's value need conversion?** There may be numeric promotion, unboxing, or another conversion depending on the expression category.
+4. **Is the result safe?** Converting to `float`/`double` can lose precision; unboxing `null` can throw `NullPointerException`.
 
-## 2. Phân loại ba dạng biểu thức điều kiện
+## 2. Classification of three kinds of conditional expressions
 
-Đặc tả ngôn ngữ Java, mục `15.25`, phân biệt ba dạng:
+The Java Language Specification, section `15.25`, distinguishes three forms:
 
-| Dạng | Ví dụ | Quy tắc kiểu đáng chú ý |
+| Form | Example | Notable typing rule |
 |---|---|---|
-| **Boolean conditional expression** | `flag ? true : false` | Kiểu `boolean` hoặc `Boolean` tùy kiểu hai nhánh |
-| **Numeric conditional expression** | `flag ? 1 : 2L` | Tuân theo các quy tắc riêng cho kiểu số; ví dụ cho `long` |
-| **Reference conditional expression** | `flag ? "yes" : "no"` | Có thể là *poly expression* chịu ảnh hưởng ngữ cảnh kiểu đích |
+| **Boolean conditional expression** | `flag ? true : false` | Type `boolean` or `Boolean` depending on the two branches |
+| **Numeric conditional expression** | `flag ? 1 : 2L` | Follows special rules for numeric types; e.g., yields `long` |
+| **Reference conditional expression** | `flag ? "yes" : "no"` | Can be a *poly expression* influenced by target type context |
 
-Bài học này tập trung vào **numeric conditional expressions**, tức khi nhánh thứ hai và thứ ba thuộc kiểu số nguyên thủy hoặc lớp bao tương ứng và được phân loại là biểu thức số theo đặc tả. Các nhánh như `String` và `null` có thể dẫn đến **reference conditional expression** với quy tắc riêng, nên không áp dụng máy móc bảng quy tắc số ở đây.
+This lesson focuses on **numeric conditional expressions**, i.e., when the second and third operands are primitive numeric types or their corresponding wrapper classes and are classified as numeric expressions under the specification. Branches such as `String` and `null` can lead to a **reference conditional expression** with its own rules, so do not mechanically apply the numeric table here.
 
-Với biểu thức điều kiện kiểu số, Java xác định kiểu dựa vào **cả hai toán hạng của nhánh**. Đây là *standalone expression*: kiểu của nó **không được thay đổi chỉ vì biến bên trái có kiểu mong muốn**. Ví dụ, nếu hai nhánh khiến kiểu kết quả là `int`, viết `byte result = ...` không tự buộc kết quả trở thành `byte`.
+For a numeric conditional expression, Java determines the type based on **both branch operands**. It is a *standalone expression*: its type **does not change just because the variable on the left has a desired type**. For example, if the two branches make the result type `int`, writing `byte result = ...` does not force the result to become `byte`.
 
-### Sơ đồ đánh giá khi chạy
+### Runtime evaluation diagram
 
 ~~~text
                  condition
@@ -51,107 +51,107 @@ Với biểu thức điều kiện kiểu số, Java xác định kiểu dựa v
                   /     \
               true      false
                |          |
-        đánh giá nhánh 2  đánh giá nhánh 3
+        eval branch 2   eval branch 3
                \          /
-               chuyển đổi giá trị đã chọn
+             convert chosen value
                        |
-                giá trị biểu thức ?:
+                value of ?: expr
 ~~~
 
-Sơ đồ này mô tả **thứ tự chạy**; kiểu kết quả đã được trình biên dịch xác định **trước** giai đoạn chạy. Nếu điều kiện là đối tượng `Boolean` mang `null`, việc unboxing điều kiện ném `NullPointerException` trước khi chọn nhánh nào.
+This diagram describes the **runtime order**; the result type has already been determined by the compiler **before** runtime. If the condition is a `Boolean` object holding `null`, unboxing the condition throws `NullPointerException` before either branch is selected.
 
-## 3. Các quy tắc kiểu đặc biệt cho biểu thức số
+## 3. Special typing rules for numeric expressions
 
-Theo đặc tả, khi hai nhánh là biểu thức số, kiểm tra lần lượt:
+According to the specification, when both branches are numeric expressions, check in order:
 
-1. **Hai nhánh có cùng kiểu:** kiểu kết quả là chính kiểu đó. Ví dụ `flag ? 1 : 2` là `int`; `flag ? 1L : 2L` là `long`; `flag ? someByte : otherByte` là `byte`.
-2. **Một nhánh có kiểu primitive `T` và nhánh kia đúng lớp bao `T`:** kiểu kết quả là primitive `T`; chẳng hạn `byte` với `Byte` cho `byte`. Nhánh lớp bao có thể phải unbox.
-3. **Một nhánh là `byte` hoặc `Byte`, nhánh kia là `short` hoặc `Short`:** kiểu kết quả **`short`** (dù dùng lớp bao ở một hoặc cả hai nhánh).
-4. **Một nhánh `byte`, `short` hoặc `char`, nhánh còn lại là *constant expression* kiểu `int` nằm trong miền kiểu nhỏ đó:** kết quả có **kiểu nhỏ tương ứng**. Ví dụ `byte` với hằng `int` `100` cho `byte`.
-5. **Tương tự với lớp bao `Byte`, `Short`, `Character` và hằng `int` phù hợp miền primitive bên trong:** kết quả là **primitive đã unbox**, ví dụ `Byte` với hằng `int` `100` cho `byte`.
-6. **Nếu không thuộc các trường hợp trên:** thực hiện **nâng kiểu số tổng quát** (*numeric promotion*) lên kiểu chung; ví dụ `char` với `short` thành `int`, `int` với `long` thành `long`, `long` với `float` thành `float`, `float` với `double` thành `double`.
+1. **Both branches have the same type:** the result type is that same type. For example, `flag ? 1 : 2` is `int`; `flag ? 1L : 2L` is `long`; `flag ? someByte : otherByte` is `byte`.
+2. **One branch has primitive type `T` and the other has the exact wrapper class for `T`:** the result type is primitive `T`; for instance, `byte` with `Byte` yields `byte`. The wrapper branch may have to be unboxed.
+3. **One branch is `byte` or `Byte`, and the other is `short` or `Short`:** the result type is **`short`** (even if a wrapper is used in one or both branches).
+4. **One branch is `byte`, `short`, or `char`, and the other is an `int` *constant expression* representable in that smaller type:** the result has **that corresponding smaller type**. For example, `byte` with `int` constant `100` yields `byte`.
+5. **Similarly, with wrapper `Byte`, `Short`, `Character` and an `int` constant fitting the underlying primitive range:** the result is the **unboxed primitive**, e.g., `Byte` with `int` constant `100` yields `byte`.
+6. **If none of the above apply:** perform general **numeric promotion** to a common type; for example, `char` with `short` becomes `int`, `int` with `long` becomes `long`, `long` with `float` becomes `float`, and `float` with `double` becomes `double`.
 
-Điều thứ tư và thứ năm là hai ngoại lệ dễ bỏ sót. Không phải cứ có một nhánh kiểu `int` thì kết quả luôn là `int`; tuy nhiên **hằng số phải có kiểu `int`, là constant expression và nằm trong miền của kiểu hẹp**.
+The fourth and fifth items are two easily overlooked exceptions. Having an `int` branch does not always make the result `int`; however, **the constant must have type `int`, be a constant expression, and fit within the narrow type's range**.
 
-Bảng ví dụ (giả sử `flag` là `boolean` và các biến đúng kiểu đã ghi):
+Example table (assuming `flag` is `boolean` and variables have the stated types):
 
-| Hai nhánh `?:` | Kiểu của cả biểu thức | Vì sao |
+| Two branches of `?:` | Type of whole expression | Why |
 |---|---|---|
-| `byte / byte` | `byte` | Cùng kiểu |
-| `short / short` | `short` | Cùng kiểu |
-| `byte / short` | `short` | Ngoại lệ `byte`–`short` |
-| `byte / 100` | `byte` | `100` là hằng `int` nằm trong miền `byte` |
-| `byte / 200` | `int` | `200` không nằm trong miền `byte` |
-| `char / 65` | `char` | Hằng `int` `65` nằm trong miền `char` |
-| `char / -1` | `int` | `-1` không nằm trong miền `char` |
+| `byte / byte` | `byte` | Same type |
+| `short / short` | `short` | Same type |
+| `byte / short` | `short` | `byte`–`short` exception |
+| `byte / 100` | `byte` | `100` is an `int` constant within `byte` range |
+| `byte / 200` | `int` | `200` is not within `byte` range |
+| `char / 65` | `char` | `int` constant `65` is within `char` range |
+| `char / -1` | `int` | `-1` is not within `char` range |
 | `char / short` | `int` | Numeric promotion |
-| `short / intVariable` | `int` | Biến `int` bình thường, không phải constant expression |
+| `short / intVariable` | `int` | Ordinary `int` variable, not a constant expression |
 | `int / long` | `long` | Numeric promotion |
-| `long / float` | `float` | Numeric promotion; có thể mất chính xác |
+| `long / float` | `float` | Numeric promotion; may lose precision |
 | `float / double` | `double` | Numeric promotion |
 
-Ở cột đầu, dấu `/` **chỉ phân cách kiểu của hai nhánh**, không biểu thị phép chia. Kiểu chung là quy tắc **biên dịch**, không phụ thuộc vào việc `flag` cuối cùng đúng hay sai.
+In the first column, the `/` symbol **only separates the types of the two branches**, and does not denote division. The common type is a **compile-time** rule, independent of whether `flag` ends up true or false.
 
-## 4. Ngoại lệ `byte`–`short`: kết quả có kiểu `short`
+## 4. The `byte`–`short` exception: result has type `short`
 
-Các biểu thức số học hai ngôi như `byteValue + shortValue` thường được nâng lên `int`. Nhưng `flag ? byteValue : shortValue` là trường hợp **đặc biệt**, kiểu kết quả là `short`:
+Binary arithmetic expressions like `byteValue + shortValue` are normally promoted to `int`. Yet `flag ? byteValue : shortValue` is a **special** case whose result type is `short`:
 
 ~~~java
 boolean flag = true;
 byte small = 10;
 short medium = 20;
 
-short chosen = flag ? small : medium; // hợp lệ
-// byte invalid = flag ? small : medium; // lỗi biên dịch: kết quả short
+short chosen = flag ? small : medium; // valid
+// byte invalid = flag ? small : medium; // compile error: result is short
 ~~~
 
-Đoạn minh họa có thể đặt vào `main`. Nếu `flag` là `true`, giá trị `10` của `byte` được mở rộng thành `short`; nếu `false`, chọn giá trị `20` kiểu `short`. **Kiểu tổng thể vẫn là `short` trong cả hai trường hợp**.
+This illustrative snippet can be placed in `main`. If `flag` is `true`, the `byte` value `10` is widened to `short`; if `false`, the `short` value `20` is chosen. **The overall type remains `short` in both cases**.
 
-Những lớp bao tương ứng cũng chịu quy tắc này: `Byte` với `short` hoặc `Short` với `byte` có thể tạo biểu thức kiểu `short` và cần unbox ở nhánh được chọn.
+The corresponding wrapper classes are also subject to this rule: `Byte` with `short` or `Short` with `byte` can produce an expression of type `short` and require unboxing on the chosen branch.
 
-Lưu ý khác biệt khi **cộng**:
+Note the difference when **adding**:
 
 ~~~java
 byte small = 10;
 short medium = 20;
-int sum = small + medium;  // int, vì phép cộng nâng kiểu
+int sum = small + medium;  // int, because addition promotes
 short selection = true ? small : medium; // short
 ~~~
 
-Cùng hai kiểu toán hạng nhưng **hai toán tử khác nhau có hệ quy tắc kiểu khác nhau**.
+Same two operand types, yet **two different operators have different typing rule sets**.
 
-## 5. Hằng `int` vừa miền kiểu nhỏ: `byte`, `short`, `char`
+## 5. `int` constants fitting small type ranges: `byte`, `short`, `char`
 
-Giả sử có `byte small = 10;`:
+Suppose `byte small = 10;`:
 
 ~~~java
 boolean flag = true;
 byte small = 10;
 
-byte a = flag ? small : 20;      // byte: 20 nằm trong [-128, 127]
-int b = flag ? small : 200;      // int: 200 ngoài miền byte
-// byte invalid = flag ? small : 200; // lỗi: toàn biểu thức kiểu int
+byte a = flag ? small : 20;      // byte: 20 is in [-128, 127]
+int b = flag ? small : 200;      // int: 200 is outside byte range
+// byte invalid = flag ? small : 200; // error: whole expression is int
 ~~~
 
-Dù nhánh được chọn có thể là `small` và mang giá trị `10`, trình biên dịch vẫn xét **cả hai nhánh**. Đổi `flag` thành `true` cố định không biến biểu thức có kiểu `int` thành `byte` theo quy tắc `?:`; kết quả kiểu phải được suy ra trước khi xét gán vào biến đích.
+Even though the chosen branch might be `small` with value `10`, the compiler still examines **both branches**. Changing `flag` to a fixed `true` does not turn an `int`-typed expression into `byte` under `?:` rules; the expression type must be inferred before checking assignment to the target variable.
 
-Với `short` và `char` cũng tương tự:
+The same applies to `short` and `char`:
 
 ~~~java
 short count = 123;
 char letter = 'A';
 
-short s = true ? count : 30_000;   // short: 30000 vừa miền
-char c = true ? letter : 65;       // char: 65 vừa miền
-int x = true ? letter : -1;        // int: -1 không vừa char
-int y = true ? count : 40_000;     // int: 40000 ngoài miền short
+short s = true ? count : 30_000;   // short: 30000 fits in range
+char c = true ? letter : 65;       // char: 65 fits in range
+int x = true ? letter : -1;        // int: -1 does not fit in char
+int y = true ? count : 40_000;     // int: 40000 is outside short range
 ~~~
 
-Đoạn mã là minh họa, không phải một class chạy độc lập.
+This code snippet is illustrative, not a standalone runnable class.
 
-### Biểu thức hằng khác với biến `int`
+### Constant expressions differ from `int` variables
 
-Một **biến `int` không phải `final`** không được xem là hằng thời điểm biên dịch, ngay cả khi tại runtime luôn bằng 20:
+A **non-`final` `int` variable** is not considered a compile-time constant, even if at runtime it is always 20:
 
 ~~~java
 byte small = 10;
@@ -160,18 +160,18 @@ final int constant = 20;
 
 byte first = true ? small : constant; // byte
 int second = true ? small : normal;   // int
-// byte invalid = true ? small : normal; // lỗi nếu gán vào byte
+// byte invalid = true ? small : normal; // error if assigned to byte
 ~~~
 
-Trong ví dụ, `constant` là **constant variable** vì kiểu primitive `int`, `final` và được khởi tạo bằng biểu thức hằng. Một biến `final int` được gán từ kết quả runtime, chẳng hạn lời gọi phương thức, **không tự trở thành constant variable**.
+In the example, `constant` is a **constant variable** because it has primitive type `int`, is `final`, and is initialized with a constant expression. A `final int` variable assigned from a runtime result, such as a method call, **does not automatically become a constant variable**.
 
-Có thể viết các biểu thức hằng như `10 + 10` hoặc `(1 << 5)` khi chúng đáp ứng quy tắc *constant expression*. Nhưng nếu biểu thức có kiểu `long`, ví dụ `20L`, thì ngoại lệ “hằng kiểu `int`” **không áp dụng**; `byte` với `20L` cho `long` theo numeric promotion.
+You can write constant expressions like `10 + 10` or `(1 << 5)` when they satisfy *constant expression* rules. However, if the expression has type `long`, such as `20L`, the "`int` constant" exception **does not apply**; `byte` with `20L` yields `long` via numeric promotion.
 
-## 6. Cách kiểm chứng **kiểu biên dịch**, không chỉ nhìn giá trị in ra
+## 6. How to verify the **compile-time type**, rather than just looking at printed values
 
-Nếu in `System.out.println(flag ? small : 20)`, bạn chỉ thấy số `10` hoặc `20`, không biết biểu thức mang kiểu `byte` hay `int`. Có thể dùng **overload** để quan sát lựa chọn của trình biên dịch.
+If you print `System.out.println(flag ? small : 20)`, you only see the number `10` or `20`, without knowing whether the expression has type `byte` or `int`. You can use **overloading** to observe the compiler's choice.
 
-Tạo tệp `ConditionalNumericTypeDemo.java`:
+Create the file `ConditionalNumericTypeDemo.java`:
 
 ~~~java
 public class ConditionalNumericTypeDemo {
@@ -202,14 +202,14 @@ public class ConditionalNumericTypeDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or higher:
 
 ~~~bash
 javac ConditionalNumericTypeDemo.java
 java ConditionalNumericTypeDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 byteShort=short
@@ -222,44 +222,44 @@ intLong=long
 intDouble=double
 ~~~
 
-Đây là **kiểu tĩnh của kết quả `?:`** được Java chọn tại vị trí gọi `kind`. Đặc biệt, dù `flag` đang là `true` và nhánh `small` có giá trị 10, dòng `byteIntOutside` vẫn gọi overload `kind(int)` vì nhánh không được chọn là hằng `200` vượt miền `byte`.
+This shows the **static type of the `?:` result** chosen by Java at the `kind` call site. Notably, even though `flag` is `true` and the `small` branch has value 10, the `byteIntOutside` line still calls the `kind(int)` overload because the unchosen branch is constant `200`, which exceeds the `byte` range.
 
-Bằng cách tương tự, trong môi trường Java 10+ có thể dùng `var result = flag ? small : medium;`. `var` suy diễn **kiểu tĩnh của biểu thức bên phải** là `short`; `var` không tự giữ kiểu của nhánh runtime.
+Similarly, in Java 10+, you can use `var result = flag ? small : medium;`. `var` infers the **static type of the right-hand expression** as `short`; `var` does not dynamically keep the type of the runtime branch.
 
-## 7. Wrapper `Byte`, `Short`, `Character` và unboxing
+## 7. Wrappers `Byte`, `Short`, `Character`, and unboxing
 
-Java hỗ trợ lớp bao cho primitive: `Byte`, `Short`, `Character`, `Integer`, `Long`, `Float`, `Double`. Với `?:` dạng số, **box/unbox có thể xảy ra** để đưa hai nhánh về kiểu kết quả.
+Java provides wrapper classes for primitives: `Byte`, `Short`, `Character`, `Integer`, `Long`, `Float`, and `Double`. With numeric `?:`, **boxing/unboxing can occur** to bring both branches to the result type.
 
-### Kết hợp primitive và wrapper đúng cặp
+### Combining a matching primitive and wrapper pair
 
-Ví dụ:
+Example:
 
 ~~~java
 Byte wrapper = Byte.valueOf((byte) 10);
 byte primitive = 20;
-byte chosen = true ? wrapper : primitive; // byte: wrapper được unbox
+byte chosen = true ? wrapper : primitive; // byte: wrapper is unboxed
 ~~~
 
-Biểu thức kết quả là **`byte`**, không phải `Byte`. Nếu wrapper là `null` và nhánh wrapper được chọn, phép unbox ném `NullPointerException`.
+The resulting expression has type **`byte`**, not `Byte`. If `wrapper` is `null` and the wrapper branch is selected, unboxing throws `NullPointerException`.
 
-### Kết hợp wrapper với hằng `int` nằm trong miền
+### Combining a wrapper with an in-range `int` constant
 
 ~~~java
 Byte boxed = Byte.valueOf((byte) 5);
-int chosen = true ? boxed : 7; // biểu thức có kiểu byte, mở rộng khi gán int
+int chosen = true ? boxed : 7; // expression has type byte, widened on int assignment
 ~~~
 
-Ở đây, hằng `7` là `int` nằm trong miền `byte`, nên kết quả `?:` là **primitive `byte`**; khi gán cho `int` mới có thêm bước widening từ `byte` lên `int`.
+Here, the constant `7` is an `int` within the `byte` range, so the `?:` result is **primitive `byte`**; only upon assigning to `int` is there an additional widening step from `byte` to `int`.
 
-Ngược lại, `true ? boxed : 200` có kiểu `int` vì `200` không nằm trong miền `byte`, cũng có thể cần unbox nhánh `boxed`.
+Conversely, `true ? boxed : 200` has type `int` because `200` is not within `byte` range, and may also require unboxing the `boxed` branch.
 
-### Hai wrapper cùng một kiểu
+### Two wrappers of the same type
 
-`Byte first = ...; Byte second = ...;` thì `flag ? first : second` có kiểu **`Byte`** theo quy tắc hai nhánh cùng kiểu. Kết quả có thể là `null` mà chưa ném lỗi, miễn là chưa có bước unboxing. Đây là khác biệt quan trọng với một nhánh `Byte` và một nhánh primitive `byte`.
+Given `Byte first = ...; Byte second = ...;`, `flag ? first : second` has type **`Byte`** according to the rule for two branches of the same type. The result can be `null` without throwing an error, as long as no unboxing step occurs. This is an important difference from having one `Byte` branch and one primitive `byte` branch.
 
-### Ví dụ Java 17+ độc lập: lỗi `null` chỉ khi nhánh cần unbox được chọn
+### Standalone Java 17+ example: `null` error occurs only when the branch needing unboxing is selected
 
-Tạo tệp `ConditionalWrapperDemo.java`:
+Create the file `ConditionalWrapperDemo.java`:
 
 ~~~java
 public class ConditionalWrapperDemo {
@@ -295,7 +295,7 @@ javac ConditionalWrapperDemo.java
 java ConditionalWrapperDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 unselected=7
@@ -304,25 +304,25 @@ sameTypeKeepsNull=true
 nullCondition=NPE
 ~~~
 
-Giải thích:
+Explanation:
 
-1. `false ? missing : 7` chọn `7` và không đánh giá biến `missing` như toán hạng được chọn để unbox; do đó không gây lỗi.
-2. `true ? missing : 7` chọn `missing`: kiểu biểu thức số là `byte`, cần unbox đối tượng `null`, gây `NullPointerException`.
-3. Hai nhánh `Byte` cùng kiểu, kết quả biểu thức vẫn là tham chiếu `Byte`, có thể mang `null`.
-4. `condition` thuộc kiểu `Boolean` và chứa `null`; lỗi phát sinh khi unbox **điều kiện**, trước bước chọn nhánh.
+1. `false ? missing : 7` selects `7` and does not evaluate `missing` as the chosen operand to unbox; hence it causes no error.
+2. `true ? missing : 7` selects `missing`: the numeric expression type is `byte`, requiring unboxing of the `null` object, causing `NullPointerException`.
+3. Both branches are `Byte` of the same type, so the expression result stays a `Byte` reference, which can hold `null`.
+4. `condition` has type `Boolean` and holds `null`; the error occurs when unboxing the **condition**, before branch selection.
 
-Nếu cần diễn đạt rõ chính sách cho giá trị tùy chọn, có thể kiểm tra `null` trước hoặc chuyển sang câu lệnh `if`. Đừng xem `?:` là cơ chế tự động cung cấp giá trị mặc định an toàn khi có wrapper `null`.
+If you need to clearly express a policy for optional values, check `null` first or switch to an `if` statement. Do not treat `?:` as a mechanism that automatically provides a safe default when `null` wrappers are present.
 
-## 8. Nâng kiểu số thông thường khi không có ngoại lệ
+## 8. General numeric promotion when no exception applies
 
-Nếu không khớp các trường hợp đặc biệt, hai nhánh được đưa tới một kiểu số chung. Quy tắc cốt lõi:
+If none of the special cases match, both branches are brought to a common numeric type. Core rules:
 
-- Nếu có `double`, kết quả thường thành `double`.
-- Nếu không có `double` nhưng có `float`, kết quả thường thành `float`.
-- Nếu không có hai loại trên nhưng có `long`, kết quả thường thành `long`.
-- Các tổ hợp nhỏ còn lại (`byte`, `short`, `char`, `int`) thường thành `int`, **trừ những ngoại lệ ở phần trước**.
+- If `double` is present, the result normally becomes `double`.
+- If there is no `double` but `float` is present, the result normally becomes `float`.
+- If neither is present but `long` is present, the result normally becomes `long`.
+- Remaining small combinations (`byte`, `short`, `char`, `int`) normally become `int`, **except for the special cases in the earlier section**.
 
-Ví dụ:
+Example:
 
 ~~~java
 boolean flag = true;
@@ -334,22 +334,22 @@ long count = flag ? 12 : 30L;        // long: int/long
 double ratio = flag ? 1.25f : 2.0;  // double: float/double
 ~~~
 
-Đây là đoạn minh họa. Hãy lưu ý rằng kiểu chung có thể dẫn đến **mất chính xác**:
+This is an illustrative snippet. Note that the common type can lead to **loss of precision**:
 
 ~~~java
 long huge = 9_007_199_254_740_993L; // 2^53 + 1
-double number = true ? huge : 0.0; // long được chuyển sang double
+double number = true ? huge : 0.0; // long is converted to double
 ~~~
 
-`double` không biểu diễn chính xác mọi số nguyên 64 bit. Ở ví dụ này, giá trị `huge` lớn hơn số nguyên chính xác cuối cùng liên tiếp của `double`, và chuyển đổi sang `double` có thể làm tròn thành `9007199254740992.0`. Chỉ dùng kiểu số dấu phẩy động khi sai số phù hợp với bài toán.
+`double` cannot represent every 64-bit integer exactly. In this example, the value `huge` is larger than `double`'s last consecutive exact integer, and converting to `double` can round it to `9007199254740992.0`. Only use floating-point types when rounding tolerance fits the problem.
 
-### Numeric promotion không phải toán tử cộng
+### Numeric promotion is not addition
 
-`flag ? a : b` **chọn một nhánh**, khác `a + b` là thực hiện phép cộng. Mặc dù cả hai có thể dùng cơ chế numeric promotion, **chúng không đánh giá cả hai nhánh để cộng lại**, và `?:` có quy tắc đặc biệt cho `byte`/`short`/`char` cùng hằng `int` mà phép cộng không có.
+`flag ? a : b` **selects one branch**, unlike `a + b` which performs addition. Even though both can use numeric promotion mechanisms, **they do not evaluate both branches to add them together**, and `?:` has special rules for `byte`/`short`/`char` with `int` constants that addition does not have.
 
-## 9. Chỉ nhánh được chọn chạy: side effect và ngoại lệ
+## 9. Only the selected branch runs: side effects and exceptions
 
-Tạo tệp `ConditionalEvaluationDemo.java`:
+Create the file `ConditionalEvaluationDemo.java`:
 
 ~~~java
 public class ConditionalEvaluationDemo {
@@ -383,7 +383,7 @@ javac ConditionalEvaluationDemo.java
 java ConditionalEvaluationDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 answer=42
@@ -392,30 +392,30 @@ second=7
 callsAfter=1
 ~~~
 
-Lý do: `notSelected()` **không chạy** trong cả hai lần dùng `?:` vì điều kiện không chọn nhánh đó. Nhưng trình biên dịch vẫn kiểm tra **kiểu** và cú pháp của cả hai nhánh. Đừng đặt các side effect quan trọng ở nhánh không chắc được chọn. Nếu hai nhánh chứa nhiều lệnh phức tạp, `if/else` thường dễ đọc và dễ kiểm soát hơn.
+Reason: `notSelected()` **does not run** in either `?:` expression because the condition does not choose that branch. Yet the compiler still checks the **types** and syntax of both branches. Avoid putting critical side effects in a branch that might not be chosen. If both branches involve multiple complex statements, `if/else` is usually easier to read and control.
 
-Cũng cần phân biệt với `Math.max(a, b)`: khi gọi phương thức, Java đánh giá cả hai biểu thức đối số trước khi gọi, trong khi `?:` chỉ đánh giá biểu thức nhánh được chọn.
+Also distinguish this from `Math.max(a, b)`: in a method call, Java evaluates both argument expressions before invoking the method, whereas `?:` evaluates only the selected branch expression.
 
-## 10. Kết hợp nhiều `?:`, độ ưu tiên và khả năng đọc
+## 10. Combining multiple `?:`, precedence, and readability
 
-Toán tử điều kiện liên kết **từ phải sang trái** (*right associative*):
+The conditional operator is **right-associative**:
 
 ~~~java
 int level = 2;
 int score = level == 1 ? 10 : level == 2 ? 20 : 30;
 ~~~
 
-Đây là mã minh họa; nó được hiểu là:
+This is illustrative code; it is parsed as:
 
 ~~~java
 int score = level == 1 ? 10 : (level == 2 ? 20 : 30);
 ~~~
 
-Kết quả bằng `20`. Nếu có nhiều điều kiện và nhánh cùng số, cần bảo đảm kiểu của các biểu thức `?:` lồng nhau, vì kiểu của biểu thức con có thể tác động lên kiểu biểu thức ngoài. Dùng ngoặc và đặt tên biến trung gian cho các trường hợp khó đọc.
+The result is `20`. If there are multiple nested numeric conditions and branches, pay attention to the types of nested `?:` expressions, because a subexpression's type can affect the outer expression's type. Use parentheses and intermediate named variables in hard-to-read cases.
 
-### Bẫy ưu tiên khi kết hợp phép toán
+### Precedence traps when combining operators
 
-Một số biểu thức dễ hiểu sai khi thiếu ngoặc:
+Some expressions are easy to misread when parentheses are omitted:
 
 ~~~java
 int a = 5;
@@ -424,67 +424,67 @@ int selected = a > b ? a : b;    // 5
 int result = (a > b ? a : b) + 1; // 6
 ~~~
 
-Đây là minh họa. Ngoặc ở `result` làm rõ phép cộng áp dụng lên **toàn bộ kết quả đã chọn**.
+This is illustrative. Parentheses in `result` make clear that addition applies to the **entire selected result**.
 
-Không nên viết quá nhiều toán tử `?:` nối tiếp cho một quy tắc nghiệp vụ có nhiều điều kiện lồng nhau. Dùng `if/else` hoặc phương thức có tên rõ nghĩa thường dễ đọc, dễ kiểm thử hơn.
+Do not chain too many `?:` operators for a business rule with multiple nested conditions. Using `if/else` or well-named helper methods is usually easier to read and test.
 
-## 11. So sánh với biểu thức số học và câu lệnh `if/else`
+## 11. Comparison with arithmetic expressions and `if/else` statements
 
-| Tình huống | `?:` | `if/else` hoặc phép toán khác |
+| Situation | `?:` | `if/else` or other operations |
 |---|---|---|
-| Chọn một trong hai giá trị số ngắn gọn | Phù hợp, ví dụ `flag ? a : b` | `if/else` cũng được nhưng dài hơn |
-| Hai nhánh có kiểu khác nhau | Cần hiểu quy tắc kiểu của `?:` | Có thể gán riêng sau kiểm tra miền |
-| Nhánh có nhiều bước hoặc side effect | Dễ khó đọc | `if/else` rõ luồng |
-| Cần xử lý wrapper có thể `null` | Có thể ném lỗi lúc unbox | Kiểm tra `null` và hợp đồng dữ liệu rõ ràng |
-| Cần loại bỏ kết quả mất chính xác | Phải xác định kiểu biểu thức trước | Dùng kiểu chính xác/chuyển đổi có kiểm tra |
-| Cần tính giá trị lớn/nhỏ nhất | `a > b ? a : b` | `Math.max(a, b)` thuận tiện cho số, nhưng biểu thức đối số được đánh giá theo cơ chế gọi phương thức |
+| Choosing concisely between two numeric values | Suitable, e.g., `flag ? a : b` | `if/else` also works but is longer |
+| Two branches have different types | Need to understand `?:` typing rules | Can assign separately after range checks |
+| Branch has multiple steps or side effects | Easily becomes hard to read | `if/else` shows control flow clearly |
+| Need to handle nullable wrappers | Can throw during unboxing | Explicit `null` checks and clear data contract |
+| Need to avoid precision loss | Must determine expression type beforehand | Use exact types / checked conversions |
+| Need maximum/minimum value | `a > b ? a : b` | `Math.max(a, b)` is convenient for numbers, though argument expressions are evaluated under method call mechanics |
 
-### Không nhầm kiểu của `?:` với kiểu phép gán
+### Do not confuse the type of `?:` with the assignment target type
 
-Ví dụ, cả hai nhánh đều là biểu thức `int`, nhưng kết quả lựa chọn nằm trong miền `byte`:
+For example, both branches are `int` expressions, even though the selected value falls in the `byte` range:
 
 ~~~java
 int left = 10;
 int right = 20;
-// byte value = true ? left : right; // không biên dịch
-int value = true ? left : right;    // hợp lệ
+// byte value = true ? left : right; // does not compile
+int value = true ? left : right;    // valid
 ~~~
 
-Dù tại runtime kết quả là 10, kiểu `?:` vẫn là `int`. Nếu muốn thu hẹp xuống `byte`, hãy kiểm tra miền rồi cast một cách có chủ ý, hoặc khai báo các nhánh là `byte` phù hợp khi mô hình dữ liệu thực sự là số 8 bit.
+Even though at runtime the result is 10, the type of `?:` is still `int`. If you want to narrow to `byte`, check bounds and cast intentionally, or declare the branches as `byte` appropriately when the data model truly represents 8-bit integers.
 
-Trường hợp khác: `flag ? (byte) 10 : 20` cho kiểu `byte` vì một nhánh là `byte` và nhánh kia là hằng `int` `20` nằm trong miền. Đây là ngoại lệ ở quy tắc `15.25.2`, không phải quá trình suy kiểu từ biến gán bên trái.
+Another case: `flag ? (byte) 10 : 20` has type `byte` because one branch is `byte` and the other is an in-range `int` constant `20`. This is the exception in rule `15.25.2`, not type inference from the variable on the left.
 
-## 12. Những lỗi phổ biến
+## 12. Common mistakes
 
-| Nhận định | Cách hiểu đúng |
+| Claim | Accurate understanding |
 |---|---|
-| “`?:` luôn làm binary numeric promotion như `+`.” | Có các ngoại lệ như `byte` với `short` cho `short`, hoặc `byte` với hằng `int` vừa miền cho `byte`. |
-| “`flag` đúng nên compiler chỉ xét kiểu nhánh thứ hai.” | Compiler vẫn xét kiểu của cả hai nhánh, dù nhánh kia không chạy. |
-| “`byte` với bất kỳ `int` đều thành `byte` nếu chọn nhánh `byte`.” | Chỉ có ngoại lệ khi nhánh `int` là **constant expression** và giá trị nằm trong miền. |
-| “`final int` luôn là hằng compile-time.” | Chỉ khi biến là *constant variable* được khởi tạo bằng biểu thức hằng hợp lệ. |
-| “`byte` với `short` thành `int` vì phép `+` làm vậy.” | Riêng numeric `?:` có kết quả `short`. |
-| “Hai nhánh `Byte` có kết quả `byte`.” | Nếu cùng kiểu `Byte`, biểu thức có kiểu `Byte`; trường hợp kết hợp primitive khác. |
-| “Nhánh không chạy vẫn được unbox.” | Nhánh không được chọn không đánh giá lúc chạy, nhưng điều kiện `Boolean` cần unbox trước và nhánh được chọn có thể cần unbox. |
-| “`null` an toàn vì Java tự chọn nhánh còn lại.” | Điều kiện mới quyết định nhánh; nếu chọn wrapper `null` cần unbox, sẽ có `NullPointerException`. |
-| “Kiểu kết quả được chọn theo biến ở vế trái.” | Numeric conditional là standalone expression, kiểu được xác định từ nhánh. |
-| “`long` với `float` không mất dữ liệu vì cả hai đều nhiều bit.” | Chuyển `long` sang `float` có thể làm tròn/mất chính xác. |
+| "`?:` always performs binary numeric promotion like `+`." | There are exceptions such as `byte` with `short` yielding `short`, or `byte` with an in-range `int` constant yielding `byte`. |
+| "`flag` is true so the compiler only checks the second branch's type." | The compiler still checks the types of both branches, even though the other branch does not run. |
+| "`byte` with any `int` becomes `byte` if the `byte` branch is selected." | The exception applies only when the `int` branch is a **constant expression** whose value fits in range. |
+| "`final int` is always a compile-time constant." | Only when the variable is a *constant variable* initialized with a valid constant expression. |
+| "`byte` with `short` becomes `int` because `+` does so." | Specifically for numeric `?:`, the result is `short`. |
+| "Two `Byte` branches produce `byte`." | If both have type `Byte`, the expression has type `Byte`; mixing with a primitive behaves differently. |
+| "The non-running branch is still unboxed." | The unselected branch is not evaluated at runtime, though a `Boolean` condition must be unboxed first and the selected branch may need unboxing. |
+| "`null` is safe because Java automatically picks the other branch." | The condition determines the branch; if a `null` wrapper requiring unboxing is selected, `NullPointerException` occurs. |
+| "The result type is chosen from the variable on the left." | Numeric conditional is a standalone expression; its type is determined from the branches. |
+| "`long` with `float` loses no data because both have many bits." | Converting `long` to `float` can round / lose precision. |
 
-## 13. Quy trình đọc một biểu thức `?:` số
+## 13. Process for reading a numeric `?:` expression
 
-Khi gặp `condition ? x : y`:
+When encountering `condition ? x : y`:
 
-1. Xác minh `condition` có kiểu `boolean` hoặc `Boolean`; với `Boolean` lưu ý trường hợp `null`.
-2. Xác định **kiểu tĩnh** của `x` và `y`, không chỉ giá trị đang giữ.
-3. Kiểm tra có cùng kiểu hoặc cặp primitive-wrapper tương ứng không.
-4. Kiểm tra ngoại lệ `byte`/`Byte` với `short`/`Short`.
-5. Kiểm tra một nhánh `byte`/`short`/`char` (hoặc wrapper tương ứng) và nhánh kia là **hằng `int` nằm trong miền** hay không.
-6. Nếu không, áp dụng numeric promotion để xác định kiểu chung.
-7. Xác minh phép chuyển từ nhánh được chọn sang kiểu kết quả: có mất chính xác số học hoặc unboxing `null` không?
-8. Cuối cùng, xem kiểu biểu thức đó có gán được cho biến đích hay không; nếu không, chọn kiểu đích đủ rộng hoặc kiểm tra/ép kiểu rõ ràng.
+1. Verify `condition` has type `boolean` or `Boolean`; for `Boolean`, note the `null` case.
+2. Determine the **static types** of `x` and `y`, not just the values they currently hold.
+3. Check whether they have the same type or a matching primitive-wrapper pair.
+4. Check for the `byte`/`Byte` with `short`/`Short` exception.
+5. Check whether one branch is `byte`/`short`/`char` (or its wrapper) and the other is an **in-range `int` constant**.
+6. Otherwise, apply numeric promotion to determine the common type.
+7. Verify the conversion from the chosen branch to the result type: could there be numeric precision loss or `null` unboxing?
+8. Finally, check whether that expression type is assignable to the target variable; if not, choose a wide enough target type or check/cast explicitly.
 
-### Bài tập tự kiểm tra
+### Self-check exercises
 
-Giả sử:
+Assume:
 
 ~~~java
 boolean flag = true;
@@ -496,24 +496,24 @@ final int fixed = 5;
 Byte boxed = Byte.valueOf((byte) 5);
 ~~~
 
-Đây là đoạn khởi tạo dùng chung cho các câu hỏi, chưa phải class hoàn chỉnh.
+This is a shared initialization snippet for the questions, not a complete class.
 
-1. Kiểu của `flag ? b : s` là gì?
-2. Kiểu của `flag ? b : 5` là gì?
-3. Kiểu của `flag ? b : ordinary` là gì, dù `ordinary` hiện bằng 5?
-4. Kiểu của `flag ? b : fixed` là gì?
-5. Kiểu của `flag ? c : s` là gì?
-6. Kiểu của `flag ? boxed : 5` là `Byte`, `byte` hay `int`?
-7. Kiểu của `flag ? b : 500` là gì?
-8. Nếu `Byte missing = null;` thì `true ? missing : 5` có thể ném ngoại lệ nào?
-9. Viết kiểu kết quả của `flag ? 5L : 2.5f`. Có đảm bảo mọi giá trị `long` chuyển sang kiểu đó chính xác không?
-10. Nếu `flag` được đặt `true`, biểu thức `flag ? b : someMethod()` có gọi `someMethod()` không? Kiểu của lời gọi `someMethod()` có được compiler xét không?
+1. What is the type of `flag ? b : s`?
+2. What is the type of `flag ? b : 5`?
+3. What is the type of `flag ? b : ordinary`, even though `ordinary` is currently 5?
+4. What is the type of `flag ? b : fixed`?
+5. What is the type of `flag ? c : s`?
+6. Is the type of `flag ? boxed : 5` `Byte`, `byte`, or `int`?
+7. What is the type of `flag ? b : 500`?
+8. If `Byte missing = null;`, what exception can `true ? missing : 5` throw?
+9. Write the result type of `flag ? 5L : 2.5f`. Is every `long` value guaranteed to convert to that type accurately?
+10. If `flag` is set to `true`, does the expression `flag ? b : someMethod()` invoke `someMethod()`? Does the compiler still check the type of the `someMethod()` call?
 
-**Gợi ý đáp án:** (1) `short`. (2) `byte`. (3) `int`. (4) `byte` vì `fixed` là constant variable. (5) `int`. (6) `byte`. (7) `int`. (8) `NullPointerException` khi cần unbox wrapper được chọn. (9) `float`; chuyển `long` sang `float` có thể mất chính xác. (10) Không gọi ở runtime; compiler vẫn kiểm tra kiểu cả hai nhánh.
+**Answer hints:** (1) `short`. (2) `byte`. (3) `int`. (4) `byte` because `fixed` is a constant variable. (5) `int`. (6) `byte`. (7) `int`. (8) `NullPointerException` when unboxing the selected wrapper. (9) `float`; converting `long` to `float` can lose precision. (10) Not invoked at runtime; the compiler still checks both branches' types.
 
-## 14. Nguồn đặc tả và ghi nhớ
+## 14. Specification source and takeaway
 
-Các quy tắc trên được mô tả trong **Java Language Specification**, mục **15.25 — Conditional Operator `? :`**, đặc biệt **15.25.2 — Numeric Conditional Expressions**:  
+The rules above are described in the **Java Language Specification**, section **15.25 — Conditional Operator `? :`**, specifically **15.25.2 — Numeric Conditional Expressions**:  
 [Java Language Specification §15.25](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.25)
 
-**Ghi nhớ:** `?:` **chỉ đánh giá một nhánh khi chạy**, nhưng **kiểu của cả biểu thức được suy ra từ cả hai nhánh khi biên dịch**. Đối với kiểu số, hãy nhớ ngoại lệ `byte`/`short`, hằng `int` vừa miền kiểu hẹp, wrapper và unboxing; những ngoại lệ đó giải thích vì sao kiểu của `?:` không phải lúc nào cũng là kiểu của phép cộng trên cùng toán hạng.
+**Takeaway:** `?:` **evaluates only one branch at runtime**, yet **the type of the entire expression is inferred from both branches at compile time**. For numeric types, remember the `byte`/`short` exception, in-range `int` constants for narrow types, wrappers, and unboxing; those exceptions explain why the type of `?:` is not always the type of addition on the same operands.

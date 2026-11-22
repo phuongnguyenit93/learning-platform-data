@@ -1,30 +1,30 @@
-# ModuleFinder và custom module source
+# ModuleFinder and custom module sources
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you can:
 
-- Giải thích vai trò của **ModuleFinder** trong Java Platform Module System (JPMS).
-- Phân biệt **ModuleFinder**, **ModuleReference** và **ModuleReader**.
-- Tìm module từ module path và runtime image bằng các finder có sẵn.
-- Kết hợp nhiều nguồn module bằng **ModuleFinder.compose**.
-- Tạo module source tùy chỉnh trong bộ nhớ bằng cách triển khai finder, reference và reader.
-- Đưa module tìm được vào quá trình resolve và tạo **ModuleLayer**.
+- Explain the role of **ModuleFinder** in the Java Platform Module System (JPMS).
+- Distinguish **ModuleFinder**, **ModuleReference**, and **ModuleReader**.
+- Find modules from the module path and runtime image using built-in finders.
+- Combine multiple module sources using **ModuleFinder.compose**.
+- Create a custom in-memory module source by implementing finder, reference, and reader.
+- Feed discovered modules into resolution and create a **ModuleLayer**.
 
-## 1. Vì sao cần ModuleFinder?
+## 1. Why is ModuleFinder needed?
 
-Trong JPMS, một module không chỉ là thư mục chứa class. Nó có tên, descriptor và tập package, dependency, API được khai báo. Khi JVM hoặc ứng dụng tạo một module layer bằng API, nó cần biết:
+In JPMS, a module is not just a directory containing classes. It has a name, a descriptor, and declared sets of packages, dependencies, and APIs. When the JVM or an application creates a module layer via API, it needs to know:
 
-1. Module nào có thể được tìm thấy?
-2. Descriptor của từng module mô tả điều gì?
-3. Bytecode và resource của module nằm ở đâu, và có thể đọc bằng cách nào?
+1. Which modules can be found?
+2. What does each module's descriptor describe?
+3. Where are the module's bytecode and resources located, and how can they be read?
 
-**ModuleFinder** giải quyết câu hỏi đầu tiên và cung cấp tham chiếu đến module. Hai abstraction tiếp theo hoàn thiện đường đi đến nội dung:
+**ModuleFinder** answers the first question and supplies references to modules. Two further abstractions complete the path to the contents:
 
-- **ModuleReference** đại diện cho một module đã được tìm thấy. Nó giữ **ModuleDescriptor** và vị trí tùy chọn của module.
-- **ModuleReader** mở và đọc các entry bên trong module, chẳng hạn file .class và resource.
+- **ModuleReference** represents a discovered module. It holds the **ModuleDescriptor** and an optional module location.
+- **ModuleReader** opens and reads entries inside the module, such as .class files and resources.
 
-Luồng tổng quát:
+General flow:
 
 ~~~text
 Configuration.resolve(...)
@@ -45,61 +45,61 @@ Configuration.resolve(...)
    find / open / read / list
           |
           v
-  class bytes và resources
+  class bytes and resources
 ~~~
 
-**ModuleFinder không biên dịch file .java, không tự tạo class loader và cũng không tạo module layer.** Nó là nguồn thông tin để bộ resolver tìm module. Việc resolve dependency và định nghĩa module thuộc **Configuration** và **ModuleLayer**.
+**ModuleFinder does not compile .java files, does not create class loaders by itself, and does not create module layers.** It is an information source for the resolver to locate modules. Resolving dependencies and defining modules belong to **Configuration** and **ModuleLayer**.
 
-## 2. Ba abstraction cần phân biệt
+## 2. Three abstractions to distinguish
 
-### 2.1. ModuleFinder — tìm module
+### 2.1. ModuleFinder — finding modules
 
-**ModuleFinder** là interface có hai thao tác chính:
+**ModuleFinder** is an interface with two main operations:
 
 ~~~java
 Optional<ModuleReference> find(String name);
 Set<ModuleReference> findAll();
 ~~~
 
-- **find(name)** trả về tham chiếu của module có tên tương ứng, hoặc **Optional.empty()** nếu nguồn này không có module đó.
-- **findAll()** trả về các module mà finder cung cấp.
+- **find(name)** returns a reference to the module with the corresponding name, or **Optional.empty()** if this source does not contain that module.
+- **findAll()** returns the modules provided by the finder.
 
-Một finder có thể đại diện cho module path, runtime image, kho lưu trữ riêng, bộ nhớ, database hoặc một nguồn tùy chỉnh khác.
+A finder can represent a module path, runtime image, private repository, memory, database, or another custom source.
 
-### 2.2. ModuleReference — mô tả một module cụ thể
+### 2.2. ModuleReference — describing a specific module
 
-**ModuleReference** là abstract class đại diện cho một module đã tìm thấy. Nó cung cấp:
+**ModuleReference** is an abstract class representing a discovered module. It provides:
 
-- **descriptor()** — **ModuleDescriptor** mô tả tên module, dependency, package, exports, opens, services và các thuộc tính liên quan.
-- **location()** — vị trí module dưới dạng **URI** tùy chọn. Nguồn module trong bộ nhớ hoặc nguồn đặc biệt có thể không có vị trí file thông thường.
-- **open()** — mở một **ModuleReader** để truy cập nội dung module.
+- **descriptor()** — the **ModuleDescriptor** describing the module name, dependencies, packages, exports, opens, services, and related attributes.
+- **location()** — the module location as an optional **URI**. An in-memory or special module source might not have a conventional file location.
+- **open()** — opens a **ModuleReader** to access the module's contents.
 
-Một ModuleReference là cầu nối giữa metadata của module và cơ chế đọc nội dung của nguồn đó.
+A ModuleReference is the bridge between a module's metadata and the mechanism for reading that source's contents.
 
-### 2.3. ModuleReader — đọc nội dung module
+### 2.3. ModuleReader — reading module contents
 
-**ModuleReader** là interface dùng để truy cập các entry trong module:
+**ModuleReader** is an interface used to access entries in a module:
 
-| API | Ý nghĩa |
+| API | Meaning |
 |---|---|
-| **find(name)** | Tìm URI của một entry nếu có thể định vị |
-| **open(name)** | Mở entry dưới dạng InputStream |
-| **read(name)** | Đọc entry dưới dạng ByteBuffer |
-| **release(buffer)** | Trả lại buffer được cấp bởi read khi implementation cần giải phóng tài nguyên |
-| **list()** | Liệt kê tên các entry |
-| **close()** | Đóng reader và giải phóng tài nguyên |
+| **find(name)** | Finds the URI of an entry if it can be located |
+| **open(name)** | Opens an entry as an InputStream |
+| **read(name)** | Reads an entry as a ByteBuffer |
+| **release(buffer)** | Returns a buffer allocated by read when the implementation needs to free resources |
+| **list()** | Lists entry names |
+| **close()** | Closes the reader and frees resources |
 
-Tên entry là đường dẫn tương đối bên trong module, dùng dấu /, ví dụ **com/acme/app/Main.class** hoặc **config/default.yml**. Không thêm dấu / ở đầu.
+An entry name is a relative path inside the module, using /, for example **com/acme/app/Main.class** or **config/default.yml**. Do not add a leading /.
 
-**open** và **read** trả về Optional.empty() khi entry không tồn tại. Khi reader đã đóng, implementation không nên tiếp tục cho phép đọc dữ liệu.
+**open** and **read** return Optional.empty() when the entry does not exist. Once the reader is closed, the implementation should not continue allowing data reads.
 
-## 3. Dùng ModuleFinder có sẵn
+## 3. Using built-in ModuleFinders
 
-Trong phần lớn ứng dụng, bạn không cần tự triển khai finder. JDK đã cung cấp các factory method phổ biến.
+In most applications, you do not need to implement a finder yourself. The JDK already provides common factory methods.
 
-### 3.1. Tìm module trên module path
+### 3.1. Finding modules on the module path
 
-**ModuleFinder.of(Path...)** tạo finder từ một hoặc nhiều đường dẫn chứa module, ví dụ modular JAR hoặc exploded module.
+**ModuleFinder.of(Path...)** creates a finder from one or more paths containing modules, such as modular JARs or exploded modules.
 
 ~~~java
 import java.lang.module.ModuleDescriptor;
@@ -127,11 +127,11 @@ public class InspectModule {
 }
 ~~~
 
-Ví dụ trên chỉ đọc metadata. Nó chưa resolve dependency và chưa định nghĩa module trong một layer.
+The example above only reads metadata. It has not resolved dependencies and has not defined the module in a layer.
 
-### 3.2. Tìm module trong runtime image
+### 3.2. Finding modules in the runtime image
 
-**ModuleFinder.ofSystem()** tạo finder cho các module thuộc runtime image của JDK hiện tại.
+**ModuleFinder.ofSystem()** creates a finder for modules belonging to the current JDK runtime image.
 
 ~~~java
 ModuleFinder systemFinder = ModuleFinder.ofSystem();
@@ -141,11 +141,11 @@ systemFinder.find("java.base").ifPresent(reference -> {
 });
 ~~~
 
-Đây là cách truy vấn module hệ thống bằng API, thay vì tự đoán nội dung của JDK đang chạy.
+This is the way to query system modules via API, instead of guessing the contents of the running JDK.
 
-### 3.3. Kết hợp nhiều nguồn module
+### 3.3. Combining multiple module sources
 
-**ModuleFinder.compose(...)** kết hợp nhiều finder thành một finder.
+**ModuleFinder.compose(...)** combines multiple finders into one finder.
 
 ~~~java
 ModuleFinder finder = ModuleFinder.compose(
@@ -158,35 +158,35 @@ finder.find("com.acme.orders").ifPresent(reference ->
         System.out.println(reference.descriptor()));
 ~~~
 
-Thứ tự finder có ý nghĩa khi cùng một tên module xuất hiện ở nhiều nguồn: finder được tìm trước có thể cung cấp tham chiếu được chọn cho tên đó. Vì vậy, cần tổ chức nguồn module có chủ đích và tránh để nhiều phiên bản cùng tên cạnh tranh ngoài ý muốn.
+Finder order matters when the same module name appears in multiple sources: the finder searched earlier can supply the chosen reference for that name. Therefore, organize module sources deliberately and avoid unintended competition between multiple versions of the same name.
 
-Dùng **compose** khi ứng dụng có nhiều vị trí lưu module nhưng vẫn muốn đưa chúng vào resolver qua một interface duy nhất.
+Use **compose** when an application has multiple module storage locations but still wants to pass them to the resolver through a single interface.
 
-## 4. Custom module source hoạt động như thế nào?
+## 4. How does a custom module source work?
 
-Một custom module source là nguồn nội dung module do ứng dụng tự quản lý. Ví dụ:
+A custom module source is a source of module contents managed by the application itself. For example:
 
-- Module được tải từ database hoặc object storage.
-- Module được giữ trong bộ nhớ sau khi giải mã.
-- Module được cung cấp bởi một kho plugin riêng.
-- Module nằm trong một định dạng archive mà finder mặc định không hỗ trợ.
-- Module được tạo động trong môi trường kiểm thử.
+- Modules downloaded from a database or object storage.
+- Modules held in memory after decryption.
+- Modules supplied by a private plugin repository.
+- Modules stored in an archive format that default finders do not support.
+- Modules dynamically generated in a test environment.
 
-Để đưa nguồn này vào JPMS, cần nối ba phần:
+To integrate this source into JPMS, three parts must be wired together:
 
-1. **Custom ModuleFinder**: ánh xạ tên module sang tham chiếu.
-2. **ModuleReference**: cung cấp descriptor và tạo reader.
-3. **Custom ModuleReader**: đọc bytecode/resource từ nguồn thực tế.
+1. **Custom ModuleFinder**: maps module names to references.
+2. **ModuleReference**: supplies the descriptor and creates the reader.
+3. **Custom ModuleReader**: reads bytecode/resources from the actual source.
 
-Nguồn tùy chỉnh vẫn phải cung cấp dữ liệu đúng hợp đồng của JPMS. Đặc biệt, descriptor phải phản ánh đúng tên module, package, dependency và quyền truy cập. Một module source tùy chỉnh không thể bỏ qua quy tắc resolve hoặc quy tắc encapsulation của module system.
+A custom source must still supply data conforming to the JPMS contract. In particular, the descriptor must accurately reflect the module name, packages, dependencies, and access permissions. A custom module source cannot bypass the module system's resolution rules or encapsulation rules.
 
-## 5. Ví dụ: ModuleFinder đọc module từ bộ nhớ
+## 5. Example: ModuleFinder reading a module from memory
 
-Ví dụ dưới đây tạo một module source đơn giản trong bộ nhớ. Nội dung module được lưu bằng **Map<String, byte[]>**. Finder cung cấp một module tên **com.example.memory** và reader có thể đọc resource **com/example/memory/banner.txt**.
+The example below creates a simple in-memory module source. Module contents are stored in a **Map<String, byte[]>**. The finder provides a module named **com.example.memory** and the reader can read the resource **com/example/memory/banner.txt**.
 
-Ví dụ tập trung vào cơ chế tìm và đọc module. Đây chưa phải một kho module production hoàn chỉnh; phần quản lý phiên bản, xác thực nguồn, tải bytecode và cache cần được bổ sung theo hệ thống thực tế.
+The example focuses on the mechanism of finding and reading modules. This is not yet a complete production module repository; version management, source verification, bytecode loading, and caching must be added according to the real system.
 
-### 5.1. Triển khai MemoryModuleFinder
+### 5.1. Implementing MemoryModuleFinder
 
 ~~~java
 import java.io.ByteArrayInputStream;
@@ -340,7 +340,7 @@ public final class MemoryModuleFinder implements ModuleFinder {
 
         @Override
         public void release(ByteBuffer buffer) {
-            // ByteBuffer.wrap tạo heap buffer; không có native memory cần giải phóng.
+            // ByteBuffer.wrap creates a heap buffer; no native memory needs to be freed.
         }
 
         @Override
@@ -358,7 +358,7 @@ public final class MemoryModuleFinder implements ModuleFinder {
 }
 ~~~
 
-### 5.2. Tạo finder và đọc resource
+### 5.2. Creating the finder and reading resources
 
 ~~~java
 import java.io.InputStream;
@@ -418,7 +418,7 @@ public class MemoryModuleDemo {
 }
 ~~~
 
-Kết quả minh họa:
+Sample output:
 
 ~~~text
 Module: com.example.memory
@@ -428,13 +428,13 @@ Entries:
 com/example/memory/banner.txt
 ~~~
 
-Ở đây, **ModuleFinder** tìm được module bằng tên. **ModuleReference** giữ descriptor và tạo reader. Reader trả về URI, stream hoặc buffer tùy API được gọi. Không có file JAR nào cần được tạo trên đĩa.
+Here, **ModuleFinder** locates the module by name. **ModuleReference** holds the descriptor and creates the reader. The reader returns a URI, stream, or buffer depending on the API called. No JAR file needs to be created on disk.
 
-URI dùng scheme **memory** trong ví dụ là định danh do nguồn tùy chỉnh quy ước. Nó không tự tạo URL handler để ứng dụng có thể gọi URI.toURL().openStream(). Khi cần đọc nội dung, hãy dùng hợp đồng **ModuleReader**. Một implementation production cần quy định rõ cách encode URI cho mọi tên entry hợp lệ.
+The URI using the **memory** scheme in the example is an identifier by convention of the custom source. It does not automatically create a URL handler so the application can call URI.toURL().openStream(). When you need to read contents, use the **ModuleReader** contract. A production implementation must clearly specify how URIs are encoded for all valid entry names.
 
-## 6. Đưa custom finder vào quá trình resolve
+## 6. Passing a custom finder into the resolution process
 
-Có finder và reference mới chỉ có nghĩa là ứng dụng đã mô tả được nguồn module. Muốn module tham gia vào một module layer, cần resolve configuration và định nghĩa layer.
+Having a finder and reference only means the application can describe the module source. To make the module participate in a module layer, you must resolve a configuration and define the layer.
 
 ~~~java
 import java.lang.module.Configuration;
@@ -481,21 +481,21 @@ public class ResolveMemoryModule {
 }
 ~~~
 
-Các bước có ý nghĩa khác nhau:
+The steps have distinct meanings:
 
-1. **Configuration.resolve** tìm module gốc và các dependency cần thiết từ các finder được cung cấp, đồng thời kiểm tra tính nhất quán của đồ thị module.
-2. **ModuleLayer.defineModulesWithOneLoader** định nghĩa các module trong configuration trên một class loader chung cho layer mới.
-3. **controller.layer()** lấy layer vừa được định nghĩa.
+1. **Configuration.resolve** locates the root module and required dependencies from the provided finders, while verifying the consistency of the module graph.
+2. **ModuleLayer.defineModulesWithOneLoader** defines the modules in the configuration on a shared class loader for the new layer.
+3. **controller.layer()** obtains the newly defined layer.
 
-Nếu module có dependency, finder tương ứng phải cung cấp các dependency đó hoặc chúng phải có trong configuration cha. Nếu không, resolve sẽ thất bại. Custom finder không làm mất yêu cầu khai báo **requires** trong descriptor.
+If the module has dependencies, the corresponding finder must supply those dependencies or they must exist in a parent configuration. Otherwise, resolution will fail. A custom finder does not eliminate the requirement to declare **requires** in the descriptor.
 
-Ví dụ này định nghĩa một module chỉ có resource. Khi muốn nạp class từ nguồn tùy chỉnh, map entry cần chứa bytecode .class tương ứng và descriptor phải khai báo đúng package. Class loader của layer sẽ sử dụng module content để tìm class. ModuleReader không biên dịch class từ source code.
+This example defines a resource-only module. When you want to load classes from a custom source, the entry map must contain the corresponding .class bytecode and the descriptor must declare the right packages. The layer's class loader will use the module content to locate classes. ModuleReader does not compile classes from source code.
 
-Trong ứng dụng thực tế, chỉ định nghĩa layer khi đã có lý do rõ ràng để cô lập một nhóm module, chẳng hạn plugin hoặc phiên bản module riêng. Với ứng dụng thông thường, module path và boot layer thường đã đáp ứng nhu cầu.
+In real applications, only define a layer when there is a clear reason to isolate a group of modules, such as plugins or separate module versions. For typical applications, the module path and boot layer usually suffice.
 
-## 7. Descriptor phải khớp với nội dung nguồn
+## 7. The descriptor must match the source contents
 
-Custom source chịu trách nhiệm cung cấp descriptor chính xác. Một descriptor có thể được tạo bằng các builder của **ModuleDescriptor**:
+The custom source is responsible for providing an accurate descriptor. A descriptor can be constructed using **ModuleDescriptor** builders:
 
 ~~~java
 ModuleDescriptor descriptor = ModuleDescriptor
@@ -510,83 +510,83 @@ ModuleDescriptor descriptor = ModuleDescriptor
         .build();
 ~~~
 
-Ý nghĩa các khai báo:
+Meaning of the declarations:
 
-- **requires** khai báo dependency module.
-- **exports** cho phép module khác truy cập các public type trong package được export theo quy tắc JPMS.
-- **opens** cho phép truy cập reflective vào package theo quy tắc mở package.
-- **packages** mô tả tập package có trong module; finder tùy chỉnh cần cung cấp tập này phù hợp với nội dung thực tế.
+- **requires** declares module dependencies.
+- **exports** allows other modules to access public types in exported packages under JPMS rules.
+- **opens** allows reflective access to packages under package-opening rules.
+- **packages** describes the set of packages contained in the module; a custom finder must provide this set matching the actual contents.
 
-**exports** và **opens** có mục đích khác nhau. Export là hợp đồng truy cập API ở mức compile/runtime thông thường; open phục vụ reflection. Không dùng open chỉ vì muốn một module có thể được tìm thấy hoặc đọc resource.
+**exports** and **opens** have different purposes. Export is the standard compile/runtime API access contract; open serves reflection. Do not use open just because you want a module to be discoverable or readable for resources.
 
-Khi tạo descriptor động, cần mô tả cả dependency, service declaration, main class và version nếu module thực sự sử dụng các tính năng đó. Resolver dựa trên metadata này để kiểm tra module graph.
+When constructing descriptors dynamically, also describe dependencies, service declarations, main class, and version if the module actually uses those features. The resolver relies on this metadata to validate the module graph.
 
-## 8. Những điểm cần chú ý khi viết finder/reader production
+## 8. Things to watch when writing production finders/readers
 
-### Tính nhất quán của nguồn
+### Source consistency
 
-- Mỗi tên module phải ánh xạ đến descriptor tương ứng.
-- **find(name)** và **findAll()** phải thống nhất: module được liệt kê phải có thể tìm theo tên.
-- Không để cùng một module name trỏ đến các nội dung khác nhau trong cùng một lần resolve.
-- Nên dùng snapshot bất biến hoặc version cố định trong suốt vòng đời resolve/load.
+- Every module name must map to the corresponding descriptor.
+- **find(name)** and **findAll()** must agree: listed modules must be findable by name.
+- Do not let the same module name point to different contents within the same resolution pass.
+- Use an immutable snapshot or fixed version throughout the resolve/load lifecycle.
 
-### Đường dẫn entry
+### Entry paths
 
-- Chuẩn hóa tên entry theo dạng tương đối và dùng dấu /.
-- Chặn **..**, đường dẫn tuyệt đối và các dạng path traversal.
-- Không để tên entry tạo URI không hợp lệ.
-- Nếu nguồn là archive hoặc remote storage, phải kiểm soát kích thước và số lượng entry.
+- Normalize entry names to relative form using /.
+- Reject **..**, absolute paths, and forms of path traversal.
+- Do not let entry names produce invalid URIs.
+- If the source is an archive or remote storage, enforce limits on entry size and count.
 
-### ByteBuffer và tài nguyên
+### ByteBuffer and resources
 
-- Nếu **read** cấp phát native/direct memory, implementation phải giải phóng đúng cách trong **release**.
-- Nếu dùng heap buffer như ví dụ, **release** có thể không cần thao tác giải phóng.
-- Stream trả về từ **open** thuộc trách nhiệm đóng của caller.
-- **close** phải ngăn các thao tác đọc tiếp theo và giải phóng handle/cache/tài nguyên của nguồn nếu có.
+- If **read** allocates native/direct memory, the implementation must free it properly in **release**.
+- If using a heap buffer as in the example, **release** may not need any deallocation action.
+- Streams returned from **open** are the caller's responsibility to close.
+- **close** must prevent subsequent read operations and release any underlying source handles/caches/resources.
 
-### Đồng bộ và vòng đời
+### Synchronization and lifecycle
 
-Một **ModuleReader** thường được sử dụng trong một thao tác đọc có vòng đời rõ ràng. Nếu nhiều thread có thể mở reader hoặc đọc cùng một module, cần xác định chính sách thread-safety cho implementation. Không dùng một cờ trạng thái hoặc mutable map dùng chung mà không có đồng bộ thích hợp.
+A **ModuleReader** is typically used within a read operation with a clear lifecycle. If multiple threads can open readers or read the same module, define a thread-safety policy for the implementation. Do not share a state flag or mutable map without proper synchronization.
 
-### Tin cậy và tính toàn vẹn
+### Trust and integrity
 
-Nếu module đến từ remote repository hoặc database, cần xác minh danh tính/version và tính toàn vẹn của bytecode trước khi đưa vào layer. Finder chỉ trả về module reference; nó không tự xác thực chữ ký, quyền cài đặt plugin hoặc nguồn gốc nội dung.
+If a module comes from a remote repository or database, verify identity/version and bytecode integrity before placing it into a layer. A finder only returns module references; it does not automatically verify signatures, plugin installation permissions, or content provenance.
 
-## 9. Lỗi thường gặp và cách định hướng xử lý
+## 9. Common errors and troubleshooting direction
 
-| Hiện tượng | Nguyên nhân cần kiểm tra |
+| Symptom | Cause to check |
 |---|---|
-| **find(name)** trả về empty | Finder không có module với tên đó, hoặc tên tra cứu không khớp descriptor |
-| Resolve báo thiếu module | Một dependency trong **requires** không có trong finder/configuration cha |
-| Resolve thất bại vì xung đột | Descriptor hoặc đồ thị dependency không nhất quán; kiểm tra module trùng tên, package split và constraint |
-| Không đọc được resource | Sai entry name, reader không cung cấp entry, hoặc reader đã đóng |
-| Đọc resource qua class loader không thành công | Kiểm tra package encapsulation, **opens** và cách truy cập resource |
-| Class không được nạp | Kiểm tra bytecode có trong module source, package mapping, descriptor và class loader của layer |
-| Reader báo lỗi sau khi đóng | Caller đã giữ reader sau khi kết thúc vòng đời; mở reader mới cho thao tác mới |
+| **find(name)** returns empty | Finder does not have a module with that name, or lookup name does not match descriptor |
+| Resolve reports missing module | A dependency in **requires** is missing from the finder/parent configuration |
+| Resolve fails due to conflict | Descriptor or dependency graph is inconsistent; check duplicate module names, split packages, and constraints |
+| Cannot read resource | Wrong entry name, reader does not supply the entry, or reader is already closed |
+| Reading resource via class loader fails | Check package encapsulation, **opens**, and resource access method |
+| Class is not loaded | Check whether bytecode is in the module source, package mapping, descriptor, and the layer's class loader |
+| Reader errors after closing | Caller retained the reader past the end of its lifecycle; open a new reader for new operations |
 
-Khi debug, nên kiểm tra lần lượt:
+When debugging, check step by step:
 
-1. **finder.find(moduleName)** có trả về reference không?
-2. **reference.descriptor()** có đúng tên và dependency không?
-3. **reference.open().list()** có liệt kê entry cần thiết không?
-4. **reader.open(entryName)** có đọc được entry không?
-5. **Configuration.resolve** có hoàn thành không?
-6. Layer có chứa module và cung cấp loader tương ứng không?
+1. Does **finder.find(moduleName)** return a reference?
+2. Does **reference.descriptor()** have the right name and dependencies?
+3. Does **reference.open().list()** list the needed entry?
+4. Can **reader.open(entryName)** read the entry?
+5. Does **Configuration.resolve** complete?
+6. Does the layer contain the module and provide the corresponding loader?
 
-## 10. Chọn cách tiếp cận phù hợp
+## 10. Choosing the right approach
 
-| Nhu cầu | Giải pháp |
+| Need | Solution |
 |---|---|
-| Module nằm trong modular JAR hoặc exploded module | **ModuleFinder.of(paths)** |
-| Cần truy cập module của JDK | **ModuleFinder.ofSystem()** |
-| Module nằm ở nhiều thư mục/kho chuẩn | **ModuleFinder.compose(...)** |
-| Module đến từ memory, database, custom archive hoặc remote store | Tự triển khai **ModuleFinder**, **ModuleReference** và **ModuleReader** |
-| Cần cô lập plugin hoặc nhóm module ở runtime | Kết hợp finder với **Configuration.resolve** và **ModuleLayer** |
+| Modules live in modular JARs or exploded modules | **ModuleFinder.of(paths)** |
+| Need access to JDK modules | **ModuleFinder.ofSystem()** |
+| Modules live in multiple standard directories/repositories | **ModuleFinder.compose(...)** |
+| Modules come from memory, database, custom archive, or remote store | Implement **ModuleFinder**, **ModuleReference**, and **ModuleReader** |
+| Need to isolate plugins or module groups at runtime | Combine finder with **Configuration.resolve** and **ModuleLayer** |
 
-Chỉ nên triển khai custom source khi nguồn dữ liệu thực sự khác với module path tiêu chuẩn. Một custom finder/reader phải xử lý descriptor, bytecode, resource, URI, vòng đời và lỗi I/O; đây là một ranh giới kỹ thuật cần được quản lý như một phần của module infrastructure.
+Only implement a custom source when the data source genuinely differs from the standard module path. A custom finder/reader must handle descriptors, bytecode, resources, URIs, lifecycles, and I/O errors; this is a technical boundary that needs to be managed as part of the module infrastructure.
 
-## Kết luận
+## Conclusion
 
-**ModuleFinder** trả lời câu hỏi “module nào tồn tại trong nguồn này?”. **ModuleReference** mô tả module và mở nội dung của nó. **ModuleReader** cung cấp bytecode và resource cho module system. Khi ba abstraction này được triển khai đúng hợp đồng, JPMS có thể resolve module từ một nguồn tùy chỉnh giống như cách nó resolve module từ module path tiêu chuẩn.
+**ModuleFinder** answers the question “which modules exist in this source?”. **ModuleReference** describes the module and opens its contents. **ModuleReader** supplies bytecode and resources to the module system. When these three abstractions are implemented according to contract, JPMS can resolve modules from a custom source just as it resolves modules from the standard module path.
 
-Hãy nhớ phân biệt ba giai đoạn: **tìm module → resolve module graph → định nghĩa module layer**. Tìm được module chưa có nghĩa là dependency đã resolve hoặc module đã sẵn sàng chạy.
+Remember to distinguish the three stages: **find modules → resolve module graph → define module layer**. Finding a module does not mean dependencies are resolved or the module is ready to run.

@@ -1,54 +1,54 @@
-# One loader và many loaders trong ModuleLayer (Java 9+)
+# One Loader and Many Loaders in ModuleLayer (Java 9+)
 
-## Mục tiêu bài học
+## Lesson Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Phân biệt **module**, **configuration**, **module layer** và **class loader** trong Java Platform Module System (JPMS).
-- Giải thích khi nào các module trong một layer dùng chung một class loader và khi nào mỗi module có class loader riêng.
-- Tạo layer bằng **defineModulesWithOneLoader** và **defineModulesWithManyLoaders**, kiểm tra loader thực tế bằng **findLoader**.
-- Chạy một ví dụ gồm hai named module, quan sát kết quả, và chọn cách tổ chức loader phù hợp với ứng dụng/plugin.
-- Nhận ra các lỗi thường gặp về package, readability, exports, reflection và định danh lớp.
+- Distinguish **module**, **configuration**, **module layer**, and **class loader** in the Java Platform Module System (JPMS).
+- Explain when modules in a layer share a single class loader and when each module has its own class loader.
+- Create layers using **defineModulesWithOneLoader** and **defineModulesWithManyLoaders**, and inspect the actual loader using **findLoader**.
+- Run an example consisting of two named modules, observe the output, and choose a loader organization suitable for an application/plugin.
+- Recognize common errors involving packages, readability, exports, reflection, and class identity.
 
-**Phạm vi:** Java 9 trở lên; ví dụ dùng cú pháp và công cụ JDK 21. Đây là cơ chế JPMS của Java SE, không yêu cầu Spring hay framework.
+**Scope:** Java 9 and later; examples use JDK 21 syntax and tools. This is a Java SE JPMS mechanism and does not require Spring or any framework.
 
-## 1. Bốn khái niệm phải tách bạch
+## 1. Four Concepts That Must Be Kept Distinct
 
-**Module** là một đơn vị chứa package, class, resource và tệp **module-info.class**. Descriptor có thể khai báo **requires**, **exports**, **opens**, **uses** và **provides**. Ví dụ, module **com.demo.app** khai báo **requires com.demo.api** để đọc module thư viện.
+**Module** is a unit containing packages, classes, resources, and a **module-info.class** file. A descriptor can declare **requires**, **exports**, **opens**, **uses**, and **provides**. For example, module **com.demo.app** declares **requires com.demo.api** to read the library module.
 
-**Configuration** là kết quả giải quyết đồ thị module ở mức mô tả: module nào được chọn, phụ thuộc nào được nối, và các ràng buộc có thỏa mãn hay không. Nó chưa định nghĩa các class vào JVM.
+**Configuration** is the result of resolving the module graph at the descriptor level: which modules are selected, which dependencies are connected, and whether the constraints are satisfied. It does not yet define the classes into the JVM.
 
-**ModuleLayer** là lớp tổ chức các module đã được định nghĩa ở thời gian chạy dựa trên một configuration. Một layer có thể có một hoặc nhiều parent layer. JVM khởi động với **ModuleLayer.boot()**; ứng dụng có thể tạo layer con để nạp module/plugin động.
+**ModuleLayer** is the layer that organizes modules already defined at runtime based on a configuration. A layer can have one or more parent layers. The JVM starts with **ModuleLayer.boot()**; an application can create child layers to load modules/plugins dynamically.
 
-**ClassLoader** là đối tượng tham gia tìm và định nghĩa class. Định danh runtime của một class gắn với **tên nhị phân + defining class loader**. Do đó, hai class cùng tên nhưng được định nghĩa bởi hai loader khác nhau vẫn là hai kiểu khác nhau.
+**ClassLoader** is the object involved in locating and defining classes. The runtime identity of a class is tied to **(binary name + defining class loader)**. Therefore, two classes with the same name but defined by two different loaders are still two different types.
 
-Một hình dung ngắn:
+A brief mental model:
 
 ~~~text
-ModuleFinder: tìm module trên đĩa
+ModuleFinder: finds modules on disk
     ↓
-Configuration: giải quyết đồ thị phụ thuộc
+Configuration: resolves the dependency graph
     ↓
-ModuleLayer: định nghĩa các module vào runtime
+ModuleLayer: defines modules into the runtime
     ↓
-ClassLoader: tải/định nghĩa các class thuộc module
+ClassLoader: loads/defines classes belonging to modules
 ~~~
 
-**Module layer không đồng nghĩa với class loader.** Một layer có thể chứa nhiều module và ánh xạ chúng tới một hoặc nhiều loader. Đồng thời, đồ thị parent layer không đơn thuần là cây parent của các class loader.
+**A module layer is not synonymous with a class loader.** A layer can contain multiple modules and map them to one or more loaders. Likewise, the parent layer graph is not simply the parent tree of class loaders.
 
-## 2. Hai lựa chọn khi tạo layer
+## 2. Two Options When Creating a Layer
 
-Giả sử một configuration chứa hai module mới:
+Suppose a configuration contains two new modules:
 
 ~~~text
 com.demo.app  --requires-->  com.demo.api
 ~~~
 
-Từ parent layer, ta có thể gọi:
+From the parent layer, we can call:
 
 ~~~java
 ModuleLayer parent = ModuleLayer.boot();
-Configuration cf = /* configuration đã resolve */;
+Configuration cf = /* resolved configuration */;
 ClassLoader parentLoader = ClassLoader.getSystemClassLoader();
 
 ModuleLayer one =
@@ -58,27 +58,27 @@ ModuleLayer many =
         parent.defineModulesWithManyLoaders(cf, parentLoader);
 ~~~
 
-Cả hai cách đều tạo **layer mới** với các module trong configuration. Điểm khác biệt chính là chiến lược ánh xạ module → loader.
+Both approaches create a **new layer** with the modules in the configuration. The primary difference is the module → loader mapping strategy.
 
-| Khía cạnh | One loader | Many loaders |
+| Aspect | One loader | Many loaders |
 |---|---|---|
-| API instance | **defineModulesWithOneLoader** | **defineModulesWithManyLoaders** |
-| Module mới trong layer | Cùng một loader mới | Mỗi module một loader mới |
-| So sánh loader của hai module khác nhau trong cùng layer | Cùng tham chiếu | Khác tham chiếu |
-| Phân tách namespace class ở mức loader | Thấp hơn | Cao hơn |
-| Chi phí quản lý loader | Ít đối tượng loader hơn | Nhiều đối tượng loader hơn |
-| Khả năng có package trùng tên giữa các module | Bị hạn chế vì cùng loader | Linh hoạt hơn, vẫn chịu ràng buộc JPMS |
-| Phù hợp thường gặp | Nhóm module phát hành/vận hành cùng nhau | Các module/plugin cần ranh giới loader riêng |
+| Instance API | **defineModulesWithOneLoader** | **defineModulesWithManyLoaders** |
+| New modules in the layer | Share one new loader | Each module gets a new loader |
+| Comparing loaders of two different modules in the same layer | Same reference | Different references |
+| Class namespace separation at the loader level | Lower | Higher |
+| Loader management overhead | Fewer loader objects | More loader objects |
+| Ability to have identically named packages across modules | Restricted because of sharing a loader | More flexible, still subject to JPMS constraints |
+| Typical fit | Groups of modules released/operated together | Modules/plugins needing separate loader boundaries |
 
-**Lưu ý quan trọng về tham số parentLoader:** đây là *loader cha* được truyền vào khi tạo loader mới. Nó **không phải** đối tượng loader sẽ được trả về bởi **layer.findLoader("tên-module")**. Với cả hai API, các loader cho module mới được tạo bởi runtime.
+**Important note about the `parentLoader` parameter:** this is the *parent loader* passed in when creating the new loader(s). It is **not** the loader object that will be returned by **layer.findLoader("module-name")**. With both APIs, the loaders for the new modules are created by the runtime.
 
-Một module cụ thể chỉ gắn với **một** defining loader trong layer đã tạo. Khi dùng many loaders, các loader còn có cơ chế tìm class thuộc module mà module hiện tại đọc được; vì vậy việc mỗi module có loader riêng không làm mất đi quan hệ **requires**.
+A specific module is associated with only **one** defining loader in the created layer. When using many loaders, the loaders also have a mechanism to locate classes belonging to modules that the current module reads; therefore, giving each module its own loader does not break **requires** relationships.
 
-## 3. Ví dụ đầy đủ: hai module và một Launcher ở classpath
+## 3. Complete Example: Two Modules and a Launcher on the Classpath
 
-Ta tạo hai module có quan hệ phụ thuộc rõ ràng. Chương trình **Launcher** nằm trên classpath để chủ động tạo layer lúc chạy; hai module sẽ được tìm từ thư mục **mods**.
+We create two modules with a clear dependency relationship. The **Launcher** program sits on the classpath to actively create a layer at runtime; the two modules will be discovered from the **mods** directory.
 
-### 3.1. Cấu trúc thư mục
+### 3.1. Directory Structure
 
 ~~~text
 demo/
@@ -92,9 +92,9 @@ demo/
         └── com/demo/app/Entry.java
 ~~~
 
-### 3.2. Module thư viện: com.demo.api
+### 3.2. Library Module: com.demo.api
 
-Tệp **src/com.demo.api/module-info.java**:
+File **src/com.demo.api/module-info.java**:
 
 ~~~java
 module com.demo.api {
@@ -102,7 +102,7 @@ module com.demo.api {
 }
 ~~~
 
-Tệp **src/com.demo.api/com/demo/api/Greeting.java**:
+File **src/com.demo.api/com/demo/api/Greeting.java**:
 
 ~~~java
 package com.demo.api;
@@ -111,16 +111,16 @@ public final class Greeting {
     private Greeting() {}
 
     public static String text() {
-        return "Xin chào từ com.demo.api";
+        return "Hello from com.demo.api";
     }
 }
 ~~~
 
-**exports** làm cho package **com.demo.api** có thể được module khác sử dụng theo luật JPMS.
+**exports** makes package **com.demo.api** usable by other modules according to JPMS rules.
 
-### 3.3. Module ứng dụng: com.demo.app
+### 3.3. Application Module: com.demo.app
 
-Tệp **src/com.demo.app/module-info.java**:
+File **src/com.demo.app/module-info.java**:
 
 ~~~java
 module com.demo.app {
@@ -129,7 +129,7 @@ module com.demo.app {
 }
 ~~~
 
-Tệp **src/com.demo.app/com/demo/app/Entry.java**:
+File **src/com.demo.app/com/demo/app/Entry.java**:
 
 ~~~java
 package com.demo.app;
@@ -145,11 +145,11 @@ public final class Entry {
 }
 ~~~
 
-**requires** cho phép **com.demo.app** đọc **com.demo.api**. Dòng **exports com.demo.app** cho phép code của **Launcher** gọi phương thức public của **Entry** bằng reflection thông thường. Export package không đồng nghĩa với cho phép truy cập private member; trường hợp đó cần cơ chế **opens** phù hợp.
+**requires** allows **com.demo.app** to read **com.demo.api**. The line **exports com.demo.app** allows **Launcher** code to invoke **Entry**'s public methods via standard reflection. Exporting a package does not grant access to private members; that case requires an appropriate **opens** mechanism.
 
-### 3.4. Launcher tạo layer theo chế độ one hoặc many
+### 3.4. Launcher Creating a Layer in One or Many Mode
 
-Tệp **Launcher.java**:
+File **Launcher.java**:
 
 ~~~java
 import java.lang.module.Configuration;
@@ -161,11 +161,11 @@ public class Launcher {
     public static void main(String[] args) throws Exception {
         String mode = args.length == 0 ? "one" : args[0];
 
-        // Tìm hai module đã biên dịch trong thư mục mods.
+        // Find the two compiled modules in the mods directory.
         ModuleFinder finder = ModuleFinder.of(Path.of("mods"));
 
-        // Resolve app và các dependency (bao gồm com.demo.api)
-        // trên nền configuration của boot layer.
+        // Resolve app and its dependencies (including com.demo.api)
+        // on top of the boot layer's configuration.
         ModuleLayer parent = ModuleLayer.boot();
         Configuration cf = parent.configuration().resolve(
                 finder,
@@ -173,7 +173,7 @@ public class Launcher {
                 Set.of("com.demo.app")
         );
 
-        // Đây là parent loader, không phải loader mới của module.
+        // This is the parent loader, not the module's new loader.
         ClassLoader parentLoader = ClassLoader.getSystemClassLoader();
 
         ModuleLayer layer = switch (mode) {
@@ -183,44 +183,44 @@ public class Launcher {
                     parent.defineModulesWithManyLoaders(cf, parentLoader);
             default ->
                     throw new IllegalArgumentException(
-                            "Chế độ hợp lệ: one hoặc many"
+                            "Valid modes: one or many"
                     );
         };
 
         ClassLoader appLoader = layer.findLoader("com.demo.app");
         ClassLoader apiLoader = layer.findLoader("com.demo.api");
 
-        System.out.println("Chế độ: " + mode);
-        System.out.println("Cùng loader: " + (appLoader == apiLoader));
-        System.out.println("App dùng parentLoader: "
+        System.out.println("Mode: " + mode);
+        System.out.println("Same loader: " + (appLoader == apiLoader));
+        System.out.println("App uses parentLoader: "
                 + (appLoader == parentLoader));
 
-        // Launcher không import Entry ở compile time.
-        // Nó lấy class qua loader của module đã tạo trong layer.
+        // Launcher does not import Entry at compile time.
+        // It obtains the class via the loader of the module created in the layer.
         Class<?> entry = appLoader.loadClass("com.demo.app.Entry");
         entry.getMethod("run").invoke(null);
 
-        System.out.println("Entry thuộc module: "
+        System.out.println("Entry belongs to module: "
                 + entry.getModule().getName());
-        System.out.println("Module thuộc layer mới: "
+        System.out.println("Module belongs to new layer: "
                 + (entry.getModule().getLayer() == layer));
     }
 }
 ~~~
 
-Diễn giải các dòng quan trọng:
+Explanation of key lines:
 
-1. **ModuleFinder.of(Path.of("mods"))** tìm artifact module trong thư mục **mods** (ví dụ các thư mục exploded module sau khi biên dịch).
-2. **parent.configuration().resolve(...)** giải quyết module gốc **com.demo.app** và module nó cần đọc. Configuration này là đầu vào chung cho cả hai chế độ.
-3. **defineModulesWithOneLoader** hoặc **defineModulesWithManyLoaders** tạo layer và các loader tương ứng.
-4. **layer.findLoader(...)** lấy loader được gắn với module có tên được chỉ định trong layer này; tên không tồn tại trong layer sẽ gây **IllegalArgumentException**.
-5. **appLoader.loadClass(...)** nạp class qua loader của module ứng dụng, còn **getModule().getLayer()** cho thấy class thuộc layer mới.
+1. **ModuleFinder.of(Path.of("mods"))** locates module artifacts in the **mods** directory (such as exploded module directories after compilation).
+2. **parent.configuration().resolve(...)** resolves the root module **com.demo.app** and the modules it needs to read. This configuration is the common input for both modes.
+3. **defineModulesWithOneLoader** or **defineModulesWithManyLoaders** creates the layer and the corresponding loaders.
+4. **layer.findLoader(...)** retrieves the loader attached to the module with the specified name in this layer; a name that does not exist in the layer causes an **IllegalArgumentException**.
+5. **appLoader.loadClass(...)** loads the class through the application module's loader, while **getModule().getLayer()** shows that the class belongs to the new layer.
 
-Ví dụ không dùng **Class.forName("com.demo.app.Entry")** một tham số từ Launcher: loader nhìn thấy classpath của Launcher không tự động dò xuống các child loader của layer mới.
+The example does not use single-argument **Class.forName("com.demo.app.Entry")** from Launcher: the loader that sees Launcher's classpath does not automatically search down into the child loaders of the new layer.
 
-### 3.5. Biên dịch và chạy
+### 3.5. Compiling and Running
 
-Đứng tại thư mục **demo**. Các lệnh sau dùng được trong terminal có JDK 21 và lệnh **javac**/**java** trên PATH:
+From the **demo** directory. The following commands work in a terminal with JDK 21 and **javac**/**java** on PATH:
 
 ~~~bash
 javac --module-source-path src -d mods -m com.demo.api,com.demo.app
@@ -230,55 +230,55 @@ java -cp out Launcher one
 java -cp out Launcher many
 ~~~
 
-Khi chạy chế độ **one**, phần đầu kết quả sẽ tương tự:
+When running **one** mode, the beginning of the output will be similar to:
 
 ~~~text
-Chế độ: one
-Cùng loader: true
-App dùng parentLoader: false
-Xin chào từ com.demo.api
-Entry thuộc module: com.demo.app
-Module thuộc layer mới: true
+Mode: one
+Same loader: true
+App uses parentLoader: false
+Hello from com.demo.api
+Entry belongs to module: com.demo.app
+Module belongs to new layer: true
 ~~~
 
-Khi chạy chế độ **many**:
+When running **many** mode:
 
 ~~~text
-Chế độ: many
-Cùng loader: false
-App dùng parentLoader: false
-Xin chào từ com.demo.api
-Entry thuộc module: com.demo.app
-Module thuộc layer mới: true
+Mode: many
+Same loader: false
+App uses parentLoader: false
+Hello from com.demo.api
+Entry belongs to module: com.demo.app
+Module belongs to new layer: true
 ~~~
 
-**Điểm cần quan sát:** ứng dụng hoạt động giống nhau trong hai chế độ. Sự khác biệt xác minh được là biểu thức **appLoader == apiLoader**. Đầu ra cụ thể của **ClassLoader.toString()** có thể khác giữa các JDK; so sánh bằng **==** làm rõ quan hệ identity.
+**What to observe:** the application behaves identically in both modes. The verifiable difference is the expression **appLoader == apiLoader**. The exact output of **ClassLoader.toString()** can vary across JDKs; comparing with **==** clarifies the identity relationship.
 
-## 4. Hiểu đúng readability, exports, opens và delegation
+## 4. Understanding Readability, Exports, Opens, and Delegation Properly
 
-JPMS có hai nhóm quy tắc liên quan nhưng không thay thế nhau:
+JPMS has two related sets of rules that do not replace one another:
 
-**Quy tắc module:**
+**Module rules:**
 
-- **requires** tạo cạnh đọc từ module tiêu thụ tới module phụ thuộc.
-- **exports** cho phép module khác truy cập public type/member trong package được export, theo phạm vi export.
-- **opens** cho phép reflective access sâu tới package theo phạm vi được mở; khác **exports**.
-- Các quy tắc này được JVM và API phản chiếu áp dụng dù module được gắn cùng loader hay khác loader.
+- **requires** creates a readability edge from the consuming module to the dependency module.
+- **exports** allows other modules to access public types/members in the exported package, according to the export scope.
+- **opens** allows deep reflective access to a package according to the opened scope; distinct from **exports**.
+- These rules are enforced by the JVM and reflection APIs whether modules are attached to the same loader or different loaders.
 
-**Quy tắc class loader:**
+**Class loader rules:**
 
-- Loader tìm/định nghĩa class; việc một loader có thể tìm thấy class không tự làm thay đổi quan hệ readability và exports.
-- Trong chế độ many loaders, loader của một module có thể cần phối hợp tìm class từ loader của module được đọc. Vì vậy không nên suy ra rằng mọi lời gọi **loadClass** chỉ nhìn thấy đúng một module.
-- **parentLoader** thường phục vụ delegation tới hệ thống có sẵn. Không suy luận layer parent giống hệt loader parent.
-- Boot layer tiếp tục chứa module nền tảng Java; tạo layer con không nhân bản **java.base** thành module mới.
+- A loader locates/defines classes; the fact that a loader can find a class does not by itself alter readability or exports relationships.
+- In many-loaders mode, a module's loader may need to coordinate to look up classes from the loaders of modules it reads. Therefore, you should not infer that every **loadClass** call sees only a single module.
+- **parentLoader** typically serves delegation to the existing system. Do not infer that a parent layer is identical to a parent loader.
+- The boot layer continues to hold Java's platform modules; creating a child layer does not duplicate **java.base** into a new module.
 
-Ví dụ: nếu bỏ **requires com.demo.api**, việc **com.demo.app** truy cập **Greeting** không được bảo đảm bởi việc hai module dùng chung một loader. Nếu bỏ **exports com.demo.api**, class công khai trong package đó vẫn không được module khác truy cập như một API công khai. Loader không phải công cụ bỏ qua encapsulation của JPMS.
+For example: if you remove **requires com.demo.api**, access by **com.demo.app** to **Greeting** is not guaranteed by the two modules sharing one loader. If you remove **exports com.demo.api**, public classes in that package still cannot be accessed by other modules as a public API. A loader is not a tool for bypassing JPMS encapsulation.
 
-## 5. Định danh lớp và cô lập giữa các layer
+## 5. Class Identity and Isolation Between Layers
 
-Trong JVM, hai bản class có cùng tên nhị phân có thể là hai kiểu khác nhau khi chúng được định nghĩa bởi hai class loader khác nhau.
+In the JVM, two copies of a class with the same binary name can be two different types when defined by two different class loaders.
 
-Giả sử tạo hai layer độc lập, mỗi layer resolve lại cùng module **com.demo.app** từ cùng artifact:
+Suppose you create two independent layers, each resolving the same **com.demo.app** module from the same artifact:
 
 ~~~java
 ModuleLayer first = parent.defineModulesWithOneLoader(cf, parentLoader);
@@ -293,96 +293,96 @@ System.out.println(a.getName().equals(b.getName())); // true
 System.out.println(a == b);                          // false
 ~~~
 
-Mỗi lần tạo layer đều có loader mới cho module mới; vì thế hai lớp có cùng tên nhưng identity khác nhau. Hệ quả thực tế:
+Each layer creation produces new loaders for the new modules; therefore, the two classes have the same name but different identities. Practical consequences:
 
-- Không ép kiểu trực tiếp object tạo từ bản class ở layer A sang class đồng tên của layer B.
-- Không dựa vào tên đầy đủ của class để xác định hai object có cùng kiểu runtime.
-- Khi trao đổi object giữa các plugin, ưu tiên API chung được nạp ở một layer cha chia sẻ, hoặc trao đổi dữ liệu đã chuẩn hóa qua một giao diện rõ ràng.
-- Với many loaders trong **cùng một layer**, module app và module api có loader khác nhau; điều này vẫn cho phép app sử dụng type của api nếu đồ thị module và quy tắc truy cập đúng.
+- Do not cast objects created from a class copy in layer A directly to the homonymous class in layer B.
+- Do not rely on a class's fully qualified name to determine whether two objects have the same runtime type.
+- When exchanging objects between plugins, prefer a common API loaded in a shared parent layer, or exchange normalized data through a clear interface.
+- With many loaders in **the same layer**, the app module and api module have different loaders; this still allows app to use api's types as long as the module graph and access rules are valid.
 
-**ClassCastException** hoặc **LinkageError** có thể xuất hiện nếu thư viện/plugin giả định class cùng tên từ hai loader là cùng một kiểu. Chọn one loader hoặc many loaders không thay thế việc thiết kế API boundary.
+**ClassCastException** or **LinkageError** can occur if a library/plugin assumes classes with the same name from two loaders are the same type. Choosing one loader or many loaders does not replace designing an API boundary.
 
-## 6. Chọn one loader hay many loaders?
+## 6. Choosing One Loader or Many Loaders?
 
-**Ưu tiên one loader khi:**
+**Prefer one loader when:**
 
-- Các module tạo thành một đơn vị chức năng thống nhất, vòng đời và phiên bản thường đi cùng nhau.
-- Bạn muốn một loader chung cho các module mới của layer.
-- Các module không có xung đột package khiến việc gán vào cùng loader bị từ chối.
-- Không cần phân tách namespace class theo từng module trong layer.
+- The modules form a cohesive functional unit whose lifecycle and versions typically move together.
+- You want a single shared loader for the new modules of the layer.
+- The modules do not have package conflicts that would cause assignment to the same loader to be rejected.
+- There is no need to separate class namespaces per module within the layer.
 
-**Cân nhắc many loaders khi:**
+**Consider many loaders when:**
 
-- Mỗi module cần identity loader riêng, ví dụ các thành phần mở rộng được quản lý tách biệt.
-- Muốn tránh ràng buộc một loader phải định nghĩa các package của tất cả module mới; trường hợp package trùng tên vẫn phải thỏa quy tắc giải quyết và truy cập của JPMS.
-- Công cụ chẩn đoán hoặc cơ chế nạp class của ứng dụng cần phân biệt rõ loader theo module.
-- Chấp nhận có thêm đối tượng loader và sự phức tạp khi truyền class/object giữa các thành phần.
+- Each module needs its own loader identity, such as extension components managed separately.
+- You want to avoid the constraint of a single loader having to define the packages of all new modules; cases with identically named packages still must satisfy JPMS resolution and access rules.
+- Diagnostic tools or the application's class-loading mechanism need to clearly distinguish loaders per module.
+- You accept having more loader objects and the complexity of passing classes/objects between components.
 
-Không nên mặc định **many loaders = bảo mật**, **one loader = nhanh hơn** hay **mỗi module có loader riêng = có thể unload độc lập bất cứ lúc nào**. JPMS không phải security sandbox. Việc giải phóng class/layer phụ thuộc vào khả năng thu gom rác của loader và toàn bộ tham chiếu còn sống (class, instance, thread, static field, service, cache, v.v.); không có lệnh “unload module” đơn giản.
+Do not assume **many loaders = security**, **one loader = faster**, or **each module having its own loader = can be independently unloaded at any time**. JPMS is not a security sandbox. Releasing classes/layers depends on garbage collection of the loader and all live references (classes, instances, threads, static fields, services, caches, etc.); there is no simple "unload module" command.
 
-Với hệ thống plugin thật, cân nhắc thêm vòng đời plugin, dependency version, API chia sẻ, thread context class loader, **ServiceLoader**, resource lookup và chiến lược đóng tài nguyên. Hai API ở đây chỉ quyết định cách gán loader cho module trong layer mới.
+For real plugin systems, also consider plugin lifecycle, dependency versions, shared APIs, thread context class loader, **ServiceLoader**, resource lookup, and resource-closing strategies. The two APIs here only decide how loaders are assigned to modules in the new layer.
 
-## 7. Những lỗi thường gặp và cách suy luận
+## 7. Common Mistakes and How to Reason About Them
 
-### 7.1. Nhầm cấu hình với layer
+### 7.1. Confusing Configuration with Layer
 
-**Triệu chứng:** resolve thành công nhưng không lấy được class theo cách đã kỳ vọng.
+**Symptom:** resolution succeeds, but classes cannot be retrieved as expected.
 
-**Lý do:** **Configuration** chỉ giải quyết đồ thị. Cần gọi một API **defineModules...** để định nghĩa module vào runtime và lấy class loader trong layer đã tạo.
+**Reason:** **Configuration** only resolves the graph. You must call a **defineModules...** API to define the modules at runtime and obtain the class loaders in the created layer.
 
-### 7.2. Nhầm parentLoader với loader của module
+### 7.2. Confusing `parentLoader` with the Module's Loader
 
-**Triệu chứng:** kiểm tra **layer.findLoader(name) == parentLoader** và cho rằng false là lỗi.
+**Symptom:** checking **layer.findLoader(name) == parentLoader** and treating false as an error.
 
-**Lý do:** hai API tạo loader mới. Dùng **findLoader** để quan sát mapping thực, không suy luận theo tham số truyền vào.
+**Reason:** both APIs create new loaders. Use **findLoader** to observe the actual mapping, rather than inferring it from the passed-in parameter.
 
-### 7.3. Thiếu requires, exports hoặc opens
+### 7.3. Missing `requires`, `exports`, or `opens`
 
-**Triệu chứng:** lỗi module resolution, **IllegalAccessException**, **InaccessibleObjectException** hoặc lỗi truy cập khác.
+**Symptom:** module resolution errors, **IllegalAccessException**, **InaccessibleObjectException**, or other access errors.
 
-**Cách suy luận:** xác định module nào đọc module nào; package nào phải export; code có chỉ gọi public member hay muốn phản chiếu private member. Sửa **module-info.java** phù hợp, không thay loader để “vượt rào”.
+**How to reason:** determine which module reads which module; which packages must be exported; whether code only calls public members or needs to reflect on private members. Fix **module-info.java** appropriately; do not change loaders to "bypass" rules.
 
-### 7.4. Trùng package khi dùng one loader
+### 7.4. Duplicate Packages When Using One Loader
 
-**Triệu chứng:** tạo layer thất bại với **LayerInstantiationException** hoặc lỗi kiểm tra package/module.
+**Symptom:** layer creation fails with **LayerInstantiationException** or package/module verification errors.
 
-**Lý do:** hai module mới không thể tùy ý định nghĩa cùng package vào cùng một loader. Kiểm tra cấu trúc package và đồ thị module. Many loaders có thể cho phép các package cùng tên ở các loader khác nhau trong những cấu hình hợp lệ, nhưng vẫn phải tuân thủ quy tắc JPMS; không có bảo đảm mọi xung đột package đều được giải quyết chỉ bằng cách đổi API.
+**Reason:** two new modules cannot arbitrarily define the same package in the same loader. Check the package structure and module graph. Many loaders may allow identically named packages in different loaders in valid configurations, yet still must comply with JPMS rules; there is no guarantee that every package conflict is solved merely by switching APIs.
 
-### 7.5. Dùng loader của Launcher để tìm class trong layer mới
+### 7.5. Using Launcher's Loader to Find Classes in the New Layer
 
-**Triệu chứng:** **ClassNotFoundException** khi gọi **Class.forName** từ classpath hoặc **ClassLoader.getSystemClassLoader().loadClass(...)**.
+**Symptom:** **ClassNotFoundException** when calling **Class.forName** from the classpath or **ClassLoader.getSystemClassLoader().loadClass(...)**.
 
-**Lý do:** loader hệ thống không tự đi tìm class trong loader con mới tạo. Dùng **layer.findLoader("com.demo.app")** rồi nạp class tương ứng, hoặc dùng API được thiết kế riêng cho việc tương tác với layer.
+**Reason:** the system loader does not automatically search for classes inside newly created child loaders. Use **layer.findLoader("com.demo.app")** and load the corresponding class, or use an API designed specifically for interacting with the layer.
 
-### 7.6. Tưởng many loaders cho phép trao đổi object tùy ý
+### 7.6. Assuming Many Loaders Allows Arbitrary Object Exchange
 
-**Triệu chứng:** ép kiểu lỗi dù class có cùng tên; framework giữ object từ loader khác.
+**Symptom:** casting fails even though classes have the same name; frameworks retain objects from another loader.
 
-**Lý do:** identity class bao gồm defining loader. Thiết kế ranh giới API dùng chung từ parent layer, hoặc định nghĩa giao thức dữ liệu rõ ràng. Đừng cast bằng tên lớp.
+**Reason:** class identity includes the defining loader. Design a shared API boundary from a parent layer, or define a clear data protocol. Do not cast based on class name.
 
-### 7.7. Tưởng tạo layer mới thay đổi boot layer
+### 7.7. Assuming Creating a New Layer Modifies the Boot Layer
 
-**Triệu chứng:** gọi **ModuleLayer.boot().findModule(...)** không thấy module vừa thêm.
+**Symptom:** calling **ModuleLayer.boot().findModule(...)** does not show the newly added module.
 
-**Lý do:** module được định nghĩa trong layer con, không được chèn vào boot layer. Hãy giữ tham chiếu tới layer mới và gọi **layer.findModule(...)** / **layer.findLoader(...)** trên đó.
+**Reason:** the module is defined in the child layer, not inserted into the boot layer. Retain a reference to the new layer and call **layer.findModule(...)** / **layer.findLoader(...)** on it.
 
-## 8. API liên quan cần biết
+## 8. Related APIs to Know
 
-- **ModuleLayer.boot()**: lấy boot layer của JVM.
-- **ModuleLayer.configuration()**: lấy configuration của một layer.
-- **Configuration.resolve(...)**: giải quyết module từ các finder và tập root module.
-- **ModuleFinder.of(Path...)**: tạo finder từ module artifact trên đĩa.
-- **ModuleLayer.defineModulesWithOneLoader(cf, parentLoader)**: instance API, tạo layer con với một loader cho các module mới.
-- **ModuleLayer.defineModulesWithManyLoaders(cf, parentLoader)**: instance API, tạo layer con có loader riêng cho từng module mới.
-- **ModuleLayer.findLoader(moduleName)**: lấy loader của module được định nghĩa **trong layer đó**; trả về **null** có thể là hợp lệ đối với module do bootstrap loader định nghĩa, ví dụ trong boot layer.
-- **ModuleLayer.findModule(moduleName)**: tìm module qua layer hiện tại và các layer cha theo quy tắc của API.
-- **Class.getModule()** và **Module.getLayer()**: xác định module và layer chứa class runtime.
-- **ModuleLayer.defineModulesWithOneLoader(cf, parentLayers, parentLoader)** và bản **defineModulesWithManyLoaders** dạng **static**: dùng danh sách parent layer, trả về **ModuleLayer.Controller**; lấy layer qua **controller.layer()**. Đừng nhầm kiểu trả về này với hai instance method trong ví dụ.
-- **ServiceLoader.load(layer, serviceType)**: cách tìm service provider trong các module của layer khi xây kiến trúc plugin theo JPMS. Module provider cần khai báo **provides ... with ...**, module tiêu thụ cần khai báo **uses** khi phù hợp.
+- **ModuleLayer.boot()**: gets the JVM's boot layer.
+- **ModuleLayer.configuration()**: gets the configuration of a layer.
+- **Configuration.resolve(...)**: resolves modules from finders and a set of root modules.
+- **ModuleFinder.of(Path...)**: creates a finder from module artifacts on disk.
+- **ModuleLayer.defineModulesWithOneLoader(cf, parentLoader)**: instance API, creates a child layer with one loader for the new modules.
+- **ModuleLayer.defineModulesWithManyLoaders(cf, parentLoader)**: instance API, creates a child layer with a separate loader for each new module.
+- **ModuleLayer.findLoader(moduleName)**: gets the loader of the module defined **in that layer**; returning **null** can be valid for modules defined by the bootstrap loader, for example in the boot layer.
+- **ModuleLayer.findModule(moduleName)**: searches for a module through the current layer and parent layers according to API rules.
+- **Class.getModule()** and **Module.getLayer()**: identifies the runtime module and layer containing a class.
+- **ModuleLayer.defineModulesWithOneLoader(cf, parentLayers, parentLoader)** and the **static** **defineModulesWithManyLoaders**: take a list of parent layers and return **ModuleLayer.Controller**; obtain the layer via **controller.layer()**. Do not confuse this return type with the two instance methods in the example.
+- **ServiceLoader.load(layer, serviceType)**: a way to find service providers in a layer's modules when building a JPMS-based plugin architecture. Provider modules need to declare **provides ... with ...**, and consumer modules need to declare **uses** as appropriate.
 
-## 9. Tự luyện tập
+## 9. Self-Practice Exercises
 
-**Bài 1 — Kiểm tra loader.** Chạy ví dụ ở cả hai chế độ. Ghi lại ba biểu thức:
+**Exercise 1 — Inspecting loaders.** Run the example in both modes. Record three expressions:
 
 ~~~java
 appLoader == apiLoader
@@ -390,19 +390,19 @@ appLoader == parentLoader
 entry.getModule().getLayer() == layer
 ~~~
 
-Kỳ vọng lần lượt: **true / false / true** ở chế độ one; **false / false / true** ở chế độ many. Giải thích vì sao biểu thức cuối vẫn true trong cả hai chế độ.
+Expected respectively: **true / false / true** in one mode; **false / false / true** in many mode. Explain why the last expression remains true in both modes.
 
-**Bài 2 — Thử module boundary.** Xóa **exports com.demo.app** trong descriptor của app, biên dịch lại rồi thử reflective invocation từ Launcher. Quan sát lỗi truy cập và khôi phục **exports**. Phân tích vì sao việc đổi one ↔ many không phải lời giải cho giới hạn này.
+**Exercise 2 — Testing module boundaries.** Remove **exports com.demo.app** in the app descriptor, recompile, and try reflective invocation from Launcher. Observe the access error and restore **exports**. Analyze why switching one ↔ many is not a solution to this restriction.
 
-**Bài 3 — Hai layer độc lập.** Tạo hai layer bằng cùng configuration và cùng chế độ one. Lấy class **com.demo.app.Entry** từ từng layer, so sánh **getName()** và **==**. Giải thích bằng cặp *(binary name, defining class loader)*.
+**Exercise 3 — Two independent layers.** Create two layers using the same configuration and the same one mode. Obtain the class **com.demo.app.Entry** from each layer, and compare **getName()** and **==**. Explain using the pair *(binary name, defining class loader)*.
 
-**Bài 4 — Thiết kế plugin.** Một hệ thống có module API chung và ba module plugin. Hãy phác thảo module nào cần ở parent layer, module nào ở layer con, và nên dùng one hay many loaders. Đánh giá trên các tiêu chí: chia sẻ API, class identity, xung đột package, vòng đời và mức độ phức tạp.
+**Exercise 4 — Designing plugins.** A system has a shared API module and three plugin modules. Sketch which modules belong in the parent layer, which belong in child layers, and whether to use one or many loaders. Evaluate against the criteria: API sharing, class identity, package conflicts, lifecycle, and complexity.
 
-## 10. Ghi nhớ
+## 10. Key Takeaways
 
-- **Configuration** giải quyết đồ thị module; **ModuleLayer** định nghĩa chúng ở runtime; **ClassLoader** tải class.
-- **One loader:** các module mới trong cùng layer dùng chung một loader.
-- **Many loaders:** mỗi module mới trong layer có một loader riêng; quan hệ đọc module vẫn được JPMS duy trì.
-- **parentLoader** là đầu vào cho delegation; muốn biết loader gắn với module, dùng **layer.findLoader(name)**.
-- **requires/exports/opens** và **class-loader identity** giải quyết hai vấn đề khác nhau; phải hiểu cả hai khi thiết kế ứng dụng module hóa.
-- Lựa chọn loader chỉ là một phần của kiến trúc. Khi xây plugin thực tế, hãy thiết kế rõ các lớp dùng chung, lớp cô lập, dependency và vòng đời tài nguyên.
+- **Configuration** resolves the module graph; **ModuleLayer** defines them at runtime; **ClassLoader** loads classes.
+- **One loader:** new modules in the same layer share a single loader.
+- **Many loaders:** each new module in the layer has its own loader; module readability relationships are still maintained by JPMS.
+- **parentLoader** is an input for delegation; to find the loader associated with a module, use **layer.findLoader(name)**.
+- **requires/exports/opens** and **class-loader identity** solve two different problems; both must be understood when designing modular applications.
+- Loader choice is only part of the architecture. When building real plugins, clearly design shared classes, isolated classes, dependencies, and resource lifecycles.

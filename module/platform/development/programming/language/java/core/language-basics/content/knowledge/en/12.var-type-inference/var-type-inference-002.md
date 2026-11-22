@@ -1,100 +1,100 @@
-# `var` giữ nguyên kiểm tra kiểu tĩnh trong Java 17+
+# `var` Preserves Static Type Checking in Java 17+
 
-## 1. Mục tiêu: ít chữ hơn, không bớt an toàn kiểu
+## 1. Goal: Fewer Characters, Same Type Safety
 
-Trong Java, `var` cho phép **suy luận kiểu của biến cục bộ** (*local-variable type inference*) từ biểu thức khởi tạo. Tính năng xuất hiện từ Java 10 và tiếp tục được hỗ trợ trong Java 17+.
+In Java, `var` enables **local-variable type inference** from the initializer expression. This feature was introduced in Java 10 and continues to be supported in Java 17+.
 
 ~~~java
-var count = 10;        // Compiler suy luận int
-var title = "Java";    // Compiler suy luận String
-var price = 12.5;      // Compiler suy luận double
+var count = 10;        // Compiler infers int
+var title = "Java";    // Compiler infers String
+var price = 12.5;      // Compiler infers double
 
 System.out.println(count + 1);  // 11
 System.out.println(title);      // Java
 System.out.println(price);      // 12.5
 ~~~
 
-Điều cốt lõi: **`var` không làm Java trở thành ngôn ngữ có kiểu động (*dynamic typing*)**. Kiểu biến được xác định **khi biên dịch**, sau đó vẫn được compiler kiểm tra trong mọi phép gán và lời gọi method.
+The core point: **`var` does not turn Java into a dynamically typed language**. The variable's type is determined **at compile time**, and is then checked by the compiler in every subsequent assignment and method call.
 
 ~~~java
 var count = 10;
-count = 20;         // Hợp lệ: int -> int
-// count = "twenty"; // Lỗi biên dịch: String không chuyển thành int
+count = 20;         // Valid: int -> int
+// count = "twenty"; // Compile error: String cannot be converted to int
 ~~~
 
-Bạn có thể hình dung `var count = 10;` có tác dụng tương đương về kiểu và hành vi sau suy luận với `int count = 10;`, **không phải** một biến chứa “giá trị bất kỳ”.
+You can think of `var count = 10;` as having the same effect in terms of type and post-inference behavior as `int count = 10;`, **not** as a variable holding “any value”.
 
-### Điều cần đạt sau bài
+### What You Should Achieve After This Lesson
 
-- Hiểu `var` suy luận kiểu tĩnh, **không đổi kiểu khi gán lại**.
-- Phân tích kiểu được suy ra từ literal, method, constructor và generic.
-- Dự đoán lỗi compile do gán sai kiểu, thiếu initializer hoặc thiếu kiểu đích.
-- Dùng `var` đúng chỗ mà không làm code khó đọc.
+- Understand that `var` infers a static type and **does not change type upon reassignment**.
+- Analyze the inferred type from literals, methods, constructors, and generics.
+- Predict compile errors caused by mismatched-type assignments, missing initializers, or missing target types.
+- Use `var` in the right places without making code hard to read.
 
-## 2. Kiểu tĩnh được chốt một lần từ initializer
+## 2. The Static Type Is Locked Once from the Initializer
 
-Với `var name = expression;`, compiler xác định kiểu của `expression` ngay lúc khai báo. Các lần gán tiếp theo phải phù hợp với kiểu đã suy ra:
+With `var name = expression;`, the compiler determines the type of `expression` at the time of declaration. Subsequent assignments must match the inferred type:
 
 ~~~java
 var number = 7;              // int
-number = 9;                  // Hợp lệ.
-// number = 9L;              // Lỗi: long không tự thu hẹp về int.
+number = 9;                  // Valid.
+// number = 9L;              // Error: long does not automatically narrow to int.
 var label = "Java";           // String
-// label = 42;                // Lỗi: int không gán được cho String.
+// label = 42;                // Error: int cannot be assigned to String.
 ~~~
 
-Độ rộng số được quyết định bởi literal hoặc phép toán trong initializer, không bởi các giá trị muốn gán về sau. Bài “Kiểu suy ra từ literal và các phép tính số” phân tích riêng numeric promotion và overflow.
+Numeric width is determined by the literal or operation in the initializer, not by values you might want to assign later. The lesson “Types Inferred from Literals and Numeric Operations” analyzes numeric promotion and overflow separately.
 
-## 3. Vì sao đây vẫn là static typing?
+## 3. Why Is This Still Static Typing?
 
-Compiler vẫn kiểm tra những yếu tố bình thường của Java:
+The compiler still checks Java's normal rules:
 
-1. **Tính hợp lệ của phép gán:** kiểu biểu thức bên phải phải tương thích với kiểu đã suy ra.
-2. **Truy cập method/field:** chỉ các thành viên hợp lệ theo **kiểu tĩnh** mới được gọi.
-3. **Toán tử:** các toán tử được kiểm tra theo kiểu toán hạng.
-4. **Kiểu generic:** `List<String>` khác `List<Integer>`; compiler áp dụng kiểm tra kiểu với phần tử.
-5. **Overload resolution:** chọn method theo kiểu tĩnh của đối số tại compile time.
+1. **Assignment compatibility:** the type of the right-hand expression must be compatible with the inferred type.
+2. **Method/field access:** only members valid according to the **static type** can be called.
+3. **Operators:** operators are checked based on operand types.
+4. **Generic types:** `List<String>` differs from `List<Integer>`; the compiler enforces element type checking.
+5. **Overload resolution:** selects the method based on the static types of arguments at compile time.
 
 ~~~java
 var text = "Java"; // String
 System.out.println(text.length()); // 4
-// System.out.println(text.nonExistingMethod()); // Lỗi compile
-// text = 123; // Lỗi compile
+// System.out.println(text.nonExistingMethod()); // Compile error
+// text = 123; // Compile error
 ~~~
 
-Bạn sẽ thấy cùng mức kiểm tra kiểu nếu viết:
+You will see the exact same level of type checking if you write:
 
 ~~~java
 String text = "Java";
 ~~~
 
-**`var` không phải `Object`**. Với `var text = "Java";`, biến có kiểu `String`, nên `text.length()` biên dịch được; với `Object text = "Java";`, lời gọi `text.length()` không hợp lệ nếu không ép kiểu vì `Object` không khai báo `length()`.
+**`var` is not `Object`**. With `var text = "Java";`, the variable has type `String`, so `text.length()` compiles; with `Object text = "Java";`, calling `text.length()` is invalid without a cast because `Object` does not declare `length()`.
 
-**`var` cũng không phải JavaScript `var`**: hai ngôn ngữ dùng cùng chuỗi ký tự cho những cơ chế khác nhau.
+**Nor is `var` JavaScript's `var`**: the two languages use the same sequence of characters for different mechanisms.
 
-## 4. Hai ví dụ cùng chữ `var`, nhưng suy ra hai kiểu khác nhau
+## 4. Two Examples with the Same `var` Keyword, Inferring Two Different Types
 
 ~~~java
 var primitive = 42;                  // int
 var wrapped = Integer.valueOf(42);  // Integer
 
 System.out.println(primitive + 1); // 43
-System.out.println(wrapped + 1);   // 43: unboxing rồi tính
+System.out.println(wrapped + 1);   // 43: unboxing then adding
 ~~~
 
-Ở ví dụ `wrapped`, compiler biết biến có kiểu `Integer`; ở ví dụ `primitive`, compiler biết biến có kiểu `int`.
+In the `wrapped` example, the compiler knows the variable has type `Integer`; in the `primitive` example, the compiler knows the variable has type `int`.
 
-Điều này ảnh hưởng tới khả năng giữ `null`:
+This affects the ability to hold `null`:
 
 ~~~java
 var count = 5;             // int
-// count = null;            // Lỗi compile: primitive int không nhận null
+// count = null;            // Compile error: primitive int cannot hold null
 
 var optionalCount = Integer.valueOf(5); // Integer
-optionalCount = null;          // Biên dịch được, vì Integer là reference type
+optionalCount = null;          // Compiles, because Integer is a reference type
 ~~~
 
-Nhưng khi auto-unboxing một wrapper null, bạn vẫn gặp `NullPointerException` như với khai báo `Integer` thông thường:
+However, when auto-unboxing a null wrapper, you still get a `NullPointerException` just as with a normal `Integer` declaration:
 
 ~~~java
 if (optionalCount != null) {
@@ -103,58 +103,58 @@ if (optionalCount != null) {
 }
 ~~~
 
-**Suy luận kiểu không tự bổ sung kiểm tra null runtime.** `var` chỉ giảm lặp tên kiểu tại chỗ khai báo, không thay đổi hợp đồng nullable của kiểu đã suy ra.
+**Type inference does not automatically add runtime null checks.** `var` only reduces type-name repetition at the declaration site; it does not change the nullable contract of the inferred type.
 
-## 5. Các lỗi biên dịch điển hình chứng minh kiểu vẫn cố định
+## 5. Typical Compile Errors Proving the Type Remains Fixed
 
-Những dòng có comment bên dưới là **ví dụ sai có chủ đích**, không đưa vào chương trình chạy ở phần sau:
+The commented lines below are **intentional error examples** and are not included in the runnable program later:
 
 ~~~java
 var score = 10;
-// score = "ten";             // String không gán được vào int
+// score = "ten";             // String cannot be assigned to int
 
 var city = "Hà Nội";
-// city = 42;                 // int không gán được vào String
+// city = 42;                 // int cannot be assigned to String
 
 var names = new java.util.ArrayList<String>();
 names.add("Lan");
-// names.add(100);            // int không phù hợp với List<String>
+// names.add(100);            // int does not match List<String>
 
 var answer = 2 + 3;         // int
-// answer.notARealMethod();   // int không có method như vậy
+// answer.notARealMethod();   // int has no such method
 ~~~
 
-Không có “lần gán thứ hai khiến biến đổi kiểu”. Compiler **không suy luận lại** kiểu của `score` hoặc `city` ở các câu lệnh sau.
+There is no “second assignment that makes the variable change type”. The compiler **does not re-infer** the type of `score` or `city` in later statements.
 
-Một ngoại lệ dễ gây hiểu nhầm về giá trị nhưng **không phải đổi kiểu**:
+An exception that is easy to misunderstand regarding values, though **not a type change**:
 
 ~~~java
 var number = 3;   // int
-number = (int) 3.9; // Hợp lệ: cast double -> int, giá trị thành 3
+number = (int) 3.9; // Valid: cast double -> int, value becomes 3
 ~~~
 
-Ở đây kiểu `number` vẫn là **int**. Dùng cast có thể làm mất dữ liệu; tính đúng nghiệp vụ vẫn phải kiểm tra riêng.
+Here `number`'s type is still **int**. Using a cast can cause data loss; business correctness still needs to be checked separately.
 
-## 6. Những giới hạn kiểu tĩnh vẫn áp dụng khi dùng `var`
+## 6. Static Type Constraints Still Apply When Using `var`
 
-Compiler chỉ có thể suy luận khi initializer **có kiểu hợp lệ**. Không thể viết `var item;`, `var item = null;`, `var values = {1, 2};` hoặc gán trực tiếp lambda không có kiểu đích. Có thể sử dụng kiểu tường minh hoặc tạo biểu thức đủ kiểu:
+The compiler can only infer when the initializer **has a valid type**. You cannot write `var item;`, `var item = null;`, `var values = {1, 2};`, or directly assign a lambda without a target type. You can use an explicit type or create an expression with a complete type:
 
 ~~~java
 String nullable = null;
-var typedNull = (String) null; // Kiểu String dù giá trị null
-var values = new int[] {1, 2}; // Kiểu int[]
+var typedNull = (String) null; // Type String even though value is null
+var values = new int[] {1, 2}; // Type int[]
 java.util.function.IntUnaryOperator f = x -> x + 1;
 var f2 = (java.util.function.IntUnaryOperator) (x -> x + 1);
 ~~~
 
-Trong cả `f` và `f2`, **functional interface** cung cấp kiểu đích cho lambda; `var` không tự phát minh kiểu functional interface. Quy tắc suy luận từ `null`, mảng và vị trí được phép viết `var` có bài chuyên biệt trong chương; ở đây chúng là **bằng chứng rằng static typing không bị bỏ qua**.
+In both `f` and `f2`, the **functional interface** supplies the target type for the lambda; `var` does not invent a functional interface type on its own. The rules for inference from `null`, arrays, and allowed positions for `var` have dedicated lessons in this chapter; here they serve as **evidence that static typing is not bypassed**.
 
-### Kiểu generic và abstraction vẫn được giữ
+### Generic Types and Abstractions Are Still Preserved
 
 ~~~java
 var strings = new java.util.ArrayList<String>();
 strings.add("An");
-// strings.add(5); // Lỗi biên dịch: cần String
+// strings.add(5); // Compile error: String required
 
 var bag = new java.util.ArrayList<>(); // ArrayList<Object>
 bag.add("An");
@@ -163,11 +163,11 @@ bag.add(5);
 java.util.List<String> names = new java.util.ArrayList<>();
 ~~~
 
-Không có kiểu đích `String` cho diamond trống của `bag`, nên biến suy ra `ArrayList<Object>` và `add(5)` hợp lệ (boxing thành `Integer`). Đặt `List<String>` ở vế trái khi mục tiêu là dùng **API của interface**, thay vì cho `var` suy ra lớp triển khai cụ thể. Sau khai báo, generic và tập method hợp lệ vẫn được compiler kiểm tra; `var` **không** bỏ qua `UnsupportedOperationException` nếu gọi thao tác không hỗ trợ trên danh sách từ `List.of` lúc chạy.
+Without a `String` target type for `bag`'s empty diamond, the variable infers `ArrayList<Object>`, and `add(5)` is valid (boxing to `Integer`). Place `List<String>` on the left-hand side when the goal is to use the **interface's API**, rather than letting `var` infer the concrete implementation class. After declaration, generics and the set of valid methods are still checked by the compiler; `var` **does not** bypass `UnsupportedOperationException` if an unsupported operation is called on a list from `List.of` at runtime.
 
-## 7. Overload được chọn theo kiểu tĩnh, không theo nội dung lúc chạy
+## 7. Overloads Are Chosen by Static Type, Not Runtime Contents
 
-Giả sử có hai overload:
+Suppose we have two overloads:
 
 ~~~java
 static void describe(Object object) {
@@ -179,28 +179,28 @@ static void describe(String text) {
 }
 ~~~
 
-Trong `main`:
+In `main`:
 
 ~~~java
-var text = "Java";           // Kiểu String
-var object = (Object) "Java"; // Kiểu Object
+var text = "Java";           // Type String
+var object = (Object) "Java"; // Type Object
 
 describe(text);   // String
 describe(object); // Object
 ~~~
 
-Cả hai biến **có thể cùng tham chiếu tới một object String**, nhưng overload được lựa chọn **khi biên dịch** dựa trên kiểu tĩnh của biểu thức:
+Both variables **can refer to the same String object**, but the overload is selected **at compile time** based on the expression's static type:
 
-- `text` kiểu `String` → chọn `describe(String)`.
-- `object` kiểu `Object` → chọn `describe(Object)`.
+- `text` of type `String` → selects `describe(String)`.
+- `object` of type `Object` → selects `describe(Object)`.
 
-**`var` không hỗ trợ tự đổi overload theo runtime.** Đây là dấu hiệu trực quan rằng suy luận kiểu trong Java vẫn thuộc mô hình static typing.
+**`var` does not support switching overloads at runtime.** This is a clear sign that type inference in Java still belongs to the static typing model.
 
 
 
-## 8. Chương trình Java 17 chạy độc lập
+## 8. Standalone Runnable Java 17 Program
 
-Tạo file đúng tên **`VarStaticTypingDemo.java`**:
+Create a file named **`VarStaticTypingDemo.java`**:
 
 ~~~java
 import java.io.StringReader;
@@ -240,7 +240,7 @@ public final class VarStaticTypingDemo {
         System.out.println("boolean=" + enabled);
         System.out.println("text length=" + title.length());
 
-        var answer = sum(2, 3); // int từ kiểu trả về
+        var answer = sum(2, 3); // int from return type
         System.out.println("sum=" + answer);
 
         var names = new ArrayList<String>();
@@ -297,7 +297,7 @@ public final class VarStaticTypingDemo {
 }
 ~~~
 
-**Biên dịch và chạy với JDK 17+**. Mở terminal trong thư mục chứa file.
+**Compile and run with JDK 17+**. Open a terminal in the directory containing the file.
 
 **Bash (Linux/macOS):**
 
@@ -341,25 +341,25 @@ same reference=true
 original=[shared]
 ~~~
 
-**Giải thích kết quả dễ nhầm:**
+**Clarifying easily confused results:**
 
-- `number` suy ra kiểu `int`; gán `12` được phép nhưng không thể gán String.
-- `answer` suy ra `int` từ method `sum`.
-- `names` có kiểu `ArrayList<String>`, nên chỉ cho thêm giá trị String theo generic.
-- `bag` được tạo với diamond trống và không có target type ngoài `var`, vì vậy suy ra `ArrayList<Object>`; thêm cả String và Integer là hợp lệ.
-- `asString` và `asObject` dẫn tới overload khác nhau **theo kiểu tĩnh**, không do object String thay đổi.
-- `optional` vẫn có kiểu `String` dù giá trị hiện tại là null.
-- `increment` có target type qua cast `IntUnaryOperator`; `merge` có target type `BinaryOperator<String>`.
-- `for` và `try-with-resources` sử dụng `var` trong vị trí hợp lệ.
-- `alias = original` giữ cùng tham chiếu, không sao chép ArrayList.
+- `number` infers type `int`; assigning `12` is allowed, but assigning a String is not.
+- `answer` infers `int` from the `sum` method.
+- `names` has type `ArrayList<String>`, so it only allows adding String values per generics.
+- `bag` is created with an empty diamond and no target type outside `var`, so it infers `ArrayList<Object>`; adding both String and Integer is valid.
+- `asString` and `asObject` lead to different overloads **based on static type**, not because the String object changed.
+- `optional` still has type `String` even though its current value is null.
+- `increment` gets its target type via the `IntUnaryOperator` cast; `merge` has target type `BinaryOperator<String>`.
+- `for` and `try-with-resources` use `var` in valid positions.
+- `alias = original` keeps the same reference and does not copy the ArrayList.
 
-**Không có** các dòng compile error cố ý trong chương trình này; các ví dụ code không hợp lệ ở phần trước đều được comment hoặc đặt riêng. Ví dụ dùng các API tiêu chuẩn của JDK 17 và không cần thư viện ngoài.
+There are **no** intentional compile-error lines in this program; the invalid code examples in earlier sections were commented out or shown separately. The example uses standard JDK 17 APIs and requires no external libraries.
 
 
 
-## 9. Bài tập và đáp án
+## 9. Exercises and Solutions
 
-### Bài A — suy luận literal
+### Exercise A — Literal Inference
 
 ~~~java
 var x = 1;
@@ -367,9 +367,9 @@ var y = 1L;
 var z = 1.0f;
 ~~~
 
-**Đáp án:** `x` là `int`, `y` là `long`, `z` là `float`.
+**Answer:** `x` is `int`, `y` is `long`, `z` is `float`.
 
-### Bài B — gán lại sai kiểu
+### Exercise B — Reassignment with Wrong Type
 
 ~~~java
 var label = "A";
@@ -377,9 +377,9 @@ label = "B";
 // label = 10;
 ~~~
 
-**Đáp án:** gán `"B"` hợp lệ; gán `10` lỗi biên dịch vì `label` có kiểu `String` đã chốt.
+**Answer:** assigning `"B"` is valid; assigning `10` causes a compile error because `label` has its type locked to `String`.
 
-### Bài C — generic
+### Exercise C — Generics
 
 ~~~java
 var scores = new java.util.ArrayList<Integer>();
@@ -387,29 +387,29 @@ scores.add(1);
 // scores.add("two");
 ~~~
 
-**Đáp án:** `scores` có kiểu `ArrayList<Integer>`, nên thêm `"two"` không hợp lệ. `var` không bỏ kiểm tra generic.
+**Answer:** `scores` has type `ArrayList<Integer>`, so adding `"two"` is invalid. `var` does not skip generic type checking.
 
-### Bài D — overload
+### Exercise D — Overloads
 
 ~~~java
 static void show(Object x) { System.out.println("Object"); }
 static void show(String x) { System.out.println("String"); }
 
-// Trong main:
+// In main:
 var a = "Hi";
 var b = (Object) "Hi";
 show(a);
 show(b);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 String
 Object
 ~~~
 
-### Bài E — null
+### Exercise E — null
 
 ~~~java
 // var a = null;
@@ -417,31 +417,31 @@ String b = null;
 var c = (String) null;
 ~~~
 
-**Đáp án:** khai báo `a` sai, vì compiler không suy ra kiểu từ null literal. `b` và `c` hợp lệ; `c` có kiểu `String` dù giữ giá trị null.
+**Answer:** the declaration of `a` is invalid because the compiler cannot infer a type from the null literal. `b` and `c` are valid; `c` has type `String` even though it holds null.
 
-### Bài F — chọn `var` hay kiểu tường minh?
+### Exercise F — Choosing `var` or an Explicit Type?
 
-Bạn muốn công khai ý định làm việc qua giao diện `List<String>` thay vì các thao tác riêng của `ArrayList`:
+You want to express the intent to work through the `List<String>` interface rather than `ArrayList`-specific operations:
 
 ~~~java
 var names = new java.util.ArrayList<String>();
 ~~~
 
-**Đáp án:** có thể viết:
+**Answer:** you can write:
 
 ~~~java
 java.util.List<String> names = new java.util.ArrayList<>();
 ~~~
 
-Cách này thể hiện rõ **hợp đồng phụ thuộc vào `List`**. `var` vẫn đúng về kiểu; vấn đề ở đây là tính dễ đọc và mức abstraction mong muốn, không phải Java kiểm tra kiểu yếu hơn.
+This clearly expresses the **contract depending on `List`**. `var` is still type-correct; the issue here is readability and the desired abstraction level, not weaker type checking in Java.
 
-## 10. Checklist và kết luận
+## 10. Checklist and Conclusion
 
-- [ ] Với `var`, phép gán sai kiểu vẫn bị từ chối tại compile time.
-- [ ] Method access, generic và overload vẫn dựa trên kiểu tĩnh suy ra.
-- [ ] Phân biệt `int` với `Integer` và kiểm tra null trước khi unbox.
-- [ ] Phân biệt `var text = "Java";` với `Object text = "Java";`.
-- [ ] Hiểu vì sao biến cùng trỏ một `String` có thể chọn hai overload khác nhau khi kiểu tĩnh khác nhau.
-- [ ] Có thể chạy `VarStaticTypingDemo.java` và giải thích các kết quả.
+- [ ] With `var`, mismatched-type assignments are still rejected at compile time.
+- [ ] Method access, generics, and overloads still rely on the inferred static type.
+- [ ] Distinguish `int` from `Integer` and check for null before unboxing.
+- [ ] Distinguish `var text = "Java";` from `Object text = "Java";`.
+- [ ] Understand why variables pointing to the same `String` can select two different overloads when their static types differ.
+- [ ] Able to run `VarStaticTypingDemo.java` and explain the outputs.
 
-**Kết luận:** `var` rút gọn khai báo biến cục bộ, nhưng kiểm tra kiểu tĩnh, lựa chọn overload và kiểm tra generic vẫn hoạt động như với khai báo tường minh.
+**Conclusion:** `var` shortens local variable declarations, but static type checking, overload resolution, and generic type checks still work just as they do with explicit declarations.

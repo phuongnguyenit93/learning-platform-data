@@ -1,22 +1,22 @@
-# Đọc stack trace và tìm vị trí phát sinh lỗi — Java 17+
+# Reading Stack Traces and Locating Error Origins — Java 17+
 
-## 1. Stack trace giúp trả lời điều gì?
+## 1. What Questions Does a Stack Trace Answer?
 
-Khi một lỗi hoặc ngoại lệ (exception) xảy ra trong Java, **stack trace** ghi lại chuỗi lời gọi phương thức đang hoạt động tại thời điểm lỗi được tạo hoặc khi stack trace được thu thập. Nhìn vào đó, lập trình viên có thể xác định:
+When an error or exception occurs in Java, a **stack trace** records the chain of active method calls at the moment the error was created or when the stack trace was captured. By reading it, a developer can identify:
 
-- **Loại lỗi:** `NumberFormatException`, `NullPointerException`, `ArrayIndexOutOfBoundsException`, `IllegalStateException`...
-- **Thông điệp:** cung cấp thêm ngữ cảnh, có thể chứa đầu vào hoặc mô tả điều kiện sai.
-- **Vị trí trong mã:** lớp, phương thức, file `.java` và số dòng khi thông tin có sẵn.
-- **Đường đi của lời gọi:** phương thức nào gọi phương thức nào dẫn đến lỗi.
-- **Nguyên nhân lồng nhau:** dòng `Caused by:` cho thấy ngoại lệ nguyên nhân khi một ngoại lệ bị bọc trong ngoại lệ khác.
+- **Error type:** `NumberFormatException`, `NullPointerException`, `ArrayIndexOutOfBoundsException`, `IllegalStateException`...
+- **Message:** provides additional context, possibly containing the input or a description of the invalid condition.
+- **Location in code:** class, method, `.java` file, and line number when available.
+- **Call path:** which method called which method leading up to the error.
+- **Nested causes:** `Caused by:` lines showing the underlying cause when one exception is wrapped inside another.
 
-**Mục tiêu:** đọc trace từ lỗi thực tế để tìm đoạn mã cần kiểm tra và **nguyên nhân gốc**, thay vì chỉ xóa một dòng khiến ứng dụng báo lỗi.
+**Goal:** read the trace from an actual error to find the code that needs inspection and the **root cause**, rather than merely deleting a line that makes the application report an error.
 
-Stack trace là **ảnh chụp call stack**, không phải toàn bộ lịch sử hoạt động của chương trình; nó không tự ghi mọi giá trị biến hoặc mọi sự kiện đã diễn ra.
+A stack trace is a **snapshot of the call stack**, not a complete execution history of the program; it does not automatically record all variable values or every event that happened.
 
-## 2. Cấu trúc một stack trace thường thấy
+## 2. Structure of a Typical Stack Trace
 
-Một trace minh họa (số dòng trong ví dụ là **minh họa**, thay đổi theo bản mã và bản JDK):
+An illustrative trace (line numbers in the example are **illustrative** and vary by code version and JDK version):
 
 ~~~text
 Exception in thread "main" java.lang.NumberFormatException: For input string: "bad"
@@ -28,73 +28,73 @@ Exception in thread "main" java.lang.NumberFormatException: For input string: "b
     at StackTraceReadingDemo.main(StackTraceReadingDemo.java:31)
 ~~~
 
-Cách đọc:
+How to read it:
 
-| Thành phần | Ý nghĩa |
+| Component | Meaning |
 |---|---|
-| `Exception in thread "main"` | Có ngoại lệ chưa được xử lý trên luồng `main` |
-| `java.lang.NumberFormatException` | **Kiểu ngoại lệ** (không chuyển đổi được chuỗi sang số) |
-| `For input string: "bad"` | Thông điệp giúp xác định đầu vào không hợp lệ |
-| `at java.base/java.lang.Integer.parseInt(...)` | Frame thuộc thư viện chuẩn Java trong module `java.base` |
-| `at StackTraceReadingDemo.parsePart(...:9)` | Frame của **mã ứng dụng** tại `parsePart`, dòng minh họa 9 |
-| `at ...calculate(...)`, `...load(...)`, `...main(...)` | Chuỗi các phương thức gọi dẫn tới `parsePart` |
+| `Exception in thread "main"` | There is an unhandled exception on the `main` thread |
+| `java.lang.NumberFormatException` | **Exception type** (cannot convert string to number) |
+| `For input string: "bad"` | Message helping identify the invalid input |
+| `at java.base/java.lang.Integer.parseInt(...)` | Frame belonging to the Java standard library in module `java.base` |
+| `at StackTraceReadingDemo.parsePart(...:9)` | **Application code** frame at `parsePart`, illustrative line 9 |
+| `at ...calculate(...)`, `...load(...)`, `...main(...)` | Chain of calling methods leading to `parsePart` |
 
-Dòng `at Class.method(File.java:line)` thường mô tả:
+An `at Class.method(File.java:line)` line typically describes:
 
-- `Class`: tên lớp, có thể gồm package.
-- `method`: tên phương thức/constructor (constructor thường hiện là `<init>`).
-- `File.java`: tên file nguồn khi có thông tin.
-- `line`: số dòng được gắn với frame khi có debug line information.
+- `Class`: class name, possibly including package.
+- `method`: method/constructor name (constructors usually appear as `<init>`).
+- `File.java`: source file name when available.
+- `line`: line number associated with the frame when debug line information is present.
 
-Dấu `at` không có nghĩa là mỗi dòng ấy đều **ném một ngoại lệ khác nhau**: chúng thường là những frame trong **cùng một chuỗi lời gọi**.
+The `at` prefix does not mean each of those lines **threw a different exception**: they are typically frames in the **same call chain**.
 
-## 3. Đọc từ trên xuống và tìm frame ứng dụng đầu tiên
+## 3. Reading Top-Down and Finding the First Application Frame
 
-Với trace thông thường, các frame liệt kê từ **nơi gần điểm tạo lỗi nhất** xuống những hàm gọi ở phía ngoài:
+In a typical trace, frames are listed from **closest to where the error was created** down toward outer callers:
 
 ~~~text
 Integer.parseInt -> parsePart -> calculate -> load -> main
          ^              ^            ^         ^       ^
-    API thư viện     mã ứng dụng đang dẫn tới lỗi
+    library API      application code leading to the error
 ~~~
 
-Ở ví dụ trên, `Integer.parseInt` trong JDK phát hiện chuỗi không phải số. Nhưng vị trí **mã ứng dụng đầu tiên** cần kiểm tra là lời gọi `Integer.parseInt(...)` bên trong `parsePart`.
+In the example above, `Integer.parseInt` in the JDK detected the non-numeric string. However, the **first application code** location to inspect is the `Integer.parseInt(...)` call inside `parsePart`.
 
-Quy trình:
+Workflow:
 
-1. Đọc **kiểu ngoại lệ và thông điệp**, chưa vội sửa code.
-2. Tìm các frame mang tên package/lớp của **dự án**; mở **file và số dòng** được nêu.
-3. Xem câu lệnh ở dòng ấy, đặc biệt đối số truyền vào method có thể gây lỗi.
-4. Theo các frame tiếp theo để biết **ai cung cấp dữ liệu** và vì sao chuỗi `"bad"` tới được `parseInt`.
-5. Dựng lại đầu vào, thêm kiểm tra/validation hoặc điều chỉnh logic tại nơi phù hợp, rồi chạy lại test.
+1. Read the **exception type and message** before rushing to edit code.
+2. Find frames bearing your **project's** package/class names; open the specified **file and line number**.
+3. Inspect the statement on that line, especially arguments passed into any method that may fail.
+4. Follow subsequent frames to see **who supplied the data** and why the string `"bad"` reached `parseInt`.
+5. Reproduce the input, add checks/validation or adjust logic in the right place, and re-run tests.
 
-**Không mặc định frame đầu tiên là dòng cần sửa**: nếu ngoại lệ được ném trong JDK/framework, frame đầu tiên ở thư viện. Cũng không mặc định **frame ứng dụng đầu tiên** luôn là nguyên nhân nghiệp vụ: có thể dữ liệu đã sai từ lớp gọi bên ngoài. Nó là một **điểm bắt đầu để điều tra**.
+**Do not assume the very first frame is the line to fix**: if the exception is thrown inside the JDK or a framework, the first frame is in the library. Likewise, do not assume the **first application frame** is always the business root cause: bad data may have come from an outer caller. It is a **starting point for investigation**.
 
-## 4. Từ file và số dòng quay về mã nguồn
+## 4. Mapping Back from File and Line Number to Source Code
 
-Giả sử một dòng trace có dạng:
+Suppose a trace line looks like:
 
 ~~~text
 at com.example.service.UserService.load(UserService.java:42)
 ~~~
 
-Hãy tìm lớp `com.example.service.UserService`, mở file `UserService.java` và xem **dòng 42** của **đúng phiên bản mã đã biên dịch**. Nếu mã đang mở đã khác bản chạy, số dòng có thể không còn khớp.
+Locate class `com.example.service.UserService`, open `UserService.java`, and inspect **line 42** of the **exact compiled code version**. If the file currently open differs from the running build, line numbers may no longer match.
 
-Một số trường hợp đặc biệt:
+Some special cases:
 
-| Dạng trong trace | Điều cần hiểu |
+| Pattern in Trace | What to Understand |
 |---|---|
-| `File.java:42` | Có thông tin tên file/số dòng |
-| `Unknown Source` | Thiếu thông tin nguồn/dòng thích hợp |
-| `Native Method` | Frame đi qua phương thức native |
-| `Class$$Lambda...` hoặc các frame framework | Có thể do lambda, reflection, proxy hay thư viện trung gian |
-| `at ...main(Main.java:...)` | Entry point thường nằm gần đáy chuỗi lời gọi đồng bộ |
+| `File.java:42` | File name and line number information are present |
+| `Unknown Source` | Missing appropriate source/line information |
+| `Native Method` | Frame passes through a native method |
+| `Class$$Lambda...` or framework frames | Possibly caused by lambdas, reflection, proxies, or intermediate libraries |
+| `at ...main(Main.java:...)` | Entry point usually sits near the bottom of a synchronous call chain |
 
-Biên dịch bằng `javac` thông thường giữ thông tin dòng hữu ích. Nếu file `.class` được biên dịch/biến đổi mà không còn debug line info, không nên tự khẳng định số dòng. Với `javac -g` có thể yêu cầu thông tin debug đầy đủ hơn; `-g:none` bỏ thông tin debug tương ứng.
+Regular `javac` compilation preserves useful line information. If `.class` files were compiled or transformed without debug line info, do not assume line numbers blindly. `javac -g` can request fuller debug info; `-g:none` omits corresponding debug info.
 
-Thao tác quan trọng là **đối chiếu trace với artifact/version đang chạy**, không chỉ với bản nguồn mới nhất trên máy.
+An important step is **matching the trace against the running artifact/version**, not merely your latest local source files.
 
-## 5. Phân biệt nơi phát sinh và nơi bắt lỗi
+## 5. Distinguishing Where an Error Originates vs. Where It Is Caught
 
 ~~~java
 static int parseNumber(String text) {
@@ -114,22 +114,22 @@ public static void main(String[] args) {
 }
 ~~~
 
-**Exact stdout** khi đặt các phương thức đúng trong một lớp chạy được:
+**Exact stdout** when placing these methods properly inside a runnable class:
 
 ~~~text
 Cannot parse input
 ~~~
 
-- Ngoại lệ **phát sinh** ở lời gọi `Integer.parseInt("oops")` trong `parseNumber`.
-- `readValue` gọi `parseNumber` và không xử lý ngoại lệ.
-- `main` **bắt ngoại lệ** nên chương trình có thể tiếp tục.
-- Nếu chỉ in `"Cannot parse input"` và **không ghi log cause/stack**, thông tin vị trí lỗi bị thiếu; việc bắt lỗi không làm cho đoạn chuyển đổi tự thành công.
+- The exception **originates** at the `Integer.parseInt("oops")` call inside `parseNumber`.
+- `readValue` calls `parseNumber` and does not handle the exception.
+- `main` **catches the exception**, allowing the program to continue.
+- If you only print `"Cannot parse input"` and **do not log the cause/stack**, location information is lost; catching the error does not make the conversion succeed on its own.
 
-Với trường hợp đầu vào người dùng, bắt `NumberFormatException` và thông báo dữ liệu sai có thể hợp lý. Với bug không mong đợi, cần log đủ bối cảnh để điều tra, không “nuốt” lỗi một cách im lặng.
+For user input, catching `NumberFormatException` and reporting invalid data can be reasonable. For unexpected bugs, log enough context to investigate—do not silently "swallow" errors.
 
-## 6. `Caused by`: lần theo ngoại lệ gốc trong chuỗi bọc
+## 6. `Caused by`: Tracing the Root Exception in a Wrapping Chain
 
-Một ứng dụng đôi khi bọc ngoại lệ thấp tầng bằng một ngoại lệ có ý nghĩa nghiệp vụ cao hơn:
+An application sometimes wraps a low-level exception in one with higher-level business meaning:
 
 ~~~java
 static void loadConfig() {
@@ -141,7 +141,7 @@ static void loadConfig() {
 }
 ~~~
 
-Nếu không có `catch` ở lớp ngoài, stack trace thường có hai phần:
+If there is no outer `catch`, the stack trace typically has two sections:
 
 ~~~text
 java.lang.IllegalStateException: invalid configuration
@@ -153,54 +153,54 @@ Caused by: java.lang.NumberFormatException: For input string: "not-a-number"
     ... 1 more
 ~~~
 
-**Đây là trace minh họa**, không phải stdout được cam kết chính xác cho chương trình ở mục thực hành; số dòng của JVM và mã ứng dụng có thể khác.
+**This is an illustrative trace**, not guaranteed exact stdout for the program in the practice section; JVM and application line numbers may differ.
 
-- **Ngoại lệ ngoài:** `IllegalStateException`, mang ngữ cảnh “invalid configuration”.
-- **Ngoại lệ nguyên nhân:** `NumberFormatException`, do chuỗi sai định dạng số.
-- `getCause()` cho phép đọc nguyên nhân nếu có.
-- Phần `Caused by` nằm sâu hơn trong chuỗi nguyên nhân thường là điểm hữu ích để hiểu lỗi bắt nguồn từ đâu.
+- **Outer exception:** `IllegalStateException`, carrying the context `"invalid configuration"`.
+- **Cause exception:** `NumberFormatException`, due to an invalid numeric string.
+- `getCause()` lets you read the underlying cause if present.
+- Deeper `Caused by` sections in the cause chain are often helpful for understanding where the failure started.
 
-Dòng `... 1 more` có nghĩa là một số frame cuối **trùng với phần trace trước đó và đã được rút gọn khi in**, không có nghĩa “thêm một ngoại lệ mới”. Tương tự, `Suppressed:` có thể liệt kê ngoại lệ bị giữ lại (thường gặp khi đóng tài nguyên trong try-with-resources), và **không đồng nghĩa với `Caused by`**.
+The line `... 1 more` means that some trailing frames **duplicate the preceding trace and were elided when printing**; it does not mean "one more new exception." Similarly, `Suppressed:` can list exceptions retained alongside the primary one (commonly seen when closing resources in try-with-resources) and is **not synonymous with `Caused by`**.
 
-Khi bọc một ngoại lệ để thêm ngữ cảnh, truyền **cause** vào constructor (ví dụ `new IllegalStateException("...", ex)`) để không đánh mất trace của lỗi ban đầu.
+When wrapping an exception to add context, pass the **cause** into the constructor (for example `new IllegalStateException("...", ex)`) so you do not lose the trace of the original failure.
 
-## 7. `printStackTrace`, logger và luồng stdout/stderr
+## 7. `printStackTrace`, Loggers, and stdout/stderr Streams
 
-Java hỗ trợ:
+Java supports:
 
 ~~~java
 try {
     Integer.parseInt("NaN");
 } catch (NumberFormatException ex) {
-    ex.printStackTrace(); // Mặc định in vào System.err.
+    ex.printStackTrace(); // Prints to System.err by default.
 }
 ~~~
 
-`printStackTrace()` thường in **kiểu ngoại lệ, thông điệp, frames và chuỗi causes**. Theo mặc định nó viết lên **stderr** (`System.err`), khác với `System.out.println` vốn viết vào **stdout**. Khi chạy từ terminal hoặc hệ thống log, stdout và stderr có thể được thu thập/hiển thị theo cơ chế khác nhau, không nên dùng thứ tự xen kẽ hai luồng làm cam kết chính xác.
+`printStackTrace()` normally prints **the exception type, message, frames, and cause chain**. By default it writes to **stderr** (`System.err`), unlike `System.out.println` which writes to **stdout**. When running from a terminal or logging system, stdout and stderr may be collected/displayed by different mechanisms, so the interleaving order between the two streams should not be relied upon as exact.
 
-Trong ứng dụng lớn, nên dùng hệ thống log với thông điệp có bối cảnh và đối tượng ngoại lệ (logger có thể in stack trace tùy API/cấu hình). Đừng ghi những dữ liệu nhạy cảm như mật khẩu, token hoặc thông tin cá nhân vào lỗi/log.
+In larger applications, use a logging framework with contextual messages and the exception object (a logger can print the stack trace depending on API/configuration). Never write sensitive data such as passwords, tokens, or personal information into errors/logs.
 
-**Để minh họa stdout ổn định**, chương trình ở mục 9 **không dùng `printStackTrace()`**; thay vào đó đọc dữ liệu có cấu trúc bằng `getStackTrace()`, chỉ in tên những phương thức thuộc class demo. Trong thực tế, đừng thay toàn bộ stack trace bằng tên method khi cần điều tra: giữ file/line và cause trong hệ thống chẩn đoán thích hợp.
+**To demonstrate deterministic stdout**, the program in section 9 **does not use `printStackTrace()`**; instead, it reads structured data via `getStackTrace()` and only prints names of methods belonging to the demo class. In real code, do not replace full stack traces with just method names when diagnosing issues: preserve file/line and cause in an appropriate diagnostic system.
 
-## 8. `StackTraceElement` và cách lọc frame thuộc dự án
+## 8. `StackTraceElement` and Filtering Project Frames
 
-Mỗi phần tử trả về bởi:
+Each element returned by:
 
 ~~~java
 StackTraceElement[] frames = error.getStackTrace();
 ~~~
 
-cung cấp metadata:
+provides metadata:
 
-| API của `StackTraceElement` | Trả về |
+| `StackTraceElement` API | Returns |
 |---|---|
-| `getClassName()` | Tên lớp chứa frame |
-| `getMethodName()` | Tên method/constructor |
-| `getFileName()` | Tên file nguồn, có thể `null` |
-| `getLineNumber()` | Số dòng nếu biết, có thể âm nếu không biết |
-| `isNativeMethod()` | Frame có thuộc native method không |
+| `getClassName()` | Name of the class containing the frame |
+| `getMethodName()` | Method/constructor name |
+| `getFileName()` | Source file name, may be `null` |
+| `getLineNumber()` | Line number if known, may be negative if unknown |
+| `isNativeMethod()` | Whether the frame belongs to a native method |
 
-Một vòng lặp lọc những frame của chương trình:
+A loop filtering frames from the program:
 
 ~~~java
 for (StackTraceElement frame : error.getStackTrace()) {
@@ -210,13 +210,13 @@ for (StackTraceElement frame : error.getStackTrace()) {
 }
 ~~~
 
-Với lỗi từ `parsePart` thông qua `calculate` và `load`, các frame ứng dụng dự kiến theo thứ tự **parsePart → calculate → load → main**. Đây là thứ tự call stack tại điểm lỗi; vòng lặp dùng tên class để tránh phụ thuộc vào số dòng hoặc frame thư viện Java.
+For an error from `parsePart` via `calculate` and `load`, the expected application frames appear in the order **parsePart → calculate → load → main**. This is the call stack order at the failure point; the loop filters by class name to avoid depending on line numbers or Java library frames.
 
-**Đừng chỉ lọc class name trong một dự án lớn**: đây là cách trình bày có chủ đích cho chương trình demo đơn file. Với hệ thống nhiều lớp, lọc dựa trên các package dự án và đọc cả các frame liên quan từ thư viện.
+**Do not filter by only one class name in a large project**: this is an intentional presentation choice for a single-file demo program. In multi-class systems, filter based on project packages and also read relevant library frames.
 
-## 9. Chương trình Java 17+ chạy độc lập
+## 9. Standalone Runnable Java 17+ Program
 
-Lưu đúng file **`StackTraceReadingDemo.java`**:
+Save as **`StackTraceReadingDemo.java`**:
 
 ~~~java
 public final class StackTraceReadingDemo {
@@ -308,7 +308,7 @@ javac --release 17 -encoding UTF-8 .\StackTraceReadingDemo.java
 java -cp . StackTraceReadingDemo
 ~~~
 
-Không cần Maven/Gradle, thư viện ngoài JDK hoặc preview features. Chương trình **bắt các lỗi có chủ đích**, tránh in stack trace thô phụ thuộc số dòng/version và in thông tin đã chuẩn hóa để đối chiếu.
+No Maven/Gradle, external libraries, or preview features are needed. The program **intentionally catches the errors**, avoids printing raw line- and version-dependent stack traces, and outputs normalized details for comparison.
 
 ### Exact expected stdout
 
@@ -327,79 +327,79 @@ bounds first app=main
 recovered=true
 ~~~
 
-**Giải thích:**
+**Explanation:**
 
-1. `Integer.parseInt("bad")` ném `NumberFormatException`. Trong trace của nó, các frame do chương trình tự định nghĩa lần lượt là `parsePart`, `calculate`, `load`, `main`.
-2. `wrapCause()` bắt lỗi chuyển chuỗi sang số, bọc bằng `IllegalStateException("invalid setting", ex)`. Ta đọc được kiểu của ngoại lệ ngoài và **nguyên nhân** qua `getCause()`.
-3. `values[3]` vượt giới hạn mảng hai phần tử nên `ArrayIndexOutOfBoundsException` xuất hiện trực tiếp trong `main`.
-4. Vì cả ba lỗi đều được bắt, cuối cùng chương trình in `recovered=true`.
+1. `Integer.parseInt("bad")` throws `NumberFormatException`. In its trace, the user-defined frames are `parsePart`, `calculate`, `load`, and `main` in order.
+2. `wrapCause()` catches the string-to-number failure and wraps it in `IllegalStateException("invalid setting", ex)`. We read the outer exception type and the **cause** via `getCause()`.
+3. `values[3]` exceeds the bounds of a two-element array, so `ArrayIndexOutOfBoundsException` occurs directly in `main`.
+4. Because all three errors are caught, the program finally prints `recovered=true`.
 
-Để xem trace thật trong lúc học, có thể tạm thêm `ex.printStackTrace();` trong từng khối `catch` rồi quan sát **stderr**; tuy nhiên khi làm vậy, output sẽ có thêm dòng chứa tên file, số dòng, frame JDK và có thể khác giữa môi trường.
+To inspect real traces while learning, you can temporarily add `ex.printStackTrace();` inside each `catch` block and observe **stderr**; however, doing so adds lines with file names, line numbers, and JDK frames that can differ across environments.
 
-## 10. Quy trình chẩn đoán theo một stack trace thật
+## 10. Diagnostic Workflow Using a Real Stack Trace
 
-1. **Giữ nguyên toàn bộ lỗi** gồm kiểu, thông điệp, dòng `at` và các phần `Caused by`. Nếu có nhiều lỗi liên tiếp, xác định lỗi ứng với lần chạy/thời điểm nào.
-2. **Đọc loại lỗi**: `NullPointerException` là truy cập qua tham chiếu null; `ArrayIndexOutOfBoundsException` là chỉ số ngoài phạm vi; `NumberFormatException` là chuyển chuỗi sang số không hợp lệ. Đây là manh mối, chưa phải lời giải tự động.
-3. **Tìm ứng dụng trong frames**: xác định class/package của chính dự án, mở đúng bản file nguồn cùng version với mã đang chạy.
-4. **Xem đúng dòng và các giá trị liên quan**: đối số, biến có thể null, độ dài mảng, điều kiện trước đó. Dùng debugger, log an toàn và test tái hiện để kiểm chứng.
-5. **Đi ngược các frame gọi** để tìm nơi đầu vào được tạo/chuyển đổi. Đọc phần `Caused by` khi có lỗi được bọc.
-6. **Sửa nguyên nhân hợp lý**: xác thực đầu vào, sửa điều kiện chỉ số, giữ invariant, chuyển đổi kiểu đúng hoặc xử lý ngoại lệ tại tầng phù hợp. Đừng chỉ bắt rộng mọi `Exception` rồi bỏ qua.
-7. **Chạy lại kiểm thử**: kiểm tra trường hợp gây lỗi và cả các trường hợp hợp lệ; đối chiếu trace/log mới.
+1. **Preserve the entire error** including type, message, `at` lines, and `Caused by` sections. If there are multiple consecutive errors, identify which run/timestamp each error belongs to.
+2. **Read the error type**: `NullPointerException` means access through a null reference; `ArrayIndexOutOfBoundsException` means an out-of-range index; `NumberFormatException` means an invalid string-to-number conversion. These are clues, not automatic fixes.
+3. **Locate application frames**: identify your project's classes/packages and open the exact source file matching the running version.
+4. **Inspect the exact line and relevant values**: arguments, potentially null variables, array lengths, prior conditions. Use a debugger, safe logging, and a reproducing test to verify.
+5. **Walk backward through calling frames** to find where the input was created/converted. Read `Caused by` sections when exceptions are wrapped.
+6. **Fix the appropriate cause**: validate inputs, fix index conditions, maintain invariants, convert types properly, or handle exceptions at the right layer. Do not just catch broad `Exception` and ignore it.
+7. **Re-run tests**: verify both the failing case and valid cases; compare the new trace/logs.
 
-Nếu một trace nói lỗi ở `UserService.java:42` nhưng file hiện tại không có dòng tương ứng, cần kiểm tra mã đã biên dịch, mapping, phiên bản triển khai và cờ debug thay vì sửa tùy đoán.
+If a trace says the error is at `UserService.java:42` but the current file has no matching line, check the compiled artifact, mappings, deployed version, and debug flags rather than guessing edits.
 
-## 11. Một số trường hợp dễ gây hiểu sai
+## 11. Common Misconceptions
 
-| Tình huống | Cách hiểu/giải quyết |
+| Situation | How to Understand / Resolve |
 |---|---|
-| Frame đầu thuộc thư viện chuẩn Java | Xem frame ứng dụng gọi vào thư viện và dữ liệu đầu vào |
-| Trace có nhiều `Caused by` | Theo chuỗi nguyên nhân và bối cảnh; nguyên nhân sâu nhất thường quan trọng nhưng chưa chắc đủ |
-| Có `... 4 more` | Một số frame trùng bị rút gọn, không phải 4 lỗi nữa |
-| Có `Suppressed:` | Ngoại lệ phụ được giữ lại, khác với cause |
-| Không có số dòng hoặc hiện `Unknown Source` | Kiểm tra thông tin debug, mã chạy, JAR, source tương ứng |
-| `catch` chỉ in một câu chung chung | Cần giữ lại exception/cause để có thể điều tra |
-| Trace rất dài, qua proxy/lambda/framework | Tìm các frame ứng dụng và đường gọi liên quan; không loại bỏ ngữ cảnh hữu ích |
-| Lỗi xuất hiện từ worker thread/future | Trace tại nơi throw và nơi lấy kết quả có thể khác; đọc cause và bối cảnh thread |
-| Có `Error` như `StackOverflowError` | Không mặc định đây là ngoại lệ nghiệp vụ có thể phục hồi; xem lỗi logic/tài nguyên |
-| Tự sửa số dòng theo file đang mở | Số dòng phải khớp phiên bản nguồn thực sự đã chạy |
-| Dùng `System.out` và `System.err` xen kẽ | Thứ tự hiển thị giữa hai stream không luôn được cam kết |
-| In token/mật khẩu trong log lỗi | Rò rỉ dữ liệu; che hoặc loại bỏ nội dung nhạy cảm |
+| First frame belongs to the Java standard library | Inspect the application frame calling into the library and the input data |
+| Trace has multiple `Caused by` sections | Follow the cause chain and context; the deepest cause is often crucial though not always sufficient |
+| Contains `... 4 more` | Some duplicate frames were elided, not 4 more errors |
+| Contains `Suppressed:` | Secondary exception retained, different from cause |
+| Missing line numbers or `Unknown Source` | Check debug info, running artifact, JAR, and matching source |
+| `catch` only prints a generic sentence | Preserve the exception/cause so the issue can be investigated |
+| Very long trace through proxies/lambdas/frameworks | Find the application frames and relevant call path; do not strip useful context |
+| Error comes from a worker thread/future | Traces where thrown vs. where retrieved can differ; read cause and thread context |
+| An `Error` such as `StackOverflowError` appears | Do not assume this is a recoverable business exception; investigate logic/resource bugs |
+| Manually adjusting line numbers against the open file | Line numbers must match the actual source version that was run |
+| Interleaving `System.out` and `System.err` | Display order between the two streams is not always guaranteed |
+| Printing tokens/passwords in error logs | Data leak; mask or strip sensitive content |
 
-**Lưu ý:** lỗi **biên dịch** (ví dụ “cannot find symbol”) không phải runtime exception; nó thường có dạng thông báo `javac` về file, dòng và vị trí lỗi, không có runtime call stack. Đọc đúng loại thông báo trước khi áp dụng quy trình stack trace.
+**Note:** **compile-time** errors (such as "cannot find symbol") are not runtime exceptions; they usually appear as `javac` messages about file, line, and error position, with no runtime call stack. Identify the right kind of diagnostic before applying the stack trace workflow.
 
-## 12. Bài tập có đáp án
+## 12. Exercises with Answers
 
-**A.** Với dòng `at com.shop.OrderService.place(OrderService.java:57)`, cần mở file nào và kiểm tra đâu?  
-**Đáp án:** mở `OrderService.java` đúng phiên bản đang chạy, xem khoảng **dòng 57** trong phương thức `place`.
+**A.** Given the line `at com.shop.OrderService.place(OrderService.java:57)`, which file should you open and where should you look?  
+**Answer:** open `OrderService.java` at the exact version being run, and look around **line 57** inside method `place`.
 
-**B.** Với `NumberFormatException` ở `Integer.parseInt`, phải chỉ sửa mã JDK không?  
-**Đáp án:** **Không**. Tìm frame ứng dụng gọi `parseInt`, kiểm tra chuỗi đầu vào và nơi tạo chuỗi ấy.
+**B.** For a `NumberFormatException` in `Integer.parseInt`, should you try to edit the JDK code?  
+**Answer:** **No**. Find the application frame calling `parseInt`, and inspect the input string and where that string originated.
 
-**C.** Nếu một ngoại lệ `IllegalStateException` có `Caused by: NumberFormatException`, hai loại đó là hai dòng `at` liên tiếp của một trace giống hệt nhau không?  
-**Đáp án:** **Không**. Đó là **chuỗi ngoại lệ có nguyên nhân**, mỗi ngoại lệ có thể mang stack trace riêng.
+**C.** If an `IllegalStateException` has `Caused by: NumberFormatException`, are those two consecutive `at` lines in a single identical trace?  
+**Answer:** **No**. That is a **chained exception with a cause**, where each exception can carry its own stack trace.
 
-**D.** Dòng `... 2 more` cho biết có hai exception khác nữa không?  
-**Đáp án:** **Không**. Đây là số frame đuôi trùng bị rút gọn khi trình bày nested trace.
+**D.** Does the line `... 2 more` indicate two additional exceptions?  
+**Answer:** **No**. It indicates the number of trailing duplicate frames elided when formatting the nested trace.
 
-**E.** Vì sao một đoạn `catch (Exception ex) { }` rỗng gây khó tìm lỗi?  
-**Đáp án:** nó nuốt thông tin kiểu lỗi, thông điệp, vị trí và nguyên nhân; cần xử lý hợp lý hoặc ghi log phù hợp mà không lộ dữ liệu nhạy cảm.
+**E.** Why does an empty `catch (Exception ex) { }` block make debugging difficult?  
+**Answer:** it swallows the error type, message, location, and cause; handle it appropriately or log it properly without exposing sensitive data.
 
-**F.** Trong chương trình ở mục 9, frame ứng dụng đầu tiên của lỗi `NumberFormatException` là phương thức nào?  
-**Đáp án:** `parsePart`. Các frame tiếp theo `calculate`, `load`, `main` cho biết chuỗi gọi.
+**F.** In the program in section 9, which method is the first application frame for the `NumberFormatException`?  
+**Answer:** `parsePart`. Subsequent frames `calculate`, `load`, and `main` show the call chain.
 
-## 13. Checklist và kết luận
+## 13. Checklist and Conclusion
 
-- [ ] Biết stack trace mô tả call stack tại thời điểm lỗi/thu thập trace.
-- [ ] Đọc được kiểu ngoại lệ và thông điệp ở đầu trace.
-- [ ] Phân tích `at Class.method(File.java:line)` và truy về file/dòng đúng version.
-- [ ] Biết frame JDK không nhất thiết là nơi cần sửa mã dự án.
-- [ ] Đọc thứ tự các frame để hiểu chuỗi phương thức gọi.
-- [ ] Nhận diện `Caused by`, `Suppressed:` và ý nghĩa `... N more`.
-- [ ] Biết `printStackTrace()` mặc định viết stderr, khác stdout.
-- [ ] Dùng được `getStackTrace()`/`StackTraceElement` khi cần xử lý có cấu trúc.
-- [ ] Không “nuốt” ngoại lệ hoặc đưa dữ liệu nhạy cảm vào log.
-- [ ] Biết số dòng và frame có thể khác giữa bản biên dịch/JDK.
-- [ ] Chạy `StackTraceReadingDemo.java` trên JDK 17+, đối chiếu exact stdout.
-- [ ] Tái hiện lỗi, xác thực nguyên nhân, sửa đúng chỗ và kiểm thử lại.
+- [ ] Understand that a stack trace describes the call stack at the time of the error or trace capture.
+- [ ] Read the exception type and message at the top of the trace.
+- [ ] Parse `at Class.method(File.java:line)` and trace back to the matching version's file/line.
+- [ ] Know that a JDK frame is not necessarily where project code needs fixing.
+- [ ] Read frame order to understand the method call chain.
+- [ ] Recognize `Caused by`, `Suppressed:`, and the meaning of `... N more`.
+- [ ] Know that `printStackTrace()` writes to stderr by default, distinct from stdout.
+- [ ] Use `getStackTrace()`/`StackTraceElement` when structured inspection is needed.
+- [ ] Never "swallow" exceptions or put sensitive data into logs.
+- [ ] Know that line numbers and frames can vary across builds and JDK versions.
+- [ ] Run `StackTraceReadingDemo.java` on JDK 17+ and verify exact stdout.
+- [ ] Reproduce the failure, verify the cause, fix the right spot, and re-test.
 
-**Kết luận:** Đọc stack trace bắt đầu từ **loại lỗi và thông điệp**, sau đó tìm **frame của ứng dụng** gần nơi lỗi nhất, lần theo **chuỗi gọi** và các phần **`Caused by`** để hiểu bối cảnh. Đường dẫn file và số dòng giúp định vị mã, nhưng cần đúng phiên bản đang chạy; mục tiêu là sửa nguyên nhân dữ liệu/logic chứ không đơn thuần che giấu thông báo lỗi.
+**Conclusion:** Reading a stack trace starts with the **error type and message**, then finding the closest **application frame**, and following the **call chain** and **`Caused by`** sections for context. File paths and line numbers help pinpoint code, provided they match the running build; the goal is to fix the underlying data or logic cause rather than simply hiding error messages.

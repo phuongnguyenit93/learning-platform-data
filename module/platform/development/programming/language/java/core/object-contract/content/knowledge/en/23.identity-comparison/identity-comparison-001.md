@@ -1,33 +1,33 @@
-# Khi bài toán cần phân biệt từng thể hiện dù giá trị bằng nhau
+# When the Problem Requires Distinguishing Individual Instances Even with Equal Values
 
-## 1. Vấn đề cần giải quyết
+## 1. The problem to solve
 
-Trong Java, hai biến tham chiếu có thể trỏ đến **hai đối tượng khác nhau** nhưng các đối tượng ấy mang **cùng giá trị logic**. Có những bài toán chỉ quan tâm nội dung: hai vé có cùng mã được xem là tương đương. Nhưng cũng có bài toán phải phân biệt chính xác **từng thể hiện (instance) được tạo ra trong bộ nhớ**: vé thứ nhất đã được xử lý, còn vé thứ hai chưa, dù cả hai cùng mã.
+In Java, two reference variables can point to **two different objects** that hold **the same logical value**. Some problems only care about content: two tickets with the same code are considered equivalent. Other problems, however, must distinguish the exact **individual instance created in memory**: the first ticket has already been processed, while the second has not, even though both share the same code.
 
-Câu hỏi phải đặt ra trước khi chọn phép so sánh là:
+The question to ask before choosing a comparison operation is:
 
-- **Value equality (bằng nhau về giá trị):** hai đối tượng có được xem là tương đương theo quy tắc nghiệp vụ hay không?
-- **Reference identity (cùng danh tính đối tượng):** hai tham chiếu có trỏ đến **chính cùng một đối tượng** hay không?
+- **Value equality:** are two objects considered equivalent according to business rules?
+- **Reference identity:** do two references point to **the exact same object**?
 
-Đây là hai quan hệ khác nhau. `equals()` có thể được định nghĩa để coi hai đối tượng khác nhau là bằng nhau; điều đó không biến chúng thành một instance.
+These are two different relationships. `equals()` can be defined to treat two different objects as equal; that does not turn them into a single instance.
 
-## 2. Phân biệt `==`, `equals()` và hash code
+## 2. Distinguishing `==`, `equals()`, and hash code
 
-| Công cụ | Ý nghĩa khi dùng với đối tượng | Khi nào phù hợp |
+| Tool | Meaning when used with objects | When appropriate |
 | --- | --- | --- |
-| `a == b` | Hai tham chiếu cùng trỏ đến một đối tượng, hoặc cả hai đều `null`. | Cần nhận diện **chính instance**. |
-| `a.equals(b)` | Bằng nhau theo cách lớp cài đặt `equals`; có thể báo lỗi nếu `a == null`. | Cần so sánh **giá trị/ngữ nghĩa nghiệp vụ**. |
-| `Objects.equals(a, b)` | So sánh theo `equals`, xử lý `null` an toàn. | Cần value equality khi một trong hai tham chiếu có thể `null`. |
-| `a.hashCode()` | Mã băm theo hợp đồng `equals`–`hashCode`; có thể bị ghi đè. | Làm việc với cấu trúc băm theo giá trị. |
-| `System.identityHashCode(a)` | Mã băm theo danh tính mặc định, bất kể lớp ghi đè `hashCode`. | Chẩn đoán/thuật toán dựa trên identity, **không** dùng riêng nó để xác nhận cùng đối tượng. |
+| `a == b` | Both references point to the same object, or both are `null`. | Need to identify **the exact instance**. |
+| `a.equals(b)` | Equal according to how the class implements `equals`; may throw an error if `a == null`. | Need to compare **value/business semantics**. |
+| `Objects.equals(a, b)` | Compares via `equals`, handling `null` safely. | Need value equality when either reference may be `null`. |
+| `a.hashCode()` | Hash code following the `equals`–`hashCode` contract; may be overridden. | Working with value-based hash structures. |
+| `System.identityHashCode(a)` | Default identity-based hash code, regardless of whether the class overrides `hashCode`. | Diagnostics/identity-based algorithms; **do not** use it alone to confirm the same object. |
 
-Với **kiểu nguyên thủy** (`int`, `double`, `boolean`...), `==` so sánh giá trị nguyên thủy; bài học này tập trung vào **tham chiếu đối tượng**. `Object.equals` mặc định tương đương so sánh identity, nhưng nhiều lớp như `String`, các lớp wrapper và `record` dùng value equality. Vì vậy không thể suy ra ý nghĩa `equals` mà bỏ qua hợp đồng của lớp.
+For **primitive types** (`int`, `double`, `boolean`...), `==` compares primitive values; this lesson focuses on **object references**. `Object.equals` defaults to identity comparison, but many classes such as `String`, wrapper classes, and `record` use value equality. Therefore, you cannot infer the meaning of `equals` while ignoring the class's contract.
 
-Đặc điểm quan trọng: nếu `a == b` thì một lời gọi `a.equals(b)` hợp lệ phải trả về `true` với cách cài đặt `equals` tuân thủ hợp đồng thông thường. Chiều ngược lại **không đúng**: `a.equals(b)` là `true` không có nghĩa `a == b`.
+Important property: if `a == b`, then a valid call `a.equals(b)` must return `true` for an `equals` implementation that follows the standard contract. The converse is **not true**: `a.equals(b)` being `true` does not mean `a == b`.
 
-## 3. Ví dụ chạy được: hai instance cùng giá trị
+## 3. Runnable example: two instances with the same value
 
-Tạo file **`IdentityComparisonDemo.java`**:
+Create the file **`IdentityComparisonDemo.java`**:
 
 ```java
 import java.util.HashMap;
@@ -63,14 +63,14 @@ public class IdentityComparisonDemo {
 }
 ```
 
-Biên dịch/chạy bằng JDK 17 trở lên:
+Compile/run with JDK 17 or later:
 
 ```bash
 javac IdentityComparisonDemo.java
 java IdentityComparisonDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 first == second: false
@@ -83,21 +83,21 @@ IdentityHashMap get(first): first
 IdentityHashMap get(second): second
 ```
 
-Diễn giải:
+Explanation:
 
-1. Mỗi lần `new Ticket(...)` tạo ra một đối tượng riêng, nên `first == second` là `false`.
-2. `record Ticket` sinh `equals` dựa trên thành phần `code`; cùng `"T-01"` khiến `first.equals(second)` là `true`.
-3. `alias = first` chỉ sao chép **tham chiếu**; nó không tạo thêm đối tượng.
-4. `HashMap` dùng `hashCode` và `equals` của khóa, nên khóa `second` thay giá trị gắn với khóa tương đương `first`; còn một entry.
-5. `IdentityHashMap` phân biệt `first` và `second` bằng `==`, nên lưu được hai entry độc lập.
+1. Each `new Ticket(...)` creates a separate object, so `first == second` is `false`.
+2. `record Ticket` generates `equals` based on the `code` component; having the same `"T-01"` makes `first.equals(second)` `true`.
+3. `alias = first` only copies **the reference**; it does not create another object.
+4. `HashMap` uses the key's `hashCode` and `equals`, so the `second` key replaces the value associated with the equivalent `first` key; one entry remains.
+5. `IdentityHashMap` distinguishes `first` and `second` using `==`, so it stores two independent entries.
 
-**Bài học:** chọn `HashMap` khi “cùng mã vé” nghĩa là một khóa logic; chọn `IdentityHashMap` khi “đúng đối tượng vé này” mới là khóa.
+**Takeaway:** choose `HashMap` when "same ticket code" means one logical key; choose `IdentityHashMap` when "this exact ticket object" is the key.
 
-## 4. Những tình huống identity là đúng yêu cầu
+## 4. Scenarios where identity is the right requirement
 
-### 4.1. Theo dõi mỗi instance trong quá trình xử lý
+### 4.1. Tracking each instance during processing
 
-Giả sử một luồng xử lý nhận hai đối tượng sự kiện có cùng `eventCode`. Hệ thống phải đánh dấu **đối tượng đã duyệt trong lần chạy hiện tại**, chứ không gom mọi đối tượng có cùng mã thành một. Một tập hợp theo identity phù hợp cho việc ghi nhận từng instance:
+Suppose a processing flow receives two event objects with the same `eventCode`. The system must mark **the object already traversed in the current run**, rather than merging all objects with the same code into one. An identity-based set is suitable for recording each individual instance:
 
 ```java
 Set<Event> visited =
@@ -107,43 +107,43 @@ visited.add(eventA);
 boolean alreadyVisited = visited.contains(eventB);
 ```
 
-Đoạn trên **chỉ là trích đoạn minh họa**, giả định lớp `Event` và các biến `eventA`, `eventB` đã được khai báo; cần import `java.util.Set`, `java.util.Collections`, `java.util.IdentityHashMap`. Nếu hai biến trỏ đến hai instance khác nhau, `contains(eventB)` là `false` dù `eventA.equals(eventB)` trả về `true`. Nếu `eventB` là alias của `eventA`, kết quả là `true`.
+The snippet above is **an illustrative excerpt only**, assuming the `Event` class and variables `eventA`, `eventB` are already declared; `java.util.Set`, `java.util.Collections`, and `java.util.IdentityHashMap` must be imported. If the two variables point to two different instances, `contains(eventB)` is `false` even if `eventA.equals(eventB)` returns `true`. If `eventB` is an alias of `eventA`, the result is `true`.
 
-Đặc biệt hữu ích khi duyệt **đồ thị đối tượng có chu trình**, phát hiện đối tượng đã ghé qua và tránh lặp vô hạn. Nếu dùng `HashSet` mà các nút khác instance lại có `equals` giống nhau, thuật toán có thể bỏ sót nút hợp lệ.
+This is especially useful when traversing **an object graph with cycles**, detecting already visited objects and avoiding infinite loops. If you use `HashSet` while nodes that are different instances have equal `equals`, the algorithm may skip valid nodes.
 
-### 4.2. Gắn trạng thái tạm thời vào từng đối tượng
+### 4.2. Attaching temporary state to each object
 
-Ví dụ trình kiểm tra cấu trúc, bộ tuần tự hóa, bộ ghi dấu vết hoặc debugger muốn gắn trạng thái `VISITING`, `VISITED` cho **từng object**. Hai object được xem là có cùng giá trị vẫn có thể nằm ở vị trí khác nhau trong đồ thị, có tham chiếu con khác nhau, hoặc trải qua trạng thái xử lý khác nhau. Bảng ánh xạ identity giúp trạng thái không bị nhập nhằng.
+For example, a structure checker, serializer, tracer, or debugger may want to attach states like `VISITING`, `VISITED` to **each individual object**. Two objects considered equal in value can still sit at different positions in the graph, have different child references, or go through different processing states. An identity map keeps state unambiguous.
 
-### 4.3. Quản lý đối tượng làm khóa đồng bộ hóa
+### 4.3. Managing objects used as synchronization locks
 
-Monitor của `synchronized (lock)` gắn với **danh tính đối tượng `lock`**. Hai đối tượng lock khác nhau không phối hợp với nhau chỉ vì `lockA.equals(lockB)` trả về `true`. Các thread muốn bảo vệ cùng một vùng trạng thái phải dùng **cùng instance lock** (thường là một trường `private final Object lock = new Object();` được chia sẻ bởi đúng các thao tác cần đồng bộ).
+The monitor of `synchronized (lock)` is tied to **the identity of the `lock` object**. Two different lock objects do not coordinate with each other just because `lockA.equals(lockB)` returns `true`. Threads protecting the same state region must use **the same lock instance** (typically a `private final Object lock = new Object();` field shared by the exact operations needing synchronization).
 
-Không tạo một đối tượng lock mới chỉ có cùng giá trị cho từng lời gọi rồi cho rằng chúng sẽ loại trừ lẫn nhau. Cũng tránh khóa trên string literal hoặc đối tượng công khai có thể bị mã khác dùng chung một cách ngoài ý muốn.
+Do not create a new lock object with merely the same value for each call and assume they will exclude one another. Also avoid locking on string literals or public objects that other code might unintentionally share.
 
-### 4.4. Phân biệt đối tượng sống với cùng một khóa nghiệp vụ
+### 4.4. Distinguishing live objects with the same business key
 
-Hai đối tượng mô tả “khách hàng mã 123” có thể là hai bản sao dữ liệu trong bộ nhớ. Nếu muốn so sánh **khách hàng nào**, hãy dùng định danh nghiệp vụ ổn định và chính sách `equals` phù hợp. Nếu muốn hỏi **biến nào đang tham chiếu đến cùng object đang được thao tác**, dùng `==`. Identity trong JVM không phải định danh nghiệp vụ dài hạn: tải lại từ database, deserialize hoặc nhận bản sao qua API thường cho instance mới.
+Two objects describing "customer code 123" may be two data copies in memory. If you want to compare **which customer**, use a stable business identifier and an appropriate `equals` policy. If you want to ask **which variable is referencing the same object currently being manipulated**, use `==`. Identity in the JVM is not a long-term business identifier: reloading from a database, deserializing, or receiving a copy via an API usually produces a new instance.
 
-## 5. Quy tắc ra quyết định## 6. Quy tắc ra quyết định
+## 5. Decision rules## 6. Decision rules
 
-| Câu hỏi/nhu cầu | Chọn | Lý do |
+| Question/need | Choice | Reason |
 | --- | --- | --- |
-| “Hai giá trị `String` có cùng nội dung?” | `equals` hoặc `Objects.equals` | Nội dung mới là tiêu chí. |
-| “Đây có đúng object đang được giữ trong bộ nhớ không?” | `==` | Yêu cầu cùng instance. |
-| “Hai bản ghi cùng khóa nghiệp vụ có đại diện một thực thể logic?” | So sánh ID/giá trị theo hợp đồng domain | Identity tham chiếu không bền qua lần tải/copy. |
-| “Đã duyệt chính nút object này trong đồ thị chưa?” | Tập hợp/map theo identity | Không nhập các nút riêng chỉ vì `equals` giống nhau. |
-| “Map cần gom các khóa có giá trị tương đương?” | `HashMap` | Dựa trên `equals`/`hashCode`. |
-| “Map phải lưu metadata tách riêng theo từng object?” | `IdentityHashMap` | Dựa trên `==` cho khóa. |
-| “Hai thao tác có dùng chung monitor đồng bộ?” | Kiểm tra cùng object lock | Monitor có danh tính theo instance. |
+| "Do two `String` values have the same content?" | `equals` or `Objects.equals` | Content is the criterion. |
+| "Is this the exact object currently held in memory?" | `==` | Requires the same instance. |
+| "Do two records with the same business key represent one logical entity?" | Compare ID/value per domain contract | Reference identity does not persist across loads/copies. |
+| "Has this exact object node already been visited in the graph?" | Identity-based set/map | Do not merge distinct nodes just because `equals` matches. |
+| "Should the map group keys with equivalent values?" | `HashMap` | Based on `equals`/`hashCode`. |
+| "Must the map store separate metadata per individual object?" | `IdentityHashMap` | Based on `==` for keys. |
+| "Do two operations share the same synchronization monitor?" | Check for the same lock object | Monitors have per-instance identity. |
 
-Cách tự hỏi nhanh: **Nếu tạo thêm một đối tượng bằng `new` với nội dung y hệt, yêu cầu có coi nó là một mục riêng không?** Nếu có, rất có thể cần identity trong **phạm vi vòng đời các object đó**. Nếu không, ưu tiên value equality hoặc một ID nghiệp vụ.
+Quick self-check question: **If another object is created with `new` using the exact same content, should the requirement treat it as a separate item?** If yes, identity is likely needed within **the lifecycle scope of those objects**. If no, prefer value equality or a business ID.
 
-## 6. Những cạm bẫy thường gặp
+## 6. Common pitfalls
 
-### 7.1. Dùng `==` cho `String` hoặc wrapper
+### 7.1. Using `==` for `String` or wrappers
 
-`String` có cơ chế intern; compiler/JVM cũng có các cơ chế tái sử dụng một số đối tượng. Vì vậy đôi khi `==` tình cờ là `true` với hai giá trị bằng nhau. Điều đó **không bảo đảm** hai chuỗi cùng nội dung sẽ cùng instance:
+`String` has an interning mechanism; the compiler/JVM also has mechanisms to reuse certain objects. Therefore `==` can occasionally happen to be `true` for two equal values. That **does not guarantee** two strings with the same content will be the same instance:
 
 ```java
 String x = new String("java");
@@ -153,56 +153,56 @@ System.out.println(x == y);      // false
 System.out.println(x.equals(y)); // true
 ```
 
-Đoạn này là trích đoạn Java độc lập về mặt câu lệnh (có thể đặt trong `main`). Tránh suy luận về value equality từ hành vi cache của boxed `Integer` hoặc string pool. Với chuỗi nội dung, dùng `equals` hoặc `Objects.equals`.
+This snippet is a statement-level standalone Java excerpt (it can be placed inside `main`). Avoid inferring value equality from boxed `Integer` caching behavior or the string pool. For string content, use `equals` or `Objects.equals`.
 
-### 7.2. Tưởng `identityHashCode` là địa chỉ bộ nhớ hay ID duy nhất
+### 7.2. Assuming `identityHashCode` is a memory address or unique ID
 
-`System.identityHashCode(obj)` **không phải địa chỉ bộ nhớ**, không là ID ổn định giữa những lần chạy JVM, và **có thể trùng** ở hai object khác nhau. Vì vậy:
+`System.identityHashCode(obj)` **is not a memory address**, is not a stable ID across JVM runs, and **can collide** across two different objects. Therefore:
 
-- `System.identityHashCode(a) == System.identityHashCode(b)` **không chứng minh** `a == b`.
-- Khi cần so sánh trực tiếp danh tính, dùng `a == b`; khi cần cấu trúc dữ liệu theo danh tính, dùng cấu trúc thực sự hỗ trợ identity.
+- `System.identityHashCode(a) == System.identityHashCode(b)` **does not prove** `a == b`.
+- When direct identity comparison is needed, use `a == b`; when an identity-based data structure is needed, use a structure that genuinely supports identity.
 
-Lưu ý `System.identityHashCode(null)` trả về `0`; số này cũng không phải một dấu hiệu nhận diện duy nhất.
+Note that `System.identityHashCode(null)` returns `0`; this number is not a unique identifier either.
 
-### 7.3. Mặc định mọi `equals` đều là value equality
+### 7.3. Assuming every `equals` is value equality
 
-Nếu lớp không ghi đè `Object.equals`, mặc định `equals` dùng identity; khi đó `a.equals(b)` và `a == b` cho cùng kết quả nếu `a` không null. Nhưng lớp có thể được thay đổi để ghi đè `equals` sau này. Hãy chủ động chọn toán tử/thư viện phản ánh **ý định thuật toán**, không dựa vào hành vi tình cờ hiện tại của một lớp.
+If a class does not override `Object.equals`, `equals` defaults to identity; in that case `a.equals(b)` and `a == b` yield the same result when `a` is non-null. However, a class may be changed to override `equals` later. Proactively choose the operator/library that reflects **algorithmic intent**, rather than relying on a class's accidental current behavior.
 
-### 7.4. Dùng `IdentityHashMap` làm thay thế phổ quát cho `HashMap`
+### 7.4. Using `IdentityHashMap` as a universal replacement for `HashMap`
 
-`IdentityHashMap` là cấu trúc chuyên biệt. Nó dùng **reference equality cho cả khóa và giá trị** trong các phép toán liên quan; hành vi này khác các triển khai `Map` thông thường và có thể tạo kết quả bất ngờ khi đối chiếu map/entry với cấu trúc dùng `equals`. Không có bảo đảm thứ tự duyệt. Nó cũng **không thread-safe**, và các tham chiếu mạnh trong map có thể giữ object sống lâu nếu không xóa entry khi không cần.
+`IdentityHashMap` is a specialized structure. It uses **reference equality for both keys and values** in relevant operations; this behavior differs from ordinary `Map` implementations and can produce surprising results when comparing maps/entries against structures using `equals`. There is no iteration order guarantee. It is also **not thread-safe**, and strong references in the map can keep objects alive longer if entries are not removed when no longer needed.
 
-`IdentityHashMap` thích hợp cho topology/preservation của object graph và metadata theo instance; đừng dùng chỉ để né việc thiết kế `equals`/`hashCode` đúng cho khóa nghiệp vụ.
+`IdentityHashMap` is appropriate for object graph topology/preservation and per-instance metadata; do not use it merely to avoid designing proper `equals`/`hashCode` for business keys.
 
-### 7.5. Tưởng danh tính JVM tồn tại qua serialization hoặc dịch vụ khác
+### 7.5. Assuming JVM identity survives serialization or across services
 
-Một object được copy, deserialize hoặc tái tạo ở JVM khác thường là instance mới. So sánh tham chiếu chỉ có ý nghĩa khi các tham chiếu cùng quan sát object trong một JVM đang chạy. Muốn nối dữ liệu qua lần chạy, database hay mạng, cần **ID ổn định** do ứng dụng quy định.
+An object that is copied, deserialized, or recreated in another JVM is usually a new instance. Reference comparison is only meaningful when references observe objects within the same running JVM. To link data across runs, databases, or networks, you need a **stable ID** defined by the application.
 
-### 7.6. Nhầm identity với trạng thái hiện tại
+### 7.6. Confusing identity with current state
 
-Một object có thể đổi các trường mutable mà vẫn là **cùng instance** (`a == alias` vẫn `true`). Ngược lại, hai immutable record có thể bằng nhau suốt đời nhưng là **hai instance**. Đừng suy ra danh tính từ việc giá trị đã đổi hay chưa. Dùng khóa mutable trong `HashMap` còn gây rủi ro nếu các trường tham gia `hashCode` thay đổi sau khi thêm vào; đó là vấn đề hợp đồng băm, cần phân biệt với identity.
+An object can change its mutable fields while remaining **the same instance** (`a == alias` stays `true`). Conversely, two immutable records can be equal for their entire lifetime yet remain **two instances**. Do not infer identity from whether values have changed. Using mutable keys in `HashMap` also introduces risk if fields participating in `hashCode` change after insertion; that is a hashing contract issue and should be distinguished from identity.
 
-## 7. Checklist thiết kế và kiểm thử
+## 7. Design and testing checklist
 
-1. Viết rõ tiêu chí: “bằng nhau về dữ liệu”, “cùng định danh nghiệp vụ” hay “chính cùng đối tượng trong bộ nhớ”.
-2. Với value equality: định nghĩa/kiểm tra `equals` và `hashCode` nhất quán; xử lý `null` bằng `Objects.equals` khi cần.
-3. Với reference identity: dùng `==`, `IdentityHashMap`, hoặc identity-backed set; không thay bằng so sánh identity hash code.
-4. Thử ít nhất ba trường hợp: **cùng tham chiếu**, **khác instance nhưng `equals` là `true`**, và **khác giá trị**. Nếu có thể `null`, thử thêm cả `null`.
-5. Rà soát vòng đời object, số lượng entry giữ trong map, luồng truy cập và nhu cầu đồng bộ; identity trong bộ nhớ không thay ID nghiệp vụ bên ngoài.
-6. Khi dùng object làm lock, đảm bảo mọi thao tác cần phối hợp tham chiếu **cùng object lock**.
+1. Clearly state the criterion: "equal in data", "same business identifier", or "the exact same object in memory".
+2. For value equality: define/verify consistent `equals` and `hashCode`; handle `null` with `Objects.equals` when needed.
+3. For reference identity: use `==`, `IdentityHashMap`, or an identity-backed set; do not substitute identity hash code comparison.
+4. Test at least three cases: **same reference**, **different instances where `equals` is `true`**, and **different values**. If `null` is possible, test `null` as well.
+5. Review object lifecycles, entry count retained in the map, access threads, and synchronization needs; in-memory identity does not replace external business IDs.
+6. When using an object as a lock, ensure all operations that need coordination reference **the exact same lock object**.
 
-## 8. Câu hỏi tự kiểm tra
+## 8. Self-check questions
 
-**Tình huống A:** `a` và `b` là hai instance khác nhau của cùng một `record Product("P1")`. `a.equals(b)` trả `true`. Nếu chỉ muốn gửi thông báo một lần cho mỗi mã sản phẩm, nên dùng `HashSet` hay identity set?
+**Scenario A:** `a` and `b` are two different instances of the same `record Product("P1")`. `a.equals(b)` returns `true`. If you want to send a notification only once per product code, should you use `HashSet` or an identity set?
 
-**Đáp án:** `HashSet` phù hợp vì yêu cầu gom theo mã/giá trị, giả sử quy tắc `equals` của `Product` đúng với định nghĩa trùng sản phẩm.
+**Answer:** `HashSet` is appropriate because the requirement groups by code/value, assuming `Product`'s `equals` rule matches the definition of duplicate product.
 
-**Tình huống B:** Bộ phân tích cây object phải ghi nhận đường đi qua hai nút riêng cùng tên, và tránh quay lại đúng một nút đã thăm vì đồ thị có chu trình. Nên dùng loại visited set nào?
+**Scenario B:** An object tree analyzer must record the path through two distinct nodes with the same name, and avoid revisiting the exact same already-visited node because the graph has cycles. Which type of visited set should be used?
 
-**Đáp án:** Identity set phù hợp vì mỗi nút là một object cụ thể; hai nút có cùng tên vẫn cần duyệt độc lập, trong khi quay lại cùng instance phải được nhận ra.
+**Answer:** An identity set is appropriate because each node is a specific object; two nodes with the same name still need independent traversal, while revisiting the same instance must be recognized.
 
-**Tình huống C:** Hai số `System.identityHashCode` bằng nhau có cho phép kết luận hai tham chiếu trỏ đến một object không?
+**Scenario C:** Do two equal `System.identityHashCode` numbers allow concluding that two references point to the same object?
 
-**Đáp án:** Không. Hash có thể va chạm; để kết luận cùng instance trong JVM, so sánh `==`.
+**Answer:** No. Hashes can collide; to conclude the same instance in the JVM, compare with `==`.
 
-**Ghi nhớ:** “Giá trị như nhau” trả lời **đối tượng được coi là tương đương theo quy tắc nào**; “danh tính như nhau” trả lời **có phải đúng một thể hiện đang tồn tại hay không**. Lựa chọn nằm ở yêu cầu bài toán, không nằm ở việc hai object trông giống nhau đến mức nào.
+**Remember:** "Same value" answers **under what rule objects are considered equivalent**; "same identity" answers **whether it is the exact same existing instance**. The choice lies in the problem's requirements, not in how similar two objects look.

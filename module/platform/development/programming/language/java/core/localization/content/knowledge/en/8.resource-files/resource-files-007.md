@@ -1,35 +1,35 @@
-# Tổ chức khóa ổn định và chú thích ngữ cảnh cho người dịch
+# Organizing Stable Keys and Context Comments for Translators
 
-## Mục tiêu bài học
+## Lesson objectives
 
-Trong ứng dụng Java đa ngôn ngữ, một màn hình có thể hiển thị nội dung từ các tệp tài nguyên `.properties`, thường thông qua `ResourceBundle`. **Khóa tài nguyên (resource key)** là định danh nối mã ứng dụng với bản dịch; **giá trị** là văn bản người dùng nhìn thấy. Nếu khóa thay đổi theo lời văn, bị tái sử dụng sai ý nghĩa hoặc thiếu giải thích ngữ cảnh, người dịch rất dễ tạo câu sai dù từng từ có vẻ đúng.
+In a multilingual Java application, a screen can display content from `.properties` resource files, typically via `ResourceBundle`. A **resource key** is the identifier linking application code to a translation; the **value** is the text the user sees. If keys change whenever wording changes, get reused with a different meaning, or lack context notes, translators can easily produce wrong sentences even when every individual word looks right.
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-- Đặt tên khóa theo **ý nghĩa và vị trí sử dụng** để mã Java, bản dịch và công cụ quản lý dịch thuật cùng tham chiếu ổn định.
-- Giải thích tại sao thay đổi câu chữ thường chỉ nên sửa **giá trị**, và khi nào thay đổi **ý nghĩa** đòi khóa mới.
-- Ghi chú ngữ cảnh cho người dịch: vị trí hiển thị, hành động, đối tượng, giọng văn, placeholder, giới hạn chiều dài và ví dụ.
-- Hiểu quy tắc comment của tệp Java `.properties`, cùng giới hạn: comment là thông tin trong nguồn, **không trở thành giá trị truy cập qua `ResourceBundle`**.
-- Quản lý khóa giữa nhiều locale, phát hiện thiếu khóa/placeholder và tránh để fallback che khuất bản dịch thiếu.
-- Áp dụng các nguyên tắc trên bằng ví dụ Java 17+ có thể biên dịch và chạy.
+- Name keys by **meaning and usage location** so Java code, translations, and translation-management tools share a stable reference.
+- Explain why wording tweaks should usually change only the **value**, while a change in **meaning** calls for a new key.
+- Write context notes for translators: where the text appears, action, target object, tone, placeholders, length constraints, and examples.
+- Understand Java `.properties` comment rules and their limitation: comments live in the source file and **do not become values accessible through `ResourceBundle`**.
+- Manage keys across multiple locales, detect missing keys or placeholders, and prevent fallback from hiding missing translations.
+- Apply these principles using a compilable and runnable Java 17+ example.
 
-Đây là bài về **thiết kế và bảo trì tệp tài nguyên**. Nó không yêu cầu xây một hệ thống dịch thuật mới hay thay đổi cơ chế lựa chọn `Locale`.
+This lesson is about **designing and maintaining resource files**. It does not require building a new translation system or changing how `Locale` is selected.
 
-## 1. Khóa tài nguyên là hợp đồng ổn định
+## 1. Resource keys are a stable contract
 
-Xem một dòng trong `messages_vi.properties`:
+Consider a line in `messages_vi.properties`:
 
 ```properties
 checkout.action.pay=Thanh toán
 ```
 
-Ở đây:
+Here:
 
-- `checkout.action.pay` là **key**: định danh mà mã nguồn dùng để tìm tài nguyên.
-- `Thanh toán` là **value**: văn bản tiếng Việt dành cho người dùng.
-- `checkout` mô tả tính năng, `action` là loại nội dung, `pay` là ý định hành động.
+- `checkout.action.pay` is the **key**: the identifier that source code uses to look up the resource.
+- `Thanh toán` is the **value**: the Vietnamese text shown to the user.
+- `checkout` describes the feature, `action` is the content kind, and `pay` is the action intent.
 
-Mã Java:
+Java code:
 
 ```java
 ResourceBundle bundle = ResourceBundle.getBundle(
@@ -37,84 +37,84 @@ ResourceBundle bundle = ResourceBundle.getBundle(
 String label = bundle.getString("checkout.action.pay");
 ```
 
-Đây là đoạn minh họa đặt trong một phương thức; đã có import `java.util.ResourceBundle` và `java.util.Locale`. Tệp `messages_vi.properties` cần nằm đúng vị trí classpath mà base name `messages` tham chiếu.
+This is an illustrative snippet inside a method; `java.util.ResourceBundle` and `java.util.Locale` are already imported. `messages_vi.properties` must sit at the classpath location referenced by the `messages` base name.
 
-Nếu nhóm nội dung đổi nhãn giao diện từ “Thanh toán” sang “Tiến hành thanh toán”, **khóa vẫn là `checkout.action.pay`**; chỉ đổi value. Điều đó giúp Java code, bài test, thống kê thiếu dịch và công cụ dịch thuật không phải đổi theo từng lần chỉnh câu chữ.
+If the content team changes the UI label from "Thanh toán" to "Tiến hành thanh toán", **the key stays `checkout.action.pay`**; only the value changes. That keeps Java code, tests, missing-translation metrics, and translation tools from changing on every copy edit.
 
-Ngược lại, nếu một nút trước đây **thanh toán ngay** nhưng được sửa thành **lưu đơn hàng để thanh toán sau**, ý nghĩa hành động đã khác: nên tạo khóa mới, ví dụ `checkout.action.saveForLater`, rồi cập nhật mã gọi. Giữ khóa `pay` cho hành động “lưu” sẽ gây hiểu nhầm cho những người đọc tệp, nhất là người dịch.
+Conversely, if a button previously **paid immediately** and is changed to **save the order to pay later**, the action's meaning has changed: you should create a new key, such as `checkout.action.saveForLater`, and update the call site. Keeping the `pay` key for a "save" action misleads anyone reading the file, especially translators.
 
-### Điều gì khiến một key được coi là ổn định?
+### What makes a key stable?
 
-Một key tốt mô tả **vai trò ngữ nghĩa tương đối lâu dài**, không phụ thuộc câu dịch cụ thể. Nó nên:
+A good key describes a **relatively long-lived semantic role**, independent of any specific translated phrasing. It should:
 
-1. Có ý nghĩa đủ rõ để phân biệt với các key khác.
-2. Được dùng nhất quán bởi mã và tài nguyên nhiều locale.
-3. Không cần đổi khi cải thiện từ ngữ nhưng **có thể đổi** khi nội dung đổi ngữ nghĩa.
-4. Tránh phụ thuộc thứ tự màn hình, số dòng, tên người hoặc bản dịch của một locale.
-5. Có phạm vi rõ ràng: đội nào sở hữu và được dùng ở vị trí nào.
+1. Be clear enough to distinguish from other keys.
+2. Be used consistently by code and across all locale resources.
+3. Not require renaming when wording improves, yet **be replaced** when the underlying semantics change.
+4. Avoid depending on screen order, line numbers, personal names, or a single locale's phrasing.
+5. Have clear ownership: which team owns it and where it is used.
 
-Key là một phần của hợp đồng **mã nguồn ↔ tài nguyên ↔ quy trình dịch thuật**. Vì thế đổi key tương đương đổi tên điểm truy cập: phải rà lại nơi dùng và các bản địa phương hóa.
+Keys are part of the **source code ↔ resources ↔ translation workflow** contract. Renaming a key is equivalent to renaming an entry point: you must audit call sites and every localization.
 
-## 2. Quy tắc đặt tên có cấu trúc
+## 2. Structured naming conventions
 
-Không có quy tắc đặt tên key duy nhất bắt buộc bởi `ResourceBundle`. Tuy nhiên, dự án nên định nghĩa một convention và tuân theo nhất quán.
+`ResourceBundle` enforces no single key-naming convention. However, a project should define a convention and follow it consistently.
 
-Một kiểu phổ biến:
+One common pattern:
 
 ```text
 <feature>.<element-or-content-kind>.<semantic-intent>
 ```
 
-Ví dụ:
+Examples:
 
-| Key đề xuất | Ý định |
+| Suggested key | Intent |
 | --- | --- |
-| `checkout.action.pay` | Nhãn nút thực hiện thanh toán |
-| `checkout.action.cancel` | Nhãn nút hủy bước thanh toán |
-| `checkout.summary.itemCount` | Thông điệp số lượng sản phẩm trong tóm tắt đơn hàng |
-| `checkout.error.paymentDeclined` | Thông báo giao dịch bị từ chối |
-| `account.error.sessionExpired` | Thông báo phiên đăng nhập hết hạn |
-| `profile.field.displayName.label` | Nhãn trường tên hiển thị |
-| `profile.field.displayName.hint` | Hướng dẫn dưới trường tên hiển thị |
-| `navigation.menu.orders` | Nhãn mục điều hướng tới đơn hàng |
+| `checkout.action.pay` | Label of the button that executes payment |
+| `checkout.action.cancel` | Label of the button that cancels the checkout step |
+| `checkout.summary.itemCount` | Item-count message in the order summary |
+| `checkout.error.paymentDeclined` | Message when a transaction is declined |
+| `account.error.sessionExpired` | Message when a login session expires |
+| `profile.field.displayName.label` | Label of the display-name field |
+| `profile.field.displayName.hint` | Helper text below the display-name field |
+| `navigation.menu.orders` | Navigation item label leading to orders |
 
-Điều quan trọng không nằm ở số dấu chấm mà ở tính **ổn định, dễ tìm và mô tả đúng ý định**. Một nhóm có thể chọn `feature.component.purpose` hoặc một convention khác. Không cần cố ép mọi key vào ba cấp nếu việc đó tạo từ dài, mơ hồ hoặc khó dùng.
+What matters is not the number of dots, but **stability, searchability, and accurate intent**. A team might choose `feature.component.purpose` or another convention. Do not force every key into three levels if doing so produces long, vague, or awkward names.
 
-Các key nên dễ tìm bằng tìm kiếm văn bản trong codebase, dễ nhóm trong công cụ dịch thuật và dễ suy ra trách nhiệm của tính năng.
+Keys should be easy to find with text search in the codebase, easy to group in translation tools, and clear about feature ownership.
 
-### Đối chiếu cách đặt tên
+### Comparing naming approaches
 
-| Khóa yếu | Vấn đề | Hướng cải thiện |
+| Weak key | Problem | Better alternative |
 | --- | --- | --- |
-| `button1` | Phụ thuộc vị trí, không biết nút làm gì | `checkout.action.pay` |
-| `label_12` | Số thứ tự không mang ngữ nghĩa | `profile.field.email.label` |
-| `click_here` | Lấy lời văn tiếng Anh làm định danh | `account.action.verifyEmail` |
-| `error` | Quá chung, các loại lỗi có ngữ cảnh khác nhau | `checkout.error.paymentDeclined` |
-| `hello_text_new_v2` | Chứa trạng thái chỉnh sửa, không bền | `home.welcome.greeting` |
-| `confirm` dùng cho mọi nút | Chữ “confirm” có thể là xác nhận hủy, xóa, thanh toán | Tách khóa theo hành động thực |
-| `checkout.title.2026` | Gắn key vào năm khi ngữ nghĩa không phụ thuộc năm | `checkout.page.title` |
+| `button1` | Position-dependent; unclear what the button does | `checkout.action.pay` |
+| `label_12` | Arbitrary index carries no semantics | `profile.field.email.label` |
+| `click_here` | Uses English copy as an identifier | `account.action.verifyEmail` |
+| `error` | Too generic; different errors have different contexts | `checkout.error.paymentDeclined` |
+| `hello_text_new_v2` | Encodes editing state; not durable | `home.welcome.greeting` |
+| `confirm` used for every button | "Confirm" might mean confirming cancel, delete, or pay | Split keys by actual action |
+| `checkout.title.2026` | Ties the key to a year when semantics do not depend on the year | `checkout.page.title` |
 
-Có thể cố ý **dùng chung key** khi cùng một thông điệp thực sự có cùng ý nghĩa và cùng hợp đồng hiển thị. Nhưng hai chỗ cùng dùng chữ “Mở”, “Lưu”, “Tiếp tục” ở ngữ cảnh khác nhau chưa đủ để kết luận chúng nên dùng chung key: cách dịch phụ thuộc đối tượng, giống/ngôi, dạng động từ, độ dài nút, văn phong hoặc vị trí trong câu.
+You can intentionally **share a key** when the same message genuinely has the same meaning and display contract. Yet two places both using "Open", "Save", or "Continue" in different contexts are not enough reason to share a key: translations depend on the target object, gender/person, verb form, button width, tone, or sentence position.
 
-**Không dùng chính chuỗi tiếng Anh làm key chỉ vì bản gốc đang là tiếng Anh.** Khi copy thay đổi, tên key kiểu `Pay now` rất dễ trở nên sai lệch và có thể khó quản lý trong mã.
+**Do not use the English string itself as the key just because the source language is English.** When copy changes, key names like `Pay now` quickly become misleading and awkward to manage in code.
 
-## 3. Một giá trị có thể có nhiều nghĩa — vì sao người dịch cần ngữ cảnh?
+## 3. One value can have multiple meanings — why do translators need context?
 
-Xét chuỗi tiếng Anh `"Open"`:
+Consider the English string `"Open"`:
 
-- Trong file manager, có thể là **mở tệp**.
-- Trong trạng thái đơn hàng, có thể là **đang mở/chưa đóng**.
-- Trên bảng giờ hoạt động, có thể là **đang mở cửa**.
+- In a file manager, it can mean **open a file**.
+- In an order status, it can mean **open / not yet closed**.
+- On a business-hours sign, it can mean **open for business**.
 
-Nếu chỉ nhận:
+If translators receive only:
 
 ```properties
 common.open=Open
 ```
 
-người dịch thiếu thông tin để chọn từ chính xác. Đặc biệt, một từ tiếng Anh có thể có nhiều dạng dịch tùy loại từ, số lượng, giống và cấu trúc ngữ pháp ở ngôn ngữ khác.
+they lack the information to pick the right wording. In particular, one English word can correspond to multiple translations depending on part of speech, number, gender, and grammar in other languages.
 
-Tách key theo ngữ nghĩa:
+Split keys by meaning:
 
 ```properties
 file.action.open=Open
@@ -122,26 +122,26 @@ order.status.open=Open
 store.status.open=Open
 ```
 
-Các value tiếng Anh giống nhau nhưng ý nghĩa khác nhau. Những ngôn ngữ khác có thể cần ba bản dịch khác nhau.
+The English values are identical, but their meanings differ. Other languages may require three distinct translations.
 
-### Chú thích gì là đủ?
+### What context is enough?
 
-Mỗi key dễ gây hiểu nhầm nên có các thông tin thực sự ảnh hưởng đến bản dịch:
+Every potentially ambiguous key should include details that actually affect the translation:
 
-- **Nơi xuất hiện:** màn hình, dialog, email, tiêu đề, aria-label, thông báo lỗi, tooltip.
-- **Chức năng:** người dùng bấm để làm gì hoặc trạng thái nào đang được mô tả.
-- **Đối tượng:** “Open” áp dụng cho tệp, đơn hàng, cửa hàng hay tài khoản.
-- **Giọng văn:** thân thiện, trang trọng, cảnh báo nghiêm túc; tránh thay đổi giọng văn ngẫu nhiên giữa màn hình.
-- **Độ dài và ràng buộc bố cục:** nhãn nút có không gian nhỏ hay mô tả có thể nhiều câu; chỉ nêu giới hạn ký tự nếu giao diện thật sự có giới hạn.
-- **Tham số:** `{0}` là số lượng gì, `{1}` là tên người hay thời gian; đơn vị và định dạng do đâu quyết định.
-- **Ví dụ:** câu có thể được hiển thị với dữ liệu thật đã ẩn danh.
-- **Điều cần giữ nguyên:** tên sản phẩm, biến mẫu, URL/markup được cho phép, dấu câu hoặc quy định pháp lý đặc biệt nếu có.
+- **Where it appears:** screen, dialog, email, heading, aria-label, error banner, tooltip.
+- **Function:** what happens when the user clicks it, or what state is being described.
+- **Target object:** whether "Open" applies to a file, order, store, or account.
+- **Tone:** friendly, formal, serious warning; avoid random tone shifts across screens.
+- **Length and layout constraints:** tight button label vs. multi-sentence description; state character limits only when the UI truly enforces one.
+- **Parameters:** what count `{0}` represents, whether `{1}` is a person's name or a timestamp; where units and formatting come from.
+- **Example:** a sample sentence rendered with anonymized realistic data.
+- **What must stay unchanged:** product names, template variables, allowed URLs/markup, punctuation, or special legal wording if any.
 
-Ghi chú nên ngắn và chính xác, viết từ góc nhìn **đối tượng đọc là người dịch**. Một comment kiểu “Translation here” không mang thông tin. Một comment như “Nhãn nút ở màn hình thanh toán; người dùng bấm để thực hiện giao dịch ngay” hữu ích hơn nhiều.
+Notes should be concise and accurate, written from the perspective of **the translator as the reader**. A comment like "Translation here" adds no value. A comment like "Button label on the checkout screen; user clicks it to start payment immediately" is far more helpful.
 
-## 4. Comment trong Java .properties
+## 4. Comments in Java .properties
 
-Java `.properties` cho phép dòng comment bắt đầu bằng `#` hoặc `!` (sau phần whitespace đầu dòng được bỏ qua theo cú pháp properties). Ví dụ:
+Java `.properties` files allow comment lines starting with `#` or `!` (after leading whitespace skipped per properties syntax). For example:
 
 ```properties
 # TRANSLATORS: Label on the primary checkout button.
@@ -153,26 +153,26 @@ checkout.action.pay=Pay now
 checkout.summary.itemCount=Items: {0}
 ```
 
-Tệp trong ví dụ có hai key; các dòng comment giúp người dịch hiểu ngữ cảnh.
+The example file has two keys; the comment lines help translators understand context.
 
-**Điểm quan trọng:** `PropertyResourceBundle` không biến các comment đó thành tài nguyên có thể đọc bằng key. Nếu Java gọi `getString("TRANSLATORS")` sẽ không nhận một metadata riêng cho comment; thông tin dành cho người dịch nằm trong file nguồn và công cụ quản lý bản dịch.
+**Key point:** `PropertyResourceBundle` does not turn those comments into resources accessible by key. Calling `getString("TRANSLATORS")` in Java will not retrieve comment metadata; translator notes live in the source file and translation-management tools.
 
-Một số công cụ xuất/nhập bản dịch có thể làm mất comment hoặc di chuyển comment, nên pipeline dịch thuật cần kiểm tra việc bảo toàn chú thích. Nếu nhóm dùng nền tảng dịch thuật, hãy map các trường mô tả/context của nền tảng sang source comment hoặc metadata ổn định, thay vì chỉ hy vọng comment luôn đi theo các lần chuyển đổi.
+Some translation import/export tools strip or move comments, so your localization pipeline must verify comment preservation. If your team uses a translation platform, map the platform's description/context fields to source comments or stable metadata rather than merely hoping comments survive round-trips.
 
-### Comment khác với giá trị hiển thị
+### Comments are separate from displayed values
 
 ```properties
 # This is a translator note; users never see it.
 account.error.sessionExpired=Your session has expired
 ```
 
-Giá trị được hiển thị chỉ là `Your session has expired`. Dòng comment không được đưa vào output và không thay đổi cách `ResourceBundle` tra key.
+The displayed value is only `Your session has expired`. The comment line is never included in output and does not change how `ResourceBundle` looks up the key.
 
-Đừng giấu thông tin nghiệp vụ cần runtime xử lý trong comment vì Java không tự đọc comment sau khi `PropertyResourceBundle` đã parse. Metadata dùng ở runtime phải có thiết kế riêng, thay vì dựa vào dòng `#`.
+Do not hide business metadata needed at runtime inside comments, because Java does not read comments after `PropertyResourceBundle` parses the file. Runtime metadata needs its own explicit design instead of relying on `#` lines.
 
-## 5. Mã nguồn, bản gốc và bản dịch nên cùng một hợp đồng khóa
+## 5. Source code, base bundle, and translations should share one key contract
 
-Một cấu trúc tài nguyên quen thuộc trong ứng dụng Java:
+A familiar resource layout in a Java application:
 
 ```text
 src/main/resources/
@@ -182,14 +182,14 @@ src/main/resources/
   messages_ja.properties
 ```
 
-- `messages.properties` có thể đóng vai trò **root/default bundle** và là tập key tham chiếu của dự án.
-- `messages_vi.properties` chứa bản dịch tiếng Việt.
-- `messages_fr.properties` chứa bản dịch tiếng Pháp.
-- `messages_ja.properties` chứa bản dịch tiếng Nhật.
+- `messages.properties` can serve as the **root/default bundle** and the project's reference key catalog.
+- `messages_vi.properties` holds Vietnamese translations.
+- `messages_fr.properties` holds French translations.
+- `messages_ja.properties` holds Japanese translations.
 
-Trong ứng dụng có package, có thể dùng base name `com.example.i18n.messages` và đặt resource tại `com/example/i18n/messages*.properties`. Tên tệp ResourceBundle truyền thống dùng `_` để ghép phần locale candidate như `messages_vi_VN.properties`; còn language tag truyền qua API `Locale.forLanguageTag("vi-VN")` dùng dấu `-`.
+In a packaged application, you can use a base name like `com.example.i18n.messages` and place resources at `com/example/i18n/messages*.properties`. Traditional `ResourceBundle` filenames use `_` to join candidate locale parts such as `messages_vi_VN.properties`, whereas BCP 47 language tags passed to `Locale.forLanguageTag("vi-VN")` use hyphens `-`.
 
-Cùng một key nên mang **cùng ý nghĩa** ở mọi locale:
+The same key should carry **the same meaning** in every locale:
 
 ```properties
 # messages.properties
@@ -201,69 +201,69 @@ account.error.sessionExpired=Your session has expired.
 account.error.sessionExpired=Phiên đăng nhập của bạn đã hết hạn.
 ```
 
-Không nên để cùng key có nghĩa “hết hạn phiên” ở tiếng Anh nhưng “sai mật khẩu” ở một ngôn ngữ khác. Đó là lỗi tương thích ngữ nghĩa, dù các tệp không hề sai cú pháp.
+Never let the same key mean "session expired" in English and "wrong password" in another language. That is a semantic compatibility bug even though none of the files have syntax errors.
 
-### Có cần mọi tệp đều có tất cả key?
+### Must every file contain every key?
 
-Về mặt runtime, `ResourceBundle` có cơ chế tìm key trong parent/fallback; một bản dịch thiếu key vẫn có thể được lấy từ bundle cha. Nhưng về **chất lượng bản địa hóa**, không nên coi “không ném exception” là bằng chứng mọi bản dịch đầy đủ.
+At runtime, `ResourceBundle` looks up keys in parent/fallback bundles; a translation missing a key can still resolve from its parent bundle. However, for **localization quality**, never treat "no exception thrown" as proof that translations are complete.
 
-Cần phân biệt:
+Distinguish three states:
 
-1. **Khóa được định nghĩa trong chính locale đó.**
-2. **Khóa lấy từ root/parent bundle khi locale thiếu.**
-3. **Khóa không tìm được ở bất kỳ mức fallback nào.**
+1. **Key defined in that locale itself.**
+2. **Key resolved from the root/parent bundle when missing in the locale.**
+3. **Key not found at any fallback level.**
 
-Trường hợp 2 có thể làm UI pha lẫn tiếng Anh và tiếng Việt. Nếu sản phẩm yêu cầu dịch hoàn chỉnh, pipeline QA phải so sánh **tập khóa có thật của từng tệp nguồn** với tập khóa tham chiếu, thay vì chỉ gọi `ResourceBundle.getBundle(...).getString(key)` và thấy có giá trị.
+Case 2 can leave the UI mixing English and Vietnamese. If the product requires complete translation, QA tooling must compare **the actual set of keys declared in each source file** against the reference catalog, rather than just calling `ResourceBundle.getBundle(...).getString(key)` and seeing a value returned.
 
-Một số tổ chức cho phép vài key fallback có chủ đích (tên riêng hoặc nội dung chưa dịch); các ngoại lệ nên được theo dõi minh bạch, không ngầm xem là thành công.
+Some teams intentionally allow a few keys to fall back (proper names or untranslated content); those exceptions should be tracked explicitly rather than silently counted as complete.
 
-## 6. Giữ key ổn định trong vòng đời thay đổi sản phẩm
+## 6. Keeping keys stable across product changes
 
-### Thay lời văn nhưng giữ ý nghĩa
+### Changing wording while keeping meaning
 
-Giả sử key:
+Suppose the key is:
 
 ```properties
 checkout.action.pay=Pay now
 ```
 
-Nhóm nội dung muốn đổi thành:
+The content team wants to change it to:
 
 ```properties
 checkout.action.pay=Complete payment
 ```
 
-Nếu chức năng của nút vẫn là thực hiện thanh toán, **giữ khóa**. Sửa bản gốc, đánh dấu bản dịch cần rà soát, cập nhật comment nếu ngữ cảnh hiển thị thay đổi. Không có lý do kỹ thuật để đổi thành `checkout.action.completePayment` chỉ vì câu tiếng Anh được viết lại.
+If the button's function is still executing payment, **keep the key**. Update the source text, mark translations for review, and update the comment if the display context changed. There is no technical reason to rename it to `checkout.action.completePayment` just because the English phrasing was rewritten.
 
-### Thay ý nghĩa: tạo key mới
+### Changing meaning: create a new key
 
-Nếu nút đổi thành “Đặt lịch thanh toán”, nó không còn biểu thị thực hiện thanh toán ngay. Tạo một key mới như `checkout.action.schedulePayment`, cung cấp mô tả mới và cập nhật tham chiếu Java. Giữ khóa cũ khi nó còn được dùng; chỉ xóa sau khi kiểm tra không còn nơi sử dụng và quy trình dịch đã chuyển đổi đầy đủ.
+If the button changes to "Schedule payment", it no longer means paying immediately. Create a new key such as `checkout.action.schedulePayment`, add a new description, and update Java references. Keep the old key while it is still used; delete it only after verifying no call sites remain and the translation workflow has migrated cleanly.
 
-### Đổi tên hoặc di chuyển chức năng
+### Renaming or moving a feature
 
-Khi module được đổi tên nhưng chức năng vẫn như cũ, không cần đổi toàn bộ key ngay chỉ để làm đẹp namespace. Cân nhắc:
+When a module is renamed while its functionality stays the same, you do not have to rename every key immediately just to tidy up namespaces. Consider:
 
-- Có phải hợp đồng public của resource đã được thành phần khác tham chiếu?
-- Thay đổi tên key có khiến bản dịch bị coi như nội dung mới không?
-- Có thể giữ alias/migration trong một phiên phát hành không?
-- Có người dịch và công cụ thống kê phụ thuộc ID cũ hay không?
+- Is the resource key part of a public contract referenced by other components?
+- Will renaming keys cause translation platforms to treat existing text as brand-new content?
+- Should an alias or migration window be kept for one release?
+- Do translators or analytics tools depend on the old IDs?
 
-Đừng tái sử dụng một key đã nghỉ cho ý nghĩa mới: dữ liệu translation memory hoặc bản dịch còn tồn tại có thể được áp vào ngữ cảnh không liên quan.
+Never reuse a retired key for a new meaning: lingering translation memory or stale translations may get applied to an unrelated context.
 
-### Quy trình review một thay đổi key
+### Checklist for reviewing a key change
 
-1. Xác định ý nghĩa mới và vị trí hiển thị.
-2. Kiểm tra tất cả call site của key hiện tại.
-3. Chọn sửa value, thêm key mới hoặc migration rõ ràng.
-4. Cập nhật nguồn tham chiếu, tất cả bản dịch liên quan và comment.
-5. Kiểm tra key thừa/mất, placeholder, định dạng, giao diện.
-6. Chỉ loại bỏ key cũ khi không còn người dùng của nó; không “dọn khóa” bằng cách xóa hàng loạt không được kiểm chứng.
+1. Identify the new meaning and display location.
+2. Check all call sites of the existing key.
+3. Choose between editing the value, adding a new key, or doing an explicit migration.
+4. Update the reference source, all relevant translations, and comments.
+5. Check for extra/missing keys, placeholders, formatting, and UI layout.
+6. Remove the old key only once it has no remaining consumers; do not "clean up keys" with unverified bulk deletions.
 
-## 7. Placeholder là một phần của hợp đồng dịch thuật
+## 7. Placeholders are part of the translation contract
 
-Chuỗi dịch thường chứa chỗ trống cho dữ liệu runtime. Với `java.text.MessageFormat`, các placeholder có cú pháp như `{0}`, `{1}` và có thể có định dạng phụ.
+Translated strings often contain slots for runtime data. With `java.text.MessageFormat`, placeholders use syntax such as `{0}`, `{1}`, and optional subformats.
 
-Ví dụ:
+Example:
 
 ```properties
 # TRANSLATORS: Summary line below the shopping cart.
@@ -271,38 +271,38 @@ Ví dụ:
 checkout.summary.itemCount=Items: {0}
 ```
 
-Bản tiếng Việt:
+Vietnamese version:
 
 ```properties
-# TRANSLATORS: Dòng tóm tắt ngay dưới giỏ hàng.
-# {0} = số sản phẩm trong giỏ, do ứng dụng tính.
+# TRANSLATORS: Summary line directly below the shopping cart.
+# {0} = number of products in the cart, calculated by the app.
 checkout.summary.itemCount=Số sản phẩm: {0}
 ```
 
-Hai câu có thể khác trật tự từ nhưng đều giữ `{0}` để chương trình thay đúng số lượng. Nếu một bản dịch xóa hoặc đổi nhầm thành `{1}`, dữ liệu runtime có thể bị mất hoặc hiển thị sai.
+The two sentences can use different word order, yet both preserve `{0}` so the program substitutes the count accurately. If a translation deletes it or accidentally changes it to `{1}`, runtime data can vanish or display wrongly.
 
-### Khi có nhiều tham số
+### When there are multiple parameters
 
 ```properties
 # {0} = buyer display name; {1} = order identifier.
 order.notification.created=Hello {0}, order {1} is ready.
 ```
 
-Người dịch cần biết **vai trò của từng chỉ số**, đặc biệt khi thứ tự từ trong ngôn ngữ đích khác tiếng Anh. Có thể đảo vị trí `{0}` và `{1}` trong bản dịch nếu phù hợp ngữ pháp, nhưng không được đổi ý nghĩa của chúng.
+Translators need to know **the role of each index**, especially when target-language word order differs from English. They may reorder `{0}` and `{1}` in a translation when grammar calls for it, but they must not swap or alter their meanings.
 
-Đừng yêu cầu người dịch tự sửa số placeholder hoặc biến template nếu chưa có thay đổi hợp đồng trong mã. Nếu nội dung gốc thay đổi danh sách tham số, đó là thay đổi cần QA tương ứng ở các locale.
+Do not ask translators to invent or alter placeholder counts or template variables without a matching code-contract change. When the source text changes its parameter list, QA must verify every locale accordingly.
 
-### MessageFormat không phải printf, và dấu nháy có ý nghĩa
+### MessageFormat is not printf, and single quotes matter
 
-`MessageFormat` dùng cú pháp khác `String.format`. `{0}` không giống `%s`. `MessageFormat` còn có quy tắc đặc biệt cho dấu nháy đơn `'` và ngoặc nhọn. Ví dụ, muốn một dấu nháy đơn hiển thị đúng ở một pattern MessageFormat có thể cần viết thành `''`.
+`MessageFormat` uses a different syntax from `String.format`. `{0}` is not `%s`. `MessageFormat` also has special rules for single quotes `'` and braces. For example, to display a literal apostrophe in a `MessageFormat` pattern, you may need to double it as `''`.
 
-Nếu bản dịch có dấu nháy đơn, dấu ngoặc nhọn hoặc mẫu số/ngày có định dạng, nên chạy test bằng **chính formatter được dùng trong runtime**. Không nên kiểm thử bằng thay chuỗi thủ công như `replace("{0}", value)` rồi cho rằng tương đương MessageFormat.
+If a translation contains apostrophes, braces, or formatted number/date patterns, test it with **the exact formatter used at runtime**. Do not test with manual string replacement like `replace("{0}", value)` assuming it behaves like `MessageFormat`.
 
-Đối với số lượng số ít/số nhiều, chỉ thay một placeholder không luôn đủ cho mọi ngôn ngữ. Có thể cần quy tắc plural theo thư viện i18n phù hợp hoặc pattern được thiết kế riêng; không suy từ cấu trúc tiếng Anh sang mọi locale.
+For singular/plural counts, replacing a single placeholder is not always enough across all languages. You may need pluralization rules via an appropriate i18n library or dedicated patterns; do not extrapolate English grammar rules to every locale.
 
-### Đừng đưa văn bản người dùng vào key
+### Never embed user-specific text into keys
 
-Key là định danh ổn định, vì vậy không tạo key kiểu:
+Keys are stable identifiers, so never create keys like:
 
 ```text
 order.error.paymentDeclinedForJohn
@@ -310,15 +310,15 @@ cart.items.3
 welcome.Alice
 ```
 
-Thay vào đó dùng một key với placeholder để dữ liệu runtime tách khỏi nội dung dịch. Điều này tránh bùng nổ key, dễ giữ cấu trúc ngôn ngữ và tránh chèn dữ liệu cá nhân vào ID tài nguyên.
+Instead, use one key with placeholders so runtime data stays separate from translated text. That prevents key explosion, preserves proper grammar, and avoids putting personal data into resource IDs.
 
-## 8. Ví dụ hoàn chỉnh Java 17+: comment, khóa ổn định và MessageFormat
+## 8. Complete Java 17+ example: comments, stable keys, and MessageFormat
 
-Ta xây dựng một họ bundle `messages` gồm root bundle, bản tiếng Việt và chương trình Java. Ví dụ chạy được trên Java 17+; các message được lấy theo key, và comment trong properties giúp người dịch hiểu ngữ cảnh nhưng không trở thành key.
+Let us build a `messages` bundle family consisting of a root bundle, a Vietnamese bundle, and a Java program. The example runs on Java 17+; messages are looked up by key, and comments in properties help translators understand context without becoming keys.
 
-Tạo **ba tệp trong cùng một thư mục**, lưu các file `.properties` bằng UTF-8.
+Create **three files in the same directory**, saving the `.properties` files as UTF-8.
 
-### Tệp messages.properties
+### File messages.properties
 
 ```properties
 # TRANSLATORS: Primary button on the checkout screen.
@@ -336,23 +336,23 @@ account.error.sessionExpired=Your session has expired.
 checkout.link.refundPolicy=Refund policy
 ```
 
-### Tệp messages_vi.properties
+### File messages_vi.properties
 
 ```properties
-# TRANSLATORS: Nút chính ở màn hình thanh toán, thực hiện thanh toán ngay.
+# TRANSLATORS: Primary button on the checkout screen; executes payment immediately.
 checkout.action.pay=Thanh toán ngay
 
-# TRANSLATORS: Dòng tóm tắt dưới giỏ hàng.
-# {0} = số sản phẩm trong giỏ.
+# TRANSLATORS: Summary line below the shopping cart.
+# {0} = number of products in the cart.
 checkout.summary.itemCount=Số sản phẩm: {0}
 
-# TRANSLATORS: Hiển thị khi phiên đăng nhập hết hạn.
+# TRANSLATORS: Displayed when the login session expires.
 account.error.sessionExpired=Phiên đăng nhập đã hết hạn.
 ```
 
-Cố ý chưa dịch `checkout.link.refundPolicy` ở bản tiếng Việt để minh họa hành vi fallback từ root bundle. Trong sản phẩm thực tế, đây là một key cần được phát hiện trong báo cáo thiếu dịch.
+`checkout.link.refundPolicy` is intentionally left untranslated in the Vietnamese file to illustrate fallback from the root bundle. In a real product, this is a key that a missing-translation report should flag.
 
-### Tệp ResourceKeyDemo.java
+### File ResourceKeyDemo.java
 
 ```java
 import java.text.MessageFormat;
@@ -381,7 +381,7 @@ public class ResourceKeyDemo {
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa cả ba tệp:
+Compile and run from the directory containing all three files:
 
 ```bash
 javac -encoding UTF-8 ResourceKeyDemo.java
@@ -398,131 +398,131 @@ Refund policy
 false
 ```
 
-**Giải thích từng dòng:**
+**Line-by-line explanation:**
 
-1. `checkout.action.pay` lấy giá trị từ `messages_vi.properties`; key trong Java không chứa chữ tiếng Việt hay văn bản nút.
-2. `checkout.summary.itemCount` giữ tham số `{0}`, còn `MessageFormat` thay bằng số `3`.
-3. `account.error.sessionExpired` lấy câu tiếng Việt theo cùng key ngữ nghĩa ở hai locale.
-4. `checkout.link.refundPolicy` không có trong file tiếng Việt; `ResourceBundle` tìm được giá trị ở bundle cha/root. Ví dụ có thể chạy nhưng **bản dịch chưa hoàn thiện**.
-5. `containsKey("TRANSLATORS")` trả `false` vì các comment `# TRANSLATORS: ...` là metadata nguồn, không tạo key `TRANSLATORS`.
+1. `checkout.action.pay` retrieves the value from `messages_vi.properties`; the key in Java contains no Vietnamese text or button wording.
+2. `checkout.summary.itemCount` preserves the `{0}` parameter, and `MessageFormat` substitutes `3`.
+3. `account.error.sessionExpired` retrieves the Vietnamese sentence using the same semantic key across both locales.
+4. `checkout.link.refundPolicy` is absent from the Vietnamese file; `ResourceBundle` finds the value in the parent/root bundle. The example runs, yet **the translation is incomplete**.
+5. `containsKey("TRANSLATORS")` returns `false` because `# TRANSLATORS: ...` comments are source metadata and do not create a `TRANSLATORS` key.
 
-Ví dụ dùng locale tường minh nên không cần thay đổi `Locale.setDefault` của JVM. Java 17+ đọc tệp `.properties` trong `ResourceBundle` bằng cơ chế hỗ trợ UTF-8; tránh soạn file dưới encoding khác mà không kiểm soát.
+The example uses an explicit locale, avoiding changes to the JVM's `Locale.setDefault`. Java 17+ reads `.properties` files in `ResourceBundle` using UTF-8-capable loading; avoid authoring files in uncontrolled encodings.
 
-### Khi đặt trong dự án thật
+### In a real project
 
-Với dự án dùng Maven hoặc Gradle, thường lưu các tệp tại `src/main/resources/messages.properties` và `src/main/resources/messages_vi.properties`, còn lớp Java ở thư mục source tương ứng. Nếu chọn đặt bundle trong package, dùng đúng đường dẫn resource và base name đầy đủ. Các tệp phải xuất hiện trong classpath runtime; chỉ lưu chúng ở thư mục làm việc nhưng không đóng gói có thể gây `MissingResourceException`.
+In Maven or Gradle projects, files are typically stored at `src/main/resources/messages.properties` and `src/main/resources/messages_vi.properties`, with Java classes in the corresponding source directory. If placing bundles inside a package, use the matching resource path and full base name. Files must be present on the runtime classpath; leaving them in a working directory without packaging them can cause `MissingResourceException`.
 
-Trong môi trường có module system, class loader riêng hoặc `ResourceBundle.Control` tùy biến, cần kiểm tra thêm cơ chế tải tài nguyên tương ứng. Ví dụ ở đây dựa trên classpath mặc định.
+In environments with the module system, custom class loaders, or a custom `ResourceBundle.Control`, also verify the corresponding resource-loading rules. The example here assumes the default classpath.
 
-## 9. Giữ chú thích đồng bộ với thay đổi
+## 9. Keeping comments in sync with changes
 
-Comment sai đôi khi còn nguy hiểm hơn comment thiếu. Giả sử:
+A misleading comment can be worse than a missing comment. Suppose:
 
 ```properties
 # Button opens the refund details, no payment is performed.
 checkout.action.pay=Pay now
 ```
 
-Tên key, value và comment không thống nhất về hành động. Người dịch có thể chọn bản dịch về “xem chính sách hoàn tiền”, trong khi mã Java vẫn gọi key cho nút thanh toán.
+The key name, value, and comment disagree about the action. Translators may translate it as "view refund policy," while Java code still invokes the key for the payment button.
 
-Khi cập nhật:
+When making updates:
 
-- **Nội dung hiển thị:** rà soát xem comment còn mô tả đúng ngữ cảnh không.
-- **Chức năng sản phẩm:** xác định có phải tạo key mới và viết comment mới không.
-- **Placeholder:** cập nhật mô tả vị trí và ý nghĩa tham số, kiểm thử số lượng/thứ tự tham số.
-- **Giới hạn giao diện:** chỉ cập nhật khi ràng buộc UI thực sự thay đổi; tránh gán giới hạn cứng không có cơ sở.
-- **Ảnh chụp màn hình hoặc liên kết tham khảo:** nếu công cụ dịch thuật hỗ trợ, gắn đúng màn hình và duy trì liên kết sống qua việc thiết kế lại UI.
+- **Displayed copy:** check whether the comment still describes the context accurately.
+- **Product behavior:** decide whether a new key and a new comment are needed.
+- **Placeholders:** update parameter positions and descriptions, and test parameter counts and ordering.
+- **UI constraints:** update only when UI constraints actually change; avoid inventing arbitrary character limits.
+- **Screenshots or reference links:** if your translation tool supports them, attach the right screen and keep links working across UI redesigns.
 
-Trong review, người dịch nên nhận được **ngữ cảnh đủ để quyết định cách diễn đạt** mà không phải tìm toàn bộ Java source. Chú thích tốt giúp giảm số vòng hỏi đáp và bản dịch sai ý, nhưng không thay thế việc kiểm tra giao diện thật.
+During reviews, translators should receive **enough context to choose phrasing** without having to read the entire Java codebase. Good notes reduce back-and-forth questions and mistranslations, though they do not replace testing in the real UI.
 
-## 10. Kiểm tra chất lượng và tự động hóa
+## 10. Quality checks and automation
 
-### A. So sánh tập khóa của từng locale
+### A. Comparing each locale's key set
 
-Tập khóa trong `messages.properties` là mốc tham chiếu nếu dự án chọn root bundle làm nguồn chính. Với mỗi file ngôn ngữ:
+The key set in `messages.properties` serves as the baseline when the project uses the root bundle as its primary source. For each language file:
 
-- **Missing keys:** có ở root nhưng không được định nghĩa trong file đó.
-- **Extra keys:** có trong file ngôn ngữ nhưng không còn trong root hoặc không được cho phép.
-- **Duplicate keys:** xuất hiện lặp trong cùng file, khiến một giá trị có thể che giá trị khác.
-- **Empty values:** có key nhưng value rỗng; có thể hợp lệ trong vài ngữ cảnh, cần chính sách.
-- **Stale comments:** mô tả sai hành động hoặc placeholder.
-- **Orphan keys:** key tồn tại trong resource nhưng không còn call site thực tế; không xóa máy móc khi có truy cập động.
+- **Missing keys:** present in the root but not defined in that file.
+- **Extra keys:** present in the language file but no longer in the root or not permitted.
+- **Duplicate keys:** repeated in the same file, allowing one value to shadow another.
+- **Empty values:** key present with an empty value; valid in rare contexts, requires a policy.
+- **Stale comments:** describe the wrong action or wrong placeholders.
+- **Orphan keys:** keys in resources with no remaining call sites; do not delete mechanically when dynamic lookups exist.
 
-Để kiểm tra thiếu dịch, công cụ nên đọc **key được khai báo trong từng file** thay vì chỉ hỏi `ResourceBundle.containsKey(key)`. Lý do: `containsKey` có thể xem xét parent chain, nên một key thiếu trong file tiếng Việt vẫn hiện là tồn tại qua fallback root.
+To detect missing translations, tools should inspect **keys declared in each individual file** rather than only querying `ResourceBundle.containsKey(key)`. Reason: `containsKey` traverses the parent chain, so a key missing from the Vietnamese file still reports as present via root fallback.
 
-Các thư viện đọc properties cũng có thể ghi đè key trùng và làm mất thông tin “đã khai báo hai lần”. Muốn phát hiện duplicate chính xác, công cụ lint nên phân tích **nguồn file thô** (bao gồm escape và continuation theo đúng cú pháp) thay vì chỉ xét map kết quả cuối cùng.
+Properties-reading libraries can also overwrite duplicate keys and lose the fact that a key appeared twice. To catch duplicates reliably, a lint tool should analyze **the raw source file** (handling escapes and line continuations accurately) rather than inspecting only the final map.
 
-### B. Kiểm tra placeholder, kiểu dữ liệu và dấu nháy
+### B. Checking placeholders, types, and quotes
 
-Nếu mã gọi `new MessageFormat(pattern, locale)`, việc kiểm thử nên:
+If code calls `new MessageFormat(pattern, locale)`, tests should:
 
-1. Parse pattern của **từng locale được hỗ trợ** bằng `MessageFormat` tương ứng.
-2. Xác định các placeholder mong đợi từ hợp đồng mã và source.
-3. Phát hiện thiếu/thừa/sai chỉ số tham số, kiểm tra kiểu dữ liệu cho number/date/time khi cần.
-4. Xác nhận một vài kết quả với input mẫu, bao gồm ký tự đặc biệt và giá trị biên.
-5. Kiểm tra các pattern sử dụng dấu nháy đơn và ngoặc nhọn vì dễ tạo lỗi dịch thuật.
+1. Parse patterns for **every supported locale** with the corresponding `MessageFormat`.
+2. Verify expected placeholders against the code/source contract.
+3. Catch missing, extra, or misnumbered parameter indices, and check number/date/time parameter types where needed.
+4. Assert sample formatted outputs with test inputs, including special characters and boundary values.
+5. Check patterns containing single quotes and braces, which commonly cause translation bugs.
 
-Không thể áp quy tắc “placeholder phải có thứ tự giống hệt bản gốc” cho mọi ngôn ngữ: bản dịch có thể đảo chỗ `{0}` và `{1}` để đúng ngữ pháp. Điều cần giữ là **cùng ý nghĩa và tập tham số hợp lệ**.
+You cannot enforce "placeholders must appear in the exact same order as the source" across all languages: translations may reorder `{0}` and `{1}` for natural grammar. What must be preserved is **the same meaning and valid parameter set**.
 
-### C. Kiểm tra văn bản trong giao diện thật
+### C. Checking text in the real UI
 
-Một bản dịch có thể đúng trong file nhưng vẫn gây:
+A translation can be valid in the file and still cause:
 
-- Cắt chữ ở nút, tab, thanh điều hướng.
-- Câu thiếu mạo từ/hậu tố vì không biết ngữ cảnh.
-- Tên người hoặc số bị ghép sai trật tự.
-- Lỗi hiển thị dấu, font, direction hoặc ký tự đặc biệt.
-- Câu không nhất quán giọng văn giữa màn hình và email.
+- Truncated text on buttons, tabs, and navigation bars.
+- Sentences missing articles or suffixes due to missing context.
+- Names or numbers concatenated in an awkward order.
+- Broken diacritics, fonts, text direction, or special characters.
+- Inconsistent tone between screens and emails.
 
-Vì vậy, QA tệp tài nguyên và QA UI bổ sung cho nhau. Nếu có kiểm tra hình ảnh/screenshot, hãy cung cấp cho người dịch đúng màn hình và trạng thái, đặc biệt ở các key dễ hiểu nhầm.
+Therefore, resource-file QA and UI QA complement each other. When doing visual/screenshot reviews, give translators the right screens and states, especially for easily misunderstood keys.
 
-### D. Quy ước CI có thể áp dụng
+### D. CI checks you can adopt
 
-Một pipeline tối thiểu có thể yêu cầu:
+A minimal pipeline can enforce:
 
-1. Không có lỗi cú pháp properties hoặc lỗi mã hóa UTF-8.
-2. Không có duplicate key ngoài danh sách ngoại lệ được phê duyệt.
-3. Không có placeholder hỏng theo formatter đang dùng.
-4. Mọi key được dùng trong mã đều có source key hợp lệ, trừ khi truy cập động được khai báo riêng.
-5. Mọi key mới có ngữ cảnh đầy đủ ở nơi cần thiết.
-6. Tỷ lệ hoàn thành bản dịch được báo cáo từ **key thật trong từng locale**, không tính fallback như đã dịch.
-7. Các thay đổi ý nghĩa có migration key minh bạch.
+1. No properties syntax errors or UTF-8 encoding errors.
+2. No duplicate keys outside an approved exception list.
+3. No broken placeholders under the formatter in use.
+4. Every key referenced in code exists in the source catalog, unless explicitly marked as dynamic access.
+5. Every new key has sufficient context where needed.
+6. Translation completion rates are calculated from **actual keys in each locale**, without counting fallback as translated.
+7. Semantic changes use transparent key migrations.
 
-Không nhất thiết mọi lỗi đều phải chặn release giống nhau. Có thể phân cấp thiếu bản dịch, key không còn dùng, lỗi placeholder và lỗi cú pháp theo mức độ ảnh hưởng. Nhưng **sự khác nhau giữa bản dịch thật và fallback** phải luôn nhìn thấy trong báo cáo.
+Not every issue has to block a release identically. You can tier missing translations, unused keys, placeholder errors, and syntax errors by severity. However, **the difference between genuine translations and fallback** must always remain visible in reports.
 
-## 11. Những lỗi phổ biến
+## 11. Common mistakes
 
-| Sai lầm | Hệ quả | Cách khắc phục |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Dùng `button1` hoặc `label42` | Không thể suy ra ý nghĩa của key | Đặt tên theo feature và chức năng |
-| Dùng câu tiếng Anh nguyên văn làm key | Copy thay đổi khiến định danh sai lệch | Tách key ổn định khỏi value hiển thị |
-| Đổi key mỗi khi chỉnh văn bản | Mất lịch sử dịch thuật, tăng công di chuyển | Giữ key khi ngữ nghĩa không đổi |
-| Dùng lại key cũ cho chức năng mới | Bản dịch cũ áp dụng sai ngữ cảnh | Tạo key mới, cập nhật call site |
-| Gộp mọi `common.ok`, `common.open`, `common.save` | Mất ngữ cảnh của hành động và loại từ | Chỉ tái sử dụng khi thật sự cùng ý nghĩa |
-| Không mô tả placeholder `{0}` | Người dịch có thể bỏ, đảo sai hoặc sửa cú pháp | Ghi ý nghĩa và ví dụ tham số |
-| Coi comment `#` là runtime metadata | Code không thể truy xuất comment qua `ResourceBundle` | Dùng comment cho quy trình dịch, schema riêng nếu runtime cần |
-| Chỉ test `bundle.getString(key)` | Root fallback che key dịch bị thiếu | So sánh tập key khai báo trong file của locale |
-| Đổi `.properties` nhưng không kiểm tra encoding | Ký tự tiếng Việt bị sai khi đóng gói hoặc đọc | Dùng UTF-8 và test Unicode trên runtime |
-| Tưởng đổi chính tả nguồn là key mới | Phát sinh duplicate và thiếu dịch không cần thiết | Giữ key, đánh dấu giá trị cần re-translate |
-| Tự ghép chuỗi dịch để tạo câu hoàn chỉnh | Ngữ pháp, thứ tự và plural khó dịch | Thiết kế thông điệp đầy đủ có placeholder rõ nghĩa |
-| Bỏ kiểm tra sau khi nhập từ công cụ dịch | Comment hoặc placeholder có thể bị mất | Lint và kiểm thử output sau import |
+| Using `button1` or `label42` | Impossible to infer the key's meaning | Name by feature and function |
+| Using literal English sentences as keys | Copy edits make identifiers misleading | Separate stable keys from displayed values |
+| Renaming keys on every wording edit | Loses translation memory and increases migration work | Keep the key when semantics do not change |
+| Reusing an old key for a new feature | Old translations get applied in the wrong context | Create a new key and update call sites |
+| Merging every `common.ok`, `common.open`, `common.save` | Loses action context and part-of-speech distinctions | Reuse only when the meaning is truly identical |
+| Leaving `{0}` placeholders undocumented | Translators may drop, misorder, or break syntax | Document parameter meaning and examples |
+| Treating `#` comments as runtime metadata | Code cannot read comments via `ResourceBundle` | Use comments for the translation workflow; use a separate schema if runtime needs it |
+| Testing only `bundle.getString(key)` | Root fallback hides missing translations | Compare the key set declared inside each locale file |
+| Editing `.properties` without checking encoding | Vietnamese characters break during packaging or reading | Standardize on UTF-8 and test Unicode at runtime |
+| Treating a source typo fix as a new key | Creates unnecessary duplicates and missing translations | Keep the key and flag the value for re-translation |
+| Concatenating translated fragments to build sentences | Grammar, word order, and plurals become hard to translate | Design complete messages with meaningful placeholders |
+| Skipping checks after importing from translation tools | Comments or placeholders may get stripped | Lint and test outputs after import |
 
-## 12. Bài tập thực hành
+## 12. Practice exercises
 
-**Bài 1 — Tách key theo ý nghĩa.** Một ứng dụng có ba màn hình: mở file, xem trạng thái “Open” của đơn hàng và xem cửa hàng đang mở cửa. Hãy đề xuất ba key có ngữ nghĩa riêng và viết comment giúp người dịch không nhầm chúng.
+**Exercise 1 — Splitting keys by meaning.** An application has three screens: opening a file, viewing an order's "Open" status, and showing that a store is open. Propose three semantically distinct keys and write comments that prevent translators from confusing them.
 
-**Bài 2 — Giữ key hay đổi key?** Nút `checkout.action.pay` đổi value từ “Pay now” sang “Complete payment” nhưng vẫn thanh toán ngay. Bạn nên giữ key hay tạo key mới? Sau đó sản phẩm đổi hành động thành “Schedule payment for next week”; quyết định có đổi không và giải thích lý do.
+**Exercise 2 — Keep the key or change it?** The `checkout.action.pay` button changes its value from "Pay now" to "Complete payment" while still paying immediately. Should you keep the key or create a new one? Later, the product changes the action to "Schedule payment for next week"; does your decision change, and why?
 
-**Bài 3 — Placeholder.** Thông báo có `order.status.ready=Order {0} is ready for {1}`, trong đó `{0}` là mã đơn và `{1}` là tên người nhận. Viết hai dòng comment mô tả rõ tham số và giải thích vì sao người dịch có thể thay đổi thứ tự placeholder khi ngôn ngữ yêu cầu.
+**Exercise 3 — Placeholders.** A message has `order.status.ready=Order {0} is ready for {1}`, where `{0}` is the order ID and `{1}` is the recipient's name. Write two comment lines clearly describing the parameters and explain why a translator may reorder the placeholders if their language requires it.
 
-**Bài 4 — Phát hiện thiếu dịch.** Trong ví dụ `ResourceKeyDemo`, tại sao `getString("checkout.link.refundPolicy")` vẫn chạy và trả “Refund policy”? Nêu cách phát hiện key này **chưa có bản dịch tiếng Việt** ngay cả khi lời gọi không phát sinh exception.
+**Exercise 4 — Detecting missing translations.** In `ResourceKeyDemo`, why does `getString("checkout.link.refundPolicy")` still succeed and return "Refund policy"? Describe how to detect that this key **lacks a Vietnamese translation** even though the call throws no exception.
 
-**Bài 5 — Đánh giá comment.** So sánh hai comment `# label text` và `# Button at checkout; pressing it starts payment immediately.`. Comment nào hữu ích hơn và còn thiếu thông tin gì nếu nút có giới hạn chiều rộng?
+**Exercise 5 — Evaluating comments.** Compare `# label text` and `# Button at checkout; pressing it starts payment immediately.`. Which comment is more helpful, and what information is still missing if the button has a width constraint?
 
-## 13. Ghi nhớ
+## 13. Summary
 
-**Khóa tài nguyên là một định danh hợp đồng ổn định; value là câu chữ có thể thay đổi theo locale và theo chỉnh sửa nội dung.** Thiết kế key theo ý nghĩa, không theo thứ tự hiển thị hoặc nguyên văn tiếng Anh. Hai chuỗi nhìn giống nhau vẫn có thể cần hai key nếu ngữ cảnh khác; key cũ không nên được tái sử dụng cho hành động mới.
+**A resource key is a stable contract identifier; a value is text that can evolve per locale and copy revision.** Design keys around meaning, not display order or verbatim English text. Two identical-looking strings can still require two keys if their contexts differ; retired keys should not be reused for new actions.
 
-**Chú thích dành cho người dịch giải thích ý nghĩa trong ngữ cảnh**, đặc biệt là nơi hiển thị, chức năng, đối tượng và placeholder. Trong `.properties`, comment `#`/`!` hỗ trợ quy trình biên dịch bản dịch nhưng không thể đọc như key/value qua `ResourceBundle`.
+**Translator comments explain meaning in context**, especially display location, function, target object, and placeholders. In `.properties` files, `#`/`!` comments assist the translation authoring workflow but cannot be read as key/value entries through `ResourceBundle`.
 
-Cuối cùng, hãy kiểm soát tính đồng bộ giữa source và các bản dịch bằng so sánh tập khóa, kiểm tra placeholder và QA giao diện. `ResourceBundle` có thể fallback thành công ngay cả khi locale được yêu cầu đang thiếu bản dịch; hệ thống kiểm thử phải nhìn thấy điều đó để sản phẩm không vô tình hiển thị nội dung lẫn ngôn ngữ.
+Finally, maintain alignment between source and translations through key-set comparisons, placeholder checks, and UI QA. `ResourceBundle` can fall back cleanly even when the requested locale lacks a translation; your testing pipeline must surface that gap so users do not end up seeing mixed-language screens.

@@ -1,78 +1,78 @@
-# Không suy ra toàn bộ cú pháp nguồn từ cờ trong class file
+# Do Not Infer All Source Syntax from Flags in a Class File
 
-## 1. Vấn đề cần hiểu
+## 1. The problem to understand
 
-Khi dùng Java Reflection, bạn có thể gọi `Class.getModifiers()`, `Field.getModifiers()`, `Method.getModifiers()` hoặc `Constructor.getModifiers()`, rồi kiểm tra bằng `java.lang.reflect.Modifier`. Khi đọc tệp `.class` qua `javap -v`, bạn cũng nhìn thấy các giá trị `access_flags`, chẳng hạn `ACC_PUBLIC`, `ACC_FINAL`, `ACC_STATIC`, `ACC_ABSTRACT`.
+When using Java Reflection, you can call `Class.getModifiers()`, `Field.getModifiers()`, `Method.getModifiers()`, or `Constructor.getModifiers()`, then inspect them with `java.lang.reflect.Modifier`. When reading a `.class` file with `javap -v`, you also see `access_flags` values such as `ACC_PUBLIC`, `ACC_FINAL`, `ACC_STATIC`, and `ACC_ABSTRACT`.
 
-Tuy nhiên, **modifier và flag chỉ mô tả một phần đặc tính của chương trình đã biên dịch; chúng không phải bản chụp nguyên văn mã nguồn Java**. Không thể chỉ dựa vào các cờ này để dựng lại đầy đủ câu lệnh khai báo, biểu thức, cách viết tham số, từ khóa xuất hiện tường minh hay toàn bộ cú pháp nguồn ban đầu.
+However, **modifiers and flags only describe part of the properties of a compiled program; they are not a verbatim snapshot of Java source code**. You cannot rely solely on these flags to reconstruct complete declaration statements, expressions, parameter writing style, explicit keywords that appeared, or the full original source syntax.
 
-Ví dụ, hai khai báo sau có thể dẫn đến cùng những modifier hiệu lực cho phương thức:
+For example, the following two declarations can lead to the exact same effective modifiers on the method:
 
 ```java
 interface First {
-    void run();                 // public abstract được ngầm hiểu
+    void run();                 // public abstract implied
 }
 
 interface Second {
-    public abstract void run(); // Viết tường minh hai modifier
+    public abstract void run(); // Explicitly written both modifiers
 }
 ```
 
-Trong Reflection, `getDeclaredMethod("run").getModifiers()` ở cả hai trường hợp đều mang `public` và `abstract`. Từ kết quả ấy không thể biết tác giả đã viết tường minh `public abstract` hay để trình biên dịch suy ra theo quy tắc ngôn ngữ.
+In Reflection, `getDeclaredMethod("run").getModifiers()` in both cases carries `public` and `abstract`. From that result, you cannot tell whether the author explicitly wrote `public abstract` or let the compiler infer them under language rules.
 
-**Phạm vi bài này:** cách đọc và giới hạn diễn giải modifier/flag của *lớp, trường, phương thức, constructor và tham số* trong bối cảnh Java Reflection và class file; phân biệt dữ liệu thật sự có thể quan sát với cú pháp nguồn không được lưu giữ.
+**Scope of this lesson:** how to read and the limits of interpreting modifiers/flags of *classes, fields, methods, constructors, and parameters* in the context of Java Reflection and class files; distinguishing truly observable data from source syntax that is not preserved.
 
-## 2. Quá trình biên dịch làm mất thông tin cú pháp như thế nào?
+## 2. How compilation loses syntactic information
 
 ```text
-Mã nguồn .java
-  ├── từ khóa modifier, kiểu, tham số, chú thích
-  ├── biểu thức, câu lệnh, import, định dạng, tên biến cục bộ
-  └── đường đi cú pháp: khai báo tường minh / ngầm định
+.java source code
+  ├── modifier keywords, types, parameters, comments
+  ├── expressions, statements, imports, formatting, local variable names
+  └── syntactic path: explicit / implicit declarations
              │ javac / compiler / bytecode transformation
              ▼
-Tệp .class
-  ├── constant pool và access_flags
-  ├── mô tả kiểu JVM (descriptors)
+.class file
+  ├── constant pool and access_flags
+  ├── JVM type descriptions (descriptors)
   ├── field_info, method_info, bytecode
   └── attributes: Signature, Exceptions, InnerClasses, ...
              │ Reflection / javap / class-file reader
              ▼
-Thông tin cấu trúc + hành vi đã biên dịch
+Compiled structural + behavioral info
              ≠
-Bản gốc đầy đủ của cú pháp .java
+Complete original copy of .java syntax
 ```
 
-Một tệp `.class` lưu những gì JVM cần để nạp, xác minh và chạy mã, cùng các metadata mà trình biên dịch hoặc công cụ tạo bytecode chọn ghi thêm. Đây là **biểu diễn đã được chuyển đổi**, không phải cây cú pháp nguồn Java có thể đảo ngược hoàn toàn.
+A `.class` file stores what the JVM needs to load, verify, and execute code, along with metadata that the compiler or bytecode generation tool chooses to emit. It is a **transformed representation**, not a fully reversible Java source syntax tree.
 
-Những khác biệt phải phân biệt:
+Differences you must distinguish:
 
-- **Nguồn:** có thể có cú pháp khác nhau nhưng cùng ý nghĩa và cùng modifier hiệu lực, ví dụ `void run();` và `public abstract void run();` trong interface.
-- **Class file:** có nhiều vùng thông tin. `access_flags` chỉ là tập bit; descriptors, bytecode và các attributes mang các loại thông tin riêng biệt.
-- **Reflection:** là API mức cao diễn giải cấu trúc đã nạp. Kết quả `getModifiers()` không tương ứng một-một với danh sách từ khóa từng xuất hiện trong nguồn; một số chi tiết khác cần API riêng.
-- **Compiler / bytecode tools:** có thể bổ sung hoặc biến đổi cấu trúc, như tạo phương thức `bridge` và các phần tử `synthetic`. Không thể mặc định mọi phần tử quan sát được đều có một khai báo tường minh trong mã nguồn.
+- **Source:** different syntax can have the same meaning and the same effective modifiers, such as `void run();` and `public abstract void run();` in an interface.
+- **Class file:** has multiple information regions. `access_flags` is only a set of bits; descriptors, bytecode, and attributes carry distinct kinds of information.
+- **Reflection:** is a high-level API interpreting loaded structures. The result of `getModifiers()` does not correspond one-to-one with the list of keywords that appeared in source; some other details require dedicated APIs.
+- **Compiler / bytecode tools:** can add or transform structures, such as generating `bridge` methods and `synthetic` elements. You cannot assume every observable element has an explicit declaration in source code.
 
-Từ một số thuộc tính, ta có thể **suy ra hợp lệ về kiểu thành viên ở runtime**. Nhưng suy luận đó khác với khẳng định tác giả đã viết chính xác chuỗi token nào trong tệp `.java`.
+From certain properties, we can **validly infer runtime member characteristics**. Yet that inference differs from claiming which exact token sequence the author wrote in the `.java` file.
 
-## 3. `access_flags` mô tả điều gì, và ở đâu?
+## 3. What does `access_flags` describe, and where?
 
-Theo định dạng class file của JVM, nhiều cấu trúc có trường `access_flags`: phần định nghĩa class/interface, mỗi `field_info`, mỗi `method_info`; riêng metadata khác có thể chứa các tập flag riêng. **Cùng một vị trí bit có thể mang ý nghĩa khác nhau tùy cấu trúc.**
+Per the JVM class file format, several structures have an `access_flags` field: the class/interface definition, each `field_info`, and each `method_info`; other metadata entries can contain separate flag sets. **The same bit position can carry different meanings depending on the structure.**
 
-| Vị trí | Ví dụ cờ | Thông tin được mô tả |
+| Location | Example flags | Information described |
 | --- | --- | --- |
-| Class/interface header | `ACC_PUBLIC`, `ACC_FINAL`, `ACC_INTERFACE`, `ACC_ABSTRACT`, `ACC_ANNOTATION`, `ACC_ENUM`, `ACC_MODULE` | Đặc tính của kiểu trong class file |
-| `field_info` | `ACC_PUBLIC`, `ACC_PRIVATE`, `ACC_STATIC`, `ACC_FINAL`, `ACC_VOLATILE`, `ACC_TRANSIENT`, `ACC_SYNTHETIC`, `ACC_ENUM` | Khả năng truy cập và tính chất của field |
-| `method_info` | `ACC_PUBLIC`, `ACC_PRIVATE`, `ACC_STATIC`, `ACC_FINAL`, `ACC_SYNCHRONIZED`, `ACC_BRIDGE`, `ACC_VARARGS`, `ACC_NATIVE`, `ACC_ABSTRACT`, `ACC_SYNTHETIC` | Tính chất phương thức ở JVM |
-| `InnerClasses` attribute | Các cờ dành cho thông tin lớp lồng, gồm `ACC_STATIC` | Metadata về lớp thành viên/lớp lồng trong quan hệ bao chứa |
-| `MethodParameters` attribute | `ACC_FINAL`, `ACC_SYNTHETIC`, `ACC_MANDATED` | Metadata của *tham số*, nếu attribute này hiện diện |
+| Class/interface header | `ACC_PUBLIC`, `ACC_FINAL`, `ACC_INTERFACE`, `ACC_ABSTRACT`, `ACC_ANNOTATION`, `ACC_ENUM`, `ACC_MODULE` | Type characteristics in the class file |
+| `field_info` | `ACC_PUBLIC`, `ACC_PRIVATE`, `ACC_STATIC`, `ACC_FINAL`, `ACC_VOLATILE`, `ACC_TRANSIENT`, `ACC_SYNTHETIC`, `ACC_ENUM` | Field accessibility and properties |
+| `method_info` | `ACC_PUBLIC`, `ACC_PRIVATE`, `ACC_STATIC`, `ACC_FINAL`, `ACC_SYNCHRONIZED`, `ACC_BRIDGE`, `ACC_VARARGS`, `ACC_NATIVE`, `ACC_ABSTRACT`, `ACC_SYNTHETIC` | Method properties at the JVM |
+| `InnerClasses` attribute | Flags for nested class info, including `ACC_STATIC` | Metadata about member/nested classes in an enclosing relationship |
+| `MethodParameters` attribute | `ACC_FINAL`, `ACC_SYNTHETIC`, `ACC_MANDATED` | *Parameter* metadata, if this attribute is present |
 
-**Lưu ý về bảng:** đây là các ví dụ, không phải danh sách đầy đủ cho mọi phiên bản JVM. Không hoán đổi bảng cờ giữa các loại cấu trúc. Ví dụ, `ACC_STATIC` có thể xuất hiện ở field hoặc method, còn thông tin một *lớp thành viên* là `static` được mô tả thông qua `InnerClasses`, chứ không phải một bit `ACC_STATIC` trong class header.
+**Table note:** these are examples, not an exhaustive list for every JVM version. Do not swap flag tables across structure kinds. For example, `ACC_STATIC` can appear on a field or method, whereas the fact that a *member class* is `static` is described via `InnerClasses`, not an `ACC_STATIC` bit in the class header.
 
-Những cờ như `ACC_SUPER` mang ý nghĩa liên quan tới cách JVM xử lý class file; chúng **không phải từ khóa modifier trong khai báo Java**. Ngược lại, không phải mọi từ khóa hoặc đặc điểm Java đều có một bit tương ứng trong `access_flags`.
+Flags such as `ACC_SUPER` carry meaning related to how the JVM handles the class file; they are **not modifier keywords in Java declarations**. Conversely, not every Java keyword or feature has a corresponding bit in `access_flags`.
 
-### 3.1. Phân biệt flag của class file với `Modifier` của Reflection
+### 3.1. Distinguishing class file flags from Reflection `Modifier`
 
-`java.lang.reflect.Modifier` cung cấp các phép kiểm tra như:
+`java.lang.reflect.Modifier` provides checks such as:
 
 ```java
 Modifier.isPublic(mods)
@@ -89,33 +89,33 @@ Modifier.isInterface(mods)
 Modifier.toString(mods)
 ```
 
-`mods` là số nguyên trả về từ API `getModifiers()` tương ứng. `Modifier.toString(mods)` hiển thị những modifier mà API đó nhận diện theo một thứ tự biểu diễn chuẩn; nó **không** bảo đảm tái tạo thứ tự hoặc sự hiện diện tường minh của từ khóa trong mã nguồn.
+`mods` is the integer returned from the corresponding `getModifiers()` API. `Modifier.toString(mods)` displays the modifiers recognized by that API in a canonical presentation order; it does **not** guarantee reproducing the order or explicit presence of keywords in source code.
 
-Không lấy một số nguyên `access_flags` tùy ý từ tệp `.class` rồi coi nó hoàn toàn tương đương với `getModifiers()`. Lý do gồm: phạm vi flag khác nhau giữa class/field/method, các bit có ý nghĩa riêng của JVM, và việc Reflection có thể sử dụng metadata khác để mô tả kiểu. Chẳng hạn, với lớp thành viên `static`, `Class.getModifiers()` có thể báo `static` dựa trên thông tin lớp lồng.
+Do not take an arbitrary `access_flags` integer from a `.class` file and treat it as completely equivalent to `getModifiers()`. Reasons include: flag scopes differ among class/field/method, bits have JVM-specific meanings, and Reflection may use other metadata to describe types. For instance, for a `static` member class, `Class.getModifiers()` can report `static` based on nested-class info.
 
-### 3.2. Modifier không phải tất cả metadata
+### 3.2. Modifiers are not all metadata
 
-Vẫn có những chi tiết quan sát được qua các API chuyên biệt:
+There are still details observable via dedicated APIs:
 
-| Cần kiểm tra | API hoặc metadata phù hợp | Vì sao `getModifiers()` chưa đủ |
+| Need to check | Appropriate API or metadata | Why `getModifiers()` is not enough |
 | --- | --- | --- |
-| Phương thức varargs | `Method.isVarArgs()` / `ACC_VARARGS` | `varargs` không có phép thử `Modifier.isVarArgs` |
-| Phương thức bridge | `Method.isBridge()` / `ACC_BRIDGE` | Bridge có thể do compiler sinh ra |
-| Phần tử synthetic | `isSynthetic()` / `ACC_SYNTHETIC` | Không tương đương một từ khóa khai báo Java |
-| Phương thức `default` trong interface | `Method.isDefault()` | Không có `Modifier.isDefault` |
-| Class là record | `Class.isRecord()`, `getRecordComponents()`, `Record` attribute | `record` không được phục hồi chỉ từ `getModifiers()` |
-| Class là sealed | `Class.isSealed()`, `getPermittedSubclasses()`, `PermittedSubclasses` attribute | Danh sách lớp được phép kế thừa nằm ngoài tập modifier cơ bản |
-| Kiểu generic | `getGenericType()` / `getGenericReturnType()`; `Signature` attribute nếu có | JVM descriptor chủ yếu ghi kiểu đã xóa, không phản ánh đầy đủ generics |
-| Annotation | API annotation và annotation attributes phù hợp với retention | Không phải cờ access |
-| Tên tham số | `Parameter.getName()` và `isNamePresent()`; `MethodParameters` nếu có | Tên tham số không nằm trong `access_flags` |
+| Varargs method | `Method.isVarArgs()` / `ACC_VARARGS` | `varargs` has no `Modifier.isVarArgs` check |
+| Bridge method | `Method.isBridge()` / `ACC_BRIDGE` | Bridges can be compiler-generated |
+| Synthetic element | `isSynthetic()` / `ACC_SYNTHETIC` | Does not correspond to a Java declaration keyword |
+| `default` method in interface | `Method.isDefault()` | There is no `Modifier.isDefault` |
+| Class is a record | `Class.isRecord()`, `getRecordComponents()`, `Record` attribute | `record` cannot be recovered solely from `getModifiers()` |
+| Class is sealed | `Class.isSealed()`, `getPermittedSubclasses()`, `PermittedSubclasses` attribute | List of permitted subclasses lies outside basic modifiers |
+| Generic types | `getGenericType()` / `getGenericReturnType()`; `Signature` attribute if present | JVM descriptors mainly store erased types, not full generics |
+| Annotations | Annotation APIs and annotation attributes matching retention | Not access flags |
+| Parameter names | `Parameter.getName()` and `isNamePresent()`; `MethodParameters` if present | Parameter names are not in `access_flags` |
 
-Các thông tin bổ sung này vẫn **không biến class file thành mã nguồn đầy đủ**. Ví dụ, `Signature` có thể giúp tìm kiểu generic khai báo nhưng không phục hồi cách sắp dòng hoặc tên import; `Record` mô tả thành phần record nhưng không tái tạo chính xác mọi biểu thức ban đầu.
+This extra information still **does not turn a class file into complete source code**. For example, `Signature` can help recover declared generic types yet does not restore line breaks or import names; `Record` describes record components yet does not reproduce every original expression verbatim.
 
-## 4. Ví dụ runnable: cùng ý nghĩa, cú pháp nguồn khác nhau
+## 4. Runnable example: same meaning, different source syntax
 
-Chương trình sau dùng Java 17 trở lên để minh họa ba giới hạn: modifier ngầm định trong interface, kiểu tham số varargs và cách Reflection tách modifier khỏi những thuộc tính khác.
+The following program uses Java 17 or later to illustrate three limits: implicit modifiers in interfaces, varargs parameter types, and how Reflection separates modifiers from other properties.
 
-Tạo tệp `FlagSourceDemo.java`:
+Create file `FlagSourceDemo.java`:
 
 ```java
 import java.lang.reflect.Field;
@@ -123,7 +123,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
 interface Action {
-    void execute(); // public abstract ngầm định
+    void execute(); // implicitly public abstract
 }
 
 public class FlagSourceDemo {
@@ -159,7 +159,7 @@ public class FlagSourceDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac FlagSourceDemo.java
@@ -177,16 +177,16 @@ printArray is varargs: false
 class is public: true
 ```
 
-Cách đọc:
+How to read this:
 
-1. Trong mã nguồn, `Action.execute()` **không viết** `public abstract`. Nhưng hai thuộc tính đó là ngầm định theo quy tắc interface; khi xem phương thức đã biên dịch, Reflection trả về `public abstract`. Vì vậy, `Modifier.toString` không chứng minh đây là các từ khóa tác giả đã gõ.
-2. `counter` thật sự được khai báo `private final`, nên Reflection báo `private final`. Nhưng từ hai cờ ấy không suy ra biểu thức khởi tạo `7`, vị trí trong tệp hay khoảng trắng/cách viết khác của field.
-3. `print(String... values)` có dạng tham số nguồn `...`; `printArray(String[] values)` dùng `[]`. Reflection thấy kiểu tham số trực tiếp của cả hai là `String[]`. Phải hỏi `isVarArgs()` mới thấy khác biệt metadata varargs.
-4. `Class.isPublic` (qua `Modifier.isPublic`) trả về thuộc tính hiệu lực của lớp. Nó không cho biết toàn bộ body, danh sách import hoặc cách triển khai.
+1. In source code, `Action.execute()` **did not write** `public abstract`. Yet both properties are implicit per interface rules; when inspecting the compiled method, Reflection returns `public abstract`. Thus `Modifier.toString` does not prove these were keywords typed by the author.
+2. `counter` really was declared `private final`, so Reflection reports `private final`. Yet from those two flags you cannot infer the initializer expression `7`, position in the file, or whitespace/formatting style of the field.
+3. `print(String... values)` has source parameter form `...`; `printArray(String[] values)` uses `[]`. Reflection sees the direct parameter type of both as `String[]`. You must query `isVarArgs()` to see the varargs metadata difference.
+4. `Class.isPublic` (via `Modifier.isPublic`) returns the effective property of the class. It does not reveal the whole body, import list, or implementation details.
 
-### 4.1. Đối chiếu bằng `javap`
+### 4.1. Cross-checking with `javap`
 
-Từ thư mục có các tệp `.class` vừa biên dịch, chạy:
+From the directory containing the newly compiled `.class` files, run:
 
 ```bash
 javap -p FlagSourceDemo
@@ -194,65 +194,65 @@ javap -v -p FlagSourceDemo
 javap -v -p Action
 ```
 
-Trong bản `javap -v -p FlagSourceDemo`, hãy tìm `print` và `printArray`:
+In the `javap -v -p FlagSourceDemo` output, locate `print` and `printArray`:
 
-- Cả hai có **descriptor JVM** `([Ljava/lang/String;)V`, nghĩa là một tham số là mảng `String[]` và trả về `void`.
-- `print` có `ACC_VARARGS` trong flag của phương thức.
-- `printArray` không có `ACC_VARARGS`.
-- `javap -p` có thể trình bày chữ ký ở dạng gần mã Java để dễ đọc, nhưng đây là bản **diễn giải lại từ class file**, không phải bằng chứng về toàn bộ biểu thức, cú pháp hay định dạng nguồn ban đầu.
+- Both have the **JVM descriptor** `([Ljava/lang/String;)V`, meaning one parameter is a `String[]` array and the return type is `void`.
+- `print` has `ACC_VARARGS` in the method's flags.
+- `printArray` does not have `ACC_VARARGS`.
+- `javap -p` can render signatures in a Java-like form for readability, yet this is a **reconstruction from the class file**, not proof of all original expressions, syntax, or source formatting.
 
-Trong `Action.class`, phương thức `execute` được biểu diễn là `public abstract` dù khai báo Java chỉ viết `void execute();`. Các modifier hiệu lực và các token thực tế trong source là hai câu hỏi khác nhau.
+In `Action.class`, the `execute` method is represented as `public abstract` even though the Java declaration only wrote `void execute();`. Effective modifiers and actual tokens in source are two different questions.
 
-`javap -v` cũng liệt kê nhiều thuộc tính và thông tin JVM khác. Không nên lấy riêng `flags: ...` để suy luận ra toàn bộ khai báo nguồn, cũng không nên xem đầu ra `javap` là bản Java có thể dựng lại chính xác nguyên văn.
+`javap -v` also lists many other attributes and JVM details. You should not take `flags: ...` alone to infer an entire source declaration, nor treat `javap` output as Java code that can be reconstructed verbatim.
 
-## 5. Các trường hợp dễ suy diễn sai
+## 5. Cases prone to false inference
 
-### 5.1. Modifier ngầm định, từ khóa thừa về nghĩa và cách viết tương đương
+### 5.1. Implicit modifiers, semantically redundant keywords, and equivalent forms
 
-Trong interface, các field ngầm định là `public static final`; phương thức thông thường không có body và không đánh dấu `private`, `static` hay `default` sẽ là `public abstract`. Trong interface lồng nhau hoặc khai báo nested phù hợp cũng có các quy tắc ngầm định về `static`. Reflection quan sát **thuộc tính hiệu lực**, không chỉ modifier được ghi ra.
+In an interface, fields are implicitly `public static final`; ordinary methods without a body and not marked `private`, `static`, or `default` are `public abstract`. In nested interfaces or suitable nested declarations there are also implicit `static` rules. Reflection observes **effective properties**, not just written modifiers.
 
 ```java
 interface Settings {
-    int LIMIT = 10; // ngầm định public static final
+    int LIMIT = 10; // implicitly public static final
 }
 ```
 
-Dù tác giả viết `int LIMIT` hay `public static final int LIMIT`, field trong class file có cùng các modifier liên quan. Không dùng `Modifier.toString(field.getModifiers())` để phân biệt hai cách viết.
+Whether the author wrote `int LIMIT` or `public static final int LIMIT`, the field in the class file has the same relevant modifiers. Do not use `Modifier.toString(field.getModifiers())` to tell the two writings apart.
 
-**Cảnh báo:** quy tắc ngầm định thay đổi theo loại khai báo (class, interface, enum, record, annotation type, field, method...). Không mặc định mọi thành viên thiếu từ khóa đều có cùng quyền truy cập.
+**Warning:** implicit rules vary by declaration kind (class, interface, enum, record, annotation type, field, method...). Do not assume every member lacking keywords has the same access level.
 
-### 5.2. `varargs` không tương đương chỉ nhìn `String[]`
+### 5.2. `varargs` is not equivalent to merely seeing `String[]`
 
-`String...` ở vị trí tham số cuối của phương thức có **kiểu mảng** ở JVM. Do đó, chỉ đọc `getParameterTypes()` hoặc descriptor không phân biệt được nó với một tham số `String[]` thông thường. `ACC_VARARGS` và `Method.isVarArgs()` cho biết một thuộc tính runtime bổ sung.
+`String...` in a method's last parameter position has an **array type** in the JVM. Therefore, reading only `getParameterTypes()` or descriptors cannot distinguish it from an ordinary `String[]` parameter. `ACC_VARARGS` and `Method.isVarArgs()` provide an extra runtime attribute.
 
-Ngay cả khi metadata varargs hiện diện, điều đó chỉ giúp xác định phương thức **được đánh dấu varargs trong class file**. Một class file có thể được sinh hoặc chỉnh sửa bởi công cụ không phải `javac`; không được khẳng định bạn đã tìm lại được chính xác token hay toàn bộ định dạng nguồn của tác giả.
+Even when varargs metadata is present, it only identifies that the method **is marked varargs in the class file**. A class file may be generated or modified by a tool other than `javac`; you cannot claim you recovered the author's exact tokens or full source formatting.
 
-### 5.3. Generic types và type erasure
+### 5.3. Generic types and type erasure
 
-Trong Java:
+In Java:
 
 ```java
 java.util.List<String> names;
 java.util.List<Integer> ages;
 ```
 
-Các field có **descriptor kiểu thô `java.util.List`** do type erasure. Trình biên dịch Java thường ghi thêm `Signature` attribute để giữ thông tin generic mà Reflection dùng với `Field.getGenericType()`. Nếu metadata này thiếu hoặc bị loại bỏ, class file không đủ để khôi phục tham số kiểu gốc chỉ từ descriptor và flags.
+The fields have the **raw type descriptor `java.util.List`** due to type erasure. The Java compiler usually emits a `Signature` attribute to preserve generic info that Reflection uses via `Field.getGenericType()`. If this metadata is missing or stripped, the class file is insufficient to recover the original type arguments solely from descriptors and flags.
 
-Ngay cả khi đọc được `List<String>` qua `Signature`, bạn vẫn không thể xác định chắc chắn tác giả dùng `import java.util.List;` rồi viết `List<String>`, hay viết đầy đủ `java.util.List<String>`.
+Even when reading `List<String>` via `Signature`, you still cannot determine for certain whether the author used `import java.util.List;` and wrote `List<String>`, or wrote the fully qualified `java.util.List<String>`.
 
-Cùng nguyên tắc áp dụng cho cú pháp generic method, wildcard và nhiều chi tiết của khai báo kiểu.
+The same principle applies to generic method syntax, wildcards, and many declaration details.
 
-### 5.4. Local variable, tên tham số và dấu vết debug
+### 5.4. Local variables, parameter names, and debug traces
 
-Tên biến cục bộ, line numbers hoặc tên tham số không nằm trong modifier của method. Một số thông tin có thể được ghi vào `LocalVariableTable`, `LineNumberTable` hoặc `MethodParameters` tùy cấu hình biên dịch.
+Local variable names, line numbers, or parameter names are not in a method's modifiers. Some info may be written to `LocalVariableTable`, `LineNumberTable`, or `MethodParameters` depending on compilation flags.
 
-Dùng `javac -parameters` khi muốn lưu tên tham số nguồn theo cơ chế `MethodParameters` phổ biến với `javac`. Có thể kiểm tra `Parameter.isNamePresent()`. Nếu không có tên thật, `Parameter.getName()` có thể trả tên tổng hợp như `arg0`. Việc thiếu metadata **không có nghĩa mã nguồn không có tên tham số**.
+Use `javac -parameters` when you want to store source parameter names via the `MethodParameters` mechanism common with `javac`. You can check `Parameter.isNamePresent()`. Without real names, `Parameter.getName()` may return synthetic names like `arg0`. Missing metadata **does not mean the source code lacked parameter names**.
 
-Tương tự, `javac -g` có thể tạo metadata debug; nó không lưu đầy đủ mọi token, chú thích và biểu thức nguồn. Với tối ưu hóa hoặc bytecode transformation, quan hệ giữa bytecode và từng dòng nguồn có thể càng khó tái dựng.
+Similarly, `javac -g` can emit debug metadata; it does not store every token, comment, and source expression completely. With optimizations or bytecode transformations, the mapping between bytecode and individual source lines can become even harder to reconstruct.
 
-### 5.5. Compiler-generated, synthetic và bridge methods
+### 5.5. Compiler-generated, synthetic, and bridge methods
 
-Khi generics hoặc các đặc điểm ngôn ngữ cần bảo đảm tương thích lời gọi ở JVM, compiler có thể sinh thêm method `bridge`. Nó có thể xuất hiện trong `getDeclaredMethods()` dù lập trình viên không khai báo trực tiếp một method riêng tương ứng trong source.
+When generics or language features require preserving call compatibility on the JVM, the compiler can emit an extra `bridge` method. It can appear in `getDeclaredMethods()` even though the programmer did not directly declare a separate corresponding method in source.
 
 ```java
 class Parent<T> {
@@ -269,22 +269,22 @@ class Child extends Parent<String> {
 }
 ```
 
-Ở cơ chế biên dịch Java điển hình, `Child` có thể có một method sinh ra để nối chữ ký erased của `Parent.value()` với `Child.value()`. Kiểm tra `Method.isBridge()` và `Method.isSynthetic()` thay vì suy ra rằng mọi `Method` có một khai báo viết tay. Bridge/synthetic là những thuộc tính cấu trúc, không phải các từ khóa bắt buộc tồn tại ở nguồn.
+In typical Java compilation, `Child` can have a generated method bridging the erased signature of `Parent.value()` to `Child.value()`. Check `Method.isBridge()` and `Method.isSynthetic()` rather than assuming every `Method` has a handwritten declaration. Bridge/synthetic are structural properties, not keywords required to exist in source.
 
-Lưu ý: không tự áp dụng các quy tắc suy luận về nguồn `javac` cho mọi bytecode được tạo bởi compiler/công cụ khác; sự có mặt/vắng mặt của các member tổng hợp phụ thuộc cấu trúc và quá trình sinh mã.
+Note: do not blindly apply `javac` source inference rules to all bytecode produced by other compilers/tools; the presence/absence of synthetic members depends on structure and code generation.
 
-### 5.6. Annotation, record, sealed và đặc tính không mã hóa bằng một modifier
+### 5.6. Annotations, records, sealed types, and properties not encoded by a modifier
 
-- Annotation có cơ chế **retention**. `@Override` có `RetentionPolicy.SOURCE`, không tồn tại trong class file đầu ra do `javac` tạo; không thể lấy lại bằng cách nhìn access flags. Các annotation được lưu ở retention khác có metadata riêng và Reflection thường chỉ cho phép truy vấn trực tiếp các annotation có retention `RUNTIME`.
-- `record` (Java 16+) có metadata về record components, có thể hỏi `Class.isRecord()` và `getRecordComponents()`. `Modifier.isFinal(...)` không chứng minh một class là record; class `final` thông thường cũng final.
-- `sealed` (Java 17+) liên quan đến danh sách subtype được phép, đọc qua `isSealed()` và `getPermittedSubclasses()`, tương ứng metadata `PermittedSubclasses`. Không thể dựng lại chính xác chuỗi từ khóa `permits` hoặc cách viết `non-sealed` chỉ bằng `getModifiers()`.
-- Method `default` của interface có body và Reflection hỗ trợ `Method.isDefault()`. Không có `Modifier.isDefault(...)`; chỉ xem những bit modifier phổ biến là chưa đủ.
+- Annotations have a **retention** mechanism. `@Override` has `RetentionPolicy.SOURCE`, and does not exist in the output class file generated by `javac`; it cannot be recovered by looking at access flags. Annotations stored with other retentions have separate metadata, and Reflection normally only allows direct querying of annotations with `RUNTIME` retention.
+- `record` (Java 16+) has metadata for record components, queryable via `Class.isRecord()` and `getRecordComponents()`. `Modifier.isFinal(...)` does not prove a class is a record; ordinary `final` classes are also final.
+- `sealed` (Java 17+) relates to the list of permitted subtypes, read via `isSealed()` and `getPermittedSubclasses()`, corresponding to `PermittedSubclasses` metadata. You cannot reconstruct the exact `permits` keyword clause or `non-sealed` spelling solely with `getModifiers()`.
+- Interface `default` methods have a body, and Reflection supports `Method.isDefault()`. There is no `Modifier.isDefault(...)`; checking only common modifier bits is not enough.
 
-Một attribute riêng có thể giữ lại **một phần** ý nghĩa nguồn, nhưng vẫn không cung cấp toàn bộ cú pháp nguyên văn.
+A dedicated attribute can retain **part** of source meaning, yet still does not provide the full verbatim syntax.
 
-### 5.7. Nested class và nguồn gốc của `static`
+### 5.7. Nested classes and the origin of `static`
 
-Xét:
+Consider:
 
 ```java
 class Outer {
@@ -293,51 +293,51 @@ class Outer {
 }
 ```
 
-`Nested` là lớp thành viên `static` trong Java. `Nested.class.getModifiers()` có thể báo `static` vì Reflection xét thông tin thành viên lớp lồng. Trong class file, thông tin này liên quan tới `InnerClasses` attribute; đừng tưởng rằng mọi flag mà `Class.getModifiers()` trả về đều nằm trực tiếp trong `access_flags` của class header.
+`Nested` is a `static` member class in Java. `Nested.class.getModifiers()` can report `static` because Reflection inspects nested-class member info. In the class file, this info relates to the `InnerClasses` attribute; do not assume every flag returned by `Class.getModifiers()` sits directly in the class header's `access_flags`.
 
-Đây là ví dụ điển hình cho việc phải xác định **đang đọc cấu trúc class-file nào** và **API Reflection nào đã diễn giải cấu trúc đó**.
+This is a classic example of why you must identify **which class-file structure is being read** and **which Reflection API interpreted that structure**.
 
-## 6. Những gì không được kết luận từ flags
+## 6. What must not be concluded from flags
 
-| Quan sát được | Có thể kết luận | Không đủ dữ liệu để kết luận |
+| Observed | Can conclude | Insufficient data to conclude |
 | --- | --- | --- |
-| `Modifier.isPublic(...) == true` | Thành viên/kiểu có quyền truy cập `public` theo mô hình Reflection | `public` đã được gõ tường minh trong source |
-| `Modifier.isAbstract(...) == true` | Phần tử được phản ánh có tính chất `abstract` | Từ khóa `abstract` xuất hiện ở đúng vị trí/cách viết đó |
-| `Modifier.isFinal(field.getModifiers())` | Field có thuộc tính `final` | Biểu thức khởi tạo, thứ tự field, ý nghĩa business |
-| `Method.isVarArgs() == true` | Method có dấu hiệu varargs ở class file/runtime | Mọi token hoặc vị trí xuống dòng của khai báo nguồn |
-| `Method.isSynthetic() == true` | Member được đánh dấu synthetic | Có một khai báo viết tay tương ứng |
-| `Method.isBridge() == true` | Đây là bridge method theo Reflection | Người viết source đã tạo một method riêng với chính chữ ký bridge |
-| `Field.getType() == List.class` | Kiểu field sau erasure là `List` | Tham số generic chính xác nếu thiếu `Signature` |
-| `Class.isRecord() == true` | Runtime nhận diện kiểu record | Toàn bộ văn bản khai báo record gốc |
-| `Class.isSealed() == true` | Runtime nhận diện kiểu sealed | Cách sắp xếp, viết tên, import và formatting của `permits` |
-| `javap -c` in bytecode | Những chỉ thị JVM của phương thức đã biên dịch | Chính xác cấu trúc `if`/`switch`, tên biến và comment nguồn |
+| `Modifier.isPublic(...) == true` | The member/type has `public` access per Reflection's model | `public` was explicitly typed in source |
+| `Modifier.isAbstract(...) == true` | The reflected element has the `abstract` property | The `abstract` keyword appeared at that exact place/spelling |
+| `Modifier.isFinal(field.getModifiers())` | The field has the `final` property | Initializer expression, field order, business meaning |
+| `Method.isVarArgs() == true` | The method has the varargs marker in class file/runtime | Every token or line-break position in the source declaration |
+| `Method.isSynthetic() == true` | The member is marked synthetic | There is a corresponding handwritten declaration |
+| `Method.isBridge() == true` | This is a bridge method per Reflection | The source author wrote a separate method with the bridge signature |
+| `Field.getType() == List.class` | The field's erased type is `List` | Exact generic type arguments if `Signature` is missing |
+| `Class.isRecord() == true` | Runtime recognizes a record type | Complete original record declaration text |
+| `Class.isSealed() == true` | Runtime recognizes a sealed type | Ordering, naming, imports, and formatting of `permits` |
+| `javap -c` prints bytecode | The JVM instructions of the compiled method | Exact `if`/`switch` structure, variable names, and source comments |
 
-Ví dụ về tính chất nhiều-đến-một: một tác giả có thể viết `import java.util.List; List<String> values;`, còn tác giả khác viết `java.util.List<String> values;`. Hai cách viết thể hiện cùng kiểu thành viên và hoàn toàn có thể biên dịch thành metadata kiểu tương đương. Access flags không chứa lựa chọn cú pháp này.
+Example of many-to-one mapping: one author may write `import java.util.List; List<String> values;`, while another writes `java.util.List<String> values;`. Both forms express the same member type and can compile to equivalent type metadata. Access flags do not retain this syntactic choice.
 
-## 7. Cách thực hành đúng với Reflection và class file
+## 7. Proper practice with Reflection and class files
 
-Khi cần khảo sát API Java hoặc xây công cụ documentation/static analysis, hãy phân biệt mục tiêu:
+When inspecting Java APIs or building documentation/static-analysis tools, distinguish your objective:
 
-1. **Cần quyền truy cập hoặc thuộc tính runtime?** Dùng `getModifiers()`, `Modifier.isXxx(...)` và `Modifier.toString(...)`; đọc đúng loại member.
-2. **Cần cấu trúc JVM?** Dùng `javap -v -p` hoặc thư viện đọc class file để phân tích class header, fields, methods, descriptors, flags và attributes. Kiểm tra nơi chứa metadata thay vì tìm tất cả trong một số nguyên.
-3. **Cần thuộc tính nằm ngoài modifier?** Sử dụng API riêng như `isVarArgs()`, `isBridge()`, `isSynthetic()`, `isDefault()`, `isRecord()`, `isSealed()`, `getGenericType()` và `isNamePresent()` khi phù hợp.
-4. **Cần tái tạo chính xác Java source?** Truy cập chính **tệp `.java`** và sử dụng parser Java (AST) nếu cần danh sách token, biểu thức, import, comment, annotation và trật tự nguồn. Bytecode decompiler chỉ cho mã nguồn *gần đúng*, không bảo đảm bản gốc.
+1. **Need access rights or runtime properties?** Use `getModifiers()`, `Modifier.isXxx(...)`, and `Modifier.toString(...)`; read the right member kind.
+2. **Need JVM structure?** Use `javap -v -p` or a class-file reading library to analyze class header, fields, methods, descriptors, flags, and attributes. Check where metadata resides instead of looking for everything in one integer.
+3. **Need properties outside modifiers?** Use dedicated APIs such as `isVarArgs()`, `isBridge()`, `isSynthetic()`, `isDefault()`, `isRecord()`, `isSealed()`, `getGenericType()`, and `isNamePresent()` when appropriate.
+4. **Need exact Java source reconstruction?** Access the **`.java` file** itself and use a Java parser (AST) if you need token lists, expressions, imports, comments, annotations, and source order. Bytecode decompilers only yield *approximate* source code, never guaranteeing the original.
 
-Có thể dựng tài liệu mang nghĩa như “field được công khai”, “method là varargs”, hoặc “class là record”; đừng tuyên bố “tác giả đã viết nguyên văn khai báo này” khi chỉ có `.class`.
+You can generate documentation saying "field is public", "method is varargs", or "class is a record"; do not claim "the author wrote this declaration verbatim" when you only have `.class` files.
 
-### Kiểm tra tự học
+### Self-study check
 
-Phân loại các phát biểu sau là **đúng** hay **sai**:
+Classify the following statements as **true** or **false**:
 
-1. `Modifier.toString(method.getModifiers())` tái hiện đúng tất cả từ khóa tác giả đã gõ trong khai báo.
-2. Một method interface viết `void run();` có thể được Reflection báo là `public abstract`.
-3. Nếu một parameter có `Class<?>` là `String[].class` thì đủ để biết tác giả đã dùng `String...`.
-4. Một member xuất hiện trong `getDeclaredMethods()` có thể là method do compiler tạo.
-5. `javap -v` đọc được class-file flags và attributes nhưng không bảo đảm phục hồi chính xác comment/import/spacing trong `.java`.
-6. Nếu `getModifiers()` thiếu thông tin record hoặc sealed thì `Class` không có API nào khác để kiểm tra các thuộc tính đó.
+1. `Modifier.toString(method.getModifiers())` reproduces all keywords the author typed in the declaration verbatim.
+2. An interface method written `void run();` can be reported by Reflection as `public abstract`.
+3. If a parameter has `Class<?>` equal to `String[].class`, that is enough to know the author used `String...`.
+4. A member appearing in `getDeclaredMethods()` may be a compiler-generated method.
+5. `javap -v` can read class-file flags and attributes yet does not guarantee exact recovery of comments/imports/spacing in `.java`.
+6. If `getModifiers()` lacks record or sealed information, `Class` has no other API to check those properties.
 
-**Đáp án:** (1) Sai; (2) Đúng; (3) Sai, cần `isVarArgs()` để nhận biết metadata varargs; (4) Đúng; (5) Đúng; (6) Sai, dùng `isRecord()` và `isSealed()` tương ứng.
+**Answers:** (1) False; (2) True; (3) False, `isVarArgs()` is needed to detect varargs metadata; (4) True; (5) True; (6) False, use `isRecord()` and `isSealed()` respectively.
 
-## 8. Ghi nhớ
+## 8. Key takeaways
 
-**Modifier/flag phản ánh trạng thái đã biên dịch, không phải bản ghi đầy đủ cú pháp nguồn.** Class file có flags, descriptors, bytecode và các attributes riêng; Reflection diễn giải một phần dữ liệu đó thành API thuận tiện. Cùng một thuộc tính hiệu lực có thể xuất phát từ từ khóa viết tường minh hoặc quy tắc ngầm định; một số đặc điểm dùng metadata ngoài `getModifiers()`; compiler còn có thể sinh thành viên không xuất hiện trực tiếp trong source. Khi cần chính xác cú pháp, thứ tự từ khóa, import, tên biến cục bộ, biểu thức hoặc comment, phải đọc nguồn `.java` và phân tích AST tương ứng.
+**Modifiers/flags reflect compiled state, not a complete record of source syntax.** Class files have flags, descriptors, bytecode, and separate attributes; Reflection interprets part of that data into convenient APIs. The same effective property may come from explicit keywords or implicit rules; some characteristics use metadata outside `getModifiers()`; the compiler can also generate members that do not appear directly in source. When you need exact syntax, keyword order, imports, local variable names, expressions, or comments, you must read the `.java` source and parse the corresponding AST.

@@ -1,68 +1,68 @@
-# Chạy chương trình một tệp nguồn trong Java
+# Running a Single-File Program in Java
 
-Bạn vừa viết một chương trình Java nhỏ trong tệp `.java` và muốn xem ngay kết quả, nhưng chưa cần tạo thư mục `.class` hoặc cấu hình dự án. Từ **JDK 11**, Java hỗ trợ **source-file mode**: dùng lệnh `java` trỏ trực tiếp tới tệp nguồn. Trên **JDK 17 trở lên**, có thể chạy:
+You have just written a small Java program in a `.java` file and want to see the result right away, without needing to create a `.class` directory or configure a project. Since **JDK 11**, Java has supported **source-file mode**: using the `java` command pointed directly at a source file. On **JDK 17 or higher**, you can run:
 
 ~~~bash
 java QuickTotal.java 3 125000
 ~~~
 
-Java launcher sẽ biên dịch mã nguồn trong bộ nhớ và chạy chương trình. Với cách chạy này, bạn **không phải gọi `javac` trước** và không có tệp `QuickTotal.class` được tạo trên đĩa chỉ bởi lệnh trên.
+The Java launcher will compile the source code in memory and run the program. With this approach, you **do not have to run `javac` first** and no `QuickTotal.class` file is created on disk just from that command.
 
-Bài học này hướng dẫn cách dùng chế độ đó, những tình huống phù hợp và điểm khác với quy trình biên dịch truyền thống.
+This lesson explains how to use that mode, when it fits, and how it differs from the traditional compilation workflow.
 
-## 1. Hai cách chạy một chương trình Java
+## 1. Two ways to run a Java program
 
-Giả sử bạn có một tệp `QuickTotal.java` khai báo lớp `QuickTotal` với phương thức `main`.
+Suppose you have a `QuickTotal.java` file declaring the `QuickTotal` class with a `main` method.
 
-| Cách | Lệnh | Tệp `.class` trên đĩa? | Thích hợp khi nào? |
+| Approach | Command | `.class` file on disk? | When is it suitable? |
 | --- | --- | --- | --- |
-| **Chạy trực tiếp nguồn** | `java QuickTotal.java` | Không tạo bởi lần chạy source-file mode | Thử nhanh một chương trình nguồn nhỏ |
-| **Biên dịch rồi chạy** | `javac QuickTotal.java` rồi `java QuickTotal` | Có, sau khi biên dịch | Muốn kiểm soát sản phẩm build, triển khai hoặc dùng trong dự án lớn hơn |
+| **Run source directly** | `java QuickTotal.java` | Not created by a source-file mode run | Quickly trying a small source program |
+| **Compile then run** | `javac QuickTotal.java` then `java QuickTotal` | Yes, after compilation | When you want control over build outputs, deployment, or larger projects |
 
-Điểm quan trọng là **lệnh `java` có hai cách hiểu khác nhau**:
+The key point is that **the `java` command has two different interpretations**:
 
-- `java QuickTotal.java`: đối số đầu là **đường dẫn tệp nguồn**; launcher dùng source-file mode.
-- `java QuickTotal`: đối số đầu là **tên lớp**; JVM phải tìm bytecode của lớp qua classpath/module path thích hợp.
+- `java QuickTotal.java`: the first argument is a **source file path**; the launcher uses source-file mode.
+- `java QuickTotal`: the first argument is a **class name**; the JVM must find the class's bytecode via the appropriate classpath/module path.
 
-Không được thay `QuickTotal.java` bằng `QuickTotal.class` trong lệnh chạy lớp. Tên file nguồn và tên lớp là hai khái niệm khác nhau.
+Never replace `QuickTotal.java` with `QuickTotal.class` in the class-running command. Source file names and class names are two different concepts.
 
-### Bên trong source-file mode diễn ra gì?
+### What happens inside source-file mode?
 
 ~~~mermaid
 flowchart TD
-    A["QuickTotal.java"] --> B["Lệnh java QuickTotal.java"]
-    B --> C["Biên dịch mã nguồn trong bộ nhớ"]
-    C --> D{"Mã có lỗi biên dịch?"}
-    D -->|Có| E["In chẩn đoán và không chạy main"]
-    D -->|Không| F["Khởi động main trong JVM"]
-    F --> G["In kết quả hoặc báo lỗi lúc chạy"]
+    A["QuickTotal.java"] --> B["Command java QuickTotal.java"]
+    B --> C["Compile source code in memory"]
+    C --> D{"Compile error in code?"}
+    D -->|Yes| E["Print diagnostics and do not run main"]
+    D -->|No| F["Start main in JVM"]
+    F --> G["Print result or report runtime error"]
 ~~~
 
-Vì việc biên dịch diễn ra khi chạy, lỗi cú pháp hay lỗi kiểu dữ liệu vẫn được phát hiện. Không tạo `.class` trên đĩa **không có nghĩa Java bỏ qua bước biên dịch**.
+Because compilation occurs when running, syntax errors and type errors are still detected. Not creating `.class` on disk **does not mean Java skips the compilation step**.
 
-## 2. Kiểm tra JDK trước khi bắt đầu
+## 2. Checking the JDK before starting
 
-Mở **PowerShell (Windows)** hoặc **Bash (Linux)**:
+Open **PowerShell (Windows)** or **Bash (Linux)**:
 
 ~~~bash
 java -version
 javac -version
 ~~~
 
-Đầu ra cần cho biết bạn đang sử dụng JDK 17 trở lên (hoặc một phiên bản hỗ trợ tương ứng). Cách chạy nguồn trực tiếp bắt đầu được hỗ trợ từ JDK 11; ở đây ta dùng JDK 17+ để thống nhất môi trường học.
+The output should indicate that you are using JDK 17 or higher (or a corresponding supported version). Direct source execution began to be supported in JDK 11; here we use JDK 17+ to keep the learning environment consistent.
 
-Nếu terminal báo không tìm thấy `java` hoặc `javac`:
+If the terminal reports that `java` or `javac` cannot be found:
 
-1. Xác minh đã cài JDK và mở lại terminal sau khi cài hoặc đổi `PATH`.
-2. **Windows PowerShell:** dùng `Get-Command java, javac` để xem chương trình được tìm thấy ở đâu.
-3. **Linux:** dùng `command -v java` và `command -v javac`.
-4. Khi nhiều JDK cùng tồn tại, cần bảo đảm lệnh `java` đang sử dụng phiên bản mong muốn.
+1. Verify a JDK is installed and reopen the terminal after installing or changing `PATH`.
+2. **Windows PowerShell:** use `Get-Command java, javac` to see where the programs are found.
+3. **Linux:** use `command -v java` and `command -v javac`.
+4. When multiple JDKs coexist, ensure the `java` command is using the desired version.
 
-Source-file mode chạy từ lệnh `java`, nhưng có JDK đầy đủ sẽ hữu ích khi bạn muốn so sánh với cách dùng `javac` ở phần sau.
+Source-file mode runs from the `java` command, while having a full JDK is helpful when you want to compare with using `javac` later on.
 
-## 3. Tạo tệp Java cho ví dụ
+## 3. Creating the Java file for the example
 
-Mở một thư mục thực hành tùy chọn trong terminal. Có thể tạo thư mục bằng:
+Open a practice directory of your choice in the terminal. You can create the directory with:
 
 **PowerShell (Windows):**
 
@@ -78,11 +78,11 @@ mkdir -p quick-java
 cd quick-java
 ~~~
 
-Dùng trình soạn thảo văn bản để tạo tệp chính xác tên **`QuickTotal.java`**, lưu dưới dạng văn bản UTF-8. Trên Windows, kiểm tra tệp không vô tình trở thành `QuickTotal.java.txt`.
+Use a text editor to create a file named exactly **`QuickTotal.java`**, saved as UTF-8 text. On Windows, check that the file did not accidentally become `QuickTotal.java.txt`.
 
-Bài toán: nhận **số lượng hàng** và **đơn giá tính bằng VND nguyên** qua đối số dòng lệnh; in thành tiền. Số lượng phải lớn hơn 0, đơn giá không âm; khi phép nhân vượt miền `long`, phải báo lỗi thay vì âm thầm dùng kết quả tràn.
+Problem: receive **item quantity** and **unit price in integer VND** via command-line arguments; print the total amount. Quantity must be greater than 0, unit price non-negative; when multiplication overflows the `long` range, report an error instead of silently using an overflowed result.
 
-Nội dung hoàn chỉnh:
+Complete contents:
 
 ~~~java
 public class QuickTotal {
@@ -123,27 +123,27 @@ public class QuickTotal {
 }
 ~~~
 
-### Vì sao đoạn mã này hoạt động?
+### Why does this code work?
 
-- `public class QuickTotal` định nghĩa lớp sẽ chạy. Ví dụ dùng tệp `QuickTotal.java` trùng tên lớp công khai để có thể chạy bằng **cả source-file mode lẫn `javac QuickTotal.java` truyền thống**. Riêng source-file mode không buộc tên tệp trùng tên lớp `public`: launcher chạy lớp top-level đầu tiên trong tệp, nên lớp đó phải có `main` phù hợp. Với biên dịch truyền thống bằng `javac`, lớp top-level `public` vẫn phải nằm trong tệp cùng tên.
-- `main(String[] args)` là điểm bắt đầu; chuỗi sau tên tệp nguồn trở thành các phần tử của mảng `args`.
-- `Integer.parseInt` đọc số lượng; `Long.parseLong` đọc đơn giá. Cả hai đều có thể ném `NumberFormatException` khi chuỗi sai định dạng hoặc ngoài miền số.
-- `quantity <= 0` và `unitPriceVnd < 0` thực thi các quy tắc đầu vào đã xác định.
-- `Math.multiplyExact` trả về tích dạng `long` và ném `ArithmeticException` nếu tràn `long`, giúp tránh kết quả sai âm thầm.
-- `NumberFormatException` là lớp con của `IllegalArgumentException` nên phải được bắt trước nhánh `IllegalArgumentException` tổng quát.
-- Phần mã nguồn sử dụng các chuỗi thông báo ASCII để kết quả nhất quán giữa terminal có cấu hình encoding khác nhau.
+- `public class QuickTotal` defines the class to run. The example uses a `QuickTotal.java` file matching the public class name so it can be run with **both source-file mode and traditional `javac QuickTotal.java`**. Source-file mode itself does not require the file name to match the `public` class name: the launcher runs the first top-level class in the file, so that class must have a valid `main`. With traditional compilation via `javac`, a `public` top-level class must still reside in a file of the same name.
+- `main(String[] args)` is the starting point; tokens after the source file name become elements of the `args` array.
+- `Integer.parseInt` reads the quantity; `Long.parseLong` reads the unit price. Both can throw `NumberFormatException` when the string is malformed or out of numeric range.
+- `quantity <= 0` and `unitPriceVnd < 0` enforce the specified input rules.
+- `Math.multiplyExact` returns the product as `long` and throws `ArithmeticException` if `long` overflows, avoiding silently wrong results.
+- `NumberFormatException` is a subclass of `IllegalArgumentException`, so it must be caught before the general `IllegalArgumentException` branch.
+- The source code uses ASCII message strings so output stays consistent across terminals with different encoding configurations.
 
-Đây là một tệp nguồn độc lập: không cần thư viện ngoài, file cấu hình build hoặc class thứ hai.
+This is a standalone source file: no external libraries, build configuration files, or second class are needed.
 
-## 4. Chạy trực tiếp với `java TenTep.java`
+## 4. Running directly with `java TenTep.java`
 
-Trong thư mục chứa `QuickTotal.java`, chạy:
+In the directory containing `QuickTotal.java`, run:
 
 ~~~bash
 java QuickTotal.java 3 125000
 ~~~
 
-Kết quả dự kiến:
+Expected output:
 
 ~~~text
 So luong: 3
@@ -151,9 +151,9 @@ Don gia: 125000 VND
 Thanh tien: 375000 VND
 ~~~
 
-Diễn giải: `3 × 125000 = 375000`. Khi dùng source-file mode, bạn không phải tạo tệp `.class` trên đĩa và không cần chạy `javac` riêng.
+Explanation: `3 × 125000 = 375000`. When using source-file mode, you do not have to create `.class` files on disk and do not need to run `javac` separately.
 
-Thử chạy lại với đầu vào khác:
+Try running again with different inputs:
 
 ~~~bash
 java QuickTotal.java 2 45000
@@ -165,157 +165,157 @@ Don gia: 45000 VND
 Thanh tien: 90000 VND
 ~~~
 
-Nếu sửa nội dung `QuickTotal.java` rồi lưu tệp, lần gọi `java QuickTotal.java` tiếp theo sẽ dùng **mã nguồn mới**. Đây là một điểm thuận tiện khi thực hành chương trình nhỏ.
+If you edit `QuickTotal.java` and save the file, the next `java QuickTotal.java` call will use the **updated source code**. This is a convenient feature when practicing small programs.
 
-### Khi bạn đang ở thư mục cha
+### When you are in the parent directory
 
-Nếu lưu tại `quick-java/QuickTotal.java` nhưng đứng ở thư mục cha của `quick-java`, dùng:
+If saved at `quick-java/QuickTotal.java` while you are in the parent directory of `quick-java`, use:
 
 ~~~bash
 java quick-java/QuickTotal.java 3 125000
 ~~~
 
-Windows và Linux đều chấp nhận cách truyền đường dẫn này qua Java launcher. Nếu đường dẫn thực tế có dấu cách, đặt đường dẫn trong dấu nháy kép:
+Both Windows and Linux accept passing this path through the Java launcher. If the actual path contains spaces, wrap the path in double quotes:
 
 ~~~bash
 java "quick-java/QuickTotal.java" 3 125000
 ~~~
 
-Dấu nháy bao quanh **đường dẫn**, còn `3` và `125000` là hai đối số riêng của chương trình.
+The quotes wrap the **path**, while `3` and `125000` are two separate program arguments.
 
-## 5. Phân biệt các dạng lệnh dễ nhầm
+## 5. Distinguishing easily confused command forms
 
-| Lệnh | Điều xảy ra |
+| Command | What happens |
 | --- | --- |
-| `java QuickTotal.java 3 125000` | Chạy trực tiếp tệp nguồn |
-| `java --source 17 QuickTotal.java 3 125000` | Chạy nguồn và yêu cầu mức ngôn ngữ Java 17 |
-| `javac QuickTotal.java` | Biên dịch thành `QuickTotal.class` trong thư mục hiện tại |
-| `java QuickTotal 3 125000` | Chạy bytecode của lớp `QuickTotal` qua classpath hiện tại |
-| `java QuickTotal.class` | Không phải cách gọi lớp đúng; launcher không lấy tên tệp `.class` làm tên lớp |
-| `javac -d out QuickTotal.java` | Đặt `QuickTotal.class` vào thư mục `out` (cần có thư mục đích phù hợp) |
-| `java -cp out QuickTotal 3 125000` | Chạy lớp đã biên dịch từ thư mục `out` |
+| `java QuickTotal.java 3 125000` | Runs the source file directly |
+| `java --source 17 QuickTotal.java 3 125000` | Runs source and requests Java 17 language level |
+| `javac QuickTotal.java` | Compiles to `QuickTotal.class` in the current directory |
+| `java QuickTotal 3 125000` | Runs the bytecode of class `QuickTotal` via the current classpath |
+| `java QuickTotal.class` | Not a valid class invocation; the launcher does not take a `.class` file name as a class name |
+| `javac -d out QuickTotal.java` | Places `QuickTotal.class` in the `out` directory (requires an existing destination directory) |
+| `java -cp out QuickTotal 3 125000` | Runs the compiled class from the `out` directory |
 
-Tùy chọn `--source 17` hữu ích khi bạn muốn yêu cầu chế độ ngôn ngữ cụ thể. Nếu JDK đang dùng hỗ trợ Java 17, ví dụ sau cũng hợp lệ:
+The `--source 17` option is useful when you want to request a specific language mode. If the JDK in use supports Java 17, the following example is also valid:
 
 ~~~bash
 java --source 17 QuickTotal.java 3 125000
 ~~~
 
-Đừng nhầm `--source 17` với `javac --release 17`. Lệnh `javac --release` dành cho biên dịch tạo bytecode nhắm tới phiên bản Java được hỗ trợ và các API nền tảng của release đó; source-file mode trong bài này dùng launcher `java` để thực thi trực tiếp.
+Do not confuse `--source 17` with `javac --release 17`. `javac --release` is for compiling bytecode targeting a supported Java version and that release's platform APIs; source-file mode in this lesson uses the `java` launcher for direct execution.
 
-## 6. Kiểm tra đầu vào sai và trường hợp biên
+## 6. Testing invalid inputs and edge cases
 
-Hãy thử từng lệnh; khi dữ liệu sai, chương trình in thông báo lỗi đã viết trong mã:
+Try each command; when data is invalid, the program prints the error message written in code:
 
-| Lệnh | Kết quả/điểm cần kiểm tra |
+| Command | Result / point to check |
 | --- | --- |
-| `java QuickTotal.java 1 0` | Thành tiền 0 VND |
-| `java QuickTotal.java 2 100` | Thành tiền 200 VND |
-| `java QuickTotal.java 0 100` | Báo số lượng phải lớn hơn 0 |
-| `java QuickTotal.java -2 100` | Báo số lượng không hợp lệ |
-| `java QuickTotal.java 2 -1` | Báo đơn giá không được âm |
-| `java QuickTotal.java abc 100` | Báo đầu vào không phải số nguyên hợp lệ |
-| `java QuickTotal.java 2 10.5` | Báo lỗi vì phiên bản này yêu cầu VND nguyên |
-| `java QuickTotal.java 3` | In hướng dẫn sử dụng vì thiếu đối số |
-| `java QuickTotal.java 2 9223372036854775807` | Báo kết quả vượt miền `long` |
-| `java QuickTotal.java 2147483648 1` | Báo lỗi số lượng vượt miền `int` |
+| `java QuickTotal.java 1 0` | Total 0 VND |
+| `java QuickTotal.java 2 100` | Total 200 VND |
+| `java QuickTotal.java 0 100` | Reports quantity must be greater than 0 |
+| `java QuickTotal.java -2 100` | Reports invalid quantity |
+| `java QuickTotal.java 2 -1` | Reports unit price cannot be negative |
+| `java QuickTotal.java abc 100` | Reports input is not a valid integer |
+| `java QuickTotal.java 2 10.5` | Reports error because this version requires integer VND |
+| `java QuickTotal.java 3` | Prints usage instructions due to missing argument |
+| `java QuickTotal.java 2 9223372036854775807` | Reports result exceeds `long` range |
+| `java QuickTotal.java 2147483648 1` | Reports quantity exceeds `int` range error |
 
-**Hai điểm biên quan trọng:**
+**Two important boundary points:**
 
-1. `quantity = 1` được chấp nhận nhưng `quantity = 0` bị từ chối — vì bài toán yêu cầu lớn hơn 0.
-2. Kết quả đúng của phép nhân có thể vượt miền `long` dù mỗi đầu vào được parse thành công. Kiểm tra kiểu không loại bỏ nhu cầu phát hiện tràn khi chạy.
+1. `quantity = 1` is accepted whereas `quantity = 0` is rejected — because the problem requires greater than 0.
+2. The true product of multiplication can exceed the `long` range even when each input parses successfully. Type checking does not eliminate the need to detect overflow at runtime.
 
-`javac` hoặc bước biên dịch trong bộ nhớ sẽ kiểm tra cú pháp và kiểu, nhưng **không tự quyết định** số lượng bằng 0 có hợp lệ hay không; đó là quy tắc bạn viết trong chương trình.
+`javac` or the in-memory compilation step checks syntax and types, yet **cannot decide on its own** whether a quantity of 0 is valid; that is a rule you write in your program.
 
-## 7. Lỗi hay gặp với chế độ chạy trực tiếp
+## 7. Common errors with direct execution mode
 
-### Lỗi 1: Không tìm thấy hoặc không đọc được tệp nguồn
+### Error 1: Source file not found or unreadable
 
-Nếu chạy `java QuickTotal.java ...` nhưng đường dẫn không trỏ tới tệp nguồn tồn tại và có thể đọc được, launcher thất bại **trước khi thực thi `main`**. Thông báo phụ thuộc JDK và cách launcher phân tích đối số; không nên chép một mẫu lỗi về `main` để kết luận rằng tệp đã bị thiếu.
+If you run `java QuickTotal.java ...` and the path does not point to an existing, readable source file, the launcher fails **before executing `main`**. The message depends on the JDK and how the launcher parses arguments; do not copy a sample error about `main` and assume the file was missing.
 
-Hãy kiểm tra theo thứ tự:
+Check in order:
 
-- Thư mục làm việc hiện tại là đâu? Tệp `QuickTotal.java` có thực sự ở đó không?
-- Nếu tệp nằm trong thư mục con, đã truyền đúng đường dẫn (ví dụ `java quick-java/QuickTotal.java 3 125000`) chưa?
-- Có vô tình lưu thành `QuickTotal.java.txt`, sai chữ hoa/thường của đường dẫn hoặc không có quyền đọc không?
-- Nếu nguồn được tìm thấy nhưng launcher báo **không có `main`**, hãy kiểm tra chữ ký `main` của **lớp top-level đầu tiên** trong tệp. Đó là lỗi điểm vào chương trình, **không phải bằng chứng tệp nguồn không tồn tại**.
+- What is the current working directory? Is `QuickTotal.java` actually there?
+- If the file is in a subdirectory, did you pass the right path (e.g., `java quick-java/QuickTotal.java 3 125000`)?
+- Was it accidentally saved as `QuickTotal.java.txt`, with wrong path casing, or lacking read permissions?
+- If the source is found yet the launcher reports **no `main`**, check the `main` signature of the **first top-level class** in the file. That is a program entry point error, **not proof that the source file does not exist**.
 
-**PowerShell:** `Get-Location` và `Get-ChildItem`. **Linux:** `pwd` và `ls`.
+**PowerShell:** `Get-Location` and `Get-ChildItem`. **Linux:** `pwd` and `ls`.
 
-### Lỗi 2: Chạy tên lớp thay vì tệp nguồn
+### Error 2: Running class name instead of source file
 
 ~~~bash
 java QuickTotal
 ~~~
 
-Lệnh trên yêu cầu tìm **lớp đã biên dịch**. Nếu bạn chỉ có `QuickTotal.java`, JVM có thể báo không tìm thấy lớp. Muốn chạy nguồn trực tiếp, dùng:
+The command above asks to find a **compiled class**. If you only have `QuickTotal.java`, the JVM may report that the class cannot be found. To run source directly, use:
 
 ~~~bash
 java QuickTotal.java
 ~~~
 
-Chạy không đủ hai đối số vẫn biên dịch và vào `main`, nhưng ví dụ sẽ in dòng hướng dẫn sử dụng. Điều này khác với lỗi compiler.
+Running with fewer than two arguments still compiles and enters `main`, though the example prints the usage line. That differs from a compiler error.
 
-### Lỗi 3: Lỗi cú pháp hoặc kiểu ở nguồn
+### Error 3: Syntax or type error in source
 
-Nếu vô tình sửa:
+If you accidentally edit:
 
 ~~~java
-int quantity = "ba"; // Không hợp lệ: String không gán trực tiếp cho int.
+int quantity = "ba"; // Invalid: String cannot be assigned directly to int.
 ~~~
 
-Source-file mode vẫn thực hiện bước biên dịch và báo lỗi. **`main` chưa được chạy**, vì mã chưa hợp lệ. Sau khi sửa `int quantity = 3;`, bạn có thể gọi lại lệnh `java QuickTotal.java ...` ngay.
+Source-file mode still performs the compilation step and reports the error. **`main` is not executed**, because the code is not valid yet. After fixing `int quantity = 3;`, you can re-run `java QuickTotal.java ...` right away.
 
-### Lỗi 4: JVM cũ hoặc công cụ khác phiên bản
+### Error 4: Older JVM or mismatched tool versions
 
-JDK 8 không hỗ trợ kiểu chạy `java File.java`. Khi đó cần nâng lên phiên bản được hỗ trợ (bài này chọn JDK 17+), hoặc dùng `javac` rồi chạy `java TenLop` theo quy trình truyền thống.
+JDK 8 does not support running `java File.java`. In that case you need to upgrade to a supported version (this lesson selects JDK 17+), or use `javac` and then run `java TenLop` via the traditional workflow.
 
-Kiểm tra `java -version` nếu gặp lỗi chế độ chạy tệp nguồn.
+Check `java -version` if you encounter source-file mode errors.
 
-## 8. Khi nào nên dùng source-file mode?
+## 8. When should you use source-file mode?
 
-**Nên dùng** khi:
+**Use it** when:
 
-- Thực hành ngôn ngữ Java bằng một tệp nhỏ.
-- Viết ví dụ thuật toán, kiểm tra thư viện chuẩn hoặc thử nhanh một giả thuyết.
-- Muốn sửa rồi chạy lại mà không cần quản lý tệp build đầu ra.
+- Practicing the Java language with a single small file.
+- Writing algorithm examples, testing standard libraries, or quickly validating a hypothesis.
+- Wanting to edit and re-run without managing build output files.
 
-**Cân nhắc chuyển sang biên dịch/build truyền thống** khi:
+**Consider switching to traditional compilation/build** when:
 
-- Chương trình có nhiều tệp nguồn và phụ thuộc cần quản lý rõ.
-- Bạn muốn kiểm soát quá trình đóng gói, kiểm thử tự động hoặc phiên bản bytecode để triển khai.
-- Cần lặp lại build trong CI, tích hợp JAR hoặc công cụ như Maven/Gradle.
-- Muốn tái sử dụng các tệp `.class` đã biên dịch thay vì xử lý tệp nguồn mỗi lần chạy.
+- The program has multiple source files and dependencies that need clear management.
+- You want control over packaging, automated testing, or bytecode version for deployment.
+- Repeatable builds in CI, JAR integration, or tools like Maven/Gradle are needed.
+- You want to reuse already compiled `.class` files instead of processing source files on every run.
 
-Cơ chế source-file mode có thể làm việc với các lớp/phụ thuộc đã có trong classpath và có những quy tắc chi tiết khi mã nguồn chứa nhiều lớp. Tuy nhiên, bài thực hành này chỉ sử dụng **một tệp nguồn tự đủ** để tránh phải cấu hình thêm.
+Source-file mode can work with classes/dependencies already on the classpath and has detailed rules when a source file contains multiple classes. However, this lab uses only **a single self-contained source file** to avoid extra configuration.
 
-## 9. Bài tập ngắn
+## 9. Short exercises
 
-**Bài 1.** Chạy `java QuickTotal.java 4 75000`. Dự đoán kết quả thành tiền trước khi chạy.
+**Exercise 1.** Run `java QuickTotal.java 4 75000`. Predict the total amount output before running.
 
-*Đáp án:* `300000 VND`.
+*Answer:* `300000 VND`.
 
-**Bài 2.** Sửa dòng in `"Thanh tien:"` thành `"Tong tien:"`, lưu tệp rồi chạy nguồn trực tiếp. Có cần chạy `javac` riêng không?
+**Exercise 2.** Change the print string `"Thanh tien:"` to `"Tong tien:"`, save the file, and run source directly. Do you need to run `javac` separately?
 
-*Đáp án:* Không. Khi thực thi `java QuickTotal.java`, launcher sẽ dùng mã nguồn đã lưu.
+*Answer:* No. When executing `java QuickTotal.java`, the launcher uses the saved source code.
 
-**Bài 3.** Chạy thử lần lượt `java QuickTotal.java 0 1`, `java QuickTotal.java 1 -1` và `java QuickTotal.java one 1`. Xác định ca nào thất bại khi **chuyển chuỗi thành số**, ca nào bị từ chối do **quy tắc bài toán**.
+**Exercise 3.** Test `java QuickTotal.java 0 1`, `java QuickTotal.java 1 -1`, and `java QuickTotal.java one 1` in turn. Identify which case fails when **converting string to number**, and which are rejected due to **problem rules**.
 
-*Đáp án:* `one` không parse được; 0 và −1 parse được nhưng bị từ chối theo quy tắc nghiệp vụ.
+*Answer:* `one` cannot be parsed; 0 and −1 parse successfully but are rejected by business rules.
 
-**Bài 4.** Biên dịch truyền thống bằng `javac QuickTotal.java`, sau đó chạy `java QuickTotal 3 125000`. Giải thích vì sao câu lệnh `java` lần này **không có `.java`**.
+**Exercise 4.** Compile traditionally with `javac QuickTotal.java`, then run `java QuickTotal 3 125000`. Explain why the `java` command this time **does not have `.java`**.
 
-*Đáp án:* JVM đang tìm tên lớp từ bytecode đã được `javac` tạo trên đĩa, không chạy trực tiếp tệp nguồn.
+*Answer:* The JVM is looking up the class name from bytecode generated on disk by `javac`, rather than running a source file directly.
 
-### Checklist hoàn thành
+### Completion checklist
 
-- [ ] `java -version` cho thấy phiên bản hỗ trợ source-file mode (bài dùng JDK 17+).
-- [ ] Có tệp `QuickTotal.java` đúng tên và thư mục.
-- [ ] Chạy được `java QuickTotal.java 3 125000` và nhận đúng `375000 VND`.
-- [ ] Tự sửa và chạy lại mã nguồn mà không cần lệnh `javac` riêng.
-- [ ] Phân biệt được lỗi biên dịch và lỗi dữ liệu lúc chạy.
-- [ ] Biết khi nào chuyển sang `javac` / classpath / công cụ build.
+- [ ] `java -version` shows a version supporting source-file mode (lesson uses JDK 17+).
+- [ ] Have `QuickTotal.java` with the exact name and directory.
+- [ ] Can run `java QuickTotal.java 3 125000` and get `375000 VND`.
+- [ ] Edited and re-ran source code yourself without a separate `javac` command.
+- [ ] Distinguished compile errors from runtime data errors.
+- [ ] Know when to switch to `javac` / classpath / build tools.
 
-## Ghi nhớ
+## Remember
 
-**`java TenTep.java` chạy mã nguồn trực tiếp bằng cách biên dịch trong bộ nhớ rồi thực thi**, thích hợp để học và thử nhanh một chương trình Java nhỏ. **`javac TenTep.java` rồi `java TenLop`** là quy trình tạo và chạy bytecode trên đĩa. Học đúng hai cách sẽ giúp bạn hiểu mình đang chạy **tệp nguồn** hay **lớp đã biên dịch**, đồng thời xử lý lỗi chính xác hơn.
+**`java TenTep.java` runs source code directly by compiling in memory and then executing**, suitable for learning and quickly testing a small Java program. **`javac TenTep.java` followed by `java TenLop`** is the workflow for generating and running bytecode on disk. Learning both methods properly helps you know whether you are running a **source file** or a **compiled class**, and handle errors more accurately.

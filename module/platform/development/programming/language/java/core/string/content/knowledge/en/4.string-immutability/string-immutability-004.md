@@ -1,8 +1,8 @@
-# Vì sao bỏ qua giá trị trả về dễ làm mất kết quả khi làm việc với `String`?
+# Why Ignoring the Return Value Easily Loses Results When Working with `String`
 
-## 1. Vấn đề: gọi phương thức thành công nhưng chuỗi vẫn như cũ
+## 1. The Problem: The Method Call Succeeds, Yet the String Stays the Same
 
-Hãy quan sát đoạn mã sau (đặt bên trong một phương thức Java):
+Observe the following code snippet (placed inside a Java method):
 
 ```java
 String text = "  java  ";
@@ -10,31 +10,31 @@ text.trim();
 System.out.println("[" + text + "]");
 ```
 
-**Kết quả:**
+**Output:**
 
 ```text
 [  java  ]
 ```
 
-Nhiều người mới học dự đoán sẽ nhận được `[java]` vì đã gọi `trim()`. Thực tế, lời gọi `text.trim()` **đã tính ra kết quả loại bỏ khoảng trắng**, nhưng chương trình không lưu, truyền đi hoặc sử dụng kết quả trả về ấy. Biến `text` vì vậy vẫn tham chiếu đến chuỗi ban đầu `"  java  "`.
+Many beginners expect `[java]` because they called `trim()`. In reality, the call `text.trim()` **did compute the whitespace-stripped result**, but the program did not store, pass, or use that return value. The variable `text` therefore still references the original string `"  java  "`.
 
-Đây là hệ quả trực tiếp của **tính bất biến (immutability)** của `String`: một đối tượng `String` đã được tạo ra thì nội dung của chính đối tượng đó không bị các phương thức như `trim()`, `replace()` hoặc `toUpperCase()` chỉnh sửa tại chỗ.
+This is a direct consequence of **`String` immutability**: once a `String` object has been created, the content of that object itself is not modified in place by methods such as `trim()`, `replace()`, or `toUpperCase()`.
 
-Bài học trọng tâm: **Gọi một phương thức trả về `String` không đồng nghĩa với cập nhật biến đang giữ chuỗi. Muốn nhận kết quả biến đổi, phải sử dụng giá trị trả về.**
+Key takeaway: **Calling a method that returns `String` does not automatically update the variable holding the string. To get the transformed result, you must use the return value.**
 
-## 2. Giá trị kết quả có thể bị bỏ ở hai phía của một lời gọi
+## 2. The Result Value Can Be Dropped on Either Side of a Call
 
-Lỗi không chỉ xuất hiện ở `text.strip();`. Hàm xử lý có thể trả đúng giá trị, nhưng **bên gọi** lại bỏ kết quả:
+The bug does not occur only in `text.strip();`. A processing method may return the right value, yet **the caller** drops the result:
 
 ```java
 public class ReturnValueBoundaryDemo {
     static String clean(String value) {
-        return value.strip();       // Hàm trả kết quả đã xử lý
+        return value.strip();       // Method returns the processed result
     }
 
     public static void main(String[] args) {
         String raw = "  Java  ";
-        clean(raw);                 // Bỏ kết quả: raw không thay đổi
+        clean(raw);                 // Result discarded: raw does not change
         String display = clean(raw);
         System.out.println("raw=[" + raw + "]");
         System.out.println("display=[" + display + "]");
@@ -42,15 +42,15 @@ public class ReturnValueBoundaryDemo {
 }
 ```
 
-Đoạn mã chạy trên JDK 17+ và in `raw=[  Java  ]` rồi `display=[Java]`.
+The code runs on JDK 17+ and prints `raw=[  Java  ]` then `display=[Java]`.
 
-Nếu cần cập nhật biến, dùng `raw = clean(raw);`; nếu cần giữ bản gốc, dùng biến khác. Dùng trực tiếp cũng là dùng kết quả hợp lệ, ví dụ `System.out.println(clean(raw));`. Không phải **mọi** giá trị trả về đều buộc phải gán; câu hỏi là kết quả có đi đến nơi tiêu thụ đúng với mục tiêu hay không.
+If you need to update the variable, use `raw = clean(raw);`; if you need to keep the original, use another variable. Using it directly is also a valid way to consume the result, for example `System.out.println(clean(raw));`. Not **every** return value must be assigned; the question is whether the result reaches the intended consumer.
 
-Khi review, lần theo đường đi **đầu vào → giá trị trả về → người tiêu thụ**. Một phương thức có thể tính đúng nhưng bị bỏ mất ở caller; một caller có thể gán đúng nhưng phương thức tiện ích bên trong lại trả về đầu vào cũ. Đây là hai vị trí lỗi cần kiểm tra độc lập.
+During code review, trace the path **input → return value → consumer**. A method may compute correctly but have its result dropped at the caller; a caller may assign properly while the helper method inside returns the old input. Those are two independent bug locations to check.
 
-## 3. Ví dụ Java 17+ hoàn chỉnh
+## 3. Complete Java 17+ Example
 
-Lưu toàn bộ nội dung dưới đây vào tệp **`StringReturnValueDemo.java`**:
+Save the entire contents below to **`StringReturnValueDemo.java`**:
 
 ```java
 import java.util.Locale;
@@ -59,60 +59,60 @@ public class StringReturnValueDemo {
     public static void main(String[] args) {
         String original = "  java core  ";
 
-        // Những kết quả này đều bị bỏ qua.
+        // These results are all ignored.
         original.trim();
         original.toUpperCase(Locale.ROOT);
         original.replace("core", "string");
 
-        System.out.println("Sau khi bỏ qua: [" + original + "]");
+        System.out.println("After ignoring: [" + original + "]");
 
-        // Lấy kết quả trả về của từng phép biến đổi.
+        // Capture the return value of each transformation.
         String normalized = original.trim()
                 .toUpperCase(Locale.ROOT)
                 .replace("CORE", "STRING");
 
-        System.out.println("Kết quả được dùng: [" + normalized + "]");
-        System.out.println("Chuỗi gốc: [" + original + "]");
+        System.out.println("Used result: [" + normalized + "]");
+        System.out.println("Original string: [" + original + "]");
 
         String word = "Java";
         word.concat(" 21");
-        System.out.println("concat bị bỏ qua: " + word);
+        System.out.println("ignored concat: " + word);
 
         word = word.concat(" 21");
-        System.out.println("concat đã gán lại: " + word);
+        System.out.println("reassigned concat: " + word);
     }
 }
 ```
 
-Chạy bằng JDK 17 trở lên:
+Run with JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 StringReturnValueDemo.java
 java StringReturnValueDemo
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
-Sau khi bỏ qua: [  java core  ]
-Kết quả được dùng: [JAVA STRING]
-Chuỗi gốc: [  java core  ]
-concat bị bỏ qua: Java
-concat đã gán lại: Java 21
+After ignoring: [  java core  ]
+Used result: [JAVA STRING]
+Original string: [  java core  ]
+ignored concat: Java
+reassigned concat: Java 21
 ```
 
-Giải thích từng giai đoạn:
+Step-by-step explanation:
 
-1. Ba lời gọi `trim()`, `toUpperCase(Locale.ROOT)` và `replace(...)` đầu tiên đều tính toán kết quả nhưng không thay đổi biến `original`, nên khi in vẫn còn hai dấu cách ở mỗi đầu và vẫn là `java core` viết thường.
-2. Chuỗi phương thức `original.trim().toUpperCase(Locale.ROOT).replace("CORE", "STRING")` **truyền giá trị trả về** của mỗi bước sang bước tiếp theo. Kết quả cuối là `"JAVA STRING"`, được lưu vào `normalized`.
-3. `original` vẫn là `"  java core  "` vì tạo và lưu một kết quả biến đổi khác không sửa đối tượng gốc.
-4. `word.concat(" 21")` bị bỏ qua nên `word` vẫn là `"Java"`. Sau `word = word.concat(" 21")`, biến `word` tham chiếu đến giá trị `"Java 21"`.
+1. The first three calls `trim()`, `toUpperCase(Locale.ROOT)`, and `replace(...)` all compute results without changing the variable `original`, so printing it still shows two spaces on each end and lowercase `java core`.
+2. The method chain `original.trim().toUpperCase(Locale.ROOT).replace("CORE", "STRING")` **passes the return value** of each step to the next step. The final result is `"JAVA STRING"`, stored in `normalized`.
+3. `original` remains `"  java core  "` because creating and storing another transformed result does not modify the original object.
+4. `word.concat(" 21")` is ignored, so `word` stays `"Java"`. After `word = word.concat(" 21")`, the variable `word` references the value `"Java 21"`.
 
-Dùng `Locale.ROOT` trong ví dụ giúp thao tác chữ hoa có quy tắc độc lập với ngôn ngữ mặc định của máy chạy. Điều này có ích cho dữ liệu kỹ thuật, mã định danh hoặc kết quả cần nhất quán; khi xử lý văn bản cho một ngôn ngữ cụ thể, có thể cần `Locale` phù hợp.
+Using `Locale.ROOT` in the example makes uppercasing rules independent of the machine's default language. This is helpful for technical data, identifiers, or outputs needing consistency; when processing text for a specific language, an appropriate `Locale` may be needed.
 
-## 4. Chaining: vì sao chuỗi phương thức vẫn có thể mất kết quả?
+## 4. Chaining: Why Can a Method Chain Still Lose Its Result?
 
-Đây là **method chaining**: mỗi phương thức nhận đối tượng `String` được trả về ở bước trước.
+This is **method chaining**: each method receives the `String` object returned by the previous step.
 
 ```java
 String input = "  Hello Java  ";
@@ -120,15 +120,15 @@ String result = input.strip().replace(" ", "-").toLowerCase(java.util.Locale.ROO
 System.out.println(result); // hello-java
 ```
 
-Nếu chỉ viết:
+If you only write:
 
 ```java
 input.strip().replace(" ", "-").toLowerCase(java.util.Locale.ROOT);
 ```
 
-thì kết quả cuối vẫn **bị bỏ đi**: chaining không tự động ghi ngược kết quả vào `input`. Các kết quả trung gian có thể đã được dùng làm đối tượng nhận ở bước tiếp theo, nhưng bước cuối cần một nơi tiêu thụ giá trị, chẳng hạn phép gán, `return`, đối số truyền sang phương thức khác hoặc phép so sánh.
+then the final result is still **discarded**: chaining does not automatically write the result back into `input`. Intermediate results were used as receivers for the next steps, but the final step needs a value consumer, such as an assignment, `return`, an argument passed to another method, or a comparison.
 
-Để trả kết quả từ một phương thức xử lý:
+To return the result from a processing method:
 
 ```java
 static String normalize(String source) {
@@ -136,45 +136,45 @@ static String normalize(String source) {
 }
 ```
 
-Và **phía gọi** cũng phải sử dụng giá trị trả về:
+And **the caller** must also use the return value:
 
 ```java
 String normalized = normalize("  JAVA  "); // "java"
 ```
 
-Chỉ gọi `normalize("  JAVA  ");` như một câu lệnh độc lập cũng sẽ bỏ qua chuỗi đã xử lý.
+Merely calling `normalize("  JAVA  ");` as a standalone statement will likewise discard the processed string.
 
-## 5. Tình huống lỗi thực tế và cách sửa
+## 5. Real-World Bug Scenarios and Fixes
 
-### Tình huống 1: chuẩn hóa đầu vào trước khi kiểm tra
+### Scenario 1: normalizing input before checking
 
-**Sai:**
+**Wrong:**
 
 ```java
 String role = "  ADMIN  ";
 role.strip();
 if (role.equals("ADMIN")) {
-    System.out.println("Quyền quản trị");
+    System.out.println("Admin role");
 }
 ```
 
-Điều kiện không đúng vì `role` vẫn là `"  ADMIN  "`.
+The condition is false because `role` is still `"  ADMIN  "`.
 
-**Đúng:**
+**Right:**
 
 ```java
 String role = "  ADMIN  ";
 role = role.strip();
 if (role.equals("ADMIN")) {
-    System.out.println("Quyền quản trị");
+    System.out.println("Admin role");
 }
 ```
 
-Chú ý: đây chỉ là minh họa kiểm tra chuỗi; cơ chế phân quyền thực tế cần xác thực và kiểm soát quyền đúng thiết kế, không dựa riêng vào một chuỗi đầu vào.
+Note: this is only a string-checking illustration; real authorization mechanisms require properly designed authentication and access control rather than relying solely on an input string.
 
-### Tình huống 2: thay ký tự nhưng dùng giá trị cũ
+### Scenario 2: replacing characters but using the old value
 
-**Sai:**
+**Wrong:**
 
 ```java
 String slug = "hello java";
@@ -182,7 +182,7 @@ slug.replace(" ", "-");
 System.out.println(slug); // hello java
 ```
 
-**Đúng:**
+**Right:**
 
 ```java
 String slug = "hello java";
@@ -190,7 +190,7 @@ slug = slug.replace(" ", "-");
 System.out.println(slug); // hello-java
 ```
 
-### Tình huống 3: phương thức tiện ích tính xong rồi người gọi bỏ qua
+### Scenario 3: helper method computes it, then the caller ignores it
 
 ```java
 static String clean(String value) {
@@ -198,51 +198,51 @@ static String clean(String value) {
 }
 ```
 
-**Sai ở phía gọi:**
+**Wrong at the call site:**
 
 ```java
 String value = "  hello  ";
-clean(value); // Giá trị được trả về bị bỏ qua
+clean(value); // The returned value is ignored
 ```
 
-**Đúng:**
+**Right:**
 
 ```java
 String value = "  hello  ";
 value = clean(value);
 ```
 
-Lỗi có thể xảy ra ở cả hai chỗ: bên trong phương thức quên `return` kết quả thích hợp, hoặc phương thức đã trả đúng nhưng người gọi không sử dụng.
+The bug can happen in either place: forgetting to `return` the appropriate result inside the method, or the method returning properly while the caller fails to use it.
 
-## 6. Cách tự phát hiện lỗi khi đọc mã
+## 6. How to Spot the Bug Yourself When Reading Code
 
-Khi gặp `String` có vẻ đã được xử lý nhưng đầu ra vẫn chưa thay đổi, hãy đi theo trình tự:
+When encountering a `String` that appears to have been processed yet the output has not changed, follow this sequence:
 
-1. **Tìm vị trí gọi phương thức**: `trim`, `strip`, `replace`, `substring`, `toUpperCase`, `concat` hoặc một hàm tiện ích trả về `String`.
-2. **Xem giá trị trả về đi đâu**: có được gán vào biến, trả về bằng `return`, truyền vào phương thức khác hay sử dụng trong biểu thức không?
-3. **Xem chương trình đang đọc biến nào**: có đang in hoặc kiểm tra biến gốc, trong khi kết quả thực tế được lưu ở một biến khác?
-4. **Kiểm tra API có sửa tại chỗ hay không**: `String` bất biến, nhưng các kiểu như `StringBuilder`, `StringBuffer` và nhiều collection có hành vi mutable.
-5. **Thêm kiểm thử nhỏ**: khẳng định kết quả trước và sau xử lý để bắt lỗi logic sớm.
+1. **Locate the method call**: `trim`, `strip`, `replace`, `substring`, `toUpperCase`, `concat`, or a helper function returning `String`.
+2. **Trace where the return value goes**: is it assigned to a variable, returned with `return`, passed to another method, or used in an expression?
+3. **Check which variable the program is reading**: is it printing or checking the original variable while the actual result was stored in a different variable?
+4. **Check whether the API modifies in place**: `String` is immutable, whereas types like `StringBuilder`, `StringBuffer`, and many collections have mutable behavior.
+5. **Add a small test**: assert both before- and after-processing values to catch logic bugs early.
 
-Ví dụ kiểm thử không cần thư viện ngoài, đặt trong `main`:
+Example check without external libraries, placed in `main`:
 
 ```java
 String source = "  Java  ";
 String result = source.strip();
 
 if (!"Java".equals(result)) {
-    throw new AssertionError("Giá trị đã xử lý không đúng");
+    throw new AssertionError("Processed value is incorrect");
 }
 if (!"  Java  ".equals(source)) {
-    throw new AssertionError("Chuỗi gốc đã bị thay đổi");
+    throw new AssertionError("Original string was modified");
 }
 ```
 
-Các khẳng định này kiểm tra cả hai vế quan trọng: **kết quả trả về đúng** và **giá trị gốc vẫn nguyên vẹn**.
+These assertions check both important sides: **the returned result is right** and **the original value remains intact**.
 
-## 7. Câu hỏi tự kiểm tra
+## 7. Self-Check Questions
 
-**Câu 1.** Mã sau in gì và vì sao?
+**Question 1.** What does the following code print and why?
 
 ```java
 String s = "abc";
@@ -250,9 +250,9 @@ s.replace("a", "x");
 System.out.println(s);
 ```
 
-**Đáp án:** `abc`; `replace` trả về kết quả nhưng lời gọi bị bỏ qua.
+**Answer:** `abc`; `replace` returns a result, but the call's return value is ignored.
 
-**Câu 2.** Sửa một dòng để in `XBC`:
+**Question 2.** Fix one line to print `XBC`:
 
 ```java
 String s = "abc";
@@ -260,14 +260,14 @@ s.toUpperCase(java.util.Locale.ROOT);
 System.out.println(s.replace("A", "X"));
 ```
 
-**Đáp án:** Đổi dòng thứ hai thành `s = s.toUpperCase(java.util.Locale.ROOT);`. Khi đó `s` là `"ABC"`; phương thức `replace` trên dòng cuối trả `"XBC"` và `println` trực tiếp sử dụng kết quả này.
+**Answer:** Change the second line to `s = s.toUpperCase(java.util.Locale.ROOT);`. Then `s` is `"ABC"`; `replace` on the last line returns `"XBC"` and `println` uses that result directly.
 
-**Câu 3.** Gọi `s.strip()` rồi bỏ giá trị trả về có luôn tạo một đối tượng mới không?
+**Question 3.** Does calling `s.strip()` and discarding the return value always create a new object?
 
-**Đáp án:** Không. Một số thao tác có thể trả cùng đối tượng khi không cần thay đổi. Nhưng bất kể kết quả được trả về trỏ đến đối tượng nào, lệnh gọi cũng **không thay đổi nội dung của đối tượng `String` gốc**.
+**Answer:** No. Some operations may return the same object when no change is needed. Regardless of which object the returned result points to, the call **does not change the content of the original `String` object**.
 
-**Câu 4.** Tại sao `builder.append("x");` có thể đổi kết quả khi in `builder`, còn `s.concat("x");` không đổi kết quả khi in `s`?
+**Question 4.** Why can `builder.append("x");` change the output when printing `builder`, whereas `s.concat("x");` does not change the output when printing `s`?
 
-**Đáp án:** `StringBuilder` được thiết kế để biến đổi nội dung của chính đối tượng; `String` được thiết kế bất biến và `concat` trả về giá trị chuỗi thay vì sửa đối tượng nhận.
+**Answer:** `StringBuilder` is designed to mutate the content of the object itself; `String` is designed to be immutable and `concat` returns a string value rather than modifying the receiver object.
 
-**Ghi nhớ:** Khi muốn biến đổi nội dung `String`, hãy xác định rõ **ai sẽ nhận giá trị trả về**. Có thể gán lại, lưu sang biến mới, `return`, truyền làm đối số hoặc dùng ngay trong biểu thức. Một giá trị tính ra đúng nhưng không được sử dụng sẽ không tạo ra tác dụng mong muốn ở biến ban đầu.
+**Remember:** When you want to transform `String` content, identify clearly **who will receive the return value**. You can reassign it, store it in a new variable, `return` it, pass it as an argument, or use it immediately in an expression. A correctly computed value that goes unused will not produce the desired effect in the original variable.

@@ -1,41 +1,41 @@
-# Constructor ném ngoại lệ và lớp bọc `InvocationTargetException` trong Java Reflection
+# Constructors Throwing Exceptions and the `InvocationTargetException` Wrapper in Java Reflection
 
-Khi tạo đối tượng thông qua Java Reflection, lệnh `Constructor.newInstance(...)` có thể thất bại vì **hai nhóm nguyên nhân rất khác nhau**:
+When creating an object via Java Reflection, `Constructor.newInstance(...)` can fail for **two very different categories of reasons**:
 
-1. **Constructor của ứng dụng thực sự được gọi rồi ném exception/error**. Reflection bọc đối tượng lỗi gốc trong `java.lang.reflect.InvocationTargetException`. Người gọi cần xem `getCause()` để biết vấn đề thực sự.
-2. **Reflection chưa thể gọi constructor hợp lệ**, chẳng hạn sai kiểu đối số, thiếu quyền truy cập, kiểu đích là abstract class hoặc class initialization thất bại. Các trường hợp này thường được báo bằng **exception/error riêng**, không được coi mặc định là `InvocationTargetException`.
+1. **The application's constructor was actually invoked and then threw an exception/error**. Reflection wraps the original error object in `java.lang.reflect.InvocationTargetException`. The caller needs to inspect `getCause()` to see the real issue.
+2. **Reflection could not yet invoke a valid constructor**, for example due to wrong argument types, missing access permissions, an abstract target type, or failed class initialization. These cases are normally reported via **their own specific exceptions/errors**, and should not be assumed to be `InvocationTargetException`.
 
-Phân biệt đúng hai nhóm này giúp lập trình viên sửa lỗi ở đúng nơi: kiểm tra dữ liệu đầu vào của constructor, giải quyết cấu hình access/module hoặc sửa logic bên trong constructor.
+Distinguishing these two categories properly helps programmers fix errors in the right place: checking constructor input data, resolving access/module configuration, or fixing logic inside the constructor.
 
-Mục tiêu của bài là hiểu chính xác khi nào `InvocationTargetException` xuất hiện, cách mở lớp bọc để xử lý checked/unchecked exceptions, cách nhận diện những lỗi không bị bọc, và cách viết code Java 17+ có thể biên dịch/chạy và chẩn đoán được.
+The goal of this lesson is to understand accurately when `InvocationTargetException` appears, how to unwrap it to handle checked/unchecked exceptions, how to recognize unwrapped errors, and how to write compilable/runnable and diagnosable Java 17+ code.
 
-## 1. Phân biệt tra cứu constructor và gọi constructor
+## 1. Distinguishing Constructor Lookup from Constructor Invocation
 
-Đối tượng `Class<T>` cung cấp:
+A `Class<T>` object provides:
 
 ```java
 Constructor<T> ctor = type.getConstructor(parameterTypes);
 Constructor<T> declared = type.getDeclaredConstructor(parameterTypes);
 ```
 
-Hai lệnh trên chỉ lấy **metadata về constructor**. Chúng chưa tạo đối tượng và chưa chạy thân constructor. `getConstructor` chỉ tìm constructor **public** có đúng dãy kiểu tham số; `getDeclaredConstructor` tìm constructor khai báo trực tiếp ở lớp, kể cả constructor private.
+These two statements only retrieve **metadata about a constructor**. They do not yet create an object and do not yet run the constructor body. `getConstructor` searches only for `public` constructors with the exact sequence of parameter types; `getDeclaredConstructor` searches for constructors declared directly on the class, including private constructors.
 
-Việc tạo instance xảy ra khi gọi:
+Instance creation occurs when calling:
 
 ```java
 T instance = ctor.newInstance(arguments);
 ```
 
-Đây là mẫu code mô tả ý tưởng; `T`, `type`, `parameterTypes` và `arguments` phải được định nghĩa trong chương trình thực. Hai loại vấn đề cần tách riêng:
+This is a code pattern illustrating the idea; `T`, `type`, `parameterTypes`, and `arguments` must be defined in an actual program. Two kinds of issues must be kept separate:
 
-- **Lookup thất bại:** `getConstructor(String.class)` không tìm được chữ ký public phù hợp thì ném `NoSuchMethodException`. Lúc đó constructor chưa chạy.
-- **Invocation thất bại:** sau khi tìm được metadata, `newInstance("abc")` mới thử khởi tạo class (nếu cần), kiểm tra quyền/đối số và thực thi constructor. Khi **chính constructor** ném lỗi, Reflection phát ra `InvocationTargetException` bọc lỗi gốc.
+- **Lookup failure:** `getConstructor(String.class)` cannot find a matching public signature and throws `NoSuchMethodException`. At that point, the constructor has not run.
+- **Invocation failure:** after metadata is found, `newInstance("abc")` attempts to initialize the class (if needed), check permissions/arguments, and execute the constructor. When **the constructor itself** throws an error, Reflection emits an `InvocationTargetException` wrapping the original error.
 
-Đối tượng `Constructor<T>` thuộc gói `java.lang.reflect`. Phương thức `newInstance(Object... initargs)` có kiểu trả về `T`, nhưng không có nghĩa là lời gọi chắc chắn thành công hoặc mọi vấn đề đều có cùng loại exception.
+`Constructor<T>` belongs to package `java.lang.reflect`. The method `newInstance(Object... initargs)` has return type `T`, which does not mean the call is guaranteed to succeed or that every failure produces the same exception type.
 
-## 2. Vì sao Java Reflection cần `InvocationTargetException`?
+## 2. Why Does Java Reflection Need `InvocationTargetException`?
 
-Một constructor có thể khai báo và ném checked exception:
+A constructor can declare and throw a checked exception:
 
 ```java
 public Person(String name) throws java.io.IOException {
@@ -45,54 +45,54 @@ public Person(String name) throws java.io.IOException {
 }
 ```
 
-Nếu gọi trực tiếp `new Person(null)`, caller phải xử lý hoặc khai báo `IOException` theo cơ chế checked exception của Java. Nhưng khi Reflection gọi `Constructor.newInstance(...)`, chữ ký API không thể liệt kê trước mọi checked exception mà **bất kỳ constructor runtime nào** có thể ném ra.
+If called directly as `new Person(null)`, the caller must handle or declare `IOException` per Java's checked exception rules. Yet when Reflection calls `Constructor.newInstance(...)`, the API signature cannot list in advance every checked exception that **any runtime constructor** might throw.
 
-Vì vậy, nếu constructor thực thi rồi ném `IOException`, `IllegalArgumentException`, `AssertionError` hoặc một `Throwable` khác từ thân constructor, Reflection báo một **`InvocationTargetException`**, trong đó giữ lỗi ban đầu làm **cause**.
+Therefore, if the constructor executes and throws `IOException`, `IllegalArgumentException`, `AssertionError`, or another `Throwable` from the constructor body, Reflection reports an **`InvocationTargetException`**, holding the original error as its **cause**.
 
-Mô hình:
+Model:
 
 ```text
 Constructor.newInstance(arguments)
           |
-          +-- chuẩn bị/check access, tham số, kiểu, class initialization
+          +-- prepare/check access, parameters, types, class initialization
           |
-          +-- gọi constructor <init>
+          +-- invoke constructor <init>
                     |
-                    +-- chạy thành công ----------> trả instance
+                    +-- succeeds -------------------> returns instance
                     |
-                    +-- ném IOException ----------> InvocationTargetException
-                    |                                  cause = IOException
-                    +-- ném IllegalStateException -> InvocationTargetException
-                    |                                  cause = IllegalStateException
-                    +-- ném AssertionError --------> InvocationTargetException
-                                                       cause = AssertionError
+                    +-- throws IOException ---------> InvocationTargetException
+                    |                                    cause = IOException
+                    +-- throws IllegalStateException -> InvocationTargetException
+                    |                                    cause = IllegalStateException
+                    +-- throws AssertionError ------> InvocationTargetException
+                                                         cause = AssertionError
 ```
 
-Sơ đồ mô tả **lỗi phát sinh trong constructor đã được gọi**. Exception hoặc error phát sinh trong **bước Reflection trước đó**, đặc biệt lỗi class initialization, có quy tắc riêng và không được gộp vào nhánh bọc trên.
+The diagram depicts **errors originating inside the invoked constructor**. Exceptions or errors occurring in **preceding Reflection steps**, especially class initialization errors, follow separate rules and are not included in the wrapping branch above.
 
-### Hai thuộc tính của lớp bọc
+### Two Properties of the Wrapper
 
-`InvocationTargetException` là **checked exception**. Nó có:
+`InvocationTargetException` is a **checked exception**. It has:
 
-- `getCause()`: trả `Throwable` gốc gây ra invocation thất bại.
-- `getTargetException()`: phương thức tương thích lịch sử, cũng cho phép truy cập exception gốc. Trong code hiện đại, thường ưu tiên `getCause()`.
+- `getCause()`: returns the original `Throwable` that caused the invocation to fail.
+- `getTargetException()`: a legacy compatibility method that also grants access to the original exception. In modern code, `getCause()` is generally preferred.
 
-Ví dụ mẫu:
+Sample usage:
 
 ```java
 try {
     Object instance = constructor.newInstance(values);
 } catch (java.lang.reflect.InvocationTargetException e) {
     Throwable original = e.getCause();
-    // Phân tích original để biết lỗi thực tế từ constructor.
+    // Inspect original to find the actual error from the constructor.
 }
 ```
 
-Đây là đoạn minh họa; `constructor` và `values` có sẵn từ caller, và các checked exception khác của `newInstance` cần được xử lý hoặc khai báo bổ sung. Không chỉ in `InvocationTargetException` rồi bỏ qua `cause`, vì lỗi nghiệp vụ chính thường nằm ở lớp trong.
+This is an illustrative snippet; `constructor` and `values` come from the caller, and other checked exceptions of `newInstance` need to be handled or declared additionally. Do not merely print `InvocationTargetException` and ignore `cause`, because the primary business error usually lies in the inner layer.
 
-## 3. Ví dụ Java 17+ hoàn chỉnh: phân biệt nhiều loại lỗi
+## 3. Complete Java 17+ Example: Distinguishing Multiple Error Types
 
-Lưu chương trình thành **`ConstructorExceptionDemo.java`**:
+Save the program as **`ConstructorExceptionDemo.java`**:
 
 ```java
 import java.io.IOException;
@@ -208,14 +208,14 @@ public class ConstructorExceptionDemo {
 }
 ```
 
-Chạy từ thư mục chứa tệp với JDK 17 hoặc mới hơn:
+Run from the directory containing the file with JDK 17 or newer:
 
 ```bash
 javac ConstructorExceptionDemo.java
 java ConstructorExceptionDemo
 ```
 
-**Stdout đã đối chiếu bằng JDK 21:**
+**Stdout verified on JDK 21:**
 
 ```text
 throws declared: IOException
@@ -229,51 +229,51 @@ abstract: InstantiationException
 class initialization: IllegalStateException -> init failed
 ```
 
-### Phân tích từng kết quả
+### Analyzing Each Result
 
-1. `getExceptionTypes()` liệt kê những loại exception có trong khai báo `throws` của constructor. `Worker(String)` khai báo `IOException`, nên dòng đầu in `IOException`. Metadata này **không có nghĩa constructor luôn ném exception**.
-2. `ctor.newInstance("Lan")` gọi constructor thành công; chương trình nhận một instance và in `success: Lan`.
-3. `ctor.newInstance((Object) null)` truyền **một đối số `null`** vào tham số `String`. Constructor được gọi, kiểm tra `name == null` và ném `IOException`. Reflection bọc nó trong `InvocationTargetException`. `getCause()` lấy lại `IOException` cùng thông điệp.
-4. `ctor.newInstance(" ")` gọi được constructor; `isBlank()` trả `true`, nên constructor ném unchecked `IllegalArgumentException`. Vì lỗi xuất phát **bên trong constructor**, Reflection vẫn bọc trong `InvocationTargetException`.
-5. `ctor.newInstance("error")` khiến chính constructor ném `AssertionError`. Trong ví dụ này, `InvocationTargetException` cũng bọc `AssertionError`: lớp bọc không chỉ áp dụng cho checked exceptions. Không nên tự động bắt rồi bỏ qua mọi `Error` trong ứng dụng sản xuất.
-6. `ctor.newInstance(5)` có **kiểu đối số không phù hợp** với constructor `Worker(String)`. Reflection ném `IllegalArgumentException` ngay ở tầng invocation; thân constructor không chạy. Đây **không phải** `InvocationTargetException`.
-7. `Worker.class.getConstructor(int.class)` thất bại tại **bước tra cứu** vì không tồn tại constructor public `Worker(int)`. Kết quả là `NoSuchMethodException`.
-8. `AbstractWorker` có constructor public nhưng là **abstract class**; Reflection không thể tạo instance trực tiếp nên `Constructor.newInstance()` ném `InstantiationException`.
-9. `BrokenInit` có khối static initializer ném `IllegalStateException`. Class initialization thất bại **trước khi thân constructor chạy**. JVM phát ra `ExceptionInInitializerError`; không nên nhầm với `InvocationTargetException`.
+1. `getExceptionTypes()` lists the exception types present in the constructor's `throws` declaration. `Worker(String)` declares `IOException`, so the first line prints `IOException`. This metadata **does not mean the constructor always throws an exception**.
+2. `ctor.newInstance("Lan")` invokes the constructor successfully; the program receives an instance and prints `success: Lan`.
+3. `ctor.newInstance((Object) null)` passes **a single `null` argument** to the `String` parameter. The constructor is invoked, checks `name == null`, and throws `IOException`. Reflection wraps it in `InvocationTargetException`. `getCause()` retrieves `IOException` along with its message.
+4. `ctor.newInstance(" ")` invokes the constructor; `isBlank()` returns `true`, so the constructor throws unchecked `IllegalArgumentException`. Because the error originates **inside the constructor**, Reflection still wraps it in `InvocationTargetException`.
+5. `ctor.newInstance("error")` causes the constructor itself to throw `AssertionError`. In this example, `InvocationTargetException` also wraps `AssertionError`: the wrapper does not apply only to checked exceptions. You should not automatically catch and ignore every `Error` in production applications.
+6. `ctor.newInstance(5)` has an **incompatible argument type** for constructor `Worker(String)`. Reflection throws `IllegalArgumentException` right at the invocation layer; the constructor body does not run. This **is not** `InvocationTargetException`.
+7. `Worker.class.getConstructor(int.class)` fails at the **lookup step** because no public constructor `Worker(int)` exists. The result is `NoSuchMethodException`.
+8. `AbstractWorker` has a public constructor yet is an **abstract class**; Reflection cannot instantiate it directly, so `Constructor.newInstance()` throws `InstantiationException`.
+9. `BrokenInit` has a static initializer block that throws `IllegalStateException`. Class initialization fails **before the constructor body runs**. The JVM emits `ExceptionInInitializerError`; do not confuse this with `InvocationTargetException`.
 
-Trong ví dụ, các class con được khai báo `public static` và constructor cần thiết là public, tránh nhiễu từ lỗi visibility. Lỗi quyền truy cập sẽ được giải thích riêng.
+In the example, nested classes are declared `public static` and the needed constructors are public, avoiding noise from visibility errors. Access permission errors will be explained separately.
 
-## 4. Bảng nhận diện: lỗi đến từ lớp nào?
+## 4. Identification Table: Which Layer Did the Error Come From?
 
-| Điểm xảy ra lỗi | Tình huống | Lỗi quan sát được | Có `InvocationTargetException` bọc không? |
+| Failure point | Situation | Observed error | Wrapped by `InvocationTargetException`? |
 |---|---|---|---|
-| Tra cứu trên `Class` | Constructor phù hợp không tồn tại | `NoSuchMethodException` | Không |
-| Chuẩn bị invocation | Số lượng/kiểu đối số không phù hợp | `IllegalArgumentException` | Không |
-| Chuẩn bị invocation | Caller không có quyền gọi constructor | `IllegalAccessException` | Không |
-| Chuẩn bị invocation | Không thể tạo instance của abstract class | `InstantiationException` | Không |
-| Khởi tạo class | Static initializer thất bại do exception không phải `Error` | `ExceptionInInitializerError` | Không |
-| Trong thân constructor | `throw new IOException(...)` | `InvocationTargetException`, cause = `IOException` | Có |
-| Trong thân constructor | `throw new IllegalStateException(...)` | `InvocationTargetException`, cause = `IllegalStateException` | Có |
-| Trong thân constructor | `throw new AssertionError(...)` | `InvocationTargetException`, cause = `AssertionError` | Có |
+| Lookup on `Class` | Matching constructor does not exist | `NoSuchMethodException` | No |
+| Preparing invocation | Incompatible argument count/types | `IllegalArgumentException` | No |
+| Preparing invocation | Caller lacks permission to invoke constructor | `IllegalAccessException` | No |
+| Preparing invocation | Cannot instantiate an abstract class | `InstantiationException` | No |
+| Class initialization | Static initializer fails with an exception other than `Error` | `ExceptionInInitializerError` | No |
+| Inside constructor body | `throw new IOException(...)` | `InvocationTargetException`, cause = `IOException` | Yes |
+| Inside constructor body | `throw new IllegalStateException(...)` | `InvocationTargetException`, cause = `IllegalStateException` | Yes |
+| Inside constructor body | `throw new AssertionError(...)` | `InvocationTargetException`, cause = `AssertionError` | Yes |
 
-Bảng phản ánh các trường hợp thông thường qua **core Reflection**. Trường hợp class initialization ném trực tiếp một `Error`, JVM có thể truyền tiếp error đó theo quy tắc initialization; lỗi khởi tạo lặp lại của cùng runtime class về sau thường là `NoClassDefFoundError`. Không có bảo đảm rằng mọi lỗi trước constructor đều là `ExceptionInInitializerError`.
+The table reflects typical cases via **core Reflection**. When class initialization directly throws an `Error`, the JVM may propagate that error according to initialization rules; subsequent repeated initialization failures of the same runtime class typically produce `NoClassDefFoundError`. There is no guarantee that every error before the constructor is `ExceptionInInitializerError`.
 
-**Đặc biệt về `IllegalArgumentException`:** tên exception giống nhau nhưng nguồn lỗi khác nhau tạo ra hai cách bắt khác nhau:
+**Special note on `IllegalArgumentException`:** the same exception name from different error sources creates two different catch patterns:
 
 ```java
-// Sai kiểu đối số: Reflection tự ném IllegalArgumentException.
+// Wrong argument type: Reflection itself throws IllegalArgumentException.
 ctor.newInstance(Integer.valueOf(5));
 
-// Đối số hợp lệ là String nhưng constructor tự ném
-// IllegalArgumentException: Reflection bọc trong InvocationTargetException.
+// Valid argument String, yet the constructor itself throws
+// IllegalArgumentException: Reflection wraps it in InvocationTargetException.
 ctor.newInstance(" ");
 ```
 
-Hai dòng trên là ví dụ trích từ chương trình hoàn chỉnh, không được chạy nối tiếp mà thiếu xử lý ngoại lệ. Để kết luận lỗi đến từ đâu, hãy dựa vào **kiểu exception bên ngoài** và **cause**, không chỉ nhìn tên `IllegalArgumentException` xuất hiện trong stack trace.
+These two lines are excerpts from the complete program and must not be run back-to-back without exception handling. To conclude where the error originated, rely on the **outer exception type** and **cause**, not merely seeing the name `IllegalArgumentException` appear in a stack trace.
 
-## 5. `getCause()`: xem lỗi gốc mà không làm mất thông tin
+## 5. `getCause()`: Inspecting the Root Error Without Losing Information
 
-Khi bắt `InvocationTargetException`, gọi:
+When catching `InvocationTargetException`, call:
 
 ```java
 catch (InvocationTargetException e) {
@@ -282,15 +282,15 @@ catch (InvocationTargetException e) {
 }
 ```
 
-Đây là nhánh `catch` minh họa đặt trong một khối `try` thích hợp. `printStackTrace()` giúp thấy **đường đi lỗi bên trong constructor**; không cần in đồng thời nhiều bản stack trace giống nhau vào log. Trong ứng dụng thực tế, có thể log `e` đầy đủ để JVM hiển thị chuỗi `Caused by`.
+This is an illustrative `catch` branch placed inside an appropriate `try` block. `printStackTrace()` helps reveal **the error path inside the constructor**; there is no need to print duplicate stack traces to logs simultaneously. In real applications, you can log the full `e` so the JVM displays the `Caused by` chain.
 
-Dùng `Throwable` cho cause vì code constructor có thể ném **checked exception, unchecked exception hoặc `Error`**. Không cast cứng mọi cause thành `Exception` nếu chưa kiểm tra kiểu.
+Use `Throwable` for cause because constructor code can throw a **checked exception, unchecked exception, or `Error`**. Do not blindly cast every cause to `Exception` without checking its type.
 
-`InvocationTargetException.getTargetException()` cũng trả exception gốc, nhưng `getCause()` tuân theo mô hình exception chaining chuẩn của Java, thuận tiện cho logging và các hệ thống xử lý `Throwable`.
+`InvocationTargetException.getTargetException()` also returns the original exception, but `getCause()` follows Java's standard exception chaining model, convenient for logging and `Throwable`-processing systems.
 
-### Giữ lại chuỗi cause khi báo lỗi lên tầng trên
+### Preserving the Cause Chain When Reporting Errors Upward
 
-Nếu ứng dụng muốn đổi lỗi thành một exception có ngữ cảnh:
+If an application wants to convert the error into a contextual exception:
 
 ```java
 try {
@@ -302,13 +302,13 @@ try {
 }
 ```
 
-Đây là đoạn **minh họa nằm trong một phương thức factory** với `ctor` và `value` đã có, cùng xử lý/khai báo các exception Reflection khác. Constructor `IllegalStateException(String, Throwable)` giữ **original cause**; khi đọc stack trace vẫn truy ngược được lỗi gốc.
+This is an **illustrative snippet inside a factory method** with `ctor` and `value` already available, along with handling/declaring other Reflection exceptions. The `IllegalStateException(String, Throwable)` constructor preserves the **original cause**; reading the stack trace still traces back to the root error.
 
-Việc wrap lại là **quyết định hợp đồng API**. Với lỗi nghiệp vụ dự kiến (ví dụ dữ liệu người dùng không hợp lệ), một số API muốn truyền lại đúng loại exception đã được kiểm tra. Với `Error` nghiêm trọng, thường không nên biến nó thành lỗi nghiệp vụ bình thường rồi tiếp tục chạy.
+Re-wrapping is an **API contract decision**. For expected business errors (e.g. invalid user data), some APIs prefer propagating the exact checked exception type. For a severe `Error`, it generally should not be turned into an ordinary business error and allowed to continue running.
 
-### Không tự tin rằng `getCause()` là lỗi cuối cùng
+### Do Not Assume `getCause()` Is the Final Error
 
-Constructor có thể gọi service khác và nhận một exception vốn đã bọc exception sâu hơn, ví dụ `IllegalStateException` có cause là `IOException`. Khi ấy:
+A constructor may call another service and receive an exception that already wraps a deeper exception, such as an `IllegalStateException` whose cause is an `IOException`. Then:
 
 ```text
 InvocationTargetException
@@ -316,11 +316,11 @@ InvocationTargetException
     └── IOException
 ```
 
-`getCause()` một lần chỉ mở **lớp bọc Reflection**. Muốn điều tra tận cùng, xem toàn bộ cause chain và cả suppressed exceptions nếu có. Không mặc định rằng vòng lặp bóc đến cuối luôn là cách xử lý nghiệp vụ đúng; có thể lớp exception trung gian mang thông tin quan trọng.
+Calling `getCause()` once only unwraps **the Reflection wrapper**. To investigate all the way down, inspect the entire cause chain as well as any suppressed exceptions. Do not assume a loop unwrapping to the very end is always the right business handling; an intermediate exception layer may carry important context.
 
-## 6. Checked exception và unchecked exception trong constructor
+## 6. Checked Exceptions and Unchecked Exceptions in Constructors
 
-Sự khác nhau giữa **khai báo `throws`** và **lỗi thực tế** là điểm rất quan trọng:
+The difference between the **`throws` declaration** and **actual runtime errors** is a very important point:
 
 ```java
 public Worker(String name) throws IOException {
@@ -330,98 +330,98 @@ public Worker(String name) throws IOException {
 }
 ```
 
-- `IOException` là checked exception: khai báo trong `throws IOException`, được phản ánh bởi `Constructor.getExceptionTypes()`.
-- `IllegalArgumentException` là unchecked exception: không bắt buộc phải xuất hiện trong `throws`, nhưng constructor vẫn có thể ném nó.
-- Cả hai loại đều thành `InvocationTargetException` ở **lớp ngoài** khi constructor được gọi bằng `Constructor.newInstance`.
-- `getExceptionTypes()` chỉ là **metadata khai báo**, không phải danh sách bảo đảm đầy đủ mọi lỗi thực sự có thể xuất hiện. Nó không dự đoán đường đi code nào sẽ chạy.
+- `IOException` is a checked exception: declared in `throws IOException`, reflected by `Constructor.getExceptionTypes()`.
+- `IllegalArgumentException` is an unchecked exception: not required to appear in `throws`, yet the constructor can still throw it.
+- Both become `InvocationTargetException` at the **outer layer** when the constructor is invoked via `Constructor.newInstance`.
+- `getExceptionTypes()` is only **declared metadata**, not a complete guaranteed list of every error that can actually occur. It does not predict which code paths will execute.
 
-Một constructor cũng có thể gọi một constructor khác qua `this(...)` hoặc `super(...)`. Nếu constructor ở chuỗi ấy ném exception, việc khởi tạo instance thất bại. Khi lời gọi Reflection bắt nguồn từ `Constructor.newInstance` và ngoại lệ được phát sinh trong luồng thực thi constructor, exception được đưa ra trong lớp bọc `InvocationTargetException`.
+A constructor can also call another constructor via `this(...)` or `super(...)`. If a constructor in that chain throws an exception, instance initialization fails. When the Reflection call originates from `Constructor.newInstance` and the exception arises within the constructor execution flow, the exception is surfaced inside the `InvocationTargetException` wrapper.
 
-Vì thế, khi chẩn đoán **tại sao `newInstance` thất bại**, cần xem phần code thực sự chạy trong constructor, bao gồm field initializers, instance initializer blocks và các lời gọi constructor liên quan, thay vì chỉ nhìn dòng `return` hoặc `throws` ở lớp ngoài.
+Therefore, when diagnosing **why `newInstance` failed**, examine the code that actually runs during construction, including field initializers, instance initializer blocks, and related constructor calls, rather than looking only at `return` or `throws` lines at the outer level.
 
-## 7. Phân biệt lỗi class initialization và lỗi constructor
+## 7. Distinguishing Class Initialization Errors from Constructor Errors
 
-Java có hai loại initialization dễ nhầm:
+Java has two kinds of initialization that are easily confused:
 
-- **Class initialization:** thực hiện static field initializers và các khối `static` (`<clinit>`). Nó diễn ra theo quy tắc JVM khi class được sử dụng chủ động, trước khi tạo instance của class.
-- **Instance/constructor initialization:** thực hiện quy trình khởi tạo object, instance field initializers và constructor (`<init>`) trong thứ tự Java quy định.
+- **Class initialization:** executes static field initializers and `static` blocks (`<clinit>`). It occurs according to JVM rules when a class is actively used, prior to creating an instance of the class.
+- **Instance/constructor initialization:** executes object initialization, instance field initializers, and the constructor (`<init>`) in Java-specified order.
 
-Ví dụ `BrokenInit` trong chương trình có static initializer thất bại. Chỉ lấy metadata:
+In the program's `BrokenInit` example, the static initializer fails. Merely obtaining metadata:
 
 ```java
 Constructor<BrokenInit> constructor =
         BrokenInit.class.getConstructor();
 ```
 
-thông thường **chưa chủ động khởi tạo `BrokenInit`**. Nhưng:
+normally **does not actively initialize `BrokenInit`**. However:
 
 ```java
 constructor.newInstance();
 ```
 
-yêu cầu tạo instance, nên JVM phải bảo đảm class được khởi tạo trước. Nếu static initializer thất bại do `IllegalStateException`, JVM phát ra `ExceptionInInitializerError`; constructor `BrokenInit()` **chưa chạy**. Đây là lỗi class initialization, không phải exception từ thân constructor đã gọi.
+requests creating an instance, so the JVM must ensure the class is initialized first. If the static initializer fails due to `IllegalStateException`, the JVM emits `ExceptionInInitializerError`; constructor `BrokenInit()` **never ran**. This is a class initialization error, not an exception from an invoked constructor body.
 
-Lần truy cập chủ động tiếp theo vào cùng class sau khi initialization đã thất bại có thể gây `NoClassDefFoundError` vì class ở trạng thái erroneous. Không nên retry liên tục cùng runtime class và kỳ vọng khối static sẽ tự chạy lại như chưa từng thất bại.
+Subsequent active access to the same class after initialization has failed can trigger `NoClassDefFoundError` because the class is in an erroneous state. Do not repeatedly retry the same runtime class expecting the static block to rerun as if it had never failed.
 
-Một tình huống khác: constructor bắt đầu chạy nhưng instance field initializer hoặc superclass constructor ném lỗi; thông thường Reflection sẽ bọc lỗi đó trong `InvocationTargetException` vì lỗi phát sinh trong quá trình thực thi khởi tạo instance. Khi chẩn đoán cần xem **stack trace của cause** để xác định vị trí thực.
+Another situation: the constructor begins running, yet an instance field initializer or superclass constructor throws an error; Reflection will typically wrap that error in `InvocationTargetException` because the error occurred during instance initialization execution. When diagnosing, inspect the **stack trace of the cause** to locate the true origin.
 
-## 8. `Class.newInstance()` khác `Constructor.newInstance()` ở điểm gì?
+## 8. How Does `Class.newInstance()` Differ from `Constructor.newInstance()`?
 
-Đừng dùng tên giống nhau để suy ra hành vi exception giống nhau:
+Do not infer identical exception behavior from similar names:
 
-| API | Tình trạng | Cách xử lý exception từ constructor |
+| API | Status | How constructor exceptions are handled |
 |---|---|---|
-| `Constructor<T>.newInstance(Object... initargs)` | API Reflection hiện hành, cho phép chọn constructor theo chữ ký | Bọc exception do constructor ném trong `InvocationTargetException` |
-| `Class<T>.newInstance()` | **Deprecated** từ Java 9; không nên dùng cho code mới | Có thể truyền trực tiếp exception từ constructor, kể cả checked exception không được thể hiện rõ trong `throws` của API |
+| `Constructor<T>.newInstance(Object... initargs)` | Current Reflection API, allows selecting constructors by signature | Wraps exceptions thrown by the constructor in `InvocationTargetException` |
+| `Class<T>.newInstance()` | **Deprecated** since Java 9; should not be used in new code | Can directly propagate exceptions from the constructor, including checked exceptions not explicitly listed in the API's `throws` |
 
-`Class.newInstance()` là API cũ chỉ dùng constructor không tham số có thể truy cập và có nhiều hạn chế. Java API documentation khuyến nghị dùng `getDeclaredConstructor().newInstance()` thay thế để có lựa chọn constructor và xử lý exception rõ ràng.
+`Class.newInstance()` is a legacy API that uses only an accessible no-arg constructor and has many limitations. Java API documentation recommends using `getDeclaredConstructor().newInstance()` instead for clear constructor selection and exception handling.
 
-Điều đó có nghĩa:
+That means:
 
 ```java
 Sample obj = Sample.class.getDeclaredConstructor().newInstance();
 ```
 
-là cách thường dùng cho code mới khi cần constructor không tham số (giả định có constructor phù hợp và caller được phép sử dụng). Nhưng `getDeclaredConstructor()` tìm được metadata **không đồng nghĩa** mọi constructor private đều được phép gọi qua các module; access rules vẫn được áp dụng.
+is the common pattern for new code when a no-arg constructor is needed (assuming a matching constructor exists and the caller is permitted to use it). Yet `getDeclaredConstructor()` finding metadata **does not mean** every private constructor is permitted across modules; access rules still apply.
 
-Khi nâng cấp framework cũ đang dùng `Class.newInstance()`, cần rà soát cách xử lý exception vì lớp bọc của API mới khác API cũ. Không chỉ đổi tên hàm mà giữ nguyên logic catch một cách máy móc.
+When upgrading legacy frameworks that use `Class.newInstance()`, review exception handling because the new API's wrapping differs from the old API. Do not merely rename the method while keeping the exact same catch logic mechanically.
 
-## 9. Quyền truy cập, constructor private và ranh giới module
+## 9. Access Permissions, Private Constructors, and Module Boundaries
 
-`InvocationTargetException` không có nghĩa “constructor bị private”:
+`InvocationTargetException` does not mean "the constructor is private":
 
-- `getConstructor(...)` chỉ tìm constructor `public`. Với constructor private, lookup có thể ném `NoSuchMethodException`.
-- `getDeclaredConstructor(...)` có thể tìm constructor private, nhưng khi gọi `newInstance`, caller có thể gặp `IllegalAccessException`.
-- `trySetAccessible()` hoặc `setAccessible(true)` có thể cho phép suppress access checks **khi quan hệ class/module cho phép**. Với Java named modules, deep reflection qua package có thể yêu cầu `opens` phù hợp; `setAccessible(true)` có thể ném `InaccessibleObjectException` nếu không được phép mở.
-- `abstract` class không thể được tạo instance chỉ vì constructor của nó là public; `InstantiationException` vẫn là lỗi phù hợp.
-- Constructor có thể nhận số lượng đối số đúng nhưng **sai kiểu**. Khi không có conversion Reflection hợp lệ, `IllegalArgumentException` phát sinh trước khi thân constructor được gọi.
+- `getConstructor(...)` only finds `public` constructors. For a private constructor, lookup may throw `NoSuchMethodException`.
+- `getDeclaredConstructor(...)` can find a private constructor, yet when calling `newInstance`, the caller may encounter `IllegalAccessException`.
+- `trySetAccessible()` or `setAccessible(true)` can permit suppressing access checks **when class/module relationships allow it**. With Java named modules, deep reflection across packages may require an appropriate `opens`; `setAccessible(true)` may throw `InaccessibleObjectException` if opening is not allowed.
+- An `abstract` class cannot be instantiated merely because its constructor is public; `InstantiationException` remains the appropriate error.
+- A constructor may receive the right number of arguments yet the **wrong types**. When there is no valid Reflection conversion, `IllegalArgumentException` occurs before the constructor body is called.
 
-Vì thế, catch `InvocationTargetException` phải dành cho **lỗi từ quá trình thực thi constructor**, còn lỗi lookup/access/type/instantiation cần chẩn đoán riêng.
+Thus, catching `InvocationTargetException` should be dedicated to **errors from executing the constructor**, while lookup/access/type/instantiation errors must be diagnosed separately.
 
-### Với constructor varargs, tránh nhầm một đối số `null` và mảng varargs `null`
+### With Varargs Constructors, Avoid Confusing One `null` Argument with a `null` Varargs Array
 
-`Constructor.newInstance` có chữ ký `Object... initargs`. Để truyền **một đối số `null`** cho constructor `Worker(String)`, dùng:
+`Constructor.newInstance` has signature `Object... initargs`. To pass **one `null` argument** to constructor `Worker(String)`, use:
 
 ```java
 ctor.newInstance((Object) null);
 ```
 
-Cast `(Object)` làm rõ rằng đây là **một argument**, thay vì một giá trị `null` có thể được hiểu như toàn bộ mảng varargs. Vì ví dụ `Worker(String)` nhận `String` reference, `null` là argument đúng kiểu; constructor sẽ chạy và tự ném `IOException`.
+Casting to `(Object)` clarifies that this is **a single argument**, rather than a `null` value that might be interpreted as the entire varargs array. Since `Worker(String)` takes a `String` reference, `null` is a validly typed argument; the constructor will run and itself throw `IOException`.
 
-Nếu truyền đối số primitive là `null` hoặc số lượng/kiểu đối số không phù hợp với chữ ký constructor, Reflection có thể báo `IllegalArgumentException` trước khi chạy thân constructor. Không tự suy ra lỗi ấy đã được bọc.
+If `null` is passed to a primitive parameter or argument count/types do not match the constructor signature, Reflection may report `IllegalArgumentException` before running the constructor body. Do not assume that error was wrapped.
 
-## 10. Thiết kế xử lý lỗi trong factory/framework
+## 10. Designing Error Handling in a Factory/Framework
 
-Một factory có thể cần quy tắc rõ ràng:
+A factory may need clear rules:
 
-1. Chọn constructor bằng parameter types **chính xác**.
-2. Kiểm tra quyền truy cập của caller/module.
-3. Validate dữ liệu trước khi invoke nếu có hợp đồng đầu vào.
-4. Gọi `newInstance`.
-5. Nếu gặp `InvocationTargetException`, xem `getCause()` để xử lý lỗi từ constructor.
-6. Xử lý riêng các lỗi lookup, access, illegal argument, abstract class và class initialization.
+1. Select the constructor by **exact** parameter types.
+2. Check caller/module access permissions.
+3. Validate input data before invoking if there is an input contract.
+4. Invoke `newInstance`.
+5. If `InvocationTargetException` occurs, inspect `getCause()` to handle the error from the constructor.
+6. Handle lookup, access, illegal argument, abstract class, and class initialization errors separately.
 
-Mẫu xử lý có kiểm soát cho một constructor public nhận `String` (đoạn này là **phương thức minh họa**, có thể đặt vào class phù hợp):
+Controlled handling pattern for a public constructor taking `String` (this snippet is an **illustrative method** that can be placed in an appropriate class):
 
 ```java
 import java.lang.reflect.Constructor;
@@ -457,11 +457,11 @@ static <T> T construct(Class<T> type, String name) {
 }
 ```
 
-**Lưu ý:** Khối code trên là **mẫu phương thức đặt trong một class**, không phải chương trình độc lập; phần import cần ở đầu tệp. Đoạn mẫu định nghĩa một hợp đồng cụ thể: phát lại `Error` và unchecked `RuntimeException`, bọc checked exception vào `IllegalStateException`. Đây là một lựa chọn thiết kế, **không phải quy tắc bắt buộc** cho mọi framework. `IllegalArgumentException` do đối số Reflection sai có thể đi ra ngoài; nếu cần thông báo riêng, thêm nhánh bắt và ngữ cảnh phù hợp.
+**Note:** The code block above is a **method template placed inside a class**, not a standalone program; imports belong at the top of the file. The sample defines one concrete contract: rethrowing `Error` and unchecked `RuntimeException`, wrapping checked exceptions in `IllegalStateException`. This is a design choice, **not a mandatory rule** for every framework. `IllegalArgumentException` from wrong Reflection arguments can propagate out; if a custom message is desired, add an appropriate catch branch and context.
 
-Đối với API có checked exceptions được công bố công khai, có thể muốn giữ đúng loại checked exception theo hợp đồng thay vì bọc thành `IllegalStateException`. Trong trường hợp đó, phải xử lý type/throws của phương thức gọi theo ngôn ngữ Java, không cast `Throwable` tùy tiện.
+For APIs with publicly declared checked exceptions, you may want to preserve the exact checked exception type per the contract rather than wrapping into `IllegalStateException`. In that case, handle the calling method's types/`throws` according to Java language rules, without arbitrary `Throwable` casts.
 
-Không nên:
+Avoid:
 
 ```java
 catch (Exception e) {
@@ -469,15 +469,15 @@ catch (Exception e) {
 }
 ```
 
-Đây là **mẫu sai chỉ để minh họa**. Nó gom cả lỗi không tìm được constructor, lỗi quyền truy cập và lỗi nghiệp vụ vào cùng một giá trị `null`, làm mất thông tin chẩn đoán. Nếu một factory có semantics trả optional/nullable khi không tạo được object, nó vẫn cần phân biệt lỗi nào thuộc diện xử lý dự kiến.
+This is an **anti-pattern shown only for illustration**. It lumps missing-constructor errors, access errors, and business errors into the same `null` value, destroying diagnostic information. Even if a factory has semantics returning optional/nullable when unable to create an object, it still needs to distinguish which errors fall under expected handling.
 
-## 11. Kiểm thử constructor thất bại
+## 11. Testing Failing Constructors
 
-Khi viết test cho Reflection, hãy kiểm chứng **lớp ngoài và cause**:
+When writing tests for Reflection, verify **both the outer layer and the cause**:
 
 ```java
-// Minh họa dạng assertion với JUnit 5;
-// đặt trong test method, có import và dependency JUnit phù hợp.
+// JUnit 5 assertion example;
+// placed inside a test method with appropriate JUnit imports and dependency.
 InvocationTargetException thrown = assertThrows(
         InvocationTargetException.class,
         () -> ctor.newInstance((Object) null)
@@ -486,56 +486,56 @@ assertInstanceOf(java.io.IOException.class, thrown.getCause());
 assertEquals("name is required", thrown.getCause().getMessage());
 ```
 
-Đây là đoạn test minh họa, **không thuộc chương trình Java chạy độc lập ở mục 3**. `ctor` là `Constructor<Worker>` đã tra cứu, còn `assertThrows`, `assertInstanceOf`, `assertEquals` là API của JUnit Jupiter. Test giúp phân biệt chính xác “Reflection không gọi được” với “constructor đã chạy và báo lỗi”.
+This is an illustrative test snippet, **not part of the standalone runnable Java program in section 3**. `ctor` is the already looked-up `Constructor<Worker>`, while `assertThrows`, `assertInstanceOf`, and `assertEquals` are JUnit Jupiter APIs. Tests help clearly distinguish "Reflection could not invoke" from "the constructor ran and reported an error".
 
-Các test có giá trị thực tế gồm: constructor thành công; checked exception từ thân constructor; unchecked exception; lỗi sai argument Reflection; constructor không tồn tại; access bị chặn; class initialization thất bại. Đối với `Error`, tránh nuốt lỗi một cách vô tình và giữ khả năng đọc cause chain.
+Practical test cases include: successful constructor; checked exception from constructor body; unchecked exception; Reflection wrong-argument error; nonexistent constructor; blocked access; failed class initialization. For `Error`, avoid accidentally swallowing it and preserve readability of the cause chain.
 
-## 12. Những nhầm lẫn thường gặp
+## 12. Common Misconceptions
 
-1. **“Mọi exception từ `Constructor.newInstance` đều nằm trong `InvocationTargetException`.”** Sai. Lỗi tham số, access, abstract type và class initialization có đường báo lỗi riêng.
-2. **“`InvocationTargetException` là lỗi gốc của constructor.”** Sai. Nó là lớp bọc Reflection; dùng `getCause()` để xem lỗi gốc.
-3. **“Constructor ném unchecked exception thì Reflection ném thẳng exception đó.”** Sai với `Constructor.newInstance`: lỗi trong thân constructor thường được bọc dù là checked hay unchecked.
-4. **“`IOException` nằm trong `getExceptionTypes()` nghĩa là constructor chắc chắn thất bại.”** Sai. Đó chỉ là các loại được khai báo trong `throws`.
-5. **“Sai đối số cũng được bọc như lỗi constructor.”** Sai. Sai kiểu/số lượng đối số có thể gây `IllegalArgumentException` từ tầng Reflection trước khi constructor chạy.
-6. **“`NoSuchMethodException` và `InvocationTargetException` giống nhau.”** Sai. Một lỗi là **không tìm được metadata**, một lỗi là **constructor được gọi rồi ném lỗi**.
-7. **“`getDeclaredConstructor` luôn gọi được private constructor.”** Sai. Metadata không tự vượt qua Java/JPMS access checks.
-8. **“Khối static ném exception thì lỗi đó nằm trong `InvocationTargetException`.”** Không mặc định. Class initialization thất bại xảy ra trước constructor, thường cho `ExceptionInInitializerError` hoặc error theo quy tắc JVM.
-9. **“`Class.newInstance()` và `Constructor.newInstance()` có cùng xử lý checked exceptions.”** Sai. `Class.newInstance()` là API deprecated với hành vi lan truyền exception khác.
-10. **“Catch lỗi rồi trả `null` là đủ.”** Dễ làm mất nguyên nhân và che lỗi quan trọng. Giữ type/cause hoặc cung cấp lỗi API rõ ràng.
+1. **"Every exception from `Constructor.newInstance` is inside `InvocationTargetException`."** False. Parameter, access, abstract type, and class initialization errors have their own reporting paths.
+2. **"`InvocationTargetException` is the root error of the constructor."** False. It is a Reflection wrapper; use `getCause()` to see the root error.
+3. **"If a constructor throws an unchecked exception, Reflection throws that exception directly."** False for `Constructor.newInstance`: errors inside the constructor body are normally wrapped whether checked or unchecked.
+4. **"`IOException` in `getExceptionTypes()` means the constructor is guaranteed to fail."** False. Those are merely the types declared in `throws`.
+5. **"Wrong arguments are also wrapped as constructor errors."** False. Wrong argument types/count can cause `IllegalArgumentException` from the Reflection layer before the constructor runs.
+6. **"`NoSuchMethodException` and `InvocationTargetException` are the same."** False. One error is **metadata not found**, while the other is **the constructor was invoked and threw an error**.
+7. **"`getDeclaredConstructor` can always invoke private constructors."** False. Metadata does not automatically bypass Java/JPMS access checks.
+8. **"If a static block throws an exception, that error is inside `InvocationTargetException`."** Not by default. Class initialization failure happens before the constructor, typically yielding `ExceptionInInitializerError` or an error per JVM rules.
+9. **"`Class.newInstance()` and `Constructor.newInstance()` handle checked exceptions identically."** False. `Class.newInstance()` is a deprecated API with different exception-propagation behavior.
+10. **"Catching the error and returning `null` is good enough."** Easily loses the root cause and hides critical errors. Preserve type/cause or provide clear API errors.
 
-## 13. Câu hỏi tự kiểm tra
+## 13. Self-Check Questions
 
-**Câu 1.** Constructor `public Service(String x)` ném `IllegalStateException("bad")` trong thân. Caller gọi qua `Constructor.newInstance("x")` gặp exception ngoài cùng nào?
+**Question 1.** Constructor `public Service(String x)` throws `IllegalStateException("bad")` in its body. Which outermost exception does a caller invoking via `Constructor.newInstance("x")` see?
 
-**Đáp án:** `InvocationTargetException`. `getCause()` cho `IllegalStateException` chứa thông điệp `bad`.
+**Answer:** `InvocationTargetException`. `getCause()` gives `IllegalStateException` containing message `bad`.
 
-**Câu 2.** `Service.class.getConstructor(int.class)` không tìm thấy constructor tương ứng. Lỗi nào phát sinh?
+**Question 2.** `Service.class.getConstructor(int.class)` cannot find a matching constructor. Which error occurs?
 
-**Đáp án:** `NoSuchMethodException` tại lookup. Không có constructor nào được gọi; không có `InvocationTargetException`.
+**Answer:** `NoSuchMethodException` at lookup. No constructor was invoked; there is no `InvocationTargetException`.
 
-**Câu 3.** `Constructor<Service>` nhận `String`, nhưng người gọi truyền `Integer`. Có bắt buộc vào constructor rồi ném lỗi không?
+**Question 3.** `Constructor<Service>` takes `String`, yet the caller passes `Integer`. Does it necessarily enter the constructor before throwing an error?
 
-**Đáp án:** Không. Reflection nhận diện argument không tương thích và có thể ném `IllegalArgumentException` trước khi gọi constructor.
+**Answer:** No. Reflection detects incompatible arguments and can throw `IllegalArgumentException` before calling the constructor.
 
-**Câu 4.** Constructor khai báo `throws IOException` nhưng nhận dữ liệu hợp lệ và hoàn tất. Reflection có tự tạo `InvocationTargetException` vì có khai báo `throws` không?
+**Question 4.** A constructor declares `throws IOException`, receives valid data, and completes. Does Reflection create an `InvocationTargetException` just because `throws` is declared?
 
-**Đáp án:** Không. Constructor chạy thành công thì `newInstance` trả instance. `InvocationTargetException` chỉ phát sinh khi constructor thực sự ném lỗi.
+**Answer:** No. When the constructor runs successfully, `newInstance` returns the instance. `InvocationTargetException` occurs only when the constructor actually throws an error.
 
-**Câu 5.** Static initializer thất bại trước khi constructor chạy. Có chắc `InvocationTargetException` là lớp ngoài cùng không?
+**Question 5.** A static initializer fails before the constructor runs. Is `InvocationTargetException` guaranteed to be the outermost layer?
 
-**Đáp án:** Không. Nếu static initializer ném một exception không thuộc `Error`, JVM thường phát `ExceptionInInitializerError`; class initialization khác với thực thi thân constructor.
+**Answer:** No. If a static initializer throws an exception not of type `Error`, the JVM typically emits `ExceptionInInitializerError`; class initialization differs from executing the constructor body.
 
-**Câu 6.** Khi bắt `InvocationTargetException`, muốn log đúng lỗi gốc và vẫn giữ cause chain thì làm thế nào?
+**Question 6.** When catching `InvocationTargetException`, how do you log the real root error while keeping the cause chain?
 
-**Đáp án:** Đọc `getCause()`, log đầy đủ Throwable/stack trace và khi bọc lại hãy truyền cause vào constructor của exception mới. Không chỉ log `e.getMessage()` rồi bỏ cause.
+**Answer:** Read `getCause()`, log the full Throwable/stack trace, and when re-wrapping, pass the cause into the new exception's constructor. Do not merely log `e.getMessage()` and discard the cause.
 
-## Tài liệu chuẩn
+## Official References
 
-- Java SE API — `java.lang.reflect.Constructor.newInstance(Object...)`: exception contract cho `InstantiationException`, `IllegalAccessException`, `IllegalArgumentException`, `InvocationTargetException`, `ExceptionInInitializerError`.
+- Java SE API — `java.lang.reflect.Constructor.newInstance(Object...)`: exception contract for `InstantiationException`, `IllegalAccessException`, `IllegalArgumentException`, `InvocationTargetException`, `ExceptionInInitializerError`.
 - Java SE API — `java.lang.reflect.InvocationTargetException`: `getCause()`, `getTargetException()`.
 - Java SE API — `java.lang.reflect.Constructor.getExceptionTypes()`, `getGenericExceptionTypes()`, `getDeclaringClass()`.
-- Java SE API — `java.lang.Class.getConstructor`, `getDeclaredConstructor`, và `Class.newInstance()` (deprecated).
+- Java SE API — `java.lang.Class.getConstructor`, `getDeclaredConstructor`, and `Class.newInstance()` (deprecated).
 - Java Language Specification — §12.4 *Initialization of Classes and Interfaces*, §12.5 *Creation of New Class Instances*, §11 *Exceptions*.
-- Java Virtual Machine Specification — §5.5 *Initialization*, quy tắc class initialization failure.
+- Java Virtual Machine Specification — §5.5 *Initialization*, class initialization failure rules.
 
-**Ghi nhớ:** `Constructor.newInstance` bọc **lỗi do constructor thực thi ném ra** trong `InvocationTargetException`; hãy đọc `getCause()` để thấy nguyên nhân. Lỗi tra cứu constructor, kiểm tra đối số, access, abstract class và class initialization là **những trường hợp khác**, phải chẩn đoán theo exception thực tế thay vì gộp chung thành lỗi constructor.
+**Key takeaway:** `Constructor.newInstance` wraps **errors thrown by the executing constructor** in `InvocationTargetException`; read `getCause()` to see the root cause. Constructor lookup, argument checking, access, abstract class, and class initialization errors are **separate cases** that must be diagnosed by their actual exception rather than lumped together as constructor errors.

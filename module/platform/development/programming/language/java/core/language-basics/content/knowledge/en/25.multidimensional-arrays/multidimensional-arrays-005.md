@@ -1,8 +1,8 @@
-# Duyệt bằng chỉ số hoặc enhanced `for` lồng nhau — Java 17+
+# Iterating with Nested Indexed or Enhanced `for` Loops — Java 17+
 
-## 1. Hiểu mảng hai chiều trước khi duyệt
+## 1. Understanding Two-Dimensional Arrays Before Iterating
 
-Trong Java, mảng hai chiều như `int[][] matrix` là **mảng các tham chiếu tới mảng `int[]`**. Có thể hình dung mỗi mảng con là một hàng:
+In Java, a two-dimensional array like `int[][] matrix` is **an array of references to `int[]` arrays**. You can think of each subarray as a row:
 
 ~~~java
 int[][] matrix = {
@@ -14,23 +14,23 @@ int[][] matrix = {
 ~~~
 
 ~~~text
-Hàng 0: [3, 1, 4]  -> length = 3
-Hàng 1: [1, 5]     -> length = 2
-Hàng 2: []         -> length = 0
-Hàng 3: [9]        -> length = 1
+Row 0: [3, 1, 4]  -> length = 3
+Row 1: [1, 5]     -> length = 2
+Row 2: []         -> length = 0
+Row 3: [9]        -> length = 1
 ~~~
 
-- `matrix.length` là số **hàng**: ở đây là `4`.
-- `matrix[i]` là một **mảng một chiều** `int[]`.
-- `matrix[i].length` là số phần tử của **hàng i**, không nhất thiết bằng số phần tử hàng khác.
-- `matrix[i][j]` là phần tử ở hàng `i`, cột/chỉ số trong hàng `j`.
-- Chỉ số bắt đầu từ `0`; hàng `i` có chỉ số phần tử hợp lệ từ `0` đến `matrix[i].length - 1`.
+- `matrix.length` is the number of **rows**: here it is `4`.
+- `matrix[i]` is a **one-dimensional array** `int[]`.
+- `matrix[i].length` is the number of elements in **row i**, not necessarily equal to the number of elements in other rows.
+- `matrix[i][j]` is the element at row `i`, column/in-row index `j`.
+- Indices start at `0`; row `i` has valid element indices from `0` to `matrix[i].length - 1`.
 
-Ví dụ trên là mảng **có các hàng dài khác nhau** (*jagged/ragged array*), một cấu trúc Java hoàn toàn hợp lệ. Vì vậy, khi duyệt phải xét `matrix[i].length`, không tự giả định mọi hàng dài bằng `matrix[0].length`.
+The example above is an array **whose rows have different lengths** (*jagged/ragged array*), a completely valid Java structure. Therefore, when iterating you must check `matrix[i].length`, rather than assuming every row has length `matrix[0].length`.
 
-## 2. Duyệt bằng hai vòng `for` có chỉ số
+## 2. Iterating with Two Indexed `for` Loops
 
-Dạng chuẩn khi cần biết vị trí phần tử:
+The standard form when you need to know element positions:
 
 ~~~java
 for (int i = 0; i < matrix.length; i++) {
@@ -41,7 +41,7 @@ for (int i = 0; i < matrix.length; i++) {
 }
 ~~~
 
-Vòng ngoài chọn **hàng i**. Vòng trong duyệt các phần tử **j của chính hàng i**. Với `matrix` ở mục 1, stdout là:
+The outer loop selects **row i**. The inner loop iterates over the elements **j of that same row i**. With `matrix` from section 1, stdout is:
 
 ~~~text
 [0][0]=3
@@ -52,9 +52,9 @@ Vòng ngoài chọn **hàng i**. Vòng trong duyệt các phần tử **j của 
 [3][0]=9
 ~~~
 
-Hàng 2 rỗng nên vòng trong không chạy; không có phần tử `matrix[2][0]` để in. Thứ tự lặp trên đây là **theo hàng** (*row-major traversal*): xử lý hết hàng hiện tại trước khi sang hàng kế.
+Row 2 is empty, so the inner loop does not run; there is no `matrix[2][0]` element to print. The iteration order above is **row-by-row** (*row-major traversal*): finishing the current row before moving to the next row.
 
-Có thể đặt tên biến rõ nghĩa hơn:
+You can choose clearer variable names:
 
 ~~~java
 for (int rowIndex = 0; rowIndex < matrix.length; rowIndex++) {
@@ -62,16 +62,16 @@ for (int rowIndex = 0; rowIndex < matrix.length; rowIndex++) {
          colIndex < matrix[rowIndex].length;
          colIndex++) {
         int value = matrix[rowIndex][colIndex];
-        // Sử dụng value và cả hai chỉ số khi cần.
+        // Use value and both indices when needed.
     }
 }
 ~~~
 
-**Ưu điểm:** biết được tọa độ, có thể gán `matrix[i][j] = ...`, truy cập hàng xóm hoặc chỉ duyệt một khoảng chỉ số. **Nhược điểm:** cú pháp dài hơn và phải viết điều kiện biên cẩn thận.
+**Advantages:** you know the coordinates, you can assign `matrix[i][j] = ...`, access neighbors, or iterate over only a subrange of indices. **Disadvantages:** longer syntax and you must write boundary conditions carefully.
 
-## 3. Duyệt bằng enhanced `for` lồng nhau
+## 3. Iterating with Nested Enhanced `for` Loops
 
-Enhanced `for` (hay *for-each*) đưa ra lần lượt **giá trị phần tử**, không yêu cầu người viết chỉ số:
+The enhanced `for` (or *for-each*) loop yields **element values** one by one without requiring the programmer to manage indices:
 
 ~~~java
 for (int[] row : matrix) {
@@ -92,34 +92,34 @@ for (int[] row : matrix) {
 9
 ~~~
 
-Cách đọc cú pháp:
+How to read the syntax:
 
-- `for (int[] row : matrix)`: vì `matrix` có kiểu `int[][]`, mỗi phần tử `row` có kiểu **`int[]`**.
-- `for (int value : row)`: vì `row` có kiểu `int[]`, mỗi `value` là một **`int`**.
-- Hàng rỗng không sinh ra lượt lặp bên trong.
-- Thứ tự vẫn là duyệt lần lượt từng hàng, rồi từng giá trị trong hàng.
+- `for (int[] row : matrix)`: because `matrix` has type `int[][]`, each element `row` has type **`int[]`**.
+- `for (int value : row)`: because `row` has type `int[]`, each `value` is an **`int`**.
+- An empty row produces zero inner iterations.
+- The order is still one row after another, then each value within the row.
 
-Điểm mạnh là code ngắn, ít rủi ro viết sai điều kiện `i < length`/`j < length`, phù hợp cho **đọc, tính tổng, đếm, tìm kiếm tuyến tính** khi không cần tọa độ.
+Its strength is concise code with less risk of writing `i < length`/`j < length` conditions incorrectly, making it well-suited for **reading, summing, counting, and linear search** when coordinates are not needed.
 
-Đừng viết `for (int value : matrix)`: phần tử của `int[][]` là `int[]`, không phải `int`; đoạn này không biên dịch.
+Do not write `for (int value : matrix)`: the elements of `int[][]` are `int[]`, not `int`; that code will not compile.
 
-## 4. Chọn kiểu duyệt theo mục đích
+## 4. Choosing the Iteration Style by Purpose
 
-| Nhu cầu | Nên dùng | Lý do |
+| Need | Recommended | Reason |
 |---|---|---|
-| In, cộng hoặc đếm mọi giá trị | Enhanced `for` lồng nhau | Ngắn và rõ |
-| In `(row, column)` của phần tử | Hai `for` có chỉ số | Có tọa độ trực tiếp |
-| Gán lại phần tử kiểu nguyên thủy | `matrix[i][j] = ...` | Ghi vào đúng ô trong mảng |
-| Thay cả mảng con ở hàng `i` | `matrix[i] = new int[]{...}` | Cần chỉ số hàng |
-| Tính tổng từng hàng, trả `int[]` | Kết hợp vòng ngoài có chỉ số, vòng trong enhanced `for` | Cần vị trí kết quả, không cần chỉ số từng giá trị |
-| So sánh hàng xóm `[i][j-1]`, `[i][j+1]` | `for` có chỉ số và kiểm tra biên | Cần truy cập có vị trí |
-| Có hàng dài khác nhau | Cả hai dạng đều được | Luôn dùng độ dài của từng hàng |
+| Print, sum, or count all values | Nested enhanced `for` | Short and clear |
+| Print `(row, column)` of an element | Two indexed `for` loops | Direct access to coordinates |
+| Reassign primitive elements | `matrix[i][j] = ...` | Writes directly to the cell in the array |
+| Replace an entire subarray at row `i` | `matrix[i] = new int[]{...}` | Requires the row index |
+| Compute per-row sums and return `int[]` | Indexed outer loop + enhanced `for` inner loop | Needs the result slot index, not each value's index |
+| Compare neighbors `[i][j-1]`, `[i][j+1]` | Indexed `for` with bounds checks | Requires positional access |
+| Rows of different lengths | Both styles work | Always uses each individual row's length |
 
-Không có kiểu vòng lặp “tốt nhất” trong mọi trường hợp. Chọn cách diễn đạt đúng điều cần làm; hai dạng thường cho cùng thứ tự đọc nếu cùng duyệt từ đầu đến cuối.
+There is no single "best" loop style in all cases. Choose the one that expresses what needs to be done; both styles generally visit elements in the same order when traversing from start to finish.
 
-## 5. Sửa giá trị: bẫy của biến lặp enhanced `for`
+## 5. Modifying Values: The Enhanced `for` Loop Variable Trap
 
-Xét mảng:
+Consider the array:
 
 ~~~java
 int[][] data = {{1, 2}, {3}};
@@ -137,9 +137,9 @@ System.out.println(java.util.Arrays.deepToString(data));
 [[1, 2], [3]]
 ~~~
 
-`value` chỉ là **biến cục bộ** nhận bản sao giá trị `int` của từng phần tử. Gán lại `value` **không ghi ngược** vào `row[j]`.
+`value` is only a **local variable** receiving a copy of each element's `int` value. Reassigning `value` does **not write back** into `row[j]`.
 
-Muốn thay các số nguyên trong mảng, hãy dùng chỉ số:
+To modify the integers inside the array, use indices:
 
 ~~~java
 for (int i = 0; i < data.length; i++) {
@@ -150,13 +150,13 @@ for (int i = 0; i < data.length; i++) {
 System.out.println(java.util.Arrays.deepToString(data));
 ~~~
 
-**Exact stdout (tiếp theo ví dụ):**
+**Exact stdout (continuing the example):**
 
 ~~~text
 [[10, 20], [30]]
 ~~~
 
-Nhưng biến `row` trong `for (int[] row : data)` **chứa tham chiếu tới mảng con đang được duyệt**, nên thao tác **sửa phần tử qua row** vẫn tác động mảng:
+However, the `row` variable in `for (int[] row : data)` **holds a reference to the subarray currently being visited**, so **modifying elements through `row`** still affects the array:
 
 ~~~java
 for (int[] row : data) {
@@ -167,22 +167,22 @@ for (int[] row : data) {
 System.out.println(java.util.Arrays.deepToString(data));
 ~~~
 
-**Exact stdout (tiếp theo ví dụ):**
+**Exact stdout (continuing the example):**
 
 ~~~text
 [[0, 20], [0]]
 ~~~
 
-Phân biệt:
+Distinguish carefully:
 
-- `value = 99;`: chỉ gán lại biến `int` cục bộ.
-- `row[0] = 99;`: gán vào phần tử trong **mảng con hiện có**.
-- `row = new int[]{99};`: chỉ gán lại biến tham chiếu `row` của vòng lặp; **không thay** `data[i]`.
-- `data[i] = new int[]{99};`: thay tham chiếu mảng con thực tế ở hàng `i`.
+- `value = 99;`: only reassigns the local `int` variable.
+- `row[0] = 99;`: assigns into an element of the **existing subarray**.
+- `row = new int[]{99};`: only reassigns the loop's reference variable `row`; **does not change** `data[i]`.
+- `data[i] = new int[]{99};`: replaces the actual subarray reference at row `i`.
 
-## 6. Kết hợp hai cách duyệt: tổng, số phần tử và tổng mỗi hàng
+## 6. Combining Both Traversal Styles: Sum, Element Count, and Per-Row Sums
 
-Tính tổng/số phần tử bằng enhanced `for`:
+Compute total sum and element count with enhanced `for`:
 
 ~~~java
 int sum = 0;
@@ -197,16 +197,16 @@ System.out.println(sum);
 System.out.println(count);
 ~~~
 
-Với `matrix = {{3,1,4},{1,5},{},{9}}`, **exact stdout**:
+With `matrix = {{3,1,4},{1,5},{},{9}}`, **exact stdout**:
 
 ~~~text
 23
 6
 ~~~
 
-Hàng rỗng góp **0 giá trị** vào tổng và số lượng. Số phần tử của mảng có hàng khác độ dài phải tính `count` (hoặc tổng `row.length`), **không** lấy `matrix.length * matrix[0].length`.
+An empty row contributes **0 values** to both the sum and the count. The number of elements in an array with differing row lengths must be computed using `count` (or the sum of `row.length`), **not** `matrix.length * matrix[0].length`.
 
-Khi cần tổng **theo từng hàng** cùng thứ tự với hàng gốc, kết hợp vòng ngoài có chỉ số và vòng trong enhanced `for`:
+When you need **per-row** sums in the same order as the original rows, combine an indexed outer loop with an enhanced `for` inner loop:
 
 ~~~java
 int[] rowSums = new int[matrix.length];
@@ -224,11 +224,11 @@ System.out.println(java.util.Arrays.toString(rowSums));
 [8, 6, 0, 9]
 ~~~
 
-Cả hai cách đều không sửa `matrix` khi chỉ đọc các phần tử.
+Neither approach modifies `matrix` when only reading elements.
 
-## 7. Hàng rỗng, hàng `null` và mảng ngoài `null`
+## 7. Empty Rows, `null` Rows, and a `null` Outer Array
 
-Java có thể tạo mảng hai chiều với một số mảng con **chưa được tạo**:
+Java can create a two-dimensional array where some subarrays have **not yet been created**:
 
 ~~~java
 int[][] partial = new int[3][];
@@ -237,15 +237,15 @@ partial[1] = null;
 partial[2] = new int[0];
 ~~~
 
-`partial.length == 3`, nhưng:
+`partial.length == 3`, but:
 
-| Hàng | Giá trị | Có thể duyệt phần tử ngay? |
+| Row | Value | Can elements be iterated immediately? |
 |---|---|---|
-| `partial[0]` | `[2,3]` | Có, 2 phần tử |
-| `partial[1]` | `null` | **Không**; `.length` hoặc enhanced `for` trên hàng này ném `NullPointerException` |
-| `partial[2]` | Mảng rỗng | Có, vòng trong chạy 0 lượt |
+| `partial[0]` | `[2,3]` | Yes, 2 elements |
+| `partial[1]` | `null` | **No**; `.length` or enhanced `for` on this row throws `NullPointerException` |
+| `partial[2]` | Empty array | Yes, inner loop runs 0 iterations |
 
-Cách duyệt phòng vệ khi dữ liệu có thể chứa hàng `null`:
+Defensive traversal when data may contain `null` rows:
 
 ~~~java
 int total = 0;
@@ -268,11 +268,11 @@ System.out.println(total);
 5
 ~~~
 
-Kiểm tra `row == null` cần làm **trước** khi truy cập `row.length` hoặc duyệt `for (int value : row)`. Nếu ngay cả mảng ngoài có thể null, cũng phải kiểm tra `matrix != null` trước khi đọc `matrix.length` hoặc lặp qua nó.
+The `row == null` check must happen **before** accessing `row.length` or iterating `for (int value : row)`. If even the outer array can be null, you must also check `matrix != null` before reading `matrix.length` or looping over it.
 
-Không phải chương trình nào cũng nên **bỏ qua null**: đôi khi null là lỗi dữ liệu và cần ném `IllegalArgumentException`. Chính sách xử lý do bài toán quyết định; điều quan trọng là **không nhầm null với mảng rỗng**.
+Not every program should **skip null**: sometimes null is a data error and should throw `IllegalArgumentException`. The handling policy is determined by the problem; the important thing is **not to confuse null with an empty array**.
 
-## 8. In mảng nhiều chiều và lỗi thường gặp
+## 8. Printing Multidimensional Arrays and Common Mistakes
 
 ~~~java
 int[][] matrix = {{1, 2}, {3}};
@@ -285,24 +285,24 @@ System.out.println(java.util.Arrays.deepToString(matrix));
 [[1, 2], [3]]
 ~~~
 
-`Arrays.deepToString(matrix)` hiển thị **các mảng con lồng nhau**. `Arrays.toString(matrix)` chỉ áp dụng trực tiếp lên **mảng ngoài**, nên có thể in dạng tham chiếu của các mảng con thay vì toàn bộ giá trị số; không dùng đầu ra ấy để so sánh dữ liệu.
+`Arrays.deepToString(matrix)` displays **nested subarrays**. `Arrays.toString(matrix)` operates directly only on **the outer array**, so it may print reference representations of the subarrays instead of all numeric values; do not use that output for data comparison.
 
-Các bẫy cần tránh:
+Pitfalls to avoid:
 
-| Lỗi | Hậu quả | Cách sửa |
+| Mistake | Consequence | Fix |
 |---|---|---|
-| `j < matrix.length` ở vòng trong | Số hàng không nhất thiết là số phần tử hàng `i` | `j < matrix[i].length` |
-| `j < matrix[0].length` cho mọi hàng | Có thể vượt biên hoặc bỏ sót phần tử | Dùng độ dài của từng hàng |
-| `j <= matrix[i].length` | Đụng chỉ số ngoài mảng | Dùng `<`, không dùng `<=` |
-| Duyệt `for (int v : matrix)` | Sai kiểu: mỗi phần tử mảng ngoài là `int[]` | `for (int[] row : matrix)` |
-| Gán `v = ...` và mong mảng đổi | Chỉ đổi biến vòng lặp | Dùng `matrix[i][j] = ...` |
-| Không kiểm tra hàng `null` khi dữ liệu cho phép | `NullPointerException` | Kiểm tra hàng trước vòng trong |
-| Dùng `matrix.length * matrix[0].length` để đếm mọi phần tử | Sai với hàng khác độ dài, lỗi nếu không có hàng | Cộng `row.length` hoặc đếm trong vòng lặp |
-| In `Arrays.toString(matrix)` | Không cho dạng giá trị lồng nhau dễ đọc | `Arrays.deepToString(matrix)` |
+| `j < matrix.length` in the inner loop | Number of rows is not necessarily the element count of row `i` | `j < matrix[i].length` |
+| `j < matrix[0].length` for all rows | May go out of bounds or miss elements | Use each row's own length |
+| `j <= matrix[i].length` | Hits an out-of-bounds index | Use `<`, not `<=` |
+| Iterating `for (int v : matrix)` | Type mismatch: each outer element is `int[]` | `for (int[] row : matrix)` |
+| Assigning `v = ...` expecting the array to change | Only changes the loop variable | Use `matrix[i][j] = ...` |
+| Not checking for `null` rows when data allows them | `NullPointerException` | Check the row before the inner loop |
+| Using `matrix.length * matrix[0].length` to count all elements | Wrong for differing row lengths, crashes if there are no rows | Sum `row.length` or count in the loop |
+| Printing `Arrays.toString(matrix)` | Does not produce a readable nested value string | `Arrays.deepToString(matrix)` |
 
-## 9. Chương trình Java 17+ hoàn chỉnh
+## 9. Complete Java 17+ Program
 
-Tạo file đúng tên **`NestedArrayIterationDemo.java`**:
+Create a file with the exact name **`NestedArrayIterationDemo.java`**:
 
 ~~~java
 import java.util.Arrays;
@@ -386,19 +386,19 @@ public final class NestedArrayIterationDemo {
 
         for (int[] row : grid) {
             for (int value : row) {
-                value += 100; // Không ghi vào phần tử int gốc.
+                value += 100; // Does not write into the original int element.
             }
         }
         System.out.println("after local value change="
                 + Arrays.deepToString(grid));
 
-        grid[0][1] = 7; // Cần tọa độ thì dùng chỉ số.
+        grid[0][1] = 7; // When coordinates are needed, use indices.
         System.out.println("after indexed change="
                 + Arrays.deepToString(grid));
 
         for (int[] row : grid) {
             if (row.length > 0) {
-                row[0] *= 10; // Sửa qua tham chiếu mảng con.
+                row[0] *= 10; // Modify through the subarray reference.
             }
         }
         System.out.println("after row reference change="
@@ -411,7 +411,7 @@ public final class NestedArrayIterationDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 hoặc mới hơn, không cần thư viện ngoài hay preview features. Chạy terminal trong thư mục chứa file.
+**Requirements:** JDK 17 or newer; no external libraries or preview features needed. Run the terminal in the directory containing the file.
 
 **Bash (Linux/macOS):**
 
@@ -453,14 +453,14 @@ after row reference change=[[30, 7, 4], [10, 5], [], [90]]
 nullable sum=10
 ~~~
 
-**Giải thích đầu ra:** có 4 hàng nhưng tổng cộng chỉ 6 phần tử; tổng `3+1+4+1+5+9=23`. Dùng enhanced `for` để gán lại biến `value` không sửa các số trong `grid`. Ghi `grid[0][1] = 7` đổi một vị trí; sửa `row[0]` thông qua biến hàng kiểu `int[]` cũng đổi dữ liệu của mảng. `withNullRow` được xử lý bằng cách bỏ qua hàng null, do đó `2+3+5=10`.
+**Output explanation:** there are 4 rows, yet only 6 elements in total; the sum is `3+1+4+1+5+9=23`. Reassigning the `value` variable using enhanced `for` does not modify the numbers inside `grid`. Writing `grid[0][1] = 7` changes one position; modifying `row[0]` through the `int[]` row variable also changes the array's data. `withNullRow` is handled by skipping the null row, so `2+3+5=10`.
 
-## 10. Luyện tập và đáp án
+## 10. Practice and Solutions
 
-**A.** Với `int[][] a = {{2, 4}, {}, {6}}`, có bao nhiêu hàng và phần tử?  
-**Đáp án:** `a.length == 3`; tổng số phần tử là `2+0+1=3`, không phải `3*2`.
+**A.** Given `int[][] a = {{2, 4}, {}, {6}}`, how many rows and elements are there?  
+**Answer:** `a.length == 3`; total number of elements is `2+0+1=3`, not `3*2`.
 
-**B.** Thay vòng trong có chỉ số bằng enhanced `for` khi chỉ cần in giá trị:
+**B.** Replace the indexed loops with enhanced `for` when you only need to print values:
 
 ~~~java
 for (int i = 0; i < a.length; i++) {
@@ -470,7 +470,7 @@ for (int i = 0; i < a.length; i++) {
 }
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~java
 for (int[] row : a) {
@@ -480,28 +480,28 @@ for (int[] row : a) {
 }
 ~~~
 
-**C.** Vì sao `for (int value : a)` lỗi khi `a` có kiểu `int[][]`?  
-**Đáp án:** phần tử của `a` có kiểu `int[]`; vòng ngoài phải khai báo `int[] row`.
+**C.** Why does `for (int value : a)` fail when `a` has type `int[][]`?  
+**Answer:** elements of `a` have type `int[]`; the outer loop must declare `int[] row`.
 
-**D.** Với `int[][] a = {{1}, {2,3}}`, đoạn `for(int[] row:a) for(int v:row) v=0;` có đưa mảng về 0 không?  
-**Đáp án:** **không**; chỉ gán lại biến `v`, không sửa mảng. Cần `a[i][j]=0`.
+**D.** Given `int[][] a = {{1}, {2,3}}`, does `for(int[] row:a) for(int v:row) v=0;` zero out the array?  
+**Answer:** **no**; it only reassigns the variable `v`, without modifying the array. You need `a[i][j]=0`.
 
-**E.** Khi nào dùng `matrix[i][j]` thay vì enhanced `for`?  
-**Đáp án:** khi cần **chỉ số**, cần sửa trực tiếp ô có tọa độ, hoặc cần truy cập hàng xóm và giới hạn một khoảng vị trí.
+**E.** When should you use `matrix[i][j]` instead of enhanced `for`?  
+**Answer:** when you need **indices**, need to directly modify cells by coordinate, or need to access neighbors and restrict traversal to a range of positions.
 
-**F.** Nếu `matrix[1] == null`, có được viết `matrix[1].length` không?  
-**Đáp án:** không; sẽ ném `NullPointerException` nếu thực thi. Phải kiểm tra `matrix[1] != null` hoặc xác định chính sách từ chối null.
+**F.** If `matrix[1] == null`, can you write `matrix[1].length`?  
+**Answer:** no; it will throw `NullPointerException` when executed. You must check `matrix[1] != null` or define a policy rejecting null.
 
-## 11. Checklist và kết luận
+## 11. Checklist and Conclusion
 
-- [ ] Hiểu `int[][]` là mảng chứa các mảng `int[]`.
-- [ ] Biết số hàng là `matrix.length`, độ dài hàng i là `matrix[i].length`.
-- [ ] Duyệt bằng chỉ số với `i < matrix.length`, `j < matrix[i].length`.
-- [ ] Duyệt bằng enhanced `for` với `int[] row` ngoài, `int value` trong.
-- [ ] Không giả định mọi hàng có cùng độ dài hoặc đều khác `null`.
-- [ ] Phân biệt gán lại biến enhanced `for` với sửa phần tử qua chỉ số/tham chiếu hàng.
-- [ ] Biết kết hợp outer index với inner enhanced `for` khi cần tổng mỗi hàng.
-- [ ] Dùng `Arrays.deepToString` để in nội dung mảng lồng.
-- [ ] Chạy `NestedArrayIterationDemo.java` trên JDK 17+ và so sánh stdout.
+- [ ] Understand `int[][]` as an array containing `int[]` arrays.
+- [ ] Know that row count is `matrix.length` and row `i`'s length is `matrix[i].length`.
+- [ ] Iterate with indices using `i < matrix.length`, `j < matrix[i].length`.
+- [ ] Iterate with enhanced `for` using `int[] row` outside and `int value` inside.
+- [ ] Do not assume all rows have the same length or are all non-`null`.
+- [ ] Distinguish reassigning an enhanced `for` variable from modifying elements via indices or a row reference.
+- [ ] Know how to combine an outer indexed loop with an inner enhanced `for` loop when computing per-row sums.
+- [ ] Use `Arrays.deepToString` to print nested array contents.
+- [ ] Run `NestedArrayIterationDemo.java` on JDK 17+ and compare stdout.
 
-**Kết luận:** Hai vòng `for` có chỉ số phù hợp khi cần **tọa độ hoặc chỉnh sửa phần tử**, còn enhanced `for` lồng nhau phù hợp khi chỉ cần **duyệt giá trị**. Cả hai đều phải tôn trọng độ dài của **từng hàng** trong mảng Java nhiều chiều; kiểm tra `null` khi mảng con có thể chưa được tạo.
+**Conclusion:** Two indexed `for` loops are suitable when you need **coordinates or element modification**, while nested enhanced `for` loops are suitable when you only need **to read values**. Both must respect the length of **each individual row** in Java multidimensional arrays; check for `null` when subarrays might not have been created.

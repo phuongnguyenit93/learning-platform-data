@@ -1,23 +1,23 @@
-# Đổi tên, obfuscation và thay đổi nội bộ có thể làm hỏng liên kết theo chuỗi trong Java Reflection
+# Renaming, Obfuscation, and Internal Changes Can Break String-Based Binding in Java Reflection
 
-Một điểm mạnh của Java Reflection là có thể tìm lớp, field, constructor hoặc method **theo tên khi chương trình chạy**. Ví dụ `Class.forName("com.example.OrderService")` và `type.getMethod("submit", String.class)` cho phép cấu hình linh hoạt mà không cần tham chiếu trực tiếp đến mọi implementation khi biên dịch.
+One strength of Java Reflection is the ability to look up classes, fields, constructors, or methods **by name at runtime**. For example, `Class.forName("com.example.OrderService")` and `type.getMethod("submit", String.class)` enable flexible configuration without directly referencing every implementation at compile time.
 
-Điểm yếu tương ứng là **chuỗi tên trở thành một hợp đồng ngầm ở runtime**. Đổi tên lớp, chuyển package, đổi tên method, thay chữ ký, rút gọn/obfuscate bytecode hoặc sửa cấu trúc nội bộ có thể khiến cấu hình cũ ngừng hoạt động. Compiler thường không biết một chuỗi trong JSON, YAML, database hoặc annotation tùy ý đang được dùng để tham chiếu đến phần tử Java nào, nên lỗi chỉ xuất hiện **khi đường chạy Reflection được thực thi**.
+The corresponding weakness is that **name strings become an implicit runtime contract**. Renaming a class, moving a package, renaming a method, changing a signature, shrinking/obfuscating bytecode, or altering internal structure can cause old configurations to stop working. The compiler generally does not know which Java element an arbitrary string in JSON, YAML, a database, or an annotation is being used to reference, so failures appear only **when the Reflection path executes**.
 
-Bài học tập trung vào việc nhận diện hợp đồng ngầm đó, giải thích cơ chế lỗi và thiết kế cách liên kết ổn định hơn.
+This lesson focuses on recognizing that implicit contract, explaining the failure mechanisms, and designing more resilient bindings.
 
-## 1. Liên kết theo kiểu ở compile time và liên kết theo chuỗi ở runtime
+## 1. Compile-Time Type-Checked Binding vs. Runtime String-Based Binding
 
-### Gọi có kiểm tra kiểu
+### Type-Checked Invocation
 
 ```java
 OrderService service = new OrderService();
 service.submit("A-100");
 ```
 
-Đây là đoạn minh họa giả định `OrderService` có method `submit(String)`. Compiler phải resolve kiểu và chữ ký. Nếu đổi method từ `submit` sang `placeOrder` nhưng chưa sửa nơi gọi, lỗi thường xuất hiện ngay khi biên dịch lại mã nguồn.
+This illustrative snippet assumes `OrderService` has a `submit(String)` method. The compiler must resolve the type and signature. If the method is renamed from `submit` to `placeOrder` without updating call sites, an error typically appears immediately upon recompiling the source code.
 
-### Gọi qua Reflection với chuỗi
+### Invocation via Reflection with Strings
 
 ```java
 Class<?> type = Class.forName("com.example.OrderService");
@@ -26,12 +26,12 @@ Method method = type.getMethod("submit", String.class);
 method.invoke(service, "A-100");
 ```
 
-Đây là **đoạn minh họa**, không phải một chương trình độc lập; mã thật cần import, xử lý exception và kiểm tra quyền truy cập. Chuỗi `"com.example.OrderService"` và `"submit"` được kiểm tra tại runtime. Nếu lớp đổi thành `com.example.orders.OrderProcessor` hoặc method đổi thành `placeOrder`, compiler **không nhất thiết phát hiện** các chuỗi đã lỗi thời.
+This is an **illustrative snippet**, not a standalone program; real code requires imports, exception handling, and access checks. The strings `"com.example.OrderService"` and `"submit"` are checked at runtime. If the class changes to `com.example.orders.OrderProcessor` or the method changes to `placeOrder`, the compiler **does not necessarily detect** the stale strings.
 
-Sơ đồ:
+Diagram:
 
 ```text
-Mã/config có chuỗi "com.example.OrderService" + "submit"
+Code/config has strings "com.example.OrderService" + "submit"
                          |
                          v
                Runtime Reflection
@@ -41,82 +41,82 @@ Mã/config có chuỗi "com.example.OrderService" + "submit"
                          |
              +-----------+-----------+
              |                       |
-     Tên/chữ ký vẫn đúng      Tên/chữ ký đã đổi
+   Name/signature still valid   Name/signature changed
              |                       |
-       Gọi thành công         Lỗi khi chạy:
+       Call succeeds            Runtime error:
                          ClassNotFoundException
                          NoSuchMethodException
-                         ... 
+                         ...
 ```
 
-**Không phải mọi thao tác Reflection đều phụ thuộc chuỗi.** `SomeType.class`, `obj.getClass()` và `Method` đã lấy sẵn không bắt đầu bằng việc tra cứu tên chuỗi. Tuy nhiên, các kiểu đó vẫn phải thỏa yêu cầu tương thích runtime nếu phần implementation/bytecode bị thay đổi.
+**Not every Reflection operation depends on strings.** `SomeType.class`, `obj.getClass()`, and an already obtained `Method` do not begin with a string-name lookup. Even so, those types must still satisfy runtime compatibility requirements if implementations/bytecode are modified.
 
-## 2. Những thay đổi nào làm liên kết dễ gãy?
+## 2. Which Changes Make Bindings Brittle?
 
-| Thay đổi | Điểm dễ hỏng | Hậu quả thường gặp |
+| Change | Fragile point | Common consequence |
 |---|---|---|
-| Đổi tên class | `Class.forName("pkg.OldType")` | `ClassNotFoundException` |
-| Di chuyển package | Chuỗi tên nhị phân cũ `pkg.OldType` | Không tìm được lớp, trừ khi có lớp tương thích giữ tên cũ |
-| Đổi tên method | `getMethod("oldName", ...)` | `NoSuchMethodException` |
-| Đổi kiểu hoặc số tham số | `getMethod("run", String.class)` | Không resolve được chữ ký cũ |
-| Đổi constructor | `getDeclaredConstructor(...)` | `NoSuchMethodException` hoặc lỗi instantiation |
-| Đổi tên field | `getDeclaredField("oldField")` | `NoSuchFieldException` |
-| Chuyển field/method lên superclass | `getDeclaredField`/`getDeclaredMethod` trên lớp cũ | Không còn phần tử **declared** tại nơi tra cứu |
-| Đổi mức visibility | `getMethod` chỉ tra cứu public method; `invoke` còn chịu kiểm tra truy cập | Không tìm được hoặc không có quyền gọi |
-| Đổi tên sau obfuscation | Metadata runtime đổi thành tên đã bị biến đổi | Chuỗi gốc không khớp với tên runtime |
-| Shrink/loại bỏ code hoặc metadata | Plugin/annotation/method chỉ được truy cập động | Thành viên vắng mặt hoặc annotation không còn quan sát được |
-| Thay đổi module/package accessibility | Method còn tồn tại nhưng reflection bị ràng buộc | `IllegalAccessException` / `InaccessibleObjectException` |
+| Rename class | `Class.forName("pkg.OldType")` | `ClassNotFoundException` |
+| Move package | Old binary name string `pkg.OldType` | Class cannot be found, unless a compatibility class keeps the old name |
+| Rename method | `getMethod("oldName", ...)` | `NoSuchMethodException` |
+| Change parameter types or count | `getMethod("run", String.class)` | Cannot resolve old signature |
+| Change constructor | `getDeclaredConstructor(...)` | `NoSuchMethodException` or instantiation failure |
+| Rename field | `getDeclaredField("oldField")` | `NoSuchFieldException` |
+| Move field/method to superclass | `getDeclaredField`/`getDeclaredMethod` on the old class | Element is no longer **declared** at the lookup site |
+| Change visibility level | `getMethod` only looks up public methods; `invoke` also faces access checks | Cannot find member or lacks permission to invoke |
+| Rename via obfuscation | Runtime metadata is renamed to transformed names | Original string no longer matches runtime name |
+| Shrink/remove code or metadata | Plugins/annotations/methods accessed only dynamically | Member missing or annotation no longer observable |
+| Change module/package accessibility | Method still exists, but reflection is restricted | `IllegalAccessException` / `InaccessibleObjectException` |
 
-**Quan trọng:** `Class.getMethod(name, parameterTypes...)` tìm **public method** (kể cả thành viên được kế thừa theo API), trong khi `getDeclaredMethod(...)` tìm method khai báo ngay trên class, kể cả non-public. Hai hàm không tương đương. Chữ ký tra cứu khớp chính xác các kiểu tham số qua `Class<?>`: `int.class` và `Integer.class` khác nhau; `String.class` và `Object.class` cũng khác nhau.
+**Important:** `Class.getMethod(name, parameterTypes...)` looks up **public methods** (including inherited members per the API), whereas `getDeclaredMethod(...)` looks up methods declared directly on the class, including non-public ones. The two methods are not equivalent. Lookup signatures match parameter types strictly via `Class<?>`: `int.class` and `Integer.class` differ; `String.class` and `Object.class` also differ.
 
-Giả sử method gốc:
+Suppose the original method is:
 
 ```java
 public void execute(String id) {}
 ```
 
-Sau refactor:
+After refactoring:
 
 ```java
 public void execute(Object id) {}
 ```
 
-Một lời gọi `getMethod("execute", String.class)` vẫn thất bại dù `String` là một `Object`; Reflection không dùng quy tắc overload resolution từ mã nguồn để tự tìm `execute(Object)`.
+A call to `getMethod("execute", String.class)` still fails even though a `String` is an `Object`; Reflection does not use source-level overload resolution rules to automatically pick `execute(Object)`.
 
-## 3. Obfuscation và shrinking thực sự làm gì?
+## 3. What Do Obfuscation and Shrinking Actually Do?
 
-Các công cụ như ProGuard/R8 hoặc các bộ biến đổi bytecode khác có thể, tùy cấu hình:
+Tools such as ProGuard/R8 or other bytecode transformers can, depending on configuration:
 
-- **Đổi tên** class, package, field, method thành tên ngắn hoặc khó đọc.
-- **Loại bỏ** class/method bị xem là không được dùng.
-- **Biến đổi hoặc loại bỏ metadata/attributes** mà Reflection hoặc framework dựa vào.
-- Áp dụng quy tắc **keep** cho lớp và thành viên cần giữ tên/hình dạng; một số công cụ có khả năng thích nghi các chuỗi tên trong trường hợp hỗ trợ, nhưng không thể mặc định mọi chuỗi cấu hình/database đều được cập nhật.
+- **Rename** classes, packages, fields, and methods to short or unreadable names.
+- **Remove** classes/methods deemed unused.
+- **Transform or strip metadata/attributes** relied upon by Reflection or frameworks.
+- Apply **keep** rules to classes and members whose names/shapes must be preserved; some tools can adapt name strings in supported cases, though you cannot assume every config/database string will be updated.
 
-Ví dụ trước obfuscation có `com.example.plugins.ReportPlugin` với method `generate()`. Sau biến đổi, binary name có thể thành `a.b.C`, method có thể thành `a()`. Khi chạy mã:
+For example, before obfuscation there is `com.example.plugins.ReportPlugin` with method `generate()`. After transformation, the binary name might become `a.b.C`, and the method might become `a()`. When running:
 
 ```java
 Class.forName("com.example.plugins.ReportPlugin");
 ```
 
-runtime tìm **tên được truyền vào**; nó không tự suy ra `a.b.C` là hậu thân của tên cũ.
+the runtime searches for **the string passed in**; it does not automatically deduce that `a.b.C` is the successor of the old name.
 
-Phân biệt ba yếu tố:
+Distinguish three factors:
 
-1. **Bytecode đang được chạy:** chứa tên runtime thực tế sau khi transform.
-2. **Chuỗi/metadata sử dụng để tìm:** có thể vẫn là tên cũ trong file cấu hình, annotation, dữ liệu lưu lâu dài hay literal.
-3. **Mapping/keep rules của build:** chỉ dẫn công cụ biến đổi giữ hoặc ánh xạ những phần nhất định.
+1. **Bytecode actually running:** contains the real runtime names after transformation.
+2. **Strings/metadata used for lookup:** may still contain old names in config files, annotations, persisted data, or literals.
+3. **Build mapping/keep rules:** instruct the transformer to keep or map specific parts.
 
-Vì vậy, câu “thư viện bị obfuscate thì Reflection luôn hỏng” là quá mạnh. Nó **có thể vẫn hoạt động** nếu tên cần tìm được giữ nguyên, metadata cần thiết được bảo toàn hoặc các liên kết được cập nhật đúng theo khả năng của công cụ. Ngược lại, việc ứng dụng chạy bình thường ở build debug **không chứng minh** build release đã shrink/obfuscate vẫn hoạt động.
+Thus, saying "if a library is obfuscated, Reflection always breaks" is too strong. It **can still work** if the required names are kept, needed metadata is preserved, or bindings are updated appropriately according to tool capabilities. Conversely, an app running fine in a debug build **does not prove** the shrunk/obfuscated release build will still work.
 
-**Các dạng metadata khác cũng cần xét:** annotation phục vụ discovery phải có `@Retention(RetentionPolicy.RUNTIME)` mới được đọc ở runtime; shrinker phải bảo toàn lớp/thành viên và metadata cần thiết theo đúng cấu hình cụ thể. Parameter name (nếu ứng dụng dựa vào) còn phụ thuộc cách biên dịch như `-parameters` và metadata sau biến đổi; không được coi nó là ID nghiệp vụ bền vững.
+**Other forms of metadata must also be considered:** annotations used for discovery must have `@Retention(RetentionPolicy.RUNTIME)` to be read at runtime; shrinkers must preserve the classes/members and required metadata according to exact concrete configuration. Parameter names (if the app relies on them) also depend on compilation flags such as `-parameters` and post-transform metadata; they must not be treated as durable business IDs.
 
-## 4. Ví dụ Java 17+: refactor method làm hỏng lookup cũ, ID ổn định vẫn dùng được
+## 4. Java 17+ Example: Refactoring a Method Breaks Old Lookup While a Stable ID Still Works
 
-Ví dụ này giả định một phiên bản cũ có `OldInvoiceService.charge(int)`. Sau refactor, implementation hiện tại đổi thành `InvoiceService.capture(int)`. Ta vẫn có thể biên dịch mã nguồn mới vì tên cũ chỉ nằm trong chuỗi, nhưng tra cứu bằng chuỗi cũ sẽ thất bại tại runtime.
+This example assumes an earlier version had `OldInvoiceService.charge(int)`. After refactoring, the current implementation changed to `InvoiceService.capture(int)`. The new source still compiles because the old names sit inside strings, yet looking them up with the old strings fails at runtime.
 
-Đồng thời, ta dùng annotation `@Operation(id = "invoice.charge")` như **ID logic ổn định**, tách contract công khai khỏi tên Java của implementation.
+At the same time, we use an annotation `@Operation(id = "invoice.charge")` as a **stable logical ID**, decoupling the public contract from the Java implementation name.
 
-Lưu toàn bộ chương trình thành **`StringBindingDemo.java`**:
+Save the entire program as **`StringBindingDemo.java`**:
 
 ```java
 import java.lang.annotation.ElementType;
@@ -171,24 +171,24 @@ public class StringBindingDemo {
     public static void main(String[] args) throws Exception {
         InvoiceService service = new InvoiceService();
 
-        // Kiểm tra kiểu khi biên dịch: tên mới được tham chiếu trực tiếp.
+        // Compile-time type checking: the new name is referenced directly.
         System.out.println("Typed: " + service.capture(150));
 
-        // Chuỗi method từ phiên bản cũ vẫn biên dịch được, nhưng lookup hỏng.
+        // Method string from the old version still compiles, but lookup fails.
         try {
             InvoiceService.class.getMethod("charge", int.class);
         } catch (NoSuchMethodException e) {
             System.out.println("Old method: NoSuchMethodException");
         }
 
-        // Chuỗi binary name cũ trong cấu hình cũng không được tự đổi.
+        // Old binary name string in config is not automatically updated either.
         try {
             Class.forName("StringBindingDemo$OldInvoiceService");
         } catch (ClassNotFoundException e) {
             System.out.println("Old class: ClassNotFoundException");
         }
 
-        // API công khai tham chiếu ID logic, không cần biết tên method.
+        // Public API references a logical ID without needing to know the method name.
         Method action = discover(InvoiceService.class).get("invoice.charge");
         if (action == null) {
             throw new IllegalStateException("Missing operation");
@@ -200,14 +200,14 @@ public class StringBindingDemo {
 }
 ```
 
-Biên dịch và chạy (Java 17+):
+Compile and run (Java 17+):
 
 ```bash
 javac --release 17 -encoding UTF-8 StringBindingDemo.java
 java StringBindingDemo
 ```
 
-**Stdout kỳ vọng:**
+**Expected stdout:**
 
 ```text
 Typed: Captured 150
@@ -217,60 +217,60 @@ Stable ID: Captured 150
 Resolved method: capture
 ```
 
-**Giải thích:**
+**Explanation:**
 
-1. Lời gọi `service.capture(150)` được compiler kiểm tra theo API mới. Nếu bạn lại viết `service.charge(150)`, mã nguồn mới sẽ không biên dịch vì method đã đổi tên.
-2. Chuỗi `"charge"` vẫn là literal hợp lệ nên compiler không cảnh báo. `getMethod` chỉ tìm member theo đúng tên/chữ ký runtime và ném `NoSuchMethodException`.
-3. Tên `StringBindingDemo$OldInvoiceService` không còn tồn tại: `Class.forName` không biết một lớp đã được đổi tên từ phiên bản trước.
-4. Discovery tìm method theo annotation có ID logic `"invoice.charge"`; tên Java thật là `capture`. Hai tên phục vụ **hai mục đích** khác nhau.
-5. ID trong annotation không phải “phép thuật chống obfuscation”: mã trên vẫn cần method/annotation được giữ lại và discover thành công sau quá trình biến đổi bytecode.
+1. The call `service.capture(150)` is checked by the compiler against the new API. If you wrote `service.charge(150)` again, the new source would fail to compile because the method was renamed.
+2. The string `"charge"` remains a valid string literal so the compiler gives no warning. `getMethod` searches strictly by runtime name/signature and throws `NoSuchMethodException`.
+3. The name `StringBindingDemo$OldInvoiceService` no longer exists: `Class.forName` does not know a class was renamed from an earlier version.
+4. Discovery locates the method by an annotation carrying the logical ID `"invoice.charge"`; the actual Java name is `capture`. The two names serve **two distinct purposes**.
+5. An ID in an annotation is not "anti-obfuscation magic": the code above still requires the method/annotation to be retained and successfully discovered after bytecode transformation.
 
-**Giới hạn của ví dụ:** Registry mới chỉ chứng minh liên kết qua ID, không tự cấp quyền gọi method. Ứng dụng thật cần kiểm soát quyền, schema input, target instance, phiên bản API và tính tương thích của ID. Mã ví dụ chạy trong unnamed module/classpath với method public và class public; các module có encapsulation chặt hơn cần cấu hình truy cập phù hợp.
+**Limitations of the example:** The registry only demonstrates ID-based binding, without granting method invocation authorization by itself. Real applications must enforce permissions, input schemas, target instances, API versioning, and ID compatibility. The example runs in an unnamed module/classpath with public methods and public classes; modules with stricter encapsulation require appropriate access configuration.
 
-## 5. Các giải pháp giảm phụ thuộc vào chuỗi tên nội bộ
+## 5. Solutions to Reduce Dependence on Internal Name Strings
 
-### A. Dùng lời gọi và tham chiếu có kiểm tra kiểu
+### A. Use Type-Checked Calls and References
 
-Khi không cần plugin động, ưu tiên API thường:
+When dynamic plugins are unnecessary, prefer ordinary APIs:
 
 ```java
 InvoiceService service = new InvoiceService();
 String output = service.capture(150);
 ```
 
-Hoặc dùng method reference với functional interface:
+Or use a method reference with a functional interface:
 
 ```java
 java.util.function.IntFunction<String> action = service::capture;
 String output = action.apply(150);
 ```
 
-Đây là **đoạn minh họa** dùng kiểu `InvoiceService` từ ví dụ trên. Compiler kiểm tra method đang tồn tại và chữ ký tương thích khi build. Refactor IDE thường có thể cập nhật usage được nhận diện như symbol; chuỗi tự do trong YAML/database vẫn cần migration riêng.
+This is an **illustrative snippet** using `InvoiceService` from the example above. The compiler verifies that the method exists and the signature matches at build time. IDE refactoring can typically update usages recognized as symbols; free-form strings in YAML/databases still require separate migration.
 
-### B. Tách ID công khai ổn định khỏi tên implementation
+### B. Separate Stable Public IDs from Implementation Names
 
-Thay vì để cấu hình ghi tên nội bộ:
+Instead of having configuration record internal names:
 
 ```yaml
-# Liên kết giòn: đổi tên class hoặc method sẽ làm hỏng cấu hình
+# Fragile binding: renaming the class or method breaks configuration
 handlerClass: "com.example.billing.InvoiceService"
 handlerMethod: "capture"
 ```
 
-Một registry nội bộ có thể cung cấp ID:
+An internal registry can expose an ID:
 
 ```yaml
-# Liên kết theo hợp đồng ứng dụng, do registry quyết định implementation
+# Binding by application contract; the registry resolves the implementation
 operationId: "invoice.charge"
 ```
 
-Ứng dụng dịch `invoice.charge` thành handler được đăng ký. Người bảo trì có thể đổi tên hoặc cấu trúc class bên trong mà vẫn giữ ID này. **Điều kiện** là ID thực sự được quản trị như một contract ổn định, registry được dựng/kiểm tra đúng và không bị xóa/mất metadata sau khi đóng gói.
+The application translates `invoice.charge` into the registered handler. Maintainers can rename or restructure internal classes while keeping this ID. The **condition** is that the ID is genuinely managed as a stable contract, the registry is built/validated properly, and metadata is not stripped/lost during packaging.
 
-Các ID nghiệp vụ cũng có thể cần version như `invoice.charge.v2` nếu input/output hoặc ngữ nghĩa thay đổi không tương thích; đừng cố giữ một ID duy nhất khi nghĩa của action đã thay đổi căn bản.
+Business IDs may also need versions such as `invoice.charge.v2` if inputs/outputs or semantics change incompatibly; do not cling to a single ID once an action's meaning has fundamentally changed.
 
-### C. Dùng interface hoặc ServiceLoader khi phù hợp
+### C. Use Interfaces or ServiceLoader When Appropriate
 
-Một interface Java công khai tạo contract có kiểm tra kiểu:
+A public Java interface establishes a type-checked contract:
 
 ```java
 public interface InvoiceOperation {
@@ -278,55 +278,55 @@ public interface InvoiceOperation {
 }
 ```
 
-Đây là mảnh mã mô tả interface riêng, không phải phần bổ sung cần dán vào file demo ở trên. Với nhiều provider, `ServiceLoader<InvoiceOperation>` có thể khám phá implementations thông qua cấu hình provider/module đúng quy ước. Cơ chế này vẫn có **hợp đồng tên và packaging** trong provider configuration, nên cấu hình `META-INF/services` hoặc khai báo `provides ... with ...` cần được giữ/cập nhật đúng khi refactor và obfuscation.
+This is a separate interface snippet, not an addition to paste into the demo file above. With multiple providers, `ServiceLoader<InvoiceOperation>` can discover implementations through properly formatted provider/module configurations. This mechanism still carries **name and packaging contracts** in provider configuration, so `META-INF/services` entries or `provides ... with ...` declarations must be kept/updated properly during refactoring and obfuscation.
 
-### D. Keep rules và mapping khi bắt buộc dùng Reflection
+### D. Keep Rules and Mappings When Reflection Is Unavoidable
 
-Nếu framework yêu cầu tra cứu theo binary name hoặc tên method, cần ghi rõ những symbol/attributes là contract của Reflection; cấu hình shrinker/obfuscator cho **đúng phiên bản công cụ** để giữ chúng. Không nên giả định một quy tắc keep của công cụ này áp dụng y hệt sang công cụ khác.
+If a framework requires looking up by binary name or method name, explicitly document which symbols/attributes form the Reflection contract; configure the shrinker/obfuscator for **the exact tool version in use** to preserve them. Do not assume a keep rule from one tool applies identically to another.
 
-Khi lưu class name hoặc method name ra database, file cấu hình hay event message, hãy lên kế hoạch migration và tương thích ngược: alias cho ID cũ, chuyển cấu hình, version schema hoặc thời gian chuyển tiếp. Giữ mapping obfuscation phục vụ phân tích stack trace và đối chiếu release, nhưng **mapping không tự sửa các chuỗi cũ** trong cơ sở dữ liệu.
+When persisting class names or method names to databases, config files, or event messages, plan migrations and backward compatibility: aliases for old IDs, configuration migration, schema versions, or transition periods. Keep obfuscation mappings for stack-trace analysis and release cross-referencing, though **mappings do not automatically rewrite old strings** inside databases.
 
-## 6. Tên lớp, method và chữ ký: các bẫy riêng
+## 6. Class Names, Methods, and Signatures: Specific Pitfalls
 
-### Binary name của nested class
+### Binary Names of Nested Classes
 
-Đối với nested class, tên mã nguồn dạng `Outer.Inner` có thể khác binary name `Outer$Inner`. Ví dụ:
+For nested classes, source names like `Outer.Inner` can differ from binary names `Outer$Inner`. For example:
 
 ```java
 Class<?> type = Class.forName("StringBindingDemo$InvoiceService");
 ```
 
-Trong ví dụ không có package, tên trên hợp lệ. Nếu chuyển class sang package, cần thêm package vào chuỗi. Chèn dấu `$` vào mọi dấu chấm là sai vì dấu chấm phân cách package vẫn phải giữ.
+In an unpackaged example, that name is valid. If the class moves into a package, the package must be prepended to the string. Replacing every dot with `$` is wrong because dots separating package segments must remain.
 
-### Method overload và chữ ký
+### Method Overloads and Signatures
 
-`getMethod("process", String.class)` và `getMethod("process", Object.class)` là **hai lookup khác nhau**. `getMethod` không chọn overload bằng khả năng tự động chuyển đổi tham số như lời gọi Java thông thường. Ngoài ra Reflection lookup không dùng **kiểu trả về** trong danh sách tham số tra cứu; thay đổi return type có thể cần kiểm tra thêm trước khi `invoke`/cast kết quả.
+`getMethod("process", String.class)` and `getMethod("process", Object.class)` are **two different lookups**. `getMethod` does not select an overload via automatic argument conversion like an ordinary Java call. Moreover, Reflection lookup does not include the **return type** in the lookup parameter list; changing a return type may require extra checks before `invoke`/casting the result.
 
-### Inherited, private và module
+### Inherited, Private, and Modules
 
-- `getMethod` trả public member theo hợp đồng API, có thể là method kế thừa.
-- `getDeclaredMethod` tìm method khai báo trực tiếp; chuyển logic lên superclass có thể làm lookup này thất bại.
-- `getDeclaredMethod` nhìn thấy method private nhưng không bảo đảm gọi được. `setAccessible(true)` có thể không được cho phép bởi module encapsulation, và không nên dùng như chiến lược sửa mọi lỗi thiết kế.
+- `getMethod` returns public members per the API contract, which may include inherited methods.
+- `getDeclaredMethod` searches directly declared methods; moving logic to a superclass can break this lookup.
+- `getDeclaredMethod` can see private methods but does not guarantee they can be invoked. `setAccessible(true)` may be disallowed by module encapsulation and should not be used as a fix-all for design flaws.
 
-### Binary compatibility khác source compatibility
+### Binary Compatibility Differs from Source Compatibility
 
-Một thư viện có thể được cập nhật trong khi client vẫn chạy bytecode **đã biên dịch trước đó**. Nếu xóa hoặc đổi tên method mà bytecode cũ vẫn tham chiếu trực tiếp đến method đó, lỗi linkage như `NoSuchMethodError` có thể xuất hiện (tùy thay đổi và quá trình resolve), khác với `NoSuchMethodException` do Reflection tra cứu bằng chuỗi.
+A library can be updated while clients still run **previously compiled** bytecode. Removing or renaming a method still directly referenced by old bytecode can cause linkage errors such as `NoSuchMethodError` (depending on the change and resolution process), unlike `NoSuchMethodException` from string-based Reflection lookups.
 
-Một bản sửa làm compile lại toàn bộ mã nguồn thành công **chưa đủ** để bảo đảm plugin, dữ liệu hoặc binary client phiên bản cũ còn chạy.
+A fix that makes the entire source tree recompile cleanly **is not enough** to guarantee old plugins, persisted data, or older binary clients still run.
 
-## 7. Kiểm thử bắt buộc ở đúng artifact runtime
+## 7. Mandatory Testing Against the Actual Runtime Artifact
 
-Với thành phần có liên kết bằng chuỗi, unit test chỉ chạy trên mã nguồn chưa obfuscate thường bỏ sót lỗi. Một quy trình kiểm tra hiệu quả:
+For components with string-based bindings, unit tests running only on unobfuscated source code often miss failures. An effective verification workflow:
 
-1. **Liệt kê các điểm liên kết động:** `Class.forName`, `getMethod`, `getDeclaredField`, tên provider, tên handler trong YAML/JSON/database, annotation-based discovery và serialization mapping.
-2. **Phân loại contract:** symbol nào là chi tiết nội bộ có thể đổi, tên/ID nào được công bố cho plugin hoặc dữ liệu đã lưu.
-3. **Refactor an toàn:** cập nhật tham chiếu kiểu; tìm trong configuration, resource và dữ liệu triển khai, không chỉ Java source. Với dữ liệu đã lưu, thực hiện migration có kiểm tra.
-4. **Kiểm tra bản build sau shrink/obfuscation:** dùng chính JAR/AAB/artifact deploy, không chỉ debug build. Thực hiện discovery và gọi một tập hợp action đại diện.
-5. **Kiểm tra chữ ký:** tên, parameter types, return type, visibility, annotation runtime, constructor, module access và các ngoại lệ.
-6. **Kiểm tra tương thích:** chạy config/plugin/binary client ở phiên bản đã hỗ trợ; nếu có thay đổi contract thì đưa ra version/migration/alias rõ ràng.
-7. **Theo dõi lỗi runtime:** log action ID, phiên bản artifact và nguyên nhân được phân loại, không log dữ liệu nhạy cảm hay giả định mọi lỗi Reflection đều là `ClassNotFoundException`.
+1. **Inventory dynamic binding points:** `Class.forName`, `getMethod`, `getDeclaredField`, provider names, handler names in YAML/JSON/databases, annotation-based discovery, and serialization mappings.
+2. **Classify contracts:** which symbols are mutable internal details, and which names/IDs are published to plugins or stored data.
+3. **Refactor safely:** update type references; search configuration, resources, and deployment data—not just Java source. For stored data, perform tested migrations.
+4. **Test the post-shrink/obfuscation build:** use the actual deployed JAR/AAB/artifact, not just a debug build. Execute discovery and invoke a representative set of actions.
+5. **Verify signatures:** names, parameter types, return types, visibility, runtime annotations, constructors, module access, and exceptions.
+6. **Test compatibility:** run supported versions of configs/plugins/binary clients; if contracts change, provide clear versioning/migrations/aliases.
+7. **Monitor runtime errors:** log action IDs, artifact versions, and categorized causes, without logging sensitive data or assuming every Reflection failure is `ClassNotFoundException`.
 
-Ví dụ assertion trong integration test (đoạn minh họa):
+Example assertion in an integration test (illustrative snippet):
 
 ```java
 Class<?> type = Class.forName("com.example.billing.InvoiceService");
@@ -334,65 +334,65 @@ Method method = type.getMethod("capture", int.class);
 assert method.getReturnType() == String.class;
 ```
 
-`assert` trong Java **mặc định có thể bị tắt** nếu JVM không chạy với `-ea`. Trong test thực tế hãy dùng assertion của JUnit và phải kiểm tra trên artifact đã biến đổi/đóng gói; chuỗi tên ở ví dụ chỉ là placeholder cho class của dự án.
+In Java, `assert` **may be disabled by default** unless the JVM runs with `-ea`. In real tests, use JUnit assertions and run them against the transformed/packaged artifact; the name string in the example is just a placeholder for your project's class.
 
-## 8. Chẩn đoán sự cố khi liên kết theo chuỗi hỏng
+## 8. Diagnosing Failures When String-Based Binding Breaks
 
-| Lỗi | Gợi ý chẩn đoán |
+| Error | Diagnostic hints |
 |---|---|
-| `ClassNotFoundException` | Binary name sai, package đổi, class loader không thấy lớp, class bị shrink/obfuscate |
-| `NoSuchMethodException` | Sai tên, parameter types, dùng nhầm `getMethod` với `getDeclaredMethod`, method bị đổi/xóa |
-| `NoSuchFieldException` | Field đổi tên hoặc không được khai báo tại class đang dùng `getDeclaredField` |
-| `IllegalAccessException` | Method hiện diện nhưng caller không có quyền invoke theo luật access |
-| `InaccessibleObjectException` | Không thể mở quyền truy cập phản chiếu do module encapsulation hoặc giới hạn khác |
-| `InvocationTargetException` | Lookup thành công, nhưng **code được gọi** đã ném exception; đọc `getCause()` |
-| `NoSuchMethodError` | Lỗi linkage của bytecode client/runtime không tương thích, khác lỗi lookup Reflection |
-| `NullPointerException` khi tìm annotation | Có thể annotation vắng do retention không phải RUNTIME, metadata bị strip hoặc tra cứu sai chỗ; xác minh từng nguyên nhân |
-| `ClassCastException` | Lookup có thể thành công nhưng kiểu instance hoặc return value không còn phù hợp |
+| `ClassNotFoundException` | Wrong binary name, package changed, class loader cannot see the class, class shrunk/obfuscated |
+| `NoSuchMethodException` | Wrong name, wrong parameter types, confusing `getMethod` with `getDeclaredMethod`, method renamed/removed |
+| `NoSuchFieldException` | Field renamed or not declared on the class passed to `getDeclaredField` |
+| `IllegalAccessException` | Method exists, but the caller lacks permission to invoke under access rules |
+| `InaccessibleObjectException` | Cannot open reflective access due to module encapsulation or other restrictions |
+| `InvocationTargetException` | Lookup succeeded, but the **invoked code** threw an exception; inspect `getCause()` |
+| `NoSuchMethodError` | Bytecode linkage error from incompatible client/runtime, distinct from Reflection lookup failure |
+| `NullPointerException` when looking up an annotation | Annotation may be missing because retention is not RUNTIME, metadata was stripped, or lookup targeted the wrong element; verify each cause |
+| `ClassCastException` | Lookup may have succeeded, but the instance type or return value no longer matches |
 
-**Đừng “sửa nhanh” bằng cách bắt mọi exception rồi im lặng bỏ qua.** Khi registry không tải được handler thiết yếu, nên báo lỗi tên/ID/phiên bản rõ và dừng cấu hình sai. Một lỗi `InvocationTargetException` cũng không có nghĩa tên method sai: có thể chính nghiệp vụ bị lỗi.
+**Do not "quick-fix" by catching every exception and silently ignoring it.** When a registry fails to load an essential handler, report the name/ID/version clearly and fail on invalid configuration. An `InvocationTargetException` also does not mean the method name was wrong: the business logic itself may have failed.
 
-## 9. Cách chọn trong thiết kế lâu dài
+## 9. Choosing Approaches for Long-Term Design
 
-| Nhu cầu | Cách ưu tiên |
+| Need | Preferred approach |
 |---|---|
-| Gọi code biết tại compile time | Direct method call, interface, method reference |
-| Chọn hành động theo tên nghiệp vụ từ client/config | Registry với **ID công khai ổn định** và schema có version |
-| Khám phá plugin implementations | Interface/ServiceLoader hoặc registry rõ ràng, kiểm tra packaging |
-| Framework buộc tra cứu tên class/method | Keep rules + runtime integration test với artifact phát hành |
-| Dữ liệu cũ chứa tên Java | Migration/alias và kiểm tra tương thích ngược |
-| Cần dùng Reflection nhưng tránh khởi tạo class sớm | `Class.forName(name, false, loader)` khi phù hợp, chỉ invoke sau bước kiểm tra |
+| Calling code known at compile time | Direct method call, interface, method reference |
+| Selecting actions by business name from clients/configs | Registry with **stable public IDs** and versioned schema |
+| Discovering plugin implementations | Interface/ServiceLoader or explicit registry, verifying packaging |
+| Framework forced to look up class/method names | Keep rules + runtime integration tests on release artifacts |
+| Legacy data containing Java names | Migrations/aliases and backward-compatibility testing |
+| Need Reflection while avoiding eager class initialization | `Class.forName(name, false, loader)` when appropriate; invoke only after validation |
 
-Một thiết kế tốt giúp **internal refactor** vẫn linh hoạt nhưng có ranh giới rõ với các contract đã công bố ra ngoài. Tên nội bộ chỉ nên trở thành hợp đồng dài hạn khi có lý do chính đáng và có kiểm thử/migration tương ứng.
+A sound design keeps **internal refactoring** flexible while maintaining clear boundaries with externally published contracts. Internal names should become long-term contracts only with good reason and corresponding tests/migrations.
 
-## 10. Tự kiểm tra
+## 10. Self-Check
 
-**Câu 1.** Vì sao IDE đổi tên `charge()` thành `capture()` có thể làm chương trình Reflection lỗi dù Java source vẫn biên dịch?
+**Question 1.** Why can renaming `charge()` to `capture()` in an IDE break a Reflection program even though the Java source still compiles?
 
-Vì literal `"charge"` được xử lý như dữ liệu chuỗi thông thường. `getMethod("charge", ...)` tra cứu tại runtime; compiler không xác minh chuỗi đó còn trỏ đến method thật.
+Because the literal `"charge"` is treated as ordinary string data. `getMethod("charge", ...)` performs lookup at runtime; the compiler does not verify whether that string still points to a real method.
 
-**Câu 2.** Obfuscator luôn phá Reflection?
+**Question 2.** Do obfuscators always break Reflection?
 
-**Không.** Nếu symbol được keep, chuỗi được thích nghi đúng hoặc registry không phụ thuộc vào tên nội bộ đã đổi, Reflection vẫn có thể làm việc. Cần kiểm thử chính artifact đã transform.
+**No.** If symbols are kept, strings are adapted properly, or registries do not depend on renamed internal names, Reflection can continue working. You must test the actual transformed artifact.
 
-**Câu 3.** ID `invoice.charge` trong annotation có bảo đảm chạy qua mọi bản build không?
+**Question 3.** Does an ID like `invoice.charge` in an annotation guarantee working across all builds?
 
-**Không tự động.** Đó là hợp đồng logic do ứng dụng quản lý. Cần đảm bảo annotation runtime, method còn tồn tại, metadata được giữ, registry đăng ký thành công và caller được phân quyền.
+**Not automatically.** It is a logical contract managed by the application. You must ensure runtime retention, the method still exists, metadata is preserved, registry registration succeeds, and callers are authorized.
 
-**Câu 4.** `getMethod("run", String.class)` có tự tìm `run(Object)` nếu không có overload nhận `String`?
+**Question 4.** Will `getMethod("run", String.class)` automatically find `run(Object)` if there is no overload accepting `String`?
 
-**Không.** Tra cứu dùng đúng kiểu tham số được truyền vào. Chữ ký API đã đổi thì phải cập nhật contract/adapter/config.
+**No.** Lookup uses the exact parameter types passed in. If the API signature changed, you must update the contract/adapter/configuration.
 
-**Câu 5.** Vì sao test phải chạy trên bản release obfuscated thay vì chỉ trên classfile do `javac` tạo ra?
+**Question 5.** Why must tests run on the obfuscated release build instead of only on `javac`-compiled class files?
 
-Vì chính bước shrink/obfuscation có thể đổi tên hoặc loại bỏ class, method, annotation và metadata, làm hành vi Reflection khác với bản debug.
+Because the shrink/obfuscation step itself can rename or remove classes, methods, annotations, and metadata, making Reflection behavior differ from the debug build.
 
-## Tài liệu chuẩn
+## Authoritative References
 
-- Java SE 17 API: [`Class`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html) — `forName`, `getMethod`, `getDeclaredMethod` và metadata.
-- Java SE 17 API: [`Method`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html) — `invoke`, signature, lỗi truy cập và `InvocationTargetException`.
-- Java SE 17 API: [`ServiceLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html) — provider discovery dựa trên interface.
-- Java Language Specification, chương 13 (Binary Compatibility); JVM Specification, chương 5 (Loading, Linking, Initialization).
-- Tài liệu shrinker/obfuscator **đúng phiên bản và hệ sinh thái đang dùng** để xác định keep rules, retention của metadata và khả năng thích nghi resource/string.
+- Java SE 17 API: [`Class`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html) — `forName`, `getMethod`, `getDeclaredMethod`, and metadata.
+- Java SE 17 API: [`Method`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html) — `invoke`, signatures, access errors, and `InvocationTargetException`.
+- Java SE 17 API: [`ServiceLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html) — interface-based provider discovery.
+- Java Language Specification, Chapter 13 (Binary Compatibility); JVM Specification, Chapter 5 (Loading, Linking, Initialization).
+- Shrinker/obfuscator documentation **for the exact version and ecosystem in use** to determine keep rules, metadata retention, and string/resource adaptation capabilities.
 
-**Ghi nhớ:** Liên kết bằng chuỗi trao đổi sự linh hoạt khi chạy lấy rủi ro gãy kết nối khi tên hoặc chữ ký nội bộ thay đổi. Hãy dùng contract có kiểm tra kiểu khi có thể, ID logic ổn định khi cần động, và kiểm thử chính artifact phát hành cùng cấu hình/dữ liệu thật.
+**Key takeaway:** String-based binding trades runtime flexibility for the risk of broken links when internal names or signatures change. Use type-checked contracts whenever possible, stable logical IDs when dynamism is needed, and test the actual release artifact together with real configurations and data.

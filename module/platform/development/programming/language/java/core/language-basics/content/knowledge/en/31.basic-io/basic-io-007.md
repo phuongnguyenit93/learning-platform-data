@@ -1,73 +1,73 @@
-# Xử lý phần xuống dòng còn lại sau khi đọc số (Java 17+)
+# Handling Leftover Newlines After Reading Numbers (Java 17+)
 
-## 1. Hiện tượng thường gặp
+## 1. A common symptom
 
-Khi dùng `Scanner` đọc dữ liệu console, một lỗi rất hay gặp là gọi `nextInt()` hoặc `nextDouble()` rồi gọi ngay `nextLine()` để đọc họ tên, ghi chú hoặc câu văn. Kết quả đầu tiên của `nextLine()` có thể là **chuỗi rỗng** hoặc chỉ gồm dấu cách, dù người dùng đã dự định nhập một dòng văn bản khác.
+When using `Scanner` to read console data, a very common mistake is calling `nextInt()` or `nextDouble()` and immediately calling `nextLine()` to read a full name, note, or sentence. The first `nextLine()` result may be an **empty string** or consist only of spaces, even though the user intended to enter another line of text.
 
-Ví dụ, đầu vào:
+For example, given the input:
 
 ```text
 21
 Nguyen Van An
 ```
 
-Nếu code là:
+If the code is:
 
 ```java
 int age = scanner.nextInt();
 String name = scanner.nextLine();
 ```
 
-thì `age` là `21`, nhưng `name` là `""`, vì `nextLine()` đang đọc **phần còn lại của dòng chứa số 21**, không phải dòng `Nguyen Van An`.
+then `age` is `21`, yet `name` is `""`, because `nextLine()` is reading the **remainder of the line containing the number 21**, not the `Nguyen Van An` line.
 
-Vấn đề không phải Java tự tạo một dòng rỗng. Nó xuất phát từ việc kết hợp **đọc token** với **đọc dòng** trên cùng đối tượng `Scanner`.
+The issue is not that Java creates an empty line on its own. It comes from combining **token reading** with **line reading** on the same `Scanner` object.
 
-## 2. Cơ chế: `nextInt()` và `nextLine()` đọc khác nhau
+## 2. Mechanism: `nextInt()` and `nextLine()` read differently
 
-`Scanner` có hai kiểu đọc thường dùng:
+`Scanner` has two commonly used reading styles:
 
-| Phương thức | Đơn vị đọc | Điều xảy ra với ký tự kết thúc dòng |
+| Method | Unit read | What happens to the line terminator |
 | --- | --- | --- |
-| `next()` | Một token, mặc định được phân cách bằng khoảng trắng | Không đọc toàn bộ phần còn lại của dòng |
-| `nextInt()`, `nextLong()` | Một token số nguyên | Parse token, không tự tiêu thụ phần còn lại của dòng |
-| `nextDouble()`, `nextFloat()` | Một token số thực | Parse token, không tự tiêu thụ phần còn lại của dòng |
-| `nextLine()` | Phần còn lại của dòng hiện tại | Đọc tới hết dòng, bỏ ký tự kết thúc dòng khỏi chuỗi trả về |
-| `hasNextLine()` | Kiểm tra có thể đọc dòng tiếp hay không | Không tiêu thụ dòng |
+| `next()` | One token, delimited by whitespace by default | Does not read the rest of the line |
+| `nextInt()`, `nextLong()` | One integer token | Parses the token; does not consume the remainder of the line |
+| `nextDouble()`, `nextFloat()` | One floating-point token | Parses the token; does not consume the remainder of the line |
+| `nextLine()` | Remainder of the current line | Reads to the end of the line and omits the line terminator from the returned string |
+| `hasNextLine()` | Checks whether another line can be read | Does not consume the line |
 
-Mặc định, `Scanner` nhận khoảng trắng, tab, ký tự xuống dòng là các dấu phân cách token. Nhưng việc **tách token** không đồng nghĩa với việc **đã đi qua hết dòng**.
+By default, `Scanner` treats spaces, tabs, and newlines as token delimiters. However, **splitting a token** does not mean **advancing past the entire line**.
 
-Với input `21\nNguyen Van An\n` (trong đó `\n` đại diện cho một ký tự xuống dòng), có thể hình dung:
+Given the input `21\nNguyen Van An\n` (where `\n` represents a newline character), you can picture it as:
 
 ```text
-Ban đầu:
+Initially:
 21↵
 Nguyen Van An↵
 ^
 
-Sau nextInt():
+After nextInt():
 21↵
 Nguyen Van An↵
   ^
-  (phần kết thúc dòng 21 vẫn cần được xử lý)
+  (the rest of line 21 still needs to be handled)
 
-Sau nextLine():
+After nextLine():
 21↵
 Nguyen Van An↵
    ^
-   (đã chuyển sang dòng kế tiếp, nhưng kết quả vừa trả là "")
+   (moved to the next line, yet the returned result was "")
 
-Sau nextLine() tiếp:
+After next nextLine():
 21↵
 Nguyen Van An↵
              ^
-             (lấy được "Nguyen Van An")
+             (retrieved "Nguyen Van An")
 ```
 
-Sơ đồ thể hiện trình tự logic, không phải vị trí byte chính xác của bộ đệm nội bộ. Đặc biệt, nếu input là `21   \n` có **ba dấu cách** sau số, `nextLine()` đầu tiên có thể trả về `"   "`, chứ không phải `""`. Vì vậy cách diễn đạt chính xác là **đọc phần dư của dòng**, đôi khi phần dư đó rỗng.
+The diagram illustrates logical progression, not exact byte positions of an internal buffer. In particular, if the input is `21   \n` with **three spaces** after the number, the first `nextLine()` can return `"   "`, not `""`. Therefore, the accurate phrasing is **reading the remainder of the line**, which happens to be empty at times.
 
-## 3. Chương trình tái hiện lỗi với kết quả cố định
+## 3. Program reproducing the issue with deterministic output
 
-Tạo file **`LeftoverDemo.java`**:
+Create the file **`LeftoverDemo.java`**:
 
 ```java
 import java.util.Scanner;
@@ -87,7 +87,7 @@ public class LeftoverDemo {
 }
 ```
 
-Để biên dịch và chạy bằng **JDK 17+** trong thư mục chứa file (PowerShell, CMD, bash), tạo thư mục output nếu chưa có:
+To compile and run with **JDK 17+** in the directory containing the file (PowerShell, CMD, bash), create the output directory if it does not exist:
 
 ```sh
 mkdir out
@@ -95,7 +95,7 @@ javac -encoding UTF-8 --release 17 -d out LeftoverDemo.java
 java -cp out LeftoverDemo
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 age=21
@@ -103,25 +103,25 @@ firstLine=[]
 secondLine=[Nguyen Van An]
 ```
 
-`new Scanner(String)` được dùng để mô phỏng console, giúp tái hiện đầu vào không phụ thuộc người đang gõ. Khi thay bằng `new Scanner(System.in)`, quy tắc đọc token và dòng vẫn như vậy.
+`new Scanner(String)` is used to simulate the console, making the input reproducible without relying on live typing. When replaced with `new Scanner(System.in)`, the token and line reading rules remain identical.
 
-Nếu chương trình chỉ gọi một lần `nextLine()` sau `nextInt()`, nó sẽ nhận `firstLine=[]` và dễ gây hiểu nhầm rằng Java “bỏ qua” họ tên. Thực tế, họ tên vẫn nằm ở dòng kế tiếp, đang chờ được đọc.
+If a program only calls `nextLine()` once after `nextInt()`, it receives `firstLine=[]` and easily causes the misconception that Java "skipped" the full name. In reality, the full name is still on the next line, waiting to be read.
 
-## 4. Cách sửa A: tiêu thụ phần dư của dòng sau khi đọc số
+## 4. Fix A: consume the remainder of the line after reading a number
 
-Khi định dạng đầu vào quy định **số ở một dòng riêng**, tiếp theo là **văn bản ở dòng riêng**, có thể thêm một lần `nextLine()` để **bỏ phần dư** của dòng chứa số:
+When the input format specifies **a number on its own line**, followed by **text on its own line**, you can add one `nextLine()` call to **discard the remainder** of the line containing the number:
 
 ```java
 int age = scanner.nextInt();
-scanner.nextLine();             // bỏ phần còn lại của dòng chứa tuổi
+scanner.nextLine();             // discard the remainder of the age line
 String name = scanner.nextLine();
 ```
 
-Dòng `scanner.nextLine();` ở giữa không phải để nhận tên; nó chỉ hoàn tất dòng đã chứa số.
+The `scanner.nextLine();` call in the middle is not meant to capture the name; it merely finishes the line that contained the number.
 
-### Chương trình hoàn chỉnh đọc từ console
+### Complete program reading from the console
 
-Tạo file **`ConsumeRemainderDemo.java`**:
+Create the file **`ConsumeRemainderDemo.java`**:
 
 ```java
 import java.util.Scanner;
@@ -158,21 +158,21 @@ public class ConsumeRemainderDemo {
 }
 ```
 
-Biên dịch:
+Compile:
 
 ```sh
 javac -encoding UTF-8 --release 17 -d out ConsumeRemainderDemo.java
 java -cp out ConsumeRemainderDemo
 ```
 
-Với đầu vào **hai dòng riêng**:
+With **two separate input lines**:
 
 ```text
 21
 Nguyen Van An
 ```
 
-**Stdout của chính chương trình** (không tính ký tự terminal tự echo khi gõ phím):
+**Stdout of the program itself** (excluding characters echoed by the terminal while typing):
 
 ```text
 Enter age:
@@ -181,28 +181,28 @@ age=21
 name=Nguyen Van An
 ```
 
-Để chạy lặp lại với đầu vào cố định, lưu đúng hai dòng trên vào `sample.txt`, rồi dùng:
+For repeatable runs with fixed input, save those exact two lines to `sample.txt`, then run:
 
-- Bash hoặc Windows CMD: `java -cp out ConsumeRemainderDemo < sample.txt`.
+- Bash or Windows CMD: `java -cp out ConsumeRemainderDemo < sample.txt`.
 - Windows PowerShell: `Get-Content -LiteralPath sample.txt | java -cp out ConsumeRemainderDemo`.
 
-Ví dụ giả định tuổi hợp lệ về mặt số nguyên. Để kiểm tra giới hạn tuổi (ví dụ 0–120), cần một bước validation nghiệp vụ riêng sau khi đọc số.
+The example assumes age is valid as an integer. To check age bounds (for example 0–120), a separate business validation step is needed after reading the number.
 
-**Điểm quan trọng:** Không thêm `nextLine()` bỏ phần dư một cách máy móc nếu thông tin bạn cần vẫn **nằm trên chính dòng chứa số**. Việc bỏ phần dư khi đó sẽ làm mất dữ liệu thật.
+**Important point:** Do not mechanically add a discarding `nextLine()` if the information you need still **sits on the same line as the number**. Discarding the remainder in that case will lose real data.
 
-## 5. Khi số và văn bản ở cùng một dòng: giữ lại phần dư
+## 5. When number and text share the same line: keep the remainder
 
-Giả sử định dạng là:
+Suppose the format is:
 
 ```text
 21 Nguyen Van An
 ```
 
-Ở đây, sau `nextInt()`, phần dư của dòng là `" Nguyen Van An"`, tức chính là họ tên bạn cần. Nếu gọi `scanner.nextLine();` chỉ để vứt kết quả, bạn sẽ mất tên.
+Here, after `nextInt()`, the remainder of the line is `" Nguyen Van An"`, which is the very full name you need. If you call `scanner.nextLine();` just to throw away the result, you lose the name.
 
-Thay vào đó, hãy **lưu phần dư** rồi xử lý dấu cách đầu dòng.
+Instead, **save the remainder** and handle the leading space.
 
-Tạo **`SameLineDemo.java`**:
+Create **`SameLineDemo.java`**:
 
 ```java
 import java.util.Scanner;
@@ -220,27 +220,27 @@ public class SameLineDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```sh
 javac -encoding UTF-8 --release 17 -d out SameLineDemo.java
 java -cp out SameLineDemo
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 age=21
 name=Nguyen Van An
 ```
 
-`stripLeading()` (có từ Java 11) bỏ khoảng trắng ở đầu chuỗi nhưng giữ nguyên phần còn lại, phù hợp khi dấu cách đầu là ranh giới sau số. `trim()` hoặc `strip()` có thể dùng khi đầu vào được phép xóa khoảng trắng **cả hai đầu**. Cần chọn theo hợp đồng input, nhất là nếu khoảng trắng cuối dòng có ý nghĩa.
+`stripLeading()` (available since Java 11) removes whitespace at the start of the string while keeping the rest intact, which fits when the leading space is the boundary after the number. `trim()` or `strip()` can be used when the input is allowed to drop whitespace at **both ends**. Choose according to the input contract, especially if trailing spaces are meaningful.
 
-Nếu không có tên sau số, `name` có thể rỗng; khi đó cần xử lý lỗi dữ liệu thiếu, không tự giả định rằng còn một dòng kế tiếp.
+If there is no name after the number, `name` may be empty; in that case handle the missing-data error rather than assuming another line follows.
 
-## 6. Cách sửa B: chỉ dùng `nextLine()`, rồi parse số
+## 6. Fix B: use only `nextLine()`, then parse the number
 
-Đối với chương trình console nhập **mỗi trường trên một dòng**, cách nhất quán và thường dễ kiểm soát nhất là đọc toàn bộ từng dòng, sau đó tự chuyển sang kiểu số:
+For console programs accepting **one field per line**, the most consistent and often easiest-to-control approach is reading every line in full and then converting to numeric types yourself:
 
 ```java
 String ageText = scanner.nextLine();
@@ -248,11 +248,11 @@ int age = Integer.parseInt(ageText.strip());
 String name = scanner.nextLine();
 ```
 
-Cách này không trộn đọc token với đọc dòng nên không còn lỗi phần dư do `nextInt()`/ `nextLine()`. Đổi lại, `Integer.parseInt` ném `NumberFormatException` nếu dòng không biểu diễn số nguyên hợp lệ.
+This approach does not mix token reading with line reading, eliminating the `nextInt()`/`nextLine()` remainder pitfall. In return, `Integer.parseInt` throws `NumberFormatException` if the line does not represent a valid integer.
 
-### Ví dụ đầy đủ: xử lý input thiếu hoặc sai
+### Complete example: handling missing or invalid input
 
-Tạo file **`LineFirstDemo.java`**:
+Create the file **`LineFirstDemo.java`**:
 
 ```java
 import java.util.Scanner;
@@ -299,21 +299,21 @@ public class LineFirstDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```sh
 javac -encoding UTF-8 --release 17 -d out LineFirstDemo.java
 java -cp out LineFirstDemo
 ```
 
-Với input:
+With input:
 
 ```text
 21
 Nguyen Van An
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 Enter age:
@@ -322,22 +322,22 @@ age=21
 name=Nguyen Van An
 ```
 
-Với dòng tuổi là `abc`, chương trình in:
+When the age line is `abc`, the program prints:
 
 ```text
 Enter age:
 Error: age must be an integer
 ```
 
-Nếu dòng tuổi hợp lệ nhưng chưa có dòng tên vì input đã hết (EOF), chương trình in `Error: name line missing` sau khi in hai lời nhắc. `hasNextLine()` giúp tránh `NoSuchElementException` khi nguồn input không còn dòng để đọc.
+If the age line is valid yet no name line follows because input has ended (EOF), the program prints `Error: name line missing` after printing both prompts. `hasNextLine()` helps prevent `NoSuchElementException` when the input source has no lines left to read.
 
-Cách dùng `nextLine()` rồi `Integer.parseInt` đặc biệt hữu ích khi cần kiểm tra độ dài, đầu vào rỗng, thông báo lỗi dễ hiểu, số nguyên ngoài phạm vi hoặc yêu cầu nhập lại. Ngoài ra, với số thực có dấu chấm thập phân cố định, có thể đọc cả dòng rồi gọi `Double.parseDouble(line.strip())`; cách này parse theo cú pháp của `Double`, **khác** quy tắc locale của `Scanner.nextDouble()`.
+Using `nextLine()` followed by `Integer.parseInt` is especially useful when you need to check length, empty input, clear error messages, out-of-range integers, or re-prompting. Additionally, for floating-point numbers with a fixed dot decimal separator, you can read the full line and call `Double.parseDouble(line.strip())`; this parses using `Double`'s syntax, which **differs** from `Scanner.nextDouble()`'s locale rules.
 
-## 7. `nextDouble()` cũng có vấn đề tương tự
+## 7. `nextDouble()` has the exact same issue
 
-Vấn đề không chỉ xảy ra với `nextInt()`. Các phương thức đọc token như `nextLong()`, `nextFloat()`, `nextDouble()` cũng không tự hoàn tất dòng.
+The issue is not limited to `nextInt()`. Token-reading methods such as `nextLong()`, `nextFloat()`, and `nextDouble()` also do not finish the line automatically.
 
-Tạo **`DoubleRemainderDemo.java`**:
+Create **`DoubleRemainderDemo.java`**:
 
 ```java
 import java.util.Locale;
@@ -359,57 +359,57 @@ public class DoubleRemainderDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```sh
 javac -encoding UTF-8 --release 17 -d out DoubleRemainderDemo.java
 java -cp out DoubleRemainderDemo
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 score=8.5
 note=Good progress
 ```
 
-`Locale.US` khiến scanner hiểu token `8.5` theo quy tắc dấu chấm thập phân, đồng thời `printf(Locale.US, ...)` in dấu chấm trong kết quả. Nếu chương trình dùng `nextDouble()` theo locale mặc định, việc parse `8.5` có thể không đúng như mong đợi trên máy dùng quy ước dấu thập phân khác.
+`Locale.US` makes the scanner interpret the token `8.5` using the dot decimal rule, and `printf(Locale.US, ...)` prints a dot in the output. If a program calls `nextDouble()` under the default locale, parsing `8.5` might not behave as expected on machines using a different decimal convention.
 
-## 8. Những trường hợp cần xét trước khi bỏ phần dư
+## 8. Cases to check before discarding the remainder
 
-| Dữ liệu đầu vào | Sau khi gọi `nextInt()` | Cách xử lý phù hợp |
+| Input data | After calling `nextInt()` | Appropriate handling |
 | --- | --- | --- |
-| `21\nAn\n` | `nextLine()` đầu tiên trả `""` | Có thể bỏ phần dư rồi đọc dòng tên |
-| `21   \nAn\n` | Phần dư của dòng có ba dấu cách | Có thể bỏ phần dư rồi đọc dòng tên |
-| `21 An\n` | Phần dư là `" An"` | Giữ `nextLine()` và lấy tên từ phần dư |
-| `21 3\n` | Còn token `3` trên cùng dòng | Tiếp tục đọc token theo cấu trúc input, đừng bỏ dòng tùy tiện |
-| `21\n\nAn\n` | Sau khi bỏ dòng tuổi, dòng tiếp theo thật sự rỗng | Quyết định có cho phép dòng rỗng không; không tự skip hết các dòng rỗng |
-| Chỉ có `21` rồi EOF | Không có dòng tên | Kiểm tra `hasNextLine()`, báo input thiếu thay vì gọi vô điều kiện |
-| Nhập chữ `abc` khi đang gọi `nextInt()` | Số chưa được đọc thành công; `InputMismatchException` có thể xảy ra | Xử lý lỗi token, không áp dụng bước bỏ phần dư như thể đã đọc số hợp lệ |
+| `21\nAn\n` | First `nextLine()` returns `""` | Safe to discard the remainder and then read the name line |
+| `21   \nAn\n` | Remainder of line has three spaces | Safe to discard the remainder and then read the name line |
+| `21 An\n` | Remainder is `" An"` | Keep `nextLine()` and extract the name from the remainder |
+| `21 3\n` | Token `3` remains on the same line | Continue reading tokens per the input structure; do not discard the line blindly |
+| `21\n\nAn\n` | After discarding the age line, the next line is genuinely empty | Decide whether blank lines are allowed; do not silently skip all blank lines |
+| Only `21` then EOF | No name line exists | Check `hasNextLine()` and report missing input instead of calling unconditionally |
+| Typing `abc` when `nextInt()` is called | Number was not read successfully; `InputMismatchException` may occur | Handle the token error; do not run the remainder-discarding step as if a valid number was read |
 
-Cần lưu ý `nextLine()` không luôn trả về rỗng; chính xác hơn, nó trả **phần còn lại của dòng hiện tại**, loại bỏ dấu kết thúc dòng. Nếu sau token là khoảng trắng, văn bản hoặc tab, chúng có thể nằm trong phần dư.
+Note that `nextLine()` does not always return empty; more accurately, it returns the **remainder of the current line** with the line terminator removed. If spaces, text, or tabs follow the token, they will be included in that remainder.
 
-## 9. Xuống dòng trên Windows, Linux và macOS
+## 9. Newlines on Windows, Linux, and macOS
 
-Các dòng văn bản có thể kết thúc bởi ký tự LF (`\n`) hoặc cặp CRLF (`\r\n`). `Scanner.nextLine()` nhận diện ranh giới dòng theo quy tắc của Scanner và trả nội dung dòng **không kèm dấu kết thúc dòng**.
+Lines of text may end with LF (`\n`) or the CRLF pair (`\r\n`). `Scanner.nextLine()` recognizes line boundaries according to `Scanner`'s rules and returns the line content **without the line terminator**.
 
-Vì thế trong trường hợp thông thường, bạn không phải kiểm tra chuỗi có chứa `\r` cuối dòng để sửa lỗi `nextInt()` rồi `nextLine()`; nguyên nhân chính vẫn là ranh giới **token và dòng**.
+Therefore, in ordinary cases, you do not need to check whether a string has a trailing `\r` to fix the `nextInt()` then `nextLine()` issue; the primary cause remains the **token vs. line** boundary.
 
-Nếu dùng `System.out.printf(...)`, có thể kết thúc dòng bằng `%n` để phù hợp nền tảng; ký hiệu này dành cho **đầu ra**, không thay đổi cách `Scanner` đọc input.
+When using `System.out.printf(...)`, you can end a line with `%n` to match the platform; that specifier is for **output** and does not alter how `Scanner` reads input.
 
-Mã nguồn đặt trong string literal như `"21\nAn\n"` chứa các ký tự escape được Java giải mã thành LF lúc chương trình chạy. Khi nhập từ terminal thực, cách terminal echo và gửi ký tự xuống dòng có thể khác, nhưng quy tắc mức cao của `nextLine()` vẫn như trên.
+Source code inside a string literal like `"21\nAn\n"` contains escape sequences that Java decodes into LF at runtime. When reading from a real terminal, how the terminal echoes and sends newlines may differ, yet the high-level behavior of `nextLine()` remains the same.
 
-## 10. Khi nào không nên gọi `nextLine()` “bỏ newline”?
+## 10. When should you NOT call `nextLine()` to "discard the newline"?
 
-Không nên viết thành thói quen cố định rằng sau **mọi** lời gọi `nextInt()` phải gọi thêm `nextLine()`. Điều đó sẽ làm mất dữ liệu nếu một dòng chứa nhiều token.
+Do not make it a fixed habit to call `nextLine()` after **every** `nextInt()` call. Doing so will lose data when a single line contains multiple tokens.
 
-Ví dụ input:
+Example input:
 
 ```text
 3 8 12
 ```
 
-Nếu mục tiêu là đọc ba số, cách đúng là:
+If the goal is to read three numbers, the right way is:
 
 ```java
 int a = scanner.nextInt();
@@ -417,55 +417,55 @@ int b = scanner.nextInt();
 int c = scanner.nextInt();
 ```
 
-Không có lý do thêm `scanner.nextLine();` sau số đầu tiên, vì làm thế sẽ bỏ `8 12`. Đoạn trên cần một `Scanner` đã khởi tạo; nó minh họa chiến lược đọc token, không phải chương trình độc lập.
+There is no reason to add `scanner.nextLine();` after the first number, because doing so would discard `8 12`. The snippet above requires an initialized `Scanner`; it illustrates a token-reading strategy and is not a standalone program.
 
-Tương tự, nếu nhập `21 Nguyen Van An` trên một dòng, `scanner.nextLine()` sau `nextInt()` chính là cơ hội lấy **họ tên còn lại**. Phải **lưu kết quả** thay vì bỏ đi.
+Similarly, if the input is `21 Nguyen Van An` on one line, `scanner.nextLine()` after `nextInt()` is your chance to capture the **remaining full name**. You must **save the result** rather than discarding it.
 
-Để thiết kế chương trình rõ ràng, hãy quyết định trước:
+For clean program design, decide upfront:
 
-1. **Mỗi giá trị trên một dòng**: chọn `nextLine()` cho toàn bộ các trường, sau đó parse số; dễ xác thực và báo lỗi.
-2. **Nhiều token số trong một dòng**: tiếp tục đọc bằng `nextInt()`/`nextDouble()` hoặc `next()` theo thứ tự.
-3. **Token đầu là số, phần còn lại là văn bản cùng dòng**: đọc số bằng `nextInt()`, rồi **giữ phần dư** qua `nextLine()`.
-4. **Số ở dòng riêng, văn bản ở dòng kế tiếp**: sau `nextInt()` có thể gọi `nextLine()` một lần để bỏ phần dư, rồi mới đọc dòng kế; cần kiểm tra EOF.
+1. **One value per line**: choose `nextLine()` for all fields, then parse numbers; easy to validate and report errors.
+2. **Multiple numeric tokens on one line**: keep reading with `nextInt()`/`nextDouble()` or `next()` in sequence.
+3. **First token is a number, rest of the same line is text**: read the number with `nextInt()`, then **keep the remainder** via `nextLine()`.
+4. **Number on its own line, text on the next line**: after `nextInt()`, you may call `nextLine()` once to discard the remainder before reading the next line; remember to check for EOF.
 
-## 11. Lỗi thường gặp và phương án khắc phục
+## 11. Common errors and fixes
 
-**Lỗi 1 — cho rằng `nextInt()` tiêu thụ luôn Enter.** Thực tế nó phân tích token số, không tự chuyển sang dòng sau. Sửa bằng cách chọn chiến lược đọc nhất quán hoặc xử lý phần dư.
+**Error 1 — assuming `nextInt()` consumes the Enter key as well.** In reality it parses a numeric token and does not automatically advance to the next line. Fix by choosing a consistent reading strategy or handling the remainder.
 
-**Lỗi 2 — dùng `nextLine()` rồi tiếp tục chờ tên mà không kiểm tra kết quả.** Hãy in kết quả vào dấu ngoặc vuông lúc debug (`"[" + name + "]"`) để thấy tên rỗng hoặc chỉ chứa khoảng trắng.
+**Error 2 — calling `nextLine()` and continuing to expect a name without checking the result.** Print the value inside square brackets while debugging (`"[" + name + "]"`) to spot empty or whitespace-only names.
 
-**Lỗi 3 — gọi bỏ dòng trước khi chắc chắn đọc số thành công.** Nếu `nextInt()` gặp token sai, nó có thể ném `InputMismatchException`, nên luồng xử lý thông thường sẽ không đến bước kế tiếp. Dùng `hasNextInt()` hoặc `try/catch` phù hợp.
+**Error 3 — discarding a line before confirming the number was read successfully.** If `nextInt()` encounters a bad token, it may throw `InputMismatchException`, so normal control flow will not reach the next step. Use `hasNextInt()` or appropriate `try/catch`.
 
-**Lỗi 4 — vô tình làm mất dữ liệu cùng dòng.** `scanner.nextLine();` sẽ bỏ toàn bộ phần còn lại của dòng, không chỉ “xóa một ký tự newline”. Trước khi bỏ, phải biết định dạng input bảo đảm phần dư không có dữ liệu cần dùng.
+**Error 4 — accidentally losing same-line data.** `scanner.nextLine();` discards the entire remainder of the line, not just "one newline character." Before discarding, verify that the input format guarantees no needed data remains on that line.
 
-**Lỗi 5 — giả định lúc nào cũng còn dòng tiếp theo.** Với nguồn đọc từ file, pipe hoặc EOF, có thể không còn dòng. Dùng `hasNextLine()` khi cần và xử lý thiếu dữ liệu.
+**Error 5 — assuming there is always a next line.** With files, pipes, or EOF, no line may remain. Use `hasNextLine()` when needed and handle missing data.
 
-**Lỗi 6 — dùng nhiều Scanner trên cùng `System.in`.** Các scanner có bộ đệm riêng, có thể cạnh tranh dữ liệu khi cùng đọc một luồng. Nên dùng một scanner chung, truyền vào những phương thức cần đọc và quản lý vòng đời phù hợp.
+**Error 6 — using multiple Scanners on the same `System.in`.** Each scanner has its own buffer and can compete for data when reading the same stream. Use one shared scanner, pass it to methods that need to read, and manage its lifecycle properly.
 
-**Lỗi 7 — nhầm với sai locale.** `nextDouble()` không parse được `8.5` có thể do thiết lập `Locale`, không phải newline. Kiểm tra lỗi định dạng số trước, rồi mới xử lý ranh giới dòng.
+**Error 7 — confusing this with a locale mismatch.** `nextDouble()` failing to parse `8.5` may be caused by `Locale` settings rather than a newline. Check numeric formatting errors first, then check line boundaries.
 
-**Lỗi 8 — đóng `Scanner(System.in)` quá sớm.** Đóng scanner thường đóng luôn luồng `System.in` bên dưới. Trong chương trình đơn giản kết thúc sau nhập liệu, `try-with-resources` như ví dụ là phù hợp; trong ứng dụng lớn, cần một nơi sở hữu vòng đời luồng console.
+**Error 8 — closing `Scanner(System.in)` too early.** Closing the scanner usually closes the underlying `System.in` stream too. In simple programs that exit right after reading input, `try-with-resources` as in the examples is fine; in larger applications, assign clear ownership of the console stream's lifecycle.
 
-## 12. Bài tập tự kiểm tra
+## 12. Self-check exercises
 
-**Câu 1.** Với input `10\nHello\n`, sau `scanner.nextInt();`, lần `scanner.nextLine()` kế tiếp trả gì?
+**Question 1.** Given input `10\nHello\n`, after `scanner.nextInt();`, what does the next `scanner.nextLine()` return?
 
-**Đáp án:** Chuỗi rỗng `""`; dòng `Hello` chưa được đọc.
+**Answer:** The empty string `""`; the `Hello` line has not been read yet.
 
-**Câu 2.** Với input `10 World\n`, có nên bỏ kết quả của `nextLine()` sau khi đọc số nếu cần `World` không?
+**Question 2.** Given input `10 World\n`, should you discard the result of `nextLine()` after reading the number if you need `World`?
 
-**Đáp án:** Không. Phần dư `" World"` chứa dữ liệu cần dùng; lưu lại và loại dấu cách đầu nếu quy tắc input cho phép.
+**Answer:** No. The remainder `" World"` holds the needed data; keep it and strip the leading space if the input rules allow it.
 
-**Câu 3.** `scanner.nextInt(); scanner.nextLine(); scanner.nextLine();` có luôn hợp lệ không?
+**Question 3.** Is `scanner.nextInt(); scanner.nextLine(); scanner.nextLine();` always valid?
 
-**Đáp án:** Không. Phải biết cấu trúc input, còn đủ dòng và các lời gọi trước đã thành công hay chưa. Cách gọi này còn có thể bỏ nhầm dữ liệu trên dòng số.
+**Answer:** No. You must know the input structure, whether enough lines remain, and whether prior calls succeeded. That pattern can also mistakenly discard data on the number line.
 
-**Câu 4.** Có thể tránh trộn hai phương thức bằng cách nào?
+**Question 4.** How can you avoid mixing the two methods?
 
-**Đáp án:** Đọc từng trường qua `nextLine()`, sau đó `Integer.parseInt` hoặc `Double.parseDouble` và xử lý ngoại lệ/giới hạn tương ứng.
+**Answer:** Read each field via `nextLine()`, then use `Integer.parseInt` or `Double.parseDouble` and handle the corresponding exceptions and bounds.
 
-**Câu 5.** Vì sao `nextLine()` đầu tiên sau một số không nhất thiết rỗng?
+**Question 5.** Why is the first `nextLine()` after a number not necessarily empty?
 
-**Đáp án:** Vì nó lấy toàn bộ **phần dư của dòng**, có thể gồm khoảng trắng hoặc văn bản sau token số.
+**Answer:** Because it reads the entire **remainder of the line**, which may contain spaces or text following the numeric token.
 
-**Ghi nhớ:** Phần xuống dòng “còn lại” sau `nextInt()`/`nextDouble()` là hệ quả của việc đọc **token**, trong khi `nextLine()` đọc **phần còn lại của dòng**. Cách sửa đúng phụ thuộc dữ liệu nằm ở dòng tiếp theo hay cùng dòng với số. Đọc theo dòng rồi parse thường là lựa chọn rõ ràng nhất cho form console.
+**Key takeaway:** The "leftover" newline after `nextInt()`/`nextDouble()` is a consequence of reading by **token**, whereas `nextLine()` reads the **remainder of the line**. The right fix depends on whether the next piece of data sits on the following line or on the same line as the number. Reading line by line and then parsing is usually the clearest choice for console forms.

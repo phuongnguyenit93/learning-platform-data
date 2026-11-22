@@ -1,31 +1,31 @@
-# Phân nhóm nhiều cấp với khóa lồng nhau
+# Multi-Level Grouping with Nested Keys
 
-Trong báo cáo kinh doanh, một nhóm dữ liệu thường chưa đủ để trả lời câu hỏi. Chẳng hạn, thống kê doanh thu **theo khu vực** mới cho biết tổng của miền Bắc, miền Trung và miền Nam; người quản lý còn muốn biết **trong từng khu vực, mỗi danh mục sản phẩm đóng góp bao nhiêu**. Khi ấy, ta cần **phân nhóm nhiều cấp** (*multi-level grouping*).
+In business reporting, a single level of grouping is often not enough to answer the question. For instance, aggregating revenue **by region** only tells you the totals for the North, Central, and South; a manager also wants to know **within each region, how much each product category contributes**. In that case, you need **multi-level grouping** (*multi-level grouping*).
 
-Trong **Java Stream API**, công cụ quen thuộc cho bài toán này là `Collectors.groupingBy` kết hợp với một **downstream collector** khác. Khi đặt `groupingBy` bên trong `groupingBy`, kết quả thường có dạng **`Map<K1, Map<K2, ...>>`**. Mỗi cấp bản đồ tương ứng với một chiều phân tích dữ liệu.
+In the **Java Stream API**, the familiar tool for this problem is `Collectors.groupingBy` combined with another **downstream collector**. When you nest `groupingBy` inside `groupingBy`, the result typically takes the form **`Map<K1, Map<K2, ...>>`**. Each map level corresponds to one dimension of data analysis.
 
-Bài này thuộc chương **Phân nhóm và phân hoạch** của module **JAVA_STREAM_API**. Nội dung tập trung vào cách xây bản đồ nhóm lồng nhau, tính số lượng và tổng tiền trong từng nhóm, áp dụng `mapping`/`filtering`, thiết kế khóa, truy xuất dữ liệu an toàn và kiểm soát thứ tự, tài nguyên, trạng thái khi dùng Stream song song. Đây cũng là nền tảng để tìm hiểu collector tùy chỉnh, `Spliterator` và Stream Gatherers.
+This lesson belongs to the **Grouping and Partitioning** chapter of the **JAVA_STREAM_API** module. It focuses on how to build nested group maps, compute counts and totals within each group, apply `mapping`/`filtering`, design keys, access data safely, and control ordering, resources, and state when using parallel streams. It also lays the groundwork for exploring custom collectors, `Spliterator`, and Stream Gatherers.
 
-## 1. Từ nhóm một cấp đến nhóm nhiều cấp
+## 1. From Single-Level to Multi-Level Grouping
 
-Giả sử mỗi giao dịch bán hàng có **khu vực**, **danh mục**, **giá trị** và **trạng thái thanh toán**.
+Suppose each sales transaction has a **region**, **category**, **amount**, and **payment status**.
 
-Nếu chỉ nhóm theo khu vực:
+If you only group by region:
 
 ~~~java
 Map<String, List<Sale>> byRegion = sales.stream()
     .collect(Collectors.groupingBy(Sale::region));
 ~~~
 
-Kết quả có thể hình dung:
+The result can be visualized as:
 
 ~~~text
-"Bắc"   -> [các giao dịch miền Bắc]
-"Trung" -> [các giao dịch miền Trung]
-"Nam"   -> [các giao dịch miền Nam]
+"Bắc"   -> [transactions in the North]
+"Trung" -> [transactions in the Central region]
+"Nam"   -> [transactions in the South]
 ~~~
 
-Nhưng nếu muốn xem cả **khu vực → danh mục**, ta đặt một collector `groupingBy` làm **downstream** của collector bên ngoài:
+However, if you want to see both **region → category**, you pass a `groupingBy` collector as the **downstream** collector of the outer collector:
 
 ~~~java
 Map<String, Map<String, List<Sale>>> byRegionAndCategory =
@@ -35,25 +35,25 @@ Map<String, Map<String, List<Sale>>> byRegionAndCategory =
     ));
 ~~~
 
-Cấu trúc kết quả:
+Resulting structure:
 
 ~~~text
 "Bắc" ->
-    "Sách" -> [các giao dịch Sách ở Bắc]
-    "Bút"  -> [các giao dịch Bút ở Bắc]
+    "Sách" -> [Sách transactions in Bắc]
+    "Bút"  -> [Bút transactions in Bắc]
 
 "Nam" ->
-    "Sách" -> [các giao dịch Sách ở Nam]
-    "Bút"  -> [các giao dịch Bút ở Nam]
+    "Sách" -> [Sách transactions in Nam]
+    "Bút"  -> [Bút transactions in Nam]
 ~~~
 
-Ở cấp thứ nhất, `Sale::region` là **hàm phân loại bên ngoài**. Với từng nhóm khu vực, `Sale::category` phân loại **tiếp** phần tử của nhóm đó. Lá cuối cùng mặc định là danh sách `List<Sale>`.
+At the first level, `Sale::region` is the **outer classifier function**. Within each region group, `Sale::category` **further** classifies the elements of that group. The leaf level defaults to a `List<Sale>`.
 
-**Điểm mấu chốt:** collector lồng nhau không tạo nhiều lượt duyệt toàn bộ dữ liệu theo kiểu “mỗi khu vực lại lọc Stream từ đầu”. Nó mô tả một quá trình thu thập, trong đó các phần tử được phân phối đến bộ chứa phù hợp theo khóa của từng cấp.
+**Key point:** nested collectors do not perform multiple full passes over the data like "for each region, filter the Stream from scratch". They describe a single collection process in which elements are routed to the appropriate containers according to the keys at each level.
 
-## 2. Ví dụ đầy đủ: nhóm giao dịch theo khu vực và danh mục
+## 2. Complete Example: Grouping Transactions by Region and Category
 
-Ví dụ sau chạy trên **JDK 17 trở lên** vì dùng `record` và `List.of`. Các API `Stream` và `Collectors.groupingBy` đã có từ Java 8.
+The following example runs on **JDK 17 or later** because it uses `record` and `List.of`. The `Stream` and `Collectors.groupingBy` APIs have been available since Java 8.
 
 ~~~java
 import java.util.List;
@@ -95,18 +95,18 @@ public class NestedGroupingDemo {
         // [S01, S03]
 
         System.out.println(grouped.get("Nam").get("Bút").size());
-        // 2: S02 và S06
+        // 2: S02 and S06
     }
 }
 ~~~
 
-Đoạn chương trình tạo một cấu trúc có hai lớp `Map`:
+This program produces a structure with two `Map` layers:
 
-- **Map ngoài:** khóa `String` là khu vực.
-- **Map trong:** khóa `String` là danh mục nằm trong khu vực đó.
-- **Giá trị ở lá:** `List<Sale>` chứa các giao dịch của cặp khóa.
+- **Outer Map:** `String` keys representing the region.
+- **Inner Map:** `String` keys representing the category within that region.
+- **Leaf value:** `List<Sale>` containing the transactions for that key pair.
 
-Kiểu `Map<String, Map<String, List<Sale>>>` có thể dài, nhưng nó mô tả chính xác hình dạng dữ liệu. Hãy đọc từ **ngoài vào trong**: “bản đồ khu vực, mỗi khu vực có một bản đồ danh mục, mỗi danh mục chứa một danh sách giao dịch”.
+The type `Map<String, Map<String, List<Sale>>>` can be verbose, but it describes the exact shape of the data. Read it from **outside in**: "a map of regions, where each region has a map of categories, and each category contains a list of transactions."
 
 ~~~mermaid
 flowchart TD
@@ -125,11 +125,11 @@ flowchart TD
     H --> N["Bút → [S08]"]
 ~~~
 
-Hình chỉ minh họa các khóa có mặt, **không biểu thị thứ tự duyệt của `HashMap`**. Nếu đầu ra cần thứ tự khóa xác định, phải chọn `mapFactory` hoặc sắp xếp khi hiển thị.
+The diagram only illustrates the keys present; it **does not represent the iteration order of `HashMap`**. If the output requires a deterministic key order, you must choose a `mapFactory` or sort when displaying.
 
-## 3. Hiểu overload groupingBy có downstream
+## 3. Understanding the groupingBy Overload with a Downstream Collector
 
-Hai overload thường gặp là:
+The two common overloads are:
 
 ~~~java
 Collectors.groupingBy(classifier)
@@ -137,7 +137,7 @@ Collectors.groupingBy(classifier)
 Collectors.groupingBy(classifier, downstream)
 ~~~
 
-Về ý nghĩa kiểu:
+In terms of type signatures:
 
 ~~~java
 <T, K> Collector<T, ?, Map<K, List<T>>>
@@ -150,22 +150,22 @@ groupingBy(
 )
 ~~~
 
-Đây là chữ ký **rút gọn để học**, không phải toàn bộ mã nguồn của `Collectors`.
+These are **simplified signatures for learning**, not the full source code of `Collectors`.
 
-`classifier` nhận phần tử đầu vào `T` và trả về **khóa nhóm** `K`. `downstream` quy định cách xử lý **những phần tử trong từng nhóm** để tạo giá trị cuối `D`.
+`classifier` receives an input element `T` and returns the **group key** `K`. `downstream` specifies how to process **the elements within each group** to produce the final value `D`.
 
-Với hai cấp nhóm:
+For two grouping levels:
 
 ~~~java
 Collectors.groupingBy(
-    Sale::region,                    // cấp 1: K1
-    Collectors.groupingBy(           // cấp 2
-        Sale::category               // K2; mặc định downstream là toList()
+    Sale::region,                    // level 1: K1
+    Collectors.groupingBy(           // level 2
+        Sale::category               // K2; default downstream is toList()
     )
 )
 ~~~
 
-Ta suy ra:
+We deduce:
 
 ~~~text
 T = Sale
@@ -173,14 +173,14 @@ K1 = String (region)
 K2 = String (category)
 D2 = List<Sale>
 D1 = Map<String, List<Sale>>
-Kết quả = Map<String, Map<String, List<Sale>>>
+Result = Map<String, Map<String, List<Sale>>>
 ~~~
 
-**Nguyên tắc:** khi thay downstream cuối bằng `counting()` hoặc `summingLong(...)`, chỉ **kiểu giá trị lá** thay đổi; các khóa lồng nhau vẫn theo cùng logic phân nhóm.
+**Rule of thumb:** when you replace the innermost downstream collector with `counting()` or `summingLong(...)`, only the **leaf value type** changes; the nested keys still follow the same grouping logic.
 
-## 4. Nhóm hai cấp rồi đếm số lượng trong từng nhóm
+## 4. Two-Level Grouping with Per-Group Counting
 
-Nếu mục đích chỉ là đếm, không cần lưu danh sách giao dịch tại mỗi lá. Hãy dùng `Collectors.counting()`:
+If the goal is only to count, there is no need to store transaction lists at every leaf. Use `Collectors.counting()`:
 
 ~~~java
 Map<String, Map<String, Long>> countByRegionAndCategory =
@@ -193,11 +193,11 @@ Map<String, Map<String, Long>> countByRegionAndCategory =
     ));
 ~~~
 
-Biến `sales` và kiểu `Sale` ở đây là dữ liệu trong ví dụ đầy đủ mục 2.
+The `sales` variable and `Sale` type here come from the complete example in Section 2.
 
-Kết quả theo dữ liệu mẫu:
+Results on the sample dataset:
 
-| Khu vực | Danh mục | Số giao dịch |
+| Region | Category | Transaction count |
 |---|---|---:|
 | Bắc | Sách | 2 |
 | Bắc | Bút | 1 |
@@ -206,9 +206,9 @@ Kết quả theo dữ liệu mẫu:
 | Trung | Sách | 1 |
 | Trung | Bút | 1 |
 
-`counting()` trả về giá trị `Long`, không phải `Integer`, vì số lượng phần tử có thể vượt phạm vi `int`.
+`counting()` returns a `Long` value, not `Integer`, because the element count can exceed the `int` range.
 
-Ví dụ truy xuất:
+Access example:
 
 ~~~java
 long northBookCount =
@@ -217,17 +217,17 @@ long northBookCount =
 System.out.println(northBookCount); // 2
 ~~~
 
-Ở đây khóa có mặt chắc chắn do ta biết dữ liệu mẫu. Với dữ liệu đầu vào tùy ý, `get("Bắc")` hoặc `get("Sách")` có thể trả `null`; mục 10 trình bày cách lấy kết quả an toàn.
+Here the keys are guaranteed to exist because we know the sample data. With arbitrary input data, `get("Bắc")` or `get("Sách")` can return `null`; Section 10 presents how to retrieve results safely.
 
-### 4.1. Vì sao counting tiết kiệm bộ nhớ hơn toList?
+### 4.1. Why does counting save more memory than toList?
 
-`groupingBy(region, groupingBy(category))` giữ **mọi đối tượng `Sale`** trong các danh sách. `groupingBy(region, groupingBy(category, counting()))` chỉ giữ số đếm tại mỗi cặp khóa.
+`groupingBy(region, groupingBy(category))` retains **every `Sale` object** inside lists. `groupingBy(region, groupingBy(category, counting()))` stores only a count at each key pair.
 
-Với dữ liệu lớn và chỉ cần thống kê, cách thứ hai thường có nhu cầu bộ nhớ **gần với số lượng nhóm** hơn, thay vì số lượng giao dịch. Không nên lưu hàng triệu bản ghi vào List nếu báo cáo chỉ cần `count`.
+With large datasets where only statistics are needed, the second approach has a memory footprint **closer to the number of groups** rather than the number of transactions. Do not store millions of records in Lists if the report only needs `count`.
 
-## 5. Nhóm hai cấp rồi tính tổng bằng summingLong
+## 5. Two-Level Grouping with Summing via summingLong
 
-Yêu cầu kinh doanh phổ biến hơn là **tổng doanh thu theo khu vực và danh mục**. Ta chỉ tính các giao dịch `paid = true`:
+A more common business requirement is **total revenue by region and category**. Here we count only transactions with `paid = true`:
 
 ~~~java
 Map<String, Map<String, Long>> revenueByRegionAndCategory =
@@ -242,9 +242,9 @@ Map<String, Map<String, Long>> revenueByRegionAndCategory =
         ));
 ~~~
 
-Bản đồ doanh thu từ dữ liệu mẫu:
+Revenue map from the sample dataset:
 
-| Khu vực | Danh mục | Tổng tiền đã thanh toán |
+| Region | Category | Total paid amount |
 |---|---|---:|
 | Bắc | Sách | 100.000 |
 | Bắc | Bút | 30.000 |
@@ -252,35 +252,35 @@ Bản đồ doanh thu từ dữ liệu mẫu:
 | Nam | Sách | 200.000 |
 | Trung | Sách | 90.000 |
 
-Cặp **(Trung, Bút)** không xuất hiện vì giao dịch `S08` chưa thanh toán và đã bị `filter` loại trước khi nhóm.
+The pair **(Trung, Bút)** does not appear because transaction `S08` is unpaid and was removed by `filter` before grouping.
 
-Các thành phần của pipeline:
+Components of the pipeline:
 
-1. `filter(Sale::paid)` giữ các giao dịch đã thanh toán.
-2. `groupingBy(Sale::region, ...)` chọn khu vực.
-3. `groupingBy(Sale::category, ...)` chọn danh mục trong khu vực đó.
-4. `summingLong(Sale::amountVnd)` lấy `long` ở mỗi giao dịch và cộng dồn trong từng nhóm.
+1. `filter(Sale::paid)` keeps paid transactions.
+2. `groupingBy(Sale::region, ...)` selects the region.
+3. `groupingBy(Sale::category, ...)` selects the category within that region.
+4. `summingLong(Sale::amountVnd)` extracts a `long` from each transaction and accumulates the sum within each group.
 
-`summingLong` là **downstream collector**, không phải lời gọi `mapToLong(...).sum()` sau khi có Map. Nó thực hiện tổng hợp **ngay trong quá trình thu thập theo nhóm**.
+`summingLong` is a **downstream collector**, not a `mapToLong(...).sum()` call after building the Map. It performs the aggregation **directly during group collection**.
 
-**Lưu ý tràn số:** `Long` giúp biểu diễn tổng lớn hơn `int` nhưng `long` vẫn hữu hạn. Nếu tổng tiền có thể vượt `Long.MAX_VALUE`, ứng dụng phải dùng cách biểu diễn và phép cộng phù hợp (chẳng hạn `BigDecimal` hoặc giới hạn nghiệp vụ được kiểm tra).
+**Overflow note:** `Long` can represent larger totals than `int`, but `long` is still finite. If total amounts can exceed `Long.MAX_VALUE`, the application must use an appropriate representation and addition operation (such as `BigDecimal` or checked business bounds).
 
-### 5.1. Cùng dữ liệu nhưng thống kê hai cấp khác nhau
+### 5.1. Same data, different two-level aggregations
 
-| Downstream cuối | Kiểu lá | Khi cần dùng |
+| Final downstream | Leaf type | When to use |
 |---|---|---|
-| Mặc định `toList()` | `List<Sale>` | Xem chi tiết từng bản ghi |
-| `counting()` | `Long` | Đếm giao dịch |
-| `summingLong(Sale::amountVnd)` | `Long` | Tổng tiền |
-| `averagingLong(Sale::amountVnd)` | `Double` | Giá trị trung bình |
+| Default `toList()` | `List<Sale>` | Inspect individual records |
+| `counting()` | `Long` | Count transactions |
+| `summingLong(Sale::amountVnd)` | `Long` | Sum amounts |
+| `averagingLong(Sale::amountVnd)` | `Double` | Average value |
 | `summarizingLong(Sale::amountVnd)` | `LongSummaryStatistics` | Count, sum, min, max, average |
-| `maxBy(Comparator.comparingLong(...))` | `Optional<Sale>` | Tìm giao dịch có giá trị lớn nhất |
+| `maxBy(Comparator.comparingLong(...))` | `Optional<Sale>` | Find the transaction with the largest value |
 
-**Tính chất kiểu:** `Map<String, Map<String, Long>>` là **kết quả cấu trúc**. `Map` nào được tạo, có chỉnh sửa được hay thứ tự khóa thế nào phải xem hợp đồng collector và tham số map factory; không nên dựa vào một dạng Map cụ thể khi chưa yêu cầu.
+**Type properties:** `Map<String, Map<String, Long>>` is a **structural result**. Which concrete `Map` is created, whether it is mutable, and how keys are ordered depend on the collector contract and map factory parameter; do not rely on a particular Map implementation when none was requested.
 
-## 6. Nhóm ba cấp: thêm trạng thái thanh toán
+## 6. Three-Level Grouping: Adding Payment Status
 
-Có thể lồng tiếp một `groupingBy` khác nếu báo cáo cần chiều thứ ba:
+You can nest another `groupingBy` if the report requires a third dimension:
 
 ~~~java
 Map<String, Map<String, Map<Boolean, List<Sale>>>> tripleGroups =
@@ -293,7 +293,7 @@ Map<String, Map<String, Map<Boolean, List<Sale>>>> tripleGroups =
     ));
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~text
 "Bắc" ->
@@ -311,11 +311,11 @@ Ví dụ:
       true  -> [S05]
 ~~~
 
-Điểm đặc biệt: `groupingBy(Sale::paid)` chỉ tạo khóa Boolean **nếu có giao dịch mang giá trị đó trong nhóm**. Vì thế `tripleGroups.get("Bắc").get("Bút").get(false)` có thể là `null` thay vì một danh sách rỗng.
+Key distinction: `groupingBy(Sale::paid)` only creates a Boolean key **if there is at least one transaction with that value in the group**. Thus `tripleGroups.get("Bắc").get("Bút").get(false)` can be `null` instead of an empty list.
 
-Đừng viết mã phụ thuộc vào việc mọi nhánh đều có tất cả các giá trị Boolean. Với nhu cầu **luôn có đúng hai nhánh `true`/`false`**, có một collector thích hợp hơn: `partitioningBy`.
+Do not write code assuming every branch has both Boolean values. For requirements that **always need both `true`/`false` branches**, a better-suited collector exists: `partitioningBy`.
 
-### 6.1. partitioningBy cho cấp cuối có hai trạng thái
+### 6.1. partitioningBy for a two-state final level
 
 ~~~java
 Map<String, Map<String, Map<Boolean, List<Sale>>>> partitioned =
@@ -332,20 +332,20 @@ System.out.println(
 ); // true
 ~~~
 
-Với một nhóm **đã tồn tại** (ở đây Bắc → Bút), `partitioningBy` tạo Map có hai khóa `true` và `false`, kể cả một phía không có phần tử. Tuy nhiên, các cặp khu vực/danh mục **không hề xuất hiện trong nguồn** vẫn không được `groupingBy` tạo ra.
+For a group that **already exists** (here Bắc → Bút), `partitioningBy` creates a Map with both `true` and `false` keys, even if one side has no elements. However, region/category pairs that **never appeared in the source** are still not created by `groupingBy`.
 
-| Cơ chế ở cấp Boolean | Có đảm bảo khóa true và false cho mỗi nhóm hiện có? | Ứng dụng |
+| Mechanism at Boolean level | Guarantees both true and false keys for each existing group? | Use case |
 |---|---|---|
-| `groupingBy(Sale::paid)` | Không | Chỉ quan tâm các trạng thái có giao dịch |
-| `partitioningBy(Sale::paid)` | Có | Muốn có hai nhánh cố định, kể cả nhánh rỗng |
+| `groupingBy(Sale::paid)` | No | Only interested in statuses that have transactions |
+| `partitioningBy(Sale::paid)` | Yes | Want two fixed branches, including empty ones |
 
-`partitioningBy` còn hỗ trợ downstream riêng, ví dụ `partitioningBy(Sale::paid, counting())` để đếm hai trạng thái trong từng nhóm.
+`partitioningBy` also supports its own downstream collector, such as `partitioningBy(Sale::paid, counting())` to count both statuses within each group.
 
-## 7. mapping: biến phần tử trước khi lưu vào từng nhóm
+## 7. mapping: Transforming Elements Before Storing Them in Each Group
 
-Đôi khi cần các mã giao dịch, chứ không cần toàn bộ đối tượng `Sale`. Nếu `map(Sale::id)` **trước** `groupingBy`, ta không còn thông tin khu vực và danh mục để phân nhóm, trừ khi đã tạo kiểu dữ liệu trung gian khác.
+Sometimes you only need transaction IDs rather than full `Sale` objects. If you call `map(Sale::id)` **before** `groupingBy`, you lose the region and category fields needed for grouping unless you create another intermediate data type.
 
-Cách phù hợp là giữ `Sale` đến khi đã xác định khóa nhóm, rồi dùng **`Collectors.mapping` ở downstream**:
+The proper approach is to keep `Sale` until group keys are determined, and then use **`Collectors.mapping` as the downstream collector**:
 
 ~~~java
 Map<String, Map<String, List<String>>> idsByRegionAndCategory =
@@ -361,7 +361,7 @@ Map<String, Map<String, List<String>>> idsByRegionAndCategory =
     ));
 ~~~
 
-Kết quả đối với Bắc → Sách:
+Result for Bắc → Sách:
 
 ~~~java
 System.out.println(
@@ -369,13 +369,13 @@ System.out.println(
 ); // [S01, S03]
 ~~~
 
-`mapping(mapper, downstream)` có nghĩa: **tại từng nhóm**, ánh xạ phần tử thành kiểu mới rồi chuyển vào collector phía sau. Phương thức `mapping` là **collector**, khác với `Stream.map` là **phép toán trung gian**.
+`mapping(mapper, downstream)` means: **within each group**, map the element to a new type and pass it to the downstream collector. The `mapping` method is a **collector**, unlike `Stream.map` which is an **intermediate operation**.
 
-Đây là một mô hình phổ biến trong các báo cáo nhiều chiều: nhóm bằng đối tượng nguồn, nhưng chỉ xuất các trường cần thiết ở cuối.
+This is a common pattern in multidimensional reports: group by the source object, but emit only the needed fields at the end.
 
-### 7.1. Chọn Set thay vì List ở lá
+### 7.1. Choosing Set instead of List at the leaf
 
-Nếu mã giao dịch có thể bị lặp và cần một tập mã duy nhất:
+If transaction IDs may repeat and you need a set of unique IDs:
 
 ~~~java
 Map<String, Map<String, Set<String>>> uniqueIds =
@@ -391,13 +391,13 @@ Map<String, Map<String, Set<String>>> uniqueIds =
     ));
 ~~~
 
-Trong ví dụ này cần `import java.util.Set;` ngoài các import tương ứng. `Collectors.toSet()` không bảo đảm thứ tự duyệt hay loại `Set` cụ thể. Nếu cần một `TreeSet` theo thứ tự tăng dần, dùng `Collectors.toCollection(TreeSet::new)` và bảo đảm các phần tử có thứ tự tự nhiên hoặc có comparator phù hợp.
+This example requires `import java.util.Set;` in addition to the corresponding imports. `Collectors.toSet()` does not guarantee iteration order or a specific `Set` class. If you need a `TreeSet` in ascending order, use `Collectors.toCollection(TreeSet::new)` and ensure elements have a natural order or an appropriate comparator.
 
-## 8. filtering downstream khác filter trước groupingBy
+## 8. Downstream filtering vs. filter Before groupingBy
 
-Đây là khác biệt **ngữ nghĩa** rất quan trọng đối với báo cáo có số lượng bằng 0.
+This is a very important **semantic** difference for reports with zero counts.
 
-**Cách A — lọc toàn bộ Stream trước khi nhóm:**
+**Approach A — filter the entire Stream before grouping:**
 
 ~~~java
 Map<String, Map<String, Long>> paidOnly =
@@ -412,9 +412,9 @@ Map<String, Map<String, Long>> paidOnly =
         ));
 ~~~
 
-Vì giao dịch `S08` thuộc **Trung → Bút** là chưa thanh toán và không có bản ghi khác trong cặp khóa đó, Map **không có nhánh Trung → Bút**.
+Because transaction `S08` in **Trung → Bút** is unpaid and there are no other records in that key pair, the Map **has no Trung → Bút branch**.
 
-**Cách B — giữ toàn bộ nhóm, chỉ lọc ở lá bằng `Collectors.filtering` (Java 9+):**
+**Approach B — keep all groups, filter only at the leaf with `Collectors.filtering` (Java 9+):**
 
 ~~~java
 Map<String, Map<String, Long>> paidCountIncludingZero =
@@ -434,27 +434,27 @@ System.out.println(
 ); // 0
 ~~~
 
-Vì `groupingBy` đã xác định nhóm **Trung → Bút** trước khi downstream filtering, nhóm vẫn được tạo, còn số đếm của giao dịch đạt điều kiện trong nhóm là `0L`.
+Because `groupingBy` has already established the **Trung → Bút** group before downstream filtering runs, the group is still created, and the count of qualifying transactions in that group is `0L`.
 
-Tương tự, có thể dùng:
+Similarly, you can use:
 
 ~~~java
 Collectors.filtering(Sale::paid, Collectors.toList())
 ~~~
 
-để giữ **danh sách rỗng** ở một nhóm có dữ liệu đầu vào nhưng không có phần tử thỏa điều kiện.
+to keep an **empty list** in a group that has input data but no elements matching the predicate.
 
-| Yêu cầu | Nên chọn |
+| Requirement | Recommended choice |
 |---|---|
-| Báo cáo chỉ hiển thị nhóm **có giao dịch thỏa điều kiện** | `stream.filter(...).collect(groupingBy(...))` |
-| Báo cáo cần giữ nhóm đã xuất hiện, kể cả kết quả con bằng 0 | `groupingBy(..., filtering(..., counting()))` |
-| Báo cáo cần **mọi tổ hợp khóa có thể có**, kể cả chưa từng xuất hiện | Ngoài grouping, cần **khởi tạo/điền bổ sung các khóa thiếu** từ danh mục nghiệp vụ |
+| Report shows only groups **with matching transactions** | `stream.filter(...).collect(groupingBy(...))` |
+| Report must keep groups that appeared, even with a child result of 0 | `groupingBy(..., filtering(..., counting()))` |
+| Report requires **every possible key combination**, even those that never appeared | Beyond grouping, **initialize/fill missing keys** from the business catalog |
 
-`Collectors.filtering` không tự tạo mọi cặp khu vực/danh mục không có trong dữ liệu nguồn. Nó chỉ giúp giữ nhóm mà collector ngoài đã gặp.
+`Collectors.filtering` does not automatically create region/category pairs that do not exist in the source data. It only preserves groups that the outer collector has already encountered.
 
-## 9. Nhiều thống kê tại mỗi lá bằng summarizingLong
+## 9. Multiple Statistics at Each Leaf with summarizingLong
 
-Đôi khi cần cả `count`, `sum`, `min`, `max` và `average`. Thay vì tạo năm Map riêng (tương đương năm lượt thu thập), dùng `Collectors.summarizingLong`:
+Sometimes you need `count`, `sum`, `min`, `max`, and `average` all at once. Instead of creating five separate Maps (equivalent to five collection passes), use `Collectors.summarizingLong`:
 
 ~~~java
 import java.util.LongSummaryStatistics;
@@ -480,24 +480,24 @@ System.out.println(northBooks.getMax());     // 100000
 System.out.println(northBooks.getAverage()); // 100000.0
 ~~~
 
-`LongSummaryStatistics` là một bộ chứa thống kê có trạng thái. Những giá trị như count và sum được tính trong quá trình collect, chứ không cần lưu `List<Sale>` của từng nhóm.
+`LongSummaryStatistics` is a stateful statistics container. Values like count and sum are computed during collection without storing a `List<Sale>` for each group.
 
-**Trường hợp nhóm rỗng:** một `LongSummaryStatistics` mới có count bằng 0, sum bằng 0, nhưng giá trị min/max của đối tượng chưa có dữ liệu mang giá trị sentinel tương ứng (`Long.MAX_VALUE`/`Long.MIN_VALUE`). Không nên báo cáo những sentinel đó như mức giá thật; hãy kiểm tra `getCount()` trước khi diễn giải min/max.
+**Empty group case:** a fresh `LongSummaryStatistics` has count 0 and sum 0, but the min/max values of an object with no data hold sentinel values (`Long.MAX_VALUE`/`Long.MIN_VALUE`). Do not report those sentinels as actual amounts; check `getCount()` before interpreting min/max.
 
-Nếu số giao dịch/giá trị có thể cực lớn, chú ý tràn số `long` trong tổng. Ngoài ra, trung bình trả `double` nên có giới hạn độ chính xác của số thực.
+If transaction counts or values can be huge, watch out for `long` overflow in the sum. Also, average returns `double`, which has floating-point precision limits.
 
-## 10. Truy xuất Map lồng nhau an toàn
+## 10. Accessing Nested Maps Safely
 
-Ví dụ dữ liệu mẫu có `Bắc → Sách`, nên ta có thể gọi trực tiếp `grouped.get("Bắc").get("Sách")`. Nhưng với đầu vào không biết trước, một khóa có thể không xuất hiện và `Map.get` sẽ trả `null`.
+The sample dataset contains `Bắc → Sách`, so calling `grouped.get("Bắc").get("Sách")` directly works. With unknown inputs, however, a key might be absent and `Map.get` will return `null`.
 
-Không nên viết:
+Avoid writing:
 
 ~~~java
-// Có thể ném NullPointerException nếu không có khu vực "Tây".
+// Can throw NullPointerException if region "Tây" does not exist.
 // long count = countByRegionAndCategory.get("Tây").get("Sách");
 ~~~
 
-Có thể lấy giá trị một cách rõ ràng qua Map mặc định:
+You can retrieve the value explicitly using a default Map:
 
 ~~~java
 Map<String, Long> categories =
@@ -511,12 +511,12 @@ long count = categories.getOrDefault("Sách", 0L);
 System.out.println(count); // 0
 ~~~
 
-Phân biệt **không tồn tại** với **giá trị đúng bằng 0**:
+Distinguish between **absent** and **exact value 0**:
 
-- Nếu nghiệp vụ quy ước nhóm vắng mặt được hiển thị `0`, dùng `getOrDefault` là hợp lý.
-- Nếu cần phân biệt nhóm chưa bao giờ xuất hiện với nhóm đã xuất hiện nhưng không có giao dịch phù hợp, dùng `containsKey` hoặc `Optional`/kiểu kết quả nghiệp vụ phù hợp.
+- If business rules state that an absent group should display `0`, using `getOrDefault` is reasonable.
+- If you need to distinguish a group that never appeared from a group that appeared with zero matching transactions, use `containsKey` or `Optional`/an appropriate domain result type.
 
-Ví dụ kiểm tra tồn tại của cặp khóa:
+Example checking whether a key pair exists:
 
 ~~~java
 Map<String, Long> categoriesOrNull =
@@ -525,22 +525,22 @@ Map<String, Long> categoriesOrNull =
 boolean hasPenGroup = categoriesOrNull != null
     && categoriesOrNull.containsKey("Bút");
 
-System.out.println(hasPenGroup); // true với dữ liệu gốc
+System.out.println(hasPenGroup); // true on the original data
 ~~~
 
-Khi nhiều nơi phải truy vấn Map lồng nhau, nên đóng gói việc truy xuất vào một phương thức nhỏ có tên rõ nghĩa thay vì lặp lại chuỗi `get` dễ gây lỗi.
+When multiple places query the nested Map, encapsulate the lookup into a small, clearly named helper method instead of repeating error-prone `get` chains.
 
-## 11. Lựa chọn thứ tự khóa bằng mapFactory
+## 11. Controlling Key Order with mapFactory
 
-Overload `groupingBy(classifier, downstream)` **không bảo đảm** kiểu Map hay thứ tự duyệt của các khóa. Nếu báo cáo phải được hiển thị với thứ tự xác định, sử dụng overload ba tham số:
+The `groupingBy(classifier, downstream)` overload **does not guarantee** the Map type or key iteration order. If a report must be displayed in a deterministic order, use the three-parameter overload:
 
 ~~~java
 Collectors.groupingBy(classifier, mapFactory, downstream)
 ~~~
 
-Tham số `mapFactory` là `Supplier<M>` tạo Map cho **cấp nhóm tương ứng**.
+The `mapFactory` parameter is a `Supplier<M>` that creates the Map for **that grouping level**.
 
-### 11.1. Sắp xếp cả hai cấp bằng TreeMap
+### 11.1. Sorting both levels with TreeMap
 
 ~~~java
 import java.util.List;
@@ -560,15 +560,15 @@ Map<String, Map<String, List<String>>> sortedGroups =
     ));
 ~~~
 
-- `TreeMap::new` thứ nhất áp dụng cho khóa **khu vực**.
-- `TreeMap::new` thứ hai áp dụng cho khóa **danh mục** trong mỗi khu vực.
-- `mapping(Sale::id, toList())` tạo danh sách mã ở lá.
+- The first `TreeMap::new` applies to **region** keys.
+- The second `TreeMap::new` applies to **category** keys within each region.
+- `mapping(Sale::id, toList())` builds the list of IDs at the leaf.
 
-Với khóa `String`, `TreeMap` không có comparator sẽ sắp xếp theo **`String.compareTo`**. Đây không mặc nhiên là thứ tự chữ cái tiếng Việt dành cho người dùng. Nếu cần thứ tự hiển thị theo nghiệp vụ, có thể cung cấp comparator phù hợp hoặc lập bản đồ thứ tự riêng.
+For `String` keys, a `TreeMap` without a comparator sorts by **`String.compareTo`**. This is not automatically Vietnamese alphabetical order for end users. If a business display order is needed, provide an appropriate comparator or define a custom ordering map.
 
-### 11.2. Giữ thứ tự xuất hiện của khóa với LinkedHashMap
+### 11.2. Preserving key appearance order with LinkedHashMap
 
-Nếu nguồn là `List` tuần tự và muốn hiển thị các khóa theo lần xuất hiện đầu tiên:
+If the source is a sequential `List` and you want keys displayed in first-appearance order:
 
 ~~~java
 import java.util.LinkedHashMap;
@@ -585,17 +585,17 @@ Map<String, Map<String, List<Sale>>> insertionOrdered =
     ));
 ~~~
 
-Trong xử lý **tuần tự từ List có encounter order**, `LinkedHashMap` duyệt khóa theo thứ tự chèn. Với parallel Stream, thứ tự kết hợp các bộ chứa có thể gây phức tạp; không dựa vào thứ tự thread hoàn thành hoặc giả định mọi collector đều giữ đúng lần gặp đầu nếu các đặc tính thứ tự không được bảo đảm.
+In **sequential processing from a List with encounter order**, `LinkedHashMap` iterates keys in insertion order. With parallel Streams, combining containers introduces complexity; do not rely on thread completion order or assume every collector preserves first-encounter order when ordering characteristics are not guaranteed.
 
-**Lưu ý:** `TreeMap` chỉ thay đổi cách sắp xếp khóa, không thay đổi tên hoặc giá trị nguồn. Nếu khóa có thể `null`, cần chuẩn hóa trước; mục 12 giải thích.
+**Note:** `TreeMap` only changes key ordering, not the source names or values. If keys can be `null`, normalize them beforehand; Section 12 explains why.
 
-## 12. Thiết kế khóa và xử lý null
+## 12. Key Design and Null Handling
 
-### 12.1. groupingBy yêu cầu classifier trả khóa hợp lệ
+### 12.1. groupingBy requires the classifier to return a valid key
 
-Trong triển khai `Collectors.groupingBy` tiêu chuẩn của Java, classifier trả `null` sẽ gây `NullPointerException` (thường có thông điệp rằng phần tử không thể được ánh xạ sang khóa null). Đừng giả định Map mặc định sẽ nhận một khóa null.
+In standard Java `Collectors.groupingBy` implementations, a classifier returning `null` causes a `NullPointerException` (typically with a message that an element cannot be mapped to a null key). Do not assume the default Map will accept a null key.
 
-Ví dụ nguy hiểm:
+Dangerous example:
 
 ~~~java
 record Sale(String id, String region, String category, long amountVnd) {}
@@ -604,15 +604,15 @@ List<Sale> raw = List.of(
     new Sale("S01", null, "Sách", 100L)
 );
 
-// Gây lỗi vì khóa group theo region là null.
+// Fails because the region group key is null.
 // raw.stream().collect(Collectors.groupingBy(Sale::region));
 ~~~
 
-Ví dụ `Sale` trên là một kiểu **độc lập** để minh họa null, không được đặt cùng tên với record `Sale` ở mục 2 trong một phạm vi khai báo.
+The `Sale` record above is a **standalone** type to illustrate null behavior; do not declare it with the same name in the same scope as the `Sale` record from Section 2.
 
-Hai cách xử lý phổ biến:
+Two common ways to handle this:
 
-**Cách A: loại dữ liệu thiếu khóa trước khi nhóm.**
+**Approach A: drop records missing a key before grouping.**
 
 ~~~java
 Map<String, List<Sale>> validRegions = raw.stream()
@@ -620,7 +620,7 @@ Map<String, List<Sale>> validRegions = raw.stream()
     .collect(Collectors.groupingBy(Sale::region));
 ~~~
 
-**Cách B: dùng một khóa đại diện hợp lệ theo chính sách nghiệp vụ.**
+**Approach B: use a valid placeholder key per business policy.**
 
 ~~~java
 Map<String, List<Sale>> withUnknown = raw.stream()
@@ -629,15 +629,15 @@ Map<String, List<Sale>> withUnknown = raw.stream()
     ));
 ~~~
 
-Nếu chọn chuỗi sentinel `"Chưa xác định"`, cần bảo đảm nó **không gây va chạm** với một giá trị vùng thật hoặc phải chủ động chấp nhận gộp chúng.
+If you choose a sentinel string like `"Chưa xác định"`, make sure it **does not collide** with a real region value, or intentionally accept merging them.
 
-Với nhiều cấp, phải xử lý `null` ở **tất cả cấp classifier**, không chỉ ở khóa ngoài.
+With multiple levels, you must handle `null` at **every classifier level**, not just the outer key.
 
-### 12.2. Chuẩn hóa khóa trước khi phân nhóm
+### 12.2. Normalizing keys before grouping
 
-Dữ liệu đến từ nhiều nguồn có thể chứa `"Bắc"`, `" Bắc "` và một phiên bản viết hoa/viết thường khác. `groupingBy` không tự xem chúng là cùng khóa.
+Data coming from multiple sources may contain `"Bắc"`, `" Bắc "`, and different letter casings. `groupingBy` does not treat them as the same key automatically.
 
-Một pipeline rõ ràng:
+A clean pipeline:
 
 ~~~java
 record RegionItem(String region, String category, long amount) {}
@@ -659,21 +659,21 @@ Map<String, Map<String, Long>> totals = input.stream()
 System.out.println(totals.get("Bắc").get("Sách")); // 300
 ~~~
 
-Cách này chuẩn hóa ngay trong classifier. Với quy tắc phức tạp hoặc cần dùng khóa ở nhiều nơi, có thể tạo đối tượng trung gian đã chuẩn hóa bằng `map` rồi grouping, miễn là không làm mất các thuộc tính phục vụ phân nhóm.
+This approach normalizes directly inside the classifier. For complex rules or when normalized keys are used in multiple places, you can create a normalized intermediate object via `map` before grouping, as long as no attributes needed for grouping are lost.
 
-Nếu xử lý tên riêng, nhãn tiếng Việt hoặc Unicode, không dùng `toLowerCase` hay so sánh chuỗi theo một locale ngẫu nhiên mà chưa xác định quy tắc miền dữ liệu.
+When processing proper names, Vietnamese labels, or Unicode text, do not call `toLowerCase` or compare strings under an arbitrary locale without defining the data domain rules.
 
-### 12.3. equals và hashCode của khóa
+### 12.3. equals and hashCode of keys
 
-Các khóa `String` đã triển khai `equals` và `hashCode` nhất quán. Với khóa là đối tượng tùy chỉnh, phải định nghĩa equality đúng ý nghĩa nhóm.
+`String` keys already implement `equals` and `hashCode` consistently. For custom object keys, define equality to match the intended grouping semantics.
 
-Một khóa chứa trường mutable và bị sửa sau khi đưa vào `HashMap` có thể khiến việc truy xuất nhóm thất bại. Ưu tiên khóa bất biến; với Java 16+, `record` rất thuận tiện cho composite key như mục tiếp theo.
+A key with mutable fields that are modified after being inserted into a `HashMap` can cause group lookups to fail. Prefer immutable keys; with Java 16+, `record` is very convenient for composite keys, as shown in the next section.
 
-## 13. Bản đồ lồng nhau hay composite key?
+## 13. Nested Map or Composite Key?
 
-Có hai mô hình khác nhau cho cùng các chiều phân nhóm.
+There are two different models for the same grouping dimensions.
 
-**Mô hình A: nested Map** — kết quả theo dạng `Map<Region, Map<Category, Value>>`.
+**Model A: nested Map** — result shaped as `Map<Region, Map<Category, Value>>`.
 
 ~~~java
 Map<String, Map<String, Long>> nested =
@@ -686,7 +686,7 @@ Map<String, Map<String, Long>> nested =
     ));
 ~~~
 
-**Mô hình B: composite key** — gộp nhiều chiều thành một khóa kiểu record:
+**Model B: composite key** — combine multiple dimensions into a record key:
 
 ~~~java
 record GroupKey(String region, String category) {}
@@ -698,7 +698,7 @@ Map<GroupKey, Long> flat =
     ));
 ~~~
 
-Trong hai ví dụ trên, `Sale` là kiểu ở mục 2 và tổng được tính trên **mọi giao dịch**, không chỉ giao dịch đã thanh toán. Hai cách biểu diễn có thể chứa cùng thông tin, nhưng truy xuất khác nhau:
+In the two examples above, `Sale` is the type from Section 2 and totals are computed across **all transactions**, not only paid ones. Both representations can hold the same information, but access differs:
 
 ~~~java
 long byNested = nested.get("Bắc").get("Sách");
@@ -708,24 +708,24 @@ System.out.println(byNested); // 250000 (S01 + S03)
 System.out.println(byFlat);   // 250000
 ~~~
 
-### Khi nào chọn cách nào?
+### When to choose which?
 
-| Tiêu chí | Nested Map | Composite key |
+| Criterion | Nested Map | Composite key |
 |---|---|---|
-| Duyệt báo cáo theo từng cấp | Thuận tiện: duyệt khu vực, rồi danh mục | Phải nhóm lại hoặc lọc theo thành phần khóa nếu muốn duyệt từng cấp |
-| Tra cứu trực tiếp đúng một tổ hợp | Nhiều lần `get` | Một lần `get(new GroupKey(...))` |
-| Kích thước kiểu | `Map<K1, Map<K2, V>>`, có thể dài khi lồng nhiều cấp | `Map<GroupKey, V>`, kiểu thường ngắn hơn |
-| Diễn đạt báo cáo phân cấp | Tự nhiên | Cần chuyển đổi khi xuất ra dạng cây |
-| Khóa có cấu trúc | Mỗi cấp một khóa | Một khóa bất biến chứa nhiều chiều |
-| Tính rỗng của tổ hợp | Chỉ có nhóm xuất hiện trong nguồn | Chỉ có khóa xuất hiện trong nguồn |
+| Traversing the report level by level | Convenient: iterate regions, then categories | Must regroup or filter by key fields to traverse level by level |
+| Direct lookup of a single combination | Multiple `get` calls | One `get(new GroupKey(...))` call |
+| Type verbosity | `Map<K1, Map<K2, V>>`, can grow long with deep nesting | `Map<GroupKey, V>`, usually shorter type |
+| Expressing hierarchical reports | Natural | Requires transformation when exporting as a tree |
+| Key structure | One key per level | One immutable key holding multiple dimensions |
+| Empty combinations | Only groups present in source | Only keys present in source |
 
-`record GroupKey` tự tạo `equals` và `hashCode` dựa trên các thành phần. Đây là một cách thuận tiện để biểu diễn nhiều chiều mà không phải viết lại các phương thức so sánh.
+`record GroupKey` automatically generates `equals` and `hashCode` from its components. This is a convenient way to represent multiple dimensions without rewriting equality methods.
 
-**Không có cách nào luôn tốt hơn.** Nếu UI cần hiển thị “mỗi khu vực → các danh mục” thì Map lồng nhau rất tự nhiên. Nếu một thuật toán cần liên tục tra cứu cặp khóa, composite key có thể thuận tiện hơn.
+**Neither is always better.** If the UI needs to display "each region → its categories", a nested Map is very natural. If an algorithm repeatedly looks up key pairs, a composite key can be more convenient.
 
-## 14. Lồng quá nhiều cấp: dấu hiệu nên thiết kế lại
+## 14. Too Many Nesting Levels: A Sign to Redesign
 
-Ba, bốn hoặc năm cấp `groupingBy` đều có thể biểu diễn bằng Java, nhưng độ dài kiểu và code tăng nhanh:
+Three, four, or five levels of `groupingBy` can all be expressed in Java, but type and code verbosity grows rapidly:
 
 ~~~java
 Map<String, Map<String, Map<Boolean, Long>>> counts =
@@ -741,32 +741,32 @@ Map<String, Map<String, Map<Boolean, Long>>> counts =
     ));
 ~~~
 
-Đoạn này đếm theo **khu vực → danh mục → trạng thái thanh toán**. Về cú pháp, nó hợp lệ; về thiết kế, cần cân nhắc:
+This snippet counts by **region → category → payment status**. Syntactically it is valid; design-wise, consider:
 
-- UI thật sự cần cấu trúc phân cấp ba tầng hay chỉ cần một danh sách các dòng thống kê?
-- Có cần tạo các nhóm vắng mặt với giá trị 0 không?
-- Có cần sắp xếp các khóa ở từng cấp không?
-- Có nên dùng `partitioningBy` cho trạng thái Boolean?
-- Có nên dùng composite key hoặc một đối tượng báo cáo có tên trường rõ ràng?
+- Does the UI truly need a three-level hierarchical structure, or just a list of summary rows?
+- Do absent groups need to be created with a value of 0?
+- Do keys need to be sorted at each level?
+- Should `partitioningBy` be used for the Boolean status?
+- Should a composite key or a report object with clearly named fields be used?
 
-Khi dùng `Map` lồng sâu, caller dễ viết nhiều chuỗi `get` và gặp `NullPointerException` khi một nhánh không tồn tại. Với dự án lớn, có thể đóng gói dữ liệu phân nhóm trong một kiểu báo cáo riêng, thay vì để cấu trúc Map phức tạp lan khắp ứng dụng.
+When using deeply nested `Map` structures, callers easily write long chains of `get` calls and hit `NullPointerException` when a branch does not exist. In larger projects, encapsulate grouped data in a dedicated report type instead of letting complex Map structures spread throughout the application.
 
-## 15. Hiệu năng, tài nguyên và Stream song song
+## 15. Performance, Resources, and Parallel Streams
 
-### 15.1. Chi phí phụ thuộc kiểu giá trị ở lá
+### 15.1. Cost depends on the leaf value type
 
-Giả sử có `n` giao dịch và `g` tổ hợp nhóm xuất hiện:
+Suppose there are `n` transactions and `g` distinct group combinations:
 
-- Nếu lá là `List<Sale>`, kết quả giữ tham chiếu tới gần `n` phần tử, cộng chi phí các Map/List.
-- Nếu lá là `Long` từ `counting` hoặc `summingLong`, kích thước kết quả chủ yếu phụ thuộc vào `g` nhóm.
-- Nếu classifier tạo chuỗi khóa mới, chuẩn hóa phức tạp hoặc hashCode tốn chi phí, tổng thời gian có thể tăng.
-- Với Map dựa trên băm, chi phí trung bình cho việc phân loại thường thuận lợi, nhưng không nên coi một độ phức tạp cố định là bảo đảm trong mọi trường hợp.
+- If the leaf is `List<Sale>`, the result holds references to nearly `n` elements, plus Map/List overhead.
+- If the leaf is `Long` from `counting` or `summingLong`, result size mainly depends on the `g` groups.
+- If the classifier allocates new key strings, performs complex normalization, or has an expensive `hashCode`, total runtime can increase.
+- With hash-based Maps, average-case classification cost is usually favorable, but constant-time complexity should not be assumed as guaranteed in every case.
 
-Số chiều càng nhiều, số tổ hợp nhóm **có thể** càng lớn. Nếu từng giao dịch tạo một tổ hợp riêng, grouping không còn giảm nhiều dữ liệu, dù code vẫn dùng collector.
+The more dimensions you add, the larger the number of group combinations **can** grow. If every transaction creates its own combination, grouping barely reduces data volume, even though the code uses a collector.
 
-### 15.2. Song song vẫn phải bảo đảm đúng hợp đồng
+### 15.2. Parallel execution must still satisfy the contract
 
-Có thể viết:
+You can write:
 
 ~~~java
 Map<String, Map<String, Long>> parallelTotals =
@@ -781,56 +781,56 @@ Map<String, Map<String, Long>> parallelTotals =
         ));
 ~~~
 
-`Collectors.groupingBy` là collector thông thường không concurrent; khi xử lý song song, framework có thể tạo nhiều Map trung gian rồi kết hợp. **Không cần** và **không nên** chia sẻ một `HashMap` mutable từ biến bên ngoài rồi gọi `parallelStream().forEach(...)` để tự cộng dồn.
+`Collectors.groupingBy` is a regular non-concurrent collector; in parallel execution, the framework may create multiple intermediate Maps and then combine them. You **do not need to** and **should not** share a mutable `HashMap` from an outer variable and call `parallelStream().forEach(...)` to accumulate manually.
 
-Tuy nhiên, `parallel()` không tự bảo đảm nhanh hơn. Việc chia dữ liệu, tạo bộ chứa và hợp nhất Map lồng nhau có thể đáng kể, nhất là khi số nhóm nhiều hoặc dữ liệu nhỏ.
+However, `parallel()` does not automatically guarantee faster execution. Splitting data, creating containers, and merging nested Maps can add significant overhead, especially when there are many groups or small datasets.
 
-### 15.3. groupingByConcurrent không phải thay thế tương đương mọi lúc
+### 15.3. groupingByConcurrent is not an always-equivalent replacement
 
-Java cũng cung cấp `Collectors.groupingByConcurrent` để thu vào `ConcurrentMap` và hỗ trợ chiến lược tích lũy đồng thời. Nhưng collector này có đặc tính **UNORDERED** và cách tổ chức đồng thời khác grouping thông thường.
+Java also provides `Collectors.groupingByConcurrent` to collect into a `ConcurrentMap` and support a concurrent accumulation strategy. However, this collector has the **UNORDERED** characteristic and organizes concurrency differently from regular grouping.
 
-Nếu báo cáo cần giữ thứ tự phần tử theo encounter order, hoặc cần thứ tự khóa cụ thể, không tự động thay `groupingBy` bằng `groupingByConcurrent`. Với downstream không tự concurrent, triển khai còn phải phối hợp an toàn khi tích lũy; không tự suy ra rằng mọi container lá như `ArrayList` có thể bị nhiều thread tự ý cập nhật.
+If a report needs to preserve element encounter order or specific key ordering, do not automatically replace `groupingBy` with `groupingByConcurrent`. With a downstream collector that is not itself concurrent, the implementation still has to coordinate accumulation safely; do not assume every leaf container like `ArrayList` can be arbitrarily updated by multiple threads.
 
-Khi chọn giữa hai cách, hãy xác định yêu cầu về **thứ tự, kết quả, concurrency, số nhóm**, rồi đo hiệu năng.
+When choosing between the two, determine your requirements for **ordering, result type, concurrency, and group count**, and then benchmark performance.
 
-### 15.4. Nhóm dữ liệu rất lớn có thể không phù hợp với bộ nhớ JVM
+### 15.4. Grouping very large datasets may not fit in JVM memory
 
-`collect` là terminal operation: để tạo kết quả phân nhóm, các bộ chứa Map được xây trong bộ nhớ. Với dữ liệu rất lớn, dữ liệu streaming đầu vào không đồng nghĩa với **bộ nhớ kết quả nhỏ**.
+`collect` is a terminal operation: to produce grouped results, Map containers are built in memory. For very large datasets, streaming the input does not mean **small result memory**.
 
-Nếu chỉ cần một báo cáo tổng hợp có rất ít nhóm, `counting`/`summingLong` có thể phù hợp. Nếu cần lưu toàn bộ giao dịch trong từng nhóm, cần cân nhắc giới hạn heap, tải phân trang, hoặc đưa việc tổng hợp xuống cơ sở dữ liệu/giải pháp phân tích dữ liệu phù hợp với hệ thống.
+If you only need a summary report with very few groups, `counting`/`summingLong` may fit well. If you need to store every transaction in each group, consider heap limits, paginated loading, or pushing aggregation down to a database or data-processing engine suited to your system.
 
-Với **nguồn Stream vô hạn** không có điểm dừng, `collect(groupingBy(...))` thường không thể hoàn thành. Phải thiết kế giới hạn, cửa sổ xử lý, hoặc cơ chế dừng; các mô hình streaming thời gian thực có trạng thái đòi hỏi kiến trúc riêng.
+With **unbounded infinite Stream sources**, `collect(groupingBy(...))` generally cannot finish. You must design limits, processing windows, or stopping conditions; stateful real-time streaming models require their own architecture.
 
-## 16. Lỗi thường gặp và cách khắc phục
+## 16. Common Mistakes and How to Fix Them
 
-| Sai lầm | Vì sao sai hoặc gây rủi ro | Cách khắc phục |
+| Mistake | Why it is wrong or risky | Fix |
 |---|---|---|
-| Dùng `groupingBy(region)` rồi tưởng đã có nhóm theo category | Chỉ phân nhóm **một cấp** | Đặt `groupingBy(category)` vào downstream |
-| `map(Sale::id)` trước khi cần nhóm theo region/category | Mất dữ liệu classifier | Dùng downstream `mapping` sau các cấp grouping |
-| Gọi `map.get(region).get(category)` khi khóa có thể thiếu | `Map.get` có thể trả `null` | Dùng `getOrDefault`/`containsKey`, hoặc helper |
-| Giả định mọi cặp region/category đều có mặt | `groupingBy` chỉ tạo nhóm đã gặp | Khởi tạo nhóm thiếu theo danh mục nghiệp vụ |
-| `filter` trước grouping nhưng muốn nhóm có count 0 | Nhóm không có phần tử đạt điều kiện bị biến mất | Dùng downstream `Collectors.filtering` (Java 9+) |
-| Dùng `groupingBy(boolean)` rồi giả định luôn có true/false | Nhóm thiếu một phía không xuất hiện | `partitioningBy` ở cấp Boolean |
-| Classifier trả null | Thường ném `NullPointerException` | Lọc/chuẩn hóa hoặc ánh xạ sentinel |
-| Tin rằng `groupingBy` luôn trả `LinkedHashMap` | Không có bảo đảm Map mặc định | Chỉ định `mapFactory` |
-| Dùng `counting()` nhưng khai báo giá trị `Integer` | `counting` tạo `Long` | Dùng `Map<..., Long>` |
-| Dùng `toList()` khi chỉ cần tổng/đếm | Giữ nhiều tham chiếu phần tử không cần thiết | Dùng `summingLong`/`counting` |
-| Cộng tiền trong shared Map bằng `parallelStream().forEach` | Race condition và trạng thái ngoài pipeline | Dùng collector đúng hợp đồng |
-| Dùng collector trên nguồn vô hạn không điểm dừng | Không thể hoàn thành | Giới hạn hoặc thiết kế cửa sổ xử lý |
-| Quên tràn số trong tổng `long` | Kết quả báo cáo có thể sai | Chọn kiểu/giới hạn và chính sách số học phù hợp |
+| Using `groupingBy(region)` and assuming it already groups by category | Performs only **single-level** grouping | Pass `groupingBy(category)` as the downstream collector |
+| Calling `map(Sale::id)` before grouping by region/category | Loses classifier data | Use downstream `mapping` after the grouping levels |
+| Calling `map.get(region).get(category)` when keys may be absent | `Map.get` can return `null` | Use `getOrDefault`/`containsKey`, or a helper |
+| Assuming every region/category pair is present | `groupingBy` only creates encountered groups | Initialize missing groups from the business catalog |
+| Using `filter` before grouping when expecting count 0 groups | Groups with no qualifying elements disappear | Use downstream `Collectors.filtering` (Java 9+) |
+| Using `groupingBy(boolean)` and assuming both true/false exist | A branch with no elements is absent | Use `partitioningBy` at the Boolean level |
+| Classifier returns null | Usually throws `NullPointerException` | Filter/normalize or map to a sentinel |
+| Believing `groupingBy` always returns `LinkedHashMap` | No guarantee on the default Map | Specify a `mapFactory` |
+| Using `counting()` while declaring value type `Integer` | `counting` produces `Long` | Use `Map<..., Long>` |
+| Using `toList()` when only sums/counts are needed | Retains unnecessary element references | Use `summingLong`/`counting` |
+| Summing amounts in a shared Map via `parallelStream().forEach` | Race conditions and external state mutation | Use a contract-compliant collector |
+| Using a collector on an unbounded infinite source | Cannot complete | Bound the stream or design processing windows |
+| Forgetting overflow in `long` sums | Report totals can become incorrect | Choose appropriate numeric types/bounds and arithmetic policy |
 
-## 17. Bài tập thực hành: báo cáo đơn hàng nhiều cấp
+## 17. Practice Exercise: Multi-Level Order Report
 
-**Bối cảnh:** một cửa hàng có giao dịch bán hàng, mỗi giao dịch gồm mã, khu vực, danh mục, số tiền và trạng thái thanh toán. Cần báo cáo **doanh thu đã thanh toán theo khu vực → danh mục**, và **số giao dịch đã thanh toán ở từng cặp khu vực → danh mục, kể cả nhóm chỉ có giao dịch chưa thanh toán**.
+**Context:** a store has sales transactions, each with an ID, region, category, amount, and payment status. You need a report of **paid revenue by region → category**, and **paid transaction count for each region → category pair, including groups that only have unpaid transactions**.
 
-**Yêu cầu:**
+**Requirements:**
 
-1. Tạo `Map<String, Map<String, Long>>` cho doanh thu đã thanh toán.
-2. Tạo một Map hai cấp khác cho **số giao dịch đã thanh toán**, nhưng vẫn giữ nhóm xuất hiện trong nguồn với count 0.
-3. Truy xuất an toàn cặp khóa `("Miền Tây", "Sách")` vốn không có trong dữ liệu.
-4. Giải thích sự khác biệt về tập khóa giữa hai báo cáo.
+1. Create `Map<String, Map<String, Long>>` for paid revenue.
+2. Create another two-level Map for **paid transaction counts**, while keeping groups that appeared in the source with count 0.
+3. Safely access the key pair `("Miền Tây", "Sách")` which does not exist in the data.
+4. Explain the difference in key sets between the two reports.
 
-### Lời giải tham khảo (Java 17+)
+### Reference Solution (Java 17+)
 
 ~~~java
 import java.util.Collections;
@@ -855,7 +855,7 @@ public class MultiLevelGroupingPractice {
             new Sale("A4", "Nam", "Sách",  70L, false)
         );
 
-        // Báo cáo 1: loại giao dịch chưa thanh toán trước khi nhóm.
+        // Report 1: exclude unpaid transactions before grouping.
         Map<String, Map<String, Long>> paidRevenue =
             sales.stream()
                 .filter(Sale::paid)
@@ -867,7 +867,7 @@ public class MultiLevelGroupingPractice {
                     )
                 ));
 
-        // Báo cáo 2: tạo nhóm trước, lọc bên trong từng nhóm.
+        // Report 2: form groups first, then filter inside each group.
         Map<String, Map<String, Long>> paidCountWithZero =
             sales.stream().collect(Collectors.groupingBy(
                 Sale::region,
@@ -894,7 +894,7 @@ public class MultiLevelGroupingPractice {
         System.out.println(paidCountWithZero.get("Bắc").get("Sách")); // 1
         System.out.println(paidCountWithZero.get("Nam").get("Sách")); // 0
 
-        System.out.println(missingValue); // 0 theo chính sách hiển thị
+        System.out.println(missingValue); // 0 per display policy
         System.out.println(
             paidRevenue.get("Nam").containsKey("Sách")
         ); // false
@@ -902,24 +902,24 @@ public class MultiLevelGroupingPractice {
 }
 ~~~
 
-**Giải thích:** nhóm **Nam → Sách** chỉ có giao dịch `A4` chưa thanh toán. Vì vậy báo cáo doanh thu dùng `filter` trước nhóm **không tạo** khóa `Sách` dưới `Nam`; báo cáo số lượng dùng downstream `filtering` **vẫn có** khóa này, nhưng giá trị bằng `0L`. Cặp `Miền Tây → Sách` hoàn toàn không có trong nguồn, nên cả hai collector đều không tạo nhóm; `getOrDefault` chỉ quyết định cách **trình bày** khi truy xuất.
+**Explanation:** the **Nam → Sách** group only has unpaid transaction `A4`. Therefore, the revenue report using `filter` before grouping **does not create** the `Sách` key under `Nam`; the count report using downstream `filtering` **still keeps** that key, with value `0L`. The pair `Miền Tây → Sách` does not exist in the source at all, so neither collector creates a group for it; `getOrDefault` only controls how it is **presented** on lookup.
 
-### Câu hỏi tự kiểm tra
+### Self-Check Questions
 
-1. `groupingBy(region, groupingBy(category))` trả kiểu lá nào? — **`List<Sale>`**.
-2. Thay downstream cuối bằng `counting()` thì giá trị lá kiểu gì? — **`Long`**.
-3. Nếu muốn chỉ giữ mã giao dịch ở lá, nên dùng collector nào? — **`mapping(Sale::id, toList())`**.
-4. `filter` ở đầu pipeline và `Collectors.filtering` ở downstream khác nhau ở điểm nào? — **Nhóm không có phần tử đạt điều kiện có thể bị bỏ hẳn hoặc được giữ với giá trị rỗng/0**.
-5. `groupingBy(Sale::paid)` có luôn tạo khóa `true` và `false` không? — **Không**; `partitioningBy` phù hợp với hai nhánh cố định.
-6. `groupingBy` có bảo đảm thứ tự khóa của Map kết quả không? — **Không** nếu không cấu hình map factory.
-7. Composite key bằng record có nhất thiết tạo nested Map không? — **Không**, nó tạo `Map<GroupKey, V>`.
-8. Có thể giả định khóa `null` được chấp nhận trong groupingBy không? — **Không**; cần chuẩn hóa hoặc loại bỏ dữ liệu thiếu khóa.
-9. Dùng `parallelStream()` với grouping nhiều cấp có mặc định nhanh hơn không? — **Không**, phải đo và xét chi phí ghép các Map trung gian.
+1. What leaf type does `groupingBy(region, groupingBy(category))` return? — **`List<Sale>`**.
+2. If you replace the final downstream with `counting()`, what is the leaf value type? — **`Long`**.
+3. If you want to keep only transaction IDs at the leaf, which collector should you use? — **`mapping(Sale::id, toList())`**.
+4. How do `filter` at the start of a pipeline and downstream `Collectors.filtering` differ? — **A group with no matching elements may be dropped completely or retained with an empty/0 value**.
+5. Does `groupingBy(Sale::paid)` always create both `true` and `false` keys? — **No**; `partitioningBy` fits two fixed branches.
+6. Does `groupingBy` guarantee key order in the resulting Map? — **No**, unless a map factory is configured.
+7. Does a composite key using a record necessarily create a nested Map? — **No**, it creates `Map<GroupKey, V>`.
+8. Can you assume a `null` key is accepted in `groupingBy`? — **No**; you must normalize or remove records with missing keys.
+9. Is using `parallelStream()` with multi-level grouping faster by default? — **No**, you must measure and consider the cost of merging intermediate Maps.
 
-## 18. Ghi nhớ trước khi xây báo cáo đa chiều
+## 18. Takeaways Before Building Multidimensional Reports
 
-**Phân nhóm nhiều cấp** trong Java Stream API có dạng **`groupingBy(khóaNgoài, groupingBy(khóaTrong, downstream))`**. Mỗi `groupingBy` thêm một chiều phân tích, còn downstream cuối xác định dữ liệu ở lá: danh sách chi tiết, số lượng, tổng, thống kê hoặc đại diện của nhóm.
+**Multi-level grouping** in the Java Stream API has the form **`groupingBy(khóaNgoài, groupingBy(khóaTrong, downstream))`**. Each `groupingBy` adds an analysis dimension, and the final downstream collector determines the leaf data: detailed list, count, sum, statistics, or group representative.
 
-Khi xây pipeline, hãy xác định rõ **thứ tự các khóa phân cấp**, **kiểu giá trị ở lá**, **chính sách nhóm rỗng**, **khóa thiếu/null**, **thứ tự hiển thị** và **điều kiện kết thúc của nguồn**. Khi dữ liệu lớn hoặc cần xử lý song song, ưu tiên collector tuân thủ hợp đồng và đo chi phí bộ nhớ/phối hợp; không tự cập nhật `Map` chia sẻ bằng callback có trạng thái.
+When building a pipeline, explicitly define the **hierarchy of grouping keys**, **leaf value type**, **empty-group policy**, **missing/null keys**, **display ordering**, and **source termination conditions**. For large datasets or parallel execution, prefer contract-compliant collectors and measure memory/coordination costs; do not manually update a shared `Map` using stateful callbacks.
 
-Một bản đồ lồng nhau thể hiện tốt báo cáo theo cấp bậc; khi cần tra cứu tổ hợp khóa hoặc giảm độ sâu kiểu, có thể cân nhắc **composite key**. Nắm được những lựa chọn này sẽ giúp bạn triển khai `groupingBy`, `partitioningBy`, collector tùy chỉnh và các bài toán phân tích dữ liệu phức tạp một cách rõ nghĩa, kiểm tra được và an toàn hơn.
+A nested map expresses hierarchical reports well; when you need direct lookup of key combinations or want to reduce type depth, consider a **composite key**. Mastering these options helps you implement `groupingBy`, `partitioningBy`, custom collectors, and complex data-analysis tasks cleanly, testably, and safely.

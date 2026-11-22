@@ -1,50 +1,50 @@
-# Annotation trên superclass và interface được khai báo
+# Annotations on Declared Superclasses and Interfaces
 
-## 1. Vấn đề: annotation nằm trên *kiểu được sử dụng* hay trên *khai báo kiểu*?
+## 1. The problem: is the annotation on *a used type* or on *a type declaration*?
 
-Trong Java, annotation có thể gắn vào **khai báo lớp/interface** hoặc vào **vị trí sử dụng một kiểu** trong mệnh đề `extends` và `implements`. Đây là hai nơi khác nhau dù cùng liên quan tới quan hệ kế thừa.
+In Java, an annotation can be attached to **a class/interface declaration** or to **a type-use position** in `extends` and `implements` clauses. These are two distinct locations even though both relate to inheritance relationships.
 
 ~~~java
-// Mảnh minh họa cú pháp. Các annotation đã được định nghĩa phù hợp.
-@Category("domain")                    // Annotation của declaration: Base
+// Syntax illustration snippet. Annotations are assumed to be properly defined.
+@Category("domain")                    // Declaration annotation: Base
 class Base {}
 
 class Child extends @Edge("inheritance") Base {}
-//                  ^ Annotation trên type use "Base" tại cạnh Child -> Base.
+//                  ^ Annotation on the "Base" type use on edge Child -> Base.
 ~~~
 
-- `@Category` mô tả khai báo `Base`; tra cứu qua `Base.class.getAnnotation(Category.class)`.
-- `@Edge` mô tả **việc dùng kiểu `Base` làm superclass của `Child`**, không tự gắn vào `Base.class` và không phải annotation declaration của `Child`.
-- Nếu có `AnotherChild extends @Edge("another") Base`, hai cạnh có thể mang annotation khác nhau mà `Base` vẫn là một khai báo duy nhất.
-- Với `implements Interface` hoặc `interface Sub extends Interface`, ý tưởng giống hệt: annotation tại cạnh sử dụng interface, không phải annotation trên chính interface declaration.
+- `@Category` describes the `Base` declaration; queried via `Base.class.getAnnotation(Category.class)`.
+- `@Edge` describes **the use of type `Base` as the superclass of `Child`**; it does not attach to `Base.class` and is not a declaration annotation of `Child`.
+- If there is `AnotherChild extends @Edge("another") Base`, the two edges can carry different annotations while `Base` remains a single declaration.
+- For `implements Interface` or `interface Sub extends Interface`, the idea is identical: the annotation is on the interface usage edge, not an annotation on the interface declaration itself.
 
-Chủ đề này thuộc **type-use annotations** (`@Target(ElementType.TYPE_USE)`), được hỗ trợ từ Java 8. Java Reflection sử dụng `AnnotatedType` để trả về annotation ở các vị trí sử dụng kiểu, chứ không chỉ trả `Class<?>`.
+This topic belongs to **type-use annotations** (`@Target(ElementType.TYPE_USE)`), supported since Java 8. Java Reflection uses `AnnotatedType` to return annotations at type-use positions rather than returning only `Class<?>`.
 
-## 2. API chính: getAnnotatedSuperclass và getAnnotatedInterfaces
+## 2. Primary APIs: getAnnotatedSuperclass and getAnnotatedInterfaces
 
-| API Java Reflection | Kết quả | Phạm vi |
+| Java Reflection API | Result | Scope |
 | --- | --- | --- |
-| `clazz.getSuperclass()` | `Class<?>` của superclass trực tiếp (nếu có) | Không có type-use annotations, không giữ generic args. |
-| `clazz.getGenericSuperclass()` | `Type` của superclass trực tiếp | Có generic declaration, **không chứa annotation tại type-use**. |
-| `clazz.getAnnotatedSuperclass()` | `AnnotatedType` mô tả *việc dùng superclass* của class | Có thể đọc TYPE_USE annotation trên `extends` và trên generic argument lồng bên trong. |
-| `clazz.getInterfaces()` | `Class<?>[]` chứa các superinterfaces **trực tiếp** | Không chứa TYPE_USE annotation hoặc generic args. |
-| `clazz.getGenericInterfaces()` | `Type[]` chứa các superinterfaces trực tiếp | Giữ generic args nhưng không chứa TYPE_USE annotation. |
-| `clazz.getAnnotatedInterfaces()` | `AnnotatedType[]` chứa các *lần dùng interface* trực tiếp | Có TYPE_USE annotation trên `implements`/`extends` và các type arguments. |
+| `clazz.getSuperclass()` | `Class<?>` of the direct superclass (if any) | No type-use annotations, does not preserve generic args. |
+| `clazz.getGenericSuperclass()` | `Type` of the direct superclass | Has generic declaration, **does not contain type-use annotations**. |
+| `clazz.getAnnotatedSuperclass()` | `AnnotatedType` describing *the superclass use* of the class | Can read `TYPE_USE` annotations on `extends` and on nested generic arguments. |
+| `clazz.getInterfaces()` | `Class<?>[]` containing **direct** superinterfaces | Does not contain `TYPE_USE` annotations or generic args. |
+| `clazz.getGenericInterfaces()` | `Type[]` containing direct superinterfaces | Preserves generic args, but does not contain `TYPE_USE` annotations. |
+| `clazz.getAnnotatedInterfaces()` | `AnnotatedType[]` containing direct *interface uses* | Has `TYPE_USE` annotations on `implements`/`extends` and on type arguments. |
 
-Các API `getAnnotatedSuperclass()`, `getAnnotatedInterfaces()` được khai báo trên `java.lang.Class`. Hai API này khác hẳn `Class.getAnnotations()` và `Class.getDeclaredAnnotations()`: các phương thức sau đọc **declaration annotations của đối tượng Class**, không phải annotation trên cạnh superclass/interface. 
+The `getAnnotatedSuperclass()` and `getAnnotatedInterfaces()` APIs are declared on `java.lang.Class`. These two APIs differ completely from `Class.getAnnotations()` and `Class.getDeclaredAnnotations()`: the latter read **declaration annotations of the Class object**, not annotations on superclass/interface edges.
 
-Theo hợp đồng Java SE 17:
+Under the Java SE 17 contract:
 
-- Với class thông thường, `getAnnotatedSuperclass()` mô tả superclass trực tiếp. Nếu superclass không được khai báo có annotation, nó vẫn có thể trả `AnnotatedType` với mảng annotation **rỗng**. Ví dụ một class không viết `extends` vẫn có superclass `Object` ngầm.
-- `getAnnotatedSuperclass()` trả **null** với `Object.class`, interface, array class, primitive và `void.class`.
-- `getAnnotatedInterfaces()` trả mảng theo **thứ tự khai báo** trong `implements` hoặc `extends` của interface. Không có direct superinterface thì mảng rỗng.
-- Các API `getAnnotatedInterfaces()` không tự nối toàn bộ interface gián tiếp mà superclass đã implement. Muốn duyệt transitive hierarchy, người viết công cụ phải duyệt tiếp các nút cha.
+- For an ordinary class, `getAnnotatedSuperclass()` describes its direct superclass. If the superclass has no declared annotations, it can still return an `AnnotatedType` with an **empty** annotation array. For instance, a class that does not write `extends` still has an implicit `Object` superclass.
+- `getAnnotatedSuperclass()` returns **null** for `Object.class`, interfaces, array classes, primitives, and `void.class`.
+- `getAnnotatedInterfaces()` returns an array in **declaration order** from the `implements` or interface `extends` clause. If there are no direct superinterfaces, the array is empty.
+- The `getAnnotatedInterfaces()` API does not automatically concatenate all indirect interfaces implemented by superclasses. To traverse the transitive hierarchy, a tool author must continue walking parent nodes.
 
-Ví dụ `class Child implements A, B` thì `getAnnotatedInterfaces()[0]` phản ánh cách dùng `A`, phần tử `[1]` là `B`. Không nên phụ thuộc index một cách mù quáng khi mã nguồn có thể đổi thứ tự; hãy so `AnnotatedType.getType()` với kiểu đang tìm hoặc xác định đường đi rõ ràng.
+For example, in `class Child implements A, B`, `getAnnotatedInterfaces()[0]` reflects the use of `A`, and element `[1]` is `B`. You should not rely blindly on indices when source order might change; compare `AnnotatedType.getType()` against the target type or track an explicit path.
 
-## 3. Khai báo annotation đúng cho TYPE_USE
+## 3. Declaring annotations properly for TYPE_USE
 
-Annotation trên superclass/interface use phải cho phép target `TYPE_USE`. Nếu muốn đọc bằng Reflection lúc chạy, cần `@Retention(RetentionPolicy.RUNTIME)`. Ví dụ:
+An annotation on a superclass/interface use must allow target `TYPE_USE`. If you want to read it via Reflection at runtime, `@Retention(RetentionPolicy.RUNTIME)` is required. Example:
 
 ~~~java
 import java.lang.annotation.ElementType;
@@ -59,51 +59,51 @@ import java.lang.annotation.Target;
 }
 ~~~
 
-Đây là mảnh mã khai báo riêng để minh họa. Nếu ghép với ví dụ độc lập ở phần 6, **không** khai báo trùng annotation `Edge`.
+This is a separate declaration snippet for illustration. If combining with the standalone example in section 6, do **not** declare a duplicate `Edge` annotation.
 
-Cần tách bạch:
+Keep these distinct:
 
-| Vị trí | Ví dụ | Target thích hợp | API đọc |
+| Position | Example | Appropriate target | Reading API |
 | --- | --- | --- | --- |
-| Khai báo lớp | `@Role class Base {}` | `TYPE` | `Base.class.getAnnotation(Role.class)` |
-| Type use tại superclass | `class Child extends @Edge Base {}` | `TYPE_USE` | `Child.class.getAnnotatedSuperclass().getAnnotation(Edge.class)` |
-| Type use tại implemented interface | `class Child implements @Edge Contract {}` | `TYPE_USE` | Duyệt `Child.class.getAnnotatedInterfaces()` rồi `getAnnotation(Edge.class)` |
-| Type use tại superinterface | `interface Sub extends @Edge Contract {}` | `TYPE_USE` | `Sub.class.getAnnotatedInterfaces()` |
-| Type argument lồng trong superclass | `extends Base<@Edge String>` | `TYPE_USE` | `AnnotatedParameterizedType.getAnnotatedActualTypeArguments()` |
-| Khai báo type parameter | `class Base<@Marker T> {}` | `TYPE_PARAMETER` | `TypeVariable.getAnnotations()` (ngữ nghĩa declaration khác type-use). |
+| Class declaration | `@Role class Base {}` | `TYPE` | `Base.class.getAnnotation(Role.class)` |
+| Type use on superclass | `class Child extends @Edge Base {}` | `TYPE_USE` | `Child.class.getAnnotatedSuperclass().getAnnotation(Edge.class)` |
+| Type use on implemented interface | `class Child implements @Edge Contract {}` | `TYPE_USE` | Iterate `Child.class.getAnnotatedInterfaces()` then `getAnnotation(Edge.class)` |
+| Type use on superinterface | `interface Sub extends @Edge Contract {}` | `TYPE_USE` | `Sub.class.getAnnotatedInterfaces()` |
+| Nested type argument in superclass | `extends Base<@Edge String>` | `TYPE_USE` | `AnnotatedParameterizedType.getAnnotatedActualTypeArguments()` |
+| Type parameter declaration | `class Base<@Marker T> {}` | `TYPE_PARAMETER` | `TypeVariable.getAnnotations()` (declaration semantics differ from type-use). |
 
-Không coi `@Target(TYPE)` và `@Target(TYPE_USE)` là tương đương. Có thể khai báo một annotation cho nhiều target nếu thật sự cần, nhưng phải hiểu API nào được yêu cầu và vị trí annotation được sử dụng. Một annotation có `RetentionPolicy.CLASS` có thể có trong class file mà API Reflection runtime không cung cấp nó. `RetentionPolicy.SOURCE` không được giữ tới class file.
+Do not treat `@Target(TYPE)` and `@Target(TYPE_USE)` as equivalent. You can declare an annotation with multiple targets if truly needed, but you must understand which API is required and where the annotation is placed. An annotation with `RetentionPolicy.CLASS` may exist in the class file while runtime Reflection APIs do not expose it. `RetentionPolicy.SOURCE` is not retained in the class file.
 
-## 4. AnnotatedType biểu diễn gì?
+## 4. What does AnnotatedType represent?
 
-`java.lang.reflect.AnnotatedType` là một `AnnotatedElement` mô tả *cách dùng kiểu*, vì vậy có:
+`java.lang.reflect.AnnotatedType` is an `AnnotatedElement` describing *a type use*, so it has:
 
-- `getType()`: `java.lang.reflect.Type` phía dưới, có thể là `Class<?>` hoặc `ParameterizedType`.
-- `getAnnotation(Edge.class)`, `isAnnotationPresent(...)`, `getAnnotations()`, `getDeclaredAnnotations()`: đọc annotation gắn trên **lần sử dụng kiểu đang được đại diện**.
-- `getAnnotatedOwnerType()`: khi là kiểu thành viên và có enclosing owner type được biểu diễn, cho phép khảo sát phần owner (có thể null).
+- `getType()`: the underlying `java.lang.reflect.Type`, which may be a `Class<?>` or `ParameterizedType`.
+- `getAnnotation(Edge.class)`, `isAnnotationPresent(...)`, `getAnnotations()`, `getDeclaredAnnotations()`: read annotations attached to **the represented type use**.
+- `getAnnotatedOwnerType()`: when it is a member type and has a represented enclosing owner type, allows inspecting the owner part (may be null).
 
-Khi superclass/interface có generic arguments, kiểu trả về thường là `AnnotatedParameterizedType`, với `getAnnotatedActualTypeArguments()` giữ annotation của từng tham số kiểu. Chẳng hạn:
+When a superclass/interface has generic arguments, the returned type is typically `AnnotatedParameterizedType`, with `getAnnotatedActualTypeArguments()` holding annotations for each type parameter. For example:
 
 ~~~java
-// Đã có Base<T>, Contract<T> và @Edge cho phép TYPE_USE.
+// Assuming Base<T>, Contract<T>, and @Edge allowing TYPE_USE exist.
 class Child extends @Edge("super") Base<@Edge("arg") String>
         implements @Edge("contract") Contract<@Edge("generic-arg") Integer> {}
 ~~~
 
-Phải đọc **hai tầng**:
+You must read **two levels**:
 
-1. `Child.class.getAnnotatedSuperclass().getAnnotation(Edge.class)` đọc `@Edge("super")`.
-2. Ép superclass annotated type sang `AnnotatedParameterizedType` rồi lấy argument `[0].getAnnotation(Edge.class)` để đọc `@Edge("arg")`.
+1. `Child.class.getAnnotatedSuperclass().getAnnotation(Edge.class)` reads `@Edge("super")`.
+2. Cast the superclass annotated type to `AnnotatedParameterizedType` and get argument `[0].getAnnotation(Edge.class)` to read `@Edge("arg")`.
 
-Tương tự, `getAnnotatedInterfaces()[0].getAnnotation(Edge.class)` đọc annotation tại interface use, còn annotation của `Integer` là ở annotated generic argument. **Annotation ngoài và annotation trong không tự hợp nhất**: `getAnnotations()` trên outer type use không tự trả annotation của mọi nested type argument.
+Similarly, `getAnnotatedInterfaces()[0].getAnnotation(Edge.class)` reads the annotation on the interface use, while the annotation on `Integer` is on the annotated generic argument. **Outer and inner annotations do not merge automatically**: `getAnnotations()` on the outer type use does not automatically return annotations of nested type arguments.
 
-Ngoài `AnnotatedParameterizedType`, các subtype liên quan gồm `AnnotatedArrayType`, `AnnotatedWildcardType`, `AnnotatedTypeVariable`. Nếu muốn hỗ trợ tất cả cách viết generic phức tạp, parser phải duyệt đệ quy. Đừng cast trực tiếp sang `Class<?>` hoặc `AnnotatedParameterizedType` khi không kiểm tra bằng `instanceof`; kiểu raw hoặc non-generic thường không phải annotated parameterized type.
+In addition to `AnnotatedParameterizedType`, related subtypes include `AnnotatedArrayType`, `AnnotatedWildcardType`, and `AnnotatedTypeVariable`. To support all complex generic forms, a parser must traverse recursively. Do not cast directly to `Class<?>` or `AnnotatedParameterizedType` without checking `instanceof`; raw or non-generic types are normally not annotated parameterized types.
 
-## 5. @Inherited KHÔNG phải cơ chế kế thừa annotation trên cạnh extends/implements
+## 5. @Inherited is NOT a mechanism for inheriting annotations on extends/implements edges
 
-`java.lang.annotation.Inherited` thường gây nhầm lẫn ở phần này.
+`java.lang.annotation.Inherited` often causes confusion here.
 
-Annotation khai báo:
+Annotation declaration:
 
 ~~~java
 @Retention(RetentionPolicy.RUNTIME)
@@ -114,19 +114,19 @@ Annotation khai báo:
 }
 ~~~
 
-`@Inherited` chỉ định **declaration annotation** có thể được tìm theo **superclass chain** khi truy vấn trên khai báo class. Nếu `Base` có `@Role`, class con không tự khai báo `@Role` nhưng `Child.class.getAnnotation(Role.class)` có thể trả annotation từ `Base`. Điều này không có nghĩa annotation được chép vào class file của `Child`: `Child.class.getDeclaredAnnotation(Role.class)` vẫn null khi Child không khai báo trực tiếp.
+`@Inherited` indicates that a **declaration annotation** can be looked up along **the superclass chain** when querying a class declaration. If `Base` has `@Role`, a subclass does not directly declare `@Role`, yet `Child.class.getAnnotation(Role.class)` can return the annotation from `Base`. This does not mean the annotation is copied into `Child`'s class file: `Child.class.getDeclaredAnnotation(Role.class)` remains `null` when `Child` does not declare it directly.
 
-Ba giới hạn cần nhớ:
+Three limits to remember:
 
-- **Không kế thừa từ interface** qua `@Inherited`: `class Impl implements @SomeUse Interface` không nhận declaration annotation `@Role` của interface chỉ bởi implements nó.
-- **Không tự lan truyền type-use annotation trên cạnh**: nếu `Child extends @Edge Base` thì `Grandchild extends Child` không tự có `@Edge` tại cạnh `Grandchild -> Child`. Muốn biết annotation của cạnh `Child -> Base`, phải chủ động duyệt đến `Child.class.getAnnotatedSuperclass()`.
-- **Không áp dụng để tìm annotation trên mọi vị trí cú pháp**: `@Inherited` được định nghĩa cho việc truy vấn declaration annotation của class; không dùng nó như một bộ duyệt `AnnotatedType` hoặc thuật toán tìm annotation trên interface.
+- **Not inherited from interfaces** via `@Inherited`: `class Impl implements @SomeUse Interface` does not receive the interface's declaration annotation `@Role` merely by implementing it.
+- **Does not propagate type-use annotations across edges**: if `Child extends @Edge Base`, then `Grandchild extends Child` does not automatically get `@Edge` on the `Grandchild -> Child` edge. To know the annotation of edge `Child -> Base`, you must explicitly inspect `Child.class.getAnnotatedSuperclass()`.
+- **Does not apply to finding annotations at arbitrary syntactic positions**: `@Inherited` is defined for querying class declaration annotations; do not use it as an `AnnotatedType` traverser or an algorithm for finding annotations on interfaces.
 
-Đây chính là lý do một công cụ thiết kế policy đặt trên cạnh inheritance cần lưu ngữ cảnh **lớp khai báo cạnh**; còn công cụ xử lý class-level marker cần xét `getAnnotation`/`getDeclaredAnnotation` và quy tắc `@Inherited`. Hai nhiệm vụ khác nhau không nên dùng cùng một quy tắc “thừa kế annotation”.
+This is precisely why a tool designing a policy placed on inheritance edges needs to preserve the context of **the class declaring the edge**, whereas a tool handling class-level markers needs to check `getAnnotation`/`getDeclaredAnnotation` and `@Inherited` rules. Two different tasks should not share the same "annotation inheritance" rule.
 
-## 6. Ví dụ Java 17+ hoàn chỉnh: superclass, interface và generic argument
+## 6. Complete Java 17+ example: superclass, interface, and generic arguments
 
-Lưu file `AnnotatedHierarchyDemo.java`:
+Save the file `AnnotatedHierarchyDemo.java`:
 
 ~~~java
 import java.lang.annotation.ElementType;
@@ -214,14 +214,14 @@ public class AnnotatedHierarchyDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 AnnotatedHierarchyDemo.java
 java AnnotatedHierarchyDemo
 ~~~
 
-Đầu ra kỳ vọng trên Java 17+:
+Expected output on Java 17+:
 
 ~~~text
 Child superclass edge=superclass-edge
@@ -239,36 +239,36 @@ Grandchild direct interfaces=0
 Interface has superclass=false
 ~~~
 
-Giải thích từng nhóm kết quả:
+Explaining each group of results:
 
-- `Child` có **một superclass trực tiếp** và một **direct implemented interface**, mỗi cạnh gắn `@Edge` riêng. Reflection trả về annotation chính xác tại vị trí tương ứng.
-- `Base<@Edge String>` / `Contract<@Edge Integer>` giữ `@Edge` ở type argument; do đó phải đi qua `AnnotatedParameterizedType` để đọc chúng.
-- `SubContract` là một **interface** mở rộng interface khác. Nó không có class superclass (`getAnnotatedSuperclass()==null`) nhưng `getAnnotatedInterfaces()` vẫn phản ánh cạnh `extends Contract<Long>`.
-- `Role` là declaration annotation của `Base` và `Contract`. `Child` kế thừa `Role("base-declaration")` từ superclass nhờ `@Inherited`, nhưng `getDeclaredAnnotation` trên `Child` không trả nó.
-- `OnlyInterface` không có superclass được đánh dấu `Role`; `@Role` trên `Contract` **không chuyển sang class implement** theo `@Inherited`.
-- `Grandchild` tiếp tục được truy vấn declaration annotation `Role` dọc class superclass chain, nhưng direct superclass edge (`Grandchild -> Child`) **không** có `@Edge`, nên `edge(...)` trả `-`.
-- `Grandchild.getAnnotatedInterfaces().length == 0` vì Grandchild **không trực tiếp khai báo implements**. Điều đó không có nghĩa một `Grandchild` không phải `Contract`: nó vẫn kế thừa implementation interface qua `Child` trong type hierarchy.
+- `Child` has **one direct superclass** and one **direct implemented interface**, each edge carrying its own `@Edge`. Reflection returns the exact annotation at the corresponding position.
+- `Base<@Edge String>` / `Contract<@Edge Integer>` keep `@Edge` on the type argument; therefore you must go through `AnnotatedParameterizedType` to read them.
+- `SubContract` is an **interface** extending another interface. It has no class superclass (`getAnnotatedSuperclass()==null`), yet `getAnnotatedInterfaces()` still reflects the `extends Contract<Long>` edge.
+- `Role` is a declaration annotation of `Base` and `Contract`. `Child` inherits `Role("base-declaration")` from the superclass thanks to `@Inherited`, though `getDeclaredAnnotation` on `Child` does not return it.
+- `OnlyInterface` has no superclass marked with `Role`; `@Role` on `Contract` **does not transfer to an implementing class** via `@Inherited`.
+- `Grandchild` can still be queried for declaration annotation `Role` along the class superclass chain, yet the direct superclass edge (`Grandchild -> Child`) has **no** `@Edge`, so `edge(...)` returns `-`.
+- `Grandchild.getAnnotatedInterfaces().length == 0` because `Grandchild` **does not directly declare implements**. That does not mean a `Grandchild` is not a `Contract`: it still inherits the interface implementation through `Child` in the type hierarchy.
 
-Nếu thay `@Retention(RUNTIME)` của `Edge` thành `CLASS`, runtime Reflection sẽ không thấy các marker đó nữa. Thứ tự type arguments trong mảng trả về tương ứng với thứ tự trong khai báo `Base<T>`/`Contract<T>`.
+If you change `@Retention(RUNTIME)` on `Edge` to `CLASS`, runtime Reflection will no longer see those markers. The order of type arguments in the returned array matches the order in the declaration of `Base<T>`/`Contract<T>`.
 
-## 7. Duyệt nhiều cấp đúng cách
+## 7. Traversing multiple levels properly
 
-`getAnnotatedSuperclass()` và `getAnnotatedInterfaces()` cung cấp **các cạnh trực tiếp của node hiện tại**, không duyệt closure của toàn bộ đồ thị inheritance. Một framework tìm type-use annotations qua phân cấp có thể làm như sau:
+`getAnnotatedSuperclass()` and `getAnnotatedInterfaces()` provide **the direct edges of the current node**, not the closure of the entire inheritance graph. A framework searching for type-use annotations across a hierarchy can proceed as follows:
 
-1. Chọn class/interface gốc `root` cần phân tích.
-2. Tại mỗi node `current`, đọc `current.getAnnotatedSuperclass()` (nếu khác null), xử lý annotation của **cạnh đi tới superclass**.
-3. Duyệt `current.getAnnotatedInterfaces()` theo thứ tự trả về, xử lý annotation của **từng cạnh interface trực tiếp**.
-4. Từ mỗi annotated edge, lấy `getType()` để xác định type đích. Nếu là `ParameterizedType`, dùng `getRawType()` để xác định class/interface cần duyệt tiếp; nếu là `Class<?>`, dùng trực tiếp.
-5. Khi cần generic argument annotation, phân nhánh `instanceof AnnotatedParameterizedType` rồi duyệt `getAnnotatedActualTypeArguments()`, và sâu hơn với array/wildcard/nested owner type khi thích hợp.
-6. Duyệt tiếp các class/interface đích theo chính sách ứng dụng (class chain riêng, interface graph riêng hoặc cả hai). Có thể gặp cùng một interface theo **nhiều đường đi**, vì vậy lưu visited để tránh lặp nếu chỉ cần node duy nhất; nếu nghiệp vụ đánh giá **từng cạnh có annotation riêng**, phải giữ thông tin đường đi/cạnh thay vì vô tình gộp tất cả.
-7. Đừng tự động đẩy annotation từ cạnh cha xuống mọi cạnh con: semantics của `@Edge` do ứng dụng định nghĩa; Java chỉ lưu và cung cấp metadata, **không thực thi policy runtime thay người viết framework**.
+1. Choose the root class/interface `root` to analyze.
+2. At each node `current`, read `current.getAnnotatedSuperclass()` (if non-null) and process annotations of **the edge leading to the superclass**.
+3. Iterate `current.getAnnotatedInterfaces()` in returned order and process annotations of **each direct interface edge**.
+4. From each annotated edge, call `getType()` to determine the target type. If it is a `ParameterizedType`, use `getRawType()` to determine the next class/interface to traverse; if it is a `Class<?>`, use it directly.
+5. When generic argument annotations are needed, branch on `instanceof AnnotatedParameterizedType` and traverse `getAnnotatedActualTypeArguments()`, going deeper into array/wildcard/nested owner types when appropriate.
+6. Continue traversing target classes/interfaces according to application policy (class chain only, interface graph only, or both). The same interface may be reached via **multiple paths**, so track visited nodes to avoid loops if only unique nodes are needed; if business logic evaluates **each individually annotated edge**, preserve path/edge context rather than accidentally merging everything.
+7. Do not automatically push annotations from parent edges down to all child edges: the semantics of `@Edge` are defined by the application; Java only stores and exposes metadata, **without enforcing runtime policies on behalf of the framework author**.
 
-Một hàm chỉ cần xác định kiểu raw từ `AnnotatedType` có thể dùng:
+A function that only needs to determine the raw class from an `AnnotatedType` can use:
 
 ~~~java
-// Đoạn mã để đặt trong class có import java.lang.reflect.*.
-// Nó chỉ giải raw class cho Class và ParameterizedType, không phải resolver
-// tổng quát cho mọi TypeVariable, GenericArrayType hay WildcardType.
+// Snippet to place in a class with import java.lang.reflect.*.
+// It only resolves raw classes for Class and ParameterizedType, not a general
+// resolver for all TypeVariable, GenericArrayType, or WildcardType.
 static Class<?> rawClass(AnnotatedType annotated) {
     java.lang.reflect.Type type = annotated.getType();
     if (type instanceof Class<?> cls) {
@@ -282,54 +282,54 @@ static Class<?> rawClass(AnnotatedType annotated) {
 }
 ~~~
 
-Code trên là đoạn tiện ích minh họa, không phải chương trình độc lập. Chưa xử lý mọi `Type` và không thể thay thế bộ phân tích generic đầy đủ; cách phân nhánh này là chủ ý để các trường hợp chưa hỗ trợ được báo lỗi rõ ràng thay vì ép kiểu sai.
+The code above is an illustrative utility snippet, not a standalone program. It does not handle every `Type` and cannot replace a full generic resolver; this branching is intentional so unsupported cases fail with a clear error rather than a wrong cast.
 
-### Khi gặp nhiều declaration annotation khác nhau
+### When encountering multiple different declaration annotations
 
-Nếu mục tiêu là “class này có `@Role` không?”, dùng `Class.getAnnotation(Role.class)` theo ngữ nghĩa `@Inherited`. Nếu mục tiêu là “cạnh extends/implements này có `@Edge` không?”, **đọc annotated hierarchy edges**. Framework nên ghi rõ chính sách khi:
+If the goal is "does this class have `@Role`?", use `Class.getAnnotation(Role.class)` per `@Inherited` semantics. If the goal is "does this extends/implements edge have `@Edge`?", **read the annotated hierarchy edges**. A framework should document its policy clearly when:
 
-- interface A được kế thừa gián tiếp qua nhiều nhánh;
-- superclass và interface có annotation cùng tên nhưng ý nghĩa khác;
-- một type-use annotation nằm ở outer type, type argument hoặc inner component;
-- một class không khai báo `extends` tường minh nhưng có superclass `Object`;
-- các annotation không được giữ đến runtime.
+- interface `A` is inherited indirectly through multiple branches;
+- a superclass and an interface have annotations with the same name but different meanings;
+- a type-use annotation resides on the outer type, a type argument, or an inner component;
+- a class declares no explicit `extends` yet has `Object` as its superclass;
+- annotations are not retained until runtime.
 
-## 8. Những lỗi phổ biến cần tránh
+## 8. Common mistakes to avoid
 
-| Nhận định sai | Cách hiểu đúng |
+| Misconception | Correct understanding |
 | --- | --- |
-| “`Base.class.getAnnotation(Edge.class)` đọc `extends @Edge Base`.” | Annotation trên **cạnh của Child** phải đọc từ `Child.class.getAnnotatedSuperclass()`. |
-| “`getGenericSuperclass()` là đủ để lấy TYPE_USE annotation.” | API trả `Type`, không mang lớp annotation; dùng `getAnnotatedSuperclass()`. |
-| “Annotation trên `implements` sẽ tự xuất hiện trên interface declaration.” | Đó là metadata của lần dùng interface trong class đang khai báo. |
-| “`@Inherited` làm annotation từ interface truyền sang class implement.” | Sai: `@Inherited` chỉ xét superclass chain của class declaration. |
-| “`@Inherited` sao chép annotation TYPE_USE xuống mọi class con.” | Sai: type-use annotation tại mỗi cạnh là metadata độc lập. |
-| “`getAnnotatedInterfaces()` liệt kê mọi interface được kế thừa gián tiếp.” | Sai: chỉ direct superinterfaces được class/interface khai báo. |
-| “Nếu `getAnnotatedSuperclass()` trả không null thì nhất định có annotation.” | Sai: có thể đại diện superclass không có annotation, ví dụ `Object` ngầm định. |
-| “`@Target(TYPE)` đủ cho type-use trong `extends/implements`.” | Cần `TYPE_USE` cho vị trí type-use. |
-| “`AnnotatedParameterizedType.getAnnotations()` gồm annotation của mọi generic argument.” | Sai: phải đọc từng `getAnnotatedActualTypeArguments()`. |
-| “Có annotation trong source là Reflection thấy.” | Cần retention thích hợp (`RUNTIME`) và metadata hợp lệ. |
+| "`Base.class.getAnnotation(Edge.class)` reads `extends @Edge Base`." | Annotations on **Child's edge** must be read from `Child.class.getAnnotatedSuperclass()`. |
+| "`getGenericSuperclass()` is enough to get `TYPE_USE` annotations." | That API returns `Type`, without the annotation layer; use `getAnnotatedSuperclass()`. |
+| "An annotation on `implements` automatically appears on the interface declaration." | That is metadata of the interface use in the declaring class. |
+| "`@Inherited` propagates annotations from interfaces to implementing classes." | Wrong: `@Inherited` only considers the superclass chain of class declarations. |
+| "`@Inherited` copies `TYPE_USE` annotations down to all subclasses." | Wrong: type-use annotations on each edge are independent metadata. |
+| "`getAnnotatedInterfaces()` lists all indirectly inherited interfaces." | Wrong: only direct superinterfaces declared by the class/interface. |
+| "If `getAnnotatedSuperclass()` returns non-null, an annotation must exist." | Wrong: it can represent an unannotated superclass, such as implicit `Object`. |
+| "`@Target(TYPE)` suffices for type-use in `extends/implements`." | `TYPE_USE` is required for type-use positions. |
+| "`AnnotatedParameterizedType.getAnnotations()` includes annotations of all generic arguments." | Wrong: you must read each `getAnnotatedActualTypeArguments()`. |
+| "Having an annotation in source means Reflection sees it." | Appropriate retention (`RUNTIME`) and valid metadata are required. |
 
-**Tình huống thực tế:** một dependency injection framework muốn xác định cách xử lý adapter theo đường implement `Contract<T>` có thể dùng edge annotation như metadata định tuyến. Ngược lại một validator muốn tìm class-level `@Entity` có thể chỉ cần `Class.getAnnotation(...)` (và quy tắc `@Inherited` của annotation đó). Chọn đúng vị trí metadata sẽ ngăn nhầm annotation giữa hai đối tượng và hai lớp trách nhiệm.
+**Practical scenario:** a dependency injection framework wanting to determine how to handle an adapter along the `implements Contract<T>` path can use edge annotations as routing metadata. Conversely, a validator looking for class-level `@Entity` may only need `Class.getAnnotation(...)` (and that annotation's `@Inherited` rule). Choosing the right metadata location prevents confusing annotations between two objects and two layers of responsibility.
 
-## 9. Bài tập thực hành
+## 9. Practice exercises
 
-1. Thêm interface `Loggable` rồi viết `implements @Edge("api") Contract<String>, @Edge("log") Loggable`; in từng phần tử `getAnnotatedInterfaces()` để thấy thứ tự.
-2. Thử `class Plain {}` và kiểm tra `Plain.class.getAnnotatedSuperclass()` khác null nhưng không có `@Edge`.
-3. Thử `Object.class.getAnnotatedSuperclass()`, `Contract.class.getAnnotatedSuperclass()`, `int.class.getAnnotatedSuperclass()` và so sánh với class thường.
-4. Bỏ `@Inherited` khỏi `Role` trong demo, chạy lại và giải thích vì sao `Child.class.getAnnotation(Role.class)` không nhận marker từ `Base`.
-5. Giữ `@Inherited` trên `Role` nhưng xóa `@Role` của `Base`; chỉ giữ marker trên `Contract` và chứng minh `OnlyInterface`/`Child` không tự thừa hưởng annotation từ interface.
-6. Thay type argument `String` bằng `List<@Edge("nested") String>` ở superclass, triển khai traversal hai tầng `AnnotatedParameterizedType`.
-7. Tạo `Grandchild extends @Edge("direct-grandchild") Child`, kiểm chứng annotation của `Grandchild -> Child` độc lập với annotation của `Child -> Base`.
-8. Xây hàm liệt kê các cạnh trực tiếp: tên class nguồn, kiểu đích, annotation trên cạnh và annotation trên generic arguments; phân biệt direct và transitive.
-9. Với `@Retention(CLASS)` hoặc `SOURCE`, quan sát việc annotation không xuất hiện qua runtime Reflection mặc dù cú pháp source hợp lệ.
+1. Add an interface `Loggable` and write `implements @Edge("api") Contract<String>, @Edge("log") Loggable`; print each element of `getAnnotatedInterfaces()` to observe the ordering.
+2. Try `class Plain {}` and verify `Plain.class.getAnnotatedSuperclass()` is non-null yet has no `@Edge`.
+3. Try `Object.class.getAnnotatedSuperclass()`, `Contract.class.getAnnotatedSuperclass()`, and `int.class.getAnnotatedSuperclass()`, and compare with a regular class.
+4. Remove `@Inherited` from `Role` in the demo, rerun, and explain why `Child.class.getAnnotation(Role.class)` does not receive the marker from `Base`.
+5. Keep `@Inherited` on `Role` but remove `@Role` from `Base`; keep the marker only on `Contract` and verify `OnlyInterface`/`Child` do not automatically inherit annotations from the interface.
+6. Replace the type argument `String` with `List<@Edge("nested") String>` in the superclass, and implement a two-level `AnnotatedParameterizedType` traversal.
+7. Create `Grandchild extends @Edge("direct-grandchild") Child`, and verify the annotation of `Grandchild -> Child` is independent of the annotation of `Child -> Base`.
+8. Build a function listing direct edges: source class name, target type, annotation on the edge, and annotations on generic arguments; distinguish direct vs. transitive.
+9. With `@Retention(CLASS)` or `SOURCE`, observe that the annotation does not appear via runtime Reflection even though the source syntax is valid.
 
-## 10. Tài liệu chính thức
+## 10. Official references
 
-- [Java SE 17 — Class.getAnnotatedSuperclass / getAnnotatedInterfaces](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html): hợp đồng superclass/interface trực tiếp, null và thứ tự.
-- [Java SE 17 — AnnotatedType](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AnnotatedType.html): type-use annotation và kiểu nền tảng.
-- [Java SE 17 — AnnotatedParameterizedType](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AnnotatedParameterizedType.html): generic arguments có annotation riêng.
-- [Java SE 17 — @Inherited](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/annotation/Inherited.html): kế thừa declaration annotation theo superclass chain, không qua interface.
-- [JLS Java 17 — Type Annotations `9.7.4](https://docs.oracle.com/javase/specs/jls/se17/html/jls-9.html#jls-9.7.4): annotation trên type use.
-- [JLS Java 17 — Inheriting Annotations `9.6.4.3](https://docs.oracle.com/javase/specs/jls/se17/html/jls-9.html#jls-9.6.4.3): phạm vi của `@Inherited`.
+- [Java SE 17 — Class.getAnnotatedSuperclass / getAnnotatedInterfaces](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html): contract for direct superclass/interfaces, null behavior, and ordering.
+- [Java SE 17 — AnnotatedType](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AnnotatedType.html): type-use annotations and underlying type.
+- [Java SE 17 — AnnotatedParameterizedType](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AnnotatedParameterizedType.html): generic arguments with their own annotations.
+- [Java SE 17 — @Inherited](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/annotation/Inherited.html): declaration annotation inheritance along the superclass chain, not through interfaces.
+- [JLS Java 17 — Type Annotations `9.7.4](https://docs.oracle.com/javase/specs/jls/se17/html/jls-9.html#jls-9.7.4): annotations on type uses.
+- [JLS Java 17 — Inheriting Annotations `9.6.4.3](https://docs.oracle.com/javase/specs/jls/se17/html/jls-9.html#jls-9.6.4.3): scope of `@Inherited`.
 
-**Điểm cốt lõi:** `Class.getAnnotation` đọc **annotation khai báo trên class** (có quy tắc `@Inherited` riêng), còn `getAnnotatedSuperclass` và `getAnnotatedInterfaces` đọc **annotation tại từng lần sử dụng superclass/interface trực tiếp**. Phải phân biệt hai lớp metadata này, và đi vào `AnnotatedParameterizedType` nếu annotation nằm trên generic argument.
+**Core takeaway:** `Class.getAnnotation` reads **annotations declared on the class** (with its own `@Inherited` rules), whereas `getAnnotatedSuperclass` and `getAnnotatedInterfaces` read **annotations on each direct superclass/interface use**. You must distinguish these two metadata layers, and descend into `AnnotatedParameterizedType` if the annotation is on a generic argument.

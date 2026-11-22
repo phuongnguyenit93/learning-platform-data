@@ -1,39 +1,39 @@
-# Tham chiếu `final` không đổi nhưng đối tượng vẫn có thể thay đổi
+# `final` References Do Not Change, Yet Objects Can Still Mutate
 
-> **Java core — language-basics / Biến và hằng**  
-> **Môi trường:** Java 17+, chỉ sử dụng thư viện chuẩn.  
-> **Mục tiêu:** Giải thích chính xác `final` ràng buộc **biến tham chiếu** chứ không tự khóa **trạng thái đối tượng**; phân biệt gán lại tham chiếu với thay đổi object, hiểu alias, mảng và collection, và nhận ra khi nào object thật sự bất biến.
+> **Java core — language-basics / Variables and Constants**  
+> **Environment:** Java 17+, using only the standard library.  
+> **Objective:** Explain accurately that `final` constrains the **reference variable** rather than automatically locking **object state**; distinguish reassigning a reference from mutating an object, understand aliases, arrays, and collections, and recognize when an object is truly immutable.
 
-## 1. `final` ràng buộc cái gì?
+## 1. What Does `final` Constrain?
 
-Khi khai báo:
+When declaring:
 
 ~~~java
 final StringBuilder message = new StringBuilder("Java");
-message.append(" 17");                   // Hợp lệ: sửa object đang được tham chiếu.
-// message = new StringBuilder("Kotlin"); // Lỗi biên dịch: gán lại biến final.
+message.append(" 17");                   // Valid: modifies the referenced object.
+// message = new StringBuilder("Kotlin"); // Compile error: reassigning a final variable.
 ~~~
 
-Có **hai đối tượng cần phân biệt về mặt khái niệm**:
+There are **two things to distinguish conceptually**:
 
-- **Biến `message`:** một biến tham chiếu đã được gán đúng một lần. Từ khóa `final` ngăn **gán lại biến ấy** sang tham chiếu khác.
-- **Đối tượng `StringBuilder`:** dữ liệu bên trong có thể được phương thức `append` thay đổi. `final` trên biến `message` **không** biến đối tượng này thành bất biến.
+- **Variable `message`:** a reference variable assigned exactly once. The `final` keyword prevents **reassigning that variable** to a different reference.
+- **`StringBuilder` object:** its internal data can be modified by the `append` method. `final` on the `message` variable does **not** make this object immutable.
 
-Bảng so sánh:
+Comparison table:
 
-| Thao tác với `final StringBuilder message` | Hợp lệ? | Lý do |
+| Operation on `final StringBuilder message` | Valid? | Reason |
 | --- | --- | --- |
-| `message.append("!");` | Có | Thay đổi trạng thái của object |
-| `message.setLength(0);` | Có | Sửa object qua method |
-| `message = new StringBuilder();` | Không | Gán lại biến `final` |
-| `message = message;` | Không | Vẫn là phép gán lại, kể cả RHS là chính tham chiếu đó |
-| `System.out.println(message);` | Có | Đọc/tham chiếu object, không gán lại |
+| `message.append("!");` | Yes | Mutates the object's state |
+| `message.setLength(0);` | Yes | Modifies the object via a method |
+| `message = new StringBuilder();` | No | Reassigns the `final` variable |
+| `message = message;` | No | Still a reassignment, even when the RHS is the same reference |
+| `System.out.println(message);` | Yes | Reads/references the object without reassigning |
 
-**Ghi nhớ:** `final` trên tham chiếu mang nghĩa “**không đổi đối tượng mà biến này trỏ tới**”, chứ không có nghĩa “**mọi byte của đối tượng đều bị khóa**”.
+**Takeaway:** `final` on a reference means "**do not change which object this variable points to**", not "**every byte of the object is locked**".
 
-## 2. Chương trình Java 17+ chạy được
+## 2. Runnable Java 17+ Program
 
-Tạo tệp **FinalReferenceDemo.java**:
+Create the file **FinalReferenceDemo.java**:
 
 ~~~java
 import java.util.ArrayList;
@@ -58,8 +58,8 @@ public class FinalReferenceDemo {
     }
 
     private static void increase(final Counter target) {
-        target.increment(); // Được: sửa object.
-//      target = new Counter(0); // Sai: gán lại tham số final.
+        target.increment(); // Allowed: mutates the object.
+//      target = new Counter(0); // Invalid: reassigning a final parameter.
     }
 
     public static void main(String[] args) {
@@ -95,21 +95,21 @@ public class FinalReferenceDemo {
             System.out.println("listOfAdd=blocked");
         }
 
-//      counter = new Counter(99); // Sai: gán lại biến final.
-//      numbers = new int[3];      // Sai: gán lại biến final.
-//      builder = new StringBuilder(); // Sai: gán lại biến final.
+//      counter = new Counter(99); // Invalid: reassigning a final variable.
+//      numbers = new int[3];      // Invalid: reassigning a final variable.
+//      builder = new StringBuilder(); // Invalid: reassigning a final variable.
     }
 }
 ~~~
 
-Chạy trong thư mục chứa tệp bằng Bash, PowerShell hoặc Command Prompt:
+Run in the directory containing the file using Bash, PowerShell, or Command Prompt:
 
 ~~~bash
 javac -encoding UTF-8 FinalReferenceDemo.java
 java FinalReferenceDemo
 ~~~
 
-**Expected output chính xác:**
+**Exact expected output:**
 
 ~~~text
 counter=12
@@ -121,28 +121,28 @@ string=java, upper=JAVA
 listOfAdd=blocked
 ~~~
 
-**Diễn giải:**
+**Explanation:**
 
-1. `counter` và `alias` trỏ tới **cùng một object**. `increase(counter)` tăng từ 10 lên 11; `alias.increment()` tăng tiếp thành 12. Biến `counter` không được gán lại lần nào.
-2. `numbers` luôn giữ tham chiếu tới cùng mảng, nhưng `numbers[0] = 9` được phép: `final` **không khóa phần tử mảng**.
-3. `builder.append` và `names.add` thay đổi các object có tính mutable.
-4. `String` là kiểu **immutable**. `toUpperCase()` cho ra chuỗi khác `"JAVA"`, không sửa nội dung chuỗi `language` đang trỏ tới.
-5. `List.of("A", "B")` tạo danh sách **không cho thêm/xóa/thay thế phần tử**; gọi `add` ném `UnsupportedOperationException`. Điều này là **tính chất của đối tượng danh sách**, không đến từ biến `final`.
+1. `counter` and `alias` point to **the same object**. `increase(counter)` increments from `10` to `11`; `alias.increment()` increments further to `12`. The `counter` variable was never reassigned.
+2. `numbers` always holds the reference to the same array, yet `numbers[0] = 9` is allowed: `final` **does not lock array elements**.
+3. `builder.append` and `names.add` mutate mutable objects.
+4. `String` is an **immutable** type. `toUpperCase()` returns another string `"JAVA"`, without modifying the string contents `language` points to.
+5. `List.of("A", "B")` creates a list that **disallows adding/removing/replacing elements**; calling `add` throws `UnsupportedOperationException`. This is a **property of the list object**, not from the `final` variable.
 
-Những dòng mã sai về phép gán lại đang được comment để chương trình chính vẫn biên dịch. Bạn có thể **bỏ comment từng dòng riêng** để xem thông báo lỗi compiler, rồi đưa lại về comment trước khi chạy.
+The invalid reassignment lines are commented out so the main program compiles. You can **uncomment each line individually** to see the compiler error message, then comment it back before running.
 
-## 3. Vì sao alias vẫn sửa được object?
+## 3. Why Can Aliases Still Modify the Object?
 
-Giả sử:
+Suppose:
 
 ~~~java
 final Counter original = new Counter(1);
 Counter otherName = original;
 
-otherName.increment(); // original.getValue() cũng trở thành 2.
+otherName.increment(); // original.getValue() also becomes 2.
 ~~~
 
-Sơ đồ quan hệ tham chiếu:
+Reference relationship diagram:
 
 ~~~mermaid
 flowchart LR
@@ -151,49 +151,49 @@ flowchart LR
     C["otherName.increment()"] --> O
 ~~~
 
-`final` chỉ ràng buộc phép gán cho tên `original`. Nó **không thu hồi** các tham chiếu khác và không cấm object nhận thay đổi qua:
+`final` only constrains assignments to the name `original`. It **does not revoke** other references and does not forbid the object from being modified through:
 
-- Một **alias** (`otherName`).
-- Một **phương thức** nhận tham số tham chiếu (`increase(final Counter target)`).
-- Một **field** hoặc một collection khác đang giữ tham chiếu tới object.
+- An **alias** (`otherName`).
+- A **method** receiving a reference parameter (`increase(final Counter target)`).
+- Another **field** or collection holding a reference to the object.
 
-Bởi vậy, chỉ nhìn thấy `final` ở nơi khai báo là **chưa đủ** để kết luận trạng thái object sẽ giữ nguyên suốt vòng đời chương trình.
+Therefore, simply seeing `final` at a declaration is **not enough** to conclude the object's state will stay unchanged throughout the program's lifetime.
 
-## 4. Phân biệt `final`, immutable và unmodifiable
+## 4. Distinguishing `final`, Immutable, and Unmodifiable
 
-| Khái niệm | Ràng buộc điều gì? | Ví dụ |
+| Concept | What does it constrain? | Example |
 | --- | --- | --- |
-| **Biến tham chiếu `final`** | Không được gán lại tham chiếu đã gán | `final StringBuilder b = new StringBuilder();` |
-| **Object mutable** | Trạng thái bên trong có thể đổi | `b.append("X")`, `list.add("X")`, `array[0] = 2` |
-| **Object immutable** | API/thiết kế object không cho đổi trạng thái quan sát được sau khi tạo | `String`, `Integer` |
-| **Unmodifiable collection** | Không thể sửa cấu trúc/phần tử qua các thao tác thay đổi của collection | `List.of("A", "B")` |
+| **`final` reference variable** | Cannot reassign the assigned reference | `final StringBuilder b = new StringBuilder();` |
+| **Mutable object** | Internal state can change | `b.append("X")`, `list.add("X")`, `array[0] = 2` |
+| **Immutable object** | Object API/design disallows changing observable state after creation | `String`, `Integer` |
+| **Unmodifiable collection** | Structure/elements cannot be modified via the collection's mutating operations | `List.of("A", "B")` |
 
-Một biến **không có `final`** vẫn có thể giữ object bất biến:
+A variable **without `final`** can still hold an immutable object:
 
 ~~~java
 String label = "A";
-label = "B"; // Đổi tham chiếu tới String khác; không sửa object "A".
+label = "B"; // Changes reference to another String; does not modify object "A".
 ~~~
 
-Một biến **có `final`** lại hoàn toàn có thể trỏ tới object mutable:
+A variable **with `final`** can completely point to a mutable object:
 
 ~~~java
 final List<String> labels = new ArrayList<>();
-labels.add("A"); // Được.
+labels.add("A"); // Allowed.
 ~~~
 
-`List.of` ngăn thay đổi **cấu trúc/danh sách phần tử** qua API của nó; nhưng nếu phần tử bên trong là object mutable, **trạng thái phần tử đó vẫn có thể đổi**. Đừng xem “danh sách không sửa được” là bảo đảm bất biến sâu (*deep immutability*) của cả đồ thị object.
+`List.of` prevents modifying the **structure/element list** through its API; however, if the elements inside are mutable objects, **those elements' states can still change**. Do not treat an "unmodifiable list" as a guarantee of *deep immutability* across the entire object graph.
 
-## 5. Áp dụng với biến cục bộ, tham số và field
+## 5. Applying to Local Variables, Parameters, and Fields
 
-`final` có thể gắn với **biến cục bộ**, **tham số phương thức** hoặc **field**:
+`final` can be applied to **local variables**, **method parameters**, or **fields**:
 
 ~~~java
 class Basket {
     private final List<String> items = new ArrayList<>();
 
     void add(String item) {
-        items.add(item); // Được: sửa List đang tham chiếu.
+        items.add(item); // Allowed: modifies the referenced List.
     }
 
     int size() {
@@ -201,55 +201,55 @@ class Basket {
     }
 
 //  void reset() {
-//      items = new ArrayList<>(); // Sai: gán lại final field.
+//      items = new ArrayList<>(); // Invalid: reassigning a final field.
 //  }
 }
 ~~~
 
-- Với **biến cục bộ `final`**, Java cho phép gán lần đầu theo đúng quy tắc definite assignment, nhưng không cho phép gán lại sau đó.
-- Với **tham số `final`**, code trong phương thức không được gán tham số sang object khác; nó vẫn có thể gọi method làm đổi object truyền vào.
-- Với **field `final`**, nó phải được khởi tạo hợp lệ (ví dụ ngay tại khai báo hoặc trong constructor với instance field). Sau khi được gán, field không được gán lại theo cách Java thông thường.
+- For **`final` local variables**, Java allows the first assignment following definite assignment rules, but forbids reassignment afterward.
+- For **`final` parameters**, code inside the method cannot point the parameter to another object; it can still call methods that mutate the passed-in object.
+- For **`final` fields**, they must be validly initialized (e.g., at declaration or in a constructor for instance fields). Once assigned, the field cannot be reassigned in normal Java code.
 
-Đối với **primitive**, `final` ngăn thay đổi chính giá trị của biến vì primitive lưu giá trị thay vì tham chiếu:
+For **primitives**, `final` prevents changing the variable's value itself because primitives store values rather than references:
 
 ~~~java
 final int maxItems = 10;
-// maxItems++; // Lỗi: cố thay đổi biến final.
+// maxItems++; // Error: attempting to modify a final variable.
 ~~~
 
-Đó là lý do `final int` thường trông như một hằng, còn `final SomeMutableObject` **không** hứa rằng object là hằng.
+That is why `final int` often looks like a constant, whereas `final SomeMutableObject` does **not** promise the object is constant.
 
-## 6. Bẫy thường gặp và hướng xử lý
+## 6. Common Pitfalls and How to Address Them
 
-| Hiểu nhầm / triệu chứng | Điều đúng |
+| Misconception / symptom | Fact |
 | --- | --- |
-| “`final` làm cho `ArrayList` bất biến.” | Sai. `final` cấm gán lại biến, `add` vẫn sửa được danh sách mutable. |
-| “`final int[] a` không sửa được `a[0]`.” | Sai. Phần tử mảng vẫn có thể đổi. |
-| “`final String s` rồi gọi `toUpperCase()` sẽ đổi `s`.” | Sai. `String` bất biến; method trả String khác hoặc một kết quả phù hợp, không sửa `s`. |
-| “Gán `x = x` không tính là gán lại.” | Sai khi `x` là biến `final` đã được gán. |
-| “Đổi object qua alias thì biến `final` sẽ chặn.” | Sai. Alias có thể sửa trạng thái object, không gán lại biến `final`. |
-| “`List.of(...)` không sửa được nhờ từ khóa `final`.” | Sai. Đối tượng List không hỗ trợ thao tác sửa; dù biến không `final`, các phép `add` vẫn bị chặn. |
-| “`final` bảo đảm an toàn giữa các thread.” | Sai. Object mutable vẫn có thể bị truy cập/sửa đồng thời; cần thiết kế đồng bộ hoặc immutable phù hợp. |
+| "`final` makes an `ArrayList` immutable." | False. `final` forbids reassigning the variable; `add` still modifies the mutable list. |
+| "`final int[] a` cannot change `a[0]`." | False. Array elements can still be modified. |
+| "`final String s` then calling `toUpperCase()` modifies `s`." | False. `String` is immutable; the method returns another `String` or appropriate result without modifying `s`. |
+| "Assigning `x = x` does not count as reassignment." | False when `x` is an already assigned `final` variable. |
+| "Changing the object through an alias is blocked by `final`." | False. Aliases can mutate object state without reassigning the `final` variable. |
+| "`List.of(...)` is unmodifiable because of the `final` keyword." | False. The List object does not support modification operations; even if the variable is not `final`, `add` calls are still blocked. |
+| "`final` guarantees thread safety." | False. Mutable objects can still be accessed/modified concurrently; proper synchronization or immutability design is needed. |
 
-Nếu cần bảo vệ dữ liệu khỏi thay đổi không mong muốn, hãy xem xét **loại object và cách chia sẻ tham chiếu**, không chỉ thêm `final`:
+To protect data from unwanted changes, consider **the object type and how references are shared**, not just adding `final`:
 
-- Chọn **kiểu immutable** khi phù hợp, ví dụ `String` và các kiểu giá trị được thiết kế bất biến.
-- Tránh để lộ object mutable trực tiếp; dùng **defensive copy** nếu cần cách ly dữ liệu.
-- Với collection, cân nhắc API tạo bản sao không sửa được như `List.copyOf` theo hợp đồng dữ liệu; chú ý không đồng nghĩa sao chép sâu mọi phần tử.
-- Với truy cập đa luồng, cần kiểm soát đồng bộ/trạng thái chung; `final` một mình không phải khóa (*lock*).
+- Choose **immutable types** where appropriate, such as `String` and value types designed to be immutable.
+- Avoid exposing mutable objects directly; use **defensive copies** when data isolation is needed.
+- For collections, consider APIs creating unmodifiable copies like `List.copyOf` per your data contract; note that this does not mean deep copying every element.
+- For multithreaded access, control synchronization/shared state; `final` alone is not a *lock*.
 
-## 7. Bài tập tự kiểm tra
+## 7. Self-Check Exercises
 
-**Bài 1.** Cho `final int[] a = {1, 2};`. Dòng `a[1] = 5;` có biên dịch không? Còn `a = new int[]{3, 4};`? Giải thích thứ gì thay đổi.
+**Exercise 1.** Given `final int[] a = {1, 2};`. Does `a[1] = 5;` compile? What about `a = new int[]{3, 4};`? Explain what changes.
 
-**Bài 2.** Dùng hai tên tham chiếu cùng một `StringBuilder`, trong đó tên thứ nhất có `final`. Gọi `append` từ tên thứ hai rồi in tên thứ nhất: dự đoán kết quả.
+**Exercise 2.** Use two variables referencing the same `StringBuilder`, where the first is `final`. Call `append` via the second variable and print the first: predict the output.
 
-**Bài 3.** Cho `final List<String> a = new ArrayList<>();`. `a.add("x")` hợp lệ không? Đổi cách tạo thành `List.of("x")` rồi thử `add("y")`; xác định bước nào là lỗi compiler, bước nào là exception khi chạy.
+**Exercise 3.** Given `final List<String> a = new ArrayList<>();`. Is `a.add("x")` valid? Change creation to `List.of("x")` and try `add("y")`; identify which step is a compile error and which is a runtime exception.
 
-**Bài 4.** Viết `final String s = "Java";` rồi gọi `s.concat(" 17");`. Chuỗi `s` có đổi không? Làm thế nào dùng được kết quả nối mà không gán lại `s`?
+**Exercise 4.** Write `final String s = "Java";` and call `s.concat(" 17");`. Does string `s` change? How can you use the concatenated result without reassigning `s`?
 
-**Bài 5.** Trong `FinalReferenceDemo`, để `Counter alias = counter;` rồi gọi `alias.increment()` hai lần; kiểm tra giá trị in từ `counter`. Biến `final` đã đổi hay object đã đổi?
+**Exercise 5.** In `FinalReferenceDemo`, set `Counter alias = counter;` and call `alias.increment()` twice; check the value printed from `counter`. Did the `final` variable change or did the object change?
 
-### Kết luận
+### Conclusion
 
-**`final` trên biến tham chiếu ngăn phép gán lại biến, không đóng băng object.** Đối tượng có thể thay đổi qua cùng biến, method nhận tham chiếu hoặc alias nếu bản thân nó mutable. Tính bất biến là **thuộc tính của thiết kế object/API**; còn an toàn đa luồng và chống thay đổi qua alias là những yêu cầu riêng cần được giải quyết bằng thiết kế phù hợp.
+**`final` on a reference variable prevents reassigning the variable, without freezing the object.** The object can still change through the same variable, a method receiving the reference, or an alias if it is mutable itself. Immutability is **a property of the object/API design**; thread safety and preventing mutation through aliases are separate requirements that must be addressed with proper design.

@@ -1,78 +1,78 @@
-# Dấu ngoặc và tác động tới giá trị trung gian trong số học nguyên Java
+# Parentheses and Their Impact on Intermediate Values in Java Integer Arithmetic
 
-## 1. Mục tiêu và tình huống đặt vấn đề
+## 1. Objectives and Problem Statement
 
-Cùng những toán hạng, chương trình có thể trả kết quả rất khác khi thay vị trí dấu ngoặc. Với số học nguyên trong Java, điều đó xảy ra vì **dấu ngoặc quyết định cách nhóm phép toán**, còn **mỗi phép toán trung gian có kiểu dữ liệu, quy tắc chia nguyên và giới hạn biểu diễn riêng**. Một kết quả trung gian đã bị cắt phần dư hoặc tràn miền giá trị sẽ không được “khôi phục” chỉ vì kết quả cuối cùng được gán vào biến rộng hơn.
+With the exact same operands, a program can return very different results when parentheses are moved. In Java integer arithmetic, this happens because **parentheses determine how operations are grouped**, and **each intermediate operation has its own data type, integer division rules, and representation limits**. An intermediate result that has already been truncated or overflowed will not be "recovered" simply because the final result is assigned to a wider variable.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Đọc được cách Java nhóm biểu thức bằng **độ ưu tiên toán tử**, **tính kết hợp (associativity)** và dấu ngoặc `( ... )`.
-- Phân biệt thứ tự **nhóm phép toán** với thứ tự **đánh giá toán hạng** từ trái sang phải.
-- Dự đoán chính xác kết quả của các phép `+`, `-`, `*`, `/` và `%` khi thay dấu ngoặc.
-- Nhận diện nơi **phép chia nguyên cắt phần thập phân**, nơi **`int`/`long` có thể tràn**, nơi **numeric promotion** hay **cast** thay đổi kiểu tính trung gian.
-- Chọn cách đặt ngoặc, chuyển kiểu và kiểm tra overflow phù hợp với yêu cầu tính toán; tự chạy ví dụ Java 17+ và giải thích stdout.
+- Read how Java groups expressions using **operator precedence**, **associativity**, and parentheses `( ... )`.
+- Distinguish between the order of **grouping operations** and the left-to-right order of **evaluating operands**.
+- Accurately predict the results of `+`, `-`, `*`, `/`, and `%` when parentheses change.
+- Identify where **integer division truncates the fractional part**, where **`int`/`long` can overflow**, and where **numeric promotion** or a **cast** changes the intermediate computation type.
+- Choose parenthesization, type conversions, and overflow checks appropriate to the computation requirements; run Java 17+ examples and explain stdout.
 
-**Phạm vi:** số học nguyên Java Core với `byte`, `short`, `int`, `long`; số thực xuất hiện khi cần đối chiếu tác động của ép kiểu. Các ví dụ dùng Java SE 17 trở lên và không cần thư viện ngoài JDK.
+**Scope:** Java Core integer arithmetic with `byte`, `short`, `int`, and `long`; floating-point numbers appear where needed to contrast casting effects. Examples use Java SE 17 or later and require no libraries outside the JDK.
 
-## 2. Ba quy tắc phải tách riêng
+## 2. Three Rules That Must Be Separated
 
-### 2.1. Độ ưu tiên (precedence) — toán tử nào được nhóm chặt hơn?
+### 2.1. Precedence — Which Operator Binds Tighter?
 
-Với các toán tử số học thường gặp, thứ tự ưu tiên từ cao xuống thấp là:
+For common arithmetic operators, precedence from highest to lowest is:
 
-| Mức | Cú pháp | Ý nghĩa chính |
+| Level | Syntax | Primary meaning |
 | --- | --- | --- |
-| 1 | `( ... )` | Chỉ rõ biểu thức con; ưu tiên việc tính biểu thức bên trong theo cấu trúc đã nhóm |
-| 2 | `+x`, `-x`, `++x`, `x++` | Toán tử một ngôi/tăng giảm; prefix, postfix có chi tiết ưu tiên riêng |
-| 3 | `*`, `/`, `%` | Nhân, chia, lấy dư |
-| 4 | `+`, `-` | Cộng, trừ |
+| 1 | `( ... )` | Explicitly specifies a subexpression; evaluates the inner expression according to its grouped structure |
+| 2 | `+x`, `-x`, `++x`, `x++` | Unary / increment-decrement operators; prefix and postfix have distinct precedence details |
+| 3 | `*`, `/`, `%` | Multiplication, division, remainder |
+| 4 | `+`, `-` | Addition, subtraction |
 
-Bảng giản lược chỉ phục vụ **số học**; biểu thức Java còn có shift, so sánh, logic, điều kiện, gán và các cấu trúc khác với thứ tự ưu tiên riêng. Toán tử một ngôi không đồng nghĩa mọi dạng prefix/postfix đều có cùng mức trong bảng đầy đủ.
+This simplified table serves **arithmetic** only; Java expressions also include shifts, comparisons, logical, conditional, assignment, and other constructs with their own precedence levels. Unary operators do not imply that all prefix/postfix forms share the exact same level in the full table.
 
-Ví dụ:
+For example:
 
 ```java
 int result = 10 + 2 * 3;      // 16: 10 + (2 * 3)
 int changed = (10 + 2) * 3;   // 36: (10 + 2) * 3
 ```
 
-Dấu ngoặc không phải “phép toán mới” làm biến đổi dữ liệu. Nó yêu cầu tính **biểu thức con** theo cách nhóm khác, từ đó có thể thay đổi giá trị/kiểu của kết quả trung gian.
+Parentheses are not a "new operator" that transforms data. They specify computing a **subexpression** under a different grouping, which can thereby change the value or type of intermediate results.
 
-### 2.2. Tính kết hợp (associativity) — nhóm thế nào khi cùng mức ưu tiên?
+### 2.2. Associativity — How to Group at the Same Precedence Level?
 
-Các phép số học nhị phân `+`, `-`, `*`, `/` và `%` được nhóm **từ trái sang phải** khi không có ngoặc điều chỉnh.
+Binary arithmetic operators `+`, `-`, `*`, `/`, and `%` group **from left to right** when no parentheses override them.
 
 ```java
 int x = 20 / 3 / 2;      // (20 / 3) / 2 = 6 / 2 = 3
 int y = 20 / (3 / 2);    // 20 / 1 = 20
 ```
 
-Hai biểu thức có cùng toán hạng theo cùng thứ tự nhưng **cấu trúc phép chia khác nhau**. Phép chia không có tính kết hợp đại số, nên dấu ngoặc đặc biệt quan trọng.
+Both expressions have the same operands in the same order, yet **different division structures**. Division is not algebraically associative, so parentheses are especially critical.
 
-Ví dụ khác:
+Another example:
 
 ```java
 int a = 15 - 6 - 2;      // (15 - 6) - 2 = 7
 int b = 15 - (6 - 2);    // 15 - 4 = 11
 ```
 
-Không nên hiểu “kết hợp trái” là Java được tùy ý đảo thứ tự phép toán trong mọi trường hợp. Đây là quy tắc **phân tích cấu trúc biểu thức**.
+Do not interpret "left-associative" to mean Java may arbitrarily reorder operations in all cases. It is a rule for **parsing expression structure**.
 
-### 2.3. Thứ tự đánh giá (evaluation order) — toán hạng nào được thực thi trước?
+### 2.3. Evaluation Order — Which Operand Executes First?
 
-Java bảo đảm các toán hạng của toán tử nhị phân được **đánh giá từ trái sang phải**, ngay cả khi toán tử bên phải có độ ưu tiên cao hơn. Ví dụ `left() + middle() * right()` được nhóm thành `left() + (middle() * right())`; khi chạy, `left()` vẫn được gọi trước `middle()` và `right()`.
+Java guarantees that the operands of a binary operator are **evaluated from left to right**, even when the right-hand operator has higher precedence. For example, `left() + middle() * right()` is grouped as `left() + (middle() * right())`; at runtime, `left()` is still called before `middle()` and `right()`.
 
-Phân biệt rõ:
+Distinguish clearly:
 
-- **Grouping/precedence:** biểu thức con nào cung cấp kết quả cho phép toán nào.
-- **Evaluation order:** thao tác, lời gọi phương thức hoặc side effect nào xảy ra trước.
-- **Integer intermediate:** kết quả tại từng phép số học mang kiểu và quy tắc của chính phép đó.
+- **Grouping/precedence:** which subexpression feeds its result into which operation.
+- **Evaluation order:** which action, method call, or side effect happens first.
+- **Integer intermediate:** the result at each arithmetic step carries the type and rules of that specific operation.
 
-Vì vậy câu “Java luôn thực thi phép nhân trước phép cộng” là cách nói thiếu chính xác nếu các toán hạng có lời gọi phương thức/side effect. Java **nhóm** phép nhân chặt hơn; đánh giá toán hạng vẫn phải tôn trọng trái sang phải.
+Thus, saying "Java always executes multiplication before addition" is imprecise when operands contain method calls or side effects. Java **groups** multiplication tighter; operand evaluation must still respect left-to-right order.
 
-## 3. Dấu ngoặc làm đổi kết quả phép cộng, trừ, nhân, chia
+## 3. Parentheses Change Results of Addition, Subtraction, Multiplication, and Division
 
-| Biểu thức | Tính từng bước | Kết quả `int` |
+| Expression | Step-by-step evaluation | `int` result |
 | --- | --- | ---: |
 | `18 / 3 + 3` | `(18 / 3) + 3 = 6 + 3` | 9 |
 | `18 / (3 + 3)` | `18 / 6` | 3 |
@@ -83,17 +83,17 @@ Vì vậy câu “Java luôn thực thi phép nhân trước phép cộng” là
 | `15 - 6 - 2` | `(15 - 6) - 2` | 7 |
 | `15 - (6 - 2)` | `15 - 4` | 11 |
 
-Dấu ngoặc hữu ích khi bạn muốn biểu thức phản ánh công thức nghiệp vụ, chẳng hạn:
+Parentheses are useful when you want an expression to reflect a business formula, such as:
 
-- Số nhóm cần xử lý từ `items` và `groupSize`.
-- Tổng trọng số chia cho tổng mẫu.
-- Thứ tự áp dụng khấu trừ hay điều chỉnh số lượng.
+- Number of groups to process from `items` and `groupSize`.
+- Total weighted sum divided by total sample count.
+- Order of applying deductions or quantity adjustments.
 
-Tuy nhiên, công thức viết giống toán học **chưa đủ** để bảo đảm kết quả: kiểu phép tính và khả năng tràn phải được phân tích độc lập.
+However, writing a formula that looks like math is **not enough** to guarantee the result: operation types and overflow risk must be analyzed independently.
 
-## 4. Điều quan trọng nhất: phép chia nguyên cắt phần dư ngay tại bước trung gian
+## 4. Most Important: Integer Division Truncates the Remainder at the Intermediate Step
 
-Trong Java, nếu **cả hai toán hạng của `/` là kiểu nguyên**, phép chia nguyên tạo kết quả nguyên và **bỏ phần thập phân theo hướng về 0**. Đặt ngoặc có thể làm phép chia xảy ra sớm hơn hoặc muộn hơn.
+In Java, if **both operands of `/` are integer types**, integer division produces an integer result and **discards the fractional part toward zero**. Placing parentheses can cause division to happen earlier or later.
 
 ```java
 int items = 7;
@@ -103,13 +103,13 @@ int beforeMultiply = (items / groups) * groups; // 6
 int afterMultiply = (items * groups) / groups;  // 7
 ```
 
-Vì `7 / 2` đã trở thành `3`, `(7 / 2) * 2` trở thành `6`, không thể tự lấy lại phần dư `1`. Biểu thức `(7 * 2) / 2` nhận `7` trong ví dụ nhỏ này vì phép nhân xảy ra trước phép chia và không tràn. **Không** suy ra cách “nhân trước chia” luôn an toàn: tích trung gian có thể vượt miền `int`.
+Because `7 / 2` already became `3`, `(7 / 2) * 2` becomes `6`, and cannot automatically recover the remainder `1`. The expression `(7 * 2) / 2` yields `7` in this small example because multiplication occurs before division and does not overflow. Do **not** conclude that "multiply before divide" is always safe: the intermediate product can exceed the `int` range.
 
-### 4.1. Chia cho số âm và toán tử phần dư
+### 4.1. Dividing Negative Numbers and the Remainder Operator
 
-`-7 / 2` bằng `-3`, **không phải `-4`**; `-7 % 2` bằng `-1`. Trong Java, số dư có dấu theo số bị chia (dividend) đối với `%` số nguyên, và khi phép tính hợp lệ, `a == (a / b) * b + (a % b)` theo ngữ nghĩa số nguyên.
+`-7 / 2` equals `-3`, **not `-4`**; `-7 % 2` equals `-1`. In Java, the remainder takes the sign of the dividend for integer `%`, and when the operation is valid, `a == (a / b) * b + (a % b)` holds under integer semantics.
 
-Ví dụ:
+For example:
 
 ```java
 int a = -7;
@@ -118,9 +118,9 @@ System.out.println(a / b);   // -3
 System.out.println(a % b);   // -1
 ```
 
-Tránh áp dụng vô thức hàm floor của toán học cho phép `int / int`. Nếu bài toán muốn chia làm tròn xuống với số âm, xem `Math.floorDiv` và `Math.floorMod`; cần đối chiếu quy ước dấu và các giá trị biên. Chúng **không** đơn thuần là thêm dấu ngoặc cho phép chia nguyên.
+Avoid unconsciously applying the mathematical floor function to `int / int`. If the problem wants floor division for negative numbers, look at `Math.floorDiv` and `Math.floorMod`; verify sign conventions and boundary values. They are **not** simply a matter of adding parentheses around integer division.
 
-### 4.2. Tránh phép tính trung gian khác ý định
+### 4.2. Avoiding Unintended Intermediate Calculations
 
 ```java
 int a = 20;
@@ -131,15 +131,15 @@ int leftGrouped = (a / b) / c; // 3
 int rightGrouped = a / (b / c); // 20
 ```
 
-Trong `a / (b / c)`, hãy tính `b / c` trước: `3 / 2 = 1`. Nếu `b / c` bằng `0`, phép chia ngoài sẽ gây `ArithmeticException`, dù phép chia trái sang phải có thể hoàn toàn hợp lệ.
+In `a / (b / c)`, `b / c` is computed first: `3 / 2 = 1`. If `b / c` equals `0`, the outer division throws `ArithmeticException`, even though left-to-right division might be completely valid.
 
-Nếu mẫu số phụ thuộc dữ liệu, kiểm tra nó **sau khi đã tính đúng biểu thức con**, không chỉ kiểm tra biến ban đầu khác `0`.
+If the denominator depends on data, validate it **after computing the subexpression properly**, rather than checking only that the initial variables are non-zero.
 
-## 5. Dấu ngoặc không tự nâng `int` lên `long`
+## 5. Parentheses Do Not Automatically Promote `int` to `long`
 
-Đây là lỗi thường gặp nhất khi làm phép cộng hoặc nhân trên dữ liệu số nguyên lớn.
+This is the most common mistake when performing addition or multiplication on large integer data.
 
-Giả sử:
+Suppose:
 
 ```java
 int a = 2_000_000_000;
@@ -149,15 +149,15 @@ long wrong = (long) (a + b);
 long correct = (long) a + b;
 ```
 
-Cách diễn giải:
+Explanation:
 
-1. Trong `(a + b)`, cả hai toán hạng là `int`, nên phép cộng diễn ra **trong `int`**. Tổng toán học là `3_000_000_000` vượt `Integer.MAX_VALUE`; kết quả `int` bị tràn thành `-1_294_967_296`.
-2. Cast `(long) (a + b)` chỉ mở rộng **giá trị đã tràn**; `wrong` vẫn là `-1_294_967_296L`.
-3. Trong `(long) a + b`, toán hạng `a` đã được chuyển sang `long` **trước khi cộng**. Binary numeric promotion chuyển `b` sang `long` và phép cộng trả `3_000_000_000L`.
+1. In `(a + b)`, both operands are `int`, so the addition occurs **in `int`**. The mathematical sum `3_000_000_000` exceeds `Integer.MAX_VALUE`; the `int` result overflows to `-1_294_967_296`.
+2. Casting `(long) (a + b)` only widens the **already-overflowed value**; `wrong` is still `-1_294_967_296L`.
+3. In `(long) a + b`, operand `a` is converted to `long` **before adding**. Binary numeric promotion converts `b` to `long`, and the addition returns `3_000_000_000L`.
 
-**Nguyên tắc:** để phép tính trung gian dùng kiểu rộng, hãy chuyển kiểu **trước phép có thể tràn**. Đặt ngoặc quanh toàn phép tính rồi cast sau đó là quá muộn.
+**Rule:** for an intermediate operation to use a wider type, cast **before the operation that can overflow**. Putting parentheses around the entire operation and casting afterward is too late.
 
-Ví dụ tương đương cho phép nhân:
+Equivalent example for multiplication:
 
 ```java
 int quantity = 50_000;
@@ -166,17 +166,17 @@ long wrong = quantity * unit;          // int multiplication overflows
 long correct = (long) quantity * unit; // long multiplication
 ```
 
-`wrong` nhận giá trị `-1_794_967_296` vì phép `int * int` tràn rồi mới widening sang `long`; `correct` là `2_500_000_000L`.
+`wrong` gets `-1_794_967_296` because `int * int` overflows before widening to `long`; `correct` is `2_500_000_000L`.
 
-Nhưng `long` cũng có giới hạn: khi các toán hạng có thể vượt 64 bit, cân nhắc `BigInteger` hoặc kiểm tra tràn. Không có phép cast kỳ diệu nào khiến phép tính primitive có độ rộng vô hạn.
+However, `long` also has limits: when operands can exceed 64 bits, consider `BigInteger` or overflow checks. No magic cast makes primitive operations infinitely wide.
 
-## 6. Bẫy: phép nhân tràn dù thương cuối cùng đáng lẽ vừa trong `int`
+## 6. Trap: Multiplication Overflows Even When the Final Quotient Would Fit in `int`
 
-Công thức toán học `n(n + 1) / 2` tính tổng từ 1 đến n. Với `n = 50_000`:
+The mathematical formula `n(n + 1) / 2` computes the sum from `1` to `n`. With `n = 50_000`:
 
-- Tổng toán học bằng `1_250_025_000`, **vừa trong `int`**.
-- Tích trung gian `50_000 × 50_001 = 2_500_050_000` lại **vượt `int`**.
-- Tính `n * (n + 1) / 2` bằng toàn `int` làm tràn trước khi chia, cho kết quả sai.
+- The mathematical sum equals `1_250_025_000`, which **fits in `int`**.
+- The intermediate product `50_000 × 50_001 = 2_500_050_000` **exceeds `int`**.
+- Computing `n * (n + 1) / 2` entirely in `int` overflows before dividing, yielding an incorrect result.
 
 ```java
 int n = 50_000;
@@ -184,53 +184,53 @@ int wrong = n * (n + 1) / 2;
 long correct = (long) n * (n + 1) / 2;
 ```
 
-Kết quả:
+Output:
 
 ```text
 wrong   = -897458648
 correct = 1250025000
 ```
 
-Dấu ngoặc `(n + 1)` giúp ghi công thức rõ ràng nhưng **không** tự bảo vệ phép nhân tiếp theo. Cast `(long) n` đặt trước phép nhân mới bảo vệ được bước trung gian. Với bài toán cần giữ kết quả cuối là `int` và phải báo lỗi nếu ngoài miền, bạn có thể kiểm tra bằng `Math.toIntExact(correct)` sau khi tính bằng `long`.
+The parentheses `(n + 1)` express the formula clearly but **do not** protect the subsequent multiplication. Placing the cast `(long) n` before the multiplication protects the intermediate step. When the problem requires the final result to remain `int` and report an error if out of range, you can validate with `Math.toIntExact(correct)` after computing in `long`.
 
-Đây là lý do khi review biểu thức, phải xét **miền của từng node trong cây phép toán**, thay vì chỉ xét biến đích hay giá trị cuối kỳ vọng.
+This is why when reviewing expressions, you must analyze the **range of every node in the operation tree**, rather than only checking the target variable or expected final value.
 
-## 7. Numeric promotion và phạm vi của cast
+## 7. Numeric Promotion and the Scope of a Cast
 
-Java có quy tắc **binary numeric promotion** cho các toán tử số học nhị phân thường gặp:
+Java applies **binary numeric promotion** to common binary arithmetic operators:
 
-- `byte`, `short` và `char` được nâng lên tối thiểu `int` khi tham gia phép toán số học nhị phân.
-- Nếu có toán hạng `long` và không có kiểu chấm động thì phép tính nhận kiểu `long`; nếu chỉ có `int` trở xuống thì nhận `int`.
-- Khi có toán hạng `float`/`double`, phép tính chuyển sang floating point theo quy tắc promotion tương ứng; đó là chủ đề đối chiếu, không phải giải pháp mặc định cho mọi lỗi overflow số nguyên.
+- `byte`, `short`, and `char` are promoted to at least `int` when participating in binary arithmetic operations.
+- If a `long` operand is present and no floating-point type is involved, the operation takes type `long`; otherwise, if all operands are `int` or narrower, it takes `int`.
+- When a `float`/`double` operand is present, the operation switches to floating-point per the corresponding promotion rules; that is a comparison topic, not a default fix for integer overflow bugs.
 
-### 7.1. Cùng dấu ngoặc, khác kiểu phép tính
+### 7.1. Same Parentheses, Different Operation Type
 
 ```java
 byte left = 100;
 byte right = 20;
-// byte sum = left + right; // lỗi biên dịch: byte + byte => int
+// byte sum = left + right; // compile error: byte + byte => int
 int sum = left + right;
 ```
 
-Dù `120` vừa trong `byte`, **kiểu của biểu thức `left + right` là `int`**. Nếu thật sự cần chuyển hẹp, `byte sum = (byte) (left + right);` có thể biên dịch nhưng **có thể mất dữ liệu** với đầu vào khác; không coi cast là kiểm tra an toàn.
+Even though `120` fits in `byte`, **the type of expression `left + right` is `int`**. If narrowing is genuinely needed, `byte sum = (byte) (left + right);` compiles, but **can lose data** for other inputs; do not treat a cast as a safety check.
 
-### 7.2. Cast bên ngoài và cast bên trong khác nhau
+### 7.2. Outer Cast vs. Inner Cast Differ
 
-Với `a = 7`, `b = 2`:
+With `a = 7`, `b = 2`:
 
-| Biểu thức | Phép tính trung gian | Kết quả |
+| Expression | Intermediate operation | Result |
 | --- | --- | --- |
-| `(double) (a / b)` | `a / b` là `int` bằng 3, sau đó đổi sang `double` | `3.0` |
-| `(double) a / b` | Đổi `a` sang `double` trước, rồi chia | `3.5` |
-| `a / (double) b` | Đổi `b` sang `double` trước, rồi chia | `3.5` |
-| `(long) (a * b)` | Nhân trong `int` trước, sau đó widening | Kết quả có thể đã tràn |
-| `(long) a * b` | Nhân trong `long` | Tránh tràn `int`, nhưng vẫn phải xét giới hạn `long` |
+| `(double) (a / b)` | `a / b` is `int` `3`, then converted to `double` | `3.0` |
+| `(double) a / b` | Converts `a` to `double` first, then divides | `3.5` |
+| `a / (double) b` | Converts `b` to `double` first, then divides | `3.5` |
+| `(long) (a * b)` | Multiplies in `int` first, then widens | Result may have already overflowed |
+| `(long) a * b` | Multiplies in `long` | Avoids `int` overflow, still subject to `long` limits |
 
-Không đổi một biểu thức từ số học nguyên sang `double` chỉ để “né” tràn khi nghiệp vụ cần **độ chính xác số nguyên tuyệt đối**. `double` không biểu diễn chính xác mọi số nguyên `long` (vùng nguyên chính xác liên tiếp chỉ đến 2⁵³). Với phép tính số nguyên lớn, dùng `long`/`BigInteger` theo yêu cầu.
+Do not convert an integer arithmetic expression to `double` just to "dodge" overflow when business rules require **exact integer precision**. `double` cannot represent all `long` integers exactly (the contiguous exact integer range only reaches 2⁵³). For large integer calculations, use `long`/`BigInteger` as required.
 
-## 8. Phân biệt tính kết hợp đại số và tính kết hợp trong Java
+## 8. Distinguishing Algebraic Associativity from Associativity in Java
 
-Đây là điểm dễ bị dạy sai. Phép **cộng và nhân số nguyên thuần `int` hoặc `long`** của Java, nếu cùng kiểu và không có side effect, vẫn có tính kết hợp theo kết quả modulo 2³²/2⁶⁴ kể cả khi phép tính tràn:
+This is an area often taught inaccurately. Pure **`int` or `long` integer addition and multiplication** in Java, when of the same type and free of side effects, remain associative modulo 2³²/2⁶⁴ even when operations overflow:
 
 ```java
 int x = Integer.MAX_VALUE;
@@ -242,19 +242,19 @@ int second = x + (y + z);
 // first == second == Integer.MAX_VALUE
 ```
 
-Ở cách nhóm đầu, `x + y` tràn thành `Integer.MIN_VALUE` trước rồi cộng `-1`; ở cách nhóm sau, `y + z` thành `0`. Giá trị **trung gian khác nhau**, nhưng kết quả cuối `int` bằng nhau. Không nên kết luận rằng cứ đổi dấu ngoặc cộng `int` thuần là đổi kết quả cuối.
+In the first grouping, `x + y` overflows to `Integer.MIN_VALUE` first and then adds `-1`; in the second grouping, `y + z` becomes `0`. The **intermediate values differ**, yet the final `int` result is identical. Do not claim that merely changing parentheses in pure `int` addition always changes the final result.
 
-Tính kết hợp trên **không cho phép** tùy ý tái nhóm khi:
+The associativity above **does not allow** arbitrary regrouping when:
 
-- Biểu thức có **chia/lấy dư**, vì chúng không có tính kết hợp tương tự.
-- Có **kiểu trung gian khác nhau**, cast, lời gọi chuyển kiểu hoặc các phương thức có hợp đồng riêng.
-- Có **side effect** như `++`, phép gán, I/O hoặc gọi phương thức quan sát được.
-- Dùng API **kiểm tra tràn** (chẳng hạn `Math.addExact`) thay cho `+` thông thường: điểm phát hiện lỗi trung gian có thể khác.
-- Chuyển sang **số thực**: cộng và nhân dấu phẩy động không có tính kết hợp tổng quát do rounding, overflow và NaN.
+- The expression contains **division/remainder**, because they do not share this associativity.
+- There are **different intermediate types**, casts, conversion calls, or methods with specific contracts.
+- There are **side effects** such as `++`, assignments, I/O, or observable method calls.
+- **Overflow-checked** APIs (such as `Math.addExact`) are used instead of plain `+`: where an intermediate failure is detected can differ.
+- Switching to **floating-point**: floating-point addition and multiplication are not generally associative due to rounding, overflow, and NaN.
 
-### 8.1. Ví dụ với phép cộng được kiểm tra tràn
+### 8.1. Example with Overflow-Checked Addition
 
-`Math.addExact(a,b)` ném `ArithmeticException` nếu phép cộng vượt miền kiểu trả về:
+`Math.addExact(a,b)` throws `ArithmeticException` if the addition exceeds the return type's range:
 
 ```java
 int x = Integer.MAX_VALUE;
@@ -265,15 +265,15 @@ int z = -1;
 int safeGrouping = Math.addExact(x, Math.addExact(y, z)); // MAX_VALUE
 ```
 
-Hai biểu thức số học có cùng tổng toán học; tuy nhiên **hợp đồng phát hiện tràn ở mỗi bước** khác nhau. Không dùng phép cộng `+` tràn để chứng minh phép cộng checked an toàn.
+Both arithmetic expressions have the same mathematical sum; however, **the per-step overflow detection contract** differs. Do not use wrapping `+` addition to prove that checked addition is safe.
 
-Khi cần tránh báo overflow trung gian nếu chỉ quan tâm tổng cuối, hãy quyết định rõ yêu cầu nghiệp vụ: có thể cộng trong `long`/`BigInteger` rồi kiểm tra miền đích sau; hoặc yêu cầu mọi phép cộng từng bước phải an toàn bằng `addExact`. Đó là hai hợp đồng khác nhau.
+When you need to avoid intermediate overflow failures if only the final sum matters, define the business requirement explicitly: either sum in `long`/`BigInteger` and check the target range afterward, or require every step to be safe via `addExact`. Those are two different contracts.
 
-## 9. Số học trung gian và thứ tự đánh giá có side effect
+## 9. Intermediate Arithmetic and Evaluation Order with Side Effects
 
-Dấu ngoặc thay đổi cách nhóm, nhưng Java vẫn đánh giá các toán hạng theo quy tắc của ngôn ngữ. Ví dụ runnable dưới đây cho thấy lời gọi `left()` xuất hiện trước `right()` dù phép nhân ở vế phải có độ ưu tiên cao hơn phép cộng.
+Parentheses change grouping, but Java still evaluates operands according to language rules. The runnable example below shows `left()` executing before `right()` even though multiplication on the right has higher precedence than addition.
 
-Lưu thành **`EvaluationOrder.java`**:
+Save as **`EvaluationOrder.java`**:
 
 ```java
 public class EvaluationOrder {
@@ -294,7 +294,7 @@ public class EvaluationOrder {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac --release 17 EvaluationOrder.java
@@ -309,18 +309,18 @@ right
 16
 ```
 
-`right() * 2` được nhóm trước khi cộng, nhưng `left()` vẫn được đánh giá đầu tiên. Java không được tự ý đảo hành vi quan sát được chỉ vì phép nhân có ưu tiên cao.
+`right() * 2` is grouped before the addition, yet `left()` is still evaluated first. Java cannot arbitrarily invert observable behavior simply because multiplication has higher precedence.
 
-### 9.1. Tránh nhét `++` hoặc gán vào cùng biểu thức phức tạp
+### 9.1. Avoid Stuffing `++` or Assignments into Complex Expressions
 
 ```java
 int value = 4;
 int result = value + value++;
 ```
 
-Java có quy tắc xác định cho code trên: toán hạng trái đọc `4` trước, toán hạng phải `value++` trả giá trị cũ `4` và tăng biến lên `5`; `result` là `8`. Tuy vậy đây là mã **khó đọc, dễ nhầm** khi review, nhất là nếu còn lồng dấu ngoặc, phương thức và nhiều side effect.
+Java has deterministic rules for the code above: the left operand reads `4` first, the right operand `value++` returns the old value `4` and increments the variable to `5`; `result` is `8`. Nonetheless, this code is **hard to read and easy to misread** in code reviews, especially when combined with nested parentheses, methods, and multiple side effects.
 
-Thay bằng các bước tường minh:
+Replace with explicit steps:
 
 ```java
 int value = 4;
@@ -329,11 +329,11 @@ value++;
 int result = original + original;
 ```
 
-Ví dụ thay thế thể hiện ý định “cộng hai lần giá trị trước khi tăng”. Dấu ngoặc không thay thế việc tách side effect khỏi phép tính. Còn với các toán tử điều kiện `&&`, `||` và `?:`, Java có quy tắc đánh giá có điều kiện; không được gom chúng vào cách hiểu “luôn đánh giá mọi toán hạng”.
+The alternative clearly expresses the intent "add twice the pre-increment value". Parentheses do not substitute for separating side effects from arithmetic. Meanwhile, for conditional operators `&&`, `||`, and `?:`, Java uses conditional evaluation rules; do not lump them into "always evaluate every operand".
 
-## 10. Ví dụ hoàn chỉnh: dấu ngoặc và mất giá trị trung gian
+## 10. Complete Example: Parentheses and Intermediate Value Loss
 
-Lưu nội dung sau thành **`IntegerParentheses.java`**:
+Save the following content as **`IntegerParentheses.java`**:
 
 ```java
 public class IntegerParentheses {
@@ -357,14 +357,14 @@ public class IntegerParentheses {
 }
 ```
 
-Biên dịch/chạy với JDK 17+:
+Compile/run with JDK 17+:
 
 ```bash
 javac --release 17 IntegerParentheses.java
 java IntegerParentheses
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 9
@@ -379,11 +379,11 @@ java IntegerParentheses
 -1
 ```
 
-Điểm cần quan sát: dấu ngoặc `(3 + 3)` thay đổi mẫu của phép chia; `20 / (3 / 2)` tính mẫu trong `int` trước; `(seven / 2) * 2` mất phần dư; cast sau chia không thể lấy lại `0.5`; với số âm, phép chia nguyên cắt về 0.
+Key observations: parentheses `(3 + 3)` change the divisor; `20 / (3 / 2)` computes the denominator in `int` first; `(seven / 2) * 2` loses the remainder; casting after division cannot recover `0.5`; with negative numbers, integer division truncates toward zero.
 
-## 11. Ví dụ hoàn chỉnh: tràn trước khi gán sang kiểu lớn
+## 11. Complete Example: Overflow Before Assigning to a Wider Type
 
-Lưu thành **`IntermediateOverflow.java`**:
+Save as **`IntermediateOverflow.java`**:
 
 ```java
 public class IntermediateOverflow {
@@ -412,14 +412,14 @@ public class IntermediateOverflow {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac --release 17 IntermediateOverflow.java
 java IntermediateOverflow
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 -1294967296
@@ -429,41 +429,41 @@ java IntermediateOverflow
 overflow detected
 ```
 
-Từng dòng giải thích được bằng kiểu phép tính trung gian:
+Each line is explained by the intermediate operation type:
 
-1. `a + b` tính `int` trước rồi mới cast, nhận giá trị đã tràn.
-2. `(long) a + b` sử dụng phép cộng `long` từ đầu.
-3. `n * (n + 1)` tính `int` và tràn trước khi chia hai.
-4. `(long) n * (n + 1)` tính `long` từ phép nhân nên ra tổng toán học đúng.
-5. `Math.addExact(a,b)` phát hiện phép cộng `int` vượt giới hạn và ném ngoại lệ đã được catch.
+1. `a + b` computes in `int` first before casting, yielding the overflowed value.
+2. `(long) a + b` uses `long` addition from the start.
+3. `n * (n + 1)` computes in `int` and overflows before dividing by two.
+4. `(long) n * (n + 1)` computes in `long` from the multiplication, producing the exact mathematical sum.
+5. `Math.addExact(a,b)` detects the out-of-range `int` addition and throws the caught exception.
 
-Trong mã sản xuất, khi tổng phải là `int`, có thể thực hiện phép cộng `long` rồi dùng `Math.toIntExact` để kiểm tra trước khi chuyển về `int`. Tránh dùng cast hẹp `(int)` như thể nó là phép kiểm tra.
+In production code, when the sum must be `int`, you can perform `long` addition and then use `Math.toIntExact` to validate before converting back to `int`. Avoid using a narrowing `(int)` cast as if it were a check.
 
-## 12. Trường hợp biên: số nguyên nhỏ nhất, chia cho 0, cast và toán tử âm
+## 12. Edge Cases: Minimum Integer, Division by Zero, Casts, and Negation
 
-### 12.1. Chia nguyên cho 0
+### 12.1. Integer Division by Zero
 
-`int` hoặc `long` chia cho 0 (hoặc lấy dư với 0) ném `ArithmeticException` tại lúc chạy nếu phép chia thật sự được thực hiện.
+Dividing an `int` or `long` by `0` (or taking remainder by `0`) throws `ArithmeticException` at runtime if the division actually executes.
 
 ```java
 int denominator = 0;
 // int invalid = 10 / denominator; // runtime ArithmeticException
 ```
 
-Khi mẫu là **biểu thức có ngoặc**, phải xét **giá trị mẫu sau khi tính**:
+When the denominator is a **parenthesized expression**, you must check the **evaluated denominator value**:
 
 ```java
 int a = 10;
 int b = 2;
 int c = 3;
-// int invalid = a / (b / c); // b / c = 0, rồi 10 / 0
+// int invalid = a / (b / c); // b / c = 0, then 10 / 0
 ```
 
-Đừng kiểm tra riêng `b != 0` và `c != 0` rồi cho rằng `b / c != 0`.
+Do not check `b != 0` and `c != 0` individually and assume `b / c != 0`.
 
-### 12.2. Giá trị nhỏ nhất chia cho `-1`
+### 12.2. Minimum Value Divided by `-1`
 
-`Integer.MIN_VALUE` là `-2_147_483_648`. Giá trị đối của nó, `2_147_483_648`, nằm ngoài miền `int`. Theo đặc tả Java, `Integer.MIN_VALUE / -1` trả về lại `Integer.MIN_VALUE` (trường hợp tràn đặc biệt), không ném ngoại lệ.
+`Integer.MIN_VALUE` is `-2_147_483_648`. Its opposite, `2_147_483_648`, lies outside the `int` range. Per the Java specification, `Integer.MIN_VALUE / -1` returns `Integer.MIN_VALUE` again (a special overflow case), without throwing an exception.
 
 ```java
 int min = Integer.MIN_VALUE;
@@ -471,34 +471,34 @@ System.out.println(min / -1);         // -2147483648
 System.out.println((long) min / -1);   // 2147483648
 ```
 
-Nếu yêu cầu phép chia chính xác `int` phải báo overflow, kiểm tra riêng ranh giới này trước khi chia; `Math.negateExact(Integer.MIN_VALUE)` cũng ném `ArithmeticException` khi cần phủ định có kiểm tra tràn. Dấu ngoặc không tự làm biểu thức rộng hơn.
+If exact `int` division must report overflow, check this boundary explicitly before dividing; `Math.negateExact(Integer.MIN_VALUE)` also throws `ArithmeticException` when overflow-checked negation is needed. Parentheses do not automatically widen the expression.
 
-### 12.3. Cast hẹp và phép toán ghép
+### 12.3. Narrowing Casts and Compound Operations
 
-`int result = (int) ((long) Integer.MAX_VALUE + 1);` có thể nhận `Integer.MIN_VALUE` vì phép cast `long` xuống `int` làm mất bit cao; phép cast không đồng nghĩa phép tính an toàn.
+`int result = (int) ((long) Integer.MAX_VALUE + 1);` can receive `Integer.MIN_VALUE` because casting `long` down to `int` drops high bits; casting does not imply a safe operation.
 
-`short` và `byte` được nâng lên `int` trong phép cộng thông thường. Phép `s += 1` có quy tắc compound assignment bao gồm chuyển kiểu ngầm, khác `s = s + 1` nếu `s` là `short`. Đây là một nguồn **mất dữ liệu trung gian** dễ bị che khuất; đừng thay dấu ngoặc để “chữa” một phép chuyển kiểu không được kiểm soát.
+`short` and `byte` are promoted to `int` in regular addition. The operation `s += 1` follows compound assignment rules including an implicit cast, unlike `s = s + 1` when `s` is `short`. This is an easily hidden source of **intermediate data loss**; do not change parentheses to "fix" an unchecked type conversion.
 
-## 13. Khi nào đổi dấu ngoặc làm đổi kết quả, khi nào không?
+## 13. When Does Moving Parentheses Change the Result, and When Does It Not?
 
-| Tình huống | Đổi dấu ngoặc có thể đổi gì? | Cách xử lý |
+| Scenario | What can moving parentheses change? | How to handle |
 | --- | --- | --- |
-| `(a / b) / c` ↔ `a / (b / c)` | Thương, lỗi chia cho 0 | Viết công thức mong muốn và kiểm tra mẫu trung gian |
-| `(a - b) - c` ↔ `a - (b - c)` | Giá trị kết quả | Kiểm tra dấu và ý nghĩa của từng phép trừ |
-| `(a + b) * c` ↔ `a + (b * c)` | Công thức khác nhau, có thể tràn ở vị trí khác | Chọn nhóm theo nghiệp vụ và chọn kiểu trước từng phép |
-| `(a + b) + c` ↔ `a + (b + c)`, tất cả thuần `int` | Trung gian có thể khác; kết quả `int` cuối giống nhau theo modulo 2³² | Không khẳng định ngoặc luôn đổi kết quả |
-| `(long) (a + b)` ↔ `(long) a + b` | **Kiểu của phép cộng** và khả năng tràn | Cast trước phép cộng nếu cần `long` |
-| `(double) (a / b)` ↔ `(double) a / b` | `int` division ↔ `double` division | Chuyển kiểu trước phép chia nếu yêu cầu phần thập phân |
-| `Math.addExact(Math.addExact(a,b),c)` ↔ nhóm checked còn lại | Vị trí phát hiện overflow | Thống nhất hợp đồng kiểm tra từng bước |
-| Biểu thức có `++`/phương thức | Side effect, thứ tự quan sát được | Tách biến trung gian và side effect cho dễ đọc |
+| `(a / b) / c` ↔ `a / (b / c)` | Quotient, divide-by-zero error | Write the intended formula and check intermediate divisors |
+| `(a - b) - c` ↔ `a - (b - c)` | Result value | Check signs and meaning of each subtraction |
+| `(a + b) * c` ↔ `a + (b * c)` | Different formula, overflow can occur at different points | Choose grouping per business logic and select types before each operation |
+| `(a + b) + c` ↔ `a + (b + c)`, all pure `int` | Intermediates may differ; final `int` result is identical modulo 2³² | Do not claim parentheses always change the result |
+| `(long) (a + b)` ↔ `(long) a + b` | **Type of the addition** and overflow risk | Cast before the addition if `long` is needed |
+| `(double) (a / b)` ↔ `(double) a / b` | `int` division ↔ `double` division | Convert type before dividing if fractional part is required |
+| `Math.addExact(Math.addExact(a,b),c)` ↔ alternative checked grouping | Where overflow is detected | Standardize the step-by-step checking contract |
+| Expressions with `++`/methods | Side effects, observable order | Extract intermediate variables and side effects for readability |
 
-Một biểu thức “tương đương đại số” trong toán học không nhất thiết tương đương về **giá trị, ngoại lệ hoặc side effect** trong Java. Ngược lại, không nên phóng đại: một số phép cộng/nhân cùng kiểu nguyên thuần vẫn có tính kết hợp ngay cả khi overflow modulo, như đã giải thích.
+An "algebraically equivalent" expression in mathematics is not necessarily equivalent in **value, exceptions, or side effects** in Java. Conversely, do not overstate it: pure integer addition/multiplication of the same type remains associative under modular wraparound, as explained.
 
-## 14. Kỹ thuật viết biểu thức dễ đọc và an toàn
+## 14. Techniques for Writing Readable and Safe Expressions
 
-**Bước 1: viết công thức theo nghiệp vụ.** Ví dụ: “tính tổng 1..n” tương ứng `n * (n + 1) / 2`; “chia tổng hai lượng” là `total / (left + right)` nếu đó thực sự là mẫu.
+**Step 1: write the formula according to business logic.** For example, "sum 1..n" corresponds to `n * (n + 1) / 2`; "divide by the sum of two quantities" is `total / (left + right)` if that is genuinely the denominator.
 
-**Bước 2: vẽ sơ đồ kết quả trung gian trên giấy.** Đặt kiểu và miền lên từng phép:
+**Step 2: sketch the intermediate result tree on paper.** Annotate each operation with its type and range:
 
 ```text
              /
@@ -512,14 +512,14 @@ Một biểu thức “tương đương đại số” trong toán học không 
 n = 50_000
 n + 1   -> int = 50_001
 n * ... -> int overflow
-... / 2 -> int không còn là tổng toán học
+... / 2 -> int is no longer the mathematical sum
 ```
 
-**Bước 3: chuyển kiểu trước phép có nguy cơ vượt miền.** Ví dụ `(long) n * (n + 1) / 2`. Nếu `long` vẫn có nguy cơ tràn, `Math.multiplyExact` hay `BigInteger` có thể phù hợp hơn, tùy hợp đồng.
+**Step 3: convert types before operations that risk exceeding the range.** For example, `(long) n * (n + 1) / 2`. If `long` still risks overflowing, `Math.multiplyExact` or `BigInteger` may be more suitable, depending on the contract.
 
-**Bước 4: xác định quy tắc chia nguyên.** Nếu cần số nhóm làm tròn lên, không tự động dùng `(items + size - 1) / size` với mọi dữ liệu vì phép cộng `items + size - 1` có thể tràn `int`, và dữ liệu âm có ngữ nghĩa khác. Chọn công thức được chứng minh cho miền input; có thể dùng thương/dư hoặc kiểu rộng phù hợp.
+**Step 4: specify integer division rules.** If ceiling group count is needed, do not blindly use `(items + size - 1) / size` for all inputs because `items + size - 1` can overflow `int`, and negative values have different semantics. Choose a formula proven for the input domain; you can use quotient/remainder or an appropriate wider type.
 
-**Bước 5: tách biểu thức dài và thêm tên trung gian.** Ví dụ:
+**Step 5: split long expressions and add named intermediates.** For example:
 
 ```java
 int n = 50_000;
@@ -528,79 +528,79 @@ long product = (long) n * next;
 long result = product / 2;
 ```
 
-Cách tách này giúp debug, ghi log và gắn kiểm tra ở từng bước. Với phép tính thuần, dấu ngoặc hữu ích cho khả năng đọc; với quy tắc nghiệp vụ phức tạp, **biến trung gian có tên** thường rõ hơn việc lồng nhiều cấp ngoặc.
+Splitting like this helps with debugging, logging, and attaching checks at each step. For simple calculations, parentheses aid readability; for complex business rules, **named intermediate variables** are usually clearer than deeply nested parentheses.
 
-**Bước 6: kiểm thử boundary.** Tối thiểu gồm `0`, `1`, số âm nếu được phép, số chia bằng 0, `Integer.MIN_VALUE`/`MAX_VALUE`, số khiến trung gian tràn, và trường hợp chia có dư.
+**Step 6: test boundaries.** At minimum include `0`, `1`, negative numbers if allowed, zero divisors, `Integer.MIN_VALUE`/`MAX_VALUE`, inputs causing intermediate overflow, and divisions with remainders.
 
-## 15. Bài tập tự luyện có đáp án
+## 15. Self-Practice Exercises with Answers
 
-### Bài 1 — Dự đoán kết quả
+### Exercise 1 — Predict the Result
 
-Với `int a = 18, b = 3, c = 3;`, kết quả của `a / b + c` và `a / (b + c)` là gì?
+Given `int a = 18, b = 3, c = 3;`, what are the results of `a / b + c` and `a / (b + c)`?
 
-**Đáp án:** `9` và `3`. Biểu thức đầu được nhóm `(a/b)+c`; biểu thức sau lấy `b+c` làm mẫu.
+**Answer:** `9` and `3`. The first expression groups as `(a/b)+c`; the second uses `b+c` as the divisor.
 
-### Bài 2 — Đổi ngoặc ở phép chia nguyên
+### Exercise 2 — Moving Parentheses in Integer Division
 
-Với `a = 20, b = 3, c = 2`, so sánh `(a/b)/c` và `a/(b/c)`.
+Given `a = 20, b = 3, c = 2`, compare `(a/b)/c` and `a/(b/c)`.
 
-**Đáp án:** `3` và `20`; `20/3` thành `6`, rồi `6/2` thành `3`, trong khi `3/2` thành `1`, rồi `20/1` thành `20`.
+**Answer:** `3` and `20`; `20/3` becomes `6`, then `6/2` becomes `3`, whereas `3/2` becomes `1`, then `20/1` becomes `20`.
 
-### Bài 3 — Cast đặt muộn
+### Exercise 3 — Late Cast
 
-Tại sao `long total = (long) (Integer.MAX_VALUE + 1);` không cho `2147483648`?
+Why doesn't `long total = (long) (Integer.MAX_VALUE + 1);` yield `2147483648`?
 
-**Đáp án:** phép cộng `int` đã tràn thành `-2147483648` trước khi cast. Sửa thành `(long) Integer.MAX_VALUE + 1` hoặc dùng `Math.addExact` nếu cần báo lỗi kiểu `int`.
+**Answer:** the `int` addition already overflowed to `-2147483648` before casting. Fix by writing `(long) Integer.MAX_VALUE + 1` or use `Math.addExact` if `int` error reporting is required.
 
-### Bài 4 — Kết quả cuối vừa `int` nhưng vẫn sai
+### Exercise 4 — Final Result Fits `int` Yet Still Wrong
 
-Cho `int n = 50_000;`. Giải thích lỗi của `n*(n+1)/2` và sửa.
+Given `int n = 50_000;`, explain the bug in `n*(n+1)/2` and fix it.
 
-**Đáp án:** tích `2_500_050_000` tràn `int` trước khi chia. `(long)n*(n+1)/2` cho `1_250_025_000`. Nếu kết quả phải là `int`, kiểm tra bằng `Math.toIntExact`.
+**Answer:** the product `2_500_050_000` overflows `int` before dividing. `(long)n*(n+1)/2` produces `1_250_025_000`. If the result must be `int`, validate using `Math.toIntExact`.
 
-### Bài 5 — Phân biệt promotion và ngoặc
+### Exercise 5 — Distinguishing Promotion and Parentheses
 
-`byte x=100, y=20; byte z=(x+y);` có hợp lệ không?
+Is `byte x=100, y=20; byte z=(x+y);` valid?
 
-**Đáp án:** không; `x+y` có kiểu `int`. Dấu ngoặc không đổi kiểu. Dùng `int z=x+y;` hoặc cast hẹp có kiểm soát khi yêu cầu dữ liệu là `byte`.
+**Answer:** no; `x+y` has type `int`. Parentheses do not change the type. Use `int z=x+y;` or a checked narrowing cast when `byte` data is required.
 
-### Bài 6 — Trường hợp phép cộng `int` thuần
+### Exercise 6 — Pure `int` Addition Case
 
-Với `x=Integer.MAX_VALUE, y=1, z=-1`, có phải `(x+y)+z` khác `x+(y+z)` không?
+Given `x=Integer.MAX_VALUE, y=1, z=-1`, does `(x+y)+z` differ from `x+(y+z)`?
 
-**Đáp án:** không; hai kết quả cuối đều `Integer.MAX_VALUE`, dù trung gian khác nhau. Điều này phù hợp tính kết hợp của phép cộng `int` modulo; không áp dụng trực tiếp cho checked addition, chia, số thực hay side effect.
+**Answer:** no; both final results are `Integer.MAX_VALUE`, even though the intermediates differ. This reflects the associativity of modular `int` addition; it does not apply directly to checked addition, division, floating-point, or side effects.
 
-### Bài 7 — Chia cho 0 ẩn trong ngoặc
+### Exercise 7 — Hidden Division by Zero Inside Parentheses
 
-`int x=10, y=2, z=3;`, vì sao `x/(y/z)` gây lỗi lúc chạy dù `y` và `z` đều khác 0?
+With `int x=10, y=2, z=3;`, why does `x/(y/z)` fail at runtime even though both `y` and `z` are non-zero?
 
-**Đáp án:** `y/z` chia nguyên bằng `0`; phép chia ngoài trở thành `10/0` và ném `ArithmeticException`.
+**Answer:** `y/z` in integer division equals `0`; the outer division becomes `10/0` and throws `ArithmeticException`.
 
-### Bài 8 — Thứ tự gọi phương thức
+### Exercise 8 — Method Call Order
 
-Trong `left() + right() * 2`, phương thức nào chạy trước? Phép nhân được nhóm với những toán hạng nào?
+In `left() + right() * 2`, which method runs first? Which operands is multiplication grouped with?
 
-**Đáp án:** `left()` được đánh giá trước `right()`; cấu trúc biểu thức là `left() + (right() * 2)`. Phân biệt thứ tự đánh giá với cách nhóm phép toán.
+**Answer:** `left()` is evaluated before `right()`; the expression structure is `left() + (right() * 2)`. Distinguish evaluation order from operation grouping.
 
-## 16. Checklist và tài liệu chính thức
+## 16. Checklist and Official References
 
-- [ ] Tôi đọc đúng precedence, associativity và grouping khi thấy `( ... )`.
-- [ ] Tôi phân biệt thứ tự **đánh giá toán hạng** với thứ tự **thực hiện phép tính đã nhóm**.
-- [ ] Tôi dự đoán đúng kết quả chia nguyên, dấu của phần dư, và phát hiện mẫu trung gian bằng 0.
-- [ ] Tôi không nghĩ `long result = intA * intB` sẽ tự bảo vệ khỏi `int` overflow.
-- [ ] Tôi đặt cast trước phép toán cần kiểu rộng, kiểm tra kiểu của từng kết quả trung gian.
-- [ ] Tôi biết trường hợp `(a+b)+c` và `a+(b+c)` với cùng kiểu số nguyên thuần không tự nhiên khác kết quả cuối; ngược lại chia và phép checked có khác biệt.
-- [ ] Tôi xử lý được số âm, `Integer.MIN_VALUE / -1` và giá trị biên.
-- [ ] Tôi tách side effect ra khỏi biểu thức số học phức tạp.
-- [ ] Tôi đã chạy ít nhất hai chương trình đầy đủ và thử thêm trường hợp biên.
+- [ ] I correctly read precedence, associativity, and grouping when seeing `( ... )`.
+- [ ] I distinguish operand **evaluation order** from **execution order of grouped operations**.
+- [ ] I accurately predict integer division results, remainder signs, and detect intermediate zero divisors.
+- [ ] I do not assume `long result = intA * intB` automatically protects against `int` overflow.
+- [ ] I place casts before operations that need a wider type and verify the type of every intermediate result.
+- [ ] I know that `(a+b)+c` and `a+(b+c)` on the same pure integer type do not inherently differ in final result; conversely, division and checked operations do differ.
+- [ ] I handle negative numbers, `Integer.MIN_VALUE / -1`, and boundary values properly.
+- [ ] I separate side effects out of complex arithmetic expressions.
+- [ ] I have run at least two complete programs and tested additional boundary cases.
 
-Đọc thêm theo Java SE 17:
+Further reading for Java SE 17:
 
-- [JLS §15.7 — Evaluation Order](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.7): thứ tự đánh giá và bảo toàn ngoặc/độ ưu tiên.
-- [JLS §15.8.5 — Parenthesized Expressions](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.8.5): biểu thức trong ngoặc và kiểu của biểu thức.
-- [JLS §15.17 — Multiplicative Operators](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.17): nhân/chia/lấy dư.
-- [JLS §15.18 — Additive Operators](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.18): cộng/trừ.
-- [JLS §5.6 — Numeric Contexts](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.6): promotion và kiểu phép tính.
+- [JLS §15.7 — Evaluation Order](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.7): evaluation order and preservation of parentheses/precedence.
+- [JLS §15.8.5 — Parenthesized Expressions](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.8.5): parenthesized expressions and expression types.
+- [JLS §15.17 — Multiplicative Operators](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.17): multiplication/division/remainder.
+- [JLS §15.18 — Additive Operators](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.18): addition/subtraction.
+- [JLS §5.6 — Numeric Contexts](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.6): promotion and operation types.
 - [Java SE 17 Math API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html): `addExact`, `multiplyExact`, `toIntExact`, `floorDiv`.
 
-**Thông điệp thực hành:** dấu ngoặc chọn **cấu trúc phép tính**, nhưng độ chính xác/overflow được quyết định tại **mỗi phép trung gian**. Hãy ghi đúng công thức, kiểm tra kiểu và miền của từng bước, rồi kiểm chứng bằng dữ liệu biên.
+**Practical takeaway:** parentheses choose the **structure of operations**, while precision and overflow are decided at **each intermediate operation**. Write the formula accurately, verify the type and range of every step, and validate with boundary data.

@@ -1,23 +1,23 @@
-# Không suy rộng quy tắc của một lớp chuẩn cho mọi lớp khác
+# Do not generalize one standard class's rules to all other classes
 
-## 1. Nguyên tắc
+## 1. Principle
 
-Trong Java, **hợp đồng chung** của `equals()`, `hashCode()`, `compareTo()` không đồng nghĩa mọi lớp chuẩn có cùng cách định nghĩa giá trị. Quan sát `String.equals()` so nội dung rồi áp dụng cho `StringBuilder`, mảng, `BigDecimal` hay kiểu thời gian sẽ dễ sai.
+In Java, the **general contract** of `equals()`, `hashCode()`, and `compareTo()` does not mean every standard class defines value equality in the same way. Observing that `String.equals()` compares content and then applying that assumption to `StringBuilder`, arrays, `BigDecimal`, or temporal types easily leads to bugs.
 
-| Phép/API | Điều có thể khẳng định | Điều phải tra theo từng kiểu |
+| Operation / API | What can be guaranteed | What must be checked per type |
 |---|---|---|
-| `==` (tham chiếu) | Cùng object hoặc đều `null` | Literal/cache có tái dùng instance không |
-| `equals()` | Phản xạ, đối xứng, bắc cầu, nhất quán, khác `null` | Các trường hoặc khía cạnh tạo equality |
-| `hashCode()` | Nếu equals đúng thì hash phải bằng | Cách băm, va chạm, trường tham gia |
-| `Comparable` | Kết quả âm/0/dương biểu thị trước/ngang/sau | Lớp có natural order không, `0` có tương đương equals không |
-| `Comparator` | Định nghĩa thứ tự do bên gọi chọn | Nhiều giá trị khác nhau có thể so bằng `0` |
-| Collection | Theo đúng hợp đồng API cụ thể | Quy tắc trùng, `null`, thứ tự, factory |
+| `==` (references) | Same object or both `null` | Whether literals/caches reuse instances |
+| `equals()` | Reflexive, symmetric, transitive, consistent, non-`null` | Which fields or aspects constitute equality |
+| `hashCode()` | If equals is true, hashes must match | Hashing scheme, collisions, participating fields |
+| `Comparable` | Negative/0/positive result indicates before/equal/after | Whether the class has a natural order, whether `0` aligns with equals |
+| `Comparator` | Ordering defined by the caller | Distinct values may still compare as `0` |
+| Collection | Strictly follows the specific API contract | Duplicate rules, `null`, ordering, factories |
 
-**Hash trùng không chứng minh bằng nhau**; `compareTo() == 0` cũng không mặc nhiên đồng nghĩa `equals() == true`. Dù đều là kiểu chuẩn, từng lớp có thể cố ý chọn tiêu chí khác.
+**Matching hashes do not prove equality**; `compareTo() == 0` also does not automatically imply `equals() == true`. Even among standard types, each class may deliberately choose different criteria.
 
-## 2. `String`, `StringBuilder` và lớp tự viết
+## 2. `String`, `StringBuilder`, and custom classes
 
-`String.equals` so chuỗi ký tự; `StringBuilder` thừa hưởng `Object.equals` nên so identity. Một lớp tự viết không ghi đè `equals` cũng vậy.
+`String.equals` compares character sequences; `StringBuilder` inherits `Object.equals` and therefore compares identity. A custom class that does not override `equals` behaves the same way.
 
 ~~~java
 String a = new String("Java");
@@ -29,9 +29,9 @@ System.out.println(a.equals(b)); // true
 System.out.println(x.equals(y)); // false
 ~~~
 
-Đây là đoạn minh họa đặt trong `main`. Sự khác nhau đến từ **hợp đồng lớp**, không phải cả hai đều lưu văn bản. `String.equals` phân biệt case; `"Java".equalsIgnoreCase("JAVA")` trả `true` nhưng `"Java".equals("JAVA")` trả `false`. `String.CASE_INSENSITIVE_ORDER` còn có thể gom các chuỗi này trong một `TreeSet`. Không dùng `==` để so nội dung dựa trên quan sát về string interning.
+This is an illustrative snippet placed inside `main`. The difference comes from the **class contract**, not from both storing text. `String.equals` is case-sensitive; `"Java".equalsIgnoreCase("JAVA")` returns `true`, whereas `"Java".equals("JAVA")` returns `false`. `String.CASE_INSENSITIVE_ORDER` can even merge these strings inside a `TreeSet`. Do not use `==` for content comparison based on observations about string interning.
 
-## 3. `BigDecimal` và wrapper số
+## 3. `BigDecimal` and numeric wrappers
 
 ~~~java
 BigDecimal n1 = new BigDecimal("2.0");
@@ -40,36 +40,36 @@ System.out.println(n1.equals(n2));       // false
 System.out.println(n1.compareTo(n2) == 0); // true
 ~~~
 
-Cần `java.math.BigDecimal`. `BigDecimal.equals` xét **scale** (1 so với 2), còn `compareTo` xét giá trị số. Vì vậy `HashSet<BigDecimal>` có thể giữ cả hai, trong khi `TreeSet<BigDecimal>` với natural order chỉ giữ một. `String.compareTo == 0` nhất quán với `String.equals` nhưng **không nên suy quy tắc đó sang BigDecimal**.
+Requires `java.math.BigDecimal`. `BigDecimal.equals` considers **scale** (1 versus 2), while `compareTo` considers numeric value. Therefore, `HashSet<BigDecimal>` can retain both, whereas `TreeSet<BigDecimal>` with natural order keeps only one. `String.compareTo == 0` is consistent with `String.equals`, yet **you must not extrapolate that rule to BigDecimal**.
 
-Tương tự, `Integer.valueOf(10).equals(Long.valueOf(10L))` trả `false`, dù cùng số 10, vì `Integer.equals` yêu cầu đúng kiểu wrapper. Với `Double`, `Double.NaN == Double.NaN` là `false` ở primitive, nhưng hai `Double` chứa `NaN` bằng nhau qua `Double.equals`. `Double.equals(-0.0, +0.0)` không phải cú pháp API; gọi qua hai wrapper thì trả `false`, trong khi `-0.0 == +0.0` trên primitive là `true`.
+Similarly, `Integer.valueOf(10).equals(Long.valueOf(10L))` returns `false`, despite both representing 10, because `Integer.equals` requires the exact wrapper type. For `Double`, `Double.NaN == Double.NaN` is `false` for primitives, yet two `Double`s holding `NaN` are equal via `Double.equals`. `Double.equals(-0.0, +0.0)` is not the API syntax; calling `equals` on the two wrappers returns `false`, whereas `-0.0 == +0.0` on primitives is `true`.
 
-Không suy từ so sánh số học sang `equals` của object. Khi thiết kế dữ liệu tiền tệ, hãy quyết định có tính scale hay chỉ lượng số, rồi dùng một tiêu chí nhất quán trong key và collection.
+Do not infer object `equals` from arithmetic comparisons. When modeling monetary data, decide whether scale matters or only numeric quantity, then apply one consistent criterion across keys and collections.
 
-## 4. Mảng, record và collection
+## 4. Arrays, records, and collections
 
-Mảng Java mặc định không ghi đè `Object.equals`: hai `int[]` khác instance có cùng phần tử vẫn không bằng nhau qua `array.equals`. Dùng `Arrays.equals` để so từng phần tử của mảng một chiều, và `Arrays.deepEquals` khi cần so sâu mảng `Object[]` có phần tử lồng.
+Java arrays do not override `Object.equals` by default: two `int[]` instances with identical elements are still unequal via `array.equals`. Use `Arrays.equals` to compare elements of one-dimensional arrays, and `Arrays.deepEquals` when deep comparison of `Object[]` with nested elements is needed.
 
-`record` tự sinh `equals`/`hashCode` dựa trên component, nhưng **component là array vẫn so identity**; record không biến array thành deep equality.
+A `record` generates `equals`/`hashCode` from its components, yet **an array component still compares by identity**; a record does not turn array components into deep equality.
 
-Các collection khác nhau:
+Different collections behave differently:
 
-- `List.equals` xét từng phần tử **theo thứ tự**; một `ArrayList` có thể bằng `List.of` cùng chuỗi phần tử.
-- `Set.equals` xét **cùng phần tử**, không phụ thuộc thứ tự duyệt; `HashSet` có thể bằng `LinkedHashSet` cùng tập phần tử.
-- `HashSet` dùng `equals/hashCode` để nhận biết phần tử trùng; `TreeSet` dùng `compareTo` hoặc comparator trả `0` để nhận biết khóa trùng.
-- `HashSet.add` phần tử trùng trả `false`, nhưng factory `Set.of` với phần tử trùng **ném `IllegalArgumentException`**. `List.of` cho phép phần tử trùng. `HashSet` chứa được một `null`; factory `Set.of` từ chối `null`.
+- `List.equals` examines elements **in order**; an `ArrayList` can equal `List.of` with the same sequence of elements.
+- `Set.equals` examines **same elements**, independent of iteration order; a `HashSet` can equal a `LinkedHashSet` with the same element set.
+- `HashSet` uses `equals/hashCode` to detect duplicate elements; `TreeSet` uses `compareTo` or a comparator returning `0` to detect duplicate keys.
+- `HashSet.add` with a duplicate element returns `false`, whereas the `Set.of` factory with duplicate elements **throws `IllegalArgumentException`**. `List.of` allows duplicate elements. `HashSet` can hold one `null`; the `Set.of` factory rejects `null`.
 
-Ví dụ comparator chỉ theo độ dài khiến `"hi"` và `"ok"` ngang hàng trong `TreeSet`, dù `String.equals` giữa chúng trả `false`. Muốn giữ cả hai, dùng comparator có tiêu chí phụ hoặc collection khác.
+For example, a comparator based solely on length treats `"hi"` and `"ok"` as equivalent in a `TreeSet`, even though `String.equals` between them returns `false`. To retain both, use a comparator with a tie-breaker or a different collection.
 
-## 5. Date-time: cùng thời điểm khác equality
+## 5. Date-time: same instant, different equality
 
-`OffsetDateTime.parse("2026-01-01T10:00:00+07:00")` và `OffsetDateTime.parse("2026-01-01T03:00:00Z")` đại diện cùng instant trên dòng thời gian.
+`OffsetDateTime.parse("2026-01-01T10:00:00+07:00")` and `OffsetDateTime.parse("2026-01-01T03:00:00Z")` represent the same instant on the timeline.
 
-`isEqual()` giữa chúng là `true`; `equals()` là `false`, vì `equals` xét giá trị biểu diễn gồm offset. Nếu nghiệp vụ hỏi **cùng instant**, dùng `isEqual` hoặc so `Instant`. Nếu hỏi **cùng giá trị OffsetDateTime**, dùng `equals`. Không dùng hợp đồng của `LocalDate` hay `Instant` để tự suy hành vi của `OffsetDateTime`/`ZonedDateTime`.
+`isEqual()` between them is `true`; `equals()` is `false`, because `equals` checks the full representation including offset. If business logic asks **same instant**, use `isEqual` or compare `Instant`. If it asks **same OffsetDateTime value**, use `equals`. Do not use the contract of `LocalDate` or `Instant` to guess the behavior of `OffsetDateTime`/`ZonedDateTime`.
 
-## 6. Chương trình Java 17 chạy được
+## 6. Runnable Java 17 program
 
-Lưu thành file **`StandardContractsDemo.java`**:
+Save as **`StandardContractsDemo.java`**:
 
 ~~~java
 import java.math.BigDecimal;
@@ -156,14 +156,14 @@ public class StandardContractsDemo {
 }
 ~~~
 
-Chạy với JDK 17:
+Run with JDK 17:
 
 ~~~bash
 javac StandardContractsDemo.java
 java StandardContractsDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 String identity: false
@@ -189,47 +189,47 @@ Date equals: false
 Set.of duplicate: rejected
 ~~~
 
-Đầu ra chỉ dùng boolean/kích thước; không dựa vào thứ tự duyệt không được bảo đảm của `HashSet`. `"Aa"` và `"BB"` là một va chạm hash có thật nhưng hai chuỗi không bằng nhau; collision **không** làm hai phần tử logic trở thành một.
+The output only uses booleans/sizes; it does not rely on `HashSet`'s unguaranteed iteration order. `"Aa"` and `"BB"` are a real hash collision yet the two strings are not equal; a collision does **not** turn two logical elements into one.
 
-## 7. Cách áp dụng và kiểm chứng
+## 7. How to apply and verify
 
-Khi gặp lớp chuẩn mới, hãy **đọc Javadoc của đúng lớp** thay vì sao chép quy tắc từ lớp quen thuộc:
+When encountering a new standard class, **read the Javadoc of that exact class** instead of copying rules from a familiar one:
 
-1. Xác định `equals` đang dùng identity, giá trị, kiểu runtime, ID hay trường nào; kiểm tra `null`.
-2. Kiểm tra `hashCode` cùng dữ liệu quyết định equality. Nếu object đã làm khóa hash collection, tránh thay đổi trường tham gia equality/hash.
-3. Kiểm tra lớp có `Comparable` không và `compareTo == 0` có nhất quán với `equals` không. Nếu truyền comparator, xét tiêu chí phá hòa.
-4. Kiểm tra collection/factory: `HashSet`, `TreeSet`, `List.of`, `Set.of` có hợp đồng khác nhau về trùng, `null`, thứ tự.
-5. Thử cặp khác instance cùng dữ liệu; hai kiểu số; `BigDecimal` khác scale; array lồng; `NaN`; cùng instant khác offset; hash trùng nhưng giá trị khác.
-6. Chọn quan hệ đúng với **yêu cầu nghiệp vụ**: so số bất kể scale có thể cần `compareTo`; so instant cần `isEqual`/`Instant`; so nội dung mảng cần `Arrays.equals`.
+1. Determine whether `equals` uses identity, value, runtime type, ID, or specific fields; check `null`.
+2. Verify `hashCode` uses the same data that determines equality. If an object already serves as a hash collection key, avoid mutating fields participating in equality/hash.
+3. Check whether the class implements `Comparable` and whether `compareTo == 0` is consistent with `equals`. If passing a comparator, consider tie-breaking criteria.
+4. Check collections/factories: `HashSet`, `TreeSet`, `List.of`, and `Set.of` have different contracts for duplicates, `null`, and ordering.
+5. Test pairs of distinct instances with equal data; two numeric types; `BigDecimal` with different scales; nested arrays; `NaN`; same instant with different offsets; matching hashes with unequal values.
+6. Pick the relation matching **business requirements**: comparing numbers regardless of scale may need `compareTo`; comparing instants needs `isEqual`/`Instant`; comparing array contents needs `Arrays.equals`.
 
-## 8. Lỗi thường gặp
+## 8. Common mistakes
 
-| Giả định sai | Hệ quả | Cách sửa |
+| Wrong assumption | Consequence | How to fix |
 |---|---|---|
-| Có cùng trường thì object tự bằng nhau | Lớp không override `equals` vẫn dùng identity | Xem hợp đồng lớp, tự định nghĩa value object nếu cần |
-| Mọi kiểu văn bản giống `String` | `StringBuilder.equals` vẫn dùng identity | Dùng phép so nội dung thích hợp |
-| Số giống nhau thì wrapper luôn equals | `Integer` khác `Long`, BigDecimal xét scale | Chọn kiểu và chính sách so sánh |
-| `compareTo == 0` đồng nghĩa `equals` | Sai với BigDecimal/comparator tùy chỉnh | Kiểm tra nghĩa comparator |
-| Hash bằng nhau là object bằng nhau | Collision bị hiểu thành trùng | So equality, không kết luận từ hash |
-| Record tự so sâu array | Hai array nội dung giống nhau vẫn khác identity | Thiết kế lại component hoặc override đúng |
-| Tất cả set khử trùng giống nhau | Comparator hoặc factory làm kết quả khác | Đọc API cụ thể |
-| Cùng instant thì date-time `equals` | Khác offset có thể `equals false` | So instant khi đó là mục tiêu |
+| Having the same fields makes objects automatically equal | Classes not overriding `equals` still use identity | Check the class contract, define a value object if needed |
+| All text types behave like `String` | `StringBuilder.equals` still uses identity | Use the appropriate content comparison |
+| Equal numbers mean wrappers are always equals | `Integer` differs from `Long`, BigDecimal checks scale | Choose types and comparison policies explicitly |
+| `compareTo == 0` means `equals` | False for BigDecimal/custom comparators | Check the comparator's semantics |
+| Equal hashes mean equal objects | Collisions are mistaken for duplicates | Check equality; never conclude from hashes |
+| Records automatically deep-compare arrays | Two arrays with identical contents still have different identity | Redesign the component or override properly |
+| All sets deduplicate the same way | Comparators or factories change the outcome | Read the specific API |
+| Same instant means date-time `equals` | Different offsets can produce `equals false` | Compare instants when that is the goal |
 
-## 9. Câu hỏi tự kiểm tra
+## 9. Self-check questions
 
-**1.** Hai `StringBuilder("A")` cùng nội dung nhưng `equals false`: có mâu thuẫn với `String.equals` không?  
-**Đáp án:** Không. Hai lớp có hợp đồng khác nhau.
+**1.** Two `StringBuilder("A")` instances have identical content yet `equals false`: does that contradict `String.equals`?  
+**Answer:** No. The two classes have different contracts.
 
-**2.** Vì sao `HashSet<BigDecimal>` giữ `2.0` và `2.00`, còn `TreeSet<BigDecimal>` chỉ giữ một?  
-**Đáp án:** `equals` xét scale; `compareTo` xét lượng số.
+**2.** Why does `HashSet<BigDecimal>` keep both `2.0` and `2.00`, while `TreeSet<BigDecimal>` keeps only one?  
+**Answer:** `equals` considers scale; `compareTo` considers numeric quantity.
 
-**3.** Hai mảng cùng phần tử nhưng `array.equals` sai; nên dùng gì?  
-**Đáp án:** `Arrays.equals` hoặc `Arrays.deepEquals` phù hợp với cấu trúc.
+**3.** Two arrays have identical elements yet `array.equals` is false; what should you use?  
+**Answer:** `Arrays.equals` or `Arrays.deepEquals` appropriate for the structure.
 
-**4.** `TreeSet` comparator chỉ xét độ dài có giữ cả `"hi"` và `"ok"` không?  
-**Đáp án:** Không; comparator trả `0`.
+**4.** Does a `TreeSet` comparator considering only length keep both `"hi"` and `"ok"`?  
+**Answer:** No; the comparator returns `0`.
 
-**5.** `OffsetDateTime.isEqual` đúng nhưng `equals` sai có hợp lệ không?  
-**Đáp án:** Có; cùng instant khác biểu diễn offset.
+**5.** Is it valid for `OffsetDateTime.isEqual` to be true while `equals` is false?  
+**Answer:** Yes; same instant, different offset representation.
 
-**Ghi nhớ:** Bất biến chung của `Object` là nền tảng, còn **nghĩa cụ thể của equality, hash, ordering và collection behavior phải được kiểm tra ở mỗi lớp/API**.
+**Remember:** General `Object` invariants are the foundation, while **the exact meaning of equality, hashing, ordering, and collection behavior must be verified for each class/API**.

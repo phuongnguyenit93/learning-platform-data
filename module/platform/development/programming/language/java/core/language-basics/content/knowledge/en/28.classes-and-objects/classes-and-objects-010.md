@@ -1,70 +1,70 @@
-# Đọc cú pháp generic như `List<String>` và ý nghĩa kiểm tra kiểu trong Java
+# Reading Generic Syntax Like `List<String>` and What Type Checking Means in Java
 
-## 1. `List<String>` được đọc như thế nào?
+## 1. How Is `List<String>` Read?
 
-Trong Java, **generic** (*kiểu tổng quát*) cho phép lớp, interface và phương thức mô tả kiểu dữ liệu mà chúng xử lý thông qua **tham số kiểu** (*type parameter*). Khi viết:
+In Java, **generics** allow classes, interfaces, and methods to describe the data types they operate on via a **type parameter**. When writing:
 
 ```java
 List<String> names;
 ```
 
-ta có thể đọc là **“một danh sách có phần tử kiểu `String`”**.
+you can read it as **"a list whose elements are of type `String`"**.
 
-- `List` là interface `java.util.List<E>`, dùng để biểu diễn một dãy phần tử có thứ tự và cho phép truy cập theo vị trí.
-- `<String>` là **đối số kiểu** (*type argument*) cụ thể, thay cho tham số kiểu `E` trong khai báo `List<E>`. Dấu `< >` ở đây chỉ thông tin kiểu, không phải các toán tử so sánh nhỏ hơn/lớn hơn.
-- `names` là **biến tham chiếu** có kiểu `List<String>`. Nếu chỉ khai báo mà chưa gán, biến cục bộ này chưa sử dụng được để đọc; nếu là một field thì giá trị mặc định là `null`.
-- `List` là **interface**, nên thường khởi tạo bằng một lớp cài đặt, ví dụ `ArrayList`. Cần `import java.util.List;` và `import java.util.ArrayList;` hoặc viết tên đầy đủ.
+- `List` is the `java.util.List<E>` interface, representing an ordered sequence of elements that allows positional access.
+- `<String>` is the concrete **type argument**, substituting for the type parameter `E` in the `List<E>` declaration. The angle brackets `< >` here denote type information, not less-than/greater-than comparison operators.
+- `names` is a **reference variable** of type `List<String>`. If merely declared without assignment, this local variable cannot yet be read; if it is a field, its default value is `null`.
+- `List` is an **interface**, so it is typically instantiated with an implementing class such as `ArrayList`. You need `import java.util.List;` and `import java.util.ArrayList;`, or write fully qualified names.
 
 ```java
 import java.util.ArrayList;
 import java.util.List;
 
-// Các dòng sau đặt trong phương thức hoặc khối khởi tạo:
+// The following lines go inside a method or initializer block:
 List<String> names = new ArrayList<String>();
 names.add("An");
 names.add("Binh");
 String first = names.get(0);  // "An"
 ```
 
-Trên Java 7+, có thể dùng **diamond operator** `<>` ở vế phải để trình biên dịch suy luận đối số kiểu từ ngữ cảnh:
+On Java 7+, you can use the **diamond operator** `<>` on the right-hand side so the compiler infers the type argument from context:
 
 ```java
 List<String> names = new ArrayList<>();
 ```
 
-Cú pháp này vẫn giữ kiểu phần tử là `String`; `<>` không có nghĩa danh sách nhận mọi kiểu. Trong Java 17, dùng `var names = new ArrayList<String>();` thì kiểu được suy luận là `ArrayList<String>`; còn `var names = new ArrayList<>();` thiếu ngữ cảnh kiểu mong muốn sẽ suy luận kiểu thành phần là `Object`. Không nên mặc định hai cách khai báo `var` này cho kết quả giống `List<String>`.
+This syntax still keeps the element type as `String`; `<>` does not mean the list accepts any type. In Java 17, writing `var names = new ArrayList<String>();` infers the type `ArrayList<String>`; whereas `var names = new ArrayList<>();` without a target type context infers the element type as `Object`. Do not assume both `var` declarations give the same result as `List<String>`.
 
-## 2. Kiểm tra kiểu khi biên dịch mang lại điều gì?
+## 2. What Does Compile-Time Type Checking Provide?
 
-Với `List<String>`, các phương thức do `List<E>` khai báo được nhìn qua tham số kiểu `E = String`:
+With `List<String>`, the methods declared by `List<E>` are viewed through the type argument `E = String`:
 
-| Biểu thức | Kiểu hoặc kết quả | Ý nghĩa |
+| Expression | Type or result | Meaning |
 | --- | --- | --- |
-| `names.add("Java")` | Hợp lệ, trả về `boolean` | Thêm một `String` |
-| `names.get(0)` | `String` | Không cần ép kiểu thủ công tại mã nguồn |
-| `names.set(0, "Kotlin")` | `String` | Thay phần tử và trả về phần tử cũ |
-| `for (String s : names)` | Hợp lệ | Duyệt từng `String` |
-| `names.add(123)` | **Lỗi biên dịch** | `Integer` không phải `String` |
-| `Integer n = names.get(0)` | **Lỗi biên dịch** | Không thể gán giá trị kiểu `String` cho `Integer` |
+| `names.add("Java")` | Valid, returns `boolean` | Adds a `String` |
+| `names.get(0)` | `String` | No manual cast needed in source code |
+| `names.set(0, "Kotlin")` | `String` | Replaces element and returns the previous element |
+| `for (String s : names)` | Valid | Iterates over each `String` |
+| `names.add(123)` | **Compile error** | `Integer` is not `String` |
+| `Integer n = names.get(0)` | **Compile error** | Cannot assign a `String` value to `Integer` |
 
-Ví dụ độc lập trong phương thức:
+Standalone snippet inside a method:
 
 ```java
 List<String> names = new ArrayList<>();
 names.add("Java");
-String name = names.get(0); // Hợp lệ
+String name = names.get(0); // Valid
 
-// names.add(123);          // LỖI: int autobox thành Integer, không phải String
-// Integer x = names.get(0); // LỖI: get trả về String theo khai báo generic
+// names.add(123);          // ERROR: int autoboxes to Integer, not String
+// Integer x = names.get(0); // ERROR: get returns String per generic declaration
 ```
 
-Điểm quan trọng: **trình biên dịch phát hiện nhiều phép gán/thêm sai kiểu trước khi chương trình chạy**. Điều này giúp API tự diễn đạt kiểu dữ liệu mong đợi, giảm lỗi ép kiểu thủ công và làm mã dễ đọc.
+Key point: **the compiler catches many wrong-type assignments/additions before the program runs**. This makes APIs self-documenting regarding expected data types, reduces manual casting errors, and improves readability.
 
-Generics **không bảo đảm** nội dung trong một danh sách luôn hợp lệ nếu đã cố tình bỏ qua cảnh báo dùng *raw type*, thực hiện ép kiểu không được kiểm chứng, hoặc có mã tương tác qua API cũ. Vì vậy cần hiểu cả giới hạn ở runtime.
+Generics **do not guarantee** that the contents of a list are always valid if someone deliberately ignores *raw type* warnings, performs unchecked casts, or interacts with legacy APIs. Therefore, you should also understand runtime limitations.
 
-## 3. Cấu trúc khai báo generic: tham số kiểu và đối số kiểu
+## 3. Generic Declaration Structure: Type Parameter and Type Argument
 
-Có thể tự định nghĩa một lớp generic:
+You can define a generic class yourself:
 
 ```java
 class Box<T> {
@@ -80,7 +80,7 @@ class Box<T> {
 }
 ```
 
-Ở đây `T` là **tham số kiểu** của lớp `Box<T>`. Khi sử dụng:
+Here `T` is the **type parameter** of the `Box<T>` class. When used:
 
 ```java
 Box<String> textBox = new Box<>("Hello");
@@ -90,9 +90,9 @@ Box<Integer> intBox = new Box<>(42);
 Integer number = intBox.get();  // number == 42
 ```
 
-`String` và `Integer` ở hai khai báo là **đối số kiểu** cụ thể. Trình biên dịch kiểm tra `Box<String>` theo `String`, `Box<Integer>` theo `Integer`.
+`String` and `Integer` in the two declarations are concrete **type arguments**. The compiler checks `Box<String>` against `String`, and `Box<Integer>` against `Integer`.
 
-Generic method khai báo tham số kiểu trước kiểu trả về:
+A generic method declares its type parameter before the return type:
 
 ```java
 static <T> T first(List<T> values) {
@@ -103,46 +103,46 @@ static <T> T first(List<T> values) {
 // Integer n = first(List.of(10, 20));
 ```
 
-Đây là đoạn minh họa nằm trong một lớp. Khi dùng, kiểu `T` có thể được suy luận từ đối số. `List.of(...)` là tiện ích tạo danh sách **không cho phép thay đổi cấu trúc/phần tử** (unmodifiable) trong các phiên bản Java hiện đại; nếu cần `add`, dùng `ArrayList`.
+This is an illustrative snippet inside a class. When used, `T` can be inferred from the arguments. `List.of(...)` is a factory producing an **unmodifiable** list (disallowing structural/element changes) in modern Java versions; if `add` is needed, use `ArrayList`.
 
-### Vì sao dùng `Integer` thay vì `int`?
+### Why Use `Integer` Instead of `int`?
 
-Đối số kiểu của generic **phải là kiểu tham chiếu**, không phải kiểu nguyên thủy:
+Generic type arguments **must be reference types**, not primitive types:
 
 ```java
 List<Integer> numbers = new ArrayList<>();
 numbers.add(10); // autoboxing: int -> Integer
 int value = numbers.get(0); // unboxing: Integer -> int
 
-// List<int> invalid = new ArrayList<>(); // LỖI cú pháp/kiểu
+// List<int> invalid = new ArrayList<>(); // Syntax/type ERROR
 ```
 
-Nếu phần tử `Integer` là `null`, unboxing sang `int` có thể gây `NullPointerException`. Với dữ liệu số lớn và hiệu năng nhạy cảm, các mảng nguyên thủy hoặc `IntStream` đôi khi tránh được chi phí boxing, tùy bài toán.
+If an `Integer` element is `null`, unboxing to `int` can cause a `NullPointerException`. For large numeric data and performance-sensitive code, primitive arrays or `IntStream` can sometimes avoid boxing overhead, depending on the problem.
 
-## 4. `List<String>` không phải `List<Object>`
+## 4. `List<String>` Is Not `List<Object>`
 
-Dù `String` là kiểu con của `Object`, **`List<String>` không phải kiểu con của `List<Object>`**. Generic type argument mặc định có tính **bất biến** (*invariant*).
+Even though `String` is a subtype of `Object`, **`List<String>` is not a subtype of `List<Object>`**. Generic type arguments are **invariant** by default.
 
 ```java
 List<String> words = new ArrayList<>();
 words.add("Java");
 
-// List<Object> objects = words; // LỖI BIÊN DỊCH
+// List<Object> objects = words; // COMPILE ERROR
 ```
 
-Nếu cho phép phép gán trên, biến `objects` có thể gọi `objects.add(123)` và đưa `Integer` vào một danh sách vốn được khai báo chứa `String`, phá vỡ an toàn kiểu của `words`. Trình biên dịch từ chối phép gán để tránh điều đó.
+If the assignment above were allowed, the `objects` variable could call `objects.add(123)` and insert an `Integer` into a list declared to hold `String`, breaking the type safety of `words`. The compiler rejects the assignment to prevent that.
 
-Tương tự, `List<Integer>` không tự chuyển thành `List<Number>`. Để mô tả một danh sách có kiểu phần tử chưa biết chính xác hoặc theo một giới hạn, Java dùng **wildcard**.
+Similarly, `List<Integer>` does not automatically convert to `List<Number>`. To describe a list with an unknown or bounded element type, Java uses **wildcards**.
 
-## 5. Đọc các cú pháp wildcard thông dụng
+## 5. Reading Common Wildcard Syntaxes
 
-| Cú pháp | Đọc/diễn giải | Lưu ý |
+| Syntax | Reading / Interpretation | Notes |
 | --- | --- | --- |
-| `List<?>` | Danh sách có **kiểu phần tử chưa biết** | Đọc phần tử như `Object`; không thêm giá trị khác `null` |
-| `List<? extends Number>` | Danh sách có kiểu phần tử nào đó là `Number` hoặc kiểu con | Phù hợp cho thao tác **đọc** số; không được thêm tùy ý `Integer` |
-| `List<? super Integer>` | Danh sách có kiểu phần tử nào đó là `Integer` hoặc một kiểu cha của nó | Có thể **thêm** `Integer`; khi đọc an toàn nhất chỉ biết là `Object` |
+| `List<?>` | A list with an **unknown element type** | Elements read as `Object`; cannot add values other than `null` |
+| `List<? extends Number>` | A list whose element type is some `Number` or subtype | Suitable for **reading** numbers; cannot arbitrarily add `Integer` |
+| `List<? super Integer>` | A list whose element type is `Integer` or a supertype of it | Can **add** `Integer`; safest read type known is only `Object` |
 
-Ví dụ:
+Example:
 
 ```java
 static double sum(List<? extends Number> values) {
@@ -154,19 +154,19 @@ static double sum(List<? extends Number> values) {
 }
 
 static void addDefault(List<? super Integer> values) {
-    values.add(0); // Integer được chấp nhận
+    values.add(0); // Integer is accepted
 }
 ```
 
-`sum` nhận `List<Integer>`, `List<Double>` hoặc các danh sách có phần tử là kiểu con thích hợp của `Number` mà không đánh mất an toàn kiểu. Tuy nhiên `List<? extends Number>` không cho phép tùy ý thêm một `Number`: danh sách thực tế có thể là `List<Integer>`. Với `List<? super Integer>`, việc thêm `Integer` là an toàn vì kiểu thực tế có thể là `Integer`, `Number` hoặc `Object`.
+`sum` accepts `List<Integer>`, `List<Double>`, or lists whose elements are appropriate subtypes of `Number` without losing type safety. However, `List<? extends Number>` does not allow arbitrarily adding a `Number`: the actual list might be `List<Integer>`. With `List<? super Integer>`, adding an `Integer` is safe because the actual type can be `Integer`, `Number`, or `Object`.
 
-Quy tắc nhớ thường dùng là **PECS**: *Producer Extends, Consumer Super*. Dùng `extends` khi chủ yếu đọc dữ liệu kiểu `T` từ cấu trúc; dùng `super` khi cần ghi các giá trị kiểu `T` vào cấu trúc.
+A common mnemonic is **PECS**: *Producer Extends, Consumer Super*. Use `extends` when primarily reading `T` data from a structure; use `super` when needing to write `T` values into a structure.
 
-Các từ `extends`/`super` ở **wildcard bound** mô tả quan hệ giới hạn kiểu, không có nghĩa `List` đã kế thừa trực tiếp từ một lớp danh sách khác.
+The words `extends`/`super` in a **wildcard bound** describe type bound relationships; they do not mean `List` directly inherits from another list class.
 
-## 6. Ví dụ hoàn chỉnh Java 17+
+## 6. Complete Java 17+ Example
 
-Tạo tệp **`GenericListDemo.java`**:
+Create file **`GenericListDemo.java`**:
 
 ```java
 import java.util.ArrayList;
@@ -225,20 +225,20 @@ public class GenericListDemo {
         Object value = unknown.get(0);
         System.out.println("unknown item: " + value);
 
-        // names.add(42);               // Lỗi biên dịch nếu bỏ chú thích
-        // List<Object> bad = names;     // Lỗi vì generic invariant
+        // names.add(42);               // Compile error if uncommented
+        // List<Object> bad = names;     // Error because generics are invariant
     }
 }
 ```
 
-Trong thư mục chứa tệp với **JDK 17 trở lên**, chạy trên PowerShell/CMD (Windows) hoặc bash/zsh (Linux/macOS):
+In the directory containing the file with **JDK 17 or later**, run on PowerShell/CMD (Windows) or bash/zsh (Linux/macOS):
 
 ```bash
 javac -encoding UTF-8 GenericListDemo.java
 java GenericListDemo
 ```
 
-Kết quả stdout chính xác (lệnh `javac` thành công không in thông báo):
+Exact stdout result (a successful `javac` command prints no output):
 
 ```text
 first: java
@@ -254,13 +254,13 @@ destination: [new]
 unknown item: java
 ```
 
-Giải thích: `names` chỉ nhận `String`; `first(names)` suy luận `T` là `String`, còn `first(numbers)` suy luận `T` là `Integer` (khi gán sang `int` có unboxing). `countNonEmpty` chấp nhận `List<String>` vì `String` thực hiện `CharSequence`. `List<?>` cho phép lấy phần tử dạng `Object`, dù không biết chính xác kiểu phần tử qua biểu thức có wildcard.
+Explanation: `names` accepts only `String`; `first(names)` infers `T` as `String`, while `first(numbers)` infers `T` as `Integer` (unboxed when assigned to `int`). `countNonEmpty` accepts `List<String>` because `String` implements `CharSequence`. `List<?>` allows retrieving elements as `Object`, even though the exact element type is unknown through the wildcard expression.
 
-## 7. Type erasure: kiểm tra lúc biên dịch khác runtime
+## 7. Type Erasure: Compile-Time Checking vs. Runtime
 
-Java thực hiện generics chủ yếu qua **type erasure**: ở cấp bytecode/runtime, nhiều thông tin về đối số kiểu của các tham chiếu generic không được giữ dưới dạng một loại đối tượng riêng cho mỗi `T`. Trình biên dịch kiểm tra kiểu và có thể thêm những phép ép kiểu cần thiết vào mã sinh ra.
+Java implements generics primarily via **type erasure**: at the bytecode/runtime level, much of the type argument information on generic references is not retained as a separate class object per `T`. The compiler checks types and may insert necessary casts into the generated code.
 
-Vì vậy:
+Therefore:
 
 ```java
 List<String> a = new ArrayList<>();
@@ -268,51 +268,51 @@ List<Integer> b = new ArrayList<>();
 System.out.println(a.getClass() == b.getClass()); // true
 ```
 
-Hai đối tượng đều được tạo bởi lớp runtime `ArrayList`; không có một lớp runtime riêng `ArrayList<String>` và `ArrayList<Integer>` cho hai đối tượng này.
+Both objects are created by the same runtime class `ArrayList`; there are no separate runtime classes `ArrayList<String>` and `ArrayList<Integer>` for these two objects.
 
-Các ví dụ sau **không hợp lệ**:
+The following examples are **invalid**:
 
 ```java
 Object value = new ArrayList<String>();
-// if (value instanceof List<String>) { } // LỖI biên dịch
-// List<String>[] arrays = new List<String>[2]; // LỖI tạo mảng generic
+// if (value instanceof List<String>) { } // Compile ERROR
+// List<String>[] arrays = new List<String>[2]; // ERROR creating generic array
 ```
 
-Có thể kiểm tra `value instanceof List<?>` ở nơi phù hợp, nhưng **không thể từ phép kiểm tra đó kết luận mọi phần tử đều là `String`**. Đừng nhầm generics là cơ chế JVM liên tục kiểm tra đối số kiểu `String` khi thêm vào mọi `List`: các kiểm tra thường diễn ra **ở biên dịch**, còn tính hợp lệ ở runtime phụ thuộc thao tác cụ thể và hệ thống kiểu đã bị xóa thông tin generic.
+You can check `value instanceof List<?>` where appropriate, but **you cannot conclude from that check that all elements are `String`**. Do not mistake generics for a JVM mechanism that continuously checks the `String` type argument when adding to any `List`: checks primarily happen **at compile time**, while runtime validity depends on specific operations and a type system whose generic info has been erased.
 
-**Raw type** như `List list = new ArrayList();` bỏ phần kiểm tra kiểu generic và dễ làm mất an toàn:
+**Raw types** such as `List list = new ArrayList();` bypass generic type checking and easily compromise safety:
 
 ```java
-List raw = new ArrayList(); // raw type: javac có thể cảnh báo
+List raw = new ArrayList(); // raw type: javac may warn
 raw.add(123);
-List<String> strings = raw; // unchecked conversion: cảnh báo
-// String text = strings.get(0); // ClassCastException khi chạy
+List<String> strings = raw; // unchecked conversion: warning
+// String text = strings.get(0); // ClassCastException at runtime
 ```
 
-Các đoạn dùng raw type ở trên chỉ để phân tích hành vi; **không nên áp dụng** trong code mới. Cảnh báo có thể quan sát khi biên dịch với `javac -Xlint:rawtypes -Xlint:unchecked`. Khi sử dụng API cũ, hạn chế phạm vi chuyển đổi không được kiểm tra và xác minh dữ liệu trước khi tin tưởng kiểu phần tử.
+The raw type snippets above are solely for analyzing behavior; **do not use** them in new code. Warnings can be observed when compiling with `javac -Xlint:rawtypes -Xlint:unchecked`. When working with legacy APIs, limit the scope of unchecked conversions and validate data before trusting element types.
 
-## 8. So sánh nhanh với mảng và các lỗi thường gặp
+## 8. Quick Comparison with Arrays and Common Mistakes
 
-Mảng và generic list có các đặc điểm khác nhau:
+Arrays and generic lists have different characteristics:
 
-- `String[]` có kích thước cố định và cho phép truy cập `array[i]`; `List<String>` là interface của danh sách, truy cập qua `get(i)` và có thể thay đổi kích thước tùy implementation.
-- Mảng các kiểu tham chiếu có tính **hiệp biến**: `Object[] a = new String[2];` biên dịch được nhưng gán `a[0] = Integer.valueOf(1)` gây `ArrayStoreException` khi chạy.
-- Generic `List<String>` có tính **bất biến** đối với đối số kiểu: `List<Object> a = new ArrayList<String>();` bị từ chối khi biên dịch, giúp tránh kiểu lỗi tương tự ngay từ đầu.
-- `List<String>` là danh sách chứa tham chiếu `String`; bản thân đối tượng danh sách có thể là `ArrayList`, `LinkedList` hoặc implementation tương thích, tùy ngữ cảnh.
-- **Không viết** `List<int>`: generic không nhận kiểu nguyên thủy, dùng `List<Integer>`.
-- **Không viết** `List<String> names = new List<>();`: `List` là interface, cần implementation như `new ArrayList<>()`.
-- **Không dùng** `List<Object>` để đại diện chung cho mọi danh sách generic: nếu chỉ cần đọc phần tử không biết kiểu, dùng `List<?>`; nếu có ràng buộc kiểu, chọn wildcard phù hợp.
-- **Không hiểu nhầm** `List.of("a", "b")` là danh sách cho phép `add`: danh sách từ `List.of` không hỗ trợ chỉnh sửa; `add` sẽ gây `UnsupportedOperationException`.
-- `List<String>` **không tự đảm bảo phần tử khác `null`**: với `ArrayList<String>`, `null` có thể được thêm vào; gọi phương thức trên phần tử ấy cần kiểm tra. Ngoại lệ: một số factory/implementation như `List.of` không chấp nhận `null`.
+- `String[]` has fixed size and allows `array[i]` access; `List<String>` is a list interface, accessed via `get(i)`, and can resize depending on the implementation.
+- Arrays of reference types are **covariant**: `Object[] a = new String[2];` compiles, yet assigning `a[0] = Integer.valueOf(1)` throws `ArrayStoreException` at runtime.
+- Generic `List<String>` is **invariant** with respect to its type argument: `List<Object> a = new ArrayList<String>();` is rejected at compile time, preventing similar errors upfront.
+- `List<String>` is a list holding `String` references; the list object itself can be an `ArrayList`, `LinkedList`, or a compatible implementation, depending on context.
+- **Do not write** `List<int>`: generics do not accept primitive types; use `List<Integer>`.
+- **Do not write** `List<String> names = new List<>();`: `List` is an interface; use an implementation like `new ArrayList<>()`.
+- **Do not use** `List<Object>` to stand in for any generic list: if you only need to read elements of unknown type, use `List<?>`; if there is a type constraint, choose the appropriate wildcard.
+- **Do not mistake** `List.of("a", "b")` for a list allowing `add`: lists from `List.of` do not support modification; `add` will throw `UnsupportedOperationException`.
+- `List<String>` **does not guarantee elements are non-null**: with `ArrayList<String>`, `null` can be added; calling methods on its elements requires checking. Exception: some factories/implementations like `List.of` do not accept `null`.
 
-## 9. Checklist đọc một kiểu generic
+## 9. Checklist for Reading a Generic Type
 
-Khi gặp cú pháp như `Map<String, Integer>` hoặc `List<? extends Number>`, đọc lần lượt:
+When encountering syntax like `Map<String, Integer>` or `List<? extends Number>`, read step by step:
 
-1. **Tên lớp/interface generic**: `Map`, `List`, `Box` xác định các thao tác có thể sử dụng.
-2. **Đối số kiểu đặt trong `<...>`**: chẳng hạn `String`, `Integer` xác định các kiểu được kiểm tra khi biên dịch.
-3. **Giới hạn kiểu nếu có**: `?`, `? extends T`, `? super T` diễn tả mức độ chắc chắn khi đọc/ghi dữ liệu.
-4. **Lớp runtime thực tế**: `new ArrayList<>()` tạo đối tượng `ArrayList`; generic không tự tạo một lớp runtime chuyên biệt theo mỗi kiểu phần tử.
-5. **Hoạt động hợp lệ**: `add`, `get`, `set` phải theo đúng kiểu và theo khả năng sửa đổi của implementation.
+1. **Generic class/interface name**: `Map`, `List`, `Box` determines the operations available.
+2. **Type arguments inside `<...>`**: e.g., `String`, `Integer` determine the types checked at compile time.
+3. **Type bounds if present**: `?`, `? extends T`, `? super T` express certainty levels when reading/writing data.
+4. **Actual runtime class**: `new ArrayList<>()` creates an `ArrayList` object; generics do not automatically create a specialized runtime class per element type.
+5. **Valid operations**: `add`, `get`, `set` must match the type and the mutability supported by the implementation.
 
-**Ghi nhớ:** `List<String>` nghĩa là danh sách có **hợp đồng kiểu phần tử `String` được trình biên dịch kiểm tra**. Generics giúp bắt lỗi sớm và giảm ép kiểu, trong khi wildcard mô tả cách dùng linh hoạt hơn và type erasure giải thích các giới hạn tại runtime.
+**Takeaway:** `List<String>` means a list with a **compiler-checked `String` element type contract**. Generics help catch errors early and reduce casts, while wildcards express more flexible usage and type erasure explains runtime limitations.

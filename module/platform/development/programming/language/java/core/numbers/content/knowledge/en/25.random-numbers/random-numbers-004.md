@@ -1,159 +1,159 @@
-# `ThreadLocalRandom` khi nhiều luồng cùng sinh số ngẫu nhiên
+# `ThreadLocalRandom` When Multiple Threads Generate Random Numbers Concurrently
 
-## 1. Bài toán: nhiều tác vụ, nhiều lần sinh số
+## 1. The problem: multiple tasks, frequent number generation
 
-Một ứng dụng Java có thể đồng thời thực hiện nhiều phép mô phỏng, chọn thời gian chờ ngẫu nhiên (jitter), chia công việc vào các nhóm hoặc sinh dữ liệu thử nghiệm. Nếu mỗi tác vụ liên tục cần giá trị ngẫu nhiên, cách tổ chức bộ sinh có thể ảnh hưởng tới thông lượng và mức tranh chấp giữa các luồng.
+A Java application may concurrently run multiple simulations, pick random wait times (jitter), distribute work into buckets, or generate test data. When each task repeatedly needs random values, how you organize the generator can affect throughput and thread contention.
 
-Ví dụ một thread pool có bốn luồng, mỗi luồng mô phỏng 10.000 lần tung xúc xắc. Những câu hỏi cần trả lời:
+Consider a thread pool with four threads, each simulating 10,000 die rolls. Questions to answer:
 
-- Làm thế nào để mỗi luồng lấy số từ `1` đến `6` mà không phải cùng cập nhật trạng thái của một đối tượng `Random` dùng chung?
-- Làm thế nào để bảo đảm ranh giới khoảng số đúng, tránh truy cập chung một mảng đếm không được đồng bộ?
-- Kết quả nào có thể kiểm thử một cách ổn định khi giá trị ngẫu nhiên thay đổi theo từng lần chạy?
-- Khi nào không nên dùng `ThreadLocalRandom`, chẳng hạn khi cần seed tái lập chính xác hoặc giá trị bảo mật?
+- How does each thread draw numbers from `1` to `6` without updating the state of a single shared `Random` object?
+- How do you ensure correct range boundaries and avoid unsynchronized access to a shared counter array?
+- Which results can be reliably tested when random values change on every run?
+- When should `ThreadLocalRandom` not be used, such as when exact seed reproducibility or cryptographic values are required?
 
-Lớp `java.util.concurrent.ThreadLocalRandom` xuất hiện từ Java 7 và vẫn thích hợp với Java 17+. Đây là **bộ sinh số giả ngẫu nhiên gắn với luồng đang thực thi**, hữu ích khi nhiều luồng cần sinh số thường xuyên.
+The `java.util.concurrent.ThreadLocalRandom` class was introduced in Java 7 and remains well suited for Java 17+. It is a **pseudorandom number generator bound to the executing thread**, useful when multiple threads need to generate numbers frequently.
 
-## 2. `ThreadLocalRandom` hoạt động theo luồng như thế nào?
+## 2. How does `ThreadLocalRandom` work per thread?
 
-Sử dụng phổ biến:
+Common usage:
 
 ```java
 import java.util.concurrent.ThreadLocalRandom;
 
 int number = ThreadLocalRandom.current().nextInt(1, 7);
-// number thuộc {1, 2, 3, 4, 5, 6}.
+// number is in {1, 2, 3, 4, 5, 6}.
 ```
 
-`current()` trả đối tượng `ThreadLocalRandom` dành cho **luồng đang gọi**. Thông thường, mỗi worker tự gọi `current()` bên trong tác vụ đang chạy. Theo tài liệu API, các phương thức của đối tượng này **chỉ nên được gọi bởi chính luồng đã lấy nó**, không truyền đối tượng đó sang luồng khác.
+`current()` returns the `ThreadLocalRandom` instance for the **calling thread**. Typically, each worker calls `current()` itself inside its running task. According to the API documentation, methods on this object **should only be called by the thread that obtained it**, never passed to another thread.
 
 ```java
 Runnable task = () -> {
     ThreadLocalRandom rng = ThreadLocalRandom.current();
     int sample = rng.nextInt(100); // 0 <= sample < 100
-    // Xử lý sample ngay trong worker.
+    // Process sample directly inside the worker.
 };
 ```
 
-Mã trên minh họa cách viết một `Runnable`; để thực thi cần gửi `task` vào một `Thread` hoặc `ExecutorService`. Có thể gọi `ThreadLocalRandom.current()` mỗi lần cần số, hoặc giữ biến `rng` *cục bộ trong phạm vi worker* để gọi nhiều lần trong cùng tác vụ.
+The code above illustrates writing a `Runnable`; to execute it, submit `task` to a `Thread` or `ExecutorService`. You can call `ThreadLocalRandom.current()` each time a number is needed, or hold the `rng` variable *locally within the worker scope* for repeated calls in the same task.
 
-### Vì sao thường thuận lợi hơn một `Random` dùng chung?
+### Why is it often preferable to a shared `Random`?
 
-Một đối tượng `java.util.Random` có thể được nhiều luồng sử dụng, nhưng nhiều lời gọi cập nhật trạng thái của **cùng một bộ sinh**, từ đó có thể gây tranh chấp và tăng chi phí khi tải song song cao. `ThreadLocalRandom` tránh việc các luồng cùng cập nhật một bộ sinh `Random` chia sẻ như vậy; điều này thường giảm overhead và contention trong các tác vụ sinh số liên tục.
+A `java.util.Random` instance can be used by multiple threads, but concurrent calls update the state of the **same generator**, which can cause contention and increase overhead under heavy parallel load. `ThreadLocalRandom` avoids having threads update a single shared `Random` generator like this; this often reduces overhead and contention in continuous number-generation tasks.
 
-Đây là lợi ích về **tổ chức trạng thái và hiệu năng tiềm năng**, không phải lời hứa rằng mọi chương trình dùng `ThreadLocalRandom` đều nhanh hơn. Nếu tác vụ chủ yếu làm I/O, phải chờ khóa khác hoặc xử lý rất ít số, sự khác biệt có thể không đáng kể. Đo lường trên tải thực bằng benchmark phù hợp trước khi quyết định tối ưu.
+This is a benefit in **state organization and potential performance**, not a promise that every program using `ThreadLocalRandom` will run faster. If tasks are mostly I/O-bound, wait on other locks, or generate very few numbers, the difference may be negligible. Measure under realistic workloads with proper benchmarks before deciding to optimize.
 
-`ThreadLocalRandom` không tự tạo nhiều luồng và cũng không thay thế `ExecutorService`: luồng/tác vụ vẫn phải được tổ chức bởi ứng dụng.
+`ThreadLocalRandom` does not create threads on its own and does not replace `ExecutorService`: threads/tasks still must be organized by the application.
 
-## 3. Những API cần biết và ý nghĩa khoảng
+## 3. Essential APIs and range semantics
 
-Các phương thức trả về giá trị **giả ngẫu nhiên**, không bảo đảm các giá trị khác nhau giữa các lần gọi.
+These methods return **pseudorandom** values, with no guarantee of distinct values across consecutive calls.
 
-| Lời gọi | Khoảng hoặc kết quả |
+| Call | Range or result |
 | --- | --- |
-| `nextInt()` | Giá trị `int` trong toàn miền kiểu nguyên |
-| `nextInt(10)` | Số nguyên từ `0` đến `9` |
-| `nextInt(1, 7)` | Số nguyên từ `1` đến `6` |
-| `nextLong(100L)` | Số `long` từ `0` đến `99` |
-| `nextLong(10L, 20L)` | Số `long` từ `10` đến `19` |
-| `nextDouble()` | `double` từ `0.0` (gồm) đến `1.0` (không gồm) |
-| `nextDouble(1.5, 2.5)` | `double` trong khoảng `[1.5, 2.5)` |
-| `nextBoolean()` | Giá trị `boolean` giả ngẫu nhiên |
+| `nextInt()` | `int` value across the entire integer range |
+| `nextInt(10)` | Integer from `0` to `9` |
+| `nextInt(1, 7)` | Integer from `1` to `6` |
+| `nextLong(100L)` | `long` from `0` to `99` |
+| `nextLong(10L, 20L)` | `long` from `10` to `19` |
+| `nextDouble()` | `double` from `0.0` (inclusive) to `1.0` (exclusive) |
+| `nextDouble(1.5, 2.5)` | `double` in `[1.5, 2.5)` |
+| `nextBoolean()` | Pseudorandom `boolean` value |
 
-Với các overload có `origin` và `bound`:
+For overloads taking `origin` and `bound`:
 
-- Cận dưới **bao gồm** (`origin`).
-- Cận trên **không bao gồm** (`bound`).
-- Với `nextInt(origin, bound)` và `nextLong(origin, bound)`, phải có `origin < bound`; vi phạm sẽ ném `IllegalArgumentException`.
-- Với `nextInt(bound)` hoặc `nextLong(bound)`, `bound` phải dương.
-- Với `nextDouble(origin, bound)`, các cận phải hữu hạn và `origin < bound`; không dùng `NaN` hoặc vô cực làm cận.
+- The lower bound is **inclusive** (`origin`).
+- The upper bound is **exclusive** (`bound`).
+- For `nextInt(origin, bound)` and `nextLong(origin, bound)`, `origin < bound` must hold; violating this throws `IllegalArgumentException`.
+- For `nextInt(bound)` or `nextLong(bound)`, `bound` must be positive.
+- For `nextDouble(origin, bound)`, both bounds must be finite and `origin < bound`; do not pass `NaN` or infinity as bounds.
 
-Ví dụ muốn chọn chỉ số của một danh sách có `size` phần tử:
+For example, to pick an index of a list with `size` elements:
 
 ```java
 int size = items.size();
 if (size == 0) {
-    throw new IllegalArgumentException("Danh sách không được rỗng");
+    throw new IllegalArgumentException("List must not be empty");
 }
 int index = ThreadLocalRandom.current().nextInt(size);
-// index thuộc [0, size): có thể dùng items.get(index).
+// index is in [0, size): safe to use items.get(index).
 ```
 
-Đây là **đoạn mã nhúng** với biến `items` là một `List` đã tồn tại. Nếu danh sách có thể bị sửa đồng thời, ứng dụng vẫn phải xử lý tính an toàn luồng của danh sách; `ThreadLocalRandom` không giải quyết việc đó.
+This is an **embedded snippet** where `items` is an existing `List`. If the list can be modified concurrently, the application still must handle thread safety for the list; `ThreadLocalRandom` does not solve that.
 
-### Tránh dùng phép chia dư để giới hạn ngẫu nhiên
+### Avoid using modulo to bound random numbers
 
 ```java
-// Không nên dùng để sinh chỉ số [0, 9]:
+// Should not be used to generate an index in [0, 9]:
 int bad = ThreadLocalRandom.current().nextInt() % 10;
 
-// Tránh cả Math.abs(nextInt()) % 10:
-// Math.abs(Integer.MIN_VALUE) vẫn âm.
+// Also avoid Math.abs(nextInt()) % 10:
+// Math.abs(Integer.MIN_VALUE) is still negative.
 int good = ThreadLocalRandom.current().nextInt(10);
 ```
 
-Giá trị của `bad` có thể âm. Phép `%` thủ công cũng có thể tạo độ lệch phân bố khi chia một miền kết quả không chia đều cho số lượng nhóm; dùng overload nhận `bound`/`origin, bound` để thư viện xử lý miền phù hợp.
+The value of `bad` can be negative. Manual `%` can also introduce distribution bias when dividing a range whose size is not evenly divisible by the bucket count; use the overloads taking `bound`/`origin, bound` so the library handles the range properly.
 
-`nextInt(1, 7)` thích hợp để mô phỏng một lần tung xúc xắc sáu mặt; đừng viết `nextInt(1, 6)` nếu muốn số `6` xuất hiện.
+`nextInt(1, 7)` is appropriate for simulating a six-sided die roll; do not write `nextInt(1, 6)` if you want `6` to appear.
 
-## 4. Quy tắc sở hữu trong ứng dụng đa luồng
+## 4. Ownership rules in multithreaded applications
 
-### 4.1. Lấy `current()` bên trong worker
+### 4.1. Obtain `current()` inside the worker
 
-**Nên làm:**
+**Do:**
 
 ```java
 executor.submit(() -> {
     ThreadLocalRandom rng = ThreadLocalRandom.current();
     for (int i = 0; i < 1_000; i++) {
         int value = rng.nextInt(100);
-        // Xử lý value bằng dữ liệu cục bộ của task.
+        // Process value using task-local data.
     }
 });
 ```
 
-Đây là ví dụ *nhúng*; `executor` là một `ExecutorService` được tạo ở nơi gọi.
+This is an *embedded* example; `executor` is an `ExecutorService` created by the caller.
 
-**Không nên giữ một instance và truyền qua các luồng:**
+**Do not keep an instance and pass it across threads:**
 
 ```java
-// Sai ý định sử dụng API khi nhiều thread cùng gọi trên đối tượng này:
+// Misuses the API when multiple threads call on this object:
 static final ThreadLocalRandom SHARED = ThreadLocalRandom.current();
 ```
 
-`SHARED` được lấy trong luồng khởi tạo lớp; đem tham chiếu đó đi gọi từ các worker khác vi phạm hướng dẫn sở hữu theo luồng. Cũng tránh lấy `ThreadLocalRandom.current()` ở luồng chính rồi truyền biến `rng` vào mọi tác vụ qua lambda.
+`SHARED` is obtained on the class-initialization thread; passing that reference to be called from other workers violates the per-thread ownership guideline. Also avoid capturing `ThreadLocalRandom.current()` on the main thread and passing the `rng` variable into every task via a lambda.
 
-Đừng đồng bộ hóa thêm một `ThreadLocalRandom` dùng chung để “sửa” cách dùng sai. Cách đúng là **lấy giá trị từ `current()` trong chính luồng thực thi**.
+Do not add synchronization around a shared `ThreadLocalRandom` to “fix” incorrect usage. The proper approach is to **call `current()` inside the executing thread itself**.
 
-### 4.2. Vòng đời theo worker thread, không theo task
+### 4.2. Lifecycle is per worker thread, not per task
 
-`ExecutorService` thường tái sử dụng các luồng. Nếu 100 tác vụ chạy trên pool có 4 worker, nhiều tác vụ sẽ chạy nối tiếp trên cùng một worker, và mỗi tác vụ gọi `ThreadLocalRandom.current()` sẽ dùng bộ sinh của luồng đó. Vì vậy:
+`ExecutorService` commonly reuses threads. If 100 tasks run on a pool of 4 workers, multiple tasks will run sequentially on the same worker, and each task calling `ThreadLocalRandom.current()` uses that thread's generator. Therefore:
 
-- Không khẳng định mỗi task có một seed độc lập hoặc một chuỗi ngẫu nhiên cố định.
-- Không suy ra số bộ sinh từ số task.
-- Lịch chạy task có thể thay đổi giữa các lần chạy.
-- Không cần tự gọi `new ThreadLocalRandom()`; cách sử dụng thông thường là qua `current()`.
+- Do not assume each task has an independent seed or a fixed random sequence.
+- Do not infer the number of generators from the number of tasks.
+- Task execution schedules may vary between runs.
+- You do not call `new ThreadLocalRandom()`; normal usage is via `current()`.
 
-Nếu yêu cầu chính là **mỗi task có chuỗi giả ngẫu nhiên tái lập**, hãy thiết kế RNG và seed theo **định danh task** (xem mục 8); cơ chế thread-local không tương đương task-local.
+If the primary requirement is **each task having a reproducible pseudorandom sequence**, design the RNG and seed by **task identifier** (see section 8); thread-local is not equivalent to task-local.
 
-### 4.3. RNG không làm dữ liệu chia sẻ trở nên an toàn
+### 4.3. An RNG does not make shared data thread-safe
 
-Ví dụ nhiều worker cùng cập nhật:
+Example where multiple workers update together:
 
 ```java
 long[] counts = new long[6];
 executor.submit(() -> {
     int face = ThreadLocalRandom.current().nextInt(1, 7);
-    counts[face - 1]++; // Có race nếu worker khác cũng cập nhật counts.
+    counts[face - 1]++; // Race condition if other workers also update counts.
 });
 ```
 
-Phép tăng `counts[i]++` không phải thao tác nguyên tử. Nhiều luồng có thể mất lượt tăng dù chúng lấy số từ các bộ sinh độc lập. Có ba hướng xử lý thường gặp: mỗi task ghi vào bộ đếm **cục bộ rồi gộp khi hoàn tất**; hoặc dùng `AtomicLongArray` / `LongAdder` đúng vị trí nếu cần chia sẻ; hoặc đồng bộ hóa phù hợp. Ví dụ đầy đủ ở mục tiếp theo chọn cách đếm cục bộ.
+The increment `counts[i]++` is not an atomic operation. Multiple threads can lose increments even though they draw numbers from independent generators. Three common solutions exist: each task writes to a **local counter and merges upon completion**; or use `AtomicLongArray` / `LongAdder` per slot if sharing is required; or apply appropriate synchronization. The complete example in the next section chooses local counting.
 
-Đừng nhầm **thread-safe RNG usage** với **thread-safe business data**.
+Do not confuse **thread-safe RNG usage** with **thread-safe business data**.
 
-## 5. Chương trình Java 17+ hoàn chỉnh: mô phỏng 40.000 lần tung xúc xắc
+## 5. Complete Java 17+ program: simulating 40,000 die rolls
 
-Tạo file **`ThreadLocalRandomDemo.java`**:
+Create the file **`ThreadLocalRandomDemo.java`**:
 
 ```java
 import java.util.ArrayList;
@@ -166,7 +166,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class ThreadLocalRandomDemo {
-    // Một worker sở hữu mảng counts, rồi chuyển kết quả về luồng tổng hợp.
+    // Each worker owns its counts array, then transfers the result to the aggregation thread.
     record Result(long[] counts, long outOfRange) {}
 
     public static void main(String[] args)
@@ -181,7 +181,7 @@ public class ThreadLocalRandomDemo {
 
             for (int i = 0; i < workers; i++) {
                 futures.add(executor.submit(() -> {
-                    // Phải lấy RNG ngay trong luồng chạy tác vụ.
+                    // Must obtain the RNG inside the thread executing the task.
                     ThreadLocalRandom rng = ThreadLocalRandom.current();
                     long[] counts = new long[6];
                     long outOfRange = 0;
@@ -198,7 +198,7 @@ public class ThreadLocalRandomDemo {
                 }));
             }
 
-            // Main chỉ gộp sau khi nhận kết quả từng Future.
+            // Main only aggregates after receiving each Future result.
             long[] totals = new long[6];
             long invalid = 0;
             for (Future<Result> future : futures) {
@@ -224,14 +224,14 @@ public class ThreadLocalRandomDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac ThreadLocalRandomDemo.java
 java ThreadLocalRandomDemo
 ```
 
-**Stdout có thể kiểm chứng chính xác** (với giả định các tác vụ hoàn tất bình thường và API tuân thủ hợp đồng):
+**Exactly verifiable stdout** (assuming tasks complete normally and the API adheres to its contract):
 
 ```text
 workers=4
@@ -241,35 +241,35 @@ buckets=6
 countMatches=true
 ```
 
-Kết quả cụ thể của từng mặt xúc xắc sẽ thay đổi giữa các lần chạy nên ví dụ cố ý chỉ in các **bất biến**: số lượt sinh, tính hợp lệ của miền và số nhóm.
+Specific counts for each die face will change across runs, so the example intentionally prints only **invariants**: total draw count, range validity, and bucket count.
 
-Cơ chế từng bước:
+Step-by-step mechanism:
 
-1. `newFixedThreadPool(4)` tạo executor với tối đa bốn worker để xử lý tác vụ. Bốn `Callable<Result>` được gửi vào executor.
-2. Mỗi callable gọi `ThreadLocalRandom.current()` **khi đang chạy trong worker**, sau đó sinh 10.000 lần `nextInt(1, 7)`.
-3. Mỗi tác vụ sử dụng mảng đếm riêng, không có phép tăng chia sẻ giữa các worker.
-4. `Future.get()` chờ task hoàn tất hoặc báo lỗi; việc thu kết quả theo thứ tự submit **không buộc các tác vụ chạy theo thứ tự**.
-5. Main gộp dữ liệu đã hoàn tất để tính tổng, rồi đóng executor bằng `shutdown()` trong `finally`.
+1. `newFixedThreadPool(4)` creates an executor with up to four workers to process tasks. Four `Callable<Result>` tasks are submitted to the executor.
+2. Each callable invokes `ThreadLocalRandom.current()` **while running in the worker**, then generates 10,000 calls to `nextInt(1, 7)`.
+3. Each task uses its own counter array, with no shared increments across workers.
+4. `Future.get()` waits for a task to finish or report an error; collecting results in submission order **does not force tasks to execute in order**.
+5. Main merges the completed data to compute totals, then closes the executor with `shutdown()` in `finally`.
 
-`ExecutorService` ở Java 17 chưa nên được giả định là dùng được với `try-with-resources` trong tất cả môi trường biên dịch mục tiêu. Mẫu trên dùng `try/finally` rõ ràng; trong ứng dụng cần chính sách hủy/chờ kết thúc theo đặc thù hệ thống.
+In Java 17, `ExecutorService` should not yet be assumed to support `try-with-resources` in all target compilation environments. The pattern above uses explicit `try/finally`; in real applications, provide cancellation/await-termination policies suited to your system.
 
-Nếu mỗi lần chạy in số lần xuất hiện của mặt 1..6 thì các con số sẽ không giống nhau hoàn toàn, và điều đó **không phải lỗi**. Một RNG tốt cũng không bảo đảm các nhóm bằng nhau chính xác trong một mẫu hữu hạn.
+If each run prints the occurrence counts of faces 1..6, the numbers will not be completely identical, and that **is not a bug**. Even a good RNG does not guarantee equal bucket counts in a finite sample.
 
-## 6. Hiệu năng: lợi ích và giới hạn thực tế
+## 6. Performance: practical benefits and limits
 
-Trong chương trình nhiều luồng cùng sinh số với tần suất cao, dùng `ThreadLocalRandom` thường giảm tranh chấp so với việc chia sẻ một `Random` duy nhất. Tuy nhiên một phép đo đúng còn phụ thuộc vào:
+In programs where multiple threads generate numbers at high frequency, using `ThreadLocalRandom` typically reduces contention compared to sharing a single `Random`. However, an accurate measurement also depends on:
 
-- **Khối lượng công việc:** sinh vài số cho mỗi request thường có chi phí thấp hơn mạng, DB, log và các phép đồng bộ khác.
-- **Cách ghi kết quả:** nếu mọi thread vẫn ghi vào một biến/cấu trúc có khóa chung thì contention có thể chỉ chuyển vị trí, không biến mất.
-- **Số thread và kích thước pool:** thêm thread vượt khả năng xử lý CPU có thể làm tăng context switching; một pool hợp lý tùy tải, không mặc định càng lớn càng nhanh.
-- **Warmup JVM/JIT, GC, phân phối lịch chạy:** benchmark một lần bằng `System.nanoTime()` khó chứng minh sự chênh lệch có ý nghĩa.
-- **Yêu cầu kết quả:** nếu cần xác định đầu ra theo seed hoặc bảo mật, ưu tiên tiêu chuẩn đúng của bài toán trước việc giảm overhead.
+- **Workload composition:** generating a few numbers per request is usually cheaper than network, DB, logging, and other synchronization operations.
+- **How results are recorded:** if every thread still writes to a shared variable/structure behind a lock, contention may simply move rather than disappear.
+- **Thread count and pool size:** adding threads beyond CPU capacity can increase context switching; an appropriate pool size depends on the workload rather than assuming bigger is always faster.
+- **JVM/JIT warmup, GC, scheduling variation:** a single benchmark using `System.nanoTime()` rarely proves a meaningful difference.
+- **Output requirements:** if seed-based determinism or security is required, prioritize correctness criteria over reducing overhead.
 
-Khi benchmark các bộ sinh, dùng JMH hoặc phương pháp đo nghiêm túc: chạy warmup, đo nhiều mẫu, dùng đủ thread, bảo đảm kết quả không bị compiler bỏ qua và xem cả throughput lẫn latency. Không tuyên bố một hệ số tăng tốc cố định cho mọi JDK/phần cứng.
+When benchmarking generators, use JMH or a rigorous measurement methodology: run warmup iterations, measure multiple samples, use an appropriate thread count, ensure results are not optimized away by the compiler, and inspect both throughput and latency. Do not claim a fixed speedup factor across all JDKs/hardware.
 
-### Điều gì xảy ra với `parallelStream()`?
+### What happens with `parallelStream()`?
 
-Dùng RNG theo luồng xử lý *thực tế* của phần tử:
+Obtain the RNG on the thread *actually* processing the element:
 
 ```java
 long count = java.util.stream.IntStream.range(0, 10_000)
@@ -278,34 +278,34 @@ long count = java.util.stream.IntStream.range(0, 10_000)
         .count();
 ```
 
-Đoạn này có số lần “trúng” biến thiên; chỉ có giới hạn `0 <= count <= 10_000` là bất biến. Trên pool và khi phân hoạch workload thay đổi, kết quả cũng thay đổi. Không giữ một `ThreadLocalRandom.current()` lấy ở main rồi bắt tất cả nhánh của parallel stream sử dụng lại tham chiếu đó.
+This snippet produces a varying hit count; only the bound `0 <= count <= 10_000` is invariant. Across different pools and workload partitioning, results also change. Do not grab a `ThreadLocalRandom.current()` in main and make every branch of a parallel stream reuse that reference.
 
-Không giả định một stream song song luôn mở riêng một thread cho mỗi phần tử. Việc song song hóa, độ lớn lô xử lý và thread pool do runtime quyết định.
+Do not assume a parallel stream always spawns a separate thread per element. Parallelization, batch sizes, and the thread pool are decided by the runtime.
 
-## 7. Những ngoại lệ và sai lầm phổ biến
+## 7. Common exceptions and mistakes
 
-| Vấn đề | Nguyên nhân | Cách xử lý |
+| Issue | Cause | Solution |
 | --- | --- | --- |
-| `nextInt(0)` hoặc `nextInt(-1)` | `bound` không dương | Kiểm tra bound và trường hợp tập đầu vào rỗng |
-| `nextInt(10, 10)` | `origin >= bound` | Dùng cận trên lớn hơn cận dưới |
-| Chọn xúc xắc bằng `nextInt(1, 6)` | Bound trên là *exclusive* | Dùng `nextInt(1, 7)` |
-| Dùng `Math.abs(nextInt()) % bound` | `MIN_VALUE` vẫn âm; `%` có thể gây lệch | Dùng `nextInt(bound)` |
-| Lưu RNG vào biến `static final` để mọi worker dùng | Lấy instance trong một luồng rồi gọi ở luồng khác | Gọi `current()` ngay trong worker |
-| Gọi `setSeed(...)` | `ThreadLocalRandom.setSeed(long)` luôn ném `UnsupportedOperationException` | Dùng RNG có seed công khai nếu cần tái lập |
-| Tin `ThreadLocalRandom` bảo mật | Đây là PRNG không dùng cho mục đích mã hóa | Dùng `SecureRandom` cho token, khóa, mã xác minh |
-| Dùng RNG riêng nhưng ghi `counts[i]++` lên mảng chung | Race condition trên dữ liệu dùng chung | Dùng bộ đếm cục bộ hoặc cấu trúc đồng bộ |
-| Test chờ dãy số cố định / mọi bucket bằng nhau | Kết quả phụ thuộc seed, thread và ngẫu nhiên | Test miền giá trị, số lần, các bất biến, hoặc dùng RNG seeded |
-| Mong một task có luồng/seed cố định trong thread pool | Executor tái sử dụng worker và có thể thay đổi lịch chạy | Ánh xạ RNG/seed theo task nếu cần tái lập |
+| `nextInt(0)` or `nextInt(-1)` | Non-positive `bound` | Validate the bound and handle empty input sets |
+| `nextInt(10, 10)` | `origin >= bound` | Use an upper bound strictly greater than the lower bound |
+| Simulating a die with `nextInt(1, 6)` | Upper bound is *exclusive* | Use `nextInt(1, 7)` |
+| Using `Math.abs(nextInt()) % bound` | `MIN_VALUE` stays negative; `%` can introduce bias | Use `nextInt(bound)` |
+| Storing RNG in a `static final` field for all workers | Obtained on one thread and called on others | Call `current()` inside each worker |
+| Calling `setSeed(...)` | `ThreadLocalRandom.setSeed(long)` always throws `UnsupportedOperationException` | Use an explicitly seeded RNG if reproducibility is needed |
+| Trusting `ThreadLocalRandom` for security | It is a non-cryptographic PRNG | Use `SecureRandom` for tokens, keys, verification codes |
+| Using per-thread RNGs while writing `counts[i]++` to a shared array | Race condition on shared data | Use local counters or synchronized structures |
+| Tests expecting fixed sequences / equal buckets | Results depend on seed, thread, and randomness | Test value ranges, counts, invariants, or use a seeded RNG |
+| Expecting a task to have a fixed thread/seed in a thread pool | Executors reuse workers and may alter scheduling | Map RNG/seed per task if reproducibility is required |
 
-Một lỗi nữa là dùng ngẫu nhiên để sinh **ID bắt buộc duy nhất**. PRNG có thể sinh cùng số nhiều lần. Nếu yêu cầu ID duy nhất, dùng chính sách đảm bảo duy nhất phù hợp (chẳng hạn cấp phát ID, UUID với hiểu biết về xác suất va chạm, hoặc ràng buộc duy nhất của kho dữ liệu); `ThreadLocalRandom` không bảo đảm uniqueness.
+Another mistake is using random numbers to generate **mandatory unique IDs**. A PRNG can produce the same number multiple times. When unique IDs are required, use an appropriate uniqueness strategy (such as ID allocation, UUIDs with collision probability understood, or datastore unique constraints); `ThreadLocalRandom` does not guarantee uniqueness.
 
-## 8. Khi cần tái lập kết quả hoặc bảo mật
+## 8. When reproducibility or security is required
 
-### 8.1. Test xác định bằng seed
+### 8.1. Deterministic tests with seeds
 
-`ThreadLocalRandom` được khởi tạo với seed do runtime quản lý; API `setSeed(long)` không hỗ trợ. Vì vậy nó không phù hợp khi muốn cùng một phép thử luôn sinh lại đúng dãy số qua các lần chạy.
+`ThreadLocalRandom` is initialized with a runtime-managed seed; the `setSeed(long)` API is unsupported. Therefore, it is unsuitable when the same test must consistently reproduce the exact same number sequence across runs.
 
-Trong Java 17 có thể dùng `SplittableRandom` để tạo các bộ sinh riêng cho mỗi tác vụ từ một seed gốc. Mỗi instance **không được chia sẻ giữa các luồng**; chia chúng trước khi gửi task:
+In Java 17, you can use `SplittableRandom` to create separate generators per task from a root seed. Each instance **must not be shared across threads**; split them before submitting tasks:
 
 ```java
 import java.util.SplittableRandom;
@@ -314,53 +314,53 @@ SplittableRandom root = new SplittableRandom(2026L);
 SplittableRandom firstTaskRng = root.split();
 SplittableRandom secondTaskRng = root.split();
 
-// Giao firstTaskRng và secondTaskRng cho hai task riêng,
-// mỗi instance chỉ được dùng trong một task.
+// Assign firstTaskRng and secondTaskRng to two separate tasks;
+// each instance must only be used inside one task.
 ```
 
-Đây là mã minh họa cách chia bộ sinh, không phải toàn bộ chương trình chạy. Khi mỗi task nhận bộ sinh riêng, thực hiện cùng thứ tự lời gọi với cùng thuật toán/seed, kết quả của task có thể tái lập thuận tiện hơn, độc lập với việc task được xếp lên worker thread nào. Cần kiểm soát thứ tự cấp phát RNG, số lần rút và phiên bản/thuật toán nếu hợp đồng cần tính tái lập xuyên môi trường. Không dùng chung `SplittableRandom` giữa hai worker mà không thiết kế đồng bộ thích hợp.
+This is illustrative code showing how to split generators, not a full runnable program. When each task receives its own generator and performs the same call order with the same algorithm/seed, task results can be reproduced much more conveniently, independent of which worker thread runs the task. You must control RNG allocation order, draw counts, and version/algorithm if the contract requires cross-environment reproducibility. Do not share a `SplittableRandom` across two workers without proper synchronization design.
 
-`java.util.random.RandomGenerator` (Java 17) còn định nghĩa abstraction cho nhiều thuật toán RNG; chọn implementation theo yêu cầu hiệu năng, phân phối và khả năng tái lập, thay vì mặc định mọi bộ sinh giống nhau.
+`java.util.random.RandomGenerator` (Java 17) also defines an abstraction over many RNG algorithms; choose an implementation based on performance, distribution, and reproducibility requirements rather than assuming all generators behave identically.
 
-Đối với unit test có đầu ra cố định, lựa chọn khác là inject một `RandomGenerator` hoặc một interface tạo số vào thành phần đang kiểm thử, rồi dùng một fake/deterministic generator trong test.
+For unit tests with fixed outputs, another option is to inject a `RandomGenerator` or a number-generation interface into the component under test, then supply a fake/deterministic generator in the test.
 
-### 8.2. Giá trị nhạy cảm về bảo mật
+### 8.2. Security-sensitive values
 
-`ThreadLocalRandom` **không cryptographically secure**. Không dùng nó để sinh mật khẩu tạm, mã OTP, session token, API secret, nonce phải không dự đoán được hoặc khóa bảo mật. Những trường hợp này dùng `java.security.SecureRandom` và thiết kế quy trình an toàn phù hợp. Việc nhiều luồng cần tạo token không biến `ThreadLocalRandom` thành lựa chọn bảo mật; kiến trúc chia sẻ/tạo instance `SecureRandom` phải được đánh giá riêng theo yêu cầu thông lượng và provider.
+`ThreadLocalRandom` is **not cryptographically secure**. Do not use it to generate temporary passwords, OTP codes, session tokens, API secrets, nonces that must be unpredictable, or security keys. For those cases, use `java.security.SecureRandom` and design appropriate security workflows. Multiple threads needing to generate tokens does not turn `ThreadLocalRandom` into a secure choice; sharing/creating `SecureRandom` instances must be evaluated separately based on throughput and provider requirements.
 
-## 9. Thiết kế kiểm thử cho tính đúng đắn trong đa luồng
+## 9. Designing tests for multithreaded correctness
 
-**Thử nghiệm bảo đảm (deterministic assertions):**
+**Deterministic assertions:**
 
-- Với `rng.nextInt(1, 7)`, kiểm tra từng kết quả nằm từ 1 đến 6.
-- Với `workers × drawsPerWorker`, tổng số mẫu đếm được phải bằng số lượt yêu cầu (nếu không có lỗi task).
-- Số mẫu không hợp lệ phải bằng 0.
-- Kết quả từ các worker chỉ được gộp sau khi hoàn tất, hoặc dùng cơ chế đồng bộ đúng.
-- Nếu task ném ngoại lệ, `Future.get()` cho biết thất bại thay vì báo thành công.
+- With `rng.nextInt(1, 7)`, check that each result lies between 1 and 6.
+- With `workers × drawsPerWorker`, the total counted samples must equal the requested count (assuming no task errors).
+- The number of out-of-range samples must be 0.
+- Results from workers are only combined after completion, or via proper synchronization.
+- If a task throws an exception, `Future.get()` surfaces the failure rather than reporting success.
 
-**Không nên kiểm thử:**
+**Do not test:**
 
-- “Mặt số 6 nhất định sẽ xuất hiện trong 100 lần.”
-- “Tổng các mặt chẵn bằng tổng các mặt lẻ.”
-- “Hai lần chạy phải cho cùng dãy số.”
-- “Mỗi thread luôn sinh giá trị khác thread khác.”
+- “Face 6 must definitely appear within 100 rolls.”
+- “Total even faces equal total odd faces.”
+- “Two runs must produce the exact same sequence.”
+- “Each thread always generates different values from every other thread.”
 
-Các khẳng định này không được API bảo đảm. Nếu cần kiểm tra thống kê phân bố, dùng số lượng mẫu và phương pháp phân tích thống kê phù hợp, chấp nhận xác suất thất bại được lượng hóa. Kiểm tra thống kê không thay thế kiểm tra cận và race condition.
+These assertions are not guaranteed by the API. If distribution statistics need testing, use an appropriate sample size and statistical analysis method with a quantified failure probability. Statistical checks do not replace boundary and race-condition checks.
 
-Có thể dùng công cụ kiểm tra concurrency để đánh giá cập nhật trạng thái chia sẻ, nhưng việc `nextInt` tạo kết quả trong miền hợp lệ chỉ chứng minh RNG; không chứng minh phần còn lại của workflow thread-safe.
+Concurrency testing tools can evaluate shared-state updates, while checking that `nextInt` stays in range only verifies the RNG; it does not prove the rest of the workflow is thread-safe.
 
-## 10. Bài tập vận dụng
+## 10. Practice exercises
 
-1. Mười task dùng thread pool bốn worker. Có nên lưu một `ThreadLocalRandom` ở main và truyền vào tất cả task không? Vì sao gọi `ThreadLocalRandom.current()` trong từng task đúng hơn?
-2. Viết một hàm chọn ngẫu nhiên chỉ số của `List<String>`, từ chối danh sách rỗng. Xác định cận dưới và cận trên chính xác.
-3. Thay chương trình xúc xắc bằng mô phỏng tung đồng xu 100.000 lần trên nhiều worker; giữ bộ đếm cục bộ và chỉ in `total == 100000`, `invalid == 0`.
-4. Nếu product manager yêu cầu test mô phỏng chạy lặp lại đúng kết quả trên cùng seed, có phù hợp dùng `ThreadLocalRandom` không? Đề xuất thiết kế dùng RNG theo task và seed rõ ràng.
-5. Một hệ thống sinh mã xác thực đăng nhập đang dùng `nextInt(100000, 1000000)`. Vì sao miền giá trị đúng vẫn **chưa đủ** để phương pháp trở nên an toàn?
+1. Ten tasks use a four-worker thread pool. Should you store one `ThreadLocalRandom` in main and pass it to all tasks? Why is calling `ThreadLocalRandom.current()` inside each task correct?
+2. Write a function to randomly pick an index of a `List<String>`, rejecting empty lists. Specify the exact lower and upper bounds.
+3. Replace the dice program with a simulation of 100,000 coin flips across multiple workers; keep local counters and print only `total == 100000`, `invalid == 0`.
+4. If a product manager asks for a simulation test that reproduces exact results for the same seed, is `ThreadLocalRandom` suitable? Propose a design using per-task RNGs with explicit seeds.
+5. A system generating login verification codes uses `nextInt(100000, 1000000)`. Why is having the right range still **not enough** to make this approach secure?
 
-**Đáp án gợi ý:** (1) Không truyền instance lấy từ luồng khác; lấy `current()` tại worker. (2) `nextInt(list.size())` cho `[0, size)` sau khi kiểm tra `size > 0`. (3) Mỗi task trả bộ đếm riêng, main gộp bằng `Future.get()`. (4) Dùng `SplittableRandom`/bộ sinh có seed theo task và cố định thứ tự sử dụng. (5) `ThreadLocalRandom` không có tính chất bảo mật chống dự đoán, dù đầu ra là số sáu chữ số.
+**Suggested answers:** (1) Do not pass an instance obtained from another thread; call `current()` inside the worker. (2) `nextInt(list.size())` gives `[0, size)` after checking `size > 0`. (3) Each task returns its own counter, and main aggregates via `Future.get()`. (4) Use `SplittableRandom`/a seeded per-task generator and fix the usage order. (5) `ThreadLocalRandom` lacks cryptographic unpredictability, even though the output is a six-digit number.
 
-## 11. Tóm tắt quyết định kỹ thuật
+## 11. Technical decision summary
 
-Dùng `ThreadLocalRandom.current().nextX(...)` **ngay trong luồng đang làm việc** khi nhiều worker phải sinh số giả ngẫu nhiên thường xuyên và không cần dãy kết quả tái lập theo seed. Dùng đúng cận trên loại trừ và giữ dữ liệu tích lũy cục bộ hoặc đồng bộ đúng cách. Nếu phải tái lập dãy số theo task, chọn bộ sinh có seed và lifecycle rõ ràng; nếu đầu ra cần chống dự đoán, chuyển sang `SecureRandom`.
+Use `ThreadLocalRandom.current().nextX(...)` **directly inside the executing thread** when multiple workers must generate pseudorandom numbers frequently and do not need seed-reproducible sequences. Use exclusive upper bounds properly and keep accumulated data local or properly synchronized. If sequences must be reproducible per task, choose a seeded generator with an explicit lifecycle; if outputs must resist prediction, switch to `SecureRandom`.
 
-Tài liệu tham chiếu (Java SE 17): [ThreadLocalRandom](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ThreadLocalRandom.html), [SplittableRandom](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/SplittableRandom.html), [SecureRandom](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/SecureRandom.html).
+Reference documentation (Java SE 17): [ThreadLocalRandom](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ThreadLocalRandom.html), [SplittableRandom](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/SplittableRandom.html), [SecureRandom](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/SecureRandom.html).

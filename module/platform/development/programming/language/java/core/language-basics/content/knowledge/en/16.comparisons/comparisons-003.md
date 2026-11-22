@@ -1,32 +1,32 @@
-# So sánh `boolean` và giới hạn dùng toán tử quan hệ trong Java
+# Comparing `boolean` Values and Relational Operator Limits in Java
 
-> **Java core — language-basics / So sánh**  
-> **Phiên bản:** Java 17+; ví dụ độc lập, chỉ cần JDK.  
-> **Mục tiêu:** Biết dùng `==`, `!=` để so sánh hai giá trị `boolean`; hiểu vì sao `<`, `<=`, `>`, `>=` không dùng được với `boolean`; phân biệt phép so sánh với phép logic và xử lý đúng `Boolean` nullable.
+> **Java core — language-basics / Comparisons**  
+> **Version:** Java 17+; standalone example, JDK only.  
+> **Goal:** Know how to use `==` and `!=` to compare two `boolean` values; understand why `<`, `<=`, `>`, and `>=` cannot be used with `boolean`; distinguish comparison operators from logical operators and handle nullable `Boolean` properly.
 
-## 1. `boolean` chỉ có hai giá trị
+## 1. `boolean` Has Only Two Values
 
-Kiểu nguyên thủy `boolean` biểu diễn điều kiện logic, với đúng hai giá trị `true` và `false`:
+The primitive type `boolean` represents a logical condition, with exactly two values: `true` and `false`:
 
 ~~~java
 boolean isReady = true;
 boolean isDone = false;
 ~~~
 
-`boolean` **không phải kiểu số nguyên** trong Java: không thể ngầm chuyển `true` thành 1, `false` thành 0 hoặc ngược lại. Vì vậy:
+`boolean` **is not an integer type** in Java: you cannot implicitly convert `true` to 1, `false` to 0, or vice versa. Therefore:
 
 ~~~java
-// KHÔNG BIÊN DỊCH:
+// DOES NOT COMPILE:
 // boolean flag = 1;
 // int number = true;
 // boolean equal = (true == 1);
 ~~~
 
-Không cần viết `if (isReady == true)` để kiểm tra điều kiện thông thường; `if (isReady)` dễ đọc hơn. Với phủ định, dùng `!isReady`.
+There is no need to write `if (isReady == true)` for ordinary condition checks; `if (isReady)` is more readable. For negation, use `!isReady`.
 
-## 2. `==` và `!=` hợp lệ với `boolean`
+## 2. `==` and `!=` Are Valid for `boolean`
 
-Hai toán tử bằng/khác áp dụng được cho **hai biểu thức kiểu `boolean`**:
+The equality and inequality operators apply to **two `boolean` expressions**:
 
 ~~~java
 boolean a = true;
@@ -34,61 +34,61 @@ boolean b = false;
 
 boolean same = (a == b);      // false
 boolean different = (a != b); // true
-boolean sameAsTrue = (a == true); // true, nhưng thường không cần viết dài.
+boolean sameAsTrue = (a == true); // true, though usually unnecessary to write out.
 ~~~
 
-| Vế trái | Vế phải | `a == b` | `a != b` |
+| Left-hand side | Right-hand side | `a == b` | `a != b` |
 | --- | --- | --- | --- |
 | `true` | `true` | `true` | `false` |
 | `true` | `false` | `false` | `true` |
 | `false` | `true` | `false` | `true` |
 | `false` | `false` | `true` | `false` |
 
-**Ý nghĩa:** `==` trả `true` nếu hai giá trị logic bằng nhau; `!=` trả `true` nếu khác nhau. Kết quả phép so sánh cũng có kiểu `boolean`, sử dụng được trong `if`, `while` hoặc trong phép logic khác.
+**Meaning:** `==` returns `true` if both logical values are the same; `!=` returns `true` if they differ. The result of the comparison also has type `boolean`, and can be used in `if`, `while`, or another logical expression.
 
-## 3. Vì sao `<`, `<=`, `>`, `>=` không dùng với `boolean`?
+## 3. Why Can't `<`, `<=`, `>`, `>=` Be Used with `boolean`?
 
-Các toán tử **quan hệ** (relational operators) dùng để so sánh thứ tự của **giá trị số** trong Java, không nhận toán hạng `boolean`.
+**Relational operators** are used to compare the ordering of **numeric values** in Java and do not accept `boolean` operands.
 
 ~~~java
-// Các dòng sau là ví dụ SAI, cố ý comment để chương trình không lỗi:
+// The following lines are INVALID examples, intentionally commented out so the program does not fail:
 // boolean smaller = false < true;
 // boolean greater = true > false;
 // boolean atLeast = true >= false;
 // boolean atMost = false <= true;
 ~~~
 
-Java không định nghĩa quy tắc kiểu primitive `false < true` hay `true > false`, dù một số ngôn ngữ khác có thể xem false/true như 0/1.
+Java does not define primitive rules such as `false < true` or `true > false`, even though some other languages treat false/true as 0/1.
 
-So sánh hợp lệ với các kiểu số và `char`:
+Valid comparisons with numeric types and `char`:
 
 ~~~java
 int minimum = 3, maximum = 7;
 boolean less = minimum < maximum; // true
 boolean range = minimum >= 0 && maximum <= 10; // true
-boolean charOrder = 'A' < 'B'; // true: char tham gia so sánh theo giá trị ký tự.
+boolean charOrder = 'A' < 'B'; // true: char participates in comparison by character code value.
 ~~~
 
-| Toán tử | `int`, `long`, `float`, `double`, `char` | `boolean` |
+| Operator | `int`, `long`, `float`, `double`, `char` | `boolean` |
 | --- | --- | --- |
-| `==`, `!=` | Hợp lệ | Hợp lệ |
-| `<`, `<=` | Hợp lệ | **Không hợp lệ** |
-| `>`, `>=` | Hợp lệ | **Không hợp lệ** |
+| `==`, `!=` | Valid | Valid |
+| `<`, `<=` | Valid | **Invalid** |
+| `>`, `>=` | Valid | **Invalid** |
 
-Lưu ý: đây là bảng về **kiểu nguyên thủy**. `String` cũng không so sánh thứ tự bằng `<`/`>`; dùng `compareTo` hoặc `Comparator` phù hợp khi muốn sắp xếp chuỗi.
+Note: this table covers **primitive types**. `String` also cannot be ordered using `<`/`>`; use `compareTo` or an appropriate `Comparator` when sorting strings.
 
-## 4. Phép so sánh khác phép logic
+## 4. Comparison Operators vs. Logical Operators
 
-Sau khi có các giá trị `boolean`, ta có thể kết hợp hoặc đảo điều kiện bằng toán tử logic:
+Once you have `boolean` values, you can combine or negate conditions using logical operators:
 
-| Toán tử | Ý nghĩa với `boolean` | Có bỏ qua vế phải? |
+| Operator | Meaning for `boolean` | Skips right-hand side? |
 | --- | --- | --- |
-| `!a` | NOT: đảo `true`/`false` | Toán tử một ngôi |
-| `a && b` | AND có short-circuit | Có, nếu `a` là `false` |
-| `a \|\| b` | OR có short-circuit | Có, nếu `a` là `true` |
-| `a & b` | AND không short-circuit | Không |
-| `a \| b` | OR không short-circuit | Không |
-| `a ^ b` | XOR, chỉ đúng khi khác nhau | Không |
+| `!a` | NOT: flips `true`/`false` | Unary operator |
+| `a && b` | Short-circuit AND | Yes, if `a` is `false` |
+| `a \|\| b` | Short-circuit OR | Yes, if `a` is `true` |
+| `a & b` | Non-short-circuit AND | No |
+| `a \| b` | Non-short-circuit OR | No |
+| `a ^ b` | XOR, true only when values differ | No |
 
 ~~~java
 boolean ready = true;
@@ -99,22 +99,22 @@ boolean any = ready || finished;      // true
 boolean exactlyOne = ready ^ finished; // true
 ~~~
 
-`^` trên hai giá trị `boolean` có kết quả tương đương `!=` về **giá trị logic**, nhưng không nên thay lẫn tùy tiện vì mục đích diễn đạt có thể khác: `!=` nhấn mạnh **so sánh khác nhau**; `^` nhấn mạnh **XOR**. Với boolean, cả hai vế của `^` được đánh giá.
+On two `boolean` values, `^` produces the same **logical result** as `!=`, but they should not be swapped arbitrarily because their intent can differ: `!=` emphasizes **inequality comparison**, whereas `^` emphasizes **XOR**. For booleans, both sides of `^` are always evaluated.
 
-**Short-circuit rất quan trọng khi có `null` hoặc phép tính có thể lỗi:**
+**Short-circuiting is critical when `null` or error-prone operations are involved:**
 
 ~~~java
 String name = null;
-boolean hasName = name != null && !name.isBlank(); // false, không NPE.
+boolean hasName = name != null && !name.isBlank(); // false, no NPE.
 ~~~
 
-Vế phải bị bỏ qua vì điều kiện bên trái `false`. Viết ngược thành `!name.isBlank() && name != null` sẽ lỗi trước khi guard được áp dụng.
+The right-hand side is skipped because the left condition is `false`. Reversing it to `!name.isBlank() && name != null` would fail before the guard is applied.
 
-## 5. Khi cần thứ tự của hai giá trị logic, hãy chỉ định rõ
+## 5. When You Need Ordering Between Two Boolean Values, Specify It Explicitly
 
-Đôi khi nghiệp vụ muốn sắp xếp `false` **trước** `true`, chẳng hạn khi sort một danh sách trạng thái. **Không** viết `false < true`.
+Sometimes business logic needs to sort `false` **before** `true`, such as sorting a list of statuses. Do **not** write `false < true`.
 
-Java có phương thức:
+Java provides a method for this:
 
 ~~~java
 int order = Boolean.compare(false, true); // -1
@@ -122,13 +122,13 @@ int equal = Boolean.compare(true, true);  // 0
 int reverse = Boolean.compare(true, false); // 1
 ~~~
 
-`Boolean.compare(a, b)` trả giá trị âm/0/dương khi a đứng trước/bằng/sau b trong thứ tự **false trước true**. Đây là **thứ tự do API định nghĩa**, không phải việc `<` trở thành toán tử hợp lệ đối với `boolean`.
+`Boolean.compare(a, b)` returns negative/0/positive when `a` comes before/equals/comes after `b` in **false-before-true** order. This is an **API-defined ordering**, not `<` becoming a valid operator for `boolean`.
 
-Nếu nghiệp vụ cần đảo thứ tự, có thể hoán đổi hai tham số hoặc sử dụng `Comparator` theo yêu cầu; đừng mã hóa boolean thành số một cách tùy tiện rồi so sánh khi không cần thiết.
+If business logic needs the reverse order, you can swap the two arguments or use a `Comparator` as needed; avoid arbitrarily encoding booleans as numbers just to compare them when unnecessary.
 
-## 6. Phân biệt `boolean` và `Boolean`
+## 6. Distinguishing `boolean` and `Boolean`
 
-`boolean` là kiểu nguyên thủy **không thể là `null`**. `Boolean` là lớp bao tham chiếu; một biến `Boolean` có thể nhận `true`, `false` hoặc `null`:
+`boolean` is a primitive type that **cannot be `null`**. `Boolean` is a reference wrapper class; a `Boolean` variable can hold `true`, `false`, or `null`:
 
 ~~~java
 boolean primitive = true;
@@ -136,45 +136,45 @@ Boolean boxed = Boolean.TRUE;
 Boolean unknown = null;
 ~~~
 
-Có ba bẫy cần nhớ:
+There are three pitfalls to keep in mind:
 
-**(1) So sánh hai `Boolean` bằng `==` có thể so sánh tham chiếu.**
+**(1) Comparing two `Boolean` objects with `==` compares references.**
 
-Khi cả hai toán hạng đều thuộc kiểu tham chiếu `Boolean`, `==` là phép so sánh **cùng object**; đừng dùng nó để đảm bảo so sánh **giá trị** trong mọi trường hợp. Dùng `equals` hoặc `Objects.equals` khi cần so sánh giá trị, kể cả nullable:
+When both operands are of reference type `Boolean`, `==` checks **object identity**; do not rely on it to compare **values** in general. Use `equals` or `Objects.equals` when comparing values, including nullable ones:
 
 ~~~java
 import java.util.Objects;
 
-// Trong một phương thức:
+// Inside a method:
 Boolean first = Boolean.TRUE;
 Boolean second = Boolean.TRUE;
 boolean sameValue = Objects.equals(first, second); // true
 ~~~
 
-Không dựa vào kết quả trùng hợp của `first == second` khi object được cache/intern hoặc tạo từ các nguồn khác nhau.
+Do not rely on `first == second` coincidentally returning true when objects are cached/interned or created from different sources.
 
-**(2) So sánh `Boolean` với literal `true` hoặc `false` có thể unbox.**
+**(2) Comparing a `Boolean` with literal `true` or `false` triggers unboxing.**
 
 ~~~java
 Boolean unknown = null;
-// boolean result = (unknown == true); // Nếu chạy: NullPointerException.
+// boolean result = (unknown == true); // If executed: NullPointerException.
 ~~~
 
-Trong biểu thức `unknown == true`, Java phải unbox `unknown` thành `boolean`. Nếu nó là `null`, sẽ ném `NullPointerException`.
+In the expression `unknown == true`, Java must unbox `unknown` to `boolean`. If it is `null`, a `NullPointerException` is thrown.
 
-**(3) Kiểm tra nullable an toàn:**
+**(3) Safe nullable checks:**
 
 ~~~java
 Boolean unknown = null;
-boolean enabled = Boolean.TRUE.equals(unknown); // false, không NPE.
+boolean enabled = Boolean.TRUE.equals(unknown); // false, no NPE.
 boolean known = unknown != null;                 // false.
 ~~~
 
-`Boolean.TRUE.equals(unknown)` trả true **chỉ khi** giá trị là `Boolean.TRUE`; cả `false` và `null` đều cho false. Nếu ứng dụng cần phân biệt ba trạng thái *true / false / unknown*, hãy kiểm tra null riêng thay vì đánh đồng unknown với false.
+`Boolean.TRUE.equals(unknown)` returns true **only when** the value is `Boolean.TRUE`; both `false` and `null` return false. If the application needs to distinguish three states (*true / false / unknown*), check for null separately instead of treating unknown as false.
 
-## 7. Ví dụ Java 17+ chạy độc lập
+## 7. Standalone Runnable Java 17+ Example
 
-Tạo file **BooleanComparisonDemo.java**:
+Create the file **BooleanComparisonDemo.java**:
 
 ~~~java
 import java.util.Objects;
@@ -241,14 +241,14 @@ public final class BooleanComparisonDemo {
 }
 ~~~
 
-Biên dịch và chạy trong thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Compile and run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 BooleanComparisonDemo.java
 java BooleanComparisonDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 primitiveEqual=false
@@ -272,20 +272,20 @@ eagerAnd=false
 evaluationOrder=FAB
 ~~~
 
-Giải thích dòng cuối: F cho false nên `&&` bỏ qua X; toán tử boolean `&` vẫn đánh giá cả A và B, do đó dấu vết là `FAB`. Dòng `unboxNull` thể hiện ngoại lệ của so sánh giữa `Boolean` nullable với primitive `true`, không phải giới hạn của `==` trên hai `boolean` nguyên thủy.
+Explanation of the last line: F returns false so `&&` skips X; the boolean `&` operator still evaluates both A and B, so the trace is `FAB`. The `unboxNull` line demonstrates the exception when comparing a nullable `Boolean` with primitive `true`, not a limitation of `==` on two primitive `boolean` values.
 
-## 8. Bài tập tự kiểm tra
+## 8. Self-Check Exercises
 
-**Bài 1.** Cho `boolean a = true, b = false;`. Tính `a == b`, `a != b`, `!a`, `a && b`, `a || b` và `a ^ b`.
+**Exercise 1.** Given `boolean a = true, b = false;`, evaluate `a == b`, `a != b`, `!a`, `a && b`, `a || b`, and `a ^ b`.
 
-**Bài 2.** Giải thích tại sao `true < false`, `false >= true` và `true == 1` không biên dịch trong Java. Có được dùng `'A' < 'B'` không? Vì sao?
+**Exercise 2.** Explain why `true < false`, `false >= true`, and `true == 1` do not compile in Java. Can `'A' < 'B'` be used? Why?
 
-**Bài 3.** Khi cần sắp xếp trạng thái false trước true, dùng API nào thay vì `a < b`? Cho ví dụ.
+**Exercise 3.** When you need to sort statuses with false before true, which API should you use instead of `a < b`? Give an example.
 
-**Bài 4.** Cho `Boolean flag = null;`. Điều gì xảy ra với `flag == true`? So sánh kết quả với `Boolean.TRUE.equals(flag)`.
+**Exercise 4.** Given `Boolean flag = null;`, what happens with `flag == true`? Compare the result with `Boolean.TRUE.equals(flag)`.
 
-**Bài 5.** Giải thích sự khác nhau giữa `boolean` và `Boolean`, giữa `Objects.equals(a, b)` và `a == b` khi a, b là các tham chiếu `Boolean`.
+**Exercise 5.** Explain the difference between `boolean` and `Boolean`, and between `Objects.equals(a, b)` and `a == b` when `a` and `b` are `Boolean` references.
 
-### Ghi nhớ
+### Remember
 
-**Hai giá trị `boolean` so sánh được bằng `==` và `!=`, nhưng không dùng được `<`, `<=`, `>`, `>=`.** Boolean không phải số nguyên. Dùng `!`, `&&`, `||` và các phép logic khi làm việc với điều kiện; dùng `Boolean.compare` nếu thật sự cần thứ tự false/true. Với `Boolean` dạng tham chiếu, cẩn thận phép so sánh object và `null` khi unboxing.
+**Two `boolean` values can be compared with `==` and `!=`, but cannot be used with `<`, `<=`, `>`, or `>=`.** A boolean is not an integer. Use `!`, `&&`, `||`, and logical operators when working with conditions; use `Boolean.compare` if you genuinely need false/true ordering. With reference `Boolean`, watch out for object identity comparison and `null` during unboxing.

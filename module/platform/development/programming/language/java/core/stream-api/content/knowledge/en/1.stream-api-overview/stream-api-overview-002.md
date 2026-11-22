@@ -1,54 +1,54 @@
-# Phân biệt Stream, Collection, Iterator và luồng vào ra
+# Distinguishing Stream, Collection, Iterator, and I/O Streams
 
-> **Chương:** Tổng quan Stream API  
-> **Phạm vi:** Java Stream API (`java.util.stream`), các cấu trúc dữ liệu trong `java.util` và luồng vào/ra trong `java.io`, `java.nio.file`.
+> **Chapter:** Stream API Overview  
+> **Scope:** Java Stream API (`java.util.stream`), data structures in `java.util`, and input/output streams in `java.io`, `java.nio.file`.
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Giải thích vì sao **Collection lưu dữ liệu**, **Iterator duyệt dữ liệu**, còn **Stream mô tả phép xử lý trên nguồn dữ liệu**.
-2. Phân biệt `java.util.stream.Stream<T>` với `InputStream`, `OutputStream`, `Reader` và `Writer`, dù chúng cùng có chữ *stream*.
-3. Nhận diện pipeline Stream gồm **nguồn → thao tác trung gian → thao tác kết thúc**, có thể xử lý lazy và chỉ được sử dụng một lần.
-4. Chọn đúng công cụ cho các bài toán truy cập phần tử, biến đổi, tổng hợp, đọc file và quản lý tài nguyên.
-5. Tránh các nhầm lẫn thường gặp về bộ nhớ, thứ tự, thay đổi nguồn và xử lý song song.
+1. Explain why **a Collection stores data**, **an Iterator traverses data**, and **a Stream describes processing operations over a data source**.
+2. Distinguish `java.util.stream.Stream<T>` from `InputStream`, `OutputStream`, `Reader`, and `Writer`, even though they all share the word *stream*.
+3. Identify a Stream pipeline consisting of **source → intermediate operations → terminal operation**, which can be evaluated lazily and consumed only once.
+4. Choose the right tool for accessing elements, transforming, aggregating, reading files, and managing resources.
+5. Avoid common misconceptions about memory, ordering, source mutation, and parallel processing.
 
-## 1. Bốn khái niệm trả lời bốn câu hỏi khác nhau
+## 1. Four concepts answering four different questions
 
-Giả sử ứng dụng có danh sách đơn hàng. Bạn cần giữ các đơn hàng để truy cập về sau, duyệt thủ công từng đơn, lọc đơn hợp lệ để tính tổng hoặc đọc dữ liệu đơn hàng từ tệp. Bốn nhu cầu này liên quan đến nhau nhưng **không cùng một khái niệm**.
+Suppose an application has a list of orders. You need to keep the orders for later access, manually iterate through each order, filter valid orders to compute a total, or read order data from a file. These four needs are related, yet they are **not the same concept**.
 
-| Khái niệm | Câu hỏi chính | Ví dụ Java | Vai trò |
+| Concept | Core question | Java examples | Role |
 |---|---|---|---|
-| **Collection** | *Dữ liệu được giữ ở đâu, tổ chức thế nào?* | `List`, `Set`, `Queue` | Chứa và quản lý các phần tử; có thể truy cập/duyệt nhiều lần. |
-| **Iterator** | *Làm sao lấy lần lượt phần tử tiếp theo?* | `Iterator<E>` | Con trỏ duyệt, cho phép chương trình tự điều khiển tiến trình lấy phần tử. |
-| **Stream API** | *Cần áp dụng những phép xử lý nào lên dữ liệu?* | `Stream<T>`, `IntStream` | Xây pipeline khai báo như `filter`, `map`, `reduce`, `collect`; tiêu thụ một lần. |
-| **Luồng I/O** | *Byte hoặc ký tự đi vào/ra chương trình ra sao?* | `InputStream`, `OutputStream`, `Reader`, `Writer` | Đọc/ghi dữ liệu từ tệp, mạng, bộ nhớ hoặc thiết bị; thường cần đóng tài nguyên. |
+| **Collection** | *Where is the data kept, and how is it organized?* | `List`, `Set`, `Queue` | Holds and manages elements; can be accessed/traversed multiple times. |
+| **Iterator** | *How do we fetch the next element one by one?* | `Iterator<E>` | A traversal cursor, allowing the program to manually control the progress of fetching elements. |
+| **Stream API** | *What processing operations should be applied to the data?* | `Stream<T>`, `IntStream` | Builds declarative pipelines such as `filter`, `map`, `reduce`, `collect`; consumed once. |
+| **I/O Stream** | *How do bytes or characters enter or leave the program?* | `InputStream`, `OutputStream`, `Reader`, `Writer` | Reads/writes data from files, networks, memory, or devices; typically requires closing resources. |
 
-Sơ đồ khái niệm:
+Conceptual diagram:
 
 ~~~text
-List / Set / nguồn sinh dữ liệu
+List / Set / data generator source
         │
-        ├── iterator() ──> Iterator ──> hasNext(), next() ──> tự điều khiển vòng lặp
+        ├── iterator() ──> Iterator ──> hasNext(), next() ──> manual loop control
         │
         └── stream()   ──> Stream ──> filter() ──> map() ──> terminal operation
                                                       │
-                                              kết quả / tác động
+                                              result / side effect
                                                       │
-                                           List, số, Optional, ...
-                                           (tùy thao tác kết thúc)
+                                           List, number, Optional, ...
+                                           (depends on terminal operation)
 
-Tệp / mạng ──> InputStream hoặc Reader ──> đọc byte / ký tự
+File / network ──> InputStream or Reader ──> read bytes / characters
                       │
-                      └── có thể được chuyển thành nguồn cho Stream<T>
-                          (ví dụ: Files.lines(...) -> Stream<String>)
+                      └── can be adapted as a source for Stream<T>
+                          (e.g., Files.lines(...) -> Stream<String>)
 ~~~
 
-**Điểm cốt lõi:** `Stream<T>` không phải là một loại `Collection<T>`, và `InputStream` không phải là một dạng `Stream<T>`. Hai loại có thể kết hợp với nhau nhưng có API, hợp đồng và mục đích khác nhau.
+**Key takeaway:** `Stream<T>` is not a type of `Collection<T>`, and `InputStream` is not a form of `Stream<T>`. They can be combined, but they have different APIs, contracts, and purposes.
 
-## 2. Collection: sở hữu cấu trúc lưu trữ, không mô tả pipeline
+## 2. Collection: owns the storage structure, does not describe a pipeline
 
-`Collection<E>` là interface gốc của nhiều cấu trúc chứa phần tử trong `java.util`: `List` giữ vị trí, `Set` loại bỏ phần tử trùng theo quy tắc bằng nhau, `Queue` hỗ trợ xử lý dạng hàng đợi. Tùy cài đặt, collection có thể thay đổi được hoặc không.
+`Collection<E>` is the root interface of many element containers in `java.util`: `List` preserves positions, `Set` eliminates duplicate elements according to equality rules, and `Queue` supports queue-style processing. Depending on the implementation, a collection may be mutable or unmodifiable.
 
 ~~~java
 import java.util.ArrayList;
@@ -57,17 +57,17 @@ import java.util.List;
 List<String> names = new ArrayList<>(List.of("An", "Bình", "Chi"));
 
 System.out.println(names.size()); // 3
-System.out.println(names.get(0)); // An: get(index) là phương thức của List
-names.add("Dũng");                 // Thay đổi dữ liệu đang giữ
+System.out.println(names.get(0)); // An: get(index) is a List method
+names.add("Dũng");                 // Modifies the stored data
 
 for (String name : names) {
     System.out.println(name);
 }
 ~~~
 
-Ở đây, `names` vẫn tồn tại sau vòng lặp và có thể được duyệt lại. `ArrayList` giữ tham chiếu tới các phần tử trong một cấu trúc có thể thay đổi. Không phải collection nào cũng hỗ trợ `get(index)`: đây là khả năng riêng của `List`. Cũng không phải collection nào cũng cho phép `add` hoặc `remove`: chẳng hạn `List.of(...)` tạo list không thể thay đổi cấu trúc.
+Here, `names` still exists after the loop and can be traversed again. `ArrayList` holds references to elements in a mutable structure. Not every collection supports `get(index)`: this is specific to `List`. Nor does every collection allow `add` or `remove`: for instance, `List.of(...)` creates a structurally unmodifiable list.
 
-Gọi `names.stream()` **không chuyển** `names` thành đối tượng Stream và **không xóa** dữ liệu nguồn. Lệnh đó tạo một Stream để xây phép xử lý lấy dữ liệu từ collection.
+Calling `names.stream()` **does not convert** `names` into a Stream object and **does not remove** the source data. That call creates a Stream to build processing operations that draw data from the collection.
 
 ~~~java
 import java.util.List;
@@ -83,18 +83,18 @@ System.out.println(squaredEvens); // [4, 16, 36]
 System.out.println(numbers);       // [2, 3, 4, 5, 6]
 ~~~
 
-`numbers` là nơi có dữ liệu gốc. `numbers.stream()` tạo pipeline, còn `toList()` tạo **một kết quả đã materialize** (hiện thực hóa thành list) sau khi pipeline chạy. Từ Java 16, `Stream.toList()` trả về list không thể thay đổi cấu trúc; đừng gọi `add` lên kết quả đó. Nếu cần danh sách thay đổi được, có thể dùng `collect(Collectors.toCollection(ArrayList::new))`.
+`numbers` is where the original data resides. `numbers.stream()` creates the pipeline, while `toList()` creates **a materialized result** (realized as a list) after the pipeline runs. Since Java 16, `Stream.toList()` returns a structurally unmodifiable list; do not call `add` on that result. If you need a mutable list, you can use `collect(Collectors.toCollection(ArrayList::new))`.
 
-Collection có thể được đọc lại bằng cách tạo Iterator hoặc Stream **mới**. Bản thân Stream đã tiêu thụ thì không thể “tua về đầu” chỉ bằng cách gọi lại thao tác kết thúc.
+A Collection can be read again by creating a **new** Iterator or Stream. Once a Stream itself is consumed, it cannot be "rewound" simply by calling a terminal operation again.
 
-## 3. Iterator: duyệt ngoài (*external iteration*)
+## 3. Iterator: external iteration
 
-`Iterator<E>` là giao diện có hai thao tác chính:
+`Iterator<E>` is an interface with two primary operations:
 
-- `hasNext()`: còn phần tử nào có thể lấy tiếp không?
-- `next()`: lấy phần tử kế tiếp và tiến con trỏ duyệt.
+- `hasNext()`: are there more elements available to retrieve?
+- `next()`: retrieves the next element and advances the traversal cursor.
 
-Một số iterator còn hỗ trợ `remove()` để xóa **phần tử vừa lấy** khỏi collection nguồn theo đúng hợp đồng của iterator; khả năng này là tùy chọn.
+Some iterators also support `remove()` to delete **the last element returned** from the underlying collection in accordance with the iterator contract; this capability is optional.
 
 ~~~java
 import java.util.Iterator;
@@ -107,15 +107,15 @@ while (it.hasNext()) {
     int value = it.next();
 
     if (value > 10) {
-        System.out.println("Gặp giá trị lớn hơn 10: " + value);
-        break; // Người viết quyết định thời điểm dừng
+        System.out.println("Found value greater than 10: " + value);
+        break; // The author decides when to stop
     }
 }
 ~~~
 
-Với Iterator, vòng lặp điều khiển trực tiếp khi nào hỏi phần tử tiếp theo, khi nào dừng, khi nào bỏ qua hoặc xử lý. Vòng lặp `for (T value : iterable)` là cú pháp gọn cho một kiểu duyệt bằng Iterator trên đối tượng `Iterable` (mảng được xử lý bằng cơ chế riêng).
+With an Iterator, the loop directly controls when to ask for the next element, when to stop, and when to skip or process. The `for (T value : iterable)` loop is concise syntax for Iterator-based traversal over an `Iterable` object (arrays are handled by a separate mechanism).
 
-Nếu mục đích là xóa trong lúc duyệt một **collection cho phép thay đổi**, dùng `Iterator.remove()` thường đúng hơn việc tự gọi `collection.remove(...)` ngay trong vòng lặp:
+If the goal is to remove elements while traversing a **mutable collection**, using `Iterator.remove()` is usually more appropriate than calling `collection.remove(...)` directly inside the loop:
 
 ~~~java
 import java.util.ArrayList;
@@ -127,44 +127,44 @@ Iterator<Integer> it = numbers.iterator();
 
 while (it.hasNext()) {
     if (it.next() % 2 == 0) {
-        it.remove(); // ArrayList iterator hỗ trợ remove
+        it.remove(); // ArrayList iterator supports remove
     }
 }
 System.out.println(numbers); // [1, 3]
 ~~~
 
-Không phải mọi Iterator đều hỗ trợ `remove()`. Nếu không hỗ trợ, phương thức này có thể ném `UnsupportedOperationException`. Chỉnh sửa cấu trúc một collection từ bên ngoài khi đang duyệt có thể gây hành vi không xác định theo hợp đồng iterator, thường gặp `ConcurrentModificationException` ở các iterator kiểu *fail-fast*; không nên xem ngoại lệ này là cơ chế bảo đảm an toàn đồng thời.
+Not every Iterator supports `remove()`. If unsupported, this method may throw `UnsupportedOperationException`. Structurally modifying a collection externally during traversal can cause undefined behavior under the iterator contract, commonly throwing `ConcurrentModificationException` in *fail-fast* iterators; this exception should not be treated as a concurrency safety guarantee.
 
-### Iterator khác Stream ở quyền điều khiển
+### How Iterator differs from Stream in control
 
-Với Iterator, mã gọi `next()` để **kéo** từng phần tử. Với Stream, mã khai báo *cần làm gì* bằng các thao tác rồi thư viện tự điều phối quá trình duyệt khi kích hoạt thao tác kết thúc (*internal iteration*). Nhờ đó, Stream có thể áp dụng tối ưu hóa, dừng sớm và phân chia xử lý khi thích hợp.
+With an Iterator, your code calls `next()` to **pull** each element. With a Stream, your code declares *what to do* using operations, and the library coordinates traversal when the terminal operation is triggered (*internal iteration*). This allows Stream to apply optimizations, short-circuiting, and work splitting where appropriate.
 
-`Spliterator` cũng là một cơ chế duyệt nguồn, có khả năng mô tả đặc điểm dữ liệu và chia nhỏ phạm vi duyệt để hỗ trợ xử lý song song. Nó là nền tảng quan trọng của Stream, nhưng không đồng nghĩa với Stream và không phải lựa chọn mặc định cho thao tác duyệt thủ công đơn giản.
+`Spliterator` is also a source-traversal mechanism, capable of describing data characteristics and splitting traversal ranges to support parallel processing. It is an important foundation of Stream, but it is not synonymous with Stream and is not the default choice for simple manual traversal.
 
-## 4. Stream API: pipeline xử lý khai báo
+## 4. Stream API: declarative processing pipeline
 
-Một pipeline Stream có ba phần:
+A Stream pipeline has three parts:
 
-1. **Nguồn**: collection, mảng, tệp, hàm sinh phần tử, v.v.
-2. **Thao tác trung gian** (*intermediate operations*): `filter`, `map`, `distinct`, `sorted`, `limit`, v.v. Chúng thường trả về một Stream mới và **lazy**.
-3. **Thao tác kết thúc** (*terminal operation*): `count`, `forEach`, `findFirst`, `reduce`, `collect`, `toList`, v.v. Kích hoạt việc tiêu thụ pipeline và cho ra kết quả hoặc tác động.
+1. **Source**: collection, array, file, generator function, etc.
+2. **Intermediate operations**: `filter`, `map`, `distinct`, `sorted`, `limit`, etc. They usually return a new Stream and are **lazy**.
+3. **Terminal operation**: `count`, `forEach`, `findFirst`, `reduce`, `collect`, `toList`, etc. Triggers consumption of the pipeline and produces a result or side effect.
 
 ~~~java
 import java.util.List;
 
 List<String> names = List.of("An", "Bình", "Bảo", "Chi");
 
-List<String> result = names.stream()          // Nguồn
-        .filter(name -> name.startsWith("B")) // Trung gian: lọc
-        .map(String::toUpperCase)             // Trung gian: biến đổi
-        .toList();                            // Kết thúc: lấy List
+List<String> result = names.stream()          // Source
+        .filter(name -> name.startsWith("B")) // Intermediate: filter
+        .map(String::toUpperCase)             // Intermediate: transform
+        .toList();                            // Terminal: collect into List
 
 System.out.println(result); // [BÌNH, BẢO]
 ~~~
 
-Không có list tạm nào **bắt buộc** phải được tạo giữa `filter` và `map`. Stream mô tả chuỗi xử lý, sau đó thư viện điều phối dữ liệu đi qua các bước. Tuy nhiên, thao tác có trạng thái như `sorted` hoặc `distinct` đôi lúc cần lưu thông tin/buffer; **lazy không có nghĩa luôn tốn bộ nhớ O(1)**.
+No temporary list is **required** to be created between `filter` and `map`. A Stream describes the processing chain, and the library routes data through the steps. However, stateful operations like `sorted` or `distinct` sometimes need to store information/buffers; **lazy does not always mean O(1) memory**.
 
-### 4.1. Lazy: định nghĩa pipeline chưa đồng nghĩa với chạy
+### 4.1. Lazy: defining a pipeline does not mean running it
 
 ~~~java
 import java.util.List;
@@ -174,27 +174,27 @@ import java.util.stream.Stream;
 List<String> names = List.of("An", "Bình", "Bảo", "Chi");
 
 Stream<String> filtered = names.stream().filter(name -> {
-    System.out.println("Đang kiểm tra: " + name);
+    System.out.println("Checking: " + name);
     return name.startsWith("B");
 });
 
-System.out.println("Đã khai báo pipeline");
+System.out.println("Pipeline declared");
 Optional<String> first = filtered.findFirst();
-System.out.println(first.orElse("Không có"));
+System.out.println(first.orElse("None"));
 ~~~
 
-Với nguồn `List` có thứ tự và pipeline tuần tự này, kết quả quan sát được là:
+With this ordered `List` source and sequential pipeline, the observed output is:
 
 ~~~text
-Đã khai báo pipeline
-Đang kiểm tra: An
-Đang kiểm tra: Bình
+Pipeline declared
+Checking: An
+Checking: Bình
 Bình
 ~~~
 
-`filter` không chạy khi mới khai báo. `findFirst()` bắt đầu duyệt và có thể **dừng sớm** sau phần tử thỏa mãn đầu tiên. Do đó “cứ có `filter` thì quét hết nguồn” là nhận định sai. Với stream song song, thời điểm thực thi và việc xử lý bao nhiêu phần tử có thể khác; tránh phụ thuộc vào tác dụng phụ như `println` trong thao tác trung gian.
+`filter` does not execute when first declared. `findFirst()` starts traversal and can **short-circuit** after the first matching element. Therefore, "having `filter` always scans the entire source" is false. With parallel streams, execution timing and the number of processed elements may differ; avoid relying on side effects like `println` inside intermediate operations.
 
-### 4.2. Một Stream chỉ tiêu thụ một lần
+### 4.2. A Stream is consumed only once
 
 ~~~java
 import java.util.List;
@@ -202,14 +202,14 @@ import java.util.stream.Stream;
 
 Stream<Integer> stream = List.of(1, 2, 3).stream();
 
-long count = stream.count();         // Lần tiêu thụ duy nhất
+long count = stream.count();         // Single consumption
 System.out.println(count);          // 3
 
 // stream.forEach(System.out::println);
-// Không hợp lệ: Stream đã được tiêu thụ; thường gây IllegalStateException.
+// Invalid: Stream has already been consumed; typically causes IllegalStateException.
 ~~~
 
-Nếu cần hai phép xử lý độc lập, hãy tạo hai Stream từ nguồn có thể duyệt lại:
+If you need two independent processing operations, create two Streams from a re-traversable source:
 
 ~~~java
 List<Integer> source = List.of(1, 2, 3);
@@ -218,17 +218,17 @@ long count = source.stream().count();
 int sum = source.stream().mapToInt(Integer::intValue).sum();
 ~~~
 
-Tạo lại Stream từ nguồn **không bảo đảm** nguồn luôn tái sử dụng được: một kết nối mạng, tệp đã đóng hoặc nguồn sinh chỉ cho phép đọc một lần có thể không hỗ trợ điều đó. `Stream` không tự lưu bản sao dữ liệu đầu vào.
+Recreating a Stream from a source **does not guarantee** the source is always reusable: a network connection, a closed file, or a single-read generator source may not support it. `Stream` does not automatically keep a copy of the input data.
 
-### 4.3. Stream không nhất thiết biến đổi collection gốc
+### 4.3. Stream does not necessarily mutate the original collection
 
-Các thao tác `filter`, `map` tạo kết quả xử lý; chúng không xóa/thay thế phần tử trong `source`. Nếu phần tử là đối tượng mutable, mã trong `map` hoặc `forEach` **vẫn có thể** thay đổi trạng thái đối tượng đó, nhưng đó là tác dụng phụ của mã ứng dụng và thường gây khó kiểm soát.
+Operations like `filter` and `map` produce processed results; they do not delete or replace elements in `source`. If elements are mutable objects, code in `map` or `forEach` **can still** mutate those objects' state, but that is an application-level side effect and often makes code harder to reason about.
 
-Không nên sửa trực tiếp nguồn đang được Stream duyệt, trừ khi nguồn và cơ chế duyệt công khai hỗ trợ việc đó. Quy tắc *non-interference* của Stream yêu cầu các hàm xử lý không can thiệp vào nguồn dữ liệu không hỗ trợ truy cập đồng thời. Trong pipeline song song, các hàm có trạng thái hoặc phụ thuộc thứ tự thực thi càng dễ cho ra kết quả bất ngờ.
+Do not directly modify the source while a Stream is traversing it, unless the source and traversal mechanism explicitly support it. Stream's *non-interference* rule requires processing functions not to interfere with a data source that does not support concurrent modification. In parallel pipelines, stateful functions or functions dependent on execution order are even more likely to yield unexpected results.
 
-### 4.4. Các kiểu kết quả khác nhau
+### 4.4. Different result types
 
-Không phải pipeline nào cũng trả về Collection:
+Not every pipeline returns a Collection:
 
 ~~~java
 import java.util.List;
@@ -244,21 +244,21 @@ boolean hasNameB = names.stream()
 
 Map<Character, List<String>> byInitial = names.stream()
         .collect(Collectors.groupingBy(name -> name.charAt(0)));
-        // Map<Character, List<String>>, một kết quả được gom nhóm
+        // Map<Character, List<String>>, a grouped result
 ~~~
 
-Ở ví dụ trên, `'A'` và `'Á'` là hai ký tự khác nhau, nên nhóm được chia theo **ký tự đầu tiên chính xác** chứ không tự chuẩn hóa dấu tiếng Việt. Các thao tác chuyên sâu khác của module gồm `reduce`, collector tùy chỉnh, `Spliterator`, xử lý song song và Stream Gatherers; tất cả đều dựa trên việc phân biệt **nguồn dữ liệu** với **pipeline xử lý**.
+In the example above, `'A'` and `'Á'` are two different characters, so groups are partitioned by the **exact first character** rather than automatically normalizing Vietnamese diacritics. Other advanced topics in this module include `reduce`, custom collectors, `Spliterator`, parallel processing, and Stream Gatherers; all of them rely on distinguishing the **data source** from the **processing pipeline**.
 
-## 5. Luồng vào/ra: truyền byte và ký tự
+## 5. I/O streams: transferring bytes and characters
 
-Chữ *stream* trong **Stream API** và trong **I/O stream** biểu thị những khái niệm khác nhau:
+The word *stream* in **Stream API** and in **I/O stream** denotes different concepts:
 
-- `java.io.InputStream`: đọc **byte** từ một nguồn.
-- `java.io.OutputStream`: ghi **byte** ra một đích.
-- `java.io.Reader`: đọc **ký tự**, có liên quan đến giải mã byte theo charset khi dùng loại reader tương ứng.
-- `java.io.Writer`: ghi **ký tự**, có thể mã hóa thành byte qua charset.
+- `java.io.InputStream`: reads **bytes** from a source.
+- `java.io.OutputStream`: writes **bytes** to a destination.
+- `java.io.Reader`: reads **characters**, involving byte decoding according to a charset when using the corresponding reader type.
+- `java.io.Writer`: writes **characters**, which can be encoded into bytes using a charset.
 
-Các luồng I/O xử lý vận chuyển dữ liệu và quản lý tài nguyên. Chúng không cung cấp trực tiếp pipeline `filter()` / `map()` / `collect()` của `java.util.stream.Stream<T>`.
+I/O streams handle data transport and resource management. They do not directly provide the `filter()` / `map()` / `collect()` pipeline of `java.util.stream.Stream<T>`.
 
 ~~~java
 import java.io.IOException;
@@ -269,16 +269,16 @@ import java.nio.file.Path;
 Path path = Path.of("data.bin");
 
 try (InputStream in = Files.newInputStream(path)) {
-    int first = in.read(); // 0..255 hoặc -1 nếu hết dữ liệu
+    int first = in.read(); // 0..255 or -1 if end of data
     System.out.println(first);
 } catch (IOException e) {
-    System.err.println("Không đọc được tệp: " + e.getMessage());
+    System.err.println("Could not read file: " + e.getMessage());
 }
 ~~~
 
-`read()` ở đây lấy **một byte** (dưới dạng `int`), không lấy một phần tử `T` theo pipeline. Lệnh `try-with-resources` đảm bảo `in.close()` được gọi khi thoát khối, kể cả lúc phát sinh ngoại lệ.
+`read()` here fetches **one byte** (as an `int`), not an element `T` in a pipeline. The `try-with-resources` statement ensures `in.close()` is called when exiting the block, even if an exception occurs.
 
-### 5.1. Đọc văn bản qua Reader
+### 5.1. Reading text via Reader
 
 ~~~java
 import java.io.BufferedReader;
@@ -293,18 +293,18 @@ try (BufferedReader reader =
              Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
     String line;
     while ((line = reader.readLine()) != null) {
-        System.out.println(line); // Tự điều khiển vòng đọc
+        System.out.println(line); // Manually control the read loop
     }
 } catch (IOException e) {
-    System.err.println("Không đọc được tệp: " + e.getMessage());
+    System.err.println("Could not read file: " + e.getMessage());
 }
 ~~~
 
-Đoạn này dùng vòng lặp đọc ký tự theo dòng. Nó phù hợp khi cần điều khiển chi tiết đọc/ghi, xử lý giao thức, hoặc quyết định mỗi bước đọc phụ thuộc vào trạng thái I/O.
+This snippet uses a loop to read characters line by line. It is suitable when fine-grained read/write control is needed, when handling protocols, or when each read step depends on I/O state.
 
-### 5.2. Điểm giao: I/O có thể cung cấp nguồn cho Stream API
+### 5.2. Intersection: I/O can supply a source for the Stream API
 
-`Files.lines(path, charset)` trả về **`Stream<String>`**. Nguồn của Stream này là tệp, nên nó vừa dùng pipeline của Stream API, vừa sở hữu tài nguyên cần đóng.
+`Files.lines(path, charset)` returns a **`Stream<String>`**. The source of this Stream is a file, so it both uses the Stream API pipeline and owns a resource that must be closed.
 
 ~~~java
 import java.io.IOException;
@@ -326,35 +326,35 @@ try (Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8)) {
 
     firstTen.forEach(System.out::println);
 } catch (IOException | UncheckedIOException e) {
-    System.err.println("Lỗi đọc tệp: " + e.getMessage());
+    System.err.println("Error reading file: " + e.getMessage());
 }
 ~~~
 
-Ở đây:
+Here:
 
-1. **`Files.lines(...)`** tạo Stream lấy từng dòng từ tệp khi cần, không bắt buộc đọc toàn bộ tệp vào một list ngay lúc mở.
-2. **`map`**, **`filter`** và **`limit`** tạo pipeline xử lý văn bản.
-3. **`toList`** kích hoạt pipeline và thu kết quả vào bộ nhớ; nhờ `limit(10)` nên kết quả chứa tối đa 10 dòng không rỗng.
-4. **`try-with-resources`** đóng Stream; đối với Stream do `Files.lines` tạo, thao tác đóng cũng giải phóng tài nguyên tệp liên quan.
-5. Lỗi khi mở tệp có thể là `IOException`; lỗi đọc phát sinh trong quá trình tiêu thụ Stream có thể được bọc trong `UncheckedIOException`.
+1. **`Files.lines(...)`** creates a Stream that reads lines from the file on demand, without requiring the entire file to be loaded into a list upon opening.
+2. **`map`**, **`filter`**, and **`limit`** form the text-processing pipeline.
+3. **`toList`** triggers the pipeline and collects the results into memory; because of `limit(10)`, the result contains at most 10 non-empty lines.
+4. **`try-with-resources`** closes the Stream; for a Stream created by `Files.lines`, closing also releases the associated file resource.
+5. Errors when opening the file may be `IOException`; read errors occurring during Stream consumption may be wrapped in `UncheckedIOException`.
 
-**Lưu ý quan trọng:** Đóng một `Stream` tự tạo từ `BufferedReader.lines()` **không tự bảo đảm** đóng `BufferedReader`. Khi gọi `reader.lines()`, hãy quản lý vòng đời của chính `reader` bằng `try-with-resources`, hoặc dùng `Files.lines(...)` như ví dụ trên.
+**Important note:** Closing a `Stream` obtained from `BufferedReader.lines()` **does not guarantee** closing the `BufferedReader`. When calling `reader.lines()`, manage the lifecycle of `reader` itself with `try-with-resources`, or use `Files.lines(...)` as shown above.
 
-### 5.3. Stream thường không cần đóng; Stream gắn I/O thì cần
+### 5.3. Ordinary Streams do not need closing; I/O-backed Streams do
 
-`Stream` mở rộng `AutoCloseable` và có thể gọi `close()`, nhưng đa số Stream đến từ `List.stream()`, `Arrays.stream()` hay `Stream.of(...)` không giữ tài nguyên ngoài cần giải phóng. Ngược lại, Stream do `Files.lines` hoặc `Files.walk` tạo có thể giữ tài nguyên hệ thống nên **phải được đóng** đúng cách. Không nên đồng nhất “Stream API là nguồn dữ liệu vô trạng thái” với “mọi Stream đều không cần đóng”.
+`Stream` extends `AutoCloseable` and supports `close()`, but most Streams from `List.stream()`, `Arrays.stream()`, or `Stream.of(...)` hold no external resources that need releasing. Conversely, Streams created by `Files.lines` or `Files.walk` can hold system resources and **must be closed** properly. Do not equate "Stream API is a stateless data flow" with "no Stream ever needs to be closed".
 
-## 6. Đặt bốn cách tiếp cận cạnh nhau trong cùng một bài toán
+## 6. Putting all four approaches side by side on the same problem
 
-Yêu cầu: từ dãy `[5, 12, 7, 20, 9]`, chọn số chẵn rồi tính tổng.
+Requirement: from the sequence `[5, 12, 7, 20, 9]`, select even numbers and compute their sum.
 
-**Collection** là nguồn dữ liệu chung:
+**Collection** serves as the common data source:
 
 ~~~java
 List<Integer> numbers = List.of(5, 12, 7, 20, 9);
 ~~~
 
-**Iterator** — chủ động lấy từng phần tử:
+**Iterator** — actively pull each element:
 
 ~~~java
 import java.util.Iterator;
@@ -373,7 +373,7 @@ while (it.hasNext()) {
 System.out.println(sum); // 32
 ~~~
 
-**Stream API** — mô tả phép lọc và tổng hợp:
+**Stream API** — describe the filtering and aggregation:
 
 ~~~java
 import java.util.List;
@@ -388,7 +388,7 @@ int sum = numbers.stream()
 System.out.println(sum); // 32
 ~~~
 
-**I/O** — chỉ cần khi dãy số nằm ngoài chương trình, ví dụ trong tệp. Đọc dữ liệu trước hoặc dùng tệp làm nguồn cho Stream:
+**I/O** — only needed when the numbers reside outside the program, such as in a file. Read the data first or use the file as the Stream source:
 
 ~~~java
 import java.io.IOException;
@@ -397,7 +397,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
-Path path = Path.of("numbers.txt"); // Mỗi dòng chứa một số nguyên hợp lệ
+Path path = Path.of("numbers.txt"); // Each line contains a valid integer
 
 try (Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8)) {
     int sum = lines
@@ -407,85 +407,85 @@ try (Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8)) {
             .filter(n -> n % 2 == 0)
             .sum();
 
-    System.out.println(sum); // 32 nếu tệp chứa 5, 12, 7, 20, 9
+    System.out.println(sum); // 32 if the file contains 5, 12, 7, 20, 9
 } catch (IOException e) {
-    System.err.println("Không mở/đọc được tệp: " + e.getMessage());
+    System.err.println("Could not open/read file: " + e.getMessage());
 }
 ~~~
 
-Ví dụ cuối giả định các dòng không rỗng là số nguyên hợp lệ; `Integer.parseInt` sẽ ném `NumberFormatException` nếu dữ liệu không đúng định dạng. Nếu lỗi đọc phát sinh trong khi tiêu thụ Stream, cần xử lý thêm `UncheckedIOException` theo chính sách lỗi của ứng dụng.
+The last example assumes non-empty lines are valid integers; `Integer.parseInt` will throw `NumberFormatException` if the data is malformed. If a read error occurs while consuming the Stream, `UncheckedIOException` should also be handled according to the application's error policy.
 
-Cả hai cách duyệt bằng Iterator và Stream đều có thể giải bài toán. Chúng khác nhau chủ yếu ở **mức độ điều khiển** và **khả năng biểu đạt chuỗi phép biến đổi**. I/O giải quyết một vấn đề khác: đưa dữ liệu từ bên ngoài vào trước hoặc trong khi tính toán.
+Both Iterator-based traversal and Stream can solve the problem. They differ primarily in **level of control** and **expressiveness for chains of transformations**. I/O solves a different problem: bringing external data in before or during computation.
 
-## 7. Bảng so sánh chi tiết
+## 7. Detailed comparison table
 
-| Tiêu chí | Collection | Iterator | Stream API | I/O stream / Reader / Writer |
+| Criterion | Collection | Iterator | Stream API | I/O stream / Reader / Writer |
 |---|---|---|---|---|
-| **Bản chất** | Vật chứa dữ liệu | Trạng thái duyệt từng phần tử | Pipeline tính toán trên một nguồn | Kênh đọc/ghi byte hoặc ký tự |
-| **API điển hình** | `size`, `add`, `contains` | `hasNext`, `next` | `filter`, `map`, `reduce`, `collect` | `read`, `write`, `flush`, `close` |
-| **Cách dùng lặp lại** | Thường tạo được nhiều lượt duyệt | Mỗi iterator tiến dần, thường tạo iterator mới để duyệt lại | Mỗi Stream chỉ được tiêu thụ một lần | Thường đọc/ghi tuần tự; khả năng tua lại tùy nguồn |
-| **Cách điều khiển** | Truy cập và quản lý phần tử | External iteration | Internal iteration | Điều khiển việc đọc/ghi dữ liệu |
-| **Lazy?** | Cấu trúc chứa dữ liệu đã sẵn sàng; một số view có thể tính khi truy cập | Lấy phần tử theo từng lần `next` | Thao tác trung gian thường lazy | Đọc/ghi xảy ra theo lời gọi và bộ đệm |
-| **Kết quả** | Các phần tử đang lưu | Phần tử kế tiếp | Giá trị, `Optional`, mảng, collection hoặc tác động | Dữ liệu đã đọc/ghi |
-| **Quản lý tài nguyên** | Tùy cài đặt/nguồn, thông thường không cần close | Thông thường không có close chung | Thường không; bắt buộc quan tâm nếu có nguồn I/O | Thường phải close khi sở hữu tài nguyên |
-| **Song song** | Cần cơ chế đồng thời thích hợp | Không mặc định chia nhỏ xử lý | Có `parallel()` nhưng phải tuân thủ hợp đồng xử lý song song | Không tự trở thành pipeline song song |
+| **Nature** | Data container | Element-by-element traversal state | Computation pipeline over a source | Channel for reading/writing bytes or characters |
+| **Typical API** | `size`, `add`, `contains` | `hasNext`, `next` | `filter`, `map`, `reduce`, `collect` | `read`, `write`, `flush`, `close` |
+| **Reusability** | Usually supports multiple traversals | Each iterator advances forward; typically create a new iterator to traverse again | Each Stream can be consumed only once | Usually sequential read/write; rewind capability depends on source |
+| **Control model** | Access and manage elements | External iteration | Internal iteration | Control reading/writing data |
+| **Lazy?** | Container already holds data; some views compute on access | Fetches elements on each `next` call | Intermediate operations are usually lazy | Reads/writes occur per call and buffer |
+| **Result** | Stored elements | Next element | Value, `Optional`, array, collection, or side effect | Data read/written |
+| **Resource management** | Depends on implementation/source; usually no need to close | Usually no general close | Usually not; must be managed if backed by an I/O source | Usually must be closed when owning a resource |
+| **Parallelism** | Requires appropriate concurrency mechanisms | Does not split processing by default | Has `parallel()` but must follow parallel contracts | Does not automatically become a parallel pipeline |
 
-Không nên suy luận rằng một API luôn nhanh hơn API khác. Stream giúp biểu đạt logic biến đổi, nhưng có thể phát sinh boxing/unboxing, chi phí lambda hoặc lưu đệm ở thao tác có trạng thái. Vòng lặp thủ công đôi khi đơn giản và hiệu quả hơn. Xử lý song song bằng `parallelStream()` hoặc `parallel()` có thêm chi phí chia việc, đồng bộ và gộp kết quả, nên phải đo theo dữ liệu thực tế.
+Do not infer that one API is always faster than another. Stream helps express transformation logic, but can incur boxing/unboxing, lambda overhead, or buffering in stateful operations. Manual loops are sometimes simpler and more efficient. Parallel processing via `parallelStream()` or `parallel()` adds work-splitting, synchronization, and result-merging overhead, so it must be benchmarked on real data.
 
-## 8. Những nhầm lẫn cần tránh
+## 8. Misconceptions to avoid
 
-**“Stream là Collection kiểu mới.”** Sai: Collection giữ dữ liệu; Stream mô tả cách tiêu thụ dữ liệu. Stream có thể lấy dữ liệu từ collection hoặc từ nguồn không phải collection.
+**"Stream is a new kind of Collection."** False: Collection holds data; Stream describes how data is consumed. A Stream can draw data from a collection or from a non-collection source.
 
-**“`stream()` sao chép toàn bộ List.”** Không có bảo đảm hay yêu cầu như vậy. Pipeline thường lấy dữ liệu từ nguồn khi chạy. Một số thao tác kết thúc như `toList()` mới materialize kết quả.
+**"`stream()` copies the entire List."** There is no such guarantee or requirement. Pipelines generally pull data from the source as they execute. Some terminal operations like `toList()` materialize the result.
 
-**“Có thể dùng một Stream cho nhiều phép tính.”** Không. Sau một thao tác kết thúc hoặc khi đã đóng, phải tạo Stream mới nếu nguồn hỗ trợ.
+**"A single Stream can be used for multiple calculations."** No. After a terminal operation or once closed, a new Stream must be created if the source supports it.
 
-**“Lệnh `filter` chạy ngay lập tức.”** Thông thường không. Nó là thao tác trung gian lazy; thao tác kết thúc mới kích hoạt pipeline. Thư viện cũng có thể tối ưu bỏ qua một số bước khi điều đó không ảnh hưởng kết quả, nên đừng dùng tác dụng phụ trong `map`/`peek` để làm logic bắt buộc.
+**"Calling `filter` runs immediately."** Normally no. It is a lazy intermediate operation; a terminal operation triggers the pipeline. The library may also optimize away certain steps when doing so does not affect the result, so do not use side effects in `map`/`peek` for mandatory logic.
 
-**“`forEach` luôn giữ đúng thứ tự.”** Không, đặc biệt với pipeline song song. Nếu cần bảo toàn *encounter order* của nguồn có thứ tự, cân nhắc `forEachOrdered` và hiểu rằng điều này có thể giảm lợi ích song song.
+**"`forEach` always preserves order."** No, especially with parallel pipelines. If you need to preserve the *encounter order* of an ordered source, consider `forEachOrdered` and understand that it may reduce parallel benefits.
 
-**“Stream làm thay đổi nguồn như Iterator.remove.”** Không phải mặc định. Stream thiên về xử lý không can thiệp vào nguồn; `Iterator.remove` là một thao tác sửa nguồn có hợp đồng cụ thể, nếu được hỗ trợ.
+**"Stream mutates the source like Iterator.remove."** Not by default. Stream favors non-interfering processing; `Iterator.remove` is a source-mutating operation with a specific contract, if supported.
 
-**“Mọi thứ mang tên Stream đều có `map` và `filter`.”** `InputStream` đọc byte; `Stream<T>` xử lý phần tử `T`; chúng thuộc các hệ API khác nhau.
+**"Everything named Stream has `map` and `filter`."** `InputStream` reads bytes; `Stream<T>` processes elements of type `T`; they belong to different API hierarchies.
 
-**“`Files.lines` tự đóng khi gọi `count` hoặc `toList`.”** Không. Thao tác kết thúc không tự động thay thế việc `close`; hãy dùng `try-with-resources`.
+**"`Files.lines` closes automatically when calling `count` or `toList`."** No. A terminal operation does not automatically replace `close`; use `try-with-resources`.
 
-## 9. Chọn công cụ nào trong thực tế?
+## 9. Which tool should you choose in practice?
 
-| Nhu cầu | Lựa chọn thường phù hợp | Vì sao |
+| Need | Typically suitable choice | Why |
 |---|---|---|
-| Lưu danh sách để tra cứu, thêm, xóa, duyệt lại | `List`, `Set`, `Map` (theo bài toán) | Cần cấu trúc chứa dữ liệu lâu dài; `Map` không kế thừa `Collection` nhưng cũng là cấu trúc dữ liệu. |
-| Duyệt tuần tự và quyết định chính xác khi nào lấy phần tử | `Iterator`, `for-each`, vòng lặp | Quyền điều khiển nằm ở người viết. |
-| Xóa phần tử ngay trong lúc duyệt collection mutable | `Iterator.remove` nếu được hỗ trợ hoặc API xóa chuyên dụng | Tuân thủ hợp đồng thay đổi dữ liệu của collection. |
-| Lọc, ánh xạ, đếm, tìm, tổng hợp, nhóm dữ liệu | Stream API | Pipeline dễ đọc, kết hợp thao tác khai báo. |
-| Đọc/ghi tệp nhị phân hoặc giao thức byte | `InputStream`, `OutputStream` | Xử lý byte và tài nguyên I/O. |
-| Đọc/ghi văn bản theo charset | `Reader`/`Writer` hoặc API `Files` tương ứng | Xử lý ký tự và mã hóa. |
-| Lọc hoặc tổng hợp các dòng của tệp lớn | `Files.lines` + Stream API trong `try-with-resources` | Kết hợp đọc dữ liệu theo nhu cầu và pipeline xử lý. |
-| Bài toán CPU lớn cần chạy song song | Đánh giá Stream song song sau khi đo đạc | Cần nguồn có thể chia việc, hàm không can thiệp và thao tác gộp phù hợp. |
+| Store a list for lookup, adding, removing, re-traversing | `List`, `Set`, `Map` (depending on the problem) | Need a persistent data-holding structure; `Map` does not extend `Collection` but is also a data structure. |
+| Traverse sequentially and decide exactly when to fetch elements | `Iterator`, `for-each`, loop | Control remains with the developer. |
+| Remove elements immediately while traversing a mutable collection | `Iterator.remove` if supported, or dedicated removal APIs | Respects the collection's mutation contract. |
+| Filter, map, count, search, aggregate, group data | Stream API | Readable pipeline, declarative operation composition. |
+| Read/write binary files or byte protocols | `InputStream`, `OutputStream` | Handles bytes and I/O resources. |
+| Read/write text with a charset | `Reader`/`Writer` or corresponding `Files` APIs | Handles characters and encoding. |
+| Filter or aggregate lines of a large file | `Files.lines` + Stream API inside `try-with-resources` | Combines on-demand reading with a processing pipeline. |
+| Heavy CPU-bound tasks needing parallelism | Evaluate parallel Stream after benchmarking | Requires a splittable source, non-interfering functions, and suitable combining operations. |
 
-## 10. Tự kiểm tra
+## 10. Self-check
 
-**Câu 1.** Sau khi gọi `List<Integer> data = List.of(1, 2, 3);` rồi `data.stream().filter(n -> n > 1);`, có bao nhiêu phần tử bị xóa khỏi `data`?
+**Question 1.** After calling `List<Integer> data = List.of(1, 2, 3);` and then `data.stream().filter(n -> n > 1);`, how many elements are removed from `data`?
 
-**Đáp án:** Không phần tử nào bị xóa. Chỉ mới định nghĩa pipeline; chưa có thao tác kết thúc và `filter` không sửa collection nguồn.
+**Answer:** Zero elements are removed. Only a pipeline was defined; there is no terminal operation, and `filter` does not mutate the source collection.
 
-**Câu 2.** Vì sao đoạn `Stream<String> s = names.stream(); s.count(); s.findFirst();` không đúng?
+**Question 2.** Why is `Stream<String> s = names.stream(); s.count(); s.findFirst();` invalid?
 
-**Đáp án:** `count()` đã tiêu thụ `s`. Muốn tìm phần tử đầu tiên, tạo Stream mới từ `names` nếu nguồn có thể duyệt lại.
+**Answer:** `count()` has already consumed `s`. To find the first element, create a new Stream from `names` if the source can be re-traversed.
 
-**Câu 3.** Khi dùng `Files.lines(path)` để lấy 20 dòng đầu tiên, có thể bỏ `try-with-resources` vì đã dùng `limit(20)` không?
+**Question 3.** When using `Files.lines(path)` to take the first 20 lines, can you omit `try-with-resources` because `limit(20)` is used?
 
-**Đáp án:** Không. `limit` có thể dừng xử lý sớm nhưng không thay thế `close` để giải phóng tài nguyên tệp.
+**Answer:** No. `limit` can stop processing early, but it does not replace `close` to release the file resource.
 
-**Câu 4.** Khi nào dùng `Iterator` có thể trực tiếp hơn dùng Stream?
+**Question 4.** When can using an `Iterator` be more direct than using a Stream?
 
-**Đáp án:** Khi cần tự quyết định thời điểm gọi `next()`, kiểm soát vòng duyệt hoặc xóa phần tử trong khi duyệt qua `Iterator.remove()` nếu iterator hỗ trợ.
+**Answer:** When you need to decide for yourself when to call `next()`, control the traversal loop, or remove elements during traversal via `Iterator.remove()` if the iterator supports it.
 
-**Câu 5.** Tệp chứa mỗi dòng là một số nguyên. API nào chịu trách nhiệm đọc tệp và API nào chịu trách nhiệm lọc số chẵn?
+**Question 5.** A file contains one integer per line. Which API is responsible for reading the file and which API is responsible for filtering even numbers?
 
-**Đáp án:** `Files.lines` hoặc Reader cung cấp dữ liệu từ tệp; Stream API cung cấp `mapToInt`, `filter` và `sum` để xử lý các giá trị.
+**Answer:** `Files.lines` or a Reader supplies the data from the file; the Stream API provides `mapToInt`, `filter`, and `sum` to process the values.
 
 ---
 
-**Ghi nhớ:** Collection là **nơi giữ** phần tử; Iterator là **cách lấy lần lượt**; Stream API là **cách khai báo phép xử lý**; luồng I/O là **cách đưa byte/ký tự vào hoặc ra**. Khi kết hợp chúng, luôn xác định nguồn có tái sử dụng được không, pipeline đã bị tiêu thụ chưa, và có tài nguyên nào cần đóng hay không.
+**Remember:** Collection is **where elements are kept**; Iterator is **how to retrieve them one by one**; Stream API is **how to declare processing operations**; I/O streams are **how to move bytes/characters in or out**. When combining them, always verify whether the source is reusable, whether the pipeline has already been consumed, and whether any resource needs to be closed.
 

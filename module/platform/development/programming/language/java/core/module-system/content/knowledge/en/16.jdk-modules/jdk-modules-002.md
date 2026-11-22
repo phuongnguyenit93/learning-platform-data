@@ -1,18 +1,18 @@
-# Các module chuẩn của JDK: java.logging, java.sql và những module thường dùng
+# Standard JDK Modules: java.logging, java.sql, and Commonly Used Modules
 
-## 1. Module chuẩn của Java là gì?
+## 1. What Are Java's Standard Modules?
 
-Kể từ Java 9, Java Platform Module System (JPMS) tổ chức nhiều API của nền tảng Java thành **các module có tên**. Mỗi module khai báo những package mà nó cung cấp, những module nó cần đọc và các package được export hoặc open. Các module của nền tảng nằm trong **runtime image** của JDK/JRE được sử dụng.
+Since Java 9, the Java Platform Module System (JPMS) organizes many Java platform APIs into **named modules**. Each module declares the packages it provides, the modules it needs to read, and the packages that are exported or opened. Platform modules reside in the **runtime image** of the JDK/JRE in use.
 
-Khi học Java Core, nên phân biệt ba nhóm:
+When learning Java Core, it is useful to distinguish three groups:
 
-- **Module chuẩn Java SE**, thường có tên **java.***: ví dụ **java.base**, **java.logging**, **java.sql**, **java.xml**, **java.desktop**, **java.net.http**. Chúng chứa các API thuộc nền tảng Java SE tương ứng với phiên bản Java đang dùng.
-- **Module riêng của JDK**, thường có tên **jdk.***: ví dụ **jdk.jfr**, **jdk.management**, **jdk.compiler**, **jdk.httpserver**. Chúng cung cấp các công cụ và API của bản phân phối JDK, không nên mặc định coi tất cả là API Java SE.
-- **Module của ứng dụng hoặc thư viện bên thứ ba**: ví dụ **com.example.app** và driver JDBC do nhà cung cấp cơ sở dữ liệu phân phối.
+- **Standard Java SE modules**, usually named **java.***: for example **java.base**, **java.logging**, **java.sql**, **java.xml**, **java.desktop**, **java.net.http**. They contain APIs belonging to the Java SE platform corresponding to the Java version in use.
+- **JDK-specific modules**, usually named **jdk.***: for example **jdk.jfr**, **jdk.management**, **jdk.compiler**, **jdk.httpserver**. They provide tools and APIs of the JDK distribution and should not all be assumed to be Java SE APIs.
+- **Application or third-party library modules**: for example **com.example.app** and a JDBC driver distributed by a database vendor.
 
-Một module của ứng dụng được mô tả bằng **module-info.java**. Trong code thuộc **named module**, để dùng public API được export bởi module khác, thông thường phải khai báo **requires** tương ứng. **java.base** là ngoại lệ đặc biệt: mọi module đều đọc java.base mà không cần khai báo.
+An application module is described by **module-info.java**. In code belonging to a **named module**, to use public APIs exported by another module, you generally must declare the corresponding **requires**. **java.base** is a special exception: every module reads java.base without declaring it.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.example.app {
@@ -23,38 +23,38 @@ module com.example.app {
 }
 ~~~
 
-Các khai báo trên hình thành những phụ thuộc ở **mức module**. Chúng không tải toàn bộ class của các module vào bộ nhớ ngay lập tức. Khi chương trình tham chiếu một class cụ thể, quá trình class loading vẫn diễn ra theo nhu cầu.
+The declarations above form **module-level** dependencies. They do not load every class of those modules into memory immediately. When the program references a specific class, class loading still occurs on demand.
 
-## 2. Bảng tra cứu nhanh các module Java SE thường gặp
+## 2. Quick Reference Table of Common Java SE Modules
 
-| Module | API/package điển hình | Công dụng chính | Ghi chú thực tế |
+| Module | Typical APIs/packages | Primary purpose | Practical notes |
 |---|---|---|---|
-| **java.base** | java.lang, java.util, java.io, java.nio, java.time, java.util.concurrent | Nền tảng ngôn ngữ, collection, I/O, thời gian, concurrency | Tự được yêu cầu bởi mọi module |
-| **java.logging** | java.util.logging | Logging qua JUL | Dùng Logger, Level, Handler, Formatter |
-| **java.sql** | java.sql, javax.sql | API JDBC, truy cập CSDL quan hệ | Chỉ có API; cần JDBC driver phù hợp để kết nối |
-| **java.sql.rowset** | javax.sql.rowset | Các RowSet, hỗ trợ JDBC ở dạng thuận tiện | Dùng khi cần những RowSet API |
-| **java.xml** | javax.xml.parsers, org.w3c.dom, org.xml.sax, javax.xml.transform | Parse, tạo, xử lý XML | DOM, SAX, Transformer và các API XML liên quan |
-| **java.xml.crypto** | javax.xml.crypto | XML Digital Signature | Không đồng nghĩa với mọi API mật mã của Java |
-| **java.net.http** | java.net.http | HTTP Client hiện đại | API ổn định từ Java 11 |
-| **java.desktop** | java.awt, javax.swing, javax.imageio, java.beans | GUI AWT/Swing, hình ảnh, desktop APIs | Không phải mọi ứng dụng server đều cần |
-| **java.management** | java.lang.management, javax.management | Giám sát JVM, JMX, MXBean | Hữu ích cho quản trị và observability |
-| **java.naming** | javax.naming | JNDI và dịch vụ tra cứu/tên | Cần khi tích hợp các hệ thống dùng JNDI |
-| **java.prefs** | java.util.prefs | Lưu lựa chọn/cấu hình dạng Preferences | Khác hệ thống config của framework |
-| **java.scripting** | javax.script | ScriptEngine API | Có API không có nghĩa runtime có sẵn engine JavaScript |
-| **java.compiler** | javax.tools, javax.lang.model | API trình biên dịch và mô hình ngôn ngữ | Không đồng nghĩa với module triển khai javac |
-| **java.instrument** | java.lang.instrument | Java agents và instrumentation | Thường dùng với -javaagent |
-| **java.rmi** | java.rmi | Remote Method Invocation | Phù hợp khi dùng RMI |
-| **java.security.jgss** | org.ietf.jgss, javax.security.auth.kerberos | GSS-API, Kerberos | Các giao thức và cơ chế xác thực liên quan |
-| **java.transaction.xa** | javax.transaction.xa | Giao diện XA cho giao dịch phân tán | Chỉ là API XA; không cung cấp đầy đủ transaction manager |
-| **java.se** | Không phải module chứa tất cả package riêng | Module tổng hợp cho tập API Java SE | Dùng các quan hệ requires transitive để gom nhiều module SE |
+| **java.base** | java.lang, java.util, java.io, java.nio, java.time, java.util.concurrent | Language foundation, collections, I/O, time, concurrency | Implicitly required by every module |
+| **java.logging** | java.util.logging | Logging via JUL | Uses Logger, Level, Handler, Formatter |
+| **java.sql** | java.sql, javax.sql | JDBC API, relational database access | API only; requires an appropriate JDBC driver to connect |
+| **java.sql.rowset** | javax.sql.rowset | RowSet types, convenient JDBC support | Used when RowSet APIs are needed |
+| **java.xml** | javax.xml.parsers, org.w3c.dom, org.xml.sax, javax.xml.transform | Parse, create, and process XML | DOM, SAX, Transformer, and related XML APIs |
+| **java.xml.crypto** | javax.xml.crypto | XML Digital Signature | Not synonymous with all cryptographic APIs in Java |
+| **java.net.http** | java.net.http | Modern HTTP Client | Stable API since Java 11 |
+| **java.desktop** | java.awt, javax.swing, javax.imageio, java.beans | AWT/Swing GUI, images, desktop APIs | Not every server application needs this |
+| **java.management** | java.lang.management, javax.management | JVM monitoring, JMX, MXBeans | Useful for administration and observability |
+| **java.naming** | javax.naming | JNDI and lookup/naming services | Needed when integrating systems that use JNDI |
+| **java.prefs** | java.util.prefs | Storing preferences/settings via Preferences | Different from framework configuration systems |
+| **java.scripting** | javax.script | ScriptEngine API | Having the API does not mean the runtime ships a JavaScript engine |
+| **java.compiler** | javax.tools, javax.lang.model | Compiler API and language model | Not synonymous with the javac implementation module |
+| **java.instrument** | java.lang.instrument | Java agents and instrumentation | Commonly used with -javaagent |
+| **java.rmi** | java.rmi | Remote Method Invocation | Suitable when using RMI |
+| **java.security.jgss** | org.ietf.jgss, javax.security.auth.kerberos | GSS-API, Kerberos | Related authentication protocols and mechanisms |
+| **java.transaction.xa** | javax.transaction.xa | XA interfaces for distributed transactions | XA API only; does not provide a full transaction manager |
+| **java.se** | Not a module containing all packages directly | Aggregate module for the Java SE API set | Uses requires transitive relationships to group SE modules |
 
-Tên và sự hiện diện của module phải xét theo **phiên bản Java và runtime image** thực tế. Một image được tạo bằng **jlink** có thể chỉ chứa các module được lựa chọn. Không nên khẳng định mọi runtime đều có mọi module chỉ dựa vào danh sách module của một JDK đầy đủ.
+Module names and presence must be evaluated against the actual **Java version and runtime image**. An image created with **jlink** may contain only selected modules. Do not assume every runtime includes every module based solely on the module list of a full JDK.
 
-## 3. java.logging: API logging tích hợp sẵn
+## 3. java.logging: Built-in Logging API
 
-Module **java.logging** cung cấp **java.util.logging** (JUL). Đây là API logging đi kèm nền tảng Java, không cần thêm dependency ngoài cho việc ghi log cơ bản.
+The **java.logging** module provides **java.util.logging** (JUL). This is the logging API bundled with the Java platform, requiring no external dependencies for basic logging.
 
-Khai báo:
+Declaration:
 
 ~~~java
 module com.example.app {
@@ -62,7 +62,7 @@ module com.example.app {
 }
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~java
 package com.example.app;
@@ -75,34 +75,34 @@ public class LoggingExample {
             Logger.getLogger(LoggingExample.class.getName());
 
     public static void main(String[] args) {
-        LOG.info("Ứng dụng khởi động");
-        LOG.log(Level.WARNING, "Giá trị không hợp lệ: {0}", -1);
+        LOG.info("Application starting");
+        LOG.log(Level.WARNING, "Invalid value: {0}", -1);
 
         try {
             Integer.parseInt("abc");
         } catch (NumberFormatException ex) {
-            LOG.log(Level.SEVERE, "Không phân tích được số", ex);
+            LOG.log(Level.SEVERE, "Failed to parse number", ex);
         }
     }
 }
 ~~~
 
-Những thành phần chính:
+Key components:
 
-- **Logger**: tên logger và nơi phát sinh bản ghi.
-- **Level**: mức độ như SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST.
-- **Handler**: đích nhận bản ghi, ví dụ ConsoleHandler hoặc FileHandler.
-- **Formatter**: quy tắc định dạng thông báo.
-- **LogManager**: quản lý cấu hình hệ thống JUL.
-- **Filter**: cho phép lọc LogRecord theo điều kiện.
+- **Logger**: the logger name and source where log records are emitted.
+- **Level**: severity levels such as SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST.
+- **Handler**: destination receiving log records, such as ConsoleHandler or FileHandler.
+- **Formatter**: rules for formatting messages.
+- **LogManager**: manages JUL system configuration.
+- **Filter**: allows filtering LogRecord entries by condition.
 
-Có thể truyền đường dẫn file cấu hình JUL qua system property:
+You can pass a JUL configuration file path via a system property:
 
 ~~~sh
 java -Djava.util.logging.config.file=logging.properties --module-path mods -m com.example.app/com.example.app.LoggingExample
 ~~~
 
-Ví dụ nội dung **logging.properties**:
+Example **logging.properties** content:
 
 ~~~properties
 handlers=java.util.logging.ConsoleHandler
@@ -111,23 +111,23 @@ java.util.logging.ConsoleHandler.level=INFO
 java.util.logging.ConsoleHandler.formatter=java.util.logging.SimpleFormatter
 ~~~
 
-**Lưu ý:** JUL là một lựa chọn logging tích hợp. SLF4J là facade logging bên thứ ba, còn Logback và Log4j 2 là các giải pháp khác có dependency riêng. Không thể thay **requires java.logging** bằng tên module của một framework nếu ứng dụng vẫn import **java.util.logging**.
+**Note:** JUL is one built-in logging option. SLF4J is a third-party logging facade, while Logback and Log4j 2 are separate solutions with their own dependencies. You cannot replace **requires java.logging** with a framework's module name if the application still imports **java.util.logging**.
 
-Trong các ứng dụng lớn, có thể tồn tại nhiều logging backend. Khi phân tích log, cần xác định rõ code đang dùng JUL trực tiếp hay qua bridge/adaptor.
+In large applications, multiple logging backends may coexist. When analyzing logs, identify clearly whether code uses JUL directly or through a bridge/adaptor.
 
-## 4. java.sql: API JDBC, không phải database driver
+## 4. java.sql: JDBC API, Not a Database Driver
 
-Module **java.sql** chứa Java Database Connectivity (JDBC): những interface và class giúp Java làm việc với CSDL quan hệ. Các API thường dùng:
+The **java.sql** module contains Java Database Connectivity (JDBC): interfaces and classes that help Java work with relational databases. Commonly used APIs:
 
-- **Connection**: phiên kết nối với CSDL.
-- **DriverManager**: quản lý và chọn JDBC driver phù hợp với URL.
-- **DataSource** (thuộc **javax.sql**): cách lấy connection thường được ưu tiên trong ứng dụng có connection pool.
-- **PreparedStatement**: gửi SQL có tham số; phù hợp để truyền giá trị đầu vào.
-- **ResultSet**: duyệt kết quả của truy vấn.
-- **SQLException**: thông tin lỗi JDBC.
-- **DatabaseMetaData** và **ResultSetMetaData**: metadata về CSDL và tập kết quả.
+- **Connection**: a connection session with the database.
+- **DriverManager**: manages and selects a JDBC driver matching the URL.
+- **DataSource** (in **javax.sql**): the preferred way to obtain connections in applications using connection pools.
+- **PreparedStatement**: sends parameterized SQL; suitable for passing input values.
+- **ResultSet**: iterates over query results.
+- **SQLException**: JDBC error details.
+- **DatabaseMetaData** and **ResultSetMetaData**: metadata about the database and result set.
 
-Khai báo:
+Declaration:
 
 ~~~java
 module com.example.app {
@@ -135,7 +135,7 @@ module com.example.app {
 }
 ~~~
 
-Ví dụ JDBC với một URL, username và password được truyền từ cấu hình của ứng dụng:
+JDBC example with a URL, username, and password supplied from application configuration:
 
 ~~~java
 package com.example.app;
@@ -169,15 +169,15 @@ public class JdbcExample {
 }
 ~~~
 
-Trong ví dụ này, **try-with-resources** đóng ResultSet, PreparedStatement và Connection khi thoát scope. Dấu **?** trong PreparedStatement đại diện cho giá trị tham số; cách này phù hợp hơn việc nối chuỗi dữ liệu người dùng vào SQL.
+In this example, **try-with-resources** closes ResultSet, PreparedStatement, and Connection upon exiting scope. The **?** placeholder in PreparedStatement represents a parameter value; this approach is safer than concatenating user data into SQL strings.
 
-**Điều kiện để kết nối thành công:** ngoài java.sql, runtime cần có **JDBC driver của loại CSDL tương ứng** (PostgreSQL, MySQL, MariaDB, SQL Server, v.v.) trên class path hoặc module path theo cách triển khai. Driver có thể được phát hiện thông qua cơ chế service provider. Cấu hình class loader và module có thể ảnh hưởng đến khả năng tìm driver. **java.sql không chứa sẵn tất cả driver CSDL.**
+**Conditions for a successful connection:** besides java.sql, the runtime needs the **JDBC driver for the corresponding database** (PostgreSQL, MySQL, MariaDB, SQL Server, etc.) on the class path or module path depending on deployment. Drivers can be discovered through the service provider mechanism. Class loader and module configurations can affect driver discovery. **java.sql does not bundle all database drivers.**
 
-Khi xảy ra lỗi kiểu **No suitable driver**, cần kiểm tra URL JDBC, dependency của driver, cách đóng gói và cách runtime tìm provider. Lỗi này không tự chứng minh **java.sql** bị thiếu.
+When an error like **No suitable driver** occurs, inspect the JDBC URL, driver dependency, packaging, and how the runtime discovers providers. This error does not by itself prove that **java.sql** is missing.
 
-### java.sql và java.sql.rowset khác nhau ra sao?
+### How Do java.sql and java.sql.rowset Differ?
 
-**java.sql** là API JDBC lõi. **java.sql.rowset** bổ sung các RowSet API, chẳng hạn **JdbcRowSet**, **CachedRowSet** và RowSet provider. Nếu dùng **javax.sql.rowset.RowSetProvider** trong named module, cần khai báo phụ thuộc đến **java.sql.rowset**.
+**java.sql** is the core JDBC API. **java.sql.rowset** adds RowSet APIs such as **JdbcRowSet**, **CachedRowSet**, and RowSet providers. If using **javax.sql.rowset.RowSetProvider** in a named module, you must declare a dependency on **java.sql.rowset**.
 
 ~~~java
 module com.example.app {
@@ -186,16 +186,16 @@ module com.example.app {
 }
 ~~~
 
-## 5. java.xml: xử lý XML theo API Java SE
+## 5. java.xml: Processing XML with Java SE APIs
 
-Module **java.xml** hỗ trợ parse, biến đổi và làm việc với XML. Một số cách thường dùng:
+The **java.xml** module supports parsing, transforming, and working with XML. Common approaches:
 
-- **DOM**: nạp cây XML vào các đối tượng Document, Element, Node.
-- **SAX**: đọc XML theo sự kiện, có thể phù hợp với tài liệu lớn.
-- **StAX**: xử lý XML theo cơ chế streaming pull.
-- **Transformer**: biến đổi hoặc xuất XML.
+- **DOM**: loads the XML tree into Document, Element, and Node objects.
+- **SAX**: reads XML via events, suitable for large documents.
+- **StAX**: processes XML using a streaming pull model.
+- **Transformer**: transforms or outputs XML.
 
-Ví dụ parse XML từ một chuỗi an toàn, tự cung cấp:
+Example parsing XML from a safe, self-provided string:
 
 ~~~java
 package com.example.app;
@@ -223,9 +223,9 @@ public class XmlExample {
 }
 ~~~
 
-Với XML từ bên ngoài, cần cấu hình XML parser phù hợp để hạn chế xử lý các thực thể bên ngoài (XXE) và tài nguyên không mong muốn. Ví dụ trên dùng chuỗi XML cố định chỉ nhằm minh họa API.
+For external XML, configure the XML parser appropriately to restrict external entity processing (XXE) and unwanted resource usage. The example above uses a fixed XML string solely to illustrate the API.
 
-Khai báo trong **module-info.java**:
+Declaration in **module-info.java**:
 
 ~~~java
 module com.example.app {
@@ -233,11 +233,11 @@ module com.example.app {
 }
 ~~~
 
-Không nhầm **java.xml** (XML parser/transform APIs) với **java.xml.crypto** (API chữ ký số XML).
+Do not confuse **java.xml** (XML parser/transform APIs) with **java.xml.crypto** (XML Digital Signature API).
 
-## 6. java.net.http: HTTP Client trong JDK hiện đại
+## 6. java.net.http: HTTP Client in Modern JDKs
 
-Từ Java 11, module **java.net.http** cung cấp **HttpClient**, **HttpRequest** và **HttpResponse** để gửi yêu cầu HTTP/HTTPS đồng bộ hoặc bất đồng bộ.
+Since Java 11, the **java.net.http** module provides **HttpClient**, **HttpRequest**, and **HttpResponse** for sending synchronous or asynchronous HTTP/HTTPS requests.
 
 ~~~java
 module com.example.app {
@@ -245,7 +245,7 @@ module com.example.app {
 }
 ~~~
 
-Ví dụ minh họa cách tạo request (không tự gửi request):
+Example demonstrating how to construct a request (without actually sending it):
 
 ~~~java
 package com.example.app;
@@ -269,24 +269,24 @@ public class HttpExample {
 }
 ~~~
 
-Nếu thực sự gửi yêu cầu đồng bộ:
+If actually sending a synchronous request:
 
 ~~~java
-// Có kết nối mạng thực tế khi chạy:
+// Performs an actual network connection when run:
 var response = client.send(
         request, java.net.http.HttpResponse.BodyHandlers.ofString());
 System.out.println(response.statusCode());
 ~~~
 
-Đoạn thứ hai là minh họa thêm trong cùng ngữ cảnh biến **client** và **request** ở trên; nó có thể phát sinh **IOException** hoặc **InterruptedException**, và nên được đặt trong phương thức có xử lý hai loại lỗi đó.
+The second snippet is an additional illustration in the same context using the **client** and **request** variables above; it can throw **IOException** or **InterruptedException**, and should be placed in a method that handles both exception types.
 
-Không nhầm module **java.net.http** với **java.net**: package **java.net** thuộc **java.base** và chứa những API nền tảng như URI, URL và Socket. Để import **java.net.http.HttpClient**, named module vẫn cần **requires java.net.http**.
+Do not confuse the **java.net.http** module with **java.net**: the **java.net** package belongs to **java.base** and contains foundational APIs such as URI, URL, and Socket. To import **java.net.http.HttpClient**, a named module still needs **requires java.net.http**.
 
-## 7. java.desktop, java.management và các module hỗ trợ khác
+## 7. java.desktop, java.management, and Other Supporting Modules
 
 ### java.desktop
 
-Module **java.desktop** chứa AWT, Swing, Java 2D, Image I/O và các API desktop liên quan:
+The **java.desktop** module contains AWT, Swing, Java 2D, Image I/O, and related desktop APIs:
 
 ~~~java
 module com.example.viewer {
@@ -294,11 +294,11 @@ module com.example.viewer {
 }
 ~~~
 
-Ví dụ import **javax.swing.JFrame**, **java.awt.Graphics2D** hoặc **javax.imageio.ImageIO**. Môi trường headless/server có thể không hỗ trợ tạo cửa sổ; **module có mặt** không có nghĩa môi trường có giao diện đồ họa.
+Examples include importing **javax.swing.JFrame**, **java.awt.Graphics2D**, or **javax.imageio.ImageIO**. Headless/server environments may not support creating windows; **having the module present** does not mean the environment has a graphical interface.
 
 ### java.management
 
-Module **java.management** cung cấp API giám sát JVM và JMX:
+The **java.management** module provides JVM monitoring and JMX APIs:
 
 ~~~java
 module com.example.monitor {
@@ -306,7 +306,7 @@ module com.example.monitor {
 }
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~java
 import java.lang.management.ManagementFactory;
@@ -318,29 +318,29 @@ long used = ManagementFactory.getMemoryMXBean()
 System.out.println("Heap used (bytes): " + used);
 ~~~
 
-Giá trị là lượng heap đang sử dụng được báo cáo khi đo. Với JMX từ xa, cần xem thêm cấu hình và bảo mật của tiến trình JVM.
+The value is the heap usage reported at the time of measurement. For remote JMX, also check the JVM process configuration and security settings.
 
 ### java.naming
 
-Module **java.naming** chứa JNDI, dùng khi code phụ thuộc các API **javax.naming** để lookup tài nguyên hoặc dịch vụ.
+The **java.naming** module contains JNDI, used when code depends on **javax.naming** APIs to look up resources or services.
 
-### java.compiler và các module JDK liên quan
+### java.compiler and Related JDK Modules
 
-**java.compiler** cung cấp các API chuẩn như **javax.tools.JavaCompiler** và **javax.lang.model**. Một JDK đầy đủ còn có module riêng **jdk.compiler** cung cấp triển khai trình biên dịch javac. **Có API compiler** không đồng nghĩa với **có công cụ javac hoặc compiler provider** trong mọi runtime image.
+**java.compiler** provides standard APIs such as **javax.tools.JavaCompiler** and **javax.lang.model**. A full JDK also includes the separate **jdk.compiler** module providing the javac compiler implementation. **Having the compiler API** is not synonymous with **having the javac tool or a compiler provider** in every runtime image.
 
 ### java.scripting
 
-**java.scripting** định nghĩa **javax.script.ScriptEngineManager** và các interface script engine. Sự tồn tại của API không bảo đảm một engine cụ thể được cài. Ví dụ một số JDK hiện đại không còn tích hợp Nashorn theo cách các bản JDK cũ từng cung cấp.
+**java.scripting** defines **javax.script.ScriptEngineManager** and script engine interfaces. The presence of the API does not guarantee a specific engine is installed. For example, some modern JDKs no longer bundle Nashorn the way older JDK releases did.
 
 ### java.prefs, java.rmi, java.instrument
 
-**java.prefs** cung cấp **Preferences**; **java.rmi** hỗ trợ Remote Method Invocation; **java.instrument** cung cấp API **Instrumentation** cho agent. Chỉ khai báo requires cho API mà module sử dụng trực tiếp; không nên thêm hàng loạt module vào descriptor không có nhu cầu.
+**java.prefs** provides **Preferences**; **java.rmi** supports Remote Method Invocation; **java.instrument** provides the **Instrumentation** API for agents. Only declare requires for APIs your module directly uses; avoid adding numerous modules to the descriptor without need.
 
-## 8. Ví dụ ứng dụng modular sử dụng nhiều module chuẩn
+## 8. Modular Application Example Using Multiple Standard Modules
 
-Ta tạo một ứng dụng tên **demo.jdkmodules** để minh họa cách một named module dùng logging, JDBC metadata, HTTP Client và XML parser. Chương trình không thực hiện kết nối mạng hoặc CSDL.
+We create an application named **demo.jdkmodules** to demonstrate how a named module uses logging, JDBC metadata, the HTTP Client, and the XML parser. The program does not perform network or database connections.
 
-Cấu trúc:
+Structure:
 
 ~~~text
 src/
@@ -375,39 +375,39 @@ public class Main {
             Logger.getLogger(Main.class.getName());
 
     public static void main(String[] args) {
-        LOG.info("Đang kiểm tra những API của module chuẩn");
+        LOG.info("Checking standard module APIs");
 
-        System.out.println("HTTP version ưu tiên: " +
+        System.out.println("Preferred HTTP version: " +
                 HttpClient.newHttpClient().version());
 
-        System.out.println("Có JDBC driver khả dụng: " +
+        System.out.println("JDBC driver available: " +
                 DriverManager.getDrivers().hasMoreElements());
 
         System.out.println("XML parser factory: " +
                 DocumentBuilderFactory.newInstance()
                         .getClass().getName());
 
-        System.out.println("java.sql trong boot layer: " +
+        System.out.println("java.sql in boot layer: " +
                 ModuleLayer.boot().findModule("java.sql").isPresent());
     }
 }
 ~~~
 
-Biên dịch từ thư mục chứa **src** bằng JDK 11 trở lên:
+Compile from the directory containing **src** using JDK 11 or later:
 
 ~~~sh
 javac --module-source-path src -d mods -m demo.jdkmodules
 ~~~
 
-Chạy ứng dụng:
+Run the application:
 
 ~~~sh
 java --module-path mods -m demo.jdkmodules/demo.jdkmodules.Main
 ~~~
 
-Kết quả gồm thông tin logging và bốn dòng từ System.out. Giá trị **Có JDBC driver khả dụng** phụ thuộc driver có sẵn trong môi trường; phiên bản HTTP ưu tiên và tên XML parser cũng có thể thay đổi theo JDK và cấu hình provider. **java.sql trong boot layer** dự kiến là **true** vì module demo.jdkmodules khai báo requires java.sql.
+The output consists of logging messages and four lines from System.out. The value of **JDBC driver available** depends on drivers available in the environment; the preferred HTTP version and XML parser name may also vary by JDK and provider configuration. **java.sql in boot layer** is expected to be **true** because module demo.jdkmodules declares requires java.sql.
 
-Lỗi biên dịch điển hình khi quên khai báo **requires**:
+Typical compilation error when forgetting to declare **requires**:
 
 ~~~text
 package java.sql is not visible
@@ -415,28 +415,28 @@ package java.sql is not visible
  but module demo.jdkmodules does not read it)
 ~~~
 
-Thông điệp thực tế có thể khác đôi chút theo JDK. Để sửa, thêm **requires java.sql;** vào **module-info.java**, bảo đảm môi trường có module phù hợp và biên dịch lại. Import Java package trong mã nguồn không thể thay thế khai báo phụ thuộc ở cấp module.
+The exact message may vary slightly by JDK. To fix it, add **requires java.sql;** to **module-info.java**, ensure the environment provides the appropriate module, and recompile. Importing a Java package in source code cannot replace a module-level dependency declaration.
 
-## 9. Các lệnh xem module của JDK
+## 9. Commands for Inspecting JDK Modules
 
-### Liệt kê module trong runtime hiện tại
+### Listing Modules in the Current Runtime
 
 ~~~sh
 java --list-modules
 ~~~
 
-Kết quả có tên và phiên bản module, ví dụ:
+The output contains module names and versions, for example:
 
 ~~~text
-java.base@<phiên-bản>
-java.logging@<phiên-bản>
-java.sql@<phiên-bản>
-java.xml@<phiên-bản>
+java.base@<version>
+java.logging@<version>
+java.sql@<version>
+java.xml@<version>
 ~~~
 
-Dấu **<phiên-bản>** ở trên chỉ là ký hiệu minh họa; đầu ra thực tế phụ thuộc bản Java. Danh sách của **--list-modules** thể hiện các module có thể quan sát trong runtime dùng để chạy lệnh, không chứng minh mọi module trong đó đều đã resolve vào boot layer của một ứng dụng bất kỳ.
+**<version>** above is merely an illustrative placeholder; actual output depends on the Java release. The list from **--list-modules** reflects the observable modules in the runtime used to execute the command, and does not prove every module listed is resolved into the boot layer of any given application.
 
-### Xem descriptor của một module
+### Viewing a Module's Descriptor
 
 ~~~sh
 java --describe-module java.logging
@@ -444,61 +444,61 @@ java --describe-module java.sql
 java --describe-module java.net.http
 ~~~
 
-Lệnh này hiển thị thông tin như **exports**, **requires**, **uses** và **provides** tùy module. Đây là cách kiểm tra xem module nào cung cấp package và khai báo những quan hệ phụ thuộc nào trên JDK thực tế.
+This command displays details such as **exports**, **requires**, **uses**, and **provides** depending on the module. It is how you check which module provides a package and which dependency relationships it declares on an actual JDK.
 
-### Quan sát module resolution của ứng dụng
+### Observing an Application's Module Resolution
 
 ~~~sh
 java --show-module-resolution --module-path mods -m demo.jdkmodules/demo.jdkmodules.Main
 ~~~
 
-**--show-module-resolution** hữu ích để xem module gốc và các phụ thuộc được giải quyết. Phân biệt với **--list-modules**: danh sách module có thể quan sát không đồng nghĩa với đồ thị của chương trình đang chạy.
+**--show-module-resolution** is useful for seeing root modules and resolved dependencies. Distinguish this from **--list-modules**: the list of observable modules is not the same as the graph of the running program.
 
-### Tìm module dependencies của thư viện với jdeps
+### Finding Library Module Dependencies with jdeps
 
-Sau khi đã biên dịch JAR, có thể phân tích phụ thuộc tĩnh bằng công cụ **jdeps**:
+After compiling a JAR, you can analyze static dependencies using the **jdeps** tool:
 
 ~~~sh
 jdeps --print-module-deps path/to/library.jar
 ~~~
 
-Kết quả gợi ý tập module JDK mà công cụ phát hiện theo phụ thuộc tĩnh. Phân tích này có giới hạn với reflection, class loading động, ServiceLoader và cấu hình môi trường. Không nên coi đầu ra jdeps là một danh sách bao trùm mọi module có thể cần ở runtime.
+The output suggests the set of JDK modules detected from static dependencies. This analysis has limitations with reflection, dynamic class loading, ServiceLoader, and environment configuration. Do not treat jdeps output as an exhaustive list of every module that may be needed at runtime.
 
-## 10. Quan hệ giữa requires, exports, opens và runtime image
+## 10. Relationships Between requires, exports, opens, and Runtime Images
 
-Bốn khái niệm thường bị nhầm:
+Four commonly confused concepts:
 
-**requires X**: module hiện tại yêu cầu đọc module X. Ví dụ **requires java.sql;** giúp named module đọc module java.sql và dùng public API được export phù hợp.
+**requires X**: the current module requires reading module X. For example, **requires java.sql;** lets a named module read java.sql and use appropriately exported public APIs.
 
-**exports p**: module khai báo package p được dùng bởi module khác ở mức truy cập Java thông thường. Nếu một package không export, có module dependency không đủ để import class của nó từ module khác.
+**exports p**: the module declares package p usable by other modules under standard Java access. If a package is not exported, having a module dependency is not enough to import its classes from another module.
 
-**opens p**: cho phép reflective access sâu theo cơ chế JPMS, hữu ích cho một số framework. **opens** không có nghĩa package đó cũng được export cho các truy cập thông thường tại thời điểm biên dịch.
+**opens p**: allows deep reflective access under JPMS rules, useful for certain frameworks. **opens** does not mean the package is also exported for normal compile-time access.
 
-**jlink runtime image**: ứng dụng có thể được đóng gói với một tập module được lựa chọn. Nếu chương trình cần **java.sql** mà image không chứa module đó, sẽ không thể resolve phụ thuộc như trên một JDK đầy đủ. Kiểm tra runtime thực tế bằng **java --list-modules**, và xem cách image đã được tạo.
+**jlink runtime image**: an application can be packaged with a selected set of modules. If the program needs **java.sql** and the image does not contain that module, it will not be able to resolve dependencies as on a full JDK. Check the actual runtime with **java --list-modules** and review how the image was built.
 
-Một module có thể **requires transitive** module khác. Điều này làm khả năng đọc module phụ thuộc được truyền tiếp tới những module đọc module hiện tại theo quy tắc JPMS. Khi thiết kế **module-info.java**, nên khai báo phụ thuộc trực tiếp và transitive theo API thực sự phơi bày, thay vì thêm **requires transitive** cho tất cả dependency.
+A module can **requires transitive** another module. This propagates readability of the dependent module to modules that read the current module under JPMS rules. When designing **module-info.java**, declare direct and transitive dependencies according to the APIs actually exposed, rather than adding **requires transitive** to every dependency.
 
-**java.se** là aggregator module: nó khai báo các phụ thuộc transitive để đại diện tập module Java SE liên quan. Đối với ứng dụng thông thường, khai báo cụ thể **requires java.sql;** hoặc **requires java.logging;** thường giúp đồ thị dependency thể hiện nhu cầu thật rõ ràng hơn.
+**java.se** is an aggregator module: it declares transitive dependencies to represent the relevant Java SE module set. For typical applications, declaring specific dependencies like **requires java.sql;** or **requires java.logging;** usually makes the dependency graph express actual needs more clearly.
 
-## 11. Các nhầm lẫn phổ biến và cách xử lý
+## 11. Common Misconceptions and How to Handle Them
 
-| Nhầm lẫn | Thực tế | Cách xử lý |
+| Misconception | Reality | How to handle it |
 |---|---|---|
-| “Tất cả Java API thuộc java.base” | java.base là nền tảng tối thiểu, nhiều API có module riêng | Tra package và kiểm tra module chứa API |
-| “Import java.sql là đủ” | Named module còn cần readability qua requires hoặc quan hệ transitive phù hợp | Khai báo requires java.sql |
-| “Có java.sql là kết nối được mọi CSDL” | Cần JDBC driver và cấu hình tương ứng | Kiểm tra driver, URL, module/class path |
-| “Có java.scripting thì có JavaScript engine” | API scripting và engine provider là hai thành phần khác nhau | Kiểm tra các ScriptEngineFactory thực tế |
-| “Có java.desktop thì máy chủ tạo GUI được” | Môi trường headless có thể giới hạn API GUI | Kiểm tra môi trường đồ họa và nhu cầu |
-| “Có module trong --list-modules thì module đã được resolve” | Observable modules khác resolved modules | Xem boot layer hoặc --show-module-resolution |
-| “Mọi module jdk.* đều là Java SE API” | jdk.* thường là module gắn với công cụ và triển khai JDK | Phân biệt module Java SE với JDK-specific |
-| “java.net.http có từ Java 9” | API HttpClient ổn định mang tên java.net.http từ Java 11 | Chọn JDK phù hợp với source/module |
-| “jlink luôn đóng gói đầy đủ JDK” | Runtime image có thể chỉ gồm tập module được chọn | Xem tập module trong image |
-| “requires luôn kéo mọi class vào RAM” | Module resolution không phải quá trình eager-load toàn bộ class | Phân biệt descriptor, graph và class loading |
+| "All Java APIs belong to java.base" | java.base is the minimal foundation; many APIs live in separate modules | Look up the package and verify which module contains the API |
+| "Importing java.sql is enough" | Named modules also need readability via requires or appropriate transitive relationships | Declare requires java.sql |
+| "Having java.sql lets you connect to any DB" | A matching JDBC driver and configuration are required | Check driver, URL, and module/class path |
+| "Having java.scripting means a JavaScript engine is available" | The scripting API and engine providers are separate components | Check the available ScriptEngineFactory implementations |
+| "Having java.desktop lets a server render a GUI" | Headless environments may restrict GUI APIs | Verify graphical environment and actual needs |
+| "A module in --list-modules is already resolved" | Observable modules differ from resolved modules | Inspect the boot layer or --show-module-resolution |
+| "All jdk.* modules are Java SE APIs" | jdk.* modules are typically tied to JDK tools and implementations | Distinguish Java SE modules from JDK-specific modules |
+| "java.net.http has existed since Java 9" | The stabilized HttpClient API named java.net.http is from Java 11 | Choose a JDK matching your source/module requirements |
+| "jlink always packages the full JDK" | A runtime image may contain only a selected set of modules | Inspect the modules included in the image |
+| "requires loads every class into RAM" | Module resolution is not eager-loading of all classes | Distinguish descriptor, graph, and class loading |
 
-## 12. Lựa chọn module theo chức năng
+## 12. Choosing Modules by Functionality
 
-Nếu ứng dụng cần **ghi log đơn giản**, bắt đầu từ **java.logging**. Nếu cần **JDBC**, dùng **java.sql** và thêm driver phù hợp; nếu dùng RowSet, xem **java.sql.rowset**. Nếu cần **XML DOM/SAX/transform**, dùng **java.xml**. Nếu cần **HTTP Client** chuẩn từ Java 11, dùng **java.net.http**. Nếu cần **JMX/giám sát JVM**, dùng **java.management**; nếu làm **GUI AWT/Swing**, dùng **java.desktop**.
+If your application needs **simple logging**, start with **java.logging**. If it needs **JDBC**, use **java.sql** and add the appropriate driver; if using RowSet, consider **java.sql.rowset**. If it needs **XML DOM/SAX/transform**, use **java.xml**. If it needs the standard **HTTP Client** from Java 11, use **java.net.http**. If it needs **JMX/JVM monitoring**, use **java.management**; if building an **AWT/Swing GUI**, use **java.desktop**.
 
-Trong named module, hãy khai báo **requires** cho các module chứa API mình sử dụng, kiểm tra bằng **java --describe-module** và biên dịch với JDK mục tiêu. Khi chạy trên runtime image tối giản, xác nhận các module đó thực sự có mặt. Đối với thư viện bên thứ ba và JDBC driver, cần xét thêm descriptor, Automatic-Module-Name hoặc cách đóng gói module/class path của thư viện.
+In a named module, declare **requires** for the modules containing the APIs you use, verify with **java --describe-module**, and compile with the target JDK. When running on a minimal runtime image, confirm those modules are actually present. For third-party libraries and JDBC drivers, also check descriptors, Automatic-Module-Name, or how the library is packaged on the module/class path.
 
-**Ý chính:** Module chuẩn cung cấp những nhóm API Java theo chức năng. **java.logging** giải quyết logging; **java.sql** cung cấp JDBC; những module như **java.xml**, **java.net.http**, **java.management**, **java.desktop** mở rộng các chức năng cụ thể. Hiểu đúng ranh giới module giúp viết **module-info.java** chính xác, giảm phụ thuộc thừa và chẩn đoán lỗi resolution hoặc class loading hiệu quả hơn.
+**Key takeaway:** Standard modules provide Java API groups organized by capability. **java.logging** handles logging; **java.sql** provides JDBC; modules such as **java.xml**, **java.net.http**, **java.management**, and **java.desktop** extend specific capabilities. Understanding module boundaries properly helps you write accurate **module-info.java** files, reduce unnecessary dependencies, and diagnose resolution or class loading errors more effectively.

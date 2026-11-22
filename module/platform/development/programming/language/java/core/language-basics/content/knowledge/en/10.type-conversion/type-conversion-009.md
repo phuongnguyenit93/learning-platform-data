@@ -1,45 +1,45 @@
-# Phép gán hằng nằm trong miền giá trị của `byte`, `short` hoặc `char` — Java 17+
+# Constant Assignment Within the Range of `byte`, `short`, or `char` — Java 17+
 
-Trong Java, các literal số nguyên thông thường như `100` có kiểu `int`, nhưng đoạn mã **`byte b = 100;` vẫn biên dịch**. Lý do là Java cho phép **chuyển đổi thu hẹp đặc biệt trong ngữ cảnh gán** (*assignment context*) đối với một **biểu thức hằng tại thời điểm biên dịch** (*constant expression*), khi giá trị của nó nằm trọn trong miền biểu diễn của kiểu đích `byte`, `short` hoặc `char`.
+In Java, ordinary integer literals like `100` have type `int`, yet **`byte b = 100;` still compiles**. The reason is that Java permits a **special narrowing conversion in assignment context** for a **compile-time constant expression**, when its value fits completely within the representable range of target type `byte`, `short`, or `char`.
 
-Đây là quy tắc riêng trong Java, **không phải** chuyển đổi ngầm định từ mọi biến `int` sang `byte`.
+This is a specific rule in Java, **not** an implicit conversion from every `int` variable to `byte`.
 
 ~~~java
-byte age = 100;        // Hop le: hang int 100 trong mien byte.
-short count = 30_000;  // Hop le: hang int trong mien short.
-char code = 65;        // Hop le: hang int 65 trong mien char ('A').
+byte age = 100;        // Valid: int constant 100 is within byte range.
+short count = 30_000;  // Valid: int constant is within short range.
+char code = 65;        // Valid: int constant 65 is within char range ('A').
 
-// byte bad = 128;     // LOI: 128 vuot Byte.MAX_VALUE.
-// byte bad2 = -129;   // LOI: nho hon Byte.MIN_VALUE.
-// short bad3 = 32768; // LOI: vuot Short.MAX_VALUE.
-// char bad4 = -1;     // LOI: char khong dau.
+// byte bad = 128;     // ERROR: 128 exceeds Byte.MAX_VALUE.
+// byte bad2 = -129;   // ERROR: smaller than Byte.MIN_VALUE.
+// short bad3 = 32768; // ERROR: exceeds Short.MAX_VALUE.
+// char bad4 = -1;     // ERROR: char is unsigned.
 ~~~
 
-## 1. Quy tắc chính xác
+## 1. Exact rule
 
-Trong **phép gán**, nếu biểu thức nguồn là *constant expression* có kiểu `byte`, `short`, `char` hoặc `int` và có **giá trị biểu diễn được** bằng kiểu đích `byte`, `short` hoặc `char`, Java có thể thực hiện chuyển đổi thu hẹp mà **không cần cast tường minh**.
+In an **assignment**, if the source expression is a *constant expression* of type `byte`, `short`, `char`, or `int` and has a **value representable** by the target type `byte`, `short`, or `char`, Java can perform the narrowing conversion **without an explicit cast**.
 
-| Kiểu đích | Miền giá trị | Gán hằng `int` hợp lệ | Gán hằng vượt miền |
+| Target type | Value range | Valid `int` constant assignment | Out-of-range constant assignment |
 | --- | --- | --- | --- |
-| `byte` | −128 đến 127 | `byte b = 127;` | `byte b = 128;` |
-| `short` | −32.768 đến 32.767 | `short s = 32_767;` | `short s = 32_768;` |
-| `char` | 0 đến 65.535 | `char c = 65_535;` | `char c = 65_536;` hoặc `char c = -1;` |
+| `byte` | −128 to 127 | `byte b = 127;` | `byte b = 128;` |
+| `short` | −32,768 to 32,767 | `short s = 32_767;` | `short s = 32_768;` |
+| `char` | 0 to 65,535 | `char c = 65_535;` | `char c = 65_536;` or `char c = -1;` |
 
-**Hai điều kiện phải cùng đúng:** biểu thức phải là **hằng ở compile time** và **giá trị hằng nằm trong miền kiểu đích**.
+**Both conditions must hold together:** the expression must be a **compile-time constant**, and **the constant value must fall within the target type's range**.
 
-Một biến `int` thông thường có giá trị 100 **không** thuộc ngoại lệ này:
+A regular `int` variable holding the value 100 **does not** qualify for this exception:
 
 ~~~java
 int value = 100;
-// byte b = value;     // LOI bien dich: int -> byte can cast.
-byte b = (byte) value; // Hop le; boi vi 100 nam trong mien nen b = 100.
+// byte b = value;     // COMPILE ERROR: int -> byte requires cast.
+byte b = (byte) value; // Valid; since 100 is in range, b = 100.
 ~~~
 
-Việc có cast không giúp compiler hoặc JVM tự bảo đảm giá trị vẫn nằm trong miền; nếu `value` thành 130, `(byte) value` cho `-126` do mất các bit cao.
+Having a cast does not make the compiler or JVM ensure the value stays in range; if `value` becomes 130, `(byte) value` yields `-126` due to losing the high bits.
 
-## 2. Chương trình Java 17+ runnable
+## 2. Runnable Java 17+ program
 
-Tạo tệp UTF-8 **`ConstantAssignmentDemo.java`**:
+Create the UTF-8 file **`ConstantAssignmentDemo.java`**:
 
 ~~~java
 public class ConstantAssignmentDemo {
@@ -98,7 +98,7 @@ public class ConstantAssignmentDemo {
 }
 ~~~
 
-Tại thư mục chứa file, dùng **JDK 17 trở lên** trên PowerShell (Windows) hoặc Bash (Linux/macOS):
+In the directory containing the file, use **JDK 17 or later** in PowerShell (Windows) or Bash (Linux/macOS):
 
 ~~~bash
 java -version
@@ -107,7 +107,7 @@ javac -encoding UTF-8 ConstantAssignmentDemo.java
 java ConstantAssignmentDemo
 ~~~
 
-**Expected output chính xác của lệnh `java ConstantAssignmentDemo`:**
+**Exact expected output of the `java ConstantAssignmentDemo` command:**
 
 ~~~text
 byteMax=127
@@ -129,184 +129,184 @@ castCharOverflow=0
 compoundAssignment=-126
 ~~~
 
-Các lệnh kiểm tra phiên bản `java -version` và `javac -version` có đầu ra khác nhau tùy môi trường và không nằm trong khối expected output.
+The version-check commands `java -version` and `javac -version` have output that varies by environment and are not included in the expected output block.
 
-## 3. Tại sao biểu thức `40 + 60` vẫn gán được vào `byte`?
+## 3. Why can the expression `40 + 60` still be assigned to `byte`?
 
-Khi tính `40 + 60`, cả hai literal mang kiểu `int` nên biểu thức có **kiểu `int`**. Tuy vậy, `40 + 60` là một **constant expression**: compiler tính được giá trị **100** trong lúc biên dịch. Vì 100 nằm trong miền `byte`, câu sau hợp lệ:
+When evaluating `40 + 60`, both literals carry type `int`, so the expression has **type `int`**. Even so, `40 + 60` is a **constant expression**: the compiler computes the value **100** at compile time. Because 100 falls within the `byte` range, the following statement is valid:
 
 ~~~java
-byte result = 40 + 60; // 100: constant int nam trong mien byte.
+byte result = 40 + 60; // 100: constant int within byte range.
 ~~~
 
-Ngược lại, nếu dùng biến thông thường:
+Conversely, if regular variables are used:
 
 ~~~java
 int left = 40;
 int right = 60;
 
-// byte result = left + right; // LOI: ket qua la int, khong la hang.
-int result = left + right;     // Hop le: int 100.
+// byte result = left + right; // ERROR: result is int, not constant.
+int result = left + right;     // Valid: int 100.
 ~~~
 
-Ngay cả `byte + byte` thông thường cũng có kiểu kết quả `int` (theo *binary numeric promotion*):
+Even regular `byte + byte` has result type `int` (by *binary numeric promotion*):
 
 ~~~java
 byte a = 40;
 byte b = 60;
-// byte sum = a + b; // LOI: int khong duoc tu thu hep ve byte.
+// byte sum = a + b; // ERROR: int does not narrow automatically to byte.
 int sum = a + b;    // 100.
 ~~~
 
-**Không suy luận** rằng compiler nhìn thấy giá trị nhỏ thì sẽ tự gán vào kiểu hẹp. Nó chỉ áp dụng ngoại lệ đúng cho **biểu thức hằng thỏa điều kiện**.
+**Do not assume** that whenever the compiler sees a small value it will automatically assign it to a narrow type. It applies the exception strictly to **qualifying constant expressions**.
 
-## 4. `final int` có thể là *constant variable* — nhưng không phải lúc nào cũng vậy
+## 4. `final int` can be a *constant variable* — but not always
 
-Một **constant variable** trong Java là biến `final` có kiểu nguyên thủy hoặc `String` và được khởi tạo bằng một *constant expression*. Với bài toán gán hằng số nguyên, trường hợp điển hình là `final int`:
+A **constant variable** in Java is a `final` variable of primitive type or `String` initialized with a *constant expression*. For integer constant assignment problems, the typical case is `final int`:
 
 ~~~java
 final int FIXED = 120;
-byte b = FIXED; // Hop le: FIXED la constant variable, gia tri vua byte.
+byte b = FIXED; // Valid: FIXED is a constant variable, value fits in byte.
 
 final int CALCULATED = 60 + 67;
-byte max = CALCULATED; // Hop le: 127 vua byte.
+byte max = CALCULATED; // Valid: 127 fits in byte.
 ~~~
 
-`static final int` cũng có thể là constant variable nếu initializer là constant expression:
+`static final int` can also be a constant variable if its initializer is a constant expression:
 
 ~~~java
 static final int BYTE_MAX = 127;
 
-// Trong mot phuong thuc:
-// byte b = BYTE_MAX; // Hop le.
+// Inside a method:
+// byte b = BYTE_MAX; // Valid.
 ~~~
 
-Nhưng **từ khóa `final` một mình không đủ**:
+However, **the `final` keyword alone is not enough**:
 
 ~~~java
 final int parsed = Integer.parseInt("12");
-// byte b = parsed;        // LOI: parsed KHONG la constant variable.
-byte b = (byte) parsed;    // Hop le, nhung phai can nhac mien gia tri.
+// byte b = parsed;        // ERROR: parsed is NOT a constant variable.
+byte b = (byte) parsed;    // Valid, but you must consider the value range.
 ~~~
 
-Hàm `Integer.parseInt` chạy khi chương trình chạy, nên initializer trên **không phải constant expression**, bất kể giá trị trả về là 12. Ngược lại, các biểu thức có toán tử số học trên literal/hằng thích hợp như `60 + 67` có thể được compiler tính sẵn.
+`Integer.parseInt` executes at runtime, so the initializer above is **not a constant expression**, regardless of the returned value being 12. In contrast, expressions with arithmetic operators on suitable literals/constants like `60 + 67` can be precomputed by the compiler.
 
-Tương tự, biến `final Integer boxed = 100;` không phải constant variable kiểu nguyên thủy, vì `Integer` là **kiểu tham chiếu**, không phải kiểu primitive hoặc `String`. Đừng dùng `final` và giá trị “tình cờ vừa miền” làm bằng chứng một biến tham gia ngoại lệ gán hằng.
+Similarly, `final Integer boxed = 100;` is not a primitive constant variable, because `Integer` is a **reference type**, not a primitive type or `String`. Do not use `final` and a value “happening to fit in range” as proof that a variable qualifies for the constant assignment exception.
 
-## 5. Ranh giới miền: `byte`, `short` và `char`
+## 5. Range boundaries: `byte`, `short`, and `char`
 
-### `byte` là số nguyên có dấu 8 bit
+### `byte` is an 8-bit signed integer
 
 ~~~java
 byte smallest = -128;
 byte largest = 127;
 
-// byte under = -129; // Ngoai mien.
-// byte over = 128;   // Ngoai mien.
+// byte under = -129; // Out of range.
+// byte over = 128;   // Out of range.
 ~~~
 
-Một phép cast vẫn được phép nhưng **không bảo toàn giá trị** khi số vượt miền:
+A cast is still allowed, yet **does not preserve the value** when a number exceeds the range:
 
 ~~~java
 byte wrapped = (byte) 128; // -128.
 ~~~
 
-Phép thu hẹp nguyên-sang-nguyên giữ **các bit thấp** phù hợp với kiểu đích; với `byte`, mẫu 8 bit được diễn giải có dấu. Java không “chặn” giá trị ở 127 và cũng không tự ném `ArithmeticException` khi cast.
+Integer-to-integer narrowing keeps the **low bits** matching the target type; for `byte`, the 8-bit pattern is interpreted as signed. Java does not “clamp” the value at 127 and does not automatically throw `ArithmeticException` on cast.
 
-### `short` là số nguyên có dấu 16 bit
+### `short` is a 16-bit signed integer
 
 ~~~java
 short min = -32_768;
 short max = 32_767;
-// short bad = 32_768; // Ngoai mien.
+// short bad = 32_768; // Out of range.
 short wrapped = (short) 32_768; // -32768.
 ~~~
 
-### `char` là đơn vị mã UTF-16 không dấu 16 bit
+### `char` is a 16-bit unsigned UTF-16 code unit
 
 ~~~java
 char zero = 0;
 char letter = 65;      // 'A'.
 char max = 65_535;
 
-// char negative = -1; // Ngoai mien char.
-// char tooBig = 65_536; // Ngoai mien char.
-char wrapped = (char) 65_536; // Co gia tri so 0.
+// char negative = -1; // Out of char range.
+// char tooBig = 65_536; // Out of char range.
+char wrapped = (char) 65_536; // Numeric value 0.
 ~~~
 
-`char` khác `short`: cùng có 16 bit nhưng `char` có miền 0–65535. Khi in trực tiếp `char`, terminal hiển thị **ký tự tương ứng** chứ không phải mã số. Để xem giá trị số, dùng `(int) letter` hoặc `(int) max`.
+`char` differs from `short`: both have 16 bits, but `char` has range 0–65535. When printing `char` directly, the terminal displays the **corresponding character** rather than its numeric code. To inspect the numeric value, use `(int) letter` or `(int) max`.
 
-## 6. Vì sao `long` literal và `double` literal không áp dụng ngoại lệ?
+## 6. Why don't `long` literals and `double` literals qualify for the exception?
 
-Phép thu hẹp hằng trong ngữ cảnh gán primitive đích `byte`, `short` hoặc `char` chỉ cho phép **kiểu của constant expression nguồn** thuộc `byte`, `short`, `char` hoặc `int`. Vì vậy:
+Constant narrowing in an assignment context targeting `byte`, `short`, or `char` only allows the **type of the source constant expression** to be `byte`, `short`, `char`, or `int`. Therefore:
 
 ~~~java
-byte a = 100;          // Hop le: constant int.
-// byte b = 100L;       // LOI: constant long, du gia tri 100.
-// byte c = 100.0;      // LOI: literal double.
-byte b = (byte) 100L;   // Cast tuong minh.
-byte c = (byte) 100.0;  // Cast tuong minh.
+byte a = 100;          // Valid: constant int.
+// byte b = 100L;       // ERROR: constant long, even though value is 100.
+// byte c = 100.0;      // ERROR: double literal.
+byte b = (byte) 100L;   // Explicit cast.
+byte c = (byte) 100.0;  // Explicit cast.
 ~~~
 
-Nếu giá trị kiểu `long` thực tế nhỏ, điều đó **không** làm chuyển đổi `long -> byte` thành ngoại lệ gán hằng. Cast có thể cho phép đoạn mã chạy, nhưng chính bạn phải kiểm tra mất dữ liệu.
+Even if a `long` value is actually small, that does **not** make `long -> byte` qualify for the constant assignment exception. A cast lets the snippet run, but you yourself must check for data loss.
 
-Khi dữ liệu đến từ đầu vào, API, biến hay kết quả tính toán lúc chạy, cách thực tế là chọn kiểu đủ rộng, kiểm tra miền trước khi chuyển hoặc dùng phương thức kiểm tra tràn thích hợp, ví dụ `Math.toIntExact` khi thu hẹp `long -> int`.
+When data comes from input, APIs, variables, or runtime calculations, the practical approach is to choose a wide-enough type, check bounds before converting, or use appropriate overflow-checking methods such as `Math.toIntExact` when narrowing `long -> int`.
 
-## 7. Phân biệt phép gán trực tiếp với `+=`
+## 7. Distinguish direct assignment from `+=`
 
 ~~~java
 byte b = 100;
-// b = b + 30;  // LOI: b + 30 la int, khong la constant expression.
-b += 30;        // Hop le; ket qua la -126.
+// b = b + 30;  // ERROR: b + 30 is int, not a constant expression.
+b += 30;        // Valid; result is -126.
 ~~~
 
-`b += 30` hợp lệ **không phải nhờ ngoại lệ gán hằng**. Toán tử gán kết hợp có quy tắc riêng: cộng trước rồi **chuyển về kiểu của vế trái**. Với `byte b = 100`, phép cộng cho `int 130`, chuyển về `byte` thành `-126`.
+`b += 30` is valid **not because of the constant assignment exception**. Compound assignment operators have their own rule: add first, then **convert to the type of the left-hand side**. With `byte b = 100`, the addition produces `int 130`, which converts to `byte` as `-126`.
 
-Nếu giá trị nằm ngoài miền đích, đừng dùng cast hoặc `+=` như cách “lách lỗi compiler” khi nghiệp vụ yêu cầu số chính xác.
+If a value lies outside the target range, do not use casts or `+=` as a way to “bypass compiler errors” when business logic requires exact numbers.
 
-## 8. Bảng phân biệt hợp lệ / lỗi biên dịch
+## 8. Table distinguishing valid vs. compile error
 
-| Mã Java | Hợp lệ? | Lý do |
+| Java code | Valid? | Reason |
 | --- | --- | --- |
-| `byte b = 127;` | Có | Constant `int` vừa `byte` |
-| `byte b = 128;` | Không | Constant `int` vượt miền `byte` |
-| `short s = 30_000 + 2_767;` | Có | Constant expression `int 32767` vừa `short` |
-| `char c = 'A' + 1;` | Có | Constant expression `int 66` vừa `char` |
-| `char c = -1;` | Không | `char` không có số âm |
-| `byte b = 100L;` | Không | Nguồn là `long`, không thuộc ngoại lệ |
-| `int x = 100; byte b = x;` | Không | `x` không là constant variable |
-| `final int X = 100; byte b = X;` | Có | `X` là constant variable primitive |
-| `final int X = Integer.parseInt("100"); byte b = X;` | Không | Initializer không là constant expression |
-| `byte b = (byte) 128;` | Có | Cast tường minh, nhưng kết quả là −128 |
+| `byte b = 127;` | Yes | Constant `int` fits in `byte` |
+| `byte b = 128;` | No | Constant `int` exceeds `byte` range |
+| `short s = 30_000 + 2_767;` | Yes | Constant expression `int 32767` fits in `short` |
+| `char c = 'A' + 1;` | Yes | Constant expression `int 66` fits in `char` |
+| `char c = -1;` | No | `char` has no negative numbers |
+| `byte b = 100L;` | No | Source is `long`, excluded from the exception |
+| `int x = 100; byte b = x;` | No | `x` is not a constant variable |
+| `final int X = 100; byte b = X;` | Yes | `X` is a primitive constant variable |
+| `final int X = Integer.parseInt("100"); byte b = X;` | No | Initializer is not a constant expression |
+| `byte b = (byte) 128;` | Yes | Explicit cast, though the result is −128 |
 
-Nếu thấy thông báo compiler kiểu *possible lossy conversion from int to byte*, hãy hỏi: biểu thức có phải hằng không? Giá trị có nằm trong miền đích không? Hay bạn đang dùng biến thông thường và thực sự cần giữ kiểu rộng hơn?
+If you see a compiler message like *possible lossy conversion from int to byte*, ask: is the expression a constant? Is the value within the target range? Or are you using an ordinary variable and actually need to keep a wider type?
 
-## 9. Bài tập tự kiểm tra
+## 9. Self-check exercises
 
-1. **Biên của `byte`:** `byte a = -128; byte b = 127;` hợp lệ không? `byte c = 128;` thì sao?  
-   *Đáp án:* Hai câu đầu hợp lệ; câu cuối lỗi biên dịch.
-2. **Hằng biểu thức:** `short s = 10_000 + 20_000;` có cần cast không?  
-   *Đáp án:* Không. Biểu thức hằng `int 30000` nằm trong miền `short`.
-3. **Biến thông thường:** `int x = 100; byte b = x;` có hợp lệ không?  
-   *Đáp án:* Không; `x` không là constant variable, dù giá trị chạy thử là 100.
-4. **Hằng `final`:** `final int X = 127; byte b = X;` có hợp lệ không? Nếu `X = 128`?  
-   *Đáp án:* 127 hợp lệ; 128 vượt miền `byte` và bị compiler từ chối.
-5. **`char`:** `char c = 65_535;` và `char d = 65_536;` thì sao?  
-   *Đáp án:* `c` hợp lệ, `d` không; `char` không dấu 16 bit.
-6. **`long` literal:** Tại sao `byte b = 100L;` không hợp lệ nhưng `byte b = 100;` hợp lệ?  
-   *Đáp án:* Chuyển thu hẹp hằng trong ngữ cảnh gán không áp dụng cho nguồn kiểu `long`.
-7. **Cast vượt miền:** `(byte) 128` cho bao nhiêu?  
-   *Đáp án:* `-128` do giữ tám bit thấp và diễn giải có dấu.
+1. **`byte` bounds:** Are `byte a = -128; byte b = 127;` valid? What about `byte c = 128;`?  
+   *Answer:* The first two are valid; the last is a compile error.
+2. **Constant expression:** Does `short s = 10_000 + 20_000;` require a cast?  
+   *Answer:* No. The `int` constant expression 30000 fits within the `short` range.
+3. **Regular variable:** Is `int x = 100; byte b = x;` valid?  
+   *Answer:* No; `x` is not a constant variable, even though its test value is 100.
+4. **`final` constant:** Is `final int X = 127; byte b = X;` valid? What if `X = 128`?  
+   *Answer:* 127 is valid; 128 exceeds the `byte` range and is rejected by the compiler.
+5. **`char`:** What about `char c = 65_535;` and `char d = 65_536;`?  
+   *Answer:* `c` is valid, `d` is not; `char` is 16-bit unsigned.
+6. **`long` literal:** Why is `byte b = 100L;` invalid while `byte b = 100;` is valid?  
+   *Answer:* Constant narrowing in assignment context does not apply to a `long` source.
+7. **Out-of-range cast:** What does `(byte) 128` yield?  
+   *Answer:* `-128` due to keeping the low eight bits and interpreting as signed.
 
 ## Checklist
 
-- [ ] Xác định **kiểu nguồn của constant expression**, không chỉ giá trị.
-- [ ] Kiểm tra giá trị nằm trong miền `byte`/`short`/`char`.
-- [ ] Phân biệt literal hằng và biến `int` thông thường.
-- [ ] `final int` chỉ tham gia như constant variable nếu initializer là constant expression.
-- [ ] Biểu thức constant như `'A' + 1` và `40 + 60` có thể được compiler tính trước.
-- [ ] `100L` và `100.0` không thuộc ngoại lệ gán hằng `int`.
-- [ ] Cast hoặc gán `+=` có thể **làm mất dữ liệu**, không tự kiểm tra miền.
-- [ ] Nếu không chắc kết quả nằm trong miền, ưu tiên kiểu rộng hơn hoặc kiểm tra miền trước khi chuyển.
+- [ ] Identify the **source type of the constant expression**, not just the value.
+- [ ] Verify the value lies within `byte`/`short`/`char` range.
+- [ ] Distinguish constant literals from regular `int` variables.
+- [ ] `final int` only participates as a constant variable if its initializer is a constant expression.
+- [ ] Constant expressions such as `'A' + 1` and `40 + 60` can be precomputed by the compiler.
+- [ ] `100L` and `100.0` do not qualify for the `int` constant assignment exception.
+- [ ] Casting or `+=` assignment can **lose data** and does not check bounds automatically.
+- [ ] If unsure whether the result fits in range, prefer a wider type or check bounds before converting.
 
-**Kết luận:** `byte b = 100;` hợp lệ nhờ **ngoại lệ thu hẹp biểu thức hằng trong ngữ cảnh gán**, chứ không phải vì mọi `int` đều tự chuyển về `byte`. Compiler cần biết **giá trị tại thời điểm biên dịch**, và giá trị phải **nằm trong miền kiểu đích**.
+**Conclusion:** `byte b = 100;` is valid due to the **constant expression narrowing exception in assignment context**, not because every `int` converts to `byte` automatically. The compiler must know the **value at compile time**, and that value must **lie within the target type's range**.

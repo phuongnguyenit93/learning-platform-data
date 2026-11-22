@@ -1,63 +1,63 @@
-# Phép chia exact và các API bổ sung theo phiên bản JDK
+# Exact Division and JDK-Version-Specific Additional APIs
 
-Java có các phép chia số nguyên `/` và `Math.floorDiv` từ lâu. Tuy nhiên, phép chia nguyên thông thường có một trường hợp tràn đặc biệt: `Integer.MIN_VALUE / -1` trả về chính `Integer.MIN_VALUE` thay vì báo lỗi. Từ **JDK 18**, lớp `Math` bổ sung `divideExact`, `floorDivExact`, `ceilDivExact` để phát hiện trường hợp tràn này. Cùng phiên bản đó có thêm `ceilDiv` và `ceilMod` phục vụ phép chia làm tròn lên.
+Java has had integer division `/` and `Math.floorDiv` for a long time. However, ordinary integer division has a special overflow case: `Integer.MIN_VALUE / -1` returns `Integer.MIN_VALUE` itself instead of reporting an error. Starting in **JDK 18**, the `Math` class added `divideExact`, `floorDivExact`, and `ceilDivExact` to detect this overflow case. That same release also added `ceilDiv` and `ceilMod` for ceiling-rounded division.
 
-Chữ **exact** ở đây có nghĩa là **phép chia không được âm thầm trả một thương đã tràn miền biểu diễn**, chứ **không có nghĩa hai số phải chia hết cho nhau**. Phân biệt điều này là trọng tâm khi chọn API và khi triển khai trên JDK 17 hoặc phiên bản mới hơn.
+The word **exact** here means **division must not silently return a quotient that overflowed the representation range**, and does **not mean the two numbers must divide evenly without remainder**. Distinguishing this is central when choosing an API and when deploying on JDK 17 or newer.
 
-## 1. Tại sao phép chia nguyên cần kiểm tra tràn?
+## 1. Why Does Integer Division Need Overflow Checking?
 
-Các kiểu nguyên Java dùng dấu và có cận hữu hạn:
+Java integer types are signed and have finite bounds:
 
-- `int`: `-2_147_483_648` đến `2_147_483_647`.
-- `long`: `-9_223_372_036_854_775_808L` đến `9_223_372_036_854_775_807L`.
+- `int`: `-2_147_483_648` to `2_147_483_647`.
+- `long`: `-9_223_372_036_854_775_808L` to `9_223_372_036_854_775_807L`.
 
-Miền âm có thêm một giá trị về độ lớn so với miền dương. Giá trị toán học của `-Integer.MIN_VALUE` là 2.147.483.648, vượt `int`. Vì vậy, trường hợp `Integer.MIN_VALUE / -1` có thương toán học nằm ngoài miền `int`. Tương tự với `Long.MIN_VALUE / -1L`.
+The negative range has one extra value in magnitude compared to the positive range. The mathematical value of `-Integer.MIN_VALUE` is 2,147,483,648, which exceeds `int`. Therefore, `Integer.MIN_VALUE / -1` has a mathematical quotient outside the `int` range. The same holds for `Long.MIN_VALUE / -1L`.
 
 ```java
 int min = Integer.MIN_VALUE;
-System.out.println(min / -1); // -2147483648: kết quả đã tràn.
+System.out.println(min / -1); // -2147483648: overflowed result.
 System.out.println(min % -1); // 0.
 ```
 
-**Java không ném exception trong trường hợp tràn phép chia này.** Đó là hành vi được quy định cho toán tử `/`. Ngược lại, chia số nguyên cho **0** luôn ném `ArithmeticException`.
+**Java does not throw an exception in this division overflow case.** That is the specified behavior of the `/` operator. Conversely, integer division by **0** always throws `ArithmeticException`.
 
-### Khác với tràn của cộng và nhân
+### Different from addition and multiplication overflow
 
-Phép cộng/nhân cũng có thể tràn, nhưng nhiều tổ hợp giá trị có thể tạo overflow. Với phép chia nguyên có dấu, số chia khác 0, **trường hợp tràn thương duy nhất** là:
+Addition and multiplication can also overflow, and many combinations of values can cause overflow. For signed integer division with a non-zero divisor, **the only quotient overflow case** is:
 
-| Kiểu | Số bị chia | Số chia | Thương toán học | Thương thường của Java |
+| Type | Dividend | Divisor | Mathematical Quotient | Standard Java Quotient |
 | --- | --- | --- | --- | --- |
-| `int` | `Integer.MIN_VALUE` | `-1` | 2.147.483.648 | `Integer.MIN_VALUE` |
-| `long` | `Long.MIN_VALUE` | `-1L` | 9.223.372.036.854.775.808 | `Long.MIN_VALUE` |
+| `int` | `Integer.MIN_VALUE` | `-1` | 2,147,483,648 | `Integer.MIN_VALUE` |
+| `long` | `Long.MIN_VALUE` | `-1L` | 9,223,372,036,854,775,808 | `Long.MIN_VALUE` |
 
-Mọi phép chia nguyên khác, với số chia khác 0, có thương được cắt phần lẻ theo hướng về 0 và vừa miền của cùng kiểu. Dù vậy, thương vẫn **bị bỏ phần dư**, vì phép chia nguyên không lưu số thập phân.
+Every other integer division with a non-zero divisor has its quotient truncated toward 0 and fits within the same type's range. Even so, the quotient still **drops any remainder**, because integer division does not store fractional parts.
 
-## 2. Phiên bản JDK quyết định API nào có thể sử dụng
+## 2. JDK Version Determines Which APIs Can Be Used
 
-Khi phát triển thư viện dùng chung, có hai yếu tố độc lập: JDK đang chạy và **API được phép dùng theo phiên bản mục tiêu**. Mã được biên dịch bằng JDK mới vẫn có thể không tương thích Java 17 nếu gọi phương thức chỉ xuất hiện từ JDK 18.
+When developing a shared library, there are two independent factors: the running JDK and the **APIs permitted for the target version**. Code compiled with a newer JDK can still be incompatible with Java 17 if it calls methods introduced only in JDK 18.
 
-| API / nhóm API trong `Math` | Phiên bản bắt đầu | Ý nghĩa |
+| API / API Group in `Math` | Starting Version | Purpose |
 | --- | --- | --- |
-| `addExact`, `subtractExact`, `multiplyExact` (overload `int,int` và `long,long`), `incrementExact`, `decrementExact`, `negateExact`, `toIntExact` | Java 8 | Kiểm tra overflow cho cộng/trừ/nhân/tăng/giảm/đổi dấu/chuyển `long` sang `int` |
-| `floorDiv` và `floorMod` (các overload ban đầu) | Java 8 | Chia lấy thương làm tròn xuống, phần dư có dấu theo số chia |
-| `multiplyFull(int,int)`, `multiplyHigh(long,long)`, `multiplyExact(long,int)` | Java 9 | Một số khả năng nhân và quan sát kết quả lớn hơn |
-| `absExact(int)`, `absExact(long)` | Java 15 | Lấy trị tuyệt đối, ném exception khi gặp giá trị nhỏ nhất |
-| **`divideExact(int,int)`, `divideExact(long,long)`** | **Java 18** | Chia theo quy tắc cắt về 0 và ném exception nếu thương tràn |
-| **`floorDivExact(int,int)`, `floorDivExact(long,long)`** | **Java 18** | Chia làm tròn xuống, có kiểm tra tràn thương |
-| **`ceilDivExact(int,int)`, `ceilDivExact(long,long)`** | **Java 18** | Chia làm tròn lên, có kiểm tra tràn thương |
-| `ceilDiv`, `ceilMod` | Java 18 | Thương làm tròn lên và phần dư đi kèm; bản thường không kiểm tra tràn `MIN_VALUE / -1` |
-| `unsignedMultiplyHigh(long,long)` | Java 18 | Lấy 64 bit cao của tích 128 bit theo nghĩa không dấu |
+| `addExact`, `subtractExact`, `multiplyExact` (`int,int` and `long,long` overloads), `incrementExact`, `decrementExact`, `negateExact`, `toIntExact` | Java 8 | Overflow checking for add/subtract/multiply/increment/decrement/negate/`long`-to-`int` conversion |
+| `floorDiv` and `floorMod` (initial overloads) | Java 8 | Division with quotient rounded down, remainder taking divisor's sign |
+| `multiplyFull(int,int)`, `multiplyHigh(long,long)`, `multiplyExact(long,int)` | Java 9 | Additional multiplication capabilities and observing larger results |
+| `absExact(int)`, `absExact(long)` | Java 15 | Absolute value, throwing an exception on the minimum value |
+| **`divideExact(int,int)`, `divideExact(long,long)`** | **Java 18** | Truncating-toward-0 division that throws an exception if the quotient overflows |
+| **`floorDivExact(int,int)`, `floorDivExact(long,long)`** | **Java 18** | Floor division with quotient overflow checking |
+| **`ceilDivExact(int,int)`, `ceilDivExact(long,long)`** | **Java 18** | Ceiling division with quotient overflow checking |
+| `ceilDiv`, `ceilMod` | Java 18 | Ceiling-rounded quotient and accompanying remainder; plain versions do not check `MIN_VALUE / -1` overflow |
+| `unsignedMultiplyHigh(long,long)` | Java 18 | Gets the upper 64 bits of a 128-bit product in an unsigned sense |
 
-Bảng này nêu những API có ý nghĩa với chủ đề số học nguyên; nó không nhằm liệt kê toàn bộ phương thức của `Math`.
+This table lists APIs relevant to integer arithmetic; it is not meant to enumerate every method in `Math`.
 
-**Quy tắc tương thích:**
+**Compatibility rules:**
 
-- Trên **Java 17**, `Math.divideExact`, `Math.floorDivExact`, `Math.ceilDivExact`, `Math.ceilDiv` và `Math.ceilMod` **chưa có**. Gọi chúng khi biên dịch `--release 17` sẽ báo lỗi không tìm thấy phương thức.
-- Trên **Java 18+**, có thể dùng các phương thức mới, miễn môi trường biên dịch và runtime thực tế đáp ứng phiên bản đó.
-- Với **Java 17**, có thể kiểm tra trường hợp tràn trước `/` hoặc `Math.floorDiv` bằng một hàm nhỏ (xem phần 6).
-- Java 17 **đã có `Math.absExact`**, `Math.addExact`, `Math.multiplyExact` và `Math.toIntExact`. Không nên nhầm thời điểm xuất hiện của cả họ `Exact` là cùng một phiên bản.
+- On **Java 17**, `Math.divideExact`, `Math.floorDivExact`, `Math.ceilDivExact`, `Math.ceilDiv`, and `Math.ceilMod` **do not exist yet**. Calling them when compiling with `--release 17` fails with a method-not-found error.
+- On **Java 18+**, you can use the new methods, provided both the build and runtime environments meet that version.
+- On **Java 17**, you can check for the overflow case before `/` or `Math.floorDiv` using a small helper function (see section 6).
+- Java 17 **already has `Math.absExact`**, `Math.addExact`, `Math.multiplyExact`, and `Math.toIntExact`. Do not assume the entire `Exact` family appeared in the same version.
 
-Dùng lệnh sau để kiểm tra toolchain:
+Use these commands to check your toolchain:
 
 ```bash
 java -version
@@ -65,11 +65,11 @@ javac -version
 javac --release 17 YourFile.java
 ```
 
-`--release 17` giới hạn ngôn ngữ và API công khai ở Java 17, nên đây là phép thử phù hợp cho mã thư viện có yêu cầu tương thích Java 17. Nếu chạy ứng dụng Java 18+ API trên runtime cũ hơn, có thể gặp lỗi liên kết `NoSuchMethodError` (hoặc lỗi phiên bản class file, tùy cách biên dịch); không chỉ quan tâm mã có chạy được trên máy phát triển.
+`--release 17` restricts the language and public APIs to Java 17, making it the right check for library code requiring Java 17 compatibility. Running an application that uses Java 18+ APIs on an older runtime can cause a linkage error `NoSuchMethodError` (or a class-file version error, depending on how it was compiled); do not care only whether it runs on the development machine.
 
-## 3. `Math.divideExact`: vẫn là phép chia lấy thương làm tròn về 0
+## 3. `Math.divideExact`: Still Truncating-Toward-Zero Division
 
-Từ Java 18:
+From Java 18:
 
 ```java
 System.out.println(Math.divideExact(7, 3));  // 2.
@@ -77,16 +77,16 @@ System.out.println(Math.divideExact(-7, 3)); // -2.
 System.out.println(Math.divideExact(7, -3)); // -2.
 ```
 
-Với các toán hạng bình thường, `divideExact(x,y)` cho cùng giá trị như `x / y`, tức **truncation toward zero**. Nếu phép chia có dư, cả hai đều trả thương nguyên đã cắt, **không ném exception chỉ vì có dư**.
+For normal operands, `divideExact(x,y)` gives the same value as `x / y`, namely **truncation toward zero**. If the division has a remainder, both return the truncated integer quotient and **do not throw an exception merely because there is a remainder**.
 
-Ví dụ `Math.divideExact(7, 3) == 2`, chứ không có lỗi “7 không chia hết cho 3”.
+For example, `Math.divideExact(7, 3) == 2`, with no error saying "7 is not divisible by 3."
 
-### Trường hợp exception
+### Exception cases
 
-`Math.divideExact` ném `ArithmeticException` khi:
+`Math.divideExact` throws `ArithmeticException` when:
 
-1. Số chia bằng **0**.
-2. Thương bị **overflow**, tức cặp `MIN_VALUE` và `-1` của cùng kiểu.
+1. The divisor equals **0**.
+2. The quotient **overflows**, i.e., the `MIN_VALUE` and `-1` pair of the same type.
 
 ```java
 // Java 18+:
@@ -95,14 +95,14 @@ Math.divideExact(Long.MIN_VALUE, -1L);   // ArithmeticException.
 Math.divideExact(9, 0);                  // ArithmeticException.
 ```
 
-Lưu ý `Math.divideExact` **không** ném `ArithmeticException` cho `Math.divideExact(7,3)`. Không dựa vào tên phương thức để thay thế một kiểm tra **chia hết**.
+Note that `Math.divideExact` does **not** throw `ArithmeticException` for `Math.divideExact(7,3)`. Do not rely on the method's name as a substitute for a **divisibility** check.
 
-### Muốn bắt buộc chia hết không có phần dư?
+### Want to require exact divisibility with no remainder?
 
-Một chính sách riêng có thể gồm **hai điều kiện**: thương không tràn **và** phần dư bằng 0.
+A custom policy can combine **two conditions**: the quotient does not overflow **and** the remainder equals 0.
 
 ```java
-// Hàm minh họa Java 18+ (đặt bên trong một lớp):
+// Java 18+ illustrative helper (place inside a class):
 static int divideWithoutRemainder(int dividend, int divisor) {
     int quotient = Math.divideExact(dividend, divisor);
     if (dividend % divisor != 0) {
@@ -112,29 +112,29 @@ static int divideWithoutRemainder(int dividend, int divisor) {
 }
 ```
 
-Ví dụ `divideWithoutRemainder(12,4)` bằng 3; `divideWithoutRemainder(7,3)` ném exception do có dư; `divideWithoutRemainder(Integer.MIN_VALUE,-1)` ném exception do tràn. `Math.divideExact` đã kiểm tra số chia 0 trước phép `%`, nên không có phép modulo với 0.
+For example, `divideWithoutRemainder(12,4)` equals 3; `divideWithoutRemainder(7,3)` throws an exception due to a remainder; `divideWithoutRemainder(Integer.MIN_VALUE,-1)` throws an exception due to overflow. `Math.divideExact` already checks for a zero divisor before `%`, so modulo by 0 cannot occur.
 
-Nếu bài toán chấp nhận kết quả dạng **phân số**, phải thay đổi mô hình dữ liệu (chẳng hạn giữ tử/mẫu nguyên với quy tắc chuẩn hóa riêng hoặc dùng số thập phân với chính sách làm tròn), không mong `divideExact` tạo ra 2,333… dưới dạng `int`.
+If the problem accepts **fractional** results, change the data model (such as keeping integer numerator/denominator with custom normalization rules, or using decimal numbers with a rounding policy), rather than expecting `divideExact` to produce 2.333… as an `int`.
 
-## 4. Ba kiểu lấy thương: truncate, floor và ceiling
+## 4. Three Ways to Obtain a Quotient: Truncate, Floor, and Ceiling
 
-Các kiểu làm tròn thương tạo ra kết quả khác nhau khi phép chia có số dư:
+Quotient rounding modes produce different results when division has a remainder:
 
-| Phép toán | Quy tắc thương | Ví dụ `-7 / 3` | Ví dụ `7 / 3` |
+| Operation | Quotient Rule | Example `-7 / 3` | Example `7 / 3` |
 | --- | --- | ---: | ---: |
-| `x / y` hoặc `Math.divideExact(x,y)` | Cắt phần lẻ **về 0** | −2 | 2 |
-| `Math.floorDiv(x,y)` hoặc `Math.floorDivExact(x,y)` | Làm tròn **xuống âm vô cùng** | −3 | 2 |
-| `Math.ceilDiv(x,y)` hoặc `Math.ceilDivExact(x,y)` | Làm tròn **lên dương vô cùng** | −2 | 3 |
+| `x / y` or `Math.divideExact(x,y)` | Truncate fraction **toward 0** | −2 | 2 |
+| `Math.floorDiv(x,y)` or `Math.floorDivExact(x,y)` | Round **down toward negative infinity** | −3 | 2 |
+| `Math.ceilDiv(x,y)` or `Math.ceilDivExact(x,y)` | Round **up toward positive infinity** | −2 | 3 |
 
-Các phương thức `Exact` trong bảng đều có từ **Java 18**; `floorDiv` có từ trước, còn `ceilDiv` cũng được bổ sung ở Java 18.
+The `Exact` methods in the table are all available from **Java 18**; `floorDiv` existed earlier, while `ceilDiv` was also added in Java 18.
 
-Các định nghĩa toán học, khi kết quả biểu diễn được:
+Mathematical definitions, when the result is representable:
 
-- `trunc(x/y)`: lấy phần nguyên hướng về 0.
-- `floor(x/y)`: số nguyên lớn nhất không vượt thương toán học.
-- `ceil(x/y)`: số nguyên nhỏ nhất không nhỏ hơn thương toán học.
+- `trunc(x/y)`: takes the integer part toward 0.
+- `floor(x/y)`: largest integer not exceeding the mathematical quotient.
+- `ceil(x/y)`: smallest integer not less than the mathematical quotient.
 
-Ví dụ có dấu âm:
+Examples with negative signs:
 
 ```java
 // Java 18+:
@@ -147,63 +147,63 @@ System.out.println(Math.floorDivExact(7, 3)); // 2.
 System.out.println(Math.ceilDivExact(7, 3));  // 3.
 ```
 
-**Làm tròn thương và kiểm tra tràn là hai quyết định riêng.** `floorDiv` giải quyết hướng làm tròn, còn `floorDivExact` vừa dùng cùng hướng làm tròn vừa báo lỗi overflow. `ceilDiv` và `ceilDivExact` tương tự.
+**Quotient rounding and overflow checking are two separate decisions.** `floorDiv` addresses the rounding direction, while `floorDivExact` both uses the same rounding direction and reports overflow. `ceilDiv` and `ceilDivExact` work analogously.
 
-### Cặp phần dư phù hợp với từng kiểu thương
+### Matching remainder for each quotient style
 
-Để giữ quan hệ `x = quotient * y + remainder` theo số học:
+To preserve the arithmetic identity `x = quotient * y + remainder`:
 
-| Hướng làm tròn | Thương | Phần dư đi kèm |
+| Rounding Direction | Quotient | Accompanying Remainder |
 | --- | --- | --- |
-| Truncate | `/` hoặc `divideExact` | `%` |
-| Floor | `floorDiv` hoặc `floorDivExact` | `floorMod` |
-| Ceiling | `ceilDiv` hoặc `ceilDivExact` | `ceilMod` |
+| Truncate | `/` or `divideExact` | `%` |
+| Floor | `floorDiv` or `floorDivExact` | `floorMod` |
+| Ceiling | `ceilDiv` or `ceilDivExact` | `ceilMod` |
 
-Với `x=-7` và `y=3`:
+With `x=-7` and `y=3`:
 
-- Truncate: thương −2, dư −1; vì `-7 = -2 * 3 + (-1)`.
-- Floor: thương −3, dư 2; vì `-7 = -3 * 3 + 2`.
-- Ceiling: thương −2, dư −1; cùng kết quả truncate ở trường hợp này.
+- Truncate: quotient −2, remainder −1; since `-7 = -2 * 3 + (-1)`.
+- Floor: quotient −3, remainder 2; since `-7 = -3 * 3 + 2`.
+- Ceiling: quotient −2, remainder −1; same result as truncate in this case.
 
-Với `x=7` và `y=3`:
+With `x=7` and `y=3`:
 
-- Truncate: thương 2, dư 1.
-- Floor: thương 2, dư 1.
-- Ceiling: thương 3, dư −2; vì `7 = 3 * 3 + (-2)`.
+- Truncate: quotient 2, remainder 1.
+- Floor: quotient 2, remainder 1.
+- Ceiling: quotient 3, remainder −2; since `7 = 3 * 3 + (-2)`.
 
-`floorMod` có phần dư cùng dấu với **số chia** hoặc bằng 0; `ceilMod` có phần dư trái dấu với **số chia** hoặc bằng 0. Khi thực sự cần phần dư không âm, dùng `floorMod(x, m)` với **`m > 0`**. `ceilMod` không thay thế `floorMod` cho index vòng chuẩn.
+`floorMod` produces a remainder with the same sign as the **divisor** or 0; `ceilMod` produces a remainder with the opposite sign to the **divisor** or 0. When you truly need a non-negative remainder, use `floorMod(x, m)` with **`m > 0`**. `ceilMod` does not replace `floorMod` for standard circular indexing.
 
-**Ngoại lệ về miền biểu diễn:** nếu `x = MIN_VALUE` và `y = -1`, các phương thức không `Exact` có thể trả thương overflow. Các đẳng thức ở trên nên được hiểu theo toán học hoặc kiểm tra trong miền số phù hợp; tránh suy luận kết quả toán học chính xác từ một phép tính đã tràn.
+**Representation-range exception:** if `x = MIN_VALUE` and `y = -1`, the non-`Exact` methods can return an overflowed quotient. The identities above should be understood mathematically or verified within a valid numeric range; avoid inferring exact mathematical results from an overflowed calculation.
 
-## 5. Những phương thức Exact *không* cùng ngữ nghĩa
+## 5. Exact Methods That Do *Not* Share the Same Semantics
 
-Chữ `Exact` trong `Math` thường chỉ nghĩa “phát hiện kết quả nguyên **vượt miền kiểu trả về**”, mỗi phương thức kiểm tra một phép toán tương ứng:
+The word `Exact` in `Math` usually means "detect when an integer result **exceeds the return type's range**," with each method checking its corresponding operation:
 
-| Phương thức | Ví dụ thành công | Khi nào báo lỗi |
+| Method | Success Example | When It Throws an Error |
 | --- | --- | --- |
-| `Math.addExact(a,b)` | `addExact(2,3) == 5` | Tổng vượt `int`/`long` |
-| `Math.subtractExact(a,b)` | `subtractExact(5,3) == 2` | Hiệu vượt miền |
-| `Math.multiplyExact(a,b)` | `multiplyExact(3,4) == 12` | Tích vượt miền |
+| `Math.addExact(a,b)` | `addExact(2,3) == 5` | Sum exceeds `int`/`long` |
+| `Math.subtractExact(a,b)` | `subtractExact(5,3) == 2` | Difference out of range |
+| `Math.multiplyExact(a,b)` | `multiplyExact(3,4) == 12` | Product out of range |
 | `Math.negateExact(a)` | `negateExact(-7) == 7` | `a == MIN_VALUE` |
 | `Math.absExact(a)` | `absExact(-7) == 7` | `a == MIN_VALUE` |
-| `Math.incrementExact(a)` / `decrementExact(a)` | Tăng/giảm 1 | Chạm cận khi tăng/giảm |
-| `Math.toIntExact(value)` | `toIntExact(42L) == 42` | Giá trị `long` không vừa `int` |
-| `Math.divideExact(x,y)` | `divideExact(7,3) == 2` | Chia 0 hoặc **tràn thương** |
-| `Math.floorDivExact(x,y)` | `floorDivExact(-7,3) == -3` | Chia 0 hoặc **tràn thương** |
-| `Math.ceilDivExact(x,y)` | `ceilDivExact(7,3) == 3` | Chia 0 hoặc **tràn thương** |
+| `Math.incrementExact(a)` / `decrementExact(a)` | Increment/decrement by 1 | Crosses bound when incrementing/decrementing |
+| `Math.toIntExact(value)` | `toIntExact(42L) == 42` | `long` value does not fit in `int` |
+| `Math.divideExact(x,y)` | `divideExact(7,3) == 2` | Divide by 0 or **quotient overflow** |
+| `Math.floorDivExact(x,y)` | `floorDivExact(-7,3) == -3` | Divide by 0 or **quotient overflow** |
+| `Math.ceilDivExact(x,y)` | `ceilDivExact(7,3) == 3` | Divide by 0 or **quotient overflow** |
 
-Một số phương thức không `Exact` vẫn có thể lưu kết quả toán học chính xác trong kiểu **rộng hơn**. Chẳng hạn `Math.multiplyFull(int,int)` trả về tích của hai `int` trong `long`, vì tích của hai `int` luôn vừa `long`. `Math.multiplyHigh(long,long)` chỉ cung cấp 64 bit cao của tích rộng 128 bit, **không phải** toàn bộ tích dưới dạng một `long` chính xác.
+Some non-`Exact` methods can still store an exact mathematical result in a **wider** type. For instance, `Math.multiplyFull(int,int)` returns the product of two `int`s in a `long`, because the product of two `int`s always fits in `long`. `Math.multiplyHigh(long,long)` only provides the upper 64 bits of a 128-bit product, **not** the full product as a single exact `long`.
 
-Lưu ý `Math.abs(Integer.MIN_VALUE)` vẫn trả `Integer.MIN_VALUE`; `Math.absExact(Integer.MIN_VALUE)` mới phát hiện overflow. `Math.toIntExact` không kiểm tra số âm hay index ngoài mảng: nó chỉ kiểm tra miền `int`, không phải hợp lệ nghiệp vụ.
+Note that `Math.abs(Integer.MIN_VALUE)` still returns `Integer.MIN_VALUE`; `Math.absExact(Integer.MIN_VALUE)` is what detects the overflow. `Math.toIntExact` does not check for negative numbers or array bounds: it only checks the `int` range, not business validity.
 
-## 6. Java 17: xây dựng phép chia kiểm tra overflow khi chưa có `divideExact`
+## 6. Java 17: Building Overflow-Checked Division Without `divideExact`
 
-Nếu module đang dùng Java 17, đừng gọi phương thức Java 18 bằng cách “import thêm”. `Math` thuộc `java.base` của JDK và không thể chỉ bổ sung phiên bản API đó bằng một import.
+If a module targets Java 17, do not try to call Java 18 methods by "adding an import." `Math` belongs to the JDK's `java.base` module and you cannot add a newer API version via an import.
 
-Để có **hành vi kiểm tra tương đương** của `divideExact(int,int)` trên Java 17, xử lý cặp gây tràn trước toán tử `/`:
+To get **equivalent checking behavior** to `divideExact(int,int)` on Java 17, handle the overflowing pair before the `/` operator:
 
 ```java
-// Đặt bên trong một class trong Java 17+:
+// Place inside a class on Java 17+:
 static int divideChecked(int x, int y) {
     if (y == 0) {
         throw new ArithmeticException("/ by zero");
@@ -215,7 +215,7 @@ static int divideChecked(int x, int y) {
 }
 ```
 
-Bản cho `long`:
+Version for `long`:
 
 ```java
 static long divideChecked(long x, long y) {
@@ -229,11 +229,11 @@ static long divideChecked(long x, long y) {
 }
 ```
 
-Các hàm trên có thể ném `ArithmeticException` như các phương thức Java 18, nhưng **nội dung message là do hàm tự đặt ra**, không phải cam kết về thông báo exception của JDK. Khi viết test nghiệp vụ, kiểm tra **loại lỗi/điều kiện**, không phụ thuộc một chuỗi thông báo bất biến.
+These functions throw `ArithmeticException` just like the Java 18 methods, but **the message content is chosen by the function**, not a JDK exception-message guarantee. When writing business tests, check the **error type/condition** rather than depending on a fixed message string.
 
-### Java 17: kiểm tra thương floor thay vì truncate
+### Java 17: checking floor quotient instead of truncate
 
-Có thể kiểm tra tràn rồi gọi `Math.floorDiv`:
+You can check for overflow and then call `Math.floorDiv`:
 
 ```java
 static int floorDivChecked(int x, int y) {
@@ -247,11 +247,11 @@ static int floorDivChecked(int x, int y) {
 }
 ```
 
-`Math.floorDiv` đã có trong Java 17; sau khi loại trừ trường hợp tràn, kết quả phù hợp ngữ nghĩa `floorDivExact` của Java 18.
+`Math.floorDiv` already exists in Java 17; after excluding the overflow case, the result matches Java 18's `floorDivExact` semantics.
 
-Nếu yêu cầu **ceil division** trên Java 17, phải triển khai cẩn thận với cả dấu âm, không áp dụng bừa công thức `(a+b-1)/b` vì công thức này có thể tràn và sai với số âm.
+If **ceil division** is needed on Java 17, implement it carefully for negative signs too—do not blindly apply `(a+b-1)/b`, because that formula can overflow and fails for negative numbers.
 
-Một cách tương thích với Java 17, dựa vào thương và số dư của phép chia thường, là:
+A Java 17-compatible approach based on the quotient and remainder of ordinary division is:
 
 ```java
 static int ceilDivChecked(int x, int y) {
@@ -264,13 +264,13 @@ static int ceilDivChecked(int x, int y) {
 }
 ```
 
-Trong phép toán trên `int`, điều kiện `(x ^ y) >= 0` kiểm tra hai số có **cùng dấu** (bit dấu của XOR là 0). Khi thương dương có phần dư, ceil cần cộng một; với thương âm, kết quả truncate đã là ceil. Cặp gây overflow đã được `divideChecked` loại trừ; `quotient + 1` ở nhánh này không vượt miền `int`. Đây là hàm minh họa một cách triển khai kiểm tra tràn, không phải API tiêu chuẩn Java 17.
+In `int` arithmetic, `(x ^ y) >= 0` checks whether the two numbers have the **same sign** (the XOR sign bit is 0). When a positive quotient has a remainder, ceiling needs to add one; for a negative quotient, the truncated result is already the ceiling. The overflow pair was already excluded by `divideChecked`; `quotient + 1` in this branch will not exceed the `int` range. This is an illustrative function showing one overflow-checked implementation, not a standard Java 17 API.
 
-Với mã mới yêu cầu Java 18+, dùng `Math.ceilDivExact` trực tiếp sẽ dễ đọc và dễ bảo trì hơn.
+For new code requiring Java 18+, calling `Math.ceilDivExact` directly is more readable and easier to maintain.
 
-## 7. Ví dụ chạy độc lập trên Java 18+
+## 7. Standalone Runnable Example on Java 18+
 
-Lưu chương trình dưới tên `ExactDivisionDemo18.java`:
+Save the program as `ExactDivisionDemo18.java`:
 
 ```java
 public class ExactDivisionDemo18 {
@@ -314,7 +314,7 @@ public class ExactDivisionDemo18 {
 }
 ```
 
-Chạy với JDK 18 hoặc mới hơn:
+Run with JDK 18 or newer:
 
 ```bash
 javac --release 18 ExactDivisionDemo18.java
@@ -339,11 +339,11 @@ Division by zero: ArithmeticException
 12 divisible by 4? true
 ```
 
-Hai dòng cuối nhấn mạnh rằng `Math.divideExact(7,3)` vẫn bằng 2 và **không bảo đảm phép chia hết**; chỉ kiểm tra `7 % 3 == 0` mới nói được rằng hai số chia hết trong miền số nguyên.
+The last two lines emphasize that `Math.divideExact(7,3)` still equals 2 and **does not guarantee even divisibility**; only checking `7 % 3 == 0` tells you whether two integers divide evenly.
 
-### Ví dụ chạy riêng trên Java 17
+### Separate runnable example on Java 17
 
-Lưu `ExactDivisionDemo17.java`:
+Save `ExactDivisionDemo17.java`:
 
 ```java
 public class ExactDivisionDemo17 {
@@ -388,62 +388,62 @@ Checked floor: -3
 Overflow detected
 ```
 
-Đây là **hai tệp/chương trình độc lập** với hai mức yêu cầu JDK khác nhau. Nếu thực sự phải chạy trên Java 17, chọn ví dụ Java 17 và không gọi `divideExact`/`ceilDivExact`.
+These are **two independent files/programs** with two different JDK requirement levels. If you genuinely must run on Java 17, pick the Java 17 example and do not call `divideExact`/`ceilDivExact`.
 
-## 8. Kiểm thử biên và chọn API đúng trong thực tế
+## 8. Boundary Testing and Choosing the Right API in Practice
 
-Một bộ test tối thiểu cho phép chia nguyên có kiểm tra overflow nên bao gồm:
+A minimal test suite for overflow-checked integer division should cover:
 
-| Đầu vào | Kết quả mong đợi của `divideExact` (Java 18+) | Điều cần xác thực |
+| Input | Expected Result of `divideExact` (Java 18+) | What to Verify |
 | --- | --- | --- |
-| `(7,3)` | 2 | Có dư nhưng **không** ném exception |
-| `(-7,3)` | −2 | Làm tròn về 0 |
-| `(7,-3)` | −2 | Làm tròn về 0 |
-| `(-7,-3)` | 2 | Hai số cùng dấu |
-| `(Integer.MIN_VALUE,-1)` | `ArithmeticException` | Overflow `int` |
-| `(Long.MIN_VALUE,-1L)` | `ArithmeticException` | Overflow `long` |
-| `(1,0)` | `ArithmeticException` | Chia cho 0 |
+| `(7,3)` | 2 | Has remainder yet does **not** throw an exception |
+| `(-7,3)` | −2 | Truncates toward 0 |
+| `(7,-3)` | −2 | Truncates toward 0 |
+| `(-7,-3)` | 2 | Both numbers have the same sign |
+| `(Integer.MIN_VALUE,-1)` | `ArithmeticException` | `int` overflow |
+| `(Long.MIN_VALUE,-1L)` | `ArithmeticException` | `long` overflow |
+| `(1,0)` | `ArithmeticException` | Division by 0 |
 | `(0,3)` | 0 | Zero dividend |
-| `(Integer.MIN_VALUE,1)` | `Integer.MIN_VALUE` | Giá trị nằm trong miền |
+| `(Integer.MIN_VALUE,1)` | `Integer.MIN_VALUE` | Value within range |
 
-Với `floorDivExact` và `ceilDivExact`, bổ sung các test chia số âm còn dư: `(-7,3)` tương ứng −3/−2, và `(7,3)` tương ứng 2/3; kiểm tra cả số chia âm. Trên JDK 17, chạy cùng bộ trường hợp cho các hàm `divideChecked`, `floorDivChecked` hoặc `ceilDivChecked` tự xây dựng, và test việc biên dịch với `--release 17`.
+For `floorDivExact` and `ceilDivExact`, add tests dividing negative numbers with remainders: `(-7,3)` gives −3/−2 respectively, and `(7,3)` gives 2/3; test negative divisors as well. On JDK 17, run the same test cases for your custom `divideChecked`, `floorDivChecked`, or `ceilDivChecked` helpers, and test compiling with `--release 17`.
 
-### Đâu là “exact” mà nghiệp vụ thực sự cần?
+### Which "exact" does the business requirement actually need?
 
-Có ít nhất ba nhu cầu cần phân biệt:
+At least three needs must be distinguished:
 
-1. **Không cho phép overflow:** dùng `Math.divideExact`, `floorDivExact` hoặc `ceilDivExact` từ Java 18+, hoặc kiểm tra trước khi chia trên Java 17.
-2. **Không cho phép phần dư:** ngoài việc kiểm tra overflow, phải kiểm tra `x % y == 0`. Không có nghĩa vụ chia hết được suy ra chỉ từ tên `divideExact`.
-3. **Cần kết quả toán học lớn hơn `long` hoặc phân số/thập phân chính xác:** dùng cấu trúc số lớn hoặc biểu diễn hợp đồng phù hợp, ví dụ `BigInteger` cho số nguyên lớn và `BigDecimal` cho giá trị thập phân với chính sách chia/làm tròn. `BigDecimal.divide` với yêu cầu exact có thể ném `ArithmeticException` khi khai triển thập phân không kết thúc; đây **là ngữ nghĩa khác** `Math.divideExact`.
+1. **Disallow overflow:** use `Math.divideExact`, `floorDivExact`, or `ceilDivExact` on Java 18+, or check before dividing on Java 17.
+2. **Disallow remainders:** in addition to checking overflow, check `x % y == 0`. No divisibility guarantee can be inferred solely from the name `divideExact`.
+3. **Need a mathematical result larger than `long`, or exact fractions/decimals:** use large-number structures or an appropriate representation contract, such as `BigInteger` for large integers and `BigDecimal` for decimal values with an explicit division/rounding policy. `BigDecimal.divide` with an exact requirement can throw `ArithmeticException` when the decimal expansion does not terminate; this **is different semantics** from `Math.divideExact`.
 
-Nếu dữ liệu không tin cậy đến từ bên ngoài, xử lý `ArithmeticException` ở ranh giới phù hợp và quyết định rõ lỗi nào nên báo ra ngoài. Không nên bắt toàn bộ exception rồi trả về 0, vì 0 là một kết quả hợp lệ của phép chia và có thể che giấu dữ liệu sai.
+If untrusted data arrives from outside, handle `ArithmeticException` at an appropriate boundary and decide explicitly which errors to report externally. Do not catch all exceptions and return 0, because 0 is a valid division result and can mask invalid data.
 
-### Những lỗi hay gặp
+### Common pitfalls
 
-- **Nhầm `divideExact` với “chia không dư”.** `divideExact(7,3)` trả 2, không ném lỗi.
-- **Dùng API Java 18 trong dự án bắt buộc Java 17.** Kiểm tra với `javac --release 17`, không chỉ với JDK cài trên máy.
-- **Dùng `Math.floorDiv` để kỳ vọng tự phát hiện overflow.** `floorDiv(MIN_VALUE,-1)` vẫn có thể trả giá trị tràn; Java 18+ có `floorDivExact`.
-- **Dùng `Math.ceilDiv` và nghĩ rằng đó là checked division.** `ceilDiv` xử lý hướng làm tròn; `ceilDivExact` thêm kiểm tra overflow.
-- **Đổi sang `double` rồi lấy `Math.floor` hoặc `Math.ceil` khi tính trên `long` rất lớn.** Chuyển `long` sang `double` có thể mất chính xác; ưu tiên API số nguyên.
-- **Giả sử `Math.abs` có kiểm tra overflow.** `Math.abs(Integer.MIN_VALUE)` vẫn âm; `Math.absExact` từ Java 15 mới phát hiện.
-- **Dùng công thức `(a+b-1)/b` để tính ceil division cho mọi đầu vào.** Công thức có thể tràn, và không xử lý chính xác nhiều trường hợp số âm.
-- **Nhầm overload với kiểu trả về.** Khi dùng `int`/`long`, xem chữ ký phương thức thực tế; không tự động ép hẹp một kết quả `long` sang `int`.
-- **So sánh thông báo lỗi exception như một giao thức.** Hãy xác nhận loại lỗi và ngữ nghĩa, vì message không phải là hợp đồng cố định của mọi JDK.
+- **Confusing `divideExact` with "divisible without remainder."** `divideExact(7,3)` returns 2 without throwing.
+- **Using Java 18 APIs in a project that requires Java 17.** Check with `javac --release 17`, not just the JDK installed on your machine.
+- **Using `Math.floorDiv` expecting it to detect overflow automatically.** `floorDiv(MIN_VALUE,-1)` can still return an overflowed value; Java 18+ provides `floorDivExact`.
+- **Using `Math.ceilDiv` thinking it is checked division.** `ceilDiv` handles rounding direction; `ceilDivExact` adds overflow checking.
+- **Converting to `double` and calling `Math.floor` or `Math.ceil` on very large `long` values.** Converting `long` to `double` can lose precision; prefer integer APIs.
+- **Assuming `Math.abs` checks for overflow.** `Math.abs(Integer.MIN_VALUE)` stays negative; `Math.absExact` (from Java 15) is what detects it.
+- **Using `(a+b-1)/b` for ceiling division on all inputs.** That formula can overflow and mishandles many negative-number cases.
+- **Confusing overloads with return types.** When using `int`/`long`, check the actual method signature; do not implicitly narrow a `long` result to `int`.
+- **Comparing exception message text as a protocol.** Verify the error type and semantics, because messages are not a fixed contract across all JDKs.
 
-## 9. Tự kiểm tra
+## 9. Self-Check
 
-1. Tại sao `Integer.MIN_VALUE / -1` không ném exception nhưng `Math.divideExact(Integer.MIN_VALUE,-1)` lại ném? Java phiên bản nào bổ sung phương thức thứ hai?
-2. `Math.divideExact(10,3)` có ném `ArithmeticException` không? Nếu muốn bắt buộc 10 chia hết cho 3, điều kiện nào còn thiếu?
-3. Với `x=-7, y=3`, phân biệt thương của `/`, `floorDivExact` và `ceilDivExact`.
-4. Vì sao `Math.ceilDiv(7,3)` bằng 3 nhưng `Math.ceilMod(7,3)` bằng −2? Kiểm tra quan hệ giữa thương và phần dư.
-5. Đang phát triển thư viện chạy trên Java 17, vì sao dùng JDK 24 để build không mặc nhiên cho phép gọi `Math.divideExact` trong artifact tương thích Java 17?
-6. Viết hàm kiểm tra chia nguyên Java 17 cho trường hợp `Long.MIN_VALUE/-1L` và trường hợp divisor 0.
-7. Khi nào nên dùng `Math.toIntExact`, `Math.absExact` hoặc `Math.multiplyExact` thay vì `Math.divideExact`?
+1. Why doesn't `Integer.MIN_VALUE / -1` throw an exception whereas `Math.divideExact(Integer.MIN_VALUE,-1)` does? Which Java version added the latter method?
+2. Does `Math.divideExact(10,3)` throw `ArithmeticException`? If you want to enforce that 10 is divisible by 3, what condition is missing?
+3. For `x=-7, y=3`, distinguish the quotients of `/`, `floorDivExact`, and `ceilDivExact`.
+4. Why does `Math.ceilDiv(7,3)` equal 3 while `Math.ceilMod(7,3)` equals −2? Verify the relation between quotient and remainder.
+5. When developing a library that runs on Java 17, why doesn't building with JDK 24 automatically allow calling `Math.divideExact` in a Java 17-compatible artifact?
+6. Write a Java 17 checked integer-division helper for the `Long.MIN_VALUE/-1L` case and divisor 0 case.
+7. When should you use `Math.toIntExact`, `Math.absExact`, or `Math.multiplyExact` instead of `Math.divideExact`?
 
-## 10. Tham khảo JDK API chính thức
+## 10. Official JDK API References
 
-- [Math — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html): các overload có sẵn trước Java 18, gồm `floorDiv`, `floorMod`, `absExact`, `addExact`, `multiplyExact` và `toIntExact`.
-- [Math — Java SE 18](https://docs.oracle.com/en/java/javase/18/docs/api/java.base/java/lang/Math.html): `Since: 18` của `divideExact`, `floorDivExact`, `ceilDivExact`, `ceilDiv`, `ceilMod`.
-- [Java Language Specification `15.17.2 — Division Operator /](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.17.2): quy tắc phép chia số nguyên và trường hợp overflow.
+- [Math — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html): overloads available prior to Java 18, including `floorDiv`, `floorMod`, `absExact`, `addExact`, `multiplyExact`, and `toIntExact`.
+- [Math — Java SE 18](https://docs.oracle.com/en/java/javase/18/docs/api/java.base/java/lang/Math.html): `Since: 18` for `divideExact`, `floorDivExact`, `ceilDivExact`, `ceilDiv`, and `ceilMod`.
+- [Java Language Specification `15.17.2 — Division Operator /](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.17.2): integer division rules and the overflow case.
 
-**Ghi nhớ:** **Java 18+** có `divideExact`/`floorDivExact`/`ceilDivExact` để **báo lỗi khi thương số nguyên tràn**. “Exact” không có nghĩa kết quả không có phần dư. **Java 17** vẫn triển khai được chính sách kiểm tra bằng cách bắt cặp `MIN_VALUE/-1` trước `/` hoặc `floorDiv`, và phải xác định rõ yêu cầu làm tròn, chia hết, xử lý chia 0 cũng như phiên bản JDK mục tiêu.
+**Remember:** **Java 18+** provides `divideExact`/`floorDivExact`/`ceilDivExact` to **report errors when an integer quotient overflows**. "Exact" does not mean the result has no remainder. **Java 17** can still implement the checking policy by catching `MIN_VALUE/-1` before `/` or `floorDiv`, and you must clearly specify rounding rules, divisibility requirements, division-by-zero handling, and the target JDK version.

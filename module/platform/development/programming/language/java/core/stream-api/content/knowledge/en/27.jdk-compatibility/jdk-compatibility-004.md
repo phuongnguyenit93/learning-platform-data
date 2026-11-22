@@ -1,22 +1,22 @@
-# Kết hợp Collector bằng teeing từ Java 12
+# Combining Collectors with teeing Since Java 12
 
-Trong Java Stream API, ta thường kết thúc pipeline bằng một phép thu thập: đếm số bản ghi, tính tổng tiền, tìm giá trị lớn nhất hoặc gom phần tử theo nhóm. Nhưng nhiều báo cáo cần **hai kết quả khác nhau trên cùng một tập phần tử**, chẳng hạn vừa đếm giao dịch vừa tính tổng doanh thu, vừa tìm giá trị nhỏ nhất vừa tìm giá trị lớn nhất, hoặc vừa đếm số bản ghi hợp lệ vừa đếm số bản ghi không hợp lệ.
+In the Java Stream API, we often end a pipeline with a single collection step: counting records, summing amounts, finding the maximum value, or grouping elements. Yet many reports need **two different results over the same set of elements**, such as counting transactions and summing revenue, finding both minimum and maximum values, or counting valid and invalid records together.
 
-Từ **Java 12**, `Collectors.teeing(...)` giúp kết hợp **hai Collector downstream** và một hàm **merger** thành **một Collector mới**. Mỗi phần tử đi vào hai nhánh thu thập; khi cả hai hoàn thành, merger kết hợp hai kết quả thành kiểu đầu ra cuối cùng. Nhờ vậy, ta có thể biểu diễn báo cáo hai chiều trong **một terminal `collect`** thay vì duyệt lại nguồn hoặc xây một accumulator tùy chỉnh cho mọi tình huống.
+Since **Java 12**, `Collectors.teeing(...)` combines **two downstream Collectors** and a **merger** function into **a single new Collector**. Each element enters both collection branches; when both finish, the merger combines the two results into the final output type. This lets you express a two-way report in **one terminal `collect`** rather than re-traversing the source or building a custom accumulator for every scenario.
 
-Bài học thuộc chương **Khả năng tương thích JDK** của module `JAVA_STREAM_API`. Ngoài cú pháp, ta sẽ phân tích yêu cầu phiên bản, kiểu dữ liệu, nguồn rỗng, `Optional`, tương tác với `groupingBy`/`mapping`/`filtering`, đặc tính Collector, xử lý song song, độ chính xác số học, nguồn I/O và cách thay thế trên Java 8–11. Các ví dụ dựa trên pipeline lazy có `filter`, `map`, `reduce` và `collect`.
+This lesson belongs to the **JDK Compatibility** chapter of the `JAVA_STREAM_API` module. Beyond syntax, we will analyze version requirements, data types, empty sources, `Optional`, interactions with `groupingBy`/`mapping`/`filtering`, Collector characteristics, parallel processing, arithmetic precision, I/O sources, and alternatives on Java 8–11. Examples build on lazy pipelines with `filter`, `map`, `reduce`, and `collect`.
 
-> **Mốc tương thích:** `Collectors.teeing` là API chính thức có từ **Java 12**, không có trong Java 8–11. Những phần dùng `teeing` phải biên dịch với API từ Java 12 trở lên và chạy trên runtime tương thích. Ví dụ sử dụng lớp thông thường thay cho `record` để không vô tình yêu cầu Java 16.
+> **Compatibility milestone:** `Collectors.teeing` is an official API since **Java 12**, unavailable in Java 8–11. Code using `teeing` must compile against Java 12+ APIs and run on a compatible runtime. Examples use regular classes instead of `record` so they do not inadvertently require Java 16.
 
-## 1. Vì sao phải kết hợp hai Collector?
+## 1. Why Combine Two Collectors?
 
-Giả sử có các điểm:
+Suppose we have scores:
 
 ```text
 80, 65, 90, 50
 ```
 
-Ta muốn báo cáo **tổng số điểm** và **điểm trung bình**. Cách dễ nghĩ tới là duyệt hai lần:
+We want to report the **total number of scores** and the **average score**. The obvious approach is traversing twice:
 
 ```java
 import java.util.Arrays;
@@ -34,24 +34,24 @@ System.out.println(count);   // 4
 System.out.println(average); // 71.25
 ```
 
-Với `List` trong bộ nhớ, tạo hai Stream mới có thể chấp nhận được. Tuy nhiên, khi nguồn là tệp, một Iterator chỉ duyệt được một lần, hoặc quá trình xử lý trước `collect` tốn tài nguyên, việc lặp lại pipeline có thể bất tiện hay không khả thi.
+For an in-memory `List`, creating two new Streams can be acceptable. However, when the source is a file, a single-pass Iterator, or upstream processing before `collect` is resource-intensive, repeating the pipeline may be inconvenient or infeasible.
 
-Điều **không được làm** là gọi hai terminal operation trên **cùng một instance Stream**:
+What you **must not do** is call two terminal operations on **the same Stream instance**:
 
 ```java
-// SAI: cùng một Stream không thể tiêu thụ hai lần.
+// WRONG: the same Stream cannot be consumed twice.
 java.util.stream.Stream<Integer> stream = scores.stream();
 
 long numberOfScores = stream.count();
-// Lời gọi sau sẽ không hợp lệ vì stream đã bị tiêu thụ.
+// The following call will be invalid because the stream is already consumed.
 long sum = stream.mapToLong(Integer::longValue).sum();
 ```
 
-`teeing` giải quyết bài toán khi muốn tạo **một kết quả tổ hợp** từ hai Collector cùng đọc luồng phần tử logic.
+`teeing` solves the problem when you want to produce **one composite result** from two Collectors reading the same logical stream of elements.
 
-## 2. Chữ ký API và ba tham số
+## 2. API Signature and Three Parameters
 
-Chữ ký tổng quát của phương thức:
+The general method signature:
 
 ```java
 public static <T, R1, R2, R> Collector<T, ?, R> teeing(
@@ -61,19 +61,19 @@ public static <T, R1, R2, R> Collector<T, ?, R> teeing(
 )
 ```
 
-Ý nghĩa:
+Meaning:
 
-| Ký hiệu | Ý nghĩa |
+| Symbol | Meaning |
 | --- | --- |
-| `T` | Kiểu phần tử đầu vào của Stream |
-| `R1` | Kết quả cuối của Collector thứ nhất |
-| `R2` | Kết quả cuối của Collector thứ hai |
-| `R` | Kiểu kết quả chung do merger tạo |
-| `downstream1` | Thu thập kết quả độc lập thứ nhất |
-| `downstream2` | Thu thập kết quả độc lập thứ hai |
-| `merger` | Nhận kết quả `R1`, `R2` và tạo `R` |
+| `T` | Input element type of the Stream |
+| `R1` | Final result of the first Collector |
+| `R2` | Final result of the second Collector |
+| `R` | Combined result type produced by the merger |
+| `downstream1` | Collects the first independent result |
+| `downstream2` | Collects the second independent result |
+| `merger` | Takes results `R1`, `R2` and produces `R` |
 
-Sơ đồ tư duy:
+Mental model:
 
 ```text
                          Stream<T>
@@ -82,7 +82,7 @@ Sơ đồ tư duy:
                              |
                      collect(teeing)
                              |
-                    mỗi phần tử đầu vào
+                    each input element
                      /               \
                     v                 v
              downstream1         downstream2
@@ -92,14 +92,14 @@ Sơ đồ tư duy:
                            merger
                         (R1,R2) -> R
                              |
-                         kết quả R
+                         result R
 ```
 
-**Mỗi phần tử đi qua Collector mới sẽ được tích lũy vào cả hai downstream.** Nhưng merger **không chạy trên từng phần tử**: nó chỉ nhận **hai kết quả đã hoàn tất** để tạo kết quả cuối.
+**Every element passing through the combined Collector is accumulated into both downstreams.** However, the merger **does not run per element**: it only receives **the two finished results** to build the final result.
 
-`teeing` là **factory tạo Collector**, còn `stream.collect(...)` mới là terminal operation kích hoạt xử lý. `teeing` không biến thành một thao tác intermediate mới như `map` hoặc `filter`.
+`teeing` is a **Collector factory**, whereas `stream.collect(...)` is the terminal operation triggering execution. `teeing` does not turn into a new intermediate operation like `map` or `filter`.
 
-### Ví dụ đầu tiên: đếm và lấy trung bình
+### First Example: Counting and Averaging
 
 ```java
 import java.util.Arrays;
@@ -120,29 +120,29 @@ System.out.println(result.getKey());   // 4
 System.out.println(result.getValue()); // 71.25
 ```
 
-Ở đây:
+Here:
 
-- `Collectors.counting()` trả `Long`.
-- `Collectors.averagingInt(...)` trả `Double`.
-- `Map::entry` kết hợp hai giá trị thành `Map.Entry<Long,Double>`.
+- `Collectors.counting()` returns `Long`.
+- `Collectors.averagingInt(...)` returns `Double`.
+- `Map::entry` combines the two values into `Map.Entry<Long,Double>`.
 
-`Map.entry(k,v)` là factory có từ **Java 9**, nên phù hợp cho ví dụ Java 12. Entry này không hỗ trợ `setValue`. Đừng chọn nó nếu cần một đối tượng báo cáo có các trường được đặt tên rõ hơn; `Map.Entry` chủ yếu phù hợp cho minh họa ngắn.
+`Map.entry(k,v)` is a factory introduced in **Java 9**, so it fits Java 12 examples. This Entry does not support `setValue`. Do not choose it if you need a report object with clearly named fields; `Map.Entry` is mainly suited for brief illustrations.
 
-Điều cốt lõi là `Map.Entry` biểu diễn cặp kết quả còn `Collectors.teeing` thực hiện hai phép thu thập trong một lần tiêu thụ nguồn.
+The core takeaway is that `Map.Entry` represents the pair of results while `Collectors.teeing` executes both collections in a single source consumption.
 
-## 3. Một lượt duyệt nguồn không có nghĩa một phép tính
+## 3. One Source Pass Does Not Mean One Computation
 
-Mỗi phần tử đầu vào được chuyển tới **hai bộ tích lũy downstream**:
+Each input element is passed to **both downstream accumulators**:
 
 ```text
-Phần tử "A" --+--> collector 1: tăng số đếm
+Element "A" --+--> collector 1: increment count
               |
-              +--> collector 2: cập nhật tổng độ dài
+              +--> collector 2: update total length
 ```
 
-Vì vậy `teeing` giúp tránh **hai lần tiêu thụ nguồn**, nhưng **không miễn phí**: cả hai Collector đều làm công việc của mình. Nếu chúng cùng tính một biểu thức đắt đỏ từ `T`, biểu thức đó có thể bị tính hai lần.
+Thus `teeing` avoids **two source consumptions**, yet is **not free**: both Collectors do their own work. If they both compute an expensive expression from `T`, that expression may be evaluated twice.
 
-Ví dụ không cần tính hai lần phép chuẩn hóa:
+Example avoiding computing normalization twice:
 
 ```java
 import java.util.Arrays;
@@ -155,7 +155,7 @@ List<String> rawNames = Arrays.asList(
 );
 
 Map.Entry<Long, Long> overview = rawNames.stream()
-        .map(String::trim) // chuẩn hóa chung, trước teeing
+        .map(String::trim) // shared normalization, before teeing
         .collect(Collectors.teeing(
                 Collectors.counting(),
                 Collectors.summingLong(String::length),
@@ -166,13 +166,13 @@ System.out.println(overview.getKey());   // 3
 System.out.println(overview.getValue()); // 9
 ```
 
-Với các tên sau trim là `"An"`, `"Binh"`, `"Chi"`, tổng độ dài là `2 + 4 + 3 = 9`. `map(String::trim)` đặt **trước** teeing nên phép chuẩn hóa xảy ra trong pipeline dùng chung, thay vì lặp lại trong mỗi Collector.
+With trimmed names `"An"`, `"Binh"`, `"Chi"`, total length is `2 + 4 + 3 = 9`. `map(String::trim)` is placed **before** teeing so normalization happens once in the shared pipeline rather than repeating in each Collector.
 
-**Tư duy lựa chọn:** đặt những phép biến đổi và lọc **mà cả hai nhánh đều cần** ở phía trước `teeing`. Những phép biến đổi **chỉ một nhánh cần** thì đặt trong downstream qua `mapping` hoặc `filtering`.
+**Design mindset:** place transformations and filters **needed by both branches** before `teeing`. Transformations **needed by only one branch** go inside its downstream via `mapping` or `filtering`.
 
-## 4. Trả về DTO báo cáo thay vì cặp giá trị vô danh
+## 4. Returning a Report DTO Instead of an Anonymous Value Pair
 
-Trong ứng dụng thật, các trường `getKey()` và `getValue()` không mô tả rõ nghiệp vụ. Nên tạo một kiểu báo cáo có tên trường tường minh:
+In real applications, `getKey()` and `getValue()` do not clearly describe business intent. Create a report type with explicit field names:
 
 ```java
 public final class ScoreReport {
@@ -200,7 +200,7 @@ public final class ScoreReport {
 }
 ```
 
-Dùng constructor reference làm merger:
+Use a constructor reference as the merger:
 
 ```java
 import java.util.Arrays;
@@ -220,15 +220,15 @@ System.out.println(report);
 // ScoreReport{count=4, average=71.25}
 ```
 
-`ScoreReport::new` nhận `Long` và `Double` được Java tự unboxing thành `long` và `double` theo chữ ký constructor.
+`ScoreReport::new` receives `Long` and `Double`, which Java automatically unboxes to `long` and `double` matching the constructor signature.
 
-Đây là ưu điểm nổi bật của `teeing`: hai kết quả `R1` và `R2` không cần cùng kiểu, và merger có thể trả bất kỳ kiểu `R` phù hợp nào.
+This is a standout strength of `teeing`: the two results `R1` and `R2` need not share the same type, and the merger can return any suitable type `R`.
 
-**Lưu ý về Java 12:** `record ScoreReport(long count, double average)` chưa phải cú pháp chính thức ở Java 12. Khi muốn giữ source tương thích với Java 12, hãy dùng class thông thường như trên.
+**Java 12 note:** `record ScoreReport(long count, double average)` was not yet official syntax in Java 12. When keeping source compatible with Java 12, use a regular class as shown above.
 
-## 5. Nguồn rỗng: đừng hiểu 0.0 là có dữ liệu
+## 5. Empty Sources: Do Not Mistake 0.0 for Real Data
 
-Một điểm dễ sai khi thiết kế báo cáo:
+A common pitfall when designing reports:
 
 ```java
 import java.util.Collections;
@@ -246,9 +246,9 @@ System.out.println(emptyReport.count());   // 0
 System.out.println(emptyReport.average()); // 0.0
 ```
 
-`Collectors.counting()` cho `0L` với nguồn rỗng. `Collectors.averagingInt(...)` cũng trả `0.0` cho nguồn rỗng. Nhưng **`0.0` là giá trị được quy định của Collector**, không nhất thiết có nghĩa “trung bình thực sự bằng 0” theo nghiệp vụ.
+`Collectors.counting()` yields `0L` for an empty source. `Collectors.averagingInt(...)` also returns `0.0` for an empty source. However, **`0.0` is a Collector-defined default**, not necessarily "the true average is 0" in business terms.
 
-Nếu cần phân biệt “không có điểm” và “trung bình bằng 0 trên dữ liệu có thật”, dùng `OptionalDouble`:
+If you need to distinguish "no scores" from "an average of 0 over real data", use `OptionalDouble`:
 
 ```java
 import java.util.Arrays;
@@ -272,13 +272,13 @@ OptionalDouble average = scores.stream()
 System.out.println(average.getAsDouble()); // 71.25
 ```
 
-Với nguồn rỗng, merger trả `OptionalDouble.empty()`. Mẫu này biểu diễn **giá trị trung bình có thể vắng mặt** rõ ràng hơn.
+On an empty source, the merger returns `OptionalDouble.empty()`. This pattern represents a **potentially absent average** much more clearly.
 
-Bộ cộng `summingLong` vẫn có giới hạn của `long` và có thể tràn trên dữ liệu cực lớn; nó chỉ là ví dụ cho các điểm trong miền nhỏ. Nếu nghiệp vụ cần số thập phân chính xác hoặc tổng vượt `long`, chọn kiểu dữ liệu và phép cộng khác, không tự động coi `teeing` giải quyết được bài toán số học.
+The `summingLong` accumulator still has `long`'s range limit and can overflow on extremely large data; it serves only as an example for small-domain scores. If business logic requires exact decimals or sums exceeding `long`, choose a different data type and addition operation rather than assuming `teeing` solves arithmetic issues automatically.
 
-### Quy tắc xử lý dữ liệu thiếu
+### Rules for Handling Missing Data
 
-Một `List<Integer>` có thể chứa `null`. Cả `Integer::intValue` và `Integer::longValue` đều không chấp nhận null như giá trị số, nên hãy xác định chính sách:
+A `List<Integer>` may contain `null`. Neither `Integer::intValue` nor `Integer::longValue` accepts null as a numeric value, so define an explicit policy:
 
 ```java
 import java.util.Arrays;
@@ -297,13 +297,13 @@ ScoreReport validOnly = raw.stream()
 System.out.println(validOnly.count()); // 3
 ```
 
-Ở đây `count` là **số điểm hợp lệ**, không phải tổng số bản ghi đầu vào. Nếu báo cáo cần số lượng dữ liệu thiếu, thêm một phép thống kê riêng hoặc thiết kế collector tổ hợp có đủ thông tin. Không nên âm thầm dùng `0` thay thế điểm null nếu điều đó làm sai ý nghĩa trung bình.
+Here `count` is the **number of valid scores**, not the total number of input records. If the report needs the count of missing data, add a separate statistic or design a combined collector capturing full information. Do not silently substitute `0` for null scores if that distorts the meaning of the average.
 
-## 6. Kết hợp minBy và maxBy trong một Collector
+## 6. Combining minBy and maxBy in One Collector
 
-Một trường hợp `teeing` khác là tìm **giá trị nhỏ nhất** và **giá trị lớn nhất** mà vẫn phân biệt nguồn rỗng.
+Another use case for `teeing` is finding **minimum** and **maximum** values while still distinguishing an empty source.
 
-Định nghĩa kết quả:
+Define the result type:
 
 ```java
 public final class IntRange {
@@ -330,7 +330,7 @@ public final class IntRange {
 }
 ```
 
-Tính kết quả:
+Compute the result:
 
 ```java
 import java.util.Arrays;
@@ -354,17 +354,17 @@ Optional<IntRange> range = values.stream()
 System.out.println(range); // Optional[[-2, 20]]
 ```
 
-`minBy` và `maxBy` đều trả `Optional<Integer>`. Nếu không có phần tử, cả hai Optional đều rỗng và merger tạo `Optional.empty()`.
+Both `minBy` and `maxBy` return `Optional<Integer>`. If there are no elements, both Optionals are empty and the merger produces `Optional.empty()`.
 
-Đừng chọn `0` làm “giá trị lớn nhất ban đầu” khi nguồn có thể chứa số âm; cách làm đó có thể tạo giá trị không hề xuất hiện trong nguồn.
+Do not pick `0` as an "initial max value" when the source may contain negative numbers; that approach can invent a value that never existed in the source.
 
-**Lựa chọn đơn giản hơn:** nếu chỉ cần min và max của `int`, `IntStream.summaryStatistics()` (Java 8) đã cung cấp cả `count`, `sum`, `min`, `max` và `average`. `teeing` không bắt buộc là lựa chọn tối ưu khi một API chuyên dụng đã trả đủ thống kê.
+**Simpler option:** if you only need min and max of `int`, `IntStream.summaryStatistics()` (Java 8) already provides `count`, `sum`, `min`, `max`, and `average`. `teeing` is not mandatory when a specialized API already provides all needed statistics.
 
-## 7. Kết hợp counting và reducing với BigDecimal
+## 7. Combining counting and reducing with BigDecimal
 
-Một tình huống nghiệp vụ: thống kê **số giao dịch đã thanh toán** và **tổng số tiền**. Dữ liệu tiền tệ cần độ chính xác thập phân, nên dùng `BigDecimal` thay vì cộng dồn các giá trị `double`.
+A business scenario: summarizing **paid transaction count** and **total amount**. Monetary data requires decimal precision, so use `BigDecimal` instead of accumulating `double` values.
 
-Lớp giao dịch:
+Transaction class:
 
 ```java
 import java.math.BigDecimal;
@@ -394,7 +394,7 @@ public final class Payment {
 }
 ```
 
-Lớp kết quả:
+Result class:
 
 ```java
 import java.math.BigDecimal;
@@ -418,7 +418,7 @@ public final class PaymentReport {
 }
 ```
 
-Áp dụng `teeing`:
+Applying `teeing`:
 
 ```java
 import java.math.BigDecimal;
@@ -450,28 +450,28 @@ System.out.println(paid.paidCount()); // 2
 System.out.println(paid.paidTotal()); // 16.25
 ```
 
-Điểm thiết kế:
+Design points:
 
-1. `filter(Payment::isPaid)` đặt trước `teeing` vì **hai nhánh** đều chỉ cần giao dịch đã thanh toán.
-2. `counting()` đếm số giao dịch hợp lệ qua bộ lọc.
-3. `mapping(Payment::amount, reducing(...))` chọn số tiền và cộng trên `BigDecimal`.
-4. `PaymentReport::new` kết hợp hai kết quả thành DTO.
+1. `filter(Payment::isPaid)` is placed before `teeing` because **both branches** only care about paid transactions.
+2. `counting()` counts transactions passing the filter.
+3. `mapping(Payment::amount, reducing(...))` extracts amounts and adds them as `BigDecimal`.
+4. `PaymentReport::new` combines the two results into a DTO.
 
-Nếu giao dịch có `amount == null`, `BigDecimal::add` sẽ không xử lý được. Hãy xác định chính sách bỏ qua, báo lỗi hoặc mô hình hóa giá trị vắng mặt **trước khi** thu thập.
+If a transaction has `amount == null`, `BigDecimal::add` cannot process it. Define a policy to skip, error, or model absent values **before** collecting.
 
-### Vì sao có thể dùng reducing ở đây?
+### Why Can reducing Be Used Here?
 
-`Collectors.reducing(identity, operator)` là một downstream Collector hợp lệ. Với phép cộng `BigDecimal`, `BigDecimal.ZERO` là phần tử đồng nhất, còn `BigDecimal::add` trả một giá trị mới, không sửa đối tượng cũ. Vì thế thao tác phù hợp để kết hợp các kết quả riêng của nhiều nhánh khi pipeline parallel.
+`Collectors.reducing(identity, operator)` is a valid downstream Collector. For `BigDecimal` addition, `BigDecimal.ZERO` is the identity element, and `BigDecimal::add` returns a new value without mutating old objects. Thus the operation safely combines separate branch results when the pipeline runs in parallel.
 
-Điều này khác với việc dùng `reduce` để chỉnh sửa một `ArrayList` chia sẻ. Với bộ chứa mutable, `collect` và Collector phù hợp mới là lựa chọn an toàn.
+This differs from using `reduce` to mutate a shared `ArrayList`. For mutable containers, `collect` and an appropriate Collector are the safe choice.
 
-## 8. Hai điều kiện khác nhau: dùng filtering trong từng nhánh
+## 8. Two Different Conditions: Using filtering in Each Branch
 
-Đôi khi cả hai nhánh cần nhìn **cùng một nguồn**, nhưng mỗi nhánh đếm **một loại bản ghi**. Ví dụ muốn đếm số điểm đạt và chưa đạt ngưỡng 60.
+Sometimes both branches inspect **the same source**, yet each branch counts **a different category of records**. For example, counting scores passing and failing a threshold of 60.
 
-`Collectors.filtering(predicate, downstream)` được giới thiệu từ **Java 9**, nên sẵn có khi ta dùng `teeing` trên Java 12.
+`Collectors.filtering(predicate, downstream)` was introduced in **Java 9**, so it is available whenever `teeing` is used on Java 12.
 
-Định nghĩa kiểu kết quả:
+Define the result type:
 
 ```java
 public final class PassFail {
@@ -519,9 +519,9 @@ System.out.println(summary.passed()); // 3
 System.out.println(summary.failed()); // 2
 ```
 
-Ở đây **không thể** đặt `filter(score -> score >= 60)` trước `teeing` vì như vậy nhánh đếm số không đạt sẽ **không còn thấy** điểm dưới 60.
+Here you **cannot** place `filter(score -> score >= 60)` before `teeing` because the failing-score branch would **no longer see** scores below 60.
 
-Sơ đồ:
+Diagram:
 
 ```text
             90 45 70 60 10
@@ -535,15 +535,15 @@ Sơ đồ:
                    PassFail
 ```
 
-Nếu có thêm điểm không hợp lệ như `-1` hoặc `null`, hai điều kiện `>=60` và `<60` không còn là toàn bộ quy tắc dữ liệu. Cần đặt một bước lọc dữ liệu chung theo miền trước teeing, hoặc thiết kế một nhánh thống kê lỗi riêng. `teeing` chỉ kết hợp **hai** downstream trực tiếp; nếu có nhiều chỉ số, có thể lồng `teeing`, nhưng đừng để cấu trúc lồng nhau trở nên khó đọc.
+If invalid scores such as `-1` or `null` can appear, the two conditions `>=60` and `<60` no longer cover the full data rules. Place a shared domain-validation filter before teeing, or add a dedicated error-statistics branch. `teeing` combines **two** direct downstreams only; for more metrics, `teeing` can be nested, though avoid making nesting hard to read.
 
-## 9. teeing làm downstream của groupingBy
+## 9. teeing as a Downstream of groupingBy
 
-Điểm mạnh của `teeing` là nó **trả về một Collector**. Vì vậy có thể dùng Collector này làm downstream của `groupingBy`.
+A major strength of `teeing` is that it **returns a Collector**. Therefore, this Collector can be used as a downstream of `groupingBy`.
 
-Bài toán: với mỗi phòng ban, trả **số nhân viên** và **tổng lương**.
+Problem: for each department, return **headcount** and **total payroll**.
 
-### Mô hình dữ liệu
+### Data Model
 
 ```java
 public final class Employee {
@@ -565,7 +565,7 @@ public final class Employee {
 }
 ```
 
-Kết quả nhóm:
+Group result:
 
 ```java
 public final class DepartmentReport {
@@ -587,7 +587,7 @@ public final class DepartmentReport {
 }
 ```
 
-### Thu thập theo phòng ban
+### Collecting by Department
 
 ```java
 import java.util.Arrays;
@@ -616,15 +616,15 @@ System.out.println(reports.get("Engineering").payroll());   // 250
 System.out.println(reports.get("Support").payroll());       // 80
 ```
 
-Mỗi nhóm có một bộ tích lũy downstream gồm hai thành phần. Khi một nhân viên được phân vào `Engineering`, **cả hai nhánh của teeing trong nhóm đó** đều thấy nhân viên ấy.
+Each group has a two-component downstream accumulator. When an employee is assigned to `Engineering`, **both branches of `teeing` inside that group** see that employee.
 
-**Trường hợp nhóm rỗng:** `groupingBy` chỉ tạo khóa cho những phòng ban xuất hiện trong dữ liệu. Nếu không có nhân viên `QA`, Map không tự thêm `QA → DepartmentReport(0,0)`. Muốn hiển thị đủ phòng ban dự kiến, hãy bổ sung khóa từ danh mục phòng ban khi tạo báo cáo.
+**Empty-group case:** `groupingBy` only creates keys for departments present in the data. If there are no `QA` employees, the Map does not automatically add `QA → DepartmentReport(0,0)`. To show all expected departments, populate missing keys from a department catalog when building the report.
 
-**Khóa null:** `groupingBy(Employee::department)` không cho phép classifier trả `null`. Nếu có phòng ban chưa xác định, cần lọc, chuẩn hóa bằng khóa đại diện không trùng giá trị thật, hoặc dùng một kiểu khóa như `Optional<String>`. `teeing` không thay đổi hợp đồng phân nhóm này.
+**Null keys:** `groupingBy(Employee::department)` does not allow the classifier to return `null`. If an unknown department is possible, filter it, normalize it with a non-colliding sentinel key, or use a key type like `Optional<String>`. `teeing` does not alter this grouping contract.
 
-## 10. teeing với hai downstream trả kiểu khác nhau
+## 10. teeing with Two Downstreams Returning Different Types
 
-Hai Collector không cần trả cùng một kiểu. Có thể lấy một tập các trạng thái duy nhất và đồng thời tính số bản ghi:
+The two Collectors do not need to return the same type. You can obtain a set of unique statuses and count records simultaneously:
 
 ```java
 import java.util.Arrays;
@@ -649,31 +649,31 @@ System.out.println(info.getValue().size());     // 3
 System.out.println(info.getValue().contains("PAID")); // true
 ```
 
-Ở đây `R1 = Long`, `R2 = Set<String>`, `R = Map.Entry<Long,Set<String>>`. Nhưng không được mặc định tập kết quả có thứ tự duyệt ổn định: `Collectors.toSet()` là unordered collector.
+Here `R1 = Long`, `R2 = Set<String>`, `R = Map.Entry<Long,Set<String>>`. However, do not assume the resulting set has a stable iteration order: `Collectors.toSet()` is an unordered collector.
 
-Nếu cần **tập được sắp xếp**, chọn `toCollection(TreeSet::new)`; nếu cần **danh sách gồm cả các giá trị trùng theo encounter order**, dùng `toList()` thay vì `toSet()`.
+If you need a **sorted set**, pick `toCollection(TreeSet::new)`; if you need a **list including duplicates in encounter order**, use `toList()` instead of `toSet()`.
 
-`Map.Entry` ở ví dụ chỉ bất biến ở cấp phép thay đổi ánh xạ qua `setValue`; nó không tự biến giá trị `Set` bên trong thành bất biến. Đừng suy luận tính bất biến lan xuyên qua object được chứa.
+`Map.Entry` in the example is only unmodifiable at the level of rejecting mapping updates via `setValue`; it does not make the inner `Set` immutable. Do not infer immutability propagating into contained objects.
 
-## 11. Characteristics của Collector teeing
+## 11. Characteristics of the teeing Collector
 
-Mỗi `Collector` có một tập `characteristics()`, gồm:
+Every `Collector` has a set of `characteristics()`, including:
 
-- `CONCURRENT`: accumulator có thể nhận lời gọi đồng thời trên cùng bộ chứa theo hợp đồng.
-- `UNORDERED`: Collector không cam kết giữ encounter order.
-- `IDENTITY_FINISH`: có thể dùng kết quả tích lũy trực tiếp thay cho việc chạy finisher.
+- `CONCURRENT`: the accumulator can receive concurrent calls on the same container per contract.
+- `UNORDERED`: the Collector does not promise to preserve encounter order.
+- `IDENTITY_FINISH`: the accumulation result can be used directly instead of running a finisher.
 
-Đối với `teeing`, các đặc tính có ý nghĩa như sau:
+For `teeing`, the characteristics mean:
 
-| Đặc tính | Khi nào Collector teeing có? | Lý do |
+| Characteristic | When Does the teeing Collector Have It? | Reason |
 | --- | --- | --- |
-| `CONCURRENT` | **Cả hai downstream** đều có `CONCURRENT` | Bộ chứa kết hợp chỉ an toàn khi cả hai nhánh đều cho phép cập nhật chung |
-| `UNORDERED` | **Cả hai downstream** đều có `UNORDERED` | Kết quả tổ hợp chỉ không cần thứ tự nếu cả hai nhánh đều không cần |
-| `IDENTITY_FINISH` | **Không được công bố** | Vẫn phải hoàn tất hai downstream và gọi merger |
+| `CONCURRENT` | **Both downstreams** have `CONCURRENT` | The combined container is only safe when both branches allow shared concurrent updates |
+| `UNORDERED` | **Both downstreams** have `UNORDERED` | The combined result is order-independent only if neither branch needs order |
+| `IDENTITY_FINISH` | **Never declared** | Must still finish both downstreams and invoke the merger |
 
-Có thể hiểu là **giao của các đặc tính downstream, trừ `IDENTITY_FINISH`**.
+You can think of this as **the intersection of downstream characteristics, excluding `IDENTITY_FINISH`**.
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.Set;
@@ -703,11 +703,11 @@ System.out.println(
 ); // false
 ```
 
-Ngay cả nếu merger “chỉ trả cặp” hoặc không tính toán thêm, `teeing` vẫn không phải identity-finisher collector theo hợp đồng API.
+Even if the merger "merely returns a pair" or performs no extra calculation, `teeing` is still not an identity-finish collector under the API contract.
 
-### Tương tác với parallel stream
+### Interaction with Parallel Streams
 
-`teeing` vẫn có thể chạy trên `parallelStream()` khi không có `CONCURRENT`. Framework có thể tạo nhiều bộ tích lũy kết hợp cho các nhánh, rồi gộp **từng cặp trạng thái downstream** bằng combiner của chúng.
+`teeing` can still run on `parallelStream()` without `CONCURRENT`. The framework can create multiple combined accumulators for partitions, then merge **each pair of downstream states** using their combiners.
 
 ```java
 import java.util.Arrays;
@@ -728,26 +728,26 @@ System.out.println(summary.getKey());   // 5
 System.out.println(summary.getValue()); // 15
 ```
 
-Kết quả cộng và đếm ở đây phù hợp với cách kết hợp theo nhiều nhánh. Nhưng parallel stream **không tự động nhanh hơn**; việc cấp bộ chứa, chia dữ liệu, combiner và thực hiện merger có chi phí.
+The sum and count results here match multi-branch combining. Yet `parallelStream()` is **not automatically faster**; allocating containers, splitting data, running combiners, and invoking the merger all have costs.
 
-Đặc biệt, một downstream có `CONCURRENT` không đủ để toàn `teeing` là concurrent. Nếu chỉ nhánh thứ nhất thread-safe nhưng nhánh thứ hai dùng `ArrayList` thường, việc khai báo concurrent cho bộ chứa kết hợp là sai.
+In particular, one downstream having `CONCURRENT` is not enough for the whole `teeing` to be concurrent. If only the first branch is thread-safe while the second uses a plain `ArrayList`, declaring the combined container concurrent would be wrong.
 
-## 12. Hàm merger phải làm gì và tránh điều gì?
+## 12. What Should the merger Function Do and Avoid?
 
-`merger` là `BiFunction<R1,R2,R>`. Nó chạy ở bước hoàn tất để kết hợp kết quả của hai Collector; không nên thiết kế nó như một bộ tích lũy để cập nhật sau mỗi phần tử.
+`merger` is a `BiFunction<R1,R2,R>`. It runs at the finishing step to combine the results of the two Collectors; do not design it as an accumulator updated after every element.
 
-Một merger tốt nên:
+A good merger should:
 
-1. Chấp nhận hai kiểu kết quả đúng như Collector downstream đã hứa.
-2. Tạo một kết quả có ý nghĩa nghiệp vụ rõ ràng.
-3. Xác định chính sách cho nguồn rỗng hoặc Optional rỗng.
-4. Tránh ghi vào biến toàn cục, file hoặc collection bên ngoài vì đây là phần của phép tính dữ liệu.
-5. Không làm mất hoặc sửa dữ liệu của downstream theo cách caller không mong đợi.
-6. Đủ nhẹ; nếu chỉ cần tạo DTO, hãy làm ngay trong constructor reference.
+1. Accept the two result types exactly as promised by the downstream Collectors.
+2. Produce a result with clear business meaning.
+3. Define a policy for empty sources or empty Optionals.
+4. Avoid writing to global variables, files, or external collections since it is part of a data computation.
+5. Not lose or mutate downstream data in ways the caller does not expect.
+6. Stay lightweight; if it just constructs a DTO, do so directly with a constructor reference.
 
-### Ví dụ merger có tính toán bổ sung
+### Example of a Merger Performing Extra Computation
 
-Cần thống kê tỷ lệ điểm đạt:
+Need to compute the pass rate of scores:
 
 ```java
 import java.util.Arrays;
@@ -771,25 +771,25 @@ double passRate = points.stream()
 System.out.println(passRate); // 60.0
 ```
 
-Vì có 3 điểm đạt trên 5 điểm, tỷ lệ là 60%.
+Since 3 out of 5 scores pass, the rate is 60%.
 
-Ở đây chọn `Double.NaN` cho tập rỗng để biểu diễn “không có mẫu tính tỷ lệ”; trong sản phẩm thật có thể trả `OptionalDouble` hoặc một DTO có cờ xác định rõ.
+Here `Double.NaN` is chosen for an empty set to represent "no samples to calculate a rate"; in production code you can return `OptionalDouble` or a DTO with an explicit flag.
 
-Với nguồn dữ liệu có điểm không hợp lệ, cần xác định mẫu số: nếu mẫu số chỉ tính điểm hợp lệ, hãy lọc chúng **trước** teeing; nếu muốn tính cả tỷ lệ lỗi nhập liệu, cần thêm thống kê tương ứng.
+If the data source can contain invalid scores, define the denominator: if the denominator counts only valid scores, filter them **before** teeing; if you also want the input-error rate, add a corresponding statistic.
 
-## 13. Khi nào không nên dùng teeing?
+## 13. When Should You Not Use teeing?
 
-`teeing` rất hữu ích nhưng không phải API phù hợp nhất cho mọi trường hợp.
+`teeing` is very useful, but not the best API for every case.
 
-### Chỉ cần một con số
+### Only One Number Needed
 
-Nếu chỉ muốn tổng số phần tử, `count()` ngắn hơn:
+If you only want the element count, `count()` is shorter:
 
 ```java
 long count = scores.stream().count();
 ```
 
-Nếu chỉ muốn tổng số nguyên:
+If you only want an integer sum:
 
 ```java
 int sum = scores.stream()
@@ -797,11 +797,11 @@ int sum = scores.stream()
         .sum();
 ```
 
-Không nên tạo teeing chỉ để “trông hiện đại”.
+Do not introduce `teeing` just to "look modern".
 
-### Cùng một tập thống kê số nguyên chuẩn
+### Same Standard Integer Statistics Set
 
-`IntSummaryStatistics` trên `IntStream` đã trả count, sum, min, max và average trong một terminal operation từ Java 8:
+`IntSummaryStatistics` on `IntStream` has returned count, sum, min, max, and average in a single terminal operation since Java 8:
 
 ```java
 import java.util.IntSummaryStatistics;
@@ -815,14 +815,14 @@ System.out.println(stats.getSum());     // 285
 System.out.println(stats.getAverage()); // 71.25
 ```
 
-Khi mọi kết quả cần thiết nằm trong kiểu thống kê chuẩn, `summaryStatistics()` đơn giản hơn `teeing`. Lưu ý `getMin()`/`getMax()` trên thống kê rỗng có giá trị quy ước riêng; kiểm tra `getCount()` trước khi dùng như cực trị thực.
+When all required outputs fit in a standard statistics object, `summaryStatistics()` is simpler than `teeing`. Note that `getMin()`/`getMax()` on empty statistics have specific sentinel values; check `getCount()` before treating them as actual extrema.
 
-### Kết quả cần hơn hai nhánh độc lập
+### Result Needs More Than Two Independent Branches
 
-Có thể lồng `teeing`:
+You can nest `teeing`:
 
 ```java
-// Mã minh họa ý tưởng; nhiều lớp teeing làm code khó đọc.
+// Illustrative code; multiple layers of teeing make code hard to read.
 Collectors.teeing(
         Collectors.counting(),
         Collectors.teeing(
@@ -834,19 +834,19 @@ Collectors.teeing(
 )
 ```
 
-Nhưng kết quả lồng `Map.Entry<Long,Map.Entry<Integer,Double>>` khó đọc và dễ nhầm ý nghĩa trường. Với nhiều hơn hai chỉ số hoặc nhiều trạng thái phụ thuộc nhau, một **Collector tùy chỉnh** trả DTO có tên rõ ràng thường dễ bảo trì hơn.
+However, a nested `Map.Entry<Long,Map.Entry<Integer,Double>>` result is hard to read and easy to misinterpret field meanings. For more than two metrics or interdependent states, a **custom Collector** returning a clearly named DTO is usually easier to maintain.
 
-### Hai nhánh cần chia nguồn theo cách rất khác
+### Two Branches Need Very Different Source Splits
 
-`teeing` đưa **mọi phần tử** vào **cả hai downstream**. Nó không phải cơ chế tách thành hai Stream độc lập có vòng đời riêng. Khi hai nhánh chỉ cần những phần tử khác nhau, `Collectors.filtering` có thể giải quyết, nhưng nếu logic phức tạp hoặc chi phí của mỗi nhánh cao, hãy cân nhắc Collector tùy chỉnh hoặc kiến trúc xử lý khác.
+`teeing` sends **every element** to **both downstreams**. It is not a mechanism to fork into two independent Streams with separate lifecycles. When two branches need different subsets, `Collectors.filtering` can handle it, but if the logic is complex or per-branch cost is high, consider a custom Collector or another processing architecture.
 
-## 14. Java 8–11: phương án thay thế khi không có teeing
+## 14. Java 8–11: Alternatives Without teeing
 
-Đối với JDK thấp hơn Java 12, không thể chỉ thêm import hay thay tên gói để có `Collectors.teeing`. Nếu dự án phải giữ source/runtime ở Java 8–11, có một số phương án tùy dạng dữ liệu.
+On JDKs older than Java 12, you cannot just add an import or rename a package to get `Collectors.teeing`. If the project must keep source/runtime on Java 8–11, several options exist depending on data shape.
 
-### 14.1. Dùng summaryStatistics khi đủ yêu cầu
+### 14.1. Use summaryStatistics When Sufficient
 
-Với `count + average` như ví dụ đầu, Java 8 đã có:
+For `count + average` like the first example, Java 8 already has:
 
 ```java
 import java.util.IntSummaryStatistics;
@@ -859,11 +859,11 @@ long count = summary.getCount();
 double average = summary.getAverage();
 ```
 
-Cách này không yêu cầu teeing, tránh boxing sau bước `mapToInt` và chỉ tiêu thụ nguồn một lần.
+This does not require `teeing`, avoids boxing after `mapToInt`, and consumes the source only once.
 
-### 14.2. Dùng collect ba tham số với accumulator tự định nghĩa
+### 14.2. Use Three-Parameter collect with a Custom Accumulator
 
-Nếu cần hai phép đếm độc lập như số điểm đạt/chưa đạt, có thể tạo accumulator mutable có combiner tương thích với parallel stream:
+If you need two independent counts such as passing/failing scores, you can create a mutable accumulator with a parallel-compatible combiner:
 
 ```java
 final class PassCounter {
@@ -893,7 +893,7 @@ final class PassCounter {
 }
 ```
 
-Thu thập:
+Collect:
 
 ```java
 import java.util.Arrays;
@@ -912,78 +912,78 @@ System.out.println(result.passed()); // 3
 System.out.println(result.failed()); // 2
 ```
 
-Đây là overload `Stream.collect(supplier, accumulator, combiner)` có từ Java 8. Mỗi bộ tích lũy do Supplier cấp nên độc lập; combiner gộp hai phần kết quả. Không dùng một `PassCounter` tạo ở ngoài rồi chia sẻ cho mọi nhánh.
+This is the `Stream.collect(supplier, accumulator, combiner)` overload available since Java 8. Each accumulator provided by the Supplier is independent; the combiner merges two partial results. Do not create a single `PassCounter` outside and share it across all branches.
 
-Ví dụ giả định `points` không chứa `null` và các điểm âm vẫn được phân là chưa đạt. Nếu miền điểm bắt buộc là 0–100, hãy thêm bước xác thực phù hợp.
+The example assumes `points` contains no `null` and negative scores are still classified as failing. If the valid score domain must be 0–100, add appropriate validation.
 
-### 14.3. Duyệt hai lần chỉ khi nguồn có thể tạo lại
+### 14.3. Traverse Twice Only When the Source Is Re-Creatable
 
-Với `List`, việc tạo hai Stream mới đơn giản và đôi khi đủ tốt. Nhưng nếu nguồn là tệp, socket hoặc Iterator chỉ dùng một lần, **không được tái sử dụng cùng Stream** sau khi terminal operation đã tiêu thụ.
+With a `List`, creating two new Streams is simple and sometimes good enough. Yet if the source is a file, socket, or single-use Iterator, **you must not reuse the same Stream** after a terminal operation has consumed it.
 
-Nếu cần tính hai kết quả trong một lượt mà không có teeing, chọn một trong các chiến lược:
+When you need two results in a single pass without `teeing`, choose one of these strategies:
 
-- `summaryStatistics` nếu có thể biểu diễn bài toán bằng thống kê chuẩn;
-- `collect` ba tham số với container tùy chỉnh;
-- Collector tự viết bằng `Collector.of` nếu cần finisher, characteristics hoặc tái sử dụng;
-- Một vòng lặp tuần tự rõ ràng khi logic quá đặc thù.
+- `summaryStatistics` if the problem can be expressed using standard statistics;
+- three-parameter `collect` with a custom container;
+- a custom Collector via `Collector.of` if a finisher, characteristics, or reusability is needed;
+- a clear sequential loop when logic is highly specialized.
 
-Việc tách thành hai `List` trung gian chỉ để thu thập lại có thể làm tăng bộ nhớ không cần thiết.
+Splitting into two intermediate `List`s just to re-collect can increase memory usage unnecessarily.
 
-## 15. Khả năng tương thích source, bytecode và runtime
+## 15. Source, Bytecode, and Runtime Compatibility
 
-Khi nâng cấp Java Stream API, cần tách ba khái niệm:
+When upgrading the Java Stream API, separate three concepts:
 
-| Yếu tố | Câu hỏi cần trả lời | Với teeing |
+| Factor | Question to Answer | With teeing |
 | --- | --- | --- |
-| **Compiler JDK** | Trình biên dịch đang chạy phiên bản nào? | Cần `javac` đủ mới để biết API Java 12 |
-| **API level (`--release`)** | Source được phép gọi những thư viện chuẩn nào? | `--release 11` không cho gọi `teeing` |
-| **Runtime JDK** | JVM chạy chương trình phiên bản nào? | Runtime phải hỗ trợ API/bytecode tương ứng |
+| **Compiler JDK** | Which version is the compiler running? | Needs `javac` recent enough to know Java 12 APIs |
+| **API level (`--release`)** | Which standard libraries may the source call? | `--release 11` forbids calling `teeing` |
+| **Runtime JDK** | Which JVM version runs the program? | Runtime must support the corresponding API/bytecode |
 
-Ví dụ:
+Example:
 
 ```text
 javac -version
 java -version
 ```
 
-Để biên dịch source dùng `Collectors.teeing` với một JDK hiện đại có hỗ trợ target Java 12:
+To compile source using `Collectors.teeing` with a modern JDK supporting the Java 12 target:
 
 ```text
 javac --release 12 Example.java
 ```
 
-Nếu cùng source đó được biên dịch với:
+If that same source is compiled with:
 
 ```text
 javac --release 11 Example.java
 ```
 
-thì compiler sẽ báo không tìm được `Collectors.teeing` (hoặc lỗi không tương thích API khác) vì API này không có trong Java 11. **`--release` không chỉ chỉnh phiên bản bytecode**; nó giới hạn tập API chuẩn mà code được phép sử dụng.
+the compiler reports it cannot find `Collectors.teeing` (or another API incompatibility error) because this API does not exist in Java 11. **`--release` does not only adjust the bytecode version**; it restricts the set of standard APIs the code is permitted to use.
 
-Chạy một chương trình đã biên dịch cho Java 12 trên runtime Java 11 **không được bảo đảm** và thường bị từ chối do phiên bản class file mới hơn hoặc thiếu API. Ngay cả khi ai đó cố biên dịch với target bytecode cũ nhưng vẫn liên kết tới API mới, runtime cũ cũng không cung cấp `Collectors.teeing`.
+Running a program compiled for Java 12 on a Java 11 runtime is **not guaranteed** and is typically rejected due to the newer class-file version or missing API. Even if someone tries compiling with an older bytecode target while still linking against newer APIs, the old runtime still does not provide `Collectors.teeing`.
 
-**Lưu ý môi trường:** lệnh `--release 12` cần một phiên bản `javac` hỗ trợ target release 12. Các JDK tương lai có thể không duy trì mọi target rất cũ; hãy xem danh sách release được compiler thực tế hỗ trợ thay vì mặc định mọi JDK mới luôn chấp nhận mọi target.
+**Environment note:** `--release 12` requires a `javac` version supporting target release 12. Future JDKs may not maintain every very old target; check the list of releases actually supported by your compiler rather than assuming every newer JDK always accepts every target.
 
-### Bảng phiên bản các API liên quan
+### Version Table of Related APIs
 
-| API hoặc cú pháp | Xuất hiện trong bản Java chính thức |
+| API or Syntax | Introduced in Official Java Release |
 | --- | --- |
 | `Stream`, `Collectors.groupingBy`, `reducing`, `mapping`, `counting`, `summaryStatistics` | Java 8 |
 | `Collectors.filtering`, `flatMapping`, `Stream.takeWhile`/`dropWhile`, `Map.entry` | Java 9 |
 | `Collectors.teeing` | **Java 12** |
 | `Stream.toList()` | Java 16 |
-| `record` (cú pháp ngôn ngữ chính thức) | Java 16 |
-| `Stream.gather` và `Gatherers` (API chính thức) | Java 24 |
+| `record` (official language syntax) | Java 16 |
+| `Stream.gather` and `Gatherers` (official API) | Java 24 |
 
-Vì bài tập hướng Java 12, các ví dụ dùng `collect(Collectors.toList())` thay cho `Stream.toList()`, và sử dụng class thông thường thay cho `record`. Không nên sao chép `Stream.gather(...)` vào codebase nhắm tới Java 12 vì đó là API phiên bản mới hơn.
+Because this lesson targets Java 12, examples use `collect(Collectors.toList())` instead of `Stream.toList()`, and regular classes instead of `record`. Do not copy `Stream.gather(...)` into a codebase targeting Java 12 because that is a newer-version API.
 
-Để chọn chính sách cho một module có nhiều mục tiêu JDK, có thể đặt một lớp tương thích riêng: triển khai bằng `teeing` ở nhánh yêu cầu Java 12+, còn nhánh Java 8–11 dùng accumulator riêng với **cùng một kiểu DTO đầu ra**. Điều này giữ API nghiệp vụ ổn định giữa các phiên bản.
+To manage policy for a module with multiple JDK targets, you can isolate a compatibility layer: implement with `teeing` on the branch requiring Java 12+, while the Java 8–11 branch uses a custom accumulator returning **the same output DTO type**. This keeps the business API stable across versions.
 
-## 16. Đọc nguồn I/O và trả báo cáo từ một lượt xử lý
+## 16. Reading an I/O Source and Returning a Report in One Pass
 
-Khi nguồn là tệp, `teeing` đặc biệt thuận tiện vì có thể lấy hai chỉ số mà chỉ xây **một pipeline đọc dòng**.
+When the source is a file, `teeing` is especially convenient because it can compute two metrics while building **only one line-reading pipeline**.
 
-Ví dụ đếm số dòng không rỗng và tổng số ký tự của các dòng đó:
+Example counting non-empty lines and total characters across those lines:
 
 ```java
 import java.io.IOException;
@@ -1012,7 +1012,7 @@ static Map.Entry<Long, Long> inspectText(Path path)
 }
 ```
 
-Nếu tệp chứa:
+If the file contains:
 
 ```text
 Java
@@ -1021,49 +1021,49 @@ Stream
 API
 ```
 
-và không có dòng dữ liệu khác, sau khi bỏ dòng rỗng sẽ có `3` dòng, tổng số ký tự là `4 + 6 + 3 = 13`.
+and no other data lines, after removing blank lines there are `3` lines, with total character count `4 + 6 + 3 = 13`.
 
-`Files.lines` là nguồn I/O lazy và **giữ tài nguyên**. `collect`, dù có teeing, **không tự đóng Stream**. `try-with-resources` bảo đảm đóng nguồn sau khi báo cáo hoàn tất hoặc có ngoại lệ.
+`Files.lines` is a lazy I/O source and **holds resources**. `collect`, even with `teeing`, **does not close the Stream automatically**. `try-with-resources` ensures closing the source after the report completes or if an exception occurs.
 
-Lỗi đọc trong khi duyệt Stream có thể được bọc thành `UncheckedIOException`. Hàm `String::trim` và `filter` không thay thế bước kiểm tra mã hóa hoặc định dạng tệp. Nếu cần tính chiều dài theo số **code point Unicode** thay cho số đơn vị UTF-16, `String.length()` chưa đủ; phải dùng quy tắc đếm khác.
+Read errors during Stream traversal can be wrapped into `UncheckedIOException`. `String::trim` and `filter` do not replace encoding or file-format validation. If you need length in **Unicode code points** rather than UTF-16 code units, `String.length()` is insufficient; use a different counting rule.
 
-### Một lượt duyệt logic và giới hạn tài nguyên
+### One Logical Pass and Resource Limits
 
-`teeing` giúp không phải viết:
+`teeing` helps you avoid writing:
 
 ```java
-// Không nên mở/đọc lại tệp chỉ để lấy một thống kê khác,
-// nếu có thể tổng hợp cả hai trong một lượt.
+// Do not reopen/reread the file just for another statistic,
+// if both can be aggregated in a single pass.
 long lines = ...;
 long characters = ...;
 ```
 
-Tuy nhiên, “một lượt” không có nghĩa “đọc đúng một byte một lần”: buffering của Reader và hệ thống file quyết định chi tiết I/O. Nó cũng không có nghĩa teeing sẽ tự bảo vệ việc đọc tệp bị sửa trong lúc xử lý; đây là vấn đề nhất quán của nguồn dữ liệu.
+However, "one pass" does not mean "reading one byte at a time": Reader buffering and the filesystem govern I/O details. Nor does it mean `teeing` protects against the file being modified mid-processing; that is a data-source consistency concern.
 
-## 17. Hiệu năng và an toàn khi dùng teeing
+## 17. Performance and Safety When Using teeing
 
-Điểm mạnh của `teeing` là **tổ chức hai phép tích lũy trong một Collector**, không phải bảo đảm nhanh hơn mọi giải pháp.
+`teeing`'s strength is **organizing two accumulations in one Collector**, not guaranteeing it is faster than every alternative.
 
-### Nguồn nhỏ và việc tính toán nhẹ
+### Small Sources and Light Computations
 
-Nếu chỉ có vài chục số nguyên trong `List`, việc tạo hai Stream có thể đủ nhanh và đơn giản; `IntSummaryStatistics` còn gọn hơn nếu cần những chỉ số chuẩn. Không nên tối ưu chỉ dựa vào độ mới của API.
+If there are only a few dozen integers in a `List`, creating two Streams can be fast and simple enough; `IntSummaryStatistics` is even cleaner when standard metrics suffice. Do not optimize based solely on API novelty.
 
-### Hai downstream có chi phí riêng
+### Both Downstreams Have Their Own Cost
 
-Một phần tử sẽ đi tới **cả hai** accumulator downstream. Nếu mỗi bên phải hash, parse hoặc truy cập cấu trúc mutable, cả hai chi phí vẫn tồn tại. Đặt những phép biến đổi chung trước teeing để tránh tính lại không cần thiết.
+Each element goes to **both** downstream accumulators. If each side must hash, parse, or access mutable structures, both costs still exist. Place shared transformations before `teeing` to avoid redundant recomputation.
 
-### Parallel stream và thứ tự
+### Parallel Streams and Ordering
 
-`teeing` không tự động là concurrent collector. Với `parallelStream()`, Java có thể tạo nhiều bộ chứa rồi combiner kết hợp. Nếu một downstream cần thứ tự, không tự ý đánh dấu toàn pipeline `unordered()` chỉ để tăng tốc.
+`teeing` is not automatically a concurrent collector. With `parallelStream()`, Java may create multiple containers and merge via combiners. If one downstream needs ordering, do not arbitrarily mark the entire pipeline `unordered()` just for speed.
 
-Ví dụ `teeing(toList(), counting(), ...)` chứa một nhánh cần encounter order. Vì `counting()` không làm `toList()` trở thành unordered, kết quả tổ hợp vẫn cần tôn trọng yêu cầu thứ tự của nhánh danh sách.
+For example, `teeing(toList(), counting(), ...)` contains a branch requiring encounter order. Because `counting()` does not make `toList()` unordered, the combined result must still respect the list branch's ordering requirement.
 
-### Side effect và tính đúng đắn
+### Side Effects and Correctness
 
-Tránh các lambda trong downstream hoặc merger tự sửa một biến ngoài:
+Avoid lambdas in downstreams or mergers that mutate an external variable:
 
 ```java
-// SAI về thiết kế: side effect ngoài pipeline không phải kết quả thu thập.
+// WRONG by design: side effects outside the pipeline are not collection results.
 long[] externalCount = {0};
 
 scores.parallelStream()
@@ -1075,62 +1075,62 @@ scores.parallelStream()
         ));
 ```
 
-`externalCount[0]++` không an toàn dưới parallel stream, và `peek` không phải cách xác định số lượng mà nghiệp vụ nên phụ thuộc. Hãy sử dụng kết quả `counting()` đã có trong teeing.
+`externalCount[0]++` is unsafe under parallel streams, and `peek` is not how business logic should determine counts. Use the `counting()` result already provided inside `teeing`.
 
-### Tài nguyên và bộ nhớ
+### Resources and Memory
 
-Nếu downstream thứ nhất là `toList()`, toàn bộ phần tử đã đi tới Collector có thể được giữ trong bộ nhớ, dù downstream thứ hai chỉ đếm. `teeing` không tự biến một Collector lưu danh sách thành một phép tổng hợp `O(1)` bộ nhớ.
+If the first downstream is `toList()`, all elements reaching the Collector can be retained in memory, even if the second downstream only counts. `teeing` does not magically turn a list-collecting Collector into an `O(1)` memory aggregation.
 
-Nếu chỉ cần số lượng, tổng hoặc cực trị, chọn downstream có trạng thái nhỏ; với dữ liệu cực lớn, cân nhắc giới hạn miền số, số phần tử và đặc tính nguồn trước khi chạy parallel.
+If you only need counts, sums, or extrema, choose downstreams with small state; for massive data, check numeric domain limits, element counts, and source characteristics before enabling parallel execution.
 
-## 18. Những lỗi thường gặp
+## 18. Common Mistakes
 
-| Sai lầm | Hệ quả | Hướng xử lý |
+| Mistake | Consequence | How to Fix |
 | --- | --- | --- |
-| Dùng `Collectors.teeing` khi biên dịch `--release 11` | Compiler không tìm thấy API | Nâng target lên Java 12+ hoặc dùng giải pháp Java 8 |
-| Nghĩ `teeing` có từ Java 8 như `groupingBy` | Sai phiên bản | Ghi rõ Java 12 |
-| Dùng `Stream.toList()` trong bài bắt buộc tương thích Java 12 | `Stream.toList` xuất hiện từ Java 16 | Dùng `collect(Collectors.toList())` |
-| Dùng `record` trong source Java 12 | Cú pháp record chưa chính thức ở Java 12 | Dùng class/DTO thông thường |
-| Gọi `count()` rồi `collect()` trên cùng Stream | Stream đã bị tiêu thụ | Dùng teeing hoặc tạo Stream mới từ nguồn có thể tạo lại |
-| Cho rằng merger chạy trên từng phần tử | Thiết kế sai accumulator | Merger chỉ ghép hai kết quả downstream đã hoàn tất |
-| Quên xử lý nguồn rỗng | `averagingInt` trả 0.0 khiến báo cáo dễ hiểu nhầm | Kiểm tra count hoặc dùng `OptionalDouble` |
-| Đặt `filter(passed)` trước teeing khi nhánh khác cần failed | Nhánh failed không còn nhìn thấy dữ liệu | Dùng `Collectors.filtering` trong từng nhánh |
-| Suy ra teeing luôn `CONCURRENT` khi một nhánh concurrent | Sai hợp đồng thread-safety | Cả hai downstream phải concurrent |
-| Suy ra teeing luôn `UNORDERED` nếu một nhánh unordered | Nhánh còn lại có thể yêu cầu encounter order | Chỉ unordered khi cả hai đều unordered |
-| Cho rằng teeing là `IDENTITY_FINISH` nếu merger tạo cặp | Có finisher của hai nhánh và merger | Không khai báo `IDENTITY_FINISH` |
-| Kết hợp hai `toList()` rồi nghĩ bộ nhớ ít vì một lượt nguồn | Cả hai danh sách vẫn chiếm bộ nhớ | Chỉ lưu đúng chỉ số cần thiết |
-| Dùng `groupingBy(...,teeing(...))` rồi mong nhóm chưa xuất hiện có mặt | groupingBy chỉ tạo nhóm đã gặp | Bổ sung từ danh mục nhóm dự kiến |
-| Dùng `groupingBy` với classifier null | `NullPointerException` | Chuẩn hóa khóa/loại bản ghi không hợp lệ |
-| Ghi side effect vào biến ngoài từ `peek` trong parallel | Race và kết quả không tin cậy | Đưa phép đếm vào Collector |
-| Dùng `Files.lines` mà không đóng vì nghĩ teeing tự đóng | Rò rỉ tài nguyên I/O | `try-with-resources` |
-| Không xem xét overflow của `summingInt`/`summingLong` | Sai kết quả với dữ liệu cực lớn | Chọn miền số/chiến lược phát hiện tràn phù hợp |
+| Using `Collectors.teeing` when compiling with `--release 11` | Compiler cannot find the API | Raise target to Java 12+ or use a Java 8 solution |
+| Thinking `teeing` has existed since Java 8 like `groupingBy` | Wrong version assumption | Note Java 12 explicitly |
+| Using `Stream.toList()` in code requiring Java 12 compatibility | `Stream.toList` appeared in Java 16 | Use `collect(Collectors.toList())` |
+| Using `record` in Java 12 source | `record` syntax was not official in Java 12 | Use regular classes/DTOs |
+| Calling `count()` then `collect()` on the same Stream | Stream is already consumed | Use `teeing` or create a new Stream from a re-creatable source |
+| Thinking `merger` runs on every element | Wrong accumulator design | Merger only combines the two completed downstream results |
+| Forgetting empty-source handling | `averagingInt` returns 0.0, easily misread in reports | Check count or use `OptionalDouble` |
+| Placing `filter(passed)` before `teeing` when the other branch needs failed items | Failed branch no longer sees the data | Use `Collectors.filtering` inside each branch |
+| Inferring `teeing` is always `CONCURRENT` when one branch is concurrent | Breaks thread-safety contract | Both downstreams must be concurrent |
+| Inferring `teeing` is always `UNORDERED` if one branch is unordered | The other branch may require encounter order | Unordered only when both are unordered |
+| Thinking `teeing` is `IDENTITY_FINISH` if merger creates a pair | Has finishers for both branches plus merger | Never declare `IDENTITY_FINISH` |
+| Combining two `toList()` downstreams and thinking memory is low because of one pass | Both lists still occupy memory | Retain only the metrics needed |
+| Using `groupingBy(...,teeing(...))` and expecting absent groups to appear | `groupingBy` creates only encountered groups | Backfill from expected group catalog |
+| Using `groupingBy` with a null classifier | `NullPointerException` | Normalize keys / reject invalid records |
+| Writing side effects to external variables from `peek` in parallel | Races and unreliable results | Put counting inside the Collector |
+| Using `Files.lines` without closing because you think `teeing` closes it | I/O resource leak | `try-with-resources` |
+| Ignoring overflow in `summingInt`/`summingLong` | Wrong results on huge datasets | Pick appropriate numeric domain / overflow-detection strategy |
 
-## 19. Quy trình chọn Collector cho báo cáo hai chỉ số
+## 19. Workflow for Choosing a Collector for a Two-Metric Report
 
-Khi nhận yêu cầu tổng hợp, hãy xác định lần lượt:
+When receiving an aggregation requirement, determine step by step:
 
-1. **Runtime và target JDK nào?** Nếu thấp hơn Java 12, không chọn `teeing` làm API bắt buộc.
-2. **Cả hai chỉ số dùng cùng tập phần tử hay không?** Nếu có, đặt bộ lọc/biến đổi chung trước teeing.
-3. **Chỉ số nào phụ thuộc điều kiện riêng?** Dùng downstream `filtering`/`mapping` thay vì loại dữ liệu mà nhánh khác cần.
-4. **Kết quả rỗng phải biểu diễn thế nào?** Phân biệt `0`, `0.0` và “không có dữ liệu”.
-5. **Có một collector chuyên dụng đủ dùng không?** Với count/min/max/sum/average chuẩn, thử `summaryStatistics` trước.
-6. **Đầu ra nên là gì?** `Map.Entry` cho ví dụ nhanh; DTO có tên trường khi dùng trong nghiệp vụ.
-7. **Có gom theo nhóm không?** Kết hợp `groupingBy(classifier, teeing(...))` nhưng nhớ các nhóm vắng mặt.
-8. **Có cần song song và encounter order không?** Kiểm tra characteristics của cả hai downstream.
-9. **Có giới hạn bộ nhớ và tài nguyên không?** Chọn collector chỉ giữ thống kê cần thiết, đóng nguồn I/O.
-10. **Đã kiểm tra kết quả với đầu vào rỗng, một phần tử, nhiều phần tử, null, số âm và dữ liệu lớn chưa?**
+1. **Which runtime and target JDK?** If below Java 12, do not pick `teeing` as a required API.
+2. **Do both metrics use the same element subset?** If yes, place shared filter/transformation before `teeing`.
+3. **Which metrics depend on separate conditions?** Use downstream `filtering`/`mapping` instead of dropping data needed by the other branch.
+4. **How should empty results be represented?** Distinguish `0`, `0.0`, and "no data".
+5. **Is a specialized collector already sufficient?** For standard count/min/max/sum/average, check `summaryStatistics` first.
+6. **What should the output type be?** `Map.Entry` for quick examples; a named-field DTO for business code.
+7. **Is grouping needed?** Combine `groupingBy(classifier, teeing(...))`, remembering absent groups.
+8. **Are parallelism and encounter order needed?** Inspect characteristics of both downstreams.
+9. **Are there memory and resource limits?** Choose collectors holding only needed statistics, and close I/O sources.
+10. **Have you tested empty input, single element, multiple elements, nulls, negative numbers, and large data?**
 
-## 20. Bài tập thực hành
+## 20. Practice Exercises
 
-### Bài tập A: thống kê đơn hàng theo trạng thái
+### Exercise A: Order Statistics by Status
 
-Dữ liệu gồm đơn hàng `paid` và `unpaid`. Dùng `teeing` để trả `PaymentReport` gồm `paidCount` và `paidTotal`, nhưng không được tính đơn chưa thanh toán vào tổng. Kiểm thử nguồn rỗng và nhiều đơn cùng số tiền.
+Data includes `paid` and `unpaid` orders. Use `teeing` to return a `PaymentReport` with `paidCount` and `paidTotal`, without including unpaid orders in the total. Test empty sources and multiple orders with identical amounts.
 
-**Gợi ý:** đặt `filter(Payment::isPaid)` trước teeing. Khi cần đếm cả đơn chưa thanh toán, dùng `filtering` riêng hoặc một Collector có nhiều trạng thái.
+**Hint:** place `filter(Payment::isPaid)` before `teeing`. When you also need to count unpaid orders, use separate `filtering` branches or a multi-state Collector.
 
-### Bài tập B: min–max trong một terminal operation
+### Exercise B: min–max in One Terminal Operation
 
-Viết `Collectors.teeing(minBy(...), maxBy(...), merger)` và trả `Optional<IntRange>`. Thử các nguồn:
+Write `Collectors.teeing(minBy(...), maxBy(...), merger)` returning `Optional<IntRange>`. Test with sources:
 
 ```text
 []
@@ -1139,7 +1139,7 @@ Viết `Collectors.teeing(minBy(...), maxBy(...), merger)` và trả `Optional<I
 [100, 2, 100]
 ```
 
-Kết quả mong đợi lần lượt:
+Expected results respectively:
 
 ```text
 Optional.empty
@@ -1148,47 +1148,47 @@ Optional[-10,-1]
 Optional[2,100]
 ```
 
-Chuỗi hiển thị trên là mô tả logic; `toString()` chính xác của `Optional<IntRange>` phụ thuộc `IntRange.toString()`.
+The strings shown above are logical descriptions; the exact `toString()` of `Optional<IntRange>` depends on `IntRange.toString()`.
 
-### Bài tập C: thống kê theo phòng ban
+### Exercise C: Statistics by Department
 
-Từ `List<Employee>`, xây `Map<String, DepartmentReport>` với `headcount` và `payroll`, sau đó bổ sung phòng ban `QA` nếu hệ thống yêu cầu một báo cáo đầy đủ danh mục.
+From `List<Employee>`, build `Map<String, DepartmentReport>` with `headcount` and `payroll`, then add the `QA` department if the system requires a complete catalog report.
 
-**Tiêu chí:** không duyệt lại danh sách nhân viên cho từng phòng ban; khóa phân nhóm không được null; nhóm chưa thấy được xử lý tường minh.
+**Criteria:** do not re-traverse the employee list per department; grouping keys must not be null; unseen groups are handled explicitly.
 
-### Bài tập D: tương thích Java 8–11
+### Exercise D: Java 8–11 Compatibility
 
-Viết `PassCounter` có `add` và `merge` cho hai giá trị passed/failed, không sử dụng `teeing`. So sánh kết quả với bản Java 12 dùng `teeing(filtering(...), filtering(...), ...)` trên cùng dữ liệu.
+Write `PassCounter` with `add` and `merge` for passed/failed counts without using `teeing`. Compare results against the Java 12 version using `teeing(filtering(...), filtering(...), ...)` on the same data.
 
-**Tiêu chí:** kết quả giống nhau khi chạy tuần tự và song song, không chia sẻ một accumulator mutable ngoài Supplier.
+**Criteria:** identical results sequentially and in parallel, without sharing a mutable accumulator outside the Supplier.
 
-### Bài tập E: kiểm tra compile target
+### Exercise E: Checking Compile Targets
 
-Trong một môi trường phát triển có JDK phù hợp, biên dịch một lớp gọi `Collectors.teeing` với `--release 12` và với `--release 11`. Giải thích vì sao trường hợp thứ hai không thể truy cập API.
+In a development environment with a suitable JDK, compile a class calling `Collectors.teeing` with `--release 12` and with `--release 11`. Explain why the second case cannot access the API.
 
-**Lưu ý:** không cần dùng record, `Stream.toList()` hay API mới hơn khi viết source Java 12.
+**Note:** do not use `record`, `Stream.toList()`, or newer APIs when writing Java 12 source.
 
-## 21. Câu hỏi tự kiểm tra
+## 21. Self-Check Questions
 
-1. `Collectors.teeing` xuất hiện chính thức từ Java nào? **Java 12**.
-2. `teeing` nhận bao nhiêu tham số? **Ba: downstream1, downstream2, merger**.
-3. Hai downstream có cần trả về cùng kiểu không? **Không**, chúng có thể trả `R1` và `R2` khác nhau.
-4. Merger chạy trên từng phần tử hay trên hai kết quả đã hoàn tất? **Trên hai kết quả downstream đã hoàn tất**.
-5. `teeing` có phải terminal operation không? **Không**, nó tạo Collector; `stream.collect(...)` mới là terminal.
-6. Với `counting` và `averagingInt` trên nguồn rỗng, kết quả là gì? **0L và 0.0**.
-7. Vì sao `0.0` của `averagingInt` trên nguồn rỗng có thể cần xử lý riêng? **Vì không có mẫu, khác với trung bình 0 của dữ liệu thật**.
-8. `Collectors.filtering` dùng trong một nhánh teeing nhằm làm gì? **Chọn phần tử cho riêng nhánh đó mà không loại chúng khỏi nhánh kia**.
-9. `teeing` có thể làm downstream của `groupingBy` không? **Có**, vì nó trả về Collector.
-10. `groupingBy(..., teeing(...))` có tự tạo nhóm chưa từng xuất hiện không? **Không**.
-11. Nếu chỉ một downstream concurrent, teeing có đặc tính `CONCURRENT` không? **Không**.
-12. Nếu cả hai downstream unordered, teeing có thể có `UNORDERED` không? **Có**.
-13. Tee Collector có `IDENTITY_FINISH` không? **Không**, vì phải hoàn tất hai downstream rồi chạy merger.
-14. Có thể dùng `summaryStatistics` trên Java 8 để thay teeing trong bài đếm và trung bình không? **Có**, nếu thống kê chuẩn đã đủ.
-15. Gọi `collect(teeing(...))` trên Stream từ `Files.lines` có tự đóng tệp không? **Không**, phải đóng Stream bằng `try-with-resources`.
-16. Tee Collector có khiến hai accumulator không tốn chi phí tính toán nữa không? **Không**, nó chỉ tổ chức hai phép tổng hợp trong một lượt nguồn.
-17. `record` có dùng được như cú pháp chính thức khi source phải tương thích Java 12 không? **Không**, nên dùng class.
-18. Nếu dùng `javac --release 11`, `Collectors.teeing` có được biên dịch không? **Không**, API không thuộc Java 11.
-19. Khi cần hơn hai chỉ số, có bắt buộc lồng teeing vô hạn không? **Không**, có thể tạo Collector tùy chỉnh hoặc dùng thống kê chuyên dụng.
-20. Vì sao cần kiểm tra merge/combiner khi dùng teeing với parallel stream? **Vì mỗi downstream có thể gộp các bộ tích lũy từ nhiều nhánh và phải giữ đúng hợp đồng**.
+1. Which official Java version introduced `Collectors.teeing`? **Java 12**.
+2. How many parameters does `teeing` accept? **Three: downstream1, downstream2, merger**.
+3. Must the two downstreams return the same type? **No**, they can return different `R1` and `R2`.
+4. Does the merger run on each element or on the two completed results? **On the two completed downstream results**.
+5. Is `teeing` a terminal operation? **No**, it creates a Collector; `stream.collect(...)` is the terminal operation.
+6. With `counting` and `averagingInt` on an empty source, what are the results? **0L and 0.0**.
+7. Why might `0.0` from `averagingInt` on an empty source need special handling? **Because there are no samples, unlike a true average of 0 from real data**.
+8. What is `Collectors.filtering` inside a teeing branch used for? **Selecting elements for that branch alone without excluding them from the other branch**.
+9. Can `teeing` serve as a downstream of `groupingBy`? **Yes**, because it returns a Collector.
+10. Does `groupingBy(..., teeing(...))` automatically create groups that never appeared? **No**.
+11. If only one downstream is concurrent, does `teeing` have the `CONCURRENT` characteristic? **No**.
+12. If both downstreams are unordered, can `teeing` have `UNORDERED`? **Yes**.
+13. Does a teeing Collector have `IDENTITY_FINISH`? **No**, because both downstreams must finish and then the merger must run.
+14. Can `summaryStatistics` in Java 8 replace `teeing` for counting and averaging? **Yes**, if standard statistics suffice.
+15. Does calling `collect(teeing(...))` on a Stream from `Files.lines` automatically close the file? **No**, the Stream must be closed with `try-with-resources`.
+16. Does a teeing Collector make the two accumulators cost nothing to compute? **No**, it only organizes both aggregations in a single source pass.
+17. Can `record` be used as official syntax when source must be Java 12-compatible? **No**, use a class.
+18. With `javac --release 11`, will `Collectors.teeing` compile? **No**, the API is not part of Java 11.
+19. When more than two metrics are needed, is infinite nesting of `teeing` required? **No**, you can create a custom Collector or use specialized statistics.
+20. Why check merge/combiner behavior when using `teeing` with a parallel stream? **Because each downstream may merge accumulators from multiple branches and must preserve its contract**.
 
-**Nguyên tắc áp dụng:** `Collectors.teeing` từ Java 12 phù hợp khi cần **hai kết quả tổng hợp khác nhau từ cùng một Stream** rồi ghép thành một DTO hoặc cấu trúc báo cáo. Hãy đặt thao tác chung trước teeing, đặt điều kiện riêng trong downstream, xử lý nguồn rỗng tường minh và chọn cách biểu diễn kết quả dễ đọc. Đừng dùng teeing chỉ vì nó mới: `summaryStatistics`, `count`, `sum` hoặc Collector tùy chỉnh có thể đơn giản hơn. Cuối cùng, kiểm tra đúng mục tiêu JDK, an toàn khi parallel, giới hạn bộ nhớ và vòng đời nguồn I/O trước khi đưa bài toán vào ứng dụng.
+**Guideline for use:** `Collectors.teeing` from Java 12 fits when you need **two distinct aggregation results from a single Stream** combined into a DTO or report structure. Place shared operations before `teeing`, place branch-specific conditions inside downstreams, handle empty sources explicitly, and choose readable result representations. Do not use `teeing` merely because it is newer: `summaryStatistics`, `count`, `sum`, or a custom Collector may be simpler. Finally, verify the target JDK, parallel safety, memory limits, and I/O source lifecycle before putting the solution into production.

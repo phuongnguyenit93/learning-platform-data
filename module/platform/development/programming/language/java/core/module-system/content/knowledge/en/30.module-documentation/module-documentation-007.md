@@ -1,28 +1,28 @@
-# Document add-opens hoặc add-exports còn bắt buộc
+# Documenting Still-Required add-opens or add-exports
 
-## 1. Mục đích
+## 1. Purpose
 
-Khi chuyển ứng dụng Java sang Java Platform Module System (JPMS), một số thư viện hoặc framework có thể cần truy cập vào package mà module sở hữu chưa export, hoặc cần reflection sâu vào package chưa opens. Trong giai đoạn chuyển đổi, JVM hoặc javac có thể được cấu hình bằng --add-exports và --add-opens.
+When migrating a Java application to the Java Platform Module System (JPMS), certain libraries or frameworks may need access to packages that the owning module has not exported, or deep reflection into packages that have not been opened. During the transition period, the JVM or `javac` may be configured with `--add-exports` and `--add-opens`.
 
-Nếu những cờ này chỉ nằm trong startup script mà không được giải thích, người bảo trì khó biết vì sao chúng còn tồn tại, cờ nào cần ở compile time, cờ nào cần ở runtime và khi nào có thể xóa. Việc nâng phiên bản JDK, thay framework hoặc tạo custom runtime image có thể làm lộ các giả định cấu hình đó.
+If these flags sit in startup scripts without explanation, maintainers struggle to know why they still exist, which flags are needed at compile time, which are needed at runtime, and when they can be removed. Upgrading JDK versions, replacing frameworks, or building custom runtime images can expose those configuration assumptions.
 
-Vì vậy, tài liệu cần ghi cho **mỗi ngoại lệ truy cập**:
+Therefore, documentation should record for **each access exception**:
 
-1. Cờ đầy đủ gồm source module, package và target module.
-2. Component hoặc framework thật sự sử dụng quyền truy cập.
-3. Lỗi hoặc use case xác nhận nhu cầu.
-4. Vị trí áp dụng: javac, test JVM, application JVM, plugin host hay container.
-5. Phiên bản JDK và dependency đã được kiểm thử.
-6. Mức độ rủi ro và lý do phải duy trì tạm thời.
-7. Người/nhóm chịu trách nhiệm, phương án thay thế, điều kiện loại bỏ.
+1. The exact flag including source module, package, and target module.
+2. The component or framework that actually uses the access permission.
+3. The error or use case proving the need.
+4. Where it applies: `javac`, test JVM, application JVM, plugin host, or container.
+5. The tested JDK version and dependency version.
+6. Risk level and why it must be kept temporarily.
+7. Responsible person/team, alternative approach, and removal criteria.
 
-Mục tiêu là quản lý những ngoại lệ thật sự cần thiết, không phải mở rộng quyền truy cập một cách đại trà.
+The goal is to manage genuinely necessary exceptions, not to open access broadly across the board.
 
-## 2. Cơ chế đóng gói mạnh của JPMS
+## 2. JPMS strong encapsulation mechanics
 
-Một named module có thể chứa các public class nhưng các module khác không được tự động truy cập chúng. Nếu package chưa được exports, regular Java code ở module khác không thể import public type chỉ bằng việc thêm module path.
+A named module can contain `public` classes, yet other modules do not automatically gain access to them. If a package has not been exported, regular Java code in another module cannot import public types simply by adding to the module path.
 
-Ví dụ module engine:
+Example engine module:
 
 ~~~java
 module com.acme.engine {
@@ -30,76 +30,76 @@ module com.acme.engine {
 }
 ~~~
 
-Module này công bố package com.acme.engine.api nhưng không công bố com.acme.engine.internal. Class public trong internal vẫn là chi tiết triển khai.
+This module exposes package `com.acme.engine.api` but does not expose `com.acme.engine.internal`. Public classes inside `internal` remain implementation details.
 
-Với reflection sâu, chẳng hạn một serializer cố truy cập private field bằng setAccessible(true), việc package được export cũng chưa chắc đủ. JPMS phân biệt quyền truy cập Java thông thường và quyền mở package cho deep reflection.
+For deep reflection, such as a serializer attempting to access private fields via `setAccessible(true)`, an exported package is still not necessarily sufficient. JPMS distinguishes normal Java access permissions from opening a package for deep reflection.
 
-Do đó cần phân biệt rõ hai câu hỏi:
+Hence, clearly separate two questions:
 
-- **Có thể import và gọi public type/member từ module khác không?** Xem requires/readability và exports.
-- **Framework có thể reflection sâu vào non-public member không?** Xem opens hoặc --add-opens.
+- **Can another module import and call public types/members?** Check `requires`/readability and `exports`.
+- **Can a framework perform deep reflection on non-public members?** Check `opens` or `--add-opens`.
 
-Đặt sai cờ có thể không sửa được lỗi hoặc tạo quyền không cần thiết.
+Setting the wrong flag may fail to fix the error or grant unnecessary permissions.
 
-## 3. Phân biệt các cơ chế liên quan
+## 3. Distinguishing related mechanisms
 
-| Cơ chế | Chức năng | Pha |
+| Mechanism | Function | Phase |
 |---|---|---|
-| requires B | Cho phép module A đọc module B theo descriptor | Compile và runtime |
-| exports p | Công bố public types trong package p | Compile và runtime |
-| exports p to A | Công bố package p chỉ cho module A | Compile và runtime |
-| opens p to A | Mở p cho reflection sâu từ A | Runtime |
-| --add-exports B/p=A | Bổ sung qualified export tạm thời | javac hoặc JVM |
-| --add-opens B/p=A | Bổ sung mở package cho reflection sâu | JVM runtime |
-| --add-reads A=B | Bổ sung quan hệ đọc, không tự export package | Theo công cụ/hỗ trợ |
+| `requires B` | Allows module A to read module B per descriptor | Compile and runtime |
+| `exports p` | Exposes public types in package `p` | Compile and runtime |
+| `exports p to A` | Exposes package `p` only to module A | Compile and runtime |
+| `opens p to A` | Opens `p` for deep reflection from A | Runtime |
+| `--add-exports B/p=A` | Adds a temporary qualified export | `javac` or JVM |
+| `--add-opens B/p=A` | Adds temporary package opening for deep reflection | JVM runtime |
+| `--add-reads A=B` | Adds a readability edge; does not export packages | Per tool/support |
 
---add-exports không biến private field thành public và không tự tạo readability. --add-opens không phải giải pháp để javac import package nội bộ. Nếu runtime báo module not found hoặc class thực sự bị thiếu, cả hai cờ đều không thay thế việc sửa module path/dependency.
+`--add-exports` does not turn private fields into public ones and does not create readability by itself. `--add-opens` is not a way for `javac` to import internal packages. If the runtime reports module not found or a class is actually missing, neither flag replaces fixing the module path or dependencies.
 
-## 4. Cú pháp phải được ghi nguyên văn
+## 4. Syntax must be recorded verbatim
 
-Export có đích:
+Targeted export:
 
 ~~~text
 --add-exports <source-module>/<package>=<target-module>[,<target-module>...]
 ~~~
 
-Open package có đích:
+Targeted package open:
 
 ~~~text
 --add-opens <source-module>/<package>=<target-module>[,<target-module>...]
 ~~~
 
-Ví dụ export public class trong package nội bộ cho một named module:
+Example exporting a public class in an internal package to a named module:
 
 ~~~bash
 --add-exports com.acme.engine/com.acme.engine.internal=com.acme.client
 ~~~
 
-Ví dụ mở model package cho một named serializer:
+Example opening a model package to a named serializer:
 
 ~~~bash
 --add-opens com.acme.orders/com.acme.orders.model=com.acme.serializer
 ~~~
 
-Target đặc biệt ALL-UNNAMED cấp quyền cho các unnamed modules, thường là code chạy trên classpath:
+The special target `ALL-UNNAMED` grants permission to unnamed modules, typically code running on the classpath:
 
 ~~~bash
 --add-opens java.base/java.lang=ALL-UNNAMED
 ~~~
 
-Không suy đoán tên target module từ tên JAR hoặc Maven coordinate. Cần xem module thực tế đang nạp code gọi. Nếu framework nằm trong named module, ưu tiên target cụ thể thay vì ALL-UNNAMED.
+Do not guess the target module name from a JAR filename or Maven coordinate. Inspect the actual module loading the calling code. If the framework resides in a named module, prefer the specific target instead of `ALL-UNNAMED`.
 
-## 5. Ví dụ --add-exports khi biên dịch và chạy
+## 5. Example of --add-exports at compile and run time
 
-Giả sử module engine chứa class public EngineFlags trong package com.acme.engine.internal nhưng descriptor chưa export package đó.
+Suppose module `engine` contains a public class `EngineFlags` in package `com.acme.engine.internal`, but the descriptor does not export that package.
 
 ~~~java
 module com.acme.engine {
-    // com.acme.engine.internal không được export
+    // com.acme.engine.internal is not exported
 }
 ~~~
 
-Module consumer:
+Consumer module:
 
 ~~~java
 module com.acme.client {
@@ -107,7 +107,7 @@ module com.acme.client {
 }
 ~~~
 
-Code consumer:
+Consumer code:
 
 ~~~java
 package com.acme.client;
@@ -121,7 +121,7 @@ public final class Main {
 }
 ~~~
 
-Khi chưa thể sửa client để dùng public API chính thức, lệnh biên dịch có thể cần:
+While the client cannot yet be updated to use the official public API, the compile command may require:
 
 ~~~bash
 javac --module-source-path src \
@@ -130,7 +130,7 @@ javac --module-source-path src \
       -m com.acme.engine,com.acme.client
 ~~~
 
-Lệnh chạy có thể cần cùng quyền export:
+The run command may require the same export permission:
 
 ~~~bash
 java --module-path mods \
@@ -138,13 +138,13 @@ java --module-path mods \
      -m com.acme.client/com.acme.client.Main
 ~~~
 
-Tài liệu phải ghi **cả nơi compiler nhận cờ và nơi JVM runtime nhận cờ**, nếu cả hai thật sự cần. Option được truyền cho javac không tự được ghi vào modular JAR để launcher tự áp dụng.
+Documentation must record **both where the compiler receives the flag and where the JVM runtime receives the flag**, if both truly need it. Options passed to `javac` are not written into the modular JAR for the launcher to apply automatically.
 
-Nếu code được compile nhờ cờ nhưng runtime thiếu cờ, có thể xuất hiện IllegalAccessError. Không nên giữ quyền truy cập này như API lâu dài; giải pháp tốt hơn là thay internal class bằng interface hoặc public type thuộc package đã export.
+If code compiles thanks to the flag but lacks it at runtime, an `IllegalAccessError` may occur. Do not keep this access permission as a long-term API; a better fix is replacing the internal class with an interface or public type in an exported package.
 
-## 6. Ví dụ --add-opens cho deep reflection
+## 6. Example of --add-opens for deep reflection
 
-Một framework serialization có thể truy cập private model state:
+A serialization framework may access private model state:
 
 ~~~java
 package com.acme.orders.model;
@@ -157,7 +157,7 @@ public final class Order {
 }
 ~~~
 
-Module orders:
+Module `orders`:
 
 ~~~java
 module com.acme.orders {
@@ -165,7 +165,7 @@ module com.acme.orders {
 }
 ~~~
 
-Nếu framework chạy trong named module com.acme.serializer, có thể tạm cấu hình:
+If the framework runs inside the named module `com.acme.serializer`, you can temporarily configure:
 
 ~~~bash
 java --module-path mods \
@@ -173,7 +173,7 @@ java --module-path mods \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Nếu framework thực sự nằm trên classpath, target có thể là ALL-UNNAMED:
+If the framework actually sits on the classpath, the target may be `ALL-UNNAMED`:
 
 ~~~bash
 java --module-path mods \
@@ -181,9 +181,9 @@ java --module-path mods \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Hai ví dụ là các phương án khác nhau cho những caller khác nhau. Chỉ sử dụng một phương án sau khi xác minh module identity thực tế của framework.
+The two examples are different options for different callers. Use one option only after verifying the framework's actual module identity.
 
-Khi source module thuộc quyền quản lý của dự án, giải pháp dài hạn có thể là:
+When the source module is under your project's control, the long-term solution may be:
 
 ~~~java
 module com.acme.orders {
@@ -192,100 +192,100 @@ module com.acme.orders {
 }
 ~~~
 
-Hoặc thay reflection bằng public accessor, constructor, factory hay DTO được hỗ trợ. Không mở toàn bộ module khi chỉ cần một package.
+Or replace reflection with supported public accessors, constructors, factories, or DTOs. Do not open the entire module when only one package is needed.
 
-## 7. Mỗi ngoại lệ cần có một hồ sơ độc lập
+## 7. Each exception needs its own record
 
-Một sổ đăng ký tập trung giúp tránh việc các cờ bị nhân bản qua nhiều script.
+A centralized registry helps prevent flags from being duplicated across multiple scripts.
 
-Ví dụ bảng tổng hợp:
+Example summary table:
 
-| ID | Flag | Thành phần sử dụng | Pha | Owner | Mục tiêu |
+| ID | Flag | Consuming component | Phase | Owner | Goal |
 |---|---|---|---|---|---|
-| JPMS-001 | --add-opens java.base/java.lang=ALL-UNNAMED | Framework legacy | Test | Platform team | Nâng framework |
-| JPMS-002 | --add-exports com.acme.engine/com.acme.engine.internal=com.acme.client | Client module | Compile, Run | Engine team | Public API |
-| JPMS-003 | --add-opens com.acme.orders/com.acme.orders.model=com.acme.serializer | Serializer | Run | Orders team | Narrow opens/DTO |
+| JPMS-001 | `--add-opens java.base/java.lang=ALL-UNNAMED` | Legacy framework | Test | Platform team | Upgrade framework |
+| JPMS-002 | `--add-exports com.acme.engine/com.acme.engine.internal=com.acme.client` | Client module | Compile, Run | Engine team | Public API |
+| JPMS-003 | `--add-opens com.acme.orders/com.acme.orders.model=com.acme.serializer` | Serializer | Run | Orders team | Narrow opens/DTO |
 
-Tên module và framework ở bảng là ví dụ; hệ thống thật cần thay bằng artifact và phiên bản đã xác nhận.
+Module and framework names in the table are examples; real systems must substitute confirmed artifacts and versions.
 
-Đối với mỗi ID, hồ sơ chi tiết nên có:
+For each ID, the detailed record should include:
 
-- Tên module nguồn, package và module đích chính xác.
-- Chức năng nào dùng quyền (class hoặc framework).
-- Stack trace, lỗi biên dịch hoặc case kiểm thử chứng minh.
-- Cấu hình được truyền cho công cụ/tiến trình nào.
-- JDK vendor, version và dependency version đã xác minh.
-- Rủi ro và mức độ mở quyền.
-- Owner và ngày hoặc mốc release phải kiểm tra lại.
-- Giải pháp lâu dài cùng tiêu chí xóa cờ.
+- Exact source module name, package, and target module.
+- Which functionality uses the permission (class or framework).
+- Stack trace, compile error, or test case proving the need.
+- Which tools/processes receive the configuration.
+- Verified JDK vendor, version, and dependency version.
+- Risk and breadth of the opened permission.
+- Owner and review date or release milestone.
+- Long-term solution and flag removal criteria.
 
-Bảng liệt kê cờ không đủ nếu người đọc vẫn không biết vì sao từng cờ tồn tại.
+A table simply listing flags is insufficient if readers still do not know why each flag exists.
 
-## 8. Mẫu hồ sơ Markdown để dùng trong repository
+## 8. Markdown record template for repository use
 
-Có thể lưu tài liệu tập trung tại docs/jpms-access-exceptions.md:
+A centralized document can be stored at `docs/jpms-access-exceptions.md`:
 
 ~~~markdown
-### JPMS-003 — Serializer truy cập Orders model
+### JPMS-003 — Serializer accessing Orders model
 
 - Option: --add-opens com.acme.orders/com.acme.orders.model=com.acme.serializer
 - Source: com.acme.orders / com.acme.orders.model
 - Target: com.acme.serializer (named module)
-- Caller: serializer khi đọc private fields
+- Caller: serializer when reading private fields
 - Symptom without flag: InaccessibleObjectException
-- Reproduction: integration test xử lý đơn hàng
+- Reproduction: order processing integration test
 - Required in: application JVM, integration test JVM
 - Not required in: javac
 - Configuration owner: Orders team
-- JDK tested: ghi version/vendor cụ thể
-- Dependency tested: ghi group, artifact, version
-- Risk: mở private members trong package model cho serializer
-- Alternative: public DTO/constructor hoặc qualified opens trong descriptor
-- Removal criterion: test và release launcher chạy thành công khi bỏ option
-- Tracking issue: đường dẫn issue hoặc PR
-- Status: còn bắt buộc
+- JDK tested: specify exact version/vendor
+- Dependency tested: specify group, artifact, version
+- Risk: exposes private members in the model package to the serializer
+- Alternative: public DTO/constructor or qualified opens in descriptor
+- Removal criterion: tests and release launcher pass without the option
+- Tracking issue: link to issue or PR
+- Status: still required
 ~~~
 
-Không để các giá trị “đã kiểm tra” mà thiếu thông tin thực tế. Nếu chưa xác minh một mục, ghi trạng thái chưa xác minh và giới hạn release tương ứng thay vì tự điền tên module hoặc version đoán được.
+Do not fill in “tested” values without real verification data. If an item has not been verified, mark it unverified with the corresponding release constraint rather than guessing module names or versions.
 
-## 9. Cách chứng minh cờ còn bắt buộc
+## 9. How to prove a flag is still required
 
-Cần một kiểm thử tái hiện chứ không chỉ dựa vào lời giải thích truyền miệng.
+You need a reproducible test rather than relying solely on word-of-mouth explanations.
 
-Quy trình đề xuất:
+Recommended procedure:
 
-1. Chốt JDK, artifact và câu lệnh chạy hiện tại.
-2. Xác nhận use case hoạt động khi có option.
-3. Trong môi trường kiểm thử, loại riêng option đang đánh giá.
-4. Chạy lại use case kích hoạt quyền truy cập.
-5. Thu thập exception, stack trace, source package và caller module.
-6. Khôi phục option, xác nhận use case hoạt động trở lại.
-7. Ghi nhận kết luận vào hồ sơ ngoại lệ.
+1. Pin the current JDK, artifacts, and run command.
+2. Confirm the use case works when the option is present.
+3. In a test environment, remove only the option under evaluation.
+4. Re-run the use case that exercises the access permission.
+5. Capture the exception, stack trace, source package, and caller module.
+6. Restore the option and confirm the use case works again.
+7. Record the findings in the exception entry.
 
-Ví dụ:
+Examples:
 
-- Package not visible ở compile time cho biết cần kiểm tra readability/exports.
-- IllegalAccessError khi chạy có thể liên quan regular bytecode access.
-- InaccessibleObjectException thường liên quan deep reflection.
-- Module not found thường là vấn đề module path/name và không được sửa bằng opens.
+- “Package not visible” at compile time indicates checking readability/`exports`.
+- `IllegalAccessError` at runtime may relate to regular bytecode access.
+- `InaccessibleObjectException` usually relates to deep reflection.
+- “Module not found” is normally a module path/name problem and is not fixed by `opens`.
 
-Không được thử xóa cờ trực tiếp trên production nếu hành động đó có thể làm gián đoạn dịch vụ. Mỗi bước cần chạy trong môi trường thử nghiệm với dữ liệu và use case tương đương.
+Never test removing flags directly in production if doing so could disrupt service. Run every step in a test environment with equivalent data and use cases.
 
-## 10. Xác minh tên module và caller thực tế
+## 10. Verifying the actual module name and caller
 
-Tên Maven artifact, Gradle project path hoặc JAR file không nhất thiết là JPMS module name. Kiểm tra descriptor:
+Maven artifact names, Gradle project paths, or JAR filenames are not necessarily JPMS module names. Inspect the descriptor:
 
 ~~~bash
 jar --describe-module --file libs/example.jar
 ~~~
 
-Với system module:
+For a system module:
 
 ~~~bash
 java --describe-module java.base
 ~~~
 
-Quan sát module graph lúc chạy:
+Observe the module graph at runtime:
 
 ~~~bash
 java --show-module-resolution \
@@ -293,7 +293,7 @@ java --show-module-resolution \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Nếu có thể thực thi code chẩn đoán, module identity của class được xem qua:
+If diagnostic code can be executed, inspect a class's module identity via:
 
 ~~~java
 Module owner = SomeClass.class.getModule();
@@ -301,32 +301,32 @@ System.out.println(owner.getName());
 System.out.println(owner.isNamed());
 ~~~
 
-Unnamed module có getName() trả về null. Điều này giúp phân biệt trường hợp cần ALL-UNNAMED với trường hợp cần target named module.
+An unnamed module returns `null` from `getName()`. This distinguishes cases needing `ALL-UNNAMED` from cases needing a specific named module target.
 
-Ứng dụng tự tạo custom ModuleLayer cần kiểm tra module/layer của caller. Không mặc định mọi launcher option đều giải quyết quyền truy cập của những layer tạo động; có thể cần module descriptor hoặc ModuleLayer.Controller theo cơ chế và giới hạn của layer.
+Applications creating custom `ModuleLayer`s must check the caller's module/layer. Do not assume every launcher option resolves access permissions for dynamically created layers; module descriptors or `ModuleLayer.Controller` may be needed within layer rules and limits.
 
-## 11. Ghi rõ pha sử dụng: javac, test, run, plugin
+## 11. Specifying the usage phase: javac, test, run, plugin
 
-Cùng một dự án có thể tạo nhiều tiến trình Java:
+A single project can spawn multiple Java processes:
 
-- Compiler javac.
-- JVM chạy unit test.
-- JVM chạy integration test.
-- Gradle/Maven JavaExec hoặc Application Plugin.
-- JVM của executable JAR/distribution.
+- `javac` compiler.
+- JVM running unit tests.
+- JVM running integration tests.
+- Gradle/Maven `JavaExec` or Application Plugin.
+- Executable JAR/distribution JVM.
 - Container entrypoint.
-- JVM do worker hoặc plugin host khởi chạy.
-- Runtime image tự đóng gói.
+- JVMs launched by workers or plugin hosts.
+- Self-packaged runtime image.
 
-Cờ chỉ có hiệu lực trong tiến trình được cấu hình. Một cờ trên Gradle run task không có nghĩa bản phân phối production tự nhận được nó; tương tự, cờ trên application launcher không tự áp dụng cho test JVM.
+A flag only takes effect in the process configured with it. A flag on a Gradle `run` task does not mean the production distribution automatically receives it; likewise, a flag on the application launcher does not automatically apply to the test JVM.
 
-Hồ sơ cần nêu rõ: “Required at compile”, “Required in test JVM” và “Required in production JVM” là ba kết luận riêng. Không sao chép mọi option sang tất cả tiến trình để tiện cấu hình.
+The record must state separately: “Required at compile”, “Required in test JVM”, and “Required in production JVM” as three distinct conclusions. Do not copy every option across all processes for convenience.
 
---add-opens chủ yếu phục vụ runtime deep reflection, không giải quyết lỗi javac khi import package chưa export. Với --add-exports, có thể cần cấu hình ở cả compile và run nếu source/bytecode trực tiếp truy cập public type trong package nội bộ.
+`--add-opens` primarily serves runtime deep reflection, and does not resolve `javac` errors when importing unexported packages. For `--add-exports`, configuration may be required at both compile and run time if source/bytecode directly accesses public types in internal packages.
 
-## 12. Tài liệu hóa trong startup script trên Linux
+## 12. Documenting inside Linux startup scripts
 
-Với cấu trúc phân phối:
+With a distribution layout:
 
 ~~~text
 distribution/
@@ -344,27 +344,27 @@ set -eu
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 APP_HOME="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
 
-# JPMS-003: serializer cần reflective access vào model.
-# Xem docs/jpms-access-exceptions.md trước khi thay đổi.
+# JPMS-003: serializer requires reflective access to model.
+# See docs/jpms-access-exceptions.md before changing.
 exec java \
   --module-path "$APP_HOME/mods" \
   --add-opens com.acme.orders/com.acme.orders.model=com.acme.serializer \
   -m com.acme.app/com.acme.app.Main "$@"
 ~~~
 
-Comment giúp liên kết cờ với hồ sơ đã có owner và lộ trình thay thế. Đường dẫn APP_HOME được tính theo vị trí script, không phụ thuộc vào thư mục mà người dùng đang đứng.
+Comments link the flag to the documented record with an owner and replacement plan. `APP_HOME` is computed from the script's location rather than depending on the caller's working directory.
 
-Trong Windows PowerShell, có thể dùng một dòng lệnh để tránh khác biệt cách nối dòng:
+In Windows PowerShell, a single-line command avoids line-continuation differences:
 
 ~~~powershell
 & java --module-path "C:\Apps\Acme\mods" --add-opens "com.acme.orders/com.acme.orders.model=com.acme.serializer" -m com.acme.app/com.acme.app.Main
 ~~~
 
-Lệnh thực tế cần tính module path theo vị trí distribution và xác minh cờ có được truyền đến đúng JVM.
+The real command should compute the module path relative to the distribution location and verify the flag reaches the right JVM.
 
-## 13. Tài liệu hóa trong Gradle
+## 13. Documenting in Gradle
 
-Nếu dùng Gradle Application Plugin:
+If using the Gradle Application Plugin:
 
 ~~~groovy
 plugins {
@@ -375,27 +375,27 @@ application {
     mainModule = 'com.acme.app'
     mainClass = 'com.acme.app.Main'
 
-    // JPMS-003: cờ runtime còn được theo dõi trong hồ sơ ngoại lệ.
+    // JPMS-003: runtime flag still tracked in the access exceptions registry.
     applicationDefaultJvmArgs = [
         '--add-opens=com.acme.orders/com.acme.orders.model=com.acme.serializer'
     ]
 }
 ~~~
 
-Nếu chỉ test cần reflection từ unnamed module:
+If only tests need reflection from an unnamed module:
 
 ~~~groovy
 tasks.withType(Test).configureEach {
-    // JPMS-004: test framework cần private-field introspection.
+    // JPMS-004: test framework requires private-field introspection.
     jvmArgs '--add-opens=com.acme.orders/com.acme.orders.model=ALL-UNNAMED'
 }
 ~~~
 
-Nếu source phải dùng non-exported public class, compiler có thể cần:
+If source code must use a non-exported public class, the compiler may need:
 
 ~~~groovy
 tasks.withType(JavaCompile).configureEach {
-    // JPMS-002: giới hạn cho những module/task thật sự cần trong dự án.
+    // JPMS-002: limit to only the modules/tasks that truly need it in the project.
     options.compilerArgs += [
         '--add-exports',
         'com.acme.engine/com.acme.engine.internal=com.acme.client'
@@ -403,48 +403,48 @@ tasks.withType(JavaCompile).configureEach {
 }
 ~~~
 
-Ví dụ JavaCompile cho biết vị trí có thể truyền compiler flag; trong monorepo nên cấu hình chỉ task của module client thay vì áp dụng toàn cục không cần thiết.
+The `JavaCompile` example shows where compiler flags can be passed; in a monorepo, configure only the client module's task rather than applying it globally without need.
 
-Nếu runtime cũng cần export, cấu hình cùng option tại Application Plugin hoặc JavaExec task liên quan. Với javac --release và system modules, việc dùng --add-exports để truy cập JDK internal API có giới hạn riêng; không nên coi cờ này là cách vượt qua --release.
+If runtime also requires the export, configure the same option on the Application Plugin or relevant `JavaExec` task. With `javac --release` and system modules, using `--add-exports` to access JDK internal APIs has its own restrictions; do not treat this flag as a way around `--release`.
 
-## 14. Maven, CI và container
+## 14. Maven, CI, and containers
 
-Với Maven, phân biệt nơi nhận option:
+With Maven, distinguish where options are received:
 
-- Maven Compiler Plugin dành cho compiler arguments.
-- Maven Surefire/Failsafe dành cho JVM chạy test.
-- Plugin chạy ứng dụng hoặc startup script dành cho ứng dụng thật.
-- Dockerfile/entrypoint hoặc deployment manifest dành cho container.
+- Maven Compiler Plugin for compiler arguments.
+- Maven Surefire/Failsafe for test JVMs.
+- Application runner plugins or startup scripts for the real application.
+- Dockerfile/entrypoint or deployment manifest for containers.
 
-Tên cấu hình XML cụ thể phụ thuộc version plugin, vì vậy hồ sơ cần trỏ tới file cấu hình thực tế và ghi câu lệnh build đã kiểm chứng.
+Exact XML configuration names depend on plugin versions, so records should point to actual configuration files and record verified build commands.
 
-Trong CI, kiểm tra các cờ được truyền vào đúng task, không chỉ xuất hiện như một chuỗi trong repository. Trong container, bảo đảm startup script và entrypoint cuối cùng của image dùng cùng thông số đã kiểm thử.
+In CI, confirm flags are passed to the right task, not merely sitting as a string in the repository. In containers, verify the final startup script and image entrypoint use the same tested parameters.
 
-JAVA_TOOL_OPTIONS hoặc JDK_JAVA_OPTIONS có thể ảnh hưởng phạm vi nhiều tiến trình; nếu sử dụng, ghi rõ tác động và tránh lạm dụng làm kênh cấp quyền rộng một cách ngầm định.
+`JAVA_TOOL_OPTIONS` or `JDK_JAVA_OPTIONS` can affect multiple processes broadly; if used, document their scope and avoid abusing them as an implicit wide-permission channel.
 
-Một ma trận triển khai nên có các cột local, CI compile, unit test, integration test, staging và production, kèm “có/không cần cờ” và đường dẫn đến cấu hình.
+A deployment matrix should have columns for local, CI compile, unit test, integration test, staging, and production, with “flag required yes/no” and links to configuration.
 
-## 15. Framework, annotation processor và test-only flags
+## 15. Frameworks, annotation processors, and test-only flags
 
-Một số cờ có thể chỉ cần vì test framework, mocking library hoặc bytecode instrumentation:
+Some flags may only be needed by test frameworks, mocking libraries, or bytecode instrumentation:
 
 ~~~bash
 --add-opens com.acme.app/com.acme.app.internal=ALL-UNNAMED
 ~~~
 
-Cờ này có ý nghĩa nếu framework thực sự chạy trong unnamed module và dùng reflection sâu ở package internal.
+This flag makes sense if the framework truly runs in the unnamed module and performs deep reflection on an internal package.
 
-Nếu framework được nạp thành named module, phải dùng tên module thực tế. Nếu chỉ một test cần reflection, không đưa quyền đó vào production launcher.
+If the framework is loaded as a named module, use the actual module name. If only a test needs reflection, do not carry that permission into the production launcher.
 
-Annotation processor có thể cần quyền trong tiến trình compiler hoặc module/process khác. Không tự thêm --add-opens vào runtime của sản phẩm chỉ vì một processor phục vụ build. Ghi chính xác component nào gọi và đang chạy ở pha nào.
+Annotation processors may need permissions inside the compiler process or another module/process. Never add `--add-opens` to the product's runtime just for a build-time processor. Record the exact calling component and the phase in which it runs.
 
-Mỗi khi nâng JUnit, Mockito, serializer hoặc compiler plugin, kiểm tra lại ngoại lệ liên quan. Một framework mới có thể không cần cùng quyền như phiên bản cũ.
+Whenever upgrading JUnit, Mockito, serializers, or compiler plugins, re-verify related exceptions. Newer framework versions may no longer require the same permissions as older ones.
 
-## 16. External libraries và internal API của JDK
+## 16. External libraries and JDK internal APIs
 
-Ứng dụng cũ có thể truy cập các package như jdk.internal.* hoặc dùng reflection sâu vào package của java.base.
+Legacy applications may access packages like `jdk.internal.*` or use deep reflection into `java.base` packages.
 
-Ví dụ minh họa cú pháp:
+Syntax examples:
 
 ~~~bash
 --add-exports java.base/jdk.internal.misc=ALL-UNNAMED
@@ -454,18 +454,18 @@ Ví dụ minh họa cú pháp:
 --add-opens java.base/java.lang=ALL-UNNAMED
 ~~~
 
-Đây **không phải** lời khuyên sử dụng internal JDK API trong code mới. Một cờ giúp chương trình chạy hiện tại không bảo đảm class nội bộ ổn định khi nâng JDK.
+This is **not** advice to use internal JDK APIs in new code. A flag that keeps the program running today does not guarantee internal classes stay stable across JDK upgrades.
 
-Nếu một thư viện yêu cầu cờ liên quan JDK internals, hồ sơ nên ghi:
+If a library requires a flag touching JDK internals, the record should state:
 
-- Library group/artifact/version và call site.
-- JDK version đã kiểm tra.
-- Kết quả stack trace hoặc phân tích.
-- Phiên bản thư viện thay thế có hỗ trợ JDK mới hay không.
-- Public Java API có thể dùng thay thế.
-- Test cụ thể để xác nhận việc bỏ cờ.
+- Library group/artifact/version and call site.
+- Tested JDK version.
+- Stack trace or analysis result.
+- Whether an alternative library version supports newer JDKs.
+- Public Java APIs usable as replacements.
+- Specific tests confirming flag removal.
 
-Có thể dùng jdeps tìm nhiều tham chiếu tĩnh đến JDK internal API:
+You can use `jdeps` to locate many static references to JDK internal APIs:
 
 ~~~bash
 jdeps --jdk-internals --recursive \
@@ -473,62 +473,62 @@ jdeps --jdk-internals --recursive \
       app.jar
 ~~~
 
-jdeps không phát hiện toàn bộ reflection dựa trên tên class dạng chuỗi. Vì vậy cần bổ sung tìm kiếm source/config và các integration tests thực tế.
+`jdeps` does not detect all string-based reflection. Supplement it with source/config searches and real integration tests.
 
---illegal-access không còn là biện pháp mở quyền tổng quát đáng tin cậy trên những JDK hiện đại. Các --add-opens hoặc --add-exports còn lại phải có chủ sở hữu và kế hoạch loại bỏ.
+`--illegal-access` is no longer a reliable blanket way to open permissions on modern JDKs. Remaining `--add-opens` or `--add-exports` flags must have owners and removal plans.
 
-## 17. Giảm phạm vi quyền và rủi ro
+## 17. Narrowing permission scope and risk
 
-Khi đánh giá an toàn:
+When assessing safety:
 
-- --add-exports có thể khiến consumer lệ thuộc implementation public type trong package vốn được giữ nội bộ.
-- --add-opens có thể cho caller sử dụng reflection sâu tới member non-public nếu quyền reflection hợp lệ.
-- ALL-UNNAMED rộng hơn một named module cụ thể.
-- Cờ được gắn vào mọi JVM process có thể tạo phạm vi ngoài use case cần thiết.
-- Các JDK nâng cấp trong tương lai có thể thay đổi hoặc bỏ class nội bộ.
+- `--add-exports` can cause consumers to depend on public types in packages meant to remain internal.
+- `--add-opens` lets callers perform deep reflection on non-public members where reflection permissions apply.
+- `ALL-UNNAMED` is broader than a specific named module.
+- Flags attached to every JVM process can grant scope beyond the required use case.
+- Future JDK upgrades may change or remove internal classes.
 
-Ưu tiên cấp quyền nhỏ nhất: đúng module nguồn, đúng package, đúng target và đúng pha chạy. Không tự mở toàn bộ package/module khác chỉ vì sửa lỗi nhanh.
+Prefer least privilege: the exact source module, exact package, exact target, and exact execution phase. Do not open entire packages or other modules just for a quick fix.
 
-JPMS là cơ chế đóng gói và kiểm soát module access, không phải sandbox bảo mật toàn diện. Việc ghi rủi ro nên liên hệ với dữ liệu và bất biến thực tế trong package được mở.
+JPMS is an encapsulation and module access-control mechanism, not a complete security sandbox. Risk notes should relate to the actual data and invariants inside the opened package.
 
-## 18. Khi nào có thể bỏ cờ?
+## 18. When can a flag be removed?
 
-Một ngoại lệ có thể được loại bỏ khi:
+An exception can be removed when:
 
-1. Consumer đã chuyển sang API công khai được module sở hữu export.
-2. Framework không còn dùng deep reflection vào package cũ, hoặc descriptor có opens có chủ đích.
-3. Không còn dependency tới internal JDK API đã gây lỗi.
-4. Test kích hoạt chức năng liên quan thành công khi **bỏ riêng cờ đó**.
-5. Startup script, CI, Gradle/Maven và container chạy được trên JDK mục tiêu không có cờ.
-6. Bản phát hành đã được kiểm thử trên artifact cuối cùng.
-7. Owner xác nhận cập nhật tài liệu và changelog của migration.
+1. Consumers have moved to a public API exported by the owning module.
+2. Frameworks no longer perform deep reflection on the old package, or the descriptor has an intentional `opens`.
+3. Dependencies on the offending internal JDK API are gone.
+4. Tests exercising the relevant functionality pass with **only that flag removed**.
+5. Startup scripts, CI, Gradle/Maven, and containers run on the target JDK without the flag.
+6. The release has been tested on final artifacts.
+7. The owner confirms documentation and migration changelog updates.
 
-Không xóa tất cả cờ đồng thời. Loại từng cờ, chạy đúng bài test bị ảnh hưởng, rồi xóa khỏi mọi nơi cấu hình liên quan. Một lần khởi động thành công chưa đủ vì lỗi reflection có thể chỉ xuất hiện khi một endpoint hoặc tác vụ ít dùng được gọi.
+Do not remove all flags at once. Remove one flag at a time, run the affected tests, then remove it from all relevant configuration locations. A single successful startup is insufficient because reflection errors may only trigger when a rarely used endpoint or task is invoked.
 
-Giữ lịch sử ngắn về cờ đã bỏ, version đã bỏ và lý do cũ để hỗ trợ phân tích hồi quy khi nâng JDK tiếp theo.
+Keep a brief history of removed flags, removal versions, and past rationales to aid regression analysis during future JDK upgrades.
 
-## 19. Checklist định kỳ khi nâng JDK hoặc dependency
+## 19. Periodic checklist when upgrading JDK or dependencies
 
-- [ ] Liệt kê mọi --add-opens và --add-exports từ repository và cấu hình triển khai.
-- [ ] Mỗi option có một ID/hồ sơ và owner.
-- [ ] Source module/package được kiểm tra từ descriptor và artifact thật.
-- [ ] Target module là caller thực tế, không suy đoán từ file name.
-- [ ] ALL-UNNAMED chỉ được dùng khi có lý do.
-- [ ] Mục đích access đã phân biệt export thường với reflection sâu.
-- [ ] Pha compile, test, run hoặc plugin host được ghi rõ.
-- [ ] JDK/vendor và library versions đã kiểm thử được cập nhật.
-- [ ] Có case tái hiện lỗi khi bỏ option.
-- [ ] Không giữ cờ test-only trong production nếu không cần.
-- [ ] Cờ trên script/container/Gradle/Maven khớp hồ sơ.
-- [ ] Rủi ro, mốc kiểm tra lại, owner và phương án thay thế đã được ghi.
-- [ ] Đã thử xóa từng cờ sau khi nâng framework hoặc thiết kế lại API.
-- [ ] Không phụ thuộc vào --illegal-access như phương án migration lâu dài.
-- [ ] Không dùng cờ access để che lỗi thiếu module, split package hay class thiếu.
+- [ ] List all `--add-opens` and `--add-exports` from the repository and deployment configs.
+- [ ] Every option has an ID/record and owner.
+- [ ] Source module/package verified from actual descriptors and artifacts.
+- [ ] Target module is the real caller, not guessed from a filename.
+- [ ] `ALL-UNNAMED` is used only when justified.
+- [ ] Access purpose distinguishes regular export from deep reflection.
+- [ ] Compile, test, run, or plugin host phase is explicitly stated.
+- [ ] Tested JDK/vendor and library versions are up to date.
+- [ ] A reproduction case exists showing failure when the option is omitted.
+- [ ] Test-only flags are not kept in production unnecessarily.
+- [ ] Flags in scripts/containers/Gradle/Maven match the registry.
+- [ ] Risk, review milestone, owner, and alternatives are documented.
+- [ ] Attempted removing flags individually after upgrading frameworks or redesigning APIs.
+- [ ] Not relying on `--illegal-access` as a long-term migration plan.
+- [ ] Not using access flags to mask missing modules, split packages, or missing classes.
 
-## 20. Kết luận
+## 20. Conclusion
 
-Một hệ thống JPMS dễ bảo trì cần coi các cờ --add-opens và --add-exports còn bắt buộc là **ngoại lệ truy cập có thể giải trình và loại bỏ**, không phải các tham số startup mặc định vô thời hạn.
+A maintainable JPMS system treats still-required `--add-opens` and `--add-exports` flags as **accountable, removable access exceptions**, not permanent default startup arguments.
 
-Với từng cờ, hãy ghi rõ **ai dùng quyền, mở package nào, mở cho module nào, vì sao cần, áp dụng tại compile/test/run nào, bằng chứng nào chứng minh, ai sở hữu và điều kiện nào cho phép xóa**.
+For each flag, clearly record **who uses the permission, which package is opened, to which module, why it is needed, at which compile/test/run phase it applies, what evidence proves it, who owns it, and what criteria allow removal**.
 
---add-exports dành cho regular access tới public types trong package chưa export; --add-opens dành cho deep reflection khi chạy. Cả hai không thay thế requires, module resolution hoặc public API đúng thiết kế. Khi nâng thư viện và chuyển dần sang API được hỗ trợ, hãy gỡ từng ngoại lệ cùng các kiểm thử đại diện để khôi phục strong encapsulation có chủ đích.
+`--add-exports` is for regular access to public types in unexported packages; `--add-opens` is for runtime deep reflection. Neither replaces `requires`, module resolution, or a well-designed public API. As libraries are upgraded and migrated to supported APIs, remove each exception alongside representative tests to restore intentional strong encapsulation.

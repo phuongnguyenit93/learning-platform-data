@@ -1,8 +1,8 @@
-# Tổng bù và tư tưởng Kahan summation
+# Compensated Summation and the Idea Behind Kahan Summation
 
-Khi cộng nhiều số thực trong Java bằng `double`, vòng lặp `sum += x` có thể tích lũy sai số làm tròn. Đặc biệt, một số nhỏ cộng vào tổng đang rất lớn có thể **không làm tổng thay đổi**, dù số nhỏ đó có ý nghĩa thực tế. **Kahan summation** (*compensated summation*, thuật toán cộng có bù) dùng thêm một biến để ghi nhận một phần sai lệch trong các phép cộng, rồi bù vào các lần cộng tiếp theo.
+When summing many floating-point numbers in Java using `double`, a loop `sum += x` can accumulate rounding error. In particular, a small number added to an already very large sum can **fail to change the sum at all**, even though that small number is practically meaningful. **Kahan summation** (*compensated summation*) uses an extra variable to record part of the discrepancy during additions and then compensates for it in subsequent additions.
 
-Ví dụ:
+Example:
 
 ```java
 double sum = 0.0;
@@ -12,18 +12,18 @@ for (int i = 0; i < 10; i++) {
 System.out.println(sum); // 0.9999999999999999
 ```
 
-Với cùng các phần tử, phiên bản Kahan trong bài cho kết quả `1.0`. Nhưng **Kahan không biến `double` thành số học chính xác tuyệt đối**: nó giảm một loại sai số khi cộng, không sửa được mọi sai số đầu vào hoặc mọi tình huống triệt tiêu.
+With the same elements, the Kahan version in this lesson produces `1.0`. However, **Kahan does not turn `double` into strictly exact arithmetic**: it reduces one kind of error during summation, and cannot fix every input error or every cancellation scenario.
 
-## 1. Nguồn gốc của sai số khi tính tổng
+## 1. Sources of Error When Computing a Sum
 
-`double` là kiểu dấu phẩy động nhị phân 64 bit với **53 bit độ chính xác phần trị hiệu dụng**. Không phải mọi số thập phân đều biểu diễn được bằng nhị phân hữu hạn: `0.1` chỉ được lưu thành một giá trị gần đúng. Sau đó mỗi phép cộng trên `double` còn có thể làm tròn kết quả sang số gần nhất biểu diễn được.
+`double` is a 64-bit binary floating-point type with **53 bits of effective significand precision**. Not every decimal number is representable in finite binary: `0.1` is stored only as an approximate value. Then each addition on `double` can also round the result to the nearest representable number.
 
-Có hai nguồn sai số cần phân biệt:
+There are two error sources to distinguish:
 
-1. **Sai số biểu diễn:** giá trị nhập như `0.1` đã được chuyển sang một số nhị phân gần đúng. Kahan không khôi phục chính xác ý nghĩa thập phân gốc.
-2. **Sai số phép cộng:** một số bit thấp của kết quả toán học có thể bị mất sau mỗi phép `+`. Kahan được thiết kế để hạn chế phần sai số tích lũy này.
+1. **Representation error:** an entered value such as `0.1` has already been converted to an approximate binary number. Kahan does not recover the exact original decimal meaning.
+2. **Addition error:** some low-order bits of the mathematical result can be lost after each `+` operation. Kahan is designed to limit this accumulated error component.
 
-Phép cộng số thực máy tính **không kết hợp tuyệt đối**:
+Computer floating-point addition is **not strictly associative**:
 
 ```java
 double a = 1e16;
@@ -34,20 +34,20 @@ double first = (a + b) + c;  // 0.0
 double second = (a + c) + b; // 1.0
 ```
 
-Về toán học, tổng đều bằng `1`. Nhưng ở độ lớn `1e16`, khoảng cách (ULP) giữa hai số `double` liên tiếp là **2**. Do đó `1e16 + 1.0` nằm giữa hai số có thể biểu diễn và được làm tròn về `1e16`. Nếu triệt tiêu hai số lớn trước, đóng góp `1.0` được giữ.
+Mathematically, the sum is `1` in both cases. However, at magnitude `1e16`, the spacing (ULP) between two consecutive `double` numbers is **2**. Thus `1e16 + 1.0` falls between two representable numbers and rounds back to `1e16`. If the two large numbers cancel first, the `1.0` contribution is preserved.
 
-Một ví dụ thực tế hơn: cộng `10_000` giá trị `1.0` vào `1e16` bằng cách thường, từng số `1.0` có thể lần lượt bị bỏ qua do làm tròn. Kết quả chỉ còn `1e16` thay vì tổng toán học `1e16 + 10000`.
+A more practical example: adding `10_000` values of `1.0` to `1e16` in the ordinary way, each `1.0` can be dropped one by one due to rounding. The result remains `1e16` instead of the mathematical sum `1e16 + 10000`.
 
-## 2. Ý tưởng: đừng vứt bỏ phần nhỏ sau mỗi phép cộng
+## 2. The Idea: Do Not Discard the Small Part After Each Addition
 
-Nếu `sum` rất lớn và `x` nhỏ, biểu thức `sum + x` có thể quay về chính `sum` vì độ phân giải của `double` tại đó không đủ. Kahan cố ghi lại **phần thay đổi mà phép cộng chưa đưa được vào tổng**, để hiệu chỉnh số hạng tiếp theo.
+If `sum` is very large and `x` is small, `sum + x` can return `sum` itself because `double` lacks sufficient resolution there. Kahan attempts to capture **the portion of the change that the addition failed to fold into the sum**, in order to adjust the next term.
 
-Thuật toán có hai biến trạng thái:
+The algorithm has two state variables:
 
-- `sum`: tổng xấp xỉ hiện tại.
-- `compensation` (thường ký hiệu `c`): lượng bù có dấu theo dõi một phần mất mát do làm tròn. Đây **không phải sai số tuyệt đối thật** so với tổng toán học lý tưởng.
+- `sum`: the current approximate sum.
+- `compensation` (often denoted `c`): a signed compensation quantity tracking part of the rounding loss. This is **not the true absolute error** relative to the ideal mathematical sum.
 
-Với mỗi phần tử `x`, thực hiện đúng thứ tự:
+For each element `x`, execute in exact order:
 
 ```java
 double y = x - compensation;
@@ -56,26 +56,26 @@ compensation = (t - sum) - y;
 sum = t;
 ```
 
-Diễn giải:
+Interpretation:
 
-1. `y = x - compensation`: điều chỉnh số hạng mới bằng lượng bù đã tích lũy.
-2. `t = sum + y`: thực hiện phép cộng dấu phẩy động thông thường, vẫn có thể làm tròn.
-3. `compensation = (t - sum) - y`: xác định phần khác biệt giữa lượng tăng được phản ánh và số hạng `y` muốn cộng.
-4. `sum = t`: chấp nhận tổng mới, dùng cho lần lặp kế tiếp.
+1. `y = x - compensation`: adjusts the new term by the accumulated compensation.
+2. `t = sum + y`: performs ordinary floating-point addition, which may still round.
+3. `compensation = (t - sum) - y`: determines the discrepancy between the reflected increment and the intended term `y`.
+4. `sum = t`: accepts the new sum for the next iteration.
 
-**Không cập nhật `sum` trước dòng tính `compensation`**. Dòng thứ ba cần giá trị `sum` trước khi đổi.
+**Do not update `sum` before the line computing `compensation`**. The third line needs the value of `sum` before it changes.
 
-### Ví dụ bằng trực giác với `1e16` và các số `1`
+### Intuitive Example with `1e16` and `1`s
 
-Giả sử `sum = 1e16` và `compensation = 0`:
+Suppose `sum = 1e16` and `compensation = 0`:
 
-- Với `x = 1`, `y = 1`. Phép cộng `1e16 + 1` làm tròn về `1e16`, nên `t - sum = 0` và `compensation = -1`.
-- Với số `x = 1` tiếp theo, `y = 1 - (-1) = 2`. Ở độ lớn `1e16`, bước tăng `2` có thể được biểu diễn, và phần đóng góp từ hai số `1` sẽ được phản ánh.
-- Quá trình tiếp tục, thay vì bỏ từng số nhỏ như vòng lặp `sum += 1` thông thường.
+- For `x = 1`, `y = 1`. Adding `1e16 + 1` rounds back to `1e16`, so `t - sum = 0` and `compensation = -1`.
+- For the next `x = 1`, `y = 1 - (-1) = 2`. At magnitude `1e16`, an increment of `2` is representable, and the contribution from the two `1`s will be reflected.
+- The process continues, instead of dropping each small number like an ordinary `sum += 1` loop.
 
-Dấu âm của lượng bù trong ví dụ nghĩa là phần cộng bị thiếu sẽ được **cộng bổ sung** tại bước sau. Không nên xem `compensation` là một số luôn dương.
+The negative sign of the compensation in this example means the missing addition will be **added back** in a later step. Do not assume `compensation` is always positive.
 
-## 3. Hàm Kahan cơ bản trong Java 17+
+## 3. Basic Kahan Function in Java 17+
 
 ```java
 static double kahanSum(double[] values) {
@@ -93,9 +93,9 @@ static double kahanSum(double[] values) {
 }
 ```
 
-Đây là một **phương thức minh họa** cần đặt trong class. Mảng rỗng cho `0.0` theo cách khởi tạo này. Phiên bản cơ bản giả định đầu vào và các kết quả trung gian **hữu hạn**; cách xử lý `NaN`, vô cực và overflow cần chính sách riêng.
+This is an **illustrative method** to be placed inside a class. An empty array gives `0.0` with this initialization. The basic version assumes **finite** inputs and intermediate results; handling `NaN`, infinity, and overflow requires a separate policy.
 
-Hàm đối chiếu dùng phép cộng thường:
+Reference function using ordinary addition:
 
 ```java
 static double naiveSum(double[] values) {
@@ -107,13 +107,13 @@ static double naiveSum(double[] values) {
 }
 ```
 
-Cả hai hàm đều đi qua các phần tử một lần, có **độ phức tạp thời gian `O(n)`** và dùng **bộ nhớ phụ `O(1)`**. Kahan tốn thêm một số phép trừ/cộng trên mỗi phần tử, đổi lại có thể giảm đáng kể sai số tích lũy.
+Both functions pass over the elements once, having **`O(n)` time complexity** and **`O(1)` auxiliary memory**. Kahan incurs a few extra subtractions/additions per element, in exchange for potentially reducing accumulated error significantly.
 
-**Điều Kahan không đảm bảo:** một kết quả `double` có 53 bit phần trị hiệu dụng vẫn có thể không biểu diễn được tổng toán học. Ví dụ `1e16 + 1` không có biểu diễn `double` chính xác; dù thuật toán biết “phần bị mất”, một số `double` trả về không thể lưu toàn bộ thông tin của tổng này. Kahan đặc biệt hữu ích khi **nhiều** phần nhỏ có thể được tích lũy và bù dần.
+**What Kahan does not guarantee:** a `double` result with 53 effective significand bits may still be unable to represent the mathematical sum. For instance, `1e16 + 1` has no exact `double` representation; even if the algorithm knows "the lost part," a single returned `double` cannot hold all the information of this sum. Kahan is especially useful when **many** small parts can accumulate and compensate gradually.
 
-## 4. Chương trình Java hoàn chỉnh: so sánh cộng thường, Kahan và Neumaier
+## 4. Complete Java Program: Comparing Naive, Kahan, and Neumaier Summation
 
-Lưu tệp `KahanDemo.java`:
+Save the file `KahanDemo.java`:
 
 ```java
 public class KahanDemo {
@@ -177,7 +177,7 @@ public class KahanDemo {
 }
 ```
 
-Biên dịch/chạy bằng JDK 17 trở lên:
+Compile/run with JDK 17 or higher:
 
 ```bash
 javac KahanDemo.java
@@ -197,22 +197,22 @@ cancellation Neumaier: 1.0
 simple Kahan: 6.0
 ```
 
-Kết quả cho thấy:
+The results show:
 
-- **Mười lần cộng `0.1`:** bản thường in giá trị hơi nhỏ hơn 1.0, Kahan in 1.0.
-- **Một tổng `1e16` rồi thêm 10.000 số `1`:** bản thường không giữ được phần tăng; Kahan giữ lại đủ `10000.0` trong thử nghiệm.
-- **Dãy `[1e16, 1, -1e16]`:** tổng toán học là 1, nhưng cả cộng thường lẫn Kahan cơ bản cho 0.0. Phiên bản Neumaier cho 1.0.
-- **Dãy đơn giản `[1,2,3]`:** phép cộng không gặp vấn đề và Kahan cũng trả tổng đúng.
+- **Ten additions of `0.1`:** the naive version prints a value slightly less than 1.0, while Kahan prints 1.0.
+- **A sum of `1e16` followed by 10,000 `1`s:** the naive version fails to keep the increment; Kahan retains the full `10000.0` in this test.
+- **Sequence `[1e16, 1, -1e16]`:** the mathematical sum is 1, yet both naive addition and basic Kahan return 0.0. The Neumaier version returns 1.0.
+- **Simple sequence `[1,2,3]`:** addition has no issue and Kahan also returns the exact sum.
 
-Không nên kết luận rằng Kahan luôn cho nhiều chữ số chính xác hơn trong mọi ví dụ chỉ vì những trường hợp đầu thành công.
+Do not conclude that Kahan always yields more accurate digits in every example just because the initial cases succeed.
 
-## 5. Giới hạn quan trọng: triệt tiêu số lớn có thể đánh bại Kahan
+## 5. Important Limitation: Large-Number Cancellation Can Defeat Kahan
 
-Trường hợp `[1e16, 1, -1e16]` có tổng toán học 1.0, nhưng Kahan cơ bản trả 0.0. Nguyên nhân nằm ở cách cập nhật phần bù: khi số hạng `-1e16` xuất hiện, **bản thân phép điều chỉnh `y = x - compensation`** có thể làm tròn và mất thông tin của `1`. Sau đó hai số lớn triệt tiêu, nhưng phần nhỏ không còn nằm trong tổng.
+The case `[1e16, 1, -1e16]` has a mathematical sum of 1.0, yet basic Kahan returns 0.0. The cause lies in how the compensation is updated: when the term `-1e16` arrives, **the adjustment `y = x - compensation` itself** can round and lose the information of `1`. Then the two large numbers cancel out, and the small part is no longer in the sum.
 
-Đây là lý do Kahan không phải một “thuật toán tổng chính xác” nói chung. Sai số với dãy **đổi dấu, triệt tiêu mạnh hoặc có độ lớn thay đổi đột ngột** có thể phức tạp hơn các trường hợp chỉ cộng số dương.
+This is why Kahan is not a general-purpose "exact summation algorithm." Error on sequences with **sign changes, heavy cancellation, or abrupt magnitude changes** can be more subtle than when summing only positive numbers.
 
-Một phương pháp liên quan là **Neumaier summation**, sử dụng biến `correction` để tích lũy lượng bù riêng ngoài tổng:
+A related method is **Neumaier summation**, which uses a `correction` variable to accumulate compensation separately from the sum:
 
 ```java
 static double neumaierSum(double[] values) {
@@ -233,42 +233,42 @@ static double neumaierSum(double[] values) {
 }
 ```
 
-Neumaier kiểm tra độ lớn của hai toán hạng để chọn cách ước lượng lượng mất do cộng, rồi **cộng phần hiệu chỉnh khi trả kết quả**. Điều này giúp trong một số trường hợp triệt tiêu mà Kahan cơ bản thất bại. Tuy vậy, `correction` vẫn là `double`, cũng có thể làm tròn; **Neumaier không luôn đạt tổng toán học chính xác**.
+Neumaier compares the magnitudes of the two operands to choose how to estimate the addition loss, and then **adds the correction when returning the result**. This helps in some cancellation cases where basic Kahan fails. Nevertheless, `correction` is still a `double` and can also round; **Neumaier does not always achieve the exact mathematical sum**.
 
-Sự khác biệt có thể tóm tắt:
+The differences can be summarized:
 
-| Phương pháp | Cách giữ bù | Điểm mạnh | Hạn chế |
+| Method | How compensation is kept | Strengths | Limitations |
 | --- | --- | --- | --- |
-| `sum += x` | Không có biến bù | Đơn giản, nhanh | Dễ mất số nhỏ |
-| Kahan | Điều chỉnh số hạng kế tiếp bằng `compensation` | Giảm sai số tích lũy trên nhiều dãy | Có dãy triệt tiêu khó vẫn sai |
-| Neumaier | Tích lũy `correction` riêng, cuối cùng cộng vào tổng | Có thể xử lý một số trường hợp triệt tiêu tốt hơn | Cũng bị giới hạn bởi `double` và thứ tự số học |
+| `sum += x` | No compensation variable | Simple, fast | Easily loses small numbers |
+| Kahan | Adjusts next term using `compensation` | Reduces accumulated error on many sequences | Still fails on difficult cancellation sequences |
+| Neumaier | Accumulates `correction` separately, adds to sum at the end | Can handle some cancellation cases better | Also limited by `double` and arithmetic order |
 
-## 6. Sai số, độ ổn định và thứ tự cộng
+## 6. Error, Stability, and Summation Order
 
-Tính chất cơ bản của tổng số thực máy tính là **thứ tự ảnh hưởng kết quả**. Xét `[1e16, 1, -1e16]`: thay đổi thứ tự thành `[1e16, -1e16, 1]` có thể cho kết quả đúng 1.0 ngay với cộng thường. Nhưng không nên tự ý sắp xếp lại đầu vào nếu thứ tự mang ý nghĩa nghiệp vụ, hoặc cho rằng có một thứ tự tối ưu cho mọi dãy.
+A fundamental property of computer floating-point summation is that **order affects the result**. Consider `[1e16, 1, -1e16]`: changing the order to `[1e16, -1e16, 1]` can yield the exact result 1.0 even with naive addition. However, you should not arbitrarily reorder inputs if order carries business meaning, nor assume there is one optimal order for every sequence.
 
-Về mặt thuật toán, cần phân biệt:
+Algorithmically, distinguish between:
 
-- **Sai số tuyệt đối:** `|computed - reference|` khi biết giá trị tham chiếu đủ chính xác.
-- **Sai số tương đối:** sai số tuyệt đối chia cho độ lớn tổng tham chiếu, thường không có ý nghĩa tốt nếu tổng thật gần 0.
-- **Mức độ điều kiện của bài toán:** tổng của nhiều số lớn với dấu trái chiều có thể gần 0; chỉ một thay đổi rất nhỏ ở dữ liệu đầu vào cũng khiến sai số tương đối tăng mạnh.
-- **Sai số của phép tính:** phần phát sinh thêm khi thuật toán dùng các phép dấu phẩy động, là điều Kahan cố hạn chế.
+- **Absolute error:** `|computed - reference|` when a sufficiently accurate reference value is known.
+- **Relative error:** absolute error divided by the magnitude of the reference sum, often not very meaningful if the true sum is near 0.
+- **Problem conditioning:** the sum of many large numbers with opposite signs can be near 0; even a tiny change in input data causes relative error to spike.
+- **Operation error:** the extra portion introduced when the algorithm uses floating-point operations, which is what Kahan tries to limit.
 
-Có thể chọn Kahan để **ổn định hơn** trong một miền dữ liệu mà vẫn không có bảo đảm “đúng tuyệt đối”. Nếu đầu vào đã bị làm tròn từ phép đo hoặc khi chuyển từ số nguyên lớn sang `double`, tổng bù không thể khôi phục chính xác giá trị đầu vào ban đầu.
+You can choose Kahan to be **more stable** over a data domain while still having no "absolute exactness" guarantee. If inputs were already rounded during measurement or when converting large integers to `double`, compensated summation cannot recover the exact original input values.
 
-### Hiệu năng và khả năng tái lập
+### Performance and Reproducibility
 
-Cộng Kahan tuần tự dùng **`O(n)` thời gian**, **`O(1)` bộ nhớ phụ**. Nó làm nhiều phép toán hơn cộng thường và trạng thái bù phụ thuộc **thứ tự**. Vì vậy không được cho nhiều luồng tùy ý cập nhật chung `sum`/`compensation`: ngoài data race, nó còn phá trình tự tính bù.
+Sequential Kahan summation uses **`O(n)` time** and **`O(1)` auxiliary memory**. It performs more operations than naive summation, and the compensation state depends on **order**. Therefore, multiple threads must never arbitrarily update shared `sum`/`compensation`: besides data races, it breaks the compensation sequence.
 
-Trong parallel reduction, có thể tính các tổng con riêng rồi kết hợp có kiểm soát. Tuy nhiên, kết quả cuối có thể khác bit so với phép cộng tuần tự do thứ tự nhóm phép cộng khác. Nếu cần tính tái lập, hãy quy định rõ thứ tự/chiến lược reduction, và kiểm thử với chính thuật toán đó.
+In parallel reduction, separate partial sums can be computed and combined in a controlled manner. However, the final result may differ at the bit level from sequential summation due to different operation grouping. If reproducibility is required, specify the exact reduction order/strategy and test with that exact algorithm.
 
-## 7. Khi nào không nên dùng Kahan làm giải pháp duy nhất?
+## 7. When Should Kahan Not Be Used as the Sole Solution?
 
-### `NaN`, vô cực và tràn số
+### `NaN`, Infinity, and Overflow
 
-Công thức bù có phép trừ `t - sum`. Nếu `sum` hoặc `t` trở thành vô cực, phép `Infinity - Infinity` có thể tạo NaN và sau đó làm `compensation` hoặc kết quả cuối thành NaN. Kahan **không có nhiệm vụ** xử lý ngoại lệ dữ liệu số thực.
+The compensation formula contains the subtraction `t - sum`. If `sum` or `t` becomes infinite, `Infinity - Infinity` can produce NaN and subsequently turn `compensation` or the final result into NaN. Kahan is **not responsible** for handling floating-point data exceptions.
 
-Với ứng dụng chỉ chấp nhận số hữu hạn:
+For applications accepting only finite numbers:
 
 ```java
 for (double x : values) {
@@ -278,11 +278,11 @@ for (double x : values) {
 }
 ```
 
-Đây là mảnh mã trong phương thức. Kiểm tra đầu vào hữu hạn chưa bảo đảm các **phép cộng trung gian không overflow**; cần đánh giá miền dữ liệu và kiểm tra kết quả theo yêu cầu hệ thống. Không biến NaN thành 0 nếu điều đó không được chính sách dữ liệu cho phép.
+This is a snippet inside a method. Checking finite inputs does not guarantee that **intermediate additions will not overflow**; you must evaluate the data domain and validate outputs per system requirements. Do not turn NaN into 0 unless data policy permits it.
 
-### Số thập phân chính xác: dùng biểu diễn phù hợp
+### Exact Decimal Numbers: Use an Appropriate Representation
 
-Nếu bài toán yêu cầu cộng chính xác các số thập phân từ chuỗi (ví dụ tiền tệ), cân nhắc `BigDecimal`:
+If the problem requires exact summation of decimal numbers from strings (such as currency), consider `BigDecimal`:
 
 ```java
 java.math.BigDecimal total = java.math.BigDecimal.ZERO;
@@ -292,72 +292,72 @@ for (int i = 0; i < 10; i++) {
 System.out.println(total); // 1.0
 ```
 
-Đây là **mảnh mã minh họa**, cần đặt trong phương thức. `new BigDecimal("0.1")` chứa giá trị thập phân một phần mười đúng theo chuỗi. **`new BigDecimal(0.1)` không tương đương** vì constructor nhận `double` phản ánh giá trị nhị phân gần `0.1` đã được lưu; nếu nguồn là chuỗi thập phân thì hãy parse trực tiếp từ chuỗi để giữ ý nghĩa nguồn.
+This is an **illustrative snippet** to be placed inside a method. `new BigDecimal("0.1")` holds the exact one-tenth decimal value per the string. **`new BigDecimal(0.1)` is not equivalent** because the `double` constructor reflects the stored binary value near `0.1`; if the source is a decimal string, parse directly from the string to preserve source meaning.
 
-Với số lượng nguyên, có thể dùng `long`, `BigInteger` hoặc đơn vị nguyên phù hợp, và kiểm tra overflow. Dùng đúng kiểu dữ liệu từ đầu có thể đơn giản hơn việc cố bù sai số của `double`.
+For integer quantities, you can use `long`, `BigInteger`, or an appropriate integer unit, and check for overflow. Using the right data type from the beginning can be simpler than trying to compensate for `double` errors.
 
-### Tổng chính xác hơn bằng thuật toán khác
+### More Accurate Summation with Other Algorithms
 
-Ngoài Neumaier, **pairwise summation** chia dãy thành các nhóm rồi cộng các tổng con theo cây cân bằng; nó thường cải thiện sai số so với cộng tuần tự, đặc biệt với dãy dài, và phù hợp hơn với một số mô hình chia để trị. Nhưng kết quả vẫn phụ thuộc cách nhóm và không chính xác tuyệt đối.
+Besides Neumaier, **pairwise summation** splits the sequence into groups and sums sub-sums in a balanced tree; it generally improves error over naive summation, especially for long sequences, and fits some divide-and-conquer models better. Yet results still depend on grouping and are not strictly exact.
 
-Có thể cân nhắc thư viện/hệ thống có **accumulator mở rộng độ chính xác** nếu miền yêu cầu rất chặt chẽ; thuật toán tổng bù cơ bản không đảm bảo mọi mẫu bit đầu vào được cộng chính xác trước khi làm tròn kết quả cuối cùng.
+Libraries/systems with **extended-precision accumulators** can be considered if the domain has very strict requirements; basic compensated summation does not guarantee every input bit pattern is summed exactly before rounding the final result.
 
-## 8. Dùng trong tổng thống kê và trung bình
+## 8. Use in Statistical Sums and Averages
 
-Nếu tính trung bình của dãy `n > 0`, viết:
+To compute the average of a sequence with `n > 0`, writing:
 
 ```java
 double mean = kahanSum(values) / values.length;
 ```
 
-Dòng này cải thiện khâu tính tổng so với vòng lặp thường trong những dãy phù hợp. Nhưng phép chia cuối vẫn tạo số `double` làm tròn. Nếu tổng trung gian có thể overflow thành vô cực dù trung bình nằm trong phạm vi, nên dùng cách tính trung bình được thiết kế để tránh overflow trung gian; Kahan cơ bản không giải quyết trường hợp đó.
+improves the summation step over an ordinary loop on suitable sequences. However, the final division still produces a rounded `double`. If the intermediate sum could overflow to infinity even though the mean is within range, use an averaging method designed to avoid intermediate overflow; basic Kahan does not solve that case.
 
-Trong dữ liệu cảm biến, thống kê mô phỏng, cộng thời gian hoặc tổng các đại lượng có độ lớn thay đổi, Kahan có thể là lựa chọn tốt nhờ bộ nhớ phụ nhỏ. Tuy nhiên, cần phân biệt **độ chính xác số học** với **độ tin cậy của phép đo**: thuật toán không xóa lỗi cảm biến, NaN hoặc sai số do dữ liệu nhập.
+In sensor data, simulation statistics, time accumulation, or summing quantities of varying magnitudes, Kahan can be a good choice thanks to its tiny auxiliary memory. Still, distinguish **numerical accuracy** from **measurement reliability**: the algorithm does not remove sensor error, NaN, or input data errors.
 
-### Kế hoạch kiểm thử hữu ích
+### Useful Test Plan
 
-Đánh giá thuật toán trên những dãy có ý nghĩa rõ ràng:
+Evaluate the algorithm on sequences with clear expected behavior:
 
-1. Dãy ngắn chính xác: `[1, 2, 3]` → 6.
-2. Dãy thập phân: mười số `0.1`.
-3. Chênh lệch lớn: `1e16` cộng nhiều số `1.0`.
-4. Triệt tiêu mạnh: `[1e16, 1, -1e16]`.
-5. Dãy âm/dương, dãy dài, dữ liệu sắp xếp theo các thứ tự khác nhau.
-6. Dữ liệu có NaN, Infinity và giá trị rất gần biên (nếu là đầu vào có thể xảy ra).
+1. Short exact sequence: `[1, 2, 3]` → 6.
+2. Decimal sequence: ten `0.1`s.
+3. Large magnitude gap: `1e16` plus many `1.0`s.
+4. Heavy cancellation: `[1e16, 1, -1e16]`.
+5. Negative/positive sequences, long sequences, data sorted in various orders.
+6. Data with NaN, Infinity, and near-boundary values (if possible inputs).
 
-Khi có thể, sử dụng tổng tham chiếu bằng số học chính xác hoặc độ chính xác cao từ **dữ liệu nguồn đáng tin**, rồi đo sai số tuyệt đối và tương đối. Đừng mặc định một thuật toán đúng chỉ vì nó trùng kết quả thuật toán khác.
+Whenever possible, use a reference sum computed with exact arithmetic or high precision from **trustworthy source data**, and measure absolute and relative error. Never assume an algorithm is right just because it matches another algorithm's output.
 
-## 9. Những nhầm lẫn thường gặp
+## 9. Common Misconceptions
 
-1. **“`double` luôn cộng chính xác các số nguyên nhỏ.”** Sai: dù từng số `1` biểu diễn được chính xác, `1e16 + 1` vẫn bị làm tròn.
-2. **“Kahan khiến `0.1` có biểu diễn thập phân chính xác.”** Sai: nó không đổi bit của giá trị đầu vào.
-3. **“Chỉ cần thêm biến `compensation` thì tổng mọi dãy đều đúng.”** Sai: `[1e16, 1, -1e16]` vẫn cho 0.0 với Kahan cơ bản.
-4. **“`compensation` chính là tổng sai số tuyệt đối.”** Sai: đó là trạng thái hiệu chỉnh có dấu; không phải giá trị tham chiếu toán học.
-5. **“Có thể cập nhật `sum` trước khi tính `compensation`.”** Sai: công thức cần tổng cũ.
-6. **“Kahan không phụ thuộc thứ tự cộng.”** Sai: các phép tính vẫn có làm tròn và kết quả có thể phụ thuộc thứ tự.
-7. **“Neumaier luôn chính xác tuyệt đối.”** Sai: vẫn có các phép `double` và sai số.
-8. **“`BigDecimal` tạo từ `double` bất kỳ sẽ phục hồi các chữ số đã mất.”** Sai: nguồn đã làm tròn không thể tự đảo ngược.
-9. **“Kahan phù hợp để âm thầm bỏ qua NaN và vô cực.”** Sai: cần chính sách xử lý đầu vào rõ ràng.
-10. **“Kahan có thể cập nhật chung `sum` từ nhiều luồng mà vẫn ổn.”** Sai: phụ thuộc trình tự bù và có nguy cơ data race.
-11. **“Khi in ra `1.0`, ta đã chứng minh mọi bước tính chính xác.”** Sai: đó chỉ là một giá trị biểu diễn cuối cùng.
-12. **“Độ chính xác của tổng và độ chính xác của dữ liệu cảm biến là cùng một thứ.”** Sai: thuật toán cộng không sửa được sai số đo ban đầu.
+1. **"`double` always adds small integers accurately."** False: even though each `1` is represented accurately, `1e16 + 1` still rounds.
+2. **"Kahan gives `0.1` an exact decimal representation."** False: it does not alter the bits of input values.
+3. **"Just adding a `compensation` variable makes every sequence sum exact."** False: `[1e16, 1, -1e16]` still yields 0.0 with basic Kahan.
+4. **"`compensation` is the total absolute error."** False: it is a signed correction state, not a mathematical reference value.
+5. **"You can update `sum` before computing `compensation`."** False: the formula needs the old `sum`.
+6. **"Kahan does not depend on summation order."** False: operations still round and results can depend on order.
+7. **"Neumaier is always strictly exact."** False: it still involves `double` operations and error.
+8. **"`BigDecimal` constructed from an arbitrary `double` recovers lost digits."** False: an already rounded source cannot invert itself automatically.
+9. **"Kahan is suitable for silently ignoring NaN and infinity."** False: an explicit input handling policy is required.
+10. **"Kahan can safely update a shared `sum` from multiple threads."** False: it depends on compensation order and suffers from data races.
+11. **"Printing `1.0` proves every calculation step was exact."** False: it is merely a final formatted value.
+12. **"Sum accuracy and sensor data accuracy are the same thing."** False: a summation algorithm cannot fix initial measurement error.
 
-## 10. Câu hỏi tự kiểm tra
+## 10. Self-Check Questions
 
-**1. Vì sao `1e16 + 1` có thể bằng `1e16` trong `double`?** Vì ULP gần `1e16` là 2, nên phần tăng 1 có thể bị làm tròn mất.
+**1. Why can `1e16 + 1` equal `1e16` in `double`?** Because ULP near `1e16` is 2, so adding 1 can be rounded away.
 
-**2. Vai trò của `compensation` là gì?** Lưu một phần sai lệch do phép cộng đã làm tròn, để điều chỉnh số hạng ở lần cộng tiếp theo.
+**2. What is the role of `compensation`?** It stores part of the discrepancy caused by rounding in addition, to adjust the term in the next addition.
 
-**3. Vì sao phải tính `compensation = (t - sum) - y` trước `sum = t`?** Vì công thức cần `sum` cũ.
+**3. Why must `compensation = (t - sum) - y` be computed before `sum = t`?** Because the formula needs the old `sum`.
 
-**4. Dãy mười giá trị `0.1` có luôn được lưu chính xác như thập phân trong `double` nhờ Kahan không?** Không; các giá trị đầu vào vẫn là số nhị phân gần `0.1`.
+**4. Does a sequence of ten `0.1` values get stored as exact decimals in `double` thanks to Kahan?** No; the input values remain binary numbers close to `0.1`.
 
-**5. Với `[1e16, 1, -1e16]`, tổng toán học và tổng Kahan là gì?** Tổng toán học là 1; Kahan cơ bản trong ví dụ cho 0.0, Neumaier cho 1.0.
+**5. For `[1e16, 1, -1e16]`, what are the mathematical sum and Kahan sum?** The mathematical sum is 1; basic Kahan in the example gives 0.0, while Neumaier gives 1.0.
 
-**6. Bộ nhớ phụ Kahan phụ thuộc `n` như thế nào?** `O(1)` khi cộng tuần tự vì chỉ thêm một biến bù.
+**6. How does Kahan's auxiliary memory depend on `n`?** `O(1)` for sequential summation because only one compensation variable is added.
 
-**7. Nếu cần tổng chính xác các giá trị thập phân từ chuỗi, nên dùng gì?** Một biểu diễn thập phân chính xác phù hợp như `BigDecimal` từ chuỗi, hoặc số nguyên theo đơn vị quy ước nếu thích hợp.
+**7. If you need the exact sum of decimal values from strings, what should you use?** An appropriate exact decimal representation such as `BigDecimal` from strings, or integers in a standard unit if suitable.
 
-**8. Nếu đầu vào có vô cực, có thể tin rằng Kahan sẽ cho kết quả hợp lý hơn cộng thường không?** Không. Các phép cộng/trừ bù có thể đưa `compensation` thành NaN; phải kiểm tra miền và xử lý ngoại lệ theo bài toán.
+**8. If the input contains infinity, can you trust Kahan to give a more reasonable result than naive addition?** No. Compensated additions/subtractions can turn `compensation` into NaN; you must check the domain and handle exceptions per problem requirements.
 
-**Ghi nhớ:** Kahan summation dùng **tổng `sum` và lượng bù `compensation`** để giảm tác hại của sai số làm tròn tích lũy. Nó thường tốt hơn cộng tuần tự trong dãy dài có giá trị chênh lệch độ lớn, vẫn chạy `O(n)` và dùng `O(1)` bộ nhớ phụ. Tuy nhiên, nó **không biến số thực máy tính thành số học chính xác**, không bảo đảm xử lý triệt tiêu mạnh, NaN/Infinity hoặc overflow. Chọn Kahan, Neumaier, pairwise hay biểu diễn số chính xác dựa trên **yêu cầu sai số, dữ liệu và miền giá trị**.
+**Takeaway:** Kahan summation uses **a `sum` and a `compensation`** to reduce the harm of accumulated rounding error. It is often better than naive summation on long sequences with disparate magnitudes, still runs in `O(n)` time, and uses `O(1)` auxiliary memory. However, it **does not turn computer floating point into exact arithmetic**, nor does it guarantee handling heavy cancellation, NaN/Infinity, or overflow. Choose Kahan, Neumaier, pairwise, or exact numeric representations based on **error requirements, data, and value domain**.

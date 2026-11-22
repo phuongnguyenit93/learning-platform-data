@@ -1,13 +1,13 @@
-# Giữ mã lỗi, tên trường kỹ thuật và định dạng máy ổn định trong Java localization
+# Keeping Error Codes, Technical Field Names, and Machine Formats Stable in Java Localization
 
-## 1. Quy tắc nền tảng
+## 1. Fundamental Rule
 
-Trong ứng dụng đa ngôn ngữ, **thứ con người đọc được bản địa hóa; thứ máy phân tích phải tuân theo một hợp đồng ổn định**. Khi giao diện chuyển từ `vi-VN` sang `en-US`, nhãn và câu thông báo có thể đổi, nhưng error code, tên trường JSON, kiểu dữ liệu, tên trạng thái và định dạng trao đổi không được tự động đổi theo.
+In a multilingual application, **what humans read is localized; what machines parse must follow a stable contract**. When the UI switches from `vi-VN` to `en-US`, labels and messages may change, but error codes, JSON field names, data types, status names, and wire formats must not change along with them.
 
-Ví dụ, khi người dùng nhập số tiền không dương:
+For example, when a user enters a non-positive amount:
 
 ~~~text
-Dữ liệu kỹ thuật (cả hai ngôn ngữ):
+Technical data (both languages):
   code  = AMOUNT_NOT_POSITIVE
   field = amount
 
@@ -15,33 +15,33 @@ vi-VN: Số tiền phải lớn hơn 0
 en-US: Amount must be greater than zero
 ~~~
 
-Nếu API thay `amount` bằng `soTien` khi chọn tiếng Việt, client và validator phụ thuộc schema `amount` sẽ thất bại. Tương tự, không thể phát hiện lỗi bằng cách so nguyên văn câu tiếng Anh vì câu dịch được phép sửa mà ý nghĩa lỗi không đổi.
+If the API changes `amount` to `soTien` when Vietnamese is selected, clients and validators relying on the `amount` schema will fail. Likewise, errors cannot be detected by comparing verbatim English sentences because translated copy is allowed to evolve while the error's meaning remains unchanged.
 
-Tách ít nhất ba trách nhiệm: **domain** xác định giá trị và điều kiện nghiệp vụ; **machine contract** xác định code/field/types/format; **presentation** biến chúng thành câu chữ, nhãn, cách định dạng phù hợp locale.
+Separate at least three responsibilities: **domain** determines business values and rules; **machine contract** defines codes/fields/types/formats; **presentation** turns them into locale-appropriate wording, labels, and formatting.
 
-## 2. Bảng phân loại dữ liệu
+## 2. Data Classification Table
 
-| Thành phần | Ví dụ | Ổn định hay bản địa hóa? |
+| Element | Example | Stable or localized? |
 | --- | --- | --- |
-| Mã lỗi API | `AMOUNT_NOT_POSITIVE` | Ổn định |
-| Tên property JSON | `amount`, `createdAt` | Ổn định |
-| Đường dẫn field bị lỗi | `items[0].quantity` | Ổn định |
-| Tên khóa ResourceBundle | `error.amount.notPositive` | Ổn định |
-| Trạng thái/enum công khai | `PENDING`, `APPROVED` | Ổn định |
-| HTTP status, correlation ID | `422`, `req-1042` | Ổn định |
-| JSON boolean | `true`, `false` | Cú pháp máy |
-| Số JSON | `1234.50` | Cú pháp máy |
-| Thời điểm giao tiếp | `2024-10-28T09:30:00Z` | Format theo contract |
-| Currency code | `VND`, `USD` | Ý nghĩa nghiệp vụ |
-| Nhãn field | “Số tiền” / “Amount” | Bản địa hóa |
-| Thông báo lỗi | “Số tiền phải lớn hơn 0” | Bản địa hóa |
-| Ngày/số tiền trên màn hình | `28/10/2024`, `1.234,50` | Bản địa hóa khi phù hợp |
+| API error code | `AMOUNT_NOT_POSITIVE` | Stable |
+| JSON property name | `amount`, `createdAt` | Stable |
+| Failing field path | `items[0].quantity` | Stable |
+| ResourceBundle key | `error.amount.notPositive` | Stable |
+| Public status/enum | `PENDING`, `APPROVED` | Stable |
+| HTTP status, correlation ID | `422`, `req-1042` | Stable |
+| JSON boolean | `true`, `false` | Machine syntax |
+| JSON number | `1234.50` | Machine syntax |
+| Exchange timestamp | `2024-10-28T09:30:00Z` | Formatted per contract |
+| Currency code | `VND`, `USD` | Business semantics |
+| Field label | "Số tiền" / "Amount" | Localized |
+| Error message | "Số tiền phải lớn hơn 0" | Localized |
+| On-screen date/money | `28/10/2024`, `1.234,50` | Localized where appropriate |
 
-Cần phân biệt **nhãn** và **định danh**. `customerName` là JSON property; “Tên khách hàng” là nhãn UI. Hai giá trị phục vụ mục đích khác nhau, không phải hai bản dịch của cùng một key máy.
+Distinguish **labels** from **identifiers**. `customerName` is a JSON property; "Tên khách hàng" / "Customer name" is a UI label. The two serve different purposes—they are not two translations of the same machine key.
 
-## 3. Error code khác message
+## 3. Error Codes Differ from Messages
 
-Hai phản hồi cùng lỗi có thể là:
+Two responses for the exact same error might be:
 
 ~~~json
 {
@@ -59,19 +59,19 @@ Hai phản hồi cùng lỗi có thể là:
 }
 ~~~
 
-Tên property `code`, `field`, `message` giống nhau. Giá trị `code` và `field` giống nhau. **Chỉ** giá trị `message` đổi ngôn ngữ.
+The property names `code`, `field`, and `message` are identical. The values of `code` and `field` are identical. **Only** the `message` value changes language.
 
-Một khai báo kiểu trong Java 17:
+A Java 17 type declaration:
 
 ~~~java
 public record ApiError(String code, String field, String message) {}
 ~~~
 
-Đây là một top-level public record hợp lệ nếu đặt trong file riêng `ApiError.java`. Trong chương trình độc lập ở mục 9, record được khai báo lồng trong class.
+This is a valid top-level `public record` if placed in its own `ApiError.java` file. In the standalone program in Section 9, the record is declared nested inside a class.
 
-### 3.1. Vì sao không so sánh theo câu lỗi?
+### 3.1. Why Not Compare by Error Sentence?
 
-Một client có thể gặp lỗi nếu thực hiện:
+A client can break if it does:
 
 ~~~java
 if ("Amount must be greater than zero".equals(error.message())) {
@@ -79,9 +79,9 @@ if ("Amount must be greater than zero".equals(error.message())) {
 }
 ~~~
 
-Đây là đoạn minh họa trong một phương thức, với `error` là đối tượng có accessor `message()`. Chỉ cần sửa bản dịch hoặc thêm ngôn ngữ là nhánh xử lý này không còn đúng.
+This illustrates code inside a method, where `error` is an object with a `message()` accessor. Simply editing the translation or adding a language breaks this branch.
 
-Thay bằng:
+Replace with:
 
 ~~~java
 if ("AMOUNT_NOT_POSITIVE".equals(error.code())) {
@@ -89,19 +89,19 @@ if ("AMOUNT_NOT_POSITIVE".equals(error.code())) {
 }
 ~~~
 
-`AMOUNT_NOT_POSITIVE` là **định danh có ý nghĩa nghiệp vụ ổn định**. `message` là dữ liệu để đọc, có thể chứa dấu câu, tham số, lời giải thích hoặc ngôn ngữ khác nhau.
+`AMOUNT_NOT_POSITIVE` is a **stable business-meaningful identifier**. `message` is human-readable data that can contain varying punctuation, arguments, explanations, or languages.
 
-### 3.2. Thiết kế danh mục mã lỗi
+### 3.2. Designing an Error Code Catalog
 
-Một danh mục mã lỗi nên có: code, mô tả nghiệp vụ, phạm vi áp dụng, HTTP status hoặc status domain, technical field/arguments và translation key. Nên dùng mã ASCII và quy ước nhất quán, ví dụ `UPPER_SNAKE_CASE`. Không đưa thông tin cá nhân hoặc stack trace vào code.
+An error code catalog should document: code, business description, scope, HTTP status or domain status, technical field/arguments, and translation key. Prefer ASCII codes and a consistent convention such as `UPPER_SNAKE_CASE`. Never embed personal data or stack traces inside error codes.
 
-Khi một câu dịch được viết hay hơn, **không cần đổi code**. Khi nguyên nhân nghiệp vụ thay đổi đáng kể, không tái sử dụng code cũ cho một điều kiện không tương thích. Có cơ chế xử lý code chưa biết ở client và versioning/deprecation cho mã public.
+When a translated sentence is improved, **there is no need to change the code**. When the underlying business condition changes significantly, do not reuse an old code for an incompatible condition. Have client handling for unknown codes and versioning/deprecation policies for public codes.
 
-HTTP status và application error code bổ sung nhau: status mô tả tình trạng request tổng quát, error code diễn đạt nguyên nhân cụ thể. Chọn 400/422 theo API contract, không theo locale.
+HTTP status codes and application error codes complement one another: the HTTP status describes the overall request outcome, while the error code states the specific cause. Pick 400/422 per your API contract, not per locale.
 
-## 4. Tên field, khóa ResourceBundle và field path
+## 4. Field Names, `ResourceBundle` Keys, and Field Paths
 
-Một đơn hàng có thể truyền dưới dạng:
+An order might be transmitted as:
 
 ~~~json
 {
@@ -112,9 +112,9 @@ Một đơn hàng có thể truyền dưới dạng:
 }
 ~~~
 
-Màn hình Việt hiển thị “Số tiền”, “Loại tiền”, “Thời gian tạo”, “Trạng thái”. Màn hình Anh hiển thị “Amount”, “Currency”, “Created at”, “Status”. Nhưng property names vẫn là `amount`, `currencyCode`, `createdAt`, `status`.
+A Vietnamese screen displays "Số tiền", "Loại tiền", "Thời gian tạo", "Trạng thái". An English screen displays "Amount", "Currency", "Created at", "Status". Yet the JSON property names remain `amount`, `currencyCode`, `createdAt`, and `status`.
 
-Nếu dùng ResourceBundle, hãy giữ **cùng tên key** ở các file:
+When using `ResourceBundle`, keep **the exact same key names** across files:
 
 ~~~properties
 error.amount.notPositive=Amount must be greater than zero
@@ -122,7 +122,7 @@ label.amount=Amount
 label.createdAt=Created at
 ~~~
 
-Bản tiếng Việt:
+Vietnamese version:
 
 ~~~properties
 error.amount.notPositive=Số tiền phải lớn hơn 0
@@ -130,11 +130,11 @@ label.amount=Số tiền
 label.createdAt=Thời gian tạo
 ~~~
 
-Đây là nội dung minh họa của hai file properties khác locale. `error.amount.notPositive` là key kỹ thuật; **chỉ value bên phải dấu bằng được dịch**. Một error code có thể ánh xạ đến key dịch riêng; chúng không nhất thiết trùng tên.
+This illustrates the contents of two `.properties` files for different locales. `error.amount.notPositive` is a technical key; **only the value to the right of the equals sign is translated**. An error code can map to a separate translation key; they do not have to share the exact same name.
 
-### 4.1. Field path trong validation
+### 4.1. Field Paths in Validation
 
-Ví dụ lỗi của mục hàng đầu tiên:
+Example error for the first line item:
 
 ~~~json
 {
@@ -144,96 +144,96 @@ Ví dụ lỗi của mục hàng đầu tiên:
 }
 ~~~
 
-`items[0].quantity` là technical field path; không nên biến thành `matHang[0].soLuong` theo locale. UI dùng path này để highlight input, sau đó tra nhãn “Số lượng” hoặc “Quantity” riêng. Nếu API dùng JSON Pointer như `/items/0/quantity`, hãy công bố rõ cú pháp, escaping và cách map tới trường, không trộn lẫn hai định dạng path.
+`items[0].quantity` is a technical field path; never translate it to `matHang[0].soLuong` by locale. The UI uses this path to highlight the input control, then looks up the label "Số lượng" or "Quantity" separately. If the API uses JSON Pointer such as `/items/0/quantity`, document the syntax, escaping, and field mapping clearly, and never mix two path formats.
 
-Tương tự, tên cột database `customer_id`, tên message queue event `ORDER_CREATED`, GraphQL property, public enum value và metric key không nên được dịch trong giao thức.
+Likewise, database column names like `customer_id`, message queue event names like `ORDER_CREATED`, GraphQL properties, public enum values, and metric keys must not be translated across protocols.
 
-## 5. Số, ngày và kiểu dữ liệu máy
+## 5. Numbers, Dates, and Machine Data Types
 
-### 5.1. Decimal máy không phải số hiển thị
+### 5.1. Machine Decimals Are Not Display Numbers
 
 ~~~java
 BigDecimal amount = new BigDecimal("1234.50");
 String decimal = amount.toPlainString();
 ~~~
 
-Đây là đoạn Java minh họa trong một phương thức, cần `import java.math.BigDecimal;`. `decimal` là `"1234.50"`, không thay theo Locale. Khi contract yêu cầu **decimal string**, nó là một biểu diễn phù hợp.
+This illustrates Java code inside a method requiring `import java.math.BigDecimal;`. `decimal` is `"1234.50"` and does not vary with `Locale`. When a contract specifies a **decimal string**, this is an appropriate representation.
 
-Nếu contract yêu cầu **JSON number**, hãy dùng JSON serializer ghi number token:
+If the contract specifies a **JSON number**, use a JSON serializer that writes a number token:
 
 ~~~json
 {"amount":1234.50}
 ~~~
 
-Không viết số máy thành chuỗi đã format cho giao diện:
+Never serialize machine numbers as UI-formatted strings:
 
 ~~~json
 {"amount":"1.234,50"}
 ~~~
 
-`"1.234,50"` là JSON **string**, không phải JSON number. Việc đổi loại thành string cũng là thay đổi schema, không phải chỉ khác dấu decimal. Khi giao thức cố ý dùng string decimal để giữ precision, hãy ghi `"1234.50"` và nêu rõ kiểu trong schema.
+`"1.234,50"` is a JSON **string**, not a JSON number. Switching to a string is a schema change, not merely a different decimal mark. When a protocol intentionally uses a decimal string to preserve precision, emit `"1234.50"` and document that type in the schema.
 
-Với formatting kiểu `String.format`, truyền `Locale.ROOT` nếu cần kết quả machine theo một quy tắc không phụ thuộc locale mặc định:
+With `String.format`-style formatting, pass `Locale.ROOT` when machine output must follow locale-neutral formatting rules independent of the default locale:
 
 ~~~java
 String machineText = String.format(Locale.ROOT, "%.2f", 1234.5);
 ~~~
 
-Đây là snippet, cần import `java.util.Locale`; kết quả `"1234.50"`. Tuy nhiên không nên dùng `double` để tính số tiền cần chính xác. `BigDecimal` cộng serializer hoặc một decimal-string contract sẽ thích hợp hơn.
+This snippet requires `import java.util.Locale;` and yields `"1234.50"`. However, never use `double` for monetary calculations requiring exactness. `BigDecimal` paired with a serializer or a decimal-string contract is far more appropriate.
 
-**Cẩn trọng:** các client JavaScript có thể làm mất precision với một số JSON number. Đối với số tiền lớn/chính xác, lựa chọn decimal string, integer minor units hoặc hỗ trợ decimal chính xác phải là quyết định toàn hệ thống.
+**Caution:** JavaScript clients can lose precision on some JSON numbers. For large or exact monetary amounts, choosing decimal strings, integer minor units, or exact decimal support must be a system-wide decision.
 
-### 5.2. Thời điểm và ngày lịch khác nhau
+### 5.2. Instants and Calendar Dates Differ
 
 ~~~java
 Instant createdAt = Instant.parse("2024-10-28T09:30:00Z");
 String timestamp = DateTimeFormatter.ISO_INSTANT.format(createdAt);
 ~~~
 
-Đây là đoạn minh họa, cần import `Instant` và `DateTimeFormatter`. Kết quả `2024-10-28T09:30:00Z` là một instant theo UTC.
+This snippet requires importing `Instant` and `DateTimeFormatter`. The result `2024-10-28T09:30:00Z` is a UTC instant.
 
-UI có thể hiển thị `28/10/2024 16:30` ở múi giờ Việt Nam hoặc `10/28/2024 9:30 AM` ở UTC. Nhưng một thời điểm absolute **không tự thay đổi** khi locale giao diện đổi.
+The UI may display `28/10/2024 16:30` in Vietnam time or `10/28/2024 9:30 AM` in UTC. Yet an absolute instant **does not change on its own** when the UI locale changes.
 
-Nếu dữ liệu thật là ngày sinh hay ngày hết hạn dạng calendar date, dùng `LocalDate` và format máy như `2024-10-28`; không tự biến ngày lịch thành instant lúc 00:00 UTC mà không có quy tắc zone. Nếu API dùng datetime với offset thay cho UTC, contract phải xác định dạng ISO 8601/RFC 3339, precision và cách kiểm tra.
+If the underlying data is a birth date or expiration calendar date, use `LocalDate` and a machine format such as `2024-10-28`; never turn a calendar date into a 00:00 UTC instant without an explicit zone rule. If an API uses offset datetimes instead of UTC, the contract must specify ISO 8601/RFC 3339 formatting, precision, and validation rules.
 
-### 5.3. Boolean, currency, trạng thái và CSV
+### 5.3. Booleans, Currency, Statuses, and CSV
 
-JSON boolean luôn `true` hoặc `false`, JSON null dùng `null`. Giá trị enum như `PENDING` là định danh máy; nhãn “Đang chờ” chỉ nên render ở UI.
+JSON booleans are always `true` or `false`, and JSON null uses `null`. Enum values like `PENDING` are machine identifiers; labels like "Đang chờ" or "Pending" are rendered solely in the UI.
 
-Lưu currency code `VND`, `USD` cùng amount. Đổi locale không phải đổi đơn vị tiền hoặc quy đổi tỷ giá. `NumberFormat.getCurrencyInstance(locale)` chỉ định dạng cách hiển thị, không biến 100 USD thành 100 VND.
+Store currency codes like `VND` and `USD` alongside the amount. Changing locale never changes the currency unit or performs FX conversion. `NumberFormat.getCurrencyInstance(locale)` only formats presentation; it does not turn 100 USD into 100 VND.
 
-CSV có nhiều dialect. Khi một CSV machine dùng dấu phẩy phân cách cột, cần biết delimiter, quoting, decimal, encoding và newline. Đừng ghi `1.234,50` rồi hy vọng hệ thống khác tự hiểu đó là một số mà không có schema; dấu phẩy có thể bị hiểu là separator.
+CSV has many dialects. When a machine CSV uses commas as column delimiters, specify delimiter, quoting, decimal mark, encoding, and newline rules. Do not write `1.234,50` expecting another system to guess it is a single number without a schema; the comma may be parsed as a column separator.
 
-## 6. Tách request locale khỏi quyết định nghiệp vụ
+## 6. Separating Request Locale from Business Decisions
 
-Một luồng API nên như sau:
+An API flow should look like:
 
 ~~~text
 HTTP request + JSON payload
           |
           v
-Parse theo schema cố định
+Parse against fixed schema
           |
           v
 Domain validation -> errorCode, field, typed arguments
           |
           v
-Chọn Locale trình bày theo ngôn ngữ được hỗ trợ
+Select presentation Locale from supported languages
           |
           v
 ResourceBundle / message lookup
           |
           v
-Serialize response với JSON keys và data types cố định
+Serialize response with fixed JSON keys and data types
 ~~~
 
-`Accept-Language` là một sở thích ngôn ngữ, không phải thông tin đã xác minh về vị trí, quốc tịch, thuế, currency hoặc quyền truy cập. Nếu người dùng chọn ngôn ngữ không hỗ trợ, ứng dụng fallback có chủ đích (ví dụ tiếng Anh) nhưng **không được thay error code và schema**.
+`Accept-Language` is a language preference, not verified information about location, nationality, tax, currency, or permissions. If a user picks an unsupported language, the application applies a deliberate fallback (such as English) **without changing error codes or schemas**.
 
-Không gọi `Locale.setDefault` theo từng request web: default locale có phạm vi JVM, có thể gây rò ngôn ngữ giữa hai request đồng thời. Truyền `Locale` tường minh vào tầng presentation và formatter.
+Never call `Locale.setDefault` per web request: the default locale is JVM-wide and can leak languages between concurrent requests. Pass `Locale` explicitly into presentation and formatting layers.
 
-### 6.1. Thông điệp có tham số
+### 6.1. Parameterized Error Messages
 
-Có thể trả lỗi kèm tham số máy:
+Errors can be returned alongside machine parameters:
 
 ~~~json
 {
@@ -247,53 +247,53 @@ Có thể trả lỗi kèm tham số máy:
 }
 ~~~
 
-`arguments.minimum` giữ kiểu số; `currencyCode` giữ mã tiền. Chỉ message đổi khi dùng locale khác. Không định dạng `minimum` thành `"100,00"` rồi giả làm JSON number. Khi dùng `MessageFormat`, placeholder/argument indexes trong các bản dịch cần được quản lý theo một contract ổn định, dù thứ tự từ trong câu khác nhau.
+`arguments.minimum` stays numeric; `currencyCode` keeps the currency code. Only `message` changes under another locale. Never format `minimum` as `"100,00"` pretending to be a JSON number. When using `MessageFormat`, placeholder/argument indices across translations must adhere to a stable contract even when word order varies.
 
-## 7. Domain model và wire DTO không phải UI model
+## 7. Domain Models and Wire DTOs Are Not UI Models
 
-Một lớp domain có thể lưu:
+A domain layer may store:
 
 ~~~java
 record Money(BigDecimal amount, String currencyCode) {}
 record ApiError(String code, String field, String message) {}
 ~~~
 
-Đây là các khai báo record minh họa nằm trong một class hoặc compilation unit không có public top-level declarations, yêu cầu import `BigDecimal`. Trong ứng dụng thật cần validate null, currency code và giới hạn nghiệp vụ.
+These are illustrative record declarations inside a class or compilation unit without public top-level declarations, requiring `import java.math.BigDecimal;`. Production code must validate nulls, currency codes, and business constraints.
 
-**Domain** giữ amount và currency rõ ràng. **Validation** trả code và field path. **Presentation** tra bản dịch. **Serialization** ghi JSON theo schema. Khi một phần thay đổi, các phần khác có thể giữ nguyên.
+**Domain** holds explicit amount and currency. **Validation** returns codes and field paths. **Presentation** looks up translations. **Serialization** writes JSON according to schema. When one layer changes, the others can stay intact.
 
-Không lưu câu lỗi đã dịch như nguồn sự thật cho một lỗi, không ghi `"1.234,50"` làm số tiền trong domain, không dùng nhãn field làm tên column/JSON key. Nếu phải lưu cả thông điệp phục vụ audit, lưu kèm mã lỗi và context, đồng thời không dùng message làm primary identity của loại lỗi.
+Do not store translated error sentences as the source of truth for an error, do not store `"1.234,50"` as a domain monetary amount, and do not use field labels as column/JSON keys. If an audit log must capture the displayed message too, store it alongside the error code and context without using the message as the error's primary identity.
 
-### 7.1. Dùng serializer thay vì nối JSON thủ công
+### 7.1. Use a Serializer Instead of Manual JSON Concatenation
 
-Các JSON snippets ở đây minh họa contract. Một ứng dụng thực nên dùng JSON serializer có xử lý quoting, escaping, types và mapping tên field. Không tự nối message hoặc chuỗi do người dùng cung cấp thành JSON mà không escape. Việc chạy demo ở mục 9 **không sinh JSON**, mà in ra thuộc tính để kiểm tra nguyên tắc locale.
+The JSON snippets here illustrate contracts. A real application should use a JSON serializer handling quoting, escaping, types, and field mapping. Never concatenate messages or user-provided strings into JSON unescaped. Running the demo in Section 9 **does not emit JSON**; instead it prints properties to verify localization principles.
 
-## 8. Tương thích và vòng đời phát hành
+## 8. Compatibility and Release Lifecycle
 
-### 8.1. Thay đổi bản dịch thường không phải breaking change
+### 8.1. Translation Edits Are Normally Non-Breaking Changes
 
-Có thể sửa lời giải thích trong message, thêm locale hoặc thay nhãn màn hình mà không cần đổi code/field/schema. Một client hợp lệ không nên phụ thuộc câu dịch để thực hiện logic.
+You can refine message explanations, add a locale, or tweak screen labels without changing codes, fields, or schemas. Well-behaved clients must never depend on translated sentences to drive logic.
 
-### 8.2. Những thay đổi cần schema migration
+### 8.2. Changes That Require Schema Migration
 
-- Đổi `createdAt` thành `created_at` khi field đã public.
-- Đổi `AMOUNT_NOT_POSITIVE` thành code khác mà không có phương án tương thích.
-- Đổi kiểu `amount` từ number thành string.
-- Đổi instant ISO sang chuỗi ngày theo locale không có offset.
-- Dùng nhãn đã dịch như `Đang chờ` thay cho enum value `PENDING`.
-- Đổi cú pháp technical field path mà client phụ thuộc.
+- Renaming `createdAt` to `created_at` after the field is public.
+- Replacing `AMOUNT_NOT_POSITIVE` with another code without a compatibility plan.
+- Changing `amount`'s type from number to string.
+- Switching an ISO instant to a localized date string without an offset.
+- Returning a translated label like `Đang chờ` instead of enum value `PENDING`.
+- Changing technical field-path syntax that clients rely on.
 
-Những thay đổi này cần tài liệu, API versioning/deprecation, rollout và regression tests. Thêm error code mới cũng cần client fallback cho unknown code; không giả định mọi client sẽ nâng cấp đồng thời.
+These changes require documentation, API versioning/deprecation, controlled rollout, and regression tests. Adding new error codes also requires clients to handle unknown codes gracefully; never assume every client upgrades simultaneously.
 
-### 8.3. Chủ sở hữu của error catalog
+### 8.3. Ownership of the Error Catalog
 
-Nên duy trì danh mục code có mô tả, rule phát sinh, HTTP status, field/arguments, translation key, hướng xử lý và chính sách deprecation. Không tái sử dụng mã cho nghĩa mới chỉ vì câu thông báo giống nhau.
+Maintain a catalog of error codes documenting descriptions, trigger rules, HTTP status, fields/arguments, translation keys, remediation guidance, and deprecation policies. Never repurpose an existing code for a new meaning simply because the message sounds similar.
 
-## 9. Chương trình Java 17 hoàn chỉnh
+## 9. Complete Java 17 Program
 
-Chương trình độc lập dùng `Map` như một nguồn dịch nhỏ. Trong sản phẩm, `ResourceBundle` hoặc message source framework thường phù hợp hơn. Ví dụ in stdout ASCII và kiểm chứng thông điệp Việt bằng Unicode escapes, nên không phụ thuộc font console.
+This standalone program uses a `Map` as a compact translation source. In production, `ResourceBundle` or a framework message source is usually more appropriate. The example prints ASCII stdout and verifies Vietnamese text using Unicode escapes so it does not depend on console font support.
 
-**Tệp `StableContractDemo.java`:**
+**File `StableContractDemo.java`:**
 
 ~~~java
 import java.math.BigDecimal;
@@ -350,14 +350,14 @@ public class StableContractDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng Java 17+:
+Compile and run with Java 17+:
 
 ~~~bash
 javac -encoding UTF-8 StableContractDemo.java
 java StableContractDemo
 ~~~
 
-**Stdout đã kiểm tra:**
+**Verified stdout:**
 
 ~~~text
 vi: code=AMOUNT_NOT_POSITIVE, field=amount
@@ -369,66 +369,66 @@ machine amount=0.00
 machine time=2024-10-28T09:30:00Z
 ~~~
 
-**Giải thích:** `code` và `field` giữ nguyên ở cả hai locale, thông điệp thì khác. Dòng `vi message verified=true` xác nhận nội dung Unicode Việt mà không cần render tiếng Việt trên console. `BigDecimal.toPlainString` in `0.00` không bị format theo locale; `ISO_INSTANT` in mốc `2024-10-28T09:30:00Z`. Đây là ví dụ minh họa validation cho **amount không dương**, không phải thư viện JSON hoặc giải pháp đầy đủ để xử lý tiền thật.
+**Explanation:** `code` and `field` remain identical across both locales, while messages differ. `vi message verified=true` confirms the Vietnamese Unicode content without requiring Vietnamese rendering on the console. `BigDecimal.toPlainString` prints `0.00` unaffected by locale; `ISO_INSTANT` prints `2024-10-28T09:30:00Z`. This example demonstrates validation for a **non-positive amount**—it is not a JSON library or a complete monetary processing solution.
 
-## 10. Các lỗi thường gặp
+## 10. Common Mistakes
 
-| Sai lầm | Hậu quả | Cách sửa |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Dịch error code theo locale | Client không nhận dạng được lỗi | Giữ mã ổn định |
-| Dùng message trong if/switch | Sửa bản dịch làm vỡ logic | Dùng code |
-| Dịch JSON keys | Serializer/schema client không tương thích | Cố định property names |
-| Trả nhãn UI như technical field | Client không map được field | Trả field path chuẩn |
-| Dùng `NumberFormat` cho JSON number | Dấu nhóm/decimal theo locale | Serializer số máy |
-| Gửi ngày UI như datetime machine | Mơ hồ ngày/tháng, zone và offset | ISO theo contract |
-| Đổi currency vì đổi language | Thay nghĩa của tiền | Currency là domain |
-| Dùng `Locale.setDefault` per request | Rò ngôn ngữ giữa request | Truyền locale tường minh |
-| So sánh lỗi bằng text message | Không hỗ trợ đa ngôn ngữ | Error code + typed args |
-| Dùng default locale cho logs/schema | Kết quả khác nhau giữa server | Locale-neutral contract |
-| Không có fallback cho code mới | Client cũ crash | Unknown-code handler |
-| Nối chuỗi JSON tùy tiện | Escaping/injection/kiểu sai | Dùng serializer |
-| Thiếu test Unicode/locale | Lỗi dấu, font, charset | Test vi/en/RTL/emoji |
-| Đổi schema mà chỉ coi là dịch | Breaking change ngầm | Versioning và migration |
+| Translating error codes by locale | Clients cannot recognize errors | Keep codes stable |
+| Switching on error `message` | Copy edits break logic | Branch on `code` |
+| Translating JSON keys | Incompatible with serializers/client schemas | Keep property names fixed |
+| Returning UI labels as technical fields | Clients cannot map fields | Return standard field paths |
+| Using `NumberFormat` for JSON numbers | Locale-specific grouping/decimal marks | Use machine number serializer |
+| Sending UI dates as machine datetimes | Ambiguous day/month, zone, and offset | Use ISO per contract |
+| Changing currency when language changes | Alters monetary meaning | Keep currency in domain |
+| Calling `Locale.setDefault` per request | Language leaks between requests | Pass `Locale` explicitly |
+| Comparing errors by message text | Breaks multilingual support | Use error code + typed args |
+| Using default locale for logs/schemas | Inconsistent results across servers | Use locale-neutral contracts |
+| No fallback for unknown new codes | Older clients crash | Add unknown-code handler |
+| Concatenating JSON strings manually | Escaping/injection/type bugs | Use a JSON serializer |
+| Missing Unicode/locale tests | Broken diacritics, fonts, charsets | Test `vi`/`en`/RTL/emoji |
+| Changing schemas under the guise of translation | Silent breaking change | Version and migrate properly |
 
-## 11. Kiểm thử cần viết
+## 11. Tests You Should Write
 
-Một bộ kiểm thử tốt chạy cùng dữ liệu trên nhiều locale (`vi-VN`, `en-US`, `de-DE`, `tr-TR` và locale không hỗ trợ) rồi xác minh:
+A strong test suite runs the same input across multiple locales (`vi-VN`, `en-US`, `de-DE`, `tr-TR`, and an unsupported locale) and verifies:
 
-1. `code`, `field`, HTTP status không đổi.
-2. JSON property names và types không đổi.
-3. Amount và currency có giá trị/domain semantics nhất quán.
-4. ISO timestamp có cùng instant và precision theo contract.
-5. Enum values, IDs và log fields không đổi.
-6. Các bản dịch khác nhau hoặc fallback được chọn có chủ đích.
-7. `BigDecimal` được serialize không phụ thuộc `Locale.getDefault()`.
-8. Schema test bắt được `createdAt` vô tình đổi sang `thoiGianTao`.
-9. Unknown error code được xử lý an toàn, không crash.
-10. Nested field path `items[0].quantity` không đổi theo UI language.
-11. Message Unicode được encode/decode UTF-8 đúng; JSON escaping an toàn.
-12. Concurrent requests với các locale khác nhau không làm nhiễm ngôn ngữ của nhau.
+1. `code`, `field`, and HTTP status remain unchanged.
+2. JSON property names and types remain unchanged.
+3. Amount and currency keep consistent values and domain semantics.
+4. ISO timestamps carry the exact same instant and contract precision.
+5. Enum values, IDs, and log fields remain unchanged.
+6. Translations differ properly or fall back intentionally.
+7. `BigDecimal` serializes independently of `Locale.getDefault()`.
+8. Schema tests catch `createdAt` accidentally turning into `thoiGianTao`.
+9. Unknown error codes are handled safely without crashing.
+10. Nested field path `items[0].quantity` does not change with UI language.
+11. Unicode messages encode/decode in UTF-8 properly; JSON escaping is safe.
+12. Concurrent requests with different locales never contaminate one another's languages.
 
-Ngoài kiểm tra Java objects, cần kiểm tra **serialized HTTP response thật**, vì một serializer/framework có thể bị cấu hình khác với code domain.
+Beyond testing Java objects, also test **actual serialized HTTP responses**, because a serializer or framework may be configured differently from domain code.
 
-## 12. Bài tập thực hành
+## 12. Practice Exercises
 
-1. Cho demo chạy với `fr-FR`, nhận message fallback sang tiếng Anh nhưng technical identity vẫn đúng.
-2. Thêm `CURRENCY_UNSUPPORTED` với field `currencyCode`; tạo nhãn và message theo vi/en mà không dịch field.
-3. Tạo `Order(BigDecimal amount, String currencyCode, Instant createdAt)`, định nghĩa schema JSON cố định và hai UI presentations.
-4. So `BigDecimal("1234.50").toPlainString()` với `NumberFormat.getNumberInstance(Locale.GERMANY)`; giải thích khác biệt.
-5. Viết test thay `Accept-Language` nhưng `code` và `field` không đổi.
-6. Viết response nhiều lỗi gồm array `errors`; mỗi phần tử có code/field/message cố định kiểu.
-7. Tạo error message có `minimum` kiểu number và currency code; format theo locale chỉ tại lớp hiển thị.
-8. Thử default locale `tr-TR` ở môi trường test riêng; kiểm tra machine decimal/timestamp.
-9. Viết client fallback cho error code không biết mà vẫn hiển thị thông điệp an toàn.
-10. So sánh việc đổi câu dịch với việc đổi JSON key: thay đổi nào cần API version?
+1. Run the demo with `fr-FR`, receiving the English fallback message while keeping technical identity intact.
+2. Add `CURRENCY_UNSUPPORTED` with field `currencyCode`; create `vi`/`en` labels and messages without translating the field name.
+3. Create `Order(BigDecimal amount, String currencyCode, Instant createdAt)`, defining a fixed JSON schema and two UI presentations.
+4. Compare `BigDecimal("1234.50").toPlainString()` with `NumberFormat.getNumberInstance(Locale.GERMANY)`; explain the difference.
+5. Write a test varying `Accept-Language` while verifying `code` and `field` stay constant.
+6. Design a multi-error response with an `errors` array where each element has fixed-type `code`/`field`/`message`.
+7. Create an error message carrying a numeric `minimum` and currency code; format per locale only in the presentation layer.
+8. Set default locale `tr-TR` in an isolated test environment; verify machine decimals and timestamps.
+9. Write a client fallback for unknown error codes that still displays a safe message.
+10. Compare editing a translated sentence with renaming a JSON key: which change requires an API version bump?
 
-## 13. Tổng kết
+## 13. Summary
 
-**Bản địa hóa không được làm thay đổi ý nghĩa hoặc hình dạng dữ liệu máy.** Mã lỗi, tên field, field path, JSON schema, enum values, timestamp và decimal representation phải theo contract ổn định. `Locale` được dùng để chọn `ResourceBundle`, ngôn ngữ message, nhãn và format giao diện. Với số/ngày trên wire, dùng `BigDecimal`, `Instant`, formatter/serializer phù hợp; `Locale.ROOT` hữu ích cho một số trường hợp format kỹ thuật, nhưng không thay thế schema hoặc precision.
+**Localization must never alter the meaning or shape of machine data.** Error codes, field names, field paths, JSON schemas, enum values, timestamps, and decimal representations must follow a stable contract. `Locale` is used to pick `ResourceBundle`s, message languages, labels, and UI formatting. For wire numbers and dates, use `BigDecimal`, `Instant`, and appropriate formatters/serializers; `Locale.ROOT` is helpful for certain technical formatting cases, though it does not replace explicit schemas or precision rules.
 
-Tách domain, API contract và presentation giúp ứng dụng thêm ngôn ngữ, sửa thông điệp và cải thiện giao diện mà không làm hỏng client, báo cáo, DB hay quy tắc nghiệp vụ.
+Separating domain, API contract, and presentation lets applications add languages, refine messages, and improve UIs without breaking clients, reports, databases, or business rules.
 
-**Tài liệu tham khảo:**
+**References:**
 
 - Java SE 17, `Locale`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html
 - Java SE 17, `ResourceBundle`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html

@@ -1,17 +1,17 @@
-# Tham chiếu dùng chung và chu trình trong đồ thị đối tượng (Java)
+# Shared References and Cycles in Object Graphs (Java)
 
-**Bối cảnh:** Sao chép và độc lập. Khi sao chép một đối tượng Java, cần nhìn toàn bộ mạng lưới đối tượng mà nó trỏ tới, vì bản sao của đối tượng gốc chưa chắc đã độc lập với bản gốc.
+**Context:** Copying and independence. When copying a Java object, you need to look at the entire network of objects it points to, because a copy of the root object is not necessarily independent of the original.
 
-## 1. Đồ thị đối tượng là gì?
+## 1. What Is an Object Graph?
 
-Một **đồ thị đối tượng (object graph)** có thể được hình dung như sau:
+An **object graph** can be visualized as follows:
 
-- **Đỉnh (node)**: một đối tượng trong bộ nhớ.
-- **Cạnh (edge)**: một trường tham chiếu, phần tử mảng hay phần tử collection trỏ tới đối tượng khác.
-- **Gốc (root)**: tham chiếu từ đó ta bắt đầu duyệt, ví dụ biến `customer` hoặc `head`.
-- **Danh tính (identity)**: hai tham chiếu trỏ đến *chính cùng một đối tượng*, được kiểm tra bằng `==`; khác với `equals()`, vốn có thể kiểm tra giá trị theo quy ước của lớp.
+- **Node:** an object in memory.
+- **Edge:** a reference field, array element, or collection element pointing to another object.
+- **Root:** the reference from which traversal starts, for example a `customer` or `head` variable.
+- **Identity:** two references pointing to *the exact same object*, checked with `==`; different from `equals()`, which may check value according to the class's convention.
 
-Một đồ thị không bắt buộc là cây: nhiều cạnh có thể tới cùng một đỉnh, một đỉnh có thể quay lại chính nó hoặc trở về đỉnh đã thăm.
+A graph is not required to be a tree: multiple edges can reach the same node, and a node can point back to itself or return to an already visited node.
 
 ~~~text
 A.next --------> B
@@ -24,9 +24,9 @@ A.shared ---+
 B.shared ---+
 ~~~
 
-Trong ví dụ, `A` và `B` tạo **chu trình** (`A → B → A`); đồng thời cả `A.shared` và `B.shared` cùng trỏ tới **một** đối tượng `S`. Hai đặc tính này tồn tại độc lập: có thể có chia sẻ mà không có chu trình, hoặc có chu trình mà không có nút chia sẻ phụ.
+In the example, `A` and `B` form a **cycle** (`A → B → A`); at the same time both `A.shared` and `B.shared` point to **one** object `S`. These two properties exist independently: there can be sharing without a cycle, or a cycle without an extra shared node.
 
-### Tham chiếu dùng chung (aliasing)
+### Shared References (Aliasing)
 
 ~~~java
 StringBuilder shared = new StringBuilder("x");
@@ -37,15 +37,15 @@ System.out.println(right); // xy
 System.out.println(left == right); // true
 ~~~
 
-`left` và `right` là hai biến tham chiếu nhưng chỉ có **một** `StringBuilder`. Thao tác thay đổi qua một đường truy cập sẽ hiện ra ở đường còn lại. Đối tượng vẫn chỉ được cấp phát một lần.
+`left` and `right` are two reference variables, yet there is only **one** `StringBuilder`. A mutation through one access path appears in the other path. The object is still allocated only once.
 
-Điều này khác với hai đối tượng có nội dung bằng nhau nhưng danh tính khác nhau, chẳng hạn `new StringBuilder("x")` và `new StringBuilder("x")`. Không được dựa vào `toString()`, `equals()` hoặc nội dung giống nhau để kết luận hai đỉnh là một.
+This differs from two objects with equal content but different identities, such as `new StringBuilder("x")` and `new StringBuilder("x")`. Do not rely on `toString()`, `equals()`, or identical content to conclude that two nodes are one.
 
-## 2. Vì sao sao chép một đối tượng có thể chưa độc lập?
+## 2. Why Copying an Object May Not Yet Be Independent
 
-**Sao chép nông (shallow copy)** tạo một đối tượng vỏ mới rồi sao chép giá trị các trường. Với trường primitive, giá trị được sao chép. Với trường tham chiếu, *địa chỉ tham chiếu logic* được sao chép: đối tượng con vẫn là đối tượng cũ.
+**Shallow copy** creates a new shell object and copies the field values. For primitive fields, the value is copied. For reference fields, the *logical reference address* is copied: the child object remains the old object.
 
-Ví dụ, nếu tạo `A'` bằng cách sao chép nông `A`:
+For example, if you create `A'` by shallow-copying `A`:
 
 ~~~text
 A  --next--> B --next--> A
@@ -54,67 +54,67 @@ shared       shared
 |            |
 +----> S <---+
 
-A' --next--> B     (vẫn là B cũ)
+A' --next--> B     (still old B)
  |
- shared-----> S     (vẫn là S cũ)
+ shared-----> S     (still old S)
 ~~~
 
-`A' != A` đúng, nhưng `A'.next == A.next` và `A'.shared == A.shared` cũng đúng. Nếu đi `A'.next.next`, ta về **`A` gốc**, không về `A'`. Đổi dữ liệu trong `S` bằng `A'` có thể làm dữ liệu mà `A` thấy thay đổi.
+`A' != A` is true, but `A'.next == A.next` and `A'.shared == A.shared` are also true. If you follow `A'.next.next`, you land back at the **original `A`**, not `A'`. Changing data inside `S` via `A'` can change the data that `A` sees.
 
-Các thao tác quen thuộc cũng thường chỉ sao chép nông đối với phần tử tham chiếu:
+Familiar operations also usually only shallow-copy reference elements:
 
-- `Object.clone()` mặc định thực hiện bản sao theo trường; cần tự xử lý trường mutable nếu muốn độc lập sâu. Việc gọi `clone()` còn phụ thuộc vào hợp đồng `Cloneable` và cách lớp triển khai.
-- `array.clone()` tạo mảng mới, nhưng với mảng đối tượng, từng phần tử vẫn là tham chiếu đến đối tượng cũ.
-- `new ArrayList<>(oldList)` tạo cấu trúc danh sách mới, không nhân bản từng đối tượng phần tử.
-- `List.copyOf(oldList)` tạo danh sách không cho sửa cấu trúc qua API đó, **không biến các phần tử mutable thành immutable**. Danh sách kết quả còn có thể dùng lại danh sách đầu vào nếu đủ điều kiện.
+- `Object.clone()` defaults to a field-by-field copy; mutable fields must be handled manually if deep independence is desired. Calling `clone()` also depends on the `Cloneable` contract and how the class implements it.
+- `array.clone()` creates a new array, but for an object array, each element is still a reference to the old object.
+- `new ArrayList<>(oldList)` creates a new list structure without cloning each element object.
+- `List.copyOf(oldList)` creates a list that disallows structural modification through that API, **without turning mutable elements into immutable ones**. The resulting list may even reuse the input list if eligible.
 
-Ngược lại, **sao chép sâu (deep copy)** theo phạm vi đã xác định phải sao chép các đối tượng mutable cần sở hữu độc lập trong đồ thị. Chữ “sâu” phải đi kèm hợp đồng rõ ràng: những nút nào được sao chép, những nút bất biến nào được phép dùng chung, các tài nguyên bên ngoài được xử lý thế nào.
+Conversely, **deep copy** within a defined scope must copy the mutable objects that need independent ownership in the graph. The word “deep” must come with a clear contract: which nodes are copied, which immutable nodes may be shared, and how external resources are handled.
 
-## 3. Hợp đồng đúng khi sao chép đồ thị
+## 3. Correct Contract When Copying a Graph
 
-Giả sử `f(x)` là bản sao của đối tượng gốc `x`. Với mọi nút thuộc phạm vi cần sao chép, mục tiêu là:
+Suppose `f(x)` is the copy of the original object `x`. For all nodes within the copy scope, the goals are:
 
-1. **Tách danh tính:** `f(x) != x` cho những nút mutable cần độc lập.
-2. **Giữ các cạnh:** nếu `x.next == y` thì `f(x).next == f(y)` (kể cả `null`).
-3. **Giữ tham chiếu dùng chung:** nếu `x.left == x.right` thì `f(x).left == f(x).right`. Một nút gốc có nhiều đường trỏ tới chỉ tạo **một** nút sao chép.
-4. **Giữ chu trình:** nếu `A.next.next == A` thì `A'.next.next == A'`.
-5. **Không gộp nhầm nút:** hai nút gốc *khác danh tính*, dù `equals()` trả về `true`, vẫn phải có hai bản sao khác danh tính nếu cả hai thuộc phạm vi sao chép.
+1. **Separate identity:** `f(x) != x` for mutable nodes requiring independence.
+2. **Preserve edges:** if `x.next == y` then `f(x).next == f(y)` (including `null`).
+3. **Preserve shared references:** if `x.left == x.right` then `f(x).left == f(x).right`. An original node reached by multiple paths produces only **one** copied node.
+4. **Preserve cycles:** if `A.next.next == A` then `A'.next.next == A'`.
+5. **Do not mistakenly merge nodes:** two original nodes with *different identities*, even if `equals()` returns `true`, must still have two copies with different identities if both are in the copy scope.
 
-Nếu tạo hai bản sao mới mỗi lần đi tới `S`, ta làm mất tính chia sẻ (`A'.shared != B'.shared`). Nếu cứ đệ quy qua `A → B → A` mà không nhớ các nút đã xử lý, chương trình có thể đệ quy vô hạn và gây `StackOverflowError`.
+If you create two new copies each time `S` is reached, sharing is lost (`A'.shared != B'.shared`). If you keep recursing through `A → B → A` without remembering already-processed nodes, the program can recurse infinitely and cause a `StackOverflowError`.
 
-Vì thế, **một lần sao chép đồ thị cần bảng ánh xạ theo danh tính**: `đối tượng gốc → đối tượng sao chép`.
+Therefore, **one graph copy pass needs an identity-based mapping table**: `original object → copied object`.
 
-## 4. Thuật toán: tạo vỏ, ghi nhớ, rồi nối các cạnh
+## 4. Algorithm: Create Shell, Record, Then Connect Edges
 
-Với một nút `source`:
+For a node `source`:
 
-1. Nếu `source == null`, trả về `null`.
-2. Nếu bảng đã có `source`, trả về **bản sao đã tạo**, không tạo nút mới.
-3. Tạo đối tượng sao chép ban đầu với các trường dữ liệu không tham chiếu.
-4. **Đưa cặp `source → copy` vào bảng ngay lập tức**, trước khi duyệt bất kỳ cạnh nào.
-5. Sao chép lần lượt các cạnh bằng cùng một bảng; trả về `copy`.
+1. If `source == null`, return `null`.
+2. If the table already contains `source`, return the **already created copy**, without creating a new node.
+3. Create the initial copy object with its non-reference data fields.
+4. **Insert the `source → copy` pair into the table immediately**, before traversing any edges.
+5. Copy the edges one by one using the same table; return `copy`.
 
-Bước 4 là trọng tâm. Khi đi từ `A` qua `B` rồi quay lại `A`, bảng đã có `A'` để nối cạnh quay về. Khi đi tới `S` lần thứ hai, bảng trả về cùng `S'` đã tạo.
+Step 4 is the crux. When going from `A` through `B` and back to `A`, the table already has `A'` to connect the back edge. When reaching `S` the second time, the table returns the same `S'` already created.
 
-### Vì sao dùng `IdentityHashMap`?
+### Why Use `IdentityHashMap`?
 
-`IdentityHashMap<K,V>` so sánh khóa bằng `==` và dùng hàm băm theo danh tính, phù hợp với yêu cầu “một nút gốc chỉ ánh xạ tới một nút sao chép”.
+`IdentityHashMap<K,V>` compares keys with `==` and hashes by identity, matching the requirement “one original node maps to only one copied node”.
 
-`HashMap` thông thường dựa vào `equals()` và `hashCode()`; hai đối tượng khác nhau nhưng bằng nhau về giá trị có thể bị gộp thành một khóa. Tệ hơn, `equals()`/`hashCode()` do lập trình viên viết có thể duyệt tham chiếu vòng hoặc phụ thuộc vào các trường đang thay đổi. `IdentityHashMap` tránh nhầm lẫn giữa *bằng giá trị* và *cùng danh tính*.
+Regular `HashMap` relies on `equals()` and `hashCode()`; two different objects that are equal by value can be collapsed into one key. Worse, programmer-written `equals()`/`hashCode()` might traverse circular references or depend on mutating fields. `IdentityHashMap` avoids confusing *value equality* with *same identity*.
 
-## 5. Ví dụ Java 17 chạy được: sao chép nông, chia sẻ và chu trình
+## 5. Runnable Java 17 Example: Shallow Copy, Sharing, and Cycles
 
-Lưu toàn bộ chương trình dưới tên **`GraphCopyDemo.java`**:
+Save the entire program as **`GraphCopyDemo.java`**:
 
 ~~~java
 import java.util.IdentityHashMap;
 
 public class GraphCopyDemo {
     static final class Node {
-        final String label;  // String bất biến nên có thể dùng chung
-        int count;           // trạng thái có thể thay đổi
-        Node next;           // cạnh có thể tạo chu trình
-        Node shared;         // cạnh có thể có nhiều nguồn trỏ tới
+        final String label;  // Immutable String so it can be shared
+        int count;           // mutable state
+        Node next;           // edge that can form a cycle
+        Node shared;         // edge that can have multiple incoming references
 
         Node(String label, int count) {
             this.label = label;
@@ -149,7 +149,7 @@ public class GraphCopyDemo {
         }
 
         Node result = new Node(original.label, original.count);
-        visited.put(original, result); // Ghi nhớ TRƯỚC khi duyệt cạnh
+        visited.put(original, result); // Record BEFORE traversing edges
 
         result.next = copy(original.next, visited);
         result.shared = copy(original.shared, visited);
@@ -162,9 +162,9 @@ public class GraphCopyDemo {
         Node s = new Node("S", 7);
 
         a.next = b;
-        b.next = a;       // chu trình A -> B -> A
+        b.next = a;       // cycle A -> B -> A
         a.shared = s;
-        b.shared = s;     // cùng một S
+        b.shared = s;     // same S
 
         Node shallow = shallowCopyRoot(a);
         Node deep = deepCopy(a);
@@ -189,14 +189,14 @@ public class GraphCopyDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or higher:
 
 ~~~bash
 javac GraphCopyDemo.java
 java GraphCopyDemo
 ~~~
 
-Kết quả chuẩn:
+Expected output:
 
 ~~~text
 shallow root new: true
@@ -210,84 +210,84 @@ deep S separate: true
 S counts original/copy: 7/99
 ~~~
 
-**Đọc kết quả:**
+**Reading the output:**
 
-- `shallow` có danh tính mới, nhưng `shallow.next` vẫn là `b` cũ và đường vòng vẫn quay về `a` cũ.
-- `deep.next.next == deep` xác nhận chu trình đã được dựng lại *bên trong* đồ thị mới.
-- `deep.shared == deep.next.shared` xác nhận hai cạnh ở đồ thị mới vẫn chia sẻ cùng một nút; `deep.shared != s` xác nhận đó là nút mới.
-- Thay `deep.shared.count` thành `99` không làm thay đổi `s.count` của bản gốc (`7`). Đây là bằng chứng độc lập đối với trạng thái mutable được sao chép trong ví dụ.
+- `shallow` has a new identity, but `shallow.next` is still the old `b` and the loop still returns to the old `a`.
+- `deep.next.next == deep` confirms the cycle was rebuilt *inside* the new graph.
+- `deep.shared == deep.next.shared` confirms the two edges in the new graph still share the same node; `deep.shared != s` confirms it is a new node.
+- Changing `deep.shared.count` to `99` does not change `s.count` of the original (`7`). This is evidence of independence for the mutable state copied in the example.
 
-Chương trình chỉ dùng `String` (bất biến), `int` và liên kết tới `Node`. Với trường chứa `List`, `Map`, mảng, hoặc một lớp mutable khác, phải áp dụng tiếp chính sách sao chép cho các đối tượng tương ứng; không thể chỉ gán lại tham chiếu và gọi đó là sao chép sâu hoàn chỉnh.
+The program only uses `String` (immutable), `int`, and links to `Node`. For fields containing `List`, `Map`, arrays, or another mutable class, the copy policy must continue to be applied to those corresponding objects; you cannot simply reassign the reference and call it a complete deep copy.
 
-## 6. Những trường hợp dễ bỏ sót
+## 6. Easy-to-Miss Cases
 
-### Nhiều gốc nhưng chung một đồ thị
+### Multiple Roots Sharing One Graph
 
-Nếu hai biến gốc `root1` và `root2` cùng trỏ tới `S`, gọi `deepCopy(root1)` và `deepCopy(root2)` **riêng biệt** sẽ tạo hai bảng ánh xạ và có thể tạo hai bản sao khác nhau của `S`. Nếu hợp đồng yêu cầu giữ chia sẻ *giữa các gốc*, phải sao chép cả tập gốc trong **cùng một phiên** với một `IdentityHashMap` duy nhất. Khởi tạo bảng trước vòng lặp các gốc rồi dùng lại ở mọi lời gọi `copy(root, visited)`.
+If two root variables `root1` and `root2` both point to `S`, calling `deepCopy(root1)` and `deepCopy(root2)` **separately** creates two mapping tables and can produce two different copies of `S`. If the contract requires preserving sharing *across roots*, the entire set of roots must be copied in **the same session** with a single `IdentityHashMap`. Initialize the table before looping over the roots and reuse it across every `copy(root, visited)` call.
 
-### Tự tham chiếu và chu trình dài
+### Self-References and Long Cycles
 
-`node.next = node` là chu trình độ dài một. Chu trình `A → B → C → A` có độ dài ba. Cùng thuật toán trên xử lý cả hai vì mỗi nút được ghi nhớ trước khi đi tới nút tiếp theo. Đừng chỉ kiểm tra chu trình hai nút.
+`node.next = node` is a cycle of length one. The cycle `A → B → C → A` has length three. The same algorithm above handles both because each node is recorded before moving to the next node. Do not test only two-node cycles.
 
-### Hai đối tượng “bằng nhau” nhưng không phải một
+### Two “Equal” Objects That Are Not One
 
-Giả sử hai đối tượng mutable `p` và `q` có cùng dữ liệu và `p.equals(q) == true`, nhưng `p != q`. Sao chép đúng cấu trúc danh tính vẫn cần `copy(p) != copy(q)`. Đây là lý do cần bản đồ danh tính, nhất là khi sao chép đồ thị các entity có `equals()` dựa trên mã định danh.
+Suppose two mutable objects `p` and `q` have the same data and `p.equals(q) == true`, yet `p != q`. Correctly copying identity structure still requires `copy(p) != copy(q)`. This is why an identity map is needed, especially when copying graphs of entities whose `equals()` is based on an identifier code.
 
-### Dữ liệu bất biến và chia sẻ có chủ đích
+### Immutable Data and Intentional Sharing
 
-Các giá trị bất biến như `String` trong ví dụ có thể dùng chung an toàn; sao chép chúng không làm tăng tính độc lập của phần trạng thái mutable. Đồ thị “deep copy” không nhất thiết phải nhân bản *mọi* đối tượng vật lý nếu hợp đồng cho phép chia sẻ nút bất biến. Tương tự, thiết kế **immutable graph** hoặc **copy-on-write** có thể chia sẻ cấu trúc để tiết kiệm bộ nhớ, với điều kiện các đường dùng chung không bị sửa ngoài kiểm soát.
+Immutable values like `String` in the example can be safely shared; copying them does not increase the independence of mutable state. A “deep copy” graph does not necessarily have to clone *every* physical object if the contract permits sharing immutable nodes. Similarly, an **immutable graph** or **copy-on-write** design can share structure to save memory, provided shared paths are not mutated uncontrollably.
 
-### Collection, mảng và đồ thị hỗn hợp kiểu
+### Collections, Arrays, and Mixed-Type Graphs
 
-Một `List<Node>` có thể chứa cùng `Node` hai lần, hoặc collection có thể tự tham chiếu qua kiểu phần tử phù hợp. Bản sao collection cần đăng ký container vào bảng trước khi duyệt phần tử nếu muốn xử lý chu trình. Đồ thị gồm nhiều lớp đối tượng cần cơ chế ánh xạ chung theo danh tính (chẳng hạn `IdentityHashMap<Object, Object>`), rồi xử lý từng kiểu theo hợp đồng. Chỉ gọi `new ArrayList<>(oldList)` hoặc `array.clone()` sẽ giữ nguyên tham chiếu phần tử.
+A `List<Node>` can contain the same `Node` twice, or a collection can reference itself through an appropriate element type. Copying a collection needs to register the container in the table before traversing elements if cycles are to be handled. A graph spanning multiple object classes needs a generic identity mapping mechanism (such as `IdentityHashMap<Object, Object>`), then handles each type according to the contract. Merely calling `new ArrayList<>(oldList)` or `array.clone()` keeps element references intact.
 
-### Trường `final`, constructor và bất biến của lớp
+### `final` Fields, Constructors, and Class Invariants
 
-Thuật toán trên khởi tạo nút trước, rồi gán cạnh; cách này thuận tiện vì `next` và `shared` không phải `final`. Với mô hình có trường tham chiếu `final` hoặc constructor yêu cầu toàn bộ liên kết hợp lệ ngay khi tạo, không thể tùy tiện gán cạnh sau xây dựng. Có thể cần thiết kế lại API copy/builder hai giai đoạn, một mô hình immutable riêng hoặc cơ chế chuyên dụng bảo toàn invariant. Không dùng reflection để phá vỡ `final` chỉ nhằm ép thuật toán này hoạt động.
+The algorithm above instantiates the node first, then assigns edges; this is convenient because `next` and `shared` are not `final`. For models with `final` reference fields or constructors requiring all links to be valid immediately at creation, edges cannot be arbitrarily assigned after construction. It may be necessary to redesign a two-phase copy/builder API, a separate immutable model, or a dedicated mechanism preserving invariants. Do not use reflection to break `final` merely to force this algorithm to work.
 
-### Tài nguyên ngoài bộ nhớ và trạng thái đặc biệt
+### Off-Heap Resources and Special State
 
-Không nên sao chép mù quáng `Thread`, socket, file handle, khóa đồng bộ, kết nối cơ sở dữ liệu hay tài nguyên hệ thống. Một entity có ID từ cơ sở dữ liệu có thể cần chính sách ID mới, giữ ID, hoặc không được nhân bản. `transient`, cache và quan hệ tới dịch vụ ngoài đồ thị cũng cần quyết định rõ. **Sao chép đối tượng** và **tạo bản ghi nghiệp vụ mới** là hai hợp đồng khác nhau.
+Do not blindly copy `Thread`, sockets, file handles, synchronization locks, database connections, or system resources. An entity with a database ID may need a new-ID policy, keep-ID policy, or must not be cloned. `transient`, caches, and relationships to services outside the graph also need clear decisions. **Copying an object** and **creating a new business record** are two different contracts.
 
-### Chu trình và garbage collector
+### Cycles and the Garbage Collector
 
-Chu trình không tự nó gây rò rỉ bộ nhớ trong Java: garbage collector dựa trên tính *có thể truy cập từ GC roots*, nên cả một nhóm đối tượng tham chiếu vòng vẫn có thể được thu gom nếu không còn đường truy cập từ các gốc đang sống. Rò rỉ giữ tham chiếu thường xảy ra khi cache, static field, listener hoặc collection còn giữ đường tới đồ thị không cần thiết.
+Cycles do not by themselves cause memory leaks in Java: the garbage collector is based on *reachability from GC roots*, so an entire group of circularly referencing objects can still be collected if no path from live roots remains. Retention leaks usually happen when caches, static fields, listeners, or collections hold unnecessary paths to the graph.
 
-## 7. Chi phí, giới hạn và cách kiểm thử
+## 7. Cost, Limits, and How to Test
 
-Với `V` nút khác danh tính và `E` cạnh được sao chép, thuật toán duyệt mỗi nút một lần và mỗi cạnh một lần: thời gian kỳ vọng **`O(V + E)`**, bộ nhớ bảng ánh xạ và các bản sao **`O(V)`** (không kể dữ liệu tùy kích thước bên trong mỗi nút). Đệ quy còn sử dụng stack tối đa theo độ sâu đường duyệt; một chuỗi cực dài có thể gây `StackOverflowError`. Nếu đồ thị rất sâu, thay đệ quy bằng stack/queue tường minh và vẫn phải lưu `visited` **trước** khi đưa cạnh vào hàng đợi.
+With `V` distinct-identity nodes and `E` copied edges, the algorithm visits each node once and each edge once: expected time is **`O(V + E)`**, and memory for the mapping table and copies is **`O(V)`** (excluding variable-sized data inside each node). Recursion also uses stack space up to the traversal depth; an extremely long chain can cause a `StackOverflowError`. If the graph is very deep, replace recursion with an explicit stack/queue and still record `visited` **before** enqueueing edges.
 
-Khi dữ liệu đang được nhiều thread sửa đồng thời, không có gì bảo đảm bản sao phản ánh một thời điểm nhất quán. Cần snapshot bất biến, đồng bộ hóa hoặc chính sách versioning phù hợp. `IdentityHashMap` tự thân không thread-safe.
+When data is being mutated concurrently by multiple threads, there is no guarantee the copy reflects a consistent point in time. An immutable snapshot, synchronization, or an appropriate versioning policy is needed. `IdentityHashMap` itself is not thread-safe.
 
-Kiểm thử nên bao gồm:
+Tests should cover:
 
-1. `null`, một nút độc lập và các trường tham chiếu `null`.
-2. Tự tham chiếu (`node.next == node`) và chu trình nhiều nút.
-3. Hai cạnh tới cùng một nút (hình thoi) và hai nút có nội dung bằng nhau nhưng khác danh tính.
-4. Nhiều root dùng chung nút nếu API hỗ trợ sao chép nhiều gốc.
-5. Đổi trạng thái mutable của bản sao và kiểm tra bản gốc không đổi; đổi bản gốc và kiểm tra bản sao không đổi.
-6. Bảo toàn đúng các cạnh với `==`; đồng thời bảo đảm mọi nút mutable cần độc lập đều khác nút gốc tương ứng.
-7. Dữ liệu lớn hoặc rất sâu nếu dùng trong hệ thống thực tế.
+1. `null`, an isolated node, and `null` reference fields.
+2. Self-reference (`node.next == node`) and multi-node cycles.
+3. Two edges to the same node (diamond) and two nodes with equal content but different identities.
+4. Multiple roots sharing nodes if the API supports copying multiple roots.
+5. Mutating mutable state of the copy and checking that the original does not change; mutating the original and checking that the copy does not change.
+6. Preserving edges accurately with `==`; while ensuring all mutable nodes requiring independence differ from their corresponding original nodes.
+7. Large or very deep data if used in production systems.
 
-Một số lỗi thường gặp và dấu hiệu nhận biết:
+Some common mistakes and symptoms:
 
-| Lỗi | Hậu quả | Cách xử lý |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Chỉ tạo root mới rồi gán tham chiếu con cũ | Bản sao và bản gốc còn sửa chung trạng thái | Sao chép tiếp các đối tượng mutable trong phạm vi |
-| Gặp cạnh nào cũng tạo nút mới | Mất quan hệ dùng chung; với cycle có thể đệ quy vô hạn | Dùng bảng `original → copy` theo danh tính |
-| Thêm vào bảng **sau** khi sao chép hết con | Chu trình quay lại nút chưa được ghi nhớ | Đăng ký bản sao ngay sau khi khởi tạo |
-| Dùng `HashMap` khi `equals()` gộp các nút khác nhau | Sai topology, có thể mất nút | Dùng `IdentityHashMap` |
-| Mỗi root có một bảng riêng dù cùng phiên sao chép | Mất chia sẻ giữa các root mới | Dùng chung một bảng xuyên suốt phiên |
-| Sao chép container nhưng giữ nguyên các phần tử mutable | Chỉ sao chép nông lớp container | Sao chép phần tử theo cùng bảng ánh xạ |
-| Nghĩ `List.copyOf` là deep copy | Container khó sửa nhưng phần tử vẫn mutable | Tách hợp đồng bất biến container và phần tử |
-| Đệ quy trên đồ thị cực sâu | `StackOverflowError` | Duyệt lặp với stack/queue tường minh |
+| Only creating a new root and assigning old child references | Copy and original still mutate shared state | Continue copying mutable objects within scope |
+| Creating a new node for every edge encountered | Loses sharing relationships; with cycles can recurse infinitely | Use an identity-based `original → copy` table |
+| Adding to the table **after** copying all children | Cycle returns to a node not yet recorded | Register the copy immediately after instantiation |
+| Using `HashMap` when `equals()` merges distinct nodes | Wrong topology, may lose nodes | Use `IdentityHashMap` |
+| Giving each root a separate table in the same copy session | Loses sharing across new roots | Share one table across the session |
+| Copying the container while keeping mutable elements as-is | Only shallow-copies the container layer | Copy elements using the same mapping table |
+| Thinking `List.copyOf` is a deep copy | Container is hard to mutate, but elements remain mutable | Separate container and element immutability contracts |
+| Recursing on an extremely deep graph | `StackOverflowError` | Iterate with an explicit stack/queue |
 
-## 8. Tự kiểm tra
+## 8. Self-Check
 
-**Tình huống 1:** `A.left == A.right` trước khi sao chép. Sau deep copy đúng, `A'.left == A'.right` phải là `true`; đồng thời `A'.left != A.left` nếu đứa con đó mutable và nằm trong phạm vi cần sao chép.
+**Scenario 1:** `A.left == A.right` before copying. After a proper deep copy, `A'.left == A'.right` must be `true`; at the same time `A'.left != A.left` if that child is mutable and within the scope needing copying.
 
-**Tình huống 2:** `A.next = B; B.next = A`. Nếu bản sao của `A` là `A'` thì `A'.next.next` phải là `A'`, không phải `A`. Một bản sao root mới nhưng cạnh ngược tới nút cũ là bằng chứng sao chép nông.
+**Scenario 2:** `A.next = B; B.next = A`. If the copy of `A` is `A'` then `A'.next.next` must be `A'`, not `A`. A new root copy whose back edge points to the old node is evidence of a shallow copy.
 
-**Tình huống 3:** Có hai nút `X`, `Y` khác danh tính nhưng `X.equals(Y)` trả `true`. Bảng ánh xạ sao chép phải xem đây là hai khóa riêng; dùng `IdentityHashMap` vì đích là giữ danh tính của đồ thị.
+**Scenario 3:** There are two nodes `X`, `Y` with different identities, yet `X.equals(Y)` returns `true`. The copy mapping table must treat these as two separate keys; use `IdentityHashMap` because the goal is to preserve graph identity.
 
-**Ghi nhớ:** Khi sao chép đồ thị đối tượng, cần giữ đúng **ai trỏ tới ai**, **những đường nào cùng trỏ một đối tượng** và **chu trình nào quay về điểm đã có**. Mẫu cốt lõi là **tạo bản sao → đăng ký theo identity → nối các cạnh bằng cùng một bảng**; sau đó kiểm tra độc lập của toàn bộ trạng thái mutable thuộc phạm vi sao chép.
+**Takeaway:** When copying an object graph, you must accurately preserve **who points to whom**, **which paths point to the same object**, and **which cycles return to an existing point**. The core pattern is **create copy → register by identity → connect edges using the same table**; then verify the independence of all mutable state within the copy scope.

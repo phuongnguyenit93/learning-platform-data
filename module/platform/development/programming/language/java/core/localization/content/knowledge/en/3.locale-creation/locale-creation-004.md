@@ -1,46 +1,46 @@
-# Phân biệt kiểm tra cú pháp với xác minh mã ngôn ngữ hoặc khu vực trong Java
+# Distinguishing Syntax Validation from Language or Region Verification in Java
 
-## 1. Bài toán: một chuỗi giống mã locale có thật sự dùng được?
+## 1. The Problem: Is a Locale-Like String Actually Usable?
 
-Khi chương trình nhận một locale từ cấu hình, hồ sơ người dùng hoặc tiêu đề HTTP (ví dụ `vi-VN`, `en-US`, `zh-Hant-TW`), có ít nhất **ba câu hỏi độc lập** cần trả lời:
+When a program receives a locale from configuration, a user profile, or an HTTP header (such as `vi-VN`, `en-US`, or `zh-Hant-TW`), there are at least **three independent questions** to answer:
 
-1. **Cú pháp hợp lệ (well-formed):** Chuỗi có tuân theo cấu trúc thẻ ngôn ngữ BCP 47 hay không?
-2. **Mã có được đăng ký/công nhận (registered/valid):** Các thành phần như ngôn ngữ, chữ viết, khu vực có thuộc bộ mã hoặc registry áp dụng hay không? Chúng có được kết hợp đúng các ràng buộc của registry không?
-3. **Có được hỗ trợ trong ngữ cảnh sử dụng:** Runtime, thư viện, resource bundle và chính sản phẩm có đủ dữ liệu, bản dịch hoặc chính sách để phục vụ locale đó hay không?
+1. **Syntactically valid (well-formed):** Does the string follow BCP 47 language tag structure?
+2. **Registered/recognized codes (registered/valid):** Do components such as language, script, and region belong to the applicable code set or registry? Are they combined according to registry constraints?
+3. **Supported in the usage context:** Do the runtime, libraries, resource bundles, and product itself have sufficient data, translations, or policies to serve that locale?
 
-Ba điều kiện không tương đương nhau. **Một locale được Java tạo thành công không chứng minh ngôn ngữ và khu vực tồn tại; một mã có thật không chứng minh ứng dụng đã hỗ trợ giao diện tương ứng.**
+These three conditions are not equivalent. **A `Locale` successfully created by Java does not prove the language and region exist; a real code does not prove the application supports the corresponding interface.**
 
-Ví dụ `xx-YY` có cấu trúc của một language tag (hai chữ cái cho ngôn ngữ, hai chữ cái cho khu vực). Trên Java 17, `Locale.Builder` chấp nhận cú pháp và có thể tạo `Locale`, nhưng tài liệu Java nêu đây là ví dụ **các subtag không đăng ký** trong IANA Language Subtag Registry. Ứng dụng tiếng Việt/tiếng Anh cũng không có lý do tự động cung cấp bản dịch cho nó.
+For example, `xx-YY` has the structure of a language tag (two letters for language, two letters for region). On Java 17, `Locale.Builder` accepts the syntax and can create a `Locale`, yet Java's documentation cites this as an example of **unregistered subtags** in the IANA Language Subtag Registry. Nor does a Vietnamese/English application have any reason to automatically provide translations for it.
 
-## 2. Đọc cú pháp của một locale theo BCP 47
+## 2. Reading the Syntax of a Locale According to BCP 47
 
-Thẻ ngôn ngữ thường dùng dấu gạch ngang `-` để ngăn các thành phần:
+Language tags usually use hyphens `-` to separate components:
 
-| Ví dụ | Phân tích | Ý nghĩa |
+| Example | Breakdown | Meaning |
 | --- | --- | --- |
-| `vi` | language = `vi` | Tiếng Việt, không chỉ định khu vực |
-| `vi-VN` | language = `vi`, region = `VN` | Tiếng Việt gắn khu vực Việt Nam |
-| `en-US` | language = `en`, region = `US` | Tiếng Anh (Mỹ) |
-| `sr-Latn-RS` | language = `sr`, script = `Latn`, region = `RS` | Tiếng Serbia, chữ Latin, Serbia |
-| `zh-Hant-TW` | language = `zh`, script = `Hant`, region = `TW` | Tiếng Hoa, chữ phồn thể, Đài Loan |
-| `en-US-u-nu-latn` | thêm Unicode extension `u` | Có chỉ dẫn về hệ chữ số Latin |
+| `vi` | language = `vi` | Vietnamese, no region specified |
+| `vi-VN` | language = `vi`, region = `VN` | Vietnamese tied to Vietnam region |
+| `en-US` | language = `en`, region = `US` | English (US) |
+| `sr-Latn-RS` | language = `sr`, script = `Latn`, region = `RS` | Serbian, Latin script, Serbia |
+| `zh-Hant-TW` | language = `zh`, script = `Hant`, region = `TW` | Chinese, Traditional script, Taiwan |
+| `en-US-u-nu-latn` | plus Unicode extension `u` | Includes instruction for Latin numbering system |
 
-Đối với các trường mà `Locale.Builder.setLanguage`, `setScript`, `setRegion` chấp nhận, Java 17 mô tả các dạng well-formed cơ bản:
+For fields accepted by `Locale.Builder.setLanguage`, `setScript`, and `setRegion`, Java 17 describes the basic well-formed shapes:
 
-- **Language:** từ 2 đến 8 ký tự chữ cái ASCII; không phải cứ đúng số ký tự là đã có mã ngôn ngữ đăng ký.
-- **Script:** đúng 4 ký tự chữ cái ASCII (ví dụ `Latn`, `Cyrl`).
-- **Region:** 2 ký tự chữ cái ASCII hoặc 3 chữ số (ví dụ `VN`, `US`, `419`); region không bắt buộc là một quốc gia độc lập, vì còn có mã vùng UN M.49.
-- **Variant, extension và thẻ lịch sử:** có quy tắc riêng theo BCP 47. Không thể kiểm tra đúng toàn bộ language tag bằng biểu thức chính quy đơn giản chỉ chấp nhận `xx-YY`.
+- **Language:** from 2 to 8 ASCII letters; merely having the right letter count does not mean a registered language code exists.
+- **Script:** exactly 4 ASCII letters (e.g., `Latn`, `Cyrl`).
+- **Region:** 2 ASCII letters or 3 digits (e.g., `VN`, `US`, `419`); a region is not necessarily an independent country, since numeric UN M.49 region codes also exist.
+- **Variants, extensions, and grandfathered tags:** have specific rules under BCP 47. You cannot accurately validate all language tags with a simple regular expression that only accepts `xx-YY`.
 
-Dấu `_` trong `en_US` thường xuất hiện ở dạng biểu diễn cũ của Java (ví dụ `Locale.toString()`); đầu vào chuẩn BCP 47 để dùng với `setLanguageTag` là `en-US`. Java chuẩn hóa kiểu chữ: language thành chữ thường, script có chữ đầu viết hoa, region thành chữ hoa. Vì vậy `vi-vn` được chuẩn hóa thành `vi-VN`; khác kiểu chữ **không** phải là mã không hợp lệ.
+The `_` in `en_US` often appears in Java's legacy representation (for example `Locale.toString()`); the standard BCP 47 input for `setLanguageTag` is `en-US`. Java normalizes casing: language becomes lowercase, script becomes title case, and region becomes uppercase. Thus `vi-vn` is normalized to `vi-VN`; differing letter case is **not** an invalid code.
 
-**Không nên đồng nhất khu vực với ngôn ngữ:** `en-VN` có thể biểu thị người dùng muốn tiếng Anh trong bối cảnh Việt Nam. Cũng không được suy ra locale từ quốc tịch, múi giờ hoặc đơn vị tiền tệ mà không có quy tắc nghiệp vụ.
+**Do not equate region with language:** `en-VN` can indicate a user wants English in a Vietnam context. Likewise, never infer locale from nationality, time zone, or currency without explicit business rules.
 
-## 3. Java kiểm tra được gì?
+## 3. What Can Java Validate?
 
-### 3.1. `Locale.Builder`: kiểm tra cấu trúc, không xác minh registry
+### 3.1. `Locale.Builder`: Checks Structure, Does Not Verify the Registry
 
-`Locale.Builder` có các API thường dùng:
+`Locale.Builder` provides commonly used APIs:
 
 ~~~java
 Locale locale = new Locale.Builder()
@@ -52,9 +52,9 @@ Locale locale = new Locale.Builder()
 System.out.println(locale.toLanguageTag()); // sr-Latn-RS
 ~~~
 
-Đoạn trên **chỉ minh họa** khi dùng trong một phương thức Java đã import `java.util.Locale`. Builder kiểm tra các trường và ném `IllformedLocaleException` khi cú pháp sai; nó **không** tra IANA để xác nhận một giá trị đã được đăng ký, không liên hệ mạng và không đảm bảo có bản dịch.
+The snippet above is **illustrative only** when used inside a Java method that has imported `java.util.Locale`. Builder checks fields and throws `IllformedLocaleException` when syntax is invalid; it **does not** query IANA to confirm a value is registered, makes no network calls, and does not guarantee translations exist.
 
-Để kiểm tra một chuỗi BCP 47 đầu vào, ưu tiên:
+To validate an input BCP 47 string, prefer:
 
 ~~~java
 Locale locale = new Locale.Builder()
@@ -62,36 +62,36 @@ Locale locale = new Locale.Builder()
         .build();
 ~~~
 
-Không cần tự tách từng phần nếu đầu vào là một language tag hoàn chỉnh. Dùng `getLanguage()`, `getScript()`, `getCountry()`, `toLanguageTag()` để truy cập kết quả đã chuẩn hóa.
+There is no need to split parts manually if the input is a complete language tag. Use `getLanguage()`, `getScript()`, `getCountry()`, and `toLanguageTag()` to access the normalized result.
 
-### 3.2. `Locale.forLanguageTag`: giải mã dễ dãi, có thể làm mất lỗi
+### 3.2. `Locale.forLanguageTag`: Lenient Decoding, Can Hide Errors
 
-Khác với Builder, `Locale.forLanguageTag(text)` **bỏ subtag đầu tiên sai cú pháp và các subtag phía sau**, thay vì ném lỗi. Ví dụ:
+Unlike Builder, `Locale.forLanguageTag(text)` **drops the first syntactically ill-formed subtag and all following subtags**, instead of throwing an error. For example:
 
 ~~~java
 Locale lenient = Locale.forLanguageTag("en-US-@");
 System.out.println(lenient.toLanguageTag()); // en-US
 ~~~
 
-Do đó việc chỉ kiểm tra `Locale.forLanguageTag(input) != null` hoàn toàn **không có giá trị xác thực đầu vào**. Với dữ liệu do người dùng hoặc hệ thống bên ngoài gửi tới, việc âm thầm bỏ một phần mã có thể che lỗi cấu hình. Nếu mục tiêu là từ chối đầu vào sai cú pháp, dùng `new Locale.Builder().setLanguageTag(input).build()` và bắt `IllformedLocaleException`.
+Consequently, merely checking `Locale.forLanguageTag(input) != null` has **zero value for input validation**. With data sent by users or external systems, silently dropping part of a code can mask configuration errors. If the goal is to reject syntactically invalid input, use `new Locale.Builder().setLanguageTag(input).build()` and catch `IllformedLocaleException`.
 
-### 3.3. Constructor cũng không phải bộ xác minh
+### 3.3. Constructors Are Not Validators Either
 
-Các constructor Java 17 như `new Locale("en", "US")` tồn tại vì tương thích lịch sử; chúng không áp đặt cùng kiểm tra cú pháp như Builder. Không xem việc gọi constructor thành công là bằng chứng mã quốc gia/ngôn ngữ đã tồn tại.
+Java 17 constructors such as `new Locale("en", "US")` exist for historical compatibility; they do not enforce the same syntax checks as Builder. Do not treat a successful constructor call as proof that a country/language code exists.
 
-### 3.4. Tạo được `Locale` không đồng nghĩa định dạng hay dịch thuật được hỗ trợ
+### 3.4. Being Able to Create a `Locale` Does Not Mean Formatting or Translation Is Supported
 
-`Locale.getAvailableLocales()` trả về hợp các locale được cài đặt bởi môi trường Java và các `LocaleServiceProvider`; nó không phải toàn bộ registry IANA và không phải danh sách locale mà ứng dụng cam kết hỗ trợ. Ngay cả khi một locale không có trong mảng này, một dịch vụ định dạng vẫn có thể thực hiện fallback hoặc sử dụng dữ liệu khác; ngược lại, có locale trong mảng cũng không chứng minh có resource bundle của ứng dụng.
+`Locale.getAvailableLocales()` returns the union of locales installed by the Java environment and `LocaleServiceProvider` implementations; it is neither the complete IANA registry nor the list of locales the application commits to supporting. Even if a locale is absent from this array, a formatting service may still perform fallback or use other data; conversely, a locale being present in the array does not prove the application has a resource bundle for it.
 
-Trong thiết kế thực tế hãy tách:
-- **Cấu trúc:** Builder.
-- **Mã đã đăng ký:** IANA Language Subtag Registry hoặc danh mục chuẩn cập nhật mà hệ thống chọn.
-- **Dịch vụ và dữ liệu runtime:** từng API/provider/formatter cụ thể.
-- **Ngôn ngữ sản phẩm:** danh sách locale được hỗ trợ và các bundle thực sự triển khai.
+In practical design, separate:
+- **Structure:** Builder.
+- **Registered codes:** IANA Language Subtag Registry or an up-to-date standard catalog chosen by the system.
+- **Runtime services and data:** each specific API/provider/formatter.
+- **Product languages:** the supported locale list and actually deployed bundles.
 
-## 4. Ví dụ Java 17 hoàn chỉnh: ba kết quả xác thực khác nhau
+## 4. Complete Java 17 Example: Three Different Validation Outcomes
 
-Ví dụ dưới đây chạy độc lập, cho thấy `xx-YY` qua được bước cú pháp nhưng không nằm trong hai danh mục ISO 2 ký tự được truy vấn, và vẫn bị chính sách ứng dụng từ chối. Đặt mã trong file **`LocaleValidationDemo.java`**:
+The standalone example below shows that `xx-YY` passes the syntax step, yet is absent from the two queried 2-letter ISO catalogs, and is still rejected by application policy. Put the code in **`LocaleValidationDemo.java`**:
 
 ~~~java
 import java.util.Arrays;
@@ -103,7 +103,7 @@ public class LocaleValidationDemo {
     private static final Set<String> SUPPORTED =
             Set.of("en-US", "vi-VN");
 
-    // Bước 1: kiểm tra cấu trúc; bước 2: kiểm tra danh sách sản phẩm.
+    // Step 1: check structure; step 2: check product list.
     static Locale requireSupportedLocale(String input) {
         if (input == null || input.isBlank()) {
             throw new IllegalArgumentException("Missing locale");
@@ -118,7 +118,7 @@ public class LocaleValidationDemo {
             throw new IllegalArgumentException("Malformed locale tag", e);
         }
 
-        // So sánh mã BCP 47 đã chuẩn hóa, không so sánh raw input.
+        // Compare normalized BCP 47 tag, do not compare raw input.
         String canonical = parsed.toLanguageTag();
         if (!SUPPORTED.contains(canonical)) {
             throw new IllegalArgumentException("Unsupported locale: " + canonical);
@@ -162,14 +162,14 @@ public class LocaleValidationDemo {
 }
 ~~~
 
-Biên dịch và chạy (Java 17 trở lên):
+Compile and run (Java 17 or later):
 
 ~~~bash
 javac -encoding UTF-8 LocaleValidationDemo.java
 java LocaleValidationDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 normalized: vi-VN
@@ -181,125 +181,125 @@ strict: rejected
 application: rejected
 ~~~
 
-**Giải thích:**
+**Explanation:**
 
-- `vi-vn` hợp lệ về cấu trúc và được canonicalize thành `vi-VN`, nên vượt qua danh sách ứng dụng.
-- `xx-YY` được Builder chấp nhận vì nó well-formed, dù `xx` không nằm trong danh mục mã ngôn ngữ ISO 639 hai chữ cái và `YY` không nằm trong danh mục mã quốc gia ISO 3166 hai chữ cái do Java trả về.
-- `Locale.forLanguageTag("en-US-@")` âm thầm nhận phần `en-US`; Builder thì từ chối subtag `@`.
-- Chính sách ứng dụng chỉ cho phép `en-US` và `vi-VN`, nên ngay cả locale **đúng cú pháp** như `xx-YY` vẫn bị từ chối.
+- `vi-vn` is structurally valid and canonicalized to `vi-VN`, so it passes the application list.
+- `xx-YY` is accepted by Builder because it is well-formed, even though `xx` is not in the two-letter ISO 639 language code list and `YY` is not in the two-letter ISO 3166 country code list returned by Java.
+- `Locale.forLanguageTag("en-US-@")` silently accepts the `en-US` part; Builder rejects the `@` subtag.
+- Application policy only allows `en-US` and `vi-VN`, so even a **syntactically valid** locale like `xx-YY` is rejected.
 
-Ở đây `SUPPORTED` là lựa chọn có chủ đích của **sản phẩm** để minh họa. Không suy ra danh sách được hỗ trợ từ `Locale.getAvailableLocales()` và cũng không dùng `ISO` để thay thế chính sách này.
+Here `SUPPORTED` is an intentional **product** choice for illustration. Do not derive the supported list from `Locale.getAvailableLocales()`, and do not use `ISO` catalogs to replace this policy.
 
-## 5. Mã ISO và IANA: phạm vi khác nhau
+## 5. ISO and IANA Codes: Different Scopes
 
-Các API hữu ích trong Java 17:
+Useful APIs in Java 17:
 
-| API | Kiểm tra/dữ liệu có thể sử dụng | Hạn chế |
+| API | Usable Check/Data | Limitations |
 | --- | --- | --- |
-| `Locale.getISOLanguages()` | Mảng các mã ngôn ngữ **hai chữ cái** theo ISO 639 | Không chứa tất cả language subtag hợp lệ: nhiều ngôn ngữ dùng ba ký tự hoặc hình thức khác; có cả mã cũ và mới ở một số trường hợp |
-| `Locale.getISOCountries()` | Mảng mã quốc gia **hai chữ cái** theo ISO 3166 | Không chứa các mã vùng số UN M.49 và không đại diện đầy đủ cho mọi region subtag BCP 47 |
-| `Locale.getISOCountries(Locale.IsoCountryCode.PART1_ALPHA2)` | Tập mã quốc gia ISO 3166-1 alpha-2 | Cũng không phải danh sách mọi mã vùng có thể xuất hiện trong language tag |
-| `Locale.getAvailableLocales()` | Danh sách locale mà runtime/provider thông báo đang cài đặt | Không phải bộ chuẩn ISO/IANA, không phải lời hứa ứng dụng đã dịch |
-| `Locale.Builder.setLanguageTag(...)` | Phân tích và ràng buộc **cú pháp** BCP 47 | Không tự kiểm tra subtag đã đăng ký |
+| `Locale.getISOLanguages()` | Array of **two-letter** ISO 639 language codes | Does not contain all valid language subtags: many languages use three characters or other forms; includes both old and new codes in some cases |
+| `Locale.getISOCountries()` | Array of **two-letter** ISO 3166 country codes | Does not contain numeric UN M.49 region codes and does not fully represent all BCP 47 region subtags |
+| `Locale.getISOCountries(Locale.IsoCountryCode.PART1_ALPHA2)` | Set of ISO 3166-1 alpha-2 country codes | Also not a list of every region code that can appear in a language tag |
+| `Locale.getAvailableLocales()` | List of locales that the runtime/providers report as installed | Not an ISO/IANA standard set, not a promise that the application has translations |
+| `Locale.Builder.setLanguageTag(...)` | Parses and enforces BCP 47 **syntax** | Does not automatically check whether subtags are registered |
 
-Nếu nghiệp vụ cần xác nhận **mã ngôn ngữ hoặc khu vực có thật**, cần xác định chuẩn chính xác:
+If business logic needs to verify **real language or region codes**, specify the exact standard:
 
-- Đối với **language tag BCP 47**, dùng **IANA Language Subtag Registry**, lưu ý loại `language`, `extlang`, `script`, `region`, `variant`, các tag lịch sử và trường deprecation/preferred-value. Chuẩn không chỉ là hai mảng ISO.
-- Đối với hệ thống chỉ nhận **mã ngôn ngữ ISO 639-1 hai chữ cái**, có thể kiểm tra chính danh mục đó, nhưng phải công bố rõ giới hạn để không loại nhầm những tag BCP 47 hợp lệ.
-- Đối với hệ thống chỉ nhận **quốc gia ISO 3166-1 alpha-2**, dùng danh mục quốc gia; đừng hiểu `419` (mã khu vực số) là sai cú pháp BCP 47 chỉ vì không có trong `getISOCountries()`.
-- Có thể tồn tại mã cũ, thay đổi tên hoặc quy định thay thế. Cần xác định chính sách đối với mã deprecated, tên thay thế và phiên bản dữ liệu registry; không giả định dữ liệu được đóng băng vĩnh viễn.
+- For **BCP 47 language tags**, use the **IANA Language Subtag Registry**, noting `language`, `extlang`, `script`, `region`, and `variant` types, grandfathered tags, and deprecation/preferred-value fields. The standard is not just the two ISO arrays.
+- For systems that only accept **two-letter ISO 639-1 language codes**, you can check that specific catalog, but explicitly document the limitation so valid BCP 47 tags are not mistakenly rejected.
+- For systems that only accept **ISO 3166-1 alpha-2 countries**, use the country catalog; do not treat `419` (a numeric region code) as invalid BCP 47 syntax just because it is absent from `getISOCountries()`.
+- Legacy codes, name changes, or replacement rules may exist. You must define a policy for deprecated codes, preferred replacements, and registry data versions; do not assume data is frozen forever.
 
-Không đủ để chỉ dùng regex, ví dụ `[a-z]{2}-[A-Z]{2}` rồi kết luận "mã hợp lệ": regex đó vừa chấp nhận `xx-YY` không đăng ký, vừa loại `zh-Hant-TW` hoặc `en` vốn là các tag có cấu trúc hợp lệ.
+It is not sufficient to use a regex alone, such as `[a-z]{2}-[A-Z]{2}`, and conclude "valid code": that regex both accepts unregistered `xx-YY` and rejects `zh-Hant-TW` or `en`, which are structurally valid tags.
 
-**Chú ý kỹ thuật:** `Locale.getISO3Language()`/`getISO3Country()` chuyển đổi dạng mã ở một số trường hợp và có thể ném `MissingResourceException`; chúng không phải dịch vụ kiểm định mọi subtag hoặc toàn bộ thẻ BCP 47.
+**Technical note:** `Locale.getISO3Language()`/`getISO3Country()` convert code forms in some cases and can throw `MissingResourceException`; they are not verification services for every subtag or entire BCP 47 tags.
 
-## 6. Chuẩn hóa, kiểm tra registry và chính sách ứng dụng nên diễn ra theo thứ tự
+## 6. Normalization, Registry Verification, and Application Policy Should Run in Order
 
-Một pipeline đầu vào đáng tin cậy:
+A reliable input pipeline:
 
 ~~~text
-Chuỗi đầu vào (cấu hình / người dùng / request)
+Input string (config / user / request)
        |
        v
-Kiểm tra null / trống / giới hạn độ dài / kiểu dữ liệu
+Check null / empty / length limit / data type
        |
        v
-Phân tích nghiêm ngặt bằng Locale.Builder.setLanguageTag
-       |-- sai cú pháp --> từ chối hoặc trả lỗi giải thích được
+Parse strictly with Locale.Builder.setLanguageTag
+       |-- invalid syntax --> reject or return explainable error
        v
-Locale đã chuẩn hóa: toLanguageTag()
+Normalized Locale: toLanguageTag()
        |
-       +--> [Khi nghiệp vụ đòi hỏi] kiểm tra IANA / ISO
-       |       và chính sách mã cũ, script, vùng địa lý
-       |
-       v
-Đối chiếu danh sách locale sản phẩm hỗ trợ
-       |-- không hỗ trợ --> từ chối hoặc chọn fallback công khai
-       v
-Chọn resource bundle, formatter, locale cho từng request
+       +--> [When required by business logic] check IANA / ISO
+       |       and legacy code, script, geographic region policy
        |
        v
-Đầu ra bản địa hóa / dữ liệu cấu trúc
+Check against product-supported locale list
+       |-- unsupported --> reject or choose documented fallback
+       v
+Select resource bundle, formatter, locale for each request
+       |
+       v
+Localized output / structured data
 ~~~
 
-Nếu đầu vào đến từ client và không nằm trong các locale được hỗ trợ, có hai chính sách hợp lý tùy hợp đồng sản phẩm:
+If input comes from a client and is not among supported locales, there are two reasonable policies depending on the product contract:
 
-1. **Từ chối rõ ràng** với API/configuration yêu cầu locale chính xác: lỗi `invalid_locale` khi sai cú pháp, lỗi `unsupported_locale` khi cú pháp đúng nhưng sản phẩm không hỗ trợ.
-2. **Thương lượng fallback** với nhu cầu hiển thị: ví dụ đề nghị `vi-VN` nhưng UI chỉ có `vi`, dùng thứ tự ưu tiên đã công bố. Đây là chức năng của adapter/presenter, phải quan sát và kiểm thử, không thay dữ liệu kinh doanh.
+1. **Explicit rejection** for APIs/configuration requiring an exact locale: `invalid_locale` error for bad syntax, `unsupported_locale` error when syntax is valid but unsupported by the product.
+2. **Fallback negotiation** for display needs: e.g., requesting `vi-VN` when the UI only has `vi`, using a documented priority order. This is the responsibility of an adapter/presenter, must be observable and tested, and must not alter business data.
 
-Không dùng `Locale.setDefault(...)` như cách xác thực hoặc chuyển locale theo từng request: đó là trạng thái mặc định của JVM và có thể ảnh hưởng request khác trong ứng dụng đa luồng. Truyền `Locale` đã chọn trực tiếp tới lớp định dạng hoặc lấy từ request context được quản lý an toàn.
+Do not use `Locale.setDefault(...)` as a way to validate or switch locales per request: that is JVM-wide default state and can affect other requests in a multithreaded application. Pass the chosen `Locale` directly to formatting classes or obtain it from a safely managed request context.
 
-## 7. Thế nào là "hỗ trợ" một locale?
+## 7. What Does It Mean to "Support" a Locale?
 
-Để kiểm tra sản phẩm thực sự hỗ trợ, hãy kiểm tra đúng thành phần đang dùng:
+To verify that a product truly supports a locale, test the exact components in use:
 
-- **Bản dịch ứng dụng:** có `ResourceBundle` hoặc danh mục thông điệp cho locale cần thiết không? Có đủ khóa không? `ResourceBundle.getBundle` có thể fallback; việc gọi thành công **không chứng minh** bản dịch mong muốn tồn tại.
-- **Số, tiền, ngày giờ:** `NumberFormat`, `DateTimeFormatter` và các provider có dữ liệu locale cần thiết không? Nếu thiếu dữ liệu đặc thù có thể xảy ra fallback.
-- **Ngữ cảnh khu vực:** locale không xác định múi giờ, không tự cung cấp tỷ giá hoặc quy tắc thuế. `ZoneId` và `Currency` là những thông tin riêng.
-- **Ngôn ngữ chính sách sản phẩm:** có phục vụ mọi region/script của một ngôn ngữ hay chỉ một số biến thể? Có chấp nhận `en` rồi chọn `en-US` hoặc `en-GB` hay yêu cầu exact match?
-- **Hiển thị cuối:** người dùng có thật sự thấy bản dịch và định dạng phù hợp, hay đang xem toàn bộ nhãn fallback tiếng Anh?
+- **Application translations:** Is there a `ResourceBundle` or message catalog for the required locale? Are all keys present? `ResourceBundle.getBundle` can fall back; a successful call **does not prove** the desired translation exists.
+- **Numbers, currency, dates/times:** Do `NumberFormat`, `DateTimeFormatter`, and providers have the needed locale data? If specific data is missing, fallback may occur.
+- **Regional context:** a locale does not determine time zone, nor automatically supply exchange rates or tax rules. `ZoneId` and `Currency` are separate pieces of information.
+- **Product language policy:** Does the product serve all regions/scripts of a language or only certain variants? Does it accept `en` and then pick `en-US` or `en-GB`, or require an exact match?
+- **Final display:** Does the user actually see appropriate translations and formatting, or are they seeing all-English fallback labels?
 
-Ví dụ: ứng dụng có `messages_en.properties` nhưng không có `messages_en_AU.properties`. Yêu cầu `en-AU` có thể được `ResourceBundle` giải quyết bằng fallback; quyết định có gắn nhãn sản phẩm là “hỗ trợ tiếng Anh (Úc)” hay không thuộc chính sách chất lượng bản dịch, không phải kết quả của Builder.
+For example: an application has `messages_en.properties` but lacks `messages_en_AU.properties`. A request for `en-AU` may be resolved by `ResourceBundle` via fallback; whether to label the product as “supports English (Australia)” belongs to translation quality policy, not Builder's output.
 
-## 8. Những lỗi thường gặp
+## 8. Common Mistakes
 
-| Sai lầm | Vì sao sai | Cách xử lý |
+| Mistake | Why It Is Wrong | How to Handle |
 | --- | --- | --- |
-| `new Locale.Builder().setLanguage("zz")` chạy được nên `zz` là ngôn ngữ được công nhận | Builder kiểm tra hình dạng, không tra registry | Nếu cần, kiểm tra registry/nghiệp vụ riêng |
-| `Locale.forLanguageTag(value)` không ném lỗi nên input chắc chắn hợp lệ | API này bỏ qua subtag sai và phần phía sau | Dùng Builder nghiêm ngặt cho input phải xác thực |
-| `getISOLanguages()` không có mã ba chữ cái nên mã sai | API chỉ liệt kê mã hai chữ cái | Dùng chuẩn bao phủ loại mã cần chấp nhận |
-| `getISOCountries()` không có `419` nên thẻ sai | UN M.49 region numeric không thuộc mảng alpha-2 | Xem xét đúng BCP 47 / UN M.49 |
-| Locale nằm trong `getAvailableLocales()` nghĩa là ứng dụng có bản dịch | Mảng phản ánh runtime và provider, không phải bundle của sản phẩm | Kiểm thử bundle, nhãn UI, fallback |
-| Dùng `Locale.toString()` làm chuẩn input BCP 47 | Ký hiệu `_` có thể không phải language tag | Dùng `toLanguageTag()` |
-| Dùng mã locale để suy ra múi giờ hoặc tiền tệ | Một ngôn ngữ có nhiều vùng và tùy chọn người dùng | Truyền `ZoneId` / `Currency` độc lập |
-| Tự thay `_` bằng `-` và tin rằng mọi chuỗi đều chuẩn | Legacy variant và extensions có nhiều quy tắc | Cần chính sách migration rõ ràng, kiểm tra lại bằng Builder |
-| So sánh raw input với `"vi-VN"` | `vi-vn` khác cách viết nhưng hợp lệ | So sánh thẻ đã chuẩn hóa |
+| `new Locale.Builder().setLanguage("zz")` runs, so `zz` is a recognized language | Builder checks shape, does not query the registry | If needed, check registry/business rules separately |
+| `Locale.forLanguageTag(value)` did not throw, so input must be valid | This API ignores bad subtags and everything after them | Use strict Builder for input that must be validated |
+| `getISOLanguages()` lacks three-letter codes, so the code is wrong | The API only lists two-letter codes | Use a standard covering the code types you need to accept |
+| `getISOCountries()` lacks `419`, so the tag is invalid | Numeric UN M.49 regions do not belong to the alpha-2 array | Evaluate properly against BCP 47 / UN M.49 |
+| Locale is in `getAvailableLocales()`, meaning the app has translations | The array reflects runtime and providers, not product bundles | Test bundles, UI labels, and fallback |
+| Using `Locale.toString()` as BCP 47 standard input | `_` notation may not be a language tag | Use `toLanguageTag()` |
+| Using locale code to infer time zone or currency | One language spans multiple regions and user preferences | Pass `ZoneId` / `Currency` independently |
+| Blindly replacing `_` with `-` and trusting all strings are valid | Legacy variants and extensions have complex rules | Need explicit migration policy, re-validated with Builder |
+| Comparing raw input with `"vi-VN"` | `vi-vn` has different casing yet is valid | Compare normalized tags |
 
-Không chỉ kiểm tra xem `getDisplayLanguage()` có trả về một tên đọc được: chuỗi hiển thị có thể fallback thành mã hoặc tên từ dữ liệu runtime và không phải bằng chứng registry hợp lệ.
+Do not merely check whether `getDisplayLanguage()` returns a readable name: the display string may fall back to a code or name from runtime data and is not proof of registry validity.
 
-## 9. Bộ tình huống kiểm thử nên có
+## 9. Essential Test Cases to Have
 
-- **Cú pháp hợp lệ, mã quen thuộc:** `vi-VN`, `en-US`, `sr-Latn-RS`; xác nhận thành phần được đọc đúng.
-- **Cú pháp hợp lệ nhưng mã không được đăng ký:** `xx-YY`; Builder cho qua nhưng bước registry (nếu bắt buộc) hoặc allowlist sản phẩm có thể loại.
-- **Cú pháp sai:** `en-US-@`, `en_ US` hoặc thẻ chứa ký tự bất thường; Builder phải từ chối.
-- **Khác kiểu chữ:** `vi-vn` trở thành `vi-VN`; không báo sai chỉ vì khác hoa/thường.
-- **Thẻ chỉ có ngôn ngữ:** `en`, `vi`; quyết định hỗ trợ theo chính sách, không mặc định thêm `US`/`VN`.
-- **Thẻ có script/region/extension:** `zh-Hant-TW`, `en-US-u-nu-latn`; không dùng regex chỉ hai thành phần.
-- **Rỗng, null, quá dài hoặc ngoài allowlist:** đưa ra lỗi rõ ràng, không chấp nhận chỉ vì kết quả parse có thể tạo `Locale.ROOT`.
-- **Thiếu bản dịch hoặc thiếu khóa:** xác nhận hành vi fallback, log/metric hoặc lỗi theo yêu cầu sản phẩm.
+- **Valid syntax, familiar codes:** `vi-VN`, `en-US`, `sr-Latn-RS`; verify components are read properly.
+- **Valid syntax but unregistered codes:** `xx-YY`; Builder lets it pass, while the registry step (if required) or product allowlist can reject it.
+- **Invalid syntax:** `en-US-@`, `en_ US`, or tags containing unusual characters; Builder must reject.
+- **Different letter casing:** `vi-vn` becomes `vi-VN`; do not report an error merely for casing differences.
+- **Language-only tags:** `en`, `vi`; decide support by policy, do not implicitly append `US`/`VN`.
+- **Tags with script/region/extension:** `zh-Hant-TW`, `en-US-u-nu-latn`; do not use a two-part-only regex.
+- **Empty, null, too long, or outside allowlist:** return a clear error, do not accept just because parsing could yield `Locale.ROOT`.
+- **Missing translations or missing keys:** verify fallback behavior, logs/metrics, or errors per product requirements.
 
-Cần phân biệt test **cú pháp** (dựa trên hợp đồng API Builder), test **danh mục mã** (dựa trên snapshot/version của registry), và test **hỗ trợ sản phẩm** (dựa trên resource và cấu hình đang triển khai). Nếu kiểm thử đầu ra đã được format, dữ liệu locale của JDK/CLDR có thể khác giữa các bản Java: tập trung vào hành vi mong muốn hoặc ghim phiên bản provider khi so sánh nguyên văn.
+Distinguish tests for **syntax** (based on the Builder API contract), tests for **code catalogs** (based on a registry snapshot/version), and tests for **product support** (based on deployed resources and configuration). When testing formatted output, JDK/CLDR locale data can vary across Java versions: focus on desired behavior or pin the provider version when comparing verbatim text.
 
-## 10. Ghi nhớ để áp dụng
+## 10. Key Takeaways to Apply
 
-**Không có một hàm Java duy nhất tự động đảm bảo cả cú pháp, sự tồn tại của mã và hỗ trợ trong sản phẩm.**
+**No single Java function automatically guarantees syntax, code existence, and product support all at once.**
 
-- Dùng `Locale.Builder.setLanguageTag` khi cần **kiểm tra cấu trúc nghiêm ngặt** của language tag.
-- Dùng **registry/chính sách tiêu chuẩn phù hợp** nếu bài toán bắt buộc xác nhận subtag ngôn ngữ/khu vực đã được ghi nhận.
-- Dùng **allowlist cùng kiểm thử resource/formatter** để khẳng định giao diện hay dịch vụ **thật sự hỗ trợ** locale đó.
-- Chọn hành vi từ chối/fallback có chủ đích và giữ giá trị nghiệp vụ độc lập với văn bản bản địa hóa.
+- Use `Locale.Builder.setLanguageTag` when **strict structural validation** of a language tag is needed.
+- Use an **appropriate registry/standard policy** if the problem requires verifying that language/region subtags are registered.
+- Use an **allowlist together with resource/formatter tests** to confirm the UI or service **actually supports** that locale.
+- Choose rejection/fallback behavior intentionally and keep business values independent of localized text.
 
-**Tài liệu tham khảo:**
+**References:**
 
 - Java SE 17, `java.util.Locale`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html
 - Java SE 17, `Locale.Builder`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.Builder.html

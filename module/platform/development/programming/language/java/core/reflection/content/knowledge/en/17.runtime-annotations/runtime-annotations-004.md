@@ -1,43 +1,43 @@
-# `getAnnotations()` khác `getDeclaredAnnotations()`
+# `getAnnotations()` vs. `getDeclaredAnnotations()`
 
-Khi đọc annotation bằng Reflection, bạn cần xác định hai điều: **đang hỏi annotation của phần tử nào** và **có chấp nhận annotation được kế thừa hay không**. Hai phương thức cùng trả về `Annotation[]`, nhưng trả lời hai câu hỏi khác nhau. Sự khác biệt dễ thấy nhất khi phần tử đang xét là một lớp có lớp cha.
+When reading annotations via Reflection, you need to determine two things: **which element's annotations are being queried** and **whether inherited annotations are accepted**. Both methods return `Annotation[]`, yet they answer two different questions. The difference is easiest to see when the element under inspection is a class with a superclass.
 
-Ví dụ, lớp cha mang một chính sách chung, còn lớp con không khai báo chính sách riêng. Một công cụ kiểm tra cấu hình có thể muốn lấy chính sách áp dụng cho lớp con; một công cụ phân tích mã lại chỉ muốn biết chính lớp con khai báo những gì. Chọn sai phương thức khiến hai công cụ hiểu khác nhau cùng một lớp.
+For example, a superclass may carry a shared policy while a subclass declares no policy of its own. A configuration checker may want the effective policy applying to the subclass; a source analysis tool may want only what the subclass itself declares. Choosing the wrong method causes the two tools to interpret the same class differently.
 
-## 1. Ý nghĩa và điều kiện nhìn thấy annotation
+## 1. Meaning and conditions for seeing annotations
 
-| Phương thức | Câu hỏi cần trả lời | Kết quả không có annotation |
+| Method | Question to answer | Result when no annotation exists |
 | --- | --- | --- |
-| `getDeclaredAnnotations()` | Phần tử này có những annotation hiện diện trực tiếp nào? | Mảng rỗng |
-| `getAnnotations()` | Phần tử này có những annotation hiện diện nào, bao gồm kế thừa khi quy tắc cho phép? | Mảng rỗng |
+| `getDeclaredAnnotations()` | Which directly present annotations does this element have? | Empty array |
+| `getAnnotations()` | Which present annotations does this element have, including inherited ones when rules allow? | Empty array |
 
-Với `Class<?>`, `getDeclaredAnnotations()` bỏ qua annotation kế thừa. `getAnnotations()` có thể bổ sung annotation từ lớp cha; nó không đơn giản gom mọi annotation trong cây kiểu. Đây là ngữ nghĩa của [API `Class`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html#getAnnotations()).
+For `Class<?>`, `getDeclaredAnnotations()` ignores inherited annotations. `getAnnotations()` can include annotations from a superclass; it does not simply collect every annotation in the type hierarchy. This is the semantics of [the `Class` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html#getAnnotations()).
 
-**`Declared` nói về nơi khai báo, không nói về mức truy cập.** Nó không có nghĩa là chỉ lấy annotation `private`, hay lấy thêm annotation bị ẩn. Hai API này cũng không liệt kê annotation của tất cả phương thức, trường dữ liệu và tham số bên trong lớp. Muốn đọc annotation của phương thức, bạn phải có đối tượng `Method` tương ứng.
+**`Declared` refers to where the annotation is declared, not access visibility.** It does not mean returning only `private` annotations, nor returning extra hidden annotations. Nor do these two APIs list the annotations of all methods, fields, and parameters inside a class. To read a method's annotations, you must have the corresponding `Method` object.
 
-Điều kiện chung là annotation cần được giữ lại lúc chạy bằng `@Retention(RetentionPolicy.RUNTIME)`. `SOURCE` bị loại khi biên dịch; `CLASS` không được cung cấp để đọc qua các API Reflection này. [Các chính sách lưu giữ annotation](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/annotation/RetentionPolicy.html) quyết định điều đó.
+The general requirement is that the annotation must be retained at runtime via `@Retention(RetentionPolicy.RUNTIME)`. `SOURCE` is discarded at compile time; `CLASS` is not exposed through these Reflection APIs. [Annotation retention policies](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/annotation/RetentionPolicy.html) govern that behavior.
 
-Nếu không khai báo `@Retention`, chính sách mặc định là `CLASS`, không phải `RUNTIME`. Vì vậy, nhìn thấy `@SomeAnnotation` trong mã nguồn chưa chứng minh Reflection sẽ tìm thấy nó. Xem [quy tắc mặc định của `@Retention`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/annotation/Retention.html).
+If `@Retention` is not declared, the default policy is `CLASS`, not `RUNTIME`. Therefore, seeing `@SomeAnnotation` in source code does not prove Reflection will find it. See [the default rule of `@Retention`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/annotation/Retention.html).
 
-## 2. Kế thừa annotation trên lớp hoạt động ra sao?
+## 2. How does annotation inheritance on classes work?
 
-Để annotation trên lớp cha được xét cho lớp con, **kiểu annotation** phải được đánh dấu `@Inherited`. Dấu này được đặt trên khai báo `@interface`, không đặt lên lớp con để yêu cầu nó tự nhận mọi annotation.
+For an annotation on a superclass to be considered for a subclass, the **annotation type** must be marked with `@Inherited`. This marker is placed on the `@interface` declaration, not placed on a subclass to ask it to automatically receive all annotations.
 
-Với một kiểu annotation không lặp, có thể hình dung quá trình tìm như sau:
+For a non-repeatable annotation type, the lookup process can be pictured as follows:
 
-1. Nếu lớp hiện tại khai báo annotation đó, dùng giá trị tại lớp hiện tại.
-2. Nếu chưa có và kiểu annotation có `@Inherited`, xét lớp cha trực tiếp.
-3. Tiếp tục theo chuỗi lớp cha cho đến khi tìm thấy hoặc không còn lớp cha.
+1. If the current class declares that annotation, use the value on the current class.
+2. If not, and the annotation type has `@Inherited`, inspect the direct superclass.
+3. Continue up the superclass chain until found or until no superclass remains.
 
-Cơ chế này chỉ đi qua **lớp cha**, không lấy annotation từ interface được triển khai. Nó cũng không làm annotation trên phương thức, trường dữ liệu hay constructor tự truyền xuống thành viên khác. [Đặc tả `@Inherited`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/annotation/Inherited.html) giới hạn phạm vi như vậy.
+This mechanism walks only **superclasses**; it does not pull annotations from implemented interfaces. Nor does it automatically propagate annotations on methods, fields, or constructors down to other members. [The `@Inherited` specification](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/annotation/Inherited.html) limits the scope in this way.
 
-Chẳng hạn, nếu `Parent` có `@Policy("parent")`, thì `Child extends Parent` có thể nhận chính sách đó khi `Policy` có `@Inherited`. Nếu `Child` tự khai báo `@Policy("child")`, việc truy vấn `Policy` chọn chính sách tại `Child`; không trả thêm giá trị `"parent"` như một danh sách thứ hai.
+For instance, if `Parent` has `@Policy("parent")`, then `Child extends Parent` can receive that policy when `Policy` has `@Inherited`. If `Child` declares `@Policy("child")` itself, querying `Policy` selects the policy on `Child`; it does not also return `"parent"` as a second list entry.
 
-## 3. Thí nghiệm đầy đủ trên Java 17+
+## 3. Full experiment on Java 17+
 
-Chương trình sau đặt các trường hợp cạnh nhau: annotation thường, annotation có `@Inherited`, interface, phương thức được kế thừa, phương thức ghi đè và annotation lặp.
+The following program puts the cases side by side: regular annotations, `@Inherited` annotations, interfaces, inherited methods, overridden methods, and repeatable annotations.
 
-Lưu toàn bộ vào **`AnnotationLookupDemo.java`**:
+Save the entire file to **`AnnotationLookupDemo.java`**:
 
 ```java
 import java.lang.annotation.Annotation;
@@ -181,14 +181,14 @@ public class AnnotationLookupDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 --release 17 AnnotationLookupDemo.java
 java AnnotationLookupDemo
 ```
 
-Kết quả:
+Result:
 
 ```text
 Parent annotations = [LocalTag, Policy]
@@ -215,104 +215,104 @@ TaggedChild declared labels = []
 OwnTagged labels = [green]
 ```
 
-Hàm `names()` chủ động sắp xếp tên annotation để kết quả dễ đối chiếu. Không dùng vị trí trong mảng annotation làm quy tắc ưu tiên. Hàm `labels()` giữ thứ tự các giá trị đọc được để quan sát trường hợp annotation lặp.
+The `names()` method intentionally sorts annotation names so the output is easy to compare. Do not use position in the annotation array as a precedence rule. The `labels()` method preserves the order of read values to observe the repeatable annotation case.
 
-## 4. Đọc kết quả trên lớp
+## 4. Interpreting the results on classes
 
-### Lớp cha và lớp con không khai báo riêng
+### Superclass and subclass with no own declaration
 
-`Parent` trực tiếp mang `LocalTag` và `Policy`, nên cả hai lời gọi đều thấy hai annotation.
+`Parent` directly carries `LocalTag` and `Policy`, so both calls see both annotations.
 
-`Child` không khai báo annotation nào, do đó `getDeclaredAnnotations()` cho `[]`. Tuy vậy, `getAnnotations()` vẫn thấy `Policy` vì kiểu annotation này có `@Inherited`. `LocalTag` không có dấu đó nên không xuất hiện khi hỏi `Child`.
+`Child` declares no annotations, so `getDeclaredAnnotations()` produces `[]`. Even so, `getAnnotations()` still sees `Policy` because this annotation type has `@Inherited`. `LocalTag` lacks that marker, so it does not appear when querying `Child`.
 
-Điều cần phân biệt là **annotation tìm thấy khi truy vấn** và **annotation được khai báo trực tiếp**. `Child` không được chèn thêm một khai báo `@Policy` vào mã nguồn chỉ vì `getAnnotations()` tìm thấy nó qua lớp cha.
+What must be distinguished is **annotations found when querying** versus **annotations declared directly**. `Child` does not have an `@Policy` declaration injected into its source code just because `getAnnotations()` finds it via the superclass.
 
-### Lớp con khai báo chính sách riêng
+### Subclass declaring its own policy
 
-`OwnPolicy` trực tiếp khai báo `@Policy("child")`. Kết quả từ `getAnnotation(Policy.class).value()` là `"child"`; trong khi `Child` nhận `"parent"`.
+`OwnPolicy` directly declares `@Policy("child")`. The result of `getAnnotation(Policy.class).value()` is `"child"`; whereas `Child` receives `"parent"`.
 
-Bạn có thể dùng sự khác biệt này để chọn giữa hai quy tắc ứng dụng:
+You can use this difference to choose between two application rules:
 
-- Đọc cấu hình áp dụng theo kế thừa của Java: truy vấn không có `Declared`.
-- Chỉ chấp nhận cấu hình được khai báo tại lớp hiện tại: truy vấn có `Declared`.
+- Read configuration applied under Java inheritance: query without `Declared`.
+- Accept only configuration declared on the current class: query with `Declared`.
 
-Nếu cần biết annotation bắt nguồn từ lớp nào, mảng kết quả không mang sẵn đường đi tìm kiếm. Công cụ cần kiểm tra khai báo trực tiếp từng lớp trong chuỗi lớp cha, thay vì đoán từ thứ tự mảng.
+If you need to know which class an annotation originated from, the returned array does not carry the search path. Your tool needs to check direct declarations on each class in the superclass chain rather than guessing from array order.
 
-### Interface không truyền annotation cho lớp triển khai
+### Interfaces do not pass annotations to implementing classes
 
-`Contract` có `@Policy("interface")`, nhưng `Impl.class.getAnnotations()` vẫn trả mảng rỗng. `@Inherited` trên `Policy` không thay đổi điều đó.
+`Contract` has `@Policy("interface")`, yet `Impl.class.getAnnotations()` still returns an empty array. `@Inherited` on `Policy` does not change that.
 
-Nếu ứng dụng muốn áp dụng chính sách từ interface, đó phải là quy tắc do ứng dụng tự thiết kế: duyệt interface nào, xử lý nhiều interface ra sao và giải quyết xung đột thế nào. Không được coi quy tắc đó là hành vi mặc định của `Class.getAnnotations()`.
+If an application wants to apply policies from interfaces, that must be a rule designed by the application itself: which interfaces to traverse, how to handle multiple interfaces, and how to resolve conflicts. That rule must not be treated as the default behavior of `Class.getAnnotations()`.
 
-## 5. Phương thức được kế thừa không phải annotation được kế thừa
+## 5. An inherited method is not an inherited annotation
 
-Đây là chỗ dễ suy luận sai nhất trong ví dụ.
+This is the easiest place in the example to draw the wrong inference.
 
-`Child.class.getMethod("work")` tìm thấy phương thức công khai do `Parent` khai báo. Đối tượng `Method` trả về vẫn đại diện cho **`Parent.work`**, thể hiện qua `getDeclaringClass()` in `Parent`. Vì chính phương thức này trực tiếp mang `@Policy`, cả `getAnnotations()` lẫn `getDeclaredAnnotations()` của nó đều thấy `Policy`.
+`Child.class.getMethod("work")` finds the public method declared by `Parent`. The returned `Method` object still represents **`Parent.work`**, shown by `getDeclaringClass()` printing `Parent`. Because that method itself directly carries `@Policy`, both its `getAnnotations()` and `getDeclaredAnnotations()` see `Policy`.
 
-Ngược lại, `Overrides` khai báo một phương thức `work()` mới để ghi đè. Phương thức đó không mang `@Policy`, nên cả hai lời gọi đều cho `[]`. `@Override` có trong mã nguồn không xuất hiện trong kết quả vì nó không được giữ lại ở runtime.
+Conversely, `Overrides` declares a new `work()` method to override it. That method does not carry `@Policy`, so both calls yield `[]`. `@Override` present in source code does not appear in the output because it is not retained at runtime.
 
-Do đó, không thể kết luận rằng annotation trên phương thức đã tự truyền xuống chỉ vì bạn tìm thấy annotation khi gọi `Child.class.getMethod(...)`. Trước hết hãy kiểm tra **đối tượng `Method` đang đại diện cho khai báo nào**. Ý nghĩa này gắn với [API `Method.getDeclaringClass()`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Method.html#getDeclaringClass()).
+Therefore, you cannot conclude that method annotations automatically propagate downward just because you found an annotation when calling `Child.class.getMethod(...)`. First check **which declaration the `Method` object represents**. This meaning ties directly to [the `Method.getDeclaringClass()` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Method.html#getDeclaringClass()).
 
-Với đối tượng `Method` chuẩn, `getAnnotations()` và `getDeclaredAnnotations()` cùng xét annotation trực tiếp trên phương thức được đại diện; chúng không tự hợp nhất annotation từ phương thức bị ghi đè ở lớp cha.
+For a standard `Method` object, `getAnnotations()` and `getDeclaredAnnotations()` both inspect the direct annotations on the represented method; they do not automatically merge annotations from overridden methods in a superclass.
 
-## 6. Annotation lặp: vì sao thấy container?
+## 6. Repeatable annotations: why does the container appear?
 
-`Label` được đánh dấu `@Repeatable(Labels.class)`, trong đó `Labels` là kiểu annotation chứa mảng `Label[]`. Khi `Tagged` có hai `@Label`, trình biên dịch biểu diễn chúng qua annotation chứa `Labels`. [Vai trò của `@Repeatable`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/annotation/Repeatable.html) là liên kết kiểu lặp với kiểu chứa.
+`Label` is marked `@Repeatable(Labels.class)`, where `Labels` is a container annotation type holding `Label[]`. When `Tagged` has two `@Label`s, the compiler represents them via the container annotation `Labels`. [The role of `@Repeatable`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/annotation/Repeatable.html) is to link the repeatable type with the container type.
 
-Kết quả thí nghiệm vì vậy là:
+The experiment's results are therefore:
 
-- `getDeclaredAnnotations()` thấy `[Labels]`, không phải hai phần tử `Label` rời nhau.
-- `getAnnotations()` trên `Tagged` cũng thấy `[Labels]`.
-- `getAnnotation(Label.class)` cho `null` trong trường hợp hai `Label` đang nằm bên trong container.
-- `getAnnotationsByType(Label.class)` cho hai giá trị `red`, `blue`.
+- `getDeclaredAnnotations()` sees `[Labels]`, not two separate `Label` elements.
+- `getAnnotations()` on `Tagged` also sees `[Labels]`.
+- `getAnnotation(Label.class)` gives `null` when two `Label`s are inside the container.
+- `getAnnotationsByType(Label.class)` gives the two values `red`, `blue`.
 
-Trong thuật ngữ API, container hiện diện **trực tiếp** (*directly present*); các annotation lặp nằm bên trong hiện diện **gián tiếp** (*indirectly present*). Hai phương thức số nhiều không có `ByType` không tự bóc container thành những phần tử con. Chọn `...AnnotationsByType(Label.class)` khi cần danh sách `Label` logic. Xem [ngữ nghĩa của `AnnotatedElement`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AnnotatedElement.html).
+In API terminology, the container is **directly present**; the repeated annotations inside are **indirectly present**. The two plural methods without `ByType` do not automatically unpack the container into child elements. Choose `...AnnotationsByType(Label.class)` when you need the logical `Label` list. See [the semantics of `AnnotatedElement`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AnnotatedElement.html).
 
-Trong chương trình, cả `Label` lẫn `Labels` đều có `@Inherited` và `RUNTIME`. Kiểu chứa phải tuân thủ các ràng buộc tương ứng, bao gồm việc có `@Inherited` khi kiểu lặp có dấu này; đó là yêu cầu được quy định cho [annotation lặp và kiểu chứa](https://docs.oracle.com/javase/specs/jls/se21/html/jls-9.html#jls-9.6.3).
+In the program, both `Label` and `Labels` have `@Inherited` and `RUNTIME`. The container type must obey the corresponding constraints, including having `@Inherited` when the repeatable type has this marker; that is a requirement specified for [repeatable annotations and container types](https://docs.oracle.com/javase/specs/jls/se21/html/jls-9.html#jls-9.6.3).
 
-Quan sát hai lớp con:
+Observe the two subclasses:
 
-- `TaggedChild` không khai báo `Label`: `getAnnotationsByType(Label.class)` nhận `[red, blue]`, còn `getDeclaredAnnotationsByType(Label.class)` cho `[]`.
-- `OwnTagged` có một `@Label("green")`: truy vấn `getAnnotationsByType(Label.class)` cho `[green]`, không nối tiếp `[red, blue]` từ lớp cha.
+- `TaggedChild` does not declare `Label`: `getAnnotationsByType(Label.class)` receives `[red, blue]`, while `getDeclaredAnnotationsByType(Label.class)` produces `[]`.
+- `OwnTagged` has one `@Label("green")`: querying `getAnnotationsByType(Label.class)` produces `[green]`, rather than appending to `[red, blue]` from the superclass.
 
-Vì thế, “lấy theo kế thừa” không đồng nghĩa “cộng dồn mọi giá trị của toàn bộ cây lớp”. Đặc biệt, đừng tự suy ra quy tắc annotation lặp từ kết quả của `getAnnotations()`; hãy dùng API theo kiểu annotation cần đọc.
+Thus, “retrieving with inheritance” does not mean “accumulating every value across the entire class tree”. In particular, do not infer repeatable annotation rules from the result of `getAnnotations()`; use the API typed for the annotation you want to read.
 
-## 7. Chọn đúng API cho mục đích sử dụng
+## 7. Choosing the right API for your use case
 
-| Bạn cần gì? | API phù hợp |
+| What do you need? | Appropriate API |
 | --- | --- |
-| Liệt kê annotation trực tiếp trên phần tử | `getDeclaredAnnotations()` |
-| Liệt kê annotation hiện diện, có xét kế thừa hợp lệ trên lớp | `getAnnotations()` |
-| Lấy một annotation cụ thể trực tiếp trên phần tử | `getDeclaredAnnotation(MyAnnotation.class)` |
-| Lấy một annotation cụ thể, có xét kế thừa hợp lệ | `getAnnotation(MyAnnotation.class)` |
-| Lấy các annotation lặp của một kiểu chỉ tại phần tử hiện tại | `getDeclaredAnnotationsByType(MyAnnotation.class)` |
-| Lấy các annotation lặp của một kiểu, có xét kế thừa hợp lệ | `getAnnotationsByType(MyAnnotation.class)` |
+| List direct annotations on an element | `getDeclaredAnnotations()` |
+| List present annotations, accounting for valid class inheritance | `getAnnotations()` |
+| Get a specific annotation directly on an element | `getDeclaredAnnotation(MyAnnotation.class)` |
+| Get a specific annotation, accounting for valid inheritance | `getAnnotation(MyAnnotation.class)` |
+| Get repeatable annotations of a type only on the current element | `getDeclaredAnnotationsByType(MyAnnotation.class)` |
+| Get repeatable annotations of a type, accounting for valid inheritance | `getAnnotationsByType(MyAnnotation.class)` |
 
-Nhóm trả về mảng cho mảng rỗng khi không có kết quả; nhóm trả về một annotation cho `null`. Khi đã biết kiểu cần tìm, truy vấn theo kiểu giúp tránh duyệt và so sánh tên annotation bằng chuỗi.
+The array-returning group yields an empty array when there are no results; the single-annotation group yields `null`. Once you know the target type, querying by type avoids iterating and comparing annotation names as strings.
 
-`isAnnotationPresent(MyAnnotation.class)` tương ứng với việc kiểm tra `getAnnotation(MyAnnotation.class) != null`. Vì vậy, không dùng nó để kết luận rằng một annotation lặp chắc chắn không tồn tại khi nhiều phần tử đang được biểu diễn qua container; cần xét kết quả `getAnnotationsByType(...)` trong trường hợp đó.
+`isAnnotationPresent(MyAnnotation.class)` corresponds to checking `getAnnotation(MyAnnotation.class) != null`. Therefore, do not use it to conclude that a repeatable annotation definitely does not exist when multiple elements are represented via a container; check `getAnnotationsByType(...)` in that case.
 
-## 8. Lỗi thường gặp và cách tự kiểm tra
+## 8. Common mistakes and how to self-check
 
-| Suy luận sai | Cách kiểm tra đúng |
+| Wrong inference | Correct check |
 | --- | --- |
-| `getAnnotations()` lấy mọi annotation từ lớp cha | Kiểm tra `@Inherited` trên từng kiểu annotation |
-| Có `@Inherited` là tự nhận annotation từ interface | Kiểm tra đường kế thừa lớp; interface không nằm trong cơ chế này |
-| `Declared` liên quan đến `public` hay `private` | Xác định phần tử thực sự khai báo annotation |
-| Phương thức ghi đè nhận annotation của phương thức cha | Kiểm tra annotation trên chính khai báo ghi đè |
-| Tìm phương thức qua lớp con thì `Method` thuộc lớp con | Đọc `Method.getDeclaringClass()` |
-| Thấy annotation trong mã nguồn thì Reflection đọc được | Kiểm tra `@Retention(RUNTIME)` |
-| Mỗi `@Label` luôn là một phần tử trong `Annotation[]` | Xem container và dùng API `ByType` |
-| Annotation trên annotation tự được hợp nhất vào lớp sử dụng | Phân biệt phần tử đang truy vấn; API không tự duyệt toàn bộ meta-annotation |
+| `getAnnotations()` gets every annotation from the superclass | Check `@Inherited` on each annotation type |
+| Having `@Inherited` automatically inherits annotations from interfaces | Check the class inheritance path; interfaces are outside this mechanism |
+| `Declared` relates to `public` or `private` | Identify the element that actually declares the annotation |
+| Overriding methods receive the parent method's annotations | Check annotations on the overriding declaration itself |
+| Finding a method through a subclass means the `Method` belongs to the subclass | Read `Method.getDeclaringClass()` |
+| Seeing an annotation in source code means Reflection can read it | Check `@Retention(RUNTIME)` |
+| Each `@Label` is always an element in `Annotation[]` | Check the container and use the `ByType` APIs |
+| Annotations on an annotation are automatically merged onto the target class | Distinguish the queried element; the API does not automatically traverse all meta-annotations |
 
-Để tự kiểm chứng bài học, hãy sửa từng chi tiết nhỏ trong thí nghiệm rồi dự đoán kết quả trước khi chạy:
+To verify this lesson yourself, tweak one small detail in the experiment at a time and predict the output before running:
 
-1. Bỏ `@Inherited` khỏi `Policy`: `Child` còn thấy `Policy` không?
-2. Thêm `@Policy("own-method")` lên `Overrides.work()`: cả hai API trên phương thức trả những gì?
-3. Chuyển `LocalTag` sang `RetentionPolicy.CLASS`: `Parent` còn liệt kê được nó không?
-4. Chỉ giữ một `@Label` trên `Tagged`: vì sao kết quả truy vấn annotation đơn có thể khác trường hợp hai `@Label`?
+1. Remove `@Inherited` from `Policy`: does `Child` still see `Policy`?
+2. Add `@Policy("own-method")` on `Overrides.work()`: what do both APIs on the method return?
+3. Switch `LocalTag` to `RetentionPolicy.CLASS`: does `Parent` still list it?
+4. Keep only one `@Label` on `Tagged`: why can the single-annotation query result differ from the two-`@Label` case?
 
-Khi một thay đổi làm annotation không còn hiện diện, hãy kiểm tra `null` trước khi gọi `.value()` trên kết quả truy vấn đơn. Nếu bỏ `@Inherited` khỏi `Policy` mà giữ nguyên lời gọi `Child.class.getAnnotation(Policy.class).value()`, chương trình sẽ gặp `NullPointerException` tại lời gọi đó.
+When a change causes an annotation to no longer be present, check for `null` before calling `.value()` on a single-lookup result. If you remove `@Inherited` from `Policy` while keeping the call `Child.class.getAnnotation(Policy.class).value()`, the program will throw `NullPointerException` on that call.
 
-Điểm cần nắm là **phạm vi khai báo**, **quy tắc kế thừa** và **cách biểu diễn annotation lặp**. Xác định đủ ba yếu tố này trước khi chọn phương thức Reflection sẽ giúp kết quả truy vấn có ý nghĩa rõ ràng.
+The key points to grasp are **declaration scope**, **inheritance rules**, and **how repeatable annotations are represented**. Determining all three factors before choosing a Reflection method will ensure query results have clear meaning.

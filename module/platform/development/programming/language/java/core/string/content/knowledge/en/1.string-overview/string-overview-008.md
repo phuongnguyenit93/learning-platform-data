@@ -1,99 +1,99 @@
-# Kiến thức nền và trình tự học Java Core String
+# Fundamentals and Study Sequence for Java Core String
 
-## 1. Mục tiêu và vị trí của chủ đề
+## 1. Goals and Position of the Topic
 
-`String` là kiểu dữ liệu dùng để biểu diễn **chuỗi ký tự** trong Java. Đây là một lớp thuộc gói `java.lang`, được nhập tự động. Học `String` không chỉ là ghi nhớ các phương thức: cần hiểu sự khác nhau giữa **giá trị và tham chiếu**, tính **bất biến**, cách Java biểu diễn **Unicode**, cũng như cách xử lý văn bản an toàn và hiệu quả.
+`String` is the data type used to represent **character strings** in Java. It is a class in the `java.lang` package, which is imported automatically. Learning `String` is not just memorizing methods: you need to understand the difference between **values and references**, **immutability**, how Java represents **Unicode**, and how to process text safely and effectively.
 
-Sau bài học, người học cần có thể:
+After studying this topic, learners should be able to:
 
-- Tạo chuỗi, đọc và biến đổi nội dung mà không nhầm lẫn về tính bất biến.
-- So sánh chuỗi theo nội dung, phân biệt `==` với `equals()` và xử lý trường hợp `null`.
-- Tìm kiếm, cắt, nối, tách, thay thế, định dạng và chuẩn hóa văn bản.
-- Giải thích `String Pool`, `StringBuilder`, mã hóa ký tự và các lỗi Unicode thường gặp.
-- Chọn API phù hợp trong tình huống thực tế và kiểm chứng bằng chương trình Java tự chạy.
+- Create strings, read, and transform content without confusion about immutability.
+- Compare strings by content, distinguish `==` from `equals()`, and handle `null` cases.
+- Search, slice, join, split, replace, format, and normalize text.
+- Explain `String Pool`, `StringBuilder`, character encoding, and common Unicode pitfalls.
+- Choose the appropriate API in practical scenarios and verify behavior with runnable Java programs.
 
-**Điều kiện đầu vào:** đã học biến, kiểu nguyên thủy, toán tử, `if`, vòng lặp, phương thức, mảng và kiến thức cơ bản về lớp/đối tượng. Nền tảng ví dụ là **Java 17+**; một số API hiện đại như `strip()`, `isBlank()`, `lines()`, `repeat()` có từ Java 11. Lộ trình dưới đây đi từ căn bản đến ứng dụng rồi mới tối ưu.
+**Prerequisites:** prior familiarity with variables, primitive types, operators, `if`, loops, methods, arrays, and basics of classes/objects. The examples target **Java 17+**; several modern APIs such as `strip()`, `isBlank()`, `lines()`, and `repeat()` have been available since Java 11. The roadmap below progresses from fundamentals to applications and then optimization.
 
-## 2. Lộ trình đọc các bài trong chương
+## 2. Reading Sequence for the Lessons in This Chapter
 
-Mục tiêu của bài này là **biết học gì trước, luyện gì sau và chứng minh đã hiểu bằng cách nào**. Các bài chuyên đề giữ phần giải thích chi tiết và code thực hành; khi cần tra cứu một hành vi cụ thể, hãy quay lại đúng bài đó thay vì học thuộc toàn bộ API trong một lượt.
+The goal of this guide is to **know what to study first, what to practice next, and how to prove understanding**. The dedicated lessons hold the detailed explanations and hands-on code; when you need to look up a specific behavior, revisit that exact lesson rather than trying to memorize the entire API in one sitting.
 
-| Thứ tự | Bài nên đọc | Sau bài này, tự kiểm tra được gì? |
+| Order | Lesson to read | After this lesson, what can you self-check? |
 | --- | --- | --- |
-| 1 | String là gì và vai trò biểu diễn văn bản trong Java | Giải thích String là đối tượng, dùng cho văn bản và không tự quyết định charset hay độ an toàn của dữ liệu. |
-| 2 | Quan hệ giữa String, char[], CharSequence và đối tượng | Phân biệt upcast, copy, mutable view và phép chuyển kiểu. |
-| 3 | Phân biệt nội dung chuỗi với biến tham chiếu đến chuỗi | Vẽ lại sơ đồ alias, giải thích `==`, `equals()` và string pool. |
-| 4 | Chuỗi rỗng, chuỗi trắng, null và chuỗi chứa chữ null | Viết điều kiện null-safe mà không làm mất bốn trạng thái đầu vào. |
-| 5 | Vì sao String là lớp final và có tính bất biến | Giải thích `final class`, `final` trên biến và immutable bằng ví dụ độc lập. |
-| 6 | Các nhóm thao tác: đọc, so sánh, tìm kiếm, biến đổi và chuyển mã | Chọn `substring`, `indexOf`, `replace`, regex, Unicode và UTF-8 theo yêu cầu. |
-| 7 | Chọn String, StringBuilder hoặc StringBuffer theo nhu cầu | Biết khi nào cần bộ đệm mutable, và giới hạn đồng bộ từng lời gọi. |
-| 8 | Kiến thức nền và trình tự học Java Core String (bài này) | Lập kế hoạch luyện tập, kiểm tra trường hợp biên và hoàn thành mini project. |
+| 1 | What is String and its role in representing text in Java | Explain that String is an object used for text and does not automatically determine charset or data safety. |
+| 2 | Relationships between String, char[], CharSequence, and Object | Distinguish upcasts, copies, mutable views, and type casts. |
+| 3 | Distinguishing string content from a string reference variable | Sketch alias diagrams and explain `==`, `equals()`, and the string pool. |
+| 4 | Empty strings, blank strings, null, and the string "null" | Write null-safe conditions without losing any of the four input states. |
+| 5 | Why String is a final class and immutable | Explain `final class`, `final` on variables, and immutability with standalone examples. |
+| 6 | Operation categories: reading, comparing, searching, transforming, and encoding | Choose `substring`, `indexOf`, `replace`, regex, Unicode, and UTF-8 as required. |
+| 7 | Choosing String, StringBuilder, or StringBuffer based on your needs | Know when a mutable buffer is needed and the limits of per-call synchronization. |
+| 8 | Fundamentals and study sequence for Java Core String (this lesson) | Plan practice, test edge cases, and complete the mini project. |
 
-**Dấu hiệu cần quay lại bài trước:** chưa phân biệt `null` với chuỗi rỗng; nhầm `==` với so nội dung; tưởng `StringBuilder` là `String`; chưa giải thích được tại sao emoji có `length() == 2`; hoặc chưa tách được encoding byte khỏi thao tác trên chuỗi. Mỗi trường hợp đều có bài học chính ở trên.
+**Signs you need to revisit an earlier lesson:** not yet distinguishing `null` from an empty string; confusing `==` with content comparison; thinking `StringBuilder` is a `String`; unable to explain why an emoji has `length() == 2`; or not yet separating byte encoding from string operations. Each case has a dedicated core lesson above.
 
-Trước khi bắt đầu chặng mới, hãy tự chạy ít nhất một chương trình `main()` và thử một giá trị biên (như `null`, chuỗi rỗng, emoji hoặc dấu phân cách ở cuối). Ghi lại cả kết quả dự đoán và kết quả thực tế để phát hiện giả định sai.
+Before starting a new stage, run at least one `main()` program yourself and test an edge value (such as `null`, an empty string, an emoji, or a trailing delimiter). Record both your predicted result and the actual result to catch false assumptions.
 
-## 3. Trình tự học đề xuất: từ nền tảng đến ứng dụng
+## 3. Recommended Study Sequence: From Foundations to Applications
 
-Không cần học mọi API trong một lần. Mỗi chặng nên kết thúc bằng một sản phẩm chạy được và một bộ trường hợp biên tự viết.
+There is no need to learn every API at once. Each stage should end with a runnable artifact and a self-written set of edge cases.
 
-| Chặng | Kiến thức chính | Bài thực hành để qua chặng |
+| Stage | Core concepts | Practice task to pass the stage |
 | --- | --- | --- |
-| 0. Ôn Java nền | Primitive/reference, `char`, array, `null`, vòng lặp, method, exception | Giải thích vì sao `String` là đối tượng dù có cú pháp literal |
-| 1. Tạo và so sánh | Literal, `new`, immutable, `equals()`, `==`, pool | Viết chương trình phân biệt cùng giá trị và cùng tham chiếu; thử `null` |
-| 2. Thao tác cơ bản | `length()`, `substring()`, tìm kiếm, `strip()`, thay thế | Chuẩn hóa tiêu đề, trích phần trước/sau một dấu phân cách |
-| 3. Tách và dựng chuỗi | `split()`, `join()`, regex căn bản, `StringBuilder` | Xử lý danh sách thẻ ngăn cách bằng dấu phẩy, giữ ô rỗng khi cần |
-| 4. Unicode và locale | UTF-16, code point, charset, normalization, case folding ở mức phù hợp | Đo độ dài chuỗi chứa tiếng Việt, emoji; thử round trip UTF-8 |
-| 5. Ứng dụng và kiểm thử | Input validation, yêu cầu null/blank, trường hợp biên, hiệu năng | Tự xây một bộ hàm làm sạch văn bản có kiểm thử nhiều trường hợp |
-| 6. Đào sâu theo nhu cầu | `Pattern`/`Matcher`, `Collator`, `CharsetDecoder`, tối ưu hóa khi có số đo | Giải một bài toán thực tế có quy tắc rõ ràng và giải thích lựa chọn API |
+| 0. Java basics review | Primitive/reference, `char`, array, `null`, loops, methods, exceptions | Explain why `String` is an object despite having literal syntax |
+| 1. Creation and comparison | Literals, `new`, immutable, `equals()`, `==`, pool | Write a program distinguishing same value vs. same reference; test `null` |
+| 2. Basic operations | `length()`, `substring()`, searching, `strip()`, replacing | Normalize titles, extract text before/after a delimiter |
+| 3. Splitting and building | `split()`, `join()`, basic regex, `StringBuilder` | Process a comma-separated tag list, preserving empty fields when needed |
+| 4. Unicode and locale | UTF-16, code points, charsets, normalization, appropriate case folding | Measure lengths of strings with Vietnamese and emojis; test UTF-8 round-trip |
+| 5. Application and testing | Input validation, null/blank requirements, edge cases, performance | Build a text-sanitization utility suite with multi-case tests |
+| 6. Deep dive as needed | `Pattern`/`Matcher`, `Collator`, `CharsetDecoder`, optimizing with measurements | Solve a practical problem with clear rules and justify API choices |
 
-**Cách học mỗi chặng:** đọc khái niệm → tự viết ví dụ 10–30 dòng → dự đoán kết quả → chạy và giải thích chênh lệch → sửa bài theo trường hợp biên → tự tóm tắt lúc nào nên/không nên dùng API đó. Chỉ chuyển chặng khi giải thích được kết quả, không chỉ khi chương trình chạy.
+**How to study each stage:** read the concept → write a 10–30 line example yourself → predict the output → run and explain discrepancies → revise for edge cases → summarize when to use or avoid that API. Only move to the next stage when you can explain the output, not merely when the program runs.
 
-### Gợi ý bài tập theo độ khó
+### Suggested exercises by difficulty
 
-**Cơ bản:**
+**Basic:**
 
-1. Viết `isBlankOrNull(String s)` trả `true` khi `s == null` hoặc `s.isBlank()`. Thử `null`, `""`, `" "` và `" Java "`.
-2. Cho `"  java core  "`, tạo kết quả `"JAVA CORE"` bằng cách bỏ khoảng trắng hai đầu và chuyển chữ hoa; chứng minh chuỗi gốc vẫn giữ nguyên.
-3. Viết hàm kiểm tra tên file kết thúc bằng `".java"` (phân biệt chữ hoa/thường), và tự quyết định cách xử lý `null`.
+1. Write `isBlankOrNull(String s)` returning `true` when `s == null` or `s.isBlank()`. Test `null`, `""`, `" "`, and `" Java "`.
+2. Given `"  java core  "`, produce `"JAVA CORE"` by stripping leading/trailing spaces and converting to uppercase; prove that the original string stays intact.
+3. Write a method checking whether a filename ends with `".java"` (case-sensitive), and decide explicitly how to handle `null`.
 
-**Trung bình:**
+**Intermediate:**
 
-4. Phân tích `"a, b,,c,"` thành các trường; bảo toàn trường trống cuối; loại bỏ khoảng trắng quanh mỗi trường mà không đánh mất vị trí rỗng.
-5. Cho câu văn, đếm số lần xuất hiện của một từ hoặc đoạn con theo quy tắc **đã xác định** về phân biệt chữ hoa và ranh giới từ; kiểm tra trường hợp chuỗi tìm kiếm rỗng.
-6. Tạo slug đơn giản cho tiêu đề theo bộ quy tắc do bạn tự định nghĩa: `strip()`, hạ chữ, đổi nhóm khoảng trắng thành `-`; lưu ý slug cho tiếng Việt có dấu cần quy định riêng, không giả định luôn phải bỏ dấu.
+4. Split `"a, b,,c,"` into fields; preserve the trailing empty field; strip whitespace around each field without losing empty positions.
+5. Given a sentence, count occurrences of a word or substring according to **explicitly defined** rules on case sensitivity and word boundaries; test the empty search string case.
+6. Generate a simple slug for a title using rules you define yourself: `strip()`, lowercase, replace whitespace runs with `-`; note that slugs for accented Vietnamese require explicit rules rather than assuming accents should always be stripped.
 
-**Nâng cao:**
+**Advanced:**
 
-7. Đếm UTF-16 code units, code points và số byte UTF-8 của `"A😀é"`; giải thích vì sao ba con số có thể khác nhau.
-8. So sánh `"é"` với `"e\u0301"` trước và sau `Normalizer.Form.NFC`; giải thích khác biệt giữa *hiển thị giống nhau* và *bằng nhau theo equals*.
-9. Xây hàm nhận dữ liệu tên người dùng: yêu cầu rõ ràng về `null`/blank, có giữ dấu hay không, cách xử lý Unicode, độ dài đo theo đơn vị nào. Viết ít nhất 6 trường hợp kiểm thử.
+7. Count UTF-16 code units, code points, and UTF-8 bytes of `"A😀é"`; explain why the three numbers can differ.
+8. Compare `"é"` with `"e\u0301"` before and after `Normalizer.Form.NFC`; explain the difference between *looking identical* and *being equal via equals*.
+9. Build a username validation method: state clear requirements for `null`/blank, whether accents are allowed, how Unicode is handled, and which unit measures length. Write at least 6 test cases.
 
-**Mini project cuối chủ đề:** xây thư viện nhỏ `TextUtils` (các phương thức `normalizeSpaces`, `safeEquals`, `splitPreservingEmpty`, `utf8ByteLength`). Viết JUnit tests nếu đã học kiểm thử; nếu chưa, tạo `main()` in expected/actual. Phải công bố contract cho mọi hàm (đầu vào `null`, chuỗi rỗng, dữ liệu lỗi, quy tắc Unicode) và kiểm thử đúng contract.
+**End-of-topic mini project:** build a small `TextUtils` library (methods `normalizeSpaces`, `safeEquals`, `splitPreservingEmpty`, `utf8ByteLength`). Write JUnit tests if you have learned testing; if not, write a `main()` printing expected/actual. You must state the contract for every method (`null` input, empty string, invalid data, Unicode rules) and test strictly against that contract.
 
-## 4. Cách đọc tài liệu và tự kiểm chứng
+## 4. How to Read Documentation and Self-Verify
 
-- Tra cứu **Javadoc `java.lang.String` của đúng phiên bản JDK đang dùng**: chữ ký, kết quả, ngoại lệ, behavior với `null` và các phiên bản phát hành.
-- Dùng `jshell` cho thử nghiệm ngắn, hoặc tạo một tệp `.java` có `public static void main(String[] args)` để quan sát hành vi nhất quán.
-- Dùng `javac -version` và `java -version` để biết compiler/runtime; ưu tiên hai phiên bản tương thích. Nếu làm việc với Java 17, tránh sử dụng API chỉ được bổ sung ở phiên bản mới hơn.
-- Khi ví dụ gắn với locale, charset hay regex, nêu rõ giả định đầu vào; tránh kết luận từ một chuỗi ASCII đơn giản.
-- Khi gặp lỗi, thử tạo **minimum reproducible example**: chuỗi vào ngắn nhất, output mong đợi và output thực tế. Kiểm tra độ dài, chỉ số, regex, ký tự escape và `null` trước khi suy đoán do JVM.
+- Consult the **Javadoc of `java.lang.String` for your exact JDK version**: signatures, return values, exceptions, `null` behavior, and release versions.
+- Use `jshell` for quick experiments, or create a `.java` file with `public static void main(String[] args)` to observe consistent behavior.
+- Run `javac -version` and `java -version` to verify compiler/runtime versions; prefer compatible versions. If working with Java 17, avoid using APIs introduced in newer releases.
+- When examples depend on locale, charset, or regex, state input assumptions explicitly; avoid drawing conclusions from a simple ASCII string alone.
+- When encountering a bug, build a **minimum reproducible example**: shortest input string, expected output, and actual output. Check length, indices, regex, escape characters, and `null` before blaming the JVM.
 
-Tài liệu chuẩn nên tra cứu: [Java SE 17: String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html), [StringBuilder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StringBuilder.html), [StandardCharsets](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/StandardCharsets.html), [Normalizer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Normalizer.html) và [Pattern](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html).
+Standard references to consult: [Java SE 17: String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html), [StringBuilder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StringBuilder.html), [StandardCharsets](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/StandardCharsets.html), [Normalizer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Normalizer.html), and [Pattern](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html).
 
-## 5. Tiêu chí hoàn thành chủ đề
+## 5. Topic Completion Criteria
 
-Tự trả lời được các câu sau **không cần chạy thử trước**:
+Be able to answer the following questions **without running them first**:
 
-1. Vì sao `"Java" == new String("Java")` là `false`, trong khi `equals()` là `true`?
-2. Vì sao `text.replace("a", "b");` không thay đổi biến `text`?
-3. `substring(1, 3)` lấy những vị trí nào và ngoại lệ gì xảy ra nếu chỉ số vượt biên?
-4. Khác nhau giữa `null`, `""`, `"   "`, `isEmpty()` và `isBlank()`?
-5. Vì sao `"😀".length()` bằng `2`? Khi nào cần `codePoints()`?
-6. Khi nào dùng `replace()`, khi nào dùng `replaceAll()`, và vì sao regex cần escape?
-7. Vì sao nên truyền `StandardCharsets.UTF_8` khi chuyển giữa `String` và `byte[]`?
-8. Trường hợp nào `StringBuilder` hợp lý hơn phép nối `+`?
-9. Vì sao chuẩn hóa Unicode hoặc so sánh theo locale cần quy tắc nghiệp vụ?
-10. Bạn sẽ kiểm thử những trường hợp biên nào trước khi dùng hàm xử lý văn bản trong chương trình thật?
+1. Why is `"Java" == new String("Java")` `false`, whereas `equals()` is `true`?
+2. Why does `text.replace("a", "b");` not change the `text` variable?
+3. Which positions does `substring(1, 3)` extract, and what exception occurs if indices are out of bounds?
+4. What are the differences among `null`, `""`, `"   "`, `isEmpty()`, and `isBlank()`?
+5. Why does `"😀".length()` equal `2`? When do you need `codePoints()`?
+6. When should you use `replace()`, when should you use `replaceAll()`, and why do regex patterns need escaping?
+7. Why should you pass `StandardCharsets.UTF_8` when converting between `String` and `byte[]`?
+8. In what situations is `StringBuilder` more appropriate than `+` concatenation?
+9. Why do Unicode normalization or locale-aware comparison require business rules?
+10. Which edge cases will you test before using a text-processing method in a real program?
 
-**Hoàn thành thực chất** khi viết được các hàm của mini project, giải thích được output, xử lý được `null`/rỗng/Unicode và kiểm tra được chuỗi đầu vào khác ví dụ mẫu. Khi đó mới nên mở rộng sang regex nâng cao, thao tác file văn bản, định dạng địa phương hóa và các API xử lý dữ liệu lớn.
+**Genuine completion** means you have written the mini project methods, can explain their output, handle `null`/empty/Unicode properly, and test inputs beyond the sample cases. Only then should you move on to advanced regex, text file I/O, localized formatting, and high-volume data processing APIs.

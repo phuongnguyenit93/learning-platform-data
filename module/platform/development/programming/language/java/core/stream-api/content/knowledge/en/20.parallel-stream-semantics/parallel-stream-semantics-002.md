@@ -1,26 +1,26 @@
-# Chuyển chế độ bằng sequential và kiểm tra bằng isParallel
+# Switching Modes with sequential and Checking with isParallel
 
-## 1. Hai chế độ thực thi của một Stream pipeline
+## 1. Two execution modes of a Stream pipeline
 
-Trong **JAVA_STREAM_API**, lập trình viên mô tả cách xử lý dữ liệu bằng pipeline như `filter`, `map`, `reduce` và `collect`. Pipeline có thể được thực thi ở chế độ **tuần tự (sequential)** hoặc **song song (parallel)**. Java cung cấp hai operation để chọn chế độ, cùng một phương thức để kiểm tra trạng thái được cấu hình:
+In **JAVA_STREAM_API**, developers describe data processing using pipelines such as `filter`, `map`, `reduce`, and `collect`. A pipeline can execute in **sequential** mode or **parallel** mode. Java provides two operations to choose the mode and one method to inspect the configured state:
 
-- `parallel()`: yêu cầu Stream chuyển sang chế độ song song.
-- `sequential()`: yêu cầu Stream chuyển sang chế độ tuần tự.
-- `isParallel()`: cho biết chế độ song song hiện tại của Stream, trả `boolean`.
+- `parallel()`: requests the Stream to switch to parallel mode.
+- `sequential()`: requests the Stream to switch to sequential mode.
+- `isParallel()`: reports the current parallel mode of the Stream, returning a `boolean`.
 
-Cả `parallel()` và `sequential()` đều trả về một Stream để nối tiếp pipeline; chúng **không** phải terminal operation và không tự duyệt dữ liệu. `isParallel()` chỉ kiểm tra trạng thái cấu hình, **không** chạy pipeline.
+Both `parallel()` and `sequential()` return a Stream for continuing the pipeline; they are **not** terminal operations and do not traverse data on their own. `isParallel()` only inspects the configured state and **does not** run the pipeline.
 
 ~~~text
-Nguồn dữ liệu
+Data source
      │
-     ├─ stream() ─────────────► sequential mặc định
+     ├─ stream() ─────────────► sequential by default
      │
-     └─ parallelStream() ─────► parallel mặc định
+     └─ parallelStream() ─────► parallel by default
                                      │
                      parallel() / sequential()
                                      │
                                      ▼
-                             Chế độ của pipeline
+                              Pipeline mode
                                      │
                       filter → map → sorted → ...
                                      │
@@ -29,33 +29,33 @@ Nguồn dữ liệu
                            reduce / collect / toList
                                      │
                                      ▼
-                            Kết quả cuối cùng
+                             Final result
 ~~~
 
-Bài thuộc chương **Ngữ nghĩa xử lý song song**. Mục tiêu không chỉ là nhớ tên API mà còn hiểu **thời điểm chế độ có tác dụng**, vì sao `isParallel() == true` không chứng minh có nhiều thread hoạt động, và vì sao song song hóa không được thay đổi kết quả nghiệp vụ khi các callback tuân thủ hợp đồng của Stream.
+This lesson belongs to the **Parallel Processing Semantics** chapter. The goal is not merely memorizing API names, but understanding **when the mode takes effect**, why `isParallel() == true` does not prove multiple threads are active, and why parallelization must not alter business results when callbacks obey the Stream contract.
 
-Các ví dụ dưới đây áp dụng cho **Java 17+**. `parallel()`, `sequential()` và `isParallel()` đều có từ Java 8.
+The examples below apply to **Java 17+**. `parallel()`, `sequential()`, and `isParallel()` have all been available since Java 8.
 
-## 2. Các API liên quan và kiểu trả về
+## 2. Related APIs and return types
 
-Ba phương thức trên được khai báo trong `BaseStream<T, S extends BaseStream<T, S>>`, nên không chỉ `Stream<T>` mà cả `IntStream`, `LongStream` và `DoubleStream` đều hỗ trợ.
+These three methods are declared in `BaseStream<T, S extends BaseStream<T, S>>`, so not only `Stream<T>` but also `IntStream`, `LongStream`, and `DoubleStream` support them.
 
 ~~~java
-// Dạng khái niệm của API trong BaseStream:
+// Conceptual API signatures in BaseStream:
 S sequential();
 S parallel();
 boolean isParallel();
 ~~~
 
-| Phương thức | Loại thao tác | Kết quả | Ý nghĩa |
+| Method | Operation kind | Return value | Meaning |
 | --- | --- | --- | --- |
-| `parallel()` | Đổi chế độ của Stream | Stream cùng loại | Đặt pipeline ở chế độ parallel |
-| `sequential()` | Đổi chế độ của Stream | Stream cùng loại | Đặt pipeline ở chế độ sequential |
-| `isParallel()` | Truy vấn trạng thái | `boolean` | Kiểm tra Stream đang được cấu hình parallel hay không |
+| `parallel()` | Switches Stream mode | Same Stream type | Sets the pipeline to parallel mode |
+| `sequential()` | Switches Stream mode | Same Stream type | Sets the pipeline to sequential mode |
+| `isParallel()` | Queries state | `boolean` | Checks whether the Stream is currently configured as parallel |
 
-Chú ý: `parallel()` **không** tự khởi động các thread ngay tại thời điểm được gọi, còn `sequential()` **không** có nghĩa là “đưa kết quả đã tính song song trở về một thread”. Các phép biến đổi trong Stream thông thường đều mang tính lazy cho đến khi có terminal operation.
+Note: `parallel()` **does not** launch threads immediately when called, and `sequential()` **does not** mean "bring parallel-computed results back onto one thread." Ordinary Stream transformations remain lazy until a terminal operation runs.
 
-Ví dụ kiểm tra kiểu Stream và chế độ:
+Example checking Stream types and modes:
 
 ~~~java
 import java.util.List;
@@ -77,11 +77,11 @@ public class CheckStreamMode {
 }
 ~~~
 
-Ở đây mỗi bước nối tiếp xây dựng **một pipeline duy nhất**, cuối cùng chỉ có **một terminal operation** là `toList()`. Không dùng các biến `serial` và `parallel` như hai Stream độc lập để chạy những terminal operation riêng.
+Here each chained step builds **a single pipeline**, ending with **one terminal operation**, `toList()`. Do not treat the `serial` and `parallel` variables as two independent Streams to run separate terminal operations on.
 
-## 3. stream() và parallelStream(): chọn chế độ từ nguồn
+## 3. stream() and parallelStream(): choosing the mode from the source
 
-Với Collection, ta có hai cách thường gặp để bắt đầu:
+With a Collection, there are two common ways to start:
 
 ~~~java
 import java.util.List;
@@ -95,7 +95,7 @@ System.out.println(serial.isParallel());   // false
 System.out.println(parallel.isParallel()); // true
 ~~~
 
-`Collection.stream()` tạo Stream tuần tự, còn `Collection.parallelStream()` tạo Stream song song. Tuy nhiên, chế độ ban đầu **có thể đổi**:
+`Collection.stream()` creates a sequential Stream, whereas `Collection.parallelStream()` creates a parallel Stream. However, the initial mode **can be switched**:
 
 ~~~java
 List<Integer> values = List.of(5, 3, 8, 2);
@@ -107,7 +107,7 @@ System.out.println(changedToParallel.isParallel()); // true
 System.out.println(changedToSerial.isParallel());   // false
 ~~~
 
-Hai cách sau có thể mô tả cùng yêu cầu:
+The following two approaches can express the same requirement:
 
 ~~~java
 long a = values.parallelStream()
@@ -122,25 +122,25 @@ long b = values.stream()
 // a == b == 3
 ~~~
 
-Tuy vậy, **cùng kiểu kết quả không đồng nghĩa luôn có cùng hiệu năng** trong mọi trường hợp. Chi phí tách nguồn, cách các bước được tối ưu, và độ nặng của từng phép tính vẫn cần được đánh giá riêng.
+Even so, **producing the same result type does not mean identical performance** in every case. Source-splitting cost, stage optimizations, and the weight of each computation still need to be evaluated separately.
 
-### Khi nào dùng cách nào?
+### When to use which?
 
-- Dùng `stream()` khi muốn pipeline tuần tự theo mặc định.
-- Dùng `parallelStream()` khi ngay từ đầu đã biết xử lý song song là một lựa chọn phù hợp.
-- Dùng `parallel()` hoặc `sequential()` khi muốn chọn chế độ dựa trên cấu hình hoặc điều kiện trong mã.
-- Nếu đầu vào đã là một `Stream` được truyền vào từ bên ngoài, có thể dùng `sequential()` để yêu cầu cách thực thi tuần tự hoặc `parallel()` để yêu cầu song song, nhưng phải tôn trọng **quyền sở hữu và vòng đời sử dụng một lần của Stream**.
+- Use `stream()` when you want a sequential pipeline by default.
+- Use `parallelStream()` when you already know from the start that parallel processing is a suitable option.
+- Use `parallel()` or `sequential()` when you want to select the mode based on configuration or a condition in code.
+- If the input is already a `Stream` passed in from outside, you can call `sequential()` to request sequential execution or `parallel()` to request parallel execution, while respecting **ownership and the single-use lifecycle of the Stream**.
 
-## 4. Chuyển chế độ: lời gọi cuối quyết định cách thực thi pipeline
+## 4. Switching modes: the last call determines pipeline execution
 
-Một điểm quan trọng: trong một pipeline Stream, `parallel()` và `sequential()` **không tạo ranh giới chạy song song/tuần tự riêng cho từng đoạn**. Chế độ của pipeline tại terminal operation mới quyết định chiến lược thực thi.
+An important point: within a single Stream pipeline, `parallel()` and `sequential()` **do not create separate parallel/sequential execution boundaries for individual segments**. The pipeline's mode at the terminal operation determines the execution strategy.
 
 ~~~java
 import java.util.List;
 
 List<Integer> numbers = List.of(1, 2, 3, 4, 5);
 
-// Kết thúc thiết lập chế độ bằng sequential().
+// Ends mode configuration with sequential().
 List<Integer> first = numbers.stream()
     .parallel()
     .map(n -> n * 2)
@@ -151,9 +151,9 @@ List<Integer> first = numbers.stream()
 System.out.println(first); // [6, 8, 10]
 ~~~
 
-Không diễn giải ví dụ này thành “`map` chạy song song rồi `filter` chạy tuần tự”. Chế độ cuối cùng là **sequential** cho toàn pipeline khi terminal bắt đầu.
+Do not interpret this example as "`map` runs in parallel and then `filter` runs sequentially." The final mode is **sequential** for the entire pipeline when the terminal operation begins.
 
-Ở chiều ngược lại:
+In the opposite direction:
 
 ~~~java
 List<Integer> second = numbers.stream()
@@ -166,9 +166,9 @@ List<Integer> second = numbers.stream()
 System.out.println(second); // [6, 8, 10]
 ~~~
 
-Trong pipeline thứ hai, yêu cầu cuối cùng là **parallel**; `toList()` vẫn giữ encounter order từ nguồn `List`. Hai kết quả giống nhau vì `map` và `filter` thuần túy và không phụ thuộc thứ tự thực thi callback.
+In the second pipeline, the final request is **parallel**; `toList()` still preserves encounter order from the `List` source. Both results match because `map` and `filter` are pure and do not depend on callback execution order.
 
-### 4.1. Kiểm tra trạng thái cuối
+### 4.1. Checking the final state
 
 ~~~java
 import java.util.stream.IntStream;
@@ -185,35 +185,35 @@ System.out.println(a.isParallel()); // false
 System.out.println(b.isParallel()); // true
 ~~~
 
-Có thể hình dung quy tắc:
+You can picture the rule as:
 
 ~~~text
 stream()
   ├─ parallel()           → parallel
   ├─ sequential()         → sequential
   ├─ parallel()           → parallel
-  └─ terminal operation   → thực thi ở chế độ parallel
+  └─ terminal operation   → executes in parallel mode
 
 parallelStream()
   ├─ sequential()         → sequential
-  └─ terminal operation   → thực thi ở chế độ sequential
+  └─ terminal operation   → executes in sequential mode
 ~~~
 
-**Đừng lạm dụng chuyển qua lại** trong cùng một pipeline. Chọn một chế độ rõ ràng, ở một vị trí dễ đọc, sẽ giúp kiểm thử và bảo trì dễ hơn.
+**Do not overuse toggling back and forth** in the same pipeline. Choosing one clear mode in a readable place makes testing and maintenance easier.
 
-### 4.2. Muốn thực sự có hai giai đoạn với chế độ khác nhau?
+### 4.2. Want truly two stages with different modes?
 
-Nếu bài toán bắt buộc một giai đoạn thực thi tuần tự và giai đoạn khác thực thi song song, cần có **ranh giới materialize** và hai pipeline riêng; một lời gọi `sequential()` ở giữa pipeline duy nhất không thực hiện điều này.
+If a problem strictly requires one stage to execute sequentially and another to execute in parallel, you need a **materialization boundary** and two separate pipelines; calling `sequential()` in the middle of a single pipeline does not achieve this.
 
 ~~~java
 import java.util.List;
 
-// Pipeline 1: hoàn thành tính toán tuần tự.
+// Pipeline 1: complete sequential computation.
 List<Integer> normalized = List.of(1, 2, 3, 4).stream()
     .map(n -> n * 10)
     .toList();
 
-// Pipeline 2: một Stream mới trên kết quả đã materialize.
+// Pipeline 2: a new Stream over the materialized result.
 long total = normalized.parallelStream()
     .mapToLong(n -> (long) n * n)
     .sum();
@@ -221,11 +221,11 @@ long total = normalized.parallelStream()
 System.out.println(total); // 3000
 ~~~
 
-Cách tách giai đoạn tạo ra một Collection trung gian, có chi phí bộ nhớ và cấp phát. Chỉ làm vậy khi thực sự có yêu cầu về ranh giới xử lý, không phải như một tối ưu mặc định.
+Splitting into stages creates an intermediate Collection, incurring memory and allocation overhead. Only do this when there is a real processing-boundary requirement, not as a default optimization.
 
-## 5. isParallel() kiểm tra điều gì, và không kiểm tra điều gì?
+## 5. What does isParallel() check, and what does it not check?
 
-`isParallel()` cho biết chế độ của đối tượng Stream tại thời điểm truy vấn. Nó trả `true` nếu Stream được cấu hình cho thực thi song song và `false` nếu được cấu hình tuần tự.
+`isParallel()` reports the mode of the Stream object at the moment it is queried. It returns `true` if the Stream is configured for parallel execution and `false` if configured for sequential execution.
 
 ~~~java
 import java.util.stream.IntStream;
@@ -240,18 +240,18 @@ int sum = pipeline.sum(); // 1 + 3 + 5 = 9
 System.out.println(sum);  // 9
 ~~~
 
-`isParallel()` **không có nghĩa**:
+`isParallel()` **does not mean**:
 
-- Có bao nhiêu thread đang xử lý.
-- Có thread mới đã được tạo.
-- Mọi phép toán trung gian đều phải được gọi từ một thread khác.
-- Parallel chắc chắn nhanh hơn sequential.
-- Pipeline chắc chắn đã bắt đầu thực thi.
-- Kết quả có thể thay đổi theo lịch thread mà vẫn đúng nghiệp vụ.
+- How many threads are processing.
+- Whether new threads have been created.
+- Whether every intermediate operation must be invoked on a different thread.
+- Whether parallel is definitely faster than sequential.
+- Whether the pipeline has already started executing.
+- Whether results may vary with thread scheduling while still being business-valid.
 
-Một Stream được cấu hình parallel có thể thực hiện phần công việc trên chính thread gọi terminal operation; việc phân tách và lên lịch tùy thuộc JDK, môi trường và đặc điểm nguồn.
+A Stream configured as parallel can perform part or all of its work on the very thread calling the terminal operation; splitting and scheduling depend on the JDK, environment, and source characteristics.
 
-### 5.1. Không dùng tên thread để chứng minh chế độ API
+### 5.1. Do not use thread names to prove API mode
 
 ~~~java
 import java.util.stream.IntStream;
@@ -263,28 +263,28 @@ IntStream.range(0, 8)
     );
 ~~~
 
-Đoạn mã có thể in nhiều tên thread và các số không theo thứ tự. Nhưng **đó chỉ là quan sát của một lần chạy**, không phải hợp đồng rằng luôn có số worker nhất định hay thứ tự in cố định. Ngược lại, thấy một thread trong một phép thử nhỏ cũng **không chứng minh `parallel()` bị bỏ qua**.
+This code may print several thread names and numbers out of order. However, **that is merely an observation from one run**, not a contract guaranteeing a specific worker count or print order. Conversely, seeing a single thread in a small test **does not prove `parallel()` was ignored**.
 
-Nếu cần kiểm tra **trạng thái được cấu hình**, dùng `isParallel()`. Nếu cần kiểm tra **lợi ích hiệu năng**, đo với workload và dữ liệu đại diện. Nếu cần cam kết về thread, điều phối, giới hạn concurrency hoặc timeout, Stream parallel thường không phải API kiểm soát trực tiếp những yêu cầu ấy.
+If you need to check the **configured state**, use `isParallel()`. If you need to verify **performance gains**, measure with representative workloads and data. If you need guarantees about threads, coordination, concurrency limits, or timeouts, parallel Streams are usually not the API to control those requirements directly.
 
-## 6. Chế độ thực thi không giống encounter order
+## 6. Execution mode is not the same as encounter order
 
-**Parallel/sequential** và **ordered/unordered** là hai chiều khác nhau của pipeline.
+**Parallel/sequential** and **ordered/unordered** are two orthogonal dimensions of a pipeline.
 
-- *Sequential/parallel* nói về chiến lược thực thi.
-- *Ordered/unordered* nói về việc pipeline có phải giữ **encounter order** hay không.
+- *Sequential/parallel* refers to the execution strategy.
+- *Ordered/unordered* refers to whether the pipeline must preserve **encounter order**.
 
-| Cấu hình | Chế độ thực thi | Encounter order |
+| Configuration | Execution mode | Encounter order |
 | --- | --- | --- |
-| `list.stream()` | Sequential | Có từ nguồn `List` |
-| `list.parallelStream()` | Parallel | Vẫn có từ nguồn `List` |
-| `list.stream().unordered()` | Sequential | Bỏ ràng buộc |
-| `list.parallelStream().unordered()` | Parallel | Bỏ ràng buộc |
-| `list.parallelStream().sequential()` | Sequential | Vẫn có từ nguồn `List` |
+| `list.stream()` | Sequential | Present from `List` source |
+| `list.parallelStream()` | Parallel | Still present from `List` source |
+| `list.stream().unordered()` | Sequential | Constraint relaxed |
+| `list.parallelStream().unordered()` | Parallel | Constraint relaxed |
+| `list.parallelStream().sequential()` | Sequential | Still present from `List` source |
 
-`parallel()` **không tự gọi `unordered()`**. `sequential()` **không tự sắp xếp dữ liệu**. Nếu nghiệp vụ yêu cầu kết quả đầu ra theo thứ tự nguồn, phải xem xét encounter order của cả nguồn và pipeline.
+`parallel()` **does not automatically call `unordered()`**. `sequential()` **does not automatically sort data**. If the business logic requires output in source order, you must examine the encounter order of both the source and the pipeline.
 
-### 6.1. toList() bảo toàn encounter order khi nguồn có thứ tự
+### 6.1. toList() preserves encounter order when the source is ordered
 
 ~~~java
 import java.util.List;
@@ -298,32 +298,32 @@ List<String> result = names.parallelStream()
 System.out.println(result); // [CHI, AN, BÌNH]
 ~~~
 
-Mặc dù callback có thể được thực hiện song song, `toList()` phải bảo toàn encounter order khi Stream có thứ tự. Không dùng `parallel()` như cách xáo trộn danh sách.
+Even though callbacks may execute in parallel, `toList()` must preserve encounter order when the Stream is ordered. Do not use `parallel()` as a way to shuffle a list.
 
-### 6.2. forEach() và forEachOrdered() khác nhau
+### 6.2. forEach() and forEachOrdered() differ
 
 ~~~java
 import java.util.stream.IntStream;
 
-// Không bảo đảm thứ tự thực thi action khi parallel:
+// Action execution order is not guaranteed when parallel:
 IntStream.rangeClosed(1, 5)
     .parallel()
     .forEach(System.out::println);
 ~~~
 
-Nếu cần action được thực thi theo encounter order, dùng:
+If actions must execute in encounter order, use:
 
 ~~~java
 IntStream.rangeClosed(1, 5)
     .parallel()
     .forEachOrdered(System.out::println);
 
-// In 1, 2, 3, 4, 5 theo thứ tự.
+// Prints 1, 2, 3, 4, 5 in order.
 ~~~
 
-`forEachOrdered` giúp duy trì trình tự action theo encounter order, nhưng có thể hạn chế khả năng tăng tốc song song. Nếu mục tiêu chỉ là tạo một danh sách, `toList()` hoặc collector phù hợp thường là cách tốt hơn so với ghi vào một List mutable bên ngoài.
+`forEachOrdered` preserves action sequence in encounter order, though it can limit parallel speedup. If the goal is simply building a list, `toList()` or an appropriate collector is usually better than writing into an external mutable List.
 
-### 6.3. findFirst(), findAny() và short-circuit
+### 6.3. findFirst(), findAny(), and short-circuiting
 
 ~~~java
 import java.util.List;
@@ -333,44 +333,44 @@ List<Integer> values = List.of(10, 20, 30, 40);
 
 Optional<Integer> first = values.parallelStream()
     .filter(n -> n >= 20)
-    .findFirst(); // Optional[20] vì nguồn ordered.
+    .findFirst(); // Optional[20] because the source is ordered.
 
 Optional<Integer> any = values.parallelStream()
     .filter(n -> n >= 20)
-    .findAny(); // Có thể là 20, 30 hoặc 40.
+    .findAny(); // Could be 20, 30, or 40.
 ~~~
 
-`findAny()` cho phép lựa chọn phần tử bất kỳ, có thể thuận tiện cho song song. `findFirst()` phải tuân thủ encounter order khi có. Gọi `sequential()` hay `parallel()` không thay đổi yêu cầu đó.
+`findAny()` allows selecting any matching element, which can be convenient for parallelism. `findFirst()` must obey encounter order when present. Calling `sequential()` or `parallel()` does not change that requirement.
 
-`limit` và `skip` trên ordered parallel stream có thể đòi hỏi thêm phối hợp để xác định các phần tử đầu. Nếu không cần thứ tự, `unordered()` có thể giảm ràng buộc, nhưng đồng thời **thay đổi ngữ nghĩa**: `limit(3)` lúc đó có thể trả bất kỳ ba phần tử phù hợp.
+`limit` and `skip` on an ordered parallel stream may require extra coordination to determine the leading elements. If order is unnecessary, `unordered()` can relax constraints, but it simultaneously **changes semantics**: `limit(3)` may then return any three matching elements.
 
-## 7. Spliterator và nguồn quyết định khả năng chia việc
+## 7. Spliterator and the source determine splittability
 
-Stream không song song hóa bằng cách “tạo thread cho mỗi phần tử”. Khả năng phân hoạch dữ liệu phụ thuộc nhiều vào **`Spliterator` của nguồn** và cấu trúc pipeline.
+Streams do not parallelize by "creating a thread per element." How well data can be partitioned depends heavily on the **source's `Spliterator`** and pipeline structure.
 
 ~~~text
-Collection / mảng / nguồn tùy chỉnh
+Collection / array / custom source
                  │
                  ▼
              Spliterator
                  │
             trySplit()
            /          \
-      Phần A          Phần B
+      Part A          Part B
          │               │
-     xử lý riêng      xử lý riêng
+  process separately  process separately
          │               │
          └───────┬───────┘
                  ▼
-             kết hợp
+              combine
                  │
                  ▼
           terminal result
 ~~~
 
-`Spliterator.trySplit()` có thể trả một Spliterator con hoặc `null` nếu không thể/không muốn chia. Các đặc tính như `SIZED`, `SUBSIZED` và `ORDERED` có thể ảnh hưởng đến chiến lược thực thi và chi phí phối hợp.
+`Spliterator.trySplit()` can return a sub-Spliterator or `null` if it cannot or chooses not to split. Characteristics such as `SIZED`, `SUBSIZED`, and `ORDERED` can affect the execution strategy and coordination overhead.
 
-Ví dụ nguồn số có thể chia thành các khoảng:
+Example of a numeric source that splits into ranges:
 
 ~~~java
 import java.util.stream.IntStream;
@@ -383,11 +383,11 @@ long total = IntStream.range(0, 100_000)
 System.out.println(total); // 4_999_950_000
 ~~~
 
-Một `IntStream.range` thường dễ phân hoạch hơn một nguồn dữ liệu tùy chỉnh phải gọi I/O tuần tự. Nhưng **không có cam kết `parallel()` luôn nhanh hơn**, kể cả với dải số: thời gian chia việc, kết hợp kết quả và khởi động xử lý có thể lớn hơn lợi ích khi phép toán quá đơn giản.
+An `IntStream.range` is typically easier to partition than a custom data source that must perform sequential I/O. Still, **there is no promise that `parallel()` is always faster**, even for numeric ranges: the time spent splitting, combining results, and starting execution can exceed the gain when the computation is trivial.
 
-### Đặc tính nguồn không bảo đảm nhiều thread
+### Source characteristics do not guarantee multiple threads
 
-Một nguồn có Spliterator **không chia được** vẫn có thể được cấu hình parallel:
+A source with an **unsplittable** Spliterator can still be configured as parallel:
 
 ~~~java
 import java.util.Spliterator;
@@ -410,30 +410,30 @@ System.out.println(pipeline.isParallel()); // true
 System.out.println(pipeline.toList()); // [1, 2, 3]
 ~~~
 
-Trong ví dụ này, `true` xác định chế độ parallel. Nó không cam kết sẽ xử lý ba giá trị bằng ba thread hay nhanh hơn nguồn tương đương chạy tuần tự. Một số Spliterator còn có thể chia theo lô nội bộ dù không biết trước kích thước.
+In this example, `true` sets parallel mode. It does not guarantee that the three values will be processed by three threads or faster than an equivalent sequential run. Some Spliterators can also split internally by batching even when the size is unknown upfront.
 
-## 8. Các phép toán trung gian vẫn phải không trạng thái và không can thiệp
+## 8. Intermediate operations must still be stateless and non-interfering
 
-Một pipeline parallel đúng đòi hỏi các **behavioral parameters** (`Predicate`, `Function`, `BinaryOperator`, ...) tuân thủ yêu cầu của Stream API: **không can thiệp** vào nguồn đang được duyệt và, trong các trường hợp áp dụng, **không phụ thuộc state mutable dùng chung**.
+A valid parallel pipeline requires **behavioral parameters** (`Predicate`, `Function`, `BinaryOperator`, ...) to obey the Stream API contract: **non-interfering** with the source being traversed and, where applicable, **stateless** (not depending on shared mutable state).
 
-### 8.1. Không dùng ArrayList chia sẻ để nhận kết quả
+### 8.1. Do not use a shared ArrayList to collect results
 
 ~~~java
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
-// Ví dụ CHỐNG CHỈ ĐỊNH: nguy cơ race condition.
+// ANTI-PATTERN: risk of race condition.
 List<Integer> shared = new ArrayList<>();
 
 IntStream.range(0, 1000)
     .parallel()
     .forEach(shared::add);
 
-// shared không thread-safe; kích thước/nội dung không được bảo đảm.
+// shared is not thread-safe; size/contents are not guaranteed.
 ~~~
 
-Ngay cả khi thay bằng một collection synchronized, thuật toán có thể vẫn bị tranh chấp lock và không còn lợi ích song song. Nếu muốn danh sách kết quả, hãy để Stream/collector quản lý:
+Even if replaced with a synchronized collection, the algorithm can still suffer from lock contention and lose parallel benefits. When you want a result list, let Stream/collector manage it:
 
 ~~~java
 List<Integer> result = IntStream.range(0, 1000)
@@ -444,13 +444,13 @@ List<Integer> result = IntStream.range(0, 1000)
 System.out.println(result.size()); // 1000
 ~~~
 
-### 8.2. AtomicInteger không tự làm thuật toán stateless
+### 8.2. AtomicInteger does not automatically make an algorithm stateless
 
 ~~~java
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
-// Ví dụ không phù hợp nếu mục tiêu là gán số thứ tự theo encounter order.
+// Unsuitable example if the goal is assigning sequence numbers in encounter order.
 AtomicInteger counter = new AtomicInteger();
 
 int[] labels = IntStream.range(0, 5)
@@ -459,9 +459,9 @@ int[] labels = IntStream.range(0, 5)
     .toArray();
 ~~~
 
-`AtomicInteger` làm thao tác tăng đếm an toàn ở mức nguyên tử, nhưng **giá trị gán cho từng phần tử phụ thuộc lịch thực thi**. Vì vậy, không thể kỳ vọng `labels` luôn là `[0, 1, 2, 3, 4]`. Đây là vấn đề về **tính xác định của nghiệp vụ**, không chỉ data race.
+`AtomicInteger` makes incrementing atomic, yet **the value assigned to each element depends on execution scheduling**. Thus you cannot expect `labels` to always be `[0, 1, 2, 3, 4]`. This is a **business determinism** issue, not just a data race.
 
-Nếu cần số thứ tự của phần tử, sử dụng chỉ số của nguồn:
+If you need each element's sequence number, use the source's index:
 
 ~~~java
 int[] labels = IntStream.range(0, 5).parallel()
@@ -471,9 +471,9 @@ int[] labels = IntStream.range(0, 5).parallel()
 // [0, 1, 2, 3, 4]
 ~~~
 
-Hoặc tạo cặp chỉ số–giá trị một cách tường minh từ một `List` có thứ tự, không dựa vào counter được cập nhật trong callback.
+Or construct index-value pairs explicitly from an ordered `List`, rather than relying on a counter updated inside callbacks.
 
-### 8.3. Không cập nhật nguồn bên trong pipeline
+### 8.3. Do not mutate the source inside the pipeline
 
 ~~~java
 import java.util.ArrayList;
@@ -481,17 +481,17 @@ import java.util.List;
 
 List<Integer> source = new ArrayList<>(List.of(1, 2, 3));
 
-// Không làm:
+// Do not do this:
 // source.parallelStream().forEach(source::add);
 ~~~
 
-Việc sửa cấu trúc Collection trong khi Stream đang duyệt có thể dẫn đến lỗi, dữ liệu bị thiếu/lặp hoặc hành vi không được bảo đảm. `sequential()` cũng không tự làm việc can thiệp nguồn trở nên đúng; nguyên tắc không can thiệp vẫn áp dụng.
+Modifying a Collection's structure while a Stream is traversing it can lead to errors, missing/duplicate data, or undefined behavior. Calling `sequential()` does not make source interference valid either; the non-interference rule still applies.
 
-## 9. reduce và collect: tính kết hợp quan trọng hơn chế độ
+## 9. reduce and collect: associativity matters more than mode
 
-Để pipeline có thể chia và kết hợp kết quả theo những nhóm khác nhau, các hàm reduction phải đáp ứng hợp đồng của API.
+For a pipeline to split and combine results across different groups, reduction functions must satisfy the API contract.
 
-### 9.1. Phép cộng nguyên đúng miền giá trị
+### 9.1. Integer addition within the proper value range
 
 ~~~java
 import java.util.List;
@@ -510,21 +510,21 @@ System.out.println(sequentialTotal); // 100
 System.out.println(parallelTotal);   // 100
 ~~~
 
-`sum()` diễn đạt trực tiếp mục tiêu. Với dữ liệu đủ lớn, cả `int` và `long` đều có thể tràn; phải chọn miền số hoặc phép toán có kiểm tra theo yêu cầu.
+`sum()` expresses the goal directly. With sufficiently large data, both `int` and `long` can overflow; choose an appropriate numeric domain or checked arithmetic as required.
 
-### 9.2. Phép trừ không phải reduction kết hợp được
+### 9.2. Subtraction is not an associative reduction
 
 ~~~java
 import java.util.List;
 
-// Đây là công thức không phù hợp để kỳ vọng tương đương khi parallel.
+// This formula is unsuitable if you expect equivalence when parallel.
 int wrong = List.of(10, 3, 2).parallelStream()
     .reduce(0, (left, right) -> left - right);
 ~~~
 
-Phép trừ không có tính kết hợp và `0` không là identity hai phía cho phép trừ. Các cách chia nhóm khác nhau có thể dẫn tới kết quả khác nhau. Gọi `sequential()` để làm ví dụ “trông ổn” **không sửa tính toán học sai** nếu nó dự kiến dùng như một phép reduction tổng quát.
+Subtraction is not associative and `0` is not a two-sided identity for subtraction. Different groupings can yield different results. Calling `sequential()` so an example "looks fine" **does not fix incorrect math** if it is meant as a general reduction.
 
-Nếu muốn lấy một số ban đầu trừ tổng các khoản giảm, hãy **cộng các khoản giảm trước**, rồi trừ đúng một lần:
+If you want to subtract a total of discounts from an initial base amount, **sum the discounts first**, then subtract once:
 
 ~~~java
 int base = 100;
@@ -536,7 +536,7 @@ int payable = base - discounts;
 System.out.println(payable); // 85
 ~~~
 
-### 9.3. collect không phải tự động thread-safe với mutable state ngoài
+### 9.3. collect is not automatically thread-safe with external mutable state
 
 ~~~java
 import java.util.List;
@@ -547,22 +547,22 @@ List<Integer> result = List.of(1, 2, 3, 4).parallelStream()
     .collect(Collectors.toList());
 ~~~
 
-Collector có supplier/accumulator/combiner để phối hợp các container trung gian theo hợp đồng. Không tự thay bằng một biến `ArrayList` mutable ngoài pipeline. `Collectors.toList()` **không cam kết** List trả về có thể sửa được; nếu thật sự cần `ArrayList`, dùng `Collectors.toCollection(ArrayList::new)`.
+A Collector uses supplier/accumulator/combiner to coordinate intermediate containers according to contract. Do not replace it with an external mutable `ArrayList` variable. `Collectors.toList()` **does not guarantee** that the returned List is mutable; if you genuinely need an `ArrayList`, use `Collectors.toCollection(ArrayList::new)`.
 
-## 10. Các phép toán có trạng thái có thể làm parallel kém hiệu quả
+## 10. Stateful operations can make parallel execution inefficient
 
-`sorted`, `distinct`, `limit`, `skip` và một số operation khác có thể cần phối hợp giữa các phần dữ liệu. Chế độ parallel không loại bỏ chi phí thuật toán đó.
+`sorted`, `distinct`, `limit`, `skip`, and certain other operations may require coordination across data partitions. Parallel mode does not eliminate that algorithmic cost.
 
-| Operation | Khi parallel có thể cần thêm | Lưu ý |
+| Operation | When parallel, may additionally require | Notes |
 | --- | --- | --- |
-| `sorted()` | Thu thập/sắp xếp, phối hợp kết quả | Có chi phí bộ nhớ và so sánh |
-| `distinct()` | Loại trùng, giữ tính ổn định nếu ordered | `unordered()` đôi khi nới ràng buộc |
-| `limit(n)` | Xác định n phần tử đầu theo encounter order | Nguồn ordered có thể hạn chế tốc độ |
-| `skip(n)` | Bỏ chính xác n phần tử đầu | Có thể đòi hỏi phối hợp |
-| `takeWhile()/dropWhile()` | Tìm tiền tố trên ordered stream | Unordered thay đổi ngữ nghĩa |
-| `forEachOrdered()` | Giữ thứ tự action | Có thể làm giảm hiệu quả song song |
+| `sorted()` | Collecting/sorting, coordinating results | Incurs memory and comparison cost |
+| `distinct()` | Deduplicating, preserving stability if ordered | `unordered()` sometimes relaxes constraints |
+| `limit(n)` | Determining the first n elements in encounter order | Ordered sources can restrict speedup |
+| `skip(n)` | Skipping the exact first n elements | May require coordination |
+| `takeWhile()/dropWhile()` | Finding the prefix on an ordered stream | Unordered changes semantics |
+| `forEachOrdered()` | Preserving action order | Can reduce parallel efficiency |
 
-Ví dụ:
+Example:
 
 ~~~java
 import java.util.List;
@@ -579,15 +579,15 @@ List<Integer> topFive = IntStream.range(0, 100_000)
 System.out.println(topFive); // [1, 2, 3, 4, 5]
 ~~~
 
-`sorted` thiết lập thứ tự, sau đó `limit(5)` lấy năm giá trị đầu theo thứ tự đó. Nếu yêu cầu là “năm giá trị nhỏ nhất”, **không** thay `sorted().limit(5)` bằng `unordered().limit(5)`.
+`sorted` establishes the ordering, then `limit(5)` takes the first five values in that order. If the requirement is "the five smallest values," **do not** replace `sorted().limit(5)` with `unordered().limit(5)`.
 
-### parallel không luôn là lựa chọn nhanh hơn
+### parallel is not always the faster choice
 
-Không có quy tắc cứng “từ 10.000 phần tử trở lên thì dùng parallel”. Lợi ích phụ thuộc chi phí mỗi phần tử, khả năng chia nguồn, số lõi và tải máy, thứ tự, độ phân bố dữ liệu, chi phí hợp nhất, cấp phát và GC. Phải đo workload thực tế.
+There is no hard rule like "use parallel from 10,000 elements upward." Benefits depend on per-element cost, source splittability, core count and machine load, ordering, data distribution, merging overhead, allocations, and GC. You must measure the actual workload.
 
-## 11. Floating-point: cùng thuật toán chưa chắc cùng bit kết quả
+## 11. Floating-point: the same algorithm may not yield identical bits
 
-Với `double`, phép cộng có sai số làm tròn. Sự khác nhau về cách nhóm các phép cộng khi thực thi tuần tự hoặc song song có thể làm kết quả chênh lệch ở các chữ số cuối:
+With `double`, addition has rounding error. Differences in how additions are grouped between sequential and parallel execution can make results differ in the least significant digits:
 
 ~~~java
 double a = 1e16;
@@ -598,15 +598,15 @@ System.out.println((a + b) + c); // 1.0
 System.out.println(a + (b + c)); // 0.0
 ~~~
 
-Đây là tính chất số học IEEE 754, không phải dấu hiệu Stream API “làm sai”. Khi cần độ chính xác thập phân, có thể xem xét `BigDecimal` và chính sách scale/rounding rõ ràng. Khi kiểm thử phép tổng số thực, nên đặt sai số cho phép theo yêu cầu ứng dụng thay vì luôn so sánh bit nếu thuật toán không bảo đảm tính đồng nhất bit.
+This is an IEEE 754 arithmetic property, not a sign that the Stream API is "wrong." When decimal exactness is required, consider `BigDecimal` with explicit scale and rounding policies. When testing floating-point sums, define an application-appropriate tolerance instead of always comparing bit-for-bit if the algorithm does not guarantee bitwise identity.
 
-### Các hàm gộp có trạng thái khác cũng cần chú ý
+### Other stateful aggregations also require care
 
-Với thống kê trung bình, không thể chỉ lấy trung bình của các trung bình nhóm nếu số phần tử mỗi nhóm khác nhau. Phải giữ **tổng và số lượng**, hoặc dùng collector/terminal chuẩn như `averagingDouble` hay `summaryStatistics`, đồng thời hiểu giới hạn sai số số thực.
+For statistical averages, you cannot simply average group averages if group sizes differ. You must keep **sum and count**, or use standard collectors/terminals such as `averagingDouble` or `summaryStatistics`, while understanding floating-point error bounds.
 
-## 12. Viết hàm chọn chế độ theo cấu hình
+## 12. Writing a function that selects mode by configuration
 
-Một ứng dụng có thể muốn chạy cùng phép biến đổi ở cả hai chế độ, chẳng hạn cho phép cấu hình bật parallel sau khi đã benchmark với dữ liệu phù hợp.
+An application may want to run the same transformation in both modes, for example allowing parallel mode to be enabled via configuration after benchmarking with appropriate data.
 
 ~~~java
 import java.util.List;
@@ -635,22 +635,22 @@ public class ConfigurablePipeline {
 }
 ~~~
 
-Điểm đúng của cấu trúc này:
+What this structure gets right:
 
-1. Tạo **Stream mới** từ Collection mỗi lần gọi hàm.
-2. Chỉ chọn chế độ một lần, trước terminal.
-3. Các lambda không sử dụng state chia sẻ, không sửa nguồn.
-4. `toList()` giữ encounter order của `List` dù chạy parallel.
-5. Không cố chạy lại cùng một Stream cho hai chế độ.
+1. Creates a **new Stream** from the Collection on each call.
+2. Selects the mode only once, before the terminal operation.
+3. Lambdas use no shared state and do not mutate the source.
+4. `toList()` preserves the `List`'s encounter order even when running in parallel.
+5. Does not attempt to reuse the same Stream for both modes.
 
-### Kiểm tra mode trong hàm
+### Checking mode inside a method
 
 ~~~java
 static long sum(List<Integer> values, boolean runParallel) {
     Stream<Integer> stream = values.stream();
     stream = runParallel ? stream.parallel() : stream.sequential();
 
-    // Truy vấn mode, không kích hoạt traversal.
+    // Queries mode without triggering traversal.
     boolean configuredParallel = stream.isParallel();
     if (configuredParallel != runParallel) {
         throw new IllegalStateException("Cấu hình mode không khớp");
@@ -660,11 +660,11 @@ static long sum(List<Integer> values, boolean runParallel) {
 }
 ~~~
 
-`isParallel` hữu ích khi kiểm thử **lựa chọn cấu hình**. Nó không kiểm thử phần mềm có thực sự tăng tốc, đạt độ đồng thời mong muốn hay làm việc trên nhiều thread.
+`isParallel` is useful for testing **configuration selection**. It does not test whether the software actually speeds up, achieves desired concurrency, or executes across multiple threads.
 
-## 13. Kiểm thử ngữ nghĩa của sequential và parallel
+## 13. Testing sequential and parallel semantics
 
-Một kiểm thử cơ bản cần so sánh kết quả chức năng ở cả hai chế độ, đặc biệt đối với pipeline có `filter`, `map`, `sorted` hoặc các collector phức tạp.
+A basic test should compare functional results in both modes, especially for pipelines with `filter`, `map`, `sorted`, or complex collectors.
 
 ~~~java
 import java.util.List;
@@ -702,32 +702,32 @@ public class ParallelSemanticsCheck {
 }
 ~~~
 
-Mẫu kiểm thử này có tác dụng vì `IntStream.rangeClosed` là nguồn có thứ tự và các phép biến đổi đang xét là stateless, không can thiệp. `toList()` duy trì encounter order.
+This test pattern works because `IntStream.rangeClosed` is an ordered source and the transformations under test are stateless and non-interfering. `toList()` preserves encounter order.
 
-Đối với pipeline **không cần thứ tự** và trả `Set`, hãy so sánh nội dung Set thay vì `toString()` hoặc thứ tự duyệt. Đối với phép tính `double`, chọn chiến lược so sánh phù hợp chính sách độ chính xác. Khi kiểm tra concurrency, không lấy thứ tự log hoặc tên thread làm tiêu chí đúng/sai của thuật toán.
+For pipelines that **do not require order** and return a `Set`, compare Set contents rather than `toString()` or iteration order. For `double` computations, choose a comparison strategy suited to your precision policy. When testing concurrency, do not use log order or thread names as pass/fail criteria for algorithm correctness.
 
-### Tránh kiểm thử bằng side effect của peek
+### Avoid testing via side effects in peek
 
 ~~~java
 import java.util.stream.IntStream;
 
-// Không dùng bộ đếm trong peek làm bằng chứng bắt buộc
-// mọi phần tử đã được mapper thực thi.
+// Do not use a counter inside peek as proof that
+// every element was processed by the mapper.
 long count = IntStream.range(0, 100)
     .parallel()
     .peek(n -> System.out.println("Seen: " + n))
     .count();
 ~~~
 
-Một số terminal operation như `count()` có thể tận dụng kích thước chính xác và tối ưu bỏ qua các bước trung gian không ảnh hưởng kết quả. Hành vi side effect của `peek` không phải bằng chứng tin cậy về việc duyệt bao nhiêu phần tử.
+Some terminal operations like `count()` can leverage exact size information and optimize away intermediate steps that do not affect the result. Side-effect behavior in `peek` is not reliable proof of how many elements were traversed.
 
-## 14. Ràng buộc về tài nguyên, I/O và quản lý vòng đời
+## 14. Resource constraints, I/O, and lifecycle management
 
-Parallel stream thường phù hợp nhất với các phép tính **CPU-bound** có khả năng chia nguồn, chi phí mỗi phần tử đủ lớn và callback thuần túy. Với I/O chặn lâu như gọi HTTP hoặc truy vấn cơ sở dữ liệu, dùng `parallelStream()` có thể làm tăng số tác vụ chờ và ảnh hưởng các công việc khác; nếu cần quản lý số request đồng thời, timeout, retry hoặc backpressure thì nên dùng cơ chế điều phối chuyên dụng.
+Parallel streams are generally best suited to **CPU-bound** computations with splittable sources, sufficient per-element work, and pure callbacks. For long-blocking I/O such as HTTP calls or database queries, using `parallelStream()` can increase the number of waiting tasks and affect other work; if you need to manage concurrent request counts, timeouts, retries, or backpressure, use a dedicated orchestration mechanism.
 
-**Không có bảo đảm** parallel stream sử dụng một số thread cố định mà ứng dụng có thể cấu hình độc lập qua `parallel()`. Dù implementation thường tận dụng Fork/Join, không nên thiết kế correctness dựa trên tên pool, số thread hay việc task chạy luôn ở một pool nhất định.
+**There is no guarantee** that a parallel stream uses a fixed number of threads that the application can configure independently via `parallel()`. Although implementations often use Fork/Join, correctness must not depend on pool names, thread counts, or tasks always running on a specific pool.
 
-### Stream từ tài nguyên vẫn cần đóng
+### Streams backed by resources still must be closed
 
 ~~~java
 import java.io.IOException;
@@ -747,11 +747,11 @@ public class FileLineCounter {
 }
 ~~~
 
-`try-with-resources` đảm bảo Stream được đóng sau khi terminal hoàn thành hoặc ném lỗi. `parallel()` và `sequential()` không thay thế nghĩa vụ quản lý tài nguyên; cũng không bảo đảm file sẽ được đọc/giải mã song song hiệu quả. Đối với nguồn có thứ tự hoặc dùng reader tuần tự, chi phí đọc nguồn có thể là nút thắt chính.
+`try-with-resources` ensures the Stream is closed after the terminal operation completes or throws an exception. `parallel()` and `sequential()` do not replace resource-management obligations; nor do they guarantee that the file will be read or decoded efficiently in parallel. For ordered sources or sequential readers, source reading cost may be the main bottleneck.
 
-## 15. Những nhầm lẫn thường gặp
+## 15. Common pitfalls
 
-### Nhầm lẫn 1: parallel() ở đầu và sequential() ở giữa tạo hai giai đoạn
+### Pitfall 1: parallel() at the start and sequential() in the middle create two stages
 
 ~~~java
 var values = List.of(1, 2, 3).stream()
@@ -761,29 +761,29 @@ var values = List.of(1, 2, 3).stream()
     .toList();
 ~~~
 
-Đây là **một pipeline thực thi tuần tự**; không phải `map` đã chạy song song rồi kết quả mới chuyển sang tuần tự. Muốn hai giai đoạn thật, tách thành hai terminal/pipeline và dùng dữ liệu trung gian phù hợp.
+This is **one pipeline executing sequentially**; it is not that `map` ran in parallel and then the results switched to sequential. For two true stages, split into two terminal operations/pipelines using appropriate intermediate data.
 
-### Nhầm lẫn 2: isParallel() true nghĩa là đã có nhiều thread
+### Pitfall 2: isParallel() true means multiple threads are active
 
-`isParallel()` chỉ xác nhận chế độ được yêu cầu. Khả năng chia nguồn, kích thước dữ liệu và cách lên lịch quyết định công việc thực tế. Không dùng nó làm số đo throughput hoặc concurrency.
+`isParallel()` only confirms the requested mode. Source splittability, data size, and scheduling decide the actual execution. Do not use it as a measure of throughput or concurrency.
 
-### Nhầm lẫn 3: parallel luôn phá thứ tự của toList
+### Pitfall 3: parallel always breaks toList ordering
 
-Với nguồn có encounter order như `List`, `parallelStream().toList()` vẫn giữ thứ tự. Chỉ khi nguồn/pipeline không có encounter order thì danh sách không cần giữ một thứ tự gốc đã được bảo đảm.
+On sources with encounter order like `List`, `parallelStream().toList()` still preserves order. Only when the source or pipeline lacks encounter order does the resulting list have no guaranteed original order.
 
-### Nhầm lẫn 4: sequential() sửa mọi race condition
+### Pitfall 4: sequential() fixes every race condition
 
-Chuyển về tuần tự có thể làm một lỗi không còn bộc lộ, nhưng lambda sửa nguồn hoặc phụ thuộc vào state bên ngoài vẫn có thể vi phạm hợp đồng Stream và khiến code khó kiểm soát. Phải sửa nguyên nhân, không chỉ tắt song song.
+Switching back to sequential may hide a bug temporarily, yet a lambda that mutates the source or depends on external state can still violate the Stream contract and make code fragile. Fix the root cause, do not just turn off parallelism.
 
-### Nhầm lẫn 5: cộng Double luôn cho đúng bit như tuần tự
+### Pitfall 5: Double addition always gives the exact same bits as sequential
 
-Phép cộng floating-point không kết hợp tuyệt đối do làm tròn. Chuyển chế độ có thể làm nhóm phép cộng khác; chọn mô hình số học/kiểm thử theo mục tiêu.
+Floating-point addition is not strictly associative due to rounding. Switching modes can change how additions are grouped; choose arithmetic and testing models suited to your goals.
 
-### Nhầm lẫn 6: có parallel là phải nhanh hơn
+### Pitfall 6: adding parallel must be faster
 
-Với nguồn nhỏ, phép tính đơn giản hoặc pipeline có `sorted`, `limit`, `distinct`, chi phí chia/gộp có thể lấn át lợi ích. Chỉ quyết định sau khi đo tải thật.
+With small sources, simple operations, or pipelines containing `sorted`, `limit`, or `distinct`, splitting/merging overhead can outweigh any gain. Decide only after measuring real load.
 
-### Nhầm lẫn 7: có thể chạy một Stream nhiều lần bằng cách đổi mode
+### Pitfall 7: a Stream can be run multiple times by changing its mode
 
 ~~~java
 import java.util.List;
@@ -792,11 +792,11 @@ import java.util.stream.Stream;
 Stream<Integer> once = List.of(1, 2, 3).stream();
 long count = once.count();
 
-// Không dùng lại: stream đã tiêu thụ.
+// Cannot reuse: the stream has already been consumed.
 // long other = once.parallel().count();
 ~~~
 
-Stream không có cơ chế rewind mặc định. Nếu muốn so sánh hai chế độ, tạo hai Stream **mới** từ nguồn hoặc một Supplier tạo Stream hợp lệ:
+Streams have no built-in rewind mechanism. If you want to compare both modes, create two **new** Streams from the source or a valid Stream-producing Supplier:
 
 ~~~java
 import java.util.List;
@@ -810,43 +810,43 @@ long sequentialCount = factory.get().count();
 long parallelCount = factory.get().parallel().count();
 ~~~
 
-### Nhầm lẫn 8: unordered() chính là sequential()
+### Pitfall 8: unordered() is the same as sequential()
 
-`unordered()` bỏ **ràng buộc encounter order**. `sequential()` chọn **chế độ thực thi tuần tự**. Hai operation giải quyết hai vấn đề hoàn toàn khác nhau và có thể kết hợp khi nghiệp vụ phù hợp.
+`unordered()` drops the **encounter order constraint**. `sequential()` selects **sequential execution mode**. The two operations solve completely different problems and can be combined when the business logic calls for it.
 
-## 16. Bảng chọn chế độ theo yêu cầu
+## 16. Mode selection table by requirement
 
-| Bài toán | Lựa chọn ban đầu | Lý do |
+| Problem | Initial choice | Reason |
 | --- | --- | --- |
-| Danh sách nhỏ, `map`/`filter` rẻ | `stream()` | Tránh overhead song song |
-| Nguồn lớn, CPU-bound, dễ chia, stateless | Cân nhắc `parallelStream()` hoặc `parallel()` | Có khả năng hưởng lợi nhưng cần benchmark |
-| Phải giữ đúng thứ tự kết quả | Có thể dùng cả hai, giữ encounter order | `toList` và reduction đúng hợp đồng vẫn có thể giữ thứ tự |
-| Phải thực thi side effect theo trình tự | Ưu tiên thiết kế tuần tự hoặc bước điều phối riêng | Tránh phụ thuộc lịch thread |
-| Cần chọn một phần tử bất kỳ | `findAny()`, cân nhắc parallel | Không phải giữ phần tử đầu theo thứ tự |
-| Cần phần tử đầu tiên | `findFirst()` với nguồn ordered | Đúng ngữ nghĩa, có thể tốn phối hợp khi parallel |
-| Có `sorted` / `distinct` / `limit` phức tạp | Bắt đầu tuần tự rồi đo | Stateful operations có thể tốn gộp/đồng bộ |
-| Đang có một Stream phải đưa về tuần tự | `sequential()` trước terminal | Chọn chế độ cho pipeline |
-| Cần biết mode đã chọn | `isParallel()` | Kiểm tra cấu hình, không đo thread |
-| Cần kiểm soát chặt thread pool, timeout, backpressure | Cơ chế concurrency riêng phù hợp | Stream mode không cung cấp hợp đồng điều phối chi tiết |
+| Small list, cheap `map`/`filter` | `stream()` | Avoid parallel overhead |
+| Large source, CPU-bound, easily splittable, stateless | Consider `parallelStream()` or `parallel()` | Potentially beneficial, but requires benchmarking |
+| Must preserve exact result order | Can use either, keeping encounter order | `toList` and contract-compliant reductions still preserve order |
+| Must execute side effects in sequence | Prefer sequential design or a separate coordination step | Avoid depending on thread scheduling |
+| Need any matching element | `findAny()`, consider parallel | No need to keep the first element in order |
+| Need the first element | `findFirst()` on an ordered source | Correct semantics; may incur coordination cost when parallel |
+| Complex `sorted` / `distinct` / `limit` | Start sequential, then measure | Stateful operations can incur merge/sync overhead |
+| Given a Stream that must be forced sequential | `sequential()` before terminal | Selects the mode for the pipeline |
+| Need to know which mode was selected | `isParallel()` | Checks configuration, does not measure threads |
+| Need strict thread pool, timeout, or backpressure control | Appropriate dedicated concurrency mechanism | Stream mode does not provide detailed orchestration contracts |
 
-## 17. Câu hỏi tự kiểm tra
+## 17. Self-check questions
 
-1. **`stream().isParallel()` mặc định trả gì?** `false` đối với `Collection.stream()`.
-2. **`parallelStream().isParallel()` mặc định trả gì?** `true`.
-3. **`stream().parallel().sequential().isParallel()` trả gì?** `false`, vì lần chọn chế độ cuối là `sequential()`.
-4. **`stream().sequential().parallel().isParallel()` trả gì?** `true`.
-5. **Gọi `parallel()` có bắt đầu ngay việc xử lý phần tử không?** Không; pipeline thường lazy đến terminal operation.
-6. **`isParallel() == true` có bảo đảm nhiều thread đang xử lý không?** Không; đó là trạng thái cấu hình, không phải thông số thread.
-7. **Có thể chạy `map` parallel rồi `filter` sequential trong một pipeline bằng cách chèn `sequential()` ở giữa không?** Không; mode là của cả pipeline khi thực thi.
-8. **`parallelStream().toList()` có giữ thứ tự của `List` không?** Có, nếu pipeline vẫn có encounter order.
-9. **`forEach()` trên parallel stream có cam kết thứ tự action không?** Không; nếu cần action theo encounter order dùng `forEachOrdered()`.
-10. **`parallel()` có đồng nghĩa `unordered()` không?** Không; chúng điều khiển hai khía cạnh khác nhau.
-11. **Vì sao `AtomicInteger` trong callback vẫn có thể sai nghiệp vụ?** Dù không race ở thao tác tăng, việc gán số thứ tự phụ thuộc lịch thread.
-12. **Tại sao giảm trừ bằng `reduce(0, (a,b) -> a-b)` không phù hợp cho parallel reduction?** Phép trừ không kết hợp và `0` không là identity hai phía.
-13. **Làm sao chạy cùng thuật toán ở hai chế độ để so sánh?** Tạo hai Stream mới từ cùng nguồn ổn định, một tuần tự và một song song.
-14. **Vì sao Spliterator ảnh hưởng hiệu năng parallel?** Nó quyết định cách duyệt, chia việc và cung cấp metadata cho nguồn.
-15. **Với phép cộng `double`, kết quả song song và tuần tự có thể lệch nhỏ không?** Có, vì sai số làm tròn và cách nhóm phép cộng khác nhau.
-16. **`sequential()` có khiến File Stream tự đóng không?** Không; tài nguyên phải được đóng bằng `try-with-resources` hoặc cơ chế quản lý tương ứng.
-17. **Khi nào nên bật parallel?** Khi callback đúng hợp đồng, nguồn chia được, chi phí xử lý đủ lớn và benchmark chứng minh có lợi.
+1. **What does `stream().isParallel()` return by default?** `false` for `Collection.stream()`.
+2. **What does `parallelStream().isParallel()` return by default?** `true`.
+3. **What does `stream().parallel().sequential().isParallel()` return?** `false`, because the last mode selection is `sequential()`.
+4. **What does `stream().sequential().parallel().isParallel()` return?** `true`.
+5. **Does calling `parallel()` immediately start processing elements?** No; the pipeline remains lazy until the terminal operation.
+6. **Does `isParallel() == true` guarantee multiple threads are processing?** No; it is a configuration state, not a thread metric.
+7. **Can you run `map` in parallel and then `filter` sequentially in one pipeline by inserting `sequential()` in the middle?** No; the mode applies to the entire pipeline at execution time.
+8. **Does `parallelStream().toList()` preserve the order of a `List`?** Yes, if the pipeline still has encounter order.
+9. **Does `forEach()` on a parallel stream guarantee action order?** No; if actions must follow encounter order, use `forEachOrdered()`.
+10. **Does `parallel()` mean `unordered()`?** No; they control two different aspects.
+11. **Why can `AtomicInteger` inside a callback still be business-incorrect?** Even without an increment race, assigning sequence numbers depends on thread scheduling.
+12. **Why is subtraction via `reduce(0, (a,b) -> a-b)` unsuitable for parallel reduction?** Subtraction is not associative and `0` is not a two-sided identity.
+13. **How do you run the same algorithm in both modes to compare?** Create two new Streams from the same stable source, one sequential and one parallel.
+14. **Why does Spliterator affect parallel performance?** It governs traversal, work splitting, and provides source metadata.
+15. **For `double` addition, can parallel and sequential results differ slightly?** Yes, due to rounding error and different addition groupings.
+16. **Does `sequential()` automatically close a File Stream?** No; resources must be closed via `try-with-resources` or equivalent management.
+17. **When should parallelism be enabled?** When callbacks satisfy the contract, the source is splittable, per-element work is large enough, and benchmarks prove a benefit.
 
-**Ghi nhớ:** `parallel()` và `sequential()` đặt **chế độ thực thi cho toàn Stream pipeline**, còn `isParallel()` chỉ **báo chế độ đã cấu hình**. Chúng không tạo ranh giới giai đoạn, không tự quyết định thứ tự kết quả và không bảo đảm số thread hay tốc độ. Hãy giữ hàm xử lý không trạng thái, không can thiệp nguồn, dùng reduction đúng hợp đồng và đo hiệu năng thực tế trước khi song song hóa.
+**Takeaway:** `parallel()` and `sequential()` set the **execution mode for the entire Stream pipeline**, while `isParallel()` only **reports the configured mode**. They do not create stage boundaries, do not independently determine result ordering, and do not guarantee thread count or speed. Keep processing functions stateless and non-interfering, use contract-compliant reductions, and measure actual performance before parallelizing.

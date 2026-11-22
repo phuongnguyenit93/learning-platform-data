@@ -1,28 +1,28 @@
-# Ví dụ BigDecimal có scale khác nhau trong tập hợp có thứ tự
+# Example of BigDecimal with Different Scales in Ordered Collections
 
-## 1. Mục tiêu
+## 1. Objective
 
-`BigDecimal` đại diện cho số thập phân có độ chính xác tùy ý bằng hai yếu tố: **unscaled value** (một số nguyên) và **scale** (số chữ số thập phân theo phép biểu diễn). Hai đối tượng có cùng **giá trị số học** vẫn có thể khác scale. Đây là tình huống điển hình cho việc **quan hệ bằng nhau của `equals()` không đồng nhất với quan hệ tương đương của thứ tự `compareTo()`**.
+`BigDecimal` represents arbitrary-precision decimal numbers with two components: **unscaled value** (an integer) and **scale** (the number of decimal digits according to its representation). Two objects having the same **numeric value** can still have different scales. This is a classic case where **equality by `equals()` is not identical to ordering equivalence by `compareTo()`**.
 
-Bài học giúp bạn:
+This lesson helps you:
 
-- Hiểu `new BigDecimal("1.0")` và `new BigDecimal("1.00")` vì sao có `equals() == false` nhưng `compareTo() == 0`.
-- Dự đoán chính xác khi đưa hai giá trị đó vào `HashSet`, `TreeSet`, `HashMap`, `TreeMap`.
-- Hiểu tập hợp có thứ tự dùng `compareTo` hoặc `Comparator` để xét cả vị trí sắp xếp lẫn việc **một key đã tồn tại hay chưa**.
-- Chọn chính sách phù hợp khi cần phân biệt scale hoặc khi cần coi các cách biểu diễn cùng trị số là một.
-- Áp dụng `stripTrailingZeros()` hoặc comparator tường minh đúng mục đích; tránh làm mất thông tin scale có ý nghĩa nghiệp vụ.
+- Understand why `new BigDecimal("1.0")` and `new BigDecimal("1.00")` have `equals() == false` yet `compareTo() == 0`.
+- Predict accurately what happens when placing those two values into `HashSet`, `TreeSet`, `HashMap`, `TreeMap`.
+- Understand that ordered collections use `compareTo` or `Comparator` to evaluate both sort position and **whether a key already exists**.
+- Choose the appropriate policy when scale must be distinguished or when representations with the same numeric value should be treated as one.
+- Apply `stripTrailingZeros()` or an explicit comparator for the right purpose; avoid losing scale information that carries business meaning.
 
-## 2. BigDecimal gồm trị số và scale
+## 2. BigDecimal consists of numeric value and scale
 
-Đối với `BigDecimal`, trị số được diễn đạt theo công thức:
+For `BigDecimal`, the value is expressed by the formula:
 
 ```text
 numeric value = unscaledValue × 10^(-scale)
 ```
 
-Ví dụ:
+Examples:
 
-| Cách tạo | Unscaled value | Scale | Trị số học |
+| Construction | Unscaled value | Scale | Numeric value |
 | --- | ---: | ---: | ---: |
 | `new BigDecimal("1.0")` | `10` | `1` | `1` |
 | `new BigDecimal("1.00")` | `100` | `2` | `1` |
@@ -30,7 +30,7 @@ Ví dụ:
 | `new BigDecimal("1E+2")` | `1` | `-2` | `100` |
 | `new BigDecimal("0.000")` | `0` | `3` | `0` |
 
-Trong Java:
+In Java:
 
 ```java
 BigDecimal a = new BigDecimal("1.0");
@@ -42,61 +42,61 @@ System.out.println(b.unscaledValue()); // 100
 System.out.println(b.scale());         // 2
 ```
 
-Đây là đoạn minh họa cần `import java.math.BigDecimal;`. Phân biệt **scale** với **precision**: precision là số chữ số của unscaled value (không tính dấu), còn scale xác định vị trí dấu thập phân. `"1.00"` có precision 3, scale 2; `"1.0"` có precision 2, scale 1.
+This is an illustrative snippet requiring `import java.math.BigDecimal;`. Distinguish **scale** from **precision**: precision is the number of digits in the unscaled value (excluding sign), whereas scale specifies the position of the decimal point. `"1.00"` has precision 3, scale 2; `"1.0"` has precision 2, scale 1.
 
-Scale có thể là thông tin đáng lưu giữ: biểu diễn độ chính xác đo lường, số chữ số được ghi nhận hay chính sách hiển thị tiền tệ. Vì vậy Java cung cấp cả cách so “bằng nhau về biểu diễn số thập phân” lẫn cách so “bằng nhau về trị số”.
+Scale can be information worth preserving: representing measurement accuracy, recorded significant digits, or currency display policy. Hence Java provides both a way to compare “equal in decimal representation” and a way to compare “equal in numeric value”.
 
-## 3. `equals()` và `compareTo()` khác nhau thế nào?
+## 3. How do `equals()` and `compareTo()` differ?
 
-### 3.1. `BigDecimal.equals(Object)` xét cả trị số và scale
+### 3.1. `BigDecimal.equals(Object)` checks both numeric value and scale
 
-Với hai `BigDecimal`, `equals()` trả `true` chỉ khi chúng có **cùng unscaled value và cùng scale**. Do đó:
+For two `BigDecimal` values, `equals()` returns `true` only when they have **the same unscaled value and the same scale**. Therefore:
 
 ```java
 BigDecimal a = new BigDecimal("1.0");
 BigDecimal b = new BigDecimal("1.00");
 
 a.equals(b);                // false
-a.hashCode() == b.hashCode(); // false trong ví dụ này
+a.hashCode() == b.hashCode(); // false in this example
 ```
 
-`hashCode()` của `BigDecimal` phù hợp với `equals()`: nếu hai giá trị `equals` bằng nhau, hash của chúng bắt buộc bằng nhau. Khi chỉ khác scale, hash **có thể** khác và trong ví dụ `1.0` với `1.00` quả thực khác. Đừng suy ra hash là định danh duy nhất vì collision vẫn có thể xảy ra.
+`BigDecimal`'s `hashCode()` is consistent with `equals()`: if two values are `equals`, their hashes must be equal. When only scale differs, hashes **may** differ, and in the example of `1.0` and `1.00` they indeed differ. Do not infer that a hash is a unique identifier because collisions can still occur.
 
-### 3.2. `compareTo()` so giá trị số học
+### 3.2. `compareTo()` compares numeric value
 
-`BigDecimal.compareTo(BigDecimal)` thực hiện so sánh thứ tự theo **trị số**, không coi scale là yếu tố phân biệt khi trị số bằng nhau:
+`BigDecimal.compareTo(BigDecimal)` performs an ordering comparison by **numeric value**, not treating scale as a distinguishing factor when numeric values are equal:
 
 ```java
 a.compareTo(b);  // 0
 ```
 
-Quy tắc:
+Rules:
 
-- Giá trị âm: `a.compareTo(b) < 0` nghĩa là `a` nhỏ hơn `b`.
-- Trả `0`: `a` và `b` có cùng trị số đối với phép so sánh này.
-- Giá trị dương: `a.compareTo(b) > 0` nghĩa là `a` lớn hơn `b`.
+- Negative value: `a.compareTo(b) < 0` means `a` is less than `b`.
+- Returns `0`: `a` and `b` have the same numeric value for this comparison.
+- Positive value: `a.compareTo(b) > 0` means `a` is greater than `b`.
 
-Không dựa vào độ lớn tuyệt đối của kết quả âm/dương; hợp đồng chỉ bảo đảm **dấu**. Với `BigDecimal`, quan hệ `compareTo() == 0` có thể rộng hơn `equals() == true`.
+Do not rely on the absolute magnitude of negative/positive results; the contract guarantees only **sign**. With `BigDecimal`, the `compareTo() == 0` relation can be broader than `equals() == true`.
 
-`BigDecimal` là ví dụ tiêu biểu cho **natural ordering inconsistent with equals**: hai phần tử có thể tương đương về thứ tự nhưng không bằng nhau theo `equals`.
+`BigDecimal` is a textbook example of **natural ordering inconsistent with equals**: two elements can be equivalent in order yet not equal by `equals`.
 
-### 3.3. Mối quan hệ chính xác
+### 3.3. Exact relationships
 
-| Phép kiểm tra | `1.0` với `1.00` | Ý nghĩa |
+| Check | `1.0` vs `1.00` | Meaning |
 | --- | --- | --- |
-| `a == b` | `false` | Hai đối tượng được tạo riêng có danh tính khác nhau. |
-| `a.equals(b)` | `false` | Unscaled value và scale không cùng bộ giá trị. |
-| `a.compareTo(b) == 0` | `true` | Cùng trị số số học. |
-| `a.scale() == b.scale()` | `false` | Một bên scale 1, bên kia scale 2. |
-| `a.stripTrailingZeros().equals(b.stripTrailingZeros())` | `true` | Hai giá trị quy về cùng dạng chuẩn với ví dụ này. |
+| `a == b` | `false` | Two separately created objects have different identities. |
+| `a.equals(b)` | `false` | Unscaled value and scale do not match as a pair. |
+| `a.compareTo(b) == 0` | `true` | Same mathematical numeric value. |
+| `a.scale() == b.scale()` | `false` | One has scale 1, the other has scale 2. |
+| `a.stripTrailingZeros().equals(b.stripTrailingZeros())` | `true` | Both values reduce to the same canonical form in this example. |
 
-Lưu ý `Objects.equals(a,b)` vẫn gọi `a.equals(b)` khi cả hai không null; nó **không tự chuyển sang `compareTo()`**.
+Note that `Objects.equals(a,b)` still calls `a.equals(b)` when both are non-null; it **does not automatically switch to `compareTo()`**.
 
-## 4. Tại sao `HashSet` và `TreeSet` cho kết quả khác?
+## 4. Why do `HashSet` and `TreeSet` give different results?
 
-### 4.1. HashSet dựa trên `equals` và `hashCode`
+### 4.1. HashSet relies on `equals` and `hashCode`
 
-`HashSet` sử dụng hash để phân phối phần tử, và dùng quan hệ `equals` để phân biệt những khóa có thể trùng nhau. Với:
+`HashSet` uses hashes to distribute elements and uses the `equals` relation to distinguish potentially colliding keys. With:
 
 ```java
 Set<BigDecimal> hashed = new HashSet<>();
@@ -104,11 +104,11 @@ hashed.add(new BigDecimal("1.0"));
 hashed.add(new BigDecimal("1.00"));
 ```
 
-`hashed.size()` là **2** vì hai `BigDecimal` không `equals()` bằng nhau. Đây là hai phần tử khác nhau theo **quan hệ bằng nhau của `BigDecimal`**.
+`hashed.size()` is **2** because the two `BigDecimal` objects are not `equals()`. These are two distinct elements under **`BigDecimal`'s equality relation**.
 
-### 4.2. TreeSet dựa trên thứ tự `compareTo` hoặc `Comparator`
+### 4.2. TreeSet relies on `compareTo` or `Comparator` ordering
 
-`TreeSet` là một `SortedSet`; nếu không cung cấp comparator, nó dùng **thứ tự tự nhiên** (natural ordering) của phần tử, ở đây là `BigDecimal.compareTo`.
+`TreeSet` is a `SortedSet`; if no comparator is supplied, it uses the **natural ordering** of its elements, here `BigDecimal.compareTo`.
 
 ```java
 TreeSet<BigDecimal> sorted = new TreeSet<>();
@@ -116,25 +116,25 @@ boolean first = sorted.add(new BigDecimal("1.0"));
 boolean second = sorted.add(new BigDecimal("1.00"));
 ```
 
-Kết quả:
+Results:
 
-- `first` là `true`: phần tử đầu được thêm.
-- `second` là `false`: đối tượng thứ hai có `compareTo(...) == 0` với phần tử sẵn có.
-- `sorted.size()` là **1**: `TreeSet` coi hai giá trị là cùng một khóa thứ tự, dù `equals` trả `false`.
-- `sorted.contains(new BigDecimal("1.000"))` là `true`: tìm kiếm cũng dựa trên quan hệ thứ tự.
-- Nếu thêm `1.0` trước, phần tử được giữ lại có dạng `1.0` (scale 1); nếu thêm `1.00` trước thì phần tử được giữ lại có dạng `1.00` (scale 2). Điều này cần lưu ý nếu mã ứng dụng quan sát `scale()` của phần tử được lưu.
+- `first` is `true`: the first element is added.
+- `second` is `false`: the second object has `compareTo(...) == 0` with the existing element.
+- `sorted.size()` is **1**: `TreeSet` treats the two values as the same ordering key, even though `equals` returns `false`.
+- `sorted.contains(new BigDecimal("1.000"))` is `true`: lookup also relies on the ordering relation.
+- If `1.0` is added first, the retained element has form `1.0` (scale 1); if `1.00` is added first, the retained element has form `1.00` (scale 2). Keep this in mind if application code inspects `scale()` of the stored element.
 
-Quy tắc tổng quát của `TreeSet` là **comparator trả 0 ⇒ phần tử bị coi là trùng đối với cấu trúc cây**, không phụ thuộc việc `equals` của chúng trả gì.
+The general rule of `TreeSet` is **comparator returns 0 ⇒ the element is treated as a duplicate for the tree structure**, regardless of what their `equals` returns.
 
-### 4.3. Điều này có vi phạm hợp đồng `Set` không?
+### 4.3. Does this violate the `Set` contract?
 
-Hợp đồng tổng quát của `Set` định nghĩa trùng theo `equals`. Các tài liệu Java nêu rằng thứ tự dùng cho một sorted set **nên nhất quán với `equals`** nếu muốn sorted set tuân thủ đầy đủ hợp đồng chung của `Set`. Khi thứ tự không nhất quán như `BigDecimal`, `TreeSet` vẫn có hành vi được xác định bởi comparator, nhưng cách coi phần tử trùng **khác** với một `HashSet` chứa cùng giá trị.
+The general `Set` contract defines duplicates according to `equals`. Java documentation states that the ordering used for a sorted set **should be consistent with `equals`** if the sorted set is to fully obey the general `Set` contract. When ordering is inconsistent like `BigDecimal`, `TreeSet` still has well-defined behavior determined by the comparator, yet its treatment of duplicate elements **differs** from a `HashSet` holding the same values.
 
-Không kết luận rằng `TreeSet` bị lỗi hoặc `BigDecimal.compareTo` triển khai sai. Đó là kết quả của **hai định nghĩa tương đương khác nhau**. Người thiết kế phải chọn quan hệ bằng nhau cần áp dụng cho collection.
+Do not conclude that `TreeSet` has a bug or `BigDecimal.compareTo` is implemented wrongly. It is the result of **two different equivalence definitions**. The designer must choose which equality relation applies to the collection.
 
-## 5. `TreeMap`: key mới có thể thay value của key cũ
+## 5. `TreeMap`: a new key can replace the old key's value
 
-`TreeMap` cũng dựa vào `compareTo` hoặc comparator để sắp xếp và xác định khóa tương đương:
+`TreeMap` likewise relies on `compareTo` or a comparator to sort and identify equivalent keys:
 
 ```java
 TreeMap<BigDecimal, String> map = new TreeMap<>();
@@ -142,20 +142,20 @@ map.put(new BigDecimal("1.0"), "first");
 map.put(new BigDecimal("1.00"), "second");
 ```
 
-Kết quả:
+Results:
 
-- `map.size() == 1`: hai key so sánh bằng 0.
-- Giá trị của key tương đương được cập nhật thành `"second"`.
-- Khi thêm theo đúng thứ tự trên, key giữ trong entry là `1.0` (scale 1), vì cập nhật giá trị không thay đối tượng key đã lưu.
-- `map.get(new BigDecimal("1.000"))` trả `"second"`.
+- `map.size() == 1`: the two keys compare as 0.
+- The value of the equivalent key is updated to `"second"`.
+- When added in the exact order above, the key kept in the entry is `1.0` (scale 1), because updating the value does not replace the stored key object.
+- `map.get(new BigDecimal("1.000"))` returns `"second"`.
 
-Ngược lại, `HashMap<BigDecimal, String>` với hai key này sẽ có **hai entry** khi dùng `equals/hashCode` của `BigDecimal`.
+In contrast, `HashMap<BigDecimal, String>` with these two keys will have **two entries** when using `BigDecimal`'s `equals/hashCode`.
 
-Tình huống thực tế: Nếu bạn lưu mức giá `1.0` và `1.00` như hai mốc riêng cần giữ cả precision/scale, `TreeMap` theo thứ tự tự nhiên có thể **gộp chúng thành một key**. Nếu bạn lưu các ngưỡng chỉ dựa trên trị số, việc gộp lại có thể chính là hành vi mong muốn.
+Practical scenario: If you store price levels `1.0` and `1.00` as two separate tiers needing to preserve precision/scale, `TreeMap` under natural ordering may **merge them into one key**. If you store thresholds based solely on numeric value, merging may be precisely the intended behavior.
 
-## 6. Chương trình Java 17+ chạy được
+## 6. Runnable Java 17+ program
 
-Tạo tệp **`BigDecimalSortedSetDemo.java`**:
+Create file **`BigDecimalSortedSetDemo.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -232,14 +232,14 @@ public class BigDecimalSortedSetDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac BigDecimalSortedSetDemo.java
 java BigDecimalSortedSetDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 a scale: 1
@@ -264,21 +264,21 @@ strict TreeSet size: 2
 0.000 canonical: 0
 ```
 
-Giải thích các điểm chính:
+Explanation of key points:
 
-1. `a` và `b` biểu diễn cùng trị số nhưng có scale 1 và 2 nên `equals()` là `false`, `compareTo()` là 0.
-2. `HashSet` và `HashMap` giữ hai mục phân biệt vì dựa trên equality của `BigDecimal`.
-3. `TreeSet` mặc định thêm `a` thành công, từ chối `b` vì natural ordering coi hai giá trị tương đương; nó còn `contains` giá trị `1.000`.
-4. `TreeMap` giữ key đầu tiên với scale 1 và cập nhật value của key tương đương thành `"second"`.
-5. Hai bản chuẩn hóa qua `stripTrailingZeros()` có cùng `equals` và hash.
-6. Comparator tùy chỉnh `byValueThenScale` tách thêm các key có cùng trị số nhưng khác scale, nên `strict` có hai phần tử.
-7. `stripTrailingZeros()` có thể trả số dạng lũy thừa 10 như `6E+2`; số 0 thường được chuẩn hóa thành `0`. Đây là thay đổi **biểu diễn**, dù trị số không đổi.
+1. `a` and `b` represent the same numeric value but have scales 1 and 2, so `equals()` is `false` and `compareTo()` is 0.
+2. `HashSet` and `HashMap` keep two distinct entries because they rely on `BigDecimal` equality.
+3. Default `TreeSet` adds `a` successfully and rejects `b` because natural ordering treats the two values as equivalent; it also `contains` the value `1.000`.
+4. `TreeMap` retains the first key with scale 1 and updates the equivalent key's value to `"second"`.
+5. The two normalized versions via `stripTrailingZeros()` have identical `equals` and hash.
+6. Custom comparator `byValueThenScale` further separates keys having the same numeric value but different scales, so `strict` has two elements.
+7. `stripTrailingZeros()` can return a power-of-10 scientific notation form such as `6E+2`; zero is normally normalized to `0`. This is a change in **representation**, even though the numeric value is unchanged.
 
-Kết quả trên không in trực tiếp thứ tự băm hay con số hash không cần thiết; ví dụ chỉ kiểm tra quan hệ hash có bằng nhau hay không.
+The output above does not print hash iteration order or unnecessary hash integers directly; the example only checks whether the hashes are equal.
 
-## 7. Muốn TreeSet phân biệt scale thì dùng comparator nào?
+## 7. Which comparator should be used if TreeSet needs to distinguish scale?
 
-Nếu nghiệp vụ yêu cầu xem `1.0` và `1.00` là **hai giá trị khác nhau**, comparator của tập hợp có thứ tự phải trả khác 0 khi scale khác nhau:
+If business logic requires treating `1.0` and `1.00` as **two distinct values**, the ordered set's comparator must return non-zero when scales differ:
 
 ```java
 Comparator<BigDecimal> byValueThenScale =
@@ -291,15 +291,15 @@ values.add(new BigDecimal("1.00"));
 // size() == 2
 ```
 
-Đầu tiên comparator so trị số, sau đó nếu cùng trị số thì so scale. Với `BigDecimal`, cùng trị số **và** cùng scale tương đương với `equals()` bằng nhau, do vậy comparator này **nhất quán với equals** trong miền các đối tượng `BigDecimal`.
+First the comparator compares numeric value, then if numeric values match it compares scale. For `BigDecimal`, same numeric value **and** same scale is equivalent to `equals()` being true, so this comparator is **consistent with equals** within the domain of `BigDecimal` objects.
 
-Lợi ích: vừa có thứ tự số học để duyệt, vừa bảo toàn cách phân biệt scale của `BigDecimal.equals()`. Hạn chế: hai biểu diễn cùng trị số sẽ chiếm hai vị trí khác nhau; điều này đúng hoặc sai tùy bài toán. Comparator không làm thay đổi `BigDecimal.equals()` bên ngoài `TreeSet`.
+Benefit: you get both numeric order for traversal and preservation of `BigDecimal.equals()`'s scale distinction. Drawback: two representations of the same numeric value occupy two different positions; whether this is right or wrong depends on the problem. The comparator does not alter `BigDecimal.equals()` outside `TreeSet`.
 
-**Cảnh báo:** không dùng `Comparator.comparing(BigDecimal::scale)` đơn lẻ nếu bạn cần phân biệt mọi giá trị. Hai số `1.00` và `2.00` có scale 2 nhưng trị số khác nhau; chỉ so scale sẽ coi chúng là trùng và đánh mất một phần tử.
+**Warning:** do not use `Comparator.comparing(BigDecimal::scale)` alone if you need to distinguish all values. Two numbers `1.00` and `2.00` both have scale 2 yet different numeric values; comparing only scale will treat them as duplicates and lose an element.
 
-## 8. Muốn coi cùng trị số là cùng key ở mọi collection?
+## 8. Want the same numeric value to be the same key across all collections?
 
-Đôi khi nghiệp vụ xác định `1.0`, `1.00` và `1` là một. Khi đó bạn có thể chuẩn hóa trước khi lưu:
+Sometimes business logic defines `1.0`, `1.00`, and `1` as one. In that case you can normalize before storing:
 
 ```java
 static BigDecimal canonical(BigDecimal input) {
@@ -308,7 +308,7 @@ static BigDecimal canonical(BigDecimal input) {
 }
 ```
 
-Đây là phương thức minh họa đặt trong một lớp Java. Từ đó:
+This is an illustrative method placed in a Java class. From there:
 
 ```java
 Set<BigDecimal> numericKeys = new HashSet<>();
@@ -317,11 +317,11 @@ numericKeys.add(canonical(new BigDecimal("1.00")));
 // size() == 1
 ```
 
-Các key đã chuẩn hóa có `equals()`/`hashCode()` phù hợp với quan hệ “cùng trị số” đã chọn; `HashSet` và `TreeSet` (dùng natural ordering) giờ thống nhất hơn về nhóm key.
+The normalized keys have `equals()`/`hashCode()` matching the chosen “same numeric value” relation; `HashSet` and `TreeSet` (using natural ordering) now agree more closely on key grouping.
 
-Tuy nhiên, quy tắc này **xóa mất khác biệt scale**. Nếu `1.00` mang thông tin đo lường, hiển thị hoặc định dạng hóa đơn thì không được âm thầm bỏ nó. Có thể giữ nguyên giá trị gốc ở một trường riêng để hiển thị và dùng canonical key cho việc tìm kiếm, miễn là phân tách rõ hai vai trò.
+However, this rule **erases scale differences**. If `1.00` carries measurement, display, or invoice formatting information, it must not be silently discarded. You can retain the original value in a separate field for display and use the canonical key for lookup, provided the two roles are cleanly separated.
 
-Một hướng khác là dùng value object định nghĩa equality theo trị số:
+Another approach is using a value object that defines equality by numeric value:
 
 ```java
 record NumericKey(BigDecimal canonicalValue) {
@@ -333,83 +333,83 @@ record NumericKey(BigDecimal canonicalValue) {
 }
 ```
 
-Với record này, field được chuẩn hóa ngay khi khởi tạo, nên record sinh `equals`/`hashCode` dựa trên canonical value. Nếu cần sắp xếp `NumericKey`, phải cung cấp comparator phù hợp hoặc triển khai `Comparable`; việc nó là record **không tự khiến nó có natural ordering**.
+With this record, the field is normalized right at construction, so the record generates `equals`/`hashCode` based on the canonical value. If `NumericKey` needs to be sorted, an appropriate comparator must be supplied or `Comparable` implemented; being a record **does not automatically give it a natural ordering**.
 
-### Lưu ý về `stripTrailingZeros()`
+### Notes on `stripTrailingZeros()`
 
-- `new BigDecimal("600.0").stripTrailingZeros()` có thể là `6E+2` với scale âm; nếu cần in dạng thập phân không dùng ký pháp khoa học thì dùng `toPlainString()` hoặc định dạng theo yêu cầu.
-- `BigDecimal.ZERO` có scale 0; chuẩn hóa một giá trị 0 như `new BigDecimal("0.000")` bằng `stripTrailingZeros()` có thể cho zero với scale 0.
-- Nếu cần scale cố định như 2 chữ số cho tiền tệ, cân nhắc `setScale(2, ...)` với chính sách làm tròn rõ ràng. Thao tác này không tương đương “bỏ số 0 vô nghĩa” trong mọi trường hợp.
-- Tránh tự `new BigDecimal(0.1)` từ `double` khi cần đúng biểu diễn thập phân `0.1`; nó phản ánh giá trị nhị phân của `double`. Ưu tiên chuỗi thập phân hoặc `BigDecimal.valueOf(0.1)` khi phù hợp.
-- Với tiền, currency cũng thuộc danh tính của giá trị nghiệp vụ: `1.00 USD` không giống `1.00 EUR` chỉ vì cùng `BigDecimal`.
+- `new BigDecimal("600.0").stripTrailingZeros()` can become `6E+2` with a negative scale; if printing in decimal form without scientific notation is needed, use `toPlainString()` or format as required.
+- `BigDecimal.ZERO` has scale 0; normalizing a zero value like `new BigDecimal("0.000")` with `stripTrailingZeros()` can yield zero with scale 0.
+- If a fixed scale such as 2 digits for currency is needed, consider `setScale(2, ...)` with an explicit rounding policy. This operation is not equivalent to “dropping trailing insignificant zeros” in all cases.
+- Avoid creating `new BigDecimal(0.1)` from `double` when an exact decimal representation `0.1` is needed; it reflects the binary value of `double`. Prefer decimal strings or `BigDecimal.valueOf(0.1)` when appropriate.
+- For money, currency is also part of the business value's identity: `1.00 USD` is not the same as `1.00 EUR` merely because both have the same `BigDecimal`.
 
-## 9. Áp dụng vào bài toán cụ thể
+## 9. Applying to concrete problems
 
-### Tình huống A: danh sách ngưỡng số học
+### Scenario A: list of numeric thresholds
 
-Bạn dùng `TreeSet<BigDecimal>` để lưu các ngưỡng so sánh. Cùng trị số `1.0` và `1.00` chỉ đại diện cho **một ngưỡng**, vì vậy natural ordering của `BigDecimal` là phù hợp. Dù vậy hãy nhớ khi lấy phần tử, scale có thể phản ánh **giá trị nào được chèn trước** chứ không phải một biểu diễn chuẩn duy nhất.
+You use `TreeSet<BigDecimal>` to store comparison thresholds. Equal numeric values `1.0` and `1.00` represent only **one threshold**, so `BigDecimal`'s natural ordering is appropriate. Even so, remember that when retrieving an element, scale may reflect **whichever value was inserted first** rather than a single canonical representation.
 
-### Tình huống B: dữ liệu đo lường có ý nghĩa về độ chính xác
+### Scenario B: measurement data where precision matters
 
-Bạn cần giữ `1.0` (một chữ số sau dấu thập phân) khác `1.00` (hai chữ số). Nếu cả hai đều phải nằm trong tập hợp có thứ tự, dùng comparator so **trị số trước, scale sau** để không mất một bản ghi.
+You need to keep `1.0` (one digit after the decimal point) distinct from `1.00` (two digits). If both must reside in an ordered set, use a comparator comparing **numeric value first, scale second** so neither record is lost.
 
-### Tình huống C: khóa cache thống nhất trên HashMap và TreeMap
+### Scenario C: unified cache key across HashMap and TreeMap
 
-Nếu cùng trị số phải tra cứu như cùng key trong cả `HashMap` và `TreeMap`, chuẩn hóa dữ liệu ở **biên nhập** trước khi tạo key. Đảm bảo cả ghi và đọc dùng cùng quy tắc. Không trộn khóa chuẩn hóa và khóa gốc tùy nơi vì dễ tạo hành vi khó dự đoán.
+If the same numeric value must look up the same key in both `HashMap` and `TreeMap`, normalize data at the **input boundary** before creating keys. Ensure both writes and reads use the same rule. Do not mix normalized keys and raw keys arbitrarily across places, as that easily produces unpredictable behavior.
 
-### Tình huống D: kiểm thử và phát hiện lỗi
+### Scenario D: testing and bug detection
 
-Dùng test có tối thiểu các giá trị `1`, `1.0`, `1.00`, `2.00`, `0.000` và một số có scale âm. Thử thêm, chứa, xóa, tìm map key; xác minh **đối tượng key được giữ lại** và **value sau khi put trùng**. Nếu dùng comparator custom, kiểm tra phản xạ, đối xứng về dấu, tính bắc cầu và nhất quán với yêu cầu equality.
+Use tests containing at least the values `1`, `1.0`, `1.00`, `2.00`, `0.000`, and a number with negative scale. Test add, contains, remove, and map key lookup; verify **which key object is retained** and **the value after duplicate put**. If using a custom comparator, test reflexivity, sign symmetry, transitivity, and consistency with equality requirements.
 
-## 10. Lỗi phổ biến
+## 10. Common mistakes
 
-| Sai lầm | Điều xảy ra | Cách phòng tránh |
+| Mistake | What happens | How to prevent |
 | --- | --- | --- |
-| Nghĩ `BigDecimal.equals()` chỉ xét trị số | `1.0` và `1.00` bị xem là khác | Nhớ `equals` xét cả unscaled value và scale. |
-| Nghĩ `TreeSet` xác định trùng bằng `equals()` | `TreeSet` bất ngờ giảm kích thước | Kiểm tra `compareTo`/`Comparator` vì so 0 được xem là trùng. |
-| Dùng `TreeMap` và mong giữ hai key khác scale | Lệnh `put` sau cập nhật entry của key tương đương | Dùng comparator phân biệt scale nếu nghiệp vụ cần. |
-| Nhìn `HashSet.size()` rồi suy ra `TreeSet.size()` giống hệt | Hai tập dùng quan hệ tương đương khác nhau | Xác định quy tắc equality dự kiến trước khi chọn cấu trúc. |
-| Chỉ sắp theo scale | Các trị số khác nhưng cùng scale bị coi là trùng | Sắp theo trị số rồi dùng scale phá hòa. |
-| Chuẩn hóa bằng `stripTrailingZeros` nhưng vẫn cần lưu scale gốc | Mất thông tin biểu diễn ban đầu | Giữ giá trị gốc riêng cho hiển thị/kiểm toán. |
-| So `hashCode` để kết luận hai số bằng nhau | Hash collision có thể xảy ra | Dùng `equals` hoặc `compareTo` tùy ngữ nghĩa, không dùng hash như tiêu chí equality. |
-| Tạo `BigDecimal` từ `double` tùy tiện | Giá trị thập phân có thể khác điều mong đợi | Dùng chuỗi chính xác hoặc `valueOf` theo mục đích. |
-| Dùng `setScale` với chính sách làm tròn ngầm | Có thể làm mất thông tin số học hoặc gây `ArithmeticException` khi cần làm tròn | Nêu rõ scale và `RoundingMode` khi áp dụng. |
+| Thinking `BigDecimal.equals()` checks only numeric value | `1.0` and `1.00` are treated as distinct | Remember `equals` checks both unscaled value and scale. |
+| Thinking `TreeSet` detects duplicates using `equals()` | `TreeSet` unexpectedly shrinks in size | Check `compareTo`/`Comparator` because returning 0 counts as duplicate. |
+| Using `TreeMap` and expecting to keep two keys of different scales | Later `put` updates the equivalent key's entry | Use a scale-distinguishing comparator if business logic requires it. |
+| Looking at `HashSet.size()` and assuming `TreeSet.size()` is identical | The two sets use different equivalence relations | Determine the expected equality rule before choosing the structure. |
+| Sorting only by scale | Different numeric values with the same scale are treated as duplicates | Sort by numeric value first, then use scale as tie-breaker. |
+| Normalizing with `stripTrailingZeros` while still needing original scale | Loses initial representation information | Keep the original value separately for display/auditing. |
+| Comparing `hashCode` to conclude two numbers are equal | Hash collisions can occur | Use `equals` or `compareTo` depending on semantics, never hash as an equality criterion. |
+| Constructing `BigDecimal` from `double` carelessly | Decimal value may differ from expectations | Use exact strings or `valueOf` according to intent. |
+| Using `setScale` with an implicit rounding policy | May lose numeric information or throw `ArithmeticException` when rounding is needed | Specify scale and `RoundingMode` explicitly when applying. |
 
-## 11. Checklist khi chọn SortedSet/SortedMap cho BigDecimal
+## 11. Checklist when choosing SortedSet/SortedMap for BigDecimal
 
-1. Xác định **trùng nhau theo trị số** hay **trùng nhau theo trị số và scale**.
-2. Kiểm tra nguồn dữ liệu có thể gửi các biểu diễn như `1.0`, `1.00`, `1E+0` hay không.
-3. Nếu dùng natural ordering, hiểu `compareTo() == 0` quyết định trùng ở `TreeSet`/`TreeMap`.
-4. Nếu cần nhất quán với `BigDecimal.equals()`, dùng comparator theo trị số rồi theo scale.
-5. Nếu cần equality theo trị số trên cả các collection hash, dùng canonical key được chuẩn hóa nhất quán.
-6. Không dùng hash hoặc ordinal hay định dạng hiển thị để thay cho quy tắc so sánh.
-7. Tạo test cho thao tác `add`, `contains`, `put`, `get`, `remove` và quy tắc chèn trùng.
-8. Giữ nguyên scale khi nó mang ý nghĩa nghiệp vụ; chỉ chuẩn hóa khi được phép.
+1. Determine **duplicate by numeric value** vs **duplicate by numeric value and scale**.
+2. Check whether data sources can send representations like `1.0`, `1.00`, `1E+0`.
+3. If using natural ordering, understand that `compareTo() == 0` determines duplicates in `TreeSet`/`TreeMap`.
+4. If consistency with `BigDecimal.equals()` is needed, use a comparator by numeric value then by scale.
+5. If numeric-value equality is needed across hash collections too, use a consistently normalized canonical key.
+6. Do not use hash, ordinal, or display formatting in place of comparison rules.
+7. Write tests for `add`, `contains`, `put`, `get`, `remove`, and duplicate-insertion rules.
+8. Preserve scale when it carries business meaning; normalize only when permitted.
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-check questions
 
-**Câu 1.** `new BigDecimal("1.0").equals(new BigDecimal("1.00"))` trả gì? `compareTo` thì sao?
+**Question 1.** What does `new BigDecimal("1.0").equals(new BigDecimal("1.00"))` return? What about `compareTo`?
 
-**Đáp án:** `equals` trả `false` vì khác scale; `compareTo` trả `0` vì cùng trị số.
+**Answer:** `equals` returns `false` because scales differ; `compareTo` returns `0` because numeric values are equal.
 
-**Câu 2.** Thêm hai số đó vào `HashSet` và `TreeSet` mặc định sẽ có kích thước bao nhiêu?
+**Question 2.** Adding those two numbers to a default `HashSet` and `TreeSet` yields what sizes?
 
-**Đáp án:** `HashSet` có 2; `TreeSet` có 1.
+**Answer:** `HashSet` has 2; `TreeSet` has 1.
 
-**Câu 3.** Vì sao `TreeMap.put(1.00, value2)` có thể thay value đang gắn với key `1.0`?
+**Question 3.** Why can `TreeMap.put(1.00, value2)` replace the value attached to key `1.0`?
 
-**Đáp án:** Vì `TreeMap` nhận diện key tương đương qua so sánh thứ tự. `1.0.compareTo(1.00) == 0`.
+**Answer:** Because `TreeMap` recognizes equivalent keys via ordering comparison. `1.0.compareTo(1.00) == 0`.
 
-**Câu 4.** Cần giữ hai giá trị cùng trị số khác scale trong `TreeSet`; chọn comparator nào?
+**Question 4.** Need to keep two values with the same numeric value but different scales in `TreeSet`; which comparator should be chosen?
 
-**Đáp án:** So trị số theo natural order, sau đó so scale bằng `thenComparingInt(BigDecimal::scale)`.
+**Answer:** Compare numeric value by natural order, then compare scale with `thenComparingInt(BigDecimal::scale)`.
 
-**Câu 5.** Khi nào dùng `stripTrailingZeros` cho key?
+**Question 5.** When should `stripTrailingZeros` be used for keys?
 
-**Đáp án:** Khi nghiệp vụ muốn những biểu diễn cùng trị số là cùng key, và chấp nhận bỏ khác biệt scale. Phải chuẩn hóa thống nhất khi ghi và tra cứu.
+**Answer:** When business logic wants representations with the same numeric value to be the same key, and accepts dropping scale differences. Normalization must be applied uniformly on both writes and lookups.
 
-**Câu 6.** `BigDecimal` có bị lỗi vì `compareTo` không nhất quán với `equals` không?
+**Question 6.** Is `BigDecimal` buggy because `compareTo` is inconsistent with `equals`?
 
-**Đáp án:** Không. Đây là hai quan hệ được tài liệu API xác định. Lập trình viên cần hiểu rằng collection sắp xếp sử dụng comparator làm cơ sở tương đương và chọn cấu trúc/phép so phù hợp.
+**Answer:** No. These are two relations defined in the API documentation. Developers need to understand that sorted collections use the comparator as the equivalence basis and choose the appropriate structure/comparison.
 
-**Ghi nhớ:** `BigDecimal.equals()` xét **trị số và scale**, còn `BigDecimal.compareTo()` xét **trị số**. Vì `TreeSet`/`TreeMap` coi kết quả so sánh **0** là cùng phần tử/key, `1.0` và `1.00` chỉ chiếm một vị trí với natural ordering.
+**Takeaway:** `BigDecimal.equals()` inspects **numeric value and scale**, whereas `BigDecimal.compareTo()` inspects **numeric value**. Because `TreeSet`/`TreeMap` treat a comparison result of **0** as the same element/key, `1.0` and `1.00` occupy only one slot under natural ordering.

@@ -1,64 +1,64 @@
-# Annotation trên record được truyền theo `@Target` như thế nào?
+# How annotations on records are propagated by `@Target`
 
-Khi một annotation được viết trước thành phần record, không nên hiểu rằng nó chỉ nằm trên một đối tượng `RecordComponent`, cũng không nên hiểu rằng nó được chép tới mọi thành viên liên quan. **Đích áp dụng của annotation và cách thành viên được khai báo quyết định nơi metadata xuất hiện.**
+When an annotation is written before a record component, you should not assume it sits only on a `RecordComponent` object, nor that it is copied to every related member. **The annotation's target and how the member is declared determine where metadata appears.**
 
-Điều này quan trọng với công cụ dùng Reflection: một công cụ đọc annotation trên trường dữ liệu có thể thấy khác công cụ đọc trên accessor hoặc tham số constructor. Hai kết quả khác nhau chưa chắc là lỗi; trước hết phải xác định đúng phần tử đang được truy vấn.
+This matters for tools using Reflection: a tool reading annotations on data fields may see something different from a tool reading on accessors or constructor parameters. Two different results are not necessarily a bug; first identify the exact element being queried.
 
-Bài này dùng Java 17 trở lên và phân biệt annotation của khai báo với annotation trên cách sử dụng kiểu dữ liệu.
+This article uses Java 17 or later and distinguishes declaration annotations from annotations on data type uses.
 
-## 1. Một thành phần record liên hệ với nhiều khai báo
+## 1. One record component relates to multiple declarations
 
-Xét header:
+Consider the header:
 
 ```java
 record Message(String text) {
 }
 ```
 
-`text` là một thành phần record. Nó liên hệ với:
+`text` is a record component. It relates to:
 
-- Metadata của chính thành phần: `RecordComponent`.
-- Trường dữ liệu `text` được cung cấp cho record.
-- Accessor `text()`.
-- Tham số `text` của constructor chuẩn.
+- The metadata of the component itself: `RecordComponent`.
+- The data field `text` provided for the record.
+- The accessor `text()`.
+- The parameter `text` of the canonical constructor.
 
-Đây là các vị trí metadata riêng biệt. Annotation được viết trong header có thể được trình biên dịch truyền tới những vị trí thích hợp. Cơ chế này thường được gọi là **truyền annotation (annotation propagation)**.
+These are distinct metadata locations. Annotations written in the header can be propagated by the compiler to appropriate locations. This mechanism is commonly called **annotation propagation**.
 
-Đó không phải việc `getAnnotation()` đang tự đi tìm ở các vị trí khác trong lúc chạy. Khi bạn hỏi một `Field`, Reflection đọc annotation của trường đó; nó không tự hỏi thêm `RecordComponent` để ghép kết quả.
+It is not `getAnnotation()` automatically searching other locations at runtime. When you query a `Field`, Reflection reads that field's annotations; it does not additionally query `RecordComponent` to merge results.
 
-## 2. `@Target` và `@Retention` trả lời hai câu hỏi khác nhau
+## 2. `@Target` and `@Retention` answer two different questions
 
-[`@Target`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/annotation/Target.html) mô tả những ngữ cảnh được phép áp dụng annotation. Trình biên dịch kiểm tra các giới hạn đó.
+[`@Target`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/annotation/Target.html) describes the contexts where an annotation is allowed to apply. The compiler checks those constraints.
 
-[`@Retention`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/annotation/Retention.html) mô tả thời gian lưu giữ. Muốn đọc các annotation trong thí nghiệm bằng Reflection khi chạy, chúng được khai báo với `RetentionPolicy.RUNTIME`. Nếu bỏ `@Retention`, mặc định là `CLASS`, không phải `RUNTIME`.
+[`@Retention`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/annotation/Retention.html) describes retention lifetime. To read the annotations in the experiment with Reflection at runtime, they are declared with `RetentionPolicy.RUNTIME`. If `@Retention` is omitted, the default is `CLASS`, not `RUNTIME`.
 
-Vì vậy, khi không tìm thấy annotation, cần kiểm tra cả **vị trí metadata** lẫn **chính sách lưu giữ**, thay vì chỉ nhìn xem mã nguồn có dấu `@` hay không.
+Therefore, when an annotation is not found, check both the **metadata location** and the **retention policy**, rather than only looking at whether source code has an `@` sign.
 
-Với các thành viên được cung cấp ngầm định cho record, các đích thường gặp có ý nghĩa như sau:
+For members provided implicitly for a record, common targets have the following meanings:
 
-| Đích trong `@Target` | Vị trí liên quan cần xét |
+| Target in `@Target` | Relevant location to inspect |
 | --- | --- |
-| `RECORD_COMPONENT` | Metadata của chính thành phần record |
-| `FIELD` | Khai báo trường thành phần |
-| `METHOD` | Khai báo accessor được cung cấp ngầm định |
-| `PARAMETER` | Tham số được suy ra cho constructor chuẩn ngầm định hoặc rút gọn |
-| `TYPE_USE` | Vị trí sử dụng kiểu, như kiểu thành phần, kiểu trường, kiểu trả về và kiểu tham số được suy ra |
+| `RECORD_COMPONENT` | Metadata of the record component itself |
+| `FIELD` | Component field declaration |
+| `METHOD` | Implicitly provided accessor declaration |
+| `PARAMETER` | Parameter inferred for an implicit or compact canonical constructor |
+| `TYPE_USE` | Type use location, such as component type, field type, return type, and inferred parameter type |
 
-Những tên đích này thuộc [`ElementType`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/annotation/ElementType.html). `CONSTRUCTOR` nói về **khai báo constructor**, còn `PARAMETER` nói về **tham số của constructor**; không được xem chúng là một đích.
+These target names belong to [`ElementType`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/annotation/ElementType.html). `CONSTRUCTOR` refers to **the constructor declaration**, whereas `PARAMETER` refers to **a constructor parameter**; they must not be treated as the same target.
 
-Một annotation chỉ có đích `CONSTRUCTOR` không được viết lên thành phần rồi trông đợi nó tự chuyển tới constructor. Trong ví dụ bên dưới, `Mark` có cả đích `CONSTRUCTOR`, nhưng việc dùng `@Mark` trong header vẫn không tự đánh dấu toàn bộ constructor.
+An annotation with only the `CONSTRUCTOR` target cannot be written on a component with the expectation that it will transfer to the constructor. In the example below, `Mark` includes the `CONSTRUCTOR` target, yet using `@Mark` in the header still does not automatically mark the constructor as a whole.
 
-## 3. Thí nghiệm Java 17+ đầy đủ
+## 3. Complete Java 17+ experiment
 
-Chương trình dùng ba annotation:
+The program uses three annotations:
 
-- `Mark`: áp dụng cho nhiều loại khai báo để quan sát từng nơi nhận metadata.
-- `FieldOnly`: chỉ áp dụng cho trường dữ liệu.
-- `TypeMark`: chỉ áp dụng cho cách sử dụng kiểu dữ liệu.
+- `Mark`: applies to multiple declaration kinds so each place receiving metadata can be observed.
+- `FieldOnly`: applies only to data fields.
+- `TypeMark`: applies only to data type uses.
 
-Các record khác nhau ở việc để trình biên dịch cung cấp accessor hoặc constructor, tự khai báo chúng, hay tự ghi lại annotation tại những vị trí tường minh.
+The records differ in whether they let the compiler provide the accessor or constructor, declare them manually, or restate annotations at explicit locations.
 
-Lưu toàn bộ vào **`RecordAnnotationTargetsDemo.java`**:
+Save the entire code into **`RecordAnnotationTargetsDemo.java`**:
 
 ```java
 import java.lang.annotation.Annotation;
@@ -194,14 +194,14 @@ public class RecordAnnotationTargetsDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 --release 17 -Xlint:all -Werror RecordAnnotationTargetsDemo.java
 java RecordAnnotationTargetsDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Generated
@@ -228,118 +228,118 @@ Nested return argument = [TypeMark]
 Nested parameter argument = [TypeMark]
 ```
 
-Hàm `names()` sắp xếp tên annotation để kết quả dễ đối chiếu. Không dùng thứ tự các phần tử trong mảng annotation làm quy tắc ưu tiên.
+The `names()` method sorts annotation names so the output is easy to compare. Do not use element order inside the annotation array as a precedence rule.
 
-`show()` là hàm kiểm chứng cho những record đã biết trong thí nghiệm; mỗi record ở đây có đúng một thành phần. Nó không được thiết kế như bộ quét tùy ý cho mọi loại lớp.
+`show()` is a verification helper for known records in the experiment; each record here has a single component. It is not designed as a general scanner for arbitrary classes.
 
-## 4. Đọc kết quả khi thành viên được cung cấp ngầm định
+## 4. Reading results when members are implicitly provided
 
-### `Generated`: một vị trí trong nguồn, nhiều đích metadata
+### `Generated`: one source location, multiple metadata targets
 
-Header có `@Mark @FieldOnly @TypeMark String text`, nhưng kết quả không phải ba annotation khai báo trên `RecordComponent`.
+The header has `@Mark @FieldOnly @TypeMark String text`, yet the result is not three declared annotations on `RecordComponent`.
 
-| Vị trí được truy vấn | Annotation khai báo nhìn thấy |
+| Queried location | Visible declared annotations |
 | --- | --- |
 | `RecordComponent` | `Mark` |
-| Trường `text` | `FieldOnly`, `Mark` |
+| Field `text` | `FieldOnly`, `Mark` |
 | Accessor `text()` | `Mark` |
-| Tham số constructor chuẩn | `Mark` |
-| Chính khai báo constructor | Không có |
+| Canonical constructor parameter | `Mark` |
+| Constructor declaration itself | None |
 
-`FieldOnly` hợp lệ trong header nhờ đích trường dữ liệu, và nó xuất hiện trên trường tương ứng. Nhưng `RecordComponent.getDeclaredAnnotations()` không thấy `FieldOnly`, vì kiểu annotation đó không có đích `RECORD_COMPONENT`.
+`FieldOnly` is valid in the header thanks to the field target, and it appears on the corresponding field. However, `RecordComponent.getDeclaredAnnotations()` does not see `FieldOnly`, because that annotation type does not have the `RECORD_COMPONENT` target.
 
-`TypeMark` không xuất hiện trong các mảng annotation khai báo ở bảng trên. Nó xuất hiện ở những đối tượng `AnnotatedType` của kiểu thành phần, trường, kiểu trả về accessor và tham số.
+`TypeMark` does not appear in the declared annotation arrays in the table above. It appears on the `AnnotatedType` objects of the component type, field, accessor return type, and parameter.
 
-`Mark` có đích `CONSTRUCTOR` nhưng dòng `constructor=[]` vẫn rỗng. Điều này cho thấy “được phép dùng trên constructor” không có nghĩa “mọi lần dùng annotation ở header đều tự đánh dấu constructor”.
+`Mark` has the `CONSTRUCTOR` target, yet the `constructor=[]` line remains empty. This shows that "allowed on constructors" does not mean "every annotation usage in the header automatically marks the constructor."
 
-### `Compact`: tham số vẫn được suy ra từ header
+### `Compact`: parameters are still inferred from the header
 
-`Compact` tự viết phần thân constructor chuẩn rút gọn nhưng không tự viết danh sách tham số. Các tham số vẫn được suy ra từ header, nên tham số `text` có `Mark` và kiểu tham số có `TypeMark`.
+`Compact` writes the body of the compact canonical constructor itself without writing the parameter list. Parameters are still inferred from the header, so the `text` parameter has `Mark` and the parameter type has `TypeMark`.
 
-Việc có một phần thân constructor tường minh không đủ để kết luận metadata tham số bị mất; phải phân biệt **constructor rút gọn** với **constructor đầy đủ có danh sách tham số tự khai báo**.
+Having an explicit constructor body is not enough to conclude that parameter metadata was lost; you must distinguish a **compact constructor** from a **full constructor with a manually declared parameter list**.
 
-## 5. Khi tự khai báo accessor hoặc constructor
+## 5. When declaring an accessor or constructor manually
 
-### Accessor tường minh
+### Explicit accessor
 
-`OwnAccessor` tự viết `public String text()`. Trong kết quả, annotation khai báo trên accessor là `[]`, và annotation trên kiểu trả về cũng là `[]`.
+`OwnAccessor` writes `public String text()` itself. In the output, declared annotations on the accessor are `[]`, and annotations on the return type are also `[]`.
 
-Annotation ở header vẫn tồn tại trên thành phần và trường; constructor chuẩn ngầm định vẫn có metadata tham số phù hợp. Chỉ accessor đã tự khai báo không nhận các annotation từ header một cách tự động.
+Header annotations still exist on the component and field; the implicit canonical constructor still has the appropriate parameter metadata. Only the manually declared accessor does not automatically receive annotations from the header.
 
-Nếu công cụ của bạn đọc metadata trên accessor, việc thay một accessor ngầm định bằng accessor tường minh có thể làm thay đổi kết quả, dù tên và kiểu trả về của phương thức không đổi.
+If your tool reads metadata on accessors, replacing an implicit accessor with an explicit accessor can change the result, even though the method's name and return type stay the same.
 
-### Constructor chuẩn đầy đủ
+### Full canonical constructor
 
-`OwnConstructor` tự viết danh sách tham số `String text`. Kết quả cho thấy tham số đó không có `Mark`, và kiểu của nó không có `TypeMark` nếu không được ghi lại trong khai báo tham số.
+`OwnConstructor` writes the parameter list `String text` itself. The output shows that parameter has no `Mark`, and its type has no `TypeMark` unless restated in the parameter declaration.
 
-Ngược lại, accessor vẫn được cung cấp ngầm định nên nhận metadata từ header theo các đích thích hợp.
+Conversely, the accessor is still implicitly provided, so it receives metadata from the header according to the appropriate targets.
 
-### Ghi lại metadata khi cần
+### Restating metadata when needed
 
-`Restated` chủ động viết annotation trên tham số và accessor tường minh. Vì thế các vị trí này lại nhìn thấy `Mark` hoặc `TypeMark`.
+`Restated` intentionally writes annotations on the explicit parameter and accessor. Therefore those locations see `Mark` or `TypeMark` again.
 
-Annotation `@Mark` được viết riêng ngay trên khai báo constructor của `Restated` cũng làm `constructor=[Mark]`. Đây là annotation trực tiếp trên constructor, không phải kết quả của việc dùng `@Mark` trong header.
+The `@Mark` annotation written separately right on `Restated`'s constructor declaration also produces `constructor=[Mark]`. This is an annotation directly on the constructor, not a result of using `@Mark` in the header.
 
-Tóm tắt hành vi của `Mark` trong các record của thí nghiệm:
+Summary of `Mark`'s behavior across the records in the experiment:
 
-| Record | Thành phần | Trường | Accessor | Tham số chuẩn | Constructor |
+| Record | Component | Field | Accessor | Canonical parameter | Constructor |
 | --- | --- | --- | --- | --- | --- |
-| `Generated` | Có | Có | Có | Có | Không |
-| `Compact` | Có | Có | Có | Có | Không |
-| `OwnAccessor` | Có | Có | Không | Có | Không |
-| `OwnConstructor` | Có | Có | Có | Không | Không |
-| `Restated` | Có | Có | Có do ghi trực tiếp | Có do ghi trực tiếp | Có do ghi trực tiếp |
+| `Generated` | Yes | Yes | Yes | Yes | No |
+| `Compact` | Yes | Yes | Yes | Yes | No |
+| `OwnAccessor` | Yes | Yes | No | Yes | No |
+| `OwnConstructor` | Yes | Yes | Yes | No | No |
+| `Restated` | Yes | Yes | Yes due to direct annotation | Yes due to direct annotation | Yes due to direct annotation |
 
-Quy tắc truyền sang trường, accessor và tham số được mô tả trong [JLS về thành viên record](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.10.3) cùng phần constructor chuẩn. Cơ chế này không phải kế thừa annotation theo `@Inherited`.
+The rules for propagation to fields, accessors, and parameters are described in [the JLS on record members](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.10.3) together with the canonical constructor section. This mechanism is not annotation inheritance via `@Inherited`.
 
-## 6. `TYPE_USE` cần được đọc tại đúng vị trí trong cấu trúc kiểu
+## 6. `TYPE_USE` must be read at the exact position in the type structure
 
-Annotation khai báo và annotation trên kiểu là hai kênh metadata khác nhau:
+Declaration annotations and type annotations are two different metadata channels:
 
-| Cần quan sát | API |
+| What to observe | API |
 | --- | --- |
-| Annotation khai báo của component | `component.getDeclaredAnnotations()` |
-| Annotation trên kiểu ngoài cùng | `component.getAnnotatedType().getAnnotations()` |
-| Annotation trên đối số generic | `((AnnotatedParameterizedType) component.getAnnotatedType()).getAnnotatedActualTypeArguments()` |
+| Component declaration annotations | `component.getDeclaredAnnotations()` |
+| Outermost type annotations | `component.getAnnotatedType().getAnnotations()` |
+| Generic argument annotations | `((AnnotatedParameterizedType) component.getAnnotatedType()).getAnnotatedActualTypeArguments()` |
 
-Trường hợp `NestedType(List<@TypeMark String> values)` ở thí nghiệm cho thấy `TypeMark` nằm trên `String` bên trong `List`; mảng annotation tại gốc `List` vẫn rỗng. Hàm `firstTypeArgument` trong chương trình kiểm tra trực tiếp vị trí đó cho component, field, accessor return và parameter type.
+The `NestedType(List<@TypeMark String> values)` case in the experiment shows `TypeMark` sits on `String` inside `List`; the annotation array at the `List` root remains empty. The `firstTypeArgument` method in the program inspects that position directly for component, field, accessor return, and parameter type.
 
-Phép ép sang `AnnotatedParameterizedType` chỉ hợp lệ khi đã xác định hình dạng kiểu như trong thí nghiệm. Với một công cụ tổng quát, hãy kiểm tra giao diện bằng `instanceof` và hỗ trợ thêm kiểu mảng, wildcard hoặc biến kiểu khi cần. Sự có mặt của `TYPE_USE` trong `@Target` chỉ xác định ngữ cảnh được phép đánh dấu; nó không khiến annotation tự thực thi kiểm tra dữ liệu.
+Casting to `AnnotatedParameterizedType` is only valid when the type shape is already known as in the experiment. For a general-purpose tool, check the interface with `instanceof` and add support for array types, wildcards, or type variables as needed. Having `TYPE_USE` in `@Target` only specifies the contexts where marking is allowed; it does not make the annotation execute data validation on its own.
 
-## 7. Áp dụng trong công cụ xử lý metadata
+## 7. Application in metadata processing tools
 
-Trước khi đọc annotation, cần quyết định nguồn metadata nào có ý nghĩa đối với công cụ:
+Before reading annotations, decide which metadata source is meaningful for the tool:
 
-- Xử lý cấu trúc record: có thể chọn metadata của `RecordComponent`.
-- Xử lý trường dữ liệu: đọc `Field` và kiểu trường.
-- Xử lý lời gọi accessor: đọc `Method` và kiểu trả về.
-- Xử lý đối số tạo record: đọc `Parameter` của constructor chuẩn và kiểu tham số.
+- Processing record structure: you can select `RecordComponent` metadata.
+- Processing data fields: read `Field` and the field type.
+- Processing accessor calls: read `Method` and the return type.
+- Processing record creation arguments: read canonical constructor `Parameter` and the parameter type.
 
-Đừng mặc định chuyển sang đọc vị trí khác chỉ vì vị trí hiện tại không có annotation. Điều đó có thể vô tình hợp nhất các hợp đồng mà tác giả chủ động tách ra, như trường hợp accessor hoặc tham số được khai báo tường minh.
+Do not fall back by default to reading another location just because the current location has no annotation. That can accidentally merge contracts the author intentionally separated, such as an explicitly declared accessor or parameter.
 
-Nếu công cụ thật sự muốn tổng hợp nhiều vị trí, hãy quy định thứ tự ưu tiên, cách phát hiện xung đột và cách tránh xử lý lặp cùng một ý nghĩa. Annotation xuất hiện trên nhiều khai báo do cùng một vị trí nguồn không tự nói cho công cụ biết phải thực thi một quy tắc bao nhiêu lần.
+If a tool truly wants to aggregate multiple locations, specify precedence, conflict detection, and how to avoid processing the same meaning repeatedly. An annotation appearing on multiple declarations from a single source position does not tell the tool how many times to enforce a rule.
 
-Việc truyền annotation cũng không tự thực hiện kiểm tra dữ liệu. Ví dụ, tên `TypeMark` hay một annotation tên `NonNull` chỉ là metadata nếu không có trình biên dịch, bộ xử lý hoặc mã runtime được thiết kế để sử dụng nó. Kiểm tra `Objects.requireNonNull` trong constructor `Compact` là hành vi được viết tường minh.
+Annotation propagation does not perform data validation on its own either. For instance, a name like `TypeMark` or an annotation named `NonNull` is only metadata unless a compiler, processor, or runtime code is designed to act on it. The `Objects.requireNonNull` check in `Compact`'s constructor is explicitly written behavior.
 
-## 8. Lỗi thường gặp và tự kiểm tra
+## 8. Common pitfalls and self-check
 
-| Suy luận sai | Cách xác minh |
+| Wrong inference | How to verify |
 | --- | --- |
-| Annotation viết trong header phải nằm trên `RecordComponent` | Kiểm tra đích `RECORD_COMPONENT` |
-| Có `RUNTIME` là tìm được ở mọi vị trí | Kiểm tra cả đích áp dụng lẫn phần tử đang đọc |
-| Có `METHOD` là tự truyền cả vào accessor tường minh | Phân biệt accessor ngầm định với tự khai báo |
-| Mọi constructor tự viết đều làm mất metadata tham số | Phân biệt constructor rút gọn với dạng đầy đủ |
-| `PARAMETER` và `CONSTRUCTOR` cùng chỉ một vị trí | Đọc `Parameter` riêng với `Constructor` |
-| `TYPE_USE` được đọc bằng annotation của khai báo | Đi qua `AnnotatedType` phù hợp |
-| Mức kiểu ngoài cùng không có annotation thì kiểu generic bên trong cũng không có | Duyệt cấu trúc kiểu đến đúng vị trí |
-| Metadata đã được truyền thì dữ liệu tự được kiểm tra | Xác định bộ xử lý hoặc mã thực hiện quy tắc |
+| An annotation written in the header must be on `RecordComponent` | Check the `RECORD_COMPONENT` target |
+| Having `RUNTIME` means it can be found at every location | Check both the applicable targets and the element being read |
+| Having `METHOD` means it propagates even into an explicit accessor | Distinguish implicit accessors from manually declared ones |
+| Every manually written constructor loses parameter metadata | Distinguish compact constructors from full form |
+| `PARAMETER` and `CONSTRUCTOR` point to the same location | Read `Parameter` separately from `Constructor` |
+| `TYPE_USE` is read using declaration annotations | Traverse the appropriate `AnnotatedType` |
+| If the outermost type level has no annotation, inner generic types have none either | Traverse the type structure to the exact position |
+| Once metadata is propagated, data is validated automatically | Identify the processor or code enforcing the rule |
 
-Hãy thử thay đổi từng yếu tố nhỏ của thí nghiệm rồi dự đoán kết quả trước khi chạy:
+Try changing one small factor of the experiment at a time and predict the output before running:
 
-1. Bỏ `RECORD_COMPONENT` khỏi đích của `Mark`, giữ các đích khác: vị trí nào vẫn đọc được nó?
-2. Bỏ `@Mark` trên accessor tường minh của `Restated`: annotation ở header có tự bổ sung lại không?
-3. Đổi constructor đầy đủ của `OwnConstructor` thành dạng rút gọn: metadata tham số thay đổi thế nào?
-4. Chuyển `@TypeMark` từ `List<@TypeMark String>` ra `@TypeMark List<String>`: vị trí trong cây kiểu cần đọc có đổi không?
-5. Thay `RUNTIME` bằng `CLASS`: vì sao kết quả Reflection thay đổi dù cú pháp dùng annotation vẫn còn trong mã nguồn?
+1. Remove `RECORD_COMPONENT` from `Mark`'s targets while keeping the others: which locations can still read it?
+2. Remove `@Mark` on the explicit accessor of `Restated`: does the header annotation automatically fill back in?
+3. Change `OwnConstructor`'s full constructor to compact form: how does parameter metadata change?
+4. Move `@TypeMark` from `List<@TypeMark String>` to `@TypeMark List<String>`: does the position in the type tree to read change?
+5. Replace `RUNTIME` with `CLASS`: why does the Reflection output change even though the annotation syntax remains in source code?
 
-Ba câu hỏi cần giữ rõ là: **annotation được phép áp dụng ở đâu, thành viên đó được cung cấp ngầm định hay tự khai báo, và Reflection đang đọc khai báo hay đọc cách sử dụng kiểu**.
+Three questions to keep clear are: **where is the annotation allowed to apply, is that member implicitly provided or manually declared, and is Reflection reading the declaration or reading the type use**.

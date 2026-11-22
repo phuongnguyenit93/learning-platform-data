@@ -1,37 +1,37 @@
-# Kiểm tra phiên bản `java` và `javac`
+# Checking the Version of `java` and `javac`
 
 > **Module:** Java core — language-basics  
-> **Mục:** Công cụ và thực thi  
-> **Mục tiêu:** Dùng terminal xác định đúng phiên bản **Java runtime đang chạy** và **trình biên dịch Java đang được gọi**, tìm nguyên nhân khi chúng khác nhau, kiểm tra khả năng chạy của file `.class` và biết khi nào dùng `javac --release`.
+> **Section:** Tools and Execution  
+> **Objective:** Use the terminal to accurately identify the **running Java runtime** version and the **invoked Java compiler** version, find the cause when they differ, check whether `.class` files can run, and know when to use `javac --release`.
 
-## 1. Hai lệnh giống tên nhưng khác chức năng
+## 1. Two similarly named commands with different functions
 
-Khi học Java, bạn thường cần hai chương trình dòng lệnh:
+When learning Java, you usually need two command-line programs:
 
-- **`java`:** Java launcher, khởi động môi trường thực thi để chạy chương trình Java. Phiên bản được hiển thị bởi `java -version` cho biết launcher/runtime mà terminal hiện đang gọi.
-- **`javac`:** Trình biên dịch trong **JDK**, chuyển mã nguồn Java (`.java`) thành bytecode (`.class`). Phiên bản trong `javac -version` cho biết compiler đang được gọi.
+- **`java`:** The Java launcher, which starts the runtime environment to run a Java program. The version displayed by `java -version` indicates the launcher/runtime that the terminal is currently invoking.
+- **`javac`:** The compiler in the **JDK**, which translates Java source code (`.java`) into bytecode (`.class`). The version in `javac -version` indicates the compiler being invoked.
 
-Chữ **JDK** (*Java Development Kit*) chỉ bộ công cụ phát triển, thông thường chứa **cả** `java` và `javac`. Máy chỉ có runtime để chạy ứng dụng có thể có lệnh `java` nhưng không có `javac`.
+The term **JDK** (*Java Development Kit*) refers to the development toolkit, which normally contains **both** `java` and `javac`. A machine that only has a runtime to run applications might have the `java` command without `javac`.
 
-| Câu hỏi | Kiểm tra bằng | Ý nghĩa |
+| Question | Check with | Meaning |
 | --- | --- | --- |
-| Terminal đang khởi động phiên bản Java nào? | `java -version` | Phiên bản launcher/runtime được tìm thấy qua môi trường hiện hành |
-| Terminal đang chọn compiler Java nào? | `javac -version` | Phiên bản `javac` đang được tìm thấy |
-| Có thể biên dịch `Hello.java` không? | `javac Hello.java` | Kiểm tra thực tế có compiler và mã nguồn hợp lệ |
-| Có thể chạy `Hello.class` không? | `java Hello` | Kiểm tra JVM/runtime cùng classpath và entry point phù hợp |
+| Which Java version is the terminal starting? | `java -version` | The launcher/runtime version found through the current environment |
+| Which Java compiler is the terminal selecting? | `javac -version` | The `javac` version currently being found |
+| Can `Hello.java` be compiled? | `javac Hello.java` | Practical check that a compiler exists and the source code is valid |
+| Can `Hello.class` be run? | `java Hello` | Check the JVM/runtime along with the appropriate classpath and entry point |
 
-**Lưu ý:** `java -version` **không** cho biết file `.class` được biên dịch bằng compiler nào. Ngược lại, `javac -version` **không** chứng minh máy sẽ dùng cùng JDK đó khi bạn gõ `java`. Hai lệnh có thể đến từ hai thư mục cài đặt khác nhau.
+**Note:** `java -version` does **not** tell you which compiler compiled a `.class` file. Conversely, `javac -version` does **not** prove the machine will use that same JDK when you type `java`. The two commands may come from two different installation directories.
 
-## 2. Chạy kiểm tra phiên bản ngay trên terminal
+## 2. Run the version check directly in the terminal
 
-Mở Terminal (macOS/Linux), Command Prompt hoặc PowerShell (Windows), lần lượt chạy:
+Open Terminal (macOS/Linux), Command Prompt, or PowerShell (Windows), and run in turn:
 
 ~~~bash
 java -version
 javac -version
 ~~~
 
-Ví dụ minh họa **một môi trường JDK 17**, không phải kết quả cố định của mọi máy:
+Example illustrating **a JDK 17 environment**, not a fixed result for every machine:
 
 ~~~text
 openjdk version "17.0.x" ...
@@ -40,41 +40,41 @@ OpenJDK 64-Bit Server VM ...
 javac 17.0.x
 ~~~
 
-Trong kết quả thực tế, các dấu `...` và `x` được thay bằng thông tin phiên bản/build/vendor cụ thể. Bạn có thể thấy tên bản phân phối như Oracle, Eclipse Temurin, Microsoft, Amazon Corretto hoặc một bản dựng OpenJDK khác.
+In actual output, `...` and `x` are replaced by specific version/build/vendor information. You may see distribution names such as Oracle, Eclipse Temurin, Microsoft, Amazon Corretto, or another OpenJDK build.
 
-Cách đọc:
+How to read it:
 
-1. Tìm **phiên bản tính năng chính** (*feature version*): ví dụ `17` trong `17.0.x` hoặc `21` trong `21.0.x`.
-2. Các phần còn lại thường cho biết cập nhật bảo trì và build. Hai máy cùng “Java 17” có thể có các patch/build khác nhau.
-3. Ghi nhận **cả hai dòng kiểm tra**. Nếu chúng khác nhau, xác định nguyên nhân thay vì giả định Java đã hỏng.
-4. Không suy ra bản mới nhất hoặc tình trạng bảo mật chỉ từ số phiên bản lớn: chính sách hỗ trợ/cập nhật tùy nhà cung cấp và thời điểm.
+1. Find the **major feature version** (*feature version*): for example `17` in `17.0.x` or `21` in `21.0.x`.
+2. The remaining parts usually indicate maintenance updates and builds. Two machines both running “Java 17” may have different patches/builds.
+3. Record **both check lines**. If they differ, identify the cause instead of assuming Java is broken.
+4. Do not infer the latest release or security status solely from the major version number: support/update policies depend on the vendor and timing.
 
-### `-version` hay `--version`?
+### `-version` or `--version`?
 
-Với Java hiện đại, có thể sử dụng:
+With modern Java, you can use:
 
 ~~~bash
 java --version
 javac --version
 ~~~
 
-`--version` là cú pháp thông dụng từ **Java 9 trở lên**. Để kiểm tra trên cả nhiều cài đặt cũ, đặc biệt Java 8, `-version` là lựa chọn quen thuộc và tương thích hơn. Đừng vội kết luận “không có Java” nếu một bản cũ không hiểu `--version`: thử `-version`.
+`--version` is the standard syntax from **Java 9 onward**. To check across many older installations as well, especially Java 8, `-version` is the familiar and more compatible choice. Do not rush to conclude “Java is missing” if an older version does not understand `--version`: try `-version`.
 
-Với các bản Java 8, tên phiên bản đôi khi được in theo dạng `1.8.0_...`. **Java 8 ≈ 1.8**, không phải Java 1 theo cách gọi phiên bản hiện đại.
+With Java 8 releases, the version name is sometimes printed in the form `1.8.0_...`. **Java 8 ≈ 1.8**, not Java 1 in modern version naming.
 
-## 3. Đọc kết quả đúng: ví dụ ba tình huống
+## 3. Reading the results correctly: examples of three scenarios
 
-| `java -version` | `javac -version` | Kết luận bước đầu |
+| `java -version` | `javac -version` | Initial conclusion |
 | --- | --- | --- |
-| `17.0.x` | `17.0.x` | Runtime và compiler cùng dòng phiên bản 17; vẫn nên kiểm tra đường dẫn nếu có nhiều JDK |
-| `11.0.x` | `17.0.x` | Compiler có thể tạo bytecode mới hơn JVM 11 hiểu được, trừ khi cấu hình target phù hợp |
-| Có phiên bản, chạy được | “command not found”/“not recognized” | Có runtime được tìm thấy, nhưng `javac` không tìm được qua terminal hiện tại |
+| `17.0.x` | `17.0.x` | Runtime and compiler are in the same version 17 line; still check paths if multiple JDKs exist |
+| `11.0.x` | `17.0.x` | The compiler may produce bytecode newer than JVM 11 understands, unless configured with an appropriate target |
+| Prints version, runs | “command not found”/“not recognized” | A runtime was found, but `javac` cannot be found through the current terminal |
 
-**Không bắt buộc** mọi hệ thống có cả hai số phiên bản giống hệt đến từng bản vá. Một compiler mới có thể được cấu hình tạo chương trình cho runtime cũ; tuy nhiên phải kiểm soát **phiên bản bytecode, API chuẩn và thư viện phụ thuộc**.
+It is **not mandatory** for every system to have both version numbers match down to every patch. A newer compiler can be configured to build programs for an older runtime; however, you must control the **bytecode version, standard APIs, and library dependencies**.
 
-Ngược lại, `java` và `javac` cùng báo “17” **chưa đủ** để chứng minh chúng nằm trong một thư mục JDK. Ví dụ một lệnh có thể là alias, wrapper hoặc shim trỏ sang cài đặt khác. Đó là lúc cần xem **đường dẫn thực tế**.
+Conversely, `java` and `javac` both reporting “17” is **not enough** to prove they reside in the same JDK directory. For example, one command might be an alias, wrapper, or shim pointing to another installation. That is when you need to inspect the **actual paths**.
 
-## 4. Xác định terminal đang tìm `java` và `javac` ở đâu
+## 4. Finding where the terminal locates `java` and `javac`
 
 ### Windows — PowerShell
 
@@ -86,11 +86,11 @@ Get-Command javac -All
 $env:JAVA_HOME
 ~~~
 
-- `where.exe` cho biết những executable trùng tên được tìm thấy trên `PATH` theo cơ chế tìm kiếm của Windows.
-- `Get-Command ... -All` hữu ích trong PowerShell vì còn có thể phát hiện alias/function/command được PowerShell ưu tiên.
-- `$env:JAVA_HOME` in giá trị biến môi trường trong **phiên PowerShell hiện tại** nếu có.
+- `where.exe` shows the executables with matching names found on `PATH` according to Windows' lookup mechanism.
+- `Get-Command ... -All` is useful in PowerShell because it can also detect aliases/functions/commands prioritized by PowerShell.
+- `$env:JAVA_HOME` prints the environment variable value in the **current PowerShell session** if set.
 
-**Phải dùng `where.exe`**, không chỉ `where` trong PowerShell: `where` có thể là alias của `Where-Object`, không phải chương trình dò đường dẫn.
+**You must use `where.exe`**, not just `where` in PowerShell: `where` can be an alias for `Where-Object`, not the path-lookup program.
 
 ### macOS / Linux — shell
 
@@ -102,44 +102,44 @@ type -a javac
 echo "$JAVA_HOME"
 ~~~
 
-`command -v` cho thấy command nào được shell phân giải; `type -a` (với Bash và nhiều shell phổ biến) có thể liệt kê nhiều kết quả/alias/function.
+`command -v` shows which command the shell resolves; `type -a` (in Bash and many common shells) can list multiple matches/aliases/functions.
 
-Tham khảo thêm tùy hệ điều hành:
+Additional OS-specific references:
 
 ~~~bash
-# Linux có công cụ readlink hỗ trợ -f:
+# Linux with readlink supporting -f:
 readlink -f "$(command -v java)"
 ~~~
 
 ~~~bash
-# macOS: liệt kê một số cài đặt JDK mà java_home biết:
+# macOS: list JDK installations known to java_home:
  /usr/libexec/java_home -V
 ~~~
 
-Lệnh macOS trên có **một khoảng trắng đầu dòng không cần thiết**; khi gõ hãy dùng `/usr/libexec/java_home -V`. `readlink -f` không phải tùy chọn portable trên mọi phiên bản macOS, vì vậy không áp dụng máy móc lệnh Linux.
+The macOS command above has **an unnecessary leading space**; when typing it, use `/usr/libexec/java_home -V`. `readlink -f` is not a portable option across all macOS versions, so do not mechanically apply the Linux command.
 
-### Vì sao các đường dẫn có thể không giống bạn nghĩ?
+### Why might the paths not be what you expect?
 
-Giả sử máy cài JDK 11 và JDK 17. Khi gõ `java`, hệ điều hành/shell tìm lệnh theo môi trường hiện tại (thường là thứ tự trong `PATH`), không tự chọn bản JDK phù hợp với mã nguồn bạn định chạy.
+Suppose a machine has JDK 11 and JDK 17 installed. When you type `java`, the OS/shell looks up the command based on the current environment (usually the order in `PATH`), rather than automatically choosing the JDK that matches the source code you intend to run.
 
-Ngoài ra:
+In addition:
 
-- IDE có thể được cấu hình sử dụng JDK khác với terminal.
-- Maven/Gradle có thể được cấu hình JDK/toolchain riêng; các lệnh terminal trên chỉ mô tả môi trường bạn vừa kiểm tra, **không tự chứng minh mọi build tool dùng cùng JDK**.
-- Trình khởi chạy qua wrapper, alias hay executable manager có thể chọn Java theo cấu hình riêng.
-- Chạy chương trình trong container, CI hoặc SSH là **một môi trường khác** với terminal trên máy cá nhân.
+- An IDE may be configured to use a different JDK from the terminal.
+- Maven/Gradle may be configured with its own JDK/toolchain; the terminal commands above only describe the environment you just checked and **do not automatically prove every build tool uses the same JDK**.
+- Launchers via wrappers, aliases, or executable managers may select Java based on their own configuration.
+- Running a program inside a container, CI, or SSH is **a different environment** from the terminal on your personal machine.
 
-## 5. `JAVA_HOME`, `PATH` và phiên bản Java: ba điều khác nhau
+## 5. `JAVA_HOME`, `PATH`, and Java version: three different things
 
-| Thành phần | Vai trò | Điều không nên giả định |
+| Component | Role | What you should not assume |
 | --- | --- | --- |
-| `JAVA_HOME` | Biến môi trường thường trỏ tới thư mục JDK cho build tool và script | Không bảo đảm lệnh `java` trong terminal đang dùng đúng thư mục ấy |
-| `PATH` | Danh sách vị trí tìm executable khi gõ tên lệnh | Không bảo đảm chỉ có một bản Java hoặc không có wrapper |
-| `java.home` (thuộc tính Java runtime) | Thư mục runtime của **tiến trình Java thực sự đang chạy** | Không nhất thiết bằng giá trị `JAVA_HOME` hoặc vị trí JDK dùng để biên dịch |
+| `JAVA_HOME` | Environment variable usually pointing to the JDK directory for build tools and scripts | Does not guarantee the `java` command in the terminal is using that exact directory |
+| `PATH` | List of locations searched for executables when typing a command name | Does not guarantee there is only one Java installation or no wrapper |
+| `java.home` (Java runtime property) | The runtime directory of the **Java process actually running** | Does not necessarily equal the `JAVA_HOME` value or the location of the JDK used for compilation |
 
-Một cách điều chỉnh **tạm thời trong phiên terminal hiện tại**:
+A way to adjust this **temporarily in the current terminal session**:
 
-**Windows PowerShell (đường dẫn chỉ là ví dụ, hãy thay bằng JDK thật):**
+**Windows PowerShell (the path is only an example, replace it with an actual JDK):**
 
 ~~~powershell
 $env:JAVA_HOME = 'C:\Program Files\Java\jdk-17'
@@ -148,7 +148,7 @@ java -version
 javac -version
 ~~~
 
-**macOS/Linux, Bash hoặc shell tương tự:**
+**macOS/Linux, Bash or similar shell:**
 
 ~~~bash
 export JAVA_HOME="/duong-dan/toi/jdk-17"
@@ -157,15 +157,15 @@ java -version
 javac -version
 ~~~
 
-Các lệnh này **không cài Java**, chỉ thay đổi cách phiên shell hiện tại tìm công cụ. Đừng sao chép đường dẫn ví dụ nếu thư mục ấy không tồn tại. Trên một số shell có cache đường dẫn command, có thể cần mở terminal mới hoặc chạy `hash -r` (Bash) sau khi đổi `PATH`.
+These commands **do not install Java**; they only change how the current shell session locates the tools. Do not copy the example path if that directory does not exist. On some shells that cache command paths, you may need to open a new terminal or run `hash -r` (Bash) after changing `PATH`.
 
-**Quy tắc chẩn đoán:** kiểm tra phiên bản → kiểm tra đường dẫn → kiểm tra `JAVA_HOME` và cấu hình build tool. Không nên chỉnh sửa biến môi trường toàn hệ thống trước khi biết lỗi nằm ở đâu.
+**Diagnostic rule:** check version → check path → check `JAVA_HOME` and build tool configuration. Do not edit system-wide environment variables before knowing where the issue lies.
 
-## 6. Ví dụ Java chạy được: xác nhận phiên bản từ bên trong chương trình
+## 6. Runnable Java example: confirming the version from inside the program
 
-Lệnh `java -version` phản ánh Java mà terminal gọi. Ta cũng có thể hỏi **chính chương trình đang chạy** về runtime của nó.
+The `java -version` command reflects the Java invoked by the terminal. We can also ask the **running program itself** about its runtime.
 
-Tạo tệp **VersionEnvironmentDemo.java**:
+Create the file **VersionEnvironmentDemo.java**:
 
 ~~~java
 public class VersionEnvironmentDemo {
@@ -186,54 +186,54 @@ public class VersionEnvironmentDemo {
 }
 ~~~
 
-Đây là mã **Java 9+** vì có `Runtime.version()`; để học trên môi trường phổ biến, hãy dùng **JDK 11 hoặc 17 trở lên**.
+This is **Java 9+** code because of `Runtime.version()`; to study in a common environment, use **JDK 11 or 17 or higher**.
 
-Biên dịch và chạy trong thư mục chứa file:
+Compile and run in the directory containing the file:
 
 ~~~bash
 javac VersionEnvironmentDemo.java
 java VersionEnvironmentDemo
 ~~~
 
-Đầu ra minh họa:
+Illustrative output:
 
 ~~~text
 Java version : 17.0.x
 Runtime name : OpenJDK Runtime Environment
-Java vendor  : <vendor của runtime>
+Java vendor  : <runtime vendor>
 VM name      : OpenJDK 64-Bit Server VM
-Runtime home : <đường dẫn runtime hiện tại>
+Runtime home : <current runtime path>
 Feature      : 17
 ~~~
 
-Giá trị thực tế tùy môi trường; không phải mọi JVM đều in đúng tên ví dụ trên. Nếu chạy trong IDE, hãy so sánh đầu ra của ví dụ **ở terminal** và **trong IDE** để kiểm tra chúng có chọn runtime khác nhau không.
+Actual values depend on the environment; not every JVM prints the exact example names above. If running in an IDE, compare the example's output **in the terminal** and **in the IDE** to check whether they select different runtimes.
 
-Điều quan trọng:
+Important points:
 
-- `System.getProperty("java.version")` và `Runtime.version().feature()` đo runtime **đang thực thi mã**.
-- `java.home` đo vị trí runtime đang dùng **bên trong tiến trình**, không phải vị trí JDK chắc chắn đã chạy `javac`.
-- Chương trình không tự biết chính xác compiler `javac` nào đã tạo file class; muốn biết bạn đã gọi compiler nào cần xem lệnh build và cấu hình của nó.
+- `System.getProperty("java.version")` and `Runtime.version().feature()` measure the runtime **executing the code**.
+- `java.home` measures the runtime location being used **inside the process**, not necessarily the JDK location that ran `javac`.
+- A program does not automatically know which exact `javac` compiler produced the class file; to know which compiler you invoked, you need to check the build command and its configuration.
 
-### Điều gì xảy ra nếu chỉ có `java` mà không có `javac`?
+### What happens if there is only `java` without `javac`?
 
-Nếu `java -version` thành công nhưng `javac -version` báo không tìm thấy lệnh, có thể máy chỉ có runtime, hoặc compiler không nằm trên `PATH`. Khi cần học hoặc build từ `.java`, hãy cài/chọn một **JDK** tương thích, rồi xác minh lại cả hai lệnh.
+If `java -version` succeeds but `javac -version` reports command not found, the machine might only have a runtime, or the compiler is not on `PATH`. When you need to study or build from `.java`, install/select a compatible **JDK**, then re-verify both commands.
 
-Không sử dụng thông báo thành công của `java -version` để khẳng định chắc chắn đã có toàn bộ công cụ phát triển.
+Do not use a successful `java -version` message to claim that you definitely have the full set of development tools.
 
-## 7. Phiên bản compiler khác với phiên bản class file
+## 7. Compiler version vs. class file version
 
-Đây là nguyên nhân quan trọng nhất của lỗi “Java trên máy chạy quá cũ”.
+This is the most important cause of the error “Java on the running machine is too old.”
 
-Khi biên dịch, `javac` tạo bytecode `.class` theo một **class-file version**. Runtime Java cũ hơn có thể không đọc được định dạng mới.
+When compiling, `javac` generates `.class` bytecode according to a **class-file version**. An older Java runtime may not be able to read a newer format.
 
-| Mức Java mục tiêu | Class-file major version thường gặp |
+| Target Java level | Common class-file major version |
 | --- | ---: |
 | Java 8 | 52 |
 | Java 11 | 55 |
 | Java 17 | 61 |
 | Java 21 | 65 |
 
-Ví dụ, chương trình đã build cho **Java 17 (major 61)** không thể được nạp bởi runtime chỉ hỗ trợ tối đa **Java 11 (major 55)**. Khi đó có thể nhận:
+For example, a program built for **Java 17 (major 61)** cannot be loaded by a runtime that only supports up to **Java 11 (major 55)**. In that case, you may receive:
 
 ~~~text
 java.lang.UnsupportedClassVersionError:
@@ -242,27 +242,27 @@ java.lang.UnsupportedClassVersionError:
   this runtime only recognizes class file versions up to 55.0
 ~~~
 
-Đây là **thông báo minh họa**, không nhất thiết giống hệt thông báo của mọi vendor.
+This is an **illustrative message**, not necessarily identical to every vendor's message.
 
-### Kiểm tra file class bằng `javap`
+### Checking a class file with `javap`
 
-Sau khi biên dịch `VersionEnvironmentDemo.java` bằng JDK:
+After compiling `VersionEnvironmentDemo.java` with the JDK:
 
 ~~~bash
 javap -verbose VersionEnvironmentDemo
 ~~~
 
-Tìm dòng như:
+Look for a line such as:
 
 ~~~text
 major version: 61
 ~~~
 
-`javap` là công cụ xem thông tin class/bytecode của JDK. **Dòng major version của file class** cho biết mức định dạng của class ấy, không trực tiếp chứng minh file đã được tạo bằng phiên bản compiler cụ thể nào.
+`javap` is the JDK tool for viewing class/bytecode information. **The major version line of a class file** indicates the format level of that class, and does not directly prove which specific compiler version generated the file.
 
-### Biên dịch cho phiên bản runtime mục tiêu
+### Compiling for a target runtime version
 
-Nếu dùng một compiler mới hơn, có thể yêu cầu nó build cho một mức Java cũ hơn mà compiler còn hỗ trợ. Ví dụ dùng **JDK 17** để nhắm **Java 11**:
+If using a newer compiler, you can instruct it to build for an older Java level that the compiler still supports. For example, using **JDK 17** to target **Java 11**:
 
 ~~~bash
 javac --release 11 VersionEnvironmentDemo.java
@@ -270,89 +270,89 @@ javap -verbose VersionEnvironmentDemo
 java VersionEnvironmentDemo
 ~~~
 
-Với ví dụ này, major version dự kiến là **55**, vì mục tiêu được chọn là Java 11. Để chứng minh khả năng chạy trên Java 11, bạn vẫn phải **thực sự chạy chương trình bằng runtime Java 11**, không chỉ bằng runtime 17 trên máy build.
+For this example, the expected major version is **55**, because the selected target is Java 11. To prove it can run on Java 11, you must still **actually run the program with a Java 11 runtime**, not just with runtime 17 on the build machine.
 
-`--release` kiểm soát đồng thời mức ngôn ngữ, class-file target và các **API Java chuẩn** khả dụng ở release mục tiêu (trong giới hạn compiler hỗ trợ). Nó giúp tránh lỗi thường gặp khi dùng `-source`/`-target` nhưng vô tình gọi một API Java chuẩn chỉ có trong runtime mới.
+`--release` simultaneously controls the language level, class-file target, and **standard Java APIs** available in the target release (within the compiler's supported range). It helps avoid the common mistake when using `-source`/`-target` of accidentally calling a standard Java API that only exists in a newer runtime.
 
-**Giới hạn quan trọng:** `--release` không làm thư viện bên thứ ba tự tương thích với Java cũ, không xử lý native library hay môi trường runtime khác, và không thể yêu cầu compiler hỗ trợ release mà nó không biết. Ví dụ JDK 8 không hiểu `--release 11`.
+**Important limitation:** `--release` does not make third-party libraries automatically compatible with older Java, does not handle native libraries or other runtime environment differences, and cannot ask a compiler to support a release it does not know. For example, JDK 8 does not understand `--release 11`.
 
-### Kiểm tra đường build và runtime thực tế
+### Checking the actual build and runtime path
 
-Một kết quả đúng cần tối thiểu ba thông tin:
+A proper verification needs at least three pieces of information:
 
-1. Phiên bản **compiler** dùng để build (`javac -version` hoặc thông tin build tool).
-2. Mức target của file `.class` (`javap -verbose` hoặc cấu hình `--release`).
-3. Phiên bản **runtime thực sự dùng khi chạy** (`java -version` tại máy đích).
+1. The **compiler** version used to build (`javac -version` or build tool information).
+2. The target level of the `.class` file (`javap -verbose` or `--release` configuration).
+3. The **actual runtime version used when running** (`java -version` on the target machine).
 
-Ba thông tin này có liên quan nhưng **không được đồng nhất**.
+These three pieces of information are related, but **must not be conflated**.
 
-## 8. Các lỗi phiên bản và cách xử lý
+## 8. Version errors and how to handle them
 
-| Triệu chứng | Nguyên nhân khả dĩ | Kiểm tra / hướng xử lý |
+| Symptom | Possible cause | Check / resolution |
 | --- | --- | --- |
-| `java: command not found` hoặc “not recognized” | Không cài runtime/launcher, `PATH` sai, môi trường shell khác | Tìm executable Java; kiểm tra cài đặt và `PATH` |
-| `javac: command not found` nhưng `java` chạy được | Chỉ có runtime hoặc `PATH` chưa trỏ tới JDK `bin` | Xác minh vị trí `javac`, chọn JDK phù hợp |
-| `java` báo 11, `javac` báo 17 | Hai executable có thể được chọn từ các bản cài khác nhau | Kiểm tra đường dẫn từng lệnh và mục tiêu build/runtime |
-| `UnsupportedClassVersionError` | Bytecode mới hơn runtime đang chạy | Dùng runtime phù hợp hoặc rebuild với `--release` đúng |
-| `invalid flag: --release` | Compiler quá cũ hoặc không hỗ trợ flag | Xem `javac -version`, chọn compiler phù hợp |
-| `error: release version 21 not supported` | Compiler hiện tại không hỗ trợ mục tiêu 21 | Không thể biên dịch Java 21 bằng compiler quá cũ; dùng JDK hỗ trợ |
-| `NoSuchMethodError` sau khi đổi runtime/thư viện | Có thể chạy với API/thư viện không khớp phiên bản lúc build | Xem dependency/classpath, API runtime và bản thư viện thực sự được nạp |
-| IDE chạy khác terminal | IDE chọn Project SDK/Run Configuration riêng | Kiểm tra cấu hình JDK trong IDE và terminal |
-| Dùng Docker/CI nhưng máy cá nhân chạy tốt | Container/runner có runtime/JDK khác | Kiểm tra phiên bản **bên trong** container/runner, không chỉ máy chủ |
+| `java: command not found` or “not recognized” | Runtime/launcher not installed, wrong `PATH`, different shell environment | Locate the Java executable; check installation and `PATH` |
+| `javac: command not found` while `java` works | Only a runtime is installed, or `PATH` does not point to JDK `bin` | Verify `javac` location, choose an appropriate JDK |
+| `java` reports 11, `javac` reports 17 | The two executables may be picked from different installations | Check the path of each command and the build/runtime targets |
+| `UnsupportedClassVersionError` | Bytecode is newer than the running runtime | Use an appropriate runtime or rebuild with the right `--release` |
+| `invalid flag: --release` | Compiler is too old or does not support the flag | Check `javac -version`, select an appropriate compiler |
+| `error: release version 21 not supported` | Current compiler does not support target 21 | Cannot compile Java 21 with an overly old compiler; use a supporting JDK |
+| `NoSuchMethodError` after changing runtime/libraries | May be running with an API/library version mismatch compared to build time | Check dependencies/classpath, runtime APIs, and the actual library version loaded |
+| IDE runs differently from terminal | IDE selects a separate Project SDK/Run Configuration | Check JDK settings in both the IDE and terminal |
+| Works on personal machine, fails in Docker/CI | Container/runner has a different runtime/JDK | Check versions **inside** the container/runner, not just on the host |
 
-**Đừng chữa nhầm bệnh:** `Could not find or load main class` thường liên quan **classpath hoặc tên main class**, không nhất thiết là lỗi phiên bản. Mã nguồn sai cú pháp là lỗi biên dịch; `UnsupportedClassVersionError` là lỗi tương thích bytecode tại runtime.
+**Do not treat the wrong symptom:** `Could not find or load main class` usually relates to **classpath or the main class name**, not necessarily a version error. Syntax errors in source code are compile errors; `UnsupportedClassVersionError` is a bytecode compatibility error at runtime.
 
-## 9. Quy trình kiểm tra nhanh trước khi bắt đầu dự án
+## 9. Quick check workflow before starting a project
 
-Lần đầu mở một dự án Java hoặc nhận một yêu cầu chạy code, hãy làm theo thứ tự:
+When opening a Java project for the first time or receiving a request to run code, follow this sequence:
 
 ~~~mermaid
 flowchart TD
-    A["Mở terminal tại môi trường cần kiểm tra"] --> B["java -version và javac -version"]
-    B --> C{"Cả hai lệnh có mặt?"}
-    C -->|Không| D["Kiểm tra JDK, PATH, alias/wrapper"]
-    C -->|Có| E["Ghi nhận các phiên bản chính"]
-    E --> F["Kiểm tra đường dẫn java/javac"]
-    F --> G["Xác định target Java của dự án"]
-    G --> H["Biên dịch với cấu hình phù hợp"]
-    H --> I["Chạy bằng runtime mục tiêu"]
-    I --> J{"Kết quả ổn?"}
-    J -->|Không| K["Đọc lỗi: classpath, bytecode hay API"]
+    A["Open terminal in the environment to check"] --> B["java -version and javac -version"]
+    B --> C{"Are both commands present?"}
+    C -->|No| D["Check JDK, PATH, alias/wrapper"]
+    C -->|Yes| E["Record major versions"]
+    E --> F["Check paths of java/javac"]
+    F --> G["Identify project's Java target"]
+    G --> H["Compile with appropriate configuration"]
+    H --> I["Run using target runtime"]
+    I --> J{"Result okay?"}
+    J -->|No| K["Read error: classpath, bytecode, or API"]
     K --> F
-    J -->|Có| L["Môi trường đã được xác nhận"]
+    J -->|Yes| L["Environment confirmed"]
 ~~~
 
-Checklist ngắn:
+Short checklist:
 
-- [ ] `java -version` có kết quả và bạn biết đang dùng phiên bản nào.
-- [ ] `javac -version` có kết quả nếu cần biên dịch mã Java.
-- [ ] Đã kiểm tra vị trí executable, nhất là khi cài nhiều JDK.
-- [ ] Biết dự án yêu cầu runtime Java nào; không chọn version ngẫu nhiên.
-- [ ] Nếu có `--release`, biết mục tiêu biên dịch và giới hạn của nó.
-- [ ] Chạy thử bằng **runtime đích**, không chỉ runtime trên máy phát triển.
+- [ ] `java -version` produces output and you know which version you are using.
+- [ ] `javac -version` produces output if you need to compile Java code.
+- [ ] Checked executable locations, especially when multiple JDKs are installed.
+- [ ] Know which Java runtime the project requires; do not pick a version at random.
+- [ ] If using `--release`, know the compilation target and its limitations.
+- [ ] Test running with the **target runtime**, not just the runtime on the development machine.
 
-## 10. Bài tập tự luyện
+## 10. Practice exercises
 
-**Bài 1 — Đọc phiên bản:** Giả sử `java -version` cho `11.0.x` còn `javac -version` cho `17.0.x`. Có phải compiler Java 17 không thể dùng được không?
+**Exercise 1 — Reading versions:** Suppose `java -version` gives `11.0.x` while `javac -version` gives `17.0.x`. Does that mean the Java 17 compiler cannot be used?
 
-*Gợi ý:* Chưa thể kết luận như vậy. Compiler 17 có thể tạo class target 11 với `--release 11` nếu mã và API tương thích. Hãy xác minh lệnh build và thử chạy artifact trên runtime 11 thực.
+*Hint:* You cannot conclude that yet. Compiler 17 can generate target 11 classes with `--release 11` if the code and APIs are compatible. Verify the build command and test running the artifact on an actual 11 runtime.
 
-**Bài 2 — Xác định đường dẫn:** Trên máy có hai JDK, hãy liệt kê vị trí `java` và `javac` bằng lệnh phù hợp hệ điều hành. So sánh với `JAVA_HOME` và giải thích vì sao khác nhau.
+**Exercise 2 — Identifying paths:** On a machine with two JDKs, list the locations of `java` and `javac` using the OS-appropriate commands. Compare with `JAVA_HOME` and explain why they differ.
 
-**Bài 3 — Kiểm tra file class:** Biên dịch `VersionEnvironmentDemo.java`, dùng `javap -verbose` xác định major version. Sau đó (nếu compiler hỗ trợ) build với `--release 11` và kiểm tra sự khác biệt.
+**Exercise 3 — Inspecting class files:** Compile `VersionEnvironmentDemo.java`, use `javap -verbose` to identify the major version. Then (if the compiler supports it) build with `--release 11` and check the difference.
 
-**Bài 4 — Nhận diện lỗi:** Bạn đưa file `.class` target Java 17 lên máy Java 11, nhận `UnsupportedClassVersionError`. Hãy đề xuất **hai** cách giải quyết hợp lệ và mô tả rủi ro phụ thuộc thư viện nếu chọn build về Java 11.
+**Exercise 4 — Identifying errors:** You deploy a Java 17 target `.class` file to a Java 11 machine and get `UnsupportedClassVersionError`. Propose **two** valid solutions and describe the library dependency risk if you choose to build targeting Java 11.
 
-**Bài 5 — IDE so với terminal:** Một ứng dụng chạy trong IDE nhưng thất bại khi chạy ở terminal. Hãy kiểm tra runtime được in từ `VersionEnvironmentDemo` ở cả hai nơi, đường dẫn `java` trong terminal và cấu hình Run/SDK của IDE.
+**Exercise 5 — IDE vs. terminal:** An application runs in the IDE but fails when run in the terminal. Check the runtime printed by `VersionEnvironmentDemo` in both places, the path of `java` in the terminal, and the IDE's Run/SDK configuration.
 
-## 11. Tự đánh giá
+## 11. Self-assessment
 
-Bạn hiểu bài khi có thể giải thích:
+You understand this lesson when you can explain:
 
-1. Vì sao phải chạy **cả `java -version` lẫn `javac -version`** thay vì chỉ một lệnh.
-2. Vì sao `JAVA_HOME` không tự động chứng minh lệnh `java` đang dùng đúng JDK đó.
-3. Sự khác nhau giữa **phiên bản compiler**, **class-file target** và **phiên bản runtime**.
-4. Khi gặp `UnsupportedClassVersionError`, vì sao cần xem `--release` và runtime đích thay vì chỉ đổi tên file.
-5. Cách xác nhận trên Windows/macOS/Linux bằng lệnh đơn giản mà không làm thay đổi dữ liệu ứng dụng.
+1. Why you must run **both `java -version` and `javac -version`** instead of just one command.
+2. Why `JAVA_HOME` does not automatically prove the `java` command is using that exact JDK.
+3. The difference between **compiler version**, **class-file target**, and **runtime version**.
+4. When encountering `UnsupportedClassVersionError`, why you need to check `--release` and the target runtime instead of just renaming files.
+5. How to verify on Windows/macOS/Linux using simple commands without altering application data.
 
-**Kết luận:** `java -version` kiểm tra môi trường **chạy**, `javac -version` kiểm tra công cụ **biên dịch**. Muốn chương trình Java chạy đúng, cần kết hợp cả hai với đường dẫn executable thực, cấu hình target và kiểm thử trên runtime mà ứng dụng sẽ sử dụng.
+**Conclusion:** `java -version` checks the **execution** environment, `javac -version` checks the **compilation** tool. For a Java program to run properly, you need to combine both with the actual executable paths, target configuration, and testing on the runtime the application will use.

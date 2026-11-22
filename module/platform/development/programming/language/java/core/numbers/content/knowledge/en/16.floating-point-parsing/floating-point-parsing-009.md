@@ -1,10 +1,10 @@
-# Kiểm tra giá trị hữu hạn và miền dữ liệu sau khi parse trong Java
+# Validating Finiteness and Range After Parsing in Java
 
-## 1. Vì sao parse thành công chưa có nghĩa dữ liệu hợp lệ?
+## 1. Why does successful parsing not mean valid data?
 
-Khi chương trình nhận số thực từ form, file cấu hình, CSV hoặc API, bước đầu thường là `Double.parseDouble(String)` hay `Float.parseFloat(String)`. Tuy nhiên **chuyển đổi chuỗi thành công chỉ chứng tỏ chuỗi được chấp nhận theo cú pháp số thực Java**; nó không đảm bảo kết quả phù hợp với miền dữ liệu, ý nghĩa nghiệp vụ hoặc yêu cầu về độ chính xác.
+When a program receives floating-point numbers from forms, configuration files, CSV, or APIs, the first step is usually `Double.parseDouble(String)` or `Float.parseFloat(String)`. However, **successful string conversion proves only that the string was accepted under Java's floating-point syntax**; it does not guarantee that the result fits the data range, business meaning, or precision requirements.
 
-Ví dụ:
+Example:
 
 ~~~java
 double normal = Double.parseDouble("12.5");
@@ -14,25 +14,25 @@ double overflow = Double.parseDouble("1e309");
 double tiny = Double.parseDouble("1e-400");
 ~~~
 
-Các lời gọi trên đều có thể hoàn thành **không ném `NumberFormatException`**. Nhưng:
+All of the calls above can complete **without throwing `NumberFormatException`**. Yet:
 
-- `normal` bằng 12,5 và hữu hạn.
-- `nan` mang giá trị `NaN` (*Not a Number*).
-- `inf` và `overflow` mang giá trị `+Infinity`.
-- `tiny` bằng `0.0` do kết quả thập phân khác 0 quá nhỏ để biểu diễn dưới dạng `double`.
+- `normal` equals 12.5 and is finite.
+- `nan` holds `NaN` (*Not a Number*).
+- `inf` and `overflow` hold `+Infinity`.
+- `tiny` equals `0.0` because the nonzero decimal result is too small to represent as a `double`.
 
-Do vậy, quy trình tin cậy là **đọc chuỗi → parse → kiểm tra tính hữu hạn → kiểm tra miền nghiệp vụ → kiểm tra thêm các điều kiện độ chính xác nếu cần → sử dụng**. Bài học tập trung vào từng bước và những lỗi khó thấy trong mã Java 17+.
+Accordingly, a reliable workflow is **read string → parse → check finiteness → check business range → check additional precision conditions if needed → use**. This lesson focuses on each step and subtle bugs in Java 17+ code.
 
-## 2. Hai phương thức parse số thực thông dụng
+## 2. Two common floating-point parsing methods
 
-| API | Trả về | Miền biểu diễn | Phản ứng với chuỗi sai cú pháp |
+| API | Returns | Representation range | Response to invalid syntax |
 | --- | --- | --- | --- |
-| `Double.parseDouble(text)` | `double` primitive | IEEE 754 binary64 | Ném `NumberFormatException` |
-| `Float.parseFloat(text)` | `float` primitive | IEEE 754 binary32 | Ném `NumberFormatException` |
-| `Double.valueOf(text)` | `Double` wrapper | Tương tự `double` | Ném `NumberFormatException` |
-| `Float.valueOf(text)` | `Float` wrapper | Tương tự `float` | Ném `NumberFormatException` |
+| `Double.parseDouble(text)` | `double` primitive | IEEE 754 binary64 | Throws `NumberFormatException` |
+| `Float.parseFloat(text)` | `float` primitive | IEEE 754 binary32 | Throws `NumberFormatException` |
+| `Double.valueOf(text)` | `Double` wrapper | Same as `double` | Throws `NumberFormatException` |
+| `Float.valueOf(text)` | `Float` wrapper | Same as `float` | Throws `NumberFormatException` |
 
-Ví dụ:
+Example:
 
 ~~~java
 double a = Double.parseDouble("3.14");
@@ -40,11 +40,11 @@ float b = Float.parseFloat("3.14");
 Double wrapped = Double.valueOf("3.14");
 ~~~
 
-Đây là đoạn minh họa đặt trong một phương thức, không phải một chương trình Java hoàn chỉnh. `parseDouble` và `parseFloat` trả **primitive**; `valueOf` trả **wrapper**. Dù dùng API nào, dữ liệu ngoài miền nghiệp vụ hoặc `NaN`/`Infinity` vẫn cần kiểm tra riêng.
+This is an illustrative snippet placed inside a method, not a complete Java program. `parseDouble` and `parseFloat` return **primitives**; `valueOf` returns **wrappers**. Regardless of which API is used, out-of-range business data or `NaN`/`Infinity` still requires separate validation.
 
-`NumberFormatException` chỉ nói rằng quá trình chuyển chuỗi thất bại vì cú pháp; không nên coi việc **không** bắt được ngoại lệ này là một xác nhận dữ liệu “sạch”.
+`NumberFormatException` indicates only that string conversion failed due to syntax; you should not treat **not** catching this exception as validation of "clean" data.
 
-### Những chuỗi Java có thể parse được
+### Strings that Java can parse
 
 ~~~java
 System.out.println(Double.parseDouble("-12.5"));  // -12.5
@@ -54,37 +54,37 @@ System.out.println(Double.parseDouble("NaN"));    // NaN
 System.out.println(Double.parseDouble("-Infinity")); // -Infinity
 ~~~
 
-`0x1.8p2` là số thực hexadecimal: `1.8` hệ 16 nhân `2²` nên bằng 6.0. Điều đó cho thấy `Double.parseDouble` chấp nhận **nhiều hơn cú pháp số thập phân đơn giản**.
+`0x1.8p2` is a hexadecimal floating-point number: base-16 `1.8` multiplied by `2²`, which equals 6.0. This shows that `Double.parseDouble` accepts **more than simple decimal number syntax**.
 
-Trong Java, các dạng `"NaN"` và `"Infinity"` là chuỗi đặc biệt được chấp nhận, nhưng chúng **không phải số hữu hạn**. Nếu API của bạn chỉ cho phép số thập phân thường, hãy đặt chính sách định dạng đầu vào riêng; đừng nhầm “parser Java chấp nhận” với “API nghiệp vụ cho phép”.
+In Java, `"NaN"` and `"Infinity"` are accepted special strings, yet they are **not finite numbers**. If your API permits only ordinary decimal numbers, enforce a dedicated input format policy; do not confuse "Java's parser accepts it" with "business API allows it."
 
-## 3. Giá trị hữu hạn, Infinity và NaN
+## 3. Finite values, Infinity, and NaN
 
-Có ba nhóm kết quả quan trọng sau khi parse:
+There are three important result groups after parsing:
 
-| Nhóm | Ví dụ | `Double.isFinite(x)` | `Double.isNaN(x)` | `Double.isInfinite(x)` |
+| Group | Examples | `Double.isFinite(x)` | `Double.isNaN(x)` | `Double.isInfinite(x)` |
 | --- | --- | --- | --- | --- |
-| Hữu hạn | `0.0`, `-0.0`, `12.5`, `Double.MAX_VALUE` | `true` | `false` | `false` |
-| Không phải số | `Double.NaN` | `false` | `true` | `false` |
-| Vô cực | `Double.POSITIVE_INFINITY`, `Double.NEGATIVE_INFINITY` | `false` | `false` | `true` |
+| Finite | `0.0`, `-0.0`, `12.5`, `Double.MAX_VALUE` | `true` | `false` | `false` |
+| Not a Number | `Double.NaN` | `false` | `true` | `false` |
+| Infinity | `Double.POSITIVE_INFINITY`, `Double.NEGATIVE_INFINITY` | `false` | `false` | `true` |
 
-Dùng `Double.isFinite(x)` để chấp nhận **chỉ số hữu hạn**:
+Use `Double.isFinite(x)` to accept **only finite numbers**:
 
 ~~~java
 double parsed = Double.parseDouble("NaN");
 
 if (!Double.isFinite(parsed)) {
-    throw new IllegalArgumentException("Giá trị phải hữu hạn");
+    throw new IllegalArgumentException("Value must be finite");
 }
 ~~~
 
-Với `float`, dùng `Float.isFinite(value)`, `Float.isNaN(value)`, `Float.isInfinite(value)`. Những phương thức này hoạt động với giá trị primitive, không phụ thuộc vào cách chuỗi đầu vào được viết.
+For `float`, use `Float.isFinite(value)`, `Float.isNaN(value)`, and `Float.isInfinite(value)`. These methods operate on primitive values regardless of how the input string was written.
 
-**Lưu ý:** `Double.isFinite` trả `true` với `0.0`, `-0.0` và cả các số `subnormal` rất nhỏ. Nó chỉ loại `NaN` và `±Infinity`; không có nghĩa số nằm trong phạm vi hợp lệ hoặc được chuyển đổi mà không mất thông tin.
+**Note:** `Double.isFinite` returns `true` for `0.0`, `-0.0`, and very small `subnormal` numbers. It excludes only `NaN` and `±Infinity`; it does not mean the number lies in a valid range or was converted without losing information.
 
-## 4. Trường hợp overflow: parse hợp lệ nhưng cho Infinity
+## 4. Overflow case: valid parse that produces Infinity
 
-`double` có giá trị hữu hạn lớn nhất là `Double.MAX_VALUE`, xấp xỉ `1.7976931348623157E308`. `float` có giới hạn thấp hơn, `Float.MAX_VALUE` xấp xỉ `3.4028235E38`.
+`double` has a largest finite value of `Double.MAX_VALUE`, approximately `1.7976931348623157E308`. `float` has a lower limit, `Float.MAX_VALUE`, approximately `3.4028235E38`.
 
 ~~~java
 double farTooLarge = Double.parseDouble("1e309");
@@ -96,19 +96,19 @@ System.out.println(Double.isFinite(farTooLarge)); // false
 System.out.println(Float.isFinite(tooLargeFloat)); // false
 ~~~
 
-Kết quả không phải `NumberFormatException`. Chuỗi có cú pháp số thực hợp lệ, nhưng giá trị vượt miền biểu diễn và được làm tròn thành vô cực.
+The outcome is not `NumberFormatException`. The strings have valid floating-point syntax, yet the values exceed the representation range and round to infinity.
 
-Nếu ứng dụng chấp nhận một số dương hữu hạn trong miền từ 0 đến 100 thì `"1e309"` phải bị từ chối, dù đã parse thành công. Nếu dữ liệu không được phép là vô cực, **bắt `NumberFormatException` là chưa đủ**.
+If an application accepts a finite positive number in the range 0 to 100, then `"1e309"` must be rejected even though parsing succeeded. If data is not allowed to be infinite, **catching `NumberFormatException` is not enough**.
 
-Một số âm có độ lớn cực lớn như `"-1e309"` có thể cho `-Infinity`. `Double.isFinite` loại cả hai dấu.
+A negative number of enormous magnitude such as `"-1e309"` can yield `-Infinity`. `Double.isFinite` rejects both signs.
 
-## 5. Underflow, subnormal và giá trị 0 sau khi parse
+## 5. Underflow, subnormals, and zero values after parsing
 
-Ở đầu gần số 0, hệ dấu phẩy động có giới hạn biểu diễn:
+At the end near 0, floating-point systems have representation limits:
 
-- `Double.MIN_NORMAL` là số `double` *normal* dương nhỏ nhất, khoảng `2.2250738585072014E-308`.
-- `Double.MIN_VALUE` là **số `double` dương khác 0 nhỏ nhất**, khoảng `4.9E-324`, thuộc nhóm *subnormal*.
-- Số dương nhỏ hơn cả `Double.MIN_VALUE` có thể bị làm tròn về `0.0`; số âm tương ứng có thể thành `-0.0`.
+- `Double.MIN_NORMAL` is the smallest positive *normal* `double`, approximately `2.2250738585072014E-308`.
+- `Double.MIN_VALUE` is the **smallest positive nonzero `double`**, approximately `4.9E-324`, belonging to the *subnormal* group.
+- Positive numbers smaller than `Double.MIN_VALUE` can round to `0.0`; corresponding negative numbers can become `-0.0`.
 
 ~~~java
 double subnormal = Double.parseDouble("4.9e-324");
@@ -121,35 +121,35 @@ System.out.println(negativeTiny); // -0.0
 System.out.println(Double.isFinite(tiny)); // true
 ~~~
 
-Đặc biệt, `"1e-400"` về mặt toán học là số **dương khác 0**, nhưng khi lưu vào `double` trở thành **0.0**. Vì `0.0` vẫn hữu hạn, `isFinite` không phát hiện được sự mất giá trị này.
+Notably, `"1e-400"` is mathematically a **nonzero positive** number, yet when stored in `double` it becomes **0.0**. Because `0.0` is still finite, `isFinite` does not detect this loss of value.
 
-**Không đánh đồng hai câu hỏi:**
+**Do not equate two separate questions:**
 
-1. Giá trị `double` cuối cùng có hữu hạn không?
-2. Giá trị số trong chuỗi gốc có được bảo toàn đủ chính xác khi chuyển sang `double` không?
+1. Is the final `double` value finite?
+2. Was the numeric value in the original string preserved accurately enough when converted to `double`?
 
-Câu hỏi thứ hai không thể luôn trả lời chỉ bằng một `double` đã parse xong. Nếu yêu cầu tuyệt đối không biến một giá trị thập phân khác 0 thành 0, cần kiểm tra chuỗi đầu vào hoặc dùng kiểu có độ chính xác phù hợp trước khi chuyển.
+The second question cannot always be answered using only an already-parsed `double`. If there is a strict requirement never to turn a nonzero decimal value into 0, inspect the input string or use a type with suitable precision before converting.
 
-## 6. Kiểm tra miền dữ liệu sau khi xác nhận hữu hạn
+## 6. Checking data range after confirming finiteness
 
-Giả sử API nhận nhiệt độ trong phạm vi từ −40°C đến 85°C, gồm cả hai đầu mút. Phép kiểm tra cơ bản:
+Suppose an API accepts temperatures in the range −40°C to 85°C, inclusive at both endpoints. Basic validation:
 
 ~~~java
 double value = Double.parseDouble(text);
 
 if (!Double.isFinite(value)) {
-    throw new IllegalArgumentException("Nhiệt độ phải là số hữu hạn");
+    throw new IllegalArgumentException("Temperature must be a finite number");
 }
 if (value < -40.0 || value > 85.0) {
-    throw new IllegalArgumentException("Nhiệt độ ngoài [-40, 85]");
+    throw new IllegalArgumentException("Temperature outside [-40, 85]");
 }
 ~~~
 
-Đoạn này là phần **minh họa trong một phương thức**, nơi `text` đã được cung cấp trước. Thứ tự kiểm tra không phải trang trí: kiểm tra tính hữu hạn trước khiến chính sách từ chối `NaN`/`Infinity` minh bạch.
+This is an **illustrative snippet inside a method**, where `text` was supplied earlier. The check order is not decorative: checking finiteness first makes the policy rejecting `NaN`/`Infinity` explicit.
 
-### Vì sao chỉ kiểm tra x < min || x > max là chưa đủ?
+### Why is checking only x < min || x > max not enough?
 
-Mọi phép so sánh thứ tự `<`, `>`, `<=`, `>=` với `NaN` đều cho `false`. Vì vậy:
+Every ordering comparison `<`, `>`, `<=`, `>=` with `NaN` evaluates to `false`. Therefore:
 
 ~~~java
 double value = Double.NaN;
@@ -158,24 +158,24 @@ boolean outside = value < -40.0 || value > 85.0;
 System.out.println(outside); // false
 ~~~
 
-Nếu chỉ viết `if (outside) reject`, chương trình sẽ **chấp nhận nhầm NaN**. Đây là lỗi validation rất quan trọng khi parse dữ liệu số thực.
+If you write only `if (outside) reject`, the program will **mistakenly accept NaN**. This is a critical validation bug when parsing floating-point data.
 
-Có thể thiết kế `if (!Double.isFinite(value) || value < min || value > max) reject`. Biểu thức sử dụng `||` đánh giá ngắn mạch; viết riêng bước kiểm tra thường dễ đọc và dễ báo lỗi nguyên nhân hơn.
+You can write `if (!Double.isFinite(value) || value < min || value > max) reject`. The expression uses short-circuiting `||`; writing separate check steps is often easier to read and gives clearer error causes.
 
-### Biên đóng và biên mở
+### Closed vs. open bounds
 
-Tùy yêu cầu nghiệp vụ:
+Depending on business requirements:
 
-- `min <= value && value <= max`: miền đóng, nhận hai biên.
-- `min < value && value < max`: miền mở, không nhận hai biên.
-- `value > 0`: nhận giá trị dương thực sự, từ chối `0.0` và `-0.0`.
-- `value >= 0`: nhận cả `0.0` và `-0.0` vì hai số 0 so sánh bằng nhau theo toán tử số học.
+- `min <= value && value <= max`: closed interval, includes both endpoints.
+- `min < value && value < max`: open interval, excludes both endpoints.
+- `value > 0`: accepts strictly positive values, rejects `0.0` and `-0.0`.
+- `value >= 0`: accepts both `0.0` and `-0.0` because the two zeros compare equal under arithmetic operators.
 
-Kiểm tra hữu hạn **không thay thế** bước chọn miền đóng/mở, yêu cầu số nguyên hay quy tắc với số 0.
+Checking finiteness **does not replace** choosing closed/open bounds, integer requirements, or rules for zero.
 
-## 7. Hàm parseFiniteInRange thực tế trên Java 17
+## 7. A practical parseFiniteInRange helper on Java 17
 
-Một thiết kế đơn giản có thể tái sử dụng:
+A simple reusable design:
 
 ~~~java
 static double parseFiniteInRange(String text, double min, double max) {
@@ -203,16 +203,16 @@ static double parseFiniteInRange(String text, double min, double max) {
 }
 ~~~
 
-Phương thức này là **một method ở cấp lớp**, chưa phải chương trình chạy độc lập. Nó thể hiện bốn hợp đồng:
+This method is a **class-level method**, not a standalone runnable program. It enforces four contracts:
 
-1. Miền cấu hình phải là hai giá trị hữu hạn và `min <= max`.
-2. Chuỗi đầu vào không được `null`.
-3. Văn bản phải parse được theo `Double.parseDouble`.
-4. Kết quả parse phải hữu hạn và nằm trong miền đóng `[min, max]`.
+1. Configured bounds must be two finite values with `min <= max`.
+2. The input string must not be `null`.
+3. The text must be parseable by `Double.parseDouble`.
+4. The parsed result must be finite and within the closed interval `[min, max]`.
 
-`IllegalArgumentException` là lựa chọn thông báo lỗi ở ranh giới API; bạn cũng có thể định nghĩa exception riêng nếu hệ thống cần phân loại lỗi cấu hình/validation. Cần chú ý `NumberFormatException` chính là một lớp con của `IllegalArgumentException`, vì vậy mã gọi có thể bắt chung nếu muốn hiển thị một thông báo lỗi thống nhất.
+`IllegalArgumentException` is an appropriate error signal at API boundaries; you may also define a custom exception if the system needs to classify configuration/validation errors. Note that `NumberFormatException` is itself a subclass of `IllegalArgumentException`, so callers can catch the base type if they want to display a unified error message.
 
-### Mẫu Java cho Float
+### Java pattern for Float
 
 ~~~java
 static float parseFiniteFloat(String text, float min, float max) {
@@ -236,11 +236,11 @@ static float parseFiniteFloat(String text, float min, float max) {
 }
 ~~~
 
-Đây là ví dụ thay thế khi kiểu lưu trữ bắt buộc là `float`. Không tự parse sang `double` rồi ép `(float)` nếu bạn muốn biết chính xác hệ quả chuyển đổi ngay ở kiểu đích; nếu phải ép, hãy kiểm tra lại kết quả `float` sau ép.
+This is an alternative example when the required storage type is `float`. Do not parse into `double` and cast `(float)` if you want exact conversion behavior directly in the target type; if you must cast, re-check the `float` result after casting.
 
-## 8. Chương trình Java 17+ hoàn chỉnh
+## 8. Complete Java 17+ program
 
-Lưu thành tệp `FiniteParseDemo.java`:
+Save as `FiniteParseDemo.java`:
 
 ~~~java
 public class FiniteParseDemo {
@@ -297,7 +297,7 @@ public class FiniteParseDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac --release 17 FiniteParseDemo.java
@@ -321,20 +321,20 @@ subnormal=true
 hex float=6.0
 ~~~
 
-Đọc kết quả đúng:
+Reading the output accurately:
 
-- `"37.5"` là số hữu hạn thuộc `[0, 100]` nên được chấp nhận.
-- `"-0.0"` vẫn thuộc miền đóng này vì theo phép so sánh số học `-0.0 == +0.0`. Nếu dấu zero có nghĩa nghiệp vụ, cần kiểm tra riêng.
-- `"NaN"`, `"Infinity"` và `"1e309"` được parser chấp nhận dưới dạng giá trị dấu phẩy động đặc biệt nhưng bị validation từ chối.
-- `"101"` là số hữu hạn nhưng **ngoài miền** nên bị từ chối.
-- `"not-a-number"` không đúng cú pháp parse, được chuyển thành lỗi validation.
-- `"1e-400"` cho `0.0` và **vẫn được chấp nhận** vì logic ở đây chỉ yêu cầu *hữu hạn* và *trong [0, 100]*. Đây là điểm cần bổ sung nếu nghiệp vụ yêu cầu bảo toàn mọi giá trị dương nhỏ.
-- `Float.parseFloat("1e39")` trả Infinity nên `Float.isFinite` trả false.
-- `"4.9e-324"` được làm tròn thành số subnormal dương nhỏ nhất; số thực hexadecimal `0x1.8p2` bằng 6.0.
+- `"37.5"` is finite and inside `[0, 100]`, so it is accepted.
+- `"-0.0"` still falls in this closed interval because under arithmetic comparison `-0.0 == +0.0`. If zero's sign has business meaning, check it separately.
+- `"NaN"`, `"Infinity"`, and `"1e309"` are accepted by the parser as special floating-point values, yet rejected by validation.
+- `"101"` is finite yet **out of range**, so it is rejected.
+- `"not-a-number"` fails parsing syntax and is converted into a validation error.
+- `"1e-400"` yields `0.0` and is **still accepted** because the logic here requires only *finite* and *in [0, 100]*. This needs an extra check if business rules require preserving all tiny positive values.
+- `Float.parseFloat("1e39")` returns Infinity, so `Float.isFinite` returns false.
+- `"4.9e-324"` rounds to the smallest positive subnormal; hexadecimal float `0x1.8p2` equals 6.0.
 
-## 9. Khi nào cần từ chối underflow thành zero?
+## 9. When must underflow to zero be rejected?
 
-Giả sử bạn xử lý xác suất **bắt buộc lớn hơn 0**. Khi đó:
+Suppose you are handling a probability that **must be strictly greater than 0**. Then:
 
 ~~~java
 double probability = Double.parseDouble("1e-400");
@@ -344,9 +344,9 @@ if (!Double.isFinite(probability) ||
 }
 ~~~
 
-Đoạn trên từ chối đầu vào vì kết quả đã thành 0.0, đúng với hợp đồng “giá trị `double` cuối cùng phải lớn hơn 0”. Tuy nhiên, nếu mục tiêu là lưu **mọi xác suất decimal dương khác 0** dù rất nhỏ, `double` không đủ miền biểu diễn.
+The snippet above rejects the input because the result became 0.0, matching the contract "the final `double` value must be greater than 0." However, if the goal is to store **every nonzero positive decimal probability** no matter how tiny, `double` lacks the representation range.
 
-### Dùng BigDecimal nếu phải giữ giá trị decimal nhỏ chính xác
+### Use BigDecimal if exact tiny decimal values must be preserved
 
 ~~~java
 java.math.BigDecimal exact = new java.math.BigDecimal("1e-400");
@@ -356,104 +356,104 @@ System.out.println(exact.signum() > 0); // true
 System.out.println(narrowed);           // 0.0
 ~~~
 
-`BigDecimal` giữ giá trị decimal trong ví dụ này; ép về `double` khiến nó mất thông tin. Việc dùng `BigDecimal` cần quyết định từ **trước khi parse** dữ liệu thành `double` — không thể dùng `BigDecimal.valueOf(0.0)` để khôi phục giá trị `1e-400` ban đầu.
+`BigDecimal` preserves the decimal value in this example; narrowing to `double` loses information. Using `BigDecimal` must be decided **before parsing** the data into `double` — you cannot use `BigDecimal.valueOf(0.0)` to recover the original `1e-400` value.
 
-Nếu bắt buộc dùng `double` nhưng muốn phát hiện chính sách “đầu vào decimal khác 0 không được thành 0”, có thể parse `BigDecimal` từ chuỗi ở bước đầu, kiểm tra `signum()` rồi so với kết quả `doubleValue()`. Điều này phải đi kèm định nghĩa định dạng được chấp nhận: `BigDecimal` không hỗ trợ chuỗi `NaN`/`Infinity` giống `Double.parseDouble`.
+If you must use `double` yet want to enforce a policy that "nonzero decimal input must not become 0," you can parse `BigDecimal` from the string initially, check `signum()`, and compare against `doubleValue()`. This must be paired with defining accepted formats: `BigDecimal` does not support `"NaN"`/`"Infinity"` strings like `Double.parseDouble`.
 
-## 10. Không nên chỉ dựa vào Double.isFinite khi kiểm tra độ chính xác
+## 10. Do not rely solely on Double.isFinite when checking precision
 
-Một số hữu hạn vẫn có thể mất chữ số đáng kể khi parse:
+A finite number can still lose significant digits during parsing:
 
 ~~~java
 double rounded = Double.parseDouble("9007199254740993");
 System.out.println(rounded == 9007199254740992.0); // true
 ~~~
 
-`9007199254740993 = 2⁵³ + 1` không thể biểu diễn chính xác bằng binary64 và được làm tròn thành `9007199254740992`. `Double.isFinite(rounded)` vẫn trả true.
+`9007199254740993 = 2⁵³ + 1` cannot be represented exactly in binary64 and rounds to `9007199254740992`. `Double.isFinite(rounded)` still returns true.
 
-Nếu trường dữ liệu là mã định danh, số nguyên đếm được, số tiền hoặc lượng decimal yêu cầu chính xác tuyệt đối, hãy dùng loại dữ liệu phù hợp:
+If a data field is an identifier, countable integer, monetary amount, or decimal quantity requiring absolute exactness, use the appropriate data type:
 
-- `long` hoặc `BigInteger` cho số nguyên (tùy miền và quy tắc kiểm tra).
-- `BigDecimal` cho số decimal cần độ chính xác thập phân.
-- `double`/`float` khi chấp nhận mô hình dấu phẩy động xấp xỉ và đã quy định tolerance.
+- `long` or `BigInteger` for integers (depending on range and validation rules).
+- `BigDecimal` for decimal numbers needing decimal exactness.
+- `double`/`float` when approximate floating-point modeling is acceptable and tolerances are defined.
 
-**Không nhầm tính hữu hạn với tính chính xác.** Đây là hai trục kiểm tra độc lập: một số có thể hữu hạn nhưng bị làm tròn; một chuỗi có thể parse hợp lệ nhưng tạo Infinity; một số có thể hữu hạn, chính xác theo kiểu `double` nhưng vẫn ngoài miền nghiệp vụ.
+**Do not confuse finiteness with exactness.** These are two independent validation axes: a number can be finite yet rounded; a string can parse validly yet yield Infinity; a number can be finite and exact in `double` yet still outside the business domain.
 
-## 11. Kiểm tra chuỗi đầu vào: null, rỗng, whitespace và định dạng
+## 11. Checking input strings: null, empty, whitespace, and format
 
-`Double.parseDouble`/`Float.parseFloat` có quy tắc cú pháp riêng. Trên Java 17, parser chấp nhận whitespace đầu/cuối được loại như `String.trim()` trước khi phân tích, nhưng không chấp nhận các dấu gạch dưới dùng trong literal mã nguồn:
+`Double.parseDouble`/`Float.parseFloat` have their own syntax rules. On Java 17, the parser accepts leading/trailing whitespace stripped like `String.trim()` before parsing, yet does not accept underscores used in source-code literals:
 
 ~~~java
 System.out.println(Double.parseDouble(" 12.5 ")); // 12.5
-// Double.parseDouble("1_000"); // Ném NumberFormatException.
+// Double.parseDouble("1_000"); // Throws NumberFormatException.
 ~~~
 
-Điểm này dẫn tới lựa chọn thiết kế:
+This leads to a design choice:
 
-- Nếu hệ thống cho phép người dùng thêm khoảng trắng, có thể chấp nhận theo hành vi parser.
-- Nếu hệ thống đòi định dạng chặt như “chỉ chữ số thập phân, dấu chấm và dấu âm” hoặc cấm hex, NaN, suffix, phải **xác thực cú pháp** theo hợp đồng riêng.
-- Nếu dữ liệu có thể là `null`, phải kiểm tra trước; `Double.parseDouble(null)` ném `NullPointerException`, không phải `NumberFormatException`.
-- Với chuỗi rỗng hoặc sai dạng, bắt `NumberFormatException` và cung cấp thông báo lỗi phù hợp.
+- If the system allows users to include surrounding spaces, you can accept the parser's behavior.
+- If the system demands strict format such as "only decimal digits, dot, and minus sign" or forbids hex, NaN, and suffixes, you must **validate syntax** under a dedicated contract.
+- If data may be `null`, check first; `Double.parseDouble(null)` throws `NullPointerException`, not `NumberFormatException`.
+- For empty or malformed strings, catch `NumberFormatException` and supply an appropriate error message.
 
-Không nên áp dụng regex tự chế thiếu kiểm thử rồi cho rằng đã bao phủ mọi định dạng Unicode, số mũ, dấu hoặc dạng thập phân. Xác định đúng grammar của API và dùng parser phù hợp.
+Do not apply an untested custom regex and assume it covers all Unicode, exponent, sign, or decimal forms. Define the API's exact grammar and use the appropriate parser.
 
-### Không dùng locale để suy đoán dấu thập phân
+### Do not use locale to guess the decimal point
 
-`Double.parseDouble("12.5")` dùng dấu chấm theo cú pháp Java, không tự hiểu chuỗi dùng dấu phẩy decimal theo ngôn ngữ của người dùng. Trong ứng dụng đa ngôn ngữ, cần chuẩn hóa dữ liệu có quy tắc hoặc dùng `NumberFormat` phù hợp với locale và yêu cầu parse *toàn chuỗi*. Dù dùng phương thức nào, bước **kiểm tra hữu hạn và miền** vẫn cần được thực hiện sau khi có kết quả số.
+`Double.parseDouble("12.5")` uses a dot per Java syntax, and does not automatically recognize strings using a localized decimal comma. In multilingual applications, normalize data systematically or use `NumberFormat` matching the locale and requiring *full-string* parsing. Whichever method is used, the **finiteness and range check** must still run once a numeric result is obtained.
 
-## 12. Miền hợp lệ: từ yêu cầu nghiệp vụ đến điều kiện Java
+## 12. Valid ranges: from business requirements to Java conditions
 
-Bảng ví dụ (các giới hạn minh họa, không áp đặt cho mọi hệ thống):
+Example table (illustrative limits, not imposed on every system):
 
-| Trường | Miền giả định | Kiểm tra |
+| Field | Assumed range | Check |
 | --- | --- | --- |
-| Phần trăm | 0 đến 100, gồm hai đầu | `isFinite(x) && x >= 0 && x <= 100` |
-| Xác suất | 0 đến 1, gồm hai đầu | `isFinite(x) && x >= 0 && x <= 1` |
-| Xác suất bắt buộc dương | Lớn hơn 0, đến 1 | `isFinite(x) && x > 0 && x <= 1` |
-| Nhiệt độ thiết bị | −40 đến 85 | `isFinite(x) && x >= -40 && x <= 85` |
-| Khối lượng sản phẩm | Lớn hơn 0, không vượt max | `isFinite(x) && x > 0 && x <= max` với max hữu hạn đã xác thực |
-| Điểm tọa độ / vector | Miền do định nghĩa nghiệp vụ | Xác thực từng thành phần và tính hợp lệ tổng thể |
+| Percentage | 0 to 100, inclusive | `isFinite(x) && x >= 0 && x <= 100` |
+| Probability | 0 to 1, inclusive | `isFinite(x) && x >= 0 && x <= 1` |
+| Strictly positive probability | Greater than 0, up to 1 | `isFinite(x) && x > 0 && x <= 1` |
+| Device temperature | −40 to 85 | `isFinite(x) && x >= -40 && x <= 85` |
+| Product weight | Greater than 0, not exceeding max | `isFinite(x) && x > 0 && x <= max` with validated finite max |
+| Coordinates / vector | Range defined by business domain | Validate each component and overall validity |
 
-Các biểu thức trên **không thể dùng nguyên xi** nếu `x` hoặc `max` là wrapper có thể bằng `null`: phải có null guard trước khi unbox.
+The expressions above **cannot be used verbatim** if `x` or `max` is a wrapper that might be `null`: a null guard is required before unboxing.
 
-Ngoài miền số học, cần kiểm tra quy tắc nghiệp vụ khác, như số phải là số nguyên, độ phân giải đo, giới hạn tổng các thành phần, ràng buộc liên trường và đơn vị. Ví dụ giá trị `37.5` có thể hợp lệ với nhiệt độ nhưng không phù hợp cho “số lượng thiết bị nguyên”.
+Beyond numeric range, check other business rules such as requiring an integer, measurement resolution, sum limits across components, cross-field constraints, and units. For instance, `37.5` may be valid for temperature yet inappropriate for "integer device count."
 
-### Về ±0.0
+### Regarding ±0.0
 
-`Double.parseDouble("-0.0")` là số **hữu hạn**, và `-0.0 == 0.0` là true. Nếu nghiệp vụ yêu cầu không cho “âm” ở mức bit, `value >= 0` không phân biệt được `-0.0`; có thể kiểm tra dấu bằng `Double.doubleToRawLongBits(value)` hoặc dùng chính sách chuẩn hóa về `0.0`. Chỉ xử lý dấu zero riêng khi thực sự có ý nghĩa; đa số bài toán đếm/đo thông thường không cần.
+`Double.parseDouble("-0.0")` is a **finite** number, and `-0.0 == 0.0` is true. If business logic forbids "negative" at the bit level, `value >= 0` does not distinguish `-0.0`; you can inspect the sign using `Double.doubleToRawLongBits(value)` or apply a policy normalizing to `0.0`. Handle zero's sign specially only when it genuinely matters; most ordinary counting/measurement tasks do not need it.
 
-## 13. Lỗi validation thường gặp
+## 13. Common validation mistakes
 
-| Sai lầm | Vì sao sai? | Cách sửa |
+| Mistake | Why is it wrong? | Fix |
 | --- | --- | --- |
-| Chỉ bắt `NumberFormatException` | `"NaN"`, `"Infinity"`, `"1e309"` parse được | Thêm `Double.isFinite`/`Float.isFinite` |
-| Chỉ kiểm tra `x < min || x > max` | `NaN` không thỏa so sánh thứ tự, có thể lọt qua | Kiểm tra `isFinite` trước |
-| Nghĩ `isFinite` nghĩa là nằm trong miền | `1e100` hữu hạn nhưng có thể ngoài giới hạn nghiệp vụ | Kiểm tra range độc lập |
-| Nghĩ `isFinite` đảm bảo chính xác | Số hữu hạn có thể bị làm tròn | Chọn kiểu dữ liệu và kiểm tra precision phù hợp |
-| Dùng `Double.MIN_VALUE` làm số âm nhỏ nhất | Đây là **số dương khác 0** nhỏ nhất | Dùng `-Double.MAX_VALUE` cho cận hữu hạn âm về độ lớn |
-| Tự coi `0.0` sau parse luôn là số 0 chính xác của text | `1e-400` có thể bị làm tròn thành 0.0 | Kiểm tra chuỗi decimal gốc khi cần |
-| Dùng `value >= 0` để cấm `-0.0` | Hai zero so sánh bằng nhau | Quy định cách kiểm tra dấu zero nếu cần |
-| Dùng `Double.parseDouble(null)` trong catch NumberFormatException | `null` gây `NullPointerException` | Null guard |
-| Dùng `Float.parseFloat` với miền của double | `float` có miền và precision khác | Xác thực theo kiểu lưu thực tế |
-| Không xác thực min/max truyền vào validator | Bounds NaN/Infinity có thể làm logic sai | Kiểm tra cả hai bound hữu hạn và `min <= max` |
-| Dùng `double` cho tiền hoặc ID nguyên lớn rồi dựa vào isFinite | Mất độ chính xác dù hữu hạn | `BigDecimal`, `BigInteger` hoặc `long` |
-| Bỏ qua locale/đơn vị | Chuỗi khác định dạng hoặc khác thang đo | Quy định grammar, locale và đơn vị tường minh |
+| Catching only `NumberFormatException` | `"NaN"`, `"Infinity"`, `"1e309"` parse without throwing | Add `Double.isFinite`/`Float.isFinite` |
+| Checking only `x < min || x > max` | `NaN` fails all ordering comparisons and can slip through | Check `isFinite` first |
+| Thinking `isFinite` means in range | `1e100` is finite yet may exceed business limits | Check range independently |
+| Thinking `isFinite` guarantees exactness | Finite numbers can still be rounded | Choose suitable data type and precision check |
+| Using `Double.MIN_VALUE` as the smallest negative number | It is the smallest **nonzero positive** number | Use `-Double.MAX_VALUE` for the negative finite bound by magnitude |
+| Assuming `0.0` after parsing is always exact 0 from text | `1e-400` can round to 0.0 | Inspect original decimal string when needed |
+| Using `value >= 0` to forbid `-0.0` | The two zeros compare equal | Specify zero-sign inspection if needed |
+| Calling `Double.parseDouble(null)` inside catch NumberFormatException | `null` raises `NullPointerException` | Null guard |
+| Using `Float.parseFloat` with double's range | `float` has a different range and precision | Validate against the actual storage type |
+| Failing to validate min/max passed to validator | NaN/Infinity bounds can break logic | Check both bounds are finite and `min <= max` |
+| Using `double` for money or large integer IDs and relying on isFinite | Precision is lost despite being finite | `BigDecimal`, `BigInteger`, or `long` |
+| Ignoring locale/units | Strings differ in format or scale | Specify grammar, locale, and units explicitly |
 
-## 14. Cách xây dựng validation có thể kiểm thử
+## 14. Building testable validation
 
-Một bộ kiểm thử nên có ít nhất các nhóm:
+A test suite should include at least these categories:
 
-**Cú pháp:** `"12.5"`, `"-12.5"`, `"abc"`, `""`, `null`, khoảng trắng đầu/cuối, ký tự phân tách số không hợp lệ.
+**Syntax:** `"12.5"`, `"-12.5"`, `"abc"`, `""`, `null`, leading/trailing spaces, invalid numeric separators.
 
-**Giá trị đặc biệt:** `"NaN"`, `"Infinity"`, `"-Infinity"` và một số lớn tạo Infinity như `"1e309"`.
+**Special values:** `"NaN"`, `"Infinity"`, `"-Infinity"`, and a large number producing Infinity such as `"1e309"`.
 
-**Miền dữ liệu:** ở đúng min/max, sát phía trong, sát phía ngoài, số âm, số 0 và số vượt giới hạn.
+**Data range:** exact min/max, just inside, just outside, negative numbers, zero, and out-of-bounds values.
 
-**Biên biểu diễn:** `"1e-400"` thành 0.0, số subnormal nhỏ nhất, `Double.MAX_VALUE`, giá trị lớn hơn `MAX_VALUE` và số có nhiều chữ số cần làm tròn.
+**Representation boundaries:** `"1e-400"` becoming 0.0, smallest subnormal, `Double.MAX_VALUE`, values larger than `MAX_VALUE`, and numbers with many digits needing rounding.
 
-**Ngữ nghĩa:** giá trị cần dương nghiêm ngặt, cấm NaN, yêu cầu giá trị nguyên, phân biệt dữ liệu thiếu với số 0, dữ liệu decimal yêu cầu chính xác.
+**Semantics:** strictly positive requirements, forbidding NaN, integer requirements, distinguishing missing data from 0, decimal data requiring exactness.
 
-Gợi ý các assertion khi đã có phương thức `parseFiniteInRange`:
+Suggested assertions once `parseFiniteInRange` exists:
 
 ~~~java
 assert parseFiniteInRange("0", 0, 100) == 0.0;
@@ -462,53 +462,53 @@ assert Double.doubleToRawLongBits(
         parseFiniteInRange("-0.0", 0, 100)) ==
         Double.doubleToRawLongBits(-0.0);
 
-// Các trường hợp NaN, Infinity, "101", "abc" phải bị từ chối.
-// Với test framework, dùng assertThrows(...) để kiểm tra exception.
+// NaN, Infinity, "101", and "abc" cases must be rejected.
+// With a test framework, use assertThrows(...) to verify exceptions.
 ~~~
 
-Đây là các câu lệnh minh họa bên trong một phương thức. Từ khóa `assert` của Java chỉ được thực thi khi chạy JVM với `-ea`; với kiểm thử tự động nên dùng assertion của framework như JUnit 5. Các trường hợp chờ exception cần có testcase riêng; không nên suy từ việc thử “happy path” rằng mọi đầu vào sai đều được xử lý.
+These are illustrative statements inside a method. Java's `assert` keyword executes only when running the JVM with `-ea`; for automated testing, use framework assertions like JUnit 5. Cases expecting exceptions need dedicated test cases; do not infer from testing only the "happy path" that all invalid inputs are handled.
 
-## 15. Câu hỏi tự kiểm tra
+## 15. Self-check questions
 
-**1.** `Double.parseDouble("NaN")` có ném `NumberFormatException` không?
+**1.** Does `Double.parseDouble("NaN")` throw `NumberFormatException`?
 
-**Đáp án:** Không. Nó trả `Double.NaN`; phải dùng `Double.isNaN` hoặc `!Double.isFinite` để từ chối theo chính sách chỉ nhận số hữu hạn.
+**Answer:** No. It returns `Double.NaN`; you must use `Double.isNaN` or `!Double.isFinite` to reject it under a finite-only policy.
 
-**2.** `Double.parseDouble("1e309")` và `Double.parseDouble("1e-400")` cho những giá trị nào?
+**2.** What values do `Double.parseDouble("1e309")` and `Double.parseDouble("1e-400")` produce?
 
-**Đáp án:** Theo binary64, trường hợp đầu cho `Infinity` do vượt miền; trường hợp sau cho `0.0` do giá trị quá nhỏ. Cả hai chuỗi có cú pháp số hợp lệ.
+**Answer:** In binary64, the first yields `Infinity` due to exceeding range; the second yields `0.0` due to being too small. Both strings have valid numeric syntax.
 
-**3.** Tại sao `if (x < 0 || x > 100) reject` không đủ nếu x do parse sinh ra?
+**3.** Why is `if (x < 0 || x > 100) reject` insufficient if x came from parsing?
 
-**Đáp án:** Nếu `x` là `NaN`, cả hai điều kiện đều false, khiến mã không reject. Thêm `Double.isFinite(x)` trước khi so sánh.
+**Answer:** If `x` is `NaN`, both conditions are false, causing the code not to reject it. Add `Double.isFinite(x)` before comparing.
 
-**4.** `Double.isFinite(0.0)` và `Double.isFinite(Double.MIN_VALUE)` bằng gì?
+**4.** What do `Double.isFinite(0.0)` and `Double.isFinite(Double.MIN_VALUE)` evaluate to?
 
-**Đáp án:** Cả hai là true. Zero và subnormal dương nhỏ nhất đều là số hữu hạn.
+**Answer:** Both are true. Zero and the smallest positive subnormal are both finite numbers.
 
-**5.** Nếu đầu vào là xác suất dương `"1e-400"` mà chương trình phải lưu **giá trị decimal khác 0**, chỉ dùng `double` được không?
+**5.** If the input is a positive probability `"1e-400"` and the program must store a **nonzero decimal value**, is `double` alone enough?
 
-**Đáp án:** Không. Chuỗi đó bị làm tròn về 0.0 khi chuyển sang binary64. Dùng biểu diễn phù hợp như `BigDecimal` hoặc một mô hình xác suất/logarithm chuyên dụng tùy ứng dụng.
+**Answer:** No. That string rounds to 0.0 when converted to binary64. Use an appropriate representation such as `BigDecimal` or a specialized probability/logarithmic model depending on the application.
 
-**6.** Nếu parse ra 101 trong khi miền hợp lệ là `[0, 100]`, có cần quan tâm `NumberFormatException` không?
+**6.** If parsing yields 101 while the valid range is `[0, 100]`, do you need to worry about `NumberFormatException`?
 
-**Đáp án:** Parse đã thành công và 101 là số hữu hạn. Đây là **lỗi miền nghiệp vụ**; cần kiểm tra sau parse và báo lỗi phù hợp.
+**Answer:** Parsing already succeeded and 101 is finite. This is a **business range error**; validate after parsing and report an appropriate error.
 
-**7.** Khi cần ngăn `-0.0` nhưng cho phép `0.0`, có dùng `value >= 0` được không?
+**7.** When you need to forbid `-0.0` yet allow `0.0`, can you use `value >= 0`?
 
-**Đáp án:** Không, vì `-0.0 == 0.0` theo phép so sánh primitive. Cần kiểm tra dấu zero bằng bit hoặc chuẩn hóa đầu vào theo chính sách rõ ràng.
+**Answer:** No, because `-0.0 == 0.0` under primitive comparison. You need to check zero's sign via bits or normalize input according to an explicit policy.
 
-## 16. Ghi nhớ và nguồn tham khảo
+## 16. Takeaways and references
 
-- `Double.parseDouble`/`Float.parseFloat` giải quyết **chuyển cú pháp chuỗi sang floating point**, không tự kiểm tra tính hữu hạn, miền nghiệp vụ hoặc độ chính xác.
-- `Double.isFinite`/`Float.isFinite` loại `NaN` và `±Infinity`, nhưng không loại zero hoặc subnormal.
-- Kiểm tra **miền số** sau tính hữu hạn, với min/max và đầu mút được quy định rõ; nếu không, `NaN` có thể qua một bộ lọc chỉ dùng dấu so sánh.
-- Phải hiểu overflow thành Infinity, underflow thành ±0.0 và rounding của số rất lớn/nhỏ. Không dùng dấu “parse thành công” làm bằng chứng không mất dữ liệu.
-- Chọn `double` cho tính toán xấp xỉ theo thiết kế, hoặc dùng `BigDecimal`/`BigInteger`/`long` theo yêu cầu biểu diễn chính xác.
+- `Double.parseDouble`/`Float.parseFloat` handle **converting string syntax to floating point**, without automatically checking finiteness, business range, or precision.
+- `Double.isFinite`/`Float.isFinite` exclude `NaN` and `±Infinity`, yet do not exclude zero or subnormals.
+- Check **numeric range** after finiteness, with min/max and endpoints clearly defined; otherwise `NaN` can pass through a filter using only comparison operators.
+- Understand overflow to Infinity, underflow to ±0.0, and rounding of very large/small numbers. Do not treat "parsing succeeded" as proof of no data loss.
+- Choose `double` for approximate computation by design, or use `BigDecimal`/`BigInteger`/`long` according to exact representation requirements.
 
-Tài liệu chính thức của Java:
+Official Java documentation:
 
-- [Java SE 17 — Double](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html): `parseDouble`, `isFinite`, `isNaN`, `isInfinite` và các giá trị biên.
-- [Java SE 17 — Float](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Float.html): `parseFloat`, `isFinite` và miền binary32.
+- [Java SE 17 — Double](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html): `parseDouble`, `isFinite`, `isNaN`, `isInfinite`, and boundary values.
+- [Java SE 17 — Float](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Float.html): `parseFloat`, `isFinite`, and binary32 range.
 - [JLS 17 — Floating-Point Types, Formats, and Values](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2.3): NaN, Infinity, normal/subnormal, signed zero.
-- [Java SE 17 — BigDecimal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): số decimal chính xác với độ chính xác tùy ý.
+- [Java SE 17 — BigDecimal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): exact decimal numbers with arbitrary precision.

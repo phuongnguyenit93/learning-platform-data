@@ -1,27 +1,27 @@
-# Field `final`: khả năng quan sát, tối ưu JVM và hành vi theo phiên bản Java
+# `final` Fields: Observability, JVM Optimizations, and Behavior Across Java Versions
 
-## 1. Vấn đề cần hiểu
+## 1. The Problem to Understand
 
-Khi Java Reflection cho phép truy cập vào `Field` mang modifier `final`, có ba câu hỏi **khác nhau**:
+When Java Reflection allows access to a `Field` carrying the `final` modifier, there are three **distinct** questions:
 
-1. **Có được phép ghi không?** Quyền ghi phụ thuộc loại field, lớp khai báo, ranh giới module, quyền truy cập sâu và phiên bản JDK.
-2. **Nếu lời ghi qua Reflection thành công, lần đọc tiếp theo sẽ thấy gì?** Kết quả `Field.get(...)`, lệnh đọc trực tiếp trong bytecode, getter đã được JIT tối ưu và mã đã biên dịch ở nơi khác **không nhất thiết có cùng hành vi quan sát** nếu chương trình sửa `final` sau khi công bố object.
-3. **Java/JVM có được tối ưu gì khi field là `final`?** Java Memory Model (JMM) đưa ra bảo đảm riêng cho `final` được khởi tạo đúng; trình biên dịch và JVM có thể dựa vào giả định ổn định giá trị, và hằng số compile-time còn có thể bị **inline tại lúc biên dịch**.
+1. **Is writing permitted?** Write permission depends on the field category, declaring class, module boundaries, deep-access permissions, and JDK version.
+2. **If a write via Reflection succeeds, what will a subsequent read see?** The result of `Field.get(...)`, direct field reads in bytecode, JIT-optimized getters, and compiled code elsewhere **do not necessarily exhibit the same observable behavior** if the program mutates `final` after publishing the object.
+3. **What optimizations can Java/the JVM perform when a field is `final`?** The Java Memory Model (JMM) provides dedicated guarantees for properly initialized `final` fields; compilers and the JVM can rely on value-stability assumptions, and compile-time constants can even be **inlined at compile time**.
 
-Bài này tập trung vào **ảnh hưởng của việc quan sát/chỉnh sửa field `final` bằng Reflection**, tối ưu và sự khác nhau giữa các phiên bản. Mục tiêu không phải xây thủ thuật cưỡng ép thay đổi mọi `final`: những thao tác như vậy làm suy yếu hợp đồng chương trình và đang bị Java siết chặt.
+This lesson focuses on **the impact of observing/modifying `final` fields via Reflection**, optimizations, and differences across versions. The goal is not to build tricks to force changes onto every `final` field: such operations weaken program contracts and are being tightened by Java.
 
-Sau bài học, bạn sẽ phân biệt được modifier metadata với quyền ghi thực sự, mô tả chính xác giới hạn quan sát giá trị, nhận diện tối ưu dựa trên `final`, thực hiện ví dụ Java 17+, và giải thích các thay đổi ở JDK 26–27.
+After this lesson, you will be able to distinguish modifier metadata from actual write permission, accurately describe value-observability limits, recognize `final`-based optimizations, run a Java 17+ example, and explain the changes in JDK 26–27.
 
-## 2. `final` bảo đảm điều gì, và không bảo đảm điều gì?
+## 2. What Does `final` Guarantee, and What Does It Not Guarantee?
 
-### 2.1. Ngữ nghĩa tại ngôn ngữ Java
+### 2.1. Semantics at the Java language level
 
-- **Biến instance `final`** chỉ được gán theo quy tắc của ngôn ngữ trong quá trình khởi tạo; một **blank final** được gán trong constructor hoặc instance initializer hợp lệ.
-- **Biến `static final`** thường được gán khi khai báo hoặc trong static initializer; gán lại bằng source Java bình thường là lỗi biên dịch.
-- **`final` trên tham chiếu không làm object được trỏ tới thành bất biến sâu (deeply immutable)**. Ví dụ, một field `final List<String> items` không thể đổi sang một danh sách khác bằng phép gán Java hợp lệ, nhưng có thể gọi `items.add(...)` nếu đối tượng danh sách cho phép.
-- **`final` không đồng nghĩa `volatile`**, và bản thân `final` không phải cơ chế cập nhật trạng thái chia sẻ giữa các thread sau khi object đã được tạo.
+- A **`final` instance variable** can only be assigned according to language rules during initialization; a **blank final** is assigned in a constructor or a valid instance initializer.
+- A **`static final` variable** is normally assigned at declaration or in a static initializer; reassigning it in ordinary Java source is a compile-time error.
+- **`final` on a reference does not make the referenced object deeply immutable**. For example, a `final List<String> items` field cannot be switched to another list by valid Java assignment, but `items.add(...)` can be called if the list object allows it.
+- **`final` does not mean `volatile`**, and `final` itself is not a mechanism for updating shared state across threads after an object has been created.
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.ArrayList;
@@ -31,64 +31,64 @@ class Profile {
     final List<String> tags = new ArrayList<>();
 
     void addTag(String tag) {
-        tags.add(tag); // Hợp lệ: thay đổi nội dung List.
+        tags.add(tag); // Valid: modifies the contents of the List.
     }
 }
 ```
 
-Đoạn trên là **mã minh họa**, không có `main`; vấn đề của bài là tính ổn định **tham chiếu**, không phải tính bất biến của các phần tử.
+The snippet above is **illustrative code**, without a `main`; the point of the lesson is **reference** stability, not immutability of elements.
 
-### 2.2. Bảo đảm nhìn thấy giá trị khi khởi tạo đúng
+### 2.2. Visibility guarantees upon proper initialization
 
-Java Memory Model có quy tắc riêng cho `final` trong JLS `17.5. Khi constructor hoàn thành, một **freeze action** cho các field `final` được thiết lập. Nếu object được xây dựng đúng, đặc biệt **không để `this` thoát ra ngoài khi constructor còn chạy**, các thread khác có thể nhận được bảo đảm khởi tạo `final` mạnh hơn so với field thông thường ngay cả trong một số tình huống không có đồng bộ hóa bổ sung.
+The Java Memory Model has special rules for `final` in JLS §17.5. When a constructor finishes, a **freeze action** for `final` fields is established. If the object is properly constructed—specifically **without letting `this` escape while the constructor is still running**—other threads can receive stronger `final` initialization guarantees than for ordinary fields, even in certain situations without additional synchronization.
 
-Nhưng cần đọc đúng giới hạn:
+However, read the limits carefully:
 
-- Quy tắc dành cho **các giá trị được gán trong quá trình khởi tạo hợp lệ** và các truy cập phù hợp với mô hình bộ nhớ.
-- Nó **không làm cho mọi field khác** tự động thread-safe.
-- Nó **không làm cho mọi thay đổi tiếp theo** của dữ liệu tham chiếu được bảo đảm nhìn thấy.
-- Việc để `this` thoát khỏi constructor, chẳng hạn đăng ký callback chạy đồng thời và truy cập object chưa khởi tạo xong, có thể phá hỏng giả định xây dựng đúng.
+- The rules apply to **values assigned during valid initialization** and accesses conforming to the memory model.
+- They **do not automatically make all other fields** thread-safe.
+- They **do not guarantee visibility of subsequent mutations** to referenced data.
+- Letting `this` escape from a constructor—such as registering a concurrently running callback that accesses an incompletely initialized object—can break proper-construction assumptions.
 
-Để truyền trạng thái có thể thay đổi giữa các thread, hãy dùng cơ chế thích hợp như `volatile`, synchronization, lock, atomic classes hoặc thông điệp bất biến được công bố an toàn. Đừng dùng reflective write vào `final` như một cách thay thế.
+To communicate mutable state between threads, use appropriate mechanisms such as `volatile`, synchronization, locks, atomic classes, or safely published immutable messages. Do not use reflective writes to `final` as a substitute.
 
-## 3. Quan sát field bằng Reflection: metadata khác giá trị
+## 3. Observing Fields via Reflection: Metadata vs. Values
 
-Reflection có thể xác định một field là `final` mà không sửa nó:
+Reflection can identify that a field is `final` without modifying it:
 
 ```java
 Field field = SomeType.class.getDeclaredField("value");
 boolean declaredFinal = Modifier.isFinal(field.getModifiers());
 ```
 
-Đây là **đoạn minh họa**, giả sử `SomeType` có field `value`, đã import `java.lang.reflect.Field` và `java.lang.reflect.Modifier`.
+This is an **illustrative snippet**, assuming `SomeType` has a `value` field and `java.lang.reflect.Field` and `java.lang.reflect.Modifier` are imported.
 
-Các API có vai trò riêng:
+Different APIs answer different questions:
 
-| API | Điều nó trả lời | Không nên suy ra |
+| API | What it answers | What should not be inferred |
 | --- | --- | --- |
-| `Field.getModifiers()` + `Modifier.isFinal(...)` | Class file khai báo field mang cờ `final` hay không | Không kết luận `Field.set` chắc chắn thành công hoặc thất bại |
-| `Field.get(obj)` / `getInt(obj)` | Đọc giá trị runtime qua Reflection theo quyền truy cập | Không phải một phép đọc `volatile` hay bảo đảm đồng nhất mọi getter sau khi chỉnh `final` |
-| `Field.set(obj, value)` / `setInt(...)` | Yêu cầu ghi vào field được phản chiếu | Thành công không làm đổi modifier `final` trong metadata hay định nghĩa bytecode |
-| `Field.trySetAccessible()` / `setAccessible(true)` | Thử cho phép vượt một số kiểm tra truy cập ngôn ngữ khi hợp lệ | Không xóa ràng buộc đặc biệt của `final`, record, static field hoặc module |
-| `Method.invoke(obj)` gọi getter | Quan sát hành vi mã thực thi của getter | Không mặc định phải trả cùng giá trị như lần đọc `Field.get` sau reflective mutation trái mục đích |
+| `Field.getModifiers()` + `Modifier.isFinal(...)` | Whether the class file declares the field with the `final` flag | Do not conclude `Field.set` will definitely succeed or fail |
+| `Field.get(obj)` / `getInt(obj)` | Reads the runtime value via Reflection subject to access permissions | Not a `volatile` read or a guarantee of uniformity across all getters after editing `final` |
+| `Field.set(obj, value)` / `setInt(...)` | Requests writing to the reflected field | Success does not alter the `final` modifier in metadata or bytecode definitions |
+| `Field.trySetAccessible()` / `setAccessible(true)` | Attempts to allow bypassing certain language access checks when permitted | Does not remove special restrictions on `final`, records, static fields, or modules |
+| `Method.invoke(obj)` calling a getter | Observes the runtime behavior of the getter's executed code | Does not automatically return the same value as a `Field.get` read after improper reflective mutation |
 
-Điểm mấu chốt: **quyền đọc, quyền bỏ qua kiểm tra truy cập và quyền ghi là ba vấn đề tách biệt**. Một field có thể được `setAccessible(true)` để đọc mà **vẫn không được phép ghi**.
+Key point: **read permission, permission to bypass access checks, and write permission are three separate issues**. A field can have `setAccessible(true)` enabled for reading while **still not being permitted to be written**.
 
-### 3.1. Những field `final` không thể mở quyền ghi bằng `setAccessible(true)`
+### 3.1. `final` fields that cannot be opened for writing via `setAccessible(true)`
 
-Từ Java 17, Javadoc của `Field` quy định các trường hợp `final` **không thể sửa bằng cơ chế Reflection thông thường**, bao gồm:
+Starting in Java 17, the `Field` Javadoc specifies `final` cases that **cannot be modified via normal Reflection mechanisms**, including:
 
-- `static final` field trong class hoặc interface.
-- `final` field khai báo trong **record class**, bao gồm record component.
-- `final` field khai báo trong **hidden class**.
+- `static final` fields in a class or interface.
+- `final` fields declared in a **record class**, including record components.
+- `final` fields declared in a **hidden class**.
 
-Mở quyền truy cập với `setAccessible(true)`, khi được phép, chỉ giúp **đọc** các field đó; gọi `set(...)` vẫn thất bại với `IllegalAccessException`. Dùng `Unsafe` hoặc sửa nội bộ JVM để vượt ràng buộc nằm **ngoài hợp đồng chuẩn** và không phải giải pháp portable.
+Enabling access with `setAccessible(true)`, when permitted, only allows **reading** those fields; calling `set(...)` still fails with `IllegalAccessException`. Using `Unsafe` or modifying JVM internals to bypass constraints lies **outside the standard contract** and is not a portable solution.
 
-Ngược lại, trên JDK 17–25, `Field` thường cho phép ghi vào **non-static `final` instance field** của class thông thường không phải record/hidden class, miễn `setAccessible(true)` thành công. **Được phép thực hiện thao tác** không đồng nghĩa với **bảo đảm chương trình quan sát giá trị mới theo cách bạn mong đợi**.
+Conversely, on JDK 17–25, `Field` generally permits writing to **non-static `final` instance fields** of ordinary classes that are not record/hidden classes, provided `setAccessible(true)` succeeds. **Being allowed to perform the operation** does not mean **the program is guaranteed to observe the new value the way you expect**.
 
-## 4. Ví dụ Java 17+ độc lập: nhận diện và thử quyền ghi
+## 4. Standalone Java 17+ Example: Identifying and Testing Write Permission
 
-Lưu toàn bộ đoạn sau vào **`FinalFieldObservationDemo.java`**:
+Save the entire snippet below into **`FinalFieldObservationDemo.java`**:
 
 ```java
 import java.lang.reflect.Field;
@@ -152,19 +152,19 @@ public class FinalFieldObservationDemo {
             System.out.println("ordinary instance final write=denied");
         }
 
-        // Cố ý không khẳng định box.read() sau khi thay đổi phải thấy 20.
+        // Intentionally does not assert that box.read() after modification must see 20.
     }
 }
 ```
 
-Biên dịch và chạy với JDK 17–25 hoặc chạy thử trên JDK 21:
+Compile and run with JDK 17–25 or test on JDK 21:
 
 ```bash
 javac --release 17 FinalFieldObservationDemo.java
 java FinalFieldObservationDemo
 ```
 
-**Stdout quan sát được khi biên dịch bằng `javac --release 17` và chạy trên OpenJDK 21:**
+**Stdout observed when compiled with `javac --release 17` and run on OpenJDK 21:**
 
 ```text
 box final=true
@@ -176,27 +176,27 @@ record final write=denied
 ordinary instance final write=accepted
 ```
 
-Chương trình đã được **biên dịch và chạy thực tế trên OpenJDK 21**; stdout phía trên khớp kết quả kiểm tra. Khi chạy bằng JDK 26–27, reflective mutation của `Box.value` có thể phát cảnh báo **trên stderr** theo JEP 500 và tùy chọn JVM. Khi bật chính sách `--illegal-final-field-mutation=deny` mà không cấp quyền tương ứng, hành vi ghi `Box.value` có thể bị từ chối, khiến dòng cuối đổi thành `ordinary instance final write=denied`.
+The program was **actually compiled and run on OpenJDK 21**; the stdout above matches the verified test output. When run on JDK 26–27, reflective mutation of `Box.value` may emit a warning **on stderr** under JEP 500 and JVM options. When enabling `--illegal-final-field-mutation=deny` without granting corresponding permission, writing `Box.value` may be rejected, changing the last line to `ordinary instance final write=denied`.
 
-**Giải thích từng nhóm kết quả:**
+**Explanation of each group of results:**
 
-1. `Modifier.isFinal` xác định đúng cả `Box.value` và `Snapshot.id` là `final`; metadata không tự cấp quyền sửa.
-2. `constantField` là `static final` nên `setInt(null, 99)` bị từ chối. `null` ở đây hợp lệ để chỉ target của static field, nhưng không làm field trở nên ghi được.
-3. `recordField` biểu diễn record component `id`, là `final` và không thể sửa qua `Field.setInt`.
-4. `Box.value` là `final` instance field của class thường. Với JDK 21, khi đã bật `setAccessible(true)`, thao tác `setInt(box, 20)` được chấp nhận.
-5. Ví dụ cố ý **không kết luận** rằng sau lời ghi, `box.read()` hay một vòng lặp trên thread khác sẽ luôn thấy `20`. Đó chính là chủ đề về **khả năng quan sát và tối ưu** của bài này.
+1. `Modifier.isFinal` accurately identifies both `Box.value` and `Snapshot.id` as `final`; metadata does not grant write permission.
+2. `constantField` is `static final`, so `setInt(null, 99)` is rejected. Passing `null` here is valid to designate the target of a static field, yet does not make the field writable.
+3. `recordField` represents record component `id`, which is `final` and cannot be modified via `Field.setInt`.
+4. `Box.value` is a `final` instance field of an ordinary class. On JDK 21, once `setAccessible(true)` is enabled, `setInt(box, 20)` is accepted.
+5. The example intentionally **does not conclude** that after the write, `box.read()` or a loop on another thread will always see `20`. That is precisely the subject of **observability and optimization** in this lesson.
 
-Nếu target class nằm ở **named module khác** mà package không mở cho module caller, lời `setAccessible(true)` còn có thể thất bại với `InaccessibleObjectException` trước khi chương trình đến bước kiểm tra ghi.
+If the target class resides in **another named module** whose package is not opened to the caller module, `setAccessible(true)` can even fail with `InaccessibleObjectException` before the program reaches the write check.
 
-## 5. Vì sao ghi `final` thành công vẫn không bảo đảm lần đọc thấy giá trị mới?
+## 5. Why Does a Successful `final` Write Still Not Guarantee Reads See the New Value?
 
-### 5.1. JLS cho phép tối ưu dựa trên `final`
+### 5.1. The JLS permits optimizations based on `final`
 
-JLS `17.5.3, **Subsequent Modification of `final` Fields**, thảo luận trường hợp hệ thống như deserialization cần sửa `final` sau khi object được dựng. Quy tắc này chỉ có ngữ nghĩa hợp lý trong một mô hình đặc biệt: tạo object, cập nhật field trước khi object được **công bố** cho các phần khác, và không cho mã khác đọc field cho đến khi cập nhật xong.
+JLS §17.5.3, **Subsequent Modification of `final` Fields**, discusses cases where systems such as deserialization need to modify `final` after an object is constructed. That rule has sensible semantics only in a specific model: create the object, update fields before the object is **published** to other parts, and allow no other code to read the fields until updates complete.
 
-Đối với tình huống object **đã được sử dụng/đọc/công bố**, chương trình không thể xem reflective mutation như cập nhật trạng thái thường xuyên được bảo đảm. JLS thừa nhận compiler/JVM có thể tối ưu `final` rất mạnh, kể cả các phép biến đổi thứ tự đọc liên quan đến thao tác sửa `final` không nằm trong constructor.
+For situations where an object **has already been used/read/published**, a program cannot treat reflective mutation as a guaranteed regular state update. The JLS acknowledges that the compiler/JVM can optimize `final` aggressively, including reordering reads relative to non-constructor modifications of `final`.
 
-Một mô hình minh họa về hậu quả:
+An illustrative model of the consequences:
 
 ```java
 final class Counter {
@@ -212,98 +212,98 @@ final class Counter {
 }
 ```
 
-Đây chỉ là **class minh họa**, không phải chương trình độc lập. Nếu tạo `Counter(1)`, cho code đọc `read()` nhiều lần, sau đó dùng Reflection đổi `value` thành `2`, không có bảo đảm tổng quát rằng:
+This is only an **illustrative class**, not a standalone program. If you create `Counter(1)`, let code call `read()` repeatedly, and then use Reflection to change `value` to `2`, there is no general guarantee that:
 
-- Một lần gọi `read()` đã được JIT tối ưu sẽ luôn tải lại field từ bộ nhớ.
-- Một thread khác sẽ thấy `2` ngay hoặc tại một thời điểm hữu hạn.
-- Mọi phương thức/đường đọc có quan sát giống hệt `Field.getInt(...)`.
-- Chạy interpreter và JIT tối ưu sẽ cho kết quả giống nhau.
+- A JIT-optimized call to `read()` will always reload the field from memory.
+- Another thread will see `2` immediately or within any bounded time.
+- All methods/read paths observe the exact same result as `Field.getInt(...)`.
+- Running in the interpreter and running JIT-optimized code will produce the same result.
 
-**Đừng viết unit test khẳng định “sau `Field.set`, getter phải đọc giá trị mới” như một hợp đồng ổn định của Java.** Một lần chạy thấy giá trị mới chỉ chứng minh điều xảy ra trong điều kiện chạy đó.
+**Do not write unit tests asserting "after `Field.set`, the getter must read the new value" as a stable Java contract.** One test run showing the new value only proves what happened under that specific execution's conditions.
 
-### 5.2. Ba mức “quan sát” cần tách
+### 5.2. Three levels of "observation" to separate
 
-| Lớp quan sát | Ví dụ | Kết luận có thể rút ra |
+| Observation layer | Example | Conclusion that can be drawn |
 | --- | --- | --- |
-| **Metadata** | `Modifier.isFinal(field.getModifiers())` | Field được khai báo `final`, không có nghĩa value không từng bị ghi sau constructor |
-| **Lần đọc reflective cụ thể** | `field.getInt(instance)` | Giá trị do truy cập Reflection đó trả về tại thời điểm và execution path cụ thể |
-| **Lệnh đọc trong code ứng dụng** | `instance.read()`, code JIT hoặc code biên dịch khác | Có thể chịu constant folding, hoisting, cached reads và ràng buộc JMM; không tự đồng bộ với reflective mutation |
+| **Metadata** | `Modifier.isFinal(field.getModifiers())` | The field is declared `final`; does not mean the value has never been written post-constructor |
+| **Specific reflective read** | `field.getInt(instance)` | Value returned by that Reflection access at a specific time and execution path |
+| **Read in application code** | `instance.read()`, JIT-compiled code, or other compiled code | Subject to constant folding, hoisting, cached reads, and JMM constraints; does not automatically synchronize with reflective mutation |
 
-Đặc biệt, khi kiểm thử race condition, thêm logging hoặc Reflection có thể làm thay đổi timing, đường thực thi và mức độ tối ưu. Việc **bật giám sát rồi hết lỗi** không chứng minh lỗi đa luồng ban đầu đã được sửa.
+In particular, when testing race conditions, adding logging or Reflection can alter timing, execution paths, and optimization levels. A bug **disappearing once instrumentation is turned on** does not prove the underlying concurrency bug is fixed.
 
-### 5.3. “Freeze” sau reflective write không biến mutation thành thiết kế hợp lệ
+### 5.3. "Freeze" after a reflective write does not make mutation a valid design
 
-JLS mô tả freeze action tại cuối constructor và ngay sau một số reflective modifications hợp lệ của `final`. Tuy nhiên, đây không phải giấy phép dùng `final` như biến mutable. Phạm vi dự kiến là trường hợp rất hẹp như **tái dựng/deserialization**, khi field được đặt giá trị **trước khi object bị đọc/công bố**.
+The JLS describes a freeze action at the end of a constructor and immediately after certain valid reflective modifications of `final`. However, this is not a license to treat `final` like a mutable variable. The intended scope is very narrow cases such as **reconstruction/deserialization**, where the field is populated **before the object is read/published**.
 
-Nếu object đã được chia sẻ, đã bị getter đọc nhiều lần hoặc rơi vào một vòng lặp JIT, không thể viện dẫn freeze action để ép mọi luồng/ngữ cảnh biên dịch thấy phiên bản mới.
+If the object has already been shared, read repeatedly by getters, or entered a JIT-compiled loop, you cannot invoke a freeze action to force all threads/compilation contexts to see the new version.
 
-## 6. Tối ưu quan trọng: `static final` compile-time constant
+## 6. Key Optimization: `static final` Compile-Time Constants
 
-Không phải mọi `final` đều là **constant variable** theo JLS. Một field là constant variable khi nó có kiểu primitive hoặc `String`, là `final` và được khởi tạo bằng một **constant expression** theo quy tắc ngôn ngữ.
+Not every `final` field is a **constant variable** under the JLS. A field is a constant variable when it has a primitive or `String` type, is `final`, and is initialized with a **constant expression** according to language rules.
 
-Ví dụ:
+Example:
 
 ```java
 class ConstantsExample {
     static final int MAX = 42;            // Constant variable
     static final String LABEL = "READY";   // Constant variable
 
-    static final Integer BOXED = 42;       // Không phải constant variable
+    static final Integer BOXED = 42;       // Not a constant variable
     static final int COMPUTED = Integer.parseInt("42");
-                                         // Không phải constant expression
+                                         // Not a constant expression
 }
 ```
 
-Đây là **đoạn minh họa**. `MAX` và `LABEL` có thể bị **inline khi compile** tại nơi sử dụng. Nếu một class client được compile với `ConstantsExample.MAX == 42`, bytecode của client có thể chứa hẳn số `42` thay vì đọc field lúc chạy.
+This is an **illustrative snippet**. `MAX` and `LABEL` can be **inlined at compile time** at usage sites. If a client class is compiled with `ConstantsExample.MAX == 42`, the client's bytecode may embed the literal `42` directly instead of reading the field at runtime.
 
-Do vậy:
+Therefore:
 
-- Ngay cả trong giả thiết dùng cách ngoài chuẩn để làm thay đổi storage của `static final`, những code path đã inline literal có thể **vẫn dùng giá trị cũ**.
-- Thay đổi giá trị constant variable trong thư viện rồi chỉ deploy lại JAR của thư viện nhưng **không biên dịch lại client** có thể khiến client tiếp tục dùng hằng số cũ. Đây là hệ quả của **constant inlining lúc biên dịch**, khác với cache của JIT.
-- Một `static final` được khởi tạo runtime, chẳng hạn `Integer.parseInt("42")`, không phải compile-time constant expression, dù field vẫn chỉ được gán một lần bằng Java source hợp lệ.
+- Even under the hypothetical scenario of using non-standard means to alter the storage of a `static final`, code paths that already inlined the literal may **continue using the old value**.
+- Changing a constant variable's value in a library and deploying only the library JAR without **recompiling clients** can cause clients to keep using the old constant. This is a consequence of **compile-time constant inlining**, distinct from JIT caching.
+- A `static final` initialized at runtime, such as `Integer.parseInt("42")`, is not a compile-time constant expression, even though the field is still assigned only once in valid Java source.
 
-Bạn có thể quan sát bytecode:
+You can inspect bytecode:
 
 ```bash
 javap -c -p FinalFieldObservationDemo
 ```
 
-Trong ví dụ chạy phía trên, biểu thức `Constants.ANSWER` là compile-time constant. `javap` có thể hiển thị lệnh đẩy literal `42` ở call site, thay vì một lệnh `getstatic` đọc field mỗi lần; chi tiết mnemonic và trình tự lệnh tùy bytecode do compiler phát sinh.
+In the runnable example above, the expression `Constants.ANSWER` is a compile-time constant. `javap` may show an instruction pushing the literal `42` at the call site instead of a `getstatic` instruction reading the field each time; exact mnemonics and instruction sequences depend on compiler-generated bytecode.
 
-**Lưu ý:** `static final` và compile-time constant là hai điều kiện khác nhau. Cấm reflective write đối với `static final` trong Java 17+ không đồng nghĩa **mọi `static final`** đều được inline như một literal ngay khi biên dịch.
+**Note:** `static final` and compile-time constant are two distinct conditions. Forbidding reflective writes to `static final` in Java 17+ does not mean **every `static final`** is inlined as a literal at compile time.
 
-## 7. Các tối ưu JVM và rủi ro về hiệu năng
+## 7. JVM Optimizations and Performance Trade-Offs
 
-JVM/JIT có thể tận dụng tính ổn định của `final` để giảm số lần đọc bộ nhớ, duy trì giá trị trong thanh ghi, loại phép đọc lặp lại, thực hiện constant propagation/constant folding trong những trường hợp hợp lệ, và tổ chức lại lệnh quanh các điểm không có thay đổi hợp lệ theo mô hình ngôn ngữ.
+The JVM/JIT can leverage the stability of `final` to reduce memory loads, keep values in registers, eliminate redundant reads, perform constant propagation/constant folding in valid cases, and reorder instructions around points where no valid change can occur under the language model.
 
-Tuy nhiên:
+However:
 
-- **Không có quy tắc “mọi `final` đều luôn được inline”**. Kỹ thuật chính xác tùy field, escape analysis, cấu hình JIT, phiên bản JVM và code path.
-- **Không có quy tắc “`final` luôn nhanh hơn”** trên mọi workload. Giá trị của `final` trước hết nằm ở tính đúng đắn, khả năng diễn đạt bất biến và cơ hội tối ưu.
-- Một hệ thống cho phép sửa `final` bằng deep reflection trong lúc ứng dụng đang chạy hạn chế những giả định tối ưu mà JVM có thể áp dụng an toàn, vì phải tính đến khả năng phá vỡ bất biến.
-- Việc JDK ngày càng hạn chế reflective mutation hướng tới **integrity by default**: làm cho cam kết `final` đáng tin hơn và mở thêm không gian tối ưu về lâu dài.
+- **There is no rule that "every `final` is always inlined"**. Exact techniques depend on the field, escape analysis, JIT configuration, JVM version, and code path.
+- **There is no rule that "`final` is always faster"** across every workload. The value of `final` lies primarily in correctness, expressing immutability, and optimization opportunities.
+- A system that permits mutating `final` via deep reflection while the application runs constrains the optimization assumptions the JVM can safely apply, because it must account for potential immutability violations.
+- The JDK's increasing restriction of reflective mutation aims for **integrity by default**: making the `final` promise more trustworthy and opening more optimization headroom long-term.
 
-Khi benchmark, tránh đánh giá bằng một vòng lặp tự viết đơn giản: warm-up, inlining, dead-code elimination, constant folding và môi trường chạy có thể làm sai kết luận. Nếu cần microbenchmark có giá trị, hãy dùng JMH cùng các điều kiện kiểm thử nhất quán. Không nên suy luận hợp đồng JMM từ kết quả đo thời gian.
+When benchmarking, avoid evaluating with a naive handwritten loop: warm-up, inlining, dead-code elimination, constant folding, and the runtime environment can skew conclusions. When a valid microbenchmark is needed, use JMH with consistent test conditions. Do not infer JMM contracts from timing measurements.
 
-## 8. Hành vi theo phiên bản JDK: phần cần kiểm tra khi nâng cấp
+## 8. Behavior by JDK Version: What to Check When Upgrading
 
-### 8.1. Mốc phiên bản
+### 8.1. Version milestones
 
-| Dòng JDK | Những điểm liên quan tới `final` qua Reflection |
+| JDK line | Points relevant to `final` via Reflection |
 | --- | --- |
-| **JDK 8** | Mô hình JMM `final` đã tồn tại; kỹ thuật reflective mutation từng được dùng bởi một số thư viện khởi tạo đối tượng. Những thủ thuật đụng tới nội bộ JVM không phải API ổn định. |
-| **JDK 9–16** | JPMS bổ sung ranh giới module và kiểm tra deep reflection; record và hidden class xuất hiện trong quá trình tiến hóa platform. Không nên suy luận quyền ghi `final` chỉ từ quyền `private`. |
-| **JDK 17–25** | Strong encapsulation JDK trở nên chặt chẽ; `Field` quy định rõ không cho ghi `static final`, record final và hidden-class final bằng `setAccessible`. Một số `final` instance của class thông thường vẫn có thể được sửa phản chiếu khi đủ điều kiện. |
-| **JDK 26** | **JEP 500 – Prepare to Make Final Mean Final**: mặc định phát cảnh báo về reflective mutation đối với `final` instance khi không cấp phép, chuẩn bị cho hạn chế nghiêm khắc hơn ở tương lai; bổ sung chính sách và tùy chọn launch. |
-| **JDK 27 (phát hành 09/2026)** | Tiếp tục **cảnh báo** đối với reflective mutation trái chính sách theo JEP 500; tài liệu migration vẫn mô tả sự chặn bằng exception là hướng cho **phiên bản tương lai**, không nên viết rằng mọi ghi đã bị cấm mặc định trong JDK 27. |
+| **JDK 8** | The JMM `final` model already existed; reflective mutation techniques were used by some object-initialization libraries. Tricks touching JVM internals are not stable APIs. |
+| **JDK 9–16** | JPMS added module boundaries and deep-reflection checks; records and hidden classes arrived during platform evolution. Write permission for `final` should not be inferred merely from `private` access. |
+| **JDK 17–25** | Strong encapsulation in the JDK tightened; `Field` explicitly disallows writing `static final`, record final, and hidden-class final via `setAccessible`. Certain ordinary-class `final` instance fields can still be reflectively modified when conditions are met. |
+| **JDK 26** | **JEP 500 – Prepare to Make Final Mean Final**: warns by default on unauthorized reflective mutation of `final` instance fields, preparing for stricter restrictions in the future; adds policy and launch options. |
+| **JDK 27 (released 09/2026)** | Continues **warning** on policy-violating reflective mutation under JEP 500; migration docs still describe blocking with an exception as the direction for a **future release**, so one should not claim all writes are blocked by default in JDK 27. |
 
-**Phạm vi thông tin về phiên bản:** bảng dựa trên Java/JDK đã công bố đến tháng 10/2026. Nếu ứng dụng chạy trên bản update/vendor JVM cụ thể hoặc JDK mới hơn, đọc **API docs và migration notes của đúng runtime đang triển khai**.
+**Scope of version information:** the table is based on Java/JDK releases published up to 10/2026. If an application runs on a specific vendor/update JVM or newer JDK, consult the **API docs and migration notes of the exact deployed runtime**.
 
-### 8.2. JDK 26–27: cảnh báo khi mutate `final`
+### 8.2. JDK 26–27: warnings when mutating `final`
 
-JDK 26 thêm chính sách final-field mutation. Nếu code từ một module ghi `final` instance thông qua deep reflection trong trường hợp không được cấp năng lực này, mặc định JVM có thể ghi cảnh báo, gồm field và mã đang thực hiện mutation. Cảnh báo được báo trên **stderr** nên test chỉ so stdout có thể không phát hiện.
+JDK 26 adds a final-field mutation policy. If code from a module writes a `final` instance field via deep reflection without being granted this capability, the JVM by default may emit a warning identifying the field and the mutating code. Warnings are printed to **stderr**, so tests comparing only stdout may miss them.
 
-Các tùy chọn được JEP 500 giới thiệu:
+Options introduced by JEP 500:
 
 ```text
 --enable-final-field-mutation=ALL-UNNAMED
@@ -314,73 +314,73 @@ Các tùy chọn được JEP 500 giới thiệu:
 --illegal-final-field-mutation=deny
 ```
 
-Ý nghĩa:
+Meaning:
 
-- `--enable-final-field-mutation=ALL-UNNAMED`: cấp năng lực mutation cho code trong unnamed module(s), phù hợp khi cần xử lý thư viện legacy trên classpath. Điều này **không tự mở package đích** cho deep reflection.
-- `--enable-final-field-mutation=module.name`: cấp năng lực cho named module tương ứng; caller phải nằm trong module được cấp phép.
-- `--illegal-final-field-mutation=warn`: chính sách mặc định ở JDK 26–27, cảnh báo đối với thao tác trái chính sách.
-- `allow`: cho phép mà không báo cảnh báo thuộc chính sách này; `debug`: ghi thông tin chẩn đoán chi tiết hơn; `deny`: từ chối mutation trái chính sách, hữu ích để rà soát code trước khi chính sách mặc định siết chặt.
+- `--enable-final-field-mutation=ALL-UNNAMED`: grants mutation capability to code in unnamed module(s), suitable when handling legacy libraries on the classpath. This **does not automatically open the target package** for deep reflection.
+- `--enable-final-field-mutation=module.name`: grants capability to the corresponding named module; the caller must reside in the permitted module.
+- `--illegal-final-field-mutation=warn`: default policy in JDK 26–27, warning on policy-violating operations.
+- `allow`: allows without emitting this policy's warning; `debug`: logs more detailed diagnostic info; `deny`: rejects policy-violating mutation, useful for auditing code before the default policy tightens.
 
-Để kiểm tra ví dụ trên với chính sách chặn khi chạy JDK 26–27:
+To test the example above under the blocking policy when running JDK 26–27:
 
 ```bash
 java --illegal-final-field-mutation=deny FinalFieldObservationDemo
 ```
 
-**Dòng cuối** của stdout có thể chuyển thành `ordinary instance final write=denied`, bởi mutation từ unnamed module không được cấp phép. Điều này không liên quan đến hai thao tác `static final` và record final: chúng **vốn bị cấm** trong Reflection chuẩn trước JDK 26.
+**The last line** of stdout may change to `ordinary instance final write=denied`, because mutation from the unnamed module is not permitted. This is unrelated to the `static final` and record final operations: they were **already forbidden** in standard Reflection before JDK 26.
 
-Nếu thực sự cần cho phép phần mềm cũ thực hiện mutation trong giai đoạn chuyển tiếp:
+If legacy software genuinely must be allowed to perform mutation during a transition period:
 
 ```bash
 java --enable-final-field-mutation=ALL-UNNAMED FinalFieldObservationDemo
 ```
 
-Tùy chọn này phù hợp với ví dụ classpath và không có module boundary phức tạp. Trong ứng dụng module thực, việc được cấp năng lực mutation còn phải đi cùng quyền truy cập thích hợp tới package đích; **`--add-opens` và `--enable-final-field-mutation` giải quyết hai quyền khác nhau**.
+This option suits the classpath example without complex module boundaries. In a real modular application, being granted mutation capability must also be paired with appropriate access permission to the target package; **`--add-opens` and `--enable-final-field-mutation` govern two different permissions**.
 
-**Quan trọng:** chọn `allow` hoặc cấp quyền mutation chỉ là giải pháp tương thích khi bắt buộc. Nó không tạo ra bảo đảm quan sát mới sau khi sửa `final`, không sửa được `static final`/record/hidden-class final qua `Field.set`, và không biến thiết kế mutable thành thread-safe.
+**Important:** choosing `allow` or granting mutation permission is only a compatibility workaround when unavoidable. It creates no new observability guarantees after modifying `final`, does not make `static final`/record/hidden-class final writable via `Field.set`, and does not turn a mutable design into a thread-safe one.
 
-### 8.3. Dự báo thay đổi mà không khẳng định quá mức
+### 8.3. Anticipating changes without overclaiming
 
-JEP 500 nói rõ mục đích là **chuẩn bị** cho một phiên bản tương lai nơi hành vi illegal final field mutation sẽ chuyển từ warning sang exception mặc định. Vì vậy:
+JEP 500 explicitly states its goal is to **prepare** for a future release where illegal final field mutation shifts from a warning to a default exception. Therefore:
 
-- Không hard-code giả định “trên mọi JDK, `setAccessible(true)` sẽ cho sửa `final` instance”.
-- Không hard-code giả định “từ JDK 26 mọi sửa `final` đều luôn ném exception”.
-- Khi nâng cấp, chạy compatibility tests với `--illegal-final-field-mutation=deny` để tìm điểm phụ thuộc vào mutation, kiểm tra cả stderr và stack trace.
-- Cập nhật framework/serializer sang bản hỗ trợ cơ chế khởi tạo hợp lệ thay vì duy trì thủ thuật trên object đã đưa vào dùng.
+- Do not hard-code the assumption "on every JDK, `setAccessible(true)` will allow modifying a `final` instance field".
+- Do not hard-code the assumption "starting in JDK 26, every `final` modification always throws an exception".
+- When upgrading, run compatibility tests with `--illegal-final-field-mutation=deny` to locate dependencies on mutation, checking both stderr and stack traces.
+- Upgrade frameworks/serializers to versions supporting valid initialization mechanisms rather than maintaining tricks on already-published objects.
 
-## 9. Các dạng vấn đề hay gặp
+## 9. Common Problem Patterns
 
-### 9.1. Reflection đọc được nhưng không ghi được
+### 9.1. Reflection can read but cannot write
 
-`field.trySetAccessible()` trả `true` chỉ nói rằng yêu cầu **suppress access checks** hợp lệ. Sau đó, `field.set(...)` vẫn có thể ném `IllegalAccessException` nếu field là non-modifiable final hoặc chính sách final mutation ngăn thao tác. Nếu package trong named module không mở cho caller thì việc bật access có thể thất bại trước đó.
+`field.trySetAccessible()` returning `true` only says the request to **suppress access checks** was valid. Afterward, `field.set(...)` can still throw `IllegalAccessException` if the field is a non-modifiable final or the final-mutation policy blocks the operation. If the package in a named module is not open to the caller, enabling access may fail earlier.
 
-**Cách xử lý:** ghi log `field.getDeclaringClass().getModule()`, `field.getModifiers()`, `field.getDeclaringClass().isRecord()`, runtime `java.version` và loại exception. Không “sửa lỗi” bằng cách xóa modifier `final` một cách tùy tiện.
+**How to handle:** log `field.getDeclaringClass().getModule()`, `field.getModifiers()`, `field.getDeclaringClass().isRecord()`, runtime `java.version`, and the exception type. Do not "fix the bug" by arbitrarily removing the `final` modifier.
 
-### 9.2. Unit test đi qua Reflection nhưng production thấy giá trị cũ
+### 9.2. Unit tests pass via Reflection, but production sees the old value
 
-Một phép thử chạy ngắn dưới interpreter có thể thấy cập nhật, nhưng getter production sau warm-up có thể bị tối ưu khác. Kết quả benchmark còn phụ thuộc JVM, flag và kiểu khai báo field.
+A short test running in the interpreter may observe the update, whereas a production getter after warm-up may be optimized differently. Benchmark behavior also depends on the JVM, flags, and field declaration kind.
 
-**Cách xử lý:** thiết kế lại để khởi tạo đủ dữ liệu trong constructor, truyền dependency qua constructor/factory hoặc dùng cơ chế mutable hợp lệ (`volatile`, atomic reference, lock) nếu nghiệp vụ thật sự cần cập nhật.
+**How to handle:** redesign to initialize full data in the constructor, pass dependencies via constructor/factory, or use proper mutable mechanisms (`volatile`, atomic reference, lock) if the business logic genuinely requires updates.
 
-### 9.3. Thay giá trị hằng số trong library nhưng client vẫn in giá trị cũ
+### 9.3. Changing a constant value in a library, yet the client still prints the old value
 
-Nếu `static final` là constant variable, mã client có thể đã nhúng literal từ lần compile trước. Thay JAR riêng của library không nhất thiết thay đổi code client đã được biên dịch.
+If `static final` is a constant variable, client code may have embedded the literal from an earlier compilation. Swapping only the library JAR does not necessarily update already-compiled client code.
 
-**Cách xử lý:** rebuild những client phụ thuộc khi thay đổi compile-time constants công khai; tránh coi chúng như cấu hình có thể cập nhật runtime.
+**How to handle:** rebuild dependent clients when changing public compile-time constants; avoid treating them as runtime-updatable configuration.
 
-### 9.4. Hiểu nhầm Reflection là kênh đồng bộ hóa
+### 9.4. Mistaking Reflection for a synchronization channel
 
-`Field.set`/`get` không tự tạo ra một giao thức publish-consume an toàn chỉ vì field có modifier `final`. Một người viết vào object đã công bố, người khác đọc ở loop, có thể chạm các hạn chế quan sát và data race tùy thiết kế.
+`Field.set`/`get` does not automatically create a safe publish-consume protocol just because a field has the `final` modifier. One party writing to a published object while another reads in a loop can hit visibility limits and data races depending on design.
 
-**Cách xử lý:** tách cấu hình bất biến thành object mới và công bố an toàn; với trạng thái mutable, dùng primitive đồng bộ hóa được JMM công nhận.
+**How to handle:** separate immutable configuration into new objects and publish safely; for mutable state, use synchronization primitives recognized by the JMM.
 
-### 9.5. Tưởng tắt JIT sẽ giải quyết tận gốc
+### 9.5. Thinking disabling the JIT solves the root cause
 
-`-Xint` hữu ích cho một **thử nghiệm chẩn đoán** (chạy interpreted mode), nhưng không thay đổi đặc tả và không biến reflective mutation của `final` thành hành vi có hợp đồng ổn định. Tương tự, `-Xcomp` hoặc các JVM optimization flags không thay thế được thiết kế đúng.
+`-Xint` is useful for a **diagnostic experiment** (running in interpreted mode), but does not change the specification and does not turn reflective mutation of `final` into a stably contracted behavior. Similarly, `-Xcomp` or JVM optimization flags are no substitute for proper design.
 
-## 10. Thiết kế thay thế an toàn
+## 10. Safe Design Alternatives
 
-### 10.1. Bất biến thật sự: truyền qua constructor
+### 10.1. True immutability: pass through constructor
 
 ```java
 final class ImmutableConfig {
@@ -396,9 +396,9 @@ final class ImmutableConfig {
 }
 ```
 
-Đây là **class minh họa**, không có `main`. Giá trị được đặt khi khởi tạo và sau đó không bị thay thế.
+This is an **illustrative class**, without a `main`. The value is set at initialization and never replaced afterward.
 
-### 10.2. Nếu cần cập nhật cấu hình runtime
+### 10.2. When runtime configuration updates are needed
 
 ```java
 import java.util.concurrent.atomic.AtomicReference;
@@ -417,28 +417,28 @@ final class ConfigHolder {
 }
 ```
 
-Ở ví dụ này, **tham chiếu tới `AtomicReference` là `final`**, nhưng trạng thái được quản lý bởi đối tượng atomic có thể thay đổi đúng hợp đồng JMM. Đây là **class minh họa**, không có `main`. Trong ứng dụng thật, cần thêm validation và quản lý vòng đời tương ứng với nghiệp vụ.
+In this example, **the reference to `AtomicReference` is `final`**, while the state managed by the atomic object can change in accordance with the JMM contract. This is an **illustrative class**, without a `main`. In a real application, add validation and lifecycle management matching business rules.
 
-### 10.3. Với serialization/deserialization
+### 10.3. For serialization/deserialization
 
-Ưu tiên framework hỗ trợ constructor/factory, record constructor, builder hoặc cơ chế đọc dữ liệu phù hợp. Nếu thư viện legacy bắt buộc ghi `final` trong lúc tái dựng object, hãy giới hạn thao tác **trước khi object được công bố hoặc đọc**, kiểm tra rõ quyền/module/runtime và chuẩn bị migration theo JEP 500. Không sửa object sau khi nó đã được sử dụng rồi trông đợi mọi getter và thread tự thấy giá trị mới.
+Prefer frameworks supporting constructors/factories, record constructors, builders, or suitable data-reading mechanisms. If a legacy library must write `final` while reconstructing an object, confine the operation **before the object is published or read**, verify permissions/modules/runtime explicitly, and prepare migration per JEP 500. Do not modify an object after it is already in use and expect every getter and thread to automatically see the new value.
 
-## 11. Checklist chẩn đoán và kiểm thử
+## 11. Diagnostic and Testing Checklist
 
-1. **Xác định loại field:** instance hay static, `final` hay không, thuộc class thường, record hay hidden class? Dùng `getModifiers()` và `Modifier.isFinal(...)`.
-2. **Xác định quyền:** caller cùng class/module hay khác module? Package đích có open không? `setAccessible(true)` có thành công không?
-3. **Xác định phiên bản runtime:** `System.getProperty("java.version")` và các JVM flags đang dùng; không suy đoán từ source compatibility `--release 17`.
-4. **Phân biệt ba phép kiểm tra:** permission to write, observed reflective read, observed compiled getter. Không xem chúng là đồng nhất.
-5. **Kiểm tra hằng số compile-time:** field `static final` có thuộc kiểu primitive/`String` và constant expression không? Client có phải rebuild không?
-6. **Kiểm tra điểm công bố:** object có bị truy cập trước/khi đang thay field không? Có race condition không?
-7. **Dùng môi trường nâng cấp:** thử JDK 26–27 với policy `--illegal-final-field-mutation=deny`, xem exception, stderr và dependency nào thực hiện mutation.
-8. **Chọn sửa thiết kế:** constructor/factory hoặc cơ chế mutable có synchronization; coi reflective final mutation là trường hợp tương thích cần giảm dần.
+1. **Identify the field category:** instance or static, `final` or not, belonging to an ordinary class, record, or hidden class? Use `getModifiers()` and `Modifier.isFinal(...)`.
+2. **Identify permissions:** is the caller in the same class/module or another module? Is the target package open? Did `setAccessible(true)` succeed?
+3. **Identify the runtime version:** `System.getProperty("java.version")` and active JVM flags; do not infer from source compatibility `--release 17`.
+4. **Separate the three checks:** permission to write, observed reflective read, and observed compiled getter. Do not treat them as identical.
+5. **Check compile-time constants:** is the `static final` field of primitive/`String` type with a constant expression? Must clients be rebuilt?
+6. **Check the publication point:** is the object accessed before/during the field change? Is there a race condition?
+7. **Use an upgraded environment:** test JDK 26–27 with `--illegal-final-field-mutation=deny`, inspect exceptions, stderr, and which dependency performs mutation.
+8. **Choose a design fix:** constructor/factory or synchronized mutable mechanism; treat reflective final mutation as a legacy compatibility case to phase out.
 
-## 12. Nguồn đặc tả và tài liệu kiểm chứng
+## 12. Specifications and Verification Sources
 
-- Java Language Specification, `17.5 *final Field Semantics* và `17.5.3 *Subsequent Modification of final Fields*: https://docs.oracle.com/javase/specs/jls/se26/html/jls-17.html
-- Java SE 17, `java.lang.reflect.Field`, mục `setAccessible` và `set`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html
+- Java Language Specification, §17.5 *final Field Semantics* and §17.5.3 *Subsequent Modification of final Fields*: https://docs.oracle.com/javase/specs/jls/se26/html/jls-17.html
+- Java SE 17, `java.lang.reflect.Field`, sections `setAccessible` and `set`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html
 - Oracle JDK 26 Migration Guide, *Preparing for final Field Mutation Restrictions*: https://docs.oracle.com/en/java/javase/26/migrate/preparing-final-field-mutation-restrictions.html
 - Oracle JDK 27 Migration Guide, *Significant Changes*: https://docs.oracle.com/en/java/javase/27/migrate/significant-changes-jdk-27-release.html
 
-**Ghi nhớ:** `final` không chỉ là cờ modifier; đó là cam kết thiết kế và cơ sở cho quy tắc bộ nhớ cùng tối ưu. Một reflective write có thể được runtime chấp nhận trong hoàn cảnh nhất định nhưng **không tạo bảo đảm quan sát đáng tin** trên object đã dùng. Vì vậy phải phân biệt khả năng ghi, khả năng quan sát và hiệu ứng tối ưu; đồng thời kiểm tra chính sách mới của JDK 26–27 khi nâng cấp.
+**Remember:** `final` is not just a modifier flag; it is a design commitment and the basis for memory rules and optimizations. A reflective write may be accepted by the runtime under certain conditions, yet **creates no reliable observability guarantee** on an already-used object. Therefore, separate write capability, observability, and optimization effects—and verify the new JDK 26–27 policies when upgrading.

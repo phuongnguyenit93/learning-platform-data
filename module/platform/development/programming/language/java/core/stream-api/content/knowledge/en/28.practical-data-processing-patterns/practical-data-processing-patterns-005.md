@@ -1,14 +1,14 @@
-# Kết hợp dữ liệu qua chỉ mục Map thay cho lặp lồng tốn kém
+# Joining Data Through a Map Index Instead of Expensive Nested Loops
 
-Trong chương **Mẫu xử lý dữ liệu thực tế** của **Java Stream API**, nhiều pipeline xử lý một danh sách và cần bổ sung dữ liệu từ danh sách khác. Chẳng hạn, từ mỗi đơn hàng ta cần lấy tên khách hàng; từ mỗi dòng bán hàng ta cần lấy thông tin sản phẩm; hoặc từ mỗi sự kiện ta cần gắn cấu hình dịch vụ. Đây là phép **kết hợp dữ liệu theo khóa** (*key-based join*).
+In the **Practical Data Processing Patterns** chapter of the **Java Stream API**, many pipelines process one list and need to enrich elements from another list. For instance, from each order we need the customer's name; from each sales line we need product details; or from each event we need service configuration. This is a **key-based join**.
 
-Cách đơn giản nhất là tìm kiếm ở danh sách thứ hai cho từng phần tử của danh sách thứ nhất. Nhưng nếu có hàng trăm nghìn đơn hàng và hàng chục nghìn khách hàng, việc tìm kiếm lặp đi lặp lại có thể trở thành nút thắt. Một mẫu thiết kế hiệu quả hơn là **lập chỉ mục bằng `Map` một lần**, sau đó tra cứu theo khóa trong pipeline `map`, `filter` hoặc `flatMap`.
+The simplest approach is searching the second list for every element of the first list. Yet with hundreds of thousands of orders and tens of thousands of customers, repeated linear scans become a bottleneck. A better pattern is **indexing into a `Map` once**, then looking up by key inside a `map`, `filter`, or `flatMap` pipeline.
 
-Bài này hướng dẫn cách cải thiện chi phí từ **O(N × M)** xuống **O(N + M)** *trung bình trong mô hình tra cứu hash*, đồng thời giữ đúng ngữ nghĩa của phép kết hợp: bản ghi thiếu khóa, khóa trùng, kết hợp một-một/một-nhiều, thứ tự kết quả và giới hạn bộ nhớ. Mục tiêu không chỉ là “chạy nhanh hơn” mà còn **không âm thầm bỏ mất hoặc ghép sai dữ liệu nghiệp vụ**.
+This lesson shows how to improve lookup cost from **O(N × M)** to **O(N + M)** *on average under hash-based lookup*, while preserving join semantics: missing keys, duplicate keys, one-to-one/one-to-many joins, result ordering, and memory limits. The goal is not merely "running faster", but **never silently dropping or mis-joining business data**.
 
-## 1. Bài toán mẫu: đơn hàng và khách hàng
+## 1. Sample Problem: Orders and Customers
 
-Giả sử có hai nguồn:
+Suppose we have two sources:
 
 ~~~java
 record Customer(String id, String name) {}
@@ -20,7 +20,7 @@ record Order(
 ) {}
 ~~~
 
-Dữ liệu:
+Data:
 
 ~~~text
 customers:
@@ -35,13 +35,13 @@ orders:
   O-4 -> C-99,  35.00
 ~~~
 
-Yêu cầu chính: với mỗi đơn hàng có khách hàng tương ứng, tạo bản ghi:
+Primary requirement: for every order with a matching customer, produce a record:
 
 ~~~text
 (orderId, customerId, customerName, amount)
 ~~~
 
-Đầu ra dự kiến cho phép kết hợp **inner join**:
+Expected output for an **inner join**:
 
 ~~~text
 O-1 -> C-01 -> An    -> 100.00
@@ -49,13 +49,13 @@ O-2 -> C-02 -> Bình  -> 50.00
 O-3 -> C-01 -> An    -> 20.00
 ~~~
 
-Đơn `O-4` tham chiếu `C-99` không có trong danh sách khách hàng, nên không xuất hiện trong **inner join**. Tuy nhiên, trong báo cáo kiểm soát dữ liệu, chúng ta không được coi đơn đó là không tồn tại: cần có cách ghi nhận hoặc truy vấn riêng các bản ghi **không tìm thấy khóa**.
+Order `O-4` references `C-99`, which is absent from the customer list, so it does not appear in the **inner join**. However, in a data-control report, we must not pretend that order does not exist: we need a way to record or separately query **unmatched** records.
 
-Vì `C-01` xuất hiện trong hai đơn, quan hệ ở chiều `Order -> Customer` là **nhiều-một**: nhiều đơn hàng cùng tham chiếu một khách hàng. Khi xây chỉ mục khách hàng, mỗi `customerId` phải tương ứng đúng một khách hàng theo hợp đồng.
+Because `C-01` appears in two orders, the relationship in the `Order -> Customer` direction is **many-to-one**: multiple orders reference one customer. When building the customer index, each `customerId` must correspond to exactly one customer by contract.
 
-## 2. Cách dễ viết nhưng tốn kém: tìm tuyến tính bên trong vòng lặp
+## 2. Easy to Write, Costly to Run: Linear Search Inside a Loop
 
-Một triển khai tuần tự thường gặp:
+A common sequential implementation:
 
 ~~~java
 import java.util.ArrayList;
@@ -78,11 +78,11 @@ for (Order order : orders) {
 }
 ~~~
 
-`EnrichedOrder` là record kết quả sẽ được khai báo trong chương trình hoàn chỉnh ở phần sau.
+`EnrichedOrder` is the result record declared in the complete program later.
 
-Vòng lặp ngoài duyệt `N` đơn hàng; vòng lặp trong có thể phải duyệt tới `M` khách hàng cho mỗi đơn. Nếu không tìm thấy khóa, nó thường phải xem hết toàn bộ danh sách khách hàng.
+The outer loop iterates `N` orders; the inner loop can scan up to `M` customers per order. When a key is missing, it must typically inspect the entire customer list.
 
-Một cách dùng Stream tương tự nhưng không cải thiện độ phức tạp:
+A Stream version with the same poor complexity:
 
 ~~~java
 List<EnrichedOrder> joined = orders.stream()
@@ -95,27 +95,27 @@ List<EnrichedOrder> joined = orders.stream()
         .toList();
 ~~~
 
-Đoạn này biểu đạt phép tìm kiếm bằng `flatMap`/`filter`, nhưng **vẫn tạo một lượt tìm kiếm trong `customers` cho từng đơn hàng**. Viết dạng khai báo không tự động biến thuật toán tìm kiếm tuyến tính thành tra cứu hiệu quả.
+This expresses the lookup with `flatMap`/`filter`, yet **still performs a scan over `customers` for each order**. Writing declaratively does not automatically turn linear search into indexed lookup.
 
-### Phân tích chi phí
+### Cost Analysis
 
-Ký hiệu:
+Notation:
 
-- `N`: số đơn hàng.
-- `M`: số khách hàng.
-- `K`: số bản ghi kết quả cần tạo.
+- `N`: number of orders.
+- `M`: number of customers.
+- `K`: number of output records produced.
 
-Với vòng lặp lồng hoặc Stream lồng như trên:
+With nested loops or nested Streams as above:
 
-- **Thời gian xấu nhất:** O(N × M) để tìm khách hàng.
-- **Bộ nhớ bổ sung cho tra cứu:** gần O(1), chưa tính bộ nhớ giữ kết quả O(K).
-- Nếu mỗi đơn hàng tìm thấy khách ở đầu danh sách, thời gian thực tế có thể nhỏ hơn; nhưng không có đảm bảo khi dữ liệu tăng hoặc thứ tự thay đổi.
+- **Worst-case time:** O(N × M) to locate customers.
+- **Auxiliary lookup memory:** near O(1), excluding O(K) for results.
+- If every order happens to find its customer near the front of the list, actual time may be lower; however, there is no guarantee as data grows or order changes.
 
-Ví dụ `N = 200.000` đơn hàng, `M = 50.000` khách hàng có thể dẫn đến rất nhiều phép so sánh ID. Không nên kết luận “không đáng kể” chỉ vì bộ dữ liệu thử nghiệm vài chục dòng chạy nhanh.
+For instance, `N = 200,000` orders and `M = 50,000` customers can trigger a huge number of ID comparisons. Never dismiss the cost as "negligible" just because a tiny test dataset of a few dozen rows runs quickly.
 
-## 3. Mẫu tối ưu: tạo chỉ mục Map một lần
+## 3. Optimal Pattern: Build a Map Index Once
 
-Nếu mỗi khách hàng có `id` duy nhất, chuyển danh sách khách thành:
+When each customer has a unique `id`, convert the customer list into:
 
 ~~~text
 Map<CustomerId, Customer>
@@ -125,7 +125,7 @@ Map<CustomerId, Customer>
 "C-03" -> Customer("C-03", "Chi")
 ~~~
 
-Có thể dùng `Collectors.toMap`:
+You can use `Collectors.toMap`:
 
 ~~~java
 import java.util.Map;
@@ -139,31 +139,31 @@ Map<String, Customer> customerById = customers.stream()
         ));
 ~~~
 
-Giải thích:
+Explanation:
 
-1. `Customer::id` tạo khóa kiểu `String`.
-2. `Function.identity()` giữ chính đối tượng `Customer` làm giá trị.
-3. `collect(Collectors.toMap(...))` vật hóa chỉ mục `Map` **một lần**.
-4. Mỗi đơn hàng sau đó chỉ cần `customerById.get(order.customerId())` để tìm thông tin khách.
+1. `Customer::id` supplies the `String` key.
+2. `Function.identity()` keeps the `Customer` object itself as the value.
+3. `collect(Collectors.toMap(...))` materializes the `Map` index **once**.
+4. Each order afterward only needs `customerById.get(order.customerId())` to look up customer details.
 
-Với một `HashMap` điển hình, thao tác `get` có độ phức tạp kỳ vọng O(1) khi `hashCode`/`equals` và phân bố khóa phù hợp. Vì vậy, chi phí tổng quát trở thành:
+With a typical `HashMap`, `get` has expected O(1) complexity when `hashCode`/`equals` and key distribution behave well. Thus overall cost becomes:
 
 ~~~text
-Xây chỉ mục khách hàng: O(M) trung bình
-Tra cứu cho N đơn:      O(N) trung bình
-Tạo K kết quả:          O(K)
+Build customer index: O(M) average
+Lookup for N orders:  O(N) average
+Create K results:     O(K)
 
-Tổng:                  O(M + N + K)
-Bộ nhớ chỉ mục:         O(M)
+Total:                O(M + N + K)
+Index memory:         O(M)
 ~~~
 
-Ở phép kết hợp nhiều-một mà mỗi đơn tạo tối đa một bản ghi, `K <= N`, nên thường viết ngắn là **O(M + N)** kỳ vọng. Đó không phải giới hạn thời gian tuyệt đối của mọi kiểu `Map`: hiệu quả phụ thuộc loại Map, hashing, va chạm và chi phí tính khóa.
+In a many-to-one join where each order emits at most one record, `K <= N`, so this is often summarized as **O(M + N)** expected time. That is not an absolute worst-case bound for every `Map`: real performance depends on Map implementation, hashing, collisions, and key-computation cost.
 
-**Đánh đổi quan trọng:** Ta sử dụng thêm bộ nhớ O(M) để giảm số lần quét danh sách khách hàng. Nếu danh sách bên phải không đủ nhỏ để giữ trong bộ nhớ, cần chiến lược khác như join tại cơ sở dữ liệu, xử lý theo lô hoặc external join.
+**Key trade-off:** We trade O(M) extra memory to eliminate repeated scans of the customer list. If the indexed side does not fit comfortably in memory, choose another strategy such as a database join, batched processing, or external join.
 
-## 4. Chương trình hoàn chỉnh với inner join, left join và anti join
+## 4. Complete Program with Inner Join, Left Join, and Anti Join
 
-Đoạn mã sau là một chương trình tự chứa cho **Java 17+**, sử dụng `record` và `Stream.toList()` (Java 16+). Lưu vào `MapJoinDemo.java` để thử nghiệm.
+The code below is a self-contained program for **Java 17+**, using `record` and `Stream.toList()` (Java 16+). Save it as `MapJoinDemo.java` to run.
 
 ~~~java
 import java.math.BigDecimal;
@@ -199,7 +199,7 @@ public class MapJoinDemo {
                 ));
     }
 
-    // Inner join: chỉ giữ đơn có khách hàng tương ứng.
+    // Inner join: keep only orders with a matching customer.
     static List<EnrichedOrder> innerJoin(
             List<Order> orders,
             Map<String, Customer> customerById) {
@@ -223,7 +223,7 @@ public class MapJoinDemo {
                 .toList();
     }
 
-    // Left join: giữ mọi đơn, kể cả đơn không có khách.
+    // Left join: keep every order, even without a customer.
     static List<LeftJoinedOrder> leftJoin(
             List<Order> orders,
             Map<String, Customer> customerById) {
@@ -237,7 +237,7 @@ public class MapJoinDemo {
                 .toList();
     }
 
-    // Anti join: chỉ lấy những đơn tham chiếu khách không tồn tại.
+    // Anti join: take only orders referencing non-existent customers.
     static List<Order> unmatchedOrders(
             List<Order> orders,
             Map<String, Customer> customerById) {
@@ -293,21 +293,21 @@ public class MapJoinDemo {
 
         System.out.println(
                 allOrders.get(3).customer().isEmpty());
-        // true: O-4 không tìm thấy C-99.
+        // true: O-4 could not find C-99.
     }
 }
 ~~~
 
-Ví dụ minh họa `Optional<Customer>` ở bản ghi kết quả **để thể hiện rõ trạng thái có/không có khách**, thay vì dùng tên giả như `"UNKNOWN"` có thể trùng tên thật. Trong mô hình lưu trữ thực tế, cũng có thể dùng kiểu kết quả riêng thể hiện `Matched`/`Missing` hoặc cờ trạng thái cùng thông tin lỗi.
+The example uses `Optional<Customer>` in the result record **to explicitly model customer presence/absence**, rather than substituting a fake name like `"UNKNOWN"` that could collide with a real name. In production storage models, you can also use a dedicated result type representing `Matched`/`Missing` or a status flag with error details.
 
-Chạy:
+Run:
 
 ~~~bash
 javac MapJoinDemo.java
 java MapJoinDemo
 ~~~
 
-Đầu ra quan trọng:
+Key output:
 
 ~~~text
 Inner count: 3
@@ -319,31 +319,31 @@ Missing order IDs: [O-4]
 true
 ~~~
 
-Các thao tác `get` và `containsKey` trên `customerById` là **đọc chỉ mục**. Map được tạo xong trước khi Stream đơn hàng bắt đầu xử lý, không bị thêm/xóa khóa trong lúc join.
+`get` and `containsKey` calls on `customerById` are **index reads**. The Map is fully built before the orders Stream runs, and no keys are added or removed during the join.
 
-## 5. Ba loại join và chính sách bản ghi thiếu khóa
+## 5. Three Join Types and Missing-Key Policies
 
-Kết hợp hai nguồn không có một ý nghĩa duy nhất. Cần định nghĩa loại join trước khi viết pipeline.
+Joining two sources has no single universal meaning. Define the join type before writing the pipeline.
 
-| Loại | Điều kiện đưa đơn hàng vào kết quả | Ví dụ với `O-4` |
+| Type | Condition for Including an Order | Example with `O-4` |
 | --- | --- | --- |
-| **Inner join** | Có ít nhất một khách hàng phù hợp | Loại khỏi kết quả đã ghép |
-| **Left join** | Giữ mọi đơn hàng; phần khách có thể thiếu | Giữ `O-4` và đánh dấu thiếu khách |
-| **Anti join** | Không có khách hàng phù hợp | Chỉ giữ `O-4` trong danh sách kiểm tra |
+| **Inner join** | At least one matching customer exists | Excluded from joined output |
+| **Left join** | Keeps every order; customer side may be absent | Keeps `O-4` marked as missing customer |
+| **Anti join** | No matching customer exists | Retains only `O-4` in an audit list |
 
-### 5.1. Inner join: đừng che giấu dữ liệu lỗi
+### 5.1. Inner Join: Never Hide Bad Data
 
-`innerJoin(...)` thích hợp khi chỉ cần các cặp đã ghép thành công. Nhưng nếu hệ thống yêu cầu báo cáo toàn bộ đơn hàng, `O-4` không được biến mất một cách im lặng.
+`innerJoin(...)` fits when only successfully matched pairs are needed. However, if the system requires reporting on all orders, `O-4` must not vanish silently.
 
-Thiết kế an toàn là **xuất cả thống kê số lượng chưa ghép**, hoặc chạy thêm anti join trên cùng Map chỉ mục đã tạo. Điều này giúp phân biệt “không có dữ liệu đầu vào” với “có dữ liệu nhưng thiếu quan hệ”.
+A safe design **also outputs the unmatched count**, or runs an anti join against the same prebuilt index Map. This separates "no input data" from "data present with broken relationships".
 
-### 5.2. Left join: giữ một kết quả cho mỗi đơn
+### 5.2. Left Join: Preserve One Result per Order
 
-`leftJoin(...)` bảo toàn đúng số lượng và thứ tự của `orders` khi dùng nguồn `List` có encounter order và pipeline không thay đổi thứ tự. `Optional.empty()` biểu diễn thiếu dữ liệu quan hệ.
+`leftJoin(...)` preserves the exact count and order of `orders` when using an ordered `List` source and an order-preserving pipeline. `Optional.empty()` represents the missing relationship.
 
-Không nên tự điền tên khách `"Không rõ"` trong logic tổng hợp rồi giả định đây là khách hàng có thật. Nếu giao diện cần nhãn hiển thị, hãy xử lý placeholder ở tầng trình bày.
+Do not inject a placeholder name like `"Unknown"` inside aggregation logic and treat it as a real customer. If a UI needs a fallback label, apply that placeholder at the presentation layer.
 
-### 5.3. Anti join: phát hiện dữ liệu mồ côi
+### 5.3. Anti Join: Detecting Orphan Data
 
 ~~~java
 List<Order> missing = orders.stream()
@@ -352,13 +352,13 @@ List<Order> missing = orders.stream()
         .toList();
 ~~~
 
-Mẫu này là công cụ kiểm tra dữ liệu tham chiếu (*referential integrity*). Nó thường hữu ích trong ETL, migration, đồng bộ dữ liệu hoặc kiểm thử chất lượng nguồn.
+This pattern checks *referential integrity*. It is widely useful in ETL, migrations, data sync, and source-quality testing.
 
-Khi dùng `containsKey`, chúng ta phân biệt khóa **vắng mặt** với khóa có giá trị `null` ở các Map cho phép null. Bài này chủ động xây Map giá trị `Customer` không null, nên `get(...) == null` cũng tương ứng không có khách; nhưng `containsKey` thể hiện chính xác ý định kiểm tra sự tồn tại của khóa.
+Using `containsKey` distinguishes an **absent** key from a key mapped to `null` in Maps that permit nulls. This lesson intentionally builds a Map of non-null `Customer` values, so `get(...) == null` also implies absence; still, `containsKey` states key-existence intent clearly.
 
-## 6. Khóa trùng: không thể lập chỉ mục duy nhất bằng cách bỏ qua dữ liệu
+## 6. Duplicate Keys: You Cannot Build a Unique Index by Ignoring Data
 
-`Collectors.toMap(Customer::id, Function.identity())` **ném `IllegalStateException` khi có hai khách hàng cùng ID**:
+`Collectors.toMap(Customer::id, Function.identity())` **throws `IllegalStateException` when two customers share the same ID**:
 
 ~~~java
 List<Customer> duplicated = List.of(
@@ -374,16 +374,16 @@ Map<String, Customer> invalidIndex = duplicated.stream()
         ));
 ~~~
 
-Điều này có thể là **đúng mong muốn** nếu `Customer.id` được quy định duy nhất. Ngoại lệ giúp phát hiện dữ liệu nguồn không tuân thủ hợp đồng thay vì âm thầm chọn một khách ngẫu nhiên.
+This may be **exactly what you want** if `Customer.id` is contracted to be unique. The exception surfaces contract-violating source data rather than silently picking an arbitrary customer.
 
-### 6.1. Cần phân biệt xung đột và quan hệ một-nhiều
+### 6.1. Distinguish Conflicts from One-to-Many Relationships
 
-- Nếu mỗi ID phải là duy nhất: **báo lỗi hoặc loại bỏ dữ liệu không hợp lệ theo quy trình xác thực**.
-- Nếu mỗi ID có thể ứng với nhiều phiên bản bản ghi: **định nghĩa quy tắc chọn bản ghi** dựa trên timestamp/version đáng tin cậy, hoặc giữ tất cả bằng `groupingBy`.
-- Nếu khóa thực sự là cặp `(tenantId, customerId)`: **xây khóa ghép**, không xem hai khách ở hai tenant là một người.
-- Nếu khóa được chuẩn hóa dẫn đến va chạm: **xác định cách giải quyết khóa trùng sau chuẩn hóa**, không ghi đè tùy tiện.
+- If every ID must be unique: **raise an error or reject invalid records via the validation workflow**.
+- If an ID may have multiple record versions: **define a selection rule** using a reliable timestamp/version, or keep all versions via `groupingBy`.
+- If the true key is `(tenantId, customerId)`: **construct a composite key**, rather than treating customers in different tenants as one person.
+- If normalization causes collisions: **define how to resolve post-normalization duplicates**, rather than overwriting arbitrarily.
 
-Có thể dùng overload ba tham số của `toMap` để gộp:
+You can use the three-argument `toMap` overload to merge:
 
 ~~~java
 Map<String, Customer> chosen = duplicated.stream()
@@ -394,11 +394,11 @@ Map<String, Customer> chosen = duplicated.stream()
         ));
 ~~~
 
-Nhưng `(first, next) -> first` chỉ đúng khi nghiệp vụ cho phép **giữ phần tử đầu theo encounter order đã xác định**. Với nguồn không có thứ tự hoặc khi cần bản ghi mới nhất, cách này có thể trả dữ liệu sai. Đặc biệt không thêm merge function chỉ để “hết lỗi duplicate key” mà không kiểm tra mất dữ liệu.
+Yet `(first, next) -> first` is valid only when business rules allow **keeping the first element in a defined encounter order**. With unordered sources or when the latest record is required, this can return stale data. Never add a merge function merely to "silence the duplicate key error" without checking for data loss.
 
-### 6.2. Nếu cần phiên bản mới nhất, dùng tiêu chí quyết định ổn định
+### 6.2. When You Need the Latest Version, Use a Deterministic Tie Criterion
 
-Giả sử có:
+Suppose you have:
 
 ~~~java
 import java.time.Instant;
@@ -411,7 +411,7 @@ record CustomerVersion(
 ) {}
 ~~~
 
-Chọn phiên bản theo `version` lớn hơn:
+Pick the record with the higher `version`:
 
 ~~~java
 Map<String, CustomerVersion> latestById =
@@ -428,13 +428,13 @@ Map<String, CustomerVersion> latestById =
                 ));
 ~~~
 
-Ví dụ giả định `versions` là collection các `CustomerVersion`. Quy tắc cố ý từ chối hai bản ghi có **cùng ID và cùng version**, thay vì lựa chọn tùy ý theo lịch thực thi. Trong một hệ thống khác, có thể dùng timestamp kèm tiêu chí phá hòa ổn định; chính sách luôn cần xuất phát từ nghiệp vụ.
+This snippet assumes `versions` is a collection of `CustomerVersion`. The rule intentionally rejects two records with the **same ID and same version** instead of picking arbitrarily based on execution schedule. In another system, you might use timestamp plus a deterministic tie-breaker; the policy must always come from the business.
 
-## 7. Một-nhiều: dùng groupingBy để tạo chỉ mục danh sách
+## 7. One-to-Many: Use groupingBy to Build a List Index
 
-`toMap` với một giá trị cho mỗi khóa không giải quyết trực tiếp yêu cầu **mỗi khách có nhiều đơn hàng** nếu muốn giữ toàn bộ đơn.
+`toMap` with a single value per key cannot directly represent **each customer having multiple orders** if you want to retain all orders.
 
-Trong trường hợp cần tìm tất cả đơn của mỗi khách, đảo chiều chỉ mục:
+When you need all orders per customer, invert the index:
 
 ~~~java
 import java.util.List;
@@ -448,9 +448,9 @@ System.out.println(ordersByCustomerId.get("C-01").size());
 // 2
 ~~~
 
-Ở đây, giá trị của Map là `List<Order>`, không phải một `Order` duy nhất. `groupingBy` giữ toàn bộ đơn có cùng `customerId`.
+Here, the Map value is `List<Order>`, not a single `Order`. `groupingBy` preserves every order sharing a `customerId`.
 
-Giả sử ứng dụng cần lấy **mỗi khách cùng mọi đơn hàng** để xuất báo cáo. Có thể dùng:
+Suppose an application needs **every customer paired with all their orders** for a report:
 
 ~~~java
 record CustomerOrder(Customer customer, Order order) {}
@@ -465,21 +465,21 @@ List<CustomerOrder> pairs = customers.stream()
 System.out.println(pairs.size()); // 3
 ~~~
 
-Dữ liệu ví dụ có ba đơn ghép được với khách hiện có. Khách `C-03` chưa có đơn nên không xuất hiện trong danh sách cặp; đơn `O-4` có khóa `C-99` không tìm thấy khách nên cũng không xuất hiện.
+The sample data yields three paired orders for existing customers. Customer `C-03` has no orders and does not appear in the pairs list; order `O-4` references `C-99` with no customer and also does not appear.
 
-**Quan trọng về thứ tự:** Với pipeline trên, kết quả sắp theo thứ tự **khách hàng trước, đơn hàng trong từng nhóm sau** theo encounter order của nguồn đã dùng. Nó có thể khác thứ tự khi lấy `orders` làm nguồn ngoài. Nếu báo cáo yêu cầu đúng thứ tự đơn hàng gốc, hãy dùng `orders.stream()` cùng chỉ mục khách.
+**Important regarding order:** With the pipeline above, results are ordered **by customer first, then orders within each customer's group** according to the source's encounter order. This may differ from streaming `orders` as the outer source. If the report requires preserving the original order list sequence, stream `orders` against the customer index instead.
 
-### Chi phí một-nhiều
+### One-to-Many Cost
 
-Với `N` đơn hàng, `M` khách và `K` cặp được tạo, `groupingBy` thường xây chỉ mục trong O(N) trung bình; duyệt `M` khách cùng các nhóm của họ tạo O(M + K) công việc bổ sung. Tổng kỳ vọng **O(N + M + K)**, với bộ nhớ để giữ các danh sách nhóm O(N) cộng kết quả O(K).
+With `N` orders, `M` customers, and `K` emitted pairs, `groupingBy` typically builds the index in O(N) average time; scanning `M` customers and their groups adds O(M + K) work. Expected total is **O(N + M + K)**, with O(N) memory for grouped lists plus O(K) for output.
 
-Với quan hệ **nhiều-nhiều** có thể phát sinh rất nhiều cặp kết quả, `K` có thể rất lớn, thậm chí tương đương tích số lượng các phần tử ở một nhóm. Không có tối ưu Map nào loại bỏ được chi phí phải thực sự tạo và xử lý `K` cặp nếu nghiệp vụ đòi mọi kết hợp.
+In **many-to-many** joins that can generate large pair counts, `K` can grow dramatically—up to the product of group sizes. No Map optimization eliminates the cost of actually materializing and processing `K` pairs when the business requires every combination.
 
-## 8. Khóa ghép: tenantId và customerId
+## 8. Composite Keys: tenantId and customerId
 
-Một nguyên nhân phổ biến làm sai join là dùng một khóa **chưa đủ thông tin định danh**. Ví dụ khách `C-01` có thể tồn tại ở nhiều tenant. Chỉ dùng `customerId` sẽ ghép chéo dữ liệu.
+A common join bug is using an **under-specified key**. For example, customer `C-01` may exist across multiple tenants. Keying by `customerId` alone cross-contaminates data.
 
-Từ Java 16, `record` là một cách tạo khóa ghép bất biến gọn:
+Since Java 16, `record` offers a concise immutable composite key:
 
 ~~~java
 record CustomerKey(String tenantId, String customerId) {}
@@ -497,7 +497,7 @@ record TenantOrder(
 ) {}
 ~~~
 
-Xây chỉ mục:
+Build the index:
 
 ~~~java
 Map<CustomerKey, TenantCustomer> byKey = tenantCustomers.stream()
@@ -507,7 +507,7 @@ Map<CustomerKey, TenantCustomer> byKey = tenantCustomers.stream()
         ));
 ~~~
 
-Tra cứu:
+Lookup:
 
 ~~~java
 List<String> names = tenantOrders.stream()
@@ -518,20 +518,20 @@ List<String> names = tenantOrders.stream()
         .toList();
 ~~~
 
-`tenantCustomers` và `tenantOrders` là các collection tương ứng của hai record trên. `record` tự cung cấp `equals` và `hashCode` theo các thành phần, rất phù hợp với khóa Map **nếu các thành phần ổn định**.
+`tenantCustomers` and `tenantOrders` are collections of those two records. A `record` automatically provides `equals` and `hashCode` over its components, making it ideal for Map keys **provided the components are immutable/stable**.
 
-Nếu hệ thống có các khóa mutable, việc thay đổi trường tham gia `equals`/`hashCode` sau khi thêm vào một `HashMap` có thể làm mất khả năng tra cứu đúng. Vì vậy, ưu tiên định danh bất biến.
+If your system uses mutable keys, mutating fields used by `equals`/`hashCode` after Map insertion breaks subsequent `get` lookups. Prefer immutable identifiers.
 
-## 9. Chuẩn hóa khóa: phải làm đối xứng ở hai phía
+## 9. Key Normalization: Must Be Symmetric on Both Sides
 
-Dữ liệu đến từ hai hệ thống có thể dùng định dạng ID khác nhau:
+Data from two systems may format IDs differently:
 
 ~~~text
-Nguồn khách: " c-01 "
-Nguồn đơn:   "C-01"
+Customer source: " c-01 "
+Order source:    "C-01"
 ~~~
 
-Nếu nghiệp vụ công bố rằng chữ hoa/thường và khoảng trắng xung quanh không có ý nghĩa, chuẩn hóa khóa **cùng một cách** ở cả lúc xây Map và lúc tra cứu:
+If business rules declare case and surrounding whitespace insignificant, normalize keys **the exact same way** both when building the Map and when querying it:
 
 ~~~java
 import java.util.Locale;
@@ -559,7 +559,7 @@ Map<String, Customer> index = customers.stream()
         ));
 ~~~
 
-Tra cứu:
+Lookup:
 
 ~~~java
 List<EnrichedOrder> joined = orders.stream()
@@ -578,20 +578,20 @@ List<EnrichedOrder> joined = orders.stream()
         .toList();
 ~~~
 
-Chuẩn hóa ID là **quyết định nghiệp vụ**, không phải mẹo tối ưu có thể áp dụng cho mọi dữ liệu. Một số định danh phân biệt chữ hoa/thường hoặc có dấu cách có ý nghĩa. Nếu chuẩn hóa làm hai ID trước đó khác nhau trở thành một, `toMap` có thể ném duplicate key — đó là dấu hiệu cần xử lý xung đột, không phải ngoại lệ nên che đi.
+ID normalization is a **business decision**, not a universal optimization trick. Some identifiers are case-sensitive or carry meaningful whitespace. If normalization collapses two previously distinct IDs into one, `toMap` throws duplicate key—a signal to resolve the conflict, not an exception to hide.
 
-Với Unicode phức tạp, `trim`/`toUpperCase(Locale.ROOT)` cũng chưa phải chuẩn hóa tổng quát cho mọi ngôn ngữ hoặc chuẩn mã. Hãy dùng quy tắc canonicalization được hệ thống dữ liệu công bố.
+For complex Unicode, `trim`/`toUpperCase(Locale.ROOT)` is also not a universal canonicalization across all scripts or standards. Follow the canonicalization rule defined by your data system.
 
-## 10. Không biến null thành “khóa hợp lệ” một cách ngầm định
+## 10. Never Silently Turn Null into a "Valid Key"
 
-Phép join cần chính sách rõ cho trường hợp thiếu khóa:
+A join needs an explicit policy for missing keys:
 
-- **Khóa `null` trong đơn hàng:** dữ liệu lỗi, đơn chưa gắn khách, hay một loại khách đặc biệt?
-- **Khóa `null` trong bảng khách:** có được phép tồn tại một bản ghi không có ID?
-- **Giá trị mapper trả `null`:** `Collectors.toMap` có hợp đồng không giống mọi Map tự tạo, và giá trị `null` thường khiến thao tác thu thập thất bại.
-- **Không tìm thấy khóa trong Map:** một tình trạng dữ liệu khác với việc bản ghi nguồn là `null`.
+- **`null` key in orders:** bad data, unassigned order, or a special customer type?
+- **`null` key in customer table:** is a record without an ID allowed to exist?
+- **Mapper returning `null` value:** `Collectors.toMap` does not behave identically to arbitrary custom Maps, and `null` values commonly cause collection to fail.
+- **Key absent from Map:** a different data condition than the source key itself being `null`.
 
-Trong bài toán có ràng buộc toàn vẹn tham chiếu, nên xác thực khóa không rỗng:
+In problems with referential integrity constraints, validate non-null keys:
 
 ~~~java
 import java.util.Objects;
@@ -604,7 +604,7 @@ Map<String, Customer> customerById = customers.stream()
         ));
 ~~~
 
-Khi tra cứu:
+During lookup:
 
 ~~~java
 String id = Objects.requireNonNull(
@@ -613,21 +613,21 @@ String id = Objects.requireNonNull(
 Customer customer = customerById.get(id);
 ~~~
 
-Không nên làm:
+Avoid doing this:
 
 ~~~java
 String key = String.valueOf(order.customerId());
 ~~~
 
-Nếu `customerId == null`, biểu thức trên trả chuỗi `"null"`; nó có thể trùng một ID thực và tạo phép ghép sai. Tương tự, thay null bằng chuỗi rỗng hoặc một tên khách mặc định chỉ hợp lệ khi có quy tắc nghiệp vụ riêng.
+If `customerId == null`, that expression returns the string `"null"`, which could collide with a real ID and cause a false join. Similarly, replacing null with an empty string or default customer name is valid only when backed by an explicit business rule.
 
-Nếu mục tiêu không phải từ chối dữ liệu, hãy ghi nhận các đơn thiếu ID vào **nhóm kiểm tra riêng**, không trộn chúng với đơn có ID nhưng không tìm thấy khách.
+If the goal is not to reject data, route orders missing an ID into a **separate audit bucket** rather than mixing them with orders that have an ID but no matching customer.
 
-## 11. Kết hợp việc tra cứu với tính tổng, không cần lưu mọi cặp
+## 11. Combining Lookup with Aggregation Without Storing Every Pair
 
-Trong báo cáo doanh thu, đôi khi chỉ cần tổng tiền theo khách hàng đã xác thực, không cần một `List<EnrichedOrder>` cho từng đơn.
+In revenue reports, you sometimes only need totals per verified customer, not a `List<EnrichedOrder>` of every individual order.
 
-Từ cùng Map chỉ mục:
+Using the same index Map:
 
 ~~~java
 import java.math.BigDecimal;
@@ -644,33 +644,33 @@ Map<String, BigDecimal> revenueByCustomer = orders.stream()
         ));
 ~~~
 
-Ở đây:
+Here:
 
-- `filter` chỉ giữ đơn có ID khách được xác thực.
-- `Order::customerId` tạo khóa tổng hợp.
-- `Order::amount` tạo giá trị tiền.
-- `BigDecimal::add` gộp những khoản có cùng khách **chính xác theo số học thập phân** nếu đầu vào đã được tạo từ chuỗi thập phân chính xác.
-- Map kết quả chỉ giữ **một tổng tiền cho mỗi khóa**, không giữ mọi cặp join.
+- `filter` retains only orders whose customer ID is verified.
+- `Order::customerId` supplies the aggregation key.
+- `Order::amount` supplies the monetary amount.
+- `BigDecimal::add` combines amounts per customer **with exact decimal arithmetic** when inputs come from exact decimal strings.
+- The resulting Map keeps **one total per key**, without materializing all joined pairs.
 
-Với dữ liệu ví dụ:
+With the sample data:
 
 ~~~text
 C-01 -> 120.00
 C-02 ->  50.00
 ~~~
 
-Đơn `O-4` không có khách tương ứng nên không tham gia báo cáo doanh thu theo khách **đã xác thực**. Nếu báo cáo tài chính yêu cầu tổng tất cả đơn, không được âm thầm loại `O-4`: phải cộng riêng nhóm chưa ghép hoặc báo lỗi chất lượng dữ liệu trước khi chốt báo cáo.
+Order `O-4` lacks a matching customer and is excluded from the **verified-customer** revenue report. If financial reporting requires the sum of all orders, do not silently drop `O-4`: sum the unmatched bucket separately or raise a data-quality error before finalizing the report.
 
-### Không làm tròn trong hàm gộp
+### Do Not Round Inside the Merge Function
 
-Khi tổng hợp tiền bằng `BigDecimal`, chọn rõ **điểm làm tròn nghiệp vụ**. Nếu cần cộng chính xác toàn bộ các khoản rồi làm tròn tại cấp khách/hóa đơn, hãy giữ `BigDecimal::add` trong collector và áp dụng `setScale(scale, mode)` ở bước cuối. Làm tròn sau mỗi lần cộng có thể làm kết quả phụ thuộc thứ tự nhóm và gây khác biệt khi chuyển sang parallel stream.
+When summing money with `BigDecimal`, choose the **business rounding point** explicitly. If you need to sum all amounts accurately and round at the customer/invoice level, keep `BigDecimal::add` in the collector and apply `setScale(scale, mode)` in the final step. Rounding after every addition can make results depend on grouping order and diverge under parallel streams.
 
-## 12. Tạo chỉ mục một lần và tái sử dụng hợp lý
+## 12. Build the Index Once and Reuse It Appropriately
 
-Một lỗi giảm hiệu quả là **xây lại Map cho từng đơn hàng**:
+A performance-killing bug is **rebuilding the Map inside every order step**:
 
 ~~~java
-// Rất tốn kém: xây lại toàn bộ Map trong mỗi lần map.
+// Very expensive: rebuilds the entire Map inside every map step.
 List<String> names = orders.stream()
         .map(order -> {
             Map<String, Customer> index = customers.stream()
@@ -683,9 +683,9 @@ List<String> names = orders.stream()
         .toList();
 ~~~
 
-Cách này thậm chí có thể tốn **O(N × M)** thời gian và O(M) cấp phát Map lặp lại, không giải quyết nút thắt ban đầu.
+This can cost **O(N × M)** time plus repeated O(M) Map allocations, failing to solve the original bottleneck.
 
-Đặt index **ngoài** pipeline:
+Build the index **outside** the pipeline:
 
 ~~~java
 Map<String, Customer> index = customers.stream()
@@ -701,17 +701,17 @@ List<String> names = orders.stream()
         .toList();
 ~~~
 
-Điều kiện tái sử dụng: dữ liệu khách hàng phải ổn định theo yêu cầu báo cáo. Nếu khách được cập nhật sau khi xây chỉ mục, Map không tự đồng bộ với danh sách nguồn.
+Condition for reuse: customer data must remain valid/stable for the report's scope. If customers are updated after building the index, the Map does not automatically synchronize with the source list.
 
-- Nếu ứng dụng xử lý **snapshot**: tạo index mới mỗi lần lấy snapshot mới, hoặc gắn cache với version dữ liệu.
-- Nếu ứng dụng xử lý **trạng thái sống** thay đổi liên tục: phải có cơ chế đồng bộ, invalidation hoặc truy vấn nguồn nhất quán.
-- Nếu giá trị trong Map là đối tượng mutable: đọc index không bảo đảm các trường của đối tượng đó bất biến.
+- If the application processes **snapshots**: build a fresh index per snapshot, or bind cached indexes to data versions.
+- If the application reads **live mutable state**: establish synchronization, invalidation, or consistent source queries.
+- If Map values are mutable objects: reading the index does not guarantee those objects' fields remain unchanged.
 
-Không nên giữ `static Map` dùng mãi mà không có quy tắc cập nhật rõ, vì dữ liệu ghép có thể trở nên cũ dù phép tra cứu rất nhanh.
+Avoid keeping a long-lived `static Map` without explicit refresh rules, because joined data can go stale even though lookups are fast.
 
-## 13. Thứ tự kết quả: Map index không phải nơi quyết định order
+## 13. Result Ordering: The Map Index Does Not Dictate Output Order
 
-Nếu nguồn `orders` là `List` có thứ tự và dùng:
+When `orders` is an ordered `List` and you write:
 
 ~~~java
 List<EnrichedOrder> result = orders.stream()
@@ -730,21 +730,21 @@ List<EnrichedOrder> result = orders.stream()
         .toList();
 ~~~
 
-Kết quả `toList()` giữ thứ tự xuất hiện các đơn được ghép từ Stream có encounter order. **Việc HashMap không cam kết thứ tự duyệt khóa không làm mất thứ tự này**, vì pipeline duyệt `orders`, chỉ dùng Map để tra cứu.
+`toList()` preserves the encounter order of matched orders from the ordered Stream. **The fact that `HashMap` does not guarantee key iteration order does not disrupt this ordering**, because the pipeline iterates `orders` and only uses the Map for lookups.
 
-Ngược lại:
+Conversely:
 
 ~~~java
 List<Customer> list = customerById.values().stream().toList();
 ~~~
 
-Thứ tự của danh sách này phụ thuộc thứ tự duyệt của Map; với HashMap, không nên dựa vào thứ tự đó. Nếu cần xuất khách hàng theo ID, dùng `sorted(Comparator.comparing(Customer::id))`. Nếu cần thứ tự chèn của khóa Map, dùng `LinkedHashMap` có supplier phù hợp khi xây Map và duyệt theo hợp đồng của nó.
+The order of this list depends on the Map's iteration order; with `HashMap`, never rely on it. If you want customers sorted by ID, use `sorted(Comparator.comparing(Customer::id))`. If you need Map insertion order, supply `LinkedHashMap::new` when constructing the Map and iterate according to its contract.
 
-**Chọn thứ tự từ yêu cầu nghiệp vụ**, không từ quan sát tình cờ trong một lần chạy JDK.
+**Derive ordering from business requirements**, not from incidental observations on one JDK run.
 
-## 14. Song song hóa: Map chỉ đọc an toàn hơn trạng thái dùng chung có ghi
+## 14. Parallelization: Read-Only Maps Are Safer Than Shared Mutable State
 
-Một Map chỉ mục được xây đầy đủ **trước** pipeline và không bị thay đổi trong khi chạy có thể được nhiều tác vụ đọc đồng thời phù hợp khi các giá trị cũng được sử dụng theo cách không can thiệp.
+An index Map completely constructed **before** the pipeline starts and never modified during execution can be read concurrently across parallel tasks provided its values are also used safely without interference.
 
 ~~~java
 Map<String, Customer> index = customers.stream()
@@ -768,9 +768,9 @@ List<EnrichedOrder> result = orders.parallelStream()
         .toList();
 ~~~
 
-Trong ví dụ, mapper chỉ đọc `index` và tạo record mới; không thêm/xóa Map. Với `orders` là `List` có encounter order, `toList` vẫn giữ thứ tự đầu ra của các đơn đã ghép, dù việc xử lý các phần tử bên trong có thể diễn ra không theo thứ tự nguồn.
+Here, the mapper only reads `index` and constructs new records; it never adds to or removes from the Map. Because `orders` is a `List` with encounter order, `toList` preserves the output order of matched orders even though internal element processing may execute out of order.
 
-**Không làm như sau:**
+**Never do this:**
 
 ~~~java
 Map<String, Long> counts = new java.util.HashMap<>();
@@ -779,7 +779,7 @@ orders.parallelStream().forEach(order ->
         counts.merge(order.customerId(), 1L, Long::sum));
 ~~~
 
-Các cập nhật đồng thời vào `HashMap` dùng chung **không an toàn**. Nếu cần tổng hợp số lượng theo khóa, dùng `Collectors.groupingBy(..., counting())` hoặc một collector đồng thời phù hợp:
+Concurrent updates to a shared `HashMap` are **unsafe**. To aggregate counts by key, use `Collectors.groupingBy(..., counting())` or an appropriate concurrent collector:
 
 ~~~java
 Map<String, Long> counts = orders.parallelStream()
@@ -789,26 +789,26 @@ Map<String, Long> counts = orders.parallelStream()
         ));
 ~~~
 
-Không suy rằng `parallelStream()` chắc chắn nhanh hơn. Chi phí chia nguồn, cấp phát object, hashing và ghép kết quả có thể vượt lợi ích nếu dữ liệu nhỏ hoặc lambda nhẹ. Với tác vụ I/O hoặc gọi API ngoài, parallel stream còn cần xem xét giới hạn đồng thời, timeout và tính idempotent.
+Do not assume `parallelStream()` is guaranteed to be faster. Splitting overhead, object allocations, hashing, and result merging can outweigh gains on small datasets or lightweight lambdas. For I/O or external API calls, parallel streams also require managing concurrency limits, timeouts, and idempotency.
 
-## 15. Dữ liệu lớn hơn bộ nhớ: không cố xây một HashMap khổng lồ
+## 15. Data Larger Than Memory: Do Not Try to Build One Giant HashMap
 
-Mẫu index bằng Map phù hợp khi **phía được lập chỉ mục** có thể giữ trong bộ nhớ. Nếu cả hai phía có hàng trăm triệu bản ghi, một `HashMap` chứa mọi khách hàng có thể tiêu thụ quá nhiều heap.
+The Map-index pattern fits when the **indexed side** fits comfortably in memory. If both sides contain hundreds of millions of records, a `HashMap` holding all customers can exhaust heap memory.
 
-Một số chiến lược thay thế:
+Alternative strategies:
 
-| Bối cảnh | Hướng tiếp cận |
+| Context | Approach |
 | --- | --- |
-| Dữ liệu đang nằm trong cơ sở dữ liệu | Để hệ quản trị xử lý `JOIN`/index qua truy vấn, tránh tải toàn bộ bảng về JVM |
-| Một bên nhỏ, một bên rất lớn | Xây Map cho bên nhỏ, stream bên lớn theo lô hoặc đọc tuần tự |
-| Hai bên lớn hơn RAM | External hash join, sort-merge join hoặc công cụ xử lý dữ liệu phân tán |
-| Dữ liệu đổi thường xuyên và cần nhất quán | Dùng transaction/snapshot hoặc cache có version/invalidation |
-| Phải trả hàng triệu cặp kết quả | Xử lý/ghi đầu ra theo luồng, không bắt buộc `toList()` toàn bộ |
-| Khóa có độ phân biệt thấp hoặc many-to-many | Ước lượng số cặp `K` trước; Map chỉ mục không ngăn kết quả bùng nổ |
+| Data already resides in a database | Let the DBMS handle `JOIN`/indexes via queries instead of pulling whole tables into the JVM |
+| One side small, one side huge | Build a Map for the small side; stream the large side in batches or sequentially |
+| Both sides exceed RAM | External hash join, sort-merge join, or distributed data-processing engines |
+| Data changes often and requires consistency | Use transactions/snapshots or versioned/invalidated caches |
+| Millions of output pairs expected | Stream/write output incrementally instead of calling `toList()` on everything |
+| Low-cardinality keys or many-to-many | Estimate output pair count `K` first; a Map index does not stop output explosion |
 
-### Ví dụ nguồn I/O lớn
+### Large I/O Source Example
 
-Giả sử đầu vào đơn hàng được đọc từ tệp. Ta có thể xây chỉ mục khách hàng trong bộ nhớ một lần, sau đó đọc đơn hàng **từng dòng** trong `try-with-resources`:
+Suppose order inputs are read from a file. You can build the customer index in memory once, then read orders **line by line** inside `try-with-resources`:
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -816,7 +816,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
-// parseOrder là hàm parser theo định dạng file cụ thể.
+// parseOrder is a parser function for a specific file format.
 try (Stream<String> lines =
              Files.lines(Path.of("orders.txt"), StandardCharsets.UTF_8)) {
 
@@ -830,23 +830,23 @@ try (Stream<String> lines =
 }
 ~~~
 
-Đây là **mẫu minh họa kiến trúc**, không phải chương trình độc lập: cần định nghĩa `parseOrder` theo định dạng file thật và hợp đồng xử lý lỗi. Điểm chính là không cần gọi `Files.readAllLines(...)` rồi tạo `List` chứa mọi đơn. `count()` ở đây chỉ lưu một số đếm; nếu dùng `toList()` trên toàn bộ kết quả, bộ nhớ vẫn tăng theo số phần tử đầu ra.
+This is an **architectural illustration**, not a standalone program: `parseOrder` must be defined according to the actual file format and error contract. The key point is avoiding `Files.readAllLines(...)` and materializing a `List` of every order. `count()` here retains only a counter; calling `toList()` on all results still grows memory with output size.
 
-Tài nguyên `Files.lines` phải được đóng; terminal operation `count` không tự gọi `close()`. Nếu nguồn có lỗi I/O lazy, phải báo lỗi rõ, không coi đó là dữ liệu “không ghép được”.
+The `Files.lines` resource must be closed; terminal operation `count` does not call `close()` automatically. If lazy I/O fails, surface the error clearly instead of treating failed reads as "unmatched".
 
-## 16. Đặc tính HashMap, bộ nhớ và tính đúng của khóa
+## 16. HashMap Characteristics, Memory, and Key Correctness
 
-### 16.1. O(1) là kỳ vọng, không phải luật tuyệt đối
+### 16.1. O(1) Is an Expectation, Not an Absolute Law
 
-Một `HashMap` phụ thuộc `hashCode` và `equals` của khóa. Với khóa phù hợp và tải hợp lý, `get` rất hiệu quả trung bình. Va chạm hash quá nhiều, tính hash tốn kém hoặc cách tổ chức dữ liệu bất thường có thể làm hiệu năng xấu đi.
+A `HashMap` relies on key `hashCode` and `equals`. With good keys and reasonable load, `get` is very fast on average. Excessive hash collisions, expensive hash computations, or pathological data layouts can degrade performance.
 
-Nếu dùng `TreeMap`, tra cứu theo khóa thường có chi phí O(log M), đổi lại có thứ tự khóa và comparator rõ ràng. Chọn Map theo **hợp đồng dữ liệu** và kết quả đo thực tế.
+If you use `TreeMap`, key lookups typically cost O(log M), in exchange for sorted keys and an explicit comparator. Choose a Map based on the **data contract** and real benchmarks.
 
-### 16.2. Không sửa khóa mutable
+### 16.2. Never Mutate Keys
 
-Với khóa là một object chứa những trường dùng cho `equals`/`hashCode`, sửa các trường đó sau khi đưa vào Map có thể làm `get` không tìm thấy mục ở vị trí hash cũ. Nên dùng `String`, số, enum, hoặc record với các thành phần ổn định.
+If a key object contains fields used by `equals`/`hashCode`, modifying those fields after Map insertion can prevent `get` from finding the entry at its old hash bucket. Stick to `String`, numbers, enums, or records with stable components.
 
-### 16.3. Đừng suy rằng Map là snapshot sâu
+### 16.3. Do Not Assume a Map Is a Deep Snapshot
 
 ~~~java
 Map<String, Customer> index = customers.stream()
@@ -856,43 +856,43 @@ Map<String, Customer> index = customers.stream()
         ));
 ~~~
 
-Map này giữ các **tham chiếu tới đối tượng Customer gốc**. Với record `Customer` có trường `String` bất biến, ví dụ minh họa an toàn; nhưng nếu giá trị là một class mutable, sửa class ở nơi khác sẽ làm thông tin được đọc qua Map thay đổi. `Map.copyOf(index)` chỉ làm cấu trúc Map không sửa đổi được, không sao chép sâu đối tượng giá trị.
+This Map holds **references to the original Customer objects**. With a `Customer` record having immutable `String` fields, the example is safe; if values are mutable classes, mutating them elsewhere alters what lookups return. `Map.copyOf(index)` only makes the Map structure unmodifiable, without deep-copying value objects.
 
-### 16.4. Duplicate key có thể phá cả hiệu năng lẫn đúng đắn
+### 16.4. Duplicate Keys Can Break Both Performance and Correctness
 
-Một Map chứa một giá trị cho mỗi khóa không thể tự diễn tả “mỗi khóa có nhiều người” nếu mã định danh không duy nhất. Lỗi không phải do Stream hay Map chậm, mà do **mô hình dữ liệu**. Chuyển sang `Map<K, List<V>>` qua `groupingBy`, hoặc sửa định nghĩa khóa duy nhất, trước khi tối ưu.
+A single-valued Map per key cannot model "multiple entities per key" when identifiers are non-unique. The issue is not that Streams or Maps are slow, but the **data model**. Switch to `Map<K, List<V>>` via `groupingBy`, or fix key uniqueness before optimizing.
 
-## 17. So sánh những cách viết và cách chọn
+## 17. Comparing Approaches and Choosing One
 
-| Cách xử lý | Thời gian kỳ vọng | Bộ nhớ phụ | Phù hợp khi |
+| Approach | Expected Time | Extra Memory | Best When |
 | --- | --- | --- | --- |
-| Lặp lồng `for` | O(N × M) | O(1) ngoài kết quả | Dữ liệu nhỏ, logic so khớp phức tạp, không cần index |
-| `orders.stream()` rồi `customers.stream().filter(...)` mỗi lượt | O(N × M) | O(1) ngoài kết quả | Cú pháp khai báo nhưng không giải quyết nút thắt tra cứu |
-| `toMap` tạo chỉ mục khách rồi lookup | O(N + M + K) | O(M) cộng kết quả | Khóa khách duy nhất, phía khách vừa bộ nhớ |
-| `groupingBy` tạo Map khóa → danh sách | O(N + M + K) với hai phía và đầu ra phù hợp | O(số phần tử được nhóm) cộng kết quả | Một khóa có nhiều bản ghi cần giữ |
-| `TreeMap` làm chỉ mục | Thường O(M log M + N log M + K) | O(M) cộng kết quả | Cần thứ tự khóa hoặc lookup theo comparator |
-| Join tại DB | Phụ thuộc engine, chỉ mục, kích thước, kế hoạch truy vấn | Tùy server/query | Dữ liệu vốn nằm trong DB, cần filter/join gần nguồn |
+| Nested `for` loops | O(N × M) | O(1) besides output | Tiny datasets, complex matching logic, no index needed |
+| `orders.stream()` + `customers.stream().filter(...)` per item | O(N × M) | O(1) besides output | Declarative syntax without fixing the lookup bottleneck |
+| `toMap` customer index + lookup | O(N + M + K) | O(M) plus output | Unique customer keys, customer side fits in memory |
+| `groupingBy` Map key → list | O(N + M + K) for matching sides and output | O(grouped elements) plus output | Multiple records per key must be retained |
+| `TreeMap` index | Typically O(M log M + N log M + K) | O(M) plus output | Sorted keys or comparator-based lookup needed |
+| Database join | Depends on engine, indexes, sizes, query plan | Server/query dependent | Data already lives in DB; filter/join near source |
 
-Không được quên chi phí tạo output `K`. Nếu kết quả là toàn bộ các cặp nhiều-nhiều trong một nhóm lớn, thời gian tạo output có thể chi phối kể cả khi index xây rất nhanh.
+Never overlook output-creation cost `K`. If the result is all many-to-many pairs in a huge group, building the output can dominate runtime even when the index builds fast.
 
-## 18. Kiểm thử tính đúng trước khi benchmark
+## 18. Verify Correctness Before Benchmarking
 
-Một phép tối ưu join có thể chạy nhanh hơn nhưng **làm biến mất các bản ghi không khớp** hoặc chọn sai khi khóa trùng. Vì vậy, cần kiểm tra tính tương đương với một thuật toán tham chiếu đơn giản trên dữ liệu nhỏ.
+A join optimization can run faster while **dropping unmatched records** or choosing wrongly on duplicate keys. Verify equivalence against a simple reference algorithm on small datasets first.
 
-### 18.1. Các bất biến quan trọng
+### 18.1. Key Invariants
 
-Với **mỗi Order có tối đa một Customer đúng khóa**:
+When **each Order matches at most one Customer by key**:
 
 ~~~text
 leftJoin.size() = orders.size()
 
 innerJoin.size() + unmatchedOrders.size() = orders.size()
 
-mọi EnrichedOrder có customerId hợp lệ
-mọi EnrichedOrder thuộc một Order đầu vào
+every EnrichedOrder has a valid customerId
+every EnrichedOrder corresponds to an input Order
 ~~~
 
-Với dữ liệu mẫu:
+For the sample data:
 
 ~~~text
 orders.size() = 4
@@ -901,27 +901,27 @@ unmatchedOrders.size() = 1
 leftJoin.size() = 4
 ~~~
 
-Nếu bài toán cho phép nhiều Customer trên cùng khóa, các bất biến số lượng này **không còn đúng** cho join nhiều-nhiều; đó là lý do cần xác định quan hệ trước.
+If multiple Customers are allowed per key, these count invariants **no longer hold** for many-to-many joins; that is why cardinality must be defined upfront.
 
-### 18.2. Test trường hợp biên
+### 18.2. Boundary Test Cases
 
-| Trường hợp | Kỳ vọng |
+| Case | Expectation |
 | --- | --- |
-| Không có khách, có đơn | Inner join rỗng, anti join chứa mọi đơn, left join vẫn có đủ đơn |
-| Có khách, không có đơn | Mọi kết quả lấy đơn làm nguồn đều rỗng |
-| Một khách, nhiều đơn | Mỗi đơn được ghép đúng cùng khách |
-| Khóa khách trùng khi hợp đồng yêu cầu duy nhất | Lập chỉ mục thất bại rõ ràng |
-| Đơn tham chiếu ID vắng mặt | Được ghi nhận theo chính sách thiếu khóa |
-| ID có `null` hoặc rỗng | Xử lý theo validation, không tự biến thành ID khác |
-| Hai tenant có cùng customerId | Dùng khóa ghép để tránh ghép chéo |
-| Khóa khác hoa/thường hoặc khoảng trắng | Chỉ chuẩn hóa nếu hợp đồng cho phép, áp dụng hai phía |
-| Nguồn có thứ tự | Kết quả danh sách phải giữ thứ tự nếu pipeline có hợp đồng đó |
-| Song song | Nội dung kết quả giữ đúng, không có ghi Map dùng chung |
-| Dữ liệu cực lớn | Đo cả thời gian xây Map, heap và chi phí tạo output |
+| No customers, some orders | Inner join empty, anti join holds all orders, left join keeps all orders |
+| Some customers, no orders | All order-driven outputs are empty |
+| One customer, many orders | Every order joins cleanly with that customer |
+| Duplicate customer key under unique contract | Indexing fails clearly |
+| Order referencing missing ID | Recorded per missing-key policy |
+| `null` or blank ID | Handled by validation, never coerced into another ID |
+| Two tenants sharing a customerId | Composite key prevents cross-tenant joins |
+| Keys differing in case or whitespace | Normalized only if contract allows, applied symmetrically |
+| Ordered source | Result list preserves order if contract requires it |
+| Parallel execution | Result content stays identical, no shared Map writes |
+| Very large datasets | Measure Map build time, heap, and output creation cost |
 
-### 18.3. Test logic mẫu
+### 18.3. Sample Logic Test
 
-Trong bối cảnh cùng lớp hoặc truy cập được các record của `MapJoinDemo`:
+In the same class or with access to `MapJoinDemo`'s records:
 
 ~~~java
 Map<String, Customer> index =
@@ -939,27 +939,27 @@ if (inner.size() != 3 ||
 }
 ~~~
 
-Với dữ liệu bất kỳ, kiểm tra thêm tính tương đương **theo khóa và số lượng cặp**, không chỉ so kích thước. Ví dụ hai bản ghi bị ghép nhầm vẫn có thể tạo đúng tổng số phần tử.
+On arbitrary datasets, also check equivalence **by key and pair counts**, not just collection size. Two mismatched records can still produce the same total element count.
 
-### 18.4. Benchmark có ý nghĩa
+### 18.4. Meaningful Benchmarking
 
-Để so sánh vòng lặp lồng với Map index, đo đủ:
+To compare nested loops against a Map index, measure all of:
 
-1. Thời gian **xây Map**, không chỉ thời gian lookup.
-2. Thời gian **tra cứu và tạo kết quả**, với cùng bộ dữ liệu và cùng chính sách join.
-3. Bộ nhớ Map và bộ nhớ của kết quả đã vật hóa.
-4. Trường hợp đơn hàng lặp ID khách nhiều lần; trường hợp phần lớn ID không tồn tại.
-5. Chi phí warm-up/JIT và GC; sử dụng JMH khi cần đánh giá nghiêm túc.
+1. **Map build** time, not just lookup time.
+2. **Lookup and result-construction** time, using identical datasets and join policies.
+3. Map memory and materialized output memory.
+4. Skewed cases where orders repeat one customer ID vs. cases where most IDs are absent.
+5. Warm-up/JIT and GC costs; use JMH for rigorous evaluation.
 
-Một phép đo duy nhất với `System.nanoTime()` trên 100 phần tử không đủ để kết luận tốc độ trong ứng dụng thực. Khi khối dữ liệu chỉ vài phần tử, overhead xây Map có thể lớn hơn lợi ích từ tra cứu.
+A single `System.nanoTime()` measurement on 100 elements cannot predict production speed. When datasets have only a handful of elements, Map construction overhead can exceed lookup savings.
 
-## 19. Bài tập thực hành
+## 19. Practice Exercises
 
-### Bài 1 — Chuyển vòng lặp lồng sang tra cứu Map
+### Exercise 1 — Convert Nested Loops to a Map Lookup
 
-Có `List<Product> products` và `List<OrderLine> lines`, mỗi `OrderLine` chứa `productId`, `quantity`, còn `Product` chứa `id`, `unitPrice`. Viết pipeline tính thành tiền với chi phí tra cứu O(M + N) trung bình.
+Given `List<Product> products` and `List<OrderLine> lines`, where `OrderLine` has `productId` and `quantity`, and `Product` has `id` and `unitPrice`. Write a pipeline computing line totals in O(M + N) average lookup time.
 
-**Gợi ý/đáp án:**
+**Hint/Solution:**
 
 ~~~java
 Map<String, Product> productById = products.stream()
@@ -983,64 +983,64 @@ List<BigDecimal> amounts = lines.stream()
         .toList();
 ~~~
 
-Các record `Product` và `OrderLine` là giả định của bài tập; cần khai báo kiểu và trường tương ứng. Ví dụ chọn **báo lỗi khi thiếu sản phẩm** vì không thể tính thành tiền đúng nếu thiếu đơn giá.
+`Product` and `OrderLine` are exercise assumptions; declare matching types and fields. The example chooses to **fail on missing products** because a line total cannot be calculated accurately without a unit price.
 
-### Bài 2 — Chọn đúng loại join
+### Exercise 2 — Pick the Right Join Type
 
-Từ dữ liệu khách và đơn ở phần 1:
+Using the customers and orders from section 1:
 
-- Báo cáo doanh thu chỉ gồm khách tồn tại: dùng gì?
-- Danh sách kiểm soát các đơn không có khách: dùng gì?
-- Bảng xuất tất cả đơn kèm thông tin khách nếu có: dùng gì?
+- Revenue report covering only existing customers: which join?
+- Audit list of orders missing a customer: which join?
+- Export table of all orders with customer details when available: which join?
 
-**Đáp án:** Inner join hoặc tổng hợp có xác thực; anti join; left join tương ứng. Không dùng inner join cho bảng kiểm soát toàn bộ đơn vì nó làm biến mất `O-4`.
+**Answer:** Inner join or validated aggregation; anti join; left join, respectively. Do not use inner join for the all-orders audit table because it drops `O-4`.
 
-### Bài 3 — Xử lý trùng khóa
+### Exercise 3 — Handling Duplicate Keys
 
-Nguồn có hai khách cùng ID `C-01`. Có nên thêm `(old, next) -> next` để loại ngoại lệ?
+The source contains two customers with ID `C-01`. Should you add `(old, next) -> next` to silence the exception?
 
-**Đáp án:** Chỉ khi nghiệp vụ đã cho phép chọn bản ghi được xử lý sau **và** thứ tự nguồn có ý nghĩa tương ứng. Nếu ID phải duy nhất, hãy để lỗi được báo ra. Nếu ID có nhiều phiên bản, cần tiêu chí version/timestamp và tie-breaker ổn định hoặc `groupingBy` để giữ các phiên bản.
+**Answer:** Only when business rules explicitly permit choosing the later-processed record **and** source order carries that meaning. If IDs must be unique, let the error surface. If IDs have multiple versions, use version/timestamp criteria with a deterministic tie-breaker, or `groupingBy` to retain all versions.
 
-### Bài 4 — Tính độ phức tạp
+### Exercise 4 — Complexity Calculation
 
-Có `N = 100.000` đơn và `M = 20.000` khách, mỗi đơn có đúng một khóa khách. So sánh độ phức tạp tìm kiếm tuyến tính lặp lại và cách tạo Map.
+Suppose `N = 100,000` orders and `M = 20,000` customers, each order having one customer key. Compare the complexity of repeated linear search vs. building a Map.
 
-**Đáp án:** Vòng lặp lồng có giới hạn thời gian xấu nhất O(N × M); Map index hash có thời gian kỳ vọng O(M + N) để lập chỉ mục và tra cứu, cộng chi phí tạo kết quả O(K). Map tốn thêm O(M) bộ nhớ. Không suy ra số mili-giây cụ thể khi chưa đo.
+**Answer:** Nested loops have worst-case time O(N × M); a hash Map index has expected time O(M + N) for indexing and lookup, plus O(K) to build output. The Map uses O(M) extra memory. Never extrapolate exact millisecond timings without measuring.
 
-### Bài 5 — Một khách có nhiều đơn
+### Exercise 5 — One Customer, Many Orders
 
-Cần xây `Map<String, List<Order>>` mà không mất đơn trùng khóa. Nên dùng `toMap(Order::customerId, Function.identity())` hay `groupingBy(Order::customerId)`?
+You need to build `Map<String, List<Order>>` without losing duplicate-key orders. Should you use `toMap(Order::customerId, Function.identity())` or `groupingBy(Order::customerId)`?
 
-**Đáp án:** `groupingBy(Order::customerId)`. `toMap` hai tham số ném duplicate key; merge chọn giữ một đơn sẽ làm mất dữ liệu.
+**Answer:** `groupingBy(Order::customerId)`. Two-argument `toMap` throws duplicate key; a merge function keeping one order loses data.
 
-### Bài 6 — Trường hợp khóa ghép
+### Exercise 6 — Composite Key Case
 
-Hai tenant đều có khách ID `C-01`. Vì sao Map theo `customerId` không đủ?
+Two tenants both have a customer with ID `C-01`. Why is a Map keyed by `customerId` insufficient?
 
-**Đáp án:** Khóa không xác định duy nhất khách hàng toàn hệ thống. Dùng khóa ghép `(tenantId, customerId)`, ví dụ record `CustomerKey`, và xây/tra cứu cùng một kiểu khóa ở cả hai phía.
+**Answer:** The key does not uniquely identify a customer system-wide. Use a composite key `(tenantId, customerId)`, such as `record CustomerKey`, and construct/query using the exact same key type on both sides.
 
-### Bài 7 — Kiểm tra parallel
+### Exercise 7 — Parallel Safety Check
 
-Một người lập trình xây `HashMap` khách hàng, sau đó gọi `orders.parallelStream().map(order -> index.get(order.customerId()))`. Có bắt buộc đổi Map thành `ConcurrentHashMap` không?
+A developer builds a customer `HashMap`, then calls `orders.parallelStream().map(order -> index.get(order.customerId()))`. Is switching the Map to `ConcurrentHashMap` mandatory?
 
-**Đáp án:** Không nếu Map đã được xây xong, được công bố phù hợp và **chỉ được đọc** trong lúc xử lý; các giá trị cũng phải ổn định theo hợp đồng. `ConcurrentHashMap` cần thiết khi có yêu cầu cập nhật đồng thời được thiết kế rõ, không phải chỉ vì nhiều tác vụ cùng đọc.
+**Answer:** No, if the Map is fully constructed, safely published, and **strictly read-only** during processing, and its values remain stable by contract. `ConcurrentHashMap` is needed when concurrent updates are designed, not merely for concurrent reads.
 
-### Bài 8 — Dữ liệu lớn
+### Exercise 8 — Large Datasets
 
-Vì sao `orders.stream().map(...).toList()` vẫn có thể gây thiếu bộ nhớ dù lookup Map đã tối ưu?
+Why can `orders.stream().map(...).toList()` still run out of memory even after optimizing the Map lookup?
 
-**Đáp án:** `toList()` giữ toàn bộ phần tử kết quả. Map tối ưu **chi phí tìm khóa**, không thay đổi số kết quả cần lưu. Khi đầu ra rất lớn, cần xử lý theo lô, ghi kết quả theo luồng hoặc chỉ tổng hợp các chỉ số cần thiết.
+**Answer:** `toList()` retains all result elements in memory. The Map optimizes **key lookup cost**, not output storage size. When outputs are huge, process in batches, stream results out, or aggregate only needed metrics.
 
-## 20. Ghi nhớ
+## 20. Key Takeaways
 
-- **Nhận diện vòng lặp lồng:** nếu mỗi phần tử của danh sách A lại quét danh sách B để tìm cùng khóa, hãy cân nhắc lập chỉ mục.
-- **Tạo Map một lần, tra cứu nhiều lần:** với khóa duy nhất và Map hash phù hợp, chi phí kỳ vọng thường từ O(N × M) xuống O(N + M), đổi lấy O(M) bộ nhớ bổ sung.
-- **Chọn đúng ngữ nghĩa join:** inner join bỏ bản ghi không khớp; left join giữ bản ghi bên trái; anti join tìm các bản ghi thiếu quan hệ.
-- **Đừng che khóa trùng:** `toMap` hai tham số báo lỗi duplicate key; dùng merge function chỉ khi có chính sách chọn/gộp rõ, hoặc `groupingBy` để giữ nhiều giá trị.
-- **Khóa phải đúng và ổn định:** xác định khóa duy nhất, khóa ghép, quy tắc chuẩn hóa, xử lý `null` và tránh key mutable.
-- **Thứ tự đầu ra phụ thuộc pipeline:** tra cứu `HashMap` không làm mất encounter order của Stream đơn hàng; nhưng việc duyệt `HashMap.values()` không có thứ tự được cam kết.
-- **Đọc Map khác với ghi Map:** một index chỉ đọc có thể được chia sẻ trong pipeline song song; đừng cập nhật `HashMap` dùng chung trong `parallelStream().forEach`.
-- **Không giữ toàn bộ kết quả nếu không cần:** số khóa Map, số cặp join và việc gọi `toList()` vẫn có thể chiếm bộ nhớ lớn; với dữ liệu vượt RAM, chuyển sang DB join hoặc xử lý ngoài bộ nhớ.
-- **Kiểm thử ngữ nghĩa trước khi tối ưu:** so số lượng kết quả, bản ghi không khớp, khóa trùng, tính đúng số tiền và mới benchmark.
+- **Spot nested loops:** whenever each element of list A scans list B for a matching key, consider building an index.
+- **Build the Map once, look up many times:** with unique keys and a suitable hash Map, expected time typically drops from O(N × M) to O(N + M) in exchange for O(M) extra memory.
+- **Choose the right join semantics:** inner join drops unmatched records; left join retains left-side records; anti join isolates broken references.
+- **Never mask duplicate keys:** two-argument `toMap` flags duplicate keys; use a merge function only with an explicit selection/merge policy, or `groupingBy` to keep multiple values.
+- **Keep keys accurate and stable:** define unique keys, composite keys, normalization rules, `null` handling, and avoid mutable keys.
+- **Output order follows the pipeline:** `HashMap` lookups do not disturb an ordered order Stream's encounter order; however, iterating `HashMap.values()` has no guaranteed order.
+- **Reading a Map differs from writing to it:** a read-only index can be shared in parallel pipelines; never mutate a shared `HashMap` inside `parallelStream().forEach`.
+- **Avoid materializing everything needlessly:** Map keys, join pairs, and `toList()` can still consume large memory; for datasets exceeding RAM, move joins to the DB or use out-of-core processing.
+- **Test semantics before optimizing:** verify result counts, unmatched records, duplicate keys, and monetary accuracy before benchmarking.
 
-**Ý chính:** Mẫu “**xây chỉ mục một lần rồi tra cứu Map theo khóa**” biến nhiều phép tìm tuyến tính lặp lại thành một pha chuẩn bị và nhiều lần tra cứu hiệu quả. Nhưng tối ưu thực sự chỉ thành công khi **không thay đổi số bản ghi phải giữ, không bỏ dữ liệu thiếu khóa một cách im lặng và không đánh đồng quan hệ một-một với một-nhiều**.
+**Main point:** The "**build an index once and look up by Map key**" pattern turns repeated linear scans into a one-time preparation phase and fast lookups. Yet an optimization truly succeeds only when it **preserves required record counts, never drops missing keys silently, and never confuses one-to-one with one-to-many relationships**.

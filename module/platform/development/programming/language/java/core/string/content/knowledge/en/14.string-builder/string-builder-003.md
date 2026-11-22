@@ -1,8 +1,8 @@
-# `StringBuilder.append` với `String`, primitive, `Object`, `char[]` và `CharSequence`
+# `StringBuilder.append` with `String`, primitives, `Object`, `char[]`, and `CharSequence`
 
-Trong Java, `StringBuilder` xây dựng văn bản bằng cách **bổ sung dữ liệu vào chính đối tượng hiện tại**. Họ phương thức `append(...)` có nhiều overload để nhận trực tiếp `String`, các kiểu nguyên thủy (*primitive*), `Object`, mảng `char[]` và `CharSequence`. Nhìn bên ngoài, mọi lời gọi đều «nối thêm», nhưng **kiểu của đối số quyết định overload được chọn**, và overload đó quyết định cách dữ liệu được chuyển thành các ký tự.
+In Java, `StringBuilder` builds text by **appending data to the current object itself**. The `append(...)` method family has multiple overloads to directly accept `String`, primitive types, `Object`, `char[]` arrays, and `CharSequence`. On the surface, every call "appends", but **the argument type determines which overload is selected**, and that overload determines how the data is converted into characters.
 
-Ví dụ nhanh:
+Quick example:
 
 ```java
 StringBuilder out = new StringBuilder();
@@ -10,11 +10,11 @@ out.append("id=").append(42).append(", active=").append(true);
 System.out.println(out); // id=42, active=true
 ```
 
-Không cần tạo liên tiếp những `String` trung gian cho từng thao tác nối. Tuy vậy, để dùng đúng `append`, cần hiểu sự khác nhau giữa **thêm nội dung văn bản**, **chuyển giá trị sang văn bản** và **thêm các phần tử của một mảng ký tự**.
+There is no need to repeatedly create intermediate `String` objects for each concatenation step. However, to use `append` correctly, you must understand the difference between **adding text content**, **converting a value to text**, and **adding the elements of a character array**.
 
-## 1. `append` thay đổi chính builder và trả về `this`
+## 1. `append` Modifies the Builder Itself and Returns `this`
 
-Với `String`, phép nối như `text = text + suffix` cho ra một giá trị `String` rồi gán lại biến `text`, vì `String` bất biến. Còn `StringBuilder.append(...)` ghi bổ sung vào nội dung của builder hiện có.
+With `String`, a concatenation such as `text = text + suffix` produces a new `String` value and reassigns the variable `text`, because `String` is immutable. By contrast, `StringBuilder.append(...)` appends to the content of the existing builder.
 
 ```java
 StringBuilder builder = new StringBuilder("A");
@@ -27,19 +27,19 @@ System.out.println(sameReference);            // AB
 System.out.println(returned == builder);      // true
 ```
 
-`append` trả về **chính builder** nên có thể nối chuỗi nhiều lời gọi:
+`append` returns **the builder itself**, so multiple calls can be chained:
 
 ```java
 new StringBuilder().append("x=").append(10).append(", y=").append(20)
 ```
 
-Đây là biểu thức minh họa: nếu muốn lấy `String` kết quả, gọi `toString()` ở cuối. Không cần gán lại `builder = builder.append(...)` vì builder đã thay đổi tại chỗ, dù phép gán đó vẫn hợp lệ.
+This is an illustrative expression: if you want the resulting `String`, call `toString()` at the end. There is no need to reassign `builder = builder.append(...)` because the builder is modified in place, though that assignment is still valid.
 
-**Phân biệt `length` và `capacity`:** `length()` là số UTF-16 code unit hiện có; `capacity()` là dung lượng bộ đệm dành cho các code unit trước khi cần mở rộng. Nhiều lần `append` có thể tăng `length` và làm tăng `capacity` khi cần. `capacity` không phải giới hạn số ký tự cố định của builder.
+**Distinguishing `length` and `capacity`:** `length()` is the current number of UTF-16 code units; `capacity()` is the buffer capacity reserved for code units before expansion is needed. Repeated `append` calls can increase `length` and grow `capacity` when necessary. `capacity` is not a fixed character limit on the builder.
 
-### Ví dụ 1: nối nhiều kiểu trong một chương trình
+### Example 1: Appending multiple types in one program
 
-Tạo tệp `AppendOverviewDemo.java`:
+Create the file `AppendOverviewDemo.java`:
 
 ```java
 public class AppendOverviewDemo {
@@ -63,14 +63,14 @@ public class AppendOverviewDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 AppendOverviewDemo.java
 java AppendOverviewDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 User An | age=21 | active=true | grade=A
@@ -79,11 +79,11 @@ true
 40
 ```
 
-Hai biến vẫn trỏ đến **một đối tượng mutable** sau khi `append`. Dữ liệu được thêm theo đúng thứ tự gọi, không tự chèn dấu cách hay dấu phân cách trừ khi bạn tự cung cấp.
+Both variables still point to **one mutable object** after `append`. Data is added in the exact order of calls, with no automatic spaces or delimiters inserted unless you provide them yourself.
 
-## 2. `append(String)`: thêm các ký tự của chuỗi
+## 2. `append(String)`: Appending the Characters of a String
 
-Overload `append(String str)` nối các ký tự của `str` vào cuối builder. Nếu đối số là một `String`, overload này thường là lựa chọn trực tiếp nhất.
+The `append(String str)` overload appends the characters of `str` to the end of the builder. If the argument is a `String`, this overload is usually the most direct choice.
 
 ```java
 String prefix = "Hello";
@@ -92,20 +92,20 @@ sb.append(prefix);
 sb.append(", Java");
 ```
 
-Kết quả là `"Hello, Java"`. Hai đối tượng `String` nguồn không bị sửa; builder sao chép nội dung cần thêm vào vùng dữ liệu riêng của nó.
+The result is `"Hello, Java"`. Neither source `String` object is modified; the builder copies the content to be added into its own storage area.
 
-### `null` ở overload `String`
+### `null` in the `String` Overload
 
-Theo hợp đồng `StringBuilder.append(String)`, một tham chiếu `String` bằng `null` được thêm dưới dạng bốn ký tự `"null"`. Nó **không bỏ qua** giá trị và cũng không tự động ném lỗi:
+According to the `StringBuilder.append(String)` contract, a `null` `String` reference is appended as the four characters `"null"`. It **does not skip** the value and does not automatically throw an error:
 
 ```java
 String missing = null;
 StringBuilder sb = new StringBuilder("value=");
 sb.append(missing);
-// Nội dung: "value=null"
+// Content: "value=null"
 ```
 
-Nếu yêu cầu nghiệp vụ coi `null` là chuỗi rỗng hoặc không muốn thêm gì, bạn phải **xử lý rõ trước khi gọi**. Chẳng hạn:
+If business requirements treat `null` as an empty string or want nothing added, you must **handle it explicitly before calling**. For example:
 
 ```java
 if (missing != null) {
@@ -113,13 +113,13 @@ if (missing != null) {
 }
 ```
 
-Hai đoạn trên là mã minh họa, có thể đặt trong một phương thức. Không nên dựa vào hành vi `"null"` để xây dựng giao thức dữ liệu nếu đây không phải quy ước đã định nghĩa.
+The two snippets above are illustrative code that can be placed inside a method. Do not rely on the `"null"` behavior to build a data protocol unless it is an explicitly defined convention.
 
-## 3. `append` với primitive: giá trị được biểu diễn thành chữ
+## 3. `append` with Primitives: Values Represented as Text
 
-`StringBuilder` có overload cho các primitive thông dụng:
+`StringBuilder` provides overloads for common primitive types:
 
-| Kiểu đối số | Overload tiêu biểu | Ví dụ thêm vào builder |
+| Argument Type | Typical Overload | Example Added to Builder |
 | --- | --- | --- |
 | `boolean` | `append(boolean)` | `true` → `"true"`; `false` → `"false"` |
 | `char` | `append(char)` | `'A'` → `"A"` |
@@ -128,20 +128,20 @@ Hai đoạn trên là mã minh họa, có thể đặt trong một phương th�
 | `float` | `append(float)` | `1.5f` → `"1.5"` |
 | `double` | `append(double)` | `2.25` → `"2.25"` |
 
-`byte` và `short` không có overload riêng; chúng có thể được **nâng kiểu số** sang `int`, nên giá trị thường được thêm theo cách biểu diễn số thập phân.
+`byte` and `short` do not have dedicated overloads; they undergo **numeric promotion** to `int`, so their values are typically appended in decimal numeric representation.
 
-Điều đặc biệt cần nhớ: `char` biểu diễn **đơn vị ký tự**, còn `int` biểu diễn **số nguyên**. `append('A')` khác `append(65)`:
+A key detail to remember: `char` represents a **character unit**, whereas `int` represents an **integer**. `append('A')` differs from `append(65)`:
 
 ```java
 new StringBuilder().append('A') // "A"
 new StringBuilder().append(65)  // "65"
 ```
 
-Dù `'A'` có giá trị số Unicode là 65, overload được chọn theo **kiểu tại thời điểm biên dịch**, không theo ý định ngầm của người viết.
+Even though `'A'` has Unicode numeric value 65, the overload is chosen by **compile-time type**, not by the author's implicit intent.
 
-### Ví dụ 2: primitive, kiểu và phép tính
+### Example 2: Primitives, types, and expressions
 
-Tạo tệp `PrimitiveAppendDemo.java`:
+Create the file `PrimitiveAppendDemo.java`:
 
 ```java
 public class PrimitiveAppendDemo {
@@ -174,7 +174,7 @@ javac -encoding UTF-8 PrimitiveAppendDemo.java
 java PrimitiveAppendDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 65|A|true|12|1.5|2.25
@@ -182,24 +182,24 @@ Kết quả:
 7,8
 ```
 
-Ở `append(1 + 2)`, phép tính `1 + 2` được thực hiện **trước khi gọi**, rồi `append(int)` thêm `3`. Ngược lại, `append(1).append(2)` là hai lần gọi liên tiếp, thêm `"1"` và `"2"` thành `"12"`. Các overload không tự hiểu bạn muốn cộng số hay ghép văn bản.
+In `append(1 + 2)`, the arithmetic `1 + 2` is evaluated **before the call**, and then `append(int)` appends `3`. Conversely, `append(1).append(2)` is two consecutive calls that append `"1"` and `"2"`, producing `"12"`. Overloads do not guess whether you want to add numbers or concatenate text.
 
-Định dạng số mặc định phù hợp để biểu diễn giá trị, nhưng không phải lúc nào cũng đáp ứng yêu cầu báo cáo: ví dụ hiển thị đúng hai chữ số thập phân hoặc dấu phân cách theo locale cần xử lý định dạng riêng, chẳng hạn `Formatter` hay `String.format(Locale, ...)`. Khi nối trực tiếp, không giả định `append(double)` tạo định dạng tiền tệ hay định dạng số địa phương.
+Default number formatting is suitable for representing values, though it does not always satisfy reporting requirements: for example, displaying exactly two decimal places or locale-specific separators requires dedicated formatting such as `Formatter` or `String.format(Locale, ...)`. When appending directly, do not assume `append(double)` produces currency formatting or localized number formatting.
 
-## 4. `append(Object)`: chuyển đối tượng thành chuỗi qua `String.valueOf`
+## 4. `append(Object)`: Converting an Object to a String via `String.valueOf`
 
-Overload `append(Object obj)` lấy biểu diễn chuỗi tương ứng với `String.valueOf(obj)`:
+The `append(Object obj)` overload obtains the string representation corresponding to `String.valueOf(obj)`:
 
-- Nếu `obj == null`, phần được thêm là `"null"`.
-- Nếu `obj != null`, `String.valueOf(obj)` dựa vào `obj.toString()`.
-- Nếu lớp của đối tượng tự ghi đè `toString()`, văn bản thêm vào builder là biểu diễn do lớp cung cấp.
-- Nếu không ghi đè, `Object.toString()` thường cho dạng tên lớp cùng thông tin danh tính; đó **không** phải biểu diễn có cấu trúc thích hợp cho mọi nghiệp vụ.
+- If `obj == null`, `"null"` is appended.
+- If `obj != null`, `String.valueOf(obj)` relies on `obj.toString()`.
+- If the object's class overrides `toString()`, the text appended to the builder is the representation provided by the class.
+- If not overridden, `Object.toString()` typically produces a class name with identity information; that is **not** a structured representation suitable for all business needs.
 
-Khi muốn chèn đối tượng tùy biến vào câu log hoặc chuỗi mô tả, nên có `toString()` dễ hiểu nếu đây thực sự là công dụng mong đợi. Tuy nhiên, `toString()` không phải API tuần tự hóa (serialization) chuẩn cho dữ liệu cần round-trip.
+When you want to include a custom object in a log line or descriptive string, provide a clear `toString()` if that is truly its intended use. However, `toString()` is not a standard serialization API for data that needs round-tripping.
 
-### Ví dụ 3: đối tượng có `toString()` riêng
+### Example 3: An object with its own `toString()`
 
-Tạo tệp `ObjectAppendDemo.java`:
+Create the file `ObjectAppendDemo.java`:
 
 ```java
 public class ObjectAppendDemo {
@@ -237,37 +237,37 @@ javac -encoding UTF-8 ObjectAppendDemo.java
 java ObjectAppendDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 position=(3,4); missing=null
 hello
 ```
 
-Biến `asObject` được khai báo kiểu `Object`, nên overload `append(Object)` được chọn; phương thức `Point.toString()` thực sự được gọi lúc chạy nhờ đa hình. Dòng cuối ép kiểu `String` thành `Object` nhưng kết quả vẫn là `hello` vì `String.toString()` thể hiện đúng nội dung của chuỗi.
+The variable `asObject` is declared as `Object`, so the `append(Object)` overload is selected; `Point.toString()` is actually invoked at runtime via polymorphism. The last line casts `String` to `Object`, yet the output is still `hello` because `String.toString()` returns the exact content of the string.
 
-**Chú ý:** `append(Object)` **không tự duyệt và nối phần tử của mọi loại mảng**. Đặc biệt, mảng ký tự có overload riêng (`append(char[])`), còn một biến đã ép thành `Object` sẽ đi qua đường xử lý `Object`. Đây là lý do phải hiểu sự khác nhau giữa **kiểu khai báo** và **giá trị runtime**.
+**Note:** `append(Object)` **does not automatically iterate and append the elements of arbitrary arrays**. Specifically, character arrays have their own overload (`append(char[])`), while a variable cast to `Object` goes through the `Object` path. This is why you must understand the difference between **declared type** and **runtime value**.
 
-## 5. `append(char[])`: nối nội dung mảng ký tự, không phải tên mảng
+## 5. `append(char[])`: Appending Character Array Content, Not the Array Name
 
-`char[]` là kiểu đối số quan trọng vì `StringBuilder` có overload chuyên dụng:
+`char[]` is an important argument type because `StringBuilder` has dedicated overloads:
 
 ```java
 append(char[] str)
 append(char[] str, int offset, int len)
 ```
 
-- `append(char[])` nối **từng code unit** trong mảng vào builder theo thứ tự.
-- `append(char[], offset, len)` nối **`len` phần tử** bắt đầu từ `offset`.
-- `offset` là vị trí đầu **được tính vào đoạn**; `len` là **số lượng phần tử**, **không phải chỉ số kết thúc**.
-- Nếu mảng bằng `null`, overload `char[]` ném `NullPointerException`.
-- Nếu khoảng mảng không hợp lệ, overload phạm vi ném `IndexOutOfBoundsException` hoặc loại ngoại lệ con phù hợp.
+- `append(char[])` appends **each code unit** in the array into the builder in order.
+- `append(char[], offset, len)` appends **`len` elements** starting from `offset`.
+- `offset` is the starting position **included in the slice**; `len` is the **number of elements**, **not the end index**.
+- If the array is `null`, the `char[]` overloads throw `NullPointerException`.
+- If the array range is invalid, the range overload throws `IndexOutOfBoundsException` or an appropriate subclass.
 
-Đây là khác biệt với `append(String)` hoặc `append(Object)` nhận null và thêm chữ `"null"`. Vì vậy `append(null)` **không có một hành vi duy nhất**: biểu thức null không có kiểu cụ thể và bị **mơ hồ overload** ở thời điểm biên dịch. Muốn chọn một overload, cần biến có kiểu khai báo hoặc ép kiểu tường minh.
+This differs from `append(String)` or `append(Object)`, which accept null and append `"null"`. Therefore, `append(null)` **does not have a single behavior**: the null literal has no specific type and causes **overload ambiguity** at compile time. To select one overload, use a typed variable or an explicit cast.
 
-### Ví dụ 4: toàn bộ mảng và một lát cắt
+### Example 4: Entire array and a slice
 
-Tạo `CharArrayAppendDemo.java`:
+Create `CharArrayAppendDemo.java`:
 
 ```java
 public class CharArrayAppendDemo {
@@ -304,7 +304,7 @@ javac -encoding UTF-8 CharArrayAppendDemo.java
 java CharArrayAppendDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Java! | ava
@@ -313,13 +313,13 @@ null|null|null
 char[] is null
 ```
 
-`append(letters, 1, 3)` lấy các phần tử ở chỉ số 1, 2, 3, tương ứng `"ava"`. Sau đó thay `letters[0]` thành `'X'` **không thay đổi văn bản đã append** vào builder: các code unit cần thêm đã được sao chép vào nội dung builder.
+`append(letters, 1, 3)` takes the elements at indices 1, 2, 3, producing `"ava"`. Afterwards, changing `letters[0]` to `'X'` **does not change the text already appended** to the builder: the appended code units were copied into the builder's content.
 
-Nếu muốn thêm chỉ một phần của mảng, không nhầm chữ ký `(offset, len)` với `substring(start, end)` hay `CharSequence.subSequence(start, end)`: các API sau dùng vị trí cuối **loại trừ**, còn ở `char[]` tham số cuối là **độ dài đoạn**.
+If you want to append only part of an array, do not confuse the `(offset, len)` signature with `substring(start, end)` or `CharSequence.subSequence(start, end)`: the latter APIs use an **exclusive** end position, whereas for `char[]` the last parameter is the **slice length**.
 
-### Mảng ký tự đi qua overload `Object` thì sao?
+### What happens if a character array goes through the `Object` overload?
 
-Xét:
+Consider:
 
 ```java
 char[] letters = {'O', 'K'};
@@ -327,34 +327,34 @@ StringBuilder first = new StringBuilder().append(letters);
 StringBuilder second = new StringBuilder().append((Object) letters);
 ```
 
-`first` có nội dung `"OK"`. `second` **không** có nội dung `"OK"`; nó dùng `Object.toString()` của mảng ký tự, thường có dạng như `[C@...` với phần định danh không cố định. Không ghi output cụ thể của `second` vì phần định danh phụ thuộc đối tượng/runtime.
+`first` has content `"OK"`. `second` **does not** have content `"OK"`; it uses the character array's `Object.toString()`, which typically looks like `[C@...` with a non-fixed identity suffix. Do not hardcode the specific output of `second` because the identifier part depends on the object/runtime.
 
-Đây là một trường hợp overload cho thấy cùng **đối tượng runtime `char[]`** nhưng kiểu đối số ở lời gọi khác nhau dẫn tới hành vi khác. Mảng `int[]` hay `Object[]` cũng không được `append(Object)` tự động duyệt phần tử; nếu cần ghép phần tử mảng, hãy lựa chọn cách định dạng rõ ràng, chẳng hạn `Arrays.toString(...)` khi phù hợp.
+This is an overload case demonstrating that the same **runtime `char[]` object** with different argument types at the call site leads to different behavior. `int[]` or `Object[]` arrays are also not automatically traversed by `append(Object)`; if you need to join array elements, choose an explicit formatting approach, such as `Arrays.toString(...)` when appropriate.
 
-## 6. `append(CharSequence)`: lập trình theo giao diện đọc dãy ký tự
+## 6. `append(CharSequence)`: Programming Against the Character-Sequence Interface
 
-`CharSequence` biểu diễn dãy ký tự có thể đọc bằng `length()` và `charAt(...)`. `String`, `StringBuilder`, `StringBuffer` và `CharBuffer` là các triển khai thường gặp.
+`CharSequence` represents a readable sequence of characters with `length()` and `charAt(...)`. `String`, `StringBuilder`, `StringBuffer`, and `CharBuffer` are common implementations.
 
-`StringBuilder` có overload:
+`StringBuilder` provides the overloads:
 
 ```java
 append(CharSequence s)
 append(CharSequence s, int start, int end)
 ```
 
-Ý nghĩa:
+Meaning:
 
-- `append(CharSequence s)` nối toàn bộ các ký tự hiện tại của dãy `s`.
-- `append(s, start, end)` nối đoạn theo khoảng chỉ số **nửa mở `[start, end)`**. Tham số `end` là vị trí **loại trừ**, khác với tham số `len` của `append(char[], offset, len)`.
-- Khoảng hợp lệ là `0 <= start <= end <= s.length()` đối với `s` khác null.
-- Với `s == null`, hợp đồng overload `CharSequence` quy định xem nguồn như dãy ký tự `"null"`. Để tránh nhập nhằng, hãy định nghĩa chính sách null của ứng dụng thay vì dựa vào giá trị mặc định.
-- `CharSequence` không bảo đảm đối tượng nguồn bất biến; các implementation mutable có thể thay đổi nội dung giữa những thời điểm đọc khác nhau.
+- `append(CharSequence s)` appends all current characters of sequence `s`.
+- `append(s, start, end)` appends a slice over the **half-open index range `[start, end)`**. The `end` parameter is an **exclusive** position, unlike the `len` parameter of `append(char[], offset, len)`.
+- The valid range is `0 <= start <= end <= s.length()` for non-null `s`.
+- When `s == null`, the `CharSequence` overload contract specifies treating the source as the character sequence `"null"`. To avoid ambiguity, define your application's null policy instead of relying on the default behavior.
+- `CharSequence` does not guarantee that the source object is immutable; mutable implementations can change content between different reads.
 
-Hợp đồng giao diện cho phép bạn viết code nhận nhiều kiểu đầu vào. Tuy nhiên, **khi append đã hoàn thành**, nội dung được thêm là phần dữ liệu của builder đích; builder đích **không trở thành một view liên kết** để thay đổi nguồn sau đó tự động cập nhật văn bản cũ.
+The interface contract allows you to write code that accepts many input types. However, **once `append` completes**, the appended content becomes part of the target builder's data; the target builder **does not become a live view** where later changes to the source automatically update previously appended text.
 
-### Ví dụ 5: `String`, `StringBuilder` và `CharBuffer`
+### Example 5: `String`, `StringBuilder`, and `CharBuffer`
 
-Tạo `CharSequenceAppendDemo.java`:
+Create `CharSequenceAppendDemo.java`:
 
 ```java
 import java.nio.CharBuffer;
@@ -390,7 +390,7 @@ javac -encoding UTF-8 CharSequenceAppendDemo.java
 java CharSequenceAppendDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 bcd|XYZ|ell
@@ -399,17 +399,17 @@ cat
 null
 ```
 
-Lời gọi `result.append(word, 1, 4)` lấy chỉ số 1, 2, 3 nên cho `"bcd"`. Với `mutable`, `[0,3)` cho `"XYZ"`; với `buffer`, `[1,4)` cho `"ell"`.
+The call `result.append(word, 1, 4)` takes indices 1, 2, 3, producing `"bcd"`. For `mutable`, `[0,3)` produces `"XYZ"`; for `buffer`, `[1,4)` produces `"ell"`.
 
-`target` giữ `"cat"` mặc dù `source` đã thành `"Bat"` vì append đã ghi nội dung vào builder đích. Nếu nguồn có thể bị sửa **đồng thời** bởi luồng khác, phải dùng cách đồng bộ thích hợp để bảo đảm snapshot nhất quán: `StringBuilder` không tự bảo đảm thread-safety.
+`target` retains `"cat"` even though `source` became `"Bat"` because `append` wrote the content into the target builder. If the source can be modified **concurrently** by another thread, appropriate synchronization must be used to ensure a consistent snapshot: `StringBuilder` does not guarantee thread-safety on its own.
 
-### Trường hợp null với đoạn `CharSequence`
+### The null case with a `CharSequence` slice
 
-Theo hợp đồng `append(CharSequence, int, int)`, một nguồn `null` được xử lý như dãy `"null"` trước khi lấy đoạn. Do vậy `append((CharSequence) null, 1, 3)` có thể thêm `"ul"`. Dù hợp lệ, viết code dựa vào cách xử lý null ngầm này thường kém rõ ràng hơn việc tự chọn giá trị mặc định hoặc kiểm tra `null` trước.
+By the `append(CharSequence, int, int)` contract, a `null` source is treated as the sequence `"null"` before taking the slice. Thus `append((CharSequence) null, 1, 3)` can append `"ul"`. Although valid, writing code that relies on this implicit null handling is usually less clear than choosing a default value or checking `null` beforehand.
 
-## 7. Overload resolution: kiểu **biểu thức** quyết định phương thức
+## 7. Overload Resolution: The **Expression Type** Chooses the Method
 
-Java chọn overload có thể áp dụng và cụ thể nhất tại **thời điểm biên dịch**, dựa vào kiểu biểu thức ở lời gọi. Không phải cứ giá trị runtime là một `String` thì luôn gọi `append(String)`.
+Java selects the most specific applicable overload at **compile time**, based on the expression type at the call site. Just because a runtime value is a `String` does not mean `append(String)` is always called.
 
 ```java
 String text = "hello";
@@ -421,52 +421,52 @@ new StringBuilder().append(object);    // append(Object)
 new StringBuilder().append(sequence);  // append(CharSequence)
 ```
 
-Cả ba cho chữ `hello` trong ví dụ này, nhưng **con đường chuyển đổi** và lựa chọn overload khác nhau. Sự khác biệt lộ rõ hơn với `char[]`, với `null`, và với những lớp có `toString()` tùy chỉnh.
+All three produce `hello` in this example, but the **conversion path** and overload selection differ. The difference becomes much clearer with `char[]`, with `null`, and with classes that have custom `toString()`.
 
-| Biểu thức đối số | Overload liên quan | Kết quả hoặc lưu ý |
+| Argument Expression | Relevant Overload | Result or Note |
 | --- | --- | --- |
-| `"abc"` | `String` | Thêm `abc` |
-| `(String) null` | `String` | Thêm `null` |
-| `42` | `int` | Thêm `42` |
-| `'A'` | `char` | Thêm `A` |
-| `(Object) null` | `Object` | Thêm `null` |
-| `new char[] {'O', 'K'}` | `char[]` | Thêm `OK` |
-| `(Object) new char[] {'O', 'K'}` | `Object` | Không tự thêm `OK`; dùng `toString()` của mảng |
-| `(CharSequence) "abc"` | `CharSequence` | Thêm `abc` |
-| `(CharSequence) null` | `CharSequence` | Thêm `null` |
-| `null` (không ép kiểu) | Mơ hồ giữa nhiều overload tham chiếu | **Lỗi biên dịch** |
+| `"abc"` | `String` | Appends `abc` |
+| `(String) null` | `String` | Appends `null` |
+| `42` | `int` | Appends `42` |
+| `'A'` | `char` | Appends `A` |
+| `(Object) null` | `Object` | Appends `null` |
+| `new char[] {'O', 'K'}` | `char[]` | Appends `OK` |
+| `(Object) new char[] {'O', 'K'}` | `Object` | Does not append `OK`; uses the array's `toString()` |
+| `(CharSequence) "abc"` | `CharSequence` | Appends `abc` |
+| `(CharSequence) null` | `CharSequence` | Appends `null` |
+| `null` (uncast) | Ambiguous among multiple reference overloads | **Compile error** |
 
-Lý do `append(null)` gây mơ hồ là các overload như `append(String)` và `append(char[])` không có quan hệ kiểu cha–con giúp trình biên dịch chọn một overload duy nhất cụ thể nhất. Không viết ví dụ này trong file Java cần biên dịch; hãy xem nó như một dòng **cố ý sai** để minh họa:
+The reason `append(null)` is ambiguous is that overloads such as `append(String)` and `append(char[])` have no subtype–supertype relationship that lets the compiler choose a single most specific overload. Do not put this in a Java file meant to compile; treat it as an **intentionally invalid** line for illustration:
 
 ```java
-// new StringBuilder().append(null); // Lỗi biên dịch: reference to append is ambiguous
+// new StringBuilder().append(null); // Compile error: reference to append is ambiguous
 ```
 
-Chỉ thêm một cast là thay đổi ý nghĩa lời gọi:
+Simply adding a cast changes the meaning of the call:
 
 ```java
-new StringBuilder().append((String) null); // Hợp lệ, "null"
-new StringBuilder().append((char[]) null); // Ném NullPointerException
+new StringBuilder().append((String) null); // Valid, "null"
+new StringBuilder().append((char[]) null); // Throws NullPointerException
 ```
 
-Do đó, trong mã review, cần để ý **kiểu khai báo** và cast của các biến dùng làm đối số. Đừng chỉ nhìn giá trị khi chạy.
+Therefore, during code review, pay attention to the **declared types** and casts of variables used as arguments. Do not look only at the runtime value.
 
-## 8. Tương tác với `char`, Unicode và code point
+## 8. Interaction with `char`, Unicode, and Code Points
 
-`append(char)` thêm **một UTF-16 code unit**. Một code point Unicode ngoài Basic Multilingual Plane (BMP), ví dụ U+1F600, cần **hai code unit** (một cặp surrogate). Nếu chỉ thêm một `char` surrogate, bạn chưa thêm trọn code point.
+`append(char)` appends **one UTF-16 code unit**. A Unicode code point outside the Basic Multilingual Plane (BMP), such as U+1F600, requires **two code units** (a surrogate pair). If you append only a single surrogate `char`, you have not appended the full code point.
 
-Khi cần bổ sung một Unicode code point được lưu trong biến `int`, `StringBuilder.appendCodePoint(int)` là API phù hợp hơn `append(int)`:
+When you need to append a Unicode code point stored in an `int` variable, `StringBuilder.appendCodePoint(int)` is the right API rather than `append(int)`:
 
 ```java
-StringBuilder a = new StringBuilder().append(0x1F600);         // "128512"
+StringBuilder a = new StringBuilder().append(0x1F600);         // "128522"
 StringBuilder b = new StringBuilder().appendCodePoint(0x1F600); // U+1F600
 ```
 
-`append(int)` chuyển **giá trị số** sang chữ số thập phân; `appendCodePoint(int)` chuyển **mã điểm Unicode** thành đơn vị UTF-16 tương ứng. Hai phương thức có mục đích khác nhau, và không nên hoán đổi.
+`append(int)` converts a **numeric value** to decimal digits; `appendCodePoint(int)` converts a **Unicode code point** into the corresponding UTF-16 units. The two methods serve different purposes and must not be swapped.
 
-### Ví dụ 6: số code point khác số code unit
+### Example 6: Code point count differs from code unit count
 
-Tạo `UnicodeAppendDemo.java`:
+Create `UnicodeAppendDemo.java`:
 
 ```java
 public class UnicodeAppendDemo {
@@ -489,35 +489,35 @@ javac -encoding UTF-8 UnicodeAppendDemo.java
 java UnicodeAppendDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
-128512
+128522
 6
 2
 1
 true
 ```
 
-Nếu bạn có một `String` chứa emoji và gọi `append(String)` hoặc `append(CharSequence)`, API sẽ thêm các code unit của chuỗi đó. Với `char[]`, bạn cũng cần đảm bảo mảng chứa đầy đủ cặp surrogate nếu muốn biểu diễn code point ngoài BMP. `StringBuilder` không tự biến mọi đơn vị `char` đơn lẻ thành ký tự Unicode hoàn chỉnh.
+If you have a `String` containing an emoji and call `append(String)` or `append(CharSequence)`, the API appends the code units of that string. With `char[]`, you must also ensure the array contains the complete surrogate pair if representing a non-BMP code point. `StringBuilder` does not automatically turn every lone `char` unit into a complete Unicode character.
 
-## 9. Chọn overload phù hợp trong thiết kế API
+## 9. Choosing the Right Overload in API Design
 
-Một quy tắc thực hành hữu ích:
+A useful rule of thumb:
 
-- **Đã có `String`:** dùng `append(String)` trực tiếp.
-- **Đang nối dữ liệu số hoặc boolean:** dùng overload primitive để thể hiện rõ giá trị và tránh các phép chuyển kiểu không cần thiết.
-- **Đã có mảng `char[]`:** dùng overload `char[]` nếu muốn thêm **nội dung ký tự của mảng**; dùng `offset` và `len` khi chỉ cần một đoạn.
-- **Dữ liệu được mô tả bằng `CharSequence`:** dùng overload `CharSequence`; đoạn `[start,end)` thuận tiện cho cắt dãy ký tự chung.
-- **Có đối tượng nghiệp vụ:** dùng `append(Object)` khi thật sự muốn biểu diễn `toString()` của nó. Nếu đây là dữ liệu trao đổi hoặc định dạng phải ổn định, hãy tạo formatter chuyên dụng.
-- **Mỗi lần thêm một code point từ biến `int`:** xem xét `appendCodePoint`, vì `append(int)` sẽ viết số.
-- **Có `null`:** xác định chính sách rõ ràng để không vô tình tạo chữ `"null"` hoặc ném lỗi mảng.
+- **Already have a `String`:** use `append(String)` directly.
+- **Appending numeric or boolean data:** use the primitive overloads to clearly express the value and avoid unnecessary conversions.
+- **Already have a `char[]` array:** use the `char[]` overload if you want to append **the character content of the array**; use `offset` and `len` when you only need a slice.
+- **Data described by `CharSequence`:** use the `CharSequence` overload; the `[start,end)` range is convenient for slicing general character sequences.
+- **Have a domain object:** use `append(Object)` when you truly want its `toString()` representation. If it is interchange data or a format that must remain stable, create a dedicated formatter.
+- **Appending one code point at a time from an `int` variable:** consider `appendCodePoint`, because `append(int)` writes digits.
+- **Possible `null`:** define a clear policy so you do not accidentally produce `"null"` text or throw an array exception.
 
-Khi xây dựng chuỗi nhiều bước, cú pháp `append` giúp người đọc thấy thứ tự nối và tránh viết nhiều biểu thức `String` trung gian. Tuy nhiên không phải mọi đoạn ghép đều cần builder: với những phép nối ngắn, `+` thường dễ đọc và trình biên dịch/JVM hiện đại có thể tối ưu. Chọn theo tính rõ ràng và nhu cầu thực tế, không theo một quy tắc tuyệt đối.
+When building a string across multiple steps, the `append` syntax helps readers see the assembly order and avoids writing many intermediate `String` expressions. However, not every concatenation needs a builder: for short concatenations, `+` is often easier to read and modern compilers/JVMs can optimize it. Choose based on clarity and actual need, not an absolute rule.
 
-### Ví dụ 7: xây dựng dòng mô tả đầy đủ
+### Example 7: Building a complete record line
 
-Tạo tệp `AppendRecordDemo.java`:
+Create the file `AppendRecordDemo.java`:
 
 ```java
 public class AppendRecordDemo {
@@ -546,44 +546,44 @@ javac -encoding UTF-8 AppendRecordDemo.java
 java AppendRecordDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 id=p-1; qty=3; active=true; token=ABC
 id=p-1; qty=3; active=true; token=ABC
 ```
 
-Dữ liệu `char[]` được nối vào builder rồi `toString()` trả về một `String` bất biến. Thay đổi mảng gốc sau đó không làm đổi chuỗi `rendered`.
+The `char[]` data is appended to the builder and then `toString()` returns an immutable `String`. Modifying the original array afterward does not change the `rendered` string.
 
-**Giới hạn của ví dụ:** phương thức giả định `token` khác `null`. Trong ứng dụng thực tế, nếu có thể nhận null, phải đặt điều kiện kiểm tra hoặc định nghĩa giá trị thay thế trước khi dùng `token.length`.
+**Example limitation:** the method assumes `token` is non-null. In a real application, if null is possible, you must add a null check or define a fallback value before accessing `token.length`.
 
-## 10. Những nhầm lẫn thường gặp
+## 10. Common Pitfalls
 
-**Nhầm 1 — tưởng tất cả các overload giống nhau.** Với `String`, `Object`, `char[]` và `CharSequence`, kết quả có thể giống nhau trong trường hợp bình thường nhưng rất khác khi gặp mảng, null hoặc kiểu đối số tổng quát.
+**Pitfall 1 — thinking all overloads behave identically.** For `String`, `Object`, `char[]`, and `CharSequence`, results may look identical in normal cases yet differ sharply when encountering arrays, null, or general argument types.
 
-**Nhầm 2 — tưởng `append(Object)` nối phần tử của mọi mảng.** Nó dùng `String.valueOf(Object)` và có thể gọi `Object.toString()` của mảng. Với `char[]`, chỉ overload chuyên dụng mới thêm nội dung các phần tử theo mong muốn.
+**Pitfall 2 — thinking `append(Object)` appends the elements of every array.** It uses `String.valueOf(Object)` and may call the array's `Object.toString()`. For `char[]`, only the dedicated overload appends the element contents as expected.
 
-**Nhầm 3 — viết `append(null)` và đoán là thêm `"null"`.** Lời gọi bị mơ hồ overload; cần cast hoặc tham chiếu có kiểu khai báo. Sau khi chọn kiểu, `String`/`Object`/`CharSequence` null thêm `"null"`, còn `char[]` null ném `NullPointerException`.
+**Pitfall 3 — writing `append(null)` and assuming it appends `"null"`.** The call has overload ambiguity; a cast or typed reference is required. Once a type is chosen, null `String`/`Object`/`CharSequence` appends `"null"`, whereas null `char[]` throws `NullPointerException`.
 
-**Nhầm 4 — dùng `append(65)` để thêm `'A'`.** Số nguyên 65 được biểu diễn thành `"65"`. Muốn chữ `A`, dùng `append('A')` hoặc API Unicode phù hợp.
+**Pitfall 4 — using `append(65)` to append `'A'`.** The integer 65 is formatted as `"65"`. To get `A`, use `append('A')` or an appropriate Unicode API.
 
-**Nhầm 5 — tưởng `append(char[], offset, len)` lấy chỉ số kết thúc.** `len` là số phần tử; ví dụ `offset=1, len=3` lấy các vị trí 1, 2, 3.
+**Pitfall 5 — thinking `append(char[], offset, len)` takes an end index.** `len` is the element count; for example, `offset=1, len=3` takes positions 1, 2, 3.
 
-**Nhầm 6 — áp quy tắc mảng sang `CharSequence`.** `append(sequence, start, end)` dùng khoảng **[start, end)**, tức `end` là vị trí loại trừ, không phải số phần tử.
+**Pitfall 6 — applying array rules to `CharSequence`.** `append(sequence, start, end)` uses the range **[start, end)**, meaning `end` is an exclusive position, not an element count.
 
-**Nhầm 7 — nghĩ builder chỉ tạo một chuỗi mới và không sửa đối tượng cũ.** `append` làm thay đổi chính `StringBuilder` và trả lại builder đó. Mọi tham chiếu đang giữ builder đều nhìn thấy nội dung mới.
+**Pitfall 7 — thinking a builder creates a new string without mutating the old object.** `append` mutates the `StringBuilder` itself and returns that same builder. Every reference holding the builder sees the new content.
 
-**Nhầm 8 — nghĩ builder vẫn liên kết tới mảng hoặc nguồn `CharSequence`.** Sau khi đã append thành công, văn bản được ghi vào builder đích; việc thay đổi nguồn về sau không tự cập nhật ký tự đã thêm.
+**Pitfall 8 — thinking the builder remains linked to the array or `CharSequence` source.** Once `append` completes, the text is written into the target builder; modifying the source later does not automatically update the appended characters.
 
-**Nhầm 9 — dùng `append(Object)` như chuẩn serialize.** `toString()` có thể thay đổi theo implementation, không cung cấp schema hay escaping. Định dạng lưu trữ/trao đổi cần một hợp đồng riêng.
+**Pitfall 9 — using `append(Object)` as a serialization standard.** `toString()` can change across implementations and provides neither a schema nor escaping. Storage/interchange formats require an explicit contract.
 
-**Nhầm 10 — bỏ qua Unicode.** `char` là code unit UTF-16, không phải mọi Unicode code point; `append(int)` là thêm số, khác `appendCodePoint(int)`.
+**Pitfall 10 — ignoring Unicode.** `char` is a UTF-16 code unit, not every Unicode code point; `append(int)` appends a number, unlike `appendCodePoint(int)`.
 
-**Nhầm 11 — mặc định builder thread-safe.** `StringBuilder` không đồng bộ hóa mọi thao tác để dùng chung an toàn qua nhiều luồng; nếu cần chia sẻ và sửa đồng thời, phải thiết kế cơ chế đồng bộ phù hợp. Dùng `StringBuffer` có đồng bộ hóa cho các thao tác riêng lẻ nhưng cũng cần xem lại toàn bộ workflow nhiều bước.
+**Pitfall 11 — assuming a builder is thread-safe by default.** `StringBuilder` does not synchronize all operations for safe concurrent sharing across threads; if shared concurrent mutation is needed, design an appropriate synchronization mechanism. Using `StringBuffer` synchronizes individual operations, though multi-step workflows still need review.
 
-## 11. Tự luyện tập
+## 11. Practice Exercises
 
-### Câu 1: kiểu primitive
+### Question 1: Primitive types
 
 ```java
 StringBuilder b = new StringBuilder();
@@ -591,21 +591,21 @@ b.append(7).append('7').append(true);
 System.out.println(b);
 ```
 
-Kết quả:
+Output:
 
 ```text
 77true
 ```
 
-Lần đầu thêm chữ số `7` từ `int`, lần hai thêm ký tự `'7'`, lần ba thêm chữ `true`. Không có dấu phân cách tự động.
+First it appends the digit `7` from `int`, second it appends the character `'7'`, and third it appends `true`. There is no automatic delimiter.
 
-### Câu 2: khác nhau giữa `char[]` và `Object`
+### Question 2: Difference between `char[]` and `Object`
 
-Với `char[] data = {'H', 'i'};`, lời gọi `append(data)` có nội dung gì? **`Hi`** vì chọn overload `char[]`.
+Given `char[] data = {'H', 'i'};`, what is the content after `append(data)`? **`Hi`**, because the `char[]` overload is selected.
 
-Còn `append((Object) data)`? **Không bảo đảm là `Hi`**, vì dùng biểu diễn `toString()` của đối tượng mảng; phần hậu tố định danh không nên đoán trong kiểm thử.
+What about `append((Object) data)`? **Not guaranteed to be `Hi`**, because it uses the array object's `toString()` representation; the identity suffix should not be guessed in tests.
 
-### Câu 3: `offset, len` so với `start, end`
+### Question 3: `offset, len` vs. `start, end`
 
 ```java
 char[] a = {'a', 'b', 'c', 'd', 'e'};
@@ -615,34 +615,34 @@ System.out.println(new StringBuilder().append(a, 1, 3));
 System.out.println(new StringBuilder().append(s, 1, 3));
 ```
 
-Kết quả:
+Output:
 
 ```text
 bcd
 bc
 ```
 
-Với mảng: lấy **3 phần tử** từ vị trí 1. Với `CharSequence`: lấy các vị trí từ 1 đến trước 3, nên chỉ có **2 ký tự**.
+For the array: takes **3 elements** starting at position 1. For `CharSequence`: takes positions from 1 up to before 3, so only **2 characters**.
 
-### Câu 4: null
+### Question 4: null
 
-Dự đoán:
+Predict:
 
 ```java
 System.out.println(new StringBuilder().append((String) null));
 System.out.println(new StringBuilder().append((CharSequence) null));
 ```
 
-Kết quả:
+Output:
 
 ```text
 null
 null
 ```
 
-Nhưng nếu đổi thành `append((char[]) null)`, chương trình ném `NullPointerException`; nếu bỏ cast và viết `append(null)` thì lỗi nằm ở **biên dịch** do mơ hồ overload.
+However, if changed to `append((char[]) null)`, the program throws `NullPointerException`; if you remove the cast and write `append(null)`, the error occurs at **compile time** due to overload ambiguity.
 
-### Câu 5: đối tượng mutable khác với nội dung đã được append
+### Question 5: Another mutable object vs. already-appended content
 
 ```java
 StringBuilder source = new StringBuilder("one");
@@ -653,15 +653,15 @@ System.out.println(target);
 System.out.println(source);
 ```
 
-Kết quả:
+Output:
 
 ```text
 one
 one two
 ```
 
-Đối tượng `source` mutable, nhưng `target` không phải view của `source`. Nó giữ những ký tự đã append vào thời điểm lời gọi hoàn thành.
+The `source` object is mutable, yet `target` is not a view of `source`. It retains the characters that had been appended at the time the call completed.
 
-## Kết luận
+## Conclusion
 
-**`StringBuilder.append(...)` có một mục tiêu chung — thêm dữ liệu vào cuối builder — nhưng lựa chọn overload quyết định ý nghĩa của đối số.** `String` và `CharSequence` cung cấp nội dung văn bản; primitive được biểu diễn dưới dạng ký tự; `Object` dựa vào `String.valueOf`/`toString()`; `char[]` được nối theo từng code unit và có overload cắt theo `offset, len`. Hãy chú ý kiểu biểu thức tại thời điểm biên dịch, xử lý `null` tường minh, phân biệt khoảng `[start,end)` với `offset,len`, và nhớ rằng `append` **làm thay đổi chính `StringBuilder`, không làm thay đổi nguồn đã được nối**.
+**`StringBuilder.append(...)` has one general goal — adding data to the end of a builder — but overload selection determines what the argument means.** `String` and `CharSequence` provide text content; primitives are represented as characters; `Object` relies on `String.valueOf`/`toString()`; `char[]` is appended code unit by code unit and has a slice overload using `offset, len`. Pay attention to compile-time expression types, handle `null` explicitly, distinguish the `[start,end)` range from `offset,len`, and remember that `append` **mutates the `StringBuilder` itself, not the source that was appended**.

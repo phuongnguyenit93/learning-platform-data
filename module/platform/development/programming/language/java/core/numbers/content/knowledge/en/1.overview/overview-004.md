@@ -1,76 +1,76 @@
-# Phạm vi giá trị khác độ chính xác như thế nào trong Java?
+# How Does Value Range Differ from Precision in Java?
 
-Hai khái niệm trả lời **hai câu hỏi khác nhau**:
+The two concepts answer **two different questions**:
 
-- **Phạm vi giá trị (range):** Kiểu dữ liệu có thể biểu diễn các giá trị nhỏ nhất, lớn nhất nào? Một phép tính có vượt khỏi miền biểu diễn hay không?
-- **Độ chính xác (precision):** Trong phạm vi đó, kiểu dữ liệu phân biệt được các giá trị sát nhau đến mức nào? Có bao nhiêu chữ số có nghĩa được giữ lại khi lưu và tính toán?
+- **Value range:** What are the smallest and largest values a data type can represent? Does a calculation exceed the representable range?
+- **Precision:** Within that range, how finely can the data type distinguish closely spaced values? How many significant digits are preserved during storage and computation?
 
-Một kiểu có phạm vi rất rộng vẫn có thể có độ chính xác hữu hạn. Đặc biệt, `double` biểu diễn được các số lớn hơn `int` rất nhiều, nhưng **không biểu diễn chính xác mọi số nguyên hoặc mọi số thập phân** trong phạm vi ấy.
+A type with a very wide range can still have finite precision. In particular, `double` can represent numbers vastly larger than `int`, yet **it does not accurately represent every integer or every decimal number** within that range.
 
-## 1. Đối với số nguyên: giới hạn miền giá trị, biểu diễn chính xác trong miền
+## 1. For Integers: Limited Range, Exact Representation Within Range
 
-Các kiểu số nguyên nguyên thủy của Java sử dụng số bit cố định:
+Java's primitive integer types use a fixed number of bits:
 
-| Kiểu | Số bit | Phạm vi giá trị |
+| Type | Bits | Value Range |
 | --- | ---: | --- |
-| `byte` | 8 | -128 đến 127 |
-| `short` | 16 | -32.768 đến 32.767 |
-| `int` | 32 | -2.147.483.648 đến 2.147.483.647 |
-| `long` | 64 | -9.223.372.036.854.775.808 đến 9.223.372.036.854.775.807 |
+| `byte` | 8 | -128 to 127 |
+| `short` | 16 | -32,768 to 32,767 |
+| `int` | 32 | -2,147,483,648 to 2,147,483,647 |
+| `long` | 64 | -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807 |
 
-- Mỗi giá trị **nguyên** nằm trong phạm vi của kiểu đều được lưu chính xác: `int` biểu diễn được `1_000_000` và `1_000_001` thành hai giá trị khác nhau.
-- Giới hạn ở đây là **phạm vi**, không phải hiện tượng làm tròn một giá trị còn nằm trong miền. Kiểu `int` không chứa được một số nguyên lớn hơn `Integer.MAX_VALUE`.
-- Phép cộng, trừ, nhân số nguyên nguyên thủy có thể **tràn số (overflow)**: kết quả tính theo các bit của kiểu và có thể đổi dấu. Java không tự động mở rộng từ `int` sang `long` để giữ kết quả; muốn tính với `long`, hãy chuyển toán hạng trước khi phép tính diễn ra.
-- Dùng `Math.addExact`, `Math.subtractExact`, `Math.multiplyExact` hoặc `Math.toIntExact` để phát hiện các trường hợp tràn số phù hợp. Với số nguyên vượt 64 bit, cân nhắc `BigInteger`.
+- Every **integer** value inside the type's range is stored exactly: `int` represents `1_000_000` and `1_000_001` as two distinct values.
+- The limitation here is **range**, not a phenomenon of rounding a value that is still in range. Type `int` cannot hold an integer greater than `Integer.MAX_VALUE`.
+- Primitive integer addition, subtraction, and multiplication can **overflow**: the result is computed modulo the type's bit width and can flip signs. Java does not automatically widen from `int` to `long` to keep the result; to compute in `long`, convert operands before the operation takes place.
+- Use `Math.addExact`, `Math.subtractExact`, `Math.multiplyExact`, or `Math.toIntExact` to detect overflow cases appropriately. For integers beyond 64 bits, consider `BigInteger`.
 
-**Ví dụ:** `Integer.MAX_VALUE + 1` cho `-2_147_483_648` do tràn `int`. Đây không phải lỗi làm tròn vì thiếu chữ số thập phân: kết quả toán học đã vượt phạm vi `int`.
+**Example:** `Integer.MAX_VALUE + 1` gives `-2_147_483_648` due to `int` overflow. This is not a rounding error from lacking decimal digits: the mathematical result exceeded the range of `int`.
 
-> `char` cũng chứa 16 bit không dấu (từ `'\u0000'` đến `'\uffff'`), nhưng là một **đơn vị mã UTF-16** và không nên coi là kiểu số nguyên dùng cho tính toán thông thường.
+> `char` also holds 16 unsigned bits (from `'\u0000'` to `'\uffff'`), but it is a **UTF-16 code unit** and should not be treated as an integer type for general arithmetic.
 
-## 2. Đối với số thực: phạm vi rộng nhưng độ chính xác hữu hạn
+## 2. For Floating-Point Numbers: Wide Range Yet Finite Precision
 
-`float` (32 bit) và `double` (64 bit) sử dụng biểu diễn dấu phẩy động nhị phân theo IEEE 754. Số bit được phân bổ cho **dấu**, **số mũ** và **phần trị (significand)**:
+`float` (32 bits) and `double` (64 bits) use IEEE 754 binary floating-point representation. Bits are allocated for **sign**, **exponent**, and **significand**:
 
-- **Số mũ** giúp biểu diễn các giá trị có độ lớn rất khác nhau; đây là một lý do phạm vi của số thực rộng.
-- **Phần trị** chứa hữu hạn bit nên chỉ biểu diễn được một tập giá trị rời rạc. Những số nằm giữa hai giá trị biểu diễn được thường phải **làm tròn** sang một trong hai.
-- Khoảng cách giữa hai số thực biểu diễn được kề nhau (thường gọi là **ULP**, *unit in the last place*) **thay đổi theo độ lớn**. Gần giá trị lớn, khoảng cách lớn hơn; gần 0, khoảng cách thường nhỏ hơn. Ở vùng số *subnormal*, độ chính xác tương đối giảm.
+- **Exponent** enables representing values spanning vastly different orders of magnitude; this is one reason floating-point range is wide.
+- **Significand** contains finitely many bits and therefore can only represent a discrete set of values. Numbers lying between two representable values usually must be **rounded** to one of them.
+- The spacing between two adjacent representable floating-point numbers (often called **ULP**, *unit in the last place*) **varies with magnitude**. Near large values, the spacing is larger; near 0, the spacing is generally smaller. In the *subnormal* region, relative precision decreases.
 
-| Thuộc tính | `float` | `double` |
+| Property | `float` | `double` |
 | --- | --- | --- |
-| Số bit toàn bộ | 32 | 64 |
-| Số bit phần trị hiệu dụng của số chuẩn hóa | 24 | 53 |
-| Độ chính xác thập phân thường dùng để ước lượng | khoảng 7 chữ số có nghĩa | khoảng 15–16 chữ số có nghĩa |
-| Trị tuyệt đối hữu hạn lớn nhất | khoảng `3.4028235E38` | khoảng `1.7976931348623157E308` |
-| Số dương khác 0 nhỏ nhất (*subnormal*) | khoảng `1.4E-45` | khoảng `4.9E-324` |
-| Mọi số nguyên liên tiếp đều chính xác đến | `2^24 = 16_777_216` | `2^53 = 9_007_199_254_740_992` |
+| Total bits | 32 | 64 |
+| Effective significand bits of normal numbers | 24 | 53 |
+| Commonly used decimal precision estimate | about 7 significant digits | about 15–16 significant digits |
+| Largest finite magnitude | about `3.4028235E38` | about `1.7976931348623157E308` |
+| Smallest nonzero positive (*subnormal*) | about `1.4E-45` | about `4.9E-324` |
+| Every consecutive integer exact up to | `2^24 = 16_777_216` | `2^53 = 9_007_199_254_740_992` |
 
-Các mốc `2^24` và `2^53` nói rằng **mọi số nguyên trong đoạn tương ứng đều biểu diễn chính xác**; chúng không có nghĩa mọi số nguyên lớn hơn đều sai. Chẳng hạn, các số chẵn đủ gần `2^24` vẫn có thể được lưu chính xác bằng `float`, nhưng số nguyên liền kề ở giữa có thể không.
+The milestones `2^24` and `2^53` state that **every integer in the respective interval is represented exactly**; they do not mean every larger integer is wrong. For example, even numbers near enough to `2^24` can still be stored exactly by `float`, whereas adjacent odd integers in between may not.
 
-**Phân biệt “chữ số có nghĩa” và “chữ số sau dấu phẩy”:** Với `double`, độ chính xác xấp xỉ 15–16 **chữ số có nghĩa cho cả số**, không phải luôn có 15–16 chữ số *sau dấu phẩy*. Số `1_000_000_000_000_000` dùng nhiều chữ số có nghĩa hơn số `1.0`; khoảng cách tới số `double` kế tiếp phụ thuộc bậc độ lớn.
+**Distinguishing "significant digits" from "digits after the decimal point":** For `double`, precision is approximately 15–16 **significant digits for the whole number**, not always 15–16 digits *after the decimal point*. The number `1_000_000_000_000_000` uses more significant digits than `1.0`; the distance to the next `double` depends on the order of magnitude.
 
-Lưu ý về các hằng Java:
+Notes on Java constants:
 
-- `Float.MAX_VALUE` / `Double.MAX_VALUE`: số **dương hữu hạn lớn nhất**; số âm hữu hạn nhỏ nhất theo thứ tự số học là `-Float.MAX_VALUE` / `-Double.MAX_VALUE`.
-- `Float.MIN_VALUE` / `Double.MIN_VALUE`: số **dương khác 0 nhỏ nhất**, **không** phải số âm nhỏ nhất. `MIN_NORMAL` là số dương *chuẩn hóa* nhỏ nhất.
-- `Float.POSITIVE_INFINITY`, `Double.NEGATIVE_INFINITY` và `NaN` là các giá trị đặc biệt. Chúng không phải số hữu hạn nằm giữa `-MAX_VALUE` và `MAX_VALUE`.
+- `Float.MAX_VALUE` / `Double.MAX_VALUE`: the **largest finite positive** number; the smallest finite negative number in numeric order is `-Float.MAX_VALUE` / `-Double.MAX_VALUE`.
+- `Float.MIN_VALUE` / `Double.MIN_VALUE`: the **smallest nonzero positive** number, **not** the most negative number. `MIN_NORMAL` is the smallest *normal* positive number.
+- `Float.POSITIVE_INFINITY`, `Double.NEGATIVE_INFINITY`, and `NaN` are special values. They are not finite numbers lying between `-MAX_VALUE` and `MAX_VALUE`.
 
-### Vì sao một `double` rất lớn lại có thể “bỏ qua” `+1`?
+### Why Can a Very Large `double` "Ignore" `+1`?
 
-`double` chứa 53 bit độ chính xác phần trị, nhưng phải biểu diễn cả những số có bậc độ lớn đến khoảng `10^308`. Gần `1.0E16`, hai số `double` kề nhau cách nhau **2**; vì thế `1.0E16 + 1` được làm tròn trở lại `1.0E16`. Trong khi đó, gần `1.0`, `Math.ulp(1.0)` chỉ khoảng `2.22E-16`.
+`double` holds 53 bits of significand precision, yet must represent numbers up to roughly `10^308` in magnitude. Near `1.0E16`, two adjacent `double` numbers are spaced **2** apart; hence `1.0E16 + 1` rounds back to `1.0E16`. Meanwhile, near `1.0`, `Math.ulp(1.0)` is only about `2.22E-16`.
 
-Đây là **mất độ phân giải**, không phải tràn phạm vi. Cả `1.0E16` và `1.0E16 + 1` đều rất nhỏ so với `Double.MAX_VALUE`, nhưng `double` không giữ được hai giá trị ấy như hai số phân biệt.
+This is **loss of resolution**, not range overflow. Both `1.0E16` and `1.0E16 + 1` are tiny compared to `Double.MAX_VALUE`, yet `double` cannot retain those two values as two distinct numbers.
 
-### Vì sao `0.1 + 0.2` không bằng chính xác `0.3`?
+### Why Does `0.1 + 0.2` Not Equal Exact `0.3`?
 
-Phần lớn phân số thập phân, gồm `0.1`, không có biểu diễn nhị phân hữu hạn. Ngay từ khi lưu literal `0.1` hoặc `0.2` vào `double`, giá trị thực tế đã là một số nhị phân gần đúng. Sau phép cộng, kết quả được làm tròn thêm nên phép so sánh bằng chính xác:
+Most decimal fractions, including `0.1`, have no finite binary representation. As soon as literals `0.1` or `0.2` are stored in `double`, the actual value is already an approximate binary number. After addition, the result is rounded again, so exact equality comparison:
 
 `0.1 + 0.2 == 0.3`
 
-trả về `false`. **Phạm vi số thực không phải vấn đề ở đây**: cả ba số đều rất nhỏ và nằm trong miền biểu diễn. Vấn đề là **độ chính xác biểu diễn và làm tròn**.
+returns `false`. **Floating-point range is not the issue here**: all three numbers are tiny and well inside the representable range. The issue is **representation precision and rounding**.
 
-## 3. Chạy thử: quan sát range, overflow, precision và decimal
+## 3. Hands-On Experiment: Observing Range, Overflow, Precision, and Decimal
 
-Tạo tệp `RangePrecisionDemo.java` (Java 17 trở lên):
+Create the file `RangePrecisionDemo.java` (Java 17 or newer):
 
 ```java
 import java.math.BigDecimal;
@@ -108,14 +108,14 @@ public class RangePrecisionDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac RangePrecisionDemo.java
 java RangePrecisionDemo
 ```
 
-Đầu ra đã kiểm tra với JDK 21 (chương trình chỉ dùng API có từ Java 17):
+Output verified with JDK 21 (the program uses only APIs available since Java 17):
 
 ```text
 byte: -128 .. 127
@@ -132,61 +132,61 @@ precision=7, scale=4
 1 / 3 (5 digits): 0.33333
 ```
 
-Cách đọc kết quả:
+How to read the results:
 
-1. `int overflow`: vượt **phạm vi**; `Math.addExact` phát hiện bằng ngoại lệ thay vì cho kết quả quấn vòng.
-2. `float keeps +1? true`: `16_777_216f + 1` được làm tròn về `16_777_216f`; `float` chưa vượt phạm vi, nhưng không giữ được bước tăng bằng 1.
-3. `double keeps +1? true`: điều tương tự xảy ra với `double` ở độ lớn `10^16`.
-4. `0.1 + 0.2 == 0.3? false`: phép tính thập phân nhìn đơn giản nhưng các toán hạng ở dạng nhị phân gần đúng.
-5. `Math.ulp(1.0)` đo khoảng cách tới số `double` kề tiếp ở gần `1.0`.
-6. `double infinity: true`: phép nhân vượt số hữu hạn lớn nhất dẫn đến `+Infinity`; đây là **overflow số thực**, khác với làm tròn mất `+1`.
-7. `BigDecimal` tính tổng số thập phân đầu vào chính xác. Nhưng phép chia `1 / 3` không có khai triển thập phân hữu hạn, vì vậy phải chủ động chọn độ chính xác và quy tắc làm tròn.
+1. `int overflow`: exceeded **range**; `Math.addExact` detects it with an exception rather than wrapping around.
+2. `float keeps +1? true`: `16_777_216f + 1` rounds back to `16_777_216f`; `float` has not exceeded range, yet cannot preserve a step increment of 1.
+3. `double keeps +1? true`: the same phenomenon happens with `double` at magnitude `10^16`.
+4. `0.1 + 0.2 == 0.3? false`: the decimal calculation looks simple, yet the operands are in approximate binary form.
+5. `Math.ulp(1.0)` measures the distance to the adjacent `double` near `1.0`.
+6. `double infinity: true`: multiplication exceeding the largest finite number leads to `+Infinity`; this is **floating-point overflow**, distinct from rounding away `+1`.
+7. `BigDecimal` sums the input decimals exactly. However, the division `1 / 3` has no finite decimal expansion, so precision and rounding rules must be chosen deliberately.
 
-## 4. Precision, scale và rounding của BigDecimal có giống float/double không?
+## 4. Are BigDecimal's Precision, Scale, and Rounding Like float/double?
 
-`BigDecimal` lưu một **số nguyên không chia tỷ lệ** cùng với `scale` (số chữ số thập phân theo cách biểu diễn cơ số 10). Nó không chịu độ chính xác nhị phân cố định 24/53 bit như `float` và `double`:
+`BigDecimal` stores an **unscaled integer** together with a `scale` (number of decimal digits in base-10 representation). It is not bound to fixed 24/53-bit binary precision like `float` and `double`:
 
-- `new BigDecimal("123.4500").precision()` = `7`: có bảy chữ số trong số nguyên không chia tỷ lệ `1234500`.
-- `new BigDecimal("123.4500").scale()` = `4`: có bốn vị trí sau dấu phẩy theo biểu diễn đang giữ.
-- `precision` **khác** `scale`. Một giá trị có thể có scale lớn mà không có nhiều chữ số có nghĩa, hoặc ngược lại.
-- Không truyền `MathContext` thì phép cộng/trừ/nhân `BigDecimal` thường cho kết quả thập phân chính xác, với giới hạn thực tế về bộ nhớ và độ lớn scale. Chia một số cho một số khác mà có phần thập phân vô hạn, như `1 / 3`, cần chỉ rõ `MathContext` hoặc scale và `RoundingMode`; nếu dùng `divide` đòi hỏi kết quả chính xác mà không thể kết thúc, Java ném `ArithmeticException`.
-- Khi cần làm tròn để hiển thị tiền có hai chữ số sau dấu phẩy, có thể dùng `amount.setScale(2, RoundingMode.HALF_UP)` (chỉ là một chính sách làm tròn; quy định nghiệp vụ có thể yêu cầu cách khác).
-- `new BigDecimal("0.1")` giữ đúng số thập phân `0.1`. `new BigDecimal(0.1)` lại nhận **giá trị double nhị phân gần đúng**; vì vậy nên khởi tạo từ `String` hoặc một dạng nhập thập phân tin cậy. `BigDecimal.valueOf(0.1)` sử dụng biểu diễn chuỗi của `double`, nhưng không thể khôi phục thông tin đã mất nếu dữ liệu bị làm tròn từ trước.
+- `new BigDecimal("123.4500").precision()` = `7`: there are seven digits in the unscaled integer `1234500`.
+- `new BigDecimal("123.4500").scale()` = `4`: there are four positions after the decimal point in the stored representation.
+- `precision` is **different from** `scale`. A value can have a large scale without having many significant digits, or vice versa.
+- Without passing a `MathContext`, `BigDecimal` addition/subtraction/multiplication generally yields exact decimal results, subject to practical memory and scale limits. Dividing one number by another with an infinite decimal part, like `1 / 3`, requires specifying a `MathContext` or scale and `RoundingMode`; using `divide` requesting an exact result when it cannot terminate causes Java to throw `ArithmeticException`.
+- When needing to round for displaying money with two decimal places, `amount.setScale(2, RoundingMode.HALF_UP)` can be used (just one rounding policy; business rules may require a different one).
+- `new BigDecimal("0.1")` keeps the exact decimal `0.1`. `new BigDecimal(0.1)` instead receives the **approximate binary double value**; thus you should construct from `String` or a trusted decimal input form. `BigDecimal.valueOf(0.1)` uses the string representation of `double`, but cannot recover information already lost if data was rounded beforehand.
 
-`BigDecimal.equals` còn xét cả scale: `new BigDecimal("1.0").equals(new BigDecimal("1.00"))` là `false`, trong khi `compareTo` cho kết quả `0` vì hai giá trị bằng nhau về mặt số học. Đây là vấn đề **ngữ nghĩa biểu diễn và so sánh**, không phải khác phạm vi.
+`BigDecimal.equals` also inspects scale: `new BigDecimal("1.0").equals(new BigDecimal("1.00"))` is `false`, whereas `compareTo` returns `0` because the two values are numerically equal. This is a matter of **representation and comparison semantics**, not a difference in range.
 
-`BigInteger` giải quyết bài toán **phạm vi số nguyên** khi `long` không đủ; `BigDecimal` giải quyết bài toán **biểu diễn thập phân và kiểm soát làm tròn**. Cả hai vẫn chịu giới hạn tài nguyên thực tế.
+`BigInteger` solves the **integer range** problem when `long` is not enough; `BigDecimal` solves the **decimal representation and rounding control** problem. Both remain subject to practical resource limits.
 
-## 5. Chọn kiểu dữ liệu đúng theo yêu cầu
+## 5. Choosing the Right Data Type Based on Requirements
 
-| Nhu cầu | Gợi ý | Lý do |
+| Need | Suggestion | Reason |
 | --- | --- | --- |
-| Đếm, chỉ số, số lượng nằm trong miền `int` | `int` | Mọi số nguyên hợp lệ đều chính xác, chi phí gọn |
-| Số nguyên lớn hơn miền `int` nhưng vừa `long` | `long` | Mở rộng phạm vi; nhớ tính bằng toán hạng `long` trước khi tràn |
-| Số nguyên lớn hơn cả `long` | `BigInteger` | Không có giới hạn cố định 64 bit |
-| Đo lường, mô phỏng, tính toán khoa học chấp nhận sai số | Thường là `double` | Phạm vi rộng và độ chính xác nhị phân cao hơn `float` |
-| Tối ưu bộ nhớ cho dữ liệu thực lớn khi sai số chấp nhận được | `float` sau khi đánh giá sai số | 32 bit nhưng độ chính xác thấp hơn `double` |
-| Tiền tệ, thuế, giá và quy tắc làm tròn thập phân | `BigDecimal`, với scale/rounding được quy định | Tránh sai lệch do biểu diễn nhị phân của `0.1`, `0.2` |
-| Lưu tiền ở đơn vị nhỏ nhất, ví dụ số xu, khi miền giá trị cho phép | `long` hoặc `int` | Số nguyên chính xác; phải quy định đơn vị và xử lý chuyển đổi |
+| Counts, indices, quantities within `int` range | `int` | Every valid integer is exact, compact cost |
+| Integers larger than `int` range yet fitting `long` | `long` | Widens range; remember to compute with `long` operands before overflow |
+| Integers larger than even `long` | `BigInteger` | No fixed 64-bit limit |
+| Measurements, simulations, scientific calculations tolerating error | Usually `double` | Wider range and higher binary precision than `float` |
+| Memory optimization for large real datasets when error is acceptable | `float` after evaluating error | 32-bit, though lower precision than `double` |
+| Currency, taxes, prices, and decimal rounding rules | `BigDecimal`, with specified scale/rounding | Avoids inaccuracies from binary representation of `0.1`, `0.2` |
+| Storing money in smallest unit, e.g., cents, when range permits | `long` or `int` | Exact integer; must specify unit and handle conversions |
 
-Khi xử lý `double`/`float`, tránh so sánh `==` nếu ý định là “gần bằng về mặt toán học” sau tính toán. Có thể dùng sai số tuyệt đối và/hoặc tương đối theo miền giá trị; ngưỡng sai số phải xuất phát từ yêu cầu bài toán. `Math.ulp(value)` hữu ích khi muốn hiểu độ phân giải của biểu diễn tại một giá trị nhất định. Ngoại lệ: so sánh chính xác vẫn hợp lệ khi đó là đúng ngữ nghĩa mong muốn (ví dụ kiểm tra một giá trị đã được gán trực tiếp hoặc kiểm tra cờ trạng thái đặc biệt).
+When working with `double`/`float`, avoid `==` comparisons if the intent is "mathematically close" after calculation. Absolute and/or relative error can be used according to value range; the error threshold must derive from problem requirements. `Math.ulp(value)` is useful when wanting to understand the representation's resolution at a given value. Exception: exact comparison remains valid when that is the exact intended semantics (e.g., checking a directly assigned value or checking a special status flag).
 
-## 6. Các nhầm lẫn thường gặp
+## 6. Common Misconceptions
 
-1. **“`double` có phạm vi lớn hơn `long` nên lưu chính xác mọi `long`.”** Sai: từ `2^53 + 1` trở đi, không phải mọi số nguyên kề nhau đều phân biệt được bằng `double`. Ép một `long` lớn sang `double` có thể làm mất chữ số dù không overflow.
-2. **“`double` chính xác đến 16 chữ số thập phân sau dấu phẩy.”** Sai: thường nói đến khoảng 15–16 **chữ số có nghĩa**, và độ phân giải phụ thuộc độ lớn.
-3. **“`Double.MIN_VALUE` là số âm nhất.”** Sai: nó là số dương khác 0 nhỏ nhất; số âm hữu hạn thấp nhất là `-Double.MAX_VALUE`.
-4. **“Tính `0.1 + 0.2` sai do vượt phạm vi.”** Sai: đó là sai số biểu diễn/làm tròn trong miền; tràn số thực mới có thể tạo `Infinity`.
-5. **“Ép kiểu sau phép tính sẽ tránh overflow.”** Sai: `long result = (long) (Integer.MAX_VALUE + 1);` vẫn overflow ở phép cộng `int` trước khi ép. Cần `(long) Integer.MAX_VALUE + 1` hoặc `1L`.
-6. **“Thêm nhiều chữ số vào literal `double` sẽ làm nó chính xác tùy ý.”** Sai: một `double` chỉ giữ số bit phần trị cố định; cú pháp literal không mở rộng precision.
-7. **“`BigDecimal` luôn chia chính xác và không cần làm tròn.”** Sai đối với thương thập phân vô hạn, chẳng hạn `1 / 3`.
-8. **“`1 / 3` ra `0` vì `int` thiếu precision.”** Cần phân biệt: Java dùng **phép chia số nguyên** khi cả hai toán hạng là số nguyên, nên phần dư bị bỏ theo quy tắc phép toán. Viết `1.0 / 3` để thực hiện phép chia số thực, nhưng kết quả vẫn là xấp xỉ nhị phân.
+1. **"`double` has a wider range than `long` so it stores every `long` exactly."** False: from `2^53 + 1` onward, not every adjacent integer can be distinguished by `double`. Casting a large `long` to `double` can lose digits even without overflow.
+2. **"`double` is exact to 16 decimal places after the decimal point."** False: it typically refers to about 15–16 **significant digits**, and resolution depends on magnitude.
+3. **"`Double.MIN_VALUE` is the most negative number."** False: it is the smallest nonzero positive number; the lowest finite negative number is `-Double.MAX_VALUE`.
+4. **"Computing `0.1 + 0.2` is wrong because it exceeded range."** False: that is representation/rounding error within range; floating-point overflow is what can produce `Infinity`.
+5. **"Casting after the calculation avoids overflow."** False: `long result = (long) (Integer.MAX_VALUE + 1);` still overflows in the `int` addition before the cast. `(long) Integer.MAX_VALUE + 1` or `1L` is needed.
+6. **"Adding more digits to a `double` literal makes it arbitrarily precise."** False: a `double` holds only a fixed number of significand bits; literal syntax does not expand precision.
+7. **"`BigDecimal` always divides exactly and needs no rounding."** False for non-terminating decimal quotients, such as `1 / 3`.
+8. **"`1 / 3` gives `0` because `int` lacks precision."** Distinguish carefully: Java uses **integer division** when both operands are integers, so the remainder is discarded by the operation's rules. Write `1.0 / 3` to perform floating-point division, though the result is still a binary approximation.
 
-## 7. Tự kiểm tra
+## 7. Self-Check
 
-- Nếu muốn lưu mọi số nguyên từ `0` đến `1_000_000_000` một cách chính xác, `int` có đủ **phạm vi** không? **Có**, và các giá trị hợp lệ đều biểu diễn chính xác.
-- `double` có thể lưu giá trị khoảng `10^100` không? **Có**, vì nằm trong phạm vi hữu hạn; nhưng không có nghĩa giữ chính xác mọi chữ số của giá trị đó.
-- Vì sao `16_777_216f + 1 == 16_777_216f`? **Vì độ phân giải của `float` ở vùng đó không còn phân biệt bước tăng 1**, dù chưa vượt phạm vi.
-- Khi cần tính `0.1 + 0.2` chính xác bằng thập phân trong nghiệp vụ tiền, nên dùng gì? **`BigDecimal` khởi tạo từ chuỗi thập phân**, cùng chính sách làm tròn rõ ràng khi cần.
+- If we want to store every integer from `0` to `1_000_000_000` exactly, does `int` have enough **range**? **Yes**, and all valid values are represented exactly.
+- Can `double` store a value around `10^100`? **Yes**, because it lies in the finite range; however, that does not mean preserving every digit of that value exactly.
+- Why is `16_777_216f + 1 == 16_777_216f`? **Because `float`'s resolution in that region can no longer distinguish a step of 1**, even though it has not exceeded range.
+- When needing to compute `0.1 + 0.2` in exact decimal for monetary business logic, what should be used? **`BigDecimal` initialized from a decimal string**, along with clear rounding policies when needed.
 
-**Ghi nhớ:** *Phạm vi* nói về **giá trị xa đến đâu**; *độ chính xác* nói về **các giá trị gần nhau phân biệt được đến mức nào**. Với số nguyên Java, mọi giá trị trong miền đều chính xác; với số dấu phẩy động, miền có thể cực rộng nhưng độ phân giải hữu hạn và thay đổi theo độ lớn.
+**Takeaway:** *Range* tells **how far values can reach**; *precision* tells **how closely spaced values can be distinguished**. For Java integers, every value within range is exact; for floating-point numbers, the range can be vast yet resolution is finite and varies with magnitude.

@@ -1,56 +1,56 @@
-# Method metadata: tên, lớp khai báo và kiểu trả về trong Java Reflection
+# Method metadata: name, declaring class, and return type in Java Reflection
 
-Một đối tượng `java.lang.reflect.Method` mô tả **một phương thức** của một lớp hoặc interface. Khi viết công cụ phân tích mã, framework, mapper, bộ sinh tài liệu hay công cụ kiểm thử, ba thông tin thường cần đọc trước tiên là:
+A `java.lang.reflect.Method` object describes **a method** of a class or interface. When writing code analysis tools, frameworks, mappers, documentation generators, or testing tools, the three pieces of information most often needed first are:
 
-- **Tên phương thức**: `method.getName()`.
-- **Lớp hoặc interface khai báo phương thức**: `method.getDeclaringClass()`.
-- **Kiểu trả về được khai báo**: `method.getReturnType()`.
+- **Method name**: `method.getName()`.
+- **Class or interface that declares the method**: `method.getDeclaringClass()`.
+- **Declared return type**: `method.getReturnType()`.
 
-Ba thuộc tính này là **metadata về phương thức**, không phải kết quả chạy phương thức. Chúng không cần gọi `Method.invoke()` để có giá trị. Tuy nhiên, rất dễ hiểu sai “lớp khai báo” thành “lớp đang được truy vấn” hoặc “lớp của đối tượng nhận”, và hiểu sai “kiểu trả về” thành “kiểu runtime của giá trị được trả về”. Bài học làm rõ các ranh giới đó.
+These three properties are **metadata about the method**, not the result of running the method. They do not require calling `Method.invoke()` to obtain a value. However, it is very easy to confuse the "declaring class" with the "class being queried" or the "class of the receiver object", and to confuse the "return type" with the "runtime type of the returned value". This lesson clarifies those boundaries.
 
-## 1. Method là gì và lấy Method ở đâu?
+## 1. What is Method and where do we get a Method?
 
-`Method` thuộc package `java.lang.reflect`, biểu diễn thông tin về phương thức đã được JVM nạp. Thường lấy nó từ một đối tượng `Class<?>`:
+`Method` belongs to the `java.lang.reflect` package and represents information about a method loaded by the JVM. It is usually obtained from a `Class<?>` object:
 
 ```java
 Method publicMethod = Example.class.getMethod("run");
 Method declaredMethod = Example.class.getDeclaredMethod("run");
 ```
 
-Đây là đoạn mã minh họa trong ngữ cảnh đã có lớp `Example` với phương thức phù hợp và đã import `Method`; hai lời gọi có thể ném `NoSuchMethodException`.
+This is an illustrative snippet in a context where an `Example` class with a matching method already exists and `Method` is imported; both calls can throw `NoSuchMethodException`.
 
-Hai API tra cứu không đồng nghĩa:
+The two lookup APIs are not synonymous:
 
-| API của `Class` | Phạm vi tìm |
+| `Class` API | Search scope |
 | --- | --- |
-| `getMethod(name, parameterTypes...)` | Phương thức **public** của kiểu, có thể bao gồm phương thức thừa kế từ superclass/superinterface |
-| `getDeclaredMethod(name, parameterTypes...)` | Phương thức **được khai báo trực tiếp tại chính kiểu**, bất kể `public`, `protected`, package-private hay `private`; không tìm trong superclass |
-| `getMethods()` | Mảng các phương thức public của kiểu và các phương thức được thừa kế theo hợp đồng API |
-| `getDeclaredMethods()` | Mảng phương thức được khai báo trực tiếp tại kiểu, không gồm các phương thức thừa kế |
+| `getMethod(name, parameterTypes...)` | **Public** methods of the type, which may include methods inherited from a superclass/superinterface |
+| `getDeclaredMethod(name, parameterTypes...)` | Methods **declared directly on the type itself**, regardless of `public`, `protected`, package-private, or `private`; does not search superclasses |
+| `getMethods()` | Array of public methods of the type and inherited methods according to the API contract |
+| `getDeclaredMethods()` | Array of methods declared directly on the type, excluding inherited methods |
 
-Thứ tự các phần tử của `getMethods()` và `getDeclaredMethods()` **không được bảo đảm là thứ tự khai báo trong source**. Với một phương thức cần xác định chính xác, nên tìm bằng tên và danh sách kiểu tham số; với nhiều phương thức cần trình bày ổn định, tự sắp xếp theo một khóa thích hợp.
+The order of elements in `getMethods()` and `getDeclaredMethods()` is **not guaranteed to be the declaration order in source code**. For a specific method that must be identified accurately, look it up by name and parameter type list; for multiple methods that need a stable presentation, sort them yourself by an appropriate key.
 
-Lấy được metadata của một phương thức `private` qua `getDeclaredMethod` **không** tự động cấp quyền gọi phương thức ấy. Việc kiểm tra quyền truy cập khi `invoke` là vấn đề riêng.
+Obtaining metadata of a `private` method via `getDeclaredMethod` does **not** automatically grant permission to call that method. Access control checks during `invoke` are a separate concern.
 
-## 2. Ba API metadata cốt lõi
+## 2. Three core metadata APIs
 
-### 2.1. getName(): tên đơn giản của phương thức
+### 2.1. getName(): simple name of the method
 
-`String name = method.getName();` trả về **tên phương thức**, ví dụ `"save"`, `"count"`, `"toString"`.
+`String name = method.getName();` returns the **method name**, for example `"save"`, `"count"`, `"toString"`.
 
-Giá trị chỉ là tên:
+The value is only the name:
 
-- Không chứa tên package hay declaring class.
-- Không bao gồm dấu ngoặc tròn, danh sách tham số hoặc kiểu trả về.
-- Không đảm bảo phương thức là duy nhất: các overload `parse(String)` và `parse(int)` đều trả `"parse"`.
+- It does not contain the package name or declaring class.
+- It does not include parentheses, parameter list, or return type.
+- It does not guarantee the method is unique: overloads `parse(String)` and `parse(int)` both return `"parse"`.
 
-Muốn định danh overload, kết hợp `getName()` với `getParameterTypes()` (thứ tự tham số là quan trọng). Khi cần thêm metadata cho tài liệu, có thể sử dụng `getModifiers()`, `getGenericParameterTypes()`, `getAnnotations()`... tùy mục đích, nhưng **tên đơn thuần chưa tạo thành chữ ký đầy đủ**.
+To identify an overload, combine `getName()` with `getParameterTypes()` (parameter order is important). When additional metadata is needed for documentation, you can use `getModifiers()`, `getGenericParameterTypes()`, `getAnnotations()`, etc. depending on the purpose, but **the simple name alone does not form a complete signature**.
 
-### 2.2. getDeclaringClass(): kiểu thực sự khai báo phương thức
+### 2.2. getDeclaringClass(): the type that actually declares the method
 
-`Class<?> owner = method.getDeclaringClass();` trả về đối tượng `Class` của **lớp hoặc interface khai báo** phương thức mà `Method` đó biểu diễn.
+`Class<?> owner = method.getDeclaringClass();` returns the `Class` object of the **class or interface that declares** the method represented by that `Method`.
 
-Ví dụ:
+Example:
 
 ```java
 class Parent {
@@ -59,36 +59,36 @@ class Parent {
 class Child extends Parent {}
 ```
 
-Đây là mã minh họa; giả định hai lớp ở ngữ cảnh truy cập hợp lệ.
+This is illustrative code; assume the two classes are in a valid access context.
 
-Nếu tra cứu `Child.class.getMethod("work")`, ta được metadata của phương thức `work` **khai báo trong `Parent`**. Bởi vậy:
+If you look up `Child.class.getMethod("work")`, you get metadata for the `work` method **declared in `Parent`**. Therefore:
 
 ```java
 Method m = Child.class.getMethod("work");
 System.out.println(m.getDeclaringClass() == Parent.class); // true
 ```
 
-Mặc dù bắt đầu bằng `Child.class`, kết quả vẫn là `Parent.class`, vì `Child` **thừa kế** phương thức chứ không khai báo phương thức mới.
+Even though the lookup starts with `Child.class`, the result is still `Parent.class`, because `Child` **inherits** the method rather than declaring a new one.
 
-Cần phân biệt ba khái niệm:
+Three concepts must be distinguished:
 
-| Khái niệm | Cách lấy | Trong ví dụ Child thừa kế Parent.work() |
+| Concept | How to obtain | In the example where Child inherits Parent.work() |
 | --- | --- | --- |
-| Kiểu được dùng để bắt đầu truy vấn | Đối tượng `Class` gọi `getMethod` | `Child.class` |
-| Kiểu khai báo phương thức được phản chiếu | `Method.getDeclaringClass()` | `Parent.class` |
-| Kiểu runtime của receiver khi sử dụng | `receiver.getClass()` | Có thể là `Child.class` hoặc subtype khác |
+| Type used to start the query | `Class` object calling `getMethod` | `Child.class` |
+| Type declaring the reflected method | `Method.getDeclaringClass()` | `Parent.class` |
+| Runtime type of the receiver when used | `receiver.getClass()` | Could be `Child.class` or another subtype |
 
-**Đừng nhầm** `Method.getDeclaringClass()` với `Class.getDeclaringClass()`: cùng tên nhưng gọi trên hai đối tượng khác loại. `Class.getDeclaringClass()` nói về *lớp bên ngoài khai báo một member class*, không phải chủ sở hữu của một phương thức.
+**Do not confuse** `Method.getDeclaringClass()` with `Class.getDeclaringClass()`: they share the same name but are called on two different kinds of objects. `Class.getDeclaringClass()` refers to *the enclosing class that declares a member class*, not the owner of a method.
 
-Với method được khai báo trong interface, `getDeclaringClass()` có thể trả chính **interface** ấy. Với method được override, một `Method` thuộc lớp con sẽ trả lớp con. Nếu lấy một `Method` trực tiếp từ lớp cha, metadata vẫn có owner là lớp cha ngay cả khi thực thi trên receiver lớp con sử dụng dynamic dispatch.
+For a method declared in an interface, `getDeclaringClass()` can return that **interface** itself. For an overridden method, a `Method` belonging to the subclass returns the subclass. If a `Method` is obtained directly from the superclass, its metadata still has the superclass as owner even when executed on a subclass receiver using dynamic dispatch.
 
-### 2.3. getReturnType(): kiểu trả về hình thức
+### 2.3. getReturnType(): formal return type
 
-`Class<?> returnType = method.getReturnType();` trả về một đối tượng `Class` biểu diễn **kiểu trả về theo khai báo** của phương thức đó.
+`Class<?> returnType = method.getReturnType();` returns a `Class` object representing the **declared return type** of that method.
 
-Ví dụ:
+Examples:
 
-| Khai báo | `getReturnType()` |
+| Declaration | `getReturnType()` |
 | --- | --- |
 | `int count()` | `int.class` |
 | `String name()` | `String.class` |
@@ -96,15 +96,15 @@ Ví dụ:
 | `String[] labels()` | `String[].class` |
 | `List<String> tags()` | `List.class` |
 
-**Điểm quan trọng:** `void` được biểu diễn bằng `void.class` (hoặc `Void.TYPE`), **không** phải `null` và cũng không phải `Void.class`. `Void.class` là một lớp wrapper đặc biệt, khác với kiểu `void` của khai báo method.
+**Important point:** `void` is represented by `void.class` (or `Void.TYPE`), **not** `null` and not `Void.class`. `Void.class` is a special wrapper class, different from the `void` type of a method declaration.
 
-Khi method khai báo kiểu tham chiếu `Number` nhưng ở runtime trả đối tượng `Integer`, `getReturnType()` vẫn trả `Number.class`: metadata mô tả **khai báo**, không quan sát hoặc chạy method để suy ra kiểu của giá trị. Với phương thức generic như `List<String> tags()`, `getReturnType()` trả `List.class` sau **type erasure**, không lưu được type argument `String` trong chính đối tượng `Class` đó.
+When a method declares a reference type `Number` but at runtime returns an `Integer` object, `getReturnType()` still returns `Number.class`: metadata describes the **declaration**, without observing or running the method to infer the value's type. For a generic method such as `List<String> tags()`, `getReturnType()` returns `List.class` after **type erasure**, without storing the `String` type argument inside that `Class` object itself.
 
-## 3. Ví dụ Java 17+ đầy đủ, chạy độc lập
+## 3. Complete, standalone Java 17+ example
 
-Ví dụ sau cố tình có phương thức thừa kế, override, generic return type, `void`, primitive return type và overload. Nó truy vấn từng method theo tên/chữ ký, nên đầu ra không phụ thuộc thứ tự mảng Reflection.
+The following example intentionally includes an inherited method, an overridden method, a generic return type, `void`, a primitive return type, and overloads. It queries each method by name/signature, so the output does not depend on Reflection array ordering.
 
-Tạo tệp `MethodMetadataDemo.java`:
+Create the file `MethodMetadataDemo.java`:
 
 ```java
 import java.lang.reflect.Method;
@@ -187,7 +187,7 @@ public class MethodMetadataDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac MethodMetadataDemo.java
@@ -208,25 +208,25 @@ parentStatus owner=Parent
 parentStatus invoked=child
 ```
 
-Giải thích các dòng tiêu biểu:
+Explanation of notable lines:
 
-1. `Child.class.getMethod("inherited")` tìm được phương thức `public inherited()` do **Parent** khai báo. Vì vậy `getDeclaringClass().getSimpleName()` là `Parent`, không phải `Child`.
-2. `Child.class.getMethod("status")` tìm phương thức **override do Child khai báo**, nên owner là `Child`.
-3. Với `tags()`, `getReturnType().getTypeName()` là `java.util.List`; dùng `getGenericReturnType()` mới thấy thông tin `java.util.List<java.lang.String>`.
-4. `count()` trả kiểu nguyên thủy `int`; `refresh()` có kiểu trả về `void`. Cả hai đều có một `Class` hợp lệ biểu diễn kiểu này.
-5. `getDeclaredMethod("parse", String.class)` chọn overload có tham số `String`, còn overload `parse(int)` mang cùng tên nhưng chữ ký khác.
-6. `parentStatus` là đối tượng `Method` lấy trực tiếp từ `Parent`, nên owner của nó vẫn là `Parent`; tuy nhiên `parentStatus.invoke(new Child())` gọi implementation override của `Child` và trả `"child"`. **Declaring class của metadata** và **implementation được dispatch tại runtime** có thể khác nhau.
+1. `Child.class.getMethod("inherited")` finds the `public inherited()` method declared by **Parent**. Therefore `getDeclaringClass().getSimpleName()` is `Parent`, not `Child`.
+2. `Child.class.getMethod("status")` finds the **overriding method declared by Child**, so the owner is `Child`.
+3. For `tags()`, `getReturnType().getTypeName()` is `java.util.List`; using `getGenericReturnType()` reveals the `java.util.List<java.lang.String>` information.
+4. `count()` returns the primitive type `int`; `refresh()` has return type `void`. Both have a valid `Class` representing that type.
+5. `getDeclaredMethod("parse", String.class)` selects the overload with the `String` parameter, whereas the `parse(int)` overload has the same name but a different signature.
+6. `parentStatus` is a `Method` object obtained directly from `Parent`, so its owner remains `Parent`; however, `parentStatus.invoke(new Child())` invokes the overridden implementation of `Child` and returns `"child"`. **The declaring class of the metadata** and **the implementation dispatched at runtime** can differ.
 
-Ví dụ được bố trí để mỗi thông tin được in từ một method xác định. Nếu thay các lời gọi này bằng vòng lặp trên `getDeclaredMethods()`, hãy tự sắp xếp trước khi yêu cầu thứ tự output cố định.
+The example is arranged so that each piece of information is printed from a specific method. If you replace these calls with a loop over `getDeclaredMethods()`, sort them first if you require a deterministic output order.
 
-## 4. getReturnType() và getGenericReturnType() khác nhau thế nào?
+## 4. How do getReturnType() and getGenericReturnType() differ?
 
-Hai API cùng mô tả **kiểu trả về đã khai báo**, nhưng có mức thông tin khác nhau:
+Both APIs describe the **declared return type**, but with different levels of detail:
 
-- `getReturnType()` có kiểu Java là `Class<?>`. Nó biểu diễn **kiểu erased/raw** sau khi áp dụng quy tắc erasure cho generic.
-- `getGenericReturnType()` có kiểu Java là `java.lang.reflect.Type`. Nó giữ thông tin chữ ký generic khi có, chẳng hạn `ParameterizedType`, `TypeVariable`, `GenericArrayType` hoặc `Class`.
+- `getReturnType()` has Java type `Class<?>`. It represents the **erased/raw type** after applying erasure rules for generics.
+- `getGenericReturnType()` has Java type `java.lang.reflect.Type`. It preserves generic signature information when present, such as `ParameterizedType`, `TypeVariable`, `GenericArrayType`, or `Class`.
 
-Ví dụ:
+Example:
 
 ```java
 public List<String> tags() {
@@ -234,9 +234,9 @@ public List<String> tags() {
 }
 ```
 
-Trong ngữ cảnh ví dụ chạy ở mục 3, `tags.getReturnType()` là `List.class`, còn `tags.getGenericReturnType().getTypeName()` in ra `java.util.List<java.lang.String>`.
+In the context of the runnable example in section 3, `tags.getReturnType()` is `List.class`, while `tags.getGenericReturnType().getTypeName()` prints `java.util.List<java.lang.String>`.
 
-Một ví dụ generic khác:
+Another generic example:
 
 ```java
 class Box<T> {
@@ -246,52 +246,52 @@ class Box<T> {
 }
 ```
 
-Đây là đoạn minh họa không độc lập. Với `Method` đại diện cho `Box.read()`, `getReturnType()` là `Object.class` vì `T` không có upper bound cụ thể, còn `getGenericReturnType()` biểu diễn **biến kiểu** `T`.
+This is a non-standalone illustrative snippet. For the `Method` representing `Box.read()`, `getReturnType()` is `Object.class` because `T` has no explicit upper bound, while `getGenericReturnType()` represents the **type variable** `T`.
 
-Nếu `SpecialBox extends Box<String>`, đừng mặc định `SpecialBox.class.getMethod("read").getGenericReturnType()` tự động biến `T` thành `String`: method đó vẫn có thể là metadata khai báo ở `Box`. Để suy ra `T` cụ thể từ subclass, một công cụ phân tích generic phải **resolve mapping type variable** qua hệ thống kiểu của superclass/interface.
+If `SpecialBox extends Box<String>`, do not assume `SpecialBox.class.getMethod("read").getGenericReturnType()` automatically turns `T` into `String`: that method can still be the metadata declared on `Box`. To infer the concrete `T` from a subclass, a generic analysis tool must **resolve the type variable mapping** through the superclass/interface type hierarchy.
 
-Khi xử lý `Type`, nên phân biệt `Class`, `ParameterizedType`, `TypeVariable`, `WildcardType`... theo đúng trường hợp thay vì ép mọi `Type` thành `Class`. Dùng `getTypeName()` giúp trình bày thông tin; đừng coi định dạng chuỗi này là giao thức lưu trữ/chữ ký ổn định do ứng dụng tự phát minh.
+When handling `Type`, distinguish `Class`, `ParameterizedType`, `TypeVariable`, `WildcardType`, etc. according to each case instead of casting every `Type` to `Class`. Using `getTypeName()` helps display information; do not treat this string format as a stable storage/signature protocol invented by the application.
 
-Nếu chỉ cần phân nhánh theo kiểu runtime đã bị erasure, `getReturnType()` thường đủ. Nếu muốn dựng tài liệu API, phân tích generic hoặc mapper phân biệt `List<String>` với `List<Integer>`, phải xét `getGenericReturnType()` và ngữ cảnh tổng quát hơn.
+If you only need to branch on the erased runtime type, `getReturnType()` is usually sufficient. If you want to build API documentation, perform generic analysis, or create mappers that distinguish `List<String>` from `List<Integer>`, you must inspect `getGenericReturnType()` and the broader context.
 
-## 5. Thừa kế, override và dynamic dispatch
+## 5. Inheritance, overriding, and dynamic dispatch
 
-Ba khái niệm sau không nên bị nhập làm một:
+The following three concepts should not be conflated:
 
-**Một: kiểu đang truy vấn.** Người viết code có thể bắt đầu bằng `Child.class.getMethod("inherited")`, nhưng truy vấn qua lớp con không có nghĩa mọi `Method` tìm được đều được khai báo ở lớp con.
+**One: the queried type.** Code may start with `Child.class.getMethod("inherited")`, but querying through the subclass does not mean every `Method` found is declared in the subclass.
 
-**Hai: kiểu khai báo.** `method.getDeclaringClass()` là lớp/interface **có khai báo tương ứng** mà Method biểu diễn. Với phương thức inherited không override, thường là lớp cha; với phương thức override được khai báo tại child, là child.
+**Two: the declaring type.** `method.getDeclaringClass()` is the class/interface **containing the corresponding declaration** that the `Method` represents. For an inherited non-overridden method, this is usually the superclass; for an overridden method declared in the child, it is the child.
 
-**Ba: implementation được thực thi.** Với instance method sử dụng virtual dispatch, một `Method` trỏ tới khai báo ở lớp cha vẫn có thể chạy implementation override của lớp con khi nhận một object lớp con. Đây là lý do trong ví dụ `parentStatus.getDeclaringClass() == Parent.class` nhưng `parentStatus.invoke(new Child())` trả `"child"`.
+**Three: the executed implementation.** For an instance method using virtual dispatch, a `Method` pointing to a declaration in the superclass can still execute the subclass's overridden implementation when given a subclass object. That is why in the example `parentStatus.getDeclaringClass() == Parent.class`, yet `parentStatus.invoke(new Child())` returns `"child"`.
 
-Không nên giải thích `getDeclaringClass()` như “lớp định nghĩa implementation thực sự đã chạy”. Trước khi invoke, API chỉ cho biết metadata; dispatch lúc chạy còn tùy loại method (`static`, instance, private...) và receiver.
+Do not explain `getDeclaringClass()` as "the class that defines the implementation that actually ran". Before invocation, the API only provides metadata; runtime dispatch also depends on the kind of method (`static`, instance, private, etc.) and the receiver.
 
-Với interface, `getDeclaringClass()` có thể trả về interface định nghĩa phương thức. Chẳng hạn method khai báo trong interface `Task` có owner là `Task.class`, dù một lớp cụ thể triển khai `Task`.
+For interfaces, `getDeclaringClass()` can return the interface that defines the method. For example, a method declared in interface `Task` has owner `Task.class`, even when a concrete class implements `Task`.
 
-## 6. Overload, override, bridge và synthetic methods
+## 6. Overloading, overriding, bridge, and synthetic methods
 
-**Overload**: nhiều method cùng tên nhưng khác danh sách kiểu tham số. Hai method `parse(String)` và `parse(int)` có cùng kết quả `getName() == "parse"`. Để tìm đúng một method, truyền `Class<?>...` cho `getMethod` hoặc `getDeclaredMethod`:
+**Overloading**: multiple methods with the same name but different parameter type lists. Both `parse(String)` and `parse(int)` produce the same `getName() == "parse"` result. To find a specific one, pass `Class<?>...` to `getMethod` or `getDeclaredMethod`:
 
 ```java
 Method byText = Child.class.getDeclaredMethod("parse", String.class);
 Method byCode = Child.class.getDeclaredMethod("parse", int.class);
 ```
 
-Đoạn trên nằm trong ngữ cảnh lớp `Child` ở ví dụ đầy đủ, với `Method` được import và xử lý `NoSuchMethodException` ở caller. Nếu bỏ tham số khi tìm phương thức `parse`, Java sẽ tìm `parse()` **không tham số**, chứ không tự chọn một overload bất kỳ.
+The snippet above is in the context of the `Child` class in the full example, with `Method` imported and `NoSuchMethodException` handled by the caller. If you omit parameter types when looking up `parse`, Java looks for a **no-argument** `parse()`, rather than picking an arbitrary overload.
 
-**Override**: một phương thức ở lớp con tái định nghĩa phương thức từ lớp cha. Mỗi khai báo có thể được biểu diễn bằng `Method` riêng, với `getDeclaringClass()` tương ứng. Override có thể dùng **covariant return type** (ví dụ lớp cha khai báo `Number measure()`, lớp con override bằng `Integer measure()`): khi phản chiếu đúng từng khai báo, `getReturnType()` cũng phản ánh kiểu khai báo tương ứng.
+**Overriding**: a method in a subclass redefines a method from a superclass. Each declaration can be represented by its own `Method`, with the corresponding `getDeclaringClass()`. Overriding can use a **covariant return type** (for example, the superclass declares `Number measure()` and the subclass overrides with `Integer measure()`): when reflecting each declaration accurately, `getReturnType()` also reflects the corresponding declared type.
 
-**Bridge/synthetic**: compiler đôi khi sinh thêm method ở bytecode để duy trì polymorphism khi dùng generics hoặc covariant returns. Bởi vậy `getDeclaredMethods()` có thể hiển thị nhiều method hơn danh sách người đọc nhìn thấy trong source. Khi phân tích method để sinh tài liệu hoặc đăng ký handler, có thể cần kiểm tra `method.isBridge()` và `method.isSynthetic()`, kết hợp `getParameterTypes()` và `getReturnType()`; không nên coi tên là khóa duy nhất.
+**Bridge/synthetic**: the compiler sometimes generates extra methods in bytecode to preserve polymorphism when using generics or covariant returns. As a result, `getDeclaredMethods()` can show more methods than the list a reader sees in source code. When analyzing methods to generate documentation or register handlers, you may need to check `method.isBridge()` and `method.isSynthetic()`, combining `getParameterTypes()` and `getReturnType()`; you should not treat the name as a unique key.
 
-Một số class file có thể chứa nhiều method có cùng tên và parameter types nhưng khác return type (ví dụ bridge). Theo hợp đồng `Class.getDeclaredMethod`, khi có nhiều ứng viên và có một kiểu trả về cụ thể hơn những ứng viên còn lại, API ưu tiên ứng viên đó; trường hợp khác có thể chọn một ứng viên. Đừng thiết kế mã phân tích bytecode dựa trên giả định rằng chỉ tên + params luôn phân biệt mọi method ở mức JVM.
+Some class files can contain multiple methods with the same name and parameter types but different return types (for example, bridge methods). Per the `Class.getDeclaredMethod` contract, when there are multiple candidates and one has a more specific return type than the others, the API prefers that candidate; in other cases it may select one of the candidates. Do not design bytecode analysis code based on the assumption that name + params alone always distinguishes every method at the JVM level.
 
-**Phương thức khởi tạo không phải Method**: constructor được phản chiếu bằng `Constructor<?>`, không có tên method `"<init>"` lấy từ `getDeclaredMethod`. Việc đọc `Method.getReturnType()` không áp dụng trực tiếp cho `Constructor` vì constructor không có return type kiểu phương thức thông thường.
+**Constructors are not Methods**: constructors are reflected using `Constructor<?>`; there is no method named `"<init>"` returned by `getDeclaredMethod`. Reading `Method.getReturnType()` does not apply directly to `Constructor` because constructors do not have a regular method return type.
 
-## 7. Ứng dụng thực tế: xây danh sách metadata có thứ tự
+## 7. Practical application: building an ordered metadata list
 
-Giả sử cần lập danh sách endpoint, handler hay lệnh từ các method. Tránh hai lỗi: dùng `getName()` làm ID duy nhất trong khi có overload, và dựa vào thứ tự trả về của `getDeclaredMethods()`.
+Suppose you need to list endpoints, handlers, or commands from methods. Avoid two mistakes: using `getName()` as a unique ID when overloads exist, and relying on the return order of `getDeclaredMethods()`.
 
-Ví dụ mã minh họa (không phải chương trình độc lập; giả định đã import `Arrays`, `Comparator`, `Method` và có `SomeClass`):
+Illustrative code example (not a standalone program; assumes `Arrays`, `Comparator`, and `Method` are imported and `SomeClass` exists):
 
 ```java
 Method[] methods = SomeClass.class.getDeclaredMethods();
@@ -313,61 +313,61 @@ for (Method method : methods) {
 }
 ```
 
-Ví dụ trên tạo thứ tự theo tên, danh sách kiểu tham số (ở dạng chuỗi minh họa) và kiểu trả về; nó **không khôi phục thứ tự khai báo trong source**. Nếu cần khóa định danh lâu dài, định nghĩa một phép mã hóa chữ ký nhất quán, có xét declaring type, method name, ordered parameter types và khi phù hợp cả return type/bridge information. Với mục đích hiển thị đơn giản, comparator ở trên đủ minh họa nguyên tắc.
+The example above orders by name, parameter type list (as an illustrative string), and return type; it **does not restore declaration order in source code**. If a long-lived identifier key is needed, define a consistent signature encoding that accounts for declaring type, method name, ordered parameter types, and when appropriate, return type/bridge information. For simple display purposes, the comparator above suffices to illustrate the principle.
 
-Khi xây một framework, cũng nên chủ động xác định có muốn bao gồm:
+When building a framework, you should also explicitly decide whether to include:
 
-- Method inherited từ superclass/interface hay chỉ method khai báo tại lớp đang xét;
-- Method `public` hay cả non-public;
-- Method bridge/synthetic do compiler tạo;
-- Method được override và các annotation xuất hiện trên từng khai báo.
+- Methods inherited from superclasses/interfaces or only methods declared on the inspected class;
+- `public` methods only or non-public methods as well;
+- Compiler-generated bridge/synthetic methods;
+- Overridden methods and the annotations present on each declaration.
 
-Các quyết định đó là quy tắc nghiệp vụ của công cụ, **không phải ý nghĩa riêng của `getName`, `getDeclaringClass` hay `getReturnType`**.
+Those decisions are business rules of your tool, **not the inherent meaning of `getName`, `getDeclaringClass`, or `getReturnType`**.
 
-## 8. Lỗi phổ biến và cách tránh
+## 8. Common mistakes and how to avoid them
 
-| Hiểu lầm | Sự thật |
+| Misconception | Reality |
 | --- | --- |
-| `Child.class.getMethod("x")` luôn có `getDeclaringClass() == Child.class` | Method có thể khai báo trong parent/interface rồi được thừa kế |
-| `getName()` cho biết cả chữ ký method | Chỉ cho biết **tên đơn giản**, không bao gồm tham số |
-| `getReturnType()` trả runtime class của giá trị trả về | Trả **kiểu khai báo**, không invoke method |
-| `getReturnType()` của `void` là `null` | Là `void.class` |
-| `getReturnType()` của `List<String>` giữ `String` | Chỉ có `List.class` sau erasure; dùng `getGenericReturnType()` khi cần generic metadata |
-| `getDeclaringClass()` cho biết implementation nào sẽ chạy | Metadata declaration và virtual dispatch là hai vấn đề riêng |
-| `getDeclaredMethods()` gồm method inherited | Không; chỉ gồm method khai báo trong chính kiểu |
-| Lấy được `private Method` nghĩa là gọi được | Metadata discovery không tự bỏ qua access checks |
-| Một method name tương ứng đúng một Method | Overload, compiler bridge/synthetic có thể khiến tên lặp |
-| Thứ tự của `getDeclaredMethods()` là thứ tự viết trong file Java | API không bảo đảm thứ tự ấy |
+| `Child.class.getMethod("x")` always has `getDeclaringClass() == Child.class` | The method may be declared in a parent/interface and inherited |
+| `getName()` gives the full method signature | It only gives the **simple name**, excluding parameters |
+| `getReturnType()` returns the runtime class of the returned value | It returns the **declared type**, without invoking the method |
+| `getReturnType()` of `void` is `null` | It is `void.class` |
+| `getReturnType()` of `List<String>` preserves `String` | Only `List.class` remains after erasure; use `getGenericReturnType()` when generic metadata is needed |
+| `getDeclaringClass()` tells which implementation will run | Declaration metadata and virtual dispatch are two separate matters |
+| `getDeclaredMethods()` includes inherited methods | No; it only includes methods declared in the type itself |
+| Obtaining a `private Method` means you can call it | Metadata discovery does not automatically bypass access checks |
+| One method name corresponds to exactly one Method | Overloading and compiler bridge/synthetic methods can repeat names |
+| The order of `getDeclaredMethods()` is the order written in the Java file | The API does not guarantee that order |
 
-Khi gọi `getMethod` hoặc `getDeclaredMethod` với tên/chữ ký không tìm thấy, `NoSuchMethodException` có thể được ném. Đây là ngoại lệ của **bước tra cứu**, không phải hậu quả của `getName()`, `getDeclaringClass()` hay `getReturnType()` sau khi đã có một đối tượng `Method` hợp lệ.
+When calling `getMethod` or `getDeclaredMethod` with a name/signature that is not found, `NoSuchMethodException` can be thrown. This is an exception of the **lookup step**, not a consequence of calling `getName()`, `getDeclaringClass()`, or `getReturnType()` after obtaining a valid `Method` object.
 
-Các lời gọi `Method.invoke` còn có thể bị kiểm tra quyền truy cập, ném `IllegalAccessException`, `InvocationTargetException` và các lỗi khác. Metadata không tự cho phép thực thi hay bảo đảm method chạy thành công.
+Calls to `Method.invoke` may also be subject to access checks, throwing `IllegalAccessException`, `InvocationTargetException`, and other errors. Metadata does not automatically grant execution permission or guarantee that the method will run successfully.
 
-## 9. Checklist và câu hỏi tự kiểm tra
+## 9. Checklist and self-check questions
 
-Trước khi dùng Method metadata trong chương trình, có thể kiểm tra theo thứ tự:
+Before using Method metadata in a program, you can check in order:
 
-1. Mình cần *method khai báo trực tiếp* hay cả *method kế thừa*? Chọn `getDeclaredMethod(s)` hoặc `getMethod(s)` tương ứng.
-2. Mình có cần phân biệt overload? Dùng tên cùng kiểu tham số theo thứ tự, đừng chỉ dùng `getName()`.
-3. Mình đang hỏi *declaring class* hay *kiểu runtime của receiver*? Chọn đúng nguồn metadata.
-4. Mình cần *return type erased* hay *generic return signature*? Dùng `getReturnType()` hoặc `getGenericReturnType()`.
-5. Mình có cần chạy method không? Nếu không, dừng ở metadata; nếu có, xử lý quyền truy cập, receiver và ngoại lệ riêng.
-6. Mình có đang dựa vào thứ tự liệt kê hoặc bỏ sót bridge/synthetic methods không? Chọn bộ lọc/sắp xếp tường minh.
+1. Do I need *directly declared methods* or also *inherited methods*? Choose `getDeclaredMethod(s)` or `getMethod(s)` accordingly.
+2. Do I need to distinguish overloads? Use the name together with ordered parameter types, not `getName()` alone.
+3. Am I asking for the *declaring class* or the *runtime type of the receiver*? Choose the right metadata source.
+4. Do I need the *erased return type* or the *generic return signature*? Use `getReturnType()` or `getGenericReturnType()`.
+5. Do I need to run the method? If not, stop at metadata; if so, handle access permissions, receiver, and exceptions separately.
+6. Am I relying on listing order or overlooking bridge/synthetic methods? Choose an explicit filter/sort.
 
-### Câu hỏi
+### Questions
 
-1. `Method.getName()` của `parse(String)` là gì? **`"parse"`**; không chứa `String`.
-2. Gọi `Child.class.getMethod("inherited")` đối với phương thức chỉ khai báo trong Parent, `getDeclaringClass()` là gì? **`Parent.class`**.
-3. `void refresh()` có `getReturnType()` bằng `null` không? **Không.** Kết quả là `void.class`.
-4. `List<String> tags()` có `getReturnType()` bằng `List<String>.class` không? **Không có class literal ấy**; kết quả là `List.class`, generic information nằm ở `getGenericReturnType()`.
-5. Một `Method` đại diện cho `Parent.status()` được invoke với receiver `Child` đã override, owner của Method có đổi không? **Không.** Owner vẫn `Parent`, dù virtual dispatch có thể chạy `Child.status()`.
-6. Muốn tìm `parse(int)` mà không bị nhầm `parse(String)`, dùng gì? **`getDeclaredMethod("parse", int.class)`** trong đúng lớp khai báo.
-7. Lấy metadata method bằng `getDeclaredMethod` có tự cho quyền gọi method `private` không? **Không.** Quyền truy cập khi thực thi được kiểm tra riêng.
+1. What is `Method.getName()` for `parse(String)`? **`"parse"`**; it does not contain `String`.
+2. Calling `Child.class.getMethod("inherited")` for a method declared only in `Parent`, what is `getDeclaringClass()`? **`Parent.class`**.
+3. Does `void refresh()` have `getReturnType()` equal to `null`? **No.** The result is `void.class`.
+4. Does `List<String> tags()` have `getReturnType()` equal to `List<String>.class`? **No such class literal exists**; the result is `List.class`, and generic information resides in `getGenericReturnType()`.
+5. A `Method` representing `Parent.status()` is invoked with a `Child` receiver that overrides it; does the Method's owner change? **No.** The owner remains `Parent`, even though virtual dispatch may execute `Child.status()`.
+6. To find `parse(int)` without confusing it with `parse(String)`, what should you use? **`getDeclaredMethod("parse", int.class)`** on the declaring class.
+7. Does obtaining method metadata via `getDeclaredMethod` automatically grant permission to call a `private` method? **No.** Execution access permissions are checked separately.
 
-## 10. Tài liệu tham khảo chính thức
+## 10. Official references
 
-- [Oracle Java SE 21 — `java.lang.reflect.Method`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Method.html): định nghĩa `getName()`, `getDeclaringClass()`, `getReturnType()`, `getGenericReturnType()`, bridge/synthetic và invocation.
-- [Oracle Java SE 21 — `java.lang.Class`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html): phân biệt `getMethod`, `getDeclaredMethod`, `getMethods`, `getDeclaredMethods` và quy tắc tra cứu.
-- [Java Language Specification SE 21 — §8.4 Method Declarations](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.4): nền tảng overload, override và return types.
+- [Oracle Java SE 21 — `java.lang.reflect.Method`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Method.html): defines `getName()`, `getDeclaringClass()`, `getReturnType()`, `getGenericReturnType()`, bridge/synthetic, and invocation.
+- [Oracle Java SE 21 — `java.lang.Class`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html): distinguishes `getMethod`, `getDeclaredMethod`, `getMethods`, `getDeclaredMethods`, and lookup rules.
+- [Java Language Specification SE 21 — §8.4 Method Declarations](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.4): foundation of overloading, overriding, and return types.
 
-**Ghi nhớ:** `getName()` trả *tên*, `getDeclaringClass()` trả *kiểu khai báo phương thức*, `getReturnType()` trả *kiểu trả về hình thức sau erasure*. Khi cần metadata generic, dùng thêm `getGenericReturnType()`; khi cần biết implementation sẽ chạy, phải xét dynamic dispatch và receiver chứ không suy từ declaring class.
+**Takeaway:** `getName()` returns the *name*, `getDeclaringClass()` returns the *type that declares the method*, and `getReturnType()` returns the *formal return type after erasure*. When generic metadata is needed, also use `getGenericReturnType()`; when you need to know which implementation will run, you must consider dynamic dispatch and the receiver rather than inferring from the declaring class.

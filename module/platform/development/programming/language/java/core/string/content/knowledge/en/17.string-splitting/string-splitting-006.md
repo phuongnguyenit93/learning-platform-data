@@ -1,10 +1,10 @@
-# `Pattern.quote()`: tách chuỗi bằng dấu phân cách nguyên văn
+# `Pattern.quote()`: splitting strings with literal delimiters
 
-## 1. Vì sao cần `Pattern.quote`?
+## 1. Why is `Pattern.quote` needed?
 
-`String.split(String regex)` của Java luôn diễn giải tham số theo **biểu thức chính quy** (regex). Vì vậy, chuỗi `"."` không có nghĩa là dấu chấm: trong regex, `.` đại diện cho một ký tự bất kỳ (thông thường ngoại trừ ký tự kết thúc dòng). Tương tự, `|` là phép lựa chọn, `*`, `+`, `?` là các lượng từ, còn `\\` là ký tự escape. Nếu dấu phân cách do cấu hình, người dùng hoặc dữ liệu đầu vào cung cấp chứa các ký tự này, `split(delimiter)` có thể tách sai hoặc gây `PatternSyntaxException`.
+Java's `String.split(String regex)` always interprets its argument as a **regular expression** (regex). Therefore, the string `"."` does not mean a period: in regex, `.` stands for any single character (normally excluding line terminators). Likewise, `|` is alternation, `*`, `+`, `?` are quantifiers, and `\\` is the escape character. If a delimiter provided by configuration, a user, or input data contains these characters, `split(delimiter)` may split incorrectly or throw `PatternSyntaxException`.
 
-`java.util.regex.Pattern.quote(String s)` chuyển chuỗi `s` thành **một regex khớp đúng toàn bộ chuỗi theo nghĩa nguyên văn**. Do đó, khi dấu phân cách là dữ liệu chứ không phải một quy luật regex, hãy viết:
+`java.util.regex.Pattern.quote(String s)` converts the string `s` into **a regex that matches the entire string literally**. Thus, when the delimiter is data rather than a regex rule, write:
 
 ```java
 import java.util.regex.Pattern;
@@ -12,13 +12,13 @@ import java.util.regex.Pattern;
 String[] parts = text.split(Pattern.quote(delimiter));
 ```
 
-Ví dụ `"a.b".split(".")` cho mảng rỗng do `.` lần lượt khớp các ký tự và `split` mặc định loại các phần tử rỗng ở cuối. Trái lại, `"a.b".split(Pattern.quote("."))` cho `["a", "b"]`.
+For example, `"a.b".split(".")` returns an empty array because `.` matches each character in turn and `split` discards trailing empty elements by default. By contrast, `"a.b".split(Pattern.quote("."))` returns `["a", "b"]`.
 
-Bên trong regex, vùng trích dẫn thường có dạng `\\Q...\\E`, nhưng **không tự ghép thủ công** `"\\Q" + delimiter + "\\E"`: `Pattern.quote` còn xử lý đúng trường hợp dữ liệu chứa chính `\\E`.
+Inside a regex, a quoted region typically takes the form `\\Q...\\E`, but **do not manually concatenate** `"\\Q" + delimiter + "\\E"`: `Pattern.quote` also handles cases where the data itself contains `\\E`.
 
-## 2. Ví dụ Java 17+ chạy độc lập
+## 2. Standalone Java 17+ example
 
-Tạo file `LiteralDelimiterSplitDemo.java` với nội dung:
+Create a file `LiteralDelimiterSplitDemo.java` with the following contents:
 
 ```java
 import java.util.Arrays;
@@ -26,20 +26,20 @@ import java.util.regex.Pattern;
 
 public class LiteralDelimiterSplitDemo {
     public static void main(String[] args) {
-        // Dấu chấm: toán tử regex khác dấu chấm nguyên văn.
+        // Dot: a regex operator differs from a literal period.
         String dotText = "a.b";
         System.out.println("Regex dot: "
                 + Arrays.toString(dotText.split(".")));
         System.out.println("Literal dot: "
                 + Arrays.toString(dotText.split(Pattern.quote("."))));
 
-        // Dấu phân cách nhiều ký tự, có chứa toán tử regex.
+        // Multi-character delimiter containing regex operators.
         String delimiter = ".$.";
         String compositeText = "red.$.green.$.blue";
         System.out.println("Composite delimiter: "
                 + Arrays.toString(compositeText.split(Pattern.quote(delimiter))));
 
-        // Dấu gạch đứng cùng các giá trị limit.
+        // Pipe character with various limit values.
         String pipeText = "a|b||";
         String pipeRegex = Pattern.quote("|");
         System.out.println("Default limit: "
@@ -49,12 +49,12 @@ public class LiteralDelimiterSplitDemo {
         System.out.println("At most two: "
                 + Arrays.toString("a|b|c".split(pipeRegex, 2)));
 
-        // Gạch chéo ngược: ký tự đặc biệt của cả Java literal và regex.
+        // Backslash: special character in both Java literals and regex.
         String windowsPath = "C:\\temp\\docs";
         System.out.println("Backslash: "
                 + Arrays.toString(windowsPath.split(Pattern.quote("\\"))));
 
-        // Khi tách nhiều chuỗi bằng cùng một dấu phân cách.
+        // When splitting multiple strings with the same delimiter.
         Pattern marker = Pattern.compile(Pattern.quote("<E>"));
         System.out.println("Compiled: "
                 + Arrays.toString(marker.split("A<E>B<E>C")));
@@ -62,14 +62,14 @@ public class LiteralDelimiterSplitDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac LiteralDelimiterSplitDemo.java
 java LiteralDelimiterSplitDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 Regex dot: []
@@ -82,55 +82,55 @@ Backslash: [C:, temp, docs]
 Compiled: [A, B, C]
 ```
 
-Ở dòng `Keep trailing`, mảng thực tế gồm bốn phần tử: `"a"`, `"b"`, `""`, `""`. `Arrays.toString` biểu diễn chuỗi rỗng bằng vị trí trống giữa các dấu phẩy. `String.split` không chèn thêm ký tự vào kết quả.
+On the `Keep trailing` line, the actual array contains four elements: `"a"`, `"b"`, `""`, `""`. `Arrays.toString` represents empty strings as empty spaces between commas. `String.split` does not insert extra characters into the result.
 
-## 3. `limit` quyết định có giữ phần tử rỗng hay không
+## 3. `limit` decides whether empty elements are kept
 
-`Pattern.quote` chỉ làm cho dấu phân cách được so khớp **nguyên văn**; nó không thay đổi quy tắc `limit` của `String.split(regex, limit)`.
+`Pattern.quote` only makes the delimiter match **literally**; it does not alter the `limit` rules of `String.split(regex, limit)`.
 
-| Lệnh với chuỗi `"a|b||"` | Các phần tử thu được | Cơ chế |
+| Call on `"a|b||"` | Resulting elements | Mechanism |
 | --- | --- | --- |
-| `split(Pattern.quote("|"))` | `["a", "b"]` | Mặc định như `limit = 0`, bỏ các phần tử rỗng cuối. |
-| `split(Pattern.quote("|"), 0)` | `["a", "b"]` | Cũng bỏ các phần tử rỗng cuối. |
-| `split(Pattern.quote("|"), -1)` | `["a", "b", "", ""]` | Giữ đầy đủ các phần tử rỗng cuối. |
-| `split(Pattern.quote("|"), 2)` | `["a", "b||"]` | Tách tối đa thành hai phần; phần cuối giữ phần còn lại. |
+| `split(Pattern.quote("|"))` | `["a", "b"]` | Same as default `limit = 0`; discards trailing empty elements. |
+| `split(Pattern.quote("|"), 0)` | `["a", "b"]` | Also discards trailing empty elements. |
+| `split(Pattern.quote("|"), -1)` | `["a", "b", "", ""]` | Preserves all trailing empty elements. |
+| `split(Pattern.quote("|"), 2)` | `["a", "b||"]` | Splits into at most two parts; the last element holds the remainder. |
 
-Khi `limit > 0`, có tối đa `limit - 1` lần tách. Khi `limit = 0` hoặc âm, phép tách có thể thực hiện nhiều lần; điểm khác nhau là `limit = 0` bỏ phần tử rỗng ở cuối, còn `limit < 0` giữ lại. Các phần tử rỗng **ở giữa** dấu phân cách liên tiếp vẫn có thể được giữ.
+When `limit > 0`, at most `limit - 1` splits occur. When `limit = 0` or negative, splitting can happen as many times as possible; the difference is that `limit = 0` discards trailing empty elements whereas `limit < 0` keeps them. Empty elements **between** consecutive delimiters can still be preserved.
 
-Nếu dữ liệu mang các cột có thể rỗng ở cuối, chẳng hạn `"id|name||"`, nên dùng `split(Pattern.quote("|"), -1)` để bảo toàn số trường; nếu dùng mặc định, có nguy cơ mất các trường cuối.
+If the data has columns that may be empty at the end, such as `"id|name||"`, use `split(Pattern.quote("|"), -1)` to preserve the field count; using the default risks losing trailing fields.
 
-## 4. Các dấu phân cách dễ gặp lỗi
+## 4. Delimiters prone to errors
 
-| Dữ liệu làm dấu phân cách | Cách gọi phù hợp | Vấn đề khi coi là regex |
+| Data used as delimiter | Appropriate call | Problem when treated as regex |
 | --- | --- | --- |
-| Dấu chấm `.` | `split(Pattern.quote("."))` | `.` khớp ký tự bất kỳ. |
-| Dấu gạch đứng `|` | `split(Pattern.quote("|"))` | `|` là phép lựa chọn. |
-| Dấu sao `*` hoặc dấu cộng `+` | `split(Pattern.quote(delimiter))` | Lượng từ có thể gây lỗi cú pháp regex. |
-| Chuỗi `.$.` | `split(Pattern.quote(".$."))` | Có nhiều toán tử regex cùng lúc. |
-| Gạch chéo ngược `\\` | `split(Pattern.quote("\\"))` | Gạch chéo ngược còn là escape của regex. |
-| Chuỗi `<END>` | `split(Pattern.quote("<END>"))` | Mẫu nguyên văn thể hiện đúng ý định dù dữ liệu thay đổi. |
+| Dot `.` | `split(Pattern.quote("."))` | `.` matches any character. |
+| Pipe `|` | `split(Pattern.quote("|"))` | `|` is alternation. |
+| Asterisk `*` or plus `+` | `split(Pattern.quote(delimiter))` | Quantifiers can cause regex syntax errors. |
+| String `.$.` | `split(Pattern.quote(".$."))` | Contains multiple regex operators at once. |
+| Backslash `\\` | `split(Pattern.quote("\\"))` | Backslash is also the regex escape character. |
+| String `<END>` | `split(Pattern.quote("<END>"))` | Literal pattern reflects intent even if data changes. |
 
-Khi ký tự đặc biệt nằm trong **literal chuỗi Java**, còn có lớp escape của ngôn ngữ Java. Chẳng hạn, để biểu diễn **một** gạch chéo ngược trong chuỗi Java phải viết `"\\"`; để biến chính chuỗi này thành regex nguyên văn, dùng `Pattern.quote("\\")`. Escape của Java source và escape của regex là hai việc khác nhau.
+When special characters appear inside a **Java string literal**, there is also the Java language escaping layer. For instance, to represent **one** backslash in a Java string you must write `"\\"`; to turn that string into a literal regex, use `Pattern.quote("\\")`. Java source escaping and regex escaping are two separate steps.
 
-`Pattern.quote` không thay đổi chữ hoa/thường, không bỏ khoảng trắng và không chuẩn hóa Unicode. Nó tìm đúng chuỗi phân cách được đưa vào. Nếu chuỗi đó không có trong văn bản, `split` thông thường trả về mảng một phần tử chứa nguyên văn bản.
+`Pattern.quote` does not change case, strip whitespace, or normalize Unicode. It searches for the exact delimiter string provided. If that string does not appear in the text, `split` normally returns a one-element array containing the original text.
 
-## 5. Khi nào không dùng `Pattern.quote`?
+## 5. When should you not use `Pattern.quote`?
 
-Nếu mục tiêu là tách bằng **quy tắc**, ví dụ một hoặc nhiều ký tự trắng, hãy dùng regex đúng nghĩa:
+If the goal is to split by a **rule**, such as one or more whitespace characters, use a real regex:
 
 ```java
 String line = "Java   regex\tbasics";
-String[] words = line.split("\\s+");  // Một hoặc nhiều whitespace
+String[] words = line.split("\\s+");  // One or more whitespace characters
 ```
 
-Ở đây, `\\s+` là cú pháp regex chủ đích. Nếu gọi `Pattern.quote("\\s+")`, mẫu sẽ tìm đúng ba ký tự `\\`, `s`, `+` trong văn bản, không còn tìm khoảng trắng.
+Here, `\\s+` is intentional regex syntax. Calling `Pattern.quote("\\s+")` would make the pattern look for the exact three characters `\\`, `s`, `+` in the text instead of whitespace.
 
-Hai cách dùng có mục đích khác nhau:
+The two approaches serve different purposes:
 
-- **Dấu phân cách là một chuỗi cụ thể:** `text.split(Pattern.quote(delimiter))`.
-- **Dấu phân cách mô tả một nhóm mẫu:** `text.split(regex)`, khi regex đã được tạo một cách có chủ đích.
+- **The delimiter is a specific string:** `text.split(Pattern.quote(delimiter))`.
+- **The delimiter describes a pattern class:** `text.split(regex)`, when the regex is constructed intentionally.
 
-Khi cùng một dấu phân cách nguyên văn được dùng nhiều lần, có thể biên dịch sẵn:
+When the same literal delimiter is used repeatedly, you can precompile it:
 
 ```java
 Pattern literalDelimiter = Pattern.compile(Pattern.quote(delimiter));
@@ -138,24 +138,24 @@ String[] first = literalDelimiter.split(firstText, -1);
 String[] second = literalDelimiter.split(secondText, -1);
 ```
 
-Đây là đoạn minh họa sử dụng các biến `delimiter`, `firstText`, `secondText` do chương trình cung cấp, không phải file có thể chạy độc lập. `Pattern.split(input, limit)` có quy tắc `limit` tương tự `String.split(regex, limit)`. Biên dịch sẵn hữu ích khi dùng đi dùng lại một mẫu.
+This is an illustrative snippet using variables `delimiter`, `firstText`, `secondText` supplied by the program, not a standalone runnable file. `Pattern.split(input, limit)` follows the same `limit` rules as `String.split(regex, limit)`. Precompiling is useful when reusing a pattern repeatedly.
 
-## 6. Lỗi thường gặp và giới hạn
+## 6. Common mistakes and limitations
 
-**Tự escape vài ký tự riêng lẻ.** Chỉ thay `.` thành `\\.` sẽ bỏ sót `|`, `[`, `(`, `*` và các trường hợp khác. Việc tự xây dựng `\\Q...\\E` cũng có rủi ro nếu dữ liệu chứa `\\E`. `Pattern.quote` giải quyết cả chuỗi một cách nhất quán.
+**Escaping only a few individual characters manually.** Replacing only `.` with `\\.` misses `|`, `[`, `(`, `*`, and other cases. Building `\\Q...\\E` by hand also carries risks if the data contains `\\E`. `Pattern.quote` handles the entire string consistently.
 
-**Mặc định làm mất trường rỗng cuối.** `Pattern.quote` không sửa quy tắc này. Khi thứ tự hoặc số cột quan trọng, cần `limit = -1` và kiểm tra `array.length` trong chương trình, thay vì chỉ quan sát chuỗi `Arrays.toString`.
+**Losing trailing empty fields by default.** `Pattern.quote` does not change this rule. When column order or count matters, use `limit = -1` and check `array.length` in code rather than only inspecting the `Arrays.toString` output.
 
-**Dấu phân cách rỗng hoặc `null`.** `Pattern.quote(null)` gây `NullPointerException`. Với `delimiter = ""`, mẫu nguyên văn có độ rộng bằng 0 nên việc tách trở thành tách tại các vị trí, khác ý nghĩa tách tại một dấu phân cách cụ thể. Nếu API chỉ chấp nhận dấu phân cách không rỗng, hãy kiểm tra `delimiter != null && !delimiter.isEmpty()`. Tránh `isBlank()` cho yêu cầu này: một dấu cách `" "` vẫn có thể là dấu phân cách hợp lệ.
+**Empty or `null` delimiters.** `Pattern.quote(null)` throws `NullPointerException`. With `delimiter = ""`, the literal pattern has zero width, so splitting becomes position-based splitting rather than splitting on a specific delimiter. If an API only accepts non-empty delimiters, validate `delimiter != null && !delimiter.isEmpty()`. Avoid `isBlank()` for this requirement: a single space `" "` can still be a valid delimiter.
 
-**Lầm tưởng tách nguyên văn là phân tích CSV.** Với chuỗi `a,"b,c",d`, `split(Pattern.quote(","))` vẫn tách tại dấu phẩy bên trong cặp dấu nháy của `"b,c"`. CSV có quy tắc về dấu nháy, escape và xuống dòng; cần dùng trình phân tích CSV phù hợp nếu phải tuân thủ định dạng đó.
+**Mistaking literal splitting for CSV parsing.** For the string `a,"b,c",d`, `split(Pattern.quote(","))` still splits on the comma inside the quotes of `"b,c"`. CSV has rules for quotes, escaping, and line breaks; use a proper CSV parser when conformance to that format is required.
 
-**Dùng nhầm cho phần thay thế regex.** `Pattern.quote` chỉ dành cho **pattern**. Khi chuỗi thay thế của `Matcher.replaceAll` chứa `$` hoặc `\\` và cần xử lý nguyên văn, API tương ứng là `Matcher.quoteReplacement`, có mục đích khác.
+**Misusing it for regex replacement strings.** `Pattern.quote` is only for **patterns**. When the replacement string of `Matcher.replaceAll` contains `$` or `\\` and must be treated literally, the corresponding API is `Matcher.quoteReplacement`, which serves a different purpose.
 
-## 7. Tự kiểm tra
+## 7. Self-check
 
-1. Để tách `"left.$.middle.$.right"` thành `["left", "middle", "right"]`, dùng `"left.$.middle.$.right".split(Pattern.quote(".$."))`.
-2. Để giữ đủ bốn trường của `"name|email||"`, dùng `"name|email||".split(Pattern.quote("|"), -1)`.
-3. Khi cấu hình chứa `"."`, `split(delimiter)` coi nó là toán tử regex; `split(Pattern.quote(delimiter))` khớp đúng dấu chấm.
+1. To split `"left.$.middle.$.right"` into `["left", "middle", "right"]`, use `"left.$.middle.$.right".split(Pattern.quote(".$."))`.
+2. To preserve all four fields of `"name|email||"`, use `"name|email||".split(Pattern.quote("|"), -1)`.
+3. When configuration contains `"."`, `split(delimiter)` treats it as a regex operator; `split(Pattern.quote(delimiter))` matches the literal dot.
 
-**Điều cần nhớ:** Tham số đầu tiên của `String.split` là regex. Dấu phân cách đến từ **dữ liệu nguyên văn** thì dùng `Pattern.quote`; các phần tử rỗng ở cuối cần được bảo toàn thì thêm `limit = -1`.
+**Key takeaway:** The first argument of `String.split` is a regex. When the delimiter comes from **literal data**, use `Pattern.quote`; when trailing empty elements must be preserved, add `limit = -1`.

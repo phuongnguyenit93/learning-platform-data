@@ -1,62 +1,62 @@
-# Kiểm thử dấu kết hợp, emoji và biến đổi hoa–thường trong Java
+# Testing Combining Marks, Emoji, and Case Conversions in Java
 
-Một hệ thống có thể xử lý đúng chuỗi `"Hello"` nhưng gặp lỗi với tiếng Việt có dấu, emoji, chữ `I` tiếng Thổ Nhĩ Kỳ hoặc chữ `ß` tiếng Đức. Những lỗi Unicode thường không phải do **Java không hỗ trợ Unicode** mà do ứng dụng chọn sai đơn vị đếm hoặc áp dụng sai quy tắc biến đổi: cắt theo từng `char`, cho rằng `String.length()` là số chữ nhìn thấy, hạ chữ thường theo locale mặc định, hoặc so hai chuỗi trông giống nhau bằng `equals` rồi mặc định chúng phải giống nhau ở mức mã hóa.
+A system can handle `"Hello"` cleanly yet fail on accented Vietnamese, emoji, the Turkish letter `I`, or the German letter `ß`. Unicode bugs usually stem not from **Java lacking Unicode support**, but from the application picking the wrong counting unit or applying the wrong transformation rule: slicing by individual `char`, assuming `String.length()` equals the visible character count, lowercasing with the default locale, or comparing visually identical strings with `equals` and assuming they must match at the encoding level.
 
-Bài Knowledge thuộc nhóm **Kiểm thử và lỗi** trong module **Java core - localization**, tập trung vào cách thiết kế kiểm thử **dấu kết hợp, emoji và biến đổi chữ hoa–thường** bằng **Java 17+**. Các ví dụ chạy độc lập với JDK, có những khẳng định kết quả ổn định; những chỗ phụ thuộc phiên bản Unicode/JDK, font hoặc locale được chỉ rõ thay vì coi mọi máy hiển thị và phân đoạn như nhau.
+This Knowledge lesson belongs to **Testing and Pitfalls** in the **Java core - localization** module, focusing on designing tests for **combining marks, emoji, and case conversions** using **Java 17+**. The examples run standalone on the JDK with assertions for deterministic outcomes; places that depend on Unicode/JDK version, fonts, or locales are noted explicitly rather than assuming every machine renders and segments identically.
 
-**Nguyên tắc:** phân biệt ít nhất năm tầng: byte UTF-8, đơn vị mã UTF-16 (`char`), Unicode code point, *extended grapheme cluster* (cụm ký tự mà người dùng thường nhìn như một đơn vị), và phép so sánh/biến đổi theo **ngữ nghĩa từng trường dữ liệu**. Phép thử đúng phải nói rõ đang kiểm tra tầng nào.
+**Core principle:** distinguish at least five layers: UTF-8 bytes, UTF-16 code units (`char`), Unicode code points, *extended grapheme clusters* (user-perceived character units), and **domain-specific** comparison/transformation semantics. Every test must state which layer it is checking.
 
-## 1. Một chữ hiển thị không nhất thiết là một char Java
+## 1. One Visible Character Is Not Necessarily One Java char
 
-Java `String` cung cấp API dựa trên **UTF-16 code units**. `String.length()` trả số đơn vị mã `char`, không phải số Unicode code point và càng không phải số “ký tự” theo cảm nhận người dùng.
+Java `String` exposes APIs built on **UTF-16 code units**. `String.length()` returns the count of `char` code units, not Unicode code points, and certainly not user-perceived "characters."
 
-| Văn bản minh họa | Cấu tạo Unicode | `String.length()` | Số code point | Ghi chú |
+| Sample text | Unicode composition | `String.length()` | Code point count | Notes |
 | --- | --- | ---: | ---: | --- |
-| `A` | U+0041 | 1 | 1 | ASCII đơn giản |
-| `é` dựng sẵn | U+00E9 | 1 | 1 | Precomposed |
-| `e◌́` (e + dấu sắc kết hợp) | U+0065, U+0301 | 2 | 2 | Thường hiển thị gần như một chữ `é` |
-| `😀` | U+1F600 | 2 | 1 | Emoji ngoài BMP, surrogate pair |
-| `✈️` | U+2708, U+FE0F | 2 | 2 | Variation selector có thể chọn trình bày emoji |
+| `A` | U+0041 | 1 | 1 | Plain ASCII |
+| Precomposed `é` | U+00E9 | 1 | 1 | Precomposed |
+| `e◌́` (e + combining acute accent) | U+0065, U+0301 | 2 | 2 | Typically renders close to a single `é` |
+| `😀` | U+1F600 | 2 | 1 | Supplementary emoji outside BMP, surrogate pair |
+| `✈️` | U+2708, U+FE0F | 2 | 2 | Variation selector can request emoji presentation |
 | `👩‍💻` | U+1F469, U+200D, U+1F4BB | 5 | 3 | Emoji ZWJ sequence |
-| `🇻🇳` | U+1F1FB, U+1F1F3 | 4 | 2 | Cặp regional indicators |
+| `🇻🇳` | U+1F1FB, U+1F1F3 | 4 | 2 | Regional indicator pair |
 
-Độ dài **grapheme cluster** thường là 1 đối với từng chuỗi minh họa trong bảng, nhưng tiêu chuẩn phân đoạn Unicode và dữ liệu phiên bản của runtime mới là cơ sở xác định, không phải sự xuất hiện của một glyph trên màn hình. Font hoặc platform có thể hiển thị emoji ZWJ thành một hình ghép hoặc nhiều hình riêng, trong khi chuỗi code points không đổi.
+The **grapheme cluster** length is typically 1 for each sample in the table, yet the Unicode segmentation standard and the runtime's Unicode data version are what determine it—not the appearance of a single glyph on screen. Fonts or platforms may render a ZWJ emoji as one combined image or separate images while the underlying code-point sequence stays identical.
 
-**Không dùng `substring(i, i + 1)` để lấy một ký tự nhìn thấy**. Một nửa surrogate hoặc dấu kết hợp đơn lẻ có thể thành nội dung rời rạc, thậm chí không thể encode như Unicode scalar value hợp lệ.
+**Never use `substring(i, i + 1)` to extract a visible character.** Half of a surrogate pair or an isolated combining mark can produce broken fragments that cannot even be encoded as valid Unicode scalar values.
 
-## 2. Dấu dựng sẵn và dấu kết hợp: hai chuỗi trông giống nhau
+## 2. Precomposed vs. Combining Marks: Two Strings That Look Alike
 
-Một chữ có dấu có thể được biểu diễn theo nhiều cách canonically equivalent:
+An accented letter can be represented in multiple canonically equivalent ways:
 
-- Dựng sẵn (*precomposed*): `"\u00E9"` gồm U+00E9.
-- Phân rã (*decomposed*): `"e\u0301"` gồm U+0065 và dấu kết hợp U+0301.
+- *Precomposed*: `"\u00E9"` consisting of U+00E9.
+- *Decomposed*: `"e\u0301"` consisting of U+0065 and combining mark U+0301.
 
-Nhiều font trình bày hai biểu diễn gần giống nhau, nhưng:
+Many fonts render both nearly identically, yet:
 
 ```text
 String.equals(...)             -> false
-String.length()                -> 1 và 2
-codePointCount(...)            -> 1 và 2
-UTF-8 bytes                    -> C3 A9 và 65 CC 81
-Normalizer.normalize(..., NFC) -> chuỗi bằng nhau
+String.length()                -> 1 and 2
+codePointCount(...)            -> 1 and 2
+UTF-8 bytes                    -> C3 A9 and 65 CC 81
+Normalizer.normalize(..., NFC) -> equal strings
 ```
 
-Điều này đặc biệt quan trọng với văn bản tiếng Việt, nơi các nguyên âm có thể đi cùng nhiều dấu hoặc thanh điệu. Không suy luận “người dùng nhìn giống nhau” là dữ liệu **byte-for-byte** giống nhau, và cũng không tự thay đổi mọi chuỗi nếu chúng là token, chữ ký hoặc dữ liệu yêu cầu bảo toàn byte.
+This is especially important for Vietnamese text, where vowels can combine with multiple diacritics and tone marks. Do not infer from "looks the same to the user" that data is **byte-for-byte** identical, and do not blindly rewrite every string if it is a token, signature, or byte-preserved datum.
 
-### Canonical và compatibility normalization
+### Canonical vs. Compatibility Normalization
 
-`java.text.Normalizer` hỗ trợ:
+`java.text.Normalizer` supports:
 
-| Form | Ý nghĩa |
+| Form | Meaning |
 | --- | --- |
-| `NFC` | Canonical decomposition rồi composition |
+| `NFC` | Canonical decomposition followed by composition |
 | `NFD` | Canonical decomposition |
-| `NFKC` | Compatibility decomposition rồi composition |
+| `NFKC` | Compatibility decomposition followed by composition |
 | `NFKD` | Compatibility decomposition |
 
-`NFC`/`NFD` xử lý **canonical equivalence**; `NFKC`/`NFKD` còn có thể hợp nhất một số ký tự tương thích như chữ fullwidth hoặc ký hiệu được trình bày đặc biệt. Vì vậy, `NFKC` **có thể làm mất khác biệt có ý nghĩa** ở một số trường dữ liệu; không dùng nó như một phép “làm sạch” mặc định trên tên người, password và dữ liệu pháp lý.
+`NFC`/`NFD` handle **canonical equivalence**; `NFKC`/`NFKD` also fold compatibility characters such as fullwidth letters or specially styled symbols. Consequently, `NFKC` **can discard meaningful distinctions** in certain data fields; never use it as a default "sanitizer" on personal names, passwords, or legal data.
 
-### Ví dụ 1 — CanonicalNormalizationDemo.java
+### Example 1 — CanonicalNormalizationDemo.java
 
 ```java
 import java.text.Normalizer;
@@ -110,31 +110,31 @@ NFC idempotent: true
 NFKC fullwidth A: true
 ```
 
-**Kiểm thử quan trọng:** Unicode normalization phải được áp dụng **theo hợp đồng trường dữ liệu**. Với text tìm kiếm, có thể tạo index canonical riêng; với một access token hoặc chữ ký trên byte, **không** tự normalize dữ liệu vì có thể phá giá trị cần xác thực.
+**Critical testing note:** Unicode normalization must be applied **according to each field's contract**. For searchable text, you can build a separate canonical index; for an access token or byte-level signature, **never** normalize silently because doing so can invalidate the value being verified.
 
-## 3. String.length, codePointCount và offsetByCodePoints
+## 3. String.length, codePointCount, and offsetByCodePoints
 
-Một surrogate pair hợp lệ biểu diễn một code point ngoài Basic Multilingual Plane. Ví dụ chuỗi `"A😀B"`:
+A valid surrogate pair represents one code point outside the Basic Multilingual Plane. For example, `"A😀B"`:
 
 ```text
-Chữ thấy được:      A       😀       B
+Visible characters: A       😀       B
 UTF-16 positions:   0  1  2  3  4
 Code units:         A  high low B
 Code-point index:   0     1     2
 ```
 
-Offset `2` là vị trí giữa high surrogate và low surrogate của emoji, **không phải vị trí được chọn để cắt emoji**. Sau hai code points tính từ đầu, offset UTF-16 là **3**, không phải 2.
+Offset `2` sits between the emoji's high surrogate and low surrogate, **not a valid split point for the emoji**. Advancing two code points from the start lands at UTF-16 offset **3**, not 2.
 
-Các API:
+Key APIs:
 
-- `length()`: số **UTF-16 code units**.
-- `codePointCount(begin, end)`: số code points được Java tính trong dải UTF-16, kể cả việc surrogate không ghép cặp được tính riêng nếu đầu vào bất thường.
-- `offsetByCodePoints(index, count)`: chuyển dịch theo code points, trả về **UTF-16 offset**.
-- `codePoints()`: duyệt các giá trị code point từ chuỗi.
-- `charAt(i)`: một UTF-16 code unit, có thể chỉ là **một nửa** surrogate pair.
-- `substring(begin, end)`: cắt bằng **UTF-16 offsets** trong khoảng nửa mở `[begin,end)`.
+- `length()`: count of **UTF-16 code units**.
+- `codePointCount(begin, end)`: number of code points Java counts within the UTF-16 range, counting unpaired surrogates individually if input is malformed.
+- `offsetByCodePoints(index, count)`: steps by code points and returns a **UTF-16 offset**.
+- `codePoints()`: streams code point values from the string.
+- `charAt(i)`: one UTF-16 code unit, which may be **half** of a surrogate pair.
+- `substring(begin, end)`: slices by **UTF-16 offsets** over the half-open range `[begin,end)`.
 
-### Ví dụ 2 — CodePointBoundaryDemo.java
+### Example 2 — CodePointBoundaryDemo.java
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -177,20 +177,20 @@ Low surrogate: true
 Emoji slice length: 2
 ```
 
-Kết quả `UTF-8 byte length: 6` gồm ASCII `A` (1 byte), emoji (4 byte), ASCII `B` (1 byte). Độ dài được tính theo encoding; **không thể dùng `String.length()` để đặt byte length cho HTTP**.
+The `UTF-8 byte length: 6` comes from ASCII `A` (1 byte), emoji (4 bytes), ASCII `B` (1 byte). Byte length depends on the encoding; **never use `String.length()` to set HTTP byte lengths**.
 
-## 4. Grapheme cluster: đơn vị người dùng mong muốn chọn, xóa hay di chuyển
+## 4. Grapheme Clusters: The Unit Users Expect to Select, Delete, or Navigate
 
-Hai Unicode code points có thể là một cụm chữ. Chuỗi `"e\u0301"` có code point `e` và combining acute accent, thường là một **extended grapheme cluster**. Emoji ZWJ hoặc cờ từ hai regional indicators cũng thường là một cluster.
+Two Unicode code points can form a single character cluster. `"e\u0301"` has base `e` and combining acute accent, forming one **extended grapheme cluster**. A ZWJ emoji or a flag made of two regional indicators is also normally one cluster.
 
-Java có ít nhất hai công cụ liên quan:
+Java provides at least two relevant tools:
 
-- `BreakIterator.getCharacterInstance(locale)` để tìm ranh giới ký tự cho tác vụ text; hành vi và hỗ trợ emoji phức tạp còn phụ thuộc phiên bản Unicode/JDK/provider.
-- `java.util.regex.Pattern` với `\\X` (Java 17 hỗ trợ) để match extended grapheme cluster theo quy tắc Unicode được runtime triển khai.
+- `BreakIterator.getCharacterInstance(locale)` to find character boundaries for text tasks; exact behavior and complex emoji support depend on the Unicode/JDK/provider version.
+- `java.util.regex.Pattern` with `\\X` (supported in Java 17) to match extended grapheme clusters per the runtime's Unicode rules.
 
-**Không đồng nhất “extended grapheme cluster” với mọi glyph được renderer vẽ**. Một số font sẽ gộp nhiều code points thành glyph, hoặc tách emoji thành nhiều hình tùy platform. Segmentation là một thuật toán về văn bản, còn rendering thuộc font/shaping/rendering engine.
+**Do not equate "extended grapheme cluster" with every glyph drawn by a renderer.** Some fonts combine multiple code points into one ligature/glyph, or split emoji into separate pictures depending on the platform. Segmentation is a text algorithm, whereas rendering belongs to the font/shaping/rendering engine.
 
-### Ví dụ 3 — GraphemeBoundaryDemo.java
+### Example 3 — GraphemeBoundaryDemo.java
 
 ```java
 import java.text.BreakIterator;
@@ -233,7 +233,7 @@ javac -encoding UTF-8 GraphemeBoundaryDemo.java
 java GraphemeBoundaryDemo
 ```
 
-Stdout với ví dụ dấu kết hợp cơ bản trên Java 17:
+Stdout for the basic combining-mark example on Java 17:
 
 ```text
 UTF-16 length: 2
@@ -244,22 +244,22 @@ Following 0: 2
 Preceding 2: 0
 ```
 
-Nếu ứng dụng cần xử lý toàn bộ emoji hiện đại, hãy xây **test corpus theo version Unicode**; không chỉ dùng một ví dụ `e + dấu` rồi suy ra runtime hỗ trợ đủ mọi sequence. Khi cần mức tương thích chặt chẽ giữa client và server khác runtime, xem xét thư viện segmentation có dữ liệu Unicode được khóa phiên bản.
+If an application must handle all modern emoji, build a **test corpus versioned by Unicode version**; do not run a single `e + accent` example and assume the runtime supports every sequence. When strict consistency is needed across clients and servers running different runtimes, consider a segmentation library with pinned Unicode data.
 
-## 5. Emoji thường là chuỗi nhiều code points
+## 5. Emoji Are Often Multi-Code-Point Sequences
 
-Một emoji có thể là:
+An emoji can be:
 
-- **Một code point ngoài BMP:** `😀` (U+1F600; UTF-16 dài 2).
+- **A single supplementary code point:** `😀` (U+1F600; UTF-16 length 2).
 - **Emoji + variation selector:** `✈️` = U+2708 + U+FE0F.
-- **Emoji + skin tone modifier:** một số emoji có thêm modifier ở range U+1F3FB–U+1F3FF.
+- **Emoji + skin tone modifier:** some emoji add modifiers in U+1F3FB–U+1F3FF.
 - **ZWJ sequence:** `👩‍💻` = WOMAN + ZERO WIDTH JOINER + PERSONAL COMPUTER.
-- **Flag sequence:** `🇻🇳` = cặp regional indicator letters.
-- **Keycap sequence:** có thể là digit, variation selector và combining enclosing keycap.
+- **Flag sequence:** `🇻🇳` = pair of regional indicator letters.
+- **Keycap sequence:** digit, variation selector, and combining enclosing keycap.
 
-Không có quy tắc “một emoji = hai `char`”. Chỉ một số code point emoji đơn nằm ngoài BMP mới có hai UTF-16 units; emoji sequence có thể dài hơn nhiều.
+There is no rule that "one emoji = two `char`s." Only single supplementary emoji code points occupy two UTF-16 units; emoji sequences can be much longer.
 
-### Ví dụ 4 — EmojiSequenceDemo.java
+### Example 4 — EmojiSequenceDemo.java
 
 ```java
 import java.util.regex.Matcher;
@@ -292,7 +292,7 @@ public class EmojiSequenceDemo {
         System.out.println("Grin clusters: " + clusters(grin));
         System.out.println("Airplane clusters: "
                 + clusters(airplane));
-        // So sánh kết quả với Unicode version của runtime.
+        // Compare result against the runtime's Unicode version.
         System.out.println("Developer clusters: "
                 + clusters(developer));
     }
@@ -304,7 +304,7 @@ javac -encoding UTF-8 EmojiSequenceDemo.java
 java EmojiSequenceDemo
 ```
 
-Đối với Java 17 có triển khai `\\X` hỗ trợ chuỗi ZWJ minh họa, kết quả thường là:
+On Java 17 with a `\\X` implementation supporting the sample ZWJ sequence, output is typically:
 
 ```text
 Grin units/codepoints: 2/1
@@ -315,30 +315,30 @@ Airplane clusters: 1
 Developer clusters: 1
 ```
 
-Phần **units/codepoints** không phụ thuộc renderer. `Developer clusters` được tính theo Unicode grapheme algorithm mà **JDK đang dùng**; khi kiểm thử nhiều JDK/Unicode versions phải xác nhận trên runtime mục tiêu thay vì dùng một snapshot cho mọi phiên bản trong tương lai. Một emoji có thể hiển thị thành các hình rời trên terminal cũ, nhưng điều đó không chứng minh chuỗi đã hỏng.
+The **units/codepoints** values are independent of the renderer. `Developer clusters` is computed by the Unicode grapheme algorithm implemented in the **active JDK**; when testing across JDK/Unicode versions, verify on the target runtime rather than freezing one snapshot for all future releases. An emoji may render as separate symbols on an older terminal, which does not prove the string is corrupted.
 
-### Tại sao chỉ đếm code points vẫn chưa đủ?
+### Why Counting Code Points Alone Is Still Insufficient
 
-`offsetByCodePoints` có thể tránh cắt surrogate pair, nhưng nó **vẫn có thể cắt giữa một ký tự cơ sở và dấu kết hợp**, hoặc giữa các code points của một emoji ZWJ sequence. Khi làm nút “xóa một ký tự”, thao tác selection/caret hoặc giới hạn số ký tự mà người dùng thấy, hãy xác định chính xác cần **grapheme segmentation** hay đếm code points.
+`offsetByCodePoints` avoids splitting surrogate pairs, yet it **can still split between a base character and a combining mark**, or between code points of a ZWJ emoji sequence. When implementing a "delete one character" action, caret/selection movement, or user-visible character limits, verify explicitly whether you need **grapheme segmentation** or code-point counting.
 
-## 6. Dấu kết hợp tiếng Việt: kiểm thử theo nhiều thứ tự và biểu diễn
+## 6. Vietnamese Combining Marks: Testing Multiple Orders and Representations
 
-Nhiều chữ tiếng Việt có thể gồm base letter, dấu phụ âm/chính và dấu thanh. Unicode có quy tắc **canonical combining class** giúp chuẩn hóa thứ tự một số dấu kết hợp. Nhưng không phải mọi phép hoán đổi code points đều tương đương; chỉ kết luận tương đương khi **Normalizer** hoặc dữ liệu Unicode xác nhận.
+Many Vietnamese letters combine a base letter, vowel/consonant diacritics, and a tone mark. Unicode defines **canonical combining classes** that normalize the relative order of certain combining marks. However, not every permutation of code points is equivalent; conclude equivalence only when **`Normalizer`** or Unicode data confirms it.
 
-Bộ kiểm thử nên bao gồm:
+Your test suite should include:
 
-1. Chữ precomposed và decomposed canonically equivalent.
-2. Chuỗi nhiều combining marks với thứ tự thực tế khác nhau nếu canonically equivalent.
-3. Dấu kết hợp xuất hiện ở đầu chuỗi (không có base): chính sách input UI cần rõ.
-4. Các chữ có dấu ở đầu/cuối segment và sát emoji.
-5. NFC/NFD round-trip theo canonical equivalence; tính idempotence.
-6. Mã khóa/identifier không được thay đổi tùy tiện ngoài chính sách.
-7. Kiểm tra UTF-8 round-trip cho chuỗi well-formed sau chuẩn hóa.
-8. Không chỉ so hiển thị screenshot; kiểm tra code points và byte khi điều tra lỗi.
+1. Canonically equivalent precomposed and decomposed letters.
+2. Strings with multiple combining marks in differing order where canonically equivalent.
+3. A leading combining mark at the start of a string (with no base): UI input policy must be explicit.
+4. Accented characters at segment starts/ends and adjacent to emoji.
+5. NFC/NFD round-trip under canonical equivalence, plus idempotence.
+6. Keys/identifiers remaining unaltered outside policy.
+7. UTF-8 round-trip checks on well-formed normalized strings.
+8. Inspecting code points and bytes alongside screenshots when investigating bugs.
 
-### Mẫu kiểm tra tính chất chuẩn hóa
+### Normalization Property Test Pattern
 
-Với mọi chuỗi Unicode hợp lệ `s` trong miền ứng dụng:
+For every valid Unicode string `s` in the application's domain:
 
 ```text
 NFC(NFC(s)) == NFC(s)
@@ -347,22 +347,22 @@ NFC(s) canonically equivalent s
 NFD(s) canonically equivalent s
 ```
 
-Hai dòng đầu kiểm tra **idempotence**. Hai dòng sau không có nghĩa `NFC(s).equals(s)` luôn đúng; ngược lại, mục đích normalize là có thể thay đổi chuỗi biểu diễn nhưng giữ **canonical equivalence**. Lưu ý với chuỗi chứa surrogate đơn lẻ không hợp lệ, chính sách nhập và xử lý encoding phải được thử riêng.
+The first two lines verify **idempotence**. The last two do not mean `NFC(s).equals(s)` always holds; on the contrary, normalization intentionally alters the representation while preserving **canonical equivalence**. For strings containing invalid lone surrogates, test input and encoding policies separately.
 
-## 7. Biến đổi hoa/thường có thể thay đổi độ dài chuỗi
+## 7. Case Conversions Can Change String Length
 
-Một sai lầm phổ biến là xem `toUpperCase`/`toLowerCase` như phép thay từng ký tự theo tỷ lệ 1:1. Trong Unicode, case mapping có thể **thay đổi số code points và số UTF-16 units**.
+A common mistake is treating `toUpperCase`/`toLowerCase` as a 1:1 character replacement. In Unicode, case mapping can **change both code-point count and UTF-16 unit count**.
 
-Ví dụ:
+Examples:
 
-- `"Straße"` được `toUpperCase(Locale.ROOT)` chuyển thành `"STRASSE"`; `ß` được ánh xạ thành `SS` trong phép String uppercase.
-- `"\u0130"` (LATIN CAPITAL LETTER I WITH DOT ABOVE) chuyển xuống lower-case bằng `Locale.ROOT` có thể thành `i` + dấu chấm kết hợp U+0307.
-- Trong tiếng Thổ Nhĩ Kỳ, chữ `I` uppercase không dấu chấm chuyển thành `ı` lower-case (dotless i), khác chữ `i` ASCII.
-- Một số chữ Hy Lạp có case mapping phụ thuộc vị trí trong từ; không viết logic ngôn ngữ học bằng `Character.toLowerCase(char)` thay cho `String.toLowerCase(Locale)`.
+- `"Straße"` transformed with `toUpperCase(Locale.ROOT)` becomes `"STRASSE"`; `ß` maps to `SS` in `String` uppercasing.
+- `"\u0130"` (LATIN CAPITAL LETTER I WITH DOT ABOVE) lowercased with `Locale.ROOT` becomes `i` + combining dot U+0307.
+- In Turkish, uppercase dotless-less `I` lowercases to dotless `ı`, distinct from ASCII `i`.
+- Certain Greek letters have word-position-dependent casing; never implement linguistic casing with `Character.toLowerCase(char)` instead of `String.toLowerCase(Locale)`.
 
-**`Character.toUpperCase(int codePoint)`** thường trả một code point và không biểu diễn được tất cả phép mở rộng thành nhiều ký tự; `String.toUpperCase(Locale)` mới hỗ trợ ánh xạ chuỗi theo ngữ cảnh. Dù vậy, `String.toLowerCase(Locale.ROOT)` **không phải phép Unicode full case folding hoàn chỉnh** cho mọi bài toán matching.
+**`Character.toUpperCase(int codePoint)`** returns a single code point and cannot represent multi-character expansions; `String.toUpperCase(Locale)` supports context- and string-level mappings. Even so, `String.toLowerCase(Locale.ROOT)` is **not complete Unicode full case folding** for every matching problem.
 
-### Ví dụ 5 — CaseExpansionDemo.java
+### Example 5 — CaseExpansionDemo.java
 
 ```java
 import java.util.Locale;
@@ -394,7 +394,7 @@ javac -encoding UTF-8 CaseExpansionDemo.java
 java CaseExpansionDemo
 ```
 
-Stdout với Java 17:
+Stdout on Java 17:
 
 ```text
 German upper: STRASSE
@@ -405,21 +405,21 @@ Dotted I ROOT lower length: 2
 Dotted I ROOT has combining dot: true
 ```
 
-**Điểm không được hiểu sai:** `"Straße".equalsIgnoreCase("STRASSE")` là `false`, nhưng so hai chuỗi sau uppercase ROOT trong trường hợp này là `true`. **Không kết luận** uppercase rồi equals là chiến lược full Unicode case folding chuẩn. Đây chỉ là phép thử phản ví dụ cho việc coi tất cả API case-insensitive là tương đương.
+**Do not misinterpret this:** `"Straße".equalsIgnoreCase("STRASSE")` is `false`, whereas comparing the two strings after ROOT uppercasing is `true` here. **Do not conclude** that uppercasing then calling `equals` is standard Unicode full case folding. This is only a counterexample showing that not all case-insensitive APIs behave equivalently.
 
-## 8. Locale mặc định làm test không ổn định: Turkish I
+## 8. Default Locale Makes Tests Flaky: Turkish I
 
-`String.toLowerCase()` không tham số dùng `Locale.getDefault()`. Vì thế cùng chuỗi `"TITLE"` có thể tạo khóa khác nếu chạy dưới default locale `en-US` và `tr-TR`.
+Parameterless `String.toLowerCase()` uses `Locale.getDefault()`. Thus `"TITLE"` can produce different keys under default locale `en-US` vs. `tr-TR`.
 
-Chính sách được khuyến nghị:
+Recommended policy:
 
-- Với **mã máy đọc ASCII** do ứng dụng định nghĩa, kiểm tra tập ký tự rồi chuyển case theo `Locale.ROOT` nếu hợp đồng yêu cầu.
-- Với **văn bản hiển thị theo ngôn ngữ**, truyền `Locale` đúng của người dùng; không ép ROOT khi cần quy tắc chữ viết của tiếng Thổ Nhĩ Kỳ hoặc ngôn ngữ khác.
-- Với **password, token, signature**, không tự đổi case ngoài hợp đồng xác thực.
-- Với **username Unicode**, không coi ROOT lowercase là toàn bộ profile an toàn; cần xác định normalization, case folding, confusables, uniqueness và phiên bản Unicode.
-- Không thay `Locale.setDefault` giữa các test chạy song song hoặc giữa các HTTP request.
+- For **application-defined ASCII machine keys**, validate the character set and case-convert with `Locale.ROOT` if required by contract.
+- For **locale-sensitive display text**, pass the user's actual `Locale`; never force `ROOT` when Turkish or another language's orthography is required.
+- For **passwords, tokens, and signatures**, never alter case outside the authentication contract.
+- For **Unicode usernames**, do not treat ROOT lowercasing as a complete security profile; specify normalization, case folding, confusables, uniqueness, and Unicode version.
+- Never mutate `Locale.setDefault` between concurrent tests or HTTP requests.
 
-### Ví dụ 6 — TurkishCaseDemo.java
+### Example 6 — TurkishCaseDemo.java
 
 ```java
 import java.util.Locale;
@@ -461,40 +461,40 @@ Different keys: true
 Capital dotted I -> Turkish i: true
 ```
 
-Các kết quả này không phụ thuộc **default locale của máy chạy** vì chương trình truyền locale tường minh. Điều cần kiểm tra trong code ứng dụng không chỉ là việc có gọi `toLowerCase` hay không, mà là **dùng locale nào, với trường dữ liệu nào và mục đích gì**.
+These results do not depend on the **host machine's default locale** because the program passes locales explicitly. What to audit in application code is not merely whether `toLowerCase` is called, but **which locale is used, on which data field, and for what purpose**.
 
-## 9. equals, equalsIgnoreCase, Normalizer và Collator kiểm tra điều gì?
+## 9. What equals, equalsIgnoreCase, Normalizer, and Collator Check
 
-| Công cụ | Câu hỏi được trả lời | Không nên dùng thay cho |
+| Tool | Question answered | Should not replace |
 | --- | --- | --- |
-| `String.equals` | Hai dãy UTF-16 có cùng giá trị không? | Canonical Unicode equivalence hoặc so theo ngôn ngữ |
-| `equalsIgnoreCase` | Case-insensitive theo quy tắc của `String` | Locale-aware collation hoặc Unicode full case folding |
-| `Normalizer.normalize(..., NFC)` | Cùng một dạng Unicode canonical để so/lưu theo policy? | Đổi hoa/thường |
-| `toLowerCase(Locale.ROOT)` | Tạo lowercase độc lập locale mặc định | Full identifier/security profile |
-| `Collator.getInstance(locale)` | So/sắp xếp văn bản theo quy tắc ngôn ngữ | Exact token, chữ ký, khóa định danh |
-| `Pattern.compile("\\X")` | Tìm các grapheme clusters theo thuật toán runtime | Đếm byte/Unicode code point |
-| `BreakIterator.getCharacterInstance` | Tìm biên text trong triển khai JDK | Parser từ ngữ chuyên biệt hoặc UI renderer |
+| `String.equals` | Do two UTF-16 sequences have identical values? | Canonical Unicode equivalence or linguistic comparison |
+| `equalsIgnoreCase` | Case-insensitive per `String`'s rules | Locale-aware collation or Unicode full case folding |
+| `Normalizer.normalize(..., NFC)` | Same canonical Unicode form for comparison/storage per policy? | Case conversion |
+| `toLowerCase(Locale.ROOT)` | Lowercase independent of default locale | Full identifier/security profile |
+| `Collator.getInstance(locale)` | Compare/sort text by language rules | Exact tokens, signatures, identifier keys |
+| `Pattern.compile("\\X")` | Find grapheme clusters per runtime algorithm | Counting bytes/Unicode code points |
+| `BreakIterator.getCharacterInstance` | Find text boundaries in JDK implementation | Specialized tokenizers or UI renderers |
 
-**Tách bốn hợp đồng:**
+**Separate four contracts:**
 
-1. **Display:** giữ cách viết người dùng nhập (ví dụ tên người), chỉ đổi case khi thiết kế UI cần.
-2. **Search:** có thể case-insensitive/diacritic-insensitive theo locale và công cụ tìm kiếm; lưu bản gốc riêng.
-3. **Identity:** canonical key theo quy tắc rõ ràng, test va chạm; không tùy tiện dùng collation của JDK thay quy tắc username.
-4. **Exact bytes/token:** không normalization/case conversion nếu giao thức không cho phép.
+1. **Display:** preserve what the user typed (e.g., personal names), transforming case only when UI design calls for it.
+2. **Search:** may be case-/diacritic-insensitive per locale and search engine; store the original separately.
+3. **Identity:** canonical keys follow explicit rules and collision tests; never casually substitute JDK collation for username rules.
+4. **Exact bytes/tokens:** apply no normalization or case conversion unless permitted by the protocol.
 
-Ví dụ cùng chữ `é` có thể được so canonically equivalent sau NFC nhưng vẫn khác byte đầu vào. Một password không nên bị “sửa” ngầm chỉ để pass phép so chuỗi.
+For instance, the same letter `é` may compare canonically equivalent after NFC while still differing in raw input bytes. A password should never be silently "repaired" just to pass string equality.
 
-## 10. Regex với Unicode: không nhầm \w, . và \X
+## 10. Regex with Unicode: Do Not Confuse \w, ., and \X
 
-Các regex pattern có semantics riêng:
+Regex patterns carry specific semantics:
 
-- `.` thông thường khớp các code point Unicode theo quy tắc regex Java (ngoại lệ line terminators theo flags); **không bảo đảm khớp một grapheme cluster**. Dùng `\\X` khi thực sự cần segment dạng extended grapheme cluster.
-- `\\w` và các character classes như `[A-Za-z]` không có cùng ý nghĩa. `[A-Za-z]` chỉ cho ASCII Latin; `\\w` mặc định có quy tắc riêng và có thể mở rộng khi bật `UNICODE_CHARACTER_CLASS`. Không dùng chúng như “mọi chữ viết của mọi ngôn ngữ” khi chưa định nghĩa.
-- `\\p{L}` nhận Unicode **Letter** theo dữ liệu Unicode của runtime, nhưng dấu kết hợp thuộc các loại Mark; một tên có dấu ở dạng decomposed có thể cần xử lý thêm marks hoặc normalize trước theo policy.
-- `Pattern.CASE_INSENSITIVE` không tương đương full locale-aware mapping; với `UNICODE_CASE` có thêm Unicode-aware case folding theo quy tắc regex, nhưng không thay thế chính sách identity.
-- `Pattern.CANON_EQ` có hỗ trợ canonical equivalence và chi phí/semantics riêng; nếu cần canonicalization cho dữ liệu lớn hoặc khóa, cân nhắc normalize tường minh và kiểm thử performance.
+- `.` normally matches a Unicode code point per Java regex rules (except line terminators depending on flags); it is **not guaranteed to match one grapheme cluster**. Use `\\X` when you specifically need extended grapheme cluster segments.
+- `\\w` and character classes like `[A-Za-z]` mean different things. `[A-Za-z]` matches ASCII Latin only; `\\w` has its own default rules and expands when `UNICODE_CHARACTER_CLASS` is enabled. Never treat them as "all letters of all languages" without defining rules.
+- `\\p{L}` matches Unicode **Letters** per runtime Unicode data, whereas combining marks belong to Mark categories; a decomposed accented name may require handling marks or normalizing beforehand per policy.
+- `Pattern.CASE_INSENSITIVE` is not full locale-aware mapping; adding `UNICODE_CASE` enables Unicode-aware regex case folding, yet still does not replace an identity policy.
+- `Pattern.CANON_EQ` supports canonical equivalence with its own cost and semantics; for large datasets or keys, consider explicit normalization and benchmark performance.
 
-### Chương trình 7 — RegexUnicodeDemo.java
+### Program 7 — RegexUnicodeDemo.java
 
 ```java
 import java.util.regex.Pattern;
@@ -530,21 +530,21 @@ One grapheme cluster: true
 Emoji one grapheme: true
 ```
 
-Đây là kiểm thử **ý nghĩa regex**, không phải kiểm thử xem font có hiện emoji hay không. Nếu sản phẩm yêu cầu tên người có tất cả Unicode letter/marks hợp lệ, hãy định nghĩa rõ thêm chính sách spacing, punctuation, chuẩn hóa và bảo mật; regex hai token trên chỉ minh họa tính khác biệt giữa `Letter` và `Mark`.
+This tests **regex semantics**, not whether a font draws the emoji. If the product requires personal names to support valid Unicode letters/marks, also define spacing, punctuation, normalization, and security policies; the two-token regex above merely illustrates the distinction between `Letter` and `Mark`.
 
-## 11. UTF-8 round-trip và surrogate đơn lẻ không hợp lệ
+## 11. UTF-8 Round-Trip and Invalid Unpaired Surrogates
 
-Một chuỗi Java có thể chứa **surrogate đơn lẻ** (unpaired surrogate), dù giá trị đó không phải Unicode scalar value hợp lệ để encode thành UTF-8 chuẩn. Ví dụ `"\uD83D"` chỉ là high surrogate không có low surrogate.
+A Java `String` can hold an **unpaired surrogate**, even though that value is not a valid Unicode scalar value encodable to standard UTF-8. For example, `"\uD83D"` is a lone high surrogate without a low surrogate.
 
-Các API tiện lợi như `String.getBytes(StandardCharsets.UTF_8)` có thể thay dữ liệu malformed bằng ký tự/byte thay thế. Đối với dữ liệu cần bảo toàn chính xác, test không thể chỉ nhìn xem hàm có ném lỗi hay không.
+Convenience APIs such as `String.getBytes(StandardCharsets.UTF_8)` can replace malformed data with replacement bytes/characters. For data needing exact preservation, tests cannot merely check whether the call threw an exception.
 
-Dùng `CharsetEncoder`/`CharsetDecoder` với `CodingErrorAction.REPORT` khi contract yêu cầu từ chối dữ liệu không hợp lệ. Byte malformed và ký tự unmappable là hai dạng lỗi khác nhau:
+Use `CharsetEncoder`/`CharsetDecoder` with `CodingErrorAction.REPORT` when the contract requires rejecting invalid data. Malformed bytes and unmappable characters are distinct failure modes:
 
-- **Malformed UTF-8 bytes:** ví dụ `C3 28`, không có continuation byte hợp lệ.
-- **Malformed UTF-16 string:** ví dụ high surrogate đứng một mình.
-- **Unmappable character:** ví dụ encode emoji sang ISO-8859-1.
+- **Malformed UTF-8 bytes:** e.g., `C3 28`, missing a valid continuation byte.
+- **Malformed UTF-16 string:** e.g., a lone high surrogate.
+- **Unmappable character:** e.g., encoding an emoji into ISO-8859-1.
 
-### Chương trình 8 — StrictUnicodeEncodingDemo.java
+### Program 8 — StrictUnicodeEncodingDemo.java
 
 ```java
 import java.nio.ByteBuffer;
@@ -596,13 +596,13 @@ Strict decode rejected
 Strict encode rejected
 ```
 
-**Không kiểm tra “chuỗi có U+FFFD hay không” như phép xác định nguồn byte malformed tổng quát:** ký tự `�` có thể xuất hiện hợp lệ trong input. Muốn biết decoder có gặp byte lỗi hay không, dùng chính sách `REPORT` và bắt `CharacterCodingException`.
+**Do not check "does the string contain U+FFFD" as a general detector for malformed source bytes:** the character `�` can appear legitimately in input. To detect whether a decoder encountered bad bytes, configure `REPORT` and catch `CharacterCodingException`.
 
-## 12. Một bộ regression test có assertion, không chỉ in thử
+## 12. An Assertion-Backed Regression Suite, Not Just Exploratory Printing
 
-Để test thực sự tự phát hiện lỗi, nên dùng JUnit hoặc một helper ném `AssertionError`. `assert` trong Java **mặc định có thể tắt** nếu không bật `-ea`, do đó ví dụ dưới đây dùng `check` chạy bất kể JVM flags.
+To make tests fail automatically on defects, use JUnit or a helper throwing `AssertionError`. Java's `assert` keyword **can be disabled by default unless `-ea` is enabled**, so the example below uses `check` regardless of JVM flags.
 
-### Chương trình 9 — UnicodeRegressionTest.java
+### Program 9 — UnicodeRegressionTest.java
 
 ```java
 import java.text.BreakIterator;
@@ -666,37 +666,37 @@ javac -encoding UTF-8 UnicodeRegressionTest.java
 java UnicodeRegressionTest
 ```
 
-Stdout khi tất cả assertion thành công:
+Stdout when all assertions pass:
 
 ```text
 Passed checks: 11
 ```
 
-Chương trình này kiểm tra **11 điều kiện** và tự dừng khi điều kiện không thỏa. Các phép thử được chọn cho Java 17 với những trường hợp Unicode cơ bản, tránh phụ thuộc vị trí cursor trên màn hình. Với ứng dụng sản xuất, mở rộng thành JUnit parameterized tests cho nhiều script/locale và đặt bộ test cạnh phiên bản dữ liệu Unicode được hỗ trợ.
+This program verifies **11 conditions** and halts immediately when any fails. The checks target Java 17 with core Unicode cases while avoiding dependencies on screen cursor coordinates. For production applications, expand into JUnit parameterized tests across scripts/locales and co-locate the suite with the supported Unicode data version.
 
-## 13. Property-based testing: tạo dữ liệu Unicode hợp lệ có seed cố định
+## 13. Property-Based Testing: Generating Valid Unicode Data with a Fixed Seed
 
-Test với một vài chuỗi cố định rất hữu ích để bảo vệ các lỗi đã biết, nhưng không đủ để phủ các tổ hợp base letter, marks, emoji, ZWJ và case mapping. Property-based testing có thể sinh nhiều chuỗi rồi kiểm tra những bất biến hợp lệ.
+Testing a handful of fixed strings guards against known bugs, yet cannot cover all combinations of base letters, marks, emoji, ZWJ, and case mappings. Property-based testing generates many strings and asserts valid invariants.
 
-**Bất biến nên kiểm tra:**
+**Invariants to check:**
 
 - `NFC(NFC(s)) == NFC(s)`.
 - `NFD(NFD(s)) == NFD(s)`.
-- `NFC(s)` và `NFD(s)` có canonical equivalence phù hợp.
-- Với chuỗi well-formed, UTF-8 encode/decode bằng cùng charset bảo toàn `String.equals`.
-- Một chuỗi được tách bằng grapheme segments phải **ghép lại đúng chuỗi gốc**; tránh mất code units.
-- Mọi offset từ các segments phải nằm trong `0..length`; các đoạn không được chồng lên nhau.
-- Sau một phép đổi case, không được giả định `length` và tập code points không đổi; test phải **cho phép expansion**.
+- `NFC(s)` and `NFD(s)` maintain proper canonical equivalence.
+- For well-formed strings, UTF-8 encode/decode with the same charset preserves `String.equals`.
+- A string split into grapheme segments must **reassemble to the exact original string** without losing code units.
+- Every segment offset stays within `0..length`; segments never overlap.
+- After a case conversion, never assume `length` and code-point count stay fixed; tests must **allow expansion**.
 
-**Không phải bất biến:**
+**Non-invariants:**
 
-- `s.toUpperCase(locale).toLowerCase(locale).equals(s)`: có thể sai do phép case mapping nhiều-một.
-- `s.equalsIgnoreCase(t)` luôn bằng `NFC(s).equalsIgnoreCase(NFC(t))`: các quy tắc equivalence khác nhau, cần kiểm tra theo contract.
-- “Có bao nhiêu code points thì có bấy nhiêu graphemes”: sai khi có marks/ZWJ.
-- “Mọi emoji đều là một code point”: sai với nhiều emoji sequences.
-- “NFKC không làm thay đổi ý nghĩa dữ liệu”: sai trong một số miền nghiệp vụ.
+- `s.toUpperCase(locale).toLowerCase(locale).equals(s)`: can fail due to many-to-one case mappings.
+- `s.equalsIgnoreCase(t)` always equals `NFC(s).equalsIgnoreCase(NFC(t))`: equivalence rules differ; verify per contract.
+- "Number of code points equals number of graphemes": false with combining marks/ZWJ.
+- "Every emoji is one code point": false for many emoji sequences.
+- "NFKC never alters data meaning": false in several business domains.
 
-### Chương trình 10 — SeededUnicodePropertiesDemo.java
+### Program 10 — SeededUnicodePropertiesDemo.java
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -758,15 +758,15 @@ Stdout:
 Passed trials: 200
 ```
 
-**Vì sao atoms được chọn vậy?** Mỗi atom là một chuỗi Unicode **well-formed**: emoji ở dạng surrogate pair hợp lệ, còn combining mark/ZWJ/variation selector dù đứng riêng cũng có code points hợp lệ. Chúng có thể tạo text khó hiển thị nhưng **không tạo surrogate lẻ**, nên UTF-8 round-trip là một property hợp lệ cho corpus này.
+**Why these atoms were chosen:** each atom is a **well-formed** Unicode sequence: the emoji is a valid surrogate pair, while combining marks, ZWJ, and variation selectors—even standalone—are valid code points. They can form odd-looking strings yet **never create unpaired surrogates**, so UTF-8 round-trip is a valid property over this corpus.
 
-**Không nhầm random text với ngôn ngữ tự nhiên:** sinh ngẫu nhiên không thay thế test câu tiếng Việt, tên người, emoji sequences thông dụng hoặc test dữ liệu rìa từ báo lỗi production. Seed được cố định để có thể tái hiện trường hợp lỗi.
+**Do not confuse random text with natural language:** random generation does not replace testing Vietnamese sentences, personal names, common emoji sequences, or edge-case data from production bug reports. The seed is fixed so failing cases remain reproducible.
 
-## 14. Kiểm thử cách cắt chuỗi không làm rơi dấu hoặc tách emoji
+## 14. Testing String Slicing Without Dropping Marks or Splitting Emoji
 
-Đối với một text editor, chọn/xóa ký tự thường cần dựa trên **grapheme boundaries**, không phải số UTF-16 units. Với `Pattern.compile("\\X")`, có thể lấy từng match như một đoạn, nối lại phải bằng chuỗi ban đầu.
+In a text editor, character selection/deletion normally operates on **grapheme boundaries**, not UTF-16 unit counts. Using `Pattern.compile("\\X")`, you can extract each match as a segment whose concatenation must equal the original string.
 
-### Ví dụ 11 — GraphemeRoundTripDemo.java
+### Example 11 — GraphemeRoundTripDemo.java
 
 ```java
 import java.util.regex.Matcher;
@@ -800,7 +800,7 @@ javac -encoding UTF-8 GraphemeRoundTripDemo.java
 java GraphemeRoundTripDemo
 ```
 
-Stdout với thuật toán grapheme Java 17 cho chuỗi đơn giản:
+Stdout with Java 17's grapheme algorithm for this simple string:
 
 ```text
 UTF-16 units: 6
@@ -809,53 +809,53 @@ Segments: 4
 Round trip exact: true
 ```
 
-Đếm: `A` (1 unit), `e + dấu` (2 units), emoji (2 units), `B` (1 unit) → **6 UTF-16 units**; số code points **1 + 2 + 1 + 1 = 5**, nhưng có **4 grapheme clusters**.
+Breakdown: `A` (1 unit), `e + mark` (2 units), emoji (2 units), `B` (1 unit) → **6 UTF-16 units**; code points **1 + 2 + 1 + 1 = 5**, yet **4 grapheme clusters**.
 
-Đối với emoji sequence ZWJ dài hơn, một số phiên bản JDK hoặc thuật toán segmentation có thể khác nhau: **kiểm thử với runtime thực tế, không lấy đúng số cụm của một máy làm hợp đồng chung vô thời hạn**.
+For longer ZWJ emoji sequences, different JDK versions or segmentation algorithms may vary: **test on the actual runtime rather than treating one machine's cluster count as an indefinite universal contract**.
 
-## 15. So sánh theo locale: phân biệt tìm kiếm với định danh
+## 15. Locale-Based Comparison: Separating Search from Identity
 
-Với nội dung ngôn ngữ tự nhiên, một chức năng tìm kiếm có thể muốn bỏ qua case hoặc dấu. `java.text.Collator` hỗ trợ so sánh theo `Locale`, có các mức nhạy:
+For natural-language content, search features may want to ignore case or accents. `java.text.Collator` supports `Locale`-based comparison with sensitivity levels:
 
-- `PRIMARY` thường chỉ so khác biệt cơ bản; có thể bỏ qua case/accents tùy quy tắc locale.
-- `SECONDARY` thường phân biệt dấu nhưng bỏ qua case trong nhiều locale.
-- `TERTIARY` có thể phân biệt kiểu chữ và biến thể khác.
-- `IDENTICAL` mức phân biệt sâu hơn, có liên quan canonical decomposition.
+- `PRIMARY`: generally compares base differences only; may ignore case/accents per locale rules.
+- `SECONDARY`: generally distinguishes accents while ignoring case in many locales.
+- `TERTIARY`: can distinguish letter case and other variants.
+- `IDENTICAL`: deeper distinction, involving canonical decomposition.
 
-Đây là **nguyên tắc thường gặp**, không phải lời hứa mọi chữ có dấu đều bằng chữ không dấu trong mọi ngôn ngữ và provider. Tạo `Collator` riêng theo locale người dùng khi dùng cho sort/search, đồng thời kiểm tra kết quả trên các JDK/provider được hỗ trợ.
+These are **common conventions**, not a guarantee that every accented letter equals its unaccented letter across every language and provider. Instantiate a `Collator` for the user's locale when sorting/searching, and verify results on supported JDKs/providers.
 
-**Không dùng Collator làm bộ so sánh access token, chữ ký số hoặc uniqueness tự động của username**. Chúng cần chính sách định danh hoặc exact matching riêng, ổn định giữa các môi trường. Nếu ứng dụng dùng database collation, nó có thể khác Java `Collator` về Unicode/CLDR version; cần integration test thay vì suy diễn.
+**Never use `Collator` to compare access tokens, digital signatures, or automatic username uniqueness.** Those need explicit identifier policies or exact matching stable across environments. If the application uses database collation, it may differ from Java's `Collator` in Unicode/CLDR version; run integration tests rather than assuming parity.
 
-### Hợp đồng ví dụ cho bốn field
+### Sample Contracts for Key Fields
 
-| Field | Chính sách có thể chấp nhận | Test phải có |
+| Field | Acceptable policy | Required tests |
 | --- | --- | --- |
-| `displayName` | Giữ nguyên cách viết; có thể tạo NFC index nếu cần search | Precomposed/decomposed, casing đặc biệt |
-| `username` ASCII case-insensitive | Validate ASCII, lower ROOT, unique key | `Lan`/`LAN` collision; Turkish locale |
-| `password` | Không tự trim/normalize/change case ngoài hợp đồng xác thực | Khác nhau chỉ bởi case hoặc dấu |
-| `accessToken` | So theo chuẩn token, thường case-sensitive | `aB` khác `ab` |
-| `searchQuery` | Locale-sensitive search/collation theo nhu cầu | Accent, case, mark, Unicode versions |
-| `filePath` | Theo chính sách filesystem thực tế | Không lower-case toàn bộ path |
-| `apiFieldName` | Exact theo schema JSON | `userId` khác `userid` khi schema yêu cầu |
-| `localizationKey` | Exact key trong ResourceBundle | Không tự hạ case khi lookup |
+| `displayName` | Preserve original spelling; optional NFC index for search | Precomposed/decomposed, special casing |
+| ASCII case-insensitive `username` | Validate ASCII, lowercase `ROOT`, unique key | `Lan`/`LAN` collision; Turkish locale |
+| `password` | Never auto-trim/normalize/change case outside auth contract | Differing only by case or diacritics |
+| `accessToken` | Compare per token spec, usually case-sensitive | `aB` differs from `ab` |
+| `searchQuery` | Locale-sensitive search/collation as needed | Accents, case, marks, Unicode versions |
+| `filePath` | Follow actual filesystem policy | Never lowercase entire path |
+| `apiFieldName` | Exact match per JSON schema | `userId` differs from `userid` when schema requires |
+| `localizationKey` | Exact key in `ResourceBundle` | Never lowercase automatically on lookup |
 
-Chữ có dấu và emoji không phải dữ liệu “xấu” cần xóa cho mọi field. Ngược lại, dữ liệu có nguy cơ trộn script hoặc confusables trong **identifier** phải được xử lý bởi profile và luật bảo mật riêng, không chỉ bằng `Normalizer` hoặc `toLowerCase`.
+Accented letters and emoji are not "bad data" to strip from every field. Conversely, data at risk of mixed scripts or confusables in **identifiers** must be handled by dedicated profiles and security rules, not merely `Normalizer` or `toLowerCase`.
 
-## 16. Phép thử collision sau khi chuẩn hóa và đổi case
+## 16. Collision Tests After Normalization and Case Conversion
 
-Hai input khác nhau có thể trở thành cùng khóa sau normalization/case conversion. Nếu database đã chứa cả hai trước khi đổi policy, migration không thể gộp mà không giải quyết chủ sở hữu.
+Two distinct inputs can collapse to the same key after normalization/case conversion. If a database already holds both before a policy change, a migration cannot merge them without resolving ownership.
 
-Ví dụ:
+Example:
 
 ```text
 Raw 1: Lan_01
 Raw 2: LAN_01
-ASCII lowercase ROOT -> lan_01 cho cả hai
+ASCII lowercase ROOT -> lan_01 for both
 ```
 
-Tương tự, hai biểu diễn canonically equivalent như `"\u00E9"` và `"e\u0301"` sẽ có cùng NFC key. Đó có thể là hành vi mong muốn của search hoặc username, nhưng không thể coi đó là một quy tắc chung cho email/token/file name.
+Likewise, two canonically equivalent forms like `"\u00E9"` and `"e\u0301"` yield the same NFC key. That may be desired for search or usernames, yet cannot be applied blindly as a universal rule for emails, tokens, or filenames.
 
-### Chương trình 12 — CanonicalCollisionDemo.java
+### Program 12 — CanonicalCollisionDemo.java
 
 ```java
 import java.text.Normalizer;
@@ -907,50 +907,50 @@ Unique keys: 2
 Collisions: 2
 ```
 
-**Đây chỉ là ví dụ về collision**, không phải canonicalizer được khuyến nghị cho mọi trường Unicode. `NFC + lowercase(ROOT)` không phải Unicode full case folding hay Unicode security profile; một sản phẩm hỗ trợ username Unicode cần định nghĩa và kiểm tra thêm Unicode version, confusables, ký tự được phép và database collation. Với mật khẩu hoặc token, key transformation như trên thường không được phép.
+**This is only a collision example**, not a recommended canonicalizer for every Unicode field. `NFC + lowercase(ROOT)` is neither Unicode full case folding nor a Unicode security profile; a product supporting Unicode usernames must also define and test Unicode version, confusables, allowed characters, and database collation. For passwords or tokens, key transformations like this are normally forbidden.
 
-## 17. Ma trận QA nên đưa vào bộ test
+## 17. QA Matrix to Include in Your Test Suite
 
-| Nhóm | Dữ liệu mẫu | Kiểm tra |
+| Category | Sample data | Checks |
 | --- | --- | --- |
-| Canonical forms | `é` / `e + U+0301` | Raw khác, NFC bằng, UTF-8 bytes có thể khác |
-| Dấu tiếng Việt | Chữ có dấu thanh, dấu phụ | NFC/NFD, caret/selection đúng cluster |
-| Combining mark đầu chuỗi | U+0301 trước chữ | Không crash; policy nhập rõ |
-| Surrogate pair | `A😀B` | length 4, codepoints 3, không cắt tại offset 2 |
-| Variation selector | `✈️` | 2 codepoints; test grapheme trên runtime |
+| Canonical forms | `é` / `e + U+0301` | Raw differs, NFC matches, UTF-8 bytes may differ |
+| Vietnamese diacritics | Letters with tone and vowel marks | NFC/NFD, caret/selection respects clusters |
+| Leading combining mark | U+0301 before letter | No crash; explicit input policy |
+| Surrogate pair | `A😀B` | length 4, codepoints 3, never slice at offset 2 |
+| Variation selector | `✈️` | 2 codepoints; test grapheme on runtime |
 | ZWJ sequence | `👩‍💻` | 5 UTF-16 units, 3 codepoints |
-| Regional indicators | `🇻🇳` | Nhiều codepoints/UTF-16 units |
-| Emoji modifier | Emoji + skin tone | Không đếm mỗi codepoint là một ký tự |
-| Regex `\\X` | `e\u0301` | Một extended grapheme cluster |
-| Case expansion | `ß` → `SS` khi uppercase ROOT | Độ dài thay đổi |
-| Dotted I | `İ` ROOT lower | `i` + combining dot |
-| Turkish I | `TITLE` ROOT và tr-TR | Hai lowercase keys khác nhau |
-| Exact vs ignore-case | `Straße`/`STRASSE` | Không giả định equalsIgnoreCase = full fold |
-| Charset | UTF-8 encode/decode | Round trip trên well-formed text |
-| Malformed data | UTF-8 `C3 28`, high surrogate đơn | Strict codec từ chối |
-| Identifier collision | `Lan_01`/`LAN_01` | Phát hiện unique-key conflict |
-| Grapheme segmentation | Ghép mọi `\\X` match | Exact string round-trip |
-| Locale-driven search | `en`, `vi`, `tr` | Locale được truyền tường minh |
-| Unicode version | Emoji ZWJ mới | Khóa runtime/provider hoặc kiểm tra expected data |
-| UI renderer | Font/platform khác nhau | Không coi hình vẽ là chuẩn bytes hay codepoints |
-| Database | Java string vs DB collation | Integration test uniqueness |
-| File/API boundary | UTF-8/normalization contracts | Không tự thay bytes/ngữ nghĩa |
+| Regional indicators | `🇻🇳` | Multiple codepoints/UTF-16 units |
+| Emoji modifier | Emoji + skin tone | Do not count every codepoint as a character |
+| Regex `\\X` | `e\u0301` | One extended grapheme cluster |
+| Case expansion | `ß` → `SS` on uppercase `ROOT` | Length changes |
+| Dotted I | `İ` `ROOT` lower | `i` + combining dot |
+| Turkish I | `TITLE` `ROOT` vs. `tr-TR` | Two different lowercase keys |
+| Exact vs. ignore-case | `Straße`/`STRASSE` | Do not assume `equalsIgnoreCase` = full fold |
+| Charset | UTF-8 encode/decode | Round-trip on well-formed text |
+| Malformed data | UTF-8 `C3 28`, lone high surrogate | Strict codec rejects |
+| Identifier collision | `Lan_01`/`LAN_01` | Detect unique-key conflicts |
+| Grapheme segmentation | Join all `\\X` matches | Exact string round-trip |
+| Locale-driven search | `en`, `vi`, `tr` | Locale passed explicitly |
+| Unicode version | Newer ZWJ emoji | Pin runtime/provider or verify expected data |
+| UI renderer | Different fonts/platforms | Never treat rendered glyphs as canonical bytes/codepoints |
+| Database | Java string vs. DB collation | Integration test uniqueness |
+| File/API boundary | UTF-8/normalization contracts | Never alter bytes/semantics silently |
 
-Mỗi test phải cho biết nó đang đảm bảo **đúng byte, đúng codepoint, đúng grapheme, đúng layout hay đúng nghiệp vụ**. Trộn các tầng này làm xuất hiện test sai hoặc bỏ sót bug.
+Every test must declare whether it verifies **exact bytes, code points, graphemes, layout, or business logic**. Mixing these layers yields false tests or missed bugs.
 
-## 18. Test đa phiên bản JDK và Unicode
+## 18. Testing Across JDK and Unicode Versions
 
-JDK phân phối dữ liệu Unicode/locale theo các phiên bản cụ thể. Khi nâng cấp JDK, những khía cạnh cần test lại gồm:
+JDK releases ship specific Unicode and locale data versions. When upgrading the JDK, re-test:
 
-- `Character` classifications theo dữ liệu Unicode mới.
-- Segmentation của `BreakIterator`, `Pattern("\\X")` và handling emoji mới.
-- Locale-sensitive case mapping và collation.
-- `Normalizer` và biểu diễn canonical trong các trường hợp chuẩn Unicode.
-- Font/rendering nếu giao diện desktop hoặc bản preview text phụ thuộc platform.
+- `Character` classifications under updated Unicode data.
+- `BreakIterator`, `Pattern("\\X")` segmentation, and new emoji handling.
+- Locale-sensitive case mapping and collation.
+- `Normalizer` and canonical representations under Unicode standards.
+- Fonts/rendering if desktop UIs or text previews depend on the platform.
 
-Không phải tất cả hành vi đều thay đổi mỗi lần nâng cấp, và Unicode có chính sách ổn định cho nhiều khía cạnh normalization. Tuy nhiên, **đừng giả định snapshot phân đoạn của mọi emoji mới vĩnh viễn giống nhau**. Phát hiện regression bằng corpus đã gắn kỳ vọng theo runtime hoặc chuẩn mà ứng dụng tuyên bố hỗ trợ.
+Not everything changes on every upgrade, and Unicode provides stability guarantees for many normalization aspects. Still, **never assume segmentation snapshots for new emoji stay identical forever**. Catch regressions with a corpus tagged against the runtime or standard your app claims to support.
 
-**Gợi ý cấu trúc test corpus:**
+**Suggested test corpus structure:**
 
 ```text
 case-id, source-escaped, expected-codepoints, expected-graphemes, unicode-version
@@ -959,88 +959,88 @@ grinning-face, \uD83D\uDE00, 1, 1, target-runtime
 woman-technologist, \uD83D\uDC69\u200D\uD83D\uDCBB, 3, 1, target-runtime
 ```
 
-Đây là **dữ liệu minh họa corpus**, không phải CSV chuẩn máy đọc vì phần `source-escaped` chứa backslash escapes cần parser riêng. Trong repo thực, dùng JSON/test fixtures với định dạng escaping được xác định, không tự dùng `split(",")` nếu giá trị có thể chứa dấu phẩy.
+This is **illustrative corpus data**, not standard machine-readable CSV because `source-escaped` contains backslash escapes needing a dedicated parser. In a real repo, use JSON or test fixtures with a defined escaping format rather than naive `split(",")` if values can contain commas.
 
-Đặc biệt, nếu app có nhiều runtime (Java backend, JS frontend, native mobile), có thể dùng Unicode segmentation engines **khác phiên bản**. UI/editor cần thống nhất chính sách giới hạn độ dài và selection, hoặc thông báo rõ việc kiểm tra lại ở backend.
+In particular, if an app spans multiple runtimes (Java backend, JS frontend, native mobile), their Unicode segmentation engines may implement **different Unicode versions**. UI/editors should agree on length-limit and selection policies, or clearly surface backend re-validation.
 
-## 19. Sai lầm phổ biến cần tránh
+## 19. Common Mistakes to Avoid
 
-| Sai lầm | Hậu quả | Cách sửa |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Coi `String.length()` là số glyph | Emoji bị đếm thành 2 hoặc nhiều hơn | Chọn codepoints/graphemes theo requirement |
-| Dùng `substring(i,i+1)` cho emoji | Cắt surrogate pair | Dựa vào biên hợp lệ |
-| Coi `offsetByCodePoints` đủ cho caret | Có thể tách dấu/ZWJ | Grapheme segmentation |
-| Dùng `equals` để kiểm tra canonical Unicode | NFD/NFC bị xem khác | Normalize theo policy |
-| Normalize token/password tự động | Thay đổi giá trị cần xác thực | Tôn trọng giao thức |
-| NFKC mọi nội dung | Có thể hợp nhất ký tự mang nghĩa riêng | Chỉ dùng khi profile cho phép |
-| Dùng `toLowerCase()` mặc định cho ID | Lỗi Turkish I, khác môi trường | Validate + locale tường minh |
-| Giả định uppercase không đổi length | Không đủ dung lượng, collision | Kiểm tra sau mapping |
-| Cho rằng `equalsIgnoreCase` là full fold | So sai ở phép mở rộng `ß` | Chọn casefold/profile phù hợp |
-| Đếm mọi dấu kết hợp là ký tự riêng | Trải nghiệm caret/xóa sai | Theo grapheme |
-| Hard-code emoji segmentation một JDK cho mọi máy | Sai sau thay Unicode/runtime | Test đúng version |
-| So screenshot/font để xác định codepoints | Glyph render khác nhau | Kiểm tra codepoint/UTF-8 thực |
-| Decode malformed UTF-8 có replacement mà coi thành công | Mất dữ liệu nguồn | Decoder REPORT |
-| Chỉ chạy test ASCII/English | Bỏ sót đa ngôn ngữ | Corpus tiếng Việt, Turkish, emoji |
-| Dùng regex `[A-Za-z]` cho mọi tên người | Từ chối Unicode hợp lệ | Policy ngôn ngữ cụ thể |
-| Tin `\\w` đồng nhất Unicode Letter | Phạm vi regex khác theo flags | Định nghĩa các loại Unicode |
-| Dùng Collator cho token/ID | Matching phụ thuộc locale | Exact/identifier policy |
-| Quên database collation | Uniqueness Java và DB khác | Integration testing |
-| Dùng `Locale.setDefault` trong test concurrent | Test khác bị nhiễu | Truyền Locale per operation |
-| Fuzz tạo surrogate đơn lẻ rồi kỳ vọng UTF-8 exact | Sai điều kiện property | Sinh scalar hợp lệ hoặc test malformed riêng |
+| Treating `String.length()` as glyph count | Emoji counted as 2 or more | Pick code points/graphemes per requirement |
+| Using `substring(i,i+1)` on emoji | Splits surrogate pair | Slice only on valid boundaries |
+| Treating `offsetByCodePoints` as enough for caret | Can split marks/ZWJ | Use grapheme segmentation |
+| Using `equals` for canonical Unicode check | NFD/NFC treated as unequal | Normalize per policy |
+| Auto-normalizing tokens/passwords | Alters values under verification | Respect protocol |
+| Applying NFKC everywhere | May merge semantically distinct chars | Use only when profile permits |
+| Using default `toLowerCase()` for IDs | Turkish I bug, env-dependent | Validate + explicit locale |
+| Assuming uppercasing preserves length | Buffer truncation, collisions | Check length after mapping |
+| Treating `equalsIgnoreCase` as full fold | Fails on `ß` expansion | Pick proper casefold/profile |
+| Counting each combining mark as a char | Broken caret/backspace UX | Operate on graphemes |
+| Hard-coding one JDK's emoji segmentation everywhere | Breaks on Unicode/runtime changes | Test target versions |
+| Comparing screenshots/fonts to verify code points | Glyph rendering varies | Inspect actual code points/UTF-8 |
+| Decoding malformed UTF-8 with replacement and calling it success | Silent data loss | Use `REPORT` decoder |
+| Running only ASCII/English tests | Misses multilingual bugs | Include Vietnamese, Turkish, emoji corpus |
+| Using `[A-Za-z]` regex for all personal names | Rejects valid Unicode names | Language-specific policy |
+| Assuming `\\w` equals Unicode Letter | Regex scope varies with flags | Specify Unicode classes |
+| Using `Collator` for tokens/IDs | Matching varies by locale | Exact/identifier policy |
+| Ignoring database collation | Java vs. DB uniqueness mismatch | Integration testing |
+| Calling `Locale.setDefault` in concurrent tests | Interferes with other tests | Pass `Locale` per operation |
+| Fuzzing lone surrogates and expecting exact UTF-8 | Violates property preconditions | Generate valid scalars or test malformed separately |
 
-## 20. Lộ trình debug khi gặp lỗi Unicode
+## 20. Debugging Roadmap for Unicode Bugs
 
-Khi một người dùng báo “chữ có dấu bị mất” hoặc “emoji bị xóa nửa”, đừng bắt đầu bằng thay thế ký tự bằng regex. Hãy ghi nhận theo thứ tự:
+When a user reports "accents vanished" or "emoji got half-deleted," do not start by hacking regex replacements. Inspect in order:
 
-1. **Input gốc:** nó đến từ keyboard, clipboard, file UTF-8 hay API? Có cần giữ bytes ban đầu không?
-2. **Code points:** log dưới dạng `U+XXXX` trong môi trường an toàn, tránh log PII hoặc token thô.
-3. **Normalization:** raw khác hay giống ở NFC/NFD? Có ai ép NFKC hoặc bỏ marks không?
-4. **UTF-16 offsets:** có thao tác `substring`/`charAt`/giới hạn độ dài làm cắt surrogate pair không?
-5. **Grapheme segmentation:** caret/selection có dùng `BreakIterator` hoặc `\\X` đúng với phiên bản Unicode mong muốn không?
-6. **Case mapping:** có dùng default locale hoặc case conversion làm tăng/giảm chiều dài không?
-7. **Encoding:** UTF-8 bytes có hợp lệ? Có bị decode nhầm charset hoặc thay `U+FFFD` không?
-8. **Database/API:** field collation, normalization, length và encoding có giống policy Java không?
-9. **Rendering:** font và terminal có hỗ trợ glyph emoji/combining marks đúng không? Lỗi hiển thị có thể khác lỗi dữ liệu.
-10. **Reproduction:** lưu test case escaped và runtime/Unicode version; sử dụng seed cố định cho fuzz.
+1. **Original input:** did it come from keyboard, clipboard, UTF-8 file, or API? Must original bytes be preserved?
+2. **Code points:** log as `U+XXXX` in a safe environment, avoiding raw PII or tokens.
+3. **Normalization:** did raw inputs differ or match under NFC/NFD? Did something force NFKC or strip marks?
+4. **UTF-16 offsets:** did `substring`/`charAt`/length truncation split a surrogate pair?
+5. **Grapheme segmentation:** do caret/selection use `BreakIterator` or `\\X` matching the target Unicode version?
+6. **Case mapping:** did default locale or case conversion expand/shrink length?
+7. **Encoding:** are UTF-8 bytes valid? Was the wrong charset decoded or replaced with `U+FFFD`?
+8. **Database/API:** do column collation, normalization, length limits, and encoding match Java's policy?
+9. **Rendering:** do the font and terminal support emoji/combining-mark glyphs? Display bugs can differ from data bugs.
+10. **Reproduction:** save an escaped test case plus runtime/Unicode version; use a fixed seed for fuzzers.
 
-Trước khi khắc phục, xác định rõ lỗi nằm ở **byte**, **chuỗi Unicode**, **grapheme boundaries**, **case equivalence** hay **display renderer**. Việc sửa nhầm tầng có thể che bug nhưng tạo bug mới.
+Before patching, pinpoint whether the bug sits at the **byte**, **Unicode string**, **grapheme boundary**, **case equivalence**, or **display renderer** layer. Fixing the wrong layer can mask the symptom while introducing new bugs.
 
-## 21. Bài tập ứng dụng
+## 21. Applied Exercises
 
-**Bài 1 — So raw và NFC.** Dùng `"\u00E9"` và `"e\u0301"`. Tính UTF-16 length, code point count, UTF-8 hex, raw equality và NFC equality. Giải thích lý do kết quả nhìn thấy có thể giống nhau nhưng raw equality khác.
+**Exercise 1 — Comparing raw and NFC.** Take `"\u00E9"` and `"e\u0301"`. Compute UTF-16 length, code point count, UTF-8 hex, raw equality, and NFC equality. Explain why visual output can match while raw equality fails.
 
-**Bài 2 — Emoji phức hợp.** Xây test cho `😀`, `✈️`, `👩‍💻` và `🇻🇳`. Đếm UTF-16 units/codepoints/graphemes; không cắt giữa surrogate pair và ZWJ sequence. Thử trên hai phiên bản JDK được dự án hỗ trợ.
+**Exercise 2 — Complex emoji.** Build tests for `😀`, `✈️`, `👩‍💻`, and `🇻🇳`. Count UTF-16 units/codepoints/graphemes; ensure no slicing inside surrogate pairs or ZWJ sequences. Run on two JDK versions supported by your project.
 
-**Bài 3 — Cắt/xóa một chữ.** Dùng `Pattern.compile("\\X")` để duyệt grapheme trong `"A" + "e\u0301" + "😀" + "B"`. Ghép lại phải bằng chuỗi gốc. Tạo hàm xóa grapheme cuối thay vì chỉ `substring(0,length-1)`.
+**Exercise 3 — Slicing/deleting one character.** Use `Pattern.compile("\\X")` to iterate graphemes in `"A" + "e\u0301" + "😀" + "B"`. Reassembly must equal the original string. Implement a function that deletes the final grapheme instead of `substring(0,length-1)`.
 
-**Bài 4 — Turkish I.** So `"TITLE".toLowerCase(Locale.ROOT)` và `"TITLE".toLowerCase(Locale.forLanguageTag("tr-TR"))`. Thiết kế canonical username chỉ ASCII rồi test khi default locale JVM là Turkish mà không gọi `Locale.setDefault` ở giữa các test.
+**Exercise 4 — Turkish I.** Compare `"TITLE".toLowerCase(Locale.ROOT)` and `"TITLE".toLowerCase(Locale.forLanguageTag("tr-TR"))`. Design an ASCII-only canonical username and test it when the JVM default locale is Turkish without calling `Locale.setDefault` between tests.
 
-**Bài 5 — Case expansion.** So `"Straße".equalsIgnoreCase("STRASSE")` với uppercase ROOT. Vì sao không dùng kết quả một ví dụ để coi uppercase là Unicode full case folding? Thử `"\u0130"` dưới ROOT và Turkish locale.
+**Exercise 5 — Case expansion.** Compare `"Straße".equalsIgnoreCase("STRASSE")` against ROOT uppercasing. Why should one example not lead you to equate uppercasing with Unicode full case folding? Test `"\u0130"` under `ROOT` and Turkish locales.
 
-**Bài 6 — Strict Unicode input.** Cho byte `C3 28` và `String` chứa high surrogate đơn lẻ. So convenience codec với strict decoder/encoder. Viết policy reject hoặc repair có thông báo rõ cho import/API.
+**Exercise 6 — Strict Unicode input.** Take bytes `C3 28` and a `String` containing a lone high surrogate. Compare convenience codecs against strict decoder/encoder. Write a clear reject or repair policy with diagnostics for imports/APIs.
 
-**Bài 7 — Property-based testing.** Mở rộng `SeededUnicodePropertiesDemo` bằng thêm các Unicode scalar value ngoài BMP, nhiều combining marks và regional indicators. Giữ seed cố định; kiểm thử NFC/NFD idempotence, UTF-8 round-trip và grapheme reconstruction.
+**Exercise 7 — Property-based testing.** Extend `SeededUnicodePropertiesDemo` with supplementary Unicode scalar values, multiple combining marks, and regional indicators. Keep the seed fixed; test NFC/NFD idempotence, UTF-8 round-trip, and grapheme reconstruction.
 
-**Bài 8 — Identity collision.** Cho username `Lan_01`, `LAN_01`, `é`, `e\u0301`. Tạo canonical keys theo một policy đã công bố, phát hiện trùng trước khi tạo unique index, không tự gộp tài khoản.
+**Exercise 8 — Identity collision.** Take usernames `Lan_01`, `LAN_01`, `é`, `e\u0301`. Generate canonical keys under a documented policy, detect duplicates before creating a unique index, and never merge accounts automatically.
 
-## 22. Tài liệu chính thức
+## 22. Official Documentation
 
 - [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): UTF-16 `length`, `codePointCount`, `offsetByCodePoints`, `toUpperCase`/`toLowerCase`, `equalsIgnoreCase`.
 - [Java SE 17 — Normalizer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Normalizer.html): NFC/NFD/NFKC/NFKD.
-- [Java SE 17 — BreakIterator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/BreakIterator.html): text boundaries theo locale.
+- [Java SE 17 — BreakIterator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/BreakIterator.html): locale-aware text boundaries.
 - [Java SE 17 — Pattern](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html): `\\X`, Unicode classes, Unicode case, canonical equivalence.
-- [Java SE 17 — Character](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html): codepoints, surrogate pairs và các thao tác Unicode.
-- [Java SE 17 — CharsetEncoder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/CharsetEncoder.html): malformed input và error actions.
+- [Java SE 17 — Character](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html): code points, surrogate pairs, and Unicode operations.
+- [Java SE 17 — CharsetEncoder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/CharsetEncoder.html): malformed input and error actions.
 - [Java SE 17 — CharsetDecoder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/CharsetDecoder.html): strict UTF-8 decoding.
 - [Unicode Standard Annex #29](https://www.unicode.org/reports/tr29/): extended grapheme cluster segmentation.
 - [Unicode Standard Annex #15](https://www.unicode.org/reports/tr15/): normalization forms.
-- [Unicode Default Case Algorithms](https://www.unicode.org/versions/latest/core-spec/chapter-3/#G33992): case mappings và case folding.
-- [Unicode Technical Standard #39](https://www.unicode.org/reports/tr39/): confusable identifiers và Unicode security profiles.
+- [Unicode Default Case Algorithms](https://www.unicode.org/versions/latest/core-spec/chapter-3/#G33992): case mappings and case folding.
+- [Unicode Technical Standard #39](https://www.unicode.org/reports/tr39/): confusable identifiers and Unicode security profiles.
 
-## 23. Ghi nhớ
+## 23. Key Takeaways
 
-**Một ký tự người dùng nhìn thấy có thể gồm nhiều UTF-16 units và nhiều code points.** Vì vậy cần test riêng `String.length()`, `codePointCount`, grapheme boundaries và UTF-8 bytes. Các chữ có dấu ở dạng NFC/NFD có thể canonically equivalent dù `String.equals` trả false; emoji ZWJ, variation selectors và flags không phải luôn một code point.
+**A single user-perceived character can span multiple UTF-16 units and multiple code points.** Test `String.length()`, `codePointCount`, grapheme boundaries, and UTF-8 bytes separately. Accented letters in NFC/NFD can be canonically equivalent even when `String.equals` returns `false`; ZWJ emoji, variation selectors, and flags are not always single code points.
 
-**Biến đổi hoa/thường không bảo toàn độ dài và có thể phụ thuộc Locale.** `ß` thành `SS` khi upper-case, `İ` có thể biến thành `i + combining dot` và chữ `I` trong tiếng Thổ Nhĩ Kỳ có lower-case khác ROOT. Không dùng default locale vô tình cho khóa máy đọc, không xem `equalsIgnoreCase` là full Unicode case folding, và không áp normalization/case conversion cho mật khẩu hoặc token ngoài hợp đồng.
+**Case conversions do not preserve length and can depend on `Locale`.** `ß` expands to `SS` when uppercased, `İ` can become `i + combining dot`, and Turkish `I` lowercases differently from `ROOT`. Never let default locale affect machine keys, never treat `equalsIgnoreCase` as full Unicode case folding, and never normalize/case-convert passwords or tokens outside contract.
 
-**Bộ test tốt phải tự fail khi sai, dùng dữ liệu Unicode đa dạng, seed cố định, codec strict cho malformed input và khóa phiên bản JDK/Unicode khi cần.** Chọn chính sách cho từng field, giữ nguyên bản gốc khi cần, phát hiện collision, và phân biệt lỗi văn bản với lỗi font/rendering.
+**A solid test suite fails automatically on errors, uses diverse Unicode data, fixed seeds, strict codecs for malformed input, and pins JDK/Unicode versions when required.** Define per-field policies, preserve originals where needed, detect collisions, and separate text-data bugs from font/rendering bugs.

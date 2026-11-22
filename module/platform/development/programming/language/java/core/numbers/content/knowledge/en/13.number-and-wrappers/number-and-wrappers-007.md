@@ -1,10 +1,10 @@
-# MIN_VALUE, MAX_VALUE, TYPE và các hằng theo từng lớp trong Java
+# MIN_VALUE, MAX_VALUE, TYPE, and Per-Class Constants in Java
 
-## 1. Khái niệm
+## 1. Concept
 
-Java có sáu kiểu số nguyên thủy: byte, short, int, long, float, double. Các wrapper tương ứng là **Byte**, **Short**, **Integer**, **Long**, **Float** và **Double**, đều kế thừa lớp trừu tượng **Number**. Các lớp này cung cấp những hằng **public static final** để tra cứu giới hạn biểu diễn, số bit, số byte và kiểu nguyên thủy liên quan.
+Java has six numeric primitive types: `byte`, `short`, `int`, `long`, `float`, `double`. Their corresponding wrappers are **Byte**, **Short**, **Integer**, **Long**, **Float**, and **Double**, all extending the abstract class **Number**. These classes provide **public static final** constants to look up representation bounds, bit width, byte size, and the associated primitive type.
 
-**Character**, **Boolean** cũng là wrapper nhưng không kế thừa Number. **Void** có TYPE đại diện cho void, dù void không chứa giá trị để tính toán.
+**Character** and **Boolean** are also wrappers, yet do not extend `Number`. **Void** has `TYPE` representing `void`, even though `void` holds no value for arithmetic.
 
 ~~~java
 int smallest = Integer.MIN_VALUE;
@@ -12,35 +12,35 @@ int largest = Integer.MAX_VALUE;
 Class<Integer> primitiveType = Integer.TYPE;
 ~~~
 
-Các trường trên thuộc **lớp**, không cần khởi tạo đối tượng Integer. Điểm quan trọng nhất: ý nghĩa **MIN_VALUE** ở các wrapper nguyên **khác** với Float và Double.
+The fields above belong to the **class**, requiring no `Integer` object instantiation. The most important point: the meaning of **MIN_VALUE** on integer wrappers **differs** from that on `Float` and `Double`.
 
-## 2. Bảng hằng cơ bản
+## 2. Basic Constants Table
 
-| Lớp | MIN_VALUE | MAX_VALUE | TYPE đại diện | SIZE (bit) | BYTES |
+| Class | MIN_VALUE | MAX_VALUE | Represented TYPE | SIZE (bits) | BYTES |
 | --- | --- | --- | --- | ---: | ---: |
 | Byte | −128 | 127 | byte.class | 8 | 1 |
 | Short | −32768 | 32767 | short.class | 16 | 2 |
 | Integer | −2147483648 | 2147483647 | int.class | 32 | 4 |
 | Long | −9223372036854775808 | 9223372036854775807 | long.class | 64 | 8 |
-| Float | 2^−149, **dương** | khoảng 3.4028235 × 10^38, dương hữu hạn | float.class | 32 | 4 |
-| Double | 2^−1074, **dương** | khoảng 1.7976931348623157 × 10^308, dương hữu hạn | double.class | 64 | 8 |
+| Float | 2^−149, **positive** | about 3.4028235 × 10^38, finite positive | float.class | 32 | 4 |
+| Double | 2^−1074, **positive** | about 1.7976931348623157 × 10^308, finite positive | double.class | 64 | 8 |
 
-Các số nguyên có dấu n bit dùng phạm vi **−2^(n−1)** đến **2^(n−1)−1**. Vì vậy Integer.MIN_VALUE âm hơn giá trị đối của Integer.MAX_VALUE một đơn vị.
+n-bit signed integers use the range **−2^(n−1)** to **2^(n−1)−1**. Thus `Integer.MIN_VALUE` is one unit more negative than the negation of `Integer.MAX_VALUE`.
 
-Ngược lại, **Float.MIN_VALUE/Double.MIN_VALUE** là giá trị dương khác 0 **nhỏ nhất** theo định dạng IEEE 754, không phải giá trị âm hữu hạn nhỏ nhất. Hãy luôn đọc ý nghĩa của trường theo lớp chứa nó.
+Conversely, **Float.MIN_VALUE/Double.MIN_VALUE** is the **smallest** nonzero positive value in IEEE 754 format, not the lowest finite negative value. Always read the meaning of a field according to the class that declares it.
 
-## 3. Byte, Short, Integer, Long và phép toán tràn
+## 3. Byte, Short, Integer, Long, and Arithmetic Overflow
 
-Byte và Short có MIN_VALUE/MAX_VALUE lần lượt là **−128/127** và **−32768/32767**. Chúng có kiểu trường **byte/short**, nhưng phép cộng thường nâng toán hạng thành int:
+`Byte` and `Short` have `MIN_VALUE`/`MAX_VALUE` of **−128/127** and **−32768/32767**, respectively. Those fields have type **byte/short**, yet addition normally promotes operands to `int`:
 
 ~~~java
 byte b = Byte.MAX_VALUE;
-int next = b + 1;                   // 128, kiểu int
+int next = b + 1;                   // 128, type int
 byte wrapped = (byte) (b + 1);     // -128
-// byte invalid = b + 1;           // lỗi biên dịch: int không tự thu hẹp về byte
+// byte invalid = b + 1;           // compile error: int does not auto-narrow to byte
 ~~~
 
-Với Integer, phép cộng vẫn trong 32 bit nếu không có toán hạng long:
+For `Integer`, addition stays within 32 bits if there is no `long` operand:
 
 ~~~java
 int overflowed = Integer.MAX_VALUE + 1;       // -2147483648
@@ -48,24 +48,24 @@ long stillWrong = Integer.MAX_VALUE + 1;      // -2147483648L
 long correct = (long) Integer.MAX_VALUE + 1;  // 2147483648L
 ~~~
 
-Việc gán vào long **sau phép tính** không tránh overflow của int. Nếu cần báo lỗi khi tràn, dùng **Math.addExact**, **Math.subtractExact**, **Math.multiplyExact** hoặc **Math.negateExact**, tùy phép toán.
+Assigning to `long` **after the computation** does not prevent `int` overflow. If an error must be reported on overflow, use **Math.addExact**, **Math.subtractExact**, **Math.multiplyExact**, or **Math.negateExact**, depending on the operation.
 
-Hai tình huống biên của số nguyên có dấu:
+Two boundary cases of signed integers:
 
 ~~~java
 int min = Integer.MIN_VALUE;
-int negated = -min;               // vẫn -2147483648
-int absolute = Math.abs(min);     // vẫn -2147483648
+int negated = -min;               // still -2147483648
+int absolute = Math.abs(min);     // still -2147483648
 long positive = -(long) min;      // 2147483648L
 ~~~
 
-**−Integer.MIN_VALUE** không nằm trong miền int. Tương tự **−Long.MIN_VALUE** không nằm trong miền long. Nếu cần giá trị lớn hơn Long.MAX_VALUE, hãy dùng **BigInteger** để tính toán chính xác.
+**−Integer.MIN_VALUE** does not fit in the `int` range. Similarly, **−Long.MIN_VALUE** does not fit in the `long` range. If you need values larger than `Long.MAX_VALUE`, use **BigInteger** to compute accurately.
 
-**Không dấu:** Integer.MAX_VALUE là cực đại **có dấu**. Cùng mẫu 32 bit toàn số 1 có giá trị int **−1**, nhưng **Integer.toUnsignedString(-1)** trả chuỗi **4294967295**. Tương tự, **Long.toUnsignedString(-1L)** trả **18446744073709551615**. Java không có primitive unsigned int/unsigned long riêng; đây là API diễn giải mẫu bit theo quy ước không dấu.
+**Unsigned:** `Integer.MAX_VALUE` is the **signed** maximum. The same 32-bit all-ones pattern has signed `int` value **−1**, yet **Integer.toUnsignedString(-1)** returns the string **4294967295**. Similarly, **Long.toUnsignedString(-1L)** returns **18446744073709551615**. Java has no separate `unsigned int`/`unsigned long` primitive types; these are APIs interpreting bit patterns under unsigned conventions.
 
-## 4. Float và Double: số normal, subnormal và infinity
+## 4. Float and Double: Normal, Subnormal, and Infinity
 
-| Hằng | Float (binary32) | Double (binary64) |
+| Constant | Float (binary32) | Double (binary64) |
 | --- | --- | --- |
 | MIN_VALUE | 2^−149 ≈ 1.4 × 10^−45 | 2^−1074 ≈ 4.9 × 10^−324 |
 | MIN_NORMAL | 2^−126 ≈ 1.17549435 × 10^−38 | 2^−1022 ≈ 2.2250738585072014 × 10^−308 |
@@ -76,26 +76,26 @@ long positive = -(long) min;      // 2147483648L
 | MIN_EXPONENT | −126 | −1022 |
 | MAX_EXPONENT | 127 | 1023 |
 
-**MIN_NORMAL** là normal dương nhỏ nhất. **MIN_VALUE** là **subnormal dương nhỏ nhất**, nhỏ hơn MIN_NORMAL. Điều này giúp Java có gradual underflow: một kết quả nhỏ hơn normal nhỏ nhất chưa nhất thiết bị làm tròn ngay về 0.
+**MIN_NORMAL** is the smallest positive normal number. **MIN_VALUE** is the **smallest positive subnormal number**, smaller than `MIN_NORMAL`. This gives Java gradual underflow: a result smaller than the smallest normal need not immediately round to 0.
 
-Để lấy **số âm hữu hạn nhỏ nhất**, dùng **−Float.MAX_VALUE** hoặc **−Double.MAX_VALUE**. **NEGATIVE_INFINITY** còn nhỏ hơn mọi số hữu hạn nhưng bản thân không hữu hạn.
+To obtain the **lowest finite negative number**, use **−Float.MAX_VALUE** or **−Double.MAX_VALUE**. **NEGATIVE_INFINITY** is smaller than every finite number, though it is not itself finite.
 
 ~~~java
-float minPositive = Float.MIN_VALUE;       // dương khác 0
+float minPositive = Float.MIN_VALUE;       // nonzero positive
 float mostNegativeFinite = -Float.MAX_VALUE;
 boolean a = Float.MIN_VALUE > 0.0f;        // true
 boolean b = Float.POSITIVE_INFINITY > Float.MAX_VALUE; // true
 ~~~
 
-Kết quả quá lớn có thể overflow thành Infinity; một phép toán không xác định có thể tạo NaN. **NaN == NaN** trả false, vì vậy kiểm tra bằng **Float.isNaN/Double.isNaN**; dùng **isFinite** khi chỉ cho phép giá trị hữu hạn.
+Results that are too large can overflow to Infinity; an undefined operation can produce NaN. **NaN == NaN** returns false, so check with **Float.isNaN/Double.isNaN**; use **isFinite** when only finite values are allowed.
 
-**MIN_EXPONENT/MAX_EXPONENT** nói về số mũ của miền normal hữu hạn, không có nghĩa subnormal không thể nhỏ đến 2^−149 hoặc 2^−1074.
+**MIN_EXPONENT/MAX_EXPONENT** describe exponents of the finite normal range; they do not mean subnormals cannot reach as small as 2^−149 or 2^−1074.
 
-Độ chính xác significand normal của float là **24 bit**, double là **53 bit**. Hai trường **Float.PRECISION** và **Double.PRECISION** được bổ sung từ **Java 19**; chúng **không có trong Java 17**, dù các con số 24 và 53 đã được đặc tả trước đó. Ví dụ dùng **javac --release 17** không được truy cập hai trường này.
+Normal significand precision is **24 bits** for `float` and **53 bits** for `double`. The two fields **Float.PRECISION** and **Double.PRECISION** were added in **Java 19**; they **do not exist in Java 17**, even though the numbers 24 and 53 were already part of the specification. Examples compiled with **javac --release 17** must not access those two fields.
 
-## 5. TYPE khác với lớp wrapper
+## 5. TYPE Differs from the Wrapper Class
 
-**Integer.TYPE** trỏ đến đối tượng Class đại diện primitive **int**, chính là **int.class**. **Integer.class** trỏ đến lớp **java.lang.Integer**:
+**Integer.TYPE** points to the `Class` object representing the primitive **int**, which is **int.class**. **Integer.class** points to the class **java.lang.Integer**:
 
 ~~~java
 boolean same = Integer.TYPE == int.class;        // true
@@ -104,7 +104,7 @@ boolean primitive = Integer.TYPE.isPrimitive();  // true
 boolean wrapper = Integer.class.isPrimitive();    // false
 ~~~
 
-Các trường TYPE tương ứng:
+Corresponding `TYPE` fields:
 
 | Wrapper | TYPE |
 | --- | --- |
@@ -118,25 +118,25 @@ Các trường TYPE tương ứng:
 | Boolean | boolean.class |
 | Void | void.class |
 
-Ví dụ trong reflection: **Math.class.getMethod("abs", Integer.TYPE)** tìm overload nhận primitive int; dùng Integer.class không khớp chữ ký primitive. Đoạn minh họa này cần xử lý **NoSuchMethodException** khi đặt trong mã có thể chạy.
+Example in reflection: **Math.class.getMethod("abs", Integer.TYPE)** looks up the overload taking primitive `int`; using `Integer.class` does not match the primitive signature. This snippet must handle **NoSuchMethodException** when placed in runnable code.
 
-**Integer.TYPE** không chứa số nguyên; nó chứa đối tượng Class. Ngược lại, **Integer.valueOf(42)** tạo/lấy wrapper chứa giá trị 42. Nếu gọi **getClass()** trên Integer object, kết quả là Integer.class chứ không phải Integer.TYPE.
+**Integer.TYPE** does not hold an integer; it holds a `Class` object. By contrast, **Integer.valueOf(42)** creates/obtains a wrapper holding the value 42. If you call **getClass()** on an `Integer` object, the result is `Integer.class`, not `Integer.TYPE`.
 
-## 6. SIZE và BYTES
+## 6. SIZE and BYTES
 
 ~~~java
-int a = Byte.SIZE;        // 8 bit
-int b = Short.BYTES;      // 2 byte
-int c = Integer.SIZE;     // 32 bit
-int d = Long.BYTES;       // 8 byte
-int e = Double.SIZE;      // 64 bit
+int a = Byte.SIZE;        // 8 bits
+int b = Short.BYTES;      // 2 bytes
+int c = Integer.SIZE;     // 32 bits
+int d = Long.BYTES;       // 8 bytes
+int e = Double.SIZE;      // 64 bits
 ~~~
 
-**SIZE/BYTES mô tả độ rộng dữ liệu nguyên thủy**. Không suy rằng đối tượng Long trên heap chỉ tốn Long.BYTES = 8 byte: đối tượng còn header, alignment và các chi phí lưu trữ khác tùy JVM.
+**SIZE/BYTES describe primitive data widths**. Do not infer that a `Long` object on the heap only consumes `Long.BYTES = 8` bytes: objects also carry headers, alignment, and other storage overhead depending on the JVM.
 
-## 7. Character, Boolean và Void
+## 7. Character, Boolean, and Void
 
-**Character.MIN_VALUE = '\u0000'**, **Character.MAX_VALUE = '\uFFFF'**. Theo giá trị số nguyên, miền char là **0..65535**, không dấu, có **SIZE = 16**, **BYTES = 2**.
+**Character.MIN_VALUE = '\u0000'**, **Character.MAX_VALUE = '\uFFFF'**. Numerically, the `char` range is **0..65535**, unsigned, with **SIZE = 16**, **BYTES = 2**.
 
 ~~~java
 char first = Character.MIN_VALUE;
@@ -144,20 +144,20 @@ char last = Character.MAX_VALUE;
 int lastCodeUnit = (int) last; // 65535
 ~~~
 
-Char là **một code unit UTF-16**, không phải mọi Unicode code point. **Character.MAX_CODE_POINT = 0x10FFFF** lớn hơn Character.MAX_VALUE; code point ngoài BMP được biểu diễn bằng cặp surrogate. Character còn có **MIN_RADIX = 2**, **MAX_RADIX = 36**, các hằng hỗ trợ thao tác cơ số/Unicode.
+`char` is **one UTF-16 code unit**, not every Unicode code point. **Character.MAX_CODE_POINT = 0x10FFFF** is larger than `Character.MAX_VALUE`; code points outside the BMP are represented by surrogate pairs. `Character` also has **MIN_RADIX = 2**, **MAX_RADIX = 36**, and constants supporting radix/Unicode operations.
 
-**Boolean.TRUE**, **Boolean.FALSE** là hằng đối tượng Boolean; **Boolean.TYPE == boolean.class**. Boolean **không có** MIN_VALUE, MAX_VALUE, SIZE hay BYTES, vì boolean không phải số nguyên.
+**Boolean.TRUE** and **Boolean.FALSE** are `Boolean` object constants; **Boolean.TYPE == boolean.class**. `Boolean` **does not have** `MIN_VALUE`, `MAX_VALUE`, `SIZE`, or `BYTES`, because `boolean` is not an integer.
 
-**Void.TYPE == void.class** dùng trong reflection và mô tả kiểu trả về không chứa giá trị. Void cũng **không có** MIN_VALUE/MAX_VALUE hoặc SIZE/BYTES.
+**Void.TYPE == void.class** is used in reflection and describes the return type that holds no value. `Void` also **does not have** `MIN_VALUE`/`MAX_VALUE` or `SIZE`/`BYTES`.
 
-## 8. Number, BigInteger và BigDecimal
+## 8. Number, BigInteger, and BigDecimal
 
-**Number** là lớp trừu tượng có các phương thức chuyển đổi số như intValue(), longValue(), doubleValue(); nó không ấn định miền số hay trường MIN_VALUE/MAX_VALUE/TYPE chung cho tất cả lớp con.
+**Number** is an abstract class with numeric conversion methods such as `intValue()`, `longValue()`, and `doubleValue()`; it does not prescribe a numeric range or shared `MIN_VALUE`/`MAX_VALUE`/`TYPE` fields for all subclasses.
 
-Hai lớp số quan trọng khác trong java.math:
+Two other important numeric classes in `java.math`:
 
-- **BigInteger**: số nguyên độ chính xác tùy ý, có các hằng **ZERO**, **ONE**, **TWO** (Java 9+), **TEN**.
-- **BigDecimal**: số thập phân biểu diễn bằng unscaled value và scale, có các hằng **ZERO**, **ONE**, **TEN**. **BigDecimal.TWO** không tồn tại trong Java 17; dùng BigDecimal.valueOf(2).
+- **BigInteger**: arbitrary-precision integers, with constants **ZERO**, **ONE**, **TWO** (Java 9+), and **TEN**.
+- **BigDecimal**: decimal numbers represented by unscaled value and scale, with constants **ZERO**, **ONE**, and **TEN**. **BigDecimal.TWO** does not exist in Java 17; use `BigDecimal.valueOf(2)`.
 
 ~~~java
 java.math.BigInteger beyondLong =
@@ -166,11 +166,11 @@ java.math.BigInteger beyondLong =
 java.math.BigDecimal zero = java.math.BigDecimal.ZERO;
 ~~~
 
-Đừng gọi BigInteger.MAX_VALUE hay BigDecimal.MIN_VALUE: chúng không có miền giá trị cố định như primitive. Tính toán BigDecimal có thể cần **MathContext/RoundingMode** để diễn đạt độ chính xác và quy tắc làm tròn theo nghiệp vụ.
+Do not refer to `BigInteger.MAX_VALUE` or `BigDecimal.MIN_VALUE`: they have no fixed value range like primitives. `BigDecimal` computations may need **MathContext/RoundingMode** to express precision and business rounding rules.
 
-## 9. Ví dụ Java 17+ chạy độc lập
+## 9. Standalone Runnable Java 17+ Example
 
-Lưu thành **WrapperConstantsDemo.java**:
+Save as **WrapperConstantsDemo.java**:
 
 ~~~java
 public class WrapperConstantsDemo {
@@ -234,7 +234,7 @@ public class WrapperConstantsDemo {
 }
 ~~~
 
-Biên dịch/chạy:
+Compile/run:
 
 ~~~bash
 javac --release 17 WrapperConstantsDemo.java
@@ -276,76 +276,76 @@ Integer extends Number: true
 Character extends Number: false
 ~~~
 
-Giải thích: Byte.MAX_VALUE + 1 đã được nâng thành int nên là 128; Integer.MAX_VALUE + 1 tràn int; Integer.TYPE là int.class; Float.MIN_VALUE vẫn dương và nhỏ hơn Float.MIN_NORMAL. Hex của float/double hiển thị mẫu giá trị dạng nhị phân với số mũ qua **toHexString**, thuận tiện kiểm tra số rất nhỏ.
+Explanation: `Byte.MAX_VALUE + 1` is promoted to `int` so it equals 128; `Integer.MAX_VALUE + 1` overflows `int`; `Integer.TYPE` is `int.class`; `Float.MIN_VALUE` is still positive and smaller than `Float.MIN_NORMAL`. Hex representations of `float`/`double` display binary significand patterns with exponents via **toHexString**, convenient for inspecting very small numbers.
 
-## 10. Sử dụng đúng trong ứng dụng
+## 10. Proper Usage in Applications
 
-| Mục tiêu | Hằng/API phù hợp |
+| Goal | Appropriate constant/API |
 | --- | --- |
-| Kiểm tra phạm vi signed byte trước khi cast | Byte.MIN_VALUE / Byte.MAX_VALUE |
-| Kiểm tra tràn phép cộng int | Math.addExact, kết hợp miền Integer.MIN_VALUE/MAX_VALUE |
-| Tìm số dương khác 0 nhỏ nhất của double | Double.MIN_VALUE |
-| Tìm số normal dương nhỏ nhất của double | Double.MIN_NORMAL |
-| Tìm số âm hữu hạn nhỏ nhất của double | −Double.MAX_VALUE |
-| Phân biệt NaN và infinity | Double.isNaN / Double.isFinite / Double.isInfinite |
-| Lấy Class primitive cho reflection | Integer.TYPE, Long.TYPE hoặc primitive.class |
-| Tính số byte primitive long | Long.BYTES |
-| Biểu diễn nguyên lớn hơn Long.MAX_VALUE | BigInteger |
-| Lấy số 0 thập phân chính xác | BigDecimal.ZERO |
+| Check signed byte range before casting | `Byte.MIN_VALUE` / `Byte.MAX_VALUE` |
+| Check `int` addition overflow | `Math.addExact`, combined with `Integer.MIN_VALUE`/`MAX_VALUE` range |
+| Find smallest nonzero positive `double` | `Double.MIN_VALUE` |
+| Find smallest positive normal `double` | `Double.MIN_NORMAL` |
+| Find lowest finite negative `double` | `−Double.MAX_VALUE` |
+| Distinguish NaN and infinity | `Double.isNaN` / `Double.isFinite` / `Double.isInfinite` |
+| Obtain primitive `Class` for reflection | `Integer.TYPE`, `Long.TYPE`, or `primitive.class` |
+| Get byte size of primitive `long` | `Long.BYTES` |
+| Represent integers larger than `Long.MAX_VALUE` | `BigInteger` |
+| Obtain exact decimal zero | `BigDecimal.ZERO` |
 
-Hãy kiểm tra rõ **miền đầu vào** của bài toán. Ví dụ, một giá trị tiền cần quy tắc thập phân; một trường 8 bit dữ liệu mạng có thể là byte không dấu 0..255, khác signed Byte.MIN_VALUE..MAX_VALUE. Chọn hằng dựa trên ý nghĩa dữ liệu thay vì tên hằng giống nhau.
+Carefully verify the problem's **input domain**. For example, monetary amounts need decimal rules; an 8-bit network protocol field may be an unsigned byte `0..255`, distinct from signed `Byte.MIN_VALUE..MAX_VALUE`. Choose constants based on data semantics rather than similar constant names.
 
-## 11. Các nhầm lẫn cần tránh
+## 11. Mistakes to Avoid
 
-| Sai lầm | Giải thích đúng |
+| Mistake | Correct explanation |
 | --- | --- |
-| Float.MIN_VALUE là số float âm nhất | Đó là số **dương subnormal khác 0 nhỏ nhất** |
-| Double.MIN_VALUE là normal nhỏ nhất | Normal nhỏ nhất là **Double.MIN_NORMAL** |
-| Integer.MAX_VALUE là unsigned int cực đại | Nó là cực đại signed int |
-| Integer.TYPE bằng Integer.class | TYPE là **int.class**; wrapper Class khác primitive Class |
-| SIZE/BYTES đo kích thước đối tượng | Chúng đo độ rộng dữ liệu primitive |
-| Character.MAX_VALUE là Unicode code point cực đại | Nó là UTF-16 code unit tối đa, 0xFFFF |
-| Boolean có MIN_VALUE/MAX_VALUE | Boolean chỉ có hằng TRUE/FALSE/TYPE liên quan chủ đề |
-| Number khai báo MAX_VALUE chung | Lớp Number không khai báo hằng miền đó |
-| BigInteger có MAX_VALUE | BigInteger không có cực đại cố định như long |
-| Float.PRECISION có sẵn trong Java 17 | Trường PRECISION được bổ sung từ Java 19 |
-| Gán biểu thức int cho long sẽ tránh tràn int | Mở rộng trước khi tính hoặc dùng exact API |
-| Math.abs(Integer.MIN_VALUE) luôn không âm | Nó giữ Integer.MIN_VALUE do không biểu diễn được số đối |
+| `Float.MIN_VALUE` is the most negative `float` | It is the **smallest nonzero positive subnormal** number |
+| `Double.MIN_VALUE` is the smallest normal | The smallest normal is **Double.MIN_NORMAL** |
+| `Integer.MAX_VALUE` is the maximum unsigned `int` | It is the maximum signed `int` |
+| `Integer.TYPE` equals `Integer.class` | `TYPE` is **int.class**; wrapper `Class` differs from primitive `Class` |
+| `SIZE`/`BYTES` measure object size | They measure primitive data width |
+| `Character.MAX_VALUE` is the maximum Unicode code point | It is the maximum UTF-16 code unit, `0xFFFF` |
+| `Boolean` has `MIN_VALUE`/`MAX_VALUE` | `Boolean` only has topic-related constants `TRUE`/`FALSE`/`TYPE` |
+| `Number` declares a shared `MAX_VALUE` | The `Number` class declares no such range constant |
+| `BigInteger` has `MAX_VALUE` | `BigInteger` has no fixed maximum like `long` |
+| `Float.PRECISION` is available in Java 17 | The `PRECISION` field was added in Java 19 |
+| Assigning an `int` expression to `long` prevents `int` overflow | Widen before computing or use exact APIs |
+| `Math.abs(Integer.MIN_VALUE)` is always non-negative | It stays `Integer.MIN_VALUE` because its negation cannot be represented |
 
-## 12. Bài tập tự kiểm tra
+## 12. Self-Check Exercises
 
-**Bài 1.** Byte.MAX_VALUE + 1 có giá trị và kiểu biểu thức gì?
+**Exercise 1.** What value and expression type does `Byte.MAX_VALUE + 1` have?
 
-**Đáp án:** **128**, kiểu int, vì numeric promotion.
+**Answer:** **128**, type `int`, due to numeric promotion.
 
-**Bài 2.** Integer.MAX_VALUE + 1 và (long) Integer.MAX_VALUE + 1 khác nhau thế nào?
+**Exercise 2.** How do `Integer.MAX_VALUE + 1` and `(long) Integer.MAX_VALUE + 1` differ?
 
-**Đáp án:** Phép đầu tràn về −2147483648; phép sau là 2147483648L.
+**Answer:** The first overflows to `−2147483648`; the second evaluates to `2147483648L`.
 
-**Bài 3.** Số float âm hữu hạn nhỏ nhất dùng hằng gì?
+**Exercise 3.** Which constant expression gives the lowest finite negative `float`?
 
-**Đáp án:** **−Float.MAX_VALUE**, không phải Float.MIN_VALUE.
+**Answer:** **−Float.MAX_VALUE**, not `Float.MIN_VALUE`.
 
-**Bài 4.** Integer.TYPE == int.class và Integer.TYPE == Integer.class lần lượt trả gì?
+**Exercise 4.** What do `Integer.TYPE == int.class` and `Integer.TYPE == Integer.class` return respectively?
 
-**Đáp án:** **true** và **false**.
+**Answer:** **true** and **false**.
 
-**Bài 5.** Tại sao Character.MAX_VALUE không bằng Character.MAX_CODE_POINT?
+**Exercise 5.** Why is `Character.MAX_VALUE` not equal to `Character.MAX_CODE_POINT`?
 
-**Đáp án:** char là code unit UTF-16 16 bit, còn code point Unicode có thể lớn hơn 0xFFFF.
+**Answer:** `char` is a 16-bit UTF-16 code unit, whereas Unicode code points can exceed `0xFFFF`.
 
-**Bài 6.** Có thể truy cập trực tiếp Float.PRECISION khi biên dịch bằng Java 17 không?
+**Exercise 6.** Can you directly access `Float.PRECISION` when compiling with Java 17?
 
-**Đáp án:** Không; trường này được thêm từ Java 19. Giá trị significand float vẫn là 24 bit theo đặc tả.
+**Answer:** No; that field was added in Java 19. The `float` significand width is still 24 bits per the specification.
 
-**Bài 7.** BigInteger có MIN_VALUE và MAX_VALUE giống Integer không?
+**Exercise 7.** Does `BigInteger` have `MIN_VALUE` and `MAX_VALUE` like `Integer`?
 
-**Đáp án:** Không; nó dùng biểu diễn số nguyên độ chính xác tùy ý, giới hạn thực tế phụ thuộc tài nguyên/triển khai.
+**Answer:** No; it uses an arbitrary-precision integer representation whose practical limits depend on resources/implementation.
 
-## 13. Tài liệu đối chiếu
+## 13. Reference Documentation
 
 - [Byte API Java 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Byte.html), [Short API Java 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Short.html), [Integer API Java 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Integer.html), [Long API Java 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Long.html).
 - [Float API Java 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Float.html), [Double API Java 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html).
 - [Character API Java 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html), [Boolean API Java 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Boolean.html), [Void API Java 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Void.html).
 - [Number API Java 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Number.html), [BigInteger API Java 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html), [BigDecimal API Java 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html).
-- [Java Language Specification SE 17 — Primitive Types](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2) và [Conversions](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html).
+- [Java Language Specification SE 17 — Primitive Types](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2) and [Conversions](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html).

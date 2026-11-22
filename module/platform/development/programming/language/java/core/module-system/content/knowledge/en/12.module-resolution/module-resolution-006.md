@@ -1,74 +1,74 @@
-# Missing module và missing package
+# Missing Module and Missing Package
 
-Khi làm việc với Java Platform Module System (JPMS), hai lỗi thường gặp có tên gần giống nhau nhưng xuất phát từ hai giai đoạn khác nhau: **missing module** nghĩa là module được yêu cầu không được tìm thấy hoặc không thể đưa vào module graph; **missing package** nghĩa là mã nguồn không tìm thấy package cần dùng, hoặc package có tồn tại nhưng module hiện tại không được phép truy cập package đó.
+When working with the Java Platform Module System (JPMS), two common errors have similar names yet originate from two different stages: **missing module** means a required module cannot be found or cannot be added to the module graph; **missing package** means source code cannot find the needed package, or the package exists but the current module is not permitted to access it.
 
-Phân biệt đúng hai loại lỗi giúp chọn cách sửa chính xác. Thêm JAR vào đúng module path có thể giải quyết lỗi thiếu module; khai báo `requires` hoặc `exports` có thể giải quyết lỗi readability và package visibility. Những thao tác này không thay thế cho nhau.
+Distinguishing the two error types properly helps you pick the exact fix. Adding a JAR to the right module path can resolve a missing module error; declaring `requires` or `exports` can resolve readability and package visibility errors. These actions are not interchangeable.
 
-## 1. Module và package không phải một khái niệm
+## 1. Module and Package Are Not the Same Concept
 
-Một **module** là đơn vị đóng gói có tên, dependency và ranh giới truy cập. Named module thường khai báo các thông tin đó trong `module-info.java`.
+A **module** is a unit of packaging with a name, dependencies, and access boundaries. A named module typically declares this information in `module-info.java`.
 
     module com.example.billing {
         requires com.example.money;
         exports com.example.billing.api;
     }
 
-Một module có thể chứa nhiều package, ví dụ:
+A module can contain multiple packages, for example:
 
     com.example.billing.api
     com.example.billing.internal
     com.example.billing.persistence
 
-Package là đơn vị tổ chức kiểu Java. Module là đơn vị lớn hơn, sở hữu các package và quyết định package nào được module khác truy cập.
+A package is a unit for organizing Java types. A module is a larger unit that owns packages and decides which packages can be accessed by other modules.
 
-Vì vậy:
+Therefore:
 
-- Module name như `com.example.money` không nhất thiết trùng package name.
-- Một module có thể chứa nhiều package.
-- Package không tự trở thành module chỉ vì tên package có nhiều dấu chấm.
-- `exports` công bố package; nó không làm module được tìm thấy hoặc được resolve.
+- A module name like `com.example.money` does not necessarily match a package name.
+- A single module can contain multiple packages.
+- A package does not automatically become a module just because its package name has multiple dots.
+- `exports` exposes a package; it does not cause a module to be found or resolved.
 
-## 2. Missing module: module được yêu cầu không tìm thấy
+## 2. Missing Module: Required Module Not Found
 
-Giả sử module ứng dụng khai báo:
+Suppose the application module declares:
 
     module com.example.app {
         requires com.example.money;
     }
 
-Khi biên dịch hoặc chạy, JPMS cần tìm một module có tên `com.example.money`. Nếu module đó không có trong các nguồn module mà công cụ đang tìm kiếm, quá trình tìm hoặc resolve module có thể thất bại với lỗi dạng:
+At compile time or runtime, JPMS needs to locate a module named `com.example.money`. If that module is not present in the module sources the tool is searching, module lookup or resolution can fail with an error like:
 
     java.lang.module.FindException:
         Module com.example.money not found, required by com.example.app
 
-Nguyên nhân thường gặp:
+Common causes:
 
-- JAR của module chưa được đưa vào module path.
-- Đường dẫn module path trỏ sai thư mục hoặc sai file.
-- Tên module trong `requires` không khớp tên trong `module-info.class`.
-- JAR là thư viện cũ trên classpath nhưng ứng dụng lại khai báo `requires` tới nó.
-- Module provider hoặc dependency gián tiếp bị thiếu ở runtime.
-- Build và runtime sử dụng module path khác nhau.
+- The module's JAR has not been added to the module path.
+- The module path points to the wrong directory or wrong file.
+- The module name in `requires` does not match the name in `module-info.class`.
+- The JAR is a legacy library on the classpath, yet the application declares `requires` on it.
+- A provider module or transitive dependency is missing at runtime.
+- Build and runtime use different module paths.
 
-Điểm cần nhớ: `requires` tham chiếu **module name**, không tham chiếu tên JAR hay Maven/Gradle coordinate. Một file `money-library-1.0.jar` có thể khai báo module name `com.example.money`; tên JAR và tên module không nhất thiết giống nhau.
+Key point to remember: `requires` references a **module name**, not a JAR filename or Maven/Gradle coordinate. A file `money-library-1.0.jar` can declare the module name `com.example.money`; the JAR name and module name do not have to be identical.
 
-## 3. Kiểm tra module có được tìm thấy hay không
+## 3. Checking Whether a Module Is Found
 
-Có thể dùng `jar --describe-module` để xem module descriptor của một JAR:
+You can use `jar --describe-module` to inspect a JAR's module descriptor:
 
     jar --describe-module --file libs/money-library.jar
 
-Nếu JAR là explicit module, kết quả hiển thị tên module được khai báo. Với automatic module, tên có thể được suy ra từ tên JAR hoặc thuộc tính `Automatic-Module-Name` trong manifest.
+If the JAR is an explicit module, the output shows the declared module name. For an automatic module, the name may be derived from the JAR filename or the `Automatic-Module-Name` attribute in the manifest.
 
-Có thể liệt kê các module trong JDK hiện tại:
+You can list the modules in the current JDK:
 
     java --list-modules
 
-Có thể yêu cầu launcher kiểm tra module path:
+You can ask the launcher to validate the module path:
 
     java --module-path mods --validate-modules
 
-Với chương trình Java, `ModuleFinder` có thể kiểm tra module name trong một đường dẫn:
+In a Java program, `ModuleFinder` can check for a module name in a path:
 
     ModuleFinder finder = ModuleFinder.of(Path.of("mods"));
 
@@ -79,187 +79,187 @@ Với chương trình Java, `ModuleFinder` có thể kiểm tra module name tron
         throw new IllegalStateException("Module not found");
     }
 
-Nếu finder không tìm thấy module, hãy kiểm tra vị trí JAR/exploded module, tên module thực tế và cấu hình module path trước khi chỉnh sửa package hoặc source code.
+If the finder does not locate the module, check the JAR/exploded module location, the actual module name, and the module path configuration before modifying packages or source code.
 
-## 4. Module path và classpath là hai nguồn khác nhau
+## 4. Module Path and Classpath Are Different Sources
 
-Với ứng dụng dùng named modules, dependency cần được đưa vào module path để JPMS có thể tìm module tương ứng.
+For an application using named modules, dependencies must be placed on the module path so JPMS can locate the corresponding modules.
 
-Ví dụ biên dịch:
+Compile example:
 
     javac --module-path libs
           --module-source-path src
           -d out
           -m com.example.app
 
-Chạy:
+Run:
 
     java --module-path "out;libs"
          -m com.example.app/com.example.app.Main
 
-Trên Windows, dấu phân cách giữa các phần tử của module path là dấu chấm phẩy; trên Linux và macOS, dùng dấu hai chấm.
+On Windows, the separator between module path entries is a semicolon; on Linux and macOS, a colon is used.
 
-Nếu chỉ đặt thư viện vào classpath:
+If libraries are only placed on the classpath:
 
     java -cp "app.jar;libs/*" com.example.app.Main
 
-thì các JAR trên classpath thuộc unnamed module của class loader tương ứng. Named module không thể khai báo `requires` tới unnamed module vì unnamed module không có tên.
+then JARs on the classpath belong to the unnamed module of the corresponding class loader. A named module cannot declare `requires` on an unnamed module because unnamed modules have no name.
 
-Một JAR cũ không có `module-info.class` có thể được đặt trên module path để trở thành automatic module. Khi đó nó có tên module và có thể được named module yêu cầu bằng `requires`. Cần xác định đúng tên automatic module thay vì đoán từ tên artifact.
+A legacy JAR without `module-info.class` can be placed on the module path to become an automatic module. It then has a module name and can be required by a named module using `requires`. Determine the exact automatic module name rather than guessing from the artifact name.
 
-## 5. Missing package: package không có hoặc không truy cập được
+## 5. Missing Package: Package Absent or Inaccessible
 
-Một lỗi package có thể xuất hiện ngay cả khi module chứa thư viện đã được tìm thấy.
+A package error can occur even when the module containing the library has already been found.
 
-Ví dụ source code:
+Source code example:
 
     import com.example.money.Currency;
 
-Nếu compiler báo:
+If the compiler reports:
 
     package com.example.money does not exist
 
-thì package mà source đang import không được tìm thấy trong các module hoặc thư viện mà compilation đang nhìn thấy. Có thể package name bị viết sai, module chứa package không nằm trong cấu hình biên dịch, hoặc package thực tế có tên khác.
+then the package the source is importing cannot be found among the modules or libraries visible to the compilation. The package name may be misspelled, the module containing the package may not be in the compile configuration, or the actual package may have a different name.
 
-Một trường hợp khác là package tồn tại nhưng không được export. Ví dụ module thư viện có:
+Another case is when the package exists but is not exported. For example, the library module has:
 
     module com.example.money {
-        // Không export com.example.money.internal
+        // Does not export com.example.money.internal
     }
 
-Trong khi ứng dụng viết:
+While the application writes:
 
     import com.example.money.internal.CurrencyParser;
 
-Compiler có thể báo package không visible, kèm thông tin package thuộc module nào và module đó không export package cho ứng dụng.
+The compiler may report that the package is not visible, along with information about which module owns the package and that the module does not export the package to the application.
 
-Đây không phải lỗi thiếu JAR: module có thể đã được tìm thấy, nhưng package chưa được công bố theo module descriptor.
+This is not a missing JAR error: the module may have been found, yet the package is not exposed according to the module descriptor.
 
-## 6. Readability và exports phải cùng phù hợp
+## 6. Readability and Exports Must Both Match
 
-Để module A truy cập kiểu public trong package của module B, thông thường cần hai điều kiện:
+For module A to access public types in a package of module B, two conditions are normally required:
 
-1. Module A có readability tới module B, trực tiếp qua `requires` hoặc được truyền qua `requires transitive`.
-2. Module B export package chứa kiểu đó cho module A, bằng `exports` thông thường hoặc qualified exports phù hợp.
+1. Module A has readability to module B, directly via `requires` or propagated via `requires transitive`.
+2. Module B exports the package containing that type to module A, via ordinary `exports` or matching qualified exports.
 
-Ví dụ module thư viện:
+Library module example:
 
     module com.example.money {
         exports com.example.money.api;
     }
 
-Module ứng dụng:
+Application module:
 
     module com.example.app {
         requires com.example.money;
     }
 
-Ứng dụng có thể import:
+The application can import:
 
     import com.example.money.api.Currency;
 
-Nhưng không thể import kiểu trong package chưa export:
+But it cannot import types in an unexported package:
 
     import com.example.money.internal.CurrencyParser;
 
-Thêm `requires com.example.money;` không tự export mọi package. Ngược lại, thêm `exports com.example.money.api;` cũng không giúp ứng dụng truy cập package nếu module ứng dụng không đọc module chứa package đó.
+Adding `requires com.example.money;` does not automatically export all packages. Conversely, adding `exports com.example.money.api;` does not allow the application to access the package if the application module does not read the module containing that package.
 
-## 7. Phân biệt các thông báo lỗi thường gặp
+## 7. Distinguishing Common Error Messages
 
-| Thông báo hoặc tình huống | Ý nghĩa | Hướng kiểm tra |
+| Message or Situation | Meaning | What to Check |
 |---|---|---|
-| `FindException: Module X not found` | Module X không được tìm thấy trong nguồn module | Module path, tên module, artifact và dependency gián tiếp |
-| `module not found: X` khi biên dịch | Compiler không tìm thấy module X được yêu cầu | `--module-path`, tên module và vị trí JAR |
-| `package p does not exist` | Package không có trong các nguồn mà compiler đang xét hoặc tên package sai | Package declaration, module/JAR chứa package, cấu hình compilation |
-| `package p is not visible` | Package có thể thuộc một module đã biết nhưng không được truy cập theo module graph hoặc exports | `requires`, `requires transitive`, `exports` |
-| `module A does not read module B` | A chưa có readability tới B | Dependency trong `module-info.java` hoặc cấu hình readability |
-| `does not export package p to module A` | B không công bố package p cho A | `exports p` hoặc `exports p to A` |
-| `ClassNotFoundException` | Chương trình yêu cầu class bằng tên nhưng class loader không tìm thấy | Runtime module path/classpath, tên class và loader |
-| `NoClassDefFoundError` | JVM không thể tìm hoặc định nghĩa class cần thiết tại runtime | Dependency runtime, module resolution và lỗi khởi tạo class trước đó |
+| `FindException: Module X not found` | Module X was not found in the module sources | Module path, module name, artifacts, and transitive dependencies |
+| `module not found: X` at compile time | The compiler cannot find the required module X | `--module-path`, module name, and JAR location |
+| `package p does not exist` | The package is absent from the sources the compiler considers, or the package name is wrong | Package declaration, module/JAR containing the package, compilation configuration |
+| `package p is not visible` | The package may belong to a known module, but is inaccessible per the module graph or exports | `requires`, `requires transitive`, `exports` |
+| `module A does not read module B` | A lacks readability to B | Dependencies in `module-info.java` or readability configuration |
+| `does not export package p to module A` | B does not expose package p to A | `exports p` or `exports p to A` |
+| `ClassNotFoundException` | The program requested a class by name, but the class loader could not find it | Runtime module path/classpath, class name, and loader |
+| `NoClassDefFoundError` | The JVM cannot find or define a required class at runtime | Runtime dependencies, module resolution, and prior class initialization failures |
 
-Thông báo cụ thể có thể khác giữa `javac`, Java launcher, IDE và build tool. Hãy đọc toàn bộ thông báo, đặc biệt phần ghi tên module chứa package hoặc module đang yêu cầu dependency.
+Exact messages may vary across `javac`, the Java launcher, IDEs, and build tools. Read the entire message, especially the part naming the module that owns the package or the module requiring the dependency.
 
-## 8. Một quy trình chẩn đoán theo thứ tự
+## 8. An Ordered Diagnostic Workflow
 
-Khi gặp lỗi module hoặc package, hãy kiểm tra theo trình tự sau:
+When encountering a module or package error, check in the following order:
 
-**Bước 1 — Xác định giai đoạn lỗi.**
+**Step 1 — Identify the error stage.**
 
-- Lỗi xuất hiện khi compile `module-info.java` hoặc source?
-- Lỗi xuất hiện khi launcher resolve module?
-- Lỗi xuất hiện khi class loader nạp class?
-- Lỗi xuất hiện khi reflection truy cập thành viên?
+- Does the error occur when compiling `module-info.java` or source code?
+- Does the error occur when the launcher resolves modules?
+- Does the error occur when a class loader loads a class?
+- Does the error occur when reflection accesses a member?
 
-Không nên xử lý lỗi compile bằng tùy chọn runtime hoặc xử lý lỗi reflection bằng cách thêm JAR.
+Do not treat a compile error with runtime options or treat a reflection error by adding a JAR.
 
-**Bước 2 — Xác định module name thực tế.**
+**Step 2 — Determine the actual module name.**
 
-Chạy:
+Run:
 
     jar --describe-module --file libs/dependency.jar
 
-Đối chiếu tên hiển thị với tên trong `requires`. Đừng mặc định Maven artifact, tên JAR và module name là một.
+Compare the displayed name with the name in `requires`. Do not assume the Maven artifact, JAR filename, and module name are identical.
 
-**Bước 3 — Xác định package thực tế.**
+**Step 3 — Determine the actual package.**
 
-Liệt kê nội dung JAR:
+List the contents of the JAR:
 
     jar --list --file libs/dependency.jar
 
-Kiểm tra đường dẫn class, package declaration và tên đầy đủ của kiểu cần import. Ví dụ đường dẫn `com/example/money/api/Currency.class` tương ứng package `com.example.money.api`.
+Check the class path inside the JAR, package declaration, and fully qualified name of the type to import. For example, the path `com/example/money/api/Currency.class` corresponds to the package `com.example.money.api`.
 
-**Bước 4 — Kiểm tra module descriptor.**
+**Step 4 — Inspect the module descriptor.**
 
-Xác định module ứng dụng có `requires` module thư viện chưa; module thư viện có `exports` package cần thiết chưa. Nếu package chỉ cần reflection, kiểm tra `opens` thay vì thêm `exports` theo phản xạ.
+Verify whether the application module has `requires` on the library module, and whether the library module has `exports` on the needed package. If the package is only needed for reflection, check `opens` instead of reflexively adding `exports`.
 
-**Bước 5 — So sánh cấu hình compile và runtime.**
+**Step 5 — Compare compile and runtime configurations.**
 
-Đảm bảo dependency xuất hiện ở cả module path của compiler và module path của launcher. Một dependency có thể tồn tại trong Gradle compile configuration nhưng bị thiếu khỏi runtime configuration.
+Ensure the dependency appears on both the compiler's module path and the launcher's module path. A dependency may exist in a Gradle compile configuration yet be missing from the runtime configuration.
 
-**Bước 6 — Resolve và chạy lại.**
+**Step 6 — Resolve and run again.**
 
-Dùng cùng bộ artifact và module path ở các bước kiểm tra. Nếu lỗi vẫn còn, đọc tên module hoặc package cụ thể trong thông báo mới để tiếp tục truy nguyên.
+Use the same set of artifacts and module path across verification steps. If the error persists, read the specific module or package name in the new message to trace further.
 
-## 9. Các tùy chọn bổ sung không thay thế dependency bị thiếu
+## 9. Additional Options Do Not Replace Missing Dependencies
 
-Một số tùy chọn JVM có thể điều chỉnh module graph hoặc quyền truy cập:
+Certain JVM options can adjust the module graph or access permissions:
 
-- `--add-modules`: thêm module vào tập module root cần resolve.
-- `--add-reads`: bổ sung quan hệ readability giữa các module.
-- `--add-exports`: export một package cho module đích ở runtime.
-- `--add-opens`: mở package cho deep reflection ở runtime.
-- `--patch-module`: bổ sung hoặc thay thế class/resource trong một module được chỉ định.
+- `--add-modules`: adds modules to the root set to resolve.
+- `--add-reads`: adds readability relationships between modules.
+- `--add-exports`: exports a package to a target module at runtime.
+- `--add-opens`: opens a package for deep reflection at runtime.
+- `--patch-module`: adds or overrides classes/resources in a specified module.
 
-Các tùy chọn này hữu ích cho kiểm thử, migration hoặc cấu hình runtime đặc biệt. Chúng không tự tải một module hoặc class hoàn toàn không tồn tại. Nếu module X không có trên module path, `--add-reads A=X` không thể làm X xuất hiện. Nếu package không có trong bất kỳ module nào, `--add-exports` cũng không tạo ra package đó.
+These options are useful for testing, migration, or special runtime configurations. They do not load a module or class that does not exist at all. If module X is not on the module path, `--add-reads A=X` cannot make X appear. If a package does not exist in any module, `--add-exports` does not create that package either.
 
-Với lỗi thiếu artifact, hãy sửa dependency resolution và module path trước. Chỉ dùng các tùy chọn mở rộng khi đã xác định chính xác vấn đề là readability, exports hoặc reflection.
+For missing artifact errors, fix dependency resolution and the module path first. Use extension options only once you have pinpointed the issue as readability, exports, or reflection.
 
-## 10. Phân biệt exports và opens khi lỗi liên quan package
+## 10. Distinguishing exports and opens When Errors Involve Packages
 
-Hai directive thường bị nhầm:
+Two commonly confused directives:
 
     module com.example.money {
         exports com.example.money.api;
         opens com.example.money.internal;
     }
 
-- `exports` cho phép module khác truy cập kiểu public của package theo quy tắc Java thông thường.
-- `opens` cho phép deep reflection vào package ở runtime.
-- `open module` mở toàn bộ package của module cho deep reflection.
+- `exports` allows other modules to access public types in the package under ordinary Java rules.
+- `opens` allows deep reflection into the package at runtime.
+- `open module` opens all packages of the module for deep reflection.
 
-Nếu compiler báo không thể import kiểu public trong package, hãy xem xét `requires` và `exports`. Nếu framework báo `InaccessibleObjectException` khi truy cập field private, hãy xem xét `opens`. Thêm `opens` không làm package có thể import từ source code.
+If the compiler reports that it cannot import a public type in a package, examine `requires` and `exports`. If a framework reports `InaccessibleObjectException` when accessing private fields, examine `opens`. Adding `opens` does not make a package importable from source code.
 
-## 11. Ví dụ tổng hợp: từ missing module đến missing package
+## 11. Combined Example: From Missing Module to Missing Package
 
-Giả sử ứng dụng cần kiểu `Currency` từ thư viện `com.example.money`.
+Suppose the application needs the `Currency` type from the `com.example.money` library.
 
-Module thư viện:
+Library module:
 
     module com.example.money {
         exports com.example.money.api;
     }
 
-Ứng dụng:
+Application:
 
     module com.example.app {
         requires com.example.money;
@@ -269,22 +269,22 @@ Source:
 
     import com.example.money.api.Currency;
 
-Nếu JAR thư viện chưa có trên module path, lỗi là missing module. Hãy đưa JAR vào module path và xác nhận tên module bằng `jar --describe-module`.
+If the library JAR is not yet on the module path, the error is a missing module. Place the JAR on the module path and verify the module name with `jar --describe-module`.
 
-Nếu JAR đã có và module được tìm thấy, nhưng source đổi thành:
+If the JAR is present and the module is found, yet the source changes to:
 
     import com.example.money.internal.CurrencyParser;
 
-thì lỗi là package visibility nếu package internal không được export. Sửa import để dùng API công khai, hoặc thay đổi module descriptor của thư viện nếu package đó thực sự được thiết kế để trở thành API.
+then the error is package visibility because the internal package is not exported. Change the import to use the public API, or update the library's module descriptor if that package is genuinely meant to be part of the API.
 
-Hai bước chẩn đoán khác nhau: tìm thấy module trước, sau đó kiểm tra package có thể truy cập hay không.
+These are two separate diagnostic steps: locate the module first, then verify whether the package is accessible.
 
-## Ghi nhớ
+## Key Takeaways
 
-- **Missing module:** module được yêu cầu không được tìm thấy hoặc không thể resolve. Kiểm tra module name, module path và dependency.
-- **Missing package:** package không tồn tại trong nguồn đang xét, hoặc package không visible vì readability/exports. Kiểm tra package declaration, `requires` và `exports`.
-- **Readability** và **exports** là hai điều kiện khác nhau để truy cập kiểu public từ module khác.
-- **Opens** phục vụ deep reflection; nó không thay thế exports.
-- Classpath, module path, compile configuration và runtime configuration có thể khác nhau; cần kiểm tra đúng giai đoạn phát sinh lỗi.
+- **Missing module:** a required module cannot be found or cannot be resolved. Check the module name, module path, and dependencies.
+- **Missing package:** the package does not exist in the sources under consideration, or the package is not visible due to readability/exports. Check package declarations, `requires`, and `exports`.
+- **Readability** and **exports** are two distinct conditions for accessing public types from another module.
+- **Opens** serves deep reflection; it does not replace exports.
+- Classpath, module path, compile configuration, and runtime configuration may differ; inspect the exact stage where the error occurs.
 
-Khi xử lý lỗi JPMS, hãy xác định trước module có được tìm thấy không, sau đó mới kiểm tra package, readability và quyền export.
+When troubleshooting JPMS errors, first determine whether the module is found, and only then check the package, readability, and export permissions.

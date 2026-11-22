@@ -1,28 +1,28 @@
-# `BigDecimal.pow()` và `BigDecimal.sqrt()` theo precision yêu cầu
+# `BigDecimal.pow()` and `BigDecimal.sqrt()` at Required Precision
 
-## 1. Mục tiêu bài học
+## 1. Lesson Goals
 
-Khi làm việc với số thập phân cần kiểm soát chữ số có nghĩa, Java cung cấp `BigDecimal` cùng `MathContext`. Hai phép toán chính của bài này là lũy thừa nguyên `pow(int, MathContext)` và căn bậc hai `sqrt(MathContext)`. Cần hiểu rõ khi nào kết quả chính xác, khi nào kết quả được làm tròn, cách chọn precision phù hợp và những trường hợp API từ chối phép tính.
+When working with decimals that require control over significant digits, Java provides `BigDecimal` together with `MathContext`. The two main operations in this lesson are integer exponentiation `pow(int, MathContext)` and square root `sqrt(MathContext)`. You need to understand clearly when a result is exact, when a result is rounded, how to choose an appropriate precision, and the cases where the API rejects a calculation.
 
-Các lời gọi quan trọng:
+Important calls:
 
 ```java
 BigDecimal power = base.pow(exponent, context);
 BigDecimal root = value.sqrt(context);
 ```
 
-`BigDecimal` có thể lưu số thập phân với độ chính xác tùy ý, nhưng căn của 2 hoặc nghịch đảo của 3 không thể được biểu diễn chính xác bằng một chuỗi chữ số thập phân hữu hạn. Vì thế, lựa chọn precision và quy tắc làm tròn là một phần của yêu cầu tính toán, không chỉ là tùy chọn hiển thị.
+`BigDecimal` can store decimal numbers with arbitrary precision, yet the square root of 2 or the reciprocal of 3 cannot be represented exactly by a finite sequence of decimal digits. Therefore, choosing precision and rounding rules is part of the computational requirement, not merely a display option.
 
-## 2. Phân biệt precision và scale
+## 2. Distinguishing `precision` and `scale`
 
-`BigDecimal` biểu diễn giá trị `unscaledValue × 10^(-scale)`:
+`BigDecimal` represents the value `unscaledValue × 10^(-scale)`:
 
-- **`precision`**: số chữ số có nghĩa của giá trị thập phân, đếm từ chữ số khác 0 đầu tiên. Precision trong `MathContext` đặt giới hạn số chữ số có nghĩa *của kết quả phép toán*.
-- **`scale`**: số chữ số ở bên phải dấu thập phân trong cách biểu diễn khi scale không âm; scale cũng có thể âm. `12.3400` có `precision() == 6` và `scale() == 4`.
-- **`RoundingMode`**: quy tắc xử lý phần chữ số bỏ đi. `HALF_EVEN` làm tròn đến giá trị gần nhất và chọn chữ số cuối chẵn khi đúng chính giữa; `HALF_UP` làm tròn về phía xa 0 ở điểm giữa; `UNNECESSARY` yêu cầu kết quả không phải làm tròn.
-- **`MathContext`**: chứa precision và rounding mode. `new MathContext(8, RoundingMode.HALF_EVEN)` có nghĩa là *8 chữ số có nghĩa*, không có nghĩa là *8 chữ số sau dấu phẩy*.
+- **`precision`**: the number of significant digits of the decimal value, counted from the first nonzero digit. Precision in `MathContext` sets a limit on the number of significant digits *of the operation result*.
+- **`scale`**: the number of digits to the right of the decimal point in the representation when scale is non-negative; scale can also be negative. `12.3400` has `precision() == 6` and `scale() == 4`.
+- **`RoundingMode`**: the rule for handling discarded digits. `HALF_EVEN` rounds to the nearest value and picks an even last digit at an exact midpoint; `HALF_UP` rounds away from 0 at midpoints; `UNNECESSARY` requires that the result need no rounding.
+- **`MathContext`**: holds precision and rounding mode. `new MathContext(8, RoundingMode.HALF_EVEN)` means *8 significant digits*, not *8 digits after the decimal point*.
 
-Ví dụ độc lập trong một phương thức Java đã import `java.math.*`:
+Standalone example inside a Java method with `java.math.*` imported:
 
 ```java
 BigDecimal value = new BigDecimal("12345.678");
@@ -33,82 +33,82 @@ System.out.println(value.setScale(4, RoundingMode.HALF_EVEN)
         .toPlainString());                              // 12345.6780
 ```
 
-Lệnh thứ nhất làm tròn còn 4 chữ số có nghĩa; lệnh thứ hai đặt đúng 4 chữ số sau dấu thập phân. Việc thêm các chữ số 0 cuối có thể tăng `precision()` của đối tượng nhưng không tăng độ chính xác số học đã được tính.
+The first statement rounds to 4 significant digits; the second sets exact 4 digits after the decimal point. Adding trailing zeros can increase an object's `precision()`, yet it does not increase the arithmetic accuracy already computed.
 
-Khởi tạo từ chuỗi như `new BigDecimal("0.1")` để giữ giá trị thập phân mong muốn. `new BigDecimal(0.1)` giữ chính xác giá trị `double` nhị phân đã xấp xỉ trước đó. Nếu giá trị nguồn đã là `double`, `BigDecimal.valueOf(double)` thường phù hợp hơn constructor nhận `double`, nhưng không thể khôi phục chữ số vốn đã mất tại nguồn.
+Initialize from strings like `new BigDecimal("0.1")` to preserve the desired decimal value. `new BigDecimal(0.1)` preserves the exact binary `double` value that was previously approximated. If a source value is already a `double`, `BigDecimal.valueOf(double)` is usually more suitable than the `double` constructor, though it cannot recover digits already lost at the source.
 
-## 3. Tính `pow`: số mũ nguyên
+## 3. Computing `pow`: Integer Exponents
 
-### 3.1. `pow(int n)` trả về kết quả chính xác
+### 3.1. `pow(int n)` Returns an Exact Result
 
 ```java
 BigDecimal exact = new BigDecimal("1.2345").pow(3);
 // 1.881365963625
 ```
 
-Theo Java 17, `pow(n)` nhận số mũ nguyên từ **0 đến 999_999_999**, và trả kết quả chính xác không giới hạn precision. API xác định `BigDecimal.ZERO.pow(0)` trả về `BigDecimal.ONE`. Dù một số mũ nằm trong phạm vi hợp lệ, phép tính có thể sinh ra kết quả khổng lồ và tốn bộ nhớ/thời gian; không dùng cách này tùy tiện cho số mũ lớn.
+In Java 17, `pow(n)` accepts integer exponents from **0 to 999_999_999**, and returns an exact result with unlimited precision. The API specifies that `BigDecimal.ZERO.pow(0)` returns `BigDecimal.ONE`. Even when an exponent is within the valid range, the calculation can produce a huge result and consume significant memory/time; do not use this indiscriminately for large exponents.
 
-`pow` không có overload nhận `BigDecimal` làm số mũ phân số. Viết `pow(1 / 2)` là sai khi muốn lấy căn, vì `1 / 2` trong Java là phép chia nguyên, nhận giá trị `0`. Dùng `sqrt(mc)` cho căn bậc hai.
+`pow` has no overload taking a `BigDecimal` as a fractional exponent. Writing `pow(1 / 2)` is wrong when wanting a root, because `1 / 2` in Java is integer division evaluating to `0`. Use `sqrt(mc)` for square roots.
 
-### 3.2. `pow(int n, MathContext mc)` trả về kết quả theo precision
+### 3.2. `pow(int n, MathContext mc)` Returns a Result at Given Precision
 
 ```java
 MathContext mc6 = new MathContext(6, RoundingMode.HALF_EVEN);
 BigDecimal rounded = new BigDecimal("1.2345").pow(3, mc6);
-// 1.88137: sáu chữ số có nghĩa
+// 1.88137: six significant digits
 ```
 
-Khi precision của `mc` **dương**, overload này còn cho phép **số mũ nguyên âm**: `new BigDecimal("2").pow(-3, mc6)` nhận giá trị `0.125`. Số mũ âm biểu diễn nghịch đảo của lũy thừa dương và có thể cần làm tròn. Cơ số `0` với số mũ âm không hợp lệ.
+When `mc`'s precision is **positive**, this overload also permits **negative integer exponents**: `new BigDecimal("2").pow(-3, mc6)` evaluates to `0.125`. Negative exponents represent the reciprocal of a positive power and may require rounding. Base `0` with a negative exponent is invalid.
 
-Ràng buộc từ hợp đồng `BigDecimal` Java 17:
+Constraints from the Java 17 `BigDecimal` contract:
 
-| Trường hợp | Kết quả |
+| Case | Result |
 | --- | --- |
-| `x.pow(0)` hoặc `x.pow(0, mc)` | Bằng `1`, kể cả khi `x` bằng `0`. |
-| `x.pow(n)` với `n < 0` | Ném `ArithmeticException`. |
-| `x.pow(n, mc)` với `n < 0` và `mc.precision > 0` | Tính nghịch đảo theo precision; cơ số phải khác `0`. |
-| `abs(n) > 999_999_999` | Ném `ArithmeticException`. |
-| `mc.precision == 0` và `n < 0` | Ném `ArithmeticException`. |
-| `mc.precision > 0` nhưng số chữ số thập phân của `abs(n)` lớn hơn precision | Ném `ArithmeticException`, ví dụ `pow(123, new MathContext(2))`. |
-| Cần làm tròn nhưng mode là `UNNECESSARY` | Ném `ArithmeticException`. |
+| `x.pow(0)` or `x.pow(0, mc)` | Equals `1`, even when `x` equals `0`. |
+| `x.pow(n)` with `n < 0` | Throws `ArithmeticException`. |
+| `x.pow(n, mc)` with `n < 0` and `mc.precision > 0` | Computes reciprocal to precision; base must be nonzero. |
+| `abs(n) > 999_999_999` | Throws `ArithmeticException`. |
+| `mc.precision == 0` and `n < 0` | Throws `ArithmeticException`. |
+| `mc.precision > 0` but number of decimal digits of `abs(n)` exceeds precision | Throws `ArithmeticException`, e.g., `pow(123, new MathContext(2))`. |
+| Rounding needed when mode is `UNNECESSARY` | Throws `ArithmeticException`. |
 
-**Độ chính xác của thuật toán:** `pow(n, mc)` dùng thuật toán lũy thừa nội bộ có chữ số làm việc bổ sung. Java 17 mô tả kết quả nói chung nằm trong khoảng **hai ulp** của giá trị chính xác theo precision đã chọn (`ulp` là đơn vị ở vị trí chữ số cuối). Không được khẳng định `pow(n, mc)` luôn bằng từng chữ số với `pow(n).round(mc)` trong mọi trường hợp. Khi bắt buộc phải đạt kết quả của việc làm tròn *một lần* trên giá trị chính xác và số mũ đủ nhỏ, có thể tính `pow(n)` rồi `round(mc)`, chấp nhận chi phí bộ nhớ/thời gian lớn hơn.
+**Algorithmic accuracy:** `pow(n, mc)` uses an internal exponentiation algorithm with extra working digits. Java 17 specifies that the result generally lies within **two ulps** of the exact value at the chosen precision (`ulp` is the unit in the last place). You must not claim `pow(n, mc)` always matches `pow(n).round(mc)` digit-for-digit in every case. When you strictly need the result of rounding *once* on the exact value and the exponent is small enough, you can compute `pow(n)` then `round(mc)`, accepting higher memory/time cost.
 
-Nếu kết quả `pow` sẽ tiếp tục tham gia các phép toán khác, cân nhắc tính bằng precision trung gian cao hơn precision đầu ra. Rounding sau mỗi bước có thể làm mất chữ số quan trọng, nhất là khi lấy hiệu của hai giá trị gần nhau.
+If the `pow` result will participate in further operations, consider computing with an intermediate precision higher than the output precision. Rounding after each step can lose important digits, especially when subtracting two nearly equal values.
 
-## 4. Tính `sqrt(MathContext)` theo precision
+## 4. Computing `sqrt(MathContext)` at Required Precision
 
-`BigDecimal.sqrt(MathContext)` có từ **Java 9**, vì vậy dùng được trong Java 17+.
+`BigDecimal.sqrt(MathContext)` has existed since **Java 9**, so it works in Java 17+.
 
 ```java
 MathContext mc8 = new MathContext(8, RoundingMode.HALF_EVEN);
 BigDecimal root = new BigDecimal("2").sqrt(mc8);
-// 1.4142136: tám chữ số có nghĩa
+// 1.4142136: eight significant digits
 ```
 
-Lưu ý các tình huống:
+Watch out for these scenarios:
 
-1. **Đầu vào âm:** `new BigDecimal("-4").sqrt(mc8)` ném `ArithmeticException`. `BigDecimal` không trả về `NaN`.
-2. **Căn chính xác:** `new BigDecimal("9").sqrt(mc8)` trả về giá trị `3`. Kết quả chính xác có thể sử dụng ít chữ số có nghĩa hơn precision được cấp.
-3. **Căn vô tỉ:** căn của `2` có khai triển thập phân vô hạn. Muốn kết quả hữu hạn, truyền `MathContext` có precision dương và rounding mode phù hợp.
-4. **`MathContext.UNLIMITED`:** precision bằng `0` yêu cầu kết quả chính xác. `sqrt(4)` hợp lệ nhưng `sqrt(2)` ném `ArithmeticException`, vì không có biểu diễn thập phân hữu hạn chính xác.
-5. **`RoundingMode.UNNECESSARY`:** yêu cầu kết quả chính xác trong precision cho phép; sẽ ném `ArithmeticException` nếu cần làm tròn.
-6. **Preferred scale:** scale ưu tiên của căn là `value.scale() / 2` (chia nguyên). Scale thực tế có thể khác do quy tắc biểu diễn/làm tròn. Không coi scale là precision, và không kỳ vọng số 0 cuối luôn được giữ.
+1. **Negative input:** `new BigDecimal("-4").sqrt(mc8)` throws `ArithmeticException`. `BigDecimal` does not return `NaN`.
+2. **Exact root:** `new BigDecimal("9").sqrt(mc8)` returns value `3`. An exact result may use fewer significant digits than the given precision.
+3. **Irrational root:** the square root of `2` has a non-terminating decimal expansion. To get a finite result, pass a `MathContext` with positive precision and an appropriate rounding mode.
+4. **`MathContext.UNLIMITED`:** precision equal to `0` requests an exact result. `sqrt(4)` succeeds whereas `sqrt(2)` throws `ArithmeticException`, because there is no exact finite decimal representation.
+5. **`RoundingMode.UNNECESSARY`:** requires the result to be exact within the allowed precision; throws `ArithmeticException` if rounding is needed.
+6. **Preferred scale:** the preferred scale of the root is `value.scale() / 2` (integer division). The actual scale may differ due to representation/rounding rules. Do not treat scale as precision, and do not expect trailing zeros to always be preserved.
 
-Theo đặc tả Java 17, kết quả của `sqrt(mc)` nằm trong một `ulp` so với căn chính xác ở precision đó; với `HALF_UP`, `HALF_DOWN` hoặc `HALF_EVEN`, sai số nằm trong **nửa ulp**. Đây là tính chất của phép tính theo chữ số có nghĩa, khác với yêu cầu số chữ số sau dấu thập phân.
+Per the Java 17 specification, `sqrt(mc)`'s result is within one `ulp` of the exact square root at that precision; with `HALF_UP`, `HALF_DOWN`, or `HALF_EVEN`, the error is within **half an ulp**. This is a property of calculation by significant digits, different from requiring a specific number of digits after the decimal point.
 
-**Tránh chuyển qua `double`:**
+**Avoid going through `double`:**
 
 ```java
-// Không tương đương với sqrt(mc) có chính sách thập phân:
+// Not equivalent to sqrt(mc) with decimal policy:
 BigDecimal unsafe = new BigDecimal(Math.sqrt(2.0));
 ```
 
-`Math.sqrt` dùng `double` với số bit hữu hạn. Chuyển qua `double` có thể mất thông tin, tràn hoặc làm tròn theo chính sách khác với `MathContext`; nếu yêu cầu là số học thập phân có kiểm soát, giữ toàn bộ phép tính bằng `BigDecimal`.
+`Math.sqrt` uses `double` with a finite number of bits. Passing through `double` can lose information, overflow, or round according to a policy different from `MathContext`; if controlled decimal arithmetic is required, keep the entire calculation in `BigDecimal`.
 
-## 5. Chương trình Java 17+ hoàn chỉnh, biên dịch và chạy
+## 5. Complete Java 17+ Program, Compile and Run
 
-Lưu file **`PrecisionPowSqrtDemo.java`**:
+Save file **`PrecisionPowSqrtDemo.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -135,7 +135,7 @@ public class PrecisionPowSqrtDemo {
 }
 ```
 
-Chạy tại thư mục chứa file, với JDK 17 trở lên:
+Run in the directory containing the file, with JDK 17 or later:
 
 ```bash
 javac PrecisionPowSqrtDemo.java
@@ -152,14 +152,14 @@ sqrt(2) precision 8 = 1.4142136
 sqrt(9) precision 8 = 3
 ```
 
-`toPlainString()` chỉ định dạng chuỗi thay vì dạng ký hiệu khoa học khi có thể; nó không sửa giá trị, làm tròn lại hay tăng precision. Các kết quả trên dùng đầu vào dạng chuỗi để không mang sai số nhị phân của `double`.
+`toPlainString()` only formats the string without scientific notation when possible; it does not alter the value, re-round, or increase precision. The results above use string inputs so they do not carry `double` binary error.
 
-## 6. Yêu cầu số chữ số sau dấu thập phân: khi nào dùng `setScale`
+## 6. Decimal Places Requirement: When to Use `setScale`
 
-Nếu yêu cầu là **6 chữ số có nghĩa**, truyền `MathContext(6, ...)`. Nếu yêu cầu là **6 chữ số sau dấu thập phân**, cần tính với precision làm việc đủ cao, rồi chuyển kết quả sang scale 6:
+If the requirement is **6 significant digits**, pass `MathContext(6, ...)`. If the requirement is **6 digits after the decimal point**, you need to compute with sufficiently high working precision, then convert the result to scale 6:
 
 ```java
-// Đặt trong main; import java.math.* ở đầu file.
+// Place inside main; import java.math.* at top of file.
 int decimalPlaces = 6;
 MathContext work = new MathContext(20, RoundingMode.HALF_EVEN);
 BigDecimal unformatted = new BigDecimal("2").sqrt(work);
@@ -167,15 +167,15 @@ BigDecimal display = unformatted.setScale(decimalPlaces, RoundingMode.HALF_EVEN)
 System.out.println(display.toPlainString()); // 1.414214
 ```
 
-Với ví dụ căn của 2, precision 20 cung cấp dư chữ số cần thiết để in 6 chữ số thập phân. **Không có công thức chung “precision = số chữ số thập phân + 2” cho mọi giá trị**: kết quả rất lớn/nhỏ, phép tính phức tạp và các giá trị sát ngưỡng làm tròn cần được đánh giá riêng.
+For the square root of 2 example, precision 20 provides more than enough digits to print 6 decimal places. **There is no universal formula “precision = decimal places + 2” for all values**: very large/small results, complex calculations, and values near rounding boundaries must be evaluated individually.
 
-Làm tròn hai lần (*double rounding*) có thể dẫn đến kết quả cuối không trùng với việc làm tròn trực tiếp giá trị toán học chính xác. Nếu nghiệp vụ đòi kết quả đúng tới N chữ số thập phân, cần xác định ngân sách sai số, tăng precision làm việc phù hợp và kiểm chứng các tình huống sát ngưỡng. Với tài chính, quy tắc scale/rounding của nghiệp vụ phải được nêu riêng; MathContext không tự biết quy tắc tiền tệ.
+Rounding twice (*double rounding*) can lead to a final result that does not match rounding the exact mathematical value directly. If business requirements demand a result accurate to N decimal places, you must determine the error budget, increase working precision accordingly, and test near-threshold cases. For finance, business scale/rounding rules must be stated explicitly; MathContext does not inherently know currency rules.
 
-Ví dụ muốn hiển thị số lượng chữ số thập phân cố định, có thể chọn `setScale(2, RoundingMode.HALF_EVEN)` sau khi tính; nếu chỉ so sánh giá trị số học, có thể giữ `BigDecimal` gốc và tránh định dạng quá sớm.
+For example, to display a fixed number of decimal places, you can choose `setScale(2, RoundingMode.HALF_EVEN)` after computing; if only comparing arithmetic values, you can keep the original `BigDecimal` and avoid premature formatting.
 
-## 7. Ngoại lệ và xác thực đầu vào
+## 7. Exceptions and Input Validation
 
-Các phép toán có thể ném `ArithmeticException` nếu miền giá trị không hợp lệ, yêu cầu precision không thể đáp ứng, hoặc `UNNECESSARY` cấm làm tròn. Ví dụ (đặt trong phương thức, đã import `java.math.*`):
+Operations can throw `ArithmeticException` if the domain is invalid, the precision requirement cannot be met, or `UNNECESSARY` forbids rounding. Example (inside a method, with `java.math.*` imported):
 
 ```java
 MathContext mc = new MathContext(8, RoundingMode.HALF_EVEN);
@@ -183,23 +183,23 @@ MathContext mc = new MathContext(8, RoundingMode.HALF_EVEN);
 try {
     new BigDecimal("-4").sqrt(mc);
 } catch (ArithmeticException ex) {
-    System.out.println("Không có căn bậc hai thực cho số âm");
+    System.out.println("No real square root for negative numbers");
 }
 try {
     new BigDecimal("2").sqrt(MathContext.UNLIMITED);
 } catch (ArithmeticException ex) {
-    System.out.println("sqrt(2) không thể biểu diễn chính xác hữu hạn");
+    System.out.println("sqrt(2) cannot be represented with finite exactness");
 }
 try {
     new BigDecimal("2").pow(-1);
 } catch (ArithmeticException ex) {
-    System.out.println("pow âm cần MathContext precision dương");
+    System.out.println("Negative pow requires MathContext with positive precision");
 }
 ```
 
-Nếu precision nhận từ người dùng, kiểm tra `precision > 0` cho cách tính gần đúng này; `new MathContext(-1)` ném `IllegalArgumentException`, còn `new MathContext(0)` biểu diễn unlimited. Với `pow`, kiểm tra cả giá trị số mũ, số chữ số của số mũ so với precision và cơ số 0 khi số mũ âm.
+If precision comes from user input, validate `precision > 0` for these approximate calculations; `new MathContext(-1)` throws `IllegalArgumentException`, while `new MathContext(0)` represents unlimited. For `pow`, check the exponent value, the number of digits in the exponent relative to precision, and a base of 0 when the exponent is negative.
 
-Có thể đóng gói quy tắc thống nhất bằng lớp sau, lưu riêng thành **`DecimalMath.java`**:
+You can encapsulate a consistent policy with the following class, saved separately as **`DecimalMath.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -213,7 +213,7 @@ public final class DecimalMath {
     public static BigDecimal pow(BigDecimal base, int exponent, int precision) {
         Objects.requireNonNull(base, "base");
         if (precision <= 0) {
-            throw new IllegalArgumentException("precision phải > 0");
+            throw new IllegalArgumentException("precision must be > 0");
         }
         MathContext mc = new MathContext(precision, RoundingMode.HALF_EVEN);
         return base.pow(exponent, mc);
@@ -222,7 +222,7 @@ public final class DecimalMath {
     public static BigDecimal sqrt(BigDecimal value, int precision) {
         Objects.requireNonNull(value, "value");
         if (precision <= 0) {
-            throw new IllegalArgumentException("precision phải > 0");
+            throw new IllegalArgumentException("precision must be > 0");
         }
         MathContext mc = new MathContext(precision, RoundingMode.HALF_EVEN);
         return value.sqrt(mc);
@@ -230,30 +230,30 @@ public final class DecimalMath {
 }
 ```
 
-Lớp này lựa chọn `HALF_EVEN` làm chính sách mặc định *cho ví dụ*. Ứng dụng thực tế nên cho phép chọn mode theo yêu cầu nghiệp vụ. Nếu cơ số/số mũ hoặc căn không hợp lệ, ngoại lệ từ `BigDecimal` sẽ được truyền cho tầng gọi xử lý. Đừng bắt mọi `ArithmeticException` rồi trả `BigDecimal.ZERO` một cách âm thầm, vì điều đó biến lỗi thành dữ liệu sai.
+This class chooses `HALF_EVEN` as the default policy *for the example*. Real applications should allow choosing the mode per business requirements. If the base/exponent or radicand is invalid, the exception from `BigDecimal` will propagate to the caller to handle. Do not catch all `ArithmeticException` instances and silently return `BigDecimal.ZERO`, because that turns errors into wrong data.
 
-## 8. Lỗi phổ biến cần tránh
+## 8. Common Mistakes to Avoid
 
-| Sai lầm | Vì sao sai | Cách sửa |
+| Mistake | Why it is wrong | How to fix |
 | --- | --- | --- |
-| Tưởng `precision = 8` nghĩa là 8 số sau dấu phẩy | Precision đếm chữ số có nghĩa | Tách MathContext để tính và setScale để hiển thị |
-| Dùng `pow(-2)` không có MathContext | Overload chính xác không nhận mũ âm | Dùng `pow(-2, mc)` với precision dương |
-| Dùng `sqrt(MathContext.UNLIMITED)` cho số không có căn thập phân hữu hạn | Kết quả chính xác không biểu diễn được | Dùng precision dương và rounding mode |
-| Dùng `pow(n)` cho n rất lớn khi chỉ cần kết quả làm tròn | Tạo kết quả chính xác quá tốn tài nguyên | Ưu tiên `pow(n, mc)` khi chấp nhận sai số API |
-| Dùng `Math.pow` / `Math.sqrt` qua `double` | Không giữ phép tính thập phân theo MathContext | Tính trực tiếp bằng `BigDecimal` |
-| So sánh `BigDecimal` bằng `equals` khi scale khác nhau | `1.0` không `equals` `1.00` dù bằng nhau về số học | Dùng `compareTo(...) == 0` khi chỉ xét giá trị |
-| Làm tròn precision cuối ở mỗi bước tính | Tích lũy sai số trung gian | Chọn precision làm việc đủ cao, làm tròn ở ranh giới phù hợp |
-| Dùng `new BigDecimal(0.1)` | Nhận giá trị chính xác của `double` xấp xỉ | Khởi tạo từ chuỗi hoặc `BigDecimal.valueOf` |
+| Thinking `precision = 8` means 8 digits after the decimal point | Precision counts significant digits | Separate MathContext for calculation and setScale for display |
+| Using `pow(-2)` without MathContext | Exact overload does not accept negative exponents | Use `pow(-2, mc)` with positive precision |
+| Using `sqrt(MathContext.UNLIMITED)` for numbers without a finite decimal root | Exact result cannot be represented | Use positive precision and a rounding mode |
+| Using `pow(n)` for very large n when only a rounded result is needed | Creating the exact result consumes too many resources | Prefer `pow(n, mc)` when API error bounds are acceptable |
+| Using `Math.pow` / `Math.sqrt` via `double` | Does not preserve decimal arithmetic per MathContext | Compute directly with `BigDecimal` |
+| Comparing `BigDecimal` with `equals` when scales differ | `1.0` does not `equals` `1.00` even though arithmetically equal | Use `compareTo(...) == 0` when checking value only |
+| Rounding to final precision at every calculation step | Accumulates intermediate error | Choose high enough working precision, round at appropriate boundaries |
+| Using `new BigDecimal(0.1)` | Receives the exact value of the approximated `double` | Initialize from string or `BigDecimal.valueOf` |
 
-## 9. Tự luyện tập và kiểm chứng
+## 9. Self-Practice and Verification
 
-1. `new BigDecimal("12.345").pow(2)` cho kết quả chính xác nào? Làm tròn với `new MathContext(4, HALF_EVEN)` còn bao nhiêu?
-2. Vì sao `sqrt(4)` hoạt động với `MathContext.UNLIMITED`, nhưng `sqrt(2)` không?
-3. Tính `new BigDecimal("10").pow(-2, new MathContext(5, HALF_EVEN))`; thử bỏ `MathContext` và giải thích.
-4. Thiết kế cách hiện `sqrt(2)` với đúng hai chữ số sau dấu thập phân, đồng thời phân biệt precision tính toán và scale đầu ra.
+1. What exact result does `new BigDecimal("12.345").pow(2)` produce? What is it when rounded with `new MathContext(4, HALF_EVEN)`?
+2. Why does `sqrt(4)` work with `MathContext.UNLIMITED`, whereas `sqrt(2)` does not?
+3. Compute `new BigDecimal("10").pow(-2, new MathContext(5, HALF_EVEN))`; try removing `MathContext` and explain.
+4. Design a way to display `sqrt(2)` with exactly two digits after the decimal point, distinguishing calculation precision from output scale.
 
-Đáp án tham khảo: (1) chính xác là `152.399025`, sau làm tròn bốn chữ số có nghĩa là `152.4`; (2) căn của 2 có biểu diễn thập phân vô hạn; (3) `0.01`, còn `pow(-2)` không có MathContext ném ngoại lệ; (4) tính `sqrt` bằng MathContext đủ precision, rồi `setScale(2, HALF_EVEN)` cho `1.41`.
+Reference answers: (1) exact is `152.399025`, after rounding to four significant digits it is `152.4`; (2) the square root of 2 has an infinite decimal representation; (3) `0.01`, while `pow(-2)` without MathContext throws an exception; (4) compute `sqrt` with a MathContext of sufficient precision, then `setScale(2, HALF_EVEN)` gives `1.41`.
 
-Khi dùng thực tế, hãy xác định **precision của phép tính**, **rounding mode** và **scale của kết quả xuất ra** như ba yêu cầu rõ ràng. `pow` giúp xử lý lũy thừa nguyên chính xác hoặc gần đúng; `sqrt` xử lý căn bậc hai không âm theo precision đã chọn. Với các công thức đòi hỏi sai số chặt chẽ, cần kiểm tra giới hạn thuật toán và kiểm thử tại các ranh giới làm tròn.
+In practice, define **calculation precision**, **rounding mode**, and **output result scale** as three distinct requirements. `pow` handles exact or approximate integer powers; `sqrt` handles non-negative square roots at the chosen precision. For formulas requiring tight error bounds, verify algorithm limits and test at rounding boundaries.
 
-Nguồn API chính thức: [Java SE 17 — `java.math.BigDecimal`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html) (`pow(int)`, `pow(int, MathContext)`, `sqrt(MathContext)`).
+Official API reference: [Java SE 17 — `java.math.BigDecimal`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html) (`pow(int)`, `pow(int, MathContext)`, `sqrt(MathContext)`).

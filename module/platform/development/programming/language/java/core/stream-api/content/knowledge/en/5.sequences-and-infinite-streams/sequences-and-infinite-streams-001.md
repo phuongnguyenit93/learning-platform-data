@@ -1,14 +1,14 @@
-# Tạo khoảng số bằng range và rangeClosed
+# Creating Number Ranges with range and rangeClosed
 
-Khi cần đánh số thứ tự cho danh sách, duyệt các vị trí trong mảng, sinh mã kiểm thử hoặc tính toán trên một dãy số liên tiếp, ta thường viết vòng lặp `for`. **Java Stream API** cung cấp cách khai báo khoảng số trực tiếp bằng **`range`** và **`rangeClosed`**. Hai phương thức này giúp biểu diễn chính xác tập giá trị cần xử lý, sau đó kết hợp với `filter`, `map`, `reduce`, `collect` hoặc các phép toán kết thúc khác.
+When you need to number a list, iterate over array indices, generate test IDs, or compute over a consecutive sequence of numbers, you often write a `for` loop. The **Java Stream API** provides a way to declare a number range directly using **`range`** and **`rangeClosed`**. These two methods let you express the exact set of values to process, and then combine them with `filter`, `map`, `reduce`, `collect`, or other terminal operations.
 
-Bài học thuộc chương **Dãy số và Stream vô hạn** của module **JAVA_STREAM_API**, tập trung vào cách tạo **dãy hữu hạn** bằng `IntStream` và `LongStream`. Khác với `Stream.iterate` hoặc `Stream.generate` có thể tạo dãy không kết thúc, `range` và `rangeClosed` xác định hai đầu khoảng ngay khi xây dựng nguồn. Mục tiêu là hiểu ranh giới bao gồm/không bao gồm, dùng đúng kiểu dữ liệu, tránh lỗi lệch một đơn vị (*off-by-one*) và vận dụng đặc tính lazy, giới hạn tài nguyên của Stream.
+This lesson belongs to the **Sequences and Infinite Streams** chapter of the **JAVA_STREAM_API** module and focuses on creating **finite sequences** with `IntStream` and `LongStream`. Unlike `Stream.iterate` or `Stream.generate`, which can produce non-terminating sequences, `range` and `rangeClosed` define both endpoints of the interval right when constructing the source. The goal is to understand inclusive/exclusive bounds, use the right data types, avoid *off-by-one* errors, and apply Stream laziness and resource limits.
 
-## 1. Vì sao cần một nguồn Stream dạng khoảng số?
+## 1. Why Do We Need a Range-Based Stream Source?
 
-Hãy xem yêu cầu đơn giản: lấy các số nguyên từ 1 đến 5, tính tổng và tạo tên cho năm bước xử lý.
+Consider a simple requirement: take the integers from 1 to 5, compute their sum, and create names for five processing steps.
 
-Với vòng lặp, ta trực tiếp điều khiển biến đếm:
+With a loop, you control the counter variable directly:
 
 ~~~java
 int sum = 0;
@@ -18,7 +18,7 @@ for (int number = 1; number <= 5; number++) {
 System.out.println(sum); // 15
 ~~~
 
-Với Stream, phần **tạo dãy** tách khỏi phần **xử lý dãy**:
+With Streams, **sequence generation** is separated from **sequence processing**:
 
 ~~~java
 import java.util.stream.IntStream;
@@ -27,11 +27,11 @@ int sum = IntStream.rangeClosed(1, 5).sum();
 System.out.println(sum); // 15
 ~~~
 
-`IntStream.rangeClosed(1, 5)` mô tả dãy `1, 2, 3, 4, 5`; `sum()` yêu cầu kết quả tổng. Nếu chỉ muốn từ 1 đến 4 thì dùng `IntStream.range(1, 5)`. Đây chính là khác biệt quan trọng nhất giữa hai API.
+`IntStream.rangeClosed(1, 5)` describes the sequence `1, 2, 3, 4, 5`; `sum()` requests the total sum. If you only want 1 to 4, use `IntStream.range(1, 5)`. This is the most important difference between the two APIs.
 
-## 2. range và rangeClosed khác nhau thế nào?
+## 2. How Do range and rangeClosed Differ?
 
-Hai phương thức là các **static factory method** trên `IntStream` và `LongStream`:
+Both methods are **static factory methods** on `IntStream` and `LongStream`:
 
 ~~~java
 IntStream.range(int startInclusive, int endExclusive)
@@ -41,53 +41,53 @@ LongStream.range(long startInclusive, long endExclusive)
 LongStream.rangeClosed(long startInclusive, long endInclusive)
 ~~~
 
-Tên tham số nói rõ ranh giới:
+The parameter names clearly state the bounds:
 
-- `startInclusive`: **bao gồm** điểm bắt đầu.
-- `endExclusive`: **không bao gồm** điểm kết thúc.
-- `endInclusive`: **bao gồm** điểm kết thúc.
+- `startInclusive`: **includes** the start point.
+- `endExclusive`: **excludes** the end point.
+- `endInclusive`: **includes** the end point.
 
-Dùng ký hiệu toán học, với `a <= b`:
+Using mathematical notation, for `a <= b`:
 
-- `range(a, b)` tương ứng **`[a, b)`** — đóng bên trái, mở bên phải.
-- `rangeClosed(a, b)` tương ứng **`[a, b]`** — đóng ở cả hai đầu.
+- `range(a, b)` corresponds to **`[a, b)`** — closed on the left, open on the right.
+- `rangeClosed(a, b)` corresponds to **`[a, b]`** — closed at both ends.
 
-| Lời gọi | Giá trị được tạo | Số phần tử |
+| Call | Generated values | Element count |
 |---|---|---|
 | `IntStream.range(2, 6)` | `2, 3, 4, 5` | 4 |
 | `IntStream.rangeClosed(2, 6)` | `2, 3, 4, 5, 6` | 5 |
-| `IntStream.range(5, 5)` | Không có | 0 |
+| `IntStream.range(5, 5)` | None | 0 |
 | `IntStream.rangeClosed(5, 5)` | `5` | 1 |
-| `IntStream.range(6, 5)` | Không có | 0 |
-| `IntStream.rangeClosed(6, 5)` | Không có | 0 |
+| `IntStream.range(6, 5)` | None | 0 |
+| `IntStream.rangeClosed(6, 5)` | None | 0 |
 | `IntStream.range(-2, 2)` | `-2, -1, 0, 1` | 4 |
 
-Số phần tử với khoảng hợp lệ được xác định bằng:
+The number of elements for a valid range is determined by:
 
-- `range(start, end)`: `end - start` phần tử khi `start < end`, ngược lại 0.
-- `rangeClosed(start, end)`: `end - start + 1` phần tử khi `start <= end`, ngược lại 0.
+- `range(start, end)`: `end - start` elements when `start < end`, otherwise 0.
+- `rangeClosed(start, end)`: `end - start + 1` elements when `start <= end`, otherwise 0.
 
-Các công thức trên mang ý nghĩa **toán học**. Nếu tự tính bằng kiểu `int` hoặc `long` trong chương trình, phép trừ/cộng có thể bị tràn số với ranh giới cực lớn. Khi chỉ cần số phần tử, dùng `count()`; khi tự làm phép tính, phải chọn kiểu số và kiểm soát tràn số phù hợp.
+The formulas above are **mathematical** in meaning. If you compute them yourself using `int` or `long` in a program, subtraction or addition can overflow with extreme bounds. When you only need the element count, use `count()`; when performing calculations yourself, choose an appropriate numeric type and guard against overflow.
 
-### Hình dung bằng trục số
+### Visualizing on a Number Line
 
 ~~~text
 range(2, 6)
     2 --- 3 --- 4 --- 5 --- (6)
     ^                         ^
-  lấy 2                    bỏ 6
+  take 2                    drop 6
 
 rangeClosed(2, 6)
     2 --- 3 --- 4 --- 5 --- 6
     ^                         ^
-  lấy 2                     lấy 6
+  take 2                    take 6
 ~~~
 
-Mẹo nhớ: **`range` loại điểm cuối; `rangeClosed` giữ điểm cuối**. Chữ *Closed* trong toán học gắn với khoảng đóng và ranh giới được bao gồm.
+Mnemonic: **`range` excludes the endpoint; `rangeClosed` keeps the endpoint**. The word *Closed* in mathematics corresponds to a closed interval with an included boundary.
 
-## 3. Ví dụ Java hoàn chỉnh: tạo dãy, tổng hợp và đánh số
+## 3. Complete Java Example: Generating, Aggregating, and Numbering
 
-Đoạn code sau chạy trên **Java 8 trở lên**; các ví dụ đều dùng Stream API cơ bản mà không yêu cầu `Stream.toList()` của JDK mới.
+The following code runs on **Java 8 and above**; all examples use the core Stream API without requiring `Stream.toList()` from newer JDKs.
 
 ~~~java
 import java.util.Arrays;
@@ -97,21 +97,21 @@ import java.util.stream.IntStream;
 
 public class RangeOverviewDemo {
     public static void main(String[] args) {
-        // 2, 3, 4, 5: điểm cuối 6 bị loại.
+        // 2, 3, 4, 5: the endpoint 6 is excluded.
         List<Integer> halfOpen = IntStream.range(2, 6)
             .boxed()
             .collect(Collectors.toList());
 
-        // 2, 3, 4, 5, 6: điểm cuối 6 được giữ.
+        // 2, 3, 4, 5, 6: the endpoint 6 is included.
         List<Integer> closed = IntStream.rangeClosed(2, 6)
             .boxed()
             .collect(Collectors.toList());
 
-        // Dãy 1..10 có tổng bằng 55.
+        // The sequence 1..10 has a sum of 55.
         int sum = IntStream.rangeClosed(1, 10).sum();
 
-        // Chuyển chỉ số 0..size-1 thành tên có số thứ tự 1..size.
-        List<String> names = Arrays.asList("An", "Bình", "Chi");
+        // Convert indices 0..size-1 into names numbered 1..size.
+        List<String> names = Arrays.asList("Alice", "Bob", "Charlie");
         List<String> numbered = IntStream.range(0, names.size())
             .mapToObj(index -> (index + 1) + ". " + names.get(index))
             .collect(Collectors.toList());
@@ -124,35 +124,35 @@ public class RangeOverviewDemo {
 }
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 [2, 3, 4, 5]
 [2, 3, 4, 5, 6]
 55
-[1. An, 2. Bình, 3. Chi]
+[1. Alice, 2. Bob, 3. Charlie]
 ~~~
 
-Có ba thao tác đáng chú ý:
+There are three noteworthy operations:
 
-1. `IntStream.range(...)` và `rangeClosed(...)` trả về **`IntStream`**, tức luồng giá trị nguyên thủy `int`.
-2. `boxed()` biến các phần tử `int` thành `Integer` để có thể dùng collector tạo `List<Integer>`.
-3. `mapToObj(...)` biến mỗi giá trị `int` thành một đối tượng (ở đây là `String`), rồi `collect` tạo ra `List<String>`.
+1. `IntStream.range(...)` and `rangeClosed(...)` return an **`IntStream`**, i.e., a stream of primitive `int` values.
+2. `boxed()` converts the `int` elements into `Integer` so a collector can build a `List<Integer>`.
+3. `mapToObj(...)` transforms each `int` value into an object (here a `String`), and `collect` creates a `List<String>`.
 
-Trong Java 16+, có thể thay `collect(Collectors.toList())` bằng `toList()` nếu muốn nhận danh sách không thể sửa. Hợp đồng của `Collectors.toList()` không bảo đảm cụ thể khả năng sửa đổi của danh sách trả về; hãy chọn collector phù hợp nếu ứng dụng cần một collection có tính chất xác định.
+In Java 16+, you can replace `collect(Collectors.toList())` with `toList()` if you want an unmodifiable list. The contract of `Collectors.toList()` makes no specific guarantee about the mutability of the returned list; choose the appropriate collector if your application needs a collection with deterministic characteristics.
 
-## 4. Khoảng số là Stream nguyên thủy, không phải Stream<Integer>
+## 4. Number Ranges Are Primitive Streams, Not Stream<Integer>
 
-Java có ba họ Stream nguyên thủy: `IntStream`, `LongStream` và `DoubleStream`. Tuy nhiên, **chỉ `IntStream` và `LongStream` cung cấp `range`, `rangeClosed`**. Không có `DoubleStream.range(...)` trong API chuẩn.
+Java has three primitive Stream families: `IntStream`, `LongStream`, and `DoubleStream`. However, **only `IntStream` and `LongStream` provide `range` and `rangeClosed`**. There is no `DoubleStream.range(...)` in the standard API.
 
-| Đầu vào | Loại Stream trả về | Ví dụ |
+| Input | Returned Stream type | Example |
 |---|---|---|
 | `IntStream.range(0, 3)` | `IntStream` | `0, 1, 2` |
 | `IntStream.rangeClosed(0, 3)` | `IntStream` | `0, 1, 2, 3` |
 | `LongStream.range(0L, 3L)` | `LongStream` | `0L, 1L, 2L` |
 | `LongStream.rangeClosed(0L, 3L)` | `LongStream` | `0L, 1L, 2L, 3L` |
 
-Nhờ luồng nguyên thủy, các phép tính số học thường tránh chi phí **boxing/unboxing** giữa `int` và `Integer`. Ta có thể dùng trực tiếp:
+Thanks to primitive streams, arithmetic operations typically avoid **boxing/unboxing** overhead between `int` and `Integer`. You can directly use:
 
 ~~~java
 import java.util.stream.IntStream;
@@ -166,18 +166,18 @@ double average = IntStream.rangeClosed(1, 5)
     .orElseThrow(IllegalStateException::new);        // 3.0
 ~~~
 
-`count()` trả về `long`, trong khi `sum()` của `IntStream` trả về `int` và `sum()` của `LongStream` trả về `long`. `average()` trả về `OptionalDouble` vì dãy có thể rỗng; `max()`, `min()` trả về kiểu `OptionalInt` hoặc `OptionalLong` tương ứng.
+`count()` returns `long`, whereas `sum()` on `IntStream` returns `int` and `sum()` on `LongStream` returns `long`. `average()` returns `OptionalDouble` because the sequence can be empty; `max()` and `min()` return `OptionalInt` or `OptionalLong` respectively.
 
-### Chuyển kiểu khi cần đối tượng
+### Converting Types When Objects Are Needed
 
-Không thể gán trực tiếp một `IntStream` cho biến `Stream<Integer>`:
+You cannot directly assign an `IntStream` to a `Stream<Integer>` variable:
 
 ~~~java
-// Không hợp lệ vì IntStream khác Stream<Integer>:
+// Invalid because IntStream is different from Stream<Integer>:
 // Stream<Integer> values = IntStream.range(1, 4);
 ~~~
 
-Thay bằng `boxed()` hoặc `mapToObj(...)`:
+Use `boxed()` or `mapToObj(...)` instead:
 
 ~~~java
 import java.util.List;
@@ -189,22 +189,22 @@ List<Integer> numbers = IntStream.range(1, 4)
     .collect(Collectors.toList()); // [1, 2, 3]
 
 List<String> labels = IntStream.rangeClosed(1, 3)
-    .mapToObj(number -> "Bước " + number)
-    .collect(Collectors.toList()); // [Bước 1, Bước 2, Bước 3]
+    .mapToObj(number -> "Step " + number)
+    .collect(Collectors.toList()); // [Step 1, Step 2, Step 3]
 ~~~
 
-Với `LongStream`, cũng có `boxed()` và `mapToObj(...)`. Hãy giữ luồng nguyên thủy càng lâu càng phù hợp khi mục tiêu chính là tính toán số, và chỉ chuyển sang đối tượng khi cần tạo kiểu dữ liệu phong phú hơn.
+With `LongStream`, `boxed()` and `mapToObj(...)` are also available. Keep primitive streams as long as appropriate when the main goal is numeric computation, and convert to object streams only when you need to create richer data types.
 
-## 5. Trường hợp thường gặp: chỉ số bắt đầu từ 0
+## 5. Common Case: Zero-Based Indexing
 
-Trong Java, các vị trí hợp lệ của một mảng hoặc `List` có `n` phần tử là **`0` đến `n - 1`**. Do đó `range(0, n)` là lựa chọn tự nhiên:
+In Java, valid positions in an array or `List` with `n` elements are **`0` to `n - 1`**. Therefore, `range(0, n)` is the natural choice:
 
 ~~~java
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
-List<String> colors = Arrays.asList("đỏ", "xanh", "vàng");
+List<String> colors = Arrays.asList("red", "green", "yellow");
 
 IntStream.range(0, colors.size())
     .forEach(index ->
@@ -212,40 +212,40 @@ IntStream.range(0, colors.size())
     );
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
-0: đỏ
-1: xanh
-2: vàng
+0: red
+1: green
+2: yellow
 ~~~
 
-Trong trường hợp này, `range(0, colors.size())` cho đúng 3 chỉ số: 0, 1 và 2. Nếu viết `rangeClosed(0, colors.size())`, Stream còn phát ra chỉ số **3**, dẫn đến `IndexOutOfBoundsException` khi gọi `colors.get(3)`.
+In this case, `range(0, colors.size())` gives the exact 3 indices: 0, 1, and 2. If you wrote `rangeClosed(0, colors.size())`, the Stream would also emit index **3**, leading to an `IndexOutOfBoundsException` when calling `colors.get(3)`.
 
-Với danh sách rỗng, `range(0, 0)` tạo dãy rỗng một cách tự nhiên, không cần xử lý riêng. Nếu chỉ cần duyệt **giá trị** mà không cần chỉ số, viết `colors.stream()` thường đơn giản hơn. Ngoài ra, việc gọi `get(index)` liên tiếp phù hợp nhất với cấu trúc hỗ trợ truy cập chỉ số hiệu quả như `ArrayList` hoặc mảng; dùng cùng cách này với `LinkedList` có thể tạo chi phí duyệt lớn.
+For an empty list, `range(0, 0)` naturally produces an empty sequence without special-case handling. If you only need to iterate over **values** without needing the index, writing `colors.stream()` is usually simpler. Additionally, repeated `get(index)` calls work best with structures that support efficient indexed access like `ArrayList` or arrays; using the same approach with `LinkedList` can incur high traversal cost.
 
-### Biến vị trí thành phần tử có cấu trúc
+### Turning Positions into Structured Elements
 
-Ví dụ tạo các bản ghi hiển thị với cả vị trí và giá trị:
+Example creating display records with both position and value:
 
 ~~~java
 List<String> descriptions = IntStream.range(0, colors.size())
-    .mapToObj(index -> "Mục " + (index + 1) + ": " + colors.get(index))
+    .mapToObj(index -> "Item " + (index + 1) + ": " + colors.get(index))
     .collect(java.util.stream.Collectors.toList());
 ~~~
 
-`mapToObj` nhận một hàm từ `int` sang một đối tượng `R`. Đây là ví dụ điển hình của cách **nguồn khoảng số** kết hợp với **Function** trong pipeline.
+`mapToObj` takes a function from `int` to an object `R`. This is a classic example of how a **range source** combines with a **Function** in a pipeline.
 
-## 6. Khi nào dùng rangeClosed?
+## 6. When to Use rangeClosed?
 
-`rangeClosed` phù hợp khi nghiệp vụ nêu rõ **cả ngày/giá trị đầu và cuối đều được tính**:
+`rangeClosed` is suitable when the business requirement explicitly states that **both the first and last day/value are included**:
 
-- Dãy các số tự nhiên từ 1 đến 10.
-- Các vòng thử từ lần 1 đến lần `n`.
-- Các ngày trong tháng nếu biểu diễn bằng số ngày từ 1 đến ngày cuối cùng.
-- Các bậc mức từ mức thấp nhất đến mức cao nhất, kể cả hai đầu.
+- A sequence of natural numbers from 1 to 10.
+- Trial rounds from attempt 1 to attempt `n`.
+- Days of the month if represented by day numbers from 1 to the last day.
+- Tier levels from the lowest level to the highest level, inclusive of both ends.
 
-Ví dụ cộng từ 1 đến `n`:
+Example summing from 1 to `n`:
 
 ~~~java
 int n = 10;
@@ -253,9 +253,9 @@ int result = IntStream.rangeClosed(1, n).sum();
 System.out.println(result); // 55
 ~~~
 
-Với `n = 0`, `rangeClosed(1, 0)` rỗng và `sum()` trả 0. Nếu nghiệp vụ cho phép `n` âm, cần xác định rõ chính sách xử lý; trả 0 theo mặc định của dãy rỗng có thể che giấu đầu vào sai.
+When `n = 0`, `rangeClosed(1, 0)` is empty and `sum()` returns 0. If the business logic allows negative `n`, you must define a clear handling policy; returning 0 by default for an empty sequence might mask invalid input.
 
-Ví dụ biểu diễn số ngày trong một tháng đã biết:
+Example representing the days of a known month:
 
 ~~~java
 import java.time.YearMonth;
@@ -268,11 +268,11 @@ IntStream.rangeClosed(1, month.lengthOfMonth())
     .forEach(System.out::println);
 ~~~
 
-Trong năm nhuận 2024, tháng 2 có 29 ngày nên pipeline phát các ngày từ `2024-02-01` đến `2024-02-29`. `month::atDay` chuyển mỗi số ngày hợp lệ thành `LocalDate`. Ở đây `rangeClosed` diễn đạt quy tắc *bao gồm ngày cuối cùng* rõ hơn so với việc cộng 1 vào giới hạn của `range`.
+In the leap year 2024, February has 29 days, so the pipeline emits dates from `2024-02-01` to `2024-02-29`. `month::atDay` converts each valid day number into a `LocalDate`. Here `rangeClosed` expresses the *include the last day* rule more clearly than adding 1 to the upper bound of `range`.
 
-## 7. Dùng LongStream.range và rangeClosed cho khoảng lớn
+## 7. Using LongStream.range and rangeClosed for Large Ranges
 
-Nếu đầu vào là `long` hoặc vượt khả năng biểu diễn của `int`, dùng `LongStream`:
+If the input is `long` or exceeds what `int` can represent, use `LongStream`:
 
 ~~~java
 import java.util.stream.LongStream;
@@ -284,7 +284,7 @@ LongStream.rangeClosed(from, toInclusive)
     .forEach(System.out::println);
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 3000000000
@@ -293,22 +293,22 @@ Kết quả:
 3000000003
 ~~~
 
-`IntStream` chỉ tạo giá trị kiểu `int`, có miền từ `Integer.MIN_VALUE` đến `Integer.MAX_VALUE`. `LongStream` hỗ trợ giá trị `long` rộng hơn, nhưng cũng **hữu hạn**, không phải số nguyên có độ chính xác tùy ý.
+`IntStream` only generates `int` values, ranging from `Integer.MIN_VALUE` to `Integer.MAX_VALUE`. `LongStream` supports a wider `long` range, but it is still **finite**, not arbitrary-precision integers.
 
-Đừng nhầm kiểu phần tử với kiểu kết quả tổng hợp:
+Do not confuse the element type with the aggregated result type:
 
 ~~~java
-// Tổng từ 1 đến 100000 là 5_000_050_000, vượt Integer.MAX_VALUE.
+// Sum from 1 to 100000 is 5_000_050_000, which exceeds Integer.MAX_VALUE.
 long safeSum = IntStream.rangeClosed(1, 100_000)
     .asLongStream()
     .sum(); // 5000050000
 ~~~
 
-Nếu gọi `IntStream.rangeClosed(1, 100_000).sum()`, tổng trả về là `int` và có thể **tràn số**. `asLongStream()` chuyển các phần tử sang `long` trước khi cộng, nhưng `long` cũng có giới hạn: tổng quá lớn vẫn có thể tràn. Với yêu cầu độ chính xác vượt `long`, có thể cân nhắc `BigInteger` hoặc công thức số học được kiểm tra điều kiện.
+If you call `IntStream.rangeClosed(1, 100_000).sum()`, the returned sum is `int` and can **overflow**. `asLongStream()` converts the elements to `long` before summing, but `long` also has a limit: a sum that is too large can still overflow. For precision requirements beyond `long`, consider `BigInteger` or an arithmetic formula with overflow checks.
 
-## 8. Lazy evaluation: khoảng có thể lớn mà không tạo sẵn mảng
+## 8. Lazy Evaluation: Ranges Can Be Large Without Pre-allocating Arrays
 
-Gọi `IntStream.range(1, 1_000_000)` **không tạo sẵn một `List` chứa gần một triệu đối tượng**. Khoảng số được biểu diễn như **nguồn** để Stream lấy phần tử khi pipeline xử lý.
+Calling `IntStream.range(1, 1_000_000)` **does not pre-allocate a `List` containing nearly one million objects**. The range is represented as a **source** from which the Stream pulls elements as the pipeline processes them.
 
 ~~~java
 import java.util.stream.IntStream;
@@ -316,7 +316,7 @@ import java.util.stream.IntStream;
 IntStream numbers = IntStream.rangeClosed(1, 1_000_000)
     .filter(number -> number % 17 == 0);
 
-// Tới đây mới mô tả nguồn và điều kiện, chưa duyệt hết các số.
+// Up to here, only the source and condition are described; not all numbers have been traversed.
 
 int first = numbers.findFirst()
     .orElse(-1);
@@ -324,7 +324,7 @@ int first = numbers.findFirst()
 System.out.println(first); // 17
 ~~~
 
-`findFirst()` là phép toán kết thúc có khả năng **dừng sớm**. Vì nguồn có thứ tự tăng dần và phần tử đầu tiên chia hết cho 17 là 17, pipeline này không cần duyệt tất cả một triệu số.
+`findFirst()` is a terminal operation capable of **short-circuiting**. Because the source is in ascending order and the first element divisible by 17 is 17, this pipeline does not need to traverse all one million numbers.
 
 ~~~mermaid
 flowchart LR
@@ -333,62 +333,62 @@ flowchart LR
     C --> D["OptionalInt: 17"]
 ~~~
 
-Hai điểm cần phân biệt:
+Two points to distinguish:
 
-1. **Tạo khoảng bằng range/rangeClosed** chỉ thiết lập nguồn; bản thân nó chưa phải một terminal operation.
-2. **Thu thập thành `List`, `toArray()` hoặc dùng `forEach`** có thể yêu cầu duyệt một lượng lớn phần tử, tiêu tốn bộ nhớ hoặc thời gian. Lazy không khiến kết quả lớn trở nên miễn phí.
+1. **Creating a range with range/rangeClosed** only sets up the source; by itself it is not a terminal operation.
+2. **Collecting into a `List`, calling `toArray()`, or using `forEach`** may require traversing a large number of elements, consuming memory or time. Laziness does not make large results free.
 
-Ví dụ `LongStream.range(0L, 1_000_000_000_000L).limit(3).toArray()` chỉ yêu cầu ba phần tử đầu tiên. Nếu bỏ `limit(3)`, thao tác thu toàn bộ nghìn tỷ giá trị thành mảng là không thực tế và sẽ vượt giới hạn kích thước mảng Java.
+For example, `LongStream.range(0L, 1_000_000_000_000L).limit(3).toArray()` only requests the first three elements. If you remove `limit(3)`, collecting all one trillion values into an array is impractical and will exceed Java's maximum array size limit.
 
-### range là hữu hạn; iterate/generate có thể vô hạn
+### range Is Finite; iterate/generate Can Be Infinite
 
-`range` và `rangeClosed` luôn mô tả khoảng số hữu hạn theo ranh giới đã cho. Ngược lại:
+`range` and `rangeClosed` always describe a finite numeric interval according to the given bounds. Conversely:
 
 ~~~java
 import java.util.stream.IntStream;
 
-// Dãy giảm vô hạn theo lý thuyết, lấy 5 phần tử đầu.
+// Theoretically infinite decreasing sequence, taking the first 5 elements.
 IntStream.iterate(10, n -> n - 2)
     .limit(5)
     .forEach(System.out::println); // 10, 8, 6, 4, 2
 ~~~
 
-`IntStream.iterate(seed, operator)` (Java 8+) không có giới hạn dừng trong cách gọi này; pipeline cần `limit` hoặc một phép toán kết thúc có thể hoàn thành theo logic tương ứng. Với mã chạy đủ lâu, phép cộng/trừ trên `int` trong `iterate` cũng có thể bị tràn và tuần hoàn giá trị. Khi **biết rõ hai đầu, bước tăng là 1**, `range` hoặc `rangeClosed` truyền đạt mục đích rõ và dễ kiểm soát hơn.
+`IntStream.iterate(seed, operator)` (Java 8+) has no stopping limit in this form of call; the pipeline needs `limit` or a terminal operation that can complete according to its logic. With code that runs long enough, addition/subtraction on `int` in `iterate` can also overflow and wrap around. When **both ends are known and the step increment is 1**, `range` or `rangeClosed` communicates the intent more clearly and is easier to control.
 
-## 9. Những lỗi off-by-one và tràn số thường gặp
+## 9. Common Off-by-One and Overflow Errors
 
-### 9.1. Dùng rangeClosed cho kích thước collection
+### 9.1. Using rangeClosed for Collection Sizes
 
 ~~~java
-List<String> names = java.util.Arrays.asList("An", "Bình");
+List<String> names = java.util.Arrays.asList("Alice", "Bob");
 
-// Sai: 0, 1, 2; chỉ số 2 không hợp lệ cho danh sách 2 phần tử.
+// Wrong: 0, 1, 2; index 2 is invalid for a 2-element list.
 // IntStream.rangeClosed(0, names.size()).forEach(i -> names.get(i));
 
-// Đúng: 0, 1.
+// Correct: 0, 1.
 IntStream.range(0, names.size()).forEach(i -> names.get(i));
 ~~~
 
-Nếu muốn hiển thị số thứ tự từ 1, hãy dùng `index + 1` khi trình bày thay vì tạo thêm phần tử không hợp lệ.
+If you want to display 1-based numbering, use `index + 1` during presentation instead of generating an extra invalid element.
 
-### 9.2. Lấy thiếu giá trị cuối của khoảng nghiệp vụ
+### 9.2. Missing the Last Value of a Business Range
 
 ~~~java
-// Sai yêu cầu "từ 1 đến 10, kể cả 10".
+// Violates the requirement "from 1 to 10, including 10".
 long nineNumbers = IntStream.range(1, 10).count(); // 9
 
-// Đúng yêu cầu.
+// Meets the requirement.
 long tenNumbers = IntStream.rangeClosed(1, 10).count(); // 10
 ~~~
 
-Một mẹo thiết kế: dùng `range(0, size)` khi nói về **chỉ số**, dùng `rangeClosed(1, lastNumber)` khi nói về **các số từ 1 đến số cuối**.
+A design tip: use `range(0, size)` when referring to **indices**, and use `rangeClosed(1, lastNumber)` when referring to **numbers from 1 to the last number**.
 
-### 9.3. Cộng 1 để giả lập rangeClosed
+### 9.3. Adding 1 to Simulate rangeClosed
 
 ~~~java
 int end = Integer.MAX_VALUE;
 
-// Nguy hiểm: end + 1 tràn int thành Integer.MIN_VALUE.
+// Dangerous: end + 1 overflows int to Integer.MIN_VALUE.
 // IntStream.range(1, end + 1);
 
 IntStream correct = IntStream.rangeClosed(1, end);
@@ -396,15 +396,15 @@ System.out.println(correct.limit(3).boxed()
     .collect(java.util.stream.Collectors.toList())); // [1, 2, 3]
 ~~~
 
-`rangeClosed` không yêu cầu người gọi tự cộng 1 vào ranh giới trên, nên xử lý được trường hợp `endInclusive` bằng `Integer.MAX_VALUE`. Tương tự, `LongStream.rangeClosed(..., Long.MAX_VALUE)` là cách mô tả đúng về mặt ranh giới; nhưng vẫn phải cân nhắc việc phép toán kết thúc có hoàn thành hay có tràn số khi tổng hợp không.
+`rangeClosed` does not require the caller to manually add 1 to the upper bound, so it handles the case where `endInclusive` equals `Integer.MAX_VALUE`. Similarly, `LongStream.rangeClosed(..., Long.MAX_VALUE)` is the right way to express the bound; however, you must still consider whether the terminal operation can complete or whether overflow occurs during aggregation.
 
-### 9.4. Tưởng khoảng tự giảm khi start lớn hơn end
+### 9.4. Assuming a Range Automatically Decreases When start Is Greater Than end
 
 ~~~java
 long empty = IntStream.rangeClosed(5, 1).count(); // 0
 ~~~
 
-`rangeClosed(5, 1)` **không tạo** `5, 4, 3, 2, 1`. Hai phương thức này có bước tăng cố định là 1 và trả Stream rỗng khi ranh giới ngược thứ tự. Với dãy giảm có độ dài biết trước, ta có thể ánh xạ một khoảng tăng:
+`rangeClosed(5, 1)` **does not generate** `5, 4, 3, 2, 1`. Both methods have a fixed step increment of 1 and return an empty Stream when the bounds are in reverse order. For a decreasing sequence of known length, you can map an increasing range:
 
 ~~~java
 IntStream.rangeClosed(0, 4)
@@ -412,36 +412,36 @@ IntStream.rangeClosed(0, 4)
     .forEach(System.out::println); // 5, 4, 3, 2, 1
 ~~~
 
-Công thức `5 - index` an toàn cho ví dụ nhỏ này. Với giới hạn cực trị, cần tính toán bằng kiểu số phù hợp để tránh tràn trong biểu thức ánh xạ.
+The formula `5 - index` is safe for this small example. With extreme bounds, you need to compute using an appropriate numeric type to avoid overflow in the mapping expression.
 
-### 9.5. Tạo range rất lớn rồi ép thu toàn bộ
+### 9.5. Creating a Very Large Range and Forcing Full Collection
 
 ~~~java
-// Rủi ro tốn bộ nhớ và thời gian:
+// Risk of excessive memory and time consumption:
 // int[] all = IntStream.range(0, Integer.MAX_VALUE).toArray();
 
-// Khi chỉ cần vài phần tử:
+// When only a few elements are needed:
 int[] prefix = IntStream.range(0, Integer.MAX_VALUE)
     .limit(5)
     .toArray(); // [0, 1, 2, 3, 4]
 ~~~
 
-Ranh giới đúng **chưa đủ**: cần xác định terminal operation và kích thước kết quả. `count()`, `sum()`, `findFirst()`, `limit()` và `toArray()` có nhu cầu tài nguyên khác nhau.
+Correct bounds are **not enough**: you must consider the terminal operation and the result size. `count()`, `sum()`, `findFirst()`, `limit()`, and `toArray()` have different resource requirements.
 
-## 10. Kết hợp range với các phép toán Stream
+## 10. Combining range with Stream Operations
 
-Khoảng số chỉ là **nguồn dữ liệu**. Ta có thể lắp tiếp các phép toán trung gian và kết thúc để xử lý bài toán thực tế.
+A number range is just a **data source**. You can attach intermediate and terminal operations to solve real problems.
 
-| Bài toán | Pipeline gợi ý | Kết quả |
+| Problem | Suggested pipeline | Result |
 |---|---|---|
-| Đếm số phần tử từ 0 đến 99 | `IntStream.range(0, 100).count()` | `100L` |
-| Tổng các số chẵn từ 2 đến 10 | `IntStream.rangeClosed(1, 10).filter(n -> n % 2 == 0).sum()` | `30` |
-| Bình phương từ 1 đến 4 | `IntStream.rangeClosed(1, 4).map(n -> n * n)` rồi thu kết quả | `1, 4, 9, 16` |
-| Kiểm tra trong dãy 1..20 có bội số của 7 không | `IntStream.rangeClosed(1, 20).anyMatch(n -> n % 7 == 0)` | `true` |
-| Lấy 3 số đầu của khoảng lớn | `LongStream.range(0L, 1_000_000_000L).limit(3)` | `0, 1, 2` |
-| Tạo nhãn các phiên bản | `IntStream.rangeClosed(1, 3).mapToObj(i -> "v" + i)` | `v1, v2, v3` |
+| Count elements from 0 to 99 | `IntStream.range(0, 100).count()` | `100L` |
+| Sum of even numbers from 2 to 10 | `IntStream.rangeClosed(1, 10).filter(n -> n % 2 == 0).sum()` | `30` |
+| Squares from 1 to 4 | `IntStream.rangeClosed(1, 4).map(n -> n * n)` then collect | `1, 4, 9, 16` |
+| Check whether 1..20 contains a multiple of 7 | `IntStream.rangeClosed(1, 20).anyMatch(n -> n % 7 == 0)` | `true` |
+| Take the first 3 numbers of a large range | `LongStream.range(0L, 1_000_000_000L).limit(3)` | `0, 1, 2` |
+| Generate version labels | `IntStream.rangeClosed(1, 3).mapToObj(i -> "v" + i)` | `v1, v2, v3` |
 
-Ví dụ tổng hợp các số chẵn:
+Example summing even numbers:
 
 ~~~java
 int sumOfEvens = IntStream.rangeClosed(1, 10)
@@ -451,7 +451,7 @@ int sumOfEvens = IntStream.rangeClosed(1, 10)
 System.out.println(sumOfEvens); // 30
 ~~~
 
-Ví dụ sinh các nhãn:
+Example generating labels:
 
 ~~~java
 List<String> versions = IntStream.rangeClosed(1, 3)
@@ -461,19 +461,19 @@ List<String> versions = IntStream.rangeClosed(1, 3)
 System.out.println(versions); // [v1, v2, v3]
 ~~~
 
-Khi xử lý bằng `parallel()`, nguồn khoảng số thường thuận lợi cho phân chia công việc vì biết giới hạn. Dù vậy, **parallel Stream không mặc nhiên nhanh hơn**: việc phân chia, kết hợp, giữ thứ tự và chi phí tác vụ quyết định hiệu quả. Hãy tránh tác dụng phụ trên trạng thái dùng chung và chỉ bật song song khi có lý do thực tế, được đo kiểm trên khối lượng công việc phù hợp.
+When processing with `parallel()`, a range source is often well suited for work splitting because its bounds are known. Even so, **a parallel Stream is not automatically faster**: splitting, combining, preserving order, and task overhead determine efficiency. Avoid side effects on shared state and only enable parallelism when there is a practical reason, benchmarked on a representative workload.
 
-## 11. Bài tập vận dụng: đánh số các ngày làm việc giả định
+## 11. Practice Exercise: Numbering Hypothetical Workdays
 
-Một ứng dụng hiển thị danh sách năm ngày làm việc từ thứ Hai đến thứ Sáu, đánh số từ 1 đến 5. Yêu cầu:
+An application displays a list of five workdays from Monday to Friday, numbered from 1 to 5. Requirements:
 
-1. Tạo Stream chứa vị trí 0 đến 4 bằng `range`.
-2. Dùng `mapToObj` lấy tên ngày tương ứng và gắn số thứ tự từ 1.
-3. Tạo `List<String>` và in danh sách.
-4. Viết lại phép tạo số thứ tự bằng `rangeClosed(1, 5)`.
-5. Giải thích vì sao `range(0, names.size())` an toàn khi `names` rỗng.
+1. Create a Stream containing indices 0 to 4 using `range`.
+2. Use `mapToObj` to get the corresponding day name and prepend a 1-based ordinal number.
+3. Build a `List<String>` and print the list.
+4. Rewrite the ordinal generation using `rangeClosed(1, 5)`.
+5. Explain why `range(0, names.size())` is safe when `names` is empty.
 
-**Lời giải tham khảo (Java 8+):**
+**Reference Solution (Java 8+):**
 
 ~~~java
 import java.util.Arrays;
@@ -484,7 +484,7 @@ import java.util.stream.IntStream;
 public class RangePractice {
     public static void main(String[] args) {
         List<String> weekdays = Arrays.asList(
-            "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu"
+            "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"
         );
 
         List<String> fromIndexes = IntStream.range(0, weekdays.size())
@@ -501,26 +501,26 @@ public class RangePractice {
 }
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
-[1. Thứ Hai, 2. Thứ Ba, 3. Thứ Tư, 4. Thứ Năm, 5. Thứ Sáu]
+[1. Monday, 2. Tuesday, 3. Wednesday, 4. Thursday, 5. Friday]
 true
 ~~~
 
-Ở cách thứ nhất, biến `i` là **chỉ số bắt đầu từ 0**, nên khi hiển thị cộng thêm 1. Ở cách thứ hai, `number` đã là **số thứ tự bắt đầu từ 1**, nên khi truy cập List cần trừ 1. Khi `weekdays` rỗng, cả `range(0, 0)` và `rangeClosed(1, 0)` đều trả Stream rỗng, nên không có truy cập chỉ số ngoài phạm vi.
+In the first approach, the variable `i` is a **0-based index**, so 1 is added when displaying. In the second approach, `number` is already a **1-based ordinal number**, so 1 must be subtracted when accessing the List. When `weekdays` is empty, both `range(0, 0)` and `rangeClosed(1, 0)` return an empty Stream, so there is no out-of-bounds index access.
 
-**Tự kiểm tra:**
+**Self-Check:**
 
-- `IntStream.range(3, 3)` có bao nhiêu phần tử? — **0**.
-- `IntStream.rangeClosed(3, 3)` có bao nhiêu phần tử? — **1**, là số 3.
-- `IntStream.rangeClosed(3, 1)` có phát 3, 2, 1 không? — **Không**, Stream rỗng.
-- `IntStream.range(0, 10).count()` trả kiểu gì? — **`long`**, giá trị `10L`.
-- `rangeClosed(1, Integer.MAX_VALUE)` có cần cộng thêm 1 vào ranh giới không? — **Không**, và không nên làm vậy.
-- `IntStream.range(1, 100).mapToObj(i -> "ID-" + i)` trả loại Stream nào? — **`Stream<String>`**.
+- How many elements does `IntStream.range(3, 3)` have? — **0**.
+- How many elements does `IntStream.rangeClosed(3, 3)` have? — **1**, which is the number 3.
+- Does `IntStream.rangeClosed(3, 1)` emit 3, 2, 1? — **No**, the Stream is empty.
+- What type does `IntStream.range(0, 10).count()` return? — **`long`**, with value `10L`.
+- Does `rangeClosed(1, Integer.MAX_VALUE)` need 1 added to the bound? — **No**, and you should not do so.
+- What type of Stream does `IntStream.range(1, 100).mapToObj(i -> "ID-" + i)` return? — **`Stream<String>`**.
 
-## 12. Ghi nhớ trước khi chuyển sang các dãy khác
+## 12. Key Takeaways Before Moving to Other Sequences
 
-**`IntStream.range(start, end)`** và **`LongStream.range(start, end)`** bao gồm `start`, loại `end`. **`rangeClosed(start, end)`** bao gồm cả hai. Cả hai tạo **dãy số nguyên liên tiếp, hữu hạn, tăng từng đơn vị**, và tạo một nguồn Stream chứ không yêu cầu lưu sẵn mọi giá trị trong bộ nhớ.
+**`IntStream.range(start, end)`** and **`LongStream.range(start, end)`** include `start` and exclude `end`. **`rangeClosed(start, end)`** includes both. Both create **finite, consecutive integer sequences increasing by one**, and create a Stream source rather than requiring all values to be stored in memory upfront.
 
-Khi thiết kế pipeline, hãy trả lời bốn câu hỏi: **đầu cuối có được tính không**, **kiểu số là `int` hay `long`**, **kết quả có thể lớn đến đâu**, và **terminal operation cần bao nhiêu thời gian/bộ nhớ**. Từ nguồn khoảng số, bạn có thể áp dụng `filter`, `map`, `reduce`, `collect`, grouping hoặc các phép tính số; khi cần dãy vô hạn, bước nhảy tùy ý hay quy tắc sinh phần tử khác, hãy tiếp tục tìm hiểu `iterate` và `generate` cùng giới hạn dừng phù hợp.
+When designing a pipeline, answer four questions: **is the upper bound included**, **is the numeric type `int` or `long`**, **how large can the result be**, and **how much time/memory does the terminal operation need**. From a range source, you can apply `filter`, `map`, `reduce`, `collect`, grouping, or numeric computations; when you need an infinite sequence, an arbitrary step size, or a different element-generation rule, continue learning about `iterate` and `generate` along with appropriate stopping limits.

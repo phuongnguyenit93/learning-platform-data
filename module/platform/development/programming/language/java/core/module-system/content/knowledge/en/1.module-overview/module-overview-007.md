@@ -1,28 +1,28 @@
-# Những vấn đề JPMS giải quyết và những vấn đề không giải quyết
+# Problems JPMS solves and problems it does not solve
 
-Java Platform Module System (JPMS), được đưa vào nền tảng Java từ Java 9, bổ sung một mô hình module chính thức cho ứng dụng Java. Trước JPMS, nhiều ứng dụng tổ chức thư viện bằng JAR và classpath. Cách đó vẫn hoạt động, nhưng ranh giới phụ thuộc và phạm vi truy cập package thường không được mô tả đầy đủ. JPMS giúp ứng dụng khai báo phụ thuộc rõ ràng, giới hạn package được công bố và xây dựng một đồ thị module có thể được kiểm tra khi biên dịch hoặc khởi chạy.
+The Java Platform Module System (JPMS), introduced into the Java platform in Java 9, adds an official module model for Java applications. Before JPMS, many applications organized libraries using JARs and the classpath. That approach worked, but dependency boundaries and package access scopes were often not thoroughly described. JPMS helps applications declare dependencies explicitly, restrict exposed packages, and build a module graph that can be checked at compile time or launch time.
 
-Để đánh giá đúng JPMS, cần phân biệt những vấn đề thuộc về cấu trúc module với những vấn đề thuộc về build, phân phối, bảo mật và vận hành. JPMS tạo ra ranh giới và quy tắc ở cấp module; nó không tự thay thế toàn bộ hệ sinh thái công cụ Java.
+To evaluate JPMS accurately, you must distinguish problems belonging to module structure from problems belonging to builds, distribution, security, and operations. JPMS establishes module-level boundaries and rules; it does not replace the entire Java tooling ecosystem.
 
-## 1. Vì sao Java cần mô hình module?
+## 1. Why did Java need a module model?
 
-Trong mô hình classpath truyền thống, JVM và compiler tìm class từ danh sách thư mục hoặc JAR. Một class có thể được tìm thấy mà không cần một khai báo phụ thuộc ở cấp thư viện cho biết module nào đang sử dụng nó. Package cũng chủ yếu là cách nhóm class theo tên; package không tự tạo ra ranh giới truy cập giữa các JAR.
+In the traditional classpath model, the JVM and compiler locate classes from a list of directories or JARs. A class can be found without a library-level dependency declaration indicating which module uses it. Packages are also primarily a way to group classes by name; packages do not by themselves create access boundaries between JARs.
 
-Điều này tạo ra một số khó khăn:
+This creates several difficulties:
 
-- **Phụ thuộc khó nhìn thấy:** một thư viện có thể dùng class từ thư viện khác vì JAR đó tình cờ có trên classpath. Người đọc build file và mã nguồn khó xác định đầy đủ quan hệ phụ thuộc.
-- **Phạm vi truy cập rộng:** class public trong package có thể trở thành điểm truy cập cho code ở nơi khác, kể cả khi tác giả chỉ muốn dùng package đó như chi tiết nội bộ.
-- **Lỗi cấu hình xuất hiện muộn:** thiếu class hoặc thiếu phiên bản thư viện có thể chỉ lộ ra khi một đường chạy cụ thể được thực thi.
-- **Khó tạo runtime nhỏ:** một ứng dụng có thể mang theo nhiều thành phần của JDK hơn mức cần thiết nếu quy trình triển khai không xác định được tập module thực sự được sử dụng.
-- **Khó tách API khỏi implementation:** code gọi thường phải biết class triển khai cụ thể thay vì chỉ phụ thuộc vào một service contract.
+- **Hidden dependencies:** a library can use classes from another library simply because that JAR happens to be on the classpath. Readers of build files and source code struggle to determine the full dependency relationships.
+- **Overly broad access scope:** public classes in a package can become entry points for code elsewhere, even when the author only intended that package as an internal detail.
+- **Late configuration errors:** missing classes or missing library versions may only surface when a specific execution path runs.
+- **Difficulty creating small runtimes:** an application may ship with more JDK components than needed if the deployment process cannot determine the exact set of modules actually used.
+- **Difficulty decoupling API from implementation:** calling code often has to know concrete implementation classes rather than depending solely on a service contract.
 
-JPMS cung cấp ngôn ngữ mô tả module và cơ chế runtime để giải quyết phần cấu trúc của các vấn đề đó.
+JPMS provides a module description language and runtime mechanisms to address the structural part of these problems.
 
-## 2. Những vấn đề JPMS giải quyết
+## 2. Problems JPMS solves
 
-### 2.1. Khai báo phụ thuộc tường minh
+### 2.1. Explicit dependency declarations
 
-Một named module mô tả phụ thuộc bằng directive **requires** trong **module-info.java**. Ví dụ:
+A named module describes its dependencies using the **requires** directive in **module-info.java**. Example:
 
 ~~~java
 module com.acme.orders {
@@ -33,22 +33,22 @@ module com.acme.orders {
 }
 ~~~
 
-Descriptor cho biết module **com.acme.orders** cần đọc module **com.acme.customer** và module **java.logging**. Compiler có thể kiểm tra các kiểu được tham chiếu có nằm trong module mà module hiện tại đọc được hay không. Khi chạy, module system resolve đồ thị phụ thuộc từ các root module và báo lỗi nếu một dependency bắt buộc không thể được tìm thấy hoặc cấu hình không hợp lệ.
+The descriptor states that the **com.acme.orders** module needs to read the **com.acme.customer** module and the **java.logging** module. The compiler can check whether referenced types reside in modules that the current module can read. At runtime, the module system resolves the dependency graph from root modules and reports an error if a mandatory dependency cannot be found or the configuration is invalid.
 
-Khai báo này giúp:
+This declaration helps:
 
-- Nhìn thấy quan hệ module trực tiếp ngay trong source.
-- Phân biệt dependency bắt buộc với dependency tùy chọn ở mức biên dịch qua **requires static**.
-- Công bố dependency mà consumer cũng cần đọc bằng **requires transitive** khi kiểu của dependency xuất hiện trong API của module.
-- Phát hiện một số lỗi thiếu module hoặc cấu hình module trước khi đường code tương ứng được gọi.
+- Make direct module relationships visible right in the source code.
+- Distinguish mandatory dependencies from compile-time-only optional dependencies via **requires static**.
+- Expose dependencies that consumers also need to read using **requires transitive** when dependency types appear in the module's API.
+- Catch certain missing-module or module-configuration errors before the corresponding code path is invoked.
 
-Ví dụ, **requires transitive** có ý nghĩa khi API public của module A trả về hoặc nhận kiểu thuộc module B. Module C chỉ khai báo **requires A** vẫn có thể đọc B theo quan hệ transitive mà A công bố.
+For example, **requires transitive** makes sense when the public API of module A returns or accepts types belonging to module B. Module C, declaring only **requires A**, can still read B via the transitive relationship published by A.
 
-Đây là cải thiện về cấu trúc và khả năng kiểm tra. Nó không có nghĩa JPMS tự tải thư viện từ Internet hoặc chọn phiên bản dependency phù hợp; các công việc đó thuộc công cụ build và phân phối.
+This is an improvement in structure and checkability. It does not mean JPMS downloads libraries from the Internet or selects compatible dependency versions; those jobs belong to build and distribution tools.
 
-### 2.2. Kiểm soát package nào là API công khai
+### 2.2. Controlling which packages are public API
 
-JPMS đưa ranh giới truy cập lên cấp module. Một package chỉ được module khác truy cập như API khi module sở hữu package đó export package.
+JPMS elevates access boundaries to the module level. A package is only accessible to other modules as API when the module owning that package exports it.
 
 ~~~java
 module com.acme.catalog {
@@ -56,31 +56,31 @@ module com.acme.catalog {
 }
 ~~~
 
-Consumer có thể dùng kiểu public trong **com.acme.catalog.api** nếu nó đọc module **com.acme.catalog**. Những package khác của module vẫn được giữ kín với named module bên ngoài, dù class trong đó có khai báo public.
+A consumer can use public types in **com.acme.catalog.api** if it reads the **com.acme.catalog** module. Other packages of the module remain hidden from external named modules, even if classes inside them are declared public.
 
-Cơ chế này giúp tác giả thư viện:
+This mechanism helps library authors:
 
-- Công bố một tập package API có chủ đích.
-- Giữ package implementation ở trạng thái nội bộ.
-- Giảm phụ thuộc ngoài ý muốn vào class và package không được hỗ trợ như API.
-- Có không gian thay đổi implementation mà ít ảnh hưởng đến consumer hơn.
+- Publish an intentional set of API packages.
+- Keep implementation packages internal.
+- Reduce unintended reliance on classes and packages not supported as API.
+- Have room to change implementations with less impact on consumers.
 
-Có thể giới hạn consumer bằng qualified export:
+Consumers can be restricted with a qualified export:
 
 ~~~java
 exports com.acme.catalog.internal.spi to com.acme.application;
 ~~~
 
-Khi đó package được export cho module đích được chỉ định. Đây là công cụ để mô tả một API nội bộ dùng chung có kiểm soát, chẳng hạn SPI giữa hai module thuộc cùng một hệ thống.
+In this case, the package is exported to the specified target module. This is a tool for describing a controlled shared internal API, such as an SPI between two modules belonging to the same system.
 
-### 2.3. Phân biệt truy cập API với deep reflection
+### 2.3. Distinguishing API access from deep reflection
 
-Framework có thể cần reflection để đọc field, constructor hoặc method không public. JPMS tách quyền này khỏi quyền truy cập API thông thường.
+Frameworks may need reflection to read non-public fields, constructors, or methods. JPMS separates this permission from ordinary API access.
 
-- **exports** cho phép truy cập các kiểu public trong package theo quy tắc ngôn ngữ Java.
-- **opens** cho phép deep reflection vào các kiểu trong package tại runtime, trong phạm vi module được mở.
+- **exports** allows access to public types in the package according to Java language rules.
+- **opens** allows deep reflection into types in the package at runtime, within the scope of opened modules.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.domain {
@@ -89,29 +89,29 @@ module com.acme.domain {
 }
 ~~~
 
-Module consumer có thể import API từ package **com.acme.domain.api**. Module **com.acme.json** có thể dùng deep reflection trên package model được mở cho nó. Package model không vì thế trở thành API có thể import tự do.
+Consuming modules can import APIs from the **com.acme.domain.api** package. The **com.acme.json** module can use deep reflection on the model package opened to it. The model package does not thereby become an API that can be freely imported.
 
-JPMS còn cho phép mở toàn module bằng **open module**, hoặc mở package có giới hạn bằng qualified opens. Việc mở đúng package và đúng consumer giúp duy trì encapsulation tốt hơn so với việc mở toàn bộ ứng dụng cho mọi thư viện reflection.
+JPMS also allows opening an entire module with **open module**, or opening a package restrictively with qualified opens. Opening only the exact packages and exact consumers maintains better encapsulation than opening the whole application to every reflection library.
 
-### 2.4. Xác định đồ thị module hợp lệ
+### 2.4. Determining a valid module graph
 
-Module system resolve một tập module và các quan hệ phụ thuộc thành **Configuration**. Các module cần thiết được tìm qua những nguồn module có thể quan sát, ví dụ system modules hoặc module path. Tập module được đưa vào cấu hình phụ thuộc vào root module và các dependency cần thiết; việc một JAR nằm trên module path không tự động có nghĩa nó luôn được resolve vào ứng dụng.
+The module system resolves a set of modules and their dependency relationships into a **Configuration**. Required modules are located through observable module sources, such as system modules or the module path. Which modules enter the configuration depends on the root modules and required dependencies; merely having a JAR on the module path does not mean it is always resolved into the application.
 
-Quá trình resolve giúp kiểm tra:
+The resolution process helps verify:
 
-- Module bắt buộc có tìm thấy được không.
-- Tên module và dependency có khớp với descriptor không.
-- Đồ thị phụ thuộc có hợp lệ không.
-- Package có bị chia theo cách không được phép trong cùng cấu hình named module không.
-- Module nào được đưa vào cấu hình khởi chạy.
+- Whether mandatory modules can be found.
+- Whether module names and dependencies match descriptors.
+- Whether the dependency graph is valid.
+- Whether packages are split in disallowed ways within the same named-module configuration.
+- Which modules are included in the launch configuration.
 
-Module system cũng tạo ra quy tắc readability: module phải đọc một module khác thì code mới có thể tham chiếu kiểu public được export từ module đó. Vì vậy, có class trên đĩa và có quyền truy cập class là hai điều kiện khác nhau.
+The module system also enforces readability rules: a module must read another module before code can reference public types exported from that module. Thus, having a class on disk and having permission to access the class are two separate conditions.
 
-Nhờ có đồ thị module, lỗi cấu hình có thể được phát hiện ở giai đoạn biên dịch hoặc khởi chạy thay vì chỉ xuất hiện khi một chức năng hiếm khi được sử dụng.
+Because of the module graph, configuration errors can be detected during compilation or launch instead of only appearing in a rarely executed feature.
 
-### 2.5. Giảm phụ thuộc trực tiếp bằng service
+### 2.5. Reducing direct coupling with services
 
-JPMS tích hợp mô hình service của Java. Module cần một service khai báo **uses**; module cung cấp implementation khai báo **provides ... with ...**.
+JPMS integrates Java's service model. A module needing a service declares **uses**; a module supplying an implementation declares **provides ... with ...**.
 
 ~~~java
 module com.acme.application {
@@ -129,56 +129,56 @@ module com.acme.csv.exporter {
 }
 ~~~
 
-Ứng dụng có thể tìm provider qua **ServiceLoader**:
+The application can look up providers via **ServiceLoader**:
 
 ~~~java
 ServiceLoader.load(ReportExporter.class)
     .forEach(exporter -> exporter.export(report));
 ~~~
 
-Ứng dụng phụ thuộc vào interface service thay vì phải biết trước class triển khai cụ thể. Có thể thêm một provider mới mà không cần viết lại đoạn code gọi service, miễn là provider tuân theo contract và được đưa vào cấu hình/layer thích hợp.
+The application depends on the service interface instead of needing to know concrete implementation classes upfront. A new provider can be added without rewriting the service-calling code, provided the provider follows the contract and is included in the appropriate configuration/layer.
 
-Cơ chế này hữu ích cho driver, serializer, exporter, adapter và plugin. Tuy nhiên, ServiceLoader chỉ giải quyết việc khai báo và tìm provider; nó không phải một hệ thống quản lý vòng đời plugin hoàn chỉnh.
+This mechanism is useful for drivers, serializers, exporters, adapters, and plugins. However, ServiceLoader only solves declaring and finding providers; it is not a complete plugin lifecycle management system.
 
-### 2.6. Tạo runtime image phù hợp với ứng dụng
+### 2.6. Creating a runtime image tailored to the application
 
-Khi ứng dụng và các thành phần cần thiết có thể được mô tả bằng module, công cụ **jlink** có thể tạo runtime image chỉ chứa tập module được chọn cùng runtime cần thiết. Điều này hỗ trợ phân phối ứng dụng với một runtime phù hợp thay vì luôn yêu cầu cài đặt một JDK đầy đủ.
+When an application and its required components can be described as modules, the **jlink** tool can create a runtime image containing only the selected set of modules along with the needed runtime. This supports distributing an application with a tailored runtime instead of always requiring a full JDK installation.
 
-Ví dụ minh họa:
+Illustrative example:
 
 ~~~bash
 jlink   --module-path "$JAVA_HOME/jmods:mods"   --add-modules com.acme.application   --output app-runtime
 ~~~
 
-Root module **com.acme.application** kéo theo các module phụ thuộc cần thiết trong cấu hình. Runtime image có thể nhỏ hơn một JDK đầy đủ và giúp kiểm soát thành phần runtime đi cùng ứng dụng.
+The **com.acme.application** root module pulls in the required dependency modules into the configuration. The runtime image can be smaller than a full JDK and helps control the runtime components shipped with the application.
 
-Lợi ích này phụ thuộc vào cách đóng gói. Những thư viện vẫn nằm trên classpath hoặc thành phần không tương thích với quy trình liên kết module cần được xử lý riêng. **jlink** cũng không tự cập nhật runtime image khi ứng dụng thay đổi; quy trình build và phát hành vẫn phải tạo và phân phối image mới.
+This benefit depends on packaging. Libraries remaining on the classpath or components incompatible with the module linking process require separate handling. **jlink** also does not automatically update the runtime image when the application changes; the build and release pipeline must still produce and distribute a new image.
 
-### 2.7. Hỗ trợ chuyển đổi từng bước
+### 2.7. Supporting step-by-step migration
 
-JPMS không bắt buộc mọi thư viện trong hệ sinh thái phải chuyển đổi cùng một lúc. Ứng dụng có thể cùng tồn tại với:
+JPMS does not force every library in the ecosystem to migrate at the same time. An application can coexist with:
 
-- Named module có **module-info.class**.
-- Automatic module được suy ra tên từ manifest hoặc tên JAR khi đặt trên module path.
-- Code trên classpath thuộc unnamed module.
+- Named modules with **module-info.class**.
+- Automatic modules whose names are derived from the manifest or JAR filename when placed on the module path.
+- Code on the classpath belonging to the unnamed module.
 
-Cách này giúp chuyển đổi theo từng phần. Tuy nhiên, automatic module và unnamed module có quy tắc đóng gói, readability và encapsulation khác named module. Nếu muốn tận dụng đầy đủ lợi ích của JPMS, cần chuyển các thành phần quan trọng sang descriptor rõ ràng và xác định package API phù hợp.
+This enables incremental migration. However, automatic modules and the unnamed module have different packaging, readability, and encapsulation rules than named modules. To realize the full benefits of JPMS, key components should be moved to explicit descriptors with well-defined API packages.
 
-## 3. Những vấn đề JPMS không giải quyết
+## 3. Problems JPMS does not solve
 
-### 3.1. Không thay thế Maven, Gradle hoặc công cụ quản lý dependency
+### 3.1. Does not replace Maven, Gradle, or dependency management tools
 
-JPMS không phải package manager và không phải hệ thống giải quyết phiên bản thư viện. Directive **requires** khai báo module mà ứng dụng cần đọc; nó không mô tả dải phiên bản như một dependency declaration của Maven hoặc Gradle.
+JPMS is not a package manager and not a library version resolution system. The **requires** directive declares modules that the application needs to read; it does not express version ranges like a Maven or Gradle dependency declaration.
 
-JPMS không tự:
+JPMS does not by itself:
 
-- Tải JAR từ repository.
-- Chọn phiên bản mới nhất hoặc phiên bản thỏa mãn một dải phiên bản.
-- Giải quyết xung đột phiên bản theo quy tắc mediation.
-- Khóa phiên bản để tạo build tái lập.
-- Quản lý checksum, repository, credential hoặc quy trình publish artifact.
+- Download JARs from repositories.
+- Select the newest version or a version satisfying a version range.
+- Resolve version conflicts according to mediation rules.
+- Lock versions to produce reproducible builds.
+- Manage checksums, repositories, credentials, or artifact publishing workflows.
 
-Ví dụ, build file vẫn cần chọn artifact và phiên bản:
+For example, a build file still must select the artifact and version:
 
 ~~~groovy
 dependencies {
@@ -186,7 +186,7 @@ dependencies {
 }
 ~~~
 
-Trong module descriptor, ứng dụng khai báo tên module mà artifact cung cấp:
+In the module descriptor, the application declares the module name provided by the artifact:
 
 ~~~java
 module com.acme.orders {
@@ -194,150 +194,150 @@ module com.acme.orders {
 }
 ~~~
 
-Build tool chọn JAR cụ thể; module system kiểm tra tên module và quan hệ phụ thuộc của JAR đó. Hai cơ chế bổ trợ nhau.
+The build tool selects the specific JAR; the module system checks the module name and dependency relationships of that JAR. The two mechanisms complement each other.
 
-Trong một resolved configuration, tên module là định danh để resolve và không có cơ chế mediation phiên bản tổng quát. Việc đưa hai phiên bản cùng một thư viện vào cùng module configuration không phải cách xử lý xung đột được JPMS tự động hỗ trợ. Các layer riêng có thể phục vụ một số thiết kế nâng cao, nhưng không thay thế quản lý phiên bản dependency của build system.
+Within a resolved configuration, a module name is an identifier for resolution and there is no general version mediation mechanism. Putting two versions of the same library into the same module configuration is not a conflict-handling approach automatically supported by JPMS. Separate layers can serve certain advanced designs, but they do not replace build system dependency version management.
 
-### 3.2. Không phải sandbox bảo mật
+### 3.2. Not a security sandbox
 
-Encapsulation của JPMS kiểm soát khả năng đọc module và truy cập package. Nó không cô lập mã độc hoặc giới hạn quyền hệ điều hành của một module.
+JPMS encapsulation controls module readability and package accessibility. It does not isolate malicious code or restrict a module's operating system privileges.
 
-Một plugin được nạp trong cùng JVM vẫn có thể thực hiện những hành động mà tiến trình có quyền thực hiện, ví dụ truy cập file, mở kết nối mạng hoặc tạo thread, tùy môi trường và quyền chạy. Module descriptor không cấp một bộ permission độc lập cho từng module.
+A plugin loaded into the same JVM can still perform actions that the process has permission to perform, such as accessing files, opening network connections, or spawning threads, depending on the environment and execution permissions. A module descriptor does not grant an independent permission set per module.
 
-Vì vậy:
+Therefore:
 
-- Không chạy plugin không đáng tin cậy chỉ vì nó nằm trong named module.
-- Không xem package chưa export là ranh giới chống mã độc.
-- Không dùng **ModuleLayer** thay cho process isolation, container, tài khoản hệ điều hành riêng hoặc cơ chế sandbox phù hợp.
-- Không coi **opens** là cơ chế cấp quyền bảo mật tổng quát; nó chỉ điều chỉnh deep reflection giữa các module.
+- Do not run untrusted plugins simply because they reside in named modules.
+- Do not treat unexported packages as a boundary against malicious code.
+- Do not use **ModuleLayer** as a substitute for process isolation, containers, separate OS accounts, or an appropriate sandbox mechanism.
+- Do not treat **opens** as a general security permission mechanism; it only governs deep reflection between modules.
 
-Strong encapsulation là ranh giới cấu trúc trong Java platform, không phải ranh giới tin cậy giữa hai tiến trình.
+Strong encapsulation is a structural boundary within the Java platform, not a trust boundary between two processes.
 
-### 3.3. Không tự thiết kế domain boundary hoặc kiến trúc ứng dụng
+### 3.3. Does not design domain boundaries or application architecture on its own
 
-JPMS cho phép chia ứng dụng thành module, nhưng không tự quyết định cách chia domain. Nếu gom quá nhiều chức năng không liên quan vào một module, hoặc tạo module quá nhỏ chỉ để tăng số lượng, kiến trúc vẫn có thể khó hiểu.
+JPMS lets you divide an application into modules, but it does not decide how to divide the domain. If you lump too many unrelated features into one module, or create tiny modules just to increase module count, the architecture can still be hard to understand.
 
-JPMS không tự:
+JPMS does not by itself:
 
-- Xác định bounded context hoặc domain model.
-- Quyết định module nào sở hữu dữ liệu và nghiệp vụ.
-- Thiết kế API ổn định giữa các team.
-- Ngăn mọi dependency ngược về mặt kiến trúc nếu các module vẫn được khai báo cho phép.
-- Tự phát hiện một package API đang chứa quá nhiều trách nhiệm.
+- Identify bounded contexts or domain models.
+- Decide which module owns which data and business logic.
+- Design stable APIs between teams.
+- Prevent all architecturally backward dependencies if modules are still declared to allow them.
+- Automatically detect that an API package has accumulated too many responsibilities.
 
-Nhóm phát triển vẫn phải quyết định ranh giới module, quyền sở hữu code, hợp đồng API và hướng phụ thuộc. JPMS giúp thực thi một phần các quyết định đó ở cấp package/module.
+The development team still must decide module boundaries, code ownership, API contracts, and dependency directions. JPMS helps enforce part of those decisions at the package/module level.
 
-### 3.4. Không thay thế hệ thống plugin và quản lý vòng đời
+### 3.4. Does not replace a plugin system and lifecycle management
 
-**ServiceLoader** và **ModuleLayer** cung cấp nền tảng để tìm service và định nghĩa module trong layer riêng. Nhưng một hệ thống plugin hoàn chỉnh còn cần nhiều chức năng khác:
+**ServiceLoader** and **ModuleLayer** provide the foundation for discovering services and defining modules in separate layers. However, a complete plugin system needs many more capabilities:
 
-- Quy tắc phát hiện và cài đặt plugin.
-- Kiểm tra phiên bản API tương thích.
-- Quản lý trạng thái khởi tạo, hoạt động, lỗi và dừng plugin.
-- Cấu hình, logging, metrics và xử lý lỗi riêng cho plugin.
-- Chính sách nâng cấp hoặc rollback.
-- Quy tắc giao tiếp và chia sẻ dữ liệu giữa host với plugin.
+- Rules for discovering and installing plugins.
+- API compatibility version checking.
+- Managing initialization, active, error, and stopped states of plugins.
+- Per-plugin configuration, logging, metrics, and error handling.
+- Upgrade or rollback policies.
+- Rules for communication and data sharing between host and plugins.
 
-Tạo được layer không đồng nghĩa plugin đã có lifecycle. Module system cũng không cung cấp thao tác unload module theo nghĩa một lệnh đảm bảo giải phóng ngay toàn bộ class và tài nguyên. Class unloading phụ thuộc vào khả năng thu hồi class loader và các tham chiếu liên quan của JVM; layer hoặc class loader còn được tham chiếu thì class có thể tiếp tục tồn tại.
+Being able to create a layer does not mean plugins have a lifecycle. The module system also does not provide a module unload operation in the sense of a single command guaranteed to immediately free all classes and resources. Class unloading depends on JVM garbage collection of the class loader and related references; if a layer or class loader remains referenced, its classes can persist.
 
-Một ứng dụng cần plugin động phải tự thiết kế hợp đồng lifecycle và quy trình thu hồi tài nguyên. Nếu cần cập nhật plugin an toàn hoặc chạy mã không đáng tin cậy, có thể cần tiến trình riêng.
+An application needing dynamic plugins must design its own lifecycle contract and resource reclamation process. If safe plugin updates or running untrusted code is required, separate processes may be necessary.
 
-### 3.5. Không loại bỏ hoàn toàn classpath và thư viện legacy
+### 3.5. Does not completely eliminate the classpath and legacy libraries
 
-JPMS hỗ trợ giai đoạn chuyển đổi, nhưng không tự biến mọi JAR cũ thành module được thiết kế tốt. Automatic module là cầu nối tương thích. Unnamed module giúp code trên classpath tiếp tục chạy. Cả hai đều có thể khiến ranh giới module chưa chặt chẽ.
+JPMS supports a transition period, but it does not automatically turn every old JAR into a well-designed module. Automatic modules are a compatibility bridge. The unnamed module lets code on the classpath keep running. Both can leave module boundaries loose.
 
-Nếu phần lớn code vẫn nằm trên classpath:
+If most code remains on the classpath:
 
-- Phụ thuộc ở cấp module chưa được khai báo đầy đủ.
-- Package nội bộ của thư viện legacy có thể chưa có encapsulation như mong muốn.
-- Một số tùy chọn tương thích như **--add-reads**, **--add-exports** hoặc **--add-opens** có thể được dùng để ứng dụng cũ tiếp tục hoạt động.
-- Lợi ích kiểm soát truy cập của named module chỉ áp dụng trong phạm vi module system quản lý.
+- Module-level dependencies are not fully declared.
+- Internal packages of legacy libraries may lack the desired encapsulation.
+- Compatibility options such as **--add-reads**, **--add-exports**, or **--add-opens** may be used to keep legacy applications working.
+- Access-control benefits of named modules apply only within the scope managed by the module system.
 
-Do đó, việc thêm một file descriptor vào một phần project không đồng nghĩa toàn bộ ứng dụng đã có kiến trúc module rõ ràng.
+Thus, adding a descriptor file to one part of a project does not mean the whole application has a clear modular architecture.
 
-### 3.6. Không tự đảm bảo tương thích API và khả năng nâng cấp
+### 3.6. Does not automatically guarantee API compatibility and upgradability
 
-JPMS giúp công bố package API và ẩn package nội bộ. Nó không tự bảo đảm rằng API đã export sẽ tương thích giữa các phiên bản. Một thay đổi có thể phá vỡ source compatibility hoặc binary compatibility dù descriptor vẫn giữ nguyên.
+JPMS helps publish API packages and hide internal packages. It does not automatically guarantee that exported APIs are compatible across versions. A change can break source compatibility or binary compatibility even if the descriptor remains unchanged.
 
-Nhóm phát triển vẫn cần:
+The development team still needs:
 
-- Chính sách versioning cho API.
-- Kiểm thử tương thích.
-- Quy trình deprecation và migration.
-- Kiểm tra dependency trước khi nâng cấp.
-- Tài liệu về hành vi và hợp đồng của API.
+- An API versioning policy.
+- Compatibility testing.
+- Deprecation and migration procedures.
+- Dependency checks prior to upgrading.
+- Documentation of API behavior and contracts.
 
-Một package được export chỉ có nghĩa module cho phép truy cập package đó; nó không phải cam kết rằng mọi class và method trong package sẽ ổn định mãi mãi.
+An exported package only means the module allows access to that package; it is not a promise that every class and method in the package will remain stable forever.
 
-### 3.7. Không tự giải quyết mọi vấn đề đóng gói và triển khai
+### 3.7. Does not solve all packaging and deployment problems on its own
 
-JPMS mô tả module và hỗ trợ runtime image, nhưng không thay thế toàn bộ pipeline phát hành. Ứng dụng vẫn cần quyết định:
+JPMS describes modules and supports runtime images, but it does not replace the entire release pipeline. Applications still must decide:
 
-- Cách tạo JAR, image hoặc installer.
-- Cách cấu hình môi trường và secret.
-- Cách phát hành, cập nhật, rollback và theo dõi phiên bản.
-- Cách phân phối native library hoặc tài nguyên ngoài module.
-- Cách triển khai trên máy chủ, container hoặc thiết bị đích.
+- How to produce JARs, images, or installers.
+- How to manage environment configuration and secrets.
+- How to release, update, roll back, and track versions.
+- How to distribute native libraries or out-of-module resources.
+- How to deploy on servers, containers, or target devices.
 
-Module descriptor không chứa quy trình vận hành ứng dụng. **jlink** tạo runtime image; pipeline vẫn phải kiểm thử và phát hành image đó.
+Module descriptors do not contain application operations workflows. **jlink** creates a runtime image; the pipeline still must test and release that image.
 
-## 4. Bảng phân định trách nhiệm
+## 4. Responsibility allocation table
 
-| Nhu cầu | JPMS hỗ trợ đến đâu? | Cơ chế/công cụ thường đi kèm |
+| Need | How far does JPMS help? | Commonly paired mechanisms/tools |
 |---|---|---|
-| Khai báo module phụ thuộc module nào | Có, qua **requires** và module resolution | Maven, Gradle để chọn artifact và phiên bản |
-| Công bố package API | Có, qua **exports** | Thiết kế API, review kiến trúc |
-| Cho framework deep reflection | Có, qua **opens** | Cấu hình framework và kiểm soát quyền truy cập |
-| Tìm implementation của service | Có, qua **uses**, **provides** và **ServiceLoader** | Plugin manager để quản lý lifecycle và cấu hình |
-| Resolve module graph khi khởi chạy | Có | Module path, launcher và cấu hình triển khai |
-| Tạo runtime image theo module cần thiết | Có, thông qua **jlink** | CI/CD và quy trình phân phối runtime |
-| Tải dependency và mediation phiên bản | Không | Maven, Gradle hoặc công cụ dependency tương ứng |
-| Sandbox mã không đáng tin cậy | Không | Process isolation, container và chính sách hệ điều hành |
-| Thiết kế domain boundary | Không tự quyết định | Kiến trúc ứng dụng và quy ước của nhóm |
-| Nâng cấp, rollback, lifecycle plugin | Không cung cấp đầy đủ | Plugin framework hoặc logic quản lý riêng |
-| Đảm bảo API tương thích qua phiên bản | Không | Versioning, compatibility tests và quy trình phát hành |
+| Declare which module depends on which module | Yes, via **requires** and module resolution | Maven, Gradle to select artifacts and versions |
+| Publish API packages | Yes, via **exports** | API design, architecture reviews |
+| Grant frameworks deep reflection | Yes, via **opens** | Framework configuration and access control |
+| Discover service implementations | Yes, via **uses**, **provides**, and **ServiceLoader** | Plugin manager to manage lifecycle and configuration |
+| Resolve the module graph at launch | Yes | Module path, launcher, and deployment configuration |
+| Build a runtime image with required modules | Yes, through **jlink** | CI/CD and runtime distribution workflows |
+| Download dependencies and version mediation | No | Maven, Gradle, or corresponding dependency tools |
+| Sandbox untrusted code | No | Process isolation, containers, and OS policies |
+| Design domain boundaries | Does not decide automatically | Application architecture and team conventions |
+| Upgrade, rollback, plugin lifecycle | Not fully provided | Plugin framework or custom management logic |
+| Ensure API compatibility across versions | No | Versioning, compatibility tests, and release processes |
 
-## 5. Ví dụ: chọn đúng công cụ cho một vấn đề
+## 5. Example: choosing the right tool for a problem
 
-Giả sử ứng dụng báo cáo có ba phần: module nghiệp vụ, thư viện CSV và một plugin xuất báo cáo PDF.
+Suppose a reporting application has three parts: a business module, a CSV library, and a PDF report export plugin.
 
-**Tình huống A — ứng dụng tham chiếu package nội bộ ngoài ý muốn**
+**Scenario A — the application unintentionally references an internal package**
 
-Nếu module nghiệp vụ import một class trong package implementation của thư viện CSV, hãy kiểm tra descriptor của thư viện. Chỉ export package API cần thiết và giữ package implementation không export. Đây là vấn đề JPMS giải quyết trực tiếp.
+If the business module imports a class in the CSV library's implementation package, inspect the library's descriptor. Export only the required API packages and keep implementation packages unexported. This is a problem JPMS solves directly.
 
-**Tình huống B — build đang kéo hai phiên bản thư viện CSV**
+**Scenario B — the build is pulling in two versions of the CSV library**
 
-Nếu dependency graph chứa hai phiên bản artifact, hãy xử lý bằng dependency constraints, version catalog, exclusion hoặc quy tắc resolution của Maven/Gradle. JPMS không tự chọn phiên bản mong muốn. Sau khi build chọn được artifact, descriptor xác định module mà code cần đọc.
+If the dependency graph contains two artifact versions, handle it with dependency constraints, version catalogs, exclusions, or Maven/Gradle resolution rules. JPMS does not choose the desired version on its own. Once the build selects the artifact, the descriptor specifies the module the code needs to read.
 
-**Tình huống C — muốn thêm provider PDF mà không sửa code gọi service**
+**Scenario C — wanting to add a PDF provider without editing service-calling code**
 
-Định nghĩa interface service trong module API, khai báo **uses** ở module ứng dụng và **provides** ở module plugin. Đây là trường hợp phù hợp với ServiceLoader. Nếu cần bật/tắt, cấu hình hoặc cập nhật plugin, hãy bổ sung lifecycle manager.
+Define the service interface in an API module, declare **uses** in the application module, and **provides** in the plugin module. This is a good fit for ServiceLoader. If you need to enable/disable, configure, or update plugins, add a lifecycle manager.
 
-**Tình huống D — plugin do bên thứ ba cung cấp**
+**Scenario D — third-party supplied plugins**
 
-Tạo custom ModuleLayer có thể giúp tổ chức module và class loader. Nhưng nếu plugin không đáng tin cậy, vẫn cần chạy trong tiến trình hoặc môi trường cô lập phù hợp. Layer không giới hạn quyền file system hay mạng của plugin.
+Creating a custom ModuleLayer can help organize modules and class loaders. However, if plugins are untrusted, they still need to run in an isolated process or appropriate isolation environment. A layer does not restrict a plugin's file system or network privileges.
 
-**Tình huống E — muốn giảm kích thước runtime**
+**Scenario E — wanting to reduce runtime size**
 
-Phân tích module cần thiết và tạo runtime image bằng jlink. Đây là công việc thuộc JPMS/JDK tooling. Việc đóng gói image vào installer, container và cập nhật image vẫn thuộc pipeline triển khai.
+Analyze required modules and build a runtime image with jlink. This falls under JPMS/JDK tooling. Packaging the image into an installer or container and updating the image still belong to the deployment pipeline.
 
-## 6. Cách quyết định có nên dùng JPMS
+## 6. How to decide whether to use JPMS
 
-Hãy bắt đầu bằng câu hỏi về loại vấn đề:
+Start by asking about the kind of problem:
 
-1. **Muốn phụ thuộc rõ ràng và kiểm tra được?** Dùng named module và khai báo **requires**.
-2. **Muốn giới hạn API mà consumer nhìn thấy?** Dùng **exports** và giữ package nội bộ không export.
-3. **Framework cần reflection?** Mở đúng package bằng **opens**, giới hạn module đích nếu có thể.
-4. **Muốn thay implementation qua service?** Dùng **uses**, **provides** và **ServiceLoader**.
-5. **Muốn tạo runtime image nhỏ hơn?** Xem xét **jlink** sau khi xác định dependency module.
-6. **Muốn tải dependency, giải quyết phiên bản hoặc khóa build?** Cấu hình Maven/Gradle.
-7. **Muốn chạy mã không tin cậy?** Thiết kế sandbox hoặc process isolation ở tầng vận hành.
-8. **Muốn nâng cấp và quản lý plugin?** Xây dựng lifecycle, compatibility và rollback bên cạnh ModuleLayer.
+1. **Want explicit, checkable dependencies?** Use named modules and declare **requires**.
+2. **Want to limit the API visible to consumers?** Use **exports** and keep internal packages unexported.
+3. **Framework needs reflection?** Open the exact packages with **opens**, restricting target modules if possible.
+4. **Want to swap implementations via services?** Use **uses**, **provides**, and **ServiceLoader**.
+5. **Want to create a smaller runtime image?** Consider **jlink** after identifying module dependencies.
+6. **Want to download dependencies, resolve versions, or lock builds?** Configure Maven/Gradle.
+7. **Want to run untrusted code?** Design sandboxing or process isolation at the operational layer.
+8. **Want to upgrade and manage plugins?** Build lifecycle, compatibility, and rollback alongside ModuleLayer.
 
-Không phải mọi ứng dụng đều cần chuyển đổi toàn bộ ngay lập tức. Với ứng dụng nhỏ, classpath có thể vẫn đủ cho mục tiêu hiện tại. Với thư viện dùng chung, ứng dụng lớn có nhiều nhóm phát triển, hoặc runtime cần được tinh gọn, named module có thể đem lại lợi ích rõ ràng hơn. Hãy chọn phạm vi chuyển đổi dựa trên lợi ích của ranh giới phụ thuộc và encapsulation mà hệ thống thực sự cần.
+Not every application needs a full migration right away. For small applications, the classpath may remain sufficient for current goals. For shared libraries, large applications with multiple development teams, or runtimes that need trimming, named modules can deliver clearer benefits. Choose the migration scope based on the dependency and encapsulation boundaries the system genuinely needs.
 
-## 7. Kết luận
+## 7. Conclusion
 
-JPMS giải quyết một khoảng trống quan trọng của Java: mô tả phụ thuộc và quyền truy cập ở cấp module. Nó giúp compiler và runtime hiểu module cần gì, package nào được công bố, package nào được mở cho reflection, service nào được tiêu thụ và provider nào được đăng ký. Khi các module được thiết kế tốt, ứng dụng có thể có đồ thị phụ thuộc rõ ràng hơn và tạo runtime image theo nhu cầu.
+JPMS fills an important gap in Java: describing dependencies and access permissions at the module level. It helps the compiler and runtime understand what a module needs, which packages are exposed, which packages are opened for reflection, which services are consumed, and which providers are registered. When modules are well designed, applications can achieve clearer dependency graphs and create tailored runtime images.
 
-Những trách nhiệm khác vẫn nằm ở các tầng khác. Maven/Gradle quản lý dependency và phiên bản; kiến trúc ứng dụng xác định ranh giới domain; ServiceLoader chỉ là cơ chế tìm service; ModuleLayer không phải sandbox; pipeline phát hành quản lý triển khai và cập nhật. Hiểu đúng giới hạn này giúp dùng JPMS cho đúng việc và tránh kỳ vọng nó thay thế các công cụ vốn giải quyết những bài toán khác.
+Other responsibilities remain at other layers. Maven/Gradle manage dependencies and versions; application architecture defines domain boundaries; ServiceLoader is only a service discovery mechanism; ModuleLayer is not a sandbox; release pipelines manage deployment and updates. Understanding these exact limits helps you use JPMS for the right job and avoid expecting it to replace tools built for different problems.

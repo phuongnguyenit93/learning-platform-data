@@ -1,10 +1,10 @@
-# Phân tích tệp log theo dòng với chính sách xử lý lỗi rõ ràng
+# Line-by-Line Log File Analysis with Explicit Error-Handling Policies
 
-## 1. Bài toán: báo cáo log không được âm thầm mất dữ liệu
+## 1. Problem: Log Reports Must Never Silently Drop Data
 
-Trong **JAVA_STREAM_API**, những pipeline `filter`, `map`, `reduce` và `collect` rất phù hợp để biến các dòng log thành thống kê. Tuy nhiên, tệp log không giống một `List` sạch trong bộ nhớ: dòng có thể sai định dạng, giá trị đo có thể không hợp lệ, tệp có thể bị xóa khi đang đọc và lỗi I/O có thể xuất hiện sau khi stream đã mở thành công.
+In **JAVA_STREAM_API**, pipelines of `filter`, `map`, `reduce`, and `collect` fit well for turning log lines into summary metrics. However, a log file is not a clean in-memory `List`: lines may be malformed, measured values may be invalid, the file may be deleted mid-read, and I/O errors can occur after a stream opens successfully.
 
-Giả sử một ứng dụng ghi log theo định dạng:
+Suppose an application writes logs in this format:
 
 ```text
 2026-11-18T08:00:00Z|INFO|api|40
@@ -16,12 +16,12 @@ invalid line
 2026-11-18T08:00:04Z|INFO|worker|-1
 ```
 
-Mỗi dòng hợp lệ gồm: `timestamp|level|service|durationMs`. Dòng thứ ba rỗng, dòng thứ năm không đủ trường, dòng thứ bảy có thời lượng âm.
+Each valid line contains: `timestamp|level|service|durationMs`. Line 3 is blank, line 5 lacks fields, and line 7 has a negative duration.
 
-Một lời giải kiểu:
+An approach like:
 
 ```java
-// Không đủ tin cậy nếu yêu cầu phải biết nguồn có dòng lỗi:
+// Unreliable if you need to know whether the source contained invalid lines:
 long errors = Files.lines(path)
     .map(LogParser::parseOrNull)
     .filter(Objects::nonNull)
@@ -29,113 +29,113 @@ long errors = Files.lines(path)
     .count();
 ```
 
-có thể báo `2` sự kiện ERROR, nhưng không cho biết **đã bỏ qua bao nhiêu dòng**, **ở dòng nào** và **vì sao**. Đoạn này còn không đóng stream `Files.lines`. Nếu parser tự bắt mọi exception rồi trả `null`, hệ thống rất dễ tạo ra báo cáo “thành công” từ dữ liệu thiếu.
+may report `2` ERROR events, yet gives no indication of **how many lines were skipped**, **at which line numbers**, or **why**. This snippet also fails to close the `Files.lines` stream. If the parser swallows every exception and returns `null`, the system easily produces a "successful" report from incomplete data.
 
-Trong chương **Mẫu xử lý dữ liệu thực tế**, bài học này xây dựng một pipeline đọc log theo dòng có **hợp đồng xử lý lỗi tường minh**, đảm bảo:
+In the **Practical Data Processing Patterns** chapter, this lesson builds a line-by-line log processing pipeline with an **explicit error-handling contract**, ensuring:
 
-1. Đọc log theo luồng, không phải đưa toàn bộ tệp vào bộ nhớ.
-2. Giữ số thứ tự dòng để định vị lỗi.
-3. Phân biệt **dòng hợp lệ**, **dòng trắng** và **dòng sai định dạng**.
-4. Cung cấp ba chính sách: **FAIL_FAST**, **SKIP_WITH_COUNT**, **COLLECT_ERRORS**.
-5. Phân biệt lỗi nội dung log với **lỗi mở/đọc/đóng tệp**.
-6. Tổng hợp số sự kiện, thời lượng nhỏ nhất/lớn nhất và thời gian trung bình theo `service` và `level` trong **một lượt duyệt**.
-7. Kiểm thử nguồn rỗng, lỗi đầu vào, giới hạn mẫu lỗi, số học và tài nguyên.
+1. Streaming log reads without loading the whole file into memory.
+2. Preserving line numbers to pinpoint errors.
+3. Distinguishing **valid lines**, **blank lines**, and **malformed lines**.
+4. Supporting three policies: **FAIL_FAST**, **SKIP_WITH_COUNT**, and **COLLECT_ERRORS**.
+5. Separating log-content errors from **file open/read/close I/O errors**.
+6. Aggregating event count, min/max duration, and average duration by `service` and `level` in **a single pass**.
+7. Testing empty sources, bad inputs, bounded error samples, arithmetic overflow, and resources.
 
-Các ví dụ đầy đủ dùng **Java 17+** (vì sử dụng `record` và `sealed interface`). Trọng tâm là Stream API và chính sách dữ liệu; đây chưa phải bộ phân tích mọi định dạng log sản xuất.
+Complete examples use **Java 17+** (for `record` and `sealed interface`). The focus is the Stream API and data policies; this is not a full parser for every production log format.
 
-## 2. Xác định hợp đồng dữ liệu trước khi viết pipeline
+## 2. Define the Data Contract Before Writing the Pipeline
 
-### 2.1. Định dạng một dòng hợp lệ
+### 2.1. Valid Line Format
 
-| Trường | Ví dụ | Quy tắc |
+| Field | Example | Rule |
 | --- | --- | --- |
-| `timestamp` | `2026-11-18T08:00:00Z` | Chuỗi thời gian có thể đọc bằng `Instant.parse` |
-| `level` | `INFO`, `WARN`, `ERROR` | Chỉ chấp nhận đúng enum đã công bố |
-| `service` | `api`, `worker-1` | Chuỗi định danh theo `[a-z][a-z0-9-]{0,31}` |
-| `durationMs` | `40`, `120` | Số nguyên `long` không âm |
+| `timestamp` | `2026-11-18T08:00:00Z` | Timestamp string parseable via `Instant.parse` |
+| `level` | `INFO`, `WARN`, `ERROR` | Must match the published enum strictly |
+| `service` | `api`, `worker-1` | Identifier matching `[a-z][a-z0-9-]{0,31}` |
+| `durationMs` | `40`, `120` | Non-negative `long` integer |
 
-Trong bài, dấu `|` phân cách các trường. Dùng `String.split("\\|", -1)`: ký tự `|` là metacharacter của regex nên phải escape, còn tham số `-1` giữ nguyên **các trường rỗng ở cuối** để phát hiện thiếu dữ liệu.
+Here `|` separates fields. Use `String.split("\\|", -1)`: `|` is a regex metacharacter so it must be escaped, and `-1` preserves **trailing empty fields** so missing data is caught.
 
-Ví dụ:
+Examples:
 
 ```text
-2026-11-18T08:00:00Z|INFO|api|40  -> hợp lệ
-2026-11-18T08:00:00Z|DEBUG|api|40 -> level không hợp lệ
-2026-11-18T08:00:00Z|INFO|api|   -> duration không hợp lệ
-2026-11-18T08:00:00Z|INFO|api|-1 -> duration âm
-2026-11-18T08:00:00Z|INFO|api    -> thiếu một trường
+2026-11-18T08:00:00Z|INFO|api|40  -> valid
+2026-11-18T08:00:00Z|DEBUG|api|40 -> invalid level
+2026-11-18T08:00:00Z|INFO|api|   -> invalid duration
+2026-11-18T08:00:00Z|INFO|api|-1 -> negative duration
+2026-11-18T08:00:00Z|INFO|api    -> missing one field
 ```
 
-Không tự đoán rằng `DEBUG` tương đương `INFO` hay `durationMs` rỗng tương đương `0`. Những giá trị như vậy phải có **quy ước nghiệp vụ riêng** nếu muốn chấp nhận.
+Never assume `DEBUG` equals `INFO` or an empty `durationMs` equals `0`. Such coercions require **explicit business rules** before acceptance.
 
-### 2.2. Ba loại dòng khác nhau
+### 2.2. Three Distinct Line Categories
 
-| Loại | Ý nghĩa | Góp phần vào báo cáo? |
+| Category | Meaning | Contributes to Report? |
 | --- | --- | --- |
-| **Valid** | Parse thành sự kiện có trường hợp lệ | Có: tăng số sự kiện và cập nhật thống kê |
-| **Blank** | Dòng trắng hoặc chỉ gồm khoảng trắng | Không tính là sự kiện; tăng `blankLines` |
-| **Invalid** | Có nội dung nhưng sai schema hoặc giá trị | Không tính là sự kiện; tăng `invalidLines` và xử lý theo policy |
+| **Valid** | Parses into an event with valid fields | Yes: increments event count and updates metrics |
+| **Blank** | Empty or whitespace-only line | Not an event; increments `blankLines` |
+| **Invalid** | Has content but violates schema or value bounds | Not an event; increments `invalidLines` and follows policy |
 
-Hợp đồng của bài **không xem dòng trắng là lỗi**. Một hệ thống khác có thể chọn ngược lại, nhưng phải định nghĩa rõ và kiểm thử.
+This lesson's contract **does not count blank lines as errors**. Another system might decide differently, provided it defines and tests that choice clearly.
 
-Với mỗi tệp được xử lý hết mà không lỗi I/O:
+For every file processed to completion without I/O errors:
 
 \[
 \text{totalLines}=\text{validLines}+\text{blankLines}+\text{invalidLines}
 \]
 
-Đây là **bất biến kiểm thử** quan trọng. Không dùng `filter` để xóa dòng lỗi quá sớm khiến hệ thống không còn biết có bao nhiêu dòng đã bị loại.
+This is a key **test invariant**. Never filter out invalid lines prematurely so the system loses track of how many lines were discarded.
 
-## 3. Định nghĩa rõ ba chính sách xử lý dòng sai
+## 3. Explicitly Define Three Invalid-Line Policies
 
-### 3.1. `FAIL_FAST` — dừng tại dòng đầu tiên không hợp lệ
+### 3.1. `FAIL_FAST` — Stop on the First Invalid Line
 
-Khi parser gặp một dòng có nội dung nhưng sai, ném một ngoại lệ gắn **số dòng và mã lý do**. Không trả báo cáo từng phần như thể công việc đã thành công.
+When the parser encounters a non-blank malformed line, throw an exception carrying **line number and reason code**. Do not return a partial report as if the run succeeded.
 
-Phù hợp với:
+Suitable for:
 
-- Pipeline phải nhận dữ liệu **đầy đủ và sạch** trước khi tính tiền, tính phí hay xuất bản.
-- Bài kiểm tra chất lượng dữ liệu trước bước xử lý chính.
-- Hệ thống mà một dòng sai có thể làm sai ý nghĩa thống kê.
+- Pipelines requiring **complete, clean** data before billing, charging, or publishing.
+- Data-quality gates before main processing.
+- Systems where a single bad line invalidates the statistics.
 
-Nhược điểm: không liệt kê được tất cả dòng lỗi trong cùng một lần chạy. Có thể chạy một chế độ kiểm tra lỗi trước nếu cần tổng hợp nhiều vấn đề.
+Drawback: does not list all bad lines in one pass. Run an error-audit mode beforehand if multiple issues must be gathered together.
 
-### 3.2. `SKIP_WITH_COUNT` — bỏ dòng sai nhưng luôn đếm
+### 3.2. `SKIP_WITH_COUNT` — Skip Bad Lines While Always Counting Them
 
-Không ném lỗi đối với **dòng sai định dạng**, nhưng tăng `invalidLines` và chỉ tổng hợp các sự kiện hợp lệ. Không lưu chi tiết lỗi.
+Do not throw on **malformed lines**, but increment `invalidLines` and aggregate only valid events. Do not retain individual error details.
 
-Phù hợp với nguồn mà đặc tả cho phép **best effort**, và tỷ lệ lỗi vẫn được giám sát.
+Suitable for sources whose spec allows **best-effort** processing while still monitoring error rates.
 
-Không nên gọi báo cáo là “đầy đủ” khi `invalidLines > 0`. Các bộ phận khác có thể đặt ngưỡng chất lượng dữ liệu, ví dụ nếu tỷ lệ lỗi vượt mức cấu hình thì không xuất bản.
+Never call a report "complete" when `invalidLines > 0`. Downstream stages can enforce quality thresholds—for example, refusing to publish if the error rate exceeds a configured limit.
 
-### 3.3. `COLLECT_ERRORS` — tiếp tục và lưu một số lỗi mẫu
+### 3.3. `COLLECT_ERRORS` — Continue and Keep Bounded Error Samples
 
-Giống `SKIP_WITH_COUNT` về kết quả thống kê và số dòng sai, nhưng còn lưu tối đa `sampleLimit` mục lỗi, mỗi mục gồm **số dòng và mã lỗi**, không lưu nguyên văn nội dung có thể chứa bí mật.
+Matches `SKIP_WITH_COUNT` in metrics and invalid-line counts, while also keeping up to `sampleLimit` error items, each holding **line number and error code**—without storing raw line text that could contain secrets.
 
-Phù hợp với:
+Suitable for:
 
-- Báo cáo vận hành cần cả số liệu và chẩn đoán.
-- Công cụ nhập log lần đầu cần tìm nhiều lỗi schema.
-- Màn hình chất lượng dữ liệu nhưng không muốn lưu toàn bộ dòng sai trong RAM.
+- Operational reports needing both metrics and diagnostics.
+- Initial log-ingestion tools surfacing multiple schema errors at once.
+- Data-quality dashboards that must avoid buffering every bad line in RAM.
 
-**Quan trọng:** giới hạn `sampleLimit` **chỉ giới hạn số lỗi lưu lại**, không giới hạn số dòng được xử lý và không làm giảm `invalidLines`. Nếu file có một triệu dòng lỗi mà giới hạn mẫu là 20, bộ đếm vẫn phải là một triệu.
+**Crucial rule:** `sampleLimit` **caps only stored error samples**, never the number of processed lines and never `invalidLines`. If a file has one million invalid lines and the sample cap is 20, the invalid counter must still reach one million.
 
-### 3.4. Ma trận kết quả
+### 3.4. Outcome Matrix
 
-| Tình huống | FAIL_FAST | SKIP_WITH_COUNT | COLLECT_ERRORS |
+| Scenario | FAIL_FAST | SKIP_WITH_COUNT | COLLECT_ERRORS |
 | --- | --- | --- | --- |
-| Dòng hợp lệ | Tổng hợp | Tổng hợp | Tổng hợp |
-| Dòng trắng | Đếm blank, tiếp tục | Đếm blank, tiếp tục | Đếm blank, tiếp tục |
-| Dòng sai schema | Ném ngoại lệ | Tăng invalid, tiếp tục | Tăng invalid, lưu mẫu đến giới hạn |
-| Không mở được tệp | Lỗi I/O | **Vẫn lỗi I/O** | **Vẫn lỗi I/O** |
-| Đọc tệp thất bại giữa chừng | Lỗi I/O | **Vẫn lỗi I/O** | **Vẫn lỗi I/O** |
-| Báo cáo trả ra bình thường | Không có dòng sai | Có thể có dòng sai | Có thể có dòng sai |
+| Valid line | Aggregate | Aggregate | Aggregate |
+| Blank line | Count blank, continue | Count blank, continue | Count blank, continue |
+| Schema-invalid line | Throw exception | Increment invalid, continue | Increment invalid, store sample up to limit |
+| File cannot be opened | I/O error | **Still I/O error** | **Still I/O error** |
+| Read fails mid-file | I/O error | **Still I/O error** | **Still I/O error** |
+| Report returned normally | Zero invalid lines | May have invalid lines | May have invalid lines |
 
-**Đừng trộn hai nhóm lỗi:** chính sách bỏ qua **dòng không hợp lệ** không cho phép tự động bỏ qua **tệp không đọc được**. Nếu cần cơ chế tiếp tục khi một tệp lỗi, hãy thiết kế thêm kết quả **theo tệp** có trạng thái thành công/thất bại và kiểm kê tất cả tệp đã bỏ qua.
+**Do not conflate these two error classes:** a policy to skip **invalid lines** does not authorize silently skipping **unreadable files**. If you need to continue when a file fails, design a **per-file** result with success/failure state and audit all skipped files.
 
-## 4. Đọc tệp bằng `Files.lines` và quản lý vòng đời stream
+## 4. Reading Files with `Files.lines` and Managing Stream Lifecycle
 
-`Files.lines(path, charset)` trả một `Stream<String>` đọc dòng **lười**. Điều này tránh nạp cả tệp vào bộ nhớ:
+`Files.lines(path, charset)` returns a **lazy** `Stream<String>` of lines, avoiding loading the whole file into memory:
 
 ```java
 import java.io.IOException;
@@ -154,23 +154,23 @@ static long countNonBlankLines(Path path) throws IOException {
 }
 ```
 
-**Quyền sở hữu tài nguyên:**
+**Resource ownership:**
 
-- `Files.lines` mở tài nguyên I/O; **caller phải đóng stream**.
-- `count()`, `collect()` và `toList()` là terminal operation, **không tự gọi `close()`**.
-- `try-with-resources` đóng nguồn cả khi hoàn thành bình thường lẫn khi terminal operation ném ngoại lệ.
-- `Files.lines` có thể ném checked `IOException` khi mở; lỗi đọc phát sinh **trong lúc duyệt** có thể được bọc thành `UncheckedIOException`.
-- Đọc đúng charset; ví dụ này chọn UTF-8. Mã hóa sai không được “sửa” bằng cách âm thầm bỏ dòng parse lỗi.
+- `Files.lines` opens an I/O resource; the **caller must close the stream**.
+- `count()`, `collect()`, and `toList()` are terminal operations that **do not call `close()`**.
+- `try-with-resources` closes the source both on normal completion and when a terminal operation throws.
+- `Files.lines` can throw checked `IOException` on open; read failures occurring **during traversal** are wrapped in `UncheckedIOException`.
+- Specify the right charset; this lesson uses UTF-8. Never "fix" a wrong encoding by silently dropping lines that fail parsing.
 
-### 4.1. Vì sao không đọc tất cả dòng bằng `readAllLines`?
+### 4.1. Why Not Read Every Line with `readAllLines`?
 
-`Files.readAllLines(path)` đưa mọi dòng vào một danh sách. Với tệp rất lớn, dung lượng bộ nhớ có thể tăng theo tổng nội dung tệp. `Files.lines` hoặc `BufferedReader.readLine` cho phép xử lý từng dòng và giữ trạng thái thống kê **gọn hơn nhiều**.
+`Files.readAllLines(path)` loads all lines into a list. On huge files, memory grows with total file content. `Files.lines` or `BufferedReader.readLine` processes line by line while keeping statistical state **far smaller**.
 
-Nếu cần **số dòng vật lý** khi báo lỗi, một stream thuần `Files.lines` không cung cấp chỉ số dòng sẵn có. Thêm một `AtomicLong` mutable vào `map` để tăng số dòng là một giải pháp dễ sai khi pipeline đổi sang song song hoặc được tối ưu. Bài này sẽ cung cấp một **nguồn stream có đánh số dòng tuần tự** để không lệ thuộc side effect của mapper.
+When **physical line numbers** are needed for errors, a bare `Files.lines` stream has no built-in line index. Incrementing a mutable `AtomicLong` inside `map` breaks easily if the pipeline is parallelized or optimized. This lesson provides a **sequential line-numbered stream source** so mappers remain free of side effects.
 
-### 4.2. `BufferedReader.lines()` và quyền đóng reader
+### 4.2. `BufferedReader.lines()` and Reader Ownership
 
-`BufferedReader.lines()` tạo stream đọc các dòng từ reader, nhưng reader **vẫn do người tạo reader sở hữu**:
+`BufferedReader.lines()` produces a stream of lines from the reader, yet the reader **remains owned by whoever opened it**:
 
 ```java
 import java.io.BufferedReader;
@@ -179,16 +179,16 @@ try (BufferedReader reader =
          Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
     long count = reader.lines().count();
 }
-// Reader được đóng bởi try-with-resources.
+// Reader is closed by try-with-resources.
 ```
 
-Không giả định đóng stream `reader.lines()` sẽ tự đóng `BufferedReader`. Trong lời giải đầy đủ, chúng ta sở hữu reader trực tiếp và đóng nó tại ranh giới phương thức phân tích.
+Never assume closing `reader.lines()` automatically closes the `BufferedReader`. In the complete solution, we own the reader directly and close it at the analysis method's boundary.
 
-## 5. Parser thuần: trả một kết quả có trạng thái
+## 5. Pure Parser: Return a Typed Outcome
 
-Một parser đáng kiểm thử nên chỉ phụ thuộc vào **nội dung dòng** và **số dòng**, không tự đọc tệp, ghi log hệ thống, tăng bộ đếm toàn cục hay quyết định chiến lược fail-fast.
+A testable parser should depend only on **line content** and **line number**, without opening files, logging globally, incrementing global counters, or deciding fail-fast policy itself.
 
-Thiết kế kiểu:
+Type design:
 
 ```java
 record NumberedLine(long number, String text) {}
@@ -203,11 +203,11 @@ record Rejected(Issue issue) implements ParseOutcome {}
 record Issue(long lineNumber, String code) {}
 ```
 
-**Vì sao không dùng `Optional<LogEvent>` cho mọi trường hợp?**
+**Why not use `Optional<LogEvent>` for everything?**
 
-`Optional.empty()` không cho biết đó là dòng trắng hay dòng sai định dạng. Nếu nghiệp vụ cần phân biệt, một kiểu kết quả có trạng thái tường minh rõ ràng hơn. Chỉ khi đã cố ý coi cả hai là “không có sự kiện” thì `Optional` mới đủ.
+`Optional.empty()` cannot distinguish a blank line from a malformed line. When business rules require separating them, an explicit sum-type outcome is much clearer. Only when both intentionally mean "no event" does `Optional` suffice.
 
-Ví dụ parser tách:
+Field splitting example:
 
 ```java
 String[] fields = line.split("\\|", -1);
@@ -216,19 +216,19 @@ if (fields.length != 4) {
 }
 ```
 
-Sau đó lần lượt validate timestamp, level, service và duration. Hãy bắt **những ngoại lệ dữ liệu dự kiến** như `DateTimeParseException` và `NumberFormatException`. Tránh `catch (Exception e) { return Optional.empty(); }`, vì cách đó có thể giấu cả lỗi lập trình hay lỗi hạ tầng.
+Then validate timestamp, level, service, and duration in turn. Catch **expected data exceptions** such as `DateTimeParseException` and `NumberFormatException`. Avoid `catch (Exception e) { return Optional.empty(); }`, which can swallow programming bugs or infrastructure failures.
 
-### 5.1. Mã lỗi có cấu trúc tốt hơn giữ toàn bộ dòng thô
+### 5.1. Structured Error Codes Beat Raw Line Dumps
 
-Ví dụ `Issue(7, "NEGATIVE_DURATION")` đủ để người vận hành biết loại lỗi và quay lại dòng 7 trong tệp nguồn. Khi log có thể chứa token, thông tin cá nhân hoặc dữ liệu nghiệp vụ nhạy cảm, **đừng mặc định đưa toàn bộ dòng lỗi vào báo cáo, console hoặc dashboard**. Nếu cần lưu đoạn xem trước, nên giới hạn độ dài, loại bỏ ký tự điều khiển và ẩn dữ liệu nhạy cảm theo chính sách bảo mật.
+An `Issue(7, "NEGATIVE_DURATION")` tells operators the failure reason and points straight to line 7 in the source file. Because logs may contain tokens, PII, or sensitive business data, **do not dump full raw lines into reports, consoles, or dashboards by default**. If a preview snippet is required, bound its length, strip control characters, and redact sensitive fields per security policy.
 
-### 5.2. Số dòng có nghĩa gì?
+### 5.2. What Does Line Number Mean?
 
-Trong bài, `lineNumber` bắt đầu từ **1** và tăng mỗi khi `BufferedReader.readLine()` trả về một dòng, kể cả dòng trắng. Nó là số dòng **trong tệp được đọc ở lần chạy đó**, không phải số byte, thời điểm log hay số sự kiện hợp lệ. Nếu một dòng log chứa nhiều dòng vật lý (ví dụ stack trace multiline), mô hình schema đơn dòng cần được thay bằng parser trạng thái có hợp đồng riêng.
+Here `lineNumber` starts at **1** and increments each time `BufferedReader.readLine()` returns a line, including blank lines. It counts **lines in the file read during that pass**, not byte offsets, timestamps, or valid events. If a single log record spans multiple physical lines (e.g., multiline stack traces), replace the single-line parser with a stateful framing parser under its own contract.
 
-## 6. Nguồn `Stream<NumberedLine>` không dùng bộ đếm trong mapper
+## 6. `Stream<NumberedLine>` Source Without Mapper Counters
 
-Để ghép **số dòng** với **nội dung** khi file chưa biết trước có bao nhiêu dòng, ta có thể xây một `Iterator<NumberedLine>` tuần tự trên `BufferedReader`, rồi dùng:
+To pair **line numbers** with **line text** when total line count is unknown upfront, build a sequential `Iterator<NumberedLine>` over `BufferedReader`, then wrap it:
 
 ```java
 StreamSupport.stream(
@@ -239,49 +239,49 @@ StreamSupport.stream(
 );
 ```
 
-Ý tưởng:
+Concept:
 
 ```text
 BufferedReader.readLine()
       │
-      ├─ lần 1 -> NumberedLine(1, "2026-...|INFO|api|40")
-      ├─ lần 2 -> NumberedLine(2, "2026-...|ERROR|api|120")
-      ├─ lần 3 -> NumberedLine(3, "")
-      └─ EOF   -> không còn phần tử
+      ├─ call 1 -> NumberedLine(1, "2026-...|INFO|api|40")
+      ├─ call 2 -> NumberedLine(2, "2026-...|ERROR|api|120")
+      ├─ call 3 -> NumberedLine(3, "")
+      └─ EOF    -> no more elements
                       │
                       ▼
-           Stream<NumberedLine> tuần tự
+           Sequential Stream<NumberedLine>
                       │
                   map(parse)
                       │
            collect(reportCollector)
 ```
 
-Đặc tính `ORDERED` phù hợp với thứ tự vật lý của các dòng. `NONNULL` hợp lệ vì mỗi phần tử phát ra là một đối tượng `NumberedLine` khác null. **Không** tự khai `SIZED` hoặc `SUBSIZED`, vì số dòng chưa được xác định trước.
+Characteristics `ORDERED` matches physical line order, and `NONNULL` holds because every emitted element is a non-null `NumberedLine`. **Do not** declare `SIZED` or `SUBSIZED`, because line count is unknown ahead of time.
 
-### 6.1. Vì sao cần quản lý lookahead cho `Iterator`?
+### 6.1. Why Must the `Iterator` Manage Lookahead?
 
-`Iterator.hasNext()` có thể được gọi nhiều lần trước `next()`. Implementation phải **đọc sẵn nhiều nhất một dòng** rồi giữ lại, tránh việc mỗi lần `hasNext` vô tình bỏ qua một dòng. Khi `next()` được gọi, nó trả dòng đã đọc sẵn và chuyển sang trạng thái cho phép đọc tiếp.
+`Iterator.hasNext()` can be called multiple times before `next()`. The implementation must **buffer at most one pre-read line** so repeated `hasNext` calls do not skip lines. When `next()` runs, it returns the buffered line and clears the ready flag for the next read.
 
-Nếu `readLine()` ném `IOException`, iterator có thể bọc bằng `UncheckedIOException` vì `Iterator.hasNext/next` không khai checked exception. Ngoại lệ này **được truyền ra ngoài**, không biến thành dòng sai schema.
+If `readLine()` throws `IOException`, the iterator wraps it in `UncheckedIOException` because `Iterator.hasNext/next` cannot throw checked exceptions. That exception **propagates out** rather than turning into a schema-error row.
 
-### 6.2. Không biến `Iterator` này thành nguồn song song tùy tiện
+### 6.2. Do Not Arbitrarily Parallelize This Iterator Source
 
-`BufferedReader` có trạng thái đọc tuần tự; mỗi `Iterator` sở hữu một con trỏ dòng. Bài chọn `StreamSupport.stream(..., false)` để đảm bảo số dòng và thứ tự rõ ràng. `parallel()` ở phần sau không làm cho nguồn I/O có thể bị nhiều worker gọi `readLine` độc lập theo số dòng; muốn chia file phải thiết kế nguồn và ranh giới dòng an toàn hơn.
+`BufferedReader` has sequential read state; the `Iterator` owns a line counter. This lesson sets `StreamSupport.stream(..., false)` to keep line numbers and ordering exact. Adding `parallel()` downstream does not let multiple workers safely call `readLine` with accurate line numbers; parallel file splitting requires careful byte-range and line-boundary design.
 
-## 7. Bộ tích lũy báo cáo: đếm lỗi và tổng hợp sự kiện trong một lượt
+## 7. Report Accumulator: Count Errors and Aggregate Events in One Pass
 
-Một giải pháp thiếu hiệu quả là gọi:
+An inefficient or invalid attempt:
 
 ```java
-// Không thể dùng lại một Stream<String> đã tiêu thụ:
+// Cannot reuse an already-consumed Stream<String>:
 long total = lines.count();
 long errors = lines.filter(LogParser::isError).count();
 ```
 
-Với stream I/O, không thể chạy hai terminal operations trên **cùng một stream đã tiêu thụ**. Đọc lại tệp để đếm riêng từng loại vừa tốn I/O vừa có nguy cơ dữ liệu thay đổi giữa hai lần đọc.
+On an I/O stream, you cannot run two terminal operations on **the same consumed stream**. Re-reading the file for separate counts wastes I/O and risks the file changing between passes.
 
-Thay vào đó, một `Collector` tùy chỉnh nhận từng `ParseOutcome` và cập nhật trạng thái nhỏ:
+Instead, a custom `Collector` consumes each `ParseOutcome` and updates compact state:
 
 ```text
                     ParseOutcome
@@ -298,32 +298,32 @@ Thay vào đó, một `Collector` tùy chỉnh nhận từng `ParseOutcome` và 
    count/sum/min/max
            │
            ▼
-       Report cuối
+      Final Report
 ```
 
-Bộ tích lũy giữ:
+The accumulator holds:
 
 - `totalLines`, `validLines`, `blankLines`, `invalidLines`;
 - map `service → level → GroupStats`;
-- tối đa `sampleLimit` ví dụ `Issue`;
-- tham số policy và giới hạn mẫu.
+- up to `sampleLimit` `Issue` samples;
+- policy and sample-limit settings.
 
-Với báo cáo số liệu, dùng `Math.addExact` cho bộ đếm và tổng thời lượng giúp **ném `ArithmeticException` nếu tràn `long`**, thay vì âm thầm nhận một tổng sai. Trung bình kiểu `double` vẫn là số xấp xỉ, phù hợp báo cáo thời lượng thông thường; tiền tệ và số liệu yêu cầu độ chính xác tuyệt đối cần quy tắc số học khác.
+Using `Math.addExact` for counts and total durations **throws `ArithmeticException` on `long` overflow** instead of silently wrapping to a wrong total. A `double` mean is a floating-point approximation suitable for typical latency summaries; currency or exact-precision figures require dedicated arithmetic rules.
 
-### 7.1. Vì sao collector có `combiner` dù nguồn đang tuần tự?
+### 7.1. Why Does the Collector Have a `combiner` If the Source Is Sequential?
 
-Giao diện `Collector<T,A,R>` gồm supplier, accumulator, combiner và finisher. Kể cả khi nguồn hiện tại chạy tuần tự, việc xây combiner **có tính kết hợp** là một phần thiết kế collector đúng hợp đồng. Ở bài này:
+The `Collector<T,A,R>` contract comprises supplier, accumulator, combiner, and finisher. Even when the current source is sequential, writing an **associative** combiner is part of a well-formed collector. Here:
 
-- Các bộ đếm được cộng bằng `Math.addExact`.
-- Các thống kê cùng khóa được gộp bằng count/sum/min/max.
-- Các mẫu lỗi được nối từ trái sang phải và **cắt tới sampleLimit**.
-- Không gắn `CONCURRENT` cho map/bộ tích lũy mutable.
+- Counters add via `Math.addExact`.
+- Matching-key stats merge count/sum/min/max.
+- Error samples append left-to-right and **cap at `sampleLimit`**.
+- `CONCURRENT` is not declared for mutable maps/accumulators.
 
-Điều này **không** làm cho nguồn `BufferedReader` tự nhiên trở thành parallel-safe. Nguồn I/O và collector là hai tầng trách nhiệm riêng.
+This does **not** magically make `BufferedReader` parallel-safe. The I/O source and the collector have separate responsibilities.
 
-## 8. Chương trình Java 17 hoàn chỉnh: `LogLineAnalyzer`
+## 8. Complete Java 17 Program: `LogLineAnalyzer`
 
-Tệp sau là chương trình độc lập có thể lưu thành `LogLineAnalyzer.java`. Nó dùng nguồn tuần tự có đánh số dòng, parser thuần và một collector tổng hợp có kiểm soát lỗi.
+The file below is standalone and can be saved as `LogLineAnalyzer.java`. It combines a sequential line-numbered source, pure parser, and error-aware aggregating collector.
 
 ```java
 import java.io.BufferedReader;
@@ -384,8 +384,8 @@ public final class LogLineAnalyzer {
     public static final class InvalidLogLineException
             extends RuntimeException {
         public InvalidLogLineException(Issue issue) {
-            super("Dòng " + issue.lineNumber() +
-                  " không hợp lệ: " + issue.code());
+            super("Line " + issue.lineNumber() +
+                  " is invalid: " + issue.code());
         }
     }
 
@@ -402,7 +402,7 @@ public final class LogLineAnalyzer {
     private record Blank(long lineNumber) implements ParseOutcome {}
     private record Rejected(Issue issue) implements ParseOutcome {}
 
-    // Parser thuần: không truy cập I/O, không sửa trạng thái bên ngoài.
+    // Pure parser: performs no I/O and mutates no external state.
     private static ParseOutcome parse(NumberedLine line) {
         String raw = line.text();
         if (raw.isBlank()) {
@@ -460,7 +460,7 @@ public final class LogLineAnalyzer {
         );
     }
 
-    // Reader vẫn thuộc sở hữu của analyze(), không thuộc Iterator.
+    // Reader remains owned by analyze(), not by the Iterator.
     private static Stream<NumberedLine> numberedLines(
         BufferedReader reader
     ) {
@@ -514,7 +514,7 @@ public final class LogLineAnalyzer {
         return StreamSupport.stream(source, false);
     }
 
-    // Mutable state nội bộ, không được chia sẻ cho caller.
+    // Internal mutable state, never exposed directly to callers.
     private static final class GroupStats {
         long count;
         long sum;
@@ -538,7 +538,7 @@ public final class LogLineAnalyzer {
         }
 
         Metric finish() {
-            // GroupStats chỉ tồn tại nếu đã có ít nhất một event.
+            // GroupStats exists only when at least one event was added.
             return new Metric(
                 count, sum, min, max, (double) sum / count
             );
@@ -650,7 +650,7 @@ public final class LogLineAnalyzer {
         Objects.requireNonNull(policy, "policy");
         if (sampleLimit < 0) {
             throw new IllegalArgumentException(
-                "sampleLimit phải không âm"
+                "sampleLimit must be non-negative"
             );
         }
 
@@ -672,7 +672,7 @@ public final class LogLineAnalyzer {
     public static void main(String[] args) throws IOException {
         if (args.length != 1) {
             System.out.println(
-                "Cách dùng: java LogLineAnalyzer <file.log>"
+                "Usage: java LogLineAnalyzer <file.log>"
             );
             return;
         }
@@ -682,63 +682,63 @@ public final class LogLineAnalyzer {
             file, InvalidLinePolicy.COLLECT_ERRORS, 10
         );
 
-        System.out.println("Tổng dòng: " + report.totalLines());
-        System.out.println("Hợp lệ: " + report.validLines());
-        System.out.println("Trắng: " + report.blankLines());
-        System.out.println("Không hợp lệ: " + report.invalidLines());
-        System.out.println("Lỗi mẫu: " + report.issueSamples());
-        System.out.println("Nhóm: " + report.groups());
+        System.out.println("Total lines: " + report.totalLines());
+        System.out.println("Valid: " + report.validLines());
+        System.out.println("Blank: " + report.blankLines());
+        System.out.println("Invalid: " + report.invalidLines());
+        System.out.println("Sample issues: " + report.issueSamples());
+        System.out.println("Groups: " + report.groups());
     }
 }
 ```
 
-### 8.1. Chạy thử với dữ liệu mẫu
+### 8.1. Running on the Sample Data
 
-Lưu đúng bảy dòng đầu bài vào `app.log` rồi chạy:
+Save the seven opening lines to `app.log` and run:
 
 ```bash
 javac LogLineAnalyzer.java
 java LogLineAnalyzer app.log
 ```
 
-Các giá trị chính phải là:
+Expected key counts:
 
 ```text
-Tổng dòng: 7
-Hợp lệ: 4
-Trắng: 1
-Không hợp lệ: 2
-Lỗi mẫu: [Issue[lineNumber=5, code=FIELD_COUNT],
-          Issue[lineNumber=7, code=NEGATIVE_DURATION]]
+Total lines: 7
+Valid: 4
+Blank: 1
+Invalid: 2
+Sample issues: [Issue[lineNumber=5, code=FIELD_COUNT],
+                Issue[lineNumber=7, code=NEGATIVE_DURATION]]
 ```
 
-Bộ thống kê theo nhóm:
+Grouped metrics:
 
-| Service | Level | Số event | Tổng thời lượng (ms) | Min (ms) | Max (ms) | TB (ms) |
+| Service | Level | Events | Total Duration (ms) | Min (ms) | Max (ms) | Avg (ms) |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
 | api | INFO | 1 | 40 | 40 | 40 | 40.0 |
 | api | ERROR | 2 | 200 | 80 | 120 | 100.0 |
 | worker | WARN | 1 | 75 | 75 | 75 | 75.0 |
 
-Với `HashMap` nội bộ, chương trình **không cam kết thứ tự duyệt ngay trong quá trình tích lũy**. `finish` chuyển khóa service sang `TreeMap` và level sang `EnumMap` nên kết quả khi đọc sau khi hoàn tất có thứ tự rõ ràng; số liệu không phụ thuộc thứ tự duyệt map.
+With the internal `HashMap`, iteration order is **unspecified during accumulation**. `finish` copies service keys into a `TreeMap` and levels into an `EnumMap`, so finished reports iterate cleanly in deterministic order; numeric metrics never depend on map iteration order.
 
-### 8.2. Tại sao code chính không dùng `parallel()`?
+### 8.2. Why Does the Main Code Not Use `parallel()`?
 
-Nguồn đọc tệp là iterator tuần tự trên **một `BufferedReader`**. Số dòng là một con trỏ tăng liên tục, và việc gọi `readLine()` phải tuân thứ tự. `StreamSupport.stream(..., false)` cố ý không song song. Dù collector có combiner đúng, việc đổi sang `parallel()` không tự tạo các phần tệp độc lập có số dòng chính xác và không nhất thiết tăng tốc I/O.
+The file reader is a sequential iterator over **one `BufferedReader`**. Line numbers advance monotonically, and `readLine()` must run sequentially. `StreamSupport.stream(..., false)` deliberately runs sequentially. Even though the collector has a valid combiner, flipping to `parallel()` will not partition the file cleanly with exact line numbers or necessarily speed up I/O.
 
-Nếu cần xử lý **nhiều tệp độc lập**, có thể phân công **mỗi tệp một tác vụ** và gộp các báo cáo theo hợp đồng tường minh, kiểm soát số file mở đồng thời. Với **một tệp** cực lớn, phân chia byte phải xử lý đúng charset, ranh giới dòng, thứ tự và offset; đó là bài toán nguồn tùy chỉnh cần thiết kế riêng.
+To process **multiple independent files**, dispatch **one task per file** and merge reports under an explicit contract while bounding open file handles. For a **single huge file**, byte-range splitting must handle charsets, line boundaries, ordering, and offsets—a custom source design in its own right.
 
-### 8.3. Tại sao báo cáo có thể giữ ít bộ nhớ?
+### 8.3. Why Does the Report Keep Memory Small?
 
-`Accumulator` chỉ giữ một bộ thống kê cho mỗi cặp (`service`, `level`) và tối đa `sampleLimit` ví dụ lỗi. Nó **không giữ toàn bộ dòng log**.
+`Accumulator` stores only one stats object per (`service`, `level`) pair and at most `sampleLimit` error samples. It **does not buffer log lines**.
 
-Với `g` nhóm khác nhau và `k` mẫu lỗi, trạng thái tăng theo số nhóm và mẫu lỗi, gần `O(g+k)`, chứ không tăng tuyến tính theo **tổng độ dài tất cả các dòng** nếu số nhóm và giới hạn mẫu được khống chế. `BufferedReader` còn có bộ đệm đọc riêng; một dòng cực dài vẫn có thể yêu cầu bộ nhớ lớn, nên cần chiến lược giới hạn kích thước dòng ở hệ thống thực.
+With `g` distinct groups and `k` error samples, state scales around `O(g + k)`, not linearly with the **total length of all lines**, assuming groups and sample limits are bounded. `BufferedReader` also uses an internal buffer; an extraordinarily long single line can still demand large memory, so production systems should bound maximum line length.
 
-## 9. Thử từng chính sách trên cùng một tệp
+## 9. Testing Each Policy on the Same File
 
-Giả sử `app.log` có các dòng giống đầu bài.
+Suppose `app.log` holds the seven lines from the opening section.
 
-### 9.1. Chế độ `FAIL_FAST`
+### 9.1. `FAIL_FAST` Mode
 
 ```java
 try {
@@ -751,12 +751,12 @@ try {
 } catch (LogLineAnalyzer.InvalidLogLineException ex) {
     System.err.println(ex.getMessage());
 }
-// Dòng 5 không hợp lệ: FIELD_COUNT
+// Line 5 is invalid: FIELD_COUNT
 ```
 
-`analyze` dừng tại dòng sai đầu tiên, **không có `Report` thành công**. `BufferedReader` vẫn được đóng bởi `try-with-resources` trong `analyze`. Một dòng sai sau đó có thể chưa được đọc; đây là ý nghĩa của fail-fast.
+`analyze` halts at the first invalid line with **no successful `Report` returned**. `BufferedReader` is still closed by `try-with-resources` inside `analyze`. Later invalid lines are never read—that is the meaning of fail-fast.
 
-### 9.2. Chế độ `SKIP_WITH_COUNT`
+### 9.2. `SKIP_WITH_COUNT` Mode
 
 ```java
 LogLineAnalyzer.Report report = LogLineAnalyzer.analyze(
@@ -770,9 +770,9 @@ System.out.println(report.invalidLines());     // 2
 System.out.println(report.issueSamples());     // []
 ```
 
-Báo cáo phản ánh **4 sự kiện hợp lệ**, không phản ánh “tất cả 7 dòng đều hợp lệ”. Nếu downstream yêu cầu tối thiểu 99,9% dòng có nội dung parse được, hãy đặt bước quyết định chất lượng dữ liệu **sau khi thu thập** dựa trên count, thay vì bỏ qua tỉ lệ lỗi.
+The report reflects **4 valid events**, not "all 7 lines were valid". If downstream requires at least 99.9% valid non-blank lines, enforce that data-quality gate **after collection** using the counters rather than ignoring the error rate.
 
-### 9.3. Chế độ `COLLECT_ERRORS` với giới hạn mẫu
+### 9.3. `COLLECT_ERRORS` Mode with Sample Limit
 
 ```java
 LogLineAnalyzer.Report report = LogLineAnalyzer.analyze(
@@ -786,11 +786,11 @@ System.out.println(report.issueSamples().size()); // 1
 System.out.println(report.issueSamples().get(0).lineNumber()); // 5
 ```
 
-Chỉ giữ một lỗi mẫu nhưng vẫn đếm đủ hai lỗi. Không dùng `issueSamples().size()` làm **tổng số dòng lỗi**: trường này là **số mẫu được lưu**, không phải bộ đếm.
+Only one error sample is retained, yet both errors are counted. Never use `issueSamples().size()` as the **total error count**: that field measures **stored samples**, not the total count.
 
-### 9.4. Trường hợp tệp rỗng
+### 9.4. Empty File Case
 
-Tệp có 0 dòng hợp lệ thì:
+A file with 0 lines produces:
 
 ```text
 totalLines   = 0
@@ -801,27 +801,27 @@ groups       = {}
 issueSamples = []
 ```
 
-Không nên tạo một nhóm `"UNKNOWN"` hoặc kết luận độ trễ trung bình bằng 0 nếu không có sự kiện. `groups` rỗng nghĩa là không có dữ liệu hợp lệ để tạo nhóm.
+Never synthesize an `"UNKNOWN"` group or claim average latency is 0 when zero events occurred. Empty `groups` means no valid data existed to form groups.
 
-## 10. Kiểm chứng thống kê và những phép tính thường bị hiểu nhầm
+## 10. Verifying Statistics and Commonly Misunderstood Calculations
 
-### 10.1. `count` không đo được dữ liệu bị bỏ
+### 10.1. `count` Does Not Measure Dropped Data
 
-Nếu `parseOrNull` trả null và sau đó gọi `filter(Objects::nonNull).count()`, người dùng chỉ biết **số sự kiện sống sót**, không biết bao nhiêu dòng lỗi. Một pipeline thuần có thể tạo `ParseOutcome` cho **mọi dòng** rồi thu thập đủ số đếm.
+If `parseOrNull` returns null and you call `filter(Objects::nonNull).count()`, you only know **surviving events**, not how many lines failed. A pure pipeline emits a `ParseOutcome` for **every line** and collects all counts.
 
-### 10.2. Trung bình chỉ tính từ sự kiện hợp lệ
+### 10.2. Averages Include Only Valid Events
 
-`api/ERROR` trong dữ liệu mẫu có hai duration: 120 và 80 ms.
+`api/ERROR` in the sample has two durations: 120 and 80 ms.
 
 \[
 \text{averageMs}=\frac{120+80}{2}=100.0
 \]
 
-Không lấy mẫu sai schema hoặc dòng trắng làm thời lượng 0; nếu thêm số 0 giả vào mẫu, trung bình bị kéo xuống và mất ý nghĩa đo.
+Never treat schema errors or blank lines as duration 0; injecting synthetic zeros drags the average down and invalidates the measurement.
 
-### 10.3. Không lấy trung bình đơn giản của các trung bình nhóm
+### 10.3. Never Take an Unweighted Mean of Group Averages
 
-Để tính trung bình của tất cả sự kiện, phải dùng:
+To compute the overall mean across all events, use:
 
 \[
 \overline{d}
@@ -829,17 +829,17 @@ Không lấy mẫu sai schema hoặc dòng trắng làm thời lượng 0; nếu
        {\sum_{g}\mathrm{count}_{g}}
 \]
 
-Không dùng trung bình không trọng số của `Metric.averageMs()` từng nhóm nếu số sự kiện mỗi nhóm khác nhau. Có thể lấy tổng `count` và `totalMs` của tất cả nhóm từ `Report.groups()` và thực hiện phép chia có kiểm soát.
+Do not average each group's `Metric.averageMs()` directly when group sizes differ. Sum `count` and `totalMs` across all groups from `Report.groups()` and divide cleanly.
 
-### 10.4. Tràn số và số thực
+### 10.4. Overflow and Floating-Point Precision
 
-Trong chương trình, `Math.addExact` kiểm tra tràn của `count` và `sum`. Nhưng giá trị trung bình `(double) sum / count` vẫn là xấp xỉ dấu phẩy động; với giá trị `long` cực lớn có thể mất chữ số chính xác. Nếu cần tính tổng thời gian ở quy mô vượt miền `long` hoặc số học tái lập chính xác, cân nhắc `BigInteger`/`BigDecimal` và chính sách làm tròn.
+Here `Math.addExact` guards `count` and `sum` against overflow. Yet `(double) sum / count` remains a floating-point approximation; for huge `long` values it can lose low-order precision. If totals can exceed `long` or exact reproducible arithmetic is required, use `BigInteger`/`BigDecimal` with explicit rounding rules.
 
-Các giá trị `durationMs` là **không âm** theo schema, nên với tổng cuối nằm trong miền `long`, việc gộp các tổng không âm theo thứ tự khác nhau sẽ không gặp tràn do cộng các phần; phép toán vẫn phải kiểm tra giới hạn tổng cuối.
+Because `durationMs` is **non-negative** by schema, when the final sum fits within `long`, merging partial non-negative sums in any order will not overflow intermediate steps; arithmetic must still guard the final total.
 
-## 11. Kiểm thử JUnit 5: dữ liệu, chính sách và lỗi I/O
+## 11. JUnit 5 Tests: Data, Policies, and I/O Errors
 
-Các kiểm thử dưới đây dùng class `LogLineAnalyzer` ở mục 8. JUnit Jupiter cần được cấu hình trong dự án; file test có thể đặt cùng package.
+These tests use `LogLineAnalyzer` from section 8. Configure JUnit Jupiter in your project and place the test class in the same package.
 
 ```java
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -926,7 +926,7 @@ class LogLineAnalyzerTest {
                 0
             )
         );
-        assertTrue(ex.getMessage().contains("Dòng 5"));
+        assertTrue(ex.getMessage().contains("Line 5"));
         assertTrue(ex.getMessage().contains("FIELD_COUNT"));
     }
 
@@ -1003,23 +1003,23 @@ class LogLineAnalyzerTest {
 }
 ```
 
-**Ý nghĩa các phép thử:**
+**What these tests verify:**
 
-- Trường hợp **valid/blank/invalid** phải giữ bất biến tổng số dòng.
-- Mẫu lỗi bị giới hạn nhưng **bộ đếm không bị giới hạn**.
-- `FAIL_FAST` báo đúng dòng vật lý đầu tiên có lỗi, không trả bản báo cáo giả thành công.
-- Tệp rỗng và tệp không tồn tại có kết quả khác nhau.
-- Các collection trong `Report` không được phép bị caller sửa trực tiếp.
+- **valid/blank/invalid** counts preserve the total-line invariant.
+- Error samples are bounded while **error counters remain unbounded**.
+- `FAIL_FAST` reports the exact first physical failing line without returning a fake successful report.
+- Empty files and missing files produce different outcomes.
+- Collections inside `Report` cannot be mutated directly by callers.
 
-Test `NoSuchFileException` áp dụng cho tệp chưa tồn tại khi mở; một lỗi đọc I/O phát sinh **sau khi mở** thường có đường đi `UncheckedIOException`. Không dễ mô phỏng lỗi đọc giữa chừng bằng tệp thường; trong dự án thật có thể dùng một `Reader` giả lập ném `IOException` ở một vị trí xác định để kiểm tra nhánh này.
+`NoSuchFileException` covers files absent on open; an I/O read failure occurring **after open** typically surfaces via `UncheckedIOException`. Mid-stream read errors are awkward to simulate with real files; in production projects, inject a mock `Reader` throwing `IOException` at a chosen line to test that path.
 
-## 12. Bài kiểm thử nâng cao: parser và dữ liệu biên
+## 12. Advanced Testing: Parser and Boundary Cases
 
-Ngoài các unit test trên, nên có một ma trận kiểm thử độc lập cho các tình huống sau:
+Beyond the unit tests above, maintain an independent test matrix for these cases:
 
-| Input | Kết quả mong muốn |
+| Input | Expected Outcome |
 | --- | --- |
-| `2026-11-18T08:00:00Z|INFO|api|0` | Valid: thời lượng `0` là hợp lệ |
+| `2026-11-18T08:00:00Z|INFO|api|0` | Valid: duration `0` is allowed |
 | `2026-11-18T08:00:00Z|INFO|api|-1` | `NEGATIVE_DURATION` |
 | `2026-11-18T08:00:00Z|INFO|api|abc` | `INVALID_DURATION` |
 | `2026-11-18T08:00:00Z|DEBUG|api|12` | `INVALID_LEVEL` |
@@ -1027,74 +1027,74 @@ Ngoài các unit test trên, nên có một ma trận kiểm thử độc lập 
 | `2026-11-18T08:00:00Z|INFO||12` | `INVALID_SERVICE` |
 | `2026-11-18T08:00:00Z|INFO|api|` | `INVALID_DURATION` |
 | `2026-11-18T08:00:00Z|INFO|api` | `FIELD_COUNT` |
-| Một dòng có 5 trường | `FIELD_COUNT` |
-| Một dòng chỉ chứa khoảng trắng | Blank, không phải Invalid |
-| Chỉ có dòng sai | `groups` rỗng; số `invalidLines` đúng |
-| Tất cả sự kiện thuộc một nhóm | Một bộ `Metric` với đúng count/sum |
-| Dòng không có newline cuối file | Vẫn được `BufferedReader.readLine` đọc |
-| Tổng duration vượt `long` | `ArithmeticException` do `Math.addExact` |
-| Đường dẫn null hoặc policy null | `NullPointerException` từ kiểm tra đầu vào |
+| A line with 5 fields | `FIELD_COUNT` |
+| A whitespace-only line | Blank, not Invalid |
+| Only invalid lines | `groups` empty; accurate `invalidLines` |
+| All events in one group | Single `Metric` with exact count/sum |
+| Final line lacking trailing newline | Still read by `BufferedReader.readLine` |
+| Sum of durations exceeding `long` | `ArithmeticException` from `Math.addExact` |
+| Null path or null policy | `NullPointerException` from input validation |
 
-**Khác biệt quan trọng:** `Long.parseLong` có thể nhận dấu `+` trước số; nếu schema cần **chỉ các chữ số ASCII**, hãy kiểm tra thêm một pattern như `[0-9]+` trước khi parse. Bài hiện quy định kiểu `long` không âm, không cấm rõ dấu cộng; không nên viết test cho một quy tắc chưa được xác định trong hợp đồng.
+**Important distinction:** `Long.parseLong` accepts a leading `+` sign; if your schema requires **ASCII digits only**, check a pattern like `[0-9]+` before parsing. This lesson specifies non-negative `long` without explicitly forbidding `+`; do not write tests enforcing rules never stated in the contract.
 
-### 12.1. Dữ liệu có dấu `|` trong một trường
+### 12.1. Data Containing `|` Inside a Field
 
-`split("\\|", -1)` chỉ phù hợp với định dạng phân cách đơn giản không có escape hoặc quoting. Nếu service/tin nhắn log có thể chứa `|`, dữ liệu sẽ bị chia sai trường và bị báo `FIELD_COUNT`. Không tự sửa bằng cách ghép tùy tiện các mảnh chuỗi: cần xác định grammar có escape hoặc dùng định dạng có parser đáng tin như JSON Lines.
+`split("\\|", -1)` suits only simple delimited formats without escaping or quoting. If a service or log message can contain `|`, fields will split wrong and trigger `FIELD_COUNT`. Never patch around it by concatenating pieces arbitrarily: define an escaped grammar or use a format with a proper parser like JSON Lines.
 
-### 12.2. Unicode và BOM
+### 12.2. Unicode and BOM
 
-`StandardCharsets.UTF_8` là lựa chọn minh bạch, nhưng một số nguồn thêm **UTF-8 BOM** ở đầu file. Nếu gặp BOM, `Instant.parse` của trường timestamp đầu tiên có thể không nhận đúng. Nếu hệ thống phải hỗ trợ BOM, định nghĩa và kiểm thử chính sách loại bỏ BOM **chỉ ở đầu tệp**, thay vì gọi `strip()` vô điều kiện trên toàn bộ log.
+`StandardCharsets.UTF_8` is explicit, yet some producers prepend a **UTF-8 BOM** at the start of a file. When present, `Instant.parse` on the first line's timestamp can fail. If your system must support BOMs, define and test a policy stripping BOM **only at the start of the file**, rather than calling `strip()` blindly across every log line.
 
-### 12.3. Stack trace nhiều dòng
+### 12.3. Multiline Stack Traces
 
-Một ngoại lệ Java thường được log thành nhiều dòng; dòng thứ hai trở đi có thể là thông tin stack trace, không phải bản ghi mới. Parser dòng độc lập ở bài này sẽ đánh dấu chúng là `FIELD_COUNT`. Nếu cần xử lý multiline, cần bộ **framing** gom các dòng vật lý thành một sự kiện logic trước khi parse; đồng thời vẫn nên giữ vị trí bắt đầu/kết thúc của sự kiện để truy vết.
+Java exceptions often span many lines; lines after the first belong to the stack trace, not new log records. A line-by-line parser flags them as `FIELD_COUNT`. For multiline logs, add a **framing** stage grouping physical lines into one logical event before parsing, while retaining `startLine`/`endLine` bounds for traceability.
 
-## 13. Quyết định xuất bản báo cáo từ các bộ đếm chất lượng
+## 13. Deciding Report Publishability from Quality Counters
 
-`COLLECT_ERRORS` và `SKIP_WITH_COUNT` cho phép tính số liệu **trên tập dòng hợp lệ**, nhưng không cho biết tự động rằng số liệu ấy đạt chất lượng xuất bản.
+`COLLECT_ERRORS` and `SKIP_WITH_COUNT` let you compute metrics **over valid lines**, yet do not automatically mean those metrics meet publication quality.
 
-Ví dụ thêm một chính sách xuất bản:
+Example publication gate:
 
 ```java
 static boolean acceptable(LogLineAnalyzer.Report r) {
     long nonBlank = r.validLines() + r.invalidLines();
     if (nonBlank == 0L) {
-        return false; // Chưa có mẫu.
+        return false; // No samples yet.
     }
-    // Ngưỡng minh họa: ít nhất 99% dòng có nội dung hợp lệ.
+    // Illustrative threshold: at least 99% of non-blank lines are valid.
     return (double) r.validLines() / nonBlank >= 0.99;
 }
 ```
 
-Đây là **một ví dụ quy tắc**, không phải ngưỡng áp dụng cho mọi hệ thống. Có nghiệp vụ yêu cầu **100%**, có nghiệp vụ cho phép một lượng nhỏ dữ liệu lỗi nhưng phải cảnh báo. Nếu số sự kiện thành công quá ít, tỷ lệ 100% cũng có thể không đủ để báo cáo đại diện; cần thêm ngưỡng số mẫu.
+This is an **illustrative rule**, not a universal threshold for every system. Some domains demand **100%**, while others permit small error rates with alerts. If too few valid events exist, even 100% validity may lack statistical sample size; add a minimum sample threshold too.
 
-Với số lượng dòng rất lớn, biểu thức `validLines + invalidLines` có thể tràn `long`; chương trình chính đã kiểm soát cộng bộ đếm bằng `Math.addExact` và thực tế bị giới hạn bởi khả năng đọc tệp, nhưng các phép tính mới ở tầng quyết định cũng nên xác định miền số và quy tắc kiểm tra tràn phù hợp.
+For huge line counts, `validLines + invalidLines` could overflow `long`; the core program guards counters with `Math.addExact` and is practically bounded by file reading, yet new decision-layer calculations should define numeric ranges and overflow checks as well.
 
-### 13.1. Không định nghĩa thành công bằng “không thấy exception”
+### 13.1. Do Not Define Success as "No Exception Thrown"
 
-Trong hai chế độ best effort, `analyze` có thể trả `Report` bình thường dù `invalidLines > 0`. Vì vậy:
+In both best-effort modes, `analyze` returns a `Report` normally even when `invalidLines > 0`. Therefore separate:
 
-- **Kỹ thuật:** tệp đã đọc hoàn tất, không có lỗi I/O hay overflow, báo cáo đã tạo.
-- **Chất lượng dữ liệu:** tỷ lệ dòng hợp lệ, số lỗi và loại lỗi có đáp ứng chính sách?
-- **Nghiệp vụ:** báo cáo có đủ chính xác để dùng cho giám sát, cảnh báo hay quyết định?
+- **Technical status:** file read completely, no I/O or overflow errors, report produced.
+- **Data quality:** do valid ratio, error count, and error codes satisfy policy?
+- **Business readiness:** is the report accurate enough for monitoring, alerting, or decisions?
 
-Ba kết luận này nên được biểu diễn riêng trong hệ thống vận hành.
+Represent these three conclusions separately in operations.
 
-## 14. Nhiều tệp: phân biệt lỗi của từng tệp với lỗi của từng dòng
+## 14. Multiple Files: Distinguish Per-File Failures from Per-Line Failures
 
-Nếu một ngày có 100 tệp log, có hai cấp kết quả:
+With 100 log files per day, there are two result levels:
 
 ```text
 BatchReport
-  ├── app-01.log -> Report (thành công, invalidLines = 2)
-  ├── app-02.log -> Report (thành công, invalidLines = 0)
+  ├── app-01.log -> Report (success, invalidLines = 2)
+  ├── app-02.log -> Report (success, invalidLines = 0)
   ├── app-03.log -> FileFailure(IOException)
   └── ...
 ```
 
-**Chính sách lỗi dòng** điều khiển xử lý **bên trong một tệp**. **Chính sách lỗi tệp** quyết định việc tiếp tục khi một tệp không thể mở/đọc. Không trộn hai cấp bằng cách bắt mọi `IOException` rồi trả `new Report(0,0,...)`.
+**Line-error policy** governs processing **inside a single file**. **File-error policy** decides whether to continue when a file cannot be opened or read. Never conflate them by catching `IOException` and returning `new Report(0, 0, ...)`.
 
-Ví dụ skeleton mô tả các trạng thái cấp tệp:
+Skeleton modeling file-level outcomes:
 
 ```java
 sealed interface FileResult permits FileSuccess, FileFailure {}
@@ -1108,11 +1108,11 @@ record FileFailure(
 ) implements FileResult {}
 ```
 
-Nếu hệ thống chọn **continue-on-file-error**, hãy lưu đường dẫn, mã lỗi và nguyên nhân đã làm sạch thông tin nhạy cảm; báo cáo tổng phải hiển thị cả số tệp thành công lẫn thất bại. Với chế độ **fail-batch-fast**, ngoại lệ ở một tệp phải dẫn đến dừng batch và đóng mọi nguồn đã mở.
+If the system uses **continue-on-file-error**, store path, error code, and sanitized message; the batch summary must show both succeeded and failed file counts. Under **fail-batch-fast**, an error in one file halts the batch and closes all open resources.
 
-### 14.1. `Files.list`, `flatMap` và tài nguyên con
+### 14.1. `Files.list`, `flatMap`, and Child Resources
 
-Khi liệt kê đường dẫn:
+When listing paths:
 
 ```java
 try (Stream<Path> paths = Files.list(directory)) {
@@ -1123,15 +1123,15 @@ try (Stream<Path> paths = Files.list(directory)) {
 }
 ```
 
-`Files.list` giữ tài nguyên duyệt thư mục, cần đóng. Sau khi lấy danh sách `Path`, có thể phân tích từng file bằng `analyze` với policy phù hợp. Nếu sử dụng `flatMap` để mở `Files.lines` cho từng tệp, cần đọc kỹ hợp đồng đóng stream con; còn nguồn thư mục vẫn thuộc sở hữu caller.
+`Files.list` holds an OS directory handle that must be closed. After collecting the `Path` list, analyze each file with `analyze` and the desired policy. If you use `flatMap` to open `Files.lines` per file, verify child-stream closing contracts carefully; the directory stream still belongs to the caller.
 
-**Không** dựa vào thứ tự `Files.list` để nói “tệp đầu tiên” nếu chưa sắp theo một tiêu chí; điều này ảnh hưởng tới chính sách dừng ngay khi gặp tệp lỗi và thứ tự ví dụ lỗi được báo.
+**Never** rely on `Files.list` iteration order as "first file" without sorting by a criterion; order affects both fail-fast stopping and which error samples get recorded first.
 
-## 15. Tính lười, short-circuit và vấn đề log thay đổi khi đọc
+## 15. Laziness, Short-Circuiting, and Logs Mutating Mid-Read
 
-### 15.1. Vì sao không đặt `limit` rồi gọi đó là báo cáo toàn tệp?
+### 15.1. Why Not Put `limit` and Call It a Full-File Report?
 
-`limit(1000)` chỉ phân tích **tối đa 1.000 dòng đầu**, không phải toàn bộ file. Đây có thể là chế độ **lấy mẫu** hợp lệ, nhưng phải gắn nhãn kết quả là mẫu:
+`limit(1000)` analyzes **at most the first 1,000 lines**, not the entire file. That can be a valid **sampling** mode, provided the output is explicitly labeled as a sample:
 
 ```java
 try (Stream<String> lines = Files.lines(path)) {
@@ -1142,159 +1142,159 @@ try (Stream<String> lines = Files.lines(path)) {
 }
 ```
 
-Đừng dùng số đếm này làm số sự kiện cả tệp. `findFirst` cũng có thể dừng sớm, nên pipeline chưa kiểm tra những dòng phía sau và không thể kết luận “tệp không có lỗi”.
+Never treat this count as the full file's event count. `findFirst` also short-circuits early, leaving later lines unchecked, so it cannot prove "the file has no errors".
 
-### 15.2. Không nên dựa vào số lần gọi `peek` hoặc mapper để ghi log kiểm toán
+### 15.2. Do Not Rely on `peek` or Mapper Invocation Counts for Audit Logs
 
-Các thao tác trung gian của Stream API là lazy và có thể bị short-circuit. Một số tối ưu hóa hợp lệ còn có thể lược bỏ lời gọi trung gian không ảnh hưởng tới kết quả terminal. Vì vậy, tránh đưa side effect bắt buộc (ví dụ tăng bộ đếm nghiệp vụ, ghi audit record, mở file không được đóng) vào `peek` hoặc mapper.
+Intermediate Stream operations are lazy and subject to short-circuiting. Valid optimizations can even elide intermediate calls that do not affect the terminal result. Avoid placing mandatory side effects (incrementing business counters, writing audit records, opening unclosed handles) inside `peek` or mappers.
 
-Trong chương trình chính, parser tạo `ParseOutcome` và **collector là nơi ghi nhận số lượng**, tránh bộ đếm dùng chung ngoài pipeline.
+In our main program, the parser produces `ParseOutcome` and the **collector records all counts**, avoiding shared external counters.
 
-### 15.3. File đang được ghi, xoay vòng hoặc cắt ngắn
+### 15.3. Files Being Appended, Rotated, or Truncated
 
-Với log được ghi liên tục, không được giả định file là snapshot bất biến:
+For actively written logs, never assume the file is an immutable snapshot:
 
-- Writer có thể nối thêm dòng trong khi reader đang xử lý.
-- Hệ thống log rotation có thể đổi tên hoặc thay thế file.
-- Một dòng đang ghi dở có thể thiếu trường ở thời điểm reader thấy nó.
-- Metadata về dung lượng và tổng dòng có thể thay đổi.
+- Writers may append lines while the reader scans.
+- Log rotation may rename or replace the file.
+- A half-written line may lack trailing fields when read.
+- File size and total line count can shift mid-pass.
 
-Bài toán **phân tích file đã chốt** khác bài toán **theo dõi log thời gian thực**. Với báo cáo tái lập, nên sử dụng file snapshot hoặc một mốc dữ liệu đã đóng; với tailing/live monitoring, cần thiết kế vòng đời reader, retry, checkpoint và xử lý dòng chưa hoàn chỉnh.
+**Analyzing closed/archived files** is a different problem from **real-time log tailing**. For reproducible reports, process closed snapshots; for live tailing, design reader lifecycles, retries, checkpoints, and partial-line handling explicitly.
 
-### 15.4. Không chuyển lỗi I/O thành dòng `Invalid`
+### 15.4. Never Convert I/O Errors into `Invalid` Lines
 
-Lỗi I/O có thể xảy ra giữa hai lời gọi `readLine`; không nên cố tạo `Rejected("IO_ERROR")` như thể đó là một dòng thuộc schema. Reader đã không cung cấp được nội dung dòng đó; không biết tệp còn bao nhiêu dòng chưa đọc. Nếu tiếp tục sau lỗi đọc, cần cơ chế retry/reopen và xác định tính nhất quán riêng, không nằm trong ba chính sách lỗi dữ liệu của bài.
+An I/O failure between `readLine` calls must not become `Rejected("IO_ERROR")` as though it were a schema error on one line. The reader failed to deliver the line, and the remaining line count is unknown. Continuing after read failures requires retry/reopen logic and separate consistency semantics outside this lesson's three line policies.
 
-## 16. Hiệu năng, bộ nhớ và bảo mật trong hệ thống thực
+## 16. Performance, Memory, and Security in Production Systems
 
-### 16.1. Cân bằng throughput và khả năng chẩn đoán
+### 16.1. Balancing Throughput and Diagnostics
 
-| Thiết kế | Lợi ích | Chi phí/rủi ro |
+| Design | Benefit | Cost / Risk |
 | --- | --- | --- |
-| `Files.readAllLines` | Đơn giản khi tệp nhỏ | Bộ nhớ tăng theo toàn bộ nội dung |
-| `Files.lines` | Đọc lười, tiện cho Stream | Không có số dòng tự động; phải đóng stream |
-| `BufferedReader.readLine` + iterator | Giữ số dòng, kiểm soát I/O | Cần cài đặt lookahead và ownership đúng |
-| `COLLECT_ERRORS` không giới hạn | Chẩn đoán đầy đủ | Có thể giữ quá nhiều lỗi trong RAM |
-| `COLLECT_ERRORS` giới hạn mẫu | Bộ nhớ lỗi có giới hạn | Không lưu mọi vị trí lỗi |
-| `summarizingLong` theo nhóm | Có count/sum/min/max/avg | Tổng `long` không tự phát hiện tràn |
-| Accumulator với `Math.addExact` | Tránh overflow im lặng | Có thêm code và chi phí kiểm tra |
+| `Files.readAllLines` | Simple for small files | Memory grows with entire file size |
+| `Files.lines` | Lazy reading, Stream-friendly | No built-in line numbers; must close stream |
+| `BufferedReader.readLine` + iterator | Preserves line numbers, controls I/O | Must implement lookahead and ownership cleanly |
+| Unbounded `COLLECT_ERRORS` | Full diagnostics | Can retain too many errors in RAM |
+| Bounded `COLLECT_ERRORS` | Capped error memory | Does not store every error location |
+| `summarizingLong` per group | Built-in count/sum/min/max/avg | `long` sum does not detect overflow automatically |
+| Accumulator with `Math.addExact` | Catches overflow | Extra code and check overhead |
 
-Phép `String.split` và `String.matches` đơn giản, đủ cho bài học; với log có lưu lượng lớn, có thể cân nhắc parser tối ưu hơn và `Pattern` được biên dịch một lần. Chỉ tối ưu sau khi xác nhận schema và dữ liệu có đúng không, đồng thời dùng benchmark trên JDK/thực tế hệ thống.
+`String.split` and `String.matches` are simple and sufficient here; for high-throughput logs, consider zero-regex tokenizers and precompiled `Pattern`s. Optimize only after schema and correctness are verified, backed by benchmarks on your target JDK and workload.
 
-### 16.2. Kích thước một dòng và quá nhiều khóa nhóm
+### 16.2. Single-Line Size and Group Cardinality
 
-Pipeline không lưu toàn bộ tệp, nhưng **một dòng rất dài** vẫn cần bộ nhớ đủ để biểu diễn chuỗi đó. Ngoài ra, nếu `service` có hàng triệu giá trị khác nhau, số nhóm `O(g)` có thể lớn. Hệ thống sản xuất cần giới hạn độ dài dòng, độ dài trường, số nhóm, thời gian xử lý và chính sách từ chối dữ liệu ngoài ngưỡng.
+The pipeline avoids buffering the whole file, yet **one gigantic line** still requires memory to hold its string. Likewise, millions of distinct `service` values create `O(g)` group state. Production systems need caps on line length, field length, group count, processing time, and rejection policies for threshold breaches.
 
-Không dùng `durationMs` âm làm cờ “thiếu dữ liệu”: bài đã quy định nó là lỗi. Nếu cần biểu diễn đo không thành công, thêm trạng thái tường minh thay vì nhét sentinel vào số đo.
+Never encode "missing data" as negative `durationMs`: our schema already marks negatives as errors. If failed measurements must be represented, add an explicit state rather than overloading numeric fields with sentinels.
 
-### 16.3. Log có thể chứa bí mật
+### 16.3. Logs Can Contain Secrets
 
-Ngay cả khi ứng dụng chỉ lưu `Issue(lineNumber, code)`, log nguồn có thể chứa token truy cập, cookie, email hoặc ID. Không tự in toàn bộ dòng sai trong `catch`, không chuyển nguyên văn message exception của hệ thống ra API công khai và không đưa dữ liệu nhạy cảm vào dashboard nếu chưa có chính sách xử lý.
+Even storing only `Issue(lineNumber, code)`, raw log files may contain access tokens, cookies, emails, or IDs. Never print full failing lines in `catch`, never forward raw system exception messages straight to public APIs, and never push sensitive payloads to dashboards without redaction policies.
 
-Khi cần điều tra, dùng đường dẫn và số dòng kết hợp với cơ chế truy cập tệp có kiểm soát. Các ví dụ log trong bài chỉ chứa dữ liệu giả lập.
+For investigation, pair file paths and line numbers with access-controlled file inspection. Sample logs in this lesson contain purely synthetic data.
 
-### 16.4. Kiểm soát tài nguyên và dừng công việc
+### 16.4. Resource Limits and Cancellation
 
-`try-with-resources` bảo vệ reader kể cả khi parser, accumulator hoặc downstream ném lỗi. Nhưng nó không tự giải quyết timeout cho nguồn mạng hoặc ngăn một dòng quá dài được cấp phát. Với nguồn ngoài file cục bộ, cần bổ sung timeout, khả năng hủy và giới hạn tài nguyên ở tầng I/O.
+`try-with-resources` protects the reader even if parsers, accumulators, or downstream stages throw. It does not, however, enforce timeouts on network sources or prevent a single huge line from exhausting memory. For non-local sources, add timeouts, cancellation, and buffer caps at the I/O layer.
 
-## 17. Các phản mẫu cần tránh
+## 17. Anti-Patterns to Avoid
 
-| Phản mẫu | Điều có thể sai | Giải pháp |
+| Anti-Pattern | What Goes Wrong | Solution |
 | --- | --- | --- |
-| `Files.lines(path).collect(...)` không đóng stream | Rò rỉ tài nguyên I/O | `try-with-resources` |
-| Parser trả `null` cho mọi lỗi | Mất nguyên nhân và số lỗi | `ParseOutcome` tường minh |
-| `catch (Exception) { return Stream.empty(); }` | Nuốt lỗi đọc/tạo báo cáo thiếu | Tách lỗi schema khỏi lỗi I/O |
-| `filter(Objects::nonNull)` ngay sau parser | Bỏ số liệu về dòng sai | Đếm loại kết quả trước khi loại |
-| `AtomicLong.incrementAndGet()` trong mapper song song để đánh số dòng | Số dòng phụ thuộc lịch chạy | Nguồn `NumberedLine` tuần tự hoặc Spliterator được thiết kế riêng |
-| Dùng `issueSamples.size()` làm tổng lỗi | Sai khi áp sample limit | Sử dụng `invalidLines` |
-| Xem duration `0` là không có mẫu | Nhầm với sự kiện hợp lệ duration 0 | Lưu `count` |
-| Tính trung bình từ các trung bình nhóm không trọng số | Sai khi số sự kiện mỗi nhóm khác nhau | Gộp tổng và count |
-| Đọc toàn bộ file bằng `readAllLines` không cân nhắc kích thước | Có thể hết bộ nhớ | Đọc lười, tích lũy gọn |
-| Dùng `limit` nhưng ghi nhãn báo cáo toàn file | Bỏ dòng chưa duyệt | Đặt tên báo cáo là mẫu hoặc không giới hạn |
-| Luôn `parallel()` khi đọc một reader | Nguồn có con trỏ tuần tự; overhead và rủi ro | Đo hiệu năng và thiết kế nguồn chia được |
-| Dùng `LongSummaryStatistics` mà tưởng luôn phát hiện overflow | Tổng có thể tràn | `Math.addExact` hoặc số học lớn |
-| Lưu cả raw line lỗi trong dashboard | Có thể làm lộ dữ liệu nhạy cảm | Chỉ lưu mã lỗi, số dòng và preview đã làm sạch khi cần |
-| Cho rằng file không thay đổi trong lúc đọc | Log rotation hoặc ghi dở | Snapshot/mốc dữ liệu hoặc mô hình streaming thời gian thực |
+| `Files.lines(path).collect(...)` without closing | Leaks OS I/O resources | `try-with-resources` |
+| Parser returning `null` for all failures | Loses reason and error counts | Explicit `ParseOutcome` |
+| `catch (Exception) { return Stream.empty(); }` | Swallows read errors / produces partial reports silently | Separate schema errors from I/O errors |
+| `filter(Objects::nonNull)` right after parser | Discards error counts | Count outcome types before filtering |
+| `AtomicLong.incrementAndGet()` in parallel mapper for line numbers | Line numbers depend on thread scheduling | Sequential `NumberedLine` source or dedicated Spliterator |
+| Using `issueSamples.size()` as total errors | Wrong once sample limit caps storage | Use `invalidLines` |
+| Treating duration `0` as "no samples" | Confused with valid 0-ms events | Track `count` |
+| Unweighted mean of group averages | Wrong when group event counts differ | Combine sums and counts |
+| `readAllLines` regardless of file size | Risks out-of-memory errors | Lazy reads, compact accumulation |
+| Using `limit` yet labeling report as full-file | Skips unread lines | Label report as a sample or remove limit |
+| Blindly adding `parallel()` on one reader | Reader cursor is sequential; overhead and risk | Benchmark and design a splittable source |
+| Assuming `LongSummaryStatistics` always catches overflow | Sum can wrap silently | Use `Math.addExact` or arbitrary-precision math |
+| Storing raw failing lines in dashboards | Risks leaking sensitive data | Store error codes, line numbers, and redacted previews if needed |
+| Assuming files never mutate mid-read | Log rotation or partial writes | Closed snapshots or real-time streaming design |
 
-## 18. Bài tập áp dụng
+## 18. Practice Exercises
 
-### Bài 1 — Chọn policy
+### Exercise 1 — Choosing a Policy
 
-Cho log 7 dòng ở mục 1, chạy đủ `FAIL_FAST`, `SKIP_WITH_COUNT` và `COLLECT_ERRORS` với `sampleLimit = 1`. Viết bảng thể hiện số dòng hợp lệ, trắng, sai và số ví dụ lỗi. Giải thích vì sao `FAIL_FAST` không có báo cáo thành công, trong khi hai mode best effort phải ghi rõ đã bỏ dòng.
+Using the 7-line log from section 1, run `FAIL_FAST`, `SKIP_WITH_COUNT`, and `COLLECT_ERRORS` with `sampleLimit = 1`. Build a table showing valid, blank, invalid lines, and stored sample errors. Explain why `FAIL_FAST` yields no success report whereas both best-effort modes must surface dropped-line counts.
 
-### Bài 2 — Thêm mã lỗi mới
+### Exercise 2 — Adding a New Error Code
 
-Thay schema `durationMs` thành số nguyên dương **lớn hơn 0**. Điều chỉnh parser để duration bằng 0 trả `ZERO_DURATION` thay vì hợp lệ. Viết test cho số `0`, số âm, chuỗi rỗng và chuỗi không phải số. Mô tả tác động của thay đổi schema tới số liệu lịch sử.
+Change the `durationMs` schema to strictly positive integers **greater than 0**. Update the parser so duration `0` returns `ZERO_DURATION` instead of valid. Write tests for `0`, negative numbers, blank strings, and non-numeric strings. Describe the impact of this schema change on historical metrics.
 
-### Bài 3 — Tính tỉ lệ ERROR theo service
+### Exercise 3 — Computing Error Rate per Service
 
-Từ `Report.groups()`, tính cho từng service:
+From `Report.groups()`, compute for each service:
 
 \[
 \text{errorRate}=\frac{\text{ERROR count}}
 {\text{INFO count}+\text{WARN count}+\text{ERROR count}}
 \]
 
-Nếu một service không có event hợp lệ, không tự tạo tỷ lệ `0` mà cần thể hiện “không có dữ liệu”. Đối chiếu kết quả `api` trên file mẫu: có 2 ERROR trên tổng 3 sự kiện.
+If a service has zero valid events, do not fabricate `0`—represent "no data". Cross-check `api` on the sample file: 2 ERRORs out of 3 total events.
 
-### Bài 4 — Top service theo tổng thời lượng
+### Exercise 4 — Top Services by Total Duration
 
-Tạo danh sách service sắp theo tổng `totalMs` giảm dần, phá hòa bằng tên service tăng dần. Không phụ thuộc vào thứ tự duyệt của `HashMap`. Giải thích sự khác biệt giữa thống kê theo `service` và thống kê theo `service + level`.
+Produce a list of services sorted by total `totalMs` descending, breaking ties by service name ascending. Do not depend on `HashMap` iteration order. Explain the difference between aggregating by `service` vs. `service + level`.
 
-### Bài 5 — Giới hạn mẫu lỗi và số lượng lớn
+### Exercise 5 — Sample Cap at Scale
 
-Sinh 10.000 dòng không hợp lệ và chạy `COLLECT_ERRORS` với `sampleLimit = 10`. Kiểm chứng `invalidLines == 10_000`, danh sách lỗi chỉ có 10 mục và `totalLines` vẫn chính xác. Đánh giá bộ nhớ khi tăng giới hạn lên 10.000.
+Generate 10,000 invalid lines and run `COLLECT_ERRORS` with `sampleLimit = 10`. Verify `invalidLines == 10_000`, the sample list holds only 10 items, and `totalLines` stays exact. Assess memory impact if the sample cap were raised to 10,000.
 
-### Bài 6 — Nguồn I/O giả lập lỗi
+### Exercise 6 — Simulated I/O Failure Source
 
-Xây một `Reader`/`BufferedReader` thử nghiệm ném `IOException` sau ba dòng. Chỉnh thiết kế để có thể inject reader vào hàm phân tích trong test. Chứng minh rằng lỗi này **không trở thành `Rejected`**, và reader vẫn được đóng khi thất bại.
+Build a test `Reader`/`BufferedReader` throwing `IOException` after three lines. Refactor the analysis method to accept an injected reader in tests. Prove that this failure **never becomes `Rejected`**, and the reader is still closed on failure.
 
-### Bài 7 — Báo cáo nhiều file
+### Exercise 7 — Multi-File Reporting
 
-Cho ba file `app-1.log`, `app-2.log` và một file không tồn tại. Thiết kế kiểu kết quả bao gồm `FileSuccess` và `FileFailure`. Lựa chọn một chính sách **fail-batch-fast** hoặc **continue-on-file-error** rồi giải thích việc xử lý lỗi dòng trong từng file vẫn độc lập.
+Given three files `app-1.log`, `app-2.log`, and one missing file. Design a result model with `FileSuccess` and `FileFailure`. Choose either **fail-batch-fast** or **continue-on-file-error** and explain how per-file line-error policies remain independent.
 
-### Bài 8 — Log nhiều dòng
+### Exercise 8 — Multiline Logs
 
-Định nghĩa một quy tắc cho phép dòng bắt đầu bằng whitespace là phần tiếp nối stack trace của sự kiện trước. Phác thảo **framing state machine** để gom nhiều dòng vật lý thành một sự kiện logic, nêu cách báo phạm vi `startLine/endLine` và xử lý trường hợp file kết thúc giữa một sự kiện.
+Define a rule treating lines starting with whitespace as stack-trace continuations of the previous event. Sketch a **framing state machine** combining physical lines into one logical event, detailing how to report `startLine`/`endLine` and handle EOF mid-event.
 
-### Bài 9 — Số học và độ chính xác
+### Exercise 9 — Arithmetic and Precision
 
-Thêm hai dòng hợp lệ có duration `Long.MAX_VALUE` và `1` trong cùng nhóm. Chứng minh `Math.addExact` tạo lỗi khi tổng vượt miền số. Viết bản thay thế dùng `BigInteger` nếu nghiệp vụ thật sự cho phép giá trị lớn đó; không nuốt lỗi thành số âm.
+Add two valid lines with durations `Long.MAX_VALUE` and `1` in the same group. Prove `Math.addExact` throws when the sum overflows. Write a `BigInteger` alternative if business rules truly permit such huge values; never wrap silently into negative numbers.
 
-## 19. Checklist trước khi dùng pipeline log trong thực tế
+## 19. Production Log-Pipeline Checklist
 
-- [ ] Định dạng log và charset được công bố rõ.
-- [ ] Biết trường hợp nào là dòng **blank**, **invalid** hay **valid**.
-- [ ] Mỗi dòng vật lý có số thứ tự rõ ràng.
-- [ ] Parser chỉ bắt các lỗi dữ liệu dự kiến, không nuốt mọi exception.
-- [ ] Chính sách `FAIL_FAST` / `SKIP_WITH_COUNT` / `COLLECT_ERRORS` được chọn tường minh.
-- [ ] Có đủ `totalLines`, `validLines`, `blankLines` và `invalidLines` để đối chiếu.
-- [ ] Giới hạn lỗi mẫu **không** giới hạn bộ đếm lỗi tổng.
-- [ ] Lỗi I/O không bị chuyển nhầm thành “dữ liệu rỗng”.
-- [ ] `BufferedReader` hoặc `Files.lines` được đóng đúng owner.
-- [ ] Không đưa số thứ tự dòng vào mapper dùng chung trạng thái khi chạy song song.
-- [ ] Không giữ toàn bộ tệp trong RAM nếu chỉ cần thống kê.
-- [ ] Không coi trung bình trên tập không có mẫu là giá trị đo thực.
-- [ ] Kiểm soát tràn số, độ chính xác `double` và thời lượng âm.
-- [ ] Đã kiểm thử file rỗng, file thiếu, dòng sai, dòng trắng, lỗi đọc và tổng hợp theo nhóm.
-- [ ] Không ghi raw log nhạy cảm vào chẩn đoán nếu chưa có cơ chế làm sạch.
-- [ ] Có chính sách cho log đang ghi/rotate và nhiều file nếu hệ thống cần.
+- [ ] Log format and charset are explicitly specified.
+- [ ] Definitions of **blank**, **invalid**, and **valid** lines are clear.
+- [ ] Every physical line carries a clear line number.
+- [ ] The parser catches only expected data errors, never swallowing all exceptions.
+- [ ] `FAIL_FAST` / `SKIP_WITH_COUNT` / `COLLECT_ERRORS` policy is chosen explicitly.
+- [ ] `totalLines`, `validLines`, `blankLines`, and `invalidLines` are all tracked for reconciliation.
+- [ ] Error sample limits **never** cap the total invalid-line counter.
+- [ ] I/O failures are never misreported as "empty data".
+- [ ] `BufferedReader` or `Files.lines` is closed by its proper owner.
+- [ ] Line numbering never relies on shared mutable mapper state in parallel execution.
+- [ ] Whole files are not buffered in RAM when only summary stats are needed.
+- [ ] Averages on zero-sample groups are never reported as real measurements.
+- [ ] Overflow, `double` precision, and negative durations are controlled.
+- [ ] Tested on empty files, missing files, invalid lines, blank lines, read failures, and grouped totals.
+- [ ] Sensitive raw log lines are never written to diagnostics without redaction.
+- [ ] Policies exist for active/rotating files and multi-file batches if required.
 
-## 20. Bảng quyết định và tổng kết
+## 20. Decision Table and Summary
 
-| Yêu cầu | Lựa chọn khuyến nghị |
+| Requirement | Recommended Choice |
 | --- | --- |
-| Chỉ cần đọc dòng theo luồng | `Files.lines(path, UTF_8)` trong `try-with-resources` |
-| Cần số dòng vật lý chính xác và dễ kiểm chứng | `BufferedReader.readLine` + `Iterator<NumberedLine>` tuần tự |
-| Cần biểu diễn lỗi parse phân biệt với dòng trắng | Kiểu `ParseOutcome` có `Accepted`, `Blank`, `Rejected` |
-| Một dòng lỗi phải làm hỏng toàn bộ báo cáo | `FAIL_FAST` |
-| Cho phép bỏ dòng lỗi nhưng cần giám sát chất lượng | `SKIP_WITH_COUNT` |
-| Cần một số ví dụ để điều tra | `COLLECT_ERRORS` kèm `sampleLimit` |
-| Cần đếm đủ dòng và thống kê theo nhiều khóa | Một collector giữ counters và map `service → level → Metric` |
-| Chỉ cần thống kê số trên dữ liệu đã sạch | `groupingBy` + `counting`/`summarizingLong` |
-| Nguồn không mở/đọc được | Báo lỗi I/O, không biến thành báo cáo rỗng |
-| Cần tổng số chính xác vượt `long` | Dùng `BigInteger`/`BigDecimal` theo miền nghiệp vụ |
-| Muốn phân tích nhiều file | Chọn chính sách lỗi **cấp tệp** riêng và đóng từng nguồn |
-| Muốn tính theo luồng thời gian thực | Mô hình tailing, checkpoint, retry và xử lý dòng chưa hoàn chỉnh riêng |
+| Streaming line reads | `Files.lines(path, UTF_8)` inside `try-with-resources` |
+| Accurate, verifiable physical line numbers | Sequential `BufferedReader.readLine` + `Iterator<NumberedLine>` |
+| Distinguishing parse failures from blank lines | `ParseOutcome` with `Accepted`, `Blank`, `Rejected` |
+| One bad line must abort the whole report | `FAIL_FAST` |
+| Dropping bad lines allowed with quality tracking | `SKIP_WITH_COUNT` |
+| Need bounded diagnostic samples | `COLLECT_ERRORS` with `sampleLimit` |
+| Full line counts and multi-key stats | One collector holding counters and `service → level → Metric` |
+| Simple stats on already clean data | `groupingBy` + `counting`/`summarizingLong` |
+| Source cannot be opened/read | Surface I/O failure, never an empty report |
+| Exact sums exceeding `long` | `BigInteger`/`BigDecimal` per domain rules |
+| Multi-file analysis | Separate **file-level** error policy and close each source |
+| Real-time streaming metrics | Dedicated tailing, checkpointing, retry, and partial-line design |
 
-**Phân tích tệp log theo dòng với chính sách xử lý lỗi rõ ràng** không chỉ là thao tác `Files.lines(...).filter(...).count()`. Điểm quan trọng là **đúng hợp đồng dữ liệu**: ghi nhận đủ dòng hợp lệ, trắng và sai; không đánh đồng lỗi parser với lỗi I/O; trả số liệu có thể kiểm chứng; đóng nguồn đúng vòng đời và khống chế lượng bộ nhớ dùng để chẩn đoán. Khi những điều kiện này được bảo đảm, Java Stream API giúp diễn đạt các phép `map`, `filter`, `collect`, thống kê theo nhóm và các bước báo cáo tiếp theo một cách rõ ràng, dễ mở rộng và an toàn hơn.
+**Line-by-line log analysis with explicit error policies** is far more than `Files.lines(...).filter(...).count()`. What matters most is **honoring the data contract**: accounting for valid, blank, and invalid lines; separating parser errors from I/O errors; returning verifiable numbers; closing resources properly; and bounding diagnostic memory. Once those guarantees are in place, the Java Stream API lets you express `map`, `filter`, `collect`, grouped metrics, and downstream reporting cleanly, safely, and extensibly.

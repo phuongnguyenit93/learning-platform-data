@@ -1,36 +1,36 @@
-# Ký hiệu khoa học và giới hạn biểu diễn với DecimalFormat trong Java
+# Scientific Notation and Representation Limits with DecimalFormat in Java
 
-## 1. Ký hiệu khoa học dùng để làm gì?
+## 1. What is scientific notation used for?
 
-Khi làm việc với số rất lớn, rất nhỏ hoặc có nhiều chữ số, hiển thị đầy đủ dạng thập phân có thể khiến giao diện khó đọc. **Ký hiệu khoa học (scientific notation)** biểu diễn số theo dạng:
+When working with very large, very small, or multi-digit numbers, displaying the full decimal form can make the UI hard to read. **Scientific notation** represents a number in the form:
 
 \[
 x = m \times 10^e
 \]
 
-Trong đó:
+Where:
 
-- `m` là **phần trị** (mantissa/significand) được hiển thị.
-- `e` là **số mũ cơ số 10**.
-- Với số khác 0 ở dạng chuẩn hóa thông thường, độ lớn của `m` thuộc khoảng từ 1 đến dưới 10.
-- Giá trị gốc không phải là chuỗi; ký hiệu khoa học chỉ là **cách trình bày** hoặc biểu diễn số ở đầu vào.
+- `m` is the displayed **significand** (mantissa).
+- `e` is the **base-10 exponent**.
+- For non-zero numbers in standard normalized form, the magnitude of `m` lies in the range from 1 up to (but not including) 10.
+- The underlying value is not a string; scientific notation is only a **presentation style** or an input number representation.
 
-Ví dụ:
+Examples:
 
-| Số ban đầu | Ký hiệu khoa học | Giá trị |
+| Original number | Scientific notation | Value |
 | --- | --- | --- |
 | `12345` | `1.2345E4` | `1.2345 × 10^4` |
 | `0.000012345` | `1.2345E-5` | `1.2345 × 10^-5` |
 | `-1500000` | `-1.5E6` | `-1.5 × 10^6` |
-| `0` | `0E0` ở dạng minh họa | 0 |
+| `0` | `0E0` in illustrative form | 0 |
 
-Ký tự `E` thể hiện “nhân với lũy thừa 10” trong nhiều biểu diễn máy đọc; `E4` nghĩa là nhân `10^4`, không phải cộng 4. Trong kết quả bản địa hóa của `DecimalFormat`, phần phân cách số mũ có thể khác `E` tùy `DecimalFormatSymbols` và nguồn dữ liệu locale.
+The character `E` denotes "multiply by a power of 10" in many machine-readable representations; `E4` means multiply by `10^4`, not add 4. In localized `DecimalFormat` output, the exponent separator may differ from `E` depending on `DecimalFormatSymbols` and locale data sources.
 
-**Phạm vi của bài:** dùng `java.text.DecimalFormat` để định dạng/parse số ở ký hiệu khoa học, hiểu scientific so với engineering notation, cách locale và rounding tác động đến chuỗi, và phân biệt **giới hạn hiển thị** với **giới hạn miền giá trị/độ chính xác** của kiểu số Java.
+**Scope of this lesson:** using `java.text.DecimalFormat` to format/parse numbers in scientific notation, understanding scientific vs. engineering notation, how locale and rounding affect strings, and distinguishing **display limits** from **value-range/precision limits** of Java numeric types.
 
-## 2. DecimalFormat bật ký hiệu khoa học bằng pattern
+## 2. Enabling scientific notation in DecimalFormat with patterns
 
-`DecimalFormat` là một dạng `NumberFormat` có thể cấu hình bằng **pattern**. Trong pattern không được quote, chữ `E` là dấu giới thiệu phần mũ:
+`DecimalFormat` is a `NumberFormat` configurable via **patterns**. In an unquoted pattern, the letter `E` introduces the exponent section:
 
 ~~~java
 import java.text.DecimalFormat;
@@ -41,87 +41,87 @@ DecimalFormat scientific = new DecimalFormat(
         "0.00E0", DecimalFormatSymbols.getInstance(Locale.US));
 ~~~
 
-Đây là **đoạn minh họa trong thân phương thức**, không phải file Java độc lập. Chương trình hoàn chỉnh nằm ở mục 7.
+This is an **illustrative snippet inside a method body**, not a standalone Java file. The complete program is in section 7.
 
-Pattern `0.00E0` được đọc như sau:
+The pattern `0.00E0` is read as follows:
 
-| Thành phần | Ý nghĩa |
+| Component | Meaning |
 | --- | --- |
-| `0` trước dấu chấm | Ít nhất một chữ số ở phần nguyên của significand |
-| `.` trong pattern | Dấu phân cách thập phân của cú pháp pattern; **kết quả hiển thị** dùng ký hiệu của locale |
-| `00` sau dấu chấm | Hai chữ số bắt buộc trong significand |
-| `E` | Chuyển sang biểu diễn có số mũ (scientific notation) |
-| `0` sau `E` | Ít nhất một chữ số của số mũ; số mũ có thể âm |
+| `0` before the period | At least one digit in the integer part of the significand |
+| `.` in the pattern | Decimal separator in pattern syntax; **displayed output** uses the locale's symbol |
+| `00` after the period | Two required digits in the significand |
+| `E` | Switches to exponent representation (scientific notation) |
+| `0` after `E` | At least one digit for the exponent; the exponent can be negative |
 
-Với `Locale.US` và làm tròn HALF_UP được cấu hình, `12345.6789` thành `1.23E4`. Nhân lại để hiểu ý nghĩa: `1.23 × 10^4 = 12300`. Kết quả là **chuỗi đã làm tròn**, không phải phép lưu số mới có đủ độ chính xác của số gốc.
+With `Locale.US` and `HALF_UP` rounding configured, `12345.6789` becomes `1.23E4`. Multiply back to understand its meaning: `1.23 × 10^4 = 12300`. The result is a **rounded string**, not an operation storing a new number with the original number's full precision.
 
-### 2.1. `0` và `#` trong pattern
+### 2.1. `0` and `#` in patterns
 
-- `0`: vị trí chữ số **bắt buộc**, thêm chữ số 0 khi hiển thị nếu cần.
-- `#`: vị trí chữ số **tùy chọn**, không thêm chữ số 0 không cần thiết.
-- `E` nằm giữa pattern của significand và pattern của số mũ.
+- `0`: **required** digit position, padded with zero when displayed if needed.
+- `#`: **optional** digit position, does not add unnecessary zeros.
+- `E` sits between the significand pattern and the exponent pattern.
 
-Ví dụ theo các cấu hình và môi trường dự kiến:
+Examples for typical configurations and expected environments:
 
-| Pattern | Ý tưởng | Ví dụ với `12345.6789` |
+| Pattern | Idea | Example with `12345.6789` |
 | --- | --- | --- |
-| `0.00E0` | Một chữ số nguyên, hai chữ số lẻ bắt buộc | `1.23E4` |
-| `0.###E0` | Một chữ số nguyên, tối đa ba chữ số lẻ | `1.235E4` |
-| `00.00E00` | Hai chữ số nguyên, hai chữ số lẻ và mũ ít nhất hai chữ số | `12.35E03` |
-| `##0.00E0` | Cho phép đến ba chữ số nguyên trong significand; nhóm mũ kiểu engineering | `12.346E3` |
+| `0.00E0` | One integer digit, two required fractional digits | `1.23E4` |
+| `0.###E0` | One integer digit, at most three fractional digits | `1.235E4` |
+| `00.00E00` | Two integer digits, two fractional digits, and at least two exponent digits | `12.35E03` |
+| `##0.00E0` | Allows up to three integer digits in significand; engineering-style exponent grouping | `12.346E3` |
 
-**Chú ý `##0.00E0`:** khi phần nguyên cho phép nhiều hơn một chữ số, `DecimalFormat` có thể định dạng theo **engineering notation** với số mũ bội của số chữ số nguyên tối đa (ở đây là 3). Thuật toán phân bổ số chữ số có nghĩa theo pattern; không thể hiểu máy móc rằng kết quả lúc nào cũng có đúng hai chữ số sau dấu thập phân. Kết quả `12.346E3` của bảng đã được kiểm tra trên JDK.
+**Note on `##0.00E0`:** when the integer part allows more than one digit, `DecimalFormat` can format in **engineering notation** with an exponent that is a multiple of the maximum integer digits (here 3). The algorithm distributes significant digits according to the pattern; do not mechanically assume the output will always have exactly two digits after the decimal point. The result `12.346E3` in the table was verified on the JDK.
 
-Cấu hình pattern là quy tắc định dạng; nó **không chuyển** giá trị `BigDecimal` thành `double` trước khi lưu nghiệp vụ. Tuy nhiên chuỗi được format có thể bỏ bớt chữ số do rounding.
+Pattern configuration is a formatting rule; it **does not convert** a `BigDecimal` value into a `double` before business storage. However, the formatted string can drop digits due to rounding.
 
-### 2.2. Đừng nhầm pattern với chuỗi hiển thị
+### 2.2. Do not confuse the pattern with the display string
 
-Pattern `0.00E0` sử dụng dấu `.` theo **cú pháp pattern không bản địa hóa** của `DecimalFormat.applyPattern` hoặc constructor. Nếu định dạng với `Locale.GERMANY`:
+The pattern `0.00E0` uses `.` according to the **non-localized pattern syntax** of `DecimalFormat.applyPattern` or the constructor. If formatting with `Locale.GERMANY`:
 
 ~~~java
 DecimalFormat german = new DecimalFormat(
         "0.00E0", DecimalFormatSymbols.getInstance(Locale.GERMANY));
 ~~~
 
-Chuỗi hiển thị cho `12345.6789` với HALF_UP là `1,23E4`, bởi dấu thập phân hiển thị theo locale Đức là dấu phẩy. Từ `Locale` đến ký hiệu chỉ là định dạng; giá trị số gốc vẫn như nhau.
+The displayed string for `12345.6789` with `HALF_UP` is `1,23E4`, because the German decimal separator is a comma. Going from `Locale` to symbols is strictly formatting; the underlying numeric value stays the same.
 
-`applyLocalizedPattern(...)` nhận **pattern đã bản địa hóa** và không có cùng quy ước ký tự với `applyPattern(...)`. Để cấu hình ổn định trong source code, ưu tiên pattern chuẩn, truyền `DecimalFormatSymbols` đúng locale và dùng `applyPattern`/constructor dạng trên.
+`applyLocalizedPattern(...)` accepts a **localized pattern** and does not share the same character conventions as `applyPattern(...)`. For stable configuration in source code, prefer standard patterns, pass `DecimalFormatSymbols` for the right locale, and use `applyPattern`/the constructor form above.
 
-## 3. Scientific notation và engineering notation khác nhau thế nào?
+## 3. How do scientific notation and engineering notation differ?
 
-**Scientific notation** thông thường chuẩn hóa significand để chỉ có **một chữ số nguyên khác 0** trước dấu thập phân; số mũ có thể là bất kỳ số nguyên.
+Ordinary **scientific notation** normalizes the significand so there is only **one non-zero integer digit** before the decimal point; the exponent can be any integer.
 
-Ví dụ:
+Examples:
 
 ~~~text
 12345.6789  -->  1.23456789E4
 0.0000123   -->  1.23E-5
 ~~~
 
-**Engineering notation** dùng số mũ là **bội số của 3**, thường giữ 1–3 chữ số nguyên trong significand. Nó thuận tiện khi gắn tiền tố SI (milli, micro, kilo, mega) nhưng bản thân formatter **không tự thêm đơn vị hoặc ký hiệu SI**.
+**Engineering notation** uses exponents that are **multiples of 3**, typically keeping 1–3 integer digits in the significand. It is convenient when pairing with SI prefixes (milli, micro, kilo, mega), though the formatter itself **does not automatically add SI units or prefixes**.
 
 ~~~text
 12345.6789  -->  12.3456789E3
 0.0000123   -->  12.3E-6
 ~~~
 
-Trong `DecimalFormat`, pattern có nhiều vị trí chữ số nguyên tối đa có thể kích hoạt quy tắc engineering. Với `##0.00E0`, giá trị `12345.6789` được format là `12.346E3` trên runtime đã kiểm tra. Số chữ số hiển thị thay đổi theo pattern và quy tắc làm tròn; không nên dùng một pattern bất kỳ rồi tuyên bố luôn giữ nguyên mọi chữ số có nghĩa.
+In `DecimalFormat`, a pattern with multiple maximum integer digit positions can trigger engineering rules. With `##0.00E0`, `12345.6789` formats as `12.346E3` on tested runtimes. Displayed digit counts depend on the pattern and rounding rules; do not pick an arbitrary pattern and claim it always preserves all significant digits.
 
-### 3.1. Số chữ số của mũ
+### 3.1. Exponent digit count
 
-Pattern `E00` yêu cầu ít nhất hai chữ số của số mũ. Với `00.00E00`, `12345.6789` trở thành `12.35E03`: số mũ là `03`, giá trị toán học vẫn là nhân `10^3`. Dấu cộng của mũ dương không nhất thiết được thêm tự động; đừng trông đợi `E+03` khi dùng `E00`.
+The pattern `E00` requires at least two digits in the exponent. With `00.00E00`, `12345.6789` becomes `12.35E03`: the exponent is `03`, and the mathematical value is still multiplied by `10^3`. A plus sign for positive exponents is not necessarily added automatically; do not expect `E+03` when using `E00`.
 
-Dấu trừ của mũ âm được format theo ký hiệu và quy ước của formatter. Ví dụ `0.000012345` với `0.00E0` thành `1.23E-5`.
+The minus sign for negative exponents is formatted per the formatter's symbols and conventions. For example, `0.000012345` with `0.00E0` becomes `1.23E-5`.
 
-### 3.2. Không phải tất cả pattern hỗ trợ cùng một lượng chữ số
+### 3.2. Not all patterns support the same number of digits
 
-Với biểu diễn dạng khoa học, lượng chữ số có nghĩa tối đa được kiểm soát bởi các vị trí số trong significand. Việc tăng số vị trí giúp giữ thêm chữ số ở **kết quả hiển thị**, nhưng không cứu được độ chính xác **đã mất** trước đó khi giá trị đi qua `float`/`double`.
+In scientific representation, the maximum number of significant digits is controlled by the digit positions in the significand. Adding more positions preserves more digits in the **displayed output**, but cannot rescue precision **already lost** earlier when the value passed through `float`/`double`.
 
-Một giá trị `double` chỉ chứa một số hữu hạn bit của significand. Đổi pattern từ `0.00E0` sang nhiều chữ số hơn không thể phục hồi chữ số thập phân chính xác mà phép tính nhị phân đã làm tròn.
+A `double` value holds only a finite number of significand bits. Changing a pattern from `0.00E0` to more digits cannot recover exact decimal digits that binary arithmetic already rounded away.
 
-## 4. Làm tròn khi hiển thị: ảnh hưởng đến significand và số mũ
+## 4. Rounding during display: impact on significand and exponent
 
-`DecimalFormat` hỗ trợ các chế độ làm tròn của `java.math.RoundingMode`, ví dụ `HALF_UP`, `HALF_EVEN`, `DOWN`, `UP`. Với yêu cầu rõ ràng, cấu hình tường minh:
+`DecimalFormat` supports `java.math.RoundingMode` modes such as `HALF_UP`, `HALF_EVEN`, `DOWN`, and `UP`. When requirements are specific, configure it explicitly:
 
 ~~~java
 import java.math.RoundingMode;
@@ -129,73 +129,73 @@ import java.math.RoundingMode;
 scientific.setRoundingMode(RoundingMode.HALF_UP);
 ~~~
 
-Đây là đoạn minh họa với biến `scientific` kiểu `DecimalFormat`.
+This is an illustrative snippet using a `scientific` variable of type `DecimalFormat`.
 
-- **HALF_UP:** khi cần làm tròn ở điểm giữa, tăng độ lớn chữ số giữ lại.
-- **HALF_EVEN:** khi đúng điểm giữa, chọn chữ số cuối chẵn trong phần giữ lại (thường gọi “banker's rounding”).
-- **DOWN:** cắt bớt chữ số theo hướng về 0.
-- **UNNECESSARY:** yêu cầu không được xảy ra làm tròn; định dạng số cần làm tròn có thể gây `ArithmeticException`.
+- **HALF_UP:** when rounding at a midpoint, increases the magnitude of the retained digit.
+- **HALF_EVEN:** at an exact midpoint, chooses the even last digit in the retained part (often called "banker's rounding").
+- **DOWN:** truncates digits toward zero.
+- **UNNECESSARY:** requires no rounding to occur; formatting a number that requires rounding can throw `ArithmeticException`.
 
-Ví dụ format `new BigDecimal("12345.6789")` với `0.00E0` và `HALF_UP` ra `1.23E4`. Nếu gần ranh giới như `9.995`, làm tròn có thể tăng significand thành `1.00E1`; vì vậy việc format số mũ và phần trị có liên quan với nhau.
+For example, formatting `new BigDecimal("12345.6789")` with `0.00E0` and `HALF_UP` produces `1.23E4`. Near a boundary like `9.995`, rounding can roll the significand over into `1.00E1`; thus exponent and mantissa formatting are interconnected.
 
-**Cần tách hai phép toán:**
+**Separate these two operations:**
 
-1. **Tính toán và lưu trữ:** giữ `BigDecimal` và scale/chính sách precision phù hợp nghiệp vụ; lựa chọn làm tròn phải được xác định tại tầng nghiệp vụ.
-2. **Trình bày:** `DecimalFormat` sinh chuỗi có số chữ số theo pattern và rounding mode để người dùng đọc.
+1. **Computation and storage:** keep `BigDecimal` and a business-appropriate scale/precision policy; rounding choices must be defined at the business layer.
+2. **Presentation:** `DecimalFormat` generates strings with digit counts per pattern and rounding mode for human readers.
 
-Dùng chuỗi `1.23E4` format ra rồi parse lại để lưu số sẽ không giữ được giá trị ban đầu `12345.6789`; chỉ thu được `12300`. Nếu phải round-trip giá trị gốc, **không** dùng format giới hạn 3 chữ số có nghĩa như kênh truyền dữ liệu chuẩn.
+Formatting `1.23E4` and then parsing it back to store the number will not preserve the original value `12345.6789`; you only recover `12300`. If you must round-trip the original value, do **not** use a format capped at 3 significant digits as a canonical data transport.
 
-## 5. Giới hạn biểu diễn: double khác BigDecimal, và format không mở rộng miền giá trị
+## 5. Representation limits: double vs. BigDecimal, and formatting does not expand value range
 
-### 5.1. `double` có miền mũ hữu hạn
+### 5.1. `double` has a finite exponent range
 
-`double` là kiểu dấu phẩy động IEEE 754 nhị phân 64 bit của Java:
+`double` is Java's 64-bit binary IEEE 754 floating-point type:
 
-- Số dương hữu hạn lớn nhất khoảng `1.7976931348623157E308` (`Double.MAX_VALUE`).
-- Số dương **nhỏ nhất khác 0** là subnormal `Double.MIN_VALUE`, khoảng `4.9E-324`. Đừng nhầm với giá trị âm nhỏ nhất hay `Double.MIN_NORMAL`.
-- Khoảng 15–17 chữ số thập phân có nghĩa có thể được biểu diễn/trao đổi tùy trường hợp; số lượng chữ số **chắc chắn chính xác** phụ thuộc vào giá trị, không phải mọi số thập phân đều biểu diễn chính xác.
-- Giá trị `NaN`, `POSITIVE_INFINITY`, `NEGATIVE_INFINITY` là các giá trị đặc biệt, không phải số hữu hạn với mọi chữ số mũ có thể có.
+- The largest finite positive number is roughly `1.7976931348623157E308` (`Double.MAX_VALUE`).
+- The **smallest positive non-zero** number is the subnormal `Double.MIN_VALUE`, roughly `4.9E-324`. Do not confuse this with the most negative value or `Double.MIN_NORMAL`.
+- Roughly 15–17 significant decimal digits can be represented/round-tripped depending on the case; the count of **guaranteed exact** digits depends on the value, and not every decimal number is represented exactly.
+- `NaN`, `POSITIVE_INFINITY`, and `NEGATIVE_INFINITY` are special values, not finite numbers with arbitrary exponent digits.
 
-Ví dụ:
+Examples:
 
 ~~~java
-Double.parseDouble("1e309")  // dương vô cùng (Infinity)
-Double.parseDouble("1e-325") // 0.0 do underflow dưới miền biểu diễn
+Double.parseDouble("1e309")  // positive infinity (Infinity)
+Double.parseDouble("1e-325") // 0.0 due to underflow below representable range
 ~~~
 
-Đây là **các biểu thức minh họa**, không phải một file Java đầy đủ. Trên Java 17, kết quả được xác định bởi quy tắc chuyển chuỗi sang `double` và làm tròn theo IEEE 754. Format ở `DecimalFormat` chỉ nhận giá trị đã có: **không thể** biến Infinity trở lại thành số `1E309`, hoặc khôi phục `1E-325` khi đầu vào đã thành 0.
+These are **illustrative expressions**, not a full Java file. On Java 17, results follow IEEE 754 string-to-`double` conversion and rounding rules. `DecimalFormat` formatting only receives the already-computed value: it **cannot** turn Infinity back into `1E309`, or restore `1E-325` once the input has become 0.
 
-### 5.2. BigDecimal có phạm vi khác, phù hợp số thập phân chính xác
+### 5.2. BigDecimal has a different range, suited for exact decimals
 
 ~~~java
 new BigDecimal("1E+309")
 new BigDecimal("0.0000000000000000000000000000000001")
 ~~~
 
-`BigDecimal` xây từ **chuỗi** giữ thông tin thập phân đã cung cấp (trong giới hạn tài nguyên và `scale` của `BigDecimal`). `new BigDecimal("1E+309")` còn là số hữu hạn trong miền `BigDecimal`; định dạng với `0.00E0` cho kết quả `1.00E309` trong ví dụ ở mục 7. Nó không bị chuyển thành vô cùng như `double`.
+A `BigDecimal` constructed from a **string** preserves the supplied decimal information (within resource limits and `BigDecimal`'s `scale`). `new BigDecimal("1E+309")` remains a finite number in `BigDecimal`'s domain; formatting with `0.00E0` yields `1.00E309` in the section 7 example. It does not overflow to infinity like `double`.
 
-Không hiểu đây là “độ chính xác vô hạn thực tế”: `BigDecimal` vẫn chịu giới hạn bộ nhớ, `int` scale, độ phức tạp phép tính và `MathContext` nếu được dùng. Các phép chia không kết thúc có thể yêu cầu quy tắc rounding. Muốn tính đúng, chọn kiểu số và precision **trước** khi format.
+Do not mistake this for "infinite practical precision": `BigDecimal` is still bounded by memory, `int` scale, arithmetic cost, and `MathContext` if used. Non-terminating divisions may require a rounding rule. To compute accurately, choose the numeric type and precision **before** formatting.
 
-**Cảnh báo phổ biến:** `new BigDecimal(0.1)` mang theo giá trị thực đã được lưu của `double` 0.1, vốn không bằng đúng số thập phân `0.1`; nếu cần số thập phân dự kiến, dùng `new BigDecimal("0.1")` hoặc `BigDecimal.valueOf(0.1)` theo nhu cầu.
+**Common warning:** `new BigDecimal(0.1)` carries the actual stored binary value of the `double` 0.1, which is not equal to the exact decimal `0.1`; when expecting exact decimal numbers, use `new BigDecimal("0.1")` or `BigDecimal.valueOf(0.1)` as appropriate.
 
-### 5.3. Các ranh giới khi hiển thị
+### 5.3. Boundaries when displaying
 
-Giới hạn của **kiểu dữ liệu** và giới hạn của **đầu ra chuỗi** khác nhau:
+**Data type** limits and **string output** limits are distinct:
 
-| Mối quan tâm | Giới hạn thực tế | Cách xử lý |
+| Concern | Practical limit | How to handle |
 | --- | --- | --- |
-| `double` overflow/underflow | Giá trị biến thành Infinity hoặc 0 trước khi format | Chọn kiểu/thuật toán thích hợp từ đầu |
-| Precision của `double` | Nhiều số thập phân không được biểu diễn chính xác | Dùng `BigDecimal` cho quy tắc thập phân chính xác |
-| Số chữ số hiển thị | Pattern `0.00E0` có thể làm tròn mạnh | Điều chỉnh pattern/rounding tùy mục tiêu |
-| `BigDecimal` cực lớn | Bộ nhớ, scale và thời gian xử lý có giới hạn | Giới hạn độ dài input/precision, kiểm soát tài nguyên |
-| Số mũ ngoài quy ước UI | Chuỗi có thể khó đọc hoặc vượt yêu cầu sản phẩm | Chọn formatter và chính sách hiển thị rõ ràng |
-| `NaN` và vô cùng | Không phải giá trị hữu hạn thông thường | Kiểm tra bằng `Double.isNaN`/`Double.isFinite` trước khi xử lý theo miền nghiệp vụ |
+| `double` overflow/underflow | Value becomes Infinity or 0 before formatting | Choose the right type/algorithm from the start |
+| `double` precision | Many decimal numbers are not represented exactly | Use `BigDecimal` for exact decimal rules |
+| Displayed digit count | Pattern `0.00E0` can round aggressively | Adjust pattern/rounding per goal |
+| Extremely large `BigDecimal` | Bounded by memory, scale, and processing time | Bound input length/precision, manage resources |
+| Exponents outside UI conventions | Strings can be hard to read or violate product rules | Pick an explicit formatter and display policy |
+| `NaN` and infinity | Not ordinary finite values | Check with `Double.isNaN`/`Double.isFinite` before business-domain processing |
 
-**Không dùng pattern khoa học làm validator**: một chuỗi được parse hoặc format không có nghĩa giá trị phù hợp với miền cho phép (ví dụ độ chính xác đo lường, độ lớn cho phép, hoặc đơn vị).
+**Do not use a scientific pattern as a validator**: a string that parses or formats does not mean the value fits the allowed domain (such as measurement precision, allowed magnitude, or unit).
 
-## 6. Locale và ký hiệu của số mũ
+## 6. Locale and exponent symbols
 
-`DecimalFormat` dùng `DecimalFormatSymbols` để quyết định dấu thập phân, dấu âm, chữ số và ký hiệu số mũ:
+`DecimalFormat` uses `DecimalFormatSymbols` to determine the decimal separator, minus sign, digits, and exponent symbol:
 
 ~~~java
 DecimalFormatSymbols symbols =
@@ -204,15 +204,15 @@ DecimalFormatSymbols symbols =
 DecimalFormat german = new DecimalFormat("0.00E0", symbols);
 ~~~
 
-Tại JDK có dữ liệu locale Đức phổ biến, `german.format(new BigDecimal("12345.6789"))` với HALF_UP là `1,23E4`. Phần `E` ở **pattern** là cú pháp, còn chuỗi hiển thị sử dụng `DecimalFormatSymbols.getExponentSeparator()`. Bạn cũng có thể tùy biến `setExponentSeparator(String)` cho nhu cầu UI, nhưng phải đảm bảo parser/định dạng thống nhất nếu ứng dụng nhận chuỗi trở lại.
+On JDKs with standard German locale data, `german.format(new BigDecimal("12345.6789"))` with `HALF_UP` produces `1,23E4`. The `E` in the **pattern** is syntax, while the displayed string uses `DecimalFormatSymbols.getExponentSeparator()`. You can also customize `setExponentSeparator(String)` for UI needs, provided the parser/formatter stay consistent if the application accepts strings back.
 
-Các ký tự trong kết quả có thể thay đổi giữa JDK/locale provider và phiên bản dữ liệu CLDR. Nếu cần một giao thức **máy đọc** với dạng `1.23E4`, dùng quy ước locale-independent do contract API quyết định (ví dụ `BigDecimal.toString()` hoặc JSON number theo chuẩn), không lấy `DecimalFormat` của locale người dùng làm biểu diễn lưu trữ.
+Characters in the output can vary across JDKs/locale providers and CLDR data versions. When a **machine-readable** protocol requires `1.23E4`, use the locale-independent convention dictated by the API contract (e.g., `BigDecimal.toString()` or standard JSON numbers), rather than using a user-locale `DecimalFormat` as a storage representation.
 
-Không dựa vào `Locale.setDefault` mỗi khi có người dùng mới. `Locale.setDefault` ảnh hưởng toàn JVM; hãy truyền `Locale` tường minh ở presenter và tạo formatter riêng cho ngữ cảnh.
+Do not rely on `Locale.setDefault` whenever a new user arrives. `Locale.setDefault` affects the entire JVM; pass `Locale` explicitly in the presenter and create context-specific formatters.
 
-## 7. Ví dụ Java 17 hoàn chỉnh và kết quả kiểm chứng
+## 7. Complete Java 17 example and verified output
 
-Đặt mã trong **`ScientificDecimalDemo.java`**:
+Place the code in **`ScientificDecimalDemo.java`**:
 
 ~~~java
 import java.math.BigDecimal;
@@ -262,14 +262,14 @@ public class ScientificDecimalDemo {
 }
 ~~~
 
-Biên dịch và chạy với **JDK 17+**:
+Compile and run with **JDK 17+**:
 
 ~~~bash
 javac -encoding UTF-8 ScientificDecimalDemo.java
 java ScientificDecimalDemo
 ~~~
 
-**Stdout đã được đối chiếu** trên Java với dữ liệu locale tương ứng:
+**Verified stdout** on Java with corresponding locale data:
 
 ~~~text
 scientific: 1.23E4
@@ -283,22 +283,22 @@ parsed: 1.23E+4; consumed=6/12
 german: 1,23E4
 ~~~
 
-Phân tích:
+Analysis:
 
-1. `0.00E0` hiển thị ba chữ số có nghĩa và dùng số mũ `E4` cho 12345.6789.
-2. `##0.00E0` dùng biểu diễn gần engineering, nên `12.346E3` là kết quả có significand hai chữ số nguyên và số mũ bội của 3.
-3. `00.00E00` yêu cầu ít nhất hai chữ số nguyên và hai chữ số mũ, nên cho `12.35E03`.
-4. Giá trị nhỏ `0.000012345` được thể hiện bằng số mũ âm `E-5`.
-5. `BigDecimal("1E+309")` vẫn là số hữu hạn và có thể được format thành `1.00E309`; `Double.parseDouble("1e309")` tràn thành Infinity.
-6. `Double.parseDouble("1e-325")` dưới miền `double` và bị làm tròn thành 0.
-7. Khi parse `1.23E4suffix`, `DecimalFormat` nhận tiền tố `1.23E4` dài 6 ký tự, trả một `BigDecimal` biểu diễn `12300` và **để lại** 6 ký tự `suffix`. Muốn kiểm tra input toàn phần, phải so `ParsePosition.getIndex()` với độ dài input.
-8. Locale Đức đổi dấu thập phân hiển thị thành dấu phẩy, không đổi giá trị `BigDecimal`.
+1. `0.00E0` displays three significant digits and uses exponent `E4` for 12345.6789.
+2. `##0.00E0` uses an engineering-style representation, so `12.346E3` has a two-integer-digit significand and an exponent that is a multiple of 3.
+3. `00.00E00` requires at least two integer digits and two exponent digits, yielding `12.35E03`.
+4. The small value `0.000012345` is represented with a negative exponent `E-5`.
+5. `BigDecimal("1E+309")` remains finite and can be formatted as `1.00E309`; `Double.parseDouble("1e309")` overflows to Infinity.
+6. `Double.parseDouble("1e-325")` underflows `double` range and rounds to 0.
+7. When parsing `1.23E4suffix`, `DecimalFormat` accepts the 6-character prefix `1.23E4`, returns a `BigDecimal` representing `12300`, and **leaves behind** the 6 characters `suffix`. To validate the whole input, compare `ParsePosition.getIndex()` with the input length.
+8. The German locale changes the displayed decimal separator to a comma without altering the `BigDecimal` value.
 
-Lưu ý: biểu diễn string của `BigDecimal` sau parse có thể là `1.23E+4`, không nhất thiết là `12300`; cả hai biểu diễn cùng một giá trị. Đoạn demo dùng `Number.toString()` để hiển thị giá trị parse, còn text/locale dùng trong định dạng có quy ước khác nhau.
+Note: the string representation of `BigDecimal` after parsing may be `1.23E+4`, not necessarily `12300`; both represent the same value. The demo uses `Number.toString()` to display the parsed value, whereas formatted text/locale follows different conventions.
 
-## 8. Parse notation khoa học: cần kiểm tra toàn bộ chuỗi
+## 8. Parsing scientific notation: must verify the entire string
 
-Để parse chính xác giá trị có exponent, `DecimalFormat` với pattern khoa học có thể đọc các biểu diễn phù hợp với ký hiệu của locale. Ví dụ trong chương trình:
+To parse values with exponents accurately, `DecimalFormat` with a scientific pattern can read representations matching the locale's symbols. Example in a program:
 
 ~~~java
 scientific.setParseBigDecimal(true);
@@ -306,76 +306,76 @@ ParsePosition position = new ParsePosition(0);
 Number number = scientific.parse("1.23E4suffix", position);
 ~~~
 
-Đây là **đoạn minh họa** dựa trên biến `scientific` đã được tạo ở mục 7, cùng import `ParsePosition`.
+This is an **illustrative snippet** building on the `scientific` variable created in section 7, along with importing `ParsePosition`.
 
-`setParseBigDecimal(true)` khuyến khích parser trả `BigDecimal` cho số hữu hạn thông thường, giúp giữ giá trị thập phân đã parse mà không qua chuyển đổi `double`. Không giả định mọi chuỗi đặc biệt `NaN`/Infinity được xử lý như BigDecimal hữu hạn.
+`setParseBigDecimal(true)` instructs the parser to return `BigDecimal` for ordinary finite numbers, preserving parsed decimal values without converting through `double`. Do not assume special strings `NaN`/Infinity are handled as finite BigDecimals.
 
-**Điều kiện tối thiểu để chấp nhận input:**
+**Minimum condition to accept input:**
 
 ~~~java
 boolean valid = number != null
         && position.getIndex() == input.length();
 ~~~
 
-Ở đây `input` là `String` được parse, `number` là kết quả parser, `position` là đối tượng sau parse. Đoạn này yêu cầu **đã tiêu thụ toàn bộ chuỗi**, bởi `parse` có thể dừng trước ký tự không hợp lệ mà không báo lỗi. Nếu parse không bắt đầu được, kết quả có thể `null`; hãy kiểm tra `position.getErrorIndex()` cho vị trí lỗi khi có.
+Here `input` is the `String` being parsed, `number` is the parser result, and `position` is the post-parse position object. This requires **consuming the entire string**, because `parse` can stop before an invalid character without throwing an error. If parsing fails at the start, the result may be `null`; check `position.getErrorIndex()` for the error offset when present.
 
-**Giới hạn của việc parse thành công:** ngay cả khi tiêu thụ đủ input, ứng dụng còn phải kiểm tra độ lớn, số chữ số, vùng giá trị, ký hiệu được phép và quy tắc dấu/grouping theo contract riêng. Các parser locale có thể dễ dãi với một số cú pháp; `DecimalFormat` không phải bộ xác thực nghiêm ngặt cho mọi loại dữ liệu nghiệp vụ.
+**Limitations of successful parsing:** even after consuming the full input, the application must still check magnitude, digit counts, value range, allowed symbols, and sign/grouping rules per its own contract. Locale parsers can be lenient with certain syntax; `DecimalFormat` is not a strict validator for every kind of business data.
 
-### Khi nào không dùng DecimalFormat để parse?
+### When NOT to use DecimalFormat for parsing?
 
-- Với trường JSON/API dùng quy ước máy đọc cố định, số thập phân không bản địa hóa có thể dùng `new BigDecimal(String)` theo contract, còn `Double.parseDouble` cần xử lý Overflow/Underflow rõ ràng.
-- Với nhập liệu từ người dùng có phân cách theo locale, `DecimalFormat` phù hợp hơn nhưng phải kiểm tra toàn chuỗi, kiểu số và miền giá trị.
-- Với mã ID, số điện thoại, mã bưu chính hoặc mã thiết bị chứa `E`, không xem là số khoa học; hãy giữ **chuỗi định danh** để tránh mất số 0 đầu và sai ý nghĩa.
+- For JSON/API fields using fixed machine-readable conventions, non-localized decimals can use `new BigDecimal(String)` per contract, while `Double.parseDouble` requires explicit Overflow/Underflow handling.
+- For user input with locale-specific separators, `DecimalFormat` fits better, though you must check full-string consumption, numeric type, and value range.
+- For IDs, phone numbers, postal codes, or device codes containing `E`, do not treat them as scientific numbers; keep them as **identifier strings** to avoid losing leading zeros or corrupting meaning.
 
-## 9. Lỗi thường gặp
+## 9. Common mistakes
 
-| Lỗi | Hậu quả | Giải pháp |
+| Mistake | Consequence | Solution |
 | --- | --- | --- |
-| Dùng `DecimalFormat` để “tăng độ chính xác” cho `double` | Chữ số đã mất không thể phục hồi | Chọn `BigDecimal`/thuật toán đúng ở bước tính |
-| Đọc `1.23E4` thành `1.23 + 4` | Hiểu sai hoàn toàn giá trị | Mũ nghĩa là nhân `10^4` |
-| Tin `0.00E0` giữ toàn bộ chữ số gốc | Formatter làm tròn còn ba chữ số có nghĩa | Tăng precision nếu cần hiển thị, giữ dữ liệu gốc để tính |
-| Nhầm `##0.00E0` luôn có hai chữ số lẻ | Pattern engineering phân bổ chữ số theo significand | Kiểm thử các giá trị biên/số mũ |
-| Dùng pattern `E` để suy ra mọi locale hiển thị ký tự `E` | Locale symbols có thể khác | Dùng `DecimalFormatSymbols`, kiểm thử UI |
-| Gửi `1,23E4` locale Đức cho hệ máy chỉ nhận `1.23E4` | Contract format không khớp | Tách chuỗi hiển thị và biểu diễn máy đọc |
-| Dùng `Double.parseDouble("1e309")` như giá trị hữu hạn | Nhận Infinity | Kiểm tra finite và phạm vi hoặc dùng BigDecimal |
-| Parse mà bỏ qua `ParsePosition` | Có thể nhận tiền tố của chuỗi lỗi | Yêu cầu tiêu thụ đủ và validate thêm |
-| Chia sẻ một `DecimalFormat` mutable giữa các luồng | Định dạng/parse không ổn định | Tạo theo ngữ cảnh, tránh shared mutable state |
-| Dùng format → parse để lưu lại số gốc | Mất chữ số vì rounding | Lưu/trao đổi giá trị gốc, định dạng tại UI |
-| Hiển thị số cực nhỏ bằng `0.00` rồi xem là giá trị 0 | Thông tin bị mất trên chuỗi hiển thị | Dùng số mũ và lựa chọn precision phù hợp |
+| Using `DecimalFormat` to "increase precision" of `double` | Already-lost digits cannot be recovered | Choose `BigDecimal`/right algorithm at computation step |
+| Reading `1.23E4` as `1.23 + 4` | Completely misinterprets value | Exponent means multiply by `10^4` |
+| Assuming `0.00E0` keeps all original digits | Formatter rounds to three significant digits | Increase precision for display if needed, keep raw data for math |
+| Assuming `##0.00E0` always has two fractional digits | Engineering pattern distributes digits across significand | Test boundary values/exponents |
+| Assuming pattern `E` means every locale prints `E` | Locale symbols may differ | Use `DecimalFormatSymbols` and test the UI |
+| Sending German `1,23E4` to a machine expecting `1.23E4` | Format contract mismatch | Separate display strings from machine-readable representations |
+| Treating `Double.parseDouble("1e309")` as finite | Produces Infinity | Check finiteness and range, or use BigDecimal |
+| Parsing while ignoring `ParsePosition` | Can accept prefix of malformed string | Require full consumption and validate further |
+| Sharing a mutable `DecimalFormat` across threads | Unstable formatting/parsing | Instantiate per context, avoid shared mutable state |
+| Using format → parse to save original numbers | Digits lost to rounding | Store/exchange raw values, format at the UI |
+| Displaying tiny numbers as `0.00` and treating as zero | Information lost in display string | Use scientific notation and appropriate precision |
 
-## 10. Kiểm thử cần có
+## 10. Tests to write
 
-Đối với mã dùng ký hiệu khoa học và `DecimalFormat`:
+For code using scientific notation and `DecimalFormat`:
 
-1. **Đúng pattern:** so `0.00E0`, `0.###E0`, `00.00E00`, `##0.00E0` trên cùng giá trị.
-2. **Ranh giới exponent:** số gần 1, 10, 1000, số cực nhỏ và số làm tròn có thể đẩy số mũ sang cấp mới.
-3. **Rounding:** kiểm tra `HALF_UP`, `HALF_EVEN`, `DOWN`, `UNNECESSARY` với điểm giữa và giá trị âm.
-4. **Locale:** `Locale.US`, `Locale.GERMANY`, và locale sản phẩm hỗ trợ; kiểm tra separator, chữ số và dấu âm theo provider mục tiêu.
-5. **Biểu diễn dữ liệu:** thử `BigDecimal("1E+309")`, `Double.MAX_VALUE`, `Double.MIN_VALUE`, Infinity, NaN, dương/âm 0.
-6. **Parse đầy đủ:** `1.23E4`, `1.23E4suffix`, chuỗi rỗng, exponent lỗi, ký hiệu âm không hợp lệ; kiểm tra `ParsePosition`.
-7. **Độ chính xác:** đảm bảo thao tác nghiệp vụ không lấy giá trị đã format/rounded làm nguồn; so giá trị gốc và kết quả hiển thị riêng.
-8. **Concurrency:** mỗi thread/request có formatter riêng hoặc cơ chế đồng bộ có kiểm chứng; không thay default locale theo từng request.
+1. **Correct pattern:** compare `0.00E0`, `0.###E0`, `00.00E00`, `##0.00E0` on the same value.
+2. **Exponent boundaries:** numbers near 1, 10, 1000, tiny numbers, and numbers where rounding pushes the exponent to a new order of magnitude.
+3. **Rounding:** test `HALF_UP`, `HALF_EVEN`, `DOWN`, `UNNECESSARY` with midpoints and negative values.
+4. **Locale:** `Locale.US`, `Locale.GERMANY`, and product-supported locales; verify separators, digits, and minus signs on the target provider.
+5. **Data representation:** test `BigDecimal("1E+309")`, `Double.MAX_VALUE`, `Double.MIN_VALUE`, Infinity, NaN, and positive/negative 0.
+6. **Full parsing:** `1.23E4`, `1.23E4suffix`, empty strings, malformed exponents, invalid negative signs; check `ParsePosition`.
+7. **Precision:** ensure business operations never use formatted/rounded values as sources; assert raw values and display outputs separately.
+8. **Concurrency:** each thread/request has its own formatter or verified synchronization; never mutate default locale per request.
 
-Không viết snapshot test toàn bộ chuỗi cho mọi JDK mà không kiểm soát dữ liệu locale provider. Nếu sản phẩm cam kết một định dạng exact, cố định môi trường/test dựa trên contract cụ thể.
+Do not write full-string snapshot tests across all JDKs without controlling locale provider data. If a product commits to an exact format, pin the test environment based on a concrete contract.
 
-## 11. Bài tập thực hành
+## 11. Practice exercises
 
-- Đổi pattern từ `0.00E0` sang `0.00000E0` và kiểm tra lượng chữ số được giữ lại.
-- Format `new BigDecimal("9.995")` bằng `0.00E0` với HALF_UP; giải thích tại sao exponent thay đổi khi làm tròn.
-- Thử `##0.00E0` trên `123`, `1234`, `12345`, `1234567`; tìm số mũ được dùng, đối chiếu với bội của 3.
-- Gọi `format("0.00E0", Locale.GERMANY)` rồi parse một chuỗi có dấu phẩy thập phân; kiểm tra phần đã tiêu thụ.
-- Dùng `DecimalFormatSymbols.setExponentSeparator("×10^")` cho giao diện và thử round-trip; lưu ý đây là chuỗi hiển thị, không phải chuẩn JSON number.
-- So sánh `Double.parseDouble("1e309")` với `new BigDecimal("1E+309")`, thử thêm trường hợp `1E-325`.
-- Viết validator yêu cầu full consumption, miền giá trị `[-1E6, 1E6]` và số chữ số tối đa được nhóm xác định; tách các chính sách đó khỏi parser.
-- Tạo một bảng UI hiển thị cùng số ở dạng decimal thường và scientific, nhưng lưu duy nhất `BigDecimal` gốc.
+- Change the pattern from `0.00E0` to `0.00000E0` and inspect how many digits are preserved.
+- Format `new BigDecimal("9.995")` using `0.00E0` with `HALF_UP`; explain why the exponent changes upon rounding.
+- Try `##0.00E0` on `123`, `1234`, `12345`, `1234567`; observe the exponent used and compare with multiples of 3.
+- Call `format("0.00E0", Locale.GERMANY)` and then parse a string with a decimal comma; inspect the consumed portion.
+- Use `DecimalFormatSymbols.setExponentSeparator("×10^")` for the UI and try a round-trip; note that this is a display string, not standard JSON number syntax.
+- Compare `Double.parseDouble("1e309")` with `new BigDecimal("1E+309")`, and also try `1E-325`.
+- Write a validator requiring full consumption, value range `[-1E6, 1E6]`, and a specific maximum digit group; keep those policies separate from the parser.
+- Build a UI table showing the same number in ordinary decimal and scientific forms while storing only a single underlying `BigDecimal`.
 
-## 12. Kết luận
+## 12. Conclusion
 
-`DecimalFormat` bật ký hiệu khoa học qua pattern có `E`, ví dụ `0.00E0`. Pattern điều khiển cách phần trị và số mũ được **hiển thị**, còn `DecimalFormatSymbols` và `Locale` điều khiển dấu/ký hiệu dùng cho người đọc. Pattern có nhiều chữ số nguyên tối đa có thể chuyển sang dạng engineering với mũ bội của 3.
+`DecimalFormat` enables scientific notation via patterns containing `E`, such as `0.00E0`. The pattern governs how the significand and exponent are **displayed**, while `DecimalFormatSymbols` and `Locale` govern separators/symbols for readers. Patterns with multiple maximum integer digits can switch to engineering notation with exponents that are multiples of 3.
 
-Cần nhớ hai ranh giới độc lập: **precision/miền giá trị của số bên trong** (`double`, `BigDecimal`) và **precision của chuỗi hiển thị** (pattern, rounding). Không có formatter nào khôi phục được giá trị đã overflow/underflow hoặc chữ số đã mất. Khi nhận input ở ký hiệu khoa học, parse theo locale phù hợp, kiểm tra đã tiêu thụ đủ chuỗi và xác thực miền giá trị theo nghiệp vụ.
+Remember two independent boundaries: **internal numeric precision/range** (`double`, `BigDecimal`) and **display string precision** (pattern, rounding). No formatter can recover overflowed/underflowed values or lost digits. When accepting scientific-notation input, parse with the appropriate locale, verify full string consumption, and validate domain ranges per business rules.
 
-**Tài liệu tham khảo:**
+**References:**
 
 - Java SE 17, `DecimalFormat`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/DecimalFormat.html
 - Java SE 17, `DecimalFormatSymbols`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/DecimalFormatSymbols.html

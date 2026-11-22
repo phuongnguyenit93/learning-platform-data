@@ -1,14 +1,14 @@
-# Đóng gói modular JAR và chạy bằng java -m
+# Packaging a Modular JAR and Running with java -m
 
-Sau khi compile một module, output thường là một thư mục chứa `module-info.class`, các class Java và resource. Để phân phối module, có thể đóng gói thư mục đó thành **modular JAR** bằng công cụ `jar`. Khi chạy, đặt các modular JAR trên module path và dùng `java -m` (hoặc `java --module`) để khởi chạy module.
+After compiling a module, the output is typically a directory containing `module-info.class`, Java classes, and resources. To distribute the module, that directory can be packaged into a **modular JAR** using the `jar` tool. When running, place the modular JARs on the module path and use `java -m` (or `java --module`) to launch the module.
 
-Khác với một JAR thông thường chỉ chứa class/resource, modular JAR có module descriptor ở gốc archive. Descriptor xác định module name, dependency, package được export/open và service metadata. Nhờ đó Java launcher có thể resolve module graph trước khi gọi main class.
+Unlike a regular JAR containing only classes/resources, a modular JAR has a module descriptor at the archive root. The descriptor specifies the module name, dependencies, exported/opened packages, and service metadata. This enables the Java launcher to resolve the module graph before invoking the main class.
 
-Bài này xây dựng ứng dụng gồm hai module: `com.acme.greeter` cung cấp API và `com.acme.app` sử dụng API đó.
+This lesson builds an application with two modules: `com.acme.greeter` provides an API and `com.acme.app` uses that API.
 
-## 1. Cấu trúc source của ứng dụng
+## 1. Application source structure
 
-Tạo cấu trúc:
+Create the structure:
 
 ~~~text
 project/
@@ -23,9 +23,9 @@ project/
 └── mods/
 ~~~
 
-Tên thư mục module trong source path tương ứng với tên module khai báo trong descriptor.
+The module directory name in the source path corresponds to the module name declared in the descriptor.
 
-Module API `com.acme.greeter`:
+API module `com.acme.greeter`:
 
 ~~~java
 module com.acme.greeter {
@@ -45,7 +45,7 @@ public class Greeter {
 }
 ~~~
 
-Module ứng dụng `com.acme.app`:
+Application module `com.acme.app`:
 
 ~~~java
 module com.acme.app {
@@ -68,29 +68,29 @@ public class Main {
 }
 ~~~
 
-Quan hệ giữa hai module:
+Relationship between the two modules:
 
-- `com.acme.greeter` export package chứa API public.
-- `com.acme.app` khai báo `requires com.acme.greeter`.
-- Ứng dụng chỉ cần biết module API; không cần copy class của Greeter vào module app.
+- `com.acme.greeter` exports the package containing the public API.
+- `com.acme.app` declares `requires com.acme.greeter`.
+- The application only needs to know the API module; there is no need to copy Greeter classes into the app module.
 
-## 2. Compile các module
+## 2. Compiling the modules
 
-Từ thư mục gốc `project`, compile hai module:
+From the `project` root directory, compile both modules:
 
 ~~~bash
 javac --module-source-path src -d out --module com.acme.greeter,com.acme.app
 ~~~
 
-Có thể dùng dạng viết tắt:
+You can use the short form:
 
 ~~~bash
 javac --module-source-path src -d out -m com.acme.greeter,com.acme.app
 ~~~
 
-Javac tìm source module trong `src`, resolve dependency giữa hai module và ghi class file vào `out`.
+Javac finds module sources in `src`, resolves dependencies between the two modules, and writes class files into `out`.
 
-Kết quả:
+Result:
 
 ~~~text
 out/
@@ -102,46 +102,46 @@ out/
     └── com/acme/app/Main.class
 ~~~
 
-Mỗi module có một thư mục output riêng. File `module-info.class` nằm ở gốc thư mục module, sẵn sàng được đưa vào gốc modular JAR.
+Each module has a separate output directory. The `module-info.class` file sits at the root of the module directory, ready to be placed at the root of a modular JAR.
 
-Nếu muốn compile dependency trước và app sau:
+If you want to compile the dependency first and the app second:
 
 ~~~bash
 javac --module-source-path src -d out -m com.acme.greeter
 javac --module-path out --module-source-path src -d out -m com.acme.app
 ~~~
 
-Cách thứ hai dùng output module đã compile làm module path. Cả hai cách đều tạo module output có thể đóng gói.
+The second approach uses the compiled module output as the module path. Both approaches produce packageable module output.
 
-## 3. Đóng gói từng module thành modular JAR
+## 3. Packaging each module into a modular JAR
 
-Tạo thư mục lưu archive:
+Create a directory to store archives:
 
 ~~~bash
 mkdir -p mods
 ~~~
 
-Đóng gói module API:
+Package the API module:
 
 ~~~bash
 jar --create --file mods/com.acme.greeter.jar -C out/com.acme.greeter .
 ~~~
 
-Đóng gói module ứng dụng:
+Package the application module:
 
 ~~~bash
 jar --create --file mods/com.acme.app.jar -C out/com.acme.app .
 ~~~
 
-Tùy chọn:
+Options:
 
-- `--create` hoặc `-c`: tạo archive mới.
-- `--file` hoặc `-f`: chỉ định file JAR đầu ra.
-- `-C <directory> .`: chuyển vào thư mục chỉ định rồi thêm toàn bộ nội dung từ thư mục đó vào archive.
+- `--create` or `-c`: create a new archive.
+- `--file` or `-f`: specify the output JAR file.
+- `-C <directory> .`: change into the specified directory and add all contents from that directory to the archive.
 
-Điểm quan trọng là thư mục `out/com.acme.greeter` và `out/com.acme.app` đều chứa `module-info.class` ở gốc. Lệnh `-C ... .` giữ descriptor ở gốc archive, không đặt nó trong một thư mục con.
+The key point is that `out/com.acme.greeter` and `out/com.acme.app` both contain `module-info.class` at the root. The `-C ... .` command keeps the descriptor at the archive root rather than putting it in a subdirectory.
 
-Kết quả:
+Result:
 
 ~~~text
 mods/
@@ -149,36 +149,36 @@ mods/
 └── com.acme.app.jar
 ~~~
 
-Hai modular JAR độc lập có thể được phân phối cùng nhau. Module app vẫn tham chiếu module API qua tên trong `requires`, không qua đường dẫn file JAR cố định.
+The two independent modular JARs can be distributed together. The app module still references the API module by name in `requires`, not via a fixed JAR file path.
 
-## 4. Tạo executable modular JAR với main class metadata
+## 4. Creating an executable modular JAR with main class metadata
 
-Có thể ghi main class vào metadata module khi tạo JAR ứng dụng:
+You can record the main class in module metadata when creating the application JAR:
 
 ~~~bash
 jar --create   --file mods/com.acme.app.jar   --main-class com.acme.app.Main   -C out/com.acme.app .
 ~~~
 
-Tùy chọn `--main-class` (hoặc `-e`) chỉ định entry point của module. Với modular JAR, thông tin main class được ghi vào module descriptor của archive. Nhờ vậy launcher có thể xác định main class khi chỉ truyền module name.
+The `--main-class` (or `-e`) option specifies the module's entry point. For a modular JAR, the main class information is written into the archive's module descriptor. As a result, the launcher can determine the main class when only the module name is passed.
 
-Nếu module descriptor đã có main class metadata phù hợp, không cần chỉ định lại trong lệnh tạo JAR.
+If the module descriptor already has appropriate main class metadata, there is no need to specify it again in the JAR creation command.
 
-Có hai cách chạy:
+There are two ways to run:
 
-- Chỉ rõ main class: `java -m com.acme.app/com.acme.app.Main`.
-- Dùng main class đã ghi trong descriptor: `java -m com.acme.app`.
+- Specify the main class explicitly: `java -m com.acme.app/com.acme.app.Main`.
+- Use the main class recorded in the descriptor: `java -m com.acme.app`.
 
-Cách thứ hai yêu cầu descriptor của module có main class. Nếu không có metadata đó, launcher sẽ yêu cầu chỉ định class sau dấu gạch chéo.
+The second approach requires the module's descriptor to have a main class. Without that metadata, the launcher will require specifying the class after the slash.
 
-## 5. Kiểm tra modular JAR
+## 5. Inspecting modular JARs
 
-Dùng `jar --list` để xem entry:
+Use `jar --list` to view entries:
 
 ~~~bash
 jar --list --file mods/com.acme.greeter.jar
 ~~~
 
-Một modular JAR đúng cấu trúc sẽ có các entry tương tự:
+A properly structured modular JAR will have entries similar to:
 
 ~~~text
 META-INF/
@@ -187,14 +187,14 @@ module-info.class
 com/acme/greeter/api/Greeter.class
 ~~~
 
-Kiểm tra descriptor:
+Inspect the descriptor:
 
 ~~~bash
 jar --describe-module --file mods/com.acme.greeter.jar
 jar --describe-module --file mods/com.acme.app.jar
 ~~~
 
-Output rút gọn có thể cho biết:
+Abbreviated output may show:
 
 ~~~text
 com.acme.greeter
@@ -202,7 +202,7 @@ exports com.acme.greeter.api
 requires java.base mandated
 ~~~
 
-Và module app:
+And the app module:
 
 ~~~text
 com.acme.app
@@ -210,119 +210,119 @@ requires com.acme.greeter
 requires java.base mandated
 ~~~
 
-Nếu đã dùng `--main-class`, output mô tả module app sẽ thể hiện main class tương ứng. Đây là cách xác nhận metadata được ghi vào JAR.
+If `--main-class` was used, the output describing the app module will show the corresponding main class. This confirms the metadata was written into the JAR.
 
-Có thể yêu cầu launcher mô tả module trên module path:
+You can ask the launcher to describe a module on the module path:
 
 ~~~bash
 java --module-path mods --describe-module com.acme.app
 ~~~
 
-Nếu lệnh không tìm thấy module, kiểm tra module path có trỏ đúng thư mục chứa các JAR hay không và descriptor có tên module như mong đợi hay không.
+If the command cannot find the module, check whether the module path points to the directory containing the JARs and whether the descriptor has the expected module name.
 
-## 6. Chạy ứng dụng bằng java -m
+## 6. Running the application with java -m
 
-Từ thư mục gốc dự án:
+From the project root directory:
 
 ~~~bash
 java --module-path mods --module com.acme.app/com.acme.app.Main
 ~~~
 
-Cú pháp viết ngắn:
+Short syntax:
 
 ~~~bash
 java -p mods -m com.acme.app/com.acme.app.Main
 ~~~
 
-Kết quả:
+Result:
 
 ~~~text
 Hello, JPMS!
 ~~~
 
-Truyền đối số cho main class:
+Passing arguments to the main class:
 
 ~~~bash
 java -p mods -m com.acme.app/com.acme.app.Main "Java Modules"
 ~~~
 
-Kết quả:
+Result:
 
 ~~~text
 Hello, Java Modules!
 ~~~
 
-Nếu JAR app đã có main class metadata:
+If the app JAR already has main class metadata:
 
 ~~~bash
 java -p mods -m com.acme.app
 ~~~
 
-Launcher sẽ lấy main class từ descriptor. Nếu module không khai báo main class, hãy dùng cú pháp đầy đủ `module/main-class`.
+The launcher will read the main class from the descriptor. If the module does not declare a main class, use the full `module/main-class` syntax.
 
-Trên Windows PowerShell, các lệnh tương tự:
+In Windows PowerShell, the commands are similar:
 
 ~~~powershell
 java --module-path mods --module com.acme.app/com.acme.app.Main
 java -p mods -m com.acme.app "Java Modules"
 ~~~
 
-Dấu phân cách module path khi có nhiều thư mục là dấu chấm phẩy trên Windows và dấu hai chấm trên Linux/macOS. Trong ví dụ, chỉ có một thư mục `mods`, nên không cần ghép nhiều path.
+The module path separator when there are multiple directories is a semicolon on Windows and a colon on Linux/macOS. In this example, there is only one `mods` directory, so no multiple paths need to be joined.
 
-## 7. Cách Java launcher resolve các modular JAR
+## 7. How the Java launcher resolves modular JARs
 
-Khi chạy:
+When running:
 
 ~~~bash
 java -p mods -m com.acme.app/com.acme.app.Main
 ~~~
 
-launcher thực hiện các bước chính:
+the launcher performs these main steps:
 
-1. Tìm module `com.acme.app` trên module path.
-2. Đọc `module-info.class` để biết module name, dependency và metadata.
-3. Resolve `requires com.acme.greeter`.
-4. Tìm `com.acme.greeter` trong cùng module path.
-5. Resolve dependency nền tảng như `java.base`.
-6. Kiểm tra module graph và quyền truy cập package.
-7. Nạp main class và gọi `main(String[] args)`.
+1. Finds module `com.acme.app` on the module path.
+2. Reads `module-info.class` to obtain the module name, dependencies, and metadata.
+3. Resolves `requires com.acme.greeter`.
+4. Finds `com.acme.greeter` on the same module path.
+5. Resolves platform dependencies such as `java.base`.
+6. Verifies the module graph and package access permissions.
+7. Loads the main class and invokes `main(String[] args)`.
 
-Module path chứa các named module. Launcher không cần biết trước tên file JAR của dependency nếu module name trong descriptor đã được xác định. Đây là khác biệt quan trọng so với cách quản lý classpath bằng một danh sách file JAR.
+The module path contains named modules. The launcher does not need to know the dependency's JAR filename in advance once the module name in the descriptor is determined. This is an important difference compared to managing the classpath via a list of JAR files.
 
-Có thể xem graph lúc khởi chạy:
+You can view the graph at launch:
 
 ~~~bash
 java --show-module-resolution -p mods -m com.acme.app/com.acme.app.Main
 ~~~
 
-Output giúp xác định root module, dependency được resolve và vị trí module được tìm thấy.
+The output helps identify root modules, resolved dependencies, and locations where modules were found.
 
-## 8. Phân biệt modular JAR với executable JAR trên classpath
+## 8. Distinguishing a modular JAR from an executable JAR on the classpath
 
-Một JAR có thể là:
+A JAR can be:
 
-- **JAR thông thường**: không có module descriptor; khi chạy trên classpath, class thuộc unnamed module.
-- **Modular JAR**: có `module-info.class` ở gốc archive; có tên module và khai báo dependency.
-- **Executable modular JAR**: modular JAR có main class metadata để launcher biết entry point.
+- **Regular JAR**: has no module descriptor; when run on the classpath, classes belong to the unnamed module.
+- **Modular JAR**: has `module-info.class` at the archive root; has a module name and dependency declarations.
+- **Executable modular JAR**: a modular JAR with main class metadata so the launcher knows the entry point.
 
-Với ứng dụng modular nhiều dependency, cách chạy rõ ràng là:
+For a modular application with multiple dependencies, the clear way to run it is:
 
 ~~~bash
 java --module-path mods --module com.acme.app/com.acme.app.Main
 ~~~
 
-Đừng nhầm `java -m` với `java -jar`:
+Do not confuse `java -m` with `java -jar`:
 
-- `-m` / `--module` yêu cầu launcher khởi chạy một named module trên module path.
-- `-jar` khởi chạy JAR theo chế độ executable JAR và manifest entry point; không phải cách thay thế tương đương cho việc resolve một module graph gồm nhiều named module trên module path.
+- `-m` / `--module` instructs the launcher to start a named module on the module path.
+- `-jar` launches a JAR in executable JAR mode using the manifest entry point; it is not an equivalent substitute for resolving a module graph of multiple named modules on the module path.
 
-Khi mục tiêu là thực hành JPMS, dùng `-m` để thể hiện rõ module name, main class và module path.
+When the goal is practicing JPMS, use `-m` to explicitly express module name, main class, and module path.
 
-## 9. Cập nhật modular JAR khi source thay đổi
+## 9. Updating modular JARs when source changes
 
-Khi code thay đổi, compile lại module và tạo lại archive. Không nên sửa class trong JAR bằng cách chép file thủ công nếu muốn quy trình build có thể tái lập.
+When code changes, recompile the modules and recreate the archives. Do not edit classes inside a JAR by manually copying files if you want a reproducible build process.
 
-Ví dụ:
+Example:
 
 ~~~bash
 javac --module-source-path src -d out -m com.acme.greeter,com.acme.app
@@ -331,13 +331,13 @@ jar --create --file mods/com.acme.greeter.jar -C out/com.acme.greeter .
 jar --create --file mods/com.acme.app.jar --main-class com.acme.app.Main -C out/com.acme.app .
 ~~~
 
-Lệnh `jar --create` yêu cầu file đích được tạo mới; nếu file đã tồn tại, xóa hoặc thay thế nó theo quy trình build có kiểm soát trước khi tạo lại. Có thể dùng `jar --update` cho một số cập nhật archive, nhưng thay đổi module descriptor/main class nên được thực hiện qua build đầu vào phù hợp và kiểm tra lại bằng `jar --describe-module`.
+The `jar --create` command requires the target file to be newly created; if the file already exists, delete or replace it under a controlled build process before recreating. You can use `jar --update` for certain archive updates, but changes to the module descriptor/main class should be done via proper build inputs and re-verified with `jar --describe-module`.
 
-Sau khi đóng gói, kiểm tra timestamp/hash của JAR nếu cần xác nhận runtime đang dùng đúng artifact mới. Module path có thể trỏ nhầm một thư mục build cũ dù source đã thay đổi.
+After packaging, check the JAR's timestamp/hash if you need to confirm the runtime is using the right new artifact. A module path may mistakenly point to an old build directory even though the source changed.
 
-## 10. Tổ chức thư mục phân phối
+## 10. Organizing the distribution directory
 
-Một layout triển khai đơn giản:
+A simple deployment layout:
 
 ~~~text
 distribution/
@@ -347,19 +347,19 @@ distribution/
     └── com.acme.greeter.jar
 ~~~
 
-Khi đó chạy:
+Then run:
 
 ~~~bash
 java --module-path "app:lib" --module com.acme.app/com.acme.app.Main
 ~~~
 
-Trên Windows:
+On Windows:
 
 ~~~powershell
 java --module-path "app;lib" --module com.acme.app/com.acme.app.Main
 ~~~
 
-Có thể phân phối nhiều modular JAR trong một thư mục chung để đơn giản hóa:
+Multiple modular JARs can be distributed in one shared directory for simplicity:
 
 ~~~text
 distribution/
@@ -368,43 +368,43 @@ distribution/
     └── com.acme.greeter.jar
 ~~~
 
-Sau đó:
+Then:
 
 ~~~bash
 java -p mods -m com.acme.app
 ~~~
 
-Lợi ích của cấu trúc này là dependency có thể được thay thế độc lập nếu giữ module name và contract tương thích. Tuy nhiên, không đặt hai phiên bản cùng module name trong cùng module path; điều đó làm module resolution mơ hồ hoặc thất bại.
+The benefit of this structure is that dependencies can be replaced independently while keeping module names and contracts compatible. However, do not place two versions of the same module name on the same module path; that makes module resolution ambiguous or fail.
 
-## 11. Lỗi thường gặp và cách xử lý
+## 11. Common errors and how to handle them
 
-**Module not found.** Kiểm tra `--module-path` trỏ tới thư mục chứa JAR, không phải trỏ vào một file JAR đơn lẻ nếu bạn định dùng nhiều dependency. Kiểm tra tên module trong descriptor bằng `jar --describe-module`.
+**Module not found.** Check that `--module-path` points to the directory containing the JARs, not to a single JAR file if you intend to use multiple dependencies. Check the module name in the descriptor using `jar --describe-module`.
 
-**Package is not visible.** Module API chưa export package cần dùng, hoặc app chưa khai báo `requires` module API. Kiểm tra descriptor của cả hai module.
+**Package is not visible.** The API module has not exported the needed package, or the app has not declared `requires` for the API module. Check the descriptors of both modules.
 
-**Không tìm thấy main class khi chạy `java -m com.acme.app`.** Module descriptor chưa có main class metadata. Chạy rõ `java -m com.acme.app/com.acme.app.Main` hoặc tạo lại modular JAR với `jar --main-class`.
+**Main class not found when running `java -m com.acme.app`.** The module descriptor does not yet have main class metadata. Run explicitly with `java -m com.acme.app/com.acme.app.Main` or recreate the modular JAR with `jar --main-class`.
 
-**JAR không phải modular JAR.** Có thể `module-info.class` không nằm ở gốc archive. Dùng `jar --list --file` để xác nhận entry. Nếu descriptor bị đặt dưới thư mục con, launcher sẽ không nhận nó như module descriptor của JAR.
+**JAR is not a modular JAR.** `module-info.class` might not be at the root of the archive. Use `jar --list --file` to verify entries. If the descriptor was placed under a subdirectory, the launcher will not recognize it as the JAR's module descriptor.
 
-**Module name khác tên file.** Module name nằm trong descriptor hoặc được suy ra theo quy tắc automatic module. Không đổi tên file để giả định tên module đã đổi; kiểm tra bằng `jar --describe-module`.
+**Module name differs from file name.** The module name resides in the descriptor or is derived by automatic module rules. Do not rename the file assuming the module name changed; check using `jar --describe-module`.
 
-**Chạy được trong IDE nhưng không chạy từ terminal.** IDE có thể tự cấu hình module path, working directory và runtime JDK. Chạy lại với command line rõ ràng, đúng JDK và đúng thư mục distribution.
+**Works in IDE but fails from terminal.** The IDE may automatically configure the module path, working directory, and runtime JDK. Re-run with an explicit command line, the right JDK, and the right distribution directory.
 
-**Thay JAR nhưng app vẫn dùng phiên bản cũ.** Kiểm tra module path có thư mục trùng hoặc artifact cũ đứng trước trong cấu hình. Dùng `--show-module-resolution` để xem module location.
+**Replaced JAR but app still uses old version.** Check whether the module path has duplicate directories or an older artifact appearing earlier in the configuration. Use `--show-module-resolution` to see module locations.
 
-**Dùng `java -jar` cho ứng dụng nhiều module rồi thiếu dependency.** `-jar` không thay thế module path graph của `-m`. Chạy ứng dụng modular bằng `--module-path` và `--module`.
+**Using `java -jar` for a multi-module app and missing dependencies.** `-jar` does not replace the module path graph of `-m`. Run modular applications using `--module-path` and `--module`.
 
-## 12. Thực hành
+## 12. Hands-on Practice
 
-1. Tạo hai module `com.acme.greeter` và `com.acme.app` theo ví dụ.
-2. Compile cả hai bằng `javac --module-source-path src -d out -m com.acme.greeter,com.acme.app`.
-3. Đóng gói từng module thành modular JAR trong thư mục `mods`.
-4. Dùng `jar --list` để xác nhận `module-info.class` nằm ở gốc từng JAR.
-5. Dùng `jar --describe-module` để đọc `requires`, `exports` và main class metadata.
-6. Chạy bằng `java -p mods -m com.acme.app/com.acme.app.Main`.
-7. Tạo lại JAR app với `--main-class`, sau đó thử chạy chỉ bằng `java -p mods -m com.acme.app`.
-8. Thử bỏ `requires com.acme.greeter` hoặc bỏ `exports com.acme.greeter.api`; quan sát lỗi compile/resolution và khôi phục descriptor.
-9. Bật `--show-module-resolution` để xem module nào được chọn và từ vị trí nào.
-10. Chép thư mục `mods` sang một thư mục distribution mới và chạy ứng dụng từ đó để kiểm tra tính độc lập với source tree.
+1. Create the two modules `com.acme.greeter` and `com.acme.app` following the example.
+2. Compile both with `javac --module-source-path src -d out -m com.acme.greeter,com.acme.app`.
+3. Package each module into a modular JAR inside the `mods` directory.
+4. Use `jar --list` to confirm `module-info.class` is at the root of each JAR.
+5. Use `jar --describe-module` to read `requires`, `exports`, and main class metadata.
+6. Run with `java -p mods -m com.acme.app/com.acme.app.Main`.
+7. Recreate the app JAR with `--main-class`, then try running with just `java -p mods -m com.acme.app`.
+8. Try removing `requires com.acme.greeter` or removing `exports com.acme.greeter.api`; observe the compile/resolution errors and restore the descriptor.
+9. Enable `--show-module-resolution` to see which modules are selected and from which locations.
+10. Copy the `mods` directory to a new distribution directory and run the application from there to verify independence from the source tree.
 
-Khi phân phối ứng dụng modular, hãy giữ `module-info.class` ở gốc mỗi modular JAR, bảo đảm dependency nằm trên module path và khởi chạy bằng `java -m`. Nếu muốn bỏ qua tên main class trong lệnh chạy, ghi entry point vào descriptor bằng `jar --main-class`. Quy trình compile, package, inspect và launch như trên giúp kiểm tra module graph rõ ràng trước khi triển khai.
+When distributing a modular application, keep `module-info.class` at the root of each modular JAR, ensure dependencies are on the module path, and launch using `java -m`. If you want to omit the main class name in the run command, record the entry point in the descriptor with `jar --main-class`. This compile, package, inspect, and launch workflow helps verify the module graph clearly before deployment.

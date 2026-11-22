@@ -1,30 +1,30 @@
-# Lập báo cáo nhóm bằng Collector nhiều tầng
+# Building Group Reports with Multi-Level Collectors
 
-## 1. Bài toán thực hành và mục tiêu
+## 1. Practice Problem and Goals
 
-Trong **JAVA_STREAM_API**, các thao tác `filter`, `map`, `reduce` và `collect` giúp biến một tập bản ghi thành báo cáo mà không phải tự quản lý nhiều vòng lặp lồng nhau. Khi cần thống kê theo **hai hoặc nhiều chiều**, ví dụ vùng bán hàng và kênh bán, ta có thể lồng các collector thay vì dựng `Map` thủ công.
+In **JAVA_STREAM_API**, `filter`, `map`, `reduce`, and `collect` let you turn a collection of records into a report without managing nested loops manually. When aggregating across **two or more dimensions**, such as sales region and sales channel, you can nest collectors instead of assembling Maps by hand.
 
-Bài tập này thuộc chương **Bài tập nền tảng và trung cấp**, với một tình huống báo cáo doanh số có thể triển khai và kiểm thử độc lập:
+This exercise belongs to the **Beginner and Intermediate Exercises** chapter and presents a self-contained sales-reporting scenario that can be implemented and tested independently:
 
-> Từ danh sách đơn hàng, hãy lập báo cáo theo **vùng → kênh bán**, trong đó mỗi nhóm có số đơn đã thanh toán, tổng tiền, giá trị nhỏ nhất, lớn nhất và trung bình. Phải phân biệt nhóm không có đơn đã thanh toán với nhóm không tồn tại trong dữ liệu.
+> From a list of orders, generate a report by **region → sales channel**, where each group reports the paid order count, total amount, minimum, maximum, and average. You must distinguish a group with zero paid orders from a group that does not exist in the data.
 
-Kết thúc bài, người học có thể:
+By the end of this lesson, you will be able to:
 
-1. Nhận diện hai khóa nhóm và phác thảo kiểu `Map<K1, Map<K2, D>>` trước khi viết mã.
-2. Sử dụng `Collectors.groupingBy` lồng nhau để đếm hoặc cộng dồn theo từng nhóm.
-3. Kết hợp `counting`, `summingLong`, `summarizingLong`, `mapping`, `filtering` và `collectingAndThen`.
-4. Chọn `LinkedHashMap` cho thứ tự vùng gặp lần đầu và `TreeMap` để sắp kênh theo khóa.
-5. Xử lý chính xác nguồn rỗng, nhóm bị lọc hết, giá trị `0` và những trường hợp dữ liệu không hợp lệ.
-6. Viết chương trình Java 17 và unit test JUnit 5 kiểm tra **cả nội dung lẫn thứ tự được yêu cầu**.
-7. Nhận diện giới hạn của phép cộng `long`, collection mutable, trạng thái dùng chung và xử lý song song.
+1. Identify two grouping keys and sketch the `Map<K1, Map<K2, D>>` return type before writing code.
+2. Use nested `Collectors.groupingBy` to count or sum per group.
+3. Combine `counting`, `summingLong`, `summarizingLong`, `mapping`, `filtering`, and `collectingAndThen`.
+4. Choose `LinkedHashMap` for first-encounter region order and `TreeMap` for sorted channel keys.
+5. Handle empty sources, groups emptied by filtering, zero amounts, and invalid inputs accurately.
+6. Write a Java 17 program and JUnit 5 unit tests verifying **both content and required ordering**.
+7. Recognize limits involving `long` addition, mutable collections, shared state, and parallel execution.
 
-**Phạm vi:** Đây là một bài hướng dẫn có yêu cầu, ví dụ, lời giải tham khảo và bài mở rộng. Không cần cơ sở dữ liệu, máy chủ hay framework ngoài JDK để chạy phần chính.
+**Scope:** This is a guided lesson with requirements, examples, a reference solution, and extension exercises. No database, server, or external framework beyond the JDK is needed to run the core program.
 
-## 2. Thiết kế dữ liệu và kết quả mong muốn
+## 2. Designing the Data Model and Expected Output
 
-### 2.1. Mỗi đơn hàng có những trường gì?
+### 2.1. What Fields Does Each Order Have?
 
-Mô hình tối giản:
+Minimal model:
 
 ```java
 record Sale(
@@ -36,54 +36,54 @@ record Sale(
 ) {}
 ```
 
-Ý nghĩa:
+Meaning:
 
-| Trường | Kiểu | Vai trò |
+| Field | Type | Role |
 | --- | --- | --- |
-| `id` | `String` | Định danh đơn hàng |
-| `region` | `String` | Khóa nhóm cấp 1, ví dụ `HN`, `HCM`, `DN` |
-| `channel` | `String` | Khóa nhóm cấp 2, ví dụ `WEB` hoặc `STORE` |
-| `amountVnd` | `long` | Số tiền nguyên đơn vị đồng |
-| `paid` | `boolean` | Đơn đã thanh toán hay chưa |
+| `id` | `String` | Order identifier |
+| `region` | `String` | Level-1 grouping key, e.g., `HN`, `HCM`, `DN` |
+| `channel` | `String` | Level-2 grouping key, e.g., `WEB` or `STORE` |
+| `amountVnd` | `long` | Integer amount in VND |
+| `paid` | `boolean` | Whether the order has been paid |
 
-Ở chương trình hoàn chỉnh, constructor của `Sale` sẽ validate `id`, `region`, `channel` và số tiền để không đưa dữ liệu không hợp lệ vào collector.
+In the complete program, `Sale`'s constructor validates `id`, `region`, `channel`, and amount so invalid data never enters the collector.
 
-### 2.2. Bộ dữ liệu đầu vào
+### 2.2. Input Dataset
 
-| ID | Vùng | Kênh | Số tiền (VND) | Đã thanh toán? |
+| ID | Region | Channel | Amount (VND) | Paid? |
 | --- | --- | --- | ---: | --- |
-| O1 | HN | WEB | 120.000 | Có |
-| O2 | HN | STORE | 40.000 | Có |
-| O3 | HCM | WEB | 70.000 | Có |
-| O4 | HN | WEB | 30.000 | Không |
-| O5 | HCM | STORE | 50.000 | Có |
-| O6 | DN | WEB | 90.000 | Không |
-| O7 | DN | STORE | 20.000 | Có |
-| O8 | HCM | WEB | 10.000 | Có |
+| O1 | HN | WEB | 120.000 | Yes |
+| O2 | HN | STORE | 40.000 | Yes |
+| O3 | HCM | WEB | 70.000 | Yes |
+| O4 | HN | WEB | 30.000 | No |
+| O5 | HCM | STORE | 50.000 | Yes |
+| O6 | DN | WEB | 90.000 | No |
+| O7 | DN | STORE | 20.000 | Yes |
+| O8 | HCM | WEB | 10.000 | Yes |
 
-Tổng số đơn trong nguồn là **8**. Có **6 đơn đã thanh toán**, tổng tiền các đơn đã thanh toán bằng **310.000 VND**.
+Total orders in the source: **8**. There are **6 paid orders**, with total paid revenue equal to **310.000 VND**.
 
-### 2.3. Bảng kết quả chuẩn để đối chiếu
+### 2.3. Reference Result Table for Verification
 
-| Vùng | Kênh | Tất cả đơn | Đơn đã thanh toán | Tổng đã thanh toán (VND) | Trung bình đã thanh toán (VND) |
+| Region | Channel | All Orders | Paid Orders | Paid Total (VND) | Paid Average (VND) |
 | --- | --- | ---: | ---: | ---: | ---: |
 | HN | STORE | 1 | 1 | 40.000 | 40.000 |
 | HN | WEB | 2 | 1 | 120.000 | 120.000 |
 | HCM | STORE | 1 | 1 | 50.000 | 50.000 |
 | HCM | WEB | 2 | 2 | 80.000 | 40.000 |
 | DN | STORE | 1 | 1 | 20.000 | 20.000 |
-| DN | WEB | 1 | 0 | 0 | **Không có mẫu** |
+| DN | WEB | 1 | 0 | 0 | **No samples** |
 
-**Hai yêu cầu về thứ tự:**
+**Two ordering requirements:**
 
-- Các vùng theo lần xuất hiện đầu trong danh sách nguồn: **HN → HCM → DN**.
-- Các kênh trong mỗi vùng theo thứ tự tên tăng dần: **STORE → WEB**.
+- Regions follow first-appearance order in the source list: **HN → HCM → DN**.
+- Channels within each region follow ascending name order: **STORE → WEB**.
 
-Bảng dùng thứ tự đó, không phải vì mọi `Map` của Java đều có thứ tự. Ở lời giải, ta sẽ chọn loại map cụ thể để bảo đảm.
+The table uses those orders explicitly—not because every Java `Map` is ordered. In the solution, we select specific Map implementations to enforce them.
 
-## 3. Bước 1 — Đọc bài toán thành các kiểu kết quả
+## 3. Step 1 — Translate the Problem into Result Types
 
-Trước khi viết lambda, xác định kiểu cần thu:
+Before writing lambdas, determine the types to collect:
 
 ```text
 List<Sale>
@@ -99,40 +99,40 @@ List<Sale>
                                                         └── downstream statistic
 ```
 
-Ba dạng kết quả sẽ được xây dựng theo mức tăng dần:
+Three progressive result shapes will be built:
 
 ```java
-// A. Đếm tất cả đơn, chưa lọc paid.
+// A. Count all orders, without filtering by paid.
 Map<String, Map<String, Long>>
 
-// B. Tổng tiền đơn đã thanh toán.
+// B. Total amount of paid orders.
 Map<String, Map<String, Long>>
 
-// C. Bản báo cáo chi tiết cho mọi nhóm xuất hiện trong nguồn.
+// C. Detailed report for every group appearing in the source.
 Map<String, Map<String, Cell>>
 ```
 
-`Cell` là một record chứa số mẫu, tổng tiền, min/max và trung bình của **những đơn đã thanh toán**.
+`Cell` is a record holding sample count, total amount, min/max, and average of **paid orders**.
 
-Lưu ý, hai dạng A và B có cùng **kiểu Java** nhưng **ý nghĩa thống kê khác**; đặt tên biến/phương thức sao cho người đọc không nhầm “số đơn” với “tiền”. Trong code hoàn chỉnh, ta dùng `LinkedHashMap<String, TreeMap<String, ...>>` để làm rõ loại map ngoài và map trong.
+Notice that forms A and B share the same **Java type** but carry **different statistical meanings**; name variables and methods so readers never confuse "order count" with "money". In the complete code, we use `LinkedHashMap<String, TreeMap<String, ...>>` to make both outer and inner Map types explicit.
 
-## 4. Bước 2 — Phân nhóm hai tầng và đếm số bản ghi
+## 4. Step 2 — Two-Level Grouping and Record Counting
 
-Mẫu cơ bản:
+Basic pattern:
 
 ```java
 Collectors.groupingBy(
-    Sale::region,                  // Nhóm cấp 1.
-    LinkedHashMap::new,            // Factory map ngoài.
+    Sale::region,                  // Level-1 group.
+    LinkedHashMap::new,            // Outer map factory.
     Collectors.groupingBy(
-        Sale::channel,             // Nhóm cấp 2.
-        TreeMap::new,              // Factory map trong.
-        Collectors.counting()      // Giá trị mỗi nhóm cấp 2.
+        Sale::channel,             // Level-2 group.
+        TreeMap::new,              // Inner map factory.
+        Collectors.counting()      // Value per level-2 group.
     )
 )
 ```
 
-Khi áp dụng vào `sales.stream().collect(...)`, ta được:
+Applying this to `sales.stream().collect(...)` yields:
 
 ```java
 LinkedHashMap<String, TreeMap<String, Long>> counts =
@@ -147,14 +147,14 @@ LinkedHashMap<String, TreeMap<String, Long>> counts =
     ));
 ```
 
-**Cách đọc từ trong ra ngoài:**
+**Reading from the inside out:**
 
-1. `Collectors.counting()` nhận các `Sale` trong một cặp vùng/kênh và tạo `Long`.
-2. `groupingBy(Sale::channel, TreeMap::new, counting())` tạo một `TreeMap<String,Long>` cho từng vùng.
-3. `groupingBy(Sale::region, LinkedHashMap::new, ...)` tạo `LinkedHashMap<String,TreeMap<String,Long>>`.
-4. `collect` tiêu thụ `Stream<Sale>` và trả map hoàn chỉnh.
+1. `Collectors.counting()` receives the `Sale` items for one region/channel pair and produces a `Long`.
+2. `groupingBy(Sale::channel, TreeMap::new, counting())` produces a `TreeMap<String,Long>` per region.
+3. `groupingBy(Sale::region, LinkedHashMap::new, ...)` produces a `LinkedHashMap<String,TreeMap<String,Long>>`.
+4. `collect` consumes `Stream<Sale>` and returns the completed nested Map.
 
-Kết quả đếm chuẩn:
+Expected count output:
 
 ```text
 HN:
@@ -168,11 +168,11 @@ DN:
     WEB   -> 1
 ```
 
-**Tự kiểm tra:** tổng tất cả count ở các ô phải bằng `8`; riêng `HN/WEB` có 2 đơn kể cả đơn chưa thanh toán O4. Nếu chỉ muốn đếm đã thanh toán, cần một quy tắc lọc ở bước sau.
+**Self-check:** the sum of counts across all cells must equal `8`; `HN/WEB` has 2 orders including the unpaid order O4. If we only want paid counts, we need a filtering rule in the next step.
 
-## 5. Bước 3 — Lọc trước khi nhóm để tính tổng tiền đã thanh toán
+## 5. Step 3 — Filtering Before Grouping to Sum Paid Revenue
 
-Nếu báo cáo chỉ cần những nhóm **có ít nhất một đơn đã thanh toán**, lọc trước khi tạo nhóm là tự nhiên:
+If the report only needs groups that have **at least one paid order**, filtering before grouping is natural:
 
 ```java
 LinkedHashMap<String, TreeMap<String, Long>> paidTotals =
@@ -189,7 +189,7 @@ LinkedHashMap<String, TreeMap<String, Long>> paidTotals =
         ));
 ```
 
-Với dữ liệu mẫu:
+On the sample data:
 
 ```text
 HN:
@@ -200,16 +200,16 @@ HCM:
     WEB   -> 80000
 DN:
     STORE -> 20000
-    // Không có khóa WEB.
+    // No WEB key.
 ```
 
-Giải thích trường hợp `DN/WEB`: O6 có vùng DN, kênh WEB, nhưng chưa thanh toán. `filter(Sale::paid)` loại O6 **trước khi** các tầng grouping gặp nó, nên map không có ô `DN/WEB`. Khi muốn hiển thị đầy đủ những nhóm từng tồn tại, cách này không đủ.
+Explaining `DN/WEB`: O6 is in region DN, channel WEB, and is unpaid. `filter(Sale::paid)` drops O6 **before** either grouping stage sees it, so the map contains no `DN/WEB` cell. When you must display every group present in the source, this approach is insufficient.
 
-**Đừng nhầm:** “không có khóa” khác “có khóa với tổng bằng 0”. Với dữ liệu giao dịch, cả hai có thể cần biểu diễn riêng.
+**Do not confuse:** "missing key" differs from "present key with total 0". In transactional reporting, both states may need distinct representation.
 
-## 6. Bước 4 — Giữ ô nhóm, chỉ lọc dữ liệu thống kê bằng `Collectors.filtering`
+## 6. Step 4 — Preserving Group Cells While Filtering Statistics via `Collectors.filtering`
 
-`Collectors.filtering` (Java 9+) là một **downstream collector**. Đặt nó **bên trong grouping** sẽ giữ các nhóm mà collector ngoài đã nhìn thấy, kể cả khi không có phần tử nào vượt qua predicate của downstream.
+`Collectors.filtering` (Java 9+) is a **downstream collector**. Placing it **inside grouping** retains groups seen by the outer collectors even when zero elements pass the downstream predicate.
 
 ```java
 LinkedHashMap<String, TreeMap<String, Long>> paidTotalsKeepingCells =
@@ -227,7 +227,7 @@ LinkedHashMap<String, TreeMap<String, Long>> paidTotalsKeepingCells =
     ));
 ```
 
-Bây giờ:
+Now:
 
 ```text
 HN:  STORE -> 40000, WEB -> 120000
@@ -235,13 +235,13 @@ HCM: STORE -> 50000, WEB -> 80000
 DN:  STORE -> 20000, WEB -> 0
 ```
 
-Vì sao vẫn có `DN/WEB`? Collector cấp vùng và kênh thấy O6 nên **tạo nhóm DN/WEB**. Downstream `filtering(Sale::paid, ...)` bỏ O6, còn `summingLong` trên tập rỗng trả tổng bằng `0L`.
+Why does `DN/WEB` remain? Both region and channel collectors see O6 and **create the DN/WEB group**. Downstream `filtering(Sale::paid, ...)` drops O6, and `summingLong` over an empty subset returns `0L`.
 
-Tuy nhiên, số `0` **chưa đủ** để biết nhóm có mẫu nào đã thanh toán hay không. Một đơn hợp lệ có số tiền `0` cũng làm tổng bằng `0`. Bước tiếp theo sẽ dùng `summarizingLong` để giữ cả `count` và `sum`.
+However, `0` alone is **not enough** to tell whether the group had any paid samples. A valid order with an amount of `0` also produces a sum of `0`. The next step uses `summarizingLong` to keep both `count` and `sum`.
 
-## 7. Bước 5 — Thu đầy đủ `count`, `sum`, `min`, `max` và `average`
+## 7. Step 5 — Collecting Full `count`, `sum`, `min`, `max`, and `average`
 
-Thay vì tạo năm pipeline hoặc năm map riêng, dùng `Collectors.summarizingLong` để tạo `LongSummaryStatistics` cho mỗi ô.
+Instead of running five separate pipelines or building five separate maps, use `Collectors.summarizingLong` to produce a `LongSummaryStatistics` per cell.
 
 ```java
 LinkedHashMap<String, TreeMap<String, LongSummaryStatistics>> stats =
@@ -259,7 +259,7 @@ LinkedHashMap<String, TreeMap<String, LongSummaryStatistics>> stats =
     ));
 ```
 
-Ví dụ:
+Example:
 
 ```java
 LongSummaryStatistics hcmWeb = stats.get("HCM").get("WEB");
@@ -271,9 +271,9 @@ System.out.println(hcmWeb.getMax());     // 70000
 System.out.println(hcmWeb.getAverage()); // 40000.0
 ```
 
-### 7.1. Tập rỗng và giá trị sentinel
+### 7.1. Empty Subsets and Sentinel Values
 
-Với ô `DN/WEB`, `LongSummaryStatistics` có:
+For the `DN/WEB` cell, `LongSummaryStatistics` reports:
 
 ```java
 LongSummaryStatistics dnWeb = stats.get("DN").get("WEB");
@@ -285,20 +285,20 @@ System.out.println(dnWeb.getMax());   // Long.MIN_VALUE
 System.out.println(dnWeb.getAverage()); // 0.0
 ```
 
-**Không** coi `Long.MAX_VALUE` là min thực và `Long.MIN_VALUE` là max thực ở một nhóm không có mẫu. `getAverage() == 0.0` cũng không có nghĩa đã quan sát giá trị trung bình 0.
+**Never** treat `Long.MAX_VALUE` as a real minimum or `Long.MIN_VALUE` as a real maximum for an empty group. Nor does `getAverage() == 0.0` mean an observed average of 0.
 
-Quy tắc hiển thị:
+Display rule:
 
-- `count > 0`: min/max/average là các số liệu của nhóm.
-- `count == 0`: min/max/average nên hiển thị là **“Chưa có dữ liệu”** hoặc kiểu tùy chọn rỗng.
+- `count > 0`: min/max/average are real group statistics.
+- `count == 0`: min/max/average should display as **"No data"** or an empty optional type.
 
-### 7.2. `LongSummaryStatistics` là đối tượng mutable
+### 7.2. `LongSummaryStatistics` Is a Mutable Object
 
-`LongSummaryStatistics` có các phương thức `accept(...)` và `combine(...)`. Caller có thể làm thay đổi số liệu sau khi thu thập; vì vậy, **không** xem `Map<String,Map<String,LongSummaryStatistics>>` là báo cáo bất biến. Để công bố kết quả ổn định, nên tạo DTO/record chỉ chứa các trường cần thiết.
+`LongSummaryStatistics` exposes `accept(...)` and `combine(...)`. Callers could mutate the stats after collection; therefore, **do not** treat `Map<String,Map<String,LongSummaryStatistics>>` as an immutable report. To publish stable results, convert to a DTO/record holding only the needed values.
 
-## 8. Bước 6 — Hoàn thiện từng ô bằng `collectingAndThen`
+## 8. Step 6 — Finalizing Each Cell with `collectingAndThen`
 
-Tạo kiểu kết quả:
+Define the result type:
 
 ```java
 record Cell(
@@ -310,9 +310,9 @@ record Cell(
 ) {}
 ```
 
-`OptionalLong` và `OptionalDouble` biểu diễn **có hoặc không có số liệu**. Với ô có `paidCount == 0`, ba trường min/max/average sẽ rỗng.
+`OptionalLong` and `OptionalDouble` represent **presence or absence of statistics**. When `paidCount == 0`, the min, max, and average fields are empty.
 
-Sơ đồ composed collector:
+Composed collector diagram:
 
 ```text
 Sale
@@ -331,7 +331,7 @@ Sale
                                         Cell
 ```
 
-Hàm finisher nhận `LongSummaryStatistics` và trả `Cell`:
+The finisher transforms `LongSummaryStatistics` into `Cell`:
 
 ```java
 Collectors.collectingAndThen(
@@ -349,11 +349,11 @@ Collectors.collectingAndThen(
 )
 ```
 
-Khi kết hợp `Collectors.filtering` bên ngoài finisher, mỗi ô có một `Cell` hoàn chỉnh. Đây là **phép thu thập nhiều tầng**: collector ngoài nhóm dữ liệu, collector trong chọn mẫu, bộ thống kê tích lũy số liệu, finisher chuyển kết quả mutable thành một kiểu giá trị dễ sử dụng.
+Wrapped inside `Collectors.filtering`, every cell holds a complete `Cell`. This is **multi-level collection**: outer collectors group the data, inner collector filters samples, summary collector accumulates numbers, and the finisher turns mutable state into a clean value type.
 
-## 9. Lời giải tham khảo hoàn chỉnh (Java 17+)
+## 9. Complete Reference Solution (Java 17+)
 
-Đoạn chương trình dưới đây có thể lưu thành `SalesGroupReport.java`, biên dịch và chạy với JDK 17 trở lên. Đây là **bản tham khảo độc lập**, không phụ thuộc các đoạn code lẻ ở trên.
+Save the code below as `SalesGroupReport.java`, then compile and run on JDK 17 or later. This is a **standalone reference implementation**, independent of the earlier code snippets.
 
 ```java
 import java.util.LinkedHashMap;
@@ -382,10 +382,10 @@ public final class SalesGroupReport {
             Objects.requireNonNull(region, "region");
             Objects.requireNonNull(channel, "channel");
             if (id.isBlank() || region.isBlank() || channel.isBlank()) {
-                throw new IllegalArgumentException("Các mã không được rỗng");
+                throw new IllegalArgumentException("Codes/IDs must not be blank");
             }
             if (amountVnd < 0L) {
-                throw new IllegalArgumentException("amountVnd phải >= 0");
+                throw new IllegalArgumentException("amountVnd must be >= 0");
             }
         }
     }
@@ -411,7 +411,7 @@ public final class SalesGroupReport {
         );
     }
 
-    // Bước 2: đếm mọi đơn theo vùng rồi kênh.
+    // Step 2: count all orders by region then channel.
     public static LinkedHashMap<String, TreeMap<String, Long>>
     countAll(List<Sale> source) {
         Objects.requireNonNull(source, "source");
@@ -426,7 +426,7 @@ public final class SalesGroupReport {
         ));
     }
 
-    // Bước 3: chỉ tạo nhóm cho các đơn đã thanh toán.
+    // Step 3: create groups only for paid orders.
     public static LinkedHashMap<String, TreeMap<String, Long>>
     paidTotalsFilteringBeforeGrouping(List<Sale> source) {
         Objects.requireNonNull(source, "source");
@@ -443,7 +443,7 @@ public final class SalesGroupReport {
             ));
     }
 
-    // Downstream của mỗi ô: lọc paid, thống kê và tạo Cell.
+    // Downstream for each cell: filter paid, summarize, and build Cell.
     private static Collector<Sale, ?, Cell> paidCellCollector() {
         return Collectors.filtering(
             Sale::paid,
@@ -469,7 +469,7 @@ public final class SalesGroupReport {
         );
     }
 
-    // Bước 6: tạo đủ ô cho mọi cặp region/channel từng xuất hiện.
+    // Step 6: create cells for every region/channel pair present in source.
     public static LinkedHashMap<String, TreeMap<String, Cell>>
     reportKeepingExistingGroups(List<Sale> source) {
         Objects.requireNonNull(source, "source");
@@ -517,7 +517,7 @@ public final class SalesGroupReport {
         System.out.println(allCounts.get("HN").get("WEB")); // 2
         System.out.println(paidTotals.get("HCM").get("WEB")); // 80000
         System.out.println(paidTotals.get("DN").containsKey("WEB"));
-        // false, vì đã lọc trước khi nhóm.
+        // false, because filtering ran before grouping.
 
         System.out.println(report.get("HCM").get("WEB"));
         // Cell[paidCount=2, totalVnd=80000, minVnd=OptionalLong[10000],
@@ -534,60 +534,60 @@ public final class SalesGroupReport {
 }
 ```
 
-### 9.1. Lý do tách `paidCellCollector` ra một phương thức
+### 9.1. Why Extract `paidCellCollector` into a Separate Method?
 
-Nếu viết tất cả các lambda trong một biểu thức `groupingBy` dài, nhiều tầng ngoặc và generic làm bài khó đọc. Phương thức:
+If every lambda is nested inside one long `groupingBy` expression, deep parentheses and generics make the code hard to read. The method:
 
 ```java
 private static Collector<Sale, ?, Cell> paidCellCollector()
 ```
 
-giữ được hợp đồng đầu vào `Sale` và đầu ra `Cell`, đồng thời **giấu kiểu trạng thái tích lũy `A`** của collector. Việc tách này giúp kiểm thử riêng logic thống kê mà không cần dựng toàn bộ bản đồ hai tầng.
+exposes the clean input `Sale` and output `Cell` contract while **hiding the intermediate accumulator type `A`**. Separating it also lets you unit test the cell aggregation logic without constructing the full two-level map.
 
-### 9.2. Vòng đời các collector trong lời giải
+### 9.2. Collector Lifecycle in the Solution
 
-| Tầng | Input | Kết quả | Trách nhiệm |
+| Layer | Input | Output | Responsibility |
 | --- | --- | --- | --- |
-| Stream ban đầu | `Sale` | `Stream<Sale>` | Cung cấp bản ghi theo thứ tự `List` |
-| Outer grouping | `Sale` | `LinkedHashMap<String,...>` | Gom theo `region` |
-| Inner grouping | `Sale` | `TreeMap<String,Cell>` | Gom theo `channel` |
-| Downstream filtering | `Sale` | Kết quả downstream | Chỉ gửi đơn `paid == true` vào thống kê |
-| Downstream summarizing | `Sale` | `LongSummaryStatistics` | Count/sum/min/max/average |
-| Finisher | `LongSummaryStatistics` | `Cell` | Chuyển sentinel của nhóm rỗng thành Optional rỗng |
+| Initial Stream | `Sale` | `Stream<Sale>` | Supplies records in `List` order |
+| Outer grouping | `Sale` | `LinkedHashMap<String,...>` | Groups by `region` |
+| Inner grouping | `Sale` | `TreeMap<String,Cell>` | Groups by `channel` |
+| Downstream filtering | `Sale` | Downstream result | Passes only `paid == true` orders to stats |
+| Downstream summarizing | `Sale` | `LongSummaryStatistics` | Accumulates count/sum/min/max/average |
+| Finisher | `LongSummaryStatistics` | `Cell` | Converts empty-group sentinels to empty Optionals |
 
-Điều quan trọng là **giữ toàn bộ cặp khóa đã xuất hiện**, không phải tạo mọi tổ hợp vùng và kênh có thể có. Nếu nguồn chỉ chứa `HN/WEB` thì collector không tự tạo `HN/STORE`. Muốn đầy đủ những tổ hợp quy định trong cấu hình, cần một bước dựng khung nhóm theo tập khóa hợp lệ sau đó bổ sung dữ liệu.
+Crucially, this **retains every key pair that appeared in the data**, rather than pre-populating every theoretical region × channel combination. If the source contains only `HN/WEB`, the collector will not invent `HN/STORE`. To guarantee all configured combinations appear, pre-seed a skeleton frame from the valid key catalog and merge data into it.
 
-## 10. Những lựa chọn thiết kế làm thay đổi báo cáo
+## 10. Design Choices That Alter the Report
 
-### 10.1. Thứ tự map ngoài và map trong
+### 10.1. Outer and Inner Map Ordering
 
-`LinkedHashMap::new` giữ thứ tự **chèn khóa lần đầu** trong pipeline tuần tự có encounter order; ở dataset này, thứ tự vùng là `HN, HCM, DN`. `TreeMap::new` sắp kênh theo thứ tự tự nhiên của `String`; ở đây là `STORE, WEB`.
+`LinkedHashMap::new` preserves **first-key insertion order** in a sequential pipeline with encounter order; on this dataset, regions are `HN, HCM, DN`. `TreeMap::new` sorts channels in natural `String` order; here `STORE, WEB`.
 
-Nếu không cần thứ tự, overload `groupingBy(classifier, downstream)` ngắn hơn nhưng không cam kết kiểu map hoặc thứ tự duyệt khóa. Nếu muốn sắp cả vùng, có thể dùng `TreeMap::new` cho outer grouping. Nếu muốn giữ thứ tự kênh gặp lần đầu, dùng `LinkedHashMap::new` cho inner grouping.
+When ordering is unnecessary, `groupingBy(classifier, downstream)` is shorter, though it gives no Map type or key-order guarantee. To sort regions too, use `TreeMap::new` on the outer grouping. To keep channel first-appearance order, use `LinkedHashMap::new` on the inner grouping.
 
-**Không kiểm thử thứ tự chỉ bằng `Map.equals`:** hai map có thể `equals` vì ánh xạ khóa–giá trị giống nhau, dù thứ tự `keySet()` khác. Hãy so sánh một `List` tạo từ `keySet()` khi thứ tự là một yêu cầu riêng.
+**Never test ordering with `Map.equals` alone:** two maps can be `equals` because they share identical key–value mappings even when their `keySet()` iteration orders differ. Assert on a `List` copied from `keySet()` whenever order is a requirement.
 
-### 10.2. Nguồn rỗng và nguồn sau lọc rỗng
+### 10.2. Empty Source vs. Emptied After Filtering
 
-`List.<Sale>of()` dẫn đến map ngoài **rỗng**, không phải map chứa các vùng với số 0. Một nguồn chỉ có các đơn chưa thanh toán vẫn tạo các nhóm/ô trong `reportKeepingExistingGroups`, nhưng mọi `Cell` có `paidCount == 0` và các Optional rỗng.
+`List.<Sale>of()` yields an **empty** outer map, not a map of regions initialized to zero. A source with only unpaid orders still populates groups/cells in `reportKeepingExistingGroups`, with every `Cell` having `paidCount == 0` and empty Optionals.
 
-Đó là ba trạng thái khác nhau:
+Those are three distinct states:
 
-| Trạng thái | Biểu diễn |
+| State | Representation |
 | --- | --- |
-| Không có bản ghi nguồn | Map rỗng |
-| Có bản ghi trong vùng/kênh nhưng không có đơn đã thanh toán | Có ô, `paidCount == 0` |
-| Có đơn đã thanh toán nhưng tổng tiền bằng 0 | Có ô, `paidCount > 0` và `totalVnd == 0` |
+| No source records | Empty Map |
+| Records in region/channel, but zero paid orders | Cell exists with `paidCount == 0` |
+| Paid orders exist whose amounts sum to 0 | Cell exists with `paidCount > 0` and `totalVnd == 0` |
 
-### 10.3. `null` và khóa nhóm
+### 10.3. `null` and Grouping Keys
 
-`Collectors.groupingBy` không cho classifier trả khóa `null` trong các triển khai JDK thông dụng; đồng thời `TreeMap` tự nhiên không hỗ trợ khóa chuỗi null. Code tham khảo từ chối `region == null` hoặc `channel == null` ngay ở constructor `Sale`.
+`Collectors.groupingBy` does not allow classifiers to return `null` keys in standard JDK implementations; likewise, natural-order `TreeMap` rejects null string keys. The reference code rejects `region == null` or `channel == null` directly in `Sale`'s constructor.
 
-Nếu nguồn chứa **phần tử `Sale` bằng `null`**, các method reference `Sale::region` và `Sale::channel` có thể ném `NullPointerException` khi truy cập. Cần validate nguồn hoặc áp dụng `filter(Objects::nonNull)` **chỉ nếu** bỏ dòng lỗi được nghiệp vụ cho phép. Tránh âm thầm giảm tổng doanh thu do dữ liệu thiếu.
+If the source can contain **`null` `Sale` elements**, method references `Sale::region` and `Sale::channel` throw `NullPointerException`. Validate the source or apply `filter(Objects::nonNull)` **only if** dropping invalid rows is permitted by business rules. Avoid silently under-reporting revenue due to missing data.
 
-### 10.4. Tràn số `long`
+### 10.4. `long` Overflow
 
-`Collectors.summingLong` và `LongSummaryStatistics` không tự bảo đảm phát hiện tràn `long`. Với số tiền có thể vượt `Long.MAX_VALUE`, kết quả có thể bị sai. Nếu yêu cầu tài chính tuyệt đối, cân nhắc `BigInteger` hoặc `BigDecimal` và một collector chính xác phù hợp. Ví dụ tổng tiền nguyên đồng theo nhóm bằng `BigInteger`:
+`Collectors.summingLong` and `LongSummaryStatistics` do not detect `long` overflow. When amounts can exceed `Long.MAX_VALUE`, sums can silently wrap. For strict financial accuracy, consider `BigInteger` or `BigDecimal` with an exact collector. Example summing integer VND by region with `BigInteger`:
 
 ```java
 import java.math.BigInteger;
@@ -604,17 +604,17 @@ var exactTotals = SalesGroupReport.sample().stream()
     ));
 ```
 
-Trong ví dụ chính, các số tiền nằm trong miền `long`; đây là bài học về **Collector nhiều tầng**, không phải một thư viện kế toán hoàn chỉnh.
+In the main example, amounts fit comfortably in `long`; this lesson focuses on **multi-level collectors**, not a full accounting engine.
 
-### 10.5. Tính bất biến của kết quả
+### 10.5. Result Immutability
 
-`Cell` là record với các trường `long` và Optional nên không có thao tác sửa thuộc tính trực tiếp. Nhưng hai map `LinkedHashMap` và `TreeMap` trả về vẫn mutable: người gọi có thể `put` hoặc `remove`.
+`Cell` is a record containing `long` and Optional fields, so its properties cannot be mutated directly. However, the returned `LinkedHashMap` and `TreeMap` instances remain mutable: callers can invoke `put` or `remove`.
 
-Nếu một API cần xuất bản một snapshot không thể sửa đổi và **vẫn giữ thứ tự**, có thể tạo bản sao map trong `LinkedHashMap`, các map con trong `TreeMap`, rồi bọc bằng `Collections.unmodifiableMap` hoặc `Collections.unmodifiableSortedMap` tương ứng. Chỉ bọc một view mà không sao chép sẽ không ngăn một nơi khác sửa map gốc. `Map.copyOf` không cam kết giữ thứ tự duyệt khóa của nguồn.
+If an API must publish an unmodifiable snapshot while **still preserving order**, copy the outer map into a new `LinkedHashMap`, copy inner maps into new `TreeMap`s, and wrap them with `Collections.unmodifiableMap` or `Collections.unmodifiableSortedMap`. Wrapping a view without copying does not prevent callers holding the backing map from mutating it. `Map.copyOf` does not guarantee preserving the source's key traversal order.
 
-## 11. Mở rộng một: thêm danh sách ID theo từng ô với `mapping`
+## 11. Extension 1: Adding a List of Order IDs per Cell with `mapping`
 
-Khi một báo cáo cần kiểm tra những đơn nào thuộc nhóm, `Collectors.mapping` chuyển từng `Sale` thành `id` **trong downstream** mà không thay đổi khóa nhóm.
+When a report must inspect which orders belong to each group, `Collectors.mapping` converts each `Sale` to its `id` **downstream** without changing the grouping keys.
 
 ```java
 LinkedHashMap<String, TreeMap<String, List<String>>> paidIds =
@@ -639,22 +639,22 @@ System.out.println(paidIds.get("HCM").get("WEB")); // [O3, O8]
 System.out.println(paidIds.get("DN").get("WEB"));  // []
 ```
 
-Chú ý sự khác nhau giữa:
+Notice the difference between:
 
-- `stream.map(Sale::id)` **trước grouping**: stream không còn kiểu `Sale`, nên không thể trực tiếp gọi `Sale::region` hoặc `Sale::channel` nữa.
-- `Collectors.mapping(Sale::id, toList())` **sau khi đã xác định hai khóa**: collector ngoài vẫn nhận `Sale`, còn downstream chỉ giữ ID.
+- `stream.map(Sale::id)` **before grouping**: the stream elements become `String`, so `Sale::region` and `Sale::channel` are no longer available.
+- `Collectors.mapping(Sale::id, toList())` **after determining both keys**: the outer collectors still receive `Sale`, while the inner downstream keeps only IDs.
 
-### 11.1. Đề bài trung cấp: trả danh sách ID không trùng
+### 11.1. Intermediate Variation: Returning Deduplicated IDs
 
-Thay `Collectors.toList()` bằng `Collectors.toSet()` nếu nghiệp vụ muốn bỏ giá trị ID trùng. Nhưng `toSet()` **không cam kết thứ tự**. Nếu muốn ID phân biệt và được sắp tăng, có thể dùng `Collectors.toCollection(TreeSet::new)` hoặc tiếp tục `collectingAndThen` để chuyển Set thành danh sách sắp.
+Replace `Collectors.toList()` with `Collectors.toSet()` if business rules require dropping duplicate IDs. Note that `toSet()` **does not guarantee order**. For distinct IDs sorted ascending, use `Collectors.toCollection(TreeSet::new)` or chain `collectingAndThen` to convert the Set into a sorted list.
 
-Tùy nghiệp vụ, việc hai đơn cùng `id` có thể là **lỗi dữ liệu**; đừng tự loại trùng nếu yêu cầu báo cáo cần phát hiện lỗi.
+Depending on the domain, two orders sharing the same `id` may be a **data error**; do not silently deduplicate if the report needs to flag errors.
 
-## 12. Mở rộng hai: `teeing` cho hai chỉ số độc lập
+## 12. Extension 2: `teeing` for Two Independent Metrics
 
-`Collectors.teeing` được giới thiệu từ **Java 12**. Nó gửi cùng các phần tử đến **hai downstream collector** rồi kết hợp hai kết quả bằng một hàm.
+`Collectors.teeing` was introduced in **Java 12**. It feeds every element to **two downstream collectors** and combines their results via a merger function.
 
-Ví dụ báo cáo mỗi vùng gồm số đơn và tổng tiền đã thanh toán:
+Example reporting paid count and paid total per region:
 
 ```java
 import java.util.Map;
@@ -680,11 +680,11 @@ System.out.println(byRegion.get("HN"));
 // CountAndAmount[count=2, amountVnd=160000]
 ```
 
-`teeing` hữu ích khi hai chỉ số có cách tích lũy riêng nhưng muốn tạo một kết quả chung. Tuy nhiên, nếu cần `count + sum + min + max + average` của **cùng một trường số**, `summarizingLong` thường đơn giản hơn.
+`teeing` shines when two metrics accumulate differently yet combine into one result object. However, if you need `count + sum + min + max + average` of **the same numeric field**, `summarizingLong` is usually simpler.
 
-### 12.1. Vì sao không nên lấy trung bình các trung bình nhóm?
+### 12.1. Why Should You Never Average Group Averages?
 
-HN có 2 đơn đã thanh toán, HCM có 3, DN có 1. Trung bình doanh thu trên mỗi đơn toàn hệ thống phải là:
+HN has 2 paid orders, HCM has 3, and DN has 1. The overall system-wide average revenue per paid order must be:
 
 \[
 \mathrm{averageAll}
@@ -693,7 +693,7 @@ HN có 2 đơn đã thanh toán, HCM có 3, DN có 1. Trung bình doanh thu trê
 \approx 51666.67 \text{ VND}
 \]
 
-**Không** lấy trung bình đơn giản của ba giá trị trung bình vùng khi kích thước nhóm khác nhau:
+**Never** take the unweighted mean of the three regional averages when group sizes differ:
 
 ```text
 HN:  160000 / 2 = 80000
@@ -701,11 +701,11 @@ HCM: 130000 / 3 ≈ 43333.33
 DN:   20000 / 1 = 20000
 ```
 
-Trung bình của ba số này không bằng trung bình của 6 đơn. Muốn gộp thống kê, phải gộp **tổng** và **số mẫu**, hoặc dùng một collector trên toàn nguồn.
+The average of those three numbers does not equal the average across all 6 orders. To combine group statistics, combine **sums** and **sample counts**, or run a single collector over the entire source.
 
-## 13. Kiểm thử với JUnit 5
+## 13. Testing with JUnit 5
 
-Những unit test sau tham chiếu lớp `SalesGroupReport` ở mục 9. Đặt test trong package phù hợp và thêm JUnit Jupiter theo cấu hình dự án.
+The following unit tests reference `SalesGroupReport` from Section 9. Place them in an appropriate package and add JUnit Jupiter to your project setup.
 
 ```java
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -851,38 +851,38 @@ class SalesGroupReportTest {
 }
 ```
 
-**Cách tự đánh giá:** nếu các phép thử về **tổng count**, **tổng tiền**, **ô rỗng** và **thứ tự khóa** đều đúng, pipeline đã đáp ứng các hợp đồng cơ bản của bài tập. Unit test không thay thế đánh giá miền dữ liệu thực, nhưng giúp phát hiện lỗi nhóm sai khóa, thiếu bản ghi hoặc lẫn lộn `filter` với downstream `filtering`.
+**Self-evaluation:** when assertions on **total count**, **total amount**, **empty cells**, and **key ordering** all pass, the pipeline satisfies the core exercise contracts. Unit tests do not replace validating real data domains, but they catch wrong grouping keys, dropped records, or confusing `filter` with downstream `filtering`.
 
-## 14. Những sai lầm thường gặp khi viết collector nhiều tầng
+## 14. Common Mistakes When Writing Multi-Level Collectors
 
-| Sai lầm | Hậu quả | Hướng sửa |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Lọc `paid` trước grouping nhưng vẫn muốn giữ nhóm chỉ có đơn chưa thanh toán | Nhóm bị mất khỏi map | Dùng downstream `filtering` |
-| `groupingBy(Sale::region, toList())` rồi lọc, nhóm lại thủ công nhiều lần | Nhiều lượt xử lý và code dài | Lồng downstream `groupingBy` |
-| `map(Sale::id)` trước khi phân nhóm theo `region` | Mất thông tin region/channel trong stream | Dùng downstream `mapping` |
-| Dùng `HashMap` rồi tin vào thứ tự hiển thị | Thứ tự không được cam kết | Chọn `LinkedHashMap` hoặc `TreeMap` tường minh |
-| Đọc min/max của thống kê rỗng | Nhận giá trị sentinel không phải số đo | Kiểm tra `count`, dùng Optional |
-| Xem tổng bằng 0 là không có đơn | Nhầm với đơn hợp lệ có số tiền 0 | Lưu cả `count` |
-| Dùng `Long::sum`/`summingLong` khi tổng có thể vượt `long` | Tràn số không được phát hiện | Dùng số học lớn hoặc kiểm tra phù hợp |
-| Sửa `List` nguồn trong mapper/collector | Vi phạm non-interference | Giữ mapper và classifier thuần |
-| Trả `LongSummaryStatistics` rồi coi là immutable | Caller có thể `accept/combine` | Dùng `collectingAndThen` thành record |
-| Giữ mọi đơn bằng `toList` dù chỉ cần số liệu | Bộ nhớ tăng không cần thiết | Downstream `counting`/`summarizingLong` |
-| Dùng `groupingByConcurrent` rồi đòi thứ tự chèn | Concurrent grouping là unordered | Phân nhóm tuần tự hoặc sắp sau thu thập |
-| Tạo test chỉ so `Map.equals` | Không phát hiện lỗi thứ tự khóa | So `List.copyOf(map.keySet())` |
+| Filtering `paid` before grouping when unpaid-only groups must stay | Group disappears from the map | Use downstream `filtering` |
+| `groupingBy(Sale::region, toList())` then manually filtering/regrouping | Multiple passes and verbose code | Nest downstream `groupingBy` |
+| Calling `map(Sale::id)` before grouping by `region` | Loses region/channel fields in stream | Use downstream `mapping` |
+| Using `HashMap` and trusting display order | Order is not guaranteed | Choose `LinkedHashMap` or `TreeMap` explicitly |
+| Reading min/max from empty statistics | Returns sentinel constants instead of real measurements | Check `count` and use Optionals |
+| Treating a zero sum as zero orders | Confused with valid zero-amount orders | Store `count` as well |
+| Using `Long::sum`/`summingLong` when totals may exceed `long` | Undetected arithmetic overflow | Use big numbers or overflow checks |
+| Mutating source `List` inside mapper/collector | Violates non-interference | Keep mappers and classifiers pure |
+| Returning `LongSummaryStatistics` and treating it as immutable | Callers can invoke `accept/combine` | Use `collectingAndThen` into a record |
+| Collecting full `toList` when only numbers are needed | Unnecessary memory growth | Use downstream `counting`/`summarizingLong` |
+| Using `groupingByConcurrent` while expecting insertion order | Concurrent grouping is unordered | Group sequentially or sort after collecting |
+| Writing tests that only compare `Map.equals` | Misses key-ordering bugs | Compare `List.copyOf(map.keySet())` |
 
-## 15. Xử lý song song và nguồn dữ liệu có tài nguyên
+## 15. Parallel Processing and Resource-Backed Sources
 
-### 15.1. Collector thường vẫn có thể chạy với parallel stream
+### 15.1. Standard Collectors Still Work with Parallel Streams
 
-`Collectors.groupingBy` không phải concurrent collector theo mặc định, nhưng có thể được sử dụng trên `parallelStream()`: Stream framework tích lũy các container cục bộ rồi dùng combiner để gộp. Không tự chia sẻ một `HashMap` hoặc `ArrayList` giữa các thread bằng `forEach`.
+`Collectors.groupingBy` is not a concurrent collector by default, yet it works safely on `parallelStream()`: the Stream framework accumulates thread-local containers and merges them with the combiner. Never share a `HashMap` or `ArrayList` across threads via `forEach`.
 
-Tuy nhiên, nếu báo cáo **bắt buộc giữ thứ tự lần gặp đầu của vùng**, phiên bản **tuần tự từ `List` có encounter order** là lựa chọn dễ diễn giải và kiểm thử nhất. Khi dữ liệu lớn, có thể cân nhắc grouping song song rồi **sắp lại kết quả theo thứ tự được định nghĩa tường minh**, nhưng phải đo chi phí.
+However, if the report **must preserve first-encounter order of regions**, the **sequential version over an ordered `List`** is the easiest to reason about and test. For large datasets, you can consider parallel grouping followed by **sorting results in an explicit order**, after measuring costs.
 
-`Collectors.groupingByConcurrent` trả `ConcurrentMap` và là collector unordered; nó không thay thế trực tiếp yêu cầu giữ thứ tự `LinkedHashMap`. Dù kết quả con là list, đừng mặc định thứ tự list hoặc an toàn ghi đồng thời sau khi `collect` kết thúc.
+`Collectors.groupingByConcurrent` returns a `ConcurrentMap` and is an unordered collector; it is not a drop-in replacement when `LinkedHashMap` ordering is required. Even when inner results are lists, do not assume list order or thread-safe concurrent writes after `collect` finishes.
 
-### 15.2. Không nhầm nguồn rỗng với lỗi đọc dữ liệu
+### 15.2. Do Not Confuse an Empty Source with an I/O Read Failure
 
-Nếu dữ liệu đến từ `Files.lines(path)` hoặc một stream I/O, cần xác định ai đóng tài nguyên:
+When data comes from `Files.lines(path)` or another I/O stream, make sure resource closing is handled explicitly:
 
 ```java
 import java.io.IOException;
@@ -908,84 +908,84 @@ static Map<String, Long> wordCountsByInitial(Path path)
 }
 ```
 
-Đây là một **minh họa độc lập về tài nguyên**, không phải bản phân nhóm `Sale`. `Files.lines` phải được đóng qua `try-with-resources`; nếu tệp không đọc được, chương trình cần báo lỗi thay vì tự coi đó là một tập dữ liệu rỗng.
+This is a **standalone illustration of resource management**, not a `Sale` grouping variant. `Files.lines` must be closed with `try-with-resources`; if the file cannot be read, the program must throw rather than pretending the dataset was empty.
 
-### 15.3. Chi phí bộ nhớ và hiệu năng
+### 15.3. Memory and Performance Cost
 
-Map nhiều tầng có số entry tỷ lệ với **số cặp khóa thực sự xuất hiện**. Nếu có rất nhiều vùng/kênh, việc tạo nhiều `TreeMap` và bộ thống kê cho từng ô sẽ tốn bộ nhớ. Đổi lại, `summarizingLong` chỉ giữ trạng thái số cho mỗi ô, rẻ hơn lưu toàn bộ đơn trong `List` nếu không cần chi tiết từng đơn.
+Multi-level maps hold entries proportional to the **number of key pairs actually observed**. With many regions/channels, allocating many `TreeMap` and statistics objects per cell consumes memory. On the other hand, `summarizingLong` stores only numeric accumulators per cell, which is much cheaper than retaining full `List<Sale>` details when individual rows are not needed.
 
-Việc xử lý song song chỉ có thể hiệu quả khi chi phí xử lý mỗi bản ghi đủ lớn và phân bố khóa hợp lý. Nếu một vùng hoặc kênh chiếm gần hết dữ liệu, chi phí gộp và tranh chấp có thể lớn. Đánh giá hiệu năng bằng benchmark có warm-up trên dữ liệu đại diện; không kết luận từ một lần `System.nanoTime()`.
+Parallel execution only helps when per-record work is substantial and keys are well-distributed. If one region or channel dominates nearly all records, merge overhead and contention can dominate. Evaluate performance via warmed-up benchmarks on representative data; never draw conclusions from a single `System.nanoTime()` measurement.
 
-## 16. Bài tập mở rộng không có lời giải sẵn
+## 16. Open-Ended Extension Exercises
 
-Sau khi hoàn thành chương trình chính, hãy thử các yêu cầu sau. Mỗi yêu cầu phải đi kèm **kiểu đầu ra**, **dữ liệu kiểm thử** và **hợp đồng trường hợp rỗng** rõ ràng.
+After completing the main program, try these extensions. Each should specify a clear **output type**, **test data**, and **empty-case contract**.
 
-### Bài A — Thêm chiều thứ ba
+### Exercise A — Adding a Third Dimension
 
-Thêm trường `String productType` vào `Sale`. Tạo báo cáo **vùng → kênh → loại sản phẩm** với downstream `counting()`. Dự đoán kiểu:
+Add a `String productType` field to `Sale`. Build a **region → channel → productType** report with downstream `counting()`. Predict the type:
 
 ```java
 Map<String, Map<String, Map<String, Long>>>
 ```
 
-Viết unit test cho ít nhất hai loại sản phẩm trong một kênh, và một loại không xuất hiện trong nguồn. Có phải các khóa không xuất hiện tự được tạo?
+Write unit tests covering at least two product types in a channel and one product type absent from the source. Are absent keys created automatically?
 
-### Bài B — Giữ cả số đơn và tiền đã thanh toán
+### Exercise B — Keeping Both Paid Order Count and Total Amount
 
-Định nghĩa `record BasicCell(long count, long totalVnd)`. Thay `summarizingLong` bằng `Collectors.teeing(counting(), summingLong(...), BasicCell::new)` sau `filtering` để tạo hai giá trị. Đối chiếu với `Cell` đầy đủ trong ví dụ chính.
+Define `record BasicCell(long count, long totalVnd)`. Replace `summarizingLong` with `Collectors.teeing(counting(), summingLong(...), BasicCell::new)` after `filtering` to produce both values. Compare against the full `Cell` in the main example.
 
-### Bài C — Lấy các ID đã thanh toán theo từng nhóm
+### Exercise C — Collecting Paid Order IDs per Group
 
-Dùng `mapping(Sale::id, toList())` làm downstream sau `filtering(Sale::paid, ...)`. Yêu cầu mỗi list trong nhóm được sắp tăng theo ID. Nếu có hai đơn trùng ID, chọn **giữ cả hai**, **loại trùng** hoặc **báo lỗi**, và chứng minh lựa chọn bằng test.
+Use `mapping(Sale::id, toList())` downstream of `filtering(Sale::paid, ...)`. Require each group's list to be sorted ascending by ID. Decide how to handle duplicate IDs—**keep both**, **deduplicate**, or **throw an error**—and prove your choice with tests.
 
-### Bài D — Top 2 kênh theo doanh thu từng vùng
+### Exercise D — Top 2 Channels by Revenue per Region
 
-Từ báo cáo `Map<String,Map<String,Cell>>`, tạo một cấu trúc mới chỉ giữ tối đa hai kênh có `totalVnd` lớn nhất cho từng vùng. Khi hòa tiền, sắp theo tên kênh tăng dần. Nêu rõ thứ tự khóa trong map mới hoặc trả một `List` xếp hạng nếu dễ diễn đạt hơn.
+From `Map<String,Map<String,Cell>>`, produce a new structure retaining at most the top two channels by `totalVnd` for each region. Break revenue ties by channel name ascending. Specify key order in the new map, or return a ranked `List` if that expresses the contract more cleanly.
 
-### Bài E — Trung bình có trọng số
+### Exercise E — Weighted Average
 
-Thêm trường `int itemCount`. Nếu yêu cầu “doanh thu trung bình **trên mỗi sản phẩm**”, tại sao `averagingLong(Sale::amountVnd)` không đủ? Hãy tích lũy **tổng tiền** và **tổng số sản phẩm** trong cùng một collector, xử lý mẫu số bằng 0 và tràn số.
+Add an `int itemCount` field. If the requirement asks for "average revenue **per item**", why is `averagingLong(Sale::amountVnd)` insufficient? Accumulate **total amount** and **total item count** in the same collector, handling zero denominator and overflow.
 
-### Bài F — Snapshot bất biến
+### Exercise F — Immutable Snapshot
 
-Sau khi xây báo cáo, tạo phiên bản API chỉ trả map không thể sửa đổi ở **cả hai tầng**, không để lộ tham chiếu mutable gốc. Kiểm thử thao tác `put` ở tầng ngoài và tầng trong đều bị từ chối, nhưng thứ tự khóa vẫn đúng.
+After building the report, expose an API returning maps that cannot be mutated at **either level**, without leaking references to the original mutable maps. Test that `put` throws at both outer and inner levels while key order remains intact.
 
-### Bài G — Dữ liệu sai và ghi nhận lỗi
+### Exercise G — Invalid Records and Error Reporting
 
-Thiết kế một cơ chế validate ở ranh giới nhập dữ liệu để tách các bản ghi `Sale` hợp lệ khỏi các dòng sai mã vùng hoặc sai số tiền. Quy định **báo lỗi để dừng** hay **trả báo cáo kèm danh sách bản ghi lỗi**; không được âm thầm bỏ dữ liệu rồi coi báo cáo hoàn chỉnh.
+Design boundary validation to separate valid `Sale` records from rows with bad region codes or negative amounts. Decide whether to **fail fast and halt** or **return the report alongside an error list**; never silently drop records and present the report as complete.
 
-## 17. Tiêu chí tự đánh giá và bảng quyết định
+## 17. Self-Assessment Criteria and Decision Table
 
-Đánh giá lời giải bằng một checklist nhỏ:
+Evaluate your solution with a short checklist:
 
-- [ ] Có đủ **8 bản ghi** trong phép đếm tất cả đơn.
-- [ ] Có đúng **6 bản ghi đã thanh toán**, tổng tiền **310.000 VND**.
-- [ ] Ngoài cùng nhóm theo `region`, bên trong theo `channel`.
-- [ ] Thứ tự vùng là `HN, HCM, DN` và thứ tự kênh là `STORE, WEB`.
-- [ ] Bản lọc trước grouping **không có ô DN/WEB**.
-- [ ] Bản dùng downstream `filtering` **có ô DN/WEB** với count và sum bằng 0.
-- [ ] Ô `DN/WEB` không hiển thị min/max/average giả.
-- [ ] Các ô khác có count, sum, min, max, average như bảng dữ liệu chuẩn.
-- [ ] Có kiểm thử nguồn rỗng, đơn hợp lệ số tiền `0` và dữ liệu không hợp lệ.
-- [ ] Không dựa vào trạng thái mutable dùng chung, thứ tự map không cam kết hoặc số học có thể tràn.
+- [ ] **8 records** are counted when counting all orders.
+- [ ] Exactly **6 paid records** totaling **310.000 VND**.
+- [ ] Outer grouping is by `region`; inner grouping is by `channel`.
+- [ ] Region order is `HN, HCM, DN` and channel order is `STORE, WEB`.
+- [ ] Pre-grouping filter version **omits the DN/WEB cell**.
+- [ ] Downstream `filtering` version **retains the DN/WEB cell** with count and sum equal to 0.
+- [ ] Cell `DN/WEB` does not display fake min/max/average values.
+- [ ] All other cells match count, sum, min, max, and average in the reference table.
+- [ ] Tests cover empty source, valid `0`-amount order, and invalid inputs.
+- [ ] No shared mutable state, unguaranteed map iteration order, or unchecked overflow.
 
-| Câu hỏi | Collector/hướng xử lý |
+| Question | Collector / Approach |
 | --- | --- |
-| Có hai khóa nhóm? | `groupingBy(k1, ..., groupingBy(k2, ..., downstream))` |
-| Cần đếm mọi bản ghi trong từng ô? | `counting()` |
-| Chỉ cần tổng một trường `long`? | `summingLong(mapper)` |
-| Cần count, sum, min, max, average? | `summarizingLong(mapper)` |
-| Cần lọc nhưng vẫn giữ nhóm có dữ liệu nguồn? | `filtering(predicate, downstream)` |
-| Cần chuyển đối tượng thành ID trong một ô? | `mapping(idMapper, toList())` |
-| Cần biến thống kê mutable thành DTO rõ ràng? | `collectingAndThen(downstream, finisher)` |
-| Cần hai phép tổng hợp khác nhau trên cùng phần tử? | `teeing(leftCollector, rightCollector, merger)` |
-| Cần giữ thứ tự vùng gặp đầu? | `LinkedHashMap::new` với ordered sequential stream |
-| Cần sắp tên kênh? | `TreeMap::new` |
-| Cần biểu diễn nhóm không có mẫu? | `count == 0` và `OptionalLong`/`OptionalDouble.empty()` |
-| Cần báo cáo giá trị tiền rất lớn chính xác? | BigInteger/BigDecimal hoặc bộ tích lũy kiểm soát tràn |
+| Two grouping keys? | `groupingBy(k1, ..., groupingBy(k2, ..., downstream))` |
+| Count all records in each cell? | `counting()` |
+| Sum a single `long` field? | `summingLong(mapper)` |
+| Need count, sum, min, max, average? | `summarizingLong(mapper)` |
+| Filter while retaining groups present in source? | `filtering(predicate, downstream)` |
+| Transform objects into IDs per cell? | `mapping(idMapper, toList())` |
+| Convert mutable stats into a clean DTO? | `collectingAndThen(downstream, finisher)` |
+| Compute two independent aggregations on the same elements? | `teeing(leftCollector, rightCollector, merger)` |
+| Preserve first-encounter region order? | `LinkedHashMap::new` with ordered sequential stream |
+| Sort channel names? | `TreeMap::new` |
+| Represent a group with zero samples? | `count == 0` and `OptionalLong`/`OptionalDouble.empty()` |
+| Report huge monetary totals accurately? | BigInteger/BigDecimal or overflow-checked accumulator |
 
-## 18. Tổng kết
+## 18. Summary
 
-Để **lập báo cáo nhóm bằng Collector nhiều tầng**, hãy đi từ **kiểu kết quả mong muốn** thay vì ghép lambda một cách ngẫu nhiên. Lớp `groupingBy` ngoài chọn khóa vùng; lớp `groupingBy` trong chọn kênh; downstream collector quyết định **giữ chi tiết, đếm, tính tổng hay thống kê**. Sự khác nhau giữa `Stream.filter` và `Collectors.filtering` quyết định một nhóm rỗng có còn được thể hiện hay không. `collectingAndThen` giúp chuyển trạng thái thống kê mutable thành một kết quả có ý nghĩa với nguồn rỗng.
+To **build group reports with multi-level collectors**, start from the **desired result type** rather than chaining lambdas at random. The outer `groupingBy` chooses the region key; the inner `groupingBy` chooses the channel; the downstream collector determines whether to **retain details, count, sum, or summarize**. The difference between `Stream.filter` and `Collectors.filtering` controls whether an empty group remains visible. `collectingAndThen` turns mutable statistical state into a value object that cleanly handles empty subsets.
 
-Trong thực tế, một báo cáo tốt không chỉ cho số liệu đúng ở dữ liệu mẫu: nó phải có **quy tắc thứ tự, chính sách dữ liệu thiếu, cách biểu diễn nhóm không có mẫu, kiểm thử và giới hạn hiệu năng/số học** rõ ràng. Đó là nền tảng để mở rộng sang collector tùy chỉnh, phân nhóm đồng thời và pipeline xử lý dữ liệu lớn trong Java Stream API.
+In practice, a solid report does more than get numbers right on sample data: it defines **ordering rules, missing-data policies, empty-group representation, unit tests, and arithmetic/performance boundaries** clearly. That gives you a firm base for custom collectors, concurrent grouping, and large-scale data pipelines in the Java Stream API.

@@ -1,24 +1,24 @@
-# Quản lý version module và compatibility
+# Managing Module Versions and Compatibility
 
-## 1. Module name, module version và artifact version
+## 1. Module name, module version, and artifact version
 
-Trong Java Platform Module System (JPMS), một named module được định danh bằng module name, ví dụ com.acme.orders. Module có thể mang metadata version, chẳng hạn 1.4.2, để công cụ build, người vận hành và hệ thống phân phối nhận biết phiên bản artifact.
+In the Java Platform Module System (JPMS), a named module is identified by its module name, such as `com.acme.orders`. A module can carry version metadata, such as `1.4.2`, so build tools, operators, and distribution systems can identify the artifact version.
 
-Cần phân biệt ba khái niệm:
+Three concepts should be distinguished:
 
-- **Module name:** tên định danh trong module-info.java, được dùng bởi requires, qualified exports/opens, uses, provides và module resolution.
-- **Module version:** metadata version có thể được ghi vào module descriptor đã biên dịch.
-- **Artifact version:** phiên bản của JAR/dependency theo hệ thống build như Maven hoặc Gradle.
+- **Module name:** the identifier in `module-info.java`, used by `requires`, qualified `exports`/`opens`, `uses`, `provides`, and module resolution.
+- **Module version:** version metadata that can be recorded in the compiled module descriptor.
+- **Artifact version:** the version of a JAR/dependency in a build system such as Maven or Gradle.
 
-Ví dụ artifact Maven com.acme:orders:1.4.2 có thể chứa named module com.acme.orders với module version 1.4.2. Module name nên ổn định qua các bản phát hành; không đưa version vào tên module.
+For example, the Maven artifact `com.acme:orders:1.4.2` may contain the named module `com.acme.orders` with module version `1.4.2`. The module name should remain stable across releases; do not embed versions in the module name.
 
-JPMS không phải dependency version resolver như Maven hoặc Gradle. Module resolution chủ yếu làm việc với module name và dependency graph. Metadata version không tự khiến JVM chọn phiên bản mới nhất, áp dụng semantic versioning hoặc giải quyết xung đột dependency. Việc chọn artifact version thuộc trách nhiệm của build tool, package manager hoặc hệ thống triển khai.
+JPMS is not a dependency version resolver like Maven or Gradle. Module resolution primarily operates on module names and the dependency graph. Version metadata does not cause the JVM to pick the latest version, enforce semantic versioning, or resolve dependency conflicts. Selecting artifact versions is the responsibility of the build tool, package manager, or deployment system.
 
-## 2. Ghi version vào module descriptor
+## 2. Recording version in the module descriptor
 
-Source module-info.java khai báo module name và quan hệ module, nhưng không có cú pháp version trực tiếp trong khai báo module. Version thường được gắn vào descriptor khi đóng gói modular JAR.
+`module-info.java` source declares the module name and module relationships, but has no direct syntax for a version inside the module declaration. Versions are typically attached to the descriptor when packaging the modular JAR.
 
-Ví dụ module:
+Example module:
 
 ~~~java
 module com.acme.orders {
@@ -27,7 +27,7 @@ module com.acme.orders {
 }
 ~~~
 
-Sau khi compile, đóng gói và gắn version:
+After compiling, package and attach the version:
 
 ~~~bash
 jar --create \
@@ -36,15 +36,15 @@ jar --create \
     -C build/classes/com.acme.orders .
 ~~~
 
-Thư mục đầu vào phải chứa module-info.class cùng các class/resource của module. Điều chỉnh đường dẫn -C cho đúng output directory của dự án.
+The input directory must contain `module-info.class` along with the module's classes/resources. Adjust the `-C` path to match the project's output directory.
 
-Kiểm tra descriptor:
+Inspect the descriptor:
 
 ~~~bash
 jar --describe-module --file build/com.acme.orders.jar
 ~~~
 
-Output có thể hiển thị tên module kèm version:
+The output may display the module name with its version:
 
 ~~~text
 com.acme.orders@1.4.2
@@ -52,11 +52,11 @@ requires com.acme.customer
 exports com.acme.orders.api
 ~~~
 
-Version được lưu trong module descriptor. Nó hữu ích cho tooling, báo cáo và kiểm tra artifact, nhưng không tự quyết định dependency nào được chọn khi runtime resolve module graph.
+The version is stored in the module descriptor. It is useful for tooling, reporting, and artifact verification, but does not by itself decide which dependency is chosen when resolving the module graph at runtime.
 
-### 2.1. Đọc version bằng ModuleDescriptor
+### 2.1. Reading version with `ModuleDescriptor`
 
-Có thể đọc version bằng API java.lang.module.ModuleDescriptor:
+You can read the version using the `java.lang.module.ModuleDescriptor` API:
 
 ~~~java
 import java.lang.module.ModuleDescriptor;
@@ -82,13 +82,13 @@ public class InspectModuleVersion {
 }
 ~~~
 
-ModuleDescriptor.version() trả về Optional<ModuleDescriptor.Version>. Module không có version metadata là tình huống hợp lệ; code không nên giả định mọi descriptor đều có version.
+`ModuleDescriptor.version()` returns `Optional<ModuleDescriptor.Version>`. A module without version metadata is a valid scenario; code should not assume every descriptor has a version.
 
-Nếu cần chuỗi version gốc, dùng rawVersion(), cũng trả về Optional<String>. version() cung cấp đối tượng version đã parse để so sánh, còn rawVersion() cho phép lấy chuỗi được ghi trong descriptor.
+If the original version string is needed, use `rawVersion()`, which also returns `Optional<String>`. `version()` provides a parsed version object for comparison, whereas `rawVersion()` retrieves the exact string recorded in the descriptor.
 
-### 2.2. Tạo descriptor bằng Builder
+### 2.2. Creating a descriptor with `Builder`
 
-Khi tạo descriptor trong bộ nhớ, API builder có thể gắn version:
+When constructing a descriptor in memory, the builder API can attach a version:
 
 ~~~java
 import java.lang.module.ModuleDescriptor;
@@ -107,11 +107,11 @@ public class BuildModuleDescriptor {
 }
 ~~~
 
-Đối tượng được tạo chỉ là metadata trong bộ nhớ. build() không tự tạo modular JAR, không ghi module-info.class và không đưa module vào module path. Muốn phát hành artifact, vẫn cần compile và đóng gói đúng quy trình.
+The created object is solely in-memory metadata. `build()` does not create a modular JAR, write `module-info.class`, or place the module on the module path. To publish an artifact, proper compilation and packaging are still required.
 
-## 3. Module version không phải cơ chế chọn dependency version
+## 3. Module version is not a dependency version selection mechanism
 
-Giả sử module ứng dụng khai báo:
+Suppose an application module declares:
 
 ~~~java
 module com.acme.app {
@@ -119,11 +119,11 @@ module com.acme.app {
 }
 ~~~
 
-Dòng requires chỉ định module name com.acme.orders. Nó không thể hiện ràng buộc như “từ version 1.4 trở lên” hoặc “chỉ chấp nhận major version 1”.
+The `requires` line specifies the module name `com.acme.orders`. It cannot express constraints such as "version 1.4 or higher" or "only accept major version 1".
 
-Khi build, Gradle hoặc Maven chọn artifact version dựa trên dependency declaration, constraints, lockfile, repository metadata và các quy tắc resolution của build tool. Sau đó compiler/runtime dùng module name trong descriptor để thiết lập module graph.
+During a build, Gradle or Maven selects artifact versions based on dependency declarations, constraints, lockfiles, repository metadata, and the build tool's resolution rules. Then the compiler/runtime uses the module names in the descriptors to construct the module graph.
 
-Ví dụ Gradle:
+Gradle example:
 
 ~~~groovy
 dependencies {
@@ -131,7 +131,7 @@ dependencies {
 }
 ~~~
 
-Ví dụ Maven:
+Maven example:
 
 ~~~xml
 <dependency>
@@ -141,50 +141,50 @@ Ví dụ Maven:
 </dependency>
 ~~~
 
-Artifact được chọn cần chứa module name mà consumer yêu cầu. Nếu JAR khai báo tên module khác, dependency declaration có thể resolve thành công ở tầng repository nhưng module graph vẫn không resolve như mong đợi.
+The selected artifact must contain the module name required by the consumer. If the JAR declares a different module name, dependency declarations may resolve cleanly at the repository layer while the module graph still fails to resolve as expected.
 
-Không dựa vào tên file JAR orders-1.4.2.jar để suy ra module name hoặc version descriptor. Hãy kiểm tra module-info.class bằng jar --describe-module.
+Do not rely on the JAR filename `orders-1.4.2.jar` to infer the module name or descriptor version. Check `module-info.class` using `jar --describe-module`.
 
-## 4. Giữ module name ổn định
+## 4. Keeping module names stable
 
-Module name là một phần của contract giữa các module. Consumer tham chiếu tên này trong requires; module khác có thể dùng nó trong qualified exports, opens hoặc service configuration.
+The module name is part of the contract between modules. Consumers reference this name in `requires`; other modules may use it in qualified `exports`, `opens`, or service configurations.
 
-Không nên đổi module name chỉ vì artifact version thay đổi. Các bản phát hành 1.4.2, 1.5.0 và 2.0.0 vẫn nên giữ module name com.acme.orders nếu chúng là các bản phát hành của cùng một module và migration được quản lý theo version policy của dự án.
+Do not change a module name simply because the artifact version changes. Releases `1.4.2`, `1.5.0`, and `2.0.0` should still keep the module name `com.acme.orders` if they are releases of the same module and migrations are managed under the project's versioning policy.
 
-Đổi tên module có thể buộc mọi consumer cập nhật requires, module path, launcher, jlink configuration, service binding, test configuration và các qualified export target. Nếu thực sự cần đổi tên, hãy xem đó là migration có ảnh hưởng tới người dùng.
+Renaming a module can force every consumer to update `requires`, module paths, launchers, `jlink` configurations, service bindings, test configurations, and qualified export targets. If a rename is genuinely necessary, treat it as a user-impacting migration.
 
-### 4.1. Automatic-Module-Name
+### 4.1. `Automatic-Module-Name`
 
-Một thư viện chưa có module-info.class có thể được dùng như automatic module khi đặt trên module path. Để tên module ổn định, JAR có thể khai báo manifest entry:
+A library without `module-info.class` can be used as an automatic module when placed on the module path. To keep the module name stable, the JAR can declare a manifest entry:
 
 ~~~text
 Automatic-Module-Name: com.acme.legacy
 ~~~
 
-Nếu không có entry này, tên automatic module có thể được suy ra từ tên file JAR. Đổi tên artifact hoặc version suffix có thể làm tên suy ra thay đổi, ảnh hưởng đến requires của consumer.
+Without this entry, the automatic module name may be derived from the JAR filename. Renaming the artifact or changing version suffixes can alter the derived name, affecting consumers' `requires`.
 
-Khi chuẩn bị modularize thư viện, nên cung cấp Automatic-Module-Name ổn định trong giai đoạn chuyển tiếp, sau đó phát hành module descriptor tường minh khi đã sẵn sàng.
+When preparing to modularize a library, provide a stable `Automatic-Module-Name` during the transition phase, then publish an explicit module descriptor when ready.
 
-## 5. Compatibility có nhiều lớp
+## 5. Compatibility has multiple layers
 
-Một phiên bản module mới có thể giữ nguyên module name nhưng vẫn phá vỡ consumer. Vì vậy, compatibility cần được đánh giá ở nhiều lớp.
+A new module version can preserve the same module name and still break consumers. Therefore, compatibility must be evaluated across multiple layers.
 
-| Loại compatibility | Câu hỏi cần trả lời | Ví dụ thay đổi gây ảnh hưởng |
-| --- | --- | --- |
-| Source compatibility | Source consumer có compile lại được không? | Xóa method public, đổi kiểu tham số hoặc đổi package. |
-| Binary compatibility | Bytecode consumer đã compile có chạy với module mới không? | Xóa method/field mà bytecode cũ tham chiếu. |
-| Module compatibility | Module graph có resolve và quyền truy cập có còn hợp lệ không? | Xóa export, đổi module name hoặc thêm dependency bắt buộc. |
-| Behavioral compatibility | Hành vi có giữ đúng contract không? | Đổi exception, validation hoặc semantics của method. |
-| Service compatibility | Consumer/provider SPI có tiếp tục tương thích không? | Đổi service interface hoặc xóa provider declaration. |
-| Operational compatibility | Runtime image và môi trường triển khai có chạy được không? | Thêm module bắt buộc nhưng image cũ không chứa module đó. |
+| Compatibility type | Question to answer | Example of impacting change |
+|---|---|---|
+| Source compatibility | Can consumer source still recompile? | Removing a public method, changing parameter types, or renaming a package. |
+| Binary compatibility | Can precompiled consumer bytecode run against the new module? | Removing a method/field referenced by existing bytecode. |
+| Module compatibility | Does the module graph resolve and do access rules remain valid? | Removing an export, renaming a module, or adding a mandatory dependency. |
+| Behavioral compatibility | Does behavior still conform to the contract? | Changing exceptions, validation, or method semantics. |
+| Service compatibility | Do consumer/provider SPIs remain compatible? | Changing a service interface or removing a provider declaration. |
+| Operational compatibility | Can the runtime image and deployment environment still run? | Adding a required module missing from an older runtime image. |
 
-Một thay đổi có thể không phá source compilation nhưng vẫn phá binary compatibility hoặc behavior. Chỉ kiểm tra build của module mới là chưa đủ; cần kiểm tra các consumer đã compile với phiên bản cũ.
+A change might not break source compilation yet still break binary compatibility or behavior. Testing only the new module's build is insufficient; test consumers already compiled against the previous version.
 
-## 6. Thay đổi module descriptor có thể phá compatibility
+## 6. Module descriptor changes that can break compatibility
 
-### 6.1. Xóa hoặc thu hẹp exports
+### 6.1. Removing or narrowing `exports`
 
-Nếu phiên bản cũ khai báo:
+If an older version declared:
 
 ~~~java
 module com.acme.orders {
@@ -192,20 +192,20 @@ module com.acme.orders {
 }
 ~~~
 
-nhưng phiên bản mới xóa export:
+but the new version removes the export:
 
 ~~~java
 module com.acme.orders {
 }
 ~~~
 
-consumer không còn được phép truy cập public types trong package đó qua module boundary. Source có thể không compile và bytecode đã compile có thể gặp lỗi truy cập lúc runtime.
+consumers are no longer permitted to access public types in that package across the module boundary. Source may fail to compile and precompiled bytecode may encounter access errors at runtime.
 
-Đổi từ unqualified export sang qualified export cũng có thể phá các consumer không nằm trong danh sách target.
+Changing from an unqualified export to a qualified export can also break consumers not listed in the target list.
 
-### 6.2. Thay đổi requires
+### 6.2. Changing `requires`
 
-Thêm dependency mới:
+Adding a new dependency:
 
 ~~~java
 module com.acme.orders {
@@ -213,140 +213,140 @@ module com.acme.orders {
 }
 ~~~
 
-có thể làm module graph không resolve được nếu module com.acme.customer không có trong module path/runtime image. Dependency mới cũng có thể tạo xung đột package hoặc module name với dependency hiện hữu.
+can prevent the module graph from resolving if `com.acme.customer` is missing from the module path/runtime image. New dependencies can also introduce package or module name conflicts with existing dependencies.
 
-Phân biệt các dạng requires:
+Distinguish the forms of `requires`:
 
-- requires M: dependency cần có khi resolve module.
-- requires transitive M: các module đọc module hiện tại cũng có thể đọc M thông qua readability propagation.
-- requires static M: dependency cần khi compile nhưng có thể không bắt buộc ở runtime nếu module không được yêu cầu bởi đường đi runtime khác.
-- requires static transitive M: kết hợp ý nghĩa static và transitive.
+- `requires M`: dependency required when resolving the module.
+- `requires transitive M`: modules reading the current module can also read `M` via readability propagation.
+- `requires static M`: dependency required at compile time that may be optional at runtime if the module is not pulled in by another runtime path.
+- `requires static transitive M`: combines the meanings of `static` and `transitive`.
 
-Thay requires transitive thành requires có thể ảnh hưởng consumer vốn dựa vào dependency được truyền tiếp để truy cập API của module khác.
+Changing `requires transitive` to `requires` can break consumers that relied on the propagated dependency to access another module's API.
 
-### 6.3. Thay đổi opens
+### 6.3. Changing `opens`
 
-Xóa hoặc thu hẹp opens có thể khiến framework không còn deep reflection vào package. Application có thể compile bình thường nhưng lỗi ở runtime khi ORM, serializer hoặc dependency injection framework truy cập private members.
+Removing or narrowing `opens` can prevent frameworks from performing deep reflection into a package. The application may compile normally yet fail at runtime when an ORM, serializer, or dependency injection framework accesses private members.
 
-Ngược lại, mở thêm package có thể không phá compatibility chức năng nhưng làm tăng phạm vi reflection access. Đánh giá đây là thay đổi về security/access contract.
+Conversely, opening additional packages may not break functional compatibility, but increases the scope of reflection access. Treat this as a security/access contract change.
 
-### 6.4. Thay đổi uses/provides
+### 6.4. Changing `uses`/`provides`
 
-Nếu consumer xóa uses hoặc provider xóa provides, service discovery có thể không còn tìm thấy implementation cần thiết.
+If a consumer removes `uses` or a provider removes `provides`, service discovery may no longer locate the required implementation.
 
-Một thay đổi trong service interface cũng có thể làm provider cũ không còn implement được service mới hoặc consumer mới không còn tương thích với provider cũ. Hãy kiểm tra cả descriptor và hành vi ServiceLoader.
+A change in the service interface can also render older providers unable to implement the new service, or newer consumers incompatible with older providers. Check both descriptors and `ServiceLoader` behavior.
 
-## 7. Quản lý version theo semantic policy
+## 7. Managing versions under a semantic policy
 
-JPMS không áp đặt một quy tắc semantic versioning cụ thể. Dự án có thể áp dụng SemVer hoặc một policy riêng, nhưng cần định nghĩa rõ cách phân loại thay đổi.
+JPMS does not enforce a specific semantic versioning standard. A project may adopt SemVer or its own policy, provided it clearly defines how changes are categorized.
 
-Một policy phổ biến:
+A common policy:
 
-- **PATCH:** sửa lỗi không thay đổi public contract và giữ behavior tương thích theo policy.
-- **MINOR:** bổ sung API hoặc capability theo hướng tương thích ngược.
-- **MAJOR:** thay đổi có thể phá source, binary, module hoặc behavioral compatibility.
+- **PATCH:** bug fixes that do not change the public contract and preserve compatible behavior under the policy.
+- **MINOR:** additions of APIs or capabilities in a backward-compatible manner.
+- **MAJOR:** changes that may break source, binary, module, or behavioral compatibility.
 
-Ví dụ:
+For example:
 
 ~~~text
-1.4.2 -> 1.4.3   sửa lỗi tương thích
-1.4.3 -> 1.5.0   thêm API mới
-1.5.0 -> 2.0.0   loại bỏ API cũ hoặc đổi contract
+1.4.2 -> 1.4.3   compatible bug fix
+1.4.3 -> 1.5.0   add new API
+1.5.0 -> 2.0.0   remove old API or change contract
 ~~~
 
-Đây là quy ước phát hành của dự án, không phải quy tắc được JVM thực thi. ModuleDescriptor.Version có khả năng parse và so sánh version metadata, nhưng không tự áp dụng SemVer policy, không kiểm tra API compatibility và không ngăn một module có version thấp hơn được đặt trên module path.
+This is a release convention of the project, not a rule enforced by the JVM. `ModuleDescriptor.Version` can parse and compare version metadata, but it does not enforce SemVer policy, verify API compatibility, or prevent a lower-version module from being placed on the module path.
 
-Không dùng version number làm bằng chứng duy nhất rằng hai module tương thích. Cần kết hợp release notes, API review, module descriptor comparison và test với consumer.
+Do not use version numbers as the sole proof that two modules are compatible. Combine release notes, API reviews, module descriptor comparisons, and consumer testing.
 
-## 8. Phân tích module version và compatibility bằng công cụ
+## 8. Analyzing module versions and compatibility with tools
 
-### 8.1. Kiểm tra module descriptor
+### 8.1. Inspecting the module descriptor
 
-Với mỗi artifact:
+For each artifact:
 
 ~~~bash
 jar --describe-module --file libs/com.acme.orders-1.4.2.jar
 ~~~
 
-Đối chiếu:
+Verify:
 
-- Module name có ổn định không?
-- Version metadata có được ghi không?
-- Requires có thay đổi không?
-- Exports/qualified exports có thay đổi không?
-- Opens, uses và provides có thay đổi không?
-- Automatic module name có bị suy ra khác trước không?
+- Is the module name stable?
+- Is version metadata recorded?
+- Have `requires` changed?
+- Have `exports`/qualified exports changed?
+- Have `opens`, `uses`, and `provides` changed?
+- Is an automatic module name derived differently than before?
 
-Nên lưu descriptor output của mỗi release để reviewer so sánh thay đổi module contract.
+Save the descriptor output for each release so reviewers can compare module contract changes.
 
-### 8.2. Kiểm tra API và dependency
+### 8.2. Checking APIs and dependencies
 
-Dùng javap để xem public signature của class:
+Use `javap` to inspect public signatures of a class:
 
 ~~~bash
 javap -classpath libs/com.acme.orders-1.4.2.jar \
   com.acme.orders.api.OrderService
 ~~~
 
-So sánh với bản trước để phát hiện method, constructor, field và kiểu dữ liệu đã thay đổi. Với module path, dùng tùy chọn phù hợp của javap để chỉ rõ module.
+Compare with the previous release to detect changed methods, constructors, fields, and data types. For the module path, use the appropriate `javap` options to specify the module.
 
-Dùng jdeps để kiểm tra dependency/module graph:
+Use `jdeps` to inspect the dependency/module graph:
 
 ~~~bash
 jdeps --check com.acme.orders --module-path mods
 ~~~
 
-jdeps giúp phát hiện dependency, split package và một số vấn đề liên quan module. Nó không chứng minh behavioral compatibility và không thay thế API compatibility checker hoặc test suite.
+`jdeps` helps detect dependencies, split packages, and several module-related issues. It does not prove behavioral compatibility and does not replace an API compatibility checker or test suite.
 
-### 8.3. Kiểm tra internal JDK API
+### 8.3. Checking internal JDK APIs
 
-Nếu module dựa vào JDK internal API, dùng:
+If a module relies on internal JDK APIs, run:
 
 ~~~bash
 jdeps --jdk-internals libs/com.acme.orders-1.4.2.jar
 ~~~
 
-Kết quả giúp phát hiện các tham chiếu có nguy cơ bị thay đổi hoặc encapsulate chặt hơn trong JDK mới. Ưu tiên thay bằng API công khai thay vì duy trì dependency vào implementation detail.
+The output highlights references at risk of changing or becoming more tightly encapsulated in newer JDKs. Prefer replacing them with public APIs rather than maintaining dependencies on implementation details.
 
-## 9. Kiểm tra consumer trước khi phát hành
+## 9. Testing consumers before release
 
-Compatibility không chỉ là thuộc tính của provider module; nó còn phụ thuộc vào cách consumer sử dụng API và module descriptor.
+Compatibility is not solely a property of the provider module; it also depends on how consumers use the API and module descriptor.
 
-Một release pipeline nên kiểm tra:
+A release pipeline should verify:
 
-1. Build module mới từ source sạch.
-2. So sánh descriptor mới với descriptor của release trước.
-3. Compile các consumer đại diện với artifact mới.
-4. Chạy binary compatibility test bằng bytecode đã compile với phiên bản cũ nếu dự án cần hỗ trợ nâng cấp tại chỗ.
-5. Chạy integration test với service provider, reflection và module layer.
-6. Kiểm tra jlink/runtime image có đủ dependency module mới.
-7. Chạy test trên JDK baseline và các JDK được hỗ trợ.
-8. Kiểm tra dependency locking/verification để bảo đảm consumer đang dùng đúng artifact.
-9. Công bố release notes về thay đổi API, module graph và yêu cầu runtime.
+1. Build the new module from clean source.
+2. Compare the new descriptor against the previous release's descriptor.
+3. Compile representative consumers against the new artifact.
+4. Run binary compatibility tests using bytecode compiled against the older version if the project supports drop-in upgrades.
+5. Run integration tests covering service providers, reflection, and module layers.
+6. Verify that `jlink`/runtime images include any new dependency modules.
+7. Run tests on the baseline JDK and all supported JDKs.
+8. Check dependency locking/verification to ensure consumers resolve the intended artifact.
+9. Publish release notes detailing API, module graph, and runtime requirement changes.
 
-Nếu module là thư viện công khai, nên có một tập consumer compatibility tests hoặc một compatibility checker tự động. Những test này nên đại diện cho cách module được dùng thật, bao gồm cả service registration và module access.
+If the module is a public library, maintain a suite of consumer compatibility tests or an automated compatibility checker. These tests should reflect actual module usage, including service registration and module access.
 
-## 10. Chiến lược migration an toàn
+## 10. Safe migration strategy
 
-Khi cần loại bỏ API hoặc thay đổi module descriptor, có thể thực hiện theo nhiều release:
+When an API must be removed or a module descriptor changed, it can be executed across multiple releases:
 
-**Giai đoạn 1 — Bổ sung:** thêm API mới hoặc module mới mà không xóa API cũ. Cập nhật documentation và ví dụ.
+**Phase 1 — Addition:** add the new API or new module without removing the old API. Update documentation and examples.
 
-**Giai đoạn 2 — Deprecation:** đánh dấu API cũ deprecated, cung cấp hướng chuyển đổi và cảnh báo consumer. Không thu hẹp export hoặc opens khi consumer vẫn cần chúng.
+**Phase 2 — Deprecation:** mark the old API deprecated, provide migration guidance, and warn consumers. Do not narrow `exports` or `opens` while consumers still require them.
 
-**Giai đoạn 3 — Chuyển consumer:** cập nhật ứng dụng, plugin và module phụ thuộc sang API mới. Dùng dependency constraints/locks để xác định rõ phiên bản được kiểm thử.
+**Phase 3 — Consumer migration:** update applications, plugins, and dependent modules to the new API. Use dependency constraints/locks to pin tested versions clearly.
 
-**Giai đoạn 4 — Breaking release:** chỉ xóa API hoặc thay đổi module contract trong major release theo policy. Cập nhật module descriptor, module version metadata và release notes.
+**Phase 4 — Breaking release:** remove old APIs or alter the module contract only in a major release according to policy. Update the module descriptor, module version metadata, and release notes.
 
-**Giai đoạn 5 — Runtime verification:** tạo lại runtime image, kiểm tra module list, service binding và test trong môi trường triển khai. Một dependency mới có thể khiến image cũ không còn đủ module.
+**Phase 5 — Runtime verification:** rebuild runtime images, verify module lists and service binding, and test in the deployment environment. A new dependency can leave an older image missing required modules.
 
-Không nên phát hành một module có cùng version metadata nhưng descriptor/API thay đổi không được ghi nhận. Version và release notes cần phản ánh thay đổi thực tế để người dùng có thể điều tra và rollback.
+Never release a module with the same version metadata while making unrecorded descriptor/API changes. Versions and release notes must reflect actual changes so users can investigate and roll back if needed.
 
-## 11. Module version trong runtime image và plugin system
+## 11. Module versions in runtime images and plugin systems
 
-Runtime image tạo bằng jlink chứa tập module được linker chọn. Version metadata trong descriptor có thể được kiểm tra bằng tooling, nhưng image không tự chọn module version mới nhất khi chạy.
+A runtime image built with `jlink` contains the set of modules selected by the linker. Version metadata in descriptors can be inspected by tooling, but the image does not automatically pick the latest module version at runtime.
 
-Ví dụ:
+For example:
 
 ~~~bash
 jlink \
@@ -356,22 +356,22 @@ jlink \
   --output build/runtime-image
 ~~~
 
-Nếu module com.acme.orders được nâng version, phải build lại image từ artifact mới và kiểm thử module graph. Không chỉ thay JAR ở một thư mục bên ngoài image rồi giả định image đã cập nhật.
+If `com.acme.orders` is upgraded to a new version, rebuild the image from the new artifacts and test the module graph. Do not simply drop a JAR into a directory outside the image and assume the image is updated.
 
-Với plugin system dùng ModuleLayer, các plugin có thể được resolve trong layer riêng. Việc cô lập module version cần được thiết kế cẩn thận:
+In plugin systems using `ModuleLayer`, plugins can be resolved in separate layers. Module version isolation must be designed carefully:
 
-- Module cùng tên không thể được coi như hai version có thể cùng tồn tại trong một module configuration thông thường.
-- Các layer riêng có thể giúp cô lập graph/plugin khác nhau, nhưng class identity phụ thuộc class loader/layer.
-- Hai interface có cùng tên đầy đủ nhưng được nạp bởi class loader khác nhau có thể là hai kiểu Java khác nhau.
-- Service API nên được chia sẻ từ một module/layer chung nếu host và plugin cần trao đổi object qua interface đó.
+- Modules with the same name cannot be treated as two coexisting versions within a standard single module configuration.
+- Separate layers can isolate different graphs/plugins, but class identity depends on the class loader/layer.
+- Two interfaces with the same fully qualified name loaded by different class loaders are two distinct Java types.
+- The service API should be shared from a common module/layer if the host and plugins need to exchange objects via that interface.
 
-Nếu cần chạy đồng thời hai version không tương thích của một thư viện, có thể phải dùng layer/class loader riêng hoặc đổi package/module identity. Đây là quyết định kiến trúc, không thể giải quyết chỉ bằng cách đặt hai JAR version khác nhau trên cùng module path.
+If two incompatible versions of a library must run simultaneously, separate layers/class loaders or distinct package/module identities may be necessary. This is an architectural decision that cannot be solved merely by placing two different JAR versions on the same module path.
 
-## 12. Dependency locking và phát hành có thể tái lập
+## 12. Dependency locking and reproducible releases
 
-Để consumer dùng đúng module version đã kiểm thử, hãy quản lý artifact version ở build system.
+To ensure consumers use the exact tested module versions, manage artifact versions in the build system.
 
-Với Gradle:
+With Gradle:
 
 ~~~groovy
 dependencyLocking {
@@ -383,37 +383,37 @@ dependencies {
 }
 ~~~
 
-Sinh/cập nhật lock state có chủ đích và commit lockfiles. Có thể dùng dependency verification để kiểm tra checksum artifact tải về.
+Generate/update lock state intentionally and commit lockfiles. Dependency verification can be used to verify checksums of downloaded artifacts.
 
-Với Maven, dùng version cụ thể và dependencyManagement/BOM để quản lý phiên bản thống nhất giữa các module. Tránh version range hoặc dependency version động trong artifact production nếu không có cơ chế kiểm soát rõ.
+With Maven, use explicit versions and `dependencyManagement`/BOMs to manage consistent versions across modules. Avoid version ranges or dynamic dependency versions in production artifacts unless controlled explicitly.
 
-Cùng một module name có thể được đóng gói trong nhiều artifact version qua các release khác nhau. Build tool phải chọn một artifact cụ thể; sau đó module resolution kiểm tra module name và dependency graph. Ghi lại cả artifact coordinate/version lẫn module name/version metadata để tránh nhầm lẫn khi điều tra.
+The same module name can be packaged across multiple artifact versions over different releases. The build tool must choose one specific artifact; module resolution then checks the module name and dependency graph. Record both artifact coordinates/versions and module name/version metadata to avoid confusion during investigations.
 
-## 13. Các lỗi thường gặp
+## 13. Common mistakes
 
-| Dấu hiệu | Nguyên nhân có thể | Hướng xử lý |
-| --- | --- | --- |
-| requires com.acme.orders không resolve | JAR không có module name đó hoặc module không nằm trên module path | Dùng jar --describe-module và kiểm tra module path. |
-| Version metadata bị trống | Modular JAR được đóng gói mà không gắn module version | Dùng jar --module-version khi tạo artifact nếu policy yêu cầu. |
-| Đã có version metadata nhưng JVM vẫn chọn artifact không mong muốn | Nhầm version metadata với dependency version resolution | Khóa artifact bằng Gradle/Maven và kiểm tra JAR thực tế được dùng. |
-| Consumer compile lỗi sau khi nâng module | API bị xóa/đổi hoặc package không còn export | So sánh API và module descriptor; cập nhật consumer hoặc phát hành migration. |
-| Compile thành công nhưng runtime lỗi | Binary/module compatibility hoặc dependency runtime khác compile path | Chạy integration test với đúng runtime module path/image. |
-| ServiceLoader không tìm thấy provider | uses/provides hoặc module provider thay đổi | Kiểm tra descriptor, service binding và provider artifact. |
-| Framework không còn reflection được | Package opens bị thu hẹp hoặc bị xóa | Xem lại reflection contract; mở đúng package/target nếu cần. |
-| Plugin không tương thích sau khi nâng version | Host và plugin dùng API/module contract khác nhau | Chạy plugin compatibility tests và quản lý version API chung. |
-| Runtime image thiếu module mới | Image chưa được tạo lại hoặc module set không bao gồm dependency mới | Re-link bằng đúng module path và kiểm tra --list-modules. |
+| Symptom | Possible cause | Remedy |
+|---|---|---|
+| `requires com.acme.orders` fails to resolve | JAR lacks that module name or module is not on the module path | Run `jar --describe-module` and inspect the module path. |
+| Version metadata is empty | Modular JAR was packaged without `--module-version` | Use `jar --module-version` when building artifacts if policy requires it. |
+| Version metadata is present yet JVM picks an unexpected artifact | Confusing version metadata with dependency version resolution | Lock artifacts with Gradle/Maven and inspect the actual JAR in use. |
+| Consumer fails to compile after module upgrade | API removed/changed or package no longer exported | Compare API and module descriptor; update consumer or publish migration. |
+| Compiles cleanly but fails at runtime | Binary/module compatibility issue or runtime dependencies differ from compile path | Run integration tests with the exact runtime module path/image. |
+| `ServiceLoader` cannot find provider | `uses`/`provides` or provider module changed | Check descriptors, service binding, and provider artifact. |
+| Framework can no longer use reflection | Package `opens` was narrowed or removed | Review reflection contract; open the proper package/target if needed. |
+| Plugin incompatible after version upgrade | Host and plugin use different API/module contracts | Run plugin compatibility tests and manage shared API versions. |
+| Runtime image missing a new module | Image was not rebuilt or module set excludes the new dependency | Re-link with the right module path and verify with `--list-modules`. |
 
-## 14. Quy trình quản lý version module
+## 14. Module version management workflow
 
-1. Giữ module name ổn định và tách biệt với artifact version.
-2. Chọn policy versioning rõ ràng, ví dụ SemVer, và ghi nhận trong release process.
-3. Gắn version metadata vào modular JAR bằng jar --module-version nếu tooling cần.
-4. Kiểm tra module descriptor của artifact bằng jar --describe-module.
-5. So sánh requires, exports, opens, uses, provides và public API với release trước.
-6. Dùng Gradle/Maven để chọn artifact version cụ thể, lock dependency và xác minh checksum.
-7. Compile và test consumer với artifact mới, bao gồm binary, service và reflection scenarios.
-8. Tạo lại runtime image và kiểm thử trên đúng JDK/OS/architecture.
-9. Ghi lại artifact coordinates, module name/version metadata, JDK/toolchain và hash trong release evidence.
-10. Công bố breaking changes, migration notes và rollback path nếu module contract thay đổi.
+1. Keep module names stable and separate from artifact versions.
+2. Choose a clear versioning policy, such as SemVer, and document it in the release process.
+3. Embed version metadata in modular JARs via `jar --module-version` if tooling requires it.
+4. Inspect artifact module descriptors using `jar --describe-module`.
+5. Compare `requires`, `exports`, `opens`, `uses`, `provides`, and public APIs against the previous release.
+6. Use Gradle/Maven to select concrete artifact versions, lock dependencies, and verify checksums.
+7. Compile and test consumers with the new artifact, covering binary, service, and reflection scenarios.
+8. Rebuild runtime images and test on the target JDK/OS/architecture.
+9. Record artifact coordinates, module name/version metadata, JDK/toolchain, and hashes in release evidence.
+10. Publish breaking changes, migration notes, and rollback paths whenever the module contract changes.
 
-Module version giúp mô tả artifact, còn compatibility được quyết định bởi API, module descriptor, dependency graph và hành vi thực tế. Quản lý tốt cả hai lớp giúp nâng cấp module có thể dự đoán, kiểm thử và rollback được.
+Module versions describe artifacts, whereas compatibility is determined by APIs, module descriptors, dependency graphs, and actual runtime behavior. Managing both layers well keeps module upgrades predictable, testable, and reversible.

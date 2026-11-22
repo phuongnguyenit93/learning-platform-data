@@ -1,62 +1,62 @@
-# `Enum.valueOf()` với `Class` của enum
+# `Enum.valueOf()` with an enum's `Class`
 
-`Enum.valueOf()` chuyển một **tên khai báo của hằng** thành hằng thuộc **một kiểu enum cụ thể**. Tham số `Class` cho biết cần tra cứu trong enum nào. Đây là công cụ hữu ích khi viết bộ đọc cấu hình, bộ chuyển đổi dữ liệu hoặc mã hạ tầng dùng chung cho nhiều enum.
+`Enum.valueOf()` converts a **constant's declared name** into the constant belonging to **a specific enum type**. The `Class` parameter specifies which enum to look up in. This is a useful tool when writing configuration readers, data converters, or infrastructure code shared across multiple enums.
 
-Ví dụ, chuỗi `"FAST"` chưa đủ để xác định một đối tượng: nhiều enum có thể cùng khai báo tên đó. Cặp `RunMode.class` và `"FAST"` mới xác định yêu cầu tìm `RunMode.FAST`. Khi việc chọn enum diễn ra lúc chạy, `Class` chính là thông tin nối giữa tên dạng chuỗi và kiểu Java cần xử lý.
+For example, the string `"FAST"` alone is not enough to identify an object: multiple enums may declare the same name. Only the pair `RunMode.class` and `"FAST"` specifies a request to find `RunMode.FAST`. When choosing the enum happens at runtime, `Class` is the piece of information connecting the string name to the Java type to process.
 
-Bài này phân biệt hai tình huống: đã có `Class<E>` với kiểu enum cụ thể, và chỉ có `Class<?>` lấy được từ cơ chế khám phá kiểu.
+This lesson distinguishes two situations: already having `Class<E>` with a concrete enum type, and only having `Class<?>` obtained from type discovery mechanisms.
 
-## 1. Chữ ký và ý nghĩa của tham số kiểu
+## 1. Signature and meaning of the type parameter
 
-Chữ ký API:
+API signature:
 
 ```java
 public static <T extends Enum<T>> T valueOf(
         Class<T> enumClass, String name)
 ```
 
-Đây là chữ ký để đọc, không phải phương thức bạn cần tự cài đặt. Ràng buộc `<T extends Enum<T>>` gắn kiểu trả về với chính kiểu enum mà `enumClass` đại diện.
+This is a signature to read, not a method you need to implement yourself. The bound `<T extends Enum<T>>` ties the return type to the exact enum type that `enumClass` represents.
 
-Với `RunMode` đã được khai báo, lời gọi có thể viết như sau:
+With `RunMode` already declared, the call can be written as follows:
 
 ```java
 RunMode mode = Enum.valueOf(RunMode.class, "FAST");
 ```
 
-`RunMode.class` có kiểu `Class<RunMode>`, nên kết quả được kiểm tra kiểu là `RunMode`. Không cần ép từ `Object` về enum sau lời gọi.
+`RunMode.class` has type `Class<RunMode>`, so the result is type-checked as `RunMode`. There is no need to cast from `Object` to the enum after the call.
 
-Lời gọi tìm **hằng đã tồn tại**, không tạo một hằng mới. Trong thí nghiệm bên dưới, kết quả so sánh `mode == RunMode.FAST` là `true`.
+The call looks up an **existing constant**; it does not create a new constant. In the experiment below, the comparison `mode == RunMode.FAST` evaluates to `true`.
 
-Theo [hợp đồng `Enum.valueOf`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Enum.html#valueOf(java.lang.Class,java.lang.String)), tên phải khớp chính xác với tên hằng được khai báo. Không tìm thấy thì ném `IllegalArgumentException`; tham số lớp hoặc tên là `null` thì ném `NullPointerException`.
+According to [the `Enum.valueOf` contract](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Enum.html#valueOf(java.lang.Class,java.lang.String)), the name must match the declared constant name exactly. If not found, it throws `IllegalArgumentException`; if the class or name argument is `null`, it throws `NullPointerException`.
 
-### Khác gì `RunMode.valueOf("FAST")`?
+### How does it differ from `RunMode.valueOf("FAST")`?
 
-Mỗi enum có phương thức tĩnh `valueOf(String)` được khai báo ngầm. Vì vậy, khi đã biết enum, `RunMode.valueOf("FAST")` thường dễ đọc hơn. Dạng `Enum.valueOf(enumType, name)` hữu ích cho hàm tổng quát nhận `Class<E>`. Quy tắc khai báo phương thức này được mô tả trong [JLS về thành viên enum](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.9.3).
+Each enum has an implicitly declared static `valueOf(String)` method. Therefore, when the enum is already known, `RunMode.valueOf("FAST")` is usually easier to read. The `Enum.valueOf(enumType, name)` form is useful for generic methods accepting `Class<E>`. The declaration rules for that method are described in [JLS on enum members](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.9.3).
 
-Cả hai dạng đều tra cứu tên hằng; đổi cách gọi không biến nó thành bộ phân tích nhãn hiển thị hay mã nghiệp vụ.
+Both forms look up constant names; changing how you call it does not turn it into a parser for display labels or business codes.
 
-## 2. Tên khai báo, nhãn hiển thị và mã nghiệp vụ
+## 2. Declared names, display labels, and business codes
 
-Giả sử hằng `FAST` có nhãn `Fast execution` và mã `fast-code`. Ba chuỗi này phục vụ những mục đích khác nhau:
+Suppose the constant `FAST` has the label `Fast execution` and the code `fast-code`. These three strings serve different purposes:
 
-| Giá trị | Vai trò trong thí nghiệm | `Enum.valueOf(RunMode.class, ...)` |
+| Value | Role in the experiment | `Enum.valueOf(RunMode.class, ...)` |
 | --- | --- | --- |
-| `"FAST"` | Tên khai báo của hằng | Tìm thấy `RunMode.FAST` |
-| `"Fast execution"` | Kết quả `toString()` dùng làm nhãn | Không phải tên cần tra cứu |
-| `"fast-code"` | Mã nghiệp vụ do ứng dụng định nghĩa | Không tự được nhận diện |
-| `"1"` | Chuỗi biểu diễn một số | Không được hiểu thành `ordinal()` |
+| `"FAST"` | Declared name of the constant | Finds `RunMode.FAST` |
+| `"Fast execution"` | Result of `toString()` used as a label | Not the name to look up |
+| `"fast-code"` | Application-defined business code | Not automatically recognized |
+| `"1"` | String representing a number | Not interpreted as `ordinal()` |
 
-`valueOf` không tự cắt khoảng trắng, đổi hoa thường, đọc thuộc tính `code`, gọi `toString()` để so sánh hay suy ra số thứ tự. Ví dụ bên dưới kiểm chứng từng trường hợp bằng các lời gọi độc lập.
+`valueOf` does not automatically trim whitespace, change case, read a `code` property, call `toString()` to compare, or infer an ordinal. The example below verifies each case with separate calls.
 
-## 3. Ví dụ Java 17+ đầy đủ
+## 3. Complete Java 17+ example
 
-Chương trình có ba hàm phục vụ ba hợp đồng rõ ràng:
+The program has three methods serving three explicit contracts:
 
-- `parseTyped`: tra cứu chính xác khi đã có `Class<E>`.
-- `parseNormalized`: chính sách riêng, chủ động bỏ khoảng trắng đầu cuối và đổi chữ hoa.
-- `parseRuntime`: nhận `Class<?>`, xác minh là khai báo enum rồi tra cứu và trả `Enum<?>`.
+- `parseTyped`: exact lookup when `Class<E>` is already available.
+- `parseNormalized`: a custom policy that intentionally strips leading/trailing whitespace and converts to uppercase.
+- `parseRuntime`: accepts `Class<?>`, verifies it is an enum declaration, then looks up and returns `Enum<?>`.
 
-Lưu toàn bộ vào **`EnumValueOfDemo.java`**:
+Save the entire code into **`EnumValueOfDemo.java`**:
 
 ```java
 import java.util.Locale;
@@ -166,14 +166,14 @@ public class EnumValueOfDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 --release 17 -Xlint:all -Werror EnumValueOfDemo.java
 java EnumValueOfDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Typed name = FAST
@@ -198,107 +198,107 @@ constant runtime class -> IllegalArgumentException
 From declaring class = SAFE
 ```
 
-Hàm `attempt()` chỉ phục vụ quan sát các trường hợp lỗi trong thí nghiệm: in tên ngoại lệ rồi tiếp tục thử trường hợp kế tiếp. Nó không phải mẫu để bỏ qua mọi `RuntimeException` trong mã ứng dụng.
+The `attempt()` method serves only to observe failure cases in the experiment: printing the exception name and continuing to the next case. It is not a pattern for ignoring all `RuntimeException`s in application code.
 
-## 4. Đọc luồng tra cứu có kiểu rõ ràng
+## 4. Reading the strongly typed lookup flow
 
-`parseTyped` có tham số `Class<E>` và trả về `E`. Khi truyền `RunMode.class`, bên sử dụng nhận trực tiếp `RunMode`:
+`parseTyped` has parameter `Class<E>` and returns `E`. When passing `RunMode.class`, the caller receives `RunMode` directly:
 
-1. `Enum.valueOf` tìm `FAST` trong đúng tập hằng của `RunMode`.
-2. Biến `typed` nhận hằng đó; so sánh với `RunMode.FAST` cho `true`.
-3. `RunMode.valueOf("FAST")` cũng cho cùng hằng.
-4. In `typed.name()` được `FAST`, nhưng in trực tiếp `typed` được `Fast execution` vì enum đã ghi đè `toString()`.
+1. `Enum.valueOf` finds `FAST` in `RunMode`'s exact set of constants.
+2. The `typed` variable receives that constant; comparing with `RunMode.FAST` yields `true`.
+3. `RunMode.valueOf("FAST")` also yields the same constant.
+4. Printing `typed.name()` produces `FAST`, whereas printing `typed` directly produces `Fast execution` because the enum overrode `toString()`.
 
-Điều này lý giải vì sao dùng nhãn hiển thị làm đầu vào cho `valueOf` không khớp với chính sách tra cứu. Nếu dữ liệu bên ngoài sử dụng `fast-code`, ứng dụng cần một phép tra cứu theo mã riêng và quy định cách xử lý mã không tồn tại.
+This explains why using a display label as input to `valueOf` does not match the lookup policy. If external data uses `fast-code`, the application needs a separate lookup by code and a rule for handling nonexistent codes.
 
-Cũng không nên đổi tên hằng tùy tiện nếu tên đó đã được dùng trong cấu hình hoặc dữ liệu trao đổi. Chuỗi cũ không tự biến thành tên mới chỉ vì enum đã được cập nhật.
+You should also not rename constants arbitrarily if those names are already used in configuration or interchange data. Old strings do not automatically turn into new names just because the enum was updated.
 
-## 5. Khi chỉ có `Class<?>` lúc chạy
+## 5. When only `Class<?>` is available at runtime
 
-Trong chương trình, `Class.forName("EnumValueOfDemo$RunMode")` trả `Class<?>`. Tên chứa `$` vì `RunMode` là enum lồng trong `EnumValueOfDemo`; đây là tên nhị phân dùng để tìm đúng lớp trong ví dụ.
+In the program, `Class.forName("EnumValueOfDemo$RunMode")` returns `Class<?>`. The name contains `$` because `RunMode` is a nested enum inside `EnumValueOfDemo`; this is the binary name used to locate the exact class in the example.
 
-Mặc dù đối tượng `Class` thực tế đại diện cho `RunMode`, biến `discovered` không giữ thông tin `Class<RunMode>` ở mức kiểu tĩnh. Do đó, đoạn sau **chủ đích không biên dịch**:
+Even though the `Class` object actually represents `RunMode`, the `discovered` variable does not retain `Class<RunMode>` information at the static type level. Consequently, the following snippet **intentionally fails to compile**:
 
 ```java
 Class<?> discovered = RunMode.class;
-// Lỗi biên dịch: Class<?> chưa đáp ứng ràng buộc Class<T> với T extends Enum<T>.
+// Compile error: Class<?> does not satisfy the Class<T> bound where T extends Enum<T>.
 Enum<?> value = Enum.valueOf(discovered, "FAST");
 ```
 
-`if (discovered.isEnum())` kiểm tra điều kiện lúc chạy, nhưng không tự đổi kiểu tĩnh của biến thành `Class<RunMode>`. Đây là khác biệt giữa **xác minh giá trị metadata** và **chứng minh quan hệ kiểu cho trình biên dịch**.
+`if (discovered.isEnum())` checks the condition at runtime, but does not automatically change the variable's static type to `Class<RunMode>`. This is the difference between **verifying metadata values** and **proving type relationships to the compiler**.
 
-### Ranh giới động trong hàm mẫu
+### The dynamic boundary in the sample method
 
-`parseRuntime` xử lý sự khác biệt này theo một ranh giới hẹp:
+`parseRuntime` handles this difference behind a narrow boundary:
 
-1. Từ chối `null` cho cả lớp và tên.
-2. Dùng `isEnum()` để bảo đảm lớp là một khai báo enum, không phải lớp thông thường hoặc lớp riêng của một hằng.
-3. Chỉ sau kiểm tra mới gọi hàm riêng `parseCheckedClass`.
-4. Hàm riêng cô lập phép ép kiểu chưa thể kiểm chứng đầy đủ lúc biên dịch, sau đó gọi `Enum.valueOf`.
-5. Bên ngoài chỉ nhận `Enum<?>`, vì bên gọi chưa biết kiểu enum cụ thể.
+1. Rejects `null` for both the class and the name.
+2. Uses `isEnum()` to ensure the class is an enum declaration, not a regular class or a constant's own class.
+3. Calls the private method `parseCheckedClass` only after the check.
+4. The private method isolates the cast that cannot be fully verified at compile time, then calls `Enum.valueOf`.
+5. Outside callers only receive `Enum<?>`, because the caller does not know the concrete enum type.
 
-`@SuppressWarnings("unchecked")` nằm ở đúng hàm có phép ép kiểu; nó **không thực hiện xác minh** và không khiến một lớp sai trở nên hợp lệ. Điều kiện `isEnum()` cùng việc chỉ gọi hàm riêng từ nhánh đã kiểm tra mới là căn cứ của thiết kế mẫu.
+`@SuppressWarnings("unchecked")` sits on the exact method containing the cast; it **does not perform verification** and does not make an invalid class valid. Only the `isEnum()` condition together with calling the private method solely from the checked branch forms the basis of the sample design.
 
-Không công khai hàm riêng đó như một phương thức cho phép bên gọi tùy ý chọn `E`. Nếu một người gọi được phép yêu cầu `E` khác với lớp truyền vào, kiểu trả về sẽ tạo ra một lời hứa sai. Hợp đồng công khai `Enum<?> parseRuntime(...)` tránh lời hứa đó.
+Do not expose that private method publicly as a method allowing callers to arbitrarily pick `E`. If a caller were allowed to request an `E` different from the passed class, the return type would make a false promise. The public contract `Enum<?> parseRuntime(...)` avoids that promise.
 
-Nếu lớp enum vẫn được biết trong phần lớn mã ứng dụng, hãy giữ `Class<E>` và dùng hàm có kiểu rõ ràng. Chỉ đưa phép ép kiểu vào nơi thật sự phải tiếp nhận `Class<?>`.
+If the enum class is still known throughout most of the application code, keep `Class<E>` and use a strongly typed helper. Only introduce the cast where `Class<?>` genuinely has to be accepted.
 
-### Phân biệt lỗi tìm lớp và lỗi tìm hằng
+### Distinguishing class-lookup errors from constant-lookup errors
 
-`Class.forName` có thể ném `ClassNotFoundException` trước khi tìm được đối tượng `Class`. `Enum.valueOf` lại xử lý bước tìm hằng bên trong kiểu đã xác định. Trong ví dụ, `main` khai báo `throws ClassNotFoundException` vì bước khám phá lớp; không phải vì `Enum.valueOf` ném ngoại lệ đó.
+`Class.forName` can throw `ClassNotFoundException` before a `Class` object is found. `Enum.valueOf`, by contrast, handles looking up the constant within an already-identified type. In the example, `main` declares `throws ClassNotFoundException` because of the class discovery step, not because `Enum.valueOf` throws that exception.
 
-Không cần tìm phương thức `valueOf` bằng `Method.invoke` chỉ để thực hiện phép tra cứu này. API `Enum.valueOf` đã nhận trực tiếp đối tượng `Class`.
+There is no need to look up the `valueOf` method via `Method.invoke` just to perform this lookup. The `Enum.valueOf` API already accepts a `Class` object directly.
 
-## 6. Cần truyền lớp khai báo enum
+## 6. Must pass the declaring enum class
 
-`RunMode.TURBO` có phần thân riêng để ghi đè `toString()`. Vì vậy, lớp thực tế từ `selected.getClass()` là một lớp vô danh của hằng, không phải chính khai báo `RunMode`.
+`RunMode.TURBO` has a constant-specific body overriding `toString()`. Therefore, the runtime class from `selected.getClass()` is an anonymous class for the constant, not the `RunMode` declaration itself.
 
-Trong thí nghiệm, `parseRuntime(selected.getClass(), "SAFE")` bị từ chối bởi `isEnum()`. Nhưng `parseRuntime(selected.getDeclaringClass(), "SAFE")` thành công. Với một giá trị `Enum<?>`, `getDeclaringClass()` trả lớp enum sở hữu hằng. [API `Class.isEnum()`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html#isEnum()) nêu rõ sự khác biệt này.
+In the experiment, `parseRuntime(selected.getClass(), "SAFE")` is rejected by `isEnum()`. However, `parseRuntime(selected.getDeclaringClass(), "SAFE")` succeeds. For an `Enum<?>` value, `getDeclaringClass()` returns the enum class owning the constant. The [`Class.isEnum()` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html#isEnum()) clearly states this difference.
 
-Không thay kiểm tra bằng việc chỉ hỏi lớp có kế thừa `Enum` hay không: lớp riêng của hằng vẫn kế thừa enum nhưng không phải khai báo enum cần dùng để tra cứu toàn bộ tập hằng.
+Do not replace the check by merely asking whether the class inherits `Enum`: a constant's own class still inherits from the enum, yet is not the enum declaration needed to look up the entire set of constants.
 
-## 7. Chuẩn hóa đầu vào là chính sách của ứng dụng
+## 7. Input normalization is an application policy
 
-`parseTyped(RunMode.class, " fast ")` không được làm cho thành công một cách ngầm định. Hàm `parseNormalized` trong chương trình tạo ra hợp đồng khác:
+`parseTyped(RunMode.class, " fast ")` is not made to succeed implicitly. The `parseNormalized` method in the program establishes a different contract:
 
 ```java
 String normalized = text.strip().toUpperCase(Locale.ROOT);
 return Enum.valueOf(enumType, normalized);
 ```
 
-Đây là đoạn trích từ hàm đã có trong chương trình, không phải chương trình độc lập. `Locale.ROOT` giúp việc đổi hoa thường không phụ thuộc ngôn ngữ mặc định của máy; đó là mục đích của [locale gốc](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Locale.html#ROOT).
+This is an excerpt from a method already in the program, not a standalone program. `Locale.ROOT` prevents case conversion from depending on the machine's default locale; that is the purpose of the [root locale](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Locale.html#ROOT).
 
-Trong thí nghiệm, quy ước tên hằng là chữ hoa, nên `" fast "` được đổi thành `"FAST"` rồi tra cứu thành công. Bạn phải lựa chọn chính sách này theo định dạng dữ liệu đang xử lý.
+In the experiment, the constant naming convention is uppercase, so `" fast "` is converted to `"FAST"` and the lookup succeeds. You must choose this policy based on the data format being processed.
 
-Không áp dụng chuẩn hóa một cách phổ quát: nếu một định dạng yêu cầu tên chính xác, khoảng trắng hoặc hoa thường sai cần được báo lỗi. Tên hằng Java cũng không bị bắt buộc phải là chữ hoa; một quy tắc đổi hoa có thể làm mất khác biệt giữa những tên mà ứng dụng muốn phân biệt.
+Do not apply normalization universally: if a format requires exact names, extra spaces or wrong casing should be reported as errors. Java constant names are also not required to be uppercase; a case-folding rule can erase distinctions between names that the application wants to distinguish.
 
-Chuẩn hóa tên vẫn không biến `fast-code` thành `FAST`, và cũng không biến nhãn nhiều từ thành tên hằng. Những ánh xạ đó cần một hợp đồng riêng.
+Name normalization still does not turn `fast-code` into `FAST`, nor does it turn multi-word labels into constant names. Those mappings require a separate contract.
 
-## 8. Xử lý lỗi và lỗi thường gặp
+## 8. Error handling and common mistakes
 
-| Tình huống | Hành vi hoặc cách xử lý |
+| Situation | Behavior or handling approach |
 | --- | --- |
-| Tên không tồn tại, sai hoa thường hoặc có khoảng trắng thừa | `IllegalArgumentException` từ tra cứu chính xác |
-| Tên là `null` | `NullPointerException` |
-| Lớp là `null` | `NullPointerException` |
-| `parseRuntime` nhận lớp không phải khai báo enum | Chủ động ném `IllegalArgumentException` trước khi ép kiểu |
-| Chỉ có `Class<?>` nhưng gọi trực tiếp `Enum.valueOf` | Lỗi biên dịch do chưa thỏa ràng buộc kiểu |
-| Truyền `String.class` vào lời gọi có kiểu chặt chẽ | Trình biên dịch không chấp nhận đó như một lớp enum |
-| Dùng nhãn hiển thị, mã nghiệp vụ hoặc chuỗi số | Không tự được hiểu như tên khai báo |
+| Name does not exist, wrong case, or extra spaces | `IllegalArgumentException` from exact lookup |
+| Name is `null` | `NullPointerException` |
+| Class is `null` | `NullPointerException` |
+| `parseRuntime` receives a non-enum-declaration class | Proactively throw `IllegalArgumentException` before casting |
+| Only have `Class<?>` yet call `Enum.valueOf` directly | Compile error because the type bound is not satisfied |
+| Passing `String.class` to a strongly typed call | The compiler rejects it as an enum class |
+| Using display labels, business codes, or numeric strings | Not automatically interpreted as declared names |
 
-Khi dữ liệu do người dùng cung cấp, hãy xử lý lỗi tra cứu ở ranh giới chuyển đổi và báo rõ giá trị không được hỗ trợ trong trường dữ liệu nào. Đừng tự chọn hằng đầu tiên làm mặc định chỉ để tránh lỗi: điều đó có thể đổi ý nghĩa yêu cầu mà bên sử dụng không biết.
+When data comes from users, handle lookup errors at the conversion boundary and report clearly which unsupported value appeared in which field. Do not silently pick the first constant as a default just to avoid errors: doing so can alter the meaning of the request without the caller knowing.
 
-Nếu ứng dụng muốn có kết quả dạng tùy chọn hoặc một kết quả chứa thông tin lỗi, hãy định nghĩa một hàm bao có hợp đồng đó. Bản thân `Enum.valueOf` không trả `null` hoặc `Optional.empty()` để báo tên không tồn tại.
+If the application wants an optional result or a result carrying error information, define a wrapper method with that contract. `Enum.valueOf` itself does not return `null` or `Optional.empty()` to report a nonexistent name.
 
-Chỉ bắt ngoại lệ bạn thực sự biết cách xử lý. Lỗi do truyền lớp sai vào một bộ chuyển đổi nội bộ thường cần được sửa ở cấu hình hoặc mã gọi; nó không nên bị giấu chung với lỗi nhập sai tên hằng.
+Only catch exceptions you actually know how to handle. An error from passing the wrong class to an internal converter usually needs to be fixed in configuration or calling code; it should not be lumped together with invalid constant-name input errors.
 
-### Tự kiểm tra
+### Self-check
 
-1. Vì sao cần truyền cả `Class` lẫn tên hằng, thay vì chỉ truyền chuỗi `"FAST"`?
-2. Vì sao `RunMode.class` dùng được trực tiếp nhưng biến `Class<?>` cần thêm xử lý?
-3. Nếu đổi `toString()` thành một nhãn khác, lời gọi với `"FAST"` có bị đổi ý nghĩa không?
-4. Vì sao `isEnum()` trả `true` không tự thay đổi kiểu tĩnh của biến?
-5. Với một hằng có phần thân riêng, nên lấy `Class` bằng phương thức nào để tra cứu hằng cùng enum?
-6. Khi nào việc tự cắt khoảng trắng và đổi chữ hoa là hợp đồng đúng, và khi nào nên báo đầu vào không hợp lệ?
+1. Why do you need to pass both `Class` and the constant name, instead of just the string `"FAST"`?
+2. Why can `RunMode.class` be used directly while a `Class<?>` variable requires extra handling?
+3. If `toString()` is changed to another label, does the call with `"FAST"` change its meaning?
+4. Why does `isEnum()` returning `true` not automatically change the variable's static type?
+5. With a constant that has a constant-specific body, which method should you use to get the `Class` for looking up constants of the same enum?
+6. When is trimming spaces and uppercasing the right contract, and when should invalid input be reported?
 
-Cần nhớ ba thông tin khi áp dụng: **đúng lớp khai báo enum, đúng tên khai báo của hằng, và đúng ranh giới giữa thông tin kiểu tĩnh với metadata lúc chạy**.
+Keep three facts in mind when applying this: **the right declaring enum class, the right declared constant name, and the right boundary between static type information and runtime metadata**.

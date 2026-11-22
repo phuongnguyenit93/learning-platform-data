@@ -1,40 +1,40 @@
-# Regex khớp độ rộng bằng 0 và dấu phân cách có độ rộng trong Java String.split()
+# Zero-Width Regex Matches and Positive-Width Delimiters in Java String.split()
 
-## 1. Phân biệt hai kiểu khớp
+## 1. Distinguishing the two match types
 
-Trong Java, **String.split(String regex)** tách chuỗi theo **biểu thức chính quy (regex)**. Bản chất của một lần regex khớp quyết định ranh giới và phần tử kết quả.
+In Java, **String.split(String regex)** splits a string according to a **regular expression (regex)**. The nature of a regex match determines the boundaries and the resulting elements.
 
-- **Khớp có độ rộng dương (positive-width match)** tiêu thụ một hoặc nhiều ký tự. Ví dụ, regex ":" khớp và tiêu thụ dấu hai chấm. Ký tự được tiêu thụ không xuất hiện trong các token.
-- **Khớp độ rộng bằng 0 (zero-width match)** chỉ khớp một **vị trí giữa các ký tự**, không tiêu thụ ký tự nào. Ví dụ, "(?=:)" khớp ngay *trước* dấu hai chấm; "(?<=:)" khớp ngay *sau* dấu hai chấm. Dấu phân cách vẫn thuộc một token vì không bị tiêu thụ.
+- A **positive-width match** consumes one or more characters. For example, the regex ":" matches and consumes a colon. Consumed characters do not appear in the tokens.
+- A **zero-width match** only matches a **position between characters**, consuming no characters at all. For example, "(?=:)" matches right *before* a colon; "(?<=:)" matches right *after* a colon. The delimiter still belongs to one of the tokens because it is not consumed.
 
-Các anchor "^" (đầu chuỗi), "$" (cuối chuỗi), lookahead "(?=...)" và lookbehind "(?<=...)" thường tạo ra khớp độ rộng 0. Đừng nhầm **độ dài biểu thức regex** với **độ rộng của lần khớp**: biểu thức "(?=:)" nhiều ký tự nhưng vẫn tiêu thụ 0 ký tự.
+Anchors "^" (start of string), "$" (end of string), lookahead "(?=...)", and lookbehind "(?<=...)" commonly produce zero-width matches. Do not confuse **the length of a regex expression** with **the width of a match**: the expression "(?=:)" has multiple characters yet consumes 0 characters.
 
-**Quy tắc quan trọng nhất của String.split:** nếu regex khớp **độ rộng 0 ở ngay đầu chuỗi**, lần khớp đó **không tạo phần tử rỗng đầu tiên**. Trái lại, nếu regex khớp **độ rộng dương ở đầu**, nó **tạo phần tử rỗng đầu tiên**. Hai hành vi này khác nhau ngay cả khi sử dụng cùng một giá trị **limit**.
+**The most important rule of String.split:** if a regex produces a **zero-width match right at the start of the string**, that match **does not create a leading empty element**. Conversely, if a regex produces a **positive-width match at the start**, it **does create a leading empty element**. These two behaviors differ even when using the same **limit** value.
 
-## 2. Cùng chuỗi, khác regex
+## 2. Same string, different regexes
 
-Xét đầu vào **":a:b"**:
+Consider the input **":a:b"**:
 
 ~~~text
-Ranh giới:  0   1   2   3   4
-Ký tự:       :   a   :   b
+Boundary:   0   1   2   3   4
+Character:   :   a   :   b
 ~~~
 
-| Regex | Đặc điểm khớp | Các token kết quả |
+| Regex | Match characteristics | Resulting tokens |
 | --- | --- | --- |
-| ":" | Tiêu thụ hai dấu ":" ở chỉ số ký tự 0 và 2 | ["", "a", "b"] |
-| "(?=:)" | Lookahead độ rộng 0 trước hai dấu ":" | [":a", ":b"] |
-| "(?<=:)" | Lookbehind độ rộng 0 sau hai dấu ":" | [":", "a:", "b"] |
+| ":" | Consumes the two ":" characters at character indices 0 and 2 | ["", "a", "b"] |
+| "(?=:)" | Zero-width lookahead before the two ":" characters | [":a", ":b"] |
+| "(?<=:)" | Zero-width lookbehind after the two ":" characters | [":", "a:", "b"] |
 
-**Với ":"**, dấu hai chấm tại chỉ số 0 bị tiêu thụ; đoạn trước nó là chuỗi rỗng, vì vậy token đầu là "". Dấu phân cách không còn trong kết quả.
+**With ":"**, the colon at index 0 is consumed; the segment before it is the empty string, so the first token is "". The delimiter is no longer in the result.
 
-**Với "(?=:)"**, regex chỉ kiểm tra ký tự tiếp theo có phải ":" hay không. Nó khớp tại ranh giới 0 và 2. Lần khớp độ rộng 0 tại ranh giới 0 không tạo token rỗng; ranh giới 2 tách ":a" và ":b". Hai dấu ":" vẫn ở đầu các token vì không bị tiêu thụ.
+**With "(?=:)"**, the regex only checks whether the next character is ":". It matches at boundaries 0 and 2. The zero-width match at boundary 0 does not create an empty token; boundary 2 separates ":a" and ":b". Both ":" characters remain at the start of the tokens because they were not consumed.
 
-**Với "(?<=:)"**, regex khớp các ranh giới 1 và 3 ngay sau dấu ":". Vì vậy dấu hai chấm đứng cuối token phía trước: [":", "a:", "b"].
+**With "(?<=:)"**, the regex matches boundaries 1 and 3 right after ":". Therefore, the colon stays at the end of the preceding token: [":", "a:", "b"].
 
-## 3. Chương trình Java 17+ chạy độc lập
+## 3. Standalone Java 17+ program
 
-Lưu đoạn sau thành **ZeroWidthSplitDemo.java**:
+Save the following as **ZeroWidthSplitDemo.java**:
 
 ~~~java
 import java.util.Arrays;
@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 
 public class ZeroWidthSplitDemo {
     private static void show(String label, String[] parts) {
-        // Bọc mỗi token trong dấu nháy để thấy rõ chuỗi rỗng.
+        // Wrap each token in quotes so empty strings are clearly visible.
         String visible = Arrays.stream(parts)
                 .map(s -> "'" + s + "'")
                 .collect(Collectors.joining(", ", "[", "]"));
@@ -67,14 +67,14 @@ public class ZeroWidthSplitDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac ZeroWidthSplitDemo.java
 java ZeroWidthSplitDemo
 ~~~
 
-Kết quả chính xác:
+Exact output:
 
 ~~~text
 positive ':' -> ['', 'a', 'b'] (n=3)
@@ -88,98 +88,98 @@ positive -1 -> ['a', 'b', '', ''] (n=4)
 positive 2 -> ['a', 'b,,'] (n=2)
 ~~~
 
-Hàm **show** bọc từng token bằng dấu nháy đơn và in **n** (số phần tử). Cách này giúp phân biệt token rỗng với mảng rỗng; **Arrays.toString** mặc định không tự bọc nháy chuỗi và rất dễ gây hiểu nhầm khi các token là "".
+The **show** method wraps each token in single quotes and prints **n** (the element count). This helps distinguish empty tokens from an empty array; **Arrays.toString** does not wrap strings in quotes by default and easily causes confusion when tokens are "".
 
-## 4. Vì sao khớp độ rộng 0 vẫn tách được?
+## 4. Why can zero-width matches still split?
 
-Có thể hình dung thuật toán:
+You can picture the algorithm as follows:
 
-1. Tìm lần khớp của regex theo thứ tự từ trái sang phải.
-2. Đưa đoạn trước lần khớp vào một token, sau đó bắt đầu xem đoạn còn lại từ **cuối phần regex đã khớp**.
-3. Nếu lần khớp tiêu thụ ký tự, những ký tự đó đóng vai trò dấu phân cách và bị bỏ. Nếu lần khớp có độ rộng 0, ranh giới vẫn có thể chia chuỗi nhưng **không xóa ký tự**.
-4. Xử lý phần còn lại và các token rỗng cuối theo giá trị **limit**.
+1. Find regex matches from left to right.
+2. Put the segment before the match into a token, then resume scanning the remainder from **the end of the matched regex**.
+3. If the match consumed characters, those characters act as the delimiter and are discarded. If the match has zero width, the boundary can still split the string, but **no characters are removed**.
+4. Handle the remainder and trailing empty tokens according to the **limit** value.
 
-Riêng một lần khớp **độ rộng 0 ở index 0** không sinh token "". Nếu regex khớp **độ rộng dương ở index 0** thì token đầu "" vẫn được sinh. Các lần khớp độ rộng 0 ở giữa chuỗi vẫn tạo ranh giới như thường; Java xử lý tiến trình tìm khớp để tránh tìm mãi cùng một vị trí.
+Specifically, a **zero-width match at index 0** does not produce a "" token. If the regex produces a **positive-width match at index 0**, the leading "" token is produced. Zero-width matches in the middle of the string still create boundaries as usual; Java advances the match search to avoid repeatedly matching the same position.
 
-Các anchor ở hai đầu cho thấy sự khác biệt:
+Anchors at the two ends show the difference:
 
-- **"abc".split("^", -1)** → ["abc"]. "^" khớp độ rộng 0 ở đầu, nên không có token "" đầu dù limit âm.
-- **"abc".split("$", -1)** → ["abc", ""]. "$" khớp độ rộng 0 ở cuối, tạo token "" cuối và limit -1 giữ lại.
-- **"abc".split("$")** → ["abc"]. limit mặc định 0 loại token rỗng ở cuối.
-- **"abc".split("", -1)** → ["a", "b", "c", ""]. Regex rỗng có thể khớp nhiều ranh giới: không tạo "" đầu nhưng vẫn có thể tạo "" cuối khi limit âm.
+- **"abc".split("^", -1)** → ["abc"]. "^" is a zero-width match at the start, so there is no leading "" token even with a negative limit.
+- **"abc".split("$", -1)** → ["abc", ""]. "$" is a zero-width match at the end, creating a trailing "" token, and limit -1 keeps it.
+- **"abc".split("$")** → ["abc"]. The default limit 0 removes trailing empty tokens.
+- **"abc".split("", -1)** → ["a", "b", "c", ""]. An empty regex can match multiple boundaries: it does not create a leading "" but can still create a trailing "" when limit is negative.
 
-## 5. Đừng nhầm với tham số limit
+## 5. Do not confuse this with the limit parameter
 
-**String.split(regex)** tương đương **String.split(regex, 0)**. Tham số **limit** có tác động sau:
+**String.split(regex)** is equivalent to **String.split(regex, 0)**. The **limit** parameter has the following effects:
 
-| limit | Ý nghĩa | "a,b,," với regex "," |
+| limit | Meaning | "a,b,," with regex "," |
 | --- | --- | --- |
-| **0** (mặc định) | Tách không giới hạn, **bỏ các token rỗng ở cuối** | ["a", "b"] |
-| **Âm**, ví dụ **-1** | Tách không giới hạn, **giữ token rỗng ở cuối** | ["a", "b", "", ""] |
-| **Dương**, ví dụ **2** | Tách tối đa **limit - 1** lần, token cuối chứa nguyên phần còn lại | ["a", "b,,"] |
-| **1** | Không tách, trả về nguyên chuỗi | ["a,b,,"] |
+| **0** (default) | Unlimited splits, **discards trailing empty tokens** | ["a", "b"] |
+| **Negative**, e.g. **-1** | Unlimited splits, **keeps trailing empty tokens** | ["a", "b", "", ""] |
+| **Positive**, e.g. **2** | At most **limit - 1** splits; last token holds the entire remainder | ["a", "b,,"] |
+| **1** | No splits; returns the original string | ["a,b,,"] |
 
-**Phân biệt rõ:** limit 0 chỉ bỏ các phần tử **rỗng ở cuối**. Nó không tự bỏ token rỗng **ở đầu hay ở giữa** do delimiter có độ rộng tạo ra. Vì vậy **":a:b".split(":")** là ["", "a", "b"] mặc dù limit mặc định bằng 0.
+**Make a clear distinction:** limit 0 only discards **trailing empty** elements. It does not automatically remove **leading or middle** empty tokens created by a positive-width delimiter. Therefore **":a:b".split(":")** is ["", "a", "b"] even though the default limit is 0.
 
-Trong khi đó, **":a:b".split("(?=:)")** không có token rỗng đầu **vì quy tắc khớp độ rộng 0 tại đầu**, chứ không phải vì limit 0 xóa token đó. Quy tắc tại đầu vẫn đúng nếu limit = -1.
+Meanwhile, **":a:b".split("(?=:)")** has no leading empty token **because of the zero-width match rule at the start**, not because limit 0 deleted that token. The rule at the start still holds if limit = -1.
 
-Limit dương là **mức tối đa**, không phải lời hứa số token luôn đúng bằng limit: nếu không đủ lần khớp, mảng kết quả có thể ít phần tử hơn.
+A positive limit is a **maximum**, not a guarantee that the token count will always equal limit: if there are not enough matches, the resulting array may have fewer elements.
 
-## 6. Chọn biểu thức theo nhu cầu
+## 6. Choosing an expression for your needs
 
-**Loại dấu phân cách khỏi kết quả:** dùng regex tiêu thụ ký tự, chẳng hạn:
+**Remove the delimiter from the result:** use a character-consuming regex, for example:
 
 ~~~java
 String[] words = "red:green:blue".split(":");
 // ["red", "green", "blue"]
 ~~~
 
-**Giữ dấu phân cách ở đầu token tiếp theo:** dùng lookahead:
+**Keep the delimiter at the start of the next token:** use a lookahead:
 
 ~~~java
 String[] words = "red:green:blue".split("(?=:)");
  // ["red", ":green", ":blue"]
 ~~~
 
-**Giữ dấu phân cách ở cuối token phía trước:** dùng lookbehind:
+**Keep the delimiter at the end of the preceding token:** use a lookbehind:
 
 ~~~java
 String[] words = "red:green:blue".split("(?<=:)");
  // ["red:", "green:", "blue"]
 ~~~
 
-Ba đoạn code trên là các mảnh minh họa có thể đặt trong phương thức. Lookahead/lookbehind chỉ **kiểm tra ngữ cảnh**, nên dấu phân cách vẫn được giữ.
+The three snippets above are illustrative fragments that can be placed inside a method. Lookahead/lookbehind only **inspect context**, so the delimiter is preserved.
 
-**Cẩn thận ký tự đặc biệt trong regex:** dấu chấm "." là regex khớp gần như mọi ký tự, không phải dấu chấm nguyên văn. Vì thế **"a.b.c".split(".")** không trả về ["a", "b", "c"]; với limit 0, kết quả là mảng không phần tử vì các token rỗng cuối bị loại. Tách theo dấu chấm thật bằng escape hoặc **Pattern.quote**:
+**Beware of special regex characters:** the dot "." is a regex matching almost any character, not a literal period. Thus **"a.b.c".split(".")** does not return ["a", "b", "c"]; with limit 0, the result is an empty array because all trailing empty tokens are discarded. Split on a literal dot using escaping or **Pattern.quote**:
 
 ~~~java
 String[] a = "a.b.c".split("\\.");
 String[] b = "a.b.c".split(java.util.regex.Pattern.quote("."));
-// Cả hai đều có kết quả ["a", "b", "c"].
+// Both produce ["a", "b", "c"].
 ~~~
 
-Cần phân biệt **escape trong chuỗi Java** và **escape trong regex**: chuỗi Java "\\." tạo regex khớp dấu chấm nguyên văn. Với dấu "|" nguyên văn, có thể dùng "\\|" hoặc **Pattern.quote("|")**.
+Distinguish between **Java string escaping** and **regex escaping**: the Java string "\\." produces the regex that matches a literal dot. For a literal "|", you can use "\\|" or **Pattern.quote("|")**.
 
-## 7. Những lỗi thường gặp
+## 7. Common mistakes
 
-1. **Cho rằng zero-width không thể tách:** nó vẫn xác định ranh giới, chỉ không xóa ký tự.
-2. **Mong lookahead ở đầu sinh token rỗng:** lần khớp có độ rộng 0 tại index 0 được bỏ qua cho việc tạo token đầu.
-3. **Tưởng limit mặc định loại tất cả token rỗng:** chỉ các token rỗng **ở cuối** mới bị loại.
-4. **Nhầm "^" và "$" với ký tự phân cách:** đây là anchor vị trí; chúng không tiêu thụ dấu phân cách có ký tự.
-5. **Dùng "." hoặc "|" chưa escape như ký tự nguyên văn:** đối số của split là regex, nên cần escape hoặc dùng Pattern.quote.
-6. **Không kiểm tra số token khi in mảng:** các token "" khó nhìn thấy nếu không bọc nháy và in parts.length.
+1. **Assuming zero-width matches cannot split:** they still define boundaries; they just do not remove characters.
+2. **Expecting a leading lookahead to produce an empty token:** a zero-width match at index 0 is skipped for creating a leading token.
+3. **Thinking the default limit removes all empty tokens:** only **trailing** empty tokens are removed.
+4. **Confusing "^" and "$" with delimiter characters:** these are position anchors; they do not consume character delimiters.
+5. **Using unescaped "." or "|" as literal characters:** the argument to split is a regex, so escape them or use Pattern.quote.
+6. **Not checking token counts when printing arrays:** "" tokens are hard to see without wrapping in quotes and printing parts.length.
 
-### Bài tập có đáp án
+### Exercises with answers
 
-**Bài 1:** Chuỗi "::x" khi tách theo hai biểu thức sau có kết quả gì?
+**Exercise 1:** What does the string "::x" produce when split by the following two expressions?
 
-- **"::x".split(":")** → ["", "", "x"]. Hai lần khớp tiêu thụ hai dấu ":" liên tiếp; có token rỗng đầu và giữa.
-- **"::x".split("(?=:)")** → [":", ":x"]. Lần khớp độ rộng 0 ở đầu không sinh token rỗng; lần khớp tại vị trí 1 tách chuỗi nhưng giữ dấu hai chấm.
+- **"::x".split(":")** → ["", "", "x"]. Two matches consume the two consecutive ":" characters; there are leading and middle empty tokens.
+- **"::x".split("(?=:)")** → [":", ":x"]. The leading zero-width match produces no empty token; the match at index 1 splits the string while keeping the colons.
 
-**Bài 2:** Vì sao **"x:".split("(?<=:)", -1)** cho ["x:", ""]?
+**Exercise 2:** Why does **"x:".split("(?<=:)", -1)** give ["x:", ""]?
 
-- Lookbehind tạo ranh giới độ rộng 0 **sau** dấu ":" ở cuối chuỗi. limit -1 giữ token rỗng cuối; nếu dùng limit mặc định 0, token này bị loại.
+- The lookbehind creates a zero-width boundary **after** the ":" at the end of the string. limit -1 keeps the trailing empty token; with the default limit 0, this token is discarded.
 
-## 8. Ghi nhớ
+## 8. Remember
 
-Trước khi gọi **String.split**, hãy tự hỏi: **(1)** regex có tiêu thụ ký tự không, **(2)** lần khớp có độ rộng 0 tại ngay đầu chuỗi không, và **(3)** limit có giữ token rỗng ở cuối không. Ba câu hỏi giải thích trực tiếp sự khác nhau giữa zero-width regex và dấu phân cách có độ rộng trong Java.
+Before calling **String.split**, ask yourself: **(1)** does the regex consume characters, **(2)** is there a zero-width match right at the start of the string, and **(3)** does limit keep trailing empty tokens? These three questions directly explain the difference between zero-width regexes and positive-width delimiters in Java.

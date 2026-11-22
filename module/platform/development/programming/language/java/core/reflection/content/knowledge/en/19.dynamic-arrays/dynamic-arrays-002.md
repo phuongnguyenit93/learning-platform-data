@@ -1,32 +1,32 @@
-# Tạo mảng nhiều chiều và ý nghĩa của danh sách kích thước trong Java Reflection
+# Creating Multidimensional Arrays and the Meaning of the Dimensions List in Java Reflection
 
-Khi kiểu phần tử, số chiều hoặc độ dài mảng chỉ được biết lúc chạy, Java cung cấp **java.lang.reflect.Array.newInstance(Class<?> componentType, int... dimensions)**. Phương thức tạo một mảng thật ở runtime, dùng **componentType** xác định kiểu và mảng số nguyên **dimensions** xác định độ dài các chiều cần cấp phát.
+When the element type, number of dimensions, or array lengths are only known at runtime, Java provides **java.lang.reflect.Array.newInstance(Class<?> componentType, int... dimensions)**. The method creates a real array at runtime, using **componentType** to determine the type and the integer array **dimensions** to determine the lengths of the dimensions to allocate.
 
-Quan trọng nhất: **mỗi phần tử của dimensions là độ dài của một chiều, theo thứ tự từ ngoài vào trong**. Đây không phải danh sách chỉ số, không phải giới hạn trên bao gồm, và cũng không phải các độ dài của những hàng khác nhau. Ví dụ:
+Most importantly: **each element of dimensions is the length of one dimension, ordered from outermost to innermost**. This is not a list of indices, not an inclusive upper bound, and not the lengths of different rows. For example:
 
 ~~~java
 int[][] matrix = (int[][]) java.lang.reflect.Array.newInstance(int.class, 2, 3);
 ~~~
 
-Kết quả tương đương về kiểu và hình dạng ban đầu với **new int[2][3]**: 2 hàng, mỗi hàng có 3 phần tử int mặc định bằng 0.
+The result is equivalent in type and initial shape to **new int[2][3]**: 2 rows, each with 3 int elements defaulting to 0.
 
-Bài học đi sâu vào ý nghĩa dimensions, đặc biệt khi **componentType vốn đã là array class**, cách cấp phát từng phần để dựng mảng răng cưa, trường hợp kích thước 0, ngoại lệ và thao tác kiểm chứng bằng Reflection.
+This lesson dives deeper into the meaning of dimensions, especially when **componentType is already an array class**, partial allocation to build jagged arrays, the zero-size case, exceptions, and verification operations using Reflection.
 
-## 1. Hai overload của Array.newInstance
+## 1. The Two Overloads of Array.newInstance
 
-Lớp java.lang.reflect.Array cung cấp:
+The java.lang.reflect.Array class provides:
 
 ~~~java
 static Object newInstance(Class<?> componentType, int length)
 static Object newInstance(Class<?> componentType, int... dimensions)
 ~~~
 
-- **newInstance(componentType, length):** tạo một mảng ngoài có độ dài length, chứa phần tử thuộc componentType. Nếu componentType là kiểu mảng, phần tử ngoài là tham chiếu đến mảng con, ban đầu null.
-- **newInstance(componentType, dimensions):** nhận một hay nhiều số nguyên để tạo các chiều ngoài tương ứng. Dạng int... cho phép truyền các số rời hoặc một int[].
-- **Kết quả tĩnh là Object:** vì componentType có thể thay đổi tại runtime. Đối tượng thực tế vẫn là một Java array mang class đúng kiểu; có thể cast hoặc thao tác tiếp bằng Array.get, Array.set, Array.getLength.
-- **componentType hợp lệ:** kiểu primitive như int.class, tham chiếu như String.class, hoặc class của mảng như String[].class. Không thể là void.class.
+- **newInstance(componentType, length):** creates an outer array of length `length`, holding elements of `componentType`. If `componentType` is an array type, the outer elements are references to subarrays, initially `null`.
+- **newInstance(componentType, dimensions):** accepts one or more integers to create the corresponding outer dimensions. The `int...` form allows passing separate integers or an `int[]`.
+- **Static result is Object:** because `componentType` can vary at runtime. The actual object is still a Java array carrying the right class type; you can cast it or operate on it further using `Array.get`, `Array.set`, `Array.getLength`.
+- **Valid componentType:** a primitive type such as `int.class`, a reference type such as `String.class`, or an array class such as `String[].class`. Cannot be `void.class`.
 
-Ví dụ hai biểu thức đầu tạo mảng cùng hình dạng với biểu thức cuối, nhưng mỗi lần gọi đều cấp phát đối tượng mới:
+Example where the first two expressions create arrays of the same shape as the last expression, though each call allocates a new object:
 
 ~~~java
 Object first = Array.newInstance(String.class, 4, 5);
@@ -34,45 +34,45 @@ Object second = Array.newInstance(String.class, new int[] {4, 5});
 String[][] third = new String[4][5];
 ~~~
 
-Các ví dụ sử dụng **import java.lang.reflect.Array;**. Cả first, second và third đều có runtime class String[][], nhưng không tham chiếu cùng một mảng.
+These examples use **import java.lang.reflect.Array;**. `first`, `second`, and `third` all have runtime class `String[][]`, but do not reference the same array.
 
-## 2. Đọc chính xác danh sách dimensions
+## 2. Reading the dimensions List Accurately
 
-Với componentType là một class **không phải mảng**, số chiều kết quả bằng đúng **dimensions.length**:
+When `componentType` is a **non-array** class, the resulting number of dimensions equals **dimensions.length**:
 
-| Gọi Array.newInstance | Kiểu runtime | Độ dài các chiều được cấp phát | Số slot cuối |
+| Array.newInstance Call | Runtime Type | Allocated Dimension Lengths | Leaf Slot Count |
 | --- | --- | --- | --- |
 | (int.class, 5) | int[] | 5 | 5 |
-| (int.class, 2, 3) | int[][] | 2 rồi 3 | 6 |
-| (int.class, 2, 3, 4) | int[][][] | 2 rồi 3 rồi 4 | 24 |
-| (String.class, 3, 2) | String[][] | 3 rồi 2 | 6 |
-| (String.class, 2, 0, 4) | String[][][] | 2 rồi 0; chiều sâu không có vị trí tiếp cận | 0 |
+| (int.class, 2, 3) | int[][] | 2 then 3 | 6 |
+| (int.class, 2, 3, 4) | int[][][] | 2 then 3 then 4 | 24 |
+| (String.class, 3, 2) | String[][] | 3 then 2 | 6 |
+| (String.class, 2, 0, 4) | String[][][] | 2 then 0; deeper dimension has no reachable position | 0 |
 
-Nếu truyền **{2, 3, 4}**, ta đọc:
+If **{2, 3, 4}** is passed, we read it as:
 
-1. **dimensions[0] = 2:** mảng ngoài chứa hai phần tử.
-2. **dimensions[1] = 3:** mỗi phần tử ngoài chứa một mảng có ba phần tử.
-3. **dimensions[2] = 4:** mỗi phần tử ở tầng hai chứa một mảng có bốn phần tử cuối.
+1. **dimensions[0] = 2:** the outer array contains two elements.
+2. **dimensions[1] = 3:** each outer element contains an array with three elements.
+3. **dimensions[2] = 4:** each second-level element contains an array with four leaf elements.
 
-Với int[][] kích thước 2 × 3, cấu trúc ban đầu là:
+For an `int[][]` of size 2 × 3, the initial structure is:
 
 ~~~text
 int[][] data, data.length = 2
     data[0] -> int[3] = [0, 0, 0]
     data[1] -> int[3] = [0, 0, 0]
 
-data[1][2] -> phần tử thứ ba của hàng thứ hai.
+data[1][2] -> third element of the second row.
 ~~~
 
-Chỉ số của chiều có độ dài 2 là 0 và 1; chỉ số của chiều có độ dài 3 là 0, 1 và 2. Nếu truy cập data[2] trong mảng ngoài dài 2, sẽ nhận **ArrayIndexOutOfBoundsException**.
+The indices of a dimension of length 2 are 0 and 1; the indices of a dimension of length 3 are 0, 1, and 2. Accessing `data[2]` in an outer array of length 2 throws **ArrayIndexOutOfBoundsException**.
 
-**Tích các kích thước** có thể cho số vị trí phần tử cuối về mặt logic nếu toàn bộ các chiều đến kiểu phần tử cuối đều được cấp phát. Nó không cho biết trực tiếp số byte heap, vì Java cấp phát các đối tượng mảng con và overhead riêng.
+The **product of the sizes** can give the logical number of leaf element positions if all dimensions down to the leaf element type are allocated. It does not directly indicate the number of heap bytes, because Java allocates separate subarray objects and per-object overhead.
 
-## 3. Mảng nhiều chiều thực chất là mảng của mảng
+## 3. A Multidimensional Array Is Actually an Array of Arrays
 
-Trong Java, int[][] là một mảng mà mỗi phần tử có kiểu int[]. Tương tự String[][][] chứa các phần tử có kiểu String[][]. Đây không phải mô hình bắt buộc mọi hàng luôn cùng kích thước.
+In Java, `int[][]` is an array where each element has type `int[]`. Similarly, `String[][][]` contains elements of type `String[][]`. This is not a model that enforces every row to always have the same size.
 
-Khi gọi Array.newInstance(int.class, 2, 3), Java tạo hình dạng ban đầu đều nhau: hai mảng con dài 3. Nhưng sau đó ta vẫn có thể thay một mảng con bằng mảng có độ dài khác:
+When calling `Array.newInstance(int.class, 2, 3)`, Java creates an initially uniform shape: two subarrays of length 3. However, afterward you can still replace one subarray with an array of a different length:
 
 ~~~java
 int[][] rows = new int[3][];
@@ -84,27 +84,27 @@ System.out.println(rows.length);     // 3
 System.out.println(rows[1].length);  // 4
 ~~~
 
-Đây là **mảng răng cưa (jagged/ragged array)**, có ba hàng dài 1, 4, 2. Mỗi hàng là đối tượng riêng, nên Java không có một thuộc tính bất biến bắt buộc mọi hàng đều dài như nhau.
+This is a **jagged/ragged array**, having three rows of lengths 1, 4, 2. Each row is a separate object, so Java has no invariant requiring all rows to have the same length.
 
-**Cần phân biệt:** danh sách {1, 4, 2} đưa vào Array.newInstance(int.class, 1, 4, 2) sẽ tạo **mảng ba chiều**, không phải một mảng hai chiều có ba hàng dài 1, 4, 2.
+**Distinction needed:** passing the list `{1, 4, 2}` to `Array.newInstance(int.class, 1, 4, 2)` creates a **three-dimensional array**, not a two-dimensional array with three rows of lengths 1, 4, 2.
 
-## 4. Khi componentType đã là mảng: số chiều tăng thêm
+## 4. When componentType Is Already an Array: The Dimension Count Increases
 
-Theo Javadoc, nếu componentType **không phải array class**, số chiều kết quả là số phần tử trong dimensions. Nhưng nếu componentType **đã là array class**, số chiều cuối bằng:
+According to the Javadoc, if `componentType` is **not an array class**, the resulting number of dimensions is the number of elements in `dimensions`. However, if `componentType` **is already an array class**, the final number of dimensions equals:
 
-**rank của componentType + dimensions.length**
+**rank of componentType + dimensions.length**
 
-Các số trong dimensions dùng để cấp phát **những tầng mảng mới ở bên ngoài**. Các tầng vốn nằm trong array-typed component **chưa được cấp phát**; phần tử đại diện cho mảng con ở mức cuối được tạo ban đầu là null.
+The numbers in `dimensions` are used to allocate **new outer array layers**. The layers already present inside the array-typed component **are not allocated**; elements representing the subarray at the last created level are initially `null`.
 
-| Lời gọi | Kiểu runtime | Đã cấp phát |
+| Call | Runtime Type | Allocated |
 | --- | --- | --- |
-| Array.newInstance(String.class, 2) | String[] | 2 ô String, mặc định null |
-| Array.newInstance(String.class, 2, 3) | String[][] | Hai hàng, mỗi hàng 3 ô String |
-| Array.newInstance(String[].class, 2) | String[][] | Chỉ mảng ngoài dài 2; mỗi String[] ban đầu null |
-| Array.newInstance(String[].class, 2, 3) | String[][][] | Hai chiều ngoài 2 × 3; mỗi String[] cuối ban đầu null |
-| Array.newInstance(int[][].class, 2, 3) | int[][][][] | Hai tầng ngoài 2 × 3; mỗi int[][] tại tầng kế tiếp ban đầu null |
+| Array.newInstance(String.class, 2) | String[] | 2 String slots, default null |
+| Array.newInstance(String.class, 2, 3) | String[][] | Two rows, each row has 3 String slots |
+| Array.newInstance(String[].class, 2) | String[][] | Only outer array of length 2; each String[] initially null |
+| Array.newInstance(String[].class, 2, 3) | String[][][] | Two outer dimensions 2 × 3; each final String[] initially null |
+| Array.newInstance(int[][].class, 2, 3) | int[][][][] | Two outer layers 2 × 3; each int[][] at the next layer initially null |
 
-Hai lời gọi khác nhau có thể cho **cùng runtime type** nhưng cấp phát các tầng khác nhau:
+Two different calls can yield the **same runtime type** while allocating different layers:
 
 ~~~java
 String[][] full = (String[][]) Array.newInstance(String.class, 2, 3);
@@ -114,11 +114,11 @@ System.out.println(full[0].length); // 3
 System.out.println(outerOnly[0]);    // null
 ~~~
 
-Với outerOnly, truy cập outerOnly[0].length khi chưa gán sẽ ném **NullPointerException**, không phải trả 0. Ngược lại, full đã có các mảng con dài 3.
+With `outerOnly`, accessing `outerOnly[0].length` before assignment throws **NullPointerException**, rather than returning 0. Conversely, `full` already has subarrays of length 3.
 
-Có thể hình dung **Array.newInstance(String[].class, 2, 3)** tương đương về hình dạng ban đầu với **new String[2][3][]**. Kiểu có ba chiều nhưng chỉ hai chiều đầu được cấp phát.
+You can think of **Array.newInstance(String[].class, 2, 3)** as equivalent in initial shape to **new String[2][3][]**. The type has three dimensions, but only the first two dimensions are allocated.
 
-### Class.getComponentType chỉ bỏ một tầng
+### Class.getComponentType Strips Only One Layer
 
 ~~~java
 String[][][] values = (String[][][]) Array.newInstance(String[].class, 2, 3);
@@ -127,7 +127,7 @@ System.out.println(values.getClass().getComponentType().getTypeName());
                                                    // java.lang.String[][]
 ~~~
 
-Class.getComponentType() trên String[][][] trả String[][], vì một phần tử của mảng ngoài là mảng hai chiều. Muốn đi đến String.class phải tiếp tục bóc từng tầng:
+`Class.getComponentType()` on `String[][][]` returns `String[][]`, because one element of the outer array is a two-dimensional array. To reach `String.class`, you must continue peeling one layer at a time:
 
 ~~~java
 Class<?> leaf = values.getClass();
@@ -136,16 +136,16 @@ while (leaf.isArray()) {
     rank++;
     leaf = leaf.getComponentType();
 }
-// rank là 3, leaf là String.class
+// rank is 3, leaf is String.class
 ~~~
 
-Đây là fragment sử dụng biến values vừa tạo ở trên. **Không đồng nhất rank của runtime type với số độ dài truyền vào** nếu componentType ban đầu đã là array class.
+This is a fragment using the `values` variable created above. **Do not equate the rank of the runtime type with the count of lengths passed in** if the initial `componentType` is already an array class.
 
-## 5. Chương trình Java 17+ hoàn chỉnh
+## 5. Complete Java 17+ Program
 
-Ví dụ bao quát cấp phát đầy đủ, độ dài 0, mảng răng cưa, componentType là mảng và các lỗi về kích thước.
+This example covers full allocation, zero length, jagged arrays, array `componentType`, and size-related errors.
 
-Lưu nguyên văn vào file **MultiArrayDemo.java**:
+Save verbatim to the file **MultiArrayDemo.java**:
 
 ~~~java
 import java.lang.reflect.Array;
@@ -200,14 +200,14 @@ public class MultiArrayDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 MultiArrayDemo.java
 java MultiArrayDemo
 ~~~
 
-**Stdout đã kiểm tra thực tế** với javac hỗ trợ --release 17:
+**Actually verified stdout** with javac supporting `--release 17`:
 
 ~~~text
 grid type=int[][]
@@ -226,18 +226,18 @@ zero ranks=IllegalArgumentException
 too many ranks=IllegalArgumentException
 ~~~
 
-Giải thích:
+Explanation:
 
-1. **grid:** int[][] gồm 2 × 3 slot, giá trị int mặc định bằng 0. Array.get(grid, 1) cho mảng int[] thứ hai; Array.setInt(..., 2, 17) gán slot thứ ba của mảng con.
-2. **zero:** String[][][] với kích thước 2 × 0 × 4 vẫn hợp lệ. Mảng ngoài có hai slot, nhưng các mảng con thứ hai đều dài 0, không có vị trí [0][0] để tiếp tục xuống chiều cuối.
-3. **ragged:** khi truyền String[].class cùng một độ dài 2, ta chỉ nhận mảng ngoài String[][] với phần tử con null. Sau đó gán lần lượt String[] dài 1 và 3.
-4. **partial:** truyền String[].class với hai độ dài 2, 3 tạo String[][][]; hai tầng đầu được cấp phát, còn phần tử String[] ở tầng sâu là null. getComponentType() từ runtime class trả String[][], không phải String.
-5. **negative:** độ dài bất kỳ âm dẫn đến NegativeArraySizeException.
-6. **void / zero ranks / too many ranks:** tương ứng componentType không hợp lệ, không có chiều nào được cung cấp và yêu cầu 256 chiều khi đã có int[][].class thêm 254 chiều; đều ném IllegalArgumentException.
+1. **grid:** `int[][]` consisting of 2 × 3 slots, default `int` value equal to 0. `Array.get(grid, 1)` gives the second `int[]` array; `Array.setInt(..., 2, 17)` assigns the third slot of the subarray.
+2. **zero:** `String[][][]` with sizes 2 × 0 × 4 is still valid. The outer array has two slots, but the second-level subarrays both have length 0, with no position `[0][0]` to continue down to the last dimension.
+3. **ragged:** when passing `String[].class` with a single length 2, we only receive the outer `String[][]` array with `null` child elements. Then we assign `String[]` of lengths 1 and 3 in turn.
+4. **partial:** passing `String[].class` with two lengths 2, 3 creates `String[][][]`; the first two layers are allocated, while the `String[]` elements at the deep layer are `null`. `getComponentType()` from the runtime class returns `String[][]`, not `String`.
+5. **negative:** any negative length leads to `NegativeArraySizeException`.
+6. **void / zero ranks / too many ranks:** correspond respectively to an invalid `componentType`, no dimensions provided, and requesting 256 dimensions when `int[][].class` already exists plus 254 dimensions; all throw `IllegalArgumentException`.
 
-## 6. Tạo mảng răng cưa hoàn toàn bằng Reflection
+## 6. Creating a Jagged Array Completely with Reflection
 
-Khi số hàng biết trước nhưng mỗi hàng có độ dài khác nhau, chỉ tạo chiều ngoài rồi cấp phát từng hàng:
+When the number of rows is known in advance but each row has a different length, create only the outer dimension and then allocate each row:
 
 ~~~java
 int[][] jagged = (int[][]) Array.newInstance(int[].class, 3);
@@ -249,9 +249,9 @@ for (int row = 0; row < jagged.length; row++) {
 }
 ~~~
 
-Sau vòng lặp, ba hàng dài 1, 2, 3. Array.set nhận một **đối tượng int[]** để gán vào slot của int[][]; nó không nhận trực tiếp số int vì phần tử của mảng ngoài có kiểu int[].
+After the loop, the three rows have lengths 1, 2, 3. `Array.set` receives an **int[] object** to assign into a slot of `int[][]`; it does not accept an `int` number directly because the elements of the outer array have type `int[]`.
 
-Cú pháp Java tĩnh tương đương:
+Equivalent static Java syntax:
 
 ~~~java
 int[][] jagged = new int[3][];
@@ -260,11 +260,11 @@ for (int row = 0; row < jagged.length; row++) {
 }
 ~~~
 
-Nếu số chiều và kiểu thành phần đều biết lúc biên dịch, cú pháp **new** trực tiếp thường đơn giản và an toàn kiểu hơn. Reflection có lợi khi kiểu hoặc kích thước được xác định từ metadata/cấu hình lúc chạy.
+If the number of dimensions and component type are both known at compile time, direct **new** syntax is usually simpler and more type-safe. Reflection is advantageous when the type or sizes are determined from metadata/configuration at runtime.
 
-### Tạo từ cấu hình động
+### Creating from Dynamic Configuration
 
-Giả sử chương trình nhận danh sách cấu hình {2, 3, 4}:
+Suppose the program receives the configuration list `{2, 3, 4}`:
 
 ~~~java
 int[] sizes = {2, 3, 4};
@@ -272,23 +272,23 @@ Class<?> component = double.class;
 Object data = Array.newInstance(component, sizes);
 ~~~
 
-Runtime type của data là double[][][]. **sizes.length** là 3 chiều, **không** phải ba hàng dài lần lượt 2, 3, 4. Nếu muốn ba hàng răng cưa tương ứng, tạo double[3][] rồi cấp phát ba hàng riêng.
+The runtime type of `data` is `double[][][]`. **sizes.length** is 3 dimensions, **not** three rows of lengths 2, 3, 4 respectively. If you want three corresponding jagged rows, create `double[3][]` and allocate three separate rows.
 
-## 7. Đọc và ghi mảng nhiều chiều bằng Reflection
+## 7. Reading and Writing Multidimensional Arrays with Reflection
 
-Các API hữu ích trong java.lang.reflect.Array:
+Useful APIs in `java.lang.reflect.Array`:
 
-| Phương thức | Ý nghĩa |
+| Method | Meaning |
 | --- | --- |
-| **Array.getLength(array)** | Độ dài mảng tại **tầng hiện tại** |
-| **Array.get(array, index)** | Đọc phần tử; primitive được boxing nếu cần trả Object |
-| **Array.set(array, index, value)** | Ghi phần tử tương thích kiểu, kể cả mảng con |
-| **Array.getInt(array, index)** | Đọc giá trị int từ mảng primitive tương thích |
-| **Array.setInt(array, index, intValue)** | Ghi int vào mảng primitive tương thích |
-| **Class.isArray()** | Runtime class là mảng? |
-| **Class.getComponentType()** | Bóc đúng một cấp component type |
+| **Array.getLength(array)** | Array length at the **current layer** |
+| **Array.get(array, index)** | Reads element; primitives are boxed if returning `Object` is needed |
+| **Array.set(array, index, value)** | Writes a type-compatible element, including subarrays |
+| **Array.getInt(array, index)** | Reads an `int` value from a compatible primitive array |
+| **Array.setInt(array, index, intValue)** | Writes an `int` into a compatible primitive array |
+| **Class.isArray()** | Is the runtime class an array? |
+| **Class.getComponentType()** | Peels off exactly one level of component type |
 
-Khi đi qua mảng nhiều chiều bằng Reflection, mỗi lần Array.get chỉ đi xuống **một tầng**:
+When traversing a multidimensional array with Reflection, each `Array.get` goes down **one layer**:
 
 ~~~java
 Object cube = Array.newInstance(String.class, 2, 3, 4);
@@ -298,118 +298,118 @@ Array.set(row, 3, "ok");
 System.out.println(Array.get(row, 3)); // ok
 ~~~
 
-Đây là fragment chạy trong method sau khi import Array. Không thể gán String trực tiếp vào Array.set(cube, 0, "x"), vì phần tử ở tầng ngoài của String[][][] phải có kiểu String[][].
+This is a fragment running inside a method after importing `Array`. You cannot assign a `String` directly into `Array.set(cube, 0, "x")`, because an element at the outer layer of `String[][][]` must have type `String[][]`.
 
-Lưu ý **int[] không thể cast thành Object[]** dù mảng là một Object trong Java. Tuy nhiên **int[][] có thể xem là Object[] ở tầng ngoài**, vì các phần tử của nó là các đối tượng int[]. Nếu cần code áp dụng cho mọi primitive array, giữ biến kiểu Object và dùng API Array.
+Note that **int[] cannot be cast to Object[]** even though an array is an `Object` in Java. However, **int[][] can be treated as Object[] at the outer layer**, because its elements are `int[]` objects. If code needs to apply to every primitive array, keep the variable typed as `Object` and use the `Array` API.
 
-## 8. Giới hạn dimensions và ngoại lệ
+## 8. Dimensions Limits and Exceptions
 
-Theo Javadoc Java SE 17:
+According to the Java SE 17 Javadoc:
 
-| Điều kiện | Kết quả |
+| Condition | Result |
 | --- | --- |
-| dimensions có ít nhất một phần tử, mọi độ dài >= 0 | Hợp lệ nếu đủ tài nguyên |
-| Có một độ dài bằng 0 | Hợp lệ: mảng độ dài 0 ở tầng tương ứng |
-| Có một độ dài âm | **NegativeArraySizeException** |
-| componentType là null | **NullPointerException** |
-| dimensions là null | **NullPointerException** |
-| dimensions là mảng rỗng (0 phần tử) | **IllegalArgumentException** |
-| componentType là void.class | **IllegalArgumentException** |
-| Số chiều cuối vượt 255 | **IllegalArgumentException** |
-| Yêu cầu cấp phát quá nhiều bộ nhớ | Có thể **OutOfMemoryError** |
+| `dimensions` has at least one element, all lengths >= 0 | Valid if resources are sufficient |
+| Has a length equal to 0 | Valid: zero-length array at the corresponding layer |
+| Has a negative length | **NegativeArraySizeException** |
+| `componentType` is null | **NullPointerException** |
+| `dimensions` is null | **NullPointerException** |
+| `dimensions` is an empty array (0 elements) | **IllegalArgumentException** |
+| `componentType` is `void.class` | **IllegalArgumentException** |
+| Final dimension count exceeds 255 | **IllegalArgumentException** |
+| Requests allocating too much memory | Possible **OutOfMemoryError** |
 
-Số chiều cuối **không chỉ phụ thuộc vào dimensions.length**. Nếu componentType đã là String[][].class, phải cộng thêm 2 chiều. Ví dụ Array.newInstance(int[][].class, new int[254]) yêu cầu 256 chiều nên bị từ chối.
+The final dimension count **does not depend only on dimensions.length**. If `componentType` is already `String[][].class`, 2 dimensions must be added. For example, `Array.newInstance(int[][].class, new int[254])` requests 256 dimensions and is therefore rejected.
 
-**Danh sách kích thước rỗng khác kích thước bằng 0**:
+**An empty sizes list differs from a size equal to 0**:
 
 ~~~java
 Array.newInstance(int.class, new int[0]); // IllegalArgumentException
-Array.newInstance(int.class, 0);          // int[] dài 0, hợp lệ
-Array.newInstance(int.class, 2, 0);       // int[][] có 2 hàng, mỗi hàng dài 0
+Array.newInstance(int.class, 0);          // int[] of length 0, valid
+Array.newInstance(int.class, 2, 0);       // int[][] with 2 rows, each row of length 0
 ~~~
 
-Chiều 0 không có phần tử để duyệt xuống sâu hơn. Vì thế Array.getLength của mảng con ở tầng trước vẫn có thể là 0, còn truy cập chỉ số [0] của mảng con đó sẽ ném ArrayIndexOutOfBoundsException.
+A dimension of 0 has no elements to traverse deeper into. Therefore `Array.getLength` of the subarray at the preceding layer can still be 0, while accessing index `[0]` of that subarray throws `ArrayIndexOutOfBoundsException`.
 
-Các thao tác sau tạo cũng có ngoại lệ riêng:
+Operations after creation also have their own exceptions:
 
-- Array.getLength(null) ném **NullPointerException**.
-- Array.getLength trên object không phải mảng ném **IllegalArgumentException**.
-- Array.get/Array.set với index âm hay vượt độ dài ném **ArrayIndexOutOfBoundsException**.
-- Array.set với giá trị không tương thích kiểu phần tử có thể ném **IllegalArgumentException**.
-- Cast một Object sang kiểu mảng có rank/component type không phù hợp ném **ClassCastException**.
-- Với mảng outer-only, đọc chiều sâu từ phần tử null gây **NullPointerException**.
+- `Array.getLength(null)` throws **NullPointerException**.
+- `Array.getLength` on a non-array object throws **IllegalArgumentException**.
+- `Array.get`/`Array.set` with a negative or out-of-bounds index throws **ArrayIndexOutOfBoundsException**.
+- `Array.set` with a value incompatible with the element type may throw **IllegalArgumentException**.
+- Casting an `Object` to an array type with an incompatible rank/component type throws **ClassCastException**.
+- For an outer-only array, reading deeper from a `null` element causes **NullPointerException**.
 
-Một công cụ xây mảng từ cấu hình không tin cậy nên kiểm tra số chiều, các độ dài, giới hạn cấp phát và kiểu phần tử để tránh cấp phát sai hoặc quá lớn.
+An array-building tool from untrusted configuration should validate the number of dimensions, the lengths, allocation limits, and the element type to avoid incorrect or excessively large allocations.
 
-## 9. Công thức kiểm tra shape và rank
+## 9. Formulas for Checking Shape and Rank
 
-Giả sử:
+Suppose:
 
 ~~~java
 Object created = Array.newInstance(componentType, dimensions);
 ~~~
 
-Các quy tắc:
+The rules:
 
-1. **rank(created)** = **rank(componentType) + dimensions.length**; class không phải mảng có rank 0.
-2. Các tầng mới tạo có độ dài lần lượt **dimensions[0], dimensions[1], ...**.
-3. Nếu componentType vốn là mảng, những tầng nằm sẵn trong componentType **chưa được cấp phát** bởi lần gọi trên.
-4. Runtime type cho biết **có bao nhiêu cấp dấu []**, nhưng không tự bảo đảm mỗi nhánh hiện có đủ tất cả mảng con hay độ dài như nhau sau khi chương trình thay đổi.
-5. Muốn lấy kiểu lá, gọi getComponentType lặp lại đến khi Class.isArray() trả false.
+1. **rank(created)** = **rank(componentType) + dimensions.length**; a non-array class has rank 0.
+2. The newly created layers have lengths **dimensions[0], dimensions[1], ...** respectively.
+3. If `componentType` is already an array, the layers already inside `componentType` **are not allocated** by the call above.
+4. The runtime type tells **how many levels of `[]` brackets exist**, but does not automatically guarantee that every branch currently has all subarrays or the same lengths after the program modifies them.
+5. To get the leaf type, call `getComponentType` repeatedly until `Class.isArray()` returns `false`.
 
-| Gọi | Rank | Trạng thái phần tử ở mức sâu nhất đã cấp phát |
+| Call | Rank | Element State at the Deepest Allocated Level |
 | --- | --- | --- |
-| newInstance(int.class, 2, 3) | 2 | int mặc định 0 |
-| newInstance(int[].class, 2) | 2 | Hai int[] null |
-| newInstance(int[].class, 2, 3) | 3 | Sáu int[] null |
-| newInstance(String.class, 2, 3) | 2 | String mặc định null |
-| newInstance(String.class, 0, 3) | 2 | Không có hàng để đọc |
+| newInstance(int.class, 2, 3) | 2 | `int` default 0 |
+| newInstance(int[].class, 2) | 2 | Two `null` `int[]` |
+| newInstance(int[].class, 2, 3) | 3 | Six `null` `int[]` |
+| newInstance(String.class, 2, 3) | 2 | `String` default null |
+| newInstance(String.class, 0, 3) | 2 | No rows to read |
 
-Không nên ước lượng dung lượng bằng cách nhân tất cả dimensions khi componentType vốn là array class: lúc đó phần các tầng chưa cấp phát không có slot phần tử lá tương ứng.
+You should not estimate capacity by multiplying all `dimensions` when `componentType` is already an array class: in that case, the unallocated layers do not have corresponding leaf element slots.
 
-## 10. Sai lầm thường gặp
+## 10. Common Mistakes
 
-1. **Đọc {2,3} là hai hàng có độ dài 2 và 3:** đây là 2 chiều kích thước 2 × 3; mảng răng cưa cần cấp phát từng hàng.
-2. **Bỏ qua rank có sẵn trong componentType:** String[].class cộng {2,3} tạo String[][][], không phải String[][].
-3. **Cho rằng tất cả các chiều trong runtime type đều được cấp phát:** với array-typed component, các chiều còn lại có phần tử mảng con null.
-4. **Nhầm null với mảng độ dài 0:** null là chưa có đối tượng mảng; chiều 0 là một mảng hợp lệ có length == 0.
-5. **Gọi Array.getLength một lần để lấy mọi chiều:** phương thức chỉ trả length của object mảng cụ thể.
-6. **Dùng Object[] cho int[]:** kiểu mảng primitive một chiều không phải Object[].
-7. **Giả định Array.newInstance tự cấp phát constructor của mọi phần tử tham chiếu:** String hay object references ban đầu là null, không tự tạo instance.
-8. **Truyền dimensions âm/rỗng:** bị từ chối; kiểm tra trước khi cấp phát.
-9. **Quên giới hạn 255 chiều:** tính cả rank sẵn của componentType.
-10. **Tạo mảng khổng lồ từ cấu hình mà không giới hạn dung lượng:** ngay cả kích thước hợp lệ vẫn có thể gây OutOfMemoryError.
+1. **Reading {2,3} as two rows of lengths 2 and 3:** this is 2 dimensions of size 2 × 3; a jagged array requires allocating each row individually.
+2. **Ignoring the rank already present in componentType:** `String[].class` plus `{2,3}` creates `String[][][]`, not `String[][]`.
+3. **Assuming all dimensions in the runtime type are allocated:** with an array-typed component, the remaining dimensions have `null` subarray elements.
+4. **Confusing null with a zero-length array:** `null` means there is no array object yet; a 0 dimension is a valid array with `length == 0`.
+5. **Calling Array.getLength once to get all dimensions:** the method only returns the length of the specific array object.
+6. **Using Object[] for int[]:** a one-dimensional primitive array type is not `Object[]`.
+7. **Assuming Array.newInstance automatically invokes the constructor of every reference element:** `String` or object references are initially `null`, not automatically instantiated.
+8. **Passing negative/empty dimensions:** rejected; validate before allocating.
+9. **Forgetting the 255-dimension limit:** count the existing rank of `componentType` as well.
+10. **Creating a huge array from configuration without a capacity limit:** even valid sizes can still cause `OutOfMemoryError`.
 
-## 11. Tự kiểm tra
+## 11. Self-Check
 
-**Câu 1.** Array.newInstance(double.class, 4, 2) có kiểu gì và bao nhiêu phần tử cuối?
+**Question 1.** What type and how many leaf elements does `Array.newInstance(double.class, 4, 2)` have?
 
-**Đáp án:** double[][], 4 hàng × 2 phần tử, tổng 8 số double mặc định 0.0.
+**Answer:** `double[][]`, 4 rows × 2 elements, totaling 8 `double` numbers defaulting to `0.0`.
 
-**Câu 2.** Array.newInstance(double[].class, 4) có kiểu giống câu 1 không? Các hàng đã được cấp phát chưa?
+**Question 2.** Does `Array.newInstance(double[].class, 4)` have the same type as Question 1? Have the rows been allocated yet?
 
-**Đáp án:** Cùng kiểu double[][], nhưng chỉ có mảng ngoài dài 4; cả bốn double[] còn null.
+**Answer:** Same type `double[][]`, but only the outer array of length 4 exists; all four `double[]` are still `null`.
 
-**Câu 3.** Array.newInstance(String[][].class, 2, 3) có runtime type gì?
+**Question 3.** What runtime type does `Array.newInstance(String[][].class, 2, 3)` have?
 
-**Đáp án:** String[][][][] với tổng rank 4; hai tầng mới dài 2 và 3, các tham chiếu String[][] ở tầng cuối được tạo còn null.
+**Answer:** `String[][][][]` with total rank 4; the two new layers have lengths 2 and 3, and the `String[][]` references at the last created layer are still `null`.
 
-**Câu 4.** {3,0,5} có hợp lệ không? Có thể truy cập [0][0] không?
+**Question 4.** Is `{3,0,5}` valid? Can `[0][0]` be accessed?
 
-**Đáp án:** Hợp lệ. Mảng ngoài dài 3, mảng con thứ hai dài 0. Truy cập [0][0] gây ArrayIndexOutOfBoundsException.
+**Answer:** Valid. The outer array has length 3, and the second-level subarray has length 0. Accessing `[0][0]` causes `ArrayIndexOutOfBoundsException`.
 
-**Câu 5.** Muốn ba hàng dài 2,5,1 thì có nên gọi newInstance(int.class, 2,5,1)?
+**Question 5.** If we want three rows of lengths 2, 5, 1, should we call `newInstance(int.class, 2,5,1)`?
 
-**Đáp án:** Không. Đó là mảng ba chiều 2 × 5 × 1. Hãy tạo int[3][] hoặc Array.newInstance(int[].class, 3) rồi tạo các hàng dài 2,5,1.
+**Answer:** No. That is a three-dimensional array 2 × 5 × 1. Create `int[3][]` or `Array.newInstance(int[].class, 3)` and then create the rows of lengths 2, 5, 1.
 
-**Câu 6.** Vì sao newInstance(int.class, new int[0]) lỗi nhưng newInstance(int.class, 0) thành công?
+**Question 6.** Why does `newInstance(int.class, new int[0])` fail while `newInstance(int.class, 0)` succeeds?
 
-**Đáp án:** Mảng kích thước thứ nhất rỗng, nghĩa là **không cung cấp chiều nào**. Lời gọi thứ hai chỉ tạo **một chiều có độ dài 0**.
+**Answer:** The first size array is empty, meaning **no dimensions are provided**. The second call creates **one dimension with length 0**.
 
-**Ghi nhớ:** danh sách dimensions cho biết **độ dài các chiều mới, theo thứ tự ngoài vào trong**. Nếu componentType là array class thì số chiều kết quả tăng thêm nhưng các chiều sẵn có bên trong componentType vẫn chưa được cấp phát. Java dùng mảng của mảng nên bạn có thể tạo hình chữ nhật hoặc mảng răng cưa có độ dài từng hàng khác nhau.
+**Key takeaway:** the `dimensions` list specifies **the lengths of the new dimensions, ordered from outermost to innermost**. If `componentType` is an array class, the resulting number of dimensions increases, yet the dimensions already present inside `componentType` remain unallocated. Java uses arrays of arrays, so you can create rectangular arrays or jagged arrays with different row lengths.
 
-### Tài liệu tham khảo
+### Reference Materials
 
 - Java SE 17, Array.newInstance/get/set/getLength: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Array.html
-- Java SE 17, Class.isArray và getComponentType: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html
+- Java SE 17, Class.isArray and getComponentType: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html
 - Java Language Specification 17, Chapter 10 — Arrays: https://docs.oracle.com/javase/specs/jls/se17/html/jls-10.html

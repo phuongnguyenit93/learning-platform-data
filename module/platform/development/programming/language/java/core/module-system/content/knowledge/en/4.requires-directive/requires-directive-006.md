@@ -1,12 +1,12 @@
-# Phụ thuộc trực tiếp và phụ thuộc bắc cầu
+# Direct Dependencies and Transitive Dependencies
 
-Trong Java Platform Module System (JPMS), chỉ thị **requires** khai báo một module cần đọc module khác để biên dịch và chạy. Một module có thể khai báo phụ thuộc trực tiếp bằng **requires**, hoặc khai báo phụ thuộc trực tiếp có khả năng truyền quyền đọc đến các module tiêu thụ bằng **requires transitive**.
+In the Java Platform Module System (JPMS), the **requires** directive declares that a module needs to read another module to compile and run. A module can declare a direct dependency with **requires**, or declare a direct dependency capable of propagating readability to consuming modules with **requires transitive**.
 
-Hai cách khai báo này đều tạo cạnh phụ thuộc từ module hiện tại đến module được nêu tên. Điểm khác nhau nằm ở phạm vi đọc được: **requires** chỉ làm module khai báo đọc dependency; **requires transitive** còn làm cho những module đọc module khai báo cũng đọc được dependency đó. Hiểu đúng sự khác biệt này giúp thiết kế API module rõ ràng và tránh buộc mọi ứng dụng tiêu thụ phải khai báo lại những dependency đã là một phần của API công khai.
+Both declarations create a dependency edge from the current module to the named module. The difference lies in the scope of readability: **requires** only makes the declaring module read the dependency; **requires transitive** also causes modules that read the declaring module to read that dependency as well. Properly understanding this difference helps design clear module APIs and avoids forcing every consuming application to re-declare dependencies that are already part of the public API.
 
-## 1. Phụ thuộc trực tiếp là gì?
+## 1. What is a direct dependency?
 
-Giả sử module ứng dụng cần sử dụng một thư viện có tên **com.acme.catalog**. Trong descriptor của ứng dụng, khai báo:
+Suppose an application module needs to use a library named **com.acme.catalog**. In the application's descriptor, declare:
 
 ~~~java
 module com.acme.store {
@@ -14,11 +14,11 @@ module com.acme.store {
 }
 ~~~
 
-Đây là phụ thuộc trực tiếp. Module **com.acme.store** đọc được **com.acme.catalog**, nên mã nguồn trong store có thể sử dụng các kiểu thuộc những package mà catalog export.
+This is a direct dependency. The **com.acme.store** module reads **com.acme.catalog**, so source code in store can use types belonging to the packages that catalog exports.
 
-Để một module có thể đọc module khác, dependency phải được phân giải trên module path hoặc thông qua cấu hình module tương ứng. Chỉ thị **requires** cũng tham gia vào việc xác định thứ tự và tính hợp lệ của module graph khi JVM khởi chạy.
+For one module to read another, the dependency must be resolved on the module path or through the corresponding module configuration. The **requires** directive also participates in determining the order and validity of the module graph when the JVM launches.
 
-Ví dụ, module catalog công bố API:
+For example, the catalog module exposes an API:
 
 ~~~java
 module com.acme.catalog {
@@ -26,7 +26,7 @@ module com.acme.catalog {
 }
 ~~~
 
-Ứng dụng có thể import kiểu công khai:
+The application can import the public type:
 
 ~~~java
 package com.acme.store;
@@ -40,21 +40,21 @@ public final class StoreService {
 }
 ~~~
 
-Nếu bỏ **requires com.acme.catalog**, module store không đọc catalog. Dù JAR của catalog có mặt trên module path, module store vẫn không tự động được phép tham chiếu các kiểu của catalog.
+If **requires com.acme.catalog** is omitted, the store module does not read catalog. Even if catalog's JAR is present on the module path, the store module is still not automatically permitted to reference catalog's types.
 
-Phụ thuộc trực tiếp nên được khai báo khi mã nguồn hoặc descriptor của module thực sự cần module kia. Việc khai báo rõ giúp người đọc nhận ra module nào là dependency trực tiếp, đồng thời giúp công cụ build và JVM phân giải module graph chính xác.
+A direct dependency should be declared when the module's source code or descriptor actually needs the other module. Explicit declaration helps readers identify which modules are direct dependencies, while helping build tools and the JVM resolve the module graph accurately.
 
-## 2. Phụ thuộc bắc cầu với requires transitive
+## 2. Transitive dependencies with requires transitive
 
-Một thư viện trung gian đôi khi sử dụng kiểu dữ liệu từ module khác trong API công khai. Khi đó, các module tiêu thụ thư viện trung gian cũng cần đọc được module chứa kiểu dữ liệu đó.
+An intermediate library sometimes uses data types from another module in its public API. In that case, modules consuming the intermediate library also need to read the module containing those data types.
 
-Ví dụ có ba module:
+For example, there are three modules:
 
-- **com.acme.model** chứa kiểu dữ liệu Product.
-- **com.acme.service** cung cấp dịch vụ và dùng Product trong API.
-- **com.acme.app** là ứng dụng gọi service.
+- **com.acme.model** contains the Product data type.
+- **com.acme.service** provides a service and uses Product in its API.
+- **com.acme.app** is the application calling service.
 
-Nếu service khai báo:
+If service declares:
 
 ~~~java
 module com.acme.service {
@@ -63,7 +63,7 @@ module com.acme.service {
 }
 ~~~
 
-thì bất kỳ module nào đọc **com.acme.service** cũng đọc được **com.acme.model**. Ứng dụng chỉ cần:
+then any module that reads **com.acme.service** also reads **com.acme.model**. The application only needs:
 
 ~~~java
 module com.acme.app {
@@ -71,15 +71,15 @@ module com.acme.app {
 }
 ~~~
 
-Ứng dụng có thể sử dụng cả API của service và kiểu Product được service đưa ra trong API công khai, vì module service đã truyền khả năng đọc module model cho các module tiêu thụ.
+The application can use both the service API and the Product type exposed by service in its public API, because the service module has propagated readability of the model module to consuming modules.
 
-Đây là ý nghĩa của từ “bắc cầu”: khả năng đọc được truyền qua module trung gian trong module graph. Nó không có nghĩa JVM tự động sao chép class hoặc gộp các JAR dependency vào JAR của service.
+This is the meaning of the word "transitive": readability is propagated through an intermediate module in the module graph. It does not mean the JVM automatically copies classes or bundles dependency JARs into service's JAR.
 
-## 3. Ví dụ hoàn chỉnh với ba module
+## 3. Complete Example with Three Modules
 
-Ta xây dựng một ví dụ nhỏ để thấy rõ cách **requires** và **requires transitive** ảnh hưởng đến mã nguồn của module tiêu thụ.
+Let's build a small example to clearly see how **requires** and **requires transitive** affect the source code of a consuming module.
 
-Cấu trúc source tree:
+Source tree structure:
 
 ~~~text
 src/
@@ -94,7 +94,7 @@ src/
     └── com/acme/app/Main.java
 ~~~
 
-### Module model
+### The model module
 
 Descriptor:
 
@@ -104,7 +104,7 @@ module com.acme.model {
 }
 ~~~
 
-Kiểu dữ liệu:
+Data type:
 
 ~~~java
 package com.acme.model;
@@ -113,9 +113,9 @@ public record Product(String id, String name) {
 }
 ~~~
 
-Module model export package **com.acme.model** để module đọc được nó có thể truy cập Product.
+The model module exports the **com.acme.model** package so modules that can read it can access Product.
 
-### Module service
+### The service module
 
 Descriptor:
 
@@ -140,9 +140,9 @@ public final class CatalogService {
 }
 ~~~
 
-Service phụ thuộc trực tiếp vào model vì implementation và chữ ký API của service sử dụng Product. Từ khóa **transitive** công bố rằng module model cũng là dependency mà người đọc service cần có khả năng đọc.
+Service depends directly on model because service's implementation and API signature use Product. The **transitive** keyword announces that the model module is also a dependency that readers of service need to be able to read.
 
-### Module app
+### The app module
 
 Descriptor:
 
@@ -152,7 +152,7 @@ module com.acme.app {
 }
 ~~~
 
-Lớp chạy ứng dụng:
+Application runner class:
 
 ~~~java
 package com.acme.app;
@@ -170,33 +170,33 @@ public final class Main {
 }
 ~~~
 
-Mặc dù app không khai báo trực tiếp **requires com.acme.model**, nó vẫn có thể import và sử dụng Product vì service khai báo **requires transitive com.acme.model**. App đọc service; service truyền khả năng đọc model cho app.
+Although app does not directly declare **requires com.acme.model**, it can still import and use Product because service declares **requires transitive com.acme.model**. App reads service; service propagates readability to model for app.
 
-### Biên dịch và chạy
+### Compiling and running
 
-Đứng tại thư mục dự án, biên dịch cả ba module bằng JDK:
+From the project directory, compile all three modules with the JDK:
 
 ~~~bash
 javac -d out --module-source-path src -m com.acme.model,com.acme.service,com.acme.app
 ~~~
 
-Chạy ứng dụng:
+Run the application:
 
 ~~~bash
 java --module-path out --module com.acme.app/com.acme.app.Main
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Mechanical Keyboard
 ~~~
 
-Khi biên dịch, javac phân giải dependency từ các descriptor. Khi chạy, JVM cũng xây dựng module graph từ module path và các chỉ thị requires. Nếu module model không có mặt trong module path, việc phân giải service sẽ thất bại vì service cần model trực tiếp.
+At compile time, javac resolves dependencies from the descriptors. At runtime, the JVM also builds the module graph from the module path and requires directives. If the model module is not present on the module path, resolving service will fail because service needs model directly.
 
-## 4. Điều gì xảy ra nếu service chỉ dùng requires?
+## 4. What happens if service only uses requires?
 
-Thay descriptor service bằng:
+Replace service's descriptor with:
 
 ~~~java
 module com.acme.service {
@@ -205,9 +205,9 @@ module com.acme.service {
 }
 ~~~
 
-Lúc này service vẫn đọc model và có thể biên dịch implementation của mình. Tuy nhiên, app chỉ khai báo **requires com.acme.service** sẽ không tự động đọc model.
+Now service still reads model and can compile its own implementation. However, app declaring only **requires com.acme.service** will not automatically read model.
 
-Nếu mã nguồn app trực tiếp import Product hoặc khai báo biến có kiểu Product, trình biên dịch có thể báo package hoặc module không được đọc. Để app sử dụng Product, app cần khai báo thêm:
+If app's source code directly imports Product or declares a variable of type Product, the compiler may report that the package or module is not read. For app to use Product, app needs to declare additionally:
 
 ~~~java
 module com.acme.app {
@@ -216,18 +216,18 @@ module com.acme.app {
 }
 ~~~
 
-Hai phương án có ý nghĩa API khác nhau:
+The two options have different API meanings:
 
-| Descriptor của service | Khả năng đọc của app khi chỉ requires service |
+| Service's descriptor | App's readability when only requiring service |
 |---|---|
-| **requires com.acme.model** | App đọc service, nhưng không tự động đọc model. |
-| **requires transitive com.acme.model** | App đọc service và được truyền khả năng đọc model. |
+| **requires com.acme.model** | App reads service, but does not automatically read model. |
+| **requires transitive com.acme.model** | App reads service and receives propagated readability to model. |
 
-Nếu service không để lộ bất kỳ kiểu nào từ model trong API công khai, dùng **requires** thường là đủ. App không cần biết dependency nội bộ của service và không nên bị buộc phải phụ thuộc vào model chỉ vì implementation của service sử dụng nó.
+If service does not expose any type from model in its public API, using **requires** is usually sufficient. App does not need to know service's internal dependencies and should not be forced to depend on model just because service's implementation uses it.
 
-## 5. Quy tắc truyền khả năng đọc qua nhiều tầng
+## 5. Rules for propagating readability across multiple layers
 
-Quan hệ bắc cầu có thể nối qua nhiều module. Giả sử:
+Transitive relationships can chain across multiple modules. Suppose:
 
 ~~~text
 com.acme.app
@@ -240,9 +240,9 @@ com.acme.model
     requires transitive com.acme.types
 ~~~
 
-Khi app đọc service, khả năng đọc được truyền tiếp qua các cạnh **requires transitive**. App có thể đọc service, model và types, miễn là các module liên quan được phân giải hợp lệ.
+When app reads service, readability is propagated onward through the **requires transitive** edges. App can read service, model, and types, provided that the involved modules are validly resolved.
 
-Có thể hình dung luồng như sau:
+The flow can be visualized as follows:
 
 ~~~text
 app
@@ -260,23 +260,23 @@ model
 types
 ~~~
 
-Một cạnh **requires** thông thường dừng việc truyền khả năng đọc ở module khai báo. Một cạnh **requires transitive** cho phép các module đọc module hiện tại tiếp tục đọc module đích. Khi nhiều cạnh transitive nối tiếp nhau, hiệu ứng được truyền qua các tầng tiếp theo.
+A regular **requires** edge stops readability propagation at the declaring module. A **requires transitive** edge allows modules reading the current module to also read the target module. When multiple transitive edges are chained in sequence, the effect is propagated through subsequent layers.
 
-Điều này không có nghĩa mọi dependency của một module đều tự động trở thành dependency bắc cầu. Mỗi cạnh trong module graph có ngữ nghĩa riêng. Nếu service khai báo **requires model** và model khai báo **requires types**, app đọc service không mặc nhiên đọc model hoặc types thông qua các cạnh thông thường đó.
+This does not mean every dependency of a module automatically becomes a transitive dependency. Each edge in the module graph has its own semantics. If service declares **requires model** and model declares **requires types**, app reading service does not implicitly read model or types through those regular edges.
 
-## 6. Khi nào nên dùng requires transitive?
+## 6. When should requires transitive be used?
 
-Nên dùng **requires transitive** khi module dependency là một phần có chủ đích của API công khai và module tiêu thụ hợp lý cần đọc được dependency đó.
+**requires transitive** should be used when the dependent module is an intentional part of the public API and consuming modules reasonably need to read that dependency.
 
-Các tình huống thường gặp:
+Common situations:
 
-- API trả về hoặc nhận tham số là kiểu dữ liệu được định nghĩa trong module khác.
-- Interface công khai kế thừa interface từ module dependency.
-- Public class triển khai interface công khai thuộc module dependency.
-- API công khai sử dụng kiểu generic, annotation hoặc kiểu khác từ dependency mà người gọi cần tham chiếu khi biên dịch.
-- Một module façade được thiết kế để cung cấp một API thống nhất và công bố rõ các module nền tảng mà người dùng API cần đọc.
+- The API returns or accepts a parameter whose data type is defined in another module.
+- A public interface extends an interface from a dependent module.
+- A public class implements a public interface belonging to a dependent module.
+- The public API uses generic types, annotations, or other types from the dependency that callers need to reference at compile time.
+- A facade module designed to provide a unified API and explicitly expose the foundational modules that API users need to read.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.orders.api {
@@ -285,21 +285,21 @@ module com.acme.orders.api {
 }
 ~~~
 
-Nếu public API của orders trả về **Money** hoặc nhận **Money** làm tham số, module tiêu thụ orders thường cần đọc module money để sử dụng chữ ký đó. Khai báo bắc cầu thể hiện đúng mối quan hệ này.
+If orders' public API returns **Money** or accepts **Money** as a parameter, modules consuming orders typically need to read the money module to use that signature. A transitive declaration accurately expresses this relationship.
 
-Không nên dùng **requires transitive** chỉ vì module hiện tại đang gọi một vài class từ dependency. Nếu dependency chỉ phục vụ implementation nội bộ và không xuất hiện trong hợp đồng API công khai, dùng **requires** để giữ module graph của người tiêu thụ gọn hơn.
+You should not use **requires transitive** just because the current module is calling a few classes from the dependency. If the dependency only serves internal implementation and does not appear in the public API contract, use **requires** to keep the consumer's module graph leaner.
 
-## 7. API công khai, exports và requires transitive là ba việc khác nhau
+## 7. Public API, exports, and requires transitive are three different things
 
-Cần phân biệt ba khái niệm:
+Three concepts must be distinguished:
 
-- **requires transitive** truyền khả năng đọc module dependency cho các module đọc module hiện tại.
-- **exports** công bố một package để module khác đọc được có thể truy cập các kiểu công khai trong package đó.
-- **opens** cho phép truy cập reflective sâu vào package theo quy tắc JPMS.
+- **requires transitive** propagates readability of the dependent module to modules that read the current module.
+- **exports** exposes a package so other modules that can read this module can access public types in that package.
+- **opens** permits deep reflective access to a package under JPMS rules.
 
-Một dependency có thể được đọc nhưng package của nó chưa được export. Trong trường hợp đó, module tiêu thụ vẫn không thể import kiểu trong package chưa export. Vì vậy, **requires transitive** không tự động công bố mọi package của dependency.
+A dependency can be readable while its packages are not exported. In that case, the consuming module still cannot import types in unexported packages. Therefore, **requires transitive** does not automatically expose every package of the dependency.
 
-Ví dụ module model:
+Example model module:
 
 ~~~java
 module com.acme.model {
@@ -307,7 +307,7 @@ module com.acme.model {
 }
 ~~~
 
-Module service:
+Service module:
 
 ~~~java
 module com.acme.service {
@@ -316,35 +316,35 @@ module com.acme.service {
 }
 ~~~
 
-App đọc được model nhờ service truyền khả năng đọc, nhưng app chỉ truy cập được các package model đã export cho app theo quy tắc module. Package nội bộ không được export vẫn được đóng kín đối với truy cập thông thường từ module khác.
+App can read model because service propagates readability, but app can only access model packages that have been exported to app under module rules. Unexported internal packages remain encapsulated against normal access from other modules.
 
-Cũng không nên nhầm **requires transitive** với **opens**. Một module có thể đọc module khác mà không được phép truy cập reflective sâu vào các thành viên private của package trong module đó.
+You should also not confuse **requires transitive** with **opens**. One module can read another module without being allowed deep reflective access to private members of packages in that module.
 
-## 8. Tác động đến hợp đồng và khả năng tương thích
+## 8. Impact on contracts and compatibility
 
-Một chỉ thị **requires transitive** là một phần của module descriptor công khai. Các module tiêu thụ có thể dựa vào quan hệ này để tham chiếu kiểu từ dependency mà không cần khai báo **requires** riêng.
+A **requires transitive** directive is part of the public module descriptor. Consuming modules can rely on this relationship to reference types from the dependency without declaring a separate **requires**.
 
-Nếu thư viện đổi từ:
+If a library changes from:
 
 ~~~java
 requires transitive com.acme.model;
 ~~~
 
-thành:
+to:
 
 ~~~java
 requires com.acme.model;
 ~~~
 
-thì các ứng dụng trước đây chỉ đọc thư viện có thể mất khả năng đọc model. Mã nguồn tiêu thụ đang import Product có thể không biên dịch được sau khi nâng cấp thư viện.
+then applications that previously only read the library may lose readability to model. Consuming source code importing Product may fail to compile after upgrading the library.
 
-Ngược lại, thêm **requires transitive** làm mở rộng tập module mà người tiêu thụ đọc được. Điều đó có thể hữu ích khi API bắt đầu công khai kiểu từ dependency, nhưng cũng làm tăng phạm vi dependency mà người dùng thư viện nhìn thấy.
+Conversely, adding **requires transitive** expands the set of modules that consumers can read. That can be helpful when an API begins exposing types from a dependency, but it also widens the scope of dependencies visible to library users.
 
-Vì vậy, trước khi thay đổi **requires** thành **requires transitive** hoặc ngược lại, hãy kiểm tra chữ ký API công khai, kiểu được kế thừa/triển khai, tài liệu của thư viện và các module tiêu thụ. Việc thay đổi này nên được xem xét như một thay đổi hợp đồng module, không chỉ là chỉnh sửa cú pháp descriptor.
+Therefore, before changing **requires** to **requires transitive** or vice versa, check public API signatures, extended/implemented types, library documentation, and consuming modules. This change should be treated as a module contract change, not merely a descriptor syntax edit.
 
-## 9. requires static và kết hợp với transitive
+## 9. requires static and combining with transitive
 
-JPMS còn có biến thể **requires static** cho dependency cần khi biên dịch nhưng không bắt buộc phải có mặt ở runtime trong một số tình huống. Có thể kết hợp ý nghĩa này với truyền khả năng đọc:
+JPMS also has the **requires static** variant for dependencies needed at compile time but not mandatory at runtime in some situations. This meaning can be combined with readability propagation:
 
 ~~~java
 module com.acme.integration {
@@ -352,65 +352,65 @@ module com.acme.integration {
 }
 ~~~
 
-Khai báo này cho biết dependency annotations được yêu cầu ở thời điểm biên dịch, và khả năng đọc nó được truyền đến module đọc integration. Tuy nhiên, vì dependency là static, ứng dụng vẫn phải bảo đảm dependency có mặt ở runtime nếu đường thực thi thực sự cần nó.
+This declaration indicates that the annotations dependency is required at compile time, and readability to it is propagated to modules that read integration. However, because the dependency is static, the application must still ensure the dependency is present at runtime if execution paths actually need it.
 
-Không dùng **requires static transitive** để che giấu một dependency runtime bắt buộc. Nếu code luôn cần module đó để hoạt động, hãy khai báo dependency runtime rõ ràng. Đặc biệt, annotation có retention chỉ ở source hoặc class có thể có nhu cầu runtime khác với framework cần đọc annotation bằng reflection.
+Do not use **requires static transitive** to hide a mandatory runtime dependency. If code always needs that module to operate, declare the runtime dependency explicitly. In particular, annotations with source or class retention may have different runtime requirements than frameworks that need to read annotations via reflection.
 
-## 10. Phân biệt module graph với dependency graph của Maven/Gradle
+## 10. Distinguishing the JPMS module graph from Maven/Gradle's dependency graph
 
-JPMS và build tool cùng mô tả dependency, nhưng chúng giải quyết những việc khác nhau:
+JPMS and build tools both describe dependencies, but they solve different problems:
 
-| Khía cạnh | JPMS | Maven/Gradle |
+| Aspect | JPMS | Maven/Gradle |
 |---|---|---|
-| Mục tiêu | Quy định module nào đọc module nào và package nào được truy cập. | Tìm, tải, chọn phiên bản và đưa artifact vào compile/runtime classpath hoặc module path. |
-| Khai báo | **requires**, **requires transitive**, **requires static** trong module descriptor. | Dependency declarations và configuration/scope của build tool. |
-| Truyền dependency | Truyền khả năng đọc trong module graph. | Quy tắc dependency transitivity của hệ thống quản lý artifact. |
-| Đóng gói | Descriptor không tự gom dependency vào JAR. | Plugin và task quyết định artifact được publish hoặc đưa vào gói phân phối. |
+| Goal | Defines which modules read which modules and which packages are accessible. | Finds, downloads, selects versions, and places artifacts onto the compile/runtime classpath or module path. |
+| Declaration | **requires**, **requires transitive**, **requires static** in the module descriptor. | Dependency declarations and build tool configurations/scopes. |
+| Dependency propagation | Propagates readability in the module graph. | Dependency transitivity rules of the artifact management system. |
+| Packaging | The descriptor does not bundle dependencies into a JAR. | Plugins and tasks decide which artifacts are published or included in distribution packages. |
 
-Một khai báo **requires transitive** không thay thế cấu hình publish dependency của Maven hoặc Gradle. Build tool vẫn cần biết artifact nào phải được phân giải và công bố cho người dùng thư viện. Tương tự, một dependency được Maven/Gradle kéo về không tự động có nghĩa module hiện tại được phép đọc nó theo JPMS.
+A **requires transitive** declaration does not replace Maven or Gradle's dependency publishing configuration. The build tool still needs to know which artifacts must be resolved and published to library users. Similarly, a dependency pulled in by Maven/Gradle does not automatically mean the current module is allowed to read it under JPMS.
 
-Với dự án modular, cần đồng bộ hai đồ thị: dependency artifact phải được build tool phân giải đúng, và module descriptor phải mô tả đúng khả năng đọc giữa các named module. Nếu build chạy được nhờ classpath nhưng ứng dụng được khởi chạy bằng module path, các thiếu sót trong descriptor có thể xuất hiện rõ ràng.
+For modular projects, the two graphs must stay synchronized: artifact dependencies must be resolved properly by the build tool, and module descriptors must accurately describe readability between named modules. If a build works on the classpath yet the application is launched via the module path, omissions in the descriptor may surface clearly.
 
-## 11. Cách kiểm tra module readability
+## 11. How to inspect module readability
 
-Có thể xem descriptor của module đã đóng gói bằng:
+You can view the descriptor of a packaged module with:
 
 ~~~bash
 jar --describe-module --file mods/com.acme.service.jar
 ~~~
 
-Kiểm tra module trên module path:
+Inspect a module on the module path:
 
 ~~~bash
 java --module-path mods --describe-module com.acme.service
 ~~~
 
-Để quan sát quá trình phân giải khi chạy ứng dụng:
+To observe resolution when running the application:
 
 ~~~bash
 java --show-module-resolution --module-path mods --module com.acme.app
 ~~~
 
-Khi gặp lỗi, hãy lần lượt kiểm tra:
+When encountering errors, check in turn:
 
-1. Module đích có nằm trên module path hoặc trong cấu hình module được dùng hay không.
-2. Tên module trong **requires** có khớp với tên trong descriptor hoặc tên automatic module hay không.
-3. Module trung gian có khai báo **requires transitive** đúng dependency mà API công khai đang làm lộ hay không.
-4. Module chứa kiểu dữ liệu có export package tương ứng hay không.
-5. Dependency của JPMS có khớp với dependency được build tool phân giải và đóng gói hay không.
+1. Whether the target module is on the module path or in the module configuration being used.
+2. Whether the module name in **requires** matches the name in the descriptor or the automatic module name.
+3. Whether the intermediate module declares **requires transitive** for the exact dependency that the public API exposes.
+4. Whether the module containing the data type exports the corresponding package.
+5. Whether JPMS dependencies match the dependencies resolved and packaged by the build tool.
 
-Lỗi không đọc được module và lỗi package chưa export là hai vấn đề khác nhau. Hãy xác định lỗi thuộc module readability hay package accessibility trước khi thay descriptor.
+An unreadable module error and an unexported package error are two different issues. Identify whether the error pertains to module readability or package accessibility before modifying the descriptor.
 
-## 12. Checklist thiết kế dependency
+## 12. Dependency Design Checklist
 
-Khi viết module descriptor, hãy tự trả lời:
+When writing a module descriptor, ask yourself:
 
-- Module hiện tại có trực tiếp dùng kiểu hoặc dịch vụ từ dependency này không? Nếu có, khai báo **requires**.
-- Dependency có xuất hiện trong API công khai khiến người tiêu thụ cần đọc nó không? Nếu có, cân nhắc **requires transitive**.
-- Package chứa API của dependency đã được export phù hợp chưa?
-- Dependency chỉ cần khi biên dịch hay bắt buộc ở runtime? Chỉ dùng **requires static** khi vòng đời dependency thực sự cho phép vắng mặt lúc chạy.
-- Việc truyền dependency có làm lộ quá nhiều module nội bộ cho người tiêu thụ không?
-- Cấu hình Maven/Gradle đã công bố và phân giải artifact phù hợp với module descriptor chưa?
-- Thay đổi descriptor có làm hỏng khả năng biên dịch của các module tiêu thụ hiện tại không?
+- Does the current module directly use types or services from this dependency? If yes, declare **requires**.
+- Does the dependency appear in the public API such that consumers need to read it? If yes, consider **requires transitive**.
+- Has the package containing the dependency's API been exported appropriately?
+- Is the dependency only needed at compile time or mandatory at runtime? Only use **requires static** when the dependency's lifecycle genuinely allows its absence at runtime.
+- Does propagating the dependency expose too many internal modules to consumers?
+- Does the Maven/Gradle configuration publish and resolve artifacts consistently with the module descriptor?
+- Will changing the descriptor break compilation for existing consuming modules?
 
-Một module nên công bố đúng những dependency mà hợp đồng API của nó yêu cầu. **requires** giữ dependency ở phạm vi module trực tiếp; **requires transitive** truyền khả năng đọc đến người tiêu thụ khi dependency thực sự thuộc bề mặt API. Chọn đúng giữa hai chỉ thị giúp module graph phản ánh rõ kiến trúc, giảm khai báo lặp và giữ dependency nội bộ không bị phơi bày không cần thiết.
+A module should expose exactly the dependencies that its API contract requires. **requires** keeps a dependency scoped to the direct module; **requires transitive** propagates readability to consumers when the dependency genuinely belongs to the API surface. Choosing properly between the two directives helps the module graph reflect the architecture clearly, reduces repetitive declarations, and prevents internal dependencies from being exposed unnecessarily.

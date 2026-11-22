@@ -1,22 +1,22 @@
-# Literal ký tự và literal chuỗi trong Java 17+
+# Character Literals and String Literals in Java 17+
 
-Khi viết `'A'` và `"A"`, bạn đang tạo **hai loại giá trị khác nhau**: `'A'` là literal ký tự có kiểu `char`, còn `"A"` là literal chuỗi có kiểu `String`. Nháy đơn, nháy kép, escape và số ký tự bên trong quyết định đoạn mã có hợp lệ hay không.
+When you write `'A'` and `"A"`, you are creating **two different kinds of values**: `'A'` is a character literal of type `char`, whereas `"A"` is a string literal of type `String`. Single quotes, double quotes, escapes, and the number of characters inside determine whether the code snippet is valid.
 
-Bài này giúp bạn khai báo, in, so sánh và xử lý các literal ấy bằng Java 17+, đồng thời tránh nhầm giữa **một đơn vị mã UTF-16** và **một ký tự Unicode đầy đủ**.
+This lesson helps you declare, print, compare, and handle those literals with Java 17+, while avoiding confusion between **a UTF-16 code unit** and **a full Unicode character**.
 
-## 1. Phân biệt `char` và `String`
+## 1. Distinguishing `char` and `String`
 
-| Nội dung | Literal ký tự | Literal chuỗi |
+| Aspect | Character literal | String literal |
 | --- | --- | --- |
-| Cú pháp | `'A'` | `"A"` |
-| Kiểu Java | `char`, kiểu nguyên thủy (*primitive*) 16 bit | `String`, kiểu tham chiếu bất biến (*immutable*) |
-| Số đơn vị mã được biểu diễn | Đúng một đơn vị mã UTF-16 | Có thể là 0, 1 hoặc nhiều đơn vị mã UTF-16 |
-| Rỗng | `''` **không hợp lệ** | `""` hợp lệ |
-| Dấu xuống dòng | `'\n'` | `"\n"` |
-| Ghép nối | Không có phương thức `concat` trên `char` | `"Ja" + "va"` cho `"Java"` |
-| Đọc độ dài | Không gọi `.length()` trên `char` | `"Java".length()` trả 4 |
+| Syntax | `'A'` | `"A"` |
+| Java type | `char`, 16-bit *primitive* type | `String`, *immutable* reference type |
+| Number of code units represented | Exactly one UTF-16 code unit | Can be 0, 1, or many UTF-16 code units |
+| Empty | `''` is **invalid** | `""` is valid |
+| Line break | `'\n'` | `"\n"` |
+| Concatenation | No `concat` method on `char` | `"Ja" + "va"` produces `"Java"` |
+| Reading length | Cannot call `.length()` on `char` | `"Java".length()` returns 4 |
 
-Ví dụ:
+Example:
 
 ~~~java
 char grade = 'A';
@@ -25,31 +25,31 @@ String empty = "";
 String message = "Xin chao!";
 ~~~
 
-Dù `grade` và `gradeText` cùng hiển thị chữ A, chúng **không cùng kiểu**. `char` lưu một đơn vị mã (giá trị số nguyên không dấu 16 bit); `String` biểu diễn một dãy các đơn vị mã và cung cấp nhiều phương thức thao tác chuỗi.
+Although `grade` and `gradeText` both display the letter A, they **do not have the same type**. `char` stores one code unit (a 16-bit unsigned integer value); `String` represents a sequence of code units and provides many string manipulation methods.
 
-Lưu ý: một ký tự Unicode như emoji `🚀` thường cần **hai đơn vị mã UTF-16** (surrogate pair). Do đó `"🚀"` hợp lệ, nhưng không thể chứa trọn emoji ấy trong một literal `char` đơn lẻ.
+Note: a Unicode character like the emoji `🚀` typically requires **two UTF-16 code units** (a surrogate pair). Thus `"🚀"` is valid, whereas the entire emoji cannot fit inside a single `char` literal.
 
-## 2. Escape và ranh giới `char`/`String`
+## 2. Escapes and the `char`/`String` boundary
 
-Trong cả character literal và string literal, dấu gạch chéo ngược bắt đầu một escape. Một escape phù hợp có thể biểu diễn **một đơn vị mã** mà ta không gõ trực tiếp:
+In both character literals and string literals, the backslash starts an escape. An appropriate escape can represent **one code unit** that we do not type directly:
 
-| Source Java | Giá trị khi chạy | Kiểu ví dụ |
+| Java source | Runtime value | Example type |
 | --- | --- | --- |
-| `'\n'` | Một char LF, mã 10 | `char` |
-| `"\n"` | Chuỗi dài 1 đơn vị UTF-16 chứa LF | `String` |
-| `'\\'` | Một char dấu backslash | `char` |
-| `"\\n"` | Chuỗi gồm backslash và chữ n, độ dài 2 | `String` |
-| `'\''` | Một char dấu nháy đơn | `char` |
-| `"Say \"hi\""` | Chuỗi chứa hai dấu nháy kép | `String` |
+| `'\n'` | One LF char, code 10 | `char` |
+| `"\n"` | String of length 1 UTF-16 unit containing LF | `String` |
+| `'\\'` | One backslash char | `char` |
+| `"\\n"` | String consisting of backslash and letter n, length 2 | `String` |
+| `'\''` | One single-quote char | `char` |
+| `"Say \"hi\""` | String containing two double quotes | `String` |
 
-Điều cần kiểm tra là **kiểu và độ dài giá trị sau khi diễn giải literal**, chứ không đếm ký tự gõ trong source. Escape `\t`, `\r`, `\b`, `\f` cũng có công dụng riêng; ví dụ `"\t"` chứa một code unit tab.
+What needs to be checked is **the type and length of the value after interpreting the literal**, not counting the characters typed in source code. Escapes `\t`, `\r`, `\b`, and `\f` also have specific uses; for instance, `"\t"` contains one tab code unit.
 
-Unicode escape như `\u0041` là một cơ chế khác: Java xử lý Unicode escape **trước bước phân tích token** kể cả ở vị trí trông như comment. Do đó không dùng Unicode escape của LF để chèn newline vào string literal thông thường; dùng `"\n"` hoặc `'\n'`. Các ví dụ xử lý backslash, dấu nháy, đường dẫn và nhiều lớp escape sẽ được phân tích kỹ trong bài chuyên về escape sequence.
+Unicode escapes such as `\u0041` are a different mechanism: Java processes Unicode escapes **before tokenization**, even in places that look like comments. Therefore, do not use the Unicode escape for LF to insert a newline into a normal string literal; use `"\n"` or `'\n'`. Examples handling backslashes, quotes, paths, and multiple escape layers are analyzed thoroughly in the dedicated lesson on escape sequences.
 
 
-## 3. Chương trình Java 17+ chạy được
+## 3. Runnable Java 17+ program
 
-Lưu tệp UTF-8 tên **`CharacterStringDemo.java`**:
+Save a UTF-8 file named **`CharacterStringDemo.java`**:
 
 ~~~java
 public class CharacterStringDemo {
@@ -83,7 +83,7 @@ public class CharacterStringDemo {
 }
 ~~~
 
-Mở terminal trong thư mục chứa file (Windows PowerShell hoặc Linux Bash):
+Open a terminal in the directory containing the file (Windows PowerShell or Linux Bash):
 
 ~~~bash
 java -version
@@ -107,19 +107,19 @@ block=Alpha|Beta|
 equals=true
 ~~~
 
-Giải thích kết quả đáng chú ý:
+Explanation of notable results:
 
-1. `(int) newline` chuyển giá trị `char` của LF sang số nguyên `10`.
-2. `twoLines` thật sự chứa dấu xuống dòng; `replace("\n", "|")` giúp nhìn thấy ranh giới hai dòng khi in.
-3. `rocket.length() == 2` vì emoji U+1F680 chiếm hai đơn vị mã UTF-16. `codePointCount(...) == 1` vì đó là một Unicode code point.
-4. Text block `""" ... """` hỗ trợ từ Java 15, nên dùng được trong Java 17. Literal này chứa xuống dòng và loại bỏ phần thụt lề chung; do có xuống dòng ở cuối, phép `replace` cho `Alpha|Beta|`.
-5. `equals` so sánh **nội dung chuỗi**, không dựa vào việc hai biến tham chiếu cùng một đối tượng.
+1. `(int) newline` converts the `char` value of LF to the integer `10`.
+2. `twoLines` genuinely contains a newline; `replace("\n", "|")` makes the boundary between the two lines visible when printed.
+3. `rocket.length() == 2` because emoji U+1F680 occupies two UTF-16 code units. `codePointCount(...) == 1` because it is one Unicode code point.
+4. Text block `""" ... """` has been supported since Java 15, so it works in Java 17. This literal contains newlines and strips common indentation; because there is a trailing newline, `replace` produces `Alpha|Beta|`.
+5. `equals` compares **string content**, not whether two variables refer to the same object.
 
-Bạn có thể thử `java CharacterStringDemo.java` trên JDK 17+ để chạy trực tiếp tệp nguồn mà không cần gọi `javac` riêng. Kết quả chương trình vẫn như trên.
+You can try `java CharacterStringDemo.java` on JDK 17+ to run the source file directly without invoking `javac` separately. The program output remains the same as above.
 
-## 4. Khi cần chuỗi nhiều dòng: text block
+## 4. When you need multi-line strings: text blocks
 
-Java 17 hỗ trợ text block `"""` (ổn định từ Java 15), vẫn cho ra **`String`**, không phải một kiểu ký tự mới. Dấu mở `"""` phải có dấu xuống dòng theo sau; compiler loại thụt lề chung để trình bày source thuận tiện:
+Java 17 supports text blocks `"""` (standardized since Java 15), which still produce a **`String`**, not a new character type. The opening delimiter `"""` must be followed by a newline; the compiler strips common indentation to make source formatting convenient:
 
 ~~~java
 String normal = "A\nB";
@@ -129,52 +129,52 @@ String multi = """
         """;
 ~~~
 
-Hai chuỗi trên không hoàn toàn bằng nhau: `multi` có **newline cuối**, còn `normal` thì không. Dấu đóng ngay sau `B` thay vì ở dòng riêng là một cách bỏ newline cuối. Text block có thể chứa dấu nháy kép thông thường và escape, nhưng dấu cách đầu/cuối còn chịu quy tắc xử lý thụt lề và khoảng trắng riêng. Khi cần nội dung chính xác, hãy kiểm tra bằng `length()` hoặc biểu diễn newline hiện rõ; các thao tác `\s`, nối dòng và vị trí dấu đóng được đi sâu trong bài text block.
+The two strings above are not completely equal: `multi` has a **trailing newline**, whereas `normal` does not. Placing the closing delimiter right after `B` instead of on its own line is one way to omit the trailing newline. A text block can contain ordinary double quotes and escapes, though leading/trailing spaces are also subject to separate indentation and whitespace processing rules. When exact content matters, verify using `length()` or by making newlines visible; operations like `\s`, line continuation, and closing delimiter placement are covered in depth in the text block lesson.
 
 
-## 5. Các lỗi thường gặp
+## 5. Common mistakes
 
-| Đoạn mã | Kết quả | Cách sửa |
+| Code snippet | Result | Fix |
 | --- | --- | --- |
-| `char c = 'A';` | Hợp lệ | Một literal `char` |
-| `String s = "A";` | Hợp lệ | Một literal `String` |
-| `char c = '';` | Lỗi biên dịch | `char` phải chứa một đơn vị mã; nếu cần rỗng, dùng `String s = "";` |
-| `char c = 'AB';` | Lỗi biên dịch | Dùng `String s = "AB";` |
-| `String s = 'A';` | Lỗi kiểu dữ liệu | Dùng `String s = "A";` |
-| `char c = "A";` | Lỗi kiểu dữ liệu | Dùng `char c = 'A';` |
-| `String s = "C:\temp";` | Có thể sai ý định: `\t` là tab | Dùng `"C:\\temp"` |
-| `String s = "a\nb";` | Hợp lệ: chứa xuống dòng lúc chạy | Nếu muốn thấy `\n` dưới dạng chữ, dùng `"a\\nb"` |
-| `String s = "a" + "b";` | Hợp lệ | Cho kết quả nội dung `ab` |
+| `char c = 'A';` | Valid | A `char` literal |
+| `String s = "A";` | Valid | A `String` literal |
+| `char c = '';` | Compile error | `char` must contain one code unit; if empty is needed, use `String s = "";` |
+| `char c = 'AB';` | Compile error | Use `String s = "AB";` |
+| `String s = 'A';` | Type error | Use `String s = "A";` |
+| `char c = "A";` | Type error | Use `char c = 'A';` |
+| `String s = "C:\temp";` | Likely unintended: `\t` is a tab | Use `"C:\\temp"` |
+| `String s = "a\nb";` | Valid: contains a newline at runtime | If you want to see `\n` literally, use `"a\\nb"` |
+| `String s = "a" + "b";` | Valid | Produces content `ab` |
 
-**So sánh chuỗi:** tránh dùng `==` để kiểm tra nội dung hai `String` bất kỳ. `==` so sánh tham chiếu; `equals` so sánh nội dung. Trong ví dụ đang chạy, `language.equals("Java")` cho `true`.
+**Comparing strings:** avoid using `==` to check the content of two arbitrary `String`s. `==` compares references; `equals` compares content. In the running example, `language.equals("Java")` returns `true`.
 
-**Bất biến:** `String` không thay đổi nội dung sau khi tạo. Ví dụ gọi `language.concat(" 17")` trả về **chuỗi mới**, không sửa giá trị `language` nếu bạn không gán kết quả.
+**Immutability:** `String` does not change its content after creation. For example, calling `language.concat(" 17")` returns a **new string**, without modifying the value of `language` unless you assign the result.
 
-## 6. Bài tập ngắn
+## 6. Short exercises
 
-**Bài 1.** Chọn kiểu đúng cho một chữ `K` và một chuỗi `"K"`; giải thích vì sao `'KK'` không hợp lệ.
+**Exercise 1.** Choose the right types for a single letter `K` and a string `"K"`; explain why `'KK'` is invalid.
 
-*Đáp án:* `char c = 'K';` và `String s = "K";`. `'KK'` có hai đơn vị mã, không phải một `char`.
+*Answer:* `char c = 'K';` and `String s = "K";`. `'KK'` has two code units, not a single `char`.
 
-**Bài 2.** Dự đoán `"Hi\nJava".length()` và `"Hi\\nJava".length()`.
+**Exercise 2.** Predict `"Hi\nJava".length()` and `"Hi\\nJava".length()`.
 
-*Đáp án:* `7` và `8`. Chuỗi thứ nhất chứa một ký tự LF; chuỗi thứ hai chứa hai ký tự backslash và chữ `n`.
+*Answer:* `7` and `8`. The first string contains one LF character; the second string contains two characters: a backslash and the letter `n`.
 
-**Bài 3.** Trong `CharacterStringDemo`, thay `language = "Java"` bằng `"Kotlin"`. Giá trị `greeting` và `equals` sẽ thế nào?
+**Exercise 3.** In `CharacterStringDemo`, replace `language = "Java"` with `"Kotlin"`. What will the values of `greeting` and `equals` be?
 
-*Đáp án:* `Xin chao, Kotlin!` và `false`.
+*Answer:* `Xin chao, Kotlin!` and `false`.
 
-**Bài 4.** Viết literal chứa chính xác dòng văn bản `C:\work\java`.
+**Exercise 4.** Write a literal containing the exact line of text `C:\work\java`.
 
-*Đáp án:* `"C:\\work\\java"`.
+*Answer:* `"C:\\work\\java"`.
 
-**Bài 5.** Vì sao `"🚀".length()` bằng 2 nhưng `codePointCount` bằng 1?
+**Exercise 5.** Why is `"🚀".length()` equal to 2 while `codePointCount` is 1?
 
-*Đáp án:* Một code point ngoài BMP được mã hóa bằng **hai UTF-16 code unit**. `String.length()` đếm code unit; `codePointCount` đếm code point (không nhất thiết bằng số *grapheme cluster* mà mắt người thấy).
+*Answer:* A code point outside the BMP is encoded as **two UTF-16 code units**. `String.length()` counts code units; `codePointCount` counts code points (not necessarily the number of *grapheme clusters* perceived by human eyes).
 
-## Ghi nhớ
+## Key takeaway
 
-- **`'A'` → `char`** (một đơn vị mã UTF-16); **`"A"` → `String`** (dãy ký tự, có thể rỗng).
-- Dùng `\n`, `\t`, `\`, `\"`, `\'` đúng chỗ; phân biệt **escape của string** và **Unicode escape xử lý trước token**.
-- `String` là immutable; so sánh nội dung bằng `equals`; `length()` đếm UTF-16 code unit.
-- **Text block** `""" ... """` cũng là một `String`, hữu ích cho nội dung nhiều dòng trên Java 17+.
+- **`'A'` → `char`** (one UTF-16 code unit); **`"A"` → `String`** (character sequence, may be empty).
+- Use `\n`, `\t`, `\`, `\"`, `\'` appropriately; distinguish **string escapes** from **Unicode escapes processed before tokenization**.
+- `String` is immutable; compare content using `equals`; `length()` counts UTF-16 code units.
+- A **text block** `""" ... """` is also a `String`, useful for multi-line content in Java 17+.

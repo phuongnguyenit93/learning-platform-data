@@ -1,21 +1,21 @@
-# divideToIntegralValue, remainder và divideAndRemainder trong BigDecimal
+# `divideToIntegralValue`, `remainder`, and `divideAndRemainder` in `BigDecimal`
 
-> **Java core – numbers · Phép toán BigDecimal**  
-> **Mục tiêu:** Hiểu sự khác biệt giữa chia lấy **phần nguyên của thương**, phép chia lấy **phần dư** và API trả **cả hai**; đọc đúng dấu, scale, precision và ngoại lệ; phân biệt remainder với phép modulo Euclid; biết khi nào nên truyền `MathContext` và viết mã Java 17+ kiểm chứng chính xác kết quả.
+> **Java core – numbers · BigDecimal Operations**  
+> **Goal:** Understand the differences between division returning the **integral part of the quotient**, division returning the **remainder**, and the API returning **both**; read signs, scale, precision, and exceptions accurately; distinguish `remainder` from Euclidean modulo; know when to pass a `MathContext`; and write Java 17+ code to verify results accurately.
 
-## 1. Khi phép chia thập phân không cần thương có phần lẻ
+## 1. When Decimal Division Does Not Need a Fractional Quotient
 
-Một tình huống thường gặp: chia một số tiền, khối lượng hoặc số lượng chính xác thành các nhóm, rồi cần biết **có bao nhiêu nhóm nguyên** và **phần còn lại là bao nhiêu**.
+A common scenario: dividing an exact amount of money, weight, or quantity into groups, and needing to know **how many whole groups** there are and **how much is left over**.
 
-Ví dụ có `17.5` đơn vị và mỗi nhóm cần `3` đơn vị:
+For example, having `17.5` units where each group requires `3` units:
 
 \[
 17.5 = 5 \times 3 + 2.5
 \]
 
-Ta cần thương nguyên 5 và phần dư 2.5; không nhất thiết phải tính thương thập phân lặp vô hạn `17.5/3 = 5.83333...`.
+We need the integral quotient 5 and remainder 2.5; we do not necessarily need to compute the infinitely repeating decimal quotient `17.5/3 = 5.83333...`.
 
-`BigDecimal` cung cấp ba phương thức cho nhu cầu ấy:
+`BigDecimal` provides three methods for that need:
 
 ```java
 import java.math.BigDecimal;
@@ -33,26 +33,26 @@ System.out.println(both[0]);   // 5.0
 System.out.println(both[1]);   // 2.5
 ```
 
-**Vì sao in `5.0` chứ không phải `5`?** `BigDecimal` có thuộc tính **scale**. Một kết quả có giá trị số nguyên vẫn có thể được biểu diễn bằng BigDecimal scale dương. `5.0` vẫn là giá trị số 5; phần cách biểu diễn sẽ được phân tích ở mục về scale.
+**Why does it print `5.0` instead of `5`?** `BigDecimal` has a **scale** property. A result with an integer numeric value can still be represented as a BigDecimal with positive scale. `5.0` still has numeric value 5; how representation works will be analyzed in the scale section.
 
-### Bảng API cốt lõi
+### Core API Table
 
-| Phương thức | Kiểu trả về | Ý nghĩa |
+| Method | Return type | Meaning |
 | --- | --- | --- |
-| `a.divideToIntegralValue(b)` | `BigDecimal` | Phần nguyên của thương, cắt phần lẻ về phía 0 |
-| `a.remainder(b)` | `BigDecimal` | `a - q×b` với q là thương nguyên ở trên |
-| `a.divideAndRemainder(b)` | `BigDecimal[]` | Mảng hai phần tử: `[0]` là q, `[1]` là r |
-| `a.divideToIntegralValue(b, mc)` | `BigDecimal` | Thương nguyên, nhưng bị ràng buộc khả năng biểu diễn bởi `MathContext` |
-| `a.remainder(b, mc)` | `BigDecimal` | Phần dư dùng thương nguyên tính với `mc` |
-| `a.divideAndRemainder(b, mc)` | `BigDecimal[]` | Cặp thương nguyên và dư với `mc` |
+| `a.divideToIntegralValue(b)` | `BigDecimal` | Integral part of the quotient, truncating the fractional part toward 0 |
+| `a.remainder(b)` | `BigDecimal` | `a - q×b` where q is the integral quotient above |
+| `a.divideAndRemainder(b)` | `BigDecimal[]` | Two-element array: `[0]` is q, `[1]` is r |
+| `a.divideToIntegralValue(b, mc)` | `BigDecimal` | Integral quotient, constrained in representability by `MathContext` |
+| `a.remainder(b, mc)` | `BigDecimal` | Remainder using the integral quotient computed with `mc` |
+| `a.divideAndRemainder(b, mc)` | `BigDecimal[]` | Pair of integral quotient and remainder with `mc` |
 
-Cả sáu phương thức trên có trong Java 17, thuộc `java.math.BigDecimal`. Không phải phương thức static: chúng được gọi trên **số bị chia**.
+All six methods exist in Java 17 in `java.math.BigDecimal`. They are not static methods: they are invoked on the **dividend**.
 
-## 2. Định nghĩa chính xác của thương nguyên
+## 2. Exact Definition of the Integral Quotient
 
-Cho số bị chia `a` và số chia `b != 0`. Phần nguyên của thương được tính bằng cách **cắt phần thập phân của thương thực về phía số 0** (*truncate toward zero*).
+Given dividend `a` and divisor `b != 0`. The integral part of the quotient is computed by **truncating the fractional part of the true quotient toward zero** (*truncate toward zero*).
 
-Ký hiệu:
+Notation:
 
 \[
 q = \operatorname{trunc}(a/b)
@@ -61,16 +61,16 @@ q = \operatorname{trunc}(a/b)
 r = a - q\times b
 \]
 
-Đẳng thức phải luôn thỏa mãn theo giá trị số học:
+The identity must always hold in terms of arithmetic value:
 
 \[
 a = q\times b + r
 \]
 
-Đặc biệt, q không nhất thiết là kết quả của hàm **floor** (làm tròn xuống −∞). Sự khác biệt lộ rõ với số âm:
+In particular, q is not necessarily the result of the **floor** function (rounding down toward −∞). The difference becomes clear with negative numbers:
 
 ```text
- a       b      a/b (xấp xỉ)   q = trunc(a/b)    r
+ a       b      a/b (approx.)   q = trunc(a/b)    r
 -------------------------------------------------------
  17.5    3       5.8333...          5         2.5
 -17.5    3      -5.8333...         -5        -2.5
@@ -78,27 +78,27 @@ a = q\times b + r
 -17.5   -3       5.8333...          5        -2.5
 ```
 
-Với `a=-17.5` và `b=3`, nếu dùng `floor(-5.8333...)` thì q=−6; nhưng `divideToIntegralValue` trả giá trị q=−5. Hai quy tắc khác nhau.
+With `a=-17.5` and `b=3`, using `floor(-5.8333...)` gives q=−6; however, `divideToIntegralValue` returns value q=−5. They are two different rules.
 
-**Đừng gọi thương này là “làm tròn xuống” khi có thể có số âm.** Dùng “cắt phần lẻ về 0” hoặc “thương nguyên theo truncation”.
+**Do not call this quotient “rounding down” when negative numbers may appear.** Use “truncating the fractional part toward 0” or “integral quotient by truncation”.
 
-### Thương nguyên vẫn mang kiểu BigDecimal
+### The Integral Quotient Still Has Type BigDecimal
 
-`divideToIntegralValue` trả **`BigDecimal`**, không phải `BigInteger`, `int` hay `long`:
+`divideToIntegralValue` returns **`BigDecimal`**, not `BigInteger`, `int`, or `long`:
 
 ```java
 BigDecimal q = new BigDecimal("17.5")
         .divideToIntegralValue(new BigDecimal("3"));
 
-// Có thể là 5.0, nhưng vẫn biểu diễn một số nguyên.
+// May be 5.0, yet still represents an integer.
 System.out.println(q.toBigIntegerExact()); // 5
 ```
 
-Nếu API tiếp theo thật sự cần kiểu nguyên, `toBigIntegerExact()` có thể diễn giải giá trị số nguyên thành BigInteger mà không cắt phần lẻ. Để chuyển về int hoặc long mà không mất giá trị, cân nhắc `intValueExact()`/`longValueExact()`; chúng báo lỗi nếu kết quả không vừa miền kiểu đích.
+If downstream APIs truly need an integer type, `toBigIntegerExact()` can convert the integer value to BigInteger without discarding any fractional part. To convert to int or long without losing value, consider `intValueExact()` / `longValueExact()`; they report an error if the result does not fit the target type's range.
 
-## 3. remainder là gì? Không phải “modulo luôn không âm”
+## 3. What Is `remainder`? Not “Always Non-Negative Modulo”
 
-Với `a=17.5`, `b=3`:
+With `a=17.5`, `b=3`:
 
 ```java
 BigDecimal a = new BigDecimal("17.5");
@@ -111,14 +111,14 @@ System.out.println(q); // 5.0
 System.out.println(r); // 2.5
 ```
 
-Đẳng thức `a = q×b + r` được thực hiện theo giá trị BigDecimal chính xác:
+The identity `a = q×b + r` holds in exact BigDecimal numeric value:
 
 ```java
 BigDecimal reconstructed = q.multiply(b).add(r);
 System.out.println(reconstructed.compareTo(a) == 0); // true
 ```
 
-Với số âm:
+With negative numbers:
 
 ```java
 BigDecimal negative = new BigDecimal("-17.5");
@@ -126,19 +126,19 @@ System.out.println(negative.divideToIntegralValue(b)); // -5.0
 System.out.println(negative.remainder(b));             // -2.5
 ```
 
-**Phần dư của BigDecimal có thể âm.** Nó lấy dấu theo số bị chia `a` khi phần dư khác 0, do q được cắt về phía 0. Đó là cùng tinh thần với toán tử `%` của số nguyên Java, **không** phải phép modulo Euclid luôn thuộc đoạn `[0,m)` với môđun dương.
+**BigDecimal's remainder can be negative.** It takes the sign of the dividend `a` when the remainder is nonzero, because q is truncated toward 0. That follows the same spirit as Java's integer `%` operator, **not** Euclidean modulo which always lies in `[0,m)` for a positive modulus.
 
-Các đặc tính khi `b != 0` và các giá trị hữu hạn:
+Properties when `b != 0` and values are finite:
 
 - `a = q×b+r`;
-- `|r| < |b|` khi r khác 0, và điều kiện cũng thỏa với r=0;
-- r khác 0 mang dấu của a;
-- đổi dấu b có thể đổi dấu q, nhưng **không đổi dấu r** nếu a giữ nguyên;
-- thương nguyên q được cắt về 0, không phụ thuộc chế độ rounding thông thường của phép chia decimal.
+- `|r| < |b|` when r is nonzero, and the condition also holds for r=0;
+- nonzero r carries the sign of a;
+- flipping the sign of b can flip the sign of q, but **does not flip the sign of r** if a stays the same;
+- the integral quotient q is truncated toward 0, independent of usual decimal division rounding modes.
 
-### Phân biệt remainder với modulo Euclid
+### Distinguishing `remainder` from Euclidean Modulo
 
-Giả sử cần phần dư **không âm** từ một môđun dương 3:
+Suppose you need a **non-negative** remainder from a positive modulus 3:
 
 ```java
 BigDecimal a = new BigDecimal("-17.5");
@@ -149,13 +149,13 @@ BigDecimal euclidean = raw.signum() < 0
         ? raw.add(m) : raw;       // 0.5
 ```
 
-`0.5` là phần dư Euclid trong đoạn `[0,3)`, còn `-2.5` là phần dư của BigDecimal. Nếu muốn phép modulo Euclid cho BigDecimal, hãy định nghĩa **môđun dương** và chuẩn hóa phần dư như trên.
+`0.5` is the Euclidean remainder in `[0,3)`, whereas `-2.5` is BigDecimal's remainder. If you want Euclidean modulo for BigDecimal, define a **positive modulus** and normalize the remainder as above.
 
-BigInteger có `mod(modulus)` với yêu cầu modulus dương; **BigDecimal không có `mod(BigDecimal)` tương ứng**. Không tự đặt tên `remainder` là modulo không âm rồi xây thuật toán dựa trên giả định sai.
+BigInteger has `mod(modulus)` requiring a positive modulus; **BigDecimal has no equivalent `mod(BigDecimal)`**. Do not name `remainder` a non-negative modulo and build an algorithm on that false assumption.
 
-## 4. divideAndRemainder: một lời gọi, hai kết quả
+## 4. `divideAndRemainder`: One Call, Two Results
 
-Khi chương trình cần **cả thương nguyên lẫn phần dư**, viết:
+When a program needs **both the integral quotient and the remainder**, write:
 
 ```java
 BigDecimal[] result = amount.divideAndRemainder(unit);
@@ -163,12 +163,12 @@ BigDecimal quotient = result[0];
 BigDecimal remainder = result[1];
 ```
 
-Mảng có **đúng hai phần tử** theo thứ tự:
+The array has **exactly two elements** in order:
 
-1. `result[0]`: thương nguyên `divideToIntegralValue`.
-2. `result[1]`: phần dư `remainder`.
+1. `result[0]`: the integral quotient `divideToIntegralValue`.
+2. `result[1]`: the remainder `remainder`.
 
-Đừng đảo hai phần tử hoặc hiểu `result[0]` là thương decimal có phần lẻ.
+Do not swap the two elements or interpret `result[0]` as a fractional decimal quotient.
 
 ```java
 BigDecimal amount = new BigDecimal("17.5");
@@ -180,11 +180,11 @@ System.out.println("q = " + qr[0]); // q = 5.0
 System.out.println("r = " + qr[1]); // r = 2.5
 ```
 
-Theo Javadoc, khi cần cả thương và dư, phương thức này **có thể nhanh hơn** gọi lần lượt hai phép riêng vì phần tính thương có thể được dùng lại. Không suy luận rằng một lời gọi luôn có tốc độ cố định hoặc luôn nhanh hơn trong mọi workload; muốn tối ưu thực tế phải benchmark.
+According to the Javadoc, when both quotient and remainder are needed, this method **may be faster** than calling the two operations separately because the quotient computation can be reused. Do not infer that a single call always has fixed speed or is always faster in every workload; actual optimization requires benchmarking.
 
-### Tính bất biến của BigDecimal
+### Immutability of BigDecimal
 
-Phép chia và lấy dư **không thay đổi** hai toán hạng:
+Division and remainder operations **do not mutate** either operand:
 
 ```java
 BigDecimal a = new BigDecimal("17.5");
@@ -195,18 +195,18 @@ System.out.println(a); // 17.5
 System.out.println(b); // 3
 ```
 
-`BigDecimal` là immutable; việc gán lại biến hay lưu một giá trị mới không thay đổi đối tượng cũ. Mảng `BigDecimal[]` do phương thức trả về là một container gồm hai tham chiếu, bạn có thể thay phần tử của mảng nhưng không làm đổi giá trị BigDecimal bên trong.
+`BigDecimal` is immutable; reassigning a variable or storing a new value does not alter the old object. The `BigDecimal[]` array returned by the method is a container holding two references; you can replace elements of the array without changing the BigDecimal values inside.
 
-## 5. Khác gì với divide và phép chia decimal thông thường?
+## 5. How Does It Differ from `divide` and Ordinary Decimal Division?
 
-Đây là khác biệt rất quan trọng:
+This is a very important distinction:
 
 ```java
 BigDecimal one = BigDecimal.ONE;
 BigDecimal three = new BigDecimal("3");
 
-// Không có thương decimal kết thúc:
- // BigDecimal bad = one.divide(three); // ArithmeticException
+// No terminating decimal quotient:
+// BigDecimal bad = one.divide(three); // ArithmeticException
 
 BigDecimal integerPart = one.divideToIntegralValue(three);
 BigDecimal rest = one.remainder(three);
@@ -218,11 +218,11 @@ System.out.println(both[0]);     // 0
 System.out.println(both[1]);     // 1
 ```
 
-`1/3` có phần thập phân lặp vô hạn, vì vậy `BigDecimal.divide(BigDecimal)` **không có rounding mode/context** không thể tạo thương decimal kết thúc chính xác và ném `ArithmeticException`.
+`1/3` has an infinitely repeating decimal part, so `BigDecimal.divide(BigDecimal)` **without a rounding mode/context** cannot produce an exact terminating decimal quotient and throws `ArithmeticException`.
 
-Nhưng **thương nguyên của 1/3 chỉ là 0, phần dư là 1**. Hai giá trị đó được biểu diễn chính xác; `divideToIntegralValue` và `remainder` không cần tính mọi chữ số của thương decimal.
+However, **the integral quotient of 1/3 is simply 0, and the remainder is 1**. Those two values are represented exactly; `divideToIntegralValue` and `remainder` do not need to compute every digit of the decimal quotient.
 
-Khi muốn thương có phần thập phân theo quy tắc làm tròn, dùng một API chia **khác**:
+When you want a quotient with a fractional part according to a rounding rule, use a **different** division API:
 
 ```java
 import java.math.RoundingMode;
@@ -232,21 +232,21 @@ BigDecimal rounded = one.divide(
 System.out.println(rounded); // 0.33
 ```
 
-Nhưng `0.33` **không phải** thương nguyên q=0 và cũng không được dùng thay q trong công thức remainder mặc định. Nếu dùng `0.33` làm thương để tính `1 - 0.33×3`, phần còn lại là 0.01 — khác định nghĩa r=1.
+Yet `0.33` is **not** the integral quotient q=0 and must not replace q in the default remainder formula. If you use `0.33` as the quotient to compute `1 - 0.33×3`, what remains is 0.01 — different from the defined r=1.
 
-| Phép toán | `1/3` | Ý nghĩa |
+| Operation | `1/3` | Meaning |
 | --- | --- | --- |
-| `one.divide(three)` | Ném `ArithmeticException` | Yêu cầu thương decimal chính xác kết thúc |
-| `one.divide(three, 2, HALF_UP)` | 0.33 | Thương decimal làm tròn |
-| `one.divideToIntegralValue(three)` | 0 | Phần nguyên của thương |
-| `one.remainder(three)` | 1 | Phần còn lại theo q=0 |
-| `one.divideAndRemainder(three)` | [0, 1] | Trả cả hai |
+| `one.divide(three)` | Throws `ArithmeticException` | Demands an exact terminating decimal quotient |
+| `one.divide(three, 2, HALF_UP)` | 0.33 | Rounded decimal quotient |
+| `one.divideToIntegralValue(three)` | 0 | Integral part of the quotient |
+| `one.remainder(three)` | 1 | Remainder according to q=0 |
+| `one.divideAndRemainder(three)` | [0, 1] | Returns both |
 
-**Bài học:** Không chọn `divideToIntegralValue` chỉ để “tránh exception” nếu yêu cầu của nghiệp vụ thực sự cần một thương decimal. Nó cố ý **bỏ phần lẻ của thương**.
+**Takeaway:** Do not choose `divideToIntegralValue` just to “avoid an exception” if business requirements actually call for a decimal quotient. It intentionally **discards the fractional part of the quotient**.
 
-## 6. Dấu của thương và dư: kiểm tra đủ 4 trường hợp
+## 6. Signs of Quotient and Remainder: Checking All 4 Cases
 
-Thử bốn tổ hợp dấu:
+Try all four sign combinations:
 
 ```java
 BigDecimal positive = new BigDecimal("17.5");
@@ -271,24 +271,24 @@ System.out.println(java.util.Arrays.toString(
 // [5.0, -2.5]
 ```
 
-Lưu ý:
+Notes:
 
-- q âm khi a và b trái dấu; q dương khi chúng cùng dấu và |a|≥|b|.
-- r là 2.5 nếu a=17.5; r là −2.5 nếu a=−17.5.
-- Khi a có độ lớn nhỏ hơn |b|, q=0 theo trị số và r=a.
-- Không dùng `Math.floor` hay rounding xuống để tự tính q âm; đó sẽ là phép toán khác.
+- q is negative when a and b have opposite signs; q is positive when they have the same sign and |a|≥|b|.
+- r is 2.5 if a=17.5; r is −2.5 if a=−17.5.
+- When a has magnitude smaller than |b|, q=0 numerically and r=a.
+- Do not use `Math.floor` or downward rounding to compute negative q manually; that would be a different operation.
 
-Trong hệ thống kế toán hoặc đo lường, hãy kiểm thử số âm nếu có khả năng phát sinh số dư điều chỉnh/hoàn tiền. Chỉ thử a>0, b>0 thường bỏ sót nhầm lẫn về dấu.
+In accounting or measurement systems, test negative numbers whenever adjustments or refunds can occur. Testing only a>0, b>0 often misses sign errors.
 
-## 7. Scale: q là số nguyên về giá trị nhưng có thể in 5.0 hay 2.00
+## 7. Scale: q Is an Integer in Value, Yet May Print `5.0` or `2.00`
 
-Mỗi `BigDecimal` được diễn giải qua **unscaled value** và **scale**:
+Every `BigDecimal` is interpreted via **unscaled value** and **scale**:
 
 \[
 \text{value}=\text{unscaledValue}\times10^{-\text{scale}}.
 \]
 
-`new BigDecimal("17.5")` có scale 1; `new BigDecimal("3")` có scale 0. Preferred scale của kết quả `divideToIntegralValue` là hiệu scale của số bị chia và số chia; trong ví dụ này là 1:
+`new BigDecimal("17.5")` has scale 1; `new BigDecimal("3")` has scale 0. The preferred scale of `divideToIntegralValue`'s result is the difference between the dividend's scale and the divisor's scale; in this example, it is 1:
 
 ```java
 BigDecimal q = new BigDecimal("17.5")
@@ -298,9 +298,9 @@ System.out.println(q);         // 5.0
 System.out.println(q.scale()); // 1
 ```
 
-Thương **về mặt toán học là số nguyên 5**. Nhưng `BigDecimal` có thể giữ scale 1 và in `5.0` để phù hợp biểu diễn ưu tiên của phép toán.
+The quotient **mathematically is the integer 5**. Yet `BigDecimal` may retain scale 1 and print `5.0` to match the operation's preferred representation.
 
-Ví dụ có hai chữ số phần thập phân:
+Example with two fractional digits:
 
 ```java
 BigDecimal a = new BigDecimal("10.00");
@@ -314,13 +314,13 @@ System.out.println(qr[0].scale()); // 2
 System.out.println(qr[1].scale()); // 2
 ```
 
-Ở đây hai kết quả có scale 2, nhưng nếu ta viết dữ liệu đầu vào là `"10"` thay vì `"10.00"`, dạng in của thương và dư có thể khác.
+Here both results have scale 2, whereas if we write the input data as `"10"` instead of `"10.00"`, the printed form of quotient and remainder can differ.
 
-**Không hứa mọi thương nguyên luôn có scale 0, hay scale luôn bằng đúng hiệu scale.** Preferred scale là một nguyên tắc định dạng/biểu diễn; trong một số phép chia hoặc khi `MathContext` ràng buộc precision, API có thể phải dùng scale khác để biểu diễn đúng thương nguyên.
+**Do not promise that every integral quotient always has scale 0, or that scale always equals the exact scale difference.** Preferred scale is a formatting/representation rule; in certain divisions or when `MathContext` constrains precision, the API may have to use a different scale to represent the integral quotient accurately.
 
-### equals khác compareTo
+### `equals` Differs from `compareTo`
 
-`BigDecimal.equals` xét cả giá trị **và scale**. `compareTo` xét thứ tự giá trị số:
+`BigDecimal.equals` compares both value **and scale**. `compareTo` compares numeric value ordering:
 
 ```java
 BigDecimal x = new BigDecimal("2.00");
@@ -330,13 +330,13 @@ System.out.println(x.equals(y));      // false
 System.out.println(x.compareTo(y)==0); // true
 ```
 
-Để kiểm tra đẳng thức `a=q×b+r` theo **giá trị số**, dùng `compareTo(...)==0`. Nếu hợp đồng còn yêu cầu khớp biểu diễn (scale), kiểm tra thêm `scale()` hoặc dùng `equals` khi đó là chủ đích.
+To verify the identity `a=q×b+r` by **numeric value**, use `compareTo(...)==0`. If the contract also requires matching representation (scale), check `scale()` as well or use `equals` when intentional.
 
-Không tự động `stripTrailingZeros()` mọi kết quả trong ứng dụng tài chính: nó có thể thay đổi scale và cách in dữ liệu, đôi khi thành dạng ký pháp khoa học. Hãy phân biệt **số học chính xác** và **quy tắc biểu diễn**.
+Do not automatically call `stripTrailingZeros()` on every result in financial applications: it can change scale and how data is printed, sometimes into scientific notation. Distinguish **exact arithmetic** from **presentation rules**.
 
-## 8. MathContext là gì và liên quan thế nào tới chia thương nguyên?
+## 8. What Is `MathContext` and How Does It Relate to Integral Quotient Division?
 
-`MathContext` cấu hình **precision** (số chữ số có nghĩa) và một `RoundingMode`:
+`MathContext` configures **precision** (number of significant digits) and a `RoundingMode`:
 
 ```java
 import java.math.MathContext;
@@ -346,7 +346,7 @@ MathContext mc = new MathContext(
         4, RoundingMode.HALF_UP);
 ```
 
-Các overload:
+The overloads:
 
 ```java
 BigDecimal q = a.divideToIntegralValue(b, mc);
@@ -354,11 +354,11 @@ BigDecimal r = a.remainder(b, mc);
 BigDecimal[] pair = a.divideAndRemainder(b, mc);
 ```
 
-Đối với ba phương thức này, hãy hiểu `mc` chủ yếu là **giới hạn khả năng biểu diễn phần thương nguyên**. Không được suy rằng `RoundingMode.HALF_UP` sẽ làm tròn `5.833...` thành q=6. Phần nguyên theo quy tắc **cắt về 0** vẫn là số 5.
+For these three methods, think of `mc` primarily as a **representational limit on the integral quotient**. Do not assume `RoundingMode.HALF_UP` will round `5.833...` to q=6. The integral part under **truncation toward 0** is still 5.
 
-Một điểm tinh tế từ Javadoc: phần dư tính qua thương nguyên **không bị làm tròn về precision của `MathContext`**; vì vậy giá trị remainder trả về **có thể có nhiều chữ số hơn `mc.getPrecision()`**.
+A subtlety from the Javadoc: the remainder computed via the integral quotient **is not rounded to `MathContext`'s precision**; therefore, the returned remainder value **can have more digits than `mc.getPrecision()`**.
 
-### Ví dụ nếu thương nguyên cần nhiều chữ số hơn precision
+### Example When the Integral Quotient Needs More Digits Than Precision
 
 ```java
 BigDecimal a = new BigDecimal("12345");
@@ -373,7 +373,7 @@ try {
 }
 ```
 
-Vì phần nguyên của `12345 / 2` là `6172`, cần 4 chữ số có nghĩa để biểu diễn chính xác. `MathContext(3,...)` không thể giữ đúng q, nên `divideToIntegralValue` ném `ArithmeticException` thay vì “làm tròn q=6170” hay “cắt tiếp q=617”.
+Because the integral part of `12345 / 2` is `6172`, it needs 4 significant digits to be represented exactly. `MathContext(3,...)` cannot hold q accurately, so `divideToIntegralValue` throws `ArithmeticException` instead of “rounding q=6170” or “truncating further to q=617”.
 
 ```java
 MathContext enough = new MathContext(
@@ -384,9 +384,9 @@ System.out.println(java.util.Arrays.toString(qr));
 // [6172, 1]
 ```
 
-**Bản chất:** với overload có MathContext, không có nghĩa API cho phép trả một thương nguyên sai chỉ để vừa precision. Nếu thương nguyên chính xác không thể biểu diễn trong giới hạn đã chọn, nó có thể ném exception.
+**Essence:** for overloads with MathContext, it does not mean the API is allowed to return a wrong integral quotient just to fit precision. If the exact integral quotient cannot be represented within the chosen limit, it can throw an exception.
 
-### RoundingMode không thay định nghĩa của phần dư
+### RoundingMode Does Not Change the Definition of Remainder
 
 ```java
 BigDecimal a = new BigDecimal("17.5");
@@ -395,20 +395,20 @@ BigDecimal b = new BigDecimal("3");
 BigDecimal[] qr = a.divideAndRemainder(
         b, new MathContext(2, RoundingMode.HALF_UP));
 
-// q vẫn là 5 về mặt số học, r vẫn là 2.5.
+// q is still 5 numerically, r is still 2.5.
 ```
 
-Kết quả không phải một phép chia decimal thông thường đã được làm tròn. Khi cần chia ra 5.83 hoặc 5.833, dùng `divide(..., mc)` và hiểu rõ yêu cầu precision của **thương có phần lẻ**.
+The result is not an ordinary rounded decimal division. When you need to divide to get 5.83 or 5.833, use `divide(..., mc)` and understand the precision requirement of a **fractional quotient**.
 
-## 9. MathContext.UNLIMITED và precision = 0
+## 9. `MathContext.UNLIMITED` and `precision = 0`
 
-Một `MathContext` có `precision == 0` biểu thị **không giới hạn precision** theo nghĩa của MathContext. Hằng tiện ích:
+A `MathContext` with `precision == 0` denotes **unlimited precision** in the sense of MathContext. Convenience constant:
 
 ```java
 MathContext unlimited = MathContext.UNLIMITED;
 ```
 
-Có thể dùng:
+You can use:
 
 ```java
 BigDecimal one = BigDecimal.ONE;
@@ -420,36 +420,36 @@ System.out.println(java.util.Arrays.toString(qr));
 // [0, 1]
 ```
 
-Nhưng **đừng suy** rằng `one.divide(three, MathContext.UNLIMITED)` sẽ tự sinh vô hạn chữ số hoặc tự chọn rounding. Phép chia decimal không có biểu diễn thập phân hữu hạn chính xác vẫn có thể ném `ArithmeticException` vì không có cách trả kết quả chính xác hữu hạn.
+However, **do not assume** that `one.divide(three, MathContext.UNLIMITED)` will automatically generate infinitely many digits or choose rounding on its own. Decimal division without an exact finite decimal representation can still throw `ArithmeticException` because there is no way to return an exact finite result.
 
-Precision không giới hạn ở đây **không có nghĩa heap, CPU hay size BigDecimal vô hạn**. BigDecimal vẫn bị ràng buộc bởi tài nguyên và giới hạn triển khai.
+Unlimited precision here **does not mean infinite heap, CPU, or BigDecimal size**. BigDecimal is still bounded by resources and implementation limits.
 
-## 10. remainder với MathContext không nhất thiết vừa precision
+## 10. `remainder` with `MathContext` Does Not Necessarily Fit Precision
 
-Javadoc nêu remainder không phải phép toán làm tròn theo cách hiểu “kết quả phải có nhiều nhất P chữ số”:
+The Javadoc states that remainder is not a rounding operation in the sense of “the result must have at most P digits”:
 
 ```java
 BigDecimal r = a.remainder(b, mc);
 ```
 
-Phương thức này về nguyên tắc tính:
+This method in principle computes:
 
 ```text
 q = a.divideToIntegralValue(b, mc)
 r = a - q*b
 ```
 
-Sau khi xác định q theo điều kiện của context, phần dư được hình thành theo giá trị chính xác từ phép trừ, chứ không bắt buộc bị ép còn `mc.getPrecision()` chữ số.
+After determining q under the context's conditions, the remainder is formed at exact value from the subtraction, rather than being forced down to `mc.getPrecision()` digits.
 
-Ví dụ một phép trừ có scale nhỏ hoặc giá trị dư rất nhiều chữ số sau dấu chấm có thể cần nhiều chữ số có nghĩa hơn q. Nếu muốn làm tròn r sau khi tính, đó là **quyết định nghiệp vụ riêng**; bạn có thể dùng `r.round(mc)` và chấp nhận rằng đẳng thức `a = q×b + r_rounded` có thể không còn đúng tuyệt đối.
+For instance, a subtraction with small scale or a remainder with many digits after the decimal point may require more significant digits than q. If you want to round r afterward, that is a **separate business decision**; you can use `r.round(mc)` and accept that the identity `a = q×b + r_rounded` may no longer hold strictly.
 
-### Không dùng context để “giấu” overflow
+### Do Not Use Context to “Hide” Overflow
 
-`BigDecimal` không có overflow theo miền 32/64 bit primitive như `int`/`long`, nhưng nó vẫn có thể ném `ArithmeticException` khi chính xác không phù hợp với `MathContext`, khi chia cho zero, hoặc gặp giới hạn scale. Không nên catch toàn bộ lỗi rồi trả `BigDecimal.ZERO`: giá trị 0 thật và phép toán không hợp lệ là hai trường hợp khác nhau.
+`BigDecimal` does not have 32/64-bit primitive overflow like `int`/`long`, but it can still throw `ArithmeticException` when exactness does not fit `MathContext`, when dividing by zero, or when hitting scale limits. You should not catch all errors and return `BigDecimal.ZERO`: an actual value of 0 and an invalid operation are two different situations.
 
-## 11. Zero divisor và các trường hợp biên
+## 11. Zero Divisor and Edge Cases
 
-Mọi phép trong nhóm đều yêu cầu **divisor khác 0**:
+Every method in this group requires **divisor != 0**:
 
 ```java
 BigDecimal ten = BigDecimal.TEN;
@@ -459,7 +459,7 @@ BigDecimal ten = BigDecimal.TEN;
 // ten.divideAndRemainder(BigDecimal.ZERO);    // ArithmeticException
 ```
 
-Kiểm tra trước nếu đầu vào có thể không hợp lệ:
+Check upfront if inputs might be invalid:
 
 ```java
 static BigDecimal[] split(BigDecimal a, BigDecimal b) {
@@ -471,9 +471,9 @@ static BigDecimal[] split(BigDecimal a, BigDecimal b) {
 }
 ```
 
-Đoạn mã này giả định a và b không null; nếu API nhận dữ liệu tùy ý, cần kiểm tra null trước khi gọi `signum()` và `divideAndRemainder()`.
+This snippet assumes a and b are non-null; if an API accepts arbitrary data, check for null before calling `signum()` and `divideAndRemainder()`.
 
-### Số bị chia bằng 0
+### Dividend Equal to 0
 
 ```java
 BigDecimal a = BigDecimal.ZERO;
@@ -484,7 +484,7 @@ System.out.println(qr[0].compareTo(BigDecimal.ZERO) == 0); // true
 System.out.println(qr[1].compareTo(BigDecimal.ZERO) == 0); // true
 ```
 
-Scale và cách in số 0 có thể phụ thuộc cách tạo toán hạng; hãy so sánh **giá trị số** bằng `compareTo` khi đó mới là mục tiêu.
+The scale and printed form of 0 can depend on how operands were constructed; compare **numeric values** using `compareTo` when that is the goal.
 
 ### |a| < |b|
 
@@ -499,33 +499,33 @@ System.out.println(q.compareTo(BigDecimal.ZERO)==0); // true
 System.out.println(r.compareTo(a)==0);                // true
 ```
 
-Nếu độ lớn của số bị chia nhỏ hơn độ lớn divisor, thương nguyên có giá trị 0 và phần dư có giá trị đúng bằng số bị chia. Không nhầm với thương decimal `0.3125`.
+If the magnitude of the dividend is smaller than the magnitude of the divisor, the integral quotient has value 0 and the remainder equals the dividend in value. Do not confuse it with the decimal quotient `0.3125`.
 
-## 12. Số học tài chính: chia nhóm khác chia tiền bình quân
+## 12. Financial Arithmetic: Group Splitting vs. Equal Money Division
 
-Với `BigDecimal` trong tài chính, không phải lúc nào cũng nên chọn `divideToIntegralValue`:
+With `BigDecimal` in finance, you should not always pick `divideToIntegralValue`:
 
-- Nếu mục tiêu là **số nhóm nguyên** và **dư giữ lại**, phép này đúng.
-- Nếu mục tiêu là chia tiền **đều cho nhiều người**, bạn có thể cần quy tắc làm tròn theo đơn vị tiền nhỏ nhất.
-- Nếu mục tiêu là tính thuế, lãi suất hoặc tỷ lệ %, thường cần thương decimal và `RoundingMode` theo hợp đồng.
+- If the goal is **number of whole groups** and **kept remainder**, this operation is right.
+- If the goal is splitting money **evenly among multiple people**, you may need a rounding rule at the smallest currency unit.
+- If the goal is computing taxes, interest rates, or percentages, you usually need a decimal quotient and a `RoundingMode` per contract.
 
-Ví dụ chia 10.00 đơn vị theo nhóm 4.00 đơn vị:
+Example dividing 10.00 units into batches of 4.00 units:
 
 ```java
 BigDecimal available = new BigDecimal("10.00");
 BigDecimal batchSize = new BigDecimal("4.00");
 
 BigDecimal[] qr = available.divideAndRemainder(batchSize);
-// Giá trị số của thương nguyên = 2, phần dư = 2.00.
+// Numeric value of integral quotient = 2, remainder = 2.00.
 ```
 
-Đây là cách đếm số **nhóm đầy đủ** và lượng còn lại. Nó không nói rằng “mỗi nhóm nhận 2.50 đơn vị”: đó là bài toán chia đều 10.00 thành bốn phần, cần `divide` theo đơn vị thích hợp.
+This counts the number of **full batches** and the leftover amount. It does not say “each batch gets 2.50 units”: that is the problem of splitting 10.00 evenly into four parts, which needs `divide` with the appropriate unit.
 
-Nếu cần bảo toàn đúng scale tiền tệ (ví dụ luôn 2 chữ số), chỉ áp dụng `setScale(2,...)` sau khi xác định ngữ nghĩa số học và quy tắc rounding, không giả định scale do `divideAndRemainder` sinh ra luôn bằng scale hiển thị nghiệp vụ.
+If you need to preserve an exact currency scale (e.g., always 2 digits), apply `setScale(2,...)` only after defining arithmetic semantics and rounding rules, rather than assuming the scale produced by `divideAndRemainder` always equals the business display scale.
 
-## 13. Kiểm tra tính đúng bằng đẳng thức a = q*b + r
+## 13. Verifying Correctness with the Identity `a = q*b + r`
 
-Đây là **invariant** hữu ích nhất khi viết unit test:
+This is the most useful **invariant** when writing unit tests:
 
 ```java
 static boolean invariantHolds(BigDecimal a, BigDecimal b) {
@@ -538,7 +538,7 @@ static boolean invariantHolds(BigDecimal a, BigDecimal b) {
 }
 ```
 
-Ngoài ra kiểm tra:
+Also check:
 
 ```java
 BigDecimal[] qr = a.divideAndRemainder(b);
@@ -551,20 +551,20 @@ boolean signCompatible =
         || qr[1].signum() == a.signum();
 ```
 
-Ba kiểm tra này đặc biệt hữu ích với số âm, divisor âm và số có scale khác nhau. **Không nhất thiết dùng `equals`** cho đẳng thức reconstructed, bởi scale của giá trị tái dựng có thể khác scale của a dù hai giá trị số học bằng nhau.
+These three checks are especially helpful with negative numbers, negative divisors, and numbers with different scales. **Do not necessarily use `equals`** for the reconstructed identity, because the scale of the reconstructed value can differ from a's scale even when both numeric values are equal.
 
-### Kiểm thử với property-based approach
+### Testing with a Property-Based Approach
 
-Có thể sinh nhiều cặp `a,b` có scale khác nhau (b≠0), bao gồm các số âm và các số như `0.00`/`1E+3`, rồi kiểm tra các invariant trên.
+You can generate many pairs `a,b` with varying scales (b≠0), including negative numbers and values like `0.00`/`1E+3`, and verify the invariants above.
 
-Khi chạy overload với `MathContext`, hãy phân biệt hai trường hợp:
+When running overloads with `MathContext`, distinguish two cases:
 
-- Phép toán trả kết quả → kiểm tra invariant.
-- Phép toán ném `ArithmeticException` vì precision không cho phép thương nguyên → đây có thể là **hành vi đúng của contract**, không phải thất bại của invariant.
+- Operation returns a result → check the invariants.
+- Operation throws `ArithmeticException` because precision does not permit the integral quotient → this can be **correct contract behavior**, not an invariant failure.
 
-## 14. Java 17+ demo hoàn chỉnh
+## 14. Complete Java 17+ Demo
 
-Tạo tệp **`BigDecimalQuotientRemainderDemo.java`**:
+Create file **`BigDecimalQuotientRemainderDemo.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -665,14 +665,14 @@ public class BigDecimalQuotientRemainderDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --release 17 BigDecimalQuotientRemainderDemo.java
 java BigDecimalQuotientRemainderDemo
 ```
 
-**Kết quả dự kiến:**
+**Expected output:**
 
 ```text
 positive -> q=5.0, r=2.5, identity=true
@@ -695,96 +695,96 @@ unlimited 1/3 qr = [0, 1]
 zero divisor = rejected
 ```
 
-### Những điểm chương trình xác minh
+### Points Verified by the Program
 
-1. Cả bốn tổ hợp dấu đều tuân theo công thức `a=q×b+r`, và phần dư khác 0 theo dấu số bị chia.
-2. `remainder` của số âm không nhất thiết không âm; muốn modulo Euclid phải chuẩn hóa riêng với môđun dương.
-3. BigDecimal giữ scale trong một số phép tính: `10.00/4` cho q=2.00, r=2.00; `equals` khác `compareTo`.
-4. `divideAndRemainder(1,3)` không cần biểu diễn thương decimal vô hạn, nhưng `divide(3)` chính xác thì phải báo lỗi.
-5. `MathContext(3)` không đủ để biểu diễn thương nguyên 6172; `MathContext(4)` cho kết quả.
-6. `MathContext.UNLIMITED` không biến `divideAndRemainder` thành phép chia decimal vô hạn.
-7. Chia cho 0 bị từ chối bằng `ArithmeticException`.
+1. All four sign combinations obey `a=q×b+r`, and a nonzero remainder follows the dividend's sign.
+2. `remainder` of a negative number is not necessarily non-negative; for Euclidean modulo, normalize separately with a positive modulus.
+3. BigDecimal preserves scale in some operations: `10.00/4` gives q=2.00, r=2.00; `equals` differs from `compareTo`.
+4. `divideAndRemainder(1,3)` does not need to represent an infinite decimal quotient, whereas exact `divide(3)` must report an error.
+5. `MathContext(3)` is insufficient to represent the integral quotient 6172; `MathContext(4)` produces the result.
+6. `MathContext.UNLIMITED` does not turn `divideAndRemainder` into an infinite decimal division.
+7. Division by 0 is rejected with `ArithmeticException`.
 
-## 15. Lỗi thường gặp và cách sửa
+## 15. Common Mistakes and How to Fix Them
 
-| Nhầm lẫn | Cách hiểu đúng |
+| Confusion | Correct understanding |
 | --- | --- |
-| “divideToIntegralValue trả int” | Trả `BigDecimal` chứa một giá trị số nguyên |
-| “Integral quotient luôn là Math.floor(a/b)” | Cắt về phía 0; với số âm khác floor |
-| “remainder luôn không âm” | Phần dư BigDecimal có thể âm; dấu theo số bị chia |
-| “BigDecimal.remainder giống BigInteger.mod” | Không; BigInteger.mod cần modulus dương và trả modulo không âm |
-| “divideAndRemainder trả thương decimal và dư” | Phần tử 0 là **thương nguyên**, phần tử 1 là remainder |
-| “divide(BigDecimal) và divideToIntegralValue giống nhau” | Một bên cần thương decimal chính xác, bên kia chỉ lấy phần nguyên |
-| “Nếu 1/3 không chia chính xác được thì lấy dư cũng lỗi” | `1.divideAndRemainder(3)` vẫn cho [0,1] |
-| “Có MathContext.HALF_UP thì q=5.833... được làm tròn thành 6” | q vẫn theo truncation về 0, không làm tròn thương decimal thành 6 |
-| “MathContext precision nhỏ thì kết quả bị cắt còn đủ chữ số” | Nếu không thể biểu diễn thương nguyên đúng, có thể ném `ArithmeticException` |
-| “remainder(mc) luôn có ≤ mc.precision chữ số” | Phần dư không tự bị làm tròn theo precision; có thể dài hơn |
-| “MathContext.UNLIMITED biến mọi phép chia thành chính xác” | Chia decimal lặp vô hạn vẫn không biểu diễn hữu hạn |
-| “Thương nguyên phải có scale 0” | Có thể là 5.0 hoặc 2.00 tùy preferred scale |
-| “2.00.equals(2) là true” | false vì scale khác; `compareTo` bằng 0 |
-| “Trả kết quả rồi BigDecimal ban đầu bị chỉnh sửa” | BigDecimal là immutable; các phương thức trả giá trị mới |
-| “Chia cho 0 chỉ tạo số Infinity” | BigDecimal không có Infinity; ném `ArithmeticException` |
-| “Dùng rounding cho remainder mà không ảnh hưởng invariant” | Làm tròn phần dư có thể phá đẳng thức a=q*b+r |
-| “Cần chia nhóm nguyên thì phải gọi divide trước” | Có thể dùng divideAndRemainder trực tiếp, tránh thương decimal lặp vô hạn |
+| “divideToIntegralValue returns int” | Returns a `BigDecimal` holding an integer numeric value |
+| “Integral quotient is always Math.floor(a/b)” | Truncates toward 0; differs from floor for negative numbers |
+| “remainder is always non-negative” | BigDecimal remainder can be negative; sign follows the dividend |
+| “BigDecimal.remainder is like BigInteger.mod” | No; BigInteger.mod requires a positive modulus and returns non-negative modulo |
+| “divideAndRemainder returns a decimal quotient and remainder” | Element 0 is the **integral quotient**, element 1 is remainder |
+| “divide(BigDecimal) and divideToIntegralValue are the same” | One demands an exact decimal quotient, the other takes only the integral part |
+| “If 1/3 cannot be divided exactly, taking remainder also errors” | `1.divideAndRemainder(3)` still gives [0,1] |
+| “With MathContext.HALF_UP, q=5.833... rounds to 6” | q still truncates toward 0; it does not round the decimal quotient to 6 |
+| “Small MathContext precision truncates the result to fit digits” | If the true integral quotient cannot be represented, it may throw `ArithmeticException` |
+| “remainder(mc) always has ≤ mc.precision digits” | Remainder is not automatically rounded to precision; it can be longer |
+| “MathContext.UNLIMITED makes every division exact” | Infinitely repeating decimal division still has no finite representation |
+| “Integral quotient must have scale 0” | Can be 5.0 or 2.00 depending on preferred scale |
+| “2.00.equals(2) is true” | false because scales differ; `compareTo` returns 0 |
+| “Returning the result mutates the original BigDecimal” | BigDecimal is immutable; methods return new values |
+| “Dividing by 0 just creates Infinity” | BigDecimal has no Infinity; throws `ArithmeticException` |
+| “Rounding remainder does not affect the invariant” | Rounding the remainder can break the identity a=q*b+r |
+| “To split into whole groups, call divide first” | You can use divideAndRemainder directly and avoid repeating decimal quotients |
 
-## 16. Bài tập và lời giải
+## 16. Exercises and Solutions
 
-**Bài 1.** Với a=17.5 và b=3, viết q và r theo API BigDecimal.  
-**Đáp án:** q có giá trị 5 (có thể hiển thị 5.0), r=2.5; dùng `a.divideAndRemainder(b)` lấy cả hai.
+**Exercise 1.** For a=17.5 and b=3, write q and r according to the BigDecimal API.  
+**Answer:** q has value 5 (may display as 5.0), r=2.5; use `a.divideAndRemainder(b)` to get both.
 
-**Bài 2.** Với a=−17.5, b=3, vì sao q không phải −6?  
-**Đáp án:** `divideToIntegralValue` cắt thương về 0 nên q=−5; r=−2.5. Nếu dùng floor sẽ là một phép toán khác.
+**Exercise 2.** For a=−17.5, b=3, why is q not −6?  
+**Answer:** `divideToIntegralValue` truncates the quotient toward 0 so q=−5; r=−2.5. Using floor would be a different operation.
 
-**Bài 3.** Với a=17.5 và b=−3, dấu r là gì?  
-**Đáp án:** r=+2.5, vì phần dư khác 0 mang dấu số bị chia a, không phải dấu divisor b.
+**Exercise 3.** For a=17.5 and b=−3, what is the sign of r?  
+**Answer:** r=+2.5, because a nonzero remainder carries the sign of dividend a, not the sign of divisor b.
 
-**Bài 4.** `BigDecimal.ONE.divide(new BigDecimal("3"))` và `BigDecimal.ONE.remainder(new BigDecimal("3"))` có giống hành vi không?  
-**Đáp án:** Không. divide không rounding yêu cầu thương decimal kết thúc chính xác nên ném lỗi; remainder trả 1.
+**Exercise 4.** Do `BigDecimal.ONE.divide(new BigDecimal("3"))` and `BigDecimal.ONE.remainder(new BigDecimal("3"))` behave the same way?  
+**Answer:** No. divide without rounding requires an exact terminating decimal quotient so it throws an error; remainder returns 1.
 
-**Bài 5.** Kết quả `new BigDecimal("10.00").divideAndRemainder(new BigDecimal("4"))`?  
-**Đáp án:** [2.00, 2.00], theo biểu diễn scale của ví dụ; giá trị thương nguyên là 2, dư là 2.
+**Exercise 5.** What is the result of `new BigDecimal("10.00").divideAndRemainder(new BigDecimal("4"))`?  
+**Answer:** [2.00, 2.00], per the example's scale representation; integral quotient value is 2, remainder is 2.
 
-**Bài 6.** Dùng `divideAndRemainder` thì phần tử nào chứa q, phần tử nào chứa r?  
-**Đáp án:** `qr[0]` là q, `qr[1]` là r.
+**Exercise 6.** When using `divideAndRemainder`, which element holds q and which holds r?  
+**Answer:** `qr[0]` is q, `qr[1]` is r.
 
-**Bài 7.** Vì sao `a.remainder(b, new MathContext(3))` có thể ném ngoại lệ?  
-**Đáp án:** Vì thuật toán cần tính thương nguyên theo MathContext; nếu thương nguyên có phần bắt buộc không thể biểu diễn dưới precision=3, phép toán có thể ném ArithmeticException.
+**Exercise 7.** Why can `a.remainder(b, new MathContext(3))` throw an exception?  
+**Answer:** Because the algorithm needs to compute the integral quotient under MathContext; if the required integral quotient cannot be represented with precision=3, the operation can throw ArithmeticException.
 
-**Bài 8.** Dùng `MathContext(3, RoundingMode.UP)` với 12345/2 có làm q tròn thành 6180 không?  
-**Đáp án:** Không. Thương nguyên chính xác theo truncation là 6172; giới hạn precision=3 không chứa đủ số chữ số nên có thể ném ArithmeticException.
+**Exercise 8.** Does using `MathContext(3, RoundingMode.UP)` with 12345/2 round q to 6180?  
+**Answer:** No. The exact truncated integral quotient is 6172; a precision=3 limit does not hold enough digits, so it may throw ArithmeticException.
 
-**Bài 9.** Nếu cần phần dư Euclid của −17.5 theo modulus dương 3, làm thế nào?  
-**Đáp án:** Lấy `r = a.remainder(m)` (−2.5), rồi nếu r âm thì `r.add(m)` (0.5).
+**Exercise 9.** If you need the Euclidean remainder of −17.5 with positive modulus 3, how do you compute it?  
+**Answer:** Take `r = a.remainder(m)` (−2.5), then if r is negative, `r.add(m)` (0.5).
 
-**Bài 10.** Vì sao test identity bằng `rebuilt.equals(a)` có thể trả false dù số học đúng?  
-**Đáp án:** Vì BigDecimal.equals xét thêm scale; dùng `rebuilt.compareTo(a)==0` nếu kiểm tra bằng nhau theo trị số.
+**Exercise 10.** Why might testing the identity with `rebuilt.equals(a)` return false even when the arithmetic is right?  
+**Answer:** Because BigDecimal.equals also checks scale; use `rebuilt.compareTo(a)==0` when checking equality by numeric value.
 
-**Bài 11.** Muốn biểu diễn phần nguyên thương bằng BigInteger, chọn API nào sau khi chia?  
-**Đáp án:** `a.divideToIntegralValue(b).toBigIntegerExact()`, vì phần thương không có thành phần phân số về giá trị.
+**Exercise 11.** To represent the integral part of the quotient as a BigInteger, which API should you call after dividing?  
+**Answer:** `a.divideToIntegralValue(b).toBigIntegerExact()`, because the quotient has no fractional component in value.
 
-**Bài 12.** Nếu input từ người dùng có divisor=0, nên làm gì?  
-**Đáp án:** Validate và báo lỗi theo hợp đồng; API chia/nhiều phép remainder sẽ ném ArithmeticException chứ không trả Infinity.
+**Exercise 12.** If user input has divisor=0, what should you do?  
+**Answer:** Validate and report an error per contract; division/remainder APIs throw ArithmeticException rather than returning Infinity.
 
-## 17. Checklist trước khi dùng ba phương thức
+## 17. Checklist Before Using the Three Methods
 
-1. **Đọc đúng tên:** `divideToIntegralValue` cho thương nguyên, `remainder` cho phần dư, `divideAndRemainder` cho cả hai.
-2. **Chọn quy tắc nguyên:** q cắt về 0, không phải floor cho số âm.
-3. **Không nhầm remainder với modulo không âm.** Nếu cần modulo Euclid, kiểm tra modulus dương và chuẩn hóa r.
-4. **Đảm bảo divisor khác 0**; có chính sách rõ ràng cho null và dữ liệu sai.
-5. **Đừng dùng divideToIntegralValue thay divide một cách máy móc** nếu nghiệp vụ cần thương decimal/làm tròn.
-6. **Dùng MathContext đúng mục tiêu:** precision là giới hạn kết quả thương nguyên, không tự chọn q đã làm tròn.
-7. **Remainder với context có thể nhiều chữ số hơn precision**; không lén làm tròn nếu phải giữ invariant.
-8. **Kiểm tra scale và equals:** trị số nguyên không nhất thiết scale 0; dùng compareTo nếu chỉ kiểm tra giá trị.
-9. **Kiểm tra invariant a=q*b+r**, độ lớn phần dư và dấu phần dư trên dữ liệu dương/âm.
-10. **Khi cần cả hai, ưu tiên divideAndRemainder** cho ý định rõ ràng và có thể dùng lại phép tính.
-11. **Với kết quả quy về int/long**, dùng chuyển đổi Exact để phát hiện vượt miền.
-12. **Tôn trọng đơn vị đo và số tiền:** chia thành nhóm nguyên khác chia đều thành tiền decimal có rounding.
-13. **Kiểm thử trường hợp biên:** 0, divisor âm, a âm, |a|<|b|, 1/3, scale khác nhau và precision nhỏ.
+1. **Read the names carefully:** `divideToIntegralValue` for the integral quotient, `remainder` for the remainder, `divideAndRemainder` for both.
+2. **Choose the integer rule:** q truncates toward 0, not floor for negative numbers.
+3. **Do not confuse remainder with non-negative modulo.** If Euclidean modulo is needed, check for a positive modulus and normalize r.
+4. **Ensure divisor is nonzero**; have a clear policy for null and invalid data.
+5. **Do not mechanically replace divide with divideToIntegralValue** if business logic requires a fractional/rounded decimal quotient.
+6. **Use MathContext for its intended purpose:** precision bounds the integral quotient result, rather than automatically choosing a rounded q.
+7. **Remainder with context can have more digits than precision**; do not silently round it if the invariant must hold.
+8. **Check scale and equals:** integer numeric value does not mean scale 0; use compareTo if checking numeric value only.
+9. **Verify the invariant a=q*b+r**, remainder magnitude, and remainder sign on positive/negative data.
+10. **When both are needed, prefer divideAndRemainder** for clear intent and potential reuse of computation.
+11. **When converting results to int/long**, use `*Exact` conversions to catch out-of-range values.
+12. **Respect units of measure and currency:** splitting into whole batches differs from splitting evenly into decimal money with rounding.
+13. **Test edge cases:** 0, negative divisor, negative a, |a|<|b|, 1/3, varying scales, and small precision.
 
-### Tài liệu tham khảo
+### References
 
-- [BigDecimal — Javadoc Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html)
-- [MathContext — Javadoc Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/MathContext.html)
-- [RoundingMode — Javadoc Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/RoundingMode.html)
+- [BigDecimal — Java SE 17 Javadoc](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html)
+- [MathContext — Java SE 17 Javadoc](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/MathContext.html)
+- [RoundingMode — Java SE 17 Javadoc](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/RoundingMode.html)
 
-**Ghi nhớ:** Cả ba phương thức lấy **thương nguyên theo hướng về 0** và phần dư r thỏa `a=q×b+r`. `remainder` có thể âm và không đồng nghĩa modulo Euclid; `divideAndRemainder` trả mảng `[q,r]`. Với `MathContext`, API không tự làm tròn thương nguyên cho vừa precision mà có thể ném ngoại lệ. Luôn kiểm tra divisor, scale và ý nghĩa nghiệp vụ của việc giữ phần dư.
+**Key Takeaway:** All three methods take the **integral quotient truncated toward 0** and remainder r satisfying `a=q×b+r`. `remainder` can be negative and is not synonymous with Euclidean modulo; `divideAndRemainder` returns the array `[q,r]`. With `MathContext`, the API does not automatically round the integral quotient to fit precision and may throw an exception instead. Always check divisor, scale, and the business meaning of keeping the remainder.

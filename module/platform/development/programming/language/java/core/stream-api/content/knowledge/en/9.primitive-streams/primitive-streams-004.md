@@ -1,43 +1,43 @@
-# Làm phẳng bằng flatMapToInt, flatMapToLong và flatMapToDouble
+# Flattening with flatMapToInt, flatMapToLong, and flatMapToDouble
 
-## 1. Khi nào cần làm phẳng dữ liệu số?
+## 1. When is flattening numeric data needed?
 
-Trong Java Stream API, dữ liệu có sẵn thường được xử lý theo pipeline lazy gồm các thao tác như `filter`, `map`, `reduce` và `collect`. Một tình huống thường gặp là **mỗi phần tử đầu vào chứa nhiều số**, trong khi kết quả cần là một dãy số liên tục để tính tổng, tìm cực trị hoặc thống kê.
+In the Java Stream API, available data is commonly processed through a lazy pipeline consisting of operations such as `filter`, `map`, `reduce`, and `collect`. A frequent scenario is that **each input element contains multiple numbers**, whereas the required output is a single continuous sequence of numbers to sum, find extrema, or compute statistics.
 
-Ví dụ, mỗi đợt giao hàng chứa một mảng số lượng sản phẩm:
+For example, each delivery batch contains an array of item quantities:
 
 ```text
 Stream<int[]>                        IntStream
   [2, 3]  ─────────────────────────► 2, 3
   [4]     ── flatMapToInt(...) ────► 4
-  []      ─────────────────────────► (không có phần tử)
+  []      ─────────────────────────► (no elements)
 
-Kết quả sau khi làm phẳng: 2, 3, 4
+Result after flattening: 2, 3, 4
 ```
 
-Ba phương thức **`flatMapToInt`, `flatMapToLong` và `flatMapToDouble`** giúp chuyển một `Stream<T>` thành luồng số nguyên thủy tương ứng:
+The three methods **`flatMapToInt`, `flatMapToLong`, and `flatMapToDouble`** convert a `Stream<T>` into the corresponding primitive numeric stream:
 
-- `flatMapToInt` tạo `IntStream` gồm các giá trị `int`.
-- `flatMapToLong` tạo `LongStream` gồm các giá trị `long`.
-- `flatMapToDouble` tạo `DoubleStream` gồm các giá trị `double`.
+- `flatMapToInt` produces an `IntStream` containing `int` values.
+- `flatMapToLong` produces a `LongStream` containing `long` values.
+- `flatMapToDouble` produces a `DoubleStream` containing `double` values.
 
-Khác với ánh xạ một-một, mỗi phần tử đầu vào được phép sinh **không có phần tử, một phần tử hoặc nhiều phần tử** đầu ra. Các Stream con được nối thành một luồng nguyên thủy duy nhất.
+Unlike one-to-one mapping, each input element is allowed to produce **zero, one, or many** output elements. The sub-streams are concatenated into a single primitive stream.
 
-Bài học thuộc chương **Stream kiểu nguyên thủy** và tập trung vào cách chọn đúng phương thức, cách tổ chức mapper, an toàn dữ liệu, cách thu thập kết quả và những giới hạn về hiệu năng của việc làm phẳng.
+This lesson belongs to the **Primitive Streams** chapter and focuses on how to pick the right method, how to structure mappers, data safety, collecting results, and performance limits of flattening.
 
-Sau khi học, bạn có thể tự viết pipeline để:
+After studying this lesson, you will be able to write pipelines to:
 
-1. Trải phẳng danh sách mảng số nguyên, danh sách mã `long` hoặc tập mẫu đo `double`.
-2. Kết hợp `filter`, `flatMapToX` và các terminal operation `sum`, `average`, `summaryStatistics`, `toArray`.
-3. Phân biệt `mapToX` với `flatMapToX`, và `Stream.flatMapToX` với `IntStream.flatMap`/`LongStream.flatMap`/`DoubleStream.flatMap`.
-4. Xử lý tập con rỗng, `null`, lỗi parse, Stream vô hạn và dữ liệu mutable.
-5. Đánh giá chi phí tạo Stream con, boxing, xử lý song song và độ chính xác số học.
+1. Flatten lists of integer arrays, lists of `long` IDs, or sets of `double` measurement samples.
+2. Combine `filter`, `flatMapToX`, and terminal operations `sum`, `average`, `summaryStatistics`, and `toArray`.
+3. Distinguish `mapToX` from `flatMapToX`, and `Stream.flatMapToX` from `IntStream.flatMap`/`LongStream.flatMap`/`DoubleStream.flatMap`.
+4. Handle empty sub-collections, `null`, parsing errors, infinite Streams, and mutable data.
+5. Evaluate sub-stream creation overhead, boxing, parallel processing, and numeric precision.
 
-Các ví dụ hoàn chỉnh dùng **Java 17+**. Ba phép `flatMapToX` đã có từ Java 8; những ví dụ dùng `List.of` cần Java 9+, `record` và `Stream.toList()` cần Java 16+.
+Complete examples use **Java 17+**. The three `flatMapToX` operations have existed since Java 8; examples using `List.of` require Java 9+, and `record` and `Stream.toList()` require Java 16+.
 
-## 2. Hợp đồng của ba phương thức
+## 2. Contract of the three methods
 
-Trên `Stream<T>`, Java cung cấp:
+On `Stream<T>`, Java provides:
 
 ```java
 IntStream flatMapToInt(
@@ -50,30 +50,30 @@ DoubleStream flatMapToDouble(
         Function<? super T, ? extends DoubleStream> mapper);
 ```
 
-Các chữ ký trên minh họa những phương thức riêng của `Stream<T>`. `mapper` nhận **một phần tử `T`** và trả về **một Stream nguyên thủy**, thay vì trả về trực tiếp một số.
+The signatures above illustrate methods specific to `Stream<T>`. The `mapper` takes **one element `T`** and returns **a primitive Stream**, rather than returning a number directly.
 
-| Phương thức trên `Stream<T>` | Mapper trả về | Kết quả của thao tác | Ví dụ nguồn thường gặp |
+| Method on `Stream<T>` | Mapper returns | Operation result | Common source examples |
 | --- | --- | --- | --- |
-| `flatMapToInt(...)` | `IntStream` | `IntStream` | `int[]`, danh sách số lượng sản phẩm |
-| `flatMapToLong(...)` | `LongStream` | `LongStream` | `long[]`, danh sách thời lượng hoặc mã lớn |
-| `flatMapToDouble(...)` | `DoubleStream` | `DoubleStream` | `double[]`, chuỗi số đo |
+| `flatMapToInt(...)` | `IntStream` | `IntStream` | `int[]`, list of product quantities |
+| `flatMapToLong(...)` | `LongStream` | `LongStream` | `long[]`, list of durations or large IDs |
+| `flatMapToDouble(...)` | `DoubleStream` | `DoubleStream` | `double[]`, series of measurements |
 
-Quá trình diễn ra về mặt logic như sau:
+Logically, the process proceeds as follows:
 
-1. Pipeline lấy một phần tử từ Stream ngoài.
-2. `mapper` tạo Stream con thuộc đúng kiểu primitive.
-3. Các giá trị từ Stream con được đưa vào kết quả đã trải phẳng.
-4. Pipeline tiếp tục với phần tử tiếp theo của Stream ngoài khi cần.
+1. The pipeline pulls an element from the outer Stream.
+2. `mapper` creates a sub-stream of the matching primitive type.
+3. Values from the sub-stream are fed into the flattened result.
+4. The pipeline continues with the next element of the outer Stream as needed.
 
-Đây là những thao tác **trung gian lazy**. Việc viết `source.stream().flatMapToInt(...)` mới dựng pipeline; terminal operation mới kích hoạt việc duyệt.
+These are **lazy intermediate operations**. Writing `source.stream().flatMapToInt(...)` only constructs the pipeline; a terminal operation triggers traversal.
 
-Theo hợp đồng API, **Stream con do mapper trả về được đóng sau khi nội dung của nó được đưa vào Stream kết quả**. Mapper trả về `null` được xem như trả về Stream rỗng, tuy vậy nên trả về `IntStream.empty()`, `LongStream.empty()` hoặc `DoubleStream.empty()` một cách tường minh để làm rõ ý định.
+By the API contract, **the sub-stream returned by the mapper is closed after its contents have been placed into the result Stream**. A mapper returning `null` is treated as returning an empty Stream, though it is better to return `IntStream.empty()`, `LongStream.empty()`, or `DoubleStream.empty()` explicitly to clarify intent.
 
-Các hàm mapper phải **không can thiệp vào nguồn** (*non-interfering*) và **không phụ thuộc trạng thái mutable thay đổi khi xử lý các phần tử khác** (*stateless*).
+Mapper functions must be **non-interfering** and **stateless** (not depending on mutable state modified while processing other elements).
 
-## 3. flatMapToInt: nối nhiều dãy int
+## 3. flatMapToInt: concatenating multiple int sequences
 
-Giả sử mỗi nhóm có số lượng đơn hàng riêng:
+Suppose each group has its own order counts:
 
 ```java
 import java.util.Arrays;
@@ -93,9 +93,9 @@ int[] allCounts = orderCounts.stream()
 System.out.println(Arrays.toString(allCounts)); // [2, 3, 4]
 ```
 
-Trong ví dụ, nguồn có kiểu `Stream<int[]>`. Hàm `Arrays.stream(int[])` tạo `IntStream` cho từng mảng; `flatMapToInt` nối các Stream con thành một `IntStream`. Mảng rỗng không sinh phần tử nào.
+In the example, the source has type `Stream<int[]>`. `Arrays.stream(int[])` creates an `IntStream` for each array; `flatMapToInt` concatenates the sub-streams into a single `IntStream`. Empty arrays emit no elements.
 
-Có thể dùng method reference:
+A method reference can be used:
 
 ```java
 int total = orderCounts.stream()
@@ -105,11 +105,11 @@ int total = orderCounts.stream()
 System.out.println(total); // 9
 ```
 
-`sum()` là terminal operation của `IntStream`. Nếu chỉ cần tổng, không nhất thiết phải gọi `toArray()` và giữ toàn bộ kết quả trong bộ nhớ.
+`sum()` is a terminal operation on `IntStream`. If only the sum is needed, there is no need to call `toArray()` and hold all results in memory.
 
-### Một phần tử đầu vào có thể sinh 0, 1 hoặc nhiều số
+### One input element can produce 0, 1, or many numbers
 
-Mapper có thể quyết định số phần tử đầu ra theo điều kiện:
+The mapper can decide the number of output elements conditionally:
 
 ```java
 record Group(boolean enabled, int[] numbers) {}
@@ -129,7 +129,7 @@ int[] enabledNumbers = groups.stream()
 System.out.println(Arrays.toString(enabledNumbers)); // [1, 2, 7]
 ```
 
-Điều kiện có thể đặt ngoài mapper nếu nó là thuộc tính của phần tử nguồn:
+The condition can be placed outside the mapper if it is a property of the source element:
 
 ```java
 int[] sameResult = groups.stream()
@@ -138,11 +138,11 @@ int[] sameResult = groups.stream()
         .toArray();
 ```
 
-Trong trường hợp này, `filter` trước `flatMapToInt` thể hiện rõ rằng ta loại **cả nhóm**, sau đó trải phẳng những nhóm được chọn.
+In this case, placing `filter` before `flatMapToInt` clearly shows that **entire groups** are excluded first, and only selected groups are flattened.
 
-## 4. flatMapToLong: xử lý dãy số long
+## 4. flatMapToLong: handling long sequences
 
-`long` phù hợp với những giá trị nguyên vượt phạm vi `int`, chẳng hạn mã định danh dạng số hoặc số lượng mili giây lớn. Ví dụ, các lô dữ liệu chứa ID sự kiện:
+`long` fits integer values beyond the `int` range, such as numeric identifiers or large millisecond counts. For example, batches containing event IDs:
 
 ```java
 import java.util.Arrays;
@@ -165,9 +165,9 @@ System.out.println(Arrays.toString(eventIds));
 // [2147483648, 3000000000, 4000000000]
 ```
 
-Các số trên lớn hơn giới hạn của `int` nhưng vẫn nằm trong miền của `long`. Hậu tố `L` trong literal Java làm rõ kiểu dữ liệu.
+The numbers above exceed `int` limits yet remain within `long`. The `L` suffix in Java literals clarifies the data type.
 
-Cũng có thể tính tổng thời lượng theo đơn vị mili giây:
+Total duration in milliseconds can also be summed:
 
 ```java
 List<long[]> durationsBySession = List.of(
@@ -182,11 +182,11 @@ long totalMillis = durationsBySession.stream()
 System.out.println(totalMillis); // 5000
 ```
 
-**Chú ý phạm vi số:** `LongStream.sum()` vẫn có thể tràn `long` khi tổng vượt `Long.MAX_VALUE` hoặc dưới `Long.MIN_VALUE`. Việc chọn `flatMapToLong` không tự tạo ra số nguyên có độ chính xác vô hạn; với yêu cầu tổng rất lớn, cân nhắc `BigInteger` và chiến lược reduction tương ứng.
+**Watch numeric range:** `LongStream.sum()` can still overflow `long` when the total exceeds `Long.MAX_VALUE` or falls below `Long.MIN_VALUE`. Choosing `flatMapToLong` does not create arbitrary-precision integers; for huge totals, consider `BigInteger` and an appropriate reduction strategy.
 
-## 5. flatMapToDouble: trải phẳng các mẫu đo
+## 5. flatMapToDouble: flattening measurement samples
 
-Với số thực, có thể dùng `DoubleStream` để tính trung bình, tổng, cực trị và thống kê:
+For floating-point numbers, `DoubleStream` can compute averages, sums, extrema, and statistics:
 
 ```java
 import java.util.Arrays;
@@ -207,10 +207,10 @@ DoubleSummaryStatistics statistics = readingsBySensor.stream()
 
 System.out.println(statistics.getCount());   // 3
 System.out.println(statistics.getSum());     // 7.0
-System.out.println(statistics.getAverage()); // xấp xỉ 2.3333333333333335
+System.out.println(statistics.getAverage()); // approximately 2.3333333333333335
 ```
 
-`summaryStatistics()` thực hiện một lần duyệt để thu thập số lượng, tổng, min, max và trung bình. Một lựa chọn đơn giản hơn:
+`summaryStatistics()` performs a single pass to collect count, sum, min, max, and average. A simpler alternative:
 
 ```java
 double average = readingsBySensor.stream()
@@ -219,11 +219,11 @@ double average = readingsBySensor.stream()
         .orElse(Double.NaN);
 ```
 
-`average()` trả về `OptionalDouble` vì có thể không có mẫu nào sau khi làm phẳng. Ở ví dụ này, `Double.NaN` được chọn để **biểu thị không có giá trị trung bình** thay vì âm thầm đưa ra số 0; ứng dụng có thể chọn cách xử lý khác.
+`average()` returns `OptionalDouble` because there may be no samples after flattening. In this example, `Double.NaN` is chosen to **indicate no average value** rather than silently returning 0; an application may choose a different handling strategy.
 
-### NaN, Infinity và độ chính xác số thực
+### NaN, Infinity, and floating-point precision
 
-`DoubleStream` không tự bỏ `NaN` hay giá trị vô hạn. Với dữ liệu đo cần thống kê hữu hạn, hãy lọc tường minh:
+`DoubleStream` does not automatically discard `NaN` or infinite values. For measurement data requiring finite statistics, filter explicitly:
 
 ```java
 double[] readings = {2.5, Double.NaN, 4.0, Double.POSITIVE_INFINITY};
@@ -236,22 +236,22 @@ double finiteAverage = Arrays.stream(readings)
 System.out.println(finiteAverage); // 3.25
 ```
 
-Phép toán `double` có sai số biểu diễn và phép cộng không kết hợp tuyệt đối; trong xử lý song song, thứ tự kết hợp có thể thay đổi một vài chữ số thập phân. Với **tiền tệ** hoặc yêu cầu thập phân chính xác, nên dùng `BigDecimal` và mô hình thu thập phù hợp thay vì `DoubleStream`.
+`double` operations have representation error and addition is not strictly associative; in parallel processing, combination order can change a few trailing decimal digits. For **currency** or exact decimal requirements, use `BigDecimal` with an appropriate collection model instead of `DoubleStream`.
 
-## 6. So sánh mapToInt, flatMapToInt và flatMap
+## 6. Comparing mapToInt, flatMapToInt, and flatMap
 
-Đây là khác biệt quan trọng nhất khi đọc chữ ký phương thức:
+This is the most important distinction when reading method signatures:
 
-| Phương thức trên `Stream<T>` | Mỗi phần tử `T` sinh | Kiểu kết quả | Khi dùng |
+| Method on `Stream<T>` | Each `T` produces | Result type | When to use |
 | --- | --- | --- | --- |
-| `mapToInt(ToIntFunction<T>)` | **Đúng một** `int` | `IntStream` | Tính chiều dài chuỗi, lấy một số lượng của mỗi đơn hàng. |
-| `flatMapToInt(Function<T, IntStream>)` | **0 đến nhiều** `int` | `IntStream` | Mỗi nhóm chứa nhiều số nguyên cần trải phẳng. |
-| `map(Function<T, R>)` | **Đúng một** giá trị `R` | `Stream<R>` | Biến đổi một đối tượng thành một đối tượng khác. |
-| `flatMap(Function<T, Stream<R>>)` | **0 đến nhiều** `R` | `Stream<R>` | Trải phẳng dữ liệu đối tượng, ví dụ tên từ nhiều nhóm. |
+| `mapToInt(ToIntFunction<T>)` | **Exactly one** `int` | `IntStream` | Computing string length, extracting one quantity per order. |
+| `flatMapToInt(Function<T, IntStream>)` | **0 to many** `int` | `IntStream` | Each group contains multiple integers to flatten. |
+| `map(Function<T, R>)` | **Exactly one** `R` value | `Stream<R>` | Transforming one object into another object. |
+| `flatMap(Function<T, Stream<R>>)` | **0 to many** `R` | `Stream<R>` | Flattening object data, e.g., names from multiple groups. |
 
-Chữ ký ở bảng được viết ngắn gọn để so sánh, không thể hiện đầy đủ wildcard generic.
+Signatures in the table are abbreviated for comparison and do not show full generic wildcards.
 
-Xét một nguồn gồm hai mảng:
+Consider a source with two arrays:
 
 ```java
 List<int[]> blocks = List.of(
@@ -262,24 +262,24 @@ List<int[]> blocks = List.of(
 int[] lengths = blocks.stream()
         .mapToInt(block -> block.length)
         .toArray();
-// [2, 1]: mỗi mảng sinh đúng một độ dài
+// [2, 1]: each array produces exactly one length
 
 int[] values = blocks.stream()
         .flatMapToInt(Arrays::stream)
         .toArray();
-// [3, 5, 7]: mỗi mảng sinh các số bên trong
+// [3, 5, 7]: each array emits the numbers inside it
 ```
 
-Sai lầm dễ gặp là dùng `map` khi mapper trả về Stream con:
+A common mistake is using `map` when the mapper returns a sub-stream:
 
 ```java
 Stream<IntStream> nested = blocks.stream()
         .map(Arrays::stream);
 
-// nested chứa hai IntStream, chưa phải luồng int đã làm phẳng.
+// nested contains two IntStreams, not a flattened int stream.
 ```
 
-Để lấy số nguyên trực tiếp, dùng `flatMapToInt`. Nếu dữ liệu nguồn đã là những danh sách `List<Integer>` thay vì mảng, có thể viết:
+To obtain integers directly, use `flatMapToInt`. If the source data is `List<Integer>` lists instead of arrays, you can write:
 
 ```java
 List<List<Integer>> nestedLists = List.of(
@@ -296,13 +296,13 @@ int[] flattened = nestedLists.stream()
 System.out.println(Arrays.toString(flattened)); // [3, 5, 7]
 ```
 
-Ở ví dụ sau, `List<Integer>` đã lưu các số dưới dạng đối tượng boxed. `flatMapToInt` giúp pipeline đầu ra làm việc với `int` nhưng **không loại bỏ chi phí boxing đã có trong cấu trúc đầu vào**. Với dữ liệu số lớn và đặc biệt nhạy hiệu năng, cấu trúc `int[]` hoặc primitive stream có thể hợp lý hơn.
+In the latter example, `List<Integer>` already stores numbers as boxed objects. `flatMapToInt` lets the output pipeline work with `int`, yet **does not eliminate the boxing overhead already present in the input structure**. For large numeric datasets that are particularly performance-sensitive, `int[]` or primitive stream structures may be more appropriate.
 
-Tương ứng với `long` và `double`, thao tác ánh xạ một-một là `mapToLong` và `mapToDouble`; thao tác làm phẳng là `flatMapToLong` và `flatMapToDouble`.
+Correspondingly for `long` and `double`, one-to-one mappings are `mapToLong` and `mapToDouble`; flattening operations are `flatMapToLong` and `flatMapToDouble`.
 
-## 7. Đừng nhầm với flatMap trên primitive stream
+## 7. Do not confuse with flatMap on primitive streams
 
-Nhóm phương thức `flatMapToX` **chỉ nằm trên `Stream<T>` đầu vào dạng đối tượng**. Nếu đã có `IntStream`, bạn sử dụng `IntStream.flatMap`:
+The `flatMapToX` family **exists only on object-typed `Stream<T>`**. If you already have an `IntStream`, you use `IntStream.flatMap`:
 
 ```java
 int[] values = IntStream.of(1, 3)
@@ -312,18 +312,18 @@ int[] values = IntStream.of(1, 3)
 System.out.println(Arrays.toString(values)); // [1, 1, 2, 3]
 ```
 
-Tương tự:
+Similarly:
 
-- `LongStream.flatMap(LongFunction<? extends LongStream>)` làm phẳng `LongStream` thành `LongStream`.
-- `DoubleStream.flatMap(DoubleFunction<? extends DoubleStream>)` làm phẳng `DoubleStream` thành `DoubleStream`.
+- `LongStream.flatMap(LongFunction<? extends LongStream>)` flattens a `LongStream` into a `LongStream`.
+- `DoubleStream.flatMap(DoubleFunction<? extends DoubleStream>)` flattens a `DoubleStream` into a `DoubleStream`.
 
-Không thể gọi `flatMapToInt` trên một `IntStream` vì phương thức đó không thuộc API của nó. Có thể chuyển giữa các kiểu primitive bằng những phương thức phù hợp, như `IntStream.asLongStream()`, `IntStream.asDoubleStream()`, `LongStream.mapToDouble(...)` hoặc `IntStream.boxed()` khi thật sự cần quay lại Stream đối tượng.
+You cannot call `flatMapToInt` on an `IntStream` because that method is not part of its API. You can convert between primitive types using appropriate methods, such as `IntStream.asLongStream()`, `IntStream.asDoubleStream()`, `LongStream.mapToDouble(...)`, or `IntStream.boxed()` when returning to an object Stream is genuinely needed.
 
-## 8. Kết hợp filter, flatMapToX và các phép tổng hợp
+## 8. Combining filter, flatMapToX, and aggregate operations
 
-Vị trí của `filter` quyết định **lọc nhóm trước** hay **lọc các số sau khi trải phẳng**.
+The position of `filter` determines whether to **filter groups first** or **filter numbers after flattening**.
 
-Giả sử chỉ muốn lấy số lượng ở những nhóm còn hoạt động, và trong mỗi nhóm chỉ giữ số lượng dương:
+Suppose we only want quantities from active groups, and within each group only keep positive quantities:
 
 ```java
 record InventoryGroup(boolean active, int[] quantities) {}
@@ -335,36 +335,36 @@ List<InventoryGroup> inventory = List.of(
 );
 
 int[] acceptedQuantities = inventory.stream()
-        .filter(InventoryGroup::active)             // Lọc theo nhóm
+        .filter(InventoryGroup::active)             // Filter by group
         .flatMapToInt(group -> Arrays.stream(group.quantities()))
-        .filter(quantity -> quantity > 0)           // Lọc theo từng số
+        .filter(quantity -> quantity > 0)           // Filter individual numbers
         .toArray();
 
 System.out.println(Arrays.toString(acceptedQuantities)); // [3, 5, 2]
 ```
 
-Về ý nghĩa:
+Semantically:
 
-1. `filter` trên `Stream<InventoryGroup>` có thể loại toàn bộ nhóm không hoạt động mà chưa cần tạo Stream con.
-2. `flatMapToInt` nối các mảng `quantities` của nhóm còn lại.
-3. `filter` trên `IntStream` chỉ giữ các số dương.
+1. `filter` on `Stream<InventoryGroup>` can discard entire inactive groups without creating sub-streams for them.
+2. `flatMapToInt` concatenates the `quantities` arrays of the remaining groups.
+3. `filter` on `IntStream` keeps only positive numbers.
 
-Sau khi làm phẳng, các terminal operation thường dùng gồm:
+After flattening, commonly used terminal operations include:
 
-| Terminal operation | Trả về | Mục đích |
+| Terminal operation | Return type | Purpose |
 | --- | --- | --- |
-| `sum()` | `int`/`long`/`double` tương ứng | Cộng toàn bộ giá trị. |
-| `average()` | `OptionalDouble` | Trung bình, có thể rỗng. |
-| `count()` | `long` | Đếm các số sau làm phẳng. |
-| `min()`, `max()` | `OptionalInt`/`OptionalLong`/`OptionalDouble` | Cực trị. |
-| `summaryStatistics()` | `IntSummaryStatistics`/`LongSummaryStatistics`/`DoubleSummaryStatistics` | Thống kê nhiều đại lượng trong một lượt duyệt. |
-| `toArray()` | `int[]`, `long[]` hoặc `double[]` | Lưu toàn bộ kết quả khi thật sự cần. |
+| `sum()` | matching `int`/`long`/`double` | Sums all values. |
+| `average()` | `OptionalDouble` | Average, possibly empty. |
+| `count()` | `long` | Counts numbers after flattening. |
+| `min()`, `max()` | `OptionalInt`/`OptionalLong`/`OptionalDouble` | Extrema. |
+| `summaryStatistics()` | `IntSummaryStatistics`/`LongSummaryStatistics`/`DoubleSummaryStatistics` | Computes multiple metrics in one pass. |
+| `toArray()` | `int[]`, `long[]`, or `double[]` | Stores all results when actually needed. |
 
-Một Stream đã được tiêu thụ bởi terminal operation thì không được dùng lại. Nếu cần cả `sum` và `max` trên cùng bộ dữ liệu, có thể gọi `summaryStatistics()` một lần hoặc dựng **pipeline mới từ nguồn**.
+A Stream already consumed by a terminal operation cannot be reused. If both `sum` and `max` are needed on the same dataset, call `summaryStatistics()` once or build a **new pipeline from the source**.
 
-## 9. Ánh xạ từ chuỗi thô thành nhiều số
+## 9. Mapping from raw strings to multiple numbers
 
-Không phải nguồn nào cũng chứa sẵn primitive array. Chẳng hạn, mỗi dòng CSV chứa một nhóm số:
+Not every source already contains primitive arrays. For instance, each CSV row contains a group of numbers:
 
 ```java
 import java.util.Arrays;
@@ -387,11 +387,11 @@ int[] numbers = rows.stream()
 System.out.println(Arrays.toString(numbers)); // [12, 8, 5, 9, 10]
 ```
 
-Đây là pipeline qua nhiều lớp: `Stream<String>` của các dòng → `Stream<String>` của các token trong mỗi dòng → `IntStream` sau parse → một `IntStream` phẳng.
+This is a multi-layer pipeline: `Stream<String>` of rows → `Stream<String>` of tokens in each row → `IntStream` after parsing → one flattened `IntStream`.
 
-**Giới hạn của ví dụ:** `Integer.parseInt` ném `NumberFormatException` nếu token không hợp lệ hoặc số nằm ngoài phạm vi `int`. `flatMapToInt` không tự bỏ token sai.
+**Limitation of the example:** `Integer.parseInt` throws `NumberFormatException` if a token is invalid or out of `int` range. `flatMapToInt` does not skip bad tokens automatically.
 
-Nếu yêu cầu **bỏ qua token không parse được**, có thể thể hiện chính sách bằng một hàm:
+If the requirement is to **skip unparseable tokens**, the policy can be expressed as a helper method:
 
 ```java
 static IntStream parseIfValid(String token) {
@@ -402,7 +402,7 @@ static IntStream parseIfValid(String token) {
     }
 }
 
-// Ví dụ đặt trong cùng lớp chứa parseIfValid:
+// Example placed inside the same class containing parseIfValid:
 int[] accepted = List.of("3", "abc", "7").stream()
         .flatMapToInt(MyClass::parseIfValid)
         .toArray();
@@ -410,13 +410,13 @@ int[] accepted = List.of("3", "abc", "7").stream()
 // [3, 7]
 ```
 
-Trong minh họa, thay `MyClass` bằng tên lớp chứa `parseIfValid`. Việc bỏ qua dữ liệu sai chỉ phù hợp khi nghiệp vụ cho phép; nếu cần kiểm toán, hãy giữ lại token lỗi và nguyên nhân trong một cấu trúc báo cáo riêng.
+In the illustration, replace `MyClass` with the name of the class containing `parseIfValid`. Skipping bad data is only appropriate when business rules permit it; if auditing is needed, retain the invalid tokens and reasons in a separate reporting structure.
 
-Với số `long`, dùng `Long.parseLong` để tạo `LongStream`; với `double`, dùng `Double.parseDouble` và quyết định rõ có chấp nhận `NaN` hoặc vô hạn không.
+For `long` numbers, use `Long.parseLong` to build a `LongStream`; for `double`, use `Double.parseDouble` and explicitly decide whether `NaN` or infinity is accepted.
 
-## 10. Nguồn null, Stream rỗng và quy tắc xử lý dữ liệu thiếu
+## 10. Null sources, empty Streams, and missing-data rules
 
-Primitive stream không chứa tham chiếu `null`, nhưng **nguồn đối tượng** vẫn có thể có phần tử `null` hoặc trường mảng `null`.
+Primitive streams cannot hold `null` references, yet an **object source** can still contain `null` elements or `null` array fields.
 
 ```java
 record Packet(int[] values) {}
@@ -438,18 +438,18 @@ int[] valid = packets.stream()
 System.out.println(Arrays.toString(valid)); // [1, 2]
 ```
 
-Ở đây có hai quyết định:
+Here there are two decisions:
 
-- `filter(Objects::nonNull)` bỏ **phần tử Packet null** từ nguồn.
-- `IntStream.empty()` biểu diễn **Packet hợp lệ nhưng không có dãy số**.
+- `filter(Objects::nonNull)` drops **null Packet elements** from the source.
+- `IntStream.empty()` represents a **valid Packet with no number array**.
 
-Nếu mapper trả về `null`, `flatMapToInt` xem như Stream rỗng theo hợp đồng; dùng `empty()` vẫn dễ hiểu và tránh mã mơ hồ hơn.
+If the mapper returns `null`, `flatMapToInt` treats it as an empty Stream per the contract; using `empty()` explicitly remains clearer and avoids ambiguous code.
 
-Với primitive stream đầu ra, không cần `filter(Objects::nonNull)` sau `flatMapToInt` vì kiểu `int` không thể là `null`. Cũng không nên tự ý biến dữ liệu thiếu thành số `0` trừ khi đó thật sự là quy tắc nghiệp vụ.
+For the output primitive stream, `filter(Objects::nonNull)` is not needed after `flatMapToInt` because `int` cannot be `null`. Nor should missing data arbitrarily be turned into `0` unless that is genuinely the business rule.
 
-## 11. Lazy, tài nguyên và vòng đời Stream con
+## 11. Laziness, resources, and sub-stream lifecycle
 
-Các thao tác `flatMapToInt`, `flatMapToLong`, `flatMapToDouble` đều lazy: chúng không cần dựng trước một danh sách chứa toàn bộ giá trị trải phẳng. Việc duyệt được dẫn dắt bởi terminal operation.
+`flatMapToInt`, `flatMapToLong`, and `flatMapToDouble` are all lazy: they do not need to pre-build a list holding all flattened values. Traversal is driven by the terminal operation.
 
 ```java
 Stream<int[]> pipeline = Stream.of(
@@ -458,15 +458,15 @@ Stream<int[]> pipeline = Stream.of(
 );
 
 IntStream flattened = pipeline.flatMapToInt(values -> {
-    System.out.println("Tạo IntStream con");
+    System.out.println("Creating sub IntStream");
     return Arrays.stream(values);
 });
 
-// Chưa có terminal operation nên chưa bắt đầu làm phẳng.
-int[] result = flattened.toArray(); // Kích hoạt xử lý.
+// No terminal operation yet, so flattening has not started.
+int[] result = flattened.toArray(); // Triggers processing.
 ```
 
-Điểm mạnh của lazy pipeline là có thể xử lý giá trị theo nhu cầu mà không lưu toàn bộ kết quả. Các terminal operation như `findFirst` và `limit` cho phép **dừng sớm** trong nhiều pipeline:
+The strength of a lazy pipeline is processing values on demand without storing the entire result. Terminal operations such as `findFirst` and `limit` allow **short-circuiting** in many pipelines:
 
 ```java
 int[] firstThree = Stream.of(
@@ -480,33 +480,33 @@ int[] firstThree = Stream.of(
 System.out.println(Arrays.toString(firstThree)); // [4, 5, 6]
 ```
 
-Tuy nhiên, **không được dựa vào số lần mapper được gọi, thứ tự gọi hoặc tác dụng phụ**. Tối ưu của pipeline, đặc điểm nguồn và xử lý song song có thể ảnh hưởng mức độ xử lý trước khi dừng. Đặc biệt nên thận trọng với một Stream con vô hạn hoặc nguồn đầu vào có thể chặn: đừng giả định mọi terminal operation đều hoàn thành ngay.
+However, **do not rely on how many times the mapper is called, the call order, or side effects**. Pipeline optimizations, source characteristics, and parallel processing can affect how much work runs before stopping. Be especially cautious with an infinite sub-stream or a blocking input source: do not assume every terminal operation completes immediately.
 
-### Ai chịu trách nhiệm đóng Stream?
+### Who is responsible for closing Streams?
 
-`flatMapToX` đóng **Stream con do mapper cung cấp** sau khi sử dụng chúng theo hợp đồng. Nhưng nếu **Stream ngoài** được tạo từ tài nguyên cần đóng (ví dụ `Files.lines`), vẫn phải quản lý tài nguyên ngoài bằng `try-with-resources`:
+`flatMapToX` closes **the sub-streams returned by the mapper** after consuming them per the contract. However, if the **outer Stream** is created from a closeable resource (such as `Files.lines`), you must still manage the outer resource with `try-with-resources`:
 
 ```java
-// Ví dụ định hướng: lines là một Stream<String> liên kết với tệp.
+// Illustrative example: lines is a Stream<String> backed by a file.
 // try (Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8)) {
 //     long count = lines.flatMapToInt(MyClass::parseLineToInts).count();
 // }
 ```
 
-Đóng Stream con tự động không thay thế việc quản lý nguồn, luồng I/O hoặc kết nối từ các lớp khác. Tránh tự tái sử dụng một Stream con cho nhiều phần tử đầu vào: Stream chỉ nên được tiêu thụ một lần.
+Automatic closing of sub-streams does not replace managing sources, I/O streams, or connections from outer layers. Avoid reusing a single sub-stream across multiple input elements: a Stream should only be consumed once.
 
-## 12. Trạng thái dùng chung, song song và hiệu năng
+## 12. Shared state, parallelism, and performance
 
-### Mapper phải không can thiệp và không trạng thái
+### Mappers must be non-interfering and stateless
 
-Một cách viết sai là cập nhật chính collection nguồn trong mapper:
+An incorrect pattern is modifying the source collection itself inside the mapper:
 
 ```java
 List<int[]> source = new java.util.ArrayList<>();
 source.add(new int[] {1, 2});
 source.add(new int[] {3});
 
-// SAI: sửa source trong khi source.stream() đang duyệt.
+// WRONG: modifying source while source.stream() is traversing it.
 int[] invalid = source.stream()
         .flatMapToInt(group -> {
             source.add(new int[] {99});
@@ -515,13 +515,13 @@ int[] invalid = source.stream()
         .toArray();
 ```
 
-Ví dụ này vi phạm **non-interference**; có thể dẫn đến `ConcurrentModificationException` hoặc hành vi không đáng tin cậy. Tương tự, mapper phụ thuộc vào biến đếm dùng chung cũng không phù hợp với hợp đồng stateless và khó dự đoán khi chạy song song.
+This example violates **non-interference**; it can lead to `ConcurrentModificationException` or unreliable behavior. Similarly, a mapper relying on a shared counter violates the stateless contract and is unpredictable when run in parallel.
 
-Nếu cần cập nhật nguồn, hoàn tất terminal operation trước rồi thực hiện cập nhật trong một giai đoạn riêng.
+If the source needs to be updated, finish the terminal operation first and perform updates in a separate phase.
 
-### Khi nào cần parallel?
+### When is parallel appropriate?
 
-`parallelStream()` có thể phân việc trên nhiều thread, nhưng không phải luôn nhanh:
+`parallelStream()` can distribute work across threads, yet it is not always faster:
 
 ```java
 long total = durationsBySession.parallelStream()
@@ -529,17 +529,17 @@ long total = durationsBySession.parallelStream()
         .sum();
 ```
 
-Giá trị số học nguyên hợp lệ có thể được tổng hợp từ nhiều nhánh, nhưng độ lớn dữ liệu, chi phí tạo Stream con và việc chia tách nguồn quyết định hiệu năng. Với rất nhiều nhóm cực nhỏ, chi phí mapper và điều phối có thể lớn hơn phần tính toán.
+Valid integer arithmetic values can be aggregated across branches, yet data size, sub-stream creation overhead, and source splitting determine performance. With many tiny groups, mapper and coordination overhead can outweigh the computation itself.
 
-Nếu Stream ngoài có encounter order và mỗi Stream con cũng có thứ tự, các phần tử của kết quả phẳng giữ thứ tự logic của các nhóm trong những thao tác yêu cầu thứ tự, chẳng hạn `toArray()`. **Thứ tự thực thi của mapper** trên các thread lại không được bảo đảm. Với phép cộng `double`, thay đổi thứ tự tính có thể làm kết quả khác chút ít vì sai số dấu phẩy động.
+If the outer Stream has an encounter order and each sub-stream is also ordered, the flattened result preserves the logical order of groups in operations that respect order, such as `toArray()`. **Mapper execution order** across threads is not guaranteed. With `double` addition, changing evaluation order can slightly alter results due to floating-point rounding.
 
-### Boxing, Stream con và mapMultiToX
+### Boxing, sub-streams, and mapMultiToX
 
-Việc dùng primitive stream giúp tránh boxed values **ở phần pipeline kết quả**. Nó không biến một `List<Integer>` thành mảng primitive miễn phí.
+Using primitive streams avoids boxed values **in the resulting pipeline**. It does not convert a `List<Integer>` into a primitive array for free.
 
-Với ánh xạ một-một, nên dùng `mapToInt` thay vì viết `flatMapToInt(x -> IntStream.of(...))` chỉ để tạo đúng một số, vì cách sau phải tạo Stream con.
+For one-to-one mapping, use `mapToInt` rather than writing `flatMapToInt(x -> IntStream.of(...))` just to emit a single number, as the latter allocates a sub-stream.
 
-Khi mỗi phần tử sinh ít số và việc tạo nhiều Stream con trở thành điểm nghẽn, Java 16+ còn có `mapMultiToInt`, `mapMultiToLong` và `mapMultiToDouble`. Các phương thức này đưa giá trị trực tiếp cho consumer:
+When each element emits few numbers and creating many sub-streams becomes a bottleneck, Java 16+ also offers `mapMultiToInt`, `mapMultiToLong`, and `mapMultiToDouble`. These methods push values directly to a consumer:
 
 ```java
 List<int[]> groups = List.of(
@@ -559,13 +559,13 @@ int[] flattened = groups.stream()
 System.out.println(Arrays.toString(flattened)); // [2, 3, 4]
 ```
 
-`mapMultiToX` là một lựa chọn đáng cân nhắc khi cần phát 0 đến nhiều giá trị mà không muốn tạo Stream con; hãy ưu tiên cách diễn đạt rõ ràng, sau đó đo hiệu năng trên khối lượng dữ liệu thực tế.
+`mapMultiToX` is worth considering when emitting 0 to many values without creating sub-streams; prioritize clarity first, and then benchmark on realistic data volumes.
 
-## 13. Ví dụ hoàn chỉnh: thống kê các lô vận chuyển
+## 13. Complete example: shipment batch statistics
 
-Bài toán: mỗi lô có danh sách số lượng kiện (`int[]`), quãng đường từng chặng tính bằng mét (`long[]`) và các mẫu khối lượng (`double[]`). Chỉ tính những lô được chấp nhận, sau đó tạo ba thống kê độc lập.
+Problem: each batch has a list of item counts (`int[]`), leg distances in meters (`long[]`), and weight samples (`double[]`). Only count accepted batches, then produce three independent statistics.
 
-Ví dụ chạy được trên Java 17+:
+Runnable example on Java 17+:
 
 ```java
 import java.util.Arrays;
@@ -619,44 +619,44 @@ public class PrimitiveFlatMapDemo {
                 .flatMapToDouble(batch -> Arrays.stream(batch.weightsKg()))
                 .summaryStatistics();
 
-        System.out.println("Tổng số kiện: " + totalItems);         // 9
-        System.out.println("Tổng quãng đường (m): " + totalDistance); // 5000
-        System.out.println("Số mẫu khối lượng: " + weightStats.getCount()); // 3
-        System.out.println("Khối lượng TB (kg): " + weightStats.getAverage()); // 2.0
+        System.out.println("Total items: " + totalItems);         // 9
+        System.out.println("Total distance (m): " + totalDistance); // 5000
+        System.out.println("Weight sample count: " + weightStats.getCount()); // 3
+        System.out.println("Average weight (kg): " + weightStats.getAverage()); // 2.0
     }
 }
 ```
 
-Lý do chọn cách viết:
+Rationale for this structure:
 
-1. `filter(Batch::accepted)` loại hoàn toàn lô `B02` trước khi trải phẳng.
-2. `flatMapToInt` nối các mảng số kiện, rồi `sum` tính tổng là `9`.
-3. `flatMapToLong` nối các quãng đường `long`, rồi `sum` cho kết quả `5000` mét.
-4. `flatMapToDouble` nối các mẫu khối lượng và `summaryStatistics` thống kê ba mẫu với trung bình `2.0` kg.
-5. Lô `B04` chứa ba mảng rỗng và không sinh số nào; chương trình vẫn hoạt động bình thường.
-6. Mỗi phép thống kê tạo **pipeline mới từ danh sách nguồn**, thay vì cố dùng lại một Stream đã bị terminal operation tiêu thụ.
+1. `filter(Batch::accepted)` completely excludes batch `B02` before flattening.
+2. `flatMapToInt` concatenates the item count arrays, and `sum` computes a total of `9`.
+3. `flatMapToLong` concatenates the `long` distances, and `sum` produces `5000` meters.
+4. `flatMapToDouble` concatenates the weight samples, and `summaryStatistics` aggregates three samples with an average of `2.0` kg.
+5. Batch `B04` contains three empty arrays and emits no numbers; the program handles it normally.
+6. Each metric creates a **new pipeline from the source list**, rather than trying to reuse a Stream already consumed by a terminal operation.
 
-Ở ứng dụng thật, nếu cần ba thống kê với một lượt duyệt dữ liệu, có thể xây dựng collector/accumulator riêng hoặc vòng lặp được thiết kế và kiểm soát rõ ràng. Các pipeline độc lập ở đây ưu tiên dễ đọc và thể hiện đúng chức năng của từng `flatMapToX`.
+In a real application, if three statistics are needed in a single pass over the data, a custom collector/accumulator or a clearly structured and controlled loop can be built. The independent pipelines here prioritize readability and clearly demonstrate each `flatMapToX`.
 
-## 14. Lỗi thường gặp và cách kiểm tra
+## 14. Common errors and how to check
 
-| Triệu chứng | Nguyên nhân thường gặp | Cách xử lý |
+| Symptom | Common cause | Resolution |
 | --- | --- | --- |
-| Không gọi được `flatMapToInt` | Nguồn hiện là `IntStream`, không còn `Stream<T>`. | Dùng `IntStream.flatMap` hoặc xem lại kiểu của pipeline. |
-| Lambda trả về một `int` thay vì `IntStream` | Nhầm `flatMapToInt` với `mapToInt`. | Trả về `IntStream` hoặc đổi sang `mapToInt` cho ánh xạ một-một. |
-| Kết quả là `Stream<IntStream>` | Đã gọi `map(x -> IntStream...)`. | Dùng `flatMapToInt` để trải phẳng. |
-| `NumberFormatException` khi đọc token | Không kiểm tra dữ liệu đầu vào trước `parseInt`. | Xác định chính sách báo lỗi hoặc bỏ token sai. |
-| `NullPointerException` khi gọi `Arrays.stream` | Mảng/trường trong nguồn là `null`. | Kiểm tra và dùng primitive stream rỗng khi phù hợp. |
-| Không gọi được `toList()` trên `IntStream` | Primitive stream không có `Stream.toList()`. | Dùng `toArray()` hoặc `boxed().toList()`. |
-| Kết quả trung bình không có giá trị | Không có số nào sau làm phẳng. | Xử lý `OptionalDouble` theo nghiệp vụ. |
-| Tổng `int`/`long` sai khi dữ liệu quá lớn | Tràn phạm vi kiểu nguyên. | Chọn mô hình số có phạm vi phù hợp; kiểm tra overflow. |
-| Tổng hoặc trung bình `double` lệch nhỏ | Giới hạn độ chính xác số thực và thứ tự cộng. | Xác định sai số chấp nhận, dùng `BigDecimal` nếu cần. |
-| Pipeline song song chậm hơn | Chi phí chia việc/ghép và tạo nhiều Stream con. | Đo thực tế; cân nhắc tuần tự hoặc `mapMultiToX`. |
-| Dữ liệu nguồn bị thay đổi bất ngờ | Mapper có tác dụng phụ lên nguồn hoặc đối tượng chia sẻ. | Giữ mapper không trạng thái, chỉ đọc nguồn. |
+| Cannot call `flatMapToInt` | Current source is `IntStream`, no longer `Stream<T>`. | Use `IntStream.flatMap` or check the pipeline type. |
+| Lambda returns an `int` instead of `IntStream` | Confusing `flatMapToInt` with `mapToInt`. | Return an `IntStream` or switch to `mapToInt` for 1-to-1 mapping. |
+| Result is `Stream<IntStream>` | Called `map(x -> IntStream...)`. | Use `flatMapToInt` to flatten. |
+| `NumberFormatException` while parsing tokens | Not validating input before `parseInt`. | Define a policy to report errors or skip invalid tokens. |
+| `NullPointerException` when calling `Arrays.stream` | An array/field in the source is `null`. | Check for null and return an empty primitive stream when appropriate. |
+| Cannot call `toList()` on `IntStream` | Primitive streams do not have `Stream.toList()`. | Use `toArray()` or `boxed().toList()`. |
+| Average result has no value | No numbers remained after flattening. | Handle `OptionalDouble` per business rules. |
+| Wrong `int`/`long` sum on very large data | Integer type overflow. | Choose a numeric model with adequate range; check for overflow. |
+| Small discrepancy in `double` sum or average | Floating-point precision limits and addition order. | Define acceptable tolerance, or use `BigDecimal` if needed. |
+| Parallel pipeline is slower | Splitting/merging and sub-stream creation overhead. | Measure in practice; consider sequential or `mapMultiToX`. |
+| Source data mutated unexpectedly | Mapper has side effects on source or shared objects. | Keep mapper stateless and read-only on the source. |
 
-## 15. Bài tập thực hành
+## 15. Practice exercises
 
-Cho dữ liệu:
+Given the data:
 
 ```java
 List<String> integerRows = List.of("1,2,3", "", "4,5");
@@ -674,15 +674,15 @@ List<double[]> grades = List.of(
 );
 ```
 
-**Yêu cầu:**
+**Tasks:**
 
-1. Dùng `flatMapToInt` đọc các số từ `integerRows` và tạo `int[]` theo đúng thứ tự.
-2. Dùng `flatMapToLong` tính tổng các khoảng thời gian trong `sessions`.
-3. Dùng `flatMapToDouble` tính trung bình các điểm trong `grades`.
-4. Giải thích vì sao `mapToLong(session -> session.length)` không thay thế `flatMapToLong(Arrays::stream)` trong câu 2.
-5. Nếu một `grades` entry là mảng rỗng, nó ảnh hưởng thế nào đến số mẫu và trung bình?
+1. Use `flatMapToInt` to read the numbers from `integerRows` and produce an `int[]` in exact order.
+2. Use `flatMapToLong` to compute the total duration in `sessions`.
+3. Use `flatMapToDouble` to compute the average grade in `grades`.
+4. Explain why `mapToLong(session -> session.length)` does not replace `flatMapToLong(Arrays::stream)` in task 2.
+5. If an entry in `grades` is an empty array, how does it affect the sample count and average?
 
-**Lời giải tham khảo:**
+**Reference solutions:**
 
 ```java
 int[] allIntegers = integerRows.stream()
@@ -702,13 +702,13 @@ double gradeAverage = grades.stream()
         .flatMapToDouble(Arrays::stream)
         .average()
         .orElse(Double.NaN);
-// (7.5 + 8.0 + 9.5) / 3 = 8.333333333333334 (xấp xỉ)
+// (7.5 + 8.0 + 9.5) / 3 = 8.333333333333334 (approximately)
 ```
 
-Ở câu 4, `mapToLong(session -> session.length)` tạo một số bằng **độ dài mảng** cho mỗi session, nên tổng chỉ phản ánh số lượng phần tử; `flatMapToLong` phát ra các thời lượng **bên trong mảng** để cộng chúng. Ở câu 5, mảng rỗng không tạo mẫu nào; mẫu số để tính trung bình vẫn là ba giá trị `7.5`, `8.0` và `9.5`.
+For task 4, `mapToLong(session -> session.length)` produces one number equal to the **array length** for each session, so the sum only reflects the element count; `flatMapToLong` emits the durations **inside the arrays** so they can be summed. For task 5, an empty array produces no samples; the denominator for the average remains the three values `7.5`, `8.0`, and `9.5`.
 
-## Ghi nhớ
+## Key Takeaways
 
-`flatMapToInt`, `flatMapToLong` và `flatMapToDouble` làm phẳng các Stream con thuộc kiểu primitive từ mỗi phần tử của một `Stream<T>`. Chọn phương thức theo kiểu số đầu ra; mỗi đầu vào có thể sinh **0, 1 hoặc nhiều số**. Kết quả có thể dùng trực tiếp với `sum`, `average`, `summaryStatistics` hoặc `toArray` mà không cần boxing lại. `mapToX` chỉ phù hợp khi mỗi phần tử sinh đúng một số, còn khi nguồn đã là primitive stream thì sử dụng `flatMap` tương ứng.
+`flatMapToInt`, `flatMapToLong`, and `flatMapToDouble` flatten primitive sub-streams produced from each element of a `Stream<T>`. Choose the method based on the output numeric type; each input can yield **0, 1, or many numbers**. Results can be used directly with `sum`, `average`, `summaryStatistics`, or `toArray` without re-boxing. `mapToX` is only suitable when each element yields exactly one number, whereas when the source is already a primitive stream, use the corresponding `flatMap`.
 
-Hãy làm rõ cách xử lý dữ liệu rỗng hoặc sai, giữ mapper stateless và không can thiệp nguồn, quản lý nguồn I/O đúng vòng đời, tránh dùng lại Stream đã tiêu thụ. Với bài toán nặng, cân nhắc độ chính xác số, chi phí tạo Stream con, khả năng chạy song song và `mapMultiToX` khi cần tối ưu có căn cứ.
+Make handling of empty or invalid data explicit, keep mappers stateless and non-interfering, manage I/O source lifecycles properly, and avoid reusing consumed Streams. For heavy workloads, weigh numeric precision, sub-stream creation cost, parallelization suitability, and `mapMultiToX` when evidence-based optimization is warranted.

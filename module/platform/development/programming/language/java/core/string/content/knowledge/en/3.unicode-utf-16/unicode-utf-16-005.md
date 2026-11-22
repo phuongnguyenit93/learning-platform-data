@@ -1,28 +1,28 @@
-# Java String có thể chứa surrogate không ghép cặp
+# Java String Can Contain Unpaired Surrogates
 
-Trong Java, `String` lưu một **dãy đơn vị mã UTF-16 (UTF-16 code units)**. Mỗi đơn vị mã tương ứng một `char` 16 bit. Java **không bắt buộc** mọi `String` đều biểu diễn một chuỗi ký tự Unicode hợp lệ: một chuỗi vẫn có thể chứa **high surrogate** hoặc **low surrogate** đứng riêng lẻ, không ghép đúng cặp. Tình trạng này gọi là *unpaired surrogate* hoặc *unpaired surrogate code unit*.
+In Java, a `String` stores a **sequence of UTF-16 code units**. Each code unit corresponds to a 16-bit `char`. Java **does not enforce** that every `String` represents a valid sequence of Unicode characters: a string can still contain a standalone **high surrogate** or **low surrogate** without a matching partner. This condition is called an *unpaired surrogate* or *unpaired surrogate code unit*.
 
-Đây là điểm quan trọng khi cắt chuỗi, duyệt chuỗi, tính độ dài, so sánh và chuyển mã sang UTF-8. Một `String` có thể hoàn toàn hợp lệ về **kiểu Java**, nhưng chứa một dãy UTF-16 **không well-formed** (*ill-formed UTF-16*).
+This is an important detail when slicing strings, iterating over strings, computing lengths, comparing, and transcoding to UTF-8. A `String` can be completely valid as a **Java type**, yet hold an **ill-formed UTF-16** sequence.
 
-## 1. Phân biệt `char`, UTF-16 code unit, code point và Unicode scalar value
+## 1. Distinguishing `char`, UTF-16 Code Unit, Code Point, and Unicode Scalar Value
 
-- **`char` trong Java:** giá trị nguyên không dấu 16 bit, từ `0x0000` đến `0xFFFF`. `String.length()` đếm số đơn vị mã `char` này, không đếm số ký tự hiển thị.
-- **Unicode code point:** vị trí trong không gian mã `U+0000` đến `U+10FFFF`. Java thường biểu diễn code point bằng `int`.
-- **Unicode scalar value:** code point **không thuộc** dải surrogate `U+D800`–`U+DFFF`; đây là những giá trị có thể mã hóa thành một ký tự Unicode riêng trong UTF-8.
-- **UTF-16:** scalar value ở BMP không thuộc vùng surrogate dùng một đơn vị mã; scalar value từ `U+10000` đến `U+10FFFF` dùng **hai đơn vị mã**, lần lượt là high surrogate và low surrogate.
+- **`char` in Java:** a 16-bit unsigned integer value, from `0x0000` to `0xFFFF`. `String.length()` counts these `char` code units, not displayed characters.
+- **Unicode code point:** a position in the code space `U+0000` to `U+10FFFF`. Java typically represents a code point as an `int`.
+- **Unicode scalar value:** a code point **not in** the surrogate range `U+D800`–`U+DFFF`; these are the values that can be encoded as an individual Unicode character in UTF-8.
+- **UTF-16:** a BMP scalar value outside the surrogate range uses one code unit; a scalar value from `U+10000` to `U+10FFFF` uses **two code units**, a high surrogate followed by a low surrogate.
 
-Các khoảng surrogate:
+Surrogate ranges:
 
-| Nhóm | Khoảng giá trị UTF-16 | Vai trò |
+| Group | UTF-16 value range | Role |
 |---|---|---|
-| High surrogate (*leading surrogate*) | `U+D800`–`U+DBFF` | Đơn vị mã đầu tiên của cặp |
-| Low surrogate (*trailing surrogate*) | `U+DC00`–`U+DFFF` | Đơn vị mã thứ hai của cặp |
-| Cặp hợp lệ | High rồi đến Low | Cùng biểu diễn một scalar value ngoài BMP |
-| Không ghép cặp | High không theo sau bởi Low; hoặc Low không có High đi ngay trước | Không tạo được một scalar value từ đơn vị mã đó |
+| High surrogate (*leading surrogate*) | `U+D800`–`U+DBFF` | First code unit of a pair |
+| Low surrogate (*trailing surrogate*) | `U+DC00`–`U+DFFF` | Second code unit of a pair |
+| Valid pair | High followed by Low | Together represent one non-BMP scalar value |
+| Unpaired | High not followed by Low; or Low not immediately preceded by High | Cannot form a scalar value from that code unit |
 
-Ví dụ emoji 😀 có code point `U+1F600`. Trong UTF-16, nó dùng hai `char`: `U+D83D` (*high*) và `U+DE00` (*low*). Vì thế, một `String` chỉ chứa emoji này có `length() == 2`, nhưng `codePointCount(0, length()) == 1`.
+For example, the emoji 😀 has code point `U+1F600`. In UTF-16, it uses two `char`s: `U+D83D` (*high*) and `U+DE00` (*low*). Thus, a `String` containing only this emoji has `length() == 2`, while `codePointCount(0, length()) == 1`.
 
-Công thức UTF-16 khi mã hóa code point ngoài BMP (chỉ để hiểu cơ chế):
+UTF-16 formula when encoding a non-BMP code point (to understand the mechanism):
 
 ```text
 x    = codePoint - 0x10000
@@ -30,15 +30,15 @@ high = 0xD800 + (x >>> 10)
 low  = 0xDC00 + (x & 0x3FF)
 ```
 
-Các code unit surrogate **không đại diện cho ký tự độc lập**. High `U+D83D` đứng một mình không phải là emoji 😀. Không nên nhầm mã surrogate `U+D83D` với code point emoji `U+1F600`.
+Surrogate code units **do not represent standalone characters**. A high surrogate `U+D83D` alone is not the emoji 😀. Do not confuse the surrogate code unit `U+D83D` with the emoji code point `U+1F600`.
 
-## 2. Vì sao Java vẫn cho phép một `String` chứa surrogate lẻ?
+## 2. Why Does Java Still Allow a `String` to Contain Unpaired Surrogates?
 
-API `String` hoạt động dựa trên chuỗi đơn vị mã UTF-16, và một số thao tác nhận/trả về các đơn vị mã đó mà không bắt buộc kiểm tra tính well-formed của cả chuỗi. Một `char` có thể có giá trị nằm trong khoảng surrogate; Java không cấm đưa `char` đó vào `String`.
+The `String` API operates on sequences of UTF-16 code units, and several operations accept or return those code units without enforcing well-formedness across the entire string. A `char` can hold a value in the surrogate range; Java does not forbid putting that `char` into a `String`.
 
-Có ít nhất ba cách làm xuất hiện surrogate không ghép cặp:
+There are at least three ways an unpaired surrogate can appear:
 
-### Tạo trực tiếp từ một `char`
+### Creating directly from a `char`
 
 ```java
 char high = (char) 0xD83D;
@@ -48,20 +48,20 @@ String onlyHigh = String.valueOf(high);
 String onlyLow = new String(new char[] {low});
 ```
 
-Mỗi chuỗi trên dài một đơn vị mã, nhưng không tạo thành cặp surrogate hoàn chỉnh.
+Each string above is one code unit long, yet does not form a complete surrogate pair.
 
-### Cắt giữa một cặp đúng
+### Slicing in the middle of a valid pair
 
 ```java
-String emoji = new String(Character.toChars(0x1F600)); // Hai UTF-16 code units
-String firstHalf = emoji.substring(0, 1);              // High surrogate đứng riêng
-String secondHalf = emoji.substring(1, 2);             // Low surrogate đứng riêng
-String restored = firstHalf + secondHalf;               // Cặp được ghép lại đúng thứ tự
+String emoji = new String(Character.toChars(0x1F600)); // Two UTF-16 code units
+String firstHalf = emoji.substring(0, 1);              // Standalone high surrogate
+String secondHalf = emoji.substring(1, 2);             // Standalone low surrogate
+String restored = firstHalf + secondHalf;               // Pair recombined in the right order
 ```
 
-Cả `substring` lẫn `charAt` dùng **chỉ số đơn vị mã**. Chúng không bảo đảm ranh giới trùng với ranh giới code point. `firstHalf` và `secondHalf` đều là `String` có thể được tạo và lưu bình thường, dù mỗi chuỗi là UTF-16 không well-formed. Khi ghép đúng thứ tự, `restored` lại chứa cặp hợp lệ.
+Both `substring` and `charAt` use **code unit indices**. They do not guarantee that boundaries align with code point boundaries. Both `firstHalf` and `secondHalf` are `String`s that can be created and stored normally, even though each string is ill-formed UTF-16. When concatenated in the right order, `restored` again contains a valid pair.
 
-### Thêm đơn vị mã bằng `StringBuilder` hoặc nhận dữ liệu đã có sẵn
+### Appending code units with `StringBuilder` or receiving existing data
 
 ```java
 StringBuilder builder = new StringBuilder();
@@ -70,26 +70,26 @@ builder.append('X');
 String malformed = builder.toString();
 ```
 
-Trong `malformed`, high surrogate đi trước `X`, không có low surrogate tương ứng. Dữ liệu cắt từ hệ thống khác hoặc các API thao tác theo `char` cũng có thể mang tình trạng này. Không phải việc tạo thành công đối tượng `String` là đã xác nhận Unicode well-formed.
+In `malformed`, the high surrogate precedes `X`, with no matching low surrogate. Data truncated by another system or APIs operating on `char` can also carry this condition. Successfully creating a `String` object does not validate well-formed Unicode.
 
-Lưu ý: sau khi cắt hoặc ghép chuỗi, cùng một đơn vị mã có thể chuyển từ trạng thái lẻ sang hợp lệ hoặc ngược lại tùy **hai đơn vị mã liền kề**, vì điều kiện ghép cặp phụ thuộc vào thứ tự.
+Note: after slicing or concatenating strings, the same code unit can transition from unpaired to valid or vice versa depending on **the two adjacent code units**, because pairing depends on order.
 
-## 3. Các API đếm và duyệt chuỗi có hành vi gì?
+## 3. How Do Counting and Iteration APIs Behave?
 
-| API | Đơn vị và hành vi | Điều cần nhớ |
+| API | Unit and behavior | What to remember |
 |---|---|---|
-| `length()` | Số UTF-16 code units | Một code point ngoài BMP thường chiếm 2 |
-| `charAt(i)` | Lấy một code unit ở chỉ số `i` | Có thể trả về một nửa cặp |
-| `substring(begin, end)` | Cắt theo chỉ số code unit | Có thể tách đôi cặp |
-| `chars()` | Stream các giá trị `char` mở rộng thành `int` | Không ghép surrogate pair |
-| `codePointAt(i)` | Ghép High+Low khi có cặp hợp lệ tại vị trí đó; nếu không, trả về giá trị của một code unit | Có thể trả về giá trị thuộc dải surrogate |
-| `codePoints()` | Ghép các cặp hợp lệ thành một `int`; với đơn vị mã không ghép cặp, phát ra chính giá trị code unit đó | **Không** phải phép kiểm tra Unicode well-formed |
-| `codePointCount(begin, end)` | Đếm cặp hợp lệ là một, code unit không ghép cặp là một | Kết quả vẫn được trả về khi chuỗi ill-formed |
-| `offsetByCodePoints(index, delta)` | Di chuyển theo cách Java nhận diện code point trong chuỗi UTF-16 | Hữu ích để tránh cắt cặp hợp lệ nhưng không sửa dữ liệu đã hỏng |
+| `length()` | Number of UTF-16 code units | A non-BMP code point usually takes 2 |
+| `charAt(i)` | Gets one code unit at index `i` | May return half of a pair |
+| `substring(begin, end)` | Slices by code unit index | May split a pair in half |
+| `chars()` | Stream of `char` values widened to `int` | Does not combine surrogate pairs |
+| `codePointAt(i)` | Combines High+Low when a valid pair is at that position; otherwise returns the single code unit's value | May return a value in the surrogate range |
+| `codePoints()` | Combines valid pairs into one `int`; for unpaired code units, emits that code unit value itself | **Not** a well-formed Unicode check |
+| `codePointCount(begin, end)` | Counts a valid pair as one, and an unpaired code unit as one | A result is still returned when the string is ill-formed |
+| `offsetByCodePoints(index, delta)` | Moves according to how Java recognizes code points in a UTF-16 string | Useful for avoiding splitting valid pairs, but does not fix already broken data |
 
-Một điểm dễ nhầm: `Character.isValidCodePoint(0xD83D)` trả về `true` vì giá trị nằm trong khoảng `0x0000`–`0x10FFFF` được API này chấp nhận. Tuy nhiên `U+D83D` **không phải Unicode scalar value** vì nó thuộc vùng surrogate. Do đó, **chỉ kiểm tra `isValidCodePoint` chưa đủ** để xác nhận có thể mã hóa như một ký tự Unicode độc lập.
+A common point of confusion: `Character.isValidCodePoint(0xD83D)` returns `true` because the value lies within `0x0000`–`0x10FFFF` accepted by this API. However, `U+D83D` **is not a Unicode scalar value** because it belongs to the surrogate range. Therefore, **checking `isValidCodePoint` alone is not enough** to confirm a value can be encoded as an independent Unicode character.
 
-Có thể kiểm tra một giá trị `int` là scalar value bằng điều kiện:
+You can check whether an `int` value is a scalar value with the condition:
 
 ```java
 static boolean isUnicodeScalarValue(int cp) {
@@ -98,22 +98,22 @@ static boolean isUnicodeScalarValue(int cp) {
 }
 ```
 
-Điều kiện đó áp dụng cho **một code point dạng `int`**. Với một `String`, phải duyệt và kiểm tra sự ghép cặp của các đơn vị mã UTF-16.
+That condition applies to **a single `int` code point**. For a `String`, you must iterate and check the pairing of UTF-16 code units.
 
-## 4. Kiểm tra một `String` có well-formed UTF-16 hay không
+## 4. Checking Whether a `String` Is Well-Formed UTF-16
 
-Quy tắc kiểm tra từ trái sang phải:
+Left-to-right validation rules:
 
-1. Gặp **high surrogate**, phải có ký tự kế tiếp và ký tự đó phải là **low surrogate**; tiêu thụ cả hai.
-2. Gặp **low surrogate** mà chưa đi cùng high ngay trước nó, chuỗi **không hợp lệ**.
-3. Gặp `char` không thuộc hai nhóm trên thì đi tiếp bình thường.
-4. Hết chuỗi mà không có lỗi thì dãy UTF-16 well-formed; chuỗi rỗng cũng hợp lệ.
+1. When encountering a **high surrogate**, there must be a next character and it must be a **low surrogate**; consume both.
+2. When encountering a **low surrogate** without a high surrogate immediately before it, the string is **invalid**.
+3. When encountering a `char` in neither group, continue normally.
+4. Reaching the end of the string with no errors means the UTF-16 sequence is well-formed; an empty string is also valid.
 
-Với `n = s.length()`, thuật toán chạy `O(n)` và sử dụng `O(1)` bộ nhớ bổ sung.
+With `n = s.length()`, the algorithm runs in `O(n)` time and uses `O(1)` extra memory.
 
-### Ví dụ Java 17+ chạy độc lập
+### Standalone Runnable Java 17+ Example
 
-Lưu toàn bộ chương trình vào **`UnpairedSurrogateDemo.java`**:
+Save the entire program to **`UnpairedSurrogateDemo.java`**:
 
 ```java
 import java.nio.CharBuffer;
@@ -133,9 +133,9 @@ public class UnpairedSurrogateDemo {
                         || !Character.isLowSurrogate(s.charAt(i + 1))) {
                     return false;
                 }
-                i++; // Đã xử lý cả high và low surrogate
+                i++; // Handled both high and low surrogates
             } else if (Character.isLowSurrogate(ch)) {
-                return false; // Low surrogate đứng riêng
+                return false; // Standalone low surrogate
             }
         }
         return true;
@@ -198,14 +198,14 @@ public class UnpairedSurrogateDemo {
 }
 ```
 
-Lệnh biên dịch và chạy:
+Compile and run commands:
 
 ```bash
 javac -encoding UTF-8 UnpairedSurrogateDemo.java
 java UnpairedSurrogateDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 emoji.length(): 2
@@ -225,63 +225,63 @@ high isValidCodePoint: true
 high isSurrogate: true
 ```
 
-**Đọc kết quả:** `high.codePoints()` vẫn tạo được một phần tử số nguyên `0xD83D`; điều đó **không xác nhận chuỗi well-formed**. Bộ mã hóa UTF-8 ở chế độ `REPORT` từ chối surrogate lẻ vì nó không biểu diễn một Unicode scalar value. Khi `high` và `low` được ghép đúng thứ tự, cùng hai code unit lại tạo một cặp hợp lệ.
+**Reading the output:** `high.codePoints()` still produces an integer element `0xD83D`; that **does not confirm the string is well-formed**. The UTF-8 encoder in `REPORT` mode rejects the unpaired surrogate because it does not represent a Unicode scalar value. When `high` and `low` are combined in the right order, the same two code units form a valid pair again.
 
-Hàm `isWellFormedUtf16` kiểm tra tính hợp lệ của **chuỗi đơn vị mã**, chứ không kiểm tra dữ liệu có ý nghĩa ngôn ngữ hoặc có hiển thị được dưới font hiện tại hay không.
+The `isWellFormedUtf16` function checks the validity of **the code unit sequence**, not whether the data has linguistic meaning or is renderable in the current font.
 
-## 5. Hậu quả khi mã hóa sang UTF-8 hoặc trao đổi dữ liệu
+## 5. Consequences When Encoding to UTF-8 or Exchanging Data
 
-UTF-8 mã hóa các Unicode scalar value. Một surrogate đứng riêng lẻ trong `String` không có biểu diễn UTF-8 hợp lệ như một ký tự độc lập. Khi chuyển đổi, kết quả phụ thuộc **API và chính sách xử lý dữ liệu lỗi**:
+UTF-8 encodes Unicode scalar values. A standalone surrogate in a `String` has no valid UTF-8 representation as an independent character. During conversion, the result depends on **the API and error-handling policy**:
 
-- **Chính sách `REPORT`:** bộ mã hóa báo lỗi `MalformedInputException` (một loại `CharacterCodingException`), như chương trình trên. Đây là lựa chọn phù hợp khi cần phát hiện dữ liệu không hợp lệ.
-- **Chính sách `REPLACE`:** bộ mã hóa thay phần không hợp lệ bằng các byte thay thế được cấu hình; lúc đó dữ liệu sau chuyển đổi không còn giữ nguyên surrogate lẻ. Byte thay thế của encoder không nên tự giả định luôn là một ký tự Unicode cố định.
-- **Các hàm tiện ích như `getBytes(StandardCharsets.UTF_8)`:** có thể thay thế dữ liệu lỗi thay vì báo lỗi; không dùng kết quả thành công của hàm này làm bằng chứng rằng chuỗi ban đầu well-formed.
+- **`REPORT` policy:** the encoder throws `MalformedInputException` (a subclass of `CharacterCodingException`), as shown in the program above. This is the right choice when invalid data must be detected.
+- **`REPLACE` policy:** the encoder replaces the invalid portion with the configured replacement bytes; the converted data then no longer preserves the unpaired surrogate. One should not assume the encoder's replacement bytes always represent one fixed Unicode character.
+- **Convenience methods such as `getBytes(StandardCharsets.UTF_8)`:** may replace invalid data instead of throwing an error; do not treat this method's successful return as proof that the original string was well-formed.
 
-Ở chiều ngược lại, khi **giải mã** byte UTF-8 lỗi, bộ giải mã có thể *report* hoặc thay bằng ký tự `U+FFFD` (*replacement character*) tùy API/chính sách. **U+FFFD là một scalar value hợp lệ**, khác hoàn toàn với high surrogate/low surrogate đứng riêng. Không được gọi surrogate lẻ chính là U+FFFD.
+In the reverse direction, when **decoding** malformed UTF-8 bytes, a decoder may *report* or replace with `U+FFFD` (*replacement character*) depending on the API/policy. **U+FFFD is a valid scalar value**, completely different from a standalone high or low surrogate. Never call an unpaired surrogate `U+FFFD`.
 
-Quá trình tuần tự hóa sang JSON, XML, giao tiếp API hay lưu trữ cũng cần xét hợp đồng của thư viện nhận dữ liệu. Một số thư viện có thể từ chối, thay thế, hoặc biểu diễn escape theo quy tắc riêng; không giả định mọi hệ thống sẽ tự xử lý giống nhau. Nếu hệ thống yêu cầu Unicode well-formed, hãy kiểm tra hoặc đặt chính sách xử lý lỗi rõ ràng **trước ranh giới truyền dữ liệu**.
+Serialization to JSON, XML, API communication, or storage must also consider the receiving library's contract. Some libraries may reject, replace, or escape according to their own rules; do not assume every system behaves the same way automatically. If the system requires well-formed Unicode, validate or set an explicit error-handling policy **before the data-transfer boundary**.
 
-### Có nên tự động thay surrogate lẻ?
+### Should unpaired surrogates be replaced automatically?
 
-Tùy yêu cầu nghiệp vụ:
+It depends on business requirements:
 
-- **Từ chối** dữ liệu không well-formed: phù hợp nếu giữ nguyên nghĩa và tính nhất quán dữ liệu quan trọng.
-- **Thay mỗi đơn vị mã không ghép cặp bằng U+FFFD:** phù hợp khi cần tiếp tục hiển thị và chấp nhận mất thông tin; phải làm đúng từng cặp/đơn vị mã.
-- **Giữ nguyên** dãy code unit để điều tra hoặc xử lý nội bộ: chỉ nên làm khi các bước kế tiếp hiểu rõ đặc tính UTF-16 không well-formed.
+- **Reject** ill-formed data: appropriate when preserving exact meaning and data integrity is critical.
+- **Replace each unpaired code unit with U+FFFD:** appropriate when display must continue and data loss is acceptable; must be done accurately per pair/code unit.
+- **Keep** the code unit sequence as-is for investigation or internal processing: only do this when downstream steps understand ill-formed UTF-16 behavior.
 
-Không sửa bằng cách xóa *mọi* `char` thuộc dải surrogate: làm vậy sẽ xóa cả **cặp hợp lệ** và phá hỏng mọi ký tự ngoài BMP. Cũng không nên nối tùy ý surrogate lẻ với bất kỳ surrogate nào ở xa: một cặp hợp lệ phải là **high ngay trước low**.
+Do not fix this by deleting *all* `char`s in the surrogate range: doing so deletes **valid pairs** too and corrupts every character outside the BMP. Nor should you arbitrarily pair an unpaired surrogate with a distant surrogate: a valid pair must be **high immediately followed by low**.
 
-## 6. Cắt chuỗi an toàn theo ranh giới code point
+## 6. Slicing Strings Safely at Code Point Boundaries
 
-Nếu chuỗi đầu vào đã well-formed và cần cắt một số code point đầu tiên, `offsetByCodePoints` giúp tìm chỉ số UTF-16 đúng ranh giới cặp:
+If the input string is already well-formed and you need to slice the first few code points, `offsetByCodePoints` helps find the UTF-16 index aligned with pair boundaries:
 
 ```java
 String text = "A" + new String(Character.toChars(0x1F600)) + "B";
 int end = text.offsetByCodePoints(0, 2);
-String prefix = text.substring(0, end); // Chứa A và emoji 😀
+String prefix = text.substring(0, end); // Contains A and emoji 😀
 System.out.println(prefix.codePointCount(0, prefix.length())); // 2
 ```
 
-Nếu thay bằng `text.substring(0, 2)`, kết quả gồm `A` và **high surrogate của emoji**, thiếu low surrogate: đây là chuỗi ill-formed. Một phép cắt theo số code point cũng **không tự sửa** chuỗi đầu vào vốn đã có surrogate lẻ.
+If replaced with `text.substring(0, 2)`, the result contains `A` and **the emoji's high surrogate**, missing the low surrogate: this is an ill-formed string. Slicing by code point count also **does not automatically repair** an input string that already contains unpaired surrogates.
 
-Ngoài ra, *code point không đồng nhất với ký tự người dùng nhìn thấy* (*grapheme cluster*). Ví dụ chữ cái kèm dấu kết hợp hoặc một emoji được ghép từ nhiều code point có thể cần xử lý phân đoạn văn bản cấp cao hơn. `offsetByCodePoints` giải quyết **ranh giới UTF-16 surrogate pair**, chưa giải quyết toàn bộ quy tắc phân đoạn grapheme.
+Additionally, *a code point is not the same as a user-perceived character* (*grapheme cluster*). For example, a letter with combining marks or an emoji formed from multiple code points may require higher-level text segmentation. `offsetByCodePoints` solves **UTF-16 surrogate pair boundaries**, not the full set of grapheme segmentation rules.
 
-## 7. Những nhầm lẫn phổ biến
+## 7. Common Misconceptions
 
-| Khẳng định/giả định | Vì sao sai | Cách nghĩ đúng |
+| Claim/assumption | Why it is wrong | Correct way to think |
 |---|---|---|
-| “`String` luôn chứa Unicode hợp lệ.” | `String` vẫn chứa được surrogate lẻ. | Khi cần tính hợp lệ Unicode, kiểm tra UTF-16 well-formed riêng. |
-| “`char` luôn là một ký tự hiển thị.” | Nó chỉ là một code unit 16 bit. | Ký tự ngoài BMP có hai `char`; grapheme có thể có nhiều code point. |
-| “`length()` đếm số code point.” | `length()` đếm UTF-16 code units. | Dùng `codePointCount` cho cách đếm của API Java; lưu ý surrogate lẻ vẫn được đếm. |
-| “`codePoints()` chỉ phát Unicode scalar value.” | Stream này có thể phát giá trị surrogate lẻ. | Kiểm tra well-formed UTF-16 hoặc loại dải `D800`–`DFFF` khi xét scalar value. |
-| “`Character.isValidCodePoint` là đủ để xác thực.” | Nó trả về `true` cho số trong dải surrogate. | Loại trừ `U+D800`–`U+DFFF` khi kiểm tra một scalar value. |
-| “Cắt `substring` luôn ở giữa các ký tự đầy đủ.” | Ranh giới được tính theo code unit. | Cân nhắc `offsetByCodePoints` nếu mục tiêu là code point. |
-| “Emoji biến thành `?`/`�` chỉ là vấn đề font.” | Có thể đã xảy ra thay thế dữ liệu trong lúc chuyển mã lỗi. | Phân biệt code unit gốc, byte được mã hóa, decoder và font. |
-| “Xóa mọi surrogate là sửa dữ liệu.” | Xóa cả các cặp hợp lệ. | Duyệt từng cặp, xử lý riêng surrogate **không ghép cặp**. |
+| “`String` always contains valid Unicode.” | `String` can still hold unpaired surrogates. | When Unicode validity is needed, check well-formed UTF-16 explicitly. |
+| “A `char` is always a displayed character.” | It is only a 16-bit code unit. | Non-BMP characters have two `char`s; a grapheme can have multiple code points. |
+| “`length()` counts code points.” | `length()` counts UTF-16 code units. | Use `codePointCount` for Java's API count; note unpaired surrogates are still counted. |
+| “`codePoints()` only emits Unicode scalar values.” | This stream can emit unpaired surrogate values. | Check well-formed UTF-16 or exclude `D800`–`DFFF` when testing scalar values. |
+| “`Character.isValidCodePoint` is enough for validation.” | It returns `true` for numbers in the surrogate range. | Exclude `U+D800`–`U+DFFF` when checking for a scalar value. |
+| “Slicing with `substring` always falls between complete characters.” | Boundaries are measured in code units. | Consider `offsetByCodePoints` if the target unit is code points. |
+| “An emoji turning into `?`/`�` is just a font issue.” | Data replacement may have occurred during failed transcoding. | Distinguish original code units, encoded bytes, decoder, and font. |
+| “Deleting all surrogates fixes the data.” | Deletes valid pairs as well. | Iterate pair by pair and handle only **unpaired** surrogates. |
 
-## 8. Tình huống luyện tập
+## 8. Practice Scenario
 
-Cho một chuỗi được tạo như sau:
+Given a string constructed as follows:
 
 ```java
 String face = new String(Character.toChars(0x1F600));
@@ -291,11 +291,11 @@ String c = "x" + a + b + "y";
 String d = a + "x" + b;
 ```
 
-1. `a.length()`, `b.length()` và `face.length()` lần lượt là bao nhiêu?
-2. Các chuỗi `face`, `a`, `b`, `c` và `d` có well-formed UTF-16 không?
-3. `c.codePointCount(0, c.length())` có giá trị bao nhiêu?
-4. Nếu mã hóa `d` sang UTF-8 bằng một `CharsetEncoder` với `CodingErrorAction.REPORT`, thao tác có thành công không?
+1. What are `a.length()`, `b.length()`, and `face.length()` respectively?
+2. Are the strings `face`, `a`, `b`, `c`, and `d` well-formed UTF-16?
+3. What is the value of `c.codePointCount(0, c.length())`?
+4. If `d` is encoded to UTF-8 using a `CharsetEncoder` with `CodingErrorAction.REPORT`, will the operation succeed?
 
-**Đáp án:** (1) `1`, `1`, `2`. (2) `face` và `c` well-formed; `a`, `b` và `d` không well-formed vì chứa surrogate lẻ. (3) `3` code point: `x`, emoji, `y`. (4) Không; high và low bị ngăn bởi `x` nên không tạo cặp, và encoder báo malformed input.
+**Answers:** (1) `1`, `1`, `2`. (2) `face` and `c` are well-formed; `a`, `b`, and `d` are not well-formed because they contain unpaired surrogates. (3) `3` code points: `x`, emoji, `y`. (4) No; high and low are separated by `x` so they do not form a pair, and the encoder reports malformed input.
 
-**Ghi nhớ:** Kiểu `String` của Java chứa một chuỗi UTF-16 code units; sự tồn tại của chuỗi **không đảm bảo** chuỗi đó là UTF-16 well-formed. Một cặp surrogate hợp lệ cần đúng thứ tự **high + low liền kề**. Khi cắt hoặc duyệt, biết API đang xử lý `char` hay code point; khi chuyển sang UTF-8 hay giao tiếp với hệ thống khác, xác định rõ chính sách **báo lỗi, thay thế hoặc từ chối** surrogate không ghép cặp.
+**Key takeaway:** Java's `String` type holds a sequence of UTF-16 code units; a string's existence **does not guarantee** it is well-formed UTF-16. A valid surrogate pair requires **adjacent high + low** in order. When slicing or iterating, know whether the API handles `char` or code points; when converting to UTF-8 or interfacing with other systems, explicitly define a policy to **report, replace, or reject** unpaired surrogates.

@@ -1,15 +1,15 @@
-# Phân nhóm theo khóa ghép bằng đối tượng giá trị
+# Grouping by Composite Keys Using Value Objects
 
-## 1. Bài toán: một thuộc tính không đủ để xác định nhóm
+## 1. Problem Statement: A Single Attribute Is Not Enough to Define a Group
 
-Trong **Java Stream API**, `filter` và `map` giúp chọn, biến đổi phần tử; `collect` là thao tác kết thúc dùng để gom dữ liệu thành kết quả. Một collector quan trọng là `Collectors.groupingBy`: nó phân loại từng phần tử theo một **khóa nhóm** rồi tích lũy những phần tử có cùng khóa.
+In the **Java Stream API**, `filter` and `map` select and transform elements; `collect` is the terminal operation used to gather data into a result. An important collector is `Collectors.groupingBy`: it classifies each element by a **group key** and accumulates elements sharing the same key.
 
-Đôi khi khóa nhóm chỉ gồm một thuộc tính, như `department` hoặc `year`. Nhưng báo cáo thực tế thường cần kết hợp nhiều điều kiện: doanh thu **theo khu vực và loại hàng**, số đơn **theo khách hàng và tháng**, hay kết quả học tập **theo lớp và học kỳ**.
+Sometimes the group key consists of just one attribute, such as `department` or `year`. However, real-world reports often need to combine multiple criteria: revenue **by region and category**, order counts **by customer and month**, or academic results **by class and semester**.
 
-Nếu chỉ nhóm theo khu vực, hai loại hàng của cùng khu vực bị gộp chung. Nếu chỉ nhóm theo loại hàng, dữ liệu từ nhiều khu vực lại hòa vào nhau. Ta cần **khóa ghép** (*composite key*) chứa cả hai thuộc tính.
+If you only group by region, two product categories in the same region are merged together. If you only group by category, data from multiple regions gets mixed together. We need a **composite key** (*composite key*) containing both attributes.
 
 ```text
-Đơn hàng
+Orders
   ├─ (Miền Bắc, Sách, 100)
   ├─ (Miền Bắc, Bút,   30)
   ├─ (Miền Nam,  Sách,  80)
@@ -19,7 +19,7 @@ Nếu chỉ nhóm theo khu vực, hai loại hàng của cùng khu vực bị g�
           │
           ▼ groupingBy
   ┌───────────────────────┬─────────────────┐
-  │ Khóa ghép             │ Nhóm đơn hàng   │
+  │ Composite key         │ Order group     │
   ├───────────────────────┼─────────────────┤
   │ (Miền Bắc, Sách)      │ 100, 50         │
   │ (Miền Bắc, Bút)       │ 30              │
@@ -27,30 +27,30 @@ Nếu chỉ nhóm theo khu vực, hai loại hàng của cùng khu vực bị g�
   └───────────────────────┴─────────────────┘
 ```
 
-Một cách biểu diễn khóa nhóm an toàn, rõ nghĩa là dùng **đối tượng giá trị** (*value object*): đối tượng được so sánh dựa trên các giá trị thành phần, không dựa vào danh tính tham chiếu. Trong Java hiện đại, `record` rất phù hợp cho nhiệm vụ này.
+A safe and expressive way to represent a group key is to use a **value object** (*value object*): an object compared based on its component values rather than reference identity. In modern Java, `record` is ideally suited for this role.
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-1. Tạo khóa ghép bằng `record` hoặc lớp bất biến với `equals`/`hashCode`.
-2. Dùng `groupingBy` để tạo `Map<CompositeKey, List<T>>`.
-3. Kết hợp downstream collector như `counting`, `summingLong`, `mapping` và `collectingAndThen` để tính kết quả theo từng khóa.
-4. Chuẩn hóa dữ liệu khóa; xử lý `null`; xác định chính sách về thứ tự, song song và chi phí bộ nhớ.
-5. Tránh lỗi nối chuỗi làm khóa, dùng mảng làm khóa, hoặc thay đổi khóa sau khi đưa vào Map.
+1. Create composite keys using `record` or an immutable class with `equals`/`hashCode`.
+2. Use `groupingBy` to produce `Map<CompositeKey, List<T>>`.
+3. Combine downstream collectors such as `counting`, `summingLong`, `mapping`, and `collectingAndThen` to compute per-key results.
+4. Normalize key data; handle `null`; and define policies for ordering, parallelism, and memory cost.
+5. Avoid mistakes such as concatenating strings as keys, using arrays as keys, or mutating keys after inserting them into a Map.
 
-Ví dụ hoàn chỉnh sử dụng **Java 17+**, vì `record` đã trở thành tính năng chính thức từ Java 16. `Collectors.groupingBy` và các nguyên tắc về khóa Map có từ Java 8.
+Complete examples use **Java 17+**, since `record` became a standard feature in Java 16. `Collectors.groupingBy` and Map key principles have existed since Java 8.
 
-## 2. Cơ chế groupingBy và vai trò của khóa
+## 2. The groupingBy Mechanism and the Role of Keys
 
-Overload cơ bản của `groupingBy` là:
+The basic overload of `groupingBy` is:
 
 ```java
 static <T, K> Collector<T, ?, Map<K, List<T>>> groupingBy(
         Function<? super T, ? extends K> classifier)
 ```
 
-`classifier` nhận từng phần tử đầu vào `T` và trả về khóa `K`. Những phần tử có các khóa **bằng nhau theo cơ chế của Map kết quả** được gom vào cùng nhóm.
+`classifier` receives each input element `T` and returns a key `K`. Elements whose keys are **equal according to the resulting Map's mechanism** are gathered into the same group.
 
-Ví dụ chỉ nhóm theo một trường:
+Example grouping by a single field:
 
 ```java
 record Order(String id, String region, String category, long amount) {}
@@ -68,32 +68,32 @@ Map<String, List<Order>> byRegion = orders.stream()
 System.out.println(byRegion.get("Bắc").size()); // 3
 ```
 
-Trong `byRegion`, cả đơn sách lẫn đơn bút của khu vực Bắc cùng thuộc một nhóm. Muốn tách tiếp theo loại hàng, classifier phải trả về **cả hai thuộc tính** dưới một kiểu khóa phù hợp.
+In `byRegion`, both book orders and pen orders in the Bắc region belong to the same group. To split further by category, the classifier must return **both attributes** in an appropriate key type.
 
-`groupingBy` là một **Collector** được truyền cho terminal operation `collect`. Mỗi phần tử được classifier phân loại trong quá trình thu thập; không cần tự tạo rồi duyệt hai lần một danh sách trung gian. Tuy nhiên, cách tổ chức nội bộ và số lần kết hợp các kết quả từng phần phụ thuộc vào việc pipeline tuần tự hay song song.
+`groupingBy` is a **Collector** passed to the `collect` terminal operation. Each element is classified by the classifier during collection; you do not need to manually build and iterate twice over an intermediate list. However, the internal organization and the number of partial result combines depend on whether the pipeline is sequential or parallel.
 
-## 3. Thiết kế composite key bằng record
+## 3. Designing a Composite Key with record
 
-Định nghĩa một `record` nhỏ chứa đúng các thành phần xác định danh tính nhóm:
+Define a small `record` holding the exact components that define group identity:
 
 ```java
 record GroupKey(String region, String category) {}
 ```
 
-Java tự sinh constructor, accessor `region()`/`category()`, cùng `equals`, `hashCode` và `toString` cho `record`. Hai đối tượng `GroupKey` được xem là bằng nhau nếu **các thành phần tương ứng bằng nhau**.
+Java automatically generates the constructor, `region()`/`category()` accessors, as well as `equals`, `hashCode`, and `toString` for the `record`. Two `GroupKey` objects are considered equal if **their corresponding components are equal**.
 
 ```java
 GroupKey first = new GroupKey("Bắc", "Sách");
 GroupKey second = new GroupKey("Bắc", "Sách");
 GroupKey third = new GroupKey("Nam", "Sách");
 
-System.out.println(first == second);      // false: hai tham chiếu khác nhau
-System.out.println(first.equals(second)); // true: giá trị các thành phần bằng nhau
+System.out.println(first == second);      // false: two different references
+System.out.println(first.equals(second)); // true: component values are equal
 System.out.println(first.equals(third));  // false
 System.out.println(first.hashCode() == second.hashCode()); // true
 ```
 
-Vì Map thường dùng `equals` và `hashCode` để quản lý khóa, kết quả của `record` phù hợp với việc tạo một khóa mới từ mỗi đơn hàng:
+Because a Map typically uses `equals` and `hashCode` to manage keys, `record` semantics fit creating a new key from each order:
 
 ```java
 Map<GroupKey, List<Order>> groups = orders.stream()
@@ -107,42 +107,42 @@ System.out.println(groups.get(northBooks).size()); // 2
 System.out.println(groups.size());                 // 3
 ```
 
-Mặc dù biểu thức classifier tạo một đối tượng `GroupKey` mới ở mỗi lượt, các khóa có giá trị bằng nhau vẫn được nhóm đúng. Tính đúng đắn **không phụ thuộc việc tái sử dụng cùng một instance**.
+Even though the classifier expression creates a new `GroupKey` object on every element, keys with equal values are grouped properly. Correctness **does not depend on reusing the same instance**.
 
-### Vì sao nên dùng đối tượng giá trị?
+### Why use a value object?
 
-| Tiêu chí | Khóa bằng `record GroupKey` | Khóa bằng chuỗi ghép thủ công |
+| Criterion | Key with `record GroupKey` | Key with manual string concatenation |
 | --- | --- | --- |
-| Cấu trúc | Có tên và kiểu riêng cho từng trường | Phải tự quy ước dấu phân cách |
-| So sánh bằng nhau | `equals`/`hashCode` theo thành phần | So sánh toàn bộ chuỗi đã nối |
-| Truy xuất thông tin | `key.region()`, `key.category()` | Phải tách chuỗi để lấy trường |
-| Tính đúng đắn | Giảm lỗi trùng khóa do mã hóa nhập nhằng | Có thể va chạm nếu dữ liệu chứa dấu phân cách |
-| Bảo trì | Thêm, đổi quy tắc trường một cách rõ ràng | Dễ tạo những khóa chuỗi khác quy ước |
+| Structure | Dedicated field names and types | Must invent a delimiter convention |
+| Equality check | Component-wise `equals`/`hashCode` | Compares the entire concatenated string |
+| Extracting data | `key.region()`, `key.category()` | Must split the string to recover fields |
+| Correctness | Reduces duplicate-key bugs from ambiguous encoding | Can collide if data contains the delimiter |
+| Maintainability | Adding or changing field rules is explicit | Easy to produce string keys with inconsistent conventions |
 
-Ví dụ va chạm khi nối chuỗi thiếu quy tắc mã hóa:
+Example of collision when concatenating strings without escaping rules:
 
 ```java
 String a = "A:B" + ":" + "C"; // A:B:C
 String b = "A" + ":" + "B:C"; // A:B:C
 
-// Hai cặp thuộc tính khác nhau nhưng tạo cùng một khóa String.
+// Two different attribute pairs produce the same String key.
 ```
 
-Không nên giải quyết bằng việc tự thêm thật nhiều ký tự phân cách nếu nghiệp vụ cần một khóa gồm nhiều trường. Một `record` hoặc lớp khóa có giá trị bất biến thể hiện mục đích rõ ràng hơn.
+You should not solve this by adding ever more delimiter characters when the domain needs a multi-field key. A `record` or immutable value-key class expresses the intent much more clearly.
 
-## 4. equals và hashCode là hợp đồng cốt lõi
+## 4. equals and hashCode Are the Core Contract
 
-Hai `GroupKey` có nội dung như nhau phải được Map nhận diện là cùng một khóa. Với cấu trúc `HashMap` thông thường:
+Two `GroupKey` instances with the same content must be recognized by the Map as the same key. For a standard `HashMap` structure:
 
-- `hashCode` giúp xác định vùng lưu khóa; các khóa bằng nhau **bắt buộc có cùng hash code**.
-- `equals` phân biệt các khóa thực sự bằng nhau, kể cả khi hash code trùng nhau.
-- Khóa sau khi đưa vào Map phải có các thành phần tham gia `equals`/`hashCode` **ổn định**.
+- `hashCode` helps locate the bucket for the key; equal keys **must have the same hash code**.
+- `equals` distinguishes keys that are genuinely equal, even when hash codes collide.
+- Once placed in a Map, a key's components participating in `equals`/`hashCode` must remain **stable**.
 
-`record` tự cung cấp những phương thức này cho các trường đã khai báo, nhưng tính an toàn còn phụ thuộc loại dữ liệu thành phần. `String`, `Integer`, `LocalDate` và `enum` là những lựa chọn thông dụng, ổn định.
+`record` provides these methods automatically for its declared fields, though safety still depends on the component data types. `String`, `Integer`, `LocalDate`, and `enum` are common, stable choices.
 
-### Không dùng array làm khóa nếu muốn so sánh theo nội dung
+### Do not use an array as a key if you want content-based comparison
 
-`record` không biến so sánh mảng thành so sánh theo phần tử:
+`record` does not turn array comparison into element-by-element comparison:
 
 ```java
 record BadKey(String[] fields) {}
@@ -153,9 +153,9 @@ BadKey b = new BadKey(new String[] {"Bắc", "Sách"});
 System.out.println(a.equals(b)); // false
 ```
 
-Hai mảng được cấp phát riêng; `equals` của mảng không so sánh nội dung như `Arrays.equals`. Ngoài ra, mảng có thể bị sửa, gây bất ổn định cho khóa. Với hai trường đã biết, hãy khai báo hai thành phần `String` trong `GroupKey`. Với số trường động, cân nhắc một đối tượng khóa bất biến có định nghĩa bình đẳng tường minh.
+Two arrays are allocated separately; array `equals` does not compare contents like `Arrays.equals`. Furthermore, arrays can be mutated, making keys unstable. For a fixed number of known fields, declare two `String` components in `GroupKey`. For a dynamic number of fields, consider an immutable key object with an explicit equality definition.
 
-### Không dùng đối tượng khóa mutable
+### Do not use a mutable key object
 
 ```java
 class MutableKey {
@@ -182,14 +182,14 @@ class MutableKey {
 MutableKey key = new MutableKey("Bắc", "Sách");
 Map<MutableKey, Integer> map = new java.util.HashMap<>();
 map.put(key, 2);
-key.region = "Nam"; // SAI về thiết kế: đổi thành phần tạo hash sau khi dùng làm khóa
+key.region = "Nam"; // DESIGN ERROR: mutating a hash-contributing field after using it as a key
 ```
 
-Sau thay đổi, tra cứu `map.get(key)` có thể thất bại vì Map đã đặt entry theo hash code cũ. Không dùng cách này làm nền tảng cho báo cáo hoặc cache. Với `record` chỉ chứa các thành phần bất biến, trường hợp trên tránh được. **Record chỉ bất biến nông:** nếu một thành phần chứa mảng, danh sách hoặc đối tượng mutable khác, vẫn cần bản sao và quy tắc bất biến cho thành phần đó.
+After the mutation, looking up `map.get(key)` can fail because the Map placed the entry under the old hash code. Do not use this pattern as a foundation for reports or caches. With a `record` containing only immutable components, this issue is avoided. **Records are only shallowly immutable:** if a component holds an array, list, or other mutable object, defensive copies and immutability rules are still required for that component.
 
-## 5. Nếu không dùng record: lớp value object trên Java 8
+## 5. Without record: Value Object Class on Java 8
 
-Với codebase phải hỗ trợ Java 8, định nghĩa một lớp `final` với trường `private final`, constructor, getter, `equals` và `hashCode`:
+In a codebase that must support Java 8, define a `final` class with `private final` fields, a constructor, getters, `equals`, and `hashCode`:
 
 ```java
 import java.util.Objects;
@@ -222,13 +222,13 @@ public final class GroupKey {
 }
 ```
 
-Lớp minh họa này đặt ở file `GroupKey.java` khi dùng trong chương trình Java thông thường. `region` và `category` là chuỗi bất biến nên nội dung khóa ổn định. Với Java hiện đại, `record GroupKey(String region, String category)` thường ngắn và ít lỗi hơn.
+This sample class goes in `GroupKey.java` when used in a standard Java program. `region` and `category` are immutable strings, so the key's content is stable. In modern Java, `record GroupKey(String region, String category)` is usually shorter and less error-prone.
 
-Không nên dựa vào `toString` của đối tượng để làm khóa Map: biểu diễn chuỗi phục vụ hiển thị có thể thay đổi theo cách viết class, còn `equals`/`hashCode` phải diễn đạt đúng danh tính nghiệp vụ của nhóm.
+Do not rely on an object's `toString` as a Map key: a display string representation can change with class formatting, whereas `equals`/`hashCode` must accurately express the group's domain identity.
 
-## 6. Phân nhóm thành Map<GroupKey, List<Order>>
+## 6. Grouping into Map<GroupKey, List<Order>>
 
-Ví dụ nguồn có bốn đơn hàng, trong đó hai đơn thuộc cùng cặp khu vực và loại hàng:
+The sample source has four orders, two of which share the same region and category pair:
 
 ```java
 Map<GroupKey, List<Order>> byRegionAndCategory = orders.stream()
@@ -244,16 +244,16 @@ System.out.println(northBooks.stream().map(Order::id).toList());
 // [O01, O04]
 ```
 
-Các mốc cần nhớ:
+Key checkpoints:
 
-1. Kiểu phần tử nguồn là `Order`.
-2. Classifier có kiểu logic `Function<Order, GroupKey>`.
-3. Kết quả là `Map<GroupKey, List<Order>>`.
-4. Mỗi key đại diện cho **một tổ hợp** các thuộc tính; mỗi value là danh sách phần tử cùng nhóm.
+1. The source element type is `Order`.
+2. The classifier has the logical type `Function<Order, GroupKey>`.
+3. The result is `Map<GroupKey, List<Order>>`.
+4. Each key represents **one combination** of attributes; each value is the list of elements in that group.
 
-`groupingBy(classifier)` không cam kết Map kết quả có kiểu triển khai cụ thể hoặc thứ tự lặp khóa. Nếu muốn đọc một nhóm, dùng `get(new GroupKey(...))`. Nếu muốn in báo cáo theo thứ tự ổn định, định nghĩa thứ tự rõ ràng thay vì tin vào `Map.toString()`.
+`groupingBy(classifier)` does not guarantee a concrete implementation class or key iteration order for the resulting Map. To read a group, use `get(new GroupKey(...))`. To print a report in a stable order, define an explicit ordering rather than trusting `Map.toString()`.
 
-Nếu cần kiểm tra nhóm có tồn tại, dùng `containsKey` hoặc `getOrDefault`; tránh gọi thẳng phương thức trên kết quả `get` mà không xét trường hợp thiếu khóa:
+If you need to check whether a group exists, use `containsKey` or `getOrDefault`; avoid calling methods directly on the result of `get` without considering the missing-key case:
 
 ```java
 List<Order> westBooks = byRegionAndCategory.getOrDefault(
@@ -264,11 +264,11 @@ List<Order> westBooks = byRegionAndCategory.getOrDefault(
 System.out.println(westBooks.size()); // 0
 ```
 
-Không có đơn nào trong một tổ hợp thì `groupingBy` **không tự tạo mục khóa với nhóm rỗng**. Nếu báo cáo yêu cầu đủ mọi tổ hợp khu vực × loại hàng, cần xây dựng danh sách các tổ hợp hợp lệ hoặc bổ sung nhóm thiếu sau khi thu thập.
+When there are no orders for a combination, `groupingBy` **does not automatically create a key entry with an empty group**. If the report requires all `region × category` combinations, build the list of valid combinations or populate missing groups after collection.
 
-## 7. Downstream collector: đếm và cộng theo khóa ghép
+## 7. Downstream Collectors: Counting and Summing by Composite Key
 
-Đôi khi không cần giữ toàn bộ đối tượng đơn hàng. Ta chỉ muốn **một số tổng hợp cho mỗi tổ hợp khóa**. Khi đó sử dụng overload `groupingBy(classifier, downstream)`:
+Sometimes you do not need to retain the full order objects. You only want **an aggregated number per key combination**. In that case, use the `groupingBy(classifier, downstream)` overload:
 
 ```java
 Map<GroupKey, Long> counts = orders.stream()
@@ -280,9 +280,9 @@ Map<GroupKey, Long> counts = orders.stream()
 System.out.println(counts.get(new GroupKey("Bắc", "Sách"))); // 2
 ```
 
-`Collectors.counting()` tạo số đếm `Long` cho mỗi nhóm; không tạo `List<Order>` trung gian như groupingBy mặc định.
+`Collectors.counting()` produces a `Long` count for each group; it does not allocate intermediate `List<Order>` objects like the default `groupingBy`.
 
-Tính tổng số tiền theo khóa ghép:
+Summing amounts by composite key:
 
 ```java
 Map<GroupKey, Long> amountTotals = orders.stream()
@@ -295,11 +295,11 @@ System.out.println(amountTotals.get(new GroupKey("Bắc", "Sách")));
 // 150
 ```
 
-Trong trường hợp này, `summingLong` nhận từng `Order` trong nhóm và lấy `amount()`. Nếu số tiền là tiền thật có đơn vị nhỏ nhất, có thể dùng `long` với kiểm soát overflow; nếu cần tính thập phân chính xác, sử dụng `BigDecimal` với phép tích lũy phù hợp.
+In this case, `summingLong` receives each `Order` in the group and extracts `amount()`. If amounts represent real currency in the smallest unit, you can use `long` with overflow checks; if exact decimal arithmetic is needed, use `BigDecimal` with an appropriate accumulation operation.
 
-### Thu thập nhiều đại lượng của mỗi nhóm
+### Collecting multiple metrics per group
 
-`summarizingLong` tính số lượng, tổng, min, max, trung bình trong một collector:
+`summarizingLong` computes count, sum, min, max, and average in a single collector:
 
 ```java
 Map<GroupKey, LongSummaryStatistics> summaries = orders.stream()
@@ -317,7 +317,7 @@ System.out.println(northBookStats.getMin());   // 50
 System.out.println(northBookStats.getMax());   // 100
 ```
 
-`LongSummaryStatistics` là **đối tượng tích lũy có thể thay đổi**. Nếu kết quả được công bố cho code khác và cần tránh việc bị sửa sau thu thập, chuyển mỗi thống kê thành một đối tượng giá trị kết quả riêng ở bước cuối:
+`LongSummaryStatistics` is a **mutable accumulator object**. If the result is published to other code and you want to prevent mutation after collection, convert each statistics object into a dedicated immutable result value object in a finishing step:
 
 ```java
 record Summary(long count, long totalAmount) {}
@@ -336,11 +336,11 @@ System.out.println(immutableSummaries.get(
 )); // Summary[count=2, totalAmount=150]
 ```
 
-`Summary` là record có các trường nguyên thủy nên bản thân giá trị thống kê không thể bị chỉnh sửa. **Map ngoài vẫn có thể sửa cấu trúc** theo hợp đồng mặc định của collector: nếu cần công bố một Map không sửa được, tạo bản sao bằng `Map.copyOf(immutableSummaries)` khi thích hợp.
+`Summary` is a record with primitive fields, so the summary values themselves cannot be modified. The **outer Map can still be structurally modified** under the collector's default contract: if you need to publish an unmodifiable Map, create a copy with `Map.copyOf(immutableSummaries)` where appropriate.
 
-## 8. Chỉ lấy thuộc tính cần thiết của mỗi nhóm với mapping
+## 8. Extracting Only Needed Fields per Group with mapping
 
-Nếu báo cáo cần danh sách **mã đơn hàng theo từng tổ hợp**, thay vì chứa toàn bộ `Order`, dùng downstream `Collectors.mapping`:
+If the report needs a list of **order IDs for each combination** rather than storing entire `Order` objects, use the `Collectors.mapping` downstream collector:
 
 ```java
 Map<GroupKey, List<String>> idsByGroup = orders.stream()
@@ -356,9 +356,9 @@ System.out.println(idsByGroup.get(new GroupKey("Bắc", "Sách")));
 // [O01, O04]
 ```
 
-`groupingBy` quyết định **nhóm**, còn `mapping` quyết định **giá trị nào được đưa vào mỗi nhóm**. Có thể kết hợp thêm `filtering` downstream (Java 9+) hoặc lọc trước `groupingBy` tùy muốn bỏ cả nhóm hay giữ nhóm có kết quả downstream rỗng.
+`groupingBy` determines the **group**, while `mapping` determines **which value is placed into each group**. You can also combine downstream `filtering` (Java 9+) or filter before `groupingBy`, depending on whether you want to drop the group entirely or keep a group with an empty downstream result.
 
-Ví dụ, chỉ lấy đơn có `amount() >= 80` trước khi nhóm:
+For example, keeping only orders with `amount() >= 80` before grouping:
 
 ```java
 Map<GroupKey, List<Order>> highValueGroups = orders.stream()
@@ -368,11 +368,11 @@ Map<GroupKey, List<Order>> highValueGroups = orders.stream()
         ));
 ```
 
-Những tổ hợp không còn phần tử sau `filter` **sẽ không xuất hiện** trong Map. Nếu dùng `Collectors.filtering` làm downstream của `groupingBy`, một khóa đã được classifier gặp có thể vẫn tồn tại với Collection rỗng khi các phần tử trong nhóm đều không qua bộ lọc. Đây là khác biệt có ý nghĩa khi tạo báo cáo cần giữ các nhóm gốc.
+Combinations with no remaining elements after `filter` **will not appear** in the Map. If you use `Collectors.filtering` as the downstream of `groupingBy`, a key already encountered by the classifier can still exist with an empty Collection when none of the elements in that group pass the filter. This is a meaningful distinction when generating reports that must retain original groups.
 
-## 9. Khóa ghép hay groupingBy lồng nhau?
+## 9. Composite Key or Nested groupingBy?
 
-Cùng bài toán có thể giải quyết bằng **groupingBy lồng nhau**:
+The same problem can be solved using **nested `groupingBy`**:
 
 ```java
 Map<String, Map<String, List<Order>>> nested = orders.stream()
@@ -384,24 +384,24 @@ Map<String, Map<String, List<Order>>> nested = orders.stream()
 System.out.println(nested.get("Bắc").get("Sách").size()); // 2
 ```
 
-So sánh hai cách:
+Comparing the two approaches:
 
-| Khía cạnh | Khóa ghép `Map<GroupKey, List<Order>>` | Map lồng `Map<Region, Map<Category, ...>>` |
+| Aspect | Composite key `Map<GroupKey, List<Order>>` | Nested Map `Map<Region, Map<Category, ...>>` |
 | --- | --- | --- |
-| Một khóa biểu diễn | Một tổ hợp thuộc tính hoàn chỉnh | Một cấp trong phân cấp nhóm |
-| Tra cứu nhóm | `get(new GroupKey(r, c))` | `get(r).get(c)` sau khi kiểm tra null |
-| Duyệt toàn bộ tổ hợp | Duyệt các entry của một Map | Duyệt từng Map lồng |
-| Thêm trường nhóm thứ ba | Thêm thành phần vào value object | Thường cần thêm một cấp Map |
-| Truy vấn riêng theo khu vực | Phải lọc các khóa ghép hoặc lập chỉ mục riêng | Lấy trực tiếp `nested.get(region)` |
-| Đọc mô hình | Phù hợp khi tổ hợp là danh tính một nhóm | Phù hợp với phân cấp khu vực → loại hàng |
+| One key represents | A complete attribute combination | One level in the group hierarchy |
+| Group lookup | `get(new GroupKey(r, c))` | `get(r).get(c)` after null checks |
+| Iterating all combinations | Iterate entries of a single Map | Iterate each nested Map |
+| Adding a third grouping field | Add a component to the value object | Typically requires adding another Map level |
+| Querying by region alone | Must filter composite keys or maintain a separate index | Direct `nested.get(region)` lookup |
+| Model readability | Suitable when the combination is a single group identity | Suitable for a region → category hierarchy |
 
-Không có cách nào luôn tốt hơn. Chọn **khóa ghép** khi tổ hợp thuộc tính có ý nghĩa như một khóa nghiệp vụ thống nhất (báo cáo theo tháng + chi nhánh, nhóm hàng + khu vực). Chọn **Map lồng** khi người dùng thường cần điều hướng, tổng hợp hoặc hiển thị dữ liệu theo từng cấp.
+Neither is always better. Choose a **composite key** when the attribute combination acts as a unified business key (report by month + branch, product group + region). Choose a **nested Map** when users typically navigate, aggregate, or display data level by level.
 
-`groupingBy` và `partitioningBy` cũng khác nhau. `partitioningBy(predicate)` tạo hai nhánh khóa `Boolean` cho đúng/sai và luôn có hai khóa; nó phù hợp với một điều kiện nhị phân, không thay thế một khóa ghép gồm nhiều thuộc tính độc lập.
+`groupingBy` and `partitioningBy` also differ. `partitioningBy(predicate)` creates two `Boolean` branches for true/false and always keeps both keys; it fits a binary condition and does not replace a composite key made of multiple independent attributes.
 
-## 10. Chuẩn hóa khóa để tránh tách nhóm không mong muốn
+## 10. Normalizing Keys to Avoid Unintended Group Splitting
 
-Trong dữ liệu thực, `"north"`, `" NORTH "` và `"North"` có thể cùng chỉ một vùng. `record` chỉ so sánh **giá trị thực tế của trường**, không tự hiểu quy tắc chuẩn hóa nghiệp vụ.
+In real data, `"north"`, `" NORTH "`, and `"North"` might refer to the same region. A `record` only compares **actual field values** and does not automatically know business normalization rules.
 
 ```java
 record RegionCategory(String region, String category) {}
@@ -416,17 +416,17 @@ Map<RegionCategory, Long> before = noisy.stream()
                 o -> new RegionCategory(o.region(), o.category()),
                 Collectors.counting()
         ));
-System.out.println(before.size()); // 2: hai khóa String khác nhau
+System.out.println(before.size()); // 2: two distinct String keys
 ```
 
-Nếu nghiệp vụ xem các cách viết đó là tương đương, chuẩn hóa **trước khi tạo khóa**:
+If the business treats those spellings as equivalent, normalize **before creating the key**:
 
 ```java
 static String normalize(String value) {
     return value.strip().toUpperCase(java.util.Locale.ROOT);
 }
 
-// Đặt trong cùng lớp chứa normalize:
+// Placed in the same class that defines normalize:
 Map<RegionCategory, Long> after = noisy.stream()
         .collect(Collectors.groupingBy(
                 o -> new RegionCategory(
@@ -439,23 +439,23 @@ Map<RegionCategory, Long> after = noisy.stream()
 System.out.println(after.size()); // 1
 ```
 
-Hàm chuẩn hóa phải diễn đạt **chính sách dữ liệu**, không phải mẹo kỹ thuật. Ví dụ, chuẩn hóa bằng chữ hoa có phù hợp với mã phân biệt chữ hoa/chữ thường không? Nếu các thành phần là `enum` hoặc ID chuẩn hóa từ tầng nhập liệu, có thể không cần gọi `toUpperCase` nữa.
+The normalization function should express a **data policy**, not a technical trick. For example, is uppercasing appropriate for case-sensitive codes? If components are `enum`s or IDs already normalized at the ingestion layer, calling `toUpperCase` may be unnecessary.
 
-Với dữ liệu cần hiển thị chữ gốc, vẫn có thể giữ `Order` đầy đủ trong từng nhóm, còn `GroupKey` chứa giá trị chuẩn hóa. Tránh thay đổi chính đối tượng nguồn trong classifier để đạt được việc chuẩn hóa.
+When original casing must be preserved for display, you can still keep the full `Order` in each group while `GroupKey` holds the normalized value. Avoid mutating the source object itself inside the classifier to achieve normalization.
 
-## 11. Null trong classifier và trong thành phần khóa
+## 11. Null in the Classifier and in Key Components
 
-`Collectors.groupingBy` yêu cầu **giá trị do classifier trả về không được là `null`**. Nếu trả về `null`, terminal operation sẽ ném `NullPointerException` (thường với thông điệp về khóa null).
+`Collectors.groupingBy` requires that **the value returned by the classifier must not be `null`**. If it returns `null`, the terminal operation throws `NullPointerException` (typically with a message about a null key).
 
 ```java
-// SAI: classifier có thể trả về null.
+// WRONG: the classifier can return null.
 Map<String, List<Order>> invalid = orders.stream()
         .collect(Collectors.groupingBy(o ->
                 o.region().equals("Bắc") ? o.category() : null
         ));
 ```
 
-Nhưng cần phân biệt **toàn bộ khóa bằng null** với **một record key có thành phần null**. `new GroupKey(null, "Sách")` vẫn là một đối tượng `GroupKey` khác null. Record mặc định cho phép thành phần null; `equals`/`hashCode` của record có thể xử lý thành phần đó. Tuy nhiên, để dữ liệu rõ nghĩa, nên kiểm tra đầu vào hoặc tạo quy ước giá trị thiếu:
+However, distinguish **the entire key being null** from **a record key having a null component**. `new GroupKey(null, "Sách")` is still a non-null `GroupKey` object. A record allows null components by default; the record's `equals`/`hashCode` can handle them. Still, for clear data semantics, validate inputs or establish a convention for missing values:
 
 ```java
 record StrictKey(String region, String category) {
@@ -466,13 +466,13 @@ record StrictKey(String region, String category) {
 }
 ```
 
-Compact constructor ở trên từ chối thiếu trường ngay khi tạo khóa. Nếu nghiệp vụ cho phép khu vực chưa xác định, có thể ánh xạ `null` thành một `enum UNKNOWN` hoặc một giá trị đại diện có quy ước rõ ràng. Không nên âm thầm gộp mọi dạng dữ liệu lỗi vào cùng nhóm nếu người dùng cần phân biệt nguyên nhân.
+The compact constructor above rejects missing fields as soon as the key is created. If business rules allow an unknown region, map `null` to an `enum UNKNOWN` or a clearly defined placeholder value. Do not silently lump all kinds of invalid data into the same group if users need to tell the causes apart.
 
-Lưu ý thêm: `Map.copyOf` và các collector `toUnmodifiableMap` từ chối khóa hoặc giá trị null; trong khi một số `Map` mutable có thể hỗ trợ null. Chính sách của Map đầu ra là một vấn đề riêng với yêu cầu classifier của `groupingBy`.
+Note also: `Map.copyOf` and `toUnmodifiableMap` collectors reject null keys or values, whereas some mutable `Map` implementations may permit nulls. The output Map's null policy is separate from `groupingBy`'s classifier requirement.
 
-## 12. Thứ tự nhóm, thứ tự phần tử và cách chọn Map
+## 12. Group Order, Element Order, and Choosing the Map
 
-Mặc định, `groupingBy(classifier)` không bảo đảm loại Map hay thứ tự lặp các khóa. Nếu cần **thứ tự xuất hiện đầu tiên của các nhóm** từ Stream tuần tự có thứ tự, dùng overload ba tham số với `LinkedHashMap::new`:
+By default, `groupingBy(classifier)` does not guarantee the Map class or key iteration order. If you need **first-appearance order of groups** from an ordered sequential Stream, use the three-parameter overload with `LinkedHashMap::new`:
 
 ```java
 Map<GroupKey, List<Order>> insertionOrderGroups = orders.stream()
@@ -488,9 +488,9 @@ insertionOrderGroups.keySet().forEach(System.out::println);
 // GroupKey[region=Nam, category=Sách]
 ```
 
-`Collectors.toList()` thu thập các phần tử trong từng nhóm; với Stream nguồn có encounter order và collector thông thường, danh sách của mỗi nhóm giữ thứ tự tương ứng. Nhưng `Collectors.toList()` **không cam kết** khả năng chỉnh sửa hoặc lớp triển khai cụ thể của danh sách kết quả.
+`Collectors.toList()` gathers elements within each group; with an ordered source Stream and a standard collector, each group's list preserves the corresponding encounter order. However, `Collectors.toList()` **does not guarantee** mutability or a concrete list implementation class.
 
-Nếu cần **thứ tự sắp xếp theo khóa** thay vì thứ tự xuất hiện, có thể cung cấp `TreeMap` với comparator:
+If you need **sorted key order** instead of appearance order, provide a `TreeMap` with a comparator:
 
 ```java
 Comparator<GroupKey> byKey = Comparator
@@ -505,13 +505,13 @@ Map<GroupKey, Long> sortedGroupCounts = orders.stream()
         ));
 ```
 
-Ở Map có thứ tự sắp xếp như `TreeMap`, comparator quyết định hai khóa có được coi là cùng một khóa hay không khi kết quả so sánh bằng 0. Cần bảo đảm comparator **phù hợp với định nghĩa bằng nhau của khóa** để không vô tình gộp hoặc tách nhóm khác với `equals`.
+In a sorted Map like `TreeMap`, the comparator determines whether two keys are considered the same key when comparison returns 0. Ensure the comparator is **consistent with the key's equality definition** so you do not accidentally merge or split groups differently from `equals`.
 
-Ví dụ comparator chỉ so sánh `region` là **sai** với khóa ghép `(region, category)`: hai loại hàng khác nhau cùng khu vực sẽ bị coi như một khóa trong `TreeMap`.
+For example, a comparator that only compares `region` is **wrong** for the composite key `(region, category)`: two different categories in the same region would be treated as one key in `TreeMap`.
 
-## 13. Parallel Stream và groupingByConcurrent
+## 13. Parallel Streams and groupingByConcurrent
 
-Viết:
+Writing:
 
 ```java
 Map<GroupKey, Long> countsParallel = orders.parallelStream()
@@ -521,9 +521,9 @@ Map<GroupKey, Long> countsParallel = orders.parallelStream()
         ));
 ```
 
-`groupingBy` không phải **concurrent collector**. Với Stream song song, framework có thể tạo nhiều Map kết quả từng phần rồi **kết hợp** nội dung chúng. Kết quả có thể đúng theo hợp đồng, nhưng số lượng nhóm lớn hoặc dữ liệu nhiều có thể khiến thao tác gộp Map trở thành chi phí đáng kể.
+`groupingBy` is not a **concurrent collector**. With a parallel Stream, the framework may create multiple partial result Maps and then **combine** their contents. The result can be contractually correct, but a large number of groups or large data volumes can make Map merging a significant cost.
 
-Nếu thứ tự không quan trọng và bài toán phù hợp, có thể xem xét `groupingByConcurrent`:
+If ordering does not matter and the problem fits, consider `groupingByConcurrent`:
 
 ```java
 ConcurrentMap<GroupKey, Long> concurrentCounts =
@@ -534,38 +534,38 @@ ConcurrentMap<GroupKey, Long> concurrentCounts =
                 ));
 ```
 
-`groupingByConcurrent` trả về `ConcurrentMap` và là collector **concurrent, unordered**. Nó có thể hỗ trợ tích lũy song song theo cách khác với việc gộp nhiều Map. Tuy nhiên:
+`groupingByConcurrent` returns a `ConcurrentMap` and is a **concurrent, unordered** collector. It can support parallel accumulation in a way different from merging multiple Maps. However:
 
-- Không kỳ vọng thứ tự lặp khóa hay thứ tự phần tử trong nhóm là cố định.
-- Downstream collector và đặc điểm dữ liệu quyết định hiệu quả thực tế; dùng concurrent không mặc nhiên nhanh hơn.
-- Không dùng classifier sửa nguồn, phụ thuộc vào biến đếm dùng chung hoặc tạo khóa mutable.
-- Nếu cần List nhóm có thứ tự ổn định, ưu tiên phương án giữ encounter order và xác nhận tính đúng đắn trước khi tối ưu.
+- Do not expect fixed key iteration order or element order within groups.
+- The downstream collector and data characteristics determine actual effectiveness; using concurrent is not automatically faster.
+- Do not use classifiers that modify the source, rely on shared counters, or create mutable keys.
+- If you need group Lists with a stable order, prefer an approach that preserves encounter order and verify correctness before optimizing.
 
-`ConcurrentMap` và `Collectors.counting` trong ví dụ chỉ biểu đạt kết quả tổng hợp; khi ứng dụng có **thread khác cập nhật chính nguồn** trong lúc Stream duyệt, phải xét riêng hợp đồng an toàn của nguồn. `parallelStream()` không biến `ArrayList` thành cấu trúc cho phép sửa đồng thời.
+`ConcurrentMap` and `Collectors.counting` in the example only express the aggregated result; when an application has **another thread mutating the source itself** while the Stream traverses it, you must separately examine the source's thread-safety contract. `parallelStream()` does not turn an `ArrayList` into a structure safe for concurrent modification.
 
-## 14. Độ phức tạp và lựa chọn thiết kế
+## 14. Complexity and Design Choices
 
-Phân nhóm theo khóa ghép có các chi phí thực tế:
+Grouping by a composite key carries practical costs:
 
-| Yếu tố | Ảnh hưởng | Cách cân nhắc |
+| Factor | Impact | How to evaluate |
 | --- | --- | --- |
-| Tạo khóa mới | Thường tạo một object khóa cho mỗi phần tử được phân loại | Đo trên tập dữ liệu lớn; ưu tiên khóa có trường đơn giản và đúng ngữ nghĩa |
-| Số nhóm duy nhất | Map cần lưu một entry cho mỗi tổ hợp khác nhau | Số tổ hợp có thể tăng nhanh khi thêm trường khóa |
-| Giữ toàn bộ phần tử | `groupingBy` mặc định xây `List<T>` cho mỗi nhóm | Dùng `counting`/`summingLong` nếu chỉ cần số liệu |
-| Chuẩn hóa chuỗi | `strip`, `toUpperCase` có thể cấp phát và xử lý nhiều lần | Chuẩn hóa tại tầng nhập liệu hoặc trước khi nhóm khi có thể |
-| Stream song song | Có chi phí chia việc và gộp Map | Đo bằng benchmark có dữ liệu và cấu hình thực tế |
-| Thứ tự kết quả | Map thường không hứa thứ tự, Set cũng có thể unordered | Chọn `LinkedHashMap` hoặc `TreeMap` khi thực sự cần |
-| Sai số và tràn số | Các phép tổng `long` có thể tràn; `double` có sai số | Chọn kiểu số phù hợp, quy tắc làm tròn và kiểm tra overflow |
+| Creating new keys | Typically allocates a key object for each classified element | Measure on large datasets; prefer keys with simple fields and clear semantics |
+| Number of distinct groups | The Map must store an entry for each distinct combination | Combination count can grow rapidly as more key fields are added |
+| Retaining all elements | Default `groupingBy` builds a `List<T>` per group | Use `counting`/`summingLong` if only metrics are needed |
+| String normalization | `strip`, `toUpperCase` may allocate and process repeatedly | Normalize at the ingestion layer or before grouping when possible |
+| Parallel Stream | Incurs work-splitting and Map-merging overhead | Benchmark with realistic data and configuration |
+| Result ordering | Default Map usually makes no order guarantee; Sets may also be unordered | Choose `LinkedHashMap` or `TreeMap` when genuinely required |
+| Precision and overflow | `long` sums can overflow; `double` has precision error | Choose appropriate numeric types, rounding rules, and overflow checks |
 
-Với số lượng phần tử `n` và số tổ hợp nhóm `g`, việc phân loại và đưa vào hash-based Map **thường** có chi phí kỳ vọng gần `O(n)` khi hash phân bố tốt; lưu toàn bộ phần tử theo nhóm cần bộ nhớ tăng theo `n`, còn chỉ đếm nhóm cần bộ nhớ tăng theo `g`. Đây không phải cam kết thời gian chạy trong mọi tình huống: chi phí tính hash, so sánh, nguồn dữ liệu và việc chạy song song cũng tham gia.
+With `n` elements and `g` group combinations, classifying and inserting into a hash-based Map **typically** has expected cost close to `O(n)` when hashes distribute well; retaining all elements per group requires memory scaling with `n`, whereas only counting groups requires memory scaling with `g`. This is not a runtime guarantee in every scenario: hashing cost, comparisons, the data source, and parallel execution also contribute.
 
-Các pipeline Stream là lazy cho tới khi terminal operation `collect` chạy. Sau khi `collect` kết thúc, Stream không được tiêu thụ lại. Nếu cần hai dạng báo cáo từ cùng nguồn, tạo hai Stream mới hoặc cân nhắc collector tổng hợp để gom trong một lượt duyệt.
+Stream pipelines are lazy until the terminal operation `collect` runs. Once `collect` finishes, the Stream cannot be consumed again. If you need two different reports from the same source, create two fresh Streams or consider a composite collector to gather both in one pass.
 
-## 15. Ví dụ hoàn chỉnh: báo cáo đơn hàng theo tháng và khu vực
+## 15. Complete Example: Order Report by Month and Region
 
-Giả sử mỗi đơn chứa mã, khu vực, tháng báo cáo, số lượng và trạng thái đã hoàn tất. Cần tổng hợp **số đơn và tổng số lượng** theo **(khu vực, tháng)**. Dùng khóa ghép để mỗi tổ hợp là một nhóm độc lập.
+Suppose each order contains an ID, region, reporting month, quantity, and completion status. We need to aggregate **order count and total quantity** by **(region, month)**. Use a composite key so each combination forms an independent group.
 
-Ví dụ Java 17+ có thể chạy độc lập:
+Standalone runnable Java 17+ example:
 
 ```java
 import java.util.LinkedHashMap;
@@ -619,7 +619,7 @@ public class CompositeGroupingDemo {
 
         report.forEach((key, summary) ->
                 System.out.printf(
-                        "%s | tháng %d | số đơn=%d | số lượng=%d%n",
+                        "%s | month %d | orders=%d | quantity=%d%n",
                         key.region(),
                         key.month(),
                         summary.orderCount(),
@@ -627,10 +627,10 @@ public class CompositeGroupingDemo {
                 )
         );
 
-        // BẮC | tháng 1 | số đơn=2 | số lượng=5
-        // NAM | tháng 1 | số đơn=1 | số lượng=7
-        // NAM | tháng 2 | số đơn=1 | số lượng=5
-        // BẮC | tháng 2 | số đơn=1 | số lượng=4
+        // BẮC | month 1 | orders=2 | quantity=5
+        // NAM | month 1 | orders=1 | quantity=7
+        // NAM | month 2 | orders=1 | quantity=5
+        // BẮC | month 2 | orders=1 | quantity=4
 
         System.out.println(report.get(new GroupKey("BẮC", 1)));
         // Summary[orderCount=2, totalQuantity=5]
@@ -638,37 +638,37 @@ public class CompositeGroupingDemo {
 }
 ```
 
-Phân tích:
+Analysis:
 
-1. `filter(Order::completed)` loại đơn chưa hoàn tất trước khi nhóm.
-2. `normalizeRegion` giúp `" Bắc "` và `"BẮC"` tạo cùng một trường khóa `"BẮC"`.
-3. `GroupKey` dùng `record` nên equality/hash code tính theo khu vực **và** tháng.
-4. `groupingBy` phân loại và đưa phần tử cùng khóa vào chung một bộ tích lũy.
-5. `summarizingLong` tính số lượng đơn và tổng số lượng; `collectingAndThen` chốt kết quả thành `Summary` bất biến.
-6. `LinkedHashMap::new` giữ thứ tự xuất hiện đầu tiên của các khóa trong Stream tuần tự.
-7. Câu lệnh `report.get(new GroupKey("BẮC", 1))` tìm đúng nhóm dù object key vừa tạo là instance khác với key đã được lưu.
+1. `filter(Order::completed)` excludes incomplete orders before grouping.
+2. `normalizeRegion` ensures `" Bắc "` and `"BẮC"` produce the same key field `"BẮC"`.
+3. `GroupKey` uses a `record`, so equality and hash code are computed from both region **and** month.
+4. `groupingBy` classifies and routes elements with the same key into the same accumulator.
+5. `summarizingLong` computes order count and total quantity; `collectingAndThen` finalizes the result into an immutable `Summary`.
+6. `LinkedHashMap::new` preserves first-appearance order of keys in a sequential Stream.
+7. `report.get(new GroupKey("BẮC", 1))` finds the right group even though the newly constructed key object is a different instance from the stored key.
 
-Ví dụ giả định `region` không phải `null` và `month` hợp lệ từ 1 đến 12. Nếu đầu vào không bảo đảm các điều kiện đó, hãy validate hoặc đưa ra quy ước rõ ràng trước khi tạo GroupKey. Với báo cáo tài chính, chọn kiểu dữ liệu và cách cộng phù hợp đơn vị tiền, sai số và yêu cầu nghiệp vụ.
+The example assumes `region` is not `null` and `month` is valid from 1 to 12. If input does not guarantee those conditions, validate or define an explicit convention before creating GroupKey. For financial reports, choose data types and addition semantics suited to the currency unit, precision, and business rules.
 
-## 16. Những lỗi thường gặp
+## 16. Common Mistakes
 
-| Hiện tượng | Nguyên nhân | Hướng xử lý |
+| Symptom | Cause | Resolution |
 | --- | --- | --- |
-| Các nhóm bị gộp ngoài ý muốn | Chỉ classifier theo một trong hai trường | Tạo `GroupKey` gồm toàn bộ thành phần danh tính nhóm |
-| Cùng nội dung nhưng thành nhiều nhóm | Khóa không override `equals`/`hashCode` | Dùng `record` hoặc lớp giá trị bất biến đúng hợp đồng |
-| Nối chuỗi làm mất phân biệt tổ hợp | Chuỗi thành phần chứa dấu phân cách hoặc quy ước không thống nhất | Dùng khóa ghép có kiểu rõ ràng |
-| Dùng mảng làm khóa và không tra cứu được | Mảng so sánh theo tham chiếu, không theo nội dung | Dùng record chứa trường bất biến, không dùng array trực tiếp |
-| `map.get(key)` bất ngờ trả `null` sau khi sửa key | Thành phần khóa mutable bị thay đổi | Không sửa giá trị tham gia `equals`/`hashCode` của khóa đã lưu |
-| `NullPointerException` trong `groupingBy` | Classifier trả về nguyên đối tượng khóa `null` hoặc thao tác chuẩn hóa trên null | Chuẩn hóa/kiểm tra trước, tạo khóa không-null |
-| Nhóm bị tách do chữ hoa/chữ thường hoặc khoảng trắng | Dữ liệu chưa chuẩn hóa theo quy tắc nghiệp vụ | Xây dựng hàm chuẩn hóa rõ nghĩa |
-| Map kết quả in thứ tự khác mong muốn | `groupingBy` không bảo đảm thứ tự Map | Dùng `LinkedHashMap` hoặc `TreeMap` với comparator phù hợp |
-| `TreeMap` gộp hai nhóm khác category | Comparator chỉ so sánh region, trả 0 cho hai khóa khác nhau | So sánh đủ mọi trường xác định danh tính |
-| Kết quả có nhiều List lớn gây áp lực bộ nhớ | `groupingBy` mặc định giữ toàn bộ phần tử | Dùng downstream `counting`, `summingLong`, `summarizingLong` |
-| `parallelStream` chậm hơn tuần tự | Chi phí tạo/gộp Map và số nhóm quá lớn | Đo hiệu năng thực tế, chỉ chọn concurrent collector khi phù hợp |
+| Groups merged unexpectedly | Classifier uses only one of the two fields | Create a `GroupKey` containing all group identity components |
+| Same content ends up in separate groups | Key does not override `equals`/`hashCode` | Use a `record` or an immutable value class following the contract |
+| String concatenation conflates combinations | Component strings contain the delimiter or conventions vary | Use a strongly typed composite key |
+| Using an array as key breaks lookup | Arrays compare by reference, not contents | Use a record with immutable fields, not raw arrays |
+| `map.get(key)` unexpectedly returns `null` after editing key | Mutable key field was modified | Never mutate values participating in `equals`/`hashCode` of a stored key |
+| `NullPointerException` in `groupingBy` | Classifier returns a `null` key object or normalizes null | Normalize/validate beforehand and produce non-null keys |
+| Groups split due to casing or whitespace | Data not normalized according to business rules | Build an explicit normalization function |
+| Resulting Map prints in an unexpected order | `groupingBy` does not guarantee Map order | Use `LinkedHashMap` or `TreeMap` with an appropriate comparator |
+| `TreeMap` merges two groups with different categories | Comparator only compares region, returning 0 for distinct keys | Compare all fields that define identity |
+| Result holds many large Lists causing memory pressure | Default `groupingBy` retains all elements | Use downstream `counting`, `summingLong`, `summarizingLong` |
+| `parallelStream` is slower than sequential | Map creation/merging overhead and high group count | Benchmark realistically and use concurrent collectors only when appropriate |
 
-## 17. Bài tập và lời giải tham khảo
+## 17. Practice Exercise and Reference Solution
 
-Cho dữ liệu chấm công:
+Given time-tracking data:
 
 ```java
 record Worklog(String team, int year, int hours, boolean approved) {}
@@ -682,16 +682,16 @@ List<Worklog> logs = List.of(
 );
 ```
 
-**Yêu cầu:**
+**Requirements:**
 
-1. Tạo `record WorklogKey(String team, int year)` làm khóa ghép.
-2. Bỏ các worklog chưa duyệt, phân nhóm theo `(team, year)`.
-3. Với mỗi nhóm, tính số worklog đã duyệt và tổng số giờ.
-4. Tra cứu tổng giờ của nhóm `("Backend", 2025)` bằng một instance khóa mới.
-5. Thay dữ liệu nhóm bằng `Map<String, Map<Integer, ...>>` và so sánh hai cách biểu diễn.
-6. Nếu `team` có dạng `" backend "` hoặc `"BACKEND"`, thêm chính sách chuẩn hóa để chúng thuộc một nhóm khi phù hợp với nghiệp vụ.
+1. Create `record WorklogKey(String team, int year)` as the composite key.
+2. Exclude unapproved worklogs and group by `(team, year)`.
+3. For each group, calculate the number of approved worklogs and total hours.
+4. Look up the total hours of the `("Backend", 2025)` group using a new key instance.
+5. Replace the grouped structure with `Map<String, Map<Integer, ...>>` and compare the two representations.
+6. If `team` can appear as `" backend "` or `"BACKEND"`, add a normalization policy so they belong to the same group when appropriate for the business domain.
 
-**Lời giải mẫu:**
+**Reference Solution:**
 
 ```java
 record WorklogKey(String team, int year) {}
@@ -728,12 +728,12 @@ Map<String, Map<Integer, Long>> nestedHours = logs.stream()
 System.out.println(nestedHours.get("Backend").get(2025)); // 10
 ```
 
-Với yêu cầu 6, có thể dùng `log.team().strip().toUpperCase(Locale.ROOT)` ngay trong classifier và phải dùng **cùng giá trị chuẩn hóa khi tra cứu**. Trong ứng dụng lớn, tốt hơn nên chuẩn hóa/validate ở ranh giới nhập liệu hoặc trong một hàm dựng khóa được dùng nhất quán giữa các nơi.
+For requirement 6, you can apply `log.team().strip().toUpperCase(Locale.ROOT)` directly in the classifier and must use **the same normalized value during lookup**. In larger applications, it is better to normalize/validate at the input boundary or in a key-builder function used consistently everywhere.
 
-**Thử nghiệm mở rộng:** Nếu chuyển nguồn sang `parallelStream()`, bản ghi có giá trị bất biến và downstream collector đúng hợp đồng vẫn có thể tạo số liệu hợp lệ. Tuy nhiên, đừng khẳng định thứ tự lặp khóa cố định. Hãy so sánh nội dung Map theo từng khóa và đo hiệu năng thay vì so chuỗi `toString` của toàn Map.
+**Extended experiment:** If you switch the source to `parallelStream()`, immutable value records and contract-compliant downstream collectors still produce valid metrics. However, do not assert a fixed key iteration order. Compare Map contents key by key and measure performance instead of comparing the `toString` output of the entire Map.
 
-## Ghi nhớ
+## Takeaways
 
-Khi phân nhóm theo nhiều thuộc tính, hãy tạo một **khóa ghép có ngữ nghĩa giá trị** thay vì ghép chuỗi hoặc dùng đối tượng mutable. `record GroupKey(a, b)` mang theo những trường định danh, tự cung cấp `equals` và `hashCode`, giúp `Collectors.groupingBy` gom đúng các phần tử có cùng tổ hợp khóa.
+When grouping by multiple attributes, create a **composite key with value semantics** instead of concatenating strings or using mutable objects. `record GroupKey(a, b)` carries the identifying fields and provides `equals` and `hashCode` automatically, enabling `Collectors.groupingBy` to gather elements sharing the same key combination properly.
 
-Sử dụng downstream collector như `counting`, `summingLong`, `mapping` hoặc `summarizingLong` nếu báo cáo chỉ cần số liệu thay vì toàn bộ danh sách. Chuẩn hóa và kiểm tra `null` trước khi phân nhóm; chọn `LinkedHashMap`/`TreeMap` khi yêu cầu thứ tự rõ ràng. Với Stream song song, giữ classifier stateless và không can thiệp nguồn, đánh giá chi phí kết hợp Map và chỉ dùng `groupingByConcurrent` khi ngữ nghĩa unordered phù hợp.
+Use downstream collectors such as `counting`, `summingLong`, `mapping`, or `summarizingLong` when the report only needs metrics rather than the full lists. Normalize and check for `null` before grouping; choose `LinkedHashMap`/`TreeMap` when explicit ordering is required. With parallel Streams, keep classifiers stateless and non-interfering with the source, evaluate Map combination costs, and use `groupingByConcurrent` only when unordered semantics are acceptable.

@@ -1,18 +1,18 @@
-# Kiểm thử rằng module không lộ API ngoài ý muốn
+# Testing That a Module Does Not Expose Unintended APIs
 
-Trong Java Platform Module System (JPMS), **strong encapsulation** không chỉ là việc chia mã nguồn thành các module có tên. Một thiết kế module tốt phải quy định rõ package nào là API công khai, package nào dành riêng cho implementation và framework nào (nếu có) được phép sử dụng deep reflection. Kiểm thử những ranh giới này giúp tránh tình trạng một thay đổi ở **module-info.java**, một bản đóng gói JAR hoặc một tùy chọn khởi chạy vô tình làm lộ những class vốn phải được giữ kín.
+In the Java Platform Module System (JPMS), **strong encapsulation** is not merely splitting source code into named modules. A good module design must clearly specify which packages are public API, which packages are reserved for implementation, and which frameworks (if any) are allowed to use deep reflection. Testing these boundaries prevents a change in **module-info.java**, a JAR packaging configuration, or a launch option from accidentally exposing classes that should remain hidden.
 
-Mục tiêu của bài này là xây dựng các phép kiểm thử có thể chạy lại để trả lời ba câu hỏi:
+The goal of this lesson is to build repeatable tests that answer three questions:
 
-1. **Compile-time:** Một module độc lập có thể import và sử dụng API công khai, nhưng bị từ chối khi import package nội bộ không?
-2. **Runtime reflection:** Code ở module khác có bị chặn khi cố truy cập sâu vào field, method hoặc constructor private của module đích không?
-3. **Module contract:** Descriptor và cấu hình khởi động có đúng danh sách **exports**, **opens** và ngoại lệ truy cập đã được phê duyệt không?
+1. **Compile-time:** Can an independent module import and use the public API while being rejected when importing an internal package?
+2. **Runtime reflection:** Is code in another module blocked when attempting deep access to private fields, methods, or constructors of the target module?
+3. **Module contract:** Do the descriptor and launch configuration match the approved list of **exports**, **opens**, and access exceptions?
 
-Chỉ nhìn cấu trúc thư mục hoặc đặt tên package là **internal** chưa đủ. Ranh giới truy cập thực tế được quyết định bởi descriptor, module graph, Java access rules và các quyền runtime có thể được bổ sung.
+Merely inspecting the directory structure or naming a package **internal** is not enough. Actual access boundaries are determined by the descriptor, module graph, Java access rules, and any additional runtime permissions granted.
 
-## 1. Lộ API ngoài ý muốn nghĩa là gì?
+## 1. What Does Exposing Unintended APIs Mean?
 
-Một named module có thể chứa nhiều package, nhưng không phải package nào cũng cần trở thành API cho module khác. Ví dụ:
+A named module can contain many packages, yet not every package should become an API for other modules. For example:
 
 ~~~text
 com.acme.order
@@ -22,23 +22,23 @@ com.acme.order
 └── com.acme.order.spi
 ~~~
 
-Giả sử hợp đồng thiết kế quy định:
+Suppose the design contract specifies:
 
-- **com.acme.order.api**: API public cho ứng dụng tiêu thụ.
-- **com.acme.order.internal**: chi tiết triển khai, không được export hoặc open.
-- **com.acme.order.persistence**: entity nội bộ, chỉ được open cho một ORM cụ thể khi thật sự cần reflection.
-- **com.acme.order.spi**: hợp đồng mở rộng, có thể export có giới hạn nếu chỉ một module plugin được phép dùng.
+- **com.acme.order.api**: public API for consuming applications.
+- **com.acme.order.internal**: implementation details, neither exported nor opened.
+- **com.acme.order.persistence**: internal entities, opened only to a specific ORM when reflection is genuinely required.
+- **com.acme.order.spi**: extension contract, which can be qualified-exported if only a plugin module is allowed to use it.
 
-Những thay đổi có thể gây lộ API:
+Changes that can cause API exposure:
 
 ~~~java
 module com.acme.order {
     exports com.acme.order.api;
-    exports com.acme.order.internal; // Lộ package implementation
+    exports com.acme.order.internal; // Exposes implementation package
 }
 ~~~
 
-Hoặc:
+Or:
 
 ~~~java
 open module com.acme.order {
@@ -46,21 +46,21 @@ open module com.acme.order {
 }
 ~~~
 
-Trong ví dụ thứ hai, toàn bộ package của module được mở cho deep reflection ở runtime; đây là quyền rộng hơn nhiều so với việc chỉ export API công khai.
+In the second example, all packages of the module are opened for deep reflection at runtime; this is far broader permission than exporting only the public API.
 
-Một modular JAR vô tình bị đóng gói thành **automatic module** cũng có thể mất ranh giới dự kiến. Automatic module có các quy tắc tương thích rộng, export và open tất cả package của nó. Vì vậy, kiểm thử không chỉ đọc tên package: cần kiểm tra loại module và các quyền thực tế.
+A modular JAR accidentally packaged as an **automatic module** can also lose its intended boundaries. Automatic modules have broad compatibility rules, exporting and opening all of their packages. Therefore, testing must not merely read package names: it must verify the module type and actual permissions.
 
-## 2. Hiểu chính xác requires, exports và opens
+## 2. Understanding requires, exports, and opens Precisely
 
-Ba nhóm quy tắc cần phân biệt:
+Three groups of rules must be distinguished:
 
-| Cơ chế | Điều gì được cho phép? | Có thể kiểm thử bằng |
+| Mechanism | What Is Permitted? | Can Be Tested With |
 |---|---|---|
-| **requires** và module readability | Module caller đọc được module đích. | Module graph và **Module.canRead(...)**. |
-| **exports** | Module khác truy cập các public type/member trong package theo quy tắc Java. | Compile-time consumer test và **ModuleDescriptor.exports()**. |
-| **opens** | Module khác thực hiện deep reflection vào package tại runtime. | **trySetAccessible()**, **Module.isOpen(...)**, **ModuleDescriptor.opens()**. |
+| **requires** and module readability | Calling module reads the target module. | Module graph and **Module.canRead(...)**. |
+| **exports** | Other modules access public types/members in the package under Java rules. | Compile-time consumer test and **ModuleDescriptor.exports()**. |
+| **opens** | Other modules perform deep reflection into the package at runtime. | **trySetAccessible()**, **Module.isOpen(...)**, **ModuleDescriptor.opens()**. |
 
-Ví dụ một descriptor có ranh giới chặt:
+Example of a descriptor with tight boundaries:
 
 ~~~java
 module com.acme.order {
@@ -68,7 +68,7 @@ module com.acme.order {
 }
 ~~~
 
-Module khác khai báo:
+Another module declares:
 
 ~~~java
 module com.acme.client {
@@ -76,11 +76,11 @@ module com.acme.client {
 }
 ~~~
 
-Khi đó client có thể dùng public API trong **com.acme.order.api**. Tuy nhiên, client không thể import kiểu public từ **com.acme.order.internal** vì package này không được export.
+Then the client can use the public API in **com.acme.order.api**. However, the client cannot import public types from **com.acme.order.internal** because that package is not exported.
 
-Việc một class được khai báo **public** không tự động làm nó trở thành API của toàn hệ thống. Public chỉ giải quyết một phần quy tắc Java; JPMS còn kiểm tra ranh giới module.
+Declaring a class **public** does not automatically turn it into a system-wide API. Public only addresses part of the Java rules; JPMS also checks module boundaries.
 
-Ngược lại, nếu module có:
+Conversely, if the module has:
 
 ~~~java
 module com.acme.order {
@@ -89,13 +89,13 @@ module com.acme.order {
 }
 ~~~
 
-Package **persistence** vẫn không được export cho việc import trực tiếp từ mã nguồn, nhưng module **com.acme.orm** có thể thực hiện deep reflection theo quyền được cấp. Đó có thể là ngoại lệ được thiết kế có chủ đích, không phải lộ API ngoài ý muốn.
+The **persistence** package remains unexported for direct source-code imports, while **com.acme.orm** can perform deep reflection according to the granted permission. That can be an intentional design exception, not an unintended API leak.
 
-## 3. Xây dựng module mẫu để kiểm thử encapsulation
+## 3. Building Sample Modules to Test Encapsulation
 
-Ví dụ sau dùng một module nghiệp vụ và một module kiểm thử độc lập. Điểm quan trọng là kiểm thử phải chạy **bên ngoài module được kiểm tra**.
+The following example uses a business module and an independent test module. The key point is that tests must run **outside the module under test**.
 
-Cấu trúc thư mục:
+Directory structure:
 
 ~~~text
 src/
@@ -113,7 +113,7 @@ negative-src/
     com/acme/contract/negative/IllegalImport.java
 ~~~
 
-Descriptor module nghiệp vụ:
+Business module descriptor:
 
 ~~~java
 // src/com.acme.order/module-info.java
@@ -122,7 +122,7 @@ module com.acme.order {
 }
 ~~~
 
-Class implementation:
+Implementation class:
 
 ~~~java
 // src/com.acme.order/com/acme/order/internal/OrderState.java
@@ -137,7 +137,7 @@ public final class OrderState {
 }
 ~~~
 
-Class API:
+API class:
 
 ~~~java
 // src/com.acme.order/com/acme/order/api/OrderApi.java
@@ -155,13 +155,13 @@ public final class OrderApi {
 }
 ~~~
 
-Việc **OrderApi** tạo và sử dụng **OrderState** là hợp lệ: cả hai package thuộc cùng module. Phương thức **sampleState()** cố ý trả về **Object** để module kiểm thử có một instance thật mà không cần import kiểu nội bộ.
+Having **OrderApi** instantiate and use **OrderState** is valid: both packages belong to the same module. The **sampleState()** method intentionally returns **Object** so the test module gets a real instance without importing the internal type.
 
-Trong thiết kế ứng dụng thực tế, API nên trả về một kiểu hợp đồng ổn định thay vì Object. Ở đây Object chỉ phục vụ việc minh họa giới hạn reflection khi chưa export package implementation.
+In real application design, the API should return a stable contract type rather than Object. Here Object only serves to illustrate reflection limits when the implementation package is not exported.
 
-## 4. Kiểm thử thành công với API được phép công bố
+## 4. Testing Success with the Intentionally Exposed API
 
-Module kiểm thử bên ngoài:
+External test module:
 
 ~~~java
 // tests/com.acme.contract.test/module-info.java
@@ -170,7 +170,7 @@ module com.acme.contract.test {
 }
 ~~~
 
-Một kiểm thử đơn giản:
+A simple test:
 
 ~~~java
 package com.acme.contract.test;
@@ -182,7 +182,7 @@ public final class EncapsulationTest {
         Object state = OrderApi.sampleState();
 
         if (state == null) {
-            throw new AssertionError("Public API không hoạt động");
+            throw new AssertionError("Public API is not working");
         }
 
         System.out.println("Public API accessible");
@@ -190,13 +190,13 @@ public final class EncapsulationTest {
 }
 ~~~
 
-Biên dịch module nghiệp vụ:
+Compile the business module:
 
 ~~~bash
 javac -d mods --module-source-path src -m com.acme.order
 ~~~
 
-Biên dịch module kiểm thử:
+Compile the test module:
 
 ~~~bash
 javac -d testmods \
@@ -205,26 +205,26 @@ javac -d testmods \
       -m com.acme.contract.test
 ~~~
 
-Chạy trên Linux/macOS:
+Run on Linux/macOS:
 
 ~~~bash
 java --module-path "mods:testmods" \
      -m com.acme.contract.test/com.acme.contract.test.EncapsulationTest
 ~~~
 
-Trên Windows, module path nhiều thư mục dùng dấu chấm phẩy:
+On Windows, multi-directory module paths use semicolons:
 
 ~~~powershell
 java --module-path "mods;testmods" -m com.acme.contract.test/com.acme.contract.test.EncapsulationTest
 ~~~
 
-Đây là **positive test**: API được chủ ý export phải biên dịch và chạy thành công từ một module bên ngoài. Một hệ thống chỉ chạy negative tests mà không có positive test sẽ khó phân biệt encapsulation đúng với cấu hình làm hỏng toàn bộ API.
+This is a **positive test**: the intentionally exported API must compile and run successfully from an external module. A suite running only negative tests without positive tests will struggle to distinguish proper encapsulation from a configuration that breaks the entire API.
 
-## 5. Negative compile test: package internal không được import
+## 5. Negative Compile Test: Internal Package Must Not Be Importable
 
-Kiểm thử mạnh nhất cho quyền truy cập mã nguồn là thực sự dùng **javac** để biên dịch một module tiêu thụ cố import package nội bộ.
+The strongest test for source-code access is actually using **javac** to compile a consuming module that attempts to import an internal package.
 
-Descriptor của module kiểm thử âm tính:
+Descriptor of the negative test module:
 
 ~~~java
 // negative-src/com.acme.contract.negative/module-info.java
@@ -233,7 +233,7 @@ module com.acme.contract.negative {
 }
 ~~~
 
-Class cố dùng implementation:
+Class attempting to use the implementation:
 
 ~~~java
 // negative-src/com.acme.contract.negative/com/acme/contract/negative/IllegalImport.java
@@ -246,7 +246,7 @@ public final class IllegalImport {
 }
 ~~~
 
-Biên dịch riêng fixture này:
+Compile this fixture separately:
 
 ~~~bash
 javac -d negative-out \
@@ -255,35 +255,35 @@ javac -d negative-out \
       -m com.acme.contract.negative
 ~~~
 
-Khi module **com.acme.order** chỉ export package **api**, trình biên dịch dự kiến từ chối import **com.acme.order.internal**. Thông báo thường chứa ý rằng package không visible hoặc không được export cho module caller.
+When **com.acme.order** only exports the **api** package, the compiler is expected to reject the import of **com.acme.order.internal**. The message typically states that the package is not visible or is not exported to the caller module.
 
-Đây là **expected compilation failure**, không phải lỗi bài học. Trong CI, hãy kiểm tra cả hai điều kiện:
+This is an **expected compilation failure**, not a bug in the lesson. In CI, check both conditions:
 
-1. **javac** thoát với mã khác 0.
-2. Diagnostic đúng bản chất **package internal không được export**; không phải lỗi cú pháp, thiếu JDK, thiếu module path hay source file không tồn tại.
+1. **javac** exits with a non-zero code.
+2. The diagnostic accurately reflects **the internal package is not exported**; not a syntax error, missing JDK, missing module path, or nonexistent source file.
 
-Một kiểm thử âm tính không nên được đánh dấu thành công chỉ vì bất kỳ lỗi biên dịch nào xuất hiện. Nếu fixture hỏng cú pháp, phép thử không còn chứng minh được encapsulation của module.
+A negative test should not be marked passing simply because some compilation error occurred. If the fixture has broken syntax, the test no longer proves module encapsulation.
 
-Ví dụ Bash:
+Bash example:
 
 ~~~bash
 if javac -d negative-out --module-path mods \
          --module-source-path negative-src \
          -m com.acme.contract.negative; then
-    echo "FAIL: package internal đã trở nên có thể import"
+    echo "FAIL: internal package became importable"
     exit 1
 else
-    echo "Expected: javac từ chối package internal"
+    echo "Expected: javac rejected internal package"
 fi
 ~~~
 
-Trong pipeline thực tế, nên bắt stderr và xác nhận diagnostic phù hợp trước khi chấp nhận negative test.
+In a real pipeline, capture stderr and verify the appropriate diagnostic before accepting the negative test.
 
-## 6. Negative runtime test: không mở private field cho caller
+## 6. Negative Runtime Test: Do Not Open Private Fields to Callers
 
-Lệnh **javac** kiểm tra khả năng import API, nhưng không đủ để chứng minh module không cho phép deep reflection. Cần một test runtime đặt ở module khác.
+**javac** checks API importability, yet is not enough to prove the module disallows deep reflection. A runtime test placed in another module is needed.
 
-Bổ sung vào test class:
+Add to the test class:
 
 ~~~java
 package com.acme.contract.test;
@@ -301,18 +301,18 @@ public final class EncapsulationTest {
         String pkg = internalClass.getPackageName();
 
         if (owner.isExported(pkg, caller)) {
-            throw new AssertionError("Internal package đã được export");
+            throw new AssertionError("Internal package was exported");
         }
 
         if (owner.isOpen(pkg, caller)) {
-            throw new AssertionError("Internal package đã được opens");
+            throw new AssertionError("Internal package was opened");
         }
 
         Field secret = internalClass.getDeclaredField("secret");
 
         if (secret.trySetAccessible()) {
             throw new AssertionError(
-                "Caller đã có thể deep-reflect vào field private"
+                "Caller was able to deep-reflect into private field"
             );
         }
 
@@ -321,21 +321,21 @@ public final class EncapsulationTest {
 }
 ~~~
 
-Test này kiểm tra ba lớp tín hiệu:
+This test checks three layers of signals:
 
-- **isExported(pkg, caller)**: package có được truy cập như một API runtime cho caller không.
-- **isOpen(pkg, caller)**: package có đang mở cho caller thực hiện deep reflection không.
-- **trySetAccessible()**: caller có thực sự suppress access checks cho private field được không.
+- **isExported(pkg, caller)**: whether the package is accessible as a runtime API to the caller.
+- **isOpen(pkg, caller)**: whether the package is open to the caller for deep reflection.
+- **trySetAccessible()**: whether the caller can actually suppress access checks on the private field.
 
-Việc lấy được **Class<?>** hoặc **Field** không đồng nghĩa với quyền truy cập giá trị. Mục tiêu của negative runtime test là xác minh thao tác vượt ranh giới **không được phép**.
+Obtaining a **Class<?>** or **Field** does not equate to permission to read or write the value. The goal of a negative runtime test is to verify that cross-boundary access **is disallowed**.
 
-**Lưu ý:** Một test đặt bên trong **com.acme.order** sẽ cho kết quả khác, vì code cùng module có quyền truy cập nội bộ rộng hơn code thuộc module ngoài. Hãy bảo đảm test được biên dịch và chạy dưới named module **com.acme.contract.test**.
+**Note:** A test placed inside **com.acme.order** will produce different results, because code in the same module has broader internal access than code in an external module. Make sure the test is compiled and run under the named module **com.acme.contract.test**.
 
-## 7. Kiểm tra descriptor bằng allowlist
+## 7. Checking the Descriptor with an Allowlist
 
-Compile tests kiểm tra một số trường hợp cụ thể. Để tránh bỏ sót các package vô tình được export hoặc open, có thể kiểm tra trực tiếp **ModuleDescriptor** của artifact.
+Compile tests verify specific cases. To avoid missing packages accidentally exported or opened, you can inspect the **ModuleDescriptor** of the artifact directly.
 
-Ví dụ dùng **ModuleFinder**:
+Example using **ModuleFinder**:
 
 ~~~java
 import java.lang.module.ModuleDescriptor;
@@ -354,7 +354,7 @@ public final class DescriptorContractTest {
 
         if (d.isAutomatic() || d.isOpen()) {
             throw new AssertionError(
-                "Module phải là explicit module không open"
+                "Module must be a non-open explicit module"
             );
         }
 
@@ -367,20 +367,20 @@ public final class DescriptorContractTest {
 
         if (!expectedExports.equals(actualExports)) {
             throw new AssertionError(
-                "Exports không khớp hợp đồng: " + actualExports
+                "Exports do not match contract: " + actualExports
             );
         }
 
         if (d.exports().stream().anyMatch(
                 ModuleDescriptor.Exports::isQualified)) {
             throw new AssertionError(
-                "Có qualified exports chưa được phê duyệt"
+                "Unapproved qualified exports present"
             );
         }
 
         if (!d.opens().isEmpty()) {
             throw new AssertionError(
-                "Module đang mở package cho reflection"
+                "Module is opening packages for reflection"
             );
         }
 
@@ -389,19 +389,19 @@ public final class DescriptorContractTest {
 }
 ~~~
 
-Đây là ví dụ với chính sách **chỉ một package được export và không package nào được open**. Với module có qualified exports/opens hợp lệ, thay các kiểm tra cấm tuyệt đối bằng allowlist về tên package và danh sách module đích.
+This is an example for a policy where **only one package is exported and no packages are opened**. For modules with valid qualified exports/opens, replace absolute bans with an allowlist of package names and target module lists.
 
-Vì **ModuleDescriptor** bất biến và phản ánh metadata của module, việc đọc nó không đòi hỏi nạp các class nghiệp vụ. Có thể kiểm tra trực tiếp JAR sau khi build, thay vì chỉ kiểm tra source descriptor.
+Because **ModuleDescriptor** is immutable and reflects the module's metadata, reading it does not require loading business classes. You can inspect the JAR directly after building, instead of inspecting only the source descriptor.
 
-### Tại sao phải kiểm tra cả automatic và open module?
+### Why Must Both Automatic and Open Modules Be Checked?
 
-Nếu thư viện được đóng gói sai và mất **module-info.class**, JAR đặt trên module path có thể trở thành automatic module. Một automatic module có ngữ nghĩa export/open rộng, ngay cả khi tập directive được tổng hợp khác với các exports bạn viết trong source.
+If a library is packaged incorrectly and loses **module-info.class**, a JAR placed on the module path can become an automatic module. An automatic module has broad export/open semantics, even if synthesized directive sets differ from the exports you wrote in source.
 
-Tương tự, **open module** mở mọi package ở runtime. Bởi vậy, chỉ xem số dòng **opens** không luôn đủ; cần kiểm tra cả **isOpen()** và **isAutomatic()**.
+Similarly, an **open module** opens every package at runtime. Therefore, just checking the number of **opens** entries is not always enough; both **isOpen()** and **isAutomatic()** must be checked.
 
-## 8. Qualified exports và qualified opens cần được kiểm thử riêng
+## 8. Qualified Exports and Qualified Opens Need Dedicated Tests
 
-Đôi khi hệ thống cần cho một module cụ thể truy cập package không dành cho công chúng:
+Sometimes a system needs to grant a specific module access to a package not meant for the general public:
 
 ~~~java
 module com.acme.order {
@@ -411,13 +411,13 @@ module com.acme.order {
 }
 ~~~
 
-Trong trường hợp này:
+In this case:
 
-- **api** được export cho mọi module đọc module order.
-- **spi** chỉ được export cho **com.acme.plugin.host**.
-- **persistence** chỉ được open cho **com.acme.orm**.
+- **api** is exported to every module reading the order module.
+- **spi** is exported only to **com.acme.plugin.host**.
+- **persistence** is opened only to **com.acme.orm**.
 
-Test descriptor cần so sánh cả package và target:
+The descriptor test must compare both the package and the targets:
 
 ~~~java
 for (ModuleDescriptor.Exports e : d.exports()) {
@@ -433,9 +433,9 @@ for (ModuleDescriptor.Opens o : d.opens()) {
 }
 ~~~
 
-Với directive không qualified, tập **targets()** rỗng; với directive qualified, tập này chứa tên module đích. Cần phân biệt hai trường hợp bằng **isQualified()**, không suy luận rằng tập rỗng là “không có quyền”.
+For an unqualified directive, the **targets()** set is empty; for a qualified directive, this set contains target module names. Distinguish the two cases using **isQualified()**, rather than inferring that an empty set means "no permission".
 
-Một chính sách kiểm thử hữu ích là khai báo rõ danh sách:
+A useful testing policy is to explicitly declare the list:
 
 ~~~text
 unqualified exports:
@@ -451,17 +451,17 @@ other exports/opens:
   forbidden
 ~~~
 
-Sau đó so sánh descriptor thực tế với hợp đồng này. Nhờ vậy, một thay đổi vô tình từ qualified export thành unqualified export sẽ bị phát hiện, dù tên package vẫn giữ nguyên.
+Then compare the actual descriptor against this contract. That way, an accidental change from a qualified export to an unqualified export is caught, even though the package name stays the same.
 
-## 9. Kiểm thử runtime trong đúng module caller
+## 9. Runtime Testing in the Right Caller Module
 
-Các quyền xuất khẩu hoặc mở package có thể phụ thuộc caller. Một test chỉ gọi:
+Export or open permissions can depend on the caller. A test that only calls:
 
 ~~~java
 targetModule.isOpen("com.acme.order.persistence")
 ~~~
 
-không thể hiện đầy đủ cùng ngữ nghĩa với việc kiểm tra package được mở cho một module cụ thể:
+does not express the same full semantics as checking whether the package is open to a specific module:
 
 ~~~java
 targetModule.isOpen(
@@ -470,7 +470,7 @@ targetModule.isOpen(
 )
 ~~~
 
-Tương tự, với qualified exports:
+Similarly, for qualified exports:
 
 ~~~java
 targetModule.isExported(
@@ -479,15 +479,15 @@ targetModule.isExported(
 )
 ~~~
 
-Hãy tạo test module tương ứng với từng đối tượng tiêu thụ quan trọng: ứng dụng thông thường, plugin được phép, framework ORM được phép và một module không được phép.
+Create test modules corresponding to each important consumer role: a regular application, a permitted plugin, a permitted ORM framework, and a non-permitted module.
 
-Một phép thử cho **com.acme.orm** chứng minh ORM có quyền cần thiết, nhưng chưa chứng minh **com.acme.untrusted** bị chặn. Đối với package nhạy cảm, cần cả positive và negative tests tương ứng với policy.
+A test for **com.acme.orm** proves the ORM has the required permission, yet does not prove **com.acme.untrusted** is blocked. For sensitive packages, both positive and negative tests matching the policy are needed.
 
-Một chi tiết nữa: các phép kiểm tra runtime có thể phản ánh những thay đổi về access sau khi khởi chạy, trong khi **ModuleDescriptor** phản ánh metadata gốc. Vì vậy, kiểm tra descriptor và kiểm tra hành vi runtime cần bổ sung cho nhau, không phải thay thế nhau.
+One more detail: runtime checks can reflect access changes applied after startup, whereas **ModuleDescriptor** reflects the original metadata. Therefore, descriptor checks and runtime behavior checks complement rather than replace each other.
 
-## 10. Tránh để tùy chọn JVM che giấu kết quả test
+## 10. Avoiding Letting JVM Options Mask Test Results
 
-Các tùy chọn sau có thể làm thay đổi ranh giới module lúc chạy:
+The following options can alter module boundaries at runtime:
 
 ~~~text
 --add-exports source.module/package=target.module
@@ -495,7 +495,7 @@ Các tùy chọn sau có thể làm thay đổi ranh giới module lúc chạy:
 --add-reads source.module=target.module
 ~~~
 
-Ví dụ:
+For example:
 
 ~~~bash
 java --add-opens com.acme.order/com.acme.order.internal=ALL-UNNAMED \
@@ -503,9 +503,9 @@ java --add-opens com.acme.order/com.acme.order.internal=ALL-UNNAMED \
      -m com.acme.contract.test/com.acme.contract.test.EncapsulationTest
 ~~~
 
-Lệnh trên mở package cho unnamed modules, không nhất thiết mở cho module test có tên. Nếu mục tiêu là kiểm tra ranh giới giữa các named modules, cần kiểm tra chính xác target của từng flag.
+The command above opens the package to unnamed modules, not necessarily to the named test module. If the goal is to test boundaries between named modules, verify the exact target of each flag.
 
-Một cấu hình như sau sẽ trực tiếp làm phép thử reflection âm tính thất bại:
+A configuration like the following will directly cause a negative reflection test to fail:
 
 ~~~bash
 java --add-opens com.acme.order/com.acme.order.internal=com.acme.contract.test \
@@ -513,21 +513,21 @@ java --add-opens com.acme.order/com.acme.order.internal=com.acme.contract.test \
      -m com.acme.contract.test/com.acme.contract.test.EncapsulationTest
 ~~~
 
-Vì flag đã cấp quyền cho module test, **trySetAccessible()** có thể thành công. Đây không phải lỗi ngẫu nhiên của JVM mà là kết quả đúng theo cấu hình được yêu cầu.
+Because the flag granted permission to the test module, **trySetAccessible()** can succeed. This is not a random JVM bug, but the exact result of the requested configuration.
 
-Khi chạy contract tests:
+When running contract tests:
 
-1. Dùng lệnh Java rõ ràng, có thể tái hiện.
-2. Kiểm tra **VM options** do IDE, Maven, Gradle hoặc CI truyền vào.
-3. Tránh những flag mở rộng quyền nếu không nằm trong hợp đồng kiểm thử.
-4. Kiểm tra các cấu hình **--patch-module** hoặc module-related options khác có thể thay đổi cách test được chạy.
-5. Ghi nhận JDK version và loại module (named/unnamed/automatic) để giải thích kết quả.
+1. Use clear, reproducible Java commands.
+2. Check **VM options** passed by the IDE, Maven, Gradle, or CI.
+3. Avoid permission-widening flags if they are not part of the test contract.
+4. Check **--patch-module** or other module-related options that may alter how tests run.
+5. Record the JDK version and module kind (named/unnamed/automatic) to interpret results.
 
-Đặc biệt, nhiều framework test sử dụng reflection. Nếu test runner đã cấp **--add-opens** cho module đang được test, một negative reflection test có thể không còn phản ánh cấu hình production mà bạn muốn bảo vệ. Có thể chạy một JVM test độc lập với module test riêng để có bằng chứng chính xác hơn.
+In particular, many test frameworks use reflection. If the test runner already grants **--add-opens** to the module under test, a negative reflection test may no longer reflect the production configuration you want to protect. You can run a standalone test JVM with a dedicated test module for cleaner evidence.
 
-## 11. Không nhầm encapsulation với việc không thể khám phá metadata
+## 11. Do Not Confuse Encapsulation with Inability to Inspect Metadata
 
-Ngay cả khi package không export, một số API reflection vẫn có thể trả về tên class hoặc metadata của thành viên. Ví dụ:
+Even when a package is not exported, certain reflection APIs can still return class names or member metadata. For example:
 
 ~~~java
 Class<?> type = state.getClass();
@@ -536,28 +536,28 @@ System.out.println(type.getName());
 System.out.println(type.getDeclaredFields().length);
 ~~~
 
-Việc nhìn thấy tên kiểu hoặc biết class có field chưa chứng minh caller có thể đọc, ghi hoặc gọi các thành viên đó. Ngăn chặn thao tác truy cập là khác với che giấu hoàn toàn mọi dấu vết metadata.
+Seeing the type name or knowing the class has fields does not prove the caller can read, write, or invoke those members. Blocking access operations is different from completely hiding every trace of metadata.
 
-Một test sai hướng thường chỉ kiểm tra rằng:
+A misguided test often checks only that:
 
 ~~~java
 state.getClass().getDeclaredFields().length == 0
 ~~~
 
-rồi suy luận “module được encapsulate”. Suy luận này không đúng; **getDeclaredFields()** có thể khám phá khai báo mà không cấp quyền truy cập sâu.
+and concludes "the module is encapsulated". This inference is incorrect; **getDeclaredFields()** can discover declarations without granting deep access.
 
-Thay vào đó, hãy kiểm tra:
+Instead, check:
 
-- Có thể compile import nội bộ hay không?
-- Package có được export/open cho caller không?
-- Có thể **trySetAccessible()** hoặc **setAccessible(true)** để thực hiện deep reflection không?
-- Có thể gọi public API đã phê duyệt không?
+- Can an internal import compile?
+- Is the package exported/opened to the caller?
+- Can **trySetAccessible()** or **setAccessible(true)** perform deep reflection?
+- Can the approved public API be called?
 
-Các kết quả này gắn trực tiếp với hợp đồng JPMS cần bảo vệ.
+These results map directly to the JPMS contract that needs protection.
 
-## 12. Service provider không cần export implementation package
+## 12. Service Providers Do Not Need to Export the Implementation Package
 
-JPMS hỗ trợ service binding:
+JPMS supports service binding:
 
 ~~~java
 module com.acme.order {
@@ -568,17 +568,17 @@ module com.acme.order {
 }
 ~~~
 
-Trong trường hợp này, package **internal** có thể vẫn không được export hoặc open. **ServiceLoader** được phép tìm provider theo khai báo **provides ... with ...**, nhưng điều đó không đồng nghĩa mọi module được import hoặc deep-reflect vào implementation.
+In this case, the **internal** package can remain neither exported nor opened. **ServiceLoader** is allowed to locate the provider via the **provides ... with ...** declaration, yet that does not mean every module can import or deep-reflect into the implementation.
 
-Đừng coi việc ServiceLoader phát hiện được provider là bằng chứng package implementation bị lộ API. Hợp đồng service được công bố qua kiểu service và module descriptor, còn implementation cụ thể có thể được giữ kín.
+Do not treat ServiceLoader discovering a provider as evidence that the implementation package leaked API. The service contract is published through the service type and module descriptor, while the concrete implementation can stay hidden.
 
-Ngược lại, nếu consumer dùng trực tiếp provider class thay vì service interface, bạn có thể đã vô tình tạo dependency vào implementation. Contract tests nên ưu tiên dùng service type công khai và kiểm tra package triển khai vẫn không được export.
+Conversely, if a consumer uses the provider class directly instead of the service interface, you may have accidentally created a dependency on the implementation. Contract tests should prefer using the public service type and checking that the implementation package remains unexported.
 
-## 13. Phân tích JAR cuối cùng, không chỉ module-info.java trong source
+## 13. Analyzing the Final JAR, Not Just module-info.java in Source
 
-Trong pipeline build, artifact cuối có thể khác những gì developer nhìn thấy trong source tree. Một plugin đóng gói, build profile hoặc bước shading có thể làm mất descriptor hoặc thay đổi cấu trúc JAR.
+In a build pipeline, the final artifact can differ from what developers see in the source tree. A packaging plugin, build profile, or shading step can drop the descriptor or change the JAR structure.
 
-Sau khi tạo JAR:
+After creating the JAR:
 
 ~~~bash
 jar --create \
@@ -586,40 +586,40 @@ jar --create \
     -C mods/com.acme.order .
 ~~~
 
-Kiểm tra descriptor thực tế:
+Inspect the actual descriptor:
 
 ~~~bash
 jar --describe-module \
     --file dist/com.acme.order.jar
 ~~~
 
-Kiểm tra nội dung archive:
+Inspect the archive contents:
 
 ~~~bash
 jar --list --file dist/com.acme.order.jar
 ~~~
 
-Cần xác nhận:
+Confirm:
 
-- **module-info.class** có mặt trong modular JAR dự kiến.
-- Tên module chính xác và ổn định.
-- Không xuất hiện exports hoặc opens vượt ngoài allowlist.
-- Các package implementation không trở thành exported package chỉ vì thay đổi artifact.
-- JAR không vô tình chuyển thành automatic module.
+- **module-info.class** is present in the expected modular JAR.
+- The module name is exact and stable.
+- No exports or opens appear outside the allowlist.
+- Implementation packages do not become exported packages merely due to artifact changes.
+- The JAR does not accidentally turn into an automatic module.
 
-Có thể dùng **jdeps** để tìm dependency tĩnh của JAR:
+You can use **jdeps** to find static dependencies of the JAR:
 
 ~~~bash
 jdeps --summary dist/com.acme.order.jar
 ~~~
 
-Tuy nhiên, **jdeps** không thay thế kiểm tra descriptor và negative tests. Một dependency tĩnh hợp lệ không chứng minh package được bảo vệ đúng; ngược lại, Java reflection có thể tạo quan hệ runtime mà phân tích tĩnh không thấy đầy đủ.
+However, **jdeps** does not replace descriptor checks and negative tests. A valid static dependency does not prove packages are properly protected; conversely, Java reflection can create runtime relationships that static analysis does not fully see.
 
-## 14. API public không phải lúc nào cũng là API ổn định
+## 14. Public API Is Not Always Stable API
 
-JPMS bảo vệ boundary ở cấp package. Một package đã được export có thể chứa nhiều public type, nhưng không phải public type nào cũng nên trở thành hợp đồng dùng lâu dài.
+JPMS protects boundaries at the package level. An exported package can contain multiple public types, yet not every public type should become a long-term contract.
 
-Ví dụ package:
+Example package:
 
 ~~~text
 com.acme.order.api
@@ -628,74 +628,74 @@ com.acme.order.api
   ExperimentalOrderDebug.java
 ~~~
 
-Nếu **com.acme.order.api** được export, public type **ExperimentalOrderDebug** cũng có thể được module khác truy cập. JPMS không có directive export riêng từng class.
+If **com.acme.order.api** is exported, the public type **ExperimentalOrderDebug** is also accessible to other modules. JPMS has no directive to export individual classes separately.
 
-Do đó, nếu có public implementation không nên trở thành API:
+Therefore, if there are public implementations that should not become API:
 
-- Chuyển class sang package không được export nếu hợp lý.
-- Giảm access modifier khi thiết kế cho phép.
-- Tách API ổn định khỏi package triển khai hoặc package thử nghiệm.
-- Sử dụng công cụ kiểm tra API surface để phát hiện thay đổi public type/method trong các package được export.
+- Move the class to an unexported package if reasonable.
+- Reduce the access modifier when the design allows.
+- Separate the stable API from implementation or experimental packages.
+- Use API surface checking tools to detect changes to public types/methods in exported packages.
 
-Các bài kiểm thử JPMS giúp đảm bảo package boundary, còn kiểm thử compatibility của public API có thể cần thêm công cụ phân tích chữ ký public. Không nên coi “chỉ export đúng một package” là đủ để mọi class trong package đó đều được thiết kế chuẩn.
+JPMS tests help enforce package boundaries, while compatibility testing of the public API may require additional public signature analysis tools. Do not assume that "exporting only one package" is enough for every class inside that package to be well-designed.
 
-## 15. Đưa kiểm thử ranh giới module vào CI
+## 15. Integrating Module Boundary Tests into CI
 
-Một pipeline có thể gồm các bước:
+A pipeline can consist of the following steps:
 
 ~~~text
-1. Compile module nguồn
+1. Compile source module
 2. Package modular JAR
-3. Kiểm tra ModuleDescriptor của JAR cuối
-4. Compile positive consumer test: phải thành công
-5. Compile negative consumer test: phải thất bại đúng lý do
-6. Chạy negative reflection test: phải bị chặn
-7. Chạy positive service/framework test nếu có qualified opens
-8. Lưu lại log và kết quả cùng JDK version
+3. Inspect ModuleDescriptor of the final JAR
+4. Compile positive consumer test: must succeed
+5. Compile negative consumer test: must fail for the right reason
+6. Run negative reflection test: must be blocked
+7. Run positive service/framework test if qualified opens exist
+8. Save logs and results along with JDK version
 ~~~
 
-Kết quả kỳ vọng:
+Expected results:
 
-| Kiểm thử | Kết quả đúng |
+| Test | Correct Result |
 |---|---|
-| Import public API được export | Biên dịch thành công. |
-| Import package internal không export | Biên dịch thất bại vì module không export package. |
-| Deep reflection từ module không được phép | **trySetAccessible()** trả false hoặc **setAccessible(true)** bị chặn. |
-| Deep reflection từ framework được phép | Có thể hoạt động nếu policy cho phép và caller đúng module. |
-| Descriptor exports/opens allowlist | Khớp chính xác. |
-| Artifact cuối không phải open/automatic module | Điều kiện được xác nhận. |
-| Chạy không có VM flags ngoài hợp đồng | Không cấp thêm quyền ngoài dự kiến. |
+| Import exported public API | Compilation succeeds. |
+| Import unexported internal package | Compilation fails because the module does not export the package. |
+| Deep reflection from non-permitted module | **trySetAccessible()** returns false or **setAccessible(true)** is blocked. |
+| Deep reflection from permitted framework | Can work if policy permits and caller is the right module. |
+| Descriptor exports/opens allowlist | Matches exactly. |
+| Final artifact is not an open/automatic module | Condition confirmed. |
+| Run without extra-contract VM flags | No unexpected permissions granted. |
 
-Nếu một trong các kiểm thử âm tính bắt đầu thành công sau khi nâng cấp dependency hoặc sửa descriptor, đó là tín hiệu cần xem lại: package nội bộ có thể vừa được export/open ngoài ý muốn.
+If one of the negative tests starts passing after upgrading a dependency or editing a descriptor, that is a signal to review: an internal package may have just been unintentionally exported/opened.
 
-Nếu kiểm thử dương tính thất bại, hợp đồng API có thể đã bị thu hẹp quá mức. Cả hai hướng đều quan trọng cho một module encapsulation contract ổn định.
+If a positive test fails, the API contract may have been narrowed too aggressively. Both directions are important for a stable module encapsulation contract.
 
-## 16. Các lỗi kiểm thử thường gặp
+## 16. Common Testing Mistakes
 
-| Hiện tượng | Nguyên nhân có thể | Cách khắc phục |
+| Symptom | Possible Cause | Fix |
 |---|---|---|
-| Negative compile test thất bại vì không tìm thấy module | Module path của fixture sai. | Sửa đường dẫn trước khi kết luận encapsulation đạt. |
-| Reflection negative test thành công bất ngờ | Test chạy trong cùng module, package bị opens, hoặc có --add-opens. | Tách test thành named module riêng, kiểm tra descriptor và VM options. |
-| Test descriptor cho phép automatic module | Chỉ đếm exports/opens mà không xét loại module. | Kiểm tra **isAutomatic()** và **isOpen()**. |
-| Test chỉ xem tên package, không xem target | Qualified exports/opens bị hiểu thành public. | So sánh cả **isQualified()** và **targets()**. |
-| Test chạy trên classpath thay vì module path | Mất nhiều ranh giới named module dự kiến. | Chạy fixture như named module. |
-| Package internal chứa public type trong package đã export | Mọi public type của package có thể truy cập. | Di chuyển implementation sang package không export. |
-| Các VM options khác nhau giữa CI và production | Test cho kết quả không đại diện. | Đồng bộ cấu hình, tách test không có flags ngoại lệ. |
-| Positive API test không tồn tại | Có thể đóng kín cả API hợp lệ mà không phát hiện. | Thêm positive consumer test. |
+| Negative compile test fails because module is not found | Fixture module path is wrong. | Fix the path before concluding encapsulation passed. |
+| Reflection negative test passes unexpectedly | Test runs in the same module, package is opened, or --add-opens is present. | Move test into a separate named module; inspect descriptor and VM options. |
+| Descriptor test allows automatic module | Only counting exports/opens without checking module kind. | Check **isAutomatic()** and **isOpen()**. |
+| Test checks only package names, not targets | Qualified exports/opens are treated as public. | Compare both **isQualified()** and **targets()**. |
+| Test runs on classpath instead of module path | Many expected named-module boundaries are lost. | Run the fixture as a named module. |
+| Internal package contains public types in an exported package | Every public type of the package is accessible. | Move implementations to an unexported package. |
+| VM options differ between CI and production | Test produces unrepresentative results. | Synchronize configuration; isolate tests without exception flags. |
+| No positive API test exists | Valid API could be closed off without detection. | Add a positive consumer test. |
 
-## 17. Checklist bảo vệ encapsulation
+## 17. Encapsulation Protection Checklist
 
-- Module được đóng gói thành **explicit named module**.
-- Module không bị chuyển thành **automatic module** hoặc **open module** ngoài dự kiến.
-- Chỉ các API package đã phê duyệt được unqualified export.
-- Qualified exports/opens chỉ cấp cho module đích hợp lệ.
-- Internal/implementation packages không bị export hay open ngoài ý muốn.
-- Test consumer thuộc một named module khác, không nằm trong module nguồn.
-- Positive compile test dùng được API hợp lệ.
-- Negative compile test bị từ chối vì đúng quy tắc export.
-- Negative runtime test xác nhận không được deep reflection từ caller ngoài allowlist.
-- Descriptor trong JAR cuối khớp policy; không chỉ kiểm tra source.
-- Các VM options như **--add-exports**, **--add-opens** được quản lý và không làm vô hiệu kiểm thử.
-- CI chạy lại các contract tests sau khi đổi descriptor, JDK hoặc cấu hình build.
+- The module is packaged as an **explicit named module**.
+- The module has not unintentionally become an **automatic module** or **open module**.
+- Only approved API packages have unqualified exports.
+- Qualified exports/opens are granted only to valid target modules.
+- Internal/implementation packages are not unintentionally exported or opened.
+- Consumer tests belong to a different named module, not inside the source module.
+- Positive compile tests can use the valid API.
+- Negative compile tests are rejected due to the proper export rule.
+- Negative runtime tests confirm deep reflection is disallowed for callers outside the allowlist.
+- The descriptor in the final JAR matches the policy; do not inspect source alone.
+- VM options such as **--add-exports** and **--add-opens** are controlled and do not invalidate tests.
+- CI reruns contract tests after changing descriptors, JDK, or build configuration.
 
-**Kiểm thử một module không lộ API ngoài ý muốn là kiểm thử một hợp đồng truy cập**, không phải chỉ kiểm tra tên package hay số lượng class public. Hãy kết hợp ba lớp bằng chứng: **negative compile tests**, **runtime reflection tests** và **ModuleDescriptor allowlist** trên artifact đã đóng gói. Cách làm này phát hiện cả trường hợp API công khai bị mở rộng vô tình lẫn trường hợp framework hoặc JVM options nới quyền reflection vượt thiết kế.
+**Testing that a module does not expose unintended APIs means testing an access contract**, not merely checking package names or counting public classes. Combine three layers of evidence: **negative compile tests**, **runtime reflection tests**, and a **ModuleDescriptor allowlist** on the packaged artifact. This approach catches both cases where the public API is accidentally expanded and cases where frameworks or JVM options relax reflection permissions beyond design intent.

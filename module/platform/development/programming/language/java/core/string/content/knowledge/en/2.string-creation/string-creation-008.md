@@ -1,10 +1,10 @@
-# `new String` và vì sao thường không cần sao chép một `String` đã có
+# `new String` and Why You Usually Don't Need to Copy an Existing `String`
 
-Trong Java, khi đã có một giá trị `String`, ta thường chỉ cần dùng lại tham chiếu tới nó. Viết `new String(existing)` tạo **đối tượng `String` khác nhưng có cùng nội dung** với `existing`. Vì `String` bất biến, việc tạo đối tượng mới này thường không giúp dữ liệu an toàn hơn và có thể gây chi phí cấp phát không cần thiết.
+In Java, when you already have a `String` value, you usually only need to reuse the reference to it. Writing `new String(existing)` creates a **different `String` object with the same content** as `existing`. Because `String` is immutable, creating this new object usually does not make the data any safer and can introduce unnecessary allocation overhead.
 
-Bài học phân biệt rõ **biến tham chiếu**, **danh tính đối tượng (identity)**, **giá trị nội dung**, và các trường hợp constructor `String` thật sự hữu ích.
+This lesson clearly distinguishes **reference variables**, **object identity**, **content value**, and the cases where a `String` constructor is genuinely useful.
 
-## 1. Gán tham chiếu khác với gọi `new String(...)`
+## 1. Assigning a Reference vs. Calling `new String(...)`
 
 ```java
 String original = "Java";
@@ -12,23 +12,23 @@ String alias = original;
 String copy = new String(original);
 ```
 
-- `original` tham chiếu đến một đối tượng `String` mang nội dung `"Java"`. Chuỗi literal được quản lý trong *string pool*.
-- `alias = original` sao chép **giá trị tham chiếu**. `original` và `alias` cùng trỏ đến một đối tượng; không tạo thêm `String`.
-- `copy = new String(original)` gọi constructor `String(String original)`. Nó tạo một đối tượng mới, có **nội dung bằng** `original` nhưng **danh tính khác**.
+- `original` references a `String` object carrying the content `"Java"`. String literals are managed in the *string pool*.
+- `alias = original` copies the **reference value**. `original` and `alias` point to the same object; no extra `String` is created.
+- `copy = new String(original)` calls the `String(String original)` constructor. It creates a new object that has **equal content** to `original` but **different identity**.
 
 ```text
 original ──┐
-           ├────────> đối tượng A: String "Java"
+           ├────────> object A: String "Java"
 alias ─────┘
 
-copy ────────────────> đối tượng B: String "Java"
+copy ────────────────> object B: String "Java"
 ```
 
-Lưu ý kỹ: «đối tượng mới» không đồng nghĩa với «chắc chắn sao chép toàn bộ mảng byte lưu trữ nội bộ». Java bảo đảm ngữ nghĩa tạo một đối tượng `String` mới; cách JVM lưu hay chia sẻ dữ liệu nội bộ là chi tiết triển khai, không phải cam kết của API.
+Note carefully: "a new object" does not mean "guaranteed to copy the entire internal backing byte array". Java guarantees the semantics of creating a new `String` object; how the JVM stores or shares internal data is an implementation detail, not an API guarantee.
 
-### Ví dụ chạy được trên Java 17+
+### Runnable Example on Java 17+
 
-Tạo tệp `StringCopyDemo.java`:
+Create the file `StringCopyDemo.java`:
 
 ```java
 public class StringCopyDemo {
@@ -45,14 +45,14 @@ public class StringCopyDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac StringCopyDemo.java
 java StringCopyDemo
 ```
 
-Kết quả chuẩn:
+Expected output:
 
 ```text
 true
@@ -61,15 +61,15 @@ true
 true
 ```
 
-Giải thích: `==` trên hai biến tham chiếu kiểm tra **cùng đối tượng hay không**, còn `String.equals` kiểm tra **cùng dãy ký tự hay không**. Vì thế `original == copy` sai nhưng `original.equals(copy)` đúng.
+Explanation: `==` on two reference variables checks **whether they are the same object**, whereas `String.equals` checks **whether they have the same character sequence**. Thus `original == copy` is false while `original.equals(copy)` is true.
 
-Khi so sánh nội dung, ưu tiên `a.equals(b)`. Nếu `a` có thể `null`, dùng `Objects.equals(a, b)` sau khi import `java.util.Objects`; hoặc đặt hằng ở vế trái như `"Java".equals(a)`. Không dựa vào `==` chỉ vì một số literal có thể cùng nằm trong pool.
+When comparing content, prefer `a.equals(b)`. If `a` might be `null`, use `Objects.equals(a, b)` after importing `java.util.Objects`; or place a constant on the left like `"Java".equals(a)`. Do not rely on `==` just because some literals may share the pool.
 
-## 2. `String` bất biến: vì sao không cần sao chép phòng vệ?
+## 2. `String` Is Immutable: Why Is Defensive Copying Unnecessary?
 
-Đối tượng `String` là *immutable*. API công khai thông thường không cung cấp thao tác chỉnh sửa dãy ký tự đã lưu bên trong đối tượng đó. Các phương thức `replace`, `concat`, `trim`, `substring`, `toUpperCase`… tạo hoặc trả về một **giá trị chuỗi kết quả**; chúng không làm biến đổi nội dung đối tượng nguồn. Một phương thức có thể trả về cùng tham chiếu khi không có gì thay đổi, tùy hợp đồng của phương thức.
+A `String` object is *immutable*. Standard public APIs provide no operations to modify the character sequence stored inside that object. Methods like `replace`, `concat`, `trim`, `substring`, `toUpperCase`, etc. create or return a **resulting string value**; they do not mutate the source object's content. A method may return the same reference when nothing changes, depending on the method's contract.
 
-Xét ví dụ `StringImmutabilityDemo.java`:
+Consider `StringImmutabilityDemo.java`:
 
 ```java
 public class StringImmutabilityDemo {
@@ -102,9 +102,9 @@ cat
 dog
 ```
 
-Ở ba dòng đầu, `replace` cho ra chuỗi `"bat"` còn cả `original` và `alias` vẫn thấy `"cat"`. Sau đó, lệnh `original = "dog"` chỉ đổi tham chiếu lưu trong **biến** `original`; `alias` vẫn trỏ đến đối tượng `"cat"` cũ. **Gán lại biến khác với sửa nội dung đối tượng.**
+In the first three lines, `replace` produces `"bat"` while both `original` and `alias` still see `"cat"`. Afterward, `original = "dog"` only changes the reference stored in the **variable** `original`; `alias` still points to the old `"cat"` object. **Reassigning a variable is different from mutating an object's content.**
 
-Vì thế, khi viết lớp chứa một trường `String`, ta thường không cần sao chép trong constructor và getter:
+Therefore, when writing a class with a `String` field, you normally do not need to copy in constructors and getters:
 
 ```java
 public final class UserLabel {
@@ -120,13 +120,13 @@ public final class UserLabel {
 }
 ```
 
-Đây là một lớp minh họa dùng trong chương trình khác, không có `main` riêng. Hai cách viết `this.label = new String(label)` và `return new String(label)` thường chỉ tạo thêm đối tượng mà không tăng mức bảo vệ nội dung. `final` bảo đảm trường `label` không bị gán lại sau khi khởi tạo; tính bất biến của chính đối tượng `String` là tính chất riêng.
+This is an illustrative class for use in another program, without its own `main`. Writing `this.label = new String(label)` and `return new String(label)` usually just creates extra objects without adding any content protection. `final` ensures the `label` field cannot be reassigned after initialization; the immutability of the `String` object itself is a separate property.
 
-Nếu nghiệp vụ yêu cầu `label` không được `null` hoặc không được rỗng, phải **kiểm tra giá trị đầu vào** phù hợp; việc bọc `new String(label)` không thay thế kiểm tra hợp lệ.
+If business logic requires `label` not to be `null` or empty, you must **validate the input** appropriately; wrapping with `new String(label)` does not replace validation.
 
-## 3. Tác động của String pool
+## 3. Impact of the String Pool
 
-*String pool* cho phép JVM dùng lại tham chiếu chuẩn tắc của literal và chuỗi đã intern. Ví dụ:
+The *String pool* lets the JVM reuse canonical references for literals and interned strings. For example:
 
 ```java
 String a = "hello";
@@ -138,49 +138,49 @@ System.out.println(a == c);      // false
 System.out.println(a.equals(c));  // true
 ```
 
-Ở đây `a` và `b` cùng trỏ tới literal đã intern, còn `new String("hello")` tạo đối tượng khác. Không cần viết `new String("hello")` để «kích hoạt» pool: literal đã thuộc cơ chế pool từ đầu.
+Here `a` and `b` both point to the interned literal, whereas `new String("hello")` creates a different object. There is no need to write `new String("hello")` to "activate" the pool: literals already belong to the pool mechanism from the start.
 
-Phương thức `intern()` trả về tham chiếu chuẩn tắc của chuỗi có nội dung tương ứng trong pool; nó có mục đích khác với `new String(String)`. Dùng `intern()` để ép `==` hoạt động trong logic nghiệp vụ thường gây ràng buộc thừa. `equals` diễn đạt đúng ý định so sánh nội dung.
+The `intern()` method returns the canonical reference of a string with matching content in the pool; it has a different purpose from `new String(String)`. Using `intern()` to force `==` to work in business logic usually introduces unnecessary coupling. `equals` expresses the intent of content comparison accurately.
 
-Nhớ rằng **không phải mọi chuỗi có cùng nội dung đều cùng tham chiếu**. Chuỗi được tính toán lúc chạy, đọc từ tệp, lấy từ API hoặc tạo từ các đối tượng khác có thể bằng nhau về nội dung nhưng khác identity.
+Remember that **not all strings with the same content share the same reference**. Strings computed at runtime, read from files, retrieved from APIs, or created from other objects can be equal in content yet differ in identity.
 
-## 4. Hệ quả khi lạm dụng `new String(existing)`
+## 4. Consequences of Overusing `new String(existing)`
 
-Cùng một nhu cầu đặt tên biến mới:
+Given the same need to declare a new variable:
 
 ```java
 String source = "Java Core";
-String first = source;             // Ưu tiên.
-String second = new String(source); // Thường dư thừa.
+String first = source;             // Preferred.
+String second = new String(source); // Usually redundant.
 ```
 
-Cả `first` và `second` đều cho nội dung `"Java Core"`. Tuy nhiên:
+Both `first` and `second` give the content `"Java Core"`. However:
 
-1. **Đối tượng mới**: theo ngữ nghĩa Java, biểu thức `new` tạo một đối tượng riêng, kéo theo khả năng cấp phát và thu gom rác thêm. JIT có thể tối ưu bỏ cấp phát khi không quan sát được, nên không thể khẳng định một mức overhead cố định trong mọi lần chạy.
-2. **Danh tính thay đổi**: `first == second` là `false` mặc dù `first.equals(second)` là `true`. Khi code vô tình phụ thuộc vào identity, bản sao mới có thể khiến hành vi khác đi.
-3. **Làm mờ ý nghĩa của code**: người đọc có thể nghĩ cần tách hai chuỗi để ngăn một bên sửa nội dung bên kia, trong khi `String` vốn bất biến.
-4. **Không xử lý `null` tốt hơn**: phép gán `String alias = source` chấp nhận `source == null`; ngược lại `new String((String) null)` ném `NullPointerException`. Ép kiểu trong ví dụ làm rõ overload `String(String)`.
+1. **New object**: by Java's semantics, the `new` expression creates a separate object, bringing potential extra allocation and garbage collection. The JIT compiler may optimize away unobservable allocations, so a fixed overhead across every run cannot be assumed.
+2. **Changed identity**: `first == second` is `false` even though `first.equals(second)` is `true`. When code accidentally depends on identity, a new copy can alter behavior.
+3. **Obscures code intent**: readers may think two strings must be separated to prevent one side from mutating the other, even though `String` is already immutable.
+4. **Worse `null` handling**: the assignment `String alias = source` accepts `source == null`; by contrast, `new String((String) null)` throws `NullPointerException`. The cast in the example disambiguates the `String(String)` overload.
 
-Hiếm khi một thiết kế thật sự cần *identity* riêng của `String`. Nếu có, yêu cầu này phải được diễn đạt cụ thể và xem xét cẩn thận vì so sánh, đồng bộ hoặc cấu trúc dữ liệu dựa trên identity của chuỗi dễ gây lỗi. Với dữ liệu văn bản thông thường, giá trị nội dung mới là điều quan trọng.
+A design rarely genuinely needs a separate `String` *identity*. If it does, that requirement should be stated explicitly and reviewed carefully because comparisons, synchronization, or data structures based on string identity are error-prone. For ordinary text data, content value is what matters.
 
-## 5. Khi nào dùng constructor `new String(...)`?
+## 5. When Should You Use `new String(...)` Constructors?
 
-Phân biệt loại đầu vào:
+Distinguish the input types:
 
-| Cách viết | Đầu vào / mục tiêu | Đánh giá |
+| Syntax | Input / Goal | Assessment |
 | --- | --- | --- |
-| `String b = a;` | `a` đã là `String`; dùng lại giá trị bất biến | **Nên dùng** trong trường hợp thường gặp |
-| `new String(a)` | `a` đã là `String`; tạo identity mới cùng nội dung | **Hầu như không cần** |
-| `new String(chars)` | `char[]` có thể bị thay đổi; chụp nội dung ký tự | **Có ích** khi chuyển mảng thành chuỗi |
-| `new String(bytes, StandardCharsets.UTF_8)` | Giải mã `byte[]` theo charset cụ thể | **Có ích** khi xử lý bytes |
-| `builder.toString()` | Lấy chuỗi từ `StringBuilder` | **Phù hợp**, không cần bọc `new String(...)` |
-| `new String()` | Tạo chuỗi rỗng | Dùng `""` đơn giản hơn |
+| `String b = a;` | `a` is already a `String`; reuse an immutable value | **Recommended** in normal cases |
+| `new String(a)` | `a` is already a `String`; create a new identity with the same content | **Almost never needed** |
+| `new String(chars)` | Mutable `char[]`; snapshot character content | **Useful** when converting an array to a string |
+| `new String(bytes, StandardCharsets.UTF_8)` | Decode `byte[]` with a specific charset | **Useful** when handling bytes |
+| `builder.toString()` | Obtain a string from `StringBuilder` | **Appropriate**, no need to wrap with `new String(...)` |
+| `new String()` | Create an empty string | Using `""` is simpler |
 
-### Vì sao mảng ký tự là trường hợp khác?
+### Why Is a Character Array a Different Case?
 
-`char[]` có thể thay đổi, còn `String` thì bất biến. Tạo `String` từ mảng lấy nội dung ở thời điểm gọi; dùng lại một tham chiếu `String` đã có không cần bước này. Ví dụ sau so sánh trực tiếp hai trường hợp:
+`char[]` is mutable, whereas `String` is immutable. Creating a `String` from an array captures its content at the moment of the call; reusing an existing `String` reference needs no such step. The following example compares both cases directly:
 
-Tạo tệp `StringSourceChoiceDemo.java`:
+Create the file `StringSourceChoiceDemo.java`:
 
 ```java
 public class StringSourceChoiceDemo {
@@ -201,7 +201,7 @@ public class StringSourceChoiceDemo {
 }
 ```
 
-Chạy `javac -encoding UTF-8 StringSourceChoiceDemo.java` rồi `java StringSourceChoiceDemo`:
+Run `javac -encoding UTF-8 StringSourceChoiceDemo.java` then `java StringSourceChoiceDemo`:
 
 ```text
 true
@@ -211,29 +211,29 @@ Java
 Kava
 ```
 
-`alias` chỉ sao chép tham chiếu, `redundant` tạo đối tượng chuỗi riêng dù nội dung bằng nhau. `fromArray` giữ giá trị `"Java"` sau khi mảng đổi thành `Kava`. Đó là lý do chuyển từ mảng có ý nghĩa, còn sao chép một `String` đã có thường dư thừa. Các bài về `char[]`, `byte[]` và `StringBuilder` trước đó trình bày chi tiết từng cơ chế chuyển đổi.
+`alias` only copies the reference, while `redundant` creates a separate string object despite having the same content. `fromArray` retains `"Java"` after the array changes to `Kava`. That is why converting from an array is meaningful, whereas copying an existing `String` is usually redundant. The earlier lessons on `char[]`, `byte[]`, and `StringBuilder` cover each conversion mechanism in detail.
 
-## 6. Chọn cách viết đúng theo mục tiêu
+## 6. Choosing the Right Pattern for Your Goal
 
-### Trường hợp A: dùng lại chuỗi sẵn có
+### Case A: Reusing an Existing String
 
 ```java
 String title = "Java";
 String displayTitle = title;
 ```
 
-Dùng lại tham chiếu. Không có nguy cơ một phép nối chuỗi sau đó làm sửa đối tượng cũ.
+Reuse the reference. There is no risk that a later string concatenation will mutate the old object.
 
-### Trường hợp B: tạo giá trị văn bản đã biến đổi
+### Case B: Producing a Transformed Text Value
 
 ```java
 String raw = " java ";
 String normalized = raw.trim().toUpperCase();
 ```
 
-`raw` vẫn có nội dung `" java "`, còn `normalized` có nội dung `"JAVA"`. Ta gọi phương thức xử lý để lấy **giá trị khác**, không sao chép `raw` rồi mong nó tự thay đổi.
+`raw` still has the content `" java "`, while `normalized` has the content `"JAVA"`. We call processing methods to get a **different value**, rather than copying `raw` and expecting it to mutate in place.
 
-### Trường hợp C: xây dựng chuỗi qua nhiều bước
+### Case C: Building a String Over Multiple Steps
 
 ```java
 StringBuilder builder = new StringBuilder();
@@ -243,9 +243,9 @@ builder.append("Java");
 String message = builder.toString();
 ```
 
-`message` chứa `"Hello, Java"`. `StringBuilder` thích hợp khi có nhiều lần bổ sung ký tự; `toString()` kết thúc việc xây dựng và cung cấp giá trị `String` bất biến. Không cần thêm `new String(message)`.
+`message` contains `"Hello, Java"`. `StringBuilder` is suitable when characters are appended multiple times; `toString()` finishes construction and provides an immutable `String` value. No `new String(message)` is needed.
 
-### Trường hợp D: cần kiểm tra tham số `String`
+### Case D: Validating a `String` Parameter
 
 ```java
 import java.util.Objects;
@@ -263,25 +263,25 @@ public final class Greeting {
 }
 ```
 
-Đây là lớp minh họa độc lập về thiết kế, không có `main`. `Objects.requireNonNull` đặt ra điều kiện đầu vào khác với vấn đề sao chép. Lưu trực tiếp và trả trực tiếp `String` là hợp lý vì `String` bất biến.
+This is a standalone design-illustration class without `main`. `Objects.requireNonNull` enforces an input precondition, which is separate from the question of copying. Storing and returning the `String` directly is sound because `String` is immutable.
 
-## 7. Những nhầm lẫn dễ gặp
+## 7. Common Misconceptions
 
-**«`b = a` thì sửa `b` sẽ sửa `a`?»** Không. Không có API sửa nội dung đối tượng `String` tại chỗ. Viết `b = b + "!"` làm `b` nhận giá trị/tham chiếu mới; `a` không bị thay đổi.
+**"With `b = a`, modifying `b` will modify `a`?"** No. There is no API to modify a `String` object's content in place. Writing `b = b + "!"` gives `b` a new value/reference; `a` is unchanged.
 
-**«`new String(a)` chắc chắn deep copy dữ liệu nội bộ?»** Không có bảo đảm công khai như vậy. Điều quan trọng ở cấp ngôn ngữ là object identity mới và nội dung chuỗi tương ứng. Không nên dựa vào cách JVM biểu diễn các ký tự trong bộ nhớ.
+**"`new String(a)` definitely deep-copies the internal data?"** There is no such public guarantee. What matters at the language level is a new object identity and matching string content. Do not rely on how the JVM represents characters in memory.
 
-**«Hai chuỗi cùng chữ thì `==` phải đúng?»** Sai. `equals` dùng để so nội dung. `==` có thể đúng với cùng literal hoặc cùng tham chiếu, nhưng không phải quy tắc tổng quát cho giá trị văn bản.
+**"If two strings have the same text, `==` must be true?"** False. `equals` is for comparing content. `==` can be true for the same literal or the same reference, but it is not a general rule for text values.
 
-**«Constructor của một lớp cần phòng vệ tham số `String` bằng `new String(name)`?»** Thường không. Gán lại biến của người gọi không thay đổi chuỗi được trường lưu giữ. Nếu tham số là `char[]` hay đối tượng mutable thì vấn đề khác.
+**"A class constructor must defensively copy a `String` parameter with `new String(name)`?"** Usually no. Reassigning the caller's variable does not alter the string held by the field. If the parameter were `char[]` or a mutable object, that would be a different matter.
 
-**«Hàm Java có thể thay đổi chuỗi của người gọi do truyền tham chiếu?»** Java truyền **giá trị** của tham số; với đối tượng, giá trị đó là tham chiếu. Gán lại biến tham số trong hàm không gán lại biến của người gọi, và chuỗi không có phương thức sửa nội dung tại chỗ.
+**"A Java method can mutate the caller's string because of pass-by-reference?"** Java passes parameters **by value**; for objects, that value is the reference. Reassigning the parameter variable inside the method does not reassign the caller's variable, and strings have no in-place mutation methods.
 
-**«`new String()` tốt hơn `""` vì tạo giá trị rỗng riêng?»** Với nhu cầu chuỗi rỗng thông thường, literal `""` ngắn, rõ nghĩa và tránh chủ động tạo wrapper thừa.
+**"`new String()` is better than `""` because it creates a dedicated empty value?"** For normal empty-string needs, the `""` literal is shorter, clearer, and avoids deliberately creating an extra wrapper.
 
-## 8. Tự kiểm tra
+## 8. Self-Check
 
-Dự đoán bốn dòng đầu ra:
+Predict the four lines of output:
 
 ```java
 String first = "core";
@@ -296,7 +296,7 @@ System.out.println(first == third);
 System.out.println(first.equals(third));
 ```
 
-Đáp án:
+Answer:
 
 ```text
 core
@@ -305,11 +305,11 @@ false
 true
 ```
 
-`second` được gán lại kết quả `concat`; `first` vẫn là `"core"`. `third` là đối tượng khác vì `new`, nhưng nội dung vẫn bằng `first`.
+`second` is reassigned the result of `concat`; `first` remains `"core"`. `third` is a different object because of `new`, yet its content still equals `first`.
 
-Hai câu hỏi tự đánh giá:
+Two self-assessment questions:
 
-1. Trong getter trả về một trường `private final String name`, `return new String(name)` có làm dữ liệu an toàn hơn không? **Không:** `String` đã bất biến.
-2. Có thể thay `new String(bytes, StandardCharsets.UTF_8)` bằng `String text = bytes` khi cần đọc dữ liệu mạng không? **Không:** `byte[]` không phải `String`; cần giải mã bytes theo charset thích hợp.
+1. In a getter returning a `private final String name` field, does `return new String(name)` make the data safer? **No:** `String` is already immutable.
+2. Can `new String(bytes, StandardCharsets.UTF_8)` be replaced with `String text = bytes` when reading network data? **No:** `byte[]` is not a `String`; bytes must be decoded with an appropriate charset.
 
-**Ghi nhớ:** `String b = a` dùng lại một giá trị bất biến; `new String(a)` tạo đối tượng `String` mới cùng nội dung, thường dư thừa. Constructor `String` hữu ích hơn khi đầu vào là **mảng ký tự, bytes hoặc dữ liệu phải chuyển đổi thành chuỗi**.
+**Remember:** `String b = a` reuses an immutable value; `new String(a)` creates a new `String` object with the same content, which is usually redundant. `String` constructors are genuinely useful when the input is **a character array, bytes, or data that must be converted into a string**.

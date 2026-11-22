@@ -1,61 +1,61 @@
-# Phép đổi hoa–thường có thể đổi độ dài chuỗi trong Java
+# Case Conversion Can Change String Length in Java
 
-## 1. Vấn đề cốt lõi: uppercase/lowercase không phải đổi từng char 1:1
+## 1. Core issue: uppercase/lowercase is not a 1:1 per-char replacement
 
-Trong một ứng dụng Java hỗ trợ nhiều ngôn ngữ, các phương thức `String.toUpperCase(Locale)` và `String.toLowerCase(Locale)` có thể tạo ra chuỗi **khác độ dài** với chuỗi nguồn. Lý do là Unicode có những quy tắc đổi hoa–thường mà **một ký tự Unicode có thể ánh xạ thành nhiều code point**, hoặc việc ánh xạ thay đổi theo ngôn ngữ và ngữ cảnh đứng trước/sau ký tự.
+In a Java application supporting multiple languages, `String.toUpperCase(Locale)` and `String.toLowerCase(Locale)` can produce a string of **different length** from the source string. The reason is that Unicode has case conversion rules where **a single Unicode character can map to multiple code points**, or the mapping changes depending on the language and surrounding context before/after the character.
 
-Ví dụ kinh điển:
-
-~~~text
-Đầu vào        : straße
-Chữ hoa ROOT   : STRASSE
-Độ dài Java    : 6 -> 7 (UTF-16 code units)
-Số code point  : 6 -> 7
-~~~
-
-Ký tự `ß` (U+00DF, German small sharp s) trong cách viết hoa toàn chuỗi theo Java thường biến thành **hai chữ S**. Vì thế, ý tưởng “đổi từng `char` sang chữ hoa mà không thay đổi số ký tự” là **sai** đối với xử lý chuỗi Unicode.
-
-Một ví dụ chiều ngược lại:
+Classic example:
 
 ~~~text
-Đầu vào               : İ (U+0130, Latin capital I with dot above)
-toLowerCase(ROOT)     : i + U+0307 (dấu chấm trên kết hợp)
-Độ dài UTF-16         : 1 -> 2
-Số code point         : 1 -> 2
-toLowerCase(tr-TR)    : i (U+0069), độ dài = 1
+Input          : straße
+ROOT uppercase : STRASSE
+Java length    : 6 -> 7 (UTF-16 code units)
+Code points    : 6 -> 7
 ~~~
 
-Như vậy, kết quả vừa phụ thuộc **dữ liệu Unicode**, vừa có thể phụ thuộc **Locale**. Người lập trình không nên giả định `uppercase.length() == original.length()`, kể cả khi mã chỉ gọi một phương thức đổi chữ trông đơn giản.
+The character `ß` (U+00DF, German small sharp s) when uppercased across the whole string in Java typically turns into **two S letters**. Therefore, the idea of "converting each `char` to uppercase without changing the number of characters" is **wrong** for Unicode string processing.
 
-Bài này tập trung vào **phép đổi hoa–thường và ảnh hưởng đến độ dài**: Unicode full case mapping, locale, `String.length()`, code point, vị trí chuỗi, giới hạn dữ liệu và lỗi thường gặp trong ứng dụng localization.
+An example in the reverse direction:
 
-## 2. Hai cấp xử lý: char đơn lẻ và String toàn chuỗi
+~~~text
+Input                 : İ (U+0130, Latin capital I with dot above)
+toLowerCase(ROOT)     : i + U+0307 (combining dot above)
+UTF-16 length         : 1 -> 2
+Code points           : 1 -> 2
+toLowerCase(tr-TR)    : i (U+0069), length = 1
+~~~
 
-Java cung cấp nhiều API đổi hoa–thường, nhưng hợp đồng của chúng khác nhau.
+Thus, the result depends both on **Unicode data** and potentially on **Locale**. Programmers should not assume `uppercase.length() == original.length()`, even when the code calls a seemingly simple case-conversion method.
 
-| API | Đầu vào/đầu ra | Có thể tạo nhiều code point không? |
+This lesson focuses on **case conversion and its impact on length**: Unicode full case mapping, locale, `String.length()`, code points, string positions, data limits, and common mistakes in localization applications.
+
+## 2. Two processing levels: single char vs. whole String
+
+Java provides multiple case-conversion APIs, but their contracts differ.
+
+| API | Input/output | Can it produce multiple code points? |
 | --- | --- | --- |
-| `Character.toUpperCase(char)` | Một `char` → một `char` | **Không** |
-| `Character.toUpperCase(int)` | Một code point → một code point | **Không** |
-| `Character.toLowerCase(int)` | Một code point → một code point | **Không** |
-| `String.toUpperCase(Locale)` | Toàn `String` → `String` mới | **Có** |
-| `String.toLowerCase(Locale)` | Toàn `String` → `String` mới | **Có** |
-| `String.toUpperCase()` / `toLowerCase()` | Toàn chuỗi, dựa vào default Locale | **Có** |
+| `Character.toUpperCase(char)` | One `char` → one `char` | **No** |
+| `Character.toUpperCase(int)` | One code point → one code point | **No** |
+| `Character.toLowerCase(int)` | One code point → one code point | **No** |
+| `String.toUpperCase(Locale)` | Whole `String` → new `String` | **Yes** |
+| `String.toLowerCase(Locale)` | Whole `String` → new `String` | **Yes** |
+| `String.toUpperCase()` / `toLowerCase()` | Whole string, based on default Locale | **Yes** |
 
-### 2.1. Vì sao Character không đủ cho mọi văn bản?
+### 2.1. Why is Character insufficient for all text?
 
-Các phương thức `Character.toUpperCase(int)` chỉ có thể trả **một giá trị `int`**. Chúng không thể biểu diễn trường hợp một code point thành **hai code point** như ký tự `ß` viết hoa toàn chuỗi. Điều tương tự xảy ra với ánh xạ cần **ngữ cảnh** của cả chuỗi, chẳng hạn sigma trong tiếng Hy Lạp.
+Methods like `Character.toUpperCase(int)` can only return **a single `int` value**. They cannot represent cases where one code point becomes **two code points**, such as `ß` uppercased in a whole string. The same applies to mappings requiring **context** from the whole string, such as sigma in Greek.
 
-Ví dụ minh họa, được đặt trong một phương thức:
+Illustrative example, placed inside a method:
 
 ~~~java
 String whole = "\u00DF".toUpperCase(Locale.ROOT); // "SS"
-int simple = Character.toUpperCase(0x00DF);      // U+00DF trong ví dụ
+int simple = Character.toUpperCase(0x00DF);      // U+00DF in example
 ~~~
 
-Đoạn này cần `import java.util.Locale;`. Không được kết luận rằng `Character.toUpperCase` và `String.toUpperCase(Locale)` có cùng hành vi chỉ vì cả hai tên đều là “toUpperCase”.
+This snippet requires `import java.util.Locale;`. Do not conclude that `Character.toUpperCase` and `String.toUpperCase(Locale)` share the same behavior just because both names are "toUpperCase".
 
-**Tình huống nguy hiểm:** duyệt bằng vòng `char` rồi viết:
+**Dangerous pattern:** iterating with a `char` loop and writing:
 
 ~~~java
 for (int i = 0; i < source.length(); i++) {
@@ -63,32 +63,32 @@ for (int i = 0; i < source.length(); i++) {
 }
 ~~~
 
-Đây chỉ là **snippet minh họa**, giả sử `source` là `String` và `out` là `StringBuilder`. Cách này có thể bỏ qua full mappings, xử lý sai ký tự supplementary nếu tách surrogate, không áp dụng ngữ cảnh ngôn ngữ, và không tương đương với `source.toUpperCase(locale)`.
+This is only an **illustrative snippet**, assuming `source` is a `String` and `out` is a `StringBuilder`. This approach can skip full mappings, mishandle supplementary characters if surrogates are split, ignore linguistic context, and is not equivalent to `source.toUpperCase(locale)`.
 
-**Trong phần lớn trường hợp xử lý văn bản**, hãy gọi `String.toUpperCase(locale)` / `String.toLowerCase(locale)` trên **toàn chuỗi**.
+**In most text processing scenarios**, call `String.toUpperCase(locale)` / `String.toLowerCase(locale)` on the **entire string**.
 
-### 2.2. String là immutable, không thay đổi giá trị nguồn
+### 2.2. String is immutable and does not mutate the source value
 
 ~~~java
 String original = "Java";
 String upper = original.toUpperCase(Locale.ROOT);
 ~~~
 
-`original` vẫn là `"Java"`; `upper` là `"JAVA"`. Phương thức trả một chuỗi kết quả, không sửa `String` gốc. Khi so sánh length, hãy so giữa hai **biến khác nhau**, không chờ `original.length()` tự đổi.
+`original` remains `"Java"`; `upper` is `"JAVA"`. The method returns a resulting string without modifying the original `String`. When comparing lengths, compare between two **different variables**, rather than expecting `original.length()` to change by itself.
 
-## 3. Vì sao chữ ß khiến uppercase dài hơn?
+## 3. Why does ß make uppercase longer?
 
-Đối với `straße` (tiếng Đức):
+For `straße` (German):
 
 ~~~text
-Các code point gốc:
+Original code points:
 U+0073 U+0074 U+0072 U+0061 U+00DF U+0065
 
-Các code point viết hoa theo ROOT:
+ROOT uppercase code points:
 U+0053 U+0054 U+0052 U+0041 U+0053 U+0053 U+0045
 ~~~
 
-Đầu vào có 6 code point, đầu ra có 7. Vì tất cả code point trong hai chuỗi này đều thuộc BMP và không cần surrogate pair, nên:
+The input has 6 code points, and the output has 7. Because all code points in these two strings belong to the BMP and require no surrogate pairs:
 
 ~~~java
 String original = "stra\u00DFe";
@@ -97,116 +97,116 @@ System.out.println(original.length()); // 6
 System.out.println(upper.length());    // 7
 ~~~
 
-Ví dụ này nằm trong phương thức, cần import `Locale`. Trong dữ liệu chữ Đức còn tồn tại chữ hoa `ẞ` (U+1E9E), nhưng **không tự suy luận rằng mọi phép đổi chữ hoa toàn chuỗi của Java phải chọn `ẞ`**. Ở chương trình đã kiểm chứng với JDK hiện tại, `String.toUpperCase(Locale.ROOT)` ánh xạ `ß` thành `SS`.
+This example is inside a method and requires importing `Locale`. German typography also includes capital `ẞ` (U+1E9E), but **do not assume every full-string uppercase operation in Java must choose `ẞ`**. In programs verified on current JDKs, `String.toUpperCase(Locale.ROOT)` maps `ß` to `SS`.
 
-Điều này cũng cho thấy phép đổi không luôn **đảo ngược được**:
+This also shows that conversion is not always **reversible**:
 
 ~~~text
 straße -> STRASSE -> strasse
 ~~~
 
-Chuỗi cuối `strasse` **khác** `straße`, dù hai chuỗi có thể liên quan về cách đọc và cách viết. Vì vậy không nên dùng uppercase/lowercase rồi kỳ vọng khôi phục lại đúng bản gốc.
+The final string `strasse` is **different** from `straße`, even though the two strings may be related in pronunciation and spelling. Therefore, do not uppercase/lowercase and expect to restore the exact original.
 
-### 3.1. Character.toUpperCase không thực hiện phép mở rộng này
+### 3.1. Character.toUpperCase does not perform this expansion
 
 ~~~java
 Character.toUpperCase(0x00DF)
 ~~~
 
-Trong môi trường Java đã kiểm thử, giá trị trả là `U+00DF`, vì API simple mapping không trả được hai code point `U+0053 U+0053`. Nếu một ứng dụng tự chuyển từng `char`, kết quả có thể khác cách Unicode full mapping đã được `String` thực hiện.
+In tested Java environments, the return value is `U+00DF`, because the simple mapping API cannot return two code points `U+0053 U+0053`. If an application converts one `char` at a time, the result may differ from the Unicode full mapping performed by `String`.
 
-## 4. İ và i: kết quả còn tùy Locale
+## 4. İ and i: results also depend on Locale
 
-Một trường hợp nổi tiếng là các chữ I trong tiếng Thổ Nhĩ Kỳ và Azerbaijani. Unicode chứa ít nhất những giá trị cần phân biệt:
+A well-known case involves the letters I in Turkish and Azerbaijani. Unicode contains at least these values to distinguish:
 
-| Ký tự | Code point | Ghi chú |
+| Character | Code point | Notes |
 | --- | --- | --- |
 | `I` | U+0049 | Latin capital I |
 | `i` | U+0069 | Latin small i |
 | `İ` | U+0130 | Latin capital I with dot above |
 | `ı` | U+0131 | Latin small dotless i |
-| Dấu chấm trên kết hợp | U+0307 | Combining dot above |
+| Combining dot above | U+0307 | Combining dot above |
 
-Với `U+0130`:
+For `U+0130`:
 
-- `"\u0130".toLowerCase(Locale.ROOT)` tạo **`U+0069 U+0307`** (hai code point). Phép đổi làm `length()` tăng từ 1 lên 2.
-- `"\u0130".toLowerCase(Locale.forLanguageTag("tr-TR"))` tạo **`U+0069`** (một code point).
-- `"i".toUpperCase(Locale.ROOT)` tạo **`U+0049`**.
-- `"i".toUpperCase(Locale.forLanguageTag("tr-TR"))` tạo **`U+0130`**.
+- `"\u0130".toLowerCase(Locale.ROOT)` produces **`U+0069 U+0307`** (two code points). The conversion increases `length()` from 1 to 2.
+- `"\u0130".toLowerCase(Locale.forLanguageTag("tr-TR"))` produces **`U+0069`** (one code point).
+- `"i".toUpperCase(Locale.ROOT)` produces **`U+0049`**.
+- `"i".toUpperCase(Locale.forLanguageTag("tr-TR"))` produces **`U+0130`**.
 
-Đây không phải lỗi của Java; nó phản ánh **quy tắc bản địa hóa và full case mapping**. Nếu đổi chữ hoa/thường mà **không truyền `Locale`**, phương thức không tham số dùng default locale của JVM. Một máy chủ đặt `tr-TR` có thể sinh kết quả khác máy đặt `en-US`.
+This is not a Java bug; it reflects **localization rules and full case mapping**. If you change case **without passing a `Locale`**, the parameterless method uses the JVM default locale. A server set to `tr-TR` can produce different results from one set to `en-US`.
 
-Ví dụ có rủi ro:
+Risky example:
 
 ~~~java
 String normalized = userInput.toLowerCase();
 ~~~
 
-Trong code minh họa này, việc dựa vào default locale có thể không phù hợp với một khóa dữ liệu cần quy tắc ổn định. Nên lựa chọn:
+In this illustrative code, relying on the default locale can be inappropriate for a data key needing stable rules. You should choose:
 
-- Với **văn bản hiển thị theo người dùng**: truyền locale phù hợp, ví dụ `toLowerCase(userLocale)`.
-- Với **quy tắc mã định danh cố định**: xác định chính sách chuẩn hóa/canonicalization của hệ thống, thường bắt đầu bằng `Locale.ROOT` nếu cần xử lý chữ hoa/thường kiểu ngôn ngữ trung tính, nhưng **không coi đó là lời giải đầy đủ cho Unicode case folding và bảo mật định danh**.
-- Với **giá trị cần giữ nguyên** (mật khẩu, chữ ký, token phân biệt hoa thường, ID có contract case-sensitive): không tự đổi case.
+- For **user-displayed text**: pass the appropriate locale, such as `toLowerCase(userLocale)`.
+- For **fixed identifier rules**: define the system's normalization/canonicalization policy, often starting with `Locale.ROOT` if language-neutral casing is needed, though **do not treat it as a complete solution for Unicode case folding and identifier security**.
+- For **values that must remain unchanged** (passwords, signatures, case-sensitive tokens, IDs with a case-sensitive contract): do not alter case automatically.
 
-`Locale.ROOT` giúp loại bỏ phụ thuộc vào *default locale*, nhưng không có nghĩa mọi ký tự chuyển đơn giản 1:1 hoặc mọi ngôn ngữ đều có kết quả đúng ý nghĩa văn hóa.
+`Locale.ROOT` removes dependence on the *default locale*, but does not mean every character maps 1:1 or every language gets culturally appropriate results.
 
-## 5. Ngữ cảnh ký tự cũng ảnh hưởng đến kết quả
+## 5. Character context also affects the result
 
-Unicode có các ánh xạ đổi case phụ thuộc vị trí trong từ. Một ví dụ là chữ sigma viết hoa của tiếng Hy Lạp:
+Unicode has case mappings that depend on position within a word. One example is the Greek capital sigma:
 
 ~~~text
-Đầu vào code point : U+039F U+03A3   (ΟΣ)
-Viết thường ROOT   : U+03BF U+03C2   (ος)
+Input code points  : U+039F U+03A3   (ΟΣ)
+ROOT lowercase     : U+03BF U+03C2   (ος)
 ~~~
 
-Ở cuối từ, sigma thường được đổi thành **final sigma** `U+03C2` thay vì sigma thường `U+03C3`. Việc đổi case tại từng code point riêng rẽ không có đủ **ngữ cảnh** để luôn chọn quy tắc đúng.
+At the end of a word, sigma typically converts to **final sigma** `U+03C2` instead of regular sigma `U+03C3`. Converting case on each code point in isolation lacks the **context** to always pick the right rule.
 
-Trong ví dụ này số code point và số UTF-16 code units **không đổi**, nhưng ý nghĩa quan trọng vẫn là: **full case conversion có thể phụ thuộc cả chuỗi**, không phải phép toán độc lập trên từng ký tự.
+In this example the number of code points and UTF-16 code units **does not change**, yet the key takeaway remains: **full case conversion can depend on the whole string**, not an independent per-character operation.
 
-Một số locale khác như Lithuanian cũng có quy tắc dấu kết hợp trong chuyển case; đặc biệt các ký tự có dấu trên dưới có thể khiến chuỗi kết quả có thêm dấu tổ hợp. Do đó không nên suy luận hành vi của toàn bộ Unicode chỉ từ ASCII A–Z.
+Other locales such as Lithuanian also have combining-mark rules during case conversion; in particular, characters with accents above/below can cause the output string to gain combining marks. Thus, one must not extrapolate the behavior of all Unicode from ASCII A–Z alone.
 
-## 6. length, codePointCount và độ dài hiển thị khác nhau
+## 6. length, codePointCount, and visual length differ
 
-`String.length()` của Java đếm **đơn vị mã UTF-16**, không phải số ký tự người dùng nhìn thấy. `String.codePointCount(0, s.length())` đếm **Unicode code point** trong khoảng chỉ số UTF-16 đã chọn. **Grapheme cluster** là cụm ký tự người dùng cảm nhận, có thể gồm nhiều code point.
+Java's `String.length()` counts **UTF-16 code units**, not user-visible characters. `String.codePointCount(0, s.length())` counts **Unicode code points** in the selected UTF-16 index range. A **grapheme cluster** is a user-perceived character unit, which may consist of multiple code points.
 
-Khi đổi case, cả ba phép đo có thể thay đổi theo những cách khác nhau:
+When changing case, all three measurements can change in different ways:
 
-| Trường hợp | `length()` trước → sau | `codePointCount` trước → sau | Giải thích |
+| Case | `length()` before → after | `codePointCount` before → after | Explanation |
 | --- | --- | --- | --- |
-| `straße` → `STRASSE` | 6 → 7 | 6 → 7 | `ß` trở thành `SS` |
-| `İ` → `i` + U+0307 với ROOT | 1 → 2 | 1 → 2 | Một code point thành hai |
-| `İ` → `i` với `tr-TR` | 1 → 1 | 1 → 1 | Locale có quy tắc khác |
-| `i` → `İ` với `tr-TR` | 1 → 1 | 1 → 1 | Code point đổi, độ dài giữ |
-| `ΟΣ` → `ος` | 2 → 2 | 2 → 2 | Thay code point theo ngữ cảnh |
+| `straße` → `STRASSE` | 6 → 7 | 6 → 7 | `ß` becomes `SS` |
+| `İ` → `i` + U+0307 with ROOT | 1 → 2 | 1 → 2 | One code point becomes two |
+| `İ` → `i` with `tr-TR` | 1 → 1 | 1 → 1 | Locale has a different rule |
+| `i` → `İ` with `tr-TR` | 1 → 1 | 1 → 1 | Code point changes, length stays |
+| `ΟΣ` → `ος` | 2 → 2 | 2 → 2 | Code point changes by context |
 
-**Lưu ý với Unicode supplementary:** một code point ngoài BMP chiếm **hai `char`** trong UTF-16. Nếu phép đổi case thay thế code point có số đơn vị UTF-16 khác, `length()` có thể thay đổi **không cùng mức** với thay đổi số code point. Hai độ đo này không đồng nhất.
+**Note on supplementary Unicode:** a code point outside the BMP takes **two `char`s** in UTF-16. If a case conversion replaces a code point with one having a different number of UTF-16 code units, `length()` can change **by a different amount** than the code point count. These two metrics are not identical.
 
-**Lưu ý với dấu tổ hợp:** `i` + `U+0307` có hai code point nhưng có thể được người dùng nhận thức như một chữ có dấu chấm; `codePointCount` không phải bộ đếm grapheme cluster. Với các chuỗi emoji có ZWJ/variation selector hoặc ký tự có dấu, cần chính sách phân đoạn grapheme riêng nếu ứng dụng thật sự giới hạn theo số ký tự nhìn thấy.
+**Note on combining marks:** `i` + `U+0307` has two code points yet may be perceived by users as a single dotted letter; `codePointCount` is not a grapheme cluster counter. For emoji sequences with ZWJ/variation selectors or accented characters, a dedicated grapheme segmentation policy is needed if the application genuinely limits by visible character count.
 
-### 6.1. Độ dài byte cũng không thể suy từ length()
+### 6.1. Byte length cannot be inferred from length() either
 
-Khi lưu hay truyền qua UTF-8, số byte được tính riêng:
+When storing or transmitting over UTF-8, byte counts are computed separately:
 
 ~~~java
 int bytes = value.getBytes(
         java.nio.charset.StandardCharsets.UTF_8).length;
 ~~~
 
-Đây là đoạn minh họa, `value` là `String` đã khai báo. Với `straße`:
+This is an illustrative snippet, where `value` is a declared `String`. For `straße`:
 
-- Có **6** code unit UTF-16.
-- Trong UTF-8, năm chữ ASCII và một `ß` (hai byte) tạo **7 byte**.
-- `STRASSE` có **7** code unit UTF-16 và **7 byte UTF-8**.
+- There are **6** UTF-16 code units.
+- In UTF-8, five ASCII letters and one `ß` (two bytes) yield **7 bytes**.
+- `STRASSE` has **7** UTF-16 code units and **7 UTF-8 bytes**.
 
-Ví dụ này minh họa thú vị rằng **độ dài Java tăng nhưng số byte UTF-8 không đổi**. Với `U+0130` chuyển thành `i` + `U+0307`, độ dài Java tăng từ 1 đến 2, trong khi UTF-8 tăng từ 2 byte lên 3 byte.
+This example nicely illustrates that **Java length increases while UTF-8 byte count stays unchanged**. With `U+0130` turning into `i` + `U+0307`, Java length increases from 1 to 2, while UTF-8 increases from 2 bytes to 3 bytes.
 
-Đừng xem byte count, code unit count, code point count hay grapheme count là các phép đo tương đương. Nếu dữ liệu chứa surrogate lẻ hoặc encoding đầu ra có chính sách thay thế ký tự, việc tính byte còn tùy cách encoder được cấu hình.
+Do not treat byte count, code unit count, code point count, or grapheme count as equivalent metrics. If data contains lone surrogates or the output encoding has a character replacement policy, byte calculation also depends on how the encoder is configured.
 
-## 7. Chương trình Java 17 hoàn chỉnh: đo đầu ra chính xác
+## 7. Complete Java 17 program: measuring output accurately
 
-Để không phụ thuộc cách terminal gõ chữ Đức, Thổ Nhĩ Kỳ và Hy Lạp, chương trình dùng **Unicode escape trong Java source** và in **mã code point dạng `U+...`**. Ví dụ này có thể chạy với JDK 17 trở lên và không cần thư viện ngoài.
+To avoid depending on how a terminal types German, Turkish, and Greek characters, the program uses **Unicode escapes in Java source** and prints **code points in `U+...` format**. This example runs on JDK 17 or later without external libraries.
 
-**Tệp `CaseLengthDemo.java`:**
+**File `CaseLengthDemo.java`:**
 
 ~~~java
 import java.util.Locale;
@@ -251,14 +251,14 @@ public class CaseLengthDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 CaseLengthDemo.java
 java CaseLengthDemo
 ~~~
 
-**Stdout đã kiểm tra** với dữ liệu Unicode của JDK đã thử:
+**Verified stdout** with the tested JDK's Unicode data:
 
 ~~~text
 german original: length=6, codePoints=6, hex=U+0073 U+0074 U+0072 U+0061 U+00DF U+0065
@@ -273,27 +273,27 @@ sharp s vs SS equalsIgnoreCase: false
 Character.toUpperCase(sharp s): U+00DF
 ~~~
 
-**Giải thích theo từng nhóm:**
+**Explanation by group:**
 
-1. **German:** chuỗi gồm 6 code point, `ß` trở thành `SS`, kết quả 7 code point. Phương thức `Character.toUpperCase(0x00DF)` không thực hiện mở rộng `SS`.
-2. **Dotted I:** ký tự `U+0130` thành `U+0069 U+0307` khi lower theo ROOT, tăng từ 1 đến 2. Cùng đầu vào lower theo Thổ Nhĩ Kỳ chỉ ra `U+0069`.
-3. **i:** viết hoa theo ROOT ra `U+0049`, theo Thổ Nhĩ Kỳ ra `U+0130`. Cả hai có độ dài 1 nhưng **khác code point**.
-4. **Greek:** `U+039F U+03A3` chuyển thành `U+03BF U+03C2`, chứng minh tính phụ thuộc ngữ cảnh cuối từ.
-5. **equalsIgnoreCase:** `"ß".equalsIgnoreCase("SS")` là `false` trong Java vì `equalsIgnoreCase` không phải phép chuẩn hóa full Unicode case folding để ghép một code point thành hai chữ.
-6. **Hex output:** dùng `Locale.ROOT` khi format mã hex và in code point rõ ràng, tránh nhầm do terminal font hoặc thiết lập ngôn ngữ.
+1. **German:** 6-code-point string, `ß` becomes `SS`, resulting in 7 code points. `Character.toUpperCase(0x00DF)` does not perform the `SS` expansion.
+2. **Dotted I:** `U+0130` becomes `U+0069 U+0307` when lowercased with ROOT, growing from 1 to 2. The same input lowercased in Turkish outputs only `U+0069`.
+3. **i:** uppercased with ROOT outputs `U+0049`, with Turkish outputs `U+0130`. Both have length 1 but **different code points**.
+4. **Greek:** `U+039F U+03A3` converts to `U+03BF U+03C2`, demonstrating word-final context dependency.
+5. **equalsIgnoreCase:** `"ß".equalsIgnoreCase("SS")` is `false` in Java because `equalsIgnoreCase` is not a full Unicode case-folding normalization that matches one code point to two letters.
+6. **Hex output:** uses `Locale.ROOT` when formatting hex codes and prints explicit code points, avoiding confusion from terminal fonts or language settings.
 
-Đây là ví dụ kiểm tra **Unicode case mapping**, không phải tài liệu liệt kê mọi quy tắc Unicode. Các ánh xạ Unicode có thể được cập nhật giữa các phiên bản JDK; nên ghim phiên bản runtime trong kiểm thử snapshot nếu ứng dụng phụ thuộc đầu ra chính xác của mọi ký tự.
+This is an example testing **Unicode case mapping**, not an exhaustive catalog of all Unicode rules. Unicode mappings can be updated across JDK versions; pin the runtime version in snapshot tests if the application depends on exact output for every character.
 
-## 8. Vì sao chuyển case có thể gây lỗi khi cắt và đánh dấu văn bản?
+## 8. Why can case conversion cause bugs when slicing and highlighting text?
 
-Nhiều API `String` nhận **chỉ số UTF-16**, trong đó có:
+Many `String` APIs take **UTF-16 indices**, including:
 
 - `substring(begin, end)`
 - `charAt(index)`
-- `codePointAt(index)` (tham số vẫn là chỉ số UTF-16)
-- `indexOf(...)` (giá trị trả về vẫn là chỉ số UTF-16)
+- `codePointAt(index)` (parameter is still a UTF-16 index)
+- `indexOf(...)` (return value is still a UTF-16 index)
 
-Giả sử bạn tìm từ khóa trong `straße`, rồi biến đổi toàn chuỗi thành `STRASSE`:
+Suppose you search for a keyword in `straße`, then transform the whole string to `STRASSE`:
 
 ~~~text
 Original:  s t r a ß e
@@ -302,138 +302,138 @@ Uppercase: S T R A S S E
 UTF-16:    0 1 2 3 4 5 6
 ~~~
 
-Vị trí chữ `e` đã chuyển từ **index 5 sang index 6**. Nếu ứng dụng giữ offset/selection/annotation từ chuỗi cũ mà đem áp dụng lên chuỗi mới, vùng được tô sáng có thể sai.
+The position of `e` shifted from **index 5 to index 6**. If an application keeps offsets/selections/annotations from the old string and applies them to the new string, the highlighted region can be wrong.
 
-### 8.1. Index được tính trên chuỗi nào thì dùng trên chuỗi đó
+### 8.1. Use indices only on the string they were computed on
 
-Các lựa chọn an toàn:
+Safe options:
 
-1. Chỉ tìm kiếm và hiển thị trên cùng một **phiên bản văn bản** mà index được sinh ra.
-2. Nếu phải hiển thị văn bản đã chuyển case, hãy tính lại index trên kết quả **hoặc** duy trì bảng ánh xạ vị trí từ bản gốc sang bản được chuyển đổi; không suy đoán offset theo phép cộng cố định.
-3. Khi nhận offset từ UI hoặc thư viện khác, xác định đó là **UTF-16 offset**, **code point index**, **grapheme index** hay **byte offset**.
-4. Với highlight dựa trên so khớp không phân biệt hoa thường, dùng công cụ tìm kiếm/collation và cơ chế theo dõi nguồn phù hợp; đừng chỉ uppercase hai chuỗi rồi dùng index kết quả như index gốc.
+1. Search and display only on the same **version of the text** on which indices were generated.
+2. If you must display case-converted text, recompute indices on the result **or** maintain an offset mapping table from original to transformed text; do not guess offsets by fixed addition.
+3. When receiving offsets from a UI or another library, identify whether they are **UTF-16 offsets**, **code point indices**, **grapheme indices**, or **byte offsets**.
+4. For highlighting based on case-insensitive matching, use appropriate search/collation tools and source-tracking mechanisms; do not simply uppercase two strings and treat resulting indices as original indices.
 
-**Ngay cả khi code point count không đổi**, chữ viết ngoài BMP hoặc việc chuẩn hóa Unicode có thể tạo thay đổi UTF-16 offsets. Một phép biến đổi văn bản bất kỳ phải được xem là có thể làm lệch index đã lưu.
+**Even when code point count stays unchanged**, non-BMP scripts or Unicode normalization can shift UTF-16 offsets. Any text transformation must be treated as potentially invalidating stored indices.
 
-### 8.2. Không cắt chuỗi trước rồi case-convert tùy tiện
+### 8.2. Do not arbitrarily split a string before case-converting
 
-Nếu tách chuỗi ngay trước một ký tự có ngữ cảnh (ví dụ sigma), kết quả case mapping của mỗi mảnh có thể khác việc xử lý toàn câu. Chia văn bản thành từng `char`, từng code point hoặc từng đoạn tùy tiện trước khi đổi case có thể khiến ngữ cảnh **không còn đầy đủ**.
+If you split a string right before a context-sensitive character (such as sigma), the case mapping result of each fragment may differ from processing the full sentence. Splitting text into individual `char`s, code points, or arbitrary chunks before changing case can make context **incomplete**.
 
-Đặc biệt với giao diện đa ngôn ngữ, hãy quyết định rõ thứ tự: chuẩn hóa theo chính sách, chuyển case phù hợp locale, tìm/đánh dấu, rồi tính giới hạn vị trí sau biến đổi nếu mục tiêu là chuỗi kết quả. Không mặc nhiên dựa vào thao tác từng `char`.
+Especially in multilingual UIs, decide the order clearly: normalize per policy, convert case with the appropriate locale, search/mark, and then compute position bounds after transformation if targeting the resulting string. Do not rely on per-`char` operations by default.
 
-## 9. Độ dài tối đa, lưu trữ và validation
+## 9. Maximum length, storage, and validation
 
-### 9.1. Giới hạn nên áp dụng trước hay sau chuyển case?
+### 9.1. Should length limits apply before or after case conversion?
 
-Điều này phụ thuộc **dữ liệu nào được lưu và dùng làm canonical value**.
+This depends on **which data is stored and used as the canonical value**.
 
-Ví dụ tài khoản có tên hiển thị giới hạn `6` code points trước khi đổi case:
+For example, an account display name capped at `6` code points before case conversion:
 
 ~~~text
 Input       : straße   -> 6 code points
 Upper ROOT  : STRASSE  -> 7 code points
 ~~~
 
-Nếu hệ thống lưu **bản uppercase** vào cột/field có giới hạn 6 đơn vị UTF-16, validate input ở trước phép đổi case không đủ: kết quả 7 đơn vị sẽ vượt giới hạn. Ngược lại, nếu hệ thống lưu nguyên văn và chỉ uppercase để **hiển thị**, không cần bắt người dùng đổi tên chỉ vì chuỗi hiển thị tăng độ dài.
+If the system stores the **uppercase version** in a column/field limited to 6 UTF-16 units, validating the input before case conversion is insufficient: the 7-unit result will exceed the limit. Conversely, if the system stores the original text and uppercases only for **display**, there is no need to force the user to rename just because the display string grew.
 
-Quy tắc thực hành:
+Practical rules:
 
-- **Nếu lưu bản đã chuẩn hóa:** validate **sau** khi chuẩn hóa/case mapping, theo đúng đơn vị giới hạn của storage/contract.
-- **Nếu lưu bản gốc:** kiểm tra bản gốc theo giới hạn nhập; bản hiển thị là sản phẩm phụ cần được render/layout phù hợp.
-- **Nếu có giới hạn UTF-8 byte:** đo byte của chính chuỗi sẽ lưu/trao đổi.
-- **Nếu giới hạn UI theo ký tự người dùng cảm nhận:** áp dụng Unicode grapheme segmentation, không dùng `length()` làm đại diện.
-- **Nếu cần Unicode scalar values hợp lệ:** kiểm tra surrogate lẻ trước khi chuyển đổi/encode; việc đổi chữ không tự xác thực dữ liệu malformed.
+- **If storing the normalized form:** validate **after** normalization/case mapping, in the exact unit of the storage/contract limit.
+- **If storing the original:** validate the original against input limits; the display form is a derivative that needs appropriate rendering/layout.
+- **If there is a UTF-8 byte limit:** measure bytes of the exact string to be stored/exchanged.
+- **If the UI limits by user-perceived characters:** apply Unicode grapheme segmentation, not `length()` as a proxy.
+- **If valid Unicode scalar values are required:** check for lone surrogates before converting/encoding; case conversion does not validate malformed data by itself.
 
-Đừng cắt bản uppercase thành 6 `char` để “cho vừa”: ngoài việc làm mất dữ liệu, với ký tự supplementary còn có nguy cơ cắt đôi surrogate pair.
+Do not truncate the uppercase version to 6 `char`s just to "make it fit": besides losing data, with supplementary characters there is a risk of splitting a surrogate pair in half.
 
-### 9.2. Tính Unicode normalization trước hay sau?
+### 9.2. Apply Unicode normalization before or after?
 
-Các biểu diễn Unicode khác nhau có thể trông giống nhau nhưng có số code point và byte khác nhau. `java.text.Normalizer` hỗ trợ NFC, NFD và các dạng chuẩn hóa khác. Khi thiết kế canonicalization:
+Different Unicode representations can look identical yet have different code point and byte counts. `java.text.Normalizer` supports NFC, NFD, and other normalization forms. When designing canonicalization:
 
-1. Xác định **chính sách chuẩn hóa** (nếu có), ví dụ NFC, cho loại dữ liệu cụ thể.
-2. Chọn **Locale** hoặc quy tắc case folding rõ ràng.
-3. Quy định thứ tự biến đổi, kiểm thử các ký tự có dấu/tổ hợp/locale đặc thù.
-4. Validate kết quả cuối cùng theo **đúng đại lượng** và giới hạn của storage.
-5. Giữ bản gốc nếu nghiệp vụ cần hiển thị hay audit nguyên văn.
+1. Define the **normalization policy** (if any), such as NFC, for the specific data type.
+2. Choose an explicit **Locale** or case-folding rule.
+3. Specify the transformation order and test accented/combining/locale-specific characters.
+4. Validate the final result against the **exact metric** and storage limit.
+5. Keep the original if business logic requires verbatim display or auditing.
 
-Không khẳng định “cứ NFC trước rồi toLowerCase là đảm bảo mọi đầu vào có cùng cách viết sẽ bằng nhau”. Unicode normalization và Unicode **full case folding** là hai quá trình khác nhau; Java `String.toLowerCase(Locale)` không triển khai trọn vẹn toàn bộ case folding cho mọi nhu cầu định danh.
+Do not claim that "running NFC first and then toLowerCase guarantees all inputs with the same spelling will be equal". Unicode normalization and Unicode **full case folding** are two distinct processes; Java's `String.toLowerCase(Locale)` does not implement full case folding for every identifier requirement.
 
-## 10. Case-insensitive comparison không tự động giải quyết mọi bài toán
+## 10. Case-insensitive comparison does not automatically solve everything
 
-Java có `String.equalsIgnoreCase(String)`, `compareToIgnoreCase` và `String.CASE_INSENSITIVE_ORDER`. Chúng có ích cho một số so sánh không phân biệt hoa/thường, nhưng **không phải một phép so sánh ngôn ngữ học đầy đủ**.
+Java has `String.equalsIgnoreCase(String)`, `compareToIgnoreCase`, and `String.CASE_INSENSITIVE_ORDER`. They are useful for certain case-insensitive comparisons, yet **are not a complete linguistic comparison**.
 
-Ví dụ đã kiểm tra:
+Verified example:
 
 ~~~java
 System.out.println("\u00DF".equalsIgnoreCase("SS")); // false
 ~~~
 
-Lý do: `equalsIgnoreCase` dùng quy tắc so sánh ký tự theo hợp đồng Java, không tự thực hiện full case folding nhiều-code-point như `ß` → `SS`.
+Reason: `equalsIgnoreCase` uses character comparison rules per Java's contract and does not perform multi-code-point full case folding like `ß` → `SS`.
 
-Do đó:
+Therefore:
 
-- `a.toUpperCase(locale).equals(b.toUpperCase(locale))` không phải phép thay thế tổng quát cho **Unicode collation/case folding**: còn nhiều chuyện về normalization, dấu, tương đương ký tự, version và chính sách ngôn ngữ.
-- `String.equalsIgnoreCase` không hỗ trợ locale như một tham số và không đại diện cho mọi quy tắc tra từ, sắp xếp hoặc so khớp tên người dùng.
-- Với việc **sắp xếp/tra cứu từ ngữ theo ngôn ngữ**, nghiên cứu `java.text.Collator` với locale và strength phù hợp. `Collator` giải quyết bài toán collation, nhưng chính sách duy nhất/tính toàn vẹn ID trong database vẫn cần định nghĩa rõ.
-- Với **username, email, domain, URL, token, đường dẫn và khóa giao thức**, mỗi miền có quy tắc chuẩn hóa riêng. Không tự áp `toLowerCase(Locale.ROOT)` cho tất cả; có thể gây collision, lỗi bảo mật hoặc phá tương thích.
-- Với **password, chữ ký và chuỗi định danh case-sensitive**, phải giữ chính xác giá trị nguyên gốc theo hợp đồng, không biến đổi ngầm.
+- `a.toUpperCase(locale).equals(b.toUpperCase(locale))` is not a universal substitute for **Unicode collation/case folding**: there remain issues of normalization, diacritics, character equivalence, versions, and linguistic policies.
+- `String.equalsIgnoreCase` does not take a locale parameter and does not represent all lookup, sorting, or personal-name matching rules.
+- For **linguistic sorting/lookup of words**, look into `java.text.Collator` with an appropriate locale and strength. `Collator` solves collation, while database ID uniqueness/integrity policies still must be defined explicitly.
+- For **usernames, emails, domains, URLs, tokens, paths, and protocol keys**, each domain has its own normalization rules. Do not blindly apply `toLowerCase(Locale.ROOT)` to all of them; doing so can cause collisions, security bugs, or break compatibility.
+- For **passwords, signatures, and case-sensitive identifiers**, preserve the exact original value per contract with no implicit transformation.
 
-Việc một phép so sánh bỏ qua case trở thành `true` cũng **không có nghĩa** mọi phiên bản Unicode hoặc locale sẽ diễn giải hai chuỗi giống nhau cho mọi tác vụ. Chuẩn duy nhất trong hệ thống nên được xác định và thử với các trường hợp mở rộng, có dấu và các ký tự khó.
+That a case-ignoring comparison returns `true` also **does not mean** every Unicode version or locale will interpret the two strings identically for every task. System uniqueness standards should be defined and tested with expansions, accented characters, and tricky characters.
 
-## 11. Locale mặc định, concurrency và tính ổn định
+## 11. Default locale, concurrency, and stability
 
-`String.toUpperCase()` và `String.toLowerCase()` không truyền tham số dùng **locale mặc định** của JVM. Trên máy dev, CI, container hoặc server đa ngôn ngữ, default locale có thể khác nhau và có thể bị thay đổi bởi code khác.
+`String.toUpperCase()` and `String.toLowerCase()` without arguments use the JVM's **default locale**. Across dev machines, CI, containers, or multilingual servers, the default locale may differ and can be mutated by other code.
 
 ~~~java
 String key = raw.toLowerCase(Locale.ROOT);
 String display = raw.toUpperCase(userLocale);
 ~~~
 
-Đây là đoạn minh họa, `raw` là `String`, `userLocale` là `Locale`, cần import `Locale`. Với khóa kỹ thuật có chính sách case-insensitive cụ thể, dùng một locale tường minh (thường `ROOT`) giúp tránh sai lệch vì máy chạy. Với văn bản UI, locale theo người dùng có thể cần thiết.
+This is an illustrative snippet where `raw` is a `String`, `userLocale` is a `Locale`, and `Locale` must be imported. For technical keys with a specific case-insensitive policy, using an explicit locale (typically `ROOT`) prevents discrepancies across host machines. For UI text, a user-specific locale may be necessary.
 
-**Không gọi `Locale.setDefault(...)` trên từng request** để đổi ngôn ngữ hiển thị: default locale là trạng thái chung của JVM và có thể làm request khác xử lý văn bản không nhất quán. Hãy truyền locale tường minh và giữ chính sách canonicalization nhất quán.
+**Do not call `Locale.setDefault(...)` per request** to change display language: the default locale is shared JVM state and can cause other requests to process text inconsistently. Pass an explicit locale and keep a consistent canonicalization policy.
 
-`String` là immutable và thread-safe khi đọc; tạo chuỗi uppercase/lowercase mới không sửa dữ liệu nguồn. Tuy nhiên nếu **cache một key sau canonicalization**, cần giữ cùng thuật toán/locale/Unicode version theo contract; khi nâng JDK có thể phải kiểm thử lại dữ liệu đã chuẩn hóa.
+`String` is immutable and thread-safe to read; creating a new uppercase/lowercase string does not mutate source data. However, if **caching a canonicalized key**, maintain the same algorithm/locale/Unicode version per contract; when upgrading the JDK, retesting normalized data may be required.
 
-## 12. Những lỗi thường gặp và cách tránh
+## 12. Common mistakes and how to avoid them
 
-| Lỗi | Vì sao sai | Cách làm đúng |
+| Mistake | Why it is wrong | Right approach |
 | --- | --- | --- |
-| Giả định uppercase luôn giữ nguyên `length()` | `ß` có thể thành `SS` | Kiểm tra length của **kết quả** |
-| Giả định lower luôn giữ nguyên số code point | `İ` theo ROOT thành `i` + dấu chấm tổ hợp | Xem locale và full mapping |
-| Đổi từng `char` qua `Character.toUpperCase` rồi so với `String.toUpperCase` | Simple mapping không thể mở rộng 1→N | Dùng API toàn chuỗi |
-| Dùng default locale cho key kỹ thuật | `I`/`i` sai khác theo `tr-TR` | Chọn locale/canonicalization tường minh |
-| Cắt hoặc giữ index từ trước khi đổi case | Vị trí UTF-16 có thể dịch chuyển | Tính lại offset/bảng ánh xạ |
-| Dùng `String.length()` để đếm grapheme | Một chữ hiển thị có thể nhiều code point | Dùng grapheme segmentation phù hợp |
-| Kiểm tra độ dài trước khi lưu chuỗi đã upper | Kết quả có thể dài hơn | Validate bản thực tế được lưu |
-| Nghĩ uppercase rồi lowercase khôi phục nguyên văn | `straße` → `STRASSE` → `strasse` | Giữ bản gốc nếu cần |
-| Cho rằng `equalsIgnoreCase` là Unicode full folding | `ß` với `SS` không được coi bằng | Chọn chiến lược comparison theo domain |
-| Dùng `toLowerCase` để xử lý password/token tùy tiện | Phá case-sensitive semantics | Theo contract, thường giữ nguyên |
-| Đồng nhất code unit với byte UTF-8 | Kích thước byte và Java length khác nhau | Đo bằng charset thực |
-| Không có test Unicode/locale sau nâng JDK | Unicode mappings có thể thay đổi | Test hành vi trên runtime hỗ trợ |
+| Assuming uppercase always preserves `length()` | `ß` can become `SS` | Check length of the **result** |
+| Assuming lower always preserves code point count | `İ` under ROOT becomes `i` + combining dot | Consider locale and full mapping |
+| Converting each `char` via `Character.toUpperCase` and comparing to `String.toUpperCase` | Simple mapping cannot expand 1→N | Use whole-string APIs |
+| Using default locale for technical keys | `I`/`i` behave differently in `tr-TR` | Choose explicit locale/canonicalization |
+| Slicing or reusing indices from before case change | UTF-16 positions can shift | Recompute offsets / mapping table |
+| Using `String.length()` to count graphemes | One visible letter can have multiple code points | Use appropriate grapheme segmentation |
+| Checking length before saving an uppercased string | Result may be longer | Validate the actual string being saved |
+| Thinking uppercase then lowercase restores original text | `straße` → `STRASSE` → `strasse` | Preserve original if needed |
+| Treating `equalsIgnoreCase` as Unicode full folding | `ß` and `SS` are not treated as equal | Choose comparison strategy per domain |
+| Arbitrarily using `toLowerCase` on passwords/tokens | Breaks case-sensitive semantics | Follow contract, usually keep unchanged |
+| Equating code units with UTF-8 bytes | Byte size and Java length differ | Measure with actual charset |
+| Lacking Unicode/locale tests after JDK upgrade | Unicode mappings can change | Test behavior on supported runtimes |
 
-## 13. Kiểm thử và bài tập thực hành
+## 13. Testing and practical exercises
 
-Một bộ kiểm thử có ích nên bao gồm:
+A useful test suite should cover:
 
-1. **German sharp s:** `straße` → `STRASSE`, kiểm tra `length` 6 → 7 và `codePointCount` 6 → 7.
-2. **Turkish dotted I:** `U+0130` lower theo ROOT ra hai code point `U+0069 U+0307`, theo `tr-TR` ra một `U+0069`.
-3. **Turkish small i:** uppercase theo ROOT ra `U+0049`, theo `tr-TR` ra `U+0130`.
-4. **Greek final sigma:** một chuỗi toàn chữ hoa kết thúc bằng sigma; kiểm tra lower theo ngữ cảnh không giống thao tác ký tự đơn.
-5. **Simple vs full mapping:** `Character.toUpperCase(0x00DF)` không tạo `SS`, còn `String.toUpperCase(Locale.ROOT)` có.
-6. **Immutability:** chuỗi nguồn không đổi sau chuyển case.
-7. **Byte limit:** so `getBytes(UTF_8).length` trên chuỗi trước/sau.
-8. **Index drift:** lưu index của `e` ở `straße`; sau uppercase, kiểm tra index mới.
-9. **Grapheme:** `İ` lower ROOT tạo `i` + combining mark; thử bộ phân đoạn grapheme được chọn.
-10. **Locale default:** kiểm tra logic dùng locale tường minh không phụ thuộc config máy dev và CI.
-11. **Storage:** xác minh giới hạn chuỗi được lưu **sau** canonicalization, không chỉ trước.
-12. **Case insensitive semantics:** đối chiếu `equalsIgnoreCase`, uppercase normalization và collation với dữ liệu khó.
-13. **Normalization:** tạo chuỗi chữ có dấu ở NFC/NFD; kiểm thử chiến lược chuẩn hóa/case trong hệ thống.
-14. **Unicode version:** nếu dữ liệu sản phẩm phụ thuộc mapping chính xác, kiểm thử lại khi nâng Java.
+1. **German sharp s:** `straße` → `STRASSE`, verifying `length` 6 → 7 and `codePointCount` 6 → 7.
+2. **Turkish dotted I:** `U+0130` lowercased with ROOT yields two code points `U+0069 U+0307`, with `tr-TR` yields one `U+0069`.
+3. **Turkish small i:** uppercased with ROOT yields `U+0049`, with `tr-TR` yields `U+0130`.
+4. **Greek final sigma:** an all-uppercase string ending with sigma; verify context-sensitive lowercasing differs from single-character operations.
+5. **Simple vs full mapping:** `Character.toUpperCase(0x00DF)` does not produce `SS`, whereas `String.toUpperCase(Locale.ROOT)` does.
+6. **Immutability:** source string stays unchanged after case conversion.
+7. **Byte limit:** compare `getBytes(UTF_8).length` on strings before/after.
+8. **Index drift:** record the index of `e` in `straße`; after uppercasing, check the new index.
+9. **Grapheme:** `İ` lowercased with ROOT produces `i` + combining mark; test the chosen grapheme segmenter.
+10. **Locale default:** verify logic using explicit locales does not depend on dev or CI machine config.
+11. **Storage:** verify stored string limits **after** canonicalization, not only before.
+12. **Case insensitive semantics:** compare `equalsIgnoreCase`, uppercase normalization, and collation on tricky inputs.
+13. **Normalization:** create accented strings in NFC/NFD; test the system's normalization/casing strategy.
+14. **Unicode version:** if product data depends on exact mappings, retest when upgrading Java.
 
-### Bài tập 1 — index bị dịch chuyển
+### Exercise 1 — shifted index
 
-Với `String s = "stra\u00DFe";`:
+Given `String s = "stra\u00DFe";`:
 
 ~~~java
 int oldIndex = s.indexOf('e');                     // 5
@@ -441,11 +441,11 @@ String changed = s.toUpperCase(Locale.ROOT);       // "STRASSE"
 int newIndex = changed.indexOf('E');               // 6
 ~~~
 
-Đây là snippet minh họa, cần import `Locale`. Giải thích vì sao dùng `oldIndex` trên `changed` sẽ trỏ đến chữ `S` thứ hai, thay vì `E`.
+This is an illustrative snippet requiring `Locale` to be imported. Explain why using `oldIndex` on `changed` points to the second `S` rather than `E`.
 
-### Bài tập 2 — phép biến đổi không đối xứng
+### Exercise 2 — asymmetric transformation
 
-Tạo ba chuỗi:
+Create three strings:
 
 ~~~java
 String a = "stra\u00DFe";
@@ -453,23 +453,23 @@ String b = a.toUpperCase(Locale.ROOT);
 String c = b.toLowerCase(Locale.ROOT);
 ~~~
 
-So sánh `a.equals(c)`, `a.length()`, `b.length()`, `c.length()`. Kết quả cho thấy chiều biến đổi không đảm bảo khôi phục mã Unicode ban đầu.
+Compare `a.equals(c)`, `a.length()`, `b.length()`, `c.length()`. The results show that the transformation direction does not guarantee recovering the original Unicode code points.
 
-### Bài tập 3 — giới hạn kho dữ liệu
+### Exercise 3 — data store limit
 
-Xây hàm nhận một tên hiển thị dài tối đa 6 code point, nhưng lưu bản uppercase. Chứng minh vì sao `straße` vượt giới hạn lưu trữ nếu cột chỉ cho phép 6 code units. Đề xuất quy tắc mới: lưu bản gốc, hoặc kiểm tra chuỗi sau chuẩn hóa, và nêu rõ thông báo cho người dùng.
+Build a function accepting a display name up to 6 code points long, but storing the uppercase version. Prove why `straße` exceeds the storage limit if the column only permits 6 code units. Propose a new rule: store the original, or validate the string after normalization, and specify a clear message for the user.
 
-### Bài tập 4 — locale cố định và locale người dùng
+### Exercise 4 — fixed locale vs. user locale
 
-Dùng `Locale.ROOT` và `Locale.forLanguageTag("tr-TR")` đổi case cho `I`, `i`, `İ`, `ı`. So code point/length; đừng so ký tự chỉ bằng mắt. Viết test trong đó locale dùng **tham số tường minh** thay vì thay default JVM.
+Use `Locale.ROOT` and `Locale.forLanguageTag("tr-TR")` to change case for `I`, `i`, `İ`, `ı`. Compare code points/lengths; do not compare characters merely by eye. Write a test where locale is passed as an **explicit parameter** instead of mutating the JVM default.
 
-## 14. Kết luận
+## 14. Conclusion
 
-**Phép đổi hoa–thường trong Unicode không nhất thiết là phép thay thế một-một.** `String.toUpperCase(Locale)` và `String.toLowerCase(Locale)` có thể **mở rộng một code point thành nhiều code point**, và một số quy tắc tùy thuộc locale hoặc ngữ cảnh toàn chuỗi. Vì Java `String.length()` đếm đơn vị mã UTF-16, độ dài có thể đổi sau phép chuyển case; code point count, grapheme count và byte count cũng là các khái niệm khác nhau.
+**Unicode case conversion is not necessarily a one-to-one replacement.** `String.toUpperCase(Locale)` and `String.toLowerCase(Locale)` can **expand a single code point into multiple code points**, and some rules depend on locale or whole-string context. Because Java's `String.length()` counts UTF-16 code units, length can change after case conversion; code point count, grapheme count, and byte count are also distinct concepts.
 
-Trong mã đa ngôn ngữ, hãy truyền `Locale` rõ ràng, dùng API cấp `String` thay vì chỉ đổi từng `char`, không tái sử dụng index cũ sau biến đổi và validate giới hạn trên **chuỗi thực tế sẽ lưu**. Với định danh, truy vấn, so khớp hay bảo mật, chọn đúng chính sách canonicalization/collation theo domain thay vì giả định `toLowerCase` hoặc `equalsIgnoreCase` là giải pháp Unicode tổng quát.
+In multilingual code, pass `Locale` explicitly, use `String`-level APIs instead of converting individual `char`s, do not reuse old indices after transformation, and validate limits on the **actual string to be stored**. For identifiers, queries, matching, or security, choose the right canonicalization/collation policy for the domain rather than assuming `toLowerCase` or `equalsIgnoreCase` is a universal Unicode solution.
 
-**Tài liệu tham khảo:**
+**References:**
 
 - Java SE 17, `String`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html
 - Java SE 17, `Character`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html

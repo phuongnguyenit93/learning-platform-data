@@ -1,59 +1,59 @@
-# So sánh `null` và lựa chọn hợp đồng API khi làm việc với `BigDecimal`
+# Comparing `null` and choosing an API contract when working with `BigDecimal`
 
-`BigDecimal` là kiểu tham chiếu, vì vậy một biến `BigDecimal` có thể là `null`. Khi viết API so sánh, cần trả lời hai câu hỏi độc lập: **hai số được so sánh theo giá trị số hay theo biểu diễn (bao gồm scale)?**, và **thiếu một hoặc hai giá trị phải được xử lý ra sao?**. Chính sách thiếu giá trị ảnh hưởng đến quy tắc nghiệp vụ, thao tác sắp xếp, tập hợp có thứ tự và kết quả trả về của API.
+`BigDecimal` is a reference type, so a `BigDecimal` variable can be `null`. When writing a comparison API, two independent questions must be answered: **are two numbers compared by numeric value or by representation (including scale)?**, and **how must one or both missing values be handled?**. The missing-value policy affects business rules, sorting operations, ordered collections, and API return types.
 
-Bài này phân biệt ba hợp đồng: (1) từ chối `null`, (2) sắp xếp `null` theo một thứ tự rõ ràng, (3) trả kết quả “chưa xác định” khi thiếu toán hạng. Mục tiêu là chọn một hợp đồng phù hợp và thực thi nhất quán, không đánh đồng `null` với 0 hoặc với kết quả so sánh bằng nhau.
+This lesson distinguishes three contracts: (1) rejecting `null`, (2) ordering `null` in a defined position, and (3) returning an "unknown" result when an operand is missing. The goal is to choose an appropriate contract and enforce it consistently, without conflating `null` with 0 or with an equal comparison result.
 
-## 1. `null` không phải là số 0
+## 1. `null` is not the number 0
 
 ```java
-BigDecimal zero = BigDecimal.ZERO; // Có giá trị, chính xác bằng 0.
-BigDecimal missing = null;         // Không có đối tượng BigDecimal.
+BigDecimal zero = BigDecimal.ZERO; // Has a value, equal to 0.
+BigDecimal missing = null;         // No BigDecimal object.
 ```
 
-Trong báo cáo tài chính, số dư `0` nghĩa là số dư đã được xác định và bằng 0; `null` có thể mang nghĩa chưa cung cấp, chưa tính hoặc không áp dụng. Tự thay `null` bằng `BigDecimal.ZERO` là một **quyết định nghiệp vụ**, không phải kỹ thuật sửa lỗi. Nó có thể làm sai so sánh ngưỡng hoặc biến “chưa biết” thành “bằng 0”.
+In financial reporting, a balance of `0` means the balance has been determined and equals zero; `null` can mean not provided, not yet calculated, or not applicable. Replacing `null` with `BigDecimal.ZERO` on your own is a **business decision**, not a bug-fix technique. It can skew threshold comparisons or turn "unknown" into "equal to 0."
 
-Trước khi triển khai, hãy xác định nguồn dữ liệu có cho phép `null` và vì sao. Nếu một đối số luôn bắt buộc thì API nên từ chối thiếu dữ liệu. Nếu dữ liệu có thể thiếu, quyết định rõ phải xếp dòng thiếu ở đâu trong danh sách hay phải trả về trạng thái không thể kết luận.
+Before implementing, verify whether the data source permits `null` and why. If an argument is always required, the API should reject missing data. If data can be missing, explicitly decide where missing rows belong in a list or whether to return an inconclusive status.
 
-## 2. Hành vi gốc của `BigDecimal` khi gặp `null`
+## 2. Native behavior of `BigDecimal` when encountering `null`
 
-`BigDecimal.compareTo(BigDecimal)` so sánh theo **giá trị số** và trả về một số âm, 0 hoặc dương. So sánh với `null` không được hỗ trợ:
+`BigDecimal.compareTo(BigDecimal)` compares by **numeric value** and returns a negative integer, 0, or a positive integer. Comparing with `null` is not supported:
 
 ```java
 BigDecimal a = new BigDecimal("1.0");
 BigDecimal b = new BigDecimal("1.00");
 
-a.compareTo(b);    // 0: cùng giá trị số.
-a.equals(b);       // false: scale 1 khác scale 2.
+a.compareTo(b);    // 0: same numeric value.
+a.equals(b);       // false: scale 1 differs from scale 2.
 a.equals(null);    // false.
 a.compareTo(null); // NullPointerException.
 ```
 
-Nếu chính `a` là `null`, gọi `a.compareTo(b)` hoặc `a.equals(b)` đều ném `NullPointerException` vì không có đối tượng nhận lời gọi. Các phương thức `a.min(null)` và `a.max(null)` cũng không phải là lựa chọn null-safe.
+If `a` itself is `null`, calling `a.compareTo(b)` or `a.equals(b)` throws `NullPointerException` because there is no receiver object. The methods `a.min(null)` and `a.max(null)` are not null-safe options either.
 
-`Objects.equals(left, right)` khác `compareTo`:
+`Objects.equals(left, right)` differs from `compareTo`:
 
-- `Objects.equals(null, null)` trả `true`.
-- `Objects.equals(null, BigDecimal.ZERO)` trả `false`.
-- `Objects.equals(new BigDecimal("1.0"), new BigDecimal("1.00"))` trả `false`, vì vẫn dùng `BigDecimal.equals`.
-- `Objects.equals` chỉ giải quyết **kiểm tra bằng nhau theo `equals`**, không thay `BigDecimal.compareTo` hay tạo thứ tự số học.
+- `Objects.equals(null, null)` returns `true`.
+- `Objects.equals(null, BigDecimal.ZERO)` returns `false`.
+- `Objects.equals(new BigDecimal("1.0"), new BigDecimal("1.00"))` returns `false`, because it still uses `BigDecimal.equals`.
+- `Objects.equals` only solves **equality checks via `equals`**; it does not replace `BigDecimal.compareTo` or establish numeric ordering.
 
-`Objects.compare(left, right, comparator)` cũng không tự trở thành một comparator chấp nhận null. Nó trả 0 nếu hai tham chiếu là cùng một đối tượng (kể cả cả hai cùng null); nếu khác tham chiếu, nó gọi comparator được cung cấp. Với comparator không cho phép null, trường hợp chỉ một bên null vẫn ném ngoại lệ.
+`Objects.compare(left, right, comparator)` also does not automatically make a comparator accept null. It returns 0 if both references point to the same object (including when both are null); if the references differ, it invokes the provided comparator. With a comparator that forbids null, having only one side null still throws an exception.
 
-### `compareTo` và `equals`: hai quan hệ cần phân biệt
+### `compareTo` and `equals`: two relations to distinguish
 
-| Cặp `BigDecimal` | `compareTo == 0` | `equals` |
+| `BigDecimal` pair | `compareTo == 0` | `equals` |
 | --- | --- | --- |
 | `"1.0"` / `"1.00"` | `true` | `false` |
 | `"0"` / `"0.00"` | `true` | `false` |
 | `"1.0"` / `"2.0"` | `false` | `false` |
 | `"1.00"` / `"1.00"` | `true` | `true` |
 
-`equals` và `hashCode` của `BigDecimal` xét cả giá trị và **scale**. Nếu cần kiểm tra “cùng số tiền” độc lập scale, `compareTo == 0` thường hợp lý. Nếu biểu diễn (`1.0` so với `1.00`) là một phần của dữ liệu, `equals` là lựa chọn phù hợp hơn.
+`BigDecimal`'s `equals` and `hashCode` consider both value and **scale**. If you need to check "same monetary amount" regardless of scale, `compareTo == 0` is usually appropriate. If representation (`1.0` vs `1.00`) is part of the data, `equals` is the better choice.
 
-## 3. Hợp đồng A: `null` là đầu vào không hợp lệ
+## 3. Contract A: `null` is an invalid input
 
-Với ngưỡng bắt buộc, tổng tiền đã duyệt hoặc số tiền thanh toán đã ghi nhận, thường nên quy định **hai toán hạng đều khác null**. Thất bại tại điểm nhận tham số giúp lỗi được phát hiện rõ:
+For mandatory thresholds, approved totals, or recorded payment amounts, it is usually best to require **both operands to be non-null**. Failing at the parameter entry point ensures bugs are caught clearly:
 
 ```java
 import java.math.BigDecimal;
@@ -66,30 +66,30 @@ static int compareRequired(BigDecimal left, BigDecimal right) {
 }
 ```
 
-Đây là một phương thức minh họa; cần đặt trong class phù hợp. `Objects.requireNonNull` ném `NullPointerException` với thông báo chỉ rõ đối số vi phạm. `Integer.signum(...)` chuẩn hóa kết quả thành **-1, 0 hoặc 1**; nếu không chuẩn hóa, `compareTo` chỉ cam kết âm/0/dương, không nhất thiết là -1/0/1.
+This is an illustrative method; place it inside an appropriate class. `Objects.requireNonNull` throws `NullPointerException` with a message identifying the offending argument. `Integer.signum(...)` normalizes the result to **-1, 0, or 1**; without normalization, `compareTo` only promises negative/0/positive, not necessarily -1/0/1.
 
-Có thể mô tả hợp đồng bằng Javadoc:
+The contract can be documented with Javadoc:
 
 ```java
 /**
- * So sánh hai giá trị thập phân bắt buộc có dữ liệu.
- * @param left không được null
- * @param right không được null
- * @return -1 nếu left nhỏ hơn right, 0 nếu bằng nhau về số học,
- *         1 nếu left lớn hơn right
- * @throws NullPointerException nếu một trong hai đối số là null
+ * Compares two required decimal values.
+ * @param left must not be null
+ * @param right must not be null
+ * @return -1 if left is less than right, 0 if numerically equal,
+ *         1 if left is greater than right
+ * @throws NullPointerException if either argument is null
  */
 ```
 
-Mảnh Javadoc này chỉ minh họa nội dung tài liệu của phương thức phía trên. API cần xác nhận rằng **0 nghĩa là hai giá trị đã được so sánh và bằng nhau**, không có nghĩa là dữ liệu thiếu.
+This Javadoc snippet merely illustrates the documentation for the method above. The API should clarify that **0 means both values were compared and are equal**, not that data is missing.
 
-Khi thực thi các điều kiện so sánh, nên viết `left.compareTo(right) > 0` thay vì `left.compareTo(right) == 1`, vì hợp đồng của `Comparable` cam kết **dấu** kết quả.
+When writing comparison conditions, write `left.compareTo(right) > 0` instead of `left.compareTo(right) == 1`, since the `Comparable` contract only guarantees the **sign** of the result.
 
-**Không** xử lý `NullPointerException` bằng cách tự động trả 0: như vậy API biến một lỗi thành kết luận “bằng nhau”, dẫn đến các nhánh logic nghiệp vụ sai.
+**Do not** catch `NullPointerException` and automatically return 0: doing so turns an error into an "equal" conclusion, leading to incorrect business logic branches.
 
-## 4. Hợp đồng B: `null` được xếp ở đầu hoặc cuối
+## 4. Contract B: `null` is ordered first or last
 
-Nếu một danh sách vẫn phải sắp xếp khi có ô số tiền thiếu, Java cung cấp `Comparator.nullsFirst` và `Comparator.nullsLast`. Chúng tạo thứ tự xác định cho `null` và các giá trị không null:
+If a list must still be sorted when some amount fields are missing, Java provides `Comparator.nullsFirst` and `Comparator.nullsLast`. They define a deterministic order for `null` and non-null values:
 
 ```java
 import java.math.BigDecimal;
@@ -102,19 +102,19 @@ Comparator<BigDecimal> nullsLast =
         Comparator.nullsLast(Comparator.naturalOrder());
 ```
 
-Trong `nullsFirst`, `null` đứng trước mọi giá trị không null; trong `nullsLast`, `null` đứng sau mọi giá trị không null. Hai `null` được coi là bằng nhau để **sắp xếp** (`compare(null, null) == 0`). Khi cả hai đều khác null, comparator dùng thứ tự tự nhiên của `BigDecimal`, tức `compareTo`.
+In `nullsFirst`, `null` precedes all non-null values; in `nullsLast`, `null` follows all non-null values. Two `null`s are considered equal for **sorting** (`compare(null, null) == 0`). When both are non-null, the comparator uses `BigDecimal`'s natural ordering, i.e., `compareTo`.
 
-| Hai giá trị | `nullsFirst` | `nullsLast` |
+| Two values | `nullsFirst` | `nullsLast` |
 | --- | --- | --- |
 | `null`, `null` | `0` | `0` |
-| `null`, `BigDecimal.ZERO` | Âm | Dương |
-| `BigDecimal.ZERO`, `null` | Dương | Âm |
+| `null`, `BigDecimal.ZERO` | Negative | Positive |
+| `BigDecimal.ZERO`, `null` | Positive | Negative |
 | `1.0`, `1.00` | `0` | `0` |
-| `2`, `1` | Dương | Dương |
+| `2`, `1` | Positive | Positive |
 
-Quy tắc cho `null` ở đầu/cuối chỉ là **quy ước thứ tự hiển thị**. Nó không có nghĩa số tiền “chưa biết” thực sự nhỏ hơn hoặc lớn hơn số tiền bất kỳ. Không dùng ngầm quy ước hiển thị như một quy tắc so sánh nghiệp vụ.
+Placing `null` first or last is strictly a **display ordering convention**. It does not mean an "unknown" amount is actually smaller or larger than any amount. Do not implicitly use a display convention as a business comparison rule.
 
-Ví dụ, đoạn mã sau đặt giá trị thiếu ở cuối:
+For example, the snippet below puts missing values at the end:
 
 ```java
 List<BigDecimal> values = new ArrayList<>(Arrays.asList(
@@ -129,26 +129,26 @@ values.sort(Comparator.nullsLast(Comparator.naturalOrder()));
 System.out.println(values);
 ```
 
-Đoạn này cần các import `BigDecimal`, `List`, `ArrayList`, `Arrays`, `Comparator` và phải nằm trong một phương thức. Kết quả:
+This snippet requires imports for `BigDecimal`, `List`, `ArrayList`, `Arrays`, and `Comparator`, and must be inside a method. Output:
 
 ```text
 [0, 1.00, 1.0, 2.0, null, null]
 ```
 
-`List.sort` giữ thứ tự tương đối của các phần tử có kết quả comparator bằng 0, vì vậy `1.00` vẫn đứng trước `1.0`. Hai giá trị cùng số học không bị ép về cùng scale.
+`List.sort` preserves the relative order of elements whose comparator result is 0, so `1.00` stays ahead of `1.0`. Numerically equal values are not forced to the same scale.
 
-Khi muốn **giảm dần nhưng null vẫn ở cuối**, phải chọn thứ tự ngược cho các số rồi mới bọc chính sách null:
+When you want **descending order with null still at the end**, pick reverse order for numbers first and then wrap it with the null policy:
 
 ```java
 Comparator<BigDecimal> descendingNullLast =
         Comparator.nullsLast(Comparator.reverseOrder());
 ```
 
-`Comparator.nullsLast(Comparator.naturalOrder()).reversed()` đảo **toàn bộ** thứ tự, bao gồm vị trí của null; khi đó null sẽ lên đầu.
+`Comparator.nullsLast(Comparator.naturalOrder()).reversed()` reverses the **entire** ordering, including null placement; in that case nulls move to the front.
 
-### `null` của phần tử khác `null` của thuộc tính
+### Element `null` vs property `null`
 
-Giả sử có một bản ghi gồm mã hóa đơn và số tiền:
+Suppose there is a record consisting of an invoice code and an amount:
 
 ```java
 record Invoice(String code, BigDecimal amount) {}
@@ -159,7 +159,7 @@ Comparator<Invoice> byNullableAmount =
                 Comparator.nullsLast(Comparator.naturalOrder()));
 ```
 
-Comparator trên cho phép `amount()` là null, nhưng **không** cho phép chính `Invoice` là null, bởi method reference vẫn phải gọi `amount()` từ một đối tượng tồn tại. Nếu danh sách có cả phần tử null:
+The comparator above allows `amount()` to be null, but **does not** allow `Invoice` itself to be null, because the method reference still has to invoke `amount()` on an existing object. If the list can also contain null elements:
 
 ```java
 Comparator<Invoice> nullableInvoices =
@@ -169,13 +169,13 @@ Comparator<Invoice> nullableInvoices =
                         Comparator.nullsLast(Comparator.naturalOrder())));
 ```
 
-Ví dụ record và comparator này là các mảnh mã cần đặt vào chương trình đầy đủ. Hai lớp null được xử lý độc lập: null ở **phần tử** và null ở **trường amount**. Không nên bọc nhầm tầng rồi tưởng rằng mọi trường hợp null đều đã an toàn.
+These record and comparator examples are code snippets that must be placed inside a complete program. Two layers of null are handled independently: null on the **element** and null on the **amount field**. Do not wrap the wrong layer and assume every null case is now safe.
 
-## 5. Hợp đồng C: thiếu giá trị thì **chưa thể kết luận**
+## 5. Contract C: missing value means **inconclusive**
 
-Với câu hỏi nghiệp vụ như “giá hiện tại cao hơn mức giới hạn hay không?”, nếu một trong hai số chưa được cung cấp, câu trả lời hợp lý có thể là “chưa biết”, không phải “nhỏ hơn”, “bằng nhau” hoặc “lớn hơn”.
+For a business question like "is the current price higher than the limit?", if either number has not been supplied, the sensible answer may be "unknown", rather than "less than", "equal to", or "greater than".
 
-Một API trả về `int` so sánh thuần túy không có chỗ biểu diễn trạng thái thứ tư đó. Với Java, có thể sử dụng `OptionalInt`:
+A comparison API returning a plain `int` has no room to express that fourth state. In Java, you can use `OptionalInt`:
 
 ```java
 import java.math.BigDecimal;
@@ -189,49 +189,49 @@ static OptionalInt compareIfPresent(BigDecimal left, BigDecimal right) {
 }
 ```
 
-`OptionalInt.empty()` nghĩa là **không có kết quả so sánh**, còn `OptionalInt.of(0)` nghĩa là **đã có đủ hai giá trị và bằng nhau**. Đặc biệt không được chuyển `empty()` thành số 0 một cách vô điều kiện.
+`OptionalInt.empty()` means **no comparison result**, whereas `OptionalInt.of(0)` means **both values were present and equal**. In particular, never convert `empty()` into 0 unconditionally.
 
-Bên gọi có thể xử lý:
+Callers can handle it as:
 
 ```java
 OptionalInt result = compareIfPresent(amount, limit);
 if (result.isEmpty()) {
-    // Chưa xác định: yêu cầu bổ sung dữ liệu hoặc hiển thị trạng thái riêng.
+    // Unknown: request missing data or display a distinct status.
 } else if (result.getAsInt() > 0) {
-    // amount đã biết và lớn hơn limit.
+    // amount is known and greater than limit.
 } else {
-    // amount đã biết và nhỏ hơn hoặc bằng limit.
+    // amount is known and less than or equal to limit.
 }
 ```
 
-`amount` và `limit` ở ví dụ này là các biến `BigDecimal` của ứng dụng, đoạn mã không chạy độc lập. Với API nghiệp vụ phức tạp, có thể dùng enum `LESS`, `EQUAL`, `GREATER`, `UNKNOWN`, nhưng phải giải thích `UNKNOWN` phát sinh vì điều kiện nào.
+`amount` and `limit` in this example are application `BigDecimal` variables; the snippet does not run standalone. For complex business APIs, you can use an enum `LESS`, `EQUAL`, `GREATER`, `UNKNOWN`, while documenting under what conditions `UNKNOWN` arises.
 
-`Comparator` phải trả `int` và cung cấp thứ tự nhất quán cho các giá trị thuộc miền của nó. Vì thế **không** nhét chính sách “unknown” thành một giá trị số đặc biệt trong comparator. Nếu thực sự không muốn xếp hạng các mục thiếu dữ liệu, hãy tách hoặc lọc chúng theo chính sách nghiệp vụ; nếu vẫn muốn sắp xếp tất cả, dùng một chính sách `nullsFirst/Last` rõ ràng.
+`Comparator` must return an `int` and provide a consistent ordering for values in its domain. Therefore, **do not** encode an "unknown" policy as a special numeric return value inside a comparator. If you truly do not want to rank items with missing data, separate or filter them per business policy; if you still want to sort everything, use an explicit `nullsFirst/Last` policy.
 
-Dùng `Optional<BigDecimal>` làm giá trị trả về có thể giúp phân biệt có/không có giá trị. Tuy nhiên, khi dùng ở tham số hay trường của DTO, nên theo quy ước của dự án và tài liệu hóa hợp đồng. Không kết hợp tùy tiện `null`, `Optional.empty()` và số 0 như ba cách diễn đạt cùng một trạng thái.
+Using `Optional<BigDecimal>` as a return value can help distinguish presence vs absence. However, when used in parameters or DTO fields, follow project conventions and document the contract. Do not arbitrarily mix `null`, `Optional.empty()`, and 0 as three ways of expressing the same state.
 
-## 6. Bằng nhau với giá trị có thể null: chọn đúng nghĩa
+## 6. Equality with nullable values: choosing the right meaning
 
-Có ba cách định nghĩa “bằng nhau” tùy mục đích:
+There are three ways to define "equal" depending on your intent:
 
-**Cách 1 — `equals`, chấp nhận cả hai null là cùng trạng thái:**
+**Option 1 — `equals`, treating both null as the same state:**
 
 ```java
 boolean sameObjects = Objects.equals(left, right);
 ```
 
-Kết quả `true` cho `(null, null)`, nhưng `false` cho `(1.0, 1.00)` vì scale khác nhau.
+Returns `true` for `(null, null)`, but `false` for `(1.0, 1.00)` because scales differ.
 
-**Cách 2 — bằng nhau về số học, chỉ khi cả hai có mặt:**
+**Option 2 — numeric equality, only when both are present:**
 
 ```java
 boolean sameNumericValueIfPresent =
         left != null && right != null && left.compareTo(right) == 0;
 ```
 
-Hai giá trị null trả `false` vì chưa có hai số để so. Nếu muốn phân biệt “khác” và “chưa biết”, dùng kiểu trả kết quả ba trạng thái thay cho một boolean.
+Two null values return `false` because there are not two numbers to compare. If you need to distinguish "different" from "unknown", use a three-state return type instead of a boolean.
 
-**Cách 3 — cùng trạng thái nullable hoặc cùng giá trị số:**
+**Option 3 — same nullable state or same numeric value:**
 
 ```java
 boolean sameNullableAmount =
@@ -239,20 +239,20 @@ boolean sameNullableAmount =
                 || (left != null && right != null && left.compareTo(right) == 0);
 ```
 
-Ở đây hai bên đều null được xem là tương đương **theo hợp đồng dữ liệu nullable**. Điều đó không khẳng định hai số chưa biết bằng nhau về toán học.
+Here both sides being null is treated as equivalent **under the nullable data contract**. That does not claim two unknown numbers are mathematically equal.
 
-| Cặp giá trị | `Objects.equals` | Bằng số học khi đủ dữ liệu | Tương đương nullable/số học |
+| Value pair | `Objects.equals` | Numerically equal when present | Nullable/numeric equivalent |
 | --- | --- | --- | --- |
 | `null`, `null` | `true` | `false` | `true` |
 | `null`, `0` | `false` | `false` | `false` |
 | `1.0`, `1.00` | `false` | `true` | `true` |
 | `1.0`, `2.0` | `false` | `false` | `false` |
 
-Tên hàm nên nói rõ nghĩa, ví dụ `sameNumericValueIfPresent` hoặc `sameNullableAmount`, hơn là `isEqual` không có tài liệu đi kèm.
+Method names should state their meaning clearly, such as `sameNumericValueIfPresent` or `sameNullableAmount`, rather than an undocumented `isEqual`.
 
-## 7. `TreeSet`, `TreeMap`, `HashSet` và vấn đề scale
+## 7. `TreeSet`, `TreeMap`, `HashSet`, and the scale issue
 
-Do `BigDecimal.compareTo` bỏ qua khác biệt scale khi hai số bằng nhau, thứ tự tự nhiên của nó **không nhất quán với `equals`**:
+Because `BigDecimal.compareTo` ignores scale differences when two numbers are equal, its natural ordering is **inconsistent with `equals`**:
 
 ```java
 BigDecimal a = new BigDecimal("1.0");
@@ -262,11 +262,11 @@ a.compareTo(b) == 0; // true
 a.equals(b);         // false
 ```
 
-`HashSet` dùng `equals`/`hashCode`, nên hai đối tượng trên được coi là hai phần tử khác nhau. `TreeSet` và `TreeMap` dựa trên comparator (hoặc `compareTo` khi không cung cấp comparator), nên chúng xem hai giá trị có kết quả compare bằng 0 là **cùng khóa theo thứ tự**. Chỉ một phần tử/khóa đại diện được lưu.
+`HashSet` uses `equals`/`hashCode`, so these two objects are treated as two distinct elements. `TreeSet` and `TreeMap` rely on a comparator (or `compareTo` when none is supplied), so they treat two values whose comparison returns 0 as **the same key in sort order**. Only one representative element/key is stored.
 
-`Comparator.nullsFirst/Last(Comparator.naturalOrder())` cho phép đặt `null` theo thứ tự được chọn nhưng **không thay đổi** tính không nhất quán giữa `BigDecimal.compareTo` và `BigDecimal.equals`.
+`Comparator.nullsFirst/Last(Comparator.naturalOrder())` allows placing `null` in the chosen order, but **does not change** the inconsistency between `BigDecimal.compareTo` and `BigDecimal.equals`.
 
-Nếu cần phân biệt thêm scale trong tập hợp có thứ tự, có thể nối một tiêu chí phụ:
+If you also need to distinguish scale in an ordered collection, you can chain a secondary criterion:
 
 ```java
 Comparator<BigDecimal> numericThenScale =
@@ -277,13 +277,13 @@ Comparator<BigDecimal> nullableNumericThenScale =
         Comparator.nullsLast(numericThenScale);
 ```
 
-Với những giá trị `BigDecimal` không null, comparator này so theo số học trước, rồi so scale. Hai `BigDecimal` cùng số học **và** cùng scale là bằng nhau theo `equals`, vì vậy thứ tự này phù hợp hơn khi scale mang ý nghĩa định danh. Tuy nhiên, nếu nghiệp vụ xem `1.0` và `1.00` là cùng một số tiền, phải chọn chính sách chuẩn hóa hoặc chấp nhận thứ tự tự nhiên xem chúng tương đương. Đừng đổi quy tắc chỉ để ép số lượng phần tử trong `HashSet` và `TreeSet` trùng nhau.
+For non-null `BigDecimal` values, this comparator compares numerically first, then by scale. Two `BigDecimal` objects with the same numeric value **and** the same scale are equal under `equals`, so this ordering fits better when scale carries identity meaning. However, if the business treats `1.0` and `1.00` as the same monetary amount, choose a normalization policy or accept that natural ordering treats them as equivalent. Do not change the rule just to force element counts in `HashSet` and `TreeSet` to match.
 
-Một `TreeSet` được khởi tạo với comparator cho phép null có thể chứa một phần tử null và sắp xếp nó theo chính sách; `TreeSet` dùng thứ tự tự nhiên không hỗ trợ điều đó. Trong dữ liệu thực tế, cần tài liệu hóa cả **quy tắc null** lẫn **quy tắc xem hai giá trị là trùng**.
+A `TreeSet` constructed with a null-allowing comparator can hold one null element and order it per policy; a `TreeSet` using natural ordering does not support that. In real-world data, document both the **null rule** and the **duplicate-value rule**.
 
-## 8. Chương trình Java 17+ hoàn chỉnh
+## 8. Complete Java 17+ program
 
-Lưu mã sau thành **`BigDecimalNullComparisonDemo.java`**:
+Save the following code as **`BigDecimalNullComparisonDemo.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -358,14 +358,14 @@ public class BigDecimalNullComparisonDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 BigDecimalNullComparisonDemo.java
 java BigDecimalNullComparisonDemo
 ```
 
-Stdout đã xác minh trên Java 21; mã tương thích Java 17:
+Stdout verified on Java 21; code is Java 17 compatible:
 
 ```text
 compareTo = 0
@@ -381,45 +381,45 @@ sorted = [0, 1.00, 1.0, 2.0, null, null]
 set sizes = 2/1/2
 ```
 
-Dòng cuối lần lượt là kích thước `HashSet`, `TreeSet` theo thứ tự tự nhiên và `TreeSet` xét thêm scale. Khi so sánh kết quả, cần phân biệt **cùng giá trị số**, **cùng biểu diễn gồm scale**, và **hai vị trí đứng cạnh nhau trong một danh sách đã sắp xếp**.
+The final line shows the sizes of `HashSet`, natural-order `TreeSet`, and scale-aware `TreeSet` respectively. When comparing results, distinguish **same numeric value**, **same representation including scale**, and **adjacent positions in a sorted list**.
 
-## 9. Chọn hợp đồng theo tình huống
+## 9. Choosing a contract by scenario
 
-| Tình huống | Hợp đồng khuyên dùng | Lý do |
+| Scenario | Recommended contract | Reason |
 | --- | --- | --- |
-| Hai số tiền bắt buộc trước khi thanh toán | `Objects.requireNonNull` rồi `compareTo` | Thiếu dữ liệu phải bị từ chối |
-| Sắp xếp danh sách có thể thiếu giá | `Comparator.nullsLast(Comparator.naturalOrder())` | Hiển thị được mọi dòng, giá thiếu ở cuối |
-| Xếp mức thiếu lên đầu danh sách cần bổ sung | `Comparator.nullsFirst(...)` | Lộ rõ dữ liệu cần hoàn thiện |
-| Quyết định một giá có vượt ngưỡng hay không, nhưng ngưỡng chưa có | `OptionalInt` hoặc enum có `UNKNOWN` | Không gán kết luận sai khi chưa đủ dữ liệu |
-| So khớp giá trị thập phân không quan tâm số chữ số sau dấu phẩy | Hai bên khác null và `compareTo(...) == 0` | `equals` có xét scale |
-| So khớp dữ liệu khi cả hai cùng null được xem là cùng trạng thái | Kiểm tra `left == right` trước rồi `compareTo` nếu đủ dữ liệu | Quy tắc nullable được diễn đạt rõ |
-| Khóa phải phân biệt `1.0` và `1.00` | `equals`/`hashCode` hoặc comparator xét thêm scale | Giữ phân biệt biểu diễn |
-| Khóa chỉ phân biệt giá trị số | Tập hợp có thứ tự theo `compareTo` hoặc chuẩn hóa được xác định trước | Tránh bất nhất định danh |
+| Two amounts required before payment | `Objects.requireNonNull` then `compareTo` | Missing data must be rejected |
+| Sorting a list that may have missing prices | `Comparator.nullsLast(Comparator.naturalOrder())` | Every row displays, missing prices at the end |
+| Putting missing entries first in a list needing completion | `Comparator.nullsFirst(...)` | Highlights data needing completion |
+| Deciding whether a price exceeds a threshold, when threshold is missing | `OptionalInt` or enum with `UNKNOWN` | Avoids drawing false conclusions when data is incomplete |
+| Matching decimal values regardless of fractional digit count | Both non-null and `compareTo(...) == 0` | `equals` checks scale |
+| Matching data when both null is treated as the same state | Check `left == right` first, then `compareTo` if present | Nullable rule is expressed explicitly |
+| Key must distinguish `1.0` and `1.00` | `equals`/`hashCode` or scale-aware comparator | Preserves representational distinction |
+| Key only distinguishes numeric value | Ordered set by `compareTo` or predefined normalization | Avoids identity inconsistency |
 
-Nếu API có nhiều người gọi, nên mô tả trong Javadoc: đối số nào nullable; `null` nghĩa là gì; trả kết quả gì khi thiếu; so theo số học hay so theo scale; nếu dùng comparator thì null đứng ở đâu; nếu dùng làm khóa thì các giá trị nào được coi là trùng. Tránh tên `isEqual` hoặc `compare` quá chung khi có nhiều quy tắc null cùng tồn tại.
+If an API has multiple callers, document in Javadoc: which arguments are nullable; what `null` means; what is returned when missing; whether comparison is numeric or scale-aware; where null sits if a comparator is used; and which values are considered duplicates if used as keys. Avoid overly generic names like `isEqual` or `compare` when multiple null rules coexist.
 
-## 10. Lỗi phổ biến và bộ trường hợp kiểm tra
+## 10. Common mistakes and test suite
 
-Các lỗi dễ xuất hiện:
+Common mistakes:
 
-1. Gọi `left.compareTo(right)` trong khi không chắc cả hai khác null.
-2. Dùng `Objects.equals` để kiểm tra hai `BigDecimal` bằng nhau về số học, quên `scale`.
-3. Coi `null` là 0 bằng cách `Objects.requireNonNullElse(value, BigDecimal.ZERO)` mà không có quy tắc nghiệp vụ.
-4. Trả `0` khi một bên thiếu, làm sai ý nghĩa “đã so sánh và bằng nhau”.
-5. Dùng `Comparator.nullsLast` trong điều kiện nghiệp vụ thay vì chỉ dùng để sắp xếp.
-6. Bọc comparator của thuộc tính nullable, nhưng quên chính đối tượng chứa thuộc tính cũng có thể null.
-7. Dùng `.reversed()` trên comparator null-last rồi ngạc nhiên vì null xuất hiện đầu.
-8. Cho rằng `TreeSet` sẽ giữ hai `BigDecimal` có `equals == false` dù `compareTo == 0`.
-9. Chuyển sang `double` trước khi so, có nguy cơ mất độ chính xác.
-10. Chỉ test cặp giá trị thường, không test `null` và scale khác nhau.
+1. Calling `left.compareTo(right)` without being sure both are non-null.
+2. Using `Objects.equals` to check whether two `BigDecimal` objects are numerically equal, forgetting `scale`.
+3. Treating `null` as 0 via `Objects.requireNonNullElse(value, BigDecimal.ZERO)` without a business rule.
+4. Returning `0` when one side is missing, corrupting the meaning of "compared and equal."
+5. Using `Comparator.nullsLast` inside business conditions rather than solely for sorting.
+6. Wrapping a comparator for a nullable property while forgetting the parent object holding the property can also be null.
+7. Calling `.reversed()` on a null-last comparator and being surprised when nulls appear first.
+8. Assuming `TreeSet` will keep two `BigDecimal` values with `equals == false` even though `compareTo == 0`.
+9. Converting to `double` before comparing, risking precision loss.
+10. Testing only normal value pairs, omitting `null` and differing scales.
 
-Bộ tình huống tối thiểu cho một API nullable gồm `(null, null)`, `(null, 0)`, `(0, null)`, `(0, 0)`, `(1.0, 1.00)`, `(-1, 0)`, `(1, 2)`, `(2, 1)`. Với comparator, kiểm tra thêm chiều đối xứng, tính bắc cầu và kết quả khi dùng làm thứ tự của `TreeSet`/`TreeMap`.
+A minimal test suite for a nullable API includes `(null, null)`, `(null, 0)`, `(0, null)`, `(0, 0)`, `(1.0, 1.00)`, `(-1, 0)`, `(1, 2)`, and `(2, 1)`. For comparators, also test symmetry, transitivity, and behavior when used to order a `TreeSet`/`TreeMap`.
 
-Tóm lại, **`null` là trạng thái thiếu dữ liệu, `compareTo` là quan hệ thứ tự theo số học, còn `equals` xét cả scale**. Ba vấn đề ấy cần được quyết định riêng trong hợp đồng API. API từ chối dữ liệu thiếu, API sắp xếp có quy tắc null và API cho phép kết quả “chưa xác định” giải quyết những nhu cầu khác nhau.
+In short, **`null` represents missing data, `compareTo` is numeric ordering, and `equals` also considers scale**. Those three concerns must be decided separately in the API contract. An API that rejects missing data, an API that sorts with null rules, and an API that allows an "unknown" result address different needs.
 
-Tài liệu Java SE 21 để đối chiếu:
+Java SE 21 documentation for reference:
 
 - [`BigDecimal`: `compareTo`, `equals`, `min`, `max`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html)
-- [`Comparable`: hợp đồng thứ tự và tính nhất quán với `equals`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Comparable.html)
+- [`Comparable`: ordering contract and consistency with `equals`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Comparable.html)
 - [`Comparator`: `nullsFirst`, `nullsLast`, `comparing`, `reversed`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Comparator.html)
 - [`Objects`: `requireNonNull`, `equals`, `compare`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Objects.html)

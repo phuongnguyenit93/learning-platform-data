@@ -1,14 +1,14 @@
-# Lựa chọn quy tắc giữ bản ghi đầu, cuối hoặc gộp giá trị
+# Choosing Rules to Keep the First Record, Last Record, or Merge Values
 
-> **Chương:** Thu thập thành Map  
+> **Chapter:** Collecting to Maps  
 > **Module:** JAVA_STREAM_API  
-> **Mục tiêu:** Chọn đúng quy tắc xử lý khóa trùng khi thu thập Stream thành Map bằng `Collectors.toMap`: giữ bản ghi xuất hiện đầu tiên, giữ bản ghi xuất hiện cuối cùng, hoặc gộp dữ liệu của nhiều bản ghi; nhận diện sự khác nhau giữa thứ tự nguồn và thứ tự nghiệp vụ.
+> **Goal:** Choose the right duplicate-key handling rule when collecting a Stream into a Map with `Collectors.toMap`: keeping the first-seen record, keeping the last-seen record, or merging data from multiple records; distinguish between source order and business order.
 
-Trong **JAVA_STREAM_API**, các phép toán trung gian như `filter` và `map` tạo nên pipeline xử lý dữ liệu khai báo. Khi kết quả cần truy cập theo khóa, ta thường kết thúc pipeline bằng `collect(Collectors.toMap(...))`. Vấn đề nảy sinh khi **nhiều phần tử tạo ra cùng một khóa**: một `Map<K,V>` thông thường chỉ chứa một giá trị ứng với mỗi khóa, vậy phải chọn giá trị nào?
+In **JAVA_STREAM_API**, intermediate operations such as `filter` and `map` form declarative data-processing pipelines. When the result needs key-based access, we often end the pipeline with `collect(Collectors.toMap(...))`. A problem arises when **multiple elements produce the same key**: an ordinary `Map<K,V>` holds only one value per key, so which value should be chosen?
 
-Ví dụ hệ thống nhận nhiều bản ghi cập nhật cho cùng một sản phẩm:
+For example, suppose a system receives multiple update records for the same product:
 
-| Mã sự kiện | Mã sản phẩm | Số lượng | Thời điểm nghiệp vụ |
+| Event ID | Product Code | Quantity | Business Timestamp |
 | --- | --- | ---: | ---: |
 | E01 | A | 4 | 100 |
 | E02 | B | 3 | 101 |
@@ -16,22 +16,22 @@ Ví dụ hệ thống nhận nhiều bản ghi cập nhật cho cùng một sả
 | E04 | A | 6 | 103 |
 | E05 | B | 7 | 98 |
 
-Nếu cần lưu mỗi sản phẩm một giá trị, có ít nhất bốn quy tắc hợp lệ tùy bài toán:
+If one value must be stored per product, there are at least four valid rules depending on the problem:
 
-- **Giữ lần gặp đầu tiên:** với A chọn E01; với B chọn E02.
-- **Giữ lần gặp cuối cùng:** với A chọn E04; với B chọn E05.
-- **Gộp số lượng:** với A tính `4 + 2 + 6 = 12`; với B tính `3 + 7 = 10`.
-- **Giữ bản ghi có thời điểm mới nhất:** với A chọn E03 (105); với B chọn E02 (101).
+- **Keep first seen:** for A pick E01; for B pick E02.
+- **Keep last seen:** for A pick E04; for B pick E05.
+- **Merge quantities:** for A compute `4 + 2 + 6 = 12`; for B compute `3 + 7 = 10`.
+- **Keep record with latest timestamp:** for A pick E03 (105); for B pick E02 (101).
 
-Bản ghi **cuối cùng trong Stream không nhất thiết là bản ghi mới nhất về thời gian nghiệp vụ**. Đó là khác biệt quan trọng nhất khi thiết kế hàm xử lý khóa trùng.
+The **last record in the Stream is not necessarily the newest record in business time**. That is the single most important distinction when designing a duplicate-key handling function.
 
-Bài học này kết nối trực tiếp với `collect`, hợp đồng `Collector`, grouping, xử lý song song và thứ tự của `Spliterator` trong module Java Stream API. Những nguyên tắc về trạng thái, tính kết hợp và chi phí gộp dữ liệu cũng hữu ích khi xây collector tùy chỉnh và các phép xử lý Stream nâng cao như Stream Gatherers.
+This lesson connects directly to `collect`, the `Collector` contract, grouping, parallel processing, and `Spliterator` ordering in the Java Stream API module. These principles of state, associativity, and merge cost are also useful when building custom collectors and advanced Stream operations such as Stream Gatherers.
 
-Các ví dụ chính sử dụng Java 17+ với `record` và `List.of`. `Collectors.toMap` và các overload có hàm gộp đã có từ Java 8.
+The main examples use Java 17+ with `record` and `List.of`. `Collectors.toMap` and its merge-function overloads have been available since Java 8.
 
-## 1. Vì sao toMap gặp xung đột khóa?
+## 1. Why Does toMap Encounter Key Collisions?
 
-`Collectors.toMap` biến các phần tử của `Stream<T>` thành cặp khóa–giá trị:
+`Collectors.toMap` transforms elements of a `Stream<T>` into key–value pairs:
 
 ```text
 Stream<T>
@@ -44,7 +44,7 @@ Stream<T>
                          Map<K, V>
 ```
 
-Giả sử có các sản phẩm với mã nhóm:
+Suppose we have products with category names:
 
 ```java
 import java.util.List;
@@ -54,13 +54,13 @@ import java.util.stream.Collectors;
 record Product(String sku, String category, long price) {}
 
 List<Product> products = List.of(
-    new Product("P01", "Sách", 100_000),
-    new Product("P02", "Sách", 150_000),
-    new Product("P03", "Thiết bị", 200_000)
+    new Product("P01", "Books", 100_000),
+    new Product("P02", "Books", 150_000),
+    new Product("P03", "Devices", 200_000)
 );
 ```
 
-Nếu chọn SKU làm khóa, mỗi giá trị là duy nhất:
+If we choose SKU as the key, every value is unique:
 
 ```java
 Map<String, Product> bySku = products.stream()
@@ -69,39 +69,39 @@ Map<String, Product> bySku = products.stream()
         product -> product
     ));
 
-// bySku chứa 3 mục vì mỗi sku chỉ xuất hiện một lần.
+// bySku contains 3 entries because each sku appears only once.
 ```
 
-Nếu chọn `category` làm khóa:
+If we choose `category` as the key:
 
 ```java
 Map<String, Product> byCategory = products.stream()
     .collect(Collectors.toMap(
         Product::category,
         product -> product
-    )); // IllegalStateException: khóa "Sách" bị trùng.
+    )); // IllegalStateException: duplicate key "Books".
 ```
 
-**Overload hai tham số của `toMap` không tự chọn bản ghi đầu hay cuối.** Khi gặp các phần tử ánh xạ đến khóa trùng theo quy tắc của Map, collector mặc định ném `IllegalStateException`. Điều này giúp phát hiện lỗi dữ liệu nếu nghiệp vụ thật sự yêu cầu khóa phải duy nhất.
+**The two-argument overload of `toMap` does not automatically pick the first or last record.** When elements map to a duplicate key according to the Map's equality rules, the collector throws `IllegalStateException` by default. This helps detect data errors if the domain genuinely requires unique keys.
 
-Một cách xử lý hợp lệ là **nêu rõ merge function**. Cách xử lý khác là thiết kế lại khóa hoặc dùng `groupingBy` nếu cần giữ mọi bản ghi.
+One valid solution is to **specify a merge function**. Other solutions are redesigning the key or using `groupingBy` when every record must be retained.
 
-## 2. Đọc đúng các overload của Collectors.toMap
+## 2. Reading the Collectors.toMap Overloads Correctly
 
-`Collectors` có ba overload quan trọng:
+`Collectors` provides three core overloads:
 
 ```java
-// 1) Không khai báo quy tắc khi khóa bị trùng:
+// 1) No rule declared for duplicate keys:
 toMap(keyMapper, valueMapper);
 
-// 2) Có quy tắc gộp khi khóa bị trùng:
+// 2) Includes a merge rule when keys collide:
 toMap(keyMapper, valueMapper, mergeFunction);
 
-// 3) Có cả quy tắc gộp và loại Map cần tạo:
+// 3) Includes both a merge rule and the Map type to create:
 toMap(keyMapper, valueMapper, mergeFunction, mapFactory);
 ```
 
-Hình dạng kiểu generic (rút gọn để dễ đọc):
+Generic type shapes (simplified for readability):
 
 ```java
 <T, K, U> Collector<T, ?, Map<K, U>> toMap(
@@ -118,33 +118,33 @@ Hình dạng kiểu generic (rút gọn để dễ đọc):
 );
 ```
 
-| Tham số | Chức năng | Ví dụ |
+| Parameter | Purpose | Example |
 | --- | --- | --- |
-| `keyMapper` | Trích khóa `K` từ một phần tử `T` | `Product::category` |
-| `valueMapper` | Trích giá trị `U` từ một phần tử `T` | `Product::price` |
-| `mergeFunction` | Nhận hai giá trị `U` khi chúng ứng với cùng khóa và trả một giá trị kết hợp | `(oldValue, newValue) -> oldValue` |
-| `mapFactory` | Tạo loại Map cần thu thập | `LinkedHashMap::new`, `TreeMap::new` |
+| `keyMapper` | Extracts key `K` from an element `T` | `Product::category` |
+| `valueMapper` | Extracts value `U` from an element `T` | `Product::price` |
+| `mergeFunction` | Receives two `U` values for the same key and returns one combined value | `(oldValue, newValue) -> oldValue` |
+| `mapFactory` | Creates the Map instance to collect into | `LinkedHashMap::new`, `TreeMap::new` |
 
-`mergeFunction` có kiểu `BinaryOperator<U>`: nhận hai giá trị **cùng kiểu `U`** và trả một giá trị kiểu `U`. Nó không nhận trực tiếp khóa `K` hay phần tử `T` gốc, trừ khi `valueMapper` giữ lại cả đối tượng đầu vào làm giá trị.
+`mergeFunction` has type `BinaryOperator<U>`: it accepts two values **of the same type `U`** and returns one value of type `U`. It does not directly receive key `K` or the original element `T`, unless `valueMapper` retains the input object itself as the value.
 
-Ví dụ:
+Example:
 
 ```java
 Map<String, Long> maxPriceByCategory = products.stream()
     .collect(Collectors.toMap(
         Product::category, // K = String
-        Product::price,    // U = Long (boxing từ long)
+        Product::price,    // U = Long (boxed from long)
         Long::max          // BinaryOperator<Long>
     ));
 
-// "Sách" -> 150000; "Thiết bị" -> 200000.
+// "Books" -> 150000; "Devices" -> 200000.
 ```
 
-Nếu muốn gộp dựa vào những thuộc tính khác của `Product` (chẳng hạn ngày cập nhật hoặc độ ưu tiên), ta có thể dùng `Function.identity()` làm `valueMapper` để giữ nguyên đối tượng.
+If we want to merge based on other attributes of `Product` (such as update date or priority), we can use `Function.identity()` as `valueMapper` to keep the whole object.
 
-## 3. Giữ bản ghi đầu tiên: (first, next) -> first
+## 3. Keeping the First Record: (first, next) -> first
 
-Trong một Stream **có thứ tự gặp phần tử xác định** (*encounter order*), quy tắc giữ bản ghi xuất hiện đầu tiên thường được viết:
+In a Stream **with a defined encounter order**, the rule for keeping the first-appearing record is commonly written as:
 
 ```java
 Map<String, Product> firstByCategory = products.stream()
@@ -155,9 +155,9 @@ Map<String, Product> firstByCategory = products.stream()
     ));
 ```
 
-Trong ví dụ, nhóm `"Sách"` giữ P01 vì P01 xuất hiện trước P02 trong danh sách nguồn.
+In the example, the `"Books"` group keeps P01 because P01 appears before P02 in the source list.
 
-Có thể dùng `Function.identity()` để trả phần tử ban đầu:
+You can use `Function.identity()` to return the original element:
 
 ```java
 import java.util.function.Function;
@@ -170,49 +170,49 @@ Map<String, Product> firstByCategory = products.stream()
     ));
 ```
 
-### 3.1. "Đầu tiên" là theo thứ tự nào?
+### 3.1. "First" according to what order?
 
-Trong ví dụ trên, `products` là `List` có thứ tự và `products.stream()` giữ *encounter order*. Nếu dữ liệu đến từ một `HashSet`, một Stream bị gọi `unordered()` hoặc một nguồn không khai báo thứ tự, **không có căn cứ để xác định bản ghi nào là đầu tiên theo nghiệp vụ**.
+In the example above, `products` is an ordered `List` and `products.stream()` preserves *encounter order*. If the data comes from a `HashSet`, a Stream with `unordered()` called on it, or a source that declares no order, **there is no basis for determining which record is business-first**.
 
-So sánh:
+Compare:
 
 ```java
-List<String> names = List.of("An", "Bình", "Chi");
+List<String> names = List.of("Alice", "Bob", "Carol");
 
-// Với List và Stream tuần tự, thứ tự gặp là An, Bình, Chi.
+// With a List and a sequential Stream, the encounter order is Alice, Bob, Carol.
 String first = names.stream().findFirst().orElseThrow();
 ```
 
-Với một Stream unordered, khái niệm “đầu” không có bảo đảm ổn định giống List. Muốn chọn bản ghi đầu tiên theo thời gian tạo, **đưa thời gian vào quy tắc so sánh**, thay vì phụ thuộc một cách ngầm định vào thứ tự dữ liệu đầu vào.
+With an unordered Stream, the notion of "first" lacks the stable guarantee of a List. To pick the first record by creation time, **put the timestamp into the comparison rule** rather than implicitly depending on input order.
 
-### 3.2. Khi nào giữ bản ghi đầu?
+### 3.2. When should you keep the first record?
 
-Quy tắc này phù hợp khi:
+This rule fits when:
 
-- Danh sách đầu vào đã được sắp xếp theo **độ ưu tiên cao nhất trước**.
-- Cần duy trì giá trị đầu tiên được nhập trong một luồng sự kiện có thứ tự.
-- Bài toán quy định “mỗi khóa lấy lần xuất hiện đầu tiên trong dữ liệu đầu vào”.
+- The input list is already sorted by **highest priority first**.
+- You need to preserve the first value ingested in an ordered event stream.
+- The specification states "for each key, take the first occurrence in the input data".
 
-Nếu mục tiêu là lấy bản ghi có **thời gian nhỏ nhất**, hãy sử dụng Comparator trực tiếp như ở mục 6; cách này còn rõ ràng khi thứ tự nguồn chưa được bảo đảm.
+If the goal is to pick the record with the **earliest timestamp**, use a `Comparator` directly as shown in Section 6; that also remains explicit when source order is not guaranteed.
 
-### 3.3. Không được hiểu first là biến global giữ một lần
+### 3.3. Do not misunderstand first as a global variable keeping one item total
 
-Trong collector, `(first, next) -> first` chỉ định **cách giải quyết hai giá trị đang tranh cùng khóa**. Nó không tạo biến toàn cục và không có nghĩa toàn bộ Stream chỉ giữ một phần tử. Mỗi khóa có lịch sử xung đột riêng.
+In the collector, `(first, next) -> first` specifies **how to resolve two values competing for the same key**. It does not create a global variable and does not mean the entire Stream keeps only one element. Each key has its own collision history.
 
-Vì vậy:
+Therefore:
 
 ```text
 [A: E01, B: E02, A: E03, A: E04, B: E05]
                      │
-                giữ đầu tiên
+                 keep first
                      ▼
                  A → E01
                  B → E02
 ```
 
-## 4. Giữ bản ghi cuối cùng: (oldValue, newValue) -> newValue
+## 4. Keeping the Last Record: (oldValue, newValue) -> newValue
 
-Để chọn giá trị gặp sau theo thứ tự nguồn:
+To choose the value seen later in source order:
 
 ```java
 Map<String, Product> lastByCategory = products.stream()
@@ -223,9 +223,9 @@ Map<String, Product> lastByCategory = products.stream()
     ));
 ```
 
-Trong nhóm `"Sách"`, P02 thay P01. Quy tắc thường được gọi là **last wins**.
+In the `"Books"` group, P02 replaces P01. This rule is commonly called **last wins**.
 
-Ví dụ số:
+Numeric example:
 
 ```java
 record Reading(String sensorId, int value) {}
@@ -247,25 +247,25 @@ Map<String, Integer> latestInSequence = readings.stream()
 // "S1" -> 18; "S2" -> 20.
 ```
 
-### 4.1. "Cuối cùng" không đồng nghĩa "mới nhất"
+### 4.1. "Last" does not mean "newest"
 
-Giả sử dữ liệu đến trễ:
+Suppose data arrives late:
 
 ```text
-Sự kiện xuất hiện trong danh sách:
-E01 (thời điểm 100)
-E03 (thời điểm 105)
-E04 (thời điểm 103)
+Events appearing in the list:
+E01 (timestamp 100)
+E03 (timestamp 105)
+E04 (timestamp 103)
 
-last wins theo encounter order = E04
-newest theo timestamp         = E03
+last wins by encounter order = E04
+newest by timestamp         = E03
 ```
 
-Nếu dữ liệu đến từ hàng đợi, API phân trang hoặc các dịch vụ gửi lại bản ghi cũ, thứ tự xuất hiện có thể khác thứ tự thời gian. **Last wins chỉ đúng với bài toán “ghi đè bằng phần tử đến sau”**, không mặc định đúng với bài toán “giá trị cập nhật mới nhất”.
+If data arrives from queues, paginated APIs, or services replaying old records, appearance order can differ from chronological order. **Last wins is only correct for "overwrite with the later-arriving element"**, not by default for "the most recently updated value".
 
-### 4.2. Last wins có thay thứ tự các khóa trong Map không?
+### 4.2. Does last wins change the order of keys in the Map?
 
-Việc thay giá trị của một khóa không nhất thiết di chuyển khóa ấy đến cuối thứ tự duyệt Map. Ví dụ với `LinkedHashMap` mặc định lưu thứ tự chèn:
+Replacing the value of a key does not necessarily move that key to the end of Map traversal order. For example, with `LinkedHashMap` storing insertion order by default:
 
 ```java
 Map<String, Reading> map = readings.stream()
@@ -277,15 +277,15 @@ Map<String, Reading> map = readings.stream()
     ));
 ```
 
-Ở đây khóa `S1` xuất hiện đầu, nên vị trí của khóa ấy được ghi nhận khi chèn lần đầu. Các lần ghi đè **giá trị** của `S1` không tự biến nó thành khóa được chèn gần đây nhất. `LinkedHashMap` ở chế độ insertion order không di chuyển vị trí khóa chỉ vì cập nhật một giá trị đã tồn tại.
+Here key `S1` appears first, so its position is recorded upon first insertion. Subsequent overwrites of `S1`'s **value** do not make it the most recently inserted key. `LinkedHashMap` in insertion-order mode does not move a key's position just because an existing value is updated.
 
-Nếu cần sắp khóa theo thời gian cập nhật cuối cùng, phải chọn cấu trúc hoặc quy tắc sắp xếp dành riêng cho yêu cầu đó.
+If keys need to be ordered by last update time, choose a data structure or sorting rule specifically designed for that requirement.
 
-## 5. Gộp giá trị: sum, max, min và quy tắc nghiệp vụ
+## 5. Merging Values: sum, max, min, and Business Rules
 
-Giữ đầu/cuối là hai trường hợp đặc biệt: khi va chạm, một giá trị được giữ nguyên và giá trị còn lại bị bỏ qua. Nhưng nhiều bài toán cần **tích lũy**.
+Keeping the first or last value are two special cases: on collision, one value is kept intact and the other is discarded. However, many problems require **accumulation**.
 
-### 5.1. Tính tổng số lượng theo khóa
+### 5.1. Summing quantities by key
 
 ```java
 record Item(String sku, long quantity) {}
@@ -308,17 +308,17 @@ Map<String, Long> totalQuantity = items.stream()
 // "A" -> 12; "B" -> 10.
 ```
 
-Ở mỗi xung đột khóa, `Long::sum` kết hợp giá trị đang có với giá trị vừa tới. Cuối quá trình, mỗi khóa chứa một tổng.
+At each key collision, `Long::sum` combines the existing value with the incoming value. At the end, each key holds a total.
 
-Có thể viết lambda tương đương:
+You could write an equivalent lambda:
 
 ```java
 (left, right) -> left + right
 ```
 
-Nhưng `Long::sum` biểu đạt rõ hơn ý định cộng hai số `long`.
+However, `Long::sum` more clearly expresses the intent of adding two `long` numbers.
 
-### 5.2. Chọn giá trị lớn nhất hoặc nhỏ nhất
+### 5.2. Selecting the maximum or minimum value
 
 ```java
 Map<String, Long> maxQuantity = items.stream()
@@ -331,11 +331,11 @@ Map<String, Long> maxQuantity = items.stream()
 // A -> 6; B -> 7.
 ```
 
-`Long::min` tương tự cho yêu cầu lấy giá trị nhỏ nhất. Đây là phép gộp độc lập với vị trí xuất hiện và thường phù hợp khi thứ tự đầu vào không có ý nghĩa nghiệp vụ.
+`Long::min` works similarly for taking the minimum value. This merge is independent of appearance position and is typically suitable when input order carries no business meaning.
 
-### 5.3. Khi cần ghép các trường thay vì chỉ cộng một số
+### 5.3. When fields must be combined instead of adding a single number
 
-Giả sử mỗi bản ghi chứa doanh thu và số đơn hàng:
+Suppose each record holds revenue and order count:
 
 ```java
 record Totals(long revenue, long orders) {}
@@ -343,9 +343,9 @@ record Totals(long revenue, long orders) {}
 record PartialReport(String category, Totals totals) {}
 
 List<PartialReport> parts = List.of(
-    new PartialReport("Sách", new Totals(100, 2)),
-    new PartialReport("Thiết bị", new Totals(250, 1)),
-    new PartialReport("Sách", new Totals(300, 3))
+    new PartialReport("Books", new Totals(100, 2)),
+    new PartialReport("Devices", new Totals(250, 1)),
+    new PartialReport("Books", new Totals(300, 3))
 );
 
 Map<String, Totals> summary = parts.stream()
@@ -358,25 +358,25 @@ Map<String, Totals> summary = parts.stream()
         )
     ));
 
-// "Sách" -> Totals(revenue=400, orders=5).
+// "Books" -> Totals(revenue=400, orders=5).
 ```
 
-Hàm gộp tạo ra một giá trị mới, không cần chỉnh sửa đối tượng cũ. Đây là cách đơn giản để hạn chế lỗi trạng thái chung khi xử lý song song. Với dữ liệu thật, cần kiểm soát tràn `long` nếu tổng có thể vượt phạm vi biểu diễn.
+The merge function produces a new value without mutating old objects. This is a clean way to prevent shared-state bugs under parallel processing. With real data, guard against `long` overflow if totals may exceed the representable range.
 
-### 5.4. Gộp danh sách hay dùng groupingBy?
+### 5.4. Merging lists or using groupingBy?
 
-Nếu muốn giữ **mọi bản ghi** của mỗi nhóm, `groupingBy` thường tự nhiên hơn:
+If you want to keep **every record** in each group, `groupingBy` is usually much more natural:
 
 ```java
 Map<String, List<Item>> itemsBySku = items.stream()
     .collect(Collectors.groupingBy(Item::sku));
 
-// "A" có 3 Item; "B" có 2 Item.
+// "A" has 3 Items; "B" has 2 Items.
 ```
 
-Có thể viết `toMap` với `valueMapper` tạo danh sách một phần tử, rồi gộp danh sách. Nhưng việc quản lý một vùng mutable cho mỗi khóa, giữ thứ tự và gộp trong song song phức tạp hơn không cần thiết nếu `groupingBy` đã thể hiện đúng bài toán.
+You could write `toMap` with a `valueMapper` that creates a single-element list and then merges lists. But managing a mutable container per key, preserving order, and combining in parallel is needlessly complicated when `groupingBy` already models the problem directly.
 
-Ngược lại, nếu chỉ cần tổng số lượng, `toMap(..., Long::sum)` gọn và rõ. Một lựa chọn khác là:
+Conversely, if only the total quantity is needed, `toMap(..., Long::sum)` is concise and clear. Another alternative is:
 
 ```java
 Map<String, Long> totals = items.stream()
@@ -386,17 +386,17 @@ Map<String, Long> totals = items.stream()
     ));
 ```
 
-Cả hai cách đều biểu diễn “tổng theo khóa”; chọn API dựa vào nhu cầu kết hợp downstream collector, loại Map, độ rõ của mã và kết quả cần thu.
+Both approaches express "sum by key"; choose the API based on downstream collector composition, Map type, code clarity, and desired output.
 
-## 6. Giữ bản ghi theo thời gian hoặc độ ưu tiên: dùng Comparator
+## 6. Keeping a Record by Time or Priority: Using a Comparator
 
-Khi khóa trùng và cần chọn bản ghi **mới nhất về thời gian**, hãy so sánh một thuộc tính của chính đối tượng. Với dữ liệu từ mục mở đầu:
+When keys collide and you need the **chronologically latest** record, compare an attribute of the object itself. Using the data from the opening section:
 
 ```java
 record Event(String id, String product, long quantity, long occurredAt) {}
 ```
 
-Giữ nguyên Event làm giá trị Map:
+Keep the `Event` itself as the Map value:
 
 ```java
 Comparator<Event> byTimestampThenId = Comparator
@@ -411,20 +411,20 @@ Map<String, Event> newestByProduct = events.stream()
     ));
 ```
 
-Biến `events` là `List<Event>` được khai báo đầy đủ trong chương trình chạy độc lập ở mục 9.
+The variable `events` is a `List<Event>` fully declared in the standalone program in Section 9.
 
-`BinaryOperator.maxBy(...)` trả về giá trị lớn hơn theo Comparator. Khóa chính `occurredAt` quyết định bản ghi mới nhất; `id` giúp quyết định một cách nhất quán khi hai sự kiện có cùng timestamp.
+`BinaryOperator.maxBy(...)` returns the greater value according to the Comparator. The primary key `occurredAt` determines the latest record; `id` breaks ties consistently when two events share the same timestamp.
 
-### 6.1. Vì sao cần tie-breaker?
+### 6.1. Why is a tie-breaker needed?
 
-Nếu chỉ so timestamp, hai sự kiện cùng thời điểm có thể được Comparator xem là tương đương. Khi đó phần tử nào được giữ có thể phụ thuộc cách xử lý những trường hợp bằng nhau.
+If you only compare timestamps, two events at the same instant can be treated as equivalent by the Comparator. Which element is kept can then depend on how ties are handled.
 
 ```java
 Comparator<Event> byTimestamp =
     Comparator.comparingLong(Event::occurredAt);
 ```
 
-Với hệ thống yêu cầu kết quả tái lập, có thể thêm khóa cuối **duy nhất và ổn định**:
+For systems requiring reproducible results, add a **unique and stable** final tie-breaker key:
 
 ```java
 Comparator<Event> byTimestampThenId = Comparator
@@ -432,9 +432,9 @@ Comparator<Event> byTimestampThenId = Comparator
     .thenComparing(Event::id);
 ```
 
-Điều này chỉ hiệu quả nếu `id` đáp ứng yêu cầu phân biệt của dữ liệu. Nếu mã sự kiện không duy nhất, cần xác định quy tắc tiếp theo.
+This works only if `id` satisfies the uniqueness requirement of the data. If event IDs are not unique, define an additional rule.
 
-### 6.2. Dùng minBy cho bản ghi cũ nhất
+### 6.2. Using minBy for the oldest record
 
 ```java
 Map<String, Event> oldestByProduct = events.stream()
@@ -445,11 +445,11 @@ Map<String, Event> oldestByProduct = events.stream()
     ));
 ```
 
-`minBy` lấy phần tử có khóa so sánh nhỏ nhất. Khi Comparator mang ngữ nghĩa “thời gian rồi ID tăng dần”, nó chọn bản ghi cũ nhất theo thời gian; nếu bằng thời gian, chọn ID nhỏ hơn.
+`minBy` selects the element with the smallest comparison key. When the Comparator means "ascending timestamp then ID", it picks the oldest record by time; on equal timestamps, it picks the smaller ID.
 
-### 6.3. Một phương án khác: sort trước rồi last wins
+### 6.3. An alternative: sort first, then last wins
 
-Nếu cần thể hiện chính xác quy tắc “duyệt theo timestamp tăng dần rồi lấy cuối”:
+If you want to literally express "traverse in ascending timestamp order, then take the last":
 
 ```java
 Map<String, Event> newestSorted = events.stream()
@@ -461,13 +461,13 @@ Map<String, Event> newestSorted = events.stream()
     ));
 ```
 
-Cách này có thể cho cùng kết quả với `maxBy` trên dữ liệu có thứ tự toàn phần phù hợp. Nhưng `sorted` phải sắp xếp toàn bộ nguồn, thường tiêu tốn thời gian `O(n log n)` và bộ nhớ bổ sung; `maxBy` trong merge function không đòi hỏi sắp toàn bộ chỉ để chọn đại diện cho từng khóa.
+This can yield the same result as `maxBy` on data with an appropriate total order. However, `sorted` must sort the entire source, typically costing `O(n log n)` time and extra memory; `maxBy` in the merge function does not require sorting everything just to select one representative per key.
 
-Nếu không cần một danh sách đã sắp, **so sánh trực tiếp trong merge function** thường là cách rõ ràng và ít công việc hơn.
+If you do not need a sorted list, **comparing directly in the merge function** is usually clearer and involves less work.
 
-### 6.4. Không dùng first/last để thay quy tắc cập nhật phiên bản
+### 6.4. Do not use first/last to replace version update rules
 
-Trong hệ thống phân tán, một bản ghi có thể đến chậm, được xử lý lại hoặc được gửi trùng. Nếu nghiệp vụ lựa chọn theo `version`, hãy so sánh phiên bản:
+In distributed systems, a record may arrive late, be reprocessed, or be delivered twice. If the business selects by `version`, compare versions explicitly:
 
 ```java
 record VersionedValue(String key, long version, String payload) {}
@@ -484,68 +484,68 @@ Map<String, VersionedValue> chosen = updates.stream()
     ));
 ```
 
-`updates` đại diện cho Stream hoặc List các cập nhật. Comparator này chỉ minh họa việc chọn ưu tiên theo phiên bản và dùng payload để phá hòa; nếu dữ liệu có cùng phiên bản nhưng nội dung khác nhau, hệ thống thực cần một **chính sách xung đột rõ ràng**, có thể là từ chối dữ liệu thay vì chọn ngẫu nhiên theo chuỗi.
+`updates` represents a Stream or List of updates. This Comparator merely illustrates prioritizing by version and breaking ties with payload; if data shares the same version with different contents, a real system needs an **explicit conflict policy**, potentially rejecting the data rather than picking arbitrarily by string order.
 
-## 7. Tính kết hợp của mergeFunction và xử lý song song
+## 7. Associativity of mergeFunction and Parallel Processing
 
-Collector có thể được thực thi bằng `parallelStream()`. Framework khi đó có thể tạo nhiều Map cục bộ, xử lý các phần dữ liệu riêng rồi **gộp các Map** bằng merge function.
+A Collector can be executed via `parallelStream()`. The framework may then create multiple local Maps, process separate chunks of data, and **combine the Maps** using the merge function.
 
 ```text
-                 Nguồn có thứ tự
-               [A1, B1, A2, A3, B2]
+                  Ordered source
+                [A1, B1, A2, A3, B2]
+                         │
+                     split work
+                ┌────────┴────────┐
+                ▼                 ▼
+           Local Map 1        Local Map 2
+            A → ...             A → ...
+            B → ...             B → ...
+                └──── merge ───────┘
                         │
-                  chia công việc
-               ┌────────┴────────┐
-               ▼                 ▼
-          Map cục bộ 1       Map cục bộ 2
-           A → ...             A → ...
-           B → ...             B → ...
-               └──── merge ───────┘
-                       │
-                       ▼
-                   Map kết quả
+                        ▼
+                    Result Map
 ```
 
-Để quá trình chia/gộp vẫn đúng, **hàm gộp phải có tính kết hợp** (*associative*) và tuân thủ hợp đồng collector.
+For splitting and merging to remain valid, **the merge function must be associative** and obey the collector contract.
 
-### 7.1. Những phép gộp có tính kết hợp
+### 7.1. Associative merge operations
 
-| Hàm gộp | Công thức | Tính kết hợp về kết quả |
+| Merge function | Formula | Result associativity |
 | --- | --- | --- |
-| Giữ đầu | `(a, b) -> a` | Có: luôn giữ giá trị phía trái của dãy gộp đúng thứ tự. |
-| Giữ cuối | `(a, b) -> b` | Có: luôn giữ giá trị phía phải của dãy gộp đúng thứ tự. |
-| Cộng số nguyên | `Long::sum` | Có theo số học nguyên và modulo của Java; nghiệp vụ phải xét tràn. |
-| Lớn nhất | `Long::max` | Có. |
-| Nhỏ nhất | `Long::min` | Có. |
-| Lớn nhất theo Comparator ổn định | `BinaryOperator.maxBy(comparator)` | Có khi quan hệ so sánh hợp lệ và trường hợp bằng nhau được xử lý nhất quán. |
-| Phép trừ | `(a, b) -> a - b` | **Không**. |
-| Trung bình hai trung bình không có trọng số | `(a, b) -> (a + b) / 2` | **Không** trong bài toán tổng quát. |
+| Keep first | `(a, b) -> a` | Yes: always keeps the left value of an order-preserving merge sequence. |
+| Keep last | `(a, b) -> b` | Yes: always keeps the right value of an order-preserving merge sequence. |
+| Integer addition | `Long::sum` | Yes under Java integer modular arithmetic; business logic must watch for overflow. |
+| Maximum | `Long::max` | Yes. |
+| Minimum | `Long::min` | Yes. |
+| Max by stable Comparator | `BinaryOperator.maxBy(comparator)` | Yes when the comparison relation is valid and ties are handled consistently. |
+| Subtraction | `(a, b) -> a - b` | **No**. |
+| Unweighted average of two averages | `(a, b) -> (a + b) / 2` | **No** in the general case. |
 
-Ví dụ sai:
+Counterexample:
 
 ```text
 (20 - 7) - 3 = 10
 20 - (7 - 3) = 16
 ```
 
-Đổi cách nhóm phần tử sẽ cho kết quả khác nhau. Vì vậy không chọn phép trừ làm merge function cho việc tổng hợp cần đúng khi chia/gộp.
+Changing how elements are grouped yields different results. Therefore, do not choose subtraction as a merge function for aggregations that must remain valid under splitting and merging.
 
-### 7.2. first/last theo encounter order và parallel
+### 7.2. first/last with encounter order and parallel execution
 
-Với nguồn `List` có thứ tự, `Collectors.toMap` thông thường là collector **không đồng thời**, không khai báo `UNORDERED`. Khi được thực thi song song, nó phải bảo toàn ngữ nghĩa tương đương với phép thu thập tuần tự đối với thứ tự gặp phần tử; các merge function giữ đầu hoặc cuối có tính kết hợp phù hợp cho mục tiêu này.
+With an ordered `List` source, standard `Collectors.toMap` is a **non-concurrent** collector and is not marked `UNORDERED`. When run in parallel, it must preserve semantics equivalent to sequential collection with respect to element encounter order; first-wins or last-wins merge functions are associative in a way that satisfies this requirement.
 
-Tuy nhiên, không suy ra rằng:
+However, do not infer that:
 
-- Có thể dự đoán **thứ tự thời gian** các lambda được chạy trên từng luồng.
-- Mọi nguồn đều có encounter order.
-- `Map` kết quả tự có thứ tự duyệt giống nguồn.
-- Quy tắc first/last diễn tả “sớm nhất/mới nhất theo ngày” nếu chưa so sánh ngày.
+- You can predict the **wall-clock order** in which lambdas execute across threads.
+- Every source has an encounter order.
+- The resulting `Map` automatically shares the source's iteration order.
+- The first/last rule expresses "chronologically earliest/latest" if dates have not been compared.
 
-Nếu cần “mới nhất theo timestamp”, dùng Comparator như mục 6. Nếu cần first/last theo dữ liệu nhập, bảo đảm nguồn có encounter order rõ ràng.
+If you need "latest by timestamp", use a Comparator as in Section 6. If you need first/last by input data, ensure the source has an explicit encounter order.
 
-### 7.3. toConcurrentMap cần đặc biệt cẩn thận
+### 7.3. toConcurrentMap requires special care
 
-`Collectors.toConcurrentMap` tạo collector đồng thời, thường không có thứ tự. Ví dụ:
+`Collectors.toConcurrentMap` creates a concurrent collector, which is typically unordered. Example:
 
 ```java
 ConcurrentMap<String, Long> totals = items.parallelStream()
@@ -556,13 +556,13 @@ ConcurrentMap<String, Long> totals = items.parallelStream()
     ));
 ```
 
-Với phép cộng theo khóa, không cần biết phần tử nào “đầu tiên”. Nhưng nếu thay `Long::sum` bằng `(first, next) -> first` hoặc `(first, next) -> next`, giá trị thắng có thể phụ thuộc vào lịch biểu chạy đồng thời; **không dùng các quy tắc đó để chọn một bản ghi đầu/cuối theo thứ tự nguồn** với collector không có thứ tự.
+For summing by key, it does not matter which element is "first". But if you replace `Long::sum` with `(first, next) -> first` or `(first, next) -> next`, the winning value can depend on concurrent scheduling; **do not use those rules to pick a first/last record by source order** with an unordered collector.
 
-Đoạn mã cần `import java.util.concurrent.ConcurrentMap;`. Không nên mặc định `toConcurrentMap` nhanh hơn; tranh chấp khóa, số lượng phần tử và đặc tính nguồn vẫn quyết định hiệu năng.
+This snippet requires `import java.util.concurrent.ConcurrentMap;`. Do not assume `toConcurrentMap` is automatically faster; key contention, element count, and source characteristics still govern performance.
 
-### 7.4. Tránh tác động phụ trong merge function
+### 7.4. Avoid side effects in the merge function
 
-**Không nên viết:**
+**Do not write:**
 
 ```java
 List<String> audit = new ArrayList<>();
@@ -572,19 +572,19 @@ Map<String, Long> totals = items.parallelStream()
         Item::sku,
         Item::quantity,
         (a, b) -> {
-            audit.add("Có khóa trùng"); // Không an toàn, tác động phụ bên ngoài.
+            audit.add("Duplicate key found"); // Unsafe, external side effect.
             return a + b;
         }
     ));
 ```
 
-`ArrayList` không an toàn khi nhiều luồng cùng cập nhật; hơn nữa số lần gọi merge phụ thuộc cách chia/gộp, không thích hợp để xác định số bản ghi trùng hoặc tạo audit chính thức.
+`ArrayList` is not thread-safe under concurrent updates; furthermore, the number of merge calls depends on how chunks are split and combined, making it unsuitable for counting business collisions or producing formal audits.
 
-Nếu cần thống kê số lượng theo khóa, thu thêm dữ liệu bằng `groupingBy` và `counting` hoặc một collector có trạng thái đúng hợp đồng. Việc ghi nhật ký nghiệp vụ nên là bước riêng được điều phối rõ ràng sau khi kết quả đã có.
+If you need per-key statistics, gather extra data with `groupingBy` and `counting`, or a properly contracted stateful collector. Business logging should be a separate, explicitly orchestrated step after the result is ready.
 
-## 8. Chọn Map nào: HashMap, LinkedHashMap hay TreeMap?
+## 8. Choosing a Map: HashMap, LinkedHashMap, or TreeMap?
 
-Overload ba tham số của `toMap` không cam kết một kiểu Map cụ thể hoặc thứ tự duyệt của Map kết quả. Nếu ứng dụng phụ thuộc vào cách các khóa được duyệt, chỉ định `mapFactory`:
+The three-argument overload of `toMap` does not guarantee a concrete Map class or iteration order for the returned Map. If the application depends on how keys are iterated, specify `mapFactory`:
 
 ```java
 Map<String, Item> firstWithInsertionOrder = items.stream()
@@ -596,16 +596,16 @@ Map<String, Item> firstWithInsertionOrder = items.stream()
     ));
 ```
 
-### 8.1. Khác biệt giữa các map
+### 8.1. Differences among maps
 
-| Map | Đặc điểm | Khi phù hợp |
+| Map | Characteristic | When appropriate |
 | --- | --- | --- |
-| `HashMap` | Không bảo đảm thứ tự duyệt. | Cần tra cứu theo khóa, không cần thứ tự trình bày. |
-| `LinkedHashMap` | Mặc định giữ thứ tự chèn khóa. | Cần hiển thị khóa theo thứ tự xuất hiện đầu tiên. |
-| `TreeMap` | Duyệt khóa theo Comparator hoặc thứ tự tự nhiên. | Cần khóa được sắp xếp để trình bày hoặc xử lý. |
-| `ConcurrentHashMap` | Hỗ trợ thao tác đồng thời theo hợp đồng riêng. | Cần cập nhật/tra cứu đồng thời và đã thiết kế đúng merge semantics. |
+| `HashMap` | No iteration order guaranteed. | Key-based lookup needed, no display order required. |
+| `LinkedHashMap` | Preserves key insertion order by default. | Need to display keys in first-appearance order. |
+| `TreeMap` | Iterates keys by Comparator or natural order. | Need keys sorted for display or processing. |
+| `ConcurrentHashMap` | Supports concurrent operations under its own contract. | Need concurrent updates/lookups with properly designed merge semantics. |
 
-Để sắp mã sản phẩm theo tên khóa:
+To sort product codes by key name:
 
 ```java
 Map<String, Long> sortedKeys = items.stream()
@@ -617,11 +617,11 @@ Map<String, Long> sortedKeys = items.stream()
     ));
 ```
 
-Ví dụ này giữ kết quả Map có khóa theo thứ tự tự nhiên của `String`. Nó **không có nghĩa** giá trị trong Map được sắp tăng dần.
+This example keeps the result Map's keys in natural `String` order. It **does not mean** the Map values are sorted in ascending order.
 
-### 8.2. TreeMap có thể định nghĩa "khóa trùng" khác HashMap
+### 8.2. TreeMap may define "duplicate key" differently from HashMap
 
-Với `HashMap`, hai khóa `String` được xem là giống nhau khi `equals` là `true`. Với `TreeMap`, quy tắc so sánh của Comparator có thể quyết định hai khóa là cùng một vị trí nếu `compare(a,b) == 0`.
+With `HashMap`, two `String` keys are considered equal when `equals` is `true`. With `TreeMap`, the Comparator's comparison rule can treat two keys as occupying the same slot if `compare(a,b) == 0`.
 
 ```java
 TreeMap<String, Long> map = new TreeMap<>(
@@ -634,7 +634,7 @@ map.merge("sku-A", 20L, Long::sum);
 System.out.println(map.size()); // 1
 ```
 
-Lưu ý: Map dùng comparator không nhất quán với `equals` có thể không tuân thủ hợp đồng Map tổng quát theo cách mọi người kỳ vọng. Khi quy tắc khóa là **không phân biệt chữ hoa/chữ thường**, thường rõ ràng hơn nếu chuẩn hóa `keyMapper` ngay từ đầu:
+Note: a Map using a comparator inconsistent with `equals` may not obey the general Map contract in the way everyone expects. When key matching is **case-insensitive**, it is often clearer to normalize `keyMapper` upfront:
 
 ```java
 Map<String, Long> normalized = items.stream()
@@ -645,14 +645,14 @@ Map<String, Long> normalized = items.stream()
     ));
 ```
 
-Đoạn này cần `import java.util.Locale;`. Lựa chọn chuẩn hóa mã phải theo quy tắc nghiệp vụ; có hệ thống mà chữ hoa và chữ thường tạo ra mã khác nhau.
+This snippet requires `import java.util.Locale;`. Code normalization must follow business rules; in some systems uppercase and lowercase produce distinct codes.
 
-### 8.3. Giữ thứ tự Map không thay thế giữ bản ghi đầu
+### 8.3. Preserving Map order does not replace keeping the first record
 
-`LinkedHashMap` giữ **thứ tự các khóa**, còn merge function quyết định **giá trị của từng khóa**. Cần thiết kế hai thứ độc lập:
+`LinkedHashMap` preserves **the order of keys**, whereas the merge function determines **the value for each key**. Design these two independently:
 
 ```java
-// Giữ khóa theo thứ tự gặp lần đầu, nhưng giữ giá trị gặp lần cuối.
+// Keep keys in first-seen order, but keep the last-seen value.
 Map<String, Item> map = items.stream()
     .collect(Collectors.toMap(
         Item::sku,
@@ -662,11 +662,11 @@ Map<String, Item> map = items.stream()
     ));
 ```
 
-Nếu cần phân trang kết quả theo thứ tự số lượng giảm dần, hãy sắp các entry theo số lượng sau khi thu thập hoặc thiết kế quy trình truy vấn phù hợp; việc dùng LinkedHashMap không tạo thứ tự theo giá trị.
+If you need to paginate results in descending order of quantity, sort entries by quantity after collection or design a suitable query flow; using `LinkedHashMap` does not sort by value.
 
-## 9. Ví dụ Java hoàn chỉnh: so sánh bốn chính sách
+## 9. Complete Java Example: Comparing Four Policies
 
-Ví dụ sau dùng cùng một nguồn để so sánh **first wins**, **last wins**, **sum** và **newest by timestamp**. Lưu vào tệp `MapMergePoliciesDemo.java`, chạy trên Java 17+:
+The following example uses the same source to compare **first wins**, **last wins**, **sum**, and **newest by timestamp**. Save to `MapMergePoliciesDemo.java`, run on Java 17+:
 
 ```java
 import java.util.Comparator;
@@ -743,7 +743,7 @@ public class MapMergePoliciesDemo {
 }
 ```
 
-Kết quả:
+Output:
 
 ```text
 First A: E01
@@ -756,32 +756,32 @@ Sum B: 10
 Newest B: E02
 ```
 
-### 9.1. Vì sao dùng bốn Stream độc lập?
+### 9.1. Why use four independent Streams?
 
-Mỗi lần gọi `events.stream()` tạo một Stream mới từ `List` có thể duyệt lại. Một Stream đã kết thúc bằng `collect` **không được tái sử dụng**.
+Each call to `events.stream()` creates a fresh Stream from the traversable `List`. A Stream that has terminated with `collect` **cannot be reused**.
 
-Cả bốn lần thu thập đọc cùng dữ liệu nhưng sử dụng các quy tắc xung đột khác nhau. Chúng ta không cần sửa `events` hoặc sao chép nguồn chỉ để thay đổi cách tổng hợp.
+All four collections read the same data while applying different conflict rules. We do not need to mutate `events` or copy the source just to change the aggregation policy.
 
-### 9.2. So sánh kết quả theo từng khóa
+### 9.2. Comparing results per key
 
-| Khóa | Giữ đầu | Giữ cuối | Tổng quantity | Mới nhất theo timestamp |
+| Key | Keep first | Keep last | Total quantity | Latest by timestamp |
 | --- | --- | --- | ---: | --- |
 | A | E01 | E04 | 12 | E03 |
 | B | E02 | E05 | 10 | E02 |
 
-Bảng cho thấy **last wins và newest không tương đương** khi dữ liệu đến sai thứ tự thời gian. Chọn nhầm quy tắc có thể tạo sai trạng thái hiện tại của một đối tượng nghiệp vụ.
+The table shows that **last wins and newest are not equivalent** when data arrives out of chronological order. Choosing the wrong rule can produce an incorrect current state for a business entity.
 
-### 9.3. Nếu dùng nguồn không có thứ tự thì sao?
+### 9.3. What if an unordered source is used?
 
-Với một nguồn không có encounter order, kết quả của hai phép giữ đầu/cuối có thể khác giữa những lượt chạy hoặc cách tổ chức xử lý. Trong khi đó, phép tổng như `Long::sum` và lựa chọn lớn nhất theo một Comparator với tie-breaker nhất quán vẫn có ý nghĩa độc lập với thứ tự nguồn (trong giới hạn số học của kiểu).
+With a source lacking encounter order, the results of keeping first or keeping last can vary across runs or execution strategies. Meanwhile, summation like `Long::sum` and picking the maximum via a Comparator with a consistent tie-breaker remain meaningful regardless of source order (within the arithmetic bounds of the type).
 
-Nếu cần tái lập kết quả trên nguồn bất kỳ, hãy định nghĩa **quy tắc so sánh có thứ tự toàn phần phù hợp**, hoặc sắp xếp nguồn theo một khóa nghiệp vụ trước khi dùng first/last.
+If reproducible results are required on any source, define a **comparison rule with an appropriate total order**, or sort the source by a business key before applying first/last.
 
-## 10. Null, khóa trùng, hàm gộp trả null và lỗi dữ liệu
+## 10. Nulls, Duplicate Keys, Merge Returning Null, and Data Errors
 
-### 10.1. valueMapper không nên trả null
+### 10.1. valueMapper should not return null
 
-Các overload `Collectors.toMap` dựa trên cơ chế tạo và gộp giá trị trong Map. **Giá trị ánh xạ null không được hỗ trợ an toàn**; trong các triển khai JDK thông dụng, một giá trị `null` sẽ gây `NullPointerException`.
+The `Collectors.toMap` overloads rely on Map value creation and merging mechanisms. **Null mapped values are not safely supported**; in common JDK implementations, a `null` value triggers a `NullPointerException`.
 
 ```java
 record User(String id, String email) {}
@@ -791,12 +791,12 @@ List<User> users = List.of(
     new User("U2", null)
 );
 
-// Không làm như sau khi email có thể null:
+// Do not do this when email may be null:
 // Map<String, String> byId = users.stream()
 //     .collect(Collectors.toMap(User::id, User::email));
 ```
 
-Có thể lọc phần tử thiếu giá trị:
+You can filter out elements missing a value:
 
 ```java
 Map<String, String> byId = users.stream()
@@ -807,11 +807,11 @@ Map<String, String> byId = users.stream()
     ));
 ```
 
-Nhưng lọc bỏ là **chính sách dữ liệu**, không phải cách duy nhất: nếu email thiếu là trạng thái hợp lệ cần giữ, hãy biểu diễn bằng kiểu giá trị thích hợp hoặc một đối tượng chứa thông tin có/không có.
+However, filtering is a **data policy**, not the only approach: if a missing email is a valid state to retain, represent it with an appropriate value type or an object capturing presence/absence.
 
-### 10.2. keyMapper cần tạo khóa hợp lệ
+### 10.2. keyMapper must produce valid keys
 
-Đừng giả định mọi loại Map đều chấp nhận khóa `null`. Ví dụ `TreeMap` theo thứ tự tự nhiên thường không cho phép khóa null; những map khác có chính sách khác nhau. Cách chắc chắn là xác định ràng buộc đầu vào:
+Do not assume every Map type accepts `null` keys. For example, a `TreeMap` in natural order typically forbids null keys; other maps have different policies. The safest approach is to enforce input constraints:
 
 ```java
 Map<String, Long> amounts = items.stream()
@@ -823,11 +823,11 @@ Map<String, Long> amounts = items.stream()
     ));
 ```
 
-Nếu khóa không hợp lệ phải bị từ chối thay vì bỏ qua, hãy xác thực và ném một ngoại lệ có ý nghĩa trước bước collect.
+If invalid keys must be rejected rather than skipped, validate and throw a meaningful exception before the collect step.
 
-### 10.3. mergeFunction trả null có nghĩa gì?
+### 10.3. What does mergeFunction returning null mean?
 
-Hợp đồng `Map.merge` quy định nếu hàm gộp trả `null` khi khóa đang có giá trị, **mục khóa có thể bị xóa khỏi Map**. Đây là cách hoạt động đặc biệt, không phải “giữ giá trị null”.
+The `Map.merge` contract specifies that if the merge function returns `null` when a key already has a value, **the key entry may be removed from the Map**. This is a special behavior, not "storing a null value".
 
 ```java
 Map<String, Long> map = new HashMap<>();
@@ -838,18 +838,18 @@ map.merge("A", 2L, (left, right) -> null);
 System.out.println(map.containsKey("A")); // false
 ```
 
-Đoạn này cần import `java.util.HashMap`. Tùy triển khai collector và kiểu Map, dùng hàm merge trả null trong `toMap` có thể khiến khóa biến mất rồi được tạo lại khi phần tử tiếp theo xuất hiện. Đây là chính sách riêng cần được thiết kế và kiểm chứng cẩn thận; **không dùng null để biểu diễn “giữ nguyên giá trị cũ”**. Muốn giữ cũ, trả `left`.
+This snippet requires importing `java.util.HashMap`. Depending on the collector implementation and Map type, using a null-returning merge function in `toMap` can cause a key to vanish and then be recreated when a later element appears. This is a specialized behavior that must be designed and tested carefully; **do not use null to mean "keep the existing value"**. To keep the old value, return `left`.
 
-### 10.4. Tràn số khi gộp tổng
+### 10.4. Numeric overflow when summing
 
-`Long::sum` dùng số học `long` của Java và **không ném lỗi khi tràn**:
+`Long::sum` uses Java `long` arithmetic and **does not throw an error on overflow**:
 
 ```java
 long overflow = Long.sum(Long.MAX_VALUE, 1L);
-// Kết quả bị tràn theo số học long.
+// The result overflows under long arithmetic.
 ```
 
-Nếu hệ thống phải phát hiện tràn, có thể dùng:
+If the system must detect overflow, you can use:
 
 ```java
 Map<String, Long> exact = items.stream()
@@ -860,84 +860,84 @@ Map<String, Long> exact = items.stream()
     ));
 ```
 
-`Math.addExact` ném `ArithmeticException` khi phép cộng trung gian vượt giới hạn. Khi có số âm và dương rất lớn, thứ tự gộp khác nhau có thể tạo hoặc tránh tràn trung gian, dù tổng toán học cuối có thể nằm trong phạm vi. Nếu cần tổng toán học chính xác cho mọi tổ hợp đầu vào, cân nhắc `BigInteger` làm kiểu giá trị thay vì `Long`.
+`Math.addExact` throws `ArithmeticException` when an intermediate addition exceeds the limit. When very large positive and negative numbers are mixed, different merge orders can trigger or avoid intermediate overflow even when the final mathematical sum fits in range. If exact mathematical totals are required for all input combinations, consider `BigInteger` as the value type instead of `Long`.
 
-## 11. Thiết kế quy tắc chọn bản ghi theo nghiệp vụ
+## 11. Designing Record-Selection Rules for Business Requirements
 
-Trước khi chọn merge function, trả lời ba câu hỏi:
+Before choosing a merge function, answer three questions:
 
-1. **Khóa nào xác định hai phần tử là cùng một đối tượng nghiệp vụ?** Có cần chuẩn hóa khóa không?
-2. **Giá trị cuối cần đại diện cho điều gì?** Một bản ghi cụ thể, tổng số, giá trị lớn nhất hay toàn bộ lịch sử?
-3. **Nếu hai giá trị xung đột, điều gì quyết định bên thắng?** Thứ tự gặp, timestamp, phiên bản, mức ưu tiên hay một phép tổng hợp?
+1. **Which key determines that two elements represent the same business entity?** Does the key need normalization?
+2. **What should the final value represent?** A specific record, a total, a maximum value, or the full history?
+3. **If two values collide, what determines the winner?** Encounter order, timestamp, version, priority level, or an aggregation?
 
-Bảng chọn nhanh:
+Quick selection table:
 
-| Yêu cầu | Hướng giải quyết | Ghi nhớ |
+| Requirement | Approach | Reminder |
 | --- | --- | --- |
-| Dữ liệu bảo đảm mỗi khóa chỉ xuất hiện một lần | `toMap(keyMapper, valueMapper)` | Trùng khóa thì ném ngoại lệ, giúp phát hiện dữ liệu bất thường. |
-| Giữ phần tử xuất hiện đầu theo nguồn ordered | `toMap(k, v, (first, next) -> first)` | Cần hiểu encounter order. |
-| Giữ phần tử xuất hiện cuối theo nguồn ordered | `toMap(k, v, (first, next) -> next)` | Không đồng nghĩa mới nhất theo timestamp. |
-| Cộng số lượng/doanh thu theo khóa | `toMap(k, v, Long::sum)` | Cân nhắc tràn số. |
-| Lấy giá trị lớn nhất/nhỏ nhất theo khóa | `Long::max` / `Long::min` | Không phụ thuộc thứ tự nguồn. |
-| Giữ bản ghi mới nhất theo timestamp | `BinaryOperator.maxBy(comparator)` | Comparator cần tie-breaker nếu có đồng thời điểm. |
-| Giữ toàn bộ bản ghi theo khóa | `groupingBy(keyMapper)` | Kết quả là nhóm danh sách, không mất lịch sử. |
-| Gom thống kê phức tạp cho từng khóa | `groupingBy(keyMapper, downstreamCollector)` | Phù hợp collector có nhiều trường/trạng thái. |
-| Cần duyệt khóa theo thứ tự xuất hiện đầu | `toMap(k, v, merge, LinkedHashMap::new)` | Thứ tự khóa khác quy tắc giá trị thắng. |
-| Cần khóa được sắp | `toMap(k, v, merge, TreeMap::new)` | Comparator của map ảnh hưởng tính tương đương khóa. |
-| Cần map không thể sửa | `Map.copyOf(...)` hoặc `toUnmodifiableMap(...)` | Chú ý `null`, khóa trùng và thứ tự duyệt. |
+| Data guaranteed to have each key appear once | `toMap(keyMapper, valueMapper)` | Duplicate keys throw an exception, helping detect anomalous data. |
+| Keep first element in an ordered source | `toMap(k, v, (first, next) -> first)` | Must understand encounter order. |
+| Keep last element in an ordered source | `toMap(k, v, (first, next) -> next)` | Not synonymous with latest by timestamp. |
+| Sum quantity/revenue by key | `toMap(k, v, Long::sum)` | Consider numeric overflow. |
+| Get max/min value by key | `Long::max` / `Long::min` | Independent of source order. |
+| Keep latest record by timestamp | `BinaryOperator.maxBy(comparator)` | Comparator needs a tie-breaker if timestamps can match. |
+| Keep all records by key | `groupingBy(keyMapper)` | Produces grouped lists without losing history. |
+| Collect complex statistics per key | `groupingBy(keyMapper, downstreamCollector)` | Fits collectors with multiple fields or states. |
+| Traverse keys in first-seen order | `toMap(k, v, merge, LinkedHashMap::new)` | Key ordering is separate from the winning-value rule. |
+| Need sorted keys | `toMap(k, v, merge, TreeMap::new)` | Map's Comparator affects key equivalence. |
+| Need an unmodifiable map | `Map.copyOf(...)` or `toUnmodifiableMap(...)` | Watch `null`, duplicate keys, and iteration order. |
 
-### 11.1. Không nên che giấu xung đột nghiệp vụ
+### 11.1. Do not hide business conflicts
 
-Nếu một hệ thống yêu cầu mã người dùng duy nhất, việc viết `(first, second) -> first` có thể **che lỗi dữ liệu**. Khi không có quy tắc hợp pháp để chọn giữa hai giá trị, để `toMap` ném ngoại lệ hoặc thực hiện bước xác thực tường minh sẽ an toàn hơn.
+If a system requires unique user IDs, writing `(first, second) -> first` can **mask data bugs**. When there is no legitimate rule to pick one value over another, letting `toMap` throw an exception or running an explicit validation step is safer.
 
-Nếu cần báo cáo đầy đủ xung đột, có thể thu nhóm trước:
+If a full conflict report is needed, group first:
 
 ```java
 Map<String, List<User>> byId = users.stream()
     .collect(Collectors.groupingBy(User::id));
 ```
 
-Rồi xác định các nhóm có nhiều phần tử để điều tra. `groupingBy` không tự xác nhận giá trị trong nhóm có cùng nội dung hay không; đó là bước nghiệp vụ tiếp theo.
+Then identify groups with more than one element for investigation. `groupingBy` does not automatically verify whether values within a group have identical content; that is the next business step.
 
-### 11.2. Thứ tự gặp phần tử cũng là dữ liệu cần được xác định
+### 11.2. Element encounter order is also data that must be established
 
-Với nguồn lấy từ cơ sở dữ liệu, không nên giả định thứ tự bản ghi nếu truy vấn không có quy tắc `ORDER BY`. Với nguồn xử lý song song hoặc nguồn unordered, thứ tự xử lý có thể khác mong đợi. Nếu first/last thực sự là lựa chọn theo một trường thời gian hoặc sequence number, hãy biểu diễn trường đó trong Comparator.
+For sources fetched from a database, do not assume record ordering if the query has no `ORDER BY` clause. With parallel processing or unordered sources, processing order can differ from expectations. If first/last truly means selecting by a timestamp or sequence number, express that field in a `Comparator`.
 
-Tương tự, nếu thứ tự của `HashMap` hiện tại “trông đúng” trên dữ liệu thử nghiệm, đó không phải hợp đồng bảo đảm. Chọn `LinkedHashMap` hoặc `TreeMap` có chủ đích khi cần bảo đảm thứ tự duyệt kết quả.
+Similarly, if the current `HashMap` order "looks right" on test data, that is not a guaranteed contract. Explicitly choose `LinkedHashMap` or `TreeMap` when result traversal order must be guaranteed.
 
-## 12. Hiệu năng, bộ nhớ và tài nguyên
+## 12. Performance, Memory, and Resources
 
-### 12.1. Chi phí tổng hợp so với sắp xếp
+### 12.1. Aggregation cost versus sorting
 
-Một phép thu thập vào Map thường duyệt các phần tử đầu vào và xử lý xung đột theo khóa. Với hash map và điều kiện thông thường, chi phí trung bình có thể gần `O(n)`, cộng chi phí băm, so sánh khóa và gộp; hiệu năng thực tế còn phụ thuộc phân phối khóa và thiết kế Map.
+Collecting into a Map typically traverses input elements and resolves collisions by key. With a hash map under normal conditions, average cost can be near `O(n)`, plus hashing, key comparison, and merging overhead; actual performance also depends on key distribution and Map design.
 
-Nếu sắp xếp toàn bộ `n` phần tử chỉ để chọn bản ghi mới nhất cho từng khóa, phải trả thêm công sắp xếp khoảng `O(n log n)`. Dùng merge dựa trên Comparator thường tránh việc phải sắp toàn bộ nguồn khi chỉ cần một đại diện cho mỗi khóa.
+If you sort all `n` elements just to pick the latest record for each key, you pay an extra sorting cost of roughly `O(n log n)`. Using a Comparator-based merge usually avoids sorting the entire source when only one representative per key is needed.
 
-`TreeMap` có chi phí thao tác theo cây tìm kiếm và thường theo `O(log k)` với `k` khóa phân biệt. Chọn map cần dựa trên yêu cầu thứ tự khóa và khối lượng dữ liệu.
+`TreeMap` incurs search-tree operation costs, typically `O(log k)` for `k` distinct keys. Choose the Map based on key-ordering needs and data volume.
 
-### 12.2. Số lượng khóa quyết định bộ nhớ kết quả
+### 12.2. Number of keys determines result memory
 
-Giữ một giá trị cho mỗi khóa thường dùng bộ nhớ tỷ lệ với số khóa phân biệt, trong khi `groupingBy` giữ danh sách tất cả phần tử có thể cần bộ nhớ tỷ lệ với tổng số bản ghi. Nếu chỉ cần tổng hoặc đại diện mới nhất, không cần giữ mọi sự kiện.
+Keeping one value per key generally uses memory proportional to the number of distinct keys, whereas `groupingBy` retains lists of all elements and can require memory proportional to total record count. If only a sum or latest representative is needed, there is no need to retain every event.
 
-Ngược lại, nếu ứng dụng cần audit hoặc truy xuất lịch sử, chỉ giữ last wins sẽ làm mất các bản ghi trước. Hãy xác định yêu cầu lưu trữ trước khi chọn collector.
+Conversely, if the application needs auditing or history retrieval, keeping only last-wins loses earlier records. Clarify retention requirements before picking a collector.
 
-### 12.3. Parallel không mặc định nhanh hơn
+### 12.3. Parallel is not faster by default
 
-`parallelStream()` có thể phân chia công việc theo `Spliterator` và hợp nhất Map cục bộ. Với nhiều khóa và dữ liệu lớn, lợi ích phụ thuộc khả năng chia nguồn, phân phối khóa, chi phí merge và tài nguyên phần cứng.
+`parallelStream()` can split work via `Spliterator` and merge local Maps. With many keys and large datasets, benefits depend on source splittability, key distribution, merge cost, and hardware resources.
 
-Các yếu tố có thể làm song song kém hiệu quả:
+Factors that can make parallel execution inefficient:
 
-- Mỗi phần phải tạo Map riêng rồi gộp số lượng lớn khóa.
-- Các phần tử tập trung vào rất ít khóa, gây nhiều va chạm.
-- Merge function tính toán hoặc cấp phát đối tượng tốn kém.
-- Bắt buộc duy trì encounter order hoặc quy tắc tie-break phức tạp.
-- Dữ liệu lấy từ I/O bị chặn, không phù hợp chia việc đơn giản.
+- Each partition must create its own Map and then merge large numbers of keys.
+- Elements cluster onto very few keys, causing heavy contention.
+- The merge function performs expensive calculations or allocations.
+- Encounter order or complex tie-breaking rules must be preserved.
+- Data comes from blocking I/O, which is ill-suited for simple work splitting.
 
-Chỉ chọn chế độ song song khi đã đo đạc trên dữ liệu đại diện và merge function tuân thủ hợp đồng.
+Only enable parallel mode after benchmarking on representative data and verifying that the merge function adheres to its contract.
 
-### 12.4. Thu thập không tự đóng nguồn I/O
+### 12.4. Collecting does not automatically close I/O sources
 
-Ví dụ đọc tệp CSV có hai cột `sku,quantity` và thu tổng theo SKU:
+Example reading a CSV file with two columns `sku,quantity` and collecting totals by SKU:
 
 ```java
 import java.io.IOException;
@@ -967,63 +967,63 @@ class MapFromFile {
 }
 ```
 
-Đoạn mã minh họa tệp đơn giản không có header, mỗi dòng đúng hai cột và không có dấu phẩy nằm trong trường dữ liệu. Với CSV thực tế cần parser và xử lý lỗi phù hợp. `Files.lines(path)` gắn với tài nguyên I/O phải đóng qua `try-with-resources`; `collect` không tự gọi `close()`.
+This snippet illustrates a simple headerless file where each line has exactly two columns and no embedded commas inside fields. Real CSV files require a proper parser and error handling. `Files.lines(path)` is backed by an I/O resource that must be closed via `try-with-resources`; `collect` does not invoke `close()` automatically.
 
-## 13. Các lỗi thường gặp
+## 13. Common Errors
 
-| Lỗi | Hệ quả | Hướng xử lý |
+| Error | Consequence | Fix |
 | --- | --- | --- |
-| Dùng `toMap(key, value)` dù khóa có thể trùng | `IllegalStateException` khi có khóa xung đột. | Định nghĩa merge function hoặc sửa quy tắc khóa. |
-| Dùng `(a,b)->a` mà không xác định thứ tự nguồn | Giá trị được giữ có thể không phải bản ghi mong muốn. | Xác lập encounter order hoặc chọn theo Comparator. |
-| Dùng last wins để chọn bản ghi có timestamp mới nhất | Dữ liệu đến trễ có thể ghi đè bản ghi mới hơn. | `BinaryOperator.maxBy` theo timestamp và tie-breaker. |
-| Gộp bằng phép trừ | Không có tính kết hợp; kết quả khác khi chia/gộp. | Dùng phép gộp hợp lệ theo nghiệp vụ. |
-| Dùng `Long::sum` mà không xem xét tràn số | Tổng có thể sai khi vượt `long`. | `Math.addExact` hoặc kiểu số đủ rộng. |
-| Viết merge function có tác động phụ vào list ngoài | Sai khi song song; số lần gọi không đại diện cho số va chạm nghiệp vụ. | Tách audit và thu thập kết quả. |
-| Cho rằng `Map` kết quả luôn giữ thứ tự Stream | Overload mặc định không cam kết thứ tự Map. | Dùng `LinkedHashMap::new` hoặc `TreeMap::new` phù hợp. |
-| Nhầm `LinkedHashMap` thay giá trị với di chuyển khóa | Thứ tự các khóa không đổi theo lần cập nhật cuối. | Xây chiến lược thứ tự theo thời điểm nếu cần. |
-| Dùng `toConcurrentMap` với first/last theo thứ tự nguồn | Collector không có bảo đảm thứ tự, kết quả có thể phụ thuộc lịch chạy. | Dùng collector phù hợp ordered stream hoặc Comparator theo khóa nghiệp vụ. |
-| `valueMapper` trả `null` | Có thể ném `NullPointerException`. | Xác thực, lọc hoặc biểu diễn thiếu dữ liệu rõ ràng. |
-| `mergeFunction` trả null để “giữ giá trị cũ” | Khóa có thể bị loại khỏi Map. | Trả chính giá trị cũ nếu muốn giữ. |
-| Gộp tất cả bản ghi thành một đại diện khi cần lịch sử | Mất dữ liệu chi tiết. | `groupingBy` để giữ tất cả. |
-| Dùng `HashMap` với khóa mutable đã bị thay đổi | Có thể không còn tra cứu đúng theo hashCode/equals ban đầu. | Dùng khóa bất biến và nhất quán. |
-| Lấy dữ liệu từ tệp nhưng không đóng nguồn | Rò rỉ tài nguyên. | `try-with-resources`. |
+| Using `toMap(key, value)` when keys may collide | `IllegalStateException` on key collision. | Define a merge function or fix the key rule. |
+| Using `(a,b)->a` without establishing source order | Kept value may not be the intended record. | Establish encounter order or select with a `Comparator`. |
+| Using last wins to select the record with the latest timestamp | Late-arriving data can overwrite a newer record. | Use `BinaryOperator.maxBy` by timestamp and tie-breaker. |
+| Merging with subtraction | Not associative; result varies under splitting/merging. | Use a merge operation valid for the business domain. |
+| Using `Long::sum` without considering overflow | Sums can silently wrap past `long`. | Use `Math.addExact` or a sufficiently wide numeric type. |
+| Writing a merge function with side effects on an external list | Broken in parallel; call count does not match business collisions. | Separate auditing from result collection. |
+| Assuming the result `Map` preserves Stream order | Default overload does not guarantee Map order. | Use `LinkedHashMap::new` or `TreeMap::new` as appropriate. |
+| Confusing `LinkedHashMap` value replacement with moving keys | Key order does not change on last update. | Build a timestamp-based ordering strategy if needed. |
+| Using `toConcurrentMap` with first/last by source order | Unordered collector; result can depend on scheduling. | Use a collector suitable for ordered streams or a `Comparator` on a business key. |
+| `valueMapper` returns `null` | May throw `NullPointerException`. | Validate, filter, or represent absent data explicitly. |
+| `mergeFunction` returns null to "keep old value" | Key may be removed from the Map. | Return the old value itself if you want to keep it. |
+| Collapsing all records into one representative when history is needed | Loses detailed data. | Use `groupingBy` to retain all records. |
+| Using `HashMap` with mutable keys that get modified | May fail lookups under original `hashCode`/`equals`. | Use immutable, consistent keys. |
+| Reading from a file without closing the resource | Resource leak. | Use `try-with-resources`. |
 
-## 14. Tự kiểm tra kiến thức
+## 14. Self-Check Knowledge Questions
 
-1. Khi có hai sản phẩm cùng `category`, overload `Collectors.toMap(Product::category, Product::price)` làm gì?
-2. Ba tham số `keyMapper`, `valueMapper` và `mergeFunction` khác nhau thế nào?
-3. `(first, next) -> first` và `(first, next) -> next` cho kết quả gì với danh sách `[A1, B1, A2]`?
-4. Vì sao bản ghi gặp cuối trong Stream không nhất thiết có timestamp mới nhất?
-5. Khi cần giữ giá trị lớn nhất theo `version`, nên dùng `BinaryOperator.maxBy` hay last wins? Vì sao?
-6. Với nguồn không có encounter order, quy tắc first/last có bảo đảm chọn cùng bản ghi qua mọi lần chạy không?
-7. Vì sao `(a,b) -> a-b` không phù hợp để gộp dữ liệu khi chạy song song?
-8. `toConcurrentMap` có thích hợp để giữ bản ghi gặp đầu theo thứ tự List không?
-9. `LinkedHashMap::new` quyết định giá trị thắng khi khóa trùng hay chỉ quyết định loại Map?
-10. Khi nào nên dùng `groupingBy` thay vì `toMap`?
-11. Một `mergeFunction` trả `null` có thể gây điều gì với khóa?
-12. `Long::sum` có tự phát hiện tràn `long` không?
+1. When two products share the same `category`, what does `Collectors.toMap(Product::category, Product::price)` do?
+2. How do the three parameters `keyMapper`, `valueMapper`, and `mergeFunction` differ?
+3. What do `(first, next) -> first` and `(first, next) -> next` produce on the list `[A1, B1, A2]`?
+4. Why is the last record encountered in a Stream not necessarily the one with the latest timestamp?
+5. When you need the largest value by `version`, should you use `BinaryOperator.maxBy` or last wins? Why?
+6. With a source lacking encounter order, do first/last rules guarantee picking the same record across runs?
+7. Why is `(a,b) -> a-b` unsuitable for merging data in parallel execution?
+8. Is `toConcurrentMap` suitable for keeping the first-seen record in List order?
+9. Does `LinkedHashMap::new` decide the winning value on duplicate keys, or only the Map type?
+10. When should you use `groupingBy` instead of `toMap`?
+11. What can a `mergeFunction` returning `null` do to a key?
+12. Does `Long::sum` automatically detect `long` overflow?
 
-**Gợi ý trả lời:** (1) ném `IllegalStateException`; (2) tạo khóa, tạo giá trị, quyết định cách gộp hai giá trị cùng khóa; (3) A1 so với A2, B1 giữ nguyên; (4) dữ liệu có thể đến không đúng thứ tự thời gian; (5) `maxBy` theo Comparator có tie-breaker; (6) không; (7) phép trừ không có tính kết hợp; (8) không phù hợp để cam kết thứ tự nguồn; (9) loại Map và quy tắc duyệt khóa, không thay merge function; (10) cần giữ nhiều bản ghi hoặc dùng downstream collector; (11) có thể xóa mục khóa; (12) không.
+**Answer hints:** (1) throws `IllegalStateException`; (2) creates the key, creates the value, and decides how to merge two values with the same key; (3) A1 versus A2, B1 stays as-is; (4) data can arrive out of chronological order; (5) `maxBy` with a Comparator and tie-breaker; (6) no; (7) subtraction is not associative; (8) unsuitable when source order must be guaranteed; (9) Map type and key iteration rule, not a replacement for the merge function; (10) when keeping multiple records or using downstream collectors; (11) may delete the key entry; (12) no.
 
-## 15. Bài tập thực hành
+## 15. Practice Exercises
 
-**Bài 1 — Giữ đầu và cuối.** Cho `List<Event>` với các bản ghi có `product` bị trùng. Dùng hai `Collectors.toMap` để lấy sự kiện đầu và cuối theo thứ tự List; giải thích vì sao kết quả khác nhau.
+**Exercise 1 — Keep first and last.** Given a `List<Event>` with duplicate `product` values, use two `Collectors.toMap` calls to get the first and last events in List order; explain why the results differ.
 
-**Bài 2 — Chọn phiên bản cao nhất.** Cho `VersionedValue(String key, long version, String payload)`. Dùng `BinaryOperator.maxBy(Comparator.comparingLong(...))` để giữ phiên bản mới nhất. Bổ sung tie-breaker khi cùng version.
+**Exercise 2 — Choose highest version.** Given `VersionedValue(String key, long version, String payload)`, use `BinaryOperator.maxBy(Comparator.comparingLong(...))` to keep the latest version. Add a tie-breaker when versions match.
 
-**Bài 3 — Tổng theo nhóm.** Cho `Item(String sku, long quantity)`. Thu Map tổng số lượng bằng `Long::sum`, rồi viết lại bằng `groupingBy(..., summingLong(...))`; so sánh độ rõ và trường hợp mở rộng downstream.
+**Exercise 3 — Group totals.** Given `Item(String sku, long quantity)`, collect a Map of total quantities using `Long::sum`, then rewrite using `groupingBy(..., summingLong(...))`; compare clarity and downstream extensibility.
 
-**Bài 4 — Phát hiện xung đột.** Cho danh sách người dùng với mã ID có thể trùng. Sử dụng `groupingBy(User::id)` để tìm nhóm có nhiều hơn một bản ghi. Khi nào nên ném lỗi thay vì giữ bản ghi đầu?
+**Exercise 4 — Detect conflicts.** Given a list of users with potentially duplicate IDs, use `groupingBy(User::id)` to find groups with more than one record. When should an error be thrown instead of keeping the first record?
 
-**Bài 5 — Chỉnh thứ tự hiển thị.** Dùng `LinkedHashMap::new` để giữ thứ tự khóa xuất hiện đầu trong danh sách. Sau đó tạo một Map mới với `TreeMap::new` để sắp khóa theo thứ tự tự nhiên. Không thay đổi merge function.
+**Exercise 5 — Control display order.** Use `LinkedHashMap::new` to preserve the order in which keys first appear in the list. Then create another Map with `TreeMap::new` to sort keys in natural order. Leave the merge function unchanged.
 
-**Bài 6 — Dữ liệu không theo thứ tự thời gian.** Cho ba sự kiện cùng sản phẩm theo thứ tự thời gian `100, 105, 103`. Chứng minh last wins chọn `103`, còn maxBy theo timestamp chọn `105`.
+**Exercise 6 — Out-of-order chronological data.** Given three events for the same product with timestamps `100, 105, 103`, demonstrate that last wins picks `103` while `maxBy` on timestamp picks `105`.
 
-**Bài 7 — Parallel.** Chạy phép tổng theo khóa trên Stream tuần tự và song song, kiểm tra kết quả. Thử thay phép gộp bằng phép trừ và giải thích vì sao kết quả không còn đáng tin.
+**Exercise 7 — Parallel.** Run key-based summation on sequential and parallel Streams and verify the results. Try replacing the merge with subtraction and explain why the result is no longer reliable.
 
-**Bài 8 — Lỗi null.** Cho một `User` có `email == null`. Viết cách xử lý an toàn trước khi thu Map từ ID sang email; thảo luận khi nào lọc bỏ bản ghi là không chấp nhận được.
+**Exercise 8 — Null errors.** Given a `User` with `email == null`, write safe handling before collecting a Map from ID to email; discuss when filtering out records is unacceptable.
 
-Gợi ý cho Bài 2:
+Hint for Exercise 2:
 
 ```java
 Comparator<VersionedValue> byVersionThenPayload = Comparator
@@ -1038,15 +1038,15 @@ Map<String, VersionedValue> best = updates.stream()
     ));
 ```
 
-Ví dụ giả định các đối tượng và biến `updates` đã được tạo, `payload` không null, có quy tắc so sánh chuỗi hợp lệ. Nếu payload không phải tie-breaker nghiệp vụ, hãy chọn một trường khác hoặc từ chối các bản ghi xung đột cùng phiên bản.
+The example assumes the objects and `updates` variable are already created, `payload` is non-null, and standard string comparison applies. If `payload` is not a business tie-breaker, pick another field or reject conflicting records with the same version.
 
-## 16. Ghi nhớ cốt lõi
+## 16. Core Takeaways
 
-- **`Collectors.toMap` mặc định ném lỗi khi khóa trùng**; muốn chọn một giá trị phải cung cấp `mergeFunction` phù hợp.
-- **`(first, next) -> first`** giữ bản ghi gặp đầu; **`(first, next) -> next`** giữ bản ghi gặp cuối khi nguồn có encounter order phù hợp.
-- **Giữ cuối không đồng nghĩa bản ghi mới nhất theo thời gian**. Nếu cần chọn theo timestamp, version hoặc độ ưu tiên, hãy dùng `BinaryOperator.maxBy`/`minBy` với Comparator rõ ràng và tie-breaker hợp lệ.
-- **Gộp giá trị** như `Long::sum`, `Long::max` hoặc kết hợp các record thống kê phải tuân thủ hợp đồng phép gộp, đặc biệt tính kết hợp khi chạy song song.
-- **`groupingBy` giữ nhiều giá trị theo một khóa** và kết hợp downstream collector; `toMap` phù hợp khi mỗi khóa cần một giá trị kết quả.
-- **`mapFactory` quyết định loại Map**. `LinkedHashMap` bảo toàn thứ tự chèn khóa, `TreeMap` sắp khóa; hai quyết định này khác chính sách chọn giá trị khi trùng khóa.
-- **Không gộp bằng tác động phụ bên ngoài, không mặc định thứ tự nguồn, không lạm dụng `toConcurrentMap` cho first/last**, và kiểm soát `null`, tràn số, khóa bất biến, cùng vòng đời tài nguyên I/O.
-- Hiểu quy tắc merge trong Map là nền tảng để thiết kế `collect`, collector tùy chỉnh, grouping và các pipeline dựa trên `Spliterator` hoặc xử lý song song trong **JAVA_STREAM_API**.
+- **`Collectors.toMap` throws an error by default on duplicate keys**; to pick a value, you must supply an appropriate `mergeFunction`.
+- **`(first, next) -> first`** keeps the first-seen record; **`(first, next) -> next`** keeps the last-seen record when the source has an appropriate encounter order.
+- **Keeping the last is not synonymous with the chronologically newest record**. If selection must follow timestamp, version, or priority, use `BinaryOperator.maxBy`/`minBy` with an explicit Comparator and valid tie-breaker.
+- **Merging values** such as `Long::sum`, `Long::max`, or combining summary records must obey the merge contract, especially associativity under parallel execution.
+- **`groupingBy` retains multiple values per key** and composes with downstream collectors; `toMap` fits when each key needs a single resulting value.
+- **`mapFactory` determines the Map implementation**. `LinkedHashMap` preserves key insertion order and `TreeMap` sorts keys; these two choices are independent of the duplicate-key value selection policy.
+- **Do not merge via external side effects, do not assume source order, do not misuse `toConcurrentMap` for first/last**, and manage `null`, overflow, immutable keys, and I/O resource lifecycles.
+- Understanding Map merge rules is foundational for designing `collect`, custom collectors, grouping, and pipelines built on `Spliterator` or parallel processing in **JAVA_STREAM_API**.

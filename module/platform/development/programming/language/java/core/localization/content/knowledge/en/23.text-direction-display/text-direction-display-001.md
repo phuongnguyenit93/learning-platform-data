@@ -1,128 +1,128 @@
-# Thứ tự logic so với thứ tự hiển thị trong văn bản hai chiều (BiDi) — Java localization
+# Logical Order vs. Visual Order in Bidirectional (BiDi) Text — Java Localization
 
-## 1. Vì sao một chuỗi có thể được hiển thị không theo thứ tự lưu?
+## 1. Why can a string be displayed out of storage order?
 
-Trong Unicode, **thứ tự logic (logical order)** là thứ tự các ký tự/code point xuất hiện trong dữ liệu nguồn. Đó là thứ tự mà chương trình thường đọc qua `String`, duyệt `codePoints()`, lưu vào cơ sở dữ liệu, gửi trên mạng và phân tích cú pháp.
+In Unicode, **logical order** is the order in which characters/code points appear in the source data. It is the order in which a program typically reads through a `String`, iterates `codePoints()`, stores in a database, sends over the network, and parses.
 
-**Thứ tự hiển thị (visual order)** là cách các thành phần của văn bản được bố trí từ trái sang phải hoặc từ phải sang trái trên một dòng khi được **render** cho người đọc. Với ngôn ngữ viết từ trái sang phải (**LTR**) như tiếng Việt hoặc tiếng Anh, hai thứ tự thường trông giống nhau. Với ngôn ngữ viết từ phải sang trái (**RTL**) như Hebrew hoặc Arabic, và đặc biệt khi trộn RTL với chữ Latin/chữ số, chúng **không nhất thiết trùng nhau**.
+**Visual order** is the way components of text are laid out from left to right or right to left on a line when **rendered** for the reader. For left-to-right (**LTR**) languages such as Vietnamese or English, the two orders usually look the same. For right-to-left (**RTL**) languages such as Hebrew or Arabic, and especially when mixing RTL with Latin letters/digits, they **do not necessarily match**.
 
-Một đoạn văn bản có thể chứa:
+A piece of text may contain:
 
-- Chữ Latin (thường LTR).
-- Chữ Hebrew hoặc Arabic (thường RTL).
-- Các chữ số `123` thường được thể hiện theo thứ tự LTR ngay cả bên trong đoạn RTL.
-- Dấu cách, ngoặc, dấu hai chấm, dấu gạch ngang và những ký hiệu có hướng hiển thị được xác định từ **ngữ cảnh**.
-- Các ký tự điều khiển chiều Unicode không tạo glyph hiển thị nhưng có thể ảnh hưởng cách người đọc thấy chuỗi.
+- Latin letters (usually LTR).
+- Hebrew or Arabic letters (usually RTL).
+- Digits `123`, which are normally presented in LTR order even inside an RTL segment.
+- Spaces, parentheses, colons, hyphens, and symbols whose display direction is determined from **context**.
+- Unicode directional control characters that do not produce visible glyphs but can affect how the reader sees the string.
 
-Ví dụ minh họa về **thứ tự logic**:
+An illustrative example of **logical order**:
 
 ~~~text
-Nguồn lưu theo thứ tự:
+Source stored in order:
 "a" "b" "c" " " ALEF BET GIMEL " " "1" "2" "3" " " "x" "y" "z"
 
 ALEF = U+05D0, BET = U+05D1, GIMEL = U+05D2 (Hebrew)
 
-Trong một dòng có hướng nền LTR:
-- Đoạn "abc " ở mức LTR.
-- Đoạn Hebrew ở mức RTL.
-- Đoạn chữ số "123" ở mức LTR lồng bên trong.
-- Đoạn " xyz" lại ở mức LTR.
+In a line with an LTR base direction:
+- The "abc " segment is at an LTR level.
+- The Hebrew segment is at an RTL level.
+- The digit segment "123" is at a nested LTR level.
+- The " xyz" segment is back at an LTR level.
 ~~~
 
-Không nên dự đoán thứ tự màn hình bằng cách đảo toàn bộ `String`, cũng không nên dựa vào cách console hiển thị các glyph Hebrew trong một ảnh chụp. Phần mềm render có thể áp dụng **Unicode Bidirectional Algorithm (UAX #9)** và tính chất của từng đoạn, kiểu chữ, ký hiệu, chiều nền và cách ngắt dòng.
+You should not predict screen order by reversing the entire `String`, nor should you rely on how a console displays Hebrew glyphs in a screenshot. Rendering software may apply the **Unicode Bidirectional Algorithm (UAX #9)** along with segment properties, fonts, symbols, base direction, and line wrapping.
 
-**Kết luận đầu tiên:** BiDi là vấn đề **bố trí văn bản khi hiển thị**, không phải quy tắc đảo chuỗi để lưu trữ. Người dùng có thể thấy glyph theo một thứ tự không trùng với thứ tự từng ký tự trong dữ liệu, nhưng văn bản vẫn có một thứ tự logic nhất quán để trao đổi giữa các hệ thống.
+**First takeaway:** BiDi is a matter of **laying out text for display**, not a rule for reversing strings for storage. Users may see glyphs in an order that does not match the character-by-character order in data, yet the text still has a consistent logical order for exchange between systems.
 
-## 2. Bốn khái niệm phải phân biệt
+## 2. Four concepts to distinguish
 
-| Khái niệm | Ý nghĩa | Ví dụ |
+| Concept | Meaning | Example |
 | --- | --- | --- |
-| Logical order | Thứ tự các code point/code unit trong dữ liệu | `abc`, tiếp đến Hebrew `U+05D0 U+05D1 U+05D2`, rồi `123` |
-| Base paragraph direction | Hướng nền của đoạn văn (LTR hoặc RTL) | Một nội dung tiếng Việt có thể dùng nền LTR; một đoạn Arabic có thể chọn RTL |
-| Embedding level / directional run | Mức lồng của các đoạn có quy tắc hiển thị giống nhau | Level chẵn thường LTR; level lẻ thường RTL |
-| Visual order | Thứ tự bố trí các run/glyph sau thuật toán, phân dòng và shaping | Trong ví dụ Java, run chữ số có thể được trình bày trước run Hebrew trong dòng LTR |
+| Logical order | The order of code points/code units in data | `abc`, followed by Hebrew `U+05D0 U+05D1 U+05D2`, then `123` |
+| Base paragraph direction | The base direction of a paragraph (LTR or RTL) | Vietnamese content can use an LTR base; an Arabic paragraph can choose RTL |
+| Embedding level / directional run | The nesting level of segments sharing the same display rules | Even levels are usually LTR; odd levels are usually RTL |
+| Visual order | The layout order of runs/glyphs after the algorithm, line breaking, and shaping | In the Java example, the digit run can be presented before the Hebrew run in an LTR line |
 
-Đừng nhầm **hướng của đoạn** với **hướng từng ký tự**. Một đoạn RTL vẫn có thể chứa từ `Java` hoặc số `123` cần giữ thứ tự LTR nội tại. Ngược lại, một đoạn LTR có thể chứa một cụm Hebrew/Arabic RTL.
+Do not confuse **paragraph direction** with **individual character direction**. An RTL paragraph can still contain the word `Java` or the number `123` that must preserve its internal LTR order. Conversely, an LTR paragraph can contain an RTL Hebrew/Arabic phrase.
 
-### 2.1. Thứ tự logic là thứ tự dữ liệu
+### 2.1. Logical order is data order
 
-Giả sử:
+Suppose:
 
 ~~~java
 String hebrew = "\u05D0\u05D1\u05D2";
 String paragraph = "abc " + hebrew + " 123 xyz";
 ~~~
 
-Hai lệnh này là **snippet** trong phương thức, không phải class độc lập. Trong `String` Java, thứ tự UTF-16 của đoạn gồm `abc`, dấu cách, ba chữ Hebrew, dấu cách, ba chữ số, dấu cách, `xyz`.
+These two statements are a **snippet** inside a method, not a standalone class. In a Java `String`, the UTF-16 order of the segment consists of `abc`, a space, three Hebrew letters, a space, three digits, a space, and `xyz`.
 
-Các API như `length()`, `charAt()`, `substring()`, `indexOf()`, `codePoints()`, `equals()` và serializing **không chuyển sang thứ tự hiển thị** chỉ vì chuỗi có chữ RTL. Những API đó làm việc với nội dung logic theo hợp đồng Java.
+APIs such as `length()`, `charAt()`, `substring()`, `indexOf()`, `codePoints()`, `equals()`, and serialization **do not switch to visual order** just because a string contains RTL letters. Those APIs operate on logical content per the Java contract.
 
-### 2.2. Base direction không phải Locale
+### 2.2. Base direction is not Locale
 
-`Locale.forLanguageTag("ar")` mô tả locale Arabic; `Locale.forLanguageTag("he")` mô tả locale Hebrew. Nhưng một **language tag không tự quyết định đầy đủ hướng bố trí cho mọi đoạn văn thực tế**: một chuỗi có thể gồm chỉ số, mã hàng, từ Latin hoặc nội dung do người dùng nhập. Trong giao diện, hướng đoạn (`dir`) và hướng của các mảnh chèn phải dựa trên **ngữ nghĩa và context layout**, không chỉ đổi `Locale`.
+`Locale.forLanguageTag("ar")` describes the Arabic locale; `Locale.forLanguageTag("he")` describes the Hebrew locale. However, a **language tag alone does not fully determine the layout direction for every real-world paragraph**: a string may consist solely of numbers, product codes, Latin words, or user-supplied content. In a UI, paragraph direction (`dir`) and the direction of inserted fragments must be based on **semantics and layout context**, not just changing the `Locale`.
 
-`Locale` hữu ích khi chọn văn bản/nguồn dịch và quy ước văn hóa; còn BiDi xử lý tính chất chiều của **dữ liệu text và container**.
+`Locale` is useful for choosing text/translation resources and cultural conventions; BiDi handles the directional properties of **text data and containers**.
 
-## 3. Unicode Bidirectional Algorithm (UAX #9) hoạt động ở mức khái niệm
+## 3. How the Unicode Bidirectional Algorithm (UAX #9) works conceptually
 
-Thuật toán Unicode BiDi phân tích các ký tự theo thuộc tính hướng và ngữ cảnh để tính **embedding levels** và thứ tự hiển thị theo từng dòng. Luồng tổng quát:
+The Unicode BiDi algorithm analyzes characters according to their directional properties and context to compute **embedding levels** and per-line visual order. General flow:
 
-1. Xác định **ranh giới đoạn văn** và **hướng nền** (base direction).
-2. Phân loại ký tự theo thuộc tính bidi: mạnh LTR, mạnh RTL, số/định dạng yếu, neutral và điều khiển.
-3. Xử lý các thông tin explicit embedding/override/isolate (nếu có).
-4. Giải quyết hướng của ký tự yếu hoặc neutral theo những ký tự xung quanh và các quy tắc Unicode.
-5. Xác định **level** của các đơn vị văn bản: level **chẵn** diễn đạt hướng LTR, level **lẻ** diễn đạt RTL.
-6. Sau khi biết ranh giới dòng, bố trí lại thứ tự các đoạn theo level cho **mỗi dòng**, kết hợp shaping, glyph và line layout từ renderer.
+1. Determine **paragraph boundaries** and **base direction**.
+2. Classify characters by bidi properties: strong LTR, strong RTL, weak numbers/formatting, neutral, and controls.
+3. Process explicit embedding/override/isolate information (if present).
+4. Resolve the direction of weak or neutral characters based on surrounding characters and Unicode rules.
+5. Determine the **level** of text units: **even** levels represent LTR direction, **odd** levels represent RTL.
+6. Once line boundaries are known, reorder the segments by level for **each line**, combined with shaping, glyphs, and line layout from the renderer.
 
-Sơ đồ khái niệm:
+Conceptual diagram:
 
 ~~~text
-Chuỗi Unicode (thứ tự logic trong bộ nhớ)
+Unicode string (logical order in memory)
             |
             v
-  Hướng nền + ký tự mạnh/yếu/trung tính
+  Base direction + strong/weak/neutral characters
             |
             v
   Unicode BiDi -> embedding levels
             |
             v
-  Phân dòng -> reorder theo levels
+  Line breaking -> reorder by levels
             |
             v
-  Font/shaping/glyph layout -> màn hình
+  Font/shaping/glyph layout -> screen
 
-Chuỗi nguồn vẫn ở thứ tự logic.
+The source string remains in logical order.
 ~~~
 
-**Không phải cứ level 1 là “đảo mọi code point bằng tay”**. BiDi cùng với text shaping có các quy tắc để giữ dấu tổ hợp, ligature, ngoặc, mirrored glyph và con trỏ/caret đúng ngữ nghĩa. Một `StringBuilder.reverse()` không thay thế thuật toán này.
+**Level 1 does not simply mean "reverse every code point by hand."** BiDi together with text shaping has rules to preserve combining marks, ligatures, brackets, mirrored glyphs, and semantically correct cursor/caret behavior. A `StringBuilder.reverse()` call does not replace this algorithm.
 
-### 3.1. Strong, weak và neutral
+### 3.1. Strong, weak, and neutral
 
-- **Strong:** chữ Latin thường có direction class L; Hebrew thường R; Arabic thường AL. Chúng đóng vai trò quyết định hướng của những vùng lân cận.
-- **Weak:** các chữ số và một số ký hiệu số có thể phụ thuộc ngữ cảnh; không nên xem mọi ký tự số là một “ký tự RTL” vì nằm trong câu Arabic.
-- **Neutral:** dấu cách, nhiều dấu câu, dấu ngoặc... có thể nhận level theo các ký tự bao quanh.
-- **Formatting controls:** một số code point như `U+2066`, `U+2067`, `U+2068`, `U+2069` dùng để quản lý isolate; chúng thường không hiện glyph nhưng vẫn là **ký tự thực trong chuỗi**.
+- **Strong:** Latin letters usually have direction class L; Hebrew usually R; Arabic usually AL. They play the decisive role in determining the direction of neighboring regions.
+- **Weak:** digits and some numeric symbols can depend on context; do not treat every digit character as an "RTL character" just because it sits inside an Arabic sentence.
+- **Neutral:** spaces, many punctuation marks, parentheses, etc. can receive a level from surrounding characters.
+- **Formatting controls:** certain code points such as `U+2066`, `U+2067`, `U+2068`, and `U+2069` are used to manage isolates; they usually produce no visible glyph but are still **real characters in the string**.
 
-Vì các loại weak/neutral lấy ngữ cảnh, nội dung thay đổi rất nhỏ (thêm tên người, mã hóa đơn, dấu `:` hoặc ngoặc) cũng có thể làm ký tự di chuyển hoặc trông bị đổi chiều.
+Because weak/neutral types take context into account, even a tiny change in content (adding a person's name, invoice code, colon `:`, or parentheses) can make characters shift or appear to flip direction.
 
-### 3.2. Paragraph direction và ký tự mạnh đầu tiên
+### 3.2. Paragraph direction and the first strong character
 
-Nếu ứng dụng để hướng nền **tự xác định từ ký tự mạnh đầu tiên**, một dòng bắt đầu bằng Latin có thể chọn LTR, còn dòng bắt đầu bằng Hebrew/Arabic có thể chọn RTL. Tuy nhiên text không có strong character, ví dụ chỉ chứa số và dấu câu, cần **hướng fallback** theo chính sách container hoặc flag.
+If an application lets the base direction be **automatically determined from the first strong character**, a line starting with Latin can choose LTR, while a line starting with Hebrew/Arabic can choose RTL. However, text with no strong characters—for example containing only digits and punctuation—needs a **fallback direction** according to container policy or a flag.
 
-Trong Java, `java.text.Bidi` có bốn hằng:
+In Java, `java.text.Bidi` provides four constants:
 
-| Cờ `Bidi` | Vai trò |
+| `Bidi` Flag | Role |
 | --- | --- |
-| `DIRECTION_LEFT_TO_RIGHT` | Ép base direction LTR |
-| `DIRECTION_RIGHT_TO_LEFT` | Ép base direction RTL |
-| `DIRECTION_DEFAULT_LEFT_TO_RIGHT` | Chọn theo strong char đầu tiên; fallback LTR nếu không có |
-| `DIRECTION_DEFAULT_RIGHT_TO_LEFT` | Chọn theo strong char đầu tiên; fallback RTL nếu không có |
+| `DIRECTION_LEFT_TO_RIGHT` | Force LTR base direction |
+| `DIRECTION_RIGHT_TO_LEFT` | Force RTL base direction |
+| `DIRECTION_DEFAULT_LEFT_TO_RIGHT` | Choose from the first strong char; fall back to LTR if none |
+| `DIRECTION_DEFAULT_RIGHT_TO_LEFT` | Choose from the first strong char; fall back to RTL if none |
 
-Dùng cờ `DIRECTION_DEFAULT_...` không có nghĩa **mọi ký tự trong đoạn đều đổi thành cùng một hướng**. Nó chỉ quyết định hướng nền. Các run LTR/RTL bên trong vẫn được giải quyết bằng thuật toán.
+Using a `DIRECTION_DEFAULT_...` flag does not mean **every character in the paragraph switches to the same direction**. It only decides the base direction. Inner LTR/RTL runs are still resolved by the algorithm.
 
-## 4. Java SE 17: java.text.Bidi để phân tích chiều, không đổi dữ liệu
+## 4. Java SE 17: java.text.Bidi for directional analysis without mutating data
 
-Lớp `java.text.Bidi` triển khai thuật toán hai chiều dùng trong layout. Nó cung cấp thông tin về **base level**, **run boundaries** và **run levels**, không phải một bộ API dựng thành hình ảnh hoàn chỉnh.
+The `java.text.Bidi` class implements the bidirectional algorithm used in layout. It provides information about **base level**, **run boundaries**, and **run levels**, not a complete image-rendering API suite.
 
 ~~~java
 import java.text.Bidi;
@@ -133,57 +133,57 @@ Bidi bidi = new Bidi(
         text, Bidi.DIRECTION_DEFAULT_LEFT_TO_RIGHT);
 ~~~
 
-Đây là **đoạn lệnh minh họa trong một phương thức**, cần import như trên; chương trình độc lập ở mục 8.
+This is an **illustrative snippet inside a method**, requiring the import above; a standalone program is in section 8.
 
-### 4.1. Các method quan trọng
+### 4.1. Key methods
 
-| API | Cách hiểu |
+| API | How to interpret |
 | --- | --- |
-| `new Bidi(String, flags)` | Phân tích một đoạn văn với hướng nền được yêu cầu |
-| `baseIsLeftToRight()` | Trả true nếu hướng nền LTR |
-| `getBaseLevel()` | Level nền: 0 cho LTR, 1 cho RTL |
-| `isLeftToRight()` | Đoạn/dòng thuần LTR với nền LTR |
-| `isRightToLeft()` | Đoạn/dòng thuần RTL với nền RTL |
-| `isMixed()` | Không thuộc hai trường hợp thuần trên; thường có hướng trộn hoặc nền khác hướng run |
-| `getRunCount()` | Số directional runs |
-| `getRunStart(i)` | Offset UTF-16 bắt đầu run thứ i theo thứ tự logic |
-| `getRunLimit(i)` | Offset UTF-16 **ngay sau** run i |
-| `getRunLevel(i)` | Embedding level của run i |
-| `getLevelAt(offset)` | Level đã resolve tại offset UTF-16 |
-| `createLineBidi(start, limit)` | Tạo Bidi information cho một **dòng** của đoạn văn |
-| `requiresBidi(char[], start, limit)` | Kiểm tra liệu đoạn ký tự có cần phân tích bidi |
-| `reorderVisually(levels, ..., objects, ...)` | Sắp xếp lại **các object** theo level, ví dụ danh sách directional runs |
+| `new Bidi(String, flags)` | Analyze a paragraph with the requested base direction |
+| `baseIsLeftToRight()` | Return `true` if the base direction is LTR |
+| `getBaseLevel()` | Base level: 0 for LTR, 1 for RTL |
+| `isLeftToRight()` | Line/paragraph is purely LTR with an LTR base |
+| `isRightToLeft()` | Line/paragraph is purely RTL with an RTL base |
+| `isMixed()` | Neither of the pure cases above; usually mixed directions or base differs from run direction |
+| `getRunCount()` | Number of directional runs |
+| `getRunStart(i)` | Starting UTF-16 offset of the i-th run in logical order |
+| `getRunLimit(i)` | UTF-16 offset **immediately after** run i |
+| `getRunLevel(i)` | Embedding level of run i |
+| `getLevelAt(offset)` | Resolved level at the UTF-16 offset |
+| `createLineBidi(start, limit)` | Create Bidi information for a **line** of the paragraph |
+| `requiresBidi(char[], start, limit)` | Check whether a character range needs bidi analysis |
+| `reorderVisually(levels, ..., objects, ...)` | Reorder **objects** by level, such as a list of directional runs |
 
-**Chỉ số `getRunStart`, `getRunLimit`, `getLevelAt` dùng UTF-16 offsets.** Đây là điều quan trọng khi áp dụng lên `String.substring(start, limit)` hoặc chuyển giữa các API `char`/code point của Java.
+**`getRunStart`, `getRunLimit`, and `getLevelAt` use UTF-16 offsets.** This is important when passing them to `String.substring(start, limit)` or converting between Java `char` and code point APIs.
 
-### 4.2. Level chẵn và lẻ
+### 4.2. Even and odd levels
 
-Trong hệ Unicode BiDi:
+In the Unicode BiDi system:
 
-- Level `0`: LTR ở lớp nền thông thường.
+- Level `0`: LTR at the normal base layer.
 - Level `1`: RTL.
-- Level `2`: LTR được lồng trong một ngữ cảnh RTL.
-- Level `3`: RTL lồng sâu hơn, v.v.
+- Level `2`: LTR nested inside an RTL context.
+- Level `3`: deeper nested RTL, and so on.
 
-Một câu **không phải chỉ có một level**. Dữ liệu chứa Hebrew và chữ số trong cùng một câu có thể xuất hiện run mức `1` và mức `2`; đặt một flag base `LTR` không xóa bỏ các mức đó.
+A sentence **does not have just one level**. Data containing Hebrew and digits in the same sentence can yield runs at level `1` and level `2`; setting a base `LTR` flag does not erase those levels.
 
-Không giả định `getRunCount()` chính là số từ, số Unicode code point hay số phần tử cần chọn trong UI. Run là đơn vị liên tiếp theo **resolved bidi level**, không phải token ngôn ngữ.
+Do not assume `getRunCount()` equals the number of words, the number of Unicode code points, or the number of selectable UI elements. A run is a contiguous span sharing the same **resolved bidi level**, not a linguistic token.
 
-### 4.3. Tại sao không tự reverse chuỗi?
+### 4.3. Why not reverse the string yourself?
 
-Một cách làm sai:
+A wrong approach:
 
 ~~~java
 String reversed = new StringBuilder(text).reverse().toString();
 ~~~
 
-Đây là ví dụ **không nên dùng** để hiển thị BiDi. Reverse sửa **thứ tự logic** và tạo dữ liệu mới; nó không có thuật toán xử lý base direction, weak/neutral characters, isolate boundaries, shaping hoặc phân dòng. Ngay cả khi một vài chữ Hebrew trông “đúng” trên terminal trong ví dụ ngắn, các chuỗi trộn chữ số/dấu/Latin sẽ dễ lỗi.
+This is an example **you should not use** for BiDi display. Reversing mutates **logical order** and creates new data; it lacks any algorithm to handle base direction, weak/neutral characters, isolate boundaries, shaping, or line breaking. Even if a few Hebrew letters look "right" in a terminal for a short example, strings mixing digits/punctuation/Latin will easily break.
 
-Điều đúng là giữ `String` logic và giao cho UI renderer hỗ trợ Unicode BiDi bố trí văn bản. `java.text.Bidi` hữu ích khi bạn **đang viết thành phần layout riêng** hoặc cần debug các run/level.
+The right approach is to keep the logical `String` and let a Unicode BiDi-aware UI renderer lay out the text. `java.text.Bidi` is useful when you are **writing a custom layout component** or need to debug runs/levels.
 
-## 5. Visual runs và thứ tự của chữ số trong đoạn RTL
+## 5. Visual runs and digit order in an RTL segment
 
-Với chuỗi demo:
+With the demo string:
 
 ~~~text
 logical = "abc " + HEBREW(aleph,bet,gimel) + " 123 xyz"
@@ -191,55 +191,55 @@ UTF-16 length = 15
 base = LTR
 ~~~
 
-Các run được tính bởi Java trên JDK kiểm thử:
+Runs computed by Java on the tested JDK:
 
-| Run theo thứ tự logic | UTF-16 khoảng [start, limit) | Level | Nội dung logic |
+| Run in logical order | UTF-16 range [start, limit) | Level | Logical content |
 | --- | --- | --- | --- |
 | `r0` | `[0,4)` | 0 (LTR) | `abc ` |
-| `r1` | `[4,8)` | 1 (RTL) | 3 chữ Hebrew và dấu cách |
+| `r1` | `[4,8)` | 1 (RTL) | 3 Hebrew letters and space |
 | `r2` | `[8,11)` | 2 (LTR) | `123` |
 | `r3` | `[11,15)` | 0 (LTR) | ` xyz` |
 
-**Thứ tự run logic:** `r0, r1, r2, r3`.
+**Logical run order:** `r0, r1, r2, r3`.
 
-Sau khi xét levels để **sắp xếp các đối tượng run cho hiển thị trong một dòng**, `Bidi.reorderVisually` cho:
+After using the levels to **sort the run objects for display on a single line**, `Bidi.reorderVisually` yields:
 
 ~~~text
 visual run order = r0, r2, r1, r3
 ~~~
 
-Điều này **không đồng nghĩa** chuỗi được lưu có `"123"` trước Hebrew. Chuỗi nguồn vẫn chứa Hebrew trước `123`. Bố trí trên một dòng xét level 1 RTL bao quanh run level 2 LTR, khiến thứ tự các **run object** thay đổi.
+This **does not mean** the stored string has `"123"` before Hebrew. The source string still contains Hebrew before `123`. Single-line layout sees level 1 RTL enclosing a level 2 LTR run, causing the order of the **run objects** to change.
 
-Đừng kết luận rằng từ Hebrew được hiển thị bằng việc đảo từng Unicode code point một cách tùy tiện. Renderer có thể áp dụng xử lý ký tự kết hợp, contextual shaping và glyph placement riêng. Bảng trên mô tả **run-level reordering**, không mô tả tọa độ pixel hoặc toàn bộ hình dáng cuối.
+Do not conclude that Hebrew words are displayed by arbitrarily reversing each Unicode code point. The renderer may apply combining-character handling, contextual shaping, and its own glyph placement. The table above describes **run-level reordering**, not pixel coordinates or the complete final visual appearance.
 
-Nếu đoạn văn được xuống nhiều dòng, Unicode BiDi làm việc theo **từng dòng** sau khi break, vì vậy một bảng run cho cả paragraph không đủ mô tả hết hình ảnh. `createLineBidi` có ích khi layout engine đã biết ranh giới dòng.
+If a paragraph wraps across multiple lines, Unicode BiDi operates **line by line** after breaking, so a single run table for the whole paragraph cannot fully describe the visual result. `createLineBidi` is useful once the layout engine knows line boundaries.
 
-## 6. Unicode controls: khi nào cần và vì sao phải thận trọng?
+## 6. Unicode controls: when are they needed and why be cautious?
 
-Trong đa số văn bản tự nhiên, thuật toán BiDi dựa trên strong/weak/neutral types là đủ. Khi một mảnh văn bản độc lập có hướng chưa biết được chèn vào câu theo ngữ cảnh khác, đôi khi cần **isolation** để nó không gây ảnh hưởng không mong muốn lên dấu câu hoặc phần text xung quanh.
+In most natural text, the BiDi algorithm based on strong/weak/neutral types is sufficient. When an independent text fragment with unknown direction is inserted into a sentence with a different directional context, **isolation** is sometimes needed so it does not cause unintended effects on surrounding punctuation or text.
 
-Một số mã điều khiển phổ biến:
+Some common control characters:
 
-| Code point | Tên | Ý nghĩa khái quát |
+| Code point | Name | General meaning |
 | --- | --- | --- |
-| `U+200E` | LRM — Left-to-Right Mark | Dấu hướng LTR không có glyph |
-| `U+200F` | RLM — Right-to-Left Mark | Dấu hướng RTL không có glyph |
-| `U+061C` | ALM — Arabic Letter Mark | Dấu hướng Arabic không có glyph |
-| `U+2066` | LRI — Left-to-Right Isolate | Bắt đầu isolate LTR |
-| `U+2067` | RLI — Right-to-Left Isolate | Bắt đầu isolate RTL |
-| `U+2068` | FSI — First Strong Isolate | Bắt đầu isolate tự xác định từ strong char |
-| `U+2069` | PDI — Pop Directional Isolate | Đóng một isolate |
-| `U+202A`/`U+202B` | LRE/RLE | Embedding kiểu cũ |
-| `U+202D`/`U+202E` | LRO/RLO | Override hướng, rủi ro gây nhầm hiển thị |
-| `U+202C` | PDF | Kết thúc embedding/override |
+| `U+200E` | LRM — Left-to-Right Mark | Zero-glyph LTR directional mark |
+| `U+200F` | RLM — Right-to-Left Mark | Zero-glyph RTL directional mark |
+| `U+061C` | ALM — Arabic Letter Mark | Zero-glyph Arabic directional mark |
+| `U+2066` | LRI — Left-to-Right Isolate | Start an LTR isolate |
+| `U+2067` | RLI — Right-to-Left Isolate | Start an RTL isolate |
+| `U+2068` | FSI — First Strong Isolate | Start an isolate determined from the first strong char |
+| `U+2069` | PDI — Pop Directional Isolate | Close an isolate |
+| `U+202A`/`U+202B` | LRE/RLE | Legacy embedding |
+| `U+202D`/`U+202E` | LRO/RLO | Directional override, carries risk of visual deception |
+| `U+202C` | PDF | End embedding/override |
 
-Isolate `FSI`/`PDI` (hoặc `LRI`/`RLI` với hướng đã biết) được khuyến nghị cho văn bản thuần có mảnh chèn tự do khi thật sự cần điều khiển chiều. Các cơ chế embedding/override cũ dễ tác động đến phần xung quanh mạnh hơn cần thiết.
+`FSI`/`PDI` isolates (or `LRI`/`RLI` when the direction is known) are recommended for plain text containing arbitrary inserted fragments when directional control is genuinely needed. Legacy embedding/override mechanisms easily affect surrounding text more strongly than intended.
 
-**Không nên tự thêm ký tự vô hình vào dữ liệu giao dịch/định danh khi chưa có contract.** Những code point ấy được lưu, có thể đi qua copy/paste/URL hoặc ảnh hưởng kết quả so sánh chuỗi, chữ ký, tìm kiếm và audit. Trong HTML, thường nên dùng **thuộc tính hướng và các phần tử semantic** thay vì chèn control characters trực tiếp.
+**Do not automatically add invisible characters into transactional/identifier data without a contract.** Those code points get stored, can survive copy/paste/URLs, or affect string comparison, signatures, search, and audits. In HTML, it is usually better to use **directional attributes and semantic elements** rather than inserting control characters directly.
 
-### 6.1. HTML: tách phần tử theo hướng bằng bdi, dir
+### 6.1. HTML: isolating elements by direction with bdi, dir
 
-Trong UI HTML, khi chèn tên hoặc mã có hướng không biết vào một câu, một mẫu hữu ích:
+In HTML UI, when inserting a name or code of unknown direction into a sentence, a useful pattern is:
 
 ~~~html
 <p dir="rtl">
@@ -249,60 +249,60 @@ Trong UI HTML, khi chèn tên hoặc mã có hướng không biết vào một c
 </p>
 ~~~
 
-Đây là **mã HTML minh họa**, trong thực tế các chuỗi người dùng phải được **escape hoặc chèn bằng textContent** để tránh HTML injection. `<bdi>` cô lập hướng của nội dung khỏi ngữ cảnh xung quanh; `dir="auto"` chọn hướng dựa trên nội dung. Với chuỗi luôn LTR như code/ID, có thể cân nhắc phần tử riêng `dir="ltr"` hoặc cơ chế CSS đúng theo component.
+This is **illustrative HTML markup**; in practice, user strings must be **escaped or inserted via textContent** to prevent HTML injection. `<bdi>` isolates the direction of its content from the surrounding context; `dir="auto"` picks the direction based on the content. For strings that are always LTR such as codes/IDs, consider a dedicated `dir="ltr"` element or the appropriate CSS mechanism for the component.
 
-Không dùng `text-align: right` như một cách thay thế cho **direction**: căn lề là vấn đề bố cục, không giải quyết thứ tự các ký tự và neutral punctuation trong nội dung.
+Do not use `text-align: right` as a substitute for **direction**: alignment is a layout concern and does not resolve the ordering of characters and neutral punctuation within the content.
 
-## 7. Dữ liệu, chỉ số, caret và vấn đề bảo mật
+## 7. Data, indices, caret, and security issues
 
-### 7.1. Đừng đổi logical index sang visual index bằng phép đảo đơn giản
+### 7.1. Do not convert a logical index to a visual index by simple reversal
 
-Nhiều API Java dùng **UTF-16 offsets** để định vị:
+Many Java APIs use **UTF-16 offsets** for positioning:
 
 ~~~java
-int index = paragraph.indexOf("123");  // UTF-16 offset trong chuỗi gốc
+int index = paragraph.indexOf("123");  // UTF-16 offset in the original string
 ~~~
 
-Trong đoạn demo, `index` là 8. Dù trên màn hình run `123` có thể được đặt trước run Hebrew, `indexOf("123")` vẫn trả **8**, không tự chuyển sang tọa độ hình ảnh.
+In the demo string, `index` is 8. Even though on screen the `123` run can be placed before the Hebrew run, `indexOf("123")` still returns **8**, without automatically converting to visual coordinates.
 
-Caret, selection, highlight, delete/backspace và click chuột trong văn bản BiDi cần **mapping giữa logical positions và visual caret positions** do text layout/editor engine thực hiện. Một visual position có thể tương ứng những vị trí logic khác nhau ở ranh giới run; không dùng công thức `length - index` hoặc thứ tự run để tự điều khiển caret.
+Caret movement, selection, highlighting, delete/backspace, and mouse clicks in BiDi text require **mapping between logical positions and visual caret positions** performed by the text layout/editor engine. A single visual position can correspond to different logical positions at run boundaries; do not use `length - index` or run order to drive the caret manually.
 
-Trong Swing/AWT hoặc các renderer khác, nên dựa vào thành phần text/layout hỗ trợ BiDi và shaping thay vì tự viết lại toàn bộ thuật toán.
+In Swing/AWT or other renderers, rely on BiDi- and shaping-aware text/layout components rather than rewriting the entire algorithm yourself.
 
-### 7.2. Đừng “sửa” dữ liệu Hebrew/Arabic bằng cách đảo chuỗi trước khi lưu
+### 7.2. Do not "fix" Hebrew/Arabic data by reversing the string before saving
 
-Trình duyệt/renderer có thể hiển thị một câu RTL theo thứ tự khác so với thứ tự code point. Điều đó không phải bằng chứng dữ liệu sai.
+A browser/renderer may display an RTL sentence in a different order than code point order. That is not evidence that the data is wrong.
 
-Nếu tự reverse văn bản trước khi lưu:
+If you reverse text yourself before saving:
 
-- Copy/paste qua hệ thống khác có thể tạo một chuỗi không đúng trật tự logic.
-- Tìm kiếm, trích xuất, so sánh và xử lý ngôn ngữ bị sai.
-- Chuỗi trộn số, Latin, dấu ngoặc và chữ RTL dễ hiển thị lộn xộn hơn.
-- Khi renderer áp dụng BiDi lần nữa, hiệu ứng có thể giống “đảo hai lần”.
+- Copy/paste across other systems can produce a string in the wrong logical order.
+- Searching, extraction, comparison, and language processing break.
+- Strings mixing numbers, Latin, parentheses, and RTL letters easily render even more garbled.
+- When a renderer applies BiDi again, the effect can look like "double reversal."
 
-**Giữ nguyên thứ tự logic** và xử lý vấn đề presentation tại UI boundary.
+**Preserve logical order** and handle presentation concerns at the UI boundary.
 
-### 7.3. BiDi control characters có thể bị lạm dụng
+### 7.3. BiDi control characters can be abused
 
-Các control ký tự vô hình như `U+202E` (RLO) hoặc một số tổ hợp isolate/override có thể làm **văn bản hiển thị khác thứ tự dữ liệu được parser hoặc compiler đọc**. Đây là một lớp rủi ro trong review source code, filename, extension, log, ID, URL và nội dung do người dùng nhập. Ví dụ, một tên file có điều khiển chiều có thể trông như mang phần mở rộng khác với cấu trúc byte hoặc `String` thực sự.
+Invisible control characters such as `U+202E` (RLO) or certain isolate/override combinations can make **text display in a different order from the data read by a parser or compiler**. This is a class of risk in code review, filenames, extensions, logs, IDs, URLs, and user-supplied content. For example, a filename containing a directional control can appear to have a different extension than its actual byte or `String` structure.
 
-Nguyên tắc bảo vệ:
+Protection principles:
 
-1. **Kiểm tra source/log theo thứ tự logic** hoặc hiển thị các format controls dưới dạng tên mã rõ ràng trong trình xem an toàn.
-2. **Không tin ký tự đang nhìn bằng mắt** làm bằng chứng cho tên file, domain, extension, lệnh hoặc nội dung chữ ký.
-3. Với các trường nhạy cảm (identifier, source code, extension, đường dẫn, token), cân nhắc **từ chối hoặc cảnh báo** ký tự điều khiển bidi không được phép theo chính sách riêng; không xóa bừa trong văn bản tự nhiên.
-4. Khi render dữ liệu người dùng trong HTML, vẫn phải escape chống injection; isolation BiDi **không** thay thế HTML escaping.
-5. Các quy tắc phân biệt confusable, Unicode normalization, canonicalization và kiểm soát quyền truy cập là những nhiệm vụ riêng; đừng tưởng `Bidi` tự giải quyết chúng.
+1. **Inspect source/logs in logical order** or render formatting controls with explicit code names in a safe viewer.
+2. **Do not trust what characters look like visually** as proof of a filename, domain, extension, command, or signature content.
+3. For sensitive fields (identifiers, source code, extensions, paths, tokens), consider **rejecting or warning on** disallowed bidi control characters per policy; do not blindly strip them from natural prose.
+4. When rendering user data in HTML, you still must escape against injection; BiDi isolation **does not** replace HTML escaping.
+5. Rules for confusable detection, Unicode normalization, canonicalization, and access control are separate responsibilities; do not assume `Bidi` solves them automatically.
 
-### 7.4. Tìm kiếm và collation vẫn dựa trên dữ liệu logic
+### 7.4. Search and collation still rely on logical data
 
-`String.equals`, `indexOf`, tokenization và `Collator` xử lý chuỗi theo hợp đồng API tương ứng, không dựa trên **thứ tự glyph đang nhìn thấy trên màn hình**. Thuật toán sắp xếp từ theo locale cũng không phải cùng một nhiệm vụ với Unicode BiDi.
+`String.equals`, `indexOf`, tokenization, and `Collator` process strings according to their respective API contracts, not based on **the glyph order visible on screen**. Locale-based collation is also not the same task as Unicode BiDi.
 
-Một đoạn RTL trông bị đảo khi paste không có nghĩa nên sort các code point theo vị trí hiển thị. Hãy tách **data model**, **search/collation** và **text layout**.
+An RTL snippet that looks reversed when pasted does not mean you should sort code points by visual position. Separate the **data model**, **search/collation**, and **text layout**.
 
-## 8. Ví dụ Java 17 chạy độc lập: Bidi runs, level và visual order
+## 8. Standalone Java 17 example: Bidi runs, levels, and visual order
 
-Tạo file **`BidiOrderDemo.java`** với nội dung:
+Create the file **`BidiOrderDemo.java`** with contents:
 
 ~~~java
 import java.text.Bidi;
@@ -359,14 +359,14 @@ public class BidiOrderDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 BidiOrderDemo.java
 java BidiOrderDemo
 ~~~
 
-**Stdout đã kiểm tra** trên JDK có thuật toán BiDi tương ứng:
+**Verified stdout** on a JDK with the corresponding BiDi algorithm:
 
 ~~~text
 logical code points: U+0061 U+0062 U+0063 U+0020 U+05D0 U+05D1 U+05D2 U+0020 U+0031 U+0032 U+0033 U+0020 U+0078 U+0079 U+007A
@@ -385,111 +385,111 @@ hebrew rightToLeft=true
 storage unchanged=true
 ~~~
 
-**Giải thích:**
+**Explanation:**
 
-1. `logical code points` in mã Unicode theo thứ tự **thực sự lưu** trong `String`; không in glyph Hebrew để tránh console có layout BiDi làm nhầm output.
-2. Độ dài `15` là **15 đơn vị UTF-16**; các ký tự trong ví dụ nằm ở BMP.
-3. `requiresBidi=true` vì đoạn trộn có ký tự RTL cần phân tích chiều.
-4. Ký tự mạnh đầu tiên thuộc Latin, nên base level là `0` (LTR); `isMixed=true` vì có nhiều hướng.
-5. Các run `r0`–`r3` được liệt kê **theo logic**, với `[start,limit)` trong UTF-16 indices.
-6. `reorderVisually` thay thứ tự **mảng `names` mô tả các run**, tạo `[r0, r2, r1, r3]` cho một dòng. Nó **không** sửa `paragraph`, không render glyph và không tạo một câu đã được shaping hoàn chỉnh.
-7. Khi chỉ chứa Hebrew, strong char đầu tiên là RTL nên base level là `1`, và `isRightToLeft()` là `true`.
-8. `storage unchanged=true` xác nhận quá trình phân tích và sắp xếp mảng tên run không làm thay chuỗi nguồn.
+1. `logical code points` prints Unicode code points in the order **actually stored** in `String`; Hebrew glyphs are not printed to prevent BiDi console layout from confusing the output.
+2. Length `15` is **15 UTF-16 code units**; the characters in the example are in the BMP.
+3. `requiresBidi=true` because the mixed paragraph has RTL characters requiring directional analysis.
+4. The first strong character is Latin, so the base level is `0` (LTR); `isMixed=true` because there are multiple directions.
+5. Runs `r0`–`r3` are listed **in logical order**, with `[start,limit)` as UTF-16 indices.
+6. `reorderVisually` changes the order of the **`names` array describing the runs**, producing `[r0, r2, r1, r3]` for a single line. It does **not** modify `paragraph`, render glyphs, or produce a fully shaped sentence.
+7. When containing only Hebrew, the first strong char is RTL so the base level is `1`, and `isRightToLeft()` is `true`.
+8. `storage unchanged=true` confirms that analyzing and reordering the run-name array does not alter the source string.
 
-**Khuyến cáo:** kết quả level và run có thể phụ thuộc phiên bản thuật toán/dữ liệu Unicode trong runtime và ngữ cảnh line layout. Bài này dùng một ví dụ nhỏ với JDK kiểm thử để học cách đọc API; đừng dùng run order của một đoạn cố định để hardcode giao diện tổng quát.
+**Advisory:** level and run results can depend on the Unicode algorithm/data version in the runtime and the line-layout context. This lesson uses a small example on a tested JDK to teach how to read the API; do not hardcode the run order of a fixed snippet for general UI rendering.
 
-## 9. Vì sao Java Bidi chưa đủ để tự vẽ một đoạn văn?
+## 9. Why Java Bidi alone is not enough to draw a paragraph
 
-`java.text.Bidi` cung cấp **bidi analysis**; nó không phải một thư viện render text hoàn chỉnh. Để vẽ chính xác cần thêm:
+`java.text.Bidi` provides **bidi analysis**; it is not a complete text rendering library. Accurate drawing also requires:
 
-- **Đo chiều rộng glyph** với font thực tế.
-- **Shaping** đặc thù script như Arabic contextual forms và ligature.
-- **Grapheme clustering** để dấu tổ hợp/caret/delete không tách cụm sai.
-- **Line breaking** trước khi reorder từng dòng.
-- **Mirroring** và xử lý ngoặc/dấu trong ngữ cảnh RTL.
-- **Logical-to-visual mapping** cho caret, selection, hit testing và accessibility.
-- **Font fallback** và lựa chọn glyph khi một font không hỗ trợ script.
+- **Measuring glyph widths** with the actual font.
+- **Script-specific shaping** such as Arabic contextual forms and ligatures.
+- **Grapheme clustering** so combining marks/caret/delete do not split clusters incorrectly.
+- **Line breaking** before reordering each line.
+- **Mirroring** and handling brackets/punctuation in RTL contexts.
+- **Logical-to-visual mapping** for caret, selection, hit testing, and accessibility.
+- **Font fallback** and glyph selection when a font does not support a script.
 
-Vì vậy, các hệ thống Swing/AWT/browser/Android hoặc thư viện layout chuyên dụng thường nên chịu trách nhiệm vẽ. Tránh viết lại toàn bộ Unicode BiDi Algorithm nếu chỉ muốn hiển thị tên, bản dịch hay câu có phần RTL.
+Therefore, Swing/AWT/browser/Android systems or dedicated layout libraries should generally handle drawing. Avoid rewriting the entire Unicode BiDi Algorithm if you only want to display names, translations, or sentences with RTL parts.
 
-### 9.1. Các API tạo dòng
+### 9.1. Line-creation APIs
 
-`Bidi.createLineBidi(lineStart, lineLimit)` nhận **offset UTF-16** trong paragraph và tạo đối tượng phân tích dòng, phù hợp khi **bộ layout đã xác định ranh giới dòng**. Đây không phải phương thức tự đo chiều rộng rồi tự xuống dòng.
+`Bidi.createLineBidi(lineStart, lineLimit)` takes **UTF-16 offsets** within the paragraph and creates a line analysis object, suitable once **the layout engine has determined line boundaries**. This is not a method that measures width and wraps lines automatically.
 
-Ở lớp layout, một paragraph có thể tách thành các dòng khác nhau tùy kích thước vùng hiển thị; vì thế thứ tự visual của một paragraph dài không thể thu được bằng một lần đảo toàn bộ chuỗi.
+At the layout layer, a paragraph may split into different lines depending on the display area size; thus the visual order of a long paragraph cannot be obtained by a single full-string reversal.
 
-### 9.2. Accessibility và clipboard
+### 9.2. Accessibility and clipboard
 
-Nhìn thấy chữ trên màn hình chỉ là một kênh. Screen reader, clipboard, chức năng tìm kiếm, keyboard navigation và serialization cũng cần nắm thứ tự **logic**. Trong UI, hãy giữ text theo nội dung gốc và để công cụ accessibility/layout diễn giải bidi. Nếu xuất “visual order text” bằng cách đảo ký tự, nhiều trình đọc màn hình và công cụ xử lý tiếp theo sẽ nhận sai dữ liệu.
+Seeing text on screen is only one channel. Screen readers, the clipboard, search features, keyboard navigation, and serialization also need **logical** order. In a UI, keep text in its original content order and let accessibility/layout tools interpret bidi. If you export "visual order text" by reversing characters, many screen readers and downstream tools will receive corrupted data.
 
-## 10. Các lỗi thường gặp
+## 10. Common mistakes
 
-| Lỗi | Hậu quả | Cách đúng |
+| Mistake | Consequence | Correct approach |
 | --- | --- | --- |
-| Đảo `String` để hiển thị RTL | Sai khi trộn chữ số, Latin, dấu, shaping | Giữ logical order; giao render cho BiDi-aware UI |
-| Tưởng `Locale` quyết định tất cả chiều văn bản | Nội dung trộn script hoặc chỉ số cần xử lý riêng | Chọn base direction và isolation theo context |
-| Nhầm `getRunStart` là visual index | Selection/highlight lệch vị trí | Run offsets là UTF-16 logic |
-| Nhầm `getRunCount` là số từ | Logic tokenization sai | Run là đoạn cùng resolved bidi level |
-| Coi `reorderVisually` đã tạo câu hiển thị hoàn chỉnh | Thiếu shaping, glyph, line break | Renderer/layout engine xử lý tiếp |
-| Dùng `text-align:right` để thay direction | Dấu và từ trộn vẫn sai vị trí | Dùng semantics chiều văn bản |
-| Không isolate tên người/chữ người dùng chèn trong câu khác hướng | Dấu câu/phần lân cận có thể bị ảnh hưởng | `<bdi dir="auto">` hoặc cơ chế isolation tương ứng |
-| Tự thêm RLO/LRO vào dữ liệu để “sửa layout” | Ký tự vô hình có thể lừa hiển thị, copy/paste sai | Dùng layout protocol, sanitize theo field |
-| Tự loại mọi ký tự RTL trong user-generated text | Chặn ngôn ngữ thật | Chỉ hạn chế **format controls** ở field cần bảo vệ |
-| Dựa vào screenshot để xác nhận thứ tự byte/logic | Glyph có thể reorder | Kiểm tra code points/logical representation |
-| Dùng `length - i` để đổi caret index | Bỏ qua nhiều run, levels, graphemes | Hit testing với text layout chuyên dụng |
-| Sort dữ liệu bằng visual order | Kết quả so sánh không nhất quán | Dùng `Collator`/quy tắc tìm kiếm trên logical text |
+| Reversing a `String` to display RTL | Breaks when mixing digits, Latin, punctuation, shaping | Keep logical order; hand rendering to a BiDi-aware UI |
+| Assuming `Locale` dictates all text direction | Mixed-script content or numbers need separate handling | Choose base direction and isolation by context |
+| Mistaking `getRunStart` for a visual index | Selection/highlighting shifts out of place | Run offsets are logical UTF-16 |
+| Mistaking `getRunCount` for word count | Broken tokenization logic | A run is a span with the same resolved bidi level |
+| Treating `reorderVisually` as producing a finished display sentence | Missing shaping, glyphs, line breaks | Renderer/layout engine handles subsequent steps |
+| Using `text-align:right` instead of direction | Punctuation and mixed words remain out of order | Use text-direction semantics |
+| Failing to isolate user-inserted names/words in an opposite-direction sentence | Surrounding punctuation/text can be affected | `<bdi dir="auto">` or an equivalent isolation mechanism |
+| Manually adding RLO/LRO to data to "fix layout" | Invisible characters can spoof display, break copy/paste | Use layout protocol, sanitize per field |
+| Stripping all RTL characters in user-generated text | Blocks real languages | Only restrict **format controls** in fields needing protection |
+| Relying on screenshots to verify byte/logical order | Glyphs may be reordered | Inspect code points/logical representation |
+| Using `length - i` to convert a caret index | Ignores multiple runs, levels, graphemes | Hit testing with dedicated text layout |
+| Sorting data by visual order | Inconsistent comparison results | Use `Collator`/search rules on logical text |
 
-## 11. Kiểm thử và bài tập
+## 11. Testing and exercises
 
-### Kiểm thử thực tế nên có
+### Practical tests you should have
 
-1. **Văn bản thuần LTR:** câu tiếng Việt/Anh, nền LTR, không đổi nội dung.
-2. **Văn bản thuần RTL:** đoạn Hebrew/Arabic, kiểm tra base direction và render đúng.
-3. **Trộn RTL/LTR:** câu Hebrew chứa `Java` và `123`, câu tiếng Việt chứa tên Arabic.
-4. **Weak/neutral:** dấu `:`, `-`, ngoặc đơn, dấu cách ở ranh giới các run.
-5. **Ký tự điều khiển:** có/không có isolate, LRM/RLM và thử trường hợp Unicode control vô hình có thể gây hiểu nhầm.
-6. **Dữ liệu nguồn:** so `String.codePoints()` trước và sau khi hiển thị; renderer không tự thay dữ liệu gốc.
-7. **Selection/caret:** kiểm tra chọn văn bản qua ranh giới run, backspace/delete và dùng chuột.
-8. **Xuống dòng:** cùng đoạn nhưng vùng hiển thị hẹp/rộng khác nhau, xem visual order mỗi dòng.
-9. **Font/shaping:** Arabic contextual forms, dấu tổ hợp, ligature, fallback.
-10. **HTML input:** tên người dùng RTL xen trong câu LTR và ngược lại; `<bdi>` cùng HTML escaping.
-11. **Security:** filename/source/log chứa bidi override; kiểm tra khả năng hiện tên mã ký tự ẩn.
-12. **Regression:** ghim runtime/layout engine nếu sản phẩm kiểm thử output theo tọa độ hoặc screenshot chính xác.
+1. **Pure LTR text:** Vietnamese/English sentence, LTR base, content unchanged.
+2. **Pure RTL text:** Hebrew/Arabic paragraph, check base direction and proper rendering.
+3. **Mixed RTL/LTR:** Hebrew sentence containing `Java` and `123`, Vietnamese sentence containing an Arabic name.
+4. **Weak/neutral:** `:`, `-`, parentheses, spaces at run boundaries.
+5. **Control characters:** with/without isolates, LRM/RLM, and test cases where invisible Unicode controls could mislead.
+6. **Source data:** compare `String.codePoints()` before and after display; the renderer must not mutate source data.
+7. **Selection/caret:** test selecting text across run boundaries, backspace/delete, and mouse interaction.
+8. **Line wrapping:** same paragraph in narrow vs. wide viewports, checking visual order per line.
+9. **Font/shaping:** Arabic contextual forms, combining marks, ligatures, fallback.
+10. **HTML input:** RTL username inside an LTR sentence and vice versa; `<bdi>` combined with HTML escaping.
+11. **Security:** filename/source/log containing bidi overrides; verify the ability to reveal hidden character code names.
+12. **Regression:** pin the runtime/layout engine if the product tests output against exact coordinates or screenshots.
 
-### Bài tập 1 — đổi base direction
+### Exercise 1 — change base direction
 
-Chạy demo nhưng thay flag `DIRECTION_DEFAULT_LEFT_TO_RIGHT` thành `DIRECTION_RIGHT_TO_LEFT`. Đọc `getBaseLevel()`, `getRunCount()`, `getRunLevel(i)` và mảng run order; giải thích tại sao **thứ tự logic code points vẫn không đổi**.
+Run the demo but change the `DIRECTION_DEFAULT_LEFT_TO_RIGHT` flag to `DIRECTION_RIGHT_TO_LEFT`. Read `getBaseLevel()`, `getRunCount()`, `getRunLevel(i)`, and the run-order array; explain why **the logical order of code points still does not change**.
 
-### Bài tập 2 — thay thứ tự các đoạn nguồn
+### Exercise 2 — reorder source segments
 
-Đưa Hebrew lên đầu `paragraph`, rồi dùng `DIRECTION_DEFAULT_LEFT_TO_RIGHT`. Vì strong char đầu tiên là Hebrew, base direction có thể là RTL. Hãy in `getBaseLevel()` và đối chiếu với phiên bản Latin đầu tiên.
+Move Hebrew to the start of `paragraph`, then use `DIRECTION_DEFAULT_LEFT_TO_RIGHT`. Because the first strong char is Hebrew, the base direction can be RTL. Print `getBaseLevel()` and compare it with the Latin-first version.
 
-### Bài tập 3 — chỉ số logic
+### Exercise 3 — logical indices
 
-Tìm `paragraph.indexOf("123")` (demo là `8`), rồi xem `Bidi.getLevelAt(8)`. Giải thích vì sao index **8** vẫn đúng dù run số có thể được bố trí khác vị trí visual.
+Find `paragraph.indexOf("123")` (`8` in the demo), then check `Bidi.getLevelAt(8)`. Explain why index **8** remains valid even though the digit run may be placed at a different visual position.
 
-### Bài tập 4 — HTML isolation
+### Exercise 4 — HTML isolation
 
-Tạo một thông báo RTL chứa tên tài khoản Latin do người dùng nhập. Render hai bản: một bản đặt tên trực tiếp trong `span`, một bản chứa trong `<bdi dir="auto">`. Kiểm tra dấu câu trước/sau tên. Phải escape/chèn text an toàn trong cả hai.
+Create an RTL notification containing a user-entered Latin account name. Render two versions: one placing the name directly in a `span`, and one wrapping it in `<bdi dir="auto">`. Inspect punctuation before/after the name. Make sure to escape/insert text safely in both.
 
-### Bài tập 5 — kiểm tra control vô hình
+### Exercise 5 — check invisible controls
 
-Viết hàm kiểm tra code point của một ID kỹ thuật và cảnh báo nếu có `U+202A`–`U+202E` hoặc `U+2066`–`U+2069`. Phân biệt **dữ liệu UI tự do** với trường định danh có policy chặt; không xóa bừa mọi ký tự RTL hợp lệ.
+Write a function that inspects the code points of a technical ID and warns if `U+202A`–`U+202E` or `U+2066`–`U+2069` is present. Distinguish **free-form UI data** from identifier fields with strict policies; do not blindly strip all valid RTL characters.
 
-### Bài tập 6 — render không phải reverse
+### Exercise 6 — rendering is not reversing
 
-Thử `new StringBuilder(paragraph).reverse()`, rồi so code point của chuỗi mới với paragraph. Chỉ ra dữ liệu đã thực sự đổi, nhưng kết quả mới không phải một `Bidi.reorderVisually` và không thể thay thế rendering.
+Try `new StringBuilder(paragraph).reverse()`, then compare the code points of the new string against `paragraph`. Show that the data actually changed, yet the new result is not a `Bidi.reorderVisually` and cannot replace rendering.
 
-## 12. Tổng kết
+## 12. Summary
 
-**Thứ tự logic là thứ tự dữ liệu Unicode được lưu và xử lý; thứ tự hiển thị là cách renderer sắp các run/glyph để người dùng đọc được văn bản hai chiều.** Chúng có thể khác nhau khi trộn Hebrew/Arabic với Latin, chữ số và dấu câu. Hướng nền, loại ký tự, embedding levels, isolate controls và ranh giới dòng ảnh hưởng layout, nhưng không yêu cầu đảo chuỗi nguồn.
+**Logical order is the order in which Unicode data is stored and processed; visual order is how a renderer arranges runs/glyphs so users can read bidirectional text.** They can differ when mixing Hebrew/Arabic with Latin, digits, and punctuation. Base direction, character classes, embedding levels, isolate controls, and line boundaries affect layout, but do not require reversing the source string.
 
-Java `java.text.Bidi` cho phép đọc hướng nền, levels, offsets và sắp xếp **các run object** theo visual order. Những chỉ số ấy vẫn theo **UTF-16 logic offsets**; `Bidi` không tự render glyph, shaping hay điều khiển caret đầy đủ. Trong ứng dụng đa ngôn ngữ, giữ nguyên text nguồn, dùng UI/layout có hỗ trợ BiDi, isolate mảnh chèn khi cần, và kiểm tra control vô hình ở các trường nhạy cảm để giảm nguy cơ hiểu nhầm hoặc lạm dụng.
+Java `java.text.Bidi` lets you read base direction, levels, offsets, and reorder **run objects** into visual order. Those indices still follow **UTF-16 logical offsets**; `Bidi` does not itself render glyphs, perform shaping, or handle full caret movement. In multilingual applications, keep source text intact, use BiDi-capable UI/layout engines, isolate inserted fragments when needed, and inspect invisible controls in sensitive fields to reduce the risk of confusion or abuse.
 
-**Tài liệu tham khảo:**
+**References:**
 
 - Java SE 17, `java.text.Bidi`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Bidi.html
 - Java SE 17, `java.lang.String`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html
 - Unicode Standard Annex #9 — Unicode Bidirectional Algorithm: https://www.unicode.org/reports/tr9/
 - Unicode Security Considerations (UTR #36): https://unicode.org/reports/tr36/
-- W3C Internationalization — Working with text direction: https://www.w3.org/International/articles/inline-bidi-markup/
+- W3C Internationalization — Working with text direction: https://www.unicode.org/International/articles/inline-bidi-markup/

@@ -1,12 +1,12 @@
-# Module descriptor được biên dịch thành Module attribute
+# Module Descriptor Compiled into the Module Attribute
 
-Trong Java Platform Module System (JPMS), file `module-info.java` là nơi khai báo tên module, dependency và các ranh giới truy cập. Khi biên dịch, `javac` chuyển khai báo này thành một file class đặc biệt có tên **`module-info.class`**. Thông tin mô tả module được lưu trong class-file attribute có tên **`Module`**.
+In the Java Platform Module System (JPMS), the `module-info.java` file is where the module name, dependencies, and access boundaries are declared. During compilation, `javac` transforms this declaration into a special class file named **`module-info.class`**. The information describing the module is stored in a class-file attribute named **`Module`**.
 
-Điều này giúp module system đọc được cấu trúc module từ bytecode hoặc từ một modular JAR mà không cần mã nguồn `module-info.java`. Cần phân biệt ba thứ: file nguồn `module-info.java`, file nhị phân `module-info.class`, và đối tượng `java.lang.Module` mà JVM/module system biểu diễn khi ứng dụng chạy.
+This enables the module system to read module structure from bytecode or from a modular JAR without needing the `module-info.java` source code. Three things should be distinguished: the source file `module-info.java`, the binary file `module-info.class`, and the `java.lang.Module` object that the JVM/module system represents when the application runs.
 
-## 1. Từ module-info.java đến module-info.class
+## 1. From module-info.java to module-info.class
 
-Một module được khai báo bằng file có tên cố định `module-info.java`, đặt ở thư mục gốc của source set module:
+A module is declared with a file having the fixed name `module-info.java`, placed at the root directory of the module source set:
 
 ~~~text
 src/
@@ -19,7 +19,7 @@ src/
                     └── Greeter.java
 ~~~
 
-Ví dụ nội dung `module-info.java`:
+Example content of `module-info.java`:
 
 ~~~java
 module com.acme.greeter {
@@ -28,19 +28,19 @@ module com.acme.greeter {
 }
 ~~~
 
-Khai báo trên nói rằng:
+The declaration above states that:
 
-- Tên module là `com.acme.greeter`.
-- Module phụ thuộc vào `java.logging`.
-- Package `com.acme.greeter.api` được export để module khác có thể sử dụng các kiểu public trong package đó.
+- The module name is `com.acme.greeter`.
+- The module depends on `java.logging`.
+- The `com.acme.greeter.api` package is exported so other modules can use public types in that package.
 
-Biên dịch module:
+Compile the module:
 
 ~~~bash
 javac --module-source-path src -d out -m com.acme.greeter
 ~~~
 
-Sau khi biên dịch, cấu trúc đầu ra có dạng:
+After compilation, the output structure looks like:
 
 ~~~text
 out/
@@ -53,55 +53,55 @@ out/
                     └── Greeter.class
 ~~~
 
-`module-info.java` không trở thành một lớp Java thông thường tên `ModuleInfo`. Compiler tạo file đặc biệt `module-info.class`. File này không chứa các method nghiệp vụ; nó mang metadata mô tả module để công cụ và module system sử dụng.
+`module-info.java` does not become a regular Java class named `ModuleInfo`. The compiler generates the special file `module-info.class`. This file does not contain business methods; it carries metadata describing the module for tools and the module system to use.
 
-Khi đóng gói thành modular JAR, `module-info.class` nằm ở thư mục gốc của JAR, bên cạnh các package đã biên dịch. Vì vậy, công cụ có thể tìm descriptor mà không cần biết source tree ban đầu.
+When packaged into a modular JAR, `module-info.class` resides at the root directory of the JAR, alongside the compiled packages. Therefore, tools can locate the descriptor without knowing the original source tree.
 
-## 2. Module attribute trong class file
+## 2. The Module Attribute in the Class File
 
-Theo định dạng class file của JVM, `module-info.class` là một loại class file đặc biệt. Một số đặc điểm quan trọng:
+According to the JVM class file format, `module-info.class` is a special kind of class file. Some important characteristics:
 
-- Cờ truy cập của class file có bit `ACC_MODULE` với giá trị `0x8000`.
-- `this_class` tham chiếu đến tên đặc biệt `module-info`.
-- `super_class`, danh sách interface, field và method đều rỗng theo cấu trúc dành cho module descriptor.
-- Class file phải có attribute `Module`, nơi lưu thông tin khai báo module.
+- The class file access flags have the `ACC_MODULE` bit with value `0x8000`.
+- `this_class` references the special name `module-info`.
+- `super_class`, interface list, fields, and methods are all empty in accordance with the structure for a module descriptor.
+- The class file must have a `Module` attribute, where module declaration information is stored.
 
-Một class file Java thông thường mô tả một lớp với field, method và các attribute liên quan. `module-info.class` dùng cùng định dạng bao ngoài của class file nhưng tuân theo các ràng buộc riêng của module descriptor.
+A regular Java class file describes a class with fields, methods, and related attributes. `module-info.class` uses the same outer class file format while adhering to the specific constraints of a module descriptor.
 
-### Các phần dữ liệu trong Module attribute
+### Data Sections in the Module Attribute
 
-Attribute `Module` lưu các nhóm thông tin sau:
+The `Module` attribute stores the following groups of information:
 
-| Thành phần | Dữ liệu được lưu | Nguồn khai báo tương ứng |
+| Component | Stored Data | Corresponding Declaration Source |
 | --- | --- | --- |
-| Module header | Tên module, cờ module, phiên bản module nếu có | `module name [version]` |
-| Requires | Các module được yêu cầu, cờ của từng dependency và phiên bản yêu cầu nếu có | `requires` |
-| Exports | Các package được export, cờ và danh sách module đích nếu export có giới hạn | `exports` |
-| Opens | Các package được mở cho reflection, cờ và danh sách module đích nếu opens có giới hạn | `opens` |
-| Uses | Các service interface mà module tiêu thụ | `uses` |
-| Provides | Service interface và các implementation mà module cung cấp | `provides ... with ...` |
+| Module header | Module name, module flags, module version if present | `module name [version]` |
+| Requires | Required modules, flags of each dependency, and required version if present | `requires` |
+| Exports | Exported packages, flags, and list of target modules if export is qualified | `exports` |
+| Opens | Packages opened for reflection, flags, and list of target modules if opens is qualified | `opens` |
+| Uses | Service interfaces consumed by the module | `uses` |
+| Provides | Service interfaces and implementations provided by the module | `provides ... with ...` |
 
-Các tên trong attribute không nhất thiết được lưu lặp lại dưới dạng chuỗi văn bản ở từng vị trí. Những trường trong `Module` trỏ đến các entry trong **constant pool** của class file. Module name sử dụng hằng `CONSTANT_Module`, package name sử dụng `CONSTANT_Package`, còn tên class được tham chiếu bằng `CONSTANT_Class`.
+Names in the attribute do not necessarily have to be stored repeatedly as text strings at every location. Fields in `Module` point to entries in the class file's **constant pool**. Module names use `CONSTANT_Module` constants, package names use `CONSTANT_Package`, and class names are referenced via `CONSTANT_Class`.
 
-Nhờ cách biểu diễn này, JVM và các công cụ có thể phân tích descriptor theo cấu trúc nhị phân chuẩn.
+Thanks to this representation, the JVM and tools can parse the descriptor in a standard binary structure.
 
-### Requires và các cờ dependency
+### Requires and Dependency Flags
 
-Mỗi entry trong bảng `requires` chứa module được yêu cầu cùng các cờ mô tả quan hệ:
+Each entry in the `requires` table contains the required module along with flags describing the relationship:
 
-| Khai báo Java | Cờ trong class file | Ý nghĩa |
+| Java Declaration | Flag in Class File | Meaning |
 | --- | --- | --- |
-| `requires X;` | Không có cờ đặc biệt bắt buộc | Dependency thông thường |
-| `requires transitive X;` | `ACC_TRANSITIVE` (`0x0020`) | Module đọc module hiện tại cũng được đọc X |
-| `requires static X;` | `ACC_STATIC_PHASE` (`0x0040`) | Dependency cần ở compile-time, có thể vắng mặt ở run-time |
+| `requires X;` | No special mandatory flags | Regular dependency |
+| `requires transitive X;` | `ACC_TRANSITIVE` (`0x0020`) | Modules reading the current module also read X |
+| `requires static X;` | `ACC_STATIC_PHASE` (`0x0040`) | Dependency required at compile-time, may be absent at run-time |
 
-Một số cờ khác có thể xuất hiện trong descriptor, ví dụ `ACC_SYNTHETIC` hoặc `ACC_MANDATED`, để biểu thị dependency được compiler hoặc môi trường tạo ra theo quy tắc của nền tảng. Các cờ này là metadata, không phải từ khóa mà lập trình viên thường tự viết trong `module-info.java`.
+Other flags may appear in the descriptor, such as `ACC_SYNTHETIC` or `ACC_MANDATED`, to indicate dependencies generated by the compiler or environment under platform rules. These flags are metadata, not keywords that developers normally write themselves in `module-info.java`.
 
-### Exports và opens
+### Exports and Opens
 
-Mỗi entry trong `exports` tham chiếu tới một package. Nếu package được export có giới hạn, entry còn chứa danh sách module được phép đọc package đó.
+Each entry in `exports` references a package. If the package has a qualified export, the entry also contains the list of modules permitted to read that package.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.greeter {
@@ -110,9 +110,9 @@ module com.acme.greeter {
 }
 ~~~
 
-Trong `Module` attribute, hai package được ghi trong nhóm `exports`; package `com.acme.greeter.spi` có thêm danh sách module đích `com.acme.plugin`.
+In the `Module` attribute, two packages are recorded in the `exports` group; the `com.acme.greeter.spi` package additionally has the target module list `com.acme.plugin`.
 
-Nhóm `opens` có cấu trúc tương tự nhưng mô tả quyền truy cập reflection sâu khi chạy:
+The `opens` group has a similar structure but describes deep reflection access at runtime:
 
 ~~~java
 module com.acme.greeter {
@@ -120,11 +120,11 @@ module com.acme.greeter {
 }
 ~~~
 
-`exports` và `opens` không thể thay thế nhau. Export phục vụ truy cập API theo quy tắc Java thông thường; opens phục vụ reflection, chẳng hạn framework cần truy cập member không public.
+`exports` and `opens` cannot substitute for each other. Export serves API access under normal Java rules; opens serves reflection, such as when a framework needs to access non-public members.
 
-### Uses và provides
+### Uses and Provides
 
-Descriptor còn ghi lại khai báo Service Provider Interface:
+The descriptor also records Service Provider Interface declarations:
 
 ~~~java
 module com.acme.greeter {
@@ -134,36 +134,36 @@ module com.acme.greeter {
 }
 ~~~
 
-- `uses` lưu service type mà module cần tìm implementation.
-- `provides` lưu service type và danh sách provider class do module cung cấp.
+- `uses` stores service types for which the module needs to find implementations.
+- `provides` stores the service type and the list of provider classes supplied by the module.
 
-Các thông tin này được lưu trong hai nhóm riêng của `Module` attribute. Nhờ vậy, cơ chế `ServiceLoader` có thể phát hiện provider từ metadata module mà không cần dựa vào file cấu hình classpath kiểu cũ.
+This information is stored in two separate groups of the `Module` attribute. As a result, the `ServiceLoader` mechanism can discover providers from module metadata without relying on legacy classpath configuration files.
 
-## 3. Các attribute khác liên quan đến module
+## 3. Other Module-Related Attributes
 
-Ngoài `Module`, `module-info.class` có thể chứa các attribute bổ sung:
+Besides `Module`, `module-info.class` may contain additional attributes:
 
-| Attribute | Vai trò |
+| Attribute | Role |
 | --- | --- |
-| `ModulePackages` | Liệt kê các package thuộc module. |
-| `ModuleMainClass` | Ghi nhận lớp main của module nếu có. |
-| `ModuleTarget` | Có thể ghi nhận nền tảng hoặc target mà module hướng tới. |
-| `ModuleResolution` | Lưu các cờ liên quan đến cách phân giải module. |
-| `ModuleHashes` | Lưu hash của các module khác trong một số quy trình đóng gói hoặc kiểm soát tính toàn vẹn. |
+| `ModulePackages` | Lists the packages belonging to the module. |
+| `ModuleMainClass` | Records the main class of the module if present. |
+| `ModuleTarget` | May record the platform or target the module is aimed at. |
+| `ModuleResolution` | Stores flags related to how the module is resolved. |
+| `ModuleHashes` | Stores hashes of other modules in certain packaging or integrity verification workflows. |
 
-Không phải module nào cũng có tất cả các attribute tùy chọn trên. Attribute cốt lõi để mô tả khai báo module là `Module`; các attribute khác bổ sung thông tin phục vụ đóng gói, khởi chạy hoặc công cụ.
+Not every module has all of the optional attributes above. The core attribute describing the module declaration is `Module`; other attributes supplement information for packaging, launching, or tooling.
 
-Đặc biệt, `ModulePackages` không thay thế `exports`. Một package có thể thuộc module nhưng không được export. `ModulePackages` nói package nào tồn tại trong module; `exports` nói package nào được công khai cho module khác.
+In particular, `ModulePackages` does not replace `exports`. A package can belong to a module without being exported. `ModulePackages` states which packages exist in the module; `exports` states which packages are exposed to other modules.
 
-## 4. Quan sát Module attribute bằng javap
+## 4. Inspecting the Module Attribute with javap
 
-Có thể xem metadata nhị phân mà compiler tạo ra bằng `javap -v`:
+You can inspect the binary metadata generated by the compiler using `javap -v`:
 
 ~~~bash
 javap -v out/com.acme.greeter/module-info.class
 ~~~
 
-Trong kết quả, tìm phần `Module:`. Với ví dụ ở trên, nội dung sẽ thể hiện các thông tin tương đương:
+In the output, look for the `Module:` section. With the example above, the content will reflect information equivalent to:
 
 ~~~text
 Module:
@@ -175,23 +175,23 @@ Module:
     #... com/acme/greeter/api
 ~~~
 
-Các số `#...` là chỉ số constant-pool trong output thực tế. Chỉ số và thứ tự entry phụ thuộc vào nội dung class file, nên không nên xem chúng là giá trị cố định.
+The `#...` numbers are constant-pool indices in actual output. Indices and entry order depend on the class file contents, so they should not be treated as fixed values.
 
-Có thể dùng lệnh sau để xem descriptor mà JAR công bố:
+You can use the following command to view the descriptor published by a JAR:
 
 ~~~bash
 jar --describe-module --file build/libs/greeter.jar
 ~~~
 
-Lệnh `jar --describe-module` trình bày descriptor ở dạng dễ đọc. `javap -v` hữu ích hơn khi muốn quan sát cấu trúc class file và constant pool. Cả hai lệnh đều giúp kiểm tra kết quả biên dịch/đóng gói mà không cần đọc lại source.
+The `jar --describe-module` command presents the descriptor in an easy-to-read format. `javap -v` is more useful when you want to observe the class file structure and constant pool. Both commands help inspect compilation/packaging results without re-reading the source.
 
-## 5. Module system sử dụng descriptor như thế nào?
+## 5. How Does the Module System Use the Descriptor?
 
-Khi compiler biên dịch một module phụ thuộc vào module khác, nó có thể đọc `module-info.class` của dependency trên module path để biết tên module, các dependency và package được export.
+When the compiler compiles a module that depends on another module, it can read the dependency's `module-info.class` on the module path to learn the module name, dependencies, and exported packages.
 
-Khi Java launcher khởi động ứng dụng modular, module system cũng đọc descriptor trong các module tìm được trên module path. Từ root module và các quan hệ `requires`, nó phân giải module graph, kiểm tra dependency bắt buộc và thiết lập khả năng đọc module.
+When the Java launcher starts a modular application, the module system also reads descriptors in the modules found on the module path. Starting from the root modules and `requires` relationships, it resolves the module graph, checks required dependencies, and establishes module readability.
 
-Có thể hình dung luồng dữ liệu:
+You can picture the data flow:
 
 ~~~text
 module-info.java
@@ -201,48 +201,48 @@ module-info.java
 module-info.class
       │
       ├── Module attribute
-      ├── ModulePackages (nếu có)
-      └── các module attribute bổ sung (nếu có)
+      ├── ModulePackages (if present)
+      └── additional module attributes (if present)
                 │
-                ├── javac đọc descriptor dependency khi compile
+                ├── javac reads dependency descriptors at compile time
                 │
-                └── module system đọc descriptor khi resolve/run
+                └── module system reads descriptors during resolve/run
 ~~~
 
-Điểm quan trọng: `Module` attribute là **dữ liệu nhị phân trong class file**. Nó không phải đối tượng `java.lang.Module`. Khi ứng dụng chạy, module system sử dụng metadata này để xây dựng biểu diễn module trong runtime.
+Important point: the `Module` attribute is **binary data in the class file**. It is not the `java.lang.Module` object. When the application runs, the module system uses this metadata to build the runtime module representation.
 
-### Automatic module là trường hợp khác
+### Automatic Modules Are a Different Case
 
-Một JAR cũ không có `module-info.class` vẫn có thể được đưa lên module path và được xem như automatic module. Khi đó, module system suy ra descriptor tự động, có thể dựa trên thuộc tính `Automatic-Module-Name` trong manifest hoặc tên JAR.
+A legacy JAR without `module-info.class` can still be placed on the module path and treated as an automatic module. In that case, the module system derives a descriptor automatically, potentially based on the `Automatic-Module-Name` manifest attribute or the JAR filename.
 
-Vì vậy, không phải mọi module trên module path đều có file `module-info.class` do compiler tạo. Với **explicit named module**, descriptor được khai báo rõ bằng `module-info.java` và biên dịch thành `module-info.class`; với **automatic module**, descriptor được suy ra từ JAR.
+Therefore, not every module on the module path has a `module-info.class` file generated by the compiler. For an **explicit named module**, the descriptor is explicitly declared in `module-info.java` and compiled into `module-info.class`; for an **automatic module**, the descriptor is derived from the JAR.
 
-## 6. Những nhầm lẫn thường gặp
+## 6. Common Misconceptions
 
-| Nhầm lẫn | Cách hiểu đúng |
+| Misconception | Accurate Understanding |
 | --- | --- |
-| `module-info.java` được biên dịch thành một class Java thông thường | Nó tạo `module-info.class`, một class file đặc biệt có `ACC_MODULE` và `Module` attribute. |
-| Tên file `module-info.class` là tên module | Tên module thực tế được lưu trong `Module` attribute; tên file là quy ước cố định. |
-| Tất cả package trong module đều được public | Package có thể tồn tại trong module nhưng không được export. |
-| `ModulePackages` và `exports` giống nhau | Một bên liệt kê package của module; bên kia công bố package cho module khác. |
-| `Module` attribute chính là đối tượng `java.lang.Module` | Attribute là metadata nhị phân; runtime dùng metadata đó để tạo biểu diễn module. |
-| Mọi JAR trên module path đều có `module-info.class` | Automatic module có thể không chứa descriptor class file. |
-| Có thể sửa nội dung `Module` attribute bằng cách sửa source mà không biên dịch lại | Thay đổi `module-info.java` cần được biên dịch lại để cập nhật `module-info.class` trong output/JAR. |
+| `module-info.java` compiles into a regular Java class | It produces `module-info.class`, a special class file with `ACC_MODULE` and a `Module` attribute. |
+| The filename `module-info.class` is the module name | The actual module name is stored in the `Module` attribute; the filename is a fixed convention. |
+| All packages in a module are public | Packages can exist in a module without being exported. |
+| `ModulePackages` and `exports` are the same | One lists the module's packages; the other exposes packages to other modules. |
+| The `Module` attribute is itself the `java.lang.Module` object | The attribute is binary metadata; the runtime uses that metadata to create the module representation. |
+| Every JAR on the module path has `module-info.class` | Automatic modules may not contain a descriptor class file. |
+| You can update the `Module` attribute by editing the source without recompiling | Changes to `module-info.java` must be recompiled to update `module-info.class` in the output/JAR. |
 
-## 7. Quy trình kiểm tra khi descriptor không đúng như mong đợi
+## 7. Verification Workflow When the Descriptor Is Not as Expected
 
-Khi một dependency không được nhận diện hoặc package không được export như dự kiến, hãy kiểm tra theo thứ tự:
+When a dependency is not recognized or a package is not exported as expected, check in this order:
 
-1. **Kiểm tra source:** mở đúng `module-info.java` và xác nhận `requires`, `exports`, `opens`, `uses`, `provides`.
-2. **Biên dịch lại module:** bảo đảm file `module-info.class` được tạo từ source mới nhất.
-3. **Kiểm tra output:** dùng `javap -v path/to/module-info.class` và đọc phần `Module:`.
-4. **Kiểm tra JAR:** dùng `jar --describe-module --file path/to/module.jar` để xác nhận descriptor trong artifact được phát hành.
-5. **Kiểm tra module path thực tế:** bảo đảm compiler và launcher đang đọc đúng thư mục/JAR vừa kiểm tra, tránh dùng nhầm bản cũ trong cache hoặc thư mục build khác.
+1. **Check the source:** open the right `module-info.java` and confirm `requires`, `exports`, `opens`, `uses`, `provides`.
+2. **Recompile the module:** ensure `module-info.class` is generated from the latest source.
+3. **Inspect the output:** run `javap -v path/to/module-info.class` and read the `Module:` section.
+4. **Inspect the JAR:** run `jar --describe-module --file path/to/module.jar` to confirm the descriptor in the published artifact.
+5. **Check the actual module path:** ensure the compiler and launcher are reading the exact directory/JAR just checked, avoiding accidentally using an older copy in a cache or another build directory.
 
-Nếu source đúng nhưng output sai, vấn đề thường nằm ở bước biên dịch hoặc artifact cũ. Nếu output đúng nhưng runtime vẫn phân giải sai, hãy kiểm tra module path và root module mà launcher thực sự sử dụng.
+If the source is right but the output is wrong, the issue usually lies in the compilation step or a stale artifact. If the output is right but runtime resolution still fails, check the module path and root modules actually used by the launcher.
 
-## Kết luận
+## Conclusion
 
-`module-info.java` là mô tả module ở cấp source. Compiler chuyển mô tả đó thành `module-info.class`, trong đó attribute `Module` lưu tên module, flags, dependency, package export/open, service usage và service provider. Các công cụ như `javap -v` và `jar --describe-module` cho phép quan sát metadata này sau biên dịch hoặc đóng gói.
+`module-info.java` is the source-level module description. The compiler converts that description into `module-info.class`, where the `Module` attribute stores the module name, flags, dependencies, exported/opened packages, service usage, and service providers. Tools like `javap -v` and `jar --describe-module` allow observing this metadata after compilation or packaging.
 
-Hiểu mối liên hệ giữa source descriptor, `Module` attribute và runtime module giúp xác định chính xác lỗi nằm ở khai báo, kết quả biên dịch hay artifact mà ứng dụng đang sử dụng.
+Understanding the relationship between the source descriptor, the `Module` attribute, and the runtime module helps pinpoint whether an error lies in the declaration, the compilation output, or the artifact the application is using.

@@ -1,90 +1,90 @@
-# Gỡ lỗi bằng breakpoint, chạy từng bước và xem giá trị biến trong Java
+# Debugging with Breakpoints, Stepping, and Variable Inspection in Java
 
-## 1. Gỡ lỗi (debugging) là gì?
+## 1. What is debugging?
 
-**Debugging** là quá trình xác định nguyên nhân chương trình hoạt động sai và kiểm tra cách sửa. Chương trình có thể **biên dịch thành công** nhưng vẫn tính sai, đi nhầm nhánh `if`, bỏ sót phần tử hoặc ném ngoại lệ khi chạy. Công cụ **debugger** cho phép quan sát trạng thái thực tế của chương trình tại từng thời điểm, thay vì chỉ đoán nguyên nhân từ kết quả cuối.
+**Debugging** is the process of finding out why a program behaves incorrectly and verifying the fix. A program can **compile cleanly** and still calculate the wrong number, take the wrong `if` branch, skip an element, or throw an exception at runtime. A **debugger** lets you inspect the actual state of a program at specific moments instead of guessing the cause from the final output alone.
 
-Ba kỹ năng nền tảng:
+Three foundational skills:
 
-- **Đặt breakpoint:** yêu cầu debugger tạm dừng một luồng khi tới vị trí hoặc điều kiện đã chọn.
-- **Chạy từng bước:** kiểm soát lệnh tiếp theo được thực hiện, có thể bước qua hoặc đi vào lời gọi phương thức.
-- **Xem giá trị biến:** kiểm tra biến cục bộ, tham số, trường đối tượng, biểu thức theo dõi (*watch*) và ngăn xếp lời gọi (*call stack*) tại thời điểm chương trình đang dừng.
+- **Setting breakpoints:** telling the debugger to pause a thread when execution reaches a chosen location or condition.
+- **Stepping:** controlling which statement executes next, either stepping over or stepping into method calls.
+- **Inspecting variables:** checking local variables, parameters, object fields, watch expressions, and the call stack while the program is paused.
 
-Debugger giúp bạn **quan sát lỗi**, không tự chứng minh thuật toán đúng. Sau khi sửa vẫn cần biên dịch, chạy test và kiểm tra các trường hợp biên.
+A debugger helps you **observe bugs**; it does not by itself prove an algorithm is correct. After fixing a bug, you still need to recompile, run tests, and check edge cases.
 
-## 2. Breakpoint là gì, đặt ở đâu?
+## 2. What is a breakpoint, and where should you place one?
 
-**Breakpoint** là điểm dừng được cấu hình trong debugger. Khi thực thi đạt đến điểm đó, debugger thường **tạm dừng** trước khi thực thi dòng tương ứng và cho phép xem trạng thái chương trình tại vị trí hiện tại. Cách debugger hiển thị vị trí và thời điểm dừng có thể khác khi một dòng có nhiều biểu thức, mã được tối ưu hoặc không có thông tin debug phù hợp.
+A **breakpoint** is a stopping point configured in the debugger. When execution reaches that point, the debugger normally **pauses** before executing the corresponding line and lets you view the program state at that location. How the debugger displays the position and pause timing can vary when a line has multiple expressions, code is optimized, or proper debug info is missing.
 
-Cách đặt trong những IDE phổ biến như IntelliJ IDEA, Eclipse hoặc Visual Studio Code (với Java debugging extension):
+How to set one in common IDEs such as IntelliJ IDEA, Eclipse, or Visual Studio Code (with Java debugging extensions):
 
-1. Mở tệp `.java` chứa mã muốn kiểm tra.
-2. Nhấp vào phần lề cạnh **dòng có câu lệnh thực thi** để bật breakpoint; biểu tượng thường là một chấm màu.
-3. Chạy bằng **Debug**, không phải chỉ **Run**, để debugger quản lý các điểm dừng.
-4. Khi dừng, xem dòng hiện tại, các biến trong scope và **Call Stack**.
-5. Dùng các điều khiển như Continue/Resume, Step Over, Step Into hoặc Step Out để tiếp tục.
+1. Open the `.java` file containing the code you want to inspect.
+2. Click in the gutter next to an **executable statement line** to toggle a breakpoint; the icon is usually a colored dot.
+3. Launch with **Debug**, not just **Run**, so the debugger manages the breakpoints.
+4. When paused, inspect the current line, variables in scope, and the **Call Stack**.
+5. Use controls such as Continue/Resume, Step Over, Step Into, or Step Out to proceed.
 
-**Nên đặt ở nơi trạng thái có thể đổi hoặc điều kiện quyết định hành vi**, ví dụ:
+**Place breakpoints where state can change or conditions decide behavior**, for example:
 
-- Ngay trước `if (value > 0)`: giá trị nào sẽ đi vào nhánh?
-- Dòng `sum += value;`: `sum` trước và sau khi cộng là bao nhiêu?
-- Dòng `count++;`: có đang đếm đúng loại phần tử không?
-- Ngay trước `return`: các biến tổng hợp có đúng kết quả kỳ vọng?
+- Right before `if (value > 0)`: which value is about to enter the branch?
+- On `sum += value;`: what is `sum` before and after the addition?
+- On `count++;`: is it counting the right kind of element?
+- Right before `return`: do the aggregated variables hold the expected results?
 
-Breakpoint chỉ quan sát được khi luồng thực thi thật sự tới vị trí đó. Nếu đặt trong một nhánh không bao giờ chạy với dữ liệu hiện tại, chương trình sẽ không dừng ở đó. Breakpoint thường cần được đặt trên **dòng có mã thực thi**; không thể kỳ vọng đặt breakpoint trên một dòng chú thích hoặc dòng trống sẽ luôn có tác dụng.
+A breakpoint can only be observed if execution actually reaches that location. If you place it inside a branch that never runs for the current input, the program will not stop there. Breakpoints generally need to be placed on **lines with executable code**; you cannot expect a breakpoint on a comment line or blank line to work reliably.
 
-## 3. Các thao tác Step Over, Step Into, Step Out và Resume
+## 3. Step Over, Step Into, Step Out, and Resume
 
-| Điều khiển | Ý nghĩa khi đang dừng | Khi nên sử dụng |
+| Control | Meaning while paused | When to use |
 | --- | --- | --- |
-| **Step Over** | Thực thi bước hiện tại rồi dừng ở bước tiếp theo phù hợp trong ngữ cảnh hiện tại, **không đi sâu vào phương thức được gọi** | Muốn biết một lệnh làm thay đổi biến thế nào mà không cần xem nội bộ lời gọi |
-| **Step Into** | Bước vào phần mã của phương thức được gọi khi debugger có thể truy cập được | Nghi ngờ lỗi nằm trong phương thức tự viết như `analyze(...)` |
-| **Step Out** | Tiếp tục thực thi đến khi thoát khỏi phương thức hiện tại, quay lại ngữ cảnh gọi khi có thể | Đã hiểu logic bên trong phương thức, muốn xem kết quả ở nơi gọi |
-| **Resume/Continue** | Tiếp tục chạy cho tới breakpoint tiếp theo, điểm dừng do lỗi/sự kiện khác hoặc kết thúc | Không cần quan sát từng lệnh |
-| **Stop/Terminate** | Kết thúc phiên debug hoặc chương trình theo cách công cụ hỗ trợ | Muốn hủy phiên hiện tại; không giống Resume |
+| **Step Over** | Executes the current step and pauses at the next appropriate step in the current context, **without entering called methods** | You want to see how a statement changes variables without inspecting the internals of the call |
+| **Step Into** | Steps into the code of the called method when accessible to the debugger | You suspect the bug is inside a custom method like `analyze(...)` |
+| **Step Out** | Continues execution until exiting the current method, returning to the caller context when possible | You understand the method's internals and want to see the result back at the call site |
+| **Resume/Continue** | Continues running until the next breakpoint, an error/event pause, or program termination | You do not need to observe every statement |
+| **Stop/Terminate** | Ends the debug session or program as supported by the tool | You want to abort the current session; unlike Resume |
 
-Ví dụ:
+Example:
 
 ```java
 int result = computeTotal(values);
 System.out.println(result);
 ```
 
-Đây là **đoạn minh họa**, giả sử `computeTotal` là phương thức do bạn định nghĩa. Nếu đang dừng ở lệnh gọi:
+This is an **illustrative snippet**, assuming `computeTotal` is a method you defined. If paused at the call line:
 
-- **Step Into** có thể đưa bạn vào mã `computeTotal` để quan sát tính toán.
-- **Step Over** chạy lời gọi rồi chuyển sang bước tiếp theo ở phương thức hiện tại, trong khi kết quả `result` đã được gán nếu lời gọi hoàn tất bình thường.
-- Nếu đã vào `computeTotal`, **Step Out** cho phép trở lại nơi gọi sau khi phương thức kết thúc.
+- **Step Into** can take you inside `computeTotal` to observe its calculations.
+- **Step Over** runs the call and moves to the next step in the current method, with `result` assigned if the call completed normally.
+- Once inside `computeTotal`, **Step Out** lets you return to the caller after the method finishes.
 
-Đừng nhầm **Step Over** là “bỏ qua không chạy lệnh”: lệnh vẫn được thực thi. Tương tự, debugger có thể có **Step Into** nhiều biến thể như Smart Step Into; tên và phím tắt phụ thuộc IDE. Khi một bước có ngoại lệ hoặc breakpoint khác, điểm dừng tiếp theo có thể không giống đường đi bình thường.
+Do not confuse **Step Over** with "skipping execution": the statement still runs. Likewise, debuggers may offer variants of **Step Into** such as Smart Step Into; exact names and shortcuts depend on the IDE. When an exception or another breakpoint occurs during a step, the next pause location may differ from the normal path.
 
-## 4. Xem Locals, Watches và Call Stack
+## 4. Inspecting Locals, Watches, and the Call Stack
 
-Khi debugger tạm dừng, một số khung thông tin quan trọng là:
+When the debugger pauses, several key panels give you visibility:
 
-| Khung / chức năng | Bạn xem được gì? | Ví dụ cần kiểm tra |
+| Panel / feature | What you can inspect | Examples to check |
 | --- | --- | --- |
-| **Variables/Locals** | Tham số và biến cục bộ hiện nằm trong scope của khung gọi đang chọn | `i`, `value`, `count`, `sum`, `max` |
-| **Watch/Expressions** | Giá trị biểu thức muốn theo dõi tại vị trí dừng | `value > 0`, `sum + value`, `count == 0` |
-| **Call Stack** | Chuỗi lời gọi phương thức dẫn tới điểm dừng | `main → printReport → analyze` |
-| **Breakpoints** | Danh sách điểm dừng, điều kiện hoặc trạng thái bật/tắt | Điểm dừng có đang được bật? |
-| **Debug Console/Evaluate** | Đánh giá biểu thức trong bối cảnh đang dừng, nếu debugger hỗ trợ | `nums.length`, `sum`, `i + 1` |
+| **Variables/Locals** | Parameters and local variables currently in scope for the selected stack frame | `i`, `value`, `count`, `sum`, `max` |
+| **Watch/Expressions** | Values of expressions you want to track at the pause point | `value > 0`, `sum + value`, `count == 0` |
+| **Call Stack** | Chain of method calls leading to the pause point | `main → printReport → analyze` |
+| **Breakpoints** | List of breakpoints, conditions, and enabled/disabled state | Is the breakpoint enabled? |
+| **Debug Console/Evaluate** | Evaluates expressions in the paused context, if supported by the debugger | `nums.length`, `sum`, `i + 1` |
 
-**Giá trị biến gắn với thời điểm dừng.** Nếu debugger dừng **trước** câu `sum += value;`, `sum` thường chưa bao gồm `value` hiện tại. Sau khi Step Over dòng đó, `sum` mới phản ánh phép cộng. Vì vậy khi so với bảng theo dõi, hãy ghi rõ **trước hay sau lệnh**.
+**Variable values depend on the exact pause moment.** If the debugger pauses **before** `sum += value;`, `sum` usually does not include the current `value` yet. After you Step Over that line, `sum` reflects the addition. Therefore, when comparing against a trace table, note clearly whether you are checking **before or after the statement**.
 
-**Phạm vi biến (scope)** cũng quan trọng. Biến `value` được khai báo trong thân vòng lặp không nhất thiết có thể xem được khi đã rời vòng lặp. Biểu thức watch của một biến ngoài scope có thể báo lỗi hoặc không có giá trị, không có nghĩa bản thân biến đã bị đặt về `null`.
+**Variable scope** also matters. A variable `value` declared inside a loop body will not necessarily be visible once you leave the loop. A watch expression for an out-of-scope variable may report an error or no value, which does not mean the variable itself was set to `null`.
 
-Trong debugger, việc Evaluate một lời gọi phương thức hoặc sửa trực tiếp giá trị biến **có thể làm thay đổi trạng thái thực thi**. Khi đang học, nên ưu tiên biểu thức chỉ đọc, ví dụ `i < nums.length` hoặc `sum + value`. Không dùng biểu thức có tác dụng phụ như `list.remove(0)` hoặc `i++` trong cửa sổ Evaluate nếu không chủ đích thay đổi chương trình.
+In a debugger, evaluating a method call or directly modifying a variable **can alter execution state**. While learning, prefer read-only expressions such as `i < nums.length` or `sum + value`. Avoid expressions with side effects like `list.remove(0)` or `i++` in the Evaluate window unless you intentionally want to mutate the program.
 
-## 5. Đầu vào chuẩn để đối chiếu khi debug
+## 5. Baseline input for comparison during debugging
 
-Bài thực hành dùng `int[] nums = {4, -2, 7, 0, 3}`: đếm, cộng và tìm giá trị lớn nhất **chỉ trong các phần tử dương**. `-2` và `0` phải đi qua nhánh bỏ qua; nếu không có số dương thì không tính trung bình hoặc in giá trị `max` giữ chỗ.
+The practice program uses `int[] nums = {4, -2, 7, 0, 3}`: count, sum, and find the largest value **only among positive elements**. `-2` and `0` must be skipped; if there are no positive numbers, do not compute an average or print a placeholder `max` value.
 
-Kết quả chạy tay cần đối chiếu khi dừng bằng debugger: `count = 3`, `sum = 14`, `max = 7` và `average = 4.67` (định dạng hai chữ số). Bảng trace của bài mã giả giải thích cách tính các kết quả này; ở đây trọng tâm chuyển sang **quan sát trạng thái ngay trước và sau từng lệnh** để biết bước nào khiến kết quả lệch.
+Hand-calculated results to verify while paused in the debugger: `count = 3`, `sum = 14`, `max = 7`, and `average = 4.67` (formatted to two decimal places). The trace table in the pseudocode lesson explains how these values are derived; here the focus shifts to **observing state right before and after each statement** to pinpoint which step diverges.
 
-### Chương trình Java 17+ độc lập
+### Standalone Java 17+ program
 
-Tạo tệp **`DebugStepDemo.java`**:
+Create the file **`DebugStepDemo.java`**:
 
 ```java
 import java.util.Locale;
@@ -101,14 +101,14 @@ public class DebugStepDemo {
         int max = 0;
 
         for (int i = 0; i < nums.length; i++) {
-            int value = nums[i]; // BREAKPOINT A: quan sát i và value
+            int value = nums[i]; // BREAKPOINT A: observe i and value
 
             if (value > 0) {
                 if (count == 0 || value > max) {
                     max = value;
                 }
-                sum += value;     // BREAKPOINT B: xem sum trước/sau
-                count++;         // BREAKPOINT C: xem count trước/sau
+                sum += value;     // BREAKPOINT B: inspect sum before/after
+                count++;         // BREAKPOINT C: inspect count before/after
             }
         }
 
@@ -137,16 +137,16 @@ public class DebugStepDemo {
 }
 ```
 
-Dùng **JDK 17 trở lên**. Từ terminal tại thư mục có file:
+Use **JDK 17 or later**. From a terminal in the file's directory:
 
 ```bash
 javac -g -encoding UTF-8 DebugStepDemo.java
 java DebugStepDemo
 ```
 
-Tùy chọn **`-g`** yêu cầu `javac` sinh thông tin debug như dòng nguồn và biến cục bộ, giúp debugger quan sát tốt hơn; nó không thay đổi kết quả thuật toán.
+The **`-g`** option instructs `javac` to generate debug information such as source line numbers and local variables, helping the debugger inspect state accurately; it does not change the algorithm's output.
 
-**Stdout chính xác khi chạy bình thường:**
+**Exact stdout when running normally:**
 
 ```text
 Case A
@@ -160,29 +160,29 @@ sum=0
 no positive numbers
 ```
 
-`record Stats` là cách gói kết quả ngắn gọn có sẵn trong Java 17; các accessor là `count()`, `sum()`, `max()`. Biến `max = 0` chỉ là giá trị giữ chỗ khi chưa gặp số dương, không được coi là kết quả có nghĩa nếu `count == 0`.
+`record Stats` is a concise way to bundle results available in Java 17; its accessors are `count()`, `sum()`, and `max()`. The variable `max = 0` is only a placeholder when no positive numbers have been seen yet and must not be treated as a meaningful result if `count == 0`.
 
-## 6. Thực hành một phiên debug theo trình tự
+## 6. Walking through a debugging session step by step
 
-Mở `DebugStepDemo.java` trong IDE có hỗ trợ Java debugger, bảo đảm dự án dùng **JDK 17+** và chạy **Debug**.
+Open `DebugStepDemo.java` in an IDE with Java debugger support, ensure the project uses **JDK 17+**, and start **Debug**.
 
-### Bước 1 — Dừng tại nơi gọi phương thức
+### Step 1 — Pause at the method call site
 
-Đặt breakpoint E tại:
+Set breakpoint E at:
 
 ```java
 Stats result = analyze(values);
 ```
 
-Lần dừng đầu xảy ra trong lời gọi `printReport("Case A", ...)`. Trên cửa sổ Variables, có thể xem `title = "Case A"` và `values = [4, -2, 7, 0, 3]`. Biến `result` chưa có kết quả được gán tại thời điểm dừng trước lời gọi.
+The first pause happens during the call `printReport("Case A", ...)`. In the Variables panel, you can see `title = "Case A"` and `values = [4, -2, 7, 0, 3]`. The `result` variable does not have an assigned value yet because execution paused before the call.
 
-Bấm **Step Into** để vào `analyze(values)`. Khi đã vào, chọn khung gọi `analyze` sẽ thấy tham số `nums` và, sau khi thực hiện các lệnh khởi tạo, các biến `count`, `sum`, `max`. Ban đầu chúng lần lượt bằng `0`, `0`, `0`.
+Click **Step Into** to enter `analyze(values)`. Once inside, selecting the `analyze` stack frame shows parameter `nums` and, after executing the initialization statements, variables `count`, `sum`, and `max`. Initially they are `0`, `0`, and `0`.
 
-### Bước 2 — Dừng ở đầu mỗi lần lặp
+### Step 2 — Pause at the top of each iteration
 
-Đặt breakpoint A tại `int value = nums[i];`. Ở lần lặp đầu tiên, `i = 0`; nếu debugger dừng **trước** câu lệnh này, `value` chưa được gán cho vòng lặp hiện tại. Step Over một lần để thực thi phép gán rồi xem `value = 4`.
+Set breakpoint A at `int value = nums[i];`. On the first iteration, `i = 0`; if the debugger pauses **before** this line, `value` has not been assigned for this iteration yet. Step Over once to execute the assignment and verify `value = 4`.
 
-Thêm các watch chỉ đọc:
+Add read-only watches:
 
 ```text
 i
@@ -194,58 +194,58 @@ sum
 max
 ```
 
-Khi `value` đã ở trong scope, watch `value > 0` phải là `true` cho `4` và `7`, nhưng `false` cho `-2` và `0`.
+Once `value` is in scope, the watch `value > 0` should evaluate to `true` for `4` and `7`, and `false` for `-2` and `0`.
 
-### Bước 3 — Theo dõi cập nhật trạng thái
+### Step 3 — Track state updates
 
-Khi `value = 4`, đi vào nhánh `if`. Trước `sum += value;`, `sum = 0`; sau khi Step Over, `sum = 4`. Trước `count++;`, `count = 0`; sau khi Step Over, `count = 1`. Vì `count == 0` khi xử lý số dương đầu tiên, `max` được gán thành `4`.
+When `value = 4`, execution enters the `if` branch. Before `sum += value;`, `sum = 0`; after Step Over, `sum = 4`. Before `count++;`, `count = 0`; after Step Over, `count = 1`. Because `count == 0` when handling the first positive number, `max` is set to `4`.
 
-Nếu nhấn **Resume** và dừng lại ở breakpoint A ở lần lặp tiếp theo, `i = 1` và `nums[1] = -2`. Khi điều kiện `value > 0` sai, các biến tổng hợp không thay đổi: `count = 1`, `sum = 4`, `max = 4`.
+If you click **Resume** and hit breakpoint A on the next iteration, `i = 1` and `nums[1] = -2`. Since `value > 0` is false, the aggregate variables stay unchanged: `count = 1`, `sum = 4`, `max = 4`.
 
-### Bước 4 — Kiểm chứng trạng thái **trước và sau breakpoint**
+### Step 4 — Verify state **before and after breakpoints**
 
-Thay vì chỉ đọc bảng kết quả cuối mỗi lượt, hãy quan sát **thời điểm dừng của debugger**. Với `nums = {4, -2, 7, 0, 3}`, bảng dưới chọn những checkpoint có ý nghĩa trong chương trình `DebugStepDemo`:
+Instead of only checking an end-of-iteration summary table, observe the **exact pause timing of the debugger**. For `nums = {4, -2, 7, 0, 3}`, the table below selects meaningful checkpoints in `DebugStepDemo`:
 
-| Vị trí dừng | Điều đang/đã xảy ra | Giá trị cần thấy |
+| Pause location | What is happening / has happened | Values to observe |
 | --- | --- | --- |
-| A, `i=0`, trước `int value = nums[i]` | Phần tử đầu chưa được gán cho local `value` ở lượt này | `i=0`, `count=0`, `sum=0`; **không đánh giá** watch `value` trước khi gán |
-| B, `i=0`, trước `sum += value` | `value=4`, `max` đã thành 4; phép cộng chưa chạy | `count=0`, `sum=0`, `max=4` |
-| C, `i=0`, trước `count++` | Phép cộng vừa thực hiện; bộ đếm chưa tăng | `sum=4`, `count=0`; Step Over → `count=1` |
-| A, `i=1`, sau gán `value=-2` | Điều kiện `value > 0` sai, bỏ qua B và C | Sau lượt này: `count=1`, `sum=4`, `max=4` |
-| B, `i=2`, `value=7` | Đã cập nhật `max=7` nhưng chưa cộng 7 | Trước B: `sum=4`, `count=1`; sau B: `sum=11` |
-| A, `i=3`, `value=0` | Không vào nhánh số dương | Sau lượt này: `sum=11`, `count=2`, `max=7` |
-| B/C, `i=4`, `value=3` | `max` giữ 7; cộng rồi mới tăng đếm | Trước B: `sum=11`, `count=2`; sau C: `sum=14`, `count=3` |
-| D, trước `return new Stats(...)` | Mọi lượt đã hoàn thành | `count=3`, `sum=14`, `max=7` |
+| A, `i=0`, before `int value = nums[i]` | First element not yet assigned to local `value` in this pass | `i=0`, `count=0`, `sum=0`; **do not evaluate** watch `value` before assignment |
+| B, `i=0`, before `sum += value` | `value=4`, `max` is already 4; addition has not run | `count=0`, `sum=0`, `max=4` |
+| C, `i=0`, before `count++` | Addition just executed; counter not incremented yet | `sum=4`, `count=0`; Step Over → `count=1` |
+| A, `i=1`, after assigning `value=-2` | `value > 0` is false, skips B and C | After this pass: `count=1`, `sum=4`, `max=4` |
+| B, `i=2`, `value=7` | Updated `max=7`, but 7 not added yet | Before B: `sum=4`, `count=1`; after B: `sum=11` |
+| A, `i=3`, `value=0` | Does not enter positive branch | After this pass: `sum=11`, `count=2`, `max=7` |
+| B/C, `i=4`, `value=3` | `max` stays 7; adds first, then increments count | Before B: `sum=11`, `count=2`; after C: `sum=14`, `count=3` |
+| D, before `return new Stats(...)` | All iterations completed | `count=3`, `sum=14`, `max=7` |
 
-**Lưu ý về thời điểm:** Nếu breakpoint A tạm dừng *trước* lệnh gán, local `value` có thể chưa được gán cho lượt hiện tại. Chỉ kiểm tra `value > 0` khi đã Step Over qua phép gán hoặc dừng ở lệnh `if`. Các điểm B/C không được chạm tới ở lượt `i=1` và `i=3`, vì điều kiện sai; đó là dấu hiệu đúng, không phải breakpoint bị lỗi.
+**Note on timing:** If breakpoint A pauses *before* the assignment, the local `value` may not yet hold the current iteration's value. Only check `value > 0` after stepping over the assignment or when paused on the `if` statement. Breakpoints B and C are not hit on `i=1` and `i=3` because the condition is false; that is the expected behavior, not a broken breakpoint.
 
-Ở điểm D, dùng **Step Out** để quay về `printReport`, kiểm tra `result` sau khi `analyze` trả về và xác nhận trung bình `14 / 3.0` được in là `4.67`. Bảng này bổ sung góc nhìn **trạng thái trước/sau lệnh** cho bảng chạy tay; không thay thế việc kiểm thử toàn bộ đầu vào biên.
+At point D, use **Step Out** to return to `printReport`, check `result` after `analyze` returns, and confirm the average `14 / 3.0` prints as `4.67`. This table adds a **before/after-statement** perspective to the dry-run table; it does not replace testing all boundary inputs.
 
-### Bước 5 — Quan sát trường hợp không có số dương
+### Step 5 — Observe the case with no positive numbers
 
-Resume cho tới lời gọi `printReport("Case B", new int[] {0, -1})`. Ở trường hợp này, `value > 0` luôn sai, các biến `count`, `sum` giữ `0`; chương trình đi vào nhánh `if (result.count() == 0)` và in `no positive numbers`, không thực hiện phép chia.
+Resume until the call `printReport("Case B", new int[] {0, -1})`. Here, `value > 0` is always false, and `count` and `sum` stay `0`; the program enters `if (result.count() == 0)` and prints `no positive numbers`, performing no division.
 
-Cách kiểm tra trường hợp biên giúp xác nhận rằng chương trình không chỉ đúng với một mảng “đẹp”.
+Testing this edge case confirms the program does not work only on one "nice" array.
 
-## 7. Dùng breakpoint có điều kiện để tránh dừng quá nhiều
+## 7. Using conditional breakpoints to avoid pausing too often
 
-Trong vòng lặp có hàng nghìn phần tử, breakpoint thông thường có thể làm chương trình dừng hàng nghìn lần. **Conditional breakpoint** chỉ yêu cầu tạm dừng khi một biểu thức điều kiện đúng.
+In a loop with thousands of elements, a regular breakpoint can pause the program thousands of times. A **conditional breakpoint** only pauses when a specified condition evaluates to true.
 
-Ví dụ với chương trình trên:
+Examples in the program above:
 
-- Điều kiện `i == 2`: dừng khi chuẩn bị xử lý phần tử thứ ba.
-- Điều kiện `value == 7`: dừng tại một vị trí mà biến `value` đã được gán và đang nằm trong scope.
-- Điều kiện `count > 1`: tập trung vào trạng thái sau khi đã gặp nhiều số dương; cần đặt breakpoint tại dòng thích hợp để hiểu `count` trước/sau cập nhật.
+- Condition `i == 2`: pause right before processing the third element.
+- Condition `value == 7`: pause at a location where `value` is already assigned and in scope.
+- Condition `count > 1`: focus on the state after encountering multiple positive numbers; place the breakpoint on the right line so you know whether `count` is pre- or post-update.
 
-**Cẩn thận với vị trí:** nếu đặt breakpoint ngay tại `int value = nums[i];`, biến `value` của vòng lặp hiện tại có thể **chưa có giá trị hợp lệ để dùng cho điều kiện**. Khi đó dùng điều kiện `i == 2` tại dòng này; hoặc đặt breakpoint ở dòng `if (value > 0)` để kiểm tra `value == 7` sau khi phép gán đã thực hiện.
+**Watch out for placement:** if you place a breakpoint right on `int value = nums[i];`, the current iteration's `value` may **not yet hold a valid value for the condition**. Use `i == 2` on that line, or place the breakpoint on `if (value > 0)` to test `value == 7` after the assignment executes.
 
-Một số IDE hỗ trợ **logpoint/tracepoint**: ghi một thông báo mà không luôn dừng chương trình. Đây là lựa chọn khi cần quan sát nhiều lần lặp, nhưng nếu muốn nhìn kỹ trạng thái ở một thời điểm thì breakpoint tạm dừng vẫn trực quan hơn.
+Some IDEs support **logpoints/tracepoints**: logging a message without pausing the program. This helps when observing many iterations, though pausing with a breakpoint remains more direct when inspecting detailed state at one moment.
 
-Trong chương trình nhiều luồng, breakpoint có thể tạm dừng **một luồng hoặc nhiều luồng** tùy cấu hình debugger. Đừng giả định các luồng khác cũng đã dừng; xem chế độ suspend và cửa sổ Threads của công cụ khi cần phân tích lỗi đồng thời.
+In multithreaded programs, a breakpoint may pause **one thread or all threads** depending on debugger configuration. Never assume other threads are also paused; check the suspend policy and the Threads view when analyzing concurrency bugs.
 
-## 8. Ví dụ lỗi logic: tìm dòng sai bằng debugger
+## 8. Logic bug example: finding the wrong line with the debugger
 
-Một phiên bản chưa đúng của vòng lặp:
+An incorrect version of the loop:
 
 ```java
 for (int i = 0; i < nums.length - 1; i++) {
@@ -257,23 +257,23 @@ for (int i = 0; i < nums.length - 1; i++) {
 }
 ```
 
-Đây là **đoạn minh họa lỗi**, không phải toàn bộ tệp Java. Với mảng `{4, -2, 7, 0, 3}`, điều kiện `i < nums.length - 1` chỉ cho chạy `i = 0, 1, 2, 3`; phần tử cuối ở `i = 4` bị bỏ sót. Nếu chỉ dựa vào câu `sum += value`, người mới học có thể tưởng lỗi nằm ở phép cộng.
+This is a **buggy illustrative snippet**, not a full Java file. On `{4, -2, 7, 0, 3}`, the condition `i < nums.length - 1` only runs `i = 0, 1, 2, 3`; the last element at `i = 4` is skipped. Looking only at `sum += value`, a beginner might wrongly suspect the addition itself.
 
-Cách dùng debugger:
+Using the debugger:
 
-1. Đặt breakpoint trong vòng lặp, theo dõi `i`, `nums.length`, `value`, `sum`, `count`.
-2. Resume từng lần lặp hoặc đặt breakpoint có điều kiện ở gần lần lặp cuối.
-3. Nhận thấy giá trị `i` **không bao giờ đạt `4`**, dù `nums.length = 5`.
-4. Kiểm tra điều kiện vòng lặp và đổi thành `i < nums.length`.
-5. Chạy lại, xác nhận tổng là `14` và số phần tử dương là `3`.
+1. Place a breakpoint inside the loop and watch `i`, `nums.length`, `value`, `sum`, `count`.
+2. Resume iteration by iteration or set a conditional breakpoint near the last iteration.
+3. Notice that `i` **never reaches `4`**, even though `nums.length = 5`.
+4. Check the loop condition and change it to `i < nums.length`.
+5. Rerun and confirm the sum is `14` and the positive count is `3`.
 
-Với lỗi cập nhật sai nhánh, ví dụ đặt `count++` **ngoài** `if (value > 0)`, breakpoint sau câu tăng sẽ cho thấy `count` thay đổi ngay cả với `value = -2` hoặc `0`. Kiểm tra bảng theo dõi sẽ chỉ ra bước đầu tiên khiến trạng thái sai.
+For an update in the wrong branch, such as placing `count++` **outside** `if (value > 0)`, a breakpoint after the increment shows `count` changing even when `value = -2` or `0`. Checking against the trace table pinpoints the first step where state diverges.
 
-**Bài học:** đặt breakpoint dựa trên **giả thuyết về nguyên nhân**, quan sát trạng thái **trước và sau** một lệnh, sau đó sửa lệnh gây sai thay vì che triệu chứng bằng một giá trị kết quả được gán cứng.
+**Takeaway:** place breakpoints based on a **hypothesis about the cause**, inspect state **before and after** a statement, and fix the faulty statement rather than masking symptoms with a hardcoded result.
 
-## 9. Call Stack giúp hiểu chương trình đang ở đâu
+## 9. How the Call Stack shows where the program is
 
-Ở breakpoint A/B/C nằm trong `analyze`, Call Stack của một lần chạy thông thường có thể cho thấy thứ tự lời gọi:
+At breakpoints A/B/C inside `analyze`, the Call Stack of a normal run shows the call sequence:
 
 ```text
 DebugStepDemo.analyze(...)
@@ -281,53 +281,53 @@ DebugStepDemo.printReport(...)
 DebugStepDemo.main(...)
 ```
 
-Khung trên cùng là phương thức hiện tại. Chọn một khung khác có thể hiển thị các biến cục bộ ở **ngữ cảnh của phương thức đó**, không phải giá trị của cùng tên biến trong mọi phương thức. Khi đang bước trong `analyze`, `nums` là tham số của `analyze`; ở `printReport`, tham số tên `values`. Đó là hai tên biến cục bộ khác nhau đang tham chiếu tới cùng đối tượng mảng trong ví dụ.
+The top frame is the current method. Selecting another frame displays local variables in **that method's context**, not values of same-named variables in every method. While stepping in `analyze`, `nums` is `analyze`'s parameter; in `printReport`, the parameter is named `values`. Those are two distinct local variables referencing the same array object in this example.
 
-Khi có exception, xem stack trace hoặc bật **exception breakpoint** để tạm dừng khi một loại ngoại lệ được ném (hoặc chưa được bắt, tùy tùy chọn IDE). Exception breakpoint hữu ích khi lỗi bị bắt ở tầng cao hơn và thông báo cuối cùng không cho biết nơi phát sinh đầu tiên.
+When an exception occurs, inspect the stack trace or enable an **exception breakpoint** to pause when a specific exception type is thrown (or uncaught, depending on IDE settings). Exception breakpoints are useful when an error is caught at a higher layer and the final message hides where it originated.
 
-Cần phân biệt **call stack** với nội dung mảng/collection: call stack cho biết chuỗi lời gọi; Variables cho biết dữ liệu hiện có ở từng khung.
+Distinguish the **call stack** from array/collection contents: the call stack shows the chain of active calls; Variables shows the data available in each frame.
 
-## 10. Chạy từ terminal và kết nối debugger (tùy chọn)
+## 10. Running from the terminal and attaching a debugger (optional)
 
-Chạy bình thường bằng `java DebugStepDemo` sẽ **không tự dừng** tại breakpoint do IDE cấu hình. Muốn debug trong IDE, dùng chức năng **Debug** hoặc cấu hình debugger **Attach** đến JVM đã bật giao thức JDWP.
+Running normally with `java DebugStepDemo` will **not automatically pause** at IDE breakpoints. To debug in an IDE, use the IDE's **Debug** action or configure the debugger to **Attach** to a JVM launched with JDWP enabled.
 
-Ví dụ với **JDK 17+**, sau khi biên dịch bằng `javac -g`:
+Example with **JDK 17+**, after compiling with `javac -g`:
 
 ```bash
 java -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=127.0.0.1:5005 DebugStepDemo
 ```
 
-Ý nghĩa:
+Meaning of options:
 
-- `transport=dt_socket`: dùng kết nối socket để debugger giao tiếp.
-- `server=y`: JVM mở đầu nhận kết nối debugger.
-- `suspend=y`: JVM tạm dừng khi khởi động để chờ debugger kết nối trước khi thực thi ứng dụng.
-- `address=127.0.0.1:5005`: chỉ lắng nghe trên **loopback** của máy đó, tại cổng 5005.
+- `transport=dt_socket`: uses a socket connection for debugger communication.
+- `server=y`: the JVM opens a listening socket to accept a debugger connection.
+- `suspend=y`: the JVM pauses at startup and waits for a debugger to attach before running the application.
+- `address=127.0.0.1:5005`: listens only on the machine's **loopback** interface at port 5005.
 
-Trong IDE, tạo cấu hình **Attach to Remote JVM/Remote Debug** kết nối `127.0.0.1:5005`, trỏ đến đúng mã nguồn và class đã biên dịch; sau khi attach và tiếp tục, debugger có thể dừng tại breakpoint. Chế độ này **không phải stdout thông thường của ví dụ** vì JVM có thể in một dòng thông báo đang lắng nghe và dừng chờ kết nối.
+In your IDE, create an **Attach to Remote JVM / Remote Debug** configuration targeting `127.0.0.1:5005`, pointing to the matching source code and compiled classes; once attached and resumed, the debugger can stop at breakpoints. This mode **does not match the normal stdout of the example**, because the JVM may print a listening message while waiting to attach.
 
-**An toàn:** cổng JDWP cho phép điều khiển sâu tiến trình Java; không mở công khai qua Internet hoặc địa chỉ mạng không tin cậy, đặc biệt không dùng `address=*:5005` nếu không có biện pháp bảo vệ phù hợp. Với người mới học, debug trực tiếp bằng IDE thường đơn giản hơn và tránh phải tự quản lý cổng.
+**Security:** the JDWP port grants deep control over the Java process; never expose it publicly on the Internet or untrusted networks, and especially avoid `address=*:5005` without proper safeguards. For beginners, debugging directly from the IDE is simpler and avoids manual port management.
 
-## 11. Những điều debugger không thay thế được
+## 11. Things a debugger cannot replace
 
-- **Không có breakpoint nào được kích hoạt:** kiểm tra đã chạy chế độ Debug chưa, đặt tại dòng thực thi chưa, đường đi có tới dòng ấy không, breakpoint có bị tắt không, source và class đang chạy có khớp nhau không.
-- **Không xem được biến cục bộ:** kiểm tra đúng Call Stack frame, phạm vi của biến, và thử biên dịch với `javac -g`. Một số mã/thư viện hoặc môi trường tối ưu có thể hạn chế thông tin.
-- **Step Into đi vào mã thư viện thay vì mã tự viết:** dùng Step Over, Smart Step Into hoặc các bộ lọc bước (*step filters*) nếu IDE hỗ trợ.
-- **Breakpoint trong loop dừng quá thường xuyên:** dùng conditional breakpoint hoặc logpoint.
-- **Kết quả thay đổi khi dùng debugger:** debugger có thể làm thay đổi thời gian thực thi, nhất là trong code đa luồng; tránh kết luận một lỗi race condition đã biến mất chỉ vì chạy từng bước.
-- **Watch hiển thị lỗi scope:** đặt biểu thức tại dòng/khung mà biến thực sự tồn tại.
-- **Debugger cho thấy kết quả đúng ở một đầu vào:** vẫn phải thử mảng rỗng, chỉ số biên, đầu vào sai, số lượng lớn và các tình huống đặc biệt.
-- **Debug Console Evaluate làm đổi trạng thái:** hạn chế biểu thức có tác dụng phụ hoặc can thiệp dữ liệu khi mục đích chỉ là quan sát.
+- **No breakpoint is hit:** check that you ran in Debug mode, placed the breakpoint on an executable line, execution actually reaches that line, the breakpoint is enabled, and running classes match the edited source.
+- **Cannot see local variables:** verify the selected Call Stack frame, variable scope, and try compiling with `javac -g`. Certain libraries or optimized code may limit debug info.
+- **Step Into enters library code instead of your code:** use Step Over, Smart Step Into, or step filters if supported by your IDE.
+- **Breakpoint in a loop pauses too frequently:** use a conditional breakpoint or logpoint.
+- **Behavior changes under the debugger:** a debugger alters execution timing, especially in multithreaded code; do not assume a race condition disappeared just because stepping made it pass.
+- **Watch shows a scope error:** evaluate the expression on a line and stack frame where the variable actually exists.
+- **Debugger shows correct results on one input:** you still must test empty arrays, boundary indices, invalid inputs, large values, and special cases.
+- **Debug Console Evaluate changes state:** avoid expressions with side effects or data mutations when your goal is strictly observation.
 
-### Checklist gỡ lỗi nhanh
+### Quick debugging checklist
 
-1. Mô tả **kết quả mong đợi** và **kết quả đang xảy ra**.
-2. Tạo dữ liệu đầu vào nhỏ **tái hiện được lỗi**.
-3. Đặt breakpoint **trước vị trí nghi ngờ**, chạy Debug.
-4. Xem Locals/Watch/Call Stack, phân biệt giá trị **trước và sau lệnh**.
-5. Step Into khi cần xem nội bộ, Step Over khi chỉ cần kết quả, Step Out khi muốn quay về nơi gọi, Resume đến điểm quan trọng tiếp theo.
-6. So với bảng theo dõi hoặc phép tính tay để xác định **bước đầu tiên bị lệch**.
-7. Sửa **nguyên nhân**, chạy lại test bình thường và trường hợp biên.
-8. Tắt hoặc bỏ những breakpoint không cần thiết sau khi hoàn tất.
+1. Describe the **expected result** and the **actual result**.
+2. Create a small input that **reproduces the bug**.
+3. Set a breakpoint **before the suspected location** and run Debug.
+4. Inspect Locals/Watch/Call Stack, distinguishing values **before and after statements**.
+5. Use Step Into to inspect internals, Step Over when you only need the result, Step Out to return to the caller, and Resume to move to the next key point.
+6. Compare against a trace table or hand calculation to identify the **first step that diverges**.
+7. Fix the **root cause**, then rerun normal and boundary tests.
+8. Disable or remove unnecessary breakpoints once finished.
 
-**Ghi nhớ:** breakpoint giúp dừng đúng thời điểm; chạy từng bước giúp thấy lệnh nào thay đổi trạng thái; Variables/Watch/Call Stack giúp trả lời “giá trị nào đang sai, ở đâu và do đường gọi nào?”. Kết hợp quan sát bằng debugger với phép tính tay và kiểm thử sẽ giúp tìm lỗi Java chính xác hơn việc thêm nhiều dòng `println()` một cách ngẫu nhiên.
+**Remember:** breakpoints pause at the right moment; stepping shows which statement changes state; Variables/Watch/Call Stack answer "which value is wrong, where, and via which call path?" Combining debugger observation with hand calculation and testing finds Java bugs far more accurately than adding random `println()` calls.

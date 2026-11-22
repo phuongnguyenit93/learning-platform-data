@@ -1,58 +1,58 @@
-# `MethodHandles.Lookup`: quyền được kiểm tra khi tạo handle
+# `MethodHandles.Lookup`: Permissions Are Checked at Handle Creation
 
-Trong Java, `MethodHandle` là một tham chiếu có kiểu đến một phương thức hoặc constructor; `VarHandle` là một đối tượng cung cấp những thao tác truy cập biến/trường/mảng theo kiểu được kiểm soát. Để lấy handle đến **thành viên đã đặt tên** (method, constructor, field), ta thường dùng `java.lang.invoke.MethodHandles.Lookup`. Điểm mấu chốt: **quyền truy cập được kiểm tra lúc tạo handle; khi đã có handle hợp lệ, việc gọi nó không lặp lại kiểm tra quyền truy cập Java vào thành viên đích**. Việc gọi vẫn chịu kiểm tra kiểu, những giới hạn thao tác và ngoại lệ khi mã đích chạy.
+In Java, a `MethodHandle` is a typed reference to a method or constructor; a `VarHandle` is an object that provides type-checked access operations on variables, fields, or array elements. To obtain a handle to a **named member** (method, constructor, field), we typically use `java.lang.invoke.MethodHandles.Lookup`. The key point: **access permissions are checked when creating the handle; once you hold a valid handle, invoking it does not repeat Java access checks on the target member**. Invocation is still subject to type checks, operation constraints, and exceptions thrown when the target code runs.
 
-Đây là lý do `Lookup` vừa là công cụ tìm thành viên, vừa là một **khả năng được ủy quyền (capability)**: nó mang ngữ cảnh và mức quyền của mã đã tạo ra nó. Nắm rõ ranh giới này giúp viết thư viện, framework, mã Reflection/MethodHandle và mã tương tác với Java Platform Module System (JPMS) đúng và an toàn.
+This is why `Lookup` is both a member-lookup tool and a **delegated capability**: it carries the context and access level of the code that created it. Understanding this boundary helps you write libraries, frameworks, Reflection/MethodHandle code, and code interacting with the Java Platform Module System (JPMS) correctly and safely.
 
-## 1. `Lookup` chứa ngữ cảnh truy cập nào?
+## 1. What Access Context Does `Lookup` Hold?
 
-`MethodHandles.Lookup` là đối tượng dùng làm “nhà máy” tạo handle. Nó ghi nhận:
+`MethodHandles.Lookup` is the object used as a "factory" to create handles. It records:
 
-- **Lookup class**: lớp mà quyền truy cập được xét theo; lấy bằng `lookup.lookupClass()`.
-- **Lookup modes**: các mức quyền còn hiệu lực, chẳng hạn `PUBLIC`, `PACKAGE`, `PROTECTED`, `PRIVATE`, `MODULE`; có thể xem bitmask qua `lookup.lookupModes()`. Các bit này không có nghĩa là được phép truy cập mọi lớp/thành viên ở bất kỳ module nào.
-- **Ngữ cảnh module**: quan hệ đọc module, các package được `exports`/`opens` và, với lookup được chuyển sang module khác, cả ngữ cảnh lookup trước đó có thể ảnh hưởng phạm vi truy cập.
+- **Lookup class**: the class whose access rights are evaluated; retrieved via `lookup.lookupClass()`.
+- **Lookup modes**: the active access levels, such as `PUBLIC`, `PACKAGE`, `PROTECTED`, `PRIVATE`, `MODULE`; the bitmask can be inspected via `lookup.lookupModes()`. Having these bits does not mean access is granted to every class/member in any module.
+- **Module context**: module readability relationships, `exports`/`opens` packages, and—for a lookup transferred to another module—the previous lookup context can also affect access scope.
 
-Quyền được quyết định từ **lớp gọi đã tạo `Lookup`**, chế độ lookup, khả năng truy cập lớp đích và thành viên đích. Đặt `Lookup` trong một biến tên `admin` hoặc truyền một `Class<?>` khác vào phương thức tìm kiếm không làm tăng quyền.
+Permissions are determined by the **calling class that created the `Lookup`**, the lookup modes, the accessibility of the target class, and the target member. Naming a `Lookup` variable `admin` or passing a different `Class<?>` into a search method does not elevate privileges.
 
-### Ba cách lấy lookup phổ biến
+### Three Common Ways to Obtain a Lookup
 
-| Cách | Phạm vi và tác dụng | Giới hạn cần nhớ |
+| Method | Scope and Effect | Limitations to Remember |
 | --- | --- | --- |
-| `MethodHandles.lookup()` | Lookup gắn với **lớp đang gọi lệnh** này; thông thường có đầy đủ quyền tương ứng lớp đó, bao gồm private của chính lớp/nestmates và quyền được Java cho phép | Không tự đọc được `private` của một lớp top-level khác chỉ vì cùng package; không vượt qua encapsulation của module khác |
-| `MethodHandles.publicLookup()` | Lookup chỉ dành cho các lớp/thành viên `public` đủ điều kiện; hữu ích khi thư viện chỉ cần API công khai | Không lấy được `private`/`package-private`; trong JPMS, đối tượng này chỉ thấy các API công khai ở package được export vô điều kiện |
-| `MethodHandles.privateLookupIn(Target.class, callerLookup)` | Tạo lookup có khả năng truy cập private của `Target` **nếu** `callerLookup` được phép thực hiện deep reflection đối với lớp này | Lookup nguồn phải có `PRIVATE` và `MODULE`; giữa các module còn phải đáp ứng điều kiện đọc module và package đích phải được `opens` đến module của bên gọi |
+| `MethodHandles.lookup()` | Lookup bound to **the class executing this call**; normally has full rights corresponding to that class, including private members of the class/nestmates and access permitted by Java | Cannot automatically read `private` members of another top-level class just because it is in the same package; cannot bypass encapsulation of another module |
+| `MethodHandles.publicLookup()` | Lookup restricted to eligible `public` classes/members; useful when a library only needs public APIs | Cannot access `private`/`package-private` members; under JPMS, it only sees public APIs in unconditionally exported packages |
+| `MethodHandles.privateLookupIn(Target.class, callerLookup)` | Creates a lookup with private access capabilities to `Target` **if** `callerLookup` is allowed to perform deep reflection on that class | The source lookup must have `PRIVATE` and `MODULE`; across modules, module readability must also hold and the target package must be `opens` to the caller's module |
 
-`lookup.in(Target.class)` chỉ **chuyển ngữ cảnh lookup với quyền có thể bị thu hẹp**, không phải lệnh cấp quyền private. Chuyển sang nest/package/module khác có thể làm mất các mode tương ứng. `dropLookupMode(...)` cũng có thể giảm quyền có chủ đích. Muốn truy cập private của lớp khác, dùng `privateLookupIn` khi đủ điều kiện, không coi `in` là lối tắt.
+`lookup.in(Target.class)` only **switches the lookup context with potentially narrowed privileges**—it is not a command that grants private access. Switching to another nest, package, or module can drop the corresponding modes. `dropLookupMode(...)` can also intentionally reduce privileges. To access private members of another class, use `privateLookupIn` when eligible rather than treating `in` as a shortcut.
 
-## 2. Quyền được xét ở thời điểm nào?
+## 2. When Are Permissions Evaluated?
 
-Xét luồng tìm một method thông qua `findVirtual`:
+Consider the flow of looking up a method via `findVirtual`:
 
-1. Mã gọi tạo hoặc nhận một `Lookup`; lookup giữ danh tính lớp và các mode truy cập.
-2. Mã yêu cầu `lookup.findVirtual(Target.class, "work", MethodType.methodType(ReturnType.class, ...))`.
-3. Java phân giải lớp/thành viên và **kiểm tra truy cập**: lớp `Target` có khả kiến không, thành viên có hợp lệ với mode của lookup không, và các ràng buộc module/protected khác có thỏa không.
-4. Nếu hợp lệ, API trả một `MethodHandle` có kiểu xác định. Nếu không, thao tác **tạo handle** thất bại, thường bằng `IllegalAccessException` cho trường hợp không đủ quyền hoặc `NoSuchMethodException` cho tìm kiếm method không phù hợp.
-5. Bất kỳ mã nào nhận được handle có thể gọi nó theo kiểu và điều kiện invocation của handle, kể cả khi mã đó không thể tự tạo một handle tương đương. **Không có kiểm tra quyền private mới mỗi lần gọi.**
+1. Caller code creates or receives a `Lookup`; the lookup retains the class identity and access modes.
+2. The code requests `lookup.findVirtual(Target.class, "work", MethodType.methodType(ReturnType.class, ...))`.
+3. Java resolves the class/member and **checks access**: whether `Target` is visible, whether the member is allowed under the lookup's modes, and whether other module/protected constraints hold.
+4. If valid, the API returns a `MethodHandle` with a defined type. If not, **handle creation** fails, usually with `IllegalAccessException` for insufficient permissions or `NoSuchMethodException` for an unmatched method search.
+5. Any code that receives the handle can invoke it according to the handle's type and invocation rules, even if that code could not have created an equivalent handle itself. **There is no new private access check on each invocation.**
 
-Các API thường kiểm tra truy cập tại lúc tạo gồm `findStatic`, `findVirtual`, `findSpecial`, `findConstructor`, `findGetter`, `findSetter`, `findVarHandle`, `findStaticVarHandle` và nhiều dạng `unreflect`. Khi gọi `unreflect` từ một đối tượng Reflection đã chỉnh trạng thái accessible, hành vi còn phụ thuộc quy tắc tương ứng của API; không nên suy ra rằng mọi `Lookup` đều được vượt quyền.
+APIs that typically check access at creation time include `findStatic`, `findVirtual`, `findSpecial`, `findConstructor`, `findGetter`, `findSetter`, `findVarHandle`, `findStaticVarHandle`, and several forms of `unreflect`. When calling `unreflect` from a Reflection object whose accessible flag was modified, behavior also depends on the API's rules; you should not infer that every `Lookup` bypasses access checks.
 
-Đối với `VarHandle`, kiểm tra quyền lúc lấy handle không có nghĩa **mọi access mode** đều khả dụng: ví dụ việc `set` qua VarHandle của một trường `final` thường không được hỗ trợ, và có thể ném `UnsupportedOperationException`. Khả năng get/set/atomic operation và tính đúng kiểu của từng thao tác vẫn là ràng buộc lúc sử dụng.
+For `VarHandle`, passing the access check when obtaining the handle does not mean **every access mode** is available: for instance, calling `set` through a VarHandle on a `final` field is generally unsupported and may throw `UnsupportedOperationException`. Support for get/set/atomic operations and type correctness of each operation remain call-time constraints.
 
-### Tách lỗi tạo handle khỏi lỗi gọi handle
+### Separating Handle Creation Errors from Handle Invocation Errors
 
-| Thời điểm | Ví dụ | Ý nghĩa |
+| Phase | Example | Meaning |
 | --- | --- | --- |
-| **Tạo** | `findVirtual` yêu cầu private member mà lookup không được phép thấy | `IllegalAccessException` |
-| **Tạo** | Tên, loại method hoặc chữ ký `MethodType` không tìm thấy | `NoSuchMethodException` (đối với method); tìm field sai có thể là `NoSuchFieldException` |
-| **Gọi** | `invokeExact` được gọi với kiểu tham số/trả về không khớp chính xác kiểu của handle | `WrongMethodTypeException` |
-| **Gọi** | Giá trị tham số cần ép kiểu tham chiếu nhưng không tương thích | Có thể xảy ra `ClassCastException` |
-| **Gọi** | Chính phương thức đích ném ngoại lệ | Ngoại lệ của phương thức đích được truyền ra theo cách gọi handle |
+| **Creation** | `findVirtual` requests a private member that the lookup is not permitted to see | `IllegalAccessException` |
+| **Creation** | Name, method kind, or `MethodType` signature not found | `NoSuchMethodException` (for methods); wrong field lookup may throw `NoSuchFieldException` |
+| **Invocation** | `invokeExact` is called with parameter/return types that do not exactly match the handle's type | `WrongMethodTypeException` |
+| **Invocation** | Argument value requires a reference cast but is incompatible | `ClassCastException` may occur |
+| **Invocation** | The target method itself throws an exception | The target method's exception is propagated according to handle invocation rules |
 
-`invokeExact` yêu cầu descriptor tại call site khớp chính xác kiểu của handle; `invoke` cho phép một số phép điều chỉnh kiểu hợp lệ. Sự khác nhau đó là **kiểm tra kiểu khi gọi**, không phải cấp lại quyền đọc private. Ngoài ra, `MethodHandle.asType(...)` tạo handle điều chỉnh kiểu mà không tự đi tìm lại thành viên private, nên không cần `Lookup` mới cho lần điều chỉnh ấy.
+`invokeExact` requires the descriptor at the call site to match the handle's type exactly; `invoke` permits certain valid type adaptations. That difference is **invocation-time type checking**, not re-granting private read permissions. In addition, `MethodHandle.asType(...)` creates a type-adapted handle without looking up the private member again, so no new `Lookup` is required for that adaptation.
 
-## 3. Ví dụ Java 17+: được phép tạo handle, không được phép tự tìm private
+## 3. Java 17+ Example: Allowed to Create Handle, Not Allowed to Look Up Private Directly
 
-Lưu **nguyên vẹn** ví dụ sau vào tệp `LookupAccessDemo.java`. Tệp chứa hai lớp top-level; `SecretBox` **không** phải lớp lồng/nestmate của `LookupAccessDemo`. Điều này quan trọng vì nestmates trong Java hiện đại có thể chia sẻ quyền private theo quy tắc riêng.
+Save the following example **as-is** to `LookupAccessDemo.java`. The file contains two top-level classes; `SecretBox` is **not** a nested class/nestmate of `LookupAccessDemo`. This matters because nestmates in modern Java can share private access under their own rules.
 
 ~~~java
 import java.lang.invoke.MethodHandle;
@@ -67,8 +67,8 @@ public class LookupAccessDemo {
 
     private static void consume(MethodHandle handle, SecretBox box)
             throws Throwable {
-        // consume không có quyền tự tìm SecretBox.message().
-        // Nhưng nó được phép sử dụng handle đã được trao.
+        // consume does not have permission to look up SecretBox.message() itself.
+        // However, it is allowed to use the handle that was handed to it.
         String value = (String) handle.invokeExact(box);
         System.out.println("delegated: " + value);
     }
@@ -126,14 +126,14 @@ class SecretBox {
 }
 ~~~
 
-Chạy trong terminal có JDK 17 hoặc mới hơn:
+Run in a terminal with JDK 17 or newer:
 
 ~~~bash
 javac LookupAccessDemo.java
 java LookupAccessDemo
 ~~~
 
-Kết quả tiêu chuẩn:
+Standard output:
 
 ~~~text
 public: hello
@@ -145,49 +145,49 @@ public lookup: denied
 receiver count: 1
 ~~~
 
-Giải thích từng điểm:
+Point-by-point explanation:
 
-- `publicLookup().findStatic(...)` thành công vì `LookupAccessDemo` là lớp public và `greeting()` là phương thức public static. Handle nhận được có kiểu `()String`.
-- `caller` là lookup của `LookupAccessDemo`, có thể truy cập phần phù hợp với quyền của lớp này, **không được truy cập private của `SecretBox`** dù hai lớp cùng package.
-- `privateLookupIn(SecretBox.class, caller)` thành công trong ví dụ cùng unnamed module, với lookup nguồn đủ quyền. Sau đó `findVirtual` tạo được handle cho `SecretBox.message()` và `findVarHandle` tạo được handle cho trường `count`.
-- Phương thức `consume` chỉ **nhận** handle. Nó không cần tự tra cứu hoặc được kiểm tra lại quyền private khi `invokeExact(box)`. Đó chính là việc **trao capability** cho mã khác.
-- `publicView` không đủ quyền tìm `SecretBox.message()`; lớp `SecretBox` còn là kiểu package-private, nên bản thân lớp cũng không đáp ứng điều kiện nhìn thấy của public lookup.
-- `MethodType.methodType(String.class)` mô tả **các tham số khai báo** của method `message()` (không có tham số). Nhưng handle được tạo bởi `findVirtual` cần receiver `SecretBox` ở vị trí đầu, do đó handle có kiểu `(SecretBox)String` và `parameterCount()` bằng `1`.
+- `publicLookup().findStatic(...)` succeeds because `LookupAccessDemo` is a public class and `greeting()` is a public static method. The resulting handle has type `()String`.
+- `caller` is the lookup of `LookupAccessDemo`; it can access members matching that class's permissions, **and cannot access `private` members of `SecretBox`** even though both classes are in the same package.
+- `privateLookupIn(SecretBox.class, caller)` succeeds in this example within the same unnamed module with a sufficiently privileged source lookup. Afterward, `findVirtual` creates a handle for `SecretBox.message()` and `findVarHandle` creates a handle for the `count` field.
+- The `consume` method only **receives** the handle. It does not need to perform the lookup itself or undergo another private access check during `invokeExact(box)`. That is **delegating a capability** to other code.
+- `publicView` lacks permission to find `SecretBox.message()`; moreover, `SecretBox` is a package-private type, so the class itself does not meet the visibility requirement of a public lookup.
+- `MethodType.methodType(String.class)` describes the **declared parameters** of `message()` (no parameters). However, the handle created by `findVirtual` needs the `SecretBox` receiver in the first position, so the handle has type `(SecretBox)String` and `parameterCount()` equals `1`.
 
-Lưu ý: khối `catch (IllegalAccessException ...)` ở đây chủ ý thử **truy cập không được phép khi tạo handle**. Không dùng exception như cơ chế phân quyền chung của ứng dụng; nếu thành viên không tồn tại hoặc chữ ký sai thì phải xử lý loại lỗi tìm kiếm tương ứng.
+Note: the `catch (IllegalAccessException ...)` blocks here intentionally test **unauthorized access at handle creation time**. Do not use exceptions as a general application authorization mechanism; if a member does not exist or has the wrong signature, you must handle the corresponding lookup error types.
 
-## 4. Phân biệt với Reflection và phương án cấp quyền khác
+## 4. Comparison with Reflection and Other Privilege Options
 
-Với core Reflection, `Method.invoke` nhìn chung thực hiện kiểm tra quyền truy cập lúc gọi theo cơ chế của Reflection (trạng thái `AccessibleObject` có thể ảnh hưởng); với handle đã được tạo thành công qua `Lookup`, việc invoke về sau không lặp lại bước xét quyền Java cho thành viên gốc. Vì thế:
+With core Reflection, `Method.invoke` generally performs access checks at invocation time according to Reflection's mechanism (the `AccessibleObject` state can affect it); with a handle successfully created through `Lookup`, subsequent invocations do not repeat the Java access check for the original member. Therefore:
 
-- `getDeclaredMethod("hidden")` có thể tìm metadata của một method private, nhưng **tìm được method** khác với **được quyền gọi** hoặc **được quyền tạo MethodHandle** cho nó.
-- `setAccessible(true)` không phải chìa khóa vượt JPMS tùy ý: truy cập sâu còn bị giới hạn bởi module, và `InaccessibleObjectException` có thể xuất hiện.
-- `lookup.findVirtual(...)` có kiểm tra quyền lúc lấy handle; `handle.invokeExact(...)` kiểm tra descriptor và thực hiện mã đích. Đừng trộn lẫn hai thời điểm.
-- Trao một `MethodHandle` tới private method hoặc `VarHandle` tới private field cho plugin/callback tương đương với **trao khả năng sử dụng thành viên đó**. Giấu tên method/field sau khi trao handle không thu hồi được capability.
-- Trao nguyên đối tượng `Lookup` có nhiều quyền còn rộng hơn: người nhận có thể yêu cầu tạo **những handle khác** trong phạm vi quyền lookup. Nếu chỉ muốn gọi một hành vi được chọn, cấp handle hẹp hoặc một API wrapper thay vì lookup đặc quyền.
-- Nếu cần chạy với quyền ít hơn, chủ động dùng `publicLookup()`, `dropLookupMode(...)` hoặc API công khai được thiết kế cho phía tiêu thụ; cần cân nhắc module `exports`/`opens` chính xác.
+- `getDeclaredMethod("hidden")` can retrieve the metadata of a private method, but **finding a method** is different from **having permission to call it** or **having permission to create a MethodHandle** for it.
+- `setAccessible(true)` is not a skeleton key to bypass JPMS at will: deep access is still restricted by modules, and `InaccessibleObjectException` may occur.
+- `lookup.findVirtual(...)` checks permissions when obtaining the handle; `handle.invokeExact(...)` checks the descriptor and runs the target code. Do not conflate the two moments.
+- Handing a `MethodHandle` to a private method or a `VarHandle` to a private field to a plugin/callback is equivalent to **granting the ability to use that member**. Hiding the method/field name after passing the handle does not revoke the capability.
+- Handing over an entire privileged `Lookup` object is even broader: the recipient can request **other handles** within the lookup's permission scope. If you only want to expose a chosen behavior, provide a narrow handle or a wrapper API instead of a privileged lookup.
+- If you need to run with fewer privileges, deliberately use `publicLookup()`, `dropLookupMode(...)`, or a public API designed for consumers; module `exports`/`opens` must be considered carefully.
 
-Khi dùng `MethodHandle` trong framework, hãy xác định ai tạo lookup, lớp nào là lookup class, package của lớp đích có đọc/mở/xuất đúng không, và handle được trao cho ai. Khả năng tạo handle và khả năng sử dụng handle là hai ranh giới quyền khác nhau.
+When using `MethodHandle` in frameworks, identify who creates the lookup, which class is the lookup class, whether the target class's package is read/opened/exported appropriately, and who receives the handle. The ability to create a handle and the ability to use a handle are two distinct permission boundaries.
 
-## 5. Những nhầm lẫn phổ biến
+## 5. Common Misconceptions
 
-| Nhầm lẫn | Điều đúng |
+| Misconception | Fact |
 | --- | --- |
-| “`MethodHandles.lookup()` cho phép lấy private của mọi lớp cùng package.” | Lookup có quyền gắn với **lớp gọi**; private của lớp top-level khác cần cơ chế hợp lệ như `privateLookupIn`. |
-| “`publicLookup()` đọc được mọi member `public` bất kể lớp/module.” | Lớp chứa member phải có thể truy cập và module/package phải đáp ứng ràng buộc công khai. |
-| “`lookup.in(Target.class)` giúp nâng quyền lên private của `Target`.” | `in` có thể **làm mất** mode; không làm tăng quyền. |
-| “`exports` đủ để lấy private member xuyên module.” | `exports` phục vụ API public; deep reflection xuyên module cần `opens` và các điều kiện lookup khác. |
-| “Mỗi `invokeExact` lại kiểm tra xem caller có quyền private hay không.” | Access check dành cho thành viên diễn ra khi **tạo** handle; invocation kiểm tra kiểu và chạy mã. |
-| “Tạo được VarHandle là lúc nào cũng `set` được.” | Access mode còn phụ thuộc loại biến, `final` và tính năng được hỗ trợ. |
-| “Trao handle private cho bên thứ ba là vô hại.” | Bên nhận có thể dùng handle đã được trao; cần kiểm soát phạm vi ủy quyền. |
+| “`MethodHandles.lookup()` lets you access private members of any class in the same package.” | A lookup has permissions bound to the **calling class**; private members of another top-level class require a valid mechanism such as `privateLookupIn`. |
+| “`publicLookup()` can read any `public` member regardless of class/module.” | The enclosing class must be accessible and the module/package must satisfy public visibility rules. |
+| “`lookup.in(Target.class)` elevates privileges to `Target`'s private members.” | `in` can **drop** modes; it does not increase privileges. |
+| “`exports` is enough to access private members across modules.” | `exports` serves public APIs; cross-module deep reflection requires `opens` and other lookup conditions. |
+| “Every `invokeExact` re-checks whether the caller has private permissions.” | Access checks for the member happen when **creating** the handle; invocation checks types and runs the code. |
+| “Once a VarHandle is created, you can always call `set`.” | Access modes also depend on variable kind, `final`, and supported features. |
+| “Passing a private handle to a third party is harmless.” | The recipient can use the granted handle; delegation scope must be controlled. |
 
-### Câu hỏi tự kiểm tra
+### Self-Check Questions
 
-1. Nếu `A` và `B` là hai lớp top-level trong cùng package, vì sao `MethodHandles.lookup()` từ `A` không thể tự dùng `findVirtual` để mở private method của `B`?
-2. Tại sao `privateLookupIn` thành công trong cùng module nhưng có thể thất bại giữa hai named module dù lớp đích là `public`?
-3. Khi `findVirtual` thành công và truyền handle cho mã không biết lớp đích, quyền thành viên được kiểm tra lúc nào? Còn kiểu đối số được kiểm tra lúc nào?
-4. Vì sao `findVirtual(SomeClass.class, "f", MethodType.methodType(String.class))` tạo handle có thêm một tham số receiver so với `findStatic` cho phương thức không tham số?
+1. If `A` and `B` are two top-level classes in the same package, why can't `MethodHandles.lookup()` from `A` directly use `findVirtual` to open a private method of `B`?
+2. Why does `privateLookupIn` succeed within the same module, yet can fail between two named modules even when the target class is `public`?
+3. When `findVirtual` succeeds and the handle is passed to code unaware of the target class, when are member permissions checked? And when are argument types checked?
+4. Why does `findVirtual(SomeClass.class, "f", MethodType.methodType(String.class))` create a handle with one extra receiver parameter compared to `findStatic` for a zero-argument method?
 
-**Kết luận:** `Lookup` quyết định **bên nào được tạo handle đến thành viên nào**; handle được tạo thành công là capability có thể được sử dụng hoặc chuyển giao. Kiểm tra quyền truy cập xảy ra khi tạo handle, còn kiểm tra kiểu, hỗ trợ thao tác và ngoại lệ đích vẫn áp dụng khi dùng handle. Nắm ranh giới này là chìa khóa để dùng `MethodHandle`/`VarHandle` đúng với Java 17+ và JPMS.
+**Conclusion:** `Lookup` determines **who may create a handle to which member**; a successfully created handle is a capability that can be used or delegated. Access checks occur when creating the handle, while type checks, operation support, and target exceptions still apply when using the handle. Grasping this boundary is key to using `MethodHandle`/`VarHandle` properly with Java 17+ and JPMS.
 
-*Tài liệu đối chiếu: [Java SE 21 — MethodHandles.Lookup](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/invoke/MethodHandles.Lookup.html) và [Java SE 21 — MethodHandle](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/invoke/MethodHandle.html).*
+*Reference documentation: [Java SE 21 — MethodHandles.Lookup](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/invoke/MethodHandles.Lookup.html) and [Java SE 21 — MethodHandle](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/invoke/MethodHandle.html).*

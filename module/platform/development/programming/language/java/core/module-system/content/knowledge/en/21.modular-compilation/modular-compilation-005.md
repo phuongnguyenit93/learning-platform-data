@@ -1,19 +1,19 @@
-# javac --patch-module trong build hoặc test
+# javac --patch-module in Build or Test
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Giải thích `--patch-module` dùng để làm gì khi biên dịch một named module.
-- Phân biệt `--patch-module`, `--module-path` và `--class-path`.
-- Biên dịch test source như một phần của module cần kiểm thử.
-- Cho phép test truy cập package-private code trong cùng package mà không phải export package nội bộ ra API công khai.
-- Cấu hình các compiler argument cần thiết trong lệnh `javac` hoặc Gradle.
-- Nhận biết vì sao cần patch module cả ở thời điểm chạy test.
+- Explain what `--patch-module` is used for when compiling a named module.
+- Distinguish between `--patch-module`, `--module-path`, and `--class-path`.
+- Compile test sources as part of the module under test.
+- Allow tests to access package-private code in the same package without exporting internal packages into the public API.
+- Configure the required compiler arguments in a `javac` command or Gradle.
+- Understand why patching the module is also required at test runtime.
 
-## 1. Vấn đề khi kiểm thử named module
+## 1. The Problem When Testing a Named Module
 
-Giả sử một module chỉ export package API:
+Suppose a module only exports its API package:
 
 ~~~java
 module com.example.calc {
@@ -21,7 +21,7 @@ module com.example.calc {
 }
 ~~~
 
-Trong module có một package nội bộ:
+Inside the module there is an internal package:
 
 ~~~java
 package com.example.calc.internal;
@@ -34,54 +34,54 @@ final class Calculator {
 }
 ~~~
 
-`Calculator` có access modifier mặc định nên chỉ code trong cùng package mới truy cập được. Package `com.example.calc.internal` cũng không được export ra module khác.
+`Calculator` has default (package-private) access, so only code in the same package can access it. The `com.example.calc.internal` package is also not exported to other modules.
 
-Đây là một lựa chọn đóng gói hợp lý: ứng dụng bên ngoài dùng API công khai, còn implementation nội bộ được giữ kín.
+This is a sound encapsulation choice: external applications use the public API, while the internal implementation stays hidden.
 
-Tuy nhiên, test cần kiểm tra trực tiếp `Calculator`, bao gồm các hành vi package-private. Nếu test được biên dịch như code của một module riêng hoặc nằm trong unnamed module trên classpath, nó không tự động có quyền truy cập như một class cùng package và cùng module.
+However, tests need to test `Calculator` directly, including package-private behavior. If tests are compiled as code in a separate module or placed in the unnamed module on the classpath, they do not automatically get access as a class in the same package and same module.
 
-`javac --patch-module` giải quyết trường hợp này bằng cách đưa source hoặc class bổ sung vào một named module đã tồn tại trong lúc biên dịch.
+`javac --patch-module` solves this by inserting additional sources or classes into an existing named module during compilation.
 
-## 2. Cú pháp và ý nghĩa của --patch-module
+## 2. Syntax and Meaning of --patch-module
 
-Cú pháp tổng quát:
+General syntax:
 
 ~~~text
 javac --patch-module <module>=<path>[<path-separator><path>...]
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~bash
 javac --patch-module com.example.calc=src/test/java ...
 ~~~
 
-Ý nghĩa:
+Meaning:
 
-- `com.example.calc` là tên module cần được patch.
-- `src/test/java` là thư mục chứa source test được biên dịch như một phần của module đó.
-- Có thể truyền nhiều đường dẫn, ngăn cách bằng path separator của hệ điều hành.
-- Với Windows, path separator là dấu chấm phẩy (`;`); với Linux/macOS, path separator là dấu hai chấm (`:`).
+- `com.example.calc` is the name of the module to be patched.
+- `src/test/java` is the directory containing test sources compiled as part of that module.
+- Multiple paths can be passed, separated by the operating system's path separator.
+- On Windows, the path separator is a semicolon (`;`); on Linux/macOS, the path separator is a colon (`:`).
 
-Khi dùng `--patch-module`, compiler xem các source được patch là thành viên của module đích. Vì thế, test class có thể nằm trong package nội bộ của module và truy cập các thành viên package-private trong cùng package.
+When using `--patch-module`, the compiler treats the patched sources as members of the target module. Therefore, test classes can reside in an internal package of the module and access package-private members in the same package.
 
-`--patch-module` không tạo một module mới. Module đích phải được xác định trong module graph của lần biên dịch. Option này bổ sung hoặc thay thế nội dung của module theo các đường dẫn được chỉ định.
+`--patch-module` does not create a new module. The target module must already be resolved in the compilation's module graph. This option augments or overrides the module's contents using the specified paths.
 
-### 2.1. Phân biệt ba loại đường dẫn
+### 2.1. Distinguishing the Three Path Types
 
-| Option | Mục đích |
+| Option | Purpose |
 |---|---|
-| `--module-path` | Tìm các named module và dependency của chúng |
-| `--class-path` / `-cp` | Tìm class thuộc unnamed module |
-| `--patch-module` | Bổ sung source/class vào một named module cụ thể |
+| `--module-path` | Locate named modules and their dependencies |
+| `--class-path` / `-cp` | Locate classes belonging to the unnamed module |
+| `--patch-module` | Add sources/classes into a specific named module |
 
-Ví dụ, `--module-path build/mods` giúp compiler tìm module `com.example.calc`; `--patch-module com.example.calc=src/test/java` đưa test source vào module đó; `-cp libs/junit-platform-console-standalone.jar` cung cấp thư viện JUnit trên classpath.
+For example, `--module-path build/mods` helps the compiler find the `com.example.calc` module; `--patch-module com.example.calc=src/test/java` places test sources into that module; `-cp libs/junit-platform-console-standalone.jar` provides the JUnit library on the classpath.
 
-Ba option có vai trò khác nhau và có thể cần xuất hiện cùng một lệnh.
+The three options have distinct roles and may need to appear in the same command.
 
-## 3. Ví dụ cấu trúc project
+## 3. Example Project Structure
 
-Giả sử project có cấu trúc:
+Suppose the project has the following structure:
 
 ~~~text
 project/
@@ -109,7 +109,7 @@ module com.example.calc {
 }
 ~~~
 
-Test nằm trong đúng package của class cần kiểm tra:
+The test resides in the exact package of the class under test:
 
 ~~~java
 package com.example.calc.internal;
@@ -129,11 +129,11 @@ class CalculatorTest {
 }
 ~~~
 
-`CalculatorTest` không cần được export. Khi được patch vào `com.example.calc`, test class và `Calculator` thuộc cùng module và cùng package `com.example.calc.internal`.
+`CalculatorTest` does not need to be exported. When patched into `com.example.calc`, the test class and `Calculator` belong to the same module and the same package `com.example.calc.internal`.
 
-## 4. Biên dịch main module trước
+## 4. Compiling the Main Module First
 
-Trước tiên, biên dịch source chính thành một exploded module:
+First, compile the main sources into an exploded module:
 
 ~~~bash
 javac -d build/mods/com.example.calc \
@@ -142,7 +142,7 @@ javac -d build/mods/com.example.calc \
     src/main/java/com/example/calc/internal/Calculator.java
 ~~~
 
-Sau lệnh này, thư mục output có dạng:
+After this command, the output directory looks like:
 
 ~~~text
 build/mods/
@@ -153,11 +153,11 @@ build/mods/
         └── internal/Calculator.class
 ~~~
 
-Đường dẫn `build/mods` là module path root. Bên trong nó có exploded module `com.example.calc`.
+The path `build/mods` is the module path root. Inside it lies the exploded module `com.example.calc`.
 
-## 5. Biên dịch test bằng javac --patch-module
+## 5. Compiling Tests with javac --patch-module
 
-Nếu JUnit được đặt trên classpath, có thể biên dịch test như sau:
+If JUnit is placed on the classpath, tests can be compiled as follows:
 
 ~~~bash
 javac \
@@ -169,24 +169,24 @@ javac \
     src/test/java/com/example/calc/internal/CalculatorTest.java
 ~~~
 
-Giải thích từng option:
+Explanation of each option:
 
-1. `--module-path build/mods` giúp compiler tìm named module `com.example.calc`.
-2. `--patch-module com.example.calc=src/test/java` đưa test source vào module `com.example.calc` trong lần biên dịch này.
-3. `--add-reads com.example.calc=ALL-UNNAMED` cho phép module đích đọc các type trên classpath, bao gồm JUnit.
-4. `-cp` cung cấp JUnit API mà test source import.
-5. `-d build/test-classes` đặt test class đã biên dịch vào một output directory riêng.
-6. Đường dẫn cuối cùng là source file được biên dịch.
+1. `--module-path build/mods` helps the compiler find the named module `com.example.calc`.
+2. `--patch-module com.example.calc=src/test/java` places test sources into the `com.example.calc` module for this compilation pass.
+3. `--add-reads com.example.calc=ALL-UNNAMED` allows the target module to read types on the classpath, including JUnit.
+4. `-cp` provides the JUnit APIs imported by the test sources.
+5. `-d build/test-classes` places the compiled test classes into a separate output directory.
+6. The final path is the source file being compiled.
 
-`ALL-UNNAMED` là mục tiêu readability dành cho các class thuộc unnamed module. Nếu test framework được đặt trên module path và có tên module, hãy dùng tên module tương ứng thay cho `ALL-UNNAMED`.
+`ALL-UNNAMED` is the readability target for classes belonging to the unnamed module. If the test framework is placed on the module path and has a module name, use that module name instead of `ALL-UNNAMED`.
 
-Điểm quan trọng: test class được biên dịch như một phần của `com.example.calc`, dù file `.class` được ghi vào `build/test-classes`. Vì vậy, nó có thể truy cập `Calculator` package-private trong cùng package.
+Important point: the test class is compiled as part of `com.example.calc`, even though the `.class` file is written to `build/test-classes`. As a result, it can access the package-private `Calculator` in the same package.
 
-## 6. Patch module khi chạy test
+## 6. Patching the Module When Running Tests
 
-`--patch-module` trong lệnh `javac` chỉ có hiệu lực cho lần biên dịch đó. Nó không tự động làm test class trở thành thành viên của module khi chạy JVM.
+`--patch-module` in the `javac` command only takes effect for that compilation pass. It does not automatically make test classes members of the module when the JVM runs.
 
-Khi chạy test, cần patch thư mục chứa test class vào cùng module:
+When running tests, you need to patch the directory containing compiled test classes into the same module:
 
 ~~~bash
 java \
@@ -199,18 +199,18 @@ java \
     --select-class com.example.calc.internal.CalculatorTest
 ~~~
 
-Ở lệnh runtime:
+In the runtime command:
 
-- `--patch-module` đưa test class đã biên dịch vào module đích.
-- `--add-reads` cho module đích đọc JUnit nằm trên classpath.
-- `--add-opens` mở package nội bộ cho code trên classpath để framework test có thể truy cập bằng reflection khi cần.
-- `--select-class` yêu cầu JUnit chạy test class cụ thể.
+- `--patch-module` places the compiled test classes into the target module.
+- `--add-reads` lets the target module read JUnit on the classpath.
+- `--add-opens` opens the internal package to code on the classpath so the test framework can access it via reflection when needed.
+- `--select-class` tells JUnit to run the specific test class.
 
-`--add-opens` phục vụ truy cập reflective ở runtime. Nó không thay thế `--add-reads` khi compiler cần đọc type của JUnit. Nếu test framework nằm trong named module, thay `ALL-UNNAMED` bằng module name phù hợp và cấu hình các quyền cần thiết theo module đó.
+`--add-opens` serves reflective access at runtime. It does not replace `--add-reads` when the compiler needs to read JUnit types. If the test framework is in a named module, replace `ALL-UNNAMED` with the appropriate module name and configure the required permissions for that module.
 
-## 7. Cấu hình trong Gradle
+## 7. Configuration in Gradle
 
-Với Gradle Java Plugin, có thể truyền compiler arguments vào `compileTestJava`. Ví dụ sau giả định module chính là `com.example.calc`, test dùng JUnit trên classpath và Gradle đã nhận diện main output là named module:
+With the Gradle Java Plugin, you can pass compiler arguments to `compileTestJava`. The following example assumes the main module is `com.example.calc`, tests use JUnit on the classpath, and Gradle has detected the main output as a named module:
 
 ~~~groovy
 plugins {
@@ -231,13 +231,13 @@ tasks.named('compileTestJava', JavaCompile) {
 }
 ~~~
 
-Ở đây:
+Here:
 
-- `sourceSets.test.java.srcDirs.asPath` lấy tất cả test source roots và nối bằng path separator phù hợp với hệ điều hành.
-- `compileTestJava` vẫn dùng dependency configuration của Gradle để tìm JUnit.
-- `--patch-module` điều chỉnh module membership của test source khi compiler xử lý chúng.
+- `sourceSets.test.java.srcDirs.asPath` gathers all test source roots and joins them with the OS-appropriate path separator.
+- `compileTestJava` still uses Gradle's dependency configurations to locate JUnit.
+- `--patch-module` adjusts the module membership of test sources when the compiler processes them.
 
-Cần cấu hình cả runtime của task test để test classes được patch vào module khi JVM khởi chạy:
+You also need to configure the test task's runtime so test classes are patched into the module when the JVM starts:
 
 ~~~groovy
 tasks.named('test', Test) {
@@ -252,41 +252,41 @@ tasks.named('test', Test) {
 }
 ~~~
 
-Các đường dẫn output trong ví dụ là cấu hình minh họa cho một project đơn giản. Nếu build có nhiều source set, nhiều output directory, custom test task hoặc JUnit được chạy trên module path, hãy điều chỉnh module name và đường dẫn theo cấu hình thực tế. Cũng cần kiểm tra test output không bị nạp đồng thời theo hai cách gây xung đột giữa module path và classpath.
+The output paths in the example are illustrative for a simple project. If the build has multiple source sets, multiple output directories, custom test tasks, or JUnit running on the module path, adjust the module name and paths to match the actual configuration. Also check that test outputs are not loaded simultaneously in two ways that cause conflicts between the module path and classpath.
 
-## 8. Khi nào nên dùng --patch-module?
+## 8. When Should --patch-module Be Used?
 
-Các trường hợp thường gặp:
+Common scenarios:
 
-- Test cần truy cập package-private class hoặc method trong module.
-- Test cần đặt trong cùng package với implementation nhưng package đó không được export.
-- Build có test source riêng, cần biên dịch test như phần mở rộng của module chính.
-- Cần bổ sung class/resource để thử nghiệm module trong một lần chạy cụ thể.
+- Tests need to access package-private classes or methods inside a module.
+- Tests need to be placed in the same package as the implementation, while that package is not exported.
+- The build has separate test sources that need to be compiled as an extension of the main module.
+- You need to add classes/resources to experiment with a module in a specific run.
 
-Không nên dùng `--patch-module` như cách thay thế thiết kế API. Nếu một package cần được ứng dụng bên ngoài sử dụng thường xuyên, hãy cân nhắc thiết kế API công khai phù hợp. Nếu chỉ test nội bộ cần truy cập implementation, patch module là một cơ chế kiểm thử có mục tiêu rõ ràng.
+Do not use `--patch-module` as a substitute for API design. If a package needs to be used regularly by external applications, consider designing a proper public API. When only internal tests need access to the implementation, module patching is a focused testing mechanism.
 
-Cũng cần phân biệt `--patch-module` với `--add-exports`. `--add-exports` thay đổi quyền truy cập package ở ranh giới module; `--patch-module` đưa nội dung vào chính module đích. Với test nằm trong cùng package và cùng module, patch module thường phù hợp hơn việc export package nội bộ chỉ để test có thể truy cập.
+Also distinguish `--patch-module` from `--add-exports`. `--add-exports` alters package accessibility across module boundaries; `--patch-module` places content directly inside the target module. For tests in the same package and same module, patching the module is generally more appropriate than exporting internal packages solely so tests can access them.
 
-## 9. Lỗi thường gặp và cách xử lý
+## 9. Common Errors and How to Handle Them
 
-| Triệu chứng | Nguyên nhân thường gặp | Hướng kiểm tra |
+| Symptom | Common Cause | Where to Check |
 |---|---|---|
-| `module not found` | Module đích không được tìm thấy trên module path | Kiểm tra `--module-path` và tên module |
-| `package ... is not visible` khi import JUnit | Module đích chưa đọc unnamed module hoặc module JUnit | Bổ sung `--add-reads` đúng mục tiêu |
-| Test không truy cập được package-private member | Test chưa được patch vào đúng module hoặc package | Kiểm tra module name và package declaration |
-| Test compile được nhưng runtime không tìm thấy class | Chỉ patch ở `javac`, chưa patch khi chạy JVM | Thêm runtime `--patch-module` trỏ tới test output |
-| Framework không truy cập được test bằng reflection | Package chưa được mở cho module chứa framework | Dùng `--add-opens` phù hợp ở runtime |
-| Provider hoặc class bị tìm thấy khác dự kiến | Patch path hoặc module path chứa nhiều bản class | Kiểm tra đường dẫn và thứ tự nạp module |
+| `module not found` | Target module not found on the module path | Check `--module-path` and the module name |
+| `package ... is not visible` when importing JUnit | Target module does not yet read the unnamed module or JUnit module | Add `--add-reads` with the proper target |
+| Test cannot access package-private member | Test has not been patched into the right module or package | Check the module name and package declaration |
+| Test compiles but class is not found at runtime | Patched only at `javac`, not patched when running the JVM | Add runtime `--patch-module` pointing to test output |
+| Framework cannot access test via reflection | Package has not been opened to the module containing the framework | Use appropriate `--add-opens` at runtime |
+| Unexpected provider or class is found | Patch path or module path contains multiple versions of a class | Check paths and module loading order |
 
-Khi chẩn đoán, hãy kiểm tra command line thực tế mà build tool gửi cho compiler và JVM. Cấu hình Gradle/Maven có thể thêm module path hoặc classpath tự động, vì vậy chỉ nhìn vào một đoạn `build.gradle` chưa chắc đã phản ánh toàn bộ lệnh thực thi.
+When diagnosing, inspect the actual command line that the build tool passes to the compiler and JVM. Gradle/Maven configurations may add module paths or classpaths automatically, so looking only at a snippet of `build.gradle` does not necessarily reflect the full execution command.
 
-## 10. Tóm tắt
+## 10. Summary
 
-`javac --patch-module` cho phép biên dịch source bổ sung như một phần của named module đã tồn tại. Trong kiểm thử modular Java, kỹ thuật này giúp test nằm cùng module và package với implementation, nhờ đó có thể kiểm tra package-private code mà không phải export package nội bộ.
+`javac --patch-module` allows compiling additional sources as part of an existing named module. In modular Java testing, this technique keeps tests in the same module and package as the implementation, enabling testing of package-private code without exporting internal packages.
 
-Một cấu hình test modular thường cần ba việc: đưa module chính lên `--module-path`, patch test source vào module bằng `--patch-module`, và cấu hình readability tới thư viện test bằng `--add-reads` nếu thư viện nằm trên classpath. Khi chạy test, patch thư mục test output vào module lần nữa và mở package cho framework nếu nó cần reflection.
+A modular test setup typically needs three things: placing the main module on `--module-path`, patching test sources into the module with `--patch-module`, and configuring readability to the test library with `--add-reads` if the library is on the classpath. When running tests, patch the test output directory into the module again and open packages to the framework if it requires reflection.
 
-Tài liệu tham khảo:
+References:
 
 - [javac — Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/specs/man/javac.html)
 - [java launcher — Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html)

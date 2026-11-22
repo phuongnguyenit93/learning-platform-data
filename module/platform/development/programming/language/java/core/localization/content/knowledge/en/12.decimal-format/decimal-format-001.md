@@ -1,46 +1,46 @@
-# Mẫu định dạng và vai trò của DecimalFormatSymbols trong Java
+# Formatting Patterns and the Role of DecimalFormatSymbols in Java
 
-**DecimalFormat** là lớp thuộc **java.text** dùng để biến số thành chuỗi hiển thị và phân tích chuỗi số theo một mẫu. Điểm dễ nhầm là mẫu **#,##0.00** không có nghĩa lúc nào cũng in dấu phẩy để ngăn nhóm và dấu chấm làm dấu thập phân. Trong mẫu chuẩn, **,** và **.** là ký hiệu cú pháp; khi hiển thị, **DecimalFormatSymbols** cung cấp các ký tự phù hợp với locale như **1,234.50** ở Hoa Kỳ hoặc **1.234,50** ở Đức.
+**DecimalFormat** is a class in **java.text** used to convert numbers into display strings and parse numeric strings according to a pattern. A common point of confusion is that the pattern **#,##0.00** does not mean it will always print a comma for grouping and a period for the decimal separator. In a standard pattern, **,** and **.** are syntax symbols; during display, **DecimalFormatSymbols** provides the locale-appropriate characters such as **1,234.50** in the United States or **1.234,50** in Germany.
 
-Bài này giải thích cú pháp mẫu, quan hệ giữa **DecimalFormat** và **DecimalFormatSymbols**, mẫu chuẩn và mẫu bản địa hóa, cách tự cấu hình dấu/ký hiệu, định dạng tiền tệ và phần trăm, phân tích số, làm tròn và những lỗi cần tránh khi Java chạy trên các môi trường khác nhau. Ví dụ ưu tiên Java 17+ và locale tường minh để kết quả có thể kiểm chứng.
+This lesson explains pattern syntax, the relationship between **DecimalFormat** and **DecimalFormatSymbols**, standard vs. localized patterns, how to configure separators/symbols manually, currency and percentage formatting, number parsing, rounding, and pitfalls to avoid when Java runs across different environments. Examples prioritize Java 17+ and explicit locales so results are verifiable.
 
-## 1. Ba lớp cần tách biệt: số, pattern và ký hiệu
+## 1. Three layers to separate: number, pattern, and symbols
 
-Một phép định dạng có thể hình dung như sau:
+A formatting operation can be visualized as follows:
 
 ~~~text
-Giá trị số (Number / BigDecimal)
+Numeric value (Number / BigDecimal)
              |
              v
-Mẫu DecimalFormat: #,##0.00
+DecimalFormat pattern: #,##0.00
              |
              v
-DecimalFormatSymbols của Locale
+Locale's DecimalFormatSymbols
              |
              v
-Chuỗi hiển thị: 12,345.60 hoặc 12.345,60
+Display string: 12,345.60 or 12.345,60
 ~~~
 
-- **Giá trị số:** kiểu như **int**, **long**, **double**, **BigInteger** hoặc **BigDecimal**; chứa ý nghĩa số học, không chứa dấu phân nhóm hay tên ngôn ngữ.
-- **Pattern:** quyết định có bao nhiêu chữ số bắt buộc/tùy chọn, phân nhóm ở đâu, có tiền tố/hậu tố, nhân theo tỷ lệ phần trăm, dùng ký pháp khoa học hay không.
-- **DecimalFormatSymbols:** cung cấp dấu thập phân, dấu phân nhóm, chữ số 0, dấu âm, ký hiệu phần trăm, tiền tệ và các ký hiệu khác dùng khi phân tích/hiển thị.
+- **Numeric value:** types such as **int**, **long**, **double**, **BigInteger**, or **BigDecimal**; holds mathematical meaning, without grouping separators or language names.
+- **Pattern:** determines how many required/optional digits there are, where grouping occurs, whether there are prefixes/suffixes, percentage scaling, or scientific notation.
+- **DecimalFormatSymbols:** provides the decimal separator, grouping separator, zero digit, minus sign, percent symbol, currency, and other symbols used during parsing/display.
 
-Để cùng một số được hiển thị theo hai locale, thông thường **giữ nguyên pattern chuẩn**, chỉ thay **DecimalFormatSymbols**. Đây là hai quyết định độc lập: cấu trúc hiển thị và ngôn ngữ/vùng.
+To display the same number across two locales, you normally **keep the standard pattern unchanged** and only change **DecimalFormatSymbols**. These are two independent decisions: display structure and language/region.
 
-Ví dụ cùng một giá trị **12345.6** với pattern **#,##0.00**:
+Example of the same value **12345.6** with the pattern **#,##0.00**:
 
-| Locale / symbols | Chuỗi hiển thị | Giải thích |
+| Locale / symbols | Display string | Explanation |
 | --- | --- | --- |
-| **Locale.US** | **12,345.60** | Dấu phẩy nhóm nghìn, dấu chấm thập phân |
-| **Locale.GERMANY** | **12.345,60** | Dấu chấm nhóm nghìn, dấu phẩy thập phân |
-| Symbols tùy chỉnh | **12_345,60** | Dấu gạch dưới nhóm nghìn, dấu phẩy thập phân |
-| Locale.US, pattern **000000.00** | **012345.60** | Đệm chữ số nguyên bằng 0, không nhóm nghìn |
+| **Locale.US** | **12,345.60** | Comma thousands separator, period decimal separator |
+| **Locale.GERMANY** | **12.345,60** | Period thousands separator, comma decimal separator |
+| Custom symbols | **12_345,60** | Underscore thousands separator, comma decimal separator |
+| Locale.US, pattern **000000.00** | **012345.60** | Pads integer digits with 0, no thousands grouping |
 
-Các chuỗi trên là các trường hợp cấu hình cụ thể; **DecimalFormatSymbols** có thể phụ thuộc dữ liệu locale/CLDR của phiên bản JDK. Khi sản phẩm cần một dấu phân cách tuyệt đối xác định, có thể cấu hình symbols tường minh thay vì phụ thuộc hoàn toàn vào môi trường.
+The strings above are specific configuration cases; **DecimalFormatSymbols** can depend on the JDK version's locale/CLDR data. When a product requires an absolutely deterministic separator, you can configure symbols explicitly instead of relying entirely on the environment.
 
-## 2. Tạo DecimalFormat theo locale
+## 2. Creating DecimalFormat by locale
 
-**DecimalFormat** kế thừa **NumberFormat**, nhưng bổ sung khả năng tạo mẫu bằng chuỗi và thay đổi các ký hiệu. Có các constructor hữu ích:
+**DecimalFormat** extends **NumberFormat**, adding the ability to construct patterns with strings and modify symbols. Useful constructors include:
 
 ~~~java
 DecimalFormat implicit = new DecimalFormat("#,##0.00");
@@ -50,41 +50,41 @@ DecimalFormat explicit = new DecimalFormat(
         DecimalFormatSymbols.getInstance(Locale.US));
 ~~~
 
-Đây là mã minh họa trong một phương thức, cần import **java.text.DecimalFormat**, **java.text.DecimalFormatSymbols** và **java.util.Locale**.
+This is illustrative code inside a method and requires importing **java.text.DecimalFormat**, **java.text.DecimalFormatSymbols**, and **java.util.Locale**.
 
-Constructor không có **DecimalFormatSymbols** dùng ký hiệu mặc định thuộc locale **FORMAT** của JVM. Kết quả vì thế có thể khác giữa máy phát triển, CI và production. Constructor nhận symbols là lựa chọn phù hợp khi ứng dụng đã xác định locale của người dùng hoặc quy tắc xuất dữ liệu.
+The constructor without **DecimalFormatSymbols** uses default symbols belonging to the JVM's **FORMAT** locale. Consequently, results may differ across developer machines, CI, and production. The constructor that accepts symbols is the right choice when the application has already resolved the user's locale or data export rules.
 
-Cách lấy thông tin qua NumberFormat:
+How to retrieve a formatter via NumberFormat:
 
 ~~~java
 NumberFormat number = NumberFormat.getNumberInstance(locale);
 String text = number.format(12345.6);
 ~~~
 
-Đây là đoạn minh họa cần import **java.text.NumberFormat** và biến **locale**. **NumberFormat.getNumberInstance(locale)** tự chọn cấu hình số được khuyến nghị cho locale. Không nên luôn ép kiểu giá trị trả về sang DecimalFormat vì hợp đồng factory chỉ bảo đảm kiểu **NumberFormat**. Nếu cần pattern chuyên biệt, tự tạo **new DecimalFormat(pattern, symbols)**.
+This is an illustrative snippet requiring importing **java.text.NumberFormat** and a **locale** variable. **NumberFormat.getNumberInstance(locale)** automatically selects the recommended number configuration for the locale. Do not always cast the return value to DecimalFormat because the factory contract only guarantees the **NumberFormat** type. If you need a specialized pattern, instantiate **new DecimalFormat(pattern, symbols)** directly.
 
-## 3. Ngữ pháp cơ bản của mẫu DecimalFormat
+## 3. Basic grammar of DecimalFormat patterns
 
-Đây là các ký hiệu cú pháp trong **pattern chuẩn** (non-localized pattern). Chúng không nhất thiết giống ký tự được in ra:
+These are the syntax symbols in a **standard pattern** (non-localized pattern). They are not necessarily the same as the characters printed out:
 
-| Ký hiệu | Ý nghĩa | Ví dụ |
+| Symbol | Meaning | Example |
 | --- | --- | --- |
-| **0** | Chữ số bắt buộc, thiếu thì đệm 0 | **0000** biến 42 thành **0042** |
-| **#** | Chữ số tùy chọn, không ép hiển thị 0 ở vị trí không cần | **#.##** |
-| **.** | Vị trí phần thập phân trong pattern | **0.00** |
-| **,** | Xác định kích thước nhóm chữ số | **#,##0** |
-| **;** | Tách nhánh dương và âm | **0.00;(0.00)** |
-| **%** | Nhân giá trị với 100 khi định dạng, biểu thị phần trăm | **0.0%** |
-| **‰** | Nhân với 1000, biểu thị phần nghìn | **0.0‰** |
-| **E** | Ký pháp số mũ khoa học | **0.00E0** |
-| **¤** | Placeholder tiền tệ; có thể ảnh hưởng ký hiệu và phần thập phân | **¤#,##0.00** |
-| **'** | Quote ký tự có nghĩa cú pháp thành literal | **0.00' kg'** |
+| **0** | Required digit, padded with 0 if missing | **0000** turns 42 into **0042** |
+| **#** | Optional digit, does not force displaying 0 where unnecessary | **#.##** |
+| **.** | Decimal point position in the pattern | **0.00** |
+| **,** | Defines digit grouping size | **#,##0** |
+| **;** | Separates positive and negative subpatterns | **0.00;(0.00)** |
+| **%** | Multiplies value by 100 when formatting, representing percentage | **0.0%** |
+| **‰** | Multiplies by 1000, representing per-mille | **0.0‰** |
+| **E** | Scientific exponent notation | **0.00E0** |
+| **¤** | Currency placeholder; may affect symbol and decimal places | **¤#,##0.00** |
+| **'** | Quotes syntax characters into literals | **0.00' kg'** |
 
-Quy tắc thực hành: **0** quyết định số chữ số tối thiểu; **#** cho phép bỏ vị trí không cần; **.** chia phần nguyên/thập phân; **,** mô tả nhóm, còn **DecimalFormatSymbols** quyết định ký tự nhóm và dấu thập phân được in thực tế.
+Practical rule: **0** sets the minimum number of digits; **#** allows omitting unnecessary positions; **.** divides the integer/fraction parts; **,** describes grouping, while **DecimalFormatSymbols** determines the actual grouping and decimal characters printed.
 
-Ví dụ dùng **Locale.US**:
+Examples using **Locale.US**:
 
-| Pattern | Số đầu vào | Chuỗi kết quả |
+| Pattern | Input number | Result string |
 | --- | ---: | --- |
 | **0000** | 42 | **0042** |
 | **#,##0** | 12345 | **12,345** |
@@ -95,11 +95,11 @@ Ví dụ dùng **Locale.US**:
 | **0.0%** | 0.25 | **25.0%** |
 | **0.00' kg'** | 12.5 | **12.50 kg** |
 
-Trong pattern **#,##0.00**, hai chữ số **0** sau dấu thập phân buộc in hai chữ số, dù giá trị chỉ có một. Trong **0.##**, các chữ số sau dấu thập phân tùy chọn, nên không tự in các số 0 thừa.
+In the pattern **#,##0.00**, the two **0** digits after the decimal point force printing two digits, even though the value only has one. In **0.##**, the digits after the decimal point are optional, so trailing zeros are not printed automatically.
 
-**Nhớ rằng format không thay đổi bản thân dữ liệu số.** Chuỗi **12.50** xuất phát từ giá trị **12.5** và yêu cầu hiển thị hai chữ số thập phân; đó không phải thao tác lưu lại giá trị mới.
+**Remember that formatting does not change the numeric data itself.** The string **12.50** comes from the value **12.5** and the requirement to display two decimal places; it is not an operation that saves a new value.
 
-## 4. Chạy thử: cùng pattern, khác DecimalFormatSymbols
+## 4. Hands-on: same pattern, different DecimalFormatSymbols
 
 **File DecimalFormatSymbolsDemo.java**
 
@@ -157,7 +157,7 @@ public class DecimalFormatSymbolsDemo {
 }
 ~~~
 
-Chạy trên Java 17+:
+Run on Java 17+:
 
 ~~~bash
 javac -encoding UTF-8 DecimalFormatSymbolsDemo.java
@@ -175,21 +175,21 @@ Parsed: 12345.60
 Consumed: 9
 ~~~
 
-Giải thích:
+Explanation:
 
-1. **us** và **de** có cùng pattern **#,##0.00**, nhưng dùng bộ symbols khác, nên dấu thập phân và phân nhóm đảo chỗ.
-2. **custom** chỉ định dấu thập phân **,** và dấu phân nhóm **_**. Đây là ví dụ minh họa cơ chế, không phải quy tắc định dạng thông thường nên áp dụng cho dữ liệu của người dùng.
-3. Nhánh âm **;(#,##0.00)** làm số âm được bao trong ngoặc.
-4. **setParseBigDecimal(true)** giúp phân tích chuỗi thành **BigDecimal** thay vì dựa vào kiểu Number mặc định.
-5. **ParsePosition** giúp xác nhận toàn bộ 9 ký tự đã được đọc; nếu chỉ một tiền tố được chấp nhận, ứng dụng không coi input là hợp lệ.
+1. **us** and **de** share the same pattern **#,##0.00**, but use different symbol sets, so the decimal and grouping separators swap places.
+2. **custom** specifies **,** as the decimal separator and **_** as the grouping separator. This is an example demonstrating the mechanism, not a normal formatting rule to apply to user data.
+3. The negative subpattern **;(#,##0.00)** wraps negative numbers in parentheses.
+4. **setParseBigDecimal(true)** parses the string into a **BigDecimal** instead of relying on the default Number type.
+5. **ParsePosition** verifies that all 9 characters were read; if only a prefix was accepted, the application does not treat the input as valid.
 
-Kết quả cho thấy **DecimalFormatSymbols điều khiển ký tự thực tế**, còn pattern điều khiển cấu trúc số và sự phân nhóm.
+The output shows that **DecimalFormatSymbols controls the actual characters**, while the pattern controls the number structure and grouping.
 
-## 5. Phân nhóm chữ số: dấu phẩy trong pattern có nghĩa gì?
+## 5. Digit grouping: what does the comma in a pattern mean?
 
-Trong pattern **#,##0**, dấu phẩy **,** không mang nghĩa “hiển thị đúng dấu phẩy”, mà cho biết **kích thước nhóm**. Formatter thường lấy vị trí nhóm ở bên phải làm căn cứ, chẳng hạn nhóm 3 chữ số đối với **#,##0**.
+In the pattern **#,##0**, the comma **,** does not mean "display a literal comma", but specifies the **grouping size**. The formatter typically uses the rightmost grouping position as the reference, such as groups of 3 digits for **#,##0**.
 
-Khi dùng:
+When using:
 
 ~~~java
 DecimalFormat de = new DecimalFormat(
@@ -199,42 +199,42 @@ DecimalFormat de = new DecimalFormat(
 System.out.println(de.format(1234567));
 ~~~
 
-Đây là đoạn minh họa trong phương thức, cần imports tương ứng. Kết quả với pattern đó là **1.234.567**: dấu phân nhóm thực tế là dấu chấm từ symbols của tiếng Đức.
+This is an illustrative snippet inside a method and requires corresponding imports. The output with that pattern is **1.234.567**: the actual grouping separator is a period from the German symbols.
 
-Nếu đổi **setGroupingUsed(false)**, formatter không còn thêm dấu nhóm, dù pattern ban đầu có phần nhóm. **setGroupingSize(...)** cho phép thay kích thước nhóm trong cấu hình formatter. Vì vậy pattern không phải nguồn cấu hình duy nhất sau khi object được tạo; các setter có thể sửa hành vi.
+If you change **setGroupingUsed(false)**, the formatter stops inserting grouping separators, even if the original pattern included grouping. **setGroupingSize(...)** allows changing the group size in the formatter configuration. Thus, the pattern is not the sole source of configuration after the object is created; setters can modify behavior.
 
-**Lưu ý về phân nhóm không đều:** DecimalFormat của Java có giới hạn trong cách diễn giải các dấu nhóm của pattern; không nên nghĩ rằng chỉ việc thêm nhiều dấu phẩy sẽ mô tả được mọi quy tắc nhóm theo ngôn ngữ. Khi cần quy tắc nhóm đặc thù, kiểm thử formatter với dữ liệu lớn và runtime mục tiêu.
+**Note on irregular grouping:** Java's DecimalFormat has limitations in how it interprets grouping separators in a pattern; do not assume that simply adding multiple commas will describe every language's grouping rules. When specific grouping rules are needed, test the formatter with large data and the target runtime.
 
-## 6. DecimalFormatSymbols chứa những gì?
+## 6. What does DecimalFormatSymbols contain?
 
-**DecimalFormatSymbols** là đối tượng chứa các ký hiệu địa phương dùng khi DecimalFormat hiển thị hoặc phân tích số. Các method tiêu biểu:
+**DecimalFormatSymbols** is an object containing local symbols used when DecimalFormat displays or parses numbers. Typical methods:
 
-| API | Vai trò |
+| API | Role |
 | --- | --- |
-| **getDecimalSeparator / setDecimalSeparator** | Dấu phân tách phần nguyên và thập phân |
-| **getGroupingSeparator / setGroupingSeparator** | Dấu phân nhóm chữ số |
-| **getZeroDigit / setZeroDigit** | Chữ số 0 cơ sở trong tập chữ số bản địa |
-| **getMinusSign / setMinusSign** | Ký tự dấu trừ |
-| **getPercent / setPercent** | Ký hiệu phần trăm |
-| **getPerMill / setPerMill** | Ký hiệu phần nghìn |
-| **getCurrencySymbol / setCurrencySymbol** | Ký hiệu tiền tệ hiển thị |
-| **getInternationalCurrencySymbol / setInternationalCurrencySymbol** | Mã tiền tệ quốc tế |
-| **getMonetaryDecimalSeparator / setMonetaryDecimalSeparator** | Dấu thập phân dùng trong các trường hợp định dạng tiền tệ |
-| **getInfinity / setInfinity** | Chuỗi hiển thị cho dương/vô cùng tùy sign |
-| **getNaN / setNaN** | Chuỗi hiển thị cho NaN |
-| **getExponentSeparator / setExponentSeparator** | Chuỗi ký hiệu phân cách mũ trong ký pháp khoa học |
-| **getPatternSeparator / setPatternSeparator** | Ký hiệu tách nhánh pattern khi dùng localized pattern |
+| **getDecimalSeparator / setDecimalSeparator** | Separator between integer and fractional parts |
+| **getGroupingSeparator / setGroupingSeparator** | Digit grouping separator |
+| **getZeroDigit / setZeroDigit** | Base zero digit in the native digit set |
+| **getMinusSign / setMinusSign** | Minus sign character |
+| **getPercent / setPercent** | Percent symbol |
+| **getPerMill / setPerMill** | Per-mille symbol |
+| **getCurrencySymbol / setCurrencySymbol** | Display currency symbol |
+| **getInternationalCurrencySymbol / setInternationalCurrencySymbol** | International currency code |
+| **getMonetaryDecimalSeparator / setMonetaryDecimalSeparator** | Decimal separator used in currency formatting cases |
+| **getInfinity / setInfinity** | Display string for positive/negative infinity depending on sign |
+| **getNaN / setNaN** | Display string for NaN |
+| **getExponentSeparator / setExponentSeparator** | Exponent separator string in scientific notation |
+| **getPatternSeparator / setPatternSeparator** | Symbol separating pattern branches when using localized patterns |
 
-Các symbols thường được lấy qua:
+Symbols are typically retrieved via:
 
 ~~~java
 DecimalFormatSymbols symbols =
         DecimalFormatSymbols.getInstance(locale);
 ~~~
 
-Đây là đoạn minh họa với import **java.text.DecimalFormatSymbols** và biến **locale**. **Locale** ở đây không tự dịch văn bản ngoài số, và không tự quyết định rằng một giao dịch dùng đồng tiền nào. Nó chỉ cung cấp các quy ước mặc định phù hợp theo dữ liệu locale của JDK.
+This is an illustrative snippet requiring importing **java.text.DecimalFormatSymbols** and a **locale** variable. **Locale** here does not automatically translate text outside numbers, and does not decide which currency a transaction uses. It only provides appropriate default conventions based on the JDK's locale data.
 
-Có thể sửa từng ký hiệu trước khi tạo DecimalFormat:
+You can modify individual symbols before creating DecimalFormat:
 
 ~~~java
 DecimalFormatSymbols symbols =
@@ -246,7 +246,7 @@ DecimalFormat formatter =
         new DecimalFormat("#,##0.00", symbols);
 ~~~
 
-Nếu cần đổi symbols của **một formatter đã tồn tại**, hãy lấy và cập nhật nó tường minh:
+If you need to change the symbols of **an existing formatter**, retrieve and update it explicitly:
 
 ~~~java
 DecimalFormatSymbols symbols =
@@ -255,28 +255,28 @@ symbols.setGroupingSeparator(' ');
 formatter.setDecimalFormatSymbols(symbols);
 ~~~
 
-Các đoạn trên là minh họa trong phương thức, cần **DecimalFormat**, **DecimalFormatSymbols**, **Locale**, và biến **formatter** có sẵn. Đừng dựa vào việc chỉ sửa object symbols bên ngoài sau khi DecimalFormat đã được tạo mà mong formatter tự cập nhật: cấu hình ký hiệu phải được áp dụng lại bằng **setDecimalFormatSymbols**.
+The snippets above are method-level illustrations requiring **DecimalFormat**, **DecimalFormatSymbols**, **Locale**, and an existing **formatter** variable. Do not rely on modifying an external symbols object after DecimalFormat is created and expect the formatter to update automatically: symbol configuration must be re-applied with **setDecimalFormatSymbols**.
 
-### 6.1. Vì sao nên dùng getInstance(locale)?
+### 6.1. Why use getInstance(locale)?
 
-**DecimalFormatSymbols.getInstance(locale)** lấy thông tin từ locale provider mà JVM hỗ trợ. Việc dùng mã locale rõ ràng thuận tiện hơn lấy mặc định, vì cho phép formatter phục vụ đúng người dùng và tránh kết quả khác nhau giữa máy.
+**DecimalFormatSymbols.getInstance(locale)** fetches information from the locale provider supported by the JVM. Using an explicit locale code is better than taking the default, because it lets the formatter serve the right user and avoids differing results across machines.
 
-Tuy nhiên, dữ liệu bản địa hóa trong CLDR/JDK có thể thay đổi qua các bản phát hành. Cùng **vi-VN** có thể gặp khác biệt về dấu cách, tên đơn vị hoặc ký hiệu tiền ở các bản runtime khác nhau. Với đầu ra cần so khớp chính xác từng byte, nên xác định cả locale, phiên bản JDK và những ký hiệu cần ổn định; đừng giả định chỉ truyền locale là khóa cứng toàn bộ định dạng.
+However, localization data in CLDR/JDK can change across releases. Even **vi-VN** may experience differences in spacing, unit names, or currency symbols across different runtime versions. For output requiring exact byte-for-byte matching, specify the locale, JDK version, and symbols that must stay stable; do not assume passing a locale alone locks down the entire format.
 
-### 6.2. Chữ số bản địa
+### 6.2. Native digits
 
-Một locale có thể sử dụng những ký tự chữ số khác dạng ASCII **0–9**. **setZeroDigit** giúp xác định điểm bắt đầu của dãy chữ số trong những hệ chữ số phù hợp với cách DecimalFormat ánh xạ; không nên dùng nó để xử lý tùy ý mọi hệ chữ số không liên tiếp hoặc mọi biến thể Unicode.
+A locale may use digit characters other than ASCII **0–9**. **setZeroDigit** helps specify the start of the digit sequence in numbering systems compatible with how DecimalFormat maps digits; it should not be used to arbitrarily handle non-contiguous numbering systems or every Unicode variant.
 
-Khi người dùng nhập số bằng chữ số bản địa, khả năng parse còn phụ thuộc vào bộ formatter, symbols và quy tắc được JDK hỗ trợ. Cần kiểm thử đầu vào thực tế thay vì mặc định rằng mọi chữ số Unicode đều được hiểu giống nhau.
+When users enter numbers in native digits, parsing capability also depends on the formatter, symbols, and rules supported by the JDK. Test real inputs instead of assuming all Unicode digits are understood identically.
 
-## 7. Pattern chuẩn và pattern bản địa hóa
+## 7. Standard patterns vs. localized patterns
 
-Đây là một khác biệt nền tảng:
+This is a fundamental distinction:
 
-- **Pattern chuẩn:** dùng ký hiệu cố định của cú pháp DecimalFormat như **.**, **,**, **0**, **#**, **;**, **%**. Dùng **applyPattern(String)** hoặc constructor DecimalFormat(pattern, symbols).
-- **Pattern bản địa hóa:** dùng các ký hiệu cục bộ của DecimalFormatSymbols ngay **trong chuỗi pattern**. Dùng **applyLocalizedPattern(String)** để Java hiểu chúng theo symbols hiện tại.
+- **Standard pattern:** uses fixed DecimalFormat syntax symbols such as **.**, **,**, **0**, **#**, **;**, **%**. Uses **applyPattern(String)** or the constructor DecimalFormat(pattern, symbols).
+- **Localized pattern:** uses local characters from DecimalFormatSymbols directly **inside the pattern string**. Uses **applyLocalizedPattern(String)** so Java interprets them according to the current symbols.
 
-Ví dụ với Đức, mẫu chuẩn **#,##0.00** tương ứng về ý nghĩa với mẫu bản địa hóa **#.##0,00**. Nếu đem **#.##0,00** truyền vào **applyPattern** (mẫu chuẩn), Java sẽ hiểu dấu chấm và phẩy theo **cú pháp chuẩn**, không theo ngôn ngữ Đức, nên có thể sai hoặc không hợp lệ.
+For example, with Germany, the standard pattern **#,##0.00** corresponds in meaning to the localized pattern **#.##0,00**. If you pass **#.##0,00** into **applyPattern** (standard pattern), Java interprets periods and commas according to **standard syntax**, not German conventions, so it may be wrong or invalid.
 
 ~~~java
 import java.text.DecimalFormat;
@@ -299,19 +299,19 @@ public class LocalizedPatternDemo {
 }
 ~~~
 
-Chạy **javac LocalizedPatternDemo.java** rồi **java LocalizedPatternDemo**. Với hai mẫu tương đương, cả hai dòng đều là **12.345,60**. **toPattern()** trả biểu diễn mẫu chuẩn của formatter; **toLocalizedPattern()** trả biểu diễn tương ứng với ký hiệu bản địa.
+Run **javac LocalizedPatternDemo.java** then **java LocalizedPatternDemo**. With the two equivalent patterns, both lines output **12.345,60**. **toPattern()** returns the formatter's standard pattern representation; **toLocalizedPattern()** returns the representation corresponding to localized symbols.
 
-**Khuyến nghị:** lưu pattern cấu hình và pattern trong mã nguồn bằng **cú pháp chuẩn** rồi áp dụng với symbols đã chọn. Chỉ dùng localized pattern khi thật sự nhận pattern do con người nhập hoặc hiển thị mẫu theo quy ước của họ; lúc đó phải dùng đúng **applyLocalizedPattern/toLocalizedPattern**.
+**Recommendation:** store configuration patterns and patterns in source code using **standard syntax** and apply them with the chosen symbols. Only use localized patterns when genuinely accepting user-entered patterns or displaying patterns in their local conventions; in that case, make sure to use **applyLocalizedPattern/toLocalizedPattern** properly.
 
-### 7.1. Phân biệt ký hiệu cú pháp và ký hiệu hiển thị
+### 7.1. Distinguishing syntax symbols from display symbols
 
-Giả sử formatter sử dụng **DecimalFormatSymbols** có decimal **,** và grouping **_**. Pattern chuẩn vẫn phải là **#,##0.00**. Nếu ghi **#_##0,00** như thể ký tự hiển thị có thể thay luôn ký hiệu cú pháp, việc parse pattern sẽ không còn giống ý định.
+Suppose a formatter uses **DecimalFormatSymbols** with decimal **,** and grouping **_**. The standard pattern must still be **#,##0.00**. If you write **#_##0,00** as though display characters could replace syntax symbols, pattern parsing will no longer match your intent.
 
-Ngược lại, nếu bắt buộc dùng localized pattern, chuỗi mẫu phải được tạo đúng theo bộ symbols đã chọn; trường hợp ký hiệu mới xung đột với ký hiệu pattern khác cần xử lý rõ ràng. Đừng cho rằng mọi cách phối hợp ký hiệu tùy chỉnh đều hợp lệ.
+Conversely, if you must use a localized pattern, the pattern string must match the chosen symbol set; cases where new symbols conflict with other pattern symbols must be handled explicitly. Do not assume every combination of custom symbols is valid.
 
-## 8. Tiền tố, hậu tố, nhánh âm và literal
+## 8. Prefixes, suffixes, negative branches, and literals
 
-Pattern có thể đặt văn bản trước/sau số. Ví dụ **0.00' kg'** thêm đơn vị kg sau số. Dấu nháy đơn dùng để quote ký tự có nghĩa đặc biệt; muốn in dấu nháy đơn literal trong pattern, dùng cơ chế escape bằng hai dấu nháy đơn thích hợp.
+Patterns can place text before/after the number. For example, **0.00' kg'** appends the unit kg after the number. Single quotes quote characters with special meaning; to print a literal single quote in a pattern, use the proper two-single-quote escaping mechanism.
 
 ~~~java
 DecimalFormat quantity = new DecimalFormat(
@@ -320,32 +320,32 @@ DecimalFormat quantity = new DecimalFormat(
 System.out.println(quantity.format(12.5));
 ~~~
 
-Đây là đoạn minh họa trong phương thức. Output là **12.50 kg**. Phần **kg** chỉ là suffix văn bản; DecimalFormat không tự chuyển đổi đơn vị.
+This is an illustrative snippet inside a method. Output is **12.50 kg**. The **kg** part is only a text suffix; DecimalFormat does not convert units automatically.
 
-### 8.1. Hai nhánh dương và âm
+### 8.1. Positive and negative branches
 
-Mẫu **#,##0.00;(#,##0.00)** gồm phần dương và phần âm. Với **Locale.US**, **-12.5** thành **(12.50)**. Một nhánh âm có thể thay đổi prefix/suffix hiển thị, nhưng không nên giả định có thể tạo hai bộ chính sách chữ số hoàn toàn độc lập chỉ bằng cách viết hai mẫu khác nhau trong cùng pattern. Chỉ viết các subpattern được API chấp nhận và kiểm thử với số âm, số 0, số nhỏ.
+The pattern **#,##0.00;(#,##0.00)** consists of a positive part and a negative part. With **Locale.US**, **-12.5** becomes **(12.50)**. A negative branch can change display prefixes/suffixes, but do not assume you can create two completely independent digit policies just by writing two different patterns within the same pattern string. Only write subpatterns accepted by the API and test with negative numbers, zero, and small numbers.
 
-Nếu không có nhánh âm riêng, DecimalFormat dùng tiền tố âm theo symbols, thường có dấu âm trước biểu diễn dương. Nếu ký hiệu dấu trừ của locale khác nhau, **DecimalFormatSymbols** sẽ tham gia quyết định ký tự xuất ra.
+If there is no separate negative branch, DecimalFormat uses the negative prefix from symbols, typically placing a minus sign before the positive representation. If the locale's minus sign differs, **DecimalFormatSymbols** participates in determining the output character.
 
-### 8.2. Không ghép chuỗi để giả lập pattern
+### 8.2. Do not concatenate strings to simulate patterns
 
-Một sai lầm thường gặp là định dạng số rồi tự thêm dấu âm hoặc đơn vị tiền ở ngoài mà không xét locale. Khi ký hiệu tiền có thể đứng trước hay sau, có khoảng trắng đặc biệt hoặc thay đổi theo vùng, cách ghép thủ công dễ làm mất tính bản địa hóa. Sử dụng pattern hoặc NumberFormat với quy tắc tiền tệ đúng, còn giá trị số lưu riêng.
+A common mistake is formatting a number and then manually adding a minus sign or currency unit outside without considering locale. Since currency symbols can appear before or after, have special spaces, or vary by region, manual concatenation easily breaks localization. Use patterns or NumberFormat with proper currency rules, while storing the numeric value separately.
 
-## 9. Phần trăm và phần nghìn: ký hiệu có tác dụng số học
+## 9. Percent and per-mille: symbols with arithmetic effect
 
-Trong pattern, **%** và **‰** không chỉ đơn thuần là hậu tố. Chúng còn tác động tới hệ số nhân/chiều phân tích:
+In a pattern, **%** and **‰** are not merely suffixes. They also affect the multiplier/parsing factor:
 
-- **0.0%** format giá trị **0.25** thành **25.0%** với Locale.US.
-- **0.0‰** format giá trị **0.025** thành **25.0‰** với symbols và định dạng tương ứng.
+- **0.0%** formats the value **0.25** into **25.0%** with Locale.US.
+- **0.0‰** formats the value **0.025** into **25.0‰** with corresponding symbols and formatting.
 
-Nếu muốn hiển thị **%** như một ký tự literal mà **không nhân 100**, phải quote/escape ký hiệu trong pattern hoặc thêm văn bản sau khi đã định dạng theo hợp đồng rõ ràng. Không được nhập **25** với pattern phần trăm rồi mong ra **25%**: nó có thể thành **2500%**.
+If you want to display **%** as a literal character **without multiplying by 100**, you must quote/escape the symbol in the pattern or append text after formatting under a clear contract. Do not pass **25** into a percentage pattern expecting **25%**: it may become **2500%**.
 
-Đối với giá trị đầu vào, cần quy ước rõ **0.25** nghĩa là tỷ lệ **25%** hay một con số đã được tính theo phần trăm. Việc lưu một số không kèm đơn vị/ý nghĩa dẫn đến lỗi nghiệp vụ mà DecimalFormat không thể tự phát hiện.
+For input values, establish a clear convention on whether **0.25** represents a **25%** ratio or a number already expressed in percent. Storing a number without its unit/meaning leads to business logic bugs that DecimalFormat cannot detect on its own.
 
-## 10. Tiền tệ và ký hiệu ¤
+## 10. Currency and the ¤ symbol
 
-Ký hiệu **¤** trong DecimalFormat pattern là placeholder tiền tệ. Một ký hiệu thường dùng biểu diễn symbol của currency, hai ký hiệu có thể yêu cầu mã tiền tệ ISO 4217. Cách hiển thị chi tiết còn phụ thuộc locale, bộ symbols và dữ liệu JDK.
+The **¤** symbol in a DecimalFormat pattern is a currency placeholder. One symbol typically represents the currency symbol, while two symbols can request the ISO 4217 currency code. Detailed display also depends on locale, symbol set, and JDK data.
 
 ~~~java
 import java.text.DecimalFormat;
@@ -366,29 +366,29 @@ public class CurrencyPatternDemo {
 }
 ~~~
 
-Chạy **javac CurrencyPatternDemo.java**, **java CurrencyPatternDemo**. Với cấu hình Hoa Kỳ minh họa, chuỗi tương đương **$1,234.50**. Cần tránh khẳng định mã/ký hiệu tiền ở mọi locale và phiên bản JDK là bất biến; một số ký hiệu có thể có tiền tố, hậu tố, khoảng trắng đặc biệt.
+Run **javac CurrencyPatternDemo.java**, **java CurrencyPatternDemo**. With the illustrated US configuration, the equivalent string is **$1,234.50**. Avoid claiming that currency codes/symbols across all locales and JDK versions are immutable; some symbols may have prefixes, suffixes, or special whitespace.
 
-**Ba điều cần phân biệt:**
+**Three things to distinguish:**
 
-1. **Currency** cho biết đơn vị tiền tệ; nó không quy đổi tỷ giá.
-2. **DecimalFormatSymbols** chứa các ký hiệu tiền tệ hiển thị và dấu thập phân tiền tệ; với pattern tiền tệ, DecimalFormat có thể dùng **monetary decimal separator** thay cho dấu thập phân thường.
-3. **Pattern và cấu hình chữ số thập phân** quyết định số chữ số được in; đừng giả định một pattern luôn tự chọn số chữ số tối ưu cho mọi loại tiền.
+1. **Currency** indicates the monetary unit; it does not convert exchange rates.
+2. **DecimalFormatSymbols** contains the display currency symbols and the monetary decimal separator; with currency patterns, DecimalFormat may use the **monetary decimal separator** instead of the regular decimal separator.
+3. **Pattern and fractional digit configuration** determine the number of digits printed; do not assume one pattern always automatically chooses the optimal number of decimal places for every currency.
 
-Nếu tiền giao dịch là **JPY**, **VND**, **USD** hoặc **EUR**, hãy lấy mã tiền từ nghiệp vụ và thiết lập formatter theo hợp đồng. Locale giao diện tiếng Việt không có nghĩa mọi giao dịch đều là VND. Với báo cáo tài chính, dùng **BigDecimal**, giữ mã Currency bên cạnh giá trị và thiết lập rounding phù hợp. Nếu tỷ giá cần chuyển đổi, đó là bài toán xử lý dữ liệu riêng.
+If the transaction currency is **JPY**, **VND**, **USD**, or **EUR**, take the currency code from business logic and configure the formatter according to contract. A Vietnamese UI locale does not mean every transaction is in VND. For financial reporting, use **BigDecimal**, keep the Currency code alongside the value, and configure appropriate rounding. If exchange rate conversion is needed, that is a separate data-processing task.
 
-## 11. Rounding và lượng chữ số thập phân
+## 11. Rounding and fractional digit counts
 
-DecimalFormat có thể định dạng số theo pattern, nhưng khi phải in ít chữ số hơn giá trị gốc, nó cần **làm tròn**. Một số phương thức liên quan:
+DecimalFormat can format numbers according to a pattern, but when it must print fewer digits than the original value has, it needs **rounding**. Relevant methods:
 
-- **setRoundingMode(RoundingMode)**: quy tắc làm tròn.
-- **setMinimumFractionDigits(int)** và **setMaximumFractionDigits(int)**: giới hạn chữ số sau dấu thập phân.
-- **setMinimumIntegerDigits(int)** và **setMaximumIntegerDigits(int)**: giới hạn phần nguyên.
-- **setGroupingUsed(boolean)** và **setGroupingSize(int)**: cách nhóm chữ số.
-- **setDecimalSeparatorAlwaysShown(boolean)**: có bắt buộc hiển thị dấu thập phân khi không có phần lẻ hay không.
+- **setRoundingMode(RoundingMode)**: rounding rule.
+- **setMinimumFractionDigits(int)** and **setMaximumFractionDigits(int)**: bounds on digits after the decimal separator.
+- **setMinimumIntegerDigits(int)** and **setMaximumIntegerDigits(int)**: bounds on the integer part.
+- **setGroupingUsed(boolean)** and **setGroupingSize(int)**: how digits are grouped.
+- **setDecimalSeparatorAlwaysShown(boolean)**: whether to force showing the decimal separator when there is no fractional part.
 
-**DecimalFormat** dùng rounding mode mặc định **HALF_EVEN**. Trong các trường hợp tài chính cần HALF_UP, DOWN hay quy tắc khác, phải thiết lập tường minh thay vì dựa vào mặc định.
+**DecimalFormat** uses **HALF_EVEN** as its default rounding mode. In financial cases requiring HALF_UP, DOWN, or another rule, you must set it explicitly instead of relying on the default.
 
-Ví dụ chạy được với BigDecimal để tránh sai số nhị phân của double:
+Runnable example with BigDecimal to avoid binary floating-point errors from double:
 
 **File RoundingDemo.java**
 
@@ -418,7 +418,7 @@ public class RoundingDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac RoundingDemo.java
@@ -432,11 +432,11 @@ HALF_EVEN=1.24
 HALF_UP=1.25
 ~~~
 
-Kết quả minh họa tại điểm giữa: HALF_EVEN chọn chữ số cuối chẵn (4), HALF_UP làm tròn lên (5). **Formatter không thay đổi BigDecimal value**; nó chỉ sinh chuỗi hiển thị. Những quy tắc làm tròn dùng trong tính toán nghiệp vụ nên áp dụng tại tầng dữ liệu theo chính sách, trước khi định dạng khi cần.
+The output illustrates the midpoint case: HALF_EVEN chooses the even last digit (4), while HALF_UP rounds up (5). **The formatter does not mutate the BigDecimal value**; it only produces a display string. Rounding rules used in business calculations should be applied at the data layer per policy, before formatting when needed.
 
-## 12. Phân tích số: parse theo đúng symbols
+## 12. Parsing numbers: parse with the right symbols
 
-DecimalFormat không chỉ format mà còn **parse** văn bản có dấu phân cách theo locale. Nếu đầu vào **12.345,60** đến từ người dùng Đức, phân tích bằng symbols Hoa Kỳ có thể hiểu sai hoặc chỉ nhận một phần chuỗi.
+DecimalFormat not only formats but also **parses** text containing locale-specific separators. If the input **12.345,60** comes from a German user, parsing with US symbols may misinterpret it or only read part of the string.
 
 ~~~java
 DecimalFormat de = new DecimalFormat(
@@ -448,11 +448,11 @@ ParsePosition pos = new ParsePosition(0);
 Number parsed = de.parse("12.345,60", pos);
 ~~~
 
-Đây là đoạn minh họa trong phương thức, cần import **DecimalFormat**, **DecimalFormatSymbols**, **Locale**, **ParsePosition**. **parseBigDecimal** giúp kết quả là BigDecimal khi phân tích thành công; **ParsePosition** ghi vị trí đã được đọc và vị trí lỗi.
+This is an illustrative snippet inside a method and requires importing **DecimalFormat**, **DecimalFormatSymbols**, **Locale**, and **ParsePosition**. **parseBigDecimal** makes the result a BigDecimal on successful parse; **ParsePosition** tracks how far reading progressed and any error index.
 
-### 12.1. Phải kiểm tra phần dư
+### 12.1. Must check trailing unparsed text
 
-**DecimalFormat.parse(String)** có thể đọc một tiền tố hợp lệ rồi dừng mà không tự xác nhận toàn bộ chuỗi đã được tiêu thụ. Do đó, với input yêu cầu tính đúng đắn, dùng:
+**DecimalFormat.parse(String)** can read a valid prefix and stop without automatically verifying that the entire string was consumed. Therefore, for inputs requiring correctness, use:
 
 ~~~java
 ParsePosition pos = new ParsePosition(0);
@@ -463,45 +463,45 @@ if (n == null || pos.getIndex() != text.length()) {
 }
 ~~~
 
-Đoạn minh họa dùng biến **de**, **text** đã khai báo và import **java.text.ParsePosition**. Với dữ liệu nhập thực tế, còn cần kiểm tra khoảng trắng, giới hạn giá trị, quy tắc phân nhóm mong muốn và việc đầu vào có được phép dùng các ký hiệu khác không.
+The illustrative snippet uses already-declared variables **de**, **text**, and imports **java.text.ParsePosition**. With real user input, you also need to check whitespace, value bounds, expected grouping rules, and whether other symbols are permitted in the input.
 
-### 12.2. Hiểu đúng parser lenient
+### 12.2. Understanding the lenient parser properly
 
-Không thể mặc định **DecimalFormat.parse** là bộ validator nghiêm ngặt cho mọi pattern. Nó có thể chấp nhận chuỗi không đúng hoàn toàn quy tắc phân nhóm hoặc một số dạng ký hiệu mà ứng dụng không muốn. Kiểm tra **ParsePosition** chỉ bảo đảm parser đi tới cuối, chưa chứng minh văn bản có đúng toàn bộ style quy định.
+You cannot assume **DecimalFormat.parse** is a strict validator for every pattern. It may accept strings that do not strictly follow grouping rules or certain symbol forms that the application does not want. Checking **ParsePosition** only guarantees the parser reached the end, not that the text conforms to every styling rule.
 
-Khi cần nhập số rất nghiêm ngặt, có thể kết hợp validation của miền dữ liệu, quy tắc độ dài, cấu trúc chuỗi, hoặc một parser được thiết kế riêng. Không dùng kết quả của **format(parse(text))** làm chứng cứ duy nhất về tính hợp lệ, vì chuẩn hóa có thể thay đổi chuỗi theo cách hợp lệ về số học nhưng trái quy tắc đầu vào.
+When very strict numeric input is needed, combine domain validation, length rules, string structure checks, or a custom-designed parser. Do not use the result of **format(parse(text))** as sole proof of validity, because normalization can alter a string in a mathematically valid way that violates input rules.
 
-### 12.3. BigDecimal và dữ liệu chính xác
+### 12.3. BigDecimal and exact data
 
-Nếu muốn đọc số thập phân chính xác, **setParseBigDecimal(true)** là lựa chọn hợp lý. Điều này khác với việc gọi **Double.parseDouble(...)**, vốn chỉ chấp nhận cú pháp số kiểu Java/ASCII, không tự hiểu các dấu nhóm của mỗi locale.
+If you want to read decimal numbers accurately, **setParseBigDecimal(true)** is a sound choice. This differs from calling **Double.parseDouble(...)**, which only accepts Java/ASCII numeric syntax and does not understand per-locale grouping separators.
 
-Với số được trao đổi giữa máy bằng JSON, CSV theo schema hay dữ liệu cơ sở dữ liệu, nên dùng **định dạng máy đã quy định rõ**. Không dùng locale của máy chủ để đọc file hợp đồng có cú pháp cố định.
+For numbers exchanged between machines via schema-based JSON, CSV, or database fields, use a **well-defined machine format**. Do not use the server's locale to read contract files with fixed syntax.
 
-## 13. Ký pháp khoa học và các chuỗi đặc biệt
+## 13. Scientific notation and special strings
 
-**DecimalFormat** có hỗ trợ ký pháp khoa học bằng chữ **E** trong pattern. Ví dụ mẫu **0.00E0** định dạng số theo phần hệ số và mũ; **DecimalFormatSymbols** quyết định ký hiệu exponent trong output, còn số chữ số hệ số, độ chính xác và cách làm tròn chịu pattern/formatter.
+**DecimalFormat** supports scientific notation using the letter **E** in the pattern. For example, **0.00E0** formats a number into mantissa and exponent parts; **DecimalFormatSymbols** determines the exponent symbol in the output, while the number of mantissa digits, precision, and rounding follow the pattern/formatter.
 
-Với Locale.US, một dạng như **1.23E4** có nghĩa **1.23 × 10⁴**. Khi đổi locale, ký hiệu thập phân có thể đổi theo symbols. Nếu hệ thống trao đổi dữ liệu cần cú pháp khoa học cố định, không nên dùng một localized formatter tùy mặc định JVM.
+With Locale.US, a form like **1.23E4** means **1.23 × 10⁴**. When changing locales, the decimal symbol may change according to symbols. If a data exchange system requires fixed scientific syntax, do not use a localized formatter dependent on JVM defaults.
 
-DecimalFormatSymbols còn có **NaN**, **Infinity** và dấu trừ. Khi formatter gặp **Double.NaN**, **Double.POSITIVE_INFINITY** hoặc số âm vô cùng, nó dùng các biểu diễn phù hợp cấu hình. Những chuỗi này thường không phù hợp với dữ liệu nghiệp vụ như số tiền; hãy kiểm tra tính hữu hạn và miền giá trị trước khi định dạng hoặc parse.
+DecimalFormatSymbols also contains **NaN**, **Infinity**, and the minus sign. When the formatter encounters **Double.NaN**, **Double.POSITIVE_INFINITY**, or negative infinity, it uses the configured representations. These strings are usually unsuitable for business data such as monetary amounts; check finiteness and value domain before formatting or parsing.
 
-Các chữ số không Latin cũng có thể ảnh hưởng hiển thị. Việc chọn locale không bảo đảm mọi font hoặc phía nhận dữ liệu đều đọc/hiển thị chúng chính xác, vì vậy cần kiểm thử giao diện và hợp đồng trao đổi.
+Non-Latin digits can also affect display. Choosing a locale does not guarantee every font or data consumer can read/render them accurately, so test both UI and exchange contracts.
 
-## 14. Pattern là cú pháp, không phải biểu thức tính toán
+## 14. Patterns are syntax, not calculation expressions
 
-Định dạng giúp trình bày giá trị, **không** thay thế tính toán:
+Formatting helps present values; it does **not** replace calculations:
 
-- **0000** không thay đổi giá trị số 42 thành 0042; nó chỉ sinh chuỗi **0042**.
-- **0.00** không sửa giá trị gốc thành một BigDecimal mới có đúng hai chữ số thập phân.
-- **0.0%** thay đổi tỷ lệ hiển thị bằng multiplier, không có nghĩa dữ liệu gốc được nhân 100 trong cơ sở dữ liệu.
-- **¤#,##0.00** thêm tiền tệ khi hiển thị, không đổi USD sang VND.
-- Pattern có hậu tố **kg** không đổi gram sang kilogram.
+- **0000** does not turn the numeric value 42 into 0042; it only produces the string **0042**.
+- **0.00** does not modify the original value into a new BigDecimal with exactly two decimal places.
+- **0.0%** changes the display scale via a multiplier; it does not mean the underlying data was multiplied by 100 in the database.
+- **¤#,##0.00** adds currency for display; it does not convert USD to VND.
+- A pattern with suffix **kg** does not convert grams to kilograms.
 
-Tách giá trị chuẩn và cách trình bày là nguyên tắc cốt lõi của bản địa hóa. Một trường tiền giao dịch cần giữ **giá trị chính xác + mã tiền**, còn một trường tỷ lệ cần quy định **giá trị lưu** là 0.25 hay 25 trước khi formatter xuất chuỗi.
+Separating canonical values from presentation is a core principle of localization. A transaction amount field needs to store **exact value + currency code**, while a rate field must define whether the **stored value** is 0.25 or 25 before the formatter outputs a string.
 
-## 15. Dùng DecimalFormat bên trong MessageFormat
+## 15. Using DecimalFormat inside MessageFormat
 
-**MessageFormat** có thể tạo DecimalFormat con từ pattern chứa **{0,number,...}**. Ví dụ:
+**MessageFormat** can create a child DecimalFormat from a pattern containing **{0,number,...}**. For example:
 
 ~~~java
 MessageFormat message = new MessageFormat(
@@ -509,9 +509,9 @@ MessageFormat message = new MessageFormat(
         Locale.GERMANY);
 ~~~
 
-Đây là đoạn minh họa cần import **java.text.MessageFormat** và **java.util.Locale**. Locale của MessageFormat tác động đến bộ symbols của DecimalFormat được tạo khi pattern được áp dụng. Nếu gọi **message.setLocale(Locale.US)** sau đó, formatter con đã tồn tại không tự đổi symbols. Có thể tạo MessageFormat mới theo locale mong muốn hoặc gọi **applyPattern** đúng lúc rồi cấu hình lại các formatter custom.
+This is an illustrative snippet requiring importing **java.text.MessageFormat** and **java.util.Locale**. MessageFormat's locale affects the symbol set of the DecimalFormat created when the pattern is applied. Calling **message.setLocale(Locale.US)** afterward does not automatically update existing child formatters' symbols. You can create a new MessageFormat with the desired locale or call **applyPattern** at the right time and reconfigure custom formatters.
 
-Nếu muốn ký hiệu tùy chỉnh, có thể tạo **DecimalFormat** với symbols rõ ràng và gắn nó vào MessageFormat:
+If you want custom symbols, you can create a **DecimalFormat** with explicit symbols and attach it to MessageFormat:
 
 ~~~java
 DecimalFormat custom = new DecimalFormat(
@@ -523,88 +523,88 @@ MessageFormat message = new MessageFormat(
 message.setFormatByArgumentIndex(0, custom);
 ~~~
 
-Đây là đoạn minh họa cần import **DecimalFormat**, **DecimalFormatSymbols**, **MessageFormat**, **Locale**. Khi có nhiều bản dịch đảo thứ tự argument, **setFormatByArgumentIndex** giúp gắn formatter vào đúng chỉ số đối số, không phụ thuộc vị trí xuất hiện trong câu.
+This is an illustrative snippet requiring importing **DecimalFormat**, **DecimalFormatSymbols**, **MessageFormat**, and **Locale**. When multiple translations reorder arguments, **setFormatByArgumentIndex** attaches the formatter to the right argument index regardless of where it appears in the sentence.
 
-## 16. Những sai lầm thường gặp
+## 16. Common mistakes
 
-### Lỗi 1: Nhầm pattern chuẩn với dấu của locale
+### Mistake 1: Confusing standard patterns with locale separators
 
-Nhà phát triển thấy số tiếng Đức **1.234,50**, nên tự viết mẫu chuẩn **#.##0,00**. Trong **applyPattern**, dấu **.** vẫn là dấu phần thập phân của cú pháp chuẩn; mẫu này có thể sai. Hãy dùng **#,##0.00** với **DecimalFormatSymbols.getInstance(Locale.GERMANY)**, hoặc gọi **applyLocalizedPattern** nếu thật sự có localized pattern.
+Developers see the German number **1.234,50** and write a standard pattern **#.##0,00**. In **applyPattern**, **.** is still the standard syntax decimal point; this pattern can fail or behave wrongly. Use **#,##0.00** with **DecimalFormatSymbols.getInstance(Locale.GERMANY)**, or call **applyLocalizedPattern** if you genuinely have a localized pattern.
 
-### Lỗi 2: Dùng constructor không truyền symbols trong server
+### Mistake 2: Using the no-symbols constructor on a server
 
-**new DecimalFormat("#,##0.00")** lấy symbols mặc định của JVM; dev, CI và server có thể tạo output khác nhau. Với dữ liệu phục vụ người dùng, truyền locale đã resolve; với dữ liệu máy, dùng hợp đồng biểu diễn cố định.
+**new DecimalFormat("#,##0.00")** picks up the JVM's default symbols; dev, CI, and servers can produce different outputs. For user-facing data, pass the resolved locale; for machine data, use a fixed representation contract.
 
-### Lỗi 3: Chỉ sửa DecimalFormatSymbols cũ rồi nghĩ formatter đã đổi
+### Mistake 3: Modifying old DecimalFormatSymbols and assuming the formatter updated
 
-Vì DecimalFormat quản lý cấu hình symbols của mình, hãy dùng **setDecimalFormatSymbols(...)** khi muốn cập nhật instance có sẵn. Không dựa vào việc sửa object nằm ngoài formatter sau lúc khởi tạo.
+Since DecimalFormat manages its own symbol configuration, use **setDecimalFormatSymbols(...)** when updating an existing instance. Do not rely on mutating an object external to the formatter after initialization.
 
-### Lỗi 4: Nhầm dấu nhóm với dấu thập phân khi parse
+### Mistake 4: Confusing grouping and decimal separators when parsing
 
-Chuỗi **1,234** có thể là một nghìn hai trăm ba mươi tư theo en-US, nhưng là một phẩy hai ba bốn theo de-DE. Parse dùng symbols sai có thể đổi ý nghĩa số. Phải biết locale của **dữ liệu đầu vào**, không tự lấy locale server.
+The string **1,234** could mean one thousand two hundred thirty-four in en-US, or one point two three four in de-DE. Parsing with the wrong symbols can change the number's meaning. You must know the locale of the **input data**, not blindly use the server locale.
 
-### Lỗi 5: Ghi cứng symbol tiền tệ nhưng quên mã tiền
+### Mistake 5: Hardcoding a currency symbol and forgetting the currency code
 
-Thêm một ký hiệu **$** trước số không nói rõ USD, CAD, AUD hoặc loại tiền nào. Nên giữ **Currency** và đơn vị giao dịch tường minh; chọn cách hiển thị theo yêu cầu sản phẩm và locale.
+Prepending a **$** sign before a number does not specify USD, CAD, AUD, or which currency it is. Keep **Currency** and the transaction unit explicit; choose display formatting per product requirements and locale.
 
-### Lỗi 6: Cho rằng setCurrency đã chuyển tỷ giá
+### Mistake 6: Assuming setCurrency converts exchange rates
 
-Đặt Currency thành JPY chỉ thay metadata/ký hiệu định dạng; nó không tính lại số tiền. Việc đổi tỷ giá cần nguồn giá và phép tính nghiệp vụ riêng.
+Setting Currency to JPY only changes metadata/formatting symbols; it does not recalculate the monetary amount. Currency conversion requires rate sources and separate business math.
 
-### Lỗi 7: Mặc định làm tròn không đúng chính sách
+### Mistake 7: Relying on a default rounding mode that violates policy
 
-Một formatter mặc định dùng **HALF_EVEN**, nhưng yêu cầu nghiệp vụ là **HALF_UP** hoặc làm tròn về số bước cụ thể. Hãy thiết lập RoundingMode tường minh và dùng BigDecimal cho phép tính chính xác.
+A default formatter uses **HALF_EVEN**, whereas business rules may require **HALF_UP** or rounding to specific increments. Set RoundingMode explicitly and use BigDecimal for exact calculations.
 
-### Lỗi 8: Tin parse(String) đã kiểm tra hết chuỗi
+### Mistake 8: Trusting parse(String) to have validated the whole string
 
-Parse có thể thành công với tiền tố hợp lệ và bỏ phần đuôi. Với dữ liệu nhập cần strict, kiểm tra ParsePosition và ràng buộc khác. Không chỉ kiểm tra **parsed != null**.
+Parse can succeed on a valid prefix and leave trailing text behind. For strict input, check ParsePosition and additional constraints. Do not check **parsed != null** alone.
 
-### Lỗi 9: Dùng DecimalFormat chung giữa nhiều luồng
+### Mistake 9: Sharing DecimalFormat across multiple threads
 
-**DecimalFormat** là mutable và không được coi là thread-safe. Đổi pattern, symbols, rounding hoặc parsing options trong khi luồng khác gọi format có thể gây lỗi không ổn định. Trong server, tạo instance riêng theo request/luồng hoặc đồng bộ đầy đủ; không tự ý thay JVM default để điều khiển formatter của từng người dùng.
+**DecimalFormat** is mutable and is not considered thread-safe. Changing patterns, symbols, rounding, or parsing options while another thread calls format can cause erratic bugs. On servers, create instances per request/thread or synchronize thoroughly; do not alter the JVM default to control per-user formatters.
 
-### Lỗi 10: Nhầm format dữ liệu máy với hiển thị người dùng
+### Mistake 10: Mixing up machine data formats with user display
 
-Kết quả **12.345,60** có thể hoàn toàn đúng cho người Đức, nhưng file API/CSV máy đọc có thể yêu cầu **12345.60**. Định nghĩa hợp đồng dữ liệu trước, chọn formatter theo mục đích, không lấy locale ngẫu nhiên của máy tạo file.
+The result **12.345,60** may be completely right for German users, while machine-readable API/CSV files may require **12345.60**. Define the data contract first and select the formatter for its purpose rather than letting the host machine's random locale generate the file.
 
-## 17. Kiểm thử và vận hành
+## 17. Testing and operations
 
-Một bộ test cho chức năng DecimalFormat nên kiểm tra:
+A test suite for DecimalFormat functionality should verify:
 
-| Trường hợp | Điều mong đợi |
+| Case | Expected outcome |
 | --- | --- |
-| Cùng **#,##0.00** dưới en-US/de-DE | Dấu nhóm/thập phân khác, giá trị số giữ nguyên |
-| Cùng pattern với symbols tùy chỉnh | Ký tự do setters quyết định |
-| Pattern **0000**, **0.##**, **0.00** | Phân biệt chữ số bắt buộc và tùy chọn |
-| Nhánh âm **;(...)** | Tiền tố/hậu tố âm đúng |
-| **0.0%** và **0.0‰** | Multiplier đúng |
-| **¤** và mã Currency | Symbol và mã tiền không bị hiểu nhầm thành quy đổi |
-| **applyPattern** vs **applyLocalizedPattern** | Không tráo cú pháp chuẩn và bản địa hóa |
-| Parse và ParsePosition | Đọc hết dữ liệu, phát hiện phần dư |
-| **setParseBigDecimal(true)** | Số thập phân được giữ chính xác |
-| **HALF_EVEN/HALF_UP** | Rounding theo hợp đồng |
-| Locale mặc định khác nhau trên dev/CI | Kết quả với symbols tường minh không đổi |
-| Nhiều luồng cùng xử lý | Không chia sẻ formatter mutable thiếu bảo vệ |
+| Same **#,##0.00** under en-US/de-DE | Different grouping/decimal separators, numeric value unchanged |
+| Same pattern with custom symbols | Characters determined by setters |
+| Patterns **0000**, **0.##**, **0.00** | Distinguishes required vs. optional digits |
+| Negative branch **;(...)** | Correct negative prefix/suffix |
+| **0.0%** and **0.0‰** | Correct multiplier |
+| **¤** and Currency code | Symbol and currency code not mistaken for conversion |
+| **applyPattern** vs **applyLocalizedPattern** | Does not mix standard and localized syntax |
+| Parse and ParsePosition | Consumes entire input, detects trailing remainder |
+| **setParseBigDecimal(true)** | Decimal precision preserved accurately |
+| **HALF_EVEN/HALF_UP** | Rounding matches contract |
+| Different default locales on dev/CI | Results with explicit symbols remain unchanged |
+| Concurrent multi-threaded execution | No unprotected sharing of mutable formatters |
 
-Đối với snapshot test cần output chính xác, dùng symbols/locale đã chọn và kiểm soát phiên bản JDK hoặc dữ liệu CLDR khi cần. Những ký hiệu như khoảng trắng đặc biệt, dấu âm hay biểu diễn tiền tệ có thể thay đổi theo dữ liệu locale của các bản JDK; đừng khẳng định mọi chuỗi bản địa hóa luôn bất biến.
+For snapshot tests requiring exact output, use chosen symbols/locales and control the JDK version or CLDR data when necessary. Characters such as special whitespace, minus signs, or currency representations may vary across JDK locale data releases; do not assert that all localized strings are permanently immutable.
 
-## 18. Checklist lựa chọn DecimalFormat
+## 18. DecimalFormat selection checklist
 
-1. Xác định đây là **đầu ra cho con người** hay **dữ liệu trao đổi máy**.
-2. Nếu là hiển thị, chọn locale đúng của người dùng hoặc tổ chức; nếu là dữ liệu máy, theo hợp đồng định dạng bất biến.
-3. Viết **pattern chuẩn** bằng ký hiệu DecimalFormat, ví dụ **#,##0.00**.
-4. Lấy **DecimalFormatSymbols.getInstance(locale)** hoặc cấu hình symbols theo yêu cầu rõ ràng.
-5. Tạo formatter **new DecimalFormat(pattern, symbols)**; nếu thay đổi symbols của formatter đã tạo, gọi setter phù hợp.
-6. Thiết lập rounding và số chữ số thập phân, đặc biệt với tiền tệ.
-7. Giữ mã Currency và ý nghĩa số liệu riêng; không suy tỷ giá từ ký hiệu.
-8. Nếu parse, dùng locale của input, có thể dùng BigDecimal và kiểm tra hết văn bản.
-9. Không dùng cùng một DecimalFormat mutable ở nhiều request đồng thời thiếu bảo vệ.
-10. Kiểm thử âm, 0, số lớn, số nhỏ, locale khác nhau và chữ số/chuỗi đặc biệt.
-11. Phân biệt **applyPattern** với **applyLocalizedPattern**.
-12. Khi gắn vào MessageFormat, kiểm tra thời điểm formatter con được tạo và locale của chính formatter đó.
+1. Determine whether this is **human-facing output** or **machine-exchange data**.
+2. If it is for display, choose the right user or organization locale; if for machines, follow an invariant format contract.
+3. Write a **standard pattern** using DecimalFormat symbols, e.g., **#,##0.00**.
+4. Obtain **DecimalFormatSymbols.getInstance(locale)** or configure symbols explicitly as required.
+5. Create the formatter **new DecimalFormat(pattern, symbols)**; if changing symbols on an existing formatter, call the appropriate setter.
+6. Configure rounding and fractional digit counts, especially for currency.
+7. Keep the Currency code and numeric semantics separate; never infer exchange rates from symbols.
+8. When parsing, use the input's locale, consider BigDecimal, and verify the entire text was consumed.
+9. Do not share a single mutable DecimalFormat across concurrent requests without protection.
+10. Test negatives, zero, large numbers, small numbers, different locales, and special digits/strings.
+11. Distinguish **applyPattern** from **applyLocalizedPattern**.
+12. When embedding in MessageFormat, check when child formatters are created and their own locale.
 
-## 19. Ghi nhớ
+## 19. Key takeaways
 
-**Pattern của DecimalFormat mô tả cấu trúc số; DecimalFormatSymbols quyết định ký hiệu được hiển thị và nhận khi parse.** Mẫu chuẩn **#,##0.00** có thể cho **12,345.60** hoặc **12.345,60** tùy symbols. Các setter như **setRoundingMode**, **setGroupingUsed** và **setDecimalFormatSymbols** có thể thay đổi hành vi sau khi tạo formatter.
+**DecimalFormat patterns describe number structure; DecimalFormatSymbols determines the characters displayed and accepted when parsing.** The standard pattern **#,##0.00** can yield **12,345.60** or **12.345,60** depending on symbols. Setters such as **setRoundingMode**, **setGroupingUsed**, and **setDecimalFormatSymbols** can alter behavior after creating the formatter.
 
-Hãy giữ dữ liệu số có kiểu chính xác, truyền locale tường minh cho phần hiển thị, không nhầm localized pattern với pattern chuẩn, bảo vệ quá trình parse và định nghĩa quy tắc rounding/tiền tệ theo nghiệp vụ. Khi các quyết định đó được tách bạch và kiểm thử, DecimalFormat trở thành công cụ ổn định, có thể dự đoán trong ứng dụng Java 17+ đa ngôn ngữ.
+Keep numeric data properly typed, pass explicit locales for display, do not confuse localized patterns with standard patterns, guard your parsing logic, and define rounding/currency rules by business policy. Once those decisions are separated and tested, DecimalFormat becomes a stable, predictable tool in multilingual Java 17+ applications.

@@ -1,43 +1,43 @@
-# --add-opens cho deep reflection
+# --add-opens for Deep Reflection
 
-## 1. Vấn đề truy cập reflection trong JPMS
+## 1. The Reflection Access Problem in JPMS
 
-Java Reflection cho phép chương trình khám phá class, field, method và constructor lúc runtime. Reflection thông thường có thể đọc metadata public; deep reflection còn cần truy cập thành viên không public, chẳng hạn private field hoặc private constructor.
+Java Reflection allows a program to inspect classes, fields, methods, and constructors at runtime. Standard reflection can read public metadata; deep reflection also requires accessing non-public members, such as private fields or private constructors.
 
-Trước Java 9, code thường dùng `setAccessible(true)` để yêu cầu bỏ qua kiểm tra truy cập Java. Từ Java Platform Module System (JPMS), quyền truy cập còn chịu sự kiểm soát của ranh giới module. Một package thuộc named module có thể không được mở cho module đang thực hiện reflection, dù class và member đã được tìm thấy.
+Before Java 9, code commonly used `setAccessible(true)` to request bypassing Java access checks. Since the Java Platform Module System (JPMS), access is also governed by module boundaries. A package belonging to a named module might not be opened to the module performing reflection, even when the class and member have been found.
 
-Ví dụ, framework cần đọc private field trong `java.lang.String`. Trên JDK hiện đại, lời gọi `Field.setAccessible(true)` có thể ném `InaccessibleObjectException` vì package `java.lang` của module `java.base` không được mở cho module của framework.
+For example, a framework needs to read a private field in `java.lang.String`. On modern JDKs, calling `Field.setAccessible(true)` can throw `InaccessibleObjectException` because package `java.lang` of module `java.base` is not open to the framework's module.
 
-Tùy chọn JVM `--add-opens` cho phép mở một package cụ thể của module nguồn cho module đích tại runtime. Đây là cơ chế tương thích hữu ích khi thư viện cũ hoặc framework cần deep reflection vào package chưa được mở sẵn.
+The JVM option `--add-opens` allows opening a specific package of a source module to a target module at runtime. This is a useful compatibility mechanism when legacy libraries or frameworks need deep reflection into packages that are not already open.
 
-## 2. Cú pháp của --add-opens
+## 2. Syntax of --add-opens
 
-Cú pháp tổng quát:
+General syntax:
 
 ~~~text
 --add-opens source-module/package=target-module
 ~~~
 
-Có thể mở cho nhiều module đích bằng danh sách phân tách dấu phẩy:
+You can open a package to multiple target modules using a comma-separated list:
 
 ~~~text
 --add-opens source-module/package=target-module-1,target-module-2
 ~~~
 
-Các thành phần:
+Components:
 
-- `source-module`: tên module sở hữu package cần mở, ví dụ `java.base`.
-- `package`: tên package đầy đủ, ví dụ `java.lang`; không thêm dấu gạch chéo ở đầu và không dùng wildcard.
-- `target-module`: module chứa code thực hiện deep reflection, ví dụ `com.acme.reflector`.
-- `ALL-UNNAMED`: ký hiệu đặc biệt đại diện cho tất cả unnamed module, thường là code được nạp từ classpath.
+- `source-module`: name of the module that owns the package to open, for example `java.base`.
+- `package`: full package name, for example `java.lang`; do not add a leading slash and do not use wildcards.
+- `target-module`: the module containing the code performing deep reflection, for example `com.acme.reflector`.
+- `ALL-UNNAMED`: special symbol representing all unnamed modules, typically code loaded from the classpath.
 
-Ví dụ mở package `java.lang` của `java.base` cho ứng dụng chạy trên classpath:
+Example opening package `java.lang` of `java.base` for an application running on the classpath:
 
 ~~~bash
 java --add-opens=java.base/java.lang=ALL-UNNAMED -jar app.jar
 ~~~
 
-Ví dụ mở cùng package cho một named module:
+Example opening the same package for a named module:
 
 ~~~bash
 java \
@@ -46,39 +46,39 @@ java \
   --module com.acme.reflector/com.acme.reflector.Main
 ~~~
 
-Hãy xác định đúng module đích. Nếu framework nằm trong unnamed module, dùng `ALL-UNNAMED`. Nếu framework là named module, mở cho tên module đó. Mở cho sai target có thể khiến flag được chấp nhận nhưng code thực hiện reflection vẫn không có quyền truy cập.
+Be sure to identify the correct target module. If the framework resides in an unnamed module, use `ALL-UNNAMED`. If the framework is a named module, open it to that module's name. Opening to the wrong target can cause the flag to be accepted while the code performing reflection still lacks access.
 
-## 3. Hiểu chiều mở package
+## 3. Understanding the Direction of Opening a Package
 
-Một cách dễ nhầm là đảo ngược module nguồn và module đích.
+An easy mistake to make is reversing the source module and target module.
 
-Giả sử code của ứng dụng nằm trong module `com.acme.reflector` và cần truy cập private member của class thuộc `java.lang`:
+Suppose application code resides in module `com.acme.reflector` and needs to access a private member of a class in `java.lang`:
 
 ~~~text
-Module nguồn: java.base
-Package nguồn: java.lang
-Module đích: com.acme.reflector
+Source module: java.base
+Source package: java.lang
+Target module: com.acme.reflector
 ~~~
 
-Cấu hình đúng:
+Correct configuration:
 
 ~~~text
 --add-opens=java.base/java.lang=com.acme.reflector
 ~~~
 
-Module đứng trước dấu gạch chéo là module chứa package được mở. Module đứng sau dấu bằng là module được cấp quyền deep reflection vào package đó.
+The module before the slash is the module containing the package being opened. The module after the equals sign is the module granted permission for deep reflection into that package.
 
-Nếu ứng dụng chạy bằng classpath, code phản chiếu thuộc unnamed module:
+If the application runs on the classpath, the reflecting code belongs to an unnamed module:
 
 ~~~text
 --add-opens=java.base/java.lang=ALL-UNNAMED
 ~~~
 
-`ALL-UNNAMED` chỉ có ý nghĩa ở vị trí module đích. Nó bao gồm các unnamed module trong JVM, kể cả những unnamed module được tạo ra sau khi JVM khởi động. Không dùng nó làm tên module nguồn.
+`ALL-UNNAMED` is meaningful only in the target module position. It includes unnamed modules in the JVM, including unnamed modules created after the JVM starts. Do not use it as the source module name.
 
-## 4. Ví dụ thực hành với private member
+## 4. Hands-On Example with a Private Member
 
-Đoạn chương trình sau thử bật quyền truy cập cho field nội bộ `value` của `String`:
+The following program attempts to enable access to the internal `value` field of `String`:
 
 ~~~java
 import java.lang.reflect.Field;
@@ -93,7 +93,7 @@ public class ReflectiveAccess {
 
         if (!accessible) {
             throw new IllegalStateException(
-                    "Package java.lang chưa được mở cho module của ứng dụng");
+                    "Package java.lang is not open to the application's module");
         }
 
         System.out.println("Deep reflection access is enabled");
@@ -101,28 +101,28 @@ public class ReflectiveAccess {
 }
 ~~~
 
-Biên dịch và chạy trên classpath:
+Compile and run on the classpath:
 
 ~~~bash
 javac ReflectiveAccess.java
 java ReflectiveAccess
 ~~~
 
-Trên JDK hiện đại, nếu package chưa được mở, `trySetAccessible()` trả về `false`. Nếu gọi trực tiếp `setAccessible(true)` trong tình huống không được phép, chương trình có thể nhận `InaccessibleObjectException`.
+On modern JDKs, if the package is not open, `trySetAccessible()` returns `false`. If `setAccessible(true)` is called directly in a disallowed situation, the program may receive an `InaccessibleObjectException`.
 
-Chạy lại với tùy chọn:
+Run again with the option:
 
 ~~~bash
 java --add-opens=java.base/java.lang=ALL-UNNAMED ReflectiveAccess
 ~~~
 
-Lúc này, `trySetAccessible()` có thể trả về `true` vì module `java.base` đã mở package `java.lang` cho unnamed module chứa chương trình.
+Now `trySetAccessible()` can return `true` because module `java.base` has opened package `java.lang` to the unnamed module containing the program.
 
-Ví dụ chỉ kiểm tra khả năng bật quyền truy cập. Không nên phụ thuộc vào cấu trúc nội bộ của `String` trong ứng dụng thực tế: field và cách biểu diễn dữ liệu có thể thay đổi giữa các phiên bản JDK. Việc được phép truy cập một field cũng không có nghĩa mọi thao tác đọc hoặc ghi đều được JVM hỗ trợ.
+This example only checks the ability to enable access. Do not depend on the internal structure of `String` in real applications: fields and data representation can change between JDK versions. Being permitted to access a field also does not mean every read or write operation is supported by the JVM.
 
-## 5. Kiểm tra trạng thái mở bằng Module API
+## 5. Checking Open Status with the Module API
 
-Có thể kiểm tra trạng thái mở của package từ chính JVM bằng `Module.isOpen(String, Module)`.
+You can check a package's open status directly from the JVM using `Module.isOpen(String, Module)`.
 
 ~~~java
 public class CheckOpenPackage {
@@ -139,29 +139,29 @@ public class CheckOpenPackage {
 }
 ~~~
 
-Khi chạy classpath, `targetModule.getName()` là `null`, vì unnamed module không có tên. Nếu dùng `--add-opens=java.base/java.lang=ALL-UNNAMED`, kiểm tra `isOpen` với module đích sẽ cho kết quả `true`.
+When running on the classpath, `targetModule.getName()` is `null`, because unnamed modules have no name. If `--add-opens=java.base/java.lang=ALL-UNNAMED` is used, checking `isOpen` with the target module returns `true`.
 
-Có thể dùng overload `Module.isOpen(String)` để kiểm tra package có được mở không giới hạn cho mọi module hay không. Khi cần xác minh quyền giữa hai module cụ thể, nên dùng overload nhận module đích.
+You can use the `Module.isOpen(String)` overload to check whether a package is open unconditionally to all modules. When you need to verify permissions between two specific modules, use the overload that takes the target module.
 
-Phân biệt hai loại thông tin:
+Distinguish between two types of information:
 
-- `ModuleDescriptor.opens()` phản ánh các chỉ thị `opens` được khai báo trong descriptor.
-- `Module.isOpen(packageName, targetModule)` phản ánh khả năng truy cập thực tế tại runtime, bao gồm các quyền mở được cấp động bằng tùy chọn JVM.
+- `ModuleDescriptor.opens()` reflects the `opens` directives declared in the descriptor.
+- `Module.isOpen(packageName, targetModule)` reflects actual runtime accessibility, including open permissions granted dynamically via JVM options.
 
-Do đó, một package có thể được mở bởi `--add-opens` dù file `module-info.java` gốc không khai báo `opens` cho package đó.
+Therefore, a package can be opened by `--add-opens` even if the original `module-info.java` file does not declare `opens` for that package.
 
-## 6. --add-opens khác gì opens và exports?
+## 6. How Does --add-opens Differ from opens and exports?
 
-Ba cơ chế này liên quan đến module access nhưng phục vụ các mục đích khác nhau.
+These three mechanisms relate to module access but serve different purposes.
 
-| Cơ chế | Phạm vi | Mục đích |
+| Mechanism | Scope | Purpose |
 | --- | --- | --- |
-| `exports package` | Khai báo trong `module-info.java` | Cho phép module khác truy cập public API của package theo quy tắc Java thông thường. |
-| `opens package` | Khai báo trong `module-info.java` | Mở package cho deep reflection ở runtime. |
-| `--add-opens` | Tùy chọn JVM lúc khởi chạy | Cấp quyền mở package cho module đích mà không sửa descriptor của module nguồn. |
-| `--add-exports` | Tùy chọn JVM lúc khởi chạy | Cho phép truy cập public types trong package chưa export; không thay thế quyền deep reflection. |
+| `exports package` | Declared in `module-info.java` | Allows other modules to access the public API of the package under normal Java rules. |
+| `opens package` | Declared in `module-info.java` | Opens the package for deep reflection at runtime. |
+| `--add-opens` | JVM option at launch | Grants open access to a package for a target module without modifying the source module's descriptor. |
+| `--add-exports` | JVM option at launch | Allows accessing public types in an unexported package; does not replace deep reflection permissions. |
 
-Ví dụ module khai báo:
+Example module declaration:
 
 ~~~java
 module com.acme.domain {
@@ -170,48 +170,48 @@ module com.acme.domain {
 }
 ~~~
 
-Module khác có thể sử dụng public API trong `com.acme.domain.api`. Framework `com.acme.json` có thể deep reflection vào `com.acme.domain.model`.
+Other modules can use the public API in `com.acme.domain.api`. The `com.acme.json` framework can perform deep reflection into `com.acme.domain.model`.
 
-Nếu không thể sửa module nguồn, có thể mở package tại runtime:
+If you cannot modify the source module, you can open the package at runtime:
 
 ~~~bash
 java --add-opens=com.acme.domain/com.acme.domain.model=com.acme.json ...
 ~~~
 
-Nếu code cần tham chiếu trực tiếp một public class nằm trong package không export, hãy xem xét `--add-exports`. Nếu code cần truy cập private field hoặc private method qua reflection, dùng `--add-opens`.
+If code needs to directly reference a public class in an unexported package, consider `--add-exports`. If code needs to access a private field or private method via reflection, use `--add-opens`.
 
-`--add-opens` không cấp quyền import hoặc gọi trực tiếp một API nội bộ khi biên dịch. Nó cũng không thay thế `requires`, không thêm module dependency và không làm package trở thành public API.
+`--add-opens` does not grant permission to import or directly call an internal API at compile time. It also does not replace `requires`, does not add a module dependency, and does not turn a package into a public API.
 
-## 7. Khi nào cần --add-opens?
+## 7. When Is --add-opens Needed?
 
-Các tình huống thường gặp:
+Common scenarios:
 
-- Framework dependency injection cần đọc hoặc gán private field của class trong module khác.
-- ORM cần truy cập constructor hoặc field không public để ánh xạ object.
-- Serialization framework cần deep reflection để đọc trạng thái object.
-- Thư viện cũ truy cập implementation detail của JDK hoặc thư viện bên thứ ba.
-- Test framework cần truy cập private member để kiểm tra hành vi hoặc chuẩn bị fixture.
-- Plugin hoặc công cụ instrumentation cần introspection vào package của module khác.
+- A dependency injection framework needs to read or assign private fields of classes in another module.
+- An ORM needs to access non-public constructors or fields to map objects.
+- A serialization framework needs deep reflection to read object state.
+- A legacy library accesses internal implementation details of the JDK or a third-party library.
+- A test framework needs to access private members to verify behavior or prepare fixtures.
+- A plugin or instrumentation tool needs introspection into another module's package.
 
-Trước khi thêm flag, kiểm tra framework có phiên bản mới hỗ trợ JPMS hay không. Framework hiện đại có thể dùng public API, method handle hoặc yêu cầu ứng dụng mở đúng package bằng descriptor. Nếu module do chính dự án sở hữu, khai báo `opens package to target.module;` trong `module-info.java` thường giúp cấu hình được kiểm soát cùng source code.
+Before adding the flag, check whether the framework has a newer version that supports JPMS. Modern frameworks may use public APIs, method handles, or require the application to open the appropriate package in its descriptor. If the module is owned by your own project, declaring `opens package to target.module;` in `module-info.java` usually helps keep configuration managed alongside source code.
 
-Dùng `--add-opens` phù hợp khi cần cấu hình môi trường chạy, khi không thể chỉnh sửa module nguồn hoặc khi cần một giải pháp chuyển tiếp cho dependency cũ.
+Using `--add-opens` is appropriate when configuring the runtime environment, when the source module cannot be edited, or when a transitional solution is needed for a legacy dependency.
 
-## 8. Cấu hình trong môi trường build và triển khai
+## 8. Configuration in Build and Deployment Environments
 
-Tùy chọn phải được truyền cho JVM chạy ứng dụng hoặc JVM chạy test. Thêm nó vào lệnh `javac` như một compiler option thông thường không mở package cho ứng dụng chạy sau đó.
+The option must be passed to the JVM running the application or the JVM running tests. Adding it to the `javac` command as a regular compiler option does not open the package for the application when it runs afterward.
 
-### 8.1. Chạy JAR trực tiếp
+### 8.1. Running a JAR Directly
 
 ~~~bash
 java --add-opens=java.base/java.lang=ALL-UNNAMED -jar app.jar
 ~~~
 
-Đặt tùy chọn JVM trước `-jar`. Tùy chọn được truyền cho process Java được tạo bởi lệnh này.
+Place the JVM option before `-jar`. The option is passed to the Java process created by this command.
 
-### 8.2. Gradle test
+### 8.2. Gradle Tests
 
-Với Groovy DSL:
+With Groovy DSL:
 
 ~~~groovy
 tasks.withType(Test).configureEach {
@@ -219,9 +219,9 @@ tasks.withType(Test).configureEach {
 }
 ~~~
 
-Nếu chỉ một test task cần quyền mở package, hãy cấu hình đúng task đó thay vì áp dụng cho toàn bộ test suite.
+If only one test task needs package open access, configure that specific task instead of applying it to the entire test suite.
 
-Với task `JavaExec`:
+For the `JavaExec` task:
 
 ~~~groovy
 tasks.withType(JavaExec).configureEach {
@@ -229,11 +229,11 @@ tasks.withType(JavaExec).configureEach {
 }
 ~~~
 
-`Test` và `JavaExec` khởi chạy JVM riêng. Cấu hình cho một loại task không tự động áp dụng cho loại task còn lại.
+`Test` and `JavaExec` launch separate JVMs. Configuration for one task type does not automatically apply to the other task type.
 
 ### 8.3. Maven Surefire
 
-Trong Maven Surefire Plugin, truyền tùy chọn qua `argLine`:
+In the Maven Surefire Plugin, pass the option via `argLine`:
 
 ~~~xml
 <plugin>
@@ -245,47 +245,47 @@ Trong Maven Surefire Plugin, truyền tùy chọn qua `argLine`:
 </plugin>
 ~~~
 
-Nếu dự án đã dùng `argLine` cho JaCoCo hoặc agent khác, hãy ghép tùy chọn vào cấu hình hiện có thay vì ghi đè toàn bộ giá trị. Nếu không, agent hoặc tùy chọn JVM trước đó có thể biến mất.
+If the project already uses `argLine` for JaCoCo or another agent, append the option to the existing configuration instead of overwriting the entire value. Otherwise, previous agents or JVM options may disappear.
 
-### 8.4. IDE, container và service
+### 8.4. IDEs, Containers, and Services
 
-Trong IDE, đặt flag trong mục VM options của Run/Debug Configuration. Trong Docker hoặc service script, thêm flag vào command khởi chạy JVM thực tế.
+In an IDE, set the flag in the VM options field of the Run/Debug Configuration. In Docker or a service script, add the flag to the actual JVM launch command.
 
-Ví dụ một container chạy ứng dụng trên classpath:
+Example of a container running an application on the classpath:
 
 ~~~dockerfile
 ENTRYPOINT ["java", "--add-opens=java.base/java.lang=ALL-UNNAMED", "-jar", "/app/app.jar"]
 ~~~
 
-Đảm bảo flag được truyền tới process Java cuối cùng. Đặt flag trong một shell script hoặc cấu hình của build process không có tác dụng với JVM khác nếu build tool không chuyển tiếp tùy chọn đó.
+Ensure the flag is passed to the final Java process. Putting the flag in a shell script or build process configuration has no effect on another JVM if the build tool does not forward that option.
 
-Nếu ứng dụng tạo process Java con, mỗi process cần được cấu hình riêng. Tùy chọn của JVM cha không tự động trở thành tùy chọn khởi chạy của JVM con.
+If the application spawns child Java processes, each process must be configured separately. Options of a parent JVM do not automatically become launch options of child JVMs.
 
-## 9. Giới hạn và lưu ý bảo mật
+## 9. Limitations and Security Considerations
 
-`--add-opens` là quyền mở package khá rộng: mọi class trong module đích được cấp khả năng deep reflection vào package được chỉ định. Vì vậy:
+`--add-opens` is a fairly broad package-opening permission: every class in the target module is granted deep reflection capability into the specified package. Therefore:
 
-1. Chỉ mở package thực sự cần thiết. Tránh mở toàn bộ `java.base` hoặc nhiều package nội bộ cùng lúc.
-2. Ưu tiên chỉ định named target module thay vì `ALL-UNNAMED` nếu framework chạy trong named module.
-3. Không coi flag là cách sửa thiết kế API. Nếu code mới cần truy cập dữ liệu, hãy ưu tiên public API hoặc một SPI được module công khai.
-4. Flag không sửa `module-info.class`, không thay đổi file JAR và không tự làm dependency được resolve.
-5. Flag không bỏ qua mọi giới hạn của JVM. Ví dụ, một số field final đặc biệt vẫn không thể thay đổi bằng reflection ngay cả khi package đã được mở.
-6. Quyền mở chỉ tồn tại trong JVM được khởi chạy với flag. Một lần chạy test thành công không chứng minh production đã có cùng cấu hình.
-7. Tránh dựa vào các package nội bộ của JDK vì chúng không phải API ổn định và có thể thay đổi giữa các bản phát hành.
+1. Open only the packages that are truly needed. Avoid opening all of `java.base` or multiple internal packages at once.
+2. Prefer specifying a named target module instead of `ALL-UNNAMED` if the framework runs in a named module.
+3. Do not treat the flag as a way to fix API design. If new code needs access to data, prefer a public API or an SPI exposed by the module.
+4. The flag does not modify `module-info.class`, does not alter JAR files, and does not automatically cause dependencies to resolve.
+5. The flag does not bypass all JVM restrictions. For example, certain special final fields still cannot be modified via reflection even when the package is opened.
+6. The open permission exists only in the JVM launched with the flag. A passing test run does not prove production has the same configuration.
+7. Avoid relying on internal JDK packages because they are not stable APIs and can change across releases.
 
-Từ JDK 16/17, strong encapsulation đối với nhiều API nội bộ được thực thi chặt chẽ hơn. Tùy chọn `--illegal-access` cũ không phải giải pháp thay thế đáng tin cậy trên JDK mới. Khi gặp `InaccessibleObjectException`, hãy xác định module và package trong thông báo lỗi rồi mở đúng package cho đúng module đích nếu thật sự cần.
+Since JDK 16/17, strong encapsulation for many internal APIs has been enforced more strictly. The old `--illegal-access` option is not a reliable workaround on newer JDKs. When encountering `InaccessibleObjectException`, identify the module and package in the error message and open only the exact package for the exact target module if genuinely needed.
 
-## 10. Quy trình chẩn đoán lỗi deep reflection
+## 10. Workflow for Diagnosing Deep Reflection Errors
 
-Khi một thư viện ném `InaccessibleObjectException` hoặc `trySetAccessible()` trả về `false`, làm theo thứ tự:
+When a library throws `InaccessibleObjectException` or `trySetAccessible()` returns `false`, follow these steps in order:
 
-1. Đọc đầy đủ thông báo lỗi để xác định module nguồn và package bị chặn.
-2. Xác định module đích chứa code thực hiện reflection. Nếu code nằm trên classpath, module đích là unnamed module.
-3. Xác nhận API đang cần deep reflection. Nếu chỉ cần public API của package chưa export, đánh giá `--add-exports`.
-4. Thêm đúng một tùy chọn `--add-opens=source-module/package=target-module` vào JVM thực sự chạy code.
-5. Khởi chạy lại cùng command và xác nhận `trySetAccessible()` hoặc `Module.isOpen(package, targetModule)`.
-6. Nếu chạy qua Gradle, Maven, IDE hoặc container, kiểm tra command line của JVM con; đừng chỉ kiểm tra cấu hình build.
-7. Nếu module thuộc dự án của mình, cân nhắc khai báo `opens package to target.module;` trong descriptor để quyền truy cập được quản lý cùng source.
-8. Sau khi nâng cấp framework hoặc loại bỏ nhu cầu reflection, gỡ flag và xác nhận ứng dụng vẫn hoạt động.
+1. Read the full error message to identify the blocked source module and package.
+2. Identify the target module containing the code performing reflection. If the code is on the classpath, the target module is the unnamed module.
+3. Confirm the API actually needs deep reflection. If it only needs public APIs of an unexported package, evaluate `--add-exports`.
+4. Add exactly one `--add-opens=source-module/package=target-module` option to the JVM actually running the code.
+5. Re-run the same command and verify `trySetAccessible()` or `Module.isOpen(package, targetModule)`.
+6. If running via Gradle, Maven, an IDE, or a container, inspect the child JVM's command line; do not inspect only the build configuration.
+7. If the module belongs to your own project, consider declaring `opens package to target.module;` in the descriptor so access permissions are managed alongside source.
+8. After upgrading the framework or eliminating the need for reflection, remove the flag and verify that the application still works.
 
-Mục tiêu là mở đúng package, đúng chiều module và đúng JVM. Điều đó giúp giải quyết yêu cầu deep reflection trong khi vẫn giữ phạm vi truy cập có thể kiểm soát.
+The goal is to open the right package, in the right module direction, on the right JVM. That resolves deep reflection requirements while keeping access scope controllable.

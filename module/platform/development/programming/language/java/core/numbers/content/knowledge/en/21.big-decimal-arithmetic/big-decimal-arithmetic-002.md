@@ -1,17 +1,17 @@
-# BigDecimal.divide chính xác và số thập phân vô hạn tuần hoàn trong Java
+# Exact `BigDecimal.divide` and Non-Terminating Repeating Decimals in Java
 
-## 1. Mục tiêu và hiện tượng quan trọng
+## 1. Goals and Key Phenomenon
 
-**java.math.BigDecimal** lưu giá trị thập phân theo mô hình một **unscaled value** nguyên và một **scale**. Với cộng, trừ và nhân không có MathContext, ta có thể nhận kết quả thập phân **chính xác** trong giới hạn tài nguyên. Nhưng **phép chia** có một trở ngại toán học: thương của hai số thập phân hữu hạn có thể có **vô hạn chữ số thập phân tuần hoàn**.
+**java.math.BigDecimal** stores a decimal value using an integer **unscaled value** and a **scale**. With addition, subtraction, and multiplication without a MathContext, we can obtain an **exact** decimal result within resource limits. However, **division** has a mathematical obstacle: the quotient of two terminating decimals can have **infinitely many repeating decimal digits**.
 
-Ví dụ:
+Examples:
 
-- **1/8 = 0.125**: biểu diễn hữu hạn, BigDecimal có thể trả chính xác.
-- **1/3 = 0.333333…**: thập phân vô hạn tuần hoàn; không thể lưu thành một BigDecimal hữu hạn mà vẫn giữ giá trị 1/3 chính xác.
-- **1/6 = 0.166666…**: vô hạn tuần hoàn, dù 6 có chứa thừa số 2.
-- **3/6 = 1/2 = 0.5**: phải **rút gọn phân số** trước khi kết luận có thập phân vô hạn hay không.
+- **1/8 = 0.125**: finite representation; BigDecimal can return it exactly.
+- **1/3 = 0.333333…**: non-terminating repeating decimal; cannot be stored as a finite BigDecimal while keeping the exact value 1/3.
+- **1/6 = 0.166666…**: non-terminating repeating decimal, even though 6 contains a factor of 2.
+- **3/6 = 1/2 = 0.5**: the fraction must be **reduced** before concluding whether it has a non-terminating decimal.
 
-Trong Java:
+In Java:
 
 ~~~java
 import java.math.BigDecimal;
@@ -19,23 +19,23 @@ import java.math.BigDecimal;
 BigDecimal exact = BigDecimal.ONE.divide(new BigDecimal("8"));
 // exact = 0.125
 
-// Lệnh dưới ném ArithmeticException khi thực thi:
+// The statement below throws ArithmeticException at runtime:
 // BigDecimal recurring = BigDecimal.ONE.divide(new BigDecimal("3"));
 ~~~
 
-Đây là hành vi **đúng theo hợp đồng API**. BigDecimal không cố đoán số chữ số người dùng muốn giữ, cũng không tự chuyển kết quả không hữu hạn sang một số xấp xỉ khi gọi overload chia chính xác.
+This behavior is **according to the API contract**. BigDecimal does not try to guess how many digits the user wants to keep, nor does it silently convert a non-terminating result into an approximation when calling the exact division overload.
 
-Bài học sẽ giải thích **khi nào chia chính xác được**, cơ chế lặp vô hạn, cách lựa chọn các overload **divide**, ý nghĩa **scale**, **precision**, **MathContext**, **RoundingMode**, các ngoại lệ và cách kiểm tra bằng Java 17+.
+This lesson explains **when exact division succeeds**, the mechanism behind infinite repetition, how to choose among **divide** overloads, the meaning of **scale**, **precision**, **MathContext**, **RoundingMode**, exceptions, and how to verify them with Java 17+.
 
-## 2. Ôn lại mô hình BigDecimal
+## 2. Reviewing the BigDecimal Model
 
-Giá trị một BigDecimal có thể viết:
+The value of a BigDecimal can be written as:
 
 \[
 x = u \times 10^{-s}
 \]
 
-Trong đó **u** là unscaled integer (BigInteger) và **s** là scale (int). Ví dụ:
+Where **u** is the unscaled integer (BigInteger) and **s** is the scale (int). For example:
 
 ~~~java
 BigDecimal n = new BigDecimal("10.00");
@@ -44,9 +44,9 @@ System.out.println(n.unscaledValue()); // 1000
 System.out.println(n.scale());         // 2
 ~~~
 
-Ta có **1000 × 10^−2 = 10.00**.
+We have **1000 × 10^−2 = 10.00**.
 
-BigDecimal **immutable**: phương thức divide trả về một BigDecimal mới, không thay đổi toán hạng gốc. Kết quả có thể có **scale khác** so với kết quả của một overload khác dù cùng giá trị số học.
+BigDecimal is **immutable**: the divide method returns a new BigDecimal without modifying the original operands. A result may have a **different scale** compared to the result of another overload even with the same numeric value.
 
 ~~~java
 BigDecimal a = new BigDecimal("10.00");
@@ -57,17 +57,17 @@ System.out.println(q); // 2.50
 System.out.println(a); // 10.00
 ~~~
 
-Không được nhầm **giá trị số**, **scale** và **độ chính xác** (*precision*):
+Do not confuse **numeric value**, **scale**, and **precision**:
 
-- **Giá trị số**: 2.5.
-- **Scale** trong ví dụ: 2, nên chuỗi đại diện 2.50.
-- **Precision** của 2.50: 3 chữ số có nghĩa.
+- **Numeric value**: 2.5.
+- **Scale** in the example: 2, so the string representation is 2.50.
+- **Precision** of 2.50: 3 significant digits.
 
-Một giá trị BigDecimal với scale âm vẫn hợp lệ; có thể được hiển thị bằng dạng khoa học như **1E+3**. Điều này cũng ảnh hưởng cách xác định scale của kết quả phép chia.
+A BigDecimal value with a negative scale is still valid; it may be displayed in scientific notation such as **1E+3**. This also affects how the scale of a division result is determined.
 
-## 3. Thế nào là phép chia chính xác?
+## 3. What Is Exact Division?
 
-**Chia chính xác (exact division)** nghĩa là giá trị trả về phải bằng **đúng thương toán học** của hai số đầu vào, **không bỏ chữ số có nghĩa** do làm tròn.
+**Exact division** means the returned value must equal the **exact mathematical quotient** of the two inputs, **without discarding significant digits** through rounding.
 
 ~~~java
 BigDecimal one = BigDecimal.ONE;
@@ -76,11 +76,11 @@ BigDecimal eight = new BigDecimal("8");
 BigDecimal quotient = one.divide(eight); // 0.125
 ~~~
 
-Vì 0.125 kết thúc sau ba chữ số thập phân, một BigDecimal hữu hạn có thể biểu diễn nó chính xác.
+Because 0.125 terminates after three decimal digits, a finite BigDecimal can represent it exactly.
 
-Với một số như **1/3**, không tồn tại số chữ số thập phân hữu hạn nào biểu diễn chính xác thương. Dù cho phép 10, 100 hoặc một triệu chữ số, mọi biểu diễn hữu hạn dạng 0.333… đều khác 1/3 một lượng nhỏ.
+For a number like **1/3**, there is no finite number of decimal digits that represents the quotient exactly. Even if 10, 100, or a million digits are allowed, every finite representation of the form 0.333… differs from 1/3 by a small amount.
 
-Do đó:
+Therefore:
 
 ~~~java
 BigDecimal one = BigDecimal.ONE;
@@ -89,90 +89,90 @@ BigDecimal three = new BigDecimal("3");
 // one.divide(three) -> ArithmeticException
 ~~~
 
-Đừng diễn giải exception thành **overflow của kiểu số 64 bit** hay lỗi precision mặc định quá thấp. Đây là việc yêu cầu một **kết quả exact nhưng không tồn tại dưới dạng thập phân hữu hạn**.
+Do not interpret the exception as **64-bit numeric type overflow** or a default precision that is too low. It is a request for an **exact result that does not exist as a terminating decimal**.
 
-### Hai loại ArithmeticException cần phân biệt
+### Two Types of ArithmeticException to Distinguish
 
-Phép chia BigDecimal có thể ném ArithmeticException khi:
+BigDecimal division can throw ArithmeticException when:
 
-1. **Số chia bằng 0**: ví dụ 1/0; phép toán không xác định và BigDecimal không trả infinity/NaN.
-2. **Thương thập phân không kết thúc khi bắt buộc exact**: ví dụ 1/3 với divide(divisor) hoặc precision=0.
+1. **Divisor is 0**: e.g., 1/0; the operation is undefined and BigDecimal does not return infinity/NaN.
+2. **Non-terminating decimal quotient when exact is required**: e.g., 1/3 with divide(divisor) or precision=0.
 
-Một số overload còn có ngoại lệ khi **RoundingMode.UNNECESSARY** yêu cầu kết quả không được làm tròn nhưng scale/precision được chỉ định không đủ.
+Some overloads also throw an exception when **RoundingMode.UNNECESSARY** requires that the result not be rounded, yet the specified scale/precision is insufficient.
 
-Do đó chỉ bắt ArithmeticException rồi luôn in “số vô hạn tuần hoàn” là sai: có thể nguyên nhân là chia cho zero hoặc làm tròn bị cấm.
+Therefore, catching ArithmeticException and always printing “repeating infinite decimal” is wrong: the cause could be division by zero or prohibited rounding.
 
-## 4. Điều kiện toán học: mẫu số sau rút gọn chỉ có 2 và 5
+## 4. Mathematical Condition: Reduced Denominator Has Only Factors 2 and 5
 
-Xét phân số hữu tỉ **a/b**, với b ≠ 0. Rút gọn thành **p/q**, sao cho q > 0 và gcd(|p|, q) = 1.
+Consider a rational fraction **a/b**, with b ≠ 0. Reduce it to **p/q**, such that q > 0 and gcd(|p|, q) = 1.
 
-Phân số có biểu diễn thập phân **hữu hạn** khi và chỉ khi q có dạng:
+The fraction has a **terminating** decimal representation if and only if q has the form:
 
 \[
 q = 2^m5^n,\qquad m,n \ge 0
 \]
 
-Tức là **mẫu số sau rút gọn không có thừa số nguyên tố nào ngoài 2 và 5**.
+That is, **the reduced denominator has no prime factors other than 2 and 5**.
 
-Lý do: một số thập phân hữu hạn d chữ số sau dấu chấm có mẫu số **10^d = 2^d × 5^d**. Sau rút gọn, mọi thừa số nguyên tố của mẫu phải đến từ 2 và 5. Ngược lại, nếu q chỉ gồm 2 và 5, có thể nhân tử và mẫu để đưa mẫu thành một lũy thừa của 10.
+Reason: a terminating decimal with d digits after the decimal point has denominator **10^d = 2^d × 5^d**. After reduction, every prime factor of the denominator must come from 2 and 5. Conversely, if q consists only of 2 and 5, you can multiply numerator and denominator to turn the denominator into a power of 10.
 
-| Phân số | Sau rút gọn | Phân tích mẫu | Dạng thập phân |
+| Fraction | Reduced form | Denominator factorization | Decimal form |
 | --- | --- | --- | --- |
-| 1/2 | 1/2 | 2 | 0.5 — hữu hạn |
-| 1/8 | 1/8 | 2³ | 0.125 — hữu hạn |
-| 1/40 | 1/40 | 2³ × 5 | 0.025 — hữu hạn |
-| 3/6 | 1/2 | 2 | 0.5 — hữu hạn |
-| 1/3 | 1/3 | 3 | 0.(3) — tuần hoàn |
-| 1/6 | 1/6 | 2 × 3 | 0.1(6) — tuần hoàn |
-| 1/7 | 1/7 | 7 | 0.(142857) — tuần hoàn |
-| 22/7 | 22/7 | 7 | 3.(142857) — tuần hoàn |
+| 1/2 | 1/2 | 2 | 0.5 — terminating |
+| 1/8 | 1/8 | 2³ | 0.125 — terminating |
+| 1/40 | 1/40 | 2³ × 5 | 0.025 — terminating |
+| 3/6 | 1/2 | 2 | 0.5 — terminating |
+| 1/3 | 1/3 | 3 | 0.(3) — repeating |
+| 1/6 | 1/6 | 2 × 3 | 0.1(6) — repeating |
+| 1/7 | 1/7 | 7 | 0.(142857) — repeating |
+| 22/7 | 22/7 | 7 | 3.(142857) — repeating |
 
-Ký hiệu **0.(3)** nghĩa là chữ số 3 lặp lại mãi; **0.1(6)** là 0.16666… và **0.(142857)** là chu kỳ sáu chữ số.
+The notation **0.(3)** means the digit 3 repeats forever; **0.1(6)** is 0.16666… and **0.(142857)** has a six-digit repeating cycle.
 
-**Quan trọng:** xét **mẫu sau rút gọn**, không xét mẫu ban đầu. Trường hợp **3/6** có mẫu ban đầu chứa thừa số 3 nhưng khi rút gọn mẫu còn 2, nên phép chia exact hoàn toàn thành công.
+**Important:** examine the **reduced denominator**, not the initial denominator. The case **3/6** has an initial denominator containing factor 3, but after reduction the denominator is 2, so exact division succeeds completely.
 
-### Mở rộng sang hai BigDecimal có scale bất kỳ
+### Extending to Any Two BigDecimals with Arbitrary Scales
 
-Với:
+Given:
 
 \[
 x=u_x \times 10^{-s_x}, \qquad y=u_y \times 10^{-s_y}
 \]
 
-thì:
+then:
 
 \[
 \frac{x}{y} = \frac{u_x}{u_y} \times 10^{s_y-s_x}
 \]
 
-Nhân với một lũy thừa của 10 (chỉ mang các thừa số 2 và 5) **không thể khử những thừa số nguyên tố khác 2/5 trong mẫu sau rút gọn**. Vì vậy việc kiểm tra mẫu số của tỷ số hai **unscaled integer** cũng cho biết thương có khai triển thập phân hữu hạn hay không, miễn số chia khác 0.
+Multiplying by a power of 10 (which only carries factors of 2 and 5) **cannot eliminate prime factors other than 2/5 in the reduced denominator**. Thus checking the denominator of the ratio of the two **unscaled integers** also tells whether the quotient has a terminating decimal expansion, provided the divisor is nonzero.
 
-Đây là tính chất toán học hữu ích để giải thích, không phải lúc nào cũng cần tự cài kiểm tra: nếu chỉ muốn lấy thương exact, cứ gọi **divide(divisor)** và xử lý điều kiện lỗi theo hợp đồng.
+This is a useful mathematical property for explanation, though you do not always need to implement the check manually: if you only want the exact quotient, just call **divide(divisor)** and handle error conditions per contract.
 
-## 5. Chữ ký divide và cách chọn overload
+## 5. divide Signatures and How to Choose an Overload
 
-Các overload phổ biến của BigDecimal trong Java 17:
+Common BigDecimal overloads in Java 17:
 
-| Cách gọi | Kết quả mong muốn | Cần lưu ý |
+| Call form | Desired result | Notes |
 | --- | --- | --- |
-| **a.divide(b)** | Thương chính xác, nếu biểu diễn hữu hạn | Ném ArithmeticException với thương thập phân không kết thúc |
-| **a.divide(b, scale, mode)** | Thương có **scale được chỉ định** | Làm tròn theo mode nếu cần |
-| **a.divide(b, mode)** | Thương có **scale bằng a.scale()** | Dễ làm tròn ngoài ý muốn nếu a.scale() nhỏ |
-| **a.divide(b, mc)** | Thương làm tròn theo **precision và mode** trong MathContext | precision=0 yêu cầu exact |
-| **a.divide(b, scale, intMode)** | Overload dùng hằng integer rounding cũ | Deprecated, nên dùng enum RoundingMode |
+| **a.divide(b)** | Exact quotient, if finitely representable | Throws ArithmeticException on non-terminating decimal quotients |
+| **a.divide(b, scale, mode)** | Quotient with **specified scale** | Rounds according to mode if needed |
+| **a.divide(b, mode)** | Quotient with **scale equal to a.scale()** | Easy to round unintentionally if a.scale() is small |
+| **a.divide(b, mc)** | Quotient rounded by **precision and mode** in MathContext | precision=0 requires exact |
+| **a.divide(b, scale, intMode)** | Overload using legacy integer rounding constant | Deprecated; use enum RoundingMode |
 
-Không có một overload nào được xem là tốt nhất cho mọi bài toán. Chọn theo **yêu cầu kết quả**:
+No single overload is best for every problem. Choose according to the **result requirement**:
 
-- Nếu đòi **exact** và chỉ chấp nhận số thập phân hữu hạn: **divide(b)**.
-- Nếu cần **đúng N vị trí sau dấu thập phân**: **divide(b, scale, roundingMode)**.
-- Nếu cần **N chữ số có nghĩa** trên nhiều bậc độ lớn: **divide(b, MathContext)**.
-- Nếu ứng dụng muốn scale kết quả giống chính số bị chia: **divide(b, roundingMode)**, nhưng phải hiểu đây là một chính sách rất cụ thể.
+- If **exact** is required and only terminating decimals are accepted: **divide(b)**.
+- If **exactly N digits after the decimal point** are needed: **divide(b, scale, roundingMode)**.
+- If **N significant digits** across orders of magnitude are needed: **divide(b, MathContext)**.
+- If the application wants the result's scale to match the dividend itself: **divide(b, roundingMode)**, though you must understand this is a very specific policy.
 
-**RoundingMode** là enum thuộc **java.math**; nên dùng **RoundingMode.HALF_UP**, **HALF_EVEN**, **DOWN**, **UNNECESSARY**, v.v. thay cho các hằng BigDecimal.ROUND_* đã deprecated.
+**RoundingMode** is an enum in **java.math**; use **RoundingMode.HALF_UP**, **HALF_EVEN**, **DOWN**, **UNNECESSARY**, etc. instead of the deprecated BigDecimal.ROUND_* constants.
 
-## 6. divide(BigDecimal) — chọn khi cần exact
+## 6. divide(BigDecimal) — Choose When Exactness Is Required
 
-Ví dụ chia hữu hạn:
+Finite division example:
 
 ~~~java
 BigDecimal one = BigDecimal.ONE;
@@ -183,7 +183,7 @@ System.out.println(one.divide(eight)); // 0.125
 System.out.println(one.divide(forty)); // 0.025
 ~~~
 
-Ví dụ chia vô hạn tuần hoàn:
+Non-terminating repeating division example:
 
 ~~~java
 BigDecimal one = BigDecimal.ONE;
@@ -196,19 +196,19 @@ try {
 }
 ~~~
 
-**Đừng viết code xử lý ngoại lệ như trên để mặc nhiên tiếp tục với một số gần đúng** khi hệ thống thực sự yêu cầu phân số chính xác. Khi bài toán phải lưu thương 1/3 mà không được phép làm tròn, cần **biểu diễn phân số** (tử và mẫu BigInteger đã rút gọn), chứ BigDecimal không thể lưu toàn bộ khai triển vô hạn.
+**Do not write exception-handling code like the above to silently continue with an approximate number** when the system truly requires an exact fraction. When a problem must store the quotient 1/3 without rounding, a **fraction representation** (reduced BigInteger numerator and denominator) is needed, since BigDecimal cannot store an entire infinite expansion.
 
-### Preferred scale của phép chia exact
+### Preferred Scale of Exact Division
 
-Trong đặc tả BigDecimal, **preferred scale của phép chia** là:
+In the BigDecimal specification, the **preferred scale of division** is:
 
 \[
 s_{\text{preferred}} = s_{\text{dividend}} - s_{\text{divisor}}
 \]
 
-Nhưng **scale thực tế có thể lớn hơn** nếu cần thêm chữ số để biểu diễn thương chính xác.
+However, the **actual scale may be larger** if additional digits are needed to represent the exact quotient.
 
-Ví dụ:
+For example:
 
 ~~~java
 BigDecimal q = new BigDecimal("10.00")
@@ -218,13 +218,13 @@ System.out.println(q);         // 2.50
 System.out.println(q.scale()); // 2
 ~~~
 
-Số bị chia 10.00 có scale 2; số chia 4 có scale 0; preferred scale=2 và thương 2.50 vừa đúng yêu cầu. Với **1/8**, preferred scale là 0 nhưng để biểu diễn chính xác 0.125 phải tăng đến scale 3.
+The dividend 10.00 has scale 2; the divisor 4 has scale 0; preferred scale=2 and quotient 2.50 fits nicely. For **1/8**, preferred scale is 0, but representing 0.125 exactly requires increasing to scale 3.
 
-Không suy rằng **divide exact luôn bỏ toàn bộ số 0 cuối** hoặc luôn trả lại đúng scale của dividend: quy tắc về preferred scale và biểu diễn exact quyết định điều đó.
+Do not infer that **exact divide always strips all trailing zeros** or always returns the exact scale of the dividend: the preferred scale and exact representation rules govern this.
 
-## 7. divide(divisor, scale, RoundingMode) — số chữ số sau dấu thập phân
+## 7. divide(divisor, scale, RoundingMode) — Digits After the Decimal Point
 
-Ví dụ làm tròn thương không kết thúc:
+Example of rounding a non-terminating quotient:
 
 ~~~java
 import java.math.RoundingMode;
@@ -236,7 +236,7 @@ BigDecimal rounded = one.divide(three, 4, RoundingMode.HALF_UP);
 // 0.3333
 ~~~
 
-Overload này tạo kết quả **scale=4**, tức có 4 vị trí sau dấu chấm thập phân với cách hiểu thông thường của scale dương. Với hai chữ số:
+This overload produces a result with **scale=4**, meaning 4 positions after the decimal point under the usual interpretation of positive scale. With two digits:
 
 ~~~java
 BigDecimal two = new BigDecimal("2");
@@ -244,24 +244,24 @@ BigDecimal result = two.divide(three, 2, RoundingMode.HALF_UP);
 // 0.67
 ~~~
 
-**Scale không phải precision.** Chia 12345/3 ở scale=2 sẽ tạo số ở hai chữ số phần lẻ (ví dụ 4115.00), còn chia với MathContext precision=3 sẽ cho ba chữ số có nghĩa gần 4.12E+3.
+**Scale is not precision.** Dividing 12345/3 at scale=2 produces a number with two fractional digits (e.g., 4115.00), whereas dividing with MathContext precision=3 yields three significant digits near 4.12E+3.
 
-### Không dùng số chữ số theo thói quen
+### Do Not Pick Digit Counts by Habit
 
-Nếu đầu ra là tiền và cần 2 chữ số sau dấu thập phân, scale=2 có thể phù hợp, **sau khi** xác định quy tắc tính tiền và thời điểm làm tròn. Nhưng nếu đầu ra là tỷ lệ đo khoa học biến thiên từ 10^−12 tới 10^12, scale=2 thường không phù hợp. Phải lựa chọn chính sách trước khi gọi API.
+If the output is currency and needs 2 digits after the decimal point, scale=2 may be appropriate, **after** defining billing rules and rounding timing. However, if the output is a scientific measurement ratio varying from 10^−12 to 10^12, scale=2 is usually unsuitable. Policy must be chosen before calling the API.
 
-## 8. divide(divisor, RoundingMode) — bẫy scale ẩn
+## 8. divide(divisor, RoundingMode) — The Hidden Scale Trap
 
-Có một overload không có tham số scale:
+There is an overload without a scale parameter:
 
 ~~~java
 BigDecimal result = BigDecimal.ONE.divide(
         new BigDecimal("8"), RoundingMode.HALF_UP);
 ~~~
 
-**Kết quả là 0**, không phải 0.13. Vì **BigDecimal.ONE.scale() = 0**, overload này tạo thương với **scale=0**, rồi làm tròn 0.125 thành số nguyên gần nhất theo HALF_UP (là 0).
+**The result is 0**, not 0.13. Because **BigDecimal.ONE.scale() = 0**, this overload produces a quotient with **scale=0**, then rounds 0.125 to the nearest integer using HALF_UP (which is 0).
 
-So sánh:
+Compare:
 
 ~~~java
 BigDecimal a = BigDecimal.ONE;           // scale 0
@@ -272,16 +272,16 @@ System.out.println(a.divide(eight, RoundingMode.HALF_UP)); // 0
 System.out.println(b.divide(eight, RoundingMode.HALF_UP)); // 0.13
 ~~~
 
-Hai số bị chia **1** và **1.00** có cùng giá trị số học; **chỉ khác scale**, nhưng overload này cho kết quả đã làm tròn khác nhau.
+The two dividends **1** and **1.00** have the same numeric value; **only their scales differ**, yet this overload gives different rounded results.
 
-Đây là lý do khi cần một số chữ số phần thập phân rõ ràng, nên dùng **divide(divisor, scale, roundingMode)** thay vì phụ thuộc vào scale của đầu vào.
+That is why when you need an explicit number of fractional digits, you should use **divide(divisor, scale, roundingMode)** instead of relying on the input's scale.
 
-## 9. divide(divisor, MathContext) — số chữ số có nghĩa
+## 9. divide(divisor, MathContext) — Significant Digits
 
-**MathContext** mang hai thông số:
+**MathContext** carries two settings:
 
-- **precision**: số chữ số có nghĩa cho kết quả.
-- **roundingMode**: quy tắc làm tròn nếu phải bỏ chữ số.
+- **precision**: number of significant digits for the result.
+- **roundingMode**: rounding rule if digits must be discarded.
 
 ~~~java
 import java.math.MathContext;
@@ -292,47 +292,47 @@ BigDecimal q = BigDecimal.ONE.divide(new BigDecimal("3"), mc);
 // 0.33333
 ~~~
 
-**MathContext(5)** ở đây giữ 5 chữ số có nghĩa, không phải 5 chữ số sau dấu chấm cho mọi thương.
+Here **MathContext(5)** keeps 5 significant digits, not 5 digits after the decimal point for every quotient.
 
-Ví dụ khác:
+Another example:
 
 ~~~java
 BigDecimal q = new BigDecimal("12345")
         .divide(new BigDecimal("3"),
                 new MathContext(3, RoundingMode.HALF_UP));
-// 4.12E+3 (giá trị 4120)
+// 4.12E+3 (value 4120)
 ~~~
 
-Kết quả chính xác của 12345/3 là 4115; chỉ giữ ba chữ số có nghĩa và HALF_UP thì làm tròn thành 4120, biểu diễn khoa học **4.12E+3**.
+The exact result of 12345/3 is 4115; keeping only three significant digits with HALF_UP rounds it to 4120, displayed scientifically as **4.12E+3**.
 
-### MathContext.UNLIMITED không giải quyết khai triển vô hạn
+### MathContext.UNLIMITED Does Not Solve Infinite Expansions
 
 ~~~java
-// Vẫn ném ArithmeticException:
+// Still throws ArithmeticException:
 BigDecimal.ONE.divide(
         new BigDecimal("3"), MathContext.UNLIMITED);
 ~~~
 
-**MathContext.UNLIMITED** có **precision=0**, nghĩa là yêu cầu tính exact cho các phương thức tương ứng. Nó **không** có nghĩa BigDecimal được phép sinh vô hạn chữ số rồi chạy mãi. Với 1/3 không kết thúc, Java ném ArithmeticException.
+**MathContext.UNLIMITED** has **precision=0**, meaning it requests exact computation for the corresponding methods. It does **not** mean BigDecimal is allowed to generate infinitely many digits and run forever. For non-terminating 1/3, Java throws ArithmeticException.
 
-Ngược lại, **MathContext.DECIMAL32**, **DECIMAL64**, **DECIMAL128** đặt precision hữu hạn theo các cấu hình có sẵn; chúng là quy tắc tính toán thập phân, không tự biến BigDecimal thành một kiểu primitive cố định.
+By contrast, **MathContext.DECIMAL32**, **DECIMAL64**, and **DECIMAL128** set finite precision using built-in configurations; they are decimal arithmetic rules and do not turn BigDecimal into a fixed primitive type.
 
-## 10. RoundingMode: chọn quy tắc khi phải làm tròn
+## 10. RoundingMode: Choosing the Rule When Rounding Is Required
 
-Các lựa chọn quan trọng:
+Key options:
 
-| RoundingMode | Ý nghĩa ngắn |
+| RoundingMode | Short meaning |
 | --- | --- |
-| **HALF_UP** | Trung điểm làm tròn xa 0 |
-| **HALF_EVEN** | Trung điểm chọn chữ số cuối được giữ là chẵn |
-| **HALF_DOWN** | Trung điểm làm tròn về 0 |
-| **DOWN** | Khi cần bỏ phần dư, làm tròn về 0 |
-| **UP** | Nếu có phần dư, làm tròn xa 0 |
-| **FLOOR** | Về âm vô cùng |
-| **CEILING** | Về dương vô cùng |
-| **UNNECESSARY** | Không cho phép làm tròn; nếu cần sẽ ném ArithmeticException |
+| **HALF_UP** | Midpoint rounds away from 0 |
+| **HALF_EVEN** | Midpoint chooses an even last retained digit |
+| **HALF_DOWN** | Midpoint rounds toward 0 |
+| **DOWN** | When discarding a remainder, rounds toward 0 |
+| **UP** | If there is any remainder, rounds away from 0 |
+| **FLOOR** | Toward negative infinity |
+| **CEILING** | Toward positive infinity |
+| **UNNECESSARY** | No rounding allowed; throws ArithmeticException if needed |
 
-Sự khác biệt giữa HALF_UP và HALF_EVEN ở **đúng trung điểm**:
+The difference between HALF_UP and HALF_EVEN at the **exact midpoint**:
 
 ~~~java
 BigDecimal one = BigDecimal.ONE;
@@ -344,53 +344,53 @@ BigDecimal halfUp = one.divide(
         eight, 2, RoundingMode.HALF_UP);   // 0.13
 ~~~
 
-Thương chính xác 0.125 nằm chính giữa 0.12 và 0.13. HALF_EVEN chọn kết quả có chữ số cuối **2 (chẵn)**; HALF_UP chọn kết quả **xa 0**, tức 0.13. Với giá trị âm, quy tắc hướng về zero/xa zero phải được hiểu theo dấu, không bằng cách cắt chuỗi.
+The exact quotient 0.125 lies directly halfway between 0.12 and 0.13. HALF_EVEN picks the result ending in **2 (even)**; HALF_UP picks the result **away from 0**, which is 0.13. For negative values, rules toward/away from zero must be understood according to sign, not by string truncation.
 
-### UNNECESSARY là ràng buộc chất lượng dữ liệu
+### UNNECESSARY Is a Data Quality Constraint
 
 ~~~java
 BigDecimal exactAtScale = BigDecimal.ONE.divide(
         new BigDecimal("8"), 3, RoundingMode.UNNECESSARY);
-// 0.125, không phải làm tròn
+// 0.125, no rounding needed
 
-// Ném ArithmeticException vì cần làm tròn:
+// Throws ArithmeticException because rounding is needed:
 BigDecimal.ONE.divide(
         new BigDecimal("3"), 2, RoundingMode.UNNECESSARY);
 ~~~
 
-Dùng UNNECESSARY khi nghiệp vụ **không chấp nhận mất chữ số** và muốn phát hiện trường hợp không đáp ứng được scale/precision đã định, thay vì vô tình làm tròn.
+Use UNNECESSARY when the business domain **cannot accept losing digits** and wants to detect cases that do not fit the specified scale/precision rather than accidentally rounding.
 
-## 11. Chia cho zero, zero bị chia và các ngoại lệ
+## 11. Dividing by Zero, Dividing Zero, and Exceptions
 
-| Phép toán | Hành vi |
+| Operation | Behavior |
 | --- | --- |
-| **0 / 3** | Kết quả exact bằng 0 |
+| **0 / 3** | Exact result equal to 0 |
 | **1 / 0** | ArithmeticException (division by zero) |
 | **0 / 0** | ArithmeticException (undefined division) |
-| **1 / 3** qua divide exact | ArithmeticException vì khai triển không kết thúc |
-| **1 / 3** qua MathContext.UNLIMITED | ArithmeticException vì vẫn yêu cầu exact |
-| **1 / 3** qua divide(scale=2, UNNECESSARY) | ArithmeticException vì cần làm tròn |
-| **1 / 3** qua divide(scale=2, HALF_UP) | 0.33 |
+| **1 / 3** via exact divide | ArithmeticException because expansion does not terminate |
+| **1 / 3** via MathContext.UNLIMITED | ArithmeticException because exact is still required |
+| **1 / 3** via divide(scale=2, UNNECESSARY) | ArithmeticException because rounding is required |
+| **1 / 3** via divide(scale=2, HALF_UP) | 0.33 |
 
-BigDecimal **không có NaN và Infinity** như double. Phép chia zero không trả Double.POSITIVE_INFINITY hoặc NaN mà **ném ngoại lệ**.
+BigDecimal **does not have NaN and Infinity** like double. Dividing by zero does not return Double.POSITIVE_INFINITY or NaN; instead it **throws an exception**.
 
-Đối với mã production, đừng gom mọi ArithmeticException từ divide thành cùng thông báo. Thường nên kiểm tra **divisor.signum() == 0** trước để phân biệt đầu vào không hợp lệ. Những chính sách lỗi và làm tròn cần được thể hiện rõ với người gọi.
+For production code, do not lump every ArithmeticException from divide into the same message. It is usually good practice to check **divisor.signum() == 0** first to distinguish invalid input. Error and rounding policies should be clear to callers.
 
-## 12. Ví dụ kiểm tra trước khả năng kết thúc thập phân
+## 12. Example of Pre-Checking Decimal Termination
 
-Khi không cần thử chia rồi bắt exception, ta có thể dựa trên tiêu chí mẫu số sau rút gọn chỉ gồm 2, 5.
+When you do not want to attempt division and catch an exception, you can rely on the criterion that the reduced denominator contains only 2 and 5.
 
-Với hai BigDecimal hữu hạn:
+Given two finite BigDecimals:
 
-1. Lấy **unscaledValue()** của số bị chia và số chia.
-2. Với số chia bằng 0, từ chối.
-3. Với tử bằng 0 và mẫu khác 0, thương là 0 và hữu hạn.
-4. Rút gọn tỷ số hai unscaled integer bằng gcd.
-5. Từ mẫu rút gọn, loại toàn bộ thừa số 2 và 5; nếu còn 1, thương có dạng thập phân hữu hạn.
+1. Obtain **unscaledValue()** of dividend and divisor.
+2. For a divisor equal to 0, reject it.
+3. For a numerator equal to 0 and nonzero denominator, the quotient is 0 and terminating.
+4. Reduce the ratio of the two unscaled integers using gcd.
+5. From the reduced denominator, strip all factors of 2 and 5; if 1 remains, the quotient has a terminating decimal form.
 
-Sự khác nhau về scale giữa hai BigDecimal chỉ tương ứng việc nhân với lũy thừa của 10, nên không đưa thêm thừa số nguyên tố ngoài 2 và 5.
+Scale differences between two BigDecimals only correspond to multiplying by a power of 10, so they introduce no prime factors other than 2 and 5.
 
-Phương thức sau chỉ minh họa **tính kết thúc thập phân**, không tính thương:
+The following method only illustrates **decimal termination**, without computing the quotient:
 
 ~~~java
 import java.math.BigDecimal;
@@ -422,23 +422,23 @@ static boolean hasTerminatingDecimal(BigDecimal a, BigDecimal b) {
 }
 ~~~
 
-Đây là **phương thức phải đặt bên trong class** và cần import java.math.BigDecimal/BigInteger. Nó trả:
+This is a **method that must be placed inside a class** and requires importing java.math.BigDecimal/BigInteger. It returns:
 
-- **true** với 1/40, 3/6, 0/3.
-- **false** với 1/6 hoặc 1/3.
-- **ArithmeticException** với số chia 0.
+- **true** for 1/40, 3/6, 0/3.
+- **false** for 1/6 or 1/3.
+- **ArithmeticException** for divisor 0.
 
-**Giới hạn thực tế:** kết luận toán học về khai triển hữu hạn **không bảo đảm** phép chia thực tế luôn hoàn tất với bộ nhớ và scale hữu hạn của Java nếu đầu vào quá lớn, scale cực trị hoặc vượt giới hạn triển khai. Với ứng dụng thông thường, việc gọi **divide** trực tiếp vẫn đơn giản hơn; tự triển khai bộ phân tích mẫu chỉ cần thiết khi tiêu chí là một phần nghiệp vụ hoặc muốn giải thích lý do làm tròn.
+**Practical limitation:** the mathematical conclusion about finite expansion **does not guarantee** that an actual division will always complete within Java's finite memory and scale limits if inputs are huge, scales are extreme, or implementation limits are exceeded. For typical applications, calling **divide** directly is simpler; implementing a custom denominator analyzer is only needed when the criterion itself is part of business logic or you want to explain why rounding occurs.
 
-## 13. Phân biệt làm tròn để tính và làm tròn để hiển thị
+## 13. Distinguishing Rounding for Calculation vs. Rounding for Display
 
-Một mẫu dữ liệu có thể có nhiều giá trị cần giữ khác nhau:
+A data flow can have multiple different values that need to be maintained:
 
-- **Số gốc**: tỷ lệ, giá, số đo hoặc số tiền chưa làm tròn.
-- **Kết quả tính toán**: giá trị sau chia theo một chính sách scale/precision.
-- **Chuỗi hiển thị**: qua NumberFormat theo Locale, có thể thêm dấu nhóm và làm tròn để người dùng đọc.
+- **Source numbers**: rates, prices, measurements, or unrounded monetary amounts.
+- **Computed results**: values after division according to a scale/precision policy.
+- **Display strings**: via Locale-aware NumberFormat, which may add grouping separators and round for user readability.
 
-Ví dụ một phép tính phí cần chính sách chia và làm tròn theo nghiệp vụ:
+Example of a fee calculation requiring business-defined division and rounding policies:
 
 ~~~java
 BigDecimal total = new BigDecimal("10.00");
@@ -449,13 +449,13 @@ BigDecimal perPerson = total.divide(
 // 3.33
 ~~~
 
-**3.33 × 3 = 9.99**, không bằng 10.00; còn dư 0.01. Đó là hệ quả của chia không kết thúc và làm tròn theo đơn vị nhỏ nhất, không phải lỗi BigDecimal. Nếu cần **phân bổ chính xác 10.00**, phải có quy tắc phân phối số dư (ví dụ một người nhận thêm 0.01) và kiểm tra tổng cuối cùng.
+**3.33 × 3 = 9.99**, not equal to 10.00; 0.01 remains. That is a consequence of non-terminating division and rounding to the smallest unit, not a BigDecimal bug. If **exact allocation of 10.00** is required, there must be a remainder distribution rule (for example, one person receives an extra 0.01) and a final sum check.
 
-Không tự động đổi sang double để tránh exception hoặc để dễ hiển thị. Double có thể mang thêm sai số nhị phân và không tự giải quyết quy tắc phân bổ/làm tròn.
+Do not automatically convert to double to avoid exceptions or make display easier. Double can introduce binary rounding errors and does not solve allocation/rounding rules on its own.
 
-## 14. Phân số chính xác nếu không được phép làm tròn
+## 14. Exact Fractions When Rounding Is Not Allowed
 
-Nếu yêu cầu toán học là **giữ đúng 1/3**, một BigDecimal hữu hạn không đủ. Có thể lưu tử và mẫu bằng BigInteger, rút gọn theo gcd:
+If the mathematical requirement is to **keep 1/3 exact**, a finite BigDecimal is insufficient. You can store numerator and denominator as BigInteger and reduce by gcd:
 
 ~~~java
 import java.math.BigInteger;
@@ -466,49 +466,49 @@ BigInteger denominator = BigInteger.valueOf(3);
 BigInteger gcd = numerator.gcd(denominator);
 numerator = numerator.divide(gcd);
 denominator = denominator.divide(gcd);
-// Giá trị hữu tỉ giữ dưới dạng 1/3
+// Rational value preserved as 1/3
 ~~~
 
-Đoạn này minh họa cách biểu diễn hai thành phần, **không định nghĩa một lớp phân số đầy đủ**. Với hệ thống thực, phải chuẩn hóa dấu mẫu (thường dương), từ chối mẫu 0, xử lý toán học phân số và giới hạn tài nguyên.
+This snippet illustrates a two-component representation, **not a complete fraction class**. In a real system, you must normalize the denominator sign (usually positive), reject zero denominators, handle fraction arithmetic, and enforce resource limits.
 
-Chỉ khi cần xuất thập phân cho người xem hoặc gửi một API yêu cầu decimal hữu hạn mới áp dụng chính sách làm tròn rõ ràng. Nhờ vậy, **độ chính xác của mô hình** không bị mất sớm.
+Only when outputting decimals for a viewer or sending to an API requiring a finite decimal should an explicit rounding policy be applied. In this way, **model accuracy** is not lost prematurely.
 
-## 15. Checklist lựa chọn overload
+## 15. Overload Selection Checklist
 
-Hãy trả lời các câu hỏi theo thứ tự:
+Answer these questions in order:
 
-1. **Có bắt buộc exact không?** Nếu có, divide(divisor); nếu thương không hữu hạn thì từ chối hoặc chọn biểu diễn phân số.
-2. **Kết quả có độ rộng cố định theo phần thập phân không?** Nếu có, divide(divisor, scale, mode).
-3. **Kết quả chỉ yêu cầu N chữ số có nghĩa?** Nếu có, divide(divisor, MathContext).
-4. **Bạn có chủ đích giữ scale của dividend không?** Chỉ khi có mới chọn divide(divisor, mode).
-5. **Có chính sách làm tròn nào được chấp nhận?** Xác định HALF_EVEN, HALF_UP hoặc mode khác từ hợp đồng.
-6. **Chia zero hoặc số quá lớn thì sao?** Kiểm tra miền dữ liệu, scale, precision, giới hạn tài nguyên và cách báo lỗi.
-7. **Có cần giữ phân số exact qua nhiều phép toán không?** Nếu có, dùng mô hình tử/mẫu, tránh làm tròn trung gian.
+1. **Is exactness mandatory?** If yes, divide(divisor); if the quotient is non-terminating, reject it or choose a fraction representation.
+2. **Does the result have a fixed width in the fractional part?** If yes, divide(divisor, scale, mode).
+3. **Does the result only require N significant digits?** If yes, divide(divisor, MathContext).
+4. **Do you intentionally want to keep the dividend's scale?** Only if so, choose divide(divisor, mode).
+5. **What rounding policy is acceptable?** Determine HALF_EVEN, HALF_UP, or another mode from the contract.
+6. **What about division by zero or very large numbers?** Check data domain, scale, precision, resource limits, and error reporting.
+7. **Do exact fractions need to be preserved across multiple operations?** If yes, use a numerator/denominator model and avoid intermediate rounding.
 
-Sự lựa chọn tốt nhất là **phù hợp hợp đồng dữ liệu**, không phải API có chữ ký ngắn nhất.
+The best choice is the one that **matches the data contract**, not the API with the shortest signature.
 
-## 16. Những sai lầm dễ mắc
+## 16. Common Pitfalls
 
-| Sai lầm | Hệ quả | Cách làm đúng |
+| Mistake | Consequence | Right approach |
 | --- | --- | --- |
-| Gọi BigDecimal.ONE.divide(3) rồi nghĩ Java tự cho 0.333... | ArithmeticException | Chọn rounding hoặc biểu diễn phân số |
-| Coi ArithmeticException luôn là chia cho zero | Bỏ qua lỗi khai triển không kết thúc/rounding forbidden | Phân loại điều kiện lỗi |
-| Nghĩ BigDecimal có thể lưu vô hạn chữ số | Bản thân BigDecimal là biểu diễn hữu hạn | Chọn biểu diễn hữu tỉ khi cần exact 1/3 |
-| Xét mẫu 6 để kết luận 3/6 tuần hoàn | Chưa rút gọn | Rút gọn bằng gcd trước |
-| Cho rằng mẫu có cả 2 và 5 thì luôn hữu hạn | Mẫu có thể còn 3 hoặc 7 | Mẫu rút gọn chỉ được có thừa số 2,5 |
-| Dùng divide(divisor, HALF_UP) nhưng tưởng tự giữ 2 chữ số | Overload giữ scale của dividend | Dùng divide(divisor,2,HALF_UP) |
-| Nhầm MathContext(5) là 5 chữ số thập phân | Precision là 5 chữ số có nghĩa | Dùng scale cho phần lẻ |
-| Chọn MathContext.UNLIMITED để tránh lỗi 1/3 | Vẫn yêu cầu exact và ném exception | Precision hữu hạn + rounding |
-| Dùng RoundingMode.UNNECESSARY khi thương không vừa scale | ArithmeticException | Tăng scale hoặc cho rounding nếu hợp đồng cho phép |
-| Dùng double làm trung gian trước khi chia BigDecimal | Có thể mất độ chính xác thập phân đầu vào | Khởi tạo từ String hoặc giá trị nguyên |
-| Cứ làm tròn từng bước rồi cho rằng tổng bằng số gốc | Có thể lệch do số dư | Thiết kế quy tắc phân bổ số dư |
-| Dùng NumberFormat làm bước tính chia | Chuỗi UI không phải số gốc | Tính bằng BigDecimal, format riêng |
-| Bỏ qua độ lớn input hoặc precision | Tốn CPU/heap, có thể vượt giới hạn triển khai | Ràng buộc đầu vào và tài nguyên |
+| Calling BigDecimal.ONE.divide(3) expecting Java to give 0.333... | ArithmeticException | Choose rounding or fraction representation |
+| Treating every ArithmeticException as division by zero | Misses non-terminating expansion / rounding-forbidden errors | Classify error conditions |
+| Thinking BigDecimal can store infinitely many digits | BigDecimal itself is a finite representation | Choose rational representation when exact 1/3 is needed |
+| Checking denominator 6 to conclude 3/6 is repeating | Not reduced yet | Reduce with gcd first |
+| Assuming a denominator with both 2 and 5 always terminates | Denominator may still have 3 or 7 | Reduced denominator may only contain factors 2 and 5 |
+| Using divide(divisor, HALF_UP) thinking it keeps 2 digits | Overload keeps dividend's scale | Use divide(divisor,2,HALF_UP) |
+| Confusing MathContext(5) with 5 decimal places | Precision is 5 significant digits | Use scale for fractional places |
+| Choosing MathContext.UNLIMITED to avoid 1/3 error | Still demands exactness and throws exception | Finite precision + rounding |
+| Using RoundingMode.UNNECESSARY when quotient does not fit scale | ArithmeticException | Increase scale or allow rounding if contract permits |
+| Using double as an intermediate before BigDecimal division | Can lose input decimal accuracy | Initialize from String or integer values |
+| Rounding at every step assuming the total equals the original | Can drift due to remainders | Design a remainder allocation rule |
+| Using NumberFormat as a division calculation step | UI string is not a source number | Compute with BigDecimal, format separately |
+| Ignoring input magnitude or precision | Wastes CPU/heap, can exceed implementation limits | Constrain inputs and resources |
 
 
-## 17. Chương trình Java 17+ chạy độc lập
+## 17. Standalone Runnable Java 17+ Program
 
-Tạo tệp **DecimalDivideDemo.java**:
+Create file **DecimalDivideDemo.java**:
 
 ~~~java
 import java.math.BigDecimal;
@@ -615,14 +615,14 @@ public class DecimalDivideDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17+:
+Compile and run with JDK 17+:
 
 ~~~bash
 javac --release 17 DecimalDivideDemo.java
 java DecimalDivideDemo
 ~~~
 
-Stdout đã đối chiếu bằng Java:
+Stdout verified with Java:
 
 ~~~text
 1 / 8 exact: 0.125
@@ -647,68 +647,68 @@ Stdout đã đối chiếu bằng Java:
 1/3 rounded input unchanged: 1
 ~~~
 
-### Diễn giải kết quả
+### Interpreting the Results
 
-1. **1/8 và 1/40** có thương thập phân hữu hạn, nên divide exact trả đúng 0.125 và 0.025.
-2. **10.00/4 = 2.50** thể hiện BigDecimal giữ scale theo quy tắc preferred scale thay vì tự bỏ zero tận cùng.
-3. **1/3** không có thập phân hữu hạn, nên cả divide exact và MathContext.UNLIMITED đều ném ArithmeticException.
-4. **4dp** chỉ 4 chữ số phần thập phân: 0.3333. **5sig** chỉ 5 chữ số có nghĩa: 0.33333.
-5. **12345/3** chính xác là 4115, còn MathContext(3, HALF_UP) làm tròn còn 4120 và hiển thị 4.12E+3.
-6. **HALF_EVEN và HALF_UP** ở 0.125 với scale=2 cho kết quả 0.12 và 0.13, dù đầu vào giống nhau.
-7. **divide(divisor, RoundingMode)** không truyền scale dùng **scale của dividend**: từ 1 (scale 0) cho kết quả 0, nhưng 1.00 (scale 2) cho 0.13.
-8. **UNNECESSARY** từ chối trường hợp cần bỏ chữ số; phép chia cho zero được báo lỗi riêng.
-9. Hàm kiểm tra thập phân hữu hạn trả true với 1/40, false với 1/6 và true với **3/6 sau rút gọn**.
-10. Toán hạng BigDecimal.ONE không bị sửa bởi những phép chia và rounding; đây là tính bất biến.
+1. **1/8 and 1/40** have terminating decimal quotients, so exact divide returns 0.125 and 0.025 properly.
+2. **10.00/4 = 2.50** shows that BigDecimal keeps scale according to the preferred scale rule instead of automatically stripping trailing zeros.
+3. **1/3** has no terminating decimal, so both exact divide and MathContext.UNLIMITED throw ArithmeticException.
+4. **4dp** specifies 4 fractional digits: 0.3333. **5sig** specifies 5 significant digits: 0.33333.
+5. **12345/3** is 4115 exactly, while MathContext(3, HALF_UP) rounds to 4120 and displays 4.12E+3.
+6. **HALF_EVEN and HALF_UP** on 0.125 at scale=2 yield 0.12 and 0.13, even with identical inputs.
+7. **divide(divisor, RoundingMode)** without passing scale uses the **dividend's scale**: from 1 (scale 0) it gives 0, whereas 1.00 (scale 2) gives 0.13.
+8. **UNNECESSARY** rejects cases needing digit truncation; division by zero is reported separately.
+9. The decimal-termination check returns true for 1/40, false for 1/6, and true for **3/6 after reduction**.
+10. The operand BigDecimal.ONE is not modified by division and rounding operations; this is immutability.
 
-## 18. Câu hỏi và bài tập
+## 18. Questions and Exercises
 
-**Bài 1.** Khi gọi BigDecimal.ONE.divide(new BigDecimal("3")), tại sao nhận ArithmeticException?
+**Exercise 1.** When calling BigDecimal.ONE.divide(new BigDecimal("3")), why do we get ArithmeticException?
 
-*Đáp án:* Thương 1/3 là thập phân vô hạn tuần hoàn, không thể biểu diễn chính xác bằng BigDecimal hữu hạn và overload này không có chính sách làm tròn.
+*Answer:* The quotient 1/3 is a non-terminating repeating decimal, which cannot be represented exactly by a finite BigDecimal, and this overload has no rounding policy.
 
-**Bài 2.** Vì sao 3/6 có thể chia chính xác nhưng 1/6 thì không?
+**Exercise 2.** Why can 3/6 be divided exactly whereas 1/6 cannot?
 
-*Đáp án:* Rút gọn 3/6 thành 1/2, mẫu chỉ có thừa số 2. Mẫu 6 của 1/6 chứa 3 nên khai triển thập phân không kết thúc.
+*Answer:* Reducing 3/6 gives 1/2, whose denominator has only factor 2. The denominator 6 of 1/6 contains 3, so its decimal expansion does not terminate.
 
-**Bài 3.** Mẫu số rút gọn 2³ × 5² có thể tạo thập phân hữu hạn không?
+**Exercise 3.** Can a reduced denominator of 2³ × 5² produce a terminating decimal?
 
-*Đáp án:* Có. Mẫu chỉ chứa 2 và 5, có thể nhân để thành lũy thừa của 10.
+*Answer:* Yes. The denominator contains only 2 and 5, so it can be multiplied to become a power of 10.
 
-**Bài 4.** Tại sao MathContext.UNLIMITED vẫn ném exception khi chia 1/3?
+**Exercise 4.** Why does MathContext.UNLIMITED still throw an exception when dividing 1/3?
 
-*Đáp án:* Precision=0 có nghĩa yêu cầu tính exact, không phải tạo một chuỗi vô hạn chữ số.
+*Answer:* Precision=0 means exact calculation is required, not generating an infinite string of digits.
 
-**Bài 5.** Muốn 2/3 thành 0.67 với hai chữ số sau dấu thập phân, gọi phương thức nào?
+**Exercise 5.** To turn 2/3 into 0.67 with two digits after the decimal point, which method should you call?
 
-*Đáp án:* **new BigDecimal("2").divide(new BigDecimal("3"), 2, RoundingMode.HALF_UP)**.
+*Answer:* **new BigDecimal("2").divide(new BigDecimal("3"), 2, RoundingMode.HALF_UP)**.
 
-**Bài 6.** Muốn chia một số lớn chỉ giữ 4 chữ số có nghĩa, nên dùng scale hay MathContext?
+**Exercise 6.** To divide a large number keeping only 4 significant digits, should you use scale or MathContext?
 
-*Đáp án:* **MathContext(4, mode)**. Scale là số vị trí phần thập phân, không phải tổng số chữ số có nghĩa.
+*Answer:* **MathContext(4, mode)**. Scale is the number of fractional positions, not total significant digits.
 
-**Bài 7.** Tại sao BigDecimal.ONE.divide(new BigDecimal("8"), RoundingMode.HALF_UP) cho 0?
+**Exercise 7.** Why does BigDecimal.ONE.divide(new BigDecimal("8"), RoundingMode.HALF_UP) give 0?
 
-*Đáp án:* Overload này giữ scale của dividend là 0, nên 0.125 được làm tròn thành số nguyên 0.
+*Answer:* This overload keeps the dividend's scale of 0, so 0.125 is rounded to the integer 0.
 
-**Bài 8.** Tại 1/8, làm tròn còn hai chữ số sau dấu với HALF_EVEN và HALF_UP khác nhau thế nào?
+**Exercise 8.** For 1/8, how does rounding to two digits after the decimal point differ between HALF_EVEN and HALF_UP?
 
-*Đáp án:* 0.125 nằm giữa 0.12 và 0.13; HALF_EVEN chọn 0.12, HALF_UP chọn 0.13.
+*Answer:* 0.125 lies halfway between 0.12 and 0.13; HALF_EVEN chooses 0.12, while HALF_UP chooses 0.13.
 
-**Bài 9.** Cần giữ đúng phân số 1/3 cho nhiều phép toán trước khi xuất kết quả. Nên làm gì?
+**Exercise 9.** You need to preserve the fraction 1/3 exactly across many operations before outputting a result. What should you do?
 
-*Đáp án:* Biểu diễn dưới dạng tử/mẫu số nguyên (ví dụ BigInteger) đã chuẩn hóa, không làm tròn sang BigDecimal từ đầu.
+*Answer:* Represent it as a normalized integer numerator/denominator (e.g., BigInteger) rather than rounding to BigDecimal early.
 
-**Bài 10.** Chia tổng 10.00 đều cho ba người, mỗi người giữ 2 chữ số tiền, vì sao 3.33×3 không bằng 10.00?
+**Exercise 10.** Dividing a total of 10.00 equally among three people, each keeping 2 decimal digits of money, why does 3.33×3 not equal 10.00?
 
-*Đáp án:* Do làm tròn thương không kết thúc. Nếu cần bảo toàn tổng, phải xác định chính sách phân bổ phần dư 0.01.
+*Answer:* Due to rounding a non-terminating quotient. If preserving the total is required, you must define a policy for allocating the 0.01 remainder.
 
-**Bài 11.** Có thể dùng BigDecimal.divide cho số chia 0 và mong nhận Infinity không?
+**Exercise 11.** Can BigDecimal.divide be used with a divisor of 0 while expecting Infinity?
 
-*Đáp án:* Không. BigDecimal không có Infinity/NaN; phép chia zero ném ArithmeticException.
+*Answer:* No. BigDecimal has no Infinity/NaN; division by zero throws ArithmeticException.
 
-## 19. Tài liệu tham khảo chính thức
+## 19. Official References
 
-- [BigDecimal Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): các overload divide, preferred scale, exact arithmetic, ArithmeticException và biểu diễn thập phân.
-- [MathContext Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/MathContext.html): precision, roundingMode và UNLIMITED.
-- [RoundingMode Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/RoundingMode.html): các quy tắc làm tròn số dương và âm.
-- [BigInteger Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html): gcd và biểu diễn tử/mẫu của phân số chính xác.
+- [BigDecimal Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): divide overloads, preferred scale, exact arithmetic, ArithmeticException, and decimal representation.
+- [MathContext Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/MathContext.html): precision, roundingMode, and UNLIMITED.
+- [RoundingMode Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/RoundingMode.html): rounding rules for positive and negative numbers.
+- [BigInteger Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html): gcd and numerator/denominator representation of exact fractions.

@@ -1,14 +1,14 @@
-# Đọc thông báo `javac` và sửa từ lỗi gốc (Java 17+)
+# Reading `javac` Messages and Fixing from the Root Error (Java 17+)
 
-## 1. Mục tiêu
+## 1. Objective
 
-Khi biên dịch Java bằng `javac`, một lỗi trong mã nguồn đôi khi tạo ra nhiều thông báo lỗi ở những dòng khác nhau. Kỹ năng cần có là **đọc được thông báo, xác định nguyên nhân ban đầu, sửa nguyên nhân ấy, rồi biên dịch lại**; không sửa máy móc mọi dòng được đánh dấu nếu chúng chỉ là hậu quả.
+When compiling Java with `javac`, a single mistake in the source code sometimes generates multiple error messages on different lines. The skill to develop is **reading the message, identifying the initial cause, fixing that cause, and recompiling**; do not mechanically edit every flagged line if those lines are merely consequences.
 
-Sau bài này, bạn có thể đọc vị trí lỗi, thông điệp và các chi tiết `symbol`/`location`; phân biệt lỗi cú pháp, định danh, kiểu, truy cập, dependency với ngoại lệ lúc chạy; dùng `javac` để tái hiện và kiểm tra bản sửa trên JDK 17+.
+After this lesson, you will be able to read the error location, message, and `symbol`/`location` details; distinguish syntax, identifier, type, access, and dependency errors from runtime exceptions; and use `javac` to reproduce and verify fixes on JDK 17+.
 
-## 2. Một thông báo `javac` cho biết gì?
+## 2. What Does a `javac` Message Tell You?
 
-Ví dụ mã nguồn **có lỗi chủ đích** trong tệp `SumDemo.java`:
+Example source code with an **intentional error** in the file `SumDemo.java`:
 
 ```java
 public class SumDemo {
@@ -21,13 +21,13 @@ public class SumDemo {
 }
 ```
 
-Biên dịch bằng:
+Compile with:
 
 ```sh
 javac -encoding UTF-8 SumDemo.java
 ```
 
-Trình biên dịch sẽ báo không tìm thấy biến `smu` vì chương trình khai báo tên `sum`. Một mẫu thông báo minh họa (dấu cách, dấu `^`, số dòng, từ ngữ chi tiết có thể thay đổi theo JDK):
+The compiler will report that variable `smu` cannot be found because the program declared the name `sum`. An illustrative message sample (spacing, `^` marker, line numbers, and exact wording may vary by JDK):
 
 ```text
 SumDemo.java:6: error: cannot find symbol
@@ -38,36 +38,36 @@ SumDemo.java:6: error: cannot find symbol
 1 error
 ```
 
-Các thành phần cần đọc:
+Components to read:
 
-| Thành phần | Cách hiểu |
+| Component | How to Interpret |
 | --- | --- |
-| `SumDemo.java:6` | Tệp và dòng liên quan đến vị trí trình biên dịch phát hiện lỗi |
-| `error` | Mức độ chẩn đoán: lỗi cản trở biên dịch thành công |
-| `cannot find symbol` | Không phân giải được tên trong ngữ cảnh đó |
-| Dòng mã và dấu `^` | Vùng/token mà `javac` đang chỉ ra; không bảo đảm đó là chỗ nguyên nhân bắt đầu |
-| `symbol: variable smu` | Loại thành viên hoặc định danh đang được tìm |
-| `location: class SumDemo` | Ngữ cảnh mà trình biên dịch đang tra cứu |
-| `1 error` | Số lỗi được liệt kê ở cuối đợt biên dịch này |
+| `SumDemo.java:6` | File and line related to where the compiler detected the error |
+| `error` | Diagnostic severity: an error preventing successful compilation |
+| `cannot find symbol` | Could not resolve the name in that context |
+| Code line and `^` | The region/token `javac` is pointing at; not guaranteed to be where the cause started |
+| `symbol: variable smu` | Kind of member or identifier being looked up |
+| `location: class SumDemo` | Context in which the compiler is searching |
+| `1 error` | Number of errors listed at the end of this compilation pass |
 
-Với lỗi khác, `javac` có thể cung cấp `required`/`found`, chữ ký phương thức, overload ứng viên, lý do không áp dụng được hoặc đường dẫn source khác. Đây là dữ liệu giúp so sánh **mã hiện tại** với **điều compiler yêu cầu**.
+For other errors, `javac` may provide `required`/`found`, method signatures, candidate overloads, reasons a method is inapplicable, or another source path. This data helps compare **current code** against **what the compiler requires**.
 
-Lưu ý: số dòng thường là nơi trình biên dịch *nhận ra* sự cố, không nhất thiết là dòng cần sửa. Chẳng hạn thiếu `;` ở cuối dòng trước có thể khiến token đầu dòng sau bị đánh dấu.
+Note: the line number is usually where the compiler *notices* the problem, not necessarily the line that needs to be edited. For instance, a missing `;` at the end of the previous line may cause the first token on the next line to be flagged.
 
-## 3. Quy trình 6 bước sửa từ lỗi gốc
+## 3. A 6-Step Process for Fixing from the Root Error
 
-1. **Tái hiện lỗi trên một lệnh biên dịch rõ ràng.** Xác nhận đúng JDK, đúng thư mục và đúng tập tệp được biên dịch. Giữ lại thông báo đầy đủ, không chỉ sao chép một dòng `error`.
-2. **Đọc nhóm lỗi đầu tiên trong ngữ cảnh.** Bắt đầu từ lỗi cú pháp hoặc lỗi định danh xuất hiện sớm; xem vài dòng trước và sau vị trí `^`, dấu ngoặc, dấu nháy, tên khai báo, `package` và `import`.
-3. **Tìm nguyên nhân chung nhỏ nhất.** Một dấu `}` thiếu có thể khiến nhiều khai báo bị hiểu sai; một tên kiểu chưa biên dịch hoặc một import sai có thể kéo theo nhiều lỗi sử dụng kiểu ấy.
-4. **Sửa một nguyên nhân thực sự**, giữ các thay đổi tối thiểu. Tránh đổi hàng loạt tên hoặc thêm ép kiểu/import theo phỏng đoán chỉ để giảm số lượng thông báo.
-5. **Chạy lại đúng lệnh `javac`.** Đọc tập thông báo mới; lỗi kéo theo có thể tự biến mất. Nếu còn lỗi độc lập, xử lý lần lượt.
-6. **Chạy bằng `java` sau khi biên dịch thành công**, kiểm tra output/hành vi. `javac` biên dịch được không có nghĩa chương trình không gặp ngoại lệ hay đúng logic.
+1. **Reproduce the error with a clear compilation command.** Confirm the right JDK, the right directory, and the right set of files being compiled. Keep the full output, not just a single copied `error` line.
+2. **Read the first group of errors in context.** Start from an early syntax or identifier error; inspect a few lines before and after the `^` marker, braces, quotes, declared names, `package`, and `import`.
+3. **Find the smallest common cause.** One missing `}` can cause many declarations to be misinterpreted; an uncompiled type name or wrong import can cascade into many errors where that type is used.
+4. **Fix one real cause**, keeping changes minimal. Avoid mass-renaming identifiers or adding casts/imports by guesswork just to reduce the error count.
+5. **Re-run the exact same `javac` command.** Read the new diagnostic set; cascading errors may vanish on their own. If independent errors remain, handle them one by one.
+6. **Run with `java` after compilation succeeds**, and check output/behavior. Compiling with `javac` does not mean the program is free of exceptions or logic bugs.
 
-Đây là phương pháp ưu tiên, không phải quy luật rằng *lỗi được in đầu tiên luôn là lỗi gốc*: việc compiler phục hồi sau lỗi cú pháp, thứ tự biên dịch nhiều tệp và lỗi ở dependency có thể làm chẩn đoán xuất hiện tại nơi hậu quả. Hãy dựa vào bằng chứng và thử một bản sửa nhỏ rồi biên dịch lại.
+This is a priority method, not a rule that *the first printed error is always the root error*: compiler recovery after syntax errors, compilation order across multiple files, and dependency errors can cause diagnostics to appear at the point of consequence. Rely on evidence, try one small fix, and recompile.
 
-## 4. Sửa ví dụ `cannot find symbol` cho đúng
+## 4. Fixing the `cannot find symbol` Example Properly
 
-Trong `SumDemo.java` ở trên, đổi `smu` thành `sum`. Toàn bộ chương trình hợp lệ:
+In `SumDemo.java` above, change `smu` to `sum`. The complete valid program:
 
 ```java
 public class SumDemo {
@@ -80,7 +80,7 @@ public class SumDemo {
 }
 ```
 
-Tạo thư mục `out` một lần rồi biên dịch, chạy từ thư mục chứa `SumDemo.java`. Các lệnh sau dùng được trong PowerShell, CMD, bash:
+Create the `out` directory once, then compile and run from the directory containing `SumDemo.java`. The following commands work in PowerShell, CMD, and bash:
 
 ```sh
 mkdir out
@@ -88,39 +88,39 @@ javac -encoding UTF-8 --release 17 -d out SumDemo.java
 java -cp out SumDemo
 ```
 
-**Output chính xác của lệnh `java`:**
+**Exact output of the `java` command:**
 
 ```text
 sum=7
 ```
 
-- `-encoding UTF-8`: đọc nguồn với mã hóa UTF-8, tránh lỗi khi có ký tự tiếng Việt.
-- `--release 17`: biên dịch theo ngôn ngữ và API Java 17 (khi trình biên dịch hỗ trợ bản đích đó). Dùng JDK 17+ để chạy các lệnh trong bài.
-- `-d out`: đặt file `.class` vào thư mục đầu ra; thư mục này phải tồn tại trước.
-- `-cp out`: thêm thư mục chứa lớp đã biên dịch vào classpath lúc chạy.
+- `-encoding UTF-8`: read source files using UTF-8 encoding, avoiding issues when Vietnamese characters are present.
+- `--release 17`: compile targeting the Java 17 language and API (when supported by the compiler). Use JDK 17+ to run the commands in this lesson.
+- `-d out`: place `.class` files in the output directory; this directory must already exist.
+- `-cp out`: add the directory containing compiled classes to the runtime classpath.
 
-`javac` biên dịch thành công thường **không in gì**. Chuỗi `sum=7` là stdout của chương trình, không phải thông báo của compiler. Trong quy trình sửa lỗi, chỉ chạy `java` sau khi lệnh `javac` thành công để tránh vô tình chạy file `.class` cũ.
+When `javac` compiles successfully, it normally **prints nothing**. The string `sum=7` is the program's stdout, not a compiler message. In the debugging workflow, only run `java` after the `javac` command succeeds to avoid accidentally running stale `.class` files.
 
-## 5. Các nhóm lỗi thường gặp và cách tìm gốc
+## 5. Common Error Categories and How to Find the Root
 
-| Dấu hiệu trong diagnostic | Gốc cần kiểm tra | Hướng sửa đúng |
+| Sign in Diagnostic | Root Cause to Check | Correct Fix Direction |
 | --- | --- | --- |
-| `';' expected`, `')' expected`, `illegal start of expression` | Thiếu dấu `;`, `)`, `}`, cấu trúc cú pháp sai hoặc dấu nháy chưa đóng | Đọc ngược vài dòng, cân cặp dấu ngoặc, sửa cú pháp đầu tiên |
-| `reached end of file while parsing` | Thường thiếu dấu đóng `}` hoặc cấu trúc chưa hoàn tất | So sánh các khối `class`, method, `if`, vòng lặp |
-| `cannot find symbol` | Tên sai chính tả/chữ hoa-thường, chưa khai báo, ngoài scope, thiếu kiểu/thư viện | Kiểm tra khai báo, phạm vi, tên đầy đủ, package và classpath |
-| `package ... does not exist` | Sai `import`, thiếu dependency/source trong lệnh biên dịch, module chưa khả dụng | Kiểm tra package thực, JAR/source, classpath/module path |
-| `incompatible types` | Gán/return/truyền tham số không tương thích | So sánh kiểu nguồn và kiểu đích, sửa dữ liệu hoặc API |
-| `method ... cannot be applied`, `no suitable method found` | Số lượng, thứ tự, kiểu tham số hoặc overload không phù hợp | Đối chiếu chữ ký phương thức với lời gọi |
-| `has private access`, `is not public ... cannot be accessed` | Vi phạm mức truy cập `private`, package-private, `protected` hoặc kiểu không public | Sửa thiết kế API/phạm vi đúng chủ đích, không chỉnh access tùy tiện |
-| `class ... is public, should be declared in a file named ...` | Tên file không khớp tên kiểu top-level public | Đổi tên file cho khớp lớp public |
-| `duplicate class` hoặc định nghĩa trùng | Nhiều nguồn biên dịch cùng tên kiểu đầy đủ hoặc khai báo trùng | Kiểm tra các file/class và cấu hình build |
-| `bad class file`, `class file has wrong version` | Thư viện được biên dịch bằng Java mới hơn phiên bản compiler/runtime đang dùng hoặc file không phù hợp | Kiểm tra JDK thực tế, phiên bản dependency, build output |
+| `';' expected`, `')' expected`, `illegal start of expression` | Missing `;`, `)`, `}`, broken syntax structure, or unclosed quote | Read back a few lines, balance brackets/braces, fix the first syntax issue |
+| `reached end of file while parsing` | Usually a missing closing `}` or incomplete construct | Match `class`, method, `if`, and loop blocks |
+| `cannot find symbol` | Misspelled/wrong-case name, undeclared identifier, out of scope, missing type/library | Check declaration, scope, full name, package, and classpath |
+| `package ... does not exist` | Wrong `import`, missing dependency/source in compile command, unavailable module | Check actual package, JAR/source, classpath/module path |
+| `incompatible types` | Incompatible assignment/return/argument passing | Compare source and target types; fix data or API |
+| `method ... cannot be applied`, `no suitable method found` | Wrong argument count, order, types, or unsuitable overload | Match method signature against the call site |
+| `has private access`, `is not public ... cannot be accessed` | Violating `private`, package-private, `protected`, or non-public type visibility | Fix API design/scope intentionally; do not loosen access arbitrarily |
+| `class ... is public, should be declared in a file named ...` | File name does not match the `public` top-level type name | Rename the file to match the public class |
+| `duplicate class` or duplicate definition | Multiple sources compiling the same fully qualified type name or duplicate declarations | Inspect files/classes and build configuration |
+| `bad class file`, `class file has wrong version` | Library compiled with a newer Java version than the current compiler/runtime, or invalid file | Check actual JDK, dependency versions, and build output |
 
-Các câu ở cột đầu là **dạng thông báo thường gặp**, không phải chuỗi bảo đảm đúng từng ký tự trên mọi JDK. Đừng xác định cách sửa chỉ bằng từ khóa: đọc cả kiểu, tham số, scope và vị trí.
+The phrases in the first column are **common message patterns**, not guaranteed character-for-character strings on every JDK. Do not decide on a fix based solely on keywords: read the types, parameters, scope, and location as well.
 
-### 5.1. Thiếu dấu khiến lỗi xuất hiện ở dòng sau
+### 5.1. Missing Punctuation Causing an Error on the Next Line
 
-Ví dụ **cố ý sai, không chạy được**:
+Example that is **deliberately invalid and cannot run**:
 
 ```java
 public class SyntaxDemo {
@@ -131,9 +131,9 @@ public class SyntaxDemo {
 }
 ```
 
-Gốc là thiếu `;` sau `2`, dù `javac` có thể trỏ đến phần đầu lệnh `System.out.println` bên dưới. Thêm `;`, không xóa lệnh `println` chỉ vì nó bị đánh dấu.
+The root cause is the missing `;` after `2`, even though `javac` may point to the start of the `System.out.println` statement below. Add `;`; do not delete the `println` statement just because it was flagged.
 
-Phiên bản sửa:
+Fixed version:
 
 ```java
 public class SyntaxDemo {
@@ -144,7 +144,7 @@ public class SyntaxDemo {
 }
 ```
 
-Lưu trong `SyntaxDemo.java`:
+Save in `SyntaxDemo.java`:
 
 ```sh
 javac -encoding UTF-8 --release 17 -d out SyntaxDemo.java
@@ -157,22 +157,22 @@ Output:
 count=2
 ```
 
-### 5.2. Sai kiểu và lời gọi phương thức
+### 5.2. Type Mismatches and Method Calls
 
-Đoạn **cố ý sai** sau làm phát sinh lỗi kiểu:
+The following **deliberately invalid** snippet triggers a type error:
 
 ```java
 String quantity = "5";
-int next = quantity + 1; // String + int tạo String, không gán trực tiếp cho int
+int next = quantity + 1; // String + int produces a String, cannot be assigned directly to int
 ```
 
-Nếu `quantity` biểu diễn số nguyên hợp lệ, sửa ở nguồn dữ liệu: `int quantity = Integer.parseInt("5"); int next = quantity + 1;`. Nếu mục tiêu là nối chuỗi, biến kết quả phải có kiểu `String`. Cách sửa tùy **ý nghĩa** dữ liệu; ép kiểu bừa bãi không giải quyết được khác biệt giữa số và chuỗi.
+If `quantity` represents a valid integer, fix it at the data source: `int quantity = Integer.parseInt("5"); int next = quantity + 1;`. If the goal is string concatenation, the result variable must have type `String`. The fix depends on the **meaning** of the data; blind casting does not resolve the difference between a number and a string.
 
-Với lời gọi `Math.max(2, "3")`, một đối số `String` không đáp ứng overload dành cho số. Lỗi gốc là truyền sai kiểu, không phải thiếu `import java.lang.Math` (kiểu `Math` đã thuộc `java.lang`). Thay `"3"` bằng số `3` khi muốn tính số lớn hơn.
+For the call `Math.max(2, "3")`, a `String` argument does not satisfy any numeric overload. The root error is passing the wrong type, not a missing `import java.lang.Math` (`Math` is already in `java.lang`). Replace `"3"` with the number `3` when you want the larger number.
 
-### 5.3. Mã nguồn nhiều tệp và lỗi dây chuyền
+### 5.3. Multi-File Source Code and Cascading Errors
 
-Giả sử `src/lesson/Calculator.java` có khai báo:
+Suppose `src/lesson/Calculator.java` declares:
 
 ```java
 package lesson;
@@ -184,7 +184,7 @@ public class Calculator {
 }
 ```
 
-Và `src/lesson/App.java`:
+And `src/lesson/App.java`:
 
 ```java
 package lesson;
@@ -196,7 +196,7 @@ public class App {
 }
 ```
 
-Biên dịch hai tệp vào cùng output, rồi chạy:
+Compile both files into the same output directory, then run:
 
 ```sh
 javac -encoding UTF-8 --release 17 -d out src/lesson/Calculator.java src/lesson/App.java
@@ -209,38 +209,38 @@ Output:
 value=6
 ```
 
-Nếu nhầm `package lesson;` thành `package lessons;` ở một tệp, hoặc loại `Calculator.java` khỏi nguồn biên dịch mà không cung cấp lớp tương ứng trên classpath, các lỗi kiểu/định danh trong `App.java` có thể là hậu quả. Kiểm tra **package thực tế, tên đầy đủ của kiểu, nguồn/JAR và cấu hình lệnh** trước khi sửa từng lần sử dụng `Calculator`.
+If `package lesson;` is mistyped as `package lessons;` in one file, or `Calculator.java` is omitted from compilation without providing its compiled class on the classpath, the type/identifier errors in `App.java` may just be consequences. Check the **actual package, fully qualified type name, source/JAR, and command configuration** before editing every call to `Calculator`.
 
-Khi đang sửa dependency, hãy biên dịch lại toàn bộ phần có liên quan để tránh dùng `.class` cũ. Với dự án lớn, để Maven/Gradle quản lý classpath và source set, nhưng vẫn cần đọc lỗi `javac` ở bước compile thật sự.
+When fixing dependencies, recompile all related parts to avoid using stale `.class` files. In larger projects, let Maven/Gradle manage the classpath and source sets, while still reading the actual `javac` errors during the compile step.
 
-## 6. Dùng tùy chọn `javac` để thu hẹp chẩn đoán
+## 6. Using `javac` Options to Narrow Down Diagnostics
 
-Một số tùy chọn hữu ích với Java 17+:
+Some useful options for Java 17+:
 
 ```sh
 javac -encoding UTF-8 --release 17 -Xdiags:verbose -Xmaxerrs 20 -d out SumDemo.java
 ```
 
-- `-Xdiags:verbose`: yêu cầu mức diagnostic chi tiết hơn; hữu ích với suy luận generic hoặc overload. Đây là tùy chọn bổ sung của `javac`.
-- `-Xmaxerrs 20`: giới hạn số lỗi được in trong một lần gọi; **không** sửa lỗi và có thể ẩn thông báo sau ngưỡng.
-- `-Xlint:all`: bật nhiều cảnh báo hữu ích (unchecked, deprecation, raw types, v.v. tùy phiên bản); cảnh báo vẫn khác lỗi.
-- `-Werror`: khiến compile thất bại khi có cảnh báo; chỉ bật khi dự án muốn chính sách nghiêm ngặt.
-- `javac -version`: xem compiler nào đang chạy; `java -version`: xem runtime. Hai lệnh cần được kiểm tra nếu sử dụng nhiều JDK.
+- `-Xdiags:verbose`: requests a more detailed diagnostic level; useful for generic inference or overload resolution. This is an extra `javac` option.
+- `-Xmaxerrs 20`: limits the number of errors printed in a single invocation; it does **not** fix errors and may hide messages beyond the threshold.
+- `-Xlint:all`: enables many helpful warnings (unchecked, deprecation, raw types, etc., depending on version); warnings are still distinct from errors.
+- `-Werror`: causes compilation to fail when warnings occur; enable only when the project wants a strict policy.
+- `javac -version`: checks which compiler is running; `java -version`: checks the runtime. Both commands should be verified when multiple JDKs are installed.
 
-Có thể chạy riêng `javac -X` hoặc `javac --help` để xem các tùy chọn được JDK đang dùng hỗ trợ. Dùng `-Xmaxerrs` lớn hơn để khám phá những lỗi độc lập sau khi sửa lỗi cú pháp gốc, nhưng đừng dựa vào việc tăng số lượng diagnostic như một cách sửa lỗi.
+You can run `javac -X` or `javac --help` separately to see the options supported by your current JDK. Use a larger `-Xmaxerrs` to discover independent errors after fixing a root syntax error, but do not rely on increasing the diagnostic count as a way to fix bugs.
 
-**Kiểm tra trạng thái lệnh biên dịch:** Trong PowerShell, `$LASTEXITCODE` là exit code của lệnh `javac` vừa chạy; `0` biểu thị thành công. Trong bash, chạy `echo $?` ngay sau `javac` để xem exit code. Đừng chạy lệnh khác ở giữa rồi mới kiểm tra.
+**Checking compilation command status:** In PowerShell, `$LASTEXITCODE` holds the exit code of the `javac` command just run; `0` indicates success. In bash, run `echo $?` immediately after `javac` to see the exit code. Do not run another command in between before checking.
 
-## 7. Phân biệt compile error, warning và lỗi khi chạy
+## 7. Distinguishing Compile Errors, Warnings, and Runtime Errors
 
-| Giai đoạn | Dấu hiệu | Nên điều tra |
+| Stage | Sign | What to Investigate |
 | --- | --- | --- |
-| **Compile error** (`javac`) | `error:`, chương trình không biên dịch thành công | Cú pháp, kiểu, phân giải tên, access, dependency, cấu hình |
-| **Warning** (`javac`) | `warning:`, compile có thể vẫn thành công | Hành vi dễ sai, API cũ, generic/raw type, `-Xlint` |
-| **Runtime exception/error** (`java`) | `Exception in thread "main"`, stack trace hoặc thông báo launcher | Dữ liệu, điều kiện chạy, call stack, classpath runtime, logic |
-| **Sai logic** | Chạy không lỗi nhưng in kết quả sai | Kiểm thử và phân tích thuật toán/dữ liệu, không chỉ đọc `javac` |
+| **Compile error** (`javac`) | `error:`, program fails to compile | Syntax, types, name resolution, access, dependencies, configuration |
+| **Warning** (`javac`) | `warning:`, compilation may still succeed | Error-prone behavior, deprecated APIs, generics/raw types, `-Xlint` |
+| **Runtime exception/error** (`java`) | `Exception in thread "main"`, stack trace, or launcher message | Data, runtime conditions, call stack, runtime classpath, logic |
+| **Logic bug** | Runs without errors but prints wrong results | Testing and analyzing algorithm/data, not just reading `javac` |
 
-Ví dụ **biên dịch hợp lệ nhưng lỗi lúc chạy**:
+Example that **compiles validly but fails at runtime**:
 
 ```java
 public class RuntimeDemo {
@@ -251,30 +251,30 @@ public class RuntimeDemo {
 }
 ```
 
-Biên dịch với `javac -d out RuntimeDemo.java` rồi chạy `java -cp out RuntimeDemo` sẽ phát sinh `NullPointerException`; đây không phải chẩn đoán `javac`. Nội dung chi tiết của stack trace có thể khác giữa các bản JDK, nên không coi văn bản stack trace là output cố định. Lúc này sửa logic null và kiểm tra đầu vào, không tiếp tục thêm import.
+Compiling with `javac -d out RuntimeDemo.java` and running `java -cp out RuntimeDemo` throws `NullPointerException`; this is not a `javac` diagnostic. Exact stack trace details can vary across JDK releases, so do not treat stack trace text as fixed output. Here, fix the null logic and input checks—do not keep adding imports.
 
-Đừng hiểu câu `error: could not find or load main class` của **launcher `java`** là lỗi do parser `javac` phát hiện. Hãy xem tên đầy đủ lớp `main`, đường dẫn `-cp` và các file `.class` được sinh ra.
+Do not mistake `error: could not find or load main class` from the **`java` launcher** for an error detected by the `javac` parser. Check the fully qualified `main` class name, `-cp` path, and generated `.class` files.
 
-## 8. Sai lầm phổ biến khi sửa lỗi
+## 8. Common Mistakes When Fixing Errors
 
-- **Chỉ nhìn dấu `^`:** vị trí chỉ là nơi compiler nhận diện triệu chứng; luôn đọc cú pháp trước đó.
-- **Sửa hàng loạt lỗi cùng lúc:** dễ đưa thêm lỗi và khó biết thay đổi nào giải quyết nguyên nhân. Ưu tiên thay đổi nhỏ, compile lại.
-- **Viết sai tên do Java phân biệt chữ hoa-thường:** `total`, `Total`, `TOTAL` là ba tên khác nhau.
-- **Thêm import không liên quan:** `cannot find symbol` cũng xảy ra khi typo tên biến cục bộ hoặc biến ngoài scope; import không thể tạo biến đó.
-- **Sửa classpath thay cho lỗi cú pháp, hoặc ngược lại:** chẩn đoán về thư viện phải kiểm tra đúng dependency; diagnostic `';' expected` thường là cú pháp.
-- **Quên tên file public class:** `public class SumDemo` phải nằm trong `SumDemo.java` (phân biệt chữ hoa-thường trên hệ thống tệp tương ứng).
-- **Chạy file `.class` cũ sau compile thất bại:** chỉ chạy khi bước biên dịch hiện tại thực sự thành công.
-- **Ẩn lỗi bằng cách xóa dòng:** chương trình compile được nhưng thiếu chức năng. Kiểm tra lại yêu cầu và output mong muốn.
+- **Looking only at the `^` marker:** the position is only where the compiler detected the symptom; always read preceding syntax.
+- **Fixing many errors at once:** easily introduces new bugs and makes it hard to tell which change resolved the cause. Prefer small changes and recompile.
+- **Misspelling names due to Java's case sensitivity:** `total`, `Total`, and `TOTAL` are three different identifiers.
+- **Adding unrelated imports:** `cannot find symbol` also occurs when a local variable name is mistyped or out of scope; an import cannot create that variable.
+- **Editing the classpath instead of syntax errors, or vice versa:** diagnostics about libraries require checking the right dependency; a `';' expected` diagnostic is usually syntax.
+- **Forgetting the public class file name:** `public class SumDemo` must reside in `SumDemo.java` (case-sensitive on corresponding filesystems).
+- **Running stale `.class` files after a failed compile:** only run after the current compilation step truly succeeds.
+- **Hiding errors by deleting lines:** the program compiles but loses functionality. Re-check requirements and expected output.
 
-## 9. Checklist thực hành
+## 9. Practice Checklist
 
-Khi có hàng loạt thông báo, hãy tự hỏi:
+When faced with a flood of messages, ask yourself:
 
-1. Lệnh `javac`, phiên bản JDK, package, tệp nguồn, đường dẫn nguồn và thư viện đã đúng chưa?
-2. Diagnostic đầu tiên cho biết tệp, dòng, loại lỗi, tên nào và ngữ cảnh nào?
-3. Có dấu ngoặc, dấu chấm phẩy, tên khai báo hoặc `import` sai ở dòng trước không?
-4. Nhiều lỗi có cùng nhắc đến một kiểu/biến/phương thức bị thiếu không? Nếu có, đâu là lỗi khởi nguồn?
-5. Có thể sửa **một nguyên nhân** rồi biên dịch lại để kiểm chứng không?
-6. Sau khi hết compile error, chương trình đã chạy và cho output đúng chưa?
+1. Are the `javac` command, JDK version, package, source files, source paths, and libraries all correct?
+2. What file, line, error type, identifier, and context does the first diagnostic report?
+3. Is there a missing bracket/brace, semicolon, declaration name, or `import` on an earlier line?
+4. Do multiple errors mention the same missing type/variable/method? If so, which is the originating error?
+5. Can I fix **one cause** and recompile to verify?
+6. Once compile errors are gone, does the program run and produce the right output?
 
-**Ghi nhớ:** `javac` báo nơi compiler không thể tiếp tục phân tích hoặc kiểm tra mã theo quy tắc Java; bạn cần lần về cấu trúc, khai báo hoặc cấu hình làm phát sinh lỗi đó. Sửa nguyên nhân gốc, biên dịch lại và xác minh bằng chạy thử đáng tin cậy hơn việc đếm số thông báo còn lại.
+**Remember:** `javac` reports where the compiler can no longer continue parsing or checking code against Java rules; you need to trace back to the construct, declaration, or configuration that caused that error. Fixing the root cause, recompiling, and verifying by running the code is far more reliable than counting remaining messages.

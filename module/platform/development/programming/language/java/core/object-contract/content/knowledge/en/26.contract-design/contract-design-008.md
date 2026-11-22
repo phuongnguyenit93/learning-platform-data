@@ -1,46 +1,46 @@
-# Không biến định dạng chẩn đoán hoặc thuật toán băm thành giao thức ngoài ý muốn
+# Do Not Turn Diagnostic Formats or Hash Algorithms into Accidental Protocols
 
-Trong Java, `toString()` và `hashCode()` thuộc hợp đồng cơ bản của `Object`, nhưng mục tiêu của chúng **khác hẳn hợp đồng dữ liệu trao đổi với hệ thống bên ngoài**. `toString()` chủ yếu phục vụ biểu diễn văn bản dễ đọc hoặc chẩn đoán; `hashCode()` hỗ trợ những cấu trúc dựa trên băm như `HashMap`, `HashSet`. Nếu một chuỗi log hoặc giá trị hash tình cờ bị dùng làm mã định danh, khóa lưu trữ, dữ liệu API, cache key phân tán hay nội dung chữ ký, ứng dụng đã tạo ra một **giao thức ngầm** rất dễ vỡ khi refactor.
+In Java, `toString()` and `hashCode()` belong to `Object`'s fundamental contract, yet their purpose is **completely different from data-exchange contracts with external systems**. `toString()` primarily serves human-readable text representation or diagnostics; `hashCode()` supports hash-based structures such as `HashMap` and `HashSet`. If a log string or hash value accidentally gets used as an identifier, storage key, API payload, distributed cache key, or signature input, the application has created an **accidental protocol** that easily shatters during refactoring.
 
-Bài học này thuộc nhóm **Thiết kế hợp đồng**: biết lựa chọn điểm nào cần ràng buộc ổn định, điểm nào nên được quyền thay đổi khi cài đặt tiến hóa, và cách tách chúng ở ranh giới hệ thống.
+This lesson belongs to **Contract Design**: knowing how to choose what needs stability guarantees, what should retain freedom to change as the implementation evolves, and how to separate them at system boundaries.
 
-## 1. Phân biệt ba loại hợp đồng
+## 1. Distinguish Three Types of Contracts
 
-| Thành phần | Mục tiêu chính | Có nên dùng trực tiếp làm hợp đồng bên ngoài? |
+| Component | Primary Purpose | Should It Be Used Directly as an External Contract? |
 | --- | --- | --- |
-| `toString()` | Biểu diễn đối tượng thành chuỗi; thường hữu ích cho debug/log | **Không mặc định.** Cú pháp, thứ tự trường, cách ẩn dữ liệu, ngôn ngữ trình bày có thể thay đổi. |
-| `equals()` / `hashCode()` | Xác định bằng nhau và hỗ trợ các collection dựa trên băm trong chương trình | **Không mặc định.** Giá trị hash không phải định danh nghiệp vụ hay dấu vân tay ổn định cho kho dữ liệu. |
-| DTO/schema/định danh công khai được thiết kế tường minh | Trao đổi dữ liệu và tương thích giữa các phiên bản, tiến trình, dịch vụ | **Có, khi đã quy định** trường, ý nghĩa, kiểu dữ liệu, quy tắc mã hóa, phiên bản và chính sách tương thích. |
+| `toString()` | Represent an object as a string; usually helpful for debugging/logging | **No by default.** Syntax, field order, masking, and presentation language can change. |
+| `equals()` / `hashCode()` | Determine equality and support hash-based collections in-process | **No by default.** Hash values are not business identifiers or stable fingerprints for data stores. |
+| Explicitly designed public DTO/schema/identifier | Exchange data and maintain compatibility across versions, processes, and services | **Yes, once specified** with fields, semantics, data types, encoding rules, versioning, and compatibility policy. |
 
-**Ví dụ lỗi ranh giới:**
+**Boundary bug example:**
 
 ~~~java
-// Đây là ví dụ PHẢN DIỆN; không nên dùng làm giao thức.
+// This is a COUNTEREXAMPLE; do not use it as a protocol.
 String externalKey = customer.hashCode() + "";
 String requestBody = order.toString();
 ~~~
 
-Chương trình có thể chạy và gửi dữ liệu, nhưng phía nhận không có hợp đồng đủ rõ về tính duy nhất, định dạng, độ bền qua các lần chạy hay thay đổi code.
+The program may run and send data, yet the receiving side has no clear contract regarding uniqueness, format, durability across runs, or code changes.
 
-Nguyên tắc thiết kế: **giá trị dùng để debug được tự do thay đổi theo nhu cầu chẩn đoán; dữ liệu công khai phải thay đổi theo một quy trình quản lý hợp đồng**.
+Design principle: **values used for debugging should be free to change for diagnostic needs; public data must change according to a contract management process**.
 
-## 2. Vì sao `toString()` không phải serializer hay định dạng API?
+## 2. Why Is `toString()` Not a Serializer or API Format?
 
-Phương thức `Object.toString()` mặc định tạo biểu diễn dạng tên lớp, dấu `@` và chuỗi thập lục phân bắt nguồn từ `hashCode()` của đối tượng. Đây là **chuỗi biểu diễn**, không phải ID toàn cục hay biểu diễn lưu trữ. Khi một lớp override `toString()`, tác giả có thể in tên trường, bỏ bớt thông tin, thêm tiền tố, che dữ liệu nhạy cảm, hoặc đổi thứ tự thuộc tính. Những thay đổi đó có thể hoàn toàn hợp lệ cho mục tiêu chẩn đoán.
+The default `Object.toString()` method generates a representation containing the class name, `@`, and a hexadecimal string derived from the object's `hashCode()`. It is a **display string**, not a global ID or storage format. When a class overrides `toString()`, the author might print field names, omit information, add prefixes, mask sensitive data, or reorder attributes. Those changes can be completely valid for diagnostic purposes.
 
-Ngay cả chuỗi `toString()` do IDE, Lombok hoặc `record` sinh ra cũng không nên mặc nhiên trở thành một API. Chẳng hạn, thêm một component vào record có thể làm thay đổi `toString()` được sinh ra, và đổi cách triển khai có thể làm thay đổi toàn bộ biểu diễn dù dữ liệu nghiệp vụ không đổi.
+Even `toString()` strings generated by an IDE, Lombok, or `record` should not implicitly become an API. For instance, adding a component to a record changes the generated `toString()`, and changing the implementation can alter the entire representation even when business data has not changed.
 
-Nếu dùng `toString()` để tạo request body, file cấu hình, dấu vết kiểm toán hoặc khóa cache, sẽ nảy sinh một số lỗi:
+Using `toString()` to construct request bodies, config files, audit trails, or cache keys leads to several bugs:
 
-- **Breaking change âm thầm:** thêm trường phục vụ debug cũng làm thay đổi định dạng mà client/parser đang đọc.
-- **Lỗi phân tích cú pháp:** dấu phẩy, dấu bằng, khoảng trắng, escape, `null`, xuống dòng và các giá trị lồng nhau không có bộ quy tắc wire-format đáng tin cậy.
-- **Rò rỉ thông tin:** có thể xuất hiện token, mật khẩu, email, dữ liệu cá nhân hoặc thuộc tính nội bộ trong log hay response.
-- **Không ổn định về môi trường:** định dạng số/ngày, locale hoặc thư viện định dạng có thể khác nhau giữa các nơi.
-- **Khó phân biệt diagnostic với dữ liệu máy đọc:** log có thể thay đổi để hỗ trợ vận hành trong khi parser phía khác vẫn phụ thuộc chuỗi cũ.
+- **Silent breaking changes:** adding a debug field alters the format that clients/parsers are reading.
+- **Parsing failures:** commas, equals signs, spaces, escaping, `null`, newlines, and nested values lack a reliable wire-format rule set.
+- **Information leaks:** tokens, passwords, emails, personal data, or internal attributes can appear in logs or responses.
+- **Environment instability:** number/date formats, locales, or formatting libraries can vary across environments.
+- **Hard to separate diagnostics from machine-readable data:** logs may evolve to aid operations while another parser still relies on the old string.
 
-**Đúng hướng:** xác định một DTO hoặc kiểu dữ liệu cho API, rồi dùng serializer có quy tắc công khai (ví dụ JSON qua Jackson khi ứng dụng đã có thư viện đó). Việc JSON hợp lệ không tự động bảo đảm tương thích: vẫn cần xác định tên trường, kiểu, optional/null, ý nghĩa, các enum hợp lệ, versioning và chiến lược nâng cấp.
+**Right direction:** define a DTO or API data type, then use a serializer with published rules (for example JSON via Jackson when the application already includes that library). Valid JSON alone does not guarantee compatibility: you must still specify field names, types, optionality/nullability, semantics, valid enum values, versioning, and upgrade strategy.
 
-Một ví dụ response có chủ đích:
+An intentional response example:
 
 ~~~json
 {
@@ -51,20 +51,20 @@ Một ví dụ response có chủ đích:
 }
 ~~~
 
-Hợp đồng phải nói rõ `invoiceId` là mã hóa đơn được hệ thống cấp, `amountCents` là đơn vị nhỏ nhất theo quy ước API, `currency` dùng mã tiền tệ nào, và trường `schemaVersion` được xử lý ra sao. Không nên để client tự đoán các điều ấy từ một chuỗi debug như `Invoice[id=INV-104, amount=1500]`.
+The contract must state clearly that `invoiceId` is the system-issued invoice code, `amountCents` is in minor units per API convention, which currency code standard `currency` uses, and how `schemaVersion` is handled. Clients should never have to guess these things from a debug string like `Invoice[id=INV-104, amount=1500]`.
 
-## 3. Ví dụ Java 17: cùng một đối tượng, hai mục đích biểu diễn
+## 3. Java 17 Example: Same Object, Two Representation Purposes
 
-Ví dụ sau cố ý giữ `toString()` ngắn để phục vụ log, nhưng định danh bên ngoài và DTO được lấy từ các trường được đặt tên rõ ràng.
+The following example intentionally keeps `toString()` short for logging, while external identifiers and DTOs are built from explicitly named fields.
 
-**Tệp `ContractBoundaryDemo.java` (chạy độc lập với Java 17+):**
+**File `ContractBoundaryDemo.java` (standalone runnable with Java 17+):**
 
 ~~~java
 public class ContractBoundaryDemo {
     record Invoice(String id, long amountCents) {
         @Override
         public String toString() {
-            // Format chẩn đoán; không phải schema truyền dữ liệu.
+            // Diagnostic format; not a data-transfer schema.
             return "Invoice[id=" + id + "]";
         }
     }
@@ -89,14 +89,14 @@ public class ContractBoundaryDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac ContractBoundaryDemo.java
 java ContractBoundaryDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Diagnostic: Invoice[id=INV-104]
@@ -106,69 +106,69 @@ Equal invoices: true
 Equal hash codes: true
 ~~~
 
-Điều cần thấy:
+Key takeaways:
 
-1. `Invoice.toString()` được dùng trong thông điệp `Diagnostic` và có thể đổi thành `Invoice{number=...}` theo yêu cầu debug.
-2. `InvoiceResponse` biểu diễn **hình dạng dữ liệu công khai ở mức Java**. Trong API thực tế, một serializer sẽ chuyển DTO thành payload theo schema đã công bố. `record.toString()` của DTO cũng không phải serializer.
-3. `first.equals(same)` là `true`, do record mặc định so sánh component theo hợp đồng record; do đó hai đối tượng cũng phải có `hashCode()` bằng nhau. Điều này **không nói** rằng mã hash là ID duy nhất.
-4. `INV-104` chỉ là định danh bên ngoài **nếu hệ thống thực sự cấp và bảo đảm tính duy nhất/phạm vi/độ bền** cho nó. Chỉ đặt một trường tên `id` không tự tạo ra các bảo đảm đó.
+1. `Invoice.toString()` is used in the `Diagnostic` message and can freely change to `Invoice{number=...}` for debugging needs.
+2. `InvoiceResponse` represents **the public data shape at the Java level**. In a real API, a serializer converts the DTO into a payload matching the published schema. A DTO's `record.toString()` is not a serializer either.
+3. `first.equals(same)` is `true`, because by default a record compares components per the record contract; consequently both objects must also have equal `hashCode()`. This does **not** mean the hash code is a unique ID.
+4. `INV-104` is an external identifier **only if the system actually issues and guarantees uniqueness/scope/durability** for it. Naming a field `id` alone does not create those guarantees.
 
-Cách tách giúp thay đổi nội dung log theo nhu cầu vận hành mà không tự ý sửa schema bên ngoài.
+Separating them allows changing log contents for operational needs without accidentally altering the external schema.
 
-## 4. Vì sao `hashCode()` không phải mã định danh ổn định?
+## 4. Why Is `hashCode()` Not a Stable Identifier?
 
-Theo hợp đồng Java:
+Under the Java contract:
 
-- Nếu `a.equals(b)` trả về `true` thì `a.hashCode() == b.hashCode()` **phải đúng**.
-- Hai đối tượng không bằng nhau **vẫn có thể** có cùng mã hash. Collisions là khả năng bình thường khi ánh xạ miền giá trị lớn vào một `int` 32-bit.
-- `hashCode()` của đối tượng cần nhất quán trong một lần chạy khi thông tin tham gia so sánh bằng nhau không bị sửa; hợp đồng **không yêu cầu** giữ nguyên cùng con số qua hai lần thực thi chương trình.
-- Override `hashCode()` có thể thay đổi công thức khi thuật toán nội bộ được chỉnh sửa miễn vẫn tôn trọng hợp đồng với `equals()`. Việc đó có thể làm hỏng dữ liệu ở hệ khác nếu trước đó xuất con số hash ra ngoài.
+- If `a.equals(b)` returns `true`, then `a.hashCode() == b.hashCode()` **must hold**.
+- Two unequal objects **can still** have the same hash code. Collisions are normal when mapping a large value space into a 32-bit `int`.
+- An object's `hashCode()` must remain consistent within a single execution while information participating in equality is not modified; the contract **does not require** keeping the same number across two program executions.
+- An overridden `hashCode()` can change its formula when internal algorithms are updated as long as it still respects the contract with `equals()`. Doing so can corrupt data in another system if hash numbers were previously exported externally.
 
-Một `HashMap` dùng `hashCode()` để tìm vùng lưu trữ và `equals()` để phân biệt những khóa có mã băm trùng nhau. Điều kiện nó cần khác với điều kiện của một **khóa CSDL, mã thanh toán, ID tài nguyên REST hoặc idempotency key**.
+A `HashMap` uses `hashCode()` to locate a storage bucket and `equals()` to distinguish keys with colliding hashes. What it needs differs from what a **database key, payment code, REST resource ID, or idempotency key** requires.
 
-Lưu ý sắc thái: thuật toán của `String.hashCode()` được Java định nghĩa rõ và cùng nội dung string cho kết quả nhất quán theo đặc tả. Tuy vậy, nó vẫn chỉ là `int` có thể va chạm và không phải một giao thức ID an toàn, có namespace, cơ chế cấp phát và versioning. Không được suy luận rằng “mọi `hashCode()` đều thay đổi ở mỗi lần chạy”; vấn đề nằm ở **bảo đảm được công bố có phù hợp mục đích không**.
+Note the nuance: `String.hashCode()`'s algorithm is explicitly specified by Java, and identical string contents produce consistent results per specification. Even so, it remains a 32-bit `int` subject to collisions, not a safe ID protocol with namespaces, allocation mechanisms, and versioning. Do not infer that "every `hashCode()` changes on every run"; the issue is **whether the published guarantees fit the purpose**.
 
-`System.identityHashCode(obj)` cũng không giải quyết bài toán định danh ngoài tiến trình: đây là mã băm theo danh tính tham chiếu trong một JVM, **không** là số thứ tự độc nhất toàn cục, không bảo đảm không va chạm và không phải khóa bền vững sau restart.
+`System.identityHashCode(obj)` does not solve cross-process identification either: it is a reference-identity hash within a single JVM, **not** a globally unique sequence number, offers no collision-free guarantee, and is not a durable key across restarts.
 
-**Mẫu phản diện:**
+**Anti-pattern:**
 
 ~~~java
-// Đừng lưu hay gửi mã định danh nghiệp vụ kiểu này:
+// Do not store or send a business identifier like this:
 int customerId = customer.hashCode();
 
-// Đừng dùng chuỗi này làm khóa bền vững qua các phiên bản:
+// Do not use this string as a durable key across versions:
 String storageKey = Integer.toHexString(order.hashCode());
 ~~~
 
-Nếu dữ liệu của `order` dùng trong `equals()`/`hashCode()` thay đổi khi đang làm khóa `HashMap`/`HashSet`, tra cứu trong collection còn có thể hỏng ngay trong **cùng** chương trình. Với khóa của collection dựa trên hash, nên dùng value object bất biến hoặc tránh sửa trạng thái tham gia hợp đồng equality/hash khi đối tượng đang là khóa.
+If `order` data used in `equals()`/`hashCode()` mutates while serving as a `HashMap`/`HashSet` key, collection lookups can break even within **the same** program. For hash-based collection keys, use immutable value objects or avoid modifying state participating in the equality/hash contract while the object is a key.
 
-## 5. Bảng quyết định cho từng nhu cầu
+## 5. Decision Table by Need
 
-| Nhu cầu | Nên thiết kế |
+| Need | Recommended Design |
 | --- | --- |
-| In thông tin giúp lập trình viên debug | `toString()` an toàn, súc tích; che bí mật; log có cấu trúc khi cần truy vấn |
-| Tra cứu trong `HashMap` / chống trùng trong `HashSet` | `equals()` và `hashCode()` tuân thủ hợp đồng, đặc biệt với khóa bất biến |
-| ID bản ghi CSDL, URL tài nguyên, khóa đối chiếu giữa dịch vụ | ID nghiệp vụ hoặc ID được cấp phát (ví dụ UUID) với chính sách uniqueness và lifecycle |
-| Payload HTTP/event/file để hệ thống khác giải mã | DTO + schema/serializer có version, các quy tắc encoding và compatibility |
-| Cache key chia sẻ giữa nhiều tiến trình/phiên bản | Các trường xác định, quy tắc chuẩn hóa và mã hóa ổn định, namespace, phiên bản |
-| Phát hiện dữ liệu bị đổi | Digest mật mã trên **byte encoding chuẩn hóa, đã xác định**; xét nguy cơ va chạm |
-| Chứng minh thông điệp có nguồn tin cậy/chưa bị sửa bởi kẻ tấn công | HMAC hoặc chữ ký số theo mô hình tin cậy; digest đơn thuần chưa phải xác thực |
+| Printing info to help developers debug | Safe, concise `toString()`; mask secrets; structured logging when querying is needed |
+| Lookup in `HashMap` / deduplication in `HashSet` | Contract-compliant `equals()` and `hashCode()`, especially with immutable keys |
+| DB record ID, resource URL, cross-service reconciliation key | Business ID or allocated ID (e.g., UUID) with uniqueness and lifecycle policies |
+| HTTP/event/file payload for another system to decode | DTO + versioned schema/serializer, encoding and compatibility rules |
+| Cache key shared across multiple processes/versions | Deterministic fields, stable normalization and encoding rules, namespace, version |
+| Detecting modified data | Cryptographic digest over a **specified, canonical byte encoding**; assess collision risks |
+| Proving a message comes from a trusted source / was not tampered with by an attacker | HMAC or digital signature under a trust model; a plain digest is not authentication |
 
-Không dùng `hashCode()` làm mã kiểm tra tính toàn vẹn hay biện pháp bảo mật: mã 32-bit không chống va chạm chủ đích, không có khóa bí mật và không mang thuộc tính xác thực.
+Do not use `hashCode()` as an integrity check or security control: a 32-bit integer is not resistant to intentional collisions, has no secret key, and provides no authentication properties.
 
-## 6. Khi thực sự cần khóa tính toán ổn định từ nhiều trường
+## 6. When You Truly Need a Deterministic Key Derived From Multiple Fields
 
-Đôi khi mã định danh không do một cơ quan cấp; ứng dụng cần một khóa xác định từ cặp giá trị như `tenantId` và `externalInvoiceId`. Khi đó phải quy định chính xác:
+Sometimes an identifier is not issued by a central authority; the application needs a deterministic key from a pair of values such as `tenantId` and `externalInvoiceId`. In that case, specify precisely:
 
-1. **Danh sách và thứ tự trường:** ví dụ `namespace, tenantId, externalInvoiceId`.
-2. **Kiểu dữ liệu và quy tắc cho null:** không tùy tiện biến `null` thành chuỗi `"null"`; ví dụ dưới **cấm null**.
-3. **Mã hóa byte:** ví dụ UTF-8; không phụ thuộc default charset của hệ điều hành.
-4. **Ranh giới giữa trường:** tránh nối `"ab"+"c"` và `"a"+"bc"` đều thành `"abc"`. Có thể dùng tiền tố độ dài cố định để giữ cấu trúc.
-5. **Chuẩn hóa:** có phân biệt hoa/thường, khoảng trắng đầu-cuối, Unicode normalization hay không? Quyết định theo nghiệp vụ rồi công bố; không tự ý `trim()`/lowercase.
-6. **Namespace và phiên bản:** ví dụ `invoice-key-v1` trong input; đổi quy tắc phải có phương án migration.
-7. **Thuật toán và cách hiển thị:** chọn SHA-256 cho digest, biểu diễn hex chữ thường; xác định rõ trường hợp các dịch vụ cần tái tạo cùng khóa.
+1. **Field list and order:** e.g., `namespace, tenantId, externalInvoiceId`.
+2. **Data types and null rules:** do not arbitrarily turn `null` into `"null"`; the example below **forbids null**.
+3. **Byte encoding:** e.g., UTF-8; do not rely on the operating system's default charset.
+4. **Boundaries between fields:** avoid concatenating `"ab"+"c"` and `"a"+"bc"` both into `"abc"`. Fixed-length prefixes can preserve structure.
+5. **Normalization:** are letter case, leading/trailing whitespace, or Unicode normalization significant? Decide per business logic and publish it; do not arbitrarily `trim()`/lowercase.
+6. **Namespace and version:** e.g., `invoice-key-v1` in the input; changing rules requires a migration plan.
+7. **Algorithm and display format:** choose SHA-256 for the digest, lowercase hex representation; specify clearly when multiple services must re-derive the same key.
 
-**Tệp `StableKeyDemo.java` (Java 17+):**
+**File `StableKeyDemo.java` (Java 17+):**
 
 ~~~java
 import java.io.ByteArrayOutputStream;
@@ -186,7 +186,7 @@ public class StableKeyDemo {
             throws IOException {
         Objects.requireNonNull(value, "A key field must not be null");
         byte[] utf8 = value.getBytes(StandardCharsets.UTF_8);
-        out.writeInt(utf8.length);       // 4 byte big-endian.
+        out.writeInt(utf8.length);       // 4 bytes big-endian.
         out.write(utf8);
     }
 
@@ -219,14 +219,14 @@ public class StableKeyDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac StableKeyDemo.java
 java StableKeyDemo
 ~~~
 
-Kết quả với các giá trị cố định trên:
+Output with the fixed values above:
 
 ~~~text
 Hex length: 64
@@ -234,59 +234,59 @@ Same input: true
 Different input: true
 ~~~
 
-**Tại sao ổn định hơn `hashCode()` cho mục đích này?** Chuỗi `invoice-key-v1`, thứ tự các trường, UTF-8, mã hóa độ dài kiểu số nguyên 4 byte big-endian, SHA-256 và hex được mô tả tường minh. Các tiến trình triển khai cùng quy tắc có thể tạo cùng khóa. Không nên tùy tiện thay một thành phần sau khi đã ghi dữ liệu bền vững.
+**Why is this more stable than `hashCode()` for this purpose?** The `invoice-key-v1` string, field order, UTF-8, 4-byte big-endian integer length prefix, SHA-256, and hex encoding are explicitly specified. Processes implementing the same rule can derive the exact same key. Do not arbitrarily change any component once durable data has been written.
 
-**Giới hạn của ví dụ:** SHA-256 không bảo đảm tuyệt đối không va chạm theo toán học; nếu cần danh tính nghiệp vụ chắc chắn, nên dùng ID được cấp phát và ràng buộc uniqueness trong nguồn dữ liệu có thẩm quyền. Digest không phải chữ ký số hoặc HMAC; ai biết input đều có thể tự tính. Ví dụ cũng chưa xử lý version migration, xác thực đầu vào, Unicode normalization hay nguy cơ suy đoán dữ liệu nhạy cảm có không gian giá trị nhỏ; ứng dụng phải quyết định theo yêu cầu thật. Với dữ liệu Unicode đa nguồn, cần quy định rõ các quy tắc chuẩn hóa và xử lý surrogate không hợp lệ trước khi mã hóa UTF-8.
+**Limitations of the example:** SHA-256 does not mathematically guarantee absolute zero collisions; if a strict business identity is required, use allocated IDs and enforce uniqueness constraints in an authoritative data store. A digest is not a digital signature or HMAC; anyone knowing the inputs can compute it themselves. The example also does not handle version migration, input validation, Unicode normalization, or the risk of guessing sensitive data with a small value space; applications must decide based on real requirements. With multi-source Unicode data, define normalization rules and invalid-surrogate handling clearly before UTF-8 encoding.
 
-## 7. Khi dùng serialization, đừng tự tin quá mức vào “mặc định”
+## 7. When Using Serialization, Do Not Over-Trust "Defaults"
 
-Tách DTO mới chỉ là bước đầu. Hợp đồng wire cần được mô tả và thử bằng dữ liệu thực tế:
+Separating a new DTO is only the first step. The wire contract must be documented and tested with real data:
 
-- **Tên, kiểu và đơn vị trường:** `amountCents` phải phân biệt với `amount` tính theo đơn vị tiền; số nguyên và chuỗi số không tự tương đương.
-- **Thiếu trường và giá trị null:** quy định default có hợp lệ không, khác biệt với field hiện diện nhưng `null`.
-- **Thứ tự và tính chuẩn hóa:** đối với JSON, client thông thường nên đọc field theo tên; nếu dùng JSON làm đầu vào để tạo chữ ký hoặc hash, phải áp dụng canonicalization đã thống nhất ở **byte level**, gồm thứ tự key và xử lý số/escape.
-- **Giá trị mới:** enum mới, trạng thái mới hay trường mới có thể phá client có parser đóng; chiến lược thêm trường “tương thích ngược” còn tùy consumer.
-- **Ngày giờ và locale:** chọn ISO-8601 với múi giờ/offset rõ ràng khi thích hợp; không dựa vào chuỗi mà `Date.toString()` hay formatter dùng locale mặc định tạo ra.
-- **Versioning:** xác định phiên bản schema/API, quy tắc nhận phiên bản cũ, quá trình loại bỏ field và contract tests.
-- **An toàn thông tin:** chỉ xuất trường cần thiết; log dạng có cấu trúc cũng phải masking dữ liệu nhạy cảm và kiểm soát retention/permissions.
+- **Field names, types, and units:** `amountCents` must be distinguished from `amount` in currency units; integers and numeric strings are not automatically equivalent.
+- **Missing fields and null values:** specify whether defaults are valid, and distinguish missing fields from present fields set to `null`.
+- **Ordering and canonicalization:** for JSON, regular clients should read fields by name; if JSON is used as input for signing or hashing, apply an agreed canonicalization at the **byte level**, including key order and number/escape handling.
+- **New values:** new enum constants, new statuses, or new fields can break clients with closed parsers; whether adding fields is "backward compatible" still depends on consumers.
+- **Dates/times and locales:** choose ISO-8601 with explicit time zones/offsets where appropriate; do not rely on strings produced by `Date.toString()` or formatters using the default locale.
+- **Versioning:** define schema/API versions, rules for accepting old versions, field deprecation processes, and contract tests.
+- **Information security:** expose only necessary fields; structured logs must also mask sensitive data and enforce retention/permissions.
 
-Ví dụ danh sách trường ổn định trong JSON không nên được tạo bằng cách cắt, parse regex hoặc `split(",")` trên `toString()`. Cách ấy sẽ hỏng khi giá trị chứa dấu phẩy, xuống dòng hoặc cấu trúc lồng nhau.
+For example, a stable list of fields in JSON should never be built by slicing, regex-parsing, or calling `split(",")` on `toString()`. That breaks whenever values contain commas, newlines, or nested structures.
 
-## 8. Khi giao thức ngầm đã tồn tại ngoài đời
+## 8. When an Accidental Protocol Already Exists in Production
 
-Một ứng dụng cũ có thể đang dùng `toString()` trong bản ghi audit hoặc `hashCode()` làm cache key. Thay cách triển khai ngay lập tức đôi khi làm client khác không đọc được, mất khóa tra cứu hoặc làm trùng lặp lệnh. Khi phát hiện, nên xử lý như thay đổi giao thức:
+A legacy application might already be using `toString()` in audit records or `hashCode()` as a cache key. Changing the implementation immediately can sometimes prevent other clients from reading data, lose lookup keys, or duplicate commands. When discovered, treat it as a protocol migration:
 
-1. **Liệt kê người tiêu thụ**: API clients, job, event consumers, dashboard, DB, cache, log pipeline. Tìm nơi có parser hoặc khóa xây từ giá trị cũ.
-2. **Đóng băng và mô tả định dạng đang tồn tại** để có thể nhận diện và di trú; thêm kiểm thử tương thích thực tế (golden samples) cho đường cũ nếu cần.
-3. **Đề xuất trường và schema mới tường minh**, ví dụ `invoiceId` và `schemaVersion`; hoặc khóa `invoice-key-v1` với quy tắc tạo khóa công bố.
-4. **Chuyển đổi có kiểm soát**: dual-read, dual-write, backfill hoặc alias ID theo nhu cầu, đồng thời kiểm soát uniqueness và thời hạn dữ liệu.
-5. **Theo dõi consumer đã chuyển hết**, sau đó mới loại bỏ định dạng cũ theo chính sách tương thích và thông báo phiên bản. Giữ log phục vụ debug tách biệt.
+1. **Inventory consumers:** API clients, jobs, event consumers, dashboards, DBs, caches, log pipelines. Find everywhere a parser or key is built from the old value.
+2. **Freeze and document the existing format** so it can be recognized and migrated; add real compatibility tests (golden samples) for the legacy path if needed.
+3. **Propose explicit new fields and schemas**, such as `invoiceId` and `schemaVersion`; or key `invoice-key-v1` with a published derivation rule.
+4. **Migrate in a controlled manner:** dual-read, dual-write, backfill, or ID aliasing as needed, while controlling uniqueness and data retention windows.
+5. **Track until all consumers have migrated**, then retire the old format per compatibility policy and version notices. Keep debug logs separate.
 
-Sửa `toString()` cho đẹp hơn hoặc thay `Objects.hash(...)` bằng thuật toán hash khác có thể là refactor tốt **trong phạm vi Object contract**; nhưng nếu kết quả đã thoát ra ngoài, cần quản lý như thay đổi giao thức ngoài chứ không coi là refactor vô hại.
+Improving `toString()` formatting or replacing `Objects.hash(...)` with another hash algorithm can be a fine refactor **within the Object contract scope**; however, if its output has leaked externally, manage it as an external protocol change rather than treating it as a harmless refactor.
 
-## 9. Các dấu hiệu cảnh báo khi review code
+## 9. Warning Signs During Code Review
 
-| Dấu hiệu trong code | Câu hỏi cần đặt ra |
+| Warning Sign in Code | Question to Ask |
 | --- | --- |
-| `response.setBody(entity.toString())` | Đây là mô tả để xem hay payload mà client cần parse? Schema ở đâu? |
-| `cacheKey = obj.hashCode()` | Va chạm, restart, sửa dữ liệu và khác phiên bản được xử lý thế nào? |
-| `databaseId = identityHashCode(obj)` | Điều gì bảo đảm duy nhất và bền vững qua tiến trình? |
-| `digest.update(obj.toString().getBytes())` | Charset, format, escaping và thứ tự trường đã là byte contract chưa? |
-| `logger.info("{}", wholeEntity)` | `toString()` có lộ bí mật, chứa vòng tham chiếu hay tạo log quá lớn không? |
-| `map.put(mutableKey, value)` rồi sửa key | `equals/hashCode` có thay đổi, làm việc tìm key trở nên sai không? |
-| Client dùng regex trên log line | Log vốn là tín hiệu quan sát hay đã thành định dạng tích hợp không có phiên bản? |
+| `response.setBody(entity.toString())` | Is this a human description or a payload clients need to parse? Where is the schema? |
+| `cacheKey = obj.hashCode()` | How are collisions, restarts, data mutations, and version differences handled? |
+| `databaseId = identityHashCode(obj)` | What guarantees uniqueness and durability across processes? |
+| `digest.update(obj.toString().getBytes())` | Are charset, format, escaping, and field order defined as a byte contract? |
+| `logger.info("{}", wholeEntity)` | Does `toString()` leak secrets, contain reference cycles, or produce oversized logs? |
+| `map.put(mutableKey, value)` then mutate key | Does `equals/hashCode` change, breaking key lookup? |
+| Client uses regex on log lines | Are logs observability signals or have they become an unversioned integration format? |
 
-Đối với log, ưu tiên các trường có cấu trúc rõ nghĩa như `eventType`, `correlationId`, `invoiceId` và `status`; định dạng thân thông báo có thể phục vụ người đọc. Không nên tuyên bố rằng một log là “không quan trọng” nếu thực tế hệ thống khác đang phụ thuộc nó: khi đó phải thừa nhận hợp đồng thực tế, nâng cấp người tiêu thụ rồi mới giải phóng định dạng chẩn đoán.
+For logs, prefer well-defined structured fields like `eventType`, `correlationId`, `invoiceId`, and `status`; message body formatting can serve human readers. Never claim a log is "unimportant" if another system actually depends on it: in that case, acknowledge the real contract, upgrade consumers first, and only then free up the diagnostic format.
 
-## 10. Tự kiểm tra
+## 10. Self-Check
 
-1. **Hai đối tượng khác nhau có cùng `hashCode()` được không?** Có. Hai mã hash trùng không chứng minh `equals()` trả về `true`.
-2. **`String.hashCode()` có thuật toán được quy định, vậy có dùng làm ID trong DB không?** Không nên: là giá trị `int` có va chạm, thiếu ràng buộc uniqueness và chính sách định danh; sự ổn định của một thuật toán riêng không biến nó thành giao thức ID phù hợp.
-3. **Thêm trường `phone` vào `toString()` có thể phá API không?** Có, nếu API đang lấy output `toString()` làm payload; còn có nguy cơ lộ thông tin không nên phát ra.
-4. **Hai dịch vụ đều dùng SHA-256 trên JSON có nhất thiết tạo cùng digest không?** Không. Khác thứ tự key, whitespace, dạng số hoặc escape có thể tạo byte khác. Cần cùng encoding/canonicalization.
-5. **Đổi `toString()` nhưng giữ `invoiceId` và schema DTO ổn định có đáng xem là API breaking change?** Thông thường không, miễn API thật sự chỉ trao đổi DTO theo hợp đồng đã công bố và không có consumer khác lệ thuộc chuỗi debug.
-6. **Một ID hash SHA-256 có đảm bảo chống giả mạo dữ liệu không?** Không. Muốn xác thực nguồn hoặc tính toàn vẹn có đối thủ chủ động, cần chọn cơ chế khóa bí mật hoặc chữ ký phù hợp.
+1. **Can two different objects have the same `hashCode()`?** Yes. Two matching hash codes do not prove `equals()` returns `true`.
+2. **`String.hashCode()` has a specified algorithm, so can it be used as a DB ID?** No: it is a 32-bit `int` with collisions, lacking uniqueness constraints and an identity policy; the stability of one specific algorithm does not make it a suitable ID protocol.
+3. **Can adding a `phone` field to `toString()` break an API?** Yes, if the API is using `toString()` output as its payload; it also risks exposing data that should not be emitted.
+4. **Do two services both running SHA-256 on JSON necessarily produce the same digest?** No. Differences in key order, whitespace, number formatting, or escaping produce different bytes. Identical encoding/canonicalization is required.
+5. **Is changing `toString()` while keeping `invoiceId` and the DTO schema stable considered an API breaking change?** Normally no, provided the API genuinely exchanges only the DTO under the published contract and no other consumer depends on debug strings.
+6. **Does a SHA-256 hash ID guarantee tamper resistance?** No. To authenticate the source or integrity against an active adversary, choose an appropriate secret-key or signature mechanism.
 
-## Kết luận
+## Conclusion
 
-Hợp đồng `Object` cho phép viết Java đúng đắn ở mức **biểu diễn chẩn đoán, so sánh bằng nhau và cấu trúc băm trong bộ nhớ**. Khi dữ liệu vượt ra ngoài ranh giới tiến trình hoặc trở thành dữ liệu lưu trữ lâu dài, hãy thiết kế **ID, DTO, schema, byte encoding, versioning và compatibility** một cách tường minh. Một chuỗi đẹp để đọc log hay con số thuận tiện cho `HashMap` không tự nhiên trở thành giao thức đáng tin cậy.
+The `Object` contract enables writing correct Java at the level of **diagnostic representation, equality comparison, and in-memory hash structures**. When data crosses process boundaries or becomes long-lived persisted data, design **IDs, DTOs, schemas, byte encodings, versioning, and compatibility** explicitly. A string convenient for reading logs or a number handy for `HashMap` does not automatically become a reliable protocol.

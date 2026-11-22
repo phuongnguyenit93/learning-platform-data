@@ -1,39 +1,39 @@
-# Thực hành Java I/O: Serialization và cấu hình ObjectInputFilter
+# Java I/O Practical Exercise: Serialization and Configuring `ObjectInputFilter`
 
-## Mục tiêu
+## Objectives
 
-Sau bài thực hành, bạn có thể: (1) tuần tự hóa đối tượng Java thành luồng byte và khôi phục lại đối tượng; (2) hiểu vai trò của Serializable, serialVersionUID và transient; (3) cấu hình ObjectInputFilter để giới hạn kiểu đối tượng và quy mô đồ thị được giải tuần tự hóa; (4) phân biệt luồng hợp lệ, luồng bị bộ lọc từ chối và luồng hỏng; (5) biết những giới hạn bảo mật của Java serialization.
+After this exercise, you will be able to: (1) serialize Java objects into a byte stream and restore them; (2) understand the roles of `Serializable`, `serialVersionUID`, and `transient`; (3) configure `ObjectInputFilter` to restrict allowed object types and object-graph size during deserialization; (4) distinguish valid streams, filter-rejected streams, and corrupted streams; (5) recognize the security limits of Java serialization.
 
-**Bối cảnh:** Đây là bài thực hành trong Java Core I/O. Dùng JDK 17 trở lên, không cần framework hay thư viện ngoài JDK.
+**Context:** This is a practical exercise in Java Core I/O. It uses JDK 17 or later, requiring no frameworks or libraries outside the JDK.
 
-## 1. Cơ chế cần hiểu trước khi chạy
+## 1. Mechanics to Understand Before Running
 
-**Serialization (tuần tự hóa)** chuyển trạng thái đủ điều kiện của một đối tượng thành dạng byte bằng ObjectOutputStream. **Deserialization (giải tuần tự hóa)** dùng ObjectInputStream để đọc luồng byte và tái dựng đồ thị đối tượng. Cùng một luồng có thể chứa nhiều đối tượng; các tham chiếu dùng chung và một số quan hệ vòng được giao thức serialization quản lý.
+**Serialization** converts the eligible state of an object into a byte representation using `ObjectOutputStream`. **Deserialization** uses `ObjectInputStream` to read that byte stream and reconstruct the object graph. A single stream can contain multiple objects; shared references and certain cyclic graphs are managed by the serialization protocol.
 
-Luồng xử lý trong ví dụ:
+Processing flow in the example:
 
 ~~~text
 Account("Lan", token="SECRET")
   -> ObjectOutputStream.writeObject(...)
-  -> byte[] chứa Java serialization stream
+  -> byte[] containing Java serialization stream
   -> ByteArrayInputStream
   -> ObjectInputStream + ObjectInputFilter
   -> readObject()
-      -> ALLOWED  : Account được đọc, token transient thành null
-      -> REJECTED : lớp không nằm trong allowlist bị InvalidClassException
+      -> ALLOWED  : Account is read, transient token becomes null
+      -> REJECTED : class not in allowlist throws InvalidClassException
 ~~~
 
-Các điểm cần nhớ:
+Key points to remember:
 
-- Một lớp tự định nghĩa phải triển khai Serializable để được ghi theo cơ chế mặc định; đây là interface đánh dấu, không chứa phương thức cần override. Đối tượng trong các trường không transient cũng phải có khả năng được serialize nếu chúng được duyệt đến; nếu không có thể phát sinh NotSerializableException.
-- ObjectOutputStream ghi một định dạng nhị phân đặc thù của Java. ObjectInputStream đọc lại định dạng này; không thể coi nó là JSON, văn bản UTF-8 hay cách trao đổi dữ liệu đa ngôn ngữ.
-- serialVersionUID xác định phiên bản lớp phục vụ kiểm tra tương thích khi đọc. Tự khai báo giá trị ổn định giúp kiểm soát thay đổi lớp, nhưng **không** bảo đảm mọi thay đổi schema đều tương thích.
-- Trường instance được đánh dấu transient không được serialize theo cơ chế mặc định; khi đọc lại nó nhận giá trị mặc định của kiểu (ví dụ null đối với String). Trường static cũng không thuộc trạng thái instance được serialize.
-- ObjectInputFilter được gọi **trong quá trình deserialization** để xét lớp, kích thước mảng, độ sâu đồ thị, số tham chiếu và số byte đã đọc. Nó không được áp dụng khi chỉ gọi writeObject và không phải công cụ mã hóa hay xác thực dữ liệu.
+- A custom class must implement `Serializable` to be written by the default mechanism; this is a marker interface with no methods to override. Objects held in non-transient fields must also be serializable if reached during traversal; otherwise `NotSerializableException` may be thrown.
+- `ObjectOutputStream` writes a Java-specific binary format. `ObjectInputStream` reads that format back; it must not be treated as JSON, UTF-8 text, or a cross-language data-exchange format.
+- `serialVersionUID` identifies the class version for compatibility checks on read. Declaring a stable value explicitly helps govern class evolution, yet **does not** guarantee every schema change is compatible.
+- Instance fields marked `transient` are not serialized by the default mechanism; when read back, they receive the type's default value (such as `null` for `String`). `static` fields likewise do not belong to serialized instance state.
+- `ObjectInputFilter` is invoked **during deserialization** to inspect the class, array length, graph depth, reference count, and bytes read. It is not applied during `writeObject` alone and is neither encryption nor data authentication.
 
-## 2. Chương trình đầy đủ: chấp nhận đúng lớp, từ chối lớp khác
+## 2. Complete Program: Accepting the Right Class, Rejecting Others
 
-Tạo một tệp duy nhất mang tên **SerializationFilterDemo.java** với nội dung dưới đây. Hai lớp dữ liệu được khai báo lồng bên trong lớp main để toàn bộ bài chạy bằng một tệp.
+Create a single file named **SerializationFilterDemo.java** with the contents below. Both data classes are declared nested inside the main class so the whole exercise runs from one file.
 
 ~~~java
 import java.io.ByteArrayInputStream;
@@ -96,7 +96,7 @@ public class SerializationFilterDemo {
             ObjectInputFilter filter =
                     ObjectInputFilter.Config.createFilter(pattern);
 
-            // Thiết lập filter trước lệnh readObject() đầu tiên.
+            // Set the filter before the first readObject() call.
             in.setObjectInputFilter(filter);
             return in.readObject();
         }
@@ -120,128 +120,128 @@ public class SerializationFilterDemo {
 }
 ~~~
 
-Biên dịch và chạy từ thư mục chứa tệp:
+Compile and run from the directory containing the file:
 
 ~~~bash
 javac SerializationFilterDemo.java
 java SerializationFilterDemo
 ~~~
 
-Kết quả mong đợi với JDK 17+ mặc định:
+Expected output on default JDK 17+:
 
 ~~~text
 Accepted: Account[owner=Lan, sessionToken=null]
 Rejected by ObjectInputFilter
 ~~~
 
-**Giải thích kết quả:**
+**Explaining the output:**
 
-1. serialize(...) tạo ByteArrayOutputStream, bọc bằng ObjectOutputStream rồi writeObject(value). Kết quả byte[] là dữ liệu thật đã tuần tự hóa, chưa được giải mã và không phải chuỗi ký tự.
-2. deserializeWithFilter(...) tạo ObjectInputStream, cài bộ lọc bằng setObjectInputFilter(...) **trước khi** gọi readObject().
-3. Lớp Account được allowlist nên được tái dựng. owner có giá trị "Lan"; sessionToken là transient nên nhận null, dù trước lúc ghi mang giá trị "SECRET".
-4. Luồng Unexpected vẫn được serialize thành công vì Unexpected implements Serializable; khi giải tuần tự hóa, bộ lọc gặp lớp Unexpected, quy tắc cuối !* từ chối, ObjectInputStream phát sinh InvalidClassException.
-5. Code chỉ bắt InvalidClassException cho trường hợp bộ lọc từ chối. Trong ứng dụng thực, IOException, ClassNotFoundException và lỗi dữ liệu khác phải được xử lý riêng theo ngữ cảnh; không quy mọi lỗi readObject thành lỗi lọc.
+1. `serialize(...)` creates a `ByteArrayOutputStream`, wraps it with `ObjectOutputStream`, and calls `writeObject(value)`. The resulting `byte[]` is real serialized binary data, not decoded and not a character string.
+2. `deserializeWithFilter(...)` creates an `ObjectInputStream` and attaches the filter via `setObjectInputFilter(...)` **before** calling `readObject()`.
+3. The `Account` class is on the allowlist, so it is reconstructed. `owner` has the value `"Lan"`; `sessionToken` is `transient`, so it receives `null` even though it held `"SECRET"` before writing.
+4. The `Unexpected` stream still serializes successfully because `Unexpected` implements `Serializable`; during deserialization, the filter sees `Unexpected`, the trailing `!*` rule rejects it, and `ObjectInputStream` throws `InvalidClassException`.
+5. The code catches `InvalidClassException` specifically for filter rejection. In real applications, `IOException`, `ClassNotFoundException`, and other data errors must be handled separately by context; never treat every `readObject` failure as a filter rejection.
 
-**Lưu ý về lớp lồng:** tên nhị phân của Account là SerializationFilterDemo$Account, không phải SerializationFilterDemo.Account. Vì vậy chuỗi pattern phải sử dụng dấu $. Nếu chuyển Account sang package com.example.io với lớp top-level, pattern cần dùng đúng tên đầy đủ com.example.io.Account.
+**Note on nested classes:** the binary name of `Account` is `SerializationFilterDemo$Account`, not `SerializationFilterDemo.Account`. Therefore the pattern string must use `$`. If `Account` is moved to package `com.example.io` as a top-level class, the pattern must use the exact full name `com.example.io.Account`.
 
-## 3. Phân tích ObjectInputFilter từng bước
+## 3. Step-by-Step Analysis of `ObjectInputFilter`
 
-ObjectInputFilter là một interface được JDK cung cấp để tham gia quyết định khi ObjectInputStream tạo/đọc đối tượng từ luồng. Nó kiểm tra thông tin của đối tượng đang được đọc qua FilterInfo:
+`ObjectInputFilter` is an interface provided by the JDK to participate in decisions when `ObjectInputStream` creates/reads objects from a stream. It inspects details of the object being read via `FilterInfo`:
 
-| Thuộc tính FilterInfo | Ý nghĩa | Cách dùng |
+| `FilterInfo` Property | Meaning | How to Use |
 | --- | --- | --- |
-| serialClass() | Class đang được kiểm tra; đôi lúc null ở các lần kiểm tra không gắn với lớp mới | Chỉ quyết định theo class khi khác null |
-| arrayLength() | Độ dài mảng nếu đang xét mảng; thường -1 nếu không phải mảng | Chặn mảng quá lớn |
-| depth() | Độ sâu hiện tại của đồ thị đối tượng | Hạn chế đồ thị lồng quá sâu |
-| references() | Số tham chiếu mà luồng đã xử lý | Hạn chế số đối tượng/tham chiếu |
-| streamBytes() | Lượng byte đã tiêu thụ tại thời điểm kiểm tra | Hạn chế dung lượng đã đọc |
+| `serialClass()` | Class being checked; sometimes `null` on checks not tied to a new class | Apply class rules only when non-null |
+| `arrayLength()` | Array length if checking an array; typically `-1` when not an array | Block oversized arrays |
+| `depth()` | Current depth of the object graph | Limit overly deep nesting |
+| `references()` | Number of references processed by the stream so far | Limit object/reference counts |
+| `streamBytes()` | Bytes consumed at the moment of the check | Limit volume read |
 
-Bộ lọc trả về một trong ba giá trị:
+The filter returns one of three statuses:
 
-- **ALLOWED**: cho phép đối tượng/lớp đang xét đi tiếp.
-- **REJECTED**: từ chối; quá trình giải tuần tự hóa sẽ thất bại (thường dưới dạng InvalidClassException).
-- **UNDECIDED**: bộ lọc chưa quyết định. Giá trị này **không mặc nhiên có nghĩa là cấm**; nếu các bộ lọc khác hoặc chính sách hiệu lực không từ chối, việc đọc có thể vẫn tiếp diễn.
+- **ALLOWED**: permits the inspected object/class to proceed.
+- **REJECTED**: denies it; deserialization fails (typically with `InvalidClassException`).
+- **UNDECIDED**: filter has not decided. This value **does not automatically mean forbidden**; if other filters or the effective policy do not reject it, reading can still continue.
 
-Mẫu cài đặt bằng pattern trong chương trình:
+Pattern configuration in the program:
 
 ~~~text
 maxdepth=5;maxrefs=20;maxbytes=4096;maxarray=100;SerializationFilterDemo$Account;!*
 ~~~
 
-Bốn giới hạn được kiểm tra trước các luật lớp:
+Four resource bounds are checked alongside the class rules:
 
-| Thành phần | Vai trò |
+| Component | Role |
 | --- | --- |
-| maxdepth=5 | Từ chối khi độ sâu vượt 5 |
-| maxrefs=20 | Từ chối khi số tham chiếu vượt 20 |
-| maxbytes=4096 | Từ chối khi số byte đã đọc vượt 4.096 |
-| maxarray=100 | Từ chối khi độ dài một mảng vượt 100 |
-| SerializationFilterDemo$Account | Cho phép lớp Account trong chương trình |
-| !* | Từ chối tất cả lớp còn lại phù hợp ký tự đại diện * |
+| `maxdepth=5` | Rejects when depth exceeds 5 |
+| `maxrefs=20` | Rejects when reference count exceeds 20 |
+| `maxbytes=4096` | Rejects when bytes read exceed 4,096 |
+| `maxarray=100` | Rejects when an array's length exceeds 100 |
+| `SerializationFilterDemo$Account` | Allows the `Account` class in the program |
+| `!*` | Rejects all remaining classes matching wildcard `*` |
 
-**Thứ tự luật lớp quan trọng.** Với cùng một lớp, mẫu khớp đầu tiên quyết định. Nếu đặt !* ở đầu, Account cũng bị từ chối. Các giới hạn maxdepth/maxrefs/maxbytes/maxarray được kiểm tra độc lập với vị trí luật lớp. Ký tự khoảng trắng trong pattern là có ý nghĩa; không tự ý viết khoảng trắng quanh dấu chấm phẩy hoặc tên lớp.
+**Class rule order matters.** For a given class, the first matching pattern decides. If `!*` is placed first, `Account` is rejected too. The `maxdepth`/`maxrefs`/`maxbytes`/`maxarray` limits are checked independently of class-rule order. Whitespace in patterns is significant; do not arbitrarily insert spaces around semicolons or class names.
 
-Trong ví dụ, whitelist hẹp phù hợp vì đồ thị Account chỉ chứa trường String và các giá trị đơn giản. Lời gọi bộ lọc không áp dụng cho các primitive hoặc String được mã hóa trực tiếp theo giao thức serialization; vì vậy **đừng suy diễn rằng whitelist lớp đủ kiểm soát mọi dữ liệu của mọi kiểu**. Khi mô hình có List, Map, mảng hay lớp lồng, phải kiểm tra cả những lớp thực sự xuất hiện trong luồng, các dạng nội bộ và tài nguyên có thể được phân bổ.
+In this example, a narrow allowlist fits because the `Account` graph contains only a `String` field and simple values. Filter callbacks are not invoked for primitives or `String` values encoded directly by the serialization protocol; therefore **do not assume a class allowlist alone governs all data of every type**. When models include `List`, `Map`, arrays, or nested classes, verify every class that actually appears in the stream, including internal types and allocatable resources.
 
-## 4. Thử nghiệm có kiểm soát
+## 4. Controlled Experiments
 
-### 4.1. Thấy tác dụng của transient
+### 4.1. Observing the Effect of `transient`
 
-Trong chương trình, đổi giá trị khi tạo đối tượng:
+In the program, change the values when constructing the object:
 
 ~~~java
 serialize(new Account("Minh", "TOKEN-123"))
 ~~~
 
-Khi chạy lại, phần Account của output sẽ cho thấy owner=Minh và sessionToken=null. transient giúp không lưu **trường đó** trong luồng theo cơ chế mặc định; nó không xóa dữ liệu đang nằm ở nơi khác, và các phương thức writeObject tùy biến có thể thay đổi dữ liệu được ghi. Tuyệt đối không dùng transient làm biện pháp bảo vệ duy nhất cho bí mật.
+When re-run, the `Account` portion of stdout shows `owner=Minh` and `sessionToken=null`. `transient` omits **that field** from the stream under default serialization; it does not erase data residing elsewhere, and custom `writeObject` methods can alter what gets written. Never rely on `transient` as your sole protection for secrets.
 
-### 4.2. Chặn cả Account bằng chính sách lớp
+### 4.2. Blocking `Account` Too via Class Policy
 
-Thay pattern thành:
+Change the pattern to:
 
 ~~~java
 String pattern = "maxdepth=5;maxrefs=20;maxbytes=4096;"
         + "maxarray=100;!*";
 ~~~
 
-Lúc này ngay cả Account cũng bị từ chối. Trong chương trình hiện tại, lệnh deserializeWithFilter(acceptedBytes) đầu tiên sẽ phát sinh InvalidClassException trước khi tới phần catch dành cho Unexpected. Để quan sát thông báo thân thiện, bắt exception cho nhánh đầu hoặc hoàn nguyên pattern sau thí nghiệm.
+Now even `Account` is rejected. In the current program, the first `deserializeWithFilter(acceptedBytes)` call throws `InvalidClassException` before reaching the `catch` block meant for `Unexpected`. To observe a friendly message, catch the exception for the first branch or restore the pattern after experimenting.
 
-### 4.3. Thử giới hạn kích thước mảng
+### 4.3. Testing Array Size Limits
 
-Ví dụ độc lập về một mảng 101 phần tử:
+Standalone example with a 101-element array:
 
 ~~~java
 byte[] arrayBytes = serialize(new int[101]);
 ~~~
 
-Để thử mảng này với cùng hàm deserializeWithFilter(...), có thể truyền arrayBytes; maxarray=100 sẽ chặn mảng quá dài. Nhưng hàm hiện dùng quy tắc !* nên mảng cũng có thể bị chặn bởi luật lớp, kể cả khi chưa vượt giới hạn. Để kiểm tra **riêng** maxarray, dùng một filter minh họa như:
+To test this array with the same `deserializeWithFilter(...)`, you could pass `arrayBytes`; `maxarray=100` blocks oversized arrays. However, because that method includes `!*`, arrays can also be blocked by class rules even below the limit. To test `maxarray` **on its own**, use an illustrative filter such as:
 
 ~~~java
 ObjectInputFilter arrayFilter =
         ObjectInputFilter.Config.createFilter("maxarray=100;*");
 ~~~
 
-Cài arrayFilter vào ObjectInputStream mới **trước readObject()**, sau đó đọc các luồng int[100] và int[101]. Với JDK 17 mặc định, mảng 100 phần tử được chấp nhận và mảng 101 phần tử bị từ chối. Mẫu * cho phép mọi lớp, nên **chỉ dùng trong thí nghiệm giới hạn mảng**, không dùng làm chính sách bảo vệ dữ liệu không tin cậy.
+Install `arrayFilter` on a new `ObjectInputStream` **before `readObject()`**, then read `int[100]` and `int[101]` streams. On default JDK 17, the 100-element array is accepted and the 101-element array is rejected. The `*` pattern permits every class, so **use it only in array-limit experiments**, never as a defense policy for untrusted input.
 
-### 4.4. Đổi ngưỡng bytes và depth
+### 4.4. Changing Byte and Depth Thresholds
 
-Giảm maxbytes từ 4096 xuống một giá trị nhỏ như 16 thường khiến luồng Account trong ví dụ bị từ chối trước khi khôi phục thành công. Tuy nhiên, giá trị bytes tại từng lần callback phụ thuộc thời điểm đọc; không coi con số ngưỡng này là độ dài tuyệt đối của mảng byte được serialize. Tương tự, với một đồ thị lồng nhiều lớp, giảm maxdepth có thể chặn việc đọc sâu. Không dùng một ngưỡng demo cố định cho mọi mô hình dữ liệu.
+Lowering `maxbytes` from 4096 to a small value like 16 typically causes the `Account` stream in the example to be rejected before restoration finishes. However, the byte count at each callback depends on read timing; do not treat that threshold number as the exact length of the serialized byte array. Likewise, for a deeply nested graph, lowering `maxdepth` blocks deep reads. Never hardcode one demo threshold for all data models.
 
-### 4.5. Phân biệt các nguyên nhân thất bại
+### 4.5. Distinguishing Failure Causes
 
-| Hiện tượng | Nguyên nhân thường gặp | Hướng kiểm tra |
+| Symptom | Common Cause | How to Investigate |
 | --- | --- | --- |
-| InvalidClassException với thông điệp filter status | Bộ lọc từ chối một lớp hay giới hạn | Kiểm tra allowlist, giới hạn, thứ tự luật |
-| InvalidClassException do serialVersionUID | Phiên bản lớp phía đọc và phía ghi không tương thích | Kiểm tra serialVersionUID và thay đổi schema |
-| NotSerializableException khi ghi | Một đối tượng trong đồ thị không serializable | Kiểm tra các trường và kiểu liên quan |
-| StreamCorruptedException / EOFException khi đọc | Luồng sai định dạng, thiếu hoặc bị cắt | Xác nhận đầu vào đúng Java serialized bytes |
-| ClassNotFoundException khi đọc | Bên đọc thiếu lớp có tên trong luồng | Kiểm tra classpath/module và triển khai ứng dụng |
+| `InvalidClassException` with filter status message | Filter rejected a class or limit | Check allowlist, limits, and rule order |
+| `InvalidClassException` due to `serialVersionUID` | Writer and reader class versions incompatible | Check `serialVersionUID` and schema changes |
+| `NotSerializableException` on write | An object in the graph is not serializable | Inspect relevant fields and types |
+| `StreamCorruptedException` / `EOFException` on read | Malformed, missing, or truncated stream | Verify input is valid Java serialized bytes |
+| `ClassNotFoundException` on read | Reader lacks a class named in the stream | Check classpath/modules and deployment |
 
-Một lỗi có thể được bao bọc bởi exception ở tầng gọi. Không nên phân loại chỉ dựa vào tên exception mà không xem thông điệp, cause và trạng thái chương trình.
+An error can be wrapped by an exception at a caller layer. Do not classify failures by exception class name alone without checking the message, cause, and program state.
 
-## 5. Hai cách cấu hình ObjectInputFilter
+## 5. Two Ways to Configure `ObjectInputFilter`
 
-### 5.1. Theo từng ObjectInputStream: phù hợp với bài thực hành
+### 5.1. Per `ObjectInputStream`: Best Fit for This Exercise
 
 ~~~java
 ObjectInputFilter filter = ObjectInputFilter.Config.createFilter(
@@ -253,29 +253,29 @@ try (ObjectInputStream in = new ObjectInputStream(inputStream)) {
 }
 ~~~
 
-Đoạn trên chỉ minh họa phần đọc bên trong ứng dụng đã có inputStream, cùng lớp com.example.io.SafeMessage thật sự tồn tại. Nó **không phải chương trình độc lập**. Pattern cụ thể cần được xây dựng theo đồ thị đối tượng thực tế. Thiết lập filter trước readObject, close stream bằng try-with-resources và kiểm tra kiểu dữ liệu sau khi đọc.
+The snippet above only illustrates the read path inside an application that already has `inputStream` and an actual `com.example.io.SafeMessage` class. It is **not a standalone program**. Specific patterns must be tailored to real object graphs. Set the filter before `readObject`, close the stream with `try-with-resources`, and verify the object's type after reading.
 
-### 5.2. Bộ lọc JVM-wide và filter factory
+### 5.2. JVM-Wide Filter and Filter Factory
 
-JDK hỗ trợ bộ lọc toàn JVM thông qua system property jdk.serialFilter hoặc security property tương ứng; ví dụ khởi chạy ứng dụng với giới hạn tổng quát:
+The JDK supports a JVM-wide filter via the `jdk.serialFilter` system property or corresponding security property; for instance, launching an app with broad limits:
 
 ~~~bash
 java -Djdk.serialFilter=maxdepth=20;maxrefs=200;maxbytes=1048576 SerializationFilterDemo
 ~~~
 
-**Chú ý shell:** dấu ; thường là ký tự đặc biệt của shell (đặc biệt trong PowerShell/Bash). Đặt toàn bộ tham số JVM trong dấu nháy để truyền nguyên giá trị:
+**Shell warning:** `;` is often a special shell character (especially in PowerShell/Bash). Quote the entire JVM argument so the full value is passed intact:
 
 ~~~bash
 java "-Djdk.serialFilter=maxdepth=20;maxrefs=200;maxbytes=1048576" SerializationFilterDemo
 ~~~
 
-Các cấu hình này có phạm vi áp dụng rộng, vì vậy phải đánh giá ảnh hưởng tới tất cả luồng đọc đối tượng trong ứng dụng. Từ JDK 17, filter factory có thể kết hợp bộ lọc toàn JVM với bộ lọc trên từng stream; cách kết hợp thực tế phụ thuộc cấu hình factory. Không mặc định rằng setObjectInputFilter luôn ghi đè hoàn toàn một chính sách JVM-wide đã cài đặt. Để phân tích hành vi, kiểm tra tài liệu của đúng JDK và cấu hình runtime đang chạy.
+These configurations apply broadly, so evaluate their impact on every object stream in the application. Since JDK 17, a filter factory can combine the JVM-wide filter with per-stream filters; actual combination behavior depends on factory configuration. Do not assume `setObjectInputFilter` always completely overrides an installed JVM-wide policy. To analyze behavior, check documentation for your exact JDK and runtime configuration.
 
-**Nguyên tắc:** policy ứng dụng phải có allowlist và giới hạn tài nguyên phù hợp với từng luồng dữ liệu; policy JVM-wide là lớp hỗ trợ, không thay thế việc xác định mô hình dữ liệu mong đợi của từng điểm nhận input.
+**Principle:** application policies must define allowlists and resource limits tailored to each data stream; JVM-wide policies are a supporting layer, not a replacement for specifying the expected data model at each input boundary.
 
-## 6. Khi cần filter viết bằng Java thay cho pattern
+## 6. When You Need a Java-Written Filter Instead of a Pattern
 
-Pattern tiện cho luật theo tên lớp và giới hạn cơ bản. Nếu cần điều kiện ngữ cảnh, triển khai trực tiếp ObjectInputFilter. Đây là **đoạn minh họa** áp dụng cho lớp SafeMessage ở package com.example.io:
+Patterns are convenient for class-name rules and basic limits. When contextual conditions are required, implement `ObjectInputFilter` directly. Here is an **illustrative snippet** for `SafeMessage` in package `com.example.io`:
 
 ~~~java
 ObjectInputFilter customFilter = info -> {
@@ -302,41 +302,41 @@ ObjectInputFilter customFilter = info -> {
 };
 ~~~
 
-Ở đây, biểu thức arrayLength() > 1_000 không chặn trường hợp -1 (không phải mảng). serialClass() == null có thể xuất hiện trong các callback chỉ dùng để cập nhật giới hạn; trả UNDECIDED sau khi kiểm tra giới hạn là phù hợp trong nhánh này. Khi type khác null và không được phép, trả REJECTED để tránh khoảng trống allowlist.
+Here, `arrayLength() > 1_000` does not block `-1` (non-arrays). `serialClass() == null` can occur in callbacks used purely to update resource counters; returning `UNDECIDED` after checking bounds is appropriate in that branch. When `type` is non-null and not permitted, return `REJECTED` to leave no gaps in the allowlist.
 
-Đây là mã minh họa logic lọc, cần lớp com.example.io.SafeMessage được khai báo trong dự án. Nếu kiểu hợp lệ chứa các phần tử bổ trợ (chẳng hạn một số collection, enum, mảng hoặc lớp lồng), phải lập allowlist đầy đủ trên cơ sở luồng thật và giới hạn tài nguyên; nếu không, chính dữ liệu hợp lệ sẽ bị từ chối.
+This illustrates filtering logic and requires `com.example.io.SafeMessage` in your project. If a valid type holds supporting elements (such as collections, enums, arrays, or nested classes), build the complete allowlist from real stream inspection and resource limits; otherwise, valid data itself will be rejected.
 
-## 7. Những hiểu lầm và lỗi phổ biến
+## 7. Common Misconceptions and Mistakes
 
-1. **Chỉ kiểm tra instanceof sau readObject().** Quá muộn cho một số rủi ro: Java đã tiến hành giải tuần tự hóa trước khi phép kiểm tra kiểu trả về diễn ra. Đặt ObjectInputFilter trước readObject để từ chối sớm hơn trong phạm vi filter hỗ trợ.
-2. **Cho rằng implements Serializable là dấu hiệu an toàn.** Interface này chỉ cho biết đối tượng có thể tham gia serialization, không khẳng định nguồn byte đáng tin hay nội dung hợp lệ.
-3. **Dùng filter chỉ với maxdepth nhưng không giới hạn lớp.** Một policy tốt cần xét cả kiểu, kích thước mảng, số tham chiếu và byte; tùy trường hợp còn cần giới hạn ở tầng truyền tải trước khi tạo ObjectInputStream.
-4. **Cho rằng UNDECIDED nghĩa là REJECTED.** Khi dùng rule pattern mà không có luật loại trừ cuối cùng, các lớp không khớp có thể vẫn được đọc.
-5. **Dùng tên lớp sai.** Nested class sử dụng dấu $ trong tên nhị phân; package và tên module (nếu ghi trong pattern) phải chính xác.
-6. **Viết !* trước allowlist.** Bộ lọc xét pattern theo thứ tự nên rule từ chối chung đặt trước sẽ che hết các rule cho phép phía sau.
-7. **Tin rằng bộ lọc đảm bảo an toàn tuyệt đối.** Filter giảm bề mặt tấn công nhưng không kiểm chứng chữ ký, không ngăn mọi hành vi trong custom readObject/readResolve và không sửa lỗi trong thư viện. Dữ liệu không tin cậy cần được xem là nguồn rủi ro, kể cả khi có filter.
-8. **Dùng serialize làm cách lưu dữ liệu ổn định lâu dài.** Thay đổi tên lớp, serialVersionUID, trường và classpath có thể gây mất tương thích. Với dữ liệu trao đổi lâu dài, cân nhắc schema rõ ràng như JSON/Protocol Buffers cùng validate, giới hạn kích thước và xác thực phù hợp.
-9. **Log hoặc công khai bí mật trong đối tượng.** Dù trường transient không được ghi mặc định, việc in toString() trong ứng dụng có thể tiết lộ thông tin hiện có. Chỉ hiện giá trị demo phi nhạy cảm.
+1. **Checking `instanceof` only after `readObject()`.** Too late for several risks: Java has already executed deserialization before the return-type check runs. Attach `ObjectInputFilter` before `readObject` to reject earlier within filter capabilities.
+2. **Assuming `implements Serializable` implies safety.** That interface only marks an object eligible for serialization; it says nothing about trusted byte origin or valid content.
+3. **Configuring a filter with `maxdepth` only and no class restrictions.** A sound policy governs types, array sizes, reference counts, and bytes; depending on the case, also enforce transport-level limits before creating `ObjectInputStream`.
+4. **Assuming `UNDECIDED` means `REJECTED`.** In a pattern without a trailing deny rule, unmatched classes may still be read.
+5. **Using wrong class names.** Nested classes use `$` in binary names; package and module names (when included in patterns) must be exact.
+6. **Putting `!*` before the allowlist.** Filters evaluate patterns in order, so an early catch-all deny rule shadows all subsequent allow rules.
+7. **Believing a filter guarantees absolute security.** Filters reduce attack surface, yet do not verify signatures, cannot block every side effect inside custom `readObject`/`readResolve`, and do not patch library bugs. Untrusted data remains risky even with a filter.
+8. **Using serialization for long-term durable data storage.** Changing class names, `serialVersionUID`, fields, or the classpath can break compatibility. For long-lived data exchange, consider explicit schemas such as JSON or Protocol Buffers with validation, size limits, and proper authentication.
+9. **Logging or exposing secrets inside objects.** Even though `transient` fields are not written by default, printing `toString()` in an application can leak live secrets. Print only non-sensitive demo values.
 
-## 8. Checklist tự kiểm tra và câu hỏi mở rộng
+## 8. Self-Check Checklist and Follow-Up Questions
 
-Tự chạy lại chương trình, sau đó xác nhận:
+Re-run the program yourself, then confirm:
 
-- Tệp có tên SerializationFilterDemo.java, lệnh javac biên dịch thành công trên JDK 17+.
-- ObjectOutputStream ghi được cả Account và Unexpected.
-- Account được khôi phục khi policy cho phép; owner vẫn là Lan và sessionToken thành null.
-- Unexpected bị từ chối khi readObject() dưới policy chứa allowlist Account và !*.
-- Đổi thứ tự !* lên trước khiến Account cũng bị chặn.
-- Bạn có thể giải thích maxdepth, maxrefs, maxbytes, maxarray và sự khác nhau giữa ALLOWED / REJECTED / UNDECIDED.
-- Các thao tác đọc đối tượng từ nguồn không tin cậy trong ứng dụng đều có policy thích hợp, với giới hạn đầu vào ở lớp truyền tải và xử lý lỗi riêng.
+- The file is named `SerializationFilterDemo.java` and `javac` compiles cleanly on JDK 17+.
+- `ObjectOutputStream` writes both `Account` and `Unexpected`.
+- `Account` is restored when allowed by policy; `owner` remains `Lan` and `sessionToken` becomes `null`.
+- `Unexpected` is rejected during `readObject()` under the policy with `Account` allowlisted and `!*`.
+- Moving `!*` first blocks `Account` as well.
+- You can explain `maxdepth`, `maxrefs`, `maxbytes`, `maxarray`, and the differences among `ALLOWED` / `REJECTED` / `UNDECIDED`.
+- All untrusted-object reads in applications define proper policies, transport-layer input bounds, and dedicated error handling.
 
-**Câu hỏi suy ngẫm:** (1) Vì sao ép kiểu Account sau readObject không thay thế được ObjectInputFilter? (2) Vì sao trường transient trở thành null và khi nào cần custom serialization? (3) Bộ lọc theo tên lớp có thể thiếu những lớp hợp lệ nào khi Account chứa List hoặc mảng? (4) Vì sao maxbytes và maxrefs giúp giảm rủi ro tiêu thụ tài nguyên nhưng không chứng minh luồng đáng tin?
+**Reflection questions:** (1) Why does casting to `Account` after `readObject` not substitute for `ObjectInputFilter`? (2) Why does a `transient` field become `null`, and when is custom serialization needed? (3) Which legitimate classes might a class-name filter miss if `Account` contains a `List` or arrays? (4) Why do `maxbytes` and `maxrefs` mitigate resource exhaustion yet fail to prove a stream is trustworthy?
 
-## Tài liệu tham khảo chính thức
+## Official References
 
-- Oracle JDK 17 API — Serializable: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/Serializable.html
-- Oracle JDK 17 API — ObjectInputStream: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/ObjectInputStream.html
-- Oracle JDK 17 API — ObjectInputFilter: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/ObjectInputFilter.html
-- Oracle JDK 17 API — ObjectInputFilter.Config và cú pháp pattern: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/ObjectInputFilter.Config.html
+- Oracle JDK 17 API — `Serializable`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/Serializable.html
+- Oracle JDK 17 API — `ObjectInputStream`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/ObjectInputStream.html
+- Oracle JDK 17 API — `ObjectInputFilter`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/ObjectInputFilter.html
+- Oracle JDK 17 API — `ObjectInputFilter.Config` and pattern syntax: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/ObjectInputFilter.Config.html
 - OpenJDK JEP 290 — Filter Incoming Serialization Data: https://openjdk.org/jeps/290
 - OpenJDK JEP 415 — Context-Specific Deserialization Filters: https://openjdk.org/jeps/415

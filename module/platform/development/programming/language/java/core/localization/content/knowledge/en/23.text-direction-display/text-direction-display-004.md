@@ -1,142 +1,142 @@
-# Trộn chữ trái–phải, phải–trái, số và dấu câu trong Java
+# Mixing Left-to-Right, Right-to-Left, Numbers, and Punctuation in Java
 
-Một chuỗi có cả tiếng Việt hoặc tiếng Anh (viết **trái sang phải**, LTR), tiếng Ả Rập hoặc tiếng Do Thái (thường viết **phải sang trái**, RTL), chữ số và dấu câu không thể hiển thị đúng bằng quy tắc “in từng ký tự từ trái sang phải”. Unicode định nghĩa **Bidirectional Algorithm (UAX #9)** để xác định **thứ tự hiển thị trực quan** từ **thứ tự logic** của chuỗi gốc. Trong Java, lớp **java.text.Bidi** giúp phân tích hướng nền, các đoạn chữ có cùng mức hướng (runs) và hỗ trợ bố trí văn bản hai chiều; bản thân nó **không** thay thế hệ thống vẽ chữ (text rendering), không uốn/gắn nét chữ Ả Rập, và không đảo hay sửa nội dung String.
+A string containing both Vietnamese or English (written **left-to-right**, LTR), Arabic or Hebrew (typically written **right-to-left**, RTL), digits, and punctuation cannot be displayed properly by a rule that "prints each character from left to right." Unicode defines the **Bidirectional Algorithm (UAX #9)** to determine **visual order** from the **logical order** of the source string. In Java, the **java.text.Bidi** class helps analyze base direction, segments sharing the same directional level (runs), and supports laying out bidirectional text; by itself it **does not** replace a text-rendering system, does not curve/join Arabic strokes, and does not reverse or modify `String` content.
 
-Vấn đề đặc biệt dễ xuất hiện khi câu RTL xen **mã đơn hàng**, **URL**, **số điện thoại**, **giá tiền**, **dấu hai chấm**, **ngoặc đơn** và **dấu gạch nối**. Nhiều dấu câu là **neutral** (không mang hướng mạnh), nên vị trí hiển thị của chúng phụ thuộc các ký tự xung quanh và hướng nền. Những chữ số có quy tắc bidi riêng, không đơn giản là “giống LTR” hoặc “giống RTL” cho mọi trường hợp.
+Problems especially tend to surface when an RTL sentence mixes in **order codes**, **URLs**, **phone numbers**, **prices**, **colons**, **parentheses**, and **hyphens**. Many punctuation marks are **neutral** (carrying no strong direction), so their visual position depends on surrounding characters and the base direction. Digits have their own bidi rules and are not simply "like LTR" or "like RTL" in every scenario.
 
-Bài viết này giải thích cơ chế, cách áp dụng Java 17+, ví dụ kiểm chứng, lựa chọn hướng hiển thị trong UI/web, sự khác biệt giữa dấu đánh dấu hướng và isolate, các vấn đề nhập/xuất dữ liệu và an toàn khi xử lý văn bản hỗn hợp.
+This article explains the mechanism, how to apply it in Java 17+, verifiable examples, choosing display direction in UI/web, the difference between directional marks and isolates, data input/output considerations, and safety when handling mixed text.
 
-## 1. Thứ tự logic và thứ tự hiển thị là hai việc khác nhau
+## 1. Logical order and visual order are two different things
 
-Xét một nhãn giao diện chứa từ tiếng Anh và từ tiếng Ả Rập:
+Consider a UI label containing an English word and an Arabic word:
 
 ~~~text
 Order 123: مرحبا
 ~~~
 
-Trong String Java, các code point xuất hiện theo **thứ tự logic** do dữ liệu lưu trữ quy định: **O, r, d, e, r, khoảng trắng, 1, 2, 3, dấu hai chấm, khoảng trắng, các ký tự Ả Rập**. Trình dựng chữ nhìn vào hướng nền (paragraph base direction), bidi classes của Unicode và các quy tắc ngữ cảnh để quyết định thứ tự trực quan khi vẽ từng đoạn.
+In a Java `String`, code points appear in the **logical order** dictated by stored data: **O, r, d, e, r, space, 1, 2, 3, colon, space, the Arabic characters**. The text-rendering engine looks at the paragraph base direction, Unicode bidi classes, and contextual rules to determine the visual order when drawing each segment.
 
-Hình thức biểu diễn trực quan không thể mô tả đáng tin bằng một chuỗi ASCII vẽ lại trong Markdown: chính trình duyệt, terminal và font đang xem Markdown có thể tự chạy thuật toán bidi thêm một lần. Vì vậy **mọi ví dụ văn bản hỗn hợp trong bài đều phân biệt “logical string” với “visual rendering”**, và dùng Unicode code point/runs để kiểm tra thay vì cố đoán vị trí dấu câu chỉ bằng mắt.
+Visual representation cannot be reliably described using a redrawn ASCII string inside Markdown: the browser, terminal, and font viewing the Markdown may run the bidi algorithm themselves an extra time. Therefore **every mixed-text example in this article distinguishes "logical string" from "visual rendering,"** and uses Unicode code points/runs to inspect behavior rather than trying to guess punctuation placement by eye alone.
 
-| Khái niệm | Vai trò |
+| Concept | Role |
 | --- | --- |
-| **Thứ tự logic (logical order)** | Trình tự ký tự trong String, file, JSON, database |
-| **Hướng nền của đoạn (paragraph base direction)** | Mốc LTR hoặc RTL của đoạn văn |
-| **Bidi class** | Lớp hướng Unicode gắn với từng ký tự |
-| **Embedding level** | Mức hướng dùng khi xác định thứ tự trực quan; mức chẵn thường gắn với LTR, mức lẻ với RTL |
-| **Directional run** | Đoạn liên tiếp được thuật toán gán cùng mức bidi |
-| **Thứ tự trực quan (visual order)** | Thứ tự các đoạn/ký tự hiển thị sau khi áp thuật toán |
-| **Text shaping** | Chọn glyph, nối/đổi dạng chữ, đặc biệt quan trọng với các hệ chữ nối nét |
-| **Text layout** | Đặt glyph, xử lý font, dòng, vùng chứa, hướng và ngắt dòng |
+| **Logical order** | The sequence of characters in a `String`, file, JSON, or database |
+| **Paragraph base direction** | The LTR or RTL baseline of a paragraph |
+| **Bidi class** | The Unicode directional class assigned to each character |
+| **Embedding level** | The directional level used when determining visual order; even levels typically correspond to LTR, odd levels to RTL |
+| **Directional run** | A contiguous segment assigned the same bidi level by the algorithm |
+| **Visual order** | The display order of segments/characters after applying the algorithm |
+| **Text shaping** | Selecting glyphs, joining/changing letter forms, especially critical for cursive scripts |
+| **Text layout** | Placing glyphs, handling fonts, lines, containers, direction, and line wrapping |
 
-**Hệ quả:** thứ tự người đọc nhìn thấy không nhất thiết trùng với chỉ số ký tự trong Java String. Khi người dùng đặt con trỏ, chọn văn bản hoặc sao chép, ứng dụng phải có cơ chế ánh xạ giữa vị trí logic và vị trí trên màn hình.
+**Consequence:** the order a reader sees does not necessarily match character indices in a Java `String`. When a user places a caret, selects text, or copies, the application must map between logical positions and on-screen positions.
 
-## 2. Những hệ chữ thường LTR, RTL và các ký tự không có hướng mạnh
+## 2. Typically LTR scripts, RTL scripts, and characters without strong direction
 
-Unicode phân loại ký tự theo **bidirectional class**. Một số loại cơ bản:
+Unicode classifies characters by **bidirectional class**. Some basic categories:
 
-| Nhóm | Bidi class Unicode | Ví dụ và ý nghĩa |
+| Group | Unicode Bidi Class | Examples and meaning |
 | --- | --- | --- |
-| Chữ LTR | **L** | Latin như A, B, chữ Việt có dấu |
-| Chữ RTL | **R** | Phần lớn chữ Do Thái |
-| Chữ Ả Rập | **AL** | Nhiều chữ cái Ả Rập, dùng quy tắc RTL riêng |
-| Chữ số châu Âu | **EN** | ASCII 0–9 |
-| Chữ số Ả Rập–Ấn Độ | **AN** | Một số dạng chữ số dùng trong văn bản Ả Rập |
-| Khoảng trắng | **WS** | Một số ký tự phân cách kiểu whitespace |
-| Dấu trung tính khác | **ON** | Một số dấu/biểu tượng không có hướng mạnh |
-| Dấu phân cách số | **ES / CS / ET** | Một số dấu cộng, trừ, phẩy, hai chấm, ký hiệu phần trăm hoặc tiền tùy ký tự |
-| Dấu kết hợp | **NSM** | Dấu Unicode không giãn, thường theo ngữ cảnh ký tự trước |
-| Điều khiển đoạn/ngắt dòng | **B / S** và lớp khác | Tham gia xác định biên đoạn và cách xử lý |
+| LTR letters | **L** | Latin such as A, B, Vietnamese letters with diacritics |
+| RTL letters | **R** | Most Hebrew letters |
+| Arabic letters | **AL** | Many Arabic letters, using dedicated RTL rules |
+| European digits | **EN** | ASCII 0–9 |
+| Arabic-Indic digits | **AN** | Certain digit forms used in Arabic text |
+| Whitespace | **WS** | Whitespace separator characters |
+| Other neutrals | **ON** | Certain marks/symbols without strong direction |
+| Number separators | **ES / CS / ET** | Certain plus, minus, comma, colon, percent, or currency symbols depending on the character |
+| Combining marks | **NSM** | Unicode nonspacing marks, usually following the preceding character's context |
+| Paragraph/line controls | **B / S** and other classes | Participate in determining paragraph boundaries and handling |
 
-Đây là **phân loại kỹ thuật**, không phải bảng quy tắc “mỗi ký tự luôn đứng bên trái/bên phải”. Ví dụ chữ số EN có nhiều quy tắc kết hợp với văn bản RTL; dấu hai chấm thường là **common separator (CS)**, còn ngoặc đơn là dấu có cơ chế bidi và paired-bracket riêng. Không thể suy trực tiếp vị trí trên màn hình chỉ từ một bidi class độc lập.
+This is a **technical classification**, not a rule table saying "each character always sits on the left/right." For instance, EN digits have multiple rules for interacting with RTL text; a colon is typically a **common separator (CS)**, while parentheses have dedicated bidi and paired-bracket rules. You cannot directly deduce screen position from a single bidi class in isolation.
 
-**Dữ liệu tiếng Việt** là LTR, nhưng giao diện tiếng Việt vẫn có thể chứa địa chỉ tiếng Ả Rập, tên người Do Thái, tên tệp hoặc mã quốc tế. Khi dữ liệu có nhiều script, một dòng chữ cần bố trí bidi ngay cả khi phần lớn ứng dụng là LTR.
+**Vietnamese data** is LTR, yet a Vietnamese interface can still contain Arabic addresses, Hebrew names, filenames, or international codes. When data contains multiple scripts, a line of text requires bidi layout even if most of the application is LTR.
 
-## 3. Hướng nền của đoạn khác hướng từng từ
+## 3. Paragraph base direction differs from individual word direction
 
-Một đoạn văn có thể có **hướng nền LTR** nhưng chứa một cụm RTL. Ngược lại, một câu RTL có thể có **email, URL, mã hàng** LTR.
+A paragraph can have an **LTR base direction** yet contain an RTL phrase. Conversely, an RTL sentence can contain an LTR **email, URL, or product code**.
 
-Hướng nền giúp quyết định thứ tự và cách neo các vùng ký tự yếu/trung tính. Nó có thể:
+Base direction helps determine the ordering and anchoring of weak/neutral character regions. It can be:
 
-1. Được chỉ định tường minh bởi vùng hiển thị: một trường hoặc đoạn được coi là LTR hay RTL.
-2. Được chọn dựa trên **ký tự mạnh đầu tiên** khi dùng chế độ tự phát hiện.
-3. Được kế thừa theo cấu trúc bố cục nếu UI không chỉ định riêng.
+1. Explicitly specified by the display region: a field or paragraph is treated as LTR or RTL.
+2. Chosen based on the **first strong character** when using auto-detection mode.
+3. Inherited from layout structure if the UI does not specify it individually.
 
-**Không đồng nhất hướng nền với căn lề.** Căn phải của một ô chưa chắc đặt được thuật toán bidi trong ô sang RTL. Tương tự, chọn font Ả Rập không biến chuỗi thành một đoạn RTL đúng quy tắc. Cần chỉ định đúng **text direction** hoặc sử dụng một hệ layout hỗ trợ bidi.
+**Do not equate base direction with text alignment.** Right-aligning a box does not necessarily set the bidi algorithm inside that box to RTL. Similarly, picking an Arabic font does not turn a string into a properly ordered RTL paragraph. You must specify the right **text direction** or use a bidi-aware layout system.
 
-Trong một giao diện có đoạn RTL và mã đơn hàng LTR, nên coi mỗi phần có ý nghĩa riêng là một phân đoạn độc lập về hướng nếu nền tảng cho phép. Nếu chỉ thêm khoảng trắng hoặc đổi alignment, dấu câu có thể vẫn chạy sai.
+In a UI mixing an RTL segment and an LTR order code, treat each semantically distinct piece as an independent directional segment if the platform allows it. Simply adding spaces or changing alignment can still leave punctuation out of place.
 
-### 3.1. Xác định hướng tự động có giới hạn
+### 3.1. Automatic direction detection has limits
 
-Chế độ **default LTR** không có nghĩa ép mọi ký tự thành LTR. Nó thường tìm ký tự có hướng mạnh để chọn hướng nền; nếu không có ký tự mạnh phù hợp, mới dùng hướng dự phòng LTR.
+**Default LTR** mode does not mean forcing every character to LTR. It typically searches for a strong directional character to pick the base direction; if no qualifying strong character exists, it falls back to LTR.
 
-Ví dụ một đoạn bắt đầu bằng số **123:** rồi mới có từ RTL. Dãy chữ số không phải ký tự mạnh LTR giống chữ A, vì vậy hướng nền tự phát hiện có thể bị chi phối bởi từ RTL đến sau. Đây là lý do một UI chứa mã định danh toàn số không nên mặc định dựa hoàn toàn vào “ký tự đầu tiên nhìn thấy” để xác định hướng.
+For example, a paragraph starting with digits **123:** followed by an RTL word. The digit sequence is not a strong LTR character like the letter A, so auto-detected base direction can be governed by the RTL word that follows. This is why a UI holding all-numeric identifiers should not rely blindly on "the first visible character" to decide direction.
 
-## 4. Số không đơn thuần chạy ngược trong RTL
+## 4. Numbers do not simply run backward in RTL
 
-Trong văn bản RTL, chữ số như **12345** thường vẫn có thứ tự nội bộ có thể đọc như một số (không tự biến thành **54321** chỉ vì câu đọc từ phải sang trái). Nhưng vị trí của **toàn bộ cụm số** so với các từ, dấu âm, ký hiệu tiền và dấu phân cách có thể khác theo ngữ cảnh.
+In RTL text, digits like **12345** normally still keep an internal order readable as a number (they do not turn into **54321** just because the sentence reads right to left). However, the position of **the entire numeric group** relative to words, minus signs, currency symbols, and separators can vary by context.
 
-Ví dụ những dữ liệu cần kiểm tra:
+Examples of data to test:
 
 ~~~text
-Mã: 123-45
+Code: 123-45
 Invoice #2026-10
 Phone: +84 901 234 567
 USD 1,250.50
 رقم 123
 ~~~
 
-Chúng có các loại dấu/nhóm khác nhau:
+They contain different kinds of marks and groups:
 
-- **Mã có gạch nối:** dấu trừ/gạch ngang có thể được thuật toán hiểu trong ngữ cảnh số hoặc dấu câu.
-- **Số điện thoại:** dấu cộng, khoảng trắng, dấu ngoặc và dãy số thường cần xem như một thành phần dữ liệu LTR riêng.
-- **Ngày và giờ:** dấu gạch chéo, dấu hai chấm, ký tự tiền tố nằm cạnh các số và chữ RTL.
-- **Tiền tệ:** biểu tượng tiền, dấu thập phân và dấu nhóm có thể có cả quy tắc locale và bidi.
-- **Định danh kỹ thuật:** dấu hai chấm/gạch nối có thể thuộc chuỗi ID, không có ý nghĩa câu văn.
+- **Hyphenated codes:** the minus/hyphen may be interpreted by the algorithm in a numeric or punctuation context.
+- **Phone numbers:** plus signs, spaces, parentheses, and digit sequences often need to be treated as a dedicated LTR data component.
+- **Dates and times:** slashes, colons, and prefix characters sit adjacent to digits and RTL letters.
+- **Currency:** currency symbols, decimal points, and grouping separators can involve both locale and bidi rules.
+- **Technical identifiers:** colons/hyphens may belong to an ID string rather than sentence prose.
 
-**Không đảo từng chữ số.** Nếu đang nhận chuỗi **12345** từ dữ liệu máy, giá trị đó phải giữ nguyên thứ tự logic trong String. Công việc hiển thị thuộc về bidi layout, không phải thao tác **new StringBuilder(text).reverse()**.
+**Do not reverse individual digits.** If receiving the string **12345** from machine data, that value must keep its logical order inside the `String`. Display belongs to bidi layout, not calling **new StringBuilder(text).reverse()**.
 
-### 4.1. Chữ số phương Tây và chữ số Ả Rập không giống nhau
+### 4.1. Western digits and Arabic digits are not identical
 
-Unicode phân biệt **European Number (EN)** và **Arabic Number (AN)** cùng nhiều lớp liên quan. **Locale** có thể quyết định bộ chữ số hiển thị của NumberFormat hoặc DateTimeFormatter, nhưng **định dạng số theo locale** và **sắp xếp bidi** là hai giai đoạn/khía cạnh khác nhau.
+Unicode distinguishes **European Number (EN)** and **Arabic Number (AN)** along with several related classes. **Locale** can govern which digit set `NumberFormat` or `DateTimeFormatter` renders, yet **locale-based number formatting** and **bidi ordering** are two separate stages/aspects.
 
-Chẳng hạn:
+For example:
 
-- **NumberFormat** có thể sinh ra số có dấu phân nhóm hoặc chữ số địa phương.
-- **Bidi layout** quyết định vị trí cụm số ấy khi nằm trong câu chứa RTL.
-- **Font/text renderer** quyết định glyph, nối nét và hình dạng cuối cùng.
+- **NumberFormat** can produce numbers with grouping separators or localized digits.
+- **Bidi layout** decides where that number group is placed inside a sentence containing RTL.
+- **The font/text renderer** decides glyphs, stroke joining, and final appearance.
 
-Nếu app format số theo locale tiếng Ả Rập rồi đem chèn vào một đoạn tiếng Anh, vẫn phải xét hướng của cả đoạn. Không coi NumberFormat tự động giải quyết toàn bộ bidi.
+If an app formats a number under an Arabic locale and inserts it into an English paragraph, the direction of the whole paragraph still has to be considered. Do not assume `NumberFormat` handles all of bidi automatically.
 
-## 5. Dấu câu và dấu ngoặc là nơi lỗi hiển thị dễ xảy ra nhất
+## 5. Punctuation and parentheses are where display bugs happen most often
 
-Một câu hỗn hợp như:
+A mixed sentence like:
 
 ~~~text
 Status (مرحبا): 123
 ~~~
 
-có chữ Latin, ngoặc đơn, từ RTL, dấu hai chấm và số. Dấu ngoặc không phải chữ mạnh LTR/RTL; Unicode Bidirectional Algorithm có quy tắc xử lý dấu trung tính và dấu ngoặc đi cặp để xác định cách vẽ. Vì thế dấu ngoặc có thể được hiển thị theo hướng hoặc phản chiếu hình glyph thích hợp với mức bidi.
+has Latin letters, parentheses, an RTL word, a colon, and digits. Parentheses are not strong LTR/RTL letters; the Unicode Bidirectional Algorithm has rules for neutrals and paired brackets to decide how they are drawn. Thus parentheses can be displayed in an orientation or glyph-mirrored form suited to the bidi level.
 
-**Phân biệt ba việc:**
+**Distinguish three things:**
 
-1. **Character order:** dấu ngoặc mở và đóng vẫn là các ký tự ở vị trí logic của String.
-2. **Bidi reordering:** vị trí các đoạn và ký tự trên màn hình thay đổi do thuật toán.
-3. **Glyph mirroring:** một số ký hiệu như ngoặc có thể chọn glyph đối xứng khi ở hướng RTL.
+1. **Character order:** opening and closing parentheses remain characters at their logical positions in the `String`.
+2. **Bidi reordering:** on-screen positions of segments and characters shift due to the algorithm.
+3. **Glyph mirroring:** certain symbols like parentheses may select a symmetric glyph when in an RTL direction.
 
-**Không được dùng String.replace('(', ')')** để “sửa” dấu ngoặc trong đoạn RTL. Điều này làm hỏng dữ liệu gốc và còn sai nếu nội dung được hiển thị trong ngữ cảnh hướng khác.
+**You must not use String.replace('(', ')')** to "fix" parentheses in an RTL segment. That corrupts the original data and breaks again if the content is displayed in another directional context.
 
-Các dấu câu như **:**, **;**, **,**, **.**, **-**, dấu ngoặc và khoảng trắng có thể bị đặt ở vị trí người đọc không mong nếu một đoạn hỗn hợp được gắn vào vùng có base direction không đúng. Cần thử với **câu hoàn chỉnh**, không chỉ thử từng từ RTL đơn lẻ.
+Punctuation such as **:**, **;**, **,**, **.**, **-**, parentheses, and spaces can end up in positions readers do not expect if a mixed segment is placed in a region with the wrong base direction. Test with **complete sentences**, not only isolated RTL words.
 
-### 5.1. Dấu trừ và dấu gạch nối có những vai trò khác nhau
+### 5.1. Minus signs and hyphens play different roles
 
-Ký tự **-** có thể là dấu trừ trong một số, dấu nối trong mã hàng, hoặc dấu nối của một câu. Thuật toán bidi phân loại theo ký tự và ngữ cảnh, nhưng không hiểu hết ý nghĩa nghiệp vụ của mã đơn hàng hay phép tính.
+The **-** character can be a minus sign on a number, a connector in a product code, or a dash in a sentence. The bidi algorithm classifies by character and context, yet does not understand the business meaning of an order code or arithmetic expression.
 
-Đối với phần tử kỹ thuật như **INV-2026-12**, nên giữ một chuỗi logic duy nhất và đặt nó trong một vùng có hướng rõ ràng theo hợp đồng hiển thị, thay vì dựa vào các dấu câu xung quanh câu RTL để tự đoán vị trí.
+For technical elements like **INV-2026-12**, keep a single logical string and place it in a region with an explicit direction per the display contract, rather than relying on surrounding RTL sentence punctuation to guess its placement.
 
-## 6. Java 17: kiểm tra bidi class bằng Character
+## 6. Java 17: checking bidi class with Character
 
-**Character.getDirectionality(int codePoint)** trả về hằng số cho hướng của một Unicode code point, ví dụ:
+**Character.getDirectionality(int codePoint)** returns a directional constant for a Unicode code point, for example:
 
 - **Character.DIRECTIONALITY_LEFT_TO_RIGHT**.
 - **Character.DIRECTIONALITY_RIGHT_TO_LEFT**.
@@ -146,7 +146,7 @@ Ký tự **-** có thể là dấu trừ trong một số, dấu nối trong mã
 - **Character.DIRECTIONALITY_COMMON_NUMBER_SEPARATOR**.
 - **Character.DIRECTIONALITY_OTHER_NEUTRALS**.
 
-Điều này có ích khi debug chuỗi hỗn hợp. Tuy vậy **directionality của một code point không phải vị trí cuối cùng của nó trên màn hình**: cần cả chuỗi và base direction để chạy Unicode Bidirectional Algorithm.
+This is helpful when debugging mixed strings. However, **a code point's directionality is not its final screen position**: the full string and base direction are needed to run the Unicode Bidirectional Algorithm.
 
 **File DirectionalityKinds.java**
 
@@ -172,14 +172,14 @@ public class DirectionalityKinds {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 DirectionalityKinds.java
 java DirectionalityKinds
 ~~~
 
-Stdout với Java 17:
+Stdout with Java 17:
 
 ~~~text
 latin=true
@@ -188,35 +188,35 @@ digit=true
 colon=true
 ~~~
 
-Đây là các phép so sánh với hằng số API nên minh họa được bidi class mà không phụ thuộc terminal vẽ chữ Ả Rập thế nào. Chẳng hạn dấu hai chấm thuộc nhóm phân cách số chung trong dữ liệu Unicode, nhưng nó không có nghĩa “dấu hai chấm luôn dính sang phải” ở mọi câu.
+These compare against API constants so they illustrate bidi classes independently of how the terminal draws Arabic letters. For instance, the colon belongs to the common number separator class in Unicode data, which does not mean "a colon always sticks to the right" in every sentence.
 
-**Khi xử lý dữ liệu ngoài BMP**, truyền code point kiểu int cho getDirectionality; không đi từng **char** nếu có thể vô tình phân tách surrogate pair.
+**When handling non-BMP data**, pass an `int` code point to `getDirectionality`; do not iterate by **`char`** where you might accidentally split a surrogate pair.
 
-## 7. java.text.Bidi xử lý các đoạn văn nhiều chiều
+## 7. java.text.Bidi handles multi-directional paragraphs
 
-Lớp **java.text.Bidi** cung cấp phân tích bidi cấp độ chữ/đoạn, dựa vào thông tin Unicode và hướng nền. Nó có các constructor và API:
+The **java.text.Bidi** class provides character/paragraph-level bidi analysis based on Unicode data and base direction. It offers constructors and APIs:
 
-| API | Công dụng |
+| API | Purpose |
 | --- | --- |
-| **new Bidi(String paragraph, int flags)** | Tạo bộ phân tích bidi cho một chuỗi |
-| **Bidi.DIRECTION_LEFT_TO_RIGHT** | Gợi ý hướng nền LTR tường minh |
-| **Bidi.DIRECTION_RIGHT_TO_LEFT** | Gợi ý hướng nền RTL tường minh |
-| **Bidi.DIRECTION_DEFAULT_LEFT_TO_RIGHT** | Dò hướng mạnh, nếu không có thì dùng LTR |
-| **Bidi.DIRECTION_DEFAULT_RIGHT_TO_LEFT** | Dò hướng mạnh, nếu không có thì dùng RTL |
-| **baseIsLeftToRight()** | Hỏi hướng nền đã chọn có là LTR không |
-| **getBaseLevel()** | Lấy base embedding level của đoạn |
-| **getRunCount()** | Số runs theo phân tích hiện hành |
-| **getRunStart(int run)** | Vị trí logic bắt đầu của run được đánh số |
-| **getRunLimit(int run)** | Vị trí logic ngay sau cuối của run |
-| **getRunLevel(int run)** | Embedding level của run |
-| **getLength()** | Độ dài đoạn đầu vào mà Bidi quản lý |
-| **requiresBidi(char[], start, limit)** | Kiểm tra sơ bộ xem đoạn dữ liệu có cần bidi processing |
-| **createLineBidi(int start, int limit)** | Tạo phân tích dành cho một dòng con |
-| **reorderVisually(...)** | Sắp thứ tự các đối tượng run theo levels được cung cấp |
+| **new Bidi(String paragraph, int flags)** | Create a bidi analyzer for a string |
+| **Bidi.DIRECTION_LEFT_TO_RIGHT** | Explicit LTR base direction hint |
+| **Bidi.DIRECTION_RIGHT_TO_LEFT** | Explicit RTL base direction hint |
+| **Bidi.DIRECTION_DEFAULT_LEFT_TO_RIGHT** | Detect strong direction; fall back to LTR if none |
+| **Bidi.DIRECTION_DEFAULT_RIGHT_TO_LEFT** | Detect strong direction; fall back to RTL if none |
+| **baseIsLeftToRight()** | Query whether the selected base direction is LTR |
+| **getBaseLevel()** | Get the paragraph's base embedding level |
+| **getRunCount()** | Number of runs under the current analysis |
+| **getRunStart(int run)** | Logical start index of the numbered run |
+| **getRunLimit(int run)** | Logical index immediately after the end of the run |
+| **getRunLevel(int run)** | Embedding level of the run |
+| **getLength()** | Length of the input segment managed by `Bidi` |
+| **requiresBidi(char[], start, limit)** | Preliminary check whether a data slice needs bidi processing |
+| **createLineBidi(int start, int limit)** | Create an analysis for a sub-line |
+| **reorderVisually(...)** | Order run objects according to the supplied levels |
 
-**Không suy rằng getRunCount bằng số từ hoặc số hệ chữ.** Dấu câu và chữ số có thể làm ranh giới runs xuất hiện ở những vị trí không trùng ranh giới từ. Số run, vị trí run và level là kết quả của toàn bộ chuỗi, base direction và thuật toán runtime.
+**Do not assume getRunCount equals word count or script count.** Punctuation and digits can introduce run boundaries at positions that do not match word boundaries. Run count, run positions, and levels are outputs of the whole string, base direction, and runtime algorithm.
 
-### 7.1. Ví dụ Java kiểm chứng hướng nền và nhu cầu bidi
+### 7.1. Java example verifying base direction and bidi requirement
 
 **File BidiBasics.java**
 
@@ -250,7 +250,7 @@ public class BidiBasics {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 BidiBasics.java
@@ -266,18 +266,18 @@ mixed-requires-bidi=true
 logical-prefix=Ticket
 ~~~
 
-Chương trình tránh in một dòng hỗn hợp như “bằng chứng” về thứ tự trực quan, vì **terminal và trình đọc log có thể có quy tắc bidi khác UI sản phẩm**. Thay vào đó, nó chứng minh:
+The program avoids printing a mixed line as "proof" of visual order, because **terminals and log viewers can apply different bidi rules from the production UI**. Instead, it proves:
 
-- Đoạn thuần chữ Latin được xác định nền LTR.
-- Đoạn thuần chữ Ả Rập có hướng nền RTL, ngay cả khi chọn flag “default-left-to-right” vì flag này cho phép dò ký tự mạnh.
-- Đoạn hỗn hợp có các ký tự cần bidi processing.
-- **substring** vẫn đọc đúng thứ tự logic của String đầu vào.
+- A purely Latin segment is given an LTR base.
+- A purely Arabic segment has an RTL base direction, even when choosing the "default-left-to-right" flag because that flag checks strong characters.
+- A mixed segment contains characters needing bidi processing.
+- **substring** still reads the input `String`'s logical order accurately.
 
-**Bidi.requiresBidi** là kiểm tra kỹ thuật, không phải validator xác định nội dung là tiếng Ả Rập/Do Thái hoặc câu chắc chắn phải căn phải. Một chuỗi RTL cần xử lý theo hướng dù UI tổng thể là LTR.
+**Bidi.requiresBidi** is a technical check, not a validator determining whether content is Arabic/Hebrew or whether a sentence must be right-aligned. An RTL string needs directional handling even when the overall UI is LTR.
 
-## 8. Phân tích run và ánh xạ chỉ số logic
+## 8. Run analysis and logical index mapping
 
-Khi viết trình xem văn bản tùy chỉnh, ta cần biết các run trong đoạn:
+When writing a custom text viewer, we need to know the runs in a paragraph:
 
 ~~~java
 Bidi bidi = new Bidi(
@@ -297,107 +297,107 @@ for (int run = 0; run < bidi.getRunCount(); run++) {
 }
 ~~~
 
-Đoạn này **minh họa**, cần import **java.text.Bidi** và một biến **String mixed**. Số run/level được in tùy chuỗi và dữ liệu Unicode của runtime, vì vậy không ấn định một stdout cố định ở đây.
+This snippet is **illustrative**, requiring **`import java.text.Bidi`** and a **`String mixed`** variable. Printed run counts/levels depend on the string and runtime Unicode data, so a fixed stdout is not prescribed here.
 
-Cần chú ý:
+Note carefully:
 
-1. Các chỉ số **start/limit** là vị trí trong chuỗi đầu vào, theo **đơn vị UTF-16**.
-2. **limit** là vị trí kết thúc **exclusive**.
-3. Thứ tự của runs khi bố trí trực quan khác với thứ tự các đoạn con trong String, tùy levels.
-4. Các run chưa chứa glyph shaping hoặc vị trí pixel; chúng chỉ là thông tin phân tích bidi.
-5. Một **emoji ngoài BMP** có thể dùng hai char; không cắt đôi surrogate pair khi xử lý các vùng văn bản tự viết.
-6. Với text editor, vị trí click/hit testing cần có ánh xạ do layout engine cung cấp, không tự suy từ **run index**.
+1. **start/limit** indices are positions in the input string in **UTF-16 units**.
+2. **limit** is an **exclusive** end index.
+3. The order of runs in visual layout differs from the order of substrings in the `String`, depending on levels.
+4. Runs do not yet include glyph shaping or pixel coordinates; they are solely bidi analysis data.
+5. A **non-BMP emoji** can take two `char`s; do not split a surrogate pair when handling custom text ranges.
+6. For text editors, click/hit-testing positions need mappings supplied by the layout engine rather than inferring from **run index** yourself.
 
-**Bidi.reorderVisually** sắp một mảng các đối tượng theo levels được cung cấp. Nó **không tự vẽ glyph**, không tách/kết hợp dấu, không xử lý shaping của Ả Rập hoặc phông chữ. Nếu cần rendering, dùng hệ thống layout hỗ trợ text shaping như thành phần UI/văn bản tương ứng.
+**Bidi.reorderVisually** sorts an array of objects according to supplied levels. It **does not draw glyphs itself**, does not split/combine marks, and does not handle Arabic shaping or fonts. When rendering is needed, use a layout system that supports text shaping such as the corresponding UI/text component.
 
-## 9. Vì sao không tự đảo chuỗi RTL?
+## 9. Why not reverse RTL strings yourself?
 
-Cách làm dễ mắc lỗi:
+An error-prone approach:
 
 ~~~java
 String wrong =
         new StringBuilder(userText).reverse().toString();
 ~~~
 
-Đây là đoạn minh họa trong một phương thức có biến **String userText**. **StringBuilder.reverse** thay đổi thứ tự các phần tử chuỗi logic theo thuật toán của nó, không chạy UAX #9 và không biết những đoạn nào LTR/RTL, dấu câu hay số nên được giữ nội bộ.
+This is an illustrative snippet inside a method with variable **`String userText`**. **StringBuilder.reverse** changes the order of logical string elements according to its own algorithm, without running UAX #9 and without knowing which parts are LTR/RTL, punctuation, or digits that should preserve internal order.
 
-Các lỗi có thể xuất hiện:
+Bugs that can arise:
 
-- Số điện thoại, mã sản phẩm, ID bị đảo ký tự.
-- Các từ tiếng Anh trong câu tiếng Ả Rập bị đảo chữ.
-- Dấu ngoặc có thể bị đặt sai và được renderer xử lý thêm lần nữa.
-- Dấu kết hợp và cụm grapheme có thể không còn gắn đúng ý nghĩa với chữ cơ sở.
-- Văn bản sao chép trở thành dữ liệu khác nguyên gốc.
-- Cùng chuỗi khi hiển thị trên terminal và web lại bị đảo khác nhau.
+- Phone numbers, product codes, and IDs have their digits reversed.
+- English words inside an Arabic sentence have their letters reversed.
+- Parentheses can be misplaced and processed a second time by the renderer.
+- Combining marks and grapheme clusters may no longer attach properly to their base letters.
+- Copied text becomes different data from the original.
+- The same string renders reversed differently between terminal and web.
 
-**Lưu chuỗi theo thứ tự logic; để text layout engine quyết định thứ tự hiển thị.** Nếu cần một định dạng giao thức có thứ tự byte cụ thể, nó phải được đặc tả riêng và không phụ thuộc vào “mắt nhìn” trên màn hình.
+**Store strings in logical order; let the text layout engine decide visual order.** If a protocol format with a specific byte sequence is required, it must be explicitly specified and not depend on how it "looks" on screen.
 
-## 10. Dấu điều hướng không in ra: LRM, RLM và ALM
+## 10. Non-printing directional marks: LRM, RLM, and ALM
 
-Một số ký tự Unicode ảnh hưởng thuật toán bidi mà thường không có hình glyph nhìn thấy:
+Certain Unicode characters influence the bidi algorithm while usually having no visible glyph:
 
-| Code point | Tên | Công dụng khái quát |
+| Code point | Name | General purpose |
 | --- | --- | --- |
-| **U+200E** | LEFT-TO-RIGHT MARK (**LRM**) | Dấu mạnh LTR vô hình |
-| **U+200F** | RIGHT-TO-LEFT MARK (**RLM**) | Dấu mạnh RTL vô hình |
-| **U+061C** | ARABIC LETTER MARK (**ALM**) | Dấu bidi đặc thù nhóm Arabic |
-| **U+202A** | LEFT-TO-RIGHT EMBEDDING (**LRE**) | Điều khiển embedding theo chiều LTR (cơ chế cũ) |
-| **U+202B** | RIGHT-TO-LEFT EMBEDDING (**RLE**) | Điều khiển embedding RTL (cơ chế cũ) |
-| **U+202C** | POP DIRECTIONAL FORMATTING (**PDF**) | Kết thúc một số embedding/override |
-| **U+202D** | LEFT-TO-RIGHT OVERRIDE (**LRO**) | Ép hướng xử lý ký tự bên trong |
-| **U+202E** | RIGHT-TO-LEFT OVERRIDE (**RLO**) | Ép hướng xử lý ký tự bên trong |
+| **U+200E** | LEFT-TO-RIGHT MARK (**LRM**) | Invisible strong LTR mark |
+| **U+200F** | RIGHT-TO-LEFT MARK (**RLM**) | Invisible strong RTL mark |
+| **U+061C** | ARABIC LETTER MARK (**ALM**) | Arabic-specific directional mark |
+| **U+202A** | LEFT-TO-RIGHT EMBEDDING (**LRE**) | LTR embedding control (legacy mechanism) |
+| **U+202B** | RIGHT-TO-LEFT EMBEDDING (**RLE**) | RTL embedding control (legacy mechanism) |
+| **U+202C** | POP DIRECTIONAL FORMATTING (**PDF**) | Terminate certain embeddings/overrides |
+| **U+202D** | LEFT-TO-RIGHT OVERRIDE (**LRO**) | Force directional interpretation inside |
+| **U+202E** | RIGHT-TO-LEFT OVERRIDE (**RLO**) | Force directional interpretation inside |
 
-**LRM/RLM/ALM** có thể giúp một số dấu yếu/trung tính bám đúng phía trong câu hỗn hợp. Tuy nhiên, **không nên chèn các marks vào mọi chuỗi tùy tiện**: chúng thay đổi hành vi hiển thị, có thể gây bất ngờ khi sao chép và làm các kết quả so sánh raw String khác nhau.
+**LRM/RLM/ALM** can help weak/neutral marks anchor on the right side in a mixed sentence. However, **do not insert these marks into every string arbitrarily**: they change display behavior, can cause surprises during copy/paste, and make raw `String` comparisons differ.
 
-Các dạng **embedding/override** cũ là công cụ mạnh nhưng dễ gây lỗi nếu thiếu kết thúc hoặc lồng nhau sai. Đặc biệt **RLO/LRO** có thể khiến một số đoạn hiển thị như đã bị đảo, dù nội dung logic vẫn khác; đây là lý do phải cảnh giác với văn bản đầu vào không đáng tin.
+Legacy **embedding/override** forms are powerful tools but easily cause bugs if unclosed or improperly nested. In particular, **RLO/LRO** can make segments appear reversed even though logical content differs; this is why untrusted input text must be treated with caution.
 
-**Nên ưu tiên công cụ cấu trúc của nền tảng hiển thị** (ví dụ HTML **bdi** và hướng của text component) thay vì trộn các điều khiển hướng vào dữ liệu gốc chỉ để làm đẹp UI.
+**Prefer structural tools of the display platform** (such as HTML **`bdi`** and text component direction) instead of mixing directional controls into source data purely to prettify the UI.
 
-## 11. Isolate: LRI, RLI, FSI và PDI
+## 11. Isolates: LRI, RLI, FSI, and PDI
 
-Cơ chế bidi isolation hiện đại giúp một vùng văn bản tự xác định hướng mà ít ảnh hưởng tới dấu câu và nội dung nằm ngoài vùng hơn một số dạng embedding cũ.
+Modern bidi isolation lets a text region determine its own direction with less impact on punctuation and content outside the region than legacy embedding forms.
 
-| Code point | Tên | Mục đích |
+| Code point | Name | Purpose |
 | --- | --- | --- |
-| **U+2066** | LEFT-TO-RIGHT ISOLATE (**LRI**) | Mở một vùng isolate hướng LTR |
-| **U+2067** | RIGHT-TO-LEFT ISOLATE (**RLI**) | Mở vùng isolate hướng RTL |
-| **U+2068** | FIRST STRONG ISOLATE (**FSI**) | Chọn hướng theo ký tự mạnh trong vùng |
-| **U+2069** | POP DIRECTIONAL ISOLATE (**PDI**) | Đóng vùng isolate |
+| **U+2066** | LEFT-TO-RIGHT ISOLATE (**LRI**) | Open an LTR isolate region |
+| **U+2067** | RIGHT-TO-LEFT ISOLATE (**RLI**) | Open an RTL isolate region |
+| **U+2068** | FIRST STRONG ISOLATE (**FSI**) | Choose direction from the first strong character in the region |
+| **U+2069** | POP DIRECTIONAL ISOLATE (**PDI**) | Close an isolate region |
 
-Một mô hình logic:
+A logical model:
 
 ~~~text
-Câu do ứng dụng kiểm soát
-   + [bắt đầu isolate] + nội dung từ người dùng + [kết thúc isolate]
-   + phần dấu câu/câu tiếp theo của ứng dụng
+Application-controlled sentence
+   + [start isolate] + user-supplied content + [end isolate]
+   + remaining punctuation/sentence from the application
 ~~~
 
-Với câu có tên người dùng chưa biết ngôn ngữ, isolation giúp hạn chế việc nội dung chèn vào làm dấu câu của câu ngoài bị chạy sai. **Đây là bố cục**, không phải cơ chế bảo mật chống mọi đầu vào độc hại.
+For sentences containing a username of unknown language, isolation helps limit inserted content from pulling outer sentence punctuation out of place. **This is layout**, not a security mechanism against all malicious inputs.
 
-### 11.1. Tạo chuỗi có FSI/PDI trong Java
+### 11.1. Creating strings with FSI/PDI in Java
 
 ~~~java
 String userLabel = "\u0645\u0631\u062D\u0628\u0627";
 String isolated = "\u2068" + userLabel + "\u2069";
 ~~~
 
-Đây là đoạn minh họa trong phương thức. Chuỗi **isolated** chứa **FSI** và **PDI** bao quanh nội dung. Tuy nhiên, **khả năng hiển thị các controls phụ thuộc renderer và phiên bản hỗ trợ Unicode bidi**. Không được suy rằng mọi terminal, thành phần Java hoặc API xử lý chuỗi đều hỗ trợ isolate giống hệt trình duyệt hiện đại. Hãy kiểm thử trên nền tảng hiển thị mục tiêu.
+This is an illustrative snippet inside a method. String **`isolated`** wraps the content with **FSI** and **PDI**. However, **support for displaying these controls depends on the renderer and Unicode bidi version**. Do not assume every terminal, Java component, or string-processing API supports isolates identically to a modern browser. Test on the target display platform.
 
-Nếu UI đã hỗ trợ vùng direction/isolation có cấu trúc, thường nên sử dụng tính năng đó hơn là lưu FSI/PDI vào cột database chứa tên người dùng. Giữ dữ liệu gốc giúp tìm kiếm, so sánh và audit dễ kiểm soát hơn.
+If the UI already supports structured direction/isolation regions, using that feature is usually preferable to storing FSI/PDI inside a database username column. Keeping raw data makes searching, comparison, and auditing easier to control.
 
-## 12. HTML: dir và bdi trong giao diện trộn hướng
+## 12. HTML: dir and bdi in mixed-direction interfaces
 
-Khi Java backend tạo văn bản cho giao diện web, trình duyệt có khả năng xử lý Unicode bidi và CSS/layout. Ví dụ:
+When a Java backend generates text for a web UI, browsers natively handle Unicode bidi and CSS/layout. For example:
 
 ~~~html
 <p dir="ltr">
-  Người gửi: <bdi dir="auto">مرحبا</bdi> (mã 123-45)
+  Sender: <bdi dir="auto">مرحبا</bdi> (code 123-45)
 </p>
 ~~~
 
-**Lưu ý:** ví dụ HTML minh họa nguyên tắc và không phải cú pháp Java. **dir="ltr"** đặt hướng nền cho đoạn, còn **bdi dir="auto"** cô lập tên người gửi và tự xác định hướng của nội dung. Mã **123-45** có thể cần vùng LTR riêng nếu vị trí dấu câu bị ảnh hưởng trong một bố cục cụ thể.
+**Note:** this HTML example illustrates the principle and is not Java syntax. **dir="ltr"** sets the paragraph's base direction, while **bdi dir="auto"** isolates the sender's name and automatically determines the content's direction. Code **123-45** may need its own LTR region if punctuation placement is affected in a particular layout.
 
-Với thuộc tính CSS, có thể gặp:
+With CSS properties, you may encounter:
 
 ~~~css
 .message-label {
@@ -406,13 +406,13 @@ Với thuộc tính CSS, có thể gặp:
 }
 ~~~
 
-Đoạn CSS minh họa việc đặt hướng/isolating. Tuy nhiên, CSS **direction** không đồng nghĩa **text-align**. Việc chỉ dùng **text-align: right** để sửa một trường RTL là không đủ.
+This CSS snippet illustrates setting direction/isolation. However, CSS **direction** is not synonymous with **text-align**. Using only **text-align: right** to fix an RTL field is insufficient.
 
-Đặc biệt chú ý đến nội dung người dùng không đáng tin: phải **HTML-escape** văn bản khi đưa vào DOM, dùng cơ chế template an toàn hoặc textContent tương đương. **bdi** xử lý hướng hiển thị, không thay thế escaping chống XSS. Đối với chuỗi nhúng chứa tên người dùng, cả **bảo vệ injection** lẫn **bảo vệ bidi boundary** đều cần được xem xét.
+Pay special attention to untrusted user content: you must **HTML-escape** text when putting it into the DOM, using safe templating or `textContent` equivalents. **`bdi`** handles display direction, not XSS escaping. For interpolated strings containing usernames, both **injection protection** and **bidi boundary protection** must be considered.
 
-## 13. Rich text, Swing, JavaFX và terminal không phải cùng renderer
+## 13. Rich text, Swing, JavaFX, and terminals are not the same renderer
 
-Trên JVM, đường đi của một đoạn text có thể là:
+On the JVM, a text segment's path can look like:
 
 ~~~text
 Java String (logical order)
@@ -423,39 +423,39 @@ Java String (logical order)
        |
        +-> JavaFX text layout
        |
-       +-> HTML/browser hoặc mobile client
+       +-> HTML/browser or mobile client
        |
        +-> File/JSON API
 ~~~
 
-Mỗi môi trường có renderer và hỗ trợ shaping/bidi riêng. **java.text.Bidi** có thể cung cấp thông tin phân tích nhưng không làm cho các renderer tự động giống nhau.
+Each environment has its own renderer and shaping/bidi support. **java.text.Bidi** can supply analysis information, yet does not make renderers behave identically by itself.
 
-- **Console:** có thể phụ thuộc terminal, font, vùng hiển thị và khả năng bidirectional rendering. Đừng dùng ảnh chụp terminal để xác minh hoàn toàn thứ tự bidi.
-- **Swing/Java2D:** dùng các thành phần/engine text layout phù hợp cho văn bản quốc tế thay vì tự tính vị trí từng char.
-- **JavaFX:** xác định rõ node, hướng của thành phần và hỗ trợ text layout thực tế.
-- **Trình duyệt:** ưu tiên semantic HTML, **dir** và **bdi** hoặc API text direction mà nền tảng cung cấp.
-- **File/JSON:** thường cần **giữ thứ tự logic**, không chuyển thành “thứ tự trực quan” trước khi lưu.
+- **Console:** may depend on terminal, font, viewport, and bidirectional rendering support. Do not use terminal screenshots to conclusively verify bidi ordering.
+- **Swing/Java2D:** use text layout components/engines suited for international text rather than computing character positions manually.
+- **JavaFX:** explicitly configure nodes, component directionality, and actual text layout support.
+- **Browser:** prefer semantic HTML, **dir**, and **bdi**, or platform-provided text-direction APIs.
+- **File/JSON:** usually needs to **preserve logical order**, not convert into "visual order" before saving.
 
-**Không chuẩn hóa cách render bằng cách đảo String trong backend.** Cùng một payload có thể hiển thị đúng tại web nhưng sai trong console; giải pháp là sửa chỗ render, không âm thầm thay đổi dữ liệu giao thức.
+**Do not normalize rendering by reversing Strings in the backend.** The same payload might render right on the web yet wrong in a console; the fix belongs in the rendering layer, not silently mutating protocol data.
 
-## 14. Phân biệt bidi với Arabic shaping
+## 14. Distinguishing bidi from Arabic shaping
 
-Bidi và shaping liên quan nhưng không phải một:
+Bidi and shaping are related but not identical:
 
-1. **Bidi:** quyết định thứ tự trực quan và mức hướng của các đoạn.
-2. **Shaping:** quyết định hình dạng glyph, nối nét và vị trí dấu/glyph phù hợp script.
-3. **Font fallback:** lựa chọn font có glyph cần thiết.
-4. **Line breaking:** quyết định chỗ xuống dòng, có thể ảnh hưởng cách tính bidi cho từng dòng.
+1. **Bidi:** determines visual order and directional levels of segments.
+2. **Shaping:** determines glyph shapes, stroke joining, and mark/glyph placement suited to the script.
+3. **Font fallback:** selecting a font that contains the required glyphs.
+4. **Line breaking:** determining line-wrap points, which can affect per-line bidi computation.
 
-Tiếng Ả Rập cần hình dạng chữ khác nhau tùy vị trí trong từ. Nếu một chương trình chỉ dùng **Bidi.reorderVisually** rồi vẽ từng ký tự raw, chữ Ả Rập có thể bị tách nét hoặc hiển thị sai. Một text renderer hỗ trợ shaping mới xử lý đầy đủ.
+Arabic requires different letter forms depending on position within a word. If a program only uses **Bidi.reorderVisually** and draws raw characters individually, Arabic letters can appear disconnected or malformed. Only a text renderer supporting shaping handles this completely.
 
-Tương tự, viết tiếng Việt có dấu và các hệ chữ nhiều combining marks cần logic đặt dấu/glyph phù hợp. **java.text.Bidi không phải thư viện ghép dấu/biến đổi glyph**.
+Similarly, accented Vietnamese text and scripts with many combining marks require proper mark/glyph placement logic. **java.text.Bidi is not a diacritic-attaching/glyph-shaping library**.
 
-## 15. Locale và chiều chữ là hai khái niệm liên quan nhưng tách biệt
+## 15. Locale and text direction are related yet separate concepts
 
-**Locale** ảnh hưởng bản dịch, ký hiệu số, ngày giờ và quy tắc văn bản. Nhưng **đặt Locale.forLanguageTag("ar")** không tự đổi mọi Java String thành RTL, và **Locale.forLanguageTag("vi")** không cấm một tên Ả Rập xuất hiện trong câu.
+A **Locale** such as `ar` or `he-IL` can hint at a language/region that commonly uses RTL scripts, yet **does not** replace analyzing the string itself. An Arabic message can contain numerous Latin words and digits; an English app can quote Hebrew text.
 
-Ví dụ:
+Example:
 
 ~~~java
 Locale locale = Locale.forLanguageTag("ar");
@@ -463,25 +463,25 @@ NumberFormat price = NumberFormat.getCurrencyInstance(locale);
 String amount = price.format(1234.5);
 ~~~
 
-Đoạn này minh họa trong phương thức, cần imports **Locale** và **NumberFormat**. Nó tạo một chuỗi tiền theo quy tắc locale do runtime hỗ trợ. Nhưng khi gắn chuỗi ấy vào một câu có LTR và RTL, **hướng nền, dấu câu và isolation vẫn là trách nhiệm của layer hiển thị**.
+This snippet is illustrative inside a method, requiring imports for **`Locale`** and **`NumberFormat`**. It creates a currency string following locale rules supported by the runtime. Yet when inserting that string into a sentence mixing LTR and RTL, **base direction, punctuation, and isolation remain the responsibility of the display layer**.
 
-Vì vậy:
+Therefore:
 
-| Câu hỏi | Cần giải quyết ở đâu? |
+| Question | Where to resolve it? |
 | --- | --- |
-| Dùng dấu phẩy hay dấu thập phân nào? | NumberFormat/DecimalFormatSymbols/Locale |
-| Dùng tên ngày/tháng nào? | DateTimeFormatter/Locale |
-| Dùng văn bản dịch nào? | ResourceBundle/hệ thống i18n |
-| Câu đang LTR hay RTL? | Text direction của đoạn/UI, Unicode bidi |
-| Dấu ngoặc/dấu hai chấm nằm phía nào? | Bidi resolution trong ngữ cảnh |
-| Chữ Ả Rập có nối nét không? | Font/text shaping |
-| Giá trị ID lưu ra sao? | Hợp đồng dữ liệu, giữ logical order |
+| Which comma or decimal separator to use? | `NumberFormat`/`DecimalFormatSymbols`/`Locale` |
+| Which day/month names to use? | `DateTimeFormatter`/`Locale` |
+| Which translated text to use? | `ResourceBundle`/i18n system |
+| Is the sentence LTR or RTL? | Paragraph/UI text direction, Unicode bidi |
+| Which side do parentheses/colons land on? | Bidi resolution in context |
+| Do Arabic letters join strokes properly? | Font/text shaping |
+| How are ID values stored? | Data contract, keeping logical order |
 
-Một ứng dụng không thể giải quyết toàn bộ các câu hỏi bằng một biến locale duy nhất.
+An application cannot answer every one of these questions using a single locale variable.
 
-## 16. Bidi và ký tự Unicode vô hình: cách gỡ lỗi
+## 16. Bidi and invisible Unicode characters: how to debug
 
-Nếu một chuỗi “nhìn đúng nhưng so sánh sai” hoặc “dấu câu bị nhảy”, hãy in code point thay vì chỉ log trực tiếp nội dung hỗn hợp.
+If a string "looks right yet compares unequal" or "punctuation jumps around," print code points instead of only logging mixed text directly.
 
 **File BidiCodePoints.java**
 
@@ -502,7 +502,7 @@ public class BidiCodePoints {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 BidiCodePoints.java
@@ -520,177 +520,177 @@ U+0032
 U+0033
 ~~~
 
-**U+200F** là RLM, không có glyph hiển thị thông thường. Dùng **String.codePoints()** giúp xác định sự có mặt của nó và các điều khiển khác trong dữ liệu.
+**U+200F** is RLM, which has no normal visible glyph. Using **String.codePoints()** helps detect its presence and other controls in data.
 
-**String.length()** đếm code unit UTF-16, trong khi **codePoints()** xử lý các surrogate pair hợp lệ như một code point. Khi debug offset từ **Bidi.getRunStart/getRunLimit**, đừng tự chuyển đổi tùy tiện giữa độ dài theo code point và chỉ số String.
+**String.length()** counts UTF-16 code units, while **codePoints()** treats valid surrogate pairs as single code points. When debugging offsets from **Bidi.getRunStart/getRunLimit**, do not arbitrarily convert between code point counts and `String` indices.
 
-### 16.1. Lỗi do copy/paste
+### 16.1. Copy/paste bugs
 
-Người dùng có thể copy một tên trong UI: chuỗi được sao chép theo logic có thể chứa marks/isolate hoặc không tùy thành phần UI. Một hệ thống dùng regex để dò ký tự không mong muốn cần hiểu rằng các ký tự format như U+200F có thể xuất hiện có chủ đích trong văn bản quốc tế.
+Users may copy a name from a UI: the copied logical string may or may not contain marks/isolates depending on the UI component. A system using regex to detect unwanted characters must recognize that format characters like `U+200F` can appear intentionally in international text.
 
-**Không tự xóa mọi ký tự “zero width” hoặc direction marks khi lưu mọi loại văn bản.** Điều đó có thể làm thay đổi nội dung hợp lệ của một số ngôn ngữ. Với các trường định danh kỹ thuật, có thể giới hạn tập ký tự nghiêm ngặt, nhưng phải nói rõ hợp đồng đầu vào.
+**Do not blindly strip all "zero width" or direction marks when saving every kind of text.** Doing so can alter valid content in certain languages. For technical identifier fields, you can enforce a strict character set, provided the input contract is stated clearly.
 
-## 17. An toàn: chuỗi có thể hiển thị khác thứ tự logic
+## 17. Security: strings can display differently from logical order
 
-Các ký tự bidi override có thể làm cho code, tên tệp, extension hoặc mã định danh **trông khác thứ tự logic**. Đây là một vấn đề bảo mật/phòng ngừa gian lận, thường được liên hệ với kiểu tấn công **Trojan Source** hoặc tên file giả dạng.
+Bidi override characters can make code, filenames, extensions, or identifiers **look different from their logical order**. This is a security/anti-spoofing issue, often associated with **Trojan Source** attacks or disguised filenames.
 
-Cần bảo vệ các bề mặt khác nhau theo cách phù hợp:
+Different surfaces must be protected appropriately:
 
-- **Source code/review:** bật cảnh báo hoặc hiển thị ký tự điều khiển bidi không mong muốn, nhất là LRO/RLO và các control không cân đối.
-- **Tên tệp/đính kèm:** hiển thị extension thật dựa trên dữ liệu cấu trúc, không chỉ bằng ảnh chụp chuỗi có thể bị đảo trực quan.
-- **Định danh, URL, email:** không dùng thứ tự chữ nhìn thấy để quyết định equality; làm theo hợp đồng parse/normalize/security.
-- **Log/audit:** có thể ghi thêm code point hoặc escape control characters ở chế độ chẩn đoán để người điều tra không bị đánh lừa bởi việc render.
-- **Văn bản tự nhiên:** vẫn cần hỗ trợ RTL hợp lệ, không cấm toàn bộ script hoặc marks một cách mù quáng.
+- **Source code/review:** enable warnings or highlight unwanted bidi control characters, especially LRO/RLO and unbalanced controls.
+- **Filenames/attachments:** display the true extension based on structured metadata, not merely a visually rendered string that might be visually reordered.
+- **Identifiers, URLs, emails:** do not rely on visible character order to judge equality; follow parsing/normalization/security contracts.
+- **Logs/audits:** consider recording code points or escaping control characters in diagnostic mode so investigators are not misled by rendering.
+- **Natural text:** still support valid RTL; do not blindly ban entire scripts or marks.
 
-**Không xem việc có ký tự RTL là hành vi độc hại.** Văn bản Ả Rập/Do Thái hoàn toàn bình thường; mục tiêu là phân biệt **ngữ cảnh dữ liệu không đáng tin** với **các điều khiển làm thay đổi cách nhìn** ở bề mặt nhạy cảm.
+**Do not treat the presence of RTL characters as malicious behavior.** Arabic/Hebrew text is completely normal; the goal is distinguishing **untrusted data contexts** from **controls that alter visual appearance** on sensitive surfaces.
 
-### 17.1. Bidi không thay escaping hoặc validation
+### 17.1. Bidi does not replace escaping or validation
 
-Nếu nhúng nội dung vào HTML, phải escape HTML; nếu dùng SQL, parameterize query; nếu làm tên file, xác minh đường dẫn và quy tắc filesystem. **Bidi isolation** chỉ giới hạn ảnh hưởng hướng hiển thị, không xử lý injection, path traversal hoặc quyền truy cập.
+If embedding content in HTML, escape HTML; if using SQL, parameterize queries; if handling filenames, validate paths and filesystem rules. **Bidi isolation** only limits display-direction influence and does not address injection, path traversal, or access control.
 
-Ngoài ra, việc dùng **Normalizer.NFKC** để làm sạch ký tự cũng không tự giải quyết bidi security. Unicode normalization và Unicode Bidirectional Algorithm xử lý hai phạm vi khác nhau.
+In addition, using **Normalizer.NFKC** to sanitize characters does not by itself solve bidi security. Unicode normalization and the Unicode Bidirectional Algorithm address two distinct scopes.
 
-## 18. Khi nào nên dùng marks, khi nào nên dùng isolate?
+## 18. When to use marks, and when to use isolates?
 
-Một số hướng dẫn thực hành:
+Some practical guidelines:
 
-| Tình huống | Hướng tiếp cận |
+| Scenario | Approach |
 | --- | --- |
-| Giao diện web có tên người RTL trong câu LTR | Dùng **bdi dir=auto** cho nội dung người dùng |
-| Mã hàng/URL có cấu trúc LTR giữa câu RTL | Dùng vùng LTR tường minh hoặc isolation theo UI |
-| Một câu hoàn chỉnh có hướng RTL | Đặt base direction RTL cho vùng chứa |
-| Terminal có dấu câu hiển thị lạ | Kiểm tra code points và khả năng renderer; không đảo String |
-| Trường kỹ thuật lưu trữ | Giữ logical value, định nghĩa input validation |
-| Văn bản nhạy cảm có Unicode control | Hiển thị cảnh báo/escape trong audit |
-| Cần thêm một mark để điều chỉnh dấu câu ở vị trí cụ thể | Chỉ thêm LRM/RLM/ALM sau khi thử đúng renderer |
-| Cần tách ngữ cảnh giữa hai đoạn không đáng tin | Ưu tiên isolate ở tầng bố cục |
-| Cần thay hình glyph/chữ nối Ả Rập | Dùng text shaping, không dùng Bidi đơn lẻ |
+| Web UI with an RTL person name in an LTR sentence | Use **`bdi dir=auto`** for user content |
+| LTR-structured product code/URL inside an RTL sentence | Use an explicit LTR region or UI-level isolation |
+| A complete RTL-directed sentence | Set RTL base direction on the container |
+| Terminal shows odd punctuation | Check code points and renderer capability; do not reverse `String` |
+| Stored technical fields | Keep logical value, define input validation |
+| Sensitive text containing Unicode controls | Show warnings/escapes in audits |
+| Need a single mark to adjust punctuation at a specific spot | Add LRM/RLM/ALM only after testing on the target renderer |
+| Need to separate context between two untrusted segments | Prefer isolation at the layout layer |
+| Need Arabic glyph shaping/joining | Use text shaping, not `Bidi` alone |
 
-**Vì sao ưu tiên isolate?** Nó xử lý một vùng văn bản như thành phần có phạm vi, hạn chế tác động của nội dung bên trong lên ngoài vùng. Tuy nhiên, không nên tuyên bố isolate là “khóa an toàn tuyệt đối”: vẫn cần kiểm thử renderer, dữ liệu không đáng tin và những vấn đề bidi controls lồng nhau.
+**Why prefer isolates?** They treat a text region as a scoped component, limiting the effect of inner content on outer text. Still, do not claim isolation is an "absolute security lock": you still must test renderers, untrusted data, and nested bidi controls.
 
-## 19. Những lỗi phổ biến
+## 19. Common mistakes
 
-### Lỗi 1: Đảo String bằng reverse để “sửa” RTL
+### Mistake 1: Reversing a String with reverse() to "fix" RTL
 
-Reverse phá thứ tự logic, làm sai URL, ID và số. Hãy để Unicode bidi layout xác định thứ tự trực quan.
+Reversing breaks logical order and corrupts URLs, IDs, and numbers. Let Unicode bidi layout determine visual order.
 
-### Lỗi 2: Coi RTL nghĩa là đảo tất cả chữ số
+### Mistake 2: Treating RTL as reversing all digits
 
-Nhóm chữ số có quy tắc riêng. **123** không có nghĩa sẽ thành **321** khi nằm trong câu Ả Rập.
+Digit groups follow their own rules. **123** does not mean it becomes **321** when inside an Arabic sentence.
 
-### Lỗi 3: Căn phải nhưng không đặt hướng nền
+### Mistake 3: Right-aligning without setting base direction
 
-**text-align:right** chỉ ảnh hưởng căn lề, không đầy đủ cho bidi ordering. Cần direction/paragraph orientation phù hợp.
+**text-align:right** affects alignment only and is insufficient for bidi ordering. Proper direction/paragraph orientation is needed.
 
-### Lỗi 4: Tự thay '(' bằng ')' trong RTL
+### Mistake 4: Replacing '(' with ')' yourself in RTL
 
-Glyph mirroring và bố trí dấu ngoặc là trách nhiệm của renderer. Đổi dữ liệu làm hỏng bản gốc và dễ bị phản tác dụng.
+Glyph mirroring and bracket layout are the renderer's job. Mutating data corrupts the original and easily backfires.
 
-### Lỗi 5: Tưởng Character.getDirectionality trả thứ tự trực quan
+### Mistake 5: Thinking Character.getDirectionality returns visual order
 
-Nó chỉ cho bidi class của code point. Thứ tự hiển thị phụ thuộc toàn đoạn, dấu câu, base direction và các controls.
+It only gives the code point's bidi class. Display order depends on the entire paragraph, punctuation, base direction, and controls.
 
-### Lỗi 6: Tưởng java.text.Bidi tự vẽ chữ Ả Rập
+### Mistake 6: Thinking java.text.Bidi draws Arabic letters by itself
 
-Bidi là phân tích hướng, không xử lý font/shaping; cần text layout engine.
+`Bidi` handles directional analysis, not fonts/shaping; a text layout engine is required.
 
-### Lỗi 7: Trộn U+200E/U+200F vào mọi tên người
+### Mistake 7: Injecting U+200E/U+200F into every person's name
 
-Marks không nhìn thấy làm khác chuỗi và có thể làm copy/paste khó đoán. Ưu tiên isolation ở tầng UI khi có.
+Invisible marks alter the string and can make copy/paste unpredictable. Prefer UI-layer isolation when available.
 
-### Lỗi 8: Quên phần dấu câu nằm ngoài một chuỗi RTL động
+### Mistake 8: Forgetting punctuation outside a dynamic RTL string
 
-Một tên RTL được nối thẳng với dấu hai chấm có thể ảnh hưởng vị trí dấu ngoài tên. Cô lập vùng tên động thay vì thử thêm khoảng trắng vô hạn.
+An RTL name concatenated directly with a colon can affect punctuation placement outside the name. Isolate the dynamic name region rather than endlessly tweaking spaces.
 
-### Lỗi 9: Dùng Locale để thay thế chỉ định direction
+### Mistake 9: Using Locale as a substitute for specifying direction
 
-Locale chọn dữ liệu bản địa hóa, không tự sửa hướng mọi String khi render. Cần cả locale và hướng nền UI.
+`Locale` selects localized data; it does not automatically fix every `String`'s direction when rendered. Both locale and UI base direction are needed.
 
-### Lỗi 10: Chỉ kiểm tra terminal
+### Mistake 10: Testing only in a terminal
 
-Terminal có thể hiển thị bidi khác browser/app. Test trên renderer thật với font và ngôn ngữ mục tiêu.
+Terminals can render bidi differently from browsers/apps. Test on the real renderer with target fonts and languages.
 
-### Lỗi 11: Cắt substring theo chiều chữ nhìn thấy
+### Mistake 11: Slicing substrings by visible character direction
 
-Offset của String ở thứ tự logic; vị trí click/caret trên màn hình là chuyện khác. Dùng API hit-testing/layout thay vì tự cộng chỉ số.
+`String` offsets are in logical order; on-screen click/caret positions are a separate matter. Use layout/hit-testing APIs rather than doing index arithmetic manually.
 
-### Lỗi 12: Xóa mọi ký tự vô hình để “bảo mật”
+### Mistake 12: Stripping all invisible characters for "security"
 
-Một số marks/controls có chức năng văn bản hợp lệ. Xây chính sách theo loại dữ liệu; với mã kỹ thuật có thể nghiêm ngặt hơn văn bản tự nhiên.
+Some marks/controls serve valid textual roles. Build policies by data category; technical codes can be stricter than natural prose.
 
-### Lỗi 13: Dựa vào ảnh render để so mã tài khoản
+### Mistake 13: Relying on rendered images to compare account codes
 
-Bidi có thể đổi vị trí nhìn thấy mà không đổi String gốc. Định danh cần dựa trên biểu diễn dữ liệu đã định nghĩa.
+Bidi can change visual placement without altering the underlying `String`. Identifiers must rely on their defined data representation.
 
-### Lỗi 14: Không kiểm thử dấu âm, mã hàng và tiền tệ
+### Mistake 14: Failing to test minus signs, product codes, and currency
 
-Dấu câu và số là nơi lỗi bidi dễ lộ. Test những câu thực tế chứa 123-45, 12:30, số điện thoại, mã tiền và ngoặc.
+Punctuation and numbers are where bidi bugs surface easily. Test realistic strings containing `123-45`, `12:30`, phone numbers, currency codes, and parentheses.
 
-## 20. Ma trận kiểm thử nên có
+## 20. Recommended test matrix
 
-| Kịch bản | Cần kiểm chứng |
+| Scenario | What to verify |
 | --- | --- |
-| Chữ Latin thuần | Base LTR, không có lỗi đảo chữ |
-| Chữ Ả Rập/Do Thái thuần | Base RTL đúng khi tự dò hoặc chỉ định |
-| Chữ Latin + tên Ả Rập | Dấu câu nằm đúng phía theo ngữ cảnh |
-| Đoạn RTL + **12345** | Giữ thứ tự nội bộ của số |
-| Đoạn RTL + **INV-2026-12** | Mã kỹ thuật hiển thị và copy đúng |
-| Số điện thoại **+84 ...** trong câu RTL | Dấu cộng/ngoặc không chạy sai |
-| Giá tiền có dấu nhóm/thập phân | Định dạng locale kết hợp bidi layout đúng |
-| Dấu ngoặc bao một tên RTL | Vị trí/paired bracket mirroring đúng |
-| Tiêu đề có tên động **bdi dir=auto** | Vùng tên không kéo dấu câu của phần ngoài |
-| Không có strong char | Hướng fallback nhất quán |
-| U+200E/U+200F/U+061C | Có chiến lược hiển thị/chẩn đoán |
-| U+2066/U+2067/U+2068/U+2069 | Renderer hỗ trợ isolation đúng |
-| U+202E hoặc override khác trong input nhạy cảm | Có cảnh báo/escape audit |
-| Chữ Ả Rập có nối nét | Shaping và font fallback hoạt động |
-| Copy/paste từ UI | Logical order và các control được xử lý có chủ đích |
-| Unicode ngoài BMP/emoji | Không tách surrogate pair, caret/hit test hợp lệ |
-| UI tiếng Việt có tên RTL | Không giả định chỉ locale tiếng Việt là đủ |
-| Browser, app và terminal | Các khác biệt renderer đã được hiểu |
+| Pure Latin letters | LTR base, no reversal errors |
+| Pure Arabic/Hebrew letters | Proper RTL base when auto-detected or explicit |
+| Latin text + Arabic name | Punctuation sits on the right side for the context |
+| RTL segment + **12345** | Internal digit order preserved |
+| RTL segment + **INV-2026-12** | Technical code displays and copies correctly |
+| Phone number **+84 ...** in an RTL sentence | Plus sign/parentheses do not shift improperly |
+| Price with grouping/decimal separators | Locale formatting combines properly with bidi layout |
+| Parentheses wrapping an RTL name | Proper position/paired-bracket mirroring |
+| Heading with dynamic name **bdi dir=auto** | Name region does not pull outer punctuation |
+| No strong characters | Consistent fallback direction |
+| U+200E/U+200F/U+061C | Display/diagnostic strategy in place |
+| U+2066/U+2067/U+2068/U+2069 | Renderer supports isolation properly |
+| U+202E or other overrides in sensitive input | Audit warning/escaping present |
+| Cursive Arabic text | Shaping and font fallback work |
+| Copy/paste from UI | Logical order and controls handled intentionally |
+| Non-BMP Unicode/emoji | No split surrogate pairs, valid caret/hit testing |
+| Vietnamese UI with RTL names | Do not assume Vietnamese locale alone suffices |
+| Browser, app, and terminal | Renderer differences understood |
 
-### 20.1. Test chức năng và test hình ảnh
+### 20.1. Functional tests and visual tests
 
-**Test chức năng (deterministic):** kiểm tra code point, hướng nền đã chỉ định, String gốc không đổi, dữ liệu ID và các đặc tính của API Bidi. Không cần một font cụ thể.
+**Functional tests (deterministic):** verify code points, specified base direction, unchanged original `String`, ID data, and properties of the `Bidi` API. No specific font is required.
 
-**Test rendering:** kiểm tra trực quan trên các nền tảng hỗ trợ, nên có ảnh tham chiếu hoặc kiểm tra thủ công của người dùng hiểu ngôn ngữ mục tiêu. Thử từng vùng LTR/RTL, font fallback, dấu câu, dòng dài và xuống dòng.
+**Rendering tests:** visually inspect on supported platforms, ideally with reference screenshots or manual review by someone fluent in the target language. Test LTR/RTL regions, font fallback, punctuation, long lines, and wrapping.
 
-**Không lấy stdout của terminal làm golden test duy nhất** cho Unicode bidi. Hệ điều hành, terminal và web có thể dùng renderer khác nhau; một chuỗi xuất ra console theo thứ tự logic vẫn có thể được vẽ khác.
+**Do not make terminal stdout your sole golden test** for Unicode bidi. Operating systems, terminals, and browsers can use different renderers; a string printed to the console in logical order may still be drawn differently.
 
-### 20.2. Test bảo toàn dữ liệu
+### 20.2. Data-preservation tests
 
-Khi đưa nhãn từ database ra UI rồi cho sao chép trở lại, cần kiểm tra rằng:
+When taking a label from the database to the UI and letting users copy it back, verify that:
 
-1. Giá trị mã kỹ thuật không bị đảo ký tự.
-2. Không thêm LRM/RLM/FSI/PDI vào dữ liệu nguyên gốc nếu chúng chỉ thuộc lớp UI.
-3. Dấu ngoặc và dấu hai chấm vẫn nằm đúng vị trí logic.
-4. Giá trị lưu không phụ thuộc font hoặc text-align.
-5. Những ký tự định hướng có chủ đích trong văn bản tự nhiên được xử lý theo chính sách rõ.
-6. Khi xuất JSON/API, Unicode string vẫn giữ cấu trúc dữ liệu, không xuất “visual order” tự tạo.
+1. Technical code values do not have characters reversed.
+2. LRM/RLM/FSI/PDI are not added to source data if they belong only to the UI layer.
+3. Parentheses and colons remain in their logical positions.
+4. Saved values do not depend on font or `text-align`.
+5. Intentional directional characters in natural prose follow an explicit policy.
+6. When exporting JSON/APIs, Unicode strings retain their data structure rather than outputting synthesized "visual order."
 
-## 21. Checklist triển khai Java 17+ cho nội dung hỗn hợp
+## 21. Java 17+ implementation checklist for mixed content
 
-- [ ] Phân biệt **logical order** của String và **visual order** của renderer.
-- [ ] Biết các bidi classes **L, R, AL, EN, AN, NSM, neutral**.
-- [ ] Chọn base direction phù hợp; không coi text alignment là hướng đoạn.
-- [ ] Dùng **java.text.Bidi** để quan sát base level và runs khi cần xử lý phân tích hướng.
-- [ ] Không coi **Bidi** là bộ font shaping.
-- [ ] Không đảo String hoặc tự thay dấu ngoặc khi cần RTL.
-- [ ] Giữ nhóm số/ID/URL theo logical order; xác định hướng vùng hiển thị.
-- [ ] Kiểm tra dấu câu và khoảng trắng ở ranh giới giữa LTR/RTL.
-- [ ] Hiểu LRM, RLM, ALM và các bidi controls, chỉ dùng khi có lý do rõ.
-- [ ] Ưu tiên vùng isolation có cấu trúc khi nhúng tên người/nội dung động.
-- [ ] Với web, xem xét **dir=auto**, **bdi** và semantic markup.
-- [ ] HTML-escape nội dung không đáng tin; bidi không thay bảo vệ injection.
-- [ ] Dùng **String.codePoints()** khi điều tra ký tự vô hình.
-- [ ] Phân biệt số được format theo Locale với số được bố trí theo bidi.
-- [ ] Kiểm thử trên renderer thật với font và ngôn ngữ hỗ trợ.
-- [ ] Bảo toàn chuỗi gốc cho lưu trữ/API/audit, không xuất “visual string” đã đảo.
-- [ ] Có chính sách phòng chống bidi controls gây đánh lừa trong mã nguồn, tên file và định danh.
-- [ ] Không loại bỏ văn bản RTL hợp lệ chỉ vì có dấu điều khiển/ngôn ngữ khác.
+- [ ] Distinguish `String` **logical order** from renderer **visual order**.
+- [ ] Know bidi classes **L, R, AL, EN, AN, NSM, neutral**.
+- [ ] Choose an appropriate base direction; do not treat text alignment as paragraph direction.
+- [ ] Use **java.text.Bidi** to inspect base level and runs when directional analysis is needed.
+- [ ] Do not treat **Bidi** as a font-shaping engine.
+- [ ] Do not reverse Strings or manually swap parentheses for RTL.
+- [ ] Keep numbers/IDs/URLs in logical order; specify display-region direction.
+- [ ] Check punctuation and spaces at boundaries between LTR and RTL.
+- [ ] Understand LRM, RLM, ALM, and bidi controls, using them only for clear reasons.
+- [ ] Prefer structured isolation regions when embedding person names/dynamic content.
+- [ ] For the web, consider **dir=auto**, **bdi**, and semantic markup.
+- [ ] HTML-escape untrusted content; bidi does not replace injection defense.
+- [ ] Use **String.codePoints()** when investigating invisible characters.
+- [ ] Distinguish Locale-formatted numbers from bidi-laid-out numbers.
+- [ ] Test on a real renderer with supported fonts and languages.
+- [ ] Preserve source strings for storage/APIs/audits; never emit reversed "visual strings."
+- [ ] Have a policy against misleading bidi controls in source code, filenames, and identifiers.
+- [ ] Do not strip valid RTL text solely because it contains marks or another language.
 
-## 22. Kết luận
+## 22. Conclusion
 
-Trộn chữ LTR, RTL, số và dấu câu là vấn đề **Unicode Bidirectional Algorithm và text layout**, không phải việc đổi thứ tự các ký tự bằng tay. **Dữ liệu Java String nên được giữ ở thứ tự logic**; hướng nền, bidi classes, các runs và isolation giúp renderer đưa nội dung lên màn hình đúng ngữ cảnh. Trong Java 17+, **Character.getDirectionality** giúp quan sát lớp hướng của code point, còn **java.text.Bidi** giúp phân tích đoạn văn hai chiều, levels và runs; muốn nhìn chữ Ả Rập đúng còn cần font và text shaping.
+Mixing LTR, RTL, numbers, and punctuation is a problem of the **Unicode Bidirectional Algorithm and text layout**, not manually reordering characters. **Java `String` data should be kept in logical order**; base direction, bidi classes, runs, and isolation help the renderer present content on screen in the right context. In Java 17+, **Character.getDirectionality** lets you inspect a code point's directional class, while **java.text.Bidi** lets you analyze bidirectional paragraphs, levels, and runs; viewing Arabic properly also requires fonts and text shaping.
 
-Đối với giao diện, hãy đặt direction đúng cho vùng chứa và cô lập các đoạn động/định danh kỹ thuật khi cần, kiểm tra dấu ngoặc, dấu hai chấm, số điện thoại và giá tiền. Đối với dữ liệu, đừng đảo chuỗi, đừng gắn điều khiển vô hình tùy tiện và đừng đánh đồng hiển thị trực quan với danh tính dữ liệu. Khi kết hợp kiểm thử code point với kiểm thử renderer, ứng dụng Java đa ngôn ngữ có thể vừa giữ nguyên dữ liệu vừa hiển thị các đoạn LTR/RTL tự nhiên, dễ đọc và an toàn hơn.
+For interfaces, set the right direction on containers and isolate dynamic segments/technical identifiers where needed, testing parentheses, colons, phone numbers, and currency values. For data, do not reverse strings, do not inject invisible controls arbitrarily, and do not equate visual appearance with data identity. By combining code point tests with renderer tests, a multilingual Java application can both preserve data integrity and display LTR/RTL segments naturally, legibly, and more safely.

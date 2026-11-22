@@ -1,39 +1,23 @@
-# Strong encapsulation của module package
+# Strong Encapsulation of Module Packages
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Giải thích strong encapsulation trong Java Platform Module System (JPMS).
-- Phân biệt package được export với package được open.
-- Khai báo `exports`, qualified exports, `opens`, qualified opens và `open module`.
-- Hiểu ảnh hưởng của module encapsulation tới reflection và framework.
-- Dùng `--add-exports` hoặc `--add-opens` khi cần tương thích trong lúc phát triển hoặc chạy ứng dụng.
-- Nhận biết lỗi truy cập package và chọn cách xử lý phù hợp.
+- Explain strong encapsulation in the Java Platform Module System (JPMS).
+- Distinguish between an exported package and an open package.
+- Declare `exports`, qualified exports, `opens`, qualified opens, and `open module`.
+- Understand the impact of module encapsulation on reflection and frameworks.
+- Use `--add-exports` or `--add-opens` when compatibility is needed during development or application runtime.
+- Identify package access errors and choose the appropriate way to handle them.
 
-## 1. Strong encapsulation là gì?
+## 1. What Is Strong Encapsulation?
 
-Trước JPMS, ứng dụng Java thường tổ chức class theo package nhưng package trên classpath không tạo ra ranh giới module rõ ràng. Một thư viện có thể chứa package nội bộ như `com.example.library.internal`; code khác vẫn có thể import các public class trong package đó nếu class nằm trên classpath.
+Before JPMS, Java applications typically organized classes into packages, but packages on the classpath did not create clear module boundaries. A library could contain an internal package such as `com.example.library.internal`; other code could still import the public classes in that package if the classes were on the classpath.
 
-JPMS đưa ra ranh giới module có chủ đích. Một named module chỉ cho module khác truy cập package của nó theo những quyền được khai báo trong module descriptor. Package không được export sẽ được giữ kín đối với code ở module khác, kể cả khi package chứa public class.
+JPMS introduces intentional module boundaries. A named module only allows other modules to access its packages according to the permissions declared in its module descriptor. Packages that are not exported are kept hidden from code in other modules, even when the package contains public classes.
 
-Ví dụ:
-
-~~~java
-module com.example.customer {
-    exports com.example.customer.api;
-}
-~~~
-
-Module `com.example.customer` chỉ export package `com.example.customer.api`. Package `com.example.customer.internal` vẫn có thể chứa public class, nhưng module khác không thể sử dụng class đó như API thông thường.
-
-Strong encapsulation có nghĩa là module kiểm soát rõ ràng package nào được truy cập qua ranh giới module và package nào chỉ dành cho nội bộ. Nó giúp giảm phụ thuộc vào implementation, hạn chế việc thư viện bên ngoài sử dụng nhầm API nội bộ và cho phép tác giả module thay đổi implementation mà ít ảnh hưởng đến consumer.
-
-Đây là cơ chế đóng gói ở cấp module, không phải sandbox bảo mật để cô lập mã độc. Không nên xem JPMS là ranh giới bảo vệ thay cho security controls của ứng dụng hoặc hệ điều hành.
-
-## 2. exports: công khai package cho module khác
-
-Directive `exports` cho phép các module khác truy cập các public type trong package được export, cùng các thành viên mà quy tắc truy cập Java cho phép:
+Example:
 
 ~~~java
 module com.example.customer {
@@ -41,7 +25,23 @@ module com.example.customer {
 }
 ~~~
 
-Ví dụ package API:
+The `com.example.customer` module exports only the `com.example.customer.api` package. The `com.example.customer.internal` package can still contain public classes, but other modules cannot use those classes as part of the regular API.
+
+Strong encapsulation means that a module explicitly controls which packages are accessible across module boundaries and which packages are for internal use only. It helps reduce dependencies on implementation details, limits external libraries from accidentally using internal APIs, and allows module authors to change implementations with minimal impact on consumers.
+
+This is an encapsulation mechanism at the module level, not a security sandbox for isolating malicious code. JPMS should not be treated as a protective boundary replacing application or operating system security controls.
+
+## 2. exports: Exposing Packages to Other Modules
+
+The `exports` directive allows other modules to access the public types in the exported package, along with the members permitted by Java's access rules:
+
+~~~java
+module com.example.customer {
+    exports com.example.customer.api;
+}
+~~~
+
+Example API package:
 
 ~~~java
 package com.example.customer.api;
@@ -54,7 +54,7 @@ public class CustomerService {
 }
 ~~~
 
-Một module consumer có thể khai báo dependency:
+A consumer module can declare a dependency:
 
 ~~~java
 module com.example.application {
@@ -62,19 +62,19 @@ module com.example.application {
 }
 ~~~
 
-Và import public API:
+And import the public API:
 
 ~~~java
 import com.example.customer.api.CustomerService;
 ~~~
 
-Nếu package `com.example.customer.internal` không được export, module consumer không thể import public class trong package đó theo cách thông thường. Việc class có modifier `public` không tự làm package trở nên công khai qua module boundary.
+If the `com.example.customer.internal` package is not exported, the consumer module cannot import public classes in that package in the usual way. A class having the `public` modifier does not automatically make its package public across module boundaries.
 
-`exports` không làm private member hoặc package-private member trở thành public. Sau khi package được export, các quy tắc access control thông thường của Java vẫn áp dụng.
+`exports` does not make private members or package-private members public. Once a package is exported, standard Java access control rules still apply.
 
 ### 2.1. Qualified exports
 
-Nếu package chỉ nên được dùng bởi một số module cụ thể, hãy dùng qualified exports:
+If a package should only be used by certain specific modules, use qualified exports:
 
 ~~~java
 module com.example.customer {
@@ -84,24 +84,24 @@ module com.example.customer {
 }
 ~~~
 
-Ở đây:
+Here:
 
-- `com.example.customer.api` được export không giới hạn cho các module đọc được module này.
-- `com.example.customer.spi` chỉ được export cho hai module được liệt kê.
-- Module khác không nằm trong danh sách không được truy cập package SPI đó qua module boundary.
+- `com.example.customer.api` is exported unrestrictedly to modules that read this module.
+- `com.example.customer.spi` is exported only to the two listed modules.
+- Other modules not in the list cannot access that SPI package across module boundaries.
 
-Qualified exports hữu ích khi muốn chia sẻ API giữa một nhóm module cộng tác nhưng vẫn giữ package đó ngoài public surface chung của thư viện.
+Qualified exports are useful when you want to share an API among a group of collaborating modules while keeping that package outside the library's general public surface.
 
-## 3. opens: cho phép deep reflection
+## 3. opens: Allowing Deep Reflection
 
-`exports` chủ yếu phục vụ truy cập API theo quy tắc Java thông thường. Framework có thể cần truy cập bằng reflection vào constructor, field hoặc method không public, ví dụ:
+`exports` mainly serves API access under standard Java rules. Frameworks may need reflective access to non-public constructors, fields, or methods, for example:
 
-- Dependency injection cần đọc annotation hoặc gán private field.
-- ORM cần đọc và ghi private field của entity.
-- JSON mapper cần gọi constructor hoặc truy cập field không public.
-- Test framework cần kiểm tra thành phần nội bộ.
+- Dependency injection needs to read annotations or assign private fields.
+- ORM needs to read and write private fields of entities.
+- JSON mappers need to invoke constructors or access non-public fields.
+- Test frameworks need to inspect internal components.
 
-Directive `opens` cho phép reflection sâu vào package tại runtime:
+The `opens` directive allows deep reflection into a package at runtime:
 
 ~~~java
 module com.example.customer {
@@ -110,11 +110,11 @@ module com.example.customer {
 }
 ~~~
 
-Package `com.example.customer.persistence` được mở cho reflection từ các module khác. Điều này không có nghĩa package đó được export để module khác import type trực tiếp trong source code.
+The `com.example.customer.persistence` package is opened for reflection from other modules. This does not mean the package is exported for other modules to import types directly in source code.
 
 ### 3.1. Qualified opens
 
-Nếu chỉ một framework module cần reflection, hãy giới hạn quyền mở package:
+If only one framework module needs reflection, restrict the package opening:
 
 ~~~java
 module com.example.customer {
@@ -127,20 +127,20 @@ module com.example.customer {
 }
 ~~~
 
-Trong ví dụ này, Hibernate module được phép deep reflection vào package persistence. Những module khác không nhận quyền đó chỉ vì package đã được mở cho Hibernate.
+In this example, the Hibernate module is allowed deep reflection into the persistence package. Other modules do not receive that permission merely because the package has been opened to Hibernate.
 
-Hãy dùng qualified opens khi biết rõ module nào cần truy cập. Cách này thể hiện ý định trong module descriptor và tránh mở package rộng hơn mức cần thiết.
+Use qualified opens when you know exactly which modules need access. This expresses intent in the module descriptor and avoids opening packages more broadly than necessary.
 
-## 4. Phân biệt exports và opens
+## 4. Distinguishing exports and opens
 
-| Khả năng | `exports p` | `opens p` |
+| Capability | `exports p` | `opens p` |
 |---|---|---|
-| Module khác import public type trong package ở compile time | Có | Không |
-| Truy cập public API theo quy tắc Java | Có | Không tự cấp quyền truy cập source |
-| Deep reflection vào private member | Không | Có |
-| Mục đích chính | Công khai API | Hỗ trợ framework/reflection ở runtime |
+| Other modules import public types in the package at compile time | Yes | No |
+| Access public API under Java rules | Yes | Does not grant source-level access |
+| Deep reflection into private members | No | Yes |
+| Primary purpose | Expose API | Support frameworks/reflection at runtime |
 
-Có thể dùng cả hai directive cho cùng một package nếu package vừa là API vừa cần framework truy cập sâu:
+Both directives can be used for the same package if the package is both an API and requires deep framework access:
 
 ~~~java
 module com.example.customer {
@@ -149,11 +149,11 @@ module com.example.customer {
 }
 ~~~
 
-Trong nhiều thiết kế, package API và package cần reflection nên được tách riêng. Điều đó giúp module descriptor thể hiện rõ đâu là API dành cho consumer và đâu là package được mở cho framework.
+In many designs, API packages and packages needing reflection should be separated. This helps the module descriptor clearly express what is the API for consumers and which packages are opened for frameworks.
 
-## 5. Reflection bị giới hạn như thế nào?
+## 5. How Is Reflection Restricted?
 
-Giả sử module chứa model:
+Suppose a module contains a model:
 
 ~~~java
 module com.example.customer {
@@ -161,7 +161,7 @@ module com.example.customer {
 }
 ~~~
 
-Class model:
+Model class:
 
 ~~~java
 package com.example.customer.internal;
@@ -176,7 +176,7 @@ public class CustomerRecord {
 }
 ~~~
 
-Một framework ở module khác muốn đọc private field `email`:
+A framework in another module wants to read the private field `email`:
 
 ~~~java
 Class<?> type = record.getClass();
@@ -193,9 +193,9 @@ if (accessible) {
 }
 ~~~
 
-Nếu package chứa `CustomerRecord` không được open cho module của framework, `trySetAccessible()` có thể trả về `false`. Dùng `setAccessible(true)` trong tình huống không được phép có thể ném `InaccessibleObjectException`.
+If the package containing `CustomerRecord` is not open to the framework module, `trySetAccessible()` may return `false`. Calling `setAccessible(true)` in an unpermitted situation may throw `InaccessibleObjectException`.
 
-Để cho phép framework module truy cập sâu, module sở hữu class có thể khai báo:
+To allow the framework module deep access, the module owning the class can declare:
 
 ~~~java
 module com.example.customer {
@@ -206,13 +206,13 @@ module com.example.customer {
 }
 ~~~
 
-Nếu framework chạy trong unnamed module trên classpath, có thể mở package cho `ALL-UNNAMED` bằng option launcher, hoặc cân nhắc chuyển framework sang named module để quyền truy cập được khai báo rõ ràng.
+If the framework runs in the unnamed module on the classpath, you can open the package to `ALL-UNNAMED` via a launcher option, or consider migrating the framework to a named module so access permissions are declared explicitly.
 
-Lưu ý: `opens` không làm private field trở thành public. Nó cho phép reflection vượt qua một số kiểm tra truy cập của Java khi caller thuộc module được mở quyền, theo các điều kiện của API reflection.
+Note: `opens` does not make private fields public. It allows reflection to bypass certain Java access checks when the caller belongs to a module granted open access, subject to the conditions of the reflection API.
 
-## 6. open module: mở tất cả package
+## 6. open module: Opening All Packages
 
-Nếu một module được thiết kế chủ yếu cho framework cần reflection sâu trên nhiều package, có thể khai báo open module:
+If a module is designed primarily for frameworks that require deep reflection across many packages, you can declare an open module:
 
 ~~~java
 open module com.example.customer {
@@ -221,19 +221,19 @@ open module com.example.customer {
 }
 ~~~
 
-`open module` làm tất cả package trong module được mở cho deep reflection tại runtime.
+`open module` makes all packages in the module open for deep reflection at runtime.
 
-Điều này không đồng nghĩa với export tất cả package. Module khác vẫn không thể import public type từ package chưa được export theo cách thông thường.
+This is not equivalent to exporting all packages. Other modules still cannot import public types from unexported packages in the usual way.
 
-Với open module, không khai báo thêm directive `opens` riêng lẻ trong module descriptor. Nếu chỉ một vài package cần reflection, nên dùng các directive `opens` cụ thể thay vì mở toàn module.
+With an open module, you do not declare individual `opens` directives in the module descriptor. If only a few packages require reflection, you should use specific `opens` directives rather than opening the entire module.
 
-## 7. Bổ sung quyền truy cập bằng command line
+## 7. Granting Additional Access via the Command Line
 
-Trong quá trình phát triển, migration hoặc tích hợp thư viện cũ, đôi khi bạn chưa thể sửa module descriptor ngay. JDK cung cấp các option để bổ sung quyền truy cập ở thời điểm biên dịch hoặc chạy.
+During development, migration, or integration of legacy libraries, sometimes you cannot modify the module descriptor immediately. The JDK provides options to grant additional access at compile time or runtime.
 
 ### 7.1. --add-exports
 
-`--add-exports` bổ sung quyền export một package tới module đích:
+`--add-exports` adds export access for a package to a target module:
 
 ~~~bash
 javac \
@@ -244,15 +244,15 @@ javac \
     src/com.example.application/com/example/application/Main.java
 ~~~
 
-Cú pháp:
+Syntax:
 
 ~~~text
 --add-exports <module>/<package>=<target-module>
 ~~~
 
-Ví dụ trên cho phép `com.example.application` truy cập public type trong package internal của `com.example.customer` khi biên dịch.
+The example above allows `com.example.application` to access public types in the internal package of `com.example.customer` during compilation.
 
-Khi chạy ứng dụng, nếu cần cùng quyền truy cập ở runtime, truyền option tương ứng cho launcher:
+When running the application, if the same access is needed at runtime, pass the corresponding option to the launcher:
 
 ~~~bash
 java \
@@ -263,7 +263,7 @@ java \
 
 ### 7.2. --add-opens
 
-`--add-opens` mở package cho deep reflection tại runtime:
+`--add-opens` opens a package for deep reflection at runtime:
 
 ~~~bash
 java \
@@ -272,13 +272,13 @@ java \
     -m com.example.application/com.example.application.Main
 ~~~
 
-Cú pháp:
+Syntax:
 
 ~~~text
 --add-opens <module>/<package>=<target-module>
 ~~~
 
-Nếu framework ở classpath, có thể dùng:
+If the framework is on the classpath, you can use:
 
 ~~~bash
 java \
@@ -287,21 +287,21 @@ java \
     -m com.example.application/com.example.application.Main
 ~~~
 
-`--add-opens` là option runtime; nó không làm package có thể được import trong source code khi biên dịch. Nếu compile code cần truy cập public type trong package chưa export, hãy dùng `--add-exports` hoặc sửa module descriptor.
+`--add-opens` is a runtime option; it does not make the package importable in source code during compilation. If compiled code needs access to public types in an unexported package, use `--add-exports` or update the module descriptor.
 
-### 7.3. So sánh các option
+### 7.3. Comparing the Options
 
-| Option | Thời điểm | Tác dụng |
+| Option | Phase | Effect |
 |---|---|---|
-| `--add-exports` | Compile time với `javac`, hoặc runtime với `java` | Bổ sung quyền truy cập public API của package |
-| `--add-opens` | Runtime | Cho phép deep reflection vào package |
-| `--add-reads` | Compile time hoặc runtime tùy công cụ | Bổ sung quan hệ readability giữa các module |
+| `--add-exports` | Compile time with `javac`, or runtime with `java` | Adds access to public APIs of a package |
+| `--add-opens` | Runtime | Allows deep reflection into a package |
+| `--add-reads` | Compile time or runtime depending on the tool | Adds a readability relationship between modules |
 
-Các option này giải quyết ba khía cạnh khác nhau: package visibility, reflective access và module readability. Một module có thể đọc module khác nhưng vẫn không được truy cập package chưa export; package được export cũng không tự động mở private member cho deep reflection.
+These options address three different aspects: package visibility, reflective access, and module readability. A module can read another module yet still lack access to unexported packages; an exported package also does not automatically open private members for deep reflection.
 
-## 8. Quan sát trạng thái export và open bằng Java API
+## 8. Observing Export and Open Status via the Java API
 
-`java.lang.Module` cung cấp các phương thức để kiểm tra quan hệ module:
+`java.lang.Module` provides methods to inspect module relationships:
 
 ~~~java
 Module source = record.getClass().getModule();
@@ -324,51 +324,51 @@ System.out.println("Exported: " + exported);
 System.out.println("Open: " + open);
 ~~~
 
-Ý nghĩa:
+Meaning:
 
-- `canRead(...)` kiểm tra module caller có readability tới module source hay không.
-- `isExported(packageName, target)` kiểm tra package có được export cho module đích không.
-- `isOpen(packageName, target)` kiểm tra package có được mở cho deep reflection đối với module đích không.
+- `canRead(...)` checks whether the caller module has readability to the source module.
+- `isExported(packageName, target)` checks whether the package is exported to the target module.
+- `isOpen(packageName, target)` checks whether the package is open for deep reflection to the target module.
 
-Các API này hữu ích khi framework cần chẩn đoán vì sao reflection hoặc truy cập type không thành công. Chúng cũng giúp log rõ module nào đang thiếu quyền thay vì chỉ báo một lỗi reflection chung chung.
+These APIs are useful when a framework needs to diagnose why reflection or type access failed. They also help log clearly which module is missing permissions instead of reporting only a generic reflection error.
 
-## 9. Strong encapsulation của JDK internals
+## 9. Strong Encapsulation of JDK Internals
 
-JPMS được giới thiệu từ Java 9, và quá trình siết chặt truy cập tới API nội bộ của JDK diễn ra qua nhiều phiên bản.
+JPMS was introduced in Java 9, and the process of tightening access to internal JDK APIs took place across multiple releases.
 
-Từ Java 16, strong encapsulation được áp dụng mặc định rộng hơn đối với các API nội bộ của JDK. Java 17 tiếp tục hoàn tất việc encapsulate mạnh các phần nội bộ của JDK theo JEP 403. Một số API nội bộ quan trọng vẫn có ngoại lệ tương thích, nhưng ứng dụng không nên dựa vào package `sun.*` hoặc các implementation detail không được hỗ trợ.
+Starting in Java 16, strong encapsulation was applied more broadly by default to internal JDK APIs. Java 17 completed the strong encapsulation of JDK internals under JEP 403. A few critical internal APIs still have compatibility exceptions, but applications should not rely on `sun.*` packages or unsupported implementation details.
 
-Option `--illegal-access` từng hỗ trợ chuyển tiếp cho một số truy cập reflection cũ trong các phiên bản trước. Từ JDK 17, option này không còn khôi phục cơ chế truy cập cũ; nó bị vô hiệu hóa và chỉ phát cảnh báo khi được dùng.
+The `--illegal-access` option previously supported a transition period for some legacy reflective accesses in earlier releases. Since JDK 17, this option no longer restores the old access mechanism; it is disabled and only emits a warning when used.
 
-Nếu thư viện cũ gặp lỗi truy cập, hướng xử lý nên là:
+If an older library encounters access errors, the approach should be:
 
-1. Cập nhật thư viện lên phiên bản hỗ trợ JPMS và JDK đang dùng.
-2. Ưu tiên API công khai, được hỗ trợ của JDK thay cho internal API.
-3. Nếu cần tương thích tạm thời, xác định chính xác module/package/target rồi dùng `--add-exports` hoặc `--add-opens` phù hợp.
-4. Ghi lại và loại bỏ các override tạm thời khi thư viện đã được cập nhật.
+1. Update the library to a version that supports JPMS and the target JDK.
+2. Prefer public, supported JDK APIs over internal APIs.
+3. If temporary compatibility is needed, identify the exact module/package/target and use the appropriate `--add-exports` or `--add-opens`.
+4. Document and remove temporary overrides once the library has been updated.
 
-Không nên mở hàng loạt package JDK hoặc thêm quyền rộng chỉ để làm mất thông báo lỗi. Làm như vậy khiến dependency vào implementation detail khó được phát hiện và duy trì.
+You should not open JDK packages wholesale or add broad permissions just to silence error messages. Doing so makes dependencies on implementation details harder to detect and maintain.
 
-## 10. Lỗi thường gặp và cách xử lý
+## 10. Common Errors and How to Handle Them
 
-| Triệu chứng | Nguyên nhân thường gặp | Hướng xử lý |
+| Symptom | Common Cause | Resolution |
 |---|---|---|
-| `package ... is not visible` | Package chưa được export tới module consumer | Khai báo `exports` hoặc `--add-exports` |
-| `InaccessibleObjectException` | Package chưa mở cho module đang reflection | Dùng `opens` hoặc `--add-opens` |
-| `trySetAccessible()` trả về `false` | Điều kiện truy cập sâu chưa được đáp ứng | Kiểm tra package, module caller và quan hệ open |
-| Framework truy cập được public API nhưng không đọc private field | Package chỉ được export, chưa được open | Thêm qualified `opens` cho framework |
-| Code đọc được module nhưng không import được package | Readability có nhưng package visibility chưa có | Kiểm tra riêng `requires` và `exports` |
-| Ứng dụng phụ thuộc `sun.*` lỗi sau khi nâng JDK | Internal API đã bị encapsulate mạnh | Chuyển sang API được hỗ trợ hoặc cập nhật thư viện |
+| `package ... is not visible` | Package is not exported to the consumer module | Declare `exports` or `--add-exports` |
+| `InaccessibleObjectException` | Package is not open to the module performing reflection | Use `opens` or `--add-opens` |
+| `trySetAccessible()` returns `false` | Deep access conditions are not met | Check the package, caller module, and open relationship |
+| Framework can access public API but cannot read private fields | Package is only exported, not open | Add qualified `opens` for the framework |
+| Code can read the module but cannot import a package | Readability exists but package visibility does not | Check `requires` and `exports` separately |
+| Application depending on `sun.*` fails after JDK upgrade | Internal API has been strongly encapsulated | Switch to a supported API or update the library |
 
-Khi xử lý lỗi, hãy xác định ba thông tin: module sở hữu package, package cần truy cập và module caller. Sau đó mới quyết định cần readability, export hay open. Việc chọn đúng quyền giúp module descriptor phản ánh đúng thiết kế thay vì cấp quyền quá rộng.
+When troubleshooting errors, identify three pieces of information: the module owning the package, the package needing access, and the caller module. Only then decide whether readability, export, or open is needed. Choosing the right permission keeps the module descriptor aligned with the design rather than granting overly broad access.
 
-## 11. Tóm tắt
+## 11. Summary
 
-Strong encapsulation của JPMS đặt package dưới sự kiểm soát của module descriptor. `exports` công khai package cho truy cập API theo quy tắc Java; `opens` cho phép deep reflection ở runtime. Qualified exports và qualified opens giới hạn quyền cho từng module cụ thể, còn `open module` mở tất cả package cho reflection mà không tự export chúng.
+JPMS strong encapsulation places packages under the control of the module descriptor. `exports` exposes a package for API access under Java rules; `opens` allows deep reflection at runtime. Qualified exports and qualified opens restrict permissions to specific modules, while `open module` opens all packages for reflection without automatically exporting them.
 
-Khi gặp lỗi truy cập, hãy phân biệt readability, package export và reflective open. Dùng `--add-exports` hoặc `--add-opens` như override có mục tiêu khi cần, sau đó đưa quyền cần thiết vào module descriptor hoặc cập nhật framework để ứng dụng giữ được ranh giới module rõ ràng.
+When encountering access errors, distinguish between readability, package export, and reflective open. Use `--add-exports` or `--add-opens` as targeted overrides when necessary, then move the required permissions into the module descriptor or update frameworks so the application maintains clear module boundaries.
 
-Tài liệu tham khảo:
+References:
 
 - [The Java Module System — JLS, Chapter 7](https://docs.oracle.com/javase/specs/jls/se21/html/jls-7.html)
 - [Module — Java SE 21 API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Module.html)

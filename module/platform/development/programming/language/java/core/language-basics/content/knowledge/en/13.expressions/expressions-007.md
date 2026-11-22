@@ -1,66 +1,66 @@
-# Tác dụng phụ trong biểu thức và nguy cơ khó dự đoán — Java 17+
+# Side Effects in Expressions and the Risk of Unpredictability — Java 17+
 
-## 1. Mục tiêu bài học
+## 1. Lesson Objectives
 
-Trong Java, một biểu thức (*expression*) có thể vừa **tính ra giá trị**, vừa thực hiện **tác dụng phụ** (*side effect*) — làm thay đổi trạng thái có thể quan sát được, chẳng hạn gán biến, tăng bộ đếm, sửa field, thay phần tử mảng, ghi log hoặc thực hiện I/O.
+In Java, an **expression** can both **compute a value** and perform a **side effect**—mutating observable state such as assigning a variable, incrementing a counter, modifying a field, changing an array element, writing logs, or performing I/O.
 
 ~~~java
 int count = 5;
-int old = count++; // Giá trị biểu thức là 5, nhưng count đổi thành 6
+int old = count++; // Expression value is 5, while count changes to 6
 
 System.out.println(old);   // 5
 System.out.println(count); // 6
 ~~~
 
-Phần **giá trị** của `count++` là 5; phần **tác dụng phụ** là cập nhật `count` từ 5 thành 6. Đây là hai khía cạnh khác nhau của cùng một biểu thức.
+The **value** part of `count++` is 5; the **side effect** part is updating `count` from 5 to 6. These are two distinct aspects of the same expression.
 
-**Điểm quan trọng:** Java 17 có quy tắc **thứ tự đánh giá được xác định**, không phải ngẫu nhiên. Tuy nhiên, khi một biểu thức chứa nhiều lần đọc và sửa cùng trạng thái, người đọc vẫn rất dễ dự đoán sai. Vì vậy, bài học hướng đến **hiểu đúng Java và viết code dễ kiểm chứng**, thay vì tìm cách nhồi mọi thao tác vào một dòng.
+**Key point:** Java 17 has a **well-defined evaluation order**, not an arbitrary one. However, when a single expression reads and modifies the same state multiple times, readers can still easily mispredict the outcome. Therefore, this lesson focuses on **understanding Java accurately and writing easily verifiable code**, rather than cramming every operation onto one line.
 
-## 2. Nhận diện những biểu thức có tác dụng phụ
+## 2. Identifying Expressions with Side Effects
 
-| Biểu thức / lời gọi | Giá trị biểu thức | Tác dụng phụ có thể xảy ra |
+| Expression / invocation | Expression value | Possible side effect |
 |---|---|---|
-| `a + b` với hai `int` | Tổng `int` | Thông thường không sửa `a`, `b` |
-| `x = 10` | Giá trị sau phép gán | Gán lại `x` |
-| `x++` | Giá trị **trước** khi tăng | Tăng `x` |
-| `++x` | Giá trị **sau** khi tăng | Tăng `x` |
-| `x += 3` | Giá trị của `x` sau cập nhật | Cập nhật `x` |
-| `array[index++]` | Phần tử mảng tại chỉ số cũ | Tăng `index` |
-| `object.change()` | Tùy kiểu trả về method | Method có thể sửa object hoặc trạng thái khác |
-| `System.out.println("hi")` | `void`, không có giá trị dùng để gán | Ghi ra output |
-| `new SomeClass()` | Tham chiếu tới instance mới nếu thành công | Tạo object; constructor có thể có hành vi quan sát được |
+| `a + b` with two `int`s | `int` sum | Normally does not modify `a`, `b` |
+| `x = 10` | Value after assignment | Reassigns `x` |
+| `x++` | Value **before** incrementing | Increments `x` |
+| `++x` | Value **after** incrementing | Increments `x` |
+| `x += 3` | Value of `x` after update | Updates `x` |
+| `array[index++]` | Array element at old index | Increments `index` |
+| `object.change()` | Depends on method return type | Method may mutate object or other state |
+| `System.out.println("hi")` | `void`, no assignable value | Writes to output |
+| `new SomeClass()` | Reference to new instance if successful | Creates object; constructor may have observable behavior |
 
-**Không được suy luận method “chỉ đọc” hay “có sửa” dựa duy nhất vào tên.** Với lời gọi `service.getValue()`, cần xem hợp đồng và implementation của API: một getter có thể ghi log, cập nhật cache hoặc ném ngoại lệ.
+**Never infer whether a method is "read-only" or "mutating" solely from its name.** For a call like `service.getValue()`, check the API contract and implementation: a getter might write logs, update a cache, or throw an exception.
 
-Phép toán thuần như `a + b` không tự sửa toán hạng; nhưng **biểu thức toán hạng** có thể có tác dụng phụ:
+A pure operator like `a + b` does not itself mutate its operands; however, **operand expressions** can have side effects:
 
 ~~~java
-int result = next() + current(); // next() hoặc current() có thể thay đổi trạng thái
+int result = next() + current(); // next() or current() may mutate state
 ~~~
 
-Muốn hiểu đúng phải xem cả **quá trình đánh giá toán hạng**, không chỉ toán tử `+`.
+To understand it properly, examine the entire **operand evaluation process**, not just the `+` operator.
 
-## 3. Tiền tố `++x`, hậu tố `x++`: cập nhật giống, giá trị khác
+## 3. Prefix `++x`, Postfix `x++`: Same Update, Different Value
 
 ~~~java
 int x = 3;
 
-int before = x++; // before = 3, x thành 4
-int after = ++x;  // x thành 5, after = 5
+int before = x++; // before = 3, x becomes 4
+int after = ++x;  // x becomes 5, after = 5
 
 System.out.println(before); // 3
 System.out.println(after);  // 5
 System.out.println(x);      // 5
 ~~~
 
-| Cú pháp | Giá trị dùng trong biểu thức | Trạng thái sau |
+| Syntax | Value used in expression | State afterward |
 |---|---|---|
-| `x++` | Giá trị cũ | `x` tăng 1 |
-| `++x` | Giá trị mới | `x` tăng 1 |
-| `x--` | Giá trị cũ | `x` giảm 1 |
-| `--x` | Giá trị mới | `x` giảm 1 |
+| `x++` | Old value | `x` incremented by 1 |
+| `++x` | New value | `x` incremented by 1 |
+| `x--` | Old value | `x` decremented by 1 |
+| `--x` | New value | `x` decremented by 1 |
 
-Trong vòng lặp đơn giản, `i++` thường dễ hiểu:
+In a simple loop, `i++` is usually easy to read:
 
 ~~~java
 for (int i = 0; i < 3; i++) {
@@ -68,11 +68,11 @@ for (int i = 0; i < 3; i++) {
 }
 ~~~
 
-Nhưng trong phép tính lớn, phải ghi nhớ **giá trị trước/sau khi cập nhật** và **thời điểm biểu thức khác đọc biến**. Tách câu lệnh giúp tránh nhầm lẫn.
+In a larger calculation, however, you must keep track of **pre/post-update values** and **when another expression reads the variable**. Splitting statements prevents confusion.
 
-## 4. Java không “không xác định”, nhưng biểu thức phức tạp rất khó đọc
+## 4. Java Is Not "Undefined," Yet Complex Expressions Are Hard to Read
 
-Ví dụ dưới đây **hợp lệ và có kết quả xác định theo Java**:
+The example below is **valid and has a deterministic result in Java**:
 
 ~~~java
 int i = 1;
@@ -82,15 +82,15 @@ System.out.println(sum); // 4
 System.out.println(i);   // 3
 ~~~
 
-Giải thích chính xác từ trái sang phải:
+Exact left-to-right explanation:
 
-1. `i++` cho **giá trị cũ 1**, rồi cập nhật `i = 2`.
-2. `++i` cập nhật `i = 3`, rồi cho **giá trị mới 3**.
-3. `1 + 3` bằng **4**, và giá trị cuối của `i` là **3**.
+1. `i++` yields the **old value 1**, then updates `i = 2`.
+2. `++i` updates `i = 3`, then yields the **new value 3**.
+3. `1 + 3` equals **4**, and the final value of `i` is **3**.
 
-Không gọi trường hợp này là “undefined behavior” theo nghĩa của một số ngôn ngữ khác: **Java quy định thứ tự đánh giá**. Vấn đề nằm ở khả năng đọc code, bảo trì và rủi ro sửa nhầm khi refactor.
+Do not call this case "undefined behavior" in the sense used by some other languages: **Java specifies evaluation order**. The problem lies in readability, maintainability, and the risk of breaking things during refactoring.
 
-Viết tường minh hơn:
+More explicitly:
 
 ~~~java
 int i = 1;
@@ -101,9 +101,9 @@ int right = i;
 int sum = left + right;
 ~~~
 
-Đoạn tách bước thể hiện rõ mục đích và cho cùng kết quả trong trường hợp này. Nếu logic nghiệp vụ không cần hai lần cập nhật, cách tốt hơn là **đơn giản hóa thuật toán**, không chỉ thêm biến.
+The step-by-step version makes the intent clear and produces the same result in this case. If business logic does not require two updates, a better option is to **simplify the algorithm**, not merely add variables.
 
-### Bẫy `i = i++`
+### The `i = i++` Trap
 
 ~~~java
 int i = 5;
@@ -111,44 +111,44 @@ i = i++;
 System.out.println(i); // 5
 ~~~
 
-Vì sao vẫn 5? Vế phải `i++` cho giá trị cũ **5** và tăng `i` lên 6; cuối cùng **phép gán bên ngoài** gán lại giá trị cũ 5 cho `i`.
+Why is it still 5? The right side `i++` yields the old value **5** and increments `i` to 6; finally, **the outer assignment** assigns the old value 5 back to `i`.
 
-Hãy viết `i++;` nếu chỉ muốn tăng, hoặc `i = desiredValue;` nếu chỉ muốn gán. **Đừng kết hợp hai cơ chế gán lên cùng biến khi không cần thiết.**
+Write `i++;` if you only want to increment, or `i = desiredValue;` if you only want to assign. **Do not combine two assignment mechanisms on the same variable unnecessarily.**
 
-## 5. Side effect tuân theo thứ tự đánh giá, không theo mức ưu tiên
+## 5. Side Effects Follow Evaluation Order, Not Precedence
 
 ~~~java
 static int trace(String label, int value) {
     System.out.println("evaluate " + label);
     return value;
 }
-// Trong một method:
+// Inside a method:
 int result = trace("A", 2) + trace("B", 3) * trace("C", 4);
 ~~~
 
-Ba dòng `evaluate A`, `evaluate B`, `evaluate C` xuất hiện theo thứ tự ấy; `result == 14`. Phép nhân được **nhóm** trước phép cộng khi tính giá trị, nhưng không khiến lời gọi B/C thực thi trước A.
+The three lines `evaluate A`, `evaluate B`, `evaluate C` appear in that order; `result == 14`. Multiplication is **grouped** before addition when computing the value, yet it does not make calls B/C run before A.
 
-Đặc biệt khi các method thay đổi trạng thái, nên đưa kết quả vào biến riêng theo đúng thứ tự mong muốn, sau đó thực hiện phép tính. Cách này giảm rủi ro vô tình đổi side effect khi sửa code.
+Especially when methods mutate state, capture results into separate variables in the exact desired order, then perform the calculation. This reduces the risk of accidentally altering side effects when editing code.
 
-## 6. Đối số method được đánh giá trước khi method bắt đầu
+## 6. Method Arguments Are Evaluated Before the Method Begins
 
-Khi gọi:
+When calling:
 
 ~~~java
 show(trace("first", 1), trace("second", 2));
 ~~~
 
-Java đánh giá đối số **từ trái sang phải** trước khi thực thi phần thân `show`. Trong ví dụ này, `trace("first", 1)` chạy trước `trace("second", 2)`, sau đó mới tới `show`.
+Java evaluates arguments **from left to right** before executing the body of `show`. In this example, `trace("first", 1)` runs before `trace("second", 2)`, and only then does `show` execute.
 
-Điều này có thể tạo bug nếu hai đối số cùng sửa một object:
+This can introduce bugs if two arguments mutate the same object:
 
 ~~~java
 send(counter.incrementAndGet(), counter.get());
 ~~~
 
-Nếu `incrementAndGet()` tăng trạng thái, đối số thứ hai có thể đọc **giá trị sau khi tăng**, không phải trạng thái ban đầu. Không nên giả định hai đối số được tính “cùng một lúc”.
+If `incrementAndGet()` increments state, the second argument may read **the post-increment value**, not the initial state. Do not assume two arguments are evaluated "at the same instant."
 
-Cách rõ hơn:
+Clearer approach:
 
 ~~~java
 int newValue = counter.incrementAndGet();
@@ -156,59 +156,59 @@ int snapshotAfter = counter.get();
 send(newValue, snapshotAfter);
 ~~~
 
-**Lưu ý:** compiler chọn overload theo kiểu tĩnh của biểu thức đối số, còn tác dụng phụ khi **đánh giá** đối số xảy ra lúc chạy. Hai điều này tách biệt.
+**Note:** the compiler selects overloads using the static types of argument expressions, whereas side effects from **evaluating** arguments occur at runtime. These two aspects are separate.
 
-## 7. Short-circuit với `&&` và `||`
+## 7. Short-Circuiting with `&&` and `||`
 
-Toán tử **`&&`** bỏ qua vế phải nếu vế trái đã `false`; **`||`** bỏ qua vế phải nếu vế trái đã `true`.
+The **`&&`** operator skips the right side if the left side is already `false`; **`||`** skips the right side if the left side is already `true`.
 
 ~~~java
 int divisor = 0;
 boolean safe = (divisor != 0) && (10 / divisor > 2);
-System.out.println(safe); // false, không chia cho 0
+System.out.println(safe); // false, does not divide by 0
 ~~~
 
-Nếu một method có tác dụng phụ nằm trong nhánh bị bỏ qua, tác dụng phụ **không xảy ra**:
+If a method with side effects sits in the skipped branch, the side effect **does not occur**:
 
 ~~~java
-boolean result = false && updateCounter(); // updateCounter() không được gọi
+boolean result = false && updateCounter(); // updateCounter() is not called
 ~~~
 
-Mô hình:
+Model:
 
 ~~~mermaid
 flowchart TD
-    A["Đánh giá vế trái của &&"] --> B{"Có true không?"}
-    B -- "Không" --> C["Kết quả false, bỏ qua vế phải"]
-    B -- "Có" --> D["Đánh giá vế phải"]
-    E["Đánh giá vế trái của ||"] --> F{"Có true không?"}
-    F -- "Có" --> G["Kết quả true, bỏ qua vế phải"]
-    F -- "Không" --> H["Đánh giá vế phải"]
+    A["Evaluate left side of &&"] --> B{"Is it true?"}
+    B -- "No" --> C["Result is false, skip right side"]
+    B -- "Yes" --> D["Evaluate right side"]
+    E["Evaluate left side of ||"] --> F{"Is it true?"}
+    F -- "Yes" --> G["Result is true, skip right side"]
+    F -- "No" --> H["Evaluate right side"]
 ~~~
 
-**Phân biệt `&&` với `&`, `||` với `|` khi toán hạng là boolean:**
+**Distinguish `&&` from `&`, and `||` from `|` when operands are boolean:**
 
-| Toán tử | Có bỏ qua vế phải? | Lưu ý |
+| Operator | Skips right side? | Note |
 |---|---|---|
-| `&&` | Có, khi vế trái false | Thường dùng để bảo vệ thao tác cần điều kiện |
-| `||` | Có, khi vế trái true | Thường dùng để đặt lựa chọn thay thế |
-| `&` | Không | Đánh giá cả hai vế |
-| `|` | Không | Đánh giá cả hai vế |
+| `&&` | Yes, when left side is false | Commonly used to guard conditional operations |
+| `||` | Yes, when left side is true | Commonly used to provide a fallback choice |
+| `&` | No | Evaluates both sides |
+| `|` | No | Evaluates both sides |
 
-Dùng `&` thay `&&` có thể **vô tình gọi thêm method**, sửa dữ liệu hoặc gây ngoại lệ. Dùng toán tử đúng và kiểm thử cả hai trường hợp true/false.
+Using `&` instead of `&&` can **unintentionally call extra methods**, mutate data, or trigger exceptions. Use the right operator and test both true and false cases.
 
-## 8. Toán tử điều kiện `?:` chỉ đánh giá nhánh được chọn
+## 8. Conditional Operator `?:` Evaluates Only the Selected Branch
 
 ~~~java
 boolean useCache = true;
 int answer = useCache ? readCache() : calculateFresh();
 ~~~
 
-Compiler kiểm tra kiểu của hai nhánh theo quy tắc conditional expression, nhưng khi chạy Java chỉ đánh giá **nhánh được chọn**. Nếu `useCache` true, `calculateFresh()` không được gọi.
+The compiler checks the types of both branches using conditional expression rules, yet at runtime Java evaluates only **the selected branch**. If `useCache` is true, `calculateFresh()` is not called.
 
-Vì vậy, nếu một nhánh gửi yêu cầu mạng, ghi log hoặc thay đổi bộ đếm, **số lần gọi có thể khác** giữa các lượt chạy. Điều này hoàn toàn theo ngữ nghĩa Java, không phải tính ngẫu nhiên.
+Therefore, if a branch sends a network request, writes logs, or updates a counter, **call counts can differ** across runs. This completely follows Java semantics, not randomness.
 
-Nếu hai nhánh mang nhiều logic tác động trạng thái, dùng `if/else` thường dễ quan sát:
+If both branches contain significant state-mutating logic, `if/else` is usually easier to inspect:
 
 ~~~java
 int answer;
@@ -219,11 +219,11 @@ if (useCache) {
 }
 ~~~
 
-**Không đặt tác dụng phụ vào cả hai nhánh rồi mong cả hai đều được thực hiện.**
+**Do not put side effects in both branches expecting both to execute.**
 
-## 9. Gán biến, sửa object và alias
+## 9. Variable Assignment, Object Mutation, and Aliasing
 
-Side effect không chỉ là sửa một biến primitive:
+Side effects are not limited to modifying a primitive variable:
 
 ~~~java
 final class Counter {
@@ -238,7 +238,7 @@ final class Counter {
     }
 }
 
-// Trong method:
+// Inside a method:
 Counter original = new Counter(10);
 Counter alias = original;
 
@@ -247,18 +247,18 @@ System.out.println(current);        // 11
 System.out.println(original.value); // 11
 ~~~
 
-`original` và `alias` cùng tham chiếu đến **một Counter**. Một method trên `alias` sửa field trên object, nên bên dùng `original` cũng thấy giá trị mới.
+`original` and `alias` both reference **the same Counter**. A method on `alias` mutates a field on the object, so code using `original` also sees the new value.
 
-Một lời gọi method có thể trông giống biểu thức lấy giá trị nhưng lại sửa trạng thái được chia sẻ. Với code có nhiều object, hãy kiểm tra:
+A method call may look like a value-fetching expression yet modify shared state. In code with multiple objects, check:
 
-- Method chỉ đọc hay thay đổi field/collection?
-- Có nhiều biến cùng tham chiếu tới cùng object không?
-- Có được phép gọi method này nhiều lần không?
-- Có cần đồng bộ hoặc bảo vệ khi nhiều thread cùng truy cập không?
+- Does the method only read or does it modify fields/collections?
+- Do multiple variables refer to the same object?
+- Is this method allowed to be called multiple times?
+- Is synchronization or protection needed when multiple threads access it?
 
-**Phép tính có kiểu hợp lệ** không đồng nghĩa không có thay đổi trạng thái.
+**A well-typed computation** does not mean no state changes occur.
 
-## 10. Chỉ số mảng có `i++`: đọc ở đâu, cập nhật khi nào?
+## 10. Array Indices with `i++`: Where Is It Read, When Is It Updated?
 
 ~~~java
 int[] values = {10, 20, 30};
@@ -270,14 +270,14 @@ System.out.println(sum); // 30
 System.out.println(i);   // 1
 ~~~
 
-Java đánh giá `values[i++]` trước:
+Java evaluates `values[i++]` first:
 
-1. `i++` cung cấp chỉ số cũ **0**, rồi đổi `i` thành **1**.
-2. Đọc `values[0]` bằng **10**.
-3. Đánh giá `values[i]` bên phải với `i = 1`: lấy **20**.
-4. Tổng là **30**.
+1. `i++` provides the old index **0**, then changes `i` to **1**.
+2. Reads `values[0]` equal to **10**.
+3. Evaluates `values[i]` on the right with `i = 1`: gets **20**.
+4. The sum is **30**.
 
-Cách dễ đọc hơn:
+More readable approach:
 
 ~~~java
 int first = values[i];
@@ -286,9 +286,9 @@ int second = values[i];
 int sum = first + second;
 ~~~
 
-Trường hợp dùng `values[i++] = nextValue` trong thuật toán duyệt mảng có thể phù hợp khi đơn giản, nhưng **tránh kết hợp nhiều lần cập nhật cùng chỉ số trong một biểu thức dài**. Nếu `i` vượt giới hạn, chương trình có thể ném `ArrayIndexOutOfBoundsException`; Java không tự đoán ý định dịch chỉ số.
+Using `values[i++] = nextValue` in an array traversal algorithm can be appropriate when simple, yet **avoid combining multiple updates to the same index inside one long expression**. If `i` goes out of bounds, the program can throw `ArrayIndexOutOfBoundsException`; Java does not guess your indexing intent.
 
-## 11. Nối chuỗi và log có thể che tác dụng phụ
+## 11. String Concatenation and Logging Can Hide Side Effects
 
 ~~~java
 int n = 1;
@@ -301,9 +301,9 @@ Output:
 n=1, now=2
 ~~~
 
-`n++` đóng góp giá trị cũ 1 vào chuỗi, sau đó `n` đã bằng 2 khi biểu thức tiếp theo được đánh giá.
+`n++` contributes the old value 1 to the string, and then `n` is already 2 when the next sub-expression is evaluated.
 
-**Không nên dùng biểu thức có tác dụng phụ chỉ để tạo thông báo log.** Cách rõ hơn:
+**Do not use expressions with side effects just to build log messages.** Clearer approach:
 
 ~~~java
 int old = n;
@@ -311,34 +311,34 @@ n++;
 System.out.println("old=" + old + ", now=" + n);
 ~~~
 
-Một biểu thức được truyền vào `logger.debug(...)` hoặc `System.out.println(...)` có thể được **đánh giá trước lời gọi**, kể cả khi code bên trong method quyết định không ghi ra đích. Muốn tối ưu chi phí đánh giá log, cần xem API logging cụ thể hỗ trợ lazy evaluation hay không.
+An expression passed into `logger.debug(...)` or `System.out.println(...)` can be **evaluated before the call**, even if code inside the method decides not to write to the destination. To optimize log evaluation cost, check whether the specific logging API supports lazy evaluation.
 
-## 12. Exception có thể dừng quá trình đánh giá
+## 12. Exceptions Can Halt Evaluation
 
-Một biểu thức có kiểu compile time hoàn toàn hợp lệ vẫn có thể **không hoàn tất bình thường** tại runtime:
+An expression with completely valid compile-time types can still **fail to complete normally** at runtime:
 
 ~~~java
 int zero = 0;
 int value = (10 / zero) + expensiveOperation();
 ~~~
 
-Nếu `10 / zero` ném `ArithmeticException`, Java không tiếp tục đánh giá `expensiveOperation()`. Do đó tác dụng phụ bên trong method ở vế phải **không xảy ra**.
+If `10 / zero` throws `ArithmeticException`, Java does not proceed to evaluate `expensiveOperation()`. Hence any side effect inside the right-hand method **does not occur**.
 
-Tương tự với:
+Similarly:
 
 ~~~java
 String text = null;
-// int length = text.length() + mutate(); // text.length() ném NPE;
-// mutate() không được gọi.
+// int length = text.length() + mutate(); // text.length() throws NPE;
+// mutate() is not called.
 ~~~
 
-Đây là một lý do để tránh gói **tính toán có thể lỗi và cập nhật trạng thái** vào cùng một biểu thức dài: đường thực thi thất bại có thể để lại trạng thái được cập nhật một phần, khó rollback.
+This is a reason to avoid packing **fallible computations and state updates** into one long expression: a failing execution path can leave state partially updated and hard to roll back.
 
-**Không hiểu nhầm:** `try/catch` xử lý exception không đồng nghĩa các side effect đã xảy ra trước exception tự động được hoàn tác. Nếu cần tính nhất quán qua nhiều thao tác, thiết kế transaction/rollback phù hợp.
+**Do not misunderstand:** catching an exception with `try/catch` does not mean prior side effects before the exception are automatically undone. If consistency across multiple operations is needed, design proper transactions or rollback.
 
-## 13. Cách refactor biểu thức nhiều tác dụng phụ
+## 13. How to Refactor Expressions with Multiple Side Effects
 
-**Trước — khó đọc:**
+**Before — hard to read:**
 
 ~~~java
 int result = counter.incrementAndGet()
@@ -346,13 +346,13 @@ int result = counter.incrementAndGet()
         + service.nextValue();
 ~~~
 
-Đoạn này trộn ba thay đổi/quan sát trạng thái:
+This snippet mixes three state changes/observations:
 
-1. Tăng `counter`.
-2. Tăng `index` khi chọn phần tử.
-3. Gọi `service.nextValue()`, có thể có tác dụng phụ theo hợp đồng API.
+1. Incrementing `counter`.
+2. Incrementing `index` while selecting an element.
+3. Calling `service.nextValue()`, which may have side effects per its API contract.
 
-**Sau — tách ý định, giữ thứ tự:**
+**After — separate intent, preserve order:**
 
 ~~~java
 int counterValue = counter.incrementAndGet();
@@ -362,29 +362,29 @@ int serviceValue = service.nextValue();
 int result = counterValue + selectedValue + serviceValue;
 ~~~
 
-Lợi ích:
+Benefits:
 
-- Debug từng bước dễ hơn.
-- Log/test có thể kiểm tra trạng thái tại ranh giới rõ ràng.
-- Dễ đặt validation trước thao tác nguy hiểm.
-- Code review nhìn được thứ tự hoạt động, thay vì phải tính nhẩm side effect.
+- Easier step-by-step debugging.
+- Logs/tests can inspect state at clear boundaries.
+- Easy to place validation before risky operations.
+- Code reviewers see the order of operations instead of mentally simulating side effects.
 
-**Cẩn thận:** khi refactor, đừng tự ý đổi thứ tự gọi method, đổi loại toán tử hoặc bỏ mất guard; hãy giữ đúng ngữ nghĩa cần thiết, nhất là khi method có side effect.
+**Be careful:** when refactoring, do not arbitrarily reorder method calls, change operator kinds, or drop guards; preserve the required semantics, especially when methods have side effects.
 
-## 14. Java có thứ tự xác định, nhưng concurrency vẫn có vấn đề riêng
+## 14. Java Has Deterministic Order, Yet Concurrency Still Has Separate Issues
 
-Các ví dụ trên giả sử chạy trong **một thread**. Quy tắc đánh giá từ trái sang phải không thay thế cơ chế đồng bộ giữa các thread.
+The examples above assume execution on **a single thread**. Left-to-right evaluation rules do not replace synchronization mechanisms across threads.
 
 ~~~java
 static int count = 0;
 
-// Nếu nhiều thread cùng làm:
+// If multiple threads execute concurrently:
 count++;
 ~~~
 
-`count++` gồm đọc, tính và ghi; **không phải phép tăng nguyên tử an toàn cho mọi tình huống đa luồng**. Khi nhiều thread cùng ghi không đồng bộ, có thể xảy ra race condition và cập nhật bị mất.
+`count++` consists of read, compute, and write; it is **not an atomic increment safe for all multithreaded scenarios**. When multiple threads write concurrently without synchronization, race conditions and lost updates can occur.
 
-Nếu cần bộ đếm được chia sẻ, có thể dùng `java.util.concurrent.atomic.AtomicInteger` theo yêu cầu:
+If a shared counter is needed, you can use `java.util.concurrent.atomic.AtomicInteger` as required:
 
 ~~~java
 java.util.concurrent.atomic.AtomicInteger count =
@@ -392,11 +392,11 @@ java.util.concurrent.atomic.AtomicInteger count =
 int next = count.incrementAndGet();
 ~~~
 
-**Phân biệt:** Java xác định thứ tự đánh giá trong một thread; nhưng tính đúng của trạng thái chia sẻ trong đa luồng cần tuân thủ Java Memory Model và đồng bộ phù hợp. Không dùng dấu ngoặc hay đổi `i++` thành `++i` để sửa race condition.
+**Distinguish:** Java specifies evaluation order within a single thread; however, correctness of shared state across multiple threads requires adhering to the Java Memory Model and proper synchronization. Do not use parentheses or change `i++` to `++i` to fix a race condition.
 
-## 15. Chương trình Java 17 độc lập, có expected output
+## 15. Standalone Java 17 Program with Expected Output
 
-Lưu file đúng tên **`ExpressionSideEffectsDemo.java`**:
+Save the file with the exact name **`ExpressionSideEffectsDemo.java`**:
 
 ~~~java
 public final class ExpressionSideEffectsDemo {
@@ -501,7 +501,7 @@ public final class ExpressionSideEffectsDemo {
 }
 ~~~
 
-Cài **JDK 17+**, mở terminal trong thư mục chứa file.
+Install **JDK 17+**, open a terminal in the folder containing the file.
 
 **Bash (Linux/macOS):**
 
@@ -540,39 +540,39 @@ string side effect=1, now=2
 division error, right skipped
 ~~~
 
-### Đối chiếu các điểm quan trọng
+### Reviewing Key Points
 
-1. `x++` trả giá trị cũ, `++x` trả giá trị mới; cả hai cùng sửa `x`.
-2. `i++ + ++i` có kết quả xác định, nhưng khó đọc hơn việc tách bước.
-3. `i = i++` có thể tự ghi đè kết quả tăng và giữ giá trị cũ.
-4. `trace A/B/C` chạy từ trái qua phải dù toán tử `*` có mức ưu tiên cao hơn `+`.
-5. Các đối số `show` được đánh giá lần lượt trước thân method.
-6. `&&` và `||` bỏ qua vế phải khi đủ kết luận; `&` không bỏ qua.
-7. `?:` chỉ gọi nhánh được chọn.
-8. Hai biến alias cùng thấy side effect trên object Counter.
-9. `index++` sửa chỉ số trước khi vế phải đọc lại mảng.
-10. Vế phải sau phép chia cho 0 không chạy; vì vậy **không có dòng `evaluate unreached`** trong output.
+1. `x++` returns the old value, `++x` returns the new value; both modify `x`.
+2. `i++ + ++i` has a deterministic result, yet is harder to read than splitting steps.
+3. `i = i++` overwrites the incremented result and keeps the old value.
+4. `trace A/B/C` runs left to right even though `*` has higher precedence than `+`.
+5. Arguments to `show` are evaluated sequentially before the method body.
+6. `&&` and `||` skip the right side once the outcome is determined; `&` does not skip.
+7. `?:` calls only the selected branch.
+8. Both alias variables observe the side effect on the `Counter` object.
+9. `index++` modifies the index before the right side reads the array again.
+10. The right side after division by 0 does not run; therefore **no `evaluate unreached` line** appears in the output.
 
-## 16. Lỗi thường gặp và hướng xử lý
+## 16. Common Mistakes and Fixes
 
-| Code/ngộ nhận | Vấn đề | Cách sửa hoặc nguyên tắc |
+| Code / misconception | Problem | Fix or guideline |
 |---|---|---|
-| `int sum = i++ + ++i;` | Có kết quả xác định nhưng khó audit | Tách cập nhật và phép cộng |
-| `i = i++;` để tăng `i` | Phép gán có thể ghi đè giá trị sau tăng | Viết `i++;` |
-| Nghĩ `*` ưu tiên hơn nên toán hạng bên phải của phép cộng luôn gọi trước | Nhầm precedence với evaluation order | Phân biệt cách nhóm và thứ tự đánh giá |
-| Gọi method có side effect trong nhiều đối số | Trạng thái đối số sau phụ thuộc đối số trước | Tách biến tạm, gọi theo thứ tự |
-| Dùng `&` thay `&&` để guard null | `&` đánh giá cả hai vế | Dùng `&&` |
-| Mong hai nhánh `?:` đều có tác dụng | Chỉ một nhánh được chọn | Dùng câu lệnh riêng nếu cần hai thao tác |
-| `list.get(index++)` lồng trong phép tính dài | Dễ dùng sai chỉ số, khó debug | Lưu chỉ số/phần tử tạm |
-| Cho rằng getter luôn không sửa gì | Method có thể thay đổi cache/log/field | Xem contract và implementation |
-| Ghép log bằng `value++` | Ghi log làm đổi trạng thái | Tách cập nhật khỏi formatting |
-| Tưởng ngoại lệ rollback side effects trước đó | Java không tự rollback trạng thái | Transaction/rollback theo thiết kế |
-| Dùng `count++` làm bộ đếm nhiều thread | Không bảo đảm atomicity | Synchronization hoặc `AtomicInteger` |
-| Kết luận Java có thứ tự không xác định | Java có quy tắc đánh giá rõ | Hiểu thứ tự, nhưng ưu tiên code đơn giản |
+| `int sum = i++ + ++i;` | Deterministic result, yet hard to audit | Separate updates from addition |
+| `i = i++;` to increment `i` | Assignment overwrites the post-increment value | Write `i++;` |
+| Thinking `*` has higher precedence so the right operand of addition always runs first | Confuses precedence with evaluation order | Distinguish grouping from evaluation order |
+| Calling side-effecting methods across multiple arguments | Later argument state depends on earlier argument | Extract temporary variables, call in order |
+| Using `&` instead of `&&` for null guards | `&` evaluates both sides | Use `&&` |
+| Expecting both branches of `?:` to take effect | Only one branch is selected | Use separate statements if both actions are needed |
+| `list.get(index++)` nested inside a long calculation | Easy to use the wrong index, hard to debug | Store temporary index/element |
+| Assuming getters never modify anything | Methods may alter caches/logs/fields | Check the contract and implementation |
+| Formatting logs with `value++` | Logging mutates state | Separate updates from formatting |
+| Assuming exceptions roll back prior side effects | Java does not auto-rollback state | Design transactions/rollbacks explicitly |
+| Using `count++` as a multithreaded counter | Not guaranteed atomic | Synchronization or `AtomicInteger` |
+| Concluding Java has unspecified order | Java has clear evaluation rules | Know the order, yet prefer simple code |
 
-## 17. Bài tập có đáp án
+## 17. Exercises with Answers
 
-### Bài A — hậu tố và giá trị
+### Exercise A — postfix and value
 
 ~~~java
 int x = 2;
@@ -581,16 +581,16 @@ System.out.println(y);
 System.out.println(x);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 5
 4
 ~~~
 
-Lần hậu tố thứ nhất đóng góp 2 rồi `x = 3`; lần thứ hai đóng góp 3 rồi `x = 4`. Tổng bằng 5. Dù hợp lệ, cách viết này không nên là lựa chọn mặc định trong code nghiệp vụ.
+The first postfix contributes 2 then `x = 3`; the second contributes 3 then `x = 4`. The sum is 5. Although valid, this style should not be the default in business code.
 
-### Bài B — thứ tự đánh giá đối số
+### Exercise B — argument evaluation order
 
 ~~~java
 static int step(int value) {
@@ -602,11 +602,11 @@ static void show(int a, int b) {
     System.out.println(a + b);
 }
 
-// Trong main:
+// In main:
 show(step(1), step(2));
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 step 1
@@ -614,7 +614,7 @@ step 2
 3
 ~~~
 
-### Bài C — short-circuit
+### Exercise C — short-circuiting
 
 ~~~java
 int[] calls = {0};
@@ -623,16 +623,16 @@ System.out.println(result);
 System.out.println(calls[0]);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 false
 0
 ~~~
 
-`check` là hàm trong ví dụ chạy ở trên; vế phải không được gọi nên bộ đếm giữ nguyên 0.
+`check` is the helper from the runnable example above; the right side is not called, so the counter remains 0.
 
-### Bài D — mảng và index
+### Exercise D — arrays and index
 
 ~~~java
 int[] a = {4, 9, 16};
@@ -642,24 +642,24 @@ System.out.println(sum);
 System.out.println(i);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 13
 1
 ~~~
 
-### Bài E — refactor code khó đọc
+### Exercise E — refactoring hard-to-read code
 
-Cho biểu thức:
+Given the expression:
 
 ~~~java
 int result = service.next() + counter.incrementAndGet();
 ~~~
 
-Hãy viết lại để thứ tự thao tác rõ ràng.
+Rewrite it so the order of operations is clear.
 
-**Một đáp án:**
+**One answer:**
 
 ~~~java
 int serviceValue = service.next();
@@ -667,32 +667,32 @@ int counterValue = counter.incrementAndGet();
 int result = serviceValue + counterValue;
 ~~~
 
-Đây là phiên bản tách bước nhưng **giữ thứ tự gọi bên trái trước bên phải**.
+This is a step-by-step version that **preserves the left-before-right call order**.
 
-### Bài F — tác dụng phụ và exception
+### Exercise F — side effects and exceptions
 
 ~~~java
 int denominator = 0;
 int result = (10 / denominator) + trace("after", 5);
 ~~~
 
-**Đáp án:** có `ArithmeticException` khi chia nguyên cho 0; `trace("after", 5)` không chạy nên không có output `evaluate after`.
+**Answer:** throws `ArithmeticException` on integer division by 0; `trace("after", 5)` does not run, so there is no `evaluate after` output.
 
-## 18. Checklist và kết luận
+## 18. Checklist and Conclusion
 
-- [ ] Phân biệt **giá trị biểu thức** và **tác dụng phụ**.
-- [ ] Nhớ `i++` trả giá trị cũ, `++i` trả giá trị mới.
-- [ ] Hiểu biểu thức như `i++ + ++i` có kết quả xác định nhưng khó bảo trì.
-- [ ] Biết vì sao `i = i++` có thể không tăng kết quả cuối.
-- [ ] Phân biệt **operator precedence** với **evaluation order**.
-- [ ] Biết Java đánh giá đối số method theo thứ tự trái sang phải.
-- [ ] Biết `&&`/`||` short-circuit, còn `&`/`|` boolean không short-circuit.
-- [ ] Biết `?:` chỉ đánh giá nhánh được chọn.
-- [ ] Nhận diện side effect khi sửa object qua alias hoặc index mảng.
-- [ ] Hiểu ngoại lệ có thể dừng đánh giá và không tự rollback trạng thái đã đổi.
-- [ ] Không nhúng phép cập nhật vào biểu thức log hoặc công thức dài nếu không cần thiết.
-- [ ] Tách phép gọi có side effect thành các câu lệnh có tên rõ ràng.
-- [ ] Phân biệt thứ tự biểu thức một thread với vấn đề race condition đa luồng.
-- [ ] Chạy `ExpressionSideEffectsDemo.java` bằng `javac`/`java` Java 17+ và đối chiếu exact expected output.
+- [ ] Distinguish between an **expression's value** and its **side effects**.
+- [ ] Remember `i++` returns the old value and `++i` returns the new value.
+- [ ] Understand that expressions like `i++ + ++i` have deterministic results yet are hard to maintain.
+- [ ] Know why `i = i++` fails to increment the final result.
+- [ ] Distinguish **operator precedence** from **evaluation order**.
+- [ ] Know that Java evaluates method arguments from left to right.
+- [ ] Know that `&&`/`||` short-circuit, whereas boolean `&`/`|` do not.
+- [ ] Know that `?:` evaluates only the selected branch.
+- [ ] Spot side effects when mutating objects via aliases or array indices.
+- [ ] Understand that exceptions can halt evaluation and do not auto-roll back prior state changes.
+- [ ] Avoid embedding updates in log expressions or long formulas unnecessarily.
+- [ ] Extract side-effecting calls into clearly named statements.
+- [ ] Distinguish single-threaded expression order from multithreaded race conditions.
+- [ ] Run `ExpressionSideEffectsDemo.java` with Java 17+ `javac`/`java` and verify exact expected output.
 
-**Kết luận:** Biểu thức Java có thể vừa tạo giá trị vừa sửa trạng thái. Java 17 định nghĩa thứ tự đánh giá, nhưng nhiều side effect trong cùng một biểu thức vẫn là nguồn lỗi đọc hiểu, thay đổi ngoài ý muốn và khó kiểm thử. Hãy **giữ tính toán đơn giản, tách cập nhật trạng thái thành bước rõ ràng, sử dụng short-circuit đúng mục đích và kiểm thử đường thành công lẫn đường exception**.
+**Conclusion:** Java expressions can both produce values and mutate state. Java 17 defines evaluation order, yet multiple side effects in a single expression remain a source of misreading, unintended mutations, and hard-to-test code. **Keep calculations simple, extract state updates into explicit steps, use short-circuiting intentionally, and test both success and exception paths.**

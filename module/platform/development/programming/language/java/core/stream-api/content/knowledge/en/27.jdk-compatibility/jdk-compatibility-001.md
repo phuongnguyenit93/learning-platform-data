@@ -1,31 +1,31 @@
-# Bản đồ API nền tảng của Stream trong Java 8
+# Core Stream API Map in Java 8
 
-> **Chương:** Khả năng tương thích JDK  
+> **Chapter:** JDK Compatibility  
 > **Module:** JAVA_STREAM_API  
-> **Phạm vi:** Những thành phần của Java Stream API **đã có trong Java 8**: kiểu Stream, tạo nguồn, thao tác trung gian, thao tác kết thúc, primitive streams, Optional, Collector, Spliterator và các quy tắc an toàn khi chạy song song. Bài cũng đặt ranh giới rõ với các API được bổ sung **sau Java 8** để bạn có thể viết mã tương thích với dự án cũ.
+> **Scope:** Components of the Java Stream API **already available in Java 8**: Stream types, source creation, intermediate operations, terminal operations, primitive streams, Optional, Collector, Spliterator, and safety rules for parallel execution. This lesson also draws a clear boundary with APIs added **after Java 8** so you can write code compatible with legacy projects.
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-1. Tìm đúng package, lớp và interface cốt lõi của Stream API khi mục tiêu triển khai là **Java 8**.
-2. Phân biệt `Stream<T>` với `IntStream`, `LongStream` và `DoubleStream`.
-3. Chọn nguồn tạo Stream từ `Collection`, mảng, khoảng số, tệp, bộ sinh và `Spliterator`.
-4. Phân loại các phương thức **intermediate** và **terminal**, nhận diện thao tác lazy và short-circuit.
-5. Dùng `filter`, `map`, `flatMap`, `distinct`, `sorted`, `skip` và `limit` đúng ngữ nghĩa.
-6. Dùng `reduce` và `collect` theo hợp đồng, kể cả `Collectors.groupingBy` và collector nhiều tầng.
-7. Làm việc với `Optional`/`OptionalInt`/`OptionalLong`/`OptionalDouble` khi kết quả có thể rỗng.
-8. Đánh giá encounter order, trạng thái chia sẻ, tài nguyên và tính đúng khi gọi `parallelStream()`.
-9. Nhận ra phương thức **không tồn tại trong Java 8** như `Stream.toList()`, `takeWhile()`, `mapMulti()` và biết cách thay thế phù hợp.
-10. Viết, đọc và kiểm tra một chương trình Java 8 hoàn chỉnh có pipeline xử lý dữ liệu thực tế.
+1. Locate the exact core packages, classes, and interfaces of the Stream API when the deployment target is **Java 8**.
+2. Distinguish `Stream<T>` from `IntStream`, `LongStream`, and `DoubleStream`.
+3. Choose Stream creation sources from `Collection`, arrays, numeric ranges, files, generators, and `Spliterator`.
+4. Classify **intermediate** and **terminal** operations, and recognize lazy and short-circuiting operations.
+5. Use `filter`, `map`, `flatMap`, `distinct`, `sorted`, `skip`, and `limit` with accurate semantics.
+6. Use `reduce` and `collect` according to their contracts, including `Collectors.groupingBy` and multi-level collectors.
+7. Work with `Optional`/`OptionalInt`/`OptionalLong`/`OptionalDouble` when results may be absent.
+8. Evaluate encounter order, shared state, resources, and correctness when calling `parallelStream()`.
+9. Recognize methods that **do not exist in Java 8** such as `Stream.toList()`, `takeWhile()`, and `mapMulti()`, and know appropriate alternatives.
+10. Write, read, and verify a complete Java 8 program with a practical data processing pipeline.
 
-**Nguyên tắc phiên bản:** Ví dụ có nhãn *Java 8* chỉ sử dụng API và cú pháp đã có trong Java 8. Những API mới hơn được trình bày riêng trong bảng đối chiếu, không được đưa trực tiếp vào mã cần biên dịch trên JDK 8. Các ví dụ là kiến thức nền cho pipeline lazy, grouping, collector tùy chỉnh, Spliterator, xử lý song song và những tính năng Stream xuất hiện ở các JDK tiếp theo.
+**Version principle:** Examples labeled *Java 8* only use APIs and syntax already available in Java 8. Newer APIs are presented separately in the comparison table and must not be placed directly into code that needs to compile on JDK 8. These examples form the foundational knowledge for lazy pipelines, grouping, custom collectors, Spliterators, parallel processing, and Stream features introduced in subsequent JDKs.
 
 ---
 
-## 1. Bản đồ tổng quan: Java 8 đưa Stream API vào đâu?
+## 1. Overview Map: Where Does Java 8 Place the Stream API?
 
-Stream API được đưa vào Java cùng **Java 8**. Các kiểu trung tâm nằm trong `java.util.stream`; một số kiểu hỗ trợ nằm ở `java.util`, `java.util.function` và những package cung cấp nguồn dữ liệu.
+The Stream API was introduced into Java with **Java 8**. The core types reside in `java.util.stream`; several supporting types reside in `java.util`, `java.util.function`, and packages providing data sources.
 
 ~~~text
 Java 8 Stream API
@@ -55,25 +55,25 @@ Java 8 Stream API
 │   ├── BiFunction<T,U,R> / BiConsumer<T,U>
 │   └── IntPredicate / IntFunction / IntUnaryOperator / ...
 │
-└── Nguồn dữ liệu
+└── Data Sources
     ├── java.nio.file.Files.lines(Path, Charset)
     ├── java.io.BufferedReader.lines()
     ├── java.util.regex.Pattern.splitAsStream(...)
     └── java.util.Random.ints() / longs() / doubles()
 ~~~
 
-**Bản đồ này mô tả vai trò**, không nói mọi kiểu là một phần của riêng module Stream. Ví dụ `java.util.function` chứa các *functional interfaces* được dùng ở nhiều API Java 8, không chỉ Stream.
+**This map describes roles**, rather than claiming every type belongs exclusively to the Stream module. For example, `java.util.function` contains *functional interfaces* used across many Java 8 APIs, not just Streams.
 
-### 1.1. Stream không phải Collection
+### 1.1. A Stream Is Not a Collection
 
-| Tiêu chí | `Collection<E>` | `Stream<T>` |
+| Criterion | `Collection<E>` | `Stream<T>` |
 |---|---|---|
-| Bản chất | Chứa/quản lý phần tử | Mô tả chuỗi phép xử lý trên nguồn |
-| Duyệt lại | Có thể duyệt lại khi collection cho phép | Một Stream không được dùng lại sau terminal operation |
-| Lazy operations | Không phải đặc điểm chính của Collection | Phần lớn intermediate operations là lazy |
-| Thêm/xóa phần tử | Phụ thuộc loại collection | Stream không có `add`/`remove` để sửa nguồn |
-| Song song | Cần thuật toán riêng hoặc API tương ứng | Có `parallel()` và nguồn `parallelStream()` |
-| Kết quả | Thường chính collection hoặc iterator | Terminal operation tạo số, Optional, List, Map... |
+| Nature | Stores/manages elements | Describes a sequence of processing operations over a source |
+| Re-traversal | Can be traversed again when the collection permits | A Stream cannot be reused after a terminal operation |
+| Lazy operations | Not a primary characteristic of Collection | Most intermediate operations are lazy |
+| Add/remove elements | Depends on collection type | Stream has no `add`/`remove` to mutate the source |
+| Parallelism | Requires separate algorithms or corresponding APIs | Has `parallel()` and `parallelStream()` sources |
+| Result | Usually the collection itself or an iterator | Terminal operation produces a number, Optional, List, Map, etc. |
 
 ~~~java
 import java.util.Arrays;
@@ -85,23 +85,23 @@ List<Integer> values = Arrays.asList(2, 4, 6);
 Stream<Integer> stream = values.stream();
 long count = stream.count(); // 3
 
-// Không được tiếp tục dùng chính stream sau terminal operation:
-// stream.findFirst(); // thường gây IllegalStateException
+// Do not continue using the same stream after a terminal operation:
+// stream.findFirst(); // typically throws IllegalStateException
 
-// Có thể tạo Stream MỚI từ cùng collection:
+// A NEW Stream can be created from the same collection:
 int sum = values.stream().mapToInt(Integer::intValue).sum();
 System.out.println(sum); // 12
 ~~~
 
-Stream có thể tham chiếu một nguồn **không lưu sẵn toàn bộ dữ liệu**, ví dụ một bộ sinh vô hạn, nên đừng mặc định mọi Stream đều có `size()` hoặc có thể duyệt lại.
+A Stream may reference a source that **does not store all data upfront**, such as an infinite generator, so do not assume every Stream has a `size()` or can be traversed again.
 
 ---
 
-## 2. Các kiểu trung tâm và ý nghĩa của tham số kiểu
+## 2. Core Types and the Meaning of Type Parameters
 
-### 2.1. Stream<T> và BaseStream
+### 2.1. Stream<T> and BaseStream
 
-`Stream<T>` đại diện các phần tử kiểu tham chiếu `T`. Nó kế thừa `BaseStream<T, Stream<T>>`, là nơi định nghĩa các thao tác chung như `iterator`, `spliterator`, `sequential`, `parallel`, `unordered`, `onClose` và `close`.
+`Stream<T>` represents elements of reference type `T`. It extends `BaseStream<T, Stream<T>>`, which defines common operations such as `iterator`, `spliterator`, `sequential`, `parallel`, `unordered`, `onClose`, and `close`.
 
 ~~~java
 import java.util.Arrays;
@@ -116,11 +116,11 @@ Stream<String> normalized = names
 System.out.println(normalized.count()); // 2
 ~~~
 
-Trong ví dụ này, `map`/`filter` trả về Stream khác trong cùng pipeline. Một pipeline được xây rồi tiêu thụ bởi terminal operation `count`.
+In this example, `map`/`filter` return another Stream in the same pipeline. A pipeline is constructed and then consumed by the terminal operation `count`.
 
-### 2.2. Ba primitive streams
+### 2.2. Three Primitive Streams
 
-| Kiểu | Phần tử | Ví dụ terminal operation |
+| Type | Element | Example Terminal Operation |
 |---|---|---|
 | `IntStream` | `int` | `sum()`, `average()`, `summaryStatistics()` |
 | `LongStream` | `long` | `sum()`, `min()`, `max()` |
@@ -142,24 +142,24 @@ System.out.println(max);
 System.out.println(average);
 ~~~
 
-`IntStream` không phải `Stream<Integer>`. Primitive Stream tránh việc phải tạo đối tượng boxing cho mỗi phần tử trong nhiều phép toán số.
+`IntStream` is not `Stream<Integer>`. Primitive Streams avoid creating boxed objects for each element in many numeric operations.
 
-### 2.3. Kiểu Optional đi cùng terminal operations
+### 2.3. Optional Types Accompanying Terminal Operations
 
-| Kết quả có thể thiếu | Kiểu bao |
+| Possibly Absent Result | Wrapper Type |
 |---|---|
 | Object `T` | `Optional<T>` |
 | `int` | `OptionalInt` |
 | `long` | `OptionalLong` |
 | `double` | `OptionalDouble` |
 
-Ví dụ `findFirst()` trên nguồn rỗng trả `Optional.empty()`; `IntStream.average()` trên nguồn rỗng trả `OptionalDouble.empty()`. Không gọi `get()`/`getAsInt()` khi chưa có dữ liệu mà không có chính sách lỗi rõ ràng.
+For example, `findFirst()` on an empty source returns `Optional.empty()`; `IntStream.average()` on an empty source returns `OptionalDouble.empty()`. Do not call `get()`/`getAsInt()` when data may be absent without a clear error policy.
 
 ---
 
-## 3. Tạo nguồn Stream từ Collection và mảng
+## 3. Creating Stream Sources from Collections and Arrays
 
-### 3.1. Collection.stream() và parallelStream()
+### 3.1. Collection.stream() and parallelStream()
 
 ~~~java
 import java.util.Arrays;
@@ -175,9 +175,9 @@ System.out.println(sequential.count()); // 3
 System.out.println(parallel.count());   // 3
 ~~~
 
-Cả hai phương thức có từ Java 8. `parallelStream` chỉ yêu cầu pipeline có khả năng xử lý song song; không có bảo đảm nhanh hơn và không làm những lambda có side effect trở thành thread-safe.
+Both methods have existed since Java 8. `parallelStream` only requests that the pipeline be capable of parallel processing; it does not guarantee faster execution and does not make lambdas with side effects thread-safe.
 
-**Map không có phương thức `map.stream()` trong Java 8.** Muốn xử lý từng entry, hãy bắt đầu từ view của Map:
+**`Map` does not have a `map.stream()` method in Java 8.** To process each entry, start from a view of the Map:
 
 ~~~java
 import java.util.HashMap;
@@ -209,7 +209,7 @@ System.out.println(wordsCount);  // 3
 System.out.println(numericTotal); // 15
 ~~~
 
-`Arrays.stream(int[])` trả `IntStream`, trong khi `Arrays.stream(String[])` trả `Stream<String>`. Các overload của mảng còn hỗ trợ chọn đoạn bằng chỉ số đầu/cuối.
+`Arrays.stream(int[])` returns `IntStream`, whereas `Arrays.stream(String[])` returns `Stream<String>`. Array overloads also support selecting a slice via start/end indices.
 
 ~~~java
 int[] data = {10, 20, 30, 40};
@@ -217,9 +217,9 @@ int middle = Arrays.stream(data, 1, 3).sum(); // 20 + 30
 System.out.println(middle); // 50
 ~~~
 
-Chỉ số cuối `toIndex` là **exclusive**, giống quy tắc thường dùng cho các khoảng trong Java.
+The end index `toIndex` is **exclusive**, following the standard convention used for ranges in Java.
 
-### 3.3. Stream.of() và Stream.empty()
+### 3.3. Stream.of() and Stream.empty()
 
 ~~~java
 import java.util.stream.Stream;
@@ -231,23 +231,23 @@ System.out.println(count);
 System.out.println(emptyCount);
 ~~~
 
-**Cảnh báo mảng nguyên thủy:**
+**Primitive array warning:**
 
 ~~~java
 int[] values = {1, 2, 3};
 
-// Stream.of(values) nhận 1 đối tượng kiểu int[]:
+// Stream.of(values) receives 1 object of type int[]:
 long oneArray = Stream.of(values).count(); // 1
 
-// Arrays.stream(values) phát ra 3 số int:
+// Arrays.stream(values) emits 3 int values:
 long threeNumbers = java.util.Arrays.stream(values).count(); // 3
 
 System.out.println(oneArray + " / " + threeNumbers); // 1 / 3
 ~~~
 
-Khi muốn thao tác trên từng số nguyên, dùng `Arrays.stream(int[])` hoặc `IntStream.of(int...)`.
+When you want to operate on individual integers, use `Arrays.stream(int[])` or `IntStream.of(int...)`.
 
-### 3.4. Stream.Builder và Stream.concat
+### 3.4. Stream.Builder and Stream.concat
 
 ~~~java
 import java.util.stream.Stream;
@@ -266,13 +266,13 @@ Stream<String> joined = Stream.concat(
 System.out.println(joined.count()); // 3
 ~~~
 
-`Stream.builder()` và `Stream.concat(...)` đều đã có từ Java 8. Builder chỉ nên dùng theo hợp đồng: thêm phần tử **trước** `build()`, không tự tái sử dụng builder sau đó. Hai Stream đầu vào của `concat` cũng không nên bị tiêu thụ bởi terminal operation trước khi tạo/tiêu thụ kết quả nối.
+Both `Stream.builder()` and `Stream.concat(...)` have existed since Java 8. The Builder should only be used according to its contract: add elements **before** `build()`, and do not reuse the builder afterward. The two input Streams to `concat` must also not be consumed by a terminal operation before creating/consuming the concatenated result.
 
 ---
 
-## 4. Tạo dãy số và nguồn sinh dữ liệu
+## 4. Creating Numeric Sequences and Data Generators
 
-### 4.1. IntStream.range và rangeClosed
+### 4.1. IntStream.range and rangeClosed
 
 ~~~java
 import java.util.stream.IntStream;
@@ -287,10 +287,10 @@ System.out.println(leftClosedRightOpen); // 10
 System.out.println(bothClosed);           // 15
 ~~~
 
-- `range(start, endExclusive)` không gồm `endExclusive`.
-- `rangeClosed(start, endInclusive)` gồm giá trị cuối.
+- `range(start, endExclusive)` excludes `endExclusive`.
+- `rangeClosed(start, endInclusive)` includes the end value.
 
-`LongStream` cũng có `range` và `rangeClosed` trong Java 8. `DoubleStream` không có factory `range` tương tự.
+`LongStream` also has `range` and `rangeClosed` in Java 8. `DoubleStream` does not have an equivalent `range` factory.
 
 ### 4.2. Stream.iterate(seed, next) — Java 8
 
@@ -307,9 +307,9 @@ List<Integer> powers = Stream.iterate(
 System.out.println(powers); // [1, 2, 4, 8, 16]
 ~~~
 
-Overload **hai tham số** `Stream.iterate(seed, UnaryOperator)` có trong Java 8 và có thể tạo **nguồn vô hạn**. Cần một thao tác dừng thích hợp như `limit` hoặc terminal operation short-circuit nếu muốn kết thúc.
+The **two-parameter** overload `Stream.iterate(seed, UnaryOperator)` is present in Java 8 and can create an **infinite source**. An appropriate stopping operation such as `limit` or a short-circuiting terminal operation is needed if you want it to terminate.
 
-**Không nhầm** với overload ba tham số `Stream.iterate(seed, hasNext, next)`: nó xuất hiện **từ Java 9**, không dùng để biên dịch mã Java 8.
+**Do not confuse** this with the three-parameter overload `Stream.iterate(seed, hasNext, next)`: it appeared **in Java 9** and cannot be used when compiling Java 8 code.
 
 ### 4.3. Stream.generate(Supplier)
 
@@ -325,9 +325,9 @@ List<String> repeated = Stream.generate(() -> "OK")
 System.out.println(repeated); // [OK, OK, OK]
 ~~~
 
-`generate` lấy phần tử từ một `Supplier` và thường cho nguồn không giới hạn. Đừng dựa vào thứ tự gọi supplier hoặc bộ đếm chia sẻ làm logic nghiệp vụ khi xử lý song song.
+`generate` pulls elements from a `Supplier` and typically produces an unbounded source. Do not rely on supplier call order or shared counters for business logic during parallel processing.
 
-### 4.4. Nguồn số ngẫu nhiên
+### 4.4. Random Number Sources
 
 ~~~java
 import java.util.Random;
@@ -340,13 +340,13 @@ long count = random.ints(20, 0, 100)
 System.out.println(count); // 20
 ~~~
 
-`Random.ints/longs/doubles` đã được bổ sung trong Java 8. Ví dụ tạo 20 số nguyên từ 0 (inclusive) đến 100 (exclusive). Seed cố định giúp tái hiện dãy trong các ngữ cảnh phù hợp, nhưng việc điều khiển thứ tự sử dụng nguồn ngẫu nhiên trong xử lý song song cần được xem xét riêng nếu yêu cầu khả năng tái lập nghiêm ngặt.
+`Random.ints/longs/doubles` were added in Java 8. This example generates 20 integers from 0 (inclusive) to 100 (exclusive). A fixed seed helps reproduce sequences in appropriate contexts, though controlling consumption order of random sources in parallel processing requires separate consideration if strict reproducibility is required.
 
 ---
 
-## 5. Nguồn I/O: Files.lines và BufferedReader.lines
+## 5. I/O Sources: Files.lines and BufferedReader.lines
 
-Stream có thể đọc dữ liệu dần từ tệp văn bản. Đây là điểm khác với việc tải toàn bộ tệp vào một `List` trước khi xử lý.
+A Stream can read data lazily from a text file. This differs from loading the entire file into a `List` before processing.
 
 ~~~java
 import java.io.IOException;
@@ -366,20 +366,20 @@ try (Stream<String> lines =
 
     System.out.println(nonEmpty);
 } catch (IOException ex) {
-    System.err.println("Không mở được tệp: " + ex.getMessage());
+    System.err.println("Cannot open file: " + ex.getMessage());
 }
 ~~~
 
-Ví dụ dùng `Paths.get(...)` vì đây là cách tạo `Path` tương thích **Java 8**. `Path.of(...)` chỉ có từ Java 11.
+The example uses `Paths.get(...)` because that is the **Java 8**-compatible way to create a `Path`. `Path.of(...)` only exists since Java 11.
 
-**Quan trọng:**
+**Important:**
 
-- `Files.lines(...)` có thể giữ tài nguyên mở; dùng `try-with-resources` để đóng Stream.
-- Ngoại lệ I/O xảy ra trong quá trình đọc/lặp có thể được chuyển thành `UncheckedIOException`, không chỉ `IOException` lúc mở tệp.
-- Đóng Stream không có nghĩa mọi Stream bắt buộc giữ tài nguyên; phần lớn Stream lấy từ collection không cần đóng.
-- Không chạy nhiều terminal operations trên cùng Stream vừa đọc tệp.
+- `Files.lines(...)` can hold open resources; use `try-with-resources` to close the Stream.
+- I/O exceptions occurring during reading/iteration can be wrapped into `UncheckedIOException`, not just `IOException` when opening the file.
+- Closing a Stream does not mean every Stream necessarily holds resources; most Streams backed by collections do not need closing.
+- Do not run multiple terminal operations on the same file-reading Stream.
 
-`BufferedReader.lines()` cũng đã có trong Java 8:
+`BufferedReader.lines()` is also available in Java 8:
 
 ~~~java
 import java.io.BufferedReader;
@@ -397,7 +397,7 @@ try (BufferedReader reader = Files.newBufferedReader(
 }
 ~~~
 
-Ở đây đóng `BufferedReader` bằng `try-with-resources` sẽ giải phóng nguồn đọc. Đừng tự cho rằng `Stream.count()` hoặc `collect` tự đóng nguồn tệp khi hoàn tất.
+Here, closing `BufferedReader` with `try-with-resources` releases the reading source. Do not assume `Stream.count()` or `collect` automatically closes the file source upon completion.
 
 ### 5.1. Pattern.splitAsStream()
 
@@ -413,26 +413,26 @@ List<String> tokens = Pattern.compile(",")
 System.out.println(tokens); // [A, B, C]
 ~~~
 
-`Pattern.splitAsStream` là một API Java 8 khác để tạo Stream từ dữ liệu chuỗi theo biểu thức chính quy.
+`Pattern.splitAsStream` is another Java 8 API for creating a Stream from string data using a regular expression.
 
 ---
 
-## 6. Bản đồ intermediate operations — stateless
+## 6. Intermediate Operations Map — Stateless
 
-Intermediate operations thường trả một Stream mới cùng pipeline. Chúng **lazy**: chưa tiêu thụ nguồn ngay lúc được khai báo.
+Intermediate operations generally return a new Stream in the same pipeline. They are **lazy**: they do not consume the source immediately when declared.
 
-| Phương thức Java 8 | Vai trò | Kiểu kết quả điển hình |
+| Java 8 Method | Role | Typical Return Type |
 |---|---|---|
-| `filter(Predicate<T>)` | Giữ phần tử thỏa điều kiện | `Stream<T>` |
-| `map(Function<T,R>)` | Biến đổi từng phần tử | `Stream<R>` |
-| `mapToInt(ToIntFunction<T>)` | Chuyển object thành `int` | `IntStream` |
-| `mapToLong(ToLongFunction<T>)` | Chuyển object thành `long` | `LongStream` |
-| `mapToDouble(ToDoubleFunction<T>)` | Chuyển object thành `double` | `DoubleStream` |
-| `flatMap(Function<T,Stream<R>>)` | Mỗi phần tử phát 0..n phần tử, làm phẳng | `Stream<R>` |
-| `flatMapToInt` / `flatMapToLong` / `flatMapToDouble` | Làm phẳng về primitive stream | Primitive Stream |
-| `peek(Consumer<T>)` | Chạy hành động quan sát khi phần tử được tiêu thụ | `Stream<T>` |
+| `filter(Predicate<T>)` | Keeps elements matching the condition | `Stream<T>` |
+| `map(Function<T,R>)` | Transforms each element | `Stream<R>` |
+| `mapToInt(ToIntFunction<T>)` | Converts object to `int` | `IntStream` |
+| `mapToLong(ToLongFunction<T>)` | Converts object to `long` | `LongStream` |
+| `mapToDouble(ToDoubleFunction<T>)` | Converts object to `double` | `DoubleStream` |
+| `flatMap(Function<T,Stream<R>>)` | Each element emits 0..n elements, flattens | `Stream<R>` |
+| `flatMapToInt` / `flatMapToLong` / `flatMapToDouble` | Flattens to a primitive stream | Primitive Stream |
+| `peek(Consumer<T>)` | Runs an observing action when an element is consumed | `Stream<T>` |
 
-### 6.1. filter và map
+### 6.1. filter and map
 
 ~~~java
 import java.util.Arrays;
@@ -451,11 +451,11 @@ List<String> cleaned = names.stream()
 System.out.println(cleaned); // [An, Binh, Chi]
 ~~~
 
-`String.trim()` tồn tại trong Java 8. `String.strip()` và `String.isBlank()` là API **Java 11**, nên không thay vào ví dụ cần chạy trên Java 8 mà không nâng runtime/API.
+`String.trim()` exists in Java 8. `String.strip()` and `String.isBlank()` are **Java 11** APIs, so do not substitute them into examples that must run on Java 8 without upgrading the runtime/API.
 
-### 6.2. map khác flatMap
+### 6.2. map vs. flatMap
 
-Với danh sách chứa nhiều danh sách:
+Given a list containing multiple lists:
 
 ~~~java
 import java.util.Arrays;
@@ -468,26 +468,26 @@ List<List<String>> groups = Arrays.asList(
         Arrays.asList("C")
 );
 
-// map tạo một Stream<Stream<String>> (các Stream con):
+// map creates a Stream<Stream<String>> (sub-streams):
 Stream<Stream<String>> nested = groups.stream()
         .map(List::stream);
 
-// flatMap làm phẳng thành Stream<String>:
+// flatMap flattens into Stream<String>:
 List<String> flat = groups.stream()
         .flatMap(List::stream)
         .collect(Collectors.toList());
 
 System.out.println(flat); // [A, B, C]
 
-// nested không được tiêu thụ trong đoạn minh họa này.
+// nested is not consumed in this illustration.
 nested.close();
 ~~~
 
-`flatMap` nhận một mapper từ mỗi phần tử sang Stream con, rồi nối các phần tử của những Stream con vào pipeline. Theo hợp đồng, các Stream con được đóng khi không còn cần thiết.
+`flatMap` takes a mapper from each element to a sub-stream, then concatenates the elements of those sub-streams into the pipeline. By contract, the sub-streams are closed when no longer needed.
 
-`mapMulti` chưa có trong Java 8; nếu gặp code dùng `mapMulti` trên tài liệu mới, phiên bản thay thế quen thuộc cho Java 8 là `flatMap`, tùy bài toán phát phần tử.
+`mapMulti` does not exist in Java 8; when encountering code using `mapMulti` in newer documentation, the familiar replacement for Java 8 is `flatMap`, depending on the element-emission problem.
 
-### 6.3. peek không dùng làm lõi nghiệp vụ
+### 6.3. peek Is Not for Core Business Logic
 
 ~~~java
 import java.util.Arrays;
@@ -498,21 +498,21 @@ long count = Arrays.asList("A", "B", "C").stream()
         .count();
 ~~~
 
-`peek` thích hợp cho một số tình huống quan sát/chẩn đoán, nhưng **không** nên đặt việc ghi dữ liệu bắt buộc hoặc thay đổi trạng thái nghiệp vụ vào nó. Stream có thể tối ưu hóa pipeline, các thao tác short-circuit có thể khiến chỉ một số phần tử được xử lý, và thứ tự tác dụng phụ trong parallel stream không phải hợp đồng kết quả.
+`peek` is suitable for certain observation/diagnostic situations, but you should **not** place mandatory data writes or business-state mutations in it. Streams may optimize the pipeline, short-circuiting operations may cause only some elements to be processed, and the order of side effects in parallel streams is not part of the result contract.
 
 ---
 
-## 7. Bản đồ intermediate operations — stateful và slicing
+## 7. Intermediate Operations Map — Stateful and Slicing
 
-| Phương thức Java 8 | Ngữ nghĩa | Ghi chú |
+| Java 8 Method | Semantics | Notes |
 |---|---|---|
-| `distinct()` | Khử phần tử trùng theo `equals` | Có trạng thái, có thể tốn bộ nhớ |
-| `sorted()` | Sắp theo natural order | Có trạng thái |
-| `sorted(Comparator)` | Sắp theo comparator | Dùng với `Stream<T>` |
-| `limit(long n)` | Lấy tối đa n phần tử đầu | Short-circuiting, stateful |
-| `skip(long n)` | Bỏ n phần tử đầu | Stateful, không short-circuiting tổng quát |
-| `unordered()` | Bỏ ràng buộc encounter order | Không chủ động xáo trộn |
-| `sequential()` / `parallel()` | Chuyển chế độ thực thi | Không phải biến đổi từng phần tử |
+| `distinct()` | Removes duplicate elements by `equals` | Stateful, can be memory-intensive |
+| `sorted()` | Sorts by natural order | Stateful |
+| `sorted(Comparator)` | Sorts by comparator | Used with `Stream<T>` |
+| `limit(long n)` | Takes at most the first n elements | Short-circuiting, stateful |
+| `skip(long n)` | Skips the first n elements | Stateful, generally non-short-circuiting |
+| `unordered()` | Drops the encounter order constraint | Does not actively shuffle |
+| `sequential()` / `parallel()` | Switches execution mode | Not a per-element transformation |
 
 ### 7.1. distinct, sorted, skip, limit
 
@@ -533,9 +533,9 @@ List<Integer> result = source.stream()
 System.out.println(result); // [2, 3]
 ~~~
 
-`limit` và `skip` nhận số lượng **không âm**, nếu âm sẽ ném `IllegalArgumentException`. Trên nguồn có thứ tự, chúng làm việc với **tiền tố** theo encounter order.
+`limit` and `skip` accept **non-negative** counts; a negative value throws `IllegalArgumentException`. On ordered sources, they operate on the **prefix** in encounter order.
 
-### 7.2. Hoán đổi các thao tác có thể đổi bài toán
+### 7.2. Swapping Operations Can Change the Problem
 
 ~~~java
 import java.util.Arrays;
@@ -556,38 +556,38 @@ System.out.println(nums.stream()
 // [9, 2]
 ~~~
 
-Hai pipeline **không tương đương**. Pipeline thứ nhất lấy top 2 toàn cục; pipeline thứ hai chỉ sắp hai phần tử đầu của nguồn.
+The two pipelines are **not equivalent**. The first pipeline takes the global top 2; the second only sorts the first two elements of the source.
 
-### 7.3. Những thao tác chưa có trong Java 8
+### 7.3. Operations Not Yet Available in Java 8
 
-- `takeWhile(Predicate)`: từ **Java 9**.
-- `dropWhile(Predicate)`: từ **Java 9**.
-- `mapMulti(...)`: từ **Java 16**.
-- `Stream.gather(...)` và các Gatherers chuẩn: xuất hiện ở JDK mới hơn, không có trong Java 8.
+- `takeWhile(Predicate)`: since **Java 9**.
+- `dropWhile(Predicate)`: since **Java 9**.
+- `mapMulti(...)`: since **Java 16**.
+- `Stream.gather(...)` and standard Gatherers: appeared in newer JDKs, not available in Java 8.
 
-Nếu bài toán thật sự cần **lấy/bỏ tiền tố đến một ranh giới**, không thay đơn giản `takeWhile`/`dropWhile` bằng `filter`: `filter` xem tất cả phần tử và **không** giữ ngữ nghĩa ranh giới đầu tiên. Với code Java 8, có thể dùng một vòng lặp tuần tự rõ ràng hoặc custom `Spliterator` đúng hợp đồng khi cần phát Stream.
+If the problem genuinely requires **taking/dropping a prefix up to a boundary**, do not simply replace `takeWhile`/`dropWhile` with `filter`: `filter` inspects all elements and **does not** preserve the first-boundary semantics. For Java 8 code, you can use an explicit sequential loop or a contract-compliant custom `Spliterator` when you need to emit a Stream.
 
 ---
 
-## 8. Bản đồ terminal operations
+## 8. Terminal Operations Map
 
-Terminal operation kích hoạt việc xử lý nguồn và hoàn tất pipeline.
+A terminal operation triggers source processing and completes the pipeline.
 
-| Nhóm | Phương thức Java 8 | Kết quả |
+| Group | Java 8 Method | Result |
 |---|---|---|
-| Duyệt | `forEach`, `forEachOrdered` | `void` |
-| Đếm | `count` | `long` |
-| Tìm | `findFirst`, `findAny` | `Optional<T>` |
-| Match | `anyMatch`, `allMatch`, `noneMatch` | `boolean` |
+| Iteration | `forEach`, `forEachOrdered` | `void` |
+| Counting | `count` | `long` |
+| Finding | `findFirst`, `findAny` | `Optional<T>` |
+| Matching | `anyMatch`, `allMatch`, `noneMatch` | `boolean` |
 | Min/max | `min(Comparator)`, `max(Comparator)` | `Optional<T>` |
-| Mảng | `toArray()`, `toArray(generator)` | Mảng |
-| Giảm gộp | Các overload `reduce` | `Optional<T>` hoặc giá trị |
-| Thu thập | `collect(Collector)` hoặc `collect(supplier,accumulator,combiner)` | `R` |
-| Primitive | `sum`, `average`, `summaryStatistics` | Số hoặc kiểu thống kê |
+| Array | `toArray()`, `toArray(generator)` | Array |
+| Reduction | `reduce` overloads | `Optional<T>` or value |
+| Collection | `collect(Collector)` or `collect(supplier,accumulator,combiner)` | `R` |
+| Primitive | `sum`, `average`, `summaryStatistics` | Number or statistics type |
 
-**`Stream<T>` không có `sum()` chung.** Để cộng các trường số trong `Stream<Order>`, chuyển sang primitive stream qua `mapToInt`/`mapToLong` hoặc dùng `reduce`/`Collectors.summing...`.
+**`Stream<T>` does not have a general `sum()` method.** To sum numeric fields in `Stream<Order>`, convert to a primitive stream via `mapToInt`/`mapToLong` or use `reduce`/`Collectors.summing...`.
 
-### 8.1. findFirst, findAny và match
+### 8.1. findFirst, findAny, and Match
 
 ~~~java
 import java.util.Arrays;
@@ -610,13 +610,13 @@ System.out.println(allPositive);          // true
 System.out.println(noneZero);             // true
 ~~~
 
-Với Stream có encounter order, `findFirst` chọn phần tử đầu theo thứ tự ấy. `findAny` có thể chọn **bất kỳ phần tử** hợp lệ và thích hợp khi không quan tâm vị trí, nhất là trong xử lý song song.
+For a Stream with encounter order, `findFirst` picks the first element in that order. `findAny` may pick **any valid element** and is appropriate when position does not matter, especially in parallel processing.
 
-### 8.2. Short-circuiting terminals
+### 8.2. Short-Circuiting Terminals
 
-`findFirst`, `findAny`, `anyMatch`, `allMatch` và `noneMatch` có thể dừng khi đã xác định kết quả. Điều đó không có nghĩa lambda upstream được gọi đúng một số lần cố định, đặc biệt khi pipeline chạy song song.
+`findFirst`, `findAny`, `anyMatch`, `allMatch`, and `noneMatch` can stop once the result is determined. That does not mean upstream lambdas are invoked a fixed number of times, especially when the pipeline runs in parallel.
 
-Với nguồn rỗng:
+On an empty source:
 
 ~~~java
 import java.util.stream.Stream;
@@ -630,7 +630,7 @@ System.out.println(all);  // true
 System.out.println(none); // true
 ~~~
 
-Đây là ngữ nghĩa logic của các phép match trên tập rỗng; không phải lỗi.
+This is the logical semantics of match operations on an empty set; it is not a bug.
 
 ### 8.3. toArray
 
@@ -645,11 +645,11 @@ String[] result = Arrays.asList("A", "B", "C")
 System.out.println(Arrays.toString(result)); // [A, C]
 ~~~
 
-`toArray(String[]::new)` có từ Java 8. Nếu gọi `toArray()` không tham số trên `Stream<T>`, kiểu kết quả là `Object[]`.
+`toArray(String[]::new)` has existed since Java 8. Calling no-arg `toArray()` on `Stream<T>` yields a result type of `Object[]`.
 
 ---
 
-## 9. Primitive streams: chuyển kiểu và phép tổng hợp
+## 9. Primitive Streams: Type Conversion and Aggregation
 
 ### 9.1. mapToInt, mapToLong, mapToDouble
 
@@ -666,7 +666,7 @@ int totalCharacters = words.stream()
 System.out.println(totalCharacters); // 13
 ~~~
 
-`mapToInt` không tạo ra `Stream<Integer>`; nó trả `IntStream`, hỗ trợ `sum()` trực tiếp.
+`mapToInt` does not create a `Stream<Integer>`; it returns an `IntStream`, which directly supports `sum()`.
 
 ~~~java
 import java.util.Arrays;
@@ -683,9 +683,9 @@ long total = amounts.stream()
 System.out.println(total); // 3000000000
 ~~~
 
-Dùng `mapToLong` **trước khi cộng** để tránh overflow `int`. Tuy nhiên tổng kiểu `long` vẫn có thể overflow nếu miền dữ liệu đủ lớn; khi đó cân nhắc `BigInteger`.
+Use `mapToLong` **before summing** to avoid `int` overflow. However, a `long` sum can still overflow if the data domain is large enough; in that case consider `BigInteger`.
 
-### 9.2. boxed và mapToObj
+### 9.2. boxed and mapToObj
 
 ~~~java
 import java.util.List;
@@ -704,9 +704,9 @@ System.out.println(ids);    // [1, 2, 3]
 System.out.println(labels); // [ID-1, ID-2, ID-3]
 ~~~
 
-`boxed()` đổi primitive stream sang wrapper object Stream. `mapToObj` chuyển primitive thành đối tượng theo hàm mapper.
+`boxed()` converts a primitive stream to a wrapper object Stream. `mapToObj` transforms a primitive into an object according to a mapper function.
 
-### 9.3. average và summaryStatistics
+### 9.3. average and summaryStatistics
 
 ~~~java
 import java.util.Arrays;
@@ -726,17 +726,17 @@ System.out.println(stats.getMin());      // 10
 System.out.println(stats.getMax());      // 30
 ~~~
 
-Với nguồn rỗng, `average()` trả `OptionalDouble.empty()`. Các trường min/max của `IntSummaryStatistics` khi không có phần tử là **giá trị sentinel**, không nên diễn giải là điểm nhỏ nhất/lớn nhất thực tế; luôn xét `getCount()` trước.
+On an empty source, `average()` returns `OptionalDouble.empty()`. The min/max fields of `IntSummaryStatistics` when there are no elements are **sentinel values** and must not be interpreted as actual minimum/maximum scores; always check `getCount()` first.
 
-### 9.4. Khi cần precision
+### 9.4. When Precision Is Needed
 
-`DoubleStream.sum()`/`average()` thực hiện số học dấu phẩy động; việc gộp song song có thể thay đổi thứ tự tính toán và sai số. Với tiền tệ cần chính xác, thường dùng số cent nguyên hoặc `BigDecimal` thay vì mặc định dùng `double`.
+`DoubleStream.sum()`/`average()` perform floating-point arithmetic; parallel combining can alter calculation order and rounding error. For currency requiring exactness, integer cents or `BigDecimal` is typically used instead of defaulting to `double`.
 
 ---
 
-## 10. Optional trong Java 8: nhận và xử lý kết quả vắng mặt
+## 10. Optional in Java 8: Receiving and Handling Absent Results
 
-`Optional<T>` có từ Java 8 và xuất hiện ở nhiều terminal operations.
+`Optional<T>` has existed since Java 8 and appears in many terminal operations.
 
 ~~~java
 import java.util.Arrays;
@@ -748,28 +748,28 @@ Optional<String> firstLong = Arrays.asList(
  .filter(name -> name.length() > 10)
  .findFirst();
 
-String display = firstLong.orElse("Không tìm thấy");
+String display = firstLong.orElse("Not found");
 
-System.out.println(display); // Không tìm thấy
+System.out.println(display); // Not found
 ~~~
 
-Những thao tác `Optional` có sẵn trong Java 8:
+`Optional` operations available in Java 8:
 
-| API | Vai trò |
+| API | Role |
 |---|---|
-| `Optional.of(value)` | Bọc giá trị khác null |
-| `Optional.ofNullable(value)` | Có giá trị nếu không null |
-| `Optional.empty()` | Không có giá trị |
-| `isPresent()` | Có phần tử không? |
-| `get()` | Lấy giá trị; ném nếu rỗng |
-| `ifPresent(Consumer)` | Thực thi khi có giá trị |
-| `orElse(default)` | Giá trị mặc định |
-| `orElseGet(Supplier)` | Tạo giá trị mặc định khi cần |
-| `orElseThrow(Supplier)` | Ném lỗi được cung cấp khi rỗng |
-| `filter(Predicate)` | Giữ Optional nếu predicate thỏa |
-| `map(Function)` / `flatMap(Function)` | Biến đổi Optional |
+| `Optional.of(value)` | Wraps a non-null value |
+| `Optional.ofNullable(value)` | Present if non-null |
+| `Optional.empty()` | No value |
+| `isPresent()` | Is a value present? |
+| `get()` | Gets the value; throws if empty |
+| `ifPresent(Consumer)` | Executes when a value is present |
+| `orElse(default)` | Default value |
+| `orElseGet(Supplier)` | Lazily creates a default value when needed |
+| `orElseThrow(Supplier)` | Throws the supplied exception when empty |
+| `filter(Predicate)` | Keeps the Optional if the predicate matches |
+| `map(Function)` / `flatMap(Function)` | Transforms the Optional |
 
-Ví dụ API Java 8:
+Java 8 API example:
 
 ~~~java
 import java.util.Optional;
@@ -779,23 +779,23 @@ Optional<Integer> maybeScore = Optional.of(90);
 int score = maybeScore
         .filter(n -> n >= 0)
         .orElseThrow(() ->
-                new IllegalStateException("Điểm không hợp lệ")
+                new IllegalStateException("Invalid score")
         );
 
 System.out.println(score); // 90
 ~~~
 
-**Chú ý phiên bản:**
+**Version notes:**
 
-- `optional.isEmpty()` không có trong Java 8 (từ Java 11).
-- `optional.stream()` không có trong Java 8 (từ Java 9).
-- `optional.ifPresentOrElse(...)` không có trong Java 8 (từ Java 9).
-- `optional.orElseThrow()` **không tham số** không có trong Java 8 (từ Java 10); dùng overload truyền Supplier như trên.
-- `OptionalInt` có `getAsInt`, `orElse` và các API chuyên biệt; không nhầm với `Optional<Integer>`.
+- `optional.isEmpty()` is not in Java 8 (since Java 11).
+- `optional.stream()` is not in Java 8 (since Java 9).
+- `optional.ifPresentOrElse(...)` is not in Java 8 (since Java 9).
+- No-argument `optional.orElseThrow()` is not in Java 8 (since Java 10); use the overload accepting a Supplier as shown above.
+- `OptionalInt` has `getAsInt`, `orElse`, and specialized APIs; do not confuse it with `Optional<Integer>`.
 
-### 10.1. Làm phẳng Optional bằng Java 8
+### 10.1. Flattening Optional in Java 8
 
-Một pipeline mới thường dùng `Optional.stream()` để bỏ Optional rỗng. Trong Java 8, có thể làm tương đương bằng `flatMap`:
+A modern pipeline often uses `Optional.stream()` to drop empty Optionals. In Java 8, the equivalent can be done with `flatMap`:
 
 ~~~java
 import java.util.Arrays;
@@ -819,13 +819,13 @@ List<String> present = options.stream()
 System.out.println(present); // [A, C]
 ~~~
 
-Đây là **cách tương thích Java 8**. Không cần cố dùng method reference `Optional::stream` vì phương thức đó chưa tồn tại ở phiên bản này.
+This is the **Java 8-compatible way**. Do not try to use the `Optional::stream` method reference because that method does not yet exist in this version.
 
 ---
 
-## 11. reduce trong Java 8: ba overload và hợp đồng đại số
+## 11. reduce in Java 8: Three Overloads and Algebraic Contracts
 
-### 11.1. Không có identity
+### 11.1. Without Identity
 
 ~~~java
 import java.util.Arrays;
@@ -838,9 +838,9 @@ Optional<Integer> max = Arrays.asList(2, 9, 5)
 System.out.println(max.orElse(-1)); // 9
 ~~~
 
-`reduce(BinaryOperator<T>)` trả `Optional<T>` để biểu diễn nguồn rỗng mà không tự bịa ra một giá trị đơn vị cho bài toán.
+`reduce(BinaryOperator<T>)` returns `Optional<T>` to represent an empty source without inventing an identity value for the problem.
 
-### 11.2. Có identity
+### 11.2. With Identity
 
 ~~~java
 import java.util.Arrays;
@@ -852,15 +852,15 @@ int total = Arrays.asList(2, 9, 5)
 System.out.println(total); // 16
 ~~~
 
-Điều kiện quan trọng:
+Important conditions:
 
-- Identity `0` trung hòa phép cộng.
-- Operator có tính **kết hợp**: `(a+b)+c = a+(b+c)` theo quy tắc số học đang xét.
-- Lambda phải **stateless** và **non-interfering**.
+- Identity `0` is neutral for addition.
+- The operator is **associative**: `(a+b)+c = a+(b+c)` under the arithmetic rules in effect.
+- The lambda must be **stateless** and **non-interfering**.
 
-Identity sai như `reduce(10, Integer::sum)` có thể khiến kết quả song song cộng số `10` nhiều lần, vì từng phần có thể bắt đầu từ identity.
+A wrong identity such as `reduce(10, Integer::sum)` can cause a parallel result to add `10` multiple times, because each partition may start from the identity.
 
-### 11.3. Dạng ba tham số: U khác T
+### 11.3. Three-Parameter Form: U Differs from T
 
 ~~~java
 import java.util.Arrays;
@@ -878,24 +878,24 @@ long lengthSum = words.parallelStream()
 System.out.println(lengthSum); // 7
 ~~~
 
-Ba thành phần:
+Three components:
 
-1. `identity` kiểu `U` (ở đây `Long`).
+1. `identity` of type `U` (here `Long`).
 2. `accumulator(U,T) -> U`.
 3. `combiner(U,U) -> U`.
 
-Đối với overload này, combiner còn phải tương thích với accumulator. Một biểu thức kiểm tra quan trọng:
+For this overload, the combiner must also be compatible with the accumulator. An important verification expression:
 
 ~~~text
 combiner(u, accumulator(identity, t))
     == accumulator(u, t)
 ~~~
 
-Nếu accumulator cộng độ dài nhưng combiner lấy `max`, phép reduce có thể đúng tuần tự rồi sai khi chia thành hai nhánh. Không nên dùng một `ArrayList` mutable chung làm identity và sửa nó trong reducer: dùng `collect` để tạo container mutable.
+If the accumulator sums lengths while the combiner takes `max`, the reduction may succeed sequentially and then fail when split into two branches. Do not use a shared mutable `ArrayList` as the identity and mutate it inside the reducer: use `collect` to create mutable containers.
 
-### 11.4. Phép cộng số thực và thay đổi thứ tự gộp
+### 11.4. Floating-Point Addition and Changing Grouping Order
 
-Phép cộng `double` không kết hợp tuyệt đối do làm tròn IEEE 754:
+`double` addition is not strictly associative due to IEEE 754 rounding:
 
 ~~~java
 double a = 1.0e16;
@@ -906,13 +906,13 @@ System.out.println((a + b) + c); // 1.0
 System.out.println(a + (b + c)); // 0.0
 ~~~
 
-Do đó `reduce(0.0, Double::sum)` song song có thể khác một cách nhóm tuần tự ở các dữ liệu nhạy sai số. Khi cần kết quả tài chính chính xác, chọn kiểu và quy tắc tổng hợp phù hợp trước khi bật parallel.
+Therefore, parallel `reduce(0.0, Double::sum)` can differ from a sequential grouping on error-sensitive data. When exact financial results are required, choose the appropriate type and aggregation rules before enabling parallel execution.
 
 ---
 
-## 12. collect: kết quả thành List, Set, Map hoặc cấu trúc riêng
+## 12. collect: Results as List, Set, Map, or Custom Structures
 
-Java 8 có hai nhóm API collect:
+Java 8 has two groups of `collect` APIs:
 
 ~~~java
 <R, A> R collect(Collector<? super T, A, R> collector)
@@ -924,7 +924,7 @@ Java 8 có hai nhóm API collect:
 )
 ~~~
 
-Trong thực tế, overload dùng `Collector` rất phổ biến vì `Collectors` cung cấp nhiều collector có sẵn.
+In practice, the overload taking a `Collector` is very common because `Collectors` provides many built-in collectors.
 
 ### 12.1. Collectors.toList, toSet, toCollection
 
@@ -953,9 +953,9 @@ System.out.println(set.size()); // 2
 System.out.println(explicitArrayList); // [A, B]
 ~~~
 
-**`Collectors.toList()` của Java 8 không cam kết kiểu cài đặt, tính có thể sửa, thread-safety hoặc serializability của List trả về.** Nếu cần một `ArrayList` cụ thể, dùng `toCollection(ArrayList::new)`.
+**Java 8's `Collectors.toList()` makes no guarantees on the implementation type, mutability, thread-safety, or serializability of the returned List.** If a specific `ArrayList` is needed, use `toCollection(ArrayList::new)`.
 
-`Collectors.toSet()` không bảo đảm encounter order hoặc kiểu Set. Nếu muốn một `LinkedHashSet` cụ thể:
+`Collectors.toSet()` does not guarantee encounter order or Set type. If you want a specific `LinkedHashSet`:
 
 ~~~java
 import java.util.LinkedHashSet;
@@ -981,9 +981,9 @@ String csv = Arrays.asList("A", "B", "C")
 System.out.println(csv); // A,B,C
 ~~~
 
-`joining()`, `joining(delimiter)` và `joining(delimiter, prefix, suffix)` đều là API Java 8. Đây thường là lựa chọn tốt hơn việc nối String liên tiếp bằng reducer khi số phần tử lớn.
+`joining()`, `joining(delimiter)`, and `joining(delimiter, prefix, suffix)` are all Java 8 APIs. This is generally a better choice than repeated String concatenation in a reducer when the number of elements is large.
 
-### 12.3. collect ba tham số cho container mutable
+### 12.3. Three-Parameter collect for Mutable Containers
 
 ~~~java
 import java.util.ArrayList;
@@ -1001,28 +1001,28 @@ List<String> result = Arrays.asList("A", "B", "C")
 System.out.println(result); // [A, B, C]
 ~~~
 
-`supplier` tạo container mới cho mỗi phần xử lý khi cần; `accumulator` nhận một phần tử; `combiner` hợp hai container. Không dùng một List chung được tạo ngoài pipeline thay cho supplier đúng hợp đồng.
+`supplier` creates a new container for each processing partition when needed; `accumulator` receives one element; `combiner` merges two containers. Do not use a shared List created outside the pipeline in place of a contract-compliant supplier.
 
 ---
 
-## 13. Bản đồ Collectors có sẵn trong Java 8
+## 13. Map of Built-in Collectors in Java 8
 
-| Nhóm | API Java 8 | Kết quả |
+| Group | Java 8 API | Result |
 |---|---|---|
-| Tập hợp | `toList`, `toSet`, `toCollection` | List/Set/Collection |
-| Chuỗi | `joining` | String |
-| Map | `toMap`, `toConcurrentMap` | Map/ConcurrentMap |
-| Phân nhóm | `groupingBy`, `groupingByConcurrent` | Map<K, ...> |
-| Chia hai nhóm | `partitioningBy` | Map<Boolean, ...> |
-| Downstream | `mapping`, `collectingAndThen` | Kết quả được biến đổi/hoàn thiện |
-| Đếm | `counting` | Long |
-| Số | `summingInt/Long/Double` | Tổng |
-| Trung bình | `averagingInt/Long/Double` | Double |
-| Thống kê | `summarizingInt/Long/Double` | SummaryStatistics |
-| Cực trị | `minBy`, `maxBy` | Optional<T> |
-| Giảm gộp | Các overload `reducing` | Giá trị hoặc Optional |
+| Collections | `toList`, `toSet`, `toCollection` | List/Set/Collection |
+| Strings | `joining` | String |
+| Maps | `toMap`, `toConcurrentMap` | Map/ConcurrentMap |
+| Grouping | `groupingBy`, `groupingByConcurrent` | Map<K, ...> |
+| Two-way split | `partitioningBy` | Map<Boolean, ...> |
+| Downstream | `mapping`, `collectingAndThen` | Transformed/finished result |
+| Counting | `counting` | Long |
+| Numeric | `summingInt/Long/Double` | Sum |
+| Averaging | `averagingInt/Long/Double` | Double |
+| Statistics | `summarizingInt/Long/Double` | SummaryStatistics |
+| Extrema | `minBy`, `maxBy` | Optional<T> |
+| Reduction | `reducing` overloads | Value or Optional |
 
-### 13.1. groupingBy và counting
+### 13.1. groupingBy and counting
 
 ~~~java
 import java.util.Arrays;
@@ -1044,7 +1044,7 @@ System.out.println(frequency.get("java")); // 2
 System.out.println(frequency.get("api"));  // 1
 ~~~
 
-`groupingBy(classifier)` mặc định thu thập danh sách giá trị của từng khóa. Downstream `counting()` thay List bằng số lượng.
+`groupingBy(classifier)` defaults to collecting a list of values for each key. Downstream `counting()` replaces the List with a count.
 
 ### 13.2. groupingBy + mapping
 
@@ -1082,9 +1082,9 @@ Map<String, List<Long>> centsByCategory =
 System.out.println(centsByCategory.get("BOOK")); // [100, 200]
 ~~~
 
-`mapping` đã có trong **Java 8**. Đừng nhầm nó với `Collectors.flatMapping` (Java 9) hoặc `Collectors.filtering` (Java 9), dù cả ba đều là downstream adapters.
+`mapping` has existed since **Java 8**. Do not confuse it with `Collectors.flatMapping` (Java 9) or `Collectors.filtering` (Java 9), even though all three are downstream adapters.
 
-### 13.3. toMap và merge function
+### 13.3. toMap and the Merge Function
 
 ~~~java
 import java.util.Arrays;
@@ -1103,7 +1103,7 @@ Map<Integer, String> byLength = values.stream()
 System.out.println(byLength.get(2)); // bb
 ~~~
 
-Nếu hai phần tử cho cùng khóa, overload `toMap(keyMapper, valueMapper)` sẽ ném `IllegalStateException`. Cần chọn chính sách rõ ràng khi khóa có thể trùng:
+If two elements produce the same key, the overload `toMap(keyMapper, valueMapper)` throws `IllegalStateException`. You must choose an explicit policy when keys may collide:
 
 ~~~java
 List<String> duplicates = Arrays.asList(
@@ -1120,9 +1120,9 @@ Map<Integer, String> firstPerLength = duplicates.stream()
 System.out.println(firstPerLength.get(2)); // an
 ~~~
 
-Trong Stream có thứ tự, chính sách chọn bản ghi đầu phù hợp với yêu cầu “đầu theo encounter order” khi dùng collector thông thường. Nếu nghiệp vụ muốn bản ghi **mới nhất**, đừng coi “đầu/cuối nguồn” là timestamp nếu chưa có ràng buộc dữ liệu; dùng merge theo version/time và tie-break phù hợp.
+In an ordered Stream, the policy of choosing the first record matches the requirement "first in encounter order" when using a standard collector. If business logic wants the **latest** record, do not treat "first/last in source" as a timestamp unless there is a data ordering guarantee; merge by version/time with an appropriate tie-breaker.
 
-### 13.4. collectingAndThen đã có từ Java 8
+### 13.4. collectingAndThen Has Existed Since Java 8
 
 ~~~java
 import java.util.ArrayList;
@@ -1143,7 +1143,7 @@ List<String> readOnly = Arrays.asList("A", "B")
 // readOnly.add("C"); // UnsupportedOperationException.
 ~~~
 
-`collectingAndThen` không phải tính năng Java 9+: nó có ngay từ Java 8. Ta dùng `Collections.unmodifiableList(new ArrayList<>(list))` để tạo một bản sao cấu trúc chỉ đọc trong Java 8. `List.copyOf` là API **Java 10**, không dùng được khi biên dịch Java 8.
+`collectingAndThen` is not a Java 9+ feature: it has been available since Java 8. We use `Collections.unmodifiableList(new ArrayList<>(list))` to create a structurally read-only copy in Java 8. `List.copyOf` is a **Java 10** API and cannot be used when compiling for Java 8.
 
 ### 13.5. partitioningBy
 
@@ -1164,21 +1164,21 @@ System.out.println(partitioned.get(true));  // [2, 4]
 System.out.println(partitioned.get(false)); // [1, 3]
 ~~~
 
-`partitioningBy` tạo hai nhánh khóa Boolean. Đây là collector theo predicate, khác với grouping theo một khóa tùy ý.
+`partitioningBy` creates two Boolean key branches. It is a predicate-based collector, unlike grouping by an arbitrary key.
 
 ---
 
-## 14. Collector tùy chỉnh: cũng là Java 8
+## 14. Custom Collectors: Also Java 8
 
-`Collector<T, A, R>` định nghĩa năm thành phần:
+`Collector<T, A, R>` defines five components:
 
-1. `supplier`: tạo trạng thái tích lũy `A`.
-2. `accumulator`: đưa phần tử `T` vào `A`.
-3. `combiner`: ghép hai trạng thái `A`.
-4. `finisher`: chuyển trạng thái `A` sang kết quả `R`.
-5. `characteristics`: mô tả những bảo đảm của collector.
+1. `supplier`: creates the accumulation state `A`.
+2. `accumulator`: folds element `T` into `A`.
+3. `combiner`: merges two states `A`.
+4. `finisher`: transforms state `A` into result `R`.
+5. `characteristics`: describes the collector's guarantees.
 
-Một collector đếm số phần tử bằng container mutable:
+A collector that counts elements using a mutable container:
 
 ~~~java
 import java.util.Arrays;
@@ -1202,53 +1202,53 @@ long count = Arrays.asList("A", "B", "C")
 System.out.println(count); // 3
 ~~~
 
-Trong ví dụ:
+In this example:
 
-- Mỗi `supplier` tạo **mảng mới**.
-- `accumulator` chỉ sửa trạng thái của container được giao.
-- `combiner` gộp hai bộ đếm theo phép cộng.
-- `finisher` trả số đếm `Long`.
-- Không tự khai báo `CONCURRENT` vì `long[]` không thread-safe khi bị nhiều thread sửa cùng lúc.
+- Each `supplier` creates a **new array**.
+- `accumulator` only mutates the state of its assigned container.
+- `combiner` merges two counters via addition.
+- `finisher` returns the `Long` count.
+- `CONCURRENT` is not declared because `long[]` is not thread-safe when mutated by multiple threads simultaneously.
 
-Với nghiệp vụ chỉ đếm phần tử, dùng `count()` hoặc `Collectors.counting()` sẽ đơn giản hơn; mục tiêu ví dụ này là nhìn cấu trúc collector.
+When the business requirement is only counting elements, `count()` or `Collectors.counting()` is simpler; the goal of this example is to show collector structure.
 
-### 14.1. Ba đặc tính Collector
+### 14.1. Three Collector Characteristics
 
-| Đặc tính | Ý nghĩa |
+| Characteristic | Meaning |
 |---|---|
-| `CONCURRENT` | Cho phép các thread tích lũy đồng thời trên cùng container trong điều kiện hợp đồng phù hợp |
-| `UNORDERED` | Collector không yêu cầu giữ encounter order |
-| `IDENTITY_FINISH` | Bước finisher có thể được coi là đồng nhất, có thể bị bỏ qua |
+| `CONCURRENT` | Allows threads to accumulate concurrently into the same container under the appropriate contract conditions |
+| `UNORDERED` | The collector does not require preserving encounter order |
+| `IDENTITY_FINISH` | The finisher step can be treated as identity and may be skipped |
 
-Các tên này là `Collector.Characteristics`, **khác** với cờ `Spliterator.ORDERED/SORTED/SIZED`. Không nhầm characteristics của collector với characteristics của nguồn.
+These names belong to `Collector.Characteristics`, **distinct** from `Spliterator.ORDERED/SORTED/SIZED` flags. Do not confuse collector characteristics with source characteristics.
 
-Collector phải giữ identity/associativity của `combiner` và tính tương thích với `accumulator`. Một collector đúng khi chạy tuần tự **không nhất thiết đúng khi chạy parallel** nếu combiner bị viết sai.
+A collector must preserve `combiner` identity/associativity and compatibility with `accumulator`. A collector that works sequentially is **not necessarily correct when run in parallel** if the combiner is written incorrectly.
 
 ---
 
-## 15. Spliterator và StreamSupport: nền tảng nguồn tùy chỉnh từ Java 8
+## 15. Spliterator and StreamSupport: Custom Source Foundation Since Java 8
 
-`Spliterator<T>` có các phương thức chính:
+`Spliterator<T>` has the following main methods:
 
-| Phương thức | Vai trò |
+| Method | Role |
 |---|---|
-| `tryAdvance(Consumer)` | Phát nhiều nhất một phần tử |
-| `forEachRemaining(Consumer)` | Phát các phần tử còn lại |
-| `trySplit()` | Tách một phần dữ liệu còn lại |
-| `estimateSize()` | Ước lượng số phần tử còn lại |
-| `characteristics()` | Trả bitmask đặc tính |
-| `getComparator()` | Comparator nếu nguồn có `SORTED` |
+| `tryAdvance(Consumer)` | Emits at most one element |
+| `forEachRemaining(Consumer)` | Emits remaining elements |
+| `trySplit()` | Splits off a portion of remaining data |
+| `estimateSize()` | Estimates remaining element count |
+| `characteristics()` | Returns characteristic bitmask |
+| `getComparator()` | Comparator if source has `SORTED` |
 
-Một số cờ đã có trong Java 8:
+Some flags already available in Java 8:
 
-- `ORDERED`: nguồn có encounter order.
-- `DISTINCT`: không có phần tử trùng theo `equals`.
-- `SORTED`: nguồn sắp xếp theo natural order hoặc comparator; kéo theo `ORDERED`.
-- `NONNULL`: nguồn không phát `null`.
-- `SIZED` và `SUBSIZED`: bảo đảm về kích thước.
-- `IMMUTABLE` và `CONCURRENT`: đặc điểm cấu trúc/biến đổi nguồn.
+- `ORDERED`: the source has an encounter order.
+- `DISTINCT`: no duplicate elements by `equals`.
+- `SORTED`: the source is sorted by natural order or a comparator; implies `ORDERED`.
+- `NONNULL`: the source does not emit `null`.
+- `SIZED` and `SUBSIZED`: guarantees regarding size.
+- `IMMUTABLE` and `CONCURRENT`: structural/mutation characteristics of the source.
 
-### 15.1. Lấy Spliterator từ Collection
+### 15.1. Obtaining a Spliterator from a Collection
 
 ~~~java
 import java.util.Arrays;
@@ -1260,14 +1260,14 @@ Spliterator<Integer> source = values.spliterator();
 
 System.out.println(
         source.hasCharacteristics(Spliterator.ORDERED)
-); // true, List có encounter order.
+); // true, List has an encounter order.
 
 System.out.println(source.estimateSize()); // 3
 ~~~
 
-Nếu tự viết `Spliterator` cho Stream song song và công bố `ORDERED`, `trySplit()` phải trả một phần **tiền tố** của các phần tử còn lại. Công bố sai `DISTINCT` hoặc `SORTED` có thể khiến những tối ưu của Stream tin vào dữ liệu không đúng.
+If writing a custom `Spliterator` for a parallel Stream and declaring `ORDERED`, `trySplit()` must return a **prefix** of the remaining elements. Falsely declaring `DISTINCT` or `SORTED` can cause Stream optimizations to trust inaccurate data assumptions.
 
-### 15.2. Tạo Stream từ Spliterator
+### 15.2. Creating a Stream from a Spliterator
 
 ~~~java
 import java.util.Arrays;
@@ -1285,19 +1285,19 @@ int sum = StreamSupport.stream(source, false)
 System.out.println(sum); // 6
 ~~~
 
-Tham số `false` yêu cầu pipeline tuần tự; `true` yêu cầu song song. `StreamSupport.stream(...)` tồn tại trong Java 8, nên không cần tự xây một loại `Stream` mới để làm việc với nguồn tùy chỉnh.
+The parameter `false` requests a sequential pipeline; `true` requests parallel. `StreamSupport.stream(...)` exists in Java 8, so there is no need to build a new `Stream` implementation to work with custom sources.
 
-### 15.3. Không tự dùng chung một Spliterator đã bị tiêu thụ
+### 15.3. Do Not Reuse a Consumed Spliterator
 
-Spliterator thường chứa trạng thái vị trí duyệt. Nếu vừa tiêu thụ nguồn để lấy tổng, không dùng lại chính Spliterator ấy để đọc dữ liệu từ đầu. Hãy tạo một Spliterator mới hoặc tạo Stream mới từ collection có thể duyệt lại.
+A Spliterator typically holds traversal position state. Once a source has been consumed to compute a sum, do not reuse that same Spliterator to read data from the beginning. Create a new Spliterator or create a new Stream from a re-traversable collection.
 
 ---
 
-## 16. Functional interfaces có sẵn ở Java 8
+## 16. Built-in Functional Interfaces in Java 8
 
-Lambda và method reference là nền tảng giúp dùng Stream API gọn hơn.
+Lambdas and method references are the foundation that make the Stream API concise.
 
-| Interface | Phương thức trừu tượng | Ví dụ |
+| Interface | Abstract Method | Example |
 |---|---|---|
 | `Predicate<T>` | `boolean test(T)` | `n -> n > 0` |
 | `Function<T,R>` | `R apply(T)` | `String::length` |
@@ -1306,12 +1306,12 @@ Lambda và method reference là nền tảng giúp dùng Stream API gọn hơn.
 | `UnaryOperator<T>` | `T apply(T)` | `n -> n + 1` |
 | `BinaryOperator<T>` | `T apply(T,T)` | `Integer::sum` |
 | `BiFunction<T,U,R>` | `R apply(T,U)` | `(sum, item) -> ...` |
-| `BiConsumer<T,U>` | `void accept(T,U)` | `List::add` trong collector |
+| `BiConsumer<T,U>` | `void accept(T,U)` | `List::add` in a collector |
 | `ToIntFunction<T>` | `int applyAsInt(T)` | `String::length` |
 | `IntPredicate` | `boolean test(int)` | `n -> n % 2 == 0` |
 | `IntUnaryOperator` | `int applyAsInt(int)` | `n -> n * n` |
 
-### 16.1. Lambda và method reference
+### 16.1. Lambdas and Method References
 
 ~~~java
 import java.util.Arrays;
@@ -1331,12 +1331,12 @@ List<Integer> lengths2 = names.stream()
 System.out.println(lengths1.equals(lengths2)); // true
 ~~~
 
-`String::length` là method reference có thể thay lambda tương ứng.
+`String::length` is a method reference that can replace the corresponding lambda.
 
-### 16.2. Effectively final và side effects
+### 16.2. Effectively Final and Side Effects
 
 ~~~java
-int minLength = 2; // Không bị gán lại sau khi khởi tạo.
+int minLength = 2; // Not reassigned after initialization.
 
 long count = Arrays.asList("a", "bb", "ccc")
         .stream()
@@ -1346,13 +1346,13 @@ long count = Arrays.asList("a", "bb", "ccc")
 System.out.println(count); // 2
 ~~~
 
-Biến local được lambda capture phải là `final` hoặc **effectively final**. Nhưng điều này **không có nghĩa đối tượng được capture là bất biến**:
+Local variables captured by a lambda must be `final` or **effectively final**. However, this **does not mean the captured object is immutable**:
 
 ~~~java
 import java.util.ArrayList;
 import java.util.List;
 
-// Không nên dùng side effect chung trong parallel stream:
+// Avoid shared side effects in a parallel stream:
 List<String> shared = new ArrayList<String>();
 
 // Arrays.asList("A", "B", "C")
@@ -1360,13 +1360,13 @@ List<String> shared = new ArrayList<String>();
 //         .forEach(shared::add);
 ~~~
 
-`ArrayList` không thread-safe khi nhiều thread gọi `add` đồng thời. Dùng `collect(Collectors.toList())` hoặc một collector phù hợp thay vì sửa một List chung trong `forEach`.
+`ArrayList` is not thread-safe when multiple threads call `add` concurrently. Use `collect(Collectors.toList())` or an appropriate collector instead of mutating a shared List in `forEach`.
 
 ---
 
-## 17. Lazy evaluation và vòng đời một Stream
+## 17. Lazy Evaluation and a Stream's Lifecycle
 
-### 17.1. Intermediate operations chưa duyệt nguồn ngay
+### 17.1. Intermediate Operations Do Not Traverse the Source Immediately
 
 ~~~java
 import java.util.Arrays;
@@ -1379,16 +1379,16 @@ Stream<Integer> pipeline = Arrays.asList(1, 2, 3)
             return n > 1;
         });
 
-System.out.println("Pipeline đã tạo");
-// Chưa duyệt phần tử chỉ vì gọi filter().
+System.out.println("Pipeline created");
+// Elements are not traversed merely by calling filter().
 
-long count = pipeline.count(); // terminal kích hoạt pipeline
+long count = pipeline.count(); // terminal triggers the pipeline
 System.out.println(count); // 2
 ~~~
 
-Kết quả log của ví dụ thể hiện tính lazy khi terminal operation được gọi. Tuy nhiên đừng biến log/side effect thành kết quả bắt buộc: một số tối ưu được phép bỏ qua việc gọi lambda nếu không làm thay đổi **kết quả được đặc tả**.
+The log output of this example demonstrates laziness when the terminal operation is called. However, do not turn logs/side effects into required outcomes: certain optimizations are permitted to elide lambda calls if doing so does not change the **specified result**.
 
-### 17.2. Short-circuit
+### 17.2. Short-Circuiting
 
 ~~~java
 import java.util.Arrays;
@@ -1402,9 +1402,9 @@ Optional<Integer> found = Arrays.asList(2, 4, 7, 8)
 System.out.println(found.orElse(-1)); // 7
 ~~~
 
-`findFirst` có thể dừng khi xác định phần tử phù hợp đầu tiên. Trên parallel stream có thứ tự, việc bảo đảm “đầu tiên” có thể gây thêm phối hợp so với `findAny`.
+`findFirst` can stop once the first matching element is determined. On an ordered parallel stream, guaranteeing "first" can incur additional coordination compared to `findAny`.
 
-### 17.3. Stream không tái sử dụng sau terminal operation
+### 17.3. A Stream Is Not Reusable After a Terminal Operation
 
 ~~~java
 import java.util.Arrays;
@@ -1414,17 +1414,17 @@ Stream<Integer> once = Arrays.asList(1, 2, 3).stream();
 
 System.out.println(once.count()); // 3
 
-// Không tiếp tục gọi once.reduce(...) hoặc once.findAny().
-// Tạo Stream mới nếu muốn đánh giá lần nữa.
+// Do not subsequently call once.reduce(...) or once.findAny().
+// Create a new Stream if you want to evaluate again.
 ~~~
 
-Một Stream có thể được tiêu thụ hoặc đóng chỉ một lần. Với nguồn có thể duyệt lại như List, gọi `list.stream()` thêm lần nữa; với nguồn tệp/I/O, cần quản lý việc mở lại nguồn.
+A Stream can be consumed or closed only once. For re-traversable sources like List, call `list.stream()` again; for file/I/O sources, manage reopening the source.
 
 ---
 
-## 18. Encounter order, parallel, unordered và tính đúng
+## 18. Encounter Order, Parallelism, Unordered, and Correctness
 
-### 18.1. Chế độ tuần tự và song song đều đã có từ Java 8
+### 18.1. Both Sequential and Parallel Modes Have Existed Since Java 8
 
 ~~~java
 import java.util.Arrays;
@@ -1444,9 +1444,9 @@ System.out.println(sequential); // 10
 System.out.println(parallel);   // 10
 ~~~
 
-Bật song song thay đổi **kế hoạch thực thi**, không tự tạo một thuật toán khác cho nghiệp vụ. Các lambda phải tuân thủ yêu cầu stateless/non-interfering, và phép gộp phải đúng identity/associativity.
+Enabling parallelism changes the **execution plan**, without automatically inventing a different business algorithm. Lambdas must obey stateless/non-interfering requirements, and reduction operations must have valid identity/associativity.
 
-### 18.2. forEach khác forEachOrdered
+### 18.2. forEach vs. forEachOrdered
 
 ~~~java
 import java.util.Arrays;
@@ -1454,17 +1454,17 @@ import java.util.Arrays;
 Arrays.asList("A", "B", "C", "D")
         .parallelStream()
         .forEach(System.out::println);
-// Thứ tự in không được bảo đảm.
+// Print order is not guaranteed.
 
 Arrays.asList("A", "B", "C", "D")
         .parallelStream()
         .forEachOrdered(System.out::println);
-// Theo encounter order: A, B, C, D.
+// In encounter order: A, B, C, D.
 ~~~
 
-`forEachOrdered` bảo đảm thứ tự áp dụng hành động theo encounter order đối với Stream có thứ tự, nhưng có thể làm giảm lợi ích song song.
+`forEachOrdered` guarantees applying the action in encounter order for ordered Streams, but may reduce parallel speedup.
 
-### 18.3. unordered() không phải shuffle()
+### 18.3. unordered() Is Not shuffle()
 
 ~~~java
 import java.util.Arrays;
@@ -1480,23 +1480,23 @@ Set<Integer> unique = Arrays.asList(2, 1, 2, 3)
 System.out.println(unique.size()); // 3
 ~~~
 
-`unordered` bỏ ràng buộc encounter order, **không hứa đổi thứ tự dữ liệu**. Chỉ dùng khi thứ tự **không quan trọng** theo hợp đồng bài toán.
+`unordered` drops the encounter order constraint; it **does not promise to reorder data**. Use it only when ordering **does not matter** under the problem contract.
 
-### 18.4. reduce và collector phải ghép đúng
+### 18.4. reduce and Collectors Must Combine Correctly
 
-Với reduce:
+With reduce:
 
 ~~~java
-// Identity đúng và phép gộp đúng:
+// Valid identity and valid combining operation:
 int sum = Arrays.asList(1, 2, 3, 4)
         .parallelStream()
         .reduce(0, Integer::sum);
 ~~~
 
-Với collector mutable:
+With a mutable collector:
 
 ~~~java
-// Mỗi supplier tạo container mới, combiner ghép kết quả:
+// Each supplier creates a new container, combiner merges results:
 List<Integer> result = Arrays.asList(1, 2, 3, 4)
         .parallelStream()
         .collect(
@@ -1506,64 +1506,64 @@ List<Integer> result = Arrays.asList(1, 2, 3, 4)
         );
 ~~~
 
-Hai dạng giải quyết **hai kiểu bài toán khác nhau**. Đừng cố sử dụng `reduce` với một `ArrayList` mutable dùng chung để thay `collect`.
+The two forms solve **two different kinds of problems**. Do not try to use `reduce` with a shared mutable `ArrayList` instead of `collect`.
 
-**Độ chính xác:** Song song không khôi phục kết quả đã overflow hay đã sai vì làm tròn. Cần kiểm tra miền số, thứ tự xếp hạng, sự ổn định khi trùng khóa và tính đúng của combiner trước khi đánh giá hiệu năng.
+**Accuracy:** Parallelism does not recover results that overflowed or drifted due to rounding. Numeric ranges, ranking order, tie stability, and combiner correctness must be verified before evaluating performance.
 
 ---
 
-## 19. Bảng mốc tương thích: Java 8 có gì, chưa có gì?
+## 19. Compatibility Milestone Table: What Java 8 Has vs. Does Not Have
 
-Đây là bảng giúp đọc tài liệu hiện đại mà vẫn viết mã chạy trên Java 8.
+This table helps you read modern documentation while still writing code that runs on Java 8.
 
-| API / cú pháp | Có từ | Với Java 8, thay bằng gì? |
+| API / Syntax | Available Since | In Java 8, What Replaces It? |
 |---|---:|---|
-| `Stream.of`, `Stream.empty` | 8 | Dùng trực tiếp |
-| `Collection.stream/parallelStream` | 8 | Dùng trực tiếp |
-| `filter/map/flatMap/distinct/sorted/skip/limit` | 8 | Dùng trực tiếp |
-| `reduce`, `collect`, `Collectors.groupingBy` | 8 | Dùng trực tiếp |
-| `Collectors.mapping/collectingAndThen` | 8 | Dùng trực tiếp |
-| `StreamSupport.stream`, `Spliterator` | 8 | Dùng trực tiếp |
-| `Stream.ofNullable` | 9 | Kiểm tra null rồi `Stream.empty()` hoặc `Stream.of(value)` |
-| `takeWhile`, `dropWhile` | 9 | Vòng lặp hoặc custom `Spliterator` theo ranh giới |
-| `Stream.iterate(seed, hasNext, next)` | 9 | `iterate(seed, next).limit(n)` nếu biết n, hoặc vòng lặp điều kiện |
+| `Stream.of`, `Stream.empty` | 8 | Use directly |
+| `Collection.stream/parallelStream` | 8 | Use directly |
+| `filter/map/flatMap/distinct/sorted/skip/limit` | 8 | Use directly |
+| `reduce`, `collect`, `Collectors.groupingBy` | 8 | Use directly |
+| `Collectors.mapping/collectingAndThen` | 8 | Use directly |
+| `StreamSupport.stream`, `Spliterator` | 8 | Use directly |
+| `Stream.ofNullable` | 9 | Check null then `Stream.empty()` or `Stream.of(value)` |
+| `takeWhile`, `dropWhile` | 9 | Loop or custom `Spliterator` at the boundary |
+| `Stream.iterate(seed, hasNext, next)` | 9 | `iterate(seed, next).limit(n)` if n is known, or conditional loop |
 | `Optional.stream` | 9 | `flatMap(o -> o.isPresent() ? Stream.of(o.get()) : Stream.empty())` |
-| `Collectors.flatMapping` | 9 | `flatMap` trước grouping nếu giữ đúng nghĩa, hoặc collector tùy chỉnh |
-| `Collectors.filtering` | 9 | `filter` trước grouping **nếu chấp nhận mất khóa nhóm rỗng**; nếu không, collector tùy chỉnh |
+| `Collectors.flatMapping` | 9 | `flatMap` before grouping if preserving exact semantics, or custom collector |
+| `Collectors.filtering` | 9 | `filter` before grouping **if losing empty group keys is acceptable**; otherwise custom collector |
 | `Collectors.toUnmodifiableList/Set/Map` | 10 | `collectingAndThen` + defensive copy + `Collections.unmodifiable...` |
 | `List.copyOf`, `Map.copyOf`, `Set.copyOf` | 10 | `new ArrayList<>(...)`/`new HashMap<>(...)` + unmodifiable view |
-| `Optional.orElseThrow()` không tham số | 10 | `orElseThrow(() -> new NoSuchElementException())` |
-| `String.isBlank`, `String.strip`, `Path.of` | 11 | `trim`, kiểm tra chuỗi, `Paths.get` tùy ngữ nghĩa |
+| No-arg `Optional.orElseThrow()` | 10 | `orElseThrow(() -> new NoSuchElementException())` |
+| `String.isBlank`, `String.strip`, `Path.of` | 11 | `trim`, string check, `Paths.get` depending on semantics |
 | `Optional.isEmpty` | 11 | `!optional.isPresent()` |
-| `Collectors.teeing` | 12 | Collector tùy chỉnh hoặc hai phép tổng hợp riêng |
-| `Stream.toList` | 16 | `collect(Collectors.toList())`; muốn read-only thì copy + unmodifiable view |
-| `Stream.mapMulti` | 16 | `flatMap` hoặc collector/source tùy chỉnh |
-| `record` (ngôn ngữ) | 16 | Class thông thường với fields/constructor/getters |
-| `Stream.gather` / Stream Gatherers | 24 | Xây pipeline Java 8 bằng `map`/`flatMap`/collector hoặc custom `Spliterator` phù hợp |
+| `Collectors.teeing` | 12 | Custom collector or two separate aggregations |
+| `Stream.toList` | 16 | `collect(Collectors.toList())`; if read-only is needed, copy + unmodifiable view |
+| `Stream.mapMulti` | 16 | `flatMap` or custom collector/source |
+| `record` (language) | 16 | Regular class with fields/constructor/getters |
+| `Stream.gather` / Stream Gatherers | 24 | Build Java 8 pipeline using `map`/`flatMap`/collector or appropriate custom `Spliterator` |
 
-**Đọc bảng theo ba chiều độc lập:**
+**Read the table along three independent dimensions:**
 
-1. **Phiên bản Java của cú pháp:** `record`, `var`, switch expression, text blocks không phải cú pháp Java 8.
-2. **Phiên bản của API thư viện:** `Stream.toList()` không tồn tại trên Java 8 dù cú pháp gọi phương thức trông bình thường.
-3. **Phiên bản runtime:** chạy bytecode mới trên Java 8 có thể thất bại vì class-file version, ngay cả khi code không dùng Stream mới.
+1. **Java version of syntax:** `record`, `var`, switch expressions, and text blocks are not Java 8 syntax.
+2. **Version of library API:** `Stream.toList()` does not exist on Java 8 even though the method call syntax looks ordinary.
+3. **Runtime version:** running newer bytecode on Java 8 can fail due to class-file version, even if the code uses no new Streams.
 
-### 19.1. Chú ý không phải mọi thay thế đều cùng ngữ nghĩa
+### 19.1. Note That Not Every Replacement Shares Identical Semantics
 
-- `String.trim` không xử lý hoàn toàn giống `String.strip` đối với Unicode whitespace.
-- `filter(P)` **không** tương đương `takeWhile(P)`/`dropWhile(P)` trên nguồn có thứ tự bất kỳ.
-- Lọc trước `groupingBy` có thể làm **mất nhóm không còn phần tử**, khác downstream `Collectors.filtering`.
-- `Collectors.toList` không cam kết kết quả unmodifiable như `Stream.toList`.
-- Một vòng lặp thay thế có thể đúng về kết quả nhưng không có tính lazy hoặc khả năng parallel như pipeline ban đầu.
+- `String.trim` does not handle Unicode whitespace identically to `String.strip`.
+- `filter(P)` is **not** equivalent to `takeWhile(P)`/`dropWhile(P)` on an arbitrary ordered source.
+- Filtering before `groupingBy` can **drop groups with no remaining elements**, unlike downstream `Collectors.filtering`.
+- `Collectors.toList` does not guarantee an unmodifiable result like `Stream.toList`.
+- A replacement loop may yield the right result without the laziness or parallel capability of the original pipeline.
 
-Đừng thay API chỉ vì tên gần giống. Hãy xác định **hợp đồng kết quả** và hành vi với nguồn rỗng, null, thứ tự, dữ liệu trùng trước khi chuyển đổi phiên bản.
+Do not swap APIs merely because their names look similar. Determine the **result contract** and behavior for empty sources, nulls, ordering, and duplicates before migrating versions.
 
 ---
 
-## 20. Bốn công thức chuyển mã hiện đại về Java 8
+## 20. Four Recipes for Porting Modern Code Back to Java 8
 
 ### 20.1. Stream.toList → Collectors.toList
 
-Mã mới hơn:
+Newer code:
 
 ~~~java
 // Java 16+:
@@ -1572,7 +1572,7 @@ Mã mới hơn:
 //         .toList();
 ~~~
 
-Mã Java 8:
+Java 8 code:
 
 ~~~java
 import java.util.List;
@@ -1583,7 +1583,7 @@ List<String> names = source.stream()
         .collect(Collectors.toList());
 ~~~
 
-Hai kết quả có thể cùng **nội dung**, nhưng khác hợp đồng khả năng sửa. Nếu API yêu cầu List chỉ đọc trong Java 8:
+The two results may have the same **contents**, but differ in mutability contract. If the API requires a read-only List in Java 8:
 
 ~~~java
 import java.util.ArrayList;
@@ -1594,11 +1594,11 @@ List<String> readOnly = Collections.unmodifiableList(
 );
 ~~~
 
-Cách này tạo snapshot cấu trúc **nông**; nếu các phần tử mutable, bản thân object phần tử vẫn có thể bị thay đổi qua tham chiếu khác.
+This creates a **shallow** structural snapshot; if the elements are mutable, the element objects themselves can still be modified through other references.
 
-### 20.2. Stream.ofNullable → kiểm tra null
+### 20.2. Stream.ofNullable → Null Check
 
-Mã mới hơn:
+Newer code:
 
 ~~~java
 // Java 9+:
@@ -1619,11 +1619,11 @@ Stream<String> s = maybeName == null
 System.out.println(s.count()); // 0
 ~~~
 
-Nếu cần giữ `null` như **một phần tử thật**, đây không còn là phép thay thế đúng; `Stream.ofNullable` vốn bỏ giá trị null.
+If `null` must be preserved as **a real element**, this is no longer a valid replacement; `Stream.ofNullable` intentionally drops null values.
 
-### 20.3. takeWhile → vòng lặp dừng ở phần tử đầu không thỏa
+### 20.3. takeWhile → Loop Stopping at the First Non-Matching Element
 
-Mã Java 9+:
+Java 9+ code:
 
 ~~~java
 // List<Integer> prefix = values.stream()
@@ -1651,11 +1651,11 @@ for (Integer n : values) {
 System.out.println(prefix); // [1, 3]
 ~~~
 
-Vòng lặp này giữ **tiền tố dài nhất** theo thứ tự List. Thay bằng `filter(n -> n < 5)` sẽ trả `[1,3,2,4]`, **khác** kết quả mong đợi.
+This loop keeps the **longest prefix** in List order. Replacing it with `filter(n -> n < 5)` would return `[1,3,2,4]`, **different** from the expected result.
 
 ### 20.4. mapMulti → flatMap
 
-Mã Java 16+:
+Java 16+ code:
 
 ~~~java
 // Stream<Integer> expanded = values.stream()
@@ -1686,50 +1686,50 @@ List<Integer> expanded = values.stream()
 System.out.println(expanded); // [2, 4, 3, 6]
 ~~~
 
-`flatMap` có thể tạo Stream con cho mỗi phần tử, còn `mapMulti` phát phần tử trực tiếp qua consumer. Kết quả được minh họa là tương đương, nhưng đặc điểm cấp phát và mô hình lập trình có thể khác; không kết luận hiệu năng chỉ từ tên API.
+`flatMap` can create a sub-stream per element, whereas `mapMulti` emits elements directly through a consumer. The demonstrated results are equivalent, though allocation characteristics and programming model may differ; do not draw performance conclusions from API names alone.
 
 ---
 
-## 21. Biên dịch và chạy đúng mục tiêu Java 8
+## 21. Compiling and Running Correctly Targeting Java 8
 
-### 21.1. Chọn công cụ phù hợp
+### 21.1. Choosing the Right Tool
 
-Khi đang dùng đúng **JDK 8**, lệnh biên dịch và chạy một chương trình độc lập:
+When using **JDK 8** directly, commands to compile and run a standalone program:
 
 ~~~text
 javac StreamApi8Demo.java
 java StreamApi8Demo
 ~~~
 
-Khi dùng **JDK 9 trở lên** nhưng cần tạo code tương thích Java 8, nên dùng lựa chọn:
+When using **JDK 9 or later** but needing to produce Java 8-compatible code, use the option:
 
 ~~~text
 javac --release 8 StreamApi8Demo.java
 ~~~
 
-`--release 8` kiểm soát cả phiên bản bytecode và tập API Java được phép truy cập theo bản Java đích; nó **không có trong javac của JDK 8**.
+`--release 8` controls both the bytecode version and the set of Java APIs allowed for the target Java version; it is **not available in JDK 8's javac**.
 
-Chỉ dùng `-source 8 -target 8` với một JDK mới hơn có thể giới hạn cú pháp và bytecode nhưng **chưa đủ để ngăn tham chiếu tới API thư viện được bổ sung sau Java 8**. Đây là một nguyên nhân phổ biến của lỗi tương thích: mã biên dịch được trên JDK mới nhưng khi chạy bằng Java 8 lại không tìm thấy phương thức/lớp.
+Using only `-source 8 -target 8` with a newer JDK can restrict syntax and bytecode, but is **not sufficient to prevent references to library APIs added after Java 8**. This is a common cause of compatibility errors: code compiles on a newer JDK, then fails at runtime on Java 8 because the method/class cannot be found.
 
-### 21.2. Nhận diện lỗi thường gặp
+### 21.2. Recognizing Common Errors
 
-| Triệu chứng | Nguyên nhân đáng kiểm tra |
+| Symptom | Cause Worth Checking |
 |---|---|
-| `cannot find symbol: method toList()` trên Stream | `Stream.toList` chỉ có từ Java 16 |
-| `cannot find symbol: takeWhile(...)` | Java 8 chưa có; xuất hiện Java 9 |
-| `cannot find symbol: mapMulti(...)` | Java 8 chưa có; xuất hiện Java 16 |
-| `cannot find symbol: method of(...)` với `List.of` | Factory collection `List.of` từ Java 9 |
-| `UnsupportedClassVersionError` | Bytecode được biên dịch cho runtime mới hơn |
-| `NoSuchMethodError` ở runtime | Mã tham chiếu phương thức không có trong thư viện/runtime đang chạy hoặc có bất tương thích phiên bản |
-| `Cannot infer type` ở collector/lambda | Cần xem generic inference, overload và kiểu lambda, không phải mọi lỗi đều do thiếu API |
+| `cannot find symbol: method toList()` on Stream | `Stream.toList` only exists since Java 16 |
+| `cannot find symbol: takeWhile(...)` | Not in Java 8; introduced in Java 9 |
+| `cannot find symbol: mapMulti(...)` | Not in Java 8; introduced in Java 16 |
+| `cannot find symbol: method of(...)` with `List.of` | `List.of` collection factory is from Java 9 |
+| `UnsupportedClassVersionError` | Bytecode was compiled for a newer runtime |
+| `NoSuchMethodError` at runtime | Code references a method missing from the running library/runtime or has a version mismatch |
+| `Cannot infer type` in collector/lambda | Inspect generic inference, overloads, and lambda types; not every error is from a missing API |
 
-Đọc kỹ stack trace và dòng lỗi. Đừng thấy lỗi `toList` rồi chỉ thay sang `Collectors.toList` mà không xem **hợp đồng bất biến** của nơi sử dụng kết quả.
+Read the stack trace and error line carefully. Do not see a `toList` error and simply swap in `Collectors.toList` without checking the **immutability contract** at the call site.
 
 ---
 
-## 22. Ví dụ Java 8 hoàn chỉnh: phân tích giao dịch
+## 22. Complete Java 8 Example: Transaction Analysis
 
-Chương trình sau **không dùng API sau Java 8**. Nó lọc giao dịch hợp lệ, tính tổng, nhóm doanh thu theo category, chọn giao dịch lớn nhất và gom danh sách mã giao dịch.
+The following program **uses no post-Java 8 APIs**. It filters valid transactions, computes totals, groups revenue by category, finds the largest transaction, and collects the list of transaction IDs.
 
 ~~~java
 import java.math.BigInteger;
@@ -1821,7 +1821,7 @@ public class StreamApi8Demo {
 }
 ~~~
 
-Kết quả mong đợi:
+Expected output:
 
 ~~~text
 paidCount=4
@@ -1832,16 +1832,16 @@ biggest=T4
 ids=[T1, T2, T4, T5]
 ~~~
 
-**Giải thích các khía cạnh tương thích:**
+**Explanation of compatibility aspects:**
 
-- Class `Transaction` thông thường thay cho `record` (chưa có ở Java 8).
-- `Arrays.asList` thay cho `List.of`.
-- `Collectors.toList` thay `Stream.toList`.
-- `Collectors.groupingBy`, `mapping` và `reducing` đều đã có trong Java 8.
-- `BigInteger::add` giúp cộng số nguyên chính xác mà không làm tràn tổng `long` theo cách dùng `summingLong`.
-- `Optional<Transaction>` từ `max` biểu diễn khả năng không có giao dịch; `biggest.get()` chỉ an toàn ở ví dụ vì danh sách `paid` được biết không rỗng. Trong hệ thống thực tế, dùng `orElseThrow(Supplier)` hoặc một chính sách rỗng rõ ràng.
+- A regular `Transaction` class instead of `record` (not yet in Java 8).
+- `Arrays.asList` instead of `List.of`.
+- `Collectors.toList` instead of `Stream.toList`.
+- `Collectors.groupingBy`, `mapping`, and `reducing` all already exist in Java 8.
+- `BigInteger::add` sums integers accurately without overflowing a `long` total the way `summingLong` could.
+- `Optional<Transaction>` from `max` represents the possibility of having no transactions; `biggest.get()` is only safe in this example because the `paid` list is known to be non-empty. In production systems, use `orElseThrow(Supplier)` or an explicit empty policy.
 
-### 22.1. Dòng chảy dữ liệu của chương trình
+### 22.1. Data Flow of the Program
 
 ~~~text
 List<Transaction>
@@ -1862,111 +1862,111 @@ List<Transaction>
                +-- map(id).sorted().collect  -> [T1, T2, T4, T5]
 ~~~
 
-Mỗi nhánh trong sơ đồ bắt đầu từ một **Stream mới** trên danh sách `paid`, vì một Stream đã tiêu thụ không thể tái sử dụng. Trong trường hợp cần tối ưu lượt đọc nguồn, có thể thiết kế một collector tổng hợp nhiều trường, nhưng phải giữ đúng hợp đồng combiner.
+Each branch in the diagram starts from a **new Stream** on the `paid` list, because a consumed Stream cannot be reused. When optimizing source passes is necessary, you can design a collector that aggregates multiple fields, provided the combiner contract is preserved.
 
 ---
 
-## 23. Những sai lầm tương thích JDK thường gặp
+## 23. Common JDK Compatibility Mistakes
 
-| Sai lầm | Vì sao sai trên Java 8? | Cách xử lý |
+| Mistake | Why Is It Wrong on Java 8? | How to Fix |
 |---|---|---|
-| Dùng `stream.toList()` | Phương thức được bổ sung từ Java 16 | `collect(Collectors.toList())`, kiểm tra yêu cầu mutable/read-only |
-| Dùng `List.of(...)` | Factory có từ Java 9 | `Arrays.asList(...)` hoặc list cụ thể |
-| Dùng `Stream.ofNullable` | API từ Java 9 | `value == null ? Stream.empty() : Stream.of(value)` |
-| Dùng `Optional.stream` | API từ Java 9 | `flatMap` bằng `isPresent/get` |
-| Dùng `takeWhile/dropWhile` | API từ Java 9 | Vòng lặp dừng ở ranh giới hoặc nguồn tùy chỉnh |
-| Dùng `mapMulti` | API từ Java 16 | `flatMap` nếu phù hợp |
-| Dùng `Collectors.filtering/flatMapping` | Downstream adapters từ Java 9 | Collector tùy chỉnh hoặc đổi pipeline sau khi kiểm tra ngữ nghĩa |
-| Dùng `Collectors.teeing` | API từ Java 12 | Collector giữ nhiều trường hoặc các tổng hợp riêng |
-| Dùng `String.isBlank/strip` | API từ Java 11 | `trim/isEmpty` tùy yêu cầu Unicode |
-| Dùng `Path.of` | API từ Java 11 | `Paths.get` |
-| Dùng `record` hoặc `var` | Cú pháp chưa có ở Java 8 | Class/kiểu khai báo rõ ràng |
-| Dùng `optional.isEmpty()` | API từ Java 11 | `!optional.isPresent()` |
-| Coi `Collectors.toList` là luôn immutable | Không được bảo đảm bởi Collector | Copy và bọc unmodifiable nếu cần |
-| Dùng `Stream.of(intArray)` để duyệt từng số | Cho một phần tử kiểu `int[]` | `Arrays.stream(intArray)` hoặc `IntStream.of(...)` |
-| Coi `Stream<T>` có `sum()` | `sum()` nằm ở primitive streams | `mapToInt/mapToLong` hoặc `reduce` |
-| Dùng lại Stream sau `count` | Stream đã tiêu thụ | Tạo Stream mới từ nguồn |
-| Cho rằng parallel luôn nhanh hơn | Overhead chia/gộp và stateful operations | Kiểm tra đúng trước, benchmark sau |
+| Using `stream.toList()` | Method added in Java 16 | `collect(Collectors.toList())`, check mutable/read-only requirements |
+| Using `List.of(...)` | Factory introduced in Java 9 | `Arrays.asList(...)` or a concrete list |
+| Using `Stream.ofNullable` | API from Java 9 | `value == null ? Stream.empty() : Stream.of(value)` |
+| Using `Optional.stream` | API from Java 9 | `flatMap` using `isPresent/get` |
+| Using `takeWhile/dropWhile` | API from Java 9 | Loop stopping at the boundary or custom source |
+| Using `mapMulti` | API from Java 16 | `flatMap` if appropriate |
+| Using `Collectors.filtering/flatMapping` | Downstream adapters from Java 9 | Custom collector or adjust pipeline after checking semantics |
+| Using `Collectors.teeing` | API from Java 12 | Collector holding multiple fields or separate aggregations |
+| Using `String.isBlank/strip` | API from Java 11 | `trim/isEmpty` depending on Unicode requirements |
+| Using `Path.of` | API from Java 11 | `Paths.get` |
+| Using `record` or `var` | Syntax not yet in Java 8 | Regular class / explicit type declarations |
+| Using `optional.isEmpty()` | API from Java 11 | `!optional.isPresent()` |
+| Assuming `Collectors.toList` is always immutable | Not guaranteed by the Collector | Copy and wrap with unmodifiable view if needed |
+| Using `Stream.of(intArray)` to iterate numbers | Produces one element of type `int[]` | `Arrays.stream(intArray)` or `IntStream.of(...)` |
+| Assuming `Stream<T>` has `sum()` | `sum()` lives on primitive streams | `mapToInt/mapToLong` or `reduce` |
+| Reusing a Stream after `count` | Stream is already consumed | Create a new Stream from the source |
+| Assuming parallel is always faster | Split/merge overhead and stateful operations | Verify correctness first, benchmark later |
 
 ---
 
-## 24. Checklist chọn API cho dự án Java 8
+## 24. API Selection Checklist for Java 8 Projects
 
-Trước khi nộp một pipeline, hãy trả lời các câu hỏi:
+Before submitting a pipeline, answer these questions:
 
-1. **Runtime đích có thật là Java 8?** Không chỉ nhìn phiên bản JDK máy phát triển.
-2. **Cú pháp dùng có hợp lệ ở Java 8?** Không dùng `record`, `var`, text blocks hoặc `switch` expression mới.
-3. **Tất cả phương thức thư viện có từ Java 8?** Kiểm tra bảng mốc, nhất là `Stream.toList` và `takeWhile`.
-4. **Nguồn đến từ đâu?** Collection, mảng, tệp, iterator, bộ sinh hay Spliterator tùy chỉnh?
-5. **Stream kiểu object hay primitive?** Nếu đang tổng hợp số, có thể dùng `mapToInt/mapToLong`?
-6. **Pipeline có terminal operation?** Các thao tác `filter/map` tự chúng chưa tiêu thụ nguồn.
-7. **Có dùng lại Stream không?** Mỗi terminal operation cần Stream phù hợp, không tái dùng cái đã đóng/tiêu thụ.
-8. **Có thể rỗng không?** Xử lý `Optional`/`OptionalDouble` theo chính sách rõ.
-9. **Nguồn có null không?** Đừng dựa vào `Optional.get` hoặc mapper khi chưa kiểm tra.
-10. **Có yêu cầu thứ tự không?** `findFirst`, `limit`, `forEachOrdered` cần xem encounter order.
-11. **Có dùng song song không?** Xác minh stateless/non-interfering, combiner, container riêng.
-12. **Kết quả cần kiểu cụ thể hay immutable?** `Collectors.toList` không cam kết kiểu/độ bất biến.
-13. **Có tài nguyên I/O không?** Dùng `try-with-resources` với nguồn tệp.
-14. **Kiểu số đủ rộng chưa?** Kiểm tra overflow và sai số dấu phẩy động.
-15. **Có test biên và biên dịch đúng release đích chưa?** Java 8 trên JDK 8 hoặc `--release 8` từ JDK 9+.
+1. **Is the target runtime truly Java 8?** Do not just look at the development machine's JDK version.
+2. **Is the syntax valid in Java 8?** Do not use `record`, `var`, text blocks, or new `switch` expressions.
+3. **Do all library methods exist since Java 8?** Check the milestone table, especially `Stream.toList` and `takeWhile`.
+4. **Where does the source come from?** Collection, array, file, iterator, generator, or custom Spliterator?
+5. **Is the Stream object or primitive?** If aggregating numbers, can you use `mapToInt/mapToLong`?
+6. **Does the pipeline have a terminal operation?** `filter/map` operations by themselves do not consume the source.
+7. **Is the Stream reused?** Each terminal operation needs an appropriate Stream; never reuse a closed/consumed one.
+8. **Can it be empty?** Handle `Optional`/`OptionalDouble` according to an explicit policy.
+9. **Can the source contain nulls?** Do not rely on `Optional.get` or mappers without checking.
+10. **Are there ordering requirements?** `findFirst`, `limit`, and `forEachOrdered` require checking encounter order.
+11. **Is parallelism used?** Verify stateless/non-interfering behavior, combiner, and separate containers.
+12. **Does the result need a specific type or immutability?** `Collectors.toList` does not guarantee type or immutability.
+13. **Are there I/O resources?** Use `try-with-resources` for file sources.
+14. **Are numeric types wide enough?** Check for overflow and floating-point rounding error.
+15. **Are there boundary tests and compilation for the target release?** Java 8 on JDK 8 or `--release 8` on JDK 9+.
 
-### 24.1. Sơ đồ ra quyết định
+### 24.1. Decision Diagram
 
 ~~~text
-Cần xử lý tập dữ liệu bằng Java 8?
+Need to process a dataset with Java 8?
                 |
                 v
-         Tạo nguồn Stream
+        Create Stream Source
                 |
                 +---- Collection.stream / Arrays.stream
                 +---- Stream.of / IntStream.range
                 +---- Files.lines / StreamSupport.stream
                 |
                 v
-       Chọn kiểu phù hợp
+       Choose Appropriate Type
            |              |
        Stream<T>       Primitive Stream
            |              |
            +------+-------+
                   |
                   v
-         Intermediate operations
+         Intermediate Operations
         filter / map / flatMap
      distinct / sorted / skip / limit
                   |
                   v
-       Chọn terminal operation
+       Choose Terminal Operation
        |         |          |
-   Tìm/đếm    reduce      collect
+   Find/Count  reduce     collect
        |         |          |
-   Optional     Value     List/Map/...
+   Optional    Value     List/Map/...
        \         |          /
         \        |         /
          v       v        v
-    Kiểm tra null/rỗng/order/overflow
+    Check null/empty/order/overflow
                   |
                   v
-     Biên dịch theo Java 8 API
+     Compile Against Java 8 API
                   |
                   v
-       Kiểm thử và benchmark
+       Test and Benchmark
 ~~~
 
 ---
 
-## 25. Bài tập tự kiểm tra (có lời giải)
+## 25. Self-Check Exercises (With Solutions)
 
-### Bài 1. Phân loại API Java 8
+### Exercise 1. Classifying Java 8 APIs
 
-**Đề:** Những phương thức nào trong danh sách có sẵn ở Java 8: `filter`, `takeWhile`, `flatMap`, `mapMulti`, `Collectors.groupingBy`, `Stream.toList`, `Collectors.collectingAndThen`?
+**Prompt:** Which methods in this list are available in Java 8: `filter`, `takeWhile`, `flatMap`, `mapMulti`, `Collectors.groupingBy`, `Stream.toList`, `Collectors.collectingAndThen`?
 
-**Đáp án:** Có trong Java 8: `filter`, `flatMap`, `Collectors.groupingBy`, `Collectors.collectingAndThen`. Không có: `takeWhile` (9), `mapMulti` (16), `Stream.toList` (16).
+**Answer:** Available in Java 8: `filter`, `flatMap`, `Collectors.groupingBy`, `Collectors.collectingAndThen`. Not available: `takeWhile` (9), `mapMulti` (16), `Stream.toList` (16).
 
-### Bài 2. Sửa Stream.toList
+### Exercise 2. Fixing Stream.toList
 
-**Đề:** Chuyển `names.stream().map(String::trim).toList()` thành code Java 8.
+**Prompt:** Convert `names.stream().map(String::trim).toList()` to Java 8 code.
 
-**Đáp án:**
+**Answer:**
 
 ~~~java
 List<String> result = names.stream()
@@ -1974,13 +1974,13 @@ List<String> result = names.stream()
         .collect(Collectors.toList());
 ~~~
 
-Nếu kết quả phải là List không thể chỉnh sửa cấu trúc, cần thêm defensive copy và `Collections.unmodifiableList` trong Java 8.
+If the result must be a structurally unmodifiable List, also add a defensive copy and `Collections.unmodifiableList` in Java 8.
 
-### Bài 3. Tính tổng bằng primitive Stream
+### Exercise 3. Summing with a Primitive Stream
 
-**Đề:** `List<String> words = Arrays.asList("a", "bb", "ccc")`. Tính tổng độ dài bằng Java 8.
+**Prompt:** `List<String> words = Arrays.asList("a", "bb", "ccc")`. Compute the total length using Java 8.
 
-**Đáp án:**
+**Answer:**
 
 ~~~java
 int total = words.stream()
@@ -1990,45 +1990,45 @@ int total = words.stream()
 System.out.println(total); // 6
 ~~~
 
-### Bài 4. Stream.of trên mảng nguyên thủy
+### Exercise 4. Stream.of on a Primitive Array
 
-**Đề:** Vì sao `Stream.of(new int[]{1,2,3}).count()` trả `1`?
+**Prompt:** Why does `Stream.of(new int[]{1,2,3}).count()` return `1`?
 
-**Đáp án:** Stream này có một phần tử kiểu `int[]`. Muốn ba số nguyên, dùng `Arrays.stream(new int[]{1,2,3})` hoặc `IntStream.of(1,2,3)`.
+**Answer:** This Stream contains one element of type `int[]`. To get three integers, use `Arrays.stream(new int[]{1,2,3})` or `IntStream.of(1,2,3)`.
 
-### Bài 5. range và rangeClosed
+### Exercise 5. range and rangeClosed
 
-**Đề:** `IntStream.range(1,4).sum()` khác `IntStream.rangeClosed(1,4).sum()` thế nào?
+**Prompt:** How does `IntStream.range(1,4).sum()` differ from `IntStream.rangeClosed(1,4).sum()`?
 
-**Đáp án:** `range(1,4)` duyệt 1,2,3 nên tổng 6; `rangeClosed(1,4)` duyệt 1,2,3,4 nên tổng 10.
+**Answer:** `range(1,4)` iterates 1,2,3 for a sum of 6; `rangeClosed(1,4)` iterates 1,2,3,4 for a sum of 10.
 
-### Bài 6. Optional trong Java 8
+### Exercise 6. Optional in Java 8
 
-**Đề:** `Optional<String> result` có thể rỗng. Viết cách trả `"N/A"` nếu thiếu và cách báo lỗi nếu thiếu.
+**Prompt:** `Optional<String> result` may be empty. Write how to return `"N/A"` if missing and how to throw an error if missing.
 
-**Đáp án:**
+**Answer:**
 
 ~~~java
 String shown = result.orElse("N/A");
 
 String required = result.orElseThrow(
-        () -> new IllegalStateException("Thiếu dữ liệu")
+        () -> new IllegalStateException("Missing data")
 );
 ~~~
 
-Cả hai cách có trong Java 8. `result.orElseThrow()` không tham số chưa có trong Java 8.
+Both approaches exist in Java 8. No-argument `result.orElseThrow()` does not exist in Java 8.
 
-### Bài 7. toMap với khóa trùng
+### Exercise 7. toMap with Duplicate Keys
 
-**Đề:** Dữ liệu có hai chuỗi `"an"` và `"bo"`. Điều gì xảy ra khi `Collectors.toMap(String::length, Function.identity())`?
+**Prompt:** Data contains two strings `"an"` and `"bo"`. What happens with `Collectors.toMap(String::length, Function.identity())`?
 
-**Đáp án:** Cùng khóa `2`, overload hai tham số ném `IllegalStateException`. Nếu nghiệp vụ cho phép trùng, thêm merge function rõ ràng hoặc dùng `groupingBy`.
+**Answer:** With the same key `2`, the two-parameter overload throws `IllegalStateException`. If business logic allows duplicates, add an explicit merge function or use `groupingBy`.
 
-### Bài 8. Có cần FlatMapping từ Java 9?
+### Exercise 8. Is FlatMapping from Java 9 Needed?
 
-**Đề:** Dùng Java 8 để làm phẳng `List<List<Integer>>`.
+**Prompt:** Use Java 8 to flatten `List<List<Integer>>`.
 
-**Đáp án:**
+**Answer:**
 
 ~~~java
 List<Integer> flat = nested.stream()
@@ -2036,63 +2036,63 @@ List<Integer> flat = nested.stream()
         .collect(Collectors.toList());
 ~~~
 
-`Stream.flatMap` đã có trong Java 8. `Collectors.flatMapping` là downstream adapter mới hơn.
+`Stream.flatMap` already exists in Java 8. `Collectors.flatMapping` is a newer downstream adapter.
 
-### Bài 9. takeWhile có thể thay bằng filter không?
+### Exercise 9. Can takeWhile Be Replaced by filter?
 
-**Đề:** Nguồn có thứ tự `[1,3,8,2,4]`, cần các phần tử **trước số đầu tiên ≥ 5**. Dùng `filter(n -> n < 5)` có đúng không?
+**Prompt:** An ordered source is `[1,3,8,2,4]`, needing elements **before the first number ≥ 5**. Is using `filter(n -> n < 5)` correct?
 
-**Đáp án:** Không. `filter` trả `[1,3,2,4]`; tiền tố đúng là `[1,3]`. Trên Java 8, dùng vòng lặp với `break` hoặc nguồn tùy chỉnh có điều kiện dừng.
+**Answer:** No. `filter` returns `[1,3,2,4]`; the correct prefix is `[1,3]`. In Java 8, use a loop with `break` or a custom source with a stopping condition.
 
-### Bài 10. Vì sao Stream không tái sử dụng?
+### Exercise 10. Why Is a Stream Not Reusable?
 
-**Đề:** Có thể gọi `Stream<Integer> s = list.stream(); s.count(); s.findFirst();` không?
+**Prompt:** Can you call `Stream<Integer> s = list.stream(); s.count(); s.findFirst();`?
 
-**Đáp án:** Không. `count()` là terminal operation đã tiêu thụ Stream. Tạo `list.stream()` lần nữa cho phép tìm.
+**Answer:** No. `count()` is a terminal operation that already consumed the Stream. Creating `list.stream()` again allows finding.
 
-### Bài 11. reduce sai identity
+### Exercise 11. reduce with Wrong Identity
 
-**Đề:** Vì sao `reduce(10, Integer::sum)` không đúng để tính tổng bình thường, nhất là trên parallel stream?
+**Prompt:** Why is `reduce(10, Integer::sum)` incorrect for a normal sum, especially on a parallel stream?
 
-**Đáp án:** Identity của phép cộng là `0`, không phải 10. Nhiều phân vùng có thể mỗi phần cộng thêm 10. Dùng `reduce(0, Integer::sum)`; nếu nghiệp vụ có phí cộng thêm 10, áp dụng một lần sau khi giảm gộp.
+**Answer:** The identity for addition is `0`, not 10. Multiple partitions may each add 10. Use `reduce(0, Integer::sum)`; if business logic has an added fee of 10, apply it once after reduction.
 
-### Bài 12. Có thể dùng ArrayList chung với parallel forEach?
+### Exercise 12. Can a Shared ArrayList Be Used with parallel forEach?
 
-**Đề:** Việc gọi `parallelStream().forEach(sharedList::add)` khi `sharedList` là `ArrayList` có an toàn không?
+**Prompt:** Is calling `parallelStream().forEach(sharedList::add)` safe when `sharedList` is an `ArrayList`?
 
-**Đáp án:** Không. `ArrayList` không thread-safe cho nhiều lần ghi đồng thời. Dùng `collect(Collectors.toList())` hoặc collector có supplier/combiner đúng hợp đồng.
+**Answer:** No. `ArrayList` is not thread-safe for concurrent writes. Use `collect(Collectors.toList())` or a collector with contract-compliant supplier/combiner.
 
-### Bài 13. Collectors.toList có đảm bảo read-only?
+### Exercise 13. Does Collectors.toList Guarantee Read-Only?
 
-**Đề:** Có thể dựa vào `Collectors.toList()` trả danh sách không chỉnh sửa được không?
+**Prompt:** Can you rely on `Collectors.toList()` returning an unmodifiable list?
 
-**Đáp án:** Không. Collector không bảo đảm loại List hoặc tính bất biến. Nếu cần snapshot cấu trúc không thể sửa trên Java 8, dùng `Collections.unmodifiableList(new ArrayList<>(list))`.
+**Answer:** No. The Collector does not guarantee List type or immutability. If a structurally unmodifiable snapshot is needed in Java 8, use `Collections.unmodifiableList(new ArrayList<>(list))`.
 
-### Bài 14. Xử lý I/O bằng Stream
+### Exercise 14. Handling I/O with Streams
 
-**Đề:** Vì sao phải dùng `try-with-resources` với `Files.lines(...)`?
+**Prompt:** Why must `try-with-resources` be used with `Files.lines(...)`?
 
-**Đáp án:** Stream tệp có thể giữ file handle/tài nguyên mở. Terminal operation không tự động đóng nguồn; cần bảo đảm gọi `close()` khi hoàn tất hoặc có lỗi.
+**Answer:** A file Stream may hold open file handles/resources. Terminal operations do not automatically close the source; ensure `close()` is called on completion or error.
 
-### Bài 15. Biên dịch trên JDK mới cho Java 8
+### Exercise 15. Compiling on a Newer JDK for Java 8
 
-**Đề:** Đang dùng javac của JDK 17, cần phát hành chương trình cho Java 8. Nên chọn cách nào?
+**Prompt:** Using JDK 17's javac and needing to release a program for Java 8. Which option should be chosen?
 
-**Đáp án:** Dùng `javac --release 8 ...` để chặn tham chiếu API sau Java 8 và phát hành bytecode phù hợp. `--release` có từ JDK 9, không có trong javac JDK 8.
+**Answer:** Use `javac --release 8 ...` to block post-Java 8 API references and emit appropriate bytecode. `--release` exists since JDK 9, not in JDK 8's javac.
 
-### Bài 16. Không nhầm Collector và Spliterator
+### Exercise 16. Not Confusing Collector and Spliterator
 
-**Đề:** `Collector.Characteristics.CONCURRENT` có cùng nghĩa `Spliterator.CONCURRENT` không?
+**Prompt:** Does `Collector.Characteristics.CONCURRENT` have the same meaning as `Spliterator.CONCURRENT`?
 
-**Đáp án:** Không. Một cờ mô tả khả năng tích lũy của collector, cờ kia mô tả nguồn có hỗ trợ sửa đổi đồng thời. Hai hợp đồng liên quan các tầng khác nhau của Stream pipeline.
+**Answer:** No. One flag describes the collector's accumulation capability, while the other describes whether the source supports concurrent modification. The two contracts pertain to different layers of a Stream pipeline.
 
 ---
 
-## Tổng kết
+## Summary
 
-Java 8 đã cung cấp **phần lớn nền tảng Java Stream API**: nguồn từ collection/mảng/bộ sinh/I/O, `Stream<T>` và primitive streams, pipeline `filter`/`map`/`flatMap`/`distinct`/`sorted`/`skip`/`limit`, terminal operations, `Optional`, `reduce`, `collect`, `Collectors`, `Spliterator` và `StreamSupport`. Các chủ đề nâng cao như grouping, collector tùy chỉnh và xử lý song song đều đã có điểm xuất phát ngay từ Java 8.
+Java 8 already provides **most of the Java Stream API foundation**: sources from collections/arrays/generators/I/O, `Stream<T>` and primitive streams, pipelines with `filter`/`map`/`flatMap`/`distinct`/`sorted`/`skip`/`limit`, terminal operations, `Optional`, `reduce`, `collect`, `Collectors`, `Spliterator`, and `StreamSupport`. Advanced topics such as grouping, custom collectors, and parallel processing all have their starting point right in Java 8.
 
-Những tính năng như `Stream.ofNullable`, `takeWhile/dropWhile`, `Optional.stream`, `Collectors.filtering`, `Collectors.teeing`, `Stream.toList`, `mapMulti` và Stream Gatherers là **mở rộng của các JDK sau**. Khi bảo trì dự án Java 8, hãy phân biệt tên API, phiên bản bổ sung và hợp đồng của phương án thay thế, đặc biệt ở các trường hợp rỗng, thứ tự, tính bất biến và tính đúng khi song song.
+Features such as `Stream.ofNullable`, `takeWhile/dropWhile`, `Optional.stream`, `Collectors.filtering`, `Collectors.teeing`, `Stream.toList`, `mapMulti`, and Stream Gatherers are **extensions from later JDKs**. When maintaining Java 8 projects, distinguish API names, added versions, and the contract of replacement approaches, especially for empty cases, ordering, immutability, and parallel correctness.
 
-**Ghi nhớ:** Học **bản đồ API Java 8** trước khi học tính năng Stream mới giúp bạn chọn đúng công cụ, đọc được code cũ và chuyển phiên bản an toàn. Một pipeline ngắn chỉ thực sự tốt khi **biên dịch được trên runtime mục tiêu**, **giữ đúng ý nghĩa nghiệp vụ** và **không dựa vào những bảo đảm mà API chưa hứa**.
+**Key takeaway:** Learning the **Java 8 API map** before learning newer Stream features helps you choose the right tool, read legacy code, and migrate versions safely. A short pipeline is only truly good when it **compiles on the target runtime**, **preserves exact business semantics**, and **does not rely on guarantees the API does not promise**.
 

@@ -1,44 +1,44 @@
-# `String.splitWithDelimiters()` — tách chuỗi và giữ dấu phân cách (Java 21)
+# `String.splitWithDelimiters()` — splitting strings while keeping delimiters (Java 21)
 
-Khi cần chia một chuỗi thành các phần, `String.split(regex)` thường đủ dùng. Nhưng nếu muốn **giữ nguyên ký tự hoặc đoạn ký tự đã dùng để tách** (dấu phẩy, dấu hai chấm, khoảng trắng, dấu phân cách nhiều ký tự...), Java 21 cung cấp `String.splitWithDelimiters(regex, limit)`. Phương thức trả về cả phần nội dung và phần khớp biểu thức chính quy theo đúng thứ tự xuất hiện.
+When you need to divide a string into parts, `String.split(regex)` is often enough. However, if you want to **preserve the characters or substrings used as separators** (commas, colons, whitespace, multi-character delimiters, etc.), Java 21 provides `String.splitWithDelimiters(regex, limit)`. This method returns both the content segments and the regex matches in exact order of appearance.
 
-## 1. API và ý nghĩa
+## 1. API and meaning
 
 ```java
 public String[] splitWithDelimiters(String regex, int limit)
 ```
 
-- `regex`: **biểu thức chính quy (regular expression)** mô tả dấu phân cách cần tìm; đây không mặc nhiên là chuỗi ký tự thông thường.
-- `limit`: điều khiển số lần tách và việc giữ/bỏ những chuỗi rỗng ở cuối kết quả.
-- Giá trị trả về: `String[]` lần lượt chứa **đoạn nội dung, dấu phân cách khớp regex, đoạn nội dung, dấu phân cách, ...**; dấu phân cách giữ chính xác những ký tự thật sự khớp.
-- Phương thức có từ **Java 21**. Không có phiên bản `splitWithDelimiters(regex)` chỉ nhận một tham số như `split(regex)`; phải truyền `limit`.
+- `regex`: a **regular expression** describing the delimiter to find; it is not treated as an ordinary literal string by default.
+- `limit`: controls the number of splits and whether trailing empty strings are kept or discarded.
+- Return value: a `String[]` alternating between **content segment, regex-matched delimiter, content segment, delimiter, ...**; each delimiter keeps the exact characters that actually matched.
+- Available since **Java 21**. There is no single-argument `splitWithDelimiters(regex)` overload like `split(regex)`; you must pass `limit`.
 
-Ví dụ, với `"red:::green::blue"` và regex `":+"`, kết quả là `["red", ":::", "green", "::", "blue"]`. Hai dấu phân cách `":::"` và `"::"` được giữ ở các phần tử riêng, do `:+` khớp **một hoặc nhiều** dấu hai chấm liên tiếp.
+For example, with `"red:::green::blue"` and regex `":+"`, the result is `["red", ":::", "green", "::", "blue"]`. The two delimiters `":::"` and `"::"` are kept as separate elements because `:+` matches **one or more** consecutive colons.
 
-`String.splitWithDelimiters(regex, limit)` có cùng ý nghĩa với `Pattern.compile(regex).splitWithDelimiters(input, limit)`. Bản `Pattern` hữu ích khi phải tái sử dụng một regex nhiều lần.
+`String.splitWithDelimiters(regex, limit)` has the same semantics as `Pattern.compile(regex).splitWithDelimiters(input, limit)`. The `Pattern` version is useful when reusing a regex many times.
 
-## 2. Khác gì `split()`?
+## 2. How does it differ from `split()`?
 
-| Phép gọi với `s = "a::b:c"` | Kết quả |
+| Call with `s = "a::b:c"` | Result |
 | --- | --- |
 | `s.split(":+", -1)` | `["a", "b", "c"]` |
 | `s.splitWithDelimiters(":+", -1)` | `["a", "::", "b", ":", "c"]` |
 
-`split()` bỏ các đoạn khớp regex; `splitWithDelimiters()` lưu chúng trong mảng. Vì vậy phương thức mới phù hợp khi muốn dựng lại nguyên văn chuỗi ban đầu, phân tích log, giữ nguyên dấu câu hoặc nhận biết từng loại ký tự phân cách.
+`split()` discards the regex-matched segments; `splitWithDelimiters()` stores them in the array. Thus the new method is suited for reconstructing the exact original string, parsing logs, preserving punctuation, or identifying each delimiter variant.
 
-Hình dung luồng xử lý:
+Visualizing the processing flow:
 
 ```text
-Chuỗi:        red ::: green :: blue
-Đoạn trả về: [red][:::][green][::][blue]
-Loại:        [NỘI DUNG][NGĂN CÁCH][NỘI DUNG][NGĂN CÁCH][NỘI DUNG]
+String:    red ::: green :: blue
+Returned:  [red][:::][green][::][blue]
+Type:      [CONTENT][DELIMITER][CONTENT][DELIMITER][CONTENT]
 ```
 
-Mỗi lần tìm thấy dấu phân cách, kết quả thêm phần nội dung **đứng trước** rồi đến chính phần khớp. Nếu không có dấu phân cách nào khớp, mảng chỉ có một phần tử là toàn bộ chuỗi đầu vào.
+Each time a delimiter is found, the result appends the **preceding** content segment followed by the matched delimiter itself. If no delimiter matches, the array has only one element containing the entire input string.
 
-## 3. Ví dụ Java 21 chạy độc lập
+## 3. Standalone Java 21 example
 
-Tạo file `SplitWithDelimitersDemo.java`:
+Create the file `SplitWithDelimitersDemo.java`:
 
 ```java
 import java.util.Arrays;
@@ -59,7 +59,7 @@ public class SplitWithDelimitersDemo {
         System.out.println("round-trip  = "
                 + input.equals(String.join("", parts)));
 
-        // Dấu chấm theo nghĩa ký tự thật, không phải wildcard regex.
+        // Literal dot character, not regex wildcard.
         System.out.println("literal dot = "
                 + Arrays.toString(
                         "a.b.c".splitWithDelimiters(Pattern.quote("."), -1)));
@@ -67,14 +67,14 @@ public class SplitWithDelimitersDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 21 trở lên:
+Compile and run with JDK 21 or later:
 
 ```bash
 javac --release 21 SplitWithDelimitersDemo.java
 java SplitWithDelimitersDemo
 ```
 
-Kết quả chuẩn:
+Expected output:
 
 ```text
 split       = [red, green, blue]
@@ -84,43 +84,43 @@ round-trip  = true
 literal dot = [a, ., b, ., c]
 ```
 
-`String.join("", parts)` nối tuần tự tất cả phần nội dung và dấu phân cách, không chèn thêm gì. Với regex tách thông thường, cách này giúp kiểm tra đã giữ được nguyên văn đầu vào. Kết quả `limit 2` cho thấy chỉ dấu `:::` đầu tiên được tách ra; phần `green::blue` còn lại giữ nguyên.
+`String.join("", parts)` concatenates all content segments and delimiters in sequence without inserting anything. For normal splitting regexes, this verifies that the exact original input was preserved. The `limit 2` result shows that only the first `:::` was split out; the remaining `green::blue` stays intact.
 
-## 4. Hiểu chính xác tham số `limit`
+## 4. Understanding the `limit` parameter accurately
 
-`limit` **không phải số phần tử tối đa** của mảng, cũng không phải độ dài tối đa của từng phần tử.
+`limit` is **not the maximum number of elements** in the array, nor is it the maximum length of each element.
 
-| `limit` | Cách xử lý | Hệ quả |
+| `limit` | Behavior | Consequence |
 | --- | --- | --- |
-| `> 0` | Áp dụng regex tối đa `limit - 1` lần | Mảng dài tối đa `2 * limit - 1` phần tử; phần tử cuối chứa toàn bộ phần còn lại |
-| `= 0` | Tách tối đa | Bỏ **các chuỗi rỗng ở cuối** mảng, gồm phần nội dung rỗng hoặc dấu phân cách rỗng |
-| `< 0` | Tách tối đa | Giữ cả các chuỗi rỗng ở cuối |
+| `> 0` | Applies the regex at most `limit - 1` times | Array length is at most `2 * limit - 1` elements; last element holds the entire remainder |
+| `= 0` | Splits as many times as possible | Discards **trailing empty strings** from the array, whether empty content or empty delimiter |
+| `< 0` | Splits as many times as possible | Keeps trailing empty strings as well |
 
-Với chuỗi `"a,b,"`, regex `","`:
+With the string `"a,b,"` and regex `","`:
 
-| Lệnh | Mảng trả về (dùng ký hiệu dấu ngoặc kép để nhìn rõ chuỗi rỗng) |
+| Call | Returned array (using double quotes so empty strings are visible) |
 | --- | --- |
 | `splitWithDelimiters(",", 1)` | `["a,b,"]` |
 | `splitWithDelimiters(",", 2)` | `["a", ",", "b,"]` |
 | `splitWithDelimiters(",", 0)` | `["a", ",", "b", ","]` |
 | `splitWithDelimiters(",", -1)` | `["a", ",", "b", ",", ""]` |
 
-Lưu ý ở `limit = 0`: **dấu phẩy cuối vẫn còn** vì đó là chuỗi `","`, không rỗng; chỉ phần nội dung `""` sau dấu phẩy bị bỏ. `limit = -1` sẽ giữ phần tử `""` để phân biệt kết thúc ngay sau dấu phân cách.
+Note that at `limit = 0`, **the trailing comma remains** because it is the string `","`, which is non-empty; only the empty content `""` after the comma is removed. `limit = -1` keeps the `""` element to distinguish ending immediately after a delimiter.
 
-Với `limit = 1`, không thực hiện lần tách nào, nên kết quả là mảng một phần tử chứa cả chuỗi. Với `limit > 1`, số lần tách tối đa là `limit - 1`, mỗi lần tách có thể tạo thêm **hai phần tử** (nội dung và dấu phân cách); do đó giới hạn độ dài là `2 * limit - 1`, khác `String.split(regex, limit)`.
+With `limit = 1`, no splits occur, so the result is a one-element array containing the whole string. With `limit > 1`, the maximum number of splits is `limit - 1`, and each split can add **two elements** (content and delimiter); hence the length cap is `2 * limit - 1`, unlike `String.split(regex, limit)`.
 
-## 5. Regex quyết định dấu phân cách được giữ như thế nào
+## 5. How the regex determines which delimiters are kept
 
-- Regex `","` chỉ khớp một dấu phẩy. Với `"a,,b"` và `limit = -1`, nhận `["a", ",", "", ",", "b"]`. Phần nội dung rỗng ở giữa là thông tin có ý nghĩa: hai dấu phẩy liên tiếp.
-- Regex `",+"` khớp cả nhóm dấu phẩy liên tiếp. Cùng chuỗi `"a,,b"` sẽ thành `["a", ",,", "b"]`. Hãy chọn `","` hay `",+"` theo việc muốn phân biệt từng dấu riêng hay gộp cả cụm.
-- Regex `"[,;]\\s*"` khớp một dấu phẩy **hoặc** chấm phẩy, sau đó là mọi khoảng trắng liền kề. `"milk, bread; eggs".splitWithDelimiters("[,;]\\s*", -1)` trả về `["milk", ", ", "bread", "; ", "eggs"]`. Khoảng trắng cũng nằm trong dấu phân cách nên không bị mất.
-- Các ký tự `.`, `|`, `*`, `+`, `?`, `(`, `)`, `[`, `]`... có ý nghĩa đặc biệt trong regex. Để tách theo **ký tự dấu chấm thật**, dùng `"\\."` trong source Java, hoặc `Pattern.quote(".")`; truyền `"."` sẽ khớp gần như mọi ký tự đơn lẻ.
+- Regex `","` matches only a single comma. With `"a,,b"` and `limit = -1`, you get `["a", ",", "", ",", "b"]`. The empty content in the middle carries information: two consecutive commas.
+- Regex `",+"` matches a run of consecutive commas. The same string `"a,,b"` becomes `["a", ",,", "b"]`. Choose `","` or `",+"` depending on whether you want to distinguish individual delimiters or collapse runs.
+- Regex `"[,;]\\s*"` matches a comma **or** semicolon followed by any adjacent whitespace. `"milk, bread; eggs".splitWithDelimiters("[,;]\\s*", -1)` returns `["milk", ", ", "bread", "; ", "eggs"]`. Whitespace is included in the delimiter so it is not lost.
+- Characters `.`, `|`, `*`, `+`, `?`, `(`, `)`, `[`, `]`... have special meaning in regex. To split on a **literal period character**, use `"\\."` in Java source or `Pattern.quote(".")`; passing `"."` matches almost every single character.
 
-Nếu regex có thể khớp **chuỗi rỗng** (zero-width match), kết quả có các quy tắc biên cần chú ý. Cụ thể, một match **không rỗng** ngay đầu chuỗi sẽ tạo phần nội dung rỗng ở đầu; còn match **độ rộng bằng 0** ngay đầu chuỗi **không** tạo phần nội dung rỗng hoặc phần dấu phân cách rỗng mở đầu. Không nên mặc định mọi regex đều tạo cùng kiểu mảng như ví dụ chỉ dùng dấu phân cách thật.
+If the regex can match the **empty string** (zero-width match), the result has boundary rules to watch out for. Specifically, a **non-empty** match right at the start of the string produces a leading empty content element; a **zero-width** match right at the start of the string does **not** produce a leading empty content or empty delimiter element. Do not assume every regex produces the same array shape as examples using real character delimiters.
 
-## 6. Trường hợp biên quan trọng
+## 6. Important edge cases
 
-| Input | Regex | `limit` | Kết quả |
+| Input | Regex | `limit` | Result |
 | --- | --- | --- | --- |
 | `",A"` | `","` | `-1` | `["", ",", "A"]` |
 | `"A,"` | `","` | `-1` | `["A", ",", ""]` |
@@ -128,11 +128,11 @@ Nếu regex có thể khớp **chuỗi rỗng** (zero-width match), kết quả 
 | `"A,,B"` | `","` | `-1` | `["A", ",", "", ",", "B"]` |
 | `"ABC"` | `","` | `-1` | `["ABC"]` |
 
-Các kết quả này minh họa sự khác nhau giữa **đoạn nội dung rỗng** và **dấu phân cách**. Với `limit = 0`, chỉ phần tử rỗng nằm **ở tận cuối** bị loại; phần nội dung rỗng giữa hai dấu phân cách vẫn được giữ.
+These results illustrate the difference between **empty content segments** and **delimiters**. With `limit = 0`, only empty elements **at the very end** are removed; empty content between two delimiters is still kept.
 
-## 7. Ứng dụng thực tế: xử lý token nhưng giữ dấu nối
+## 7. Practical use case: processing tokens while preserving separators
 
-Giả sử muốn tô màu từng phần của chuỗi mà vẫn giữ nguyên dấu phẩy, dấu chấm phẩy và khoảng trắng sau chúng:
+Suppose you want to style each part of a string while keeping commas, semicolons, and trailing spaces intact:
 
 ```java
 String input = "milk, bread; eggs";
@@ -146,7 +146,7 @@ for (int i = 0; i < tokens.length; i++) {
 }
 ```
 
-Đây là **đoạn mã dùng bên trong phương thức hoặc JShell**, không phải một file Java độc lập. Kết quả:
+This is a **code snippet for use inside a method or JShell**, not a standalone Java file. Output:
 
 ```text
 TEXT: <milk>
@@ -156,27 +156,27 @@ DELIMITER: <; >
 TEXT: <eggs>
 ```
 
-Với cách tách giữ delimiter này, các phần tử ở chỉ số chẵn (`0, 2, 4...`) là phần nội dung, chỉ số lẻ (`1, 3, 5...`) là dấu phân cách. Khi regex có thể khớp chuỗi rỗng, phải xét thêm quy tắc zero-width; khi `limit = 0` làm mất phần nội dung rỗng cuối, mảng có thể kết thúc ngay sau một delimiter.
+With delimiter-preserving splitting, elements at even indices (`0, 2, 4...`) are content segments, and odd indices (`1, 3, 5...`) are delimiters. When a regex can match empty strings, zero-width rules must also be considered; when `limit = 0` strips trailing empty content, the array may end right after a delimiter.
 
-Các phần tử có thể dùng để dựng giao diện highlight, chuẩn hóa một số kiểu log, đếm hoặc nhận diện từng dấu phân cách. Nếu muốn giữ nguyên dữ liệu gốc để xử lý tiếp, thường chọn `limit = -1`.
+These elements can be used for syntax highlighting UIs, normalizing certain log formats, or counting and identifying individual delimiters. If you want to keep the original data intact for further processing, `limit = -1` is typically chosen.
 
-## 8. Các lỗi thường gặp và cách chọn API
+## 8. Common mistakes and choosing the right API
 
-1. **Nhầm regex với chuỗi literal:** `"."` là ký tự đại diện trong regex; dùng `Pattern.quote(".")` hoặc `"\\."` khi tìm dấu chấm thực sự.
-2. **Tưởng `limit = 2` nghĩa là hai phần tử:** phương thức có thể trả về ba phần tử `[trước, delimiter, còn_lại]`.
-3. **Tưởng `limit = 0` xóa dấu phân cách cuối:** nó chỉ xóa **chuỗi rỗng** ở cuối, không xóa ký tự phân cách thật.
-4. **Bỏ quên phần nội dung rỗng giữa hai delimiter:** `"a,,b"` khác `"a,b"` nếu quy tắc dữ liệu coi trường rỗng là quan trọng.
-5. **Dùng regex phức tạp cho dữ liệu có cấu trúc:** phương thức này **không thay thế parser CSV chuẩn** (đặc biệt khi có chuỗi trong ngoặc kép, dấu phân cách được escape) hay parser cho cú pháp lồng nhau.
-6. **Lặp lại regex nhiều lần trên lượng dữ liệu lớn:** có thể biên dịch một `Pattern` trước rồi dùng `pattern.splitWithDelimiters(input, limit)` để tái sử dụng; tránh regex có backtracking tốn kém.
+1. **Confusing regex with literal strings:** `"."` is a wildcard in regex; use `Pattern.quote(".")` or `"\\."` when looking for a real dot.
+2. **Assuming `limit = 2` means two elements:** the method can return three elements `[before, delimiter, remainder]`.
+3. **Thinking `limit = 0` removes a trailing delimiter:** it only removes trailing **empty strings**, not real delimiter characters.
+4. **Overlooking empty content between two delimiters:** `"a,,b"` differs from `"a,b"` if data rules treat empty fields as significant.
+5. **Using complex regexes for structured data:** this method **does not replace a proper CSV parser** (especially with quoted strings or escaped delimiters) or a parser for nested syntax.
+6. **Repeating the same regex on large datasets:** precompile a `Pattern` and call `pattern.splitWithDelimiters(input, limit)` to reuse it; avoid regexes with expensive backtracking.
 
-**Chọn `split()`** khi chỉ cần các giá trị sau khi loại dấu phân cách. **Chọn `splitWithDelimiters()`** khi vị trí và nguyên văn dấu phân cách cũng là thông tin cần giữ.
+**Choose `split()`** when you only need the values after removing delimiters. **Choose `splitWithDelimiters()`** when the positions and exact text of delimiters are also information you need to keep.
 
-## 9. Tự kiểm tra
+## 9. Self-check
 
-- `"x|y".splitWithDelimiters("\\|", -1)` trả về gì? → `["x", "|", "y"]`.
-- Vì sao `"x,,y".splitWithDelimiters(",", -1)` có phần tử `""`? → Hai lần khớp dấu phẩy liên tiếp, không có nội dung giữa chúng.
-- Khi muốn giữ cả trường rỗng cuối chuỗi, chọn `limit` nào? → Giá trị âm, thường là `-1`.
-- Với `limit = 3`, chiều dài mảng lớn nhất là bao nhiêu? → `2 * 3 - 1 = 5`.
-- Khi không có dấu nào khớp, kết quả là gì? → Mảng gồm duy nhất chuỗi ban đầu.
+- What does `"x|y".splitWithDelimiters("\\|", -1)` return? → `["x", "|", "y"]`.
+- Why does `"x,,y".splitWithDelimiters(",", -1)` have an `""` element? → Two consecutive comma matches with no content between them.
+- When you want to keep trailing empty fields as well, which `limit` should you choose? → A negative value, typically `-1`.
+- With `limit = 3`, what is the maximum array length? → `2 * 3 - 1 = 5`.
+- When no delimiter matches, what is the result? → A single-element array containing the original string.
 
-**Tham khảo API chính thức:** [`String.splitWithDelimiters` trong Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html#splitWithDelimiters(java.lang.String,int)) và [`Pattern.splitWithDelimiters` trong Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/regex/Pattern.html#splitWithDelimiters(java.lang.CharSequence,int)).
+**Official API reference:** [`String.splitWithDelimiters` in Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html#splitWithDelimiters(java.lang.String,int)) and [`Pattern.splitWithDelimiters` in Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/regex/Pattern.html#splitWithDelimiters(java.lang.CharSequence,int)).

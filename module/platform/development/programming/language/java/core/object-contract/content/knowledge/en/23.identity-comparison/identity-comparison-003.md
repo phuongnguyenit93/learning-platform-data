@@ -1,74 +1,74 @@
-# Dùng danh tính khi duyệt và theo dõi đồ thị đối tượng
+# Using Identity When Traversing and Tracking Object Graphs
 
-Trong Java, một đồ thị đối tượng gồm các **instance** (đỉnh) và các tham chiếu nối chúng (cạnh). Khi duyệt đồ thị để xuất dữ liệu, phân tích liên kết, sao chép cấu trúc, đánh dấu đã thăm hoặc phát hiện chu kỳ, ta thường cần trả lời: **“Đúng instance này đã xuất hiện trước đó chưa?”** Đây là câu hỏi về **danh tính đối tượng (object identity)**.
+In Java, an object graph consists of **instances** (vertices) and the references connecting them (edges). When traversing a graph to export data, analyze links, clone a structure, mark visited nodes, or detect cycles, we often need to answer: **"Has this exact instance appeared before?"** This is a question about **object identity**.
 
-Bài học phân biệt danh tính với sự bằng nhau về giá trị, hướng dẫn dùng `IdentityHashMap` để quản lý tập đã thăm và trạng thái theo từng instance, đồng thời chỉ rõ sự khác nhau giữa tham chiếu được dùng chung và chu kỳ.
+This lesson distinguishes identity from value equality, shows how to use `IdentityHashMap` to manage visited sets and per-instance state, and clarifies the difference between shared references and cycles.
 
-## 1. Vì sao `equals()` không đủ để duyệt đồ thị đối tượng?
+## 1. Why is `equals()` not enough for traversing an object graph?
 
-Xem mô hình sau:
+Consider the following model:
 
 ```text
           root
           /  \
          v    v
-       left  right        Hai instance khác nhau,
-         \    /           nhưng có thể equals() == true.
+       left  right        Two different instances,
+         \    /           but equals() == true can hold.
           v  v
-         shared           Hai nhánh trỏ đúng cùng instance.
+         shared           Two branches point to the exact same instance.
             |
-            +---> root    Cạnh tạo chu kỳ.
+            +---> root    Edge creating a cycle.
 ```
 
-Ba trường hợp phải được xử lý riêng:
+Three cases must be handled distinctly:
 
-1. **Khác instance, bằng nhau về dữ liệu.** `left == right` là `false` nhưng `left.equals(right)` có thể là `true`, ví dụ hai nút cùng trường `value`. Nếu mục tiêu là xử lý từng instance, không được bỏ một nút vì dữ liệu của nó giống nút khác.
-2. **Cùng instance theo nhiều đường.** `left.next` và `right.next` cùng trỏ đến `shared`; thuật toán chỉ nên xử lý `shared` một lần dù có hai đường đi đến nó.
-3. **Chu kỳ.** Nếu `shared` trỏ ngược `root`, việc duyệt không kiểm soát có thể lặp vô hạn hoặc gây `StackOverflowError`.
+1. **Different instances, equal data.** `left == right` is `false` while `left.equals(right)` may be `true`, such as two nodes with the same `value` field. If the goal is to process each instance, a node must not be skipped just because its data matches another node.
+2. **Same instance via multiple paths.** `left.next` and `right.next` both point to `shared`; the algorithm should process `shared` only once even though two paths reach it.
+3. **Cycles.** If `shared` points back to `root`, uncontrolled traversal can loop infinitely or cause a `StackOverflowError`.
 
-Bài toán “xử lý **mỗi instance** một lần” cần danh tính; bài toán “gộp các đối tượng có **giá trị tương đương**” thường cần `equals()` và `hashCode()`. Hai bài toán có tiêu chí khác nhau, nên không thể hoán đổi tập visited một cách tùy ý.
+The problem of "processing **each instance** once" requires identity; the problem of "grouping objects with **equivalent values**" typically requires `equals()` and `hashCode()`. Because the two problems have different criteria, visited sets cannot be interchanged arbitrarily.
 
-## 2. Công cụ so sánh đúng tiêu chí
+## 2. Tools comparing by the right criterion
 
-| Công cụ | Cơ chế | Dùng khi nào |
+| Tool | Mechanism | When to use |
 | --- | --- | --- |
-| `a == b` | Hai biến trỏ đúng cùng instance, hoặc đều `null` | So sánh danh tính |
-| `a.equals(b)` | Kiểm tra quan hệ tương đương do kiểu đối tượng định nghĩa | So sánh giá trị/ngữ nghĩa |
-| `HashSet` / `HashMap` | Sử dụng `hashCode()` và `equals()` | Gộp các key được coi là bằng nhau |
-| `IdentityHashMap` | So key bằng `==` và dùng `System.identityHashCode()` cho cơ chế băm | Theo dõi từng instance |
-| `System.identityHashCode(x)` | Trả về mã băm theo danh tính, không phụ thuộc `hashCode()` được override | Hỗ trợ cơ chế băm/chẩn đoán; **không phải ID duy nhất** |
+| `a == b` | Both variables point to the exact same instance, or both are `null` | Identity comparison |
+| `a.equals(b)` | Checks equivalence relation defined by the object's type | Value/semantic comparison |
+| `HashSet` / `HashMap` | Uses `hashCode()` and `equals()` | Grouping keys considered equal |
+| `IdentityHashMap` | Compares keys with `==` and uses `System.identityHashCode()` for hashing | Tracking individual instances |
+| `System.identityHashCode(x)` | Returns identity-based hash code, independent of overridden `hashCode()` | Hashing/diagnostic support; **not a unique ID** |
 
-`System.identityHashCode()` **có thể trùng nhau ở hai instance khác nhau**; không dùng kết quả như một khóa định danh độc nhất hay thay thế cho phép so sánh `==`. Cũng không coi số ấy là địa chỉ bộ nhớ ổn định hoặc ID giữ nguyên giữa các lần chạy Java.
+`System.identityHashCode()` **can collide across two different instances**; do not use the result as a unique identifier key or as a substitute for `==` comparison. Nor should you treat that number as a stable memory address or an ID preserved across Java runs.
 
-`IdentityHashMap` là cấu trúc chuyên dụng: nó chủ ý có ngữ nghĩa khóa khác `Map` thông thường. Không thay `HashMap` bằng `IdentityHashMap` cho các bài toán nghiệp vụ mà key thực sự cần được xem là bằng nhau theo `equals()`.
+`IdentityHashMap` is a specialized structure: it intentionally has different key semantics from a normal `Map`. Do not replace `HashMap` with `IdentityHashMap` for business problems where keys truly should be considered equal under `equals()`.
 
-## 3. Tạo tập visited theo danh tính
+## 3. Creating an identity-based visited set
 
-Khi chỉ cần biết một instance đã được duyệt hay chưa, tạo `Set` dựa trên một `IdentityHashMap` còn trống:
+When you only need to know whether an instance has already been visited, create a `Set` backed by an empty `IdentityHashMap`:
 
 ```java
 Set<Node> visited =
         Collections.newSetFromMap(new IdentityHashMap<Node, Boolean>());
 ```
 
-Cần import `java.util.Set`, `java.util.Collections` và `java.util.IdentityHashMap`. Map truyền cho `Collections.newSetFromMap(...)` phải trống ngay lúc tạo set.
+`java.util.Set`, `java.util.Collections`, and `java.util.IdentityHashMap` must be imported. The map passed to `Collections.newSetFromMap(...)` must be empty at the moment the set is created.
 
-Sau đó, mẫu duyệt đơn giản là:
+Then, a simple traversal pattern is:
 
 ```java
 if (!visited.add(node)) {
-    continue; // Chính instance này đã được ghi nhận trước đó.
+    continue; // This exact instance has already been recorded.
 }
-// Xử lý node, rồi đưa những nút liên kết vào danh sách chờ.
+// Process node, then push linked nodes onto the worklist.
 ```
 
-`add` trả về `true` đúng lần đầu ghi nhận một instance, ngay cả khi set đã có một instance khác với `equals()` tương đương. Đánh dấu trước khi mở rộng cạnh ngăn xử lý lặp khi gặp chu kỳ. Không cần `contains` rồi `add` nếu một lời gọi `add` đã trả lại thông tin cần dùng.
+`add` returns `true` only the first time an instance is recorded, even if the set already contains another instance with an equivalent `equals()`. Marking before expanding edges prevents infinite reprocessing when encountering cycles. There is no need to call `contains` followed by `add` when a single `add` call already returns the needed information.
 
-## 4. Ví dụ Java 17+: hai nút bằng nhau, một tham chiếu dùng chung và một chu kỳ
+## 4. Java 17+ example: two equal nodes, one shared reference, and a cycle
 
-Chương trình sau cố ý định nghĩa `equals()` chỉ theo `value`: hai nút `left` và `right` khác instance nhưng đều có `value = "same"`. Trường `id` khác nhau giúp quan sát rõ việc duyệt có bỏ sót node nào không.
+The following program intentionally defines `equals()` using only `value`: the two nodes `left` and `right` are different instances yet both have `value = "same"`. Distinct `id` fields make it easy to observe whether traversal skips any node.
 
-Lưu dưới tên **`IdentityGraphDemo.java`**:
+Save as **`IdentityGraphDemo.java`**:
 
 ```java
 import java.util.ArrayDeque;
@@ -124,7 +124,7 @@ public class IdentityGraphDemo {
             }
 
             order.add(node.id);
-            // Đẩy theo thứ tự ngược để nhánh trái được duyệt trước.
+            // Push in reverse order so the left branch is traversed first.
             for (int i = node.next.size() - 1; i >= 0; i--) {
                 stack.push(node.next.get(i));
             }
@@ -138,10 +138,10 @@ public class IdentityGraphDemo {
             Node node, IdentityHashMap<Node, Mark> marks) {
         Mark mark = marks.get(node);
         if (mark == Mark.ACTIVE) {
-            return true; // Quay lại node trong nhánh DFS hiện tại.
+            return true; // Returned to a node on the current DFS branch.
         }
         if (mark == Mark.DONE) {
-            return false; // Node đã kết thúc ở nhánh trước.
+            return false; // Node already finished in a previous branch.
         }
 
         marks.put(node, Mark.ACTIVE);
@@ -164,7 +164,7 @@ public class IdentityGraphDemo {
         root.link(left, right);
         left.link(shared);
         right.link(shared);
-        shared.link(root); // Tạo chu kỳ.
+        shared.link(root); // Create a cycle.
 
         Set<Node> identityVisited =
                 Collections.newSetFromMap(
@@ -174,121 +174,121 @@ public class IdentityGraphDemo {
         System.out.println(
                 "left.equals(right): " + left.equals(right));
         System.out.println(
-                "DFS theo identity: " + dfs(root, identityVisited));
+                "DFS by identity: " + dfs(root, identityVisited));
         System.out.println(
-                "DFS theo equals:   " + dfs(root, new HashSet<>()));
+                "DFS by equals:   " + dfs(root, new HashSet<>()));
         System.out.println(
-                "Co chu ky: " + hasCycle(root, new IdentityHashMap<>()));
+                "Has cycle: " + hasCycle(root, new IdentityHashMap<>()));
 
-        shared.next.clear(); // Xóa cạnh shared -> root.
+        shared.next.clear(); // Remove edge shared -> root.
         System.out.println(
-                "Co chu ky sau khi bo canh: "
+                "Has cycle after removing edge: "
                         + hasCycle(root, new IdentityHashMap<>()));
     }
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac IdentityGraphDemo.java
 java IdentityGraphDemo
 ```
 
-Kết quả xác định:
+Deterministic output:
 
 ```text
 left == right: false
 left.equals(right): true
-DFS theo identity: [0, 1, 3, 2]
-DFS theo equals:   [0, 1, 3]
-Co chu ky: true
-Co chu ky sau khi bo canh: false
+DFS by identity: [0, 1, 3, 2]
+DFS by equals:   [0, 1, 3]
+Has cycle: true
+Has cycle after removing edge: false
 ```
 
-**Diễn giải:**
+**Explanation:**
 
-- `left` và `right` tạo bởi hai lần `new` nên không trùng danh tính. `equals()` trả về `true` vì cả hai có chuỗi `"same"`.
-- DFS theo danh tính đi qua `root (0) → left (1) → shared (3) → right (2)`. Khi gặp lại root từ shared, tập visited chặn xử lý lặp; shared cũng không bị xử lý lần thứ hai từ right.
-- DFS với `HashSet` theo `equals()` chỉ cho `[0, 1, 3]`, vì right bị gộp với left. Với một bài toán yêu cầu ghé từng instance, đây là lỗi bỏ sót đỉnh.
-- Phương thức `hasCycle` đánh dấu node đang trên nhánh DFS là `ACTIVE`, hoàn tất là `DONE`. Cạnh `shared → root` trở lại node `ACTIVE` nên chu kỳ được phát hiện. Xóa cạnh ấy làm kết quả thành `false`, dù shared vẫn có hai tham chiếu đi đến.
+- `left` and `right` are created by two `new` expressions, so their identities differ. `equals()` returns `true` because both hold the string `"same"`.
+- Identity-based DFS visits `root (0) → left (1) → shared (3) → right (2)`. When encountering `root` again from `shared`, the visited set prevents reprocessing; `shared` is also not processed a second time from `right`.
+- DFS with `HashSet` using `equals()` only produces `[0, 1, 3]`, because `right` is merged with `left`. For a problem requiring visiting every instance, this is a missed-vertex bug.
+- The `hasCycle` method marks a node currently on the DFS branch as `ACTIVE`, and when finished as `DONE`. The edge `shared → root` returns to an `ACTIVE` node, so a cycle is detected. Removing that edge makes the result `false`, even though `shared` still has two incoming references.
 
-`equals()` trong ví dụ được đơn giản hóa có chủ đích để thấy rõ sự khác nhau giữa value và identity; trong hệ thống thực tế, hợp đồng `equals()`/`hashCode()` cần được thiết kế theo ngữ nghĩa của kiểu dữ liệu.
+`equals()` in the example is intentionally simplified to clearly show the difference between value and identity; in real systems, the `equals()`/`hashCode()` contract should be designed according to the data type's semantics.
 
-## 5. Gặp lại cùng instance không nhất thiết là chu kỳ
+## 5. Encountering the same instance again is not necessarily a cycle
 
-Phải phân biệt **visited** với **nhánh DFS hiện hành**:
+You must distinguish **visited** from **the current DFS branch**:
 
-| Quan sát | Kết luận đúng |
+| Observation | Correct conclusion |
 | --- | --- |
-| `visited.add(node)` trả về `false` | Instance này đã gặp. Có thể chỉ là liên kết dùng chung. |
-| Đi từ nút hiện tại tới nút `ACTIVE` trong DFS có hướng | Có cạnh quay lại một nút tổ tiên trên nhánh DFS: tồn tại chu kỳ. |
-| Đi tới nút `DONE` | Nút đã được xử lý ở nhánh trước; bản thân cạnh này không chứng minh chu kỳ. |
+| `visited.add(node)` returns `false` | This instance was already seen. It may just be a shared link. |
+| Moving from the current node to an `ACTIVE` node in directed DFS | There is a back-edge to an ancestor on the DFS branch: a cycle exists. |
+| Moving to a `DONE` node | The node was already processed in an earlier branch; this edge alone does not prove a cycle. |
 
-Trong sơ đồ, root→left→shared và root→right→shared cùng hội tụ về shared. Nếu bỏ cạnh shared→root thì đó là đồ thị có hướng **không chu kỳ**, dù DFS vẫn gặp lại một instance. Vì vậy, không dùng quy tắc “đã thăm thì có chu kỳ”.
+In the diagram, `root→left→shared` and `root→right→shared` converge on `shared`. Removing the `shared→root` edge leaves a directed **acyclic** graph, even though DFS still encounters an instance twice. Therefore, do not use a rule like "already visited means a cycle".
 
-Set identity đủ cho công việc **duyệt mỗi instance một lần**. Để tìm chu kỳ trong đồ thị có hướng, dùng ba trạng thái ngầm: chưa thấy, `ACTIVE` và `DONE`, cũng phải được gắn **theo identity**. Có thể dùng `IdentityHashMap<Node, Mark>` như phương thức ở ví dụ. Khi có nhiều đỉnh gốc rời nhau, giữ cùng một map trạng thái cho cả lượt kiểm tra để không xử lý trùng.
+An identity set suffices for **visiting each instance once**. To detect cycles in a directed graph, use three implicit states: unseen, `ACTIVE`, and `DONE`, which must also be attached **by identity**. You can use `IdentityHashMap<Node, Mark>` as in the example method. When there are multiple disconnected root vertices, keep the same state map across the entire check so nothing is processed redundantly.
 
-Đệ quy của `hasCycle` có thể gặp `StackOverflowError` khi đồ thị rất sâu. Trường hợp đó nên triển khai DFS với stack tường minh, mỗi frame ghi node và chỉ số cạnh đang xét, rồi chuyển `ACTIVE → DONE` lúc frame kết thúc. Dùng `visited` đơn thuần không thay được thông tin về stack đang hoạt động.
+The recursion in `hasCycle` can hit a `StackOverflowError` on very deep graphs. In that case, implement DFS with an explicit stack, where each frame records the node and current edge index, transitioning `ACTIVE → DONE` when the frame finishes. A plain `visited` set cannot replace information about the active stack.
 
-## 6. Lưu dữ liệu riêng cho từng instance
+## 6. Storing separate data for each instance
 
-Một `Set` chỉ lưu có/chưa. Khi cần trạng thái, kết quả phân tích hay đối tượng bản sao gắn với từng node, dùng `IdentityHashMap` trực tiếp:
+A `Set` only records present/absent. When you need state, analysis results, or clone objects attached to each node, use `IdentityHashMap` directly:
 
 ```java
 IdentityHashMap<Node, Integer> depthByInstance =
         new IdentityHashMap<>();
 
 depthByInstance.put(left, 1);
-depthByInstance.put(right, 1); // Hai key riêng dù equals() == true.
+depthByInstance.put(right, 1); // Two separate keys even though equals() == true.
 ```
 
-Các tình huống phổ biến:
+Common scenarios:
 
-- **Đánh dấu hai trạng thái DFS**: `IdentityHashMap<Node, Mark>` lưu `ACTIVE`/`DONE`.
-- **Sao chép đồ thị có chu kỳ**: lưu `sourceInstance → cloneInstance` ngay sau khi tạo bản sao rỗng, *trước khi* duyệt các cạnh; lần gặp lại source sẽ trả bản sao đã đăng ký. Nhờ thế một đối tượng dùng chung trong nguồn vẫn dùng chung trong bản sao và chu kỳ không khiến thuật toán tạo vô hạn bản sao.
-- **Tuần tự hóa đồ thị bảo toàn chia sẻ tham chiếu**: lưu `instance → id` do thuật toán tự cấp, rồi các cạnh có thể tham chiếu ID cũ thay vì mở rộng lại cùng instance.
-- **Phân tích/caching trong một lượt duyệt**: gắn kết quả tạm cho từng instance mà không gộp những node bằng nhau về giá trị.
+- **Two-state DFS marking**: `IdentityHashMap<Node, Mark>` storing `ACTIVE`/`DONE`.
+- **Cloning a graph with cycles**: store `sourceInstance → cloneInstance` immediately after creating the empty clone, *before* traversing edges; encountering `source` again returns the registered clone. Thus an object shared in the source stays shared in the clone, and cycles do not cause infinite cloning.
+- **Serializing a graph preserving reference sharing**: store `instance → id` assigned by the algorithm, so subsequent edges can reference the existing ID instead of re-expanding the same instance.
+- **Analysis/caching in a single traversal**: attach temporary results per instance without merging value-equal nodes.
 
-Đối với map, `get(key) == null` không đủ phân biệt “không có key” và “key tồn tại nhưng value bằng `null`”. Dùng `containsKey(key)` khi cần phân biệt; `IdentityHashMap.containsKey` vẫn kiểm tra theo danh tính.
+For a map, `get(key) == null` is not enough to distinguish "key absent" from "key present with value `null`". Use `containsKey(key)` when you need to distinguish them; `IdentityHashMap.containsKey` still checks by identity.
 
-Không dùng `IdentityHashMap` làm nơi ghi lâu dài những trạng thái vốn phải được chia sẻ theo key nghiệp vụ; mỗi lần tạo instance mới biểu diễn cùng một thực thể nghiệp vụ sẽ là một key khác.
+Do not use `IdentityHashMap` as long-term storage for state that ought to be shared by business key; each time a new instance is created representing the same business entity, it becomes a different key.
 
-## 7. Kỹ thuật DFS/BFS và chi phí
+## 7. DFS/BFS techniques and costs
 
-**DFS lặp** có thể dùng `ArrayDeque<Node>` với `push`/`pop`; **BFS** có thể dùng `addLast`/`removeFirst`. Với cả hai, tập visited theo identity quyết định node nào cần xử lý.
+**Iterative DFS** can use `ArrayDeque<Node>` with `push`/`pop`; **BFS** can use `addLast`/`removeFirst`. For both, the identity-based visited set decides which nodes need processing.
 
-Trong ví dụ, node được thêm vào visited khi **lấy khỏi stack**. Nếu nhiều cạnh trỏ cùng node, stack có thể chứa bản tham chiếu ấy nhiều lần, nhưng phần xử lý chính chỉ chạy một lần. Một biến thể khác đánh dấu ngay khi **đưa vào stack/queue** để giảm phần tử chờ trùng; khi đổi thời điểm đánh dấu, phải đảm bảo thứ tự và quy tắc duyệt vẫn đúng.
+In the example, a node is added to `visited` when **popped from the stack**. If multiple edges point to the same node, the stack may hold that reference multiple times, yet the main processing only runs once. Another variant marks immediately when **pushing onto the stack/queue** to reduce duplicate queued entries; when changing the marking point, ensure traversal order and rules remain correct.
 
-Với `V` instance có thể tới được và `E` cạnh được đọc, thời gian kỳ vọng là `O(V + E)`; visited giữ `O(V)` tham chiếu. Khi cho phép nhiều mục chờ trùng, stack có thể tốn tới `O(E)` bộ nhớ trong trường hợp xấu. Đồ thị sâu nên dùng vòng lặp với stack tường minh để tránh giới hạn ngăn xếp đệ quy.
+With `V` reachable instances and `E` edges read, expected time is `O(V + E)`; `visited` holds `O(V)` references. When duplicate queued entries are allowed, the stack can take up to `O(E)` memory in the worst case. Deep graphs should use an explicit-stack loop to avoid recursion stack limits.
 
-**Dữ liệu `null`:** `ArrayDeque` không chấp nhận phần tử `null`. Nếu danh sách liên kết có thể chứa `null`, chỉ đẩy `child` khi `child != null`. Việc map identity chấp nhận key `null` không làm nó trở thành một đỉnh hợp lệ của đồ thị.
+**`null` data:** `ArrayDeque` does not accept `null` elements. If the link list may contain `null`, only push `child` when `child != null`. The fact that an identity map accepts a `null` key does not make `null` a valid graph vertex.
 
-**Thay đổi đồng thời:** `IdentityHashMap` không tự bảo đảm an toàn luồng khi nhiều luồng cập nhật. Nếu cấu trúc cạnh cũng bị sửa lúc duyệt, kết quả có thể phản ánh những thời điểm khác nhau. Cần xác định mô hình đồng bộ, snapshot hoặc giới hạn quyền sửa phù hợp; một map riêng cho mỗi lượt duyệt là mặc định dễ kiểm soát.
+**Concurrent modification:** `IdentityHashMap` does not guarantee thread safety when multiple threads update it. If the edge structure is also modified during traversal, results may reflect different points in time. Define an appropriate synchronization model, snapshot, or mutation restriction; a separate map per traversal is an easy-to-control default.
 
-**Vòng đời bộ nhớ:** `IdentityHashMap` giữ tham chiếu mạnh tới key. Dùng map cục bộ trong một lượt duyệt và giải phóng sau khi hoàn tất để không vô tình giữ cả đồ thị trong bộ nhớ. `WeakHashMap` không phải map weak-identity tương đương: nó vẫn dùng `equals()`/`hashCode()`; thiết kế key yếu theo identity đòi hỏi cơ chế riêng.
+**Memory lifecycle:** `IdentityHashMap` holds strong references to keys. Use a local map within a single traversal and release it upon completion so you do not accidentally retain the entire graph in memory. `WeakHashMap` is not a weak-identity equivalent: it still uses `equals()`/`hashCode()`; designing weak keys by identity requires a separate mechanism.
 
-## 8. Lỗi dễ gặp
+## 8. Common pitfalls
 
-| Sai lầm | Biểu hiện | Cách xử lý |
+| Mistake | Symptom | Fix |
 | --- | --- | --- |
-| Dùng `HashSet<Node>` cho visited trong bài toán theo instance | Hai node bằng nhau về giá trị bị gộp | Dùng set dựa trên `IdentityHashMap` |
-| Coi mọi lần gặp lại node là chu kỳ | Liên kết hội tụ bị báo nhầm | Theo dõi `ACTIVE` và `DONE` khi tìm chu kỳ |
-| Chỉ đánh dấu node sau khi đã duyệt tất cả nhánh | Chu kỳ có thể khiến đệ quy không dừng | Đăng ký instance trước khi mở rộng nhánh |
-| Tạo visited mới cho từng nhánh | Không biết nhánh khác đã gặp cùng instance | Dùng chung visited của cả lượt duyệt |
-| Dùng lại visited qua các lần duyệt độc lập | Lượt sau bỏ sót instance | Tạo visited mới cho lượt mới, trừ khi chủ đích khác |
-| Dùng `identityHashCode` làm định danh duy nhất | Có thể trùng mã băm giữa hai object | So danh tính bằng `==` hoặc key identity |
-| Coi ID theo identity là địa chỉ bộ nhớ | Giả định sai về JVM | Không suy ra địa chỉ từ API chuẩn |
-| Dùng đệ quy cho đồ thị không giới hạn độ sâu | `StackOverflowError` | Dùng stack frame tường minh |
-| Lưu identity map toàn cục không dọn | Giữ instance sống lâu không cần thiết | Giới hạn vòng đời, xóa map khi xong |
+| Using `HashSet<Node>` for visited in an instance-based problem | Two value-equal nodes get merged | Use a set backed by `IdentityHashMap` |
+| Treating every revisited node as a cycle | Converging links are falsely reported | Track `ACTIVE` and `DONE` when detecting cycles |
+| Marking a node only after traversing all branches | Cycles can cause non-terminating recursion | Register the instance before expanding branches |
+| Creating a new visited set per branch | Other branches do not know the instance was seen | Share one visited set across the traversal |
+| Reusing visited across independent traversals | Later runs skip instances | Create a fresh visited set per run, unless intentionally retained |
+| Using `identityHashCode` as a unique identifier | Two objects can share the same hash code | Compare identity with `==` or an identity key |
+| Treating an identity ID as a memory address | False assumption about the JVM | Do not infer addresses from standard APIs |
+| Using recursion on graphs of unbounded depth | `StackOverflowError` | Use an explicit frame stack |
+| Keeping an uncleaned global identity map | Keeps instances alive unnecessarily | Scope the lifecycle and clear/discard the map when done |
 
-## 9. Cách chọn giải pháp cho một bài toán thực tế
+## 9. Choosing a solution for a real problem
 
-1. Xác định **đơn vị cần xử lý**: một instance cụ thể hay một giá trị/thực thể nghiệp vụ? Chỉ chọn identity cho trường hợp thứ nhất.
-2. Xác định đồ thị có thể có **chia sẻ, chu kỳ, nút rỗng** hay không. Nếu có, thiết kế đánh dấu từ đầu; không giả định dữ liệu luôn là cây.
-3. Nếu chỉ cần “duyệt một lần”, dùng `Set` trên `IdentityHashMap`; nếu cần trạng thái per-instance, dùng `IdentityHashMap<Instance, State>`.
-4. Nếu phải **phát hiện chu kỳ có hướng**, theo dõi trạng thái nhánh hiện hành `ACTIVE` và hoàn tất `DONE` bằng identity.
-5. Chọn DFS/BFS, thời điểm đánh dấu, cách xử lý `null`, độ sâu và bộ nhớ theo quy mô dữ liệu.
-6. Tạo vùng trạng thái riêng cho mỗi lần duyệt, và kết thúc vòng đời map đúng lúc.
+1. Identify **the unit of processing**: a specific instance or a value/business entity? Choose identity only for the first case.
+2. Determine whether the graph may contain **sharing, cycles, or null nodes**. If so, design marking from the start; never assume data is always a tree.
+3. If you only need "visit once", use a `Set` backed by `IdentityHashMap`; if you need per-instance state, use `IdentityHashMap<Instance, State>`.
+4. If you must **detect directed cycles**, track current-branch `ACTIVE` and completed `DONE` states by identity.
+5. Choose DFS/BFS, marking timing, `null` handling, depth strategy, and memory budget according to data scale.
+6. Create a dedicated state scope per traversal, and end the map's lifecycle at the right time.
 
-**Ghi nhớ:** hai đối tượng `equals()` nhau có thể vẫn là hai đỉnh riêng trong đồ thị Java. `IdentityHashMap` giúp theo dõi chính xác từng instance, còn trạng thái `ACTIVE`/`DONE` cho phép phân biệt một chu kỳ thực sự với tham chiếu được chia sẻ.
+**Remember:** two `equals()` objects can still be two distinct vertices in a Java object graph. `IdentityHashMap` accurately tracks each instance, while `ACTIVE`/`DONE` states distinguish a true cycle from a shared reference.

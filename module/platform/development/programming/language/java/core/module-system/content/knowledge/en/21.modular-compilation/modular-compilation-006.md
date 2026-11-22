@@ -1,24 +1,24 @@
-# Generated sources và module-info
+# Generated Sources and module-info
 
-## 1. Mục tiêu
+## 1. Objectives
 
-Trong một dự án Java modular, mã nguồn không nhất thiết chỉ đến từ những file được viết trực tiếp. Annotation processor có thể sinh thêm class, interface hoặc resource trong lúc biên dịch. Các build tool cũng có thể tạo source từ schema, metadata, OpenAPI, protobuf hoặc cấu hình.
+In a modular Java project, source code does not necessarily come only from files written directly by hand. Annotation processors can generate additional classes, interfaces, or resources during compilation. Build tools can also generate sources from schemas, metadata, OpenAPI, protobuf, or configuration files.
 
-Khi đưa generated sources vào một named module, cần hiểu rõ ba phần:
+When bringing generated sources into a named module, it is important to understand three parts:
 
-- **Nguồn được sinh ra**: file Java nào được tạo, thuộc package và module nào, nằm ở thư mục output nào.
-- **Module descriptor**: module-info.java khai báo dependency, package được export/open và service usage/provider như thế nào.
-- **Cấu hình compiler**: javac tìm source, processor, module và ghi generated source/class ở đâu.
+- **Generated sources**: which Java files are created, which package and module they belong to, and which output directory they reside in.
+- **Module descriptor**: how `module-info.java` declares dependencies, exported/opened packages, and service usage/providers.
+- **Compiler configuration**: where `javac` looks for sources, processors, modules, and where it writes generated sources/classes.
 
-Generated source được biên dịch như source thông thường trong module đích. Nó không tự sửa module-info.java và cũng không tự thêm các chỉ thị requires, exports, opens, uses hoặc provides. Descriptor vẫn phải mô tả đúng module sau khi các source được sinh ra.
+Generated sources are compiled like normal sources in the target module. They do not automatically modify `module-info.java`, nor do they automatically add `requires`, `exports`, `opens`, `uses`, or `provides` directives. The descriptor must still accurately describe the module after sources are generated.
 
-Bài này dùng Java 21 làm mốc cho cú pháp và tùy chọn javac.
+This lesson uses Java 21 as the baseline for `javac` syntax and options.
 
-## 2. Generated source trong annotation processing
+## 2. Generated Sources in Annotation Processing
 
-Annotation processing là quá trình compiler gọi các processor để đọc annotation và tạo thêm source, class hoặc resource.
+Annotation processing is the process by which the compiler invokes processors to read annotations and generate additional sources, classes, or resources.
 
-Một processor triển khai **javax.annotation.processing.Processor**. Trong thực tế, thường kế thừa **AbstractProcessor**:
+A processor implements **javax.annotation.processing.Processor**. In practice, it usually extends **AbstractProcessor**:
 
 ~~~java
 @SupportedAnnotationTypes("com.acme.codegen.GenerateDto")
@@ -32,7 +32,7 @@ public final class DtoProcessor extends AbstractProcessor {
 
         for (Element element :
                 roundEnv.getElementsAnnotatedWith(GenerateDto.class)) {
-            // Đọc metadata của element và tạo source nếu cần.
+            // Read element metadata and generate source if needed.
         }
 
         return true;
@@ -40,7 +40,7 @@ public final class DtoProcessor extends AbstractProcessor {
 }
 ~~~
 
-Để tạo một Java source file, processor sử dụng **Filer.createSourceFile**:
+To create a Java source file, the processor uses **Filer.createSourceFile**:
 
 ~~~java
 JavaFileObject sourceFile =
@@ -57,29 +57,29 @@ try (Writer writer = sourceFile.openWriter()) {
 }
 ~~~
 
-Tên truyền vào createSourceFile là tên nhị phân của type cần tạo. Với package có tên, tên type phải đầy đủ. Có thể truyền originating elements để công cụ build hiểu file được sinh ra từ những phần source nào; thông tin này hữu ích cho incremental compilation.
+The name passed to `createSourceFile` is the binary name of the type to be created. For a named package, the type name must be fully qualified. You can pass originating elements so build tools know which source parts generated the file; this information is useful for incremental compilation.
 
-Một processor không nên ghi đè source do người dùng viết hoặc source đã được tạo trong cùng lượt xử lý. Nếu cùng một đường dẫn được tạo nhiều lần, Filer có thể ném **FilerException**. Processor cần kiểm soát tên file, điều kiện sinh file và các round để không tạo trùng.
+A processor must not overwrite user-written sources or sources already created in the same processing pass. If the same path is created multiple times, `Filer` may throw **FilerException**. The processor must control filenames, generation conditions, and rounds to avoid duplicate creation.
 
-### Các vòng xử lý
+### Processing Rounds
 
-javac chạy annotation processing theo nhiều round:
+`javac` runs annotation processing in multiple rounds:
 
-1. Compiler phân tích source ban đầu và tìm annotation phù hợp.
-2. Processor được gọi với các root elements của round hiện tại.
-3. Nếu processor tạo source mới, các source đó được đưa vào round tiếp theo.
-4. Các processor có thể xử lý annotation trên những source mới.
-5. Quá trình lặp lại cho đến khi không còn source mới được tạo.
-6. Processor được gọi thêm một lần cuối để hoàn tất công việc.
-7. Nếu không dùng chế độ chỉ xử lý annotation, javac biên dịch source ban đầu cùng các source được tạo.
+1. The compiler analyzes initial sources and finds matching annotations.
+2. Processors are invoked with the root elements of the current round.
+3. If a processor creates new sources, those sources are fed into the next round.
+4. Processors can process annotations on those newly generated sources.
+5. The process repeats until no new sources are created.
+6. Processors are invoked one final time to finish their work.
+7. Unless running in annotation-processing-only mode, `javac` compiles the original sources together with the generated sources.
 
-Vì vậy, source do processor sinh ra trong cùng invocation thường không cần một lệnh javac riêng để biên dịch. Compiler nhận chúng ở các round tiếp theo và đưa vào compilation cuối cùng.
+Therefore, sources generated by a processor within the same invocation usually do not need a separate `javac` command to compile. The compiler picks them up in subsequent rounds and includes them in the final compilation.
 
-Không nên viết processor sinh một file mới vô điều kiện ở mọi round. Cách đó có thể tạo vòng lặp hoặc lỗi trùng file. Processor cần xác định annotation đầu vào, kiểm tra round cuối bằng **RoundEnvironment.processingOver()** khi thích hợp và chỉ sinh file khi thực sự cần.
+Do not write a processor that unconditionally generates a new file in every round. That can cause infinite loops or duplicate file errors. A processor should inspect input annotations, check the final round using **RoundEnvironment.processingOver()** when appropriate, and only generate files when actually needed.
 
-## 3. Phân biệt module-info.java với generated source
+## 3. Distinguishing module-info.java from Generated Sources
 
-**module-info.java** là module declaration compilation unit, thường nằm ở root source directory của module:
+**module-info.java** is the module declaration compilation unit, usually located at the module's root source directory:
 
 ~~~text
 src/
@@ -97,9 +97,9 @@ src/
           Main.java
 ~~~
 
-Khi biên dịch, javac tạo **module-info.class** cùng các class khác trong output của module.
+When compiling, `javac` produces **module-info.class** alongside other classes in the module's output.
 
-Một module descriptor có thể chứa các loại directive sau:
+A module descriptor can contain the following kinds of directives:
 
 ~~~java
 module com.acme.app {
@@ -111,34 +111,34 @@ module com.acme.app {
 }
 ~~~
 
-Generated class vẫn thuộc module đang biên dịch. Ví dụ processor tạo **com.acme.generated.CustomerDto** trong module com.acme.app thì class đó nằm trong module com.acme.app sau khi compile. Module system không tạo một module mới chỉ vì source được sinh ra.
+Generated classes still belong to the module being compiled. For example, if a processor generates **com.acme.generated.CustomerDto** in the `com.acme.app` module, that class resides in the `com.acme.app` module after compilation. The module system does not create a new module merely because sources were generated.
 
-Tuy nhiên, sự xuất hiện của package hoặc type mới không tự thay đổi descriptor:
+However, the appearance of new packages or types does not automatically alter the descriptor:
 
-- Nếu module khác cần truy cập public type được sinh ra, package chứa type đó phải được export phù hợp.
-- Nếu generated code tham chiếu type trong module khác, module hiện tại phải đọc module đó và module đích phải export package cần thiết.
-- Nếu generated code gọi một service qua ServiceLoader, module chứa code sử dụng cần khai báo uses cho service type.
-- Nếu module cung cấp service là một provider, descriptor của module provider cần khai báo provides.
-- Nếu generated code dùng reflection sâu vào package của module khác, cần xem xét opens phù hợp.
+- If another module needs to access a generated public type, the package containing that type must be exported appropriately.
+- If generated code references types in another module, the current module must read that module and the target module must export the necessary packages.
+- If generated code invokes a service via `ServiceLoader`, the module containing the consuming code must declare `uses` for the service type.
+- If the module provides a service as a provider, the provider module's descriptor must declare `provides`.
+- If generated code uses deep reflection into another module's package, appropriate `opens` declarations must be considered.
 
-Generated source là nội dung của module; module-info.java vẫn quyết định ranh giới và quan hệ của module.
+Generated sources are part of the module's contents; `module-info.java` still determines the module's boundaries and relationships.
 
-### Processor có tự sinh module-info.java không?
+### Does a Processor Automatically Generate module-info.java?
 
-API **Filer.createSourceFile** tạo source cho type hoặc package-info, không phải một API chuyên dụng để tạo module descriptor. Annotation processor có thể đọc module element và các annotation trên module declaration, nhưng không nên dựa vào processor thông thường để tự viết hoặc sửa module-info.java.
+The **Filer.createSourceFile** API creates sources for types or `package-info`, not a dedicated API for creating module descriptors. Annotation processors can read module elements and annotations on module declarations, but you should not rely on ordinary processors to write or modify `module-info.java` themselves.
 
-Hãy giữ module-info.java như một source input có chủ đích trong dự án. Nếu build cần tạo descriptor cho một artifact hoặc biến thể đóng gói, thực hiện ở một bước build riêng, có output và thứ tự compile rõ ràng. Không ghi đè module descriptor đang được javac dùng trong cùng lượt xử lý.
+Keep `module-info.java` as an intentional source input in the project. If a build needs to generate a descriptor for a packaged artifact or variant, do so in a separate build step with clear outputs and compile ordering. Do not overwrite a module descriptor currently being used by `javac` in the same processing pass.
 
-## 4. Vị trí generated sources: -s và -d
+## 4. Location of Generated Sources: -s and -d
 
-Hai tùy chọn javac có mục đích khác nhau:
+Two `javac` options serve different purposes:
 
-| Tùy chọn | Ý nghĩa |
+| Option | Meaning |
 |---|---|
-| -s directory | Thư mục chứa source do annotation processor tạo |
-| -d directory | Thư mục chứa class file được biên dịch |
+| `-s directory` | Directory containing sources created by annotation processors |
+| `-d directory` | Directory containing compiled class files |
 
-Ví dụ:
+Example:
 
 ~~~text
 javac
@@ -149,13 +149,13 @@ javac
   src/com/acme/app/Main.java
 ~~~
 
-Sau khi chạy:
+After running:
 
-- Source gốc nằm trong src.
-- Generated source được ghi dưới build/generated/sources.
-- Class file của source gốc và generated source nằm dưới build/classes.
+- Original sources remain in `src`.
+- Generated sources are written under `build/generated/sources`.
+- Class files for both original and generated sources reside under `build/classes`.
 
-Với source trong package com.acme.generated, generated file thường có đường dẫn:
+For a source in package `com.acme.generated`, the generated file typically has the path:
 
 ~~~text
 build/generated/sources/
@@ -165,7 +165,7 @@ build/generated/sources/
         CustomerDto.java
 ~~~
 
-Nếu biên dịch nhiều module trong cùng một invocation, source output và class output được tổ chức theo module hierarchy. Ví dụ:
+When compiling multiple modules in the same invocation, source output and class output are organized by module hierarchy. For example:
 
 ~~~text
 build/generated/sources/
@@ -175,20 +175,20 @@ build/generated/sources/
     com/acme/app/generated/CustomerDto.java
 ~~~
 
-Việc tách hai thư mục này giúp IDE, build tool và incremental compiler phân biệt source được quản lý với source do processor sinh ra. Không nên sửa trực tiếp generated file vì lần build tiếp theo có thể tạo lại file và ghi đè thay đổi.
+Separating these two directories helps IDEs, build tools, and incremental compilers distinguish managed sources from processor-generated sources. Do not edit generated files directly because the next build can regenerate them and overwrite your changes.
 
-## 5. Cấu hình annotation processor: processor path và module path
+## 5. Configuring Annotation Processors: Processor Path and Module Path
 
-Có hai môi trường khác nhau trong quá trình javac chạy:
+There are two distinct environments during a `javac` run:
 
-1. **Compilation environment** chứa source đang biên dịch, dependency modules và classpath/module path của ứng dụng.
-2. **Runtime environment của javac** là môi trường mà annotation processor được nạp và thực thi.
+1. **Compilation environment**: contains the sources being compiled, dependency modules, and the application's classpath/module path.
+2. **javac's runtime environment**: the environment in which annotation processors are loaded and executed.
 
-Vì vậy, đường dẫn tìm processor không đồng nghĩa với module path của ứng dụng.
+Therefore, the path for finding processors is not synonymous with the application's module path.
 
-### Processor không phải named module
+### Processor Is Not a Named Module
 
-Nếu processor được đóng gói thành JAR thông thường, có thể dùng **--processor-path** hoặc **-processorpath**:
+If the processor is packaged as a regular JAR, you can use **--processor-path** or **-processorpath**:
 
 ~~~text
 javac
@@ -199,15 +199,15 @@ javac
   -m com.acme.app
 ~~~
 
-Nếu cần chỉ rõ processor class, dùng **-processor**:
+If you need to specify the processor class explicitly, use **-processor**:
 
 ~~~text
 -processor com.acme.processor.DtoProcessor
 ~~~
 
-### Processor là named module
+### Processor Is a Named Module
 
-Nếu processor được đóng gói thành named module, dùng **--processor-module-path**:
+If the processor is packaged as a named module, use **--processor-module-path**:
 
 ~~~text
 javac
@@ -218,7 +218,7 @@ javac
   -m com.acme.app
 ~~~
 
-Module descriptor của processor cần công khai processor qua service provider declaration:
+The processor's module descriptor must expose the processor via a service provider declaration:
 
 ~~~java
 module com.acme.dto.processor {
@@ -229,33 +229,33 @@ module com.acme.dto.processor {
 }
 ~~~
 
-Processor module thường cần **requires java.compiler** để truy cập API annotation processing và language model.
+A processor module typically needs **requires java.compiler** to access the annotation processing and language model APIs.
 
-Không đặt processor JAR vào --module-path của ứng dụng chỉ để javac tìm processor. Hãy cấu hình processor path riêng. Ngược lại, dependency mà source ứng dụng tham chiếu phải nằm trên classpath hoặc module path phù hợp với cách ứng dụng được biên dịch.
+Do not put processor JARs on the application's `--module-path` just so `javac` can find the processor. Configure the processor path separately. Conversely, dependencies referenced by the application's sources must reside on the classpath or module path appropriate for how the application is compiled.
 
-### Tắt hoặc giới hạn annotation processing
+### Disabling or Limiting Annotation Processing
 
-Các chế độ chính:
+Main modes:
 
-- **-proc:none**: không chạy annotation processor; compiler chỉ biên dịch source.
-- **-proc:only**: chỉ chạy annotation processing, không thực hiện compilation cuối cùng.
-- **-proc:full**: thực hiện annotation processing và compilation.
+- **-proc:none**: do not run annotation processors; the compiler only compiles sources.
+- **-proc:only**: only run annotation processing; do not perform final compilation.
+- **-proc:full**: perform both annotation processing and compilation.
 
-Khi cần xem processor có tạo đúng file hay không mà chưa muốn kiểm tra class output, -proc:only có thể hữu ích. Tuy nhiên, vì không có bước compile cuối, lệnh thành công không chứng minh generated source hợp lệ về mặt Java hoặc module access. Cần có bước compile riêng để xác nhận.
+When you want to see whether a processor generates the right files without checking class outputs yet, `-proc:only` can be useful. However, because there is no final compilation step, a successful command does not prove that generated sources are valid Java or obey module access rules. A separate compilation step is needed to confirm.
 
-Từ JDK 21, có thể truyền cấu hình riêng cho processor bằng **-Akey=value**. Ví dụ:
+Starting from JDK 21, you can pass custom options to processors using **-Akey=value**. For example:
 
 ~~~text
 -Acom.acme.dto.package=com.acme.app.generated
 ~~~
 
-Processor tự định nghĩa và đọc option này qua **ProcessingEnvironment.getOptions()**. javac không tự hiểu ý nghĩa của key.
+The processor itself defines and reads this option via **ProcessingEnvironment.getOptions()**. `javac` does not interpret the key's meaning itself.
 
-## 6. Biên dịch nhiều module với --module-source-path
+## 6. Compiling Multiple Modules with --module-source-path
 
-Khi biên dịch nhiều named modules trong cùng một invocation, dùng **--module-source-path** để chỉ nơi chứa source của từng module.
+When compiling multiple named modules in a single invocation, use **--module-source-path** to indicate where each module's sources are located.
 
-Ví dụ cấu trúc:
+Example structure:
 
 ~~~text
 src/
@@ -267,7 +267,7 @@ src/
     com/acme/app/Main.java
 ~~~
 
-Module com.acme.app:
+Module `com.acme.app`:
 
 ~~~java
 module com.acme.app {
@@ -275,7 +275,7 @@ module com.acme.app {
 }
 ~~~
 
-Lệnh biên dịch:
+Compilation command:
 
 ~~~text
 javac
@@ -287,20 +287,20 @@ javac
   -m com.acme.api,com.acme.app
 ~~~
 
-Ở đây:
+Here:
 
-- **src/** là module source hierarchy.
-- **src/com.acme.api/** là source root của module com.acme.api.
-- **src/com.acme.app/** là source root của module com.acme.app.
-- **-m** chọn các module được biên dịch.
-- **-s** đặt generated source vào output hierarchy theo module.
-- **-d** đặt class file vào output hierarchy theo module.
+- **src/** is the module source hierarchy.
+- **src/com.acme.api/** is the source root of the `com.acme.api` module.
+- **src/com.acme.app/** is the source root of the `com.acme.app` module.
+- **-m** selects the modules to be compiled.
+- **-s** places generated sources into the output hierarchy by module.
+- **-d** places class files into the output hierarchy by module.
 
-Nếu chỉ biên dịch một module, có thể dùng source path tương ứng. Khi biên dịch nhiều module, javac yêu cầu module source path để xác định module ownership và tổ chức output.
+If compiling only a single module, you can use the corresponding source path. When compiling multiple modules, `javac` requires a module source path to determine module ownership and organize outputs.
 
-### Generated source cần thuộc module nào?
+### Which Module Should a Generated Source Belong To?
 
-Khi processor đang xử lý nhiều module, compiler phải xác định generated type thuộc module đích nào. Có thể chỉ rõ module trong tên file đưa cho Filer bằng cú pháp:
+When a processor is processing multiple modules, the compiler must determine which target module a generated type belongs to. You can specify the module explicitly in the filename passed to `Filer` using the syntax:
 
 ~~~java
 filer.createSourceFile(
@@ -308,21 +308,21 @@ filer.createSourceFile(
         originatingElement);
 ~~~
 
-Phần trước dấu slash là module name; phần sau là tên type. Cách này hữu ích khi processor có thể sinh source cho nhiều module trong cùng một compilation.
+The part before the slash is the module name; the part after is the type name. This approach is helpful when a processor can generate sources for multiple modules within the same compilation.
 
-Nếu không chỉ rõ module, javac có thể suy luận module từ compilation context và originating elements. Khi không thể suy luận, **--default-module-for-created-files** cho phép chỉ định module mặc định cho các file do processor tạo:
+If the module is not specified explicitly, `javac` can infer the module from the compilation context and originating elements. When it cannot infer it, **--default-module-for-created-files** allows specifying a default module for files created by processors:
 
 ~~~text
 --default-module-for-created-files com.acme.app
 ~~~
 
-Đây là fallback cho generated files chưa có module prefix và không xác định được module đích. Không nên đặt mặc định tùy tiện khi processor phục vụ nhiều module, vì source có thể bị gán vào sai module. Ưu tiên module prefix hoặc originating elements chính xác khi có thể.
+This is a fallback for generated files without a module prefix whose target module cannot be determined. Do not set a default arbitrarily when a processor serves multiple modules, as sources may be assigned to the wrong module. Prefer a module prefix or accurate originating elements whenever possible.
 
-Một source file trong named module phải thuộc một package có tên. Tạo type trong unnamed package của named module không được hỗ trợ.
+A source file in a named module must belong to a named package. Creating types in the unnamed package of a named module is not supported.
 
-## 7. Module descriptor và generated code
+## 7. Module Descriptor and Generated Code
 
-Giả sử processor sinh class:
+Suppose a processor generates a class:
 
 ~~~java
 package com.acme.app.generated;
@@ -334,9 +334,9 @@ public final class CustomerRegistry {
 }
 ~~~
 
-Class này thuộc module đang được compiler gán cho generated source. Nếu chỉ module hiện tại sử dụng class, package không nhất thiết phải export.
+This class belongs to the module assigned by the compiler for the generated source. If only the current module uses the class, the package does not necessarily have to be exported.
 
-Nếu một module khác cần truy cập class public, module descriptor phải có:
+If another module needs to access the public class, the module descriptor must contain:
 
 ~~~java
 module com.acme.app {
@@ -344,17 +344,17 @@ module com.acme.app {
 }
 ~~~
 
-Chỉ thị exports không tự sinh từ package xuất hiện sau annotation processing. Nếu generated API là một phần của public contract, hãy khai báo package đó rõ ràng trong module-info.java.
+`exports` directives are not automatically generated from packages that appear after annotation processing. If a generated API is part of the public contract, declare that package explicitly in `module-info.java`.
 
-### Generated code tham chiếu module khác
+### Generated Code Referencing Other Modules
 
-Ví dụ processor tạo source có dòng:
+For example, a processor generates a source with the line:
 
 ~~~java
 import com.acme.api.Customer;
 ~~~
 
-Nếu Customer nằm trong named module com.acme.api, module đích của generated source phải đọc com.acme.api:
+If `Customer` resides in the named module `com.acme.api`, the target module of the generated source must read `com.acme.api`:
 
 ~~~java
 module com.acme.app {
@@ -362,9 +362,9 @@ module com.acme.app {
 }
 ~~~
 
-Processor path không tự tạo readability cho module đang compile. Nếu source sinh ra tham chiếu API trong module khác, module đích vẫn cần dependency module tương ứng.
+The processor path does not automatically create readability for the module being compiled. If the generated source references an API in another module, the target module still needs the corresponding module dependency.
 
-Nếu annotation chỉ cần trong quá trình compile và không cần ở runtime, có thể cân nhắc **requires static**:
+If an annotation is only needed during compilation and not at runtime, you can consider **requires static**:
 
 ~~~java
 module com.acme.app {
@@ -372,11 +372,11 @@ module com.acme.app {
 }
 ~~~
 
-Chỉ dùng requires static khi dependency thực sự chỉ cần ở compile time hoặc khi có thể thiếu ở runtime theo thiết kế. Nếu generated bytecode cần type của module đó khi chạy, dependency runtime vẫn phải được đảm bảo.
+Only use `requires static` when the dependency is genuinely only needed at compile time or may be absent at runtime by design. If the generated bytecode needs types from that module at runtime, the runtime dependency must still be ensured.
 
-## 8. Annotation trên module-info.java
+## 8. Annotations on module-info.java
 
-Module declaration cũng có thể mang annotation có target MODULE:
+A module declaration can also carry annotations targeting `MODULE`:
 
 ~~~java
 @Target(ElementType.MODULE)
@@ -385,7 +385,7 @@ public @interface GenerateModuleRegistry {
 }
 ~~~
 
-Sử dụng annotation trong module-info.java:
+Using the annotation in `module-info.java`:
 
 ~~~java
 @GenerateModuleRegistry
@@ -394,9 +394,9 @@ module com.acme.app {
 }
 ~~~
 
-Processor có thể nhận module element trong root elements và đọc annotation trên module declaration. Từ metadata đó, processor có thể sinh các class hỗ trợ trong module.
+A processor can receive the module element in root elements and read annotations on the module declaration. From that metadata, the processor can generate supporting classes inside the module.
 
-Ví dụ, processor có thể tạo:
+For example, the processor can generate:
 
 ~~~java
 package com.acme.app.generated;
@@ -410,17 +410,17 @@ public final class ModuleRegistry {
 }
 ~~~
 
-Điều này không có nghĩa processor tự sửa module-info.java. Module descriptor ban đầu vẫn là source input; processor chỉ sinh source bổ sung theo thông tin nó đọc được.
+This does not mean the processor modifies `module-info.java` itself. The original module descriptor remains a source input; the processor only generates additional sources based on the information it reads.
 
-Khi xử lý annotation trên module, cần chú ý module element là một root element riêng. Processor không nên giả định rằng module element tự động bao gồm toàn bộ package và type như một element cha thông thường. Hãy dùng language model API để truy vấn module, package và type đúng cách.
+When processing annotations on a module, note that the module element is a distinct root element. A processor should not assume that a module element automatically encloses all packages and types like an ordinary parent element. Use the language model API to query modules, packages, and types properly.
 
-## 9. Generated sources với Maven và Gradle
+## 9. Generated Sources with Maven and Gradle
 
-Build tool thường cấu hình annotation processing thay cho việc gọi javac trực tiếp.
+Build tools typically configure annotation processing instead of calling `javac` directly.
 
 ### Maven
 
-Maven Compiler Plugin có thể cấu hình processor path riêng và generated source output. Ví dụ cấu hình khái niệm:
+The Maven Compiler Plugin can configure a separate processor path and generated source output. Conceptual configuration example:
 
 ~~~xml
 <plugin>
@@ -441,11 +441,11 @@ Maven Compiler Plugin có thể cấu hình processor path riêng và generated 
 </plugin>
 ~~~
 
-Với dự án modular, module-info.java vẫn nằm trong source set của module. Processor được cấu hình riêng trong compiler plugin. Cấu hình chính xác phụ thuộc phiên bản Maven Compiler Plugin và cách project khai báo dependency.
+For modular projects, `module-info.java` still resides in the module's source set. Processors are configured separately in the compiler plugin. The exact configuration depends on the Maven Compiler Plugin version and how the project declares dependencies.
 
 ### Gradle
 
-Gradle Java plugin phân biệt annotation processor dependency bằng configuration **annotationProcessor**:
+The Gradle Java plugin separates annotation processor dependencies using the **annotationProcessor** configuration:
 
 ~~~groovy
 dependencies {
@@ -454,103 +454,103 @@ dependencies {
 }
 ~~~
 
-Nếu processor được sử dụng trong test source set, có thể cần cấu hình annotationProcessor tương ứng cho test.
+If a processor is used in the test source set, you may need to configure `annotationProcessor` accordingly for tests.
 
-Generated source output thường nằm trong thư mục build do Gradle quản lý. Không thêm generated source directory vào source set hai lần nếu plugin đã tự đăng ký output. Cũng không khai báo processor như implementation runtime dependency chỉ vì compiler cần chạy processor.
+Generated source outputs typically reside in a build directory managed by Gradle. Do not add the generated source directory to a source set twice if the plugin already registers the output automatically. Also do not declare a processor as an `implementation` runtime dependency just because the compiler needs to run the processor.
 
-### Quy tắc tổ chức output
+### Output Organization Rules
 
-- Để generated source dưới build directory hoặc thư mục output do build tool quản lý.
-- Không sửa trực tiếp file đã sinh.
-- Không commit generated source trừ khi dự án có quy ước rõ ràng yêu cầu làm vậy.
-- Đảm bảo clean build có thể tạo lại đầy đủ source.
-- Đảm bảo module descriptor được đưa vào đúng source set và compile cùng module.
-- Giữ processor dependency trong cấu hình annotation processor riêng khi build tool hỗ trợ.
+- Keep generated sources under the build directory or an output directory managed by the build tool.
+- Do not edit generated files directly.
+- Do not commit generated sources unless the project has an explicit convention requiring it.
+- Ensure a clean build can regenerate all sources completely.
+- Ensure the module descriptor is placed in the right source set and compiled with the module.
+- Keep processor dependencies in the dedicated annotation processor configuration when supported by the build tool.
 
-## 10. Lỗi thường gặp và cách xử lý
+## 10. Common Errors and How to Handle Them
 
-### Generated source nằm sai module
+### Generated Source Ends Up in the Wrong Module
 
-Nguyên nhân có thể là processor không chỉ rõ module prefix hoặc compiler không suy luận được module đích.
+Possible causes are that the processor did not specify a module prefix or the compiler could not infer the target module.
 
-Cách xử lý:
+How to handle:
 
-- Truyền originating elements phù hợp cho Filer.
-- Dùng module-qualified name dạng module/name khi processor biết chính xác target module.
-- Chỉ định --default-module-for-created-files khi có một module mặc định hợp lý.
-- Kiểm tra đường dẫn generated source dưới -s.
+- Pass appropriate originating elements to `Filer`.
+- Use a module-qualified name in the form `module/name` when the processor knows the exact target module.
+- Specify `--default-module-for-created-files` when there is a sensible default module.
+- Check the generated source path under `-s`.
 
-### Package generated không được export
+### Generated Package Is Not Exported
 
-Generated class có public modifier nhưng module khác vẫn không truy cập được. Public trong Java language không tự vượt qua ranh giới module.
+The generated class has the `public` modifier, yet another module still cannot access it. `public` in the Java language does not automatically cross module boundaries.
 
-Cách xử lý: thêm exports cho package cần công khai trong module-info.java. Nếu chỉ code nội bộ của module sử dụng, không cần export package đó.
+How to handle: add `exports` for the package to be exposed in `module-info.java`. If only internal module code uses it, there is no need to export that package.
 
-### Processor không được tìm thấy
+### Processor Not Found
 
-Nguyên nhân thường là đặt processor trên --module-path thay vì --processor-path hoặc --processor-module-path, thiếu service registration, hoặc cấu hình build tool chưa đúng.
+Common causes are placing the processor on `--module-path` instead of `--processor-path` or `--processor-module-path`, missing service registration, or incorrect build tool configuration.
 
-Cách xử lý:
+How to handle:
 
-- Processor dạng classpath JAR: kiểm tra --processor-path.
-- Processor dạng named module: kiểm tra --processor-module-path và provides javax.annotation.processing.Processor.
-- Dùng -processor khi cần chọn processor class rõ ràng.
-- Kiểm tra log compiler và phiên bản JDK đang chạy.
+- Classpath JAR processor: check `--processor-path`.
+- Named module processor: check `--processor-module-path` and `provides javax.annotation.processing.Processor`.
+- Use `-processor` when you need to explicitly select a processor class.
+- Check compiler logs and the running JDK version.
 
-### Generated source tham chiếu dependency chưa được requires
+### Generated Source References a Dependency Missing from requires
 
-Processor path không tự tạo readability cho module đang compile. Nếu source sinh ra tham chiếu API trong module khác, module đích vẫn cần dependency module tương ứng.
+The processor path does not automatically create readability for the module being compiled. If the generated source references an API in another module, the target module still needs the corresponding module dependency.
 
-Cách xử lý: khai báo requires hoặc requires static phù hợp trong module-info.java, rồi kiểm tra dependency trên module path.
+How to handle: declare the appropriate `requires` or `requires static` in `module-info.java`, then verify the dependency on the module path.
 
-### Source được tạo nhưng không compile
+### Source Is Generated but Not Compiled
 
-Có thể compiler đang chạy -proc:only, source output không được đưa vào compilation sau đó, hoặc generated code có lỗi Java/module access.
+The compiler may be running with `-proc:only`, the source output may not be included in subsequent compilation, or the generated code may have Java/module access errors.
 
-Cách xử lý: xác nhận chế độ -proc, kiểm tra generated file trong -s, sau đó compile source đó trong cùng module với module descriptor và dependency đúng.
+How to handle: verify the `-proc` mode, check the generated files in `-s`, and then compile those sources in the same module with the proper module descriptor and dependencies.
 
-### Processor tạo trùng source qua nhiều round
+### Processor Generates Duplicate Sources Across Multiple Rounds
 
-Filer không cho phép cùng một source file được tạo nhiều lần trong cùng compilation. Processor phải tránh tạo lại cùng tên ở round sau và không sinh source vô điều kiện.
+`Filer` does not allow the same source file to be created multiple times in the same compilation. A processor must avoid recreating the same name in later rounds and must not generate sources unconditionally.
 
-Cách xử lý: chỉ sinh source khi phát hiện input phù hợp, theo dõi các type đã tạo trong lượt xử lý và xử lý round cuối đúng cách.
+How to handle: only generate sources when matching inputs are detected, track types already created in the processing pass, and handle the final round properly.
 
-## 11. Quy trình kiểm tra một dự án modular có generated source
+## 11. Verification Workflow for a Modular Project with Generated Sources
 
-1. Xác định module source root và vị trí module-info.java.
-2. Tìm annotation processor và xác định processor là classpath JAR hay named module.
-3. Xác định processor dependency được cấu hình riêng khỏi dependency của ứng dụng.
-4. Chạy compile với thư mục generated source riêng bằng -s.
-5. Với nhiều module, dùng --module-source-path và kiểm tra module hierarchy trong generated output.
-6. Nếu processor tạo source cho nhiều module, xác định cách Filer gán target module.
-7. Kiểm tra generated source tham chiếu module nào và module descriptor có requires phù hợp không.
-8. Kiểm tra package generated có cần export hoặc open không.
-9. Kiểm tra service usage/provider có cần uses/provides rõ ràng trong descriptor không.
-10. Chạy clean build để chứng minh generated source có thể tái tạo.
-11. Chạy test trên module path để xác nhận module descriptor và generated classes hoạt động cùng nhau.
+1. Identify the module source root and the location of `module-info.java`.
+2. Locate the annotation processor and determine whether it is a classpath JAR or a named module.
+3. Verify that processor dependencies are configured separately from application dependencies.
+4. Run compilation with a separate generated source directory using `-s`.
+5. For multiple modules, use `--module-source-path` and inspect the module hierarchy in the generated output.
+6. If a processor creates sources for multiple modules, verify how `Filer` assigns the target module.
+7. Check which modules the generated sources reference and whether the module descriptor has appropriate `requires`.
+8. Check whether generated packages need to be exported or opened.
+9. Check whether service usage/providers need explicit `uses`/`provides` in the descriptor.
+10. Run a clean build to prove generated sources are reproducible.
+11. Run tests on the module path to confirm the module descriptor and generated classes work together.
 
-## 12. Checklist khi review generated sources và module-info
+## 12. Checklist When Reviewing Generated Sources and module-info
 
-- module-info.java có nằm ở root source của đúng module không?
-- Generated source có được ghi vào thư mục output riêng không?
-- -s và -d có đang bị nhầm mục đích không?
-- Processor có nằm trên đúng processor path không?
-- Processor dependency có bị đưa nhầm vào runtime dependency của ứng dụng không?
-- Nếu compile nhiều module, đã dùng --module-source-path chưa?
-- Generated source đã được gán đúng module chưa?
-- Có cần module prefix hoặc --default-module-for-created-files không?
-- Các dependency được generated source tham chiếu đã có requires phù hợp chưa?
-- Package generated có cần export hoặc open cho module khác không?
-- Service usage/provider có được khai báo bằng uses/provides khi cần không?
-- Clean build có tái tạo được source và class output không?
-- Build có vô tình compile generated source hai lần không?
-- Có đang cố để annotation processor tự sửa module-info.java không?
+- Is `module-info.java` at the source root of the right module?
+- Are generated sources written to a separate output directory?
+- Are `-s` and `-d` being confused in purpose?
+- Is the processor on the right processor path?
+- Have processor dependencies been accidentally placed into the application's runtime dependencies?
+- If compiling multiple modules, is `--module-source-path` being used?
+- Have generated sources been assigned to the right module?
+- Is a module prefix or `--default-module-for-created-files` needed?
+- Do dependencies referenced by generated sources have appropriate `requires` declarations?
+- Do generated packages need to be exported or opened to other modules?
+- Are service usages/providers declared with `uses`/`provides` when needed?
+- Can a clean build reproduce both source and class outputs?
+- Does the build accidentally compile generated sources twice?
+- Is anything trying to make an annotation processor automatically edit `module-info.java`?
 
-**Ghi nhớ:** Generated source là source code thuộc một module đã được xác định trong compilation. Processor tạo type và resource; module-info.java định nghĩa dependency và ranh giới của module. Hãy quản lý hai phần này như hai đầu vào có quan hệ rõ ràng: generated code phải được gán đúng module và descriptor phải khai báo đúng những gì code đó cần.
+**Key takeaway:** Generated source is source code belonging to a module already established in the compilation. Processors create types and resources; `module-info.java` defines the module's dependencies and boundaries. Manage these two parts as two clearly related inputs: generated code must be assigned to the right module, and the descriptor must declare exactly what that code needs.
 
-## Tài liệu tham khảo
+## References
 
-- Oracle Java SE 21 — The javac Command, mục Annotation Processing, -s, --module-source-path, --processor-path và --processor-module-path: https://docs.oracle.com/en/java/javase/21/docs/specs/man/javac.html
+- Oracle Java SE 21 — The javac Command, sections Annotation Processing, -s, --module-source-path, --processor-path, and --processor-module-path: https://docs.oracle.com/en/java/javase/21/docs/specs/man/javac.html
 - Oracle Java SE 21 API — Filer: https://docs.oracle.com/en/java/javase/21/docs/api/java.compiler/javax/annotation/processing/Filer.html
 - Oracle Java SE 21 API — Processor: https://docs.oracle.com/en/java/javase/21/docs/api/java.compiler/javax/annotation/processing/Processor.html
 - Oracle Java SE 21 API — RoundEnvironment: https://docs.oracle.com/en/java/javase/21/docs/api/java.compiler/javax/annotation/processing/RoundEnvironment.html

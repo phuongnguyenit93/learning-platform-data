@@ -1,53 +1,53 @@
-# So sánh nội dung bằng `equals()` thay cho `==` trong Java
+# Comparing Content with `equals()` Instead of `==` in Java
 
-> **Java core — language-basics / Ký tự và chuỗi**  
-> **Yêu cầu:** JDK 17+, không dùng thư viện ngoài.  
-> **Mục tiêu:** Hiểu vì sao `==` không phải cách kiểm tra nội dung `String`; sử dụng `equals()`, `Objects.equals()` và `equalsIgnoreCase()` đúng ngữ cảnh, tránh lỗi `null` và kết quả tưởng như ngẫu nhiên do string pool.
+> **Java core — language-basics / Characters and Strings**  
+> **Requirements:** JDK 17+, no external libraries used.  
+> **Goal:** Understand why `==` is not how to check `String` content; use `equals()`, `Objects.equals()`, and `equalsIgnoreCase()` in the right contexts, avoiding `null` errors and seemingly random results caused by the string pool.
 
-## 1. `==` và `equals()` trả lời hai câu hỏi khác nhau
+## 1. `==` and `equals()` answer two different questions
 
-Một biến kiểu `String` là **tham chiếu** đến đối tượng chuỗi. Hai biến có thể trỏ đến **hai đối tượng khác nhau** nhưng nội dung văn bản bên trong giống hệt nhau.
+A `String` variable is a **reference** to a string object. Two variables can point to **two different objects** whose internal text content is identical.
 
-| Cách viết | Với hai tham chiếu `String` | Dùng khi nào? |
+| Expression | With two `String` references | When to use? |
 | --- | --- | --- |
-| `a == b` | Kiểm tra **cùng tham chiếu/cùng đối tượng** (hoặc cả hai `null`) | Khi thật sự cần kiểm tra identity, hoặc kiểm tra `a == null` |
-| `a.equals(b)` | Kiểm tra **nội dung** của hai chuỗi theo quy tắc `String.equals` | Khi muốn so sánh chính xác văn bản và biết `a != null` |
-| `Objects.equals(a, b)` | So sánh nội dung như `equals` nhưng an toàn nếu một/hai giá trị là `null` | Khi một hoặc hai tham chiếu có thể `null` |
-| `a.equalsIgnoreCase(b)` | So sánh nội dung **không phân biệt hoa/thường** theo quy tắc của Java | Khi yêu cầu nghiệp vụ thực sự không phân biệt hoa/thường |
+| `a == b` | Checks **same reference / same object** (or both `null`) | When you genuinely need to check identity, or check `a == null` |
+| `a.equals(b)` | Checks **content** of two strings according to `String.equals` rules | When you want exact text comparison and know `a != null` |
+| `Objects.equals(a, b)` | Compares content like `equals` but is safe if one or both values are `null` | When one or both references can be `null` |
+| `a.equalsIgnoreCase(b)` | Compares content **case-insensitively** according to Java's rules | When business requirements are truly case-insensitive |
 
-Ví dụ cốt lõi:
+Core example:
 
 ~~~java
 String first = new String("Java");
 String second = new String("Java");
 
-System.out.println(first == second);      // false: hai đối tượng khác nhau.
-System.out.println(first.equals(second)); // true: nội dung giống nhau.
+System.out.println(first == second);      // false: two different objects.
+System.out.println(first.equals(second)); // true: identical content.
 ~~~
 
-`String.equals(Object)` so sánh chuỗi theo trình tự **đơn vị mã UTF-16** và có phân biệt hoa/thường. Nó trả về `false` khi đối số là `null` hoặc không phải `String`; không ép kiểu số hay tự xóa khoảng trắng để cố làm hai giá trị bằng nhau.
+`String.equals(Object)` compares strings by their sequence of **UTF-16 code units** and is case-sensitive. It returns `false` when the argument is `null` or not a `String`; it does not coerce numbers or strip whitespace to try to make two values equal.
 
-**Quy tắc thực tế:** Muốn biết hai chuỗi mang **cùng giá trị văn bản**, ưu tiên `equals` (hoặc `Objects.equals` khi cần null-safe), không dùng `==`.
+**Practical rule:** To know whether two strings carry the **same text value**, prefer `equals` (or `Objects.equals` when null-safety is needed), not `==`.
 
-## 2. Vì sao đôi lúc `==` với String lại ra `true`?
+## 2. Why does `==` on Strings sometimes evaluate to `true`?
 
-Java có **string pool** cho các literal chuỗi. Trong cùng chương trình, hai literal có nội dung tương đương thường dùng chung đối tượng chuỗi đã được intern:
+Java has a **string pool** for string literals. Within the same program, two literals with equivalent content typically share the same interned string object:
 
 ~~~java
 String a = "Java";
 String b = "Java";
 
-System.out.println(a == b);      // true do cùng literal được intern.
-System.out.println(a.equals(b)); // true vì nội dung giống nhau.
+System.out.println(a == b);      // true due to the same interned literal.
+System.out.println(a.equals(b)); // true because content is identical.
 ~~~
 
-Kết quả `a == b` trong tình huống trên **không chứng minh** rằng `==` là phép so sánh nội dung. Khi tạo đối tượng `new String("Java")` hoặc ghép chuỗi ở runtime, cùng nội dung vẫn có thể đi kèm tham chiếu khác:
+The `a == b` result in that situation **does not prove** that `==` is content comparison. When creating an object with `new String("Java")` or concatenating strings at runtime, identical content can still have different references:
 
 ~~~java
 String pooled = "Java";
-String copied = new String("Java"); // Chỉ dùng để minh họa reference identity.
+String copied = new String("Java"); // Used only to illustrate reference identity.
 String part = "Ja";
-String combined = part + "va";      // Ghép ở runtime.
+String combined = part + "va";      // Concatenated at runtime.
 
 System.out.println(pooled == copied);    // false
 System.out.println(pooled.equals(copied)); // true
@@ -55,11 +55,11 @@ System.out.println(pooled == combined);  // false
 System.out.println(pooled.equals(combined)); // true
 ~~~
 
-Đừng cố dựa vào việc JVM tối ưu chuỗi hay chuỗi đến từ literal, file, người dùng hoặc API để dùng `==` thay `equals`. `new String(...)` hiếm khi cần trong code ứng dụng thực tế; nó xuất hiện ở đây để chứng minh hai object khác nhau.
+Do not try to rely on JVM string optimizations or on whether a string came from a literal, file, user input, or API to use `==` instead of `equals`. `new String(...)` is rarely needed in real application code; it appears here to demonstrate two distinct objects.
 
-## 3. Chương trình Java 17+ chạy được
+## 3. Runnable Java 17+ program
 
-Tạo file **StringEqualsDemo.java**:
+Create the file **StringEqualsDemo.java**:
 
 ~~~java
 import java.util.Objects;
@@ -101,14 +101,14 @@ public final class StringEqualsDemo {
 }
 ~~~
 
-Biên dịch và chạy từ thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Compile and run from the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 StringEqualsDemo.java
 java StringEqualsDemo
 ~~~
 
-**Expected output chính xác:**
+**Exact expected output:**
 
 ~~~text
 sameReference=true
@@ -128,45 +128,45 @@ unicodeForms=false
 decision=match
 ~~~
 
-**Cách kiểm chứng:**
+**How to verify:**
 
-- `literal` và `alias` cùng trỏ đến một đối tượng, nên `==` là `true`. `separate` là một đối tượng mới, nên `==` là `false` dù `equals()` là `true`.
-- `computed` được tạo bằng phép nối phụ thuộc biến ở runtime. Nội dung bằng `"Java"` nhưng không cùng tham chiếu với literal.
-- `equals()` phân biệt `"Java"` và `"java"`; `equalsIgnoreCase()` cho `true`. Khoảng trắng đầu/cuối cũng làm `equals` trả `false` nếu chưa chuẩn hóa dữ liệu.
-- `"Java".equals(missing)` an toàn và trả `false`. `Objects.equals(null, null)` trả `true`; `Objects.equals("Java", null)` trả `false`.
-- `"\u00E9"` là ký tự `é` viết bằng một code point, còn `"e\u0301"` là `e` cùng dấu sắc kết hợp; có thể hiển thị giống nhau nhưng **khác trình tự UTF-16**, nên `equals` cho `false`.
+- `literal` and `alias` point to the same object, so `==` is `true`. `separate` is a new object, so `==` is `false` even though `equals()` is `true`.
+- `computed` is created by a variable-dependent concatenation at runtime. Its content equals `"Java"`, yet it does not share a reference with the literal.
+- `equals()` distinguishes `"Java"` and `"java"`; `equalsIgnoreCase()` returns `true`. Leading/trailing whitespace also makes `equals` return `false` if data has not been normalized.
+- `"Java".equals(missing)` is safe and returns `false`. `Objects.equals(null, null)` returns `true`; `Objects.equals("Java", null)` returns `false`.
+- `"\u00E9"` is the character `é` written as one code point, whereas `"e\u0301"` is `e` plus a combining acute accent; they may look identical visually, yet they have **different UTF-16 sequences**, so `equals` returns `false`.
 
-## 4. So sánh an toàn khi có `null`
+## 4. Safe comparison when `null` is possible
 
-Nếu `input` có thể là `null`, gọi `input.equals("OK")` sẽ gây `NullPointerException`.
+If `input` can be `null`, calling `input.equals("OK")` will throw `NullPointerException`.
 
 ~~~java
 String input = null;
-// boolean bad = input.equals("OK"); // Ném NullPointerException nếu chạy.
+// boolean bad = input.equals("OK"); // Throws NullPointerException if executed.
 boolean safe = "OK".equals(input);   // false
 ~~~
 
-**Ba cách phổ biến:**
+**Three common approaches:**
 
-| Tình huống | Cách viết |
+| Situation | How to write |
 | --- | --- |
-| Biết `input` không `null` | `input.equals(expected)` |
-| So với một chuỗi cố định, `input` có thể `null` | `"OK".equals(input)` |
-| Hai biến đều có thể `null` | `Objects.equals(left, right)` |
+| Know `input` is not `null` | `input.equals(expected)` |
+| Comparing against a fixed string when `input` can be `null` | `"OK".equals(input)` |
+| Both variables can be `null` | `Objects.equals(left, right)` |
 
-`Objects.equals(left, right)` trả `true` nếu **cả hai đều `null`**. Nếu nghiệp vụ xem “hai giá trị cùng thiếu” là *không bằng nhau*, cần viết quy tắc riêng, ví dụ `left != null && left.equals(right)`.
+`Objects.equals(left, right)` returns `true` if **both are `null`**. If business logic treats “two missing values” as *not equal*, write a dedicated rule such as `left != null && left.equals(right)`.
 
-Lưu ý: `String.equals(null)` **không ném exception** nếu đối tượng bên trái không `null`; nó trả `false`. Exception xảy ra khi **tham chiếu bên trái** là `null` mà bạn vẫn gọi method.
+Note: `String.equals(null)` **does not throw an exception** when the left-hand object is non-`null`; it returns `false`. The exception happens when the **left-hand reference** is `null` and you still call a method on it.
 
-## 5. Phân biệt nội dung chính xác và nội dung chuẩn hóa
+## 5. Distinguishing exact content from normalized content
 
-Vì `String.equals` kiểm tra nội dung chính xác, những chuỗi gần giống không tự được xem là bằng nhau:
+Because `String.equals` checks exact content, nearly similar strings are not automatically considered equal:
 
-- **Chữ hoa/thường:** `"Java".equals("java")` là `false`.
-- **Khoảng trắng:** `"Java".equals(" Java ")` là `false`.
-- **Unicode:** các chuỗi có ký tự nhìn giống nhau nhưng dùng các trình tự code point khác nhau có thể không `equals`.
+- **Letter case:** `"Java".equals("java")` is `false`.
+- **Whitespace:** `"Java".equals(" Java ")` is `false`.
+- **Unicode:** strings with visually identical characters using different code point sequences may not be `equals`.
 
-Khi nghiệp vụ cho phép chuẩn hóa, hãy thực hiện **rõ ràng trước khi so sánh**:
+When business requirements allow normalization, perform it **explicitly before comparing**:
 
 ~~~java
 String expected = "Java";
@@ -175,34 +175,34 @@ boolean accepted = expected.equalsIgnoreCase(input.strip());
 System.out.println(accepted); // true
 ~~~
 
-Nhưng **không nên luôn strip hoặc bỏ phân biệt hoa/thường**: mật khẩu, định danh phân biệt hoa/thường và nội dung phải giữ nguyên có thể cần so sánh chính xác. `equalsIgnoreCase` cũng không phải công cụ tổng quát cho mọi quy tắc phân biệt ngôn ngữ, Unicode normalization hay so sánh theo locale.
+However, **do not always strip or ignore case**: passwords, case-sensitive identifiers, and content that must be preserved verbatim may require exact comparison. `equalsIgnoreCase` is also not a universal tool for all locale-specific casing rules, Unicode normalization, or locale-aware comparison.
 
-Khi thật sự cần Unicode normalization, Java cung cấp `java.text.Normalizer`; đó là một bước xử lý riêng, **không** được `equals` tự động thực hiện.
+When Unicode normalization is genuinely needed, Java provides `java.text.Normalizer`; that is a separate processing step and is **not** performed automatically by `equals`.
 
-## 6. Bẫy thường gặp
+## 6. Common traps
 
-| Dòng mã hoặc nhận định | Điểm sai và cách sửa |
+| Code line or statement | What is wrong and how to fix |
 | --- | --- |
-| `if (username == "admin")` | `==` so tham chiếu; dùng `"admin".equals(username)` nếu so nội dung chính xác |
-| `new String("x") == new String("x")` | `false` vì hai object khác nhau; dùng `equals` |
-| “Hai literal cho `== true` thì so nội dung bằng `==` là đủ.” | Sai: string pool không bảo đảm mọi `String` có cùng nội dung cùng reference |
-| `input.equals("YES")` khi `input` có thể `null` | Có thể NPE; dùng `"YES".equals(input)` hoặc `Objects.equals` |
-| `"a".equals("A")` | `false`; chỉ dùng `equalsIgnoreCase` nếu yêu cầu không phân biệt hoa/thường |
-| `"a".equals(" a ")` | `false` vì khoảng trắng khác nhau |
-| So sánh `StringBuilder` bằng `equals` và kỳ vọng so ký tự | `StringBuilder` không override `Object.equals` để so nội dung; nếu cần, so `toString()` của hai builder |
+| `if (username == "admin")` | `==` compares references; use `"admin".equals(username)` for exact content comparison |
+| `new String("x") == new String("x")` | `false` because of two distinct objects; use `equals` |
+| “Two literals give `== true`, so comparing content with `==` is enough.” | False: the string pool does not guarantee all `String`s with equal content share a reference |
+| `input.equals("YES")` when `input` can be `null` | Risk of NPE; use `"YES".equals(input)` or `Objects.equals` |
+| `"a".equals("A")` | `false`; only use `equalsIgnoreCase` if case-insensitivity is required |
+| `"a".equals(" a ")` | `false` because whitespace differs |
+| Comparing `StringBuilder` with `equals` expecting character comparison | `StringBuilder` does not override `Object.equals` to compare content; if needed, compare `toString()` of the two builders |
 
-### Bài tập tự luyện
+### Self-practice exercises
 
-**Bài 1.** Cho `String x = "hello"; String y = new String("hello");`. Dự đoán `x == y` và `x.equals(y)`, giải thích không dựa vào việc string pool có hay không.
+**Exercise 1.** Given `String x = "hello"; String y = new String("hello");`, predict `x == y` and `x.equals(y)`, explaining without relying on whether the string pool exists or not.
 
-**Bài 2.** Cho `String input = null;`. Viết ba cách kiểm tra an toàn rằng input có nội dung `"YES"` hoặc báo thiếu dữ liệu. `Objects.equals(null, null)` có phù hợp nếu hai trường đều chưa được nhập không?
+**Exercise 2.** Given `String input = null;`, write three safe ways to check whether input has content `"YES"` or report missing data. Is `Objects.equals(null, null)` appropriate if two fields have both been left blank?
 
-**Bài 3.** Viết điều kiện chấp nhận `"yes"`, `"YES"` và `" Yes "`, nhưng không chấp nhận `"y"`. Chỉ chuẩn hóa khi nghiệp vụ cho phép.
+**Exercise 3.** Write a condition that accepts `"yes"`, `"YES"`, and `" Yes "`, while rejecting `"y"`. Normalize only when business logic permits.
 
-**Bài 4.** Tự thử so `"\u00E9"` với `"e\u0301"`. Vì sao người dùng có thể nhìn thấy cùng một chữ nhưng `equals` cho `false`? Điều kiện nào cần chuẩn hóa Unicode?
+**Exercise 4.** Try comparing `"\u00E9"` with `"e\u0301"` yourself. Why can a user see the same letter while `equals` returns `false`? Under what conditions is Unicode normalization needed?
 
-**Bài 5.** Tạo hai `StringBuilder` chứa `"abc"`, thử `a.equals(b)` và `a.toString().equals(b.toString())`. Khi nào phép so sánh nội dung là đúng mục đích?
+**Exercise 5.** Create two `StringBuilder`s containing `"abc"`, and test `a.equals(b)` and `a.toString().equals(b.toString())`. When is content comparison appropriate for your goal?
 
-### Ghi nhớ
+### Key takeaway
 
-**Với `String`, `==` hỏi “cùng đối tượng?”; `equals()` hỏi “cùng nội dung?”.** Dùng `equals` để so giá trị văn bản; ưu tiên `"literal".equals(value)` hoặc `Objects.equals(a, b)` khi cần an toàn với `null`. Đừng nhầm hiệu ứng của string pool, việc chuẩn hóa dữ liệu hay `equalsIgnoreCase` với quy tắc so sánh chính xác của `String.equals`.
+**For `String`, `==` asks “same object?”; `equals()` asks “same content?”.** Use `equals` to compare text values; prefer `"literal".equals(value)` or `Objects.equals(a, b)` when `null` safety is needed. Do not confuse string pool effects, data normalization, or `equalsIgnoreCase` with the exact comparison rules of `String.equals`.

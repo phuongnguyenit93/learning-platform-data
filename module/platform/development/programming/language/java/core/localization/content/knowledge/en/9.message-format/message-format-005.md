@@ -1,8 +1,8 @@
-# Quy tắc dấu nháy đơn, ngoặc nhọn và escape trong mẫu Java `MessageFormat`
+# Single Quote, Curly Braces, and Escaping Rules in Java `MessageFormat` Patterns
 
-## 1. Vì sao mẫu `MessageFormat` dễ bị lỗi dù chuỗi nhìn “đúng”?
+## 1. Why `MessageFormat` Patterns Break Easily Even When the String Looks "Right"
 
-`java.text.MessageFormat` tạo thông điệp có tham số theo `Locale`. Ví dụ:
+`java.text.MessageFormat` builds parameterized messages according to a `Locale`. For example:
 
 ```java
 MessageFormat format =
@@ -10,21 +10,21 @@ MessageFormat format =
 System.out.println(format.format(new Object[] {"Lan"}));
 ```
 
-Đầu ra:
+Output:
 
 ```text
 Xin chào Lan!
 ```
 
-Ký hiệu `{0}` là **phần giữ chỗ (placeholder)** cho tham số ở vị trí 0. Nhưng `MessageFormat` không xử lý chuỗi mẫu như văn bản thông thường: dấu **nháy đơn `'`** có ý nghĩa cú pháp, ngoặc **`{` và `}`** đánh dấu thành phần định dạng, còn dấu **gạch chéo ngược `\` không phải cách escape tổng quát trong cú pháp `MessageFormat`**.
+The `{0}` notation is a **placeholder** for the argument at index 0. However, `MessageFormat` does not treat a pattern string as ordinary plain text: the **single quote `'`** has syntactic meaning, braces **`{` and `}`** delimit format elements, and the **backslash `\` is not a general escape mechanism in `MessageFormat` syntax**.
 
-Bởi vậy, một thông điệp như `It's {0}` có thể không thay tham số như người viết mong đợi. Một ví dụ chứa ký hiệu `{0}` để giải thích tài liệu cũng có thể bị coi là tham số. Khi mẫu nằm trong mã Java hoặc tệp `.properties`, phải phân biệt **hai tầng xử lý**: cú pháp lưu chuỗi và cú pháp của `MessageFormat`.
+Because of this, a message like `It's {0}` may fail to substitute the argument as the author intended. An example containing `{0}` to explain documentation can also be treated as an argument placeholder. When a pattern lives in Java code or a `.properties` file, you must distinguish **two processing layers**: string-storage syntax and `MessageFormat` syntax.
 
-Bài này tập trung vào quy tắc **dấu nháy đơn, ngoặc nhọn, escape và cách kiểm thử mẫu**; không nhầm nó với `String.format` hoặc cơ chế interpolation của ngôn ngữ khác.
+This lesson focuses on **single quotes, curly braces, escaping, and how to test patterns**; do not confuse it with `String.format` or string interpolation in other languages.
 
-## 2. Hình thức cơ bản của một phần định dạng
+## 2. Basic Form of a Format Element
 
-Một phần tử trong pattern có hình thức:
+An element in a pattern takes the form:
 
 ```text
 {argumentIndex}
@@ -32,81 +32,81 @@ Một phần tử trong pattern có hình thức:
 {argumentIndex,formatType,formatStyle}
 ```
 
-Ví dụ:
+For example:
 
 ```text
-Xin chào {0}; bạn có {1,number,integer} thông báo.
+Hello {0}; you have {1,number,integer} notifications.
 ```
 
-- `{0}` là tham số thứ nhất, `{1}` là tham số thứ hai (chỉ số bắt đầu từ **0**).
-- `number`, `date`, `time`, `choice` có thể mở rộng cách định dạng theo `Locale`; kiểu và style hợp lệ tùy loại.
-- Dấu phẩy, dấu ngoặc nhọn trong cú pháp phần tử định dạng được parser xử lý đặc biệt.
-- Nếu chỉ muốn in **chữ `{0}`**, thay vì chèn tham số, cần **quote nó như văn bản literal**.
+- `{0}` is the first argument, `{1}` is the second argument (indices start at **0**).
+- `number`, `date`, `time`, and `choice` can extend formatting per `Locale`; valid types and styles depend on the kind.
+- Commas and curly braces inside format element syntax are handled specially by the parser.
+- If you only want to print the **literal text `{0}`** instead of inserting an argument, you must **quote it as literal text**.
 
-**Cặp ngoặc nhọn không phải cú pháp thay tên biến.** `MessageFormat` chuẩn sử dụng chỉ số tham số dạng số nguyên không âm như `{0}`, không tự nhận `{username}`. Mẫu không đúng cú pháp có thể ném `IllegalArgumentException` khi tạo hoặc áp dụng pattern.
+**Curly braces are not variable-name substitution syntax.** Standard `MessageFormat` uses non-negative integer argument indices like `{0}`, and does not recognize `{username}`. Malformed patterns can throw `IllegalArgumentException` when constructed or applied.
 
-## 3. Quy tắc dấu nháy đơn: ba hành vi phải nhớ
+## 3. Single-Quote Rules: Three Behaviors to Remember
 
-Trong `MessageFormat`, **dấu nháy đơn đơn lẻ `'`** bắt đầu/kết thúc **một đoạn được quote**, tức đoạn ký tự được xem là văn bản thường. Bản thân dấu nháy dùng để đóng/mở đoạn **không xuất hiện** trong kết quả.
+In `MessageFormat`, a **single standalone quote `'`** starts or ends **a quoted segment**, meaning a span of characters treated as plain text. The quote characters used to open and close the span **do not appear** in the output.
 
-**Hai dấu nháy đơn liền nhau `''`** biểu diễn **một dấu nháy đơn thật** trong kết quả.
+**Two consecutive single quotes `''`** represent **one literal single quote** in the output.
 
-**Dấu nháy đơn mở nhưng không đóng** được xem như tự đóng ở cuối pattern, thường làm cho placeholder phía sau bị in nguyên văn thay vì thế chỗ.
+**An unclosed opening single quote** is treated as automatically closed at the end of the pattern, usually causing subsequent placeholders to print verbatim instead of being substituted.
 
-| Pattern truyền cho `MessageFormat` | Tham số `{0}` | Kết quả | Giải thích |
+| Pattern passed to `MessageFormat` | Argument `{0}` | Output | Explanation |
 | --- | --- | --- | --- |
-| `Hello {0}` | `Lan` | `Hello Lan` | Placeholder thông thường |
-| `It''s {0}` | `Lan` | `It's Lan` | `''` sinh một dấu `'` |
-| `It's {0}` | `Lan` | `Its {0}` | Dấu `'` trước `s` mở quote đến cuối mẫu; `{0}` mất vai trò placeholder |
-| `'Hello' {0}` | `Lan` | `Hello Lan` | `Hello` được quote; dấu `'` cú pháp bị bỏ |
-| `''{0}''` | `Lan` | `'Lan'` | Hai cặp `''` tạo nháy đơn bao quanh **giá trị đã định dạng** |
-| `'{0}'` | `Lan` | `{0}` | Cả phần `{0}` bị quote nên **không** được thay |
-| `'abc {0}` | `Lan` | `abc {0}` | Quote mở không đóng, Java mặc nhiên coi nó đóng cuối mẫu |
+| `Hello {0}` | `Lan` | `Hello Lan` | Normal placeholder |
+| `It''s {0}` | `Lan` | `It's Lan` | `''` produces one `'` character |
+| `It's {0}` | `Lan` | `Its {0}` | The `'` before `s` opens a quote to the end of the pattern; `{0}` loses placeholder role |
+| `'Hello' {0}` | `Lan` | `Hello Lan` | `Hello` is quoted; syntactic `'` characters are stripped |
+| `''{0}''` | `Lan` | `'Lan'` | Two `''` pairs create single quotes around the **formatted value** |
+| `'{0}'` | `Lan` | `{0}` | The entire `{0}` is quoted, so it is **not** substituted |
+| `'abc {0}` | `Lan` | `abc {0}` | Unclosed quote; Java implicitly closes it at the end of the pattern |
 
-**Phân biệt rất quan trọng:**
+**Critical distinction:**
 
-- `'{0}'` → in đúng **`{0}`** (không chèn dữ liệu).
-- `''{0}''` → in **`'Lan'`** nếu `{0}` là `Lan` (có chèn dữ liệu, có nháy đơn thật).
+- `'{0}'` → prints literally **`{0}`** (does not insert data).
+- `''{0}''` → prints **`'Lan'`** when `{0}` is `Lan` (inserts data, wrapped in real single quotes).
 
-Nhiều lỗi được sinh ra chỉ vì người viết thêm một cặp nháy đơn quanh placeholder và tưởng rằng chúng là ký tự trang trí. Trong `MessageFormat`, đó là **lệnh quote cú pháp**.
+Many bugs happen simply because an author puts a pair of single quotes around a placeholder thinking they are decorative characters. In `MessageFormat`, that is a **syntactic quoting directive**.
 
-### Dấu nháy trong dữ liệu đầu vào khác dấu nháy trong pattern
+### Quotes in Input Data Differ from Quotes in Patterns
 
-Nếu tham số là tên `O'Brien`, truyền trực tiếp:
+If an argument is the name `O'Brien`, pass it directly:
 
 ```java
 Object[] args = {"O'Brien"};
 ```
 
-Dấu nháy đơn trong **dữ liệu thay thế** không tự làm parser phân tích lại pattern. Vì vậy không được tự nhân đôi dấu nháy đơn trong tên người, địa chỉ hoặc dữ liệu đầu vào như thể chúng là mẫu `MessageFormat`. Chỉ cần escape **dấu nháy nằm trong pattern**.
+Single quotes inside **replacement data** do not cause the parser to re-parse the pattern. Therefore, never double single quotes in person names, addresses, or input data as if they were `MessageFormat` patterns. Only escape **single quotes located in the pattern**.
 
-## 4. In dấu ngoặc nhọn literal bằng `'{'` và `'}'`
+## 4. Printing Literal Curly Braces with `'{'` and `'}'`
 
-Ngoặc nhọn `{` mở một phần tử format; `}` liên quan đến việc kết thúc phần tử. Khi cần in một dấu ngoặc như văn bản thường, hãy đặt nó trong đoạn quote bằng nháy đơn:
+An opening brace `{` starts a format element; `}` closes it. When you need to print a brace as ordinary text, place it inside a single-quoted span:
 
-| Ý định | Pattern | Kết quả với `{0} = OK` |
+| Intent | Pattern | Result with `{0} = OK` |
 | --- | --- | --- |
-| In dấu `{` | `'{' ` | `{ ` |
-| In dấu `}` | `'}'` | `}` |
-| In chuỗi ký hiệu `{0}` | `'{0}'` | `{0}` |
-| Bao **giá trị** trong cặp `{...}` | `'{'{0}'}'` | `{OK}` |
-| Giải thích thao tác gõ ngoặc | `Gõ '{' và '}' để bao {0}` | `Gõ { và } để bao OK` |
+| Print `{` | `'{' ` | `{ ` |
+| Print `}` | `'}'` | `}` |
+| Print literal `{0}` | `'{0}'` | `{0}` |
+| Wrap **value** in `{...}` | `'{'{0}'}'` | `{OK}` |
+| Explain typing braces | `Type '{' and '}' to wrap {0}` | `Type { and } to wrap OK` |
 
-Ở dòng đầu, khoảng trắng sau `'{'` chỉ nhằm làm ví dụ có ký tự theo sau; bản thân pattern `'{'` cho đầu ra chính xác một ký tự `{`.
+In the first row, the space after `'{'` is only to show a character following it; the pattern `'{'` itself outputs a single `{` character.
 
-Mẫu `'{'{0}'}'` là sự kết hợp của **ba đoạn**: dấu mở `{` literal, placeholder `{0}` thực, dấu đóng `}` literal. Nếu viết `'{0}'` thì toàn bộ placeholder lại trở thành văn bản literal.
+The pattern `'{'{0}'}'` combines **three parts**: a literal opening `{`, the real placeholder `{0}`, and a literal closing `}`. Writing `'{0}'` turns the entire placeholder into literal text.
 
-**Không dùng** dấu gạch chéo ngược để “escape ngoặc” theo thói quen của regex hoặc JavaScript:
+**Do not** use a backslash to "escape braces" out of habit from regex or JavaScript:
 
 ```text
-\{0\}     ← không phải cú pháp escape ngoặc nhọn của MessageFormat
+\{0\}     ← not MessageFormat brace-escaping syntax
 ```
 
-`MessageFormat` không có quy tắc “backslash làm mất ý nghĩa của ngoặc nhọn” như vậy. Dấu gạch chéo ngược trong pattern thường được xem như ký tự thường; các dấu ngoặc nhọn vẫn được parser xử lý theo quy tắc của nó.
+`MessageFormat` has no such "backslash neutralizes curly braces" rule. A backslash in a pattern is typically treated as a literal character; the curly braces are still processed by the parser according to its rules.
 
-## 5. Chương trình Java 17+ kiểm chứng mọi trường hợp cơ bản
+## 5. Java 17+ Program Verifying All Basic Cases
 
-Tạo tệp **`MessageFormatEscapingDemo.java`**:
+Create the file **`MessageFormatEscapingDemo.java`**:
 
 ```java
 import java.text.MessageFormat;
@@ -120,19 +120,19 @@ public class MessageFormatEscapingDemo {
     }
 
     public static void main(String[] args) {
-        show("basic", "Xin chào {0}!", "Lan");
+        show("basic", "Hello {0}!", "Lan");
         show("apostrophe", "It''s {0}.", "OK");
-        show("literal-placeholder", "Mẫu '{0}' và giá trị {0}", "Lan");
-        show("quoted-value", "Giá trị: ''{0}''.", "OK");
-        show("literal-braces", "Mở '{', đóng '}', nội dung {0}.", "OK");
+        show("literal-placeholder", "Pattern '{0}' and value {0}", "Lan");
+        show("quoted-value", "Value: ''{0}''.", "OK");
+        show("literal-braces", "Open '{', close '}', content {0}.", "OK");
         show("around-value", "'{'{0}'}'", "OK");
 
-        // Sai về ý nghĩa, nhưng vẫn là pattern có thể phân tích được:
+        // Semantically wrong, yet still a parseable pattern:
         show("wrong-apostrophe", "It's {0}.", "OK");
-        show("unclosed-quote", "Lỗi 'từ {0}", "OK");
+        show("unclosed-quote", "Error 'word {0}", "OK");
 
         try {
-            new MessageFormat("Sai {0", Locale.ROOT);
+            new MessageFormat("Invalid {0", Locale.ROOT);
             System.out.println("invalid: unexpected success");
         } catch (IllegalArgumentException ex) {
             System.out.println("invalid: IllegalArgumentException");
@@ -141,38 +141,38 @@ public class MessageFormatEscapingDemo {
 }
 ```
 
-Biên dịch và chạy trong thư mục chứa tệp bằng JDK 17+ (terminal cần hiển thị Unicode):
+Compile and run in the directory containing the file with JDK 17+ (the terminal should support Unicode):
 
 ```bash
 javac -encoding UTF-8 MessageFormatEscapingDemo.java
 java -cp . MessageFormatEscapingDemo
 ```
 
-Đầu ra khi terminal hiển thị đúng UTF-8:
+Output when the terminal renders UTF-8 properly:
 
 ```text
-basic: Xin chào Lan!
+basic: Hello Lan!
 apostrophe: It's OK.
-literal-placeholder: Mẫu {0} và giá trị Lan
-quoted-value: Giá trị: 'OK'.
-literal-braces: Mở {, đóng }, nội dung OK.
+literal-placeholder: Pattern {0} and value Lan
+quoted-value: Value: 'OK'.
+literal-braces: Open {, close }, content OK.
 around-value: {OK}
 wrong-apostrophe: Its {0}.
-unclosed-quote: Lỗi từ {0}
+unclosed-quote: Error word {0}
 invalid: IllegalArgumentException
 ```
 
-Hai dòng `wrong-apostrophe` và `unclosed-quote` **cố ý trình bày lỗi logic**: pattern không nhất thiết ném exception mà có thể cho chuỗi sai ý định. Vì thế phép thử “tạo `MessageFormat` không lỗi” là chưa đủ; cần so sánh kết quả thực tế, đặc biệt với các bản dịch có dấu nháy.
+The two lines `wrong-apostrophe` and `unclosed-quote` **intentionally demonstrate logic errors**: a pattern does not necessarily throw an exception, yet can produce an unintended string. Therefore, testing "creating `MessageFormat` succeeds without error" is insufficient; you must assert actual formatted results, especially for translations containing quotes.
 
-Cấu trúc `show(...)` dùng `Locale.ROOT` và tham số chuỗi để tránh khác biệt định dạng số/ngày theo từng locale; ví dụ này kiểm tra thuần quy tắc quote/placeholder.
+The `show(...)` helper uses `Locale.ROOT` and string arguments to avoid locale-specific differences in number/date formatting; this example tests quoting and placeholder rules in isolation.
 
-## 6. Escape tồn tại ở nhiều tầng: Java source, `.properties`, `MessageFormat`
+## 6. Escaping Exists at Multiple Layers: Java Source, `.properties`, `MessageFormat`
 
-Một lỗi rất thường gặp là thấy dấu nháy hoặc ngoặc không hoạt động, rồi thêm gạch chéo ngược `\`. Nhưng trước khi sửa, phải biết **chuỗi đang được đọc từ đâu**.
+A very common mistake is seeing a quote or brace fail and adding a backslash `\`. Before fixing it, you must know **where the string is being read from**.
 
-### 6.1. Pattern viết trực tiếp trong mã Java
+### 6.1. Patterns Written Directly in Java Code
 
-Giả sử cần hiển thị `It's Lan`:
+Suppose you need to display `It's Lan`:
 
 ```java
 String pattern = "It''s {0}";
@@ -182,27 +182,27 @@ String output =
 System.out.println(output); // It's Lan
 ```
 
-Ở đây:
+Here:
 
-- Cặp `"` mở/đóng **Java string literal**.
-- Hai dấu `''` được giữ nguyên trong Java string; khi `MessageFormat` phân tích, chúng sinh một dấu `'` thật.
-- Dấu `{` và `}` không cần escape trong Java string literal.
-- Nháy kép `"` nếu nằm trong chính Java string phải viết `\"` theo quy tắc Java; nháy kép **không** phải dấu quote đặc biệt của `MessageFormat`.
+- The `"` pair opens/closes the **Java string literal**.
+- The two `''` characters are preserved in the Java string; when `MessageFormat` parses it, they produce one real `'`.
+- `{` and `}` do not need escaping in a Java string literal.
+- Double quotes `"` inside the Java string itself must be written `\"` per Java rules; double quotes are **not** special quoting characters in `MessageFormat`.
 
-Muốn chứa dấu gạch chéo ngược **thật** trong Java string, dùng `\\` ở **tầng Java source**. Nhưng backslash do Java tạo ra không tự làm mất ý nghĩa ngoặc trong `MessageFormat`.
+To include a **real** backslash in a Java string, use `\\` at the **Java source layer**. However, a backslash produced by Java does not neutralize braces in `MessageFormat`.
 
-Ví dụ, hai chuỗi sau không tương đương về chức năng:
+For example, these two strings are not functionally equivalent:
 
 ```java
 String literalBracePattern = "'{'{0}'}'"; // MessageFormat quote
-String backslashPattern = "\\{0}";      // Java escape để chứa \ thật
+String backslashPattern = "\\{0}";      // Java escape for a literal \
 ```
 
-Với tham số `OK`, mẫu thứ nhất trả `{OK}`, còn mẫu thứ hai trả `\OK`. Vì ở mẫu thứ hai, `{0}` vẫn là placeholder và dấu `\` chỉ được in nguyên văn.
+With argument `OK`, the first pattern returns `{OK}`, whereas the second returns `\OK`. In the second pattern, `{0}` remains a placeholder and `\` is simply printed verbatim.
 
-### 6.2. Pattern đọc từ tệp `.properties`
+### 6.2. Patterns Read from `.properties` Files
 
-Giả sử tệp **`messages.properties`** chứa:
+Suppose **`messages.properties`** contains:
 
 ```properties
 welcome=Xin chào {0}!
@@ -212,39 +212,39 @@ braced=Nhập '{' và '}' để bao {0}.
 literal=Mẫu '{0}' và giá trị {0}.
 ```
 
-Khi được đọc qua `ResourceBundle` trên Java 17+, các dòng này trở thành **chuỗi pattern của `MessageFormat`**. Trong file properties, cặp nháy `''` cũng cần được giữ vì đây là yêu cầu của **`MessageFormat`**, không phải của parser properties.
+When read via `ResourceBundle` on Java 17+, these lines become **`MessageFormat` pattern strings**. In properties files, the `''` pair must still be preserved because it is required by **`MessageFormat`**, not by the properties parser.
 
-Ba điều cần nhớ về `.properties`:
+Three things to remember about `.properties`:
 
-1. Trong cú pháp properties, dấu nháy đơn `'` **không phải ký tự escape mặc định**. Dòng `notice=It's {0}.` vẫn có thể đọc thành đúng chuỗi `It's {0}.`, nhưng **`MessageFormat` sẽ xử lý sai nghĩa**. Phải viết `It''s {0}.` cho nội dung muốn hiển thị `It's ...`.
-2. Trong file properties, dấu gạch chéo ngược **có** chức năng escape riêng, ví dụ `\n` có thể được chuyển thành ký tự xuống dòng và `\\` biểu diễn một dấu `\` thật. Các quy tắc này xảy ra **trước khi** chuỗi được chuyển cho `MessageFormat`.
-3. Viết `\'` trong file properties **không phải cách thay thế an toàn** cho `''`. Sau khi parser properties xử lý, nháy đơn vẫn có thể còn trong pattern và tiếp tục mang ý nghĩa đặc biệt đối với `MessageFormat`.
+1. In properties syntax, the single quote `'` **is not a default escape character**. The line `notice=It's {0}.` can still be read into the string `It's {0}.`, but **`MessageFormat` will misinterpret it**. You must write `It''s {0}.` when you want to display `It's ...`.
+2. In properties files, the backslash **does** have its own escape role—for instance, `\n` can be converted to a newline character and `\\` represents a literal `\`. These rules execute **before** the string is passed to `MessageFormat`.
+3. Writing `\'` in a properties file **is not a safe substitute** for `''`. After the properties parser runs, the single quote may still remain in the pattern and retain its special meaning to `MessageFormat`.
 
-Đối với Java 9+ (bao gồm Java 17), `PropertyResourceBundle` mặc định hỗ trợ UTF-8 theo đặc tả hiện đại, với cơ chế tương thích encoding cũ. Hãy lưu resource bằng UTF-8 nhất quán và kiểm tra pipeline build/runtime; quy tắc `MessageFormat` về nháy đơn **không thay đổi** chỉ vì file sử dụng UTF-8.
+For Java 9+ (including Java 17), `PropertyResourceBundle` supports UTF-8 by default under the modern specification, with a legacy encoding compatibility mechanism. Store resources consistently in UTF-8 and verify your build/runtime pipeline; `MessageFormat`'s single-quote rules **do not change** just because a file uses UTF-8.
 
-### 6.3. Mẫu đi qua nhiều định dạng hơn
+### 6.3. Patterns Passing Through More Formats
 
-Nếu pattern được đưa vào JSON, YAML, SQL, HTML template hoặc hệ thống dịch thuật, có thể tồn tại **nhiều lớp escape**. Ví dụ nháy kép `"` và backslash `\` trong JSON có quy tắc riêng; chuỗi sau khi giải mã mới được `MessageFormat` phân tích. Đừng đoán số lần cần nhân đôi ký tự ở từng lớp; hãy kiểm tra **chuỗi Java thực nhận được** ngay trước `new MessageFormat(pattern, locale)`.
+If a pattern passes through JSON, YAML, SQL, HTML templates, or a translation platform, **multiple escaping layers** may exist. For instance, double quotes `"` and backslashes `\` in JSON have their own rules; only the decoded string is parsed by `MessageFormat`. Do not guess how many times to double characters at each layer; inspect the **actual Java string received** right before `new MessageFormat(pattern, locale)`.
 
-Nên mô tả từng tầng rõ ràng:
+Document each layer clearly:
 
 ```text
-Tệp nguồn / chuỗi Java / JSON / properties
-        ↓ (quy tắc giải mã riêng)
-String pattern thực tế trong JVM
-        ↓ (parser MessageFormat)
-FormatElement + văn bản literal
-        ↓ (format với Object[])
-Thông điệp đầu ra
+Source file / Java string / JSON / properties
+        ↓ (format-specific decoding rules)
+Actual pattern String in the JVM
+        ↓ (MessageFormat parser)
+FormatElement + literal text
+        ↓ (format with Object[])
+Output message
 ```
 
-Đây là lý do escape của **Java source** không đồng nhất với escape của **MessageFormat** và cũng không đồng nhất với escape của **properties**.
+This is why escaping in **Java source** is neither identical to **`MessageFormat`** escaping nor identical to **properties** escaping.
 
-## 7. Ví dụ hoàn chỉnh: `ResourceBundle` kết hợp `MessageFormat`
+## 7. Complete Example: `ResourceBundle` Combined with `MessageFormat`
 
-Một dự án bản địa hóa thường đặt pattern trong bundle. Ví dụ này sử dụng bundle gốc `messages.properties` ở classpath root để mọi kết quả có thể kiểm tra độc lập với ngôn ngữ mặc định JVM.
+A localized project typically places patterns in bundles. This example uses the root bundle `messages.properties` at the classpath root so all results can be verified independently of the JVM's default language.
 
-Tạo đúng hai tệp:
+Create exactly two files:
 
 ```text
 workspace/
@@ -252,7 +252,7 @@ workspace/
 └── messages.properties
 ```
 
-**`messages.properties`** (lưu UTF-8):
+**`messages.properties`** (saved as UTF-8):
 
 ```properties
 welcome=Xin chào {0}!
@@ -288,14 +288,14 @@ public class BundleMessageFormatDemo {
 }
 ```
 
-Từ thư mục `workspace`, chạy:
+From the `workspace` directory, run:
 
 ```bash
 javac -encoding UTF-8 BundleMessageFormatDemo.java
 java -cp . BundleMessageFormatDemo
 ```
 
-Kết quả logic của ví dụ (terminal hiển thị đúng Unicode):
+Expected logical output (with a terminal properly displaying Unicode):
 
 ```text
 welcome: Xin chào Lan!
@@ -305,70 +305,70 @@ braced: Nhập { và } để bao Lan.
 literal: Mẫu {0} và giá trị Lan.
 ```
 
-Ví dụ cho thấy một pattern có thể được dịch dưới dạng **văn bản có placeholder** và nạp từ bundle mà vẫn bảo toàn cách quote. Khi tạo bundle cho một locale khác, phải kiểm tra pattern mới có số placeholder đúng và các dấu `'`, `{`, `}` được diễn giải đúng, không chỉ so sánh văn bản trước/sau.
+This example shows that a pattern can be translated as **text with placeholders** and loaded from a bundle while preserving quoting. When creating a bundle for another locale, verify that the new pattern has the right placeholder count and that `'`, `{`, and `}` are interpreted properly, rather than only diffing surrounding text.
 
-**Lưu ý:** `ResourceBundle` tự có cơ chế fallback tài nguyên; `MessageFormat` chỉ nhận **chuỗi giá trị** từ `bundle.getString(key)` rồi phân tích pattern. Một bundle được nạp thành công không chứng minh mọi chuỗi trong đó có cú pháp `MessageFormat` hợp lệ.
+**Note:** `ResourceBundle` has its own resource fallback mechanism; `MessageFormat` only receives the **value string** from `bundle.getString(key)` and parses the pattern. A bundle loading successfully does not prove every string inside it has valid `MessageFormat` syntax.
 
-## 8. Các lỗi tinh vi và cách phòng tránh
+## 8. Subtle Bugs and How to Prevent Them
 
-### 8.1. Nhầm dấu nháy đơn trong ngôn ngữ tự nhiên với cú pháp quote
+### 8.1. Confusing Natural-Language Apostrophes with Quoting Syntax
 
-Tiếng Anh có nhiều dạng `don't`, `it's`, `user's`, `you're`; tiếng Pháp thường có `l'utilisateur`, `d'accord`. Nếu đưa trực tiếp các câu này vào pattern `MessageFormat`, dấu nháy đơn có thể **nuốt placeholder phía sau**.
+English frequently uses `don't`, `it's`, `user's`, and `you're`; French often has `l'utilisateur` and `d'accord`. If these sentences are placed directly into a `MessageFormat` pattern, the single quote can **swallow subsequent placeholders**.
 
-Ví dụ:
+Example:
 
 ```text
-Sai:   It's {0}.     → Its {0}.
-Đúng:  It''s {0}.    → It's Lan.   (với {0} = Lan)
+Wrong:   It's {0}.     → Its {0}.
+Right:   It''s {0}.    → It's Lan.   (with {0} = Lan)
 ```
 
-Đây có thể là **lỗi im lặng**, không xuất hiện exception. Kiểm thử nội dung thực tế là bắt buộc.
+This can be a **silent bug** with no exception thrown. Testing actual rendered content is mandatory.
 
-### 8.2. Quote toàn bộ placeholder khi chỉ muốn in dấu nháy
+### 8.2. Quoting the Whole Placeholder When Only Quotes Around the Value Are Wanted
 
-`'{0}'` hiển thị ký hiệu `{0}` thay vì giá trị. Nếu muốn tên người trong nháy đơn, dùng `''{0}''`. Nếu muốn in một placeholder ở tài liệu trợ giúp, `'{0}'` lại là cách đúng.
+`'{0}'` renders the literal token `{0}` instead of the value. If you want a person's name inside single quotes, use `''{0}''`. If you want to print a placeholder in help documentation, `'{0}'` is the right form.
 
-### 8.3. Dùng backslash để escape nháy đơn hoặc ngoặc
+### 8.3. Using Backslash to Escape Single Quotes or Braces
 
-Dấu `\` có thể mang ý nghĩa với Java source và properties, nhưng **không phải ký tự escape cơ bản của `MessageFormat`**. Dùng `''` cho nháy đơn literal, `'{'`, `'}'` cho dấu ngoặc literal.
+`\` can carry meaning in Java source and properties files, but **it is not `MessageFormat`'s basic escape character**. Use `''` for a literal single quote, and `'{'` and `'}'` for literal braces.
 
-### 8.4. Cố sửa pattern malformed bằng cách bắt exception rồi tiếp tục thay thế
+### 8.4. Trying to Work Around Malformed Patterns by Catching Exceptions and Replacing Strings
 
-Pattern như `Sai {0` là không hợp lệ và có thể ném `IllegalArgumentException`. Hãy coi lỗi cú pháp trong bundle là **lỗi tài nguyên/dịch thuật cần sửa**, không lặng lẽ dùng string replace như `pattern.replace("{0}", value)`, vì phép thay thế đó bỏ qua locale, kiểu format, parent/bundle và khả năng escape.
+A pattern like `Invalid {0` is invalid and can throw `IllegalArgumentException`. Treat syntax errors in bundles as **resource/translation bugs to fix**, rather than silently falling back to string replacement like `pattern.replace("{0}", value)`, because such replacement bypasses locale, format types, parent/bundle logic, and escaping rules.
 
-### 8.5. Nhầm dữ liệu tham số với pattern
+### 8.5. Confusing Argument Data with Patterns
 
-`MessageFormat` phân tích **pattern**, không tự parse lại dữ liệu truyền vào `format` như một pattern khác trong trường hợp thay thế thông thường. Nếu dữ liệu chứa `O'Brien` hay `{0}`, không cần tự quote theo cú pháp pattern. Ngược lại, không nên dùng trực tiếp **văn bản không tin cậy** làm pattern nếu chưa kiểm soát, vì nó có thể thay đổi ý nghĩa placeholder hoặc gây lỗi parser.
+`MessageFormat` parses the **pattern**; it does not re-parse data passed into `format` as another pattern in standard substitution. If the data contains `O'Brien` or `{0}`, you do not need to quote it according to pattern syntax. Conversely, never pass **untrusted text** directly as a pattern without control, as it can alter placeholder behavior or cause parser errors.
 
-### 8.6. Pattern phức tạp và subformat
+### 8.6. Complex Patterns and Subformats
 
-Với cú pháp `{0,number,...}`, `{0,date,...}` hoặc `{0,choice,...}`, phần **format style** có cú pháp riêng (chẳng hạn `DecimalFormat`, `SimpleDateFormat`, `ChoiceFormat`). `ChoiceFormat` còn có thể chứa các mẫu con và ký tự `|`, `#`, `<` có nghĩa đặc biệt.
+With syntax like `{0,number,...}`, `{0,date,...}`, or `{0,choice,...}`, the **format style** part has its own syntax (such as `DecimalFormat`, `SimpleDateFormat`, `ChoiceFormat`). `ChoiceFormat` can also contain subpatterns and special characters `|`, `#`, and `<`.
 
-Vì vậy, khi pattern có **subformat lồng nhau**, không đủ để áp dụng máy móc một bảng quote ở tầng ngoài: phải hiểu **cả parser của subformat**. Kiểm thử cả nhánh có chứa placeholder và nhánh không chứa, nhất là khi dịch thay đổi dấu nháy hoặc dấu ngoặc. Nếu cần quy tắc plural/gender phức tạp, cân nhắc hệ thống bản địa hóa đáp ứng đầy đủ yêu cầu của sản phẩm thay vì nhồi chuỗi điều kiện khó bảo trì.
+Therefore, when a pattern contains **nested subformats**, mechanically applying an outer-layer quoting table is not enough: you must understand **the subformat parser as well**. Test both branches that contain placeholders and branches that do not, especially when translations change quotes or braces. If complex plural/gender rules are required, consider a dedicated localization system built for the product's supported languages instead of stuffing hard-to-maintain conditional strings.
 
-### 8.7. Dấu nháy kép khác dấu nháy đơn
+### 8.7. Double Quotes Differ from Single Quotes
 
-Trong `MessageFormat`, `"` bình thường là ký tự văn bản, **không** thay vai trò của `'` trong pattern. Nhưng nếu pattern được viết trong **Java string literal**, dấu `"` cần escape theo cú pháp Java (`\"`). Nếu ghi trong file properties, cách xử lý dấu nháy kép lại khác Java source. Luôn xác định đang nói tới tầng nào.
+In `MessageFormat`, a normal `"` is just a text character and **does not** substitute for `'` in patterns. However, if the pattern is written inside a **Java string literal**, `"` must be escaped according to Java syntax (`\"`). In a properties file, double quotes are handled differently from Java source. Always clarify which layer is being discussed.
 
-### 8.8. Không dựa vào `toPattern()` như phép đối chiếu nguyên văn
+### 8.8. Do Not Rely on `toPattern()` for Verbatim Comparison
 
-`MessageFormat.toPattern()` trả một **biểu diễn pattern** của đối tượng; nó có thể chuẩn hóa cách quote. Nó không nhất thiết là chuỗi đầu vào giống hệt từng ký tự. Dùng `toPattern()` để chẩn đoán, nhưng tiêu chí cuối vẫn là **đầu ra được format và hành vi thật của placeholder**.
+`MessageFormat.toPattern()` returns a **pattern representation** of the object; it may normalize quoting. It is not guaranteed to match the input string character-for-character. Use `toPattern()` for diagnostics, while the final criterion remains **formatted output and actual placeholder behavior**.
 
-## 9. Cách kiểm thử pattern trong hệ thống dịch thuật
+## 9. How to Test Patterns in a Translation System
 
-Một quy trình kiểm tra hiệu quả khi có nhiều locale:
+An effective validation workflow when supporting multiple locales:
 
-1. **Xác định pattern gốc:** lấy đúng giá trị từ `ResourceBundle`, phân biệt với khóa và với chuỗi đã thay tham số.
-2. **Kiểm tra cấu trúc:** tạo `new MessageFormat(pattern, locale)` để phát hiện nhiều lỗi cú pháp ngoặc/format ngay từ đầu.
-3. **Kiểm tra nội dung đã format:** gọi `format` với tham số đại diện, so sánh kết quả mong đợi; đừng chỉ xem parser có chấp nhận không.
-4. **Kiểm tra dấu nháy trong văn bản:** thử các từ có apostrophe thật (`don't`, `l'utilisateur`) và xác nhận các placeholder đứng sau vẫn được thay thế.
-5. **Kiểm tra ngoặc literal:** thử mẫu cần hiển thị `{`, `}`, `{0}` như tài liệu hoặc dấu bao giá trị.
-6. **Kiểm tra tham số là dữ liệu đặc biệt:** đưa giá trị như `O'Brien`, `{0}` vào tham số; đảm bảo chúng không bị phân tích nhầm thành cú pháp pattern.
-7. **Kiểm tra mỗi bản dịch:** bản tiếng Việt hợp lệ không bảo đảm bản tiếng Pháp/Anh hợp lệ; người dịch có thể thêm một dấu nháy đơn làm thay đổi cú pháp.
-8. **Kiểm tra môi trường lưu trữ:** UTF-8, quy tắc escape của properties/JSON, cache bundle và pipeline xây dựng ứng dụng.
-9. **Kiểm tra nhánh subformat:** nếu có `choice`, ngày/giờ hoặc số, thử các giá trị buộc chạy tất cả nhánh quan trọng. Định dạng phụ thuộc locale/JDK có thể khác nhau, nên snapshot cần gắn với runtime được kiểm thử.
+1. **Identify the source pattern:** retrieve the exact value from `ResourceBundle`, distinct from keys and already-substituted strings.
+2. **Validate structure:** construct `new MessageFormat(pattern, locale)` to catch many brace/format syntax errors early.
+3. **Validate formatted content:** call `format` with representative arguments and assert expected output; do not merely check whether the parser accepts it.
+4. **Test apostrophes in prose:** test words with real apostrophes (`don't`, `l'utilisateur`) and confirm trailing placeholders are still substituted.
+5. **Test literal braces:** test patterns that must display `{`, `}`, or `{0}` as documentation or value delimiters.
+6. **Test special-data arguments:** pass values like `O'Brien` and `{0}` as arguments; verify they are not misparsed as pattern syntax.
+7. **Test every translation:** a valid Vietnamese version does not guarantee valid French or English versions; a translator may introduce a single quote that alters syntax.
+8. **Test storage layers:** UTF-8, properties/JSON escaping rules, bundle caching, and the application build pipeline.
+9. **Test subformat branches:** if `choice`, date/time, or numbers are used, test values exercising all critical branches. Formatting across locales/JDKs can differ, so snapshots should be tied to the tested runtime.
 
-Có thể viết unit test với vài pattern then chốt:
+You can write unit tests for key patterns:
 
 ```java
 import java.text.MessageFormat;
@@ -398,32 +398,32 @@ public class MessageFormatAssertions {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 MessageFormatAssertions.java
 java -cp . MessageFormatAssertions
 ```
 
-Khi các điều kiện đúng:
+When all conditions pass:
 
 ```text
 5 checks passed
 ```
 
-Ví dụ này cố ý dùng assertion tự viết thay vì lệnh Java `assert` để kiểm tra luôn hoạt động, kể cả khi không chạy với `-ea`.
+This example deliberately uses a custom assertion helper rather than Java's `assert` statement so checks always run, even without `-ea`.
 
-## 10. Bảng tra nhanh
+## 10. Quick Reference Table
 
-| Muốn hiển thị | Pattern `MessageFormat` | Ghi nhớ |
+| Desired output | `MessageFormat` pattern | Note |
 | --- | --- | --- |
-| `Lan` từ tham số 0 | `{0}` | Thay giá trị bình thường |
-| `It's Lan` | `It''s {0}` | Hai nháy đơn trong mẫu sinh một nháy thật |
-| `'Lan'` | `''{0}''` | Hai cặp nháy sinh dấu nháy bao quanh giá trị |
-| `{0}` nguyên văn | `'{0}'` | Quote cả placeholder để in ký hiệu |
-| `{` | `'{'` | Quote dấu ngoặc mở |
-| `}` | `'}'` | Quote dấu ngoặc đóng |
-| `{Lan}` | `'{'{0}'}'` | Quote hai ngoặc, không quote placeholder |
-| `O'Brien` khi đó là dữ liệu tham số | `{0}` với giá trị `O'Brien` | Không escape lại dữ liệu như pattern |
+| `Lan` from argument 0 | `{0}` | Normal value substitution |
+| `It's Lan` | `It''s {0}` | Two single quotes in pattern produce one literal quote |
+| `'Lan'` | `''{0}''` | Two quote pairs produce quotes wrapping the value |
+| Literal `{0}` | `'{0}'` | Quote the whole placeholder to print the token |
+| `{` | `'{'` | Quote opening brace |
+| `}` | `'}'` | Quote closing brace |
+| `{Lan}` | `'{'{0}'}'` | Quote both braces, not the placeholder |
+| `O'Brien` as argument data | `{0}` with value `O'Brien` | Do not re-escape argument data as a pattern |
 
-**Ghi nhớ:** trong `MessageFormat`, dấu nháy đơn là **toán tử quote**; `''` mới là cách in dấu nháy đơn thật. Ngoặc nhọn được dành cho placeholder, nên muốn in chúng như văn bản thì dùng `'{'` và `'}'`. Backslash không thay thế hai quy tắc này. Hãy kiểm tra pattern **sau khi** Java/properties giải mã và kiểm thử **kết quả format thực sự**, vì nhiều lỗi dấu nháy không gây exception nhưng khiến placeholder không được thay thế.
+**Takeaway:** in `MessageFormat`, the single quote is a **quoting operator**; `''` is how you print a real single quote. Curly braces are reserved for placeholders, so use `'{'` and `'}'` to print them as literal text. Backslashes do not replace these two rules. Inspect patterns **after** Java/properties decoding and test **actual formatted output**, because many quoting mistakes throw no exception yet prevent placeholders from being substituted.

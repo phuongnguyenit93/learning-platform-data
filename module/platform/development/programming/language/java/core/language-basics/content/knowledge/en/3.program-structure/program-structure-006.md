@@ -1,56 +1,56 @@
-# Câu lệnh biểu thức và câu lệnh rỗng trong Java
+# Expression Statements and Empty Statements in Java
 
-> **Java core — language-basics / Cấu trúc chương trình**  
-> **Môi trường:** JDK 17 trở lên, không cần thư viện ngoài.  
-> **Kết quả học tập:** Nhận biết expression statement và empty statement, phân biệt biểu thức hợp lệ/không hợp lệ khi đứng riêng, đọc đúng tác dụng của dấu `;`, dự đoán hành vi khi có câu lệnh rỗng trong `if` hoặc vòng lặp, và tự chạy một ví dụ Java hoàn chỉnh.
+> **Java core — language-basics / Program Structure**  
+> **Environment:** JDK 17 or later, no external libraries required.  
+> **Learning outcomes:** Recognize expression statements and empty statements, distinguish valid vs. invalid standalone expressions, accurately read the effect of `;`, predict behavior when an empty statement appears in `if` or a loop, and run a complete Java example yourself.
 
-## 1. Biểu thức, câu lệnh và dấu chấm phẩy
+## 1. Expressions, Statements, and Semicolons
 
-**Biểu thức** (*expression*) là cấu trúc được đánh giá để tạo một giá trị hoặc kết quả kiểu `void`, đôi khi có tác dụng phụ. Ví dụ `2 + 3` tạo giá trị `5`; `number++` vừa tạo một giá trị vừa thay đổi `number`; `System.out.println("Hi")` có tác dụng in một dòng.
+An **expression** is a construct evaluated to produce a value or a `void` result, sometimes with side effects. For example, `2 + 3` produces the value `5`; `number++` both produces a value and modifies `number`; `System.out.println("Hi")` has the effect of printing a line.
 
-**Câu lệnh** (*statement*) là đơn vị hành động/điều khiển được Java cho phép ở một vị trí cụ thể. **Câu lệnh biểu thức** (*expression statement*) có hình thức một **statement expression** được phép, kết thúc bằng dấu `;`.
+A **statement** is a unit of action or control permitted by Java at a specific position. An **expression statement** has the form of an allowed **statement expression**, terminated by `;`.
 
 ~~~java
-int number = 1;             // Khai báo biến cục bộ: không phải expression statement.
-number = number + 2;        // Expression statement: phép gán.
-number++;                   // Expression statement: tăng hậu tố.
-System.out.println(number); // Expression statement: gọi phương thức.
+int number = 1;             // Local variable declaration: not an expression statement.
+number = number + 2;        // Expression statement: assignment.
+number++;                   // Expression statement: post-increment.
+System.out.println(number); // Expression statement: method invocation.
 ~~~
 
-Kết quả in là `4`. Điểm quan trọng: **không phải mọi biểu thức đều được phép viết thành một statement chỉ bằng cách thêm dấu `;`**.
+The printed result is `4`. Key point: **not every expression is allowed to be written as a statement simply by adding `;`**.
 
-| Khái niệm | Ví dụ | Nhận xét |
+| Concept | Example | Note |
 | --- | --- | --- |
-| Biểu thức có giá trị | `number + 2` | Tính ra giá trị nhưng không phải loại được phép đứng riêng thành statement |
-| Câu lệnh biểu thức | `number += 2;` | Cú pháp hợp lệ vì thuộc nhóm phép gán |
-| Khai báo biến cục bộ | `int number = 1;` | Statement khai báo, không phải expression statement |
-| Câu lệnh rỗng | `;` | Statement hoàn chỉnh, không có công việc bên trong |
-| Khối lệnh rỗng | `{}` | Một block chứa không statement; **khác cú pháp** với `;` |
+| Value-producing expression | `number + 2` | Evaluates to a value, but is not a kind allowed to stand alone as a statement |
+| Expression statement | `number += 2;` | Syntactically valid because it belongs to the assignment category |
+| Local variable declaration | `int number = 1;` | Declaration statement, not an expression statement |
+| Empty statement | `;` | Complete statement with no action inside |
+| Empty block | `{}` | A block containing zero statements; **syntactically different** from `;` |
 
-## 2. Những expression statement hợp lệ
+## 2. Valid Expression Statements
 
-Java 17 quy định những loại statement expression sau:
+Java 17 defines the following categories of statement expressions:
 
-| Loại | Ví dụ trong ngữ cảnh phù hợp | Tác dụng |
+| Category | Example in an appropriate context | Effect |
 | --- | --- | --- |
-| Gán (*assignment*) | `x = 10;`, `x += 2;` | Gán/thay đổi trạng thái của biến, field hoặc phần tử |
-| Tăng, giảm tiền tố | `++x;`, `--x;` | Thay đổi giá trị; biểu thức tạo giá trị sau cập nhật |
-| Tăng, giảm hậu tố | `x++;`, `x--;` | Thay đổi giá trị; biểu thức tạo giá trị trước cập nhật |
-| Gọi phương thức | `System.out.println(x);`, `Math.abs(-5);` | Gọi method, có thể bỏ qua giá trị trả về |
-| Tạo đối tượng bằng `new` | `new StringBuilder("abc");` | Tạo đối tượng, có thể không giữ tham chiếu |
+| Assignment | `x = 10;`, `x += 2;` | Assigns/modifies the state of a variable, field, or element |
+| Pre-increment, pre-decrement | `++x;`, `--x;` | Modifies the value; expression produces the updated value |
+| Post-increment, post-decrement | `x++;`, `x--;` | Modifies the value; expression produces the value before update |
+| Method invocation | `System.out.println(x);`, `Math.abs(-5);` | Calls the method, optionally ignoring any return value |
+| Object creation with `new` | `new StringBuilder("abc");` | Creates an object, optionally without keeping a reference |
 
-Điều cần chú ý:
+Points to note:
 
-- `Math.abs(-5);` là statement hợp lệ nhưng **không in 5**. Kết quả được tính ra rồi bỏ đi. Muốn nhìn thấy nó, dùng `System.out.println(Math.abs(-5));`.
-- `new StringBuilder("abc");` hợp lệ, nhưng khi không giữ hoặc sử dụng đối tượng, câu lệnh thường không phục vụ mục đích rõ ràng.
-- `x++;` và `++x;` đều tăng `x` một đơn vị khi đứng riêng; giá trị biểu thức của chúng khác nhau **nếu dùng trong một biểu thức lớn hơn**.
-- Một lời gọi phương thức không phải lúc nào cũng tạo tác dụng phụ, còn một phép gán hoặc tăng/giảm thường làm thay đổi trạng thái. Đừng định nghĩa expression statement đơn giản là “lệnh có tác dụng phụ”.
+- `Math.abs(-5);` is a valid statement, but it **does not print 5**. The result is computed and discarded. To see it, use `System.out.println(Math.abs(-5));`.
+- `new StringBuilder("abc");` is valid, though when you do not keep or use the object, the statement usually serves no clear purpose.
+- `x++;` and `++x;` both increment `x` by one when standing alone; their expression values differ **when used inside a larger expression**.
+- A method call does not always produce side effects, whereas an assignment or increment/decrement normally alters state. Do not define an expression statement simply as "a command with side effects."
 
-**Giới hạn rõ ràng:** `new int[3];` là **biểu thức tạo mảng**, không thuộc nhóm *class instance creation expression* được phép đứng riêng như expression statement. Cần gán mảng cho một biến hoặc dùng nó ở ngữ cảnh biểu thức phù hợp.
+**Clear boundary:** `new int[3];` is an **array creation expression**, not part of the *class instance creation expression* category allowed to stand alone as an expression statement. You must assign the array to a variable or use it in an appropriate expression context.
 
-## 3. Chương trình mẫu hoàn chỉnh trên Java 17+
+## 3. Complete Sample Program on Java 17+
 
-Lưu mã dưới tên **StatementKindsDemo.java**:
+Save the code under the name **StatementKindsDemo.java**:
 
 ~~~java
 public final class StatementKindsDemo {
@@ -61,16 +61,16 @@ public final class StatementKindsDemo {
     }
 
     public static void main(String[] args) {
-        int number = 1;               // Khai báo biến.
-        number = number + 2;          // Phép gán.
-        number++;                     // Tăng hậu tố.
-        mark();                       // Gọi phương thức.
-        new StringBuilder("unused");  // Tạo object, bỏ tham chiếu.
-        ;                             // Câu lệnh rỗng.
+        int number = 1;               // Variable declaration.
+        number = number + 2;          // Assignment.
+        number++;                     // Post-increment.
+        mark();                       // Method call.
+        new StringBuilder("unused");  // Create object, discard reference.
+        ;                             // Empty statement.
 
         int checks = 0;
         while (++checks < 3) {
-            // Đây là một block rỗng, không phải dấu ; đứng riêng.
+            // This is an empty block, not a standalone ;.
         }
 
         System.out.println("number = " + number);
@@ -79,16 +79,16 @@ public final class StatementKindsDemo {
 
         boolean enabled = false;
         if (enabled)
-            ;  // Chỉ empty statement thuộc nhánh if.
+            ;  // Only the empty statement belongs to the if branch.
 
-        {  // Khối này độc lập với if, vì if đã kết thúc.
+        {  // This block is independent of if, because if has already ended.
             System.out.println("Khoi doc lap van chay");
         }
     }
 }
 ~~~
 
-Mở terminal ở thư mục chứa `StatementKindsDemo.java` rồi chạy:
+Open a terminal in the directory containing `StatementKindsDemo.java` and run:
 
 ~~~bash
 java -version
@@ -97,7 +97,7 @@ javac -encoding UTF-8 StatementKindsDemo.java
 java StatementKindsDemo
 ~~~
 
-Hai lệnh `-version` dùng để kiểm tra môi trường; đầu ra riêng của chương trình sau lệnh `java StatementKindsDemo` là:
+The two `-version` commands check the environment; the output of the program itself after `java StatementKindsDemo` is:
 
 ~~~text
 number = 4
@@ -106,40 +106,40 @@ checks = 3
 Khoi doc lap van chay
 ~~~
 
-**Vì sao ra những số đó?** `number` chuyển từ 1 sang 3 bằng phép gán, rồi sang 4 bởi `number++`. `mark()` tăng `calls` một lần. Với điều kiện `++checks < 3`, giá trị được so lần lượt là 1, 2, 3; hai lần đầu đúng, lần thứ ba sai, và `checks` cuối cùng bằng **3**. Câu lệnh `new StringBuilder(...)` và `;` đứng riêng không in gì.
+**Why those numbers?** `number` changes from 1 to 3 via assignment, then to 4 via `number++`. `mark()` increments `calls` once. With the condition `++checks < 3`, the values compared in order are 1, 2, 3; the first two are true, the third is false, and `checks` ends up equal to **3**. The standalone `new StringBuilder(...)` and `;` statements print nothing.
 
-`enabled` bằng `false` nên empty statement là thân của `if` không chạy. Tuy nhiên, block `{ ... }` tiếp theo **không nằm trong `if`**, vì thế chương trình vẫn in dòng cuối.
+`enabled` is `false`, so the empty statement acting as the `if` body does not run. However, the following `{ ... }` block **is not inside `if`**, so the program still prints the last line.
 
 ~~~mermaid
 flowchart TD
-    A["main bắt đầu"] --> B["Gán / tăng / gọi mark / tạo object"]
+    A["main starts"] --> B["Assign / increment / call mark / create object"]
     B --> C["Empty statement: ;"]
-    C --> D["while: kiểm tra ++checks < 3"]
-    D --> E["In number, calls, checks"]
+    C --> D["while: check ++checks < 3"]
+    D --> E["Print number, calls, checks"]
     E --> F{"enabled?"}
-    F -->|"true"| G["Thực hiện ; rỗng"]
-    F -->|"false"| H["Bỏ qua ; rỗng"]
-    G --> I["Block độc lập: in dòng cuối"]
+    F -->|"true"| G["Execute empty ;"]
+    F -->|"false"| H["Skip empty ;"]
+    G --> I["Independent block: print final line"]
     H --> I
 ~~~
 
-## 4. Biểu thức nào không thể đứng riêng?
+## 4. Which Expressions Cannot Stand Alone?
 
-Các dòng sau được **comment vì cố ý không hợp lệ**. Không bỏ comment và kỳ vọng biên dịch thành công:
+The following lines are **commented out because they are intentionally invalid**. Do not uncomment them and expect compilation to succeed:
 
 ~~~java
 int x = 5;
 
-// x + 1;               // Lỗi: phép cộng đơn thuần không phải statement expression.
-// x > 0;               // Lỗi: phép so sánh đơn thuần.
-// "Hello";             // Lỗi: literal đứng riêng.
-// (x == 0) ? 1 : 2;    // Lỗi: conditional expression đứng riêng.
-// new int[3];          // Lỗi: array creation đứng riêng.
+// x + 1;               // Error: plain addition is not a statement expression.
+// x > 0;               // Error: plain comparison.
+// "Hello";             // Error: standalone literal.
+// (x == 0) ? 1 : 2;    // Error: standalone conditional expression.
+// new int[3];          // Error: standalone array creation.
 ~~~
 
-Với compiler, các dạng không hợp lệ thường bị báo `not a statement` hoặc một lỗi cú pháp liên quan. Vấn đề không nằm ở chỗ quên dấu `;`; các dòng này **đã có `;` nhưng vẫn không thuộc nhóm Java cho phép**.
+With the compiler, invalid forms are typically reported as `not a statement` or a related syntax error. The issue is not a missing `;`; these lines **already have `;` yet still do not belong to the forms Java allows**.
 
-Để sửa, hãy **dùng giá trị** vào một hoạt động có ý nghĩa:
+To fix them, **use the value** in a meaningful operation:
 
 ~~~java
 int x = 5;
@@ -151,7 +151,7 @@ System.out.println(positive);
 System.out.println(x == 0 ? "Bang 0" : "Khac 0");
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 6
@@ -159,39 +159,39 @@ true
 Khac 0
 ~~~
 
-`int next = x + 1;` là **khai báo biến cục bộ có biểu thức khởi tạo**; `System.out.println(...)` là **method invocation expression statement**. Biểu thức điều kiện `?:` được đặt **bên trong đối số** của một lời gọi hợp lệ, không được viết thành statement độc lập.
+`int next = x + 1;` is a **local variable declaration with an initializer expression**; `System.out.println(...)` is a **method invocation expression statement**. The conditional expression `?:` is placed **inside an argument** of a valid call rather than written as a standalone statement.
 
-## 5. Empty statement: khi toàn bộ statement chỉ là `;`
+## 5. Empty Statement: When the Entire Statement Is Just `;`
 
-Về ngữ pháp, một **câu lệnh rỗng** chỉ gồm dấu chấm phẩy:
+Syntactically, an **empty statement** consists solely of a semicolon:
 
 ~~~java
 ;
 ~~~
 
-Nó không tự thay đổi giá trị, không gọi phương thức và không in gì. Nhưng vẫn là **một statement hợp lệ** ở nơi Java chấp nhận statement.
+It does not modify values, call methods, or print anything on its own. Yet it is still **a valid statement** anywhere Java accepts a statement.
 
 ~~~java
 int total = 0;
-;        // Empty statement thứ nhất.
-;        // Empty statement thứ hai.
-total++; // Expression statement: tăng total.
+;        // First empty statement.
+;        // Second empty statement.
+total++; // Expression statement: increments total.
 System.out.println(total); // 1.
 ~~~
 
-**Ba cấu trúc dễ lẫn nhau:**
+**Three constructs often confused with each other:**
 
-| Cách viết | Bản chất |
+| Syntax | Nature |
 | --- | --- |
-| `;` | Một empty statement |
-| `{}` | Một block rỗng, chứa 0 statement |
-| `int total = 0;` | Một local variable declaration statement kết thúc bằng `;` |
+| `;` | An empty statement |
+| `{}` | An empty block, containing 0 statements |
+| `int total = 0;` | A local variable declaration statement terminated by `;` |
 
-Một dấu `;` kết thúc khai báo **không đồng thời tạo thêm empty statement**. Tương tự, dấu `;` dùng để phân tách các phần trong header `for` có vai trò ngữ pháp riêng.
+A `;` that terminates a declaration **does not simultaneously create an extra empty statement**. Similarly, `;` characters separating parts inside a `for` header have their own syntactic role.
 
-## 6. Empty statement và block rỗng: giống hành vi, khác cú pháp
+## 6. Empty Statement vs. Empty Block: Same Behavior, Different Syntax
 
-Cả `;` và `{}` đều có thể biểu thị **không có công việc cần làm**, nhưng chúng là **hai loại statement khác nhau**. Với nhánh `if`, Java có thể nhận một empty statement làm thân:
+Both `;` and `{}` can express **no work to do**, but they are **two different kinds of statements**. For an `if` branch, Java can accept an empty statement as the body:
 
 ~~~java
 boolean allowed = false;
@@ -201,24 +201,24 @@ else
     System.out.println("Bi tu choi");
 ~~~
 
-Trong đoạn mã **bên trong một phương thức**, kết quả là `Bi tu choi`. Dấu `;` là toàn bộ thân nhánh `if`, còn `else` vẫn thuộc chính `if` này. Viết block rỗng có thể diễn đạt ý định rõ hơn:
+In code **inside a method**, the output is `Bi tu choi`. The `;` is the entire `if` branch body, and `else` still belongs to that same `if`. Writing an empty block can express the intent more clearly:
 
 ~~~java
 if (allowed) {
-    // Chưa có việc cần làm khi được phép.
+    // Nothing to do yet when allowed.
 } else {
     System.out.println("Bi tu choi");
 }
 ~~~
 
-Hai đoạn có cùng hành vi với giá trị `allowed` nêu trên, nhưng block giúp người đọc nhận ra ranh giới nhánh và thuận tiện thêm statement sau này. Một dấu `;` **vô tình** giữa `if (allowed)` và một block chứa `println` sẽ khiến block đó độc lập và chạy bất kể điều kiện; đó là một lỗi logic có thể biên dịch thành công.
+The two snippets behave the same for the value of `allowed` shown above, but the block helps readers see branch boundaries and makes it easier to add statements later. An **accidental** `;` between `if (allowed)` and a block containing `println` makes that block independent so it runs regardless of the condition; that is a logic bug that can still compile cleanly.
 
-Với ví dụ thực tế, thường nên sửa ý định thiếu thành một điều kiện và block rõ nghĩa thay vì giữ những nhánh rỗng khó hiểu. Phần tiếp theo xem trường hợp empty statement nằm trong **vòng lặp**, nơi nó còn ảnh hưởng tới số lượt đánh giá điều kiện.
+In real code, you should normally revise missing intent into a clear condition and meaningful block rather than keeping confusing empty branches. The next section examines empty statements inside **loops**, where they also affect how many times the condition is evaluated.
 
 
-## 7. Câu lệnh rỗng bên trong vòng lặp
+## 7. Empty Statements Inside Loops
 
-### `while` với empty statement
+### `while` with an empty statement
 
 ~~~java
 int attempts = 0;
@@ -227,19 +227,19 @@ while (++attempts < 3)
 System.out.println(attempts); // 3
 ~~~
 
-Điều kiện tự tăng `attempts`. Nó được kiểm tra lần lượt với 1, 2, 3 và dừng tại 3. Trong ví dụ này, thân `while` chỉ là dấu `;`.
+The condition increments `attempts` itself. It is checked with 1, 2, and 3 in turn, stopping at 3. In this example, the `while` body is just `;`.
 
-Ngược lại, dạng sau nếu bỏ comment có nguy cơ lặp vô hạn:
+By contrast, uncommenting the following form risks an infinite loop:
 
 ~~~java
 // int attempts = 0;
 // while (attempts < 3);
-// Điều kiện không làm thay đổi attempts, thân vòng cũng không cập nhật nó.
+// The condition does not modify attempts, and the loop body does not update it either.
 ~~~
 
-Đừng dùng vòng **busy-wait** rỗng để chờ một sự kiện trong chương trình thực: ngoài nguy cơ không dừng, nó có thể làm tiêu tốn CPU và gây vấn đề về giao tiếp giữa các thread.
+Do not use an empty **busy-wait** loop to wait for an event in real programs: besides the risk of never terminating, it can burn CPU and cause issues with communication across threads.
 
-### `for`: hai dấu phân tách ở header không phải empty statement
+### `for`: two separators in the header are not empty statements
 
 ~~~java
 int seen = 0;
@@ -249,9 +249,9 @@ seen++;
 System.out.println(seen); // 1
 ~~~
 
-Trong `for (int i = 0; i < 3; i++)`, hai dấu `;` chia ba phần **khởi tạo / điều kiện / cập nhật**. Dấu `;` **sau dấu `)`** mới là empty statement làm thân vòng. `seen++` nằm **sau** vòng, vì vậy chỉ thực hiện một lần.
+In `for (int i = 0; i < 3; i++)`, the two `;` characters split the three **initialization / condition / update** parts. Only the `;` **after `)`** is the empty statement serving as the loop body. `seen++` sits **after** the loop, so it executes only once.
 
-Muốn tăng `seen` sau mỗi lượt:
+To increment `seen` on every iteration:
 
 ~~~java
 int seen = 0;
@@ -261,9 +261,9 @@ for (int i = 0; i < 3; i++) {
 System.out.println(seen); // 3
 ~~~
 
-`for (;;) ;` hợp lệ về cú pháp: hai dấu `;` trong header, còn dấu cuối là thân rỗng. Nhưng **không có điều kiện dừng hoặc break**, nên đây là vòng lặp vô hạn; **không nên chạy để thử**.
+`for (;;) ;` is syntactically valid: two `;` characters in the header, and the final one is an empty body. However, **there is no termination condition or `break`**, making it an infinite loop; **do not run it to test**.
 
-### `do...while`: dấu chấm phẩy cuối là bắt buộc
+### `do...while`: the trailing semicolon is required
 
 ~~~java
 int count = 0;
@@ -273,29 +273,29 @@ do {
 System.out.println(count); // 2
 ~~~
 
-Dấu `;` sau `while (count < 2)` là **bộ phận bắt buộc của cú pháp do-while**, không phải một empty statement thêm vào. Dạng `do ; while (false);` cũng hợp lệ: dấu `;` đầu là thân rỗng, dấu thứ hai kết thúc câu lệnh do-while.
+The `;` after `while (count < 2)` is a **mandatory part of `do-while` syntax**, not an extra empty statement. The form `do ; while (false);` is also valid: the first `;` is the empty body, and the second terminates the `do-while` statement.
 
-## 8. Khi expression statement xuất hiện trong `for`
+## 8. When Expression Statements Appear in `for`
 
-Trong phần cập nhật của `for`, Java cho phép một **danh sách statement expressions** được phân tách bằng dấu phẩy:
+In the update section of `for`, Java allows a **comma-separated list of statement expressions**:
 
 ~~~java
 int sum = 0;
 for (int i = 1; i <= 3; i++, sum += i) {
-    // Block rỗng.
+    // Empty block.
 }
 System.out.println(sum); // 9
 ~~~
 
-**Tại sao là 9 mà không phải 6?** Sau mỗi lượt, Java đánh giá `i++` **trước** `sum += i`, tức `sum` lần lượt nhận thêm 2, 3, 4. Tổng là 9. Nếu đổi thứ tự thành `sum += i, i++` thì kết quả là 6.
+**Why 9 instead of 6?** After each iteration, Java evaluates `i++` **before** `sum += i`, so `sum` adds 2, 3, and 4 in turn. The total is 9. Reversing the order to `sum += i, i++` gives 6.
 
-Lưu ý: dấu phẩy ở đây là cú pháp của danh sách biểu thức trong `for`; Java **không** có một toán tử “comma expression” dùng tự do như trong một số ngôn ngữ khác.
+Note: the comma here is part of the expression-list syntax in `for`; Java **does not** have a general-purpose "comma expression" operator usable freely as in some other languages.
 
-Với `for (int i = 0; i < 3; i++);`, dấu `;` cuối (nằm ngoài dấu ngoặc tròn) có thể khiến vòng lặp chạy không có nội dung mà lập trình viên không cố ý.
+With `for (int i = 0; i < 3; i++);`, the trailing `;` (outside the parentheses) can cause the loop to run with no body unintentionally.
 
-## 9. Kết quả của method có thể bị bỏ qua
+## 9. A Method's Return Value Can Be Ignored
 
-Một expression statement không nhất thiết in thông báo hoặc cập nhật biến. Ví dụ:
+An expression statement does not have to print a message or update a variable. For example:
 
 ~~~java
 String label = "java";
@@ -303,70 +303,70 @@ label.toUpperCase();
 System.out.println(label);
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 java
 ~~~
 
-`String` là immutable. Phương thức `toUpperCase()` trả về một chuỗi mới; gọi xong mà không dùng kết quả thì `label` vẫn giữ `"java"`. Nếu muốn lưu:
+`String` is immutable. The `toUpperCase()` method returns a new string; calling it without using the result leaves `label` holding `"java"`. If you want to save it:
 
 ~~~java
 label = label.toUpperCase();
 System.out.println(label); // JAVA
 ~~~
 
-Điều này giải thích vì sao **Java cho phép** câu lệnh gọi phương thức nhưng **việc bỏ kết quả** đôi khi là lỗi logic. Ngược lại, lời gọi `System.out.println(...)` hữu ích chính vì tác dụng phụ là in ra stdout.
+This explains why **Java permits** a method invocation statement even when **ignoring the return value** is sometimes a logic bug. Conversely, calling `System.out.println(...)` is useful specifically because of its side effect of printing to stdout.
 
-## 10. Lỗi và cách kiểm tra
+## 10. Errors and What to Check
 
-| Hiện tượng | Nguyên nhân thường gặp | Khắc phục |
+| Symptom | Common cause | Fix |
 | --- | --- | --- |
-| `not a statement` | Biểu thức đứng riêng không thuộc nhóm statement expression | Dùng kết quả trong phép gán, khai báo hoặc lời gọi |
-| `';' expected` | Thiếu dấu kết thúc statement/declaration cần dấu `;` | Kiểm tra dạng ngữ pháp đang viết |
-| `if` in nội dung dù điều kiện false | `;` đứng sau `if (...)`; block phía sau độc lập | Bỏ `;` sai và dùng `if (...) { ... }` |
-| `while` hoặc `for` không kết thúc | Thân rỗng và điều kiện không tiến về false | Thêm cập nhật/điều kiện dừng hợp lý |
-| Vòng chạy ba lần nhưng biến chỉ tăng một lần | Câu tăng đứng **sau** vòng, không nằm trong thân | Chuyển câu tăng vào block của vòng |
-| Gọi `toUpperCase()` nhưng chuỗi không đổi | Đã bỏ giá trị trả về | Gán lại hoặc sử dụng giá trị trả về |
-| Tạo object nhưng không dùng | `new SomeClass();` có kết quả bị bỏ qua | Cân nhắc lưu tham chiếu hoặc loại bỏ lệnh |
+| `not a statement` | Standalone expression not in the statement expression category | Use the result in an assignment, declaration, or call |
+| `';' expected` | Missing terminator on a statement/declaration that requires `;` | Check the syntactic form being written |
+| `if` prints content even when condition is false | `;` placed after `if (...)`; following block is independent | Remove the wrong `;` and use `if (...) { ... }` |
+| `while` or `for` never finishes | Empty body and condition never progresses toward false | Add an appropriate update or termination condition |
+| Loop runs three times but variable increments only once | Increment sits **after** the loop, not in the body | Move the increment into the loop's block |
+| Calling `toUpperCase()` leaves the string unchanged | Return value was discarded | Reassign or use the returned value |
+| Object created but never used | `new SomeClass();` has its result ignored | Consider saving the reference or removing the statement |
 
-Có những lỗi logic **compiler không nhất thiết cảnh báo**: đặc biệt `if (condition);` có thể hợp lệ. IDE/linter có thể giúp phát hiện nhưng không thay thế việc đọc code để xác định **statement nào thật sự nằm trong nhánh hoặc vòng lặp**.
+There are logic bugs the **compiler does not necessarily warn about**: in particular, `if (condition);` can be completely valid. IDEs and linters can help detect them, but they do not replace reading the code to determine **which statements are actually inside a branch or loop**.
 
-### Ba câu hỏi chẩn đoán dấu `;`
+### Three diagnostic questions for `;`
 
-1. `;` này đang **kết thúc** một expression/declaration statement?
-2. `;` này đang **phân tách** các phần bên trong `for (...)` hoặc kết thúc cú pháp `do...while`?
-3. `;` này đang **tự nó tạo thành empty statement**, có thể làm sai cấu trúc `if`/vòng lặp?
+1. Is this `;` **terminating** an expression/declaration statement?
+2. Is this `;` **separating** parts inside `for (...)` or terminating `do...while` syntax?
+3. Is this `;` **forming an empty statement on its own**, potentially breaking the structure of an `if` or loop?
 
-## 11. Bài tập thực hành
+## 11. Practice Exercises
 
-**Bài 1 — Phân loại.** Giả sử `int x = 1;` đã có. Với `x += 3;`, `x > 0;`, `x++;`, `;`, `new Object();`, `"hello";`, `System.out.println(x);`, hãy phân loại thành expression statement, empty statement hoặc không hợp lệ.
+**Exercise 1 — Classify.** Assume `int x = 1;` is already declared. Classify `x += 3;`, `x > 0;`, `x++;`, `;`, `new Object();`, `"hello";`, and `System.out.println(x);` as an expression statement, an empty statement, or invalid.
 
-*Đáp án định hướng:* `x > 0;` và `"hello";` không hợp lệ. `;` là empty statement. Các trường hợp còn lại là expression statements.
+*Guided answer:* `x > 0;` and `"hello";` are invalid. `;` is an empty statement. The remaining cases are expression statements.
 
-**Bài 2 — Dự đoán đầu ra.** Khi `boolean ready = false; if (ready); { System.out.println("OK"); }` được chạy trong method, có in `OK` không? Vì sao?
+**Exercise 2 — Predict output.** When `boolean ready = false; if (ready); { System.out.println("OK"); }` runs inside a method, does it print `OK`? Why?
 
-*Đáp án:* Có; `if` chỉ quản lý empty statement, block tiếp theo độc lập.
+*Answer:* Yes; `if` only governs the empty statement, so the next block is independent.
 
-**Bài 3 — Cập nhật điều kiện.** Với `int n = 0; while (++n < 5) ;`, sau vòng `n` bằng bao nhiêu? Đổi `++n` thành `n++` làm khác hành vi kiểm tra ra sao?
+**Exercise 3 — Condition update.** With `int n = 0; while (++n < 5) ;`, what is `n` after the loop? How does changing `++n` to `n++` change the comparison behavior?
 
-*Định hướng:* Với `++n`, n cuối cùng là 5. Với `n++`, so sánh dùng giá trị trước tăng, và n cuối cùng là 6.
+*Guidance:* With `++n`, the final `n` is 5. With `n++`, the comparison uses the pre-increment value, and the final `n` is 6.
 
-**Bài 4 — Sửa statement sai.** Chuyển `int x = 4; x * 2;` thành một phương án in `8` và một phương án lưu kết quả trong biến `doubleX`.
+**Exercise 4 — Fix an invalid statement.** Turn `int x = 4; x * 2;` into one version that prints `8` and one version that stores the result in a variable `doubleX`.
 
-**Bài 5 — Thử source chạy được.** Trong `StatementKindsDemo`, thay `if (enabled) ;` và block độc lập thành `if (enabled) { ... }`. Chạy với `enabled` lần lượt false và true, so sánh số dòng output.
+**Exercise 5 — Test runnable source.** In `StatementKindsDemo`, replace `if (enabled) ;` and the independent block with `if (enabled) { ... }`. Run with `enabled` set to false and true in turn, comparing the number of output lines.
 
-**Bài 6 — Thứ tự side effect.** Thay `i++, sum += i` trong header `for` bằng `sum += i, i++`, giải thích vì sao tổng thay đổi từ 9 sang 6.
+**Exercise 6 — Side-effect order.** Replace `i++, sum += i` in the `for` header with `sum += i, i++`, and explain why the sum changes from 9 to 6.
 
-## 12. Tự đánh giá
+## 12. Self-Assessment
 
-Bạn nắm bài nếu không còn nhầm:
+You have mastered this lesson if you no longer confuse:
 
-- **`x++;`** — statement biểu thức hợp lệ;
-- **`x + 1;`** — không phải statement hợp lệ;
+- **`x++;`** — valid expression statement;
+- **`x + 1;`** — not a valid statement;
 - **`;`** — empty statement;
-- **`{ }`** — block rỗng, **không đồng nhất** với empty statement;
-- **`if (condition); { ... }`** — block sau `if` chạy độc lập;
-- **`for (a; b; c)`** — hai `;` chia ba phần header, không phải hai empty statement.
+- **`{ }`** — empty block, **not identical** to an empty statement;
+- **`if (condition); { ... }`** — block after `if` runs independently;
+- **`for (a; b; c)`** — two `;` split the three header parts, not two empty statements.
 
-**Kết luận:** Java chỉ cho một số dạng biểu thức nhất định đứng riêng thành câu lệnh. Dấu `;` có thể **kết thúc** một câu lệnh, **phân tách** phần header, hoặc **tự nó là một câu lệnh rỗng**. Hãy xác định vai trò theo **ngữ pháp xung quanh**, không theo chỗ xuống dòng.
+**Conclusion:** Java only allows certain kinds of expressions to stand alone as statements. A `;` can **terminate** a statement, **separate** header parts, or **be an empty statement itself**. Determine its role from the **surrounding grammar**, not from line breaks.

@@ -1,19 +1,19 @@
-# Primitive parameter type khác wrapper parameter type khi tra cứu thành viên bằng Reflection
+# Primitive Parameter Types Differ from Wrapper Parameter Types in Reflection Member Lookup
 
-## 1. Vấn đề cốt lõi
+## 1. The Core Issue
 
-Trong Java, một tham số kiểu nguyên thủy (*primitive*) và một tham số kiểu lớp bao (*wrapper*) có **kiểu khai báo khác nhau**, dù mã Java thông thường có thể tự động boxing/unboxing khi gọi phương thức.
+In Java, a *primitive* parameter and a *wrapper* parameter have **different declared types**, even though regular Java code can automatically box/unbox when calling a method.
 
-Ví dụ, hai khai báo sau là **hai overload hợp lệ**:
+For example, the following two declarations are **two valid overloads**:
 
 ```java
 public void handle(int count) { /* ... */ }
 public void handle(Integer count) { /* ... */ }
 ```
 
-Khi tra cứu bằng Reflection, chữ ký tham số được đối chiếu theo đối tượng `Class` tương ứng:
+When looking up via Reflection, parameter signatures are matched against the corresponding `Class` objects:
 
-| Kiểu khai báo | Biểu diễn Reflection | `getTypeName()` | `isPrimitive()` |
+| Declared Type | Reflection Representation | `getTypeName()` | `isPrimitive()` |
 | --- | --- | --- | --- |
 | `int` | `int.class` | `int` | `true` |
 | `Integer` | `Integer.class` | `java.lang.Integer` | `false` |
@@ -22,32 +22,32 @@ Khi tra cứu bằng Reflection, chữ ký tham số được đối chiếu the
 | `long` | `long.class` | `long` | `true` |
 | `Long` | `Long.class` | `java.lang.Long` | `false` |
 
-**Bất biến cần nhớ:** `int.class != Integer.class`. Thuật toán tìm thành viên theo danh sách `parameterTypes` không tự boxing/unboxing, không tự mở rộng kiểu số và không tự chọn overload tương tự trình biên dịch Java.
+**Invariant to remember:** `int.class != Integer.class`. The member lookup algorithm by `parameterTypes` does not automatically box/unbox, does not perform numeric widening, and does not pick overloads like the Java compiler.
 
-`Integer.TYPE` là hằng `Class<Integer>` đại diện cho kiểu primitive `int`, vì vậy `Integer.TYPE == int.class` là `true`. Tuy nhiên `Integer.TYPE` **không phải** `Integer.class`.
+`Integer.TYPE` is the `Class<Integer>` constant representing the primitive `int` type, so `Integer.TYPE == int.class` is `true`. However, `Integer.TYPE` is **not** `Integer.class`.
 
-## 2. API nào chịu ảnh hưởng?
+## 2. Which APIs Are Affected?
 
-| API | Loại thành viên được tra cứu | Quy tắc với tham số |
+| API | Kind of Member Looked Up | Rule for Parameters |
 | --- | --- | --- |
-| `type.getMethod(name, parameterTypes...)` | Phương thức `public`, kể cả được kế thừa | Các `Class` tham số phải khớp chính xác |
-| `type.getDeclaredMethod(name, parameterTypes...)` | Phương thức khai báo trực tiếp trong lớp, kể cả `private` | Khớp chính xác; không tìm ở lớp cha |
-| `type.getConstructor(parameterTypes...)` | Constructor `public` của lớp | Khớp chính xác |
-| `type.getDeclaredConstructor(parameterTypes...)` | Constructor khai báo trong lớp, kể cả không `public` | Khớp chính xác |
+| `type.getMethod(name, parameterTypes...)` | `public` method, including inherited | Parameter `Class` objects must match exactly |
+| `type.getDeclaredMethod(name, parameterTypes...)` | Method declared directly in the class, including `private` | Exact match; does not search superclasses |
+| `type.getConstructor(parameterTypes...)` | `public` constructor of the class | Exact match |
+| `type.getDeclaredConstructor(parameterTypes...)` | Constructor declared in the class, including non-`public` | Exact match |
 
-Giả sử lớp chỉ có `void onlyInt(int value)`:
+Suppose a class only has `void onlyInt(int value)`:
 
 ```java
-Example.class.getMethod("onlyInt", int.class);      // Tìm thấy
+Example.class.getMethod("onlyInt", int.class);      // Found
 Example.class.getMethod("onlyInt", Integer.class);  // NoSuchMethodException
 Example.class.getMethod("onlyInt", short.class);    // NoSuchMethodException
 ```
 
-Không thể dùng việc Java cho phép truyền một `Integer` vào lời gọi `onlyInt(5)` hoặc có thể chuyển `short` thành `int` để suy ra rằng tra cứu Reflection sẽ tìm được phương thức.
+You cannot rely on Java allowing an `Integer` to be passed to `onlyInt(5)` or converting `short` to `int` to assume Reflection lookup will find the method.
 
-## 3. Ví dụ hoàn chỉnh, chạy được trên Java 17+
+## 3. Complete Example Runnable on Java 17+
 
-Lưu mã sau thành tệp `PrimitiveVsWrapperReflection.java`:
+Save the following code as `PrimitiveVsWrapperReflection.java`:
 
 ```java
 import java.lang.reflect.Constructor;
@@ -112,14 +112,14 @@ public class PrimitiveVsWrapperReflection {
 }
 ```
 
-Biên dịch và chạy tại thư mục chứa tệp:
+Compile and run in the directory containing the file:
 
 ```bash
 javac PrimitiveVsWrapperReflection.java
 java PrimitiveVsWrapperReflection
 ```
 
-Kết quả chuẩn:
+Expected output:
 
 ```text
 int == Integer: false
@@ -134,37 +134,37 @@ No constructor(Integer)
 Private method parameter: long
 ```
 
-Ý nghĩa từng bước:
+Meaning of each step:
 
-1. `int.class` và `Integer.class` là hai đối tượng `Class` không đồng nhất; `Integer.TYPE` chính là `int.class`.
-2. Hai lời gọi `getMethod("handle", ...)` trả về hai `Method` khác nhau, vì chữ ký khai báo `(int)` và `(Integer)` khác nhau.
-3. `getParameterTypes()` phản ánh **kiểu tham số trong khai báo**, không phản ánh kiểu dữ liệu truyền vào khi gọi.
-4. `getMethod("onlyInt", Integer.class)` ném `NoSuchMethodException`; tên có thật nhưng chữ ký `(Integer)` không tồn tại.
-5. Constructor `Example(int)` tra được bằng `int.class`, còn `Integer.class` không khớp.
-6. `getDeclaredMethod("hidden", long.class)` tìm thấy phương thức `private` khai báo tại lớp; ví dụ chỉ tra cứu metadata, không gọi phương thức riêng tư.
+1. `int.class` and `Integer.class` are two non-identical `Class` objects; `Integer.TYPE` is `int.class`.
+2. The two `getMethod("handle", ...)` calls return two different `Method` objects, because the declared signatures `(int)` and `(Integer)` differ.
+3. `getParameterTypes()` reflects the **parameter types in the declaration**, not the data types of arguments passed at invocation time.
+4. `getMethod("onlyInt", Integer.class)` throws `NoSuchMethodException`; the name really exists, but the `(Integer)` signature does not.
+5. Constructor `Example(int)` is looked up with `int.class`, while `Integer.class` does not match.
+6. `getDeclaredMethod("hidden", long.class)` finds the `private` method declared on the class; the example only looks up metadata and does not invoke the private method.
 
-## 4. Phân biệt **tra cứu** và **gọi thực thi**
+## 4. Distinguishing **Lookup** and **Invocation**
 
-Đây là hai giai đoạn với quy tắc khác nhau:
+These are two stages with different rules:
 
 ```text
-Tra cứu: Class.getMethod("handle", int.class)
-    → tìm đúng thành viên có tham số khai báo int
+Lookup: Class.getMethod("handle", int.class)
+    → finds the exact member with declared parameter int
 
-Thực thi: Method.invoke(instance, Integer.valueOf(3))
-    → sau khi đã tìm thấy Method, đối số Integer có thể được unbox thành int
+Invocation: Method.invoke(instance, Integer.valueOf(3))
+    → after the Method is found, the Integer argument can be unboxed to int
 ```
 
-- **Lúc tra cứu:** `getMethod`/`getConstructor` đối chiếu kiểu khai báo chính xác; không boxing/unboxing, không primitive widening (chẳng hạn `short.class` không khớp `int.class`).
-- **Lúc `Method.invoke`/`Constructor.newInstance`:** Reflection có thể unbox giá trị wrapper cho tham số primitive và áp dụng **widening primitive** hợp lệ (ví dụ một giá trị `Integer` cho tham số `long`). Không áp dụng narrowing primitive tùy ý (ví dụ `Long` sang `int`).
-- **Với tham số wrapper:** `Integer` là kiểu tham chiếu, nhận `null` và các giá trị tham chiếu phù hợp. Nếu khai báo tham số là `int`, truyền `null` tại lúc invoke là không hợp lệ và gây `IllegalArgumentException`. Không có `null` nào thuộc kiểu primitive.
-- **Với overload:** sau khi lấy được một đối tượng `Method`, `invoke` thực thi đúng phương thức đã chọn. Nó không tự chọn lại overload `handle(Integer)` chỉ vì đối số runtime là `Integer`.
+- **At lookup time:** `getMethod`/`getConstructor` matches the exact declared types; no boxing/unboxing, no primitive widening (for example, `short.class` does not match `int.class`).
+- **At `Method.invoke`/`Constructor.newInstance` time:** Reflection can unbox wrapper values for primitive parameters and apply valid **primitive widening** (for example, an `Integer` value for a `long` parameter). Arbitrary primitive narrowing is not applied (for example, `Long` to `int`).
+- **With wrapper parameters:** `Integer` is a reference type, accepting `null` and compatible reference values. If the parameter declaration is `int`, passing `null` at invoke time is invalid and causes `IllegalArgumentException`. No `null` belongs to a primitive type.
+- **With overloads:** once a `Method` object is obtained, `invoke` executes that exact chosen method. It does not re-select the `handle(Integer)` overload merely because the runtime argument is an `Integer`.
 
-Vì vậy, lời gọi Java `example.onlyInt(Integer.valueOf(3))` có thể biên dịch nhờ unboxing, nhưng `Example.class.getMethod("onlyInt", Integer.class)` vẫn thất bại.
+Thus, the Java call `example.onlyInt(Integer.valueOf(3))` compiles thanks to unboxing, yet `Example.class.getMethod("onlyInt", Integer.class)` still fails.
 
-## 5. Kiểm tra và xây dựng chữ ký đúng
+## 5. Inspecting and Constructing the Exact Signature
 
-Khi làm việc với code không rõ khai báo, liệt kê và quan sát `Class` của từng tham số:
+When working with code whose declarations are unknown, list and inspect the `Class` of each parameter:
 
 ```java
 for (Method method : Example.class.getDeclaredMethods()) {
@@ -177,29 +177,29 @@ for (Method method : Example.class.getDeclaredMethods()) {
 }
 ```
 
-Hai dòng dữ liệu tương ứng sẽ cho biết một tham số là `int, primitive=true` và tham số còn lại là `java.lang.Integer, primitive=false` (không dựa vào thứ tự của mảng phương thức trả về).
+The two corresponding output lines will show one parameter as `int, primitive=true` and the other as `java.lang.Integer, primitive=false` (do not rely on the order of the returned method array).
 
-Nếu biết chữ ký nguyên thủy, hãy truyền `int.class` hoặc `Integer.TYPE`; nếu chữ ký dùng wrapper, hãy truyền `Integer.class`. Tương tự với `long.class`/`Long.TYPE` và `Long.class`, `boolean.class`/`Boolean.TYPE` và `Boolean.class`.
+If you know the signature uses a primitive, pass `int.class` or `Integer.TYPE`; if the signature uses a wrapper, pass `Integer.class`. Likewise for `long.class`/`Long.TYPE` and `Long.class`, `boolean.class`/`Boolean.TYPE` and `Boolean.class`.
 
-Không dùng `Class.forName("int")` để lấy `Class` cho primitive: tên `int` không phải tên nhị phân của lớp có thể nạp bằng cách đó. Dùng trực tiếp `int.class` hoặc `Integer.TYPE`.
+Do not use `Class.forName("int")` to obtain the `Class` for a primitive: the name `int` is not the binary name of a class loadable that way. Use `int.class` or `Integer.TYPE` directly.
 
-## 6. Các tình huống gần giống dễ nhầm
+## 6. Similar Easily Confused Situations
 
-- **Mảng primitive và mảng wrapper:** `int[].class` khác `Integer[].class`; `int[]` không được tự chuyển thành `Integer[]`. Mặc dù bản thân cả hai mảng đều là kiểu tham chiếu, `getComponentType()` của chúng lần lượt là `int.class` và `Integer.class`.
-- **Varargs trong khai báo:** `void accept(int... values)` có một tham số kiểu `int[]`; tra cứu bằng `getMethod("accept", int[].class)`, không dùng `int.class`.
-- **Kiểu trả về:** `getMethod` không nhận kiểu trả về làm tiêu chí tìm kiếm; `getReturnType()` giúp kiểm tra sau khi tìm thấy phương thức. Phân biệt primitive và wrapper ở đây đang xét **tham số**.
-- **Phạm vi truy cập:** đổi từ `getMethod` sang `getDeclaredMethod` chỉ điều chỉnh phạm vi tìm kiếm `public`/khai báo trực tiếp, không làm `Integer.class` tự khớp `int.class`.
+- **Primitive arrays and wrapper arrays:** `int[].class` differs from `Integer[].class`; `int[]` is not automatically converted to `Integer[]`. Even though both arrays themselves are reference types, their `getComponentType()` values are `int.class` and `Integer.class`, respectively.
+- **Varargs in declarations:** `void accept(int... values)` has one parameter of type `int[]`; look it up with `getMethod("accept", int[].class)`, not `int.class`.
+- **Return type:** `getMethod` does not accept return type as a search criterion; `getReturnType()` helps inspect it after the method is found. Distinguishing primitives and wrappers here refers to **parameters**.
+- **Access scope:** switching from `getMethod` to `getDeclaredMethod` only adjusts the search scope between `public` and directly declared members; it does not make `Integer.class` automatically match `int.class`.
 
-## 7. Những lỗi thường gặp và cách sửa
+## 7. Common Mistakes and Fixes
 
-| Hiện tượng | Nguyên nhân | Cách xử lý |
+| Symptom | Cause | Fix |
 | --- | --- | --- |
-| `NoSuchMethodException` dù thấy `method(int)` trong mã nguồn | Tra bằng `Integer.class` | Dùng `int.class` |
-| Không tìm được constructor `Example(int)` | Tra bằng `Integer.class` hoặc `short.class` | Dùng `getConstructor(int.class)` |
-| Đã tìm thấy `Method` nhưng `invoke` lỗi đối số | Giá trị runtime không chuyển đổi hợp lệ sang kiểu khai báo; ví dụ `null` cho `int` | Kiểm tra `getParameterTypes()`, giá trị và luật chuyển đổi khi invoke |
-| Tra `private void hidden(long)` bằng `getMethod` bị lỗi | `getMethod` chỉ xét thành viên `public` | Dùng `getDeclaredMethod("hidden", long.class)` nếu cần tra cứu khai báo |
-| Nhầm `Integer.TYPE` là `Integer.class` | `TYPE` trỏ tới primitive `int` | Phân biệt `Integer.TYPE == int.class` với `Integer.class` |
+| `NoSuchMethodException` despite seeing `method(int)` in source | Looked up with `Integer.class` | Use `int.class` |
+| Cannot find constructor `Example(int)` | Looked up with `Integer.class` or `short.class` | Use `getConstructor(int.class)` |
+| Found `Method` but `invoke` fails on arguments | Runtime value does not convert validly to declared type; e.g., `null` for `int` | Check `getParameterTypes()`, values, and invoke conversion rules |
+| Looking up `private void hidden(long)` with `getMethod` fails | `getMethod` only considers `public` members | Use `getDeclaredMethod("hidden", long.class)` if declaration lookup is needed |
+| Mistaking `Integer.TYPE` for `Integer.class` | `TYPE` points to primitive `int` | Distinguish `Integer.TYPE == int.class` from `Integer.class` |
 
-**Tự kiểm tra:** Với lớp chỉ có `void run(long value)`, cả `getDeclaredMethod("run", Long.class)` lẫn `getDeclaredMethod("run", int.class)` đều không tìm thấy. Chỉ `getDeclaredMethod("run", long.class)` khớp; sau đó, lời gọi `invoke(target, Integer.valueOf(5))` có thể thành công nhờ unboxing `Integer` thành `int` rồi widening thành `long`.
+**Self-check:** For a class having only `void run(long value)`, both `getDeclaredMethod("run", Long.class)` and `getDeclaredMethod("run", int.class)` fail to find it. Only `getDeclaredMethod("run", long.class)` matches; afterward, calling `invoke(target, Integer.valueOf(5))` can succeed thanks to unboxing `Integer` to `int` and then widening to `long`.
 
-**Ghi nhớ:** Tra cứu Reflection dựa trên **kiểu tham số đã khai báo**, còn chuyển đổi boxing/unboxing của **đối số khi gọi** là một cơ chế khác.
+**Takeaway:** Reflection lookup is based on **declared parameter types**, whereas boxing/unboxing of **arguments at invocation time** is a separate mechanism.

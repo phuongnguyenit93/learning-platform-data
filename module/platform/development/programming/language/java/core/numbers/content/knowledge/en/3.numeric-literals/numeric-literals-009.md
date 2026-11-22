@@ -1,18 +1,18 @@
-# Literal, biểu thức hằng và khác biệt với phân tích `String` trong Java
+# Literals, Constant Expressions, and Differences from `String` Parsing in Java
 
-Khi viết `int n = 42;`, Java đọc `42` trực tiếp như một **literal trong mã nguồn**. Khi viết `int n = Integer.parseInt("42");`, Java nhận một **chuỗi ký tự** rồi thực hiện **phân tích cú pháp lúc chương trình chạy**. Còn `int n = 40 + 2;` là một **biểu thức hằng** mà trình biên dịch có thể đánh giá. Cả ba có thể cho giá trị 42, nhưng cú pháp hợp lệ, thời điểm kiểm tra lỗi, quy tắc ép kiểu và khả năng tràn số khác nhau.
+When writing `int n = 42;`, Java reads `42` directly as a **literal in source code**. When writing `int n = Integer.parseInt("42");`, Java receives a **character string** and performs **runtime parsing**. Meanwhile, `int n = 40 + 2;` is a **constant expression** that the compiler can evaluate. All three can yield the value 42, yet their valid syntax, error-checking phase, type-casting rules, and overflow behavior differ.
 
-Bài này phân biệt ba cơ chế trong Java 17+ để đọc đúng literal ở các cơ số, hiểu constant expression, và chuyển dữ liệu văn bản thành số an toàn.
+This lesson distinguishes these three mechanisms in Java 17+ so you can read literals across bases accurately, understand constant expressions, and convert text data into numbers safely.
 
-## 1. Ba cơ chế, ba thời điểm xử lý
+## 1. Three Mechanisms, Three Processing Times
 
-| Cơ chế | Ví dụ | Được xử lý khi nào? | Điểm cần nhớ |
+| Mechanism | Example | When Is It Processed? | Key Point to Remember |
 | --- | --- | --- | --- |
-| **Literal** trong mã nguồn | `0x2A`, `42L`, `1.5e2` | Trình biên dịch phân tích cú pháp mã nguồn | Tiền tố/hậu tố là cú pháp ngôn ngữ, không phải ký tự lưu trong giá trị |
-| **Biểu thức hằng lúc biên dịch** (*constant expression*) | `20 + 22`, `3 * (4 + 2)` | Giá trị được xác định theo quy tắc JLS lúc biên dịch | Chỉ một tập toán tử, literal và biến hằng hợp lệ; lời gọi phương thức thông thường không thuộc tập này |
-| **Phân tích `String` thành số** | `Integer.parseInt("42")` | Lúc chạy (runtime) | Phương thức nhận chuỗi, radix và quy tắc parser riêng; đầu vào sai có thể ném `NumberFormatException` |
+| **Literal** in source code | `0x2A`, `42L`, `1.5e2` | Compiler parses the source code | Prefixes/suffixes are language syntax, not characters stored inside the value |
+| **Compile-time constant expression** | `20 + 22`, `3 * (4 + 2)` | Value is determined per JLS rules at compile time | Only a subset of operators, literals, and constant variables are valid; ordinary method calls are not included |
+| **Parsing `String` to a number** | `Integer.parseInt("42")` | At runtime | The method accepts a string, radix, and its own parser rules; invalid input can throw `NumberFormatException` |
 
-Một số ví dụ cùng kết quả:
+Some examples with the same result:
 
 ```java
 int fromLiteral = 42;
@@ -20,59 +20,59 @@ int fromExpression = 40 + 2;
 int fromText = Integer.parseInt("42");
 ```
 
-Dòng thứ nhất và thứ hai có thể được kiểm tra và xác định mà không cần dữ liệu runtime. Dòng thứ ba **cần gọi phương thức** ngay cả khi đối số là chuỗi literal. `"42"` là literal kiểu `String`, **không phải** literal số nguyên.
+The first and second lines can be checked and resolved without runtime data. The third line **requires a method call** even when the argument is a string literal. `"42"` is a `String` literal, **not** an integer literal.
 
-> **Cách phân biệt nhanh:** dấu ngoặc kép tạo `String`; tiền tố `0x`, `0b`, hậu tố `L`/`F` và dấu gạch dưới trong numeric literal tuân theo luật của mã nguồn. Không nên giả định rằng parser cho `String` sẽ chấp nhận tất cả cú pháp literal.
+> **Quick distinction:** double quotes create a `String`; `0x`, `0b` prefixes, `L`/`F` suffixes, and underscores inside numeric literals follow source-code rules. Do not assume that `String` parsers accept all literal syntax.
 
-## 2. Literal số nguyên: cơ số, dấu, kiểu và giới hạn
+## 2. Integer Literals: Base, Sign, Type, and Limits
 
-### 2.1. Các cách viết cùng một giá trị
+### 2.1. Ways to Write the Same Value
 
 ```java
-int decimal = 42;       // Cơ số 10
-int binary  = 0b101010; // Cơ số 2
-int octal   = 052;      // Cơ số 8
-int hex     = 0x2A;     // Cơ số 16
+int decimal = 42;       // Base 10
+int binary  = 0b101010; // Base 2
+int octal   = 052;      // Base 8
+int hex     = 0x2A;     // Base 16
 ```
 
-Bốn biến đều có giá trị toán học **42**. Cơ số chỉ ảnh hưởng **cách viết trong mã nguồn**. Sau khi biên dịch, toán tử cộng/trừ/so sánh làm việc trên giá trị và kiểu, không mang theo “cơ số gốc”. Muốn hiển thị lại ở cơ số khác, dùng `Integer.toBinaryString`, `Integer.toOctalString`, `Integer.toHexString` hoặc `Integer.toString(value, radix)`.
+All four variables have the mathematical value **42**. The base only affects **how it is written in source code**. After compilation, addition/subtraction/comparison operators work on the value and type, carrying no "original base." To display the value again in another base, use `Integer.toBinaryString`, `Integer.toOctalString`, `Integer.toHexString`, or `Integer.toString(value, radix)`.
 
-| Cách viết literal | Cơ số | Giá trị thập phân | Ghi chú |
+| Literal Notation | Base | Decimal Value | Notes |
 | --- | ---: | ---: | --- |
-| `10` | 10 | 10 | Dạng thông thường |
-| `0b1010` hoặc `0B1010` | 2 | 10 | Chỉ chữ số `0` và `1` |
-| `012` | 8 | 10 | Bắt đầu bằng `0`; rất dễ nhầm với số thập phân |
-| `0xA` hoặc `0XA` | 16 | 10 | Các chữ số `0-9` và `a-f`/`A-F` |
-| `10L` | 10 | 10 | Literal kiểu `long` |
+| `10` | 10 | 10 | Standard form |
+| `0b1010` or `0B1010` | 2 | 10 | Only digits `0` and `1` |
+| `012` | 8 | 10 | Starts with `0`; very easy to mistake for decimal |
+| `0xA` or `0XA` | 16 | 10 | Digits `0-9` and `a-f`/`A-F` |
+| `10L` | 10 | 10 | Literal of type `long` |
 
-**Bẫy số 0 đứng đầu:** trong mã Java, `010` là **số bát phân 8**, còn chuỗi `"010"` không mang cơ số cố định; parser quyết định ý nghĩa của chuỗi (xem phần 4). Literal `08` hoặc `09` là lỗi biên dịch, vì 8 và 9 không thuộc cơ số 8.
+**Leading-zero pitfall:** in Java code, `010` is **octal 8**, whereas the string `"010"` carries no fixed base; the parser decides the string's meaning (see Section 4). Literals `08` or `09` are compile errors, because 8 and 9 do not belong to base 8.
 
-### 2.2. Literal `int` và `long`
+### 2.2. `int` and `long` Literals
 
-Literal nguyên thập phân không có hậu tố `L` dùng kiểu `int`, nếu nằm trong miền cho phép (ngoại lệ cú pháp đặc biệt cho `-2147483648`). Hậu tố `L` hoặc `l` cho kiểu `long`; nên viết `L` để không nhầm chữ `l` với số `1`.
+A decimal integer literal without an `L` suffix has type `int`, provided it lies within the allowed range (with a special syntax exception for `-2147483648`). The `L` or `l` suffix gives type `long`; write `L` so you do not mistake `l` for the digit `1`.
 
 ```java
 int count = 2_000_000;
 long largeCount = 3_000_000_000L;
 
-// long invalid = 3_000_000_000; // Lỗi biên dịch: literal thập phân vượt int.
+// long invalid = 3_000_000_000; // Compile error: decimal literal exceeds int.
 // long alsoValid = 3_000_000_000L;
 ```
 
-Với số nguyên, viết `-42` là **toán tử dấu âm** đặt trước literal `42`, chứ dấu âm không phải ký tự bên trong numeric literal. Java có quy tắc riêng để viết giá trị tối thiểu:
+For integers, writing `-42` is the **minus operator** placed before the literal `42`; the minus sign is not a character inside the numeric literal. Java has a special rule for writing minimum values:
 
 ```java
 int minInt = -2147483648;
 long minLong = -9223372036854775808L;
 ```
 
-Trong ngữ cảnh đó, literal thập phân dương có độ lớn bằng `2^31` (hoặc `2^63` với `L`) chỉ hợp lệ làm toán hạng của unary minus theo quy tắc ngôn ngữ. Không thể dùng cùng chuỗi chữ số thập phân không dấu ấy như một giá trị dương kiểu tương ứng.
+In that context, a positive decimal literal of magnitude `2^31` (or `2^63` with `L`) is only valid as the operand of unary minus according to language rules. You cannot use that same unsigned decimal digit sequence as a positive value of the corresponding type.
 
-Với literal hệ 16, 8 và 2, Java cũng cho phép mẫu bit toàn 1 như `0xFFFF_FFFF` làm một `int` có giá trị **−1**. Đừng suy luận rằng một literal chỉ có chữ số hex dương nhất định cho số nguyên có dấu dương: **độ rộng và dấu** của kiểu quyết định cách diễn giải.
+For base-16, base-8, and base-2 literals, Java also permits an all-ones bit pattern like `0xFFFF_FFFF` as an `int` with value **−1**. Do not assume a literal with only positive-looking hex digits guarantees a positive signed integer: **the type's width and sign** determine the interpretation.
 
-### 2.3. Dấu gạch dưới giúp đọc số nhưng không thuộc giá trị
+### 2.3. Underscores Aid Readability Without Belonging to the Value
 
-Java cho phép dấu `_` **giữa các chữ số** trong numeric literal:
+Java permits `_` **between digits** inside a numeric literal:
 
 ```java
 int population = 1_234_567;
@@ -80,64 +80,64 @@ long flags = 0b1111_0000L;
 double amount = 1_234.50;
 ```
 
-Chúng không làm thay đổi giá trị. Dấu gạch dưới **không được** đặt đầu/cuối literal, ngay cạnh dấu chấm thập phân, trước/sau hậu tố kiểu, hoặc ở những vị trí khiến nó không nằm giữa chữ số hợp lệ. Chẳng hạn `1_.0`, `1._0`, `42_L`, `_42` (lúc này được đọc như tên định danh) và `42_` không phải cách viết numeric literal hợp lệ theo ý muốn.
+They do not alter the value. Underscores **must not** be placed at the start/end of a literal, right next to a decimal point, before/after a type suffix, or in positions where they do not sit between valid digits. For example, `1_.0`, `1._0`, `42_L`, `_42` (which is read as an identifier), and `42_` are not valid numeric literal notations as intended.
 
-**`"1_234"` là dữ liệu văn bản khác:** dấu gạch dưới có thật trong chuỗi và `Integer.parseInt("1_234")` sẽ ném `NumberFormatException`. Parser không tự hiểu quy tắc trình bày numeric literal của trình biên dịch.
+**`"1_234"` is different text data:** the underscore actually exists in the string, and `Integer.parseInt("1_234")` throws `NumberFormatException`. The parser does not automatically apply the compiler's numeric literal formatting rules.
 
-## 3. Literal dấu phẩy động và ảnh hưởng của biểu diễn
+## 3. Floating-Point Literals and Representation Effects
 
-`double` là kiểu mặc định cho literal có dấu chấm hoặc số mũ thập phân; hậu tố `f`/`F` chọn `float`; `d`/`D` có thể ghi rõ `double`:
+`double` is the default type for literals with a decimal point or decimal exponent; the `f`/`F` suffix selects `float`; `d`/`D` can explicitly specify `double`:
 
 ```java
 double a = 1.5;
 double b = 15e-1;
 double c = 1.5D;
 float d = 1.5f;
-double e = 0x1.8p1; // Literal floating-point hệ 16: 1.5 * 2^1 = 3.0.
+double e = 0x1.8p1; // Base-16 floating-point literal: 1.5 * 2^1 = 3.0.
 ```
 
-Literal floating-point hệ 16 bắt đầu bằng `0x` và dùng số mũ `p`/`P` theo lũy thừa của **2**, ví dụ `0x1.8p1` bằng 3.0. Ký hiệu này hữu ích khi cần mô tả chính xác các bit/chữ số nhị phân; số mũ `e` dành cho literal floating-point thập phân.
+Base-16 floating-point literals start with `0x` and use a `p`/`P` exponent as a power of **2**, e.g., `0x1.8p1` equals 3.0. This notation is useful when you need to describe binary bits/digits accurately; the `e` exponent is for decimal floating-point literals.
 
-`0.1` trong mã là literal `double` nhưng giá trị toán học 1/10 không có biểu diễn hữu hạn ở binary64; giá trị lưu là số nhị phân gần nhất. Việc biểu thức `0.1 + 0.2` có kết quả in ra `0.30000000000000004` là vấn đề **biểu diễn chấm động**, khác với vấn đề parser chấp nhận cú pháp chuỗi nào.
+`0.1` in code is a `double` literal, yet the mathematical value 1/10 has no finite representation in binary64; the stored value is the nearest binary number. That the expression `0.1 + 0.2` prints `0.30000000000000004` is a **floating-point representation** issue, distinct from what string syntax a parser accepts.
 
-Không có numeric literal Java tương ứng trực tiếp với ký hiệu `NaN` hoặc `Infinity`; dùng `Double.NaN` và `Double.POSITIVE_INFINITY`. Ngược lại, `Double.parseDouble("NaN")` hoặc `Double.parseDouble("Infinity")` có thể phân tích các chuỗi đặc biệt đó. Bởi vậy, tập văn bản parser chấp nhận không hoàn toàn trùng tập numeric literal của ngôn ngữ.
+There is no Java numeric literal corresponding directly to the tokens `NaN` or `Infinity`; use `Double.NaN` and `Double.POSITIVE_INFINITY`. Conversely, `Double.parseDouble("NaN")` or `Double.parseDouble("Infinity")` can parse those special strings. Therefore, the set of strings accepted by parsers does not completely match the language's numeric literal syntax.
 
-Nếu cần phép tính thập phân chính xác theo văn bản đầu vào, cân nhắc `BigDecimal` từ chuỗi: `new BigDecimal("0.1")` giữ đúng 0.1 thập phân; `new BigDecimal(0.1)` nhận xấp xỉ đã nằm trong `double` và có thể tạo số thập phân dài ngoài ý muốn.
+If you need exact decimal arithmetic matching text input, consider `BigDecimal` from a string: `new BigDecimal("0.1")` preserves exact decimal 0.1; `new BigDecimal(0.1)` receives the approximation already inside `double` and can produce an unexpectedly long decimal expansion.
 
-## 4. Phân tích `String`: radix, tiền tố, dấu và ngoại lệ
+## 4. `String` Parsing: Radix, Prefixes, Signs, and Exceptions
 
-### 4.1. `parseInt` dùng cơ số 10 theo mặc định
+### 4.1. `parseInt` Uses Base 10 by Default
 
 ```java
 int a = Integer.parseInt("42");      // 42
 int b = Integer.parseInt("+42");     // 42
 int c = Integer.parseInt("-42");     // -42
-int d = Integer.parseInt("010");     // 10, không phải octal.
+int d = Integer.parseInt("010");     // 10, not octal.
 int e = Integer.parseInt("FF", 16);  // 255
 int f = Integer.parseInt("1010", 2); // 10
 ```
 
-`Integer.parseInt(String)` phân tích **cơ số 10**; `Integer.parseInt(String, int radix)` dùng cơ số chỉ định trong khoảng `Character.MIN_RADIX` (2) đến `Character.MAX_RADIX` (36). Cơ số 16 chấp nhận ký tự chữ số hex mà không yêu cầu `0x`. Với cơ số lớn hơn 10, chữ cái biểu diễn các chữ số có giá trị từ 10 trở lên.
+`Integer.parseInt(String)` parses in **base 10**; `Integer.parseInt(String, int radix)` uses the specified radix from `Character.MIN_RADIX` (2) to `Character.MAX_RADIX` (36). Base 16 accepts hex digit characters without requiring `0x`. For bases greater than 10, letters represent digits with values 10 and above.
 
-**Các trường hợp dễ nhầm:**
+**Easily confused cases:**
 
-| Đầu vào và API | Kết quả |
+| Input and API | Result |
 | --- | --- |
 | `Integer.parseInt("010")` | 10 (decimal) |
 | `Integer.parseInt("010", 8)` | 8 (octal) |
 | `Integer.parseInt("FF", 16)` | 255 |
 | `Integer.parseInt("0xFF")` | `NumberFormatException` |
-| `Integer.parseInt("0xFF", 16)` | `NumberFormatException` do tiền tố `0x` không hợp lệ với `parseInt` |
+| `Integer.parseInt("0xFF", 16)` | `NumberFormatException` because `0x` prefix is invalid for `parseInt` |
 | `Integer.parseInt("1_000")` | `NumberFormatException` |
-| `Integer.parseInt(" 42 ")` | `NumberFormatException` vì có khoảng trắng |
-| `Integer.parseInt("2147483648")` | `NumberFormatException` vì vượt miền `int` |
-| `Long.parseLong("2147483648")` | 2147483648 dưới dạng `long` |
+| `Integer.parseInt(" 42 ")` | `NumberFormatException` due to whitespace |
+| `Integer.parseInt("2147483648")` | `NumberFormatException` because it exceeds `int` range |
+| `Long.parseLong("2147483648")` | 2147483648 as a `long` |
 
-Dấu `+`/`-` là hợp lệ ở đầu chuỗi theo quy tắc parser. Không được lặng lẽ bỏ qua `NumberFormatException`: đó thường là tín hiệu đầu vào không đúng định dạng hoặc vượt giới hạn cho phép.
+A leading `+`/`-` sign is valid according to parser rules. Never silently ignore `NumberFormatException`: it is usually a signal of malformed input or a value exceeding allowed bounds.
 
-### 4.2. `Integer.decode` hỗ trợ tiền tố radix, nhưng cần ý thức về số 0 đầu
+### 4.2. `Integer.decode` Supports Radix Prefixes, but Watch Out for Leading 0
 
-`Integer.decode(String)` nhận dạng các tiền tố `0x`/`0X`/`#` là hệ 16, số `0` đứng đầu là hệ 8, còn lại là hệ 10. Nó có thể nhận dấu ở **trước** tiền tố. Dạng tương tự tồn tại ở `Long.decode`.
+`Integer.decode(String)` recognizes `0x`/`0X`/`#` prefixes as base 16, a leading `0` as base 8, and everything else as base 10. It can accept a sign **before** the prefix. A corresponding method exists on `Long.decode`.
 
 ```java
 Integer.parseInt("010");    // 10
@@ -147,18 +147,18 @@ Integer.decode("#FF");      // 255
 Integer.decode("-0xA");     // -10
 ```
 
-**Không dùng `decode` bừa bãi cho mã số từ người dùng** nếu định dạng nghiệp vụ luôn là thập phân, vì chuỗi `"010"` có thể chỉ là mã hoặc số 10 mà lại bị hiểu thành octal 8. Hãy quyết định radix của dữ liệu bằng **hợp đồng đầu vào**, không dựa vào sự tiện lợi của parser.
+**Do not use `decode` indiscriminately for user-supplied numeric codes** if the business format is always decimal, because the string `"010"` might mean an identifier or the number 10 yet get interpreted as octal 8. Determine the data's radix via the **input contract**, not parser convenience.
 
-### 4.3. Các parser khác có hợp đồng khác
+### 4.3. Other Parsers Have Different Contracts
 
-- `Long.parseLong(String)`/`Long.parseLong(String, radix)`: giống hướng xử lý của `Integer.parseInt`, nhưng miền `long` lớn hơn; không tự nhận `0x` khi dùng `parseLong`.
-- `Integer.parseUnsignedInt(String)`: phân tích số nguyên **không dấu 32 bit** trong miền 0 đến 4.294.967.295 nhưng trả về mẫu bit kiểu `int`. Dùng `Integer.toUnsignedLong` hoặc `Integer.toUnsignedString` để thao tác/hiển thị theo nghĩa không dấu; Java vẫn không có primitive `unsigned int` riêng.
-- `Double.parseDouble(String)` và `Float.parseFloat(String)`: cho cú pháp dấu phẩy động, số mũ, các dạng hex floating-point, và một số chuỗi đặc biệt như `NaN`/`Infinity`. Chúng không áp dụng dấu gạch dưới dùng riêng cho numeric literal trong mã nguồn.
-- `new BigInteger(String, radix)`: phân tích số nguyên độ lớn tùy ý trong radix chỉ định; `new BigDecimal(String)`: phân tích số thập phân chính xác theo cú pháp `BigDecimal`. Không tự động cho rằng chúng hiểu mọi tiền tố Java literal hoặc mọi ký tự phân nhóm địa phương.
+- `Long.parseLong(String)`/`Long.parseLong(String, radix)`: similar behavior to `Integer.parseInt`, but with a larger `long` range; `parseLong` does not accept `0x` automatically.
+- `Integer.parseUnsignedInt(String)`: parses an **unsigned 32-bit** integer in the range 0 to 4,294,967,295 while returning the bit pattern as `int`. Use `Integer.toUnsignedLong` or `Integer.toUnsignedString` to manipulate/display it as unsigned; Java still has no separate `unsigned int` primitive.
+- `Double.parseDouble(String)` and `Float.parseFloat(String)`: accept floating-point syntax, exponents, hex floating-point forms, and special strings like `NaN`/`Infinity`. They do not support underscores meant solely for source-code numeric literals.
+- `new BigInteger(String, radix)`: parses an arbitrary-magnitude integer in the specified radix; `new BigDecimal(String)`: parses an exact decimal number per `BigDecimal` syntax. Do not assume they understand Java literal prefixes or locale grouping characters.
 
-Với dữ liệu nhập từ người dùng, `parseInt` không loại bỏ khoảng trắng; có thể dùng `strip()` một cách **chủ động** khi hợp đồng cho phép. `Double.parseDouble` xử lý một số khoảng trắng theo quy tắc riêng của nó, nên không nên dựa vào hành vi whitespace giống nhau giữa tất cả parser. Quy định rõ có cho phép khoảng trắng, dấu `+` và chữ số ngoài ASCII hay không; đối với nguồn cần chuẩn hóa chặt (API, mã định danh), có thể kiểm tra cú pháp trước khi parse.
+For user input, `parseInt` does not strip whitespace; you can **explicitly** call `strip()` when the contract allows. `Double.parseDouble` handles certain whitespace according to its own rules, so do not rely on identical whitespace behavior across all parsers. Explicitly specify whether whitespace, `+` signs, and non-ASCII digits are permitted; for strictly standardized sources (APIs, identifiers), validate syntax before parsing.
 
-### 4.4. Cơ số khi chuyển số thành chuỗi
+### 4.4. Radix When Converting Numbers to Strings
 
 ```java
 int number = 255;
@@ -167,126 +167,126 @@ String binary = Integer.toBinaryString(number); // "11111111"
 int restored = Integer.parseInt(hex, 16);   // 255
 ```
 
-`Integer.toHexString`/`toBinaryString` có hành vi dựa trên biểu diễn bit đối với số âm; ví dụ `Integer.toHexString(-1)` tạo `"ffffffff"`. Chuỗi đó có ý nghĩa là 4.294.967.295 nếu diễn giải số **không dấu 32 bit**, nên `Integer.parseInt("ffffffff", 16)` ném `NumberFormatException` vì vượt `Integer.MAX_VALUE`. Để khôi phục bit theo nghĩa không dấu, dùng `Integer.parseUnsignedInt("ffffffff", 16)` hoặc logic tương ứng với yêu cầu.
+`Integer.toHexString`/`toBinaryString` operate on the bit representation for negative numbers; for instance, `Integer.toHexString(-1)` produces `"ffffffff"`. That string means 4,294,967,295 if interpreted as an **unsigned 32-bit** number, so `Integer.parseInt("ffffffff", 16)` throws `NumberFormatException` because it exceeds `Integer.MAX_VALUE`. To restore the bits with unsigned semantics, use `Integer.parseUnsignedInt("ffffffff", 16)` or logic matching your requirements.
 
-## 5. Biểu thức hằng lúc biên dịch là gì?
+## 5. What Is a Compile-Time Constant Expression?
 
-**Compile-time constant expression** là biểu thức mà Java Language Specification cho phép xác định giá trị trong lúc biên dịch, dựa trên literal, một số toán tử và **constant variable**. Không phải biểu thức nào có kết quả luôn giống nhau cũng là constant expression theo định nghĩa ngôn ngữ.
+A **compile-time constant expression** is an expression that the Java Language Specification allows to be evaluated at compile time, built from literals, certain operators, and **constant variables**. Not every expression that always evaluates to the same value is a constant expression by the language definition.
 
-Ví dụ:
+Example:
 
 ```java
 int a = 2 * (3 + 4);             // Constant expression: 14.
-String label = "Java " + "17";  // Ghép chuỗi constant expression.
+String label = "Java " + "17";  // String concatenation constant expression.
 
 final int base = 10;
-int b = base + 4;                // base là constant variable, b = 14.
+int b = base + 4;                // base is a constant variable, b = 14.
 
-int c = Integer.parseInt("14"); // Gọi phương thức tại runtime: không phải constant expression.
-int d = Math.abs(-14);          // Gọi phương thức: không phải constant expression.
+int c = Integer.parseInt("14"); // Runtime method call: not a constant expression.
+int d = Math.abs(-14);          // Method call: not a constant expression.
 ```
 
-Một **constant variable** là biến `final` kiểu primitive hoặc `String` và được khởi tạo bằng constant expression. Biến `final` không đương nhiên là constant variable:
+A **constant variable** is a `final` variable of primitive type or `String` initialized with a constant expression. A `final` variable is not automatically a constant variable:
 
 ```java
 final int fixed = 20;                    // Constant variable.
-final int parsed = Integer.parseInt("20"); // final nhưng không phải constant variable.
-final Integer boxed = 20;               // Wrapper Integer không là constant variable.
+final int parsed = Integer.parseInt("20"); // final, but not a constant variable.
+final Integer boxed = 20;               // Wrapper Integer is not a constant variable.
 ```
 
-Dù lập trình viên nhìn thấy `Integer.parseInt("20")` luôn trả 20 trong trường hợp này, **lời gọi phương thức không được phép** trong compile-time constant expression theo quy tắc của Java. “Compiler có thể tối ưu code” cũng không đồng nghĩa với “ngôn ngữ coi biểu thức đó là hằng lúc biên dịch”.
+Even though a developer sees that `Integer.parseInt("20")` always returns 20 in this case, **method calls are not allowed** in compile-time constant expressions under Java's rules. "The compiler can optimize code" also does not mean "the language treats that expression as a compile-time constant."
 
-### 5.1. Thu hẹp kiểu đối với biểu thức hằng
+### 5.1. Narrowing Conversion for Constant Expressions
 
-Java cho phép một số phép chuyển từ constant expression kiểu `int` sang `byte`, `short` hoặc `char` **không cần cast**, nếu giá trị xác định tại biên dịch nằm trong miền đích:
+Java permits certain conversions from an `int` constant expression to `byte`, `short`, or `char` **without a cast**, if the compile-time value fits in the target range:
 
 ```java
-byte total = 100 + 20; // Hợp lệ: hằng 120 vừa byte.
-char letter = 65;      // Hợp lệ: giá trị 65 vừa char.
+byte total = 100 + 20; // Valid: constant 120 fits in byte.
+char letter = 65;      // Valid: value 65 fits in char.
 
 final int offset = 20;
-byte alsoFine = 100 + offset; // Hợp lệ: constant variable.
+byte alsoFine = 100 + offset; // Valid: constant variable.
 
 int runtimeOffset = 20;
-// byte notAllowed = 100 + runtimeOffset; // Lỗi biên dịch: biểu thức int không hằng.
-// byte tooBig = 100 + 30;               // Lỗi biên dịch: 130 không vừa byte.
+// byte notAllowed = 100 + runtimeOffset; // Compile error: non-constant int expression.
+// byte tooBig = 100 + 30;               // Compile error: 130 does not fit in byte.
 ```
 
-Dạng thường gặp gây thắc mắc:
+A common puzzling case:
 
 ```java
 byte x = 10;
 byte y = 20;
-// byte z = x + y; // Lỗi: phép cộng số nguyên promote các toán hạng byte lên int.
-int z = x + y;     // Hợp lệ.
+// byte z = x + y; // Error: integer addition promotes byte operands to int.
+int z = x + y;     // Valid.
 ```
 
-Việc hai biến `byte` chứa giá trị nhỏ **không khiến phép `x + y` có kiểu `byte`**. Trình biên dịch kiểm tra **kiểu của biểu thức** và quy tắc chuyển đổi, không chỉ kiểm tra giá trị có vẻ nhỏ tại thời điểm đọc mã.
+The fact that two `byte` variables hold small values **does not give `x + y` type `byte`**. The compiler checks **the expression's type** and conversion rules, not merely whether the values look small when reading the code.
 
-### 5.2. Hằng ở `case` và annotation
+### 5.2. Constants in `case` and Annotations
 
-Với dạng `switch` theo số nguyên (Java 17), nhãn `case` phải là constant expression phù hợp:
+For integer-based `switch` statements (Java 17), `case` labels must be valid constant expressions:
 
 ```java
 final int code = 10;
 int input = 11;
 switch (input) {
-    case code + 1 -> System.out.println("matched"); // Hợp lệ.
+    case code + 1 -> System.out.println("matched"); // Valid.
     default -> System.out.println("other");
 }
 
-// case Integer.parseInt("11") -> ... // Không hợp lệ: method call không là constant expression.
+// case Integer.parseInt("11") -> ... // Invalid: method call is not a constant expression.
 ```
 
-Nhiều phần tử của annotation cũng yêu cầu giá trị dạng compile-time constant (hoặc loại biểu thức đặc biệt phù hợp với kiểu phần tử annotation). Khi cần API runtime thay vì hằng trong source, hãy chuyển logic sang chỗ phù hợp; không thể biến `parseInt` thành constant expression chỉ bằng cách đánh dấu kết quả `final`.
+Many annotation elements also require compile-time constant values (or special expression kinds compatible with the annotation element type). When a runtime API is needed instead of a source constant, move the logic to an appropriate place; you cannot turn `parseInt` into a constant expression simply by marking the result `final`.
 
-### 5.3. Tràn số xảy ra cả trong biểu thức hằng
+### 5.3. Overflow Also Occurs Inside Constant Expressions
 
-Java không tự mở rộng `int` sang `long` vì biến đích là `long`. Một constant expression nguyên tính toán với kiểu `int` có thể tràn, rồi **kết quả đã tràn** mới được gán:
+Java does not automatically widen `int` to `long` just because the target variable is `long`. An integer constant expression evaluated as `int` can overflow, and then **the overflowed result** is assigned:
 
 ```java
-long wrong = 1_000_000 * 3_000;   // -1294967296: nhân int tràn.
-long correct = 1_000_000L * 3_000; // 3000000000: nhân long.
+long wrong = 1_000_000 * 3_000;   // -1294967296: int multiplication overflows.
+long correct = 1_000_000L * 3_000; // 3000000000: long multiplication.
 ```
 
-Vì biểu thức có kiểu `int`, trình biên dịch có thể tính trước kết quả theo quy tắc phép toán `int`, bao gồm tràn; việc biên dịch thành công **không bảo đảm kết quả toán học mong muốn**. `Math.multiplyExact` có thể phát hiện overflow ở phép tính runtime; nếu tích cần kiểu `long`, hãy bảo đảm ít nhất một toán hạng `long` từ **trước phép nhân**.
+Because the expression has type `int`, the compiler can precompute the result according to `int` arithmetic rules, including overflow; compiling successfully **does not guarantee the expected mathematical result**. `Math.multiplyExact` can detect overflow in runtime calculations; if a product needs type `long`, ensure at least one operand is `long` **before the multiplication**.
 
-## 6. Vì sao parser lúc chạy và constant expression cần xử lý lỗi khác nhau?
+## 6. Why Runtime Parsers and Constant Expressions Require Different Error Handling
 
-Các lỗi thuộc hai nhóm khác nhau:
+Errors fall into two distinct groups:
 
-| Tình huống | Giai đoạn/phản ứng | Cách xử lý |
+| Situation | Phase / Behavior | How to Handle |
 | --- | --- | --- |
-| `int x = 0b102;` | Không biên dịch: chữ số không thuộc cơ số 2 | Sửa literal trong mã nguồn |
-| `int x = 08;` | Không biên dịch: literal bát phân sai | Dùng `8` nếu muốn thập phân |
-| `long x = 3000000000;` | Không biên dịch: literal thập phân không `L` vượt `int` | Thêm `L` |
-| `byte b = 130;` | Không biên dịch: constant expression không vừa kiểu | Đổi kiểu/cận trên hoặc xử lý dữ liệu |
-| `Integer.parseInt("0xFF")` | Runtime `NumberFormatException` | Đặt radix với chuỗi không có tiền tố, hoặc dùng `decode` có chủ đích |
-| `Integer.parseInt("2147483648")` | Runtime `NumberFormatException` do overflow | Dùng `Long.parseLong` nếu miền nghiệp vụ cho phép |
-| `Integer.parseInt(userInput)` với chuỗi sai | Runtime `NumberFormatException` | Validate theo hợp đồng, catch ở ranh giới nhập |
-| `new BigDecimal("0.1")` | Runtime tạo số thập phân chính xác | Chọn số chữ số/scale và chính sách làm tròn khi cần |
+| `int x = 0b102;` | Fails to compile: digit not in base 2 | Fix the literal in source code |
+| `int x = 08;` | Fails to compile: invalid octal literal | Use `8` if decimal is intended |
+| `long x = 3000000000;` | Fails to compile: unsuffixed decimal literal exceeds `int` | Add `L` |
+| `byte b = 130;` | Fails to compile: constant expression does not fit target type | Change type/upper bound or handle data |
+| `Integer.parseInt("0xFF")` | Runtime `NumberFormatException` | Specify radix on unprefixed string, or use `decode` intentionally |
+| `Integer.parseInt("2147483648")` | Runtime `NumberFormatException` from overflow | Use `Long.parseLong` if domain allows |
+| `Integer.parseInt(userInput)` with invalid string | Runtime `NumberFormatException` | Validate per contract, catch at input boundary |
+| `new BigDecimal("0.1")` | Runtime creates exact decimal number | Choose precision/scale and rounding policy as needed |
 
-Không thể “bắt” lỗi cú pháp literal trong `try/catch`, vì chương trình còn chưa biên dịch thành công. Ngược lại, phân tích `String` là thao tác runtime nên phải kiểm tra nguồn đầu vào, đặc biệt ở API, CLI, tệp dữ liệu và form nhập liệu.
+You cannot "catch" a literal syntax error in `try/catch`, because the program has not even compiled successfully. Conversely, `String` parsing is a runtime operation so input sources must be validated, especially at APIs, CLIs, data files, and input forms.
 
-### 6.1. Parse input có kiểm soát
+### 6.1. Controlled Input Parsing
 
 ```java
 static int parseNonNegativeCount(String input) {
     if (input == null || !input.matches("[0-9]+")) {
         throw new IllegalArgumentException("Count must contain decimal digits");
     }
-    int count = Integer.parseInt(input); // Có thể ném NumberFormatException khi vượt int.
+    int count = Integer.parseInt(input); // May throw NumberFormatException if exceeding int.
     return count;
 }
 ```
 
-Ví dụ minh họa trên **chủ động giới hạn chữ số ASCII 0–9, không có dấu, không có whitespace**. Regex chấp nhận `"0007"` như số 7; nghiệp vụ có thể cho phép hoặc cấm số 0 đầu. Nếu cần hỗ trợ mọi chữ số Unicode hoặc dấu cộng/trừ, thay đổi kiểm tra theo hợp đồng. Một regex đúng về hình thức **không bảo đảm số nằm trong miền `int`**; vẫn cần xử lý `NumberFormatException` khi overflow.
+The illustrative example above **intentionally restricts input to ASCII digits 0–9, no sign, and no whitespace**. The regex accepts `"0007"` as 7; business rules may permit or forbid leading zeros. If you need to support all Unicode digits or plus/minus signs, adjust validation per your contract. A syntactically valid regex **does not guarantee the number fits in `int`**; you still must handle `NumberFormatException` on overflow.
 
-Không nên tự “làm sạch” tùy tiện bằng cách xóa tất cả dấu `_`, dấu phẩy, dấu chấm hay khoảng trắng: `"1,234"` có thể là số phân nhóm hàng nghìn ở locale này nhưng là dấu thập phân ở locale khác. Đối với số nhập theo locale, dùng định dạng/parsing theo `NumberFormat` và xác định rõ quy tắc locale; đối với giao thức máy, thường nên dùng dạng số chuẩn và radix tường minh.
+Do not arbitrarily "sanitize" input by stripping all `_`, commas, dots, or spaces: `"1,234"` may be a thousands-grouped number in one locale yet a decimal separator in another. For locale-formatted numeric input, use `NumberFormat` formatting/parsing and explicitly define locale rules; for machine protocols, prefer canonical numeric formats and explicit radixes.
 
-## 7. Ví dụ Java 17+ chạy độc lập
+## 7. Standalone Runnable Java 17+ Example
 
-Lưu tệp dưới tên `LiteralConstantParsingDemo.java`:
+Save the file as `LiteralConstantParsingDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -334,14 +334,14 @@ public class LiteralConstantParsingDemo {
 }
 ```
 
-Chạy trong thư mục chứa tệp với JDK 17 trở lên:
+Run in the directory containing the file with JDK 17 or newer:
 
 ```bash
 javac LiteralConstantParsingDemo.java
 java LiteralConstantParsingDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Three radices: 42, 42, 42
@@ -360,25 +360,25 @@ Beyond int: invalid
 Long parser: 2147483648
 ```
 
-Ở đây, giá trị 42 từ ba radix literal giống nhau, còn chuỗi `"010"` có thể được hiểu là 10 hoặc 8 tùy parser. `byte folded` hợp lệ nhờ compile-time constant expression. Phép nhân `int` cho kết quả đã tràn khi gán vào `long`; có `L` thì biểu thức dùng `long` ngay từ đầu. Hai ngoại lệ `NumberFormatException` được bắt vì chúng là lỗi **runtime parsing**.
+Here, the value 42 from the three radix literals is identical, whereas the string `"010"` can be interpreted as 10 or 8 depending on the parser. `byte folded` is valid thanks to a compile-time constant expression. `int` multiplication produces an already overflowed result when assigned to `long`; with `L`, the expression uses `long` from the start. Both `NumberFormatException` exceptions are caught because they are **runtime parsing** errors.
 
-## 8. Checklist khi đọc và viết số trong Java
+## 8. Checklist When Reading and Writing Numbers in Java
 
-1. **Số được viết trong mã hay đến từ dữ liệu ngoài?** Nếu nằm trong mã Java, dùng quy tắc literal. Nếu nhận chuỗi, dùng parser có hợp đồng rõ.
-2. **Radix có rõ ràng không?** Literal `0b`/`0x` hoặc số 0 đầu có ý nghĩa trong source; `parseInt` mặc định decimal, `decode` có tiền tố và octal. Chọn parser theo định dạng dữ liệu.
-3. **Cú pháp có phụ thuộc biên dịch?** Dấu `_`, hậu tố `L`/`F`, literal hex float là một phần ngữ pháp mã nguồn; chuỗi parser chấp nhận theo luật riêng.
-4. **Đây có thật là compile-time constant expression?** Literal và phép toán cho phép có thể là hằng; lời gọi `parseInt` không phải hằng dù argument là `"42"`. `final` chỉ là một điều kiện cần cho constant variable.
-5. **Miền giá trị và kiểu phép toán có phù hợp?** Dùng `L` khi số literal thập phân lớn hoặc phép toán cần `long`; đừng gán sau khi biểu thức `int` tràn.
-6. **Đầu vào runtime sai sẽ được xử lý ở đâu?** Quy định dấu, whitespace, radix, nhóm chữ số, locale và cách báo lỗi. Bắt `NumberFormatException` tại ranh giới nhận dữ liệu; không che giấu lỗi bằng giá trị mặc định không được thiết kế.
-7. **Có cần decimal chính xác hay số nguyên vượt `long` không?** Dùng `BigDecimal(String)`/`BigInteger` theo hợp đồng dữ liệu thay vì cố gắng ép mọi thứ qua `double` hoặc `int`.
+1. **Is the number written in code or coming from external data?** If it is in Java code, apply literal rules. If receiving a string, use a parser with a clear contract.
+2. **Is the radix unambiguous?** `0b`/`0x` literals or leading zero have meaning in source code; `parseInt` defaults to decimal, while `decode` handles prefixes and octal. Choose the parser matching the data format.
+3. **Does the syntax depend on compilation?** `_` separators, `L`/`F` suffixes, and hex float literals are part of source-code grammar; string parsers accept input according to their own rules.
+4. **Is this truly a compile-time constant expression?** Permitted literals and operations can be constant; calling `parseInt` is not constant even with argument `"42"`. `final` is only one necessary condition for a constant variable.
+5. **Are the value range and operation type appropriate?** Use `L` when a decimal literal is large or an operation needs `long`; do not assign after an `int` expression has already overflowed.
+6. **Where will invalid runtime input be handled?** Define rules for signs, whitespace, radix, digit grouping, locale, and error reporting. Catch `NumberFormatException` at data ingestion boundaries; do not hide errors behind undesigned default values.
+7. **Are exact decimals or integers beyond `long` needed?** Use `BigDecimal(String)`/`BigInteger` per the data contract rather than trying to force everything through `double` or `int`.
 
-### Câu hỏi tự kiểm tra
+### Self-Check Questions
 
-- Tại sao `010` trong Java có giá trị 8 nhưng `Integer.parseInt("010")` có giá trị 10? `Integer.decode("010")` cho giá trị nào?
-- Tại sao `byte b = 100 + 20;` biên dịch, nhưng `int x = 20; byte b = 100 + x;` lại không?
-- Tại sao `final int x = Integer.parseInt("5");` chưa khiến `x` là constant variable theo định nghĩa Java?
-- Vì sao `long total = 1_000_000 * 3_000;` cho giá trị khác `long total = 1_000_000L * 3_000;`?
-- `"0xFF"` hợp lệ với `Integer.parseInt(..., 16)` hay `Integer.decode(...)`? Đối với API chỉ nhận số thập phân, chọn cách nào để không hiểu nhầm chuỗi `"010"`?
-- Vì sao một chuỗi số nhập hợp lệ về **cú pháp** vẫn có thể ném `NumberFormatException`?
+- Why does `010` in Java have value 8 while `Integer.parseInt("010")` has value 10? What value does `Integer.decode("010")` produce?
+- Why does `byte b = 100 + 20;` compile, whereas `int x = 20; byte b = 100 + x;` does not?
+- Why does `final int x = Integer.parseInt("5");` not make `x` a constant variable by Java's definition?
+- Why does `long total = 1_000_000 * 3_000;` give a different value from `long total = 1_000_000L * 3_000;`?
+- Is `"0xFF"` valid with `Integer.parseInt(..., 16)` or `Integer.decode(...)`? For an API that only accepts decimal numbers, which option avoids misinterpreting `"010"`?
+- Why can a **syntactically** valid numeric input string still throw `NumberFormatException`?
 
-**Nguyên tắc áp dụng:** literal thuộc cú pháp Java tại compile time; constant expression là khái niệm hẹp hơn “phép tính luôn cho kết quả như nhau”; parsing `String` là hợp đồng runtime với quy tắc radix, cú pháp và kiểm tra miền riêng. Giữ ba cơ chế tách bạch sẽ tránh lỗi về cơ số, ép kiểu, tràn số và dữ liệu nhập.
+**Rule of thumb:** literals belong to Java syntax at compile time; constant expressions are a narrower concept than "calculations that always return the same result"; `String` parsing is a runtime contract with its own radix, syntax, and range-checking rules. Keeping these three mechanisms distinct prevents bugs involving bases, casting, overflow, and input data.

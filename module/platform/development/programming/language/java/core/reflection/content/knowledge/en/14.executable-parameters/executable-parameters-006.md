@@ -1,16 +1,16 @@
-# isImplicit, isSynthetic và isVarArgs trong Java Reflection
+# isImplicit, isSynthetic, and isVarArgs in Java Reflection
 
-## 1. Ba câu hỏi khác nhau về tham số của executable
+## 1. Three Different Questions About Executable Parameters
 
-Khi dùng Reflection để phân tích tham số của **method** hoặc **constructor** (gọi chung là *executable*), Java cung cấp ba phương thức trên `java.lang.reflect.Parameter`:
+When using Reflection to analyze parameters of a **method** or **constructor** (collectively called an *executable*), Java provides three methods on `java.lang.reflect.Parameter`:
 
-- `isImplicit()`: Tham số có được **khai báo ngầm định theo quy tắc ngôn ngữ Java** không?
-- `isSynthetic()`: Tham số có phải là **thành phần do compiler tạo ra**, không được khai báo tường minh cũng không được ngôn ngữ xem là khai báo ngầm định không?
-- `isVarArgs()`: Tham số có biểu diễn **danh sách đối số biến độ dài** (cú pháp `...` trong source) không?
+- `isImplicit()`: Is the parameter **implicitly declared according to Java language rules**?
+- `isSynthetic()`: Is the parameter **compiler-generated**, neither explicitly declared nor considered implicitly declared by the language?
+- `isVarArgs()`: Does the parameter represent a **variable-length argument list** (`...` syntax in source)?
 
-Đó là **ba thuộc tính có ý nghĩa riêng**; không thể dùng một cờ để thay thế cờ kia. Tham số ngầm định có thể không phải synthetic; tham số varargs thông thường là tham số lập trình viên khai báo tường minh, không phải “tham số ẩn”.
+These are **three properties with distinct meanings**; one flag cannot substitute for another. An implicit parameter may not be synthetic; a normal varargs parameter is explicitly declared by the programmer, not a "hidden parameter".
 
-Ví dụ về những điều Reflection cần phân biệt:
+Example of what Reflection needs to distinguish:
 
 ```java
 class Outer {
@@ -22,15 +22,15 @@ class Outer {
 }
 ```
 
-Trong source, `Inner` có một tham số `text`. Nhưng constructor ở classfile còn cần **enclosing instance** kiểu `Outer` để tạo non-static member class. Slot `Outer` này có thể được Reflection nhận diện bằng `isImplicit()`. Ngược lại, `values` được lập trình viên viết rõ trong source bằng `Object...`: nó có `isVarArgs() == true`, không phải một tham số compiler “tự phát sinh”.
+In source code, `Inner` has one parameter `text`. However, the constructor in the classfile also needs the **enclosing instance** of type `Outer` to construct a non-static member class. This `Outer` slot can be identified by Reflection via `isImplicit()`. Conversely, `values` is explicitly written by the programmer in source as `Object...`: it has `isVarArgs() == true`, and is not a "compiler-generated" parameter.
 
-Còn với `enum Color { RED; }`, compiler tạo các tham số nội bộ biểu diễn tên hằng và ordinal của enum constructor. Khi classfile giữ thông tin thích hợp, Reflection có thể báo hai slot đó là synthetic.
+Meanwhile, for `enum Color { RED; }`, the compiler creates internal parameters representing the enum constant's name and ordinal in the enum constructor. When the classfile retains appropriate metadata, Reflection can report those two slots as synthetic.
 
-**Phạm vi:** các cờ này thuộc `Parameter`. `Method` và `Constructor` là những kiểu `Executable`, có các API cấp executable riêng như `isVarArgs()` hoặc `isSynthetic()`. Hãy luôn xác định ta đang xét **một tham số** hay **toàn bộ executable**.
+**Scope:** these flags belong to `Parameter`. `Method` and `Constructor` are `Executable` types, which have their own executable-level APIs such as `isVarArgs()` or `isSynthetic()`. Always clarify whether you are inspecting **a single parameter** or **the entire executable**.
 
-## 2. API cần biết và ý nghĩa chính xác
+## 2. APIs to Know and Their Exact Meanings
 
-Để lấy metadata:
+To retrieve metadata:
 
 ```java
 for (java.lang.reflect.Constructor<?> ctor
@@ -44,35 +44,35 @@ for (java.lang.reflect.Constructor<?> ctor
 }
 ```
 
-Đây là **đoạn code minh họa**: cần có kiểu `SomeType` trong chương trình đang xét.
+This is an **illustrative code snippet**: a `SomeType` type must exist in the program under consideration.
 
-| API | Trả về | Cần hiểu |
+| API | Returns | What to Understand |
 | --- | --- | --- |
-| `Executable.getParameters()` | `Parameter[]` | Danh sách tham số thực tế theo thứ tự của executable |
-| `Executable.getParameterCount()` | `int` | Số tham số của executable trong metadata |
-| `Parameter.isImplicit()` | `boolean` | Tham số được khai báo ngầm định trong source theo JLS |
-| `Parameter.isSynthetic()` | `boolean` | Tham số không được khai báo tường minh hoặc ngầm định trong source |
-| `Parameter.isVarArgs()` | `boolean` | Vị trí tham số đại diện cho phần biến độ dài |
-| `Executable.isVarArgs()` | `boolean` | Method/constructor được khai báo nhận số đối số biến đổi |
-| `Parameter.getType()` | `Class<?>` | Kiểu runtime của tham số, ví dụ `String[].class` |
-| `Parameter.getParameterizedType()` | `Type` | Kiểu có thông tin generic ở mức khai báo khi có |
-| `Parameter.getName()` | `String` | Tên từ metadata hoặc tên được tổng hợp như `arg0` |
-| `Parameter.isNamePresent()` | `boolean` | Tên thực có mặt trong metadata classfile hay không |
-| `Parameter.getDeclaringExecutable()` | `Executable` | Method/constructor chứa tham số đó |
+| `Executable.getParameters()` | `Parameter[]` | Actual parameter list in the order of the executable |
+| `Executable.getParameterCount()` | `int` | Number of executable parameters in metadata |
+| `Parameter.isImplicit()` | `boolean` | Parameter implicitly declared in source per JLS |
+| `Parameter.isSynthetic()` | `boolean` | Parameter neither explicitly nor implicitly declared in source |
+| `Parameter.isVarArgs()` | `boolean` | Parameter slot representing the variable-arity portion |
+| `Executable.isVarArgs()` | `boolean` | Whether the method/constructor is declared to accept a variable number of arguments |
+| `Parameter.getType()` | `Class<?>` | Runtime type of the parameter, e.g., `String[].class` |
+| `Parameter.getParameterizedType()` | `Type` | Type with declaration-level generic information when available |
+| `Parameter.getName()` | `String` | Name from metadata or synthesized name such as `arg0` |
+| `Parameter.isNamePresent()` | `boolean` | Whether a real name is present in classfile metadata |
+| `Parameter.getDeclaringExecutable()` | `Executable` | The method/constructor containing that parameter |
 
-`getParameters()` có thể gặp `MalformedParametersException` nếu thuộc tính metadata `MethodParameters` của classfile bị lỗi. Trong code hạ tầng đọc bytecode từ nguồn không tin cậy, cần xử lý trường hợp metadata không hợp lệ.
+`getParameters()` can encounter `MalformedParametersException` if the classfile's `MethodParameters` metadata attribute is malformed. In infrastructure code reading bytecode from untrusted sources, handle invalid metadata cases.
 
-### Cùng cờ nhưng không cùng tầng
+### Same Flag Name, Different Level
 
-- `parameter.isSynthetic()` hỏi **một tham số** có synthetic không.
-- `method.isSynthetic()` hoặc `constructor.isSynthetic()` hỏi **bản thân executable** có synthetic không.
-- `parameter.isVarArgs()` xác định **vị trí tham số biến độ dài**; `executable.isVarArgs()` xác định **toàn executable** dùng variable arity.
+- `parameter.isSynthetic()` asks whether **a single parameter** is synthetic.
+- `method.isSynthetic()` or `constructor.isSynthetic()` asks whether **the executable itself** is synthetic.
+- `parameter.isVarArgs()` identifies **the variable-arity parameter position**; `executable.isVarArgs()` identifies whether **the entire executable** uses variable arity.
 
-Một constructor do lập trình viên khai báo có thể **không synthetic**, nhưng chứa một số tham số synthetic do compiler chèn vào. Đừng lấy `constructor.isSynthetic() == false` để suy luận tất cả tham số đều explicit.
+A programmer-declared constructor may be **non-synthetic**, yet contain compiler-inserted synthetic parameters. Do not take `constructor.isSynthetic() == false` to mean all parameters are explicit.
 
-## 3. `isImplicit()`: tham số ngầm định theo Java Language Specification
+## 3. `isImplicit()`: Implicit Parameters Under the Java Language Specification
 
-Một ví dụ quen thuộc là **enclosing instance** của non-static member inner class:
+A familiar example is the **enclosing instance** of a non-static member inner class:
 
 ```java
 public class Outer {
@@ -82,24 +82,24 @@ public class Outer {
 }
 ```
 
-Trong Java source, tạo object bằng `outer.new Inner("hi")`. Biểu thức `outer.new` cung cấp enclosing instance, nhưng constructor trong classfile được biểu diễn tương đương nhận `(Outer, String)`. Với class do `javac` biên dịch và metadata cần thiết, Reflection có thể thấy:
+In Java source, an object is created with `outer.new Inner("hi")`. The `outer.new` expression supplies the enclosing instance, while the constructor in the classfile is represented as taking `(Outer, String)`. For a class compiled by `javac` with the required metadata, Reflection may observe:
 
-| Vị trí | Kiểu | `isImplicit()` | `isSynthetic()` | Vì sao |
+| Position | Type | `isImplicit()` | `isSynthetic()` | Why |
 | --- | --- | --- | --- | --- |
-| 0 | `Outer` | `true` | `false` | Enclosing instance được ngôn ngữ hiểu ngầm |
-| 1 | `String` | `false` | `false` | `value` được khai báo tường minh |
+| 0 | `Outer` | `true` | `false` | Enclosing instance is implicitly understood by the language |
+| 1 | `String` | `false` | `false` | `value` is explicitly declared |
 
-Từ “implicit” ở đây không có nghĩa là “có thể bỏ qua khi gọi Reflection”. Nếu chọn constructor bằng `Inner.class.getDeclaredConstructor(Outer.class, String.class)`, bạn vẫn phải truyền **đủ hai đối số** khi gọi `newInstance`: enclosing `Outer` trước, `String` sau.
+The word "implicit" here does not mean "can be omitted when calling via Reflection". If you select the constructor with `Inner.class.getDeclaredConstructor(Outer.class, String.class)`, you still must pass **both arguments** to `newInstance`: the enclosing `Outer` first, then `String`.
 
-Một **static nested class** không có enclosing instance như vậy, nên constructor không tự có thêm tham số kiểu `Outer` chỉ vì nó nằm trong class ngoài.
+A **static nested class** has no such enclosing instance, so its constructor does not automatically receive an extra `Outer` parameter just because it resides inside an outer class.
 
-**Lưu ý giới hạn:** đây là trường hợp non-static *member* class theo mã nguồn Java. Local/anonymous class, inner class trong ngữ cảnh đặc biệt hoặc bytecode do compiler khác tạo có thể có cách biểu diễn khác; đừng dùng quy tắc “tham số 0 luôn là Outer” cho mọi class lồng nhau.
+**Scope note:** this applies to non-static *member* classes in Java source. Local/anonymous classes, inner classes in special contexts, or bytecode produced by other compilers may have different representations; do not apply the rule "parameter 0 is always Outer" to every nested class.
 
-## 4. `isSynthetic()`: tham số phục vụ mã do compiler tạo
+## 4. `isSynthetic()`: Parameters Serving Compiler-Generated Code
 
-### Enum constructor
+### Enum Constructors
 
-Ví dụ:
+Example:
 
 ```java
 enum Level {
@@ -108,21 +108,21 @@ enum Level {
 }
 ```
 
-Mã nguồn khai báo một tham số `priority`. Nhưng bytecode của enum thường cần **hai tham số đầu** là tên hằng enum `String` và ordinal `int`, rồi mới đến `priority`. Trên bản `javac` kiểm chứng trong ví dụ sau, Reflection thu được:
+The source code declares one parameter `priority`. However, enum bytecode typically requires **two leading parameters** for the enum constant's `String` name and `int` ordinal, followed by `priority`. On the `javac` version verified in the example below, Reflection obtains:
 
-| Tham số | Kiểu | `isImplicit()` | `isSynthetic()` |
+| Parameter | Type | `isImplicit()` | `isSynthetic()` |
 | --- | --- | --- | --- |
 | `$enum$name` | `String` | `false` | `true` |
 | `$enum$ordinal` | `int` | `false` | `true` |
 | `priority` | `int` | `false` | `false` |
 
-Không nên phụ thuộc vào tên `$enum$name` hay `$enum$ordinal` trong logic ứng dụng: đó là chi tiết biểu diễn của compiler đang dùng, **không phải tên public API ổn định**.
+Do not rely on the names `$enum$name` or `$enum$ordinal` in application logic: those are implementation details of the compiler in use, **not stable public API names**.
 
-Tra cứu bằng `Level.class.getDeclaredConstructor(int.class)` sẽ không tìm đúng chữ ký bytecode trong ví dụ này vì thiếu các slot nội bộ. Việc tra cứu thành công constructor enum cũng **không** cho phép tạo hằng enum mới: `Constructor.newInstance(...)` từ chối instantiate enum bằng Reflection.
+Looking up with `Level.class.getDeclaredConstructor(int.class)` will not match the bytecode signature in this example because it lacks the internal slots. Successfully finding an enum constructor also does **not** allow creating new enum constants: `Constructor.newInstance(...)` refuses to instantiate enums via Reflection.
 
-### Captured variables của local/anonymous class
+### Captured Variables of Local/Anonymous Classes
 
-Compiler có thể cần lưu giá trị của biến cục bộ được local class capture và bổ sung tham số constructor để truyền giá trị ấy:
+The compiler may need to store values of local variables captured by a local class and add constructor parameters to pass those values:
 
 ```java
 static void example() {
@@ -134,39 +134,39 @@ static void example() {
         }
     }
 
-    // Compiler có thể thêm tham số để mang offset vào Local.
+    // The compiler may add a parameter to pass offset into Local.
 }
 ```
 
-Đây là **mảnh code minh họa**, đặt trong một class Java. Trên một số bản `javac`, slot capture có cờ `synthetic`. **Thứ tự, tên và cách biểu diễn** có thể phụ thuộc compiler, phiên bản và ngữ cảnh capture. Không được lọc hoặc gán giá trị theo tên `val$offset` một cách mặc định.
+This is an **illustrative code snippet**, placed inside a Java class. On some `javac` versions, the capture slot has the `synthetic` flag. **Order, names, and representation** can depend on the compiler, version, and capture context. Never filter or assign values by assuming a name like `val$offset`.
 
-### Synthetic parameter khác synthetic method
+### Synthetic Parameter vs. Synthetic Method
 
-Compiler cũng có thể sinh *bridge method* để duy trì tính đúng của override khi erasure generic. Nhưng synthetic/bridge **method** là một khái niệm khác: đừng suy luận từ `Method.isBridge()` hoặc `Method.isSynthetic()` rằng các `Parameter` bên trong sẽ đều trả `isSynthetic() == true`. Phải đọc metadata đúng ở từng tầng.
+The compiler can also generate *bridge methods* to preserve override correctness under generic erasure. However, a synthetic/bridge **method** is a different concept: do not infer from `Method.isBridge()` or `Method.isSynthetic()` that the `Parameter` objects inside will all return `isSynthetic() == true`. Read metadata accurately at each level.
 
-## 5. `isVarArgs()`: tham số biểu diễn dấu ba chấm `...`
+## 5. `isVarArgs()`: Parameters Representing Ellipsis `...`
 
-Varargs là cú pháp lập trình viên có thể chủ động khai báo:
+Varargs is syntax programmers can explicitly declare:
 
 ```java
 static void log(String tag, String... messages) {}
 ```
 
-Ở cấp kiểu runtime, `String...` được biểu diễn dưới dạng **`String[]`**. Tuy vậy, Reflection vẫn biết executable được khai báo variable arity:
+At the runtime type level, `String...` is represented as **`String[]`**. Even so, Reflection still knows the executable was declared with variable arity:
 
-- `Executable.isVarArgs() == true` đối với method `log`.
-- `Parameter.isVarArgs() == true` đối với **tham số cuối `messages`**.
-- `Parameter.isVarArgs() == false` đối với `tag`.
+- `Executable.isVarArgs() == true` for method `log`.
+- `Parameter.isVarArgs() == true` for **the last parameter `messages`**.
+- `Parameter.isVarArgs() == false` for `tag`.
 - `messages.getType() == String[].class`.
-- Một method khai báo **`String[] messages`** thông thường có thể có cùng kiểu bytecode của tham số, nhưng `isVarArgs() == false` vì không được đánh dấu là variable arity.
+- A method declaring an ordinary **`String[] messages`** may have the same bytecode parameter type, yet `isVarArgs() == false` because it is not marked as variable arity.
 
-**Không được kết luận varargs chỉ từ `getType().isArray()`.** Kiểu mảng và varargs không đồng nghĩa. Cũng đừng kết luận tham số varargs là synthetic: trong ví dụ thông thường, `messages` được khai báo tường minh nên `isImplicit() == false` và `isSynthetic() == false`.
+**Do not conclude varargs solely from `getType().isArray()`.** Array types and varargs are not synonymous. Also do not conclude a varargs parameter is synthetic: in ordinary examples, `messages` is explicitly declared so `isImplicit() == false` and `isSynthetic() == false`.
 
-Theo cú pháp Java, phần varargs của method/constructor là **tham số cuối cùng** trong khai báo; nhiều tham số đứng trước vẫn được phép. Do đó, chỉ vị trí cuối đại diện phần biến độ dài.
+Per Java syntax, the varargs portion of a method/constructor is the **last parameter** in the declaration; multiple preceding parameters are still allowed. Therefore, only the final position represents the variable-length part.
 
-## 6. Ví dụ Java 17+ chạy độc lập: so sánh cả ba cờ
+## 6. Standalone Java 17+ Example: Comparing All Three Flags
 
-Tạo file **`ParameterFlagsDemo.java`**:
+Create the file **`ParameterFlagsDemo.java`**:
 
 ```java
 import java.lang.reflect.*;
@@ -212,14 +212,14 @@ public class ParameterFlagsDemo {
 }
 ```
 
-Dùng JDK 17+ tại thư mục chứa file:
+Using JDK 17+ in the directory containing the file:
 
 ```bash
 javac --release 17 -parameters ParameterFlagsDemo.java
 java ParameterFlagsDemo
 ```
 
-**Stdout đã được đối chiếu bằng JDK 21 / `javac --release 17 -parameters`:**
+**Stdout verified with JDK 21 / `javac --release 17 -parameters`:**
 
 ```text
 Member | executableVarArgs=false
@@ -239,28 +239,28 @@ arrayOnly | executableVarArgs=false
   entries:String[] implicit=false synthetic=false varArgs=false namePresent=true
 ```
 
-Giải thích kết quả:
+Result explanation:
 
-1. `Member`: constructor có hai slot runtime. `this$0` là enclosing instance kiểu `ParameterFlagsDemo`, `implicit=true`; `value` là explicit parameter.
-2. `Level`: hai slot đầu của enum constructor có `synthetic=true`. Slot `priority` do người viết khai báo có các cờ đều false.
-3. `Helpers`: constructor nhận `String label` và `int... numbers`. Trong metadata, tham số cuối có kiểu `int[]` và `varArgs=true`. Bản thân constructor có `executableVarArgs=true`.
-4. `audit`: method nhận `String tag` trước khi đến `String... entries`. Chỉ `entries` có `isVarArgs() == true`.
-5. `arrayOnly`: method nhận `String[]` dưới dạng **mảng thông thường**. Mặc dù `getType()` vẫn biểu diễn là `String[]`, cả method và parameter đều có `isVarArgs() == false`.
+1. `Member`: the constructor has two runtime slots. `this$0` is the enclosing instance of type `ParameterFlagsDemo` with `implicit=true`; `value` is an explicit parameter.
+2. `Level`: the first two slots of the enum constructor have `synthetic=true`. The programmer-declared slot `priority` has all flags false.
+3. `Helpers`: the constructor takes `String label` and `int... numbers`. In metadata, the last parameter has type `int[]` and `varArgs=true`. The constructor itself has `executableVarArgs=true`.
+4. `audit`: the method takes `String tag` before `String... entries`. Only `entries` has `isVarArgs() == true`.
+5. `arrayOnly`: the method takes `String[]` as a **regular array**. Although `getType()` still reports `String[]`, both the method and parameter have `isVarArgs() == false`.
 
-Đây là kết quả có điều kiện rõ ràng: các **tên compiler-generated** và metadata cho implicit/synthetic parameter được quan sát từ `javac` trong cấu hình trên. Không khẳng định mọi compiler/JDK hoặc bytecode generator đều xuất cùng tên nội bộ.
+These results come with clear conditions: the **compiler-generated names** and metadata for implicit/synthetic parameters were observed from `javac` under the configuration above. Do not claim every compiler/JDK or bytecode generator emits the exact same internal names.
 
-## 7. Biên dịch thiếu `-parameters` sẽ thay đổi gì?
+## 7. What Changes When Compiling Without `-parameters`?
 
-Nếu chạy:
+If you run:
 
 ```bash
 javac --release 17 ParameterFlagsDemo.java
 java ParameterFlagsDemo
 ```
 
-với bản `javac` đã kiểm chứng, các giá trị `getName()` chuyển thành `arg0`, `arg1`, ... và `isNamePresent()` trả `false`. Nhưng các **kiểu/số lượng tham số** cùng cờ varargs, implicit, synthetic trong ví dụ vẫn phản ánh cấu trúc executable đã biên dịch.
+with the verified `javac` version, `getName()` values change to `arg0`, `arg1`, ... and `isNamePresent()` returns `false`. However, the **parameter types/counts** as well as the varargs, implicit, and synthetic flags in the example still reflect the compiled executable structure.
 
-Ví dụ một phần kết quả khi bỏ `-parameters`:
+Partial output example when omitting `-parameters`:
 
 ```text
 Member | executableVarArgs=false
@@ -272,84 +272,84 @@ Level | executableVarArgs=false
   arg2:int implicit=false synthetic=false varArgs=false namePresent=false
 ```
 
-**Rút ra:**
+**Takeaways:**
 
-- `-parameters` yêu cầu `javac` lưu metadata tên của parameters; **không tạo hoặc xóa** enclosing-instance slot, enum slot hay varargs slot.
-- `isNamePresent() == true` không có nghĩa tham số được khai báo tường minh: tham số implicit hoặc synthetic cũng có thể được compiler lưu tên.
-- `isNamePresent() == false` không có nghĩa tham số synthetic: tham số explicit bình thường cũng có thể thiếu tên metadata.
-- Việc các cờ implicit/synthetic có được ghi nhận nhất quán phụ thuộc các thuộc tính classfile mà toolchain tạo ra. Nếu classfile đến từ bytecode generator hoặc compiler khác, cần kiểm tra kết quả Reflection trên artifact thực tế.
-- Thông tin debug như `LocalVariableTable` khác với metadata tên mà `Parameter.getName()` sử dụng. Đừng dựa vào `-g` thay cho `-parameters`.
+- `-parameters` tells `javac` to save parameter name metadata; it **neither creates nor removes** enclosing-instance slots, enum slots, or varargs slots.
+- `isNamePresent() == true` does not mean a parameter was explicitly declared: implicit or synthetic parameters can also have their names stored by the compiler.
+- `isNamePresent() == false` does not mean a parameter is synthetic: ordinary explicit parameters can also lack name metadata.
+- Whether implicit/synthetic flags are recorded consistently depends on the classfile attributes emitted by the toolchain. If a classfile comes from a bytecode generator or different compiler, check Reflection output on the actual artifact.
+- Debug info such as `LocalVariableTable` differs from the name metadata used by `Parameter.getName()`. Do not rely on `-g` in place of `-parameters`.
 
-Trong code mapping theo tên (ví dụ injection hoặc routing), cần kiểm tra `isNamePresent()` và có chiến lược thay thế khi metadata không được lưu, chẳng hạn annotation đặt tên tường minh hoặc cấu hình khác.
+In name-based mapping code (such as injection or routing), check `isNamePresent()` and have a fallback strategy when metadata is not stored, such as explicit naming annotations or separate configuration.
 
-## 8. Cách sử dụng thông tin cờ khi viết framework
+## 8. How to Use Flag Information When Writing Frameworks
 
-Giả sử viết công cụ hiển thị signature của method/constructor cho người dùng, các bước an toàn là:
+Suppose you are writing a tool to display method/constructor signatures to users; safe steps are:
 
-1. Lấy `Executable` cụ thể (method hoặc constructor) và đọc `getParameters()`; không tự giả định số tham số chỉ theo source.
-2. Với từng `Parameter`, giữ **index** của vị trí thực tế, kiểu `getType()` và kiểu generic `getParameterizedType()` nếu cần.
-3. Dùng `isImplicit()` để nhận diện các tham số được khai báo ngầm định theo ngôn ngữ, chẳng hạn enclosing-instance slot của member inner class.
-4. Dùng `isSynthetic()` để nhận diện những tham số compiler bổ sung không thuộc khai báo tường minh hoặc ngầm định theo ngôn ngữ.
-5. Dùng `isVarArgs()` để đánh dấu tham số cuối kiểu variable arity trong UI. Không dùng `type.isArray()` thay thế.
-6. Khi hiển thị “tham số do lập trình viên viết”, có thể tách riêng các tham số implicit/synthetic **nếu metadata đáng tin cậy**, nhưng vẫn phải giữ thông tin đầy đủ để gọi constructor hay method bằng Reflection.
-7. Khi truyền đối số vào `Constructor.newInstance(...)`/`Method.invoke(...)`, tuân thủ **chữ ký bytecode thực tế** và đúng thứ tự. Việc ẩn slot nội bộ trên giao diện người dùng không làm slot đó biến mất khỏi lời gọi Reflection.
-8. Tránh dùng tên `arg0`/`this$0`/`$enum$name` làm khóa logic; dùng tên thật có kiểm chứng, annotation hoặc hợp đồng explicit.
-9. Tôn trọng quyền truy cập constructor/method và module Java. Đọc metadata không có nghĩa là có quyền gọi một executable private/package-private.
+1. Obtain the specific `Executable` (method or constructor) and read `getParameters()`; do not assume parameter count solely from source.
+2. For each `Parameter`, keep its actual positional **index**, `getType()` type, and generic `getParameterizedType()` if needed.
+3. Use `isImplicit()` to identify parameters implicitly declared by the language, such as the enclosing-instance slot of a member inner class.
+4. Use `isSynthetic()` to identify compiler-added parameters that are neither explicitly nor implicitly declared by the language.
+5. Use `isVarArgs()` to mark the final variable-arity parameter in the UI. Do not use `type.isArray()` as a substitute.
+6. When displaying "programmer-written parameters", you may separate out implicit/synthetic parameters **if metadata is trustworthy**, while still retaining full information to invoke the constructor or method via Reflection.
+7. When passing arguments to `Constructor.newInstance(...)`/`Method.invoke(...)`, follow the **actual bytecode signature** and exact order. Hiding an internal slot in a UI does not remove that slot from Reflection calls.
+8. Avoid using names like `arg0`/`this$0`/`$enum$name` as logic keys; use verified real names, annotations, or explicit contracts.
+9. Respect constructor/method access permissions and Java modules. Reading metadata does not imply permission to invoke a private/package-private executable.
 
-### Lưu ý thực hành với varargs khi `Method.invoke`
+### Practical Note on Varargs with `Method.invoke`
 
-Giả sử trong class có method:
+Suppose a class has the method:
 
 ```java
 void send(String... messages) {}
 ```
 
-Khi gọi bằng Reflection, vị trí `messages` là một **tham số mảng `String[]`** trong chữ ký runtime. Phải cung cấp giá trị đúng cho vị trí này, ví dụ:
+When invoking via Reflection, the `messages` position is a **`String[]` array parameter** in the runtime signature. You must supply an appropriate value for this position, for example:
 
 ```java
 Method m = SomeClass.class.getDeclaredMethod("send", String[].class);
 m.invoke(receiver, (Object) new String[] {"one", "two"});
 ```
 
-Đây là **mảnh code minh họa**: `SomeClass` có method `send` tương ứng, `receiver` đúng kiểu và caller có quyền truy cập. Ép `(Object)` nhằm giúp `Method.invoke(Object, Object...)` nhận cả mảng `String[]` như **một đối số của method đích**, thay vì gây nhập nhằng với cơ chế varargs của chính lời gọi `invoke`.
+This is an **illustrative code snippet**: `SomeClass` has the matching `send` method, `receiver` has the right type, and the caller has access permission. Casting to `(Object)` ensures `Method.invoke(Object, Object...)` treats the entire `String[]` array as **a single argument to the target method**, rather than colliding with the varargs mechanism of `invoke` itself.
 
-Không suy luận rằng vì `send` là varargs thì `m.invoke(receiver, "one", "two")` sẽ tự đóng gói các chuỗi thành `String[]`. Reflection yêu cầu danh sách đối số khớp kiểu/chữ ký runtime; không tự áp dụng đầy đủ cách đóng gói varargs của cú pháp gọi Java source thông thường.
+Do not assume that because `send` is varargs, `m.invoke(receiver, "one", "two")` will automatically pack the strings into a `String[]`. Reflection requires an argument list matching the runtime types/signature; it does not apply all the varargs packing rules of regular Java source call syntax.
 
-## 9. Phân biệt lỗi thường gặp
+## 9. Distinguishing Common Mistakes
 
-| Nhầm lẫn | Điều đúng cần nhớ |
+| Confusion | Truth to Remember |
 | --- | --- |
-| “`isImplicit` và `isSynthetic` tương đương.” | Implicit là khai báo ngầm định theo JLS; synthetic không phải khai báo explicit/implicit |
-| “Varargs luôn là synthetic parameter.” | Varargs thông thường được lập trình viên khai báo tường minh |
-| “Cứ thấy `String[]` là varargs.” | `String[]` thường và `String...` có kiểu runtime giống nhau nhưng cờ `isVarArgs` khác |
-| “`isNamePresent=true` nghĩa là explicit parameter.” | Tên của implicit/synthetic parameter cũng có thể được lưu |
-| “`-parameters` thay đổi số tham số runtime.” | Nó yêu cầu lưu metadata tên, không thay đổi signature thực tế |
-| “`Method.isSynthetic` cho biết tất cả tham số synthetic.” | Cần xét `Parameter.isSynthetic` trên từng vị trí |
-| “`Executable.isVarArgs` chỉ rõ mọi tham số varargs.” | Cờ cấp executable chỉ nói cả lời khai báo dùng variable arity; cần `Parameter.isVarArgs` để biết slot |
-| “Có thể bỏ qua implicit/synthetic khi `newInstance`.” | Constructor Reflection vẫn cần đối số theo chữ ký runtime, nếu kiểu đó được phép instantiate |
-| “Nhìn tên `arg0` suy ra không có hidden parameter.” | Tên `argN` chỉ phản ánh thiếu metadata tên, không phản ánh nguồn gốc tham số |
-| “Các cờ luôn được compiler khác nhau sinh giống `javac`.” | Metadata có thể khác; đọc đúng classfile và xác minh môi trường xây dựng |
+| "`isImplicit` and `isSynthetic` are equivalent." | Implicit means implicitly declared per JLS; synthetic means neither explicitly nor implicitly declared |
+| "Varargs is always a synthetic parameter." | Normal varargs parameters are explicitly declared by the programmer |
+| "Any `String[]` is varargs." | Regular `String[]` and `String...` share the same runtime type, but their `isVarArgs` flags differ |
+| "`isNamePresent=true` means explicit parameter." | Names of implicit/synthetic parameters can also be stored |
+| "`-parameters` changes the runtime parameter count." | It requests saving name metadata, without altering the actual signature |
+| "`Method.isSynthetic` reveals all synthetic parameters." | You must inspect `Parameter.isSynthetic` on each slot |
+| "`Executable.isVarArgs` pinpoints every varargs parameter." | The executable-level flag only states the declaration uses variable arity; `Parameter.isVarArgs` identifies the slot |
+| "You can omit implicit/synthetic slots in `newInstance`." | Constructor Reflection still needs arguments matching the runtime signature, if that type is allowed to be instantiated |
+| "Seeing `arg0` implies there are no hidden parameters." | The name `argN` only reflects missing name metadata, not parameter origin |
+| "Flags are always emitted identically to `javac` by other compilers." | Metadata can differ; inspect the actual classfile and verify the build environment |
 
-## 10. Tự kiểm tra
+## 10. Self-Check
 
-1. Với `class Outer { class Inner { Inner(int n) {} } }`, vì sao Reflection có thể báo constructor gồm `Outer, int`?
-2. Tham số enclosing instance đầu tiên của member inner class trong ví dụ `javac` có cờ `isImplicit` và `isSynthetic` lần lượt là gì?
-3. Enum constructor khai báo `E(int score)` có thể chứa hai synthetic parameter đầu để làm gì?
-4. `void f(String[] x)` và `void g(String... x)` có cùng `getType()` của tham số không? Cờ `isVarArgs()` có giống nhau không?
-5. Một `Parameter` có `isNamePresent() == false` có chắc là synthetic không?
-6. `method.isSynthetic() == false` có đủ để khẳng định không có synthetic parameter không?
-7. Nếu cần truyền varargs qua `Method.invoke`, tại sao cần quan tâm giá trị mảng cuối và cơ chế `Object...` của chính `invoke`?
-8. Nếu phát hiện implicit/synthetic parameters trên constructor thì có thể tùy ý loại chúng khi gọi `newInstance` không?
+1. Given `class Outer { class Inner { Inner(int n) {} } }`, why can Reflection report the constructor parameters as `Outer, int`?
+2. What are the `isImplicit` and `isSynthetic` flags, respectively, for the first enclosing-instance parameter of a member inner class in the `javac` example?
+3. What might the first two synthetic parameters of an enum constructor declared as `E(int score)` be used for?
+4. Do `void f(String[] x)` and `void g(String... x)` have the same `getType()` for their parameter? Is the `isVarArgs()` flag the same?
+5. If a `Parameter` has `isNamePresent() == false`, is it definitely synthetic?
+6. Is `method.isSynthetic() == false` sufficient to conclude there are no synthetic parameters?
+7. When passing varargs through `Method.invoke`, why must you pay attention to the final array value and `invoke`'s own `Object...` mechanism?
+8. If implicit/synthetic parameters are detected on a constructor, can you arbitrarily drop them when calling `newInstance`?
 
-**Đáp án định hướng:** (1) cần enclosing instance; (2) `true` và `false` trong ví dụ; (3) tên hằng và ordinal; (4) cùng kiểu mảng, cờ varargs khác; (5) không; (6) không; (7) phải truyền đúng một đối số mảng ở slot runtime; (8) không.
+**Guiding answers:** (1) needs the enclosing instance; (2) `true` and `false` in the example; (3) constant name and ordinal; (4) same array type, different varargs flag; (5) no; (6) no; (7) must pass a single array argument in the runtime slot; (8) no.
 
-## 11. Kết luận và tài liệu chính thức
+## 11. Conclusion and Official References
 
-Ba API `Parameter.isImplicit()`, `Parameter.isSynthetic()` và `Parameter.isVarArgs()` trả lời **ba câu hỏi độc lập**: nguồn gốc ngầm định theo ngôn ngữ, nguồn gốc compiler-generated, và vai trò tham số biến độ dài. Khi viết reflection tooling, luôn kết hợp chúng với `Executable.getParameters()`, `getParameterTypes()`, `isVarArgs()` của executable, `Parameter.getType()` và `isNamePresent()`. Quan sát **signature và metadata thực tế của classfile** đáng tin cậy hơn suy đoán từ tên, cờ riêng lẻ hay hình dạng mảng.
+The three APIs `Parameter.isImplicit()`, `Parameter.isSynthetic()`, and `Parameter.isVarArgs()` answer **three independent questions**: language-level implicit origin, compiler-generated origin, and variable-arity parameter role. When writing reflection tooling, always combine them with `Executable.getParameters()`, `getParameterTypes()`, executable-level `isVarArgs()`, `Parameter.getType()`, and `isNamePresent()`. Observing the **actual classfile signature and metadata** is more reliable than guessing from names, individual flags, or array shapes.
 
-Tài liệu:
+References:
 
-- [Java SE 21 — `java.lang.reflect.Parameter`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Parameter.html): hợp đồng của `isImplicit`, `isSynthetic`, `isVarArgs`, `isNamePresent`.
-- [Java SE 21 — `java.lang.reflect.Executable`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Executable.html): `getParameters` và `isVarArgs` cấp method/constructor.
-- [Java SE 21 — `java.lang.reflect.Method`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Method.html): cách gọi method bằng Reflection và cờ executable.
-- [JLS 17 `8.4.1 — Formal Parameters](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.4.1): cú pháp và điều kiện variable arity parameter.
+- [Java SE 21 — `java.lang.reflect.Parameter`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Parameter.html): contracts of `isImplicit`, `isSynthetic`, `isVarArgs`, `isNamePresent`.
+- [Java SE 21 — `java.lang.reflect.Executable`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Executable.html): method/constructor-level `getParameters` and `isVarArgs`.
+- [Java SE 21 — `java.lang.reflect.Method`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Method.html): invoking methods via Reflection and executable flags.
+- [JLS 17 `8.4.1 — Formal Parameters](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.4.1): syntax and conditions for variable-arity parameters.

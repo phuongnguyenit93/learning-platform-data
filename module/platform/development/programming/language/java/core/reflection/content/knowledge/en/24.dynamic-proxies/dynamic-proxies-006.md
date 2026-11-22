@@ -1,8 +1,8 @@
-# Method, proxy instance và args trong InvocationHandler (Java Dynamic Proxy)
+# Method, Proxy Instance, and Args in InvocationHandler (Java Dynamic Proxy)
 
-## Mục tiêu và bức tranh tổng thể
+## Objective and overall picture
 
-Với JDK dynamic proxy, khi người gọi gọi một phương thức trên đối tượng proxy, lớp proxy do JDK tạo chuyển lời gọi đến `InvocationHandler.invoke(Object proxy, Method method, Object[] args)`. Handler quyết định xử lý lời gọi bằng logic riêng, ủy quyền sang target, hoặc ném ngoại lệ. Muốn viết handler đúng, bạn phải phân biệt **proxy instance**, **metadata của phương thức** và **giá trị các đối số**.
+With a JDK dynamic proxy, when a caller invokes a method on the proxy object, the JDK-generated proxy class routes the call to `InvocationHandler.invoke(Object proxy, Method method, Object[] args)`. The handler decides whether to process the call with custom logic, delegate to a target, or throw an exception. To write a correct handler, you must distinguish the **proxy instance**, the **method metadata**, and the **argument values**.
 
 ~~~text
 Caller: api.add(2, 5)
@@ -13,63 +13,63 @@ JDK proxy implements interface Calculator
           v
 InvocationHandler.invoke(proxy, method, args)
                          |       |       |
-              chính proxy       |       +-- [Integer(2), Integer(5)]
-                                +---------- Method: Calculator.add(int,int)
+              proxy itself       |       +-- [Integer(2), Integer(5)]
+                                 +---------- Method: Calculator.add(int,int)
           |
-          +--> xử lý trực tiếp / gọi method.invoke(target, args)
+          +--> handle directly / call method.invoke(target, args)
           |
           v
-return Object (Integer(7)) -> proxy unbox -> caller nhận int 7
+return Object (Integer(7)) -> proxy unboxes -> caller receives int 7
 ~~~
 
-JDK dynamic proxy triển khai **interface**; bạn tạo proxy bằng `Proxy.newProxyInstance(classLoader, interfaces, handler)`. `target` không phải tham số mặc định của `InvocationHandler`: nếu muốn proxy làm việc như một decorator, bạn tự giữ target trong handler và tự gọi tiếp.
+JDK dynamic proxies implement **interfaces**; you create a proxy using `Proxy.newProxyInstance(classLoader, interfaces, handler)`. `target` is not a built-in parameter of `InvocationHandler`: if you want the proxy to act like a decorator, you hold the target yourself in the handler and invoke it.
 
-## 1. `invoke(proxy, method, args)` trả về dữ liệu gì?
+## 1. What data does `invoke(proxy, method, args)` receive and return?
 
-Chữ ký trong `java.lang.reflect.InvocationHandler`:
+Signature in `java.lang.reflect.InvocationHandler`:
 
 ~~~java
 Object invoke(Object proxy, Method method, Object[] args) throws Throwable;
 ~~~
 
-Đây là chữ ký API, không phải chương trình chạy độc lập.
+This is an API signature, not a standalone runnable program.
 
-| Tham số | Bản chất | Dùng để làm gì? |
+| Parameter | Nature | What is it used for? |
 | --- | --- | --- |
-| `proxy` | Chính **đối tượng JDK proxy** mà caller đang gọi; nó thường khác đối tượng nghiệp vụ `target` | Kiểm tra identity, thực hiện quy tắc `equals/hashCode/toString`, chạy default method trên proxy |
-| `method` | `java.lang.reflect.Method` đại diện cho phương thức được proxy xử lý | Đọc tên/chữ ký/annotation/kiểu trả về, chọn chính sách, ủy quyền cho receiver tương thích |
-| `args` | `Object[]` chứa **giá trị đối số theo thứ tự**; bằng `null` nếu method không có tham số | Kiểm tra, log có kiểm soát, biến đổi, hoặc chuyển tiếp sang target |
+| `proxy` | The **JDK proxy object** itself that the caller is invoking; it is usually different from the business object `target` | Checking identity, implementing `equals/hashCode/toString` rules, running default methods on the proxy |
+| `method` | `java.lang.reflect.Method` representing the method handled by the proxy | Reading name/signature/annotations/return type, choosing policy, delegating to a compatible receiver |
+| `args` | `Object[]` containing **argument values in order**; `null` if the method has no parameters | Inspecting, controlled logging, transforming, or forwarding to the target |
 
-### 1.1. `Method` là metadata của lời gọi, không nhất thiết là method trên target
+### 1.1. `Method` is call metadata, not necessarily the method on the target
 
-Các API quan trọng:
+Key APIs:
 
-- `getName()` trả tên phương thức. Khi có overload, phải so thêm `getParameterTypes()`; tên đơn lẻ chưa đủ phân biệt `find(int)` và `find(String)`.
-- `getDeclaringClass()` thường trả interface khai báo phương thức (có thể là **superinterface**); với `equals(Object)`, `hashCode()` và `toString()`, nó trả `Object.class`.
-- `getReturnType()` và `getParameterTypes()` mô tả kiểu runtime (sau type erasure); `getGenericReturnType()` và `getGenericParameterTypes()` đọc thông tin generic được lưu trong chữ ký khai báo.
-- `getAnnotation(MyAnnotation.class)` đọc annotation runtime trên chính `Method` này. Nó **không tự tìm** annotation chỉ tồn tại trên method được triển khai bởi target.
-- `isDefault()` nhận diện interface default method; `isVarArgs()` nhận diện tham số varargs; `getExceptionTypes()` cho biết checked exceptions trên chữ ký.
+- `getName()` returns the method name. When overloads exist, you must also compare `getParameterTypes()`; the name alone cannot distinguish `find(int)` from `find(String)`.
+- `getDeclaringClass()` typically returns the interface declaring the method (which may be a **superinterface**); for `equals(Object)`, `hashCode()`, and `toString()`, it returns `Object.class`.
+- `getReturnType()` and `getParameterTypes()` describe runtime types (after type erasure); `getGenericReturnType()` and `getGenericParameterTypes()` read generic information stored in the declared signature.
+- `getAnnotation(MyAnnotation.class)` reads runtime annotations on this `Method` itself. It **does not automatically find** annotations that exist only on the method implemented by the target.
+- `isDefault()` identifies an interface default method; `isVarArgs()` identifies a varargs parameter; `getExceptionTypes()` reports checked exceptions on the signature.
 
-Nếu proxy triển khai nhiều interface khai báo phương thức **cùng tên và danh sách tham số**, `Method` đưa cho handler được lựa chọn dựa trên thứ tự interface trong lúc tạo proxy; nó không bắt buộc tương ứng với interface mà caller dùng để tham chiếu lời gọi. Với chữ ký trùng nhau, không suy diễn quá nhiều từ `getDeclaringClass()` hay chỉ từ annotation của một trong các interface.
+If a proxy implements multiple interfaces declaring methods with the **same name and parameter list**, the `Method` passed to the handler is chosen based on the order of interfaces when creating the proxy; it does not necessarily match the interface reference the caller used for the call. With matching signatures, do not infer too much from `getDeclaringClass()` or from annotations on just one of the interfaces.
 
-### 1.2. `proxy` là proxy, không phải target
+### 1.2. `proxy` is the proxy, not the target
 
-- `Proxy.isProxyClass(proxy.getClass())` xác nhận class do API JDK proxy tạo ra; `Proxy.getInvocationHandler(proxy)` truy xuất handler từ proxy hợp lệ.
-- Không dựa vào tên class sinh bởi JDK vì đó là chi tiết triển khai.
-- **Không ủy quyền bằng `method.invoke(proxy, args)`** trong chính handler: khi gọi phương thức interface trên proxy một lần nữa, lời gọi đi vào cùng handler, có thể lặp đến `StackOverflowError`. Thông thường dùng `method.invoke(target, args)`, với target triển khai interface tương ứng.
-- Ngay cả `System.out.println(proxy)` hoặc nối chuỗi với proxy cũng có thể gọi `proxy.toString()` rồi vào handler lần nữa. Dùng thông tin phương thức hoặc identity để log khi chưa có chính sách `toString` rõ ràng.
+- `Proxy.isProxyClass(proxy.getClass())` confirms a class generated by the JDK proxy API; `Proxy.getInvocationHandler(proxy)` retrieves the handler from a valid proxy.
+- Do not rely on the JDK-generated class name, as that is an implementation detail.
+- **Do not delegate via `method.invoke(proxy, args)`** inside the handler itself: calling an interface method on the proxy again sends the call into the same handler, potentially recursing until `StackOverflowError`. Normally use `method.invoke(target, args)`, with a target implementing the corresponding interface.
+- Even `System.out.println(proxy)` or string concatenation with `proxy` can invoke `proxy.toString()` and re-enter the handler. Use method info or identity for logging unless a clear `toString` policy exists.
 
-### 1.3. `args` chứa giá trị, với ba tình huống đặc biệt
+### 1.3. `args` holds values, with three special cases
 
-**Không tham số:** `ping()` khiến `args == null`; không được truy cập `args.length` trước khi kiểm tra. Handler có thể chuẩn hóa thành `args == null ? new Object[0] : args` nếu thuật toán cần một mảng.
+**No parameters:** `ping()` produces `args == null`; never access `args.length` without checking first. A handler can normalize to `args == null ? new Object[0] : args` if the algorithm needs an array.
 
-**Primitive và null:** `add(2,5)` có mảng `Object[]` gồm hai `Integer` (boxing). Ngược lại, `send(null)` có mảng **dài 1**, phần tử `args[0] == null`; khác với `args == null`.
+**Primitives and null:** `add(2,5)` yields an `Object[]` containing two `Integer`s (boxing). Conversely, `send(null)` yields an array **of length 1** with `args[0] == null`; distinct from `args == null`.
 
-**Varargs:** `join("a", "b")` của `join(String... parts)` nhận `args.length == 1` và `args[0]` là mảng `String[]{"a","b"}`. Varargs là một tham số mảng ở runtime. `join((String[]) null)` lại có mảng `args` một phần tử với `args[0] == null`.
+**Varargs:** `join("a", "b")` on `join(String... parts)` receives `args.length == 1` where `args[0]` is a `String[]{"a","b"}` array. Varargs is a single array parameter at runtime. `join((String[]) null)` similarly produces a one-element `args` array with `args[0] == null`.
 
-## 2. Chương trình Java 17+ chạy được: quan sát cả ba tham số
+## 2. Runnable Java 17+ program: observing all three parameters
 
-Lưu toàn bộ thành **HandlerArgumentsDemo.java**. Chương trình có một target `CalculatorImpl`, method trả primitive, varargs, default method, `Object.toString` và `Object.equals`.
+Save the entire file as **HandlerArgumentsDemo.java**. The program includes a `CalculatorImpl` target, a primitive-returning method, varargs, a default method, `Object.toString`, and `Object.equals`.
 
 ~~~java
 import java.lang.reflect.InvocationHandler;
@@ -107,7 +107,7 @@ public class HandlerArgumentsDemo {
             String methodName = method.getDeclaringClass().getSimpleName()
                     + "." + method.getName();
 
-            // Tránh gọi toString() trên proxy trong equals(proxy).
+            // Avoid calling toString() on the proxy inside equals(proxy).
             String shownArgs = method.getDeclaringClass() == Object.class
                     && method.getName().equals("equals")
                     ? "[reference]"
@@ -154,7 +154,7 @@ public class HandlerArgumentsDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ~~~bash
 javac HandlerArgumentsDemo.java
@@ -176,17 +176,17 @@ invoke Object.equals | isProxy=true | args=[reference]
 same=true
 ~~~
 
-**Giải thích các điểm quan trọng:**
+**Explanation of key points:**
 
-1. `method` trong lời gọi `add` là `Calculator.add(int,int)`; `callArgs` chứa `Integer(2)` và `Integer(5)`. Handler chuyển lời gọi tới `CalculatorImpl`; giá trị trả về qua reflection là `Integer(7)` và proxy unbox thành `int` cho caller.
-2. `join` có `args` một phần tử mảng, nên `Arrays.deepToString(callArgs)` hiển thị `[[a, b]]`.
-3. `origin()` không có tham số nên `callArgs == null`. Vì `method.isDefault()` là true, `invokeDefault` thực thi phần thân default method trên proxy.
-4. Hai lời gọi `Object.toString` và `Object.equals` vẫn đi qua handler. Ví dụ dùng identity equality; không in chính proxy bên trong `equals` để tránh callback ngoài ý muốn vào `toString`.
-5. `target` là object nghiệp vụ có sẵn; `calculator` là proxy do `Proxy.newProxyInstance` trả về. Handler **tự quyết định** gọi target.
+1. `method` in the `add` call is `Calculator.add(int,int)`; `callArgs` holds `Integer(2)` and `Integer(5)`. The handler forwards the call to `CalculatorImpl`; the return value through reflection is `Integer(7)` and the proxy unboxes it to `int` for the caller.
+2. `join` has a single array element in `args`, so `Arrays.deepToString(callArgs)` prints `[[a, b]]`.
+3. `origin()` has no parameters, so `callArgs == null`. Because `method.isDefault()` is true, `invokeDefault` executes the default method body on the proxy.
+4. Both `Object.toString` and `Object.equals` still pass through the handler. The example uses identity equality; it avoids printing the proxy itself inside `equals` to prevent an unintended callback into `toString`.
+5. `target` is an existing business object; `calculator` is the proxy returned by `Proxy.newProxyInstance`. The handler **explicitly chooses** to call the target.
 
-## 3. Forward Method sang target và xử lý exception
+## 3. Forwarding Method to target and handling exceptions
 
-Khi `target` thực sự triển khai interface khai báo `method`, handler có thể dùng:
+When `target` actually implements the interface declaring `method`, the handler can use:
 
 ~~~java
 try {
@@ -196,67 +196,67 @@ try {
 }
 ~~~
 
-Đây là **đoạn trích bên trong handler**, không phải class biên dịch độc lập. Reflection yêu cầu receiver tương thích và quyền truy cập hợp lệ; truyền sai receiver/đối số có thể gây `IllegalArgumentException`, truy cập không được phép có thể gây `IllegalAccessException`. Nếu bản thân target ném lỗi, `Method.invoke` bọc lỗi trong `InvocationTargetException`. Handler thường nên ném lại `getCause()` để giữ exception gốc.
+This is an **excerpt inside a handler**, not a standalone compilable class. Reflection requires a compatible receiver and valid access rights; passing the wrong receiver/arguments can throw `IllegalArgumentException`, and unauthorized access can throw `IllegalAccessException`. If the target itself throws an error, `Method.invoke` wraps it in `InvocationTargetException`. The handler should usually rethrow `getCause()` to preserve the original exception.
 
-Mặc dù `InvocationHandler.invoke` khai báo `throws Throwable`, lời gọi **qua proxy** phải tuân thủ hợp đồng kiểu trả về và `throws` của phương thức interface:
+Although `InvocationHandler.invoke` declares `throws Throwable`, calls **through the proxy** must comply with the return type and `throws` contract of the interface method:
 
-| Handler thực hiện | Kết quả ở phía caller |
+| Handler action | Result on the caller side |
 | --- | --- |
-| Trả `Integer(7)` khi method trả `int` | Proxy unbox thành `int 7` |
-| Trả `null` cho phương thức trả primitive | `NullPointerException` |
-| Trả một object sai kiểu trả về | `ClassCastException` |
-| Ném `RuntimeException` hoặc `Error` | Ngoại lệ/lỗi đi ra bình thường |
-| Ném checked exception được chữ ký method cho phép | Truyền ra như khai báo |
-| Ném checked exception **không được khai báo** ở method interface | Proxy ném `UndeclaredThrowableException` bọc ngoại lệ đó |
+| Returns `Integer(7)` when method returns `int` | Proxy unboxes to `int 7` |
+| Returns `null` for a method returning a primitive | `NullPointerException` |
+| Returns an object of the wrong return type | `ClassCastException` |
+| Throws `RuntimeException` or `Error` | Exception/error propagates normally |
+| Throws a checked exception permitted by the method signature | Propagates as declared |
+| Throws a checked exception **not declared** on the interface method | Proxy throws `UndeclaredThrowableException` wrapping that exception |
 
-Đây là lý do không nên để `InvocationTargetException` lọt ra trực tiếp khi bạn muốn caller thấy checked exception mà method đã khai báo. Với nhiều interface có chữ ký trùng nhau, checked exception có thể cần tương thích với **tất cả** chữ ký tương ứng, không chỉ một `Method.getExceptionTypes()`.
+This is why you should not let `InvocationTargetException` escape directly when you want the caller to see a checked exception declared by the method. With multiple interfaces having matching signatures, a checked exception may need to be compatible with **all** corresponding signatures, not only a single `Method.getExceptionTypes()`.
 
-## 4. Trường hợp đặc biệt của Method và proxy
+## 4. Special cases of Method and proxy
 
 ### 4.1. `equals`, `hashCode`, `toString`
 
-Ba phương thức public không final từ `Object` này được JDK proxy chuyển tới handler. Với chúng, `method.getDeclaringClass() == Object.class`, kể cả khi interface redeclare chữ ký tương ứng. `wait()`/`notify()` không nằm trong nhóm xử lý đặc biệt này.
+These three public non-final methods from `Object` are routed by JDK proxies to the handler. For them, `method.getDeclaringClass() == Object.class`, even if an interface redeclares the corresponding signature. `wait()`/`notify()` are not in this special dispatch group.
 
-Bạn phải chọn chính sách nhất quán. Ví dụ dùng `proxy == args[0]` cho `equals`, `System.identityHashCode(proxy)` cho `hashCode` và chuỗi cố định cho `toString`. Nếu định nghĩa equality theo đối tượng đích hay khóa nghiệp vụ, cả `equals` và `hashCode` phải tuân thủ cùng nguyên tắc.
+You must choose a consistent policy. For instance, use `proxy == args[0]` for `equals`, `System.identityHashCode(proxy)` for `hashCode`, and a fixed string for `toString`. If defining equality based on the target object or business key, both `equals` and `hashCode` must follow the same rule.
 
-### 4.2. Default method của interface
+### 4.2. Interface default methods
 
-Lời gọi vào `default method` của interface **vẫn tới handler**. Với Java 16+, `InvocationHandler.invokeDefault(proxy, method, args)` gọi phần thân default method hợp lệ trên **proxy**, như lời gọi `Interface.super.method(...)`. Đối số có thể null khi không có tham số.
+Calls to an interface's `default method` **still reach the handler**. With Java 16+, `InvocationHandler.invokeDefault(proxy, method, args)` invokes a valid default method body on the **proxy**, like an `Interface.super.method(...)` call. Arguments may be null when there are no parameters.
 
-Ngược lại, `method.invoke(target, args)` chạy trên target theo dispatch bình thường. Nếu target đã override default method, phần override có thể được chọn. Hai cách này khác receiver và có thể cho kết quả khác nhau. `invokeDefault` chỉ nhận `Method` tương ứng với default method còn hợp lệ trong hệ interface của proxy; không dùng được cho bất kỳ method thường nào.
+By contrast, `method.invoke(target, args)` runs on the target with normal dispatch. If the target has overridden the default method, the override may be selected. These two approaches have different receivers and can produce different results. `invokeDefault` only accepts a `Method` corresponding to a valid default method in the proxy's interface hierarchy; it cannot be used for arbitrary normal methods.
 
-### 4.3. Method trùng chữ ký, overload và metadata generic
+### 4.3. Matching signatures, overloads, and generic metadata
 
-Với overload `work(String)` và `work(int)`, so thêm `method.getParameterTypes()`; overload không được phân biệt bằng nội dung `args` đơn thuần, nhất là khi giá trị là null. Với nhiều interface chứa cùng chữ ký, thứ tự interface lúc tạo proxy ảnh hưởng `Method` đưa tới handler. Với generic, `Method` giữ thông tin khai báo trong phạm vi metadata còn lưu; nó không tự thay biến kiểu qua toàn bộ cây kế thừa thành kiểu cụ thể của target.
+For overloads `work(String)` and `work(int)`, also compare `method.getParameterTypes()`; overloads must not be distinguished purely by the contents of `args`, especially when values are null. With multiple interfaces containing matching signatures, interface order at proxy creation time affects which `Method` reaches the handler. With generics, `Method` retains declaration info to the extent metadata is preserved; it does not automatically substitute type variables across the entire inheritance tree into the target's concrete types.
 
-Nếu logic cần annotation của method được implement ở target, phải chủ động tra cứu method tương ứng trên class target và xử lý bridge/override khi cần. Annotation trên interface method không tự được “chuyển” vào method triển khai.
+If logic needs annotations from the method implemented on the target, you must explicitly look up the corresponding method on the target class and handle bridge/override methods as needed. Annotations on an interface method do not automatically get "copied" onto the implementing method.
 
-## 5. Bảng kiểm nhanh cho args
+## 5. Quick check table for args
 
-| Ví dụ gọi method | Giá trị `args` | Lưu ý |
+| Example method call | Value of `args` | Notes |
 | --- | --- | --- |
-| `ping()` | `null` | Không tự giả định mảng rỗng |
-| `send(null)` | `[null]` | Mảng dài 1, phần tử null |
-| `add(2,5)` | `[Integer(2),Integer(5)]` | Primitive đã boxing |
-| `join("a","b")` với `String...` | Mảng dài 1, phần tử là `String[]` | Không trải phẳng mảng varargs |
-| `send((String)null)` | `[null]` | Overload phải phân biệt bằng kiểu Method |
-| `record(secret)` | Có thể chứa dữ liệu nhạy cảm | Không log toàn bộ token/password |
+| `ping()` | `null` | Do not assume an empty array |
+| `send(null)` | `[null]` | Array of length 1, element is null |
+| `add(2,5)` | `[Integer(2),Integer(5)]` | Primitives are boxed |
+| `join("a","b")` with `String...` | Array of length 1, element is `String[]` | Do not flatten varargs arrays |
+| `send((String)null)` | `[null]` | Overloads must be distinguished by Method parameter types |
+| `record(secret)` | May contain sensitive data | Do not log entire tokens/passwords |
 
-Khi chuyển `args` cho `method.invoke(target, args)`, phải giữ đúng **số lượng và cấu trúc tham số**. Truyền riêng `args[0]` cho method cần nhiều đối số, hoặc bọc thêm mảng ở sai tầng, sẽ làm thay đổi cách reflection nhận tham số; Java varargs ở đây không cho phép tự ý trải phẳng mảng.
+When passing `args` to `method.invoke(target, args)`, you must preserve the exact **parameter count and structure**. Passing `args[0]` alone to a method expecting multiple arguments, or wrapping an extra array at the wrong level, changes how reflection receives arguments; Java varargs here does not permit arbitrary array flattening.
 
-## 6. Các lỗi phổ biến và cách tự kiểm tra
+## 6. Common mistakes and self-check
 
-- **Đệ quy không kết thúc:** gọi `method.invoke(proxy, args)` trong handler. Dùng target tương thích hoặc xử lý đặc biệt `invokeDefault` khi muốn thực thi default body.
-- **NPE do args:** truy cập `args.length` với method không tham số. Luôn kiểm tra null trước.
-- **Nhầm mảng varargs:** xem `join("a","b")` là hai phần tử `args`. Thực tế chỉ có một phần tử kiểu `String[]`.
-- **Nhầm metadata:** coi `method.getDeclaringClass()` là class của target hoặc tin annotation interface sẽ tự bao gồm annotation triển khai.
-- **Sai kiểu trả về:** trả `null`/object không tương thích cho primitive hoặc reference return type.
-- **Sai checked exception:** bỏ qua `InvocationTargetException.getCause()`, hoặc ném checked exception ngoài `throws` của interface.
-- **Log gây side effect:** ép `toString()` trên proxy argument, hoặc ghi mật khẩu/token trong `args`.
+- **Infinite recursion:** calling `method.invoke(proxy, args)` inside the handler. Use a compatible target or handle `invokeDefault` specifically when you want to execute the default body.
+- **NPE from args:** accessing `args.length` on a parameterless method. Always check for null first.
+- **Confusing varargs arrays:** treating `join("a","b")` as two elements in `args`. In reality there is only one element of type `String[]`.
+- **Confusing metadata:** assuming `method.getDeclaringClass()` is the target class or believing interface annotations automatically include implementation annotations.
+- **Wrong return type:** returning `null` or an incompatible object for a primitive or reference return type.
+- **Wrong checked exception:** ignoring `InvocationTargetException.getCause()`, or throwing a checked exception outside the interface's `throws` clause.
+- **Side-effect logging:** triggering `toString()` on the proxy argument, or logging passwords/tokens inside `args`.
 
-Tự trả lời: (1) `proxy` khác `target` thế nào? (2) tại sao `ping()` cho `args == null` nhưng `send(null)` không? (3) tại sao `method.invoke(proxy, args)` có nguy cơ đệ quy? (4) vì sao `method.getDeclaringClass()` có thể là `Object.class`? (5) khi nào phải dùng `InvocationHandler.invokeDefault`? (6) phản xạ và proxy lần lượt bọc exception ra sao?
+Answer for yourself: (1) How does `proxy` differ from `target`? (2) Why does `ping()` give `args == null` while `send(null)` does not? (3) Why does `method.invoke(proxy, args)` risk recursion? (4) Why can `method.getDeclaringClass()` be `Object.class`? (5) When must `InvocationHandler.invokeDefault` be used? (6) How do reflection and the proxy each wrap exceptions in turn?
 
-### Tài liệu chính thức
+### Official Documentation
 
 - Java SE 21 `InvocationHandler`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/InvocationHandler.html
 - Java SE 21 `Proxy`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Proxy.html

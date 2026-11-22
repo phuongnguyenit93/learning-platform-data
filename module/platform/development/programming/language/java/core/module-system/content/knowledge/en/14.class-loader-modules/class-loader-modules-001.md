@@ -1,35 +1,35 @@
-# ClassLoader của platform, application và module trong Java
+# Platform, Application, and Module ClassLoaders in Java
 
-Class loader là cơ chế JVM dùng để tìm và định nghĩa lớp khi chương trình cần đến lớp đó. Từ Java 9, Java Platform Module System (JPMS) bổ sung module để tổ chức package, khai báo phụ thuộc và giới hạn quyền truy cập. Hai cơ chế phối hợp với nhau: class loader nạp lớp, còn module xác định lớp thuộc đơn vị nào và module nào được phép truy cập package đã công bố.
+A class loader is the JVM mechanism used to locate and define classes when a program needs them. Since Java 9, the Java Platform Module System (JPMS) adds modules to organize packages, declare dependencies, and restrict access. The two mechanisms work together: the class loader loads classes, while the module determines which unit a class belongs to and which modules are allowed to access exported packages.
 
-Bài học này giải thích ba class loader tích hợp sẵn thường gặp — bootstrap, platform và application (system) — cùng cách chúng tham gia nạp named module, module layer và ứng dụng.
+This lesson explains the three common built-in class loaders — bootstrap, platform, and application (system) — along with how they participate in loading named modules, module layers, and applications.
 
-## 1. Mục tiêu học tập
+## 1. Learning Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Mô tả vai trò của bootstrap, platform và application class loader.
-- Giải thích quan hệ parent-child giữa các loader tích hợp sẵn.
-- Phân biệt classpath, module path, named module và unnamed module.
-- Xác định class loader và module của một lớp bằng Java API.
-- Giải thích vì sao hai lớp cùng tên vẫn có thể là hai kiểu runtime khác nhau.
-- Nhận biết khi nào module layer hoặc class loader tùy chỉnh hữu ích cho hệ thống plugin.
+- Describe the roles of the bootstrap, platform, and application class loaders.
+- Explain the parent-child relationship among the built-in loaders.
+- Distinguish between classpath, module path, named modules, and unnamed modules.
+- Identify the class loader and module of a class using Java APIs.
+- Explain why two classes with the same name can still be two different runtime types.
+- Recognize when a module layer or custom class loader is useful for a plugin system.
 
-## 2. Class loader trong quá trình nạp lớp
+## 2. Class Loaders in the Class Loading Process
 
-Khi JVM cần sử dụng một lớp, nó phải có định nghĩa lớp đó trong runtime. Vòng đời xử lý lớp thường được chia thành ba giai đoạn lớn:
+When the JVM needs to use a class, it must have the definition of that class at runtime. The class processing lifecycle is commonly divided into three major phases:
 
-1. **Loading:** tìm bytecode và tạo biểu diễn lớp trong JVM. Class loader tham gia trực tiếp vào giai đoạn này.
-2. **Linking:** kiểm tra bytecode, chuẩn bị cấu trúc dữ liệu cần thiết và phân giải các tham chiếu khi cần.
-3. **Initialization:** thực thi các bộ khởi tạo tĩnh và khối `static` theo quy tắc Java.
+1. **Loading:** locates the bytecode and creates the class representation in the JVM. The class loader participates directly in this phase.
+2. **Linking:** verifies the bytecode, prepares the required data structures, and resolves references when needed.
+3. **Initialization:** executes static initializers and `static` blocks according to Java rules.
 
-Class loader chịu trách nhiệm tìm và định nghĩa lớp; JVM thực hiện các bước linking và initialization theo quy tắc của nền tảng.
+The class loader is responsible for locating and defining the class; the JVM performs the linking and initialization steps according to the platform rules.
 
-Một lớp có **defining class loader** — loader đã định nghĩa lớp đó. Danh tính runtime của lớp phụ thuộc cả tên đầy đủ (binary name) lẫn defining loader. Nếu hai loader riêng biệt cùng định nghĩa lớp `com.example.Plugin`, JVM xem chúng là hai kiểu khác nhau, dù tên lớp giống hệt nhau. Đây là nguyên tắc quan trọng khi phát triển plugin, máy chủ ứng dụng và framework có nhiều vùng nạp lớp.
+A class has a **defining class loader** — the loader that defined that class. The runtime identity of a class depends on both its fully qualified name (binary name) and its defining loader. If two separate loaders each define the class `com.example.Plugin`, the JVM treats them as two different types, even though the class names are identical. This is an important principle when developing plugins, application servers, and frameworks with multiple class-loading scopes.
 
-## 3. Ba class loader tích hợp sẵn
+## 3. The Three Built-in Class Loaders
 
-Từ Java 9, cấu trúc phổ biến của các loader mặc định có thể hình dung như sau:
+Since Java 9, the common structure of the default loaders can be visualized as follows:
 
 ```text
 Bootstrap Class Loader
@@ -41,47 +41,47 @@ Platform Class Loader
 Application (System) Class Loader
         |
         v
-Các class loader tùy chỉnh (nếu ứng dụng tạo)
+Custom class loaders (if created by the application)
 ```
 
-Sơ đồ thể hiện quan hệ ủy quyền parent phổ biến. Loader tùy chỉnh có thể được nối vào cây theo thiết kế riêng; chúng không bắt buộc phải là con của application loader.
+The diagram illustrates the common parent delegation relationship. Custom loaders can be attached to the tree according to a specific design; they are not required to be children of the application loader.
 
 ### 3.1. Bootstrap Class Loader
 
-Bootstrap class loader là loader nền tảng thấp nhất của JVM, chịu trách nhiệm nạp các lớp cốt lõi cần để khởi động và vận hành Java runtime, ví dụ `java.lang.Object` và `java.lang.String`.
+The bootstrap class loader is the lowest-level foundational loader of the JVM, responsible for loading the core classes needed to start and run the Java runtime, such as `java.lang.Object` and `java.lang.String`.
 
-Đặc điểm:
+Characteristics:
 
-- Được triển khai ở mức JVM/runtime, không phải một đối tượng `ClassLoader` Java thông thường mà ứng dụng có thể thao tác trực tiếp.
-- Là parent gốc của platform class loader.
-- Với lớp do bootstrap loader định nghĩa, `SomeClass.class.getClassLoader()` trả về `null`. Giá trị `null` ở đây biểu diễn bootstrap loader, không có nghĩa lớp chưa được nạp.
-- Nhiều lớp cốt lõi thuộc các module nền tảng được bootstrap loader định nghĩa; không nên giả định mọi lớp trong JDK đều do bootstrap loader nạp.
+- Implemented at the JVM/runtime level, not an ordinary Java `ClassLoader` object that applications can manipulate directly.
+- Serves as the root parent of the platform class loader.
+- For a class defined by the bootstrap loader, `SomeClass.class.getClassLoader()` returns `null`. Here, `null` represents the bootstrap loader; it does not mean the class has not been loaded.
+- Many core classes belonging to foundational modules are defined by the bootstrap loader; you should not assume that every class in the JDK is loaded by the bootstrap loader.
 
 ### 3.2. Platform Class Loader
 
-Platform class loader là loader cha của application/system class loader. Nó nạp các lớp thuộc nền tảng Java mà bootstrap loader không định nghĩa.
+The platform class loader is the parent loader of the application/system class loader. It loads Java platform classes that are not defined by the bootstrap loader.
 
-Lấy loader này bằng API công khai:
+Retrieve this loader via the public API:
 
 ```java
 ClassLoader platform = ClassLoader.getPlatformClassLoader();
 System.out.println(platform);
 ```
 
-Đặc điểm:
+Characteristics:
 
-- Có mặt từ Java 9.
-- Parent của nó là bootstrap loader; vì bootstrap loader được biểu diễn bằng `null`, gọi `platform.getParent()` thường trả về `null`.
-- Đảm nhiệm việc nạp các lớp nền tảng được giao cho platform loader, bao gồm nhiều lớp thuộc các module Java SE/JDK.
-- Là parent của application loader trong cấu trúc mặc định.
+- Available since Java 9.
+- Its parent is the bootstrap loader; because the bootstrap loader is represented by `null`, calling `platform.getParent()` typically returns `null`.
+- Responsible for loading platform classes assigned to the platform loader, including many classes belonging to Java SE/JDK modules.
+- Serves as the parent of the application loader in the default structure.
 
-Trước Java 9, Java có Extension Class Loader (thường gọi ExtClassLoader). Cơ chế extension đã được loại bỏ khi nền tảng chuyển sang module system; platform class loader đảm nhiệm vai trò loader cho các lớp nền tảng tương ứng. Khi đọc code hoặc tài liệu cũ, cần phân biệt tên và hành vi của hai thế hệ.
+Before Java 9, Java had the Extension Class Loader (commonly called ExtClassLoader). The extension mechanism was removed when the platform moved to the module system; the platform class loader takes over the loader role for the corresponding platform classes. When reading legacy code or documentation, you need to distinguish the names and behavior of the two generations.
 
 ### 3.3. Application Class Loader (System Class Loader)
 
-Application class loader thường được gọi là system class loader. Trong cấu hình Java tiêu chuẩn, đây là loader mặc định nạp lớp ứng dụng.
+The application class loader is commonly called the system class loader. In a standard Java configuration, it is the default loader that loads application classes.
 
-Lấy loader bằng:
+Retrieve the loader via:
 
 ```java
 ClassLoader app = ClassLoader.getSystemClassLoader();
@@ -89,67 +89,67 @@ System.out.println(app);
 System.out.println(app.getParent());
 ```
 
-Đặc điểm:
+Characteristics:
 
-- Parent mặc định là platform class loader.
-- Nạp lớp ứng dụng từ classpath, ví dụ các đường dẫn truyền qua `-cp` hoặc `--class-path`.
-- Cũng tham gia nạp các named module được phân công cho system/application loader trên module path.
-- Có thể được thay bằng system class loader tùy chỉnh qua cấu hình runtime; vì vậy không nên mặc định mọi môi trường đều có cùng một lớp triển khai cụ thể.
+- Its default parent is the platform class loader.
+- Loads application classes from the classpath, such as paths passed via `-cp` or `--class-path`.
+- Also participates in loading named modules assigned to the system/application loader on the module path.
+- Can be replaced by a custom system class loader via runtime configuration; therefore, you should not assume every environment has the same concrete implementation class.
 
-Trong ứng dụng thông thường, `ClassLoader.getSystemClassLoader()` trả về application loader mặc định của tiến trình.
+In a typical application, `ClassLoader.getSystemClassLoader()` returns the default application loader of the process.
 
-## 4. Parent delegation và tìm lớp
+## 4. Parent Delegation and Class Lookup
 
-Các class loader tích hợp sẵn sử dụng mô hình ủy quyền cho parent: khi cần nạp một lớp, loader thường hỏi parent trước; nếu parent không tìm được, loader hiện tại mới tìm trong phạm vi mà nó quản lý. Mục tiêu là tránh việc ứng dụng vô tình định nghĩa lại các lớp nền tảng như `java.lang.String`.
+The built-in class loaders use a parent delegation model: when a class needs to be loaded, a loader usually asks its parent first; if the parent cannot find it, the current loader then searches within the scope it manages. The goal is to prevent applications from accidentally redefining platform classes such as `java.lang.String`.
 
-Luồng khái quát:
+General flow:
 
-1. Ứng dụng yêu cầu JVM nạp một lớp.
-2. Application loader kiểm tra lớp đã được nạp chưa.
-3. Nếu chưa, loader ủy quyền lên platform loader.
-4. Platform loader tiếp tục ủy quyền lên bootstrap loader.
-5. Nếu các loader cha không tìm thấy, loader phù hợp tìm lớp trong nguồn mà nó quản lý.
-6. Nếu không tìm thấy, JVM phát sinh `ClassNotFoundException` hoặc lỗi liên quan tùy API và thời điểm nạp/liên kết.
+1. The application requests the JVM to load a class.
+2. The application loader checks whether the class has already been loaded.
+3. If not, the loader delegates up to the platform loader.
+4. The platform loader further delegates up to the bootstrap loader.
+5. If the parent loaders cannot find it, the appropriate loader searches for the class in the sources it manages.
+6. If it is not found, the JVM throws `ClassNotFoundException` or a related error depending on the API and the timing of loading/linking.
 
-Mô hình trên giúp hiểu luồng phổ biến, nhưng không phải hợp đồng bắt buộc cho mọi loader tùy chỉnh. Một `ClassLoader` tự viết có thể thay đổi chiến lược trong `loadClass`; các loader tích hợp sẵn cũng có cơ chế đặc thù để xử lý lớp trong module.
+The model above helps explain the common flow, but it is not a mandatory contract for every custom loader. A custom-written `ClassLoader` can change the strategy in `loadClass`; the built-in loaders also have specialized mechanisms for handling classes in modules.
 
-Ví dụ quan sát parent:
+Example of observing the parent:
 
 ```java
 ClassLoader app = ClassLoader.getSystemClassLoader();
 ClassLoader platform = ClassLoader.getPlatformClassLoader();
 
-System.out.println(app.getParent() == platform); // thường là true
+System.out.println(app.getParent() == platform); // usually true
 System.out.println(platform.getParent());        // null: bootstrap
 ```
 
-Không nên dùng `toString()` hoặc tên lớp triển khai nội bộ của loader làm điều kiện logic. Hãy so sánh đối tượng loader hoặc dùng API công khai khi cần nhận diện.
+Do not use `toString()` or the internal implementation class name of a loader as conditional logic. Compare loader objects or use public APIs when identification is needed.
 
-## 5. Classpath và module path
+## 5. Classpath and Module Path
 
-Java 9 trở đi có hai cách phổ biến để cung cấp mã cho ứng dụng:
+Since Java 9, there are two common ways to supply code to an application:
 
-| Nguồn mã | Cách khai báo | Module runtime |
+| Code source | How declared | Runtime module |
 | --- | --- | --- |
-| Classpath | `-cp`, `-classpath`, `--class-path` | Các lớp thường thuộc unnamed module của class loader tương ứng. |
-| Module path | `--module-path`, `-p` | Chứa các module có tên; JVM phân giải dependency và đặt chúng vào module layer. |
+| Classpath | `-cp`, `-classpath`, `--class-path` | Classes typically belong to the unnamed module of the corresponding class loader. |
+| Module path | `--module-path`, `-p` | Contains named modules; the JVM resolves dependencies and places them into a module layer. |
 
-### 5.1. Lớp trên classpath
+### 5.1. Classes on the Classpath
 
-Ví dụ:
+Example:
 
 ```bash
 javac -d out src/com/example/Main.java
 java -cp out com.example.Main
 ```
 
-Trong cấu hình mặc định, `com.example.Main` được application/system class loader nạp. Các lớp trên classpath thuộc unnamed module gắn với loader đó. Unnamed module không có tên để khai báo trong `module-info.java`, nhưng vẫn có đối tượng `Module` ở runtime.
+In the default configuration, `com.example.Main` is loaded by the application/system class loader. Classes on the classpath belong to the unnamed module associated with that loader. An unnamed module has no name to declare in `module-info.java`, yet it still has a `Module` object at runtime.
 
-Một class loader có thể có unnamed module riêng. Vì vậy, hai loader khác nhau có thể gắn với hai unnamed module khác nhau.
+A class loader can have its own unnamed module. Therefore, two different loaders can be associated with two different unnamed modules.
 
-### 5.2. Named module trên module path
+### 5.2. Named Modules on the Module Path
 
-Một dự án modular có thể có cấu trúc:
+A modular project can have the structure:
 
 ```text
 src/
@@ -158,7 +158,7 @@ src/
     └── com/example/Main.java
 ```
 
-Nội dung `module-info.java`:
+Contents of `module-info.java`:
 
 ```java
 module com.example.app {
@@ -166,30 +166,30 @@ module com.example.app {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --module-source-path src -d mods -m com.example.app
 java --module-path mods -m com.example.app/com.example.Main
 ```
 
-JVM phân giải module `com.example.app` cùng các dependency cần thiết. Các module được đặt trong một module layer và gắn với class loader phù hợp. Với cấu hình mặc định, application/system loader có thể nạp nhiều named module trên module path; **không có quy tắc mỗi module luôn cần một class loader riêng**.
+The JVM resolves module `com.example.app` along with its required dependencies. The modules are placed in a module layer and associated with the appropriate class loader. In the default configuration, the application/system loader can load multiple named modules on the module path; **there is no rule that every module always needs its own class loader**.
 
-Module path xác định các module có thể được phân giải, còn loader chịu trách nhiệm định nghĩa lớp của module. Module graph và loader hierarchy có liên hệ nhưng không phải cùng một đồ thị.
+The module path determines which modules can be resolved, whereas the loader is responsible for defining the module's classes. The module graph and the loader hierarchy are related, but they are not the same graph.
 
-## 6. Module liên kết với class loader ra sao?
+## 6. How Are Modules Linked to Class Loaders?
 
-Đối tượng `Module` đại diện cho module ở runtime. Một named module được gắn với một class loader và thuộc một module layer. Class loader có thể định nghĩa lớp cho nhiều module; do đó không thể suy luận tên module chỉ từ tên loader.
+A `Module` object represents a module at runtime. A named module is associated with a class loader and belongs to a module layer. A class loader can define classes for multiple modules; therefore, you cannot infer a module name solely from the loader's name.
 
-Các API hữu ích:
+Useful APIs:
 
-- `SomeClass.class.getClassLoader()` trả về loader đã định nghĩa lớp; trả về `null` nếu lớp do bootstrap loader định nghĩa.
-- `SomeClass.class.getModule()` trả về module runtime chứa lớp.
-- `module.getClassLoader()` trả về loader gắn với module; có thể là `null` cho module được bootstrap loader định nghĩa.
-- `module.getLayer()` cho biết module layer chứa module nếu có.
-- `ClassLoader.getUnnamedModule()` trả về unnamed module gắn với loader hiện tại.
+- `SomeClass.class.getClassLoader()` returns the loader that defined the class; returns `null` if the class was defined by the bootstrap loader.
+- `SomeClass.class.getModule()` returns the runtime module containing the class.
+- `module.getClassLoader()` returns the loader associated with the module; may be `null` for modules defined by the bootstrap loader.
+- `module.getLayer()` indicates the module layer containing the module, if present.
+- `ClassLoader.getUnnamedModule()` returns the unnamed module associated with the current loader.
 
-Ví dụ:
+Example:
 
 ```java
 Class<?> type = java.sql.Driver.class;
@@ -204,23 +204,23 @@ System.out.println("Module loader: " + module.getClassLoader());
 System.out.println("Layer: " + module.getLayer());
 ```
 
-`java.sql.Driver` thuộc module `java.sql`. Loader cụ thể có thể quan sát trực tiếp khi chạy trên JDK của bạn. Không nên hard-code tên hoặc lớp triển khai nội bộ của loader, bởi chi tiết triển khai có thể khác giữa các bản phân phối/runtime.
+`java.sql.Driver` belongs to the `java.sql` module. The specific loader can be observed directly when running on your JDK. Do not hard-code loader names or internal implementation classes, because implementation details may vary across distributions/runtimes.
 
-### Module không đồng nghĩa với class loader
+### Module Is Not Synonymous with Class Loader
 
-Hãy phân biệt ba khái niệm:
+Distinguish these three concepts:
 
-- **Module:** đơn vị đóng gói package, khai báo `requires`, `exports`, `opens`, `uses`, `provides` và tạo ranh giới truy cập.
-- **Class loader:** cơ chế tìm và định nghĩa class ở runtime.
-- **Module layer:** tập hợp module đã được phân giải và liên kết ở runtime; layer có thể có quan hệ cha với layer khác.
+- **Module:** the unit of package encapsulation that declares `requires`, `exports`, `opens`, `uses`, `provides`, and establishes access boundaries.
+- **Class loader:** the mechanism for locating and defining classes at runtime.
+- **Module layer:** a collection of resolved and linked modules at runtime; a layer can have parent relationships with other layers.
 
-Hai module có thể dùng chung một class loader. Ngược lại, ứng dụng có thể tạo module layer mới với loader mới để cô lập các nhóm module. Việc một loader nạp được bytecode không tự động cấp quyền truy cập mọi package của module; quy tắc readability và `exports` của JPMS vẫn được áp dụng.
+Two modules can share the same class loader. Conversely, an application can create a new module layer with new loaders to isolate groups of modules. The fact that a loader can load bytecode does not automatically grant access to every package of a module; JPMS readability and `exports` rules still apply.
 
-## 7. Module layer và class loader tùy chỉnh
+## 7. Module Layers and Custom Class Loaders
 
-Module layer cho phép ứng dụng xây dựng một vùng module riêng sau khi JVM khởi động. Tính năng này hữu ích cho hệ thống plugin, ứng dụng mở rộng động hoặc nền tảng cần nạp nhiều thành phần theo cấu hình.
+Module layers allow an application to build a separate module region after the JVM has started. This feature is useful for plugin systems, dynamically extensible applications, or platforms that need to load multiple components by configuration.
 
-Layer khởi động có thể lấy bằng:
+The boot layer can be obtained with:
 
 ```java
 ModuleLayer bootLayer = ModuleLayer.boot();
@@ -228,19 +228,19 @@ System.out.println(bootLayer.modules().size());
 System.out.println(bootLayer.findModule("java.base").isPresent());
 ```
 
-Khi tạo layer mới, Java cung cấp các lựa chọn cấu hình loader:
+When creating a new layer, Java provides loader configuration options:
 
-- `defineModulesWithOneLoader(...)`: các module trong layer mới dùng chung một loader được chỉ định làm parent.
-- `defineModulesWithManyLoaders(...)`: mỗi module trong layer mới được gắn với một loader riêng, với parent được chỉ định.
-- `defineModules(...)`: cho phép ứng dụng cung cấp hàm ánh xạ tên module sang class loader.
+- `defineModulesWithOneLoader(...)`: the modules in the new layer share a single loader whose parent is specified.
+- `defineModulesWithManyLoaders(...)`: each module in the new layer is associated with its own loader, with the specified parent.
+- `defineModules(...)`: allows the application to supply a function mapping module names to class loaders.
 
-Các phương thức này thuộc API `ModuleLayer`. Trước khi tạo layer, ứng dụng thường tìm module bằng `ModuleFinder`, tạo `Configuration` bằng API resolve/resolveAndBind, rồi mới định nghĩa layer. Việc resolve xác định module và dependency; việc define layer gắn module với loader.
+These methods belong to the `ModuleLayer` API. Before creating a layer, an application typically locates modules using `ModuleFinder`, creates a `Configuration` via the resolve/resolveAndBind APIs, and only then defines the layer. Resolving determines the modules and dependencies; defining the layer associates modules with loaders.
 
-Không nên tạo một class loader riêng cho mỗi module chỉ vì module có tên. Hãy chọn chiến lược theo yêu cầu cô lập, chia sẻ lớp, vòng đời plugin và khả năng quản lý dependency.
+Do not create a separate class loader for each module merely because the module is named. Choose a strategy based on isolation requirements, class sharing, plugin lifecycle, and dependency management capabilities.
 
-## 8. Kiểm tra class loader và module trong chương trình
+## 8. Inspecting Class Loaders and Modules Programmatically
 
-Ví dụ sau chạy như một ứng dụng modular để quan sát loader của các lớp thuộc những module khác nhau.
+The following example runs as a modular application to observe the loaders of classes belonging to different modules.
 
 `src/com.example.inspect/module-info.java`:
 
@@ -298,25 +298,25 @@ public class LoaderInfo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --module-source-path src -d mods -m com.example.inspect
 java --module-path mods -m com.example.inspect/com.example.inspect.LoaderInfo
 ```
 
-Kết quả thường cho thấy:
+The output typically shows:
 
-- `java.lang.String` được bootstrap loader định nghĩa; `getClassLoader()` trả về `null`.
-- `java.sql.Driver` thuộc module `java.sql`; loader được in ra tùy cách JDK phân công lớp nền tảng.
-- `LoaderInfo` thuộc module `com.example.inspect` và thường được application/system loader định nghĩa trong cấu hình mặc định.
-- System loader thường có parent là platform loader; parent của platform loader được biểu diễn bằng `null`.
+- `java.lang.String` is defined by the bootstrap loader; `getClassLoader()` returns `null`.
+- `java.sql.Driver` belongs to the `java.sql` module; the printed loader depends on how the JDK assigns platform classes.
+- `LoaderInfo` belongs to the `com.example.inspect` module and is typically defined by the application/system loader in the default configuration.
+- The system loader typically has the platform loader as its parent; the parent of the platform loader is represented by `null`.
 
-Hãy dùng kết quả trên JDK thực tế để quan sát. Không nên phụ thuộc vào chuỗi `toString()` cụ thể vì nó có thể thay đổi theo implementation.
+Use the output on your actual JDK to observe this. Do not rely on the specific `toString()` string because it may vary by implementation.
 
-## 9. Defining loader và context class loader
+## 9. Defining Loader and Context Class Loader
 
-Ngoài defining class loader, Java còn có **thread context class loader**:
+In addition to the defining class loader, Java also has the **thread context class loader**:
 
 ```java
 ClassLoader defining = LoaderInfo.class.getClassLoader();
@@ -327,86 +327,86 @@ System.out.println("Defining loader: " + defining);
 System.out.println("Context loader: " + context);
 ```
 
-Hai loader này có thể khác nhau:
+These two loaders can differ:
 
-- Defining loader là loader đã định nghĩa lớp đang xét. Nó quyết định danh tính runtime của lớp.
-- Context class loader là loader gắn với thread hiện tại, có thể được host/framework thiết lập để mã thư viện nạp tài nguyên hoặc provider do ứng dụng cung cấp.
+- The defining loader is the loader that defined the class in question. It determines the runtime identity of the class.
+- The context class loader is the loader attached to the current thread, which can be set by a host/framework so library code can load resources or providers supplied by the application.
 
-Một số framework và cơ chế như `ServiceLoader.load(...)` sử dụng context class loader trong các overload tương ứng. Vì vậy, khi framework không tìm thấy plugin dù lớp ứng dụng đã được nạp, cần kiểm tra context loader, module visibility và cấu hình provider, thay vì chỉ kiểm tra defining loader.
+Some frameworks and mechanisms such as `ServiceLoader.load(...)` use the context class loader in their corresponding overloads. Therefore, when a framework fails to find a plugin even though the application classes are already loaded, check the context loader, module visibility, and provider configuration rather than checking only the defining loader.
 
-Context loader không thay thế quan hệ parent của loader và cũng không tự cấp quyền `exports` cho module.
+The context loader does not replace the loader parent relationship, nor does it automatically grant `exports` permissions to a module.
 
-## 10. Lỗi thường gặp và cách xử lý
+## 10. Common Errors and How to Handle Them
 
 ### 10.1. `ClassNotFoundException`
 
-Thường xuất hiện khi ứng dụng yêu cầu nạp một lớp bằng tên nhưng loader được sử dụng không tìm thấy bytecode.
+Typically occurs when an application requests to load a class by name, but the loader used cannot find the bytecode.
 
-Kiểm tra:
+Check:
 
-- JAR/thư mục chứa lớp có nằm trong classpath hoặc module path phù hợp không?
-- Tên đầy đủ của lớp có đúng không?
-- Lớp có được đặt trong đúng module và package không?
-- Framework đang dùng defining loader hay context class loader?
-- Với module path, module có được resolve vào layer đang chạy không?
+- Is the JAR/directory containing the class on the appropriate classpath or module path?
+- Is the fully qualified class name correct?
+- Is the class placed in the correct module and package?
+- Is the framework using the defining loader or the context class loader?
+- For the module path, was the module resolved into the running layer?
 
 ### 10.2. `NoClassDefFoundError`
 
-Đây là lỗi liên kết hoặc sử dụng lớp khi JVM không thể tìm thấy định nghĩa cần thiết tại thời điểm đó. Nó có thể xảy ra sau một lần nạp/khởi tạo thất bại hoặc khi dependency runtime thiếu. Đọc nguyên nhân gốc (cause) và stack trace; không nên xử lý bằng cách thêm JAR ngẫu nhiên vào classpath.
+This is a linking or class-usage error when the JVM cannot find a required definition at that moment. It can happen after a failed load/initialization or when a runtime dependency is missing. Read the root cause and stack trace; do not try to fix it by adding random JARs to the classpath.
 
-### 10.3. `ClassCastException` dù hai lớp có cùng tên
+### 10.3. `ClassCastException` Even Though Two Classes Have the Same Name
 
-Một plugin có thể được nạp bởi loader A, còn API mà ứng dụng dùng được nạp bởi loader B. Nếu mỗi loader định nghĩa riêng một lớp có cùng binary name, JVM xem đó là hai kiểu khác nhau và phép ép kiểu có thể thất bại.
+A plugin might be loaded by loader A, while the API used by the application is loaded by loader B. If each loader separately defines a class with the same binary name, the JVM considers them two different types and the cast can fail.
 
-Hướng xử lý:
+How to handle:
 
-- Đặt API dùng chung ở một loader cha mà cả host và plugin cùng nhìn thấy.
-- Tránh đóng gói bản sao của API chung trong từng plugin.
-- Thiết kế parent delegation nhất quán.
-- Xác nhận cả tên lớp lẫn defining loader khi chẩn đoán.
+- Place the shared API in a parent loader visible to both the host and the plugin.
+- Avoid packaging duplicate copies of the shared API inside each plugin.
+- Design consistent parent delegation.
+- Verify both the class name and the defining loader when diagnosing.
 
-### 10.4. `IllegalAccessError` hoặc lỗi module access
+### 10.4. `IllegalAccessError` or Module Access Errors
 
-Lớp có thể đã được nạp nhưng module caller không đọc được module chứa kiểu, hoặc package chưa được export phù hợp. Class loading thành công không đồng nghĩa quyền truy cập đã được cấp.
+The class may have been loaded, yet the caller module cannot read the module containing the type, or the package has not been exported appropriately. Successful class loading does not mean access permission has been granted.
 
-Kiểm tra `requires`, `exports` và quan hệ module layer. Với tích hợp legacy, các tùy chọn `--add-reads` hoặc `--add-exports` có thể hỗ trợ chẩn đoán, nhưng thiết kế lâu dài nên được thể hiện trong module descriptor.
+Check `requires`, `exports`, and module layer relationships. For legacy integration, options such as `--add-reads` or `--add-exports` can assist with diagnostics, but a long-term design should be expressed in the module descriptor.
 
-### 10.5. Nhầm lẫn giữa platform và application loader
+### 10.5. Confusion Between Platform and Application Loaders
 
-Không phải mọi lớp thuộc JDK đều được định nghĩa bởi bootstrap loader. Hãy kiểm tra bằng `Class.getClassLoader()` và `Class.getModule()` thay vì suy luận từ tiền tố package như `java.*` hoặc `jdk.*`.
+Not every class in the JDK is defined by the bootstrap loader. Check using `Class.getClassLoader()` and `Class.getModule()` instead of inferring from package prefixes like `java.*` or `jdk.*`.
 
-## 11. Nguyên tắc thiết kế khi dùng class loader với module
+## 11. Design Principles When Using Class Loaders with Modules
 
-1. **Để loader mặc định làm việc khi không có yêu cầu đặc biệt.** Ứng dụng thông thường nên dùng module path/classpath và các loader tích hợp sẵn.
-2. **Giữ API chung ở vị trí có thể chia sẻ.** Với plugin, API mà host và plugin trao đổi nên được định nghĩa bởi loader cha chung.
-3. **Phân biệt nạp lớp và quyền truy cập module.** Nếu gặp lỗi `not visible` hoặc `IllegalAccessError`, kiểm tra module graph và exports; thay loader chưa chắc giải quyết đúng vấn đề.
-4. **Chỉ tạo loader riêng khi có nhu cầu cô lập.** Xác định rõ vòng đời, dependency, khả năng chia sẻ API và cơ chế giải phóng tài nguyên.
-5. **Không giả định một module tương ứng một loader.** Một loader có thể định nghĩa nhiều module trong cùng layer.
-6. **Không hard-code tên implementation nội bộ.** Ưu tiên API công khai như `getPlatformClassLoader()`, `getSystemClassLoader()`, `Class.getClassLoader()` và `Class.getModule()`.
-7. **Kiểm tra context class loader khi tích hợp framework.** Framework có thể dùng loader của thread để tìm provider/tài nguyên thay vì loader đã định nghĩa chính framework đó.
+1. **Let the default loaders do their job when there are no special requirements.** Typical applications should use the module path/classpath and the built-in loaders.
+2. **Keep shared APIs in a shareable location.** For plugins, the API exchanged between the host and plugins should be defined by a common parent loader.
+3. **Distinguish class loading from module access permissions.** If you encounter `not visible` or `IllegalAccessError` errors, check the module graph and exports; changing the loader will not necessarily solve the right problem.
+4. **Only create separate loaders when there is an isolation need.** Clearly define lifecycle, dependencies, API sharing capabilities, and resource release mechanisms.
+5. **Do not assume one module corresponds to one loader.** A single loader can define multiple modules within the same layer.
+6. **Do not hard-code internal implementation names.** Prefer public APIs such as `getPlatformClassLoader()`, `getSystemClassLoader()`, `Class.getClassLoader()`, and `Class.getModule()`.
+7. **Check the context class loader when integrating frameworks.** A framework may use the thread's loader to locate providers/resources instead of the loader that defined the framework itself.
 
-## 12. Bài tập tự kiểm tra
+## 12. Self-Check Exercises
 
-**Bài 1.** `String.class.getClassLoader()` trả về `null`. Điều đó có nghĩa `String` chưa được nạp?
+**Exercise 1.** `String.class.getClassLoader()` returns `null`. Does that mean `String` has not been loaded?
 
-**Đáp án:** Không. `null` biểu diễn bootstrap class loader, loader nền tảng không được trả về dưới dạng một đối tượng `ClassLoader` thông thường.
+**Answer:** No. `null` represents the bootstrap class loader, the foundational loader that is not returned as an ordinary `ClassLoader` object.
 
-**Bài 2.** Trong cấu hình mặc định, parent của system/application class loader là gì?
+**Exercise 2.** In the default configuration, what is the parent of the system/application class loader?
 
-**Đáp án:** Platform class loader. Parent của platform class loader là bootstrap loader và được biểu diễn bằng `null`.
+**Answer:** The platform class loader. The parent of the platform class loader is the bootstrap loader and is represented by `null`.
 
-**Bài 3.** Một named module trên module path có bắt buộc phải có class loader riêng không?
+**Exercise 3.** Must a named module on the module path have its own class loader?
 
-**Đáp án:** Không. Nhiều named module có thể được cùng một class loader định nghĩa. Module layer cho phép chọn chiến lược một loader, nhiều loader hoặc ánh xạ tùy chỉnh.
+**Answer:** No. Multiple named modules can be defined by the same class loader. A module layer lets you choose a single-loader, many-loaders, or custom-mapping strategy.
 
-**Bài 4.** Hai class loader khác nhau cùng nạp lớp `com.demo.Plugin`. Hai lớp có thể ép kiểu cho nhau chỉ vì tên giống nhau không?
+**Exercise 4.** Two different class loaders both load the class `com.demo.Plugin`. Can the two classes be cast to each other merely because their names are the same?
 
-**Đáp án:** Không. Danh tính lớp còn phụ thuộc defining loader; hai lớp được định nghĩa bởi hai loader khác nhau là hai kiểu runtime khác nhau.
+**Answer:** No. Class identity also depends on the defining loader; two classes defined by two different loaders are two different runtime types.
 
-**Bài 5.** Một framework không tìm thấy provider do ứng dụng cung cấp. Ngoài defining loader của framework, nên kiểm tra gì?
+**Exercise 5.** A framework fails to find a provider supplied by the application. Besides the framework's defining loader, what should you check?
 
-**Đáp án:** Kiểm tra thread context class loader, cấu hình `ServiceLoader`/provider, module `uses` và `provides` nếu dùng JPMS, cùng khả năng resolve module và quyền truy cập package.
+**Answer:** Check the thread context class loader, `ServiceLoader`/provider configuration, module `uses` and `provides` if using JPMS, as well as module resolution capability and package access permissions.
 
-## Ghi nhớ
+## Key Takeaways
 
-Bootstrap loader nạp các lớp cốt lõi; platform loader nạp các lớp nền tảng được giao cho nó; application/system loader nạp mã ứng dụng và thường là các named module ứng dụng trên module path. Trong JPMS, module xác định dependency và ranh giới package, còn class loader định nghĩa lớp ở runtime. Một module không đồng nghĩa với một loader, và một lớp cùng tên vẫn có thể là kiểu khác nếu defining loader khác nhau.
+The bootstrap loader loads core classes; the platform loader loads platform classes assigned to it; the application/system loader loads application code and usually application named modules on the module path. In JPMS, modules define dependencies and package boundaries, while class loaders define classes at runtime. A module is not synonymous with a loader, and a class with the same name can still be a different type if the defining loader differs.

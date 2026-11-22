@@ -1,25 +1,25 @@
-# Package-private và private vẫn bị giới hạn trong Java Module System
+# Package-Private and Private Remain Restricted in the Java Module System
 
-## 1. Mục tiêu bài học
+## 1. Lesson Objectives
 
-Khi học Java Platform Module System (JPMS), ta thường gặp các khai báo **requires**, **exports** và **opens** trong file **module-info.java**. Chúng kiểm soát quan hệ giữa các module, nhưng **không thay đổi quy tắc truy cập thành viên của ngôn ngữ Java**.
+When learning the Java Platform Module System (JPMS), we often encounter declarations such as **requires**, **exports**, and **opens** in **module-info.java**. They control relationships between modules, but **they do not change the member access rules of the Java language**.
 
-Sau bài này, bạn sẽ:
+After this lesson, you will be able to:
 
-- Phân biệt quyền truy cập **public**, **protected**, **package-private** và **private** với quyền truy cập ở mức module.
-- Giải thích tại sao một package đã **exports** vẫn không làm các thành viên package-private hay private có thể gọi trực tiếp từ module khác.
-- Hiểu khác biệt giữa truy cập thông thường và truy cập qua **reflection** khi package có **opens**.
-- Viết và chạy ví dụ hai named module để quan sát các trường hợp hợp lệ, lỗi biên dịch và lỗi truy cập runtime.
-- Biết khi nào cần thiết kế public API, khi nào dùng **opens** có phạm vi, và vì sao không nên mở toàn bộ nội bộ module chỉ để né lỗi truy cập.
+- Distinguish **public**, **protected**, **package-private**, and **private** access levels from module-level access control.
+- Explain why an **exported** package still does not make package-private or private members directly callable from another module.
+- Understand the difference between normal access and access through **reflection** when a package has **opens**.
+- Write and run a two-named-module example to observe valid cases, compile errors, and runtime access errors.
+- Know when to design a public API, when to use scoped **opens**, and why you should not open an entire module's internals just to bypass access errors.
 
-## 2. Hai lớp kiểm soát truy cập khác nhau
+## 2. Two Separate Layers of Access Control
 
-Java có ít nhất hai câu hỏi độc lập khi một đoạn code muốn sử dụng một class hoặc thành viên:
+Java asks at least two independent questions when a piece of code wants to use a class or member:
 
-1. **Ở mức module:** Module của code gọi có **đọc** được module chứa class đó không? Package chứa class có được **export** tới module gọi không?
-2. **Ở mức Java language:** Bản thân class và thành viên có modifier phù hợp với vị trí gọi hay không, ví dụ **public**, **protected**, **package-private**, **private**?
+1. **At the module level:** Does the calling code's module **read** the module containing that class? Is the package containing the class **exported** to the calling module?
+2. **At the Java language level:** Do the class itself and the member have modifiers appropriate for the call site, such as **public**, **protected**, **package-private**, or **private**?
 
-Với truy cập Java thông thường từ một module khác, **cả hai lớp điều kiện đều phải hợp lệ**.
+For normal Java access from another module, **both layers of conditions must be satisfied**.
 
 ~~~text
 Module com.example.app
@@ -32,35 +32,35 @@ Module com.example.library
         v
 public class User
         |
-        +-- public String getName()       --> gọi được qua public API
-        +-- String internalNote()         --> package-private: không gọi được
-        +-- private String secret()        --> private: không gọi được
+        +-- public String getName()       --> callable via public API
+        +-- String internalNote()         --> package-private: not callable
+        +-- private String secret()        --> private: not callable
 ~~~
 
-Vì vậy, **exports một package không tương đương với chuyển mọi class và member trong package thành public**. JPMS kiểm soát việc package nào được cung cấp cho module khác; modifier Java vẫn quyết định ai có thể truy cập class/member.
+Therefore, **exporting a package is not equivalent to turning every class and member in the package into public**. JPMS controls which packages are exposed to other modules; Java modifiers still decide who can access a class or member.
 
-## 3. Nhắc lại bốn mức truy cập của Java
+## 3. Review of Java's Four Access Levels
 
-| Modifier của thành viên | Bên trong class khai báo | Code cùng package | Code ở package khác |
+| Member modifier | Inside declaring class | Code in same package | Code in another package |
 | --- | --- | --- | --- |
-| **public** | Có | Có | Có, nếu class/package cũng truy cập được |
-| **protected** | Có | Có | Chủ yếu thông qua kế thừa, theo quy tắc protected |
-| **package-private** (không ghi modifier) | Có | Có | Không |
-| **private** | Có | Không, trừ các ngoại lệ như nestmates | Không |
+| **public** | Yes | Yes | Yes, if the class/package is also accessible |
+| **protected** | Yes | Yes | Primarily via inheritance, following protected rules |
+| **package-private** (no modifier written) | Yes | Yes | No |
+| **private** | Yes | No, except for cases such as nestmates | No |
 
-Lưu ý quan trọng:
+Important notes:
 
-- **Package-private** không phải từ khóa Java; đó là mức truy cập mặc định khi không ghi **public/protected/private**.
-- **Private** giới hạn truy cập vào class hoặc **nest** tương ứng; từ Java 11, các class là **nestmates** có thể truy cập private member của nhau theo quy tắc Java. Đây không phải quyền được JPMS cấp.
-- Class top-level chỉ có thể là **public** hoặc **package-private**; protected và private không áp dụng trực tiếp cho class top-level.
-- Với **protected** ở package khác, subclass phải tuân thủ cả quy tắc kiểu của biểu thức truy cập; không phải cứ kế thừa là được gọi trên mọi đối tượng cùng superclass.
-- Có quyền nhìn thấy một **public class** không đồng nghĩa với quyền đọc trường private hoặc gọi phương thức package-private của class đó.
+- **Package-private** is not a Java keyword; it is the default access level when **public/protected/private** is omitted.
+- **Private** restricts access to the class or its corresponding **nest**; since Java 11, classes that are **nestmates** can access each other's private members under Java rules. This is not a permission granted by JPMS.
+- A top-level class can only be **public** or **package-private**; protected and private do not apply directly to top-level classes.
+- For **protected** in another package, a subclass must also follow the type rules on the access expression; inheriting alone does not allow calling it on arbitrary instances of the superclass.
+- Having permission to see a **public class** does not mean having permission to read its private fields or call its package-private methods.
 
-Nếu hai module có cùng tên package, cũng không được giả định rằng điều đó tạo quyền package-private giữa chúng. Trong môi trường modular, quan hệ module và runtime package/class loader có ràng buộc riêng; hãy coi **module API** là ranh giới trao đổi, tránh thiết kế dựa trên việc chia sẻ package name giữa các module.
+If two modules have the same package name, you must not assume that creates package-private access between them. In a modular environment, module relationships and runtime packages/class loaders have their own constraints; treat the **module API** as the exchange boundary and avoid designs relying on sharing package names across modules.
 
-## 4. exports: công khai package chứa public API
+## 4. exports: Exposing a Package Containing a Public API
 
-Ví dụ module cung cấp thư viện:
+Example library module:
 
 ~~~java
 // src/com.example.library/module-info.java
@@ -69,7 +69,7 @@ module com.example.library {
 }
 ~~~
 
-Class trong package được export:
+Class in the exported package:
 
 ~~~java
 // src/com.example.library/com/example/library/api/User.java
@@ -83,16 +83,16 @@ public class User {
     }
 
     String internalNote() { // package-private
-        return "Chỉ dùng trong package";
+        return "Used only within the package";
     }
 
     private String secretNote() {
-        return "Nội bộ class User";
+        return "Internal to User class";
     }
 }
 ~~~
 
-Module tiêu thụ:
+Consumer module:
 
 ~~~java
 // src/com.example.app/module-info.java
@@ -101,48 +101,48 @@ module com.example.app {
 }
 ~~~
 
-Trong module **com.example.app**, đoạn sau hợp lệ:
+Inside module **com.example.app**, the following is valid:
 
 ~~~java
 import com.example.library.api.User;
 
 User user = new User();
-System.out.println(user.getName()); // Hợp lệ: public API
+System.out.println(user.getName()); // Valid: public API
 ~~~
 
-Nhưng các câu lệnh sau **không biên dịch**:
+However, the following statements **do not compile**:
 
 ~~~java
-user.internalNote(); // Không hợp lệ: package-private
-user.secretNote();   // Không hợp lệ: private
-System.out.println(user.token); // Không hợp lệ: private
+user.internalNote(); // Invalid: package-private
+user.secretNote();   // Invalid: private
+System.out.println(user.token); // Invalid: private
 ~~~
 
-Lý do:
+Reasons:
 
-- **requires com.example.library** cho phép module app **đọc** module library.
-- **exports com.example.library.api** cho phép module app truy cập các **public types** trong package ấy.
-- **User** là public; **getName()** cũng public, nên được gọi.
-- **internalNote()** là package-private; code trong package **com.example.app** không thuộc package khai báo phương thức.
-- **secretNote()** và **token** là private; **exports** không làm thay đổi modifier.
+- **requires com.example.library** lets the app module **read** the library module.
+- **exports com.example.library.api** lets the app module access **public types** in that package.
+- **User** is public; **getName()** is also public, so it can be called.
+- **internalNote()** is package-private; code in package **com.example.app** does not belong to the package declaring the method.
+- **secretNote()** and **token** are private; **exports** does not alter modifiers.
 
-Đây là phân biệt cốt lõi của bài: **JPMS thêm điều kiện truy cập**, không xóa điều kiện vốn có của Java.
+This is the core distinction of the lesson: **JPMS adds access conditions; it does not remove existing Java access conditions**.
 
-### 4.1. Khi package không được export
+### 4.1. When the Package Is Not Exported
 
-Nếu đổi module library thành:
+If the library module is changed to:
 
 ~~~java
 module com.example.library {
-    // Không exports com.example.library.api
+    // Does not export com.example.library.api
 }
 ~~~
 
-thì ngay cả việc import **User** từ module app cũng bị từ chối ở compile time vì package không được export tới module app. Chỉ cần class **User** public là chưa đủ.
+then even importing **User** from the app module is rejected at compile time because the package is not exported to the app module. Simply having class **User** be public is not enough.
 
-### 4.2. Qualified exports không giúp gọi private
+### 4.2. Qualified Exports Do Not Allow Calling Private Members
 
-Một module có thể chỉ export package cho một số module nhất định:
+A module can export a package only to selected modules:
 
 ~~~java
 module com.example.library {
@@ -150,11 +150,11 @@ module com.example.library {
 }
 ~~~
 
-Module **com.example.app** vẫn chỉ dùng được các public API mà ngôn ngữ Java cho phép. Cách export có chọn lọc này **không cấp thêm** quyền vào package-private hoặc private member.
+Module **com.example.app** still can only use the public API allowed by the Java language. This selective export **does not grant extra** access to package-private or private members.
 
-## 5. Package-private vẫn dùng được bên trong package
+## 5. Package-Private Remains Usable Within the Package
 
-Giả sử cùng package **com.example.library.api**, ta thêm:
+Suppose in the same package **com.example.library.api**, we add:
 
 ~~~java
 // src/com.example.library/com/example/library/api/SamePackageDemo.java
@@ -164,32 +164,32 @@ public final class SamePackageDemo {
     private SamePackageDemo() {}
 
     public static String readInternalNote(User user) {
-        // Hợp lệ: SamePackageDemo và User cùng package.
+        // Valid: SamePackageDemo and User are in the same package.
         return user.internalNote();
     }
 
-    // Không hợp lệ:
+    // Invalid:
     // return user.secretNote();
     // return user.token;
 }
 ~~~
 
-**SamePackageDemo** có thể gọi **internalNote()**, vì nó cùng package với **User**. Nếu muốn module app nhận kết quả, thư viện có thể chủ động cung cấp một public API như **SamePackageDemo.readInternalNote(User)**.
+**SamePackageDemo** can call **internalNote()** because it is in the same package as **User**. If the library wants the app module to receive the result, it can intentionally expose a public API such as **SamePackageDemo.readInternalNote(User)**.
 
-Điều này **không làm internalNote trở thành public**; thư viện đang cố ý đưa một thao tác an toàn qua bề mặt API công khai.
+This **does not make internalNote public**; the library is deliberately exposing a safe operation through its public API surface.
 
-Ví dụ này cũng cho thấy sự khác biệt giữa:
+This example also shows the difference between:
 
-- **Quyền của code nội bộ package**: có thể truy cập package-private member.
-- **Quyền của module khác thông qua exports**: chỉ truy cập những API được Java cho phép và nằm trong package được export.
+- **Permissions of intra-package code**: can access package-private members.
+- **Permissions of another module via exports**: can only access APIs permitted by Java and located in an exported package.
 
-Package-private là công cụ hữu ích để chia sẻ helper, factory hoặc logic triển khai trong một package mà không mở rộng public API.
+Package-private is a useful tool for sharing helpers, factories, or implementation logic within a package without expanding the public API.
 
-## 6. opens cho reflection: không phải quyền truy cập Java thông thường
+## 6. opens for Reflection: Not Normal Java Access
 
-**opens** phục vụ **deep reflection**, ví dụ framework ORM, serialization hoặc dependency injection cần truy cập một field/constructor/method không public thông qua API phản chiếu.
+**opens** serves **deep reflection**, such as an ORM, serialization, or dependency injection framework needing to access a non-public field/constructor/method through reflection APIs.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.example.library {
@@ -198,16 +198,16 @@ module com.example.library {
 }
 ~~~
 
-Hai dòng đảm nhiệm hai nhiệm vụ khác nhau:
+The two lines handle two different responsibilities:
 
-- **exports** cho phép code trong app tham chiếu trực tiếp đến **User** và gọi các phương thức public.
-- **opens ... to com.example.app** cho phép code trong app thực hiện deep reflection với package đó, chẳng hạn **Field.setAccessible(true)** rồi đọc field private.
+- **exports** allows code in app to reference **User** directly and call public methods.
+- **opens ... to com.example.app** allows code in app to perform deep reflection on that package, such as calling **Field.setAccessible(true)** and reading a private field.
 
-**opens không khiến user.internalNote() hoặc user.secretNote() biên dịch được.** Java compiler vẫn áp dụng modifier như cũ.
+**opens does not make user.internalNote() or user.secretNote() compile.** The Java compiler still enforces modifiers as usual.
 
-### 6.1. Reflection có hai bước
+### 6.1. Reflection Takes Two Steps
 
-Quan sát reflection:
+Observe reflection:
 
 ~~~java
 import com.example.library.api.User;
@@ -215,46 +215,46 @@ import java.lang.reflect.Field;
 
 User user = new User();
 Field field = User.class.getDeclaredField("token");
-field.setAccessible(true);       // Cố gắng bật deep reflective access
-Object value = field.get(user);  // Đọc trường đã được cho phép
+field.setAccessible(true);       // Attempts to enable deep reflective access
+Object value = field.get(user);  // Reads the permitted field
 System.out.println(value);
 ~~~
 
-Với **opens com.example.library.api to com.example.app**, đoạn trên có thể chạy thành công từ module app.
+With **opens com.example.library.api to com.example.app**, the snippet above can succeed from the app module.
 
-Nếu bỏ **opens**, lời gọi **setAccessible(true)** có thể ném **java.lang.reflect.InaccessibleObjectException** vì package chứa field không mở cho module của caller. **getDeclaredField** có thể tìm được metadata về member nhưng bước tìm metadata không tự cấp quyền dùng member.
+If **opens** is removed, calling **setAccessible(true)** can throw **java.lang.reflect.InaccessibleObjectException** because the package containing the field is not open to the caller's module. **getDeclaredField** can find metadata about the member, but finding metadata does not automatically grant permission to use the member.
 
-Trong các trường hợp API cho phép, **trySetAccessible()** có thể được dùng để kiểm tra và nhận **false** thay vì kỳ vọng mọi lời gọi **setAccessible(true)** luôn thành công:
+Where the API allows, **trySetAccessible()** can be used to check and receive **false** instead of expecting every **setAccessible(true)** call to always succeed:
 
 ~~~java
 Field field = User.class.getDeclaredField("token");
 if (field.trySetAccessible()) {
     System.out.println(field.get(user));
 } else {
-    System.out.println("Không được phép truy cập sâu bằng reflection");
+    System.out.println("Deep reflection is not permitted");
 }
 ~~~
 
-Không nên coi reflective access là con đường mặc định để dùng private API. Nó làm code phụ thuộc vào chi tiết cài đặt, dễ hỏng khi đổi tên trường hoặc nâng cấp thư viện.
+Reflective access should not be treated as the default way to use private APIs. It couples code to implementation details and easily breaks when fields are renamed or libraries are upgraded.
 
-### 6.2. exports không thay thế opens và ngược lại
+### 6.2. exports Does Not Replace opens and Vice Versa
 
-| Khai báo trong module library | App import User và gọi getName() | App gọi trực tiếp internalNote()/secretNote() | Deep reflection vào private field |
+| Declaration in library module | App imports User and calls getName() | App directly calls internalNote()/secretNote() | Deep reflection on private field |
 | --- | --- | --- | --- |
-| **exports api;** | Có | Không | Thường bị chặn khi caller ở module khác |
-| **opens api to app;** | Không, nếu không có exports phù hợp | Không | Có thể, khi caller là module app được mở |
-| **exports api; opens api to app;** | Có | Không | Có thể, khi caller là module app được mở |
-| Không exports, không opens | Không | Không | Thường bị chặn |
+| **exports api;** | Yes | No | Usually blocked when caller is in another module |
+| **opens api to app;** | No, without an appropriate exports | No | Possible, when caller is the opened app module |
+| **exports api; opens api to app;** | Yes | No | Possible, when caller is the opened app module |
+| Neither exports nor opens | No | No | Usually blocked |
 
-Trong bảng, **api** là viết tắt của package **com.example.library.api** và **app** là module **com.example.app**.
+In the table, **api** is shorthand for package **com.example.library.api**, and **app** is module **com.example.app**.
 
-Đối với reflection vào public member của public class thuộc exported package, quy tắc có thể cho phép truy cập mà không cần **opens**. **opens** trở nên quan trọng khi code cần bỏ qua kiểm tra truy cập Java thông thường cho các member hoặc class không public.
+For reflection on public members of a public class in an exported package, the rules can allow access without **opens**. **opens** becomes essential when code needs to bypass normal Java access checks for non-public members or classes.
 
-## 7. Thực hành hoàn chỉnh với hai named module
+## 7. Complete Practice with Two Named Modules
 
-Ví dụ dưới đây kết hợp **exports**, **opens**, package-private và private trong một chương trình chạy được.
+The example below combines **exports**, **opens**, package-private, and private in a runnable program.
 
-### 7.1. Cấu trúc thư mục
+### 7.1. Directory Structure
 
 ~~~text
 src/
@@ -291,11 +291,11 @@ public final class User {
     }
 
     String internalNote() {
-        return "package-private OK trong package";
+        return "package-private OK within package";
     }
 
     private String secretNote() {
-        return "private chỉ thuộc logic của User";
+        return "private belongs only to User logic";
     }
 }
 ~~~
@@ -336,145 +336,145 @@ public final class Main {
     public static void main(String[] args) throws Exception {
         User user = new User();
 
-        // (1) Truy cập qua public API trong exported package.
+        // (1) Access via public API in exported package.
         System.out.println("Public: " + user.getName());
 
-        // (2) Code cùng package library truy cập package-private.
+        // (2) Code in the same library package accesses package-private.
         System.out.println("Package: "
                 + SamePackageDemo.readInternalNote(user));
 
-        // Hai lệnh sau không biên dịch vì Java access modifiers:
+        // The following two statements do not compile due to Java access modifiers:
         // user.internalNote();
         // user.secretNote();
 
-        // (3) App được opens package, nên có deep reflection.
+        // (3) App is granted opens on the package, so deep reflection is permitted.
         Field tokenField = User.class.getDeclaredField("token");
         tokenField.setAccessible(true);
-        System.out.println("Private field qua reflection: "
+        System.out.println("Private field via reflection: "
                 + tokenField.get(user));
 
         Method privateMethod =
                 User.class.getDeclaredMethod("secretNote");
         privateMethod.setAccessible(true);
-        System.out.println("Private method qua reflection: "
+        System.out.println("Private method via reflection: "
                 + privateMethod.invoke(user));
     }
 }
 ~~~
 
-### 7.2. Biên dịch và chạy
+### 7.2. Compiling and Running
 
-Tại thư mục cha chứa **src/**, sử dụng JDK 17 trở lên:
+In the parent directory containing **src/**, using JDK 17 or later:
 
 ~~~bash
 javac --module-source-path src -d mods -m com.example.library,com.example.app
 java --module-path mods -m com.example.app/com.example.app.Main
 ~~~
 
-Kết quả dự kiến:
+Expected output:
 
 ~~~text
 Public: An
-Package: package-private OK trong package
-Private field qua reflection: demo-token
-Private method qua reflection: private chỉ thuộc logic của User
+Package: package-private OK within package
+Private field via reflection: demo-token
+Private method via reflection: private belongs only to User logic
 ~~~
 
-Đây là ví dụ **minh họa cơ chế**: một ứng dụng thực tế không nên truy xuất token/secret bằng reflection chỉ vì có thể thực hiện.
+This example **demonstrates the mechanism**: a real-world application should not extract tokens/secrets via reflection simply because it is possible to do so.
 
-### 7.3. Ba thí nghiệm hữu ích
+### 7.3. Three Useful Experiments
 
-**Thí nghiệm A — bỏ opens:** Xóa dòng **opens com.example.library.api to com.example.app;** và biên dịch/chạy lại. Phần gọi **getName()** và **SamePackageDemo.readInternalNote()** vẫn hoạt động, nhưng thao tác **setAccessible(true)** vào private field không còn được cho phép từ module app.
+**Experiment A — remove opens:** Delete the line **opens com.example.library.api to com.example.app;**, then recompile and rerun. Calling **getName()** and **SamePackageDemo.readInternalNote()** still works, but calling **setAccessible(true)** on the private field is no longer allowed from the app module.
 
-**Thí nghiệm B — bỏ exports:** Giữ **opens** nhưng bỏ **exports**. Code app còn import trực tiếp **User** và **SamePackageDemo** sẽ không biên dịch được. Muốn thao tác phản chiếu thuần túy trong cấu hình opens-only, cần viết app không tham chiếu tĩnh đến các class ấy, đồng thời nạp class và thực hiện reflection theo quy tắc module.
+**Experiment B — remove exports:** Keep **opens** but remove **exports**. App code that still directly imports **User** and **SamePackageDemo** will fail to compile. To perform pure reflection in an opens-only configuration, you must write the app without static references to those classes, loading the classes and performing reflection according to module rules.
 
-**Thí nghiệm C — thêm lời gọi trực tiếp:** Bỏ comment ở dòng **user.internalNote()** hoặc **user.secretNote()**. Java compiler từ chối cho dù module library đã có cả **exports** lẫn **opens**. Đây chính là kết quả cần ghi nhớ.
+**Experiment C — add direct calls:** Uncomment **user.internalNote()** or **user.secretNote()**. The Java compiler rejects them even though the library module has both **exports** and **opens**. This is the key takeaway to remember.
 
-## 8. Vì sao --add-exports và --add-opens vẫn không biến private thành public?
+## 8. Why --add-exports and --add-opens Still Do Not Turn Private into Public
 
-Một số lỗi JPMS gợi ý sử dụng tùy chọn launcher:
+Some JPMS errors suggest using launcher options:
 
 ~~~bash
 java --add-exports com.example.library/com.example.library.api=com.example.app ...
 java --add-opens com.example.library/com.example.library.api=com.example.app ...
 ~~~
 
-Ý nghĩa:
+Meaning:
 
-- **--add-exports** thêm quyền export package cho module đích trong môi trường tương ứng; nó giúp dùng các **public types/members** mà Java có thể cho phép truy cập.
-- **--add-opens** mở package cho **deep reflection** tới module đích lúc chạy.
-- Cả hai tùy chọn đều **không viết lại modifier Java** thành viên. Gọi trực tiếp package-private/private member từ package khác vẫn vi phạm quy tắc ngôn ngữ.
+- **--add-exports** grants additional package export permission to the target module in that environment; it allows using **public types/members** that Java permits access to.
+- **--add-opens** opens the package for **deep reflection** to the target module at runtime.
+- Neither option **rewrites Java member modifiers**. Directly calling package-private/private members from another package still violates language rules.
 
-Trong code được biên dịch trước, hãy phân biệt tùy chọn của **javac** và của **java**: quyền bổ sung lúc chạy không thể tự sửa một lỗi truy cập đã xảy ra ở compile time. Không dựa vào flag để thay thế hợp đồng public API ổn định.
+For precompiled code, distinguish **javac** options from **java** options: extra permissions at runtime cannot fix an access error that already occurred at compile time. Do not rely on flags as a substitute for a stable public API contract.
 
-## 9. Những hiểu lầm phổ biến
+## 9. Common Misconceptions
 
-### “Module đã requires thì gọi được tất cả class của dependency”
+### "Once a module requires a dependency, it can call all classes in that dependency"
 
-Sai. **requires** thiết lập readability ở mức module; code vẫn cần package được export và class/member có quyền truy cập hợp lệ. Một module có thể readable nhưng vẫn che hầu hết package triển khai.
+False. **requires** establishes module-level readability; code still needs an exported package and valid class/member access permissions. A module can be readable while keeping most of its implementation packages hidden.
 
-### “Package đã exports thì package-private trở thành public”
+### "Once a package is exported, package-private becomes public"
 
-Sai. **exports** áp dụng cho public API có thể truy cập theo luật Java. Package-private method vẫn chỉ dành cho code cùng package.
+False. **exports** applies to public APIs accessible under Java rules. Package-private methods remain limited to code in the same package.
 
-### “opens cho phép gọi private method như bình thường”
+### "opens allows calling private methods normally"
 
-Sai. **opens** chỉ mở đường cho các cơ chế reflection được hỗ trợ, sau khi code thực hiện API truy cập tương ứng. Gọi **user.secretNote()** trực tiếp vẫn bị compiler từ chối.
+False. **opens** only opens the path for supported reflection mechanisms after code invokes the corresponding reflection APIs. Calling **user.secretNote()** directly is still rejected by the compiler.
 
-### “setAccessible(true) lúc nào cũng thành công”
+### "setAccessible(true) always succeeds"
 
-Sai. JPMS mạnh về encapsulation và có thể chặn deep reflection khi package không được mở cho module gọi. API **setAccessible** có thể ném **InaccessibleObjectException**. Thành công còn phụ thuộc vào trường hợp truy cập cụ thể.
+False. JPMS enforces strong encapsulation and can block deep reflection when a package is not open to the calling module. Calling **setAccessible** can throw **InaccessibleObjectException**. Success also depends on the specific access case.
 
-### “Đặt class ở package cùng tên trong một module khác sẽ truy cập được package-private”
+### "Putting a class in a package with the same name in another module grants package-private access"
 
-Không nên giả định. Trong JPMS, tên package giống nhau không có nghĩa chúng chia sẻ một phạm vi package runtime có quyền truy cập giống nhau. Named modules còn có giới hạn liên quan đến split packages, class loader và module resolution. Hãy để class nội bộ trong đúng module/package của nó, hoặc thiết kế public API rõ ràng.
+Do not assume this. In JPMS, identical package names do not mean they share a runtime package scope with identical access permissions. Named modules also have constraints involving split packages, class loaders, and module resolution. Keep internal classes in their proper module/package, or design a clear public API.
 
-### “Private luôn luôn chỉ được class khai báo truy cập”
+### "Private can always only be accessed by the declaring class"
 
-Trong Java hiện đại có ngoại lệ **nestmates** cho các class cùng nest, ví dụ outer/nested class. Nhưng điều này là quy tắc access của Java, không phải chức năng của **requires**, **exports** hay **opens**.
+In modern Java, there is the **nestmates** exception for classes in the same nest, such as outer/nested classes. However, this is a Java access rule, not a feature of **requires**, **exports**, or **opens**.
 
-## 10. Thiết kế module API đúng cách
+## 10. Designing a Module API Properly
 
-Khi xây dựng thư viện hoặc hệ thống nhiều module:
+When building a library or multi-module system:
 
-1. Đặt **API được hỗ trợ** vào package rõ ràng, class public, member public cần thiết và khai báo **exports** package đó.
-2. Đặt helper/package-private implementation bên trong package/module sở hữu. Dùng private cho trạng thái và chi tiết chỉ dành cho class/nest.
-3. Giữ các package implementation không export nếu code ngoài module không nên dùng trực tiếp.
-4. Nếu framework cần deep reflection, chỉ **opens package phù hợp cho module framework cụ thể** khi khả thi, ví dụ **opens com.example.library.model to org.hibernate.orm.core;** với module name đúng thực tế của phiên bản thư viện đang dùng.
-5. Ưu tiên constructor, interface, factory, DTO và các public API có chủ đích. Reflection nên là lựa chọn có lý do cụ thể và hợp đồng rõ ràng.
-6. Không để việc “chạy được bằng --add-opens” che lấp một ranh giới phụ thuộc bị thiết kế sai.
+1. Place **supported APIs** in clearly named packages, with public classes and necessary public members, and declare **exports** for those packages.
+2. Keep helpers and package-private implementations inside the owning package/module. Use private for state and details meant only for the class/nest.
+3. Leave implementation packages unexported if external code should not use them directly.
+4. If a framework needs deep reflection, **opens only the relevant package to the specific framework module** when feasible, for example **opens com.example.library.model to org.hibernate.orm.core;** using the actual module name of the library version in use.
+5. Prefer constructors, interfaces, factories, DTOs, and intentional public APIs. Reflection should be a choice with a clear reason and well-defined contract.
+6. Do not let "making it run with --add-opens" mask a poorly designed dependency boundary.
 
-Một thiết kế thường gặp:
+A common design pattern:
 
 ~~~java
 module com.example.order {
     exports com.example.order.api;
 
-    // Chỉ framework cần phản chiếu model mới được mở package này:
-    // opens com.example.order.model to ten.module.framework.thuc.te;
+    // Only frameworks that need reflection on the model should open this package:
+    // opens com.example.order.model to actual.framework.module.name;
 }
 ~~~
 
-Trong ví dụ trên, dòng **opens** được comment để nhấn mạnh việc phải thay tên module framework bằng tên module thực tế trước khi áp dụng. Public API và package triển khai được quản lý theo nhu cầu cụ thể, không cần công khai mọi thứ.
+In the example above, the **opens** line is commented out to emphasize that you must substitute the actual framework module name before applying it. Public APIs and implementation packages are managed according to specific needs; there is no need to expose everything.
 
-## 11. Câu hỏi ôn tập
+## 11. Review Questions
 
-1. Module A khai báo **requires B**, còn B khai báo **exports b.api**. Vì sao A vẫn không thể gọi phương thức package-private của public class trong **b.api**?
-2. **exports b.api** và **opens b.api to a** khác nhau thế nào đối với compiler và reflective access?
-3. Nếu bỏ **opens** trong ví dụ thực hành, dòng nào có khả năng ném **InaccessibleObjectException**?
-4. Một public method trong một public class nằm trong package không được export có thể import trực tiếp từ named module khác không? Vì sao?
-5. Khi nào code cùng package có thể truy cập package-private member? Vì sao điều đó không cho phép mọi class từ module khác cùng tên package làm vậy?
-6. Vì sao một thiết kế plugin/framework tốt thường cần public service interface ổn định thay vì dùng reflection vào private member của plugin?
-7. Dùng **--add-exports** có giúp gọi **user.secretNote()** trực tiếp không? Dùng **--add-opens** có giúp compiler chấp nhận lời gọi đó không?
+1. Module A declares **requires B**, and B declares **exports b.api**. Why can A still not call a package-private method on a public class in **b.api**?
+2. How do **exports b.api** and **opens b.api to a** differ for the compiler and for reflective access?
+3. If **opens** is removed in the hands-on example, which line is likely to throw **InaccessibleObjectException**?
+4. Can a public method in a public class inside an unexported package be directly imported from another named module? Why or why not?
+5. When can code in the same package access a package-private member? Why does that not permit arbitrary classes from another module with the same package name to do so?
+6. Why does a good plugin/framework design typically rely on stable public service interfaces instead of reflecting into a plugin's private members?
+7. Does using **--add-exports** allow calling **user.secretNote()** directly? Does using **--add-opens** make the compiler accept that call?
 
-## 12. Ghi nhớ
+## 12. Key Takeaways
 
-**JPMS áp dụng quyền truy cập ở mức module, còn Java modifier áp dụng quyền truy cập ở mức class/member.** Để một lời gọi thông thường từ module khác hoạt động, module gọi phải đọc được module cung cấp, package được export phù hợp và class/member phải có mức truy cập được Java cho phép.
+**JPMS enforces access at the module level, whereas Java modifiers enforce access at the class/member level.** For a normal call from another module to work, the calling module must read the provider module, the package must be appropriately exported, and the class/member must have an access level permitted by Java.
 
-**Package-private vẫn là package-private; private vẫn là private**, kể cả khi package đã **exports**. **opens** cho phép một số thao tác deep reflection, nhưng không thay đổi khả năng gọi trực tiếp theo cú pháp Java.
+**Package-private remains package-private; private remains private**, even when the package is **exported**. **opens** permits certain deep reflection operations, but it does not change direct invocation under Java syntax.
 
-Tài liệu tham khảo:
+References:
 
-- [Java Language Specification, Chapter 6 — Names](https://docs.oracle.com/javase/specs/jls/se21/html/jls-6.html) (phạm vi tên và khả năng truy cập).
-- [Java Language Specification, Chapter 7 — Packages and Modules](https://docs.oracle.com/javase/specs/jls/se21/html/jls-7.html) (khai báo package/module, exports và opens).
-- [java.lang.reflect.AccessibleObject — Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AccessibleObject.html) (quy tắc cho phép truy cập phản chiếu).
+- [Java Language Specification, Chapter 6 — Names](https://docs.oracle.com/javase/specs/jls/se21/html/jls-6.html) (scope of names and accessibility).
+- [Java Language Specification, Chapter 7 — Packages and Modules](https://docs.oracle.com/javase/specs/jls/se21/html/jls-7.html) (package/module declarations, exports, and opens).
+- [java.lang.reflect.AccessibleObject — Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AccessibleObject.html) (rules governing reflective access).

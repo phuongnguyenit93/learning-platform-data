@@ -1,28 +1,28 @@
-# `java.lang.Module` và module identity trong runtime
+# `java.lang.Module` and module identity at runtime
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể giải thích `Module` đại diện cho điều gì khi ứng dụng đang chạy, phân biệt tên module với danh tính của một module instance, truy vết module của một class và đọc các quan hệ readability, exports, opens trong runtime.
+After this lesson, you can explain what `Module` represents when an application is running, distinguish between a module name and the identity of a module instance, trace a class's module, and read readability, exports, and opens relationships at runtime.
 
-## 1. Từ khai báo module đến đối tượng runtime
+## 1. From module declaration to runtime object
 
-Trong Java Platform Module System (JPMS), file `module-info.java` khai báo tên module và các quan hệ như `requires`, `exports`, `opens`, `uses`, `provides`. Khi biên dịch, khai báo này được lưu trong `module-info.class`. Khi ứng dụng được phân giải và nạp, JVM tạo các module instance để áp dụng ranh giới module và quy tắc truy cập.
+In the Java Platform Module System (JPMS), the `module-info.java` file declares the module name and relationships such as `requires`, `exports`, `opens`, `uses`, and `provides`. When compiled, this declaration is stored in `module-info.class`. When the application is resolved and loaded, the JVM creates module instances to enforce module boundaries and access rules.
 
-`java.lang.Module` là lớp đại diện cho một module instance trong runtime. Nó không phải là file `module-info.java`, cũng không phải là một `ClassLoader`. Một đối tượng `Module` cho biết class đang thuộc module nào, module có tên gì, nằm trong layer nào, dùng class loader nào và đang có những quan hệ truy cập nào với module khác.
+`java.lang.Module` is the class representing a module instance at runtime. It is neither the `module-info.java` file nor a `ClassLoader`. A `Module` object indicates which module a class belongs to, what the module is named, which layer it resides in, which class loader it uses, and what access relationships it currently has with other modules.
 
-Bạn thường lấy đối tượng này từ một class:
+You typically obtain this object from a class:
 
 ~~~java
 Module module = SomeType.class.getModule();
 ~~~
 
-Mỗi class runtime có thể được truy ngược về module chứa nó. Vì vậy, khi gặp lỗi truy cập kiểu `IllegalAccessError`, lỗi reflection như `InaccessibleObjectException`, hoặc vấn đề khi nạp plugin, `Class.getModule()` là điểm bắt đầu hữu ích để kiểm tra.
+Every runtime class can be traced back to the module that contains it. Therefore, when encountering access errors like `IllegalAccessError`, reflection errors like `InaccessibleObjectException`, or issues when loading plugins, `Class.getModule()` is a useful starting point for inspection.
 
-## 2. Module name và module identity là hai khái niệm khác nhau
+## 2. Module name and module identity are two different concepts
 
-Tên module là nhãn dùng trong khai báo và phân giải module, ví dụ `java.base` hoặc `com.acme.payment`. Tên này giúp module system tìm dependency và diễn đạt các quan hệ trong cấu hình.
+A module name is a label used in module declaration and resolution, for example `java.base` or `com.acme.payment`. This name helps the module system locate dependencies and express relationships in configuration.
 
-Danh tính runtime là module instance cụ thể được JVM tạo ra. Khi cần biết hai class có thuộc cùng một module instance hay không, hãy so sánh đối tượng `Module` mà chúng trả về:
+Runtime identity is the specific module instance created by the JVM. When you need to know whether two classes belong to the same module instance, compare the `Module` objects they return:
 
 ~~~java
 Module first = FirstType.class.getModule();
@@ -31,17 +31,17 @@ Module second = SecondType.class.getModule();
 boolean sameRuntimeModule = first == second;
 ~~~
 
-Không nên dùng riêng `getName()` làm khóa nhận diện toàn cục. Các module layer khác nhau có thể chứa những module instance có cùng tên. Điều này hữu ích khi ứng dụng nạp các phiên bản plugin độc lập trong những layer riêng. Hai module có cùng tên nhưng nằm trong hai layer khác nhau vẫn là hai module instance khác nhau.
+You should not use `getName()` alone as a global identifier key. Different module layers can contain module instances with the same name. This is useful when an application loads independent plugin versions in separate layers. Two modules with the same name residing in two different layers are still two different module instances.
 
-Một module instance cũng không đồng nghĩa với một class loader. Một class loader có thể định nghĩa nhiều named module; ngược lại, các layer có thể dùng những class loader khác nhau. Module biểu diễn ranh giới module và các quy tắc truy cập, còn class loader chịu trách nhiệm định nghĩa class.
+A module instance is also not synonymous with a class loader. A single class loader can define multiple named modules; conversely, layers can use different class loaders. A module represents module boundaries and access rules, whereas a class loader is responsible for defining classes.
 
-Đối với class, danh tính kiểu ở JVM gắn với tên nhị phân của class và defining class loader. Nếu hai class loader thực sự định nghĩa riêng hai class cùng tên, hai đối tượng `Class` đó vẫn là hai kiểu khác nhau, kể cả khi bytecode giống nhau. Module cung cấp thêm ngữ cảnh về ranh giới truy cập của class.
+For classes, type identity in the JVM is tied to the binary name of the class and its defining class loader. If two class loaders actually define two separate classes with the same name, those two `Class` objects are still two distinct types, even if their bytecode is identical. Modules provide additional context about a class's access boundaries.
 
-## 3. Ba loại module thường gặp ở runtime
+## 3. Three common types of modules at runtime
 
 ### Explicit named module
 
-Đây là module khai báo rõ trong `module-info.java`. Ví dụ:
+This is a module explicitly declared in `module-info.java`. For example:
 
 ~~~java
 module com.acme.orders {
@@ -51,17 +51,17 @@ module com.acme.orders {
 }
 ~~~
 
-Module này có tên `com.acme.orders` và một `ModuleDescriptor` mô tả các khai báo của nó.
+This module is named `com.acme.orders` and has a `ModuleDescriptor` describing its declarations.
 
 ### Automatic module
 
-Một JAR không có `module-info.class`, khi được đặt trên module path, có thể được xem như automatic module. Module system tạo descriptor tự động dựa trên thông tin của JAR và tên module suy ra từ tên file hoặc manifest. Automatic module vẫn là named module, vì vậy `Module.isNamed()` trả về `true`.
+A JAR without `module-info.class`, when placed on the module path, can be treated as an automatic module. The module system creates an automatic descriptor based on the JAR's information and derives the module name from the file name or manifest. An automatic module is still a named module, so `Module.isNamed()` returns `true`.
 
-Automatic module có quy tắc tương thích rộng hơn explicit module, chẳng hạn khả năng đọc các module khác và xuất các package của nó. Không nên dựa vào các quy tắc rộng này như thiết kế lâu dài cho một module có ranh giới API rõ ràng.
+An automatic module has broader compatibility rules than an explicit module, such as the ability to read other modules and export its packages. You should not rely on these broad rules as a long-term design for a module with clear API boundaries.
 
 ### Unnamed module
 
-Các class được nạp từ class path thường thuộc unnamed module của class loader tương ứng. Mỗi class loader có unnamed module riêng. Unnamed module không có tên module và không có `ModuleDescriptor` như named module.
+Classes loaded from the class path typically belong to the unnamed module of their corresponding class loader. Each class loader has its own unnamed module. An unnamed module does not have a module name and does not have a `ModuleDescriptor` like a named module.
 
 ~~~java
 Module module = SomeClasspathType.class.getModule();
@@ -71,24 +71,24 @@ System.out.println(module.getName()); // null
 System.out.println(module.getDescriptor()); // null
 ~~~
 
-Đừng nhầm unnamed module với automatic module: automatic module là named module được suy ra từ JAR; unnamed module thường gắn với class path và một class loader.
+Do not confuse an unnamed module with an automatic module: an automatic module is a named module derived from a JAR; an unnamed module is typically associated with the class path and a class loader.
 
-## 4. Các API quan trọng của `java.lang.Module`
+## 4. Important APIs of `java.lang.Module`
 
-| API | Ý nghĩa |
+| API | Meaning |
 | --- | --- |
-| `getName()` | Trả về tên module; trả về `null` với unnamed module. |
-| `isNamed()` | Cho biết module có phải named module hay không. |
-| `getDescriptor()` | Trả về `ModuleDescriptor` của named module; có thể là `null` với unnamed module. |
-| `getLayer()` | Trả về `ModuleLayer` chứa module; có thể là `null` nếu module không thuộc layer. |
-| `getClassLoader()` | Trả về class loader định nghĩa module; `null` biểu thị bootstrap class loader. |
-| `getPackages()` | Trả về tập tên package thuộc module. |
-| `canRead(Module)` | Kiểm tra module hiện tại có readability edge tới module được truyền vào hay không. |
-| `isExported(String, Module)` | Kiểm tra package của module hiện tại có được export tới module đích hay không. |
-| `isOpen(String, Module)` | Kiểm tra package của module hiện tại có được open cho module đích hay không. |
-| `getResourceAsStream(String)` | Đọc resource theo tên từ module, tuân theo quy tắc đóng gói tài nguyên của module. |
+| `getName()` | Returns the module name; returns `null` for an unnamed module. |
+| `isNamed()` | Indicates whether the module is a named module. |
+| `getDescriptor()` | Returns the `ModuleDescriptor` of a named module; may be `null` for an unnamed module. |
+| `getLayer()` | Returns the `ModuleLayer` containing the module; may be `null` if the module does not belong to a layer. |
+| `getClassLoader()` | Returns the class loader that defines the module; `null` represents the bootstrap class loader. |
+| `getPackages()` | Returns the set of package names belonging to the module. |
+| `canRead(Module)` | Checks whether the current module has a readability edge to the passed-in module. |
+| `isExported(String, Module)` | Checks whether a package of the current module is exported to the target module. |
+| `isOpen(String, Module)` | Checks whether a package of the current module is open to the target module. |
+| `getResourceAsStream(String)` | Reads a resource by name from the module, obeying the module's resource encapsulation rules. |
 
-Ví dụ sau in thông tin runtime của một class:
+The following example prints runtime information for a class:
 
 ~~~java
 import java.lang.module.ModuleDescriptor;
@@ -115,19 +115,19 @@ public final class ModuleInspector {
 }
 ~~~
 
-`ModuleDescriptor` thuộc package `java.lang.module`. Nó mô tả metadata của named module, ví dụ các dependency và package được export hoặc open. Descriptor là metadata; đối tượng `Module` mới là module instance đang tồn tại trong runtime. Với unnamed module, `getDescriptor()` trả về `null`, vì vậy cần kiểm tra trước khi đọc descriptor.
+`ModuleDescriptor` belongs to the `java.lang.module` package. It describes the metadata of a named module, such as dependencies and exported or opened packages. The descriptor is metadata; the `Module` object is the module instance existing at runtime. For an unnamed module, `getDescriptor()` returns `null`, so you need to check before reading the descriptor.
 
-`System.identityHashCode(module)` đôi khi hữu ích khi ghi log để phân biệt các object trong một lần chạy, nhưng giá trị hash có thể trùng. Khi cần kiểm tra hai tham chiếu có trỏ tới đúng cùng module instance hay không, dùng phép so sánh `==`.
+`System.identityHashCode(module)` is sometimes useful when logging to distinguish objects within a run, but hash values can collide. When you need to check whether two references point to the exact same module instance, use the `==` comparison.
 
-## 5. Đọc đúng ba quan hệ: readability, exports và opens
+## 5. Reading the three relationships correctly: readability, exports, and opens
 
-Ba khái niệm này thường xuất hiện cùng nhau nhưng giải quyết ba câu hỏi khác nhau.
+These three concepts often appear together but answer three different questions.
 
-- **Readability**: module client có thể đọc module API hay không? Quan hệ này thường được khai báo bằng `requires`.
-- **Exports**: package API có được module nguồn export cho module client hay không? Export cho phép module khác dùng các kiểu public trong package theo quy tắc truy cập Java thông thường.
-- **Opens**: package có được mở cho module client thực hiện deep reflection hay không? Opens phục vụ truy cập reflective, kể cả các thành viên không public khi các điều kiện reflection được đáp ứng.
+- **Readability**: Can the client module read the API module? This relationship is typically declared with `requires`.
+- **Exports**: Is the API package exported by the source module to the client module? Exporting allows other modules to use public types in the package according to standard Java access rules.
+- **Opens**: Is the package opened to the client module for deep reflection? Opens enables reflective access, including non-public members when reflection conditions are met.
 
-Ví dụ kiểm tra từ phía module client:
+Example check from the client module side:
 
 ~~~java
 Module clientModule = Client.class.getModule();
@@ -147,15 +147,15 @@ System.out.println("exported: " + apiIsExported);
 System.out.println("open    : " + internalsAreOpen);
 ~~~
 
-Hãy chú ý hướng gọi:
+Pay attention to the call direction:
 
-- Gọi `clientModule.canRead(apiModule)` vì client là module cần đọc API.
-- Gọi `apiModule.isExported(packageName, clientModule)` vì package nằm trong module API và cần kiểm tra có export cho client không.
-- Gọi `apiModule.isOpen(packageName, clientModule)` vì module API là bên sở hữu package cần mở cho reflection.
+- Call `clientModule.canRead(apiModule)` because the client is the module that needs to read the API.
+- Call `apiModule.isExported(packageName, clientModule)` because the package resides in the API module and we need to check if it is exported to the client.
+- Call `apiModule.isOpen(packageName, clientModule)` because the API module is the owner of the package that needs to be opened for reflection.
 
-Có readability không tự động có nghĩa là mọi package của dependency đều được export. Export cũng không đồng nghĩa với open. Một package có thể được export để dùng API public nhưng vẫn đóng với deep reflection.
+Having readability does not automatically mean every package of the dependency is exported. Export is also not synonymous with open. A package can be exported for public API usage while still remaining closed to deep reflection.
 
-Trong `module-info.java`, có thể khai báo export hoặc open không giới hạn module đích, hoặc chỉ định rõ module đích:
+In `module-info.java`, you can declare an export or open without restricting target modules, or explicitly specify target modules:
 
 ~~~java
 module com.acme.domain {
@@ -167,11 +167,11 @@ module com.acme.domain {
 }
 ~~~
 
-Khai báo `open module com.acme.domain { ... }` mở tất cả package của module cho deep reflection. Điều này không có nghĩa là tất cả package được export để module khác truy cập API theo cách thông thường.
+Declaring `open module com.acme.domain { ... }` opens all packages of the module for deep reflection. This does not mean all packages are exported for other modules to access the API in the standard way.
 
-## 6. `ModuleLayer` và danh tính module trong nhiều layer
+## 6. `ModuleLayer` and module identity across multiple layers
 
-`ModuleLayer` là một nhóm module đã được phân giải thành runtime graph. JVM khởi động ứng dụng với boot layer, có thể truy cập qua `ModuleLayer.boot()`. Ứng dụng cũng có thể tạo layer mới để nạp plugin hoặc thành phần cần vòng đời và class loader riêng.
+`ModuleLayer` is a group of modules resolved into a runtime graph. The JVM starts the application with the boot layer, accessible via `ModuleLayer.boot()`. An application can also create new layers to load plugins or components that need their own lifecycle and class loader.
 
 ~~~java
 Module javaBase = ModuleLayer.boot()
@@ -182,7 +182,7 @@ System.out.println(javaBase.getName());
 System.out.println(javaBase.getLayer() == ModuleLayer.boot());
 ~~~
 
-Ví dụ nâng cao: nạp một module plugin từ thư mục `plugins` vào layer mới. Module plugin cần có mặt trên module path mà `ModuleFinder` quét được.
+Advanced example: loading a plugin module from the `plugins` directory into a new layer. The plugin module must be present on the module path scanned by `ModuleFinder`.
 
 ~~~java
 import java.lang.module.Configuration;
@@ -211,9 +211,9 @@ System.out.println(pluginModule.getName());
 System.out.println(pluginModule.getLayer() == pluginLayer);
 ~~~
 
-Ở ví dụ này, `defineModulesWithOneLoader` tạo layer mới và dùng một class loader cho các module được định nghĩa trong layer đó. API `defineModulesWithManyLoaders` là lựa chọn khác khi muốn mỗi module có class loader riêng.
+In this example, `defineModulesWithOneLoader` creates a new layer and uses a single class loader for the modules defined in that layer. The `defineModulesWithManyLoaders` API is another option when you want each module to have its own class loader.
 
-Tên module có ý nghĩa trong phạm vi cấu hình/layer. Khi hệ thống có nhiều layer, đừng giả định rằng một tên module chỉ có duy nhất một module instance trong toàn bộ tiến trình. Nếu đang debug plugin, hãy kiểm tra đồng thời tên module, layer và class loader:
+A module name has meaning within the scope of a configuration/layer. When a system has multiple layers, do not assume that a module name has only a single module instance in the entire process. If debugging a plugin, inspect the module name, layer, and class loader together:
 
 ~~~java
 Module module = PluginEntry.class.getModule();
@@ -223,27 +223,27 @@ System.out.println("layer  = " + module.getLayer());
 System.out.println("loader = " + module.getClassLoader());
 ~~~
 
-## 7. Dùng Module API khi debug lỗi truy cập
+## 7. Using the Module API when debugging access errors
 
-Khi một module không truy cập được class hoặc package, kiểm tra theo thứ tự sau:
+When a module cannot access a class or package, check in the following order:
 
-1. Lấy module của class đang gọi và class được truy cập bằng `Class.getModule()`.
-2. In `getName()`, `getLayer()` và `getClassLoader()` của cả hai module để xác định đúng module instance.
-3. Kiểm tra module gọi có đọc module đích không bằng `canRead`.
-4. Kiểm tra package chứa API có export cho module gọi không bằng `isExported`.
-5. Nếu lỗi xảy ra khi dùng reflection để truy cập thành viên không public, kiểm tra package có open cho module gọi không bằng `isOpen`.
+1. Obtain the modules of the calling class and the accessed class using `Class.getModule()`.
+2. Print `getName()`, `getLayer()`, and `getClassLoader()` of both modules to identify the exact module instances.
+3. Check whether the calling module reads the target module using `canRead`.
+4. Check whether the package containing the API is exported to the calling module using `isExported`.
+5. If the error occurs when using reflection to access non-public members, check whether the package is open to the calling module using `isOpen`.
 
-Các tùy chọn JVM như `--add-reads`, `--add-exports` và `--add-opens` có thể bổ sung quan hệ khi chạy ứng dụng hoặc hỗ trợ chẩn đoán tương thích. Chúng lần lượt tác động đến readability, export và open. Với thiết kế ổn định, nên khai báo quan hệ cần thiết trong `module-info.java`; chỉ mở package nội bộ khi có lý do rõ ràng.
+JVM options such as `--add-reads`, `--add-exports`, and `--add-opens` can add relationships when running the application or assist with compatibility diagnostics. They affect readability, export, and open respectively. For a stable design, the necessary relationships should be declared in `module-info.java`; only open internal packages when there is a clear reason.
 
-## 8. Những nhầm lẫn thường gặp
+## 8. Common misconceptions
 
-- **Dùng tên module như ID toàn cục**: cùng tên có thể xuất hiện trong các layer khác nhau. Kiểm tra module instance và layer khi cần phân biệt.
-- **Coi `Module` là `ClassLoader`**: một loader có thể định nghĩa nhiều module; một module có class loader riêng được trả về bởi `getClassLoader()`.
-- **Coi `requires` là đủ để truy cập mọi package**: readability không thay thế exports.
-- **Coi exports và opens giống nhau**: exports phục vụ truy cập API public; opens phục vụ deep reflection.
-- **Giả định module nào cũng có descriptor**: unnamed module trả về `null` từ `getDescriptor()`.
-- **Chỉ log tên module khi debug plugin**: hãy log thêm layer và class loader để hiểu module instance và nguồn định nghĩa class.
+- **Using the module name as a global ID**: the same name can appear in different layers. Inspect the module instance and layer when you need to distinguish them.
+- **Treating `Module` as `ClassLoader`**: one loader can define multiple modules; a module has its own class loader returned by `getClassLoader()`.
+- **Assuming `requires` is enough to access every package**: readability does not replace exports.
+- **Treating exports and opens as identical**: exports serve public API access; opens serve deep reflection.
+- **Assuming every module has a descriptor**: an unnamed module returns `null` from `getDescriptor()`.
+- **Logging only the module name when debugging plugins**: also log the layer and class loader to understand the module instance and class definition source.
 
-## Ghi nhớ
+## Key takeaways
 
-`java.lang.Module` là góc nhìn runtime về một module instance. `getName()` cho biết tên, `getLayer()` cho biết layer chứa module, `getClassLoader()` cho biết loader định nghĩa module, còn `canRead`, `isExported` và `isOpen` giúp kiểm tra các quan hệ truy cập. Khi làm việc với nhiều module layer, tên module không đủ để nhận diện duy nhất một module instance; hãy kiểm tra chính đối tượng `Module` và ngữ cảnh layer của nó.
+`java.lang.Module` is the runtime view of a module instance. `getName()` gives the name, `getLayer()` gives the containing layer, `getClassLoader()` gives the loader that defines the module, and `canRead`, `isExported`, and `isOpen` help inspect access relationships. When working with multiple module layers, the module name is not enough to uniquely identify a module instance; inspect the `Module` object itself and its layer context.

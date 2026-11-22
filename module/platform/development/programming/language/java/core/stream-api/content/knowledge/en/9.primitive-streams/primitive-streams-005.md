@@ -1,20 +1,20 @@
-# Dùng mapMulti trên Stream nguyên thủy
+# Using mapMulti on Primitive Streams
 
-## 1. Khi một số đầu vào tạo ra không, một hoặc nhiều số đầu ra
+## 1. When one input number produces zero, one, or many output numbers
 
-Trong chương **Stream kiểu nguyên thủy** của **JAVA_STREAM_API**, ta dùng `IntStream`, `LongStream` và `DoubleStream` để xử lý dữ liệu số trực tiếp, tránh phải đóng hộp mọi phần tử thành `Integer`, `Long` hoặc `Double`. Những Stream này vẫn hỗ trợ pipeline lazy với `filter`, `map`, `reduce` và các terminal operation như `sum`, `average`, `summaryStatistics`.
+In the **Primitive Streams** chapter of **JAVA_STREAM_API**, we use `IntStream`, `LongStream`, and `DoubleStream` to process numeric data directly without boxing every element into `Integer`, `Long`, or `Double`. These Streams still support lazy pipelines with `filter`, `map`, `reduce`, and terminal operations such as `sum`, `average`, and `summaryStatistics`.
 
-Nhưng `map` chỉ tạo **một** phần tử đầu ra cho **mỗi** phần tử đầu vào. Nếu dữ liệu cần sinh ra 0, 1 hoặc nhiều giá trị thì sao?
+However, `map` only produces **one** output element for **each** input element. What if the data needs to emit 0, 1, or multiple values?
 
-Ví dụ:
+For example:
 
-- Số lượng `0` tương ứng **0** đơn vị cần xử lý.
-- Số lượng `1` tương ứng **1** đơn vị.
-- Số lượng `3` tương ứng **3** đơn vị.
-- Một số đo không hợp lệ được **bỏ qua**; một số đo hợp lệ có thể phát ra nhiều đặc trưng số học.
-- Mỗi mã khoảng thời gian có thể tạo ra một dãy vị trí, thay vì chỉ một vị trí.
+- Quantity `0` corresponds to **0** units to process.
+- Quantity `1` corresponds to **1** unit.
+- Quantity `3` corresponds to **3** units.
+- An invalid measurement is **skipped**; a valid measurement can emit multiple numeric features.
+- Each time-interval code can generate a sequence of positions rather than just one position.
 
-Từ **Java 16**, các primitive stream cung cấp `mapMulti` để giải quyết trực tiếp những tình huống trên. Lambda nhận giá trị hiện tại và một **consumer của đúng kiểu nguyên thủy**; gọi `accept` bao nhiêu lần thì phát ra bấy nhiêu phần tử.
+Since **Java 16**, primitive streams provide `mapMulti` to address these scenarios directly. The lambda receives the current value and a **consumer of the matching primitive type**; calling `accept` N times emits N elements.
 
 ~~~text
                    IntStream / LongStream / DoubleStream
@@ -24,46 +24,46 @@ Từ **Java 16**, các primitive stream cung cấp `mapMulti` để giải quy�
                                    │
                   ┌────────────────┼────────────────┐
                   ▼                ▼                ▼
-              không gọi        gọi accept       gọi accept
-               accept            1 lần             N lần
+             accept not        accept called    accept called
+               called             1 time           N times
                   │                │                │
                   ▼                ▼                ▼
-                0 số              1 số              N số
+              0 numbers         1 number          N numbers
                   └────────────────┴────────────────┘
                                    │
                                    ▼
-                     Cùng loại primitive stream
+                      Same primitive stream type
 ~~~
 
-Bài này tập trung vào `mapMulti` của **Stream nguyên thủy** và cách phân biệt với `mapMultiToInt`, `mapMultiToLong`, `mapMultiToDouble` của `Stream<T>`. Các ví dụ có thể chạy với **Java 17+**; `Stream.toList()` ở một số đoạn mã cũng yêu cầu Java 16+.
+This lesson focuses on `mapMulti` on **primitive Streams** and how to distinguish it from `mapMultiToInt`, `mapMultiToLong`, and `mapMultiToDouble` on `Stream<T>`. The examples run on **Java 17+**; `Stream.toList()` in some snippets also requires Java 16+.
 
-## 2. Ba API `mapMulti` và consumer tương ứng
+## 2. Three `mapMulti` APIs and their corresponding consumers
 
-Các chữ ký khái niệm:
+Conceptual signatures:
 
 ~~~java
-// Các method trên ba primitive stream:
+// Methods on the three primitive streams:
 IntStream mapMulti(IntStream.IntMapMultiConsumer mapper);
 LongStream mapMulti(LongStream.LongMapMultiConsumer mapper);
 DoubleStream mapMulti(DoubleStream.DoubleMapMultiConsumer mapper);
 ~~~
 
-Mỗi functional interface chuyên biệt nhận một giá trị và consumer cùng loại:
+Each specialized functional interface accepts a value and a consumer of the same type:
 
 ~~~java
-// Dạng mô tả hợp đồng của các callback:
+// Descriptive contract form of the callbacks:
 void accept(int value, IntConsumer downstream);
 void accept(long value, LongConsumer downstream);
 void accept(double value, DoubleConsumer downstream);
 ~~~
 
-| Stream đầu vào | Callback | Consumer phát kết quả | Stream trả về |
+| Input Stream | Callback | Consumer emitting results | Returned Stream |
 | --- | --- | --- | --- |
 | `IntStream` | `IntStream.IntMapMultiConsumer` | `IntConsumer.accept(int)` | `IntStream` |
 | `LongStream` | `LongStream.LongMapMultiConsumer` | `LongConsumer.accept(long)` | `LongStream` |
 | `DoubleStream` | `DoubleStream.DoubleMapMultiConsumer` | `DoubleConsumer.accept(double)` | `DoubleStream` |
 
-Tên method đều là `mapMulti`, nhưng kiểu đối số `n` và kiểu `out.accept(...)` được xác định từ loại primitive stream đang gọi.
+All three methods are named `mapMulti`, while the type of argument `n` and `out.accept(...)` is determined by the primitive stream being called.
 
 ~~~java
 import java.util.stream.IntStream;
@@ -79,17 +79,17 @@ int[] result = IntStream.of(2, 0, 3)
 // result = [2, 2, 3, 3, 3]
 ~~~
 
-Hàm callback **không trả một Stream con**. Nó trả `void` và gửi các giá trị cho `out`:
+The callback **does not return a sub-stream**. It returns `void` and pushes values to `out`:
 
-- Không gọi `accept`: phát **0 phần tử**.
-- Gọi một lần: phát **1 phần tử**.
-- Gọi nhiều lần: phát **nhiều phần tử**, theo thứ tự các lời gọi trong callback đối với cùng đầu vào.
+- Never call `accept`: emits **0 elements**.
+- Call once: emits **1 element**.
+- Call multiple times: emits **multiple elements**, in the order of calls inside the callback for that input.
 
-Không được giữ lại `out` để sử dụng sau khi callback hoàn thành hoặc gọi nó từ một tác vụ bất đồng bộ. Consumer được truyền vào là cơ chế phát kết quả của **lần xử lý hiện tại**, không phải kênh gửi dữ liệu kéo dài vô hạn.
+Do not retain `out` for use after the callback completes or invoke it from an asynchronous task. The passed consumer is the emission mechanism for **the current processing step**, not an indefinitely open channel.
 
-## 3. `IntStream.mapMulti`: phát số nguyên theo quy tắc
+## 3. `IntStream.mapMulti`: emitting integers by rule
 
-Xét bài toán mô phỏng các lượt kiểm tra. Với mỗi số nguyên dương `n`, ta muốn phát dãy số từ `1` đến `n`. Giá trị bằng `0` không tạo kết quả; giá trị âm là đầu vào không hợp lệ và trong ví dụ minh họa được bỏ qua.
+Consider a problem simulating inspection rounds. For each positive integer `n`, we want to emit the sequence from `1` to `n`. Value `0` produces no output; negative values are invalid inputs and in this illustrative example are skipped.
 
 ~~~java
 import java.util.Arrays;
@@ -100,7 +100,7 @@ public class IntMapMultiDemo {
         int[] slots = IntStream.of(1, 0, 3, -2, 2)
             .mapMulti((n, out) -> {
                 if (n <= 0) {
-                    return; // Không phát phần tử.
+                    return; // Emit no elements.
                 }
 
                 for (int index = 1; index <= n; index++) {
@@ -115,19 +115,19 @@ public class IntMapMultiDemo {
 }
 ~~~
 
-Từng đầu vào lần lượt tạo ra:
+Each input sequentially produces:
 
-| `n` | Các giá trị được phát |
+| `n` | Emitted values |
 | --- | --- |
 | `1` | `1` |
-| `0` | Không có |
+| `0` | None |
 | `3` | `1, 2, 3` |
-| `-2` | Không có |
+| `-2` | None |
 | `2` | `1, 2` |
 
-Ở đây `mapMulti` thay thế trực tiếp cho việc tạo một `IntStream.rangeClosed(1, n)` cho mỗi số. Tuy nhiên, nếu mục tiêu thực sự là **phát một khoảng số duy nhất**, `IntStream.range` hoặc `rangeClosed` thường là API đơn giản hơn.
+Here `mapMulti` directly replaces creating an `IntStream.rangeClosed(1, n)` for each number. However, if the goal is truly to **emit a single numeric range**, `IntStream.range` or `rangeClosed` is usually the simpler API.
 
-### Ví dụ 0 hoặc 2 kết quả: tạo cặp số
+### Example of 0 or 2 results: generating number pairs
 
 ~~~java
 import java.util.Arrays;
@@ -150,7 +150,7 @@ public class EvenPairs {
 }
 ~~~
 
-Ta có thể nối tiếp một terminal operation của `IntStream` mà **không phải boxing**:
+You can chain an `IntStream` terminal operation **without boxing**:
 
 ~~~java
 int sum = IntStream.rangeClosed(1, 5)
@@ -165,13 +165,13 @@ int sum = IntStream.rangeClosed(1, 5)
 // sum = 66 (2 + 20 + 4 + 40)
 ~~~
 
-Nếu luôn phát đúng **một** số cho mỗi đầu vào, `map` ngắn gọn và thể hiện chủ đích rõ hơn. Nếu chỉ giữ hoặc bỏ **chính số hiện tại**, `filter` thường phù hợp hơn.
+If you always emit **exactly one** number per input, `map` is shorter and expresses intent more clearly. If you only keep or drop **the current number itself**, `filter` is usually better suited.
 
-## 4. `LongStream.mapMulti`: xử lý số lượng và giá trị dài
+## 4. `LongStream.mapMulti`: handling quantities and long values
 
-`LongStream` phục vụ miền giá trị `long`, ví dụ mã số lớn, độ dài, số đếm hoặc các khoản tiền lưu dưới dạng đơn vị nhỏ nhất. `LongStream.mapMulti` dùng `LongConsumer` để phát các giá trị `long` mà không đóng hộp qua `Long`.
+`LongStream` serves the `long` value domain, such as large IDs, lengths, counts, or monetary amounts stored in the smallest currency unit. `LongStream.mapMulti` uses `LongConsumer` to emit `long` values without boxing through `Long`.
 
-Ví dụ: mỗi con số cho biết số lượt sử dụng dịch vụ có đơn giá 10.000 đơn vị. Ta phát giá của từng lượt rồi tính tổng:
+Example: each number indicates how many times a service with unit price 10,000 was used. We emit the price of each usage and then compute the total:
 
 ~~~java
 import java.util.Arrays;
@@ -183,7 +183,7 @@ public class LongMapMultiDemo {
             .mapMulti((quantity, out) -> {
                 if (quantity < 0 || quantity > 1000) {
                     throw new IllegalArgumentException(
-                        "Số lượng không hợp lệ: " + quantity
+                        "Invalid quantity: " + quantity
                     );
                 }
 
@@ -202,9 +202,9 @@ public class LongMapMultiDemo {
 }
 ~~~
 
-Ví dụ đặt một **giới hạn trên** để tránh việc một lượng đầu vào bất thường khiến chương trình phát hàng triệu phần tử hoặc chạy quá lâu. Dữ liệu thực tế cần kiểm tra cả tính hợp lệ lẫn giới hạn nghiệp vụ trước khi mở rộng.
+The example enforces an **upper bound** to prevent an anomalous input quantity from making the program emit millions of elements or run too long. Real-world data must validate both correctness and business bounds before expanding.
 
-Nếu chỉ cần tổng, **không cần tạo Stream nhiều giá trị**:
+If only the total is needed, **there is no need to create a Stream of many values**:
 
 ~~~java
 long total = LongStream.of(2L, 0L, 3L)
@@ -214,17 +214,17 @@ long total = LongStream.of(2L, 0L, 3L)
 // 50000
 ~~~
 
-`Math.multiplyExact` phát hiện tràn số khi nhân, nhưng phép `sum()` của `LongStream` vẫn có thể tràn nếu tổng vượt miền `long`; khi độ chính xác tài chính là bắt buộc, cần thiết kế kiểm tra tràn và chính sách số học phù hợp. `mapMulti` là công cụ **mở rộng dữ liệu**, không phải phép tối ưu mặc định cho mọi công thức tổng.
+`Math.multiplyExact` detects overflow during multiplication, yet `LongStream.sum()` can still overflow if the total exceeds `long` range; when financial precision is mandatory, design overflow checks and an arithmetic policy accordingly. `mapMulti` is a **data-expansion** tool, not a default optimization for every summation formula.
 
-### Khi nào `LongStream.mapMulti` thực sự có ích?
+### When is `LongStream.mapMulti` actually useful?
 
-Nó hữu ích nếu bước sau **cần từng giá trị riêng biệt**: phát mã sự kiện, tạo các mốc thời gian hoặc áp một phép biến đổi khác nhau cho mỗi đơn vị. Nếu chỉ tính tổng, trung bình hoặc số lượng thì thường nên tính trực tiếp.
+It is useful when downstream steps **need each individual value**: emitting event IDs, generating timestamps, or applying a distinct transformation per unit. If you only need sum, average, or count, computing directly is usually preferable.
 
-## 5. `DoubleStream.mapMulti`: lọc số đo và phát nhiều đặc trưng
+## 5. `DoubleStream.mapMulti`: filtering measurements and emitting multiple features
 
-`DoubleStream.mapMulti` hoạt động tương tự, nhưng mapper nhận `double` và một `DoubleConsumer`. Đây là lựa chọn thích hợp khi dữ liệu kết quả là các số thực nguyên thủy.
+`DoubleStream.mapMulti` works similarly, except the mapper takes `double` and a `DoubleConsumer`. This is the right choice when the resulting data consists of primitive floating-point numbers.
 
-Ví dụ, với mỗi số đo dương, hữu hạn, phát cả giá trị gốc và một nửa giá trị; bỏ qua `NaN`, giá trị vô hạn và số không dương:
+For example, for each positive, finite measurement, emit both the original value and half its value; skip `NaN`, infinite values, and non-positive numbers:
 
 ~~~java
 import java.util.Arrays;
@@ -253,7 +253,7 @@ public class DoubleMapMultiDemo {
 }
 ~~~
 
-Khi chỉ cần một số trung bình, có thể nối terminal `average()`:
+When only an average is needed, you can chain the `average()` terminal operation:
 
 ~~~java
 double average = DoubleStream.of(1.5, 4.0)
@@ -267,22 +267,22 @@ double average = DoubleStream.of(1.5, 4.0)
 // (1.5 + 0.75 + 4.0 + 2.0) / 4 = 2.0625
 ~~~
 
-**Lưu ý số học:** `double` dùng dấu chấm động nhị phân IEEE 754; không phải số thập phân nào cũng được biểu diễn chính xác. Tính tổng, trung bình và thứ tự gộp khi xử lý song song có thể dẫn tới chênh lệch làm tròn. Đừng dùng `DoubleStream` với giả định rằng mọi phép tính tiền đều chính xác tuyệt đối; với nghiệp vụ tiền tệ, cân nhắc số nguyên đơn vị nhỏ nhất hoặc `BigDecimal` tùy yêu cầu.
+**Arithmetic note:** `double` uses IEEE 754 binary floating-point; not every decimal number can be represented exactly. Summing, averaging, and parallel combination ordering can lead to rounding discrepancies. Do not use `DoubleStream` assuming all monetary calculations are exact; for financial business rules, consider smallest-unit integers or `BigDecimal` depending on requirements.
 
-## 6. Phân biệt `IntStream.mapMulti` và `Stream<T>.mapMultiToInt`
+## 6. Distinguishing `IntStream.mapMulti` from `Stream<T>.mapMultiToInt`
 
-Hai tên API dễ gây nhầm vì cùng hỗ trợ phát nhiều giá trị primitive:
+Two API naming groups are easy to confuse because both support emitting multiple primitive values:
 
-| API | Nguồn đầu vào | Đầu ra | Trường hợp dùng |
+| API | Input source | Output | When to use |
 | --- | --- | --- | --- |
-| `IntStream.mapMulti` | `IntStream` | `IntStream` | Đã có từng số `int` và muốn phát 0–n số `int`. |
-| `LongStream.mapMulti` | `LongStream` | `LongStream` | Đã có từng số `long` và muốn phát 0–n số `long`. |
-| `DoubleStream.mapMulti` | `DoubleStream` | `DoubleStream` | Đã có từng số `double` và muốn phát 0–n số `double`. |
-| `Stream<T>.mapMultiToInt` | `Stream<T>` | `IntStream` | Đầu vào là object, cần phát 0–n số `int`. |
-| `Stream<T>.mapMultiToLong` | `Stream<T>` | `LongStream` | Đầu vào là object, cần phát 0–n số `long`. |
-| `Stream<T>.mapMultiToDouble` | `Stream<T>` | `DoubleStream` | Đầu vào là object, cần phát 0–n số `double`. |
+| `IntStream.mapMulti` | `IntStream` | `IntStream` | Already have `int` numbers and want to emit 0–n `int` values. |
+| `LongStream.mapMulti` | `LongStream` | `LongStream` | Already have `long` numbers and want to emit 0–n `long` values. |
+| `DoubleStream.mapMulti` | `DoubleStream` | `DoubleStream` | Already have `double` numbers and want to emit 0–n `double` values. |
+| `Stream<T>.mapMultiToInt` | `Stream<T>` | `IntStream` | Input is objects, need to emit 0–n `int` values. |
+| `Stream<T>.mapMultiToLong` | `Stream<T>` | `LongStream` | Input is objects, need to emit 0–n `long` values. |
+| `Stream<T>.mapMultiToDouble` | `Stream<T>` | `DoubleStream` | Input is objects, need to emit 0–n `double` values. |
 
-### Ví dụ: từ object đơn hàng sang giá trị long
+### Example: from order objects to long values
 
 ~~~java
 import java.util.List;
@@ -301,7 +301,7 @@ public class PurchaseUnits {
         LongStream prices = lines.stream()
             .mapMultiToLong((line, out) -> {
                 if (line.quantity() < 0 || line.quantity() > 10_000) {
-                    throw new IllegalArgumentException("Số lượng không hợp lệ");
+                    throw new IllegalArgumentException("Invalid quantity");
                 }
                 for (int i = 0; i < line.quantity(); i++) {
                     out.accept(line.unitPrice());
@@ -314,9 +314,9 @@ public class PurchaseUnits {
 }
 ~~~
 
-Nguồn là `Stream<OrderLine>` nên phải dùng **`mapMultiToLong`**, không gọi `LongStream.mapMulti` trực tiếp. Kết quả sau phép biến đổi là `LongStream`, do đó `sum()` tính trực tiếp trên `long`.
+The source is `Stream<OrderLine>`, so **`mapMultiToLong`** must be used rather than calling `LongStream.mapMulti` directly. The transformed result is a `LongStream`, so `sum()` computes directly on `long`.
 
-Nếu mục tiêu chỉ là tổng giá trị đơn hàng, không cần nở từng đơn vị:
+If the goal is merely total order value, there is no need to expand individual units:
 
 ~~~java
 long total = lines.stream()
@@ -326,9 +326,9 @@ long total = lines.stream()
     .sum();
 ~~~
 
-Đây là ví dụ về nguyên tắc lựa chọn operation: viết theo **yêu cầu đầu ra thực sự**, tránh tạo các phần tử không cần thiết.
+This illustrates the operation selection principle: write according to the **actual required output**, avoiding creating unnecessary elements.
 
-### Ví dụ: parse chuỗi thành int mà không boxing ở đầu ra
+### Example: parsing strings to int without boxing the output
 
 ~~~java
 import java.util.List;
@@ -345,7 +345,7 @@ public class ParseScores {
                         out.accept(score);
                     }
                 } catch (NumberFormatException ignored) {
-                    // Dữ liệu không parse được, chính sách minh họa là bỏ qua.
+                    // Unparseable data; illustrative policy is to skip.
                 }
             })
             .sum();
@@ -355,18 +355,18 @@ public class ParseScores {
 }
 ~~~
 
-Trong bài toán cần **báo lỗi** đối với dữ liệu sai, đừng âm thầm bỏ qua bằng việc không gọi `accept`. Hãy dùng kiểu kết quả chứa nguyên nhân hoặc một nhánh xử lý lỗi rõ ràng.
+In problems that must **report errors** for invalid data, do not silently ignore them by omitting `accept`. Use a result type carrying the error reason or an explicit error-handling branch.
 
-## 7. So sánh với `map`, `filter` và `flatMap` của primitive stream
+## 7. Comparison with primitive stream `map`, `filter`, and `flatMap`
 
-| Operation | Số phần tử đầu ra trên mỗi đầu vào | Ví dụ | Khi nào phù hợp |
+| Operation | Output elements per input | Example | When appropriate |
 | --- | --- | --- | --- |
-| `map` | Luôn đúng 1 | `map(n -> n * 2)` | Chuyển đổi số 1–1. |
-| `filter` | 0 hoặc 1, giữ chính số đầu vào | `filter(n -> n > 0)` | Chỉ cần chọn hoặc bỏ số. |
-| `flatMap` | 0 đến nhiều | `flatMap(n -> IntStream.range(0, n))` | Mapper có thể trả Stream con tự nhiên. |
-| `mapMulti` | 0 đến nhiều | `mapMulti((n, out) -> out.accept(n))` | Muốn phát trực tiếp các giá trị nguyên thủy. |
+| `map` | Always exactly 1 | `map(n -> n * 2)` | 1-to-1 numeric transformation. |
+| `filter` | 0 or 1, keeping the input number itself | `filter(n -> n > 0)` | Only selecting or dropping numbers. |
+| `flatMap` | 0 to many | `flatMap(n -> IntStream.range(0, n))` | Mapper naturally returns a sub-stream. |
+| `mapMulti` | 0 to many | `mapMulti((n, out) -> out.accept(n))` | Want to push primitive values directly. |
 
-Hai pipeline sau đều tạo dãy `[2, 20, 4, 40]`:
+Both pipelines below produce the sequence `[2, 20, 4, 40]`:
 
 ~~~java
 import java.util.Arrays;
@@ -390,13 +390,13 @@ int[] viaMapMulti = IntStream.rangeClosed(1, 4)
 System.out.println(Arrays.equals(viaFlatMap, viaMapMulti)); // true
 ~~~
 
-`flatMap` yêu cầu mapper trả về `IntStream`, `LongStream` hoặc `DoubleStream` tương ứng. `mapMulti` cho phép callback phát trực tiếp từng giá trị, nên mã thường gọn khi mỗi phần tử cần phát một số lượng nhỏ giá trị có điều kiện.
+`flatMap` requires the mapper to return the corresponding `IntStream`, `LongStream`, or `DoubleStream`. `mapMulti` lets the callback emit each value directly, so the code is often more concise when each element conditionally emits a small number of values.
 
-Về hiệu năng, `mapMulti` **có thể** tránh việc tự tạo Stream con cho từng đầu vào và giảm một số chi phí trung gian. Tuy nhiên, **không có cam kết rằng nó không cấp phát bộ nhớ**: triển khai mặc định có thể dùng vùng đệm nội bộ và thực hiện logic tương đương `flatMap`. Hãy benchmark nếu hiệu năng là lý do lựa chọn; đừng thay `flatMap` hàng loạt chỉ theo cảm tính.
+In terms of performance, `mapMulti` **can** avoid allocating a sub-stream per input and reduce some intermediate overhead. However, **there is no guarantee of zero allocation**: default implementations may use internal buffers and execute logic equivalent to `flatMap`. Benchmark if performance is the deciding factor; do not mass-replace `flatMap` on intuition alone.
 
-### Chuyển đổi giữa các loại primitive
+### Converting between primitive types
 
-`IntStream.mapMulti` chỉ phát `int`. Nếu kết quả mong muốn là `long` hoặc `double`, hãy chọn bước chuyển loại trước hoặc sau cho phù hợp:
+`IntStream.mapMulti` only emits `int`. If the desired output is `long` or `double`, choose a type conversion step before or after accordingly:
 
 ~~~java
 import java.util.stream.IntStream;
@@ -409,14 +409,14 @@ long sum = IntStream.of(1, 2, 3)
     })
     .sum();
 
-// Đã chuyển thành LongStream trước khi gọi LongStream.mapMulti.
+// Converted to LongStream before calling LongStream.mapMulti.
 ~~~
 
-Không có method `IntStream.mapMultiToLong` tương ứng với `Stream<T>.mapMultiToLong`. Trường hợp cần phát nhiều giá trị `long` trực tiếp từ một phần tử `int`, có thể cân nhắc `mapToLong(...).mapMulti(...)`, hoặc một phương thức chuyển đổi khác rõ nghĩa hơn.
+There is no `IntStream.mapMultiToLong` corresponding to `Stream<T>.mapMultiToLong`. When you need to emit multiple `long` values directly from an `int` element, consider `mapToLong(...).mapMulti(...)` or a clearer conversion method.
 
-## 8. Pipeline lazy, thứ tự gặp phần tử và short-circuit
+## 8. Lazy pipelines, encounter order, and short-circuiting
 
-`mapMulti` là **intermediate operation**. Lambda chỉ có cơ hội chạy khi một terminal operation cần dữ liệu. Với nguồn ordered như `IntStream.rangeClosed`, các giá trị đi qua một pipeline tuần tự theo encounter order của nguồn và thứ tự phát trong từng callback.
+`mapMulti` is an **intermediate operation**. The lambda only runs when a terminal operation pulls data. On an ordered source like `IntStream.rangeClosed`, values flow through a sequential pipeline following the source's encounter order and the emission order within each callback.
 
 ~~~java
 import java.util.Arrays;
@@ -433,9 +433,9 @@ System.out.println(Arrays.toString(output));
 // [1, -1, 2, -2, 3, -3]
 ~~~
 
-Vì Stream lazy, nếu chỉ xây dựng pipeline mà chưa gọi `toArray()`, `sum()` hoặc terminal operation khác thì không cần tính toán các phần tử. Sau terminal, Stream đã tiêu thụ và không được tái sử dụng.
+Because Streams are lazy, merely constructing the pipeline without calling `toArray()`, `sum()`, or another terminal operation does not compute the elements. After a terminal operation, the Stream is consumed and cannot be reused.
 
-### `limit` sau `mapMulti` đếm **đầu ra**
+### `limit` after `mapMulti` counts **outputs**
 
 ~~~java
 int[] firstThree = IntStream.rangeClosed(1, 5)
@@ -449,13 +449,13 @@ int[] firstThree = IntStream.rangeClosed(1, 5)
 // [1, -1, 2]
 ~~~
 
-`limit(3)` chọn tối đa ba **phần tử đầu ra**. Nó không có nghĩa là thực hiện mapper trên đúng ba **phần tử đầu vào**.
+`limit(3)` selects at most three **output elements**. It does not mean executing the mapper on exactly three **input elements**.
 
-Không viết mapper với vòng lặp **vô hạn** rồi mong `limit` chắc chắn tự dừng vòng lặp bên trong lambda. Một callback có thể tiếp tục thực hiện các lệnh riêng của nó sau khi downstream đã đủ dữ liệu. Hãy bảo đảm mỗi lời gọi mapper có thời gian chạy và số phần tử phát hữu hạn, hợp lý.
+Do not write a mapper with an **infinite** loop expecting `limit` to automatically halt the loop inside the lambda. A callback may continue running its own statements after downstream has received enough data. Ensure every mapper invocation has finite, bounded runtime and emission count.
 
-### `distinct`, `sorted` và `unordered`
+### `distinct`, `sorted`, and `unordered`
 
-Những operation này vẫn làm việc trên `IntStream`, `LongStream` hoặc `DoubleStream`:
+These operations continue to work on `IntStream`, `LongStream`, or `DoubleStream`:
 
 ~~~java
 import java.util.Arrays;
@@ -474,17 +474,17 @@ System.out.println(Arrays.toString(distinctSorted));
 // [1, 2, 3]
 ~~~
 
-Với nguồn có encounter order, `mapMulti` giữ quan hệ thứ tự tương ứng của các kết quả được phát. Tuy nhiên, `unordered()` có thể bỏ ràng buộc thứ tự; khi chạy song song, thứ tự thực thi callback không nhất thiết là thứ tự nguồn. `sorted()` thiết lập thứ tự mới cho dữ liệu đầu ra khi có tiêu chí so sánh.
+With an ordered source, `mapMulti` preserves the relative order of emitted results. However, `unordered()` can relax ordering constraints; when running in parallel, callback execution order need not match source order. `sorted()` establishes a new ordering for the output data when a comparison criterion applies.
 
-## 9. Xử lý song song: lambda độc lập và không can thiệp nguồn
+## 9. Parallel processing: independent and non-interfering lambdas
 
-Các quy tắc cho **behavioral parameters** của Stream API vẫn áp dụng:
+The Stream API rules for **behavioral parameters** still apply:
 
-- **Không trạng thái (stateless):** mapper xử lý một phần tử không phụ thuộc vào trạng thái mutable do việc xử lý phần tử khác thay đổi.
-- **Không can thiệp (non-interfering):** mapper không sửa nguồn dữ liệu mà Stream đang duyệt.
-- **Không dựa vào side effect:** không dùng việc tăng biến đếm, ghi vào danh sách ngoài hay gọi I/O trong mapper như một phần bắt buộc của kết quả terminal.
+- **Stateless:** processing one element does not depend on mutable state modified while processing other elements.
+- **Non-interfering:** the mapper does not modify the data source the Stream is traversing.
+- **Do not rely on side effects:** do not use counter increments, writes to external lists, or I/O calls inside a mapper as a required part of the terminal result.
 
-Ví dụ **không an toàn** trên parallel stream:
+Example that is **unsafe** on a parallel stream:
 
 ~~~java
 import java.util.ArrayList;
@@ -496,13 +496,13 @@ List<Integer> shared = new ArrayList<>();
 int[] values = IntStream.range(0, 100_000)
     .parallel()
     .mapMulti((n, out) -> {
-        shared.add(n); // Race condition trên ArrayList.
+        shared.add(n); // Race condition on ArrayList.
         out.accept(n * 2);
     })
     .toArray();
 ~~~
 
-`shared` được thay đổi từ nhiều tác vụ; `ArrayList` không an toàn khi nhiều thread cùng ghi. `mapMulti` không biến mutation bên ngoài thành thao tác đồng bộ. Cách xử lý đúng nếu chỉ cần mảng kết quả:
+`shared` is mutated from multiple tasks; `ArrayList` is not safe for concurrent writes from multiple threads. `mapMulti` does not make external mutations synchronized. The proper approach when only the result array is needed:
 
 ~~~java
 int[] values = IntStream.range(0, 100_000)
@@ -511,13 +511,13 @@ int[] values = IntStream.range(0, 100_000)
     .toArray();
 ~~~
 
-Stream tự quản lý việc thu kết quả. Cần lưu ý phép tính có thể tràn `int` nếu đầu vào lớn, mặc dù ví dụ này vẫn nằm trong miền an toàn.
+The Stream handles collecting results itself. Note that calculations can overflow `int` for large inputs, though this example remains in a safe range.
 
-Trong pipeline song song, `forEach` không bảo đảm thứ tự thực thi action ngay cả khi nguồn có encounter order. Nếu kết quả bắt buộc theo thứ tự nguồn, ưu tiên thu thập qua `toArray()` hoặc dùng `forEachOrdered` khi phải thực hiện action theo thứ tự. Việc giữ thứ tự có thể hạn chế hiệu năng, nên cần cân nhắc yêu cầu nghiệp vụ.
+In a parallel pipeline, `forEach` does not guarantee action execution order even when the source has an encounter order. If results must follow source order, prefer collecting via `toArray()` or use `forEachOrdered` when actions must execute in order. Preserving order can limit performance, so weigh business requirements.
 
-### Kết hợp, hiệu năng và tổng hợp
+### Combining, performance, and aggregation
 
-Với phép tổng, `IntStream.sum()` trả về `int` và có thể tràn. Nếu tổng cần vượt miền `int`, chuyển sang `long`:
+For summation, `IntStream.sum()` returns `int` and can overflow. If the total may exceed `int` range, convert to `long`:
 
 ~~~java
 import java.util.stream.IntStream;
@@ -530,11 +530,11 @@ long safeRangeSum = IntStream.rangeClosed(1, 100_000)
 System.out.println(safeRangeSum); // 5_000_050_000
 ~~~
 
-Với `DoubleStream.sum()`, các sai khác làm tròn do số thực và cách kết hợp trong parallel stream cần được chấp nhận hoặc xử lý theo mục tiêu độ chính xác. Không có guarantee rằng song song sẽ nhanh hơn: overhead chia việc, trộn kết quả, lượng fan-out hoặc dữ liệu nhỏ có thể làm hiệu năng kém hơn.
+With `DoubleStream.sum()`, floating-point rounding discrepancies and parallel combination ordering must be accepted or addressed according to precision targets. There is no guarantee that parallel is faster: work-splitting overhead, result merging, fan-out volume, or small data sizes can degrade performance.
 
-## 10. Ví dụ hoàn chỉnh: kiểm tra số lượng đơn vị qua `IntStream.mapMulti`
+## 10. Complete example: validating unit counts via `IntStream.mapMulti`
 
-Đây là một bài toán mô phỏng: hệ thống nhận số lượt thử cho mỗi thiết bị trong ngày; số âm và số vượt hạn mức được xem là lỗi đầu vào. Mỗi thiết bị hợp lệ tạo một dãy số thứ tự lượt thử. Kết quả được phân tích bằng `summaryStatistics()`.
+Here is a simulated scenario: the system receives attempt counts per device for the day; negative counts and counts exceeding a quota are treated as input errors. Each valid device generates a sequence of attempt numbers. Results are analyzed with `summaryStatistics()`.
 
 ~~~java
 import java.util.Arrays;
@@ -548,7 +548,7 @@ public class PrimitiveFanOut {
         return counts.mapMulti((count, out) -> {
             if (count < 0 || count > MAX_ATTEMPTS) {
                 throw new IllegalArgumentException(
-                    "Lượt thử không hợp lệ: " + count
+                    "Invalid attempt count: " + count
                 );
             }
             for (int attempt = 1; attempt <= count; attempt++) {
@@ -578,32 +578,32 @@ public class PrimitiveFanOut {
 }
 ~~~
 
-Điểm cần chú ý:
+Key points to note:
 
-1. Hàm `expandAttempts` nhận **`IntStream`** nên sử dụng `IntStream.mapMulti`.
-2. `count = 0` phát 0 số; `count = 3` phát `1, 2, 3`; `count = 2` phát `1, 2`.
-3. Hai lần gọi `expandAttempts` nhận **hai Stream mới**; không tái sử dụng Stream đã chạy terminal.
-4. Mapper độc lập theo từng `count` và không sửa dữ liệu bên ngoài.
-5. `summaryStatistics()` tạo một kết quả tổng hợp không cần boxing từng `int`.
-6. Giới hạn `MAX_ATTEMPTS` giúp kiểm soát số phần tử tối đa phát trên mỗi đầu vào.
+1. `expandAttempts` takes an **`IntStream`**, so it uses `IntStream.mapMulti`.
+2. `count = 0` emits 0 numbers; `count = 3` emits `1, 2, 3`; `count = 2` emits `1, 2`.
+3. The two calls to `expandAttempts` receive **two fresh Streams**; do not reuse a Stream after running a terminal operation.
+4. The mapper is independent per `count` and mutates no external data.
+5. `summaryStatistics()` computes an aggregate summary without boxing each `int`.
+6. `MAX_ATTEMPTS` caps the maximum number of elements emitted per input.
 
-Trong một hệ thống thật, nếu chỉ cần **tổng số lượt thử**, hãy dùng `IntStream.sum()` hoặc `mapToLong(...).sum()` sau khi kiểm tra đầu vào; không cần nở dãy lượt thử. Fan-out chỉ phù hợp khi logic phía sau thật sự phải xử lý từng lượt.
+In a real system, if only the **total number of attempts** is needed, use `IntStream.sum()` or `mapToLong(...).sum()` after input validation; there is no need to expand the attempt sequence. Fan-out is only appropriate when downstream logic truly must process each individual attempt.
 
-## 11. Những lỗi thường gặp
+## 11. Common mistakes
 
-### Lỗi 1: quên `out.accept`
+### Mistake 1: forgetting `out.accept`
 
 ~~~java
 int[] result = IntStream.of(1, 2, 3)
     .mapMulti((n, out) -> {
-        int doubled = n * 2; // Có tính toán nhưng không phát giá trị.
+        int doubled = n * 2; // Computed, but never emitted.
     })
     .toArray();
 
-// result là mảng rỗng.
+// result is an empty array.
 ~~~
 
-Đoạn trên vẫn biên dịch nhưng kết quả rỗng vì mapper không gọi `accept`. Cách viết **đáp ứng mục tiêu**:
+This compiles, yet the result is empty because the mapper never calls `accept`. The version that **achieves the goal**:
 
 ~~~java
 int[] result = IntStream.of(1, 2, 3)
@@ -611,15 +611,15 @@ int[] result = IntStream.of(1, 2, 3)
     .toArray(); // [2, 4, 6]
 ~~~
 
-Lambda `mapMulti` phải gọi `accept` để phát phần tử. Nếu mapper không gọi `accept` thì đầu ra của phần tử hiện tại rỗng.
+A `mapMulti` lambda must call `accept` to emit elements. If the mapper never calls `accept`, the output for the current element is empty.
 
-### Lỗi 2: nhầm `mapMulti` với `flatMap`
+### Mistake 2: confusing `mapMulti` with `flatMap`
 
 ~~~java
-// Sai mục đích: mapMulti không nhận lambda trả IntStream.
+// Wrong purpose: mapMulti does not accept a lambda returning IntStream.
 // .mapMulti(n -> IntStream.of(n, -n))
 
-// Đúng với mapMulti:
+// Right with mapMulti:
 int[] values = IntStream.of(1, 2)
     .mapMulti((n, out) -> {
         out.accept(n);
@@ -627,22 +627,22 @@ int[] values = IntStream.of(1, 2)
     })
     .toArray(); // [1, -1, 2, -2]
 
-// Đúng với flatMap:
+// Right with flatMap:
 int[] sameValues = IntStream.of(1, 2)
     .flatMap(n -> IntStream.of(n, -n))
     .toArray();
 ~~~
 
-### Lỗi 3: mở rộng dữ liệu không giới hạn
+### Mistake 3: unbounded data expansion
 
 ~~~java
-// Cần kiểm tra count trước khi phát số phần tử tương ứng:
+// Validate count before emitting that many elements:
 int count = 3;
 
 int[] values = IntStream.of(count)
     .mapMulti((n, out) -> {
         if (n < 0 || n > 10_000) {
-            throw new IllegalArgumentException("Vượt hạn mức");
+            throw new IllegalArgumentException("Quota exceeded");
         }
         for (int i = 0; i < n; i++) {
             out.accept(i);
@@ -651,12 +651,12 @@ int[] values = IntStream.of(count)
     .toArray();
 ~~~
 
-Một lượng đầu ra lớn có thể tốn thời gian và bộ nhớ dù phép biến đổi chỉ dùng primitive. Đừng dùng một vòng lặp vô hạn trong mapper rồi trông chờ terminal short-circuit bảo đảm dừng nó.
+A huge output volume can consume time and memory even when the transformation uses only primitives. Do not put an infinite loop inside a mapper expecting a short-circuiting terminal operation to guarantee stopping it.
 
-### Lỗi 4: coi `mapMulti` là phép chuyển đổi từ object sang primitive
+### Mistake 4: treating `mapMulti` as an object-to-primitive conversion
 
 ~~~java
-// Với Stream<String>, phải gọi mapMultiToInt:
+// For Stream<String>, you must call mapMultiToInt:
 int[] parsed = List.of("1", "2").stream()
     .mapMultiToInt((text, out) ->
         out.accept(Integer.parseInt(text))
@@ -664,44 +664,44 @@ int[] parsed = List.of("1", "2").stream()
     .toArray(); // [1, 2]
 ~~~
 
-`IntStream.mapMulti` chỉ có trên `IntStream`; `Stream<String>` không có phương thức mang cùng chữ ký này. Với nguồn là object, dùng đúng biến thể `mapMultiToInt/Long/Double`.
+`IntStream.mapMulti` exists only on `IntStream`; `Stream<String>` has no method with this signature. For object sources, use the right `mapMultiToInt/Long/Double` variant.
 
-### Lỗi 5: tưởng `mapMulti` tự động cải thiện hiệu năng
+### Mistake 5: assuming `mapMulti` automatically improves performance
 
-So với `flatMap`, `mapMulti` có thể dễ viết và có thể giảm overhead khi phát ít giá trị, nhưng vẫn phải tuân theo hợp đồng Stream, vẫn có thể có bộ đệm nội bộ và không bảo đảm tốc độ hoặc bộ nhớ tốt hơn trong mọi ứng dụng. Hãy dùng profiler/benchmark nếu đó là tiêu chí chọn lựa.
+Compared to `flatMap`, `mapMulti` can be easier to write and may reduce overhead when emitting few values, yet it still obeys the Stream contract, may use internal buffering, and does not guarantee better speed or memory usage in every application. Use a profiler/benchmark if that is the selection criterion.
 
-### Lỗi 6: nhầm miền giá trị và độ chính xác
+### Mistake 6: mixing up value domains and precision
 
-- `IntStream.sum()` có thể tràn `int`; cân nhắc `asLongStream().sum()` nếu tổng lớn.
-- `LongStream.sum()` cũng có thể tràn `long`; kiểm tra quy mô dữ liệu và chính sách số học.
-- `DoubleStream.sum()` chịu ảnh hưởng làm tròn; có thể có `NaN` hoặc vô hạn nếu giá trị đầu vào không được lọc.
-- Primitive stream không biểu diễn `null` cho từng phần tử; nếu nguồn có dữ liệu thiếu, cần quy tắc xử lý tại bước chuyển từ object/Optional sang primitive.
+- `IntStream.sum()` can overflow `int`; consider `asLongStream().sum()` for large totals.
+- `LongStream.sum()` can also overflow `long`; check data scale and arithmetic policy.
+- `DoubleStream.sum()` is subject to rounding; `NaN` or infinity may appear if inputs are not filtered.
+- Primitive streams do not represent `null` per element; if the source has missing data, define a handling rule when converting from objects/Optional to primitives.
 
-## 12. Bảng chọn nhanh và câu hỏi tự kiểm tra
+## 12. Quick selection table and self-check questions
 
-| Yêu cầu | Operation nên cân nhắc | Lý do |
+| Requirement | Operation to consider | Reason |
 | --- | --- | --- |
-| `int` thành 0–n `int` | `IntStream.mapMulti` | Giữ nguyên primitive stream. |
-| `long` thành 0–n `long` | `LongStream.mapMulti` | Phát bằng `LongConsumer`. |
-| `double` thành 0–n `double` | `DoubleStream.mapMulti` | Phát bằng `DoubleConsumer`. |
-| `Stream<Order>` thành 0–n `long` | `mapMultiToLong` | Chuyển nguồn object sang primitive stream. |
-| `Stream<String>` thành 0–n `int` | `mapMultiToInt` | Parse và phát trực tiếp `int`. |
-| Một `int` thành đúng một `int` | `map` | Diễn đạt biến đổi 1–1. |
-| Chỉ giữ số thỏa điều kiện | `filter` | Không cần tạo thêm giá trị. |
-| Mapper vốn đã trả `IntStream` | `flatMap` | Phù hợp để làm phẳng các Stream con. |
-| Chỉ cần tổng số lượng | `sum`/`mapToLong(...).sum()` | Tránh fan-out không cần thiết. |
+| `int` to 0–n `int` | `IntStream.mapMulti` | Stays in primitive stream. |
+| `long` to 0–n `long` | `LongStream.mapMulti` | Emits via `LongConsumer`. |
+| `double` to 0–n `double` | `DoubleStream.mapMulti` | Emits via `DoubleConsumer`. |
+| `Stream<Order>` to 0–n `long` | `mapMultiToLong` | Converts object source to primitive stream. |
+| `Stream<String>` to 0–n `int` | `mapMultiToInt` | Parses and emits `int` directly. |
+| One `int` to exactly one `int` | `map` | Expresses 1-to-1 transformation. |
+| Only keep numbers matching a condition | `filter` | No need to produce new values. |
+| Mapper already returns `IntStream` | `flatMap` | Suited for flattening sub-streams. |
+| Only need total quantity | `sum`/`mapToLong(...).sum()` | Avoids unnecessary fan-out. |
 
-Tự kiểm tra:
+Self-check:
 
-1. **`IntStream.mapMulti` trả về kiểu gì?** `IntStream`; mapper nhận số `int` và một `IntConsumer`.
-2. **Một phần tử không gọi `out.accept` sẽ tạo ra bao nhiêu giá trị?** Không có giá trị nào.
-3. **Một phần tử gọi `out.accept` hai lần tạo bao nhiêu phần tử đầu ra?** Hai phần tử, theo thứ tự hai lời gọi trong mapper.
-4. **Khi đầu vào là `Stream<String>` và muốn kết quả `IntStream`, dùng gì?** `mapMultiToInt`.
-5. **Có cần `boxed()` trước khi gọi `IntStream.mapMulti` không?** Không; một lợi ích là giữ pipeline ở dạng nguyên thủy.
-6. **`limit(3)` sau `mapMulti` giới hạn ba input hay output?** Giới hạn số phần tử **đầu ra**.
-7. **`parallel().mapMulti(...)` có cho phép cộng biến mutable dùng chung không?** Không; mapper vẫn cần không trạng thái và không can thiệp nguồn.
-8. **Nếu chỉ cần tổng của các số lượng, có nên phát `quantity` lần mỗi giá trị không?** Thường không; tính tổng trực tiếp phù hợp hơn.
-9. **`mapMulti` có luôn nhanh hơn `flatMap` không?** Không; API có thể sử dụng bộ đệm và hiệu năng phụ thuộc dữ liệu, triển khai và tải thực tế.
-10. **Có nên xem `DoubleStream` là lựa chọn mặc định để tính tiền chính xác tuyệt đối không?** Không; phải chọn kiểu số phù hợp chính sách làm tròn và độ chính xác.
+1. **What type does `IntStream.mapMulti` return?** `IntStream`; the mapper accepts an `int` and an `IntConsumer`.
+2. **If an element never calls `out.accept`, how many values are produced?** None.
+3. **If an element calls `out.accept` twice, how many output elements are produced?** Two elements, in the order of the two calls inside the mapper.
+4. **When the input is `Stream<String>` and an `IntStream` result is desired, what do you use?** `mapMultiToInt`.
+5. **Is `boxed()` needed before calling `IntStream.mapMulti`?** No; one benefit is keeping the pipeline in primitive form.
+6. **Does `limit(3)` after `mapMulti` limit three inputs or outputs?** It limits the number of **output** elements.
+7. **Does `parallel().mapMulti(...)` allow incrementing a shared mutable variable?** No; the mapper must remain stateless and non-interfering.
+8. **If only the sum of quantities is needed, should each value be emitted `quantity` times?** Usually no; summing directly is more appropriate.
+9. **Is `mapMulti` always faster than `flatMap`?** No; the API may use internal buffers and performance depends on data, implementation, and actual workload.
+10. **Should `DoubleStream` be treated as the default choice for exact monetary calculations?** No; choose a numeric type suited to rounding and precision policies.
 
-**Ghi nhớ:** `mapMulti` trên **`IntStream`, `LongStream` và `DoubleStream`** là phép biến đổi **một giá trị primitive thành 0–n giá trị primitive cùng loại**, phát qua `IntConsumer`, `LongConsumer` hoặc `DoubleConsumer`. Với đầu vào là object, dùng `Stream<T>.mapMultiToInt/Long/Double`. Giữ mapper độc lập, phát số lượng hữu hạn, dùng terminal operation phù hợp và đánh giá lợi ích theo đúng nhu cầu của pipeline.
+**Takeaway:** `mapMulti` on **`IntStream`, `LongStream`, and `DoubleStream`** is a transformation from **one primitive value to 0–n primitive values of the same type**, emitted via `IntConsumer`, `LongConsumer`, or `DoubleConsumer`. For object inputs, use `Stream<T>.mapMultiToInt/Long/Double`. Keep mappers independent, emit finite counts, use appropriate terminal operations, and evaluate benefits against the actual needs of the pipeline.

@@ -1,56 +1,56 @@
-# Kiểm tra trường hợp rỗng, biên, số âm, dữ liệu sai và giá trị lớn trong Java
+# Testing Empty, Boundary, Negative, Invalid, and Large Values in Java
 
-Kiểm thử không chỉ xác nhận đầu vào thông thường chạy đúng. Một chương trình Java đáng tin cậy còn phải có **hành vi được xác định rõ** khi không có dữ liệu, dữ liệu nằm sát giới hạn, xuất hiện số âm, sai định dạng hoặc vượt khả năng biểu diễn của kiểu số. Những ca này cần được thiết kế từ **hợp đồng của chương trình** (đầu vào được chấp nhận, giới hạn, kết quả và lỗi mong đợi), thay vì thử các con số tùy ý.
+Testing does not only verify that normal inputs work correctly. A reliable Java program must also have **well-defined behavior** when data is missing, sits right on boundaries, includes negative numbers, has invalid formatting, or exceeds numeric type limits. These cases must be designed from the **program's contract** (accepted inputs, bounds, expected results, and expected errors), rather than testing arbitrary numbers.
 
-Bài này dùng Java 17+ và một ví dụ xử lý **số lượng sản phẩm** hợp lệ trong đoạn `0..1_000_000`. Quy tắc minh họa: giá trị `0` hợp lệ; giá trị âm và lớn hơn `1_000_000` bị từ chối; đầu vào phải là một chuỗi biểu diễn số nguyên `int` hợp lệ, không tự cắt khoảng trắng. Với nghiệp vụ khác, các giới hạn có thể khác; cần nêu rõ trước khi viết test.
+This lesson uses Java 17+ and an example handling a **product quantity** valid within the range `0..1_000_000`. Illustrative rules: `0` is valid; negative values and values greater than `1_000_000` are rejected; input must be a valid `int` string representation without automatic whitespace trimming. In other domains, bounds may differ and must be stated clearly before writing tests.
 
-## 1. Phân loại đầu vào và đặt kết quả mong đợi
+## 1. Categorizing inputs and defining expected results
 
-| Nhóm | Ví dụ đầu vào | Cần xác nhận |
+| Category | Example input | What to verify |
 | --- | --- | --- |
-| Thiếu dữ liệu | `null` đối với tham chiếu `String` | Báo lỗi thiếu giá trị; không gọi phương thức của `null` |
-| Chuỗi rỗng | `""` | Báo lỗi rõ ràng, không cố phân tích thành số |
-| Chỉ khoảng trắng | `"   "` | Phân biệt với chuỗi chứa số hợp lệ |
-| Cận dưới và lân cận | `-1`, `0`, `1` | `-1` bị từ chối, `0` và `1` hợp lệ |
-| Cận trên và lân cận | `999999`, `1000000`, `1000001` | Hai số đầu hợp lệ, số cuối vượt giới hạn |
-| Sai định dạng | `"12x"`, `"3.5"`, `" 5 "` | Không âm thầm chuyển thành dữ liệu khác; thông báo nhất quán |
-| Ngoài miền biểu diễn `int` | `"2147483648"` | `Integer.parseInt` báo `NumberFormatException`; chương trình phải xử lý |
-| Tính toán giá trị lớn | Giá `50_000` × số lượng `1_000_000` | Kết quả `50_000_000_000` cần `long` hoặc kiểu phù hợp, không được tràn `int` |
+| Missing data | `null` for a `String` reference | Report missing value error; never invoke methods on `null` |
+| Empty string | `""` | Report clear error; do not attempt to parse as a number |
+| Whitespace only | `"   "` | Distinguish from a string containing a valid number |
+| Lower bound and neighbors | `-1`, `0`, `1` | `-1` rejected, `0` and `1` valid |
+| Upper bound and neighbors | `999999`, `1000000`, `1000001` | First two valid, last one out of bounds |
+| Invalid format | `"12x"`, `"3.5"`, `" 5 "` | Do not silently convert into another value; consistent message |
+| Outside `int` range | `"2147483648"` | `Integer.parseInt` throws `NumberFormatException`; program must handle it |
+| Large value calculations | Price `50_000` × quantity `1_000_000` | Result `50_000_000_000` needs `long` or a suitable type; must not overflow `int` |
 
-**Rỗng không có một nghĩa duy nhất:** `null` là không có đối tượng; `""` là `String` có độ dài 0; `"   "` không rỗng theo `isEmpty()` nhưng `isBlank()` trả `true`. Một danh sách rỗng (`List.isEmpty()`) hay mảng có `length == 0` lại là dữ liệu có cấu trúc, cần quy tắc kiểm tra riêng. Với kiểu nguyên thủy `int`, bản thân biến không nhận `null`; vấn đề thiếu dữ liệu thường xuất hiện trước khi chuyển đổi từ chuỗi hoặc qua `Integer`.
+**"Empty" does not have a single meaning:** `null` means no object; `""` is a `String` of length 0; `"   "` is not empty according to `isEmpty()` yet `isBlank()` returns `true`. An empty list (`List.isEmpty()`) or an array with `length == 0` is structured data needing its own validation rule. For primitive `int`, the variable itself cannot hold `null`; missing data issues usually arise before parsing from a string or through `Integer`.
 
-Không nên tự coi giá trị `0` là “chưa nhập”. Nó có thể là số lượng hợp lệ. Nếu muốn cấm `0`, hãy ghi thành quy tắc `1..MAX` và đổi toàn bộ test tương ứng.
+Do not automatically treat `0` as "not entered." It can be a valid quantity. If you want to forbid `0`, write the rule as `1..MAX` and update all corresponding tests.
 
-## 2. Kiểm thử biên có hệ thống
+## 2. Systematic boundary testing
 
-Nếu miền hợp lệ là **`MIN <= x <= MAX`**, các ca có giá trị học tập cao gồm:
+If the valid domain is **`MIN <= x <= MAX`**, high-value test cases include:
 
-- `MIN - 1` (ngoài miền), `MIN` (trúng cận), `MIN + 1` (sát trong miền).
-- `MAX - 1` (sát trong miền), `MAX` (trúng cận), `MAX + 1` (ngoài miền).
-- Một giá trị bình thường nằm giữa miền, ví dụ `42`, để xác nhận đường đi chính.
+- `MIN - 1` (out of range), `MIN` (exact lower bound), `MIN + 1` (just inside range).
+- `MAX - 1` (just inside range), `MAX` (exact upper bound), `MAX + 1` (out of range).
+- A normal mid-range value, such as `42`, to verify the main path.
 
-Trong ví dụ `MIN=0`, `MAX=1_000_000`, các giá trị là `-1, 0, 1, 999999, 1000000, 1000001`. Hãy ghi rõ cận **bao gồm** (`<=`) hay **không bao gồm** (`<`); một ký tự toán tử sai có thể đổi kết quả ở đúng vị trí biên. Với phép tính cận lớn như `Integer.MAX_VALUE + 1`, không dùng phép cộng `int` khiến chính giá trị test bị tràn; chuẩn bị dữ liệu bằng `long`, `String` hoặc `BigInteger` phù hợp.
+In the example `MIN=0`, `MAX=1_000_000`, the values are `-1, 0, 1, 999999, 1000000, 1000001`. Specify clearly whether bounds are **inclusive** (`<=`) or **exclusive** (`<`); a single wrong operator character can flip the outcome right at the boundary. For large boundary calculations such as `Integer.MAX_VALUE + 1`, do not use `int` addition that overflows the test value itself; prepare test data with `long`, `String`, or `BigInteger` as appropriate.
 
-Kiểm tra số âm chỉ có ý nghĩa khi đầu vào có thể biểu diễn số âm. Nếu dữ liệu là tuổi, số lượng hay thời gian không âm, hành vi có thể là từ chối với lỗi xác định; nếu dữ liệu là nhiệt độ Celsius, số âm lại có thể hợp lệ. Vì vậy, **yêu cầu nghiệp vụ quyết định kết quả mong đợi**.
+Negative-number checks only make sense when the input can represent negatives. If the data is age, quantity, or non-negative duration, the behavior may be to reject with a defined error; if the data is Celsius temperature, negative numbers may be valid. Thus, **business requirements determine the expected outcome**.
 
-## 3. Dữ liệu sai và ngoại lệ
+## 3. Invalid data and exceptions
 
-Khi đầu vào dạng chữ cần thành `int`, `Integer.parseInt(raw)` ném `NumberFormatException` nếu không thể phân tích hoặc giá trị vượt miền `int` (`-2147483648` đến `2147483647`). Đây là ngoại lệ con của `IllegalArgumentException`.
+When text input must become an `int`, `Integer.parseInt(raw)` throws `NumberFormatException` if it cannot be parsed or the value exceeds the `int` range (`-2147483648` to `2147483647`). This is a subclass of `IllegalArgumentException`.
 
-Một thiết kế kiểm tra rõ ràng thường đi theo trình tự:
+A clear validation design typically follows this order:
 
-1. Kiểm tra tham chiếu `null` và dữ liệu rỗng/trắng.
-2. Phân tích đúng định dạng. Quyết định **trước** việc có `trim()`/chuẩn hóa dấu cách hay không; ví dụ này cố ý từ chối `" 5 "`.
-3. Kiểm tra quy tắc miền giá trị: âm, vượt giới hạn, cận đóng/mở.
-4. Chỉ thực hiện nghiệp vụ khi đầu vào đã hợp lệ; báo lỗi đủ rõ để nơi gọi xử lý.
+1. Check for `null` references and empty/blank data.
+2. Parse strictly according to format. Decide **beforehand** whether to `trim()`/normalize whitespace; this example intentionally rejects `" 5 "`.
+3. Check range rules: negative values, exceeding limits, inclusive/exclusive bounds.
+4. Perform business logic only after input is valid; report errors clearly enough for the caller to handle.
 
-Phân biệt dữ liệu **không hợp lệ theo định dạng** (`"12x"`) và **hợp lệ về số học nhưng sai chính sách** (`"1000001"`). Không dùng `catch (Exception)` rồi trả giá trị mặc định `0`: cách đó dễ che mất lỗi và khiến kết quả sai trông như thành công. Với ứng dụng thật, có thể trả kết quả lỗi cấu trúc hoặc ném ngoại lệ rồi xử lý ở lớp giao diện/API.
+Distinguish **format-invalid input** (`"12x"`) from **numerically valid but policy-invalid input** (`"1000001"`). Never use `catch (Exception)` and return a default `0`: that hides errors and makes wrong results look like success. In real applications, you can return a structured error result or throw an exception handled at the UI/API layer.
 
-Lưu ý: dấu gạch dưới trong literal Java `1_000_000` giúp đọc **mã nguồn**, nhưng chuỗi đầu vào `"1_000_000"` không được `Integer.parseInt` chấp nhận. `"3.5"` cũng không phải chuỗi số nguyên, và ép sang `int` sau khi đọc `double` là một hành vi khác cần được đặc tả riêng.
+Note: underscores in Java numeric literals like `1_000_000` aid **source code** readability, but the input string `"1_000_000"` is not accepted by `Integer.parseInt`. `"3.5"` is not an integer string either, and casting to `int` after reading a `double` is a different behavior that must be specified separately.
 
-## 4. Chương trình kiểm tra tự động bằng Java 17+
+## 4. Automated verification program in Java 17+
 
-Lưu trọn chương trình sau vào tệp **`InputBoundaryChecks.java`** (không khai báo `package`). Các hàm `expectValid` và `expectInvalid` kiểm tra **cả đầu ra lẫn thông báo lỗi**; nếu hành vi thực tế không đúng, chúng ném `AssertionError`. Không cần bật JVM `-ea`.
+Save the entire program below into **`InputBoundaryChecks.java`** (no `package` declaration). The `expectValid` and `expectInvalid` methods verify **both the return value and the error message**; if actual behavior mismatches, they throw `AssertionError`. There is no need to enable JVM `-ea`.
 
 ```java
 import java.math.BigInteger;
@@ -151,14 +151,14 @@ public final class InputBoundaryChecks {
 }
 ```
 
-Mở terminal ở thư mục chứa tệp, có JDK 17 trở lên:
+Open a terminal in the file's directory with JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 InputBoundaryChecks.java
 java InputBoundaryChecks
 ```
 
-**Stdout chính xác khi tất cả ca kiểm tra đạt:**
+**Exact stdout when all checks pass:**
 
 ```text
 null: PASS (thiếu giá trị)
@@ -180,22 +180,22 @@ nhân long: 50000000000
 BigInteger: 9223372036854775808
 ```
 
-Chương trình dùng `AssertionError` trực tiếp để mỗi ca sai làm chương trình thất bại ngay. `NumberFormatException` được bọc lại với thông báo theo hợp đồng của `parseCount`. `Math.multiplyExact(int, int)` phát hiện tràn bằng `ArithmeticException`; phép nhân `(long) unitPriceVnd * count` chuyển một toán hạng sang `long` **trước phép nhân**, nhận kết quả đúng `50_000_000_000`. `BigInteger` biểu diễn được giá trị lớn hơn `Long.MAX_VALUE`, nhưng trong ứng dụng vẫn cần giới hạn nghiệp vụ và bộ nhớ hợp lý.
+The program uses `AssertionError` directly so any failing check fails the program immediately. `NumberFormatException` is wrapped with a message matching `parseCount`'s contract. `Math.multiplyExact(int, int)` detects overflow via `ArithmeticException`; `(long) unitPriceVnd * count` converts one operand to `long` **before multiplication**, yielding the exact result `50_000_000_000`. `BigInteger` represents values larger than `Long.MAX_VALUE`, though applications still need sensible business and memory limits.
 
-## 5. Tràn số, kiểu dữ liệu và trường hợp đặc biệt
+## 5. Overflow, data types, and special cases
 
-- `int` là số nguyên có dấu 32 bit, `long` là 64 bit. Phép cộng/nhân nguyên thường **không tự ném ngoại lệ khi tràn**; kết quả có thể bị cuốn vòng và sai. Dùng `Math.addExact`, `Math.subtractExact`, `Math.multiplyExact`, `Math.toIntExact` khi cần phát hiện tràn.
-- Ép kiểu **sau** phép tính đã tràn không cứu được dữ liệu: `long total = price * count;` vẫn nhân hai `int` trước. Chuyển ít nhất một toán hạng thành `long` trước phép toán nếu kết quả nằm trong miền `long`.
-- Nếu có nguy cơ vượt cả `long`, dùng `BigInteger` cho số nguyên tùy độ lớn. Với tiền tệ có phần thập phân hoặc yêu cầu làm tròn, cân nhắc `BigDecimal` và quy tắc `RoundingMode` rõ ràng.
-- Khi phải làm việc với số thực `double`/`float`, kiểm tra `NaN`, `Infinity`, độ chính xác và sai số làm tròn theo hợp đồng; không so sánh bằng tuyệt đối một cách máy móc trong bài toán xấp xỉ.
-- Giá trị lớn còn có thể gây **tốn CPU/bộ nhớ** dù kiểu số vẫn chứa được; nên kiểm tra giới hạn kích thước dữ liệu, độ dài chuỗi, số phần tử hoặc độ lớn của đầu vào trước khi cấp phát.
+- `int` is a 32-bit signed integer, and `long` is 64-bit. Integer addition/multiplication normally **does not throw an exception on overflow**; the result wraps around silently and becomes wrong. Use `Math.addExact`, `Math.subtractExact`, `Math.multiplyExact`, and `Math.toIntExact` when overflow detection is needed.
+- Casting **after** an operation overflows does not rescue the data: `long total = price * count;` still multiplies two `int` values first. Convert at least one operand to `long` before the operation when the result fits in `long`.
+- If values may exceed even `long`, use `BigInteger` for arbitrary-size integers. For currency with fractional parts or rounding rules, consider `BigDecimal` with an explicit `RoundingMode`.
+- When working with floating-point `double`/`float`, check `NaN`, `Infinity`, precision, and rounding error according to the contract; do not compare for exact equality mechanically in approximate calculations.
+- Large values can also cause **high CPU/memory usage** even when the numeric type fits; validate data size bounds, string lengths, element counts, or input magnitude before allocating.
 
-## 6. Quy trình kiểm tra cho bài thực hành
+## 6. Testing workflow for practice exercises
 
-1. Viết hợp đồng: kiểu đầu vào, giá trị có thể thiếu, cận bao gồm/loại trừ, quy tắc chuẩn hóa và hình thức báo lỗi.
-2. Dựng bảng test theo lớp tương đương: **hợp lệ**, **rỗng/thiếu**, **ngoài cận**, **sai định dạng**, **vượt miền kiểu dữ liệu**, **tràn khi tính toán**.
-3. Thêm các ca ngay **dưới, đúng và trên mỗi cận**; phân biệt `0` với `null` nếu chúng có nghĩa khác nhau.
-4. Xác nhận đầu ra và loại/thông báo lỗi; các bài tập nhỏ có thể dùng runner như trên, dự án lớn có thể đưa cùng ca kiểm tra sang JUnit để tự chạy khi sửa mã.
-5. Chạy lại sau thay đổi, nhất là khi đổi kiểu `int` sang `long`, thay giới hạn hoặc quyết định tự động `trim()` đầu vào. Test nên thất bại khi hành vi lệch khỏi hợp đồng.
+1. Write the contract: input types, whether values can be missing, inclusive/exclusive bounds, normalization rules, and error reporting format.
+2. Build a test table by equivalence classes: **valid**, **empty/missing**, **out of bounds**, **invalid format**, **outside data type range**, **overflow during calculation**.
+3. Add cases right **below, on, and above each boundary**; distinguish `0` from `null` if they have different meanings.
+4. Verify output values and error types/messages; small exercises can use a runner like the one above, while larger projects can move the same cases into JUnit to run automatically on edits.
+5. Rerun after changes, especially when switching `int` to `long`, changing limits, or deciding to `trim()` input automatically. Tests should fail whenever behavior drifts from the contract.
 
-**Các lỗi dễ mắc:** chỉ thử dữ liệu đẹp; bỏ sót `MIN` và `MAX`; dùng `==` để so nội dung `String` thay vì `equals`; gọi phương thức trên `null`; coi chuỗi trắng là chuỗi rỗng theo `isEmpty`; để phép tính tràn trước khi ép kiểu; nuốt ngoại lệ rồi trả `0`; hoặc viết test không có giá trị mong đợi cụ thể. Một bộ test ngắn nhưng có chủ đích về rỗng, biên, dữ liệu sai và giá trị lớn sẽ phát hiện được nhiều lỗi hơn số lượng lớn ví dụ ngẫu nhiên.
+**Easy mistakes to make:** testing only happy-path data; missing `MIN` and `MAX`; using `==` instead of `equals` to compare `String` content; invoking methods on `null`; treating whitespace strings as empty via `isEmpty`; letting arithmetic overflow before casting; swallowing exceptions and returning `0`; or writing tests without specific expected values. A short, intentional suite covering empty, boundary, invalid, and large values catches more bugs than a large set of random examples.

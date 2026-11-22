@@ -1,75 +1,75 @@
-# Sắp xếp metadata Reflection để đầu ra có thứ tự ổn định
+# Sorting Reflection Metadata for Deterministic Output Order
 
-## 1. Vì sao cần sắp xếp metadata?
+## 1. Why sort metadata?
 
-Công cụ sinh tài liệu, schema hay snapshot thường cần đầu ra lặp lại được. Tuy nhiên các mảng member từ `getDeclaredMethods()`, `getDeclaredFields()` và nhiều API Reflection khác **không cam kết thứ tự**. Hai lần sinh có thể cho danh sách giống nhau nhưng thứ tự khác, khiến bản diff báo nhầm thay đổi.
+Tools generating documentation, schemas, or snapshots often need reproducible output. However, member arrays returned by `getDeclaredMethods()`, `getDeclaredFields()`, and many other Reflection APIs **do not guarantee ordering**. Two runs can produce the same list in different orders, causing diffs to falsely report changes.
 
-Đây là bài về **canonical output**: trước hết chọn đúng tập member, sau đó sắp xếp theo khóa đủ phân biệt overload, chuẩn hóa định dạng/encoding và bảo toàn những thứ tự có ngữ nghĩa (ví dụ vị trí tham số hay thứ tự thực thi được cấu hình). Sort metadata hiển thị **không tự xác định** thứ tự chạy các method.
+This article is about **canonical output**: first select the right set of members, then sort by keys sufficient to distinguish overloads, normalize formatting/encoding, and preserve orders that carry semantic meaning (such as parameter positions or configured execution order). Sorting display metadata **does not itself determine** the execution order of methods.
 
-## 2. Reflection trả về tập thành viên, không phải thứ tự trình bày
+## 2. Reflection returns a set of members, not a presentation order
 
-Các API nên phân biệt:
+APIs to distinguish:
 
-| API | Loại metadata | Phạm vi và điểm cần nhớ |
+| API | Metadata kind | Scope and key reminders |
 | --- | --- | --- |
-| `getDeclaredFields()` | `Field[]` | Field khai báo ngay trong lớp, gồm cả non-public; không gồm field kế thừa |
-| `getFields()` | `Field[]` | Field `public` nhìn thấy theo quy tắc Reflection, có thể gồm field kế thừa |
-| `getDeclaredMethods()` | `Method[]` | Method khai báo ngay trong lớp, có thể gồm bridge/synthetic; không gồm method kế thừa |
-| `getMethods()` | `Method[]` | Các method `public` của lớp/interface và method kế thừa theo quy tắc API |
-| `getDeclaredConstructors()` | `Constructor<?>[]` | Constructor khai báo trong lớp; constructor không được kế thừa |
-| `getInterfaces()` | `Class<?>[]` | Interface **trực tiếp** của lớp; Java phản ánh thứ tự khai báo, nhưng công cụ cần canonical order có thể chọn sort |
-| `getDeclaredClasses()` | `Class<?>[]` | Các lớp/interface thành viên được khai báo, không bao gồm mọi lớp local/anonymous |
-| `getDeclaredAnnotations()` | `Annotation[]` | Annotation khai báo trực tiếp, chịu quy tắc của Annotation API |
+| `getDeclaredFields()` | `Field[]` | Fields declared directly in the class, including non-public; excludes inherited fields |
+| `getFields()` | `Field[]` | `public` fields visible per Reflection rules, may include inherited fields |
+| `getDeclaredMethods()` | `Method[]` | Methods declared directly in the class, may include bridge/synthetic; excludes inherited methods |
+| `getMethods()` | `Method[]` | `public` methods of the class/interface and inherited methods per API rules |
+| `getDeclaredConstructors()` | `Constructor<?>[]` | Constructors declared in the class; constructors are not inherited |
+| `getInterfaces()` | `Class<?>[]` | **Direct** interfaces of the class; Java reflects declaration order, though tools needing canonical order may choose to sort |
+| `getDeclaredClasses()` | `Class<?>[]` | Declared member classes/interfaces, excluding local/anonymous classes |
+| `getDeclaredAnnotations()` | `Annotation[]` | Directly declared annotations, subject to Annotation API rules |
 
-**Không phải mọi thông tin đều vô thứ tự:** chẳng hạn danh sách kiểu tham số trong chữ ký method và constructor phải giữ **đúng thứ tự khai báo**, vì `f(int, String)` khác `f(String, int)`. Khi muốn sắp xếp **các phương thức**, chỉ thay vị trí của *các bản ghi method*, không đảo các parameter bên trong từng chữ ký.
+**Not all information is unordered:** for instance, the parameter type list in method and constructor signatures must preserve **exact declaration order**, because `f(int, String)` differs from `f(String, int)`. When sorting **methods**, only reorder the *method records*, never permute parameters inside each signature.
 
-Đối với `getInterfaces()`, Java Reflection ghi nhận thứ tự interface trong phần `implements` / `extends`; nếu mục đích là báo lại cấu trúc source, có thể giữ thứ tự này. Nếu mục đích là so sánh *tập interface* không xét thứ tự khai báo, có thể sort theo tên như một quy tắc thiết kế của công cụ. **Chỉ sắp xếp khi ngữ nghĩa của dữ liệu cho phép.**
+For `getInterfaces()`, Java Reflection records interface order from the `implements` / `extends` clause; if the goal is to report source structure, you can preserve that order. If the goal is to compare the *set of interfaces* regardless of declaration order, you can sort by name as a tool design rule. **Sort only when data semantics allow it.**
 
-## 3. Quy tắc thiết kế khóa sắp xếp ổn định
+## 3. Rules for designing stable sort keys
 
-Một bộ so sánh (comparator) tốt có ba đặc tính:
+A good comparator has three properties:
 
-1. **Được xác định rõ:** key tạo từ metadata có nội dung ổn định trong cùng phạm vi đầu vào, ví dụ `Field.getName()`, `Method.getName()` và các kiểu tham số.
-2. **Đủ phân biệt:** thêm khóa phụ nếu khóa đầu có thể trùng. Đặc biệt, tên phương thức **không đủ** vì Java cho phép overload.
-3. **Có chính sách rõ về trường hợp còn trùng:** nếu hai mục xuất có cùng khóa, cần xác định chúng thực sự tương đương khi xuất hay bổ sung khóa phân biệt; đừng âm thầm dựa vào thứ tự mảng đầu vào.
+1. **Well-defined:** keys built from metadata have stable content within the same input scope, e.g., `Field.getName()`, `Method.getName()`, and parameter types.
+2. **Sufficiently distinguishing:** add secondary keys if the primary key can collide. In particular, method name alone is **not enough** because Java allows overloading.
+3. **Clear tie-breaking policy:** if two output entries share the same key, decide whether they are genuinely equivalent in output or add a distinguishing key; never silently rely on input array order.
 
-Một lựa chọn thông dụng khi trình bày:
+A common choice for presentation:
 
-| Metadata | Khóa sắp xếp gợi ý | Lý do |
+| Metadata | Suggested sort key | Reason |
 | --- | --- | --- |
-| Field trong một lớp | tên → kiểu field → lớp khai báo | Tên dễ tìm; bổ sung khóa khi gộp nhiều lớp |
-| Method | tên → danh sách **kiểu tham số có thứ tự** → kiểu trả về → lớp khai báo | Phân biệt overload và trường hợp bridge/covariant return |
-| Constructor | danh sách kiểu tham số có thứ tự → lớp khai báo | Constructor không có tên riêng cho từng overload |
-| Class hoặc interface | tên nhị phân (`Class.getName()`) | Dễ so sánh có phân biệt package và dạng tên lồng nhau |
-| Annotation (khi chỉ liệt kê các loại) | tên kiểu annotation | Không phụ thuộc thứ tự mảng annotation |
-| Tham số **bên trong** một method | giữ thứ tự gốc | Thứ tự tham số là thành phần của chữ ký |
+| Field within a class | name → field type → declaring class | Easy to scan by name; extra keys when merging multiple classes |
+| Method | name → ordered **parameter type** list → return type → declaring class | Distinguishes overloads and bridge/covariant return cases |
+| Constructor | ordered parameter type list → declaring class | Constructors have no distinct names per overload |
+| Class or interface | binary name (`Class.getName()`) | Easy comparison distinguishing packages and nested class names |
+| Annotation (when listing annotation types only) | annotation type name | Independent of annotation array order |
+| Parameters **within** a method | preserve original order | Parameter order is part of the signature |
 
-### 3.1. Vì sao dùng `Class.getName()` trong khóa kỹ thuật?
+### 3.1. Why use `Class.getName()` in technical keys?
 
-`Class.getName()` cung cấp tên nhị phân với kiểu tham chiếu (ví dụ `java.util.Map$Entry`), và dạng được mã hóa với mảng (ví dụ `[Ljava.lang.String;`). Trong một phạm vi class loader xác định, nó phù hợp để xây key nhất quán. `Class.getSimpleName()` thì dễ trùng giữa các package; `getCanonicalName()` có thể trả `null` với lớp local/anonymous.
+`Class.getName()` provides binary names for reference types (e.g., `java.util.Map$Entry`), and encoded forms for arrays (e.g., `[Ljava.lang.String;`). Within a single class loader scope, it is suitable for building consistent keys. `Class.getSimpleName()` easily collides across packages; `getCanonicalName()` can return `null` for local/anonymous classes.
 
-Khi **hiển thị cho người học/người dùng**, có thể dùng `Class.getTypeName()` để có dạng dễ đọc như `java.lang.String[]`. Nên **tách khóa kỹ thuật và chuỗi hiển thị**, tránh sửa cách sắp xếp chỉ vì định dạng giao diện thay đổi.
+When **displaying to learners/users**, you can use `Class.getTypeName()` for a readable form like `java.lang.String[]`. You should **separate technical sort keys from display strings** to avoid changing sort order just because UI formatting changes.
 
-Hai đối tượng `Class` có cùng tên nhưng được **định nghĩa bởi hai class loader khác nhau** vẫn là hai kiểu runtime khác nhau. Nếu công cụ gộp dữ liệu của nhiều loader, chỉ dùng `getName()` không đủ để định danh toàn cục; cần cung cấp một **định danh namespace/loader ổn định từ cấu hình của công cụ**, không dùng `ClassLoader.toString()` hay `System.identityHashCode(...)` như khóa xuất tái lập giữa các lần chạy.
+Two `Class` objects with the same name **defined by two different class loaders** are still two distinct runtime types. If a tool merges data from multiple loaders, using `getName()` alone is insufficient for global identification; provide a **stable namespace/loader identifier from tool configuration**, rather than using `ClassLoader.toString()` or `System.identityHashCode(...)` as reproducible export keys across runs.
 
-### 3.2. Vì sao method cần nhiều tiêu chí?
+### 3.2. Why do methods need multiple criteria?
 
-Một lớp có thể khai báo:
+A class may declare:
 
 ~~~java
 void print(int number) {}
 void print(String text) {}
 ~~~
 
-Nếu chỉ dùng `Comparator.comparing(Method::getName)`, hai method đều có khóa `print`. Java `Arrays.sort(Object[], comparator)` là một phép sort ổn định: các phần tử có comparator kết quả `0` giữ thứ tự tương đối của input. Nhưng **input lấy từ Reflection vốn không được bảo đảm thứ tự**. Do đó kết quả vẫn không thể tái lập tuyệt đối.
+Using only `Comparator.comparing(Method::getName)`, both methods have key `print`. Java's `Arrays.sort(Object[], comparator)` is a stable sort: elements whose comparator result is `0` retain their relative input order. However, **input obtained from Reflection has no guaranteed order**. Therefore, the result is still not strictly reproducible.
 
-Khóa gồm `getName()` + `getParameterTypes()` theo **thứ tự tham số** sẽ phân biệt hai overload. Thêm `getReturnType()` giúp phân biệt metadata liên quan bridge method hoặc kiểu trả về hiệp biến trong bytecode, vì JVM có thể có các method cùng tên/tham số nhưng khác return type, dù source Java không cho khai báo overload chỉ bằng return type. Khi gộp từ nhiều lớp, thêm `getDeclaringClass()`. Nếu bản ghi thực sự còn trùng khóa và bạn vẫn muốn xuất cả hai, phải thiết kế thêm bước canonical hóa/deduplication theo mục tiêu.
+A key combining `getName()` + `getParameterTypes()` in **parameter order** distinguishes the two overloads. Adding `getReturnType()` distinguishes metadata related to bridge methods or covariant return types in bytecode, since the JVM can have methods with the same name/parameters but different return types, even though Java source does not allow overloading solely by return type. When merging across multiple classes, add `getDeclaringClass()`. If records still collide on key and you want to emit both, design an explicit canonicalization/deduplication step aligned with your goal.
 
-## 4. Ví dụ hoàn chỉnh Java 17+: sắp xếp field, method, constructor
+## 4. Complete Java 17+ example: sorting fields, methods, constructors
 
-Chương trình minh họa một lớp chứa field không theo thứ tự bảng chữ cái, method overload và nhiều constructor. Chúng ta **không in mảng Reflection thô** rồi suy đoán thứ tự. Thay vào đó dùng `Comparator` và chỉ in các bản ghi đã sort.
+The program demonstrates a class containing fields not in alphabetical order, overloaded methods, and multiple constructors. We **do not print raw Reflection arrays** and guess the order. Instead, we use `Comparator` and print only sorted records.
 
-Tạo tệp **`StableReflectionReport.java`**:
+Create file **`StableReflectionReport.java`**:
 
 ~~~java
 import java.lang.reflect.Constructor;
@@ -161,14 +161,14 @@ public class StableReflectionReport {
 }
 ~~~
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ~~~bash
 javac StableReflectionReport.java
 java StableReflectionReport
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Fields:
@@ -183,52 +183,52 @@ Constructors:
   Sample(int)
 ~~~
 
-**Giải thích:**
+**Explanation:**
 
-- `getDeclaredFields()`, `getDeclaredMethods()` và `getDeclaredConstructors()` là nguồn dữ liệu. Không trông chờ thứ tự mà chúng trả về.
-- `Arrays.sort(fields, FIELD_ORDER)` đặt `alpha` trước `zeta`; `FIELD_ORDER` có khóa phụ là kiểu và lớp khai báo để có thể tái sử dụng cùng chính sách khi mở rộng bộ xuất.
-- `METHOD_ORDER` đặt `ping` trước `transform`; hai overload `transform` được phân biệt nhờ **kiểu tham số**, nên `transform(int)` đứng trước `transform(String)` theo so sánh chuỗi tên kiểu.
-- `CONSTRUCTOR_ORDER` so sánh danh sách tham số, trong đó chuỗi rỗng cho constructor không tham số xếp trước `int`.
-- Dạng tên trong đầu ra dùng `getTypeName()` để người đọc dễ hiểu, còn comparator dùng `getName()` như key.
-- Sort chỉ sắp xếp các **mảng `Field[]` / `Method[]` / `Constructor[]`** vừa lấy ra để xuất; không thay đổi thứ tự thành viên trong bytecode hay cách JVM gọi method.
+- `getDeclaredFields()`, `getDeclaredMethods()`, and `getDeclaredConstructors()` are data sources. Do not expect a fixed order from them.
+- `Arrays.sort(fields, FIELD_ORDER)` places `alpha` before `zeta`; `FIELD_ORDER` includes type and declaring class as secondary keys so the same policy can be reused when expanding the exporter.
+- `METHOD_ORDER` places `ping` before `transform`; the two `transform` overloads are distinguished by **parameter types**, so `transform(int)` comes before `transform(String)` by string comparison of type names.
+- `CONSTRUCTOR_ORDER` compares parameter lists, where the empty string for the zero-argument constructor sorts before `int`.
+- Output formatting uses `getTypeName()` for human readability, while the comparators use `getName()` as the key.
+- Sorting only orders the retrieved **`Field[]` / `Method[]` / `Constructor[]` arrays** for output; it does not alter member ordering in bytecode or how the JVM invokes methods.
 
-Ví dụ giữ mọi method được khai báo trong lớp `Sample`. Trong công cụ thực tế cần một chính sách rõ về `private`, `public`, `synthetic` hoặc `bridge` trước khi sắp xếp.
+The example retains every method declared in `Sample`. In a real tool, define a clear policy for `private`, `public`, `synthetic`, or `bridge` before sorting.
 
-## 5. Từ khóa sắp xếp đến đầu ra có thể tái lập
+## 5. From sort keys to reproducible output
 
-Thứ tự metadata là một phần của bài toán, nhưng pipeline xuất báo cáo cần xác định đủ các bước:
+Metadata ordering is one piece of the problem, but a report-export pipeline must define all steps:
 
 ~~~text
-Chọn đối tượng Class/nguồn dữ liệu
+Select Class object / data source
               ↓
-Khám phá metadata đúng phạm vi
+Discover metadata in proper scope
               ↓
-Lọc/canonical hóa theo chính sách
+Filter/canonicalize per policy
               ↓
-Tạo khóa sắp xếp có tiêu chí phụ
+Build sort keys with secondary criteria
               ↓
-Sort các bản ghi sẽ xuất
+Sort records to be exported
               ↓
-Định dạng thống nhất (kiểu, annotation, ký tự)
+Consistent formatting (types, annotations, characters)
               ↓
-Ghi đầu ra với encoding/newline thống nhất
+Write output with consistent encoding/newlines
               ↓
-So sánh snapshot hoặc tạo tài liệu
+Compare snapshots or generate docs
 ~~~
 
-### 5.1. Chọn phạm vi trước khi sort
+### 5.1. Choose scope before sorting
 
-Câu hỏi đầu tiên là **công cụ cần khai báo của lớp hay API public nhìn thấy được?**
+The first question is: **does the tool need class declarations or visible public APIs?**
 
-- `getDeclaredMethods()` thích hợp khi kiểm tra điều gì được khai báo **trực tiếp** trong lớp, kể cả private method và bridge/synthetic metadata.
-- `getMethods()` thích hợp hơn khi trình bày các method `public` có thể nhìn thấy, kể cả kế thừa.
-- Nếu muốn xem một hệ phân cấp có tính đến method `private` của superclass, phải duyệt superclass theo chính sách riêng; `getDeclaredMethods()` trên lớp con không tự đưa chúng vào.
+- `getDeclaredMethods()` is appropriate when inspecting what is declared **directly** in the class, including private methods and bridge/synthetic metadata.
+- `getMethods()` is more appropriate when presenting visible `public` methods, including inherited ones.
+- If you want to inspect a hierarchy accounting for superclass `private` methods, traverse superclasses under a separate policy; `getDeclaredMethods()` on a subclass does not automatically include them.
 
-Hai tập metadata khác nhau có thể có thứ tự ổn định nhưng **đầu ra mang ngữ nghĩa khác nhau**. Sort không bù được cho việc chọn sai tập nguồn.
+Two different metadata sets can each have stable ordering while having **semantically different output**. Sorting cannot compensate for choosing the wrong source set.
 
-### 5.2. Lọc bridge và synthetic với sự thận trọng
+### 5.2. Filter bridge and synthetic carefully
 
-Compiler có thể tạo **bridge method** để phục vụ generics/covariant returns, và một số class có synthetic member. `Method.isBridge()` và `Method.isSynthetic()` giúp phát hiện các trường hợp đó:
+Compilers can generate **bridge methods** to support generics/covariant returns, and some classes have synthetic members. `Method.isBridge()` and `Method.isSynthetic()` detect those cases:
 
 ~~~java
 Method[] visible = Arrays.stream(type.getDeclaredMethods())
@@ -237,26 +237,26 @@ Method[] visible = Arrays.stream(type.getDeclaredMethods())
         .toArray(Method[]::new);
 ~~~
 
-*Đây là fragment giả định có `Class<?> type` và comparator `METHOD_ORDER` như ví dụ mục 4.*
+*This fragment assumes `Class<?> type` and comparator `METHOD_ORDER` as in the section 4 example.*
 
-Bộ lọc trên hữu ích nếu muốn tài liệu gần với **API mà lập trình viên thường chủ động viết**. Nhưng đối với công cụ kiểm tra bytecode, phân tích quá trình dispatch hoặc nghiên cứu generic bridge, việc loại bridge/synthetic sẽ **làm mất thông tin cần thiết**. Quyết định lọc phải gắn với mục đích, không dùng như công thức bắt buộc.
+The filter above is useful when you want documentation close to **the API developers explicitly write**. However, for bytecode inspection tools, dispatch analyzers, or studying generic bridges, excluding bridge/synthetic methods **loses essential information**. Filtering decisions must match the goal, not be applied as a mandatory formula.
 
-Đừng dựa vào `Method.toString()` hoặc `toGenericString()` làm khóa duy nhất khi bạn cần định danh có cấu trúc, vì định dạng hiển thị có thể thay đổi theo phiên bản/chi tiết API. Hãy truy xuất các thành phần bằng getter rồi tự xác định canonical representation.
+Do not rely on `Method.toString()` or `toGenericString()` as unique keys when you need structured identity, because display formatting can change across versions/API details. Extract components via getters and define your own canonical representation.
 
-### 5.3. Metadata generic và annotation
+### 5.3. Generic and annotation metadata
 
-`Method.getParameterTypes()` cho các `Class<?>` sau khi xét erasure; `getGenericParameterTypes()` và `getGenericReturnType()` có thể biểu diễn `ParameterizedType`, `TypeVariable` hoặc `GenericArrayType`.
+`Method.getParameterTypes()` yields `Class<?>` after erasure; `getGenericParameterTypes()` and `getGenericReturnType()` can represent `ParameterizedType`, `TypeVariable`, or `GenericArrayType`.
 
-- Nếu mục đích là **khóa lời gọi runtime/JVM**, dùng các kiểu tham số đã erasure thường phù hợp.
-- Nếu mục đích là **tạo tài liệu generic chính xác**, đưa thông tin generic vào **phần hiển thị**, và nếu cần so sánh thay đổi generic thì bổ sung cách chuẩn hóa `Type` để phân biệt.
-- Khi xử lý annotation, việc chỉ sort các annotation theo `annotationType().getName()` có thể đủ cho bảng **liệt kê các loại annotation**. Nếu xuất cả giá trị phần tử annotation, cần canonical hóa giá trị theo tên phần tử; với array value phải giữ thứ tự có ngữ nghĩa. Không dựa vào chuỗi `annotation.toString()` như giao thức xuất dữ liệu ổn định.
-- `Class.getDeclaredAnnotations()` khác `getAnnotations()` ở phạm vi kế thừa; trước khi sắp xếp phải quyết định có lấy annotation kế thừa theo `@Inherited` hay không.
+- If the goal is a **runtime/JVM invocation key**, using erased parameter types is usually appropriate.
+- If the goal is **accurate generic documentation**, include generic info in the **display section**, and if generic changes must be diffed, add a canonicalization scheme for `Type` to distinguish them.
+- When handling annotations, sorting annotations by `annotationType().getName()` alone may suffice for a table **listing annotation types**. If exporting annotation element values as well, canonicalize values by element name; for array values, preserve semantic order. Do not rely on `annotation.toString()` as a stable data-export protocol.
+- `Class.getDeclaredAnnotations()` differs from `getAnnotations()` in inheritance scope; decide before sorting whether to include annotations inherited via `@Inherited`.
 
-Đối với cùng một annotation có nhiều phần tử (*elements*), các phương thức mô tả element được Reflection trả về trong mảng không cam kết thứ tự. Có thể sắp xếp `annotation.annotationType().getDeclaredMethods()` theo `Method.getName()` trước khi xuất tên và giá trị. Cần xử lý các giá trị là `Class`, enum, annotation lồng, mảng và kiểu primitive bằng quy tắc riêng để tránh ghi ra giá trị không chuẩn hóa.
+For a single annotation with multiple *elements*, the methods describing elements returned in the Reflection array have no guaranteed order. You can sort `annotation.annotationType().getDeclaredMethods()` by `Method.getName()` before outputting names and values. Handle `Class`, enum, nested annotation, array, and primitive values with dedicated rules to avoid emitting unnormalized representations.
 
-## 6. Khi dữ liệu gồm nhiều lớp hoặc nhiều module
+## 6. When data spans multiple classes or modules
 
-Một chương trình quét nhiều lớp rồi lấy metadata từ từng lớp cần ổn định **cả danh sách lớp đầu vào** lẫn metadata của từng lớp:
+A program scanning multiple classes and extracting metadata from each must stabilize **both the input class list** and each class's metadata:
 
 ~~~java
 List<Class<?>> orderedTypes = classes.stream()
@@ -264,31 +264,31 @@ List<Class<?>> orderedTypes = classes.stream()
         .toList();
 ~~~
 
-*Fragment giả định `classes` là `Collection<Class<?>>` và đã có import của `List` / `Comparator`.*
+*Fragment assumes `classes` is `Collection<Class<?>>` with imports for `List` / `Comparator`.*
 
-Nếu danh sách lớp đến từ quét classpath, quét directory, ZIP/JAR hay `ServiceLoader`, thứ tự nguồn ban đầu có thể phụ thuộc môi trường. Hãy xác định rõ chính sách chọn lớp và sort tập đầu vào nếu thứ tự không có ý nghĩa nghiệp vụ. Nhưng **không** được tự thay đổi thứ tự có ý nghĩa, chẳng hạn các bộ xử lý thực thi theo priority, các bước migration hoặc danh sách handler yêu cầu precedence. Ổn định thứ tự tài liệu và ổn định thứ tự **thực thi** là hai mục tiêu khác nhau.
+If the class list comes from classpath scanning, directory scanning, ZIP/JAR, or `ServiceLoader`, the initial source order can depend on the environment. Define the class-selection policy clearly and sort the input set if order carries no business meaning. However, **never** alter meaningful order—such as priority-ordered processors, migration steps, or handler lists requiring precedence. Stabilizing documentation order and stabilizing **execution** order are two different goals.
 
-Đối với các module trong JPMS, có thể cần cùng với `Class.getName()` một định danh module ổn định (ví dụ tên module được khai báo, nếu có). Trong mô hình nhiều class loader, phải ghi thêm định danh *namespace* do chính hệ thống của bạn cấp và duy trì qua lần chạy. Một mô tả module/classloader **chỉ dựa trên địa chỉ đối tượng** hoặc thứ tự loader được tạo thường không ổn định cho snapshot.
+For modules in JPMS, you may need a stable module identifier alongside `Class.getName()` (e.g., declared module name, if present). In multi-classloader models, also record a *namespace* identifier assigned and maintained by your own system across runs. A module/classloader description **based solely on object address** or loader creation order is usually unstable for snapshots.
 
-Khi xuất thành danh sách JSON, thứ tự phần tử array là quan sát được nên nên xuất theo thứ tự đã định. Với object/map, cần quy định cách canonical hóa tên key nếu phụ thuộc vào thứ tự serialize; không mặc định mọi serializer hay mọi map giữ cùng thứ tự. Ví dụ dùng `TreeMap` với comparator xác định để quản lý key khi ngữ nghĩa cho phép, hoặc dùng một serializer hỗ trợ canonical output.
+When exporting as JSON arrays, element order is observable so emit in the defined order. For objects/maps, specify how key names are canonicalized if serialization order matters; do not assume every serializer or every map preserves the same order. For example, use `TreeMap` with a deterministic comparator for keys when semantics allow, or use a serializer supporting canonical output.
 
-## 7. Những nguyên nhân khiến snapshot vẫn thay đổi sau khi sort
+## 7. Reasons snapshots still change after sorting
 
-Sort metadata giúp loại bỏ khác biệt do thứ tự duyệt. Nó **không đảm bảo** đầu ra byte-for-byte giống nhau khi các yếu tố khác đã thay đổi:
+Sorting metadata eliminates differences caused by traversal order. It **does not guarantee** byte-for-byte identical output when other factors change:
 
-| Nguồn biến động | Cách xử lý |
+| Source of variation | How to handle |
 | --- | --- |
-| Khác JDK/compiler làm phát sinh bridge/synthetic khác | Quy định môi trường xây dựng, chính sách lọc/hiển thị và phạm vi so sánh |
-| Dữ liệu quét classpath/JAR đầu vào khác | Cố định nguồn dữ liệu và sort danh sách class khi phù hợp |
-| `hashCode`, `identityHashCode`, `toString` của loader/đối tượng | Không sử dụng để định danh xuất báo cáo |
-| Timestamp, đường dẫn tuyệt đối, UUID ngẫu nhiên | Bỏ khỏi phần dữ liệu canonical hoặc chuẩn hóa theo yêu cầu |
-| Format chịu `Locale.getDefault()` | Dùng định dạng độc lập locale hoặc chỉ rõ `Locale.ROOT` khi thích hợp |
-| Charset mặc định, CRLF/LF, dấu xuống dòng cuối | Ghi UTF-8 và quy định newline nhất quán |
-| Annotation có mảng hoặc giá trị lồng nhau | Giữ thứ tự có ngữ nghĩa, chuẩn hóa key và cách serialize |
-| Cùng tên class nhưng khác class loader | Bổ sung namespace ID ổn định khi hệ thống cần phân biệt |
-| Thay đổi thực sự trong API, annotation, method signature | **Giữ lại để diff phát hiện**, không làm mất bằng sort |
+| Different JDK/compiler emitting different bridge/synthetic members | Specify build environment, filter/display policy, and comparison scope |
+| Different input classpath/JAR scan data | Pin data sources and sort the class list where appropriate |
+| `hashCode`, `identityHashCode`, `toString` of loaders/objects | Do not use for report output identifiers |
+| Timestamps, absolute paths, random UUIDs | Exclude from canonical data or normalize as required |
+| Formatting affected by `Locale.getDefault()` | Use locale-independent formatting or specify `Locale.ROOT` when appropriate |
+| Default charset, CRLF/LF, trailing newline | Write UTF-8 and enforce consistent newlines |
+| Annotations with arrays or nested values | Preserve semantic order, normalize keys and serialization format |
+| Same class name across different class loaders | Add stable namespace ID when the system must distinguish them |
+| Genuine changes in API, annotations, or method signatures | **Retain so diffs detect them**; do not mask them via sorting |
 
-Ví dụ khi ghi file một báo cáo đã chuẩn hóa:
+Example when writing a normalized report file:
 
 ~~~java
 Files.writeString(
@@ -297,15 +297,15 @@ Files.writeString(
         StandardCharsets.UTF_8);
 ~~~
 
-*Fragment cần import `java.nio.file.Files` và `java.nio.charset.StandardCharsets`; `outputPath` là `Path` và `report` là `String` đã được định nghĩa. Với quy trình cần chuẩn hóa mọi dạng newline, xử lý cả `\r` đơn lẻ tùy nguồn dữ liệu.*
+*Fragment requires imports `java.nio.file.Files` and `java.nio.charset.StandardCharsets`; `outputPath` is a defined `Path` and `report` is a defined `String`. For workflows normalizing all newline forms, handle lone `\r` depending on data source.*
 
-Quy định cả **trailing newline** và encoding trong hợp đồng xuất sẽ giảm những diff không liên quan nội dung. Nếu báo cáo là định dạng dùng lâu dài, hãy công bố version của quy tắc xuất; đổi key sort là đổi hành vi tiêu thụ dữ liệu dù API Java bên dưới không đổi.
+Specifying both **trailing newline** and encoding in the export contract reduces content-unrelated diffs. If the report is a long-lived format, publish the export-rule version; changing sort keys changes downstream consumer behavior even if the underlying Java API did not change.
 
-## 8. Kiểm tra tính ổn định một cách có ý nghĩa
+## 8. Testing stability meaningfully
 
-Đừng kiểm thử bằng giả định rằng `getDeclaredMethods()` luôn trả đúng một chuỗi cố định. Hãy kiểm thử **tính bất biến dưới phép hoán vị**: dù nhận danh sách các bản ghi theo thứ tự đầu vào nào, output chuẩn hóa phải giống nhau.
+Do not test by assuming `getDeclaredMethods()` always returns one fixed sequence. Test **invariance under permutation**: regardless of input record order, the normalized output must be identical.
 
-Ví dụ cách kiểm tra tổng quát:
+Example general check:
 
 ~~~java
 List<Method> input = new ArrayList<>(
@@ -328,54 +328,54 @@ if (!first.equals(reversed)) {
 }
 ~~~
 
-*Đây là minh họa kiểm thử tích hợp; cần các import `List`, `ArrayList`, `Arrays`, `Collections`, `Method`. `methodKeyForTest` là hàm do công cụ định nghĩa để xuất khóa chuẩn hóa; không phải phương thức sẵn có của Java. Với ví dụ hoàn chỉnh ở mục 4, có thể xây hàm này từ tên method, danh sách kiểu tham số, kiểu trả về và declaring class.*
+*This is an integration-test illustration; requires imports `List`, `ArrayList`, `Arrays`, `Collections`, `Method`. `methodKeyForTest` is a tool-defined function emitting a canonical key, not a built-in Java method. For the complete example in section 4, this function can be built from method name, parameter type list, return type, and declaring class.*
 
-Nên bổ sung trường hợp:
+Recommended additional test cases:
 
-1. Hai overload cùng tên (`f(int)` và `f(String)`), để bảo đảm key không chỉ là tên.
-2. Method bridge và method gốc, nếu công cụ xuất cả hai.
-3. Hai field cùng tên khi dữ liệu gộp superclass và subclass.
-4. Mảng parameter và lớp lồng nhau trong key.
-5. Annotation element xuất từ một mảng method không có thứ tự được cam kết.
-6. Hai nguồn metadata có tên giống nhau nhưng khác namespace/loader, nếu hệ thống của bạn hỗ trợ nhiều loader.
+1. Two overloads with the same name (`f(int)` and `f(String)`), ensuring the key is not just the name.
+2. Bridge method and original method, if the tool exports both.
+3. Two fields with the same name when merging superclass and subclass data.
+4. Array parameters and nested classes in keys.
+5. Annotation elements emitted from a method array with no guaranteed order.
+6. Two metadata sources with the same name in different namespaces/loaders, if your system supports multiple loaders.
 
-Phép kiểm tra đảo ngược đầu vào chứng minh một phần quan trọng: comparator đủ phân biệt các mục đang test. Nó **không thay thế** việc kiểm soát phiên bản Java, classpath, cấu trúc JSON, encoding hay chính sách lọc.
+The reversed-input test proves a crucial property: the comparator sufficiently distinguishes the tested items. It **does not replace** controlling Java version, classpath, JSON structure, encoding, or filtering policies.
 
-## 9. Các lỗi thường gặp
+## 9. Common mistakes
 
-**“getDeclaredMethods() trả về thứ tự khai báo trong source.”** Không có bảo đảm đó. Đừng dùng chỉ số của mảng trả về làm số thứ tự tài liệu ổn định.
+**"`getDeclaredMethods()` returns source declaration order."** There is no such guarantee. Never use the returned array index as a stable documentation sequence number.
 
-**“Chỉ sort theo method name là đủ.”** Không đủ với overload hoặc bridge. Khi key trùng, sort ổn định vẫn giữ thứ tự không ổn định của input.
+**"Sorting by method name alone is enough."** Not enough with overloads or bridges. When keys collide, stable sort preserves the unstable input order.
 
-**“Sort `getParameterTypes()` của từng method cho chắc.”** Sai. Thứ tự parameter **là một phần của chữ ký**; `f(int, String)` khác `f(String, int)`.
+**"Sort `getParameterTypes()` of each method to be thorough."** Wrong. Parameter order **is part of the signature**; `f(int, String)` differs from `f(String, int)`.
 
-**“Dùng `Class.getSimpleName()` có thể định danh duy nhất.”** Không thể nếu có `a.User` và `b.User`. `Class.getName()` an toàn hơn trong một namespace nhưng cần thêm chính sách với nhiều loader.
+**"Using `Class.getSimpleName()` uniquely identifies classes."** Not when `a.User` and `b.User` exist. `Class.getName()` is safer within one namespace, though multi-loader setups require an additional policy.
 
-**“Bỏ mọi synthetic method luôn đúng.”** Không đúng khi công cụ có trách nhiệm quan sát bytecode hoặc bridge cần thiết cho dispatch.
+**"Skipping all synthetic methods is always right."** Not right when the tool is responsible for inspecting bytecode or bridges required for dispatch.
 
-**“Sắp xếp metadata sẽ làm chương trình chạy đúng thứ tự method.”** Sort chỉ tác động tới trình bày/duyệt dữ liệu của công cụ. Nếu thứ tự thực thi có ngữ nghĩa, phải định nghĩa thứ tự đó riêng bằng cấu hình, annotation priority hoặc chính sách điều phối rõ ràng.
+**"Sorting metadata makes the program execute methods in the right order."** Sorting only affects the tool's data presentation/traversal. If execution order has semantics, define that order separately via configuration, priority annotations, or an explicit orchestration policy.
 
-**“Cứ gọi `Method.toString()` rồi sort là canonical.”** Có thể dùng cho log đơn giản, nhưng khi xây giao thức ổn định nên dùng các getter và quy ước key có cấu trúc, tự kiểm soát định dạng.
+**"Just calling `Method.toString()` and sorting is canonical."** Fine for simple logs, but for stable protocols use getters and structured key conventions where you control the formatting.
 
-**“Snapshot lệch sau khi sort nghĩa là comparator lỗi.”** Chưa chắc: classpath, compiler/JDK, annotation, thời gian, locale hay newline cũng có thể làm khác đầu ra.
+**"A snapshot diff after sorting means the comparator is broken."** Not necessarily: classpath, compiler/JDK, annotations, timestamps, locale, or newlines can also alter output.
 
-## 10. Tự kiểm tra
+## 10. Self-check
 
-1. Vì sao không in trực tiếp `Class.getDeclaredMethods()` để làm snapshot? **API không cam kết thứ tự.**
-2. Vì sao khóa `Method.getName()` chưa đủ? **Overload có thể trùng tên; cần thêm kiểu tham số theo thứ tự, và thường thêm return/declaring type.**
-3. Khi sắp xếp các method, có nên sort lại danh sách tham số bên trong từng method? **Không**, như vậy đổi ý nghĩa chữ ký.
-4. Tại sao dùng `Method.isBridge()` / `isSynthetic()` phải phụ thuộc mục đích? **Vì một số công cụ muốn báo cáo API source-level, còn công cụ bytecode cần giữ metadata do compiler sinh.**
-5. Hai `Class` cùng `getName()`, khác loader, có chắc là một kiểu không? **Không.**
-6. Để tạo output ổn định, ngoài comparator cần kiểm soát gì? **Nguồn dữ liệu, chính sách lọc, format/generic/annotation, locale, encoding, newline và dữ liệu phụ thuộc môi trường.**
-7. Nếu đầu vào đảo ngược mà output được sort vẫn khác, bạn nên kiểm tra gì đầu tiên? **Có các phần tử khác nhau nhưng comparator trả `0` hay không, và đã chuẩn hóa phần hiển thị chưa.**
+1. Why shouldn't you print `Class.getDeclaredMethods()` directly for a snapshot? **The API does not guarantee order.**
+2. Why is `Method.getName()` alone insufficient as a key? **Overloads can share a name; ordered parameter types, and often return/declaring types, are needed.**
+3. When sorting methods, should you also sort the parameter list inside each method? **No**, that changes signature meaning.
+4. Why must using `Method.isBridge()` / `isSynthetic()` depend on purpose? **Because some tools report source-level APIs, whereas bytecode tools must retain compiler-generated metadata.**
+5. Are two `Class` objects with the same `getName()` from different loaders guaranteed to be the same type? **No.**
+6. To produce stable output, what else besides the comparator must be controlled? **Data sources, filtering policy, formatting/generics/annotations, locale, encoding, newlines, and environment-dependent data.**
+7. If reversing input causes sorted output to differ, what should you check first? **Whether distinct elements return `0` from the comparator, and whether display formatting is normalized.**
 
-## 11. Kết luận
+## 11. Conclusion
 
-Reflection giúp khám phá metadata ở runtime nhưng không hứa thứ tự trả về của nhiều API member. Để thiết kế công cụ xuất **ổn định và dễ kiểm chứng**, hãy xác định tập dữ liệu đúng, lọc theo mục đích, tạo key sort đủ phân biệt (đặc biệt với method overload), giữ nguyên thứ tự parameter mang ngữ nghĩa, rồi chuẩn hóa format và môi trường xuất. Một comparator tốt loại bỏ nhiễu do thứ tự liệt kê; tính tái lập đầy đủ còn cần một **hợp đồng canonical output** cho toàn pipeline.
+Reflection lets you discover metadata at runtime without promising return order across many member APIs. To design a tool producing **stable and verifiable** output, select the right dataset, filter for your purpose, build sufficiently distinguishing sort keys (especially for overloaded methods), preserve meaningful parameter ordering, and normalize output formatting and environment. A good comparator eliminates enumeration-order noise; full reproducibility also requires a **canonical output contract** across the entire pipeline.
 
-### Tài liệu tham khảo
+### References
 
-- [Java SE 21 — `Class`: các phương thức khám phá member](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html)
+- [Java SE 21 — `Class`: member discovery methods](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html)
 - [Java SE 21 — `Method`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Method.html)
 - [Java SE 21 — `Field`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Field.html)
 - [Java SE 21 — `Constructor`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Constructor.html)

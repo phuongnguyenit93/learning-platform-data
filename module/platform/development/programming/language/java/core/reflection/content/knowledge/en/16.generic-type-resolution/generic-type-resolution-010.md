@@ -1,6 +1,6 @@
-# Tránh đệ quy vô hạn khi giới hạn kiểu tự tham chiếu trong Java Reflection
+# Avoiding Infinite Recursion on Self-Referential Type Bounds in Java Reflection
 
-Khi phân tích kiểu generic bằng Java Reflection, một biến kiểu có thể xuất hiện **bên trong chính giới hạn (bound) của nó**. Ví dụ quen thuộc nhất là:
+When analyzing generic types with Java Reflection, a type variable can appear **inside its own bound**. The most familiar example is:
 
 ```java
 class Self<T extends Self<T>> {}
@@ -10,27 +10,27 @@ enum State {
 }
 ```
 
-Ở đây, `T` được ràng buộc bởi `Self<T>`. Tương tự, lớp chuẩn Java `Enum` được khai báo theo mẫu `Enum<E extends Enum<E>>`. Các khai báo như vậy hợp lệ và có ích. Chúng thuộc nhóm **F-bounded polymorphism**, cho phép diễn đạt rằng kiểu tham số có quan hệ với chính kiểu đó.
+Here, `T` is bounded by `Self<T>`. Similarly, the standard Java class `Enum` is declared following the pattern `Enum<E extends Enum<E>>`. Such declarations are valid and useful. They belong to **F-bounded polymorphism**, allowing you to express that a type parameter has a relationship with that type itself.
 
-Vấn đề chỉ xuất hiện khi ta tự xây dựng bộ phân tích metadata kiểu:
+The problem only appears when we build a type metadata analyzer ourselves:
 
 ```text
 T -> bound Self<T> -> argument T -> bound Self<T> -> ...
 ```
 
-Nếu mã cứ gọi `TypeVariable.getBounds()` rồi duyệt `ParameterizedType.getActualTypeArguments()` mà **không phát hiện chu trình**, quá trình phân tích có thể đệ quy vô hạn, gây `StackOverflowError` hoặc tiêu tốn tài nguyên. **Giải pháp là coi cấu trúc generic như đồ thị, nhận diện nút đã nằm trên đường đệ quy hiện tại, và dừng mở rộng chính nút đó.**
+If code keeps calling `TypeVariable.getBounds()` and then traversing `ParameterizedType.getActualTypeArguments()` **without cycle detection**, the analysis can recurse infinitely, causing a `StackOverflowError` or exhausting resources. **The solution is to treat the generic structure as a graph, recognize nodes already on the current recursion path, and stop expanding that node.**
 
-## 1. Hiểu đúng giới hạn kiểu tự tham chiếu
+## 1. Understanding self-referential type bounds properly
 
-Khai báo:
+The declaration:
 
 ```java
 class Self<T extends Self<T>> {}
 ```
 
-có thể đọc là: một đối số kiểu thay vào `T` phải thỏa ràng buộc là một subtype thích hợp của `Self<T>`. Đây là một quy tắc **ràng buộc kiểu tại compile time**, không yêu cầu `Self` tạo vô hạn đối tượng lúc runtime.
+can be read as: a type argument substituted for `T` must satisfy the constraint of being a suitable subtype of `Self<T>`. This is a **compile-time type constraint** rule; it does not require `Self` to allocate infinitely many objects at runtime.
 
-Một ứng dụng điển hình của F-bounds:
+A typical application of F-bounds:
 
 ```java
 abstract class Builder<T extends Builder<T>> {
@@ -50,36 +50,36 @@ final class ReportBuilder extends Builder<ReportBuilder> {
 }
 ```
 
-Đây là đoạn khai báo minh họa; nó cho phép `label()` trả về kiểu cụ thể `ReportBuilder` khi sử dụng một builder tuân theo mẫu này. Bản thân cú pháp generic không tạo vòng chạy vô hạn.
+This is an illustrative declaration snippet; it allows `label()` to return the concrete type `ReportBuilder` when using a builder following this pattern. The generic syntax itself creates no infinite runtime loop.
 
-Trong API chuẩn, `Enum<E extends Enum<E>>` là ví dụ nền tảng: đối số `E` phải liên hệ với kiểu enum cụ thể. Một số ràng buộc cũng xuyên qua interface, wildcard và nhiều biến kiểu; vì vậy chỉ xét trường hợp `T extends T` hoặc chỉ giới hạn một cấp là chưa đủ.
+In the standard API, `Enum<E extends Enum<E>>` is the foundational example: argument `E` must relate to the concrete enum type. Some bounds also pass through interfaces, wildcards, and multiple type variables; therefore handling only `T extends T` or limiting to one level is not enough.
 
-## 2. Các đối tượng `Type` liên quan trong Reflection
+## 2. Related `Type` objects in Reflection
 
-`java.lang.reflect.Type` là giao diện gốc để biểu diễn các dạng kiểu. Khi phân giải generic, ta thường gặp:
+`java.lang.reflect.Type` is the root interface representing type forms. When resolving generics, we commonly encounter:
 
-| Dạng | API Reflection | Ý nghĩa với việc duyệt |
+| Form | Reflection APIs | Meaning for traversal |
 | --- | --- | --- |
-| `Class<?>` | `Class`, `isArray()`, `getComponentType()` | Kiểu thông thường hoặc mảng có component là class |
-| `TypeVariable<?>` | `getName()`, `getGenericDeclaration()`, `getBounds()` | Biến kiểu `T`, `E`; có thể dẫn trở lại chính nó |
+| `Class<?>` | `Class`, `isArray()`, `getComponentType()` | Ordinary type or array whose component is a class |
+| `TypeVariable<?>` | `getName()`, `getGenericDeclaration()`, `getBounds()` | Type variable `T`, `E`; can lead back to itself |
 | `ParameterizedType` | `getRawType()`, `getActualTypeArguments()`, `getOwnerType()` | `List<T>`, `Self<T>`, `Map<K,V>` |
-| `WildcardType` | `getUpperBounds()`, `getLowerBounds()` | `? extends X` hoặc `? super X` |
-| `GenericArrayType` | `getGenericComponentType()` | `T[]` hoặc mảng có component type generic |
+| `WildcardType` | `getUpperBounds()`, `getLowerBounds()` | `? extends X` or `? super X` |
+| `GenericArrayType` | `getGenericComponentType()` | `T[]` or an array with a generic component type |
 
-Ví dụ phân tích `Self.class.getTypeParameters()[0]`:
+Example analyzing `Self.class.getTypeParameters()[0]`:
 
-- Kết quả là `TypeVariable<?>` cho `T`.
-- `T.getBounds()[0]` là `ParameterizedType` biểu diễn `Self<T>`.
-- `getActualTypeArguments()[0]` của `Self<T>` lại là biến kiểu `T`.
-- Nếu từ biến kiểu này ta lại gọi `getBounds()`, quá trình quay về `Self<T>` và lặp.
+- The result is a `TypeVariable<?>` for `T`.
+- `T.getBounds()[0]` is a `ParameterizedType` representing `Self<T>`.
+- `getActualTypeArguments()[0]` of `Self<T>` is once again the type variable `T`.
+- If from that type variable we call `getBounds()` again, traversal returns to `Self<T>` and loops.
 
-Đây là **chu trình tham chiếu giữa metadata types**, không phải lỗi trong khai báo Java.
+This is a **reference cycle among metadata types**, not an error in the Java declaration.
 
-Cần phân biệt ba phép đọc: `Class.getTypeParameters()` lấy biến kiểu do class khai báo; `TypeVariable.getBounds()` lấy giới hạn của biến kiểu; `ParameterizedType.getActualTypeArguments()` lấy đối số kiểu trong một kiểu đã tham số hóa. Việc nối ba API có thể vô tình quay lại nút cũ.
+Distinguish three operations: `Class.getTypeParameters()` retrieves type variables declared by a class; `TypeVariable.getBounds()` retrieves bounds of a type variable; `ParameterizedType.getActualTypeArguments()` retrieves type arguments in a parameterized type. Chaining these three APIs can inadvertently loop back to an earlier node.
 
-## 3. Tại sao cách duyệt đệ quy ngây thơ thất bại?
+## 3. Why does naive recursive traversal fail?
 
-Ví dụ sau minh họa **thuật toán sai** (không chạy độc lập và không nên dùng trong ứng dụng):
+The following example illustrates a **broken algorithm** (not standalone runnable and should not be used in applications):
 
 ```java
 static void brokenWalk(Type type) {
@@ -95,7 +95,7 @@ static void brokenWalk(Type type) {
 }
 ```
 
-Đường đi với `T extends Self<T>`:
+Path for `T extends Self<T>`:
 
 ```text
 TypeVariable T
@@ -111,23 +111,23 @@ Bound: ParameterizedType Self<T>
     |
     v
 Actual type argument: TypeVariable T
-    ... (lặp lại)
+    ... (repeats)
 ```
 
-Nếu không có điểm dừng, mỗi lần thăm `T` lại tạo thêm một lần đệ quy vào bound. Với đủ lần lặp, chương trình có thể ném `StackOverflowError`. Không nên thử tạo một lần chạy thật sự đến lỗi stack overflow để kiểm chứng; đồ thị đã cho thấy chu trình.
+Without a stopping condition, each visit to `T` triggers another recursion into its bound. With enough iterations, the program can throw `StackOverflowError`. Do not try to trigger an actual stack overflow run to verify this; the graph already demonstrates the cycle.
 
-**Cấm suy luận sai:** `T.getBounds()` không có lời hứa rằng kết quả sẽ là tập kiểu không chứa đường dẫn quay về `T`. Generic bounds hợp lệ hoàn toàn có thể tự tham chiếu hoặc tham chiếu qua các kiểu trung gian.
+**Forbidden false assumption:** `T.getBounds()` carries no promise that the result is a set of types containing no path back to `T`. Valid generic bounds can be directly self-referential or referential through intermediate types.
 
-## 4. Cốt lõi giải pháp: theo dõi đường đệ quy đang hoạt động
+## 4. Core solution: track the active recursion path
 
-Đối với một cây thuần túy, ta có thể duyệt các nút con mà không cần nhớ những nút đã gặp. Đối với **đồ thị có chu trình**, cần theo dõi đường đi.
+For a pure tree, we can traverse child nodes without remembering visited nodes. For a **graph with cycles**, we must track the current path.
 
-Thuật toán DFS an toàn:
+Safe DFS algorithm:
 
-1. Nhận một `Type` và bộ `active` chứa các `Type` **đang nằm trên nhánh đệ quy hiện tại**.
-2. Nếu `type` đã có trong `active`, in/chú thích một chu trình và **không duyệt tiếp** từ nút này.
-3. Nếu chưa có, thêm vào `active` rồi xử lý children theo loại `Type`.
-4. Sau khi xử lý xong children, xóa `type` khỏi `active` trong `finally`.
+1. Take a `Type` and an `active` set holding the `Type`s **currently on the active recursion branch**.
+2. If `type` is already in `active`, print/annotate a cycle and **do not traverse further** from that node.
+3. If not present, add it to `active` and then process its children by `Type` kind.
+4. After finishing children, remove `type` from `active` inside `finally`.
 
 Pseudocode:
 
@@ -146,15 +146,15 @@ visit(type, active):
         active.remove(type)
 ```
 
-Điểm quan trọng là **phải xóa khi rời nhánh**. Khi một kiểu hợp lệ xuất hiện ở hai nhánh khác nhau, ta có thể muốn hiển thị kiểu đó ở cả hai nơi. Cờ chu trình cần phát hiện sự lặp **trên cùng đường đi**, không mặc định xóa mọi lần xuất hiện sau này trong toàn bộ đồ thị.
+The crucial point is **removing when leaving the branch**. When a valid type appears in two different branches, we may want to display that type in both places. The cycle flag should detect repetition **along the same path**, not automatically suppress all later occurrences across the entire graph.
 
-Đối với một công cụ chỉ muốn liệt kê mỗi kiểu đúng một lần, tập `visited` toàn cục cũng hữu ích. Nhưng cần phân biệt rõ: **`active` phát hiện chu trình**, còn **`visited` toàn cục phát hiện mọi sự thăm lại**. Dùng `visited` toàn cục cho kết quả dạng cây có thể làm mất thông tin của một nhánh hợp lệ.
+For a tool that only wants to list each type exactly once, a global `visited` set is also useful. However, distinguish clearly: **`active` detects cycles**, while **global `visited` detects any revisit**. Using a global `visited` set for tree-shaped output can omit information from a valid branch.
 
-## 5. Ví dụ Java 17+ đầy đủ: duyệt `Type` và đánh dấu chu trình
+## 5. Complete Java 17+ example: traversing `Type` and marking cycles
 
-Chương trình sau duyệt các dạng `TypeVariable`, `ParameterizedType`, `WildcardType`, `GenericArrayType` và `Class` dạng mảng. Để output dễ đọc, ví dụ chỉ in tên ngắn của raw class trong `ParameterizedType`; không đi vào toàn bộ các method/field của raw class.
+The following program traverses `TypeVariable`, `ParameterizedType`, `WildcardType`, `GenericArrayType`, and array `Class` kinds. To keep output readable, the example only prints the short name of the raw class in `ParameterizedType`; it does not descend into all methods/fields of the raw class.
 
-Lưu nội dung vào `GenericCycleDemo.java`:
+Save the contents to `GenericCycleDemo.java`:
 
 ```java
 import java.lang.reflect.GenericArrayType;
@@ -247,14 +247,14 @@ public class GenericCycleDemo {
 }
 ```
 
-Lệnh:
+Commands:
 
 ```bash
 javac GenericCycleDemo.java
 java GenericCycleDemo
 ```
 
-Đầu ra (Java 17+):
+Output (Java 17+):
 
 ```text
 Self:
@@ -278,18 +278,18 @@ variable E
     CYCLE -> variable E
 ```
 
-Giải thích:
+Explanation:
 
-- **Self:** `T` có bound `Self<T>`. Khi vào đối số kiểu `T` lần thứ hai trên cùng đường đệ quy, chương trình in `CYCLE -> variable T` rồi dừng.
-- **Ranked:** `T extends Comparable<? super T>` dẫn qua `ParameterizedType`, sau đó `WildcardType`, rồi quay lại `T`. Wildcard có upper bound mặc định `Object`, đồng thời lower bound là `T`.
-- **Arrays:** trường `T[] values` được thể hiện bằng `GenericArrayType`; component `T` dẫn tiếp tới bound `Comparable<T>`, sau đó quay lại `T`.
-- **Enum:** `E extends Enum<E>` trong API chuẩn Java cũng có chu trình hợp lệ. Bộ phân tích dừng ở lần quay lại `E`.
+- **Self:** `T` has bound `Self<T>`. Upon entering type argument `T` a second time on the same recursion path, the program prints `CYCLE -> variable T` and stops.
+- **Ranked:** `T extends Comparable<? super T>` leads through `ParameterizedType`, then `WildcardType`, and back to `T`. The wildcard has default upper bound `Object` as well as lower bound `T`.
+- **Arrays:** field `T[] values` is represented as `GenericArrayType`; component `T` leads to bound `Comparable<T>`, then back to `T`.
+- **Enum:** `E extends Enum<E>` in the standard Java API also has a valid cycle. The analyzer stops upon returning to `E`.
 
-Với ví dụ này, **mọi đường duyệt đều kết thúc** mà không cần giới hạn độ sâu tùy tiện.
+With this example, **every traversal terminates** without needing an arbitrary depth cutoff.
 
-## 6. Vì sao dùng `Set<Type>` và không chỉ `Set<String>`?
+## 6. Why use `Set<Type>` and not just `Set<String>`?
 
-Một biến kiểu tên `T` không có danh tính duy nhất trên toàn ứng dụng:
+A type variable named `T` does not have a single application-wide identity:
 
 ```java
 class Box<T> {}
@@ -301,13 +301,13 @@ class Service {
 }
 ```
 
-Cả ba có thể có biến tên `T`, nhưng được khai báo ở **những generic declaration khác nhau**. Nếu dùng `HashSet<String>` chứa tên `"T"`, bộ phân tích sẽ coi các biến không liên quan là một nút duy nhất.
+All three can have a variable named `T`, yet they are declared on **different generic declarations**. Using a `HashSet<String>` containing `"T"` will cause the analyzer to treat unrelated variables as a single node.
 
-Thay vào đó, dùng `TypeVariable<?>` và các đối tượng `Type` đúng nghĩa. `TypeVariable.getGenericDeclaration()` xác định khai báo sở hữu biến kiểu: `Class`, `Method` hoặc `Constructor`. Theo hợp đồng `TypeVariable`, nhiều đối tượng runtime có thể đại diện cùng một biến kiểu; chúng phải được xem là tương đương theo khai báo và tên. Vì vậy, với các implementation Reflection chuẩn, `HashSet<Type>` sử dụng `equals()/hashCode()` là lựa chọn phù hợp để nhận diện nút.
+Instead, use `TypeVariable<?>` and proper `Type` objects. `TypeVariable.getGenericDeclaration()` identifies the declaration owning the type variable: `Class`, `Method`, or `Constructor`. By the `TypeVariable` contract, multiple runtime objects may represent the same type variable; they must be treated as equal by declaration and name. Therefore, with standard Reflection implementations, a `HashSet<Type>` using `equals()/hashCode()` is the appropriate choice to identify nodes.
 
-**Không chỉ dựa vào `==` hoặc `IdentityHashMap`** cho thuật toán này: API không bảo đảm mọi lần lấy metadata của cùng một biến kiểu đều trả về đúng một object identity. Nếu reflection tái tạo wrapper tương đương, so sánh tham chiếu có thể bỏ sót chu trình.
+**Do not rely solely on `==` or `IdentityHashMap`** for this algorithm: the API does not guarantee that every retrieval of metadata for the same type variable returns the exact same object identity. If reflection recreates equivalent wrappers, reference comparison can miss cycles.
 
-Nếu cần hiển thị danh tính để debug, có thể in cả:
+If you need to display identity for debugging, you can print both:
 
 ```java
 TypeVariable<?> variable = Self.class.getTypeParameters()[0];
@@ -315,11 +315,11 @@ System.out.println(variable.getName());
 System.out.println(variable.getGenericDeclaration());
 ```
 
-Đây là đoạn minh họa sử dụng class `Self` từ chương trình chính. `getGenericDeclaration()` giúp phân biệt hai `T` cùng tên từ hai nơi khai báo khác nhau, còn kết quả duyệt vẫn cần cơ chế `active`.
+This is an illustrative snippet using `Self` from the main program. `getGenericDeclaration()` helps distinguish two `T`s of the same name from two different declarations, while traversal still needs the `active` mechanism.
 
-## 7. Vì sao `active` phải được quản lý theo nhánh?
+## 7. Why must `active` be managed per branch?
 
-Xét một cấu trúc generic có hai nhánh cùng tham chiếu một biến kiểu nhưng không tạo chu trình trên từng nhánh. Ví dụ về mặt cấu trúc:
+Consider a generic structure with two branches referencing the same type variable without forming a cycle on either branch. Structurally, for instance:
 
 ```text
 ParameterizedType Pair<T, T>
@@ -327,29 +327,29 @@ ParameterizedType Pair<T, T>
                T        T
 ```
 
-Nếu dùng một tập `visited` toàn cục rồi không xóa sau nhánh đầu tiên, nhánh thứ hai có thể bị in nhầm là đã xử lý hoặc bị bỏ qua. Với `active` và `finally { active.remove(type); }`, mỗi nhánh độc lập có thể hiển thị `T`, trong khi bất kỳ nhánh nào tự quay lại `T` qua giới hạn generic sẽ vẫn được gắn nhãn `CYCLE`.
+If you use a global `visited` set and do not remove after the first branch, the second branch may be wrongly printed as already processed or skipped. With `active` and `finally { active.remove(type); }`, each independent branch can display `T`, while any branch that loops back to `T` through generic bounds will still be labeled `CYCLE`.
 
-Trong ứng dụng thực tế thường có hai nhu cầu:
+In real applications there are typically two needs:
 
-| Mục tiêu | Dữ liệu theo dõi | Kết quả |
+| Goal | Tracked data | Result |
 | --- | --- | --- |
-| In cây giải thích từng nhánh | Tập `active` cho đường DFS | Gặp lại trên cùng đường: cycle; gặp ở nhánh khác: có thể in lại |
-| Lập chỉ mục mỗi kiểu một lần | Tập `visited` toàn cục, có thể kèm `active` | Mỗi nút xử lý một lần; cần đánh dấu rõ cycle và repeated reference |
-| Tránh tài nguyên quá mức | Đếm nút / giới hạn độ sâu độc lập | Chặn cây quá lớn, kể cả không có cycle |
+| Print a tree explaining each branch | `active` set for DFS path | Seen again on same path: cycle; seen on another branch: can print again |
+| Index each type once | Global `visited` set, optionally with `active` | Each node processed once; must clearly mark cycles vs. repeated references |
+| Prevent excessive resource use | Node counter / independent depth limit | Caps overly large trees, even without cycles |
 
-Nếu chỉ cần suy ra một tính chất kiểu dạng boolean, có thể dùng memoization để tránh tính lại. Nhưng memoization cho thuật toán trên đồ thị có chu trình đòi hỏi phân biệt trạng thái **đang xử lý** và **đã hoàn tất**, vì khi quay lại một nút chưa hoàn tất, giá trị của nút đó có thể chưa được xác định.
+If you only need to derive a boolean property of a type, memoization can avoid recomputation. However, memoization for algorithms on cyclic graphs requires distinguishing **in-progress** and **completed** states, because when returning to an incomplete node, that node's value may not yet be determined.
 
-## 8. Đường đi phức tạp: wildcard, mảng, nhiều giới hạn và owner type
+## 8. Complex paths: wildcards, arrays, multiple bounds, and owner types
 
-Chu trình không phải lúc nào cũng có dạng thẳng `T -> Self<T> -> T`.
+Cycles do not always take the straight form `T -> Self<T> -> T`.
 
-### Wildcard
+### Wildcards
 
 ```java
 class Ranked<T extends Comparable<? super T>> {}
 ```
 
-Đường duyệt:
+Traversal path:
 
 ```text
 T
@@ -359,9 +359,9 @@ T
                  -> cycle
 ```
 
-Nếu bộ duyệt xử lý `TypeVariable` và `ParameterizedType` mà bỏ qua `WildcardType.getLowerBounds()`, nó có thể không phát hiện đường chu trình này khi cần phân tích đầy đủ cấu trúc.
+If a traverser handles `TypeVariable` and `ParameterizedType` while skipping `WildcardType.getLowerBounds()`, it may fail to detect this cycle path when full structural analysis is needed.
 
-### Generic array
+### Generic arrays
 
 ```java
 class Arrays<T extends Comparable<T>> {
@@ -369,7 +369,7 @@ class Arrays<T extends Comparable<T>> {
 }
 ```
 
-`Field.getGenericType()` trên `values` trả về `GenericArrayType` với component `T`. Nếu tiếp tục mở bounds của `T`, ta gặp `Comparable<T>` và vòng tham chiếu. Vì vậy cần xử lý `getGenericComponentType()`; còn với `Class<?>` đại diện kiểu mảng cụ thể như `String[]` thì dùng `Class.getComponentType()`.
+`Field.getGenericType()` on `values` returns a `GenericArrayType` with component `T`. If you continue expanding `T`'s bounds, you encounter `Comparable<T>` and the reference cycle. Therefore you must handle `getGenericComponentType()`; for a `Class<?>` representing a concrete array type like `String[]`, use `Class.getComponentType()`.
 
 ### Multiple bounds
 
@@ -377,88 +377,88 @@ class Arrays<T extends Comparable<T>> {
 class Multi<T extends Comparable<T> & java.io.Serializable> {}
 ```
 
-`TypeVariable.getBounds()` trả mảng các giới hạn. Bound `Comparable<T>` có đường quay về `T`, còn bound `Serializable` là nhánh riêng không có chu trình. Dùng `active` theo nhánh giúp duyệt được cả hai và không đánh dấu nhầm `Serializable`.
+`TypeVariable.getBounds()` returns an array of bounds. The `Comparable<T>` bound has a path back to `T`, while the `Serializable` bound is a separate acyclic branch. Managing `active` per branch allows traversing both without falsely marking `Serializable`.
 
-### Owner type của generic nested class
+### Owner type of generic nested classes
 
-`ParameterizedType.getOwnerType()` có thể chứa kiểu chủ sở hữu của một inner/nested declaration. Chương trình mẫu tập trung vào đường recursion ở **type arguments/bounds** nên không tự đi qua owner type. Nếu xây dựng **bộ duyệt mọi cạnh của đồ thị kiểu**, hãy kiểm tra `getOwnerType() != null` và gọi `walk(owner, ...)` qua **cùng tập `active`**, đúng quy tắc chống chu trình.
+`ParameterizedType.getOwnerType()` can hold the owning type of an inner/nested declaration. The sample program focuses on recursion along **type arguments/bounds** and therefore does not traverse owner types automatically. If building a **traverser for all edges of the type graph**, check `getOwnerType() != null` and call `walk(owner, ...)` using **the same `active` set**, following the cycle-prevention rule.
 
-Không nên gọi tất cả API Reflection không liên quan đến cấu trúc generic, chẳng hạn duyệt mọi method/field của `Class` từ một `ParameterizedType`, trừ khi bài toán thực sự yêu cầu. Việc mở rộng đồ thị vô ý vừa tăng số nút vừa dễ sinh chu trình không cần thiết.
+Do not call every Reflection API unrelated to generic structure, such as traversing all methods/fields of `Class` from a `ParameterizedType`, unless the problem truly requires it. Unintentionally expanding the graph both increases node counts and easily introduces unnecessary cycles.
 
-## 9. Hai cách phòng vệ bổ sung: giới hạn độ sâu và ngân sách nút
+## 9. Two additional safeguards: depth limits and node budgets
 
-Phát hiện chu trình bằng `active` giải quyết **đường quay lại nút cũ**, nhưng một đồ thị rất sâu hoặc quá lớn vẫn có thể gây vấn đề hiệu năng và bộ nhớ, dù không có cycle. Với công cụ đọc generic từ plugin hoặc thư viện lạ, nên cân nhắc:
+Cycle detection via `active` solves **paths returning to an earlier node**, yet a very deep or huge graph can still cause performance and memory issues even without cycles. For tools reading generics from plugins or unfamiliar libraries, consider:
 
-- `maxDepth`: từ chối duyệt sâu hơn mức được cấu hình; thông báo rõ `[max depth reached]`.
-- `maxNodes`: đếm lượng nút đã ghé qua và ngừng nếu vượt ngân sách; thông báo `[node budget exceeded]`.
-- Cache/memoization: nếu tính lại cùng một kiểu qua nhiều nhánh tốn kém, có thể lưu kết quả đã hoàn tất.
-- Kiểm tra dữ liệu từ implementation `Type` tùy chỉnh: chỉ sử dụng giả định `equals()/hashCode()` đúng hợp đồng; tránh gọi `toString()` phức tạp không kiểm soát nếu object do thư viện cung cấp.
+- `maxDepth`: refuse to traverse deeper than a configured level; clearly report `[max depth reached]`.
+- `maxNodes`: count visited nodes and stop if the budget is exceeded; report `[node budget exceeded]`.
+- Cache/memoization: if recomputing the same type across many branches is costly, cache completed results.
+- Validate data from custom `Type` implementations: rely only on well-behaved `equals()/hashCode()` contracts; avoid invoking complex uncontrolled `toString()` methods on library-provided objects.
 
-**Không dùng `maxDepth` làm cách duy nhất phát hiện cycle.** Nếu cutoff ở độ sâu 10, nó chỉ che chu trình sau mười bước và còn có thể cắt bỏ cấu trúc generic hợp lệ. Nên có cả cơ chế nhận diện chu trình và giới hạn tài nguyên độc lập, với dấu hiệu dừng khác nhau để người dùng hiểu vì sao dữ liệu bị rút gọn.
+**Do not use `maxDepth` as the sole cycle-detection mechanism.** A cutoff at depth 10 only hides a cycle after ten steps and can also truncate valid generic structures. You should have both cycle detection and independent resource limits, with distinct stop markers so users understand why output was truncated.
 
-Ngoài ra, đừng nuốt `StackOverflowError` để làm tín hiệu dừng. Khi đó stack đã cạn, và lỗi có thể đến từ vấn đề khác. Phát hiện chu trình **trước khi** gọi đệ quy mới là cách tiếp cận đúng.
+Furthermore, do not swallow `StackOverflowError` as a stopping signal. By then the stack is already exhausted, and the error may originate from another bug. Detecting cycles **before** recursing is the proper approach.
 
-## 10. Các lỗi thường gặp khi viết bộ phân giải generic
+## 10. Common mistakes when writing a generic resolver
 
-**Lỗi 1 — Coi generic metadata là cây.** Việc một `TypeVariable` xuất hiện lại trong bounds tạo đồ thị có chu trình. Dùng DFS với tập `active`, không duyệt mù.
+**Mistake 1 — Treating generic metadata as a tree.** A `TypeVariable` reappearing inside bounds creates a cyclic graph. Use DFS with an `active` set, not blind traversal.
 
-**Lỗi 2 — Kiểm tra chỉ bằng tên biến kiểu.** Hai biến `T` trong hai class/method khác nhau có tên trùng nhưng không cùng nút. Dùng danh tính ngữ nghĩa theo `TypeVariable` và `GenericDeclaration`.
+**Mistake 2 — Checking only by type variable name.** Two `T` variables in two different classes/methods share a name without being the same node. Use semantic identity via `TypeVariable` and `GenericDeclaration`.
 
-**Lỗi 3 — So sánh chỉ bằng object identity.** Reflection có thể trả các object `TypeVariable` tương đương nhưng không phải cùng tham chiếu. Với implementation chuẩn, dùng `equals()/hashCode()`.
+**Mistake 3 — Comparing only by object identity.** Reflection can return equivalent `TypeVariable` objects that are not the same reference. With standard implementations, use `equals()/hashCode()`.
 
-**Lỗi 4 — Không dọn `active` khi thoát.** Nếu thiếu `finally`, ngoại lệ khi duyệt một nhánh có thể để lại trạng thái sai, hoặc kiểu dùng ở nhánh khác bị đánh dấu nhầm. Chỉ xóa khi chính lần gọi này đã thêm nút thành công.
+**Mistake 4 — Failing to clean up `active` on exit.** Without `finally`, an exception during one branch can leave stale state, or a type used in another branch may be falsely flagged. Remove only when that invocation successfully added the node.
 
-**Lỗi 5 — Bỏ sót các cạnh `WildcardType` / `GenericArrayType`.** Chu trình có thể đi qua `? super T`, `? extends T` và component array. Muốn phân tích đầy đủ thì phải duyệt các edges liên quan.
+**Mistake 5 — Missing `WildcardType` / `GenericArrayType` edges.** Cycles can pass through `? super T`, `? extends T`, and array components. Full analysis requires traversing those edges.
 
-**Lỗi 6 — Hiểu `getBounds()` là danh sách superclass thuần túy.** Bounds có thể là interface, parameterized type, nhiều giới hạn, hoặc `Object` khi biến không khai báo bound tường minh. Mỗi phần tử là `Type`, cần phân nhánh theo runtime interface của nó.
+**Mistake 6 — Thinking `getBounds()` is purely a list of superclasses.** Bounds may be interfaces, parameterized types, multiple bounds, or `Object` when no explicit bound is declared. Each element is a `Type` and must be dispatched by its runtime interface.
 
-**Lỗi 7 — Dùng `ParameterizedType.getRawType()` như đã phân giải đầy đủ.** `Self<T>` có raw type là `Self`, nhưng chu trình nằm trong **actual type argument `T`**. Chỉ lấy raw class sẽ bỏ qua thông tin generic.
+**Mistake 7 — Treating `ParameterizedType.getRawType()` as fully resolved.** `Self<T>` has raw type `Self`, yet the cycle lies in the **actual type argument `T`**. Taking only the raw class discards generic information.
 
-**Lỗi 8 — Tự thay `T` bằng `Self<T>` không có điểm dừng.** Một thuật toán substitution phải có quy tắc xử lý biến kiểu đang phân giải (ví dụ giữ tham chiếu, đánh dấu deferred hoặc trả cấu trúc chu trình) thay vì thay thế mãi. Không thể mong tự mở rộng thành một biểu thức hữu hạn với vô số `Self<Self<...>>`.
+**Mistake 8 — Substituting `T` with `Self<T>` without a stopping rule.** A substitution algorithm must have rules for handling an actively resolving type variable (e.g., keeping a reference, marking deferred, or returning a cyclic structure) rather than substituting forever. You cannot expect to expand into a finite expression of infinite `Self<Self<...>>`.
 
-## 11. Dùng trong ứng dụng: resolver, schema generator và serializer
+## 11. Use in applications: resolvers, schema generators, and serializers
 
-Các công cụ như object mapper, dependency injection framework, schema generator hoặc trình tạo tài liệu API thường phải đọc những cấu trúc kiểu phức tạp. Một class theo mẫu `Node<N extends Node<N>>` không hiếm. Nếu generator tạo schema đệ quy không kiểm soát, nó có thể lặp vô hạn hoặc tạo JSON schema khổng lồ.
+Tools such as object mappers, dependency injection frameworks, schema generators, or API doc generators often have to read complex type structures. A class following `Node<N extends Node<N>>` is not uncommon. If a recursive schema generator runs unchecked, it can loop infinitely or produce an enormous JSON schema.
 
-Một chiến lược rõ ràng là:
+A clear strategy is:
 
-1. **Phân biệt tham chiếu với khai triển:** Khi gặp lại biến kiểu đang xử lý, tạo một dấu tham chiếu ổn định như `TypeVariable(T, declaringElement)` thay vì mở lại bounds.
-2. **Xử lý các kiểu theo cấu trúc:** Duyệt `TypeVariable`, arguments của `ParameterizedType`, upper/lower bounds của `WildcardType` và component của `GenericArrayType`.
-3. **Ghi nhận cycle có chủ đích:** Trong trình hiển thị có thể in `[cycle]`; trong schema có thể dùng tham chiếu schema phù hợp để bảo toàn cấu trúc.
-4. **Tôn trọng scope khai báo:** Hai `T` thuộc hai class khác nhau không được gộp thành một nút schema vì trùng tên.
-5. **Giới hạn tài nguyên độc lập:** Cung cấp cảnh báo khi vượt độ sâu hoặc ngân sách, tránh trả kết quả trông như đầy đủ dù đã bị cắt.
+1. **Distinguish reference from expansion:** When encountering an actively processed type variable again, emit a stable reference marker like `TypeVariable(T, declaringElement)` instead of re-expanding its bounds.
+2. **Handle types structurally:** Traverse `TypeVariable`, arguments of `ParameterizedType`, upper/lower bounds of `WildcardType`, and components of `GenericArrayType`.
+3. **Record cycles intentionally:** In a printer you can output `[cycle]`; in schemas you can use an appropriate schema reference to preserve structure.
+4. **Respect declaration scope:** Two `T`s belonging to two different classes must not be merged into one schema node due to matching names.
+5. **Enforce independent resource limits:** Emit a warning when depth or node budget is exceeded, avoiding returning output that looks complete when it was truncated.
 
-Nếu mục tiêu là kiểm tra một bound cụ thể, đôi khi không cần duyệt toàn bộ đồ thị. Ví dụ kiểm tra raw bound `Comparable` có thể đọc `ParameterizedType.getRawType()` rồi dừng; nếu cần đối số `T` thì mở rộng có kiểm soát. Tối giản phạm vi duyệt giúp tránh công việc thừa.
+If the goal is to check a specific bound, sometimes you do not need to traverse the entire graph. For example, checking raw bound `Comparable` can read `ParameterizedType.getRawType()` and stop; if argument `T` is needed, expand in a controlled way. Minimizing traversal scope avoids redundant work.
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-check questions
 
-**1. Vì sao `Enum<E extends Enum<E>>` không gây lỗi compile, nhưng có thể làm mã Reflection duyệt sai bị vô hạn?**
+**1. Why doesn't `Enum<E extends Enum<E>>` cause a compile error, yet can send buggy Reflection traversal into an infinite loop?**
 
-Vì khai báo F-bound hợp lệ; lỗi xảy ra khi một thuật toán metadata liên tục đi từ `E` đến `Enum<E>` rồi trở lại `E` mà không nhận diện chu trình.
+Because the F-bound declaration is valid; the failure occurs when a metadata algorithm repeatedly steps from `E` to `Enum<E>` and back to `E` without recognizing the cycle.
 
-**2. Dùng `Set<String> seenNames` với mỗi tên `"T"` để chống cycle đã đủ chưa?**
+**2. Is using `Set<String> seenNames` with each `"T"` name sufficient to prevent cycles?**
 
-Chưa. Biến `T` của hai generic declarations khác nhau là hai biến độc lập. Cần dùng `Type` với semantics nhận diện phù hợp, hoặc khóa gồm khai báo và tên.
+No. Variables named `T` from two different generic declarations are two independent variables. You must use `Type` with proper identity semantics, or a key combining declaration and name.
 
-**3. Vì sao code cần `active.remove(type)` trong `finally`?**
+**3. Why does the code need `active.remove(type)` inside `finally`?**
 
-Để nhánh duyệt sau không kế thừa trạng thái của nhánh trước và để dọn trạng thái ngay cả khi xử lý children ném exception. Khi một nút lặp lại trên cùng nhánh, ta phát hiện cycle và return **trước khi thêm lần nữa**, nên không được xóa nhầm nút của ancestor.
+So later branches do not inherit state from earlier branches and state is cleaned up even if processing children throws an exception. When a node repeats on the same branch, we detect the cycle and return **before adding it again**, so we do not accidentally remove an ancestor's node.
 
-**4. Với `T extends Comparable<? super T>`, cần theo dõi những loại `Type` nào để thấy chu trình?**
+**4. For `T extends Comparable<? super T>`, which `Type` kinds must be followed to observe the cycle?**
 
-`TypeVariable` của `T` → `ParameterizedType` của `Comparable<? super T>` → `WildcardType` của `? super T` → lower bound là `T`.
+`TypeVariable` of `T` → `ParameterizedType` of `Comparable<? super T>` → `WildcardType` of `? super T` → lower bound `T`.
 
-**5. Vì sao cutoff độ sâu 10 không phải lời giải hoàn chỉnh?**
+**5. Why is a depth cutoff of 10 not a complete solution?**
 
-Vì nó có thể cắt bỏ một cấu trúc không có cycle nhưng sâu hơn 10; đồng thời không cho biết điểm nào thật sự trùng lặp. Giới hạn tài nguyên nên kết hợp với cycle detection.
+Because it can truncate an acyclic structure deeper than 10, while also failing to identify which node actually repeated. Resource limits should complement cycle detection.
 
-## Ghi nhớ
+## Remember
 
-- F-bounded generics như `T extends Self<T>` và `E extends Enum<E>` là **hợp lệ**.
-- `TypeVariable.getBounds()` và `ParameterizedType.getActualTypeArguments()` có thể dẫn vòng qua cùng một biến kiểu.
-- **Duyệt `Type` như đồ thị:** phát hiện một kiểu đã có trên đường đệ quy hiện tại, đánh dấu `CYCLE` và ngừng mở rộng nhánh đó.
-- **Dùng `Set<Type> active`**, so sánh theo ngữ nghĩa `equals/hashCode` của Reflection types; dọn tập khi rời nhánh bằng `finally`.
-- Kiểm tra cả `WildcardType`, `GenericArrayType` và các cạnh liên quan; đặt thêm giới hạn độ sâu và số nút khi cần để bảo vệ tài nguyên.
-- Không thay thế F-bounds một cách vô hạn; nếu cần mô hình hóa, hãy giữ tham chiếu tới biến kiểu hay nút schema đã biết.
+- F-bounded generics such as `T extends Self<T>` and `E extends Enum<E>` are **valid**.
+- `TypeVariable.getBounds()` and `ParameterizedType.getActualTypeArguments()` can loop through the same type variable.
+- **Traverse `Type` as a graph:** detect a type already on the current recursion path, mark `CYCLE`, and stop expanding that branch.
+- **Use `Set<Type> active`**, comparing by `equals/hashCode` semantics of Reflection types; clean up the set when leaving the branch via `finally`.
+- Also inspect `WildcardType`, `GenericArrayType`, and related edges; add depth and node-count limits when needed to protect resources.
+- Do not substitute F-bounds infinitely; when modeling is needed, retain a reference to the known type variable or schema node.
 
-Điểm mấu chốt là **bản thân kiểu tự tham chiếu không sai; thuật toán mở rộng metadata không nhận diện chu trình mới là vấn đề**.
+The key takeaway is that **self-referential types themselves are not wrong; a metadata expansion algorithm without cycle detection is the problem**.

@@ -1,18 +1,18 @@
-# Nhận diện khi yêu cầu ngôn ngữ vượt khả năng API Java Core
+# Recognizing When Linguistic Requirements Exceed Java Core APIs
 
-Bản địa hóa không chỉ là đổi nhãn giao diện. Một câu thông báo có thể phải thay **dạng số nhiều**, **giống ngữ pháp**, **cách chia động từ**, **thứ tự từ**, **cách/case của danh từ**, **dạng thứ tự (ordinal)** hoặc cả cấu trúc câu theo ngôn ngữ. Java Core hỗ trợ lưu bản dịch bằng `ResourceBundle`, định dạng số/ngày bằng `NumberFormat` và `DateFormat`, chèn biến vào câu bằng `MessageFormat`, cùng lựa chọn theo khoảng số qua `ChoiceFormat`. Tuy nhiên, các API này **không phải hệ thống ngữ pháp tổng quát** và không tự triển khai quy tắc số nhiều theo CLDR cho mọi ngôn ngữ.
+Localization is more than swapping UI labels. A message sentence may need to change **plural forms**, **grammatical gender**, **verb conjugation**, **word order**, **noun grammatical case**, **ordinal forms**, or even the entire sentence structure depending on the language. Java Core supports storing translations with `ResourceBundle`, formatting numbers/dates with `NumberFormat` and `DateFormat`, interpolating variables into sentences with `MessageFormat`, and selecting by numeric intervals via `ChoiceFormat`. However, these APIs are **not a general-purpose grammar system** and do not automatically implement CLDR plural rules for every language.
 
-Mục tiêu của bài là biết **nhận diện lúc yêu cầu ngôn ngữ đã vượt khả năng của API Java Core** để chọn kiến trúc và công cụ đúng, thay vì cố ép ngữ pháp phức tạp vào vài điều kiện `if`, vào `ResourceBundle` hoặc vào `ChoiceFormat`.
+The goal of this lesson is to know **how to recognize when linguistic requirements have exceeded Java Core APIs** so you can choose the right architecture and tools, rather than forcing complex grammar into a few `if` conditions, into `ResourceBundle`, or into `ChoiceFormat`.
 
-## 1. Ranh giới giữa định dạng dữ liệu và tạo câu tự nhiên
+## 1. The Boundary Between Formatting Data and Generating Natural Sentences
 
-Hãy phân biệt ba việc:
+Distinguish three tasks:
 
-1. **Lấy bản dịch đã viết sẵn:** `ResourceBundle.getString("cart.title")` trả về văn bản theo khóa và locale, có thể fallback sang bundle cha. Nó không tự chia danh từ.
-2. **Định dạng giá trị:** `NumberFormat` định dạng `1234.5` theo locale; `DateFormat` định dạng ngày. Những API này không quyết định cả câu nên dùng dạng động từ hoặc danh từ nào.
-3. **Tạo thông điệp phụ thuộc ngữ pháp:** “1 file” / “2 files”, “1 объект” / “2 объекта” / “5 объектов”, hoặc biến đổi cấu trúc lời chào tùy giới/cách ngữ pháp của các thành phần trong câu. Đây là bài toán ngôn ngữ học, không chỉ là chèn số.
+1. **Retrieving a pre-written translation:** `ResourceBundle.getString("cart.title")` returns text by key and locale, possibly falling back to a parent bundle. It does not inflect nouns on its own.
+2. **Formatting values:** `NumberFormat` formats `1234.5` by locale; `DateFormat` formats dates. These APIs do not decide which verb or noun form the whole sentence should use.
+3. **Generating grammar-dependent messages:** “1 file” / “2 files”, “1 объект” / “2 объекта” / “5 объектов”, or altering greeting structures depending on the grammatical gender/case of sentence components. This is a linguistic problem, not just number insertion.
 
-Ví dụ tiếng Anh đơn giản:
+Simple English example:
 
 ~~~text
 0 files
@@ -20,9 +20,9 @@ Ví dụ tiếng Anh đơn giản:
 2 files
 ~~~
 
-Nếu giả định mọi ngôn ngữ đều dùng quy tắc “bằng 1 là số ít, còn lại số nhiều”, ứng dụng sẽ sai với những ngôn ngữ có nhiều dạng theo số đếm, với phân số và trong nhiều tình huống có ngữ cảnh ngữ pháp khác nhau.
+Assuming every language follows the rule “1 is singular, everything else is plural” will make the application wrong for languages with multiple count-dependent forms, for fractions, and in many situations with different grammatical contexts.
 
-Một ví dụ chỉ về **phân loại số nguyên tiếng Nga**:
+An example solely illustrating **Russian integer classification**:
 
 ~~~text
 1  → one
@@ -33,59 +33,59 @@ Một ví dụ chỉ về **phân loại số nguyên tiếng Nga**:
 22 → few
 ~~~
 
-Đây là **tên các nhóm phân loại**, không phải bản dịch đầy đủ và không bao trùm số thập phân. Điều quan trọng là `21` có thể thuộc nhóm giống `1`, trong khi `11` lại thuộc nhóm khác: quy tắc đơn giản `count == 1` không đủ.
+These are **classification group names**, not complete translations and not covering decimal numbers. The key point is that `21` can belong to the same group as `1`, while `11` belongs to a different group: the simple `count == 1` rule is insufficient.
 
-## 2. Java Core làm được gì, không làm được gì?
+## 2. What Can Java Core Do, and What Can It Not Do?
 
-| Công cụ Java 17 | Khả năng phù hợp | Giới hạn cần nhận diện |
+| Java 17 Tool | Appropriate Capability | Limitation to Recognize |
 | --- | --- | --- |
-| `Locale` | Mô tả ngôn ngữ/vùng/script và tùy chọn locale | Không chứa sẵn bộ máy biến đổi câu và quy tắc ngữ pháp tổng quát |
-| `ResourceBundle` | Tải văn bản/tài nguyên theo khóa và chuỗi locale | Không tự chọn plural category, giống, cách hoặc dạng động từ |
-| `MessageFormat` (`java.text`) | Chèn đối số vào mẫu, định dạng number/date/time/choice | Không hỗ trợ cú pháp ICU `plural`, `select`, `selectordinal` của MessageFormat ICU trong Java 17 |
-| `ChoiceFormat` | Chọn chuỗi theo ngưỡng số bằng pattern đã khai báo | Không tự áp dụng quy tắc CLDR phụ thuộc locale; không phải bộ máy plural tổng quát |
-| `NumberFormat` | Định dạng số, phân tách hàng nghìn/chữ số tùy locale | Không chọn dạng từ ngữ hay cấu trúc câu |
-| `DateFormat` | Định dạng ngày/giờ theo locale | Không bảo đảm sinh mọi cấu trúc ngữ pháp cần trong câu tự nhiên |
+| `Locale` | Describes language/region/script and locale options | Does not contain a built-in sentence-transformation engine or general grammar rules |
+| `ResourceBundle` | Loads text/resources by key and locale chain | Does not automatically pick plural categories, gender, case, or verb forms |
+| `MessageFormat` (`java.text`) | Substitutes arguments into patterns; formats number/date/time/choice | Does not support ICU MessageFormat `plural`, `select`, `selectordinal` syntax in Java 17 |
+| `ChoiceFormat` | Selects strings by numeric thresholds via a declared pattern | Does not automatically apply locale-dependent CLDR rules; not a general plural engine |
+| `NumberFormat` | Formats numbers, locale-dependent grouping separators/digits | Does not select word forms or sentence structures |
+| `DateFormat` | Formats dates/times by locale | Does not guarantee generating every grammatical structure needed in natural sentences |
 
-Cần phân biệt **API Java Core** với thư viện ngoài có lớp hoặc tên gần giống. Chẳng hạn `java.text.MessageFormat` **khác** `com.ibm.icu.text.MessageFormat` của ICU4J: không được lấy pattern ICU rồi truyền vào `java.text.MessageFormat` và kỳ vọng nó hiểu toàn bộ cú pháp đó.
+Distinguish **Java Core APIs** from external libraries with similar classes or names. For instance, `java.text.MessageFormat` **differs from** ICU4J's `com.ibm.icu.text.MessageFormat`: you cannot take an ICU pattern, pass it into `java.text.MessageFormat`, and expect it to understand all of that syntax.
 
-**Cảnh báo về phiên bản:** Phần nhận định và ví dụ ở đây nhắm đến Java 17. Khi cập nhật JDK hoặc thêm thư viện/framework, hãy kiểm tra hợp đồng API thực tế; không coi mọi lớp mang tên `MessageFormat` là tương đương.
+**Version warning:** The assessments and examples here target Java 17. When upgrading the JDK or adding libraries/frameworks, verify the actual API contract; do not treat every class named `MessageFormat` as equivalent.
 
-## 3. Dấu hiệu thứ nhất: plural không còn là “1 và nhiều”
+## 3. First Signal: Plurals Are No Longer “1 and Many”
 
-Khi yêu cầu có số lượng, đặt câu hỏi:
+When a requirement involves quantities, ask:
 
-- Tập ngôn ngữ đích gồm những ngôn ngữ nào?
-- Số lượng là **số nguyên** hay có thể là **thập phân** (`1.0`, `1.5`, `2.25`)?
-- Có thể là **âm**, rất lớn, hoặc dùng số được hiển thị sau làm tròn?
-- Đang nói về **cardinal** (đếm “bao nhiêu”) hay **ordinal** (thứ “mấy”)?
-- Tên danh từ/đơn vị đi kèm có thay đổi theo **giống, cách hoặc ngữ cảnh** không?
+- Which languages are in the target language set?
+- Are quantities **integers**, or can they be **decimals** (`1.0`, `1.5`, `2.25`)?
+- Can they be **negative**, very large, or use numbers displayed after rounding?
+- Are we talking about **cardinal** (counting “how many”) or **ordinal** (“which position”)?
+- Do accompanying nouns/units change by **gender, case, or context**?
 
-Trong CLDR, các nhóm plural được đặt tên `zero`, `one`, `two`, `few`, `many`, `other`. Đây là **tên nhóm quy tắc**, không có nghĩa một ngôn ngữ nhất thiết dùng đủ sáu nhóm, và `zero` không đơn giản là “số 0”, `one` cũng không có nghĩa luôn là giá trị số học 1. Nhóm được xác định theo quy tắc của ngôn ngữ và ngữ cảnh cardinal/ordinal.
+In CLDR, plural groups are named `zero`, `one`, `two`, `few`, `many`, `other`. These are **rule group names**; they do not mean a language necessarily uses all six groups, nor does `zero` simply mean “the number 0”, nor does `one` always mean the arithmetic value 1. Groups are determined by the language's rules and cardinal/ordinal context.
 
-Ví dụ:
+Examples:
 
-- Tiếng Anh trong quy tắc cardinal thường phân biệt `one` và `other`, nhưng cách xử lý số thập phân cần theo CLDR thay vì chỉ dựa trên một phép so sánh tùy ý.
-- Tiếng Nga có nhóm `one`, `few`, `many` cho nhiều số nguyên và các trường hợp thập phân cần xử lý riêng; `11` và `21` không nên suy ra từ cùng một kiểm tra hàng đơn vị.
-- Tiếng Ả Rập có nhiều nhóm đếm, thường vượt xa một lựa chọn số ít/số nhiều.
-- Tiếng Việt nói chung không bắt buộc biến tố danh từ theo số đếm giống tiếng Anh, nhưng thông điệp vẫn có thể đòi hỏi lựa chọn từ, phân loại từ hoặc cách diễn đạt khác; không áp đặt công thức Anh cho tiếng Việt.
+- English in cardinal rules typically distinguishes `one` and `other`, yet decimal handling must follow CLDR rather than relying solely on an arbitrary comparison.
+- Russian has `one`, `few`, `many` groups for many integers and decimal cases requiring separate handling; `11` and `21` must not be inferred from the same unit-digit check.
+- Arabic has multiple counting groups, going far beyond a singular/plural choice.
+- Vietnamese generally does not require English-style noun inflection by count, yet messages may still demand word selection, classifiers, or different phrasing; do not force English formulas onto Vietnamese.
 
-**Khi nào vượt Java Core?** Khi sản phẩm phải quyết định plural category theo ngôn ngữ cho nhiều locale, đặc biệt với số thập phân và cardinal/ordinal, `ChoiceFormat` không tự cung cấp bộ quy tắc đó. Bạn sẽ phải duy trì các quy tắc riêng — khó và dễ sai — hoặc sử dụng công cụ có dữ liệu/quy tắc plural tương ứng.
+**When does it exceed Java Core?** When a product must determine linguistic plural categories across multiple locales, especially with decimals and cardinal/ordinal distinctions, `ChoiceFormat` does not supply those rule sets automatically. You will either have to maintain custom rules — hard and error-prone — or adopt a tool with corresponding plural data/rules.
 
-### ChoiceFormat chỉ là lựa chọn theo ngưỡng số
+### ChoiceFormat is only numeric-threshold selection
 
-`ChoiceFormat` có thể biểu diễn:
+`ChoiceFormat` can express:
 
 ~~~text
 0#no files|1#one file|1<many files
 ~~~
 
-Trong pattern trên, `#` chọn từ một ngưỡng bao gồm; `<` chọn ngưỡng lớn hơn (theo quy tắc của `ChoiceFormat`). Nó hữu dụng cho một bài toán hữu hạn và quy tắc đã xác định. Nhưng không có tham số nào ở đây bảo Java tự chuyển sang plural category tiếng Nga, tiếng Ả Rập hoặc tiếng Ba Lan.
+In the pattern above, `#` selects from an inclusive threshold; `<` selects above a threshold (per `ChoiceFormat` rules). It is useful for a finite problem with defined rules. However, no parameter here tells Java to switch to Russian, Arabic, or Polish plural categories.
 
-Các ngưỡng số và các nhóm CLDR **không cùng khái niệm**. Quy tắc tiếng Nga phụ thuộc vào chữ số hàng đơn vị và hai chữ số cuối; một vài khoảng cố định sẽ không tổng quát cho mọi số nguyên không giới hạn.
+Numeric thresholds and CLDR groups are **not the same concept**. Russian rules depend on the units digit and last two digits; a handful of fixed intervals will not generalize to unbounded integers.
 
-## 4. Dấu hiệu thứ hai: ordinal khác cardinal
+## 4. Second Signal: Ordinals Differ from Cardinals
 
-Câu “3 files” thuộc loại **cardinal**; câu “3rd place” thuộc loại **ordinal** trong tiếng Anh. Hai loại dùng quy tắc và thông điệp khác nhau. Không lấy logic `one/other` cardinal để tạo đuôi `st/nd/rd/th` một cách đơn giản:
+The phrase “3 files” is **cardinal**; “3rd place” is **ordinal** in English. Both use different rules and messages. Do not reuse cardinal `one/other` logic to blindly build `st/nd/rd/th` suffixes:
 
 ~~~text
 1st, 2nd, 3rd, 4th
@@ -93,53 +93,53 @@ Câu “3 files” thuộc loại **cardinal**; câu “3rd place” thuộc lo�
 21st, 22nd, 23rd
 ~~~
 
-Một rule “hàng đơn vị là 1 thì thêm `st`” sẽ sai với `11th`. Khi triển khai nhiều ngôn ngữ, một số ngôn ngữ có dạng ordinal rất khác hoặc không dùng hậu tố như tiếng Anh.
+A rule like “if the units digit is 1 then append `st`” fails on `11th`. When deploying multiple languages, some languages have very different ordinal forms or do not use suffixes like English.
 
-**Tín hiệu vượt khả năng API:** Yêu cầu hỗ trợ thứ hạng, ngày thứ, vị trí hoặc thứ tự theo nhiều locale với quy tắc ordinal đúng, chứ không chỉ hiển thị con số. `NumberFormat` định dạng số không tự sinh ordinal trong câu; `MessageFormat` Java 17 không hỗ trợ pattern ICU `selectordinal`.
+**Signal of exceeding API capability:** Requirements to support rankings, calendar days of the month, positions, or ordering across many locales with accurate ordinal rules, rather than merely displaying a number. `NumberFormat` formats numbers without generating sentence ordinals; Java 17 `MessageFormat` does not support ICU's `selectordinal` pattern.
 
-Một hệ thống có thể chọn viết cả câu riêng cho từng thứ hạng hữu hạn (ví dụ top 3) nếu nghiệp vụ chỉ có đúng những trường hợp ấy. Khi đầu vào là mọi số và mọi ngôn ngữ, giải pháp hữu hạn thường không đủ.
+A system might choose to write dedicated full sentences for each finite rank (such as top 3) if business logic only has those exact cases. When inputs span arbitrary numbers and languages, a finite workaround is usually insufficient.
 
-## 5. Dấu hiệu thứ ba: chọn giống và cấu trúc câu, không chỉ tên từ
+## 5. Third Signal: Selecting Gender and Sentence Structure, Not Just Noun Labels
 
-Một số thông điệp cần biến đổi theo **giống ngữ pháp của danh từ**, **loại chủ thể**, **cách xưng hô**, hoặc sự hòa hợp giữa các từ trong câu.
+Some messages must vary by **noun grammatical gender**, **subject category**, **form of address**, or agreement across words in the sentence.
 
-Ví dụ đặc tả:
+Example specification:
 
 ~~~text
 subjectCategory = masculine | feminine | neuter | other
 count = 1 | 2 | 5 | ...
-message = một câu đầy đủ phù hợp subjectCategory và count
+message = a complete sentence matching subjectCategory and count
 ~~~
 
-Đây là **mô hình dữ liệu**, không phải pattern Java Core. Không nên đồng nhất `subjectCategory` với giới tính sinh học của người dùng; ở nhiều ngôn ngữ, **giống ngữ pháp là thuộc tính của từ**. Việc thu thập dữ liệu giới tính cá nhân chỉ để chia câu có thể không cần thiết và gây rủi ro riêng tư. Hãy mô hình hóa thông tin ngôn ngữ thực sự cần cho thông điệp.
+This is a **data model**, not a Java Core pattern. Do not equate `subjectCategory` with a user's biological gender; in many languages, **grammatical gender is a property of words**. Collecting personal gender data solely to inflect sentences may be unnecessary and introduce privacy risks. Model the linguistic information actually needed for the message.
 
-Khi một câu thay đổi theo **cả count và grammatical gender**, số nhánh có thể là tích của các lựa chọn và đôi khi còn phụ thuộc cách, thứ tự hoặc ngữ cảnh. Việc ghép “prefix + translated noun + suffix” có thể tạo câu sai ở ngôn ngữ khác do thứ tự từ và tính hòa hợp.
+When a sentence varies by **both count and grammatical gender**, the number of branches can be the Cartesian product of choices and sometimes also depends on case, word order, or context. Concatenating “prefix + translated noun + suffix” can produce broken sentences in other languages due to word order and agreement.
 
-**Tín hiệu vượt khả năng API:** Người dịch phải viết các câu hoàn chỉnh khác nhau dựa trên `gender/select` và `plural`, đặc biệt khi chúng lồng nhau. Java Core `MessageFormat` không có cú pháp `select`/plural ICU để mô tả các nhánh ngữ pháp đó bằng dữ liệu bản dịch theo cách trực tiếp.
+**Signal of exceeding API capability:** Translators must author different complete sentences based on `gender/select` and `plural`, especially when nested. Java Core `MessageFormat` has no ICU `select`/plural syntax to express those grammatical branches directly inside translation data.
 
-## 6. Dấu hiệu thứ tư: case, agreement, context và inflection
+## 6. Fourth Signal: Case, Agreement, Context, and Inflection
 
-Các ngôn ngữ có thể thay đổi dạng danh từ, tính từ, số từ hoặc động từ theo:
+Languages can alter the forms of nouns, adjectives, numerals, or verbs according to:
 
-- **Cách ngữ pháp (grammatical case):** vị trí của từ trong câu làm thay đổi hình thái, ví dụ các vai trò chủ ngữ, bổ ngữ hoặc sở hữu ở một số ngôn ngữ.
-- **Sự hòa hợp (agreement):** tính từ hoặc động từ biến đổi để phù hợp danh từ/chủ thể.
-- **Ngữ cảnh câu:** một nhãn ngắn đứng riêng có thể khác dạng khi được đặt trong một câu.
-- **Giới từ hoặc dạng rút gọn:** quyết định dựa trên âm/cấu trúc câu, không chỉ dịch từng token.
-- **Từ loại hoặc mức độ lịch sự:** dạng mệnh lệnh, câu hỏi hoặc lời nhắc có thể thay đổi đáng kể.
+- **Grammatical case:** a word's role in the sentence changes its morphology, such as subject, object, or possessive roles in certain languages.
+- **Agreement:** adjectives or verbs change to match the noun/subject.
+- **Sentence context:** a short standalone label may take a different form when placed inside a sentence.
+- **Prepositions or contractions:** decided by sound or sentence structure rather than word-by-word translation.
+- **Part of speech or politeness level:** imperatives, questions, or prompts can vary substantially.
 
-Ví dụ yêu cầu nghiệp vụ “Hiển thị `{count}` sản phẩm trong `{location}` bằng một câu tự nhiên cho 12 ngôn ngữ” có thể đòi thay danh từ theo số, thay giới từ, cách của địa danh, và trật tự thành phần. `MessageFormat` Java Core có thể chèn số và địa điểm vào câu mẫu, nhưng **không tự suy luận cú pháp ngôn ngữ**.
+For instance, a business requirement “Display `{count}` products in `{location}` as a natural sentence for 12 languages” may demand inflecting the noun by count, changing prepositions, inflecting the place name's case, and reordering components. Java Core `MessageFormat` can insert the number and location into a template, but it **does not deduce linguistic syntax**.
 
-Thay vì cố tạo câu bằng nhiều fragment, hãy để người dịch kiểm soát mẫu câu **ở mức một thông điệp hoàn chỉnh**, và dùng API hoặc thư viện phù hợp để điều kiện ngữ pháp nằm trong nội dung được quản lý. Trong trường hợp đặc biệt phức tạp, ngay cả formatter plural/select cũng có thể chưa đủ; có thể cần các mẫu câu chuyên biệt, dữ liệu biến tố do chuyên gia ngôn ngữ cung cấp, hoặc một lớp sinh ngôn ngữ tự nhiên được kiểm thử riêng.
+Instead of assembling sentences from multiple fragments, let translators control sentence templates **at the level of a complete message**, and use a suitable API or library so grammatical conditions live in managed content. In particularly complex cases, even plural/select formatters may be insufficient; specialized templates, inflection data supplied by linguists, or a separately tested natural-language generation layer may be required.
 
-## 7. Ví dụ Java 17 chạy được: Java Core hỗ trợ đến đâu?
+## 7. Runnable Java 17 Example: How Far Does Java Core Go?
 
-Chương trình sau làm ba việc:
+The following program does three things:
 
-1. Dùng `java.text.MessageFormat` với nhánh `choice` cho **một ví dụ tiếng Anh đơn giản**.
-2. Minh họa **quy tắc tùy chỉnh** phân nhóm **số nguyên cardinal không âm tiếng Nga**, chỉ để làm rõ tại sao logic “1 hay khác 1” không đủ. Hàm này **không phải** bộ máy CLDR tổng quát.
-3. Chỉ ra pattern ICU `plural` **không** được `java.text.MessageFormat` Java 17 chấp nhận.
+1. Uses `java.text.MessageFormat` with a `choice` branch for **a simple English example**.
+2. Illustrates a **custom rule** grouping **Russian non-negative cardinal integers**, solely to demonstrate why “1 vs. not 1” logic is insufficient. This method is **not** a general CLDR engine.
+3. Shows that an ICU `plural` pattern is **not** accepted by Java 17 `java.text.MessageFormat`.
 
-Tạo tệp **`CoreGrammarLimitsDemo.java`**:
+Create the file **`CoreGrammarLimitsDemo.java`**:
 
 ~~~java
 import java.text.MessageFormat;
@@ -156,8 +156,8 @@ public class CoreGrammarLimitsDemo {
         return format.format(new Object[] { count });
     }
 
-    // Chỉ minh họa nhóm cardinal của số nguyên không âm tiếng Nga.
-    // KHÔNG xử lý thập phân, ordinal, giống hay cách ngữ pháp.
+    // Illustrates cardinal grouping for Russian non-negative integers only.
+    // Does NOT handle decimals, ordinals, grammatical gender, or case.
     static String russianIntegerCategory(long count) {
         if (count < 0) {
             throw new IllegalArgumentException("count must be >= 0");
@@ -196,14 +196,14 @@ public class CoreGrammarLimitsDemo {
 }
 ~~~
 
-Biên dịch và chạy (JDK 17 trở lên):
+Compile and run (JDK 17 or later):
 
 ~~~bash
 javac -encoding UTF-8 CoreGrammarLimitsDemo.java
 java CoreGrammarLimitsDemo
 ~~~
 
-Stdout đã kiểm tra bằng JDK:
+Stdout verified with the JDK:
 
 ~~~text
 EN 0: no files
@@ -218,25 +218,25 @@ RU 22: few
 ICU plural pattern: unsupported by Java 17
 ~~~
 
-Giải thích:
+Explanation:
 
-- `choice` là cách xử lý hợp lý cho thông điệp tiếng Anh minh họa với số nguyên không âm, nhưng pattern này do lập trình viên viết **cố định**, không phát sinh từ CLDR.
-- `russianIntegerCategory` thể hiện quy tắc nhóm theo `% 10` và `% 100`, nên `11` thuộc `many` còn `21` thuộc `one`. Bài toán thực còn xét dạng thập phân và các yếu tố CLDR khác; không dùng hàm minh họa này làm quy tắc production cho mọi dạng số.
-- Từ khóa `plural` trong pattern ICU không phải một kiểu format của `java.text.MessageFormat` Java 17. Constructor ném `IllegalArgumentException`, được bắt để chứng minh giới hạn.
-- Câu trả lời `one/few/many` chỉ là **nhãn phân loại**, chưa phải bản dịch tiếng Nga hoàn chỉnh. Với bản dịch thực, người dịch phải cung cấp mẫu cho mỗi category phù hợp, và có thể còn phải xét case/giống/ngữ cảnh.
+- `choice` is a reasonable approach for the illustrative English message with non-negative integers, but this pattern is **hardcoded** by the developer rather than derived from CLDR.
+- `russianIntegerCategory` demonstrates grouping by `% 10` and `% 100`, so `11` belongs to `many` while `21` belongs to `one`. Real-world problems also consider decimal forms and other CLDR factors; do not use this illustrative method as a production rule for all number forms.
+- The `plural` keyword in an ICU pattern is not a format type in Java 17 `java.text.MessageFormat`. The constructor throws `IllegalArgumentException`, caught here to demonstrate the limitation.
+- The answers `one/few/many` are merely **classification labels**, not complete Russian translations. For real translations, translators must supply a template for each applicable category, and may also need to account for case, gender, and context.
 
-**Không hiểu nhầm:** Việc một ứng dụng có thể tự viết `if`, `switch` hoặc thuật toán biến tố bằng Java không có nghĩa **API chuẩn của Java Core đã cung cấp đầy đủ dữ liệu và quy tắc ngữ pháp đó**. Khi tự viết, toàn bộ gánh nặng đúng ngôn ngữ, bảo trì và kiểm thử thuộc về ứng dụng.
+**Do not misunderstand:** The fact that an application can write its own `if`, `switch`, or inflection algorithm in Java does not mean **standard Java Core APIs provide that linguistic data and those grammar rules**. When writing it yourself, the entire burden of linguistic accuracy, maintenance, and testing falls on the application.
 
-## 8. Khi nào Java Core vẫn đủ?
+## 8. When Is Java Core Still Enough?
 
-Không phải mọi thông điệp chứa số đều cần thư viện ngoài. Java Core có thể đủ khi:
+Not every message containing a number requires an external library. Java Core can suffice when:
 
-- Hệ thống chỉ hỗ trợ **ít ngôn ngữ và quy tắc đã được giới hạn, xác minh**.
-- Mỗi lựa chọn ngữ pháp có **tập hữu hạn nhỏ** và sản phẩm có thể dùng các thông điệp hoàn chỉnh riêng.
-- Các câu không phụ thuộc giống/case/ordinal phức tạp; chỉ cần định dạng dữ liệu và chọn một mẫu đã viết sẵn.
-- Đội ngũ có thể xác minh toàn bộ tập đầu vào và cập nhật bản dịch đúng quy trình.
+- The system supports only **a few languages with bounded, verified rules**.
+- Each grammatical choice has a **small finite set** and the product can use separate complete messages.
+- Sentences do not depend on complex gender/case/ordinals; they only need data formatting and choosing a pre-written template.
+- The team can verify the entire input set and update translations through proper workflows.
 
-Một thiết kế đơn giản, tường minh:
+A simple, explicit design:
 
 ~~~properties
 # messages_en.properties
@@ -245,8 +245,8 @@ notification.other=You have {0} notifications.
 ~~~
 
 ~~~java
-// Đoạn minh họa trong chương trình đã có ResourceBundle bundle,
-// số count kiểu int hợp lệ, Locale locale của người dùng.
+// Illustrative snippet inside a program that already has ResourceBundle bundle,
+// valid int count, and the user's Locale locale.
 String key = (count == 1)
         ? "notification.one"
         : "notification.other";
@@ -256,34 +256,34 @@ String message = new MessageFormat(template, locale)
         .format(new Object[] { count });
 ~~~
 
-Đoạn này chỉ minh họa cách **ứng dụng** chọn key. `ResourceBundle` không tự chọn `one/other`; `MessageFormat` chỉ chèn giá trị vào mẫu. Nếu đổi sang tiếng Nga hoặc tiếng Ả Rập, không được giữ nguyên phép chọn `count == 1`.
+This snippet only illustrates how the **application** selects a key. `ResourceBundle` does not pick `one/other` itself; `MessageFormat` merely inserts values into the template. If switching to Russian or Arabic, you must not keep the `count == 1` selection logic.
 
-Nên đặt câu hoàn chỉnh cho từng nhánh, thay vì để người dịch nhận nhiều mảnh như `prefix`, `noun`, `suffix` rồi ghép bằng toán tử `+`. Trật tự từ và cách chia có thể khác nhau giữa các ngôn ngữ.
+Put complete sentences in each branch instead of giving translators separate fragments like `prefix`, `noun`, `suffix` and joining them with `+`. Word order and inflection can differ across languages.
 
-## 9. Khi nào phải chọn thư viện i18n có quy tắc ngôn ngữ?
+## 9. When Must You Choose an i18n Library with Linguistic Rules?
 
-Cần đánh giá giải pháp chuyên dụng khi một hoặc nhiều yêu cầu sau xuất hiện:
+Evaluate a specialized solution when one or more of the following requirements appear:
 
-| Tín hiệu yêu cầu | Nguy cơ nếu chỉ dùng Java Core | Tiêu chí giải pháp cần có |
+| Requirement Signal | Risk If Using Only Java Core | Required Solution Criteria |
 | --- | --- | --- |
-| Nhiều ngôn ngữ với plural khác nhau | Đếm sai hoặc dạng danh từ sai | Có CLDR cardinal plural theo locale |
-| Số thập phân và quy tắc phức tạp | `count == 1`/modulo số nguyên sai | Đúng operands và nhóm của số thập phân |
-| Ordinal theo locale | Sinh sai thứ hạng | Có quy tắc ordinal riêng |
-| Chọn theo giống ngữ pháp | Ghép câu lỗi hoặc sai cách chia | Có điều kiện `select` hoặc mẫu câu tương đương |
-| Lồng plural và select | Bùng nổ `if/else` trong code | Hỗ trợ biểu diễn nhánh lồng và kiểm thử |
-| Nhiều biến thể case/agreement | Sai cấu trúc câu | Có dữ liệu/chiến lược mẫu câu do người dịch kiểm soát |
-| Bản dịch cập nhật thường xuyên | Logic ngôn ngữ bị rải trong mã nguồn | Quản lý mẫu tập trung, kiểm định và versioning |
-| Mẫu được dịch bởi đội nhiều ngôn ngữ | Người dịch không thể sửa logic Java | Định dạng message có cú pháp nhất quán và tooling |
+| Multiple languages with differing plurals | Wrong counts or wrong noun forms | Locale-aware CLDR cardinal plurals |
+| Decimals and complex rules | `count == 1` / integer modulo is wrong | Accurate operands and decimal grouping |
+| Locale-specific ordinals | Produces wrong rankings | Dedicated ordinal rules |
+| Selecting by grammatical gender | Broken concatenation or wrong agreement | `select` conditions or equivalent sentence templates |
+| Nesting plural and select | Explosion of `if/else` in code | Support for expressing nested branches and testing |
+| Multiple case/agreement variants | Broken sentence structure | Translator-controlled sentence template data/strategy |
+| Frequently updated translations | Linguistic logic scattered in source code | Centralized template management, validation, and versioning |
+| Templates translated by a multilingual team | Translators cannot edit Java logic | Consistent message syntax and tooling |
 
-Một lựa chọn phổ biến trong hệ Java là **ICU4J** cùng dữ liệu/quy tắc dựa trên CLDR. ICU4J có các API liên quan đến plural rules và message formatting, bao gồm khả năng chọn nhánh plural/select trong các phiên bản có hỗ trợ. Tuy nhiên:
+A common choice in the Java ecosystem is **ICU4J** along with CLDR-based data and rules. ICU4J provides APIs for plural rules and message formatting, including plural/select branch selection in supported versions. However:
 
-- ICU4J là **thư viện bên ngoài JDK**; phải khai báo dependency, kiểm tra phiên bản và bản quyền theo chính sách dự án.
-- **Không** truyền mẫu ICU vào `java.text.MessageFormat`; phải dùng lớp formatter của thư viện tương ứng.
-- Một thư viện plural/select tốt cũng **không tự dịch nội dung**. Người dịch vẫn cần cung cấp thông điệp đúng và làm rõ yêu cầu ngôn ngữ.
-- Hãy xác minh dữ liệu CLDR và phiên bản ICU được dùng khi quy tắc thay đổi; việc cập nhật thư viện có thể làm thay đổi kết quả phân loại tại các trường hợp biên.
-- Đừng giả định một API có thể tự giải quyết mọi case/agreement/inflection. Trường hợp ngữ pháp phức tạp có thể cần nhiều mẫu hoàn chỉnh, dữ liệu biến tố hoặc quy trình biên tập ngôn ngữ.
+- ICU4J is a **library outside the JDK**; you must declare the dependency and check versions and licensing per project policy.
+- **Do not** pass ICU patterns into `java.text.MessageFormat`; use the formatter class of the corresponding library.
+- Even a good plural/select library **does not translate content automatically**. Translators must still provide accurate messages and clarify linguistic requirements.
+- Verify the CLDR data and ICU version used when rules change; upgrading the library can alter classification results at edge cases.
+- Do not assume a single API automatically solves all case/agreement/inflection issues. Complex grammar may require multiple complete templates, inflection data, or linguistic editing workflows.
 
-Ví dụ **pattern ở cấp khái niệm theo cú pháp ICU MessageFormat**, **không chạy bằng `java.text.MessageFormat` Java 17**:
+Example of a **conceptual pattern in ICU MessageFormat syntax**, **not runnable with Java 17 `java.text.MessageFormat`**:
 
 ~~~text
 {count, plural,
@@ -292,136 +292,136 @@ Ví dụ **pattern ở cấp khái niệm theo cú pháp ICU MessageFormat**, **
 }
 ~~~
 
-Pattern này chỉ minh họa việc lưu lựa chọn plural trong tài nguyên mà người dịch có thể quản lý. Không dùng trực tiếp nó như đoạn code Java có thể chạy. Nhóm nào cần có, văn bản mỗi nhóm và việc chèn số phải kiểm tra theo locale đích. Với ngôn ngữ khác tiếng Anh, chỉ ghi `one/other` có thể không đủ.
+This pattern only illustrates storing plural choices in translator-managed resources. Do not use it directly as runnable Java code. Which groups are needed, the text of each group, and number insertion must be verified against the target locale. For languages other than English, writing only `one/other` may not be enough.
 
-## 10. Không thể chỉ trông vào Locale và ResourceBundle
+## 10. You Cannot Rely Solely on Locale and ResourceBundle
 
-`Locale.forLanguageTag("ru-RU")` tạo một `Locale` hợp lệ, nhưng **không phải bằng chứng rằng chương trình có bộ quy tắc số nhiều tiếng Nga**. `NumberFormat.getInstance(locale)` định dạng số theo locale, nhưng không phân biệt `one/few/many` của thông điệp. `ResourceBundle.getBundle("messages", locale)` chọn bộ tài nguyên theo locale và có thể truy cập bundle cha, nhưng **không tự phân tích count hay grammatical gender**.
+`Locale.forLanguageTag("ru-RU")` creates a valid `Locale`, yet **it is not proof that the program has Russian plural rules**. `NumberFormat.getInstance(locale)` formats numbers by locale, yet does not distinguish `one/few/many` in messages. `ResourceBundle.getBundle("messages", locale)` selects resource sets by locale and can traverse parent bundles, yet **it does not inspect count or grammatical gender itself**.
 
-Một nhầm lẫn khác là coi việc fallback sang tài nguyên cha như fallback ngữ pháp. Khi bộ `ru-RU` thiếu khóa plural `files.few`, Java có thể tìm được một chuỗi từ bundle cha; chuỗi đó chưa chắc phù hợp với ngữ cảnh số nhiều của tiếng Nga. Cần coi **đủ và đúng các nhánh ngôn ngữ** là yêu cầu dữ liệu bản dịch, không chỉ yêu cầu `containsKey` trả `true`.
+Another mistake is treating parent-resource fallback as grammatical fallback. When the `ru-RU` bundle lacks the plural key `files.few`, Java may find a string from a parent bundle; that string is not guaranteed to fit Russian plural grammar. Treat **complete and accurate language branches** as a translation data requirement, not just whether `containsKey` returns `true`.
 
-Thứ tự xử lý điển hình:
+Typical processing order:
 
 ~~~text
-Yêu cầu của người dùng / locale
+User request / locale
        |
        v
-Chọn locale mà ứng dụng hỗ trợ
+Select an application-supported locale
        |
        v
-Phân loại điều kiện ngữ pháp theo locale
+Classify grammatical conditions by locale
     (count, ordinal, select, context...)
        |
        v
-Lấy thông điệp phù hợp do người dịch cung cấp
+Retrieve the appropriate translator-supplied message
        |
        v
-Định dạng giá trị và các placeholder
+Format values and placeholders
        |
        v
-Kiểm thử câu đầu ra hoàn chỉnh
+Test the complete output sentence
 ~~~
 
-Các bước có thể được một thư viện formatter chuyên dụng kết hợp trong cùng một API, nhưng vẫn nên kiểm tra từng trách nhiệm khi thiết kế hệ thống.
+Steps may be combined inside a single API of a dedicated formatter library, yet each responsibility should still be audited when designing the system.
 
-## 11. Lập danh sách câu hỏi trước khi quyết định công cụ
+## 11. Checklist of Questions Before Choosing Tooling
 
-Trước khi chọn `MessageFormat` Java Core hoặc ICU4J/framework i18n, hãy viết rõ:
+Before picking Java Core `MessageFormat` or ICU4J/an i18n framework, write down clearly:
 
-1. **Ngôn ngữ và phiên bản vùng nào** được yêu cầu? Ví dụ `en-US`, `ru-RU`, `ar`, `pl-PL`, `vi-VN`.
-2. **Dữ liệu đếm loại gì?** Chỉ số nguyên không âm, hay có cả `0`, `-1`, `1.0`, `1.5`, `2.25`, số rất lớn?
-3. **Dùng cardinal hay ordinal?** Một UI có thể có cả “3 items” và “3rd item”.
-4. **Có điều kiện phi số không?** Giống ngữ pháp, vai trò, loại đối tượng, trạng thái hành động, ngôi xưng?
-5. **Các lựa chọn có lồng nhau không?** Ví dụ count và gender ảnh hưởng đồng thời tới câu.
-6. **Dữ liệu bản dịch do ai quản lý?** Developer hay translator; có cần điều chỉnh mà không phát hành code?
-7. **Fallback được phép đến đâu?** Có thể dùng ngôn ngữ khác không, hay cần từ chối nếu thiếu mẫu đúng?
-8. **Tiêu chí kiểm thử là gì?** Một vài ví dụ minh họa hay ma trận locale × category × loại số × ngữ cảnh?
-9. **Có yêu cầu dữ liệu ngôn ngữ được cập nhật không?** Nếu dùng CLDR, phiên bản nào và chính sách nâng cấp ra sao?
-10. **Có ràng buộc pháp lý hoặc tính chính xác cao không?** Với nội dung nhạy cảm, cần người dịch/chuyên gia ngôn ngữ phê duyệt.
+1. **Which languages and regional variants** are required? E.g., `en-US`, `ru-RU`, `ar`, `pl-PL`, `vi-VN`.
+2. **What kind of count data is used?** Only non-negative integers, or also `0`, `-1`, `1.0`, `1.5`, `2.25`, very large numbers?
+3. **Are cardinals or ordinals used?** One UI may contain both “3 items” and “3rd item”.
+4. **Are there non-numeric conditions?** Grammatical gender, roles, object types, action states, forms of address?
+5. **Do selections nest?** For example, count and gender simultaneously affecting the sentence.
+6. **Who manages translation data?** Developers or translators; is updating copy without code releases required?
+7. **How far is fallback allowed?** Can another language be used, or must missing proper templates be rejected?
+8. **What are the test criteria?** A few illustrative examples or a matrix of locale × category × number type × context?
+9. **Is updated linguistic data required?** If using CLDR, which version and what upgrade policy?
+10. **Are there legal or high-accuracy constraints?** For sensitive content, linguist/translator approval is required.
 
-Sau khi trả lời, có thể đưa ra quyết định kỹ thuật có thể kiểm chứng:
+After answering, you can make a verifiable technical decision:
 
-- Nếu thông điệp hoàn toàn tĩnh: `ResourceBundle` đủ.
-- Nếu cần chèn ngày/số và ít lựa chọn hữu hạn: `MessageFormat`/Java Core có thể đủ.
-- Nếu cần plural/ordinal nhiều ngôn ngữ dựa trên CLDR: cân nhắc thư viện có quy tắc tương ứng.
-- Nếu có giống/case/agreement hay điều kiện lồng: cần formatter và mô hình tài nguyên cho nhánh ngữ pháp, cùng kiểm định ngôn ngữ.
-- Nếu phải biến tố tự nhiên theo ngữ cảnh mở: xác minh liệu formatter có đủ hay cần kiến trúc chuyên biệt và biên tập ngôn ngữ.
+- If messages are completely static: `ResourceBundle` is enough.
+- If interpolating dates/numbers with a small finite set of choices: `MessageFormat`/Java Core may suffice.
+- If multilingual CLDR-based cardinals/ordinals are needed: consider a library with corresponding rules.
+- If gender/case/agreement or nested conditions exist: you need a formatter and resource model for grammatical branches, plus linguistic review.
+- If natural inflection in open contexts is required: verify whether a formatter suffices or a specialized architecture and linguistic editing are needed.
 
-## 12. Những lỗi phổ biến và hệ quả
+## 12. Common Mistakes and Consequences
 
-| Sai lầm | Vì sao sai | Cách phòng tránh |
+| Mistake | Why It Is Wrong | Prevention |
 | --- | --- | --- |
-| Dùng `count == 1` cho mọi ngôn ngữ | Các locale có số lượng nhóm và quy tắc khác nhau | Xác định quy tắc theo locale và loại plural |
-| Dùng cùng logic cho cardinal và ordinal | Nhóm và ngữ cảnh khác nhau | Tách mục đích đếm/thứ tự |
-| Dùng `ChoiceFormat` như CLDR plural engine | Choice chọn theo ngưỡng, không tự có quy tắc ngôn ngữ | Dùng engine/rules khi nhiều locale |
-| Truyền pattern ICU `plural` vào `java.text.MessageFormat` | Cú pháp không được Java 17 hỗ trợ | Dùng formatter thực sự hỗ trợ syntax |
-| Cho rằng `ResourceBundle` tự chọn `files.one`/`files.other` | Bundle chỉ lấy value theo key | Viết logic rõ hoặc dùng formatter chuyên dụng |
-| Ghép câu bằng prefix + số + noun | Sai thứ tự từ, agreement hoặc cách ngữ pháp | Dùng mẫu câu hoàn chỉnh do translator viết |
-| Chia plural chỉ dựa trên số đã làm tròn | Có thể đổi nhóm do operands của số thập phân | Thiết kế chính sách định dạng/đếm và kiểm thử |
-| Dùng “giới tính người dùng” thay cho giống ngữ pháp | Mô hình sai và thu thập dữ liệu thừa | Phân biệt thuộc tính ngôn ngữ với dữ liệu cá nhân |
-| Cho rằng mọi thiếu key có thể fallback an toàn sang ngôn ngữ gốc | Mẫu fallback có thể sai ngữ pháp | QA tính đầy đủ và chính sách fallback theo nội dung |
-| Dùng vài ví dụ 1, 2, 3 làm bằng chứng hỗ trợ ngôn ngữ | Không kiểm tra 0, 11, 21, thập phân và ordinal | Kiểm thử theo các nhóm CLDR và ranh giới |
-| Đưa các quy tắc ngôn ngữ không được kiểm chứng vào nhiều `if` | Khó bảo trì và dễ lỗi khi mở rộng ngôn ngữ | Tập trung rules/mẫu và có kiểm định chuyên môn |
+| Using `count == 1` for all languages | Locales have differing group counts and rules | Determine rules by locale and plural type |
+| Using the same logic for cardinal and ordinal | Groups and contexts differ | Separate counting and ordering purposes |
+| Using `ChoiceFormat` as a CLDR plural engine | Choice selects by thresholds; lacks linguistic rules | Use a rule engine when supporting multiple locales |
+| Passing an ICU `plural` pattern to `java.text.MessageFormat` | Syntax is unsupported in Java 17 | Use a formatter that actually supports the syntax |
+| Assuming `ResourceBundle` picks `files.one`/`files.other` automatically | Bundle only looks up values by key | Write explicit logic or use a specialized formatter |
+| Concatenating prefix + number + noun | Wrong word order, agreement, or grammatical case | Use complete sentence templates authored by translators |
+| Classifying plurals from rounded numbers only | Decimal operands can change the category | Design formatting/counting policy and test it |
+| Using “user gender” in place of grammatical gender | Wrong model and unnecessary data collection | Separate linguistic attributes from personal data |
+| Assuming any missing key can safely fall back to source language | Fallback template may be grammatically wrong | QA key coverage and content-aware fallback policy |
+| Using a few examples 1, 2, 3 as proof of language support | Fails to check 0, 11, 21, decimals, and ordinals | Test across CLDR groups and boundaries |
+| Scattering unverified linguistic rules across many `if` statements | Hard to maintain and bug-prone when adding languages | Centralize rules/templates with expert verification |
 
-## 13. Kiểm thử đúng giới hạn, không chỉ kiểm thử format
+## 13. Test the Right Boundaries, Not Just Formatting
 
-Một kế hoạch kiểm thử cho hệ bản địa hóa có số nhiều/ngữ pháp nên bao gồm:
+A test plan for a localization system with plurals/grammar should include:
 
-- **Theo locale:** test mỗi ngôn ngữ thật sự hỗ trợ, không chỉ `Locale.US`.
-- **Theo category:** test đại diện từng plural category có thể xuất hiện ở locale đó.
-- **Theo loại số:** `0`, `1`, `2`, `5`, `11`, `21`, `22`, `101`, phân số và số thập phân nếu nghiệp vụ cho phép.
-- **Theo ngữ cảnh:** cardinal, ordinal, giống/case/agreement nếu có.
-- **Theo dữ liệu tài nguyên:** thiếu nhánh, thiếu key, sai placeholder, sai số lượng tham số, lỗi escaping và thay đổi sau cập nhật bản dịch.
-- **Theo độ ổn định:** thay đổi locale mặc định JVM không được âm thầm thay quyết định nghiệp vụ; thay phiên bản ICU/CLDR cần kiểm tra kết quả có chủ đích.
-- **Theo kết quả cuối:** test không chỉ category mà cả câu sau khi chèn số và các đối số, được duyệt bởi người biết ngôn ngữ.
+- **By locale:** test every genuinely supported language, not just `Locale.US`.
+- **By category:** test representatives of every plural category that can occur in that locale.
+- **By number type:** `0`, `1`, `2`, `5`, `11`, `21`, `22`, `101`, fractions, and decimals if business logic permits them.
+- **By context:** cardinal, ordinal, gender/case/agreement where applicable.
+- **By resource data:** missing branches, missing keys, wrong placeholders, wrong argument counts, escaping errors, and post-update translation regressions.
+- **By stability:** changing the JVM default locale must not silently alter business decisions; ICU/CLDR version upgrades require deliberate output verification.
+- **By final output:** test not only the category, but the full sentence after substituting numbers and arguments, reviewed by someone fluent in the language.
 
-Ví dụ bảng kiểm thử giới hạn cho hàm minh họa tiếng Nga **chỉ nhận số nguyên không âm** trong mục 7:
+Example boundary test table for the illustrative Russian method **accepting non-negative integers only** in section 7:
 
-| Input | Category mong đợi | Giải thích |
+| Input | Expected Category | Explanation |
 | ---: | --- | --- |
-| 0 | `many` | Trường hợp 0 trong tập số nguyên được minh họa |
-| 1 | `one` | Hàng đơn vị 1, không thuộc 11 |
-| 2 | `few` | Hàng đơn vị 2, không thuộc 12 |
-| 5 | `many` | Không thuộc các nhánh one/few |
-| 11 | `many` | Ngoại lệ 11 |
-| 12 | `many` | Ngoại lệ 12 |
-| 14 | `many` | Ngoại lệ 14 |
-| 21 | `one` | Hai chữ số cuối 21 |
-| 22 | `few` | Hai chữ số cuối 22 |
-| 101 | `one` | Hai chữ số cuối 01 |
+| 0 | `many` | Zero case in the illustrated integer set |
+| 1 | `one` | Units digit 1, not ending in 11 |
+| 2 | `few` | Units digit 2, not ending in 12 |
+| 5 | `many` | Not in one/few branches |
+| 11 | `many` | Exception 11 |
+| 12 | `many` | Exception 12 |
+| 14 | `many` | Exception 14 |
+| 21 | `one` | Last two digits 21 |
+| 22 | `few` | Last two digits 22 |
+| 101 | `one` | Last two digits 01 |
 
-**Không mở rộng kết luận này sang thập phân**. Trong CLDR, số 1 và cách biểu diễn như `1.0` có thể tác động tới operands hoặc quy tắc plural tùy ngôn ngữ và API. Cần quyết định mô hình dữ liệu số và formatter của thư viện trước khi đặt kỳ vọng.
+**Do not extrapolate this conclusion to decimals.** In CLDR, the number 1 and representations like `1.0` can affect operands or plural rules depending on the language and API. Decide the numeric data model and library formatter before setting expectations.
 
-## 14. Bài tập tự đánh giá
+## 14. Self-Assessment Exercises
 
-**Câu 1.** Một hệ thống chỉ có tiếng Việt và tiếng Anh, chỉ hiển thị nhãn tĩnh và một con số được định dạng theo locale. Có bắt buộc dùng ICU4J không?
+**Question 1.** A system only has Vietnamese and English, displaying only static labels and one locale-formatted number. Is ICU4J mandatory?
 
-**Đáp án:** Không. Nếu không có yêu cầu ngữ pháp phức tạp, `ResourceBundle` và `NumberFormat` có thể đủ. Quyết định dựa vào yêu cầu, không dựa vào việc có bao nhiêu thư viện.
+**Answer:** No. Without complex grammatical requirements, `ResourceBundle` and `NumberFormat` can suffice. Base the decision on requirements, not on how many libraries are used.
 
-**Câu 2.** Một sản phẩm muốn hỗ trợ tiếng Nga, tiếng Ba Lan, tiếng Ả Rập, có số đếm nguyên và thập phân. Chỉ dùng `ChoiceFormat` có được xem là hỗ trợ plural đúng không?
+**Question 2.** A product wants to support Russian, Polish, and Arabic with integer and decimal counts. Is using only `ChoiceFormat` considered proper plural support?
 
-**Đáp án:** Không thể kết luận như vậy. `ChoiceFormat` không tự áp dụng quy tắc CLDR cho từng ngôn ngữ và loại số. Cần chọn quy tắc/engine phù hợp, kiểm tra cách biểu diễn số và kiểm thử từng category.
+**Answer:** That cannot be concluded. `ChoiceFormat` does not automatically apply CLDR rules per language and number type. Choose an appropriate rule set/engine, check number representation, and test each category.
 
-**Câu 3.** Vì sao `Locale.forLanguageTag("ru-RU")` không tự làm thông điệp trở thành tiếng Nga đúng ngữ pháp?
+**Question 3.** Why does `Locale.forLanguageTag("ru-RU")` not automatically make messages grammatically correct Russian?
 
-**Đáp án:** `Locale` chỉ mô tả ngữ cảnh ngôn ngữ; bản dịch, quy tắc plural và biến tố vẫn cần dữ liệu và logic phù hợp.
+**Answer:** `Locale` only describes linguistic context; translations, plural rules, and inflections still require appropriate data and logic.
 
-**Câu 4.** Có thể truyền `"{count, plural, one{...} other{...}}"` vào `java.text.MessageFormat` Java 17 không?
+**Question 4.** Can `"{count, plural, one{...} other{...}}"` be passed to Java 17 `java.text.MessageFormat`?
 
-**Đáp án:** Không. Đó là dạng pattern ICU, không phải cú pháp plural của `java.text.MessageFormat` Java 17; cần formatter hỗ trợ ICU pattern hoặc chọn thiết kế khác.
+**Answer:** No. That is an ICU pattern form, not Java 17 `java.text.MessageFormat` plural syntax; a formatter supporting ICU patterns or a different design is needed.
 
-**Câu 5.** Vì sao biến `gender` trong một mẫu câu không nên mặc định là dữ liệu giới tính người dùng?
+**Question 5.** Why should a `gender` variable in a sentence template not default to user gender data?
 
-**Đáp án:** Giống ngữ pháp có thể là thuộc tính của danh từ/đối tượng trong câu, độc lập với giới tính con người. Chỉ thu thập và sử dụng dữ liệu thật sự cần cho nghiệp vụ và đúng ngữ cảnh.
+**Answer:** Grammatical gender can be a property of nouns/objects in the sentence, independent of human gender. Collect and use only data genuinely needed by business logic and appropriate for the context.
 
-**Bài thực hành.** Viết tài liệu yêu cầu cho thông điệp “{count} mục đã được xử lý bởi {actor}” với ba locale và tùy chọn hiển thị thứ hạng. Chỉ ra phần nào được `NumberFormat` xử lý, phần nào cần plural/ordinal/select và phần nào phải được người dịch xác nhận. Xây bảng kiểm thử có cả 0, 1, 2, 11, 21 và một số thập phân. Sau đó đánh giá liệu Java Core có đủ hay cần một engine ngữ pháp khác, nêu lý do từng quyết định.
+**Practice task.** Write a requirements specification for the message “{count} items were processed by {actor}” across three locales with an optional rank display. Indicate which parts are handled by `NumberFormat`, which need plural/ordinal/select, and which must be confirmed by translators. Build a test table containing 0, 1, 2, 11, 21, and a decimal number. Then assess whether Java Core suffices or another grammar engine is needed, stating reasons for each decision.
 
-## 15. Tài liệu tham khảo
+## 15. References
 
-- [Java SE 17 — MessageFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/MessageFormat.html): cú pháp của `java.text.MessageFormat`, các kiểu format và `choice`.
-- [Java SE 17 — ChoiceFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/ChoiceFormat.html): lựa chọn theo dải số và giới hạn của pattern.
-- [Java SE 17 — ResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html): lưu thông điệp theo locale, không phải bộ máy ngữ pháp.
-- [Unicode CLDR — Language Plural Rules](https://cldr.unicode.org/index/cldr-spec/plural-rules): quy tắc plural theo ngôn ngữ và nguyên tắc phân nhóm.
-- [ICU User Guide — Formatting Messages](https://unicode-org.github.io/icu/userguide/format_parse/messages/): các khái niệm plural/select trong hệ sinh thái ICU.
+- [Java SE 17 — MessageFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/MessageFormat.html): syntax of `java.text.MessageFormat`, format types, and `choice`.
+- [Java SE 17 — ChoiceFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/ChoiceFormat.html): range-based selection and pattern limitations.
+- [Java SE 17 — ResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html): storing messages by locale, not a grammar engine.
+- [Unicode CLDR — Language Plural Rules](https://cldr.unicode.org/index/cldr-spec/plural-rules): language plural rules and grouping principles.
+- [ICU User Guide — Formatting Messages](https://unicode-org.github.io/icu/userguide/format_parse/messages/): plural/select concepts in the ICU ecosystem.
 
-**Kết luận:** Java Core làm tốt việc **chọn locale, tìm tài nguyên, định dạng dữ liệu và chèn đối số**. Khi yêu cầu đòi hỏi **plural/ordinal chuẩn theo locale, chọn giống, agreement, case hoặc điều kiện ngữ pháp lồng nhau**, hãy nhận diện đây là một bài toán **ngôn ngữ học có quy tắc**, đánh giá một formatter/library phù hợp và xây kiểm thử với bản dịch được duyệt. Không mặc định một vài nhánh `if` hoặc `ChoiceFormat` đã giải quyết đúng mọi ngôn ngữ.
+**Conclusion:** Java Core excels at **selecting locales, finding resources, formatting data, and interpolating arguments**. When requirements demand **locale-accurate plurals/ordinals, gender selection, agreement, case, or nested grammatical conditions**, recognize this as a **rule-governed linguistic problem**, evaluate an appropriate formatter/library, and build tests with approved translations. Do not assume a few `if` branches or `ChoiceFormat` solve every language properly.

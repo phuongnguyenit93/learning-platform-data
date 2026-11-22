@@ -1,19 +1,19 @@
-# AtomicInteger: getAndIncrement, incrementAndGet và các phép cập nhật nguyên tử trong Java
+# AtomicInteger: getAndIncrement, incrementAndGet, and Atomic Update Operations in Java
 
-## 1. Vì sao phép tăng số thông thường có thể sai khi có nhiều luồng?
+## 1. Why Can Normal Integer Incrementing Fail Under Multithreading?
 
-Giả sử nhiều luồng Java cùng tăng một bộ đếm:
+Suppose multiple Java threads concurrently increment a counter:
 
 ~~~java
 int counter = 0;
 counter++;
 ~~~
 
-Trông như một thao tác duy nhất, nhưng về ý nghĩa cập nhật, `counter++` gồm những bước đọc giá trị cũ, tính giá trị mới, rồi ghi lại. Hai luồng có thể cùng đọc `counter = 5`, cùng tính `6` và cùng ghi `6`: **hai lần tăng nhưng kết quả chỉ tăng một lần**. Đây là một dạng *lost update* (mất cập nhật).
+It looks like a single operation, but in terms of update semantics, `counter++` consists of reading the old value, computing the new value, and writing it back. Two threads can both read `counter = 5`, both compute `6`, and both write `6`: **two increments yet the result increases only once**. This is a form of *lost update*.
 
-Đặt một biến `int` thành `volatile` giúp các luồng có bảo đảm nhất định về khả năng quan sát và thứ tự đọc/ghi, nhưng **không biến biểu thức `counter++` thành thao tác nguyên tử**.
+Making an `int` variable `volatile` gives threads certain guarantees regarding visibility and read/write ordering, yet **does not turn the expression `counter++` into an atomic operation**.
 
-Khi chỉ cần một số nguyên dùng chung có các thao tác cập nhật độc lập, Java cung cấp `java.util.concurrent.atomic.AtomicInteger`. Các phương thức như `getAndIncrement()`, `incrementAndGet()`, `getAndAdd()`, `addAndGet()`, `getAndUpdate()`, `updateAndGet()` và `compareAndSet()` thực hiện thao tác với ngữ nghĩa nguyên tử phù hợp cho nhiều luồng.
+When you simply need a shared integer with independent update operations, Java provides `java.util.concurrent.atomic.AtomicInteger`. Methods such as `getAndIncrement()`, `incrementAndGet()`, `getAndAdd()`, `addAndGet()`, `getAndUpdate()`, `updateAndGet()`, and `compareAndSet()` perform operations with atomic semantics suitable for multithreading.
 
 ~~~java
 import java.util.concurrent.atomic.AtomicInteger;
@@ -22,22 +22,22 @@ AtomicInteger counter = new AtomicInteger(0);
 counter.incrementAndGet();
 ~~~
 
-Đây là đoạn minh họa đặt trong một lớp/phương thức. Đối tượng `AtomicInteger` giữ một giá trị `int` có thể thay đổi; nó **không** phải `Integer` bất biến.
+This is an illustrative snippet placed inside a class/method. An `AtomicInteger` object holds a mutable `int` value; it is **not** an immutable `Integer`.
 
-Mục tiêu bài học: hiểu chính xác phương thức nào trả **giá trị trước cập nhật**, phương thức nào trả **giá trị sau cập nhật**, các phép cập nhật theo hàm, cơ chế so sánh rồi đổi (CAS), và giới hạn của bảo đảm nguyên tử.
+Lesson goals: understand precisely which methods return the **pre-update value**, which return the **post-update value**, functional update methods, the compare-and-set (CAS) mechanism, and the limits of atomic guarantees.
 
-## 2. getAndIncrement và incrementAndGet: cùng tăng 1, khác giá trị trả về
+## 2. getAndIncrement and incrementAndGet: Both Add 1, Different Return Values
 
-Hai phương thức đều tăng giá trị được giữ lên 1 theo một thao tác nguyên tử, nhưng thời điểm của giá trị trả về khác nhau:
+Both methods increment the stored value by 1 in one atomic operation, but the timing of the returned value differs:
 
-| Phương thức | Phép cập nhật | Giá trị trả về |
+| Method | Update | Return value |
 | --- | --- | --- |
-| `getAndIncrement()` | Tăng 1 | **Giá trị cũ**, ngay trước lần tăng thành công |
-| `incrementAndGet()` | Tăng 1 | **Giá trị mới**, ngay sau lần tăng thành công |
-| `getAndDecrement()` | Giảm 1 | **Giá trị cũ** |
-| `decrementAndGet()` | Giảm 1 | **Giá trị mới** |
+| `getAndIncrement()` | Add 1 | **Old value**, right before the successful increment |
+| `incrementAndGet()` | Add 1 | **New value**, right after the successful increment |
+| `getAndDecrement()` | Subtract 1 | **Old value** |
+| `decrementAndGet()` | Subtract 1 | **New value** |
 
-Ví dụ bắt đầu từ 10:
+Example starting from 10:
 
 ~~~java
 AtomicInteger counter = new AtomicInteger(10);
@@ -46,9 +46,9 @@ int oldValue = counter.getAndIncrement(); // oldValue = 10, counter = 11
 int newValue = counter.incrementAndGet(); // newValue = 12, counter = 12
 ~~~
 
-Điểm quan trọng: tiền tố **`getAnd...`** nghĩa là phương thức trả **giá trị cũ** rồi áp dụng cập nhật; hậu tố **`...AndGet`** nghĩa là trả **giá trị sau khi đã cập nhật**. Trong cả hai trường hợp, cập nhật là nguyên tử; khác biệt thuộc về **giá trị mà lời gọi trả về**.
+Key point: the prefix **`getAnd...`** means the method returns the **old value** and then applies the update; the suffix **`...AndGet`** means it returns the **value after updating**. In both cases, the update is atomic; the difference lies in **the value returned by the call**.
 
-So sánh với cú pháp số nguyên thông thường giúp ghi nhớ:
+Comparing with ordinary integer syntax helps remember:
 
 ~~~java
 int x = 10;
@@ -56,11 +56,11 @@ int a = x++; // a = 10, x = 11
 int b = ++x; // b = 12, x = 12
 ~~~
 
-Về giá trị trả về trong một luồng, `getAndIncrement()` tương tự `x++`, còn `incrementAndGet()` tương tự `++x`. **Sự tương tự dừng ở ý nghĩa trả về**: các phép cập nhật trên `AtomicInteger` được thiết kế để dùng đồng thời, trong khi `x++` trên biến dùng chung không có bảo đảm cập nhật nguyên tử.
+In terms of the return value in a single thread, `getAndIncrement()` mirrors `x++`, while `incrementAndGet()` mirrors `++x`. **The analogy stops at the return value semantics**: `AtomicInteger` updates are designed for concurrent use, whereas `x++` on a shared variable has no atomic update guarantee.
 
-### Chọn giá trị cũ hay mới theo nghiệp vụ
+### Choosing Old vs. New Value by Business Requirement
 
-Nếu muốn phát số thứ tự **bắt đầu từ 0**, có thể dùng:
+If you want to issue sequence numbers **starting from 0**, you can use:
 
 ~~~java
 AtomicInteger sequence = new AtomicInteger(0);
@@ -68,32 +68,32 @@ int firstId = sequence.getAndIncrement();  // 0
 int secondId = sequence.getAndIncrement(); // 1
 ~~~
 
-Nếu muốn đếm **số công việc đã hoàn thành**, rồi dùng ngay tổng mới:
+If you want to count **completed tasks** and immediately use the new total:
 
 ~~~java
 AtomicInteger completed = new AtomicInteger(0);
 int countAfterCompletion = completed.incrementAndGet(); // 1
 ~~~
 
-Hai ví dụ trên chỉ minh họa ở mức tiến trình hiện tại. `AtomicInteger` không tạo ID bền vững sau khi ứng dụng khởi động lại, cũng không bảo đảm duy nhất trên nhiều JVM/máy chủ.
+These two examples illustrate process-local behavior only. `AtomicInteger` does not produce durable IDs across application restarts, nor does it guarantee uniqueness across multiple JVMs/servers.
 
-## 3. Các phương thức cộng, trừ và ghi trực tiếp
+## 3. Add, Subtract, and Direct Write Methods
 
-Không chỉ tăng giảm 1, `AtomicInteger` còn cung cấp nhiều phương thức:
+Beyond incrementing/decrementing by 1, `AtomicInteger` provides additional methods:
 
-| Phương thức | Hành động | Trả về |
+| Method | Action | Return value |
 | --- | --- | --- |
-| `get()` | Đọc giá trị hiện tại | Giá trị đọc được |
-| `set(v)` | Gán `v` | `void` |
-| `getAndSet(v)` | Thay bằng `v` nguyên tử | Giá trị **trước** khi thay |
-| `getAndAdd(delta)` | Cộng `delta` nguyên tử | Giá trị **trước** khi cộng |
-| `addAndGet(delta)` | Cộng `delta` nguyên tử | Giá trị **sau** khi cộng |
-| `getAndIncrement()` | Cộng 1 nguyên tử | Giá trị cũ |
-| `incrementAndGet()` | Cộng 1 nguyên tử | Giá trị mới |
-| `getAndDecrement()` | Trừ 1 nguyên tử | Giá trị cũ |
-| `decrementAndGet()` | Trừ 1 nguyên tử | Giá trị mới |
+| `get()` | Reads current value | The value read |
+| `set(v)` | Sets `v` | `void` |
+| `getAndSet(v)` | Atomically replaces with `v` | Value **before** replacing |
+| `getAndAdd(delta)` | Atomically adds `delta` | Value **before** adding |
+| `addAndGet(delta)` | Atomically adds `delta` | Value **after** adding |
+| `getAndIncrement()` | Atomically adds 1 | Old value |
+| `incrementAndGet()` | Atomically adds 1 | New value |
+| `getAndDecrement()` | Atomically subtracts 1 | Old value |
+| `decrementAndGet()` | Atomically subtracts 1 | New value |
 
-Giả sử giá trị ban đầu là 20:
+Suppose the initial value is 20:
 
 ~~~java
 AtomicInteger value = new AtomicInteger(20);
@@ -103,13 +103,13 @@ int after = value.addAndGet(-3);  // after = 22; value = 22
 int previous = value.getAndSet(0); // previous = 22; value = 0
 ~~~
 
-Dùng `getAndAdd(-3)` hoặc `addAndGet(-3)` khi muốn trừ 3. Các cập nhật này là nguyên tử ngay cả khi nhiều luồng cùng tác động vào **cùng một đối tượng** `AtomicInteger`.
+Use `getAndAdd(-3)` or `addAndGet(-3)` when you want to subtract 3. These updates are atomic even when multiple threads act on **the same `AtomicInteger` object**.
 
-Tuy nhiên, `counter.get()` rồi `counter.set(counter.get() + 1)` **không tương đương** với `incrementAndGet()` trong môi trường đồng thời: phép đọc và ghi nằm trong các lời gọi riêng lẻ, một luồng khác có thể chen vào.
+However, `counter.get()` followed by `counter.set(counter.get() + 1)` is **not equivalent** to `incrementAndGet()` in a concurrent environment: reading and writing are separate calls, so another thread can interleave.
 
-## 4. Chương trình Java 17 đầy đủ: giá trị cũ, mới và cập nhật theo hàm
+## 4. Complete Java 17 Program: Old, New, and Functional Updates
 
-Tạo tệp `AtomicUpdatesDemo.java`:
+Create `AtomicUpdatesDemo.java`:
 
 ~~~java
 import java.util.concurrent.atomic.AtomicInteger;
@@ -170,14 +170,14 @@ public class AtomicUpdatesDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac AtomicUpdatesDemo.java
 java AtomicUpdatesDemo
 ~~~
 
-Kết quả chuẩn:
+Standard output:
 
 ~~~text
 getAndIncrement: 10, now=11
@@ -194,25 +194,25 @@ getAndSet(0): 60, now=0
 Parallel count: 100000
 ~~~
 
-Các giá trị ở phần đầu xác định vì chỉ có luồng `main` cập nhật `counter`. Ở cuối, bốn luồng cùng tăng `parallelCount` 25.000 lần; lời gọi `join()` bảo đảm luồng chính đợi các luồng hoàn thành trước khi đọc tổng, nên kết quả luôn là **100.000** nếu tất cả luồng chạy thành công. Thứ tự **từng lần tăng** giữa các luồng không được xác định, nhưng tổng của các lần tăng nguyên tử thì không bị mất.
+The values in the first part are deterministic because only the `main` thread updates `counter`. At the end, four threads concurrently increment `parallelCount` 25,000 times each; `join()` ensures the main thread waits for all threads to finish before reading the total, so the result is always **100,000** if all threads run to completion. The **order of individual increments** across threads is unspecified, yet the sum of the atomic increments does not lose updates.
 
-Hai phương thức `getAndAccumulate` và `accumulateAndGet` nhận một toán hạng bổ sung và hàm ghép, sẽ được giải thích kỹ bên dưới.
+`getAndAccumulate` and `accumulateAndGet` take an additional operand and a combiner function, explained in detail below.
 
-## 5. getAndUpdate và updateAndGet: cập nhật qua hàm
+## 5. getAndUpdate and updateAndGet: Functional Updates
 
-Đôi khi thao tác không đơn giản là cộng hoặc trừ. Chẳng hạn muốn tăng một giá trị theo quy tắc riêng, giới hạn kết quả hoặc chuyển trạng thái của một bộ đếm. Java hỗ trợ:
+Sometimes an operation is not simple addition or subtraction. For example, you may want to increase a value by a custom rule, cap the result, or transition a counter's state. Java supports:
 
 ~~~java
 int old = value.getAndUpdate(x -> x * 2);
 int updated = value.updateAndGet(x -> x + 3);
 ~~~
 
-Trong hai phương thức, một hàm `IntUnaryOperator` biến **giá trị hiện tại** thành **giá trị mới**. Khác biệt là:
+In both methods, an `IntUnaryOperator` transforms the **current value** into the **new value**. The difference is:
 
-- `getAndUpdate(function)`: trả **giá trị trước cập nhật thành công**.
-- `updateAndGet(function)`: trả **giá trị mới sau cập nhật thành công**.
+- `getAndUpdate(function)`: returns the **value before the successful update**.
+- `updateAndGet(function)`: returns the **new value after the successful update**.
 
-Ví dụ, nếu `value` ban đầu là 8:
+For example, if `value` is initially 8:
 
 ~~~java
 AtomicInteger value = new AtomicInteger(8);
@@ -221,25 +221,25 @@ int a = value.getAndUpdate(x -> x * 2); // a=8; value=16
 int b = value.updateAndGet(x -> x + 3); // b=19; value=19
 ~~~
 
-Các hàm cập nhật có thể được chạy **nhiều lần** trong một lời gọi khi có cạnh tranh giữa các luồng. Thực thi thường dùng cơ chế thử cập nhật rồi lặp lại khi trạng thái đã thay đổi. Vì thế, hàm cập nhật nên **không có tác dụng phụ** (*side-effect-free*) và tính kết quả từ các đối số:
+Update functions may run **multiple times** within a single call when threads contend. Execution typically attempts an update and retries if the state changed concurrently. Therefore, the update function should be **side-effect-free** and compute its result solely from its arguments:
 
 ~~~java
 value.updateAndGet(x -> Math.min(x + 1, 100));
 ~~~
 
-Không nên đặt thao tác ghi cơ sở dữ liệu, gửi tin nhắn, ghi log đếm số lần nghiệp vụ, gọi dịch vụ bên ngoài hoặc tự tăng một bộ đếm khác bên trong lambda với giả định lambda chỉ được gọi đúng một lần:
+Do not place database writes, message sends, business-count logging, external service calls, or increments of another counter inside the lambda assuming the lambda runs only once:
 
 ~~~java
-// Ví dụ SAI về kỳ vọng: lambda có thể chạy lại khi tranh chấp.
+// WRONG assumption example: the lambda may re-run under contention.
 value.updateAndGet(x -> {
     externalCounter.incrementAndGet();
     return x + 1;
 });
 ~~~
 
-Nếu lời gọi bị thử lại, `externalCounter` có thể bị tăng nhiều hơn một lần trong khi `value` chỉ cập nhật thành công một lần. Đưa tác dụng phụ ra sau thao tác thành công, đồng thời xem xét tính nhất quán của nghiệp vụ nếu cần cập nhật nhiều hệ thống.
+If the call retries, `externalCounter` can be incremented multiple times while `value` updates successfully only once. Move side effects outside after the operation succeeds, and consider business consistency if multiple systems must be updated.
 
-### Ví dụ giới hạn tối đa 100
+### Capping at Maximum 100 Example
 
 ~~~java
 AtomicInteger progress = new AtomicInteger(98);
@@ -254,18 +254,18 @@ after = progress.updateAndGet(x -> Math.min(100, x + 1));
 // after = 100
 ~~~
 
-Trong các ví dụ này, một phép cập nhật nguyên tử được áp dụng trên một số nguyên tại một thời điểm. Nếu nghiệp vụ có nhiều trường cần giữ bất biến cùng nhau, cần một thiết kế đồng bộ tổng thể.
+In these examples, an atomic update is applied to one integer at a time. If business logic involves multiple fields that must uphold an invariant together, an overall synchronization design is needed.
 
-## 6. getAndAccumulate và accumulateAndGet: ghép thêm toán hạng
+## 6. getAndAccumulate and accumulateAndGet: Combining with an Operand
 
-Khi phép cập nhật cần cả **giá trị hiện tại** và **một toán hạng** riêng, dùng:
+When an update needs both the **current value** and a separate **operand**, use:
 
 ~~~java
 value.getAndAccumulate(x, (current, operand) -> ...);
 value.accumulateAndGet(x, (current, operand) -> ...);
 ~~~
 
-Hàm thuộc loại `IntBinaryOperator`. Thứ tự tham số là **giá trị hiện tại trước**, **toán hạng `x` sau**. Lấy ví dụ:
+The function is an `IntBinaryOperator`. Parameter order is **current value first**, **operand `x` second**. For example:
 
 ~~~java
 AtomicInteger score = new AtomicInteger(10);
@@ -278,22 +278,22 @@ int latest = score.accumulateAndGet(25, Math::max);
 // latest=25, score=25
 ~~~
 
-Ở đây `Math::max` giữ giá trị lớn hơn giữa giá trị đang lưu và ngưỡng truyền vào. Thao tác có thể phù hợp với việc giữ “giá trị lớn nhất đã quan sát”.
+Here `Math::max` retains the larger of the stored value and the given threshold. This operation suits tracking the "maximum observed value."
 
-Một số mục đích khác của hàm tích lũy:
+Other uses of accumulator functions:
 
-- `Math::min`: giữ giá trị nhỏ nhất quan sát.
-- `(current, increment) -> current + increment`: cộng toán hạng, tương tự `addAndGet` khi cần giá trị sau.
-- `(current, factor) -> current * factor`: nhân với hệ số, có thể bị tràn `int`.
-- `(current, newValue) -> Math.max(current, newValue)`: chỉ tăng đến mức cao nhất đã thấy.
+- `Math::min`: retain the minimum observed value.
+- `(current, increment) -> current + increment`: add an operand, similar to `addAndGet` when the new value is needed.
+- `(current, factor) -> current * factor`: multiply by a factor, subject to possible `int` overflow.
+- `(current, newValue) -> Math.max(current, newValue)`: advance only up to the highest value seen.
 
-Cũng giống `getAndUpdate`, hàm tích lũy có thể được thực thi lại trong khi tranh chấp. Hãy dùng **hàm thuần không có tác dụng phụ**, không giả định số lần callback được gọi bằng số cập nhật thành công.
+Just like `getAndUpdate`, the accumulator function may execute multiple times under contention. Use a **pure, side-effect-free function**, and do not assume callback invocations equal successful updates.
 
-## 7. compareAndSet: cập nhật có điều kiện bằng CAS
+## 7. compareAndSet: Conditional Updates via CAS
 
-`compareAndSet(expectedValue, newValue)` thường được viết tắt là **CAS** (*compare-and-set*). Nó thực hiện logic nguyên tử:
+`compareAndSet(expectedValue, newValue)` is commonly abbreviated **CAS** (*compare-and-set*). It performs the atomic logic:
 
-> Nếu giá trị hiện tại bằng `expectedValue`, thay bằng `newValue` và trả `true`; nếu khác, không thay đổi và trả `false`.
+> If the current value equals `expectedValue`, replace it with `newValue` and return `true`; otherwise, leave it unchanged and return `false`.
 
 ~~~java
 AtomicInteger stock = new AtomicInteger(5);
@@ -302,9 +302,9 @@ boolean first = stock.compareAndSet(5, 4);  // true; stock=4
 boolean second = stock.compareAndSet(5, 3); // false; stock=4
 ~~~
 
-CAS cần thiết khi cập nhật chỉ được phép xảy ra nếu trạng thái vẫn giống thời điểm ta quan sát. Nó giúp tránh kiểu cập nhật “đọc rồi ghi” làm mất thay đổi từ luồng khác.
+CAS is essential when an update is only allowed if state is still what we observed. It prevents "read-then-write" updates from clobbering changes by other threads.
 
-Một vòng lặp CAS có thể biểu diễn logic “không cho giá trị giảm dưới 0”:
+A CAS loop can express the rule "never let the value drop below 0":
 
 ~~~java
 static boolean tryTakeOne(AtomicInteger stock) {
@@ -320,16 +320,16 @@ static boolean tryTakeOne(AtomicInteger stock) {
 }
 ~~~
 
-Đây là **mảnh phương thức** nằm trong lớp có `import java.util.concurrent.atomic.AtomicInteger;`, giả định `stock` không null và bất biến của ứng dụng bảo đảm giá trị không âm ngay từ đầu. Nếu các luồng khác đặt giá trị âm hoặc có thao tác điều chỉnh phức tạp, phải kiểm tra lại điều kiện nghiệp vụ.
+This is a **method fragment** inside a class with `import java.util.concurrent.atomic.AtomicInteger;`, assuming `stock` is non-null and the application invariant ensures a non-negative value from the start. If other threads can set negative values or perform complex adjustments, re-verify the business condition.
 
-Giải thích:
+Explanation:
 
-1. Đọc giá trị hiện tại.
-2. Nếu đã bằng 0, không thể lấy thêm.
-3. Thử CAS chuyển từ `current` sang `current - 1`.
-4. Nếu luồng khác vừa sửa giá trị, CAS thất bại; vòng lặp đọc lại rồi quyết định trên giá trị mới.
+1. Read the current value.
+2. If already 0, no more can be taken.
+3. Attempt CAS transitioning from `current` to `current - 1`.
+4. If another thread just modified the value, CAS fails; the loop re-reads and decides on the new value.
 
-Một cách khác với chỉ một số nguyên là:
+Another way when working with just one integer is:
 
 ~~~java
 static boolean tryTakeOne(AtomicInteger stock) {
@@ -338,25 +338,25 @@ static boolean tryTakeOne(AtomicInteger stock) {
 }
 ~~~
 
-Chỉ chọn **một** trong hai định nghĩa phương thức `tryTakeOne` khi đưa vào cùng lớp, vì chúng có cùng chữ ký. Cách `getAndUpdate` có điều kiện ngay trong hàm nguyên tử; dù giá trị không đổi khi hết hàng, lời gọi cập nhật vẫn trả giá trị cũ để quyết định.
+Choose only **one** of the two `tryTakeOne` definitions if placing them in the same class, as they share the same signature. The `getAndUpdate` approach embeds the condition inside the atomic function; even when the value stays unchanged at zero stock, the update call still returns the old value to decide from.
 
-### Giới hạn của CAS với nhiều bước và hiện tượng ABA
+### Limits of CAS for Multi-Step Operations and the ABA Phenomenon
 
-CAS trên `AtomicInteger` so sánh một giá trị `int` hiện tại; nó không ghi nhớ lịch sử. Nếu một luồng nhìn thấy `A`, một luồng khác đổi `A → B → A`, thì lần CAS đầu có thể vẫn thành công vì **giá trị cuối đã quay lại A**, dù trạng thái từng thay đổi. Đây là **vấn đề ABA**.
+CAS on `AtomicInteger` compares one current `int` value; it does not record history. If one thread observes `A`, and another thread changes `A → B → A`, the first thread's CAS can still succeed because **the final value returned to A**, even though state changed in between. This is the **ABA problem**.
 
-Nếu lịch sử chuyển trạng thái hoặc version là quan trọng, có thể phải mô hình hóa thêm phiên bản, dùng loại atomic khác như `AtomicStampedReference` cho đối tượng tham chiếu, hoặc sử dụng khóa/dữ liệu phù hợp. Không nên tự suy diễn rằng CAS trên một `int` sẽ giải quyết mọi giao dịch hoặc bất biến nhiều trường.
+If transition history or versioning matters, you may need to model an explicit version, use another atomic type such as `AtomicStampedReference` for object references, or use locks/appropriate data structures. Do not assume CAS on a single `int` solves arbitrary transactions or multi-field invariants.
 
-## 8. AtomicInteger bảo đảm điều gì về đồng thời và bộ nhớ?
+## 8. What Does AtomicInteger Guarantee About Concurrency and Memory?
 
-`AtomicInteger` cung cấp các thao tác nguyên tử cho **một giá trị nguyên** và các ngữ nghĩa bộ nhớ được quy định. Những thao tác thông dụng như `get()`, `set()`, `compareAndSet()`, `getAndIncrement()` tương ứng với việc quan sát/cập nhật trạng thái có thứ tự bộ nhớ phù hợp; không cần tự đặt `volatile` lên một biến `int` khác để biến thao tác atomic thành an toàn.
+`AtomicInteger` provides atomic operations for **one integer value** with specified memory semantics. Common operations such as `get()`, `set()`, `compareAndSet()`, and `getAndIncrement()` correspond to observing/updating state with appropriate memory ordering; you do not need to mark another `int` as `volatile` to make atomic operations safe.
 
-Cần tách ba khái niệm:
+Distinguish three concepts:
 
-- **Atomicity — tính nguyên tử:** Một lần cập nhật atomic thành công không bị “nửa chừng”; nhiều luồng tăng cùng bộ đếm không làm mất cập nhật.
-- **Visibility — khả năng quan sát:** Giá trị được công bố/đọc theo ngữ nghĩa bộ nhớ của phương thức, giúp các luồng có thể nhìn thấy cập nhật phù hợp.
-- **Ordering — thứ tự:** Các tác vụ có thể phải tuân theo quy tắc thứ tự bộ nhớ nhất định. Những phương thức mới như `getAcquire`, `setRelease` hay `getOpaque` có ngữ nghĩa yếu hơn/tập trung hơn và chỉ nên chọn khi hiểu đúng yêu cầu đồng thời.
+- **Atomicity:** A successful atomic update is never "half-done"; multiple threads incrementing the same counter do not lose updates.
+- **Visibility:** Values are published/read under the method's memory semantics, allowing threads to see updates appropriately.
+- **Ordering:** Operations may have to satisfy specific memory ordering rules. Newer methods like `getAcquire`, `setRelease`, or `getOpaque` have weaker/targeted semantics and should only be chosen when you fully understand the concurrency requirements.
 
-**Bảo đảm trên một biến không tự biến nhiều bước thành một giao dịch.** Ví dụ:
+**Single-variable guarantees do not turn multiple steps into a transaction.** For example:
 
 ~~~java
 if (balance.get() >= 10) {
@@ -364,24 +364,24 @@ if (balance.get() >= 10) {
 }
 ~~~
 
-Đây không phải một phép “kiểm tra rồi trừ” nguyên tử. Hai luồng có thể cùng thấy `balance = 10` và cùng trừ, để lại `-10`. Muốn giữ bất biến “không trừ quá số dư”, dùng CAS hoặc một `updateAndGet` có điều kiện cùng logic trong lambda, đồng thời xác định rõ cách báo thành công/thất bại.
+This is not an atomic "check-then-deduct." Two threads can both observe `balance = 10` and both subtract, leaving `-10`. To preserve the invariant "never overdraw," use CAS or a conditional `updateAndGet` with the check inside the lambda, while clearly defining how success/failure is reported.
 
-Trong trường hợp có **hai** biến cần cập nhật đồng thời (ví dụ `balanceA` và `balanceB` để chuyển tiền), hai `AtomicInteger` riêng không tạo ra giao dịch nguyên tử trên cả cặp. Cần đồng bộ bằng khóa, mô hình trạng thái chung dưới một phép cập nhật, hoặc cơ chế giao dịch phù hợp.
+When **two** variables must be updated together (such as `balanceA` and `balanceB` for a transfer), two separate `AtomicInteger` instances do not create an atomic transaction across the pair. Synchronize with locks, model shared state under a single update, or use an appropriate transaction mechanism.
 
-## 9. Phân biệt atomic update với synchronized và volatile
+## 9. Comparing Atomic Updates with synchronized and volatile
 
-| Công cụ | Có thể giải quyết gì? | Không đủ trong trường hợp nào? |
+| Tool | What can it solve? | When is it insufficient? |
 | --- | --- | --- |
-| `volatile int count` | Bảo đảm đặc tính visibility và ordering của đọc/ghi biến `volatile` | `count++` vẫn có thể mất cập nhật |
-| `AtomicInteger.incrementAndGet()` | Tăng một giá trị nguyên tử | Nhiều trường/bất biến phức tạp không tự được bảo vệ |
-| `synchronized` | Cho phép bảo vệ một đoạn mã phức tạp bằng cùng một monitor | Có thể làm tăng tranh chấp hoặc khóa nếu thiết kế không phù hợp |
-| `ReentrantLock` | Khóa tường minh cho miền dữ liệu lớn hơn, có một số khả năng bổ sung | Cần quản lý khóa đúng, thường dùng `try/finally` |
+| `volatile int count` | Guarantees visibility and ordering properties of reading/writing a `volatile` variable | `count++` can still lose updates |
+| `AtomicInteger.incrementAndGet()` | Atomically increments a single value | Multiple fields/complex invariants are not automatically protected |
+| `synchronized` | Protects a complex code block using the same monitor | May increase contention or blocking if poorly designed |
+| `ReentrantLock` | Explicit lock for larger data scopes, with additional capabilities | Requires careful lock management, typically `try/finally` |
 
-`AtomicInteger` thường rất thuận tiện khi bộ đếm đơn giản; vòng lặp CAS có thể thử lại khi tranh chấp, không có nghĩa mọi thao tác sẽ xong sau đúng một lần thử. Một thiết kế đúng cần chọn **đơn vị trạng thái phải được bảo vệ**, rồi chọn công cụ phù hợp.
+`AtomicInteger` is very convenient for simple counters; a CAS loop can retry under contention, meaning operations do not necessarily complete on a single attempt. Good design chooses **the unit of state that must be protected**, then selects the fitting tool.
 
-## 10. Tràn số nguyên, giới hạn miền và loại số khác
+## 10. Integer Overflow, Range Limits, and Other Number Types
 
-`AtomicInteger` lưu giá trị **`int` 32-bit có dấu**. Các phép tăng/cộng không tự ném lỗi khi vượt phạm vi `int`: kết quả tuân theo quy tắc tràn số nguyên Java theo biểu diễn 32-bit.
+`AtomicInteger` stores a **signed 32-bit `int`**. Increment/add operations do not automatically throw on exceeding `int` bounds: results follow Java 32-bit integer overflow rules.
 
 ~~~java
 AtomicInteger count = new AtomicInteger(Integer.MAX_VALUE);
@@ -389,11 +389,11 @@ int next = count.incrementAndGet();
 System.out.println(next); // -2147483648
 ~~~
 
-Vì vậy, một bộ đếm tăng liên tục có thể **quay sang số âm**. Tính nguyên tử không đồng nghĩa có kiểm soát overflow. Nếu cần phạm vi lớn hơn, dùng `AtomicLong` (64-bit); nếu cần số rất lớn không giới hạn bởi các loại số nguyên cơ bản, cần thiết kế bộ nhớ và đồng bộ khác, vì `AtomicInteger` không thể tự biến thành `BigInteger`.
+Hence, a continuously incremented counter can **wrap around to negative numbers**. Atomicity does not imply overflow control. If you need a larger range, use `AtomicLong` (64-bit); if you need very large numbers unbounded by primitive integer types, design memory and synchronization differently, because `AtomicInteger` does not turn into `BigInteger`.
 
-Với bộ đếm cộng dồn có tranh chấp cao giữa nhiều luồng, `LongAdder` đôi khi cho hiệu năng tốt hơn `AtomicLong` nhờ phân tán cập nhật, nhưng `sum()` không nhất thiết là **ảnh chụp nguyên tử** của toàn bộ cập nhật đang diễn ra. Không thay `AtomicInteger` bằng `LongAdder` khi cần CAS/giá trị thứ tự chính xác mỗi lần cập nhật.
+For accumulative counters under high contention across many threads, `LongAdder` sometimes outperforms `AtomicLong` by striping updates, though `sum()` is not necessarily an **atomic snapshot** of all concurrent updates in progress. Do not replace `AtomicInteger` with `LongAdder` when you need CAS or exact per-update sequence values.
 
-Nếu yêu cầu “tăng tới mức tối đa rồi dừng”, có thể dùng:
+If the requirement is "increment up to the maximum and stop," you can use:
 
 ~~~java
 AtomicInteger limit = new AtomicInteger(Integer.MAX_VALUE - 1);
@@ -401,33 +401,33 @@ int updated = limit.updateAndGet(x ->
         x == Integer.MAX_VALUE ? x : x + 1);
 ~~~
 
-Biểu thức này không tràn nếu giá trị bắt đầu không vượt `Integer.MAX_VALUE`, và không có tác nhân khác đặt dữ liệu về trạng thái không hợp lệ. Với nghiệp vụ cần chính sách overflow khác, hãy xác định rõ: chặn giá trị, báo lỗi, hay chuyển sang loại dữ liệu rộng hơn.
+This expression does not overflow if the initial value does not exceed `Integer.MAX_VALUE` and no other actor puts data into an invalid state. For business logic requiring a different overflow policy, define it explicitly: clamp the value, signal an error, or switch to a wider data type.
 
-## 11. Những lỗi phổ biến
+## 11. Common Mistakes
 
-**Lỗi 1 — Nhầm giá trị trả về.** `getAndIncrement()` trả giá trị **trước** khi tăng; `incrementAndGet()` trả giá trị **sau** khi tăng. Khi phát ID hoặc đếm sự kiện, nhầm điểm bắt đầu có thể gây lệch một đơn vị.
+**Mistake 1 — Confusing return values.** `getAndIncrement()` returns the value **before** incrementing; `incrementAndGet()` returns the value **after** incrementing. When issuing IDs or counting events, mixing up the starting point causes an off-by-one error.
 
-**Lỗi 2 — Tưởng `get()` rồi `set()` là một cập nhật nguyên tử.** Hai lời gọi riêng vẫn cho phép luồng khác chen vào. Dùng `getAndAdd`, `updateAndGet`, CAS hoặc khóa theo yêu cầu.
+**Mistake 2 — Thinking `get()` followed by `set()` is an atomic update.** Two separate calls still allow another thread to interleave. Use `getAndAdd`, `updateAndGet`, CAS, or locks as required.
 
-**Lỗi 3 — Dùng `volatile int` và `++` để tránh mất cập nhật.** `volatile` không gom phép đọc, cộng và ghi thành một hành động nguyên tử.
+**Mistake 3 — Using `volatile int` and `++` to avoid lost updates.** `volatile` does not combine reading, adding, and writing into one atomic action.
 
-**Lỗi 4 — Viết hàm cập nhật có tác dụng phụ.** Lambda trong `getAndUpdate`/`updateAndGet`/`accumulateAndGet` có thể được chạy nhiều lần dưới tranh chấp. Không thực hiện side effect trong callback với kỳ vọng chạy đúng một lần.
+**Mistake 4 — Writing update functions with side effects.** Lambdas in `getAndUpdate`/`updateAndGet`/`accumulateAndGet` may run multiple times under contention. Do not perform side effects in the callback expecting single execution.
 
-**Lỗi 5 — Đọc giá trị ngay sau khi cập nhật rồi coi đó luôn là kết quả riêng của lời gọi.** Trong nhiều luồng, ngay sau `getAndIncrement()`, một luồng khác có thể tăng thêm trước `get()`. Nếu cần biết **giá trị đã cấp cho chính lời gọi của mình**, hãy dùng trực tiếp kết quả mà phương thức trả về.
+**Mistake 5 — Reading the value right after updating and assuming it is always this call's exclusive result.** Under multithreading, right after `getAndIncrement()`, another thread can increment again before `get()`. When you need **the value issued to your own call**, directly use the return value of the method.
 
-**Lỗi 6 — Cho rằng AtomicInteger giải quyết giao dịch nhiều biến.** Cập nhật `a` rồi `b` không nguyên tử trên cặp biến; luồng khác có thể quan sát trạng thái trung gian. Dùng đồng bộ phù hợp hoặc gộp trạng thái nếu phải giữ bất biến chung.
+**Mistake 6 — Assuming AtomicInteger solves multi-variable transactions.** Updating `a` then `b` is not atomic across the pair; another thread can observe the intermediate state. Use appropriate synchronization or consolidate state if a joint invariant must hold.
 
-**Lỗi 7 — Quên tràn int.** `incrementAndGet()` tại `Integer.MAX_VALUE` có thể quay về `Integer.MIN_VALUE` mà không ném ngoại lệ.
+**Mistake 7 — Forgetting int overflow.** `incrementAndGet()` at `Integer.MAX_VALUE` wraps back to `Integer.MIN_VALUE` without throwing an exception.
 
-**Lỗi 8 — Tưởng một vòng CAS luôn thành công ngay.** Nếu giá trị bị luồng khác sửa, CAS trả false; vòng lặp phải đọc và quyết định lại. Trong tải tranh chấp nặng, nhiều lần thử có thể xảy ra.
+**Mistake 8 — Assuming a CAS step always succeeds immediately.** If another thread modified the value, CAS returns false; the loop must re-read and decide again. Under heavy contention, many retries may occur.
 
-**Lỗi 9 — Dùng bộ đếm AtomicInteger làm ID toàn cục.** Nó chỉ quản lý trạng thái trong phạm vi đối tượng/JVM. Restart, nhiều instance, nhiều máy hoặc phạm vi `int` đều có thể phá kỳ vọng ID duy nhất dài hạn.
+**Mistake 9 — Using an AtomicInteger counter as a global ID.** It only manages state within an object/JVM scope. Restarts, multiple instances, multiple machines, or `int` limits can break long-term unique ID expectations.
 
-**Lỗi 10 — Dùng lại số thứ tự đã cấp nhưng bỏ qua giá trị trả về.** Với `getAndIncrement` đa luồng, mỗi lời gọi có một giá trị cũ riêng trước khi wrap-around; cần lưu kết quả ấy tại đúng chỗ thay vì lấy `get()` sau đó.
+**Mistake 10 — Reusing issued sequence numbers while ignoring the return value.** In multithreaded `getAndIncrement`, each call gets its own distinct old value prior to wrap-around; save that result right there instead of calling `get()` afterward.
 
-## 12. Bài tập áp dụng và lời giải
+## 12. Practice Exercises and Solutions
 
-### Bài 1. Dự đoán giá trị trả về
+### Exercise 1. Predict the Return Values
 
 ~~~java
 AtomicInteger x = new AtomicInteger(5);
@@ -437,24 +437,24 @@ int c = x.getAndAdd(3);
 int d = x.addAndGet(-2);
 ~~~
 
-**Đáp án:** `a = 5`, `b = 7`, `c = 7`, `d = 8`; giá trị cuối của `x` là `8`.
+**Answer:** `a = 5`, `b = 7`, `c = 7`, `d = 8`; final value of `x` is `8`.
 
-Diễn giải: bắt đầu 5 → `getAndIncrement` trả 5, lưu 6 → `incrementAndGet` lưu/trả 7 → `getAndAdd(3)` trả 7, lưu 10 → `addAndGet(-2)` lưu/trả 8.
+Explanation: start at 5 → `getAndIncrement` returns 5, stores 6 → `incrementAndGet` stores/returns 7 → `getAndAdd(3)` returns 7, stores 10 → `addAndGet(-2)` stores/returns 8.
 
-### Bài 2. Giữ giá trị lớn nhất từng quan sát
+### Exercise 2. Retain the Maximum Value Observed
 
-Muốn giữ `maximum` không bao giờ giảm, khi có quan sát mới `observed`, hãy viết:
+To keep `maximum` from ever decreasing when a new observation `observed` arrives, write:
 
 ~~~java
 AtomicInteger maximum = new AtomicInteger(0);
 int latest = maximum.accumulateAndGet(25, Math::max);
 ~~~
 
-`latest` là 25. Nếu một luồng khác đồng thời báo giá trị 30, phép tích lũy kiểu `Math.max` bảo toàn quy tắc lớn nhất của những lần cập nhật thành công. Nếu giá trị có thể âm và cần max trong toàn miền `int`, phải chọn giá trị khởi tạo phù hợp thay vì mặc định 0.
+`latest` is 25. If another thread concurrently reports 30, `Math::max` accumulation preserves the maximum rule across successful updates. If values can be negative and you need the maximum across the whole `int` range, choose an appropriate initial value instead of defaulting to 0.
 
-### Bài 3. Sửa kiểm tra rồi cập nhật không an toàn
+### Exercise 3. Fix Unsafe Check-Then-Update
 
-Mã sau bị race:
+The following code has a race:
 
 ~~~java
 if (stock.get() > 0) {
@@ -462,25 +462,25 @@ if (stock.get() > 0) {
 }
 ~~~
 
-Cách sửa khi chỉ cần bảo vệ một `AtomicInteger` và biết `stock` ban đầu không âm:
+A fix when protecting only a single `AtomicInteger` and knowing `stock` starts non-negative:
 
 ~~~java
 int previous = stock.getAndUpdate(x -> x > 0 ? x - 1 : x);
 boolean taken = previous > 0;
 ~~~
 
-Đây là mảnh code giả định `stock` đã được khai báo. Hàm cập nhật vừa kiểm tra vừa tính trạng thái mới trong một thao tác nguyên tử; `previous > 0` cho biết lời gọi này có lấy được một đơn vị hay không.
+This snippet assumes `stock` is already declared. The update function both checks and computes the new state in one atomic operation; `previous > 0` tells whether this call claimed one unit.
 
-### Bài 4. Vì sao đoạn code có thể in giá trị khác?
+### Exercise 4. Why Can This Code Print a Different Value?
 
 ~~~java
 int myNumber = shared.getAndIncrement();
 int observedNow = shared.get();
 ~~~
 
-`observedNow` có thể lớn hơn `myNumber + 1` bởi các luồng khác có thể thực hiện thêm cập nhật giữa hai lời gọi. Kết quả `myNumber` vẫn là giá trị cũ đã được cấp **nguyên tử cho chính lời gọi**. Không giả định `get()` tiếp theo là snapshot riêng của cập nhật của luồng mình.
+`observedNow` can be greater than `myNumber + 1` because other threads may perform additional updates between the two calls. `myNumber` remains the old value **atomically issued to this exact call**. Do not assume a subsequent `get()` is a private snapshot of your thread's update.
 
-### Bài 5. Kiểm tra tràn số
+### Exercise 5. Check Overflow
 
 ~~~java
 AtomicInteger x = new AtomicInteger(Integer.MAX_VALUE);
@@ -488,22 +488,22 @@ System.out.println(x.getAndIncrement());
 System.out.println(x.get());
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 2147483647
 -2147483648
 ~~~
 
-Lời gọi đầu trả giá trị cũ là `Integer.MAX_VALUE`, trong khi giá trị đã lưu tăng qua biên rồi tràn thành `Integer.MIN_VALUE`.
+The first call returns the old value `Integer.MAX_VALUE`, while the stored value increments past the boundary and overflows to `Integer.MIN_VALUE`.
 
-## 13. Tóm lược cách chọn phương thức
+## 13. Method Selection Summary
 
-- Cần **giá trị trước khi tăng/giảm/cộng** → dùng `getAndIncrement`, `getAndDecrement`, `getAndAdd`.
-- Cần **giá trị sau khi tăng/giảm/cộng** → dùng `incrementAndGet`, `decrementAndGet`, `addAndGet`.
-- Cần **hàm tính từ giá trị đang lưu** → dùng `getAndUpdate` hoặc `updateAndGet` với callback thuần, chọn giá trị cũ/mới tương ứng.
-- Cần **ghép một toán hạng mới với trạng thái hiện tại** → dùng `getAndAccumulate` hoặc `accumulateAndGet`.
-- Cần **chỉ cập nhật nếu còn đúng giá trị kỳ vọng** → dùng `compareAndSet` và xử lý trường hợp thất bại.
-- Cần **một giá trị đếm nguyên tử** → `AtomicInteger` có thể phù hợp; cần nhiều giá trị phải thay đổi cùng lúc → chọn cơ chế đồng bộ/giao dịch bao quát trạng thái đó.
+- Need the **value before incrementing/decrementing/adding** → use `getAndIncrement`, `getAndDecrement`, `getAndAdd`.
+- Need the **value after incrementing/decrementing/adding** → use `incrementAndGet`, `decrementAndGet`, `addAndGet`.
+- Need a **function computed from the stored value** → use `getAndUpdate` or `updateAndGet` with a pure callback, choosing old/new return value accordingly.
+- Need to **combine a new operand with current state** → use `getAndAccumulate` or `accumulateAndGet`.
+- Need to **update only if still matching an expected value** → use `compareAndSet` and handle failure.
+- Need **one atomic counter** → `AtomicInteger` may fit; need multiple values changing together → choose a synchronization/transaction mechanism covering that state.
 
-**Ghi nhớ:** Các thao tác của `AtomicInteger` cung cấp cập nhật nguyên tử trên **một số nguyên**. Khác biệt giữa `getAnd...` và `...AndGet` nằm ở **giá trị trả về trước hay sau cập nhật**; tính an toàn đồng thời không có nghĩa mọi phép toán nhiều bước, nhiều biến hoặc mọi side effect trong callback đều nguyên tử.
+**Takeaway:** `AtomicInteger` operations provide atomic updates on **a single integer**. The distinction between `getAnd...` and `...AndGet` lies in **whether the pre-update or post-update value is returned**; concurrency safety on one variable does not mean multi-step operations, multiple variables, or side effects inside callbacks are atomic.

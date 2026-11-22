@@ -1,29 +1,29 @@
-# Tạo Gatherer tuần tự bằng Gatherer.ofSequential
+# Creating Sequential Gatherers with Gatherer.ofSequential
 
-Với Java Stream API, các thao tác `filter`, `map` và `flatMap` giải quyết nhiều bài toán chuyển đổi phần tử độc lập. Tuy nhiên, có những tác vụ cần **ghi nhớ trạng thái giữa các phần tử**: tính tổng lũy kế, đánh số thứ tự, gộp từng nhóm liên tiếp, phát ra một báo cáo khi kết thúc dữ liệu hoặc dừng sau một điều kiện. Thay vì đặt biến mutable bên ngoài pipeline rồi sử dụng `peek` hoặc `forEach`, từ **Java 24** có thể tự xây một *Stream Gatherer* bằng `Gatherer.ofSequential`.
+In the Java Stream API, `filter`, `map`, and `flatMap` solve many independent element-transformation problems. However, some tasks require **remembering state across elements**: computing a running total, assigning sequence numbers, grouping consecutive items, emitting a report when data ends, or stopping upon a condition. Instead of placing mutable variables outside the pipeline and using `peek` or `forEach`, starting in **Java 24** you can build a custom *Stream Gatherer* using `Gatherer.ofSequential`.
 
-`Gatherer.ofSequential` phù hợp khi thuật toán cần tiến hành bước tích hợp (*integration*) theo trình tự, với **trạng thái riêng của mỗi lần thực thi pipeline**. Gatherer không chỉ đổi từng `T` thành đúng một `R`: với mỗi phần tử đầu vào, nó có thể **không phát đầu ra, phát một đầu ra hoặc nhiều đầu ra**, và có thể phát thêm dữ liệu ở bước hoàn tất. Đây là công cụ mở rộng pipeline cho những xử lý liên tiếp khó diễn đạt bằng `map` hay `filter` đơn thuần.
+`Gatherer.ofSequential` is suitable when the algorithm must run its integration step (*integration*) sequentially, with **private state per pipeline execution**. A Gatherer does not only map each `T` to a single `R`: for each input element, it can **emit zero, one, or multiple outputs**, and can emit additional data during the completion step. It is an extension tool for pipelines involving sequential processing that are awkward to express with `map` or `filter` alone.
 
-Bài thuộc chương **Xây dựng Gatherer tùy biến** của module **JAVA_STREAM_API**. Ta sẽ học cách thiết kế initializer, integrator, downstream và finisher; kiểm tra hợp đồng dừng sớm; hiểu giới hạn khi nguồn song song; sau đó viết ví dụ Java 24 tự chạy được. Kiến thức liên quan tới pipeline lazy, `reduce`, `collect`, grouping, `Spliterator`, trạng thái và hiệu năng, nhưng trọng tâm là **tạo Gatherer tuần tự đúng ngữ nghĩa**.
+This lesson belongs to the **Building Custom Gatherers** chapter of the **JAVA_STREAM_API** module. We will learn how to design initializer, integrator, downstream, and finisher; check early-termination contracts; understand limitations with parallel sources; and write self-contained Java 24 examples. The topic connects to lazy pipelines, `reduce`, `collect`, grouping, `Spliterator`, state, and performance, with the main focus on **building semantically sound sequential Gatherers**.
 
-## 1. Phiên bản JDK và mục đích của Gatherer
+## 1. JDK Version and Purpose of Gatherer
 
-Các kiểu chính nằm trong package:
+The core types live in the package:
 
 ```java
 import java.util.stream.Gatherer;
 import java.util.stream.Stream;
 ```
 
-Phương thức trung gian trên Stream có dạng:
+The intermediate method on Stream has the form:
 
 ```java
 Stream<R> output = input.gather(gatherer);
 ```
 
-Stream Gatherers được đưa vào Java trong các phiên bản preview trước đó và **trở thành API chính thức từ JDK 24**. Vì vậy, các ví dụ của bài dùng **JDK 24 trở lên**; không thể biên dịch trực tiếp với JDK 8, 11, 17 hoặc 21. Với môi trường sử dụng phiên bản preview, quy tắc bật preview có thể khác và không nên xem những ví dụ JDK 24 này là mã tương thích ngược.
+Stream Gatherers were introduced to Java in earlier preview releases and **became an official API in JDK 24**. Thus, the examples in this lesson use **JDK 24 or later**; they cannot compile directly on JDK 8, 11, 17, or 21. In environments using preview versions, preview-flag rules differ and these JDK 24 examples should not be treated as backward-compatible code.
 
-Ví dụ đơn giản về hình dạng pipeline:
+Simple example of pipeline shape:
 
 ```java
 List<String> output = Stream.of("A", "B", "C")
@@ -31,83 +31,83 @@ List<String> output = Stream.of("A", "B", "C")
         .toList();
 ```
 
-`myGatherer` ở đây là một Gatherer đã được định nghĩa. `gather(...)` vẫn là **intermediate operation**: nó tạo pipeline, chưa nhất thiết duyệt nguồn. `toList()` là terminal operation kích hoạt xử lý.
+Here `myGatherer` is an already-defined Gatherer. `gather(...)` remains an **intermediate operation**: it constructs the pipeline without necessarily traversing the source yet. `toList()` is the terminal operation that triggers processing.
 
-### 1.1. Khi nào cần Gatherer thay vì API có sẵn?
+### 1.1. When Is a Gatherer Needed Instead of Built-in APIs?
 
-| Bài toán | Công cụ thường phù hợp |
+| Problem | Typically Suitable Tool |
 |---|---|
-| Lọc từng phần tử độc lập | `filter` |
-| Biến đổi mỗi phần tử thành một giá trị | `map` |
-| Mỗi phần tử tạo ra Stream con | `flatMap` |
-| Cộng/đếm/tổng hợp thành một kết quả cuối | `reduce`, `collect` |
-| Nhóm theo khóa không phụ thuộc vị trí liên tiếp | `groupingBy` |
-| Tính **tổng lũy kế sau từng phần tử** | Gatherer có trạng thái hoặc thuật toán riêng |
-| Chia dãy thành **các khối liên tiếp** rồi phát từng khối | Gatherer, hoặc `Gatherers.windowFixed` có sẵn nếu phù hợp |
-| Phát một bản ghi tổng kết khi kết thúc | Gatherer có finisher |
-| Điều phối phép biến đổi mới với trạng thái và quy tắc phát đầu ra | Gatherer tùy biến |
+| Filter each element independently | `filter` |
+| Transform each element into one value | `map` |
+| Each element expands into a sub-Stream | `flatMap` |
+| Sum/count/aggregate into one final result | `reduce`, `collect` |
+| Group by key regardless of consecutive positions | `groupingBy` |
+| Compute **running total after each element** | Stateful Gatherer or dedicated algorithm |
+| Split a sequence into **consecutive batches** and emit each batch | Gatherer, or built-in `Gatherers.windowFixed` if suitable |
+| Emit a summary record at completion | Gatherer with finisher |
+| Coordinate a novel transformation with state and custom emission rules | Custom Gatherer |
 
-Đừng chọn Gatherer chỉ vì cú pháp mới: nếu `filter`, `map`, `limit` hay một collector có sẵn đã diễn đạt bài toán rõ ràng, ưu tiên công cụ đơn giản hơn.
+Do not choose a Gatherer just for new syntax: if `filter`, `map`, `limit`, or a built-in collector expresses the problem clearly, prefer the simpler tool.
 
-## 2. Mô hình Gatherer<T, A, R>
+## 2. The Gatherer<T, A, R> Model
 
-Giao diện tổng quát là `Gatherer<T, A, R>`:
+The generic interface is `Gatherer<T, A, R>`:
 
-- **`T`**: kiểu phần tử đầu vào.
-- **`A`**: kiểu trạng thái trung gian của Gatherer; có thể là một đối tượng mutable hoặc `Void` nếu không cần trạng thái.
-- **`R`**: kiểu phần tử đầu ra mà downstream nhận.
+- **`T`**: input element type.
+- **`A`**: intermediate state type of the Gatherer; may be a mutable object or `Void` if no state is needed.
+- **`R`**: output element type received by downstream.
 
-Mô hình khái niệm:
+Conceptual model:
 
 ```text
 Stream<T>
     |
     v
-initializer -> trạng thái A mới
+initializer -> new state A
     |
     +----> integrator(A, T, downstream)
                  |
-          cập nhật trạng thái
+          update state
                  |
-          push(0..n phần tử R)
+          push(0..n elements R)
                  |
-       có tiếp tục tích hợp không?
+       continue integrating?
                  |
-             [lặp với T]
+            [loop over T]
                  |
        finisher(A, downstream)
                  |
-           push phần còn lại
+           push remainder
                  |
               Stream<R>
 ```
 
-Các thành phần cần hiểu:
+Components to understand:
 
-| Thành phần | Nhiệm vụ | Đặc điểm của `ofSequential` |
+| Component | Responsibility | Characteristic in `ofSequential` |
 |---|---|---|
-| **Initializer** | Khởi tạo `A` cho quá trình tích hợp | Có thể cung cấp `Supplier<A>` hoặc dùng overload không cần trạng thái |
-| **Integrator** | Nhận trạng thái, phần tử `T` và downstream; có thể phát `R` | Được thực thi theo mô hình tích hợp tuần tự |
-| **Downstream** | Nơi nhận các phần tử `R` từ `push` | Có thể từ chối thêm đầu ra khi pipeline dừng sớm |
-| **Finisher** | Hoàn tất trạng thái và có thể phát thêm `R` | Tùy chọn; có thể dùng để đẩy nhóm chưa đủ kích thước |
-| **Combiner** | Kết hợp hai trạng thái khi tích hợp song song | `ofSequential` không yêu cầu bạn tự xây phép gộp song song |
+| **Initializer** | Initializes `A` for the integration pass | Can supply `Supplier<A>` or use the stateless overload |
+| **Integrator** | Receives state, element `T`, and downstream; may emit `R` | Executed under the sequential integration model |
+| **Downstream** | Receives `R` elements from `push` | May reject further outputs when the pipeline stops early |
+| **Finisher** | Finalizes state and may emit more `R` | Optional; useful for flushing an incomplete final group |
+| **Combiner** | Combines two states in parallel integration | `ofSequential` does not require you to write a parallel merge |
 
-Điểm đặc biệt của một Gatherer là **`integrator` trả về `boolean`** để cho biết liệu có nên tiếp tục nhận phần tử đầu vào hay không. Điều này khác với `Consumer<T>` trong `forEach`, vốn không trả tín hiệu dừng.
+A distinctive feature of a Gatherer is that **`integrator` returns a `boolean`** indicating whether it should keep receiving input elements. This differs from `Consumer<T>` in `forEach`, which returns no stop signal.
 
-## 3. Các overload ofSequential thường dùng
+## 3. Commonly Used ofSequential Overloads
 
-Ba biến thể thực hành phổ biến:
+Three common practical variants:
 
-### 3.1. Không cần trạng thái và finisher
+### 3.1. No State and No Finisher
 
 ```java
 Gatherer<T, Void, R> gatherer =
         Gatherer.ofSequential(integrator);
 ```
 
-Trong trường hợp không cần giữ trạng thái, `A` là `Void` và integrator có thể bỏ qua giá trị state. Dùng cho những phép ánh xạ/lọc đơn giản cần thử API, dù `map`/`filter` thường ngắn gọn hơn.
+When no state needs to be retained, `A` is `Void` and the integrator can ignore the state parameter. Useful for simple mapping/filtering experiments with the API, though `map`/`filter` are usually more concise.
 
-### 3.2. Có trạng thái, không cần finisher
+### 3.2. Stateful, No Finisher Needed
 
 ```java
 Gatherer<T, A, R> gatherer =
@@ -116,9 +116,9 @@ Gatherer<T, A, R> gatherer =
                 integrator);
 ```
 
-Đây là lựa chọn cho tổng lũy kế hoặc đánh số thứ tự: mỗi phần tử được tích hợp, kết quả phát ra ngay, và không có phần dữ liệu tồn đọng cần phát khi nguồn kết thúc.
+This is the choice for running totals or sequential numbering: each element is integrated, output is emitted immediately, and no leftover data remains to flush when the source ends.
 
-### 3.3. Có trạng thái và finisher
+### 3.3. Stateful with Finisher
 
 ```java
 Gatherer<T, A, R> gatherer =
@@ -128,18 +128,18 @@ Gatherer<T, A, R> gatherer =
                 finisher);
 ```
 
-Dùng khi phải tích lũy một **khối chưa hoàn chỉnh** và chỉ biết cần phát khối ấy khi đầu vào kết thúc. Finisher không phải cách thay thế terminal operation: nó là giai đoạn hoàn tất của Gatherer trong pipeline.
+Use this when accumulating an **incomplete block** and you only know to emit that block once input ends. A finisher does not replace a terminal operation: it is the completion stage of the Gatherer inside the pipeline.
 
-**Lưu ý về cách đọc cú pháp:** `initializer` thường là `Supplier<A>`; `integrator` là `Gatherer.Integrator<A,T,R>`; `finisher` có thể nhận `(state, downstream)` và thực hiện các lệnh đẩy phần tử còn lại. Ví dụ đầy đủ ở phần 5 và 6 cho thấy cách các kiểu được suy ra từ khai báo `Gatherer<T,A,R>`.
+**Syntax reading note:** `initializer` is typically a `Supplier<A>`; `integrator` is `Gatherer.Integrator<A,T,R>`; `finisher` accepts `(state, downstream)` and performs remaining emission commands. Complete examples in sections 5 and 6 show how types are inferred from the `Gatherer<T,A,R>` declaration.
 
-## 4. Downstream.push và tín hiệu dừng sớm
+## 4. Downstream.push and Early Termination Signals
 
-Trong integrator, `downstream.push(value)` cố phát một phần tử đầu ra và trả về `boolean`:
+Inside the integrator, `downstream.push(value)` attempts to emit an output element and returns a `boolean`:
 
-- `true`: downstream còn có thể chấp nhận đầu ra; integrator có thể tiếp tục.
-- `false`: downstream đã từ chối nhận thêm đầu ra; integrator nên truyền tín hiệu dừng khi thích hợp.
+- `true`: downstream can still accept output; the integrator may continue.
+- `false`: downstream has rejected further output; the integrator should propagate the stop signal when appropriate.
 
-Ví dụ, một Gatherer biến đổi một số `n` thành `n * 2` có thể viết:
+For example, a Gatherer transforming positive numbers `n` into `n * 2` can be written:
 
 ```java
 import java.util.stream.Gatherer;
@@ -147,13 +147,13 @@ import java.util.stream.Gatherer;
 Gatherer<Integer, Void, Integer> doublePositive =
         Gatherer.ofSequential((state, value, downstream) -> {
             if (value <= 0) {
-                return true; // Bỏ phần tử đầu vào này, tiếp tục đọc.
+                return true; // Skip this input element, keep reading.
             }
             return downstream.push(value * 2);
         });
 ```
 
-Đoạn này **không giữ trạng thái** và chỉ phát số dương nhân đôi. Dữ liệu đầu vào có thể dùng:
+This snippet **holds no state** and only emits doubled positive numbers. Sample input:
 
 ```java
 List<Integer> values = Stream.of(-1, 2, 0, 3)
@@ -163,37 +163,37 @@ List<Integer> values = Stream.of(-1, 2, 0, 3)
 System.out.println(values); // [4, 6]
 ```
 
-Khi downstream từ chối vì có `limit` hoặc một thao tác ngắn mạch, việc trả kết quả của `push` giúp Gatherer không tiếp tục tích hợp không cần thiết. Không nên luôn trả `true` sau khi `push` báo không nhận thêm, bởi điều đó có thể làm nguồn tiếp tục bị duyệt dù kết quả đã đủ.
+When downstream rejects due to `limit` or another short-circuiting operation, returning the result of `push` stops the Gatherer from integrating unnecessarily. Do not unconditionally return `true` after `push` reports no more output wanted, as that can cause the source to keep being traversed even after enough results have been collected.
 
-### 4.1. false không phải “bỏ qua phần tử”
+### 4.1. false Does Not Mean "Skip Element"
 
-Đây là khác biệt quan trọng:
+This is a critical distinction:
 
 ```java
 if (!isValid(value)) {
-    return true;   // Không push nhưng cho phép xét phần tử sau.
+    return true;   // Do not push, yet allow inspecting subsequent elements.
 }
 ```
 
-Trả `false` nói rằng Gatherer **không muốn tích hợp thêm phần tử đầu vào**; nó không chỉ có nghĩa “lọc bỏ phần tử hiện tại”. Nếu logic lọc bỏ một giá trị mà lại trả `false`, pipeline sẽ kết thúc sớm ngoài ý muốn.
+Returning `false` tells the Gatherer **to stop integrating more input elements**; it does not simply mean "filter out the current element". If filtering logic returns `false` to skip a value, the pipeline terminates prematurely by mistake.
 
-### 4.2. Không coi short-circuit là một chu kỳ đầy đủ
+### 4.2. Do Not Assume Short-Circuiting Sees a Full Cycle
 
-Nếu downstream kết thúc sớm, ví dụ `limit(2)`, quá trình tích hợp có thể không nhìn thấy tất cả phần tử nguồn. Vì vậy, **trạng thái của Gatherer chỉ phản ánh phần dữ liệu thực sự đã tích hợp**, không nhất thiết là toàn bộ dữ liệu ban đầu. Không dùng finisher hoặc biến đếm bên trong Gatherer để khẳng định đã xử lý mọi phần tử nếu terminal operation có thể dừng sớm.
+If downstream finishes early, such as with `limit(2)`, integration may not see all source elements. Therefore, **a Gatherer's state only reflects the data actually integrated**, not necessarily the entire original dataset. Do not use a finisher or internal counter inside a Gatherer to claim all elements were processed when a terminal operation can short-circuit.
 
-## 5. Ví dụ Java 24 hoàn chỉnh: tổng tiền lũy kế
+## 5. Complete Java 24 Example: Running Total
 
-Giả sử một hệ thống thanh toán cần in **tổng tiền đã xử lý sau mỗi giao dịch**. `reduce` hay `sum` chỉ cho kết quả cuối cùng, trong khi ta cần một đầu ra cho **mỗi** giao dịch, phụ thuộc tổng các giao dịch trước đó.
+Suppose a payment system needs to print **the cumulative processed amount after each transaction**. `reduce` or `sum` produces only one final result, whereas we need one output for **each** transaction, depending on the sum of preceding transactions.
 
-Ta thiết kế Gatherer:
+We design the Gatherer:
 
-- Nhận `Long` là số tiền của giao dịch; giá trị âm có thể biểu diễn điều chỉnh/hoàn tiền trong ví dụ.
-- `RunningState` có `count` và `sumCents`.
-- Mỗi lần tích hợp, cộng tiền và tăng count, rồi phát `RunningTotal(index, sumCents)`.
-- Kiểm soát tràn `long` bằng `Math.addExact`.
-- Không cần finisher vì sau mỗi phần tử đã phát kết quả tương ứng.
+- Accepts `Long` as the transaction amount; negative values can represent adjustments/refunds in the example.
+- `RunningState` has `count` and `sumCents`.
+- On each integration, add the amount and increment count, then emit `RunningTotal(index, sumCents)`.
+- Guard against `long` overflow with `Math.addExact`.
+- No finisher is needed since a corresponding result is emitted after each element.
 
-Lưu đoạn sau thành `SequentialGathererDemo.java` và chạy với **JDK 24+**:
+Save the following as `SequentialGathererDemo.java` and run with **JDK 24+**:
 
 ```java
 import java.util.Arrays;
@@ -232,7 +232,7 @@ public class SequentialGathererDemo {
                     state.sumCents = Math.addExact(
                             state.sumCents, amount);
 
-                    // Trả boolean của push để lan truyền tín hiệu dừng.
+                    // Return push's boolean to propagate stop signals.
                     return downstream.push(new RunningTotal(
                             state.count, state.sumCents));
                 });
@@ -249,20 +249,20 @@ public class SequentialGathererDemo {
         System.out.println(totals);
         // [#1=5000, #2=8000, #3=6000, #4=13000]
 
-        // Mỗi lần collect là một lần tích hợp với state riêng.
+        // Each collect runs integration with its own private state.
         List<RunningTotal> again = transactions.stream()
                 .gather(runningTotals())
                 .toList();
         System.out.println(again);
         // [#1=5000, #2=8000, #3=6000, #4=13000]
 
-        // Nguồn rỗng: không có trạng thái nào được push.
+        // Empty source: no state is pushed.
         List<RunningTotal> empty = Stream.<Long>empty()
                 .gather(runningTotals())
                 .toList();
         System.out.println(empty); // []
 
-        // Giữ thứ tự từ List trong xử lý tuần tự.
+        // Preserves List order in sequential processing.
         transactions.stream()
                 .gather(runningTotals())
                 .forEachOrdered(System.out::println);
@@ -274,39 +274,39 @@ public class SequentialGathererDemo {
 }
 ```
 
-### 5.1. Giải thích cách chạy
+### 5.1. Execution Walkthrough
 
-| Giao dịch | `state.count` sau khi nhận | `state.sumCents` sau khi nhận | Đầu ra |
+| Transaction | `state.count` after | `state.sumCents` after | Output |
 |---:|---:|---:|---|
 | `5000` | 1 | 5000 | `#1=5000` |
 | `3000` | 2 | 8000 | `#2=8000` |
 | `-2000` | 3 | 6000 | `#3=6000` |
 | `7000` | 4 | 13000 | `#4=13000` |
 
-Tổng lũy kế khác với tổng cuối ở chỗ nó **phát nhiều kết quả**, mỗi kết quả là một ảnh chụp trạng thái sau bước tích hợp. Nếu chỉ cần `13000`, `mapToLong(...).sum()` sẽ đơn giản hơn.
+A running total differs from a final sum in that it **emits multiple results**, each being a snapshot of state after an integration step. If you only need `13000`, `mapToLong(...).sum()` is simpler.
 
-### 5.2. Vì sao initializer phải tạo state mới?
+### 5.2. Why Must the Initializer Create a New State?
 
-`RunningState::new` tạo một `RunningState` mới cho mỗi lượt dùng Gatherer cần một trạng thái riêng. Không nên tạo một `static RunningState shared` để mọi pipeline dùng chung; làm vậy khiến lần chạy thứ hai tiếp tục số đếm của lần đầu và có thể gây data race nếu chạy song song.
+`RunningState::new` allocates a new `RunningState` for every Gatherer invocation needing its own state. Never create a `static RunningState shared` for all pipelines to share; doing so causes the second run to continue the first run's count and can cause data races under parallel execution.
 
-### 5.3. Vì sao không giữ RunningState trong kết quả?
+### 5.3. Why Not Hold RunningState in the Result?
 
-`RunningTotal` giữ **hai giá trị `long` đã chụp**, không giữ tham chiếu tới đối tượng `RunningState` mutable. Nếu đẩy chính một đối tượng state ra ngoài rồi tiếp tục sửa nó, mọi phần tử đầu ra có thể trỏ tới cùng một trạng thái đang thay đổi, khiến danh sách kết quả không thể hiện các mốc lũy kế chính xác.
+`RunningTotal` holds **two captured `long` values**, not a reference to the mutable `RunningState` object. If you pushed the state object itself downstream and kept mutating it, every output element could point to the same changing state, preventing the result list from reflecting accurate cumulative checkpoints.
 
-## 6. Ví dụ Java 24 hoàn chỉnh: chia các phần tử thành khối cố định
+## 6. Complete Java 24 Example: Splitting Elements into Fixed Batches
 
-Một ứng dụng gửi thông điệp theo lô cần chia danh sách thành các khối liên tiếp, mỗi khối có tối đa `batchSize` phần tử. Khi khối đủ kích thước, integrator phát một `List<String>`. Nếu nguồn kết thúc mà còn khối chưa đủ kích thước, **finisher** phải phát nốt khối cuối.
+A message-batching application needs to split a list into consecutive chunks, each containing at most `batchSize` elements. When a chunk fills up, the integrator emits a `List<String>`. If the source ends with a partial chunk remaining, the **finisher** must emit the final chunk.
 
-Ví dụ có 5 phần tử, cỡ khối 2:
+Example with 5 elements, batch size 2:
 
 ```text
-Đầu vào: A B C D E
-Khối 1:  [A, B]
-Khối 2:  [C, D]
-Khối 3:  [E]    <- finisher phát
+Input:   A B C D E
+Batch 1: [A, B]
+Batch 2: [C, D]
+Batch 3: [E]    <- emitted by finisher
 ```
 
-Mã sau chạy độc lập bằng JDK 24+:
+The following code runs standalone on JDK 24+:
 
 ```java
 import java.util.ArrayList;
@@ -323,7 +323,7 @@ public class SequentialBatchGathererDemo {
             batchesOf(int batchSize) {
         if (batchSize <= 0) {
             throw new IllegalArgumentException(
-                    "batchSize phải lớn hơn 0");
+                    "batchSize must be greater than 0");
         }
 
         return Gatherer.ofSequential(
@@ -333,14 +333,14 @@ public class SequentialBatchGathererDemo {
                     state.add(value);
 
                     if (state.size() == batchSize) {
-                        // Snapshot độc lập: không đẩy state mutable ra ngoài.
+                        // Independent snapshot: do not push mutable state out.
                         List<String> batch =
                                 Collections.unmodifiableList(
                                         new ArrayList<>(state));
                         state.clear();
                         return downstream.push(batch);
                     }
-                    return true; // Chưa đủ khối, tiếp tục nhận input.
+                    return true; // Batch not full yet, keep accepting input.
                 },
                 (state, downstream) -> {
                     if (!state.isEmpty()) {
@@ -370,33 +370,33 @@ public class SequentialBatchGathererDemo {
 
         try {
             batchesOf(0);
-            throw new AssertionError("Phải từ chối batchSize=0");
+            throw new AssertionError("Must reject batchSize=0");
         } catch (IllegalArgumentException expected) {
-            System.out.println("Đã từ chối batchSize=0");
+            System.out.println("Rejected batchSize=0");
         }
     }
 }
 ```
 
-### 6.1. Vai trò của ba thành phần
+### 6.1. Role of the Three Components
 
-**Initializer:** tạo danh sách rỗng riêng cho quá trình tích hợp. **Integrator:** thêm phần tử vào danh sách; khi đủ kích thước, chụp danh sách, xóa bộ đệm để bắt đầu khối mới, và `push` khối ra downstream. **Finisher:** phát khối cuối nếu bộ đệm còn phần tử.
+**Initializer:** creates a separate empty list for the integration pass. **Integrator:** adds an element to the list; when full, snapshots the list, clears the buffer to start a new batch, and `push`es the batch downstream. **Finisher:** emits the final batch if elements remain in the buffer.
 
-Khối đã phát được bọc không sửa được và được sao chép từ state. Nếu chỉ `downstream.push(state)` rồi `state.clear()`, kết quả ở các khối có thể cùng tham chiếu một List bị sửa sau khi push, gây lỗi rất khó phát hiện.
+Emitted batches are wrapped as unmodifiable and copied from state. If you merely did `downstream.push(state)` then `state.clear()`, results across batches could reference a single List mutated after pushing, causing hard-to-spot bugs.
 
-### 6.2. Vì sao dùng ofSequential ở đây?
+### 6.2. Why Use ofSequential Here?
 
-Khái niệm “khối đầu tiên gồm hai phần tử đầu của dãy”, “khối tiếp theo gồm hai phần tử kế” phụ thuộc vào **vị trí liên tiếp và thứ tự đầu vào**. Khi chia nguồn thành các phần chạy độc lập, một combiner tùy tiện không thể chỉ ghép hai danh sách batch mà luôn giữ được ranh giới khối đúng.
+The notion of "first batch consists of the first two elements of the sequence", "next batch consists of the next two elements" depends on **consecutive positions and input order**. When splitting a source into independent branches, an arbitrary combiner cannot simply concatenate two batch lists and always preserve accurate batch boundaries.
 
-`Gatherer.ofSequential` giúp mô tả một cơ chế tích hợp theo trình tự mà **không phải thiết kế phép kết hợp trạng thái song song**. Nếu chỉ cần chia khối cố định theo API có sẵn, Java 24 cũng có `Gatherers.windowFixed(batchSize)`; hãy ưu tiên API chuẩn khi đúng yêu cầu, và dùng custom gatherer để học cách bổ sung quy tắc nghiệp vụ riêng.
+`Gatherer.ofSequential` describes a sequential integration mechanism **without having to design a parallel state-merging operation**. If you only need fixed-size chunking via built-in APIs, Java 24 also provides `Gatherers.windowFixed(batchSize)`; prefer standard APIs when they fit, and use custom gatherers to learn how to add custom business rules.
 
-### 6.3. Finisher và short-circuit
+### 6.3. Finisher and Short-Circuiting
 
-Finisher có thể được dùng khi nguồn đã hoàn tất hoặc giai đoạn Gatherer đang hoàn tất. Nếu downstream **không còn nhận đầu ra**, việc `push` tiếp cũng không tạo thêm phần tử được chấp nhận. Không thiết kế finisher như một bước side effect bắt buộc để “đảm bảo gửi hết mọi batch” nếu terminal operation có thể dừng sớm, ví dụ `limit(1)`. Muốn đảm bảo phát hết dữ liệu, cần thiết kế toàn bộ pipeline và terminal operation phù hợp với yêu cầu.
+The finisher can be invoked when the source finishes or the Gatherer stage completes. If downstream **no longer accepts output**, calling `push` further produces no accepted elements. Do not design the finisher as a mandatory side-effect step to "guarantee all batches are sent" if the terminal operation can short-circuit, such as `limit(1)`. To guarantee all data is emitted, design the whole pipeline and terminal operation to match the requirement.
 
-## 7. Ví dụ dừng sớm bằng chính integrator
+## 7. Example of Early Termination by the Integrator Itself
 
-Ngoài việc bị downstream yêu cầu dừng, Gatherer cũng có thể **chủ động dừng** sau một điều kiện. Ví dụ chỉ phát ba số dương đầu tiên, bỏ qua số không dương:
+Besides being asked to stop by downstream, a Gatherer can also **proactively stop** upon a condition. For example, emit only the first three positive numbers, skipping non-positive ones:
 
 ```java
 import java.util.List;
@@ -412,7 +412,7 @@ Gatherer<Integer, Counter, Integer> firstThreePositive =
                 Counter::new,
                 (state, value, downstream) -> {
                     if (value <= 0) {
-                        return true; // Bỏ qua, vẫn tiếp tục.
+                        return true; // Skip, yet continue.
                     }
 
                     state.emitted++;
@@ -427,15 +427,15 @@ List<Integer> result = Stream.of(-2, 4, 0, 5, 6, 7)
 System.out.println(result); // [4, 5, 6]
 ```
 
-Đoạn trên minh họa trong một lớp/phương thức có chỗ định nghĩa `Counter` và các biến; nó không phải chương trình độc lập như phần 5 và 6. Khi đã phát số dương thứ ba, integrator trả `false` để báo không tiếp tục tích hợp các phần tử sau đó.
+This snippet illustrates inside a class/method where `Counter` and variables are defined; it is not a standalone program like sections 5 and 6. Once the third positive number is emitted, the integrator returns `false` to signal not to integrate further elements.
 
-**Đừng nhầm:** `false` trong giá trị trả về của integrator là **tín hiệu dừng**, không phải giá trị trả về của predicate như `filter`. Nếu bạn muốn bỏ một phần tử nhưng vẫn tìm phần tử tiếp theo, trả `true` sau khi không push phần tử ấy.
+**Do not confuse:** `false` in the integrator's return value is a **stop signal**, not a predicate return value like `filter`. If you want to skip an element while still searching for subsequent elements, return `true` after not pushing that element.
 
-## 8. Gatherer.ofSequential và parallel Stream
+## 8. Gatherer.ofSequential and Parallel Streams
 
-Tên “Sequential” mang ý nghĩa **quy tắc tích hợp của Gatherer**: các phần tử không thể được tùy tiện chia ra, tích hợp trạng thái ở nhiều nhánh rồi gộp như một Gatherer có combiner song song hợp lệ.
+The name "Sequential" refers to **the Gatherer's integration rule**: elements cannot be arbitrarily split, integrated into state across branches, and merged like a Gatherer with a valid parallel combiner.
 
-Ví dụ:
+Example:
 
 ```java
 List<Long> input = List.of(5L, 3L, -2L, 7L);
@@ -446,37 +446,37 @@ List<SequentialGathererDemo.RunningTotal> totals = input
         .toList();
 ```
 
-Với nguồn List **có encounter order**, kết quả theo ngữ nghĩa tổng lũy kế phải xét phần tử theo thứ tự logic của nguồn. `ofSequential` không tự biến thuật toán lũy kế thành một phép cộng song song được. Framework phải tôn trọng những ràng buộc của Gatherer để không dùng một phép kết hợp trạng thái không tồn tại.
+With an **encounter-ordered** List source, running-total semantics must consider elements in logical source order. `ofSequential` cannot magically turn a running-total algorithm into parallel addition. The framework must honor the Gatherer's constraints rather than inventing a non-existent state combiner.
 
-Đừng suy ra rằng **mọi bước trong pipeline** bắt buộc chạy trên một thread duy nhất chỉ vì có `ofSequential`. Các giai đoạn khác có thể được triển khai theo cách thích hợp với Stream, nhưng **khả năng tăng tốc của bước trạng thái tuần tự là có giới hạn**. Đặc biệt, tên thread hoặc lịch gọi lambda không phải hợp đồng cho ứng dụng.
+Do not infer that **every step in the pipeline** is forced to run on a single thread merely because `ofSequential` is present. Other stages may execute according to Stream's strategy, yet **the speedup potential of the sequential stateful stage is limited**. In particular, thread names or lambda invocation schedules are not part of the application contract.
 
-### 8.1. Vì sao không công bố combiner song song tùy tiện?
+### 8.1. Why Not Supply an Arbitrary Parallel Combiner?
 
-Giả sử nhánh A xử lý `[5, 3]` và tạo các tổng lũy kế `[5, 8]`; nhánh B xử lý `[-2, 7]` và tạo `[-2, 5]`. Để ghép thành kết quả `[5, 8, 6, 13]`, cần hiệu chỉnh toàn bộ kết quả nhánh B bằng tổng của nhánh A.
+Suppose branch A processes `[5, 3]` and produces running totals `[5, 8]`; branch B processes `[-2, 7]` and produces `[-2, 5]`. To merge into `[5, 8, 6, 13]`, every result in branch B must be adjusted by branch A's sum.
 
-Chỉ gọi `left.addAll(right)` không đáp ứng ngữ nghĩa. Việc thiết kế một Gatherer tích hợp song song đúng nghĩa có thể cần trạng thái và phép kết hợp phức tạp, hoặc một thuật toán scan song song riêng. Với bài toán này, `ofSequential` giúp giữ đúng quy tắc mà không tự chế phép combiner sai.
+Merely calling `left.addAll(right)` fails the semantics. Designing a true parallel integration Gatherer may require complex state and merging logic, or a dedicated parallel scan algorithm. For this problem, `ofSequential` preserves correctness without fabricating a broken combiner.
 
-### 8.2. Thứ tự của nguồn vẫn quan trọng
+### 8.2. Source Order Still Matters
 
-Nếu nguồn đến từ collection **không có encounter order**, “phần tử đầu tiên” hoặc “tổng sau phần tử thứ ba” có thể không có cùng ý nghĩa nghiệp vụ giữa các lần chạy. `ofSequential` không tự sắp xếp dữ liệu. Nếu yêu cầu thứ tự thời gian hay thứ tự mã giao dịch, cần:
+If the source comes from a collection **without encounter order**, "first element" or "sum after the third element" may not have consistent business meaning across runs. `ofSequential` does not sort data automatically. If chronological order or transaction-ID order is required, you must:
 
-- Chọn nguồn có encounter order phù hợp.
-- Hoặc sắp xếp rõ bằng `sorted(comparator)` trước khi gọi `gather`, với comparator thể hiện đúng thứ tự nghiệp vụ.
-- Không dùng `unordered()` khi kết quả phụ thuộc vị trí hoặc lũy kế.
+- Choose a source with the appropriate encounter order.
+- Or sort explicitly with `sorted(comparator)` before `gather`, using a comparator expressing the business order.
+- Avoid `unordered()` when results depend on position or running accumulation.
 
-Tính tuần tự của integrator **không thay thế việc xác định thứ tự đầu vào**.
+Sequential integration **does not replace defining input order**.
 
-## 9. So sánh ofSequential với Collector và các phép toán khác
+## 9. Comparing ofSequential with Collector and Other Operations
 
-| Đặc tính | `map` / `filter` | `reduce` / `collect` | `Gatherer.ofSequential` |
+| Characteristic | `map` / `filter` | `reduce` / `collect` | `Gatherer.ofSequential` |
 |---|---|---|---|
-| Có thể giữ trạng thái cục bộ giữa các phần tử? | Không nên dựa vào trạng thái mutable ngoài lambda | Có trạng thái tích lũy để tạo kết quả cuối | Có trạng thái `A` riêng cho các bước tích hợp |
-| Số đầu ra | 0 hoặc 1 đầu ra cho mỗi phần tử theo phép toán | Thường một kết quả cuối | 0, 1 hoặc nhiều đầu ra trên từng bước, có thể phát thêm khi hoàn tất |
-| Hỗ trợ dừng sớm | `limit`, `takeWhile`, v.v. | Một số terminal operation short-circuit | Integrator có thể trả `false`; downstream có thể từ chối |
-| Có kết hợp trạng thái song song? | Không phải mô hình stateful riêng | Có combiner đúng hợp đồng | Không yêu cầu combiner song song ở `ofSequential` |
-| Trường hợp phù hợp | Ánh xạ/lọc độc lập | Tổng hợp số liệu cuối | Tổng lũy kế, chia khối, biến đổi có trạng thái |
+| Can maintain local state across elements? | Should not rely on external mutable state | Has accumulation state to form final result | Has private state `A` across integration steps |
+| Number of outputs | 0 or 1 output per element depending on op | Usually one final result | 0, 1, or more outputs per step, plus optional completion emissions |
+| Early termination support | `limit`, `takeWhile`, etc. | Some terminal operations short-circuit | Integrator can return `false`; downstream can reject |
+| Parallel state combining? | Not a dedicated stateful model | Has a contract-compliant combiner | No parallel combiner required in `ofSequential` |
+| Suitable use cases | Independent mapping/filtering | Final summary aggregation | Running totals, batching, stateful transformations |
 
-### 9.1. Không thay reduce bằng Gatherer nếu chỉ cần tổng cuối
+### 9.1. Do Not Replace reduce with a Gatherer When Only a Final Sum Is Needed
 
 ```java
 long total = Stream.of(5L, 3L, -2L, 7L)
@@ -485,43 +485,43 @@ long total = Stream.of(5L, 3L, -2L, 7L)
 System.out.println(total); // 13
 ```
 
-Viết Gatherer lũy kế rồi gọi `reduce((a, b) -> b)` để lấy tổng cuối là đường vòng khó hiểu hơn. Dùng Gatherer khi cần **các kết quả trung gian** hoặc quy tắc điều phối phần tử không có API trực tiếp phù hợp.
+Writing a running-total Gatherer and then calling `reduce((a, b) -> b)` to grab the final sum is an obscure detour. Use a Gatherer when you need **intermediate results** or element-coordination rules with no direct built-in API.
 
-### 9.2. Khi cần tính theo khóa thay vì theo vị trí
+### 9.2. When Computing by Key Rather Than Position
 
-Nếu chỉ muốn tổng tiền theo mã sản phẩm, `groupingBy(..., summingLong(...))` hoặc `toMap(..., Long::sum)` thể hiện rõ hơn một Gatherer tuần tự duyệt và sửa `HashMap`. Gatherer thuận lợi hơn cho xử lý **theo chuỗi phần tử liên tiếp**, chẳng hạn phát báo cáo mỗi khi gặp dấu mốc kết thúc.
+If you only want total revenue per product code, `groupingBy(..., summingLong(...))` or `toMap(..., Long::sum)` expresses it more clearly than a sequential Gatherer iterating and mutating a `HashMap`. Gatherer excels at processing **across consecutive element sequences**, such as emitting a report whenever an end marker appears.
 
-### 9.3. API Gatherers có sẵn
+### 9.3. Built-in Gatherers API
 
-Java 24 cung cấp một số gatherer chuẩn như `Gatherers.windowFixed`, `windowSliding`, `scan` và `fold`. Trước khi tự viết, hãy xem chúng có đúng bài toán không. Ví dụ, tổng lũy kế có thể biểu diễn bằng `Gatherers.scan`; việc tự xây qua `ofSequential` vẫn có giá trị học tập khi muốn gắn thêm đếm, kiểm tra tràn hoặc phát đối tượng mang nhiều trường.
+Java 24 ships standard gatherers such as `Gatherers.windowFixed`, `windowSliding`, `scan`, and `fold`. Before writing your own, check whether they match your problem. For example, a running total can be expressed with `Gatherers.scan`; building it yourself via `ofSequential` still has educational value when attaching counters, overflow checks, or multi-field output objects.
 
-## 10. Ràng buộc trạng thái và an toàn dữ liệu
+## 10. State Constraints and Data Safety
 
-### 10.1. Không dùng state chia sẻ giữa nhiều pipeline
+### 10.1. Do Not Share State Across Multiple Pipelines
 
-Sai về nguyên tắc:
+Wrong in principle:
 
 ```java
-// Tránh một biến mutable static được chia sẻ cho mọi lần gather:
+// Avoid a static mutable variable shared across all gather runs:
 // static final RunningState SHARED = new RunningState();
 // Gatherer.ofSequential(() -> SHARED, integrator);
 ```
 
-Một initializer trả lại cùng đối tượng khiến:
+An initializer returning the same object causes:
 
-- Lần gọi sau có thể nối tiếp tổng của lần trước.
-- Hai pipeline đang hoạt động có thể tác động lẫn nhau.
-- Nếu nhiều thread truy cập, có thể tạo data race.
+- A later invocation to continue from the previous invocation's total.
+- Two active pipelines to interfere with each other.
+- Potential data races if accessed from multiple threads.
 
-Hãy tạo trạng thái mới bằng constructor hoặc supplier có ý nghĩa rõ ràng, và xem Gatherer là **đặc tả phép xử lý**, không phải nơi lưu trạng thái nghiệp vụ dùng chung.
+Create fresh state via a constructor or clear supplier, and treat a Gatherer as a **processing specification**, not a shared business state holder.
 
-### 10.2. Không sửa nguồn khi đang duyệt
+### 10.2. Do Not Mutate the Source During Traversal
 
-Integrator nên thực hiện phép xử lý trên phần tử đã nhận và state riêng, không xóa/thêm phần tử vào chính `List` nguồn trong lúc duyệt. Nguyên tắc *non-interference* của Stream vẫn áp dụng; việc Gatherer có trạng thái không cho phép sửa tùy tiện dữ liệu nguồn.
+The integrator should operate only on the received element and private state, without removing/adding elements in the source `List` during traversal. Stream's *non-interference* rule still applies; being a stateful Gatherer does not permit mutating source data.
 
-### 10.3. Phát snapshot thay vì tham chiếu mutable
+### 10.3. Emit Snapshots Instead of Mutable References
 
-Với output dạng danh sách hoặc bản tổng kết, nếu trạng thái bên trong có thể tiếp tục thay đổi thì cần sao chép hoặc tạo đối tượng kết quả mới:
+For list or summary outputs, if internal state can continue changing, copy it or construct a new result object:
 
 ```java
 List<String> snapshot =
@@ -529,40 +529,40 @@ List<String> snapshot =
 downstream.push(snapshot);
 ```
 
-Việc phát chính `state` mutable rồi `clear()` trong bước kế tiếp có thể làm mọi output trong List kết quả cùng đổi nội dung.
+Pushing the mutable `state` itself and calling `clear()` on the next step can cause every element in the output List to reflect the same mutated contents.
 
-### 10.4. Xử lý null có chủ đích
+### 10.4. Handle nulls Intentionally
 
-Nếu `null` là dữ liệu không hợp lệ, dùng `Objects.requireNonNull(value)` trong integrator hoặc `filter(Objects::nonNull)` trước Gatherer; nếu `null` đại diện một dấu phân cách hợp lệ, phải mô hình hóa quy tắc riêng.
+If `null` is invalid data, use `Objects.requireNonNull(value)` inside the integrator or `filter(Objects::nonNull)` before the Gatherer; if `null` represents a valid delimiter, model that rule explicitly.
 
-Không dựa vào `toList()` hoặc `collect` để tự loại null. Một phép biến đổi có thể phát null nếu không được bảo vệ, và downstream hoặc phép toán tiếp theo có thể phản ứng khác nhau.
+Do not rely on `toList()` or `collect` to strip nulls implicitly. A transformation may emit nulls if unguarded, and downstream stages or subsequent operations may react differently.
 
-### 10.5. Kiểm soát số học
+### 10.5. Arithmetic Safety
 
-Tổng lũy kế với `long` có thể tràn. Ví dụ dùng `Math.addExact` để ném `ArithmeticException` khi tổng vượt miền `long`. Nếu dữ liệu là tiền tệ nhạy tính chính xác, cân nhắc đơn vị tiền nhỏ nhất, `BigDecimal` hoặc `BigInteger` theo yêu cầu; đừng mặc định `double` là chính xác tuyệt đối.
+Running totals with `long` can overflow. The example uses `Math.addExact` to throw `ArithmeticException` when the sum exceeds `long` range. For precision-sensitive monetary values, consider smallest currency units, `BigDecimal`, or `BigInteger` as required; never assume `double` is exact.
 
-## 11. Chi phí bộ nhớ, ngắn mạch và nguồn I/O
+## 11. Memory Cost, Short-Circuiting, and I/O Sources
 
-Một Gatherer tuần tự **không bắt buộc lưu toàn bộ đầu vào**. Ví dụ lũy kế chỉ giữ hai số `long`, có chi phí trạng thái `O(1)`. Ví dụ chia khối giữ tối đa `batchSize` phần tử, chi phí trạng thái `O(batchSize)`; nếu downstream `toList()` giữ mọi khối thì bộ nhớ đầu ra vẫn tăng theo số phần tử được giữ.
+A sequential Gatherer **is not forced to store the entire input**. For example, the running total only keeps two `long`s, having `O(1)` state space. The batching example holds at most `batchSize` elements, having `O(batchSize)` state space; if downstream `toList()` retains every batch, output memory still scales with retained elements.
 
-| Thiết kế | Bộ nhớ trạng thái Gathering | Khả năng phát kết quả |
+| Design | Gathering State Memory | Emission Capability |
 |---|---|---|
-| Tổng lũy kế | `O(1)` | Phát một kết quả mỗi phần tử |
-| Đếm thứ tự | `O(1)` | Phát một kết quả mỗi phần tử |
-| Chia khối kích thước `k` | `O(k)` | Phát một danh sách mỗi `k` phần tử và khối cuối |
-| Tích lũy toàn bộ để phát một lần | `O(n)` | Có thể phát ở finisher, tốn bộ nhớ |
+| Running total | `O(1)` | Emits one result per element |
+| Sequential numbering | `O(1)` | Emits one result per element |
+| Fixed batching of size `k` | `O(k)` | Emits a list every `k` elements plus final batch |
+| Accumulating everything to emit once | `O(n)` | Can emit in finisher, memory-heavy |
 
-### 11.1. Lazy không có nghĩa không có trạng thái
+### 11.1. Lazy Does Not Mean Stateless
 
-Gọi `stream.gather(gatherer)` chưa cần duyệt phần tử; khi terminal operation chạy, initializer/integrator mới tham gia xử lý theo nhu cầu. Tuy nhiên, khi đã bắt đầu tiêu thụ, Gatherer có thể giữ state qua nhiều phần tử cho tới khi hoàn tất. Nếu tạo nhiều pipeline dùng chung một biến state ngoài, tính lazy còn khiến thời điểm cập nhật trở nên khó dự đoán.
+Calling `stream.gather(gatherer)` does not traverse elements yet; when the terminal operation runs, initializer/integrator engage on demand. However, once consumption begins, the Gatherer can hold state across many elements until completion. If multiple pipelines share an external state variable, laziness also makes mutation timing unpredictable.
 
-### 11.2. Short-circuit và việc không đọc hết nguồn
+### 11.2. Short-Circuiting and Partial Source Reading
 
-`limit`, `findFirst`, `anyMatch` và các terminal operation ngắn mạch có thể ngừng pipeline trước khi toàn bộ đầu vào được tích hợp. Vì thế, không dùng số lần gọi integrator hay finisher làm thước đo chắc chắn “đã xử lý mọi dữ liệu nguồn”. Khi thiết kế một Gatherer phát dữ liệu ở finisher, phải kiểm tra sự tương tác với downstream từ chối nhận thêm.
+`limit`, `findFirst`, `anyMatch`, and other short-circuiting terminal operations can stop the pipeline before all inputs are integrated. Hence, do not use integrator or finisher call counts as proof that "all source data was processed". When designing a Gatherer that emits in the finisher, verify its interaction with a rejecting downstream.
 
-### 11.3. Stream gắn I/O vẫn cần đóng
+### 11.3. I/O-Backed Streams Still Need Closing
 
-`Gatherer.ofSequential` không đóng thay một nguồn mở bằng `Files.lines`:
+`Gatherer.ofSequential` does not close a source opened via `Files.lines` on your behalf:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -572,7 +572,7 @@ import java.util.List;
 import java.util.stream.Gatherer;
 import java.util.stream.Stream;
 
-// Bên trong phương thức có path và gatherer đã được định nghĩa:
+// Inside a method where path and gatherer are already defined:
 try (Stream<String> lines =
              Files.lines(path, StandardCharsets.UTF_8)) {
     List<String> result = lines
@@ -581,28 +581,28 @@ try (Stream<String> lines =
 }
 ```
 
-Đoạn này minh họa scope tài nguyên; `path` và `gatherer` cần được khai báo trong code thực tế. `toList()` kích hoạt xử lý nhưng không thay `try-with-resources`. Nếu integrator ném ngoại lệ, việc đóng nguồn vẫn được thực hiện khi rời khối `try`.
+This snippet illustrates resource scoping; `path` and `gatherer` must be declared in actual code. `toList()` triggers processing but does not replace `try-with-resources`. If the integrator throws an exception, resource closing still executes upon leaving the `try` block.
 
-## 12. Kiểm thử một Gatherer.ofSequential
+## 12. Testing a Gatherer.ofSequential
 
-Không chỉ test với một danh sách có kích thước chẵn. Hãy tạo một **ma trận trường hợp biên** phù hợp ngữ nghĩa:
+Do not test only with an even-sized list. Build an **edge-case matrix** tailored to semantics:
 
-| Ca kiểm thử | Tổng lũy kế | Chia khối |
+| Test Case | Running Total | Batching |
 |---|---|---|
-| Nguồn rỗng | Danh sách output rỗng | Danh sách khối rỗng |
-| Một phần tử | Một tổng bằng phần tử đó | Một khối chứa một phần tử |
-| Số phần tử bằng kích thước khối | Không liên quan | Không phát thêm khối rỗng ở finisher |
-| Số phần tử không chia hết cho kích thước khối | Không liên quan | Khối cuối có số phần tử còn lại |
-| Có số âm/0 | Cộng chính xác theo hợp đồng nghiệp vụ | Nếu hợp lệ, vẫn tạo khối |
-| Dữ liệu null | Lọc/báo lỗi theo chính sách | Lọc/báo lỗi theo chính sách |
-| Tổng vượt `long` | Ném `ArithmeticException` | Không liên quan |
-| Chạy hai pipeline liên tiếp | State không bị giữ từ lần trước | Bộ đệm khối mới, không lẫn phần tử |
-| Nguồn có thứ tự vs unordered | Đảm bảo thứ tự nghiệp vụ trước | Không kỳ vọng ranh giới khối theo thứ tự không có bảo đảm |
-| Terminal operation dừng sớm | Không khẳng định đã đọc toàn nguồn | Không giả định tất cả khối đều được phát |
+| Empty source | Empty output list | Empty batch list |
+| Single element | One total equal to that element | One batch containing one element |
+| Count equal to batch size | N/A | Finisher emits no extra empty batch |
+| Count not divisible by batch size | N/A | Final batch holds remaining elements |
+| Negative numbers / 0 | Sums accurately per business contract | Still creates batches if valid |
+| Null data | Filtered/errors per policy | Filtered/errors per policy |
+| Sum exceeds `long` | Throws `ArithmeticException` | N/A |
+| Two consecutive pipeline runs | No state carried over from prior run | Fresh batch buffer, no mixed elements |
+| Ordered vs unordered source | Ensure business order first | Do not expect ordered batch boundaries on unordered sources |
+| Short-circuiting terminal operation | Do not assert full source read | Do not assume all batches were emitted |
 
-### 12.1. Kiểm thử giản lược cho tổng lũy kế
+### 12.1. Minimal Test for Running Totals
 
-Trong lớp `SequentialGathererDemo` ở phần 5, có thể thêm:
+In `SequentialGathererDemo` from section 5, you can add:
 
 ```java
 List<RunningTotal> result = Stream.of(2L, -2L, 5L)
@@ -613,36 +613,36 @@ if (result.size() != 3
         || result.get(0).totalCents != 2L
         || result.get(1).totalCents != 0L
         || result.get(2).totalCents != 5L) {
-    throw new AssertionError("Tổng lũy kế sai");
+    throw new AssertionError("Incorrect running total");
 }
 ```
 
-Với kiểm thử tự động, có thể dùng JUnit để kiểm tra các trường hợp trong bảng, đặc biệt là nguồn rỗng và nhiều lần gọi Gatherer. Tính đúng của thuật toán có trạng thái không được xác nhận chỉ bằng một lần chạy không lỗi.
+For automated testing, use JUnit to cover the cases in the table, especially empty sources and repeated Gatherer invocations. Correctness of a stateful algorithm is never confirmed by a single happy-path run.
 
-## 13. Các lỗi thường gặp khi dùng ofSequential
+## 13. Common Mistakes When Using ofSequential
 
-| Cách làm sai | Hậu quả | Cách sửa |
+| Mistake | Consequence | Fix |
 |---|---|---|
-| Trả `false` khi chỉ muốn bỏ một phần tử | Ngừng tích hợp các phần tử còn lại | Bỏ `push` nhưng trả `true` |
-| Luôn trả `true` sau khi `downstream.push` từ chối | Có thể duyệt nguồn thừa khi đã đủ đầu ra | Truyền tín hiệu dừng khi thích hợp |
-| Initializer trả cùng đối tượng static | State giữa các lần chạy bị lẫn; có thể race | Tạo đối tượng state mới |
-| `push(state)` rồi tiếp tục sửa chính state | Các output có thể trỏ tới một đối tượng bị đổi | Phát snapshot hoặc DTO mới |
-| Quên finisher trong Gatherer chia khối | Mất khối cuối không đủ kích thước | Dùng overload có finisher |
-| Finisher phát khối rỗng khi dữ liệu vừa đủ | Thừa một khối rỗng | Kiểm tra `!state.isEmpty()` |
-| Suy `ofSequential` tự sắp xếp dữ liệu | Lũy kế theo thứ tự sai | Bảo đảm encounter order của nguồn |
-| Mong `parallel()` tăng tốc bước trạng thái tuần tự | Tốc độ không tăng như kỳ vọng | Benchmark và chọn thuật toán phù hợp |
-| Dùng Gatherer để thay `sum()` mà chỉ cần tổng | Code phức tạp hơn cần thiết | Dùng primitive `sum` / `reduce` |
-| Gọi `gather` trên JDK 21 | Lỗi API không tồn tại | Dùng JDK 24+ hoặc chiến lược tương thích |
-| Quên đóng `Files.lines` | Rò rỉ file handle | `try-with-resources` |
-| Dùng biến đếm ngoài `peek` thay state Gatherer | Side effect, race, tối ưu hóa có thể bỏ qua | Giữ state cục bộ trong Gatherer |
+| Returning `false` when only wanting to skip one element | Stops integrating remaining elements | Skip `push` yet return `true` |
+| Always returning `true` after `downstream.push` rejects | May traverse source needlessly after output is sufficient | Propagate stop signal when appropriate |
+| Initializer returns the same static object | State leaks across runs; potential races | Allocate a fresh state object |
+| `push(state)` then mutating that state | Outputs may point to a mutated object | Emit a snapshot or new DTO |
+| Forgetting finisher in a batching Gatherer | Drops incomplete final batch | Use the overload with finisher |
+| Finisher emits an empty batch when data divides evenly | Extra empty batch | Check `!state.isEmpty()` |
+| Assuming `ofSequential` sorts data automatically | Accumulates in wrong order | Ensure source encounter order |
+| Expecting `parallel()` to speed up a sequential stateful stage | Speedup does not materialize as expected | Benchmark and pick a suitable algorithm |
+| Using a Gatherer to replace `sum()` when only total is needed | Unnecessarily complex code | Use primitive `sum` / `reduce` |
+| Calling `gather` on JDK 21 | Missing API error | Use JDK 24+ or a compatible strategy |
+| Forgetting to close `Files.lines` | File handle leak | `try-with-resources` |
+| Using an external counter in `peek` instead of Gatherer state | Side effects, races, may be elided by optimization | Keep local state inside the Gatherer |
 
-## 14. Bài tập thực hành có hướng dẫn và đáp án
+## 14. Guided Practice Exercises and Answers
 
-### Bài 1. Đánh số thứ tự từng phần tử
+### Exercise 1. Number Each Element Sequentially
 
-**Đề bài:** Viết Gatherer nhận `String`, phát `"1:A"`, `"2:B"`, `"3:C"` từ Stream `["A", "B", "C"]`. Không dùng biến đếm bên ngoài pipeline.
+**Prompt:** Write a Gatherer taking `String` and emitting `"1:A"`, `"2:B"`, `"3:C"` from Stream `["A", "B", "C"]`. Do not use a counter variable outside the pipeline.
 
-**Đáp án tham khảo:**
+**Reference Solution:**
 
 ```java
 class State {
@@ -662,71 +662,71 @@ List<String> out = Stream.of("A", "B", "C")
 // [1:A, 2:B, 3:C]
 ```
 
-Các khai báo này minh họa trong một scope có import `Gatherer`, `List` và `Stream`.
+These declarations illustrate within a scope that imports `Gatherer`, `List`, and `Stream`.
 
-### Bài 2. Dự đoán kết quả tổng lũy kế
+### Exercise 2. Predict Running Total Output
 
-**Đề bài:** Đầu vào `[10, -3, 5, 0]`, Gatherer tổng lũy kế ở phần 5 phát những giá trị tổng nào?
+**Prompt:** Input `[10, -3, 5, 0]`, what total values does the running-total Gatherer in section 5 emit?
 
-**Đáp án:** `[10, 7, 12, 12]` theo đúng thứ tự đầu vào. Nếu chỉ cần tổng cuối là `12`, `mapToLong(...).sum()` là lựa chọn đơn giản hơn.
+**Answer:** `[10, 7, 12, 12]` in exact input order. If you only need the final total `12`, `mapToLong(...).sum()` is simpler.
 
-### Bài 3. Vì sao không được trả false khi gặp số âm?
+### Exercise 3. Why Not Return false on Negative Numbers?
 
-**Đề bài:** Gatherer chỉ phát số dương từ `[-1, 2, 3]`. Nếu nhánh xử lý số âm `return false` thì kết quả là gì?
+**Prompt:** A Gatherer emits only positive numbers from `[-1, 2, 3]`. If the negative-number branch does `return false`, what is the result?
 
-**Đáp án:** Gatherer dừng ngay tại `-1` và không xét `2` hoặc `3`, dẫn tới output rỗng. Để **lọc** số âm, bỏ `push` nhưng trả `true`.
+**Answer:** The Gatherer stops immediately at `-1` without checking `2` or `3`, yielding an empty output. To **filter** out negatives, skip `push` and return `true`.
 
-### Bài 4. Chia khối khi số phần tử không chia hết
+### Exercise 4. Batching When Element Count Is Not Divisible
 
-**Đề bài:** `batchesOf(3)` xử lý `["A", "B", "C", "D", "E"]`. Kết quả là gì?
+**Prompt:** `batchesOf(3)` processes `["A", "B", "C", "D", "E"]`. What is the result?
 
-**Đáp án:** `[[A, B, C], [D, E]]`. Khối thứ hai do finisher phát; nếu không có finisher, hai phần tử cuối có thể bị mất.
+**Answer:** `[[A, B, C], [D, E]]`. The second batch is emitted by the finisher; without a finisher, the last two elements would be lost.
 
-### Bài 5. Kiểm tra state dùng chung
+### Exercise 5. Checking Shared State
 
-**Đề bài:** Một Gatherer được tạo bằng `Gatherer.ofSequential(() -> SHARED_STATE, integrator)`, trong đó `SHARED_STATE` là biến static mutable. Có thể chạy hai pipeline độc lập an toàn không?
+**Prompt:** A Gatherer is created with `Gatherer.ofSequential(() -> SHARED_STATE, integrator)`, where `SHARED_STATE` is a mutable static field. Can two independent pipelines run safely?
 
-**Đáp án:** Không có bảo đảm độc lập. Cả hai lần chạy có thể sử dụng cùng state và lẫn số đếm; nếu chạy đồng thời còn có thể tạo race. Hãy dùng `State::new` để tạo state mới.
+**Answer:** Independence is not guaranteed. Both runs may use the same state and mix counts; if run concurrently, it can cause data races. Use `State::new` to allocate fresh state.
 
-### Bài 6. Phát snapshot
+### Exercise 6. Emitting Snapshots
 
-**Đề bài:** Trong Gatherer chia khối, integrator viết `downstream.push(state); state.clear();`. Tại sao List kết quả có thể sai?
+**Prompt:** In a batching Gatherer, the integrator writes `downstream.push(state); state.clear();`. Why can the resulting List be wrong?
 
-**Đáp án:** `state` là cùng một List mutable; downstream có thể giữ tham chiếu đó. Gọi `clear` sau `push` làm mất nội dung của khối đã phát. Hãy tạo `new ArrayList<>(state)` rồi mới `clear`.
+**Answer:** `state` is the same mutable List; downstream may hold that reference. Calling `clear` after `push` wipes out the contents of the already-emitted batch. Create `new ArrayList<>(state)` before calling `clear`.
 
-### Bài 7. Dừng sau N phần tử phù hợp
+### Exercise 7. Stop After N Matching Elements
 
-**Đề bài:** Dùng Gatherer để chỉ phát hai chuỗi đầu tiên có độ dài từ ba ký tự trở lên. Phải làm gì sau khi phát chuỗi thứ hai?
+**Prompt:** Use a Gatherer to emit only the first two strings with length of at least three characters. What must happen after emitting the second string?
 
-**Đáp án định hướng:** Dùng state đếm **số chuỗi đã phát**, bỏ qua chuỗi ngắn bằng cách trả `true`, còn sau khi phát chuỗi thứ hai thì trả `false` (hoặc kết hợp kết quả `downstream.push` với điều kiện còn được phát). Không được đếm cả chuỗi bị bỏ.
+**Answer Guidance:** Use state to count **emitted strings**, skip short strings by returning `true`, and after emitting the second string return `false` (or combine `downstream.push`'s result with whether more emissions are allowed). Do not count skipped strings.
 
-### Bài 8. ofSequential và unordered source
+### Exercise 8. ofSequential and Unordered Sources
 
-**Đề bài:** Muốn đánh số thứ tự giao dịch theo thời gian, có nên dùng `HashSet.stream().gather(numbered)` không?
+**Prompt:** Wanting to number transactions chronologically, should you use `HashSet.stream().gather(numbered)`?
 
-**Đáp án:** Không nếu chưa có thứ tự nghiệp vụ. `HashSet` không bảo đảm encounter order, nên thứ tự đánh số có thể không xác định theo timestamp. Chọn List đã sắp xếp hoặc dùng `sorted(Comparator.comparing(Transaction::getTime))` trước Gatherer.
+**Answer:** No, unless business ordering is already established. `HashSet` does not guarantee encounter order, so numbering may be non-deterministic with respect to timestamps. Choose a sorted List or apply `sorted(Comparator.comparing(Transaction::getTime))` before the Gatherer.
 
-### Bài 9. Chọn API đơn giản nhất
+### Exercise 9. Choosing the Simplest API
 
-**Đề bài:** Chỉ cần nhóm các số thành danh sách có khối cỡ 4 trên JDK 24. Có cần tự viết `ofSequential` không?
+**Prompt:** You only need to group numbers into lists of size 4 on JDK 24. Must you write `ofSequential` yourself?
 
-**Đáp án:** Không bắt buộc. `Gatherers.windowFixed(4)` là gatherer chuẩn cho bài toán cửa sổ cố định. Tự viết `ofSequential` có giá trị khi học API hoặc khi cần quy tắc phát khối riêng mà API chuẩn không đáp ứng.
+**Answer:** Not necessary. `Gatherers.windowFixed(4)` is the standard gatherer for fixed-size windowing. Writing `ofSequential` yourself is worthwhile for learning the API or when custom batch-emission rules are needed that standard APIs do not cover.
 
-## 15. Checklist khi tự xây Gatherer tuần tự
+## 15. Checklist for Building Sequential Gatherers
 
-Trước khi đưa Gatherer tùy biến vào ứng dụng:
+Before putting a custom Gatherer into an application:
 
-1. **Mức JDK đã phù hợp chưa?** `Gatherer` và `Stream.gather` dùng trực tiếp từ Java 24+.
-2. **Đã xác định `T`, `A`, `R` chưa?** Phần tử đầu vào, trạng thái và phần tử đầu ra không nhất thiết cùng kiểu.
-3. **Initializer có tạo trạng thái mới không?** Không dùng state mutable chia sẻ giữa các lần chạy.
-4. **Integrator có xử lý được 0/1/n đầu ra không?** Phân biệt bỏ phần tử với dừng pipeline.
-5. **Đã kiểm tra giá trị boolean từ `downstream.push` chưa?** Không tiếp tục tiêu thụ nguồn không cần thiết khi downstream từ chối.
-6. **Có cần finisher không?** Nếu còn dữ liệu đệm khi kết thúc, phải có cách phát nốt.
-7. **Có phát snapshot của mutable state không?** Tránh để đầu ra thay đổi sau khi đã push.
-8. **Nguồn có encounter order đúng nghiệp vụ không?** `ofSequential` không tự sắp xếp.
-9. **Có trường hợp trống, null, tràn số, dừng sớm hoặc chạy nhiều lần không?** Test đầy đủ.
-10. **Có thực sự cần Gatherer tùy biến không?** Ưu tiên `map`, `filter`, `reduce`, `collect` hoặc `Gatherers` chuẩn nếu đơn giản hơn.
-11. **Có giới hạn hiệu năng/tài nguyên không?** Bước stateful tuần tự có thể hạn chế khả năng tăng tốc từ parallel stream.
-12. **Có nguồn I/O cần đóng không?** `gather` và terminal operation không thay `try-with-resources`.
+1. **Is the JDK level appropriate?** `Gatherer` and `Stream.gather` are directly available starting in Java 24+.
+2. **Are `T`, `A`, `R` clearly defined?** Input element, state, and output element need not have the same type.
+3. **Does the Initializer create fresh state?** Never share mutable state across runs.
+4. **Does the Integrator handle 0/1/n outputs?** Distinguish skipping an element from stopping the pipeline.
+5. **Is the boolean from `downstream.push` checked?** Do not keep consuming the source needlessly once downstream rejects.
+6. **Is a finisher needed?** If buffered data remains at completion, ensure a way to flush it.
+7. **Are snapshots of mutable state emitted?** Prevent output from mutating after being pushed.
+8. **Does the source have the right business encounter order?** `ofSequential` does not sort automatically.
+9. **Are empty, null, overflow, early-stop, and multi-run cases covered?** Test thoroughly.
+10. **Is a custom Gatherer truly needed?** Prefer `map`, `filter`, `reduce`, `collect`, or standard `Gatherers` when simpler.
+11. **Are performance/resource limits accounted for?** A sequential stateful step can limit speedups from parallel streams.
+12. **Are there I/O sources needing closure?** `gather` and terminal operations do not replace `try-with-resources`.
 
-**Kết luận:** `Gatherer.ofSequential` là lựa chọn cho phép **chuyển đổi có trạng thái theo trình tự** trên Java Stream mà không phải tự thiết kế một combiner song song. Để viết đúng, hãy tách rõ **initializer tạo state mới**, **integrator cập nhật state và đẩy đầu ra**, **boolean quyết định tiếp tục/dừng**, và **finisher phát phần còn lại khi cần**. Khi giữ được thứ tự nguồn, không chia sẻ mutable state, phát snapshot an toàn và kiểm thử các tình huống rỗng/ngắn mạch, Gatherer tùy biến trở thành công cụ hữu ích cho các pipeline Java Stream nâng cao mà vẫn có ngữ nghĩa rõ ràng.
+**Conclusion:** `Gatherer.ofSequential` lets you implement **sequential stateful transformations** on Java Streams without having to design a parallel combiner. To write it correctly, clearly separate **the initializer creating fresh state**, **the integrator updating state and pushing outputs**, **the boolean deciding continue vs stop**, and **the finisher emitting leftovers when needed**. When you preserve source order, avoid shared mutable state, emit safe snapshots, and test empty/short-circuit cases, a custom Gatherer becomes a clean and expressive tool for advanced Java Stream pipelines.

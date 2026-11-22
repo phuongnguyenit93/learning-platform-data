@@ -1,11 +1,11 @@
-# Điều kiện biên và thứ tự xét các nhánh — Java 17+
+# Boundary Conditions and Branch Evaluation Order — Java 17+
 
-## 1. Mục tiêu
+## 1. Goal
 
-Trong Java, `if`, `else if` và `else` giúp chọn nhánh theo điều kiện `boolean`. Hai nguồn lỗi phổ biến là:
+In Java, `if`, `else if`, and `else` select a branch based on a `boolean` condition. Two common sources of bugs are:
 
-1. **Sai điều kiện biên** (*boundary condition*): viết `>` thay vì `>=`, bỏ sót điểm đầu/cuối, hoặc chấp nhận dữ liệu ngoài miền.
-2. **Sai thứ tự nhánh**: một điều kiện rộng đứng trước đã nhận mất những giá trị lẽ ra phải thuộc nhánh cụ thể phía sau.
+1. **Wrong boundary conditions**: writing `>` instead of `>=`, missing endpoints, or accepting out-of-range data.
+2. **Wrong branch order**: a broader condition placed earlier captures values that should have reached a more specific branch later.
 
 ~~~java
 int score = 90;
@@ -24,43 +24,43 @@ if (score >= 90) {
 A
 ~~~
 
-Khi `score == 90`, nhánh `score >= 90` là true và chạy trước; các nhánh `else if` và `else` **không được đánh giá/thực hiện**.
+When `score == 90`, the `score >= 90` branch is true and runs first; the `else if` and `else` branches **are not evaluated or executed**.
 
-Trong bài, ta học cách đặc tả miền, sắp điều kiện theo thứ tự rõ ràng, xác thực giá trị, tránh nhánh che khuất và xây dựng kiểm thử tại biên bằng Java 17+.
+In this lesson, you learn how to specify domains, order conditions clearly, validate values, avoid shadowed branches, and build boundary tests in Java 17+.
 
-## 2. Thứ tự xét nhánh là một phần của điều kiện biên
+## 2. Branch order is part of boundary conditions
 
-Một chuỗi `if / else if / else` duyệt điều kiện **từ trên xuống** và dừng ở nhánh đúng đầu tiên. Điều đó khiến thứ tự nhánh và toán tử so sánh **phối hợp** quyết định khoảng giá trị mà mỗi nhánh thực sự nhận:
+An `if / else if / else` chain checks conditions **from top to bottom** and stops at the first true branch. That means branch order and comparison operators **work together** to determine the range of values each branch actually receives:
 
 ~~~java
 if (score >= 90) {
     grade = "A";
 } else if (score >= 70) {
-    grade = "B"; // Chỉ nhận 70..89 khi score là int hợp lệ.
+    grade = "B"; // Receives only 70..89 when score is a valid int.
 } else {
-    grade = "C"; // Nhận dưới 70 trong miền hợp lệ.
+    grade = "C"; // Receives below 70 within the valid domain.
 }
 ~~~
 
-Không phải mọi biểu thức được đánh giá: với `score=95`, điều kiện nhánh B không được xét. Nếu đảo điều kiện `>=70` lên trước, nhánh A có thể trở nên không thể chọn dù cú pháp vẫn hợp lệ.
+Not every expression is evaluated: with `score=95`, the condition for branch B is not checked. If you move `>=70` ahead, branch A can become unreachable even though the syntax remains valid.
 
-Bài này tập trung **miền, điểm biên và nhánh bị che khuất**. Chi tiết về độc lập hay loại trừ khi có nhiều `if` đã thuộc bài trước; vì vậy khi review một chuỗi, hãy ưu tiên vẽ **khoảng thực tế** của từng nhánh thay vì chỉ đếm bao nhiêu nhánh chạy.
+This lesson focuses on **domains, boundary points, and shadowed branches**. Details on independent versus exclusive `if` statements belong to the previous lesson; therefore, when reviewing a chain, prefer mapping out the **effective range** of each branch rather than merely counting how many branches run.
 
 
-## 3. Biên đóng và mở: `<`, `<=`, `>`, `>=`
+## 3. Closed and open boundaries: `<`, `<=`, `>`, `>=`
 
-Trước khi viết code, hãy xác định **giá trị bằng đúng biên có được chấp nhận hay không**.
+Before writing code, determine **whether a value equal to the boundary itself should be accepted**.
 
-| Mô tả | Điều kiện Java | Giá trị đúng tại biên |
+| Description | Java condition | Exact boundary behavior |
 |---|---|---|
-| Lớn hơn 18 | `age > 18` | 18 bị loại |
-| Từ đủ 18 tuổi | `age >= 18` | 18 được nhận |
-| Dưới 65 | `age < 65` | 65 bị loại |
-| Tối đa 65 | `age <= 65` | 65 được nhận |
-| Khoảng đóng 18 đến 65 | `age >= 18 && age <= 65` | Nhận 18 và 65 |
-| Khoảng nửa mở 0 đến `length` | `index >= 0 && index < length` | Nhận 0, loại `length` |
+| Greater than 18 | `age > 18` | 18 is excluded |
+| At least 18 years old | `age >= 18` | 18 is included |
+| Under 65 | `age < 65` | 65 is excluded |
+| At most 65 | `age <= 65` | 65 is included |
+| Closed interval 18 to 65 | `age >= 18 && age <= 65` | Includes 18 and 65 |
+| Half-open interval 0 to `length` | `index >= 0 && index < length` | Includes 0, excludes `length` |
 
-Ví dụ:
+Example:
 
 ~~~java
 int age = 18;
@@ -68,37 +68,37 @@ boolean adult = age >= 18;
 System.out.println(adult); // true
 ~~~
 
-Java **không cho viết** `18 <= age <= 65`. Hãy dùng hai biểu thức boolean nối bằng `&&`:
+Java **does not allow writing** `18 <= age <= 65`. Use two boolean expressions joined with `&&`:
 
 ~~~java
 boolean eligible = age >= 18 && age <= 65;
 ~~~
 
-Các giá trị nằm ngay ngoài miền cũng phải được kiểm tra; chúng thường phát hiện lỗi *off-by-one*.
+Values just outside the domain must also be tested; they frequently reveal *off-by-one* bugs.
 
-## 4. Sắp nhánh theo thứ tự từ điều kiện cụ thể đến bao quát
+## 4. Order branches from specific to broad conditions
 
-Giả sử yêu cầu:
+Suppose the requirement is:
 
-- Từ 65 tuổi: `SENIOR`.
-- Từ 18 đến dưới 65: `ADULT`.
-- Dưới 18: `MINOR`.
+- Age 65 and over: `SENIOR`.
+- Age 18 to under 65: `ADULT`.
+- Under 18: `MINOR`.
 
-**Thứ tự sai:**
+**Wrong order:**
 
 ~~~java
 if (age >= 18) {
     group = "ADULT";
 } else if (age >= 65) {
-    group = "SENIOR"; // Không bao giờ được chọn cho tuổi >= 65
+    group = "SENIOR"; // Never selected for age >= 65
 } else {
     group = "MINOR";
 }
 ~~~
 
-Với `age = 70`, nhánh đầu đã đúng. Điều kiện `age >= 65` **bị che khuất về logic** mặc dù vẫn có cú pháp hợp lệ. Compiler không bắt buộc báo lỗi cho trường hợp này.
+With `age = 70`, the first branch is already true. The condition `age >= 65` is **logically shadowed** even though it is syntactically valid. The compiler is not required to report an error in this case.
 
-**Thứ tự đúng:**
+**Correct order:**
 
 ~~~java
 if (age >= 65) {
@@ -110,20 +110,20 @@ if (age >= 65) {
 }
 ~~~
 
-Bởi vì khi tới nhánh thứ hai, `age >= 65` đã được loại, nên `age >= 18` ở đó ngầm chỉ khoảng `[18, 65)`.
+Because by the time execution reaches the second branch `age >= 65` has already been ruled out, `age >= 18` there implicitly denotes the interval `[18, 65)`.
 
-Nếu chính sách phân loại có nhiều điều kiện giao nhau nhưng **ưu tiên khác nhau** (ví dụ trạng thái khẩn cấp phải thắng trạng thái thường), hãy ghi rõ mức ưu tiên đó trước rồi mới sắp nhánh, thay vì áp dụng một quy tắc sắp xếp máy móc.
+If a classification policy has overlapping conditions with **different priorities** (for instance, an emergency status must override a normal status), state those priorities explicitly before ordering the branches instead of applying a mechanical sorting rule.
 
-## 5. Đặc tả miền cho hệ thống phân loại điểm
+## 5. Domain specification for a grading system
 
-Giả sử `score` phải từ **0 đến 100** và có bốn mức:
+Suppose `score` must be from **0 to 100** with four levels:
 
-| Điểm | Nhãn | Điều kiện |
+| Score | Label | Condition |
 |---|---|---|
-| Ngoài `[0,100]` | `INVALID` | `score < 0 \|\| score > 100` |
-| `[90,100]` | `A` | `score >= 90`, sau khi đã validate |
-| `[70,90)` | `B` | `score >= 70`, sau khi A không đúng |
-| `[50,70)` | `C` | `score >= 50`, sau khi A/B không đúng |
+| Outside `[0,100]` | `INVALID` | `score < 0 \|\| score > 100` |
+| `[90,100]` | `A` | `score >= 90`, after validation |
+| `[70,90)` | `B` | `score >= 70`, after A is false |
+| `[50,70)` | `C` | `score >= 50`, after A/B are false |
 | `[0,50)` | `D` | `else` |
 
 ~~~java
@@ -143,55 +143,55 @@ static String grade(int score) {
 }
 ~~~
 
-**Đặc điểm đáng chú ý:**
+**Notable characteristics:**
 
-- Kiểm tra miền hợp lệ **trước khi phân loại**, nên `score = 101` không bị nhận nhầm là A.
-- Kiểm tra ngưỡng giảm dần `90 → 70 → 50`; ngưỡng lớn không bị nhánh rộng che khuất.
-- `score = 90` là A, `score = 70` là B, `score = 50` là C.
-- `score = 0` là D, `score = 100` là A.
-- Không cần lặp lại `score < 90` trong nhánh B vì nhánh A đã thất bại.
+- Validates the domain **before classifying**, so `score = 101` is not mistaken for A.
+- Checks thresholds in descending order `90 → 70 → 50`; higher thresholds are not shadowed by broader branches.
+- `score = 90` is A, `score = 70` is B, `score = 50` is C.
+- `score = 0` is D, `score = 100` is A.
+- No need to repeat `score < 90` in branch B because branch A has already failed.
 
-Với dữ liệu ngoài miền, một hệ thống khác có thể **ném `IllegalArgumentException`** thay vì trả `INVALID`. Chọn theo hợp đồng API; không ngầm “clamp” về miền 0–100 nếu người dùng không yêu cầu.
+For out-of-range data, another system might **throw `IllegalArgumentException`** instead of returning `INVALID`. Choose according to the API contract; do not silently “clamp” values into 0–100 unless requested by callers.
 
-## 6. Bảng test biên — mỗi ngưỡng nên thử ba điểm
+## 6. Boundary test table — test three points per threshold
 
-Với điểm nguyên, tối thiểu thử ngay dưới, đúng bằng và ngay trên ngưỡng, cộng thêm biên toàn miền:
+For integer scores, test at minimum just below, right at, and just above each threshold, plus the overall domain boundaries:
 
-| `score` | Expected | Mục đích |
+| `score` | Expected | Purpose |
 |---:|---|---|
-| -1 | `INVALID` | Dưới miền |
-| 0 | `D` | Biên dưới hợp lệ |
-| 49 | `D` | Ngay dưới ngưỡng 50 |
-| 50 | `C` | Đúng ngưỡng 50 |
-| 51 | `C` | Ngay trên ngưỡng 50 |
-| 69 | `C` | Ngay dưới ngưỡng 70 |
-| 70 | `B` | Đúng ngưỡng 70 |
-| 71 | `B` | Ngay trên ngưỡng 70 |
-| 89 | `B` | Ngay dưới ngưỡng 90 |
-| 90 | `A` | Đúng ngưỡng 90 |
-| 91 | `A` | Ngay trên ngưỡng 90 |
-| 100 | `A` | Biên trên hợp lệ |
-| 101 | `INVALID` | Trên miền |
+| -1 | `INVALID` | Below domain |
+| 0 | `D` | Valid lower bound |
+| 49 | `D` | Just below 50 |
+| 50 | `C` | Right at 50 |
+| 51 | `C` | Just above 50 |
+| 69 | `C` | Just below 70 |
+| 70 | `B` | Right at 70 |
+| 71 | `B` | Just above 70 |
+| 89 | `B` | Just below 90 |
+| 90 | `A` | Right at 90 |
+| 91 | `A` | Just above 90 |
+| 100 | `A` | Valid upper bound |
+| 101 | `INVALID` | Above domain |
 
-Điểm mấu chốt: chỉ thử một giá trị “giữa khoảng” như 75 là **chưa đủ** để phát hiện việc dùng sai `>`/`>=`.
+Key point: testing only an “in-between” value like 75 is **insufficient** to detect misusing `>`/`>=`.
 
-Nếu kiểu dữ liệu là `long` và biên gần `Long.MIN_VALUE`/`Long.MAX_VALUE`, **không tính máy móc `min - 1` hoặc `max + 1`** vì có thể overflow. Hãy dùng các giá trị kiểm thử có biểu diễn hợp lệ trong kiểu.
+If the data type is `long` and the boundary is near `Long.MIN_VALUE`/`Long.MAX_VALUE`, **do not mechanically compute `min - 1` or `max + 1`** because that can overflow. Use test values that are validly representable in that type.
 
-## 7. Chú ý khi điều kiện giao nhau hoặc không phủ hết miền
+## 7. Watch out when conditions overlap or fail to cover the domain
 
-Với hai điều kiện:
+With two conditions:
 
 ~~~java
 if (value >= 10) {
     label = "TEN_OR_MORE";
 } else if (value >= 20) {
-    label = "TWENTY_OR_MORE"; // Bị che khuất
+    label = "TWENTY_OR_MORE"; // Shadowed
 }
 ~~~
 
-Nhánh thứ hai không nhận giá trị nào vì mọi số `>=20` đã thuộc nhánh đầu.
+The second branch receives no values because every number `>=20` already matches the first branch.
 
-Ngược lại, nếu thiếu `else` hoặc một ngưỡng:
+Conversely, if `else` or a threshold is missing:
 
 ~~~java
 String label = "UNKNOWN";
@@ -200,16 +200,16 @@ if (value < 0) {
 } else if (value > 0) {
     label = "POSITIVE";
 }
-// value == 0 => giữ UNKNOWN
+// value == 0 => stays UNKNOWN
 ~~~
 
-Đây có thể là **chủ ý** nếu `UNKNOWN` là trạng thái hợp lệ, hoặc là bug nếu phải phân loại mọi số. Hãy lập bảng miền và xác định có cần bao phủ đầy đủ (*exhaustive*) không.
+This may be **intentional** if `UNKNOWN` is a valid state, or a bug if every number must be classified. Map out the domain and decide whether **exhaustive** coverage is required.
 
-Đối với những điều kiện không phải ngưỡng đơn điệu (ví dụ `isAdmin`, `isSuspended`, `age >= 18`), hãy **đặt ưu tiên quy tắc rõ ràng**, thay vì mặc định xếp theo độ lớn.
+For conditions that are not monotonic thresholds (such as `isAdmin`, `isSuspended`, `age >= 18`), **establish explicit rule priorities** rather than sorting by numeric magnitude by default.
 
-## 8. Ngoặc nhọn giúp điều kiện biên thuộc đúng nhánh
+## 8. Braces keep boundary conditions attached to the right branch
 
-Với `if` lồng nhau, một `else` không ngoặc có thể gắn với `if` gần nhất còn thiếu `else`, dù người đọc tưởng đó là nhánh ngoài. Điều này có thể làm **sai điều kiện kiểm tra biên** vì nhánh dự phòng thuộc một điều kiện khác:
+With nested `if` statements, an unbraced `else` can bind to the nearest `if` missing an `else`, even if the reader assumes it belongs to the outer branch. This can **break boundary checks** because the fallback ends up attached to a different condition:
 
 ~~~java
 if (validRange) {
@@ -221,12 +221,12 @@ if (validRange) {
 }
 ~~~
 
-Ở đây `else` thuộc `if (validRange)`, nên mọi điểm **ngoài miền** được đánh dấu INVALID. Nếu muốn báo mức thấp cho điểm hợp lệ, cần thêm một `else` **bên trong** khối `validRange` hoặc dùng chuỗi phân loại đã kiểm tra miền như `grade(int)` trong chương trình chính.
+Here `else` belongs to `if (validRange)`, so every **out-of-range** score is marked INVALID. To report a lower grade for valid scores, add an `else` **inside** the `validRange` block or use a validated classification chain like `grade(int)` in the main program.
 
-Không để sự nhập nhằng ngoặc nhọn làm đảo ý nghĩa bảng biên; quy tắc `dangling else` và các biến thể cú pháp được trình bày toàn diện trong bài riêng.
+Do not let brace ambiguity invert the meaning of your boundary table; the `dangling else` rule and syntactic variants are covered thoroughly in their own lesson.
 
 
-## 9. Thứ tự đánh giá có thể ảnh hưởng side effect và exception
+## 9. Evaluation order can affect side effects and exceptions
 
 ~~~java
 static boolean check(String name, boolean answer) {
@@ -253,11 +253,11 @@ checked second
 second branch
 ~~~
 
-Nhánh `third` **không được kiểm tra** vì nhánh thứ hai đã true. Do đó, đổi thứ tự các nhánh không phải lúc nào cũng chỉ đổi nhãn kết quả: nó có thể đổi **method nào được gọi, side effect nào xảy ra hoặc exception nào xuất hiện**.
+The `third` branch **is not checked** because the second branch is already true. Hence, reordering branches does not always only change the output label: it can change **which methods get called, which side effects occur, or which exceptions are thrown**.
 
-Khuyến nghị: các điều kiện phân loại thông thường nên **thuần túy, không cập nhật trạng thái**. Nếu cần log hoặc xác thực nhiều trường, tách thao tác thành bước rõ ràng.
+Recommendation: ordinary classification conditions should be **pure and free of state mutations**. If logging or multi-field validation is needed, separate those steps explicitly.
 
-### Guard với `&&` và `||`
+### Guards with `&&` and `||`
 
 ~~~java
 int[] numbers = {10, 20, 30};
@@ -270,11 +270,11 @@ if (numbers != null
 }
 ~~~
 
-Guard ở vế trái đi trước thao tác có thể lỗi. `&&` dừng ngay khi gặp false. Nếu dùng `&` boolean hoặc đặt thao tác truy cập trước guard, có thể ném `NullPointerException` / `ArrayIndexOutOfBoundsException`.
+Guards on the left precede operations that might fail. `&&` stops immediately when encountering false. Using boolean `&` or placing the element access before the guards can throw `NullPointerException` / `ArrayIndexOutOfBoundsException`.
 
-## 10. Biên `double`: giá trị biểu diễn và chính sách sai số
+## 10. `double` boundaries: represented values and tolerance policy
 
-Khi kiểm tra một ngưỡng số thực, `>=`, `<=` so **giá trị `double` đã được biểu diễn**, không tự áp dụng dung sai:
+When checking a floating-point threshold, `>=` and `<=` compare the **represented `double` value**, without automatically applying any tolerance:
 
 ~~~java
 double computed = 0.1 + 0.2;
@@ -283,9 +283,9 @@ System.out.println(computed);        // 0.30000000000000004
 System.out.println(computed <= 0.3); // false
 ~~~
 
-Nếu nghiệp vụ quy định giá trị chấp nhận sai số, hãy đặc tả ngưỡng dựa trên **đơn vị và yêu cầu**. Không tự nới một biên cứng chỉ để test thành công.
+If business rules specify tolerance acceptance, define the threshold based on **units and requirements**. Do not arbitrarily loosen a strict boundary just to make a test pass.
 
-Đối với `NaN`, mọi phép so sánh thứ tự `<`, `<=`, `>`, `>=` đều false. Vì thế, nếu đầu vào buộc phải hữu hạn:
+For `NaN`, all ordering comparisons `<`, `<=`, `>`, `>=` evaluate to false. Thus, if inputs must be finite:
 
 ~~~java
 static boolean isValidRatio(double ratio) {
@@ -295,25 +295,25 @@ static boolean isValidRatio(double ratio) {
 }
 ~~~
 
-**Không dùng** `if (ratio < 0 || ratio > 1)` làm kiểm tra duy nhất để từ chối dữ liệu không hợp lệ: `NaN` không thỏa vế nào và có thể lọt qua.
+**Do not use** `if (ratio < 0 || ratio > 1)` as the sole check to reject invalid data: `NaN` satisfies neither side and can slip through.
 
-## 11. Viết code dễ đọc và dễ kiểm thử
+## 11. Writing readable and testable code
 
-Một số nguyên tắc:
+Some guidelines:
 
-1. **Đặt tên cho ngưỡng** khi có ý nghĩa nghiệp vụ: `PASS_MARK`, `SENIOR_AGE`, `FREE_SHIPPING_FROM`.
-2. **Từ chối giá trị ngoài miền trước**, sau đó mới phân loại.
-3. Nếu xét ngưỡng giảm/tăng dần, giữ thứ tự nhất quán và đảm bảo nhánh trước không che nhánh sau.
-4. Nếu quy tắc **có ưu tiên**, đặt quy tắc ưu tiên cao hơn trước và ghi chú tại sao.
-5. **Tránh thay đổi biến ngay trong điều kiện** như `if (index++ < length)` nếu nhánh sau còn dùng nó.
-6. Dùng **ngoặc nhọn** và **bảng kiểm thử biên** để tránh lỗi off-by-one hoặc dangling else.
-7. Test **kết quả** và, nếu điều kiện có side effect, cả **thứ tự thao tác**.
+1. **Name thresholds** when they carry business meaning: `PASS_MARK`, `SENIOR_AGE`, `FREE_SHIPPING_FROM`.
+2. **Reject out-of-range values first**, then classify.
+3. When checking descending/ascending thresholds, keep order consistent and ensure earlier branches do not shadow later ones.
+4. If rules **have priorities**, put higher-priority rules first and document why.
+5. **Avoid mutating variables inside conditions**, such as `if (index++ < length)`, if later branches still use them.
+6. Use **braces** and **boundary test tables** to prevent off-by-one or dangling else bugs.
+7. Test **results** and, if conditions have side effects, also **operation order**.
 
-Không cần ép mọi phân loại thành một biểu thức điều kiện `?:` lồng dài. Chuỗi `if/else if` rõ thường phù hợp hơn khi có từ ba nhánh, kiểm tra đầu vào hoặc xử lý ngoại lệ.
+There is no need to force every classification into a long nested `?:` conditional expression. A clear `if/else if` chain is usually better when there are three or more branches, input checks, or exception handling.
 
-## 12. Chương trình Java 17 chạy độc lập
+## 12. Standalone runnable Java 17 program
 
-Lưu đúng tên file **`IfBoundaryBranchOrderDemo.java`**:
+Save with exact filename **`IfBoundaryBranchOrderDemo.java`**:
 
 ~~~java
 public final class IfBoundaryBranchOrderDemo {
@@ -430,7 +430,7 @@ public final class IfBoundaryBranchOrderDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17+, terminal ở thư mục chứa file; chỉ dùng JDK tiêu chuẩn.
+**Requirements:** JDK 17+, terminal in the directory containing the file; standard JDK only.
 
 **Bash (Linux/macOS):**
 
@@ -482,39 +482,39 @@ chosen=second
 permission=DENIED
 ~~~
 
-Giải thích nhanh:
+Quick explanation:
 
-- `score 50`, `70`, `90` đi vào nhóm bắt đầu **ngay tại ngưỡng** nhờ `>=`.
-- `wrong age 70=ADULT` cho thấy nhánh rộng `age >= 18` đã che khuất nhánh `age >= 65`.
-- Mức phí giao hàng giảm đúng tại 200.000 và 500.000, không giảm trước ngưỡng.
-- Chỉ số 3 bằng `values.length` nên bị loại.
-- `0.1+0.2` vượt literal `0.3` một sai số nhị phân nhỏ, và `NaN` bị kiểm tra hữu hạn từ chối.
-- Chỉ có `checked first` và `checked second`; điều kiện thứ ba không được gọi.
-- `Boolean.TRUE.equals(null)` cho false, không unbox null.
+- `score 50`, `70`, `90` enter the group starting **right at the threshold** thanks to `>=`.
+- `wrong age 70=ADULT` shows that the broader `age >= 18` branch shadowed `age >= 65`.
+- Shipping fees drop right at 200,000 and 500,000, not before the thresholds.
+- Index 3 equals `values.length` and is therefore rejected.
+- `0.1+0.2` exceeds the literal `0.3` by a small binary rounding error, and `NaN` is rejected by the finiteness check.
+- Only `checked first` and `checked second` run; the third condition is never called.
+- `Boolean.TRUE.equals(null)` evaluates to false without unboxing null.
 
-## 13. Các lỗi thường gặp
+## 13. Common mistakes
 
-| Lỗi | Hệ quả | Cách tránh |
+| Mistake | Consequence | How to avoid |
 |---|---|---|
-| Dùng `score > 90` khi 90 thuộc hạng A | Bỏ sót đúng biên | `score >= 90` |
-| Đặt `score >= 50` trước `score >= 90` | Giá trị 90 bị nhánh C nhận trước | Xếp ngưỡng theo thứ tự phù hợp |
-| Dùng `else if` cho hai tính chất đều cần báo | Chỉ nhánh đúng đầu tiên chạy | Dùng hai `if` độc lập |
-| Dùng nhiều `if` khi chỉ muốn một nhãn | Có thể chạy nhiều nhánh | Dùng chuỗi `else if` |
-| Không validate `score > 100` | Điểm 101 bị nhận thành A | Kiểm tra miền trước |
-| Dùng `index <= array.length` | Off-by-one, có thể lỗi truy cập | `index < array.length` |
-| Viết `18 <= age <= 65` | Không hợp lệ trong Java | `age >= 18 && age <= 65` |
-| Xem `else` thuộc `if` bên ngoài tùy ý | Dangling else gắn với if gần nhất | Dùng `{ }` |
-| Chuyển thứ tự điều kiện có side effect | Đổi thứ tự gọi method/lỗi runtime | Tách side effect, giữ thứ tự |
-| Giả định `double` so biên như thập phân chính xác | Sai số tính toán | Chọn mô hình/dung sai theo yêu cầu |
-| Chỉ kiểm tra `ratio < 0 \|\| ratio > 1` | `NaN` có thể lọt | `Double.isFinite(ratio)` |
-| Tính `max+1` gần `Integer.MAX_VALUE` để test | Overflow | Dùng kiểm thử biểu diễn hợp lệ |
-| Chỉ kiểm tra giá trị giữa khoảng | Bỏ sót lỗi tại hai đầu | Test dưới/đúng/trên ngưỡng |
+| Using `score > 90` when 90 belongs to A | Misses exact boundary | `score >= 90` |
+| Placing `score >= 50` before `score >= 90` | Value 90 is captured by C first | Order thresholds properly |
+| Using `else if` for two properties that both must report | Only the first true branch runs | Use two independent `if` statements |
+| Using multiple `if` statements when only one label is wanted | Can run multiple branches | Use an `else if` chain |
+| Not validating `score > 100` | Score 101 is treated as A | Check domain first |
+| Using `index <= array.length` | Off-by-one, potential access error | `index < array.length` |
+| Writing `18 <= age <= 65` | Invalid in Java | `age >= 18 && age <= 65` |
+| Assuming `else` belongs to the outer `if` arbitrarily | Dangling else binds to nearest if | Use `{ }` |
+| Reordering conditions with side effects | Changes method call order/runtime errors | Separate side effects, preserve order |
+| Assuming `double` compares boundaries like exact decimals | Precision discrepancies | Choose model/tolerance per requirements |
+| Checking only `ratio < 0 \|\| ratio > 1` | `NaN` can slip through | `Double.isFinite(ratio)` |
+| Computing `max+1` near `Integer.MAX_VALUE` for tests | Overflow | Use validly representable test values |
+| Testing only mid-range values | Misses bugs at both ends | Test below/at/above thresholds |
 
-## 14. Bài tập có đáp án
+## 14. Exercises with answers
 
-### Bài A — xếp loại từ ngưỡng cao xuống thấp
+### Exercise A — classify from high to low thresholds
 
-Yêu cầu: `score >= 80` → GOOD, `score >= 50` → PASS, còn lại → FAIL.
+Requirement: `score >= 80` → GOOD, `score >= 50` → PASS, otherwise → FAIL.
 
 ~~~java
 String label;
@@ -527,30 +527,30 @@ if (score >= 80) {
 }
 ~~~
 
-**Đáp án tại biên:** 49 → FAIL; 50 → PASS; 79 → PASS; 80 → GOOD. Nếu miền hợp lệ riêng (ví dụ 0–100), cần validate trước.
+**Boundary answers:** 49 → FAIL; 50 → PASS; 79 → PASS; 80 → GOOD. If there is a separate valid domain (e.g., 0–100), validate first.
 
-### Bài B — vì sao `age >= 18` trước `age >= 65` sai?
+### Exercise B — why is `age >= 18` before `age >= 65` wrong?
 
-**Đáp án:** tuổi 65 trở lên đã thỏa `age >= 18`, nên nhánh senior phía sau không được xét. Đặt `age >= 65` trước.
+**Answer:** ages 65 and over already satisfy `age >= 18`, so the later senior branch is never checked. Put `age >= 65` first.
 
-### Bài C — hai `if` hay `else if`?
+### Exercise C — two `if` statements or `else if`?
 
-Muốn in **cả** `positive` và `even` cho số 4:
+Want to print **both** `positive` and `even` for the number 4:
 
 ~~~java
 if (number > 0) System.out.println("positive");
 if (number % 2 == 0) System.out.println("even");
 ~~~
 
-**Đáp án:** cần hai `if` độc lập, vì cả hai điều kiện có thể đồng thời đúng. Nếu dùng `else if`, chỉ in `positive`.
+**Answer:** two independent `if` statements are needed because both conditions can be true at once. Using `else if` would print only `positive`.
 
-### Bài D — kiểm tra chỉ số mảng
+### Exercise D — checking array index
 
-Mảng có ba phần tử, chỉ số hợp lệ là bao nhiêu?
+An array has three elements; what are the valid indices?
 
-**Đáp án:** `0`, `1`, `2`; điều kiện `index >= 0 && index < 3`. Chỉ số -1 và 3 đều bị loại.
+**Answer:** `0`, `1`, `2`; condition `index >= 0 && index < 3`. Indices -1 and 3 are both rejected.
 
-### Bài E — thứ tự thực hiện nhánh
+### Exercise E — branch execution order
 
 ~~~java
 if (check("A", false)) {
@@ -562,7 +562,7 @@ if (check("A", false)) {
 }
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 checked A
@@ -570,22 +570,22 @@ checked B
 B
 ~~~
 
-Method `check` lấy từ chương trình đầy đủ. Không gọi `check("C", true)`.
+Method `check` is from the full program. `check("C", true)` is not called.
 
-## 15. Checklist và kết luận
+## 15. Checklist and conclusion
 
-- [ ] Xác định rõ miền hợp lệ và ý nghĩa đúng tại từng biên.
-- [ ] Dùng `>`/`>=`, `<`/`<=` theo đặc tả.
-- [ ] Hiểu `if/else if/else` xét từ trên xuống và dừng ở **nhánh đúng đầu tiên**.
-- [ ] Phân biệt chuỗi `else if` với nhiều câu `if` độc lập.
-- [ ] Xếp điều kiện rộng/hẹp hoặc ưu tiên nghiệp vụ sao cho không che nhánh cần thiết.
-- [ ] Validate giá trị ngoài miền trước khi phân loại.
-- [ ] Xây dựng bảng test tại **dưới/đúng/trên** từng ngưỡng, gồm hai biên toàn miền.
-- [ ] Không viết so sánh dây chuyền kiểu `min <= value <= max` trong Java.
-- [ ] Dùng `{ }` để tránh dangling else.
-- [ ] Không bỏ qua tác động của thứ tự nhánh lên side effect và ngoại lệ.
-- [ ] Dùng guard `&&`/`||` đúng thứ tự trước truy cập có thể lỗi.
-- [ ] Cẩn thận với `double` tại biên, NaN và overflow trong test số nguyên cực trị.
-- [ ] Chạy `IfBoundaryBranchOrderDemo.java` bằng Java 17+ và đối chiếu exact stdout.
+- [ ] Clearly define the valid domain and exact behavior at each boundary.
+- [ ] Use `>`/`>=`, `<`/`<=` according to specification.
+- [ ] Understand that `if/else if/else` checks top-to-bottom and stops at the **first true branch**.
+- [ ] Distinguish an `else if` chain from multiple independent `if` statements.
+- [ ] Order broad/narrow conditions or business priorities so necessary branches are not shadowed.
+- [ ] Validate out-of-range values before classifying.
+- [ ] Build a test table at **below/at/above** each threshold, including both overall domain bounds.
+- [ ] Never write chained comparisons like `min <= value <= max` in Java.
+- [ ] Use `{ }` to avoid dangling else.
+- [ ] Do not overlook the effect of branch order on side effects and exceptions.
+- [ ] Place `&&`/`||` guards in the right order before potentially failing accesses.
+- [ ] Watch out for `double` at boundaries, NaN, and overflow when testing extreme integer values.
+- [ ] Run `IfBoundaryBranchOrderDemo.java` with Java 17+ and compare against exact stdout.
 
-**Kết luận:** Viết `if` đúng không chỉ là tạo điều kiện trả true/false; còn phải **định nghĩa ranh giới**, **ưu tiên nhánh**, **bao phủ miền dữ liệu** và **kiểm tra các giá trị sát ngưỡng**. Với chuỗi `else if`, thứ tự chính là một phần của logic nghiệp vụ. Đặt điều kiện có chủ đích và kiểm thử tại biên sẽ tránh được cả lỗi *off-by-one* lẫn nhánh bị che khuất.
+**Conclusion:** Writing `if` correctly is not just crafting expressions that return true/false; you must also **define boundaries**, **prioritize branches**, **cover the data domain**, and **test values near thresholds**. With an `else if` chain, order itself is part of the business logic. Placing conditions deliberately and testing at boundaries prevents both *off-by-one* bugs and shadowed branches.

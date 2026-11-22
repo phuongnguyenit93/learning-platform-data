@@ -1,19 +1,19 @@
-# `String.isBlank()` so với `String.isEmpty()` trong Java
+# `String.isBlank()` vs. `String.isEmpty()` in Java
 
-Trong Java, **chuỗi rỗng** và **chuỗi chỉ chứa khoảng trắng** là hai khái niệm khác nhau. Hai phương thức `String.isEmpty()` và `String.isBlank()` giúp kiểm tra hai tính chất này nhưng không thay thế nhau. Chọn sai phương thức có thể làm chương trình chấp nhận tên chỉ có dấu cách, từ chối đầu vào hợp lệ hoặc xử lý nhầm các ký tự Unicode nhìn như khoảng trắng.
+In Java, an **empty string** and a **whitespace-only string** are two different concepts. The two methods `String.isEmpty()` and `String.isBlank()` check these two properties, respectively, and are not interchangeable. Choosing the wrong method can cause a program to accept a name containing only spaces, reject valid input, or mishandle Unicode characters that look like whitespace.
 
-Mục tiêu bài học:
+Lesson objectives:
 
-- Hiểu chính xác điều kiện trả về `true` của `isEmpty()` và `isBlank()`.
-- Phân biệt chuỗi `""`, `"   "`, tab, newline, khoảng trắng Unicode, non-breaking space và ký tự không nhìn thấy.
-- Chọn phép kiểm tra phù hợp cho dữ liệu đầu vào, nhận biết `null` và quan hệ với `strip()`/`trim()`.
-- Sử dụng ví dụ Java 17+ có thể biên dịch và kiểm chứng kết quả.
+- Understand the exact conditions under which `isEmpty()` and `isBlank()` return `true`.
+- Distinguish `""`, `"   "`, tabs, newlines, Unicode whitespace, non-breaking spaces, and invisible characters.
+- Choose the appropriate check for input data, handle `null`, and understand the relationship with `strip()`/`trim()`.
+- Use compilable Java 17+ examples and verify the results.
 
-## 1. Khái niệm: empty và blank
+## 1. Concepts: empty and blank
 
-### `isEmpty()`: chuỗi có độ dài bằng 0
+### `isEmpty()`: a string with length 0
 
-`String.isEmpty()` trả về `true` khi và chỉ khi `length() == 0`. Nó **không đọc nội dung** để xem đó có phải dấu cách hay không.
+`String.isEmpty()` returns `true` if and only if `length() == 0`. It **does not inspect the contents** to see whether the characters are spaces.
 
 ~~~java
 System.out.println("".isEmpty());       // true
@@ -22,11 +22,11 @@ System.out.println("\t".isEmpty());     // false
 System.out.println("Java".isEmpty());   // false
 ~~~
 
-Một chuỗi có một dấu cách vẫn có `length() == 1`, nên không rỗng. Một chuỗi gồm tab hoặc xuống dòng cũng không rỗng. `isEmpty()` có sẵn từ Java 6; biểu thức `s.isEmpty()` diễn đạt rõ nghĩa hơn `s.length() == 0` nhưng có cùng điều kiện logic.
+A string with one space still has `length() == 1`, so it is not empty. A string consisting of a tab or a newline is not empty either. `isEmpty()` has been available since Java 6; the expression `s.isEmpty()` expresses intent more clearly than `s.length() == 0` while having the exact same logical condition.
 
-### `isBlank()`: rỗng hoặc chỉ chứa whitespace
+### `isBlank()`: empty or containing only whitespace
 
-`String.isBlank()`, được bổ sung trong Java 11, trả `true` khi chuỗi **rỗng hoặc tất cả code point của chuỗi đều được Java coi là whitespace** theo `Character.isWhitespace(int)`. Nếu có ít nhất một code point không thuộc nhóm đó, kết quả là `false`.
+`String.isBlank()`, added in Java 11, returns `true` when the string is **empty or all of its code points are considered whitespace by Java** according to `Character.isWhitespace(int)`. If there is at least one code point not in that set, the result is `false`.
 
 ~~~java
 System.out.println("".isBlank());          // true
@@ -35,37 +35,37 @@ System.out.println("\t\n".isBlank());      // true
 System.out.println("  Java  ".isBlank());  // false
 ~~~
 
-Có thể nhớ như sau:
+You can remember them as follows:
 
-- `isEmpty()` hỏi: **“Có ký tự nào không?”**
-- `isBlank()` hỏi: **“Có ký tự nào không phải whitespace theo quy tắc Java không?”**
+- `isEmpty()` asks: **“Are there any characters at all?”**
+- `isBlank()` asks: **“Are there any characters that are not whitespace according to Java's rules?”**
 
-Vì không có ký tự nào để vi phạm điều kiện “chỉ chứa whitespace”, chuỗi rỗng cũng được coi là blank. Với mọi `String s` không null, **`s.isEmpty()` là `true` thì `s.isBlank()` cũng là `true`**; chiều ngược lại không đúng.
+Because there are no characters to violate the “only contains whitespace” condition, an empty string is also considered blank. For any non-null `String s`, **if `s.isEmpty()` is `true`, then `s.isBlank()` is also `true`**; the converse is not true.
 
-## 2. So sánh trực tiếp bằng bảng
+## 2. Direct comparison table
 
-| Nội dung String | `isEmpty()` | `isBlank()` | Giải thích |
+| String content | `isEmpty()` | `isBlank()` | Explanation |
 |---|---:|---:|---|
-| `""` | `true` | `true` | Không có code unit nào |
-| `" "` | `false` | `true` | Một dấu cách ASCII |
-| `"   "` | `false` | `true` | Ba dấu cách |
-| `"\t"` | `false` | `true` | Tab là whitespace |
-| `"\n"` | `false` | `true` | Line feed là whitespace |
-| `" \t\n "` | `false` | `true` | Toàn whitespace |
-| `"Java"` | `false` | `false` | Có chữ cái |
-| `" Java "` | `false` | `false` | Có chữ cái dù hai đầu là dấu cách |
-| `"\u2003"` | `false` | `true` | U+2003 EM SPACE được `Character.isWhitespace` công nhận |
-| `"\u00A0"` | `false` | `false` | U+00A0 NO-BREAK SPACE không được `Character.isWhitespace` công nhận |
-| `"\u200B"` | `false` | `false` | U+200B ZERO WIDTH SPACE không phải whitespace theo API này |
-| Chuỗi chứa code unit U+0000 | `false` | `false` | Null character không phải whitespace theo `Character.isWhitespace` |
+| `""` | `true` | `true` | Has no code units |
+| `" "` | `false` | `true` | One ASCII space |
+| `"   "` | `false` | `true` | Three spaces |
+| `"\t"` | `false` | `true` | Tab is whitespace |
+| `"\n"` | `false` | `true` | Line feed is whitespace |
+| `" \t\n "` | `false` | `true` | All whitespace |
+| `"Java"` | `false` | `false` | Contains letters |
+| `" Java "` | `false` | `false` | Contains letters even though both ends are spaces |
+| `"\u2003"` | `false` | `true` | U+2003 EM SPACE is recognized by `Character.isWhitespace` |
+| `"\u00A0"` | `false` | `false` | U+00A0 NO-BREAK SPACE is not recognized by `Character.isWhitespace` |
+| `"\u200B"` | `false` | `false` | U+200B ZERO WIDTH SPACE is not whitespace according to this API |
+| String containing code unit U+0000 | `false` | `false` | Null character is not whitespace according to `Character.isWhitespace` |
 
-**Lưu ý về bảng:** `"\t"`, `"\n"` và `"\u2003"` là cách biểu diễn **trong mã nguồn Java**, không phải văn bản chứa dấu backslash và chữ `t`, `n` hay `u2003`. Vì một số dấu cách Unicode không nhìn thấy, nên khi kiểm thử hãy hiển thị mã Unicode hoặc nhãn rõ ràng thay vì chỉ in chuỗi ra terminal.
+**Note on the table:** `"\t"`, `"\n"`, and `"\u2003"` are representations **in Java source code**, not text containing a backslash followed by `t`, `n`, or `u2003`. Because some Unicode spaces are invisible, when testing you should display Unicode code points or clear labels rather than just printing the raw string to the terminal.
 
-## 3. “Whitespace” của Java không có nghĩa là mọi ký tự nhìn như khoảng trống
+## 3. Java's “whitespace” does not mean every character that looks like blank space
 
-Điểm dễ nhầm nhất của `isBlank()` là cách định nghĩa whitespace. Java dựa vào `Character.isWhitespace(int)`. Nó nhận diện nhiều ký tự như ASCII space, tab, xuống dòng và một số Unicode space, nhưng **không bao gồm mọi ký tự Unicode có tên hoặc hình dạng liên quan đến khoảng trống**.
+The most common pitfall with `isBlank()` is how whitespace is defined. Java relies on `Character.isWhitespace(int)`. It recognizes many characters such as ASCII space, tab, newline, and several Unicode spaces, but **does not include every Unicode character whose name or appearance relates to spacing**.
 
-Ví dụ:
+For example:
 
 ~~~java
 System.out.println(Character.isWhitespace(' '));       // true
@@ -76,23 +76,23 @@ System.out.println(Character.isSpaceChar(0x00A0));     // true
 System.out.println(Character.isWhitespace(0x200B));    // false: ZERO WIDTH SPACE
 ~~~
 
-`Character.isSpaceChar(int)` là API khác, dựa trên các Unicode category về dấu phân cách, nên **không tương đương** `Character.isWhitespace(int)`. Chẳng hạn U+00A0 là một *space separator* và `isSpaceChar(0x00A0)` trả `true`, nhưng `isWhitespace(0x00A0)` trả `false`. Một số dấu cách không ngắt dòng như U+2007 FIGURE SPACE và U+202F NARROW NO-BREAK SPACE cũng cần xem xét riêng khi nghiệp vụ muốn coi chúng là blank.
+`Character.isSpaceChar(int)` is a different API based on Unicode separator categories, so it is **not equivalent** to `Character.isWhitespace(int)`. For instance, U+00A0 is a *space separator* and `isSpaceChar(0x00A0)` returns `true`, yet `isWhitespace(0x00A0)` returns `false`. Certain non-breaking spaces such as U+2007 FIGURE SPACE and U+202F NARROW NO-BREAK SPACE also need separate consideration if business logic wants to treat them as blank.
 
-U+200B ZERO WIDTH SPACE thường vô hình nhưng không được `Character.isWhitespace` xem là whitespace. Các ký tự định dạng vô hình khác cũng có thể khiến người dùng nhìn thấy ô trống trong khi `isBlank()` lại trả `false`.
+U+200B ZERO WIDTH SPACE is typically invisible but is not treated as whitespace by `Character.isWhitespace`. Other invisible formatting characters can also make a user see an empty field while `isBlank()` returns `false`.
 
-Vì vậy:
+Therefore:
 
-- **Trường nhập văn bản phổ thông:** `isBlank()` thường là điểm bắt đầu hợp lý để từ chối chuỗi chỉ có dấu cách, tab hoặc xuống dòng.
-- **Hệ thống có quy tắc Unicode riêng:** cần định nghĩa tập code point được bỏ qua hay chấp nhận, rồi viết quy tắc kiểm tra tương ứng.
-- **Mã định danh, mật khẩu, dữ liệu bảo mật:** không tùy tiện loại bỏ hoặc gộp các ký tự vô hình khi chưa có đặc tả; việc chuẩn hóa có thể thay đổi giá trị gốc.
+- **General text input fields:** `isBlank()` is usually a sensible starting point for rejecting strings containing only spaces, tabs, or newlines.
+- **Systems with custom Unicode rules:** define the exact set of code points to ignore or accept, then write the corresponding validation rule.
+- **Identifiers, passwords, security-sensitive data:** do not arbitrarily remove or collapse invisible characters without a specification; normalization can alter the original value.
 
-Không nên tuyên bố “`isBlank()` nhận diện toàn bộ các loại khoảng trắng của Unicode” hoặc “mọi ký tự vô hình đều là blank”.
+Do not claim that “`isBlank()` recognizes all kinds of Unicode whitespace” or that “every invisible character is blank.”
 
-## 4. Quan hệ với `strip()`, `trim()` và `length()`
+## 4. Relationship with `strip()`, `trim()`, and `length()`
 
-### `strip()` và `isBlank()` dùng tiêu chí whitespace gần nhau
+### `strip()` and `isBlank()` use closely aligned whitespace criteria
 
-`strip()` (Java 11+) bỏ các code point ở **đầu và cuối** chuỗi được `Character.isWhitespace` nhận diện. Với một `String` bình thường, `s.isBlank()` tương ứng về ý nghĩa với việc `s.strip().isEmpty()`: nếu tất cả ký tự đều là whitespace, sau `strip()` sẽ không còn gì.
+`strip()` (Java 11+) removes code points at the **beginning and end** of the string recognized by `Character.isWhitespace`. For a normal `String`, `s.isBlank()` corresponds in meaning to `s.strip().isEmpty()`: if all characters are whitespace, nothing remains after `strip()`.
 
 ~~~java
 String text = " \t ";
@@ -104,13 +104,13 @@ System.out.println(mixed.isBlank());         // false
 System.out.println(mixed.strip());           // Java
 ~~~
 
-Tuy nhiên, khi **chỉ cần biết có blank hay không**, nên gọi trực tiếp `isBlank()`: code diễn đạt đúng mục đích và không phải chủ động tạo kết quả chuỗi sau khi strip. Nếu cần cả nội dung đã chuẩn hóa để lưu, xử lý hoặc so sánh, dùng `strip()` tại điểm phù hợp.
+However, when you **only need to know whether a string is blank**, call `isBlank()` directly: the code expresses the exact intent and avoids explicitly producing a stripped string result. If you also need the normalized content to store, process, or compare, use `strip()` at the appropriate point.
 
-### `trim()` dùng tiêu chí cũ, khác `strip()`
+### `trim()` uses a legacy criterion that differs from `strip()`
 
-`trim()` bỏ các code unit có giá trị **không lớn hơn U+0020** ở hai đầu. Điều này khác quy tắc Unicode whitespace của `strip()`. Do đó `s.trim().isEmpty()` **không tương đương** `s.isBlank()`.
+`trim()` removes code units with values **less than or equal to U+0020** from both ends. This differs from the Unicode whitespace rule of `strip()`. Consequently, `s.trim().isEmpty()` is **not equivalent** to `s.isBlank()`.
 
-Ví dụ đối chứng:
+Counterexample:
 
 ~~~java
 String emSpace = "\u2003";
@@ -124,15 +124,15 @@ System.out.println(nul.trim().isEmpty());       // true
 System.out.println(nul.strip().isEmpty());      // false
 ~~~
 
-Dòng liên quan `nul` cho thấy có những code unit bị `trim()` loại bỏ dù `isBlank()` không coi chúng là whitespace. Ngược lại, U+2003 được `isBlank()` nhận diện nhưng `trim()` không bỏ. Dùng `trim().isEmpty()` khi thật sự muốn áp dụng quy tắc `trim()` cũ; đừng coi đây là thay thế chính xác của `isBlank()`.
+The lines involving `nul` show that some code units are removed by `trim()` even though `isBlank()` does not treat them as whitespace. Conversely, U+2003 is recognized by `isBlank()` but not removed by `trim()`. Use `trim().isEmpty()` only when you genuinely want the legacy `trim()` rule; do not treat it as an exact replacement for `isBlank()`.
 
-### `length()` không phải thước đo “ký tự có nghĩa”
+### `length()` is not a measure of “meaningful characters”
 
-`String.length()` đếm **UTF-16 code unit**, không phải số từ, số ký tự hiển thị hoặc số code point. `"🚀".length() == 2`, và `"🚀".isBlank()` là `false`. Điều kiện `isEmpty()` chỉ dựa trên số code unit bằng 0, nên vấn đề biểu diễn Unicode không làm thay đổi ý nghĩa của nó. `isBlank()` kiểm tra whitespace theo code point Unicode của String và không có tác dụng “xóa” nội dung.
+`String.length()` counts **UTF-16 code units**, not the number of words, visible characters, or code points. `"🚀".length() == 2`, and `"🚀".isBlank()` is `false`. The `isEmpty()` condition only checks whether the code unit count is 0, so Unicode representation issues do not change its meaning. `isBlank()` checks whitespace according to the String's Unicode code points and does not “delete” any content.
 
-## 5. Xử lý `null` đúng cách
+## 5. Handling `null` properly
 
-Cả hai phương thức đều là **instance method của `String`**. Nếu biến chứa `null`, gọi `value.isEmpty()` hoặc `value.isBlank()` đều ném `NullPointerException`. `null` không phải một chuỗi rỗng.
+Both methods are **instance methods on `String`**. If a variable holds `null`, calling `value.isEmpty()` or `value.isBlank()` throws a `NullPointerException`. `null` is not an empty string.
 
 ~~~java
 String value = null;
@@ -140,9 +140,9 @@ String value = null;
 // value.isBlank(); // NullPointerException
 ~~~
 
-Có hai quy ước thông dụng; hãy chọn rõ ràng theo yêu cầu ứng dụng.
+There are two common conventions; choose explicitly based on application requirements.
 
-**Quy ước 1: null được xem là “không có dữ liệu”.** Dùng kiểm tra kết hợp:
+**Convention 1: `null` is treated as “no data.”** Use a combined check:
 
 ~~~java
 static boolean isMissing(String input) {
@@ -150,9 +150,9 @@ static boolean isMissing(String input) {
 }
 ~~~
 
-`||` có đánh giá ngắn mạch, nên khi `input == null` là true, Java không gọi `input.isBlank()`.
+`||` uses short-circuit evaluation, so when `input == null` is true, Java does not call `input.isBlank()`.
 
-**Quy ước 2: null là lỗi lập trình hoặc dữ liệu bắt buộc.** Đưa ra lỗi rõ ràng trước khi kiểm tra chuỗi:
+**Convention 2: `null` is a programming error or missing required data.** Raise an explicit error before checking the string:
 
 ~~~java
 import java.util.Objects;
@@ -163,23 +163,23 @@ static boolean blankRequiredString(String input) {
 }
 ~~~
 
-Việc nên chấp nhận null, từ chối null hay coi null tương đương rỗng là **quy tắc nghiệp vụ**, không phải hành vi mặc định của `isBlank()` hoặc `isEmpty()`.
+Whether to accept `null`, reject `null`, or treat `null` as equivalent to empty is a **business rule**, not the default behavior of `isBlank()` or `isEmpty()`.
 
-## 6. Chọn đúng phương thức theo nghiệp vụ
+## 6. Choosing the right method for the business requirement
 
-| Nhu cầu | Thường chọn | Lý do |
+| Requirement | Typical choice | Reason |
 |---|---|---|
-| Kiểm tra chuỗi chưa có nội dung nào | `isEmpty()` | Điều kiện đúng bằng độ dài 0 |
-| Trường họ tên/nội dung yêu cầu ít nhất một ký tự không phải whitespace Java | `isBlank()` | Từ chối cả `""` và `"   "` |
-| Xác minh giá trị có thể null và không có nội dung đáng kể | `s == null || s.isBlank()` | Bao gồm cả null và chuỗi blank |
-| Phân biệt `""` với một dấu cách do người dùng nhập | `isEmpty()` | Dấu cách là dữ liệu, không phải chuỗi rỗng |
-| Trường yêu cầu dữ liệu có cấu trúc như email, mã, số | `isBlank()` chỉ là kiểm tra đầu tiên | Cần kiểm tra định dạng, độ dài và quy tắc cụ thể |
-| Chuỗi cần loại bỏ khoảng trắng hai đầu trước khi xử lý | `strip()` rồi validation thích hợp | `isBlank()` chỉ trả boolean, không đổi chuỗi |
-| Phân tích dữ liệu có U+00A0/U+200B | Quy tắc Unicode tường minh | `isBlank()` không coi mọi ký tự vô hình là whitespace |
-| Kiểm tra String có ít nhất một code unit | `!isEmpty()` | Không bảo đảm có nội dung hữu ích cho người dùng |
-| Kiểm tra String có ít nhất một code point không phải whitespace Java | `!isBlank()` | Có thể vẫn chứa ký tự vô hình hoặc control character không thuộc tập whitespace |
+| Check whether a string has no content at all | `isEmpty()` | Exact condition of length 0 |
+| Name/content field requiring at least one non-Java-whitespace character | `isBlank()` | Rejects both `""` and `"   "` |
+| Verify a nullable value has no meaningful content | `s == null || s.isBlank()` | Covers both `null` and blank strings |
+| Distinguish `""` from a single space entered by the user | `isEmpty()` | A space is data, not an empty string |
+| Field requiring structured data such as email, code, or number | `isBlank()` is only the first check | Must also check format, length, and specific rules |
+| String needing leading/trailing whitespace removed before processing | `strip()` then appropriate validation | `isBlank()` only returns a boolean; it does not modify the string |
+| Parsing data containing U+00A0/U+200B | Explicit Unicode rules | `isBlank()` does not treat all invisible characters as whitespace |
+| Check whether a String has at least one code unit | `!isEmpty()` | Does not guarantee useful content for the user |
+| Check whether a String has at least one non-Java-whitespace code point | `!isBlank()` | May still contain invisible or control characters outside the whitespace set |
 
-### Ví dụ: validate trường tên bắt buộc
+### Example: validating a required display name field
 
 ~~~java
 static String validateDisplayName(String raw) {
@@ -194,11 +194,11 @@ static String validateDisplayName(String raw) {
 }
 ~~~
 
-Đây là **ví dụ chính sách đơn giản**, không phải bộ quy tắc hoàn chỉnh cho mọi tên người. Nó dùng `length()` theo UTF-16 code unit và chỉ `strip()` những ký tự mà `Character.isWhitespace` công nhận; U+00A0 hoặc U+200B còn có thể tồn tại. Nếu thực sự cần giới hạn theo code point, số ký tự hiển thị hoặc xử lý các ký tự vô hình, phải thiết kế validation riêng. Đừng tùy tiện đổi `strip()` thành cách xóa mọi whitespace bên trong: tên gồm nhiều từ có khoảng trắng hợp lệ.
+This is a **simple policy example**, not a complete rule set for all personal names. It uses `length()` in UTF-16 code units and only calls `strip()` on characters recognized by `Character.isWhitespace`; U+00A0 or U+200B may still remain. If you genuinely need limits by code points, visible character counts, or handling of invisible characters, you must design dedicated validation. Do not arbitrarily replace `strip()` with removing all internal whitespace: multi-word names have valid spaces.
 
-### Vì sao không luôn `strip().isEmpty()`?
+### Why not always use `strip().isEmpty()`?
 
-Nếu chỉ cần quyết định “chuỗi có blank không”, `isBlank()` nêu đúng ý định và đơn giản. Khi vừa cần kiểm tra vừa cần giữ giá trị đã chuẩn hóa, có thể `strip()` một lần:
+If you only need to decide “is the string blank?”, `isBlank()` states the intent directly and is simpler. When you need both to check and to keep the normalized value, you can call `strip()` once:
 
 ~~~java
 String raw = "  Java  ";
@@ -208,11 +208,11 @@ if (!normalized.isEmpty()) {
 }
 ~~~
 
-Không có nghĩa `isBlank()` luôn nhanh hơn mọi cách khác trong mọi bản JVM. Với code nhạy hiệu năng, đo đạc trước khi tối ưu; ưu tiên biểu thức rõ ràng và đúng nghĩa.
+This does not mean `isBlank()` is always faster than every alternative in every JVM version. For performance-sensitive code, measure before optimizing; prefer clear, semantically accurate expressions.
 
-## 7. Chương trình Java 17+ hoàn chỉnh
+## 7. Complete Java 17+ program
 
-Đặt đoạn sau vào tệp UTF-8 tên **`BlankVsEmptyDemo.java`**. Chương trình hiển thị đầu ra cho các trường hợp quan trọng, so sánh `trim()` với `strip()` và minh họa xử lý null. Các đoạn ngắn ở phần trước chỉ là snippet minh họa, có thể cần đặt trong method/class để chạy độc lập.
+Put the following code into a UTF-8 file named **`BlankVsEmptyDemo.java`**. The program displays output for key cases, compares `trim()` with `strip()`, and demonstrates `null` handling. The short snippets in earlier sections are illustrative fragments that may need to be placed inside a method/class to run standalone.
 
 ~~~java
 public class BlankVsEmptyDemo {
@@ -253,14 +253,14 @@ public class BlankVsEmptyDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ~~~bash
 javac -encoding UTF-8 BlankVsEmptyDemo.java
 java BlankVsEmptyDemo
 ~~~
 
-Stdout chính xác:
+Exact stdout:
 
 ~~~text
 empty: empty=true, blank=true
@@ -280,48 +280,48 @@ missing-spaces=true
 missing-word=false
 ~~~
 
-Giải thích phần dễ bất ngờ: `"\\u2003"` (trong ví dụ thực tế là escape `\u2003` của Java source) đại diện cho EM SPACE, một whitespace theo Java, nên `isBlank()` đúng và `strip()` bỏ được. `"\u00A0"` là NO-BREAK SPACE và `"\u200B"` là ZERO WIDTH SPACE: cả hai không được `Character.isWhitespace` coi là whitespace. `String.valueOf((char) 0)` tạo chuỗi chứa U+0000, không blank nhưng lại được quy tắc cũ của `trim()` loại bỏ ở hai đầu.
+Explanation of the surprising parts: `"\\u2003"` (in the actual example, the Java source escape `\u2003`) represents EM SPACE, a Java whitespace character, so `isBlank()` is true and `strip()` removes it. `"\u00A0"` is NO-BREAK SPACE and `"\u200B"` is ZERO WIDTH SPACE: neither is considered whitespace by `Character.isWhitespace`. `String.valueOf((char) 0)` creates a string containing U+0000, which is not blank, yet is removed at both ends by the legacy `trim()` rule.
 
-## 8. Những lỗi phổ biến
+## 8. Common mistakes
 
-### Lỗi 1: dùng `isEmpty()` để kiểm tra trường bắt buộc
+### Mistake 1: using `isEmpty()` to validate a required field
 
 ~~~java
 String input = "   ";
 if (!input.isEmpty()) {
-    // Đi vào nhánh này dù người dùng chưa nhập ký tự có nghĩa.
+    // Enters this branch even though the user has not entered any meaningful character.
 }
 ~~~
 
-Nếu chính sách là không chấp nhận chuỗi chỉ có whitespace Java, kiểm tra `!input.isBlank()` sau khi xử lý null.
+If the policy is to reject strings containing only Java whitespace, check `!input.isBlank()` after handling `null`.
 
-### Lỗi 2: mặc định `isBlank()` bỏ qua mọi Unicode space
+### Mistake 2: assuming `isBlank()` ignores every Unicode space
 
-NO-BREAK SPACE và một số ký tự vô hình khác không được `Character.isWhitespace` nhận diện. Nếu nghiệp vụ cần coi chúng là trống, tự định nghĩa kiểm tra dựa trên tập ký tự cho phép, tiêu chí Unicode thích hợp và quy tắc chuẩn hóa đã thống nhất. Phải quyết định riêng việc có loại bỏ zero-width formatting characters hay không.
+NO-BREAK SPACE and several other invisible characters are not recognized by `Character.isWhitespace`. If business logic needs to treat them as empty, define a custom check based on the allowed character set, appropriate Unicode criteria, and an agreed normalization rule. Decide separately whether to remove zero-width formatting characters.
 
-### Lỗi 3: coi `trim().isEmpty()` bằng `isBlank()`
+### Mistake 3: treating `trim().isEmpty()` as equal to `isBlank()`
 
-Hai biểu thức có tiêu chí khác nhau: U+2003 và U+0000 là hai phản ví dụ điển hình. Từ Java 11, dùng trực tiếp `isBlank()` khi mong muốn chính xác là Java whitespace.
+The two expressions have different criteria: U+2003 and U+0000 are two classic counterexamples. From Java 11 onward, use `isBlank()` directly when you specifically want Java whitespace semantics.
 
-### Lỗi 4: không xét `null`
+### Mistake 4: forgetting to check `null`
 
-`null.isBlank()` không phải biểu thức Java hợp lệ theo nghĩa literal; còn gọi phương thức trên biến `String` đang null gây `NullPointerException`. Viết guard ở điểm nhận dữ liệu và chọn cách xử lý rõ ràng.
+`null.isBlank()` is not a valid Java expression for a literal; calling the method on a `String` variable that is `null` throws `NullPointerException`. Write a guard at the data entry point and choose an explicit handling strategy.
 
-### Lỗi 5: chỉ kiểm tra blank rồi cho rằng dữ liệu đã hợp lệ
+### Mistake 5: checking only for blank and assuming the data is valid
 
-`"@"`, `"!"`, `"0"`, U+200B hoặc một chuỗi dài vô hạn đều không blank. Điều đó không chứng minh chúng là email, tên hợp lệ, số đúng định dạng hoặc dữ liệu an toàn. `isBlank()` là kiểm tra **thiếu nội dung theo định nghĩa whitespace**, không phải bộ xác thực nội dung.
+`"@"`, `"!"`, `"0"`, U+200B, or an arbitrarily long string are all non-blank. That does not prove they are a valid email, valid name, properly formatted number, or safe data. `isBlank()` checks for **missing content as defined by whitespace**, not content validity.
 
-### Lỗi 6: thay đổi chuỗi trong khi tưởng đang kiểm tra
+### Mistake 6: modifying the string while thinking you are only checking it
 
-Cả `isEmpty()` và `isBlank()` chỉ trả boolean, không sửa String. `strip()` trả lại chuỗi đã xử lý; vì `String` bất biến, gọi `raw.strip();` mà không dùng giá trị trả về sẽ không cập nhật `raw`.
+Both `isEmpty()` and `isBlank()` only return a boolean and do not modify the `String`. `strip()` returns a processed string; because `String` is immutable, calling `raw.strip();` without using the return value will not update `raw`.
 
-## 9. Checklist lựa chọn
+## 9. Selection checklist
 
-1. **Muốn phát hiện đúng chuỗi độ dài 0?** Dùng `isEmpty()`.
-2. **Muốn phát hiện rỗng hoặc chỉ gồm Java whitespace?** Dùng `isBlank()` (Java 11+).
-3. **Đầu vào có thể null?** Kiểm tra null trước; tùy nghiệp vụ dùng `s == null || s.isBlank()`.
-4. **Cần loại bỏ whitespace đầu/cuối?** Dùng `strip()` khi phù hợp; tránh coi `trim()` và `strip()` là đồng nghĩa.
-5. **Có Unicode space/format characters đặc biệt?** Kiểm tra tiêu chí `Character.isWhitespace` trước khi dựa vào `isBlank()`.
-6. **Dữ liệu có ràng buộc khác?** Kết hợp với kiểm tra độ dài, cấu trúc, miền giá trị và nghiệp vụ cụ thể.
+1. **Want to detect an exact length-0 string?** Use `isEmpty()`.
+2. **Want to detect an empty string or one containing only Java whitespace?** Use `isBlank()` (Java 11+).
+3. **Could the input be `null`?** Check `null` first; depending on business rules, use `s == null || s.isBlank()`.
+4. **Need to remove leading/trailing whitespace?** Use `strip()` when appropriate; avoid treating `trim()` and `strip()` as synonymous.
+5. **Are there special Unicode spaces or format characters?** Check the `Character.isWhitespace` criteria before relying on `isBlank()`.
+6. **Does the data have other constraints?** Combine with length, structure, value-range, and domain-specific checks.
 
-**Ghi nhớ:** `isEmpty()` kiểm tra **độ dài bằng 0**; `isBlank()` kiểm tra **rỗng hoặc chỉ có whitespace theo Java**. Dấu cách thông thường là điểm khác biệt dễ gặp nhất, còn non-breaking space và các ký tự Unicode vô hình là lý do cần hiểu chính xác định nghĩa whitespace.
+**Key takeaway:** `isEmpty()` checks **whether length equals 0**; `isBlank()` checks **whether a string is empty or contains only Java whitespace**. Regular spaces are the most common difference, while non-breaking spaces and invisible Unicode characters are why it is important to understand the exact definition of whitespace.

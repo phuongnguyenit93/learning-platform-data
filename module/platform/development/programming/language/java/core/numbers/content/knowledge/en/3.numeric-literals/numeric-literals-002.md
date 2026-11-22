@@ -1,129 +1,129 @@
-# Hậu tố `L` cho `long` và thời điểm integer literal vượt phạm vi trong Java
+# The `L` Suffix for `long` and When Integer Literals Go Out of Range in Java
 
-Khi viết `long value = 3_000_000_000;`, nhiều người tưởng rằng trình biên dịch sẽ nhìn kiểu biến `long` rồi tự động chấp nhận số này. Thực tế, Java **xác định kiểu của literal trước khi xét phép gán**. Với literal số nguyên hệ thập phân, nếu không có hậu tố `L`, giá trị thường phải nằm trong phạm vi `int`. Vì `3_000_000_000` lớn hơn `Integer.MAX_VALUE`, đoạn mã trên không biên dịch được. Cách đúng là:
+When writing `long value = 3_000_000_000;`, many people assume the compiler will look at the `long` variable type and automatically accept this number. In reality, Java **determines the literal's type before evaluating the assignment**. For decimal integer literals without the `L` suffix, the value must normally fit within the `int` range. Because `3_000_000_000` is larger than `Integer.MAX_VALUE`, the code above does not compile. The correct way is:
 
 ```java
-long value = 3_000_000_000L; // long literal, giá trị 3 tỷ.
+long value = 3_000_000_000L; // long literal, value 3 billion.
 ```
 
-Bài này phân biệt ba hiện tượng dễ nhầm: **literal không hợp lệ ngay ở thời điểm biên dịch**, **kết quả biểu thức `int` tràn rồi mới được chuyển sang `long`**, và **phép tính `long` vẫn có thể tràn ở thời điểm chạy**.
+This lesson distinguishes three easily confused phenomena: **a literal that is invalid at compile time**, **an `int` expression result that overflows before being converted to `long`**, and **`long` arithmetic that can still overflow at runtime**.
 
-## 1. Literal số nguyên là gì? Hậu tố `L` thay đổi điều gì?
+## 1. What Is an Integer Literal? What Does the `L` Suffix Change?
 
-Literal số nguyên là giá trị nguyên viết trực tiếp trong mã nguồn, chẳng hạn `42`, `3_000_000_000L`, `0xFF` hoặc `0b1010`. Java có bốn cách viết số nguyên: thập phân (decimal), thập lục phân (hexadecimal, `0x`/`0X`), nhị phân (binary, `0b`/`0B`) và bát phân (octal, thường bắt đầu bằng `0`, chẳng hạn `017`).
+An integer literal is a whole number written directly in source code, such as `42`, `3_000_000_000L`, `0xFF`, or `0b1010`. Java has four ways to write integer numbers: decimal, hexadecimal (`0x`/`0X`), binary (`0b`/`0B`), and octal (typically starting with `0`, such as `017`).
 
-**Hậu tố `L` hoặc `l` làm literal có kiểu `long`**. Nên dùng chữ hoa `L`, vì chữ thường `l` dễ nhầm với chữ số `1`. Không có hậu tố, literal số nguyên sẽ có kiểu `int` nếu hợp lệ theo quy tắc phạm vi và ngoại lệ ở ranh giới âm được giải thích bên dưới.
+**The `L` or `l` suffix gives the literal type `long`**. You should use uppercase `L`, because lowercase `l` is easily confused with the digit `1`. Without a suffix, an integer literal has type `int` if it is valid according to the range rules and the negative-boundary exception explained below.
 
-| Viết trong Java | Kiểu của literal | Ý nghĩa |
+| Written in Java | Literal Type | Meaning |
 | --- | --- | --- |
-| `42` | `int` | Số nguyên 42 |
-| `42L` | `long` | Số nguyên 42 thuộc kiểu 64 bit |
-| `2_147_483_647` | `int` | Giá trị dương lớn nhất của `int` |
-| `2_147_483_648L` | `long` | Vượt `int`, vẫn nằm trong phạm vi `long` |
-| `0xFFL` | `long` | Giá trị 255 viết ở hệ 16 |
-| `0b1010L` | `long` | Giá trị 10 viết ở hệ 2 |
-| `017L` | `long` | Giá trị 15 viết ở hệ 8 |
-| `1.0` | `double` | Literal số thực, không phải literal số nguyên |
+| `42` | `int` | Integer 42 |
+| `42L` | `long` | Integer 42 as a 64-bit type |
+| `2_147_483_647` | `int` | Maximum positive value of `int` |
+| `2_147_483_648L` | `long` | Exceeds `int`, still within `long` range |
+| `0xFFL` | `long` | Value 255 written in base 16 |
+| `0b1010L` | `long` | Value 10 written in base 2 |
+| `017L` | `long` | Value 15 written in base 8 |
+| `1.0` | `double` | Floating-point literal, not an integer literal |
 
-Dấu gạch dưới `_` trong literal giúp đọc nhóm chữ số nhưng **không ảnh hưởng giá trị hoặc kiểu**: `3_000_000_000L` tương đương `3000000000L`. Không đặt `_` trước/sau dãy chữ số, ngay sau tiền tố `0x`/`0b`, hoặc giữa chữ số và `L`: `3_000L` hợp lệ, còn `3_000_L` thì không.
+Underscores `_` inside a literal help group digits for readability but **do not affect the value or type**: `3_000_000_000L` is equivalent to `3000000000L`. Do not place `_` before/after the digit sequence, immediately after the `0x`/`0b` prefix, or between a digit and `L`: `3_000L` is valid, while `3_000_L` is not.
 
-## 2. Phạm vi `int`, `long` và cách Java nhận literal thập phân
+## 2. `int` and `long` Ranges and How Java Accepts Decimal Literals
 
-| Kiểu | Độ rộng | Nhỏ nhất | Lớn nhất |
+| Type | Width | Minimum | Maximum |
 | --- | ---: | ---: | ---: |
-| `int` | 32 bit có dấu | `-2_147_483_648` | `2_147_483_647` |
-| `long` | 64 bit có dấu | `-9_223_372_036_854_775_808L` | `9_223_372_036_854_775_807L` |
+| `int` | 32-bit signed | `-2_147_483_648` | `2_147_483_647` |
+| `long` | 64-bit signed | `-9_223_372_036_854_775_808L` | `9_223_372_036_854_775_807L` |
 
-Với số nguyên **thập phân**:
+For **decimal** integers:
 
-- Literal không hậu tố `L` có giới hạn dương bình thường là `2_147_483_647` (`Integer.MAX_VALUE`). Ví dụ `2_147_483_648` đứng một mình sẽ không hợp lệ.
-- Literal có hậu tố `L` có giới hạn dương bình thường là `9_223_372_036_854_775_807L` (`Long.MAX_VALUE`). `9_223_372_036_854_775_808L` đứng một mình không hợp lệ.
-- Có một **ngoại lệ đặc biệt cho hai giá trị biên âm**: Java cho phép chữ số thập phân `2147483648` không có `L` **chỉ khi là toán hạng của dấu trừ đơn ngôi** trong `-2147483648`, để biểu diễn `Integer.MIN_VALUE`. Tương tự, `-9223372036854775808L` biểu diễn `Long.MIN_VALUE`. Đây không phải là cơ chế chuyển kiểu tự động khi literal dương vượt giới hạn.
+- A literal without the `L` suffix has a normal positive limit of `2_147_483_647` (`Integer.MAX_VALUE`). For example, `2_147_483_648` standing alone is invalid.
+- A literal with the `L` suffix has a normal positive limit of `9_223_372_036_854_775_807L` (`Long.MAX_VALUE`). `9_223_372_036_854_775_808L` standing alone is invalid.
+- There is a **special exception for the two negative boundary values**: Java allows the decimal digits `2147483648` without `L` **only when it is the operand of the unary minus operator** in `-2147483648`, to represent `Integer.MIN_VALUE`. Similarly, `-9223372036854775808L` represents `Long.MIN_VALUE`. This is not an automatic type-conversion mechanism when a positive literal exceeds the limit.
 
-Dấu `-` là **toán tử trừ đơn ngôi** tác động lên literal, không phải một phần của cú pháp literal. Bởi vậy các trường hợp ở biên cần xét cả biểu thức và ngữ cảnh, không chỉ đếm chữ số.
+The `-` sign is the **unary minus operator** acting on the literal, not part of the literal's syntax. Therefore, boundary cases require examining both the expression and its context, rather than merely counting digits.
 
 ```java
 int maxInt = 2_147_483_647;
-int minInt = -2_147_483_648;             // Ngoại lệ biên âm: hợp lệ.
-long aboveInt = 2_147_483_648L;          // Phải dùng L.
+int minInt = -2_147_483_648;             // Negative-boundary exception: valid.
+long aboveInt = 2_147_483_648L;          // Must use L.
 long maxLong = 9_223_372_036_854_775_807L;
-long minLong = -9_223_372_036_854_775_808L; // Biên âm long: hợp lệ.
+long minLong = -9_223_372_036_854_775_808L; // Negative boundary of long: valid.
 ```
 
-Đoạn trên là các khai báo hợp lệ có thể đặt trong một phương thức Java. **Không thể tăng giới hạn của `long` chỉ bằng việc thêm `L`**: một giá trị lớn hơn `Long.MAX_VALUE` vẫn không trở thành `long` hợp lệ.
+The snippet above consists of valid declarations that can be placed inside a Java method. **You cannot increase the limit of `long` simply by adding `L`**: a value larger than `Long.MAX_VALUE` still does not become a valid `long`.
 
-## 3. Vì sao biến `long` không cứu được literal `int` quá lớn?
+## 3. Why a `long` Variable Cannot Rescue an Oversized `int` Literal
 
-Xét đoạn không hợp lệ dưới đây (chỉ để minh họa lỗi, không đưa vào chương trình chạy):
+Consider the invalid code below (only to illustrate the error; do not include it in a runnable program):
 
 ```java
-long total = 3_000_000_000; // LỖI BIÊN DỊCH: integer literal quá lớn cho int.
+long total = 3_000_000_000; // COMPILE ERROR: integer literal too large for int.
 ```
 
-Trình biên dịch xử lý **kiểu và tính hợp lệ của literal trong biểu thức trước**, sau đó mới xét liệu kết quả có thể gán cho biến hay không. Kiểu đích `long` cho phép *widening primitive conversion* từ một giá trị `int` **đã hợp lệ**, nhưng không thay đổi cách phân tích một literal `int` quá phạm vi.
+The compiler processes **the type and validity of the literal in the expression first**, and only then checks whether the result can be assigned to the variable. A target type of `long` allows a *widening primitive conversion* from an **already valid** `int` value, but it does not change how an out-of-range `int` literal is parsed.
 
 ```java
-long small = 123;             // Hợp lệ: int 123 mở rộng thành long.
-long large = 3_000_000_000L;  // Hợp lệ: bản thân literal đã là long.
+long small = 123;             // Valid: int 123 widens to long.
+long large = 3_000_000_000L;  // Valid: the literal itself is already long.
 ```
 
-Không có quy tắc “literal thập phân không `L` sẽ tự thành `long` nếu lớn hơn `int`”. Khi số viết trực tiếp vượt `int`, hãy khai báo literal là `long` ngay tại chỗ.
+There is no rule that "a decimal literal without `L` automatically becomes `long` if it is larger than `int`." When a directly written number exceeds `int`, declare the literal as `long` right away.
 
-Các ví dụ dưới đây đều **không biên dịch**, nhưng vì lý do khác nhau:
+All the examples below **fail to compile**, but for different reasons:
 
 ```java
-long a = 2_147_483_648;           // Decimal int literal vượt phạm vi.
-long b = 9_223_372_036_854_775_808L; // Decimal long literal vượt phạm vi.
-int c = 3_000_000_000L;          // Literal long hợp lệ nhưng không gán thẳng vào int.
+long a = 2_147_483_648;           // Decimal int literal out of range.
+long b = 9_223_372_036_854_775_808L; // Decimal long literal out of range.
+int c = 3_000_000_000L;          // Valid long literal, but cannot be directly assigned to int.
 ```
 
-Ở dòng `c`, lỗi là phép gán `long` sang `int` có thể mất dữ liệu; dấu `L` giải quyết **kiểu của literal**, không cấp quyền tự động chuyển hẹp kiểu.
+On line `c`, the error is a lossy assignment from `long` to `int`; the `L` suffix resolves **the literal's type**, it does not grant permission for automatic narrowing conversion.
 
-## 4. Lưu ý riêng cho literal nhị phân, bát phân và thập lục phân
+## 4. Special Notes for Binary, Octal, and Hexadecimal Literals
 
-Literal **không phải thập phân** còn có quy tắc sử dụng mẫu bit. Ví dụ `0xFFFF_FFFF` hợp lệ khi không có `L`: toàn bộ 32 bit đều bằng 1 và được diễn giải thành số `int` có dấu **-1**. Trong khi đó `0xFFFF_FFFFL` dùng `long` 64 bit, có 32 bit thấp bằng 1, nên giá trị là **4_294_967_295**.
+**Non-decimal** literals also follow bit-pattern rules. For instance, `0xFFFF_FFFF` is valid without `L`: all 32 bits are 1 and are interpreted as the signed `int` value **-1**. Meanwhile, `0xFFFF_FFFFL` uses 64-bit `long`, with the low 32 bits set to 1, so its value is **4_294_967_295**.
 
 ```java
-int minViaBits = 0x8000_0000;    // -2147483648 (bit dấu của int bật).
-int minusOne = 0xFFFF_FFFF;      // -1 (toàn bộ 32 bit đều bật).
-long positive = 0xFFFF_FFFFL;    // 4294967295 (là long 64 bit).
+int minViaBits = 0x8000_0000;    // -2147483648 (sign bit of int is set).
+int minusOne = 0xFFFF_FFFF;      // -1 (all 32 bits are set).
+long positive = 0xFFFF_FFFFL;    // 4294967295 (is a 64-bit long).
 long minLongBits = 0x8000_0000_0000_0000L; // Long.MIN_VALUE.
 long allLongBits = 0xFFFF_FFFF_FFFF_FFFFL;  // -1L.
 ```
 
-Đây là mã hợp lệ có thể đặt trong một phương thức Java. Với literal không thập phân, **cùng dãy chữ số** có thể mang ý nghĩa số có dấu khác nhau tùy kiểu `int` 32 bit hay `long` 64 bit. Các mẫu quá 32 bit không có `L` vẫn là lỗi, ví dụ `0x1_0000_0000`; thêm `L` vào mẫu phù hợp 64 bit mới được.
+This is valid code that can be placed inside a Java method. With non-decimal literals, **the exact same digit sequence** can carry different signed numeric meanings depending on whether the type is 32-bit `int` or 64-bit `long`. Patterns exceeding 32 bits without `L` are still errors, such as `0x1_0000_0000`; adding `L` to a pattern that fits in 64 bits makes it valid.
 
-Đừng suy từ việc `0xFFFF_FFFF` được chấp nhận rằng `4_294_967_295` cũng là `int` hợp lệ. Hai cách ghi dùng các quy tắc kiểm tra khác nhau: số thập phân diễn tả độ lớn, còn các literal nhị phân/bát phân/thập lục phân có thể diễn tả mẫu bit có dấu.
+Do not infer from `0xFFFF_FFFF` being accepted that `4_294_967_295` is also a valid `int`. The two notations use different validation rules: decimal numbers express magnitude, whereas binary/octal/hexadecimal literals can express signed bit patterns.
 
-## 5. Hai loại tràn cần phân biệt: literal quá phạm vi và phép tính tràn
+## 5. Two Kinds of Overflow to Distinguish: Out-of-Range Literal vs. Operation Overflow
 
-**A. Vượt phạm vi ngay khi viết literal: lỗi biên dịch.** Ví dụ `long n = 3_000_000_000;` thất bại trước khi chạy. Hậu tố `L` khiến số đó có kiểu `long`, nên có thể dùng.
+**A. Out of range when writing the literal: compile error.** For example, `long n = 3_000_000_000;` fails before running. Adding the `L` suffix gives the number type `long`, making it usable.
 
-**B. Các literal riêng lẻ hợp lệ nhưng phép toán tràn: có thể biên dịch và chạy ra giá trị sai.** Ví dụ:
+**B. Individual literals are valid, but the operation overflows: compiles and runs with an incorrect result.** Example:
 
 ```java
 long wrong = 2_000_000_000 + 1_000_000_000;   // -1294967296
 long right = 2_000_000_000L + 1_000_000_000; // 3000000000
 ```
 
-Ở dòng đầu, cả hai toán hạng là `int`; phép cộng được thực hiện trong `int`, kết quả vượt `Integer.MAX_VALUE`, nên tràn về `-1_294_967_296`. Java chỉ chuyển **kết quả đã tràn** sang `long` khi gán. Ở dòng thứ hai, một toán hạng có kiểu `long`, toán hạng còn lại được nâng lên `long` và phép cộng được tính trong phạm vi 64 bit.
+On the first line, both operands are `int`; the addition is performed in `int`, the result exceeds `Integer.MAX_VALUE`, and so it overflows to `-1_294_967_296`. Java only converts the **already overflowed result** to `long` during assignment. On the second line, one operand has type `long`, the other operand is promoted to `long`, and the addition is computed within the 64-bit range.
 
-**Thêm `L` hoặc ép kiểu phải xảy ra trước phép toán có nguy cơ tràn.** Ép kiểu sau phép tính không thể khôi phục các bit đã mất:
+**Adding `L` or casting must happen before an operation at risk of overflow.** Casting after the calculation cannot recover lost bits:
 
 ```java
 long wrongProduct = 100_000 * 100_000;          // int overflow -> 1410065408L
-long alsoWrong = (long) (100_000 * 100_000);    // Ép kiểu sau khi đã tràn.
+long alsoWrong = (long) (100_000 * 100_000);    // Casting after overflow has already occurred.
 long rightProduct = 100_000L * 100_000;         // 10000000000L
-long alsoRight = ((long) 100_000) * 100_000;     // Ép kiểu trước khi nhân.
+long alsoRight = ((long) 100_000) * 100_000;     // Casting before multiplication.
 ```
 
-Trong các phép toán số học nhị phân thường gặp, nếu ít nhất một toán hạng thuộc `long` (và không có `float`/`double`), kết quả phép toán được tính theo `long`. Nhưng **`long` cũng có giới hạn**: `Long.MAX_VALUE + 1L` tràn về `Long.MIN_VALUE`. Phép toán số nguyên `+`, `-`, `*` bình thường không tự ném ngoại lệ khi tràn.
+In common binary arithmetic operations, if at least one operand is `long` (and neither is `float`/`double`), the operation's result is computed as `long`. However, **`long` also has limits**: `Long.MAX_VALUE + 1L` wraps around to `Long.MIN_VALUE`. Standard integer `+`, `-`, and `*` operations do not automatically throw exceptions on overflow.
 
-Lưu ý biểu thức hằng `int` cũng có thể tràn khi được tính ở thời điểm biên dịch. Ví dụ `int wrapped = Integer.MAX_VALUE + 1;` có giá trị `Integer.MIN_VALUE`. “Được compiler tính trước” không đồng nghĩa “compiler sẽ bắt lỗi tràn số học”. Riêng phép chia cho 0 là một tình huống khác với tràn cộng/nhân.
+Note that an `int` constant expression can also overflow when evaluated at compile time. For example, `int wrapped = Integer.MAX_VALUE + 1;` has the value `Integer.MIN_VALUE`. "Evaluated ahead of time by the compiler" does not mean "the compiler will catch arithmetic overflow errors." Division by 0 is a separate situation from addition/multiplication overflow.
 
-## 6. Chương trình chạy độc lập (Java 17 trở lên)
+## 6. Standalone Runnable Program (Java 17 or Higher)
 
-Lưu đúng tên tệp **`LongLiteralDemo.java`**:
+Save with the exact filename **`LongLiteralDemo.java`**:
 
 ```java
 public class LongLiteralDemo {
@@ -161,14 +161,14 @@ public class LongLiteralDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --release 17 -encoding UTF-8 LongLiteralDemo.java
 java LongLiteralDemo
 ```
 
-Kết quả stdout chính xác:
+Exact stdout output:
 
 ```text
 largeLiteral=3000000000
@@ -185,11 +185,11 @@ longOverflow=-9223372036854775808
 multiplyExact=overflow detected
 ```
 
-Chương trình minh họa ba điều: một literal thập phân 3 tỷ cần `L`; phép cộng/nhân thực hiện bằng `int` vẫn có thể tràn trước khi kết quả được gán sang `long`; và với cùng 8 chữ số thập lục phân `FFFFFFFF`, thêm `L` đổi cách diễn giải bit theo độ rộng 64 thay vì 32. `Math.multiplyExact` thể hiện lựa chọn khác: yêu cầu Java **ném `ArithmeticException`** khi phép nhân nguyên bị tràn.
+The program demonstrates three things: a 3-billion decimal literal requires `L`; addition/multiplication performed in `int` can overflow before the result is assigned to `long`; and with the same 8 hex digits `FFFFFFFF`, adding `L` changes the bit interpretation from 32-bit width to 64-bit width. `Math.multiplyExact` illustrates another option: asking Java to **throw `ArithmeticException`** when integer multiplication overflows.
 
-## 7. Muốn phát hiện tràn thay vì nhận giá trị quấn vòng?
+## 7. Want to Detect Overflow Instead of Getting a Wrapped Value?
 
-Dùng nhóm phương thức có kiểm tra của lớp `Math`:
+Use the checked methods in the `Math` class:
 
 ```java
 int safeSum = Math.addExact(1_000_000_000, 1_000_000_000);
@@ -197,57 +197,57 @@ long safeProduct = Math.multiplyExact(100_000L, 100_000L);
 int checkedNarrowing = Math.toIntExact(2_000_000_000L);
 ```
 
-Các khai báo trên hợp lệ trong một phương thức Java; kết quả lần lượt là `2_000_000_000`, `10_000_000_000`, `2_000_000_000`. `Math.addExact`, `Math.subtractExact`, `Math.multiplyExact` và `Math.toIntExact` ném `ArithmeticException` khi tràn hoặc khi chuyển hẹp vượt phạm vi.
+These declarations are valid inside a Java method; their results are `2_000_000_000`, `10_000_000_000`, and `2_000_000_000`, respectively. `Math.addExact`, `Math.subtractExact`, `Math.multiplyExact`, and `Math.toIntExact` throw `ArithmeticException` on overflow or when narrowing goes out of range.
 
-Một điểm cần nhớ: `Math.addExact` có overload `int` và `long`. Nếu muốn cộng hai giá trị mà kết quả có thể lớn hơn `int`, dùng ít nhất một toán hạng kiểu `long` để chọn phép toán `long`:
+One thing to keep in mind: `Math.addExact` has both `int` and `long` overloads. If you want to add two values whose sum might exceed `int`, use at least one `long` operand to select the `long` operation:
 
 ```java
 long total = Math.addExact(2_000_000_000L, 1_000_000_000L);
 ```
 
-Với số lớn hơn phạm vi `long`, cần chuyển sang `java.math.BigInteger` thay vì cố dùng literal `long` quá giới hạn:
+For numbers larger than the `long` range, switch to `java.math.BigInteger` instead of trying to use an out-of-bounds `long` literal:
 
 ```java
 java.math.BigInteger veryLarge =
         new java.math.BigInteger("9223372036854775808");
 ```
 
-Đây là số nguyên tùy độ chính xác, được khởi tạo từ chuỗi; nó **không** phải một `long` literal.
+This is an arbitrary-precision integer initialized from a string; it is **not** a `long` literal.
 
-## 8. Khi số đến từ chuỗi, `L` có còn tác dụng?
+## 8. When Numbers Come from Strings, Does `L` Still Apply?
 
-Hậu tố `L` là **cú pháp mã nguồn Java**, không phải thành phần của dữ liệu số dạng văn bản. Nếu đầu vào là chuỗi `"3000000000"`, hãy dùng API phân tích phù hợp:
+The `L` suffix is **Java source-code syntax**, not part of text-formatted numeric data. If the input is the string `"3000000000"`, use the appropriate parsing API:
 
 ```java
 long number = Long.parseLong("3000000000"); // 3000000000L.
 ```
 
-`Integer.parseInt("3000000000")` ném `NumberFormatException` vì vượt `int`. `Long.parseLong("3000000000L")` cũng ném `NumberFormatException`, vì ký tự `L` không phải chữ số thập phân hợp lệ trong chuỗi. Tương tự, dấu phân cách `_` được phép trong literal mã nguồn như `3_000L`, nhưng `Long.parseLong("3_000")` không chấp nhận.
+`Integer.parseInt("3000000000")` throws `NumberFormatException` because it exceeds `int`. `Long.parseLong("3000000000L")` also throws `NumberFormatException`, because the character `L` is not a valid decimal digit in a string. Similarly, the `_` separator is allowed in source-code literals like `3_000L`, but `Long.parseLong("3_000")` does not accept it.
 
-Để phân tích văn bản hệ 16 hoặc hệ 2, cung cấp radix tương ứng, chẳng hạn `Long.parseLong("FF", 16)` trả 255. API xử lý chuỗi còn phải đối phó với đầu vào sai định dạng hoặc vượt phạm vi; không nên coi việc thêm `L` vào cuối chuỗi là một bước chuyển kiểu.
+To parse hexadecimal or binary text, provide the corresponding radix, such as `Long.parseLong("FF", 16)` returning 255. String-parsing APIs also have to handle malformed or out-of-range input; appending `L` to the end of a string should not be treated as a type-conversion step.
 
-## 9. Những lỗi phổ biến và cách sửa
+## 9. Common Errors and Fixes
 
-| Trường hợp | Nguyên nhân | Cách sửa |
+| Case | Cause | Fix |
 | --- | --- | --- |
-| `long n = 3000000000;` | Literal thập phân không `L` vượt `int` | `long n = 3000000000L;` |
-| `long n = 2147483648;` | Kiểu biến không quyết định kiểu literal | `long n = 2147483648L;` |
-| `long n = 9223372036854775808L;` | Vượt `Long.MAX_VALUE` | Dùng `BigInteger` nếu cần số dương đó |
-| `int n = 3000000000L;` | Literal hợp lệ kiểu `long`, nhưng đích là `int` | Chọn `long` làm kiểu biến; chỉ chuyển hẹp khi đã kiểm tra |
-| `long x = 100000 * 100000;` | Phép nhân `int` tràn trước khi gán | `100000L * 100000` |
-| `long x = (long) (100000 * 100000);` | Ép kiểu kết quả đã tràn | Ép một toán hạng trước khi nhân |
-| `long x = Long.MAX_VALUE + 1L;` | Phép cộng `long` vẫn có thể tràn | `Math.addExact` để phát hiện; `BigInteger` nếu cần giá trị lớn hơn |
-| `Long.parseLong("123L")` | Hậu tố `L` chỉ thuộc cú pháp mã nguồn | `Long.parseLong("123")` |
-| `0xFFFF_FFFF` bị hiểu là số dương | Mẫu 32 bit có bit dấu 1 nên là `int` âm | Dùng `0xFFFF_FFFFL` nếu mong muốn 4_294_967_295 |
-| `3_000_L` | Gạch dưới đứng giữa chữ số và hậu tố | `3_000L` |
+| `long n = 3000000000;` | Unsuffixed decimal literal exceeds `int` | `long n = 3000000000L;` |
+| `long n = 2147483648;` | Variable type does not decide literal type | `long n = 2147483648L;` |
+| `long n = 9223372036854775808L;` | Exceeds `Long.MAX_VALUE` | Use `BigInteger` if that positive number is needed |
+| `int n = 3000000000L;` | Valid `long` literal, but target is `int` | Choose `long` as the variable type; only narrow after checking |
+| `long x = 100000 * 100000;` | `int` multiplication overflows before assignment | `100000L * 100000` |
+| `long x = (long) (100000 * 100000);` | Casting an already overflowed result | Cast one operand before multiplying |
+| `long x = Long.MAX_VALUE + 1L;` | `long` addition can still overflow | `Math.addExact` to detect; `BigInteger` if larger values are needed |
+| `Long.parseLong("123L")` | `L` suffix belongs only to source-code syntax | `Long.parseLong("123")` |
+| `0xFFFF_FFFF` mistaken as positive | 32-bit pattern has sign bit 1 so it is a negative `int` | Use `0xFFFF_FFFFL` if `4_294_967_295` is desired |
+| `3_000_L` | Underscore placed between digit and suffix | `3_000L` |
 
-## 10. Tự kiểm tra
+## 10. Self-Check
 
-1. **`long a = 5;` có hợp lệ không?** Có. `5` là literal `int` hợp lệ, được mở rộng sang `long`.
-2. **`long a = 2_147_483_648;` có hợp lệ không?** Không. Bản thân literal thập phân không `L` vượt giới hạn `int`.
-3. **`long a = -2_147_483_648;` có hợp lệ không?** Có. Java cho phép trường hợp đặc biệt biểu diễn `Integer.MIN_VALUE`, rồi mở rộng kết quả sang `long`.
-4. **`long a = 2_147_483_647 + 1;` cho giá trị gì?** `-2_147_483_648`, vì phép cộng `int` tràn trước khi gán. Nếu muốn `2_147_483_648`, viết `2_147_483_647L + 1`.
-5. **`int x = 0xFFFF_FFFF;` có hợp lệ không?** Có, `x == -1`. **`long y = 0xFFFF_FFFFL;`** có giá trị `4_294_967_295`.
-6. **Khi nào `L` không đủ?** Khi giá trị vượt cả `long`, khi kết quả phép toán `long` có thể tràn, hoặc khi muốn phát hiện tràn bằng ngoại lệ. Khi đó dùng `BigInteger` hoặc phép toán kiểm tra của `Math` theo nhu cầu.
+1. **Is `long a = 5;` valid?** Yes. `5` is a valid `int` literal, which is widened to `long`.
+2. **Is `long a = 2_147_483_648;` valid?** No. The unsuffixed decimal literal itself exceeds the `int` limit.
+3. **Is `long a = -2_147_483_648;` valid?** Yes. Java permits the special case representing `Integer.MIN_VALUE`, then widens the result to `long`.
+4. **What value does `long a = 2_147_483_647 + 1;` produce?** `-2_147_483_648`, because `int` addition overflows before assignment. If you want `2_147_483_648`, write `2_147_483_647L + 1`.
+5. **Is `int x = 0xFFFF_FFFF;` valid?** Yes, `x == -1`. **`long y = 0xFFFF_FFFFL;`** has the value `4_294_967_295`.
+6. **When is `L` not enough?** When the value exceeds even `long`, when the result of a `long` operation might overflow, or when you want to detect overflow via an exception. In those cases, use `BigInteger` or `Math`'s checked operations as needed.
 
-**Ghi nhớ:** `L` quyết định **kiểu của literal số nguyên ngay khi mã nguồn được phân tích**. Kiểu biến nhận kết quả không sửa được một literal vốn đã quá phạm vi, và phép gán sang `long` không khôi phục được phép tính `int` đã tràn. Hãy chọn kiểu đủ rộng **trước phép toán**, và sử dụng kiểm tra tràn khi tính chính xác là yêu cầu bắt buộc.
+**Remember:** `L` determines **the type of an integer literal as soon as source code is parsed**. The receiving variable's type cannot fix an already out-of-range literal, and assigning to `long` cannot recover an already overflowed `int` calculation. Choose a sufficiently wide type **before the operation**, and use overflow checking when exact calculation is a strict requirement.

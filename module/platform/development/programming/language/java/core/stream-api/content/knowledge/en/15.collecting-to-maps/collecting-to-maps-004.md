@@ -1,37 +1,37 @@
-# Chọn loại Map bằng mapFactory
+# Choosing the Map Type with mapFactory
 
-Trong Java Stream API, `Collectors.toMap` và `Collectors.groupingBy` có thể chuyển dữ liệu qua một pipeline `filter`, `map`, `collect` thành `Map<K, V>`. Kết quả đúng về **khóa và giá trị** chưa chắc đã đủ: có bài toán cần giữ thứ tự xuất hiện, có bài toán cần khóa được sắp xếp, có bài toán sử dụng enum làm khóa, và có bài toán cần một `ConcurrentMap` để tích lũy đồng thời. Khi đó, **`mapFactory`** cho phép chỉ định kiểu Map được tạo ra.
+In the Java Stream API, `Collectors.toMap` and `Collectors.groupingBy` can transform data through a `filter`, `map`, `collect` pipeline into a `Map<K, V>`. Getting the right **keys and values** is not always enough: some problems need to preserve encounter order, some need sorted keys, some use an enum as the key, and some need a `ConcurrentMap` for concurrent accumulation. In such cases, **`mapFactory`** lets you specify the concrete Map type to create.
 
-Bài học thuộc chương **Thu thập thành Map** của mô-đun **JAVA_STREAM_API**. Ta sẽ phân tích cách dùng `mapFactory` trong các overload của `toMap`, `groupingBy` và các collector đồng thời; thực hành `HashMap`, `LinkedHashMap`, `TreeMap`, `EnumMap`, `ConcurrentHashMap` và `ConcurrentSkipListMap`. Đồng thời, bài làm rõ hợp đồng về khóa trùng, giá trị `null`, comparator, thứ tự, trạng thái tích lũy, tính lazy và chi phí khi xử lý song song.
+This lesson belongs to the **Collecting to Maps** chapter of the **JAVA_STREAM_API** module. We will examine how to use `mapFactory` in the overloads of `toMap`, `groupingBy`, and concurrent collectors; practice with `HashMap`, `LinkedHashMap`, `TreeMap`, `EnumMap`, `ConcurrentHashMap`, and `ConcurrentSkipListMap`. At the same time, the lesson clarifies contracts regarding duplicate keys, `null` values, comparators, ordering, accumulation state, laziness, and parallel execution costs.
 
-## 1. Vì sao cần chọn loại Map?
+## 1. Why Do We Need to Choose the Map Type?
 
-Giả sử ứng dụng cần chuyển danh sách bản ghi đơn hàng thành các báo cáo:
+Suppose an application needs to convert a list of order records into reports:
 
-- Tra cứu đơn theo mã, không quan tâm thứ tự duyệt khóa.
-- Hiển thị các mã đơn theo **thứ tự xuất hiện lần đầu**.
-- Xuất báo cáo doanh thu có mã khu vực **sắp xếp theo khóa**.
-- Thống kê số đơn theo một `enum Status`, theo thứ tự khai báo của enum.
-- Gom dữ liệu từ Stream song song vào một cấu trúc đồng thời.
+- Look up orders by ID, without caring about key iteration order.
+- Display order IDs in **first-appearance order**.
+- Export a revenue report with region codes **sorted by key**.
+- Count orders by an `enum Status`, following the enum's declaration order.
+- Collect data from a parallel Stream into a concurrent structure.
 
-Tất cả đều có dạng kết quả `Map`, nhưng yêu cầu về **loại Map** khác nhau:
+All of these have a `Map` result shape, but their **Map type** requirements differ:
 
-| Loại Map | Đặc tính nổi bật | Khi nên cân nhắc |
+| Map Type | Key Characteristic | When to consider |
 | --- | --- | --- |
-| `HashMap` | Không bảo đảm thứ tự duyệt; tra cứu hash thông thường | Tra cứu khóa, không cần thứ tự |
-| `LinkedHashMap` | Duyệt theo thứ tự chèn mặc định | Kết quả hiển thị cần nhớ thứ tự khóa được gặp |
-| `TreeMap` | Khóa theo thứ tự comparator hoặc natural ordering | Báo cáo cần sắp xếp khóa |
-| `EnumMap<E, V>` | Chỉ dùng khóa thuộc một enum; duyệt theo thứ tự khai báo enum | Thống kê theo tập trạng thái cố định |
-| `ConcurrentHashMap` | Các thao tác cập nhật đồng thời được hỗ trợ; không bảo đảm thứ tự | Thu thập concurrent, khóa dùng hash |
-| `ConcurrentSkipListMap` | `ConcurrentNavigableMap` có thứ tự khóa | Cần đồng thời và thứ tự theo comparator |
+| `HashMap` | No iteration order guaranteed; standard hash lookup | Key lookup without ordering requirements |
+| `LinkedHashMap` | Iterates in insertion order by default | Display results that must remember key encounter order |
+| `TreeMap` | Keys ordered by comparator or natural ordering | Reports requiring sorted keys |
+| `EnumMap<E, V>` | Accepts keys of a single enum only; iterates in enum declaration order | Statistics over a fixed set of statuses |
+| `ConcurrentHashMap` | Supports concurrent update operations; no order guaranteed | Concurrent collection with hashed keys |
+| `ConcurrentSkipListMap` | `ConcurrentNavigableMap` with ordered keys | Need both concurrency and comparator ordering |
 
-**Chọn Map không tự giải quyết logic gom dữ liệu.** Để thu thập đúng, còn cần quyết định khóa lấy từ đâu, giá trị lấy từ đâu, xử lý khóa trùng như thế nào và có chấp nhận `null` hay không.
+**Choosing a Map does not automatically solve data-grouping logic.** To collect properly, you still need to decide where keys come from, where values come from, how duplicate keys are handled, and whether `null` is permitted.
 
-## 2. `mapFactory` là gì?
+## 2. What Is `mapFactory`?
 
-Trong các collector, `mapFactory` là **`Supplier<M>`**, tức hàm tạo ra một Map **mới** khi collector cần container tích lũy.
+In collectors, `mapFactory` is a **`Supplier<M>`**, i.e. a function that creates a **new** Map whenever the collector needs an accumulation container.
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.HashMap;
@@ -44,33 +44,33 @@ Supplier<LinkedHashMap<String, Integer>> linkedFactory = LinkedHashMap::new;
 Supplier<TreeMap<String, Integer>> treeFactory = TreeMap::new;
 ```
 
-Không nên đưa một Map đã có dữ liệu và dùng lại cùng đối tượng cho mọi lần thu thập:
+Do not pass an already-populated Map and reuse the exact same object across all collections:
 
 ```java
-// Sai về thiết kế: mọi lần gọi supplier trả về cùng một container.
+// Design flaw: every call to the supplier returns the same container.
 HashMap<String, Integer> shared = new HashMap<>();
 Supplier<HashMap<String, Integer>> unsafeFactory = () -> shared;
 ```
 
-Một collector có thể tạo nhiều Map khi xử lý song song hoặc khi có nhiều lời gọi `collect` độc lập. Supplier trả về cùng một Map dùng chung dễ làm lẫn dữ liệu và gây lỗi đồng thời.
+A collector may create multiple Maps during parallel processing or across independent `collect` calls. A supplier returning the same shared Map easily mixes data and causes concurrency bugs.
 
-Sơ đồ ý nghĩa:
+Conceptual flow:
 
 ```text
 List<Order>
     |
-    | stream().filter(...): thao tác trung gian lazy
+    | stream().filter(...): lazy intermediate operation
     v
 Stream<Order>
     |
     | collect(toMap(..., mapFactory)): terminal operation
     v
-mapFactory.get() ---> Map mới ---> thêm/gộp các entry ---> Map kết quả
+mapFactory.get() ---> new Map ---> add/merge entries ---> result Map
 ```
 
-## 3. `Collectors.toMap` với `mapFactory`
+## 3. `Collectors.toMap` with `mapFactory`
 
-Overload quan trọng nhất ở đây có dạng:
+The primary overload here has the signature:
 
 ```java
 public static <T, K, U, M extends Map<K, U>> Collector<T, ?, M> toMap(
@@ -81,18 +81,18 @@ public static <T, K, U, M extends Map<K, U>> Collector<T, ?, M> toMap(
 )
 ```
 
-Bốn tham số có vai trò khác nhau:
+The four parameters serve distinct roles:
 
-| Tham số | Vai trò | Ví dụ |
+| Parameter | Role | Example |
 | --- | --- | --- |
-| `keyMapper` | Tạo khóa `K` từ phần tử `T` | `Order::id` |
-| `valueMapper` | Tạo giá trị `U` | `Function.identity()` |
-| `mergeFunction` | Xử lý khi hai phần tử có khóa trùng theo Map đang dùng | `(oldValue, newValue) -> newValue` |
-| `mapFactory` | Quyết định kiểu container `M` | `LinkedHashMap::new` |
+| `keyMapper` | Produces key `K` from element `T` | `Order::id` |
+| `valueMapper` | Produces value `U` | `Function.identity()` |
+| `mergeFunction` | Handles when two elements have duplicate keys under the target Map | `(oldValue, newValue) -> newValue` |
+| `mapFactory` | Determines the container type `M` | `LinkedHashMap::new` |
 
-`mergeFunction` là thành phần **bắt buộc trong overload này**, kể cả khi dữ liệu hiện tại có khóa duy nhất. Nếu muốn dùng overload hai tham số `toMap(keyMapper, valueMapper)`, cần chấp nhận Map được triển khai bằng loại không được bảo đảm và ngoại lệ khi gặp khóa trùng.
+`mergeFunction` is a **required parameter in this overload**, even if the current dataset has unique keys. If you want to use the two-argument overload `toMap(keyMapper, valueMapper)`, you must accept an unspecified Map implementation type and an exception on duplicate keys.
 
-### 3.1. Dùng `HashMap` cho tra cứu thông thường
+### 3.1. Using `HashMap` for general lookup
 
 ```java
 import java.util.HashMap;
@@ -103,8 +103,8 @@ import java.util.stream.Collectors;
 record Product(String sku, String name) {}
 
 List<Product> products = List.of(
-    new Product("P-01", "Bàn"),
-    new Product("P-02", "Ghế")
+    new Product("P-01", "Desk"),
+    new Product("P-02", "Chair")
 );
 
 HashMap<String, Product> bySku = products.stream()
@@ -115,14 +115,14 @@ HashMap<String, Product> bySku = products.stream()
         HashMap::new
     ));
 
-System.out.println(bySku.get("P-01").name()); // Bàn
+System.out.println(bySku.get("P-01").name()); // Desk
 ```
 
-`HashMap` thích hợp khi chỉ cần tra cứu `get(key)` và **không dùng thứ tự duyệt làm hợp đồng**. Việc kết quả có vẻ được sắp xếp ở một lần chạy không có nghĩa `HashMap` bảo đảm thứ tự.
+`HashMap` is appropriate when you only need `get(key)` lookups and **do not rely on iteration order as a contract**. Seeing entries appear sorted in a single run does not mean `HashMap` guarantees order.
 
-### 3.2. Dùng `LinkedHashMap` để giữ thứ tự chèn
+### 3.2. Using `LinkedHashMap` to preserve insertion order
 
-Giả sử dữ liệu đến theo thứ tự `P-03`, `P-01`, `P-02` và màn hình cần duyệt các SKU theo chính thứ tự xuất hiện:
+Suppose data arrives in the order `P-03`, `P-01`, `P-02` and the UI needs to iterate SKUs in that exact appearance order:
 
 ```java
 import java.util.LinkedHashMap;
@@ -130,9 +130,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 List<Product> products = List.of(
-    new Product("P-03", "Đèn"),
-    new Product("P-01", "Bàn"),
-    new Product("P-02", "Ghế")
+    new Product("P-03", "Lamp"),
+    new Product("P-01", "Desk"),
+    new Product("P-02", "Chair")
 );
 
 LinkedHashMap<String, String> namesBySku = products.stream()
@@ -146,11 +146,11 @@ LinkedHashMap<String, String> namesBySku = products.stream()
 System.out.println(namesBySku.keySet()); // [P-03, P-01, P-02]
 ```
 
-`LinkedHashMap` mặc định duyệt theo **thứ tự chèn khóa**, không tự sắp xếp theo giá trị hoặc khóa. Trong pipeline **tuần tự** và nguồn `List` có thứ tự như ví dụ, thứ tự đó phản ánh lần gặp đầu của mỗi SKU.
+`LinkedHashMap` iterates in **key insertion order** by default, rather than sorting by value or key. In a **sequential** pipeline over an ordered `List` like this example, that order reflects the first encounter of each SKU.
 
-Với khóa trùng, một lần thay giá trị bằng `Map.merge` không khiến khóa cũ tự chuyển xuống cuối trong `LinkedHashMap` mặc định. Nếu nghiệp vụ muốn thứ tự **truy cập gần nhất**, đó là cơ chế khác của `LinkedHashMap` (access order) và phải thiết kế riêng; đừng mặc nhiên hiểu `LinkedHashMap::new` là access order.
+On duplicate keys, replacing a value via `Map.merge` does not move the old key to the end in a default `LinkedHashMap`. If the business requires **most-recently-accessed** order, that is a separate `LinkedHashMap` mode (access order) and must be designed explicitly; do not assume `LinkedHashMap::new` provides access order.
 
-### 3.3. Dùng `TreeMap` để sắp xếp theo khóa
+### 3.3. Using `TreeMap` to sort by key
 
 ```java
 import java.util.List;
@@ -158,9 +158,9 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 List<Product> products = List.of(
-    new Product("P-03", "Đèn"),
-    new Product("P-01", "Bàn"),
-    new Product("P-02", "Ghế")
+    new Product("P-03", "Lamp"),
+    new Product("P-01", "Desk"),
+    new Product("P-02", "Chair")
 );
 
 TreeMap<String, String> sorted = products.stream()
@@ -174,9 +174,9 @@ TreeMap<String, String> sorted = products.stream()
 System.out.println(sorted.keySet()); // [P-01, P-02, P-03]
 ```
 
-`TreeMap::new` ở đây dùng thứ tự tự nhiên của `String`. Thứ tự tự nhiên này **không phải bộ quy tắc xếp chữ theo ngôn ngữ Việt**. Nếu nghiệp vụ yêu cầu so sánh theo ngôn ngữ hoặc kiểu không có natural ordering, cần chọn comparator phù hợp.
+`TreeMap::new` here uses the natural ordering of `String`. This natural ordering **is not a Vietnamese alphabetical collation rule**. If the domain requires locale-specific comparison or a type without natural ordering, select an appropriate comparator.
 
-Ví dụ sắp xếp khóa theo thứ tự ngược:
+Example sorting keys in reverse order:
 
 ```java
 import java.util.Comparator;
@@ -192,11 +192,11 @@ TreeMap<String, String> descending = products.stream()
 System.out.println(descending.keySet()); // [P-03, P-02, P-01]
 ```
 
-Với `TreeMap`, comparator **không chỉ ảnh hưởng thứ tự**; nó còn xác định hai khóa nào được xem là tương đương thông qua `compare(k1, k2) == 0`. Đây là điểm rất quan trọng khi xử lý khóa trùng.
+With `TreeMap`, the comparator **does not affect only ordering**; it also determines which two keys are considered equivalent via `compare(k1, k2) == 0`. This is a crucial point when handling duplicate keys.
 
-## 4. Comparator của `TreeMap` có thể làm xuất hiện khóa trùng
+## 4. A `TreeMap` Comparator Can Introduce Duplicate Keys
 
-Xét hai chuỗi `"API"` và `"api"`. `String.equals` xem chúng khác nhau, nhưng `String.CASE_INSENSITIVE_ORDER` so sánh chúng bằng 0.
+Consider the two strings `"API"` and `"api"`. `String.equals` treats them as different, but `String.CASE_INSENSITIVE_ORDER` compares them as 0.
 
 ```java
 import java.util.List;
@@ -219,15 +219,15 @@ System.out.println(counts.get("api"));   // 2
 System.out.println(counts.get("Java"));  // 1
 ```
 
-Dù `"API"` và `"api"` khác nhau khi gọi `equals`, Map này xem chúng là một khóa logic. Hàm `Integer::sum` gộp hai giá trị thành 2.
+Even though `"API"` and `"api"` differ under `equals`, this Map treats them as one logical key. `Integer::sum` merges the two values into 2.
 
-Đây có thể là chủ đích nghiệp vụ (gộp khóa không phân biệt hoa/thường), nhưng cũng có thể là lỗi nếu mã định danh phải phân biệt chữ hoa. Một comparator không nhất quán với `equals` còn có thể làm việc tuân thủ đầy đủ hợp đồng `Map` trở nên khó khăn khi trao đổi với các kiểu Map khác; hãy chọn ngữ nghĩa khóa có chủ đích và kiểm thử.
+This may be intentional (merging keys case-insensitively), or it may be a bug if identifiers must be case-sensitive. A comparator inconsistent with `equals` can also make full adherence to the general `Map` contract subtle when interoperating with other Map types; choose key semantics deliberately and test them.
 
-Không dùng comparator chỉ để “trang trí cách hiển thị” nếu nó có thể hợp nhất các khóa cần giữ riêng. Nếu chỉ muốn hiển thị theo thứ tự tùy chỉnh, đôi khi nên giữ Map gốc và **sắp xếp tập entry khi xuất báo cáo**.
+Do not use a comparator purely for "display formatting" if it could merge keys that must stay separate. If you only want to display entries in a custom order, it is often better to keep the original Map and **sort the entry set when rendering the report**.
 
-## 5. `mergeFunction` giải quyết va chạm khóa thế nào?
+## 5. How Does `mergeFunction` Resolve Key Collisions?
 
-Bất kỳ collector đưa nhiều phần tử vào Map đều cần một chiến lược khi khóa bị lặp.
+Any collector placing multiple elements into a Map needs a strategy when keys repeat.
 
 ```java
 record Price(String sku, long amountVnd) {}
@@ -239,17 +239,17 @@ List<Price> prices = List.of(
 );
 ```
 
-Các lựa chọn:
+Options:
 
-| Chính sách | Hàm merge | Kết quả cho `P-01` |
+| Policy | Merge function | Result for `P-01` |
 | --- | --- | --- |
-| Giữ giá trị cũ trong pipeline tuần tự | `(oldValue, incoming) -> oldValue` | `100000` |
-| Giữ giá trị mới trong pipeline tuần tự | `(oldValue, incoming) -> incoming` | `50000` |
-| Cộng giá trị | `Long::sum` | `150000` |
-| Lấy lớn nhất | `Long::max` | `100000` |
-| Báo lỗi nếu khóa trùng | Ném `IllegalStateException` | Thu thập thất bại |
+| Keep old value in sequential pipeline | `(oldValue, incoming) -> oldValue` | `100000` |
+| Keep new value in sequential pipeline | `(oldValue, incoming) -> incoming` | `50000` |
+| Sum values | `Long::sum` | `150000` |
+| Take maximum | `Long::max` | `100000` |
+| Fail if duplicate key | Throw `IllegalStateException` | Collection fails |
 
-Ví dụ cộng giá trị và giữ thứ tự xuất hiện của từng khóa:
+Example summing values while preserving first-appearance order of each key:
 
 ```java
 import java.util.LinkedHashMap;
@@ -266,7 +266,7 @@ LinkedHashMap<String, Long> totals = prices.stream()
 System.out.println(totals); // {P-01=150000, P-02=200000}
 ```
 
-Nếu khóa phải **duy nhất**, không nên âm thầm lấy bản ghi đầu hoặc cuối. Hãy khai báo chính sách phát hiện lỗi:
+If keys must be **unique**, do not silently pick the first or last record. Declare an error-detection policy:
 
 ```java
 HashMap<String, Price> unique = prices.stream()
@@ -275,21 +275,21 @@ HashMap<String, Price> unique = prices.stream()
         java.util.function.Function.identity(),
         (left, right) -> {
             throw new IllegalStateException(
-                "Trùng SKU: " + left.sku()
+                "Duplicate SKU: " + left.sku()
             );
         },
         HashMap::new
     ));
-// Ví dụ cố ý phát sinh ngoại lệ vì P-01 xuất hiện hai lần.
+// Example intentionally throws an exception because P-01 appears twice.
 ```
 
-**Lưu ý về song song:** Các phép gộp như `Long::sum`, `Long::max` có tính kết hợp theo phép toán được chọn và dễ lý giải khi chia nhóm. Chính sách “giữ giá trị mới nhất theo thời gian” nên so sánh **timestamp hoặc revision thực sự** trong dữ liệu thay vì dựa mơ hồ vào thời điểm một nhánh song song chạy xong. Nếu phải phân xử các bản ghi có cùng revision, hãy định nghĩa rõ cách phá hòa.
+**Parallel note:** Merges like `Long::sum` and `Long::max` are associative for the chosen operation and easy to reason about when partitions are combined. A "keep latest by time" policy should compare **actual timestamps or revisions** in the data rather than vaguely relying on when a parallel branch finishes. If records with the same revision must be arbitrated, define an explicit tie-breaker.
 
-Một merge function trả về `null` có thể khiến entry bị xóa theo hợp đồng `Map.merge`; đây thường **không phải** cách mong muốn để xử lý khóa trùng và cần được tránh nếu nghiệp vụ không có quy tắc xóa cụ thể.
+A merge function returning `null` can cause the entry to be removed per the `Map.merge` contract; this is usually **not** the desired way to handle duplicate keys and should be avoided unless the business has an explicit deletion rule.
 
-## 6. Chọn Map cho `Collectors.groupingBy`
+## 6. Choosing a Map for `Collectors.groupingBy`
 
-`groupingBy` thường có dạng nhận **classifier** (hàm chọn khóa) và downstream collector. Overload cho phép chọn Map:
+`groupingBy` typically takes a **classifier** (key-extracting function) and a downstream collector. The overload that lets you select the Map is:
 
 ```java
 public static <T, K, D, A, M extends Map<K, D>> Collector<T, ?, M> groupingBy(
@@ -299,9 +299,9 @@ public static <T, K, D, A, M extends Map<K, D>> Collector<T, ?, M> groupingBy(
 )
 ```
 
-Khác biệt đáng nhớ: `groupingBy` **không nhận mergeFunction trực tiếp**. Nó đưa các phần tử cùng khóa vào **downstream collector** của nhóm đó. `mapFactory` được đặt ở **tham số thứ hai**, trước downstream.
+A memorable difference: `groupingBy` **does not take a mergeFunction directly**. It feeds elements with the same key into that group's **downstream collector**. `mapFactory` sits in the **second parameter**, before downstream.
 
-### 6.1. `LinkedHashMap`: nhóm theo thứ tự gặp lần đầu
+### 6.1. `LinkedHashMap`: grouping in first-seen order
 
 ```java
 import java.util.LinkedHashMap;
@@ -312,10 +312,10 @@ import java.util.stream.Collectors;
 record Sale(String region, String sku, long amountVnd) {}
 
 List<Sale> sales = List.of(
-    new Sale("Nam",   "P-01", 100_000L),
-    new Sale("Bắc",   "P-02",  50_000L),
-    new Sale("Nam",   "P-03", 150_000L),
-    new Sale("Trung", "P-04",  70_000L)
+    new Sale("South",   "P-01", 100_000L),
+    new Sale("North",   "P-02",  50_000L),
+    new Sale("South",   "P-03", 150_000L),
+    new Sale("Central", "P-04",  70_000L)
 );
 
 LinkedHashMap<String, Long> revenueByRegion = sales.stream()
@@ -326,12 +326,12 @@ LinkedHashMap<String, Long> revenueByRegion = sales.stream()
     ));
 
 System.out.println(revenueByRegion);
-// {Nam=250000, Bắc=50000, Trung=70000}
+// {South=250000, North=50000, Central=70000}
 ```
 
-Với nguồn `List` và pipeline tuần tự, khóa được thêm theo thứ tự lần đầu gặp: `Nam`, `Bắc`, `Trung`. Trong mỗi nhóm, `summingLong` cộng toàn bộ doanh thu. Lưu ý tổng `long` vẫn có thể tràn nếu dữ liệu vượt giới hạn số nguyên 64 bit.
+With a `List` source and a sequential pipeline, keys are added in first-encounter order: `South`, `North`, `Central`. Inside each group, `summingLong` sums all revenue. Note that a `long` sum can still overflow if data exceeds the 64-bit integer limit.
 
-### 6.2. `TreeMap`: thống kê theo khóa đã sắp xếp
+### 6.2. `TreeMap`: statistics by sorted keys
 
 ```java
 import java.util.TreeMap;
@@ -344,14 +344,14 @@ TreeMap<String, Long> sortedRevenue = sales.stream()
     ));
 
 System.out.println(sortedRevenue.keySet());
-// [Bắc, Nam, Trung] theo natural ordering của String.
+// [Central, North, South] in natural ordering of String.
 ```
 
-`TreeMap` giữ thứ tự khóa theo comparator hoặc natural ordering, không theo thứ tự gặp dữ liệu. Nếu cần bảng xuất báo cáo có thứ tự khóa ổn định, đây là một lựa chọn rõ ý nghĩa.
+`TreeMap` keeps keys in comparator or natural order, not data-encounter order. When exporting a report with a stable key ordering is required, this is an expressive choice.
 
-### 6.3. `EnumMap`: nhóm theo enum
+### 6.3. `EnumMap`: grouping by enum
 
-Khi khóa thuộc một enum xác định, `EnumMap` là lựa chọn phù hợp và thường gọn hơn Map dựa trên hash tổng quát.
+When keys belong to a fixed enum, `EnumMap` is a fitting choice and is generally more compact than a general hash-based Map.
 
 ```java
 import java.util.EnumMap;
@@ -378,9 +378,9 @@ System.out.println(counts);
 // {CREATED=1, PAID=2}
 ```
 
-`EnumMap` duyệt theo **thứ tự khai báo của enum**, không theo thứ tự gặp bản ghi. Nhóm `CANCELLED` không có phần tử nên **không tự có entry** trong kết quả.
+`EnumMap` iterates in **enum declaration order**, not record encounter order. The `CANCELLED` group has no elements, so it **does not automatically get an entry** in the result.
 
-Nếu báo cáo yêu cầu đầy đủ tất cả trạng thái kể cả số lượng bằng 0, có thể bổ sung tường minh sau khi thu thập:
+If a report requires all statuses including zero counts, you can add them explicitly after collecting:
 
 ```java
 for (Status status : Status.values()) {
@@ -391,24 +391,24 @@ System.out.println(counts);
 // {CREATED=1, PAID=2, CANCELLED=0}
 ```
 
-Khi đó mọi khóa hợp lệ của enum đều hiện diện. Nếu chỉ quan tâm trạng thái có dữ liệu, không cần bước bổ sung.
+Then every valid enum key is present. If you only care about statuses with data, no extra step is needed.
 
-## 7. `MapFactory` và collector đồng thời
+## 7. `MapFactory` and Concurrent Collectors
 
-Khi cần thu thập trên nhiều luồng và thực sự muốn cơ chế concurrent accumulation, Java cung cấp các collector khác:
+When collecting across multiple threads and you genuinely want concurrent accumulation, Java provides separate collectors:
 
 ```java
 Collectors.toConcurrentMap(keyMapper, valueMapper, mergeFunction, mapFactory)
 Collectors.groupingByConcurrent(classifier, mapFactory, downstream)
 ```
 
-Điểm khác biệt quan trọng:
+Key differences:
 
-- `toMap` và `groupingBy` có thể dùng với **parallel Stream**, bằng cách tạo các Map trung gian rồi kết hợp. Việc chúng dùng `HashMap` hoặc `LinkedHashMap` không có nghĩa từng Map được nhiều luồng cập nhật đồng thời.
-- `toConcurrentMap` và `groupingByConcurrent` cung cấp các collector **concurrent, unordered**. Khi được phép về mặt ngữ nghĩa, việc tích lũy có thể diễn ra đồng thời trong cùng một container.
-- `mapFactory` của các collector concurrent phải cung cấp kiểu `M extends ConcurrentMap<K, V>`, không phải `HashMap` hay `LinkedHashMap`.
+- `toMap` and `groupingBy` can be used with a **parallel Stream** by creating intermediate Maps and combining them. Using `HashMap` or `LinkedHashMap` does not mean a single Map is updated concurrently by multiple threads.
+- `toConcurrentMap` and `groupingByConcurrent` provide **concurrent, unordered** collectors. When semantically permitted, accumulation can happen concurrently in the same container.
+- The `mapFactory` of concurrent collectors must supply a type `M extends ConcurrentMap<K, V>`, not `HashMap` or `LinkedHashMap`.
 
-### 7.1. Dùng `ConcurrentHashMap`
+### 7.1. Using `ConcurrentHashMap`
 
 ```java
 import java.util.concurrent.ConcurrentHashMap;
@@ -417,9 +417,9 @@ import java.util.stream.Collectors;
 record Payment(String region, long amountVnd) {}
 
 List<Payment> payments = List.of(
-    new Payment("Nam", 100_000L),
-    new Payment("Bắc",  50_000L),
-    new Payment("Nam", 200_000L)
+    new Payment("South", 100_000L),
+    new Payment("North",  50_000L),
+    new Payment("South", 200_000L)
 );
 
 ConcurrentHashMap<String, Long> totals = payments.parallelStream()
@@ -430,15 +430,15 @@ ConcurrentHashMap<String, Long> totals = payments.parallelStream()
         ConcurrentHashMap::new
     ));
 
-System.out.println(totals.get("Nam")); // 300000
-System.out.println(totals.get("Bắc")); // 50000
+System.out.println(totals.get("South")); // 300000
+System.out.println(totals.get("North")); // 50000
 ```
 
-`ConcurrentHashMap` không bảo đảm thứ tự duyệt các khóa. Phép cộng `Long::sum` là chính sách merge phù hợp cho tổng nhóm khi phạm vi `long` đủ.
+`ConcurrentHashMap` does not guarantee key iteration order. Addition `Long::sum` is an appropriate merge policy for group totals when the `long` range suffices.
 
-**Không** dùng `ConcurrentHashMap` chỉ để được phép gọi `parallelStream()`. Nếu dữ liệu nhỏ hoặc yêu cầu giữ thứ tự, phương án tuần tự với Map thích hợp có thể đơn giản và nhanh hơn.
+**Do not** use `ConcurrentHashMap` merely to be able to call `parallelStream()`. If the dataset is small or ordering is required, a sequential approach with an appropriate Map can be simpler and faster.
 
-### 7.2. Dùng `ConcurrentSkipListMap` khi cần vừa concurrent vừa sắp khóa
+### 7.2. Using `ConcurrentSkipListMap` when both concurrency and sorted keys are needed
 
 ```java
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -453,12 +453,12 @@ ConcurrentSkipListMap<String, Long> sortedTotals =
             ConcurrentSkipListMap::new
         ));
 
-System.out.println(sortedTotals.keySet()); // [Bắc, Nam]
+System.out.println(sortedTotals.keySet()); // [North, South]
 ```
 
-`ConcurrentSkipListMap` là một `ConcurrentNavigableMap`, nên việc duyệt khóa tuân theo thứ tự đã định của comparator/natural ordering. Nhưng collector vẫn có đặc tính `UNORDERED`: thứ tự **gặp phần tử nguồn** không được bảo đảm như một danh sách. Thứ tự của `keySet()` ở ví dụ là **thứ tự khóa đã sắp xếp**, hai khái niệm khác nhau.
+`ConcurrentSkipListMap` is a `ConcurrentNavigableMap`, so key traversal follows its comparator/natural ordering. However, the collector still has the `UNORDERED` characteristic: **source element encounter order** is not guaranteed like a list. The order of `keySet()` in the example is **sorted key order**, which is a different concept.
 
-### 7.3. `groupingByConcurrent` với mapFactory
+### 7.3. `groupingByConcurrent` with mapFactory
 
 ```java
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -473,11 +473,11 @@ ConcurrentSkipListMap<String, Long> countsByRegion =
         ));
 ```
 
-Bảng kết quả `countsByRegion` sắp khóa theo thứ tự tự nhiên. `Collectors.counting()` là downstream collector cho số phần tử mỗi nhóm. Không suy từ chữ “Concurrent” rằng mọi downstream collector hoặc mỗi thao tác tích lũy trên từng giá trị đều **không khóa**; việc triển khai có thể cần phối hợp để giữ tính đúng.
+The resulting `countsByRegion` sorts keys in natural order. `Collectors.counting()` is the downstream collector for the element count per group. Do not infer from the word "Concurrent" that every downstream collector or every accumulation step per value is **lock-free**; implementations may still coordinate to maintain correctness.
 
-## 8. Một ví dụ Java 17 hoàn chỉnh với bốn lựa chọn Map
+## 8. A Complete Java 17 Example with Four Map Choices
 
-Ví dụ bên dưới có thể biên dịch và chạy độc lập; các phần khác trong bài là snippet dùng các kiểu được khai báo trong mục tương ứng.
+The example below compiles and runs standalone; other sections in this lesson are snippets using the types declared in their respective sections.
 
 ```java
 import java.util.EnumMap;
@@ -496,14 +496,14 @@ public class MapFactoryDemo {
 
     public static void main(String[] args) {
         List<Order> orders = List.of(
-            new Order("O-02", "Nam", Status.PAID,     120_000L),
-            new Order("O-01", "Bắc", Status.NEW,       80_000L),
-            new Order("O-02", "Nam", Status.REFUNDED,  120_000L),
-            new Order("O-03", "Trung", Status.PAID,    200_000L)
+            new Order("O-02", "South",   Status.PAID,     120_000L),
+            new Order("O-01", "North",   Status.NEW,       80_000L),
+            new Order("O-02", "South",   Status.REFUNDED, 120_000L),
+            new Order("O-03", "Central", Status.PAID,     200_000L)
         );
 
-        // 1. Mã đơn theo thứ tự xuất hiện lần đầu; bản ghi sau ghi đè
-        // giá trị cũ nếu trùng mã trong luồng tuần tự.
+        // 1. Order IDs in first-appearance order; a later record overwrites
+        // the old value on duplicate ID in a sequential stream.
         LinkedHashMap<String, Order> byId = orders.stream()
             .collect(Collectors.toMap(
                 Order::id,
@@ -512,7 +512,7 @@ public class MapFactoryDemo {
                 LinkedHashMap::new
             ));
 
-        // 2. Nhóm doanh thu đơn PAID; khóa region được sắp xếp.
+        // 2. Group revenue of PAID orders; region keys are sorted.
         TreeMap<String, Long> paidByRegion = orders.stream()
             .filter(order -> order.status() == Status.PAID)
             .collect(Collectors.groupingBy(
@@ -521,7 +521,7 @@ public class MapFactoryDemo {
                 Collectors.summingLong(Order::amountVnd)
             ));
 
-        // 3. Nhóm theo enum, duyệt theo thứ tự khai báo enum.
+        // 3. Group by enum, iterating in enum declaration order.
         EnumMap<Status, Long> countByStatus = orders.stream()
             .collect(Collectors.groupingBy(
                 Order::status,
@@ -529,7 +529,7 @@ public class MapFactoryDemo {
                 Collectors.counting()
             ));
 
-        // 4. Tổng hợp song song vào ConcurrentMap có thứ tự khóa.
+        // 4. Parallel aggregation into a ConcurrentMap with sorted keys.
         ConcurrentSkipListMap<String, Long> paidParallel =
             orders.parallelStream()
                 .filter(order -> order.status() == Status.PAID)
@@ -549,31 +549,31 @@ public class MapFactoryDemo {
 }
 ```
 
-Kết quả dự kiến:
+Expected output:
 
 ```text
 [O-02, O-01, O-03]
 REFUNDED
-{Nam=120000, Trung=200000}
+{Central=200000, South=120000}
 {NEW=1, PAID=2, REFUNDED=1}
-{Nam=120000, Trung=200000}
+{Central=200000, South=120000}
 ```
 
-Bốn Map có mục đích khác nhau: `LinkedHashMap` giữ thứ tự chèn khóa, `TreeMap` sắp khóa khu vực, `EnumMap` sắp khóa theo enum, còn `ConcurrentSkipListMap` cho phép tích lũy concurrent và giữ thứ tự khóa. Không phải mọi bài toán đều cần bốn collector; ví dụ chỉ giúp so sánh tác động của lựa chọn `mapFactory`.
+The four Maps serve different purposes: `LinkedHashMap` preserves key insertion order, `TreeMap` sorts region keys, `EnumMap` orders keys by enum declaration, and `ConcurrentSkipListMap` allows concurrent accumulation with sorted keys. Not every problem needs four collectors; the example simply helps compare the effect of `mapFactory` choices.
 
-## 9. `null`, khóa trùng và hợp đồng của từng Map
+## 9. `null`, Duplicate Keys, and Each Map's Contract
 
-### 9.1. `null` không được xử lý giống nhau ở mọi collector
+### 9.1. `null` is not handled the same way across all collectors
 
-`HashMap` cho phép một khóa `null` trong API Map thông thường; `ConcurrentHashMap` và `ConcurrentSkipListMap` không cho phép khóa/giá trị `null`. `TreeMap` dùng natural ordering không cho phép khóa `null`. `EnumMap` không cho phép khóa `null`.
+`HashMap` permits one `null` key in the regular Map API; `ConcurrentHashMap` and `ConcurrentSkipListMap` forbid `null` keys and values. `TreeMap` with natural ordering forbids `null` keys. `EnumMap` forbids `null` keys.
 
-Hơn nữa, **collector có hợp đồng riêng**:
+Moreover, **collectors have their own contracts**:
 
-- `Collectors.groupingBy` không chấp nhận classifier trả về `null`, ngay cả khi `mapFactory` trả về `HashMap`. Nhãn nhóm phải được chuẩn hóa, lọc hoặc thay bằng khóa có ý nghĩa.
-- `Collectors.toMap` không nên được dùng với `valueMapper` có thể trả về `null`. Các overload có merge dùng `Map.merge`, vốn từ chối giá trị được đưa vào là `null`. Để biểu diễn “thiếu giá trị”, cân nhắc `Optional` hoặc xử lý dữ liệu trước.
-- Với `Collectors.toConcurrentMap`, khóa và giá trị `null` không hợp lệ theo hợp đồng `ConcurrentMap` tương ứng.
+- `Collectors.groupingBy` does not accept a classifier returning `null`, even if `mapFactory` returns a `HashMap`. Group labels must be normalized, filtered, or replaced with a meaningful key.
+- `Collectors.toMap` should not be used with a `valueMapper` that can return `null`. Overloads with a merge function use `Map.merge`, which rejects a `null` incoming value. To represent "missing value", consider `Optional` or preprocess the data.
+- For `Collectors.toConcurrentMap`, `null` keys and values are invalid under the corresponding `ConcurrentMap` contract.
 
-Ví dụ chuẩn hóa khóa nhóm rỗng thành nhãn có ý nghĩa:
+Example normalizing a null group key into a meaningful label:
 
 ```java
 import java.util.HashMap;
@@ -582,39 +582,39 @@ import java.util.stream.Collectors;
 record User(String city) {}
 
 List<User> users = List.of(
-    new User("Hà Nội"), new User(null), new User("Hà Nội")
+    new User("Hanoi"), new User(null), new User("Hanoi")
 );
 
 HashMap<String, Long> counts = users.stream()
     .collect(Collectors.groupingBy(
-        user -> user.city() == null ? "CHUA_XAC_DINH" : user.city(),
+        user -> user.city() == null ? "UNKNOWN" : user.city(),
         HashMap::new,
         Collectors.counting()
     ));
 
-System.out.println(counts.get("CHUA_XAC_DINH")); // 1
+System.out.println(counts.get("UNKNOWN")); // 1
 ```
 
-Khi dùng giá trị đại diện cho `null`, phải chọn một khóa không xung đột với giá trị hợp lệ của nghiệp vụ. Trong các hệ thống lớn, có thể dùng kiểu khóa riêng thay vì một chuỗi cố định.
+When using a placeholder value for `null`, choose a key that cannot collide with valid business values. In larger systems, you can use a dedicated key type rather than a fixed sentinel string.
 
-### 9.2. Coi Comparator là một phần của quy tắc khóa
+### 9.2. Treat the Comparator as part of the key rule
 
-Trong `TreeMap`, hai khóa trùng nếu comparator báo bằng 0, ngay cả khi `equals` khác. Vì vậy phải kiểm thử cả **so sánh khóa**, **mergeFunction** và **loại Map** như một bộ thống nhất.
+In `TreeMap`, two keys collide if the comparator returns 0, even when `equals` differs. Therefore you must test **key comparison**, **`mergeFunction`**, and **Map type** together as a single cohesive unit.
 
-### 9.3. Vì sao không dùng `IdentityHashMap` tùy tiện?
+### 9.3. Why not use `IdentityHashMap` casually?
 
-`IdentityHashMap` so sánh khóa theo **tham chiếu (`==`)** thay vì `equals`. Đây là hợp đồng khác với phần lớn quy tắc tra cứu khóa nghiệp vụ. `mapFactory` không phải nơi thay đổi ngữ nghĩa khóa một cách vô tình; chỉ dùng cấu trúc như vậy khi bài toán thật sự cần so sánh danh tính đối tượng.
+`IdentityHashMap` compares keys by **reference (`==`)** rather than `equals`. That contract differs from almost all business key-lookup rules. `mapFactory` is not the place to accidentally change key equality semantics; only use such a structure when the problem truly requires object identity comparison.
 
-## 10. Khi muốn Map không thể sửa
+## 10. When You Want an Unmodifiable Map
 
-`mapFactory` quyết định cấu trúc Map **được tạo**, nhưng không mặc nhiên tạo một Map bất biến.
+`mapFactory` determines the Map structure **created**, but it does not automatically create an unmodifiable Map.
 
-Có hai mục tiêu riêng:
+There are two separate goals:
 
-1. Chọn cách lưu khóa (`LinkedHashMap`, `TreeMap`, `EnumMap`,...).
-2. Quy định bên nhận kết quả có được phép `put`/`remove` hay không.
+1. Choose how keys are stored (`LinkedHashMap`, `TreeMap`, `EnumMap`, ...).
+2. Specify whether callers receiving the result are allowed to call `put`/`remove`.
 
-Để tạo kết quả không thể sửa, có thể dùng `collectingAndThen` với bước hoàn tất:
+To produce an unmodifiable result, you can use `collectingAndThen` with a finishing step:
 
 ```java
 import java.util.Collections;
@@ -635,61 +635,61 @@ Map<String, String> stableNames = products.stream()
         )
     ));
 
-// stableNames.put("P-99", "Mới"); // UnsupportedOperationException
+// stableNames.put("P-99", "New"); // UnsupportedOperationException
 ```
 
-Bản sao `new LinkedHashMap<>(collected)` giữ thứ tự duyệt và tách kết quả khỏi Map tích lũy bên trong; `Collections.unmodifiableMap` cung cấp một **view không cho phép chỉnh sửa** trên bản sao đó. Nếu các *giá trị* là đối tượng mutable, việc bọc Map không làm đối tượng giá trị trở nên bất biến sâu.
+The `new LinkedHashMap<>(collected)` copy preserves traversal order and isolates the result from the internal accumulation Map; `Collections.unmodifiableMap` provides an **unmodifiable view** over that copy. If the *values* are mutable objects, wrapping the Map does not make value objects deeply immutable.
 
-`Map.copyOf(map)` tạo kết quả không thể sửa nhưng **không bảo đảm thứ tự duyệt giống `LinkedHashMap`**. Đừng dùng nó nếu thứ tự là một phần bắt buộc của hợp đồng đầu ra.
+`Map.copyOf(map)` creates an unmodifiable result but **does not guarantee the same iteration order as `LinkedHashMap`**. Do not use it if ordering is a required part of the output contract.
 
-`Collectors.toUnmodifiableMap` cũng tạo Map không thể sửa và có overload xử lý khóa trùng, nhưng **không có tham số mapFactory**. Nếu yêu cầu vừa sắp khóa theo một comparator vừa đóng băng khả năng chỉnh sửa, hãy thiết kế bước hoàn tất phù hợp.
+`Collectors.toUnmodifiableMap` also produces an unmodifiable Map and has an overload for duplicate keys, but **it has no `mapFactory` parameter**. If you need both comparator-sorted keys and frozen mutability, design an appropriate finishing step.
 
-## 11. Stream tuần tự, song song và điều kiện về thứ tự
+## 11. Sequential Streams, Parallel Streams, and Ordering Conditions
 
-Cần phân biệt ba khái niệm:
+Distinguish three concepts:
 
-- **Encounter order**: thứ tự phần tử của nguồn Stream, chẳng hạn thứ tự phần tử của `List`.
-- **Insertion order**: thứ tự mà Map lưu lần thêm **khóa mới**, như `LinkedHashMap`.
-- **Key order**: thứ tự khóa theo comparator hoặc natural ordering, như `TreeMap`.
+- **Encounter order**: the element order of the Stream source, such as the element order of a `List`.
+- **Insertion order**: the order in which a Map records first insertions of **new keys**, as in `LinkedHashMap`.
+- **Key order**: key order defined by a comparator or natural ordering, as in `TreeMap`.
 
-Ba thứ tự này không tương đương. Ví dụ mã xuất hiện `P-03, P-01, P-02`:
+These three orders are not equivalent. For codes appearing as `P-03, P-01, P-02`:
 
 ```text
-Nguồn List (encounter)       : P-03 → P-01 → P-02
+List source (encounter)      : P-03 → P-01 → P-02
 LinkedHashMap (insertion)    : P-03 → P-01 → P-02
 TreeMap (key order)          : P-01 → P-02 → P-03
-ConcurrentHashMap            : không có thứ tự duyệt được bảo đảm
+ConcurrentHashMap            : no guaranteed iteration order
 ```
 
-Một collector có `mapFactory` trả về `LinkedHashMap` không tự làm mọi nguồn song song đều có thứ tự ngữ nghĩa rõ ràng. Nếu thứ tự nguồn vốn không được định nghĩa (ví dụ dữ liệu từ một `HashSet`), không thể khôi phục thứ tự có ý nghĩa bằng cách chỉ đổi Map.
+A collector whose `mapFactory` returns `LinkedHashMap` does not automatically give every parallel source a meaningful order. If source order is inherently undefined (e.g., data from a `HashSet`), meaningful order cannot be restored merely by changing the Map.
 
-Với các collector concurrent có đặc tính `UNORDERED`, không dùng thứ tự tích lũy để diễn giải “phần tử đầu”, “phần tử cuối” hoặc “phiên bản mới nhất”. Nếu cần điều kiện đó, định nghĩa tiêu chí so sánh trực tiếp trong giá trị hoặc đưa ra cách sắp xếp trước khi xuất kết quả.
+With concurrent collectors that have the `UNORDERED` characteristic, do not use accumulation order to interpret "first element", "last element", or "latest version". If such a condition is needed, define the comparison criterion directly on the values or sort before outputting.
 
-### Vì sao `parallel()` không tự động cải thiện hiệu năng?
+### Why doesn't `parallel()` automatically improve performance?
 
-Đối với `toMap` không concurrent, việc ghép nhiều Map trung gian có thể tốn thời gian khi số lượng khóa rất lớn. Đối với `toConcurrentMap`, nhiều luồng tranh chấp cùng khóa cũng có thể làm giảm hiệu năng. Kết quả phụ thuộc phân bố khóa, số phần tử, chi phí ánh xạ, kiểu Map và cách chia dữ liệu qua `Spliterator`.
+For non-concurrent `toMap`, merging many intermediate Maps can be expensive when the number of keys is very large. For `toConcurrentMap`, many threads contending on the same keys can also degrade performance. Outcomes depend on key distribution, element count, mapping cost, Map type, and how `Spliterator` splits data.
 
-Nếu tốc độ quan trọng, hãy đo bằng dữ liệu đại diện và công cụ phù hợp như JMH, sau khi kiểm tra kết quả đúng. Tránh bật `parallelStream()` chỉ vì collector có chữ “Concurrent”.
+If speed matters, benchmark with representative data and an appropriate tool such as JMH after verifying correctness. Avoid enabling `parallelStream()` just because a collector has "Concurrent" in its name.
 
-## 12. Chọn `toMap` hay `groupingBy`?
+## 12. Choosing `toMap` or `groupingBy`?
 
-| Bài toán | Collector thường hợp lý | Map factory ví dụ |
+| Problem | Usually appropriate collector | Example Map factory |
 | --- | --- | --- |
-| Mỗi khóa có đúng một giá trị và khóa duy nhất | `toMap(keyMapper, valueMapper, mergeFunction, factory)` | `HashMap::new` |
-| Khóa có thể trùng, muốn chọn/gộp **một giá trị** | `toMap(..., mergeFunction, factory)` | `LinkedHashMap::new` |
-| Muốn một `List<T>` cho mỗi khóa | `groupingBy(classifier, factory, toList())` | `LinkedHashMap::new` |
-| Muốn số lượng/tổng/giá trị tổng hợp cho mỗi khóa | `groupingBy(classifier, factory, counting()/summingLong(...))` | `TreeMap::new` |
-| Khóa là enum | `groupingBy(classifier, EnumMap supplier, downstream)` | `() -> new EnumMap<>(Status.class)` |
-| Muốn cập nhật concurrent và không phụ thuộc encounter order | `toConcurrentMap(...)` hoặc `groupingByConcurrent(...)` | `ConcurrentHashMap::new` |
-| Cần Map có thứ tự khóa và hỗ trợ concurrent | Collector concurrent với `ConcurrentSkipListMap` | `ConcurrentSkipListMap::new` |
+| Each key has one value and keys are unique | `toMap(keyMapper, valueMapper, mergeFunction, factory)` | `HashMap::new` |
+| Keys may collide, want to pick/merge **one value** | `toMap(..., mergeFunction, factory)` | `LinkedHashMap::new` |
+| Want a `List<T>` per key | `groupingBy(classifier, factory, toList())` | `LinkedHashMap::new` |
+| Want count/sum/aggregated value per key | `groupingBy(classifier, factory, counting()/summingLong(...))` | `TreeMap::new` |
+| Keys are an enum | `groupingBy(classifier, EnumMap supplier, downstream)` | `() -> new EnumMap<>(Status.class)` |
+| Want concurrent updates without encounter order dependency | `toConcurrentMap(...)` or `groupingByConcurrent(...)` | `ConcurrentHashMap::new` |
+| Need sorted keys with concurrent support | Concurrent collector with `ConcurrentSkipListMap` | `ConcurrentSkipListMap::new` |
 
-`groupingBy` không bắt buộc phải tạo danh sách. Downstream collector có thể là `counting`, `summingLong`, `mapping`, `reducing` hoặc một collector tùy chỉnh. Chọn `mapFactory` giải quyết lớp **container ngoài**, còn downstream giải quyết cách tạo **giá trị cho mỗi khóa**.
+`groupingBy` does not have to produce a list. The downstream collector can be `counting`, `summingLong`, `mapping`, `reducing`, or a custom collector. Selecting `mapFactory` configures the **outer container**, while downstream defines how to compute the **value for each key**.
 
-Nếu chỉ có một giá trị cho mỗi khóa và không cần nhóm nhiều phần tử, `toMap` thường trực tiếp hơn.
+If there is only one value per key and no need to group multiple elements, `toMap` is usually more direct.
 
-## 13. Lưu ý tính lazy, tài nguyên và dữ liệu
+## 13. Notes on Laziness, Resources, and Data
 
-`filter` và `map` là thao tác trung gian; `collect` là **terminal operation** kích hoạt pipeline.
+`filter` and `map` are intermediate operations; `collect` is the **terminal operation** that triggers the pipeline.
 
 ```java
 import java.util.List;
@@ -699,7 +699,7 @@ import java.util.stream.Collectors;
 List<String> data = List.of("a", "bb", "ccc");
 
 var pipeline = data.stream()
-    .filter(text -> !text.isBlank()); // Chưa xử lý cho đến terminal.
+    .filter(text -> !text.isBlank()); // Not processed until the terminal operation.
 
 Map<Integer, String> byLength = pipeline.collect(Collectors.toMap(
     String::length,
@@ -708,12 +708,12 @@ Map<Integer, String> byLength = pipeline.collect(Collectors.toMap(
     HashMap::new
 ));
 
-// pipeline.count(); // Không được tiêu thụ Stream thêm lần nữa.
+// pipeline.count(); // Cannot consume the Stream a second time.
 ```
 
-Map thường cần giữ ít nhất một entry cho mỗi khóa khác nhau, nên bộ nhớ có thể tỷ lệ với **số khóa duy nhất**; với `groupingBy(..., toList())`, bộ nhớ còn phải lưu các phần tử của từng nhóm.
+A Map usually keeps at least one entry per distinct key, so memory can scale with the **number of unique keys**; with `groupingBy(..., toList())`, memory must also retain the elements of each group.
 
-Khi nguồn gắn với I/O, ví dụ `Files.lines(path)`, sử dụng `try-with-resources` để đóng Stream dù terminal operation là `collect`. Việc gọi `mapFactory` không có nghĩa tài nguyên đọc tệp tự đóng.
+When the source is tied to I/O, such as `Files.lines(path)`, use `try-with-resources` to close the Stream even when the terminal operation is `collect`. Providing a `mapFactory` does not automatically close the file-reading resource.
 
 ```java
 import java.nio.file.Files;
@@ -722,7 +722,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-// Đặt trong phương thức khai báo throws IOException hoặc xử lý ngoại lệ.
+// Place inside a method declaring throws IOException or handle the exception.
 try (Stream<String> lines = Files.lines(Path.of("codes.txt"))) {
     Map<String, Long> frequency = lines
         .filter(line -> !line.isBlank())
@@ -735,70 +735,70 @@ try (Stream<String> lines = Files.lines(Path.of("codes.txt"))) {
 }
 ```
 
-Nếu nguồn dữ liệu có thể thay đổi khi pipeline chạy, hãy xác định chính sách đọc nhất quán; `mapFactory` không xử lý tranh chấp khi nguồn bị thay đổi. Không sửa `List` nguồn trong `keyMapper` hay `valueMapper`.
+If the data source can mutate while the pipeline runs, establish a consistent read policy; `mapFactory` does not handle concurrent modification of the source. Do not modify the source `List` inside `keyMapper` or `valueMapper`.
 
-## 14. Những lỗi thường gặp
+## 14. Common Mistakes
 
-| Lỗi | Hệ quả | Cách sửa |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Mong `Collectors.toMap(key, value)` luôn trả `HashMap` có thứ tự nhất định | Không có bảo đảm về kiểu/thứ tự | Dùng overload có `mapFactory` nếu kiểu Map là yêu cầu |
-| Truyền `LinkedHashMap::new` làm tham số thứ ba của `toMap` | Sai overload: tham số thứ ba là merge function | Dùng đủ bốn tham số `toMap(key, value, merge, factory)` |
-| Truyền `mergeFunction` vào vị trí thứ hai của `groupingBy` | Sai API | Dùng `groupingBy(classifier, mapFactory, downstream)` |
-| Bỏ qua khóa trùng trong `toMap` | Có thể ném `IllegalStateException` hoặc mất dữ liệu theo chính sách sai | Định nghĩa rõ merge function, kiểm thử trùng |
-| Chọn `TreeMap` comparator coi hai khóa khác nhau là bằng nhau | Hai khóa bị gộp bất ngờ | Kiểm tra quy tắc so sánh và ý nghĩa khóa |
-| Dùng `HashMap` rồi dựa vào thứ tự vòng `entrySet()` | Thứ tự hiển thị không được bảo đảm | Dùng `LinkedHashMap` hoặc `TreeMap` đúng mục đích |
-| Dùng `groupingBy` với classifier trả `null` | Ngoại lệ | Chuẩn hóa hoặc lọc khóa trước |
-| Dùng `toMap` với `valueMapper` trả `null` | Có thể ném `NullPointerException` | Xử lý dữ liệu thiếu tường minh |
-| Dùng `HashMap::new` làm factory cho `toConcurrentMap` | Không khớp ràng buộc `ConcurrentMap` | Dùng `ConcurrentHashMap::new` hoặc `ConcurrentSkipListMap::new` |
-| Bật `CONCURRENT` bằng cách tự chia sẻ một `HashMap` | Race condition, sai kết quả | Dùng collector concurrent đúng hợp đồng |
-| Dùng merge “giá trị cuối” để chọn bản mới nhất trong luồng unordered | Không xác định theo thời gian nghiệp vụ | So sánh timestamp/revision tường minh |
-| Coi `mapFactory` là cách tạo Map không thể sửa | Map vẫn có thể sửa | Dùng finisher/bản sao không thể sửa |
-| Cho rằng `Map.copyOf(LinkedHashMap)` giữ thứ tự duyệt | Thứ tự Map copy không được bảo đảm | Dùng bản sao `LinkedHashMap` và wrapper phù hợp |
-| Cho rằng song song luôn nhanh với `ConcurrentHashMap` | Tranh chấp khóa và overhead có thể tăng | Đo trên dữ liệu đại diện |
+| Expecting `Collectors.toMap(key, value)` to always return a `HashMap` with a fixed order | No guarantee on type or order | Use the overload with `mapFactory` if a concrete Map type is required |
+| Passing `LinkedHashMap::new` as the third argument to `toMap` | Wrong overload: the third argument is the merge function | Pass all four arguments `toMap(key, value, merge, factory)` |
+| Passing `mergeFunction` as the second argument to `groupingBy` | Wrong API | Use `groupingBy(classifier, mapFactory, downstream)` |
+| Ignoring duplicate keys in `toMap` | May throw `IllegalStateException` or lose data under the wrong policy | Explicitly define `mergeFunction` and test duplicates |
+| Choosing a `TreeMap` comparator that treats distinct keys as equal | Two keys merge unexpectedly | Verify comparison rules and key semantics |
+| Using `HashMap` and relying on `entrySet()` iteration order | Display order is not guaranteed | Use `LinkedHashMap` or `TreeMap` as intended |
+| Using `groupingBy` with a classifier returning `null` | Exception thrown | Normalize or filter keys beforehand |
+| Using `toMap` with a `valueMapper` returning `null` | May throw `NullPointerException` | Handle missing data explicitly |
+| Using `HashMap::new` as the factory for `toConcurrentMap` | Does not satisfy the `ConcurrentMap` bound | Use `ConcurrentHashMap::new` or `ConcurrentSkipListMap::new` |
+| Trying to achieve `CONCURRENT` by sharing a single `HashMap` manually | Race condition, wrong results | Use a properly contracted concurrent collector |
+| Using "last value" merge to pick the newest record in an unordered stream | Nondeterministic with respect to business time | Compare timestamps/revisions explicitly |
+| Treating `mapFactory` as a way to create an unmodifiable Map | The Map remains mutable | Use a finisher or an unmodifiable copy |
+| Assuming `Map.copyOf(LinkedHashMap)` preserves iteration order | Copied Map order is not guaranteed | Use a `LinkedHashMap` copy and an appropriate wrapper |
+| Assuming parallel is always faster with `ConcurrentHashMap` | Key contention and overhead may increase | Benchmark on representative data |
 
-## 15. Bài tập thực hành
+## 15. Practice Exercises
 
-### Bài 1: Tra cứu sản phẩm theo SKU
+### Exercise 1: Product lookup by SKU
 
-Tạo danh sách sản phẩm có `sku` và `name`; dùng `toMap` với `HashMap::new` để tra cứu. Thử trùng SKU và xây chính sách ném ngoại lệ. Giải thích vì sao không nên âm thầm chọn một giá trị nếu SKU phải duy nhất.
+Create a list of products with `sku` and `name`; use `toMap` with `HashMap::new` for lookup. Test duplicate SKUs and build a policy that throws an exception. Explain why you should not silently pick one value if SKU must be unique.
 
-### Bài 2: Giữ thứ tự hiển thị
+### Exercise 2: Preserving display order
 
-Cho SKU `P-04`, `P-02`, `P-01` trong `List`. Dùng `LinkedHashMap::new` rồi dùng `TreeMap::new` cho cùng dữ liệu. In `keySet()` và giải thích khác nhau giữa insertion order và key order.
+Given SKUs `P-04`, `P-02`, `P-01` in a `List`, use `LinkedHashMap::new` and then `TreeMap::new` on the same data. Print `keySet()` and explain the difference between insertion order and key order.
 
-### Bài 3: Cộng tiền theo khu vực
+### Exercise 3: Summing amounts by region
 
-Tạo `List<Sale>` với nhiều đơn trùng vùng. So sánh `toMap(Sale::region, Sale::amountVnd, Long::sum, TreeMap::new)` với `groupingBy(Sale::region, TreeMap::new, summingLong(Sale::amountVnd))`. Hai cách giải quyết vấn đề khác nhau ở điểm nào?
+Create a `List<Sale>` with multiple orders sharing regions. Compare `toMap(Sale::region, Sale::amountVnd, Long::sum, TreeMap::new)` with `groupingBy(Sale::region, TreeMap::new, summingLong(Sale::amountVnd))`. How do the two approaches differ?
 
-### Bài 4: Khóa enum
+### Exercise 4: Enum keys
 
-Tạo enum `Level { LOW, MEDIUM, HIGH }` và danh sách cảnh báo. Dùng `EnumMap` với `groupingBy` để đếm cảnh báo theo cấp. Tại sao cấp không có cảnh báo không tự xuất hiện trong Map, và làm thế nào để thêm cấp đó với giá trị 0?
+Create an enum `Level { LOW, MEDIUM, HIGH }` and a list of alerts. Use `EnumMap` with `groupingBy` to count alerts per level. Why does a level with no alerts not appear automatically in the Map, and how can you add it with value 0?
 
-### Bài 5: Comparator và khóa trùng
+### Exercise 5: Comparator and duplicate keys
 
-Gộp `["API", "api", "Java"]` vào `TreeMap` dùng `String.CASE_INSENSITIVE_ORDER`. Thử `Integer::sum` và một merge function ném lỗi. Giải thích vì sao `"API"` và `"api"` là khóa trùng theo Map này.
+Merge `["API", "api", "Java"]` into a `TreeMap` using `String.CASE_INSENSITIVE_ORDER`. Try `Integer::sum` and a throwing merge function. Explain why `"API"` and `"api"` are duplicate keys under this Map.
 
-### Bài 6: Thu thập đồng thời
+### Exercise 6: Concurrent collection
 
-Với một triệu phép thanh toán chỉ thuộc vài khu vực, so sánh `toMap(..., HashMap::new)`, `toConcurrentMap(..., ConcurrentHashMap::new)` và `toConcurrentMap(..., ConcurrentSkipListMap::new)`. Dự đoán ảnh hưởng của việc nhiều bản ghi cùng một khóa; đo thực tế trước khi kết luận.
+With one million payment records belonging to only a few regions, compare `toMap(..., HashMap::new)`, `toConcurrentMap(..., ConcurrentHashMap::new)`, and `toConcurrentMap(..., ConcurrentSkipListMap::new)`. Predict the impact of many records hitting the same key; measure before concluding.
 
-### Bài 7: Báo cáo không thể sửa nhưng giữ thứ tự
+### Exercise 7: Unmodifiable yet ordered report
 
-Từ `List<Product>`, thu thập vào `LinkedHashMap` rồi dùng `collectingAndThen` để tạo một bản sao có thứ tự và view không thể sửa. Thử `put` và kiểm tra thứ tự `keySet()` sau khi thu thập.
+From a `List<Product>`, collect into a `LinkedHashMap` and use `collectingAndThen` to produce an ordered copy wrapped in an unmodifiable view. Try `put` and verify `keySet()` order after collecting.
 
-## 16. Tự kiểm tra kiến thức
+## 16. Self-Check Knowledge Questions
 
-- `mapFactory` nhận kiểu functional interface nào và tạo ra cái gì?
-- Vì sao `toMap` cần **bốn tham số** khi chỉ định `mapFactory`?
-- `mapFactory` nằm ở vị trí nào trong overload `groupingBy`?
-- `LinkedHashMap` và `TreeMap` khác nhau về thứ tự duyệt như thế nào?
-- Comparator của `TreeMap` liên quan gì đến việc xác định hai khóa trùng nhau?
-- Khi nào `EnumMap` phù hợp hơn một Map thông thường?
-- Factory dùng trong `toConcurrentMap` cần trả về loại Map nào?
-- Collector concurrent có bảo đảm thứ tự gặp của nguồn không?
-- Vì sao `Map.copyOf` không phải lựa chọn tốt nếu cần giữ thứ tự chèn?
-- Khi nào dùng `groupingBy` thay vì `toMap`?
-- Vì sao việc chỉ đổi mapFactory không tự khắc phục lỗi null, khóa trùng hay tràn số?
-- Những chi phí nào cần đo khi so sánh xử lý tuần tự và song song?
+- What functional interface does `mapFactory` accept, and what does it create?
+- Why does `toMap` require **four arguments** when specifying `mapFactory`?
+- Where is `mapFactory` positioned in the `groupingBy` overload?
+- How do `LinkedHashMap` and `TreeMap` differ in iteration order?
+- How does a `TreeMap`'s Comparator relate to determining whether two keys are duplicates?
+- When is `EnumMap` better suited than a general-purpose Map?
+- What Map type must the factory used in `toConcurrentMap` return?
+- Do concurrent collectors guarantee preserving source encounter order?
+- Why is `Map.copyOf` a poor choice if insertion order must be preserved?
+- When should you use `groupingBy` instead of `toMap`?
+- Why does merely changing `mapFactory` not fix `null`, duplicate-key, or numeric overflow errors?
+- Which costs should be measured when comparing sequential and parallel processing?
 
-**Ghi nhớ:** `mapFactory` là cách chỉ định **Map được tạo bởi collector**. Chọn `HashMap` khi chỉ cần tra cứu, `LinkedHashMap` khi cần thứ tự chèn, `TreeMap` khi cần sắp khóa, `EnumMap` cho khóa enum và `ConcurrentMap` cho các collector tích lũy đồng thời. Luôn thiết kế cùng lúc chính sách **khóa trùng, comparator, null, thứ tự và tính đúng khi song song** trước khi tối ưu hiệu năng.
+**Takeaway:** `mapFactory` is how you specify the **Map created by a collector**. Choose `HashMap` for simple lookup, `LinkedHashMap` for insertion order, `TreeMap` for sorted keys, `EnumMap` for enum keys, and `ConcurrentMap` for concurrent-accumulation collectors. Always design policies for **duplicate keys, comparators, `null`, ordering, and parallel correctness** together before optimizing performance.

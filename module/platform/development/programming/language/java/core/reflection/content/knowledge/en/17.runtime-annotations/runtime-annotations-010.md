@@ -1,38 +1,38 @@
-# Method.getDefaultValue: lấy giá trị mặc định của phần tử annotation bằng Java Reflection
+# Method.getDefaultValue: Reading Default Values of Annotation Elements via Java Reflection
 
-## 1. Khái niệm và mục đích
+## 1. Concept and purpose
 
-Một annotation được khai báo bằng `@interface`. Mỗi phần tử (*annotation element*) được viết dưới dạng một khai báo phương thức **không có tham số**, ví dụ `int retries()` hoặc `String name()`. Phần tử có thể khai báo **giá trị mặc định** bằng từ khóa `default`:
+An annotation is declared with `@interface`. Each element (*annotation element*) is written as a **zero-parameter** method declaration, such as `int retries()` or `String name()`. An element can declare a **default value** using the `default` keyword:
 
 ```java
 @interface Config {
-    String name();                  // Bắt buộc cung cấp khi dùng annotation.
-    int retries() default 3;       // Giá trị mặc định là 3.
+    String name();                  // Required when using the annotation.
+    int retries() default 3;       // Default value is 3.
     boolean enabled() default true;
 }
 ```
 
-Trong Reflection, từng phần tử được biểu diễn bằng một đối tượng `java.lang.reflect.Method`. Phương thức:
+In Reflection, each element is represented by a `java.lang.reflect.Method` object. The method:
 
 ```java
 Object defaultValue = method.getDefaultValue();
 ```
 
-đọc **giá trị mặc định được khai báo trên chính phần tử annotation** mà `Method` đại diện, không cần khởi tạo đối tượng của lớp được gắn annotation.
+reads **the default value declared on that annotation element itself** represented by `Method`, without needing to instantiate an object of the annotated class.
 
-**Quy tắc quan trọng nhất:**
+**Most important rules:**
 
-- Nếu `Method` đại diện cho phần tử annotation **có khai báo `default`**, `getDefaultValue()` trả giá trị mặc định tương ứng dưới dạng `Object`.
-- Nếu phần tử **không có giá trị mặc định**, kết quả là **`null`**.
-- Nếu `Method` **không đại diện cho một phần tử khai báo trực tiếp trong kiểu annotation**, kết quả cũng là **`null`**.
-- Nếu kiểu phần tử là primitive, giá trị trả về được **boxing** thành wrapper tương ứng. Ví dụ `int retries() default 3` → `Integer.valueOf(3)`.
-- `getDefaultValue()` **không lấy giá trị đã ghi đè tại chỗ sử dụng annotation**. Để lấy giá trị hiệu lực của một annotation đang gắn trên lớp/phương thức, hãy đọc đối tượng annotation.
+- If `Method` represents an annotation element **that declares `default`**, `getDefaultValue()` returns the corresponding default value as an `Object`.
+- If the element **has no default value**, the result is **`null`**.
+- If `Method` **does not represent an element declared directly in an annotation type**, the result is also **`null`**.
+- If the element type is primitive, the returned value is **boxed** into the corresponding wrapper. For example, `int retries() default 3` → `Integer.valueOf(3)`.
+- `getDefaultValue()` **does not retrieve the overridden value at an annotation usage site**. To read the effective value of an annotation attached to a class/method, read the annotation object.
 
-Đây là API hữu ích khi tạo trình đọc metadata, trình kiểm tra cấu hình, tài liệu hóa annotation, công cụ validation, scanner hoặc framework dựa trên Reflection.
+This API is useful when building metadata readers, configuration checkers, annotation documentation generators, validation tools, scanners, or Reflection-based frameworks.
 
-## 2. Phân biệt giá trị mặc định và giá trị hiệu lực
+## 2. Distinguishing default value from effective value
 
-Xét:
+Consider:
 
 ```java
 @Retention(RetentionPolicy.RUNTIME)
@@ -48,11 +48,11 @@ class BackupTask {}
 class CleanupTask {}
 ```
 
-Với phần tử `Task.retries()`:
+For element `Task.retries()`:
 
-- **Giá trị mặc định của khai báo:** `3`. Đọc qua `Task.class.getDeclaredMethod("retries").getDefaultValue()`.
-- **Giá trị hiệu lực trên `BackupTask`:** `7`, vì nơi sử dụng đã ghi đè.
-- **Giá trị hiệu lực trên `CleanupTask`:** `3`, vì nơi sử dụng bỏ qua `retries` nên Java áp dụng default.
+- **Declared default value:** `3`. Read via `Task.class.getDeclaredMethod("retries").getDefaultValue()`.
+- **Effective value on `BackupTask`:** `7`, because the usage site overrode it.
+- **Effective value on `CleanupTask`:** `3`, because the usage site omitted `retries` so Java applied the default.
 
 ```java
 Method retries = Task.class.getDeclaredMethod("retries");
@@ -65,32 +65,32 @@ Task cleanup = CleanupTask.class.getAnnotation(Task.class);
 int usedByCleanup = cleanup.retries(); // 3
 ```
 
-Các đoạn trên là **mã minh họa** và cần các import `java.lang.annotation.*`, `java.lang.reflect.*`. Chương trình độc lập đầy đủ sẽ có ở phần 4.
+The snippets above are **illustrative code** and require `import java.lang.annotation.*` and `java.lang.reflect.*`. A complete standalone program appears in section 4.
 
-`@Retention(RetentionPolicy.RUNTIME)` cần thiết để lấy **annotation đã gắn** bằng `getAnnotation(...)` khi chương trình chạy. Trong khi đó, `getDefaultValue()` đọc metadata trên `Method` của chính kiểu annotation; không phải là thao tác lấy annotation đang gắn trên một phần tử sử dụng.
+`@Retention(RetentionPolicy.RUNTIME)` is required to retrieve the **attached annotation** via `getAnnotation(...)` while the program runs. Meanwhile, `getDefaultValue()` reads metadata on the `Method` of the annotation type itself; it is not an operation retrieving an annotation attached to a usage element.
 
-**Không thể dựa vào `getDefaultValue()` để xác định tại nơi sử dụng một giá trị hiệu lực có được viết tường minh hay được kế thừa từ default.** Nếu người viết ghi `retries = 3` tường minh, giá trị hiệu lực vẫn là `3`.
+**You cannot rely on `getDefaultValue()` to determine whether an effective value at a usage site was written explicitly or inherited from the default.** If the author explicitly writes `retries = 3`, the effective value is still `3`.
 
-## 3. API, kết quả và các kiểu dữ liệu
+## 3. API, return values, and data types
 
-Chữ ký Java SE 17:
+Java SE 17 signature:
 
 ```java
 public Object getDefaultValue()
 ```
 
-| Khai báo phần tử | Giá trị `getDefaultValue()` | Kiểu runtime của kết quả |
+| Element declaration | `getDefaultValue()` value | Runtime type of result |
 | --- | --- | --- |
 | `int retries() default 3;` | `3` | `Integer` |
 | `boolean enabled() default true;` | `true` | `Boolean` |
 | `String label() default "java";` | `"java"` | `String` |
-| `String[] tags() default {"a","b"};` | Mảng gồm `"a"`, `"b"` | `String[]` |
+| `String[] tags() default {"a","b"};` | Array containing `"a"`, `"b"` | `String[]` |
 | `Class<?> handler() default String.class;` | `String.class` | `Class<?>` |
 | `Priority priority() default Priority.HIGH;` | `Priority.HIGH` | Enum `Priority` |
-| `Meta meta() default @Meta;` | Đối tượng annotation mặc định | Kiểu annotation `Meta` |
-| `String name();` | `null` | Không có giá trị mặc định |
+| `Meta meta() default @Meta;` | Default annotation object | Annotation type `Meta` |
+| `String name();` | `null` | No default value |
 
-Vì return type là `Object`, phải **kiểm tra/kết hợp với `method.getReturnType()`** trước khi ép kiểu. Ví dụ:
+Because the return type is `Object`, you must **check/pair with `method.getReturnType()`** before casting. Example:
 
 ```java
 Method method = Config.class.getDeclaredMethod("retries");
@@ -101,13 +101,13 @@ if (value instanceof Integer retries) {
 }
 ```
 
-Phương thức phần tử trả `int` nhưng `getDefaultValue()` trả một `Integer`. Với kiểu trả về là mảng primitive, ví dụ `int[] levels() default {1,2}`, giá trị trả về là **`int[]`**, không phải `Integer[]`: boxing chỉ áp dụng cho **một giá trị primitive**, không biến đổi cả mảng.
+The element method returns `int`, yet `getDefaultValue()` returns an `Integer`. For a primitive array return type, such as `int[] levels() default {1,2}`, the returned value is **`int[]`**, not `Integer[]`: boxing applies only to **a single primitive value**, not transforming an entire array.
 
-Các loại phần tử annotation hợp lệ theo quy tắc ngôn ngữ Java gồm primitive (không có `void`), `String`, `Class` hoặc dạng tham số cho phép, enum, kiểu annotation và mảng một chiều của các kiểu đó. Không dùng kiểu phần tử bất kỳ như `List<String>` hoặc `Map`, và không thể dùng `null` làm giá trị mặc định hợp lệ.
+Valid annotation element types per Java language rules include primitives (excluding `void`), `String`, `Class` or permitted parameterized forms, enums, annotation types, and one-dimensional arrays of those types. Do not use arbitrary element types like `List<String>` or `Map`, and `null` cannot be used as a valid default value.
 
-## 4. Ví dụ Java 17+ chạy được và stdout chính xác
+## 4. Runnable Java 17+ example and exact stdout
 
-Lưu chương trình sau dưới tên **`AnnotationDefaultDemo.java`**:
+Save the following program as **`AnnotationDefaultDemo.java`**:
 
 ```java
 import java.lang.annotation.ElementType;
@@ -128,7 +128,7 @@ public class AnnotationDefaultDemo {
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.TYPE)
     @interface Config {
-        String name();                              // Không có default.
+        String name();                              // No default.
         int retries() default 3;
         boolean enabled() default true;
         String[] tags() default {"core", "reflection"};
@@ -201,7 +201,7 @@ public class AnnotationDefaultDemo {
 }
 ```
 
-Biên dịch và chạy bằng Java 17 trở lên:
+Compile and run with Java 17 or later:
 
 ```bash
 javac AnnotationDefaultDemo.java
@@ -228,40 +228,40 @@ interface default method getDefaultValue: null
 ordinary method getDefaultValue: null
 ```
 
-### Giải thích các dòng đáng chú ý
+### Explaining notable lines
 
-1. `Config.name()` **không** khai báo `default`, nên `name.getDefaultValue()` trả `null`. Phần tử `name` vẫn bắt buộc khai báo khi dùng `@Config`.
-2. `Config.retries()` khai báo `default 3`, nên kết quả là đối tượng wrapper `Integer` mang giá trị `3`.
-3. Mảng mặc định `tags` là `String[]`. Dùng `Arrays.toString` để hiển thị nội dung; nếu gọi `toString()` trực tiếp trên mảng sẽ không có định dạng liệt kê phần tử mong muốn.
-4. Default của `Class<?> handler()` là một `Class`, của `Priority priority()` là một giá trị enum, và của `Meta meta()` là đối tượng annotation tương ứng.
-5. Trên `Service`, giá trị `retries` hiệu lực là `7` (ghi đè). Trên `Backup`, giá trị hiệu lực là `3` (default).
-6. `retries.invoke(service)` gọi phần tử trên **đối tượng annotation instance** và trả giá trị hiệu lực `7`; nó **khác** `retries.getDefaultValue()`, vốn luôn mô tả default của phần tử.
-7. `Greeter.greet()` là **default method của interface** có thân phương thức; `isDefault()` trả `true`, nhưng `getDefaultValue()` vẫn trả `null`. Hai nghĩa của chữ *default* không liên quan.
-8. `String.length()` là phương thức thông thường, không phải phần tử annotation; `getDefaultValue()` trả `null`.
+1. `Config.name()` does **not** declare `default`, so `name.getDefaultValue()` returns `null`. The `name` element is still required when using `@Config`.
+2. `Config.retries()` declares `default 3`, so the result is an `Integer` wrapper object with value `3`.
+3. The default array `tags` is `String[]`. Use `Arrays.toString` to display contents; calling `toString()` directly on an array will not yield the desired element-listing format.
+4. The default of `Class<?> handler()` is a `Class`, of `Priority priority()` is an enum value, and of `Meta meta()` is the corresponding annotation object.
+5. On `Service`, the effective `retries` value is `7` (overridden). On `Backup`, the effective value is `3` (default).
+6. `retries.invoke(service)` invokes the element on the **annotation instance object** and returns the effective value `7`; it **differs from** `retries.getDefaultValue()`, which always describes the element's default.
+7. `Greeter.greet()` is an **interface default method** with a method body; `isDefault()` returns `true`, yet `getDefaultValue()` still returns `null`. The two meanings of *default* are unrelated.
+8. `String.length()` is an ordinary method, not an annotation element; `getDefaultValue()` returns `null`.
 
-## 5. Phải lấy đúng Method của kiểu annotation
+## 5. You must obtain the Method of the annotation type
 
-Giả sử có `@Config` gắn trên `Service`, cần tránh ba nhầm lẫn:
+Suppose `@Config` is attached to `Service`; three mistakes must be avoided:
 
 ```java
-// Đúng: lấy phần tử đã khai báo trong annotation type.
+// Correct: get the element declared in the annotation type.
 Method element = Config.class.getDeclaredMethod("retries");
 Object defaultValue = element.getDefaultValue();
 
-// Đúng: lấy annotation instance trên nơi sử dụng.
+// Correct: get the annotation instance on the usage site.
 Config annotation = Service.class.getAnnotation(Config.class);
 int actual = annotation.retries();
 
-// Sai mục đích: tìm "retries" trên lớp Service.
-// Service.class.getDeclaredMethod("retries") thường không tồn tại.
+// Wrong purpose: looking up "retries" on class Service.
+// Service.class.getDeclaredMethod("retries") normally does not exist.
 ```
 
-Annotation instance có thể được runtime triển khai bằng proxy hoặc kỹ thuật nội bộ, nhưng để đọc default ta nên sử dụng **`Config.class`** hoặc `annotation.annotationType()` và `getDeclaredMethod(elementName)`, thay vì suy ra cấu trúc implementation của đối tượng annotation.
+An annotation instance may be implemented at runtime via proxies or internal techniques, but to read defaults you should use **`Config.class`** or `annotation.annotationType()` and `getDeclaredMethod(elementName)`, rather than inferring the implementation structure of the annotation object.
 
-Để phân tích toàn bộ default của annotation type, dùng:
+To inspect all defaults of an annotation type, use:
 
 ```java
-// Phương thức tiện ích minh họa, đặt trong một lớp Java có các import cần thiết.
+// Illustrative utility method; place inside a Java class with necessary imports.
 static void printDefaults(Class<? extends java.lang.annotation.Annotation> type) {
     for (java.lang.reflect.Method element : type.getDeclaredMethods()) {
         Object value = element.getDefaultValue();
@@ -273,95 +273,95 @@ static void printDefaults(Class<? extends java.lang.annotation.Annotation> type)
 }
 ```
 
-Đây là **mã minh họa**, không phải một chương trình có `main`. Chương trình xử lý metadata thực tế nên bổ sung bộ định dạng cho **mảng** bằng `Arrays.toString` hoặc `Arrays.deepToString` theo loại dữ liệu, và **sắp xếp** tên phần tử để có kết quả ổn định (vì `getDeclaredMethods()` không đảm bảo thứ tự).
+This is **illustrative code**, not a program with `main`. Production metadata processors should add formatters for **arrays** using `Arrays.toString` or `Arrays.deepToString` based on data type, and **sort** element names for stable output (because `getDeclaredMethods()` guarantees no order).
 
-Để tránh lỗi ép kiểu, hãy phân loại `value` bằng `instanceof`, kết hợp `element.getReturnType()` và xử lý `null` trước khi giải nén.
+To avoid cast errors, classify `value` with `instanceof`, combine with `element.getReturnType()`, and handle `null` before unpacking.
 
-## 6. Null nghĩa là “không khai báo default”, không phải giá trị mặc định null
+## 6. Null means “no default declared”, not a default value of null
 
-Annotation element **không thể có** `default null` hợp lệ trong mã nguồn Java. Vì vậy:
+An annotation element **cannot validly have** `default null` in Java source code. Therefore:
 
 ```java
 @interface Notice {
-    String message();                // Không có default.
-    String optional() default "";    // Có default là chuỗi rỗng.
-    String[] tags() default {};      // Có default là mảng rỗng.
+    String message();                // No default.
+    String optional() default "";    // Default is empty string.
+    String[] tags() default {};      // Default is empty array.
 }
 ```
 
-Bảng phân biệt:
+Distinction table:
 
-| Khai báo | `getDefaultValue()` | Có default? |
+| Declaration | `getDefaultValue()` | Has default? |
 | --- | --- | --- |
-| `String message();` | `null` | Không |
-| `String optional() default "";` | `""` | Có |
-| `String[] tags() default {};` | Mảng `String[]` độ dài `0` | Có |
-| `int count() default 0;` | `Integer(0)` | Có |
-| `boolean active() default false;` | `Boolean.FALSE` | Có |
+| `String message();` | `null` | No |
+| `String optional() default "";` | `""` | Yes |
+| `String[] tags() default {};` | `String[]` array of length `0` | Yes |
+| `int count() default 0;` | `Integer(0)` | Yes |
+| `boolean active() default false;` | `Boolean.FALSE` | Yes |
 
-Do đó, **không** dùng kiểm tra như `if (!Boolean.TRUE.equals(defaultValue))` để kết luận thiếu default, vì `false` là một default hoàn toàn hợp lệ. Quy tắc đơn giản: `value == null` nghĩa là không có default theo hợp đồng của `getDefaultValue()`.
+Therefore, **do not** use checks such as `if (!Boolean.TRUE.equals(defaultValue))` to conclude a default is missing, because `false` is a completely valid default. Simple rule: `value == null` means no default exists under `getDefaultValue()`'s contract.
 
-Lưu ý `getDefaultValue()` được gọi trên `Method` thông thường cũng trả `null`; nếu cần phân biệt “phần tử bắt buộc” với “không phải phần tử annotation”, hãy kiểm tra `method.getDeclaringClass().isAnnotation()`.
+Note that `getDefaultValue()` called on an ordinary `Method` also returns `null`; if you need to distinguish “required element” from “not an annotation element”, check `method.getDeclaringClass().isAnnotation()`.
 
-## 7. Không nhầm với các khái niệm “default” khác
+## 7. Do not confuse with other “default” concepts
 
-| Cụm từ/API | Ý nghĩa | Liên quan đến `Method.getDefaultValue()`? |
+| Phrase/API | Meaning | Related to `Method.getDefaultValue()`? |
 | --- | --- | --- |
-| `@interface X { int n() default 3; }` | Giá trị mặc định của phần tử annotation | **Có**, trả `3` được boxing |
-| `interface X { default void run() {} }` | Default method của interface có thân | **Không**, `getDefaultValue()` thường `null` |
-| `Method.isDefault()` | Method có phải default method của interface hay không | API **khác** hoàn toàn |
-| `@Retention(RUNTIME)` | Annotation được lưu để truy xuất ở runtime tại nơi sử dụng | Không tự tạo default; hữu ích cho `getAnnotation` |
-| `@Target(TYPE)` | Giới hạn vị trí sử dụng annotation | Không quyết định giá trị mặc định |
-| `Class.getAnnotation(X.class)` | Trả annotation instance đang gắn trên phần tử | Đọc giá trị **hiệu lực** qua `annotation.element()` |
-| `Method.invoke(annotationInstance)` | Gọi phương thức phần tử trên annotation instance | Trả giá trị **hiệu lực**; không chỉ default |
+| `@interface X { int n() default 3; }` | Default value of an annotation element | **Yes**, returns boxed `3` |
+| `interface X { default void run() {} }` | Interface default method with body | **No**, `getDefaultValue()` is normally `null` |
+| `Method.isDefault()` | Whether a method is an interface default method | Completely **different** API |
+| `@Retention(RUNTIME)` | Annotation retained for runtime access at usage sites | Does not create a default; useful for `getAnnotation` |
+| `@Target(TYPE)` | Restricts where the annotation can be used | Does not determine default values |
+| `Class.getAnnotation(X.class)` | Returns the annotation instance attached to the element | Reads **effective** value via `annotation.element()` |
+| `Method.invoke(annotationInstance)` | Invokes element method on an annotation instance | Returns **effective** value; not merely default |
 
-**Lưu ý về `@Retention`:** Khi công cụ muốn đọc annotation **đã gắn** ở runtime, khai báo annotation với `@Retention(RetentionPolicy.RUNTIME)`. Nếu chỉ có metadata của một kiểu annotation được nạp, Reflection có thể đọc thông tin về các phương thức phần tử và default của chính kiểu đó mà không cần lấy một annotation instance ở nơi sử dụng.
+**Note on `@Retention`:** When a tool wants to read an **attached** annotation at runtime, declare the annotation with `@Retention(RetentionPolicy.RUNTIME)`. If only the metadata of an annotation type is loaded, Reflection can read information about the type's own element methods and defaults without obtaining an annotation instance at a usage site.
 
-## 8. Quy tắc default trong annotation và tính tương thích
+## 8. Default rules in annotations and compatibility
 
-Annotation có nhiều ràng buộc riêng so với phương thức Java thông thường:
+Annotations have several specific constraints compared to ordinary Java methods:
 
-- Phần tử annotation không nhận tham số và không khai báo `throws`.
-- Giá trị mặc định cần là biểu thức phù hợp với loại phần tử và các quy tắc hằng/giá trị annotation của Java. Không thể dùng giá trị runtime tùy ý như `default new java.util.Date()`.
-- Mảng mặc định chỉ mô tả **một chiều kiểu phần tử hợp lệ**; nếu muốn biểu diễn cấu trúc phức tạp, cân nhắc annotation lồng nhau hoặc thiết kế schema khác.
-- Phần tử không có `default` phải được cung cấp khi sử dụng annotation trong mã nguồn, trừ khi có cú pháp cung cấp tương ứng.
-- Default thuộc **khai báo annotation type**, không phải được lưu lặp lại thành một giá trị tường minh ở mỗi vị trí sử dụng annotation.
+- Annotation elements accept no parameters and declare no `throws`.
+- Default values must be expressions matching the element type and Java's annotation constant/value rules. Arbitrary runtime values like `default new java.util.Date()` cannot be used.
+- Default arrays describe only **one-dimensional arrays of valid element types**; to represent complex structures, consider nested annotations or another schema design.
+- Elements without `default` must be provided when using the annotation in source code, unless corresponding providing syntax exists.
+- Defaults belong to the **annotation type declaration**, rather than being stored repeatedly as an explicit value at every annotation usage site.
 
-Một hệ quả quan trọng khi tiến hóa thư viện: nếu thay `default 3` thành `default 5` trong phiên bản mới của annotation, các vị trí sử dụng **không khai báo `retries` tường minh** có thể nhận giá trị hiệu lực mới khi chạy với bản annotation mới. Ngược lại, nơi đã ghi `retries = 7` tiếp tục dùng `7` theo khai báo sử dụng của nó. Bởi vậy thay đổi default có thể là **thay đổi hành vi**, dù không cần sửa mọi nơi sử dụng annotation.
+An important consequence during library evolution: if `default 3` is changed to `default 5` in a new version of an annotation, usage sites that **do not explicitly declare `retries`** can receive the new effective value when running against the new annotation version. Conversely, sites that wrote `retries = 7` continue using `7` per their usage declaration. Hence changing a default can be a **behavioral change**, even without editing every annotation usage site.
 
-Khi viết framework hoặc scanner: xử lý giá trị default như một phần của hợp đồng cấu hình; lưu rõ phiên bản/chính sách nếu default ảnh hưởng đến nghiệp vụ. Không sửa lại `Method` hoặc coi kết quả `getDefaultValue()` là thiết lập runtime có thể ghi đè bằng Reflection.
+When writing frameworks or scanners: treat default values as part of the configuration contract; clearly document versions/policies if defaults affect business behavior. Do not modify `Method` or treat the result of `getDefaultValue()` as a runtime setting that can be overridden via Reflection.
 
-## 9. Các lỗi thường gặp
+## 9. Common mistakes
 
-| Hiện tượng | Nguyên nhân | Cách xử lý |
+| Symptom | Cause | Fix |
 | --- | --- | --- |
-| `getDefaultValue()` trả `null` cho `name()` | Phần tử bắt buộc, không khai báo default | Xác định thiếu default; đọc từ annotation instance nếu đã gắn |
-| Trả `3` nhưng nơi sử dụng annotation đặt `retries = 7` | Đang đọc default của khai báo, không phải giá trị hiệu lực | Dùng `annotation.retries()` hoặc `Method.invoke(annotation)` |
-| `getDefaultValue()` trả `null` cho default method interface | `default` của interface method khác default của annotation | Dùng `Method.isDefault()` để nhận dạng default method |
-| `ClassCastException` khi ép default của `int` về `String` | Primitive được boxing thành `Integer` | Kiểm tra `getReturnType()`, `instanceof` trước khi cast |
-| In mảng `tags` ra dạng `[Ljava.lang.String;@...` | Gọi `Object.toString()` của mảng | Dùng `Arrays.toString((String[]) value)` |
-| Tưởng `default ""` hoặc `default {}` là không có default | Giá trị rỗng vẫn là default hợp lệ | Chỉ kiểm tra `getDefaultValue() == null` |
-| `NoSuchMethodException` khi tìm element qua lớp sử dụng | Element thuộc **annotation type**, không thuộc lớp được gắn | Tìm qua `Config.class.getDeclaredMethod(...)` |
-| `getAnnotation(Config.class)` trả `null` | Annotation không gắn/không được giữ ở runtime/vị trí sai | Kiểm tra `@Retention(RUNTIME)` và vị trí khai báo |
-| Default chứa `Class` không còn khả dụng lúc đọc | Phụ thuộc kiểu bị thiếu hoặc lỗi nạp lớp | Theo tài liệu API, `getDefaultValue()` có thể ném `TypeNotPresentException` |
-| Kết quả duyệt element thay đổi thứ tự | `getDeclaredMethods()` không bảo đảm thứ tự | Sắp xếp theo tên khi xuất báo cáo hoặc serialize |
+| `getDefaultValue()` returns `null` for `name()` | Required element, no default declared | Recognize missing default; read from annotation instance if attached |
+| Returns `3` even though annotation usage sets `retries = 7` | Reading declaration default, not effective value | Use `annotation.retries()` or `Method.invoke(annotation)` |
+| `getDefaultValue()` returns `null` for an interface default method | Interface method `default` differs from annotation default | Use `Method.isDefault()` to identify default methods |
+| `ClassCastException` when casting default of `int` to `String` | Primitive is boxed into `Integer` | Check `getReturnType()` and `instanceof` before casting |
+| Printing `tags` array outputs `[Ljava.lang.String;@...` | Calling `Object.toString()` on array | Use `Arrays.toString((String[]) value)` |
+| Thinking `default ""` or `default {}` means no default | Empty values are still valid defaults | Only check `getDefaultValue() == null` |
+| `NoSuchMethodException` when looking up element via target class | Element belongs to the **annotation type**, not the annotated class | Look up via `Config.class.getDeclaredMethod(...)` |
+| `getAnnotation(Config.class)` returns `null` | Annotation absent / not runtime-retained / wrong location | Check `@Retention(RUNTIME)` and declaration location |
+| Default containing `Class` is unavailable when reading | Missing type dependency or class-loading failure | Per API docs, `getDefaultValue()` can throw `TypeNotPresentException` |
+| Element iteration results change order | `getDeclaredMethods()` does not guarantee order | Sort by name when outputting reports or serializing |
 
-### Các lỗi khi classpath hoặc binary metadata không còn tương thích
+### Errors when classpath or binary metadata become incompatible
 
-Tài liệu `Method.getDefaultValue()` của Java SE 17 nêu `TypeNotPresentException` nếu giá trị mặc định loại `Class` tham chiếu tới kiểu không còn tải được. Ngoài ra, khi phân tích annotation từ thư viện không đồng nhất phiên bản, có thể xuất hiện lỗi liên kết/định dạng metadata hoặc các lỗi khi truy cập giá trị annotation instance. Không nên giả định mọi annotation trong môi trường plugin đều có binary metadata hợp lệ.
+The Java SE 17 documentation for `Method.getDefaultValue()` notes `TypeNotPresentException` if a `Class`-typed default value references a type that can no longer be loaded. In addition, when analyzing annotations from version-mismatched libraries, linkage/metadata-format errors or errors accessing annotation instance values can occur. Do not assume every annotation in a plugin environment has valid binary metadata.
 
-Trong ứng dụng bình thường, **không cần bắt** các lỗi hiếm để đọc một annotation do dự án tự kiểm soát; trong công cụ quét bytecode/library bất kỳ, hãy quyết định chính sách xử lý lỗi có chủ đích và cung cấp thông tin về kiểu annotation/element gây vấn đề.
+In ordinary applications, **there is no need to catch** rare errors to read an annotation controlled by the project itself; in general bytecode/library scanning tools, decide an intentional error-handling policy and provide details about the problematic annotation type/element.
 
-## 10. Tự kiểm tra kiến thức
+## 10. Knowledge self-check
 
-1. **Phần tử `int timeout() default 0;` trả gì qua `getDefaultValue()`?** Đối tượng `Integer` có giá trị `0`, không phải `null`.
-2. **Phần tử `String id();` trả gì?** `null`, do không có default; nơi sử dụng phải khai báo `id` khi cần.
-3. **`@Config(retries = 9)` làm thay đổi `getDefaultValue()` của `retries` thành 9 không?** Không; default trên annotation type không đổi. Giá trị hiệu lực ở nơi sử dụng là `9`.
-4. **`String[] tags() default {};` có default không?** Có; trả mảng rỗng, khác với `null`.
-5. **Một default method của interface có `Method.isDefault() == true` có nghĩa `getDefaultValue()` khác `null` không?** Không, hai API phục vụ hai khái niệm khác nhau.
-6. **Muốn xem tất cả default trên một `@interface`, làm gì?** Duyệt `annotationType.getDeclaredMethods()`, gọi `getDefaultValue()` cho từng `Method`, kiểm tra `null` và định dạng đúng theo kiểu.
-7. **Muốn lấy giá trị cuối cùng áp dụng trên một lớp đã gắn annotation thì sao?** Lấy annotation qua `getAnnotation(...)`, sau đó gọi phần tử trên instance; không chỉ đọc `Method.getDefaultValue()`.
+1. **What does `int timeout() default 0;` return via `getDefaultValue()`?** An `Integer` object with value `0`, not `null`.
+2. **What does `String id();` return?** `null`, because there is no default; usage sites must declare `id` when required.
+3. **Does `@Config(retries = 9)` change `retries`'s `getDefaultValue()` to 9?** No; the default on the annotation type does not change. The effective value at the usage site is `9`.
+4. **Does `String[] tags() default {};` have a default?** Yes; it returns an empty array, distinct from `null`.
+5. **Does an interface default method with `Method.isDefault() == true` mean `getDefaultValue()` is non-`null`?** No, the two APIs serve two different concepts.
+6. **To see all defaults on an `@interface`, what do you do?** Iterate `annotationType.getDeclaredMethods()`, call `getDefaultValue()` on each `Method`, check `null`, and format appropriately by type.
+7. **To get the final effective value applied on an annotated class, what do you do?** Obtain the annotation via `getAnnotation(...)`, then invoke the element on the instance; do not read only `Method.getDefaultValue()`.
 
-**Ghi nhớ:** `Method.getDefaultValue()` lấy **giá trị mặc định trong khai báo phần tử annotation**, trả `null` nếu không có default hoặc không phải phần tử annotation. Nó không tự đọc giá trị được ghi đè trên đối tượng được gắn annotation, và không liên quan tới `Method.isDefault()` của interface.
+**Key takeaway:** `Method.getDefaultValue()` retrieves the **declared default value of an annotation element**, returning `null` if there is no default or it is not an annotation element. It does not read values overridden on an annotated target, and is unrelated to interface `Method.isDefault()`.
 
-Tài liệu tham khảo: [Java SE 17 — Method.getDefaultValue](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html#getDefaultValue()), [JLS §9.6.2 — Defaults for Annotation Type Elements](https://docs.oracle.com/javase/specs/jls/se17/html/jls-9.html#jls-9.6.2), [Java SE 17 — Annotation](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/annotation/Annotation.html).
+References: [Java SE 17 — Method.getDefaultValue](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html#getDefaultValue()), [JLS §9.6.2 — Defaults for Annotation Type Elements](https://docs.oracle.com/javase/specs/jls/se17/html/jls-9.html#jls-9.6.2), [Java SE 17 — Annotation](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/annotation/Annotation.html).

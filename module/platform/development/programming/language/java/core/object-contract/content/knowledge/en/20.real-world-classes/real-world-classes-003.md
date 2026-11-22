@@ -1,38 +1,38 @@
-# `getClass()` là `final` và không thể ghi đè trong Java
+# `getClass()` Is `final` and Cannot Be Overridden in Java
 
-## 1. Mục tiêu bài học
+## 1. Lesson Objectives
 
-Trong Java, mọi đối tượng đều kế thừa phương thức `getClass()` từ `java.lang.Object`. Khi gọi phương thức này trên một tham chiếu **khác `null`**, Java trả về đối tượng `Class<?>` đại diện cho **lớp thực tế lúc chạy** (runtime class) của chính đối tượng ấy.
+In Java, every object inherits the `getClass()` method from `java.lang.Object`. When calling this method on a **non-`null`** reference, Java returns a `Class<?>` object representing the **actual runtime class** of that object.
 
-Bài học tập trung vào hai sự thật gắn liền nhau:
+This lesson focuses on two closely related facts:
 
-1. `Object.getClass()` là phương thức **`final`**, vì vậy mọi lớp con, kể cả lớp tự định nghĩa, record hay enum, **không được override nó**.
-2. Kết quả `getClass()` phản ánh **kiểu thực của đối tượng**, có thể khác kiểu biến tham chiếu được khai báo trong mã nguồn.
+1. `Object.getClass()` is a **`final`** method, so no subclass—including user-defined classes, records, or enums—**may override it**.
+2. The result of `getClass()` reflects the **actual type of the object**, which may differ from the reference variable's declared type in source code.
 
-Nắm rõ chúng giúp bạn dùng đúng thông tin kiểu trong Java, phân biệt so kiểu chính xác với so theo quan hệ kế thừa, và tránh thiết kế sai các phương thức `equals()`.
+Understanding these facts helps you use type information properly in Java, distinguish exact-type comparison from inheritance-based checks, and avoid designing `equals()` methods incorrectly.
 
-## 2. Khai báo của `Object.getClass()`
+## 2. Declaration of `Object.getClass()`
 
-Trong `java.lang.Object`, chữ ký phương thức có dạng:
+In `java.lang.Object`, the method signature has the form:
 
 ```java
 public final native Class<?> getClass();
 ```
 
-Đây là **khai báo minh họa chữ ký từ JDK**, không phải đoạn mã bạn có thể tự thêm vào một lớp để chạy độc lập. Ý nghĩa từng phần:
+This is an **illustrative signature declaration from the JDK**, not code you can add into your own class to run standalone. Meaning of each part:
 
-- **`public`:** có thể gọi trên bất kỳ đối tượng nào mà bạn có tham chiếu hợp lệ.
-- **`final`:** lớp kế thừa không thể ghi đè phương thức cùng chữ ký. Quy tắc được trình biên dịch Java kiểm tra.
-- **`native`:** phần hiện thực được cung cấp qua cơ chế mức thấp của JVM/runtime, thay vì một thân phương thức Java trong khai báo trên.
-- **`Class<?>`:** kiểu kết quả biểu diễn metadata của một lớp/kiểu runtime; nó không phải chuỗi tên lớp. Có thể dùng các API phản chiếu (reflection) như `getName()`, `getSuperclass()`, `isInterface()`, `isAssignableFrom()`.
+- **`public`:** can be called on any object for which you hold a valid reference.
+- **`final`:** subclasses cannot override a method with the same signature. This rule is enforced by the Java compiler.
+- **`native`:** the implementation is provided via a low-level JVM/runtime mechanism rather than a Java method body in the declaration above.
+- **`Class<?>`:** the return type represents metadata of a runtime class/type; it is not a class name string. Reflection APIs such as `getName()`, `getSuperclass()`, `isInterface()`, and `isAssignableFrom()` can be used on it.
 
-Đối với một đối tượng tồn tại trong JVM, lớp thực tế của nó đã được xác định khi đối tượng được tạo ra. Việc gán đối tượng đó sang một biến có kiểu cha hoặc interface không thay đổi lớp thực tế ấy, nên `getClass()` vẫn trả metadata của kiểu runtime ban đầu.
+For an object existing in the JVM, its actual class is already determined when the object is created. Assigning that object to a variable of a superclass or interface type does not change that actual class, so `getClass()` still returns metadata for the original runtime type.
 
-**Điểm cần phân biệt:** `getClass()` là phương thức **`final`**, nhưng điều đó không có nghĩa mọi lớp chứa phương thức ấy đều là `final`. Ví dụ, `Animal` có thể không `final` và vẫn được kế thừa, mặc dù phương thức `getClass()` kế thừa từ `Object` luôn không thể bị ghi đè.
+**Key distinction:** `getClass()` is a **`final`** method, but that does not mean every class containing that method is `final`. For example, `Animal` can be non-`final` and still be subclassed, even though the `getClass()` method inherited from `Object` can never be overridden.
 
-## 3. Kiểu khai báo và lớp thực tế khác nhau ra sao?
+## 3. How Do the Declared Type and the Actual Class Differ?
 
-Ví dụ:
+Example:
 
 ```java
 class Animal {}
@@ -41,9 +41,9 @@ class Dog extends Animal {}
 Animal pet = new Dog();
 ```
 
-`pet` có **kiểu khai báo** `Animal`. Nhưng đối tượng được tạo bởi `new Dog()` có **runtime class** là `Dog`.
+`pet` has the **declared type** `Animal`. However, the object created by `new Dog()` has the **runtime class** `Dog`.
 
-Vì vậy:
+Therefore:
 
 ```java
 pet.getClass() == Dog.class;    // true
@@ -52,32 +52,32 @@ pet instanceof Animal;          // true
 pet instanceof Dog;             // true
 ```
 
-Đây là các biểu thức minh họa dựa trên biến `pet` khai báo phía trên. Hãy hiểu hai kiểm tra khác nhau:
+These are illustrative expressions based on the `pet` variable declared above. Understand the two different checks:
 
-- `pet.getClass() == Dog.class` hỏi: “Đối tượng này thuộc **chính xác** lớp `Dog` ở runtime không?”
-- `pet instanceof Animal` hỏi: “Đối tượng này có tương thích với kiểu `Animal`, bao gồm lớp con không?”
+- `pet.getClass() == Dog.class` asks: "Does this object belong to the **exact** `Dog` class at runtime?"
+- `pet instanceof Animal` asks: "Is this object compatible with type `Animal`, including subclasses?"
 
-Phương thức `getClass()` không bị “che” bởi kiểu biến `Animal`. Việc gọi trên một biến kiểu cha vẫn cho metadata của lớp thực tế, kể cả khi lớp con không hề định nghĩa lại `getClass()`.
+The `getClass()` method is not "hidden" by the `Animal` variable type. Calling it on a parent-type variable still yields metadata for the actual class, even when the subclass does not redefine `getClass()`.
 
-### `SomeType.class` khác `obj.getClass()` thế nào?
+### How Does `SomeType.class` Differ from `obj.getClass()`?
 
-`Dog.class` là **class literal**: lấy `Class` của kiểu được nêu trực tiếp trong mã; không cần tạo một thể hiện của `Dog`.
+`Dog.class` is a **class literal**: it obtains the `Class` of the type named directly in code; there is no need to instantiate a `Dog`.
 
-`pet.getClass()` là **truy vấn runtime** trên đối tượng cụ thể đang được tham chiếu. Nếu một ngày biến `pet` giữ `new Cat()` thay vì `new Dog()`, kết quả có thể là `Cat.class`.
+`pet.getClass()` is a **runtime query** on the specific object currently referenced. If one day the variable `pet` holds `new Cat()` instead of `new Dog()`, the result can be `Cat.class`.
 
-Cả hai trả về đối tượng `Class` đại diện cho kiểu tương ứng. Trong cùng phạm vi kiểu đã được JVM nạp, nhiều thể hiện của cùng một lớp chia sẻ đối tượng `Class`:
+Both return a `Class` object representing the corresponding type. Within the same type scope loaded by the JVM, multiple instances of the same class share the `Class` object:
 
 ```java
 new Dog().getClass() == new Dog().getClass(); // true
 ```
 
-Hai thể hiện `Dog` ở biểu thức này **không phải cùng một đối tượng Dog**; chúng chỉ có cùng lớp thực tế. Vì thế `a.getClass() == b.getClass()` không đồng nghĩa với `a == b` hoặc `a.equals(b)`.
+The two `Dog` instances in this expression **are not the same `Dog` object**; they merely share the same actual class. Thus `a.getClass() == b.getClass()` does not imply `a == b` or `a.equals(b)`.
 
-## 4. Vì sao không được override `getClass()`?
+## 4. Why Can't `getClass()` Be Overridden?
 
-Nếu một lớp có thể giả mạo metadata kiểu runtime thông qua override, kết quả của `getClass()` sẽ không còn là nguồn thông tin đáng tin cậy về lớp thực sự mà JVM đang quản lý. Java vì vậy khóa phương thức tại `Object` bằng `final`.
+If a class could spoof runtime type metadata via overriding, the result of `getClass()` would no longer be a trustworthy source of information about the actual class managed by the JVM. Java therefore locks the method on `Object` with `final`.
 
-Ví dụ **cố ý sai, sẽ không biên dịch**:
+An **intentionally invalid example that will not compile**:
 
 ```java
 class FakeType {
@@ -88,20 +88,20 @@ class FakeType {
 }
 ```
 
-Lỗi biên dịch về bản chất là: `getClass()` không thể override phương thức `final` trong `Object`. Bỏ `@Override` cũng không giúp: chữ ký vẫn trùng với phương thức `final` được kế thừa.
+The compile error in essence is: `getClass()` cannot override the `final` method in `Object`. Removing `@Override` does not help either: the signature still clashes with the inherited `final` method.
 
-Tương tự, ta không thể override `getClass()` trong:
+Similarly, you cannot override `getClass()` in:
 
-- Một lớp con bình thường, kể cả lớp con sâu nhiều cấp.
-- Một record: record kế thừa `Object` (thông qua `java.lang.Record`) và vẫn chịu ràng buộc `final` của `getClass()`.
-- Một enum: enum kế thừa `java.lang.Enum` rồi đến `Object`.
-- Một lớp vô danh hoặc thân lớp riêng của hằng enum.
+- A normal subclass, including deeply nested subclasses.
+- A record: records inherit `Object` (via `java.lang.Record`) and remain subject to the `final` constraint on `getClass()`.
+- An enum: enums inherit `java.lang.Enum` and then `Object`.
+- An anonymous class or an enum constant's own class body.
 
-Nếu chỉ muốn cung cấp **nhãn loại nghiệp vụ**, hãy đặt một phương thức **khác tên**, ví dụ `kind()`, `typeCode()`, `displayType()`; không cố thay đổi `Object.getClass()`.
+If you only want to provide a **business category label**, define a method with a **different name**, such as `kind()`, `typeCode()`, or `displayType()`; do not try to alter `Object.getClass()`.
 
-## 5. Ví dụ Java 17+ hoàn chỉnh
+## 5. Complete Java 17+ Example
 
-Tạo tệp **`GetClassFinalDemo.java`**:
+Create the file **`GetClassFinalDemo.java`**:
 
 ```java
 import java.util.ArrayList;
@@ -182,14 +182,14 @@ public class GetClassFinalDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or higher:
 
 ```bash
 javac GetClassFinalDemo.java
 java GetClassFinalDemo
 ```
 
-**Kết quả chuẩn:**
+**Expected output:**
 
 ```text
 declared Animal, runtime Dog: true
@@ -208,30 +208,30 @@ missing == null: true
 missing.getClass() throws NPE
 ```
 
-**Giải thích các nhóm kết quả:**
+**Explanation of output groups:**
 
-1. `dogAsAnimal` có kiểu khai báo `Animal` nhưng là `new Dog()`, do đó `getClass() == Dog.class` là `true`. `instanceof Animal` cũng là `true` do quan hệ kế thừa.
-2. `animal` và `dogAsAnimal` có lớp runtime khác nhau, nên phép so hai đối tượng `Class` là `false`. Hai thể hiện `Dog` độc lập lại có **cùng lớp** và chia sẻ metadata `Class`.
-3. `sameRuntimeClass` so chính xác hai lớp và chủ động kiểm tra null ở cả hai phía. Hai đối tượng được tạo khác lớp cho kết quả `false`.
-4. `Point` là record, nhưng record vẫn là một kiểu runtime cụ thể. `point.getClass()` trả `Point.class`.
-5. `new Animal() {}` tạo **lớp con vô danh** của `Animal`. Đối tượng đó là `Animal` theo `instanceof`, nhưng lớp thực tế **không phải chính** `Animal.class`. `getSuperclass()` cho biết lớp cha trực tiếp là `Animal`, còn lớp vô danh không có tên canonical nên `getCanonicalName() == null`.
-6. `Mode.CUSTOM` có **constant-specific class body**, do đó runtime class của hằng này có thể là một lớp con của enum `Mode`, khác `Mode.class`. `getDeclaringClass()` của hằng vẫn trả lớp enum khai báo, tức `Mode.class`.
-7. Hai `ArrayList` với đối số kiểu `String` và `Integer` có cùng lớp runtime `ArrayList` sau khi type erasure. `getClass()` của thể hiện không cho phép suy ra đầy đủ generic type argument.
-8. Gọi phương thức trên tham chiếu `null` ném `NullPointerException`; kiểm tra `missing == null` được phép và không gọi phương thức.
+1. `dogAsAnimal` has declared type `Animal` but is `new Dog()`, so `getClass() == Dog.class` is `true`. `instanceof Animal` is also `true` due to inheritance.
+2. `animal` and `dogAsAnimal` have different runtime classes, so comparing the two `Class` objects yields `false`. Two independent `Dog` instances have the **same class** and share `Class` metadata.
+3. `sameRuntimeClass` compares two classes exactly and explicitly checks for `null` on both sides. Two objects instantiated from different classes yield `false`.
+4. `Point` is a record, yet a record is still a concrete runtime type. `point.getClass()` returns `Point.class`.
+5. `new Animal() {}` creates an **anonymous subclass** of `Animal`. That object is an `Animal` according to `instanceof`, yet its actual class **is not** `Animal.class` itself. `getSuperclass()` shows the direct superclass is `Animal`, and an anonymous class has no canonical name so `getCanonicalName() == null`.
+6. `Mode.CUSTOM` has a **constant-specific class body**, so this constant's runtime class can be a subclass of the `Mode` enum, distinct from `Mode.class`. `getDeclaringClass()` on the constant still returns the declaring enum class, namely `Mode.class`.
+7. Two `ArrayList` instances with type arguments `String` and `Integer` have the same runtime class `ArrayList` after type erasure. Calling `getClass()` on an instance does not let you recover the full generic type argument.
+8. Calling a method on a `null` reference throws `NullPointerException`; checking `missing == null` is allowed and invokes no method.
 
-## 6. `getClass()`, `instanceof`, `Class.isInstance`: chọn đúng câu hỏi
+## 6. `getClass()`, `instanceof`, `Class.isInstance`: Asking the Right Question
 
-| Cách kiểm tra | Ý nghĩa | Kết quả với `new Dog()` khi so `Animal` |
+| Check | Meaning | Result with `new Dog()` compared to `Animal` |
 | --- | --- | --- |
-| `obj.getClass() == Animal.class` | Lớp runtime **chính xác** là `Animal` | `false` |
-| `obj instanceof Animal` | Đối tượng là `Animal` hoặc subtype | `true` |
-| `Animal.class.isInstance(obj)` | Kiểm tra runtime xem đối tượng có thể dùng như `Animal` không | `true` |
-| `Animal.class.isAssignableFrom(obj.getClass())` | Xem lớp `Animal` có thể nhận một giá trị của lớp runtime bên phải không | `true` nếu `obj` khác null |
-| `obj == other` | Hai tham chiếu trỏ cùng đối tượng hay không | Không suy ra được chỉ từ tên lớp |
+| `obj.getClass() == Animal.class` | Runtime class is **exactly** `Animal` | `false` |
+| `obj instanceof Animal` | Object is an `Animal` or subtype | `true` |
+| `Animal.class.isInstance(obj)` | Runtime check whether the object can be used as `Animal` | `true` |
+| `Animal.class.isAssignableFrom(obj.getClass())` | Checks whether class `Animal` can accept a value of the right-hand runtime class | `true` if `obj` is non-null |
+| `obj == other` | Whether two references point to the same object | Cannot be inferred from class name alone |
 
-`instanceof` và `Class.isInstance` được thiết kế cho bài toán **tương thích kiểu**, chẳng hạn một nhánh xử lý áp dụng cho mọi lớp triển khai interface. `getClass() == SomeClass.class` dành cho bài toán cần đúng **lớp cụ thể**, không chấp nhận subtype.
+`instanceof` and `Class.isInstance` are designed for **type compatibility**, such as a handling branch that applies to every class implementing an interface. `getClass() == SomeClass.class` is for cases that require the exact **specific class**, rejecting subtypes.
 
-Ví dụ với interface:
+Example with an interface:
 
 ```java
 interface Payable {}
@@ -243,13 +243,13 @@ boolean isPayable = value instanceof Payable;          // true
 boolean runtimeInvoice = value.getClass() == Invoice.class; // true
 ```
 
-Đoạn này minh họa hai câu hỏi khác nhau, không phải một chương trình có `main`. Phần lớn mã ứng dụng tận dụng **đa hình** nên nên xử lý qua interface hoặc `instanceof` thay vì rẽ nhánh liên tục theo tên lớp. Chỉ chọn kiểm tra lớp chính xác khi đó thật sự là một yêu cầu của nghiệp vụ hoặc API.
+This snippet illustrates two different questions, not a program with `main`. Most application code leverages **polymorphism** and should therefore handle things via interfaces or `instanceof` instead of branching repeatedly by class name. Choose an exact-class check only when that is genuinely a business or API requirement.
 
-## 7. Liên hệ với `equals()`: vì sao có người dùng `getClass()`?
+## 7. Connection to `equals()`: Why Do Some People Use `getClass()`?
 
-Khi tự viết quan hệ bằng nhau theo giá trị, có hai chiến lược phổ biến để kiểm tra đối tượng bên phải:
+When writing value equality manually, there are two common strategies for checking the right-hand object:
 
-**Chiến lược kiểm tra lớp chính xác:**
+**Exact-class checking strategy:**
 
 ```java
 @Override
@@ -261,9 +261,9 @@ public boolean equals(Object other) {
 }
 ```
 
-Đây là **thân phương thức minh họa** của một lớp `PointValue` có hai trường `int x`, `int y`; cần định nghĩa `hashCode()` phù hợp để thành một lớp value hoàn chỉnh. Điều kiện `getClass() != other.getClass()` loại mọi subtype khỏi quan hệ bằng nhau. Trong một kiểu có thể bị kế thừa, điều này đôi khi là quyết định có chủ đích để tránh các tình huống phức tạp về đối xứng/bắc cầu của `equals`.
+This is an **illustrative method body** for a `PointValue` class with two fields `int x` and `int y`; a matching `hashCode()` must be defined to form a complete value class. The condition `getClass() != other.getClass()` excludes all subtypes from the equality relation. In an inheritable type, this is sometimes a deliberate decision to avoid tricky `equals` symmetry/transitivity situations.
 
-**Chiến lược kiểm tra loại tương thích:**
+**Compatible-type checking strategy:**
 
 ```java
 if (!(other instanceof PointValue value)) {
@@ -271,50 +271,50 @@ if (!(other instanceof PointValue value)) {
 }
 ```
 
-Cách dùng `instanceof` có thể chấp nhận subtype. Điều này hợp lý khi tất cả subtype được phép tham gia **cùng một quan hệ bằng nhau** và các quy tắc thật sự giữ được hợp đồng `equals`. Nhưng nếu subtype bổ sung các trường tham gia equality, triển khai sơ suất có thể phá đối xứng hoặc bắc cầu.
+Using `instanceof` can accept subtypes. This makes sense when all subtypes are allowed to participate in **the same equality relation** and the rules genuinely preserve the `equals` contract. However, if a subtype adds fields that participate in equality, a careless implementation can break symmetry or transitivity.
 
-**Không có một quy tắc “luôn phải dùng `getClass`” cho mọi lớp**. Phụ thuộc vào mô hình dữ liệu và hợp đồng equality:
+**There is no rule saying "always use `getClass` for every class"**. It depends on the data model and equality contract:
 
-- Với value class `final` hoặc record, không có subclass ứng dụng; `instanceof` và kiểm tra lớp chính xác thường tương đương cho các thể hiện cùng kiểu được xét.
-- Với phân cấp kế thừa có mở rộng dữ liệu, cần thiết kế quan hệ bằng nhau rất cẩn thận; có thể giới hạn đúng lớp bằng `getClass()` hoặc ưu tiên composition/value object `final`.
-- Đừng nhầm việc `getClass()` là `final` với việc `equals()` luôn so lớp chính xác. `Object.equals()` mặc định so **danh tính**; nhiều lớp tự override `equals()` theo ngữ nghĩa riêng. `getClass()` không tự được gọi bởi mọi triển khai `equals`.
+- For a `final` value class or record, there are no application subclasses; `instanceof` and exact-class checks are generally equivalent for instances of the considered type.
+- For an inheritance hierarchy that extends data, the equality relation must be designed very carefully; you may restrict to the exact class using `getClass()`, or prefer composition/`final` value objects.
+- Do not confuse `getClass()` being `final` with `equals()` always comparing exact classes. `Object.equals()` defaults to **identity** comparison; many classes override `equals()` with their own semantics. `getClass()` is not automatically called by every `equals` implementation.
 
-### Trường hợp proxy hoặc lớp sinh động
+### Proxies or Dynamically Generated Classes
 
-Một đối tượng proxy/subclass do framework tạo có thể có lớp runtime khác với lớp domain mà chương trình nghĩ tới. Nếu dùng `getClass() == Domain.class` cứng nhắc, đối tượng ấy có thể bị từ chối dù nó vẫn tương thích với `Domain` theo `instanceof`. Trong các framework, cần đọc hợp đồng proxy và equality tương ứng; không tự giả định một thực thể proxy và thực thể gốc phải bằng nhau.
+A framework-created proxy/subclass object may have a different runtime class from the domain class the program expects. If you rigidly use `getClass() == Domain.class`, that object may be rejected even though it is still compatible with `Domain` under `instanceof`. In frameworks, read the corresponding proxy and equality contracts; do not assume on your own that a proxy entity and the original entity must be equal.
 
-## 8. Các tình huống đặc biệt thường gặp
+## 8. Common Special Cases
 
-### 8.1. Lớp vô danh và lớp lồng
+### 8.1. Anonymous Classes and Nested Classes
 
-`getClass()` không trả “lớp cha gần nhất” mà trả chính lớp runtime, kể cả khi tên lớp được trình biên dịch sinh ra. Lớp vô danh có thể không có canonical name; không dựa vào `getSimpleName()` hoặc một tên có dấu `$` để xác định loại nghiệp vụ.
+`getClass()` does not return the "nearest superclass"; it returns the actual runtime class, even when the class name is compiler-generated. Anonymous classes may have no canonical name; do not rely on `getSimpleName()` or a name containing `$` to determine business types.
 
-`getSuperclass()` là API khác: nó trả superclass trực tiếp của một `Class` (hoặc null cho một số loại như interface, primitive hoặc `Object.class`). Nó không thay thế `getClass()`.
+`getSuperclass()` is a different API: it returns the direct superclass of a `Class` (or `null` for certain kinds such as interfaces, primitives, or `Object.class`). It does not replace `getClass()`.
 
-### 8.2. Enum có constant-specific class body
+### 8.2. Enums with Constant-Specific Class Bodies
 
-Nếu enum định nghĩa phương thức riêng cho từng hằng bằng thân lớp, một hằng có thể có runtime class khác lớp enum khai báo. Muốn lấy **kiểu enum gốc**, dùng `someEnum.getDeclaringClass()`. Muốn kiểm tra đúng **hằng** nào, dùng `==` với hằng tương ứng.
+If an enum defines per-constant methods via a class body, a constant can have a runtime class different from the declaring enum class. To get the **root enum type**, use `someEnum.getDeclaringClass()`. To check which exact **constant** it is, use `==` with the corresponding constant.
 
-Không giả định rằng mọi `enumConstant.getClass() == MyEnum.class` đều đúng khi enum có constant-specific class body.
+Do not assume that `enumConstant.getClass() == MyEnum.class` is true for every constant when an enum has constant-specific class bodies.
 
-### 8.3. Kiểu nguyên thủy và mảng
+### 8.3. Primitive Types and Arrays
 
-Primitive không phải đối tượng để gọi instance method:
+Primitives are not objects on which to call instance methods:
 
 ```java
 int number = 42;
-// number.getClass(); // Sai: int là kiểu nguyên thủy, không có getClass().
+// number.getClass(); // Wrong: int is a primitive type and has no getClass().
 Class<?> primitiveType = int.class;
 Class<?> boxedType = Integer.valueOf(number).getClass();
 ```
 
-Đoạn trên là minh họa khai báo biến. `primitiveType` biểu diễn kiểu nguyên thủy `int`; `boxedType` biểu diễn lớp `Integer`. Chúng không bằng nhau.
+The snippet above illustrates variable declarations. `primitiveType` represents the primitive type `int`; `boxedType` represents the `Integer` class. They are not equal.
 
-Mảng là đối tượng, nên `new String[0].getClass() == String[].class` là `true`. Đừng suy ra mảng là `String.class`: lớp của `String[]` khác lớp của từng phần tử `String`.
+Arrays are objects, so `new String[0].getClass() == String[].class` is `true`. Do not conclude that the array is `String.class`: the class of `String[]` differs from the class of each `String` element.
 
-### 8.4. Generic type erasure
+### 8.4. Generic Type Erasure
 
-Với:
+With:
 
 ```java
 Object first = new java.util.ArrayList<String>();
@@ -323,17 +323,17 @@ Object second = new java.util.ArrayList<Integer>();
 boolean sameClass = first.getClass() == second.getClass(); // true
 ```
 
-`getClass()` không đưa ra tham số kiểu generic `String` hoặc `Integer` của từng lần khởi tạo khi thông tin ấy đã bị xóa bởi type erasure. API reflection về generic declarations có thể đọc cấu trúc generic trong **khai báo lớp/trường/phương thức** khi metadata tồn tại, nhưng không biến mỗi đối tượng `ArrayList<T>` thành một lớp runtime khác nhau cho từng `T`.
+`getClass()` does not expose the `String` or `Integer` generic type argument of each instantiation when that information has been erased by type erasure. Reflection APIs for generic declarations can read generic structure in **class/field/method declarations** when metadata exists, but they do not turn each `ArrayList<T>` object into a separate runtime class for each `T`.
 
-### 8.5. Lớp nạp bởi các class loader khác nhau
+### 8.5. Classes Loaded by Different Class Loaders
 
-Tên đầy đủ giống nhau không phải lúc nào cũng có nghĩa đó là **cùng một kiểu runtime**. Java tính danh tính lớp theo định danh lớp và class loader xác định lớp đó. Khi cùng tên lớp được nạp độc lập bởi những bộ nạp khác nhau, hai đối tượng `Class` có thể khác nhau. So `Class<?>` bằng `==` phản ánh đúng danh tính runtime; so các chuỗi từ `getName()` có thể chỉ nói chúng **cùng tên**, không chứng minh cùng lớp.
+Having the same fully qualified name does not always mean it is **the same runtime type**. Java determines class identity by both the class name and the class loader that defines the class. When the same class name is loaded independently by different loaders, the two `Class` objects can differ. Comparing `Class<?>` with `==` accurately reflects runtime identity; comparing strings from `getName()` may only tell you they have the **same name**, not prove they are the same class.
 
-Trong ứng dụng thông thường, điều này ít xuất hiện; trong plugin system, app server, hot deployment hoặc môi trường module phức tạp, đây là nguyên nhân quan trọng của lỗi tương thích kiểu.
+In ordinary applications this rarely appears; in plugin systems, application servers, hot deployment, or complex modular environments, this is a major cause of type-compatibility errors.
 
-## 9. `getClass()` và reflection
+## 9. `getClass()` and Reflection
 
-Một khi đã có đối tượng `Class<?>`, có thể xem thông tin cấu trúc mà không làm thay đổi bản chất của đối tượng:
+Once you have a `Class<?>` object, you can inspect structural information without altering the nature of the object:
 
 ```java
 Object value = "hello";
@@ -344,59 +344,59 @@ String simpleName = type.getSimpleName(); // "String"
 boolean isString = type == String.class;  // true
 ```
 
-Đây là đoạn Java minh họa có thể đặt trong `main`. Reflection còn có các phương thức để truy vấn constructor, field, method hoặc annotation theo quy tắc truy cập của Java. `getClass()` tự nó **không** tự động đọc hết trường dữ liệu, không thay đổi khả năng truy cập thành viên và không biến một đối tượng thành một thể hiện của lớp khác.
+This is an illustrative Java snippet that can be placed inside `main`. Reflection also has methods to query constructors, fields, methods, or annotations according to Java's access rules. `getClass()` itself **does not** automatically read all data fields, does not change member accessibility, and does not turn an object into an instance of another class.
 
-Khi cần tạo đối tượng kiểu đã biết ngay tại thời điểm biên dịch, hãy ưu tiên `SomeClass.class`. Khi nhận một `Object` bất kỳ và phải biết kiểu runtime, dùng `getClass()` sau khi đã xử lý khả năng null.
+When you need a type already known at compile time, prefer `SomeClass.class`. When receiving an arbitrary `Object` and needing its runtime type, use `getClass()` after handling the possibility of `null`.
 
-## 10. Lỗi phổ biến và cách tránh
+## 10. Common Mistakes and How to Avoid Them
 
-| Nhận định hoặc cách làm | Vấn đề | Cách đúng |
+| Claim or Practice | Problem | Correct Approach |
 | --- | --- | --- |
-| “Biến `Animal` luôn trả `Animal.class`.” | Sai nếu nó trỏ tới `Dog` hoặc lớp con khác. | `getClass()` trả lớp thực tế của đối tượng. |
-| “Override `getClass()` để hiển thị loại riêng.” | Phương thức của `Object` là `final`; không biên dịch. | Định nghĩa `kind()` hoặc phương thức tên khác. |
-| “`getClass() == Base.class` kiểm tra cả lớp con.” | Nó chỉ nhận **đúng lớp Base**. | Dùng `instanceof Base` nếu muốn nhận subtype. |
-| “Hai đối tượng có cùng `getClass()` thì `equals()` bằng nhau.” | Cùng kiểu không chứng minh bằng nhau về danh tính hay giá trị. | Dùng hợp đồng `equals` hoặc `==` theo mục đích. |
-| “Có thể gọi `value.getClass()` khi `value` là null.” | Ném `NullPointerException`. | Kiểm tra null trước hoặc dùng `instanceof` khi phù hợp. |
-| “So `getClass().getName()` luôn đủ xác định lớp.” | Có thể cùng tên nhưng khác class loader. | So `Class` theo danh tính khi thực sự cần exact runtime class. |
-| “`getClass()` phân biệt được `List<String>` và `List<Integer>`.” | Generic args thường bị xóa trong runtime instance type. | Đưa thông tin kiểu vào API/`Class<T>` hoặc type token khi cần. |
-| “Mọi hằng enum có `getClass() == MyEnum.class`.” | Constant-specific class body có runtime subclass. | Dùng `getDeclaringClass()` cho kiểu enum khai báo. |
-| “`getClass()` final làm mọi lớp con thành final.” | Ràng buộc final chỉ áp dụng phương thức đó. | Phân biệt `final` method với `final` class. |
-| “`getClass()` và `getSuperclass()` tương đương.” | Một cái là lớp runtime đối tượng, một cái hỏi lớp cha của metadata `Class`. | Chọn API theo câu hỏi cần trả lời. |
+| "An `Animal` variable always returns `Animal.class`." | Wrong if it points to a `Dog` or another subclass. | `getClass()` returns the actual class of the object. |
+| "Override `getClass()` to display a custom type." | The method on `Object` is `final`; will not compile. | Define `kind()` or a differently named method. |
+| "`getClass() == Base.class` checks subclasses too." | It only accepts **the exact `Base` class**. | Use `instanceof Base` if you want to accept subtypes. |
+| "Two objects with the same `getClass()` are `equals()`." | Same type does not prove equality of identity or value. | Use the `equals` contract or `==` depending on intent. |
+| "You can call `value.getClass()` when `value` is null." | Throws `NullPointerException`. | Check for `null` first or use `instanceof` where appropriate. |
+| "Comparing `getClass().getName()` is always enough to identify a class." | Different class loaders can load the same name. | Compare `Class` by identity when exact runtime class is truly needed. |
+| "`getClass()` distinguishes `List<String>` from `List<Integer>`." | Generic args are typically erased in the runtime instance type. | Pass type information via API/`Class<T>` or a type token when needed. |
+| "Every enum constant has `getClass() == MyEnum.class`." | Constant-specific class bodies have a runtime subclass. | Use `getDeclaringClass()` for the declared enum type. |
+| "`final` `getClass()` makes every subclass `final`." | The `final` modifier applies only to that method. | Distinguish a `final` method from a `final` class. |
+| "`getClass()` and `getSuperclass()` are equivalent." | One gets the object's runtime class; the other queries the parent class of `Class` metadata. | Choose the API according to the question you need to answer. |
 
-## 11. Checklist lựa chọn nhanh
+## 11. Quick Selection Checklist
 
-1. **Muốn biết chính xác lớp của một đối tượng?** Kiểm tra nó khác `null`, sau đó dùng `obj.getClass()`.
-2. **Muốn đối tượng có tương thích một interface/lớp cha?** Dùng `instanceof` hoặc `Class.isInstance`.
-3. **Muốn metadata của kiểu đã biết khi biên dịch?** Dùng `Type.class`; không cần tạo một đối tượng chỉ để gọi `getClass()`.
-4. **Muốn so hai lớp runtime chính xác?** Dùng `a.getClass() == b.getClass()` sau khi xử lý null.
-5. **Muốn kiểm tra hai đối tượng giống nhau về dữ liệu?** Dùng quan hệ `equals()` của lớp đã định nghĩa, không suy ra từ `getClass()`.
-6. **Muốn kiểu enum khai báo dù hằng có thân lớp riêng?** Dùng `enumValue.getDeclaringClass()`.
-7. **Muốn tạo loại nghiệp vụ do người dùng định nghĩa?** Tạo API tên khác; `Object.getClass()` không thể override.
+1. **Want to know the exact class of an object?** Check that it is not `null`, then use `obj.getClass()`.
+2. **Want to check whether an object is compatible with an interface/superclass?** Use `instanceof` or `Class.isInstance`.
+3. **Want metadata for a type known at compile time?** Use `Type.class`; no need to instantiate an object just to call `getClass()`.
+4. **Want to compare two exact runtime classes?** Use `a.getClass() == b.getClass()` after handling `null`.
+5. **Want to check whether two objects have the same data?** Use the class's defined `equals()` relation; do not infer it from `getClass()`.
+6. **Want the declared enum type even when a constant has its own class body?** Use `enumValue.getDeclaringClass()`.
+7. **Want a user-defined business type label?** Create an API with a different name; `Object.getClass()` cannot be overridden.
 
-## 12. Tự kiểm tra
+## 12. Self-Check
 
-**Câu 1.** `Animal x = new Dog();`. `x.getClass() == Animal.class` là `true` hay `false`?
+**Question 1.** `Animal x = new Dog();`. Is `x.getClass() == Animal.class` `true` or `false`?
 
-**Đáp án:** `false`, vì runtime class là `Dog`. `x instanceof Animal` vẫn là `true`.
+**Answer:** `false`, because the runtime class is `Dog`. `x instanceof Animal` is still `true`.
 
-**Câu 2.** Có thể khai báo `public Class<?> getClass()` trong lớp riêng để “thay kết quả” của `Object.getClass()` không?
+**Question 2.** Can you declare `public Class<?> getClass()` in your own class to "replace the result" of `Object.getClass()`?
 
-**Đáp án:** Không. `Object.getClass()` là `final`; phương thức cùng chữ ký không được override.
+**Answer:** No. `Object.getClass()` is `final`; a method with the same signature cannot be overridden.
 
-**Câu 3.** Hai đối tượng khác nhau của `Dog` có cùng `getClass()` không? Có chắc chắn `equals()` bằng nhau không?
+**Question 3.** Do two different `Dog` objects have the same `getClass()`? Are they guaranteed to be `equals()`?
 
-**Đáp án:** Chúng có cùng `Class` runtime. `equals()` còn phụ thuộc quy tắc của lớp; không thể suy từ cùng kiểu.
+**Answer:** They have the same runtime `Class`. `equals()` still depends on the class's rules; it cannot be inferred from having the same type.
 
-**Câu 4.** Vì sao `new Animal() {}` không có `getClass() == Animal.class`?
+**Question 4.** Why does `new Animal() {}` not have `getClass() == Animal.class`?
 
-**Đáp án:** Đó là một lớp con vô danh thực sự; runtime class là lớp con ấy.
+**Answer:** It is a genuine anonymous subclass; the runtime class is that subclass.
 
-**Câu 5.** Tại sao `getClass()` của hai `ArrayList<String>` và `ArrayList<Integer>` giống nhau?
+**Question 5.** Why is `getClass()` the same for `ArrayList<String>` and `ArrayList<Integer>`?
 
-**Đáp án:** Cả hai là thể hiện runtime của `ArrayList`; thông tin generic type argument không tạo lớp runtime tách biệt sau type erasure.
+**Answer:** Both are runtime instances of `ArrayList`; generic type argument information does not create separate runtime classes after type erasure.
 
-**Câu 6.** Khi cần kiểm tra một giá trị thuộc subtype của `Base`, dùng `obj.getClass() == Base.class` hay `obj instanceof Base`?
+**Question 6.** When you need to check whether a value belongs to a subtype of `Base`, should you use `obj.getClass() == Base.class` or `obj instanceof Base`?
 
-**Đáp án:** `obj instanceof Base`. Cách kiểm tra lớp bằng nhau chính xác sẽ loại subtype.
+**Answer:** `obj instanceof Base`. Exact-class comparison excludes subtypes.
 
-**Ghi nhớ:** `Object.getClass()` là **`public final native`**, luôn trả metadata của **lớp runtime thực tế** đối với một đối tượng khác null. Không lớp nào được override nó. Hãy dùng `getClass()` khi cần exact type, `instanceof` khi cần quan hệ kiểu, và `equals()` khi cần so ngữ nghĩa giá trị.
+**Key Takeaway:** `Object.getClass()` is **`public final native`**, always returning metadata of the **actual runtime class** for a non-null object. No class may override it. Use `getClass()` when you need the exact type, `instanceof` when you need a type relationship, and `equals()` when you need value semantics.

@@ -1,69 +1,69 @@
-# getParameters và Parameter trong Java Reflection
+# getParameters and Parameter in Java Reflection
 
-## 1. Mục tiêu: đọc tham số của method và constructor bằng Reflection
+## 1. Goal: Reading Method and Constructor Parameters with Reflection
 
-Khi xây dựng framework định tuyến, dependency injection, validation, serializer hoặc công cụ phân tích API, việc tìm được một `Method` hay `Constructor<?>` chưa đủ: ta còn cần biết nó nhận bao nhiêu tham số, kiểu của từng tham số, thứ tự, annotation, tên tham số (nếu có metadata) và liệu tham số cuối cùng có phải varargs.
+When building routing, dependency injection, validation, serializer, or API analysis tools, finding a `Method` or `Constructor<?>` is not enough: we also need to know how many parameters it accepts, the type of each parameter, their order, annotations, parameter names (if metadata is available), and whether the last parameter is varargs.
 
-Java đặt những thông tin đó tại `java.lang.reflect.Executable` và `java.lang.reflect.Parameter`:
+Java places that information in `java.lang.reflect.Executable` and `java.lang.reflect.Parameter`:
 
-- `Method` và `Constructor<?>` đều kế thừa `Executable`.
-- `Executable.getParameters()` trả về một mảng `Parameter[]`, theo đúng thứ tự tham số của executable ở cấp Reflection.
-- Mỗi `Parameter` đại diện cho **một tham số của một executable cụ thể**. `getDeclaringExecutable()` cho phép truy ngược về method/constructor sở hữu tham số.
-- `Parameter` cung cấp `getName()`, `isNamePresent()`, `getType()`, `getParameterizedType()`, `getAnnotatedType()`, `getAnnotations()`, `getAnnotation(...)`, `getModifiers()`, `isImplicit()`, `isSynthetic()` và `isVarArgs()`.
+- `Method` and `Constructor<?>` both inherit from `Executable`.
+- `Executable.getParameters()` returns a `Parameter[]` array, in the exact parameter order of the executable at the Reflection level.
+- Each `Parameter` represents **one parameter of a specific executable**. `getDeclaringExecutable()` lets you trace back to the method/constructor that owns the parameter.
+- `Parameter` provides `getName()`, `isNamePresent()`, `getType()`, `getParameterizedType()`, `getAnnotatedType()`, `getAnnotations()`, `getAnnotation(...)`, `getModifiers()`, `isImplicit()`, `isSynthetic()`, and `isVarArgs()`.
 
-Một tham số tên `id`, có kiểu `List<String>` và annotation `@NotNull` là ba lớp metadata **khác nhau**. Nếu class được biên dịch thiếu thông tin tên, Reflection vẫn có thể biết kiểu, thứ tự và annotation; không nên suy luận rằng `getParameters()` trả mảng rỗng.
+A parameter named `id`, with type `List<String>`, and annotation `@NotNull` represents three **distinct** layers of metadata. If a class is compiled without name information, Reflection can still know the types, order, and annotations; you should not infer that `getParameters()` returns an empty array.
 
-## 2. Phân biệt những API tra cứu thường gặp
+## 2. Distinguishing Common Lookup APIs
 
-| API | Kết quả | Khi nào dùng |
+| API | Result | When to Use |
 | --- | --- | --- |
-| `Executable.getParameterCount()` | Số tham số được Reflection thấy. | Kiểm tra số lượng trước khi ghép argument. |
-| `Executable.getParameters()` | `Parameter[]`, thứ tự từ trái sang phải. | Cần tên, annotation, modifier, varargs và generic type cho từng tham số. |
-| `Executable.getParameterTypes()` | `Class<?>[]` chứa kiểu đã erasure. | Xây dựng chữ ký Reflection hoặc đối chiếu argument runtime. |
-| `Executable.getGenericParameterTypes()` | `Type[]`, có thể là `ParameterizedType`/`TypeVariable`/`GenericArrayType`. | Cần khai báo generic. |
-| `Executable.getParameterAnnotations()` | `Annotation[][]`, các annotation được khai báo trên từng formal parameter. | Khi xử lý nhiều tham số bằng chỉ số; `Parameter.getAnnotations()` tiện hơn. |
-| `Executable.isVarArgs()` | Executable khai báo varargs ở cấp bytecode hay không. | Phân biệt `String[]` thông thường và `String...`. |
-| `Parameter.getDeclaringExecutable()` | `Method` hoặc `Constructor<?>` sở hữu tham số. | Xây báo lỗi có ngữ cảnh đầy đủ. |
-| `Parameter.getName()` | Tên lấy từ metadata nếu có, hoặc tên thay thế như `arg0`. | Hiển thị; chỉ coi là tên source khi `isNamePresent() == true`. |
-| `Parameter.getParameterizedType()` | `Type` của riêng tham số, bảo toàn khai báo generic. | Phân tích `List<String>`, `T`, v.v. |
-| `Parameter.getAnnotatedType()` | `AnnotatedType` cho annotation trên **cách dùng kiểu** của tham số. | Kiểm tra `@Target(TYPE_USE)`. |
+| `Executable.getParameterCount()` | Number of parameters seen by Reflection. | Check count before matching arguments. |
+| `Executable.getParameters()` | `Parameter[]`, ordered from left to right. | Need name, annotation, modifier, varargs, and generic type for each parameter. |
+| `Executable.getParameterTypes()` | `Class<?>[]` containing erased types. | Build Reflection signatures or match runtime arguments. |
+| `Executable.getGenericParameterTypes()` | `Type[]`, which may be `ParameterizedType`/`TypeVariable`/`GenericArrayType`. | Need generic declarations. |
+| `Executable.getParameterAnnotations()` | `Annotation[][]`, annotations declared on each formal parameter. | When processing multiple parameters by index; `Parameter.getAnnotations()` is more convenient. |
+| `Executable.isVarArgs()` | Whether the executable declares varargs at the bytecode level. | Distinguish regular `String[]` from `String...`. |
+| `Parameter.getDeclaringExecutable()` | `Method` or `Constructor<?>` owning the parameter. | Build error messages with full context. |
+| `Parameter.getName()` | Name read from metadata if present, or fallback name such as `arg0`. | Display; only treat as a source name when `isNamePresent() == true`. |
+| `Parameter.getParameterizedType()` | `Type` of that specific parameter, preserving generic declaration. | Analyze `List<String>`, `T`, etc. |
+| `Parameter.getAnnotatedType()` | `AnnotatedType` for annotations on the **type use** of the parameter. | Inspect `@Target(TYPE_USE)`. |
 
-`getParameterTypes()` không có tên hoặc annotation; `getParameters()` cung cấp từng đối tượng `Parameter` nhưng **không tự đọc mã nguồn Java**. Metadata được tạo từ class file/runtime.
+`getParameterTypes()` does not contain names or annotations; `getParameters()` provides individual `Parameter` objects but **does not read Java source code itself**. Metadata is generated from the class file/runtime.
 
-## 3. Cờ biên dịch `-parameters` và tên tham số
+## 3. The `-parameters` Compiler Flag and Parameter Names
 
-Mặc định, `javac` **không bắt buộc** ghi tên tham số trong class file dưới dạng metadata Reflection. Khi không có thuộc tính `MethodParameters` chứa tên, `getParameters()` vẫn trả về các `Parameter`, còn:
+By default, `javac` **does not necessarily** write parameter names into the class file as Reflection metadata. When the `MethodParameters` attribute containing names is absent, `getParameters()` still returns `Parameter` objects, while:
 
-- `getName()` thường là `arg0`, `arg1`, `arg2`… theo vị trí.
-- `isNamePresent()` trả `false`.
-- `getType()`, `getParameterizedType()` và parameter annotation vẫn có thể truy cập được, nếu metadata cần thiết tương ứng được lưu.
+- `getName()` is typically `arg0`, `arg1`, `arg2`… by position.
+- `isNamePresent()` returns `false`.
+- `getType()`, `getParameterizedType()`, and parameter annotations are still accessible if their corresponding metadata is stored.
 
-Biên dịch bằng `javac -parameters` yêu cầu lưu tên và modifier của formal parameters trong class file:
+Compiling with `javac -parameters` instructs the compiler to store formal parameter names and modifiers in the class file:
 
 ~~~bash
 javac -parameters -encoding UTF-8 ParameterMetadataDemo.java
 java ParameterMetadataDemo
 ~~~
 
-Khi class có metadata hợp lệ, `getName()` trả tên thực được biên dịch (chẳng hạn `recipient`), `isNamePresent() == true`. Cờ `-parameters` là lựa chọn **lúc build**, không phải `java -parameters` ở lúc chạy.
+When the class has valid metadata, `getName()` returns the actual compiled name (such as `recipient`), and `isNamePresent() == true`. The `-parameters` flag is a **build-time** option, not `java -parameters` at runtime.
 
-Phân biệt `-parameters` và `-g`:
+Distinguishing `-parameters` and `-g`:
 
-- `-parameters` ghi thuộc tính `MethodParameters` để Core Reflection lấy tên tham số.
-- `-g`/`-g:vars` điều khiển debug information như local-variable tables; tên biến debug có thể phục vụ debugger, nhưng **không** tự thay thế `-parameters` cho `Parameter.getName()`.
-- Sau obfuscation, transformation hoặc build bằng compiler khác, metadata có thể bị thay đổi hay loại bỏ. Runtime phải kiểm tra `isNamePresent()` thật, không đoán từ môi trường phát triển.
+- `-parameters` writes the `MethodParameters` attribute so Core Reflection can retrieve parameter names.
+- `-g`/`-g:vars` controls debug information such as local-variable tables; debug variable names can serve a debugger, but do **not** automatically substitute for `-parameters` for `Parameter.getName()`.
+- After obfuscation, transformation, or building with another compiler, metadata may be altered or stripped. Runtime code must check `isNamePresent()` directly rather than guessing from the development environment.
 
-Ví dụ thực tế: một router muốn tự ánh xạ query parameter vào tên Java có thể dùng `isNamePresent()` để quyết định; nếu `false`, yêu cầu annotation nêu tên rõ ràng hoặc cấu hình mapping, thay vì lấy chuỗi `arg0` làm tên public API.
+Practical example: a router wanting to auto-map query parameters to Java names can use `isNamePresent()` to decide; if `false`, require an annotation stating the name explicitly or a mapping configuration, instead of exposing the string `arg0` as a public API name.
 
-### Metadata tên có phải điều kiện bắt buộc?
+### Is Name Metadata Required?
 
-Không phải. Một executable vẫn gọi được khi không lưu tên source. Tên tham số **không phải** thành phần của signature JVM; ví dụ hai method có cùng tên và kiểu tham số nhưng chỉ khác tên biến Java không được overload. Vì vậy tên tham số được xem là metadata phục vụ reflection/tooling, không phải định danh hành vi gọi method.
+No. An executable can still be invoked without stored source names. Parameter names are **not** part of the JVM signature; for example, two methods with the same name and parameter types that differ only in Java variable names cannot be overloaded. Therefore, parameter names are considered metadata for reflection/tooling, not an identifier of method-call behavior.
 
-`getParameters()` cũng có thể ném `MalformedParametersException` khi thông tin `MethodParameters` trong class file không hợp lệ. Khi xử lý bytecode được biến đổi hoặc class từ nguồn không đáng tin cậy, hãy có nhánh báo lỗi metadata thay vì âm thầm giả định tên hợp lệ.
+`getParameters()` can also throw `MalformedParametersException` when `MethodParameters` information in the class file is invalid. When dealing with transformed bytecode or classes from untrusted sources, include a metadata error-handling branch rather than silently assuming valid names.
 
-## 4. Ví dụ Java 17+ chạy độc lập: method, constructor, varargs, annotation và generic
+## 4. Standalone Java 17+ Example: Method, Constructor, Varargs, Annotations, and Generics
 
-Tạo file `ParameterMetadataDemo.java`. Không cần Spring hay thư viện ngoài.
+Create the file `ParameterMetadataDemo.java`. No Spring or external libraries required.
 
 ~~~java
 import java.lang.annotation.ElementType;
@@ -140,14 +140,14 @@ public class ParameterMetadataDemo {
 }
 ~~~
 
-Biên dịch **không có** `-parameters`:
+Compile **without** `-parameters`:
 
 ~~~bash
 javac -encoding UTF-8 ParameterMetadataDemo.java
 java ParameterMetadataDemo
 ~~~
 
-Đầu ra điển hình với `javac` Java 17/21 không lưu thuộc tính tên tham số:
+Typical output with Java 17/21 `javac` when parameter name attributes are not stored:
 
 ~~~text
 dispatch parameters=3
@@ -161,14 +161,14 @@ constructor name=arg0, present=false
 owner is constructor=true
 ~~~
 
-Sau đó **biên dịch lại cùng source** (ghi đè class file vừa sinh), nhưng có `-parameters`:
+Then **recompile the same source** (overwriting the generated class file), but with `-parameters`:
 
 ~~~bash
 javac -parameters -encoding UTF-8 ParameterMetadataDemo.java
 java ParameterMetadataDemo
 ~~~
 
-Đầu ra trở thành:
+The output becomes:
 
 ~~~text
 dispatch parameters=3
@@ -182,61 +182,61 @@ constructor name=title, present=true
 owner is constructor=true
 ~~~
 
-Điều quan trọng từ ví dụ:
+Key takeaways from the example:
 
-- `getParameters()` luôn thấy ba tham số `dispatch` trong cả hai lần biên dịch; **chỉ metadata tên thay đổi**.
-- `@Name("user")` trên formal parameter lấy qua `Parameter.getAnnotation(Name.class)`; không phụ thuộc việc có tên source.
-- `@TypeMark` là annotation trên **type use**, phải lấy qua `getAnnotatedType()`; không đồng nhất với annotation gắn trực tiếp vào declaration của parameter.
-- `String... labels` ở bytecode là `String[]`, nên `getType().getSimpleName()` hiển thị `String[]`; `Parameter.isVarArgs()` xác nhận tham số cuối của executable varargs.
-- `aggregate(List<T>, T)` trả `List<T>` và `T` ở generic metadata; erasure của `T extends Number` là `Number`. Khi tìm method bằng `getDeclaredMethod`, sử dụng `List.class` và `Number.class`, không truyền `T` hay `List<T>`.
-- `getDeclaringExecutable()` trả lại constructor tương ứng; trong ví dụ, object phản chiếu constructor được so bằng `==` và kết quả đúng cho đối tượng `Parameter` thuộc cùng `Constructor` đó.
+- `getParameters()` always sees three `dispatch` parameters in both compilations; **only the name metadata changes**.
+- `@Name("user")` on the formal parameter is retrieved via `Parameter.getAnnotation(Name.class)`; it does not depend on having source names.
+- `@TypeMark` is an annotation on the **type use**, and must be retrieved via `getAnnotatedType()`; do not confuse it with annotations attached directly to the parameter declaration.
+- `String... labels` is `String[]` in bytecode, so `getType().getSimpleName()` displays `String[]`; `Parameter.isVarArgs()` confirms the last parameter of a varargs executable.
+- `aggregate(List<T>, T)` returns `List<T>` and `T` in generic metadata; the erasure of `T extends Number` is `Number`. When looking up the method with `getDeclaredMethod`, pass `List.class` and `Number.class`, not `T` or `List<T>`.
+- `getDeclaringExecutable()` returns the corresponding constructor; in the example, the reflected constructor object is compared with `==` and evaluates to true for the `Parameter` belonging to that same `Constructor`.
 
-**Lưu ý reproducibility:** Hai lệnh `javac` trên chạy tuần tự, lần sau sinh lại class file với thuộc tính `MethodParameters`. Nếu dùng công cụ build có incremental compilation, hãy bảo đảm toàn bộ code cần metadata thật sự được biên dịch với tùy chọn tương ứng.
+**Reproducibility note:** The two `javac` commands above run sequentially, with the second regenerating the class file with the `MethodParameters` attribute. If using a build tool with incremental compilation, ensure all code needing metadata is actually recompiled with the corresponding option.
 
-## 5. `Parameter` cho biết những gì ngoài tên?
+## 5. What Does `Parameter` Tell Us Besides Names?
 
-### 5.1. Kiểu khai báo, kiểu generic, và chú thích trên kiểu
+### 5.1. Declared Type, Generic Type, and Type Annotations
 
-Các API này trả thông tin khác nhau:
+These APIs return different information:
 
-- `getType()`: `Class<?>` đã erasure; ví dụ `List<String>` thành `List.class`, `T extends Number` thành `Number.class`, `String...` thành `String[].class`.
-- `getParameterizedType()`: `java.lang.reflect.Type` có thể chứa `ParameterizedType` (ví dụ `List<T>`), `TypeVariable` (`T`), `WildcardType`, `GenericArrayType`. Nó không nhất thiết là một `Class<?>`.
-- `getAnnotatedType()`: mang các annotation loại `TYPE_USE` trong khai báo kiểu, có thể kết hợp với các kiểu annotated chuyên biệt cho generic/nested components.
+- `getType()`: erased `Class<?>`; for example `List<String>` becomes `List.class`, `T extends Number` becomes `Number.class`, `String...` becomes `String[].class`.
+- `getParameterizedType()`: `java.lang.reflect.Type` which may contain `ParameterizedType` (e.g., `List<T>`), `TypeVariable` (`T`), `WildcardType`, or `GenericArrayType`. It is not necessarily a `Class<?>`.
+- `getAnnotatedType()`: carries `TYPE_USE` annotations in the type declaration, which can combine with specialized annotated types for generic/nested components.
 
-Không chuyển ép thẳng `(Class<?>) parameter.getParameterizedType()`; phép cast có thể gây `ClassCastException` nếu `Type` thực tế là `ParameterizedType` hoặc `TypeVariable`.
+Do not cast directly with `(Class<?>) parameter.getParameterizedType()`; the cast can throw `ClassCastException` if the actual `Type` is a `ParameterizedType` or `TypeVariable`.
 
-### 5.2. Annotation trên parameter và annotation trên type
+### 5.2. Annotations on Parameters and Annotations on Types
 
-Hai dạng có thể trông gần giống nhau trong source:
+The two forms may look similar in source code:
 
 ~~~java
-// Ví dụ khai báo chú thích minh họa, không phải class độc lập.
+// Illustrative annotation declaration snippet, not a standalone class.
 void process(@ParamLabel("id") String id) {}
 void processType(@TypeConstraint String id) {}
 ~~~
 
-Khi annotation có `@Target(PARAMETER)`, `Parameter.getAnnotation(...)` hoặc `getDeclaredAnnotations()` đọc annotation trên declaration của formal parameter. Khi annotation có `@Target(TYPE_USE)`, dùng `Parameter.getAnnotatedType()` rồi `getAnnotation(...)` trên `AnnotatedType`. Annotation có thể được thiết kế cho cả hai vị trí; khi đó phải hiểu cấu trúc đặt annotation và ý nghĩa của framework. `@Retention(RUNTIME)` cần thiết để Reflection có thể truy cập annotation tương ứng lúc chạy.
+When an annotation has `@Target(PARAMETER)`, `Parameter.getAnnotation(...)` or `getDeclaredAnnotations()` reads the annotation on the formal parameter declaration. When an annotation has `@Target(TYPE_USE)`, use `Parameter.getAnnotatedType()` and then `getAnnotation(...)` on the `AnnotatedType`. An annotation may be designed for both targets; in that case, you must understand the annotation placement structure and framework semantics. `@Retention(RUNTIME)` is required so Reflection can access the corresponding annotation at runtime.
 
-`getAnnotations()` và `getDeclaredAnnotations()` trên `Parameter` trả metadata annotation của chính parameter; `getAnnotationsByType(...)` xử lý cơ chế repeatable annotation thích hợp. Không nhầm với annotation trên executable (`Method.getAnnotations()`) hoặc trên lớp khai báo.
+`getAnnotations()` and `getDeclaredAnnotations()` on `Parameter` return annotation metadata of the parameter itself; `getAnnotationsByType(...)` handles the appropriate repeatable annotation mechanism. Do not confuse these with annotations on the executable (`Method.getAnnotations()`) or on the declaring class.
 
-### 5.3. Modifier, implicit/synthetic và varargs
+### 5.3. Modifiers, Implicit/Synthetic, and Varargs
 
-- `Parameter.getModifiers()` và `Modifier.isFinal(...)` cho biết modifier của formal parameter **nếu metadata phù hợp hiện diện**; không giả định compiler nào cũng lưu giống nhau khi thiếu `-parameters`.
-- `isImplicit()` mô tả một parameter **được khai báo ngầm trong source** theo quy tắc ngôn ngữ; `isSynthetic()` là tham số không xuất hiện trực tiếp/không được khai báo ngầm theo mô hình source, do compiler tạo. Những cờ này phụ thuộc thông tin class file và cách compiler phát sinh bytecode.
-- `isVarArgs()` mô tả parameter varargs (thường là tham số cuối của method/constructor có `isVarArgs()==true`). Nó không chỉ kiểm tra xem kiểu có phải array: một method nhận `String[]` thường có thể cho `isVarArgs()==false`.
+- `Parameter.getModifiers()` and `Modifier.isFinal(...)` report modifiers of the formal parameter **if the relevant metadata is present**; do not assume every compiler stores them identically when `-parameters` is omitted.
+- `isImplicit()` describes a parameter **implicitly declared in source** per language rules; `isSynthetic()` is a parameter that neither appears directly nor is implicitly declared in the source model, generated by the compiler. These flags depend on class file information and how the compiler emits bytecode.
+- `isVarArgs()` describes a varargs parameter (typically the last parameter of a method/constructor whose `isVarArgs()==true`). It does not merely check whether the type is an array: a method taking a regular `String[]` gives `isVarArgs()==false`.
 
-**Không suy luận `isImplicit()==false` hay `isSynthetic()==false` chứng minh tham số tồn tại nguyên văn trong source.** Một số compiler/bytecode transformer không lưu metadata đầy đủ; cũng có các tham số ẩn ở constructor class lồng, enum và các cấu trúc đặc biệt.
+**Do not infer that `isImplicit()==false` or `isSynthetic()==false` proves a parameter exists verbatim in source.** Some compilers/bytecode transformers do not store full metadata; there are also hidden parameters in constructors of nested classes, enums, and special constructs.
 
-## 6. Tham số của constructor: không phải mọi thứ đều thấy giống source
+## 6. Constructor Parameters: Not Everything Matches Source
 
-`Constructor<?>` cũng là `Executable`, nên gọi `getParameters()` giống như với `Method`. Tuy nhiên, constructor của một số dạng class có tham số ngầm định/được compiler thêm vào:
+`Constructor<?>` is also an `Executable`, so calling `getParameters()` works the same as on `Method`. However, constructors of certain class forms have implicit/compiler-added parameters:
 
-1. **Non-static inner member class:** constructor thường nhận một tham số bổ sung để mang enclosing instance. Với `Outer.Inner`, danh sách kiểu của constructor qua Reflection có thể bắt đầu bằng `Outer.class` dù source không viết tên biến như vậy.
-2. **Enum:** constructor ở bytecode có thêm tham số do runtime/compiler quản lý, ví dụ tên và ordinal; không coi đó là API constructor người dùng có thể gọi để sinh enum mới. Reflection cấm dùng `Constructor.newInstance` để tạo enum constant.
-3. **Record canonical constructor:** danh sách parameter tương ứng với record components; compiler/JLS có quy tắc metadata riêng cho canonical constructor. Đừng gộp trường hợp này với “compiler luôn có tên tham số nguồn hay không”.
-4. **Anonymous/local class:** constructor bytecode có thể có tham số cho captured variables hoặc enclosing context. Chi tiết phụ thuộc compiler.
+1. **Non-static inner member class:** the constructor usually takes an extra parameter to carry the enclosing instance. For `Outer.Inner`, the constructor's type list via Reflection may begin with `Outer.class` even though the source does not write such a variable name.
+2. **Enum:** the bytecode constructor has extra parameters managed by the runtime/compiler, such as name and ordinal; do not treat it as a user-callable constructor API to instantiate new enums. Reflection forbids using `Constructor.newInstance` to create enum constants.
+3. **Record canonical constructor:** the parameter list corresponds to the record components; the compiler/JLS has specific metadata rules for canonical constructors. Do not conflate this case with "whether the compiler always includes source parameter names".
+4. **Anonymous/local class:** the bytecode constructor may have parameters for captured variables or the enclosing context. Details depend on the compiler.
 
-Ví dụ mảnh source hợp lệ:
+Valid source fragment example:
 
 ~~~java
 class Outer {
@@ -246,73 +246,73 @@ class Outer {
 }
 ~~~
 
-Với `javac`, tìm constructor Reflection của inner class thường phải dùng `getDeclaredConstructor(Outer.class, int.class)`. `getParameterCount()` sẽ bao gồm tham số outer, nên kết quả có thể khác số formal parameters được viết trong constructor source. Để ánh xạ parameter vào dữ liệu người dùng, phải có chính sách nhận dạng và loại trừ các tham số runtime đặc biệt; **không cứng hóa** rằng luôn bỏ tham số index 0 cho mọi constructor.
+With `javac`, looking up the Reflection constructor of the inner class typically requires `getDeclaredConstructor(Outer.class, int.class)`. `getParameterCount()` will include the outer parameter, so the result can differ from the number of formal parameters written in the constructor source. To map parameters to user data, you need a policy to identify and exclude special runtime parameters; **do not hardcode** always skipping index 0 for every constructor.
 
-## 7. Dùng `Parameter` trong thiết kế framework
+## 7. Using `Parameter` in Framework Design
 
-Giả sử một controller có method:
+Suppose a controller has the method:
 
 ~~~java
-// Mảnh minh họa API framework, annotation giả định đã được định nghĩa.
+// Framework API illustration fragment; annotation is assumed to be defined.
 void find(@RequestKey("id") String id, int page) {}
 ~~~
 
-Một binder có thể sử dụng thứ tự kiểm tra sau:
+A binder can follow this check order:
 
-1. Đọc `Method.getParameters()`; mỗi phần tử có thứ tự và kiểu trực tiếp.
-2. Nếu parameter có annotation nêu tên request rõ ràng, dùng giá trị của annotation vì đó là hợp đồng API.
-3. Nếu không có annotation, chỉ dùng `getName()` khi `isNamePresent()==true`. Nếu metadata thiếu, báo lỗi cấu hình hoặc yêu cầu người dùng khai báo tên. Không coi `arg0` là tên HTTP/JSON công khai.
-4. Xác định kiểu qua `getType()` và `getParameterizedType()`; dùng converter tường minh cho `String -> int`, `List<T>`, enum, nullability. `Parameter` **không** tự thực hiện chuyển đổi.
-5. Xét `isVarArgs()` khi chuẩn bị argument cho method varargs; ở mức Reflection, tham số varargs có kiểu array (`String[]`), và phải chuẩn bị đối tượng array phù hợp khi gọi `Method.invoke`.
-6. Ghép mảng arguments theo thứ tự parameter. Bắt lỗi phân giải, chuyển kiểu, truy cập và lời gọi riêng biệt.
+1. Read `Method.getParameters()`; each element gives its position and direct type.
+2. If the parameter has an annotation specifying the request name explicitly, use the annotation's value because that is the API contract.
+3. If there is no annotation, only use `getName()` when `isNamePresent()==true`. If metadata is missing, report a configuration error or require the user to declare the name. Do not treat `arg0` as a public HTTP/JSON name.
+4. Determine the type via `getType()` and `getParameterizedType()`; use explicit converters for `String -> int`, `List<T>`, enums, and nullability. `Parameter` **does not** perform conversion itself.
+5. Account for `isVarArgs()` when preparing arguments for a varargs method; at the Reflection level, the varargs parameter has an array type (`String[]`), and an appropriate array object must be prepared when calling `Method.invoke`.
+6. Assemble the arguments array in parameter order. Catch resolution, type conversion, access, and invocation errors separately.
 
-Không sử dụng tên tham số như khóa cache độc lập với class/method: hai overload có thể cùng tên `value` nhưng khác kiểu; metadata source có thể thay đổi sau refactor. Khóa method đáng tin cậy phải dựa vào executable, class khai báo và kiểu tham số.
+Do not use parameter names as cache keys independent of class/method: two overloads can share the parameter name `value` while differing in types; source metadata may also change after refactoring. A reliable method key must be based on the executable, declaring class, and parameter types.
 
-### Khi nào không cần `getParameters()`?
+### When Is `getParameters()` Not Needed?
 
-Nếu chỉ cần định danh overload `run(String, int)`, thường có thể dùng `getDeclaredMethod("run", String.class, int.class)` hoặc `getParameterTypes()`. Nếu chỉ cần số lượng, `getParameterCount()` rõ ràng hơn. Chỉ tạo/duyệt `Parameter[]` khi cần các tính chất ở cấp **từng tham số** (tên, annotation, generic, modifier, varargs).
+If you only need to identify the overload `run(String, int)`, you can usually use `getDeclaredMethod("run", String.class, int.class)` or `getParameterTypes()`. If you only need the count, `getParameterCount()` is clearer. Only allocate/iterate `Parameter[]` when you need **per-parameter** properties (name, annotations, generics, modifiers, varargs).
 
-## 8. Những giới hạn và lỗi phổ biến
+## 8. Limitations and Common Mistakes
 
-| Hiểu nhầm | Hệ quả và cách sửa |
+| Misconception | Consequence and Fix |
 | --- | --- |
-| “Không bật `-parameters` thì `getParameters()` trả `[]`.” | Sai: vẫn thấy tham số theo chữ ký; thường tên chỉ là `arg0`… |
-| “`getName()` luôn là tên source.” | Sai: phải kiểm tra `isNamePresent()`. |
-| “`-g:vars` đủ cho Core Reflection tên tham số.” | Sai: dùng `-parameters` cho metadata `MethodParameters`. |
-| “`getType()` giữ đủ `List<String>`.” | Sai: dùng `getParameterizedType()` cho generic metadata. |
-| “Parameter annotation và type-use annotation là một.” | Sai: phân biệt `getAnnotation(...)` với `getAnnotatedType()`. |
-| “Varargs trong Reflection không phải array.” | Sai: `String...` mang kiểu `String[]`, kiểm tra thêm `isVarArgs()`. |
-| “Số parameter ở constructor luôn bằng số viết trong source.” | Không đúng cho một số inner/enum/local/anonymous class. |
-| “Method được override luôn giữ nguyên tên tham số của cha.” | Sai: khai báo ở lớp con có thể dùng tên khác; tên không tham gia override/signature. |
-| “Parameter tự ép kiểu dữ liệu truyền vào.” | Sai: `Parameter` chỉ mô tả metadata, converter/invoker phải xử lý argument. |
-| “`isSynthetic()==false` chứng minh người lập trình đã viết tham số.” | Sai: các cờ metadata có giới hạn và phụ thuộc compiler. |
+| "Without `-parameters`, `getParameters()` returns `[]`." | False: parameters from the signature are still seen; usually only names become `arg0`… |
+| "`getName()` is always the source name." | False: you must check `isNamePresent()`. |
+| "`-g:vars` is enough for Core Reflection parameter names." | False: use `-parameters` for `MethodParameters` metadata. |
+| "`getType()` preserves `List<String>`." | False: use `getParameterizedType()` for generic metadata. |
+| "Parameter annotations and type-use annotations are the same." | False: distinguish `getAnnotation(...)` from `getAnnotatedType()`. |
+| "Varargs in Reflection is not an array." | False: `String...` has type `String[]`; check `isVarArgs()` as well. |
+| "The parameter count on a constructor always equals what is written in source." | Not true for certain inner/enum/local/anonymous classes. |
+| "An overridden method always keeps the parent's parameter names." | False: the subclass declaration can use different names; names do not participate in overriding/signatures. |
+| "`Parameter` automatically coerces passed-in data types." | False: `Parameter` only describes metadata; the converter/invoker must handle arguments. |
+| "`isSynthetic()==false` proves the programmer wrote the parameter." | False: metadata flags have limitations and depend on the compiler. |
 
-### Xử lý ngoại lệ có ý nghĩa
+### Meaningful Exception Handling
 
-- `getDeclaredMethod(...)` / `getDeclaredConstructor(...)` có thể ném `NoSuchMethodException` nếu sai kiểu tham số sau erasure.
-- `getParameters()` có thể ném `MalformedParametersException` do thuộc tính tên/modifier tham số trong class file bị lỗi.
-- Khi phân tích `getParameterizedType()`, có thể gặp `GenericSignatureFormatError`, `TypeNotPresentException` hoặc `MalformedParameterizedTypeException` với generic signature không hợp lệ/không giải được.
-- Khi gọi executable sau phân tích metadata, kiểm tra cả truy cập, số lượng/kiểu argument và exception do chính method/constructor ném; đó là tầng khác với việc đọc `Parameter`.
+- `getDeclaredMethod(...)` / `getDeclaredConstructor(...)` can throw `NoSuchMethodException` if the erased parameter types are wrong.
+- `getParameters()` can throw `MalformedParametersException` due to malformed parameter name/modifier attributes in the class file.
+- When analyzing `getParameterizedType()`, you may encounter `GenericSignatureFormatError`, `TypeNotPresentException`, or `MalformedParameterizedTypeException` on invalid/unresolvable generic signatures.
+- When invoking the executable after analyzing metadata, check access, argument count/types, and exceptions thrown by the method/constructor itself; that is a separate layer from reading `Parameter`.
 
-Không catch tất cả rồi coi metadata thiếu đồng nghĩa constructor/method không tồn tại. Trong công cụ phân tích bytecode, báo riêng nguồn lớp, executable, index tham số và loại lỗi để điều tra.
+Do not catch everything and treat missing metadata as meaning the constructor/method does not exist. In bytecode analysis tools, report the class source, executable, parameter index, and error type separately for investigation.
 
-## 9. Bài tập kiểm chứng
+## 9. Verification Exercises
 
-1. Biên dịch demo hai lần, không và có `-parameters`; so sánh chỉ `getName()` và `isNamePresent()`, trong khi kiểu, generic và annotation vẫn giữ nguyên.
-2. Thay `dispatch(String... labels)` bằng `dispatch(String[] labels)`, điều chỉnh chữ ký cho phù hợp và quan sát `isVarArgs()`.
-3. Thêm một parameter `List<? extends Number> amounts` và in `getParameterizedType().getTypeName()`; kiểm tra khác biệt so với `getType()`.
-4. Tạo hai overload `load(String id)` và `load(int id)`; chứng minh tên `id` không đủ để phân biệt chúng.
-5. Đặt annotation `@Target(PARAMETER)` trên một parameter, annotation `@Target(TYPE_USE)` trên kiểu của parameter; đọc từng loại qua đúng API.
-6. Tạo inner member class `Outer.Inner` có constructor `Inner(int id)`; kiểm tra danh sách kiểu và số lượng tham số runtime.
-7. Viết binder nhỏ: ưu tiên annotation nêu tên, dùng `getName()` chỉ khi `isNamePresent()`, còn thiếu tên thì phát hiện lỗi rõ ràng.
-8. Thử phương thức generic có `<T extends Number>`; so sánh `getType()` và `getParameterizedType()` của `T`.
+1. Compile the demo twice, without and with `-parameters`; verify that only `getName()` and `isNamePresent()` change, while types, generics, and annotations remain intact.
+2. Replace `dispatch(String... labels)` with `dispatch(String[] labels)`, adjust the lookup signature accordingly, and observe `isVarArgs()`.
+3. Add a `List<? extends Number> amounts` parameter and print `getParameterizedType().getTypeName()`; inspect the difference compared to `getType()`.
+4. Create two overloads `load(String id)` and `load(int id)`; demonstrate that the name `id` is not enough to distinguish them.
+5. Put a `@Target(PARAMETER)` annotation on a parameter and a `@Target(TYPE_USE)` annotation on the parameter's type; read each via the appropriate API.
+6. Create an inner member class `Outer.Inner` with constructor `Inner(int id)`; inspect the runtime parameter type list and count.
+7. Write a small binder: prefer an explicit name annotation, fall back to `getName()` only when `isNamePresent()` is true, and report a clear error if the name is missing.
+8. Try a generic method with `<T extends Number>`; compare `getType()` and `getParameterizedType()` for `T`.
 
-## 10. Tài liệu tham khảo
+## 10. References
 
-- [Java SE 17 — Executable](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Executable.html): `getParameters()`, `getParameterTypes()`, `getGenericParameterTypes()` và `getParameterAnnotations()`.
-- [Java SE 17 — Parameter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Parameter.html): tên, annotation, generic type, implicit/synthetic/varargs, declaring executable.
-- [javac Java 17 — Options](https://docs.oracle.com/en/java/javase/17/docs/specs/man/javac.html): tùy chọn `-parameters` ghi formal parameter names để Reflection truy cập.
-- [Java Language Specification 17 — `8.4.1 Formal Parameters](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.4.1): formal parameters, modifier, varargs.
-- [JVM Specification 17 — MethodParameters Attribute](https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-4.html#jvms-4.7.24): metadata tên/tham số trên class file.
+- [Java SE 17 — Executable](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Executable.html): `getParameters()`, `getParameterTypes()`, `getGenericParameterTypes()`, and `getParameterAnnotations()`.
+- [Java SE 17 — Parameter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Parameter.html): names, annotations, generic types, implicit/synthetic/varargs, declaring executable.
+- [javac Java 17 — Options](https://docs.oracle.com/en/java/javase/17/docs/specs/man/javac.html): `-parameters` option to record formal parameter names for Reflection access.
+- [Java Language Specification 17 — `8.4.1 Formal Parameters](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.4.1): formal parameters, modifiers, varargs.
+- [JVM Specification 17 — MethodParameters Attribute](https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-4.html#jvms-4.7.24): parameter name/attribute metadata in class files.
 
-**Nguyên tắc cốt lõi:** `getParameters()` cho biết **tham số runtime của executable**, còn `Parameter.getName()` chỉ đáng tin là tên source khi có metadata và `isNamePresent()` xác nhận. Dùng `getType()` cho kiểu erasure, `getParameterizedType()` cho generic, `getAnnotatedType()` cho annotation trên kiểu, và `getAnnotation(...)` cho annotation của parameter.
+**Core principle:** `getParameters()` reveals the **runtime parameters of an executable**, while `Parameter.getName()` is only reliable as a source name when metadata is present and `isNamePresent()` confirms it. Use `getType()` for the erased type, `getParameterizedType()` for generics, `getAnnotatedType()` for type annotations, and `getAnnotation(...)` for parameter annotations.

@@ -1,52 +1,52 @@
-# `Comparator.comparing()` và các biến thể `comparingInt()`, `comparingLong()`, `comparingDouble()`
+# `Comparator.comparing()` and the `comparingInt()`, `comparingLong()`, `comparingDouble()` Variants
 
-Khi cần sắp xếp danh sách đối tượng Java theo một thuộc tính, ta thường không cần tự viết đầy đủ `compare(a, b)`. Interface `java.util.Comparator<T>` cung cấp các **phương thức factory tĩnh** tạo comparator từ một hàm lấy khóa (*key extractor*):
+When sorting a list of Java objects by a property, you usually do not need to write out `compare(a, b)` in full manually. The `java.util.Comparator<T>` interface provides **static factory methods** that build a comparator from a *key extractor* function:
 
-- `Comparator.comparing(...)`: lấy khóa kiểu đối tượng, so sánh khóa theo thứ tự tự nhiên hoặc bằng một comparator khác.
-- `Comparator.comparingInt(...)`: lấy khóa nguyên thủy `int`.
-- `Comparator.comparingLong(...)`: lấy khóa nguyên thủy `long`.
-- `Comparator.comparingDouble(...)`: lấy khóa nguyên thủy `double`.
+- `Comparator.comparing(...)`: extracts an object-typed key, comparing keys by natural order or using another comparator.
+- `Comparator.comparingInt(...)`: extracts a primitive `int` key.
+- `Comparator.comparingLong(...)`: extracts a primitive `long` key.
+- `Comparator.comparingDouble(...)`: extracts a primitive `double` key.
 
-Cả bốn đều tạo một `Comparator<T>` để truyền vào `List.sort(...)`, `Collections.sort(...)`, `Stream.sorted(...)`, `Arrays.sort(...)`, hoặc các API cần một thứ tự sắp xếp. Khác biệt chủ yếu nằm ở **kiểu khóa** và **cách so sánh khóa**.
+All four create a `Comparator<T>` to pass into `List.sort(...)`, `Collections.sort(...)`, `Stream.sorted(...)`, `Arrays.sort(...)`, or any API requiring a sort order. The main differences lie in the **key type** and **how keys are compared**.
 
-## 1. `Comparator<T>` quyết định thứ tự như thế nào?
+## 1. How Does `Comparator<T>` Determine Order?
 
-Các factory trong bài tạo một `Comparator<T>` bằng cách **lấy khóa** từ mỗi đối tượng và so sánh các khóa đó. Ví dụ:
+The factories in this lesson build a `Comparator<T>` by **extracting a key** from each object and comparing those keys. For example:
 
 ~~~java
 Comparator<Employee> byAge =
         Comparator.comparingInt(Employee::age);
 ~~~
 
-Đây là mảnh mã giả định `Employee.age()` trả `int`. `Employee::age` tương đương `e -> e.age()` khi làm key extractor.
+This is a code fragment assuming `Employee.age()` returns `int`. `Employee::age` is equivalent to `e -> e.age()` as a key extractor.
 
-Kết quả `compare(a,b)` mang dấu âm nếu a đứng trước b, bằng 0 nếu ngang hàng theo khóa đã chọn, dương nếu a đứng sau b. Các quy tắc đối dấu, bắc cầu và nhóm so sánh bằng 0 vẫn áp dụng; phương thức factory không miễn trách nhiệm bảo đảm khóa hợp lệ và ổn định. Trọng tâm ở đây là **chọn overload đúng kiểu khóa**, bao gồm primitive, nullable và `double` có giá trị đặc biệt.
-## 2. So sánh nhanh bốn phương thức factory
+The result of `compare(a,b)` has a negative sign if `a` comes before `b`, equals 0 if they tie on the chosen key, and is positive if `a` comes after `b`. The rules of sign symmetry, transitivity, and zero-comparison groups still apply; the factory method does not absolve you from ensuring keys are valid and stable. The focus here is **choosing the right overload for the key type**, including primitives, nullables, and `double` with special values.
+## 2. Quick Comparison of the Four Factory Methods
 
-| Factory | Kiểu hàm lấy khóa | So sánh khóa | Trường hợp điển hình |
+| Factory | Key extractor function type | Key comparison | Typical use cases |
 | --- | --- | --- | --- |
-| `comparing(keyExtractor)` | `Function<? super T, ? extends U>`, với `U` có thứ tự tự nhiên | `U.compareTo(...)` qua `Comparable` | `String`, `LocalDate`, `BigDecimal`, enum… |
-| `comparing(keyExtractor, keyComparator)` | `Function<? super T, ? extends U>` | Comparator riêng của khóa | Không phân biệt hoa thường, khóa nullable, thứ tự nghiệp vụ |
-| `comparingInt(keyExtractor)` | `ToIntFunction<? super T>` | `Integer.compare(...)` | Tuổi, số lượng, mức ưu tiên `int` |
-| `comparingLong(keyExtractor)` | `ToLongFunction<? super T>` | `Long.compare(...)` | Timestamp dạng `long`, số lượng lớn, sequence |
-| `comparingDouble(keyExtractor)` | `ToDoubleFunction<? super T>` | `Double.compare(...)` | Điểm số, tỷ lệ, số đo `double` |
+| `comparing(keyExtractor)` | `Function<? super T, ? extends U>`, where `U` has a natural order | `U.compareTo(...)` via `Comparable` | `String`, `LocalDate`, `BigDecimal`, enums… |
+| `comparing(keyExtractor, keyComparator)` | `Function<? super T, ? extends U>` | Custom key comparator | Case-insensitive, nullable keys, business-specific orders |
+| `comparingInt(keyExtractor)` | `ToIntFunction<? super T>` | `Integer.compare(...)` | Age, quantity, `int` priority level |
+| `comparingLong(keyExtractor)` | `ToLongFunction<? super T>` | `Long.compare(...)` | `long` timestamps, large counts, sequences |
+| `comparingDouble(keyExtractor)` | `ToDoubleFunction<? super T>` | `Double.compare(...)` | Scores, ratios, `double` measurements |
 
-Ba hàm nguyên thủy cho phép extractor trả trực tiếp `int`, `long` hoặc `double`, tránh đóng hộp khóa đó thành `Integer`, `Long` hoặc `Double` để gọi `compareTo`. Điều này giúp biểu đạt rõ ý định và có thể giảm chi phí boxing khi sắp xếp nhiều phần tử. Không có nghĩa mọi phần của quá trình sort sẽ hoàn toàn không cấp phát bộ nhớ.
+The three primitive variants allow the extractor to return `int`, `long`, or `double` directly, avoiding boxing that key into `Integer`, `Long`, or `Double` just to call `compareTo`. This expresses intent clearly and can reduce boxing overhead when sorting many elements. It does not mean every part of the sort process will be completely allocation-free.
 
-Lưu ý: `comparingInt`/`Long`/`Double` **không** có overload nhận thêm `Comparator` cho khóa nguyên thủy. Muốn quy tắc so khác tự nhiên, hãy cân nhắc biến đổi khóa có kiểm soát, `reversed()`, hoặc một comparator tự viết phù hợp. Riêng `comparing(...)` có overload nhận comparator thứ hai cho khóa kiểu đối tượng.
+Note: `comparingInt`/`Long`/`Double` do **not** have an overload taking an extra `Comparator` for primitive keys. To use a non-natural comparison rule, consider a controlled key transformation, `reversed()`, or a suitable custom comparator. Only `comparing(...)` has an overload accepting a second comparator for object-typed keys.
 
-## 3. `comparing()` với khóa có `Comparable`
+## 3. `comparing()` with `Comparable` Keys
 
-Giả sử `Product` có tên `String`:
+Suppose `Product` has a `String` name:
 
 ~~~java
 Comparator<Product> byName =
     Comparator.comparing(Product::name);
 ~~~
 
-Đây là một mảnh mã giả định `Product.name()` trả `String`. Vì `String` triển khai `Comparable<String>`, comparator mới dùng thứ tự tự nhiên của chuỗi, dựa trên thứ tự so từ điển theo giá trị UTF-16; không mặc nhiên giống quy tắc sắp xếp tên tiếng Việt theo locale.
+This is a code fragment assuming `Product.name()` returns `String`. Because `String` implements `Comparable<String>`, the new comparator uses string natural order, which is based on lexicographical comparison of UTF-16 values; it does not automatically match locale-specific Vietnamese name sorting rules.
 
-Một số ví dụ thông dụng:
+Some common examples:
 
 ~~~java
 Comparator<Order> byDate =
@@ -56,9 +56,9 @@ Comparator<Invoice> byAmount =
     Comparator.comparing(Invoice::total);   // BigDecimal
 ~~~
 
-Các dòng này **chỉ minh họa cú pháp** nếu lớp `Order` và `Invoice` có phương thức tương ứng. `LocalDate` và `BigDecimal` cung cấp `compareTo()`, nên thích hợp cho overload một tham số.
+These lines **only illustrate syntax** assuming classes `Order` and `Invoice` have the corresponding methods. `LocalDate` and `BigDecimal` provide `compareTo()`, making them suitable for the single-argument overload.
 
-Nếu kiểu khóa không triển khai `Comparable` phù hợp, overload `comparing(keyExtractor)` không thể dựa vào thứ tự tự nhiên; hãy truyền một `Comparator<U>` xác định quy tắc so khóa:
+If the key type does not implement a suitable `Comparable`, the `comparing(keyExtractor)` overload cannot rely on natural order; pass a `Comparator<U>` defining the key comparison rule:
 
 ~~~java
 Comparator<Product> byNameIgnoringCase =
@@ -68,9 +68,9 @@ Comparator<Product> byNameIgnoringCase =
     );
 ~~~
 
-Điều này cũng nhấn mạnh rằng comparator mô tả **thứ tự**, không nhất thiết định nghĩa bằng nhau giống `equals()`: hai chuỗi khác chữ hoa/thường có thể cho `compare(...) == 0` với `CASE_INSENSITIVE_ORDER` nhưng `String.equals()` vẫn trả `false`.
+This also emphasizes that a comparator describes **ordering**, not necessarily equality matching `equals()`: two strings differing in letter case can yield `compare(...) == 0` under `CASE_INSENSITIVE_ORDER` while `String.equals()` still returns `false`.
 
-## 4. `comparingInt()`, `comparingLong()` và `comparingDouble()`
+## 4. `comparingInt()`, `comparingLong()`, and `comparingDouble()`
 
 ### `comparingInt(ToIntFunction)`
 
@@ -79,21 +79,21 @@ Comparator<Employee> byAge =
     Comparator.comparingInt(Employee::age);
 ~~~
 
-Nếu hai tuổi lần lượt là `22` và `30`, `byAge.compare(e22, e30)` là số âm. Không cần viết phép trừ `e22.age() - e30.age()`.
+If two ages are `22` and `30`, `byAge.compare(e22, e30)` is a negative number. There is no need to write the subtraction `e22.age() - e30.age()`.
 
-**Tránh so số nguyên bằng phép trừ:**
+**Avoid comparing integers using subtraction:**
 
 ~~~java
-// SAI: tràn số có thể đảo dấu kết quả.
+// WRONG: integer overflow can flip the sign of the result.
 Comparator<Employee> risky =
     (a, b) -> a.age() - b.age();
 
-// ĐÚNG: Comparator.comparingInt dùng cách so sánh không tràn số.
+// RIGHT: Comparator.comparingInt uses overflow-safe comparison.
 Comparator<Employee> safe =
     Comparator.comparingInt(Employee::age);
 ~~~
 
-Với `int`, phép trừ `Integer.MIN_VALUE - Integer.MAX_VALUE` có thể tràn và trả dấu sai; `Integer.compare` không mắc lỗi đó. Đoạn trên là mảnh mã minh họa trong phạm vi lớp `Employee`.
+With `int`, subtracting `Integer.MIN_VALUE - Integer.MAX_VALUE` can overflow and return the wrong sign; `Integer.compare` does not suffer from that bug. The snippet above is an illustrative fragment within the scope of class `Employee`.
 
 ### `comparingLong(ToLongFunction)`
 
@@ -102,15 +102,15 @@ Comparator<Event> byTimestamp =
     Comparator.comparingLong(Event::timestamp);
 ~~~
 
-Dùng khi khóa là `long`, chẳng hạn epoch milliseconds, số bản ghi hoặc mã thứ tự lớn. Đặc biệt không ép hiệu hai `long` sang `int`:
+Use when the key is `long`, such as epoch milliseconds, record counts, or large sequence numbers. Especially do not cast the difference of two `long` values to `int`:
 
 ~~~java
-// SAI: vừa có nguy cơ tràn phép trừ long vừa có nguy cơ mất bit.
+// WRONG: risks both long subtraction overflow and bit truncation.
 Comparator<Event> risky =
     (a, b) -> (int) (a.timestamp() - b.timestamp());
 ~~~
 
-Cách viết `comparingLong` dùng `Long.compare` và bảo toàn thứ tự trên toàn miền `long`. Nếu dữ liệu là thời điểm, phải biết kiểu số đang lưu có cùng đơn vị và cùng quy ước thời gian; comparator không tự chuyển đổi giây sang mili giây.
+Writing `comparingLong` uses `Long.compare` and preserves order across the entire `long` range. If the data represents timestamps, you must know that the stored numbers share the same unit and time convention; the comparator does not automatically convert seconds to milliseconds.
 
 ### `comparingDouble(ToDoubleFunction)`
 
@@ -119,19 +119,19 @@ Comparator<Measurement> byValue =
     Comparator.comparingDouble(Measurement::value);
 ~~~
 
-Factory dùng `Double.compare`, có các đặc điểm cần nhớ:
+The factory uses `Double.compare`, which has properties to keep in mind:
 
-- `-0.0` được xếp **trước** `+0.0` dù biểu thức số học `-0.0 == +0.0` là `true`.
-- `Double.NaN` được xếp **sau** các giá trị số hữu hạn và các giá trị vô cực theo thứ tự tăng dần của `Double.compare`; các biểu diễn NaN được xem bằng nhau trong phép so này.
-- `Double.NEGATIVE_INFINITY` đứng trước các số hữu hạn; `Double.POSITIVE_INFINITY` đứng sau các số hữu hạn nhưng trước NaN.
+- `-0.0` is ordered **before** `+0.0` even though the arithmetic expression `-0.0 == +0.0` is `true`.
+- `Double.NaN` is ordered **after** finite numbers and infinities in `Double.compare`'s ascending order; different NaN representations are treated as equal in this comparison.
+- `Double.NEGATIVE_INFINITY` comes before finite numbers; `Double.POSITIVE_INFINITY` comes after finite numbers but before NaN.
 
-Vì vậy, không được tùy tiện thay `comparingDouble` bằng `(a, b) -> (int) (a.score() - b.score())`: ép một hiệu `double` sang `int` có thể biến chênh lệch nhỏ thành `0`, làm mất thứ tự mong muốn; NaN và vô cực cũng gây vấn đề.
+Therefore, do not arbitrarily replace `comparingDouble` with `(a, b) -> (int) (a.score() - b.score())`: casting a `double` difference to `int` can turn small differences into `0`, losing the desired order; NaN and infinities also cause issues.
 
-Nếu nghiệp vụ cần loại `NaN` hoặc áp dụng ngưỡng gần đúng, cần nêu rõ chính sách xử lý. Đặc biệt, **không** coi hai số “chênh nhau dưới epsilon” là tương đương trong một comparator dùng để sắp xếp hay làm khóa `TreeSet` khi quan hệ đó không bắc cầu.
+If the business domain needs to exclude `NaN` or apply an approximate threshold, state the handling policy explicitly. In particular, do **not** treat two numbers "differing by less than epsilon" as equivalent in a comparator used for sorting or as a `TreeSet` key when that relation is not transitive.
 
-## 5. Ví dụ Java 17 hoàn chỉnh và đầu ra kiểm chứng được
+## 5. Complete Java 17 Example and Verifiable Output
 
-Tạo tệp **`ComparatorFactoriesDemo.java`**:
+Create the file **`ComparatorFactoriesDemo.java`**:
 
 ~~~java
 import java.util.Comparator;
@@ -209,14 +209,14 @@ public class ComparatorFactoriesDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac ComparatorFactoriesDemo.java
 java ComparatorFactoriesDemo
 ~~~
 
-**Đầu ra chuẩn:**
+**Standard output:**
 
 ~~~text
 name: An, Binh, Hoa, Lan, Mai
@@ -229,20 +229,20 @@ minus zero before plus zero: true
 NaN after positive infinity: true
 ~~~
 
-Giải thích:
+Explanation:
 
-1. `comparing(Applicant::name)` lấy `String` rồi so theo thứ tự tự nhiên; các tên được sắp tăng dần.
-2. `comparingInt(Applicant::age)` đưa nhóm tuổi `22` lên trước nhóm `30`. `thenComparing(Applicant::name)` phá thế hòa theo tên: trong nhóm `22` là `Binh, Hoa, Lan`, trong nhóm `30` là `An, Mai`.
-3. `comparingLong(Applicant::visits).reversed()` cho số lượt thăm giảm dần: `15, 12, 7, 5, 3`.
-4. `comparingDouble(Applicant::score)` sắp `-0.0, 8.0, 9.5, 9.5, NaN`. `thenComparing(name)` xếp `Binh` trước `Lan` khi điểm bằng nhau.
-5. Tên nullable được sắp với `Comparator.nullsFirst(...)` dành cho **khóa String**, nên khóa `null` đứng trước `"Zed"`.
-6. Với hai giá trị `long` cực trị, factory dùng `Long.compare` nên nhận diện đúng thứ tự. Hai dòng cuối minh họa quy tắc `Double.compare` cho signed zero và NaN.
+1. `comparing(Applicant::name)` extracts `String` and compares in natural order; names are sorted ascending.
+2. `comparingInt(Applicant::age)` puts the age `22` group before the `30` group. `thenComparing(Applicant::name)` breaks ties by name: within group `22` it is `Binh, Hoa, Lan`, and within group `30` it is `An, Mai`.
+3. `comparingLong(Applicant::visits).reversed()` produces descending visit counts: `15, 12, 7, 5, 3`.
+4. `comparingDouble(Applicant::score)` orders `-0.0, 8.0, 9.5, 9.5, NaN`. `thenComparing(name)` puts `Binh` before `Lan` when scores tie.
+5. Nullable names are sorted with `Comparator.nullsFirst(...)` for the **String key**, so the `null` key comes before `"Zed"`.
+6. For the two extreme `long` values, the factory uses `Long.compare` and identifies the order properly. The last two lines illustrate `Double.compare`'s rules for signed zero and NaN.
 
-`record Applicant` được dùng như mô hình dữ liệu nhỏ để giảm code phụ; các phương thức accessor `name()`, `age()`, `visits()`, `score()` do Java sinh. Java 17 hỗ trợ record chính thức.
+`record Applicant` is used as a compact data model to reduce boilerplate; the accessor methods `name()`, `age()`, `visits()`, `score()` are generated by Java. Java 17 officially supports records.
 
-## 6. Ghép nhiều tiêu chí với `thenComparing...`
+## 6. Chaining Multiple Criteria with `thenComparing...`
 
-Một khóa đôi khi không phân biệt được hết các phần tử. Ví dụ sắp xếp theo `age` sẽ cho kết quả `0` với hai người cùng tuổi. Trong trường hợp đó, ta ghép tiêu chí phụ:
+A single key sometimes cannot distinguish all elements. For instance, sorting by `age` yields `0` for two people of the same age. In that case, you chain secondary criteria:
 
 ~~~java
 Comparator<Applicant> order =
@@ -252,31 +252,31 @@ Comparator<Applicant> order =
               .thenComparingDouble(Applicant::score);
 ~~~
 
-Đây là mảnh mã sử dụng `Applicant` từ ví dụ hoàn chỉnh. Luồng đánh giá:
+This is a fragment using `Applicant` from the complete example. Evaluation flow:
 
-1. So `age`. Nếu khác, trả ngay theo tuổi.
-2. Nếu bằng tuổi, so `name`.
-3. Nếu vẫn bằng tên, so `visits`.
-4. Nếu vẫn bằng, so `score`.
+1. Compare `age`. If different, return immediately by age.
+2. If ages are equal, compare `name`.
+3. If names are still equal, compare `visits`.
+4. If still equal, compare `score`.
 
-Các phương thức `thenComparingInt`, `thenComparingLong`, `thenComparingDouble` phù hợp cho tiêu chí phụ nguyên thủy và hoạt động tương tự các factory tương ứng. Comparator sẽ không cần đến tiêu chí sau nếu tiêu chí trước đã xác định được thứ tự.
+`thenComparingInt`, `thenComparingLong`, and `thenComparingDouble` are suited for primitive secondary criteria and behave like their corresponding factories. The comparator does not evaluate subsequent criteria once an earlier criterion determines the order.
 
-### Đảo chiều đúng phạm vi
+### Reversing with the right scope
 
 ~~~java
-// Đảo toàn bộ comparator: tuổi giảm, rồi tên giảm.
+// Reverses the entire comparator: age descending, then name descending.
 Comparator<Applicant> allDescending =
     Comparator.comparingInt(Applicant::age)
               .thenComparing(Applicant::name)
               .reversed();
 
-// Tuổi giảm nhưng tên vẫn tăng khi cùng tuổi.
+// Age descending, but name still ascending when ages tie.
 Comparator<Applicant> ageDescNameAsc =
     Comparator.comparingInt(Applicant::age)
               .reversed()
               .thenComparing(Applicant::name);
 
-// Tuổi tăng, tên giảm khi cùng tuổi.
+// Age ascending, name descending when ages tie.
 Comparator<Applicant> ageAscNameDesc =
     Comparator.comparingInt(Applicant::age)
               .thenComparing(
@@ -284,17 +284,17 @@ Comparator<Applicant> ageAscNameDesc =
               );
 ~~~
 
-Các đoạn dùng `Applicant` ở ví dụ trên, không phải tệp hoàn chỉnh riêng. `reversed()` đảo kết quả của **toàn bộ comparator đã ghép tại thời điểm gọi**. Muốn chỉ đảo chiều một khóa, hãy đảo comparator riêng của khóa đó rồi mới ghép. Tránh nhầm rằng `reversed()` luôn chỉ đảo “cột đầu tiên”.
+These snippets use `Applicant` from the example above and are not separate complete files. `reversed()` reverses the result of the **entire comparator chained up to the point of the call**. To reverse only one key, reverse that key's individual comparator before chaining it. Avoid mistaking `reversed()` as always reversing only the "first column."
 
-Nếu chỉ cần sắp xếp một danh sách mà không thay đổi danh sách ban đầu, `stream().sorted(comparator).toList()` (Java 16+) tạo danh sách kết quả theo thứ tự; `List.sort(comparator)` thay đổi danh sách đích và không dùng được trên danh sách không cho sửa cấu trúc do `List.of(...)` tạo. Java bảo đảm `List.sort` ổn định; với các phần tử có `compare(a,b)==0`, thứ tự tương đối ban đầu được giữ. Tuy nhiên, khi nghiệp vụ cần một thứ tự hoàn toàn xác định, nên thêm tiêu chí phụ rõ ràng, đặc biệt trước khi phân trang hoặc xuất báo cáo.
+If you only need to sort a list without mutating the original list, `stream().sorted(comparator).toList()` (Java 16+) creates a result list in order; `List.sort(comparator)` mutates the target list and cannot be used on structurally unmodifiable lists created by `List.of(...)`. Java guarantees `List.sort` is stable; for elements with `compare(a,b)==0`, the original relative order is preserved. However, when business logic requires a fully deterministic order, add an explicit secondary criterion, especially before pagination or exporting reports.
 
-## 7. Xử lý `null` cho đúng tầng
+## 7. Handling `null` at the Right Layer
 
-Các factory mặc định thường **không tự xử lý khóa null**. Nếu một extractor trả `null` và comparator khóa không hỗ trợ null, phép sắp xếp có thể ném `NullPointerException`.
+Default factories typically **do not handle null keys automatically**. If an extractor returns `null` and the key comparator does not support null, sorting can throw `NullPointerException`.
 
-Có hai tình huống khác nhau:
+There are two distinct situations:
 
-**A. Chính phần tử cần sắp xếp là `null`:**
+**A. The element being sorted itself is `null`:**
 
 ~~~java
 Comparator<Applicant> byAgeAllowNullApplicant =
@@ -303,9 +303,9 @@ Comparator<Applicant> byAgeAllowNullApplicant =
     );
 ~~~
 
-Tầng `nullsLast` bên ngoài giúp phần tử `Applicant` bằng `null` đi cuối. Nếu phần tử không null, comparator bên trong mới truy cập `age()`.
+The outer `nullsLast` layer sends `null` `Applicant` elements to the end. Only when the element is non-null does the inner comparator access `age()`.
 
-**B. Phần tử không null, nhưng khóa `name()` có thể null:**
+**B. The element is non-null, but the `name()` key can be null:**
 
 ~~~java
 Comparator<Applicant> byNullableName =
@@ -315,56 +315,56 @@ Comparator<Applicant> byNullableName =
     );
 ~~~
 
-`nullsLast` ở đây xử lý **giá trị String do extractor trả về**, không tự xử lý phần tử `Applicant` null. Nếu cả bản thân phần tử và khóa đều có thể null, có thể bọc hai tầng với các chính sách thích hợp.
+Here `nullsLast` handles **the String value returned by the extractor**, and does not automatically handle a null `Applicant` element. If both the element itself and the key can be null, wrap at both layers with the appropriate policies.
 
-Với primitive extractor như `ToIntFunction`, kết quả là `int` nên không thể là `null`. Nhưng nếu code viết `Comparator.comparingInt(e -> e.getNullableAge())` và `getNullableAge()` trả `Integer`, Java phải unbox; giá trị null sẽ gây `NullPointerException`. Hãy xác định chính sách cho trường nullable trước: dùng overload `comparing(...)` với comparator khóa cho null, chuyển về giá trị mặc định có ý nghĩa, hoặc từ chối dữ liệu thiếu.
+With primitive extractors like `ToIntFunction`, the return type is `int` so it cannot be `null`. However, if code writes `Comparator.comparingInt(e -> e.getNullableAge())` and `getNullableAge()` returns `Integer`, Java must unbox it; a null value will cause a `NullPointerException`. Determine the policy for nullable fields first: use the `comparing(...)` overload with a null-safe key comparator, map to a meaningful default value, or reject missing data.
 
-## 8. Thứ tự của comparator và `equals()` là hai khái niệm khác nhau
+## 8. Comparator Order and `equals()` Are Different Concepts
 
-`Comparator.compare(a, b) == 0` nghĩa là **tương đương trong thứ tự do comparator xác định**; nó không nhất thiết đồng nghĩa `a.equals(b)`. Chẳng hạn hai `Applicant` bằng tuổi nhưng khác tên có thể cho `0` khi dùng `comparingInt(Applicant::age)`.
+`Comparator.compare(a, b) == 0` means **equivalent in the ordering defined by the comparator**; it does not necessarily mean `a.equals(b)`. For example, two `Applicant` instances of the same age but different names can yield `0` when using `comparingInt(Applicant::age)`.
 
-Điều này đặc biệt quan trọng nếu sử dụng comparator với `TreeSet` và `TreeMap`:
+This is especially important when using the comparator with `TreeSet` and `TreeMap`:
 
 ~~~java
 Comparator<Applicant> byAge =
     Comparator.comparingInt(Applicant::age);
 ~~~
 
-Đoạn trên có thể là tiêu chí sắp xếp rất hữu ích cho `List`. Nhưng nếu đặt vào `TreeSet<Applicant>`, các ứng viên **cùng tuổi** sẽ được cấu trúc cây coi là trùng nhau theo comparator, dù tên và các thuộc tính khác khác nhau. `TreeMap` cũng xác định trùng khóa bằng kết quả `compare==0` của comparator, không dựa vào `equals()` theo cách `HashMap` làm.
+The snippet above can be a very useful sorting criterion for a `List`. Yet if passed to a `TreeSet<Applicant>`, applicants of the **same age** will be treated as duplicates by the tree structure according to the comparator, even though their names and other properties differ. `TreeMap` also determines duplicate keys by the comparator's `compare==0` result, rather than relying on `equals()` as `HashMap` does.
 
-Nếu yêu cầu là giữ tất cả ứng viên riêng biệt trong `TreeSet`, hãy thêm tiêu chí phân biệt duy nhất, ổn định, nhất quán với ngữ nghĩa tập hợp mong muốn, ví dụ ID nghiệp vụ:
+If the requirement is to retain all distinct applicants in a `TreeSet`, add a unique, stable tie-breaking criterion consistent with the intended set semantics, such as a business ID:
 
 ~~~java
-// Giả định kiểu Applicant thực tế có id() là khóa phân biệt ổn định.
+// Assumes a real Applicant type has id() as a stable distinguishing key.
 Comparator<Applicant> byAgeThenId =
     Comparator.comparingInt(Applicant::age)
               .thenComparing(Applicant::id);
 ~~~
 
-Đây chỉ là mảnh mã để diễn tả quy tắc; `Applicant` của ví dụ chạy ở mục 5 chưa có trường `id()`. **Không** tạo một comparator trả kết quả khác nhau thất thường chỉ nhằm giữ mọi phần tử: comparator vẫn phải thỏa tính bắc cầu và nhất quán.
+This is only a code snippet illustrating the rule; `Applicant` in the runnable example in section 5 does not yet have an `id()` field. Do **not** build a comparator that returns erratic differing results merely to retain all elements: the comparator must still satisfy transitivity and consistency.
 
-Ngoài ra, sắp xếp tăng dần theo `BigDecimal` bằng `Comparator.comparing(Invoice::total)` dùng `BigDecimal.compareTo`. Phương thức này có thể cho `0` giữa `1.0` và `1.00` dù `BigDecimal.equals()` cho `false`. Điều đó được chấp nhận khi chỉ **sort**, nhưng cần cân nhắc kỹ khi dùng comparator này làm quy tắc trùng khóa trong `TreeMap` hoặc `TreeSet`.
+In addition, sorting `BigDecimal` ascending with `Comparator.comparing(Invoice::total)` uses `BigDecimal.compareTo`. This method can return `0` between `1.0` and `1.00` even though `BigDecimal.equals()` returns `false`. That is acceptable when merely **sorting**, but needs careful consideration when using this comparator as the duplicate-key rule in a `TreeMap` or `TreeSet`.
 
-## 9. Lưu ý về hiệu năng và tính đúng đắn
+## 9. Notes on Performance and Correctness
 
-- **Ưu tiên method reference rõ nghĩa:** `Comparator.comparingInt(Person::age)` thường dễ đọc hơn một lambda tự trừ hai tuổi.
-- **Chọn đúng kiểu khóa:** nếu getter trả `long`, dùng `comparingLong` thay vì ép sang `int`; nếu trả `double`, hiểu chính sách NaN/signed zero của `Double.compare`.
-- **Giữ extractor thuần và ổn định:** không sửa trạng thái object, không phát sinh giá trị ngẫu nhiên, và không phụ thuộc dữ liệu thay đổi giữa các lần so sánh trong cùng một thao tác sort. Comparator có thể gọi extractor nhiều lần và với những cặp khác nhau.
-- **Không dùng phép gần đúng làm quan hệ so bằng nhau:** so theo sai số `epsilon` thường thiếu tính bắc cầu; nên tách thành phép kiểm tra riêng thay vì gài vào comparator sắp xếp.
-- **Không kỳ vọng caching khóa:** factory không hứa gọi extractor đúng một lần trên mỗi phần tử. Nếu tính khóa quá tốn kém, có thể tạo bản ghi mang khóa đã tính (*decorate-sort-undecorate*) hoặc một mô hình khóa ổn định riêng.
-- **Không lạm dụng `reversed()`:** ghi rõ chiều từng tiêu chí khi ghép nhiều khóa và kiểm tra bằng ví dụ có giá trị trùng ở khóa chính.
+- **Prefer expressive method references:** `Comparator.comparingInt(Person::age)` is usually clearer than a lambda manually subtracting two ages.
+- **Pick the right key type:** if a getter returns `long`, use `comparingLong` instead of casting to `int`; if it returns `double`, understand `Double.compare`'s NaN/signed-zero policy.
+- **Keep extractors pure and stable:** do not mutate object state, generate random values, or depend on data changing between comparisons during the same sort operation. The sort may invoke the extractor multiple times and on varying pairs.
+- **Do not use approximate equality as a comparison relation:** comparing within an `epsilon` tolerance usually lacks transitivity; separate it into a dedicated check rather than embedding it into a sorting comparator.
+- **Do not expect key caching:** factories do not promise to call the extractor only once per element. If computing the key is expensive, consider creating a record holding precomputed keys (*decorate-sort-undecorate*) or a dedicated stable key model.
+- **Do not misuse `reversed()`:** specify the direction of each criterion explicitly when chaining multiple keys and verify with examples containing duplicate primary keys.
 
-## 10. Checklist khi áp dụng
+## 10. Checklist When Applying
 
-Trước khi chọn comparator factory, kiểm tra:
+Before choosing a comparator factory, check:
 
-1. Khóa đang sắp xếp là đối tượng có `Comparable`, đối tượng cần comparator riêng, hay primitive `int`/`long`/`double`?
-2. Nếu dùng `comparing(...)`, khóa có thực sự hỗ trợ so sánh tự nhiên? Nếu không, đã truyền `keyComparator` chưa?
-3. Có `null` ở **phần tử** hay ở **khóa**? Đã đặt `nullsFirst`/`nullsLast` đúng tầng chưa?
-4. `double` có thể mang NaN, vô cực hoặc `-0.0` không? Thứ tự của `Double.compare` có phù hợp nghiệp vụ không?
-5. Có cần ghép tiêu chí phụ bằng `thenComparing(...)` để sắp xếp xác định trong nhóm trùng khóa không?
-6. `reversed()` đang đảo toàn bộ comparator hay chỉ tiêu chí muốn đảo?
-7. Comparator có được dùng trong `TreeSet`/`TreeMap` không? Nếu có, `compare(a,b)==0` có đúng ý nghĩa “trùng phần tử/khóa” mong muốn không?
-8. Các trường lấy khóa có ổn định trong quá trình sort hoặc trong thời gian tồn tại trong cấu trúc cây không?
+1. Is the sort key an object with `Comparable`, an object needing a custom comparator, or a primitive `int`/`long`/`double`?
+2. If using `comparing(...)`, does the key truly support natural comparison? If not, have you passed a `keyComparator`?
+3. Can `null` occur at the **element** level or the **key** level? Is `nullsFirst`/`nullsLast` placed at the right layer?
+4. Can `double` contain NaN, infinity, or `-0.0`? Does `Double.compare`'s ordering fit the business logic?
+5. Should a secondary criterion be chained via `thenComparing(...)` for deterministic ordering within tied-key groups?
+6. Is `reversed()` reversing the entire comparator or only the intended criterion?
+7. Is the comparator used in `TreeSet`/`TreeMap`? If so, does `compare(a,b)==0` match the intended meaning of "duplicate element/key"?
+8. Are key-extracting fields stable during sorting or for the duration of their stay in a tree structure?
 
-**Ghi nhớ:** `comparing()` dành cho **khóa đối tượng** (dùng `Comparable` hoặc một comparator khóa riêng). `comparingInt()`, `comparingLong()` và `comparingDouble()` dành cho **khóa primitive**, biểu đạt rõ kiểu và tránh boxing khóa không cần thiết. Dùng `thenComparing...` để ghép tiêu chí, `reversed()` để đảo thứ tự, và luôn xác định chính xác quy tắc null, số thực cũng như ngữ nghĩa `compare==0` trong các collection có sắp xếp.
+**Takeaway:** `comparing()` is for **object keys** (using `Comparable` or a custom key comparator). `comparingInt()`, `comparingLong()`, and `comparingDouble()` are for **primitive keys**, expressing the type clearly and avoiding unnecessary key boxing. Use `thenComparing...` to combine criteria, `reversed()` to reverse order, and always explicitly specify rules for null, floating-point numbers, and `compare==0` semantics in sorted collections.

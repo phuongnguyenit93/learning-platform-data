@@ -1,81 +1,81 @@
-# Ước lượng bộ nhớ của sorted, distinct, groupingBy và collect
+# Estimating Memory of `sorted`, `distinct`, `groupingBy`, and `collect`
 
-Java Stream API giúp diễn đạt việc xử lý dữ liệu bằng pipeline khai báo, có tính *lazy*, với các bước như `filter`, `map`, `sorted`, `distinct`, `reduce` và `collect`. Tuy vậy, **lazy không có nghĩa pipeline luôn dùng bộ nhớ hằng số**. Một số phép toán phải ghi nhớ dữ liệu đã gặp hoặc gom nhiều phần tử trước khi tạo kết quả. Điển hình là `sorted`, `distinct`, `groupingBy` và các dạng `collect` giữ toàn bộ phần tử.
+The Java Stream API lets you express data processing as declarative, *lazy* pipelines with steps like `filter`, `map`, `sorted`, `distinct`, `reduce`, and `collect`. However, **lazy does not mean a pipeline always uses constant memory**. Some operations must remember previously seen elements or group many elements before producing output. Typical examples are `sorted`, `distinct`, `groupingBy`, and forms of `collect` that retain all elements.
 
-Bài thuộc chương **Hiệu năng và bộ nhớ** của module **JAVA_STREAM_API**. Mục tiêu là biết cách **ước lượng bộ nhớ tăng thêm**, phân biệt bộ nhớ đỉnh với bộ nhớ kết quả, xác định yếu tố chi phối từng phép toán, đánh giá tác động của `Spliterator` và parallel stream, rồi chọn thiết kế phù hợp cho dữ liệu lớn. Kiến thức này liên hệ trực tiếp tới grouping, collector tùy chỉnh, xử lý song song và giới hạn tài nguyên; các phép biến đổi nâng cao như Stream Gatherers cũng phải tuân theo cùng nguyên tắc về trạng thái và đầu ra.
+This lesson belongs to the **Performance and Memory** chapter of the **JAVA_STREAM_API** module. The goal is to know how to **estimate additional memory**, distinguish peak memory from retained result memory, identify the dominant factor for each operation, evaluate the impact of `Spliterator` and parallel streams, and choose an appropriate design for large datasets. This knowledge connects directly to grouping, custom collectors, parallel processing, and resource limits; advanced transformations like Stream Gatherers must follow the same principles regarding state and output.
 
-> **Nguyên tắc:** Không kết luận một pipeline có bộ nhớ `O(1)` chỉ vì nó không có vòng lặp hoặc vì nó trả về `Stream`. Phải xem **từng thao tác**, **terminal operation** và **kích thước kết quả còn được giữ**.
+> **Rule:** Never conclude a pipeline uses `O(1)` memory just because it has no explicit loop or returns a `Stream`. You must examine **every operation**, the **terminal operation**, and the **size of retained results**.
 
-## 1. Phân biệt những loại bộ nhớ cần tính
+## 1. Distinguish the types of memory to account for
 
-Trước khi ghi con số “pipeline dùng X MB”, hãy xác định **đang đếm phần nào**:
+Before stating “this pipeline uses X MB”, clarify **what you are counting**:
 
-| Thành phần | Ví dụ | Có nên tính khi ước lượng? |
+| Component | Example | Should it be included in estimates? |
 |---|---|---|
-| **Nguồn đã có sẵn** | `ArrayList<Order>` chứa một triệu đối tượng | Có trong **tổng heap ứng dụng**; có thể tách khỏi **bộ nhớ tăng thêm do pipeline** |
-| **Trạng thái trung gian** | Buffer sắp xếp, bảng băm của `distinct` | Có; có thể tồn tại trong lúc pipeline chạy |
-| **Trạng thái collector** | Map các nhóm, danh sách ở mỗi nhóm | Có; thường trở thành một phần kết quả cuối |
-| **Đầu ra giữ lại** | `List` từ `collect(toList())` | Có; vẫn còn sau khi terminal operation kết thúc |
-| **Đối tượng tạm** | Wrapper, iterator, entry, kết quả mapper | Có thể tăng cấp phát và áp lực GC dù không còn sống lâu |
-| **Bộ nhớ thực thi song song** | State riêng của nhánh, hàng đợi fork/join, buffer gộp | Có; thay đổi theo cách phân nhánh và độ song song |
-| **Tài nguyên ngoài heap** | File handle, native buffer, direct memory | Phải quản lý; không phản ánh hết qua số heap của collector |
+| **Pre-existing source** | `ArrayList<Order>` holding one million objects | Yes in **total application heap**; can be separated from **pipeline-added memory** |
+| **Intermediate state** | Sorting buffer, hash table of `distinct` | Yes; may stay live while the pipeline runs |
+| **Collector state** | Map of groups, lists per group | Yes; often becomes part of the final result |
+| **Retained output** | `List` from `collect(toList())` | Yes; remains live after the terminal operation finishes |
+| **Temporary objects** | Wrappers, iterators, entries, mapper outputs | Can increase allocation rate and GC pressure even when short-lived |
+| **Parallel execution memory** | Per-branch state, fork/join queues, merge buffers | Yes; varies by splitting strategy and parallelism |
+| **Off-heap resources** | File handles, native buffers, direct memory | Must be managed; not fully reflected by collector heap figures |
 
-### 1.1. Bộ nhớ giữ lại, bộ nhớ tăng thêm và bộ nhớ đỉnh
+### 1.1. Retained memory, added memory, and peak memory
 
-Đặt:
+Let:
 
-- `B_source`: kích thước phần nguồn đã tồn tại và còn được tham chiếu.
-- `B_state(t)`: trạng thái trung gian còn sống tại thời điểm `t`.
-- `B_result(t)`: phần kết quả đã tạo và còn sống tại `t`.
-- `B_misc(t)`: các vùng đệm, đối tượng phụ trợ và dữ liệu tạm còn sống.
+- `B_source`: size of the existing source that remains referenced.
+- `B_state(t)`: intermediate state live at time `t`.
+- `B_result(t)`: created result data live at time `t`.
+- `B_misc(t)`: buffers, auxiliary objects, and temporary data live at `t`.
 
-Ước lượng **đỉnh heap sống** của tác vụ:
+Estimate of **peak live heap** for the task:
 
 \[
 B_{\text{peak}}\;\approx\; B_{\text{source}}\;+\;
 \max_t\bigl(B_{\text{state}}(t)+B_{\text{result}}(t)+B_{\text{misc}}(t)\bigr)
 \]
 
-Đây là **mô hình ước lượng**, không phải đẳng thức chính xác về heap JVM. GC, phân bổ nội bộ, thời điểm giải phóng tham chiếu và implementation có thể làm đỉnh khác với tổng các con số đơn giản. Không nên cộng mọi buffer từng xuất hiện như thể tất cả luôn sống đồng thời.
+This is an **estimation model**, not an exact equality for the JVM heap. GC timing, internal allocations, when references are released, and implementation details can make the actual peak differ from a simple sum. Do not sum every buffer that ever existed as if all were simultaneously live.
 
-**Bộ nhớ giữ lại sau khi collect** có thể nhỏ hơn nhiều bộ nhớ đỉnh: buffer `sorted` có thể được giải phóng, trong khi `List` hoặc `Map` kết quả còn được caller giữ. Trái lại, một pipeline `sorted().limit(5).toList()` có thể **trả về chỉ 5 phần tử nhưng vẫn từng cần buffer lớn** trong quá trình sắp xếp.
+**Retained memory after `collect`** can be much smaller than peak memory: a `sorted` buffer may be freed, while the resulting `List` or `Map` remains held by the caller. Conversely, a pipeline like `sorted().limit(5).toList()` can **return only 5 elements yet still have needed a large buffer** during sorting.
 
-### 1.2. Ký hiệu xuyên suốt bài
+### 1.2. Notation used throughout this lesson
 
-| Ký hiệu | Nghĩa |
+| Symbol | Meaning |
 |---|---|
-| `n` | Số phần tử thực sự đến thao tác đang xét |
-| `u` | Số phần tử **phân biệt** theo `equals/hashCode` sau `distinct`, `u ≤ n` |
-| `k` | Số **khóa nhóm** phân biệt trong `groupingBy`, `k ≤ n` |
-| `m` | Số phần tử thực sự được giữ trong một collection kết quả |
-| `p` | Số bộ tích lũy hoặc nhánh trung gian có thể cùng tồn tại, **không nhất thiết bằng số thread** |
-| `L` | Tổng độ dài nội dung chuỗi khi nối thành String |
+| `n` | Number of elements actually reaching the operation under consideration |
+| `u` | Number of **distinct** elements by `equals/hashCode` after `distinct`, `u ≤ n` |
+| `k` | Number of distinct **group keys** in `groupingBy`, `k ≤ n` |
+| `m` | Number of elements actually retained in a result collection |
+| `p` | Number of accumulators or intermediate branches that may coexist, **not necessarily equal to thread count** |
+| `L` | Total character/content length when joining into a String |
 
-Các ký hiệu này dùng cho **độ phức tạp bộ nhớ** theo số phần tử/phần nhóm; để quy ra byte phải tính cấu trúc đối tượng, tham chiếu và cách triển khai trên JVM mục tiêu.
+These symbols describe **memory complexity** in terms of elements or groups; converting to bytes requires accounting for object layout, references, and the target JVM implementation.
 
-## 2. Bảng tổng quan độ phức tạp bộ nhớ
+## 2. Memory complexity overview table
 
-Với nguồn hữu hạn, thao tác thực sự phải duyệt và tạo đầy đủ kết quả cần thiết, bảng sau là cách ước lượng định hướng:
+For finite sources where operations must actually traverse and build full required results, the table below gives directional estimates:
 
-| Phép toán | Trạng thái thêm thường gặp | Kết quả giữ lại nếu là terminal phù hợp | Điểm dễ nhầm |
+| Operation | Typical extra state | Retained result with matching terminal | Common misconception |
 |---|---|---|---|
-| `map`, `filter` | Thường `O(1)` trên pipeline tuần tự đơn giản | Phụ thuộc terminal operation | Lazy không có nghĩa không cấp phát đối tượng |
-| `sorted` | Thường **`O(n)`** để sắp xếp các phần tử đến bước đó | Nếu `collect(toList())`: `O(n)` tham chiếu đầu ra | `limit` đặt **sau** `sorted` không mặc nhiên giảm bộ nhớ sort |
-| `distinct` | Thường **`O(u)`** cho thông tin phần tử đã gặp | Nếu giữ mọi giá trị phân biệt: `O(u)` | `u` phụ thuộc nội dung và `equals/hashCode` |
-| `groupingBy(key, counting())` | Thường **`O(k)`** | Map `k` nhóm với số đếm | Chỉ đếm, không giữ từng phần tử |
-| `groupingBy(key, toList())` | Thường **`O(k+n)`** | Map và các List tổng cộng chứa `n` tham chiếu | Có thể giữ tất cả đối tượng đầu vào |
-| `groupingBy(key, toSet())` | Thường **`O(k+\sum u_i)`** | Map với Set phân biệt trong từng nhóm | Mỗi nhóm có bảng băm riêng |
-| `collect(toList())` | Thường **`O(m)`** | List `m` phần tử | Chỉ giữ tham chiếu không có nghĩa các đối tượng có kích thước 0 |
-| `collect(toSet())` | Thường **`O(u)`** | Set `u` phần tử | Tốn thêm bucket/node của hash table |
-| `collect(toMap(...))` | Thường **`O(k)`** cho Map; giá trị có thể lớn hơn | Map `k` khóa | Nếu value là List, phải cộng kích thước mọi List |
-| `count()`, `sum()` | Thường **`O(1)`** trên nguồn đơn giản | Một số | Có thể xuất hiện buffer ở các bước **trước** terminal |
-| `summarizingLong(...)` | **`O(1)`** cho một bộ thống kê | `LongSummaryStatistics` | Không giữ tất cả số liệu đầu vào |
+| `map`, `filter` | Usually `O(1)` on a simple sequential pipeline | Depends on terminal operation | Lazy does not mean zero object allocation |
+| `sorted` | Usually **`O(n)`** to sort elements reaching this step | If `collect(toList())`: `O(n)` output references | Placing `limit` **after** `sorted` does not automatically shrink sort memory |
+| `distinct` | Usually **`O(u)`** for tracking seen elements | If keeping all distinct values: `O(u)` | `u` depends on content and `equals/hashCode` |
+| `groupingBy(key, counting())` | Usually **`O(k)`** | Map of `k` groups with counts | Only counts, does not keep individual elements |
+| `groupingBy(key, toList())` | Usually **`O(k+n)`** | Map and Lists holding `n` references total | May retain all input objects |
+| `groupingBy(key, toSet())` | Usually **`O(k+\sum u_i)`** | Map with distinct Set per group | Each group has its own hash table |
+| `collect(toList())` | Usually **`O(m)`** | List of `m` elements | Holding references does not mean referenced objects take 0 space |
+| `collect(toSet())` | Usually **`O(u)`** | Set of `u` elements | Adds hash table bucket/node overhead |
+| `collect(toMap(...))` | Usually **`O(k)`** for the Map; values can be larger | Map of `k` keys | If values are Lists, add the sizes of all Lists |
+| `count()`, `sum()` | Usually **`O(1)`** on a simple source | A single number | Buffers may still appear in steps **before** the terminal |
+| `summarizingLong(...)` | **`O(1)`** for one statistics object | `LongSummaryStatistics` | Does not retain all input numbers |
 
-**Bảng không phải lời hứa implementation.** Một số đường thực thi có thể tối ưu hóa nguồn đã sắp xếp, nguồn biết trước số lượng hoặc chuỗi thao tác đặc biệt. Ngược lại, parallel stream có thể cần thêm buffer và container cục bộ. Phân tích an toàn phải dựa trên **ngữ nghĩa cần thực hiện**, sau đó dùng profiling để kiểm chứng JVM cụ thể.
+**This table is not an implementation guarantee.** Certain execution paths may optimize already-sorted sources, sized sources, or special operation chains. Conversely, parallel streams may need extra buffers and local containers. Safe analysis must start from **required semantics**, then verify on the target JVM via profiling.
 
-## 3. sorted: vì sao dễ cần O(n) bộ nhớ?
+## 3. `sorted`: why does it easily require `O(n)` memory?
 
-`Stream.sorted()` sắp xếp các phần tử theo thứ tự tự nhiên; `sorted(comparator)` dùng comparator đã cung cấp. Để phát phần tử **nhỏ nhất trước**, thuật toán sắp xếp thông thường phải biết các phần tử của nguồn liên quan, bởi phần tử cuối có thể nhỏ hơn tất cả những phần tử đã thấy.
+`Stream.sorted()` sorts elements in natural order; `sorted(comparator)` uses the supplied comparator. To emit the **smallest element first**, a general sorting algorithm must inspect the relevant elements of the source, because the very last element could be smaller than everything seen earlier.
 
 ```java
 List<Integer> sorted = Stream.of(9, 1, 7, 3, 2)
@@ -85,26 +85,26 @@ List<Integer> sorted = Stream.of(9, 1, 7, 3, 2)
 System.out.println(sorted); // [1, 2, 3, 7, 9]
 ```
 
-Với nguồn hữu hạn nhưng chưa có thứ tự phù hợp, thư viện thường **đệm các phần tử cần sắp xếp** rồi sắp xếp chúng. Vì vậy, trạng thái trung gian có thể tỷ lệ với **`n` phần tử tới bước sorted**, tức `O(n)` tham chiếu hoặc đối tượng bao gói tùy loại Stream/implementation.
+For a finite source not already known to be sorted as required, the library typically **buffers the elements to sort** and sorts them. Therefore, intermediate state can scale with the **`n` elements reaching the `sorted` step**, i.e., `O(n)` references or boxed values depending on the Stream type/implementation.
 
-### 3.1. Tính số byte ở mức mô hình
+### 3.1. Calculating bytes at the model level
 
-Giả sử:
+Assume:
 
-- `n = 1_000_000` đối tượng `Sale` đã có sẵn trong một List.
-- JVM 64-bit giả định tham chiếu nén (*compressed ordinary object pointers*) có kích thước **4 byte**.
-- Một mảng tham chiếu dùng để giữ đúng một triệu phần tử, **không tính bản thân đối tượng `Sale`**.
+- `n = 1_000_000` `Sale` objects already exist in a List.
+- A 64-bit JVM using compressed references (*compressed ordinary object pointers*) of **4 bytes** each.
+- A reference array holding exactly one million elements, **excluding the `Sale` objects themselves**.
 
-Chỉ riêng vùng phần tử của một mảng tham chiếu sẽ là:
+The element payload of that reference array alone is:
 
 \[
-1\,000\,000 \times 4 = 4\,000\,000\ \text{byte}
+1\,000\,000 \times 4 = 4\,000\,000\ \text{bytes}
 \approx 3{,}81\ \text{MiB}
 \]
 
-Đó là **phần dữ liệu tham chiếu** trong một mảng giả định, **chưa phải tổng bộ nhớ `sorted`**. Cần cộng header mảng, căn chỉnh, dung lượng dự phòng, buffer phụ hoặc mảng trung gian do implementation sử dụng, các đối tượng mới tạo từ mapper và kết quả cuối. Nếu JVM sử dụng tham chiếu 8 byte, riêng một triệu tham chiếu đã xấp xỉ **7,63 MiB**.
+That is only the **reference payload** of a hypothetical array, **not the total memory of `sorted`**. You must add array headers, alignment, spare capacity, auxiliary buffers or temporary arrays used by the implementation, newly allocated mapper objects, and the final result. If the JVM uses 8-byte references, one million references alone are roughly **7.63 MiB**.
 
-### 3.2. sorted().limit(10) vẫn có thể tốn O(n)
+### 3.2. `sorted().limit(10)` can still cost `O(n)`
 
 ```java
 List<Sale> cheapestTen = sales.stream()
@@ -113,49 +113,49 @@ List<Sale> cheapestTen = sales.stream()
         .collect(Collectors.toList());
 ```
 
-Giả sử `sales` có một triệu bản ghi. `limit(10)` chỉ yêu cầu **10 kết quả đầu**, nhưng để biết đó là những bản ghi rẻ nhất, quá trình sắp xếp thông thường vẫn cần xem toàn bộ bản ghi. Không được suy từ `limit(10)` rằng buffer trước nó có kích thước tối đa 10.
+Suppose `sales` has one million records. `limit(10)` only requests the **first 10 results**, but to know which ones are cheapest, general sorting still needs to inspect all records. Do not infer from `limit(10)` that the upstream buffer has a maximum size of 10.
 
-Nếu chỉ cần **một phần tử nhỏ nhất**, dùng:
+If you only need the **single smallest element**, use:
 
 ```java
 Optional<Sale> cheapest = sales.stream()
         .min(Comparator.comparingLong(Sale::getCents));
 ```
 
-`min` là phép reduction cần trạng thái rất nhỏ, không cần dựng List đã sắp xếp. Nếu có nhiều bản ghi cùng giá, hãy xác định tie-breaker (ví dụ mã đơn) để lựa chọn là ổn định theo nghiệp vụ.
+`min` is a reduction needing very little state and does not build a sorted List. If multiple records share the same price, specify a tie-breaker (such as order ID) so the selection is deterministic under business rules.
 
-Nếu cần **top-K** bản ghi nhỏ nhất với `K` rất nhỏ so với `n`, thuật toán dùng heap giới hạn `K` có thể chỉ cần bộ nhớ bổ sung **`O(K)`**, với chi phí thời gian thường **`O(n log K)`**. Java Stream `sorted().limit(K)` không tự cam kết thực hiện một thuật toán top-K có bộ nhớ giới hạn như vậy.
+If you need the **top-K** smallest records where `K` is tiny compared to `n`, a bounded heap of size `K` can use only **`O(K)`** extra memory and typically **`O(n log K)`** time. Java Stream’s `sorted().limit(K)` does not promise such a bounded-memory top-K algorithm.
 
-### 3.3. Thứ tự của filter và sorted rất quan trọng
+### 3.3. The order of `filter` and `sorted` matters
 
 ```java
-// Lọc trước: chỉ sắp xếp các phần tử thỏa điều kiện.
+// Filter first: only sort matching elements.
 List<Sale> activeSorted = sales.stream()
         .filter(Sale::isActive)
         .sorted(Comparator.comparingLong(Sale::getCents))
         .collect(Collectors.toList());
 
-// Sắp xếp trước: có thể phải giữ toàn bộ nguồn để sắp xếp.
+// Sort first: may have to buffer the entire source to sort.
 List<Sale> sameContent = sales.stream()
         .sorted(Comparator.comparingLong(Sale::getCents))
         .filter(Sale::isActive)
         .collect(Collectors.toList());
 ```
 
-Khi predicate không có side effect và comparator hợp lệ, hai pipeline có thể cho cùng tập phần tử theo thứ tự giá (với các ràng buộc ổn định/tie-breaker phù hợp). Tuy nhiên, pipeline đầu tiên có thể giảm `n` của phép sắp xếp từ số bản ghi gốc xuống số bản ghi `active`.
+When the predicate is side-effect-free and the comparator is valid, both pipelines can produce the same elements in price order (given appropriate stability/tie-breaker constraints). However, the first pipeline can shrink `n` for sorting from total records down to `active` records.
 
-Đừng đổi thứ tự thao tác một cách máy móc nếu predicate phụ thuộc vào vị trí/nguồn hoặc có yêu cầu đặc biệt về thứ tự; tốt nhất là giữ các hàm thuần và kiểm tra tương đương kết quả.
+Do not reorder operations mechanically if the predicate depends on position/source or there are special ordering requirements; it is best to keep functions pure and verify result equivalence.
 
-### 3.4. sorted trên nguồn vô hạn hoặc song song
+### 3.4. `sorted` on infinite or parallel sources
 
-- Với Stream vô hạn không có điểm kết thúc, việc yêu cầu **toàn bộ dãy sắp xếp** thường không thể hoàn tất. Ví dụ `Stream.generate(...).sorted().findFirst()` không phải cách an toàn để tìm cực tiểu của nguồn vô hạn.
-- Với **parallel stream**, `sorted` có thể cần các buffer/mảng và giai đoạn hợp nhất bổ sung. Độ phức tạp vẫn thường ở bậc `O(n)`, nhưng **hằng số và đỉnh bộ nhớ** có thể tăng.
-- Nếu nguồn đã có đặc tính `SORTED` đúng với kiểu sắp xếp cần thiết, một số đường thực thi có thể tránh làm công việc thừa. Không dựa vào điều đó khi lập ngân sách bộ nhớ cho nguồn chưa biết.
-- `sorted().count()` hoặc những pipeline chỉ cần thông tin số lượng có thể được tối ưu hóa mà không thực sự sắp xếp mọi phần tử. **Chỉ phân tích buffer sắp xếp khi kết quả ngữ nghĩa thật sự đòi hỏi thứ tự sắp xếp được tạo ra**.
+- On an infinite Stream without a bound, requesting the **entire sorted sequence** generally cannot complete. For example, `Stream.generate(...).sorted().findFirst()` is not a safe way to find the minimum of an infinite source.
+- On a **parallel stream**, `sorted` may require extra buffers/arrays and merge phases. Complexity remains `O(n)`, yet **constants and peak memory** can increase.
+- If the source already carries the `SORTED` characteristic matching the desired order, certain execution paths may avoid redundant sorting. Do not rely on that when budgeting memory for unknown sources.
+- `sorted().count()` or pipelines needing only count information may be optimized without actually sorting every element. **Only analyze a sorting buffer when semantic output truly requires sorted order to be materialized**.
 
-## 4. distinct: giữ thông tin đã gặp theo số giá trị phân biệt
+## 4. `distinct`: state scales with distinct value count
 
-`distinct()` loại trùng theo `Object.equals` (và các cấu trúc băm thường phụ thuộc `hashCode`). Với nguồn không được bảo đảm sắp xếp theo giá trị, để biết phần tử hiện tại đã xuất hiện chưa, implementation thường giữ **một tập các phần tử hoặc khóa đã thấy**.
+`distinct()` deduplicates using `Object.equals` (and hash structures generally rely on `hashCode`). For sources not guaranteed to be sorted by value, to tell whether the current element has already appeared, implementations typically maintain **a set of seen elements or keys**.
 
 ```java
 List<String> skus = Arrays.asList(
@@ -168,50 +168,50 @@ List<String> unique = skus.stream()
 System.out.println(unique); // [P01, P02, P03]
 ```
 
-Nếu có `n` dòng nhưng chỉ `u` SKU phân biệt, **trạng thái cho phát hiện trùng thường tăng theo `u`**, không phải cứ bằng `n`. Tuy nhiên, trường hợp xấu nhất `u = n` nên `distinct` có thể cần bộ nhớ tăng tuyến tính theo toàn bộ nguồn.
+If there are `n` rows but only `u` distinct SKUs, **state for duplicate detection typically scales with `u`**, not necessarily `n`. Still, in the worst case `u = n`, so `distinct` can require memory growing linearly with the entire source.
 
-### 4.1. Ước lượng hash table
+### 4.1. Estimating the hash table
 
-Với giả định minh họa:
+With illustrative assumptions:
 
-- `n = 1_000_000` mã SKU.
-- `u = 100_000` mã SKU phân biệt.
-- JVM dùng tham chiếu 4 byte, cấu trúc tương tự `HashMap` hoặc `HashSet`.
+- `n = 1_000_000` SKU codes.
+- `u = 100_000` distinct SKU codes.
+- JVM with 4-byte references, structure similar to `HashMap` or `HashSet`.
 
-Một bảng băm thường có:
+A hash table typically has:
 
-1. **Mảng bucket** với dung lượng lớn hơn số phần tử theo hệ số tải và quy tắc mở rộng.
-2. **Node/entry** cho những phần tử phân biệt được giữ.
-3. Tham chiếu tới **key** và đôi khi các đối tượng key thực tế nếu chúng vừa được tạo ra.
+1. **A bucket array** with capacity larger than the element count due to load factor and resizing rules.
+2. **Nodes/entries** for retained distinct elements.
+3. References to **keys** and sometimes the key objects themselves if newly created.
 
-Ví dụ mang tính **minh họa**, nếu một node chiếm khoảng 32 byte:
+As an **illustrative** example, if one node occupies roughly 32 bytes:
 
 \[
 100\,000 \times 32 \approx 3{,}2\ \text{MB}
 \]
 
-Đây chỉ là phần node giả định, **chưa có mảng bucket, key String hoặc các overhead khác**. Kích thước đối tượng thực tế phụ thuộc phiên bản JVM, cách căn chỉnh, loại collection, cấu hình heap và dữ liệu.
+This is only the hypothetical node portion, **excluding the bucket array, String keys, or other overhead**. Actual object size depends on JVM version, alignment, collection implementation, heap settings, and data.
 
-### 4.2. Sự khác biệt giữa u và n quyết định lợi ích
+### 4.2. The gap between `u` and `n` determines the benefit
 
-| Dữ liệu | `n` | `u` | Diễn giải |
+| Data | `n` | `u` | Interpretation |
 |---|---:|---:|---|
-| Một triệu giao dịch thuộc 100 SKU | 1.000.000 | 100 | Bộ nhớ trạng thái phân biệt có thể nhỏ so với nguồn |
-| Một triệu giao dịch có SKU riêng | 1.000.000 | 1.000.000 | Tập đã gặp có thể lớn gần bằng số phần tử |
-| Mười nghìn giá trị, đều bằng nhau | 10.000 | 1 | Trạng thái phân biệt rất nhỏ |
-| Nguồn chưa biết cardinality | Chưa biết | Chưa biết | Không thể lập ngân sách chỉ bằng `n` nếu chưa khảo sát phân bố |
+| One million transactions across 100 SKUs | 1,000,000 | 100 | Distinct state memory can be small relative to source |
+| One million transactions with unique SKUs | 1,000,000 | 1,000,000 | Seen set can approach element count |
+| Ten thousand values, all identical | 10,000 | 1 | Distinct state is very small |
+| Source with unknown cardinality | Unknown | Unknown | Cannot budget solely by `n` without inspecting distribution |
 
-**Lưu ý:** nếu mapper tạo String mới cho mỗi bản ghi trước `distinct`, những String tạm đó cũng có chi phí cấp phát/GC. `distinct` có thể chỉ giữ đại diện của các giá trị phân biệt, nhưng vẫn phải xử lý các giá trị ứng viên đã tạo.
+**Note:** if a mapper creates a new String per record before `distinct`, those temporary Strings also incur allocation/GC cost. `distinct` may only retain representatives of distinct values, yet still has to process every candidate value created.
 
-### 4.3. distinct trên nguồn đã sorted
+### 4.3. `distinct` on an already `sorted` source
 
-Trên một dãy **đã sắp xếp theo thứ tự phù hợp với khái niệm trùng lặp**, các bản ghi trùng nhau thường nằm liền nhau. Một thuật toán quét tuần tự có thể chỉ cần ghi nhớ phần tử trước để loại trùng. Một số implementation có thể khai thác đặc tính `SORTED`.
+In a sequence **already sorted in an order consistent with duplicate identity**, equal records sit adjacent to one another. A sequential scan only needs to remember the previous element to remove duplicates. Some implementations can exploit the `SORTED` characteristic.
 
-Tuy vậy, **không được khẳng định mọi `sorted(comparator).distinct()` trong mọi JDK đều dùng `O(1)` trạng thái distinct**. Comparator có thể không nhất quán với `equals`; đặc tính nguồn, thứ tự và chiến lược implementation ảnh hưởng cách tối ưu. Hãy coi `O(u)` là giả định thận trọng cho nguồn tổng quát.
+However, **do not claim that every `sorted(comparator).distinct()` in every JDK uses `O(1)` distinct state**. A comparator may be inconsistent with `equals`; source characteristics, ordering, and implementation strategy affect optimizations. Treat `O(u)` as the conservative assumption for general sources.
 
-### 4.4. distinct và xử lý song song
+### 4.4. `distinct` and parallel processing
 
-Với parallel stream **có encounter order**, `distinct` phải giữ bản ghi đại diện tương ứng **lần gặp đầu** của giá trị, có thể cần điều phối, lưu trữ và hợp nhất dữ liệu giữa các nhánh. Với Stream unordered, framework có nhiều tự do hơn và có thể dùng kỹ thuật bảng băm đồng thời.
+In a parallel stream **with encounter order**, `distinct` must keep the representative matching the **first occurrence** of a value, which can require coordination, buffering, and merging across branches. With an unordered Stream, the framework has more freedom and can use concurrent hash table techniques.
 
 ```java
 Set<String> uniqueSkus = sales.parallelStream()
@@ -220,11 +220,11 @@ Set<String> uniqueSkus = sales.parallelStream()
         .collect(Collectors.toSet());
 ```
 
-Nếu mục tiêu **chỉ là một Set SKU**, pipeline trên có thể **không cần `distinct()` riêng**: `toSet()` đã loại trùng. `unordered()` chỉ hợp lệ khi nghiệp vụ không quan tâm encounter order. Đừng bỏ thứ tự nếu cần “SKU xuất hiện đầu theo nguồn”.
+If the goal is **only a Set of SKUs**, the pipeline above may **not need a separate `distinct()`**: `toSet()` already deduplicates. `unordered()` is only valid when business logic does not care about encounter order. Do not drop order if you need “the first SKU appearing in the source”.
 
-## 5. groupingBy: bộ nhớ phụ thuộc số nhóm VÀ downstream
+## 5. `groupingBy`: memory depends on group count AND downstream
 
-`Collectors.groupingBy(classifier, downstream)` tạo `Map<K, D>`. Chi phí bộ nhớ không chỉ là “có `k` khóa” mà còn phụ thuộc loại dữ liệu `D` được tích lũy trong mỗi nhóm.
+`Collectors.groupingBy(classifier, downstream)` creates a `Map<K, D>`. Memory cost is not merely “having `k` keys”, it also depends on the data type `D` accumulated in each group.
 
 ```java
 Map<String, Long> countByRegion = sales.stream()
@@ -233,9 +233,9 @@ Map<String, Long> countByRegion = sales.stream()
                 Collectors.counting()));
 ```
 
-Nếu có một triệu bản ghi nhưng chỉ năm khu vực, kết quả chỉ cần một Map khoảng năm khóa, mỗi khóa có số đếm. Chi phí trạng thái giữ lại về mặt cấu trúc thường **`O(k)`**, không phải `O(n)`.
+With one million records across only five regions, the result only needs a Map of roughly five keys, each with a count. Structurally retained state is typically **`O(k)`**, not `O(n)`.
 
-### 5.1. groupingBy với counting
+### 5.1. `groupingBy` with `counting`
 
 ```java
 Map<String, Long> countBySku = sales.stream()
@@ -244,9 +244,9 @@ Map<String, Long> countBySku = sales.stream()
                 Collectors.counting()));
 ```
 
-Kết quả chứa một bộ đếm trên mỗi SKU. Ở mức **bộ nhớ giữ lại**, đây thường là `O(k)`. Tuy nhiên, cách một collector đếm triển khai phép cập nhật có thể phát sinh **đối tượng tạm** hoặc boxing; vì vậy **số byte được cấp phát trong suốt quá trình** có thể cao hơn nhiều kích thước Map cuối.
+The result stores one counter per SKU. In terms of **retained memory**, this is typically `O(k)`. However, how a counting collector implements updates can produce **temporary objects** or boxing; thus **total bytes allocated during execution** can be much higher than final Map size.
 
-Nếu mục tiêu tính tổng một trường số:
+If the goal is summing a numeric field:
 
 ```java
 Map<String, Long> centsByRegion = sales.stream()
@@ -255,9 +255,9 @@ Map<String, Long> centsByRegion = sales.stream()
                 Collectors.summingLong(Sale::getCents)));
 ```
 
-`summingLong` giữ trạng thái tổng nhỏ cho mỗi nhóm. Lưu ý tổng `long` có thể tràn; chọn kiểu số và chính sách tràn thích hợp khi dữ liệu lớn.
+`summingLong` keeps a small sum state per group. Note that `long` sums can overflow; choose an appropriate numeric type and overflow policy for large data.
 
-### 5.2. groupingBy với toList
+### 5.2. `groupingBy` with `toList`
 
 ```java
 Map<String, List<Sale>> salesByRegion = sales.stream()
@@ -266,24 +266,24 @@ Map<String, List<Sale>> salesByRegion = sales.stream()
                 Collectors.toList()));
 ```
 
-Giả sử toàn bộ `n` bản ghi đều thuộc một trong `k` nhóm. Khi đó:
+Suppose all `n` records belong to one of `k` groups. Then:
 
 \[
 \sum_{i=1}^{k} |\text{list}_i| = n
 \]
 
-Vì vậy, bộ nhớ cho kết quả bao gồm:
+Therefore, memory for the result includes:
 
-- Map có khoảng `k` entry.
-- Khoảng `k` đối tượng List và mảng backing của từng List.
-- **Tổng cộng `n` tham chiếu tới các bản ghi `Sale`** (chưa tính capacity dư).
-- Các đối tượng `Sale` gốc, nếu chúng vẫn còn sống do List/Map tham chiếu.
+- A Map with roughly `k` entries.
+- Roughly `k` List objects and each List’s backing array.
+- **A total of `n` references to `Sale` records** (excluding spare capacity).
+- The original `Sale` objects, if they stay live because the Lists/Map reference them.
 
-Mức bộ nhớ **giữ lại** cho cấu trúc thường `O(k+n)`. Nếu `n = 1_000_000` và tham chiếu 4 byte, **chỉ các tham chiếu trong các List** đã vào khoảng **4 MB**, chưa tính các cấu trúc khác.
+**Retained** structural memory is typically `O(k+n)`. If `n = 1_000_000` with 4-byte references, **just the references inside the Lists** are around **4 MB**, excluding other structures.
 
-**Dữ liệu không được nhân đôi về mặt object một cách mặc định**: List nhóm có thể giữ các tham chiếu tới `Sale` gốc, chứ không nhất thiết clone một triệu đối tượng. Dù vậy, nó giữ các đối tượng gốc **không được GC** chừng nào kết quả còn tham chiếu.
+**Objects are not duplicated by default**: group Lists can hold references to the original `Sale` instances, rather than cloning a million objects. Even so, it prevents the original objects from **being garbage-collected** as long as the result stays referenced.
 
-### 5.3. groupingBy với mapping/toSet
+### 5.3. `groupingBy` with `mapping`/`toSet`
 
 ```java
 Map<String, Set<String>> skusByRegion = sales.stream()
@@ -294,15 +294,15 @@ Map<String, Set<String>> skusByRegion = sales.stream()
                         Collectors.toSet())));
 ```
 
-Nếu nhóm thứ `i` có `u_i` SKU phân biệt, trạng thái giữ lại thường vào bậc:
+If group `i` has `u_i` distinct SKUs, retained state is typically on the order of:
 
 \[
 O\left(k + \sum_{i=1}^{k}u_i\right)
 \]
 
-Cùng một SKU xuất hiện ở hai khu vực sẽ thường có **hai vị trí thành viên Set**, mỗi khu vực một vị trí. Nếu mục tiêu là một Set SKU **toàn hệ thống**, dùng `map(Sale::getSku).collect(toSet())` có thể cần ít cấu trúc hơn.
+The same SKU appearing in two regions will generally have **two Set membership slots**, one per region. If the goal is a **system-wide** Set of SKUs, `map(Sale::getSku).collect(toSet())` can need fewer structures.
 
-### 5.4. groupingBy nhiều tầng
+### 5.4. Multi-level `groupingBy`
 
 ```java
 Map<String, Map<String, Long>> counts =
@@ -314,37 +314,37 @@ Map<String, Map<String, Long>> counts =
                                 Collectors.counting())));
 ```
 
-Ở đây có Map tầng ngoài theo khu vực và Map con theo SKU cho **mỗi** khu vực. Ước lượng theo số cặp khóa thực sự xuất hiện, không chỉ số SKU toàn cục:
+Here there is an outer Map by region and a sub-Map by SKU for **each** region. Estimate by the number of key pairs that actually appear, not just global SKU count:
 
 \[
 O\left(k_{\text{region}} +
-\#\{(\text{region},\text{sku})\text{ xuất hiện}\}\right)
+\#\{(\text{region},\text{sku})\text{ appearing}\}\right)
 \]
 
-Nếu hai tiêu chí phân nhóm gần như duy nhất cho từng phần tử, số cặp có thể tiến gần `n`. Nếu nhiều bản ghi lặp các cặp, số cặp có thể rất nhỏ.
+If the two grouping criteria are nearly unique per element, the number of pairs can approach `n`. If many records repeat pairs, the pair count can be very small.
 
-### 5.5. groupingBy không tự tạo nhóm không có phần tử
+### 5.5. `groupingBy` does not create groups with zero elements
 
-Nếu một khu vực không xuất hiện trong nguồn, `groupingBy` không tự tạo khóa cho khu vực đó. Nếu dữ liệu đã được `flatMap` từ đơn hàng sang dòng chi tiết, đơn không có dòng có thể **không còn được đếm**. Đây là một vấn đề **ngữ nghĩa**, không chỉ bộ nhớ. Không tối ưu bằng cách bỏ các nhóm cần thiết cho báo cáo.
+If a region does not appear in the source, `groupingBy` does not automatically create a key for that region. If data was `flatMap`ped from orders to line items, orders with no line items may **no longer be counted**. That is a **semantic** issue, not just memory. Do not optimize by dropping groups required for reporting.
 
-## 6. collect: không có một mức độ phức tạp bộ nhớ chung
+## 6. `collect`: there is no single universal memory complexity
 
-`collect` là thao tác kết thúc. Bộ nhớ phụ thuộc vào **Collector** mà chương trình đưa vào:
+`collect` is a terminal operation. Memory depends on the **Collector** passed to it:
 
-| Collector / terminal | Ý nghĩa dữ liệu | Bộ nhớ kết quả/trạng thái thường gặp |
+| Collector / terminal | Data meaning | Typical result/state memory |
 |---|---|---|
-| `toList()` / `toCollection(ArrayList::new)` | Giữ mọi phần tử | `O(n)` tham chiếu và collection |
-| `toSet()` | Giữ phần tử phân biệt | `O(u)` entry/bucket và key |
-| `toMap(key, value, merge)` | Giữ một giá trị mỗi khóa | `O(k)` nếu value nhỏ; hơn nếu value phức tạp |
-| `counting()` | Số phần tử | `O(1)` cho một collector độc lập |
-| `summingLong(...)` | Tổng một trường | `O(1)` |
-| `averagingDouble(...)` | Trung bình | `O(1)` trạng thái số học |
+| `toList()` / `toCollection(ArrayList::new)` | Keep all elements | `O(n)` references and collection |
+| `toSet()` | Keep distinct elements | `O(u)` entries/buckets and keys |
+| `toMap(key, value, merge)` | Keep one value per key | `O(k)` if values are small; more if values are complex |
+| `counting()` | Element count | `O(1)` for a standalone collector |
+| `summingLong(...)` | Sum of a field | `O(1)` |
+| `averagingDouble(...)` | Average | `O(1)` arithmetic state |
 | `summarizingLong(...)` | Count/sum/min/max/avg | `O(1)` |
-| `joining(delimiter)` | Một String kết quả | Ít nhất tỷ lệ theo tổng chiều dài đầu ra `L` |
-| `groupingBy(key, downstream)` | Một kết quả mỗi nhóm | `O(k)` cộng trạng thái downstream |
-| Collector tùy biến | Do `supplier`/`accumulator`/`combiner` quyết định | Phải phân tích trạng thái tự thiết kế |
+| `joining(delimiter)` | One output String | At least proportional to total output length `L` |
+| `groupingBy(key, downstream)` | One result per group | `O(k)` plus downstream state |
+| Custom Collector | Determined by `supplier`/`accumulator`/`combiner` | Must analyze the custom state design |
 
-### 6.1. collect(toList) và toList không phải “streaming ra List” với O(1) RAM
+### 6.1. `collect(toList)` and `toList` are not “streaming into a List” with `O(1)` RAM
 
 ```java
 List<String> names = source.stream()
@@ -352,18 +352,18 @@ List<String> names = source.stream()
         .collect(Collectors.toList());
 ```
 
-Khi terminal operation kết thúc, danh sách phải giữ tất cả `n` giá trị tên được trả về. Nếu mapper tạo một String mới, List còn giữ cả những String đó. `map` có thể xử lý từng phần tử một, nhưng **terminal collector quyết định kích thước kết quả**.
+When the terminal operation finishes, the list must hold all `n` returned name values. If the mapper creates a new String, the List also retains those Strings. `map` may process one element at a time, but **the terminal collector dictates result size**.
 
-Từ Java 16 có `Stream.toList()`, trả List không sửa được; **đổi API không biến đầu ra n phần tử thành O(1) bộ nhớ**. Nếu caller cần List mutable, phải chọn contract phù hợp, ví dụ `Collectors.toCollection(ArrayList::new)`.
+Java 16 added `Stream.toList()`, returning an unmodifiable List; **switching APIs does not turn an `n`-element output into `O(1)` memory**. If the caller needs a mutable List, choose an appropriate contract, e.g., `Collectors.toCollection(ArrayList::new)`.
 
-### 6.2. collect(toMap): khóa nhỏ, giá trị lớn
+### 6.2. `collect(toMap)`: few keys, large values
 
 ```java
 Map<String, List<Sale>> bySku = sales.stream()
         .collect(Collectors.groupingBy(Sale::getSku));
 ```
 
-Map có thể chỉ vài chục khóa, nhưng **mỗi value là một List chứa các bản ghi**. Không được ước lượng `O(k)` chỉ từ kích thước Map. Với một Map có giá trị là cấu trúc lồng nhau, cần tính:
+A Map may have only a few dozen keys, yet **each value is a List holding records**. Never estimate `O(k)` purely from Map key count. For a Map whose values are nested structures, compute:
 
 \[
 B_{\text{map result}}
@@ -372,11 +372,11 @@ B_{\text{map structure}}
 \;+\;\sum_{\text{key}} B_{\text{value(key)}}
 \]
 
-Nếu thay value List bằng số đếm/tổng, bộ nhớ giữ lại có thể giảm rất lớn, nhưng bạn cũng **mất khả năng truy cập từng bản ghi** trong báo cáo. Đây là lựa chọn theo mục tiêu nghiệp vụ, không chỉ một tối ưu kỹ thuật.
+Replacing value Lists with counts/sums can drastically reduce retained memory, but you also **lose access to individual records** in the report. That is a business-requirement choice, not just a technical optimization.
 
-### 6.3. collectingAndThen, teeing và các finisher
+### 6.3. `collectingAndThen`, `teeing`, and finishers
 
-`Collectors.collectingAndThen(downstream, finisher)` thường có bộ nhớ phụ thuộc `downstream`. Finisher có thể tạo **bản sao** hoặc sắp xếp kết quả, làm tăng bộ nhớ đỉnh:
+`Collectors.collectingAndThen(downstream, finisher)` typically has memory depending on `downstream`. The finisher can create a **copy** or sort the result, increasing peak memory:
 
 ```java
 List<String> immutable = names.stream()
@@ -385,13 +385,13 @@ List<String> immutable = names.stream()
                 list -> Collections.unmodifiableList(list)));
 ```
 
-Ví dụ này tạo **view không sửa được** trên List đã thu thập, không tự bảo đảm một bản sao dữ liệu mới. Nếu finisher dùng `new ArrayList<>(list)` hoặc `List.copyOf(list)`, có thể cần thêm bộ nhớ trong lúc tạo bản sao. `List.copyOf` có từ Java 10 và từ chối phần tử null.
+This example creates an **unmodifiable view** over the collected List without guaranteeing a new copy of the data. If the finisher uses `new ArrayList<>(list)` or `List.copyOf(list)`, extra memory may be needed while copying. `List.copyOf` was introduced in Java 10 and rejects null elements.
 
-`Collectors.teeing` (Java 12+) dùng hai downstream collector trên cùng dữ liệu; bộ nhớ tích lũy phụ thuộc **cả hai trạng thái** và phép merger cuối, không thể mặc định `O(1)` nếu một nhánh giữ toàn bộ phần tử.
+`Collectors.teeing` (Java 12+) runs two downstream collectors over the same data; accumulated memory depends on **both states** and the final merger, so you cannot assume `O(1)` if either branch retains all elements.
 
-### 6.4. Collector tùy biến: phân tích từng field
+### 6.4. Custom collectors: analyze every field
 
-Ví dụ accumulator tự viết:
+Example custom accumulator:
 
 ```java
 final class Stats {
@@ -402,46 +402,46 @@ final class Stats {
 }
 ```
 
-Nếu `supplier` tạo một `Stats`, `accumulator` chỉ cập nhật các trường đó, `combiner` gộp từng số, thì trạng thái cho **một collector** là `O(1)`. Nếu thêm `Map<String, Stats> bySku`, trạng thái sẽ tăng theo **số SKU `k`**. Nếu thêm `List<Sale> allSales`, trạng thái tăng theo **n**. Không có “độ phức tạp tự động” khi gọi `Collector.of(...)`.
+If `supplier` creates one `Stats`, `accumulator` only updates those fields, and `combiner` merges numbers, then state for **one collector** is `O(1)`. If you add `Map<String, Stats> bySku`, state grows with **SKU count `k`**. If you add `List<Sale> allSales`, state grows with **`n`**. Calling `Collector.of(...)` provides no “automatic complexity”.
 
-## 7. Minh họa ngân sách bộ nhớ với một triệu bản ghi
+## 7. Memory budget illustration with one million records
 
-Giả sử một dịch vụ có:
+Suppose a service has:
 
-- `n = 1_000_000` bản ghi bán hàng trong một `ArrayList` có sẵn.
-- `u = 100_000` SKU phân biệt.
-- `k = 500` khu vực/nhóm phân loại.
-- Tham chiếu 4 byte trên một JVM 64-bit được cấu hình phù hợp.
-- Các đối tượng `Sale` đã tồn tại, **không tính kích thước bản thân chúng vào cột tăng thêm**.
+- `n = 1_000_000` sale records in an existing `ArrayList`.
+- `u = 100_000` distinct SKUs.
+- `k = 500` regions/categories.
+- 4-byte references on a suitably configured 64-bit JVM.
+- `Sale` objects already exist, **not counting their own size in the extra-memory column**.
 
-| Phương án | Phần có thể phải giữ thêm | Ước lượng ban đầu |
+| Approach | Additional data that may be held | Initial estimate |
 |---|---|---|
-| `sales.stream().count()` | Một counter hoặc tối ưu kích thước nguồn | Rất nhỏ so với `n` |
-| `sales.stream().min(cmp)` | Một ứng viên cực trị và comparator | Rất nhỏ so với `n` |
-| `sales.stream().sorted(cmp).toList()` | Buffer sort `O(n)` + List kết quả `O(n)` | Mỗi **một triệu tham chiếu** đã khoảng **4 MB**, có thể có nhiều vùng đệm |
-| `sales.stream().map(Sale::getSku).distinct().toList()` | Thông tin `u` giá trị + List `u` tham chiếu | Hash state lớn hơn nhiều chỉ một mảng `u × 4` |
-| `groupingBy(region, counting())` | Map `k` khóa, trạng thái đếm | Tăng chủ yếu theo `k = 500` |
-| `groupingBy(region, toList())` | Map `k` và tổng cộng `n` tham chiếu List | Ít nhất nhiều MB chỉ cho backing arrays |
-| `groupingBy(sku, summingLong(...))` | Map khoảng `u` khóa và tổng | Tăng theo `u = 100_000` |
+| `sales.stream().count()` | One counter or source-size optimization | Very small relative to `n` |
+| `sales.stream().min(cmp)` | One extremum candidate and comparator | Very small relative to `n` |
+| `sales.stream().sorted(cmp).toList()` | `O(n)` sort buffer + `O(n)` result List | Each **million references** is already ~**4 MB**, potentially multiple buffers |
+| `sales.stream().map(Sale::getSku).distinct().toList()` | State for `u` values + List of `u` references | Hash state is much larger than just one `u × 4` array |
+| `groupingBy(region, counting())` | Map of `k` keys, counting state | Scales primarily with `k = 500` |
+| `groupingBy(region, toList())` | Map of `k` keys and `n` List references total | At least several MB just for backing arrays |
+| `groupingBy(sku, summingLong(...))` | Map of roughly `u` keys and sums | Scales with `u = 100_000` |
 
-**Không dùng bảng này để cam kết số MB cụ thể khi triển khai.** Bảng chỉ xác định **thành phần chi phối**. Việc đổi JVM flags, loại tham chiếu, kích thước String, bảng băm, số lần resize, cách chia nhánh và giới hạn heap có thể làm số thực đo khác đáng kể.
+**Do not use this table to promise exact MB numbers in production.** The table only identifies the **dominant component**. Changing JVM flags, reference size, String size, hash tables, resize counts, parallel splits, and heap limits can make real measurements differ significantly.
 
-### 7.1. Phép tính thô cho tham chiếu
+### 7.1. Rough calculation for references
 
 \[
 B_{\text{refs}} \approx m \times B_{\text{ref}}
 \]
 
-Ví dụ, với `m = 1_000_000`:
+For example, with `m = 1_000_000`:
 
-- `B_ref = 4` byte: **4.000.000 byte ≈ 3,81 MiB**.
-- `B_ref = 8` byte: **8.000.000 byte ≈ 7,63 MiB**.
+- `B_ref = 4` bytes: **4,000,000 bytes ≈ 3.81 MiB**.
+- `B_ref = 8` bytes: **8,000,000 bytes ≈ 7.63 MiB**.
 
-Đây là **phần mảng tham chiếu giả định**, chưa cộng header, capacity dư, bảng băm hay đối tượng được tham chiếu. Nhầm **MB** (10^6 byte) với **MiB** (2^20 byte) cũng có thể làm kết quả dự toán chênh lệch.
+This is only the **hypothetical reference array**, excluding headers, spare capacity, hash tables, or referenced objects. Confusing **MB** (10^6 bytes) with **MiB** (2^20 bytes) can also skew estimates.
 
-### 7.2. Công thức sơ bộ cho groupingBy(toList)
+### 7.2. Preliminary formula for `groupingBy(toList)`
 
-Nếu mỗi `Sale` đã tồn tại và chỉ tính cấu trúc Map/List bổ sung:
+If every `Sale` already exists and only extra Map/List structures are counted:
 
 \[
 B \approx B_{\text{map buckets}}
@@ -451,13 +451,13 @@ B \approx B_{\text{map buckets}}
    + \text{capacity}_i \cdot B_{\text{ref}}\bigr)
 \]
 
-Vì `\sum_i \text{size}_i = n` nhưng `capacity_i` có thể lớn hơn `size_i`, số byte backing arrays thường **lớn hơn hoặc bằng** `n × B_ref`. Nếu result được giữ lâu trong cache, nó cũng giữ các đối tượng `Sale` tồn tại lâu theo.
+Since `\sum_i \text{size}_i = n` while `capacity_i` can exceed `size_i`, backing array bytes are usually **greater than or equal to** `n × B_ref`. If the result is cached long-term, it also keeps the `Sale` objects alive along with it.
 
-## 8. Ví dụ Java 8 hoàn chỉnh: so sánh kích thước kết quả
+## 8. Complete Java 8 example: comparing result sizes
 
-Chương trình sau tự sinh dữ liệu để có thể chạy mà không cần file ngoài. Mục tiêu là **quan sát cardinality và hình dạng kết quả**, không phải dùng số liệu console thay thế profiler.
+The following program generates data itself so it can run without external files. Its goal is to **observe cardinality and result shapes**, not to replace a profiler with console numbers.
 
-Lưu thành `StreamMemoryEstimationDemo.java` và chạy bằng JDK 8 trở lên:
+Save as `StreamMemoryEstimationDemo.java` and run with JDK 8 or higher:
 
 ```java
 import java.util.ArrayList;
@@ -496,14 +496,14 @@ public class StreamMemoryEstimationDemo {
         boolean isActive() { return active; }
     }
 
-    // Tìm K bản ghi nhỏ nhất bằng max-heap giới hạn K.
-    // Ví dụ minh họa có k > 0 và nguồn là List có sẵn.
+    // Find K smallest records using a K-bounded max-heap.
+    // Illustrative example with k > 0 and an existing List source.
     static List<Sale> smallestK(
             List<Sale> source,
             int k,
             Comparator<Sale> ascending) {
         if (k <= 0) {
-            throw new IllegalArgumentException("k phải dương");
+            throw new IllegalArgumentException("k must be positive");
         }
         PriorityQueue<Sale> heap =
                 new PriorityQueue<>(k, ascending.reversed());
@@ -544,48 +544,48 @@ public class StreamMemoryEstimationDemo {
                 Comparator.comparingLong(Sale::getCents)
                         .thenComparingInt(Sale::getId);
 
-        // A. sorted().limit(5): 5 kết quả, nhưng sort có thể
-        // phải đệm n phần tử trước khi trả về.
+        // A. sorted().limit(5): 5 results, but sort may have
+        // to buffer n elements before returning.
         List<Sale> fiveSorted = sales.stream()
                 .sorted(byCentsThenId)
                 .limit(5)
                 .collect(Collectors.toList());
 
-        // B. Min: chỉ cần một ứng viên cực trị.
+        // B. Min: only needs a single extremum candidate.
         Optional<Sale> oneMin = sales.stream()
                 .min(byCentsThenId);
 
-        // C. Top-K bằng heap: chỉ giữ tối đa K ứng viên,
-        // không cần sắp xếp toàn bộ n phần tử.
+        // C. Top-K via heap: keeps at most K candidates,
+        // without sorting all n elements.
         List<Sale> fiveHeap = smallestK(
                 sales, 5, byCentsThenId);
 
-        // D. distinct: chỉ trả 100 SKU phân biệt.
+        // D. distinct: returns only 100 distinct SKUs.
         List<String> uniqueSkus = sales.stream()
                 .map(Sale::getSku)
                 .distinct()
                 .collect(Collectors.toList());
 
-        // E. groupingBy + counting: giữ bốn số đếm.
+        // E. groupingBy + counting: keeps four counts.
         Map<String, Long> counts = sales.stream()
                 .collect(Collectors.groupingBy(
                         Sale::getRegion,
                         Collectors.counting()));
 
-        // F. groupingBy + toList: giữ n tham chiếu bản ghi.
+        // F. groupingBy + toList: keeps n record references.
         Map<String, List<Sale>> allByRegion = sales.stream()
                 .collect(Collectors.groupingBy(
                         Sale::getRegion,
                         Collectors.toList()));
 
-        // G. groupingBy + summingLong: chỉ giữ tổng của nhóm.
+        // G. groupingBy + summingLong: keeps only group totals.
         Map<String, Long> totals = sales.stream()
                 .collect(Collectors.groupingBy(
                         Sale::getRegion,
                         Collectors.summingLong(Sale::getCents)));
 
-        // H. LongSummaryStatistics: một đối tượng thống kê
-        // thay cho việc giữ mọi giá trị cents.
+        // H. LongSummaryStatistics: one statistics object
+        // instead of keeping every cents value.
         LongSummaryStatistics stats = sales.stream()
                 .collect(Collectors.summarizingLong(
                         Sale::getCents));
@@ -616,7 +616,7 @@ public class StreamMemoryEstimationDemo {
 }
 ```
 
-**Kết quả chính cần quan sát:**
+**Key output to observe:**
 
 ```text
 source size      = 100000
@@ -631,47 +631,47 @@ grouped totals keys = 4
 statistics count = 100000
 ```
 
-Chương trình không in “sorted dùng X MB” vì những con số ấy cần được **đo trong runtime thực tế**. Nó chứng minh một sự khác biệt quan trọng: hai kết quả `Map` cùng có **4 khóa** nhưng `groupingBy(counting())` giữ bốn số đếm, còn `groupingBy(toList())` giữ **100.000 tham chiếu bản ghi** trong các List.
+The program does not print “sorted used X MB” because those figures must be **measured in a real runtime**. It demonstrates an important distinction: two `Map` results both have **4 keys**, yet `groupingBy(counting())` keeps four counts, while `groupingBy(toList())` keeps **100,000 record references** across Lists.
 
-### 8.1. Phân tích smallestK
+### 8.1. Analyzing `smallestK`
 
-`PriorityQueue` trong ví dụ được cấu hình thành **max-heap** theo comparator tăng dần, để phần tử **lớn nhất trong K ứng viên hiện có** ở đầu heap. Với bản ghi mới:
+`PriorityQueue` in the example is configured as a **max-heap** by reversing the ascending comparator, so the **largest of the K current candidates** sits at the head of the heap. For each new record:
 
-1. Nếu heap chưa đủ K phần tử, thêm vào.
-2. Nếu heap đã đủ và bản ghi mới **nhỏ hơn** phần tử lớn nhất đang giữ, loại phần tử lớn nhất rồi thêm bản ghi mới.
-3. Sau cùng, sắp xếp K ứng viên còn lại để trả theo thứ tự tăng dần.
+1. If the heap has fewer than K elements, insert it.
+2. If the heap is full and the new record is **smaller** than the largest currently kept, remove the largest and insert the new record.
+3. Finally, sort the remaining K candidates to return in ascending order.
 
-Độ phức tạp bộ nhớ phụ thêm thường **`O(K)`** cho heap và List kết quả; thời gian **`O(n log K + K log K)`**. Kết quả bằng `sorted(...).limit(K)` nếu comparator xác định thứ tự đầy đủ nhất quán (ví dụ có `id` để phá hòa) và không có trường hợp null không được xử lý.
+Extra memory complexity is typically **`O(K)`** for the heap and result List; time is **`O(n log K + K log K)`**. Results match `sorted(...).limit(K)` if the comparator defines a consistent total order (for example, including `id` as a tie-breaker) and there are no unhandled nulls.
 
-### 8.2. Nguồn dữ liệu cũng chiếm bộ nhớ
+### 8.2. The data source also consumes memory
 
-Ở chương trình này, `sales` có 100.000 đối tượng `Sale` được tạo **trước** các phép Stream. Chúng và mảng tham chiếu gốc vẫn chiếm heap trong lúc chương trình chạy. Khi profiler ghi tổng heap sử dụng, đó không phải toàn bộ là chi phí của `sorted`, `distinct` hay collector.
+In this program, `sales` has 100,000 `Sale` objects created **before** the Stream operations. They and the backing reference array stay on the heap while the program runs. When a profiler reports total heap usage, not all of it is the cost of `sorted`, `distinct`, or collectors.
 
-Để phân biệt chi phí, cần đo **allocation**, **retained size** và **peak live set** theo từng giai đoạn; không chỉ nhìn một con số `Runtime.totalMemory() - Runtime.freeMemory()` ở cuối chương trình.
+To separate costs, measure **allocation**, **retained size**, and **peak live set** per phase; do not look only at a single `Runtime.totalMemory() - Runtime.freeMemory()` reading at the end of the program.
 
-## 9. Ảnh hưởng của thứ tự pipeline tới bộ nhớ
+## 9. Impact of pipeline order on memory
 
-Hai pipeline cùng nội dung nghiệp vụ có thể dùng bộ nhớ rất khác nhau khi thay thứ tự các phép toán.
+Two pipelines with the same business meaning can use very different amounts of memory when operations are reordered.
 
-### 9.1. filter trước sorted
+### 9.1. `filter` before `sorted`
 
 ```java
-// Chỉ sắp xếp những bản ghi đang hoạt động.
+// Sort only active records.
 List<Sale> a = sales.stream()
         .filter(Sale::isActive)
         .sorted(byCentsThenId)
         .collect(Collectors.toList());
 
-// Sắp xếp tất cả bản ghi rồi mới bỏ bản ghi không hoạt động.
+// Sort all records first, then drop inactive ones.
 List<Sale> b = sales.stream()
         .sorted(byCentsThenId)
         .filter(Sale::isActive)
         .collect(Collectors.toList());
 ```
 
-Nếu predicate thuần và comparator có tie-breaker xác định, kết quả có thể tương đương; nhưng pipeline đầu chỉ đưa các bản ghi active vào buffer sắp xếp, trong khi pipeline sau có thể đưa mọi bản ghi vào buffer.
+If the predicate is pure and the comparator has a deterministic tie-breaker, results can be equivalent; however, the first pipeline puts only active records into the sorting buffer, while the second may put all records into the buffer.
 
-### 9.2. distinct trước sorted
+### 9.2. `distinct` before `sorted`
 
 ```java
 List<String> a = sales.stream()
@@ -687,49 +687,49 @@ List<String> b = sales.stream()
         .collect(Collectors.toList());
 ```
 
-Với `String` và thứ tự tự nhiên, hai pipeline trả cùng danh sách SKU phân biệt tăng dần. Tuy nhiên:
+With `String` and natural order, both pipelines return the same ascending list of distinct SKUs. However:
 
-- Cách A có thể chỉ cần **sắp xếp `u` SKU** sau khi loại trùng, nhưng vẫn cần trạng thái phân biệt.
-- Cách B có thể phải **sắp xếp `n` giá trị** trước, dù kết quả cuối chỉ có `u` SKU.
+- Approach A may only need to **sort `u` SKUs** after deduplication, though it still needs distinct state.
+- Approach B may have to **sort `n` values** first, even though the final result has only `u` SKUs.
 
-Khi `u ≪ n`, việc loại trùng **trước** sắp xếp thường đáng cân nhắc về lượng dữ liệu vào sort. Tuy nhiên, với dữ liệu mà equality và comparator không nhất quán, hoặc khi yêu cầu giữ bản ghi đại diện cụ thể, không được đổi thứ tự pipeline mà bỏ kiểm tra ngữ nghĩa.
+When `u ≪ n`, deduplicating **before** sorting is often worth considering for shrinking sort input. However, with data where equality and comparator are inconsistent, or when retaining a specific representative record is required, never reorder a pipeline without verifying semantics.
 
-### 9.3. groupingBy trước và sau map
+### 9.3. `groupingBy` before and after mapping
 
 ```java
-// Giữ Sale trong List của mỗi nhóm.
+// Keep Sale objects in each group's List.
 Map<String, List<Sale>> detailed = sales.stream()
         .collect(Collectors.groupingBy(Sale::getRegion));
 
-// Chỉ giữ số lượng theo nhóm.
+// Keep only counts per group.
 Map<String, Long> summary = sales.stream()
         .collect(Collectors.groupingBy(
                 Sale::getRegion,
                 Collectors.counting()));
 ```
 
-Phương án `summary` thường giữ ít bộ nhớ hơn vì **không cần giữ các tham chiếu tới từng Sale trong kết quả**. Nhưng nếu báo cáo cần xem lại từng giao dịch của mỗi khu vực, summary không đáp ứng đủ nghiệp vụ.
+The `summary` approach generally keeps much less memory because it **does not need to retain references to each `Sale` in the result**. Yet if the report requires viewing individual transactions per region, a summary does not satisfy the business requirement.
 
-## 10. Parallel stream: nhân lên trạng thái trung gian ra sao?
+## 10. Parallel streams: how do they multiply intermediate state?
 
-Khi gọi `parallel()`, framework có thể chia nguồn bằng `Spliterator`, tích lũy trên nhiều nhánh và gộp kết quả. Tác động bộ nhớ phụ thuộc từng phép toán:
+When calling `parallel()`, the framework can split the source via `Spliterator`, accumulate across multiple branches, and merge results. Memory impact depends on each operation:
 
-| Phép toán | Rủi ro bộ nhớ khi song song |
+| Operation | Memory risk under parallelism |
 |---|---|
-| `sorted` | Các buffer/mảng hỗ trợ sắp xếp và hợp nhất có thể làm tăng bộ nhớ đỉnh |
-| `distinct` | Tập phần tử phân biệt, cấu trúc kết hợp hoặc cơ chế bảo toàn thứ tự có thể tốn thêm |
-| `groupingBy` | Nhiều Map trung gian có thể đồng thời tồn tại trước khi combiner gộp |
-| `groupingByConcurrent` | Có thể giảm nhu cầu gộp nhiều Map trong một số trường hợp, nhưng có contention và cấu trúc concurrent |
-| `toList` | Có thể có nhiều buffer/collection cục bộ trước khi tạo kết quả cuối |
-| `count` / `sum` | Trạng thái của từng nhánh nhỏ, nhưng vẫn có overhead quản lý task |
+| `sorted` | Buffers/arrays supporting sorting and merging can increase peak memory |
+| `distinct` | Distinct set, combining structures, or order-preservation mechanisms can cost extra |
+| `groupingBy` | Multiple intermediate Maps may coexist before the combiner merges them |
+| `groupingByConcurrent` | Can reduce merging multiple Maps in some cases, yet introduces contention and concurrent structure overhead |
+| `toList` | Multiple local buffers/collections may exist before assembling the final result |
+| `count` / `sum` | Per-branch state is small, though task management overhead still exists |
 
-### 10.1. Không lấy số thread làm số accumulator chính xác
+### 10.1. Do not equate thread count with exact accumulator count
 
-Nếu có `p` container trung gian, mỗi container giữ khoảng `k` entry Map, chi phí **trạng thái sao lặp ở các nhánh** có thể lên tới bậc `O(p × k)` cho phần cấu trúc nhóm trong mô hình xấu. Tuy nhiên, **`p` không nhất thiết bằng số thread**: framework có thể tạo nhiều tác vụ/nhánh hơn worker, và mỗi nhánh thường chỉ có phần dữ liệu riêng của mình.
+If there are `p` intermediate containers, each holding roughly `k` Map entries, the cost of **replicated state across branches** can reach `O(p × k)` for group structures in a worst-case model. However, **`p` is not necessarily equal to thread count**: the framework may create more tasks/branches than workers, and each branch normally sees only its own partition of data.
 
-Với `groupingBy(toList())`, tổng số tham chiếu phần tử qua các container cục bộ vẫn liên quan tới `n` trước khi gộp, nhưng lúc combiner hợp nhất có thể tồn tại **mảng/danh sách tạm hoặc capacity dư**, làm tăng đỉnh bộ nhớ.
+With `groupingBy(toList())`, total element references across local containers still relate to `n` before merging, while during combiner merging there may exist **temporary arrays/lists or spare capacity**, increasing peak memory.
 
-### 10.2. Collector concurrent không tự động tiết kiệm RAM
+### 10.2. Concurrent collectors do not automatically save RAM
 
 ```java
 ConcurrentMap<String, Long> counts = sales.parallelStream()
@@ -738,9 +738,9 @@ ConcurrentMap<String, Long> counts = sales.parallelStream()
                 Collectors.counting()));
 ```
 
-`groupingByConcurrent` có thể cho phép nhiều worker tích lũy vào cấu trúc concurrent trong các điều kiện phù hợp, giảm một số chi phí gộp Map trung gian. Nhưng nếu mọi phần tử thuộc cùng một khóa, contention có thể cao. Một concurrent map cũng có chi phí đồng bộ/cấu trúc riêng. **Không có bảo đảm** rằng nó dùng ít RAM hay chạy nhanh hơn `groupingBy`.
+`groupingByConcurrent` can allow multiple workers to accumulate into a concurrent structure under favorable conditions, reducing some intermediate Map merging overhead. Yet if all elements share the same key, contention can be high. A concurrent map also carries its own synchronization/structural overhead. **There is no guarantee** that it uses less RAM or runs faster than `groupingBy`.
 
-### 10.3. Trạng thái chia sẻ ngoài pipeline không phải tối ưu
+### 10.3. Shared state outside the pipeline is not an optimization
 
 ```java
 Map<String, List<Sale>> shared = new HashMap<>();
@@ -749,186 +749,186 @@ sales.parallelStream().forEach(sale ->
         shared.computeIfAbsent(
                 sale.getRegion(), key -> new ArrayList<>())
                 .add(sale));
-// SAI: HashMap/ArrayList không an toàn khi nhiều worker cùng sửa.
+// WRONG: HashMap/ArrayList are unsafe when mutated concurrently by multiple workers.
 ```
 
-Mục tiêu tiết kiệm “nhiều Map cục bộ” không biện minh cho data race. Hãy dùng collector có hợp đồng đúng, hoặc thiết kế một cơ chế concurrent an toàn và đo thực tế nếu thực sự cần.
+Wanting to save “multiple local Maps” does not justify a data race. Use a collector with the right contract, or design a thread-safe concurrent mechanism and measure it in practice if truly needed.
 
-## 11. Các yếu tố JVM làm dự toán byte khác thực tế
+## 11. JVM factors that make byte estimates differ from reality
 
-### 11.1. Header, căn chỉnh, boxing và kích thước tham chiếu
+### 11.1. Headers, alignment, boxing, and reference size
 
-Một đối tượng không chỉ chứa dữ liệu của các field:
+An object contains more than just its field data:
 
-- Header và căn chỉnh đối tượng.
-- Tham chiếu tới các object con.
-- Mảng backing với header và capacity có thể lớn hơn `size()`.
-- Entry/node của `HashMap`, `HashSet`, `TreeMap` và các collection khác.
-- Wrapper như `Integer`, `Long` khi boxing hoặc giữ Map value.
-- String và mảng nội dung, đôi khi được chia sẻ, đôi khi mới tạo bởi mapper.
+- Object header and alignment padding.
+- References to child objects.
+- Backing arrays with headers and capacity that may exceed `size()`.
+- Entries/nodes of `HashMap`, `HashSet`, `TreeMap`, and other collections.
+- Wrappers like `Integer` or `Long` when boxing or stored as Map values.
+- Strings and their backing arrays, sometimes shared, sometimes newly created by a mapper.
 
-Ví dụ `Collectors.toList()` có thể giữ một triệu **tham chiếu** tới đối tượng nguồn; nếu phía trước có `map(s -> new DTO(s))`, nó còn giữ một triệu **DTO mới**. Ước lượng chỉ từ `list.size()` mà bỏ qua object graph thường thấp hơn thực tế rất nhiều.
+For instance, `Collectors.toList()` may hold one million **references** to source objects; if preceded by `map(s -> new DTO(s))`, it also holds one million **new DTOs**. Estimating solely from `list.size()` while ignoring the object graph often severely undercounts reality.
 
-### 11.2. Hash table có capacity và load factor
+### 11.2. Hash tables have capacity and load factors
 
-Với `distinct`, `toSet`, `toMap` và `groupingBy`, số phần tử `u` hoặc `k` không bằng chính xác số bucket. Bảng băm thường mở rộng theo ngưỡng tải; resize có thể tạo mảng mới trong khi mảng cũ chưa được giải phóng ngay. Mức bộ nhớ đỉnh vì thế có thể **lớn hơn** bộ nhớ giữ lại của kết quả ổn định.
+With `distinct`, `toSet`, `toMap`, and `groupingBy`, the count `u` or `k` does not equal the exact bucket count. Hash tables resize according to load thresholds; resizing can allocate a new array before the old one is reclaimed. Peak memory can therefore be **larger than** the steady-state retained memory of the result.
 
-### 11.3. Cấp phát tích lũy khác bộ nhớ còn sống
+### 11.3. Cumulative allocation differs from live memory
 
-Giả sử một triệu lần mapper tạo object tạm nhưng không giữ lại. **Tổng byte cấp phát** có thể rất lớn, trong khi heap còn sống cuối pipeline nhỏ. GC có thể dọn object tạm, nhưng việc cấp phát và thu gom vẫn tốn CPU và ảnh hưởng độ trễ.
+Suppose a mapper allocates temporary objects a million times without retaining them. **Total allocated bytes** can be huge, while live heap at the end of the pipeline is small. GC can reclaim short-lived objects, yet allocation and collection still consume CPU and affect latency.
 
-Vì vậy cần phân biệt:
+Therefore, distinguish:
 
-1. **Allocation rate / allocated bytes**: bao nhiêu byte đã được cấp phát.
-2. **Peak live heap**: đỉnh lượng object còn sống.
-3. **Retained size**: bao nhiêu object còn bị kết quả/nguồn tham chiếu.
-4. **GC pause/throughput**: chi phí thu gom và ảnh hưởng tới hiệu năng.
+1. **Allocation rate / allocated bytes**: how many bytes were allocated.
+2. **Peak live heap**: peak volume of live objects.
+3. **Retained size**: how much remains referenced by results/sources.
+4. **GC pause/throughput**: collection cost and impact on performance.
 
-Không tối ưu chỉ dựa vào một ảnh chụp bộ nhớ sau khi pipeline đã hoàn thành.
+Do not optimize based solely on a single memory snapshot after the pipeline completes.
 
-## 12. Cách đo kiểm bộ nhớ đáng tin cậy
+## 12. Reliable ways to measure memory
 
-### 12.1. Chọn một đường đo thực tế
+### 12.1. Choosing a practical measurement path
 
-Các công cụ thông dụng trong hệ sinh thái Java:
+Common tools in the Java ecosystem:
 
-| Công cụ | Hữu ích để quan sát |
+| Tool | Useful for observing |
 |---|---|
-| **Java Flight Recorder (JFR)** | Allocation, GC, CPU, các sự kiện liên quan runtime |
-| **Java Mission Control (JMC)** | Phân tích bản ghi JFR |
-| **VisualVM** | Heap, class/instance và xu hướng sử dụng bộ nhớ |
-| **Heap dump / công cụ phân tích heap** | Retained size, dominator tree và chuỗi tham chiếu giữ object |
-| **JMH với GC profiler** | Benchmark vi mô, allocation rate và so sánh các phương án |
+| **Java Flight Recorder (JFR)** | Allocations, GC, CPU, runtime events |
+| **Java Mission Control (JMC)** | Analyzing JFR recordings |
+| **VisualVM** | Heap, classes/instances, and memory usage trends |
+| **Heap dump / heap analyzers** | Retained size, dominator trees, and reference retention chains |
+| **JMH with GC profiler** | Microbenchmarking, allocation rates, and comparing alternatives |
 
-Với yêu cầu chặt về môi trường, phiên bản và kích thước, hãy ghi rõ JDK, tùy chọn VM, mức song song, GC, heap limit, phần cứng và dữ liệu đầu vào. Không so sánh một bản JDK có compressed references với cấu hình khác rồi coi chênh lệch hoàn toàn do Stream API.
+When precision about environment, version, and scale matters, specify JDK, VM flags, parallelism, GC, heap limits, hardware, and input data. Do not compare a JDK with compressed references against another configuration and attribute the difference entirely to the Stream API.
 
-### 12.2. Quy trình profiling từng phương án
+### 12.2. Profiling workflow for each alternative
 
-1. **Định nghĩa kết quả đúng**: số phần tử, thứ tự, nhóm, doanh thu, min/max phải tương đương giữa các phương án.
-2. **Giữ nguồn/fixture ổn định**: không tự ý thay phân bố `u`, `k` hoặc kích thước n giữa các phép đo.
-3. **Đo từng pipeline riêng**: `sorted`, `distinct`, `groupingBy(counting)`, `groupingBy(toList)`, v.v.; tránh giữ kết quả của phép trước nếu không chủ đích đo đồng thời.
-4. **Phân biệt nguồn đã có với bộ nhớ tăng thêm**: biết có bao nhiêu object nguồn được tạo trước khi đo.
-5. **Đo cả allocation và retained heap**: theo dõi GC, peak live set và object nào được kết quả giữ.
-6. **Thử nguồn tuần tự và song song** nếu hệ thống thực sự sử dụng cả hai.
-7. **Lặp lại với `n`, `u`, `k` thay đổi**: tăng n gấp đôi nhưng giữ k, rồi tăng cả k để tìm yếu tố gây tăng bộ nhớ.
-8. **Xác nhận tác động tài nguyên ngoài heap** nếu dữ liệu đến từ file, database hoặc network.
+1. **Define correct output**: element count, order, groups, totals, min/max must be equivalent across alternatives.
+2. **Keep sources/fixtures stable**: do not change distributions of `u`, `k`, or size `n` between runs.
+3. **Measure each pipeline separately**: `sorted`, `distinct`, `groupingBy(counting)`, `groupingBy(toList)`, etc.; avoid retaining previous runs’ results unless intentionally measuring concurrency.
+4. **Separate pre-existing sources from added memory**: know how many source objects were created prior to measurement.
+5. **Measure both allocation and retained heap**: track GC, peak live set, and which objects the result keeps alive.
+6. **Test sequential and parallel** if the system genuinely uses both.
+7. **Repeat with varying `n`, `u`, `k`**: double `n` while keeping `k` fixed, then increase `k` to find what drives memory growth.
+8. **Verify off-heap resource impact** if data comes from files, databases, or networks.
 
-### 12.3. Vì sao Runtime.totalMemory - freeMemory chỉ là chỉ báo thô?
+### 12.3. Why `Runtime.totalMemory - freeMemory` is only a rough indicator
 
-`Runtime.getRuntime().totalMemory() - freeMemory()` cho một ảnh chụp tại thời điểm gọi, chịu ảnh hưởng bởi vùng heap đã cam kết, thời điểm GC, thread khác và object tạm đã/chưa được thu gom. Nó không phản ánh đầy đủ **đỉnh trong khi sort**, vì bạn có thể đo sau khi buffer đã bị giải phóng.
+`Runtime.getRuntime().totalMemory() - freeMemory()` gives a point-in-time snapshot influenced by committed heap regions, GC timing, other threads, and uncollected temporary objects. It does not fully reflect **the peak during sorting**, because you may sample after the buffer was already released.
 
-Ngay cả việc gọi `System.gc()` cũng không tạo một phép đo chính xác, có thể không được runtime thực hiện như mong muốn và không nên nằm trong thuật toán sản xuất. Dùng profiler phù hợp thay vì công thức “trước/sau” duy nhất.
+Even calling `System.gc()` does not yield a precise measurement, may not execute as expected in the runtime, and should not be part of production algorithms. Use a proper profiler instead of a single “before/after” formula.
 
-## 13. Chọn phương án theo bài toán nghiệp vụ
+## 13. Choosing an approach based on the business problem
 
-| Nhu cầu | Cách thường phù hợp | Lợi ích về bộ nhớ |
+| Need | Typically suitable approach | Memory benefit |
 |---|---|---|
-| Chỉ cần bản ghi rẻ nhất | `min(comparator)` | Tránh lưu danh sách sort đầy đủ |
-| Cần K bản ghi nhỏ nhất, K nhỏ | Top-K với heap giới hạn | Giữ khoảng K ứng viên thay vì n |
-| Chỉ cần số SKU phân biệt | `map(Sale::getSku).collect(toSet())` | Không cần `distinct().toList()` nếu chỉ cần Set |
-| Cần đếm đơn theo khu vực | `groupingBy(region, counting())` | Giữ một bộ đếm mỗi khóa |
-| Cần tổng tiền theo khu vực | `groupingBy(region, summingLong(...))` | Không giữ mọi đơn trong mỗi nhóm |
-| Cần xem lại từng đơn của mỗi khu vực | `groupingBy(region, toList())` | Phải chấp nhận giữ tham chiếu tới từng đơn |
-| Cần toàn bộ dữ liệu đã sắp xếp | `sorted(...).toList()` | Chấp nhận bộ nhớ tỷ lệ dữ liệu đầu ra/sort |
-| Chỉ cần count/sum/min/max/avg | `summarizingLong(...)` | Một trạng thái thống kê nhỏ |
-| Cần nhiều KPI cùng quy tắc phức tạp | Collector tùy biến có state tối thiểu | Tránh materialize dữ liệu không cần |
+| Need only the cheapest record | `min(comparator)` | Avoids storing a full sorted list |
+| Need K smallest records, K small | Top-K with bounded heap | Keeps roughly K candidates instead of n |
+| Need only distinct SKU count/set | `map(Sale::getSku).collect(toSet())` | Avoids `distinct().toList()` if only a Set is needed |
+| Need order counts by region | `groupingBy(region, counting())` | Keeps one counter per key |
+| Need revenue totals by region | `groupingBy(region, summingLong(...))` | Does not retain every order in each group |
+| Need to inspect every order per region | `groupingBy(region, toList())` | Must accept retaining references to each order |
+| Need all data sorted | `sorted(...).toList()` | Accept memory proportional to output/sort data |
+| Need only count/sum/min/max/avg | `summarizingLong(...)` | A single small statistics state |
+| Need multiple KPIs with complex rules | Custom collector with minimal state | Avoids unnecessary data materialization |
 
-**Lựa chọn tốt nhất không phải luôn là phương án ít byte nhất.** Nếu cần xuất toàn bộ báo cáo chi tiết có thứ tự, một List lớn có thể là yêu cầu không tránh được. Ngược lại, nếu chỉ cần số đếm/tổng, giữ một triệu bản ghi trong Map các List để rồi tính `size()` là sự lãng phí có thể loại bỏ.
+**The best choice is not always the fewest bytes.** If a full, ordered detail report must be exported, a large List may be unavoidable. Conversely, if only counts/totals are needed, keeping a million records in a Map of Lists only to call `size()` is avoidable waste.
 
-## 14. Những hiểu nhầm và lỗi thường gặp
+## 14. Common misconceptions and mistakes
 
-| Nhận định hoặc cách làm | Vì sao không đúng | Cách sửa |
+| Claim or practice | Why it is wrong | How to fix |
 |---|---|---|
-| “Stream lazy nên luôn O(1) RAM.” | `sorted`, `distinct`, collector giữ trạng thái | Phân tích cả intermediate và terminal |
-| “`sorted().limit(5)` chỉ giữ 5 phần tử.” | Sắp xếp thường phải xét và đệm nhiều đầu vào | Dùng `min` hoặc thuật toán top-K nếu phù hợp |
-| “`distinct` phải giữ toàn bộ n phần tử.” | Trạng thái thường tỷ lệ số giá trị phân biệt u | Đo u và chi phí hash table |
-| “Map có 5 khóa nên groupingBy luôn nhỏ.” | Downstream `toList` có thể giữ n tham chiếu | Xem cấu trúc value ở từng nhóm |
-| “`collect` luôn tốn O(n).” | `counting`, `summingLong` có state nhỏ | Phân loại theo Collector được chọn |
-| “`toSet` luôn rẻ hơn `toList`.” | Hash table có bucket/node overhead | So theo u, n và yêu cầu semantics |
-| “`parallel()` giúp giảm peak heap.” | Nhiều buffer/container có thể cùng tồn tại | Benchmark và profile parallel riêng |
-| “`groupingByConcurrent` luôn nhanh và ít RAM hơn.” | Concurrent map có contention và overhead | So với groupingBy theo phân bố khóa thực tế |
-| “Kích thước List là đủ để tính byte chính xác.” | Có header, capacity, object graph, boxing | Dùng mô hình rồi xác minh bằng profiler |
-| “Có thể đổi List các giao dịch thành số đếm mà không ảnh hưởng API.” | Mất dữ liệu chi tiết | Bảo toàn hợp đồng nghiệp vụ |
-| “Chỉ cần đo heap sau khi collect.” | Buffer sort và object tạm có thể đã hết sống | Đo allocation và peak live heap |
-| “Đọc Files.lines rồi collect là file tự đóng.” | Terminal operation không thay `close` | Dùng `try-with-resources` |
+| “Streams are lazy so they always use `O(1)` RAM.” | `sorted`, `distinct`, and collectors keep state | Analyze both intermediate and terminal steps |
+| “`sorted().limit(5)` only keeps 5 elements.” | Sorting usually must inspect and buffer much of the input | Use `min` or a top-K algorithm when appropriate |
+| “`distinct` must keep all `n` elements.” | State usually scales with distinct values `u` | Measure `u` and hash table overhead |
+| “A Map has 5 keys so `groupingBy` is always small.” | Downstream `toList` can hold `n` references | Inspect the value structure inside each group |
+| “`collect` always costs `O(n)`.” | `counting` and `summingLong` have small state | Classify by the chosen Collector |
+| “`toSet` is always cheaper than `toList`.” | Hash tables have bucket/node overhead | Compare by `u`, `n`, and semantic requirements |
+| “`parallel()` reduces peak heap.” | Multiple buffers/containers can coexist | Benchmark and profile parallel execution separately |
+| “`groupingByConcurrent` is always faster and uses less RAM.” | Concurrent maps have contention and overhead | Compare against `groupingBy` under real key distribution |
+| “List size is enough to compute exact bytes.” | Headers, capacity, object graphs, and boxing matter | Use a model and verify with a profiler |
+| “You can replace a List of transactions with a count without affecting the API.” | Loses detail data | Preserve the business contract |
+| “Measuring heap after `collect` is enough.” | Sort buffers and temporary objects may already be dead | Measure allocations and peak live heap |
+| “Reading `Files.lines` and collecting closes the file automatically.” | Terminal operations do not replace `close` | Use `try-with-resources` |
 
-## 15. Bài tập thực hành có đáp án
+## 15. Practice exercises with answers
 
-### Bài 1. Bộ nhớ sorted và limit
+### Exercise 1. Memory of `sorted` and `limit`
 
-**Đề bài:** Một triệu đối tượng đi vào `sorted(comparator).limit(10).toList()`. Có thể kết luận trạng thái của `sorted` chỉ giữ mười phần tử không?
+**Problem:** One million objects enter `sorted(comparator).limit(10).toList()`. Can you conclude that `sorted`'s state holds only ten elements?
 
-**Đáp án:** Không. Trên nguồn chưa được sắp xếp, sort thường cần xét và đệm toàn bộ dữ liệu liên quan trước khi biết mười phần tử đầu. Kết quả cuối có 10 phần tử nhưng **peak state** có thể tỷ lệ với một triệu. Nếu chỉ cần top-10, cân nhắc một thuật toán heap giới hạn 10.
+**Answer:** No. On an unsorted source, sorting generally needs to inspect and buffer all relevant input before knowing the first ten elements. The final result has 10 elements, yet **peak state** can scale with one million. If only top-10 is needed, consider a bounded heap algorithm of size 10.
 
-### Bài 2. Distinct và cardinality
+### Exercise 2. `distinct` and cardinality
 
-**Đề bài:** Có 500.000 dòng, trong đó chỉ có 200 SKU phân biệt. Trạng thái `distinct` nên được mô hình hóa theo 500.000 hay 200?
+**Problem:** There are 500,000 rows containing only 200 distinct SKUs. Should `distinct` state be modeled around 500,000 or 200?
 
-**Đáp án:** Với kỹ thuật bảng băm thông dụng, trạng thái giữ thông tin theo khoảng **`u = 200`** phần tử phân biệt, ngoài buffer/overhead khác. Không xem số 200 là số byte, vì mỗi entry còn có node, bucket và key. Nếu tất cả dòng có SKU khác nhau, `u` tiến tới `n`.
+**Answer:** With standard hash-table techniques, state tracks roughly **`u = 200`** distinct elements, aside from other buffers/overhead. Do not treat 200 as a byte count, since each entry also involves nodes, buckets, and keys. If every row has a different SKU, `u` approaches `n`.
 
-### Bài 3. Chọn downstream phù hợp
+### Exercise 3. Choosing the right downstream collector
 
-**Đề bài:** Một triệu đơn thuộc 4 khu vực. Báo cáo chỉ cần **số đơn theo khu vực**. Nên chọn `groupingBy(region, toList())` hay `groupingBy(region, counting())`?
+**Problem:** One million orders belong to 4 regions. The report only needs the **order count per region**. Should you pick `groupingBy(region, toList())` or `groupingBy(region, counting())`?
 
-**Đáp án:** `groupingBy(region, counting())`. Nó giữ Map bốn nhóm với số đếm thay vì giữ một triệu tham chiếu trong các List, nếu nghiệp vụ không yêu cầu lấy lại từng đơn.
+**Answer:** `groupingBy(region, counting())`. It keeps a Map of four groups with counts instead of keeping one million references in Lists, assuming business logic does not need individual orders back.
 
-### Bài 4. Tính thô mảng tham chiếu
+### Exercise 4. Rough reference array calculation
 
-**Đề bài:** Giả sử mỗi tham chiếu chiếm 4 byte. Một List cần mảng backing đúng 2.000.000 tham chiếu, chưa tính header/capacity dư. Riêng phần tham chiếu chiếm bao nhiêu?
+**Problem:** Assume each reference takes 4 bytes. A List needs a backing array of exactly 2,000,000 references, excluding headers/spare capacity. How much do the references alone occupy?
 
-**Đáp án:**
+**Answer:**
 
 \[
 2\,000\,000 \times 4
-= 8\,000\,000\ \text{byte}
+= 8\,000\,000\ \text{bytes}
 \approx 7{,}63\ \text{MiB}
 \]
 
-Đây không phải tổng heap của List hay của các object mà List tham chiếu.
+This is not the total heap of the List or of the objects the List references.
 
-### Bài 5. Sắp xếp trước hay loại trùng trước?
+### Exercise 5. Sort first or deduplicate first?
 
-**Đề bài:** Có một triệu chuỗi SKU với chỉ 100 SKU phân biệt. Nếu cần danh sách SKU **phân biệt và tăng dần**, nên cân nhắc thứ tự nào?
+**Problem:** You have one million SKU strings with only 100 distinct SKUs. If you need a **distinct, ascending** list of SKUs, which order should you consider?
 
-**Đáp án:** `stream.distinct().sorted().toList()` thường làm sort chỉ nhận khoảng 100 giá trị phân biệt, thay vì sắp xếp một triệu chuỗi rồi mới loại trùng. Áp dụng khi equality và ordering của SKU đúng với ngữ nghĩa mong muốn.
+**Answer:** `stream.distinct().sorted().toList()` usually feeds only about 100 distinct values into `sorted`, rather than sorting one million strings before deduplicating. Apply when SKU equality and ordering match intended semantics.
 
-### Bài 6. Parallel grouping và số Map
+### Exercise 6. Parallel grouping and Map count
 
-**Đề bài:** Vì sao `parallelStream().collect(groupingBy(region, counting()))` có thể có bộ nhớ đỉnh lớn hơn bản tuần tự?
+**Problem:** Why can `parallelStream().collect(groupingBy(region, counting()))` have higher peak memory than the sequential version?
 
-**Đáp án:** Framework có thể tạo **nhiều Map và container tích lũy** trên các nhánh rồi gộp; các trạng thái có thể cùng tồn tại trong quá trình xử lý. Số container không đơn giản bằng số thread. `groupingByConcurrent` có chiến lược khác nhưng không tự bảo đảm ít RAM hơn.
+**Answer:** The framework may allocate **multiple intermediate Maps and accumulator containers** across branches before merging; these states can coexist during processing. Container count is not simply equal to thread count. `groupingByConcurrent` uses a different strategy but does not guarantee less RAM.
 
-### Bài 7. Retained heap và object tạm
+### Exercise 7. Retained heap vs. temporary objects
 
-**Đề bài:** Một pipeline tạo nhiều DTO trong `map`, sau đó chỉ đếm bằng `count()`. Khi kết thúc, bộ nhớ kết quả rất nhỏ. Có thể khẳng định pipeline đã không cấp phát nhiều object không?
+**Problem:** A pipeline creates many DTOs in `map`, then only counts them with `count()`. At the end, result memory is tiny. Can you claim the pipeline did not allocate many objects?
 
-**Đáp án:** Không. Nó **có thể** đã cấp phát nhiều DTO tạm, nhưng cũng có thể được tối ưu hóa để không cần thực thi mapper nếu kết quả đếm đã biết. Cần đo allocation thực tế; retained size nhỏ không chứng minh tổng cấp phát nhỏ.
+**Answer:** No. It **may** have allocated many temporary DTOs, or it may have been optimized to skip executing the mapper when the count is already known. You must measure actual allocations; small retained size does not prove small total allocations.
 
-### Bài 8. Tự đánh giá một báo cáo theo khóa
+### Exercise 8. Reviewing a keyed report
 
-**Đề bài:** Một service chỉ cần tổng tiền theo SKU nhưng đang dùng `groupingBy(sku, toList())` rồi duyệt từng List để cộng tiền. Có thể giảm bộ nhớ thế nào?
+**Problem:** A service only needs total revenue per SKU, yet currently uses `groupingBy(sku, toList())` and iterates each List to sum amounts. How can memory be reduced?
 
-**Đáp án:** Dùng `groupingBy(sku, summingLong(Sale::getCents))` nếu số học `long` phù hợp và không cần chi tiết giao dịch. Nếu phải phát hiện tràn số, thiết kế collector cộng bằng `Math.addExact` hoặc dùng kiểu số lớn hơn. Kết quả Map sẽ chứa một tổng mỗi SKU thay vì List các giao dịch.
+**Answer:** Use `groupingBy(sku, summingLong(Sale::getCents))` if `long` arithmetic fits and transaction details are unnecessary. If overflow detection is required, design a collector summing with `Math.addExact` or use a larger numeric type. The resulting Map will hold one sum per SKU instead of Lists of transactions.
 
-### Bài 9. Phân biệt MB và MiB
+### Exercise 9. Distinguishing MB and MiB
 
-**Đề bài:** Vì sao 4.000.000 byte không bằng 4 MiB?
+**Problem:** Why is 4,000,000 bytes not equal to 4 MiB?
 
-**Đáp án:** `1 MB = 1.000.000 byte`, còn `1 MiB = 1.048.576 byte`. Do đó 4.000.000 byte bằng **4 MB** nhưng chỉ khoảng **3,81 MiB**. Phải ghi rõ đơn vị khi so ngân sách heap.
+**Answer:** `1 MB = 1,000,000 bytes`, whereas `1 MiB = 1,048,576 bytes`. Therefore 4,000,000 bytes equals **4 MB** but only about **3.81 MiB**. Always specify units when comparing heap budgets.
 
-## 16. Checklist trước khi tối ưu bộ nhớ Stream
+## 16. Checklist before optimizing Stream memory
 
-1. **Đã xác định bộ nhớ cần đo chưa?** Tổng heap, phần tăng thêm, đỉnh trong lúc chạy hay phần kết quả giữ lại?
-2. **Biết `n`, `u`, `k` chưa?** Tập dữ liệu nhiều trùng lặp có đặc điểm khác nhiều khóa duy nhất.
-3. **Có `sorted` không?** Có thật sự cần toàn bộ kết quả sắp xếp, hay chỉ min/top-K?
-4. **Có `distinct` không?** Kết quả cần List giữ thứ tự hay chỉ một Set giá trị phân biệt?
-5. **`groupingBy` đang dùng downstream nào?** `counting`, `summingLong`, `toList` hay `toSet` có bộ nhớ rất khác nhau.
-6. **`collect` giữ lại bao nhiêu phần tử?** Nếu n kết quả phải tồn tại, không thể coi `map` lazy là đủ để O(1) RAM.
-7. **Có giảm dữ liệu trước thao tác stateful được không?** Lọc đúng nghiệp vụ trước `sorted`, cân nhắc `distinct` trước `sorted`.
-8. **Có tăng đối tượng tạm hoặc boxing không?** Đo allocation và GC, không chỉ retained heap.
-9. **Có song song không?** Kiểm tra buffer, Map cục bộ, contention và chi phí combiner.
-10. **Đã đo theo cấu hình JVM thực tế chưa?** Kích thước tham chiếu, header, load factor và GC khác nhau.
-11. **Nguồn I/O có được đóng không?** Chi phí heap và file descriptor là hai vấn đề khác nhau.
-12. **Mọi tối ưu có giữ nguyên kết quả đúng không?** Không bỏ các bản ghi, thứ tự hoặc khả năng truy vấn mà nghiệp vụ yêu cầu.
+1. **Have you defined which memory to measure?** Total heap, added memory, peak during execution, or retained result?
+2. **Do you know `n`, `u`, and `k`?** Datasets with high duplication behave differently from mostly unique keys.
+3. **Is `sorted` present?** Is the entire sorted result really needed, or only min/top-K?
+4. **Is `distinct` present?** Does the output need an ordered List or just a Set of distinct values?
+5. **Which downstream is `groupingBy` using?** `counting`, `summingLong`, `toList`, and `toSet` have very different memory footprints.
+6. **How many elements does `collect` retain?** If `n` results must exist, lazy `map` alone cannot give `O(1)` RAM.
+7. **Can data be reduced before stateful operations?** Filter properly before `sorted`; consider `distinct` before `sorted`.
+8. **Are temporary objects or boxing increasing?** Measure allocations and GC, not just retained heap.
+9. **Is it parallel?** Check buffers, local Maps, contention, and combiner cost.
+10. **Have you measured under the real JVM configuration?** Reference size, headers, load factors, and GC differ.
+11. **Are I/O sources closed?** Heap cost and file descriptors are separate concerns.
+12. **Do all optimizations preserve exact correctness?** Never drop records, required ordering, or queryability required by the business.
 
-**Kết luận:** Khi ước lượng bộ nhớ Java Stream, đừng gán một độ phức tạp chung cho cả pipeline. **`sorted` thường cần trạng thái theo `n`**, **`distinct` thường theo `u`**, **`groupingBy` theo `k` cộng trạng thái downstream**, và **`collect` hoàn toàn phụ thuộc Collector cùng kích thước kết quả**. Phân biệt buffer trung gian, dữ liệu được giữ lại, đối tượng nguồn, allocation tạm và peak live heap; sau đó xác minh mô hình bằng profiling trên JVM và dữ liệu thật. Cách tiếp cận này giúp tối ưu có cơ sở mà không đánh đổi tính đúng hoặc những yêu cầu nghiệp vụ về thứ tự, chi tiết và tài nguyên.
+**Conclusion:** When estimating Java Stream memory, do not assign one single complexity to the whole pipeline. **`sorted` typically needs state proportional to `n`**, **`distinct` typically scales with `u`**, **`groupingBy` scales with `k` plus downstream state**, and **`collect` depends entirely on the Collector and result size**. Distinguish intermediate buffers, retained data, source objects, temporary allocations, and peak live heap; then validate your model by profiling on the real JVM and real data. This approach enables grounded optimization without trading off correctness or business requirements around order, detail, and resources.

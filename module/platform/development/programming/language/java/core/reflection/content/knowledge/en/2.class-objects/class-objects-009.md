@@ -1,59 +1,59 @@
-# Không tạo `Class` bằng constructor thông thường
+# Do Not Create `Class` with a Normal Constructor
 
-## 1. Vấn đề nằm ở đâu?
+## 1. Where does the issue lie?
 
-Trong Java Reflection, `java.lang.Class<T>` là **đối tượng mô tả một kiểu tại runtime**: tên kiểu, modifier, superclass, interface, method, field, constructor, annotation, v.v. Mỗi biến kiểu `Class<?>` giữ một tham chiếu đến metadata của kiểu, không phải một đối tượng nghiệp vụ thuộc kiểu đó.
+In Java Reflection, `java.lang.Class<T>` is the **object describing a type at runtime**: type name, modifiers, superclass, interfaces, methods, fields, constructors, annotations, etc. Each variable of type `Class<?>` holds a reference to the type's metadata, not a business object of that type.
 
-Ví dụ, ba biểu thức dưới đây có ý nghĩa khác nhau:
-
-```java
-Person person = new Person();        // Tạo một instance Person
-Class<Person> type = Person.class;    // Lấy đối tượng Class mô tả Person
-Class<?> runtimeType = person.getClass(); // Lấy Class của instance có sẵn
-```
-
-Nếu viết:
+For example, the three expressions below have different meanings:
 
 ```java
-Class<?> type = new Class<>(); // Lỗi biên dịch
+Person person = new Person();        // Create a Person instance
+Class<Person> type = Person.class;    // Get the Class object describing Person
+Class<?> runtimeType = person.getClass(); // Get the Class of an existing instance
 ```
 
-thì Java không cho phép. **`java.lang.Class` không cung cấp constructor `public` để mã ứng dụng tự tạo một đối tượng `Class` bằng `new`.** JVM quản lý các đối tượng này trong quá trình nạp/định nghĩa kiểu. Tự tạo một `Class` tùy ý sẽ phá vỡ mối liên hệ giữa metadata và định nghĩa kiểu mà JVM thực sự biết, kiểm tra và thực thi.
+If you write:
 
-Đây là điểm khác biệt quan trọng: **không được `new Class(...)`** không có nghĩa là **không được `new Person(...)`**. Ta vẫn khởi tạo instance của một lớp bình thường bằng constructor của chính lớp đó khi constructor cho phép.
+```java
+Class<?> type = new Class<>(); // Compile error
+```
 
-## 2. Vì sao JVM quản lý đối tượng `Class`?
+Java does not allow it. **`java.lang.Class` does not provide a `public` constructor for application code to create a `Class` object itself using `new`.** The JVM manages these objects during type loading/definition. Arbitrarily creating a `Class` would break the link between metadata and the type definition that the JVM actually knows, verifies, and executes.
 
-Khi runtime cần biết một kiểu, JVM sử dụng cơ chế nạp, liên kết và (khi điều kiện thích hợp xảy ra) khởi tạo lớp. Đối tượng `Class` là cửa ngõ phản ánh định nghĩa kiểu mà runtime đã nhận diện.
+This is an important distinction: **not being able to do `new Class(...)`** does not mean **not being able to do `new Person(...)`**. You still instantiate a normal class using its own constructor when the constructor allows it.
 
-- `Class` biểu diễn **kiểu**, còn `new Person()` tạo **instance** của kiểu `Person`.
-- Mã nguồn không thể tự cung cấp các thông tin nội bộ và tính hợp lệ của kiểu bằng cách gọi `new Class()`.
-- Với cùng một kiểu được định nghĩa bởi cùng một **defining class loader**, các cách lấy `Class` thông thường tham chiếu cùng một đối tượng `Class`. Hai class loader khác nhau có thể định nghĩa hai kiểu riêng biệt dù cùng tên nhị phân.
-- Nạp lớp (*loading*), liên kết (*linking*) và khởi tạo lớp (*initialization*) là các bước khác nhau; việc nhận được `Class` không luôn đồng nghĩa static initializer của kiểu đã chạy.
+## 2. Why does the JVM manage `Class` objects?
 
-Hãy hiểu cụm “`Class` không có constructor thông thường” theo hợp đồng API: **không có constructor công khai cho ứng dụng gọi**. Không cần dựa vào số lượng hoặc chữ ký constructor nội bộ của implementation JDK để giải thích cơ chế này.
+When the runtime needs to know a type, the JVM uses class loading, linking, and (when appropriate conditions occur) initialization. The `Class` object is the gateway reflecting the type definition recognized by the runtime.
 
-## 3. Các cách hợp lệ để lấy một đối tượng `Class`
+- `Class` represents **the type**, whereas `new Person()` creates an **instance** of type `Person`.
+- Source code cannot self-supply internal type information and validity guarantees by calling `new Class()`.
+- For the same type defined by the same **defining class loader**, ordinary ways of getting `Class` reference the same `Class` object. Two different class loaders can define two separate types even with the same binary name.
+- *Loading*, *linking*, and *initialization* are distinct steps; obtaining `Class` does not always mean the type's static initializer has run.
 
-| Cách | Ví dụ | Khi nào dùng? |
+Understand the phrase "`Class` has no normal constructor" in terms of the API contract: **there is no public constructor for applications to call**. There is no need to rely on the count or signatures of internal JDK implementation constructors to explain this mechanism.
+
+## 3. Valid ways to obtain a `Class` object
+
+| Way | Example | When to use? |
 | --- | --- | --- |
-| Class literal | `Person.class` | Đã biết kiểu tại thời điểm biên dịch; an toàn và rõ ràng. |
-| `Object.getClass()` | `person.getClass()` | Đã có đối tượng và cần kiểu runtime thực tế của nó. |
-| `Class.forName(String)` | `Class.forName("com.example.Person")` | Chỉ có tên nhị phân của kiểu dưới dạng chuỗi, thường gặp ở cấu hình/plugin; có thể ném `ClassNotFoundException`. |
-| `Class.forName(String, boolean, ClassLoader)` | `Class.forName(name, false, loader)` | Cần chọn class loader và kiểm soát việc khởi tạo lớp. |
-| `ClassLoader.loadClass(String)` | `loader.loadClass(name)` | Muốn yêu cầu class loader đã chọn tìm/nạp kiểu; thông thường không chủ động khởi tạo lớp ở bước này. |
+| Class literal | `Person.class` | Type is already known at compile time; safe and clear. |
+| `Object.getClass()` | `person.getClass()` | Already have an object and need its actual runtime type. |
+| `Class.forName(String)` | `Class.forName("com.example.Person")` | Only have the type's binary name as a string, common in config/plugins; can throw `ClassNotFoundException`. |
+| `Class.forName(String, boolean, ClassLoader)` | `Class.forName(name, false, loader)` | Need to choose the class loader and control class initialization. |
+| `ClassLoader.loadClass(String)` | `loader.loadClass(name)` | Want to ask the chosen class loader to find/load the type; typically does not actively initialize the class at this step. |
 
-Cần phân biệt:
+Distinguish carefully:
 
-- `Person.class` là **class literal**, không phải lời gọi constructor, không tạo `Person` và bản thân biểu thức đó không kích hoạt khởi tạo `Person`.
-- `person.getClass()` trả về kiểu runtime thực sự. Với `Person` có subclass, giá trị này có thể khác `Person.class`. Nếu `person == null`, lời gọi gây `NullPointerException`.
-- `Class.forName(String)` dùng tên nhị phân (*binary name*) và mặc định yêu cầu khởi tạo lớp được tìm thấy; tùy trường hợp có thể phát sinh lỗi nạp/khởi tạo. Dạng ba tham số với `initialize = false` tránh yêu cầu khởi tạo tại lời gọi đó.
-- `ClassLoader.loadClass` và `Class.forName` xử lý tên kiểu và loader; chúng **không gọi constructor instance** của lớp được mô tả.
-- Khi biết kiểu qua chuỗi, cần xử lý trường hợp không tìm thấy lớp; không suy luận rằng một tên chuỗi bất kỳ đều hợp lệ.
+- `Person.class` is a **class literal**, not a constructor call; it does not create a `Person`, and the expression itself does not trigger `Person` initialization.
+- `person.getClass()` returns the actual runtime type. When `Person` has subclasses, this value can differ from `Person.class`. If `person == null`, the call causes `NullPointerException`.
+- `Class.forName(String)` uses a *binary name* and by default requests initialization of the found class; depending on the case, it can raise loading/initialization errors. The three-parameter form with `initialize = false` avoids requesting initialization in that call.
+- `ClassLoader.loadClass` and `Class.forName` handle type names and loaders; they **do not invoke an instance constructor** of the described class.
+- When knowing a type via a string, you must handle the case where the class is not found; do not assume any arbitrary string name is valid.
 
-## 4. Ví dụ chạy được: ba đường dẫn về cùng metadata
+## 4. Runnable example: three paths to the same metadata
 
-Lưu nội dung sau thành **`ClassMetadataDemo.java`**:
+Save the following contents as **`ClassMetadataDemo.java`**:
 
 ```java
 public class ClassMetadataDemo {
@@ -71,8 +71,8 @@ public class ClassMetadataDemo {
         Person person = new Person("Lan");
         Class<?> fromObject = person.getClass();
 
-        // getName() trả về tên nhị phân chính xác,
-        // kể cả khi Person là nested class.
+        // getName() returns the exact binary name,
+        // even when Person is a nested class.
         Class<?> fromName = Class.forName(Person.class.getName());
 
         System.out.println(fromLiteral == fromObject);
@@ -83,14 +83,14 @@ public class ClassMetadataDemo {
 }
 ```
 
-Biên dịch và chạy bằng Java 17+:
+Compile and run with Java 17+:
 
 ```bash
 javac ClassMetadataDemo.java
 java ClassMetadataDemo
 ```
 
-Kết quả chuẩn:
+Expected output:
 
 ```text
 true
@@ -99,21 +99,21 @@ ClassMetadataDemo$Person
 Lan
 ```
 
-Giải thích theo thứ tự:
+Step-by-step explanation:
 
-1. `Person.class` lấy metadata của `Person`; không thực thi `new Person(...)`.
-2. `new Person("Lan")` tạo instance. `person.getClass()` lấy metadata của instance ấy.
-3. `Class.forName(Person.class.getName())` tìm đúng kiểu bằng tên nhị phân (`$` phân tách nested class trong tên nhị phân).
-4. Ba biến `fromLiteral`, `fromObject` và `fromName` đều tham chiếu cùng một đối tượng `Class` trong ví dụ này, vì cùng kiểu và cùng defining class loader. Toán tử `==` kiểm tra đồng nhất tham chiếu.
-5. Dòng cuối đọc trường `name` từ **instance `Person`**, không phải từ `Class<Person>`.
+1. `Person.class` gets `Person`'s metadata; it does not execute `new Person(...)`.
+2. `new Person("Lan")` creates an instance. `person.getClass()` gets that instance's metadata.
+3. `Class.forName(Person.class.getName())` finds the exact type by binary name (`$` separates nested classes in binary names).
+4. All three variables `fromLiteral`, `fromObject`, and `fromName` reference the same `Class` object in this example, because it is the same type and same defining class loader. The `==` operator checks reference identity.
+5. The last line reads the `name` field from the **`Person` instance**, not from `Class<Person>`.
 
-Nếu `Person` được khai báo trong package, tên nhị phân có thêm package ở đầu; dùng `Person.class.getName()` giúp tránh nhầm tên nguồn và tên nhị phân.
+If `Person` is declared in a package, the binary name has the package prefixed; using `Person.class.getName()` helps avoid confusing source names and binary names.
 
-## 5. Nhận `Class` không phải là tạo instance của kiểu được mô tả
+## 5. Obtaining `Class` is not instantiating the described type
 
-Reflection cho phép lấy constructor **của kiểu được mô tả** rồi gọi constructor đó để tạo instance, nếu quyền truy cập và kiểu cho phép. Đây là một thao tác hoàn toàn khác với `new Class(...)`.
+Reflection allows fetching a constructor **of the described type** and invoking that constructor to create an instance, if access permissions and the type allow it. This is a completely different operation from `new Class(...)`.
 
-Lưu thành **`ReflectiveConstructionDemo.java`**:
+Save as **`ReflectiveConstructionDemo.java`**:
 
 ```java
 public class ReflectiveConstructionDemo {
@@ -122,14 +122,14 @@ public class ReflectiveConstructionDemo {
         }
 
         public String say() {
-            return "Xin chào";
+            return "Hello";
         }
     }
 
     public static void main(String[] args) throws ReflectiveOperationException {
         Class<Greeting> type = Greeting.class;
 
-        // Constructor<Greeting> mô tả constructor của Greeting.
+        // Constructor<Greeting> describes Greeting's constructor.
         Greeting instance = type.getDeclaredConstructor().newInstance();
 
         System.out.println(type.getSimpleName());
@@ -144,32 +144,32 @@ javac ReflectiveConstructionDemo.java
 java ReflectiveConstructionDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Greeting
-Xin chào
+Hello
 true
 ```
 
-Ở đây:
+Here:
 
-- `Greeting.class` trả về `Class<Greeting>`.
-- `getDeclaredConstructor()` lấy metadata của constructor không tham số thuộc `Greeting`.
-- `Constructor.newInstance()` tạo **một `Greeting` mới**, không tạo một `Class` mới.
-- Ví dụ dùng constructor `public` để không vướng hạn chế truy cập.
+- `Greeting.class` returns `Class<Greeting>`.
+- `getDeclaredConstructor()` gets metadata for `Greeting`'s no-argument constructor.
+- `Constructor.newInstance()` creates **a new `Greeting`**, not a new `Class`.
+- The example uses a `public` constructor to avoid access restrictions.
 
-Khi áp dụng thực tế, cần có chữ ký constructor phù hợp; constructor có thể không tồn tại, không truy cập được, ném exception, hoặc kiểu có thể không khởi tạo trực tiếp được (chẳng hạn interface/abstract class). Tránh dùng `Class.newInstance()`: API này đã deprecated; dùng `getDeclaredConstructor(...).newInstance(...)` để xử lý constructor và exception rõ ràng hơn.
+In practical usage, a matching constructor signature is required; the constructor might not exist, might be inaccessible, might throw an exception, or the type might not be directly instantiable (such as an interface/abstract class). Avoid `Class.newInstance()`: this API is deprecated; use `getDeclaredConstructor(...).newInstance(...)` for clearer constructor and exception handling.
 
-## 6. Lấy metadata không đồng nghĩa với khởi tạo lớp
+## 6. Getting metadata does not mean initializing the class
 
-Class literal như `LazyType.class` chỉ lấy đối tượng mô tả kiểu; nó không tự chạy static initializer của `LazyType`. Trái lại, `Class.forName(LazyType.class.getName())` yêu cầu khởi tạo lớp nếu chưa khởi tạo. Nếu cần lấy metadata theo tên mà chưa chủ động khởi tạo, dùng `Class.forName(name, false, loader)` với loader phù hợp.
+A class literal like `LazyType.class` only gets the object describing the type; it does not automatically run `LazyType`'s static initializer. In contrast, `Class.forName(LazyType.class.getName())` requests class initialization if not yet initialized. If you need metadata by name without actively initializing, use `Class.forName(name, false, loader)` with an appropriate loader.
 
-Cả hai cách vẫn trả về **đối tượng `Class`**, và việc khởi tạo lớp (chạy mã `static`) vẫn khác với **tạo instance** bằng `new LazyType()` hoặc gọi constructor qua Reflection. Các trình tự và ngoại lệ khởi tạo thuộc bài riêng về vòng đời lớp.
+Both ways still return a **`Class` object**, and class initialization (running `static` code) still differs from **creating an instance** via `new LazyType()` or invoking a constructor through Reflection. Initialization sequences and exceptions belong to the separate lesson on class lifecycle.
 
-## 7. `Class` cũng mô tả kiểu không có constructor instance thông thường
+## 7. `Class` also describes types without ordinary instance constructors
 
-`Class` không chỉ dùng cho lớp có thể `new`:
+`Class` is not only for classes that can be instantiated with `new`:
 
 ```java
 Class<?> primitiveType = int.class;
@@ -178,40 +178,40 @@ Class<?> arrayType = String[].class;
 Class<?> interfaceType = Runnable.class;
 ```
 
-- `int.class`, `void.class` và `String[].class` đều là các đối tượng `Class` hợp lệ.
-- `Runnable.class` mô tả một interface; interface không có instance constructor để gọi bằng `new Runnable()`.
-- Không được suy ra từ việc có `Class<?>` rằng kiểu đó có một constructor không tham số hay có thể tạo instance trực tiếp.
-- `Class.forName("int")` không phải cách lấy `int.class`; tên primitive không được tìm theo cách đó.
-- Do type erasure, `List<String>.class` là cú pháp không hợp lệ; dùng `List.class`. Thông tin type argument cụ thể có thể cần phân tích ở `Type`/`ParameterizedType` trong ngữ cảnh thích hợp, không nằm trong một `Class<List<String>>` riêng biệt.
+- `int.class`, `void.class`, and `String[].class` are all valid `Class` objects.
+- `Runnable.class` describes an interface; interfaces have no instance constructor to call with `new Runnable()`.
+- You must not infer from having a `Class<?>` that the type has a no-argument constructor or can be directly instantiated.
+- `Class.forName("int")` is not how to get `int.class`; primitive names are not looked up that way.
+- Due to type erasure, `List<String>.class` is invalid syntax; use `List.class`. Specific type argument information may need analysis via `Type`/`ParameterizedType` in an appropriate context, rather than residing in a separate `Class<List<String>>`.
 
-Điều này càng cho thấy `Class` là đại diện cho **một kiểu runtime**, không phải một lớp do ứng dụng tự dựng bằng constructor.
+This further shows that `Class` represents **a runtime type**, not a class that applications construct themselves via a constructor.
 
-## 8. Lỗi hay gặp và cách sửa
+## 8. Common mistakes and fixes
 
-| Viết sai hoặc hiểu sai | Vấn đề | Cách đúng |
+| Mistake or misconception | Problem | Correct approach |
 | --- | --- | --- |
-| `new Class<>()` | `Class` không có constructor công khai cho ứng dụng. | Dùng `SomeType.class`, `obj.getClass()` hoặc `Class.forName(...)`. |
-| Dùng `SomeType.class` rồi mong đã có instance `SomeType` | Class literal chỉ lấy metadata kiểu. | Gọi `new SomeType(...)` hoặc constructor reflection khi cần instance. |
-| Dùng `Class.forName("Person")` cho nested/packaged type mà không có tên nhị phân phù hợp | Không tìm thấy class theo tên cung cấp. | Dùng tên nhị phân đầy đủ hoặc lấy `Person.class.getName()`. |
-| Gọi `value.getClass()` khi `value` null | `NullPointerException`. | Kiểm tra null hoặc dùng `SomeType.class` nếu biết kiểu. |
-| Giả định `Class.forName(...)` luôn an toàn và không có side effect | Bản một tham số có thể kích hoạt khởi tạo lớp và exception liên quan. | Xử lý lỗi, cân nhắc overload ba tham số khi cần kiểm soát initialization. |
-| Gọi `getDeclaredConstructor().newInstance()` với mọi `Class<?>` | Có thể không có constructor phù hợp, không đủ quyền truy cập hoặc kiểu không thể được tạo trực tiếp. | Kiểm tra loại kiểu, constructor, quyền truy cập và xử lý `ReflectiveOperationException` thích hợp. |
-| Dùng `Class.newInstance()` | API cũ deprecated, kém rõ ràng về constructor và lỗi phát sinh. | Dùng `getDeclaredConstructor(...).newInstance(...)`. |
-| Xem cùng tên class là cùng một kiểu ở mọi class loader | Danh tính runtime của kiểu còn phụ thuộc defining class loader. | Kiểm tra loader/kiểu thực tế khi làm plugin, module runtime hoặc custom loading. |
+| `new Class<>()` | `Class` has no public constructor for applications. | Use `SomeType.class`, `obj.getClass()`, or `Class.forName(...)`. |
+| Using `SomeType.class` and expecting an instance of `SomeType` | Class literal only gets type metadata. | Call `new SomeType(...)` or constructor reflection when an instance is needed. |
+| Using `Class.forName("Person")` for nested/packaged types without the proper binary name | Class not found for the supplied name. | Use the full binary name or `Person.class.getName()`. |
+| Calling `value.getClass()` when `value` is null | `NullPointerException`. | Check for null or use `SomeType.class` if the type is known. |
+| Assuming `Class.forName(...)` is always safe and side-effect free | The single-argument overload can trigger class initialization and related exceptions. | Handle errors, consider the three-argument overload when initialization control is needed. |
+| Calling `getDeclaredConstructor().newInstance()` on any `Class<?>` | There may be no matching constructor, insufficient access rights, or a non-instantiable type. | Check the type kind, constructors, access rights, and handle `ReflectiveOperationException` appropriately. |
+| Using `Class.newInstance()` | Old deprecated API, less clear about constructors and thrown errors. | Use `getDeclaredConstructor(...).newInstance(...)`. |
+| Treating the same class name as the same type across all class loaders | Runtime type identity also depends on the defining class loader. | Check actual loaders/types when working with plugins, runtime modules, or custom loading. |
 
-## 9. Cách chọn API trong thực tế
+## 9. Choosing the right API in practice
 
-- **Biết trước kiểu**: ưu tiên `Foo.class`; compiler kiểm tra tên kiểu và có generic type phù hợp, ví dụ `Class<Foo>`.
-- **Đã có đối tượng**: dùng `obj.getClass()` để biết chính xác runtime type, đặc biệt khi có kế thừa/đa hình.
-- **Có tên kiểu từ cấu hình**: dùng `Class.forName(...)`, đồng thời kiểm soát dữ liệu đầu vào, class loader, thời điểm initialization và exception.
-- **Cần tạo instance động**: trước hết lấy `Class`, sau đó tìm và gọi constructor **của kiểu được mô tả**; không tìm cách tạo thêm một `Class` bằng `new`.
+- **Type known in advance**: prefer `Foo.class`; the compiler checks the type name and gives an appropriate generic type, e.g. `Class<Foo>`.
+- **Already have an object**: use `obj.getClass()` to know the exact runtime type, especially with inheritance/polymorphism.
+- **Have a type name from configuration**: use `Class.forName(...)`, while controlling input data, class loader, initialization timing, and exceptions.
+- **Need to create an instance dynamically**: first obtain `Class`, then locate and invoke a constructor **of the described type**; do not try to create another `Class` with `new`.
 
-## 10. Tự kiểm tra
+## 10. Self-check
 
-1. Vì sao `Person.class` trả về một `Class<Person>` mà không cần `new Class<Person>()`?
-2. `Person.class` và `new Person().getClass()` giống nhau trong điều kiện nào? Khi nào biến kiểu `Person` trỏ tới subclass thì kết quả có thể khác?
-3. `Class.forName(String)` khác `Person.class` thế nào về cách xác định tên và khả năng kích hoạt static initialization?
-4. Gọi `type.getDeclaredConstructor().newInstance()` tạo đối tượng thuộc kiểu nào?
-5. Vì sao `int.class` và `Runnable.class` là giá trị hợp lệ dù không thể gọi constructor instance thông thường?
+1. Why does `Person.class` return a `Class<Person>` without needing `new Class<Person>()`?
+2. Under what condition are `Person.class` and `new Person().getClass()` the same? When a variable of type `Person` points to a subclass, when can the result differ?
+3. How does `Class.forName(String)` differ from `Person.class` regarding name specification and the ability to trigger static initialization?
+4. What type of object does calling `type.getDeclaredConstructor().newInstance()` create?
+5. Why are `int.class` and `Runnable.class` valid values even though normal instance constructors cannot be called on them?
 
-**Ghi nhớ:** `Class` là đối tượng metadata do JVM/runtime quản lý. Ta **lấy tham chiếu `Class` qua class literal, instance, tên kiểu hoặc class loader**, rồi dùng metadata để tìm hiểu hay thao tác với kiểu. Ta **không tạo đối tượng `Class` bằng constructor thông thường**; constructor reflection (nếu phù hợp) dùng để tạo **instance của kiểu được mô tả**.
+**Remember:** `Class` is a metadata object managed by the JVM/runtime. You **obtain a `Class` reference via a class literal, an instance, a type name, or a class loader**, and then use that metadata to inspect or work with the type. You **do not create `Class` objects with a normal constructor**; constructor reflection (when applicable) is used to create **an instance of the described type**.

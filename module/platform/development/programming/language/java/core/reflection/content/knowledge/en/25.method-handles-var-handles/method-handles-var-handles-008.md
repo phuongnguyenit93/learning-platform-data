@@ -1,34 +1,34 @@
-# VarHandle cho field hoặc phần tử mảng trong Java
+# VarHandle for Fields or Array Elements in Java
 
-## 1. VarHandle giải quyết vấn đề gì?
+## 1. What Problem Does VarHandle Solve?
 
-Khi làm việc với Java Reflection, ta có thể lấy và sửa giá trị của field thông qua `java.lang.reflect.Field`. Với code đồng thời (concurrency), ta còn cần chỉ định **cách đọc/ghi bộ nhớ** và đôi khi phải thực hiện các thao tác **nguyên tử** như tăng biến đếm hoặc đổi giá trị nếu nó vẫn bằng giá trị mong đợi. Từ Java 9, `java.lang.invoke.VarHandle` cung cấp một cách truy cập biến có kiểu rõ ràng và nhiều chế độ truy cập (access mode).
+When working with Java Reflection, you can read and modify field values via `java.lang.reflect.Field`. In concurrent code, you also need to specify **how memory is read/written** and sometimes perform **atomic** operations such as incrementing a counter or swapping a value only if it still equals an expected value. Since Java 9, `java.lang.invoke.VarHandle` provides strongly typed variable access with multiple access modes.
 
-Một `VarHandle` đại diện cho **vị trí lưu biến**: một instance field, static field, phần tử mảng hoặc dạng view trên vùng nhớ được các factory tương ứng hỗ trợ. Bài này tập trung vào **field và phần tử mảng**. Khác với `MethodHandle` đại diện cho thao tác gọi, `VarHandle` đại diện cho **biến được truy cập** cùng tập thao tác hợp lệ trên biến đó.
+A `VarHandle` represents a **variable storage location**: an instance field, static field, array element, or view over memory supported by corresponding factories. This lesson focuses on **fields and array elements**. Unlike `MethodHandle`, which represents an invocation operation, `VarHandle` represents **the accessed variable** together with the set of valid operations on that variable.
 
-Điểm cần phân biệt:
+Points to distinguish:
 
-- **Biến nào?** Một field cụ thể hoặc một phần tử của một loại mảng.
-- **Định vị biến ra sao?** Instance field cần đối tượng receiver; static field không cần receiver; phần tử mảng cần đối tượng mảng và chỉ số.
-- **Thao tác nào?** Đọc/ghi thường (`get`/`set`), đọc/ghi với quy tắc memory ordering (`getVolatile`/`setVolatile`, `getAcquire`/`setRelease`, v.v.), hoặc thao tác nguyên tử như `compareAndSet` và `getAndAdd`.
-- **Có quyền hay không?** Tra cứu field vẫn tuân thủ kiểm soát truy cập Java/module. Có handle không phải giấy phép sửa mọi field: access mode không được hỗ trợ vẫn có thể bị từ chối.
+- **Which variable?** A specific field or an element of an array type.
+- **How is the variable located?** An instance field needs a receiver object; a static field needs no receiver; an array element needs an array object and an index.
+- **Which operation?** Plain read/write (`get`/`set`), read/write with memory-ordering rules (`getVolatile`/`setVolatile`, `getAcquire`/`setRelease`, etc.), or atomic operations like `compareAndSet` and `getAndAdd`.
+- **Is access permitted?** Field lookup still obeys Java/module access controls. Having a handle is not a license to mutate every field: unsupported access modes can still be rejected.
 
-## 2. Mô hình variable type và coordinate types
+## 2. Variable Type and Coordinate Types Model
 
-Một `VarHandle` có hai thông tin đặc trưng:
+A `VarHandle` has two defining properties:
 
-1. `varType()`: kiểu dữ liệu của biến được truy cập, ví dụ `int.class`, `String.class`.
-2. `coordinateTypes()`: danh sách kiểu để **xác định vị trí** của biến. Đây không phải danh sách tham số của phương thức Java thông thường.
+1. `varType()`: the data type of the accessed variable, such as `int.class` or `String.class`.
+2. `coordinateTypes()`: the list of types used to **locate** the variable. This is not an ordinary Java method parameter list.
 
-| Vị trí biến | Cách lấy handle | `varType()` | `coordinateTypes()` | Ví dụ đọc |
+| Variable Location | How to Obtain Handle | `varType()` | `coordinateTypes()` | Read Example |
 | --- | --- | --- | --- | --- |
 | Instance field `Counter.value: int` | `lookup.findVarHandle(Counter.class, "value", int.class)` | `int` | `[Counter]` | `(int) vh.get(counter)` |
 | Static field `Config.level: int` | `lookup.findStaticVarHandle(Config.class, "level", int.class)` | `int` | `[]` | `(int) vh.get()` |
-| Phần tử `int[]` | `MethodHandles.arrayElementVarHandle(int[].class)` | `int` | `[int[], int]` | `(int) vh.get(numbers, index)` |
+| `int[]` element | `MethodHandles.arrayElementVarHandle(int[].class)` | `int` | `[int[], int]` | `(int) vh.get(numbers, index)` |
 
-Các lời gọi bên phải được minh họa dưới giả định `vh` là handle phù hợp với dòng tương ứng. Với `arrayElementVarHandle`, handle đại diện cho **cách truy cập phần tử của loại mảng**, chưa gắn với một mảng hoặc một vị trí cố định nào: truyền mảng và index vào mỗi lần gọi.
+The calls on the right are illustrated assuming `vh` is the handle matching that row. With `arrayElementVarHandle`, the handle represents **accessing elements of that array type**, not bound to any specific array or index: pass the array and index on each call.
 
-Cách xác định đối số cho một access mode:
+How arguments are determined for an access mode:
 
 ```text
 instance field:  get(receiver)                     set(receiver, value)
@@ -39,11 +39,11 @@ compareAndSet:   compareAndSet(coordinates..., expected, update)
 getAndAdd:       getAndAdd(coordinates..., delta)
 ```
 
-`coordinates...` là toàn bộ tọa độ phù hợp với loại handle. Với `get`, kết quả có kiểu `varType`; với `set`, lời gọi không có kết quả; với `compareAndSet`, kết quả kiểu `boolean`; với `getAndAdd`, kết quả là giá trị **trước** khi cộng.
+`coordinates...` are all coordinates matching the handle kind. For `get`, the result has type `varType`; for `set`, the call produces no result; for `compareAndSet`, the result type is `boolean`; for `getAndAdd`, the result is the value **before** adding.
 
-## 3. Tạo VarHandle cho instance field
+## 3. Creating a VarHandle for an Instance Field
 
-Dùng `MethodHandles.Lookup.findVarHandle`:
+Use `MethodHandles.Lookup.findVarHandle`:
 
 ```java
 MethodHandles.Lookup lookup = MethodHandles.lookup();
@@ -54,26 +54,26 @@ VarHandle valueHandle = lookup.findVarHandle(
 );
 ```
 
-Trong ví dụ này, `Counter` có field instance tên `value` kiểu `int`. Field **không** phải static. Khi tra cứu, loại `int.class` phải khớp kiểu khai báo của field; khi truy cập, cần receiver là một `Counter` hợp lệ.
+In this example, `Counter` has an instance field named `value` of type `int`. The field is **not** static. During lookup, `int.class` must match the field's declared type; when accessing, a valid `Counter` receiver is required.
 
-Nếu field khai báo `private`, lookup phải có quyền private tương ứng. `MethodHandles.lookup()` được gắn với lớp nơi nó được gọi; việc di chuyển mã lookup sang lớp khác có thể làm thay đổi quyền. `MethodHandles.publicLookup()` không tự cung cấp quyền private. Các quy tắc package và Java module cũng áp dụng; `privateLookupIn` chỉ hoạt động khi thỏa điều kiện truy cập cần thiết.
+If the field is declared `private`, the lookup must hold corresponding private permissions. `MethodHandles.lookup()` is bound to the class where it is called; moving the lookup code to another class can alter permissions. `MethodHandles.publicLookup()` does not grant private access by itself. Package and Java module rules also apply; `privateLookupIn` works only when required access conditions are met.
 
-Ví dụ thao tác trên cùng một handle:
+Example operations on the same handle:
 
 ```java
-valueHandle.set(counter, 10);                            // Ghi plain.
-int current = (int) valueHandle.get(counter);             // Đọc plain.
-int old = (int) valueHandle.getAndAdd(counter, 5);        // Cộng nguyên tử, trả giá trị cũ.
+valueHandle.set(counter, 10);                            // Plain write.
+int current = (int) valueHandle.get(counter);             // Plain read.
+int old = (int) valueHandle.getAndAdd(counter, 5);        // Atomic add, returns old value.
 boolean changed = (boolean) valueHandle.compareAndSet(
-    counter, 15, 20                                      // Chỉ đổi 15 -> 20 nếu còn là 15.
+    counter, 15, 20                                      // Swap 15 -> 20 only if still 15.
 );
 ```
 
-Đây là **đoạn mã minh họa**, dùng biến `valueHandle` và `counter` đã tạo ở nơi khác; chương trình độc lập chạy được nằm ở mục 7. Lưu ý `get` và `set` là plain access, không nên dựa vào chúng thay cho quy tắc đồng bộ giữa các thread.
+This is an **illustrative snippet** using `valueHandle` and `counter` created elsewhere; a standalone runnable program appears in section 7. Note that `get` and `set` are plain accesses and should not be relied upon in place of cross-thread synchronization rules.
 
-## 4. VarHandle cho static field
+## 4. VarHandle for a Static Field
 
-Với field `static`, phải dùng `findStaticVarHandle`:
+For a `static` field, you must use `findStaticVarHandle`:
 
 ```java
 VarHandle sharedHandle = lookup.findStaticVarHandle(
@@ -86,13 +86,13 @@ sharedHandle.setVolatile(7);
 int level = (int) sharedHandle.getVolatile();
 ```
 
-Dòng đầu giả định `Config` có static field `level` kiểu `int` và lookup có quyền truy cập; đoạn này minh họa trong ngữ cảnh có biến `lookup`. Khác với instance field, `sharedHandle.coordinateTypes()` rỗng, nên **không** truyền đối tượng `Config` vào `getVolatile` hoặc `setVolatile`.
+The first line assumes `Config` has a static field `level` of type `int` and the lookup has access permission; this snippet illustrates within a context holding `lookup`. Unlike an instance field, `sharedHandle.coordinateTypes()` is empty, so **do not** pass a `Config` object to `getVolatile` or `setVolatile`.
 
-Không tráo `findVarHandle` với `findStaticVarHandle`: hai API tra cứu hai loại field khác nhau. Tên field, lớp khai báo và kiểu field phải đúng. Đây là khác biệt về **định vị biến**, còn các access mode được hỗ trợ vẫn phụ thuộc loại field và kiểu giá trị.
+Do not swap `findVarHandle` with `findStaticVarHandle`: the two APIs look up two different kinds of fields. The field name, declaring class, and field type must be exact. This is a difference in **locating the variable**, while supported access modes still depend on field kind and value type.
 
-## 5. VarHandle cho phần tử mảng
+## 5. VarHandle for an Array Element
 
-Dùng factory:
+Use the factory:
 
 ```java
 VarHandle elementHandle = MethodHandles.arrayElementVarHandle(int[].class);
@@ -103,24 +103,24 @@ elementHandle.set(scores, 1, 25);                    // scores[1] = 25
 int old = (int) elementHandle.getAndAdd(scores, 2, 5); // old = 30; scores[2] = 35
 ```
 
-Đoạn này là minh họa độc lập về cú pháp khi được đặt trong method có import tương ứng. Một handle được tạo từ `int[].class` có thể làm việc với nhiều đối tượng `int[]` khác nhau; mỗi lần gọi đều cần truyền **mảng** và **chỉ số**.
+This snippet is a standalone syntax illustration when placed in a method with the corresponding imports. One handle created from `int[].class` can operate on many different `int[]` instances; every call must pass **the array** and **the index**.
 
-Các lưu ý:
+Notes:
 
-- `arrayElementVarHandle` nhận **loại mảng**, ví dụ `int[].class` hoặc `String[].class`, không nhận một instance mảng làm tham số factory.
-- Với mảng `int[]`, `varType()` là `int.class`; `coordinateTypes()` chứa kiểu mảng `int[].class` và `int.class` cho chỉ số.
-- Một index ngoài giới hạn sẽ gây `ArrayIndexOutOfBoundsException`; receiver mảng `null` gây `NullPointerException`.
-- Những phép toán như `getAndAdd` chỉ có ý nghĩa trên kiểu dữ liệu được access mode đó hỗ trợ. Không mặc định áp dụng phép cộng cho `String[]`.
-- Nếu là mảng tham chiếu, quy tắc tương thích kiểu phần tử của Java vẫn có hiệu lực, kể cả kiểm tra lưu phần tử vào mảng thực tế.
+- `arrayElementVarHandle` accepts an **array class**, such as `int[].class` or `String[].class`, not an array instance as the factory parameter.
+- For `int[]`, `varType()` is `int.class`; `coordinateTypes()` contains the array type `int[].class` and `int.class` for the index.
+- An out-of-bounds index throws `ArrayIndexOutOfBoundsException`; a `null` array receiver throws `NullPointerException`.
+- Operations like `getAndAdd` are meaningful only for data types supported by that access mode. Do not assume addition applies to `String[]`.
+- For reference arrays, Java's element type compatibility rules remain in force, including array store checks at runtime.
 
-## 6. Định vị biến khác với chọn access mode
-Khi đã tạo `VarHandle` cho đúng vị trí, mỗi phép toán còn có **quy tắc truy cập** riêng. `get`/`set` có ngữ nghĩa plain, `getVolatile`/`setVolatile` có ngữ nghĩa volatile, `getAcquire`/`setRelease` dùng trong giao thức publish/consume, còn `compareAndSet` và `getAndAdd` là các phép cập nhật nguyên tử khi được hỗ trợ. Phải dùng `isAccessModeSupported(VarHandle.AccessMode.GET_AND_ADD)` nếu công cụ xử lý động không biết trước kiểu biến.
+## 6. Locating a Variable vs Choosing an Access Mode
+Once a `VarHandle` is created for the right location, each operation also has its own **access rules**. `get`/`set` have plain semantics, `getVolatile`/`setVolatile` have volatile semantics, `getAcquire`/`setRelease` are used in publish/consume protocols, and `compareAndSet` and `getAndAdd` are atomic update operations when supported. You must use `isAccessModeSupported(VarHandle.AccessMode.GET_AND_ADD)` if dynamic tooling does not know the variable type in advance.
 
-Hai phép `get` rồi `set` vẫn là hai thao tác rời, vì vậy không thay thế `getAndAdd` khi nhiều luồng cùng tăng biến. Tương tự, `get` hoặc `set` plain không đủ để tự tạo quan hệ happens-before giữa các luồng. Khi nghiên cứu đồng thời, phải xác định đúng access mode và giao thức chia sẻ dữ liệu; bài về memory ordering trong cùng chương phân tích các điều kiện này đầy đủ hơn.
+Two separate calls `get` then `set` remain two distinct operations, so they cannot replace `getAndAdd` when multiple threads increment a variable concurrently. Likewise, plain `get` or `set` is insufficient to establish happens-before relationships between threads on its own. When studying concurrency, you must identify the right access mode and data-sharing protocol; the lesson on memory ordering in this same chapter analyzes these conditions thoroughly.
 
-## 7. Chương trình đầy đủ: instance field, static field và mảng
+## 7. Complete Program: Instance Field, Static Field, and Array
 
-Lưu toàn bộ code dưới đây thành `VarHandleDemo.java`, sử dụng JDK 17+.
+Save all the code below as `VarHandleDemo.java`, using JDK 17+.
 
 ```java
 import java.lang.invoke.MethodHandles;
@@ -169,14 +169,14 @@ public class VarHandleDemo {
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa file:
+Compile and run from the directory containing the file:
 
 ```bash
 javac -encoding UTF-8 VarHandleDemo.java
 java VarHandleDemo
 ```
 
-**Đầu ra xác định** (đã được kiểm tra trên JDK 21):
+**Deterministic output** (verified on JDK 21):
 
 ```text
 field initial = 10
@@ -193,37 +193,37 @@ array coordinates = 2
 variable type = int
 ```
 
-Phân tích từng nhóm:
+Group-by-group analysis:
 
-1. `field.setVolatile(counter, 10)` đặt giá trị ban đầu. `getAndAdd(counter, 5)` trả về **10** rồi biến đổi giá trị thành **15**; `compareAndSet(counter, 15, 21)` thành công và đưa giá trị thành **21**.
-2. `staticField` không cần truyền receiver: `setVolatile(7)` và `getVolatile()` truy cập trực tiếp field static.
-3. `element.set(numbers, 1, 40)` chỉnh phần tử thứ hai. `getAndAdd(numbers, 1, 2)` trả **40** và cập nhật phần tử thành **42**. CAS đổi phần tử index 2 từ **5** sang **50**.
-4. Ba kết quả tọa độ lần lượt là **1**, **0**, **2**, đúng với instance field, static field, array element; tất cả đều có `varType` là `int` trong ví dụ.
+1. `field.setVolatile(counter, 10)` sets the initial value. `getAndAdd(counter, 5)` returns **10** and changes the value to **15**; `compareAndSet(counter, 15, 21)` succeeds and brings the value to **21**.
+2. `staticField` needs no receiver: `setVolatile(7)` and `getVolatile()` access the static field directly.
+3. `element.set(numbers, 1, 40)` updates the second element. `getAndAdd(numbers, 1, 2)` returns **40** and updates the element to **42**. CAS swaps index 2 from **5** to **50**.
+4. The three coordinate counts are **1**, **0**, **2**, matching instance field, static field, and array element; all have `varType` equal to `int` in the example.
 
-Lớp `Counter` là lớp lồng nhau của `VarHandleDemo` và cả hai cùng *nest*, vì vậy lookup trong lớp ngoài có quyền truy cập field private của `Counter`. Khi chuyển code sang những lớp/module khác, cần xét lại quyền truy cập thay vì sao chép nguyên cú pháp lookup rồi giả định kết quả vẫn thành công.
+`Counter` is a nested class of `VarHandleDemo` and both share a *nest*, so the lookup in the outer class has permission to access `Counter`'s private field. When moving code into other classes/modules, re-evaluate access rights instead of copying the lookup syntax verbatim and assuming it will still succeed.
 
-## 8. Lỗi phổ biến và cách chẩn đoán
+## 8. Common Errors and Diagnosis
 
-| Lỗi / triệu chứng | Nguyên nhân thường gặp | Cách sửa |
+| Error / Symptom | Common Cause | Fix |
 | --- | --- | --- |
-| `NoSuchFieldException` khi tìm | Sai tên field, kiểu khai báo hoặc lựa chọn instance/static | Xem field thực tế, phân biệt `findVarHandle` với `findStaticVarHandle` |
-| `IllegalAccessException` khi tìm | Lookup không có quyền tới field hoặc module/package | Tạo lookup ở lớp có quyền thích hợp; xem modifier và `exports`/`opens`; không tùy tiện mở module |
-| `WrongMethodTypeException` lúc gọi | Thiếu receiver, thiếu index, sai kiểu dữ liệu hoặc kiểu kết quả tại chỗ gọi | Kiểm tra `varType()`, `coordinateTypes()` và cast kết quả |
-| `ClassCastException` hoặc lỗi runtime khác | Đối tượng receiver hoặc giá trị runtime không tương thích | Kiểm tra kiểu đối tượng và kiểu biến thực tế |
-| `ArrayIndexOutOfBoundsException` / `NullPointerException` | Index không hợp lệ / mảng hoặc receiver null | Kiểm tra mảng, receiver và index trước khi gọi |
-| `UnsupportedOperationException` | Mode không hỗ trợ, ví dụ ghi qua handle của field `final` hoặc arithmetic trên kiểu không thích hợp | Dùng `isAccessModeSupported(...)`; chọn mode/kiểu dữ liệu khác |
-| Đếm sai khi nhiều thread cập nhật | Dùng cặp `get` rồi `set` dẫn tới lost update | Dùng thao tác nguyên tử như `getAndAdd` hoặc giải pháp đồng bộ phù hợp |
-| Hiểu nhầm dữ liệu giữa các thread | Dùng plain access mà mong hiệu ứng volatile | Chọn access mode và giao thức đồng bộ đúng Java Memory Model |
+| `NoSuchFieldException` on lookup | Wrong field name, declared type, or instance/static choice | Inspect the actual field; distinguish `findVarHandle` from `findStaticVarHandle` |
+| `IllegalAccessException` on lookup | Lookup lacks access to field or module/package | Create lookup in an appropriately privileged class; check modifiers and `exports`/`opens`; do not open modules arbitrarily |
+| `WrongMethodTypeException` on invocation | Missing receiver, missing index, wrong data type, or wrong return type at call site | Check `varType()`, `coordinateTypes()`, and result casts |
+| `ClassCastException` or other runtime error | Incompatible receiver object or runtime value | Check object type and actual variable type |
+| `ArrayIndexOutOfBoundsException` / `NullPointerException` | Invalid index / null array or receiver | Validate array, receiver, and index before calling |
+| `UnsupportedOperationException` | Unsupported mode, e.g. writing via a `final` field handle or arithmetic on an unsupported type | Use `isAccessModeSupported(...)`; choose another mode/data type |
+| Wrong count under multi-threaded updates | Using a `get` then `set` pair leading to lost updates | Use an atomic operation such as `getAndAdd` or an appropriate synchronization solution |
+| Misunderstood cross-thread data visibility | Using plain access while expecting volatile effects | Choose the right access mode and synchronization protocol per the Java Memory Model |
 
-Đừng dùng `VarHandle` như cách bỏ qua mọi quy tắc truy cập. Nó cung cấp cơ chế thao tác biến động và memory ordering, nhưng không miễn trừ quyền Java, kiểu dữ liệu, hay tính đúng đắn của thuật toán đồng thời.
+Do not treat `VarHandle` as a way to bypass all access rules. It provides dynamic variable operations and memory ordering, but does not exempt code from Java permissions, data types, or concurrent algorithm correctness.
 
-## 9. Bài luyện tập
+## 9. Practice Exercises
 
-1. Viết class `Book` chứa `private int copies`. Tạo `VarHandle` hợp lệ cho field, đọc và cập nhật số bản sao. Nêu `coordinateTypes()` của handle.
-2. Tạo `String[] names` và handle cho phần tử mảng. Vì sao `getAndAdd(names, 0, ...)` không phải thao tác phù hợp?
-3. Nếu `Config.active` là `static boolean`, cần dùng factory nào, và số coordinate là bao nhiêu?
-4. Hai thread cùng chạy `x = get(x) + 1; set(x)` thì vì sao kết quả cuối có thể nhỏ hơn tổng số lần tăng? Thay bằng API nào?
-5. Với `compareAndSet`, xác định expected/update và giải thích giá trị trả về. Nếu field là `final`, thao tác nào phải tránh?
-6. Thử dùng `isAccessModeSupported(VarHandle.AccessMode.GET_AND_ADD)` với một handle có kiểu biến không hỗ trợ phép cộng, rồi giải thích kết quả.
+1. Write a `Book` class containing `private int copies`. Create a valid `VarHandle` for the field, read and update the copy count. State the handle's `coordinateTypes()`.
+2. Create a `String[] names` array and an array-element handle. Why is `getAndAdd(names, 0, ...)` not an appropriate operation?
+3. If `Config.active` is `static boolean`, which factory must be used, and how many coordinates are there?
+4. When two threads both run `x = get(x) + 1; set(x)`, why can the final result be smaller than the total number of increments? Which API should replace it?
+5. For `compareAndSet`, identify expected/update and explain the return value. If the field is `final`, which operations must be avoided?
+6. Try calling `isAccessModeSupported(VarHandle.AccessMode.GET_AND_ADD)` on a handle whose variable type does not support addition, and explain the result.
 
-**Mục tiêu hoàn thành:** người học xác định được kiểu biến và tọa độ cho instance/static field và phần tử mảng; tạo đúng handle; gọi đúng `get`, `set`, `getAndAdd`, `compareAndSet`; chọn access mode theo yêu cầu đồng thời và nhận diện giới hạn truy cập.
+**Completion goal:** learners can determine the variable type and coordinates for instance/static fields and array elements; create the right handle; invoke `get`, `set`, `getAndAdd`, and `compareAndSet` properly; choose access modes based on concurrency requirements; and recognize access limitations.

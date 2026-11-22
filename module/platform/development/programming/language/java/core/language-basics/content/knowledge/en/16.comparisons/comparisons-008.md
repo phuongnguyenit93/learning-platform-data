@@ -1,18 +1,18 @@
-# Xây dựng điều kiện kiểm tra miền giá trị rõ ràng — Java 17+
+# Writing Clear Range Validation Conditions — Java 17+
 
-## 1. Mục tiêu
+## 1. Objective
 
-**Kiểm tra miền giá trị** (*range validation*) là xác định một giá trị có thuộc tập giá trị được phép hay không: tuổi từ 18 đến 65, chỉ số mảng từ 0 đến `length - 1`, tỷ lệ trong khoảng 0–1, một giá trị không được rơi vào vùng cấm, v.v.
+**Range validation** determines whether a value belongs to the set of permitted values: age from 18 to 65, array index from 0 to `length - 1`, ratio between 0 and 1, a value excluded from a forbidden zone, and so on.
 
-Trong Java, điều kiện đúng không chỉ cần **biên dưới và biên trên**, mà còn phải quy định:
+In Java, a correct condition does not just specify the **lower and upper bounds**; it must also define:
 
-- Hai biên **được lấy hay loại trừ**?
-- Chấp nhận **số âm**, số 0 và các giá trị cực trị không?
-- Hai điều kiện nối bằng **`&&` (và)** hay **`||` (hoặc)**?
-- Giá trị đến từ `int`/`long`, `float`/`double`, wrapper có thể null hay số decimal?
-- Nếu giới hạn bị khai báo sai (`min > max`) thì báo lỗi hay trả false?
+- Are the two bounds **inclusive or exclusive**?
+- Are **negative numbers**, zero, and extreme values accepted?
+- Are the two conditions joined with **`&&` (and)** or **`||` (or)**?
+- Does the value come from `int`/`long`, `float`/`double`, a nullable wrapper, or a decimal type?
+- If the bounds are misconfigured (`min > max`), should it throw an error or return false?
 
-Một biểu thức dễ đọc, đúng về ý nghĩa:
+A readable, semantically sound expression:
 
 ~~~java
 int age = 20;
@@ -21,22 +21,22 @@ boolean validAge = (age >= 18) && (age <= 65);
 System.out.println(validAge); // true
 ~~~
 
-Đây là **khoảng đóng** `[18, 65]`: bao gồm cả 18 và 65. Việc đặt dấu ngoặc riêng cho mỗi so sánh giúp làm rõ hai điều kiện; với biểu thức ngắn, có thể viết `age >= 18 && age <= 65`.
+This is the **closed interval** `[18, 65]`: both 18 and 65 are included. Putting parentheses around each comparison clarifies the two conditions; for short expressions, `age >= 18 && age <= 65` is also fine.
 
-## 2. Dịch yêu cầu thành khoảng toán học và điều kiện Java
+## 2. Translating Requirements into Mathematical Intervals and Java Conditions
 
-| Ý nghĩa | Ký hiệu toán học | Điều kiện Java |
+| Meaning | Mathematical notation | Java condition |
 |---|---|---|
-| Từ `min` đến `max`, lấy hai biên | `[min, max]` | `value >= min && value <= max` |
-| Nằm giữa, không lấy hai biên | `(min, max)` | `value > min && value < max` |
-| Lấy biên dưới, không lấy biên trên | `[min, max)` | `value >= min && value < max` |
-| Không lấy biên dưới, lấy biên trên | `(min, max]` | `value > min && value <= max` |
-| Nhỏ hơn `min` hoặc lớn hơn `max` | Ngoài `[min, max]` | `value < min || value > max` |
-| Không nhỏ hơn `min` | `[min, +∞)` | `value >= min` |
-| Nhỏ hơn `max` | `(-∞, max)` | `value < max` |
-| Bằng một đầu mút | `value = min` | `value == min` |
+| From `min` to `max`, including both bounds | `[min, max]` | `value >= min && value <= max` |
+| Between, excluding both bounds | `(min, max)` | `value > min && value < max` |
+| Including lower bound, excluding upper bound | `[min, max)` | `value >= min && value < max` |
+| Excluding lower bound, including upper bound | `(min, max]` | `value > min && value <= max` |
+| Less than `min` or greater than `max` | Outside `[min, max]` | `value < min || value > max` |
+| Not less than `min` | `[min, +∞)` | `value >= min` |
+| Less than `max` | `(-∞, max)` | `value < max` |
+| Equal to a boundary value | `value = min` | `value == min` |
 
-**Chọn `<` hay `<=` từ yêu cầu, không chọn tùy ý.** Ví dụ chỉ số mảng có `length` phần tử thường phải thuộc **`[0, length)`**, vì vị trí `length` không tồn tại:
+**Choose `<` or `<=` from the requirements, not arbitrarily.** For example, an index into an array of `length` elements must belong to **`[0, length)`**, because position `length` does not exist:
 
 ~~~java
 int[] numbers = {10, 20, 30};
@@ -45,76 +45,76 @@ boolean validIndex = index >= 0 && index < numbers.length;
 System.out.println(validIndex); // true
 ~~~
 
-Nếu `index == numbers.length`, điều kiện trả false. Trước khi truy cập mảng, vẫn cần kiểm tra rằng tham chiếu mảng không null nếu đầu vào có thể thiếu.
+If `index == numbers.length`, the condition returns false. Before indexing an array, you must still check that the array reference is not null if the input could be missing.
 
-## 3. Java không hỗ trợ so sánh dây chuyền kiểu toán học
+## 3. Java Does Not Support Mathematical Chained Comparisons
 
-Trong toán học có thể viết:
+In mathematics you can write:
 
 ~~~text
 18 <= age <= 65
 ~~~
 
-Nhưng Java **không** cho phép:
+However, Java **does not** allow:
 
 ~~~java
-// 18 <= age <= 65 // LỖI BIÊN DỊCH
+// 18 <= age <= 65 // COMPILATION ERROR
 ~~~
 
-Biểu thức `18 <= age` tạo `boolean`, không thể tiếp tục dùng `<= 65` với boolean và int.
+The expression `18 <= age` produces a `boolean`, which cannot then be used in `<= 65` between a boolean and an int.
 
-Viết hai phép so sánh đầy đủ:
+Write two complete comparisons:
 
 ~~~java
 boolean valid = (age >= 18) && (age <= 65);
 ~~~
 
-**Không** dùng `||` khi muốn nằm trong cả hai biên:
+Do **not** use `||` when you want the value to lie within both bounds:
 
 ~~~java
 int age = 100;
 boolean wrong = (age >= 18) || (age <= 65);
-System.out.println(wrong); // true: điều kiện sai về ý nghĩa
+System.out.println(wrong); // true: semantically wrong condition
 ~~~
 
-Với `min <= max`, điều kiện `value >= min || value <= max` hầu như luôn true đối với số nguyên: nó đang hỏi **“thỏa ít nhất một phía”**, không phải “ở giữa”.
+With `min <= max`, `value >= min || value <= max` is almost always true for integers: it asks **"satisfies at least one side"**, not "is in between".
 
-## 4. Kiểm tra ngoài miền: dùng `||`, không dùng `&&`
+## 4. Checking Outside a Range: Use `||`, Not `&&`
 
-Nếu miền hợp lệ là `[min, max]`, một số nguyên nằm **ngoài miền** khi:
+If the valid domain is `[min, max]`, an integer lies **outside the range** when:
 
 ~~~java
 boolean outside = (value < min) || (value > max);
 ~~~
 
-Một số nguyên không thể đồng thời nhỏ hơn min **và** lớn hơn max nếu `min <= max`, nên viết:
+An integer cannot simultaneously be less than `min` **and** greater than `max` when `min <= max`, so avoid writing:
 
 ~~~java
-// value < min && value > max // Sai khi định kiểm tra ngoài miền
+// value < min && value > max // Wrong when checking outside range
 ~~~
 
-Các cặp điều kiện tương đương trên số nguyên khi giới hạn hợp lệ:
+Equivalent condition pairs on integers when the bounds are valid:
 
-| Ý định | Biểu thức |
+| Intent | Expression |
 |---|---|
-| Trong khoảng đóng | `value >= min && value <= max` |
-| Ngoài khoảng đóng | `value < min || value > max` |
-| Phủ định điều kiện trong khoảng | `!(value >= min && value <= max)` |
-| Trong khoảng mở | `value > min && value < max` |
-| Ngoài khoảng mở | `value <= min || value >= max` |
+| Inside closed interval | `value >= min && value <= max` |
+| Outside closed interval | `value < min || value > max` |
+| Negated inside-range condition | `!(value >= min && value <= max)` |
+| Inside open interval | `value > min && value < max` |
+| Outside open interval | `value <= min || value >= max` |
 
-Đây là ứng dụng quy tắc **De Morgan**: `!(A && B)` tương đương `!A || !B`. Khi điều kiện phức tạp, nên đặt tên rõ:
+This applies **De Morgan's law**: `!(A && B)` is equivalent to `!A || !B`. For complex conditions, give intermediate booleans clear names:
 
 ~~~java
 boolean inside = (value >= min) && (value <= max);
 boolean rejected = !inside;
 ~~~
 
-**Lưu ý với `double` và `NaN`:** cách viết `value < min || value > max` **không nhận diện được NaN**, vì cả hai phép so sánh đều false khi `value` là NaN. Cách xử lý riêng sẽ có ở phần số thực.
+**Note on `double` and `NaN`:** `value < min || value > max` **does not catch NaN**, because both comparisons return false when `value` is NaN. Dedicated handling is covered in the floating-point section.
 
-## 5. `&&`, `||`, dấu ngoặc và short-circuit
+## 5. `&&`, `||`, Parentheses, and Short-Circuiting
 
-`&&` có mức ưu tiên cao hơn `||`. Khi kết hợp nhiều nhóm, đặt ngoặc theo **quy tắc nghiệp vụ**:
+`&&` has higher precedence than `||`. When combining multiple groups, add parentheses according to the **business rules**:
 
 ~~~java
 boolean adult = true;
@@ -128,30 +128,30 @@ System.out.println(ruleA); // true
 System.out.println(ruleB); // true
 ~~~
 
-Với bộ dữ liệu trên, cả hai đều true; nhưng **không đồng nghĩa** chúng luôn tương đương. Hãy xét `adult = false`, `verified = false`, `admin = true`: `ruleA` là false còn `ruleB` là true. Nếu điều kiện tuổi bắt buộc với mọi người, chỉ `adult && (verified || admin)` phản ánh đúng yêu cầu.
+With the inputs above, both evaluate to true; however, that **does not mean** they are always equivalent. Consider `adult = false`, `verified = false`, `admin = true`: `ruleA` is false while `ruleB` is true. If the age requirement is mandatory for everyone, only `adult && (verified || admin)` reflects the requirement accurately.
 
-Toán tử `&&` và `||` **đánh giá ngắn mạch**:
+The `&&` and `||` operators use **short-circuit evaluation**:
 
 ~~~java
 Integer age = null;
 boolean validAge = (age != null) && (age >= 18) && (age <= 65);
-System.out.println(validAge); // false, không unbox null
+System.out.println(validAge); // false, does not unbox null
 ~~~
 
-Nếu `age == null`, vế sau không chạy, tránh `NullPointerException`. Đừng thay `&&` bằng `&` nếu mục đích là bỏ qua phép kiểm tra tiếp theo khi điều kiện trước thất bại.
+If `age == null`, the remaining parts do not execute, avoiding `NullPointerException`. Do not replace `&&` with `&` when the goal is to skip subsequent checks if an earlier condition fails.
 
-## 6. Validate cấu hình biên trước khi dùng
+## 6. Validate Boundary Configuration Before Use
 
-Một miền `[min, max]` chỉ hợp lệ nếu `min <= max`. Nếu API nhận giới hạn đảo ngược:
+A range `[min, max]` is only valid if `min <= max`. If an API receives inverted bounds:
 
 ~~~java
 int min = 100;
 int max = 50;
 ~~~
 
-thì biểu thức `value >= min && value <= max` trả false cho mọi `int`, **che giấu lỗi cấu hình**.
+then `value >= min && value <= max` returns false for every `int`, **hiding a configuration bug**.
 
-Tạo hàm có hợp đồng rõ:
+Create a function with an explicit contract:
 
 ~~~java
 static boolean inClosedRange(int value, int min, int max) {
@@ -162,51 +162,51 @@ static boolean inClosedRange(int value, int min, int max) {
 }
 ~~~
 
-**Hai lựa chọn khác nhau:**
+**Two distinct design choices:**
 
-1. **Giới hạn sai là lỗi cấu hình:** ném `IllegalArgumentException`.
-2. **Khoảng rỗng là trạng thái có chủ đích:** có thể trả false, nhưng phải ghi rõ trong hợp đồng.
+1. **Invalid bounds are a configuration error:** throw `IllegalArgumentException`.
+2. **An empty range is an intentional state:** returning false can be acceptable, provided it is clearly documented in the contract.
 
-Bài này chọn cách đầu. Với miền `[min, max)`, nếu `min == max`, miền rỗng theo định nghĩa; không nhất thiết là lỗi — hãy quyết định phù hợp với API. Trong ví dụ Java đầy đủ, khoảng nửa mở cho phép hai biên bằng nhau và luôn trả false.
+This lesson chooses the first option. For `[min, max)`, if `min == max`, the interval is empty by definition and is not necessarily an error — decide based on your API design. In the complete Java example below, the half-open interval allows equal bounds and always returns false.
 
-## 7. Không kiểm tra miền số nguyên bằng phép trừ dễ tràn
+## 7. Do Not Validate Integer Ranges with Overflow-Prone Subtraction
 
-Dễ gặp cách viết:
+You may come across this pattern:
 
 ~~~java
-// KHÔNG NÊN:
+// AVOID:
 // value - min >= 0 && max - value >= 0
 ~~~
 
-Với `int`, phép trừ có thể **overflow** trước khi so sánh. Ví dụ:
+With `int`, subtraction can **overflow** before the comparison happens. For example:
 
 ~~~java
 int value = Integer.MAX_VALUE;
 int min = -1;
 
-System.out.println(value - min); // -2147483648: tràn int
+System.out.println(value - min); // -2147483648: int overflow
 ~~~
 
-Trong khi đó so sánh trực tiếp:
+By contrast, direct comparison:
 
 ~~~java
 boolean atLeastMin = value >= min;
 System.out.println(atLeastMin); // true
 ~~~
 
-đúng với miền giá trị nguyên mà không thực hiện phép trừ có nguy cơ overflow.
+is correct across the entire integer range without risking subtraction overflow.
 
-**Dùng so sánh trực tiếp** cho điều kiện miền; nếu thực sự cần tính độ dài khoảng, hãy cân nhắc chuyển rộng **trước phép trừ**:
+**Use direct comparisons** for range checks; if you genuinely need the interval width, widen types **before subtracting**:
 
 ~~~java
 long width = (long) max - (long) min;
 ~~~
 
-Đừng gán một kết quả trừ int đã tràn sang long rồi mong số được sửa lại.
+Do not assign an already-overflowed `int` subtraction result to a `long` expecting the number to fix itself.
 
-## 8. Số thực: `NaN`, Infinity và lựa chọn miền hợp lệ
+## 8. Floating-Point: `NaN`, Infinity, and Valid Range Choices
 
-Với `double`:
+For `double`:
 
 ~~~java
 double value = Double.NaN;
@@ -218,9 +218,9 @@ System.out.println(inside);         // false
 System.out.println(naivelyOutside); // false
 ~~~
 
-Cả hai đều false vì mọi phép so sánh thứ tự (`<`, `<=`, `>`, `>=`) có toán hạng NaN đều false. Nếu chỉ kiểm tra `outside` rồi suy rằng `!outside` là hợp lệ, NaN **có thể lọt qua**.
+Both return false because any ordering comparison (`<`, `<=`, `>`, `>=`) with a NaN operand returns false. If you only check `outside` and assume `!outside` means valid, NaN **can slip through**.
 
-Nếu miền dữ liệu cho phép **chỉ số hữu hạn**, dùng:
+If the valid domain allows **only finite numbers**, use:
 
 ~~~java
 static boolean inFiniteClosedRange(
@@ -232,18 +232,18 @@ static boolean inFiniteClosedRange(
 }
 ~~~
 
-Ở đây:
+Here:
 
-- `min`/`max` phải hữu hạn và theo đúng thứ tự.
-- `value` là `NaN` hoặc Infinity → false.
-- Cả `+0.0` và `-0.0` thỏa một miền đóng chứa 0.
-- Các so sánh là so đúng **giá trị `double` đã biểu diễn**.
+- `min` and `max` must be finite and properly ordered.
+- `value` being `NaN` or Infinity -> false.
+- Both `+0.0` and `-0.0` satisfy a closed range containing 0.
+- The comparisons test the exact **represented `double` values**.
 
-**Ranh giới số thực cần đặc tả rõ**: `0.1 + 0.2` trong double cho `0.30000000000000004`; vì vậy phép kiểm tra `value <= 0.3` trả false. Không tự mở rộng ngưỡng để làm kết quả “đẹp” nếu nghiệp vụ yêu cầu biên cứng. Với dữ liệu đo có dung sai thực tế, phải quy định và kiểm chứng **chính sách sai số** phù hợp; với giá trị thập phân đòi chính xác, cân nhắc `BigDecimal`.
+**Floating-point boundaries need explicit specification**: `0.1 + 0.2` in double yields `0.30000000000000004`, so `value <= 0.3` returns false. Do not widen bounds arbitrarily just to make results look "nice" when the business requires a strict boundary. For measured data with real-world tolerance, define and verify an appropriate **error-margin policy**; for decimal values requiring exactness, consider `BigDecimal`.
 
-## 9. `BigDecimal`: so miền theo giá trị thập phân
+## 9. `BigDecimal`: Range Validation on Exact Decimal Values
 
-Với số tiền hoặc tỷ lệ cần so đúng decimal, dùng `BigDecimal.compareTo`:
+For monetary amounts or ratios requiring exact decimal comparison, use `BigDecimal.compareTo`:
 
 ~~~java
 java.math.BigDecimal rate = new java.math.BigDecimal("0.30");
@@ -254,13 +254,13 @@ boolean valid = rate.compareTo(min) >= 0 && rate.compareTo(max) <= 0;
 System.out.println(valid); // true
 ~~~
 
-`compareTo` so **giá trị số**, không yêu cầu cùng scale. Ví dụ `new BigDecimal("1.0")` và `new BigDecimal("1.00")` có `compareTo == 0`, nhưng `equals` có thể false do khác scale.
+`compareTo` compares **numeric values** without requiring identical scales. For example, `new BigDecimal("1.0")` and `new BigDecimal("1.00")` yield `compareTo == 0`, whereas `equals` returns false because their scales differ.
 
-**Không khởi tạo BigDecimal từ `new BigDecimal(0.1)` nếu muốn chính xác giá trị decimal 0.1**. Tạo từ chuỗi `"0.1"` hoặc theo một đường chuyển đổi được đặc tả, và chuẩn hóa đơn vị/rounding theo nghiệp vụ.
+**Do not construct `BigDecimal` from `new BigDecimal(0.1)` if you want the exact decimal value 0.1**. Construct from the string `"0.1"` or follow a specified conversion path, and standardize units/rounding according to business rules.
 
-## 10. Miền hợp lệ có nhiều khoảng hoặc vùng cấm
+## 10. Valid Domains with Multiple Intervals or Forbidden Zones
 
-Ví dụ cho phép điểm nằm trong **`[1, 5]` hoặc `[10, 12]`**:
+For example, permitting scores within **`[1, 5]` or `[10, 12]`**:
 
 ~~~java
 boolean allowed =
@@ -268,7 +268,7 @@ boolean allowed =
         || (score >= 10 && score <= 12);
 ~~~
 
-Dấu ngoặc giúp thể hiện hai khoảng được **nối bằng OR**. Nếu đã có hàm:
+Parentheses show that the two intervals are **joined with OR**. Using helper methods:
 
 ~~~java
 boolean allowed =
@@ -276,18 +276,18 @@ boolean allowed =
         || inClosedRange(score, 10, 12);
 ~~~
 
-Ví dụ chỉ chấp nhận `[1, 10]` nhưng **loại trừ `[4, 6]`**:
+For example, accepting `[1, 10]` while **excluding `[4, 6]`**:
 
 ~~~java
 boolean allowed = inClosedRange(score, 1, 10)
         && !inClosedRange(score, 4, 6);
 ~~~
 
-**Bảo đảm ý nghĩa tại biên:** nếu `score = 4` hoặc 6, điều kiện vùng cấm đóng trả true và toàn điều kiện trả false. Nếu muốn cấm chỉ `(4, 6)`, phải dùng toán tử `>` và `<` thay vì `>=`, `<=`.
+**Verify boundary semantics:** if `score = 4` or 6, the closed exclusion condition returns true and the entire expression returns false. If you only want to forbid `(4, 6)`, use `>` and `<` instead of `>=` and `<=`.
 
-## 11. Guard clause: tách validation khỏi xử lý
+## 11. Guard Clauses: Separating Validation from Processing
 
-Thay vì nhồi điều kiện vào nhiều nhánh lồng nhau, một hàm có thể reject dữ liệu ngoài miền ngay đầu vào:
+Instead of burying conditions inside deeply nested branches, a method can reject out-of-range inputs up front:
 
 ~~~java
 static int requireAge(int age) {
@@ -298,61 +298,61 @@ static int requireAge(int age) {
 }
 ~~~
 
-Cách này giúp:
+This approach ensures:
 
-- Biên miền được kiểm tra ở **một nơi rõ ràng**.
-- Code xử lý chính chỉ chạy sau khi input hợp lệ.
-- Đặt test cho **giới hạn dưới, giới hạn trên và giá trị sát hai phía** dễ hơn.
-- Phân biệt rõ **lỗi tham số** với kết quả hợp lệ có giá trị `0` hoặc `false`.
+- Range bounds are checked in **one clear location**.
+- Core processing runs only after inputs are validated.
+- Writing tests for the **lower bound, upper bound, and values adjacent to both sides** is easier.
+- **Invalid argument errors** are clearly separated from valid results like `0` or `false`.
 
-Với ứng dụng nhận dữ liệu người dùng, có thể trả đối tượng kết quả validation thay vì ném ngoại lệ; đây là lựa chọn giao diện API, không thay đổi toán tử so sánh cơ bản.
+For user-input applications, you can return a validation result object instead of throwing an exception; that is an API-interface choice and does not change the underlying comparison operators.
 
 ~~~mermaid
 flowchart TD
-    A["Nhận value, min, max"] --> B{"Giới hạn hợp lệ?"}
-    B -- "Không" --> C["Báo lỗi cấu hình/đầu vào"]
-    B -- "Có" --> D{"Kiểu số thực? Cần finite?"}
-    D -- "Có" --> E{"Giá trị hữu hạn?"}
-    E -- "Không" --> F["Từ chối giá trị"]
-    E -- "Có" --> G{"Đạt hai điều kiện biên?"}
-    D -- "Không" --> G
-    G -- "Có" --> H["Hợp lệ"]
-    G -- "Không" --> F
+    A["Receive value, min, max"] --> B{"Valid bounds?"}
+    B -- "No" --> C["Report configuration/input error"]
+    B -- "Yes" --> D{"Floating-point? Require finite?"}
+    D -- "Yes" --> E{"Finite value?"}
+    E -- "No" --> F["Reject value"]
+    E -- "Yes" --> G{"Satisfies both boundary conditions?"}
+    D -- "No" --> G
+    G -- "Yes" --> H["Valid"]
+    G -- "No" --> F
 ~~~
 
-## 12. Bảng kiểm thử biên bắt buộc
+## 12. Essential Boundary Test Table
 
-Với miền đóng **`[10, 20]`**:
+For the closed interval **`[10, 20]`**:
 
-| Giá trị | Kết quả đúng | Lý do |
+| Value | Expected result | Reason |
 |---:|---|---|
-| `9` | false | Ngay dưới biên |
-| `10` | true | Bằng biên dưới |
-| `11` | true | Bên trong |
-| `20` | true | Bằng biên trên |
-| `21` | false | Ngay trên biên |
+| `9` | false | Just below lower bound |
+| `10` | true | Equals lower bound |
+| `11` | true | Inside range |
+| `20` | true | Equals upper bound |
+| `21` | false | Just above upper bound |
 
-Với miền nửa mở **`[0, 3)`** dành cho chỉ số:
+For the half-open index interval **`[0, 3)`**:
 
-| Giá trị | Kết quả đúng |
+| Value | Expected result |
 |---:|---|
 | `-1` | false |
 | `0` | true |
 | `2` | true |
 | `3` | false |
 
-Ngoài các giá trị thông thường, nên kiểm tra:
+Beyond ordinary values, also test:
 
-- `Integer.MIN_VALUE`, `Integer.MAX_VALUE` và các mốc gần chúng.
-- `min == max`, `min > max` theo hợp đồng hàm.
-- `null` với wrapper hoặc object đầu vào.
-- `Double.NaN`, hai dấu Infinity và signed zero nếu dùng floating-point.
-- Giá trị rất gần biên floating-point do làm tròn.
-- Các miền bị nối `||` hoặc loại trừ bằng `!`.
+- `Integer.MIN_VALUE`, `Integer.MAX_VALUE`, and values near them.
+- `min == max` and `min > max` per the function contract.
+- `null` for wrapper or object inputs.
+- `Double.NaN`, both signs of Infinity, and signed zeros when using floating-point.
+- Values very close to floating-point boundaries due to rounding.
+- Composite ranges joined with `||` or excluded with `!`.
 
-## 13. Chương trình Java 17 hoàn chỉnh — chạy được bằng CLI
+## 13. Complete Java 17 Program — Runnable via CLI
 
-Tạo đúng file **`RangeConditionDemo.java`**:
+Create the exact file **`RangeConditionDemo.java`**:
 
 ~~~java
 import java.math.BigDecimal;
@@ -498,7 +498,7 @@ public final class RangeConditionDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 trở lên, terminal mở tại thư mục chứa file; không cần Maven, Gradle hoặc thư viện bên ngoài JDK.
+**Requirements:** JDK 17 or later, terminal opened in the directory containing the file; no Maven, Gradle, or external libraries beyond the JDK needed.
 
 **Bash (Linux/macOS):**
 
@@ -549,77 +549,77 @@ bad integer bounds=min > max
 bad floating bounds=invalid floating bounds
 ~~~
 
-### Giải thích các nhóm kết quả
+### Explanation of Output Groups
 
-1. **Khoảng đóng/mở/nửa mở:** `[10,20]` lấy cả 10 và 20, `(10,20)` không lấy 10, `[0,3)` lấy 0 nhưng loại 3.
-2. **Hai khoảng và vùng cấm:** `||` diễn đạt hợp của hai miền, còn `&& !(...)` loại một miền con.
-3. **Số âm và cận lớn:** so sánh trực tiếp vẫn đúng; `value-min` trên `int` có thể tràn và tạo giá trị sai.
-4. **Floating-point:** `0.1 + 0.2` lớn hơn literal `0.3` một chút; hàm finite-only từ chối NaN và Infinity.
-5. **NaN:** hai phép kiểm tra `nan < min`, `nan > max` đều false; cần chính sách kiểm tra tính hữu hạn trước.
-6. **Decimal:** `BigDecimal.compareTo` kiểm tra giá trị thập phân chính xác.
-7. **Wrapper và short-circuit:** guard `null`/mẫu số 0 ngăn các phép toán nguy hiểm ở vế sau.
-8. **Guard clauses:** trả giá trị hợp lệ hoặc báo ngoại lệ có thông điệp rõ khi giá trị/biên không hợp lệ.
+1. **Closed/open/half-open intervals:** `[10,20]` includes both 10 and 20, `(10,20)` excludes 10, `[0,3)` includes 0 and excludes 3.
+2. **Multiple intervals and forbidden zones:** `||` expresses the union of two intervals, while `&& !(...)` excludes a sub-interval.
+3. **Negative numbers and large bounds:** direct comparison remains accurate; `value-min` on `int` can overflow and produce the wrong value.
+4. **Floating-point:** `0.1 + 0.2` is slightly above literal `0.3`; the finite-only function rejects NaN and Infinity.
+5. **NaN:** both `nan < min` and `nan > max` are false; an explicit finiteness check policy is required first.
+6. **Decimal:** `BigDecimal.compareTo` checks exact decimal values.
+7. **Wrappers and short-circuiting:** `null` and zero-denominator guards prevent dangerous operations on the right-hand side.
+8. **Guard clauses:** return valid values or throw exceptions with clear messages when values or bounds are invalid.
 
-## 14. Lỗi thường gặp và cách sửa
+## 14. Common Mistakes and Fixes
 
-| Lỗi hoặc ngộ nhận | Vấn đề | Cách đúng |
+| Mistake or misconception | Problem | Correct approach |
 |---|---|---|
-| `min <= x <= max` | Java không có so sánh dây chuyền | `x >= min && x <= max` |
-| `x >= min || x <= max` để kiểm tra trong khoảng | `||` chỉ yêu cầu một vế đúng | Dùng `&&` |
-| `x < min && x > max` để kiểm tra ngoài khoảng | Không thể cùng đúng nếu min ≤ max | Dùng `||` |
-| Dùng `<= length` cho index mảng | Truy cập index bằng length vượt giới hạn | Dùng `index < length` |
-| Quên xét biên đầu và biên cuối | Off-by-one | Test sát hai biên |
-| Không kiểm tra `min > max` | Lỗi cấu hình bị che thành false | Validate giới hạn |
-| `x - min >= 0` thay cho `x >= min` | Integer subtraction có thể overflow | So sánh trực tiếp |
-| `! (x < min || x > max)` để duyệt double mà không xét NaN | NaN làm hai phép so false, phủ định cho true | `Double.isFinite(x)` và kiểm tra trong miền |
-| Xem Infinity là dữ liệu đo hợp lệ | Infinity không hữu hạn | Chính sách chấp nhận rõ ràng |
-| Dùng biên double 0.3 rồi mong mọi phép tính gần 0.3 đều lọt | Sai số nhị phân | Dung sai có cơ sở hoặc `BigDecimal` |
-| Dùng `BigDecimal.equals` để so giá trị decimal mọi scale | `equals` còn xét scale | `compareTo` |
-| Dùng `&` thay `&&` để guard null | `&` đánh giá cả hai vế | `&&` |
-| Gộp nhiều nhóm `&&`/`||` không có ngoặc | Dễ hiểu sai logic | Đặt ngoặc theo quy tắc nghiệp vụ |
-| Cắt `double` thành `int` rồi mới kiểm tra miền | Mất phần lẻ, có thể chấp nhận nhầm | Validate đúng kiểu trước chuyển đổi |
+| `min <= x <= max` | Java has no chained comparisons | `x >= min && x <= max` |
+| `x >= min || x <= max` to check inside range | `||` only requires one side true | Use `&&` |
+| `x < min && x > max` to check outside range | Cannot both be true when `min <= max` | Use `||` |
+| Using `<= length` for array index | Accessing index equal to length goes out of bounds | Use `index < length` |
+| Forgetting to check lower and upper bounds | Off-by-one bugs | Test right around both bounds |
+| Failing to check `min > max` | Misconfiguration silently becomes false | Validate bounds |
+| `x - min >= 0` instead of `x >= min` | Integer subtraction can overflow | Compare directly |
+| `!(x < min || x > max)` to validate double without checking NaN | NaN makes both comparisons false, negation returns true | `Double.isFinite(x)` plus range check |
+| Treating Infinity as valid measured data | Infinity is not finite | Clear acceptance policy |
+| Using double bound 0.3 expecting values near 0.3 to pass | Binary rounding error | Well-founded tolerance or `BigDecimal` |
+| Using `BigDecimal.equals` to compare decimal values across scales | `equals` also checks scale | `compareTo` |
+| Using `&` instead of `&&` to guard against null | `&` evaluates both sides | `&&` |
+| Combining multiple `&&`/`||` groups without parentheses | Easy to misread logic | Parenthesize per business rules |
+| Truncating `double` to `int` before checking range | Drops fractional part, may falsely accept | Validate in the right type before converting |
 
-## 15. Bài tập có đáp án
+## 15. Exercises with Answers
 
-### Bài A — khoảng đóng
+### Exercise A — Closed Interval
 
-Kiểm tra `score` từ 0 tới 100, **lấy hai biên**.
+Check that `score` is from 0 to 100, **inclusive**.
 
 ~~~java
 boolean valid = score >= 0 && score <= 100;
 ~~~
 
-**Đáp án:** với `score = 0` hoặc `100`, true; `-1` hoặc `101`, false.
+**Answer:** for `score = 0` or `100`, true; for `-1` or `101`, false.
 
-### Bài B — chỉ số mảng
+### Exercise B — Array Index
 
-Mảng có `length = 5`. Viết điều kiện cho index hợp lệ.
+An array has `length = 5`. Write the condition for a valid index.
 
 ~~~java
 boolean validIndex = index >= 0 && index < 5;
 ~~~
 
-**Đáp án:** `0..4` là hợp lệ; `-1` và `5` không hợp lệ.
+**Answer:** `0..4` are valid; `-1` and `5` are invalid.
 
-### Bài C — ngoài khoảng
+### Exercise C — Outside Range
 
-Viết điều kiện để reject tuổi **ngoài `[18,65]`**.
+Write a condition to reject ages **outside `[18,65]`**.
 
 ~~~java
 boolean rejected = age < 18 || age > 65;
 ~~~
 
-**Đáp án:** với tuổi 17 hoặc 66, true; tuổi 18 hoặc 65, false.
+**Answer:** for age 17 or 66, true; for age 18 or 65, false.
 
-### Bài D — khoảng rỗng
+### Exercise D — Empty Interval
 
 ~~~java
 System.out.println(inHalfOpenRange(5, 5, 5));
 ~~~
 
-**Đáp án:** `false`, vì `[5,5)` rỗng. Hàm ví dụ cho phép `min == max` trong miền nửa mở.
+**Answer:** `false`, because `[5,5)` is empty. The example function allows `min == max` for half-open intervals.
 
-### Bài E — NaN
+### Exercise E — NaN
 
 ~~~java
 double x = Double.NaN;
@@ -627,11 +627,11 @@ boolean outside = x < 0 || x > 1;
 System.out.println(outside);
 ~~~
 
-**Đáp án:** `false`, nhưng **không có nghĩa x hợp lệ**. Cần reject NaN tường minh bằng `Double.isFinite(x)` hoặc `Double.isNaN(x)` theo chính sách.
+**Answer:** `false`, which **does not mean `x` is valid**. You must explicitly reject NaN using `Double.isFinite(x)` or `Double.isNaN(x)` according to policy.
 
-### Bài F — hai miền được phép
+### Exercise F — Two Permitted Ranges
 
-Chấp nhận `x` trong `[1,3]` **hoặc** `[7,9]`.
+Accept `x` in `[1,3]` **or** `[7,9]`.
 
 ~~~java
 boolean accepted =
@@ -639,9 +639,9 @@ boolean accepted =
         || (x >= 7 && x <= 9);
 ~~~
 
-**Đáp án:** 1, 3, 7, 9 đều được chấp nhận; 4, 5, 6 bị từ chối.
+**Answer:** 1, 3, 7, and 9 are accepted; 4, 5, and 6 are rejected.
 
-### Bài G — lỗi overflow khi so miền
+### Exercise G — Overflow Bug in Range Check
 
 ~~~java
 int value = Integer.MAX_VALUE;
@@ -650,30 +650,30 @@ System.out.println(value - min >= 0);
 System.out.println(value >= min);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 false
 true
 ~~~
 
-Dòng đầu bị tràn khi trừ int; dòng sau dùng so sánh trực tiếp và chính xác.
+The first line overflows during `int` subtraction; the second uses direct comparison and is accurate.
 
-## 16. Checklist và kết luận
+## 16. Checklist and Conclusion
 
-- [ ] Chọn rõ khoảng đóng, mở, nửa mở và ý nghĩa tại biên.
-- [ ] Dùng `&&` để yêu cầu đồng thời đạt biên dưới và biên trên.
-- [ ] Dùng `||` để nhận diện ngoài khoảng hoặc hợp nhiều khoảng.
-- [ ] Không viết `min <= value <= max` trong Java.
-- [ ] Validate `min <= max` theo hợp đồng API.
-- [ ] Kiểm thử `min - 1`, `min`, trong miền, `max`, `max + 1` khi không overflow.
-- [ ] Với index mảng, dùng miền `[0,length)`.
-- [ ] Tránh công thức kiểm tra miền số nguyên dùng phép trừ có thể overflow.
-- [ ] Với `double`, có chính sách rõ cho NaN, Infinity và sai số tại biên.
-- [ ] Không dùng tolerance tùy tiện để vượt qua ràng buộc an toàn.
-- [ ] Với decimal exact, xét `BigDecimal.compareTo`.
-- [ ] Dùng guard `null` với wrapper và `&&` để tránh unboxing null.
-- [ ] Đặt ngoặc giúp người đọc nhận ra các nhóm điều kiện nghiệp vụ.
-- [ ] Chạy `RangeConditionDemo.java` bằng Java 17+ và đối chiếu từng dòng expected output.
+- [ ] Clearly choose closed, open, or half-open intervals and boundary semantics.
+- [ ] Use `&&` to require meeting both lower and upper bounds simultaneously.
+- [ ] Use `||` to detect out-of-range values or unions of multiple ranges.
+- [ ] Never write `min <= value <= max` in Java.
+- [ ] Validate `min <= max` per the API contract.
+- [ ] Test `min - 1`, `min`, inside range, `max`, and `max + 1` where it does not overflow.
+- [ ] For array indices, use `[0,length)`.
+- [ ] Avoid integer range checks that use overflow-prone subtraction.
+- [ ] For `double`, define explicit policies for NaN, Infinity, and boundary precision errors.
+- [ ] Do not use arbitrary tolerance to bypass safety constraints.
+- [ ] For exact decimals, consider `BigDecimal.compareTo`.
+- [ ] Use `null` guards with wrappers and `&&` to avoid null unboxing.
+- [ ] Use parentheses so readers can clearly recognize business condition groups.
+- [ ] Run `RangeConditionDemo.java` with Java 17+ and verify every line of expected output.
 
-**Kết luận:** Một điều kiện miền giá trị tốt phải **biểu đạt đúng tập giá trị cho phép**, xử lý rõ hai biên, dùng đúng `&&`/`||`, tránh overflow và định nghĩa chính sách cho dữ liệu số thực bất thường. Hãy đặt tên cho điều kiện quan trọng, validate giới hạn và kiểm thử ngay tại ranh giới để code Java 17+ dễ đọc, dễ bảo trì và không chấp nhận nhầm dữ liệu.
+**Conclusion:** A solid range validation condition must **accurately express the permitted set of values**, handle both boundaries clearly, use `&&`/`||` properly, avoid overflow, and define policies for anomalous floating-point data. Name important conditions, validate bounds, and test right at the boundaries so Java 17+ code stays readable, maintainable, and free from false acceptances.

@@ -1,8 +1,8 @@
-# Vì sao so sánh số thực bằng một ngưỡng sai số có thể mất tính bắc cầu?
+# Why Comparing Floating-Point Numbers With a Tolerance Can Break Transitivity
 
-## 1. Vấn đề: “gần bằng” có thực sự là “bằng nhau” không?
+## 1. The Problem: Is "Approximately Equal" Truly "Equal"?
 
-Khi làm việc với số thực trong Java, ta thường gặp sai số biểu diễn và sai số tính toán của kiểu `double`/`float`. Ví dụ, phép cộng `0.1 + 0.2` không nhất thiết cho cùng giá trị `double` với literal `0.3`. Một kỹ thuật phổ biến để kiểm tra hai kết quả số học có đủ gần nhau là dùng **ngưỡng sai số** (tolerance, hay epsilon):
+When working with floating-point numbers in Java, we frequently encounter representation and arithmetic errors in `double`/`float`. For instance, adding `0.1 + 0.2` does not necessarily yield the same `double` value as the literal `0.3`. A common technique to check whether two numeric results are close enough is using a **tolerance** (or epsilon):
 
 ```java
 static boolean approximatelyEqual(double x, double y, double epsilon) {
@@ -10,31 +10,31 @@ static boolean approximatelyEqual(double x, double y, double epsilon) {
 }
 ```
 
-Đây là một **đoạn minh họa**, chưa xử lý `NaN`, vô cực, tham số không hợp lệ hoặc tràn trong phép trừ. Ý nghĩa thông thường: khoảng cách giữa hai số không lớn hơn `epsilon`.
+This is an **illustrative snippet**, without handling `NaN`, infinity, invalid arguments, or overflow in subtraction. Its usual meaning is: the distance between two numbers is no greater than `epsilon`.
 
-Vấn đề xuất hiện khi ta đem kết quả “gần bằng” này làm định nghĩa cho `equals()`. Theo hợp đồng `Object.equals(Object)`, tính bắc cầu (transitivity) bắt buộc thỏa:
+The issue arises when we turn this “approximately equal” result into the definition of `equals()`. Under the `Object.equals(Object)` contract, transitivity must hold:
 
-> Nếu `a.equals(b)` đúng và `b.equals(c)` đúng thì `a.equals(c)` cũng phải đúng, với mọi bộ ba đối tượng `a`, `b`, `c`.
+> If `a.equals(b)` is true and `b.equals(c)` is true, then `a.equals(c)` must also be true, for every triple of objects `a`, `b`, `c`.
 
-Quan hệ `|x - y| <= epsilon` với `epsilon > 0` **không bảo đảm tính bắc cầu**, mặc dù trông giống phép so sánh bằng nhau. Vì thế một hàm “gần bằng” có thể hữu ích cho việc kiểm tra kết quả đo, nhưng không thích hợp để thay thế `equals()`.
+The relation `|x - y| <= epsilon` for `epsilon > 0` **does not guarantee transitivity**, even though it looks like an equality comparison. Therefore, an “approximately equal” function can be useful for checking measurement results, yet is unsuitable as a replacement for `equals()`.
 
-## 2. Phản ví dụ cụ thể trên ba số
+## 2. Concrete Counterexample With Three Numbers
 
-Chọn `epsilon = 0.125` và ba giá trị:
+Choose `epsilon = 0.125` and three values:
 
 - `a = 1.0`;
 - `b = 1.09375`;
 - `c = 1.1875`.
 
-Các giá trị trên cùng `0.125` đều biểu diễn **chính xác** trong số thực nhị phân (IEEE 754 binary floating-point), nên ta không cần dựa vào sai số làm tròn để có phản ví dụ.
+The values above as well as `0.125` are all represented **exactly** in binary floating-point (IEEE 754 binary floating-point), so we do not need to rely on rounding error to obtain a counterexample.
 
-| Phép so sánh | Khoảng cách tuyệt đối | Nhỏ hơn hoặc bằng `0.125`? |
+| Comparison | Absolute distance | Less than or equal to `0.125`? |
 | --- | ---: | --- |
-| `a` với `b` | `|1.0 - 1.09375| = 0.09375` | Có, `true` |
-| `b` với `c` | `|1.09375 - 1.1875| = 0.09375` | Có, `true` |
-| `a` với `c` | `|1.0 - 1.1875| = 0.1875` | Không, `false` |
+| `a` vs `b` | `|1.0 - 1.09375| = 0.09375` | Yes, `true` |
+| `b` vs `c` | `|1.09375 - 1.1875| = 0.09375` | Yes, `true` |
+| `a` vs `c` | `|1.0 - 1.1875| = 0.1875` | No, `false` |
 
-Kết quả:
+Result:
 
 ```text
 a ~ b: true
@@ -42,49 +42,49 @@ b ~ c: true
 a ~ c: false
 ```
 
-Dấu `~` ở đây chỉ quan hệ “gần bằng theo epsilon”, **không phải toán tử của Java**.
+The `~` symbol here denotes the “approximately equal within epsilon” relation, **not a Java operator**.
 
-Vì `a ~ b` và `b ~ c` đều đúng nhưng `a ~ c` sai, quan hệ này không bắc cầu. Đây là lý do cốt lõi: **“gần” theo từng cặp không có nghĩa các điểm ở hai đầu của một chuỗi đều gần nhau**.
+Because both `a ~ b` and `b ~ c` are true while `a ~ c` is false, this relation is not transitive. This is the core reason: **being pairwise “close” does not mean the endpoints of a chain are close to each other**.
 
-### Giải thích bằng bất đẳng thức tam giác
+### Explanation via the Triangle Inequality
 
-Với số thực, ta có:
+For real numbers, we have:
 
 ```text
 |a - c| <= |a - b| + |b - c|
 ```
 
-Nếu mỗi khoảng `|a-b|` và `|b-c|` không vượt `epsilon`, ta chỉ suy ra:
+If each interval `|a-b|` and `|b-c|` does not exceed `epsilon`, we can only deduce:
 
 ```text
 |a - c| <= 2 * epsilon
 ```
 
-Ta **không** suy ra được `|a-c| <= epsilon`. Trong ví dụ, hai bước dài `0.09375` gộp lại thành `0.1875`; mỗi bước đạt điều kiện, nhưng tổng vượt ngưỡng `0.125`.
+We **cannot** deduce `|a-c| <= epsilon`. In the example, two steps of length `0.09375` combine into `0.1875`; each step satisfies the condition, yet the sum exceeds the threshold `0.125`.
 
-Lập luận áp dụng ngay cả khi các số là số thực toán học với phép tính chính xác tuyệt đối. Sai số làm tròn của `double` có thể làm việc kiểm tra epsilon phức tạp thêm, nhưng **không phải nguyên nhân gốc** của việc mất tính bắc cầu.
+The argument applies even when the numbers are mathematical real numbers with infinitely exact arithmetic. `double` rounding error can complicate epsilon checks further, but it is **not the root cause** of losing transitivity.
 
-## 3. Thử trực tiếp với Java 17+
+## 3. Testing Directly With Java 17+
 
-Lưu chương trình hoàn chỉnh dưới đây thành `FloatingToleranceDemo.java`:
+Save the complete program below as `FloatingToleranceDemo.java`:
 
 ```java
 public class FloatingToleranceDemo {
     private static final double EPSILON = 0.125;
 
-    // Đây là phép kiểm "gần bằng" dành cho số đo hữu hạn.
-    // Cố ý KHÔNG dùng hàm này làm Object.equals().
+    // This is an "approximately equal" check for finite measurements.
+    // Intentionally NOT used as Object.equals().
     static boolean near(double x, double y) {
         return Double.isFinite(x)
                 && Double.isFinite(y)
                 && Math.abs(x - y) <= EPSILON;
     }
 
-    // Một khóa phân nhóm minh họa quan hệ bằng nhau đúng nghĩa.
+    // A grouping key illustrating a proper equality relation.
     record BucketKey(int index) {}
 
     static BucketKey fixedBucket(double value) {
-        // Giới hạn miền chỉ để ví dụ chuyển sang int an toàn.
+        // Domain bound solely so the example converts safely to int.
         if (!Double.isFinite(value) || value < -1000 || value > 1000) {
             throw new IllegalArgumentException("Value outside supported range");
         }
@@ -104,7 +104,7 @@ public class FloatingToleranceDemo {
         System.out.println("near(b,c): " + near(b, c));
         System.out.println("near(a,c): " + near(a, c));
 
-        // Điều kiện tiền đề đúng, nhưng kết luận sai.
+        // Premise is true, yet conclusion is false.
         boolean chainIsTransitive =
                 !(near(a, b) && near(b, c)) || near(a, c);
         System.out.println("near transitive for this triple: "
@@ -129,14 +129,14 @@ public class FloatingToleranceDemo {
 }
 ```
 
-Lệnh biên dịch và chạy:
+Compile and run commands:
 
 ```bash
 javac FloatingToleranceDemo.java
 java FloatingToleranceDemo
 ```
 
-Kết quả stdout chính xác:
+Exact stdout output:
 
 ```text
 epsilon: 0.125
@@ -157,17 +157,17 @@ near(NaN,NaN): false
 near(+inf,+inf): false
 ```
 
-Những điều cần quan sát:
+Things to observe:
 
-1. `near(a, b)` và `near(b, c)` đều `true`, nhưng `near(a, c)` là `false`: một phản ví dụ đủ để bác bỏ phát biểu “quan hệ gần bằng này luôn bắc cầu”.
-2. Biểu thức `!(P && Q) || R` kiểm tra mệnh đề `(P && Q) => R` cho **một bộ ba**. Kết quả `false` chứng minh bộ ba đã phá vỡ bắc cầu; kết quả `true` trên một bộ ba khác chưa đủ chứng minh hợp đồng đúng trên toàn miền.
-3. `BucketKey` là `record` có `equals()`/`hashCode()` dựa trên `index`. Khi `index(a) = index(b)` và `index(b) = index(c)` thì `index(a) = index(c)`; vì vậy quan hệ bằng nhau theo khóa nhóm là bắc cầu. Ba giá trị ở đây đều thuộc nhóm có chỉ số `2`.
-4. Nhóm có biên: chẳng hạn `1.49` và `1.51` rất gần nhưng thuộc hai nhóm khác nhau (`Math.floor(x / 0.5)` cho `2` và `3`). **Bằng nhau theo nhóm không tương đương “chênh không quá epsilon”**; chỉ dùng khi nghiệp vụ thật sự định nghĩa các khoảng cố định.
-5. `near` chủ ý từ chối `NaN` và vô cực để thể hiện miền dữ liệu là số đo hữu hạn. Đây không phải thiết kế `equals()` vì `equals()` phải phản xạ đối với mọi đối tượng, kể cả đối tượng chứa dữ liệu đặc biệt.
+1. `near(a, b)` and `near(b, c)` are both `true`, yet `near(a, c)` is `false`: a single counterexample suffices to refute the statement “this approximate equality relation is always transitive”.
+2. The expression `!(P && Q) || R` tests the implication `(P && Q) => R` for **one triple**. A `false` result proves the triple breaks transitivity; a `true` result on another triple is insufficient to prove the contract holds across the entire domain.
+3. `BucketKey` is a `record` whose `equals()`/`hashCode()` are based on `index`. When `index(a) = index(b)` and `index(b) = index(c)`, then `index(a) = index(c)`; thus equality by grouping key is transitive. All three values here fall into the bucket with index `2`.
+4. Buckets have boundaries: for example, `1.49` and `1.51` are very close yet belong to two different buckets (`Math.floor(x / 0.5)` yields `2` and `3`). **Bucket equality is not equivalent to “differing by at most epsilon”**; use it only when the domain truly defines fixed intervals.
+5. `near` intentionally rejects `NaN` and infinity to reflect a domain of finite measurements. This is not an `equals()` design because `equals()` must be reflexive for every object, including objects containing special values.
 
-## 4. Tại sao chọn epsilon nhỏ hơn vẫn không giải quyết được?
+## 4. Why Does Choosing a Smaller Epsilon Still Not Solve It?
 
-Giảm epsilon có thể làm số lượng cặp được chấp nhận ít đi, nhưng với **mọi epsilon dương** trên một miền đủ rộng, vẫn có thể tạo ba giá trị:
+Reducing epsilon can decrease the number of accepted pairs, yet for **any positive epsilon** on a sufficiently wide domain, one can still construct three values:
 
 ```text
 a = 0
@@ -179,21 +179,21 @@ c = 1.50 * epsilon
 |a-c| = 1.50 * epsilon >  epsilon
 ```
 
-Đây là chứng minh toán học cho số thực; khi hiện thực bằng `double`, phải tính tới phạm vi, độ phân giải biểu diễn và các phép làm tròn. Vì vậy phát biểu “**bất kỳ epsilon dương đều chắc chắn cho phản ví dụ với mọi tập giá trị double**” là quá mạnh: trên một miền rời rạc hoặc cực nhỏ, có thể không tìm được ba phần tử như vậy. Điều đúng là công thức khoảng cách theo ngưỡng **không đảm bảo bắc cầu theo nguyên lý**, nên không được dùng làm cơ sở tổng quát của `equals()`.
+This is a mathematical proof for real numbers; when implementing with `double`, one must account for range, representation resolution, and rounding operations. Therefore, claiming “**every positive epsilon is guaranteed to produce a counterexample on every set of `double` values**” is too strong: on a discrete or tiny domain, three such elements might not exist. What is true is that a threshold-distance formula **does not guarantee transitivity in principle**, so it must not be used as the general basis of `equals()`.
 
-Đổi phép so sánh `<= epsilon` thành `< epsilon` cũng không chữa được. Chọn các khoảng nhỏ hơn epsilon nhưng tổng của chúng vượt epsilon vẫn tạo phản ví dụ. Tương tự, thay ngưỡng tuyệt đối bằng ngưỡng tương đối theo độ lớn `max(|x|, |y|)` có thể hữu ích cho tính toán số, nhưng **không tự đem lại tính bắc cầu**.
+Changing the comparison from `<= epsilon` to `< epsilon` does not fix it either. Choosing intervals smaller than epsilon whose sum exceeds epsilon still creates a counterexample. Likewise, replacing an absolute threshold with a relative threshold based on magnitude `max(|x|, |y|)` can be useful for numerical computation, yet **does not automatically confer transitivity**.
 
-## 5. Phân biệt ba nhu cầu khác nhau
+## 5. Distinguishing Three Different Needs
 
-| Nhu cầu | Cách làm phù hợp | Tính chất cần lưu ý |
+| Need | Appropriate approach | Property to note |
 | --- | --- | --- |
-| Hai kết quả tính toán/đo lường có đủ gần nhau không? | Phương thức riêng `near`/`withinTolerance` | Quan hệ gần bằng có thể không bắc cầu |
-| Hai giá trị mang cùng bản sắc logic trong một đối tượng Java không? | `equals()` và `hashCode()` dựa trên tiêu chí ổn định, nhất quán | Phải tuân thủ phản xạ, đối xứng, bắc cầu, nhất quán, không bằng `null` |
-| Hai số thuộc cùng một khoảng phân nhóm nghiệp vụ không? | Chuẩn hóa thành khóa nhóm rồi so sánh khóa | Bằng nhau theo khóa bắc cầu, nhưng có ranh giới cứng |
+| Are two computed/measured results close enough? | Dedicated method `near`/`withinTolerance` | Approximate closeness may not be transitive |
+| Do two values carry the same logical identity in a Java object? | `equals()` and `hashCode()` based on stable, consistent criteria | Must satisfy reflexive, symmetric, transitive, consistent, non-`null` |
+| Do two numbers belong to the same business grouping interval? | Normalize into a bucket key and compare keys | Key equality is transitive, yet has hard boundaries |
 
-### a. Khi chỉ cần so sánh gần bằng
+### a. When You Only Need Approximate Comparison
 
-Một API rõ ý định có thể nhận tolerance tại thời điểm gọi:
+An explicit-intent API can accept tolerance at the call site:
 
 ```java
 static boolean nearFinite(double x, double y, double epsilon) {
@@ -206,18 +206,18 @@ static boolean nearFinite(double x, double y, double epsilon) {
 }
 ```
 
-Đây là **phương thức minh họa độc lập**, chưa phải chương trình có `main`. Nó phù hợp khi miền sử dụng là các số hữu hạn, phép trừ không gây tràn và khoảng cách tuyệt đối là tiêu chí đúng. Ví dụ: đánh giá kết quả thuật toán trên dữ liệu có thang đo cố định, kiểm tra sensor trong một dung sai được chỉ định, hoặc so sánh sai số đầu ra trong bài test.
+This is an **isolated illustrative method**, not a program with `main`. It fits when the usage domain consists of finite numbers, subtraction does not overflow, and absolute distance is the right criterion. Examples: evaluating algorithm outputs on fixed-scale data, checking sensor values within a specified tolerance, or comparing output error in tests.
 
-Đối với giá trị có độ lớn rất khác nhau, có thể cần dung sai tương đối, dung sai kết hợp tuyệt đối và tương đối, hoặc kiểm tra ULP (đơn vị của độ chính xác biểu diễn tại vùng giá trị đang xét). Việc chọn cách nào phụ thuộc bài toán số học; **tất cả vẫn là cách kiểm tra độ gần**, không phải lời giải thay thế hợp đồng `equals()`.
+For values with widely differing magnitudes, you may need relative tolerance, combined absolute and relative tolerance, or ULP checks (units in the last place at the value region under consideration). Which choice to pick depends on the numerical problem; **all remain closeness checks**, not a replacement for the `equals()` contract.
 
-Lưu ý trường hợp cực trị: `Math.abs(x-y)` có thể thành `Infinity` khi hai số hữu hạn rất lớn trái dấu làm phép trừ tràn. Một triển khai thư viện số đáng tin cần xác định hành vi với overflow, dưới ngưỡng, `NaN`, `Infinity`, `+0.0`/`-0.0` và epsilon âm/không hữu hạn.
+Extreme-value note: `Math.abs(x-y)` can become `Infinity` when two very large finite numbers with opposite signs cause subtraction to overflow. A reliable numeric library implementation must define behavior for overflow, underflow, `NaN`, `Infinity`, `+0.0`/`-0.0`, and negative/non-finite epsilon.
 
-### b. Khi cần định nghĩa `equals()`
+### b. When You Need to Define `equals()`
 
-Không triển khai kiểu:
+Do not implement patterns like:
 
 ```java
-// PHẢN VÍ DỤ về cách thiết kế; không chép vào lớp production:
+// DESIGN ANTI-PATTERN; do not copy into production classes:
 @Override
 public boolean equals(Object obj) {
     if (!(obj instanceof Measurement other)) {
@@ -227,54 +227,54 @@ public boolean equals(Object obj) {
 }
 ```
 
-Fragment trên giả định đang ở trong lớp có kiểu `Measurement`, trường `value` và hằng `EPSILON`. Nó cố ý minh họa quy tắc sai, **không phải file chạy độc lập**. Ngoài lỗi bắc cầu, phép so sánh không được quy định rõ cho `NaN`/vô cực và cách tính `hashCode()` có thể vi phạm thêm hợp đồng.
+The fragment above assumes it sits inside a class with type `Measurement`, field `value`, and constant `EPSILON`. It intentionally demonstrates a broken rule, **not a standalone runnable file**. Beyond the transitivity bug, the comparison is unspecified for `NaN`/infinity, and how `hashCode()` is computed may further violate the contract.
 
-Thay vào đó, trước tiên xác định bản sắc logic: cùng mã định danh? cùng các thành phần giá trị? cùng đơn vị đã chuẩn hóa? cùng khóa đã được lượng tử hóa theo quy tắc nghiệp vụ? Sau đó so sánh **khóa xác định ổn định**. Một lớp bất biến hoặc `record` với các thành phần có quan hệ bằng nhau hợp lệ thường là lựa chọn dễ kiểm soát.
+Instead, first determine logical identity: same identifier? same value components? same normalized unit? same quantized key per business rules? Then compare **deterministic, stable keys**. An immutable class or `record` whose components have valid equality semantics is usually a manageable choice.
 
-Các giá trị cần gần bằng có thể để nguyên trong record và được so sánh qua phương thức khác, chẳng hạn `measurement.closeTo(other, tolerance)`. Đừng buộc khái niệm “đủ gần” thành “cùng đối tượng logic”.
+Values requiring approximate comparison can remain stored in the record and be compared through a different method, such as `measurement.closeTo(other, tolerance)`. Do not force the notion of “close enough” into “same logical object”.
 
-### c. Khi dùng phân nhóm/lượng tử hóa
+### c. When Using Bucketing/Quantization
 
-Nếu nghiệp vụ cố định giá trị về bội số của bước đo, ví dụ phân vào các vùng `[0.0, 0.5)`, `[0.5, 1.0)`, `[1.0, 1.5)`, hãy tính khóa nhóm trước rồi chỉ so sánh khóa. Các đối tượng được phân loại cùng một khóa tạo thành một **lớp tương đương**.
+If the business domain snaps values to multiples of a measurement step—for example, partitioning into intervals `[0.0, 0.5)`, `[0.5, 1.0)`, `[1.0, 1.5)`—compute the bucket key first and compare only the keys. Objects mapped to the same key form an **equivalence class**.
 
-Tuy nhiên, vị trí gần biên có thể bị chia nhóm dù chênh lệch rất nhỏ; bước nhóm và chính sách làm tròn phải được quyết định theo nghiệp vụ. Trong code dùng `double`, cần nêu giới hạn miền, xử lý giá trị đặc biệt và kiểm soát độ chính xác phép chia/nhân khi tính khóa; không mặc định `Math.round(x / step)` chính xác cho mọi số cực lớn.
+However, positions near a boundary can be split into different buckets despite a tiny difference; step size and rounding policy must be decided by business rules. In code using `double`, specify domain bounds, handle special values, and control division/multiplication precision when computing keys; do not assume `Math.round(x / step)` is accurate for arbitrarily huge numbers.
 
-## 6. Liên hệ với `hashCode()` và các collection
+## 6. Relationship With `hashCode()` and Collections
 
-Các collection như `HashSet` và `HashMap` giả định đối tượng tuân thủ hợp đồng bằng nhau. Nếu đưa epsilon vào `equals()`:
+Collections such as `HashSet` and `HashMap` assume objects obey the equality contract. If epsilon is put into `equals()`:
 
-- Một đối tượng `a` có thể được coi bằng `b`, `b` bằng `c` nhưng `a` không bằng `c`. Khái niệm “trùng giá trị” khi tìm kiếm, thêm, xóa và khử trùng lặp sẽ mất tính nhất quán.
-- `hashCode()` còn phải thỏa: khi `x.equals(y)` là `true` thì `x.hashCode() == y.hashCode()`. Lấy hash trực tiếp từ số `double` thường không thỏa với các cặp được xem là gần bằng theo epsilon. Làm tròn để hash vào bucket cố định cũng không cứu được quan hệ bằng nhau theo **khoảng cách từng cặp** tại ranh giới bucket.
-- Cho mọi đối tượng cùng một hash có thể thỏa điều kiện “bằng nhau thì hash giống nhau” một cách hình thức, nhưng gây nhiều va chạm và **vẫn không sửa được lỗi bắc cầu**.
+- An object `a` can be considered equal to `b`, `b` equal to `c`, yet `a` not equal to `c`. The notion of “duplicate value” during search, insertion, removal, and deduplication loses consistency.
+- `hashCode()` must also satisfy: when `x.equals(y)` is `true`, then `x.hashCode() == y.hashCode()`. Taking the hash directly from a `double` generally fails for pairs considered approximately equal under epsilon. Rounding to hash into fixed buckets still fails to rescue equality defined by **pairwise distance** at bucket boundaries.
+- Giving every object the same hash may formally satisfy “equal implies equal hash”, yet causes heavy collisions and **still does not fix the transitivity bug**.
 
-Tương tự, `TreeSet`/`TreeMap` dùng thứ tự theo `Comparator`. Một comparator trả về `0` khi hai số chỉ “đủ gần” cũng có thể gây quan hệ thứ tự không nhất quán, vi phạm yêu cầu của một thứ tự hợp lệ. Khi cần sắp xếp hoặc tạo khóa, hãy định nghĩa thứ tự/khóa rõ ràng thay vì “gần nhau thì coi như bằng” tùy cặp.
+Similarly, `TreeSet`/`TreeMap` rely on ordering via `Comparator`. A comparator returning `0` when two numbers are merely “close enough” can also produce inconsistent ordering, violating the requirements of a valid order. When sorting or keying is needed, define a clear order/key instead of pairwise “close enough counts as equal”.
 
-## 7. Những nhầm lẫn Java thường gặp
+## 7. Common Java Misconceptions
 
-1. **`==` giữa `double` và `Double.equals` không có cùng hành vi ở mọi giá trị đặc biệt.** Với nguyên thủy `double`, `Double.NaN == Double.NaN` là `false` và `+0.0 == -0.0` là `true`. Với `Double.equals`, các đối tượng chứa giá trị `NaN` được xem bằng nhau và `+0.0` khác `-0.0`. Hai cách có quy tắc khác nhau; tự chọn ngữ nghĩa phù hợp thay vì trộn lẫn chúng.
-2. **`Double.compare(x, y) == 0` là so sánh theo thứ tự toàn phần được định nghĩa cho giá trị `double`**, khác kiểm tra gần bằng với epsilon. Nó phân biệt hai dạng zero theo dấu và xếp các dạng NaN vào cùng một nhóm so sánh; nếu dùng kết quả này làm quan hệ bằng nhau, tính bắc cầu được bảo đảm bởi tiêu chí so sánh nhất quán.
-3. **Một bộ test ngắn không chứng minh được đúng với mọi bộ ba.** Cần lập luận từ chính quy tắc so sánh; với dung sai, phản ví dụ ba phần tử đã đủ chứng minh sự cố.
-4. **Lỗi bắc cầu khác sai số làm tròn.** Cùng một ví dụ có thể dùng các số nhị phân biểu diễn chính xác. Thay thuật toán `double` bằng `BigDecimal` vẫn không khiến “chênh không quá epsilon” trở thành quan hệ bắc cầu.
-5. **Bằng nhau theo số học và bằng nhau theo biểu diễn có thể khác.** Với `BigDecimal`, `compareTo` có thể coi `1.0` và `1.00` cùng giá trị số, trong khi `equals` phân biệt scale. Hai tiêu chí khác nhau không tự chứng minh một trong số đó thiếu tính bắc cầu; quan trọng là dùng nhất quán một tiêu chí cho từng quan hệ.
+1. **`==` between `double`s and `Double.equals` do not behave identically on all special values.** For primitive `double`, `Double.NaN == Double.NaN` is `false` and `+0.0 == -0.0` is `true`. For `Double.equals`, objects holding `NaN` are considered equal and `+0.0` differs from `-0.0`. The two have different rules; choose the appropriate semantics rather than mixing them.
+2. **`Double.compare(x, y) == 0` is a comparison under the total order defined for `double` values**, distinct from an epsilon closeness check. It distinguishes signed zeros and groups NaN representations consistently; if used as an equality relation, transitivity is guaranteed by a consistent comparison criterion.
+3. **A small test suite does not prove validity for all triples.** You must reason from the comparison rule itself; for tolerance checks, a three-element counterexample is already enough to prove the flaw.
+4. **Transitivity failure differs from rounding error.** The exact same example can use exactly representable binary numbers. Replacing `double` arithmetic with `BigDecimal` still does not make “within epsilon” a transitive relation.
+5. **Arithmetic equality and representational equality can differ.** For `BigDecimal`, `compareTo` can treat `1.0` and `1.00` as the same numeric value, while `equals` distinguishes scale. Having two different criteria does not by itself prove either lacks transitivity; what matters is consistently using one criterion for each relation.
 
-## 8. Câu hỏi tự kiểm tra
+## 8. Self-Check Questions
 
-**Câu 1.** Với `epsilon = 0.2`, `a = 2.0`, `b = 2.15`, `c = 2.3`, ba phép kiểm gần bằng sẽ ra sao?
+**Question 1.** With `epsilon = 0.2`, `a = 2.0`, `b = 2.15`, `c = 2.3`, what will the three closeness checks yield?
 
-Đáp án theo khoảng cách lý tưởng: `|a-b| = 0.15 <= 0.2`, `|b-c| = 0.15 <= 0.2`, nhưng `|a-c| = 0.3 > 0.2`. Đây vẫn là phản ví dụ bắc cầu. Khi chạy `double`, giá trị gần đúng có thể không hiển thị đúng những số thập phân trên, nhưng các khoảng được chọn cách đủ xa ngưỡng để kết quả boolean vẫn như mô tả.
+Ideal distance answer: `|a-b| = 0.15 <= 0.2`, `|b-c| = 0.15 <= 0.2`, yet `|a-c| = 0.3 > 0.2`. This remains a transitivity counterexample. When running with `double`, approximate values may not match those exact decimals, yet the gaps are chosen far enough from the threshold that the boolean outcomes match the description.
 
-**Câu 2.** Đổi thành `epsilon = 0.001` có giải quyết tận gốc không?
+**Question 2.** Does changing to `epsilon = 0.001` solve the root problem?
 
-Không. Với miền số thực đủ rộng, ta vẫn có thể chọn hai bước riêng rẽ không vượt `0.001` nhưng tổng vượt `0.001`. Giảm tolerance chỉ thay đổi việc cặp nào được chấp nhận.
+No. With a sufficiently wide numeric domain, you can still choose two individual steps not exceeding `0.001` whose sum exceeds `0.001`. Shrinking tolerance only changes which pairs are accepted.
 
-**Câu 3.** Vì sao so sánh khóa nhóm hợp lệ về bắc cầu dù đôi khi hai số rất gần lại nằm ở hai nhóm khác nhau?
+**Question 3.** Why is bucket-key equality valid with respect to transitivity even though two very close numbers sometimes fall into different buckets?
 
-Vì quan hệ được định nghĩa là **“có cùng khóa”**, không phải “gần nhau”. Phép bằng nhau của khóa ổn định và bắc cầu; ranh giới nhóm là đánh đổi về ngữ nghĩa cần chấp nhận rõ ràng.
+Because the relation is defined as **“has the same key”**, not “is close to”. Key equality is stable and transitive; bucket boundaries are a semantic trade-off that must be explicitly accepted.
 
-**Câu 4.** Khi kiểm thử phép tính dấu phẩy động, có nên luôn dùng `Double.compare(x, y) == 0` không?
+**Question 4.** When testing floating-point computations, should `Double.compare(x, y) == 0` always be used?
 
-Không nhất thiết. Nếu mục tiêu là đánh giá kết quả gần một giá trị kỳ vọng trong giới hạn sai số, dùng phép kiểm dung sai tường minh phù hợp hơn. Nhưng nếu định nghĩa bản sắc logic của đối tượng hoặc khóa collection, không nên sử dụng quan hệ dung sai thiếu bắc cầu.
+Not necessarily. If the goal is to evaluate whether a result is near an expected value within an error margin, an explicit tolerance check is more appropriate. However, if defining an object's logical identity or a collection key, a non-transitive tolerance relation should not be used.
 
-## Kết luận
+## Conclusion
 
-**So sánh số thực với ngưỡng epsilon chỉ đảm bảo hai giá trị gần nhau theo từng cặp.** Hai cặp liên tiếp đều đạt ngưỡng vẫn có thể khiến cặp đầu–cuối vượt ngưỡng (`0.09375 + 0.09375 > 0.125`). Đây là đặc tính của quan hệ khoảng cách, không phải lỗi riêng của cách Java làm tròn `double`. Hãy dùng phương thức riêng cho kiểm tra xấp xỉ và dùng một tiêu chí bằng nhau ổn định, có tính bắc cầu, khi thiết kế `equals()`, `hashCode()` hoặc khóa collection.
+**Comparing floating-point numbers with an epsilon threshold only ensures pairwise closeness.** Two consecutive pairs meeting the threshold can still cause the first–last pair to exceed it (`0.09375 + 0.09375 > 0.125`). This is a property of distance relations, not a quirk of how Java rounds `double`. Use a separate method for approximate checks and use a stable, transitive equality criterion when designing `equals()`, `hashCode()`, or collection keys.

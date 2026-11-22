@@ -1,97 +1,97 @@
-# Giới hạn khi cấu trúc có tham chiếu vòng trong Java
+# Limits When Structures Have Circular References in Java
 
-## 1. Vấn đề: cấu trúc lồng nhau không nhất thiết là cây
+## 1. The problem: nested structures are not necessarily trees
 
-Trong Java, một mảng hoặc đồ thị đối tượng có thể chứa **tham chiếu trở lại chính nó**. Khi chuỗi tham chiếu dẫn về đối tượng đã gặp, ta có **chu trình tham chiếu** (*reference cycle*). Điều này khác với cấu trúc lồng nhau thông thường, nơi mỗi nhánh cuối cùng kết thúc ở giá trị hoặc `null`.
+In Java, an array or object graph can contain **references back to itself**. When a reference chain leads back to an already-encountered object, we have a **reference cycle**. This differs from ordinary nested structures, where every branch eventually terminates at a value or `null`.
 
-Ví dụ với mảng tham chiếu:
+Example with reference arrays:
 
 ~~~java
 Object[] direct = new Object[1];
-direct[0] = direct; // Mảng chứa trực tiếp chính nó.
+direct[0] = direct; // Array directly contains itself.
 
 Object[] outer = new Object[1];
 Object[] inner = new Object[1];
 outer[0] = inner;
-inner[0] = outer; // Chu trình gián tiếp: outer -> inner -> outer.
+inner[0] = outer; // Indirect cycle: outer -> inner -> outer.
 ~~~
 
-Đây là **đoạn minh họa**, không phải tệp chạy độc lập. Cả hai trường hợp đều hợp lệ về mặt kiểu dữ liệu: mảng `Object[]` có thể chứa tham chiếu đến các mảng `Object[]` khác, kể cả chính mình.
+This is an **illustrative snippet**, not a standalone runnable file. Both cases are type-valid: an `Object[]` array can contain references to other `Object[]` arrays, including itself.
 
-Một cấu trúc **không có chu trình** cũng có thể chia sẻ phần tử:
+An **acyclic** structure can also share elements:
 
 ~~~java
 Object[] shared = {"leaf"};
 Object[] acyclic = {shared, shared};
 ~~~
 
-Hai vị trí trong `acyclic` trỏ đến cùng `shared`. Việc **dùng lại tham chiếu** không tự động tạo chu trình, vì không có đường đi từ `shared` quay về `acyclic`. Phân biệt hai trường hợp này rất quan trọng khi thực hiện so sánh sâu, tính hash, in nội dung và duyệt đồ thị.
+Both positions in `acyclic` point to the same `shared`. **Reusing a reference** does not automatically create a cycle, because there is no path from `shared` back to `acyclic`. Distinguishing these two cases is critical when performing deep comparison, computing hashes, printing contents, and traversing graphs.
 
-## 2. Giới hạn chính thức của các API `Arrays`
+## 2. Official limits of the `Arrays` APIs
 
-Các phương thức trong `java.util.Arrays` có hành vi khác nhau khi gặp mảng lồng nhau hoặc mảng có chu trình:
+Methods in `java.util.Arrays` behave differently when encountering nested arrays or arrays with cycles:
 
-| API | Với mảng lồng nhau không có chu trình | Với mảng chứa chu trình |
+| API | For acyclic nested arrays | For arrays containing cycles |
 | --- | --- | --- |
-| `Arrays.equals(Object[], Object[])` | So sánh các phần tử theo `Objects.equals` ở mức trực tiếp; mảng con mặc định so sánh theo tham chiếu | Không chủ động đi sâu qua mảng con nên không tự đệ quy vì cấu trúc mảng; kết quả không phải so sánh sâu |
-| `Arrays.hashCode(Object[])` | Băm các phần tử trực tiếp; mảng con dùng `hashCode()` của đối tượng mảng | Không chủ động băm sâu các mảng con; vẫn phải cẩn trọng nếu phần tử khác có `hashCode()` tự đệ quy |
-| `Arrays.toString(Object[])` | In phần tử trực tiếp; mảng con thường hiện dạng tên kiểu + mã băm theo danh tính | Không tạo biểu diễn sâu hay mô tả liên kết vòng đầy đủ |
-| `Arrays.deepEquals(Object[], Object[])` | So sánh đệ quy mảng tham chiếu và so sánh nội dung mảng nguyên thủy tương ứng | **Hành vi không được xác định** (*undefined*) nếu một trong hai mảng chứa chính nó trực tiếp hoặc gián tiếp |
-| `Arrays.deepHashCode(Object[])` | Tính mã băm từ nội dung lồng nhau | **Hành vi không được xác định** với mảng tự tham chiếu trực tiếp hoặc gián tiếp |
-| `Arrays.deepToString(Object[])` | In nội dung mảng lồng nhau | **Có xử lý vòng giữa các mảng**: thay nhánh tham chiếu vòng bằng `[...]` để tránh đệ quy vô hạn trong trường hợp này |
+| `Arrays.equals(Object[], Object[])` | Compares elements using `Objects.equals` at the direct level; sub-arrays default to reference comparison | Does not actively descend into sub-arrays so does not recurse over array structure; result is not deep comparison |
+| `Arrays.hashCode(Object[])` | Hashes direct elements; sub-arrays use the array object's `hashCode()` | Does not actively deep-hash sub-arrays; still must be careful if another element has a self-recursing `hashCode()` |
+| `Arrays.toString(Object[])` | Prints direct elements; sub-arrays normally appear as type name + identity hash code | Does not produce a deep representation or fully describe circular links |
+| `Arrays.deepEquals(Object[], Object[])` | Recursively compares reference arrays and compares contents of corresponding primitive arrays | **Undefined behavior** if either array contains itself directly or indirectly |
+| `Arrays.deepHashCode(Object[])` | Computes hash code from nested contents | **Undefined behavior** for directly or indirectly self-referential arrays |
+| `Arrays.deepToString(Object[])` | Prints contents of nested arrays | **Handles cycles between arrays**: replaces the cyclic reference branch with `[...]` to avoid infinite recursion in this case |
 
-**Điểm quan trọng nhất:** `deepEquals` và `deepHashCode` có phạm vi được đặc tả cho cấu trúc mảng lồng nhau **không có chu trình**. Tên “deep” không có nghĩa các phương thức này là thuật toán tổng quát xử lý mọi đồ thị đối tượng có tham chiếu vòng.
+**Most important point:** `deepEquals` and `deepHashCode` are specified for **acyclic** nested array structures. The word “deep” does not mean these methods are general algorithms handling arbitrary object graphs with circular references.
 
-Theo tài liệu API Java, việc gọi `Arrays.deepHashCode` trên một mảng chứa chính nó qua một hoặc nhiều cấp là *unacceptable* và có hành vi không xác định; tài liệu `Arrays.deepEquals` cũng quy định tương tự. Vì thế **không dựa vào kết quả trả về hay một loại ngoại lệ cụ thể** nếu truyền cấu trúc có vòng.
+According to the Java API documentation, calling `Arrays.deepHashCode` on an array containing itself through one or more levels is *unacceptable* and has undefined behavior; the `Arrays.deepEquals` documentation specifies the same. Therefore, **do not rely on a return value or a specific exception type** if passing a cyclic structure.
 
-## 3. Vì sao `deepEquals` và `deepHashCode` gặp giới hạn?
+## 3. Why do `deepEquals` and `deepHashCode` hit a limit?
 
-Với dữ liệu **không có vòng**, định nghĩa sâu có thể triển khai bằng việc đi theo các mảng con cho tới phần tử lá:
+For **acyclic** data, deep semantics can be implemented by following sub-arrays down to leaf elements:
 
-- `deepEquals(a, b)` so sánh các vị trí tương ứng; nếu cùng là mảng tham chiếu, nó tiếp tục so sánh sâu; nếu là hai mảng nguyên thủy cùng loại, nó dùng cách so sánh tương ứng như `Arrays.equals(int[], int[])`.
-- `deepHashCode(a)` tính toán mã băm dựa trên từng phần tử; khi gặp mảng tham chiếu bên trong, nó tiếp tục băm sâu.
-- Với mảng không có vòng, `Arrays.deepEquals(a, b) == true` kéo theo `Arrays.deepHashCode(a) == Arrays.deepHashCode(b)`.
+- `deepEquals(a, b)` compares corresponding positions; if both are reference arrays, it continues deep comparison; if they are two primitive arrays of the same type, it uses the corresponding comparison such as `Arrays.equals(int[], int[])`.
+- `deepHashCode(a)` computes a hash code based on each element; when encountering an inner reference array, it continues deep hashing.
+- For acyclic arrays, `Arrays.deepEquals(a, b) == true` implies `Arrays.deepHashCode(a) == Arrays.deepHashCode(b)`.
 
-Một quá trình duyệt đệ quy không theo dõi các đối tượng đã ghé thăm có thể đi theo đường:
+A recursive traversal that does not track visited objects can follow a path:
 
 ~~~text
 A -> B -> C -> A -> B -> C -> ...
 ~~~
 
-Đường đi không kết thúc ở lá. Triển khai có thể rơi vào đệ quy vô hạn rồi gây `StackOverflowError`; trong một số trường hợp khác, so sánh tham chiếu có thể khiến một nhánh dừng sớm. Tuy nhiên, **chuẩn API không quy định hành vi có chu trình**, nên không được dựa vào hiện tượng quan sát được của một JDK để kết luận phương thức hỗ trợ vòng.
+The path never terminates at a leaf. An implementation may enter infinite recursion and throw `StackOverflowError`; in some other cases, reference comparison might cause a branch to stop early. However, **the API specification does not define cyclic behavior**, so you must not rely on behavior observed on one JDK to conclude that the methods support cycles.
 
-Đặc biệt, đừng dùng `Arrays.deepEquals(cycle, cycle)` làm bài kiểm tra “API chịu được vòng”. Nếu cùng tham chiếu được nhận biết sớm thì một lời gọi cụ thể có thể trả về `true`, nhưng điều đó không biến lời gọi trên cấu trúc cyclic thành hợp lệ theo đặc tả.
+In particular, do not use `Arrays.deepEquals(cycle, cycle)` as a test claiming “the API tolerates cycles”. If identical references are detected early, a specific call might return `true`, but that does not make calling it on cyclic structures valid per the specification.
 
-### Không tự thử mã nguy hiểm trong chương trình ví dụ
+### Do not try dangerous code in sample programs
 
-Các lệnh sau chỉ minh họa **những lời gọi cần tránh**, không chạy chúng trong ứng dụng hay ví dụ thực hành:
+The statements below only illustrate **calls to avoid**; do not run them in applications or hands-on examples:
 
 ~~~java
 Object[] cycle = new Object[1];
 cycle[0] = cycle;
 
-// KHÔNG GỌI trên dữ liệu có vòng:
+// DO NOT CALL on cyclic data:
 // Arrays.deepHashCode(cycle);
 // Arrays.deepEquals(cycle, anotherCyclicArray);
 ~~~
 
-Không nên bắt `StackOverflowError` rồi xem đó là cách xử lý chu trình bình thường. Đó là lỗi cạn tài nguyên stack; thuật toán đúng phải nhận diện và xử lý cấu trúc vòng **trước khi đệ quy không kiểm soát**.
+You should not catch `StackOverflowError` and treat that as normal cycle handling. That is a stack resource exhaustion error; a proper algorithm must detect and handle cyclic structures **before uncontrolled recursion**.
 
-## 4. Trường hợp riêng: `Arrays.deepToString` có xử lý vòng mảng
+## 4. Special case: `Arrays.deepToString` handles array cycles
 
-`Arrays.deepToString(Object[])` được thiết kế để tạo biểu diễn chuỗi của mảng nhiều chiều. Đối với **mảng tham chiếu lồng nhau có đường dẫn quay lại mảng đã nằm trên đường đệ quy**, nó thay nhánh tự tham chiếu bằng chuỗi `[...]`.
+`Arrays.deepToString(Object[])` is designed to build a string representation of multidimensional arrays. For **nested reference arrays with a path returning to an array already on the recursion path**, it replaces the self-referential branch with the string `[...]`.
 
-Ví dụ một mảng chỉ chứa chính nó sẽ được in thành `[[...]]`. Nếu mảng chứa phần tử `"root"` rồi một tham chiếu quay lại chính nó, kết quả là `[root, [...]]`. Chu trình gián tiếp cũng được xử lý; ví dụ `outer -> inner -> outer` tạo `[[[...]]]`.
+For example, an array containing only itself prints as `[[...]]`. If an array contains `"root"` followed by a reference back to itself, the result is `[root, [...]]`. Indirect cycles are also handled; for instance `outer -> inner -> outer` produces `[[[...]]]`.
 
-Các dấu `[...]` là **ký hiệu hiển thị**, không có nghĩa đối tượng thực sự chứa chuỗi ký tự đó. `deepToString` không cung cấp một biểu diễn chuẩn duy nhất cho mọi đồ thị, không đánh số danh tính đối tượng và không tự quyết định hai đồ thị cyclic có bằng nhau hay không.
+The `[...]` markers are **display notation**, not meaning the object actually contains that character sequence. `deepToString` does not provide a single canonical representation for every graph, does not number object identities, and does not decide whether two cyclic graphs are equal.
 
-Giới hạn cần nhớ: việc phòng vòng được mô tả cho **mảng lồng nhau**. Nếu phần tử là đối tượng tùy biến mà `toString()` của nó tự duyệt qua một đồ thị cyclic không kiểm soát, `deepToString` không thể tự sửa thuật toán `toString()` đó. Tương tự, một `List` hoặc `Map` có chu trình vẫn cần xem xét hợp đồng riêng của lớp và các phần tử của nó.
+Limitation to remember: cycle protection is described for **nested arrays**. If an element is a custom object whose `toString()` traverses an uncontrolled cyclic graph on its own, `deepToString` cannot fix that `toString()` algorithm. Similarly, a cyclic `List` or `Map` still requires considering the specific contract of the class and its elements.
 
-## 5. Ví dụ hoàn chỉnh chạy với Java 17+
+## 5. Complete runnable Java 17+ example
 
-Chương trình sau minh họa ba nhóm kết quả an toàn: so sánh sâu trên mảng không có vòng, hiển thị mảng có vòng, và tự duyệt đồ thị liên kết đơn với khả năng ghi nhận đối tượng đã gặp.
+The following program illustrates three safe groups of results: deep comparison on acyclic arrays, displaying cyclic arrays, and traversing a singly linked graph while recording encountered objects.
 
-Tạo tệp **`CyclicStructureDemo.java`**:
+Create file **`CyclicStructureDemo.java`**:
 
 ~~~java
 import java.util.Arrays;
@@ -135,8 +135,8 @@ public class CyclicStructureDemo {
         return out.toString();
     }
 
-    // Chỉ so sánh đồ thị Node có một cạnh "next" cho mỗi nút,
-    // yêu cầu bảo toàn tên và đúng mẫu tham chiếu/vòng.
+    // Only compares Node graphs with one "next" edge per node,
+    // requiring preserved labels and exact reference/cycle pattern.
     static boolean sameShape(Node left, Node right) {
         Map<Node, Node> leftToRight = new IdentityHashMap<>();
         Map<Node, Node> rightToLeft = new IdentityHashMap<>();
@@ -193,7 +193,7 @@ public class CyclicStructureDemo {
         System.out.println("indirect cycle: "
                 + Arrays.deepToString(outer));
 
-        // Ba đồ thị có cấu trúc lặp; không dùng deepEquals/deepHashCode.
+        // Three graphs with cyclic structure; do not use deepEquals/deepHashCode.
         Node a = new Node("A");
         Node b = new Node("B");
         a.next = b;
@@ -207,7 +207,7 @@ public class CyclicStructureDemo {
         Node e = new Node("A");
         Node f = new Node("B");
         e.next = f;
-        f.next = f; // Khác mẫu vòng của a -> b -> a.
+        f.next = f; // Differs from the cycle pattern of a -> b -> a.
 
         System.out.println("graph walk: " + describe(a));
         System.out.println("same graph shape: " + sameShape(a, c));
@@ -216,14 +216,14 @@ public class CyclicStructureDemo {
 }
 ~~~
 
-Chạy bằng JDK 17 hoặc mới hơn:
+Run with JDK 17 or newer:
 
 ~~~bash
 javac CyclicStructureDemo.java
 java CyclicStructureDemo
 ~~~
 
-Đầu ra xác định:
+Deterministic output:
 
 ~~~text
 shallow equals: false
@@ -237,28 +237,28 @@ same graph shape: true
 different graph shape: false
 ~~~
 
-### Giải thích đầu ra
+### Output explanation
 
-1. Hai mảng `first` và `equivalent` có những mảng con được tạo riêng. `Arrays.equals` so sánh phần tử trực tiếp, nên không xem các mảng con mới là bằng nhau theo nội dung và cho `false`.
-2. `Arrays.deepEquals` duyệt mảng con và phần tử lá. Cả hai cấu trúc **không có vòng** và tương đương nội dung, nên trả về `true`; mã băm sâu cũng bằng nhau.
-3. `Arrays.deepToString(first)` trình bày dữ liệu lồng nhau thành `[[1, 2], [x, [3]]]`.
-4. Hai mảng cyclic chỉ được truyền cho `Arrays.deepToString`. Hàm này đánh dấu tham chiếu quay vòng bằng `[...]` thay vì đi sâu mãi.
-5. Hàm `describe` sử dụng `IdentityHashMap` ghi nhận đúng từng **tham chiếu Node** đã gặp. Khi quay về nút `a`, nó phát hiện ID `#1` và dừng.
-6. Hàm `sameShape` duy trì ánh xạ hai chiều giữa các Node theo danh tính, đối chiếu `label` và quan hệ `next`; hai chu trình `A -> B -> A` khớp nhau, còn `A -> B -> B` khác mẫu vòng.
+1. The two arrays `first` and `equivalent` have separately created sub-arrays. `Arrays.equals` compares direct elements, so it does not treat new sub-arrays as equal by content and gives `false`.
+2. `Arrays.deepEquals` traverses sub-arrays and leaf elements. Both structures are **acyclic** and content-equivalent, so it returns `true`; deep hashes are also equal.
+3. `Arrays.deepToString(first)` presents nested data as `[[1, 2], [x, [3]]]`.
+4. The two cyclic arrays are only passed to `Arrays.deepToString`. This function marks circular references with `[...]` instead of recursing forever.
+5. `describe` uses `IdentityHashMap` to accurately record each **Node reference** encountered. When returning to node `a`, it detects ID `#1` and stops.
+6. `sameShape` maintains a bidirectional mapping between Nodes by identity, checking `label` and `next` relationships; the two cycles `A -> B -> A` match, whereas `A -> B -> B` has a different cycle pattern.
 
-**Phạm vi ví dụ:** `sameShape` chỉ là thuật toán minh họa cho đồ thị mà mỗi Node có **tối đa một liên kết `next`**. Nó kiểm tra sự tương ứng từng nút và vòng tham chiếu của chính mô hình đó. Không coi nó là thuật toán tổng quát cho đồ thị có nhiều cạnh, collection lồng nhau hoặc mọi cấu trúc Java.
+**Example scope:** `sameShape` is only an illustrative algorithm for graphs where each Node has **at most one `next` link**. It checks node-by-node correspondence and the reference cycle of that specific model. Do not treat it as a general algorithm for multi-edge graphs, nested collections, or all Java structures.
 
-## 6. Vì sao dùng `IdentityHashMap` để theo dõi đối tượng đã thăm?
+## 6. Why use `IdentityHashMap` to track visited objects?
 
-Khi kiểm tra vòng trong **đồ thị đối tượng**, câu hỏi cần trả lời trước tiên là: “Ta đã gặp **chính thể hiện này** chưa?”, nghĩa là dùng `==` đối với tham chiếu.
+When checking cycles in an **object graph**, the first question to answer is: “Have we seen **this exact instance** before?”, meaning using `==` on references.
 
-`IdentityHashMap` thực hiện so sánh khóa bằng `==`, thay cho `equals()` theo nội dung. Điều đó hữu ích vì:
+`IdentityHashMap` compares keys using `==` instead of content-based `equals()`. That is helpful because:
 
-- Hai Node khác tham chiếu nhưng `equals()` bằng nhau theo nghiệp vụ vẫn được phân biệt.
-- Việc thêm Node vào tập đã thăm không gọi `equals()` hoặc `hashCode()` do người dùng định nghĩa, vốn có thể tự duyệt qua cấu trúc vòng.
-- Duyệt dựa vào danh tính đối tượng, đúng mục tiêu phát hiện tham chiếu lặp.
+- Two Nodes with different references that are business-equal under `equals()` are still distinguished.
+- Adding a Node to the visited set does not invoke user-defined `equals()` or `hashCode()`, which might themselves traverse the cyclic structure.
+- Traversal relies on object identity, matching the goal of detecting repeated references.
 
-Có thể tạo một `Set` theo danh tính bằng:
+An identity-based `Set` can be created with:
 
 ~~~java
 Set<Object> seen =
@@ -266,33 +266,33 @@ Set<Object> seen =
                 new java.util.IdentityHashMap<>());
 ~~~
 
-Đây là **đoạn mã minh họa** cần đặt trong ngữ cảnh có `import java.util.Set;` hoặc dùng tên đầy đủ. Lưu ý `IdentityHashMap` không có cùng ngữ nghĩa khóa như `HashMap`: nên chỉ chọn nó khi thực sự cần bình đẳng theo **danh tính**.
+This is an **illustrative snippet** that must be placed in a context with `import java.util.Set;` or using fully qualified names. Note that `IdentityHashMap` does not have the same key semantics as `HashMap`: only choose it when you genuinely need **identity**-based equality.
 
-Trong đồ thị có nhiều nhánh, cần phân biệt ít nhất hai tình huống:
+In graphs with multiple branches, at least two situations must be distinguished:
 
-- **Đã thăm toàn cục**: một Node xuất hiện ở hai nhánh nhưng không tạo vòng. Nó là phần tử được chia sẻ (*shared reference*), không mặc nhiên là chu trình.
-- **Đang nằm trên đường duyệt hiện tại**: gặp lại Node đang nằm trong ngăn xếp đường đi hiện tại là dấu hiệu có cạnh quay về tổ tiên, tạo chu trình trong một lượt duyệt theo chiều sâu.
+- **Globally visited**: a Node appears in two branches without forming a cycle. It is a *shared reference*, not automatically a cycle.
+- **Currently on the active traversal path**: re-encountering a Node still on the current path stack signals a back-edge to an ancestor, forming a cycle during depth-first traversal.
 
-Với một danh sách liên kết đơn `next` như ví dụ, gặp lại cùng tham chiếu khi đi tuyến tính là đủ để xác định một vòng. Với đồ thị có nhiều cạnh, thuật toán DFS dùng các trạng thái *chưa thăm / đang thăm / hoàn tất* hoặc tập `visiting` và `visited` riêng theo mục tiêu phát hiện vòng.
+With a singly linked list `next` like the example, re-encountering the same reference while walking linearly suffices to identify a cycle. For graphs with multiple edges, DFS uses states *unvisited / visiting / visited* or separate `visiting` and `visited` sets as appropriate for cycle detection.
 
-## 7. So sánh hai cấu trúc có vòng cần định nghĩa “bằng nhau”
+## 7. Comparing two cyclic structures requires defining “equal”
 
-Không tồn tại một nghĩa duy nhất cho “hai đồ thị cyclic bằng nhau”. Ví dụ:
+There is no single definition of “two cyclic graphs are equal”. For example:
 
-- **Bằng nhau theo danh tính:** hai biến phải trỏ cùng đối tượng (kiểm tra bằng `==`).
-- **Bằng nhau theo giá trị nút:** có thể coi các nút có cùng mã nghiệp vụ là bằng nhau dù nối cạnh khác.
-- **Bằng nhau theo cấu trúc (topology):** bảo toàn một ánh xạ giữa các nút, các nhãn và các cạnh; nhánh dùng chung hay chu trình khác nhau phải được phân biệt.
-- **Bằng nhau theo cách triển khai nghiệp vụ:** ứng dụng có thể chỉ quan tâm một tập thuộc tính chọn lọc.
+- **Identity equality:** two variables must point to the same object (checked with `==`).
+- **Node-value equality:** nodes with the same business ID might be considered equal even if edges differ.
+- **Structural (topology) equality:** preserves a mapping between nodes, labels, and edges; shared branches or differing cycles must be distinguished.
+- **Business-implementation equality:** an application might only care about a selected set of properties.
 
-`sameShape` trong ví dụ thực thi **một định nghĩa cụ thể**: nhãn tương ứng giống nhau và quan hệ tham chiếu `next` có cấu trúc tương ứng một-một. Khi hai đường duyệt quay về cùng cặp Node đã ánh xạ, thuật toán dừng thành công; nếu một bên quay về Node khác cấu trúc, nó trả về `false`.
+`sameShape` in the example implements **one specific definition**: matching corresponding labels and a one-to-one correspondence in `next` reference structure. When both traversals return to an already-mapped pair of Nodes, the algorithm stops successfully; if one side returns to a structurally different Node, it returns `false`.
 
-Đối với đồ thị tổng quát, cần kiểm soát ánh xạ hai chiều (*one-to-one mapping*), thứ tự cạnh nếu thứ tự có ý nghĩa, alias chung và chu trình. Một tập các cặp đã so sánh đôi khi tránh được đệ quy vô hạn nhưng **chưa tự động chứng minh** hai đồ thị có cùng cấu trúc theo mọi định nghĩa. Hãy xác định ngữ nghĩa trước khi lựa chọn thuật toán.
+For general graphs, you must manage bidirectional (*one-to-one*) mapping, edge order if order matters, shared aliases, and cycles. A set of already-compared pairs sometimes avoids infinite recursion yet **does not automatically prove** two graphs have the same structure under every definition. Define semantics before choosing an algorithm.
 
-## 8. `equals()`, `hashCode()`, `toString()` tự viết cũng có thể lặp vô hạn
+## 8. Custom `equals()`, `hashCode()`, `toString()` can also loop infinitely
 
-Rủi ro không chỉ xuất hiện trong `Arrays.deepEquals` hoặc `Arrays.deepHashCode`. Nếu lớp tự ghi đè phương thức rồi đi qua các liên kết mà không kiểm soát vòng, sự đệ quy có thể chạy mãi.
+The risk does not only appear in `Arrays.deepEquals` or `Arrays.deepHashCode`. If a class overrides methods and follows links without cycle checks, recursion can run forever.
 
-Ví dụ minh họa **không chạy độc lập**:
+Illustrative example, **not standalone runnable**:
 
 ~~~java
 @Override
@@ -301,9 +301,9 @@ public String toString() {
 }
 ~~~
 
-Nếu `next` quay lại Node hiện tại hoặc nằm trong một chu trình, việc nối chuỗi gọi `next.toString()` rồi lại quay về đối tượng cũ. Với cách triển khai này, ta có thể gặp `StackOverflowError`.
+If `next` points back to the current Node or is part of a cycle, string concatenation calls `next.toString()` and loops back to the old object. With this implementation, we can hit `StackOverflowError`.
 
-Một cách an toàn hơn cho log là chỉ in **thông tin không đệ quy**:
+A safer approach for logging is printing only **non-recursive information**:
 
 ~~~java
 @Override
@@ -312,66 +312,66 @@ public String toString() {
 }
 ~~~
 
-Nếu thật sự cần in **đồ thị đầy đủ**, nên có hàm hiển thị riêng nhận trạng thái đã thăm, như `describe`. Cách tiếp cận tương tự áp dụng cho `equals()`/`hashCode()`: không để chúng tự đệ quy không hạn chế qua mọi cạnh, đặc biệt khi đối tượng dự định làm khóa `HashMap`.
+If you genuinely need to print the **full graph**, provide a dedicated display function accepting visited state, such as `describe`. A similar approach applies to `equals()`/`hashCode()`: do not let them recurse unrestrictedly across all edges, especially when the object is intended as a `HashMap` key.
 
-Một hàm băm dành cho **đồ thị cyclic** cần được thiết kế theo một quy ước xác định (chẳng hạn định danh nút bất biến, thứ tự duyệt và đánh dấu alias nhất quán). Phải bảo đảm điều kiện bắt buộc: nếu hai giá trị bằng nhau theo `equals()` đã chọn thì chúng có cùng mã băm. Chỉ chọn mã băm ngẫu nhiên hoặc `System.identityHashCode()` sẽ không tương thích nếu `equals()` coi các đồ thị khác tham chiếu là bằng nhau theo cấu trúc.
+A hash function for **cyclic graphs** must be designed according to a deterministic convention (such as immutable node identifiers, traversal order, and consistent alias marking). The mandatory condition must be preserved: if two values are equal under the chosen `equals()`, they have the same hash code. Choosing random hashes or `System.identityHashCode()` will be incompatible if `equals()` treats graphs with different references as structurally equal.
 
-## 9. Phân biệt mảng, collection và tham chiếu vòng
+## 9. Distinguishing arrays, collections, and circular references
 
-Một số trường hợp thường bị nhập nhằng:
+Several cases are often conflated:
 
-- **Mảng nguyên thủy** như `int[]` không thể tự chứa chính nó theo kiểu phần tử nguyên thủy. Vòng chỉ hình thành từ các tham chiếu, chẳng hạn trong `Object[]`, Node hoặc collection.
-- **Mảng nhiều chiều kiểu `int[][]`** có các mảng con nguyên thủy; bản thân mảng `int[][]` không thể chứa chính nó làm phần tử `int[]` vì kiểu không khớp. Tuy nhiên một `Object[]` có thể chứa `int[]` và tham chiếu quay vòng tới các mảng `Object[]`.
-- **`List`, `Set`, `Map`** có thể tổ chức dữ liệu chứa tham chiếu qua lại. Hợp đồng và cách xử lý của từng API không đồng nhất với `Arrays.deepToString`. Đừng mặc định chúng đều tự chống vòng ở `equals()`, `hashCode()` hoặc `toString()`.
-- **Mảng lồng nhau rất sâu nhưng không có vòng** vẫn có thể gây cạn stack nếu một thuật toán dùng đệ quy quá sâu. Không có vòng chưa có nghĩa mọi thao tác đệ quy đều an toàn với mọi độ sâu.
-- **`record` chứa mảng** không tự tạo so sánh sâu các phần tử. `equals()`/`hashCode()` được sinh cho record xử lý thành phần mảng theo ngữ nghĩa của chính đối tượng mảng (thường là danh tính), không tự thay bằng `Arrays.deepEquals`/`deepHashCode`.
+- **Primitive arrays** such as `int[]` cannot contain themselves as primitive elements. Cycles only form from references, such as in `Object[]`, Nodes, or collections.
+- **Multidimensional arrays like `int[][]`** have primitive sub-arrays; an `int[][]` itself cannot contain itself as an `int[]` element because types do not match. However, an `Object[]` can contain `int[]` and circular references to `Object[]` arrays.
+- **`List`, `Set`, `Map`** can organize data containing mutual references. The contracts and handling of each API are not identical to `Arrays.deepToString`. Do not assume they all protect against cycles in `equals()`, `hashCode()`, or `toString()`.
+- **Very deeply nested acyclic arrays** can still exhaust the stack if an algorithm recurses too deeply. Being acyclic does not mean every recursive operation is safe at arbitrary depth.
+- **A `record` containing an array** does not automatically perform deep comparison of elements. Generated `equals()`/`hashCode()` for a record handles array components according to the array object's own semantics (usually identity), rather than substituting `Arrays.deepEquals`/`deepHashCode`.
 
-Đặc biệt, `Objects.deepEquals(a, b)` cũng **không phải lời giải cho mảng có vòng**: khi cả hai đối số là mảng, phương thức này dựa vào `Arrays.deepEquals`; hạn chế về cấu trúc cyclic vẫn còn.
+In particular, `Objects.deepEquals(a, b)` is **also not a solution for cyclic arrays**: when both arguments are arrays, this method delegates to `Arrays.deepEquals`; the limitation on cyclic structures remains.
 
-## 10. Chiến lược xử lý thực tế
+## 10. Practical handling strategies
 
-1. **Nếu dữ liệu là mảng lồng nhau không có vòng và muốn so sánh nội dung:** dùng `Arrays.deepEquals` cùng `Arrays.deepHashCode`, khi cần biểu diễn dùng `Arrays.deepToString`.
-2. **Nếu chỉ cần ghi log một mảng có tham chiếu vòng:** `Arrays.deepToString` có xử lý vòng của mảng; không dùng kết quả in làm khóa duy nhất hoặc định nghĩa cấu trúc bằng nhau.
-3. **Nếu cần phát hiện vòng trong đồ thị:** duyệt theo danh tính; theo dõi trạng thái đang thăm, đã thăm bằng `IdentityHashMap` hoặc `Set` xây từ nó.
-4. **Nếu cần so sánh hai đồ thị cyclic:** trước tiên định nghĩa tính bằng nhau, sau đó dùng ánh xạ cặp Node hoặc thuật toán đồ thị tương ứng, có cơ chế dừng và bảo toàn alias khi cần.
-5. **Nếu cần dùng cấu trúc làm khóa băm:** ưu tiên khóa bất biến theo mã nghiệp vụ hoặc một đại diện bất biến đã chuẩn hóa. Tránh tính `equals()`/`hashCode()` bằng cách đi sâu không hạn chế trong đồ thị có vòng.
-6. **Nếu dữ liệu đến từ nguồn ngoài:** kiểm tra trước tính hợp lệ và khả năng có vòng, giới hạn số nút, số cạnh hoặc độ sâu theo yêu cầu bảo vệ tài nguyên của ứng dụng.
+1. **If data is acyclic nested arrays and content comparison is desired:** use `Arrays.deepEquals` with `Arrays.deepHashCode`, and use `Arrays.deepToString` when display is needed.
+2. **If you only need to log an array with circular references:** `Arrays.deepToString` handles array cycles; do not use the printed output as a unique key or structural equality definition.
+3. **If you need to detect cycles in a graph:** traverse by identity; track visiting and visited states with `IdentityHashMap` or a `Set` backed by it.
+4. **If you need to compare two cyclic graphs:** first define equality, then use node-pair mapping or an appropriate graph algorithm with termination and alias preservation where needed.
+5. **If you need to use a structure as a hash key:** prefer immutable keys by business ID or a normalized immutable representation. Avoid computing `equals()`/`hashCode()` via unrestricted deep traversal in cyclic graphs.
+6. **If data comes from external sources:** validate upfront for validity and potential cycles, limiting node count, edge count, or depth according to the application's resource protection requirements.
 
-### Checklist nhanh
+### Quick checklist
 
-- Có **tham chiếu quay về cùng đối tượng** trực tiếp hoặc qua nhiều lớp không?
-- Đang sử dụng `Arrays.deepEquals` hoặc `deepHashCode` với mảng có vòng chứ?
-- Có nhầm `deepToString` xử lý vòng trong mảng với một cơ chế chống vòng cho mọi đối tượng Java không?
-- Tập đối tượng đã thăm có dựa vào **danh tính tham chiếu** khi mục tiêu là theo dõi cùng thể hiện không?
-- Thuật toán có phân biệt **chia sẻ tham chiếu** và **chu trình thực sự**?
-- Có xác định trước nghĩa của “bằng nhau” khi so sánh cấu trúc cyclic?
-- Có giới hạn tài nguyên và trường hợp cấu trúc lồng quá sâu?
+- Is there a **reference returning to the same object** directly or across multiple levels?
+- Are `Arrays.deepEquals` or `deepHashCode` being used on cyclic arrays?
+- Is `deepToString`'s array cycle handling being confused with a cycle-prevention mechanism for all Java objects?
+- Is the visited-object set based on **reference identity** when the goal is tracking the exact same instance?
+- Does the algorithm distinguish **shared references** from **true cycles**?
+- Is the meaning of “equal” defined beforehand when comparing cyclic structures?
+- Are resource limits and excessively deep nesting cases accounted for?
 
-## 11. Câu hỏi tự kiểm tra
+## 11. Self-check questions
 
-**Câu 1.** Một `Object[]` chứa chính nó. Có thể yên tâm gọi `Arrays.deepHashCode(array)` không?
+**Question 1.** An `Object[]` contains itself. Can you safely call `Arrays.deepHashCode(array)`?
 
-**Đáp án:** Không. Java API quy định hành vi không xác định cho mảng tự tham chiếu trực tiếp hoặc gián tiếp.
+**Answer:** No. The Java API specifies undefined behavior for arrays that directly or indirectly reference themselves.
 
-**Câu 2.** `Arrays.deepToString(array)` có gặp vấn đề giống `Arrays.deepHashCode(array)` khi chính mảng xuất hiện lại trong cấu trúc không?
+**Question 2.** Does `Arrays.deepToString(array)` face the same problem as `Arrays.deepHashCode(array)` when the array itself reappears inside the structure?
 
-**Đáp án:** `deepToString` có cơ chế biểu diễn các nhánh mảng quay vòng bằng `[...]`. Đây là cơ chế in nội dung, không tự cung cấp khả năng so sánh hoặc băm sâu trên cấu trúc cyclic.
+**Answer:** `deepToString` has a mechanism to represent cyclic array branches as `[...]`. That is a content-printing mechanism and does not automatically provide deep comparison or deep hashing on cyclic structures.
 
-**Câu 3.** Hai nhánh cùng trỏ đến một mảng con, nhưng mảng con không trỏ ngược về cha. Đó có phải vòng?
+**Question 3.** Two branches both point to a sub-array, yet the sub-array does not point back to the parent. Is that a cycle?
 
-**Đáp án:** Không. Đó là *shared reference*. Có cạnh dùng chung không đồng nghĩa có đường quay về điểm xuất phát.
+**Answer:** No. That is a *shared reference*. Having a shared edge does not imply there is a path back to the starting point.
 
-**Câu 4.** Vì sao `IdentityHashMap` có ích khi phát hiện đối tượng đã thăm?
+**Question 4.** Why is `IdentityHashMap` useful when detecting visited objects?
 
-**Đáp án:** Nó phân biệt khóa bằng `==` thay vì gọi `equals()`/`hashCode()` của đối tượng, nhờ đó theo dõi chính xác từng thể hiện và tránh kích hoạt logic so sánh đệ quy tự viết.
+**Answer:** It distinguishes keys using `==` instead of calling the object's `equals()`/`hashCode()`, thereby accurately tracking each instance and avoiding triggering custom recursive comparison logic.
 
-**Câu 5.** Có thể dùng cùng một thuật toán băm cho mọi định nghĩa bằng nhau của đồ thị cyclic không?
+**Question 5.** Can the same hashing algorithm be used for every equality definition of cyclic graphs?
 
-**Đáp án:** Không. Cần chọn ngữ nghĩa bằng nhau, rồi thiết kế thuật toán băm tương thích; đặc biệt phải duy trì “`equals()` bằng nhau ⇒ `hashCode()` bằng nhau”.
+**Answer:** No. You must choose the equality semantics first, then design a compatible hashing algorithm; in particular, “equal `equals()` ⇒ equal `hashCode()`” must be maintained.
 
-**Ghi nhớ:** `Arrays.deepEquals` và `Arrays.deepHashCode` dành cho so sánh/băm sâu mảng **không có vòng**; việc dùng chúng với mảng cyclic có hành vi không xác định. `Arrays.deepToString` xử lý các nhánh quay vòng giữa mảng để hiển thị. Với đồ thị tham chiếu tổng quát, hãy chủ động phát hiện danh tính đã thăm và định nghĩa rõ ngữ nghĩa so sánh.
+**Key takeaway:** `Arrays.deepEquals` and `Arrays.deepHashCode` are intended for deep comparison/hashing of **acyclic** arrays; using them on cyclic arrays has undefined behavior. `Arrays.deepToString` handles circular branches between arrays for display. For general reference graphs, proactively detect visited identities and explicitly define comparison semantics.
 
-## Tham khảo API
+## API References
 
 - [Java `Arrays` API — deepEquals, deepHashCode, deepToString](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Arrays.html)
 - [Java `IdentityHashMap` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/IdentityHashMap.html)

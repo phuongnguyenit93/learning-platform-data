@@ -1,49 +1,49 @@
-# jdeps phát hiện phụ thuộc module JDK
+# Detecting JDK Module Dependencies with jdeps
 
-## 1. jdeps dùng để làm gì?
+## 1. What Is jdeps Used For?
 
-**jdeps** là công cụ dòng lệnh đi kèm JDK, dùng để phân tích các phụ thuộc được thể hiện trong bytecode Java. Công cụ có thể đọc file **.class**, JAR hoặc thư mục chứa class, sau đó cho biết mã nguồn đã biên dịch đang tham chiếu đến package, class và module nào.
+**jdeps** is a command-line tool bundled with the JDK for analyzing dependencies expressed in Java bytecode. The tool can read **.class** files, JARs, or directories of class files, then report which packages, classes, and modules the compiled code references.
 
-Trong Java Platform Module System (JPMS, từ Java 9), jdeps giúp trả lời những câu hỏi thực tế:
+In the Java Platform Module System (JPMS, since Java 9), jdeps helps answer practical questions:
 
-- Ứng dụng đang cần những module JDK nào, chẳng hạn **java.base**, **java.sql** hoặc **java.logging**?
-- Một JAR có đang sử dụng API nội bộ của JDK hay không?
-- Khi chuyển ứng dụng từ classpath sang module path, cần khai báo những phụ thuộc nào?
-- Khi tạo runtime image tối giản bằng **jlink**, cần đưa những module JDK nào vào image?
-- Vì sao jdeps không phân giải được một số class và cần bổ sung thư viện nào vào classpath hoặc module path?
+- Which JDK modules does the application need, such as **java.base**, **java.sql**, or **java.logging**?
+- Does a JAR use any internal JDK APIs?
+- When moving an application from the classpath to the module path, which dependencies need to be declared?
+- When creating a minimal runtime image with **jlink**, which JDK modules need to be included in the image?
+- Why is jdeps unable to resolve certain classes, and which libraries must be added to the classpath or module path?
 
-jdeps thực hiện **phân tích tĩnh**. Nó đọc bytecode và các tham chiếu có thể xác định từ bytecode, không chạy ứng dụng. Vì vậy, kết quả phản ánh các phụ thuộc mà công cụ phát hiện được trong artifact tại thời điểm phân tích.
+jdeps performs **static analysis**. It inspects bytecode and references identifiable from bytecode without running the application. Consequently, the results reflect the dependencies the tool detects in the artifact at the time of analysis.
 
-## 2. Chuẩn bị và phạm vi phân tích
+## 2. Preparation and Analysis Scope
 
-jdeps nằm trong thư mục **bin** của JDK. Có thể kiểm tra phiên bản và cú pháp bằng:
+jdeps is located in the JDK's **bin** directory. You can check its version and syntax with:
 
 ~~~bash
 jdeps --version
 jdeps --help
 ~~~
 
-Cú pháp tổng quát:
+General syntax:
 
 ~~~bash
 jdeps [options] <path>
 ~~~
 
-Đối số **<path>** có thể là một file class, một JAR hoặc một thư mục chứa các class. Có thể phân tích nhiều artifact trong cùng một lần chạy. Nên dùng phiên bản jdeps phù hợp với JDK mục tiêu của ứng dụng, đặc biệt khi artifact có class được biên dịch cho nhiều phiên bản Java.
+The **<path>** argument can be a class file, a JAR, or a directory containing classes. Multiple artifacts can be analyzed in a single invocation. Use a jdeps version matching the application's target JDK, especially when artifacts contain classes compiled for multiple Java versions.
 
-Một lượt phân tích thường bắt đầu từ JAR đã đóng gói. Phân tích artifact cuối giúp tránh bỏ sót khác biệt giữa mã nguồn và nội dung thực tế được đưa vào bản phát hành.
+An analysis pass typically starts from the packaged JAR. Analyzing the final artifact avoids overlooking differences between source code and what is actually included in the release.
 
-## 3. Quy trình tìm phụ thuộc module JDK
+## 3. Workflow for Finding JDK Module Dependencies
 
-### Bước 1: Xem tổng quan phụ thuộc
+### Step 1: View a Dependency Overview
 
-Chạy chế độ summary:
+Run summary mode:
 
 ~~~bash
 jdeps --summary build/libs/app.jar
 ~~~
 
-Kết quả thường cho biết artifact phụ thuộc vào những module nào. Ví dụ minh họa:
+The output typically shows which modules the artifact depends on. Illustrative example:
 
 ~~~text
 app.jar -> java.base
@@ -51,203 +51,203 @@ app.jar -> java.logging
 app.jar -> java.sql
 ~~~
 
-Điều này cho thấy bytecode trong JAR có tham chiếu đến các API thuộc những module được liệt kê. **java.base** xuất hiện trong hầu hết ứng dụng Java vì đây là module nền tảng mà các module khác đọc ngầm theo quy tắc của JPMS.
+This indicates that bytecode in the JAR references APIs belonging to the listed modules. **java.base** appears in almost every Java application because it is the foundational module implicitly read by other modules under JPMS rules.
 
-Summary phù hợp để kiểm kê nhanh. Khi cần biết class hoặc package nào tạo ra một phụ thuộc, hãy chuyển sang chế độ chi tiết.
+Summary mode is well suited for a quick inventory. When you need to know which class or package creates a dependency, switch to verbose modes.
 
-### Bước 2: Truy dấu phụ thuộc đến package hoặc class
+### Step 2: Trace Dependencies to Packages or Classes
 
-Phân tích ở cấp package:
+Analyze at the package level:
 
 ~~~bash
 jdeps --verbose:package build/libs/app.jar
 ~~~
 
-Phân tích ở cấp class:
+Analyze at the class level:
 
 ~~~bash
 jdeps --verbose:class build/libs/app.jar
 ~~~
 
-Chế độ package giúp thu hẹp khu vực cần kiểm tra. Chế độ class hữu ích khi cần tìm chính xác class nào đang tham chiếu đến một API. Kết quả chi tiết thường dài hơn summary đáng kể, vì vậy nên dùng sau khi đã biết module hoặc package đáng chú ý.
+Package mode helps narrow down the area to inspect. Class mode is useful when finding the exact class referencing an API. Detailed output is usually significantly longer than the summary, so use it after identifying a module or package of interest.
 
-### Bước 3: Liệt kê module JDK cần thiết
+### Step 3: List Required JDK Modules
 
-Dùng **--list-deps** để liệt kê các module phụ thuộc:
+Use **--list-deps** to list module dependencies:
 
 ~~~bash
 jdeps --list-deps build/libs/app.jar
 ~~~
 
-Dùng **--print-module-deps** khi cần một danh sách module dạng phân tách bằng dấu phẩy:
+Use **--print-module-deps** when you need a comma-separated list of modules:
 
 ~~~bash
 jdeps --print-module-deps build/libs/app.jar
 ~~~
 
-Ví dụ đầu ra có thể là:
+Example output might be:
 
 ~~~text
 java.base,java.logging,java.sql
 ~~~
 
-Danh sách này hữu ích làm đầu vào khi cấu hình **jlink**. Hãy xem đây là tập module được suy ra từ các tham chiếu mà jdeps phân tích được; vẫn cần kiểm thử ứng dụng trong runtime image thực tế.
+This list is useful as input when configuring **jlink**. Treat it as the module set inferred from references jdeps could analyze; you still need to test the application inside the actual runtime image.
 
-### Bước 4: Kiểm tra API nội bộ của JDK
+### Step 4: Check for JDK Internal APIs
 
-Chạy:
+Run:
 
 ~~~bash
 jdeps --jdk-internals build/libs/app.jar
 ~~~
 
-Tùy chọn này tìm các tham chiếu đến API nội bộ của JDK, ví dụ những package có tiền tố như **sun.*** hoặc một số API **com.sun.***. Kết quả có thể chỉ ra class sử dụng API, API nội bộ được tham chiếu và gợi ý thay thế nếu công cụ biết cách thay thế phù hợp.
+This option searches for references to internal JDK APIs, such as packages prefixed with **sun.*** or certain **com.sun.*** APIs. Output can identify the class using the API, the referenced internal API, and a suggested replacement if the tool knows an appropriate alternative.
 
-API nội bộ không phải hợp đồng tương thích công khai. Chúng có thể thay đổi hoặc bị đóng quyền truy cập giữa các phiên bản JDK. Khi phát hiện một tham chiếu, hãy tìm API công khai tương ứng và sửa mã sử dụng. Ví dụ, một số trường hợp dùng **sun.misc.Unsafe** có thể được chuyển sang **VarHandle**, **java.util.concurrent** hoặc API công khai khác; lựa chọn cụ thể phụ thuộc vào mục đích của đoạn mã.
+Internal APIs are not public compatibility contracts. They may change or have access restricted across JDK versions. When a reference is detected, locate the corresponding public API and update the calling code. For example, some uses of **sun.misc.Unsafe** can be migrated to **VarHandle**, **java.util.concurrent**, or other public APIs; the exact choice depends on the code's purpose.
 
-Không nên xem việc jdeps không báo lỗi là bằng chứng tuyệt đối rằng ứng dụng không dùng API nội bộ. Những tham chiếu được tạo động hoặc ẩn trong cấu hình có thể nằm ngoài khả năng phân tích tĩnh.
+Do not treat the absence of jdeps errors as absolute proof that the application uses no internal APIs. Dynamically constructed references or references hidden in configuration may lie beyond static analysis.
 
-### Bước 5: Phát hiện phụ thuộc bị thiếu
+### Step 5: Detect Missing Dependencies
 
-Chạy:
+Run:
 
 ~~~bash
 jdeps --missing-deps build/libs/app.jar
 ~~~
 
-Nếu một class được tham chiếu nhưng không tìm thấy trong artifact, classpath hoặc module path đã cung cấp, jdeps có thể báo phụ thuộc bị thiếu. Khi đó, hãy kiểm tra xem thư viện có bị thiếu khỏi lệnh phân tích hay không, hoặc ứng dụng có thực sự đang tham chiếu đến một class không còn tồn tại hay không.
+If a class is referenced yet not found in the artifact, classpath, or module path provided, jdeps may report a missing dependency. When that happens, check whether a library was omitted from the analysis command or whether the application genuinely references a class that no longer exists.
 
-Có thể dùng **--ignore-missing-deps** để cho phép quá trình phân tích tiếp tục khi một số phụ thuộc không được phân giải:
+You can use **--ignore-missing-deps** to let analysis continue when some dependencies cannot be resolved:
 
 ~~~bash
 jdeps --ignore-missing-deps --print-module-deps build/libs/app.jar
 ~~~
 
-Tùy chọn này chỉ bỏ qua tình trạng thiếu trong quá trình phân tích; nó **không** tìm, tải hoặc bổ sung thư viện bị thiếu. Không nên dùng nó để che khuất lỗi phân giải khi cần xác nhận danh sách module chính xác.
+This option only ignores missing status during analysis; it does **not** locate, download, or supply missing libraries. Do not use it to mask resolution errors when you need to confirm an accurate module list.
 
-## 4. Cung cấp đúng classpath và module path
+## 4. Supplying the Right Classpath and Module Path
 
-Kết quả chỉ có ý nghĩa khi jdeps có thể phân giải các thư viện mà ứng dụng tham chiếu.
+Results are only meaningful when jdeps can resolve the libraries referenced by the application.
 
-### Ứng dụng hoặc thư viện trên classpath
+### Applications or Libraries on the Classpath
 
-Dùng **--class-path** để cung cấp các JAR phụ thuộc:
+Use **--class-path** to provide dependent JARs:
 
 ~~~bash
 jdeps --class-path "lib/*" --summary build/libs/app.jar
 ~~~
 
-Dấu phân cách nhiều đường dẫn phụ thuộc hệ điều hành: Windows dùng dấu chấm phẩy (**;**), còn Linux và macOS dùng dấu hai chấm (**:**). Cú pháp wildcard và cách đặt dấu nháy cũng phụ thuộc shell đang dùng.
+The separator for multiple path entries depends on the operating system: Windows uses a semicolon (**;**), whereas Linux and macOS use a colon (**:**). Wildcard syntax and quoting also depend on the shell in use.
 
-Khi thiếu thư viện trên classpath, jdeps có thể báo class không tìm thấy hoặc không thể suy ra đầy đủ phụ thuộc. Hãy thêm đúng các thư viện mà ứng dụng cần vào classpath phân tích.
+When libraries are missing from the classpath, jdeps may report classes not found or fail to infer complete dependencies. Add the exact libraries the application needs to the analysis classpath.
 
-### Ứng dụng dùng named module
+### Applications Using Named Modules
 
-Dùng **--module-path** để chỉ định nơi chứa các module có tên. Có thể yêu cầu phân tích một module cụ thể bằng **--module**:
+Use **--module-path** to specify where named modules reside. You can request analysis of a specific module with **--module**:
 
 ~~~bash
 jdeps --module-path mods --module com.example.app
 ~~~
 
-Module path giúp jdeps phân giải module descriptor và các phụ thuộc module. Hãy chắc chắn thư mục được chỉ định chứa đúng các module cần thiết cho phiên bản ứng dụng đang phân tích.
+The module path helps jdeps resolve module descriptors and module dependencies. Ensure the specified directory contains the right modules for the application version under analysis.
 
-Classpath và module path có vai trò khác nhau: thư viện trên classpath thuộc unnamed module, trong khi thư viện trên module path có thể được nhận diện như named module nếu có module descriptor phù hợp. Không nên chuyển một thư viện từ nơi này sang nơi kia chỉ để làm biến mất cảnh báo; cần hiểu cách ứng dụng thực sự được khởi chạy và phân giải class.
+Classpath and module path play different roles: libraries on the classpath belong to the unnamed module, whereas libraries on the module path can be recognized as named modules if they have an appropriate module descriptor. Do not move a library from one to the other merely to silence warnings; understand how the application is actually launched and how classes are resolved.
 
-### Phân tích JAR đa phiên bản
+### Analyzing Multi-Release JARs
 
-Một multi-release JAR có thể chứa các class khác nhau cho từng phiên bản Java. Dùng **--multi-release** để yêu cầu jdeps phân tích phần class dành cho phiên bản mục tiêu:
+A multi-release JAR can contain different classes for each Java version. Use **--multi-release** to instruct jdeps to analyze the classes targeting a specific release:
 
 ~~~bash
 jdeps --multi-release 17 --print-module-deps build/libs/app-mr.jar
 ~~~
 
-Chọn đúng phiên bản Java mà ứng dụng sẽ chạy. Nếu phân tích phần class của phiên bản khác, danh sách phụ thuộc có thể không phản ánh đúng runtime mục tiêu.
+Choose the exact Java version the application will run on. Analyzing classes for a different version may produce a dependency list that does not reflect the target runtime.
 
-## 5. Đọc và diễn giải kết quả
+## 5. Reading and Interpreting Results
 
-Khi xem kết quả, cần phân biệt ba cấp độ thông tin:
+When reading output, distinguish three levels of information:
 
-- **Artifact → module:** summary cho biết JAR hoặc thư mục đang tham chiếu đến module nào.
-- **Package → package:** chế độ verbose theo package cho biết khu vực mã nào tạo ra liên kết phụ thuộc.
-- **Class → class:** chế độ verbose theo class giúp truy ra điểm tham chiếu cụ thể để sửa hoặc kiểm tra.
+- **Artifact -> module:** summary shows which modules the JAR or directory references.
+- **Package -> package:** package-level verbose mode shows which code areas create the dependency link.
+- **Class -> class:** class-level verbose mode helps trace the exact reference site for fixing or inspection.
 
-Một dòng như **app.jar -> java.sql** có nghĩa là jdeps tìm thấy tham chiếu từ bytecode trong **app.jar** đến API thuộc module **java.sql**. Nó không có nghĩa mọi class trong module **java.sql** đều được ứng dụng sử dụng.
+A line such as **app.jar -> java.sql** means jdeps found a reference from bytecode in **app.jar** to an API belonging to the **java.sql** module. It does not mean every class in the **java.sql** module is used by the application.
 
-Danh sách module cũng không phải danh sách toàn bộ thư viện bên thứ ba. Phụ thuộc ngoài JDK có thể được biểu diễn bằng JAR hoặc module riêng và cần được cung cấp qua classpath hay module path để phân tích đầy đủ.
+The module list is also not a list of all third-party libraries. Non-JDK dependencies may be represented as separate JARs or modules and must be provided via classpath or module path for complete analysis.
 
-Nếu dùng chế độ recursive, jdeps có thể tiếp tục theo các phụ thuộc được phân giải để mở rộng phạm vi phân tích. Kết quả khi đó có thể bao gồm module mà thư viện phụ thuộc cần, không chỉ những module mà bytecode ứng dụng tham chiếu trực tiếp. Hãy chọn phạm vi phù hợp với câu hỏi đang cần trả lời.
+If recursive mode is used, jdeps can follow resolved dependencies to expand the analysis scope. Results may then include modules needed by dependent libraries, not just modules directly referenced by application bytecode. Choose the scope suited to the question you need answered.
 
-## 6. Dùng kết quả để tạo runtime image với jlink
+## 6. Using Results to Build a Runtime Image with jlink
 
-Một mục đích phổ biến của **--print-module-deps** là xác định các module JDK cần đưa vào runtime image.
+A common purpose of **--print-module-deps** is determining which JDK modules to include in a runtime image.
 
-Trước tiên, lấy danh sách:
+First, obtain the list:
 
 ~~~bash
 jdeps --print-module-deps build/libs/app.jar
 ~~~
 
-Giả sử kết quả minh họa là:
+Suppose the illustrative output is:
 
 ~~~text
 java.base,java.logging,java.sql
 ~~~
 
-Có thể dùng danh sách đó trong lệnh **jlink**:
+You can use that list in a **jlink** command:
 
 ~~~bash
 jlink --add-modules java.base,java.logging,java.sql --output runtime-image
 ~~~
 
-Trong dự án thực tế, hãy thay danh sách minh họa bằng kết quả của chính artifact. Với ứng dụng không modular chạy trên classpath, JAR ứng dụng vẫn cần được phân phối và đặt trên classpath khi khởi chạy; **jlink** tạo runtime image từ các module JDK chứ không tự đóng gói JAR ứng dụng theo cách đó.
+In a real project, replace the illustrative list with the output for your actual artifact. For a non-modular application running on the classpath, the application JAR still needs to be distributed and placed on the classpath at launch; **jlink** creates a runtime image from JDK modules rather than packaging classpath JARs that way.
 
-Trước khi phát hành, hãy chạy ứng dụng bằng runtime image mới và thực hiện các luồng chức năng quan trọng. Nếu một chức năng tải class động hoặc chỉ chạy trong một cấu hình đặc biệt, module cần thiết có thể không xuất hiện trong kết quả phân tích tĩnh ban đầu.
+Before releasing, run the application using the new runtime image and exercise key functional flows. If a feature loads classes dynamically or only runs under a specific configuration, the required module might not appear in the initial static analysis output.
 
-## 7. Hỗ trợ chuyển JAR sang module
+## 7. Assisting Migration of JARs to Modules
 
-Với JAR chưa có **module-info.java**, jdeps có thể tạo bản nháp module descriptor bằng **--generate-module-info**:
+For JARs that do not yet have **module-info.java**, jdeps can generate a draft module descriptor with **--generate-module-info**:
 
 ~~~bash
 jdeps --generate-module-info generated-modules build/libs/library.jar
 ~~~
 
-Công cụ tạo cấu trúc **module-info.java** ban đầu dựa trên các phụ thuộc phát hiện được. Đây là điểm khởi đầu để chuyển đổi thư viện, không phải descriptor đã được thiết kế và xác nhận hoàn chỉnh.
+The tool produces an initial **module-info.java** structure based on detected dependencies. This is a starting point for converting a library, not a fully designed and verified descriptor.
 
-Sau khi tạo bản nháp, cần xem lại tên module, các khai báo **requires**, **exports** và những yêu cầu đóng gói của thư viện. Phân biệt package cần công khai với package chỉ dùng nội bộ. Nếu thư viện cần hỗ trợ cả classpath và module path, hãy kiểm tra hành vi tương thích theo cách thư viện được phân phối và sử dụng.
+After generating the draft, review the module name, **requires** declarations, **exports**, and the library's encapsulation requirements. Separate packages that must be public from packages meant for internal use only. If the library needs to support both the classpath and module path, verify compatibility behavior based on how the library is distributed and used.
 
-## 8. Những giới hạn cần nhớ
+## 8. Limitations to Keep in Mind
 
-jdeps rất hữu ích để lập bản đồ phụ thuộc bytecode, nhưng không thay thế việc kiểm thử ứng dụng:
+jdeps is very useful for mapping bytecode dependencies, but it does not replace application testing:
 
-1. **Phân tích tĩnh không thấy mọi hành vi lúc chạy.** Những class được nạp bằng reflection, tên class lấy từ chuỗi cấu hình, plugin, classloader tùy chỉnh hoặc mã được sinh trong lúc chạy có thể không được phát hiện đầy đủ.
-2. **Không chứng minh một phụ thuộc có được thực thi hay không.** Một tham chiếu trong bytecode có thể thuộc nhánh hiếm khi chạy; ngược lại, một phụ thuộc chỉ xuất hiện ở cấu hình triển khai khác có thể không có trong artifact đang phân tích.
-3. **Thiếu thư viện làm kết quả thiếu chính xác.** Cần cung cấp đầy đủ classpath và module path. Cảnh báo không tìm thấy class cần được điều tra trước khi kết luận.
-4. **Kết quả phụ thuộc phiên bản JDK và artifact.** Hãy phân tích đúng JAR, đúng multi-release version và đúng JDK mục tiêu.
-5. **Danh sách module không thay thế kiểm thử runtime.** Những tính năng tải động, service, cấu hình môi trường và đường chạy tùy chọn cần được xác minh bằng kiểm thử thực tế.
+1. **Static analysis does not see all runtime behavior.** Classes loaded via reflection, class names read from configuration strings, plugins, custom classloaders, or runtime-generated code may not be fully detected.
+2. **It does not prove whether a dependency is actually executed.** A reference in bytecode may sit on a rarely executed branch; conversely, a dependency appearing only in another deployment configuration may not be present in the analyzed artifact.
+3. **Missing libraries produce incomplete results.** Provide the complete classpath and module path. Warnings about unfound classes should be investigated before drawing conclusions.
+4. **Results depend on the JDK version and artifact.** Analyze the right JAR, the right multi-release version, and the right target JDK.
+5. **A module list does not replace runtime testing.** Dynamic loading features, services, environment configurations, and optional code paths must be verified through real testing.
 
-## 9. Quy trình thực hành đề xuất
+## 9. Recommended Practical Workflow
 
-Khi kiểm tra một ứng dụng trước khi phát hành hoặc chuyển sang JPMS, có thể thực hiện theo thứ tự sau:
+When auditing an application before release or migrating to JPMS, follow this sequence:
 
-1. Chọn JAR hoặc thư mục class của bản build cần phát hành.
-2. Chạy **jdeps --summary** để có bức tranh tổng quan.
-3. Chạy **jdeps --verbose:package** hoặc **--verbose:class** khi cần truy nguồn một phụ thuộc.
-4. Chạy **jdeps --list-deps** hoặc **--print-module-deps** để lấy các module JDK được phát hiện.
-5. Chạy **jdeps --jdk-internals** để tìm việc sử dụng API nội bộ.
-6. Chạy **jdeps --missing-deps** và bổ sung đúng classpath/module path nếu có phụ thuộc chưa phân giải.
-7. Nếu tạo runtime image, dùng danh sách module làm đầu vào cho **jlink**, sau đó kiểm thử ứng dụng trên image.
-8. Lưu lại lệnh, phiên bản JDK, artifact và kết quả để có thể lặp lại phân tích trong CI.
+1. Select the JAR or class directory from the release build.
+2. Run **jdeps --summary** to get an overview.
+3. Run **jdeps --verbose:package** or **--verbose:class** when needing to trace the origin of a dependency.
+4. Run **jdeps --list-deps** or **--print-module-deps** to extract detected JDK modules.
+5. Run **jdeps --jdk-internals** to find uses of internal APIs.
+6. Run **jdeps --missing-deps** and supply the right classpath/module path if there are unresolved dependencies.
+7. If creating a runtime image, pass the module list as input to **jlink**, then test the application on the image.
+8. Record the commands, JDK version, artifact, and output so the analysis can be repeated in CI.
 
-Có thể đưa các lệnh này vào pipeline sau bước đóng gói JAR. Khi đó, mỗi bản build đều được kiểm tra phụ thuộc trên cùng loại artifact mà người dùng sẽ nhận. Đặc biệt, có thể đặt bước kiểm tra **--jdk-internals** thành điều kiện cảnh báo hoặc chặn build tùy theo chính sách tương thích của dự án.
+These commands can be added to the pipeline after the JAR packaging step. That way, every build has its dependencies checked on the exact artifact type users receive. In particular, the **--jdk-internals** check can be configured as a warning or build gate depending on the project's compatibility policy.
 
-## 10. Ghi nhớ
+## 10. Takeaways
 
-- **--summary**: xem nhanh phụ thuộc.
-- **--verbose:package / --verbose:class**: tìm package hoặc class tạo ra phụ thuộc.
-- **--list-deps / --print-module-deps**: liệt kê module JDK cần thiết.
-- **--jdk-internals**: phát hiện tham chiếu đến API nội bộ của JDK.
-- **--missing-deps**: tìm class phụ thuộc chưa được phân giải.
-- **--class-path / --module-path**: cung cấp đúng nơi chứa thư viện.
-- **--multi-release**: chọn phần class của phiên bản Java trong multi-release JAR.
+- **--summary**: quick dependency overview.
+- **--verbose:package / --verbose:class**: locate the package or class creating a dependency.
+- **--list-deps / --print-module-deps**: list required JDK modules.
+- **--jdk-internals**: detect references to internal JDK APIs.
+- **--missing-deps**: find unresolved class dependencies.
+- **--class-path / --module-path**: provide the right locations containing libraries.
+- **--multi-release**: select the Java-version-specific classes in a multi-release JAR.
 
-Hãy dùng jdeps để hiểu và thu hẹp đồ thị phụ thuộc, sau đó xác nhận bằng build và kiểm thử runtime. Cách kết hợp này giúp phát hiện sớm phụ thuộc JDK không mong muốn, chuẩn bị khai báo module và tạo runtime image gọn hơn mà vẫn giữ được hành vi của ứng dụng.
+Use jdeps to understand and narrow down the dependency graph, then verify with builds and runtime tests. Combining both helps catch unwanted JDK dependencies early, prepare module declarations, and build smaller runtime images while preserving application behavior.

@@ -1,43 +1,43 @@
-# `open module` và mở toàn bộ package
+# `open module` and opening all packages
 
-Trong Java Platform Module System (JPMS), module có thể giới hạn package nào được module khác truy cập. Tuy nhiên, một số thư viện cần framework hoặc công cụ dùng reflection để đọc thành viên không public, chẳng hạn field private, constructor hoặc phương thức được khai báo trong class. Directive `open module` cho phép mở toàn bộ package của một named module cho deep reflection ở runtime.
+In the Java Platform Module System (JPMS), a module can restrict which packages other modules can access. However, some libraries need frameworks or tools to use reflection to read non-public members, such as private fields, constructors, or methods declared in a class. The `open module` directive allows opening all packages of a named module for deep reflection at runtime.
 
-Cần phân biệt hai cơ chế: **exports** cho phép module khác truy cập các kiểu public của package theo quy tắc Java thông thường; **opens** cho phép reflection vượt qua kiểm tra truy cập ở runtime. Mở package không đồng nghĩa với xuất package.
+Two mechanisms must be distinguished: **exports** allows other modules to access the public types of a package under normal Java rules; **opens** allows reflection to bypass access checks at runtime. Opening a package is not the same as exporting a package.
 
-## 1. Cú pháp của open module
+## 1. Syntax of open module
 
-Một module có thể khai báo:
+A module can declare:
 
     open module com.example.domain {
         requires java.logging;
         exports com.example.domain.api;
     }
 
-Từ khóa `open` đứng trước `module`. Khi module được khai báo theo cách này, **tất cả package của module đều được mở cho deep reflection đối với các module khác**.
+The `open` keyword precedes `module`. When a module is declared this way, **all packages of the module are opened for deep reflection to other modules**.
 
-Trong module descriptor:
+In the module descriptor:
 
-- Có thể khai báo các directive như `requires`, `exports`, `uses` và `provides` như bình thường.
-- Không được khai báo thêm directive `opens`, vì toàn bộ package đã được mở bởi `open module`.
-- Vẫn cần `exports` nếu muốn module khác truy cập kiểu public của package bằng mã Java thông thường.
+- Directives such as `requires`, `exports`, `uses`, and `provides` can be declared as usual.
+- Additional `opens` directives must not be declared, because all packages are already opened by `open module`.
+- `exports` is still required if you want other modules to access the public types of a package in ordinary Java code.
 
-`open module` chỉ áp dụng cho named module có module descriptor tường minh. Nó không làm cho các package tự động trở thành API công khai.
+`open module` only applies to named modules with an explicit module descriptor. It does not automatically turn packages into public APIs.
 
-## 2. Deep reflection là gì?
+## 2. What is deep reflection?
 
-Reflection cho phép chương trình kiểm tra class, constructor, field và method trong lúc chạy. Ví dụ, API reflection có thể lấy một field theo tên:
+Reflection allows a program to inspect classes, constructors, fields, and methods at runtime. For example, the reflection API can retrieve a field by name:
 
     Field field = type.getDeclaredField("password");
 
-Theo quy tắc truy cập thông thường, một module không thể tùy ý dùng reflection để truy cập thành viên private nằm trong package của module khác. JPMS bảo vệ ranh giới đóng gói này ngay cả khi ứng dụng đã có class trên module path.
+Under normal access rules, a module cannot arbitrarily use reflection to access private members located in a package of another module. JPMS protects this encapsulation boundary even when the application already has the class on the module path.
 
-Deep reflection là trường hợp chương trình yêu cầu reflection bỏ qua một số kiểm tra truy cập Java thông thường, thường bằng `setAccessible(true)` hoặc `trySetAccessible()`. Việc này chỉ được cho phép khi module sở hữu package đã mở package đó cho module đang thực hiện reflection.
+Deep reflection is the case where a program asks reflection to bypass certain normal Java access checks, typically using `setAccessible(true)` or `trySetAccessible()`. This is only allowed when the module owning the package has opened that package to the module performing reflection.
 
-Với một `open module`, mọi package đều được mở, vì vậy module khác có thể yêu cầu quyền truy cập sâu vào các thành viên của class trong các package đó. `trySetAccessible()` trả về `true` khi có thể bật quyền truy cập; nếu không được phép, nó trả về `false`. `setAccessible(true)` có thể ném `InaccessibleObjectException` khi module không mở package cần thiết.
+With an `open module`, every package is opened, so other modules can request deep access to members of classes in those packages. `trySetAccessible()` returns `true` when access can be enabled; if not permitted, it returns `false`. `setAccessible(true)` can throw `InaccessibleObjectException` when the module does not open the required package.
 
-## 3. Ví dụ: mở toàn bộ package cho reflection
+## 3. Example: opening all packages for reflection
 
-Giả sử có hai module:
+Suppose there are two modules:
 
     src/
     ├── com.example.domain/
@@ -49,7 +49,7 @@ Giả sử có hai module:
         ├── module-info.java
         └── com/example/app/Main.java
 
-### Module domain
+### Domain module
 
 File `src/com.example.domain/module-info.java`:
 
@@ -57,7 +57,7 @@ File `src/com.example.domain/module-info.java`:
         exports com.example.domain.api;
     }
 
-Module mở mọi package cho deep reflection. Riêng package `com.example.domain.api` được xuất để ứng dụng có thể gọi API public bằng mã Java thông thường.
+The module opens all packages for deep reflection. Specifically, the package `com.example.domain.api` is exported so the application can call the public API in ordinary Java code.
 
 File `src/com.example.domain/com/example/domain/api/SecretFactory.java`:
 
@@ -82,9 +82,9 @@ File `src/com.example.domain/com/example/domain/internal/Secret.java`:
         private final String code = "MODULE-PRIVATE";
     }
 
-Package `com.example.domain.internal` không được export. Ứng dụng không thể import class `Secret` trực tiếp trong mã nguồn, nhưng có thể nhận đối tượng qua API public trả về kiểu `Object`.
+The package `com.example.domain.internal` is not exported. The application cannot import the `Secret` class directly in source code, but it can receive the object through a public API returning `Object`.
 
-### Module ứng dụng
+### Application module
 
 File `src/com.example.app/module-info.java`:
 
@@ -107,7 +107,7 @@ File `src/com.example.app/com/example/app/Main.java`:
 
             if (!code.trySetAccessible()) {
                 throw new IllegalStateException(
-                        "Package chứa Secret chưa được mở cho reflection"
+                        "The package containing Secret is not open for reflection"
                 );
             }
 
@@ -115,118 +115,118 @@ File `src/com.example.app/com/example/app/Main.java`:
         }
     }
 
-Biên dịch và chạy từ thư mục chứa `src`:
+Compile and run from the directory containing `src`:
 
     javac --module-source-path src -d out -m com.example.domain,com.example.app
 
     java --module-path out -m com.example.app/com.example.app.Main
 
-Kết quả:
+Output:
 
     MODULE-PRIVATE
 
-Ứng dụng không import class nội bộ `Secret`. Nó chỉ nhận đối tượng qua API public, sau đó dùng reflection để tìm field `code`. Vì `com.example.domain` là open module, package `com.example.domain.internal` đã được mở cho ứng dụng; `trySetAccessible()` có thể bật quyền truy cập field private.
+The application does not import the internal `Secret` class. It only receives the object via a public API, then uses reflection to look up the `code` field. Because `com.example.domain` is an open module, the package `com.example.domain.internal` is opened to the application; `trySetAccessible()` can enable access to the private field.
 
-## 4. open module không giống exports
+## 4. open module is not the same as exports
 
-Hai directive phục vụ hai mục đích khác nhau:
+The two directives serve two different purposes:
 
-| Khía cạnh | `exports` | `opens` / `open module` |
+| Aspect | `exports` | `opens` / `open module` |
 |---|---|---|
-| Mục đích | Cho phép truy cập kiểu public của package | Cho phép deep reflection vào package |
-| Thời điểm chính | Kiểm tra truy cập khi biên dịch và liên kết | Kiểm tra truy cập reflection ở runtime |
-| Thành viên private | Không mở quyền truy cập private | Có thể cho phép reflection truy cập sâu |
-| Tự động làm package có thể import? | Có, nếu module tiêu thụ đọc module và package được export phù hợp | Không |
-| Phạm vi | Package được chỉ định | Package được chỉ định hoặc toàn bộ package của open module |
+| Purpose | Allows access to public types of a package | Allows deep reflection into a package |
+| Primary timing | Access checks at compile time and linking | Reflection access checks at runtime |
+| Private members | Does not open private access | Can allow reflection deep access |
+| Automatically makes package importable? | Yes, if the consuming module reads the module and the package is exported appropriately | No |
+| Scope | The specified package | The specified package or all packages of the open module |
 
-Ví dụ:
+Example:
 
     module com.example.domain {
         exports com.example.domain.api;
     }
 
-Directive này cho phép module đọc `com.example.domain` sử dụng các kiểu public trong package API. Nó không cho phép framework bên ngoài tự do truy cập field private trong package đó.
+This directive allows modules reading `com.example.domain` to use the public types in the API package. It does not allow external frameworks to freely access private fields in that package.
 
-Ngược lại:
+Conversely:
 
     module com.example.domain {
         opens com.example.domain.internal;
     }
 
-Directive `opens` mở package nội bộ cho deep reflection ở runtime, nhưng không cho phép ứng dụng viết `import com.example.domain.internal.Secret;` để sử dụng class đó trực tiếp. Muốn truy cập theo cách thông thường, package vẫn cần được export.
+The `opens` directive opens the internal package for deep reflection at runtime, but it does not allow the application to write `import com.example.domain.internal.Secret;` to use that class directly. To allow normal access, the package still needs to be exported.
 
-## 5. Mở một package hoặc mở toàn bộ module
+## 5. Opening one package or opening the entire module
 
-Không phải lúc nào cũng cần `open module`. JPMS cung cấp directive `opens` để chọn phạm vi hẹp hơn.
+`open module` is not always necessary. JPMS provides the `opens` directive to select a narrower scope.
 
-### Mở một package cho mọi module
+### Opening a package to all modules
 
     module com.example.domain {
         exports com.example.domain.api;
         opens com.example.domain.internal;
     }
 
-Chỉ package `com.example.domain.internal` được mở cho deep reflection. Các package còn lại vẫn được bảo vệ theo module descriptor.
+Only the package `com.example.domain.internal` is opened for deep reflection. The remaining packages stay protected according to the module descriptor.
 
-### Mở một package cho module cụ thể
+### Opening a package to a specific module
 
     module com.example.domain {
         exports com.example.domain.api;
         opens com.example.domain.internal to com.example.orm;
     }
 
-Đây là **qualified opens**. Chỉ module `com.example.orm` được mở quyền deep reflection vào package `com.example.domain.internal`. Những module khác không nhận quyền này.
+This is **qualified opens**. Only the module `com.example.orm` is granted deep reflection permission into the package `com.example.domain.internal`. Other modules do not receive this permission.
 
-### Mở toàn bộ package
+### Opening all packages
 
     open module com.example.domain {
         exports com.example.domain.api;
     }
 
-Đây là lựa chọn rộng nhất: mọi package của `com.example.domain` đều mở cho deep reflection. Không thể thu hẹp phạm vi bằng cách thêm `opens` vào bên trong open module.
+This is the broadest option: all packages of `com.example.domain` are open for deep reflection. You cannot narrow the scope by adding `opens` inside an open module.
 
-## 6. Khi nào nên dùng open module?
+## 6. When should open module be used?
 
-`open module` có thể phù hợp khi module được thiết kế để làm việc với framework dựa nhiều vào reflection và framework cần truy cập nhiều package, ví dụ:
+`open module` can be appropriate when a module is designed to work with frameworks that rely heavily on reflection and the framework needs to access many packages, for example:
 
-- Framework ánh xạ object với cơ sở dữ liệu (ORM) cần đọc field hoặc constructor.
-- Bộ chuyển đổi JSON cần truy cập thuộc tính hoặc constructor theo quy tắc riêng.
-- Framework dependency injection cần phân tích class và tạo instance.
-- Công cụ kiểm thử hoặc serialization cần kiểm tra cấu trúc nội bộ của object.
+- Object-relational mapping (ORM) frameworks that need to read fields or constructors.
+- JSON converters that need to access properties or constructors according to custom rules.
+- Dependency injection frameworks that need to analyze classes and instantiate instances.
+- Testing or serialization tools that need to inspect the internal structure of objects.
 
-Tuy vậy, hãy cân nhắc phạm vi truy cập. Nếu framework chỉ cần reflection trên một vài package, `opens package.name to framework.module;` thường thể hiện ý định rõ hơn và giữ được ranh giới đóng gói cho các package còn lại.
+However, consider the access scope. If the framework only needs reflection on a few packages, `opens package.name to framework.module;` usually expresses the intent more clearly and preserves encapsulation boundaries for the remaining packages.
 
-Không nên dùng `open module` chỉ để xử lý một lỗi reflection đơn lẻ khi có thể mở đúng package và đúng module tiêu thụ.
+You should not use `open module` merely to fix a single reflection error when you can open the exact package and the exact consuming module.
 
-## 7. Thêm opens từ dòng lệnh
+## 7. Adding opens from the command line
 
-Trong một số tình huống chạy ứng dụng hoặc kiểm thử, có thể cần mở package mà không sửa `module-info.java`. JVM hỗ trợ tùy chọn:
+In some application execution or testing scenarios, you may need to open a package without modifying `module-info.java`. The JVM supports the option:
 
     --add-opens source.module/package=target.module
 
-Ví dụ:
+Example:
 
     java --module-path out --add-opens com.example.domain/com.example.domain.internal=com.example.app -m com.example.app/com.example.app.Main
 
-Tùy chọn này mở package được chỉ định của module nguồn cho module đích trong lần chạy đó. Nó hữu ích cho cấu hình môi trường, kiểm thử hoặc tương thích tạm thời, nhưng không thay thế quyết định thiết kế module descriptor trong thư viện được phân phối.
+This option opens the specified package of the source module to the target module for that run. It is useful for environment configuration, testing, or temporary compatibility, but it does not replace module descriptor design decisions in distributed libraries.
 
-Đừng nhầm `--add-opens` với `--add-exports`: tùy chọn thứ nhất cấp quyền deep reflection; tùy chọn thứ hai bổ sung khả năng truy cập kiểu public của package theo cơ chế export.
+Do not confuse `--add-opens` with `--add-exports`: the first grants deep reflection permission; the second adds access to public types of a package via the export mechanism.
 
-## 8. Những nhầm lẫn thường gặp
+## 8. Common misconceptions
 
-1. **Tưởng open module xuất mọi package.** Mọi package được mở cho reflection, nhưng vẫn cần `exports` để dùng kiểu public theo cách thông thường.
-2. **Tưởng mở package đồng nghĩa với public API.** Package không được export vẫn không thể import trực tiếp từ module khác.
-3. **Tưởng `opens` và `exports` thay thế được nhau.** Hai directive bảo vệ và cấp quyền ở hai cơ chế khác nhau.
-4. **Thêm `opens` vào open module.** Đây là khai báo không hợp lệ vì open module đã mở toàn bộ package.
-5. **Tưởng reflection luôn được phép chỉ vì class đã được tìm thấy.** Việc tìm thấy class và việc được truy cập thành viên sâu là hai bước khác nhau; module sở hữu package phải mở package phù hợp.
-6. **Mở toàn bộ module cho một framework duy nhất.** Nếu chỉ một package cần reflection, qualified opens thường có phạm vi phù hợp hơn.
-7. **Tưởng `open module` là một cơ chế bảo mật cho phép truy cập tùy ý.** Nó nới lỏng ranh giới encapsulation có chủ đích; ứng dụng vẫn phải tuân thủ các quy tắc reflection và quyền truy cập còn lại của Java.
+1. **Thinking open module exports all packages.** All packages are opened for reflection, but `exports` is still needed to use public types in the usual way.
+2. **Thinking opening a package means public API.** A package that is not exported still cannot be imported directly from another module.
+3. **Thinking `opens` and `exports` are interchangeable.** The two directives protect and grant permissions under two different mechanisms.
+4. **Adding `opens` inside an open module.** This is an invalid declaration because an open module already opens all packages.
+5. **Thinking reflection is always allowed just because a class was found.** Finding a class and being allowed to deeply access its members are two separate steps; the module owning the package must open the appropriate package.
+6. **Opening the entire module for a single framework.** If only one package needs reflection, qualified opens usually has a more appropriate scope.
+7. **Thinking `open module` is a security mechanism that allows arbitrary access.** It intentionally relaxes encapsulation boundaries; the application must still obey Java's remaining reflection and access rules.
 
-## Ghi nhớ
+## Key takeaways
 
-- `exports`: cho phép module khác dùng các kiểu public của package theo cách thông thường.
-- `opens`: cho phép deep reflection vào package ở runtime.
-- `open module`: mở tất cả package của một named module cho deep reflection.
-- `opens package to module`: mở đúng package cho module tiêu thụ được chỉ định.
+- `exports`: allows other modules to use the public types of a package in the usual way.
+- `opens`: allows deep reflection into a package at runtime.
+- `open module`: opens all packages of a named module for deep reflection.
+- `opens package to module`: opens the exact package to the specified consuming module.
 
-Khi gặp lỗi `InaccessibleObjectException`, hãy xác định module sở hữu class, package chứa thành viên cần truy cập và module đang thực hiện reflection. Sau đó chọn `opens` có phạm vi vừa đủ hoặc `open module` nếu thực sự cần mở toàn bộ package.
+When encountering `InaccessibleObjectException`, identify the module owning the class, the package containing the member to be accessed, and the module performing reflection. Then choose an `opens` directive with sufficient scope or `open module` if opening all packages is genuinely required.

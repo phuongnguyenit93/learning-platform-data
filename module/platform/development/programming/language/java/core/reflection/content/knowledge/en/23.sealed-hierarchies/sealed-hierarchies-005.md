@@ -1,63 +1,63 @@
-# Phân cấp kết hợp sealed, non-sealed, final, enum và record
+# Mixed Hierarchies of sealed, non-sealed, final, enum, and record
 
-## 1. Nhiều dạng kiểu có thể cùng biểu diễn một mô hình
+## 1. Multiple Type Kinds Can Represent One Model Together
 
-Một mô hình lệnh có thể cần nhiều cách biểu diễn:
+A command model may require multiple forms of representation:
 
-- Một record mang dữ liệu của lệnh.
-- Một enum biểu diễn các lựa chọn cố định.
-- Một class final có phần thực hiện riêng.
-- Một nhánh sealed tiếp tục chia thành các trường hợp nhỏ hơn.
-- Một nhánh non-sealed cho phép hệ thống mở rộng thêm.
+- A `record` carrying the command's data.
+- An `enum` representing fixed choices.
+- A `final` class with its own custom implementation.
+- A `sealed` branch splitting further into smaller cases.
+- A `non-sealed` branch allowing the system to extend further.
 
-Khi đọc mô hình bằng Reflection, không nên chia mọi kiểu thành hai nhóm “sealed” và “không sealed” rồi dừng lại. Cần kết hợp các thông tin `isSealed()`, `isEnum()`, `isRecord()`, modifier final và các quan hệ trực tiếp.
+When reading the model via Reflection, do not split all types into two groups—"sealed" and "not sealed"—and stop there. You need to combine `isSealed()`, `isEnum()`, `isRecord()`, the `final` modifier, and direct relationships.
 
-Một kiểu có thể đồng thời thỏa nhiều thuộc tính: record là class final; enum có thể là final hoặc sealed ngầm định. Các thuộc tính ấy mô tả những khía cạnh khác nhau, không phải các nhãn luôn loại trừ nhau.
+A single type can satisfy multiple properties simultaneously: a record is a `final` class; an enum can be implicitly `final` or implicitly `sealed`. Those properties describe different dimensions, not mutually exclusive labels.
 
-## 2. Vì sao thường chọn sealed interface làm gốc chung?
+## 2. Why Is a Sealed Interface Usually Chosen as the Common Root?
 
-Record có lớp cha trực tiếp là `java.lang.Record`. Enum có lớp cha trực tiếp là `java.lang.Enum` với tham số kiểu tương ứng. Chúng không thể chọn một class nghiệp vụ khác làm lớp cha trực tiếp.
+A record's direct superclass is `java.lang.Record`. An enum's direct superclass is `java.lang.Enum` with the corresponding type parameter. They cannot choose another domain class as their direct superclass.
 
-Cả record và enum đều có thể triển khai interface. Vì vậy, nếu muốn một gốc chung chứa trực tiếp cả record, enum và class thông thường, sealed interface là lựa chọn phù hợp.
+Both records and enums can implement interfaces. Therefore, if you want a common root that directly contains records, enums, and ordinary classes, a sealed interface is the appropriate choice.
 
-Ví dụ ý tưởng:
+Conceptual example:
 
 ~~~text
 Command — sealed interface
   Payload — record, final
-  Halt — enum, final ngầm định
-  Policy — enum, sealed ngầm định
+  Halt — enum, implicitly final
+  Policy — enum, implicitly sealed
   SystemCommand — sealed interface
     Reset — final class
     Trace — record, final
   Extension — non-sealed class
-    PluginCommand — một ví dụ mở rộng
+    PluginCommand — an extension example
 ~~~
 
-Sơ đồ này giữ các quan hệ trực tiếp. `Reset` và `Trace` thuộc nhánh `SystemCommand`; `PluginCommand` thuộc nhánh `Extension`, không phải các mục trực tiếp của `Command`.
+This diagram preserves direct relationships. `Reset` and `Trace` belong to the `SystemCommand` branch; `PluginCommand` belongs to the `Extension` branch, not as direct entries of `Command`.
 
-Các kiểu con trực tiếp được cho phép của một sealed interface phải phù hợp quy tắc mở rộng: class là final, sealed hoặc non-sealed, kể cả tính chất ngầm định của enum/record; interface con tiếp tục là sealed hoặc non-sealed.
+The directly permitted subtypes of a sealed interface must satisfy the extensibility rules: classes must be `final`, `sealed`, or `non-sealed` (including the implicit properties of enums/records); subinterfaces must continue as `sealed` or `non-sealed`.
 
-## 3. Record và enum có quy tắc ngầm định riêng
+## 3. Records and Enums Have Their Own Implicit Rules
 
-| Dạng kiểu | Final? | Sealed? | Ý nghĩa đối với phân cấp |
+| Type kind | Final? | Sealed? | Meaning for the hierarchy |
 | --- | --- | --- | --- |
-| Record | Luôn final | Không sealed | Không có lớp con |
-| Enum không có hằng nào mang thân lớp riêng | Final ngầm định | Không sealed | Không có lớp con riêng của hằng |
-| Enum có ít nhất một hằng mang thân lớp riêng | Không final | Sealed ngầm định | Cho phép các lớp con ẩn danh tương ứng với các thân hằng |
-| Class final thông thường | Có | Không sealed | Dừng kế thừa ở class ấy |
-| Class/interface sealed | Không phải final đồng thời | Có | Kiểm soát kiểu con trực tiếp |
-| Class/interface non-sealed | Không final | Không sealed | Mở lại việc mở rộng ở nhánh ấy |
+| Record | Always `final` | Not `sealed` | No subclasses |
+| Enum with no constants carrying their own class body | Implicitly `final` | Not `sealed` | No constant-specific subclasses |
+| Enum with at least one constant carrying its own class body | Not `final` | Implicitly `sealed` | Permits anonymous subclasses corresponding to the constant bodies |
+| Ordinary `final` class | Yes | Not `sealed` | Stops inheritance at that class |
+| `sealed` class/interface | Not simultaneously `final` | Yes | Controls direct subtypes |
+| `non-sealed` class/interface | Not `final` | Not `sealed` | Reopens extensibility on that branch |
 
-Với record, không cần viết thêm final để đáp ứng quy tắc của một sealed interface; tính final đã có sẵn. Record không được khai báo sealed hoặc non-sealed.
+For a record, there is no need to write `final` explicitly to satisfy a sealed interface's rules; finality is already built in. Records cannot be declared `sealed` or `non-sealed`.
 
-Với enum, không tự thêm các modifier final, sealed hoặc non-sealed vào khai báo. Java quyết định tính final/sealed từ việc các hằng có thân lớp riêng hay không.
+For an enum, do not manually add `final`, `sealed`, or `non-sealed` modifiers to the declaration. Java determines finality/sealing from whether the constants have their own class bodies.
 
-Do đó, chỉ nhìn xem mã nguồn có từ khóa `sealed` ở đầu enum không là chưa đủ. `Class.isSealed()` có thể trả `true` cho enum mà tác giả không viết từ khóa ấy.
+Therefore, merely checking whether the source code has the `sealed` keyword at the top of an enum is not enough. `Class.isSealed()` can return `true` for an enum without the author ever writing that keyword.
 
-## 4. Ví dụ hoàn chỉnh: quan sát cả mô hình bằng Reflection
+## 4. Complete Example: Inspecting the Entire Model via Reflection
 
-Lưu thành `MixedSealedHierarchyDemo.java`:
+Save as `MixedSealedHierarchyDemo.java`:
 
 ~~~java
 import java.lang.reflect.Modifier;
@@ -168,14 +168,14 @@ public class MixedSealedHierarchyDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ~~~bash
 javac --release 17 MixedSealedHierarchyDemo.java
 java MixedSealedHierarchyDemo
 ~~~
 
-Kết quả với JDK 17:
+Output with JDK 17:
 
 ~~~text
 Command role=SEALED_BRANCH sealed=true final=false
@@ -197,133 +197,133 @@ Extension.permitted=null
 PluginCommand.isCommand=true
 ~~~
 
-Các tên được sắp xếp trước khi in. Thứ tự mảng do `getPermittedSubclasses()` trả về không được dùng làm thứ tự bắt buộc.
+Names are sorted before printing. The array order returned by `getPermittedSubclasses()` is not used as a required order.
 
-Hàm `directNames` chỉ được gọi với các kiểu đã biết là sealed. Trong công cụ tổng quát, cần kiểm tra sealed hoặc xử lý kết quả null trước khi duyệt.
+The `directNames` helper is only called with types known to be sealed. In a general-purpose tool, you must check whether a type is sealed or handle a `null` result before iterating.
 
-## 5. Đọc từng loại nút trong kết quả
+## 5. Reading Each Node Type in the Output
 
-### 5.1. Record là một kiểu dữ liệu đóng về kế thừa
+### 5.1. A record is a data type closed to inheritance
 
-`Payload` và `Trace` được nhận diện bằng `isRecord()`, đồng thời có modifier final. Chúng không cần từ khóa final trong ví dụ.
+`Payload` and `Trace` are identified by `isRecord()`, and also carry the `final` modifier. They do not need the `final` keyword in the example.
 
-“Đóng về kế thừa” không có nghĩa là chỉ có một giá trị. Một record `Payload(String text)` có thể có nhiều instance với dữ liệu khác nhau. Nó chỉ không cho phép một class khác kế thừa để tạo thêm dạng lớp con.
+"Closed to inheritance" does not mean there is only one value. A record `Payload(String text)` can have many instances with different data. It simply prevents another class from extending it to create additional subclass forms.
 
-Các kiểu của component bên trong record cũng không tự trở thành cạnh kế thừa. `Payload` có một component `String` không có nghĩa `String` là nhánh con của `Payload`.
+Component types inside a record also do not automatically become inheritance edges. `Payload` having a `String` component does not mean `String` is a sub-branch of `Payload`.
 
-### 5.2. Enum đơn giản là final, nhưng có thể có nhiều hằng
+### 5.2. A simple enum is final, yet can have multiple constants
 
-`Halt` không có thân lớp riêng trên bất kỳ hằng nào nên final ngầm định. Ví dụ dùng một hằng `INSTANCE`, nhưng enum có nhiều hằng mà không có thân riêng vẫn có tính chất final ấy.
+`Halt` has no custom class body on any constant, so it is implicitly `final`. The example uses a single constant `INSTANCE`, yet an enum with many constants and no custom bodies still has that same `final` property.
 
-Số hằng enum và số lớp con là hai số khác nhau. Muốn lấy các giá trị enum, dùng `getEnumConstants()`; không dùng mảng permitted để đếm các hằng.
+The number of enum constants and the number of subclasses are two different numbers. To get enum values, use `getEnumConstants()`; do not use the permitted array to count constants.
 
-### 5.3. Enum có thân riêng tạo một tầng lớp kỹ thuật
+### 5.3. An enum with custom bodies creates a technical class layer
 
-`Policy.STRICT` có thân riêng để ghi đè `limit()`. Java tạo lớp con ẩn danh của `Policy` cho thân ấy, và `Policy` trở thành sealed ngầm định.
+`Policy.STRICT` has its own body to override `limit()`. Java generates an anonymous subclass of `Policy` for that body, and `Policy` becomes implicitly `sealed`.
 
-Trong ví dụ chỉ `STRICT` có thân riêng, nên danh sách permitted của `Policy` có một lớp. `LENIENT` không tạo một lớp riêng tương ứng.
+In the example only `STRICT` has a custom body, so `Policy`'s permitted list has one class. `LENIENT` does not generate a corresponding separate class.
 
-Đối tượng `Policy.STRICT` có lớp thực tế là lớp con ẩn danh, nên `getClass().isEnum()` là false. `getDeclaringClass()` vẫn trả `Policy.class`, là lớp enum khai báo hằng.
+The `Policy.STRICT` object has that anonymous subclass as its runtime class, so `getClass().isEnum()` is `false`. `getDeclaringClass()` still returns `Policy.class`, which is the enum class declaring the constant.
 
-Không dùng tên lớp ẩn danh do compiler tạo làm tên biến thể nghiệp vụ. Quan hệ ấy là metadata lớp hợp lệ, nhưng cần được diễn giải theo mục đích của công cụ.
+Do not use compiler-generated anonymous class names as business variant names. That relationship is valid class metadata, but must be interpreted according to the tool's purpose.
 
-### 5.4. Nhánh sealed tiếp tục cung cấp các nhánh trực tiếp
+### 5.4. A sealed branch continues providing direct branches
 
-`SystemCommand` tiếp tục sealed, nên nó có danh sách trực tiếp riêng gồm `Reset` và `Trace`.
+`SystemCommand` remains `sealed`, so it has its own direct list consisting of `Reset` and `Trace`.
 
-`Reset` là class final thông thường. `Trace` là record final. Hai nút cùng dừng kế thừa nhưng có kiểu khai báo và metadata dữ liệu khác nhau.
+`Reset` is an ordinary `final` class. `Trace` is a `final` record. Both nodes stop inheritance, yet have different declaration kinds and data metadata.
 
-Không chỉ kiểm tra final rồi làm mất thông tin record, nếu công cụ còn cần hiển thị component hoặc constructor chuẩn của record.
+Do not check only `final` and lose record information, if the tool also needs to display record components or canonical constructors.
 
-### 5.5. Nhánh non-sealed mở lại khả năng mở rộng
+### 5.5. A non-sealed branch reopens extensibility
 
-`Extension` là class abstract non-sealed. Nó không tạo instance trực tiếp vì abstract, nhưng cho phép các class khác mở rộng nhánh.
+`Extension` is an `abstract non-sealed` class. It cannot be instantiated directly because it is `abstract`, yet allows other classes to extend the branch.
 
-`PluginCommand` là một ví dụ. Nó là một loại `Command` gián tiếp, nhưng không nằm trong permitted trực tiếp của `Command`.
+`PluginCommand` is an example. It is an indirect kind of `Command`, yet does not appear in `Command`'s direct permitted list.
 
-`Extension.getPermittedSubclasses()` trả null vì Extension không sealed. Null không có nghĩa không tồn tại lớp con; nó không cung cấp một danh sách lớp con cho nhánh mở.
+`Extension.getPermittedSubclasses()` returns `null` because `Extension` is not sealed. `null` does not mean no subclasses exist; it does not provide a list of subclasses for an open branch.
 
-Nhãn `OPEN_TYPE` của hàm `role` chỉ có nghĩa kỹ thuật “không enum/record/sealed/final theo các bước kiểm tra ấy”. Nó không phải bằng chứng tổng quát rằng mọi kiểu nhận nhãn này đều được khai báo bằng từ khóa non-sealed. Trong mô hình cụ thể, ta biết Extension là nhánh non-sealed từ khai báo và vị trí trực tiếp dưới kiểu sealed.
+The `OPEN_TYPE` label from `role` only has the technical meaning "not enum/record/sealed/final according to those checks". It is not general proof that every type receiving this label was declared with the `non-sealed` keyword. In this specific model, we know `Extension` is a `non-sealed` branch from its declaration and its direct position beneath a sealed type.
 
-## 6. Phân cấp lớp của JVM và cách trình bày mô hình nghiệp vụ
+## 6. JVM Class Hierarchy vs. Business Model Presentation
 
-Cùng metadata có thể được trình bày theo hai mục đích:
+The same metadata can be presented for two different purposes:
 
-**Công cụ xem lớp đã biên dịch:** có thể mở rộng `Policy` để hiển thị lớp con ẩn danh của hằng `STRICT`. Điều này phù hợp khi chẩn đoán hành vi ghi đè hoặc quan hệ lớp.
+**Compiled-class viewer:** can expand `Policy` to show the anonymous subclass of the `STRICT` constant. This is appropriate when diagnosing override behavior or class relationships.
 
-**Công cụ xem các loại lệnh:** có thể trình bày `Policy` là một loại enum, với các hằng `STRICT`, `LENIENT` là lựa chọn giá trị. Không cần biến lớp ẩn danh của `STRICT` thành một loại lệnh mới có tên nghiệp vụ.
+**Command-type viewer:** can present `Policy` as an enum type, with constants `STRICT` and `LENIENT` as value choices. There is no need to turn `STRICT`'s anonymous class into a new command type with a business name.
 
-Đó là một chính sách trình bày cần nói rõ, không phải sửa metadata để làm enum hết sealed.
+That is a presentation policy that should be stated explicitly, rather than altering metadata to make enums unsealed.
 
-Hàm `role` kiểm tra enum và record trước những thuộc tính tổng quát hơn:
+`role` checks enum and record before more general properties:
 
-1. Enum: giữ thông tin đó là enum, kể cả khi enum sealed.
-2. Record: giữ thông tin component, dù record cũng final.
-3. Sealed còn lại: có thể duyệt tiếp các kiểu permitted trực tiếp.
-4. Final còn lại: một class kết thúc kế thừa.
-5. Kiểu còn lại: đánh dấu điểm mở hoặc cần thêm thông tin.
+1. Enum: preserve the fact that it is an enum, even when the enum is sealed.
+2. Record: preserve component information, even though records are also `final`.
+3. Remaining sealed: can traverse further into directly permitted types.
+4. Remaining `final`: a class terminating inheritance.
+5. Remaining types: mark as open points or needing additional information.
 
-Nếu kiểm tra `isSealed()` trước và luôn đệ quy như một nhánh nghiệp vụ, công cụ có thể đi vào lớp ẩn danh của enum mà không có ý định đó. Nếu chỉ kiểm tra final trước, record và enum final có thể mất nhãn chuyên biệt.
+If `isSealed()` is checked first and always recursed as a business branch, the tool may descend into an enum's anonymous class unintentionally. If `final` is checked first, records and `final` enums may lose their specialized labels.
 
-Không có một thứ tự phân loại duy nhất bắt buộc cho mọi công cụ. Thứ tự trên phục vụ cách trình bày loại lệnh trong bài; một trình xem bytecode có thể giữ đồng thời tất cả cờ và quan hệ thay vì chọn một nhãn chính.
+There is no single mandatory classification order for every tool. The order above serves the command-type presentation in this article; a bytecode viewer might retain all flags and relationships simultaneously instead of picking one primary label.
 
-## 7. “Root sealed” không bảo đảm toàn bộ mô hình đóng ở mọi độ sâu
+## 7. A "Sealed Root" Does Not Guarantee the Whole Model Is Closed at Every Depth
 
-Root kiểm soát các nhánh trực tiếp. Nhánh non-sealed có thể tiếp tục mở rộng bằng các kiểu chưa được công cụ biết trước.
+The root controls direct branches. A `non-sealed` branch can continue extending with types not known to the tool in advance.
 
-Vì thế, không thể chỉ lấy permitted của `Command` rồi kết luận đã biết mọi class cụ thể có thể là Command. Ít nhất nhánh `Extension` đã khiến suy luận ấy không đúng trong mô hình này.
+Therefore, you cannot take only `Command`'s permitted list and conclude you know every concrete class that can be a `Command`. At minimum, the `Extension` branch makes that inference false in this model.
 
-Ngay cả khi các nhánh đều final hoặc sealed, vẫn phải phân biệt:
+Even when all branches are `final` or `sealed`, you must still distinguish:
 
-- Số kiểu được khai báo với số giá trị/instance.
-- Class cụ thể với class abstract và interface.
-- Class enum với các hằng enum.
-- Class record với dữ liệu có thể mang trong các component.
-- Cấu trúc permitted thu được với mức độ đầy đủ của môi trường nạp lớp.
+- Number of declared types vs. number of values/instances.
+- Concrete classes vs. `abstract` classes and interfaces.
+- Enum classes vs. enum constants.
+- Record classes vs. the data carried in their components.
+- Obtained permitted structure vs. the completeness of the class-loading environment.
 
-`getPermittedSubclasses()` chỉ trả trực tiếp và có thể bỏ qua mục không lấy được đối tượng Class theo hợp đồng API. Công cụ kiểm toán cần mức bảo đảm cao hơn phải đối chiếu thêm dữ liệu và môi trường phù hợp.
+`getPermittedSubclasses()` returns only direct subtypes and can omit entries whose `Class` object cannot be obtained per the API contract. Auditing tools requiring stronger guarantees must cross-check the appropriate data and environment.
 
-Một danh sách permitted cũng không cung cấp constructor, dữ liệu đầu vào hay quyền tạo đối tượng. Không cố tạo thử mọi nút của sơ đồ chỉ để kiểm tra rằng nó nằm trong phân cấp.
+A permitted list also does not supply constructors, input data, or instantiation permission. Do not attempt to instantiate every node in the diagram just to verify that it belongs to the hierarchy.
 
-## 8. Những thiết kế và giả định cần tránh
+## 8. Designs and Assumptions to Avoid
 
-| Giả định hoặc cách làm | Vấn đề |
+| Assumption or practice | Problem |
 | --- | --- |
-| Dùng một sealed class nghiệp vụ làm cha trực tiếp của cả record và enum | Record và enum đã có lớp cha trực tiếp do Java quy định; dùng interface chung khi cần |
-| Tự thêm sealed/final/non-sealed vào khai báo enum | Các modifier ấy không được khai báo tường minh trên enum; tính chất được suy ra theo quy tắc enum |
-| Cho rằng record không viết final thì có thể kế thừa | Record final ngầm định |
-| Dùng `isSealed() == false` để kết luận không có lớp con | Nhánh non-sealed và lớp thông thường có thể có lớp con |
-| Đếm permitted của enum để đếm các hằng | Chỉ phản ánh lớp con của các thân hằng, không phải toàn bộ giá trị enum |
-| Dùng `constant.getClass()` làm kiểu enum chung | Hằng có thân riêng có lớp con ẩn danh; dùng `getDeclaringClass()` |
-| Mọi nút final đều có cùng cách hiển thị | Record, enum và class final thông thường có metadata và ngữ nghĩa khác nhau |
-| Mở rộng mọi enum sealed thành các “loại nghiệp vụ” mới | Lẫn lớp thực hiện của hằng với loại enum trong mô hình |
-| Một lần lấy permitted ở root đã liệt kê mọi hậu duệ | Danh sách trực tiếp và nhánh mở không cho phép suy luận ấy |
+| Using a domain sealed class as the direct parent of both records and enums | Records and enums already have Java-mandated direct superclasses; use a common interface when needed |
+| Manually adding `sealed`/`final`/`non-sealed` to an enum declaration | Those modifiers are not explicitly declared on enums; properties are inferred from enum rules |
+| Assuming a record without `final` written can be subclassed | Records are implicitly `final` |
+| Using `isSealed() == false` to conclude there are no subclasses | `non-sealed` branches and ordinary classes can have subclasses |
+| Counting an enum's permitted list to count its constants | Only reflects subclasses for constant bodies, not all enum values |
+| Using `constant.getClass()` as the general enum type | Constants with custom bodies have anonymous subclasses; use `getDeclaringClass()` |
+| Every `final` node should be displayed the same way | Records, enums, and ordinary `final` classes have different metadata and semantics |
+| Expanding every sealed enum into new "business types" | Confuses a constant's implementation class with an enum type in the model |
+| One permitted call at the root lists all descendants | Direct lists and open branches do not allow that inference |
 
-Khi mô hình có cả class và interface, cũng cần giữ danh tính `Class` thay vì gộp theo tên đơn giản. Các tên dùng trong ví dụ đủ phân biệt trong một tệp; một ứng dụng có nhiều package hoặc bộ nạp lớp có thể phức tạp hơn.
+When a model contains both classes and interfaces, also preserve `Class` identity rather than merging by simple name. The names used in the examples are unambiguous within a single file; an application with multiple packages or class loaders can be more complex.
 
-## 9. Tự kiểm tra
+## 9. Self-Check
 
-1. Vì sao sealed interface là gốc chung phù hợp cho cả record và enum?
-2. Một enum không có thân riêng trên hằng là final hay sealed?
-3. Nếu chỉ một trong ba hằng enum có thân riêng, số lớp permitted của enum có nhất thiết bằng ba không?
-4. Vì sao `Policy` vẫn nhận nhãn enum dù `isSealed()` trả true?
-5. `PluginCommand` có cần xuất hiện trong permitted trực tiếp của `Command` không?
-6. Record final có nghĩa chỉ có một instance record hay không?
-7. Khi viết trình xem bytecode, có thể giữ lớp con ẩn danh của enum trong sơ đồ không?
+1. Why is a sealed interface an appropriate common root for both records and enums?
+2. Is an enum with no custom bodies on its constants `final` or `sealed`?
+3. If only one of three enum constants has a custom body, must the enum's permitted class count necessarily be three?
+4. Why does `Policy` still receive the enum label even though `isSealed()` returns `true`?
+5. Must `PluginCommand` appear in `Command`'s direct permitted list?
+6. Does a `final` record mean there can only be one record instance?
+7. When writing a bytecode viewer, can an enum's anonymous subclass be kept in the diagram?
 
-Đáp án:
+Answers:
 
-1. Record và enum có thể triển khai interface nhưng không thể chọn một class nghiệp vụ khác làm lớp cha trực tiếp.
-2. Final ngầm định.
-3. Không. Các lớp permitted tương ứng với các thân hằng; trong tình huống ấy chỉ có một thân.
-4. “Enum” mô tả dạng kiểu, còn sealed mô tả quan hệ mở rộng; hai thông tin có thể cùng đúng.
-5. Không. Nó kế thừa qua nhánh `Extension`.
-6. Không. Final chỉ đóng kế thừa; dữ liệu và số instance là chuyện khác.
-7. Có. Đó là metadata lớp thực tế; cần ghi rõ mục đích và không tự coi nó là loại nghiệp vụ mới.
+1. Records and enums can implement interfaces, whereas they cannot choose another domain class as their direct superclass.
+2. Implicitly `final`.
+3. No. Permitted classes correspond to constant bodies; in that scenario there is only one body.
+4. "Enum" describes the type kind, while `sealed` describes the extensibility relationship; both facts can be true at the same time.
+5. No. It inherits through the `Extension` branch.
+6. No. `final` only closes inheritance; data and instance count are separate matters.
+7. Yes. That is real class metadata; state the purpose clearly and do not treat it as a new business type.
 
-## Tài liệu đối chiếu
+## References
 
-- [JLS 17 — sealed, non-sealed, final và kiểu con trực tiếp](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.1.1.2).
-- [JLS 17 — Enum final hoặc sealed ngầm định](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.9).
-- [JLS 17 — Record final và lớp cha trực tiếp](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.10).
+- [JLS 17 — sealed, non-sealed, final, and direct subtypes](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.1.1.2).
+- [JLS 17 — Implicitly final or sealed enums](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.9).
+- [JLS 17 — Final records and direct superclass](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.10).
 - [Java 17 — Class.getPermittedSubclasses](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#getPermittedSubclasses()).

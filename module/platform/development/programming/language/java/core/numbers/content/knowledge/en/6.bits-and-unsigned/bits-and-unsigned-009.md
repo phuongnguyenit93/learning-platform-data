@@ -1,67 +1,67 @@
-# `bitCount`, leading zeros, trailing zeros và one-bit helpers trong Java
+# `bitCount`, Leading Zeros, Trailing Zeros, and One-Bit Helpers in Java
 
-## 1. Mục tiêu và mô hình bit
+## 1. Objectives and Bit Model
 
-Trong Java, `int` luôn có **32 bit** và `long` luôn có **64 bit** (`Integer.SIZE == 32`, `Long.SIZE == 64`). Các phép toán bit xử lý **mẫu bit có độ rộng cố định**, kể cả khi giá trị được diễn giải là số âm theo biểu diễn bù hai (two's complement). Các hàm tiện ích của `Integer` và `Long` giúp đếm bit 1, xác định vị trí bit 1, hoặc cô lập bit 1 ở đầu/cuối mà không cần tự dịch bit qua từng vị trí.
+In Java, `int` is always **32 bits** and `long` is always **64 bits** (`Integer.SIZE == 32`, `Long.SIZE == 64`). Bitwise operations process **fixed-width bit patterns**, even when the value is interpreted as a negative number in two's complement representation. Utility methods on `Integer` and `Long` help count `1` bits, find positions of `1` bits, or isolate the highest/lowest `1` bit without manually shifting through every position.
 
-Ví dụ, số `40` có dạng nhị phân `101000`. Khi xem dưới dạng `int`, nó có **26 bit 0 ở bên trái**, sau đó là `101000`; hai bit 1 nằm tại vị trí 5 và 3 (đánh số từ phải sang, bắt đầu từ 0). Vì vậy:
+For example, the number `40` has binary form `101000`. Viewed as an `int`, it has **26 leading `0` bits on the left**, followed by `101000`; the two `1` bits sit at positions 5 and 3 (indexed from right to left, starting at 0). Therefore:
 
-- `Integer.bitCount(40)` trả `2`.
-- `Integer.numberOfLeadingZeros(40)` trả `26`.
-- `Integer.numberOfTrailingZeros(40)` trả `3`.
-- `Integer.highestOneBit(40)` trả `32` (bit 1 tại vị trí 5).
-- `Integer.lowestOneBit(40)` trả `8` (bit 1 tại vị trí 3).
+- `Integer.bitCount(40)` returns `2`.
+- `Integer.numberOfLeadingZeros(40)` returns `26`.
+- `Integer.numberOfTrailingZeros(40)` returns `3`.
+- `Integer.highestOneBit(40)` returns `32` (`1` bit at position 5).
+- `Integer.lowestOneBit(40)` returns `8` (`1` bit at position 3).
 
-Các phương thức dưới đây là `static`, không thay đổi đối số và không phụ thuộc việc bạn in giá trị theo hệ thập phân, thập lục phân hay nhị phân.
+The methods below are `static`, do not mutate their arguments, and do not depend on whether you print values in decimal, hexadecimal, or binary.
 
-## 2. Tổng quan API
+## 2. API Overview
 
-| `Integer` (`int`, 32 bit) | `Long` (`long`, 64 bit) | Ý nghĩa |
+| `Integer` (`int`, 32-bit) | `Long` (`long`, 64-bit) | Meaning |
 | --- | --- | --- |
-| `Integer.bitCount(x)` | `Long.bitCount(x)` | Số lượng bit bằng 1 (population count, **popcount**) trong toàn bộ mẫu bit. |
-| `Integer.numberOfLeadingZeros(x)` | `Long.numberOfLeadingZeros(x)` | Số bit 0 liên tiếp **từ bit cao nhất** đến trước bit 1 đầu tiên. |
-| `Integer.numberOfTrailingZeros(x)` | `Long.numberOfTrailingZeros(x)` | Số bit 0 liên tiếp **từ bit thấp nhất** đến trước bit 1 đầu tiên. |
-| `Integer.highestOneBit(x)` | `Long.highestOneBit(x)` | Giá trị chỉ giữ lại **bit 1 cao nhất**; các bit khác bằng 0. |
-| `Integer.lowestOneBit(x)` | `Long.lowestOneBit(x)` | Giá trị chỉ giữ lại **bit 1 thấp nhất**; các bit khác bằng 0. |
+| `Integer.bitCount(x)` | `Long.bitCount(x)` | Number of `1` bits (population count, **popcount**) across the full bit pattern. |
+| `Integer.numberOfLeadingZeros(x)` | `Long.numberOfLeadingZeros(x)` | Number of consecutive `0` bits **from the highest bit** down to before the first `1` bit. |
+| `Integer.numberOfTrailingZeros(x)` | `Long.numberOfTrailingZeros(x)` | Number of consecutive `0` bits **from the lowest bit** up to before the first `1` bit. |
+| `Integer.highestOneBit(x)` | `Long.highestOneBit(x)` | Value keeping only the **highest `1` bit**; all other bits are `0`. |
+| `Integer.lowestOneBit(x)` | `Long.lowestOneBit(x)` | Value keeping only the **lowest `1` bit**; all other bits are `0`. |
 
-Các kết quả đếm luôn là `int`, kể cả với `Long`. Hai hàm `highestOneBit`/`lowestOneBit` trả lại đúng kiểu đầu vào (`int` hoặc `long`). Không có giá trị trả về `-1` để báo không tìm thấy bit 1: hai hàm *one-bit* trả `0`; hai hàm đếm số bit 0 trả **độ rộng bit** khi đầu vào bằng `0`.
+The count results are always `int`, even for `Long`. The two methods `highestOneBit`/`lowestOneBit` return the same type as their input (`int` or `long`). There is no `-1` sentinel to indicate no `1` bit was found: the two *one-bit* methods return `0`; the two zero-counting methods return the **bit width** when the input is `0`.
 
-### Các trường hợp biên cần nhớ
+### Boundary Cases to Remember
 
-| Đầu vào `int` | `bitCount` | Leading zeros | Trailing zeros | `highestOneBit` | `lowestOneBit` |
+| `int` Input | `bitCount` | Leading zeros | Trailing zeros | `highestOneBit` | `lowestOneBit` |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | `0` | 0 | 32 | 32 | 0 | 0 |
 | `40` (`0b101000`) | 2 | 26 | 3 | 32 | 8 |
-| `-1` (32 bit 1) | 32 | 0 | 0 | `Integer.MIN_VALUE` | 1 |
-| `Integer.MIN_VALUE` (chỉ bit dấu bằng 1) | 1 | 0 | 31 | `Integer.MIN_VALUE` | `Integer.MIN_VALUE` |
+| `-1` (32 `1` bits) | 32 | 0 | 0 | `Integer.MIN_VALUE` | 1 |
+| `Integer.MIN_VALUE` (only sign bit is `1`) | 1 | 0 | 31 | `Integer.MIN_VALUE` | `Integer.MIN_VALUE` |
 
-Với `long`, thay độ rộng `32` bằng `64`. Chẳng hạn `Long.numberOfTrailingZeros(0L) == 64`, `Long.bitCount(-1L) == 64`, và `Long.highestOneBit(-1L) == Long.MIN_VALUE`.
+For `long`, replace width `32` with `64`. For instance, `Long.numberOfTrailingZeros(0L) == 64`, `Long.bitCount(-1L) == 64`, and `Long.highestOneBit(-1L) == Long.MIN_VALUE`.
 
-## 3. `bitCount`: đếm số bit 1
+## 3. `bitCount`: Counting `1` Bits
 
-`Integer.bitCount(x)` và `Long.bitCount(x)` trả số bit 1 trong toàn bộ 32/64 bit. Hàm này **không** đếm chữ số `1` trong chuỗi thập phân; cũng **không** đếm số bit cần dùng để biểu diễn độ lớn của số.
+`Integer.bitCount(x)` and `Long.bitCount(x)` return the number of `1` bits across all 32/64 bits. This method does **not** count occurrences of the digit `1` in a decimal string, nor does it count the number of bits needed to represent the number's magnitude.
 
 ```java
-int a = 0b1010_0101; // Bốn bit 1
+int a = 0b1010_0101; // Four 1 bits
 int count = Integer.bitCount(a); // 4
 long b = 0b1_0000_0000L;
 int longCount = Long.bitCount(b); // 1
 ```
 
-Số âm phải được tính theo bù hai: `Integer.bitCount(-1) == 32`, còn `Long.bitCount(-1L) == 64`. Điều này hữu ích khi làm việc với cờ bit (flags), bitmap, bitset nén trong số nguyên hoặc thuật toán Hamming distance: `Integer.bitCount(a ^ b)` là số vị trí bit khác nhau giữa hai mẫu `int`.
+Negative numbers must be evaluated in two's complement: `Integer.bitCount(-1) == 32`, and `Long.bitCount(-1L) == 64`. This is useful when working with bit flags, bitmaps, bitsets packed into integers, or Hamming distance: `Integer.bitCount(a ^ b)` is the number of bit positions that differ between two `int` patterns.
 
-Ví dụ, nếu `permissions` là một tập cờ và `mask` chỉ định các quyền cần kiểm tra, `Integer.bitCount(permissions & mask)` đếm số quyền đã bật **trong phạm vi `mask`**. Đối với ứng dụng cần tập bit lớn hơn 64 bit, `java.util.BitSet` phù hợp hơn; `BitSet.cardinality()` đếm số bit 1 của tập đó.
+For example, if `permissions` is a set of flags and `mask` specifies the permissions to inspect, `Integer.bitCount(permissions & mask)` counts how many permissions are enabled **within `mask`**. For applications needing bitsets larger than 64 bits, `java.util.BitSet` is a better fit; `BitSet.cardinality()` counts the `1` bits in that set.
 
-## 4. Leading zeros: đếm bit 0 từ đầu cao
+## 4. Leading Zeros: Counting `0` Bits from the High End
 
-`numberOfLeadingZeros(x)` bắt đầu từ bit cao nhất (bit 31 của `int`, bit 63 của `long`) và đếm đến trước bit 1 đầu tiên. Một số dương có bit 1 cao nhất ở vị trí `p` thì:
+`numberOfLeadingZeros(x)` starts from the highest bit (bit 31 of `int`, bit 63 of `long`) and counts up to the first `1` bit. If a positive number has its highest `1` bit at position `p`, then:
 
-- Với `int`: `p = 31 - Integer.numberOfLeadingZeros(x)` khi `x != 0`.
-- Với `long`: `p = 63 - Long.numberOfLeadingZeros(x)` khi `x != 0`.
+- For `int`: `p = 31 - Integer.numberOfLeadingZeros(x)` when `x != 0`.
+- For `long`: `p = 63 - Long.numberOfLeadingZeros(x)` when `x != 0`.
 
-Với `x > 0`, số bit tối thiểu để biểu diễn dạng nhị phân không dấu chính là `Integer.SIZE - Integer.numberOfLeadingZeros(x)`. Ví dụ `40` cần 6 bit (`101000`), nên `32 - 26 = 6`.
+For `x > 0`, the minimum number of bits needed to represent the unsigned binary form is `Integer.SIZE - Integer.numberOfLeadingZeros(x)`. For example, `40` needs 6 bits (`101000`), so `32 - 26 = 6`.
 
-Với `x == 0`, Java trả `32` hoặc `64` vì toàn bộ bit đều bằng 0; phải xử lý riêng nếu bài toán cần vị trí một bit 1. Với số âm, bit dấu cao nhất luôn bằng 1, nên số leading zeros bằng **0**, dù giá trị tuyệt đối lớn hay nhỏ.
+For `x == 0`, Java returns `32` or `64` because all bits are `0`; you must handle `0` separately if the problem requires the position of a `1` bit. For negative numbers, the highest sign bit is always `1`, so the number of leading zeros is **0**, regardless of how large or small the absolute value is.
 
 ```java
 int x = 40;
@@ -71,26 +71,26 @@ int highestSetIndex = x == 0
 // highestSetIndex == 5
 ```
 
-Dùng `-1` trong đoạn trên là **quy ước do ứng dụng tự chọn** cho trường hợp không có bit 1, không phải giá trị trả trực tiếp của `numberOfLeadingZeros`.
+Using `-1` in the snippet above is an **application-chosen convention** for the case with no `1` bits, not a value returned directly by `numberOfLeadingZeros`.
 
-## 5. Trailing zeros: đếm bit 0 từ đầu thấp
+## 5. Trailing Zeros: Counting `0` Bits from the Low End
 
-`numberOfTrailingZeros(x)` đếm bit 0 liên tiếp từ bit thấp nhất (bit 0) đến trước bit 1 đầu tiên. Khi `x != 0`, kết quả chính là **chỉ số của bit 1 thấp nhất**:
+`numberOfTrailingZeros(x)` counts consecutive `0` bits from the lowest bit (bit 0) up to before the first `1` bit. When `x != 0`, the result is the **index of the lowest `1` bit**:
 
 ```java
 int mask = 0b0010_1000; // 40
 int lowestSetIndex = Integer.numberOfTrailingZeros(mask); // 3
 ```
 
-Một số nguyên khác 0 chia hết cho `2^k` khi và chỉ khi ít nhất `k` bit thấp nhất bằng 0. Vì vậy trailing zeros cho biết số thừa số 2 của một số nguyên khác 0 theo biểu diễn bit (ví dụ `40 = 5 × 2^3`, nên có 3 bit 0 ở cuối). Công thức vẫn hữu ích với số âm khi cần thao tác trên mẫu bit, nhưng không dùng để suy ra dấu.
+A nonzero integer is divisible by `2^k` if and only if at least the lowest `k` bits are `0`. Thus trailing zeros indicate the number of factors of 2 in a nonzero integer's bit representation (for instance, `40 = 5 × 2^3`, so it has 3 trailing `0` bits). This formula also holds for negative numbers when operating on bit patterns, though it should not be used to infer sign.
 
-`Integer.numberOfTrailingZeros(0) == 32`, `Long.numberOfTrailingZeros(0L) == 64`. Đây là sentinel hợp lệ của API: không được đưa trực tiếp `32` vào `1 << index` với kỳ vọng tạo bit ở vị trí 32.
+`Integer.numberOfTrailingZeros(0) == 32`, `Long.numberOfTrailingZeros(0L) == 64`. These are valid API sentinels: do not pass `32` directly into `1 << index` expecting to create a bit at position 32.
 
-Trong bài toán liệt kê các bit đang bật, trailing zeros tìm ngay chỉ số bit thấp nhất; sau đó có thể xóa bit ấy và tiếp tục đến khi mẫu bit bằng 0.
+When iterating over active bits, trailing zeros immediately find the lowest bit index; you can then clear that bit and continue until the bit pattern becomes `0`.
 
-## 6. `highestOneBit` và `lowestOneBit`: tạo mặt nạ chỉ có một bit 1
+## 6. `highestOneBit` and `lowestOneBit`: Creating a Single-Bit Mask
 
-Hai hàm này trả về một **mặt nạ one-hot**: chỉ bit 1 cao nhất hoặc thấp nhất còn được giữ lại.
+These two methods return a **one-hot mask**: only the highest or lowest `1` bit is retained.
 
 ```java
 int x = 0b0010_1000;          // 40
@@ -98,17 +98,17 @@ int high = Integer.highestOneBit(x); // 0b0010_0000 = 32
 int low  = Integer.lowestOneBit(x);  // 0b0000_1000 = 8
 ```
 
-Nếu `x == 0`, cả hai đều trả `0`. Nếu `x` âm, các hàm vẫn đọc toàn bộ mẫu 32/64 bit, không bỏ bit dấu. Do đó:
+If `x == 0`, both return `0`. If `x` is negative, the methods still inspect the entire 32/64-bit pattern without ignoring the sign bit. Therefore:
 
 ```java
 int highNegative = Integer.highestOneBit(-1);
-// Integer.MIN_VALUE, tức 0x80000000, hiển thị dạng int là -2147483648
+// Integer.MIN_VALUE, i.e., 0x80000000, displayed as int is -2147483648
 
 long highNegativeLong = Long.highestOneBit(-1L);
-// Long.MIN_VALUE, tức 0x8000000000000000
+// Long.MIN_VALUE, i.e., 0x8000000000000000
 ```
 
-**Ý nghĩa kết quả phụ thuộc cách diễn giải signed/unsigned.** Bit dấu ở vị trí 31 biểu diễn mặt nạ `0x80000000`; nếu in như `int`, giá trị âm, nhưng nếu in như số nguyên không dấu thì đó là `2147483648`:
+**How the result is read depends on signed/unsigned interpretation.** The sign bit at position 31 represents the mask `0x80000000`; when printed as `int`, the value is negative, whereas when printed as an unsigned integer it is `2147483648`:
 
 ```java
 String unsignedText =
@@ -116,23 +116,23 @@ String unsignedText =
 // "2147483648"
 ```
 
-Với **số dương** `x`, `highestOneBit(x)` là lũy thừa của 2 lớn nhất không vượt quá `x`; còn `lowestOneBit(x)` là lũy thừa của 2 ứng với bit 1 thấp nhất. Không đồng nhất `highestOneBit` với phép làm tròn lên lũy thừa 2: ví dụ `highestOneBit(40) == 32`, trong khi lũy thừa 2 tiếp theo là `64`.
+For **positive** `x`, `highestOneBit(x)` is the largest power of 2 not exceeding `x`; `lowestOneBit(x)` is the power of 2 corresponding to the lowest `1` bit. Do not equate `highestOneBit` with rounding up to a power of 2: for example, `highestOneBit(40) == 32`, whereas the next power of 2 is `64`.
 
-Có thể nhận ra hai phép biến đổi bit tương đương khi thao tác trên mẫu bù hai:
+Two equivalent bit transformations can be recognized when operating on two's complement patterns:
 
-- `x & -x` cô lập bit 1 thấp nhất, tương đương `lowestOneBit(x)`.
-- `x & (x - 1)` **xóa** bit 1 thấp nhất, không tương đương `lowestOneBit(x)`.
+- `x & -x` isolates the lowest `1` bit, equivalent to `lowestOneBit(x)`.
+- `x & (x - 1)` **clears** the lowest `1` bit, which is not equivalent to `lowestOneBit(x)`.
 
-Phép trừ một và đổi dấu ở đây dùng số nguyên Java có độ rộng cố định. Đối với mã ứng dụng, các phương thức tên rõ ràng của JDK thường dễ đọc và ít gây nhầm hơn.
+Subtraction by one and negation here use fixed-width Java integers. In application code, the clearly named JDK methods are usually easier to read and less error-prone.
 
-## 7. Ví dụ Java 17 đầy đủ, chạy được
+## 7. Complete, Runnable Java 17 Example
 
-Lưu thành tệp `BitHelpersDemo.java`:
+Save as **`BitHelpersDemo.java`**:
 
 ```java
 public class BitHelpersDemo {
     public static void main(String[] args) {
-        int x = 0b0010_1000; // 40: các bit 1 ở vị trí 5 và 3
+        int x = 0b0010_1000; // 40: 1 bits at positions 5 and 3
 
         System.out.println("bitCount(40) = " + Integer.bitCount(x));
         System.out.println("leadingZeros(40) = "
@@ -166,14 +166,14 @@ public class BitHelpersDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac BitHelpersDemo.java
 java BitHelpersDemo
 ```
 
-Đầu ra chính xác:
+Exact output:
 
 ```text
 bitCount(40) = 2
@@ -191,13 +191,13 @@ Long.leadingZeros(2^40) = 23
 Long.trailingZeros(2^40) = 40
 ```
 
-Giải thích phép dịch `1L << 40`: chữ `L` đảm bảo phép dịch thực hiện trên `long` 64 bit. Kết quả có một bit 1 ở vị trí 40, nên có 40 bit 0 bên phải, 23 bit 0 bên trái và tổng cộng một bit 1.
+Explanation of `1L << 40`: the `L` suffix ensures the shift is performed on 64-bit `long`. The result has a single `1` bit at position 40, leaving 40 `0` bits on the right, 23 `0` bits on the left, and one `1` bit in total.
 
-## 8. Ứng dụng: duyệt nhanh từng cờ bit đang bật
+## 8. Application: Iterating Quickly Over Active Bit Flags
 
-Giả sử mỗi bit biểu diễn một tính năng được bật. Mẫu `0b101010` có các bit 1 tại vị trí 1, 3, 5. Có thể dùng `numberOfTrailingZeros` để tìm vị trí rồi xóa chính bit thấp nhất bằng `mask &= mask - 1`.
+Suppose each bit represents an enabled feature. The pattern `0b101010` has `1` bits at positions 1, 3, and 5. You can use `numberOfTrailingZeros` to find the index and then clear that lowest `1` bit with `mask &= mask - 1`.
 
-Lưu thành tệp `ActiveBitsDemo.java`:
+Save as **`ActiveBitsDemo.java`**:
 
 ```java
 public class ActiveBitsDemo {
@@ -206,7 +206,7 @@ public class ActiveBitsDemo {
 
         while (mask != 0) {
             int index = Integer.numberOfTrailingZeros(mask);
-            System.out.println("Bit bat: " + index);
+            System.out.println("Set bit: " + index);
             mask &= mask - 1;
         }
     }
@@ -219,12 +219,12 @@ java ActiveBitsDemo
 ```
 
 ```text
-Bit bat: 1
-Bit bat: 3
-Bit bat: 5
+Set bit: 1
+Set bit: 3
+Set bit: 5
 ```
 
-Vòng lặp thực hiện đúng một lần cho mỗi bit 1, tức `Integer.bitCount(maskBanDau)` lượt. Nếu `mask` có bit dấu đang bật, cách này vẫn xử lý được vị trí 31; điều kiện `mask != 0` kiểm tra **mẫu bit**, không đòi hỏi giá trị phải dương. Để kiểm tra một bit cụ thể:
+The loop executes once per `1` bit, i.e., `Integer.bitCount(initialMask)` iterations. Even if `mask` has its sign bit set, this approach still handles position 31; the `mask != 0` condition checks the **bit pattern**, without requiring the value to be positive. To test a specific bit:
 
 ```java
 int flags = 0b101010;
@@ -232,11 +232,11 @@ int index = 3;
 boolean enabled = (flags & (1 << index)) != 0; // true
 ```
 
-Ở đây `index` phải thuộc `0..31` với `int`; với `long`, dùng `1L << index` và giới hạn `0..63`.
+Here `index` must be in `0..31` for `int`; for `long`, use `1L << index` and restrict to `0..63`.
 
-## 9. Một số mẫu sử dụng hữu ích
+## 9. Several Useful Usage Patterns
 
-### Kiểm tra mẫu bit có đúng một bit 1
+### Checking whether a bit pattern has exactly one `1` bit
 
 ```java
 static boolean hasExactlyOneBitSet(int x) {
@@ -244,7 +244,7 @@ static boolean hasExactlyOneBitSet(int x) {
 }
 ```
 
-Hàm nhận cả `Integer.MIN_VALUE` là mẫu có đúng một bit 1. Nếu mục tiêu là kiểm tra **số nguyên dương** có phải lũy thừa của 2 hay không, cần thêm điều kiện `x > 0`:
+This method also treats `Integer.MIN_VALUE` as having a single `1` bit. If the goal is to check whether a **positive integer** is a power of 2, add the condition `x > 0`:
 
 ```java
 static boolean isPositivePowerOfTwo(int x) {
@@ -252,9 +252,9 @@ static boolean isPositivePowerOfTwo(int x) {
 }
 ```
 
-Hoặc dùng `x > 0 && (x & (x - 1)) == 0`. Điều kiện `x > 0` tránh nhầm `0` và số âm có duy nhất bit dấu. Với `long`, thay `Integer.bitCount` bằng `Long.bitCount`.
+Alternatively, use `x > 0 && (x & (x - 1)) == 0`. The `x > 0` condition avoids mistaking `0` and the negative number with only the sign bit set. For `long`, replace `Integer.bitCount` with `Long.bitCount`.
 
-### Lấy chỉ số bit cao nhất và thấp nhất
+### Getting the highest and lowest set bit index
 
 ```java
 static int highestSetBitIndex(int x) {
@@ -267,9 +267,9 @@ static int lowestSetBitIndex(int x) {
 }
 ```
 
-Các hàm trả `-1` cho `0` theo quy ước riêng. Chúng có thể dùng với cả `int` âm vì chỉ số nói về **vị trí trong mẫu bit**. Ví dụ, `highestSetBitIndex(Integer.MIN_VALUE) == 31`.
+These methods return `-1` for `0` by custom convention. They also work for negative `int` values because the index refers to **the position within the bit pattern**. For example, `highestSetBitIndex(Integer.MIN_VALUE) == 31`.
 
-### Đếm số bit khác nhau của hai số
+### Counting differing bits between two numbers
 
 ```java
 int a = 0b1010;
@@ -277,28 +277,28 @@ int b = 0b0011;
 int hammingDistance = Integer.bitCount(a ^ b); // 2
 ```
 
-XOR cho bit 1 tại những vị trí khác nhau; `bitCount` đếm chúng. Đây là phép so sánh 32 bit (hoặc 64 bit với `Long.bitCount`), kể cả với số âm.
+XOR produces a `1` bit at positions that differ; `bitCount` counts them. This is a 32-bit comparison (or 64-bit with `Long.bitCount`), including for negative numbers.
 
-## 10. Lưu ý và lỗi thường gặp
+## 10. Notes and Common Pitfalls
 
-1. **Quên độ rộng bit cố định.** `bitCount(-1)` là `32`/`64`, không phải `1`, vì `-1` ở dạng bù hai toàn bit 1.
-2. **Bỏ qua `0`.** `numberOfLeadingZeros(0)` và `numberOfTrailingZeros(0)` trả `Integer.SIZE`/`Long.SIZE`; còn `highestOneBit(0)` và `lowestOneBit(0)` đều trả `0`. Cần xử lý `0` trước khi tính chỉ số bit hay dịch `1` theo kết quả.
-3. **Lẫn giữa vị trí và mặt nạ.** `numberOfTrailingZeros(40)` là **vị trí** `3`; `lowestOneBit(40)` là **giá trị mặt nạ** `8`. Tương tự, `highestOneBit(40)` là `32`, còn chỉ số bit cao nhất là `5`.
-4. **Hiểu nhầm dấu của `highestOneBit` ở số âm.** Hàm có thể trả `Integer.MIN_VALUE` hoặc `Long.MIN_VALUE`; bit dấu vẫn là một bit 1 bình thường khi thao tác bit. Dùng `Integer.toUnsignedString`/`Long.toUnsignedString` nếu cần hiển thị không dấu.
-5. **Dùng toán tử dịch với sai kiểu hoặc chỉ số ngoài biên.** `1 << 40` thực hiện trên `int` và Java chỉ dùng 5 bit thấp của lượng dịch, nên không tạo bit ở vị trí 40. Dùng `1L << 40` cho `long`; giới hạn chỉ số dịch hợp lệ theo nhu cầu `0..31`/`0..63`.
-6. **Quên ưu tiên toán tử.** Nên viết `(x & (x - 1)) == 0` và `(flags & (1 << index)) != 0` với ngoặc rõ ràng.
-7. **Dùng bit trick cho số 0 khi kiểm tra lũy thừa 2.** `(0 & (0 - 1)) == 0` đúng, nhưng `0` không phải lũy thừa 2. Bắt buộc kiểm tra `x > 0` nếu đang xét số nguyên dương.
-8. **Nhầm leading/trailing zeros với bit đầu/cuối của chuỗi.** `Integer.toBinaryString(40)` trả `"101000"` (không tự đệm 26 số 0 đầu). Kết quả `numberOfLeadingZeros` vẫn tính trên toàn bộ 32 bit.
+1. **Forgetting fixed bit width.** `bitCount(-1)` is `32`/`64`, not `1`, because `-1` in two's complement has all `1` bits.
+2. **Overlooking `0`.** `numberOfLeadingZeros(0)` and `numberOfTrailingZeros(0)` return `Integer.SIZE`/`Long.SIZE`; meanwhile `highestOneBit(0)` and `lowestOneBit(0)` both return `0`. Handle `0` before computing a bit index or shifting `1` by the result.
+3. **Confusing index with mask.** `numberOfTrailingZeros(40)` is the **position** `3`; `lowestOneBit(40)` is the **mask value** `8`. Similarly, `highestOneBit(40)` is `32`, while the highest set bit index is `5`.
+4. **Misunderstanding the sign of `highestOneBit` on negative numbers.** The method can return `Integer.MIN_VALUE` or `Long.MIN_VALUE`; the sign bit is still an ordinary `1` bit when manipulating bits. Use `Integer.toUnsignedString`/`Long.toUnsignedString` if you need unsigned display.
+5. **Using shift operators with the wrong type or out-of-bounds index.** `1 << 40` runs on `int` and Java uses only the low 5 bits of the shift count, so it does not create a bit at position 40. Use `1L << 40` for `long`; constrain shift indices to `0..31`/`0..63` as needed.
+6. **Forgetting operator precedence.** Write `(x & (x - 1)) == 0` and `(flags & (1 << index)) != 0` with explicit parentheses.
+7. **Using the bit trick on 0 when checking powers of 2.** `(0 & (0 - 1)) == 0` is true, yet `0` is not a power of 2. You must check `x > 0` when testing positive integers.
+8. **Confusing leading/trailing zeros with the start/end of a string.** `Integer.toBinaryString(40)` returns `"101000"` (without padding the 26 leading zeros). `numberOfLeadingZeros` still counts across all 32 bits.
 
-Các phương thức này diễn đạt rõ thao tác bit và thường được JVM tối ưu tốt, đôi khi bằng chỉ thị máy chuyên dụng; không nên mặc định chúng có tốc độ cố định trên mọi nền tảng hoặc tự thay thế bằng vòng lặp thủ công nếu chưa có phép đo.
+These methods clearly express bit operations and are typically well optimized by the JVM, sometimes via dedicated machine instructions; do not assume a fixed speed across all platforms or replace them with manual loops without benchmarking.
 
-## 11. Tự kiểm tra
+## 11. Self-Check
 
-1. Với `0b1001_0000` (`144`), `bitCount` bằng bao nhiêu? `numberOfTrailingZeros` bằng bao nhiêu? `highestOneBit` và `lowestOneBit` bằng bao nhiêu?
-2. Vì sao `Integer.numberOfLeadingZeros(-8)` bằng `0`, dù `Integer.toBinaryString(-8)` dài 32 ký tự?
-3. Vì sao `Integer.bitCount(Integer.MIN_VALUE) == 1` nhưng `Integer.MIN_VALUE` không phải lũy thừa 2 **dương**?
-4. Điều gì xảy ra nếu lỡ tính `1 << Integer.numberOfTrailingZeros(0)`?
+1. For `0b1001_0000` (`144`), what is `bitCount`? What is `numberOfTrailingZeros`? What are `highestOneBit` and `lowestOneBit`?
+2. Why is `Integer.numberOfLeadingZeros(-8)` equal to `0`, even though `Integer.toBinaryString(-8)` is 32 characters long?
+3. Why is `Integer.bitCount(Integer.MIN_VALUE) == 1` yet `Integer.MIN_VALUE` is not a **positive** power of 2?
+4. What happens if you accidentally compute `1 << Integer.numberOfTrailingZeros(0)`?
 
-**Đáp án:** (1) Lần lượt `2`, `4`, `128`, `16`. (2) Bit dấu (bit 31) của mọi `int` âm bằng 1 nên không có bit 0 ở đầu. (3) Chỉ có bit dấu bật, giá trị được diễn giải là số âm. (4) Dịch `1 << 32` trên `int` tương đương `1 << 0`, cho `1`, vì Java chỉ xét 5 bit thấp của số lượng dịch; đó là lý do cần xử lý `0` trước.
+**Answers:** (1) `2`, `4`, `128`, and `16`, respectively. (2) The sign bit (bit 31) of every negative `int` is 1, so there are no leading `0` bits. (3) Only the sign bit is set, so the value is interpreted as negative. (4) Shifting `1 << 32` on `int` is equivalent to `1 << 0`, giving `1`, because Java uses only the low 5 bits of the shift count; that is why `0` must be handled beforehand.
 
-**Ghi nhớ:** `bitCount` trả **số bit 1**; leading/trailing zeros trả **số bit 0 liên tiếp từ hai đầu mẫu bit**; `highestOneBit`/`lowestOneBit` trả **mặt nạ chứa đúng một bit 1** hoặc `0`. Luôn phân biệt kết quả là *số lượng*, *vị trí*, hay *mặt nạ*, và kiểm tra `0` trước khi suy ra chỉ số.
+**Remember:** `bitCount` returns the **count of `1` bits**; leading/trailing zeros return the **number of consecutive `0` bits from either end of the bit pattern**; `highestOneBit`/`lowestOneBit` return a **mask with a single `1` bit** or `0`. Always distinguish whether a result is a *count*, a *position*, or a *mask*, and check for `0` before deriving a bit index.

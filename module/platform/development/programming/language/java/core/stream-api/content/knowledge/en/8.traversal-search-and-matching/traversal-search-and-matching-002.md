@@ -1,34 +1,34 @@
-# Tìm cực trị bằng `min` và `max`
+# Finding Extrema with `min` and `max`
 
-> **Chương:** Duyệt, tìm kiếm và đối sánh  
-> **Module:** `JAVA_STREAM_API` — xử lý dữ liệu theo lối khai báo với Java Stream API, từ pipeline lazy, `filter`, `map`, `reduce`, `collect` đến grouping, collector tùy chỉnh, `Spliterator`, xử lý song song và Stream Gatherers. Khi áp dụng cần hiểu giới hạn về trạng thái, tài nguyên và hiệu năng.
+> **Chapter:** Traversal, Search, and Matching  
+> **Module:** `JAVA_STREAM_API` — declarative data processing with the Java Stream API, from lazy pipelines, `filter`, `map`, `reduce`, and `collect` to grouping, custom collectors, `Spliterator`, parallel processing, and Stream Gatherers. Applying it effectively requires understanding limits around state, resources, and performance.
 
-Trong ứng dụng, chúng ta thường phải trả lời các câu hỏi như: **sản phẩm nào rẻ nhất**, **đơn hàng nào có giá trị lớn nhất**, **nhân viên nào có thâm niên cao nhất**, hoặc **giá trị nhỏ nhất trong một luồng số là bao nhiêu**. Với Java Stream API, `min` và `max` giúp diễn đạt các yêu cầu đó mà không cần tự viết vòng lặp duyệt và cập nhật biến cực trị.
+In applications, we frequently need to answer questions such as: **which product is the cheapest**, **which order has the highest value**, **which employee has the longest tenure**, or **what is the smallest value in a stream of numbers**. With the Java Stream API, `min` and `max` express these requirements without manually writing loops to traverse and update an extremum variable.
 
-Sau bài học này, bạn có thể tìm cực trị của đối tượng bằng `Comparator`, làm việc an toàn với `Optional`, tìm cực trị trên các primitive stream, xử lý trường hợp đồng hạng và quyết định khi nào nên dùng `min`/`max` thay vì `sorted`.
+After this lesson, you will be able to find extrema of objects using `Comparator`, work safely with `Optional`, find extrema on primitive streams, handle tie-breaking cases, and decide when to use `min`/`max` instead of `sorted`.
 
-## 1. `min` và `max` trả về gì?
+## 1. What Do `min` and `max` Return?
 
-Trên `Stream<T>`, hai phương thức có dạng:
+On `Stream<T>`, the two methods have the signatures:
 
 ```java
 Optional<T> min(Comparator<? super T> comparator)
 Optional<T> max(Comparator<? super T> comparator)
 ```
 
-Chúng là **terminal operations** (phép toán kết thúc) và thuộc nhóm **reduction**: sau khi các phần tử của luồng được xử lý theo pipeline, chúng tổng hợp để chọn ra **một phần tử cực trị theo `Comparator` đã cung cấp**.
+They are **terminal operations** belonging to the **reduction** category: after the stream's elements are processed through the pipeline, they combine to select **one extremum element according to the provided `Comparator`**.
 
-| Phép toán | Chọn phần tử nào? | Kiểu trả về |
+| Operation | Which Element Is Selected? | Return Type |
 | --- | --- | --- |
-| `stream.min(comparator)` | Phần tử được coi là **nhỏ nhất** theo thứ tự của comparator | `Optional<T>` |
-| `stream.max(comparator)` | Phần tử được coi là **lớn nhất** theo thứ tự của comparator | `Optional<T>` |
-| `intStream.min()`, `intStream.max()` | Số nhỏ nhất / lớn nhất | `OptionalInt` |
-| `longStream.min()`, `longStream.max()` | Số `long` nhỏ nhất / lớn nhất | `OptionalLong` |
-| `doubleStream.min()`, `doubleStream.max()` | Số `double` nhỏ nhất / lớn nhất | `OptionalDouble` |
+| `stream.min(comparator)` | The element considered **smallest** under the comparator's ordering | `Optional<T>` |
+| `stream.max(comparator)` | The element considered **largest** under the comparator's ordering | `Optional<T>` |
+| `intStream.min()`, `intStream.max()` | Smallest / largest `int` number | `OptionalInt` |
+| `longStream.min()`, `longStream.max()` | Smallest / largest `long` number | `OptionalLong` |
+| `doubleStream.min()`, `doubleStream.max()` | Smallest / largest `double` number | `OptionalDouble` |
 
-**Tại sao trả về `Optional`?** Vì Stream có thể rỗng (ví dụ sau `filter` không còn phần tử nào), nên khi đó không tồn tại cực trị. Thay vì tự giả định có một phần tử, người gọi phải quyết định xử lý kết quả vắng mặt.
+**Why return `Optional`?** Because a Stream can be empty (for example, after `filter` leaves no elements), in which case no extremum exists. Rather than assuming an element exists, the caller must explicitly handle the absent result.
 
-Ví dụ ngắn:
+Short example:
 
 ```java
 import java.util.Comparator;
@@ -48,17 +48,17 @@ System.out.println(minimum); // 2
 System.out.println(maximum); // 9
 ```
 
-Ở ví dụ này, `Comparator.naturalOrder()` dùng thứ tự tự nhiên của `Integer`. Cả hai thao tác cần một Stream **mới** từ `numbers.stream()`, vì Stream đã được tiêu thụ bởi terminal operation không được dùng lại.
+In this example, `Comparator.naturalOrder()` uses `Integer`'s natural ordering. Both operations require a **fresh** Stream from `numbers.stream()`, because a Stream consumed by a terminal operation cannot be reused.
 
-## 2. `Comparator` quyết định khái niệm “nhỏ nhất” và “lớn nhất”
+## 2. `Comparator` Defines “Smallest” and “Largest”
 
-Một `Comparator<T>` là quy tắc so sánh hai giá trị của kiểu `T`. Quy ước của phương thức `compare(a, b)`:
+A `Comparator<T>` is a rule for comparing two values of type `T`. The contract of `compare(a, b)`:
 
-- Trả về số **âm** nếu `a` đứng trước `b`.
-- Trả về **0** nếu được xem là tương đương theo quy tắc so sánh.
-- Trả về số **dương** nếu `a` đứng sau `b`.
+- Returns a **negative** number if `a` comes before `b`.
+- Returns **0** if they are considered equivalent under the comparison rule.
+- Returns a **positive** number if `a` comes after `b`.
 
-Theo đó, `min` chọn phần tử đứng đầu và `max` chọn phần tử đứng cuối theo comparator. “Nhỏ hơn” không nhất thiết là số học: bạn có thể so theo độ dài chuỗi, giá tiền, ngày tạo, số lượng tồn kho hoặc nhiều khóa liên tiếp.
+Accordingly, `min` picks the element that comes first and `max` picks the element that comes last according to the comparator. “Smaller” does not have to be numeric: you can compare by string length, price, creation date, stock quantity, or multiple consecutive keys.
 
 ```java
 List<String> words = List.of("Java", "API", "Stream", "JVM");
@@ -68,14 +68,14 @@ String shortest = words.stream()
                 .thenComparing(Comparator.naturalOrder()))
         .orElseThrow();
 
-// "API" (trong nhóm dài 3 ký tự, API đứng trước JVM).
+// "API" (among 3-character strings, API comes before JVM).
 ```
 
-`comparingInt(String::length)` so sánh trước theo độ dài; `thenComparing(...)` quy định cách phân thắng bại khi hai chuỗi có cùng độ dài. Nếu không cần tiêu chí phụ, có thể viết gọn `.min(Comparator.comparingInt(String::length))`, nhưng kết quả nào được chọn giữa các phần tử đồng hạng không nên bị mặc định là phần tử xuất hiện đầu tiên.
+`comparingInt(String::length)` compares by length first; `thenComparing(...)` defines how to break ties when two strings have the same length. If no secondary criterion is needed, you can write `.min(Comparator.comparingInt(String::length))`, though which element gets picked among tied elements should not be assumed to be the first one encountered.
 
-## 3. Ví dụ hoàn chỉnh: tìm sản phẩm rẻ nhất, đắt nhất và tồn kho nhiều nhất
+## 3. Complete Example: Finding the Cheapest, Most Expensive, and Highest-Stock Product
 
-Chương trình Java 17+ sau có thể lưu vào `StreamExtremaDemo.java` và chạy độc lập:
+The following Java 17+ program can be saved to `StreamExtremaDemo.java` and run standalone:
 
 ```java
 import java.math.BigDecimal;
@@ -88,19 +88,19 @@ public class StreamExtremaDemo {
 
     public static void main(String[] args) {
         List<Product> products = List.of(
-                new Product("P-01", "Java cơ bản",
+                new Product("P-01", "Java Fundamentals",
                         new BigDecimal("210000"), 12),
                 new Product("P-02", "Java Stream API",
                         new BigDecimal("295000"), 7),
-                new Product("P-03", "Kỹ thuật JVM",
+                new Product("P-03", "JVM Engineering",
                         new BigDecimal("390000"), 5),
-                new Product("P-04", "Tối ưu Java",
+                new Product("P-04", "Java Optimization",
                         new BigDecimal("390000"), 9),
-                new Product("P-05", "Lập trình hàm",
+                new Product("P-05", "Functional Programming",
                         new BigDecimal("250000"), 18)
         );
 
-        // So sánh giá trước; nếu bằng giá, so mã để kết quả rõ ràng.
+        // Compare price first; if prices are equal, compare code for a deterministic result.
         Comparator<Product> byPriceThenCode = Comparator
                 .comparing(Product::price)
                 .thenComparing(Product::code);
@@ -114,101 +114,101 @@ public class StreamExtremaDemo {
         Optional<Product> highestStock = products.stream()
                 .max(Comparator.comparingInt(Product::stock));
 
-        // Chỉ xét các sản phẩm có giá không vượt 350.000.
+        // Consider only products priced at no more than 350,000.
         BigDecimal priceCeiling = new BigDecimal("350000");
         Optional<Product> highestPriceUnderCeiling = products.stream()
                 .filter(p -> p.price().compareTo(priceCeiling) <= 0)
                 .max(byPriceThenCode);
 
-        System.out.println("Rẻ nhất: "
-                + cheapest.map(Product::code).orElse("không có"));
-        System.out.println("Đắt nhất: "
-                + mostExpensive.map(Product::code).orElse("không có"));
-        System.out.println("Tồn kho nhiều nhất: "
-                + highestStock.map(Product::code).orElse("không có"));
-        System.out.println("Đắt nhất dưới ngưỡng: "
-                + highestPriceUnderCeiling.map(Product::code).orElse("không có"));
+        System.out.println("Cheapest: "
+                + cheapest.map(Product::code).orElse("none"));
+        System.out.println("Most expensive: "
+                + mostExpensive.map(Product::code).orElse("none"));
+        System.out.println("Highest stock: "
+                + highestStock.map(Product::code).orElse("none"));
+        System.out.println("Most expensive under ceiling: "
+                + highestPriceUnderCeiling.map(Product::code).orElse("none"));
     }
 }
 ```
 
-Kết quả:
+Output:
 
 ```text
-Rẻ nhất: P-01
-Đắt nhất: P-04
-Tồn kho nhiều nhất: P-05
-Đắt nhất dưới ngưỡng: P-02
+Cheapest: P-01
+Most expensive: P-04
+Highest stock: P-05
+Most expensive under ceiling: P-02
 ```
 
-Vì `P-03` và `P-04` cùng giá 390.000, tiêu chí phụ `Product::code` khiến `max(byPriceThenCode)` chọn `P-04`, là mã lớn hơn theo thứ tự chuỗi. Việc lựa chọn này là **quy tắc nghiệp vụ do chúng ta chủ động đặt ra**, không phải hành vi “luôn lấy phần tử cuối nguồn” của `max`.
+Because `P-03` and `P-04` share the same price of 390,000, the secondary key `Product::code` makes `max(byPriceThenCode)` choose `P-04`, which has the larger code in string order. This selection is a **business rule we intentionally defined**, not a behavior of `max` “always picking the last element in the source”.
 
-Ví dụ cũng cho thấy `filter` có thể thu hẹp tập ứng viên **trước** khi tìm cực trị. Sau khi lọc giá không quá 350.000, `P-03` và `P-04` không còn là ứng viên; giá cao nhất trong tập được phép là `P-02`.
+The example also shows that `filter` can narrow the candidate set **before** finding extrema. After filtering for prices up to 350,000, `P-03` and `P-04` are no longer candidates; the highest price in the allowed set is `P-02`.
 
-## 4. So sánh đối tượng theo một trường bằng `comparing`
+## 4. Comparing Objects by a Field Using `comparing`
 
-Những biến thể thường dùng của `Comparator`:
+Common `Comparator` variants:
 
-| API | Mục đích | Ví dụ |
+| API | Purpose | Example |
 | --- | --- | --- |
-| `Comparator.naturalOrder()` | So kiểu có thứ tự tự nhiên (`Integer`, `String`, ...) | `min(Comparator.naturalOrder())` |
-| `Comparator.reverseOrder()` | Đảo thứ tự tự nhiên | `max(Comparator.reverseOrder())` |
-| `Comparator.comparing(extractor)` | So theo khóa là đối tượng `Comparable` | `comparing(Product::price)` |
-| `Comparator.comparingInt(extractor)` | So theo khóa `int` | `comparingInt(Product::stock)` |
-| `Comparator.comparingLong(extractor)` | So theo khóa `long` | `comparingLong(Event::timestamp)` |
-| `Comparator.comparingDouble(extractor)` | So theo khóa `double` | `comparingDouble(Item::score)` |
-| `thenComparing(...)` | Thêm khóa phụ nếu khóa trước bằng nhau | `comparing(Product::price).thenComparing(Product::code)` |
-| `reversed()` | Đảo thứ tự của một comparator | `byPriceThenCode.reversed()` |
+| `Comparator.naturalOrder()` | Compare types with natural ordering (`Integer`, `String`, ...) | `min(Comparator.naturalOrder())` |
+| `Comparator.reverseOrder()` | Reverse natural ordering | `max(Comparator.reverseOrder())` |
+| `Comparator.comparing(extractor)` | Compare by a `Comparable` key object | `comparing(Product::price)` |
+| `Comparator.comparingInt(extractor)` | Compare by an `int` key | `comparingInt(Product::stock)` |
+| `Comparator.comparingLong(extractor)` | Compare by a `long` key | `comparingLong(Event::timestamp)` |
+| `Comparator.comparingDouble(extractor)` | Compare by a `double` key | `comparingDouble(Item::score)` |
+| `thenComparing(...)` | Add a secondary key if the prior key is equal | `comparing(Product::price).thenComparing(Product::code)` |
+| `reversed()` | Reverse the ordering of a comparator | `byPriceThenCode.reversed()` |
 
-Các ví dụ `Event::timestamp` và `Item::score` là minh họa cú pháp; chúng yêu cầu các kiểu `Event` và `Item` có phương thức tương ứng trong chương trình thực tế.
+The examples `Event::timestamp` and `Item::score` are syntax illustrations; they require `Event` and `Item` types to have the corresponding methods in a real program.
 
-Lưu ý về `reversed()`:
+Note on `reversed()`:
 
 ```java
 Comparator<Product> byPrice = Comparator.comparing(Product::price);
 
-// Hai phép sau cùng chọn sản phẩm có giá nhỏ nhất,
-// nếu xét cùng tập phần tử và không có quy tắc đồng hạng khác.
+// Both operations below select the lowest-priced product,
+// given the same set of elements and no other tie-breaking rule.
 Optional<Product> a = products.stream().min(byPrice);
 Optional<Product> b = products.stream().max(byPrice.reversed());
 ```
 
-Dù `max(byPrice.reversed())` có thể cho cùng mức giá với `min(byPrice)`, cách đầu tiên `min(byPrice)` diễn đạt rõ ý định hơn. Với các phần tử bằng nhau theo comparator, cần bổ sung khóa phụ nếu kết quả cụ thể phải ổn định.
+Although `max(byPrice.reversed())` can yield the same price level as `min(byPrice)`, the first form `min(byPrice)` expresses intent more clearly. For elements considered equal by the comparator, add a secondary key if a specific deterministic result is required.
 
-### So sánh `BigDecimal` và tránh comparator sai
+### Comparing `BigDecimal` and Avoiding Faulty Comparators
 
-Đối với giá tiền kiểu `BigDecimal`, dùng `Comparator.comparing(Product::price)` hoặc `price.compareTo(otherPrice)` để so **giá trị số**. `BigDecimal.equals` còn xét `scale`, vì vậy `new BigDecimal("1.0").equals(new BigDecimal("1.00"))` là `false` dù `compareTo` trả `0`.
+For monetary values of type `BigDecimal`, use `Comparator.comparing(Product::price)` or `price.compareTo(otherPrice)` to compare **numeric values**. `BigDecimal.equals` also checks `scale`, so `new BigDecimal("1.0").equals(new BigDecimal("1.00"))` is `false` even though `compareTo` returns `0`.
 
-Không nên so hai số `int` bằng cách trả về phép trừ:
+Avoid comparing two `int` numbers by returning their subtraction:
 
 ```java
-// Có thể tràn số nguyên; không nên dùng:
+// Can overflow integers; avoid using:
 Comparator<Product> unsafe = (a, b) -> a.stock() - b.stock();
 
-// An toàn và rõ nghĩa hơn:
+// Safer and clearer:
 Comparator<Product> safe = Comparator.comparingInt(Product::stock);
 ```
 
-Nếu comparator không nhất quán hoặc phụ thuộc trạng thái thay đổi trong khi đang so sánh, kết quả cực trị có thể không phản ánh đúng thứ tự mong muốn. Đặt quy tắc so sánh ổn định, có tính bắc cầu (*transitive*) và tránh can thiệp vào nguồn Stream.
+If a comparator is inconsistent or depends on state that mutates during comparison, the extremum result may fail to reflect the intended ordering. Define stable, *transitive* comparison rules and avoid mutating the Stream source.
 
-## 5. Đồng hạng: tại sao cần quy tắc phụ?
+## 5. Ties: Why Secondary Rules Matter
 
-Xét hai sản phẩm có giá bằng nhau:
+Consider two products with the same price:
 
 ```text
 P-03   390000
 P-04   390000
 ```
 
-Nếu chỉ dùng:
+If you only use:
 
 ```java
 products.stream().max(Comparator.comparing(Product::price))
 ```
 
-thì cả `P-03` và `P-04` đều là phần tử cực đại hợp lệ theo comparator. Hợp đồng `min`/`max` **không bảo đảm** chọn phần tử xuất hiện trước hay sau khi có nhiều phần tử cùng cực trị, đặc biệt khi thực thi song song.
+then both `P-03` and `P-04` are valid maximal elements according to the comparator. The `min`/`max` contract **does not guarantee** picking the earlier or later element when multiple elements tie for the extremum, especially during parallel execution.
 
-Khi nghiệp vụ cần lựa chọn lặp lại được, hãy định nghĩa thêm tiêu chí:
+When business logic requires reproducible selection, define an extra criterion:
 
 ```java
 Comparator<Product> byPriceThenCode = Comparator
@@ -222,7 +222,7 @@ Product selected = products.stream()
 // selected.code() = "P-04"
 ```
 
-Nếu mục tiêu là **lấy tất cả** sản phẩm đồng hạng cao nhất, `max` đơn lẻ chưa đủ vì chỉ trả về một đối tượng. Có thể tìm giá lớn nhất rồi lọc các phần tử bằng giá đó:
+If the goal is to **retrieve all** products tied for the highest value, `max` alone is insufficient because it returns only one object. You can find the highest price and then filter elements matching that price:
 
 ```java
 Optional<BigDecimal> maxPrice = products.stream()
@@ -235,14 +235,14 @@ List<Product> tiedForHighestPrice = maxPrice
                 .toList())
         .orElseGet(List::of);
 
-// [P-03, P-04] nếu hiển thị theo code của mỗi sản phẩm.
+// [P-03, P-04] when displayed by each product's code.
 ```
 
-Giải pháp này duyệt nguồn nhiều lần, phù hợp khi nguồn là `List` tái sử dụng được. Đối với nguồn chỉ cho phép duyệt một lần (ví dụ một Stream gắn với tài nguyên), cần thiết kế phép thu thập hoặc reduction riêng để xử lý đồng hạng trong một lượt.
+This approach traverses the source multiple times, which suits reusable sources like `List`. For single-use sources (such as a Stream backed by an I/O resource), you must design a dedicated collector or reduction to handle ties in a single pass.
 
-## 6. Dùng `Optional` đúng khi Stream có thể rỗng
+## 6. Using `Optional` Properly When a Stream May Be Empty
 
-Ví dụ không có ứng viên:
+Example with no matching candidates:
 
 ```java
 Optional<Product> expensive = products.stream()
@@ -250,31 +250,31 @@ Optional<Product> expensive = products.stream()
         .max(Comparator.comparing(Product::price));
 
 System.out.println(expensive.isPresent()); // false
-System.out.println(expensive.map(Product::code).orElse("không tìm thấy"));
-// không tìm thấy
+System.out.println(expensive.map(Product::code).orElse("not found"));
+// not found
 ```
 
-Một số cách tiếp nhận kết quả:
+Ways to consume the result:
 
 ```java
-// Chỉ thực hiện hành động khi có phần tử:
+// Perform an action only when an element is present:
 expensive.ifPresent(p -> System.out.println(p.name()));
 
-// Lấy giá trị thay thế khi thiếu:
+// Provide a fallback value when absent:
 String code = expensive.map(Product::code).orElse("N/A");
 
-// Hoặc báo lỗi khi thiếu là điều kiện bất thường:
+// Or throw an error when absence is an exceptional condition:
 Product required = expensive.orElseThrow(
-        () -> new IllegalStateException("Không có sản phẩm phù hợp"));
+        () -> new IllegalStateException("No matching product found"));
 ```
 
-Đoạn cuối **sẽ ném ngoại lệ** vì `expensive` rỗng, nên chỉ dùng ở đường xử lý thực sự yêu cầu phải có kết quả. Tránh `get()` khi chưa kiểm tra vì nó ném `NoSuchElementException` trên `Optional.empty()`. Trong hệ thống lớn, việc trả về `Optional<Product>` cho lớp gọi thường rõ nghĩa hơn việc tự chọn một sản phẩm giả hoặc tự đặt giá cực trị bằng `0`.
+The last snippet **will throw an exception** because `expensive` is empty, so use it only on code paths where a result is strictly required. Avoid calling `get()` without checking, as it throws `NoSuchElementException` on `Optional.empty()`. In larger systems, returning `Optional<Product>` to the caller is usually clearer than inventing a dummy product or defaulting an extremum price to `0`.
 
-**Lưu ý:** `Optional` là một container của **không hoặc một giá trị không null**. Nếu phần tử của Stream có thể là `null`, hãy lọc chúng trước khi tính cực trị để tránh các lỗi không mong muốn.
+**Note:** `Optional` is a container for **zero or one non-null value**. If Stream elements can be `null`, filter them out before computing extrema to avoid unexpected errors.
 
-## 7. `IntStream`, `LongStream`, `DoubleStream`: tìm cực trị không cần comparator
+## 7. `IntStream`, `LongStream`, `DoubleStream`: Finding Extrema Without a Comparator
 
-Các primitive stream có `min()` và `max()` **không nhận đối số**, trả về `OptionalInt`, `OptionalLong` hoặc `OptionalDouble`. Đây là lựa chọn phù hợp khi chỉ cần số cực trị, không cần giữ lại đối tượng gốc.
+Primitive streams provide parameterless `min()` and `max()` methods returning `OptionalInt`, `OptionalLong`, or `OptionalDouble`. This is the right choice when you only need the extremum number and do not need to retain the original object.
 
 ```java
 import java.util.IntSummaryStatistics;
@@ -295,7 +295,7 @@ System.out.println(minValue.orElseThrow()); // 3
 System.out.println(maxValue.orElseThrow()); // 11
 ```
 
-Với đối tượng `Product`, muốn **số lượng tồn kho nhiều nhất**:
+With `Product` objects, to get the **highest stock count**:
 
 ```java
 int maxStock = products.stream()
@@ -306,7 +306,7 @@ int maxStock = products.stream()
 // 18
 ```
 
-Nhưng muốn **sản phẩm có tồn kho nhiều nhất** thì phải giữ đối tượng:
+But to get the **product with the highest stock**, you must keep the object:
 
 ```java
 Product item = products.stream()
@@ -316,9 +316,9 @@ Product item = products.stream()
 // item.code() = "P-05"
 ```
 
-Không nên dùng `.mapToInt(Product::stock).max()` rồi cố truy ngược về sản phẩm nếu chỉ tiêu cần trả về ngay từ đầu là đối tượng. Với dữ liệu có nhiều ứng viên bằng nhau, truy ngược còn có thể gây mơ hồ.
+Do not call `.mapToInt(Product::stock).max()` and then try to trace back to the product if the requirement is to return the object itself. When data has multiple tied candidates, tracing back can also introduce ambiguity.
 
-Nếu đồng thời cần `count`, `min`, `max`, `sum` và `average` của **một luồng số**, `summaryStatistics()` sẽ giúp tổng hợp trong một lượt duyệt:
+If you simultaneously need `count`, `min`, `max`, `sum`, and `average` of **a numeric stream**, `summaryStatistics()` computes them all in a single pass:
 
 ```java
 IntSummaryStatistics stats = products.stream()
@@ -330,36 +330,36 @@ System.out.println(stats.getMax());   // 18
 System.out.println(stats.getCount()); // 5
 ```
 
-Với nguồn rỗng, `IntSummaryStatistics.getMin()` trả `Integer.MAX_VALUE` và `getMax()` trả `Integer.MIN_VALUE` vì đó là giá trị khởi tạo, **không phải cực trị có thật**. Luôn kiểm tra `getCount() > 0` trước khi diễn giải các giá trị này là kết quả của dữ liệu.
+For an empty source, `IntSummaryStatistics.getMin()` returns `Integer.MAX_VALUE` and `getMax()` returns `Integer.MIN_VALUE` because those are initial sentinel values, **not real extrema**. Always check `getCount() > 0` before interpreting these values as data results.
 
-## 8. `min`/`max` so với `sorted`, `findFirst` và `reduce`
+## 8. `min`/`max` vs `sorted`, `findFirst`, and `reduce`
 
-Tìm đúng **một** phần tử nhỏ nhất thường không cần sắp xếp cả nguồn:
+Finding just **one** smallest element usually does not require sorting the entire source:
 
 ```java
-// Tìm một sản phẩm rẻ nhất:
+// Find one cheapest product:
 Optional<Product> cheapest = products.stream()
         .min(Comparator.comparing(Product::price));
 
-// Sắp xếp theo giá rồi lấy phần tử đầu:
+// Sort by price then take the first element:
 Optional<Product> firstAfterSort = products.stream()
         .sorted(Comparator.comparing(Product::price))
         .findFirst();
 ```
 
-Cả hai đều có thể cho một sản phẩm với **giá tối thiểu**, nhưng chúng không được bảo đảm trả cùng đối tượng khi nhiều phần tử đồng hạng. Với Stream có thứ tự, `sorted` là phép toán sắp xếp ổn định (*stable*) nên `findFirst` sau `sorted` có thể giữ phần tử xuất hiện đầu tiên trong nhóm cùng giá; `min` không có cam kết chọn theo thứ tự xuất hiện khi đồng hạng.
+Both can yield a product with the **minimum price**, but they are not guaranteed to return the same object when multiple elements tie. For an ordered Stream, `sorted` is a *stable* sort so `findFirst` after `sorted` can retain the first element appearing in the tied price group; `min` makes no commitment to select by encounter order on ties.
 
-| Khía cạnh | `min(comparator)` / `max(comparator)` | `sorted(comparator).findFirst()` |
+| Aspect | `min(comparator)` / `max(comparator)` | `sorted(comparator).findFirst()` |
 | --- | --- | --- |
-| Mục tiêu chính | Chọn một phần tử cực trị | Sắp xếp rồi chọn phần tử đầu |
-| Độ phức tạp điển hình trên nguồn hữu hạn chưa sắp xếp | `O(n)` lượt so sánh | Thường `O(n log n)` để sắp xếp |
-| Bộ nhớ phụ điển hình khi tuần tự | Có thể giữ một ứng viên hiện tại: `O(1)` | Có thể cần bộ đệm chứa nhiều phần tử: `O(n)` |
-| Kết quả khi rỗng | `Optional.empty()` | `Optional.empty()` |
-| Nhiều phần tử đồng hạng | Cần tiêu chí phụ nếu muốn chọn đối tượng xác định | Sắp xếp ổn định trên Stream có thứ tự nhưng phải trả chi phí sắp xếp |
+| Primary goal | Select one extremum element | Sort and then select the first element |
+| Typical complexity on finite unsorted source | `O(n)` comparisons | Usually `O(n log n)` for sorting |
+| Typical extra memory sequentially | Can hold one current candidate: `O(1)` | May need a buffer holding many elements: `O(n)` |
+| Result when empty | `Optional.empty()` | `Optional.empty()` |
+| Multiple tied elements | Needs a secondary criterion if deterministic object selection is required | Stable sort on ordered Stream, but incurs sorting cost |
 
-Đây là các đặc trưng thuật toán điển hình, không phải khẳng định một implementation cụ thể luôn sử dụng đúng lượng bộ nhớ hoặc số phép so sánh ấy. Stream implementation có thể tối ưu theo đặc tính nguồn và cách thực thi.
+These are typical algorithmic characteristics, not assertions that a specific implementation always uses that exact amount of memory or comparisons. Stream implementations may optimize based on source characteristics and execution mode.
 
-`min`/`max` cũng có thể được nhìn như một reduction. Tuy nhiên, `reduce` dưới đây thường dài dòng hơn và đòi hỏi tự quyết định cách xử lý Stream rỗng:
+`min`/`max` can also be viewed as a reduction. However, `reduce` below is usually more verbose and requires deciding how to handle empty Streams yourself:
 
 ```java
 Optional<Integer> minimum = List.of(7, 2, 9, 4).stream()
@@ -368,11 +368,11 @@ Optional<Integer> minimum = List.of(7, 2, 9, 4).stream()
 // Optional[2]
 ```
 
-Nếu bài toán chỉ là tìm một phần tử cực trị bằng comparator, hãy ưu tiên `min`/`max` để thể hiện ý định rõ ràng. `reduce` có ích hơn khi xây dựng các quy tắc tích lũy khác.
+If the problem is simply finding an extremum element using a comparator, prefer `min`/`max` to convey intent clearly. `reduce` is more useful when building other accumulation rules.
 
-## 9. Kết hợp `filter`, `map` và giới hạn phạm vi xét cực trị
+## 9. Combining `filter`, `map`, and Limiting the Extremum Scope
 
-Thứ tự các phép toán có thể thay đổi ý nghĩa kết quả:
+Operation order can change the meaning of the result:
 
 ```java
 List<Integer> values = List.of(100, 7, 8, 4);
@@ -389,31 +389,31 @@ int globalMin = values.stream()
 // 4
 ```
 
-`limit(2)` chọn **hai phần tử đầu** trước, nên `min` chỉ xét phần dữ liệu đã đi qua. Ngược lại, nếu bỏ `limit`, `min` xét cả nguồn. Tương tự, `filter(...).max(...)` tìm cực đại **trong nhóm thỏa điều kiện**, không phải cực đại toàn cục.
+`limit(2)` selects the **first two elements** beforehand, so `min` considers only the data that passed through. Conversely, without `limit`, `min` considers the whole source. Similarly, `filter(...).max(...)` finds the maximum **within the matching subset**, not the global maximum.
 
-Khi dùng `map`, cũng cần biết mình muốn trả về **giá trị** hay **đối tượng**:
+When using `map`, also be clear about whether you want to return a **value** or an **object**:
 
 ```java
-// Chỉ lấy giá bán lớn nhất:
+// Get only the highest selling price:
 BigDecimal highestPrice = products.stream()
         .map(Product::price)
         .max(BigDecimal::compareTo)
         .orElseThrow();
 
-// Lấy chính sản phẩm có giá bán lớn nhất:
+// Get the product object with the highest selling price:
 Product highestPricedProduct = products.stream()
         .max(Comparator.comparing(Product::price)
                 .thenComparing(Product::code))
         .orElseThrow();
 ```
 
-Ví dụ thứ nhất trả `BigDecimal`, còn ví dụ thứ hai trả `Product`. Điều này ảnh hưởng trực tiếp tới dữ liệu có thể sử dụng ở những bước tiếp theo.
+The first example returns `BigDecimal`, while the second returns `Product`. This directly affects what data is available in subsequent steps.
 
-## 10. `null`, dữ liệu vô hạn và Stream song song
+## 10. `null`, Infinite Data, and Parallel Streams
 
-### Xử lý `null` trước khi so sánh
+### Handling `null` Before Comparing
 
-Một Stream chứa phần tử `null` hoặc một thuộc tính dùng làm khóa so sánh có giá trị `null` dễ gây `NullPointerException`. Cách rõ ràng nhất khi dữ liệu thiếu **không đủ điều kiện** để xét cực trị là loại chúng trước:
+A Stream containing `null` elements or a comparison key property with a `null` value easily causes a `NullPointerException`. The clearest approach when missing data is **ineligible** for extremum consideration is to filter it out first:
 
 ```java
 import java.util.Objects;
@@ -424,11 +424,11 @@ Optional<Product> cheapestValid = products.stream()
         .min(Comparator.comparing(Product::price));
 ```
 
-Nếu nghiệp vụ thực sự yêu cầu giữ các phần tử có khóa `null`, `Comparator.nullsFirst(...)` và `Comparator.nullsLast(...)` có thể dùng để định nghĩa thứ tự cho **khóa null**. Tuy nhiên, cần quyết định rõ việc khóa null có được coi là cực trị hay không; `min` hoặc `max` có thể sẽ chọn một đối tượng mà giá bị thiếu chỉ vì quy tắc sắp xếp đó.
+If business rules genuinely require keeping elements with `null` keys, `Comparator.nullsFirst(...)` and `Comparator.nullsLast(...)` can define ordering for **null keys**. However, you must explicitly decide whether a null key counts as an extremum; `min` or `max` might pick an object whose price is missing purely due to that ordering rule.
 
-### Nguồn vô hạn
+### Infinite Sources
 
-Để xác nhận cực đại/cực tiểu trên nguồn không bị giới hạn, nói chung phải xem đủ mọi phần tử; một pipeline vô hạn như `Stream.generate(...).min(...)` thường không kết thúc. Nếu nghiệp vụ chỉ cần cực trị trong một cửa sổ hữu hạn, giới hạn nguồn trước:
+To confirm a maximum or minimum over an unbounded source, you generally must inspect every element; an infinite pipeline like `Stream.generate(...).min(...)` typically never terminates. If business logic only needs an extremum within a finite window, bound the source first:
 
 ```java
 Optional<Integer> lowestOfFirst100 = java.util.stream.Stream
@@ -437,11 +437,11 @@ Optional<Integer> lowestOfFirst100 = java.util.stream.Stream
         .min(Comparator.naturalOrder());
 ```
 
-Ví dụ chỉ minh họa việc giới hạn số phần tử; việc sinh dữ liệu ngẫu nhiên khiến kết quả cụ thể thay đổi theo lần chạy. Nếu cần kết quả tái lập, hãy dùng nguồn dữ liệu xác định.
+This example only illustrates bounding the element count; random data generation makes the concrete result vary per run. If reproducible results are needed, use a deterministic data source.
 
-### Xử lý song song
+### Parallel Processing
 
-`min`/`max` có thể chạy với `parallelStream()`:
+`min`/`max` can run with `parallelStream()`:
 
 ```java
 Optional<Product> expensive = products.parallelStream()
@@ -449,55 +449,55 @@ Optional<Product> expensive = products.parallelStream()
                 .thenComparing(Product::code));
 ```
 
-Khi comparator đúng, ổn định và xác định được thứ tự cho các ứng viên cần so, kết quả cực trị theo quy tắc đó có thể được kết hợp giữa các nhánh. Tuy nhiên, **song song không mặc nhiên nhanh hơn**: cần tính tới kích thước nguồn, chi phí so sánh, phân chia công việc và gộp kết quả. Không viết comparator có side effect hoặc phụ thuộc biến dùng chung thay đổi trong lúc pipeline chạy.
+When the comparator is correct, stable, and defines an ordering among the candidates to compare, the extremum results under that rule can be combined across branches. However, **parallel is not automatically faster**: you must account for source size, comparison cost, task splitting, and result merging. Do not write comparators with side effects or dependencies on shared variables mutated while the pipeline runs.
 
-## 11. Các lỗi phổ biến
+## 11. Common Mistakes
 
-| Lỗi | Hậu quả | Cách xử lý |
+| Mistake | Consequence | How to Handle |
 | --- | --- | --- |
-| Gọi `.get()` trên `Optional` có thể rỗng | Có thể ném `NoSuchElementException` | Dùng `orElseThrow`, `orElse`, `ifPresent` hoặc truyền `Optional` cho tầng gọi. |
-| Nghĩ `max` tự chọn phần tử “cuối” khi trùng giá trị | Kết quả cụ thể giữa các phần tử đồng hạng không có bảo đảm | Thêm tiêu chí phụ với `thenComparing`. |
-| Dùng `mapToInt(...).max()` khi cần trả lại đối tượng gốc | Chỉ còn số cực đại, mất tham chiếu sản phẩm | Dùng `max(Comparator.comparingInt(...))`. |
-| Dùng `sorted().findFirst()` chỉ để tìm một cực trị | Thường phải sắp xếp và cấp phát nhiều hơn cần thiết | Dùng `min`/`max`. |
-| Dùng phép trừ số nguyên trong comparator | Có thể bị overflow, cho thứ tự sai | Dùng `Integer.compare` hoặc `comparingInt`. |
-| Không lọc khóa `null` trước `comparing` | Có thể ném `NullPointerException` | Xác định chính sách thiếu dữ liệu và lọc hoặc so sánh null có chủ đích. |
-| Gọi `min`/ `max` nhiều lần trên cùng biến Stream | Stream đã bị tiêu thụ, có thể gây `IllegalStateException` | Tạo Stream mới từ nguồn cho mỗi terminal operation. |
-| Tìm cực trị trên Stream vô hạn không có điểm dừng | Pipeline có thể không kết thúc | Giới hạn phạm vi bằng `limit` hoặc thiết kế bài toán theo cửa sổ hữu hạn. |
+| Calling `.get()` on an `Optional` that may be empty | May throw `NoSuchElementException` | Use `orElseThrow`, `orElse`, `ifPresent`, or pass `Optional` to the caller. |
+| Assuming `max` always picks the “last” element on tied prices | Concrete winner among tied elements is not guaranteed | Add a secondary criterion with `thenComparing`. |
+| Using `mapToInt(...).max()` when the original object is needed | Only the maximum number remains; product reference is lost | Use `max(Comparator.comparingInt(...))`. |
+| Using `sorted().findFirst()` just to find one extremum | Usually sorts and allocates more than necessary | Use `min`/`max`. |
+| Using integer subtraction in a comparator | Can overflow and produce wrong ordering | Use `Integer.compare` or `comparingInt`. |
+| Failing to filter `null` keys before `comparing` | May throw `NullPointerException` | Define a missing-data policy and filter or handle nulls intentionally. |
+| Calling `min`/`max` multiple times on the same Stream variable | Stream is already consumed, may cause `IllegalStateException` | Create a new Stream from the source for each terminal operation. |
+| Finding extrema on an infinite Stream without a stopping point | Pipeline may never terminate | Bound the scope with `limit` or design around a finite window. |
 
-## 12. Tự kiểm tra
+## 12. Self-Check
 
-**Câu 1.** Với `[7, 2, 9]`, hai biểu thức `.min(Comparator.naturalOrder())` và `.max(Comparator.reverseOrder())` trả giá trị số nào?
+**Question 1.** Given `[7, 2, 9]`, what numeric value do `.min(Comparator.naturalOrder())` and `.max(Comparator.reverseOrder())` return?
 
-**Đáp án:** Cả hai đều trả `2` (đóng trong `Optional<Integer>`), vì `reverseOrder` đảo định nghĩa phần tử đứng cuối.
+**Answer:** Both return `2` (wrapped in `Optional<Integer>`), because `reverseOrder` reverses the definition of which element comes last.
 
-**Câu 2.** Vì sao `products.stream().max(Comparator.comparing(Product::price))` không luôn đảm bảo trả về cùng một sản phẩm khi có nhiều sản phẩm đồng giá cao nhất?
+**Question 2.** Why does `products.stream().max(Comparator.comparing(Product::price))` not always guarantee returning the exact same product when multiple products share the highest price?
 
-**Đáp án:** Comparator xem chúng là tương đương, và hợp đồng `max` không quy định chọn phần tử đồng hạng nào. Muốn ổn định cần thêm khóa phụ như mã sản phẩm.
+**Answer:** The comparator treats them as equivalent, and the `max` contract does not specify which tied element to choose. For determinism, add a secondary key such as product code.
 
-**Câu 3.** Nếu không có sản phẩm nào thỏa `filter`, `max` trả gì?
+**Question 3.** If no product satisfies `filter`, what does `max` return?
 
-**Đáp án:** `Optional.empty()`. Không gọi `get()` nếu chưa xác nhận có phần tử.
+**Answer:** `Optional.empty()`. Do not call `get()` without confirming an element is present.
 
-**Câu 4.** Muốn lấy sản phẩm có `stock` lớn nhất, biểu thức nào đúng?
+**Question 4.** To get the product with the largest `stock`, which expression is right?
 
 ```java
-// A: chỉ trả số lượng tồn kho lớn nhất
+// A: returns only the highest stock quantity
 products.stream().mapToInt(Product::stock).max();
 
-// B: trả chính đối tượng Product có tồn kho lớn nhất
+// B: returns the Product object with the highest stock
 products.stream().max(Comparator.comparingInt(Product::stock));
 ```
 
-**Đáp án:** B đúng nếu cần trả `Product`; A đúng nếu chỉ cần số nguyên.
+**Answer:** B is right if you need the `Product`; A is right if you only need the integer.
 
-**Câu 5.** Vì sao `limit(3).min(...)` khác `min(...)` trên nguồn có hơn ba phần tử?
+**Question 5.** Why does `limit(3).min(...)` differ from `min(...)` on a source with more than three elements?
 
-**Đáp án:** `limit(3)` làm thay đổi tập đầu vào của phép tìm cực trị: `min` chỉ xét ba phần tử đầu theo encounter order, không xét toàn bộ nguồn.
+**Answer:** `limit(3)` changes the input set to the extremum search: `min` only considers the first three elements in encounter order, not the entire source.
 
-## Ghi nhớ
+## Key Takeaways
 
-- `Stream.min(comparator)` và `Stream.max(comparator)` là **terminal reductions**, trả về `Optional<T>`, kể cả khi Stream rỗng.
-- `Comparator` định nghĩa thứ tự xét cực trị. Dùng `comparing`, `comparingInt`, `thenComparing` để thể hiện đúng tiêu chí, đặc biệt khi nhiều ứng viên đồng hạng.
-- Nếu chỉ cần cực trị số học, dùng primitive stream `min()`/`max()`; nếu cần giữ đối tượng, gọi `min`/`max` trên `Stream<T>` với comparator.
-- Với nguồn hữu hạn chưa sắp xếp, tìm một cực trị thường cần quét dữ liệu một lượt và tiết kiệm bộ nhớ hơn sắp xếp toàn bộ.
-- Kiểm tra trường hợp rỗng, khóa null, phạm vi sau `filter`/`limit`, và chi phí xử lý song song trước khi áp dụng vào dữ liệu thực tế.
+- `Stream.min(comparator)` and `Stream.max(comparator)` are **terminal reductions**, returning `Optional<T>`, even when the Stream is empty.
+- `Comparator` defines the ordering for extrema. Use `comparing`, `comparingInt`, and `thenComparing` to express exact criteria, especially when multiple candidates tie.
+- If you only need a numeric extremum, use primitive stream `min()`/`max()`; if you need to keep the object, call `min`/`max` on `Stream<T>` with a comparator.
+- On finite unsorted sources, finding a single extremum typically scans data in one pass and uses less memory than sorting the whole dataset.
+- Check empty cases, null keys, scope after `filter`/`limit`, and parallel overhead before applying to real-world data.

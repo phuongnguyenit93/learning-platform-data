@@ -1,10 +1,10 @@
-# Dữ liệu, biểu thức, câu lệnh và luồng thực thi
+# Data, Expressions, Statements, and Control Flow
 
-## 1. Bốn khái niệm tạo thành một chương trình Java
+## 1. Four Concepts That Form a Java Program
 
-Một chương trình Java nhận **dữ liệu**, dùng **biểu thức** để tính toán/so sánh, dùng **câu lệnh** để thực hiện công việc, và tuân theo **luồng thực thi** để biết phần mã nào được chạy và chạy bao nhiêu lần.
+A Java program takes **data**, uses **expressions** to compute or compare, uses **statements** to perform actions, and follows **execution flow** to determine which parts of the code run and how many times.
 
-Ví dụ:
+For example:
 
 ~~~java
 int price = 80;
@@ -16,39 +16,39 @@ if (total >= 100) {
 }
 ~~~
 
-- `80` và `2` là các **giá trị literal**; `price`, `quantity`, `total` là biến có kiểu `int`.
-- `price * quantity` là **biểu thức**: khi đánh giá, nó tạo ra giá trị `160`.
-- `int total = price * quantity;` là **câu lệnh khai báo biến cục bộ** có biểu thức khởi tạo.
-- `total >= 100` là biểu thức kiểu `boolean`, được `if` sử dụng để quyết định có chạy khối in thông báo hay không.
-- Dấu `{ }` giới hạn **block**; những câu lệnh bên trong block chỉ được chạy khi điều kiện phù hợp.
+- `80` and `2` are **literal values**; `price`, `quantity`, and `total` are variables of type `int`.
+- `price * quantity` is an **expression**: when evaluated, it produces the value `160`.
+- `int total = price * quantity;` is a **local variable declaration statement** with an initializer expression.
+- `total >= 100` is an expression of type `boolean`, used by `if` to decide whether to run the block that prints the message.
+- The `{ }` braces delimit a **block**; the statements inside the block execute only when the condition applies.
 
-Quan hệ chính có thể hình dung:
+The main relationship can be visualized as:
 
 ~~~mermaid
 flowchart TD
-    DATA["Dữ liệu và biến"] --> EXP["Đánh giá biểu thức"]
-    EXP --> STMT["Thực hiện câu lệnh"]
-    STMT --> DEC{"Điều kiện / vòng lặp?"}
-    DEC -->|"Đúng hoặc còn lặp"| STMT
-    DEC -->|"Không / hoàn tất"| END["Câu lệnh tiếp theo<br/>hoặc kết thúc phương thức"]
+    DATA["Data and variables"] --> EXP["Evaluate expressions"]
+    EXP --> STMT["Execute statements"]
+    STMT --> DEC{"Condition / loop?"}
+    DEC -->|"True or continue looping"| STMT
+    DEC -->|"False / finished"| END["Next statement<br/>or end of method"]
 ~~~
 
-Sơ đồ là mô hình khái quát; một câu lệnh có thể chứa **nhiều** biểu thức, một biểu thức có thể có tác dụng phụ, và các cấu trúc `return`, `break`, `continue` hoặc exception có thể chuyển điều khiển sang vị trí khác.
+This diagram is a simplified conceptual model; a statement can contain **multiple** expressions, an expression can have side effects, and constructs such as `return`, `break`, `continue`, or exceptions can transfer control elsewhere.
 
-## 2. Dữ liệu: giá trị, kiểu và biến
+## 2. Data: Values, Types, and Variables
 
-### Kiểu dữ liệu cơ bản
+### Basic Data Types
 
-Java là ngôn ngữ có **kiểu tĩnh**: mỗi biến và biểu thức có một kiểu được trình biên dịch kiểm tra. Tám kiểu nguyên thủy (*primitive*) gồm:
+Java is a **statically typed** language: every variable and expression has a type checked by the compiler. The eight primitive types include:
 
-| Kiểu | Ý nghĩa và ví dụ | Lưu ý |
+| Type | Meaning and Example | Notes |
 |---|---|---|
-| `byte`, `short`, `int`, `long` | Số nguyên: `int age = 20;`, `long id = 123L;` | Có miền giá trị giới hạn; số nguyên không tự vô hạn |
-| `float`, `double` | Số dấu phẩy động: `double rate = 0.15;` | Có sai số biểu diễn và các giá trị đặc biệt |
-| `char` | Một **đơn vị mã UTF-16**: `char mark = 'A';` | Không đồng nhất với mọi ký tự Unicode hoàn chỉnh |
-| `boolean` | `true` hoặc `false` | Không tự đổi thành `0`/`1` như một số ngôn ngữ khác |
+| `byte`, `short`, `int`, `long` | Integers: `int age = 20;`, `long id = 123L;` | Bounded value ranges; integers are not infinite |
+| `float`, `double` | Floating-point numbers: `double rate = 0.15;` | Subject to representation error and special values |
+| `char` | A **UTF-16 code unit**: `char mark = 'A';` | Not identical to every complete Unicode character |
+| `boolean` | `true` or `false` | Does not implicitly convert to `0`/`1` as in some other languages |
 
-`String`, mảng như `int[]`, và các object khác là **kiểu tham chiếu**. Biến tham chiếu có thể giữ tham chiếu tới object hoặc `null`, không chứa nguyên cả object theo cách biến primitive giữ giá trị của nó:
+`String`, arrays such as `int[]`, and other objects are **reference types**. A reference variable can hold a reference to an object or `null`, rather than containing the entire object directly the way a primitive variable holds its value:
 
 ~~~java
 int count = 3;
@@ -57,9 +57,9 @@ int[] points = {10, 20, 30};
 String missing = null;
 ~~~
 
-`label.length()` hoạt động khi `label` không null, còn `missing.length()` ném `NullPointerException` tại runtime. Kiểu tĩnh `String` không tự bảo đảm tham chiếu luôn khác null.
+`label.length()` works when `label` is non-null, whereas `missing.length()` throws `NullPointerException` at runtime. The static type `String` does not guarantee that the reference is never null.
 
-### Literal, kiểu suy ra và phép gán
+### Literals, Inferred Types, and Assignment
 
 ~~~java
 int units = 10;
@@ -73,45 +73,45 @@ units = units + 5;
 final int MAX_ITEMS = 20;
 ~~~
 
-Các literal nguyên như `10` thường có kiểu `int`, trừ một số trường hợp/đuôi literal phù hợp; `L` chỉ literal `long`. Dấu gạch dưới trong `8_000_000_000L` giúp dễ đọc, không đổi giá trị. `final` trên biến cấm **gán lại biến** sau khi nó đã được gán, nhưng nếu đó là tham chiếu tới object mutable, không có nghĩa mọi trạng thái của object đều bất biến.
+Integer literals like `10` normally have type `int`, except in certain contexts or with an appropriate literal suffix; `L` marks a `long` literal. Underscores in `8_000_000_000L` improve readability without changing the value. `final` on a variable forbids **reassigning the variable** after it has been assigned, though if it holds a reference to a mutable object, that does not mean the object's internal state is immutable.
 
-Trong Java 10+, biến cục bộ có thể dùng `var` khi có initializer phù hợp:
+In Java 10+, local variables can use `var` when a suitable initializer is present:
 
 ~~~java
-var score = 10;     // Suy ra int ở thời điểm biên dịch
-var message = "Hi"; // Suy ra String
+var score = 10;     // Inferred as int at compile time
+var message = "Hi"; // Inferred as String
 ~~~
 
-`var` không biến Java thành ngôn ngữ kiểu động: kiểu suy ra vẫn cố định. Không thể viết biến cục bộ `var unknown = null;` vì compiler không suy ra kiểu phù hợp từ literal `null` đơn lẻ.
+`var` does not turn Java into a dynamically typed language: the inferred type remains fixed. You cannot write `var unknown = null;` as a local variable because the compiler cannot infer a suitable type from a standalone `null` literal.
 
-### Gán không giống so sánh
+### Assignment Is Not Comparison
 
-- `=` **gán** giá trị ở vế phải cho biến/vị trí lưu hợp lệ ở vế trái.
-- `==` **so sánh** hai toán hạng; với primitive, thường so sánh giá trị; với hai tham chiếu object, so sánh **cùng tham chiếu** hay không.
-- `"abc".equals(other)` kiểm tra nội dung theo hợp đồng của `String`; không nên dùng `==` để kiểm tra hai chuỗi có cùng ký tự.
+- `=` **assigns** the value on the right-hand side to a valid variable/storage location on the left-hand side.
+- `==` **compares** two operands; for primitives it generally compares values; for two object references it compares whether they are the **same reference**.
+- `"abc".equals(other)` checks contents according to `String`'s contract; you should not use `==` to check whether two strings have the same characters.
 
 ~~~java
 String a = new String("Java");
 String b = new String("Java");
-System.out.println(a == b);      // false: hai object khác nhau
-System.out.println(a.equals(b)); // true: nội dung giống nhau
+System.out.println(a == b);      // false: two different objects
+System.out.println(a.equals(b)); // true: identical contents
 ~~~
 
-## 3. Biểu thức là gì?
+## 3. What Is an Expression?
 
-**Biểu thức (expression)** được đánh giá để tạo **một giá trị hoặc kết quả** và có một kiểu. Biểu thức có thể là literal, tên biến, phép tính, lời gọi method có kiểu trả về, phép so sánh, phép gán, hoặc một biểu thức điều kiện.
+An **expression** is evaluated to produce **a value or result** and has a type. An expression can be a literal, a variable name, an arithmetic operation, a method call with a return type, a comparison, an assignment, or a conditional expression.
 
-| Biểu thức | Kiểu/kết quả (giả sử biến hợp lệ) | Công dụng |
+| Expression | Type/Result (assuming valid variables) | Purpose |
 |---|---|---|
 | `42` | `int` / 42 | Literal |
-| `price * quantity` | Số được tính từ hai toán hạng | Số học |
-| `score >= 60` | `boolean` | Điều kiện |
-| `ready && hasTicket` | `boolean` | Kết hợp điều kiện |
-| `isMember ? 90 : 100` | Số được chọn theo điều kiện | Conditional expression |
-| `"Hi".length()` | `int` / 2 | Gọi method |
-| `x += 2` | Phép gán có giá trị kết quả | Cập nhật biến |
+| `price * quantity` | Number computed from two operands | Arithmetic |
+| `score >= 60` | `boolean` | Condition |
+| `ready && hasTicket` | `boolean` | Combining conditions |
+| `isMember ? 90 : 100` | Number chosen based on condition | Conditional expression |
+| `"Hi".length()` | `int` / 2 | Method call |
+| `x += 2` | Assignment yielding a result value | Updating a variable |
 
-Không phải biểu thức nào cũng được phép đứng riêng thành **expression statement** trong Java. Hợp lệ, chẳng hạn:
+Not every expression is allowed to stand alone as an **expression statement** in Java. Valid ones include, for example:
 
 ~~~java
 int x = 3;
@@ -121,28 +121,28 @@ System.out.println(x);   // method invocation statement
 new StringBuilder();     // class instance creation statement
 ~~~
 
-Nhưng một phép tính trần `x + 2;` **không phải câu lệnh hợp lệ**: giá trị vừa tính không được sử dụng, và Java không cho phép mọi expression đứng độc lập như statement.
+However, a bare calculation `x + 2;` **is not a valid statement**: the computed value is unused, and Java does not allow arbitrary expressions to stand alone as statements.
 
-Một lời gọi method trả `void`, chẳng hạn `System.out.println("Hi")`, được dùng trong câu lệnh gọi method nhưng không tạo ra một giá trị `void` có thể gán cho biến.
+A method call returning `void`, such as `System.out.println("Hi")`, is used in a method invocation statement, but does not produce a `void` value that can be assigned to a variable.
 
-## 4. Toán tử, ưu tiên và thứ tự đánh giá
+## 4. Operators, Precedence, and Evaluation Order
 
-Các nhóm toán tử quan trọng:
+Important operator groups:
 
-| Nhóm (từ ưu tiên cao đến thấp, lược giản) | Ví dụ |
+| Group (from higher to lower precedence, simplified) | Examples |
 |---|---|
-| Hậu tố, lời gọi và truy cập | `x++`, `arr[i]`, `obj.method()` |
-| Một ngôi | `++x`, `-x`, `!valid` |
-| Nhân/chia/chia dư | `*`, `/`, `%` |
-| Cộng/trừ | `+`, `-` |
-| So sánh thứ tự | `<`, `<=`, `>`, `>=` |
-| So sánh bằng/khác | `==`, `!=` |
-| AND logic ngắn mạch | `&&` |
-| OR logic ngắn mạch | `||` |
-| Điều kiện ba ngôi | `condition ? a : b` |
-| Gán | `=`, `+=`, `-=`, ... |
+| Postfix, invocation, and access | `x++`, `arr[i]`, `obj.method()` |
+| Unary | `++x`, `-x`, `!valid` |
+| Multiplication/division/remainder | `*`, `/`, `%` |
+| Addition/subtraction | `+`, `-` |
+| Relational ordering | `<`, `<=`, `>`, `>=` |
+| Equality/inequality | `==`, `!=` |
+| Short-circuit logical AND | `&&` |
+| Short-circuit logical OR | `||` |
+| Ternary conditional | `condition ? a : b` |
+| Assignment | `=`, `+=`, `-=`, ... |
 
-Bảng cố ý bỏ bớt toán tử dịch bit, bitwise và một số nhóm trung gian. **Dùng ngoặc** khi muốn diễn đạt rõ ý, thay vì cố thuộc toàn bộ bảng ưu tiên.
+This table intentionally omits shift, bitwise, and several intermediate groups. **Use parentheses** when you want to make intent clear, instead of trying to memorize the entire precedence table.
 
 ~~~java
 int a = 2 + 3 * 4;      // 14
@@ -150,33 +150,33 @@ int b = (2 + 3) * 4;    // 20
 boolean ok = a > 10 && b == 20; // true
 ~~~
 
-**Ba quy tắc không được nhầm lẫn:**
+**Three rules that must not be confused:**
 
-1. **Ưu tiên** quyết định cách nhóm toán tử: `2 + 3 * 4` là `2 + (3 * 4)`.
-2. **Thứ tự đánh giá toán hạng** của Java thường là **từ trái sang phải** theo biểu thức, ngoại trừ việc có toán hạng bị bỏ qua do quy tắc ngắn mạch hoặc nhánh điều kiện. Đừng lấy bảng ưu tiên để suy đoán một lời gọi method bên phải luôn xảy ra trước bên trái.
-3. **Tính ngắn mạch**: `&&` không đánh giá vế phải khi vế trái là `false`; `||` không đánh giá vế phải khi vế trái là `true`.
+1. **Precedence** determines how operators are grouped: `2 + 3 * 4` is `2 + (3 * 4)`.
+2. Java's **operand evaluation order** is generally **left to right** across an expression, except when an operand is skipped due to short-circuit rules or conditional branches. Do not use the precedence table to assume a method call on the right always happens before one on the left.
+3. **Short-circuiting**: `&&` does not evaluate the right-hand side when the left-hand side is `false`; `||` does not evaluate the right-hand side when the left-hand side is `true`.
 
-Ví dụ an toàn:
+A safe example:
 
 ~~~java
 String input = null;
 boolean valid = input != null && !input.isBlank();
-System.out.println(valid); // false; không gọi input.isBlank()
+System.out.println(valid); // false; does not call input.isBlank()
 ~~~
 
-Nếu đổi `&&` thành `&` với hai biểu thức boolean, cả hai phía được đánh giá và ví dụ trên sẽ gây `NullPointerException`. Hai toán tử **có cùng giá trị logic trong nhiều trường hợp nhưng khác hành vi đánh giá**.
+If you change `&&` to `&` with two boolean expressions, both sides are evaluated and the example above will throw `NullPointerException`. The two operators **have the same logical truth table in many cases, yet differ in evaluation behavior**.
 
-### Tác dụng phụ trong biểu thức
+### Side Effects in Expressions
 
 ~~~java
 int x = 5;
-int old = x++; // old = 5, sau đó x = 6
-int now = ++x; // tăng x thành 7, now = 7
+int old = x++; // old = 5, then x = 6
+int now = ++x; // increment x to 7, now = 7
 ~~~
 
-`x++` trả giá trị **trước khi tăng**, còn `++x` trả giá trị **sau khi tăng**. Tránh trộn nhiều lần tăng hoặc gọi method có tác dụng phụ trong một biểu thức khó đọc; tách thành các câu lệnh đơn giản để dễ kiểm tra.
+`x++` returns the value **before incrementing**, whereas `++x` returns the value **after incrementing**. Avoid mixing multiple increments or side-effecting method calls inside a single hard-to-read expression; split them into simple statements for easier verification.
 
-Ví dụ đánh giá theo trái sang phải:
+Left-to-right evaluation example:
 
 ~~~java
 static int logAndReturn(String label, int value) {
@@ -184,57 +184,57 @@ static int logAndReturn(String label, int value) {
     return value;
 }
 
-// Đặt lời gọi sau trong một method:
+// Place the following call inside a method:
 int sum = logAndReturn("trai", 2) + logAndReturn("phai", 3);
-// In "trai", rồi "phai"; sum = 5
+// Prints "trai", then "phai"; sum = 5
 ~~~
 
-## 5. Số học: các edge case dễ gây lỗi
+## 5. Arithmetic: Edge Cases That Easily Cause Bugs
 
-### Chia số nguyên và chia dư
+### Integer Division and Remainder
 
 ~~~java
-System.out.println(7 / 2);   // 3, vì cả hai là int
+System.out.println(7 / 2);   // 3, because both are int
 System.out.println(7.0 / 2); // 3.5
 System.out.println(7 % 2);   // 1
-System.out.println(-7 / 2);  // -3: làm tròn về 0
+System.out.println(-7 / 2);  // -3: truncated toward 0
 System.out.println(-7 % 2);  // -1
 ~~~
 
-Nếu muốn phần thập phân, phải có toán hạng `double`/`float` hoặc ép kiểu thích hợp. Ép kiểu **sau** phép chia nguyên thì đã quá muộn: `(double) (7 / 2)` là `3.0`, còn `(double) 7 / 2` là `3.5`.
+If you want a fractional part, you must have a `double`/`float` operand or an appropriate cast. Casting **after** integer division is too late: `(double) (7 / 2)` is `3.0`, whereas `(double) 7 / 2` is `3.5`.
 
-### Tràn số nguyên
+### Integer Overflow
 
 ~~~java
 int max = Integer.MAX_VALUE;
-System.out.println(max + 1); // -2147483648 (tràn int)
+System.out.println(max + 1); // -2147483648 (int overflow)
 ~~~
 
-Cộng `int` thông thường có thể tràn theo quy tắc số học Java. Nếu nghiệp vụ **không cho phép tràn**, dùng `Math.addExact(a, b)` để nhận `ArithmeticException` khi kết quả vượt miền giá trị, hoặc chọn cách biểu diễn số lớn phù hợp.
+Normal `int` addition can overflow according to Java arithmetic rules. If business rules **forbid overflow**, use `Math.addExact(a, b)` to get an `ArithmeticException` when the result exceeds the range, or choose a suitable representation for large numbers.
 
-### Chia cho 0 và dấu phẩy động
+### Division by Zero and Floating-Point Numbers
 
 ~~~java
-// int broken = 10 / 0; // Chia số nguyên cho 0 gây ArithmeticException khi thực thi phép chia
+// int broken = 10 / 0; // Integer division by 0 causes ArithmeticException when executed
 System.out.println(1.0 / 0.0); // Infinity
 System.out.println(0.0 / 0.0); // NaN
-System.out.println(0.1 + 0.2); // Thường hiển thị 0.30000000000000004
+System.out.println(0.1 + 0.2); // Typically displays 0.30000000000000004
 ~~~
 
-Số dấu phẩy động `double` tuân theo biểu diễn nhị phân IEEE 754 với các giới hạn độ chính xác. Không dùng so sánh `==` thiếu suy xét cho kết quả tính toán thập phân; khi làm việc với tiền, cân nhắc **số nguyên theo đơn vị nhỏ nhất** hoặc `BigDecimal` với quy tắc làm tròn được định nghĩa.
+Floating-point `double` numbers follow IEEE 754 binary representation with precision limitations. Do not carelessly use `==` comparison on decimal calculation results; when working with money, consider **integers in the smallest unit** or `BigDecimal` with defined rounding rules.
 
-## 6. Câu lệnh và block: chương trình thực sự làm gì?
+## 6. Statements and Blocks: What Does the Program Actually Do?
 
-**Câu lệnh (statement)** yêu cầu Java thực hiện một hành động, có thể sử dụng kết quả biểu thức để điều khiển bước tiếp theo. Những loại thường gặp:
+A **statement** instructs Java to perform an action, potentially using expression results to control the next step. Common kinds include:
 
-- Khai báo biến cục bộ: `int total = 0;`.
-- Câu lệnh biểu thức: `total += price;`, `printResult();`.
+- Local variable declaration: `int total = 0;`.
+- Expression statement: `total += price;`, `printResult();`.
 - Block: `{ ... }`.
-- Rẽ nhánh: `if / else`, `switch`.
-- Lặp: `for`, `while`, `do-while`.
-- Thay đổi luồng: `break`, `continue`, `return`, `throw`.
+- Branching: `if / else`, `switch`.
+- Looping: `for`, `while`, `do-while`.
+- Flow control transfer: `break`, `continue`, `return`, `throw`.
 
-Ví dụ block và phạm vi biến:
+Block and variable scope example:
 
 ~~~java
 int outside = 10;
@@ -242,10 +242,10 @@ if (outside > 0) {
     int inside = outside * 2;
     System.out.println(inside); // 20
 }
-// System.out.println(inside); // Lỗi compile: outside scope
+// System.out.println(inside); // Compile error: outside scope
 ~~~
 
-Một biến cục bộ phải được **gán chắc chắn trước khi đọc** theo phân tích của compiler (*definite assignment*). Ví dụ:
+A local variable must be **definitely assigned before being read** according to the compiler's analysis (*definite assignment*). For example:
 
 ~~~java
 boolean passed = true;
@@ -255,12 +255,12 @@ if (passed) {
 } else {
     status = "FAIL";
 }
-System.out.println(status); // hợp lệ: hai nhánh đều gán
+System.out.println(status); // valid: both branches assign
 ~~~
 
-Nếu bỏ nhánh `else` mà biến `status` có thể chưa được gán, compiler sẽ từ chối đọc nó. Khác với **field instance** có giá trị mặc định khi object được tạo, biến cục bộ không tự được cấp một giá trị mặc định để đọc tùy ý.
+If you remove the `else` branch so that `status` might remain unassigned, the compiler will refuse to let you read it. Unlike **instance fields**, which receive default values when an object is created, local variables are not automatically given a default value to be read arbitrarily.
 
-## 7. Rẽ nhánh: `if`, `else` và `switch`
+## 7. Branching: `if`, `else`, and `switch`
 
 ### `if / else if / else`
 
@@ -273,14 +273,14 @@ if (score >= 90) {
 } else {
     System.out.println("Chua dat");
 }
-// In "Dat"
+// Prints "Dat"
 ~~~
 
-Điều kiện `if` phải là `boolean` hoặc kiểu phù hợp được unbox; Java **không** coi `0`, `1` hoặc chuỗi rỗng tự động là `false`/`true`. Nên dùng dấu ngoặc nhọn kể cả cho một câu lệnh để tránh lỗi khi thêm nhánh hoặc chỉnh sửa mã.
+The `if` condition must be `boolean` or a compatible unboxed type; Java **does not** automatically treat `0`, `1`, or an empty string as `false`/`true`. Always use curly braces even for a single statement to avoid bugs when adding branches or editing code.
 
-### `switch` statement và `switch` expression
+### `switch` Statement and `switch` Expression
 
-Java 17 hỗ trợ kiểu `switch` có nhãn arrow:
+Java 17 supports `switch` syntax with arrow labels:
 
 ~~~java
 String mode = "FAST";
@@ -292,15 +292,15 @@ int timeout = switch (mode) {
 System.out.println(timeout); // 3
 ~~~
 
-Đây là **switch expression** vì toàn bộ `switch` tạo một giá trị để gán cho `timeout`. Với `switch` statement, mục tiêu chính là lựa chọn và thực thi nhánh câu lệnh, không nhất thiết sinh ra giá trị.
+This is a **switch expression** because the entire `switch` produces a value assigned to `timeout`. With a `switch` statement, the main goal is choosing and executing a branch of statements rather than necessarily producing a value.
 
-So với dạng `case ...:` truyền thống, nhánh `->` không tự **fall through** xuống nhánh kế tiếp. Switch expression cần bao phủ mọi trường hợp hợp lệ; `default` trong ví dụ giúp rõ ràng khi chuỗi có giá trị ngoài hai trường hợp liệt kê.
+Compared to the traditional `case ...:` form, arrow `->` branches do not automatically **fall through** to the next branch. A switch expression must cover all valid cases; `default` in the example makes it clear when the string has a value outside the two listed cases.
 
-`switch` không phải thay thế mọi `if`: dùng khi mô hình “chọn giữa nhiều trường hợp” hợp lý hơn nhiều điều kiện bất kỳ.
+`switch` does not replace every `if`: use it when the “choose among multiple cases” model makes more sense than arbitrary conditions.
 
-## 8. Vòng lặp: `for`, `while`, `do-while`
+## 8. Loops: `for`, `while`, `do-while`
 
-### `for` khi biết cách tiến qua chỉ số
+### `for` When Stepping by Index
 
 ~~~java
 int total = 0;
@@ -310,9 +310,9 @@ for (int i = 1; i <= 3; i++) {
 System.out.println(total); // 6
 ~~~
 
-Trình tự: chạy phần khởi tạo `i = 1` một lần → kiểm tra `i <= 3` → chạy thân vòng lặp → chạy cập nhật `i++` → kiểm tra tiếp. Nếu điều kiện ban đầu sai, thân có thể **không chạy lần nào**.
+Sequence: run the initialization `i = 1` once → check `i <= 3` → run loop body → run update `i++` → check again. If the initial condition is false, the body may **not run at all**.
 
-### Enhanced `for` để duyệt phần tử
+### Enhanced `for` for Iterating Over Elements
 
 ~~~java
 int[] values = {2, 4, 6};
@@ -323,9 +323,9 @@ for (int value : values) {
 System.out.println(sum); // 12
 ~~~
 
-Enhanced `for` đơn giản khi chỉ cần từng phần tử, nhưng không tự cho chỉ số. Đổi giá trị biến cục bộ `value` không phải cách để thay trực tiếp phần tử `int` trong mảng.
+Enhanced `for` is simple when you only need each element, though it does not automatically give you the index. Changing the local variable `value` is not a way to modify an `int` element directly inside the array.
 
-### `while` và `do-while`
+### `while` and `do-while`
 
 ~~~java
 int n = 3;
@@ -333,10 +333,10 @@ while (n > 0) {
     System.out.print(n + " ");
     n--;
 }
-// In "3 2 1 "
+// Prints "3 2 1 "
 ~~~
 
-`while` kiểm tra **trước** mỗi lượt, còn `do-while` kiểm tra **sau** thân, vì thế thân `do` luôn chạy ít nhất một lần nếu được tới câu lệnh đó:
+`while` checks **before** each iteration, whereas `do-while` checks **after** the body, so the `do` body always executes at least once if execution reaches that statement:
 
 ~~~java
 int attempts = 0;
@@ -346,22 +346,22 @@ do {
 System.out.println(attempts); // 1
 ~~~
 
-### `break` và `continue`
+### `break` and `continue`
 
 ~~~java
 for (int i = 1; i <= 5; i++) {
-    if (i == 2) continue; // bỏ phần còn lại của lượt i=2
-    if (i == 4) break;    // thoát vòng lặp
+    if (i == 2) continue; // skip the rest of iteration i=2
+    if (i == 4) break;    // exit the loop
     System.out.print(i + " ");
 }
-// In "1 3 "
+// Prints "1 3 "
 ~~~
 
-`continue` chuyển tới lượt tiếp theo của vòng lặp chứa nó; `break` rời khỏi vòng lặp/switch statement phù hợp. Với vòng lặp lồng nhau, dạng không nhãn tác động lên cấu trúc bao gần nhất theo quy tắc ngôn ngữ. Khi duyệt nhiều tầng, giữ code dễ đọc thay vì lạm dụng `break` có nhãn.
+`continue` advances to the next iteration of its enclosing loop; `break` exits the corresponding enclosing loop or switch statement. For nested loops, the unlabeled form affects the innermost enclosing structure according to language rules. When nesting multiple levels, keep code readable instead of overusing labeled `break`.
 
-## 9. `return`, exception và luồng kết thúc sớm
+## 9. `return`, Exceptions, and Early Exit Flow
 
-`return` kết thúc **lời gọi method hiện tại**, đồng thời trả về một giá trị nếu method có kiểu trả về khác `void`:
+`return` ends the **current method invocation**, and returns a value if the method has a non-`void` return type:
 
 ~~~java
 static int safePercent(int value, int max) {
@@ -372,11 +372,11 @@ static int safePercent(int value, int max) {
 }
 ~~~
 
-Ở đây `throw` tạo luồng thực thi ngoại lệ. Khi `max <= 0`, phép chia không diễn ra; exception chuyển điều khiển tới nơi xử lý phù hợp hoặc làm lời gọi thất bại.
+Here, `throw` creates an exceptional execution flow. When `max <= 0`, the division does not occur; the exception transfers control to an appropriate handler or causes the call to fail.
 
-**Giới hạn kỹ thuật cần nhớ:** `value * 100` vẫn có thể tràn `int`, dù `max` dương. Với dữ liệu lớn, có thể chuyển phép tính sang `long` trước rồi kiểm tra miền kết quả. Một nhánh phòng lỗi không tự làm toàn bộ phép tính an toàn.
+**Technical limitation to remember:** `value * 100` can still overflow `int`, even when `max` is positive. For large data, you can promote the calculation to `long` first and then check the result range. One defensive branch does not automatically make the entire calculation safe.
 
-Cơ chế `try/catch/finally` cho phép xử lý và dọn tài nguyên, nhưng không nên dùng exception thay cho toàn bộ kiểm tra điều kiện thông thường. Về trình tự, khi có `return` hoặc exception, những câu lệnh sau nó trên đường đi hiện tại không được thực hiện như bình thường. Nếu có `finally`, Java thường thực thi nó khi rời `try`/`catch` trước khi chuyển điều khiển ra ngoài.
+The `try/catch/finally` mechanism allows handling errors and cleaning up resources, though exceptions should not replace all ordinary conditional checks. In terms of ordering, when `return` or an exception occurs, statements after it on the current path do not execute normally. If `finally` is present, Java normally executes it when leaving `try`/`catch` before transferring control outward.
 
 ~~~java
 static int example() {
@@ -387,14 +387,14 @@ static int example() {
         System.out.println("finally");
     }
 }
-// Khi gọi example(): in "try", rồi "finally", sau đó method trả 10.
+// When calling example(): prints "try", then "finally", then the method returns 10.
 ~~~
 
-Tránh đặt `return` trong `finally`, vì có thể che mất kết quả/exception đang xảy ra; với tài nguyên `AutoCloseable`, `try-with-resources` thường rõ trách nhiệm hơn.
+Avoid putting `return` inside `finally`, as it can mask an active return value or exception; for `AutoCloseable` resources, `try-with-resources` usually makes responsibilities clearer.
 
-## 10. Ví dụ tổng hợp chạy được: từ dữ liệu đến luồng thực thi
+## 10. Runnable Combined Example: From Data to Execution Flow
 
-Tạo tệp tên chính xác **`FlowWalkthrough.java`** và lưu bằng UTF-8:
+Create a file named exactly **`FlowWalkthrough.java`** and save it as UTF-8:
 
 ~~~java
 public final class FlowWalkthrough {
@@ -440,7 +440,7 @@ public final class FlowWalkthrough {
 }
 ~~~
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 FlowWalkthrough.java
@@ -448,7 +448,7 @@ java FlowWalkthrough
 java FlowWalkthrough member
 ~~~
 
-**Chạy không có đối số**:
+**Run with no arguments**:
 
 ~~~text
 So mon: 3
@@ -458,7 +458,7 @@ Can tra: 130
 Nhom: LON
 ~~~
 
-**Chạy với đối số `member`**:
+**Run with argument `member`**:
 
 ~~~text
 So mon: 3
@@ -468,32 +468,32 @@ Can tra: 115
 Nhom: LON
 ~~~
 
-### Trace lần chạy có đối số `member`
+### Trace of the Run with Argument `member`
 
-| Bước | Câu lệnh/biểu thức | Trạng thái sau bước |
+| Step | Statement/Expression | State After Step |
 |---|---|---|
-| 1 | `prices = {40,70,20}` | Mảng có 3 phần tử |
-| 2 | `total=0; processed=0` | Tổng 0; đã xử lý 0 |
-| 3 | Lượt `i=0`, giá 40 | Tổng 40; đã xử lý 1 |
-| 4 | Lượt `i=1`, giá 70 | Tổng 110; đã xử lý 2 |
-| 5 | Lượt `i=2`, giá 20 | Tổng 130; đã xử lý 3 |
+| 1 | `prices = {40,70,20}` | Array has 3 elements |
+| 2 | `total=0; processed=0` | Total 0; processed 0 |
+| 3 | Iteration `i=0`, price 40 | Total 40; processed 1 |
+| 4 | Iteration `i=1`, price 70 | Total 110; processed 2 |
+| 5 | Iteration `i=2`, price 20 | Total 130; processed 3 |
 | 6 | `args.length > 0 && ...` | `member=true` |
 | 7 | `member && total >= 100 ? 15 : 0` | `discount=15` |
 | 8 | `return total - discount` | `amount=115` |
 | 9 | `switch(amount)` | `group="LON"` |
-| 10 | Các câu lệnh `println` | In 5 dòng như trên |
+| 10 | The `println` statements | Prints 5 lines as shown above |
 
-**Các chi tiết đáng chú ý:**
+**Notable details:**
 
-- `prices.length` dùng để giới hạn chỉ số, tránh truy cập vượt khỏi phần tử cuối.
-- `continue` bỏ qua giá không dương; ví dụ hiện có toàn giá dương. Nếu thêm `-5` vào mảng, vòng lặp vẫn an toàn và không tính dòng đó.
-- `"member".equalsIgnoreCase(args[0])` gọi trên literal khác null. Khi không có đối số, `&&` ngắn mạch nên không đọc `args[0]`.
-- `payable` tách phép tính và điều kiện đầu vào khỏi phần in ra; có thể thử độc lập với các giá trị tổng khác nhau.
-- `switch` ở đây tạo `String` theo số tiền, trong khi vòng `for` và `if` là các câu lệnh điều khiển luồng.
+- `prices.length` bounds the index, preventing access past the last element.
+- `continue` skips non-positive prices; the current example has all positive prices. If `-5` were added to the array, the loop would stay safe and exclude that item.
+- `"member".equalsIgnoreCase(args[0])` is called on a non-null literal. When no argument is provided, `&&` short-circuits so `args[0]` is not read.
+- `payable` separates the calculation and input check from printing; it can be tested independently with different total values.
+- `switch` here produces a `String` based on the amount, whereas the `for` loop and `if` are control-flow statements.
 
-## 11. Dự đoán đường chạy trước khi bấm Run
+## 11. Predicting the Execution Path Before Clicking Run
 
-Xét:
+Consider:
 
 ~~~java
 int x = 1;
@@ -508,44 +508,44 @@ while (x < 5) {
 System.out.println(x);
 ~~~
 
-Dùng bảng trace:
+Use a trace table:
 
-| Mốc | `x` | Lý do |
+| Checkpoint | `x` | Reason |
 |---|---:|---|
-| Sau khai báo | 1 | Initializer |
-| Sau `if/else` | 3 | `x > 1` sai, chạy `else` |
-| Sau vòng `while` lần 1 | 4 | `4 < 5` sẽ còn đúng khi kiểm tra tiếp |
-| Sau vòng `while` lần 2 | 5 | `x < 5` trở thành sai |
-| Khi in | 5 | Vòng lặp kết thúc |
+| After declaration | 1 | Initializer |
+| After `if/else` | 3 | `x > 1` is false, runs `else` |
+| After `while` iteration 1 | 4 | `4 < 5` will still be true on next check |
+| After `while` iteration 2 | 5 | `x < 5` becomes false |
+| When printing | 5 | Loop terminates |
 
-Thói quen tốt: ghi **giá trị trước/sau** của biến, điều kiện đang xét và nhánh được chọn. Nếu không có tiến triển làm điều kiện lặp sai hoặc không có `break`, hãy kiểm tra nguy cơ vòng lặp vô hạn.
+Good habit: write down **before/after values** of variables, the condition being tested, and the branch chosen. If there is no progress making the loop condition false or no `break`, check for the risk of an infinite loop.
 
-## 12. Lỗi thường gặp và cách phân loại
+## 12. Common Errors and How to Classify Them
 
-| Mã/sự cố | Triệu chứng | Nguyên nhân |
+| Code/Incident | Symptom | Cause |
 |---|---|---|
-| `if (x = 1)` với `x` là `int` | Lỗi biên dịch | Kết quả gán kiểu `int`, không phải `boolean` |
-| `int z = 7 / 2;` rồi mong `3.5` | Sai kết quả mong đợi | Chia nguyên trả `3` |
-| `input.length()` khi `input == null` | `NullPointerException` | Gọi method qua tham chiếu null |
-| `values[values.length]` | `ArrayIndexOutOfBoundsException` | Chỉ số cuối hợp lệ là `length - 1` khi mảng không rỗng |
-| `while (n > 0)` không đổi `n` | Vòng lặp không kết thúc | Không có tiến triển hoặc nhánh thoát |
-| Dùng `if (a && b)` nhưng `b` không được gọi | Hành vi đúng theo ngôn ngữ | Ngắn mạch khi `a=false` |
-| Viết `total + price;` một mình | Lỗi biên dịch | Không phải expression statement hợp lệ |
-| Truy cập biến khai báo trong một block ở bên ngoài | Lỗi biên dịch | Sai phạm vi biến |
-| `String s = null; s.equals("x")` | `NullPointerException` | Không kiểm tra null |
-| `int x = Integer.MAX_VALUE + 1;` | Số âm do tràn | Kết quả vượt phạm vi `int` |
+| `if (x = 1)` where `x` is `int` | Compile error | Assignment result has type `int`, not `boolean` |
+| `int z = 7 / 2;` then expecting `3.5` | Wrong expected result | Integer division returns `3` |
+| `input.length()` when `input == null` | `NullPointerException` | Calling a method through a null reference |
+| `values[values.length]` | `ArrayIndexOutOfBoundsException` | Last valid index is `length - 1` for a non-empty array |
+| `while (n > 0)` without changing `n` | Loop never ends | No progress or exit branch |
+| Using `if (a && b)` and `b` is not called | Correct language behavior | Short-circuiting when `a=false` |
+| Writing `total + price;` alone | Compile error | Not a valid expression statement |
+| Accessing a variable declared inside a block from outside | Compile error | Wrong variable scope |
+| `String s = null; s.equals("x")` | `NullPointerException` | Missing null check |
+| `int x = Integer.MAX_VALUE + 1;` | Negative number due to overflow | Result exceeds `int` range |
 
-Đọc lỗi theo **giai đoạn**: lỗi cú pháp/kiểu/phạm vi thường bị `javac` bắt; các exception liên quan dữ liệu thực hoặc chỉ số xuất hiện lúc chạy; vòng lặp vô hạn có thể không ném exception mà khiến chương trình treo lâu. Compile thành công không chứng minh mọi đường chạy đều đúng.
+Read errors by **stage**: syntax/type/scope errors are typically caught by `javac`; exceptions tied to real data or indices appear at runtime; infinite loops may throw no exception and instead make the program hang for a long time. Successful compilation does not prove all execution paths are right.
 
-## 13. Bài tập kèm đáp án
+## 13. Exercises with Answers
 
-### Bài 1 — xác định expression và statement
+### Exercise 1 — Identify Expressions and Statements
 
-Trong đoạn `int n = 4; n += 3; System.out.println(n > 5);`, hãy chỉ ra hai biểu thức và ba câu lệnh.
+In `int n = 4; n += 3; System.out.println(n > 5);`, point out two expressions and three statements.
 
-**Đáp án:** biểu thức `4`, `n += 3`, `n > 5` đều hợp lệ (còn có biểu thức con); cả ba dòng kết thúc `;` là câu lệnh hoặc câu lệnh khai báo. `n > 5` có kiểu `boolean` và in ra `true`.
+**Answer:** the expressions `4`, `n += 3`, and `n > 5` are all valid (there are also sub-expressions); all three lines ending with `;` are statements or declaration statements. `n > 5` has type `boolean` and prints `true`.
 
-### Bài 2 — dự đoán kết quả
+### Exercise 2 — Predict the Output
 
 ~~~java
 int a = 8;
@@ -554,9 +554,9 @@ System.out.println(a / b);
 System.out.println((double) a / b);
 ~~~
 
-**Đáp án:** `2` rồi `2.6666666666666665` (cách hiển thị thập phân thực tế theo giá trị `double`). Phép chia nguyên xảy ra khi cả hai toán hạng là `int`; cast trước phép chia đổi loại phép toán.
+**Answer:** `2` then `2.6666666666666665` (the actual decimal display of the `double` value). Integer division happens when both operands are `int`; casting before division changes the kind of operation.
 
-### Bài 3 — ngắn mạch bảo vệ dữ liệu
+### Exercise 3 — Short-Circuiting Protects Data
 
 ~~~java
 String text = null;
@@ -564,9 +564,9 @@ boolean canRead = text != null && text.length() > 2;
 System.out.println(canRead);
 ~~~
 
-**Đáp án:** in `false`, không ném exception vì vế phải của `&&` không được đánh giá. Nếu dùng `&` boolean thay `&&`, vế phải sẽ bị đánh giá và có thể ném `NullPointerException`.
+**Answer:** prints `false` without throwing an exception because the right-hand side of `&&` is not evaluated. If boolean `&` were used instead of `&&`, the right-hand side would be evaluated and could throw `NullPointerException`.
 
-### Bài 4 — `continue` và `break`
+### Exercise 4 — `continue` and `break`
 
 ~~~java
 int sum = 0;
@@ -578,9 +578,9 @@ for (int i = 1; i <= 6; i++) {
 System.out.println(sum);
 ~~~
 
-**Đáp án:** `8` (`1 + 3 + 4`). Bỏ lượt 2; đến lượt 5 thì thoát vòng trước khi cộng.
+**Answer:** `8` (`1 + 3 + 4`). Skips iteration 2; at iteration 5, exits the loop before adding.
 
-### Bài 5 — sửa lỗi definite assignment
+### Exercise 5 — Fix Definite Assignment Error
 
 ~~~java
 boolean paid = false;
@@ -591,31 +591,31 @@ if (paid) {
 // System.out.println(result);
 ~~~
 
-**Yêu cầu:** cho phép in kết quả ở mọi đường chạy. **Đáp án:** thêm `else { result = "PENDING"; }` trước lệnh in; hoặc gán giá trị khởi đầu có chủ đích cho `result`.
+**Requirement:** allow printing the result on every execution path. **Answer:** add `else { result = "PENDING"; }` before the print statement; or intentionally assign an initial value to `result`.
 
-### Bài 6 — mở rộng chương trình chính
+### Exercise 6 — Extend the Main Program
 
-Sửa `FlowWalkthrough` để thêm giá `0` và `-10` vào cuối mảng `prices`. Dự đoán `processed`, `total`, `amount`.
+Modify `FlowWalkthrough` to add `0` and `-10` at the end of the `prices` array. Predict `processed`, `total`, and `amount`.
 
-**Đáp án:** `processed=3`, `total=130`, `amount=130` nếu không có đối số; `amount=115` khi đối số là `member`. Hai phần tử không dương được `continue` bỏ qua trước khi cập nhật tổng/số món.
+**Answer:** `processed=3`, `total=130`, `amount=130` with no arguments; `amount=115` when the argument is `member`. The two non-positive elements are skipped by `continue` before updating the total or count.
 
-### Bài 7 — phân biệt lỗi biên dịch và runtime
+### Exercise 7 — Distinguish Compile Errors and Runtime Errors
 
-Xét hai trường hợp: (A) `int count = "three";`; (B) `int divisor = 0; int value = 12 / divisor;`. Lỗi ở giai đoạn nào?
+Consider two cases: (A) `int count = "three";`; (B) `int divisor = 0; int value = 12 / divisor;`. At which stage does each error occur?
 
-**Đáp án:** (A) `javac` từ chối vì kiểu không tương thích; (B) phép chia nguyên với divisor 0 ném `ArithmeticException` khi biểu thức được đánh giá lúc chạy.
+**Answer:** (A) `javac` rejects it because the types are incompatible; (B) integer division with divisor 0 throws `ArithmeticException` when the expression is evaluated at runtime.
 
-## 14. Checklist tự đánh giá
+## 14. Self-Assessment Checklist
 
-- [ ] Giải thích được quan hệ **dữ liệu → biểu thức → câu lệnh → luồng thực thi** bằng một đoạn Java.
-- [ ] Phân biệt `=` với `==`, kiểu primitive với kiểu tham chiếu, và `null` với một giá trị object hợp lệ.
-- [ ] Xác định kiểu/kết quả của phép số học và biểu thức `boolean`; nhận diện chia nguyên, tràn số và sai số dấu phẩy động.
-- [ ] Hiểu ưu tiên toán tử, đánh giá toán hạng và ngắn mạch `&&`/`||`.
-- [ ] Biết một biểu thức bất kỳ không phải lúc nào cũng là một câu lệnh Java hợp lệ.
-- [ ] Viết được `if`, `switch`, `for`, `while`, `break`, `continue` đúng ý.
-- [ ] Dự đoán được khi nào `return` kết thúc method và `throw` thay đổi luồng chạy.
-- [ ] Biên dịch và chạy `FlowWalkthrough.java`; kết quả khớp ví dụ.
-- [ ] Lập bảng trace biến để giải thích được đầu ra và phát hiện vòng lặp sai.
-- [ ] Phân loại được lỗi compile-time, runtime exception và lỗi logic dù chạy không báo lỗi.
+- [ ] Explain the relationship **data → expressions → statements → execution flow** using a Java snippet.
+- [ ] Distinguish `=` from `==`, primitive types from reference types, and `null` from a valid object value.
+- [ ] Determine the type/result of arithmetic operations and `boolean` expressions; recognize integer division, overflow, and floating-point precision error.
+- [ ] Understand operator precedence, operand evaluation order, and `&&`/`||` short-circuiting.
+- [ ] Know that an arbitrary expression is not always a valid Java statement.
+- [ ] Write `if`, `switch`, `for`, `while`, `break`, and `continue` accurately.
+- [ ] Predict when `return` exits a method and how `throw` alters execution flow.
+- [ ] Compile and run `FlowWalkthrough.java`; output matches the examples.
+- [ ] Build a variable trace table to explain output and spot faulty loops.
+- [ ] Classify compile-time errors, runtime exceptions, and logic errors that run without throwing.
 
-**Kết luận:** dữ liệu là thứ chương trình xử lý; biểu thức tạo giá trị (đôi khi có tác dụng phụ); câu lệnh tổ chức hành động; cấu trúc điều khiển quyết định những hành động nào được thực hiện và theo thứ tự nào. Nắm được bốn lớp này giúp bạn đọc code, dự đoán đầu ra và kiểm tra lỗi Java có phương pháp, trước khi xây dựng chương trình lớn hơn.
+**Conclusion:** Data is what a program processes; expressions produce values (sometimes with side effects); statements organize actions; control flow constructs determine which actions run and in what order. Mastering these four layers helps you read code, predict output, and debug Java methodically before building larger programs.

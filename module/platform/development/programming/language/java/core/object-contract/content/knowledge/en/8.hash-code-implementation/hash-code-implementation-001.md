@@ -1,104 +1,104 @@
-# Chọn dữ liệu băm phù hợp với quan hệ equals() trong Java
+# Choosing Hash Data Consistent with the `equals()` Relation in Java
 
-## 1. Vấn đề cần giải quyết
+## 1. The Problem to Solve
 
-Khi tự cài đặt hai phương thức **equals(Object)** và **hashCode()**, câu hỏi quan trọng không phải là “lấy càng nhiều trường vào hash càng tốt” mà là: **những đối tượng nào được coi là bằng nhau theo equals và làm sao bảo đảm chúng luôn có cùng hashCode?**
+When implementing **equals(Object)** and **hashCode()** yourself, the important question is not "include as many fields in the hash as possible", but rather: **which objects are considered equal according to `equals`, and how do we ensure they always have the same `hashCode`?**
 
-Ví dụ, một sản phẩm có các trường:
+For example, a product has the following fields:
 
-- tenantId: cửa hàng sở hữu sản phẩm;
-- sku: mã sản phẩm, quy ước không phân biệt chữ hoa/chữ thường;
-- displayName: tên trình bày trên giao diện;
-- lastViewedAt: thời điểm gần nhất người dùng mở trang sản phẩm.
+- tenantId: the store that owns the product;
+- sku: the product code, case-insensitive by convention;
+- displayName: the name displayed on the UI;
+- lastViewedAt: the most recent time a user opened the product page.
 
-Nếu quan hệ equals xác định cùng sản phẩm bằng cặp **(tenantId, sku sau chuẩn hóa)**, hashCode cũng phải tạo cùng kết quả đối với mọi cặp giá trị tương đương này. displayName hoặc lastViewedAt không được khiến hai sản phẩm cùng định danh có mã băm khác nhau.
+If the `equals` relation identifies the same product by the pair **(tenantId, normalized sku)**, `hashCode` must also produce the same result for every equivalent pair of these values. `displayName` or `lastViewedAt` must not cause two products with the same identity to have different hash codes.
 
-Ngược lại, nếu equals thực sự so sánh cả displayName thì hashCode không thể tự ý dựa vào một quan hệ bình đẳng khác. Cần chốt **định nghĩa equality trước**, sau đó chọn dữ liệu băm phù hợp.
+Conversely, if `equals` actually compares `displayName` as well, `hashCode` cannot arbitrarily rely on a different equality relation. You must finalize the **equality definition first**, and then choose the appropriate hash data.
 
-## 2. Hợp đồng equals–hashCode: hai nguyên tắc không thể đảo ngược
+## 2. The `equals`–`hashCode` Contract: Two Non-Negotiable Principles
 
-Hợp đồng Java Object.hashCode() yêu cầu:
+The Java `Object.hashCode()` contract requires:
 
-1. **Nếu x.equals(y) là true thì x.hashCode() phải bằng y.hashCode().**
-2. Khi không có thông tin nào dùng trong equals thay đổi, nhiều lần gọi hashCode trên cùng đối tượng trong một lần thực thi Java phải trả cùng số nguyên.
+1. **If `x.equals(y)` is `true`, then `x.hashCode()` must equal `y.hashCode()`.**
+2. When no information used in `equals` changes, multiple invocations of `hashCode` on the same object during a single execution of a Java application must return the same integer.
 
-Điều **không** được yêu cầu:
+What is **not** required:
 
-- Hai đối tượng khác nhau theo equals phải có mã băm khác nhau. **Va chạm băm (collision) được phép xảy ra.**
-- hashCode phải giống nhau giữa các lần chạy chương trình khác nhau; Java không bảo đảm mọi cách triển khai đều ổn định giữa các phiên chạy.
-- hashCode phải là mã định danh duy nhất, địa chỉ bộ nhớ hay số không âm.
+- Two objects that are unequal according to `equals` must have different hash codes. **Hash collisions are allowed.**
+- `hashCode` must remain identical across different executions of the program; Java does not guarantee every implementation is stable across runs.
+- `hashCode` must be a unique identifier, a memory address, or a non-negative number.
 
-Có thể hình dung quan hệ bằng nhau chia các đối tượng thành những *nhóm tương đương*. Mỗi nhóm phải nhận **một** giá trị hash ổn định trong các điều kiện nêu trên; nhiều nhóm khác nhau vẫn có thể dùng chung một giá trị hash.
+You can think of the equality relation as partitioning objects into *equivalence classes*. Each class must receive **one** stable hash value under the conditions above; multiple distinct classes may still share the same hash value.
 
-| Quan hệ giữa x và y | Yêu cầu đối với hashCode | Ghi chú |
+| Relation between `x` and `y` | Requirement for `hashCode` | Notes |
 | --- | --- | --- |
-| x.equals(y) == true | hashCode **bắt buộc bằng nhau** | Điều kiện hợp đồng |
-| x.equals(y) == false | hashCode có thể bằng hoặc khác | Không được kết luận từ hash |
-| Trạng thái tham gia equals giữ nguyên | hashCode phải ổn định trong lần chạy | Không dùng random/thời gian để băm |
-| Trạng thái tham gia equals bị sửa | Hash có thể đổi | Dễ gây lỗi khi đang dùng làm khóa băm |
+| `x.equals(y) == true` | `hashCode` **must be equal** | Contract condition |
+| `x.equals(y) == false` | `hashCode` may be equal or different | Do not infer equality from hash |
+| State participating in `equals` stays unchanged | `hashCode` must be stable within a run | Do not use random/time values for hashing |
+| State participating in `equals` is modified | Hash may change | Prone to bugs when currently used as a hash key |
 
-Cần phân biệt: **“Dữ liệu tham gia equals” là dữ liệu quyết định quan hệ bằng nhau về mặt logic**, không đơn giản là “toàn bộ trường của đối tượng”.
+It is important to distinguish: **"Data participating in `equals`" means the data that determines the logical equality relation**, not simply "every field of the object".
 
-## 3. Quy trình chọn dữ liệu để băm
+## 3. Process for Choosing Data to Hash
 
-### Bước 1: Xác định tiêu chí bằng nhau
+### Step 1: Define the Equality Criteria
 
-Hãy trả lời trước: hai đối tượng đại diện cho cùng một giá trị khi những thuộc tính nào khớp nhau? Ví dụ:
+Answer this first: when do two objects represent the same value—which attributes must match? For example:
 
 ~~~java
 return tenantId.equals(other.tenantId)
         && normalizedSku.equals(other.normalizedSku);
 ~~~
 
-Nếu đây là phần quyết định equality, hai đối tượng có cùng tenantId và normalizedSku phải có hash bằng nhau.
+If this is what determines equality, two objects with the same `tenantId` and `normalizedSku` must have equal hashes.
 
-### Bước 2: Xem xét cách equals so sánh từng trường
+### Step 2: Examine How `equals` Compares Each Field
 
-Cùng một trường dữ liệu có thể được so sánh theo những quy tắc khác nhau:
+The same data field can be compared under different rules:
 
-- So sánh String phân biệt hoa/thường: hash có thể dựa trên chính String đó.
-- So sánh mã SKU không phân biệt hoa/thường: hash phải dùng cùng dạng chuẩn hóa hoặc một phép băm tương thích với quan hệ không phân biệt hoa/thường.
-- So sánh nội dung mảng: dùng **Arrays.equals** trong equals và **Arrays.hashCode** tương ứng trong hashCode.
-- So sánh sâu mảng lồng nhau: dùng **Arrays.deepEquals** cùng **Arrays.deepHashCode**.
-- So sánh nhiều trường nullable: dùng **Objects.equals** khi cần so sánh và Objects.hash/Objects.hashCode phù hợp khi băm.
+- Case-sensitive `String` comparison: the hash can be based on that `String` itself.
+- Case-insensitive SKU comparison: the hash must use the same normalized form or a hashing approach compatible with case-insensitive equality.
+- Array content comparison: use **Arrays.equals** in `equals` and the corresponding **Arrays.hashCode** in `hashCode`.
+- Deep comparison of nested arrays: use **Arrays.deepEquals** together with **Arrays.deepHashCode**.
+- Comparison of multiple nullable fields: use **Objects.equals** when comparing and `Objects.hash`/`Objects.hashCode` appropriately when hashing.
 
-**Quy tắc quan trọng:** cùng nghĩa *bằng nhau* thì dữ liệu băm phải cho cùng kết quả. Không nhất thiết phải gọi y hệt phương thức ở cả hai nơi, nhưng cách chuẩn hóa và xử lý giá trị phải tương thích.
+**Key rule:** the same *equality* semantics require the hash data to produce the same result. You do not necessarily have to call the exact same method in both places, but value normalization and handling must be compatible.
 
-### Bước 3: Loại bỏ các trường không tạo nên equality
+### Step 3: Exclude Fields That Do Not Define Equality
 
-Không thêm trường phục vụ hiển thị, ghi log, bộ đếm, trạng thái UI, cache, thời điểm truy cập hoặc dữ liệu khác mà equals bỏ qua.
+Do not add fields used for display, logging, counters, UI state, caches, access timestamps, or other data that `equals` ignores.
 
-Ví dụ, nếu equals chỉ dùng tenantId và SKU chuẩn hóa:
+For example, if `equals` only uses `tenantId` and normalized SKU:
 
 ~~~java
-// Sai khi equals không xét displayName:
+// Wrong when equals does not consider displayName:
 return Objects.hash(tenantId, normalizedSku, displayName);
 
-// Đúng với tiêu chí equals đã định nghĩa:
+// Right for the defined equals criteria:
 return Objects.hash(tenantId, normalizedSku);
 ~~~
 
-Đây là các đoạn thân phương thức minh họa, không phải chương trình độc lập. Biểu thức đầu có thể làm hai đối tượng equals trả true nhưng hashCode khác nhau chỉ vì displayName khác.
+These are illustrative method-body snippets, not standalone programs. The first expression can cause two objects where `equals` returns `true` to have different `hashCode` values solely because `displayName` differs.
 
-### Bước 4: Chọn thuật toán băm hợp lệ, đủ phân tán
+### Step 4: Choose a Valid, Well-Distributed Hashing Formula
 
-Về tính **đúng**, dùng tập trường phù hợp và giữ ổn định là ưu tiên đầu tiên. Về **hiệu năng**, nên kết hợp các thành phần định danh hợp lý để giảm va chạm, đặc biệt với HashMap/HashSet chứa nhiều phần tử.
+For **correctness**, using the right set of fields and keeping them stable is the top priority. For **performance**, you should combine the identifying components sensibly to reduce collisions, especially with large `HashMap`/`HashSet` collections.
 
-Nếu equals so sánh cả id và version, hashCode chỉ trả id.hashCode() có thể vẫn đúng về hợp đồng vì hai đối tượng bằng nhau luôn có cùng id. Tuy vậy, nó bỏ qua version nên nhiều cặp không bằng nhau có thể dồn chung hash, làm phân tán kém. Thực tế thường nên kết hợp cả id và version.
+If `equals` compares both `id` and `version`, having `hashCode` return only `id.hashCode()` may still satisfy the contract because two equal objects always have the same `id`. However, it ignores `version`, so many unequal pairs can end up with the same hash, causing poor distribution. In practice, you should usually combine both `id` and `version`.
 
-Nói cách khác, **hashCode không bắt buộc phải dùng tất cả trường trong equals**, nhưng tuyệt đối không được phân biệt hai đối tượng mà equals coi là bằng nhau. Dùng đủ các thuộc tính định danh thường là lựa chọn rõ ràng và có phân bố tốt hơn.
+In other words, **`hashCode` is not required to use every field in `equals`**, but it must never distinguish two objects that `equals` considers equal. Using all the identifying attributes is usually the clearer choice and yields better distribution.
 
-### Bước 5: Giữ dữ liệu băm ổn định khi đối tượng nằm trong bộ sưu tập băm
+### Step 5: Keep Hash Data Stable While the Object Is in a Hash-Based Collection
 
-Khi đối tượng được dùng làm khóa HashMap hoặc phần tử HashSet, tránh sửa dữ liệu xác định equality/hash trong suốt thời gian nó nằm trong collection. Nếu thay đổi giá trị đó, collection có thể không tìm lại được khóa vì vị trí lưu ban đầu gắn với hash cũ.
+When an object is used as a `HashMap` key or a `HashSet` element, avoid modifying the data that determines equality/hash while it resides in the collection. If that value changes, the collection may fail to find the key again because its initial storage bucket is tied to the old hash.
 
-Ưu tiên khóa bất biến: các trường final với kiểu dữ liệu bất biến hoặc bản sao phòng vệ của dữ liệu mutable.
+Prefer immutable keys: `final` fields with immutable types or defensive copies of mutable data.
 
-## 4. Ví dụ hoàn chỉnh Java 17+: cùng quan hệ equals thì cùng hash
+## 4. Complete Java 17+ Example: Same `equals` Relation Yields Same Hash
 
-Quy tắc cho ProductKey: **cùng tenantId và sku không phân biệt chữ hoa/thường** là cùng khóa. Tên hiển thị không tham gia equality. Ví dụ dùng SKU thuộc bộ ký tự ASCII, chuẩn hóa qua Locale.ROOT.
+Rule for `ProductKey`: **the same `tenantId` and case-insensitive `sku`** identify the same key. The display name does not participate in equality. The example uses ASCII SKUs, normalized via `Locale.ROOT`.
 
-Tạo tệp **HashCodeFieldSelectionDemo.java**:
+Create the file **HashCodeFieldSelectionDemo.java**:
 
 ~~~java
 import java.util.HashMap;
@@ -110,9 +110,9 @@ import java.util.Set;
 
 public class HashCodeFieldSelectionDemo {
     public static void main(String[] args) {
-        ProductKey a = new ProductKey("shop-1", "ax-7", "Mũ xanh");
-        ProductKey b = new ProductKey("shop-1", "AX-7", "Mũ đỏ");
-        ProductKey c = new ProductKey("shop-2", "ax-7", "Mũ xanh");
+        ProductKey a = new ProductKey("shop-1", "ax-7", "Blue hat");
+        ProductKey b = new ProductKey("shop-1", "AX-7", "Red hat");
+        ProductKey c = new ProductKey("shop-2", "ax-7", "Blue hat");
 
         System.out.println("a equals b: " + a.equals(b));
         System.out.println("a hash equals b hash: "
@@ -126,9 +126,9 @@ public class HashCodeFieldSelectionDemo {
         System.out.println("HashSet size: " + set.size());
 
         Map<ProductKey, String> map = new HashMap<>();
-        map.put(a, "Đã lưu");
+        map.put(a, "Saved");
         ProductKey lookup = new ProductKey(
-                "shop-1", "aX-7", "Tên hiển thị khác");
+                "shop-1", "aX-7", "Different display name");
         System.out.println("HashMap lookup: " + map.get(lookup));
 
         System.out.println("Aa hash equals BB hash: "
@@ -174,42 +174,42 @@ public class HashCodeFieldSelectionDemo {
 }
 ~~~
 
-Biên dịch và chạy tại thư mục chứa tệp:
+Compile and run in the directory containing the file:
 
 ~~~bash
 javac -encoding UTF-8 HashCodeFieldSelectionDemo.java
 java HashCodeFieldSelectionDemo
 ~~~
 
-Kết quả chuẩn:
+Expected output:
 
 ~~~text
 a equals b: true
 a hash equals b hash: true
 a equals c: false
 HashSet size: 2
-HashMap lookup: Đã lưu
+HashMap lookup: Saved
 Aa hash equals BB hash: true
 Aa equals BB: false
 ~~~
 
-**Vì sao kết quả như trên?**
+**Why does it produce this output?**
 
-1. a và b có tenantId cùng là shop-1; sku ax-7 và AX-7 đều được chuẩn hóa thành AX-7. Do đó, equals trả true và hashCode phải giống nhau. Tên hiển thị khác nhau không ảnh hưởng.
-2. c thuộc shop-2, nên khác định danh so với a. Vì a và c không bằng nhau, không bắt buộc hash của chúng phải khác.
-3. HashSet chứa hai giá trị logic: một cho shop-1/AX-7 và một cho shop-2/AX-7. Thêm b không làm tăng kích thước vì b bằng a.
-4. HashMap tra lại khóa bằng một đối tượng mới vẫn tìm được giá trị, dù chuỗi SKU viết kiểu khác và tên hiển thị khác.
-5. Hai String "Aa" và "BB" có cùng String.hashCode (2112) nhưng không bằng nhau. Đây là va chạm hợp lệ: hash bằng nhau **không có nghĩa** equals là true.
+1. `a` and `b` share the same `tenantId` (`shop-1`); both SKUs `ax-7` and `AX-7` normalize to `AX-7`. Therefore, `equals` returns `true` and `hashCode` must be the same. Different display names have no effect.
+2. `c` belongs to `shop-2`, so it has a different identity from `a`. Since `a` and `c` are not equal, their hashes are not required to differ.
+3. `HashSet` holds two logical values: one for `shop-1`/`AX-7` and one for `shop-2`/`AX-7`. Adding `b` does not increase the size because `b` equals `a`.
+4. `HashMap` lookup with a new key object still finds the stored value, even with a differently cased SKU string and a different display name.
+5. The two `String` values `"Aa"` and `"BB"` have the same `String.hashCode` (`2112`) but are not equal. This is a valid collision: equal hashes **do not mean** `equals` is `true`.
 
-**Vì sao chọn normalizedSku thay vì sku gốc?** Nếu equals so sánh không phân biệt hoa/thường nhưng hashCode lại gọi hashCode trên chuỗi gốc, hai giá trị như ax-7 và AX-7 có thể có mã băm khác nhau dù equals coi chúng bằng nhau. Chuẩn hóa một lần tại constructor vừa bảo đảm hash và equals dùng cùng giá trị, vừa tránh chạy lại logic trong mỗi lời gọi.
+**Why choose `normalizedSku` instead of the raw `sku`?** If `equals` compares case-insensitively while `hashCode` calls `hashCode` on the raw string, two values like `ax-7` and `AX-7` can have different hash codes even though `equals` treats them as equal. Normalizing once in the constructor both guarantees that `hash` and `equals` use the same value and avoids re-running the logic on every call.
 
-**Vì sao ProductKey là final và các trường là final?** Để minh họa một khóa có trạng thái định danh ổn định. Chuỗi String bất biến; trường final không bị gán lại sau constructor. Tuy nhiên, với kiểu trường là List hoặc mảng thì chỉ final tham chiếu **không ngăn được sửa phần tử bên trong**.
+**Why are `ProductKey` and its fields `final`?** To demonstrate a key with stable identity state. `String` is immutable; `final` fields cannot be reassigned after construction. However, for field types like `List` or arrays, marking only the reference `final` **does not prevent modifying the inner elements**.
 
-## 5. Các cặp triển khai đúng và sai cần phân biệt
+## 5. Right and Wrong Implementation Pairs to Distinguish
 
-### 5.1. equals bỏ qua một trường, hashCode lại dùng trường ấy
+### 5.1. `equals` ignores a field, but `hashCode` includes it
 
-Giả sử equals chỉ so sánh id:
+Suppose `equals` only compares `id`:
 
 ~~~java
 @Override
@@ -217,16 +217,16 @@ public boolean equals(Object obj) {
     return obj instanceof Item other && id.equals(other.id);
 }
 
-// Sai với equals ở trên nếu label có thể khác giữa các Item cùng id.
+// Wrong for the equals above if label can differ between Items with the same id.
 @Override
 public int hashCode() {
     return Objects.hash(id, label);
 }
 ~~~
 
-Hai Item có cùng id nhưng khác label sẽ bằng nhau theo equals, trong khi mã băm có thể khác. Các đoạn trên chỉ minh họa trong lớp có các trường id, label; không phải toàn bộ một lớp độc lập.
+Two `Item` instances with the same `id` but different `label` values will be equal according to `equals`, while their hash codes may differ. The snippets above only illustrate methods inside a class with fields `id` and `label`; they are not a complete standalone class.
 
-Sửa:
+Fix:
 
 ~~~java
 @Override
@@ -235,21 +235,21 @@ public int hashCode() {
 }
 ~~~
 
-Nếu id bảo đảm không null, có thể dùng id.hashCode(). Nếu id được phép null thì phải bảo đảm equals xử lý null tương ứng, ví dụ Objects.equals(id, other.id).
+If `id` is guaranteed non-null, you can use `id.hashCode()`. If `id` is allowed to be `null`, you must ensure `equals` handles `null` accordingly, for example `Objects.equals(id, other.id)`.
 
-### 5.2. equals so sánh hai trường, hashCode chỉ dùng một trường
+### 5.2. `equals` compares two fields, `hashCode` uses only one
 
 ~~~java
-// Trong một lớp mà equals so sánh id và version:
+// In a class where equals compares id and version:
 @Override
 public int hashCode() {
     return Objects.hashCode(id);
 }
 ~~~
 
-Cách trên **có thể đúng hợp đồng**: khi cả id lẫn version giống nhau thì id đương nhiên giống nhau. Nhưng hai phiên bản khác nhau của cùng id cùng hash, làm tăng va chạm.
+This approach **can still satisfy the contract**: whenever both `id` and `version` match, `id` obviously matches as well. However, two different versions of the same `id` share the same hash, increasing collisions.
 
-Thiết kế có phân bố tốt hơn:
+A better-distributed design:
 
 ~~~java
 @Override
@@ -258,52 +258,52 @@ public int hashCode() {
 }
 ~~~
 
-Trọng tâm là **tính tương thích với equals**, sau đó mới xét chất lượng phân bố. Không nên diễn giải sai rằng thiếu bất kỳ trường nào của equals trong công thức băm đều tự động vi phạm hợp đồng.
+The primary focus is **compatibility with `equals`**, and only then distribution quality. Do not misinterpret the rule as saying that omitting any field of `equals` from the hash formula automatically violates the contract.
 
-### 5.3. equals bỏ qua kiểu chữ nhưng hashCode dùng chuỗi gốc
+### 5.3. `equals` ignores letter case, but `hashCode` uses the raw string
 
 ~~~java
-// equals xác định name bằng equalsIgnoreCase,
-// nhưng hashCode dưới đây băm name nguyên gốc:
+// equals compares name using equalsIgnoreCase,
+// but hashCode below hashes the raw name:
 @Override
 public int hashCode() {
-    return Objects.hashCode(name); // Có thể vi phạm!
+    return Objects.hashCode(name); // Can violate the contract!
 }
 ~~~
 
-Nếu "ONE" và "one" bằng nhau theo quy tắc equals của lớp, mã băm nguyên gốc của chúng khác nhau. Cách sửa là **thống nhất quy tắc giá trị**. Với mã ASCII không phân biệt hoa/thường, có thể chuẩn hóa bằng toUpperCase(Locale.ROOT) khi tạo đối tượng rồi dùng giá trị chuẩn hóa trong **cả equals và hashCode**.
+If `"ONE"` and `"one"` are equal under the class's `equals` rule, their raw hash codes differ. The fix is to **unify the value rule**. For case-insensitive ASCII codes, you can normalize with `toUpperCase(Locale.ROOT)` when constructing the object and use the normalized value in **both `equals` and `hashCode`**.
 
-Với văn bản Unicode, locale hoặc quy tắc so sánh phức tạp, không được tự giả định đổi hoa/thường bằng một bước đơn giản luôn tương đương với mọi phương thức so sánh. Phải định nghĩa phép chuẩn hóa/collation và phép băm tương ứng cùng một quan hệ.
+For Unicode text, locales, or complex comparison rules, never assume that a simple single-step case conversion is always equivalent to every comparison method. You must define normalization/collation and hashing consistently over the exact same relation.
 
-### 5.4. equals dùng nội dung mảng nhưng hashCode dùng định danh mảng
+### 5.4. `equals` uses array contents, but `hashCode` uses array identity
 
 ~~~java
-// Nếu tags là String[] và hai mảng được coi bằng nhau theo nội dung:
-return Arrays.equals(this.tags, other.tags); // Trong equals
+// If tags is String[] and two arrays are considered equal by content:
+return Arrays.equals(this.tags, other.tags); // In equals
 
-// Hash đúng theo nội dung:
-return Arrays.hashCode(tags);                 // Trong hashCode
+// Correct content-based hash:
+return Arrays.hashCode(tags);                 // In hashCode
 ~~~
 
-Các đoạn trên minh họa hai phần cài đặt trong ngữ cảnh đã khai báo tags và other; cần import java.util.Arrays.
+These snippets illustrate two implementation fragments in a context where `tags` and `other` are already declared; `import java.util.Arrays` is required.
 
-Không dùng Objects.hashCode(tags) cho trường hợp này: với mảng thông thường, nó gọi hashCode mặc định của đối tượng mảng, dựa trên định danh tham chiếu, trong khi Arrays.equals so sánh phần tử.
+Do not use `Objects.hashCode(tags)` in this case: for a standard array, it invokes the array object's default `hashCode`, which is based on reference identity, whereas `Arrays.equals` compares elements.
 
-Với mảng lồng nhau, dùng cặp Arrays.deepEquals / Arrays.deepHashCode khi chủ ý so sánh sâu. Với List có equals theo phần tử, List.hashCode cũng được định nghĩa nhất quán theo các phần tử đó; có thể sử dụng Objects.hashCode(list) nếu đó là trường đang xét. Lưu ý phần tử mutable vẫn có thể khiến hash thay đổi.
+For nested arrays, use the `Arrays.deepEquals` / `Arrays.deepHashCode` pair when deep comparison is intended. For a `List` whose `equals` is element-based, `List.hashCode` is also defined consistently over those elements; `Objects.hashCode(list)` can be used if that is the field under consideration. Note that mutable elements can still cause the hash to change.
 
-### 5.5. equals có ngữ nghĩa số đặc biệt
+### 5.5. `equals` has special numeric semantics
 
-Ví dụ, BigDecimal.equals phân biệt cả giá trị **và scale**: new BigDecimal("1.0") không equals new BigDecimal("1.00"), dù compareTo trả 0.
+For example, `BigDecimal.equals` distinguishes both value **and scale**: `new BigDecimal("1.0")` does not `equals` `new BigDecimal("1.00")`, even though `compareTo` returns `0`.
 
-Nếu một lớp tùy chỉnh định nghĩa equals dựa trên BigDecimal.compareTo(...) == 0, hashCode không được dùng trực tiếp amount.hashCode() vì hai BigDecimal khác scale có thể cho hash khác nhau. Có thể thiết kế dạng chuẩn hóa bằng stripTrailingZeros() rồi dùng dạng đã chuẩn hóa ở cả phép so sánh lẫn phép băm. Khi làm vậy cần xác định rõ cách xử lý null, số 0 và các trường khác. Đừng thay ngữ nghĩa BigDecimal.equals mặc định nếu không có yêu cầu nghiệp vụ cụ thể.
+If a custom class defines `equals` based on `BigDecimal.compareTo(...) == 0`, `hashCode` must not directly use `amount.hashCode()` because two `BigDecimal` values with different scales can produce different hashes. You can design a normalized form using `stripTrailingZeros()` and use that normalized form in both comparison and hashing. When doing so, clearly define how `null`, zero, and other fields are handled. Do not alter default `BigDecimal.equals` semantics without a specific business requirement.
 
-Tương tự với số thực, hãy thống nhất cách xét NaN, +0.0/-0.0 nếu lớp có định nghĩa equals tùy chỉnh. Ưu tiên cặp Double.compare/Double.hashCode hoặc Float.compare/Float.hashCode khi chính cách phân biệt của chúng phù hợp với quan hệ muốn thiết kế.
+Similarly for floating-point numbers, keep the handling of `NaN` and `+0.0`/`-0.0` consistent if the class defines custom `equals`. Prefer the `Double.compare`/`Double.hashCode` or `Float.compare`/`Float.hashCode` pairs when their exact distinctions match the relation you want to design.
 
-## 6. Nên dùng Objects.hash, Objects.hashCode hay công thức thủ công?
+## 6. Should You Use `Objects.hash`, `Objects.hashCode`, or a Manual Formula?
 
-### Objects.hash(...)
+### `Objects.hash(...)`
 
-Phù hợp với **nhiều trường**:
+Suitable for **multiple fields**:
 
 ~~~java
 @Override
@@ -312,11 +312,11 @@ public int hashCode() {
 }
 ~~~
 
-Ưu điểm là ngắn, xử lý trường null và nhất quán với các hash của thành phần. Nó sử dụng cơ chế varargs và băm theo các phần tử, vì vậy trong mã rất nhạy về hiệu năng cần đo đạc thay vì mặc định đó là lựa chọn tối ưu nhất.
+Its advantages are brevity, `null` handling, and consistency with component hashes. It uses varargs and hashes over the array elements, so in performance-critical code you should measure rather than assuming it is the fastest option.
 
-### Objects.hashCode(value)
+### `Objects.hashCode(value)`
 
-Phù hợp với **một giá trị có thể null**:
+Suitable for **a single nullable value**:
 
 ~~~java
 @Override
@@ -325,11 +325,11 @@ public int hashCode() {
 }
 ~~~
 
-Nếu id null, kết quả là 0; nếu không null, kết quả là id.hashCode(). Objects.hash(id) **không hoàn toàn tương đương** Objects.hashCode(id), nên hãy dùng công thức có chủ ý và nhất quán với equals. Không trộn lẫn hai cách một cách tùy tiện trong test so sánh hash tuyệt đối.
+If `id` is `null`, the result is `0`; otherwise, the result is `id.hashCode()`. `Objects.hash(id)` is **not completely equivalent** to `Objects.hashCode(id)`, so use each formula deliberately and consistently with `equals`. Do not mix the two arbitrarily in tests that compare exact hash numbers.
 
-### Kết hợp thủ công
+### Manual Combination
 
-Với nhiều trường, có thể áp dụng phép kết hợp tuần tự, ví dụ:
+For multiple fields, you can apply sequential accumulation, for example:
 
 ~~~java
 @Override
@@ -340,75 +340,75 @@ public int hashCode() {
 }
 ~~~
 
-Đây là minh họa cho lớp có hai trường nói trên. Phép nhân/cộng int có thể overflow, đó là hành vi số nguyên Java xác định được và không khiến công thức băm sai hợp đồng. Công thức không cần tạo mã duy nhất; điều cốt lõi là dữ liệu bằng nhau theo equals cho kết quả băm bằng nhau.
+This illustrates a class with the two fields mentioned above. `int` multiplication/addition may overflow, which is deterministic Java integer behavior and does not make the hash formula violate the contract. A formula does not need to generate unique codes; what matters is that data equal under `equals` yields equal hash results.
 
-**Không bao giờ dùng** một giá trị ngẫu nhiên, thời gian hệ thống hay bộ đếm tự tăng trong mỗi lần gọi hashCode của đối tượng có trạng thái so sánh không đổi. Cũng không dùng System.identityHashCode(this) để băm lớp có equals theo giá trị: hai đối tượng riêng biệt nhưng bằng nhau có thể nhận identity hash khác nhau.
+**Never use** a random value, system time, or an auto-incrementing counter on each `hashCode` call for an object whose comparison state has not changed. Also do not use `System.identityHashCode(this)` to hash a class with value-based `equals`: two distinct but equal objects can receive different identity hashes.
 
-## 7. Thiết kế khóa mutable và cache hashCode
+## 7. Mutable Key Design and Caching `hashCode`
 
-Nếu trường dùng trong equals bị thay đổi khi đối tượng nằm trong HashMap hoặc HashSet, hashCode có thể đổi theo, làm việc tra cứu hoặc xóa theo khóa trở nên sai kỳ vọng.
+If a field used in `equals` is modified while the object is inside a `HashMap` or `HashSet`, its `hashCode` may change as well, causing key lookups or removals to behave unexpectedly.
 
-Ví dụ về quy trình nguy hiểm:
+Example of a dangerous workflow:
 
 ~~~java
-// Minh họa logic, không phải chương trình độc lập:
+// Logic illustration, not a standalone program:
 set.add(key);
-key.setId("new-id"); // id được equals và hashCode sử dụng
-set.contains(key);    // Không thể dựa vào kết quả để tra cứu như trước
+key.setId("new-id"); // id is used by equals and hashCode
+set.contains(key);    // Cannot rely on the lookup result as before
 ~~~
 
-Không thể chỉ “đóng băng” hashCode trong một cache rồi tiếp tục cho phép id đổi: sau khi trạng thái thay đổi, các đối tượng có cùng id mới theo equals có thể mang hash khác nhau nếu từng cache kết quả cũ. Điều này lại gây vi phạm hợp đồng.
+You cannot simply "freeze" `hashCode` in a cache and keep letting `id` change: after the state changes, objects with the same new `id` under `equals` could carry different hashes if an old result was cached. That again violates the contract.
 
-Cách xử lý thực tế:
+Practical ways to handle this:
 
-1. Chọn các trường định danh bất biến khi có thể. Với khóa chứa mảng hoặc List, cân nhắc sao chép phòng vệ và không để lộ cấu trúc mutable.
-2. Nếu đối tượng đã nằm trong HashSet/HashMap, hạn chế sửa các trường quyết định equality; nếu bắt buộc đổi định danh, gỡ bằng trạng thái cũ trước khi sửa rồi thêm lại theo trạng thái mới.
-3. Chỉ cache hashCode khi mọi dữ liệu ảnh hưởng đến giá trị băm được giữ bất biến trong suốt vòng đời phù hợp của đối tượng. Cache không thay thế hợp đồng equals–hashCode.
+1. Choose immutable identifying fields whenever possible. For keys containing arrays or `List`s, consider defensive copying and avoid exposing mutable structures.
+2. If an object is already in a `HashSet`/`HashMap`, avoid mutating the fields that determine equality; if changing the identity is unavoidable, remove it under the old state before mutating and re-add it under the new state.
+3. Cache `hashCode` only when all data affecting the hash value remains immutable throughout the relevant lifetime of the object. Caching is no substitute for the `equals`–`hashCode` contract.
 
-Cũng cần cân nhắc đối tượng được truy cập đồng thời: trạng thái mutable cần bảo đảm đồng bộ hoặc thiết kế bất biến; một công thức hashCode đúng trên lý thuyết không tự tạo ra thread safety.
+Also consider concurrent access: mutable state requires proper synchronization or immutable design; a theoretically sound `hashCode` formula does not by itself provide thread safety.
 
-## 8. Kiểm thử để xác nhận chọn trường băm đúng
+## 8. Testing to Verify Proper Hash Field Selection
 
-Đừng chỉ kiểm tra hashCode một lần. Hãy tạo **nhiều đối tượng khác tham chiếu** nhưng bằng nhau theo mọi kịch bản có thể: đổi chữ hoa/thường nếu equality không phân biệt case; thay đổi trường hiển thị bị bỏ qua; thử các giá trị null hợp lệ; thử mảng có nội dung giống nhau; thử lớp con nếu có hệ phân cấp.
+Do not test `hashCode` just once. Create **multiple distinct object instances** that are equal across every possible scenario: vary letter case if equality is case-insensitive; change ignored display fields; test valid `null` values; test arrays with identical content; test subclasses if an inheritance hierarchy exists.
 
-Với hai đối tượng a và b có cùng danh tính logic:
+For two objects `a` and `b` with the same logical identity:
 
 ~~~java
 if (!a.equals(b)) {
-    throw new AssertionError("Đầu vào kiểm thử chưa bằng nhau theo equals");
+    throw new AssertionError("Test inputs are not equal according to equals");
 }
 if (a.hashCode() != b.hashCode()) {
-    throw new AssertionError("Vi phạm hợp đồng equals/hashCode");
+    throw new AssertionError("Violation of equals/hashCode contract");
 }
 ~~~
 
-Đoạn này chạy trong ngữ cảnh có a và b tương ứng; không phải chương trình đứng riêng. Sau đó kiểm tra hành vi thực tế của HashSet.contains hoặc HashMap.get bằng một đối tượng **mới nhưng bằng nhau**.
+This snippet runs in a context that has `a` and `b`; it is not a standalone program. Then verify the actual behavior of `HashSet.contains` or `HashMap.get` using a **new but equal** object.
 
-Bảng trường hợp nên bao phủ:
+Cases worth covering:
 
-| Trường hợp | Điều cần xác nhận |
+| Case | What to verify |
 | --- | --- |
-| Cùng các trường định danh, khác displayName | equals true, hash bằng nhau |
-| Cùng tenantId, SKU khác cách viết hoa/thường theo quy tắc | equals true, hash bằng nhau |
-| Khác tenantId, cùng SKU | equals false; hash có thể trùng |
-| Khác SKU và cùng tenantId | equals false; hash có thể trùng |
-| Hai String "Aa" và "BB" | hash trùng là hợp lệ, equals false |
-| Các giá trị null được hỗ trợ | Không ném NPE; equals/hash thống nhất |
-| Dữ liệu so sánh giữ nguyên, gọi hash nhiều lần | Mã băm ổn định |
-| Tạo khóa mới bằng khóa đã lưu trong Map | Lấy được giá trị tương ứng |
+| Same identifying fields, different `displayName` | `equals` is `true`, hashes are equal |
+| Same `tenantId`, SKU with different casing per rule | `equals` is `true`, hashes are equal |
+| Different `tenantId`, same SKU | `equals` is `false`; hashes may collide |
+| Different SKU and same `tenantId` | `equals` is `false`; hashes may collide |
+| Two `String`s `"Aa"` and `"BB"` | Hash collision is valid, `equals` is `false` |
+| Supported `null` values | No NPE thrown; `equals`/`hash` consistent |
+| Comparison data unchanged, multiple `hash` calls | Hash code is stable |
+| Create new key equal to a key stored in `Map` | Retrieves the corresponding value |
 
-**Không viết bài test yêu cầu x khác y thì hashCode bắt buộc khác nhau**. Điều đó không phải hợp đồng của Java và sẽ bác bỏ sai các triển khai hợp lệ có collision.
+**Do not write tests requiring that `x` different from `y` must have different `hashCode` values.** That is not part of Java's contract and will falsely reject valid implementations that happen to have collisions.
 
-Ngoài ra, hợp đồng equals còn có phản xạ, đối xứng, bắc cầu, nhất quán và so sánh null. Việc chọn đúng các trường trong hashCode không thay thế kiểm tra các điều kiện đó. Nếu dùng kế thừa và một lớp con thêm trường vào equals, cả định nghĩa equality lẫn tập trường băm phải được thiết kế để không phá vỡ quan hệ đối xứng/bắc cầu.
+In addition, the `equals` contract includes reflexivity, symmetry, transitivity, consistency, and `null` handling. Choosing the right fields in `hashCode` does not replace testing those properties. If inheritance is used and a subclass adds a field to `equals`, both the equality definition and the set of hash fields must be designed so they do not break symmetry or transitivity.
 
-## 9. Checklist khi review hashCode
+## 9. `hashCode` Review Checklist
 
-- **Bắt đầu từ equals:** chính xác những giá trị và quy tắc nào quyết định hai đối tượng bằng nhau?
-- **Dùng biểu diễn tương đương:** nếu equals chuẩn hóa, so sánh theo nội dung hay theo quy tắc số riêng, hash cũng cần phản ánh cùng quan hệ.
-- **Không thêm dữ liệu ngoài equality** khiến hai đối tượng bằng nhau có hash khác nhau.
-- **Ưu tiên dùng đủ dữ liệu định danh** để có phân bố hợp lý, nhưng nhớ không dùng hết trường không tự động làm hash sai hợp đồng.
-- **Chọn API đúng kiểu:** Objects.hash cho nhiều trường, Objects.hashCode cho một trường nullable, Arrays.hashCode cho mảng một chiều, Arrays.deepHashCode cho mảng lồng nhau nếu equals so sánh sâu.
-- **Bảo đảm ổn định:** tránh dữ liệu ngẫu nhiên, thời gian, identity hash khi equality theo giá trị, hoặc trạng thái mutable của khóa đã lưu.
-- **Kiểm tra bằng ví dụ cùng giá trị, khác tham chiếu:** equals true bắt buộc kéo theo hash bằng nhau; false không bắt buộc hash khác.
+- **Start from `equals`:** exactly which values and rules determine whether two objects are equal?
+- **Use an equivalent representation:** if `equals` normalizes values, compares by content, or follows special numeric rules, the hash must reflect that same relation.
+- **Do not add non-equality data** that could cause two equal objects to have different hashes.
+- **Prefer using all identifying data** for reasonable distribution, while remembering that omitting a field does not automatically break the contract.
+- **Pick the type-appropriate API:** `Objects.hash` for multiple fields, `Objects.hashCode` for a single nullable field, `Arrays.hashCode` for 1D arrays, `Arrays.deepHashCode` for nested arrays if `equals` compares deeply.
+- **Ensure stability:** avoid random values, timestamps, identity hash for value-based equality, or mutable state in stored keys.
+- **Test with equal-value, distinct-reference examples:** `equals == true` must imply equal hashes; `false` does not require different hashes.
 
-**Ghi nhớ:** lựa chọn dữ liệu băm đúng là lựa chọn một hàm *không phân biệt hai đối tượng mà equals coi là bằng nhau*. Sự tương thích với equals là điều bắt buộc; chất lượng phân bố, tốc độ và cách cài đặt là những mục tiêu cần tối ưu tiếp theo.
+**Remember:** choosing the right hash data means choosing a function that *never distinguishes two objects that `equals` considers equal*. Compatibility with `equals` is mandatory; distribution quality, speed, and implementation details are the secondary goals to optimize.

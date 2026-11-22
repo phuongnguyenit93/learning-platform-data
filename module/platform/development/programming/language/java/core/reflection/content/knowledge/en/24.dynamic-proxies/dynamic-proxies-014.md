@@ -1,33 +1,33 @@
-# Dynamic proxy qua interface và proxy bằng lớp con sinh bytecode trong Java
+# Interface-Based Dynamic Proxy vs. Bytecode-Generated Subclass Proxy in Java
 
-Trong Java Reflection, hai kỹ thuật thường được gọi chung là **proxy** vì cùng đặt một lớp trung gian trước hành vi thật để ghi log, kiểm tra quyền, đo thời gian, giao dịch hoặc gọi từ xa. Tuy nhiên, **JDK dynamic proxy** và **proxy dựa trên lớp con (subclass proxy)** có cấu trúc kiểu, cách chặn lời gọi và giới hạn hoàn toàn khác nhau.
+In Java Reflection, two techniques are both commonly called **proxy** because each places an intermediary layer in front of real behavior for logging, authorization, timing, transactions, or remote calls. However, **JDK dynamic proxies** and **subclass-based proxies (subclass proxies)** have completely different type structures, interception mechanisms, and limitations.
 
-Điểm dễ nhầm nhất: **JDK dynamic proxy cũng tạo ra bytecode/lớp ở runtime**. Sự khác biệt chính không phải “một bên sinh bytecode, một bên không”, mà là **lớp proxy được sinh ra implements các interface** hay **extends một lớp cụ thể và ghi đè các method có thể override**.
+Most common point of confusion: **JDK dynamic proxies also generate bytecode/classes at runtime**. The key difference is not "one generates bytecode and the other does not," but whether **the generated proxy class implements interfaces** or **extends a concrete class and overrides overridable methods**.
 
-## 1. Hai cơ chế ở cấp độ kiểu và lời gọi
+## 1. Two mechanisms at the type and call level
 
-### JDK dynamic proxy: đứng trước interface
+### JDK dynamic proxy: standing in front of interfaces
 
-Cho interface `Greeting` và implementation `GreetingImpl`:
+Given an interface `Greeting` and an implementation `GreetingImpl`:
 
 ```text
-Client giữ tham chiếu Greeting
+Client holds a Greeting reference
           |
           v
-Đối tượng proxy (lớp JVM tạo, extends java.lang.reflect.Proxy)
+Proxy object (JVM-generated class, extends java.lang.reflect.Proxy)
           | implements Greeting
           v
-Phương thức giao diện trên proxy
+Interface method on proxy
           |
           v
 InvocationHandler.invoke(proxy, method, args)
           |
-          +--> gọi GreetingImpl thật, hoặc thực hiện hành vi khác
+          +--> calls real GreetingImpl, or performs other behavior
 ```
 
-Khi gọi `greeting.say("An")`, lời gọi đi vào method do lớp proxy tạo rồi chuyển đến `InvocationHandler`. Handler **có thể** ủy quyền đến một target, trả kết quả giả lập, gọi qua mạng hoặc ném exception. JDK Proxy không bắt buộc có một target instance.
+When `greeting.say("An")` is called, execution enters the method generated on the proxy class and dispatches to `InvocationHandler`. The handler **may** delegate to a target, return a simulated result, call over the network, or throw an exception. JDK Proxy does not mandate having a target instance.
 
-Ví dụ khởi tạo:
+Initialization example:
 
 ```java
 Greeting proxy = (Greeting) Proxy.newProxyInstance(
@@ -36,48 +36,48 @@ Greeting proxy = (Greeting) Proxy.newProxyInstance(
         handler);
 ```
 
-Đây là **đoạn minh họa**: giả sử `Greeting` và `handler` đã được định nghĩa. Đối tượng trả về thỏa `proxy instanceof Greeting`, nhưng thông thường **không phải** instance của `GreetingImpl` dù handler đang chuyển lời gọi đến `GreetingImpl`. Lớp proxy kế thừa `java.lang.reflect.Proxy`, không kế thừa implementation `GreetingImpl`. Một lớp JDK proxy có thể implements nhiều interface hợp lệ.
+This is an **illustrative snippet**: assume `Greeting` and `handler` are already defined. The returned object satisfies `proxy instanceof Greeting`, yet normally it is **not** an instance of `GreetingImpl` even when the handler forwards calls to `GreetingImpl`. The proxy class extends `java.lang.reflect.Proxy`, not the implementation `GreetingImpl`. One JDK proxy class can implement multiple valid interfaces.
 
-### Subclass proxy: đứng trước một lớp cụ thể
+### Subclass proxy: standing in front of a concrete class
 
-Với lớp `Service` có method `work()` có thể ghi đè:
+Given a class `Service` with an overridable method `work()`:
 
 ```text
-Client giữ tham chiếu Service
+Client holds a Service reference
           |
           v
-Đối tượng thuộc lớp con do thư viện sinh ra
+Object of a library-generated subclass
           | extends Service
           v
-Method work() được override trong lớp con
+Overridden work() method in the subclass
           |
-          +--> interceptor trước lời gọi
-          +--> gọi super.work() / chuyển đến target (tùy cơ chế)
-          +--> interceptor sau lời gọi
+          +--> interceptor before call
+          +--> calls super.work() / forwards to target (depends on mechanism)
+          +--> interceptor after call
 ```
 
-Các thư viện như **Byte Buddy** hoặc **CGLIB** có thể tạo bytecode và định nghĩa một lớp con ở runtime, từ đó ghi đè method hợp lệ để cài logic trung gian. Đối tượng này có thể dùng như chính lớp cơ sở: `subclassProxy instanceof Service` là `true`. Không cần `Service` khai báo interface.
+Libraries such as **Byte Buddy** or **CGLIB** can generate bytecode and define a subclass at runtime, overriding eligible methods to insert intermediary logic. This object can be used just like the base class itself: `subclassProxy instanceof Service` is `true`. `Service` does not need to declare an interface.
 
-**Chú ý:** một thư viện sinh bytecode có thể hỗ trợ nhiều kiểu tạo lớp khác nhau; ở đây “subclass proxy” chỉ cơ chế cụ thể là sinh lớp `extends Service` và override method. Cách gọi target, lưu state và tạo instance tùy framework/cấu hình.
+**Note:** a bytecode-generation library may support multiple ways of creating classes; here "subclass proxy" specifically refers to generating a class that `extends Service` and overrides methods. How targets are called, state is stored, and instances are created depends on the framework and configuration.
 
-## 2. JDK Proxy chuyển lời gọi qua InvocationHandler như thế nào?
+## 2. How does JDK Proxy route calls through InvocationHandler?
 
-API trọng tâm nằm trong `java.lang.reflect.Proxy` và `java.lang.reflect.InvocationHandler`:
+The core APIs reside in `java.lang.reflect.Proxy` and `java.lang.reflect.InvocationHandler`:
 
-- `Proxy.newProxyInstance(loader, interfaces, handler)`: tạo instance của một lớp proxy hỗ trợ các interface được yêu cầu. Interface phải thỏa ràng buộc visibility, class loader và module của JVM.
-- `InvocationHandler.invoke(Object proxy, Method method, Object[] args)`: nhận proxy đang được gọi, metadata `Method` và đối số. Với method không tham số, `args` có thể là `null`.
-- `method.invoke(target, args)`: một cách **tùy chọn** để ủy quyền vào implementation; khi method thật ném exception, Reflection có thể bọc trong `InvocationTargetException`, cần xử lý cause.
-- `Proxy.isProxyClass(type)` và `Proxy.getInvocationHandler(proxy)`: giúp kiểm tra lớp JDK proxy và truy xuất handler khi thích hợp.
+- `Proxy.newProxyInstance(loader, interfaces, handler)`: creates an instance of a proxy class supporting the requested interfaces. Interfaces must satisfy JVM visibility, class loader, and module constraints.
+- `InvocationHandler.invoke(Object proxy, Method method, Object[] args)`: receives the proxy being invoked, `Method` metadata, and arguments. For parameterless methods, `args` may be `null`.
+- `method.invoke(target, args)`: an **optional** way to delegate to an implementation; when the real method throws an exception, Reflection may wrap it in `InvocationTargetException`, whose cause must be handled.
+- `Proxy.isProxyClass(type)` and `Proxy.getInvocationHandler(proxy)`: check for a JDK proxy class and retrieve its handler when appropriate.
 
-Không phải lời gọi Java nào trên đối tượng proxy cũng vào handler. Các interface instance method sẽ được chuyển qua handler; `equals(Object)`, `hashCode()` và `toString()` khai báo từ `Object` cũng được chuyển đến handler. Ngược lại, `getClass()` là method `final` của `Object` và không bị handler chặn. Static method của interface không được gọi bằng dispatch của instance proxy.
+Not every Java call on a proxy object enters the handler. Interface instance methods are routed through the handler; `equals(Object)`, `hashCode()`, and `toString()` declared on `Object` are also routed to the handler. Conversely, `getClass()` is a `final` method on `Object` and is not intercepted by the handler. Interface `static` methods are not invoked via instance proxy dispatch.
 
-**Default method của interface:** invocation qua proxy vẫn được chuyển tới handler; handler phải quyết định xử lý, chẳng hạn ủy quyền cho target có implementation hoặc dùng `InvocationHandler.invokeDefault(...)` (Java 16+), nếu phù hợp. Đừng mặc định mọi default method sẽ tự chạy mà không qua handler.
+**Interface default methods:** calls through a proxy still route to the handler; the handler must decide how to handle them, such as delegating to a target implementation or using `InvocationHandler.invokeDefault(...)` (Java 16+) where appropriate. Do not assume default methods automatically run without passing through the handler.
 
-**Kiểu của proxy:** caller nên giữ proxy bằng biến interface. Nếu cố cast proxy JDK sang lớp implementation cụ thể, có thể gặp `ClassCastException`. Method chỉ có ở implementation và **không nằm trong interface được proxy implements** cũng không thể gọi qua API interface đó.
+**Proxy type:** callers should hold the proxy in an interface variable. Trying to cast a JDK proxy to a concrete implementation class can throw `ClassCastException`. Methods present only on the implementation and **not on the implemented proxy interfaces** also cannot be called through that interface API.
 
-## 3. Subclass proxy chặn lời gọi bằng override như thế nào?
+## 3. How does a subclass proxy intercept calls via overriding?
 
-Một subclass proxy có thể được hình dung bằng mã nguồn do người viết tự tạo sau; thư viện thật sinh cấu trúc tương đương bằng bytecode thay vì cần viết sẵn lớp này:
+A subclass proxy can be pictured via the hand-written source code below; a real library generates an equivalent structure in bytecode instead of requiring you to write this class manually:
 
 ```java
 class Service {
@@ -97,41 +97,41 @@ class ServiceProxyLike extends Service {
 }
 ```
 
-Đây là **đoạn minh họa cấu trúc**, không phải bằng chứng rằng thư viện nào cũng gọi `super.work()`. Một số proxy gọi method gốc trên chính instance lớp con, trong khi proxy của framework khác có thể chuyển tiếp đến target instance riêng hoặc dùng interceptor chain. Cấu trúc bytecode và đường đi thực tế phải kiểm tra theo framework đang dùng.
+This is a **structural illustration**, not proof that every library calls `super.work()`. Some proxies invoke the original method on the subclass instance itself, while proxies from other frameworks may forward to a separate target instance or use an interceptor chain. Actual bytecode structure and call paths must be checked against the framework in use.
 
-Giới hạn cốt lõi xuất phát từ luật kế thừa/override của Java:
+Core limitations stem from Java's inheritance and overriding rules:
 
-- **`final class`** không thể được subclass. Record mặc nhiên là `final`; sealed class cũng hạn chế danh sách lớp được phép kế thừa.
-- **`final instance method`** không thể bị override. Một subclass proxy thuần túy không thể chèn interceptor thông qua override của method ấy.
-- **`private method`** không được override; **`static method`** được resolve theo lớp, không tham gia virtual dispatch/override. Constructor cũng không phải method được override.
-- Method `public`/`protected` và method package-private có thể override **khi các quy tắc truy cập và package cho phép**. Module encapsulation, class loader và cách định nghĩa lớp có thể đặt thêm giới hạn.
-- Việc tạo instance cần một chiến lược hợp lệ: constructor có thể được gọi hoặc framework có thể dùng kỹ thuật instantiation riêng. Vì vậy **không được suy ra** từ chữ “subclass proxy” rằng constructor target chạy đúng một lần theo một cách cố định.
+- A **`final class`** cannot be subclassed. Records are implicitly `final`; sealed classes also restrict the list of permitted subclasses.
+- A **`final` instance method** cannot be overridden. A pure subclass proxy cannot insert an interceptor by overriding that method.
+- A **`private` method** cannot be overridden; a **`static` method** resolves by class and does not participate in virtual dispatch/overriding. Constructors are not overridden methods either.
+- `public`/`protected` methods and package-private methods can be overridden **when access and package rules permit**. Module encapsulation, class loaders, and class definition mechanisms can impose further restrictions.
+- Instantiation requires a valid strategy: a constructor may be invoked, or a framework may use specialized instantiation techniques. Therefore **you must not deduce** from the phrase "subclass proxy" that the target constructor runs exactly once in one fixed manner.
 
-Một method `final` vẫn có thể được **gọi** trên subclass instance nếu được kế thừa và truy cập hợp lệ; điều thiếu là điểm override để chèn logic. Kết quả thực tế còn phụ thuộc cách framework quản lý state và target.
+A `final` method can still be **called** on a subclass instance if inherited and accessible; what is missing is an override point to insert logic. Actual outcomes also depend on how the framework manages state and targets.
 
-## 4. So sánh trực diện
+## 4. Direct comparison
 
-| Tiêu chí | JDK dynamic proxy | Proxy là lớp con sinh bytecode |
+| Criterion | JDK dynamic proxy | Bytecode-generated subclass proxy |
 |---|---|---|
-| Kiểu proxy | Lớp sinh ra extends `Proxy`, implements interface | Lớp sinh ra extends lớp đích |
-| Điều kiện chính | Cần một hoặc nhiều interface phù hợp | Cần lớp đích có thể kế thừa và method có thể override |
-| `instanceof` | Đúng với interface được proxy implements | Đúng với lớp cơ sở |
-| Điểm chặn | Method trong lớp proxy chuyển tới `InvocationHandler.invoke` | Override method đi qua interceptor/logic trong lớp con |
-| Method chỉ có ở concrete class | Không trở thành API của proxy nếu không nằm trên interface | Có thể chặn nếu được kế thừa và override hợp lệ |
-| Method `final` của concrete class | Không áp dụng để chọn method qua interface; không proxy concrete class | Không thể chặn bằng override |
-| `private`/`static` method của target | Không được gọi qua interface instance dispatch | Không thể override/chặn bằng override |
-| Multiple interfaces | Có thể implements nhiều interface | Lớp con chỉ có một superclass nhưng có thể implements interface |
-| Target instance thật | Không bắt buộc; handler quyết định | Phụ thuộc framework: có thể gọi `super` hoặc target riêng |
-| Cách tạo proxy | API JDK sẵn có | Thường dùng thư viện như Byte Buddy/CGLIB |
-| Kiểu sử dụng thích hợp | Contract dựa trên interface | Cần duy trì kiểu concrete class hoặc class không có interface |
+| Proxy type | Generated class extends `Proxy`, implements interfaces | Generated class extends target class |
+| Main prerequisite | Needs one or more valid interfaces | Needs an inheritable target class and overridable methods |
+| `instanceof` | True for interfaces implemented by the proxy | True for the base class |
+| Interception point | Methods on proxy class forward to `InvocationHandler.invoke` | Overridden methods pass through interceptor/logic in subclass |
+| Methods only on concrete class | Do not become proxy API unless present on an interface | Can be intercepted if inherited and validly overridden |
+| `final` methods on concrete class | Not applicable to interface method selection; cannot proxy concrete class | Cannot be intercepted by overriding |
+| `private`/`static` methods on target | Not invoked via interface instance dispatch | Cannot be overridden/intercepted via override |
+| Multiple interfaces | Can implement multiple interfaces | Subclass has only one superclass, though it can implement interfaces |
+| Real target instance | Optional; decided by handler | Depends on framework: may call `super` or a separate target |
+| Proxy creation | Built-in JDK API | Typically uses libraries like Byte Buddy/CGLIB |
+| Ideal usage | Interface-based contracts | When concrete class type must be preserved or class lacks interfaces |
 
-Cả hai đều chịu quy tắc về type identity, class loader, module và visibility của JVM. Cả hai cũng có chi phí runtime nhất định; không nên khẳng định cơ chế nào **luôn** nhanh hơn nếu chưa đo với workload và framework thực tế.
+Both are governed by JVM rules for type identity, class loaders, modules, and visibility. Both also carry some runtime overhead; you should not claim one mechanism is **always** faster without benchmarking with real workloads and frameworks.
 
-## 5. Chương trình Java 17+ minh họa cả hai đường đi
+## 5. Java 17+ program demonstrating both paths
 
-Ví dụ sau chạy chỉ với JDK. Phần JDK Proxy dùng proxy thật; phần lớp con được **viết tay để mô phỏng chính xác ý tưởng override**, tránh yêu cầu tải thêm thư viện Byte Buddy/CGLIB. Ví dụ không giả vờ rằng lớp viết tay là bytecode do thư viện tự sinh.
+The following example runs using only the JDK. The JDK Proxy part uses a real proxy; the subclass part is **hand-written to accurately simulate the override concept**, avoiding requiring extra Byte Buddy/CGLIB dependencies. The example does not pretend the hand-written class is library-generated bytecode.
 
-Lưu thành **`ProxyVsSubclassDemo.java`**:
+Save as **`ProxyVsSubclassDemo.java`**:
 
 ```java
 import java.lang.reflect.InvocationTargetException;
@@ -163,7 +163,7 @@ public class ProxyVsSubclassDemo {
         }
     }
 
-    // Minh họa cấu trúc lớp mà thư viện sinh bytecode có thể tạo.
+    // Illustrates the class structure a bytecode-generation library can produce.
     static class ServiceSubclassDemo extends Service {
         @Override
         String work() {
@@ -206,7 +206,7 @@ public class ProxyVsSubclassDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac --release 17 -encoding UTF-8 ProxyVsSubclassDemo.java
@@ -228,81 +228,81 @@ fixed
 subclass instanceof Service = true
 ```
 
-**Giải thích kết quả:**
+**Output explanation:**
 
-1. Khi gọi `interfaceProxy.say("An")`, method của lớp proxy JDK gọi handler. Handler in `[interface] say`, rồi dùng Reflection gọi `GreetingImpl.say`.
-2. Proxy implements `Greeting` nhưng không extends `GreetingImpl`; do đó hai dòng `instanceof` lần lượt là `true` và `false`. Superclass trực tiếp là `Proxy`.
-3. `ServiceSubclassDemo` là một lớp con của `Service`. Method `work()` được override, in log trước/sau và gọi `super.work()`; đây là **cơ chế override** mà thư viện sinh subclass có thể tạo tự động.
-4. `fixed()` là `final` và không được override trong `ServiceSubclassDemo`. Nó vẫn trả `fixed`, không đi qua log `[subclass]`.
-5. `subclassProxy` vẫn là `Service` theo `instanceof` và có thể được truyền vào chỗ nhận `Service`, khác với JDK interface proxy khi code cần concrete type `GreetingImpl`.
+1. When calling `interfaceProxy.say("An")`, the JDK proxy class method calls the handler. The handler prints `[interface] say`, then uses Reflection to invoke `GreetingImpl.say`.
+2. The proxy implements `Greeting` but does not extend `GreetingImpl`; therefore the two `instanceof` lines are `true` and `false` respectively. Its direct superclass is `Proxy`.
+3. `ServiceSubclassDemo` is a subclass of `Service`. `work()` is overridden, prints before/after logs, and calls `super.work()`; this is the **override mechanism** that subclass-generating libraries can produce automatically.
+4. `fixed()` is `final` and is not overridden in `ServiceSubclassDemo`. It still returns `fixed`, bypassing the `[subclass]` logs.
+5. `subclassProxy` is still a `Service` per `instanceof` and can be passed wherever a `Service` is expected, unlike a JDK interface proxy when code requires the concrete type `GreetingImpl`.
 
-Lưu ý: trong handler, `method.invoke(target, arguments)` có thể gây `InvocationTargetException`; ví dụ đã bóc cause để giữ exception thật của method. Nếu thay `target` bằng chính `proxy` rồi gọi lại cùng method, handler có thể gọi đệ quy vô hạn.
+Note: inside the handler, `method.invoke(target, arguments)` can throw `InvocationTargetException`; the example unwraps the cause to preserve the method's real exception. If you replace `target` with `proxy` itself and call the same method again, the handler can recurse infinitely.
 
-## 6. Những khác biệt có tác động khi dùng framework
+## 6. Differences that matter when using frameworks
 
-### Không có interface, hoặc caller cần concrete type
+### No interface, or callers require the concrete type
 
-Nếu API nhận `Service` như concrete class và cần thay đối tượng bằng proxy vẫn là `Service`, một JDK proxy chỉ implements `ServiceInterface` (nếu có) thường không thể cast thành `Service`. Proxy theo subclass có thể phù hợp **nếu** `Service` cho phép kế thừa và có các method cần chặn có thể override.
+If an API accepts `Service` as a concrete class and needs to swap the object for a proxy that is still a `Service`, a JDK proxy implementing only `ServiceInterface` (if one exists) generally cannot be cast to `Service`. A subclass proxy can fit **if** `Service` allows inheritance and the methods to intercept are overridable.
 
-Ngược lại, nếu API đã thống nhất dựa trên interface, JDK proxy cung cấp hợp đồng rõ ràng và dùng trực tiếp API chuẩn của Java. Một implementation với method bổ sung ngoài interface sẽ không tự được thêm vào contract proxy.
+Conversely, if the API is already standardized around interfaces, JDK proxy provides a clean contract and uses Java's standard API directly. An implementation with extra methods outside the interface will not automatically be added to the proxy contract.
 
-### Self-invocation không thể kết luận chỉ từ chữ “proxy”
+### Self-invocation cannot be deduced from the word "proxy" alone
 
-Hãy phân biệt **virtual dispatch của Java** với **cách framework gọi target**:
+Distinguish **Java virtual dispatch** from **how a framework invokes the target**:
 
-- Nếu một instance của lớp con thực sự gọi method được override thông qua `this.work()`, Java có thể dispatch vào override của lớp con.
-- Nếu một framework đặt proxy bên ngoài một **target instance riêng**, lời gọi nội bộ `this.work()` trên target có thể đi thẳng vào target và **bỏ qua proxy**.
-- Vì vậy với Spring AOP hay các framework tương tự, cần xem **thiết kế proxy, chuỗi interceptor và đối tượng nào thực thi lời gọi**, chứ không mặc định subclass proxy sẽ xử lý mọi self-invocation.
+- If an instance of the subclass directly invokes an overridden method via `this.work()`, Java can dispatch to the subclass override.
+- If a framework places a proxy around a **separate target instance**, an internal `this.work()` call on the target can go straight to the target and **bypass the proxy**.
+- Therefore, with Spring AOP or similar frameworks, inspect **the proxy design, interceptor chain, and which object executes the call**, rather than assuming a subclass proxy intercepts every self-invocation.
 
-### Lỗi và giới hạn thường gặp
+### Common errors and limitations
 
-| Hiện tượng | Cách giải thích hoặc kiểm tra |
+| Symptom | Explanation or what to check |
 |---|---|
-| `ClassCastException` khi cast JDK proxy sang implementation | Proxy chỉ nhận danh tính qua interface được implements, không kế thừa implementation |
-| Không chặn được method `final` | Subclass không thể override; cân nhắc interface proxy, đổi API/method hoặc một kỹ thuật instrumentation khác nếu được thiết kế |
-| Không tạo được subclass | Kiểm tra class `final`/record/sealed, constructor phù hợp, quyền truy cập, package và module |
-| JDK proxy gặp method có checked exception | Nếu handler ném checked exception ngoài danh sách `throws` được method giao diện cho phép, caller có thể nhận `UndeclaredThrowableException` |
-| Handler bất ngờ chạy khi log proxy | `toString()` và các method `Object` nói trên có thể đi vào handler; cẩn thận vòng lặp đệ quy |
-| Không nhìn thấy method concrete-only qua JDK proxy | Thêm hành vi vào interface nếu đó thật sự là phần contract cần công khai |
-| Tên lớp proxy hoặc hành vi khác giữa môi trường | Không phụ thuộc tên lớp sinh ra; kiểm tra version JVM/thư viện, class loader và module configuration |
+| `ClassCastException` when casting JDK proxy to implementation | Proxy takes identity only from implemented interfaces, does not extend implementation |
+| Cannot intercept `final` method | Subclass cannot override; consider an interface proxy, changing the API/method, or another instrumentation technique if designed for it |
+| Cannot generate subclass | Check `final`/record/sealed class, suitable constructors, access rights, package, and module |
+| JDK proxy encounters a method with checked exceptions | If the handler throws a checked exception outside the interface method's `throws` list, callers may receive `UndeclaredThrowableException` |
+| Handler runs unexpectedly when logging proxy | `toString()` and the `Object` methods mentioned above can enter the handler; watch out for recursive loops |
+| Concrete-only methods invisible through JDK proxy | Add behavior to the interface if it truly belongs to the public contract |
+| Proxy class name or behavior differs across environments | Do not depend on generated class names; check JVM/library versions, class loaders, and module configuration |
 
-Không nên dùng tên dạng `$Proxy...` hoặc tên lớp con được generator sinh làm định danh ổn định. Chúng là chi tiết triển khai. Dùng interface/class contract cùng API metadata phù hợp để nhận diện.
+Do not use `$Proxy...` names or generator-produced subclass names as stable identifiers. They are implementation details. Use interface/class contracts and appropriate metadata APIs for identification.
 
-## 7. Chọn cơ chế nào?
+## 7. Which mechanism to choose?
 
-- **Ưu tiên JDK dynamic proxy** khi lớp đích đã có interface phù hợp, ứng dụng gọi qua interface, và muốn một lớp trung gian cho log, quyền truy cập, đo đạc hay remote invocation bằng thư viện chuẩn.
-- **Xem xét subclass proxy** khi caller cần đúng kiểu concrete class hoặc lớp đích không có interface, đồng thời các method cần chặn có thể override, lớp có thể được kế thừa và môi trường cho phép tạo/định nghĩa lớp.
-- **Kiểm tra framework thực tế** khi làm việc với Spring AOP, Hibernate hoặc mocking library: một framework có thể lựa chọn chiến lược proxy theo cấu hình và trường hợp sử dụng; việc dùng Byte Buddy/CGLIB không tự chứng minh mọi method được chặn hay mọi constructor chạy theo cùng một đường.
+- **Prefer JDK dynamic proxy** when the target class already has suitable interfaces, the application programs to interfaces, and you want an intermediary layer for logging, access control, metrics, or remote invocation using standard library APIs.
+- **Consider subclass proxy** when callers require the exact concrete class type or the target class has no interfaces, while the methods to intercept are overridable, the class is inheritable, and the environment permits defining classes.
+- **Inspect the actual framework** when working with Spring AOP, Hibernate, or mocking libraries: a framework can choose its proxy strategy by configuration and use case; using Byte Buddy/CGLIB does not by itself prove every method is intercepted or every constructor runs the same way.
 
-Đặt yêu cầu trước khi lựa chọn: **caller đang dùng interface hay class? Method cần chặn có thể override không? Proxy có target riêng hay chính là instance thực thi?** Ba câu trả lời này thường xác định hướng phù hợp.
+Ask these questions before choosing: **Are callers using an interface or a class? Are the methods to intercept overridable? Does the proxy wrap a separate target or is it the executing instance itself?** Those three answers usually point to the right direction.
 
-## 8. Tự kiểm tra
+## 8. Self-check
 
-**Câu 1.** JDK dynamic proxy có sinh bytecode không?
+**Q1.** Does JDK dynamic proxy generate bytecode?
 
-**Có.** Nó tạo lớp proxy ở runtime; khác biệt là lớp ấy extends `Proxy` và implements interface, không extends implementation concrete.
+**Yes.** It generates a proxy class at runtime; the difference is that this class extends `Proxy` and implements interfaces, rather than extending a concrete implementation.
 
-**Câu 2.** Có thể cast JDK proxy của `Greeting` thành `GreetingImpl` chỉ vì handler chuyển tiếp đến `GreetingImpl` không?
+**Q2.** Can you cast a JDK proxy of `Greeting` to `GreetingImpl` merely because the handler forwards to `GreetingImpl`?
 
-**Không.** Việc handler gọi một target không làm thay đổi quan hệ kế thừa của proxy object.
+**No.** Having the handler call a target does not alter the proxy object's inheritance hierarchy.
 
-**Câu 3.** Nếu `Service` là `final class`, thư viện có thể dùng cơ chế subclass proxy thông thường không?
+**Q3.** If `Service` is a `final class`, can a library use a standard subclass proxy mechanism?
 
-**Không.** Java cấm kế thừa final class. Có thể cần thiết kế dựa trên interface hoặc một kỹ thuật khác với subclassing.
+**No.** Java forbids extending final classes. You may need an interface-based design or a technique other than subclassing.
 
-**Câu 4.** Một method `final` có thể chạy trên subclass instance không? Có bị chặn qua override không?
+**Q4.** Can a `final` method run on a subclass instance? Can it be intercepted via overriding?
 
-**Có thể chạy nếu được kế thừa và truy cập hợp lệ**, nhưng **không thể chặn bằng override** trong lớp con.
+**It can run if inherited and accessible**, yet **it cannot be intercepted by overriding** in the subclass.
 
-**Câu 5.** Vì sao việc gọi `this.someMethod()` đôi khi bypass interceptor dù framework dùng class-based proxy?
+**Q5.** Why does calling `this.someMethod()` sometimes bypass interceptors even when a framework uses class-based proxies?
 
-Vì framework có thể thực thi method trên **target instance riêng** hoặc có quy tắc interception riêng; phải phân tích nơi diễn ra dispatch, không suy từ hình thức lớp proxy.
+Because the framework may execute methods on a **separate target instance** or have specific interception rules; you must analyze where dispatch happens rather than guessing from the proxy class shape.
 
-## Tài liệu tham khảo chuẩn
+## Standard References
 
 - Java SE 17 API: [`java.lang.reflect.Proxy`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Proxy.html).
 - Java SE 17 API: [`java.lang.reflect.InvocationHandler`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/InvocationHandler.html).
-- Java Language Specification §8.4.8 (override), §8.1.1.2 (final class), §15.12 (method invocation).
-- Tài liệu Byte Buddy và CGLIB của đúng phiên bản đang sử dụng khi cần xác minh chiến lược tạo lớp, interceptor và instantiation.
+- Java Language Specification §8.4.8 (overriding), §8.1.1.2 (final classes), §15.12 (method invocation).
+- Byte Buddy and CGLIB documentation for the exact version in use when verifying class generation, interceptor, and instantiation strategies.
 
-**Ghi nhớ:** JDK Proxy dùng một lớp implements interface để chuyển lời gọi tới `InvocationHandler`; subclass proxy dùng một lớp extends concrete class, thường chặn hành vi qua override. Cả hai có thể sinh bytecode ở runtime, nhưng **hình dạng kiểu và điểm chặn lời gọi khác nhau**, nên khả năng cast, phạm vi method và giới hạn `final` cũng khác nhau.
+**Takeaway:** JDK Proxy uses a class implementing interfaces to route calls to `InvocationHandler`; subclass proxy uses a class extending a concrete class, typically intercepting behavior via overriding. Both can generate bytecode at runtime, yet **their type shapes and interception points differ**, so casting rules, method scope, and `final` constraints differ as well.

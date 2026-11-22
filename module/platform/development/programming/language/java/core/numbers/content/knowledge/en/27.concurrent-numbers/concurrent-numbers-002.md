@@ -1,8 +1,8 @@
-# volatile không làm phép tăng trở thành nguyên tử
+# volatile Does Not Make an Increment Atomic
 
-## 1. Tình huống: hai luồng cùng tăng một biến đếm
+## 1. Scenario: Two Threads Incrementing a Counter
 
-Một ứng dụng Java có nhiều luồng cùng ghi nhận sự kiện. Ta dùng một biến đếm:
+A Java application has multiple threads recording events. We use a counter variable:
 
 ~~~java
 class Counter {
@@ -14,78 +14,78 @@ class Counter {
 }
 ~~~
 
-Nhiều người cho rằng thêm `volatile` khiến mọi luồng “luôn thấy giá trị mới nhất”, nên hai luồng mỗi luồng gọi `increment()` một lần thì chắc chắn `value == 2`. Kết luận đó **sai**.
+Many people assume that adding `volatile` makes every thread "always see the latest value," so if two threads each call `increment()` once, `value == 2` is guaranteed. That conclusion is **wrong**.
 
-`volatile` giải quyết các vấn đề nhất định về **khả năng nhìn thấy thay đổi giữa các luồng (visibility)** và **thứ tự bộ nhớ (ordering)** theo Java Memory Model. Nó **không biến một chuỗi đọc – tính toán – ghi thành một thao tác nguyên tử (atomic read-modify-write)**.
+`volatile` solves specific issues regarding **visibility of changes across threads** and **memory ordering** under the Java Memory Model. It **does not turn a read–compute–write sequence into an atomic read-modify-write operation**.
 
-Nếu hai luồng cùng đọc `value == 0` trước khi luồng nào ghi lại, cả hai đều có thể tính ra `1` rồi cùng ghi `1`. Sau hai lần “tăng”, kết quả vẫn là `1`: một lần cập nhật đã bị mất (**lost update**).
+If two threads both read `value == 0` before either writes back, both can compute `1` and both write `1`. After two "increments," the result is still `1`: one update has been lost (**lost update**).
 
-Bài học này tập trung vào cách phân biệt visibility và atomicity, nhận ra lỗi trong `++`/`+=`, tái hiện lỗi có kiểm soát, chọn `AtomicInteger`, `synchronized` hoặc `Lock`, và kiểm thử đúng hợp đồng đồng thời.
+This lesson focuses on distinguishing visibility from atomicity, recognizing bugs in `++`/`+=`, reproducing the bug deterministically, choosing between `AtomicInteger`, `synchronized`, or `Lock`, and properly testing concurrency contracts.
 
-## 2. volatile thực sự bảo đảm điều gì?
+## 2. What Does volatile Actually Guarantee?
 
-Trong Java, một trường được khai báo:
+In Java, a field declared as:
 
 ~~~java
 private volatile int count;
 ~~~
 
-có các đặc tính quan trọng:
+has important properties:
 
-1. **Visibility:** các thao tác đọc/ghi `volatile` tuân theo quan hệ đồng bộ của Java Memory Model. Một lần ghi volatile *happens-before* các lần đọc tiếp theo của **cùng biến volatile** trong thứ tự đồng bộ. Nhờ đó, thông tin được công bố đúng cách có thể được nhìn thấy bởi luồng đọc.
-2. **Ordering:** thao tác volatile thiết lập những ràng buộc sắp xếp cần thiết đối với các thao tác bộ nhớ liên quan. Ví dụ, khi một luồng ghi dữ liệu thông thường rồi ghi một cờ volatile, luồng khác đọc được giá trị cờ đã công bố có thể nhìn thấy những ghi dữ liệu trước đó theo quan hệ happens-before.
-3. **Từng lần truy cập volatile là một thao tác đọc hoặc ghi với ngữ nghĩa đồng bộ:** truy cập riêng lẻ tới một biến `volatile int`/`volatile long` không bị “xé” thành hai nửa. Nhưng **toàn bộ biểu thức `count++`** vẫn có nhiều bước.
+1. **Visibility:** `volatile` reads and writes obey the synchronization order of the Java Memory Model. A volatile write *happens-before* subsequent reads of **the same volatile variable** in the synchronization order. As a result, properly published information becomes visible to the reading thread.
+2. **Ordering:** volatile operations establish necessary ordering constraints on related memory operations. For example, when a thread writes ordinary data and then writes a volatile flag, another thread that reads the published flag value can see those earlier data writes via the happens-before relationship.
+3. **Each volatile access is a single read or write with synchronization semantics:** an individual access to a `volatile int`/`volatile long` cannot be "torn" in half. However, **the entire `count++` expression** still consists of multiple steps.
 
-Cụm “luôn thấy giá trị mới nhất” chỉ là cách nói trực giác, dễ gây hiểu lầm. Một luồng đọc tại một thời điểm vẫn có thể đọc giá trị trước khi luồng khác thực hiện lần ghi kế tiếp. `volatile` **không bắt các luồng chờ nhau** và không đảm bảo rằng giá trị đọc sẽ không đổi trước khi luồng đọc ghi ngược trở lại.
+The phrase "always sees the latest value" is merely an intuitive phrasing that easily misleads. A reading thread at a given moment can still read a value before another thread performs the next write. `volatile` **does not make threads wait for each other** and does not guarantee that the value read will remain unchanged before the reading thread writes back.
 
-### Happens-before không đồng nghĩa atomic transaction
+### Happens-Before Does Not Mean an Atomic Transaction
 
-Giả sử luồng A ghi `data = 42` rồi `ready = true` (trường `ready` khai báo volatile). Luồng B đọc `ready == true` theo đúng giao thức công bố, rồi đọc `data`: các ghi trước lần công bố volatile của A được đặt trước các thao tác sau lần đọc tương ứng của B theo quan hệ happens-before.
+Suppose Thread A writes `data = 42` and then `ready = true` (where `ready` is declared volatile). Thread B reads `ready == true` following the proper publication protocol, and then reads `data`: writes before A's volatile publication are ordered before operations after B's corresponding read via happens-before.
 
-Điều này rất hữu ích cho **cờ trạng thái** hoặc **công bố trạng thái đã hoàn tất**. Nhưng nếu hai luồng cùng viết `data = data + 1`, thì điều kiện cập nhật dựa trên giá trị cũ cần **atomicity** riêng. Cờ volatile không tự bảo vệ phép tính đó.
+This is very useful for **status flags** or **publishing completed state**. However, if two threads both write `data = data + 1`, the update condition based on the old value requires separate **atomicity**. A volatile flag does not automatically protect that computation.
 
-| Nhu cầu | volatile đơn thuần đáp ứng? | Vì sao |
+| Requirement | Does `volatile` alone satisfy it? | Why |
 |---|---|---|
-| Một luồng ghi cờ dừng, luồng khác đọc cờ | Có thể phù hợp | Giao thức một cờ đơn giản, đọc/ghi độc lập |
-| Nhiều luồng cùng gọi `counter++`, không mất cập nhật | **Không** | Đọc và ghi tách rời, có thể xen kẽ |
-| Ghi một tham chiếu tới cấu hình bất biến đã xây dựng xong | Có thể phù hợp | Công bố tham chiếu qua volatile tạo quan hệ visibility |
-| Nhiều luồng cập nhật từng trường của đối tượng do tham chiếu volatile trỏ tới | **Không tự động** | volatile trên tham chiếu không khóa các trường bên trong |
-| Chuyển tiền: kiểm tra số dư rồi trừ tiền như một hành động | **Không** | Điều kiện và thay đổi phải cùng được bảo vệ |
-| Đọc snapshot nhất quán của nhiều biến | **Không tự động** | Từng lần đọc độc lập có thể thuộc các thời điểm khác nhau |
+| One thread writes a stop flag, another reads it | Can be suitable | Simple single-flag protocol, independent reads/writes |
+| Multiple threads call `counter++` without losing updates | **No** | Read and write are separate and can interleave |
+| Writing a reference to a fully constructed immutable config | Can be suitable | Publishing the reference via volatile creates visibility |
+| Multiple threads update individual fields of the object pointed to by a volatile reference | **Not automatically** | `volatile` on the reference does not lock inner fields |
+| Money transfer: check balance then deduct as one action | **No** | Condition and mutation must be protected together |
+| Reading a consistent snapshot of multiple variables | **Not automatically** | Independent reads may come from different points in time |
 
-## 3. Vì sao count++ là ba bước logic?
+## 3. Why Is count++ Three Logical Steps?
 
-Biểu thức:
+The expression:
 
 ~~~java
 count++;
 ~~~
 
-về mặt logic thực hiện:
+logically executes:
 
 ~~~text
-1. Đọc giá trị hiện tại của count.
-2. Tính giá trị mới = giá trị đã đọc + 1.
-3. Ghi giá trị mới trở lại count.
+1. Read the current value of count.
+2. Compute the new value = read value + 1.
+3. Write the new value back to count.
 ~~~
 
-Đây là mô hình logic của biểu thức, **không phải cam kết ba lệnh máy hoặc ba bytecode cố định**. Compiler và JVM có thể tối ưu nhưng vẫn phải tôn trọng Java Memory Model; việc có hai thao tác truy cập volatile trong một read-modify-write không tạo ra một transaction không thể bị xen vào.
+This is the logical model of the expression, **not a guarantee of three fixed machine instructions or three bytecodes**. The compiler and JVM may optimize while still respecting the Java Memory Model; having two volatile accesses inside one read-modify-write does not create an uninterruptible transaction.
 
-Một interleaving hợp lệ:
+A valid interleaving:
 
-| Thứ tự | Luồng A | Luồng B | Giá trị lưu trong count |
+| Order | Thread A | Thread B | Value stored in count |
 |---|---|---|---|
 | 0 | — | — | 0 |
-| 1 | Đọc 0 | — | 0 |
-| 2 | — | Đọc 0 | 0 |
-| 3 | Tính 1 | — | 0 |
-| 4 | — | Tính 1 | 0 |
-| 5 | Ghi 1 | — | 1 |
-| 6 | — | Ghi 1 | 1 |
+| 1 | Reads 0 | — | 0 |
+| 2 | — | Reads 0 | 0 |
+| 3 | Computes 1 | — | 0 |
+| 4 | — | Computes 1 | 0 |
+| 5 | Writes 1 | — | 1 |
+| 6 | — | Writes 1 | 1 |
 
-Cả hai lần đọc đều hợp lệ, vì tại thời điểm đó chưa có luồng nào ghi 1. Không có vấn đề “không nhìn thấy cập nhật” xảy ra; **cập nhật bị mất do hai lần tính độc lập cùng dựa trên trạng thái cũ**.
+Both reads are valid because at that moment neither thread had written 1. No "missed visibility of an update" occurred; **an update was lost because two independent computations were based on the same old state**.
 
-Những biểu thức sau cũng là thao tác ghép và **không trở thành atomic chỉ nhờ volatile**:
+The following expressions are also compound operations and **do not become atomic just because of volatile**:
 
 ~~~java
 counter = counter + 1;
@@ -97,18 +97,18 @@ if (counter == 0) {
 }
 ~~~
 
-Đoạn trên chỉ minh họa các cách cập nhật trên biến `counter` có thể được khai báo trong phương thức/lớp; những biểu thức này không tự bảo vệ toàn bộ quan hệ đọc–kiểm tra–ghi. Với phép gán có điều kiện, hai luồng có thể cùng thấy 0 và cùng gán 1. Nếu phép tính phụ thuộc trạng thái hiện tại, hãy xem nó là một thao tác cần phân tích tính nguyên tử.
+The snippet above only illustrates ways of updating a `counter` variable declared in a method or class; these expressions do not automatically protect the entire read–check–write relationship. With a conditional assignment, two threads can both observe 0 and both assign 1. Whenever a computation depends on current state, treat it as an operation requiring atomicity analysis.
 
-## 4. Chương trình Java 17+ tái hiện lost update có kiểm soát
+## 4. A Java 17+ Program to Deterministically Reproduce Lost Updates
 
-Các bài thử đơn giản tạo 100 luồng rồi gọi `counter++` nhiều lần **có thể** tình cờ ra kết quả đúng, bởi lịch chạy luồng không được bảo đảm. Để chứng minh vấn đề mà không phụ thuộc vào may rủi, ví dụ sau dùng hai latch:
+Naive tests that spawn 100 threads calling `counter++` many times **might** coincidentally produce the right result, because thread scheduling is not guaranteed. To prove the issue without relying on luck, the following example uses two latches:
 
-- Cả hai luồng **phải đọc giá trị cũ** rồi mới báo đã đọc.
-- Chỉ khi cả hai đã đọc xong, luồng chính mới cho phép hai luồng ghi.
-- Mỗi luồng ghi đúng `snapshot + 1`, nên hai lần tăng dựa trên cùng `snapshot == 0` và chỉ còn 1.
-- Phần đối chiếu dùng thao tác `AtomicInteger.incrementAndGet()` cho kết quả 2.
+- Both threads **must read the old value** and then signal they have read.
+- Only when both have finished reading does the main thread allow both threads to write.
+- Each thread writes exactly `snapshot + 1`, so two increments based on the same `snapshot == 0` leave only 1.
+- The comparison part uses `AtomicInteger.incrementAndGet()`, yielding 2.
 
-Lưu trong **`VolatileLostUpdateDemo.java`**:
+Save in **`VolatileLostUpdateDemo.java`**:
 
 ~~~java
 import java.util.concurrent.CountDownLatch;
@@ -160,73 +160,73 @@ public class VolatileLostUpdateDemo {
 }
 ~~~
 
-Chạy bằng JDK 17 trở lên:
+Run with JDK 17 or later:
 
 ~~~bash
 javac VolatileLostUpdateDemo.java
 java VolatileLostUpdateDemo
 ~~~
 
-Kết quả chính xác:
+Exact output:
 
 ~~~text
 volatile count = 1
 atomic count   = 2
 ~~~
 
-Lưu ý: hai latch không phải thủ thuật để “làm cho volatile hỏng”; chúng chỉ ép một **interleaving hợp lệ** mà chương trình concurrent thực sự có thể gặp. `bothRead.await()` bảo đảm cả hai lần đọc đã diễn ra; `releaseWrites.countDown()` cho phép hai lần ghi tiếp tục. Không có lần ghi nào trước khi cả hai đã đọc, nên cả hai giữ `snapshot == 0`. Từng write vẫn là write volatile hợp lệ, nhưng không có cơ chế giải quyết lost update.
+Note: the two latches are not a trick to "break volatile"; they simply enforce a **valid interleaving** that a concurrent program can genuinely encounter. `bothRead.await()` ensures both reads have occurred; `releaseWrites.countDown()` lets the two writes proceed. Neither write happens before both reads complete, so both hold `snapshot == 0`. Each write is still a valid volatile write, yet there is no mechanism to prevent the lost update.
 
-Khi dùng `AtomicInteger.incrementAndGet()`, mỗi lần tăng là một read-modify-write nguyên tử; hai lần tăng thành công từ 0 cho kết quả 2. `join()` chờ luồng hoàn thành và bảo đảm luồng chính đọc kết quả sau khi các thao tác trong luồng đã kết thúc theo quan hệ happens-before.
+When using `AtomicInteger.incrementAndGet()`, each increment is an atomic read-modify-write; two successful increments from 0 yield 2. `join()` waits for thread completion and ensures the main thread reads the result after the operations in the threads have finished under the happens-before relationship.
 
-**Không dùng `Thread.sleep()` để khẳng định tái hiện race condition.** Sleep chỉ gợi ý thời gian, không ép thứ tự xảy ra. Cũng không kết luận `volatile++` an toàn vì một lần chạy 1 triệu phép tăng tình cờ cho đúng tổng.
+**Do not use `Thread.sleep()` to claim you have reproduced a race condition.** Sleep only hints at timing; it does not enforce execution order. Likewise, do not conclude `volatile++` is safe just because a run of 1 million increments happened to produce the right sum.
 
-## 5. Phân biệt visibility, atomicity và mutual exclusion
+## 5. Distinguishing Visibility, Atomicity, and Mutual Exclusion
 
-Ba khái niệm liên quan nhưng không thay thế được nhau:
+These three concepts are related but cannot substitute for one another:
 
-- **Visibility:** một luồng nhìn thấy thông tin được luồng khác công bố đúng quan hệ bộ nhớ. `volatile`, monitor lock, các lớp atomic và nhiều primitive đồng bộ giúp thiết lập visibility.
-- **Atomicity:** một hành động quan sát/cập nhật cần diễn ra như một đơn vị không bị xen giữa tại mức trừu tượng đang xét. `AtomicInteger.incrementAndGet()` bảo đảm cho **một biến atomic**; `synchronized` có thể bảo vệ một vùng logic lớn hơn.
-- **Mutual exclusion:** tại một thời điểm chỉ một luồng giữ lock cần thiết để thực hiện vùng thao tác. `synchronized` hoặc `ReentrantLock` có thể bảo vệ cả chuỗi check-then-act trên nhiều biến nếu **mọi đường đọc/ghi liên quan tuân theo cùng lock**.
+- **Visibility:** one thread sees information published by another thread according to memory ordering rules. `volatile`, monitor locks, atomic classes, and many synchronization primitives establish visibility.
+- **Atomicity:** an observe/update action must occur as a single indivisible unit at the abstraction level being considered. `AtomicInteger.incrementAndGet()` guarantees this for **one atomic variable**; `synchronized` can protect a larger logical region.
+- **Mutual exclusion:** at any time, only one thread holds the required lock to execute a region of operations. `synchronized` or `ReentrantLock` can protect an entire check-then-act sequence across multiple variables if **all related read/write paths follow the same lock**.
 
-`volatile` cung cấp những quan hệ memory-order cần thiết nhưng **không cấp khóa**. `AtomicInteger` thực hiện một số thao tác nguyên tử trên một trạng thái, thường không cần monitor; tuy vậy **nhiều thao tác atomic nối nhau vẫn chưa chắc tạo thành một transaction**. Ví dụ `balance.get() >= amount` rồi `balance.addAndGet(-amount)` có thể bị luồng khác xen vào nếu logic yêu cầu thao tác kiểm tra và trừ phải đi cùng nhau.
+`volatile` provides necessary memory-order relationships but **grants no lock**. `AtomicInteger` performs certain atomic operations on a single state, typically without a monitor; however, **chaining multiple atomic operations still does not necessarily form a transaction**. For example, `balance.get() >= amount` followed by `balance.addAndGet(-amount)` can be interleaved by another thread if business logic requires the check and deduction to happen together.
 
-## 6. Giải pháp khi cần tăng số đếm không mất cập nhật
+## 6. Solutions for Incrementing Without Lost Updates
 
-### 6.1. AtomicInteger và AtomicLong
+### 6.1. AtomicInteger and AtomicLong
 
-Khi nhiều luồng cập nhật **một bộ đếm nguyên** độc lập, chọn `AtomicInteger` (int) hoặc `AtomicLong` (long):
+When multiple threads update **a single independent integer counter**, choose `AtomicInteger` (int) or `AtomicLong` (long):
 
 ~~~java
 import java.util.concurrent.atomic.AtomicInteger;
 
 AtomicInteger counter = new AtomicInteger(0);
-int after = counter.incrementAndGet();  // tăng nguyên tử, trả giá trị mới
-int before = counter.getAndIncrement(); // tăng nguyên tử, trả giá trị trước tăng
-int current = counter.get();           // đọc trạng thái atomic
+int after = counter.incrementAndGet();  // atomically increment, return new value
+int before = counter.getAndIncrement(); // atomically increment, return pre-increment value
+int current = counter.get();           // read atomic state
 ~~~
 
-Đây là đoạn minh họa đặt trong phương thức. Lưu ý hai hàm trả giá trị khác nhau, dù cả hai đều tăng đúng một đơn vị:
+This is an illustrative snippet placed inside a method. Note the two methods return different values, even though both increment by exactly one unit:
 
-| Thao tác trên counter = 5 | Giá trị trả về | Giá trị lưu sau thao tác |
+| Operation on counter = 5 | Return value | Stored value after operation |
 |---|---:|---:|
 | `incrementAndGet()` | 6 | 6 |
 | `getAndIncrement()` | 5 | 6 |
 | `addAndGet(3)` | 8 | 8 |
 | `getAndAdd(3)` | 5 | 8 |
 
-Bảng xét từng thao tác **độc lập**, bắt đầu từ cùng giá trị 5. Những lần tăng này dùng thao tác nguyên tử (trong triển khai thường thông qua CAS hoặc intrinsic phù hợp), không chỉ thêm từ khóa volatile vào một `int`.
+The table considers each operation **independently**, starting from the same value 5. These increments use atomic operations (typically implemented via CAS or an appropriate intrinsic), not merely adding `volatile` to an `int`.
 
-Nếu đếm dài hạn có thể vượt giới hạn `int`, dùng `AtomicLong`, nhưng kiểu `long` cũng hữu hạn. `AtomicInteger.incrementAndGet()` **vẫn có thể overflow và wrap** tại `Integer.MAX_VALUE`; nó chỉ bảo đảm atomicity, không tự kiểm tra điều kiện toán học. Nếu phải từ chối overflow, có thể dùng:
+If long-running counts may exceed `int` limits, use `AtomicLong`, though `long` is finite as well. `AtomicInteger.incrementAndGet()` **can still overflow and wrap** at `Integer.MAX_VALUE`; it only guarantees atomicity, not automatic mathematical bounds checking. If overflow must be rejected, you can use:
 
 ~~~java
 counter.updateAndGet(Math::incrementExact);
 ~~~
 
-`updateAndGet` áp dụng hàm tới giá trị trước đó và thử cập nhật nguyên tử; hàm có thể được JVM gọi lại khi cạnh tranh, nên phải **thuần (side-effect-free)**. `Math.incrementExact` ném `ArithmeticException` nếu cộng 1 vượt giới hạn int; không sinh side effect ngoài phép tính.
+`updateAndGet` applies the function to the previous value and attempts an atomic update; the function may be re-invoked by the JVM under contention, so it must be **pure (side-effect-free)**. `Math.incrementExact` throws `ArithmeticException` if adding 1 exceeds `int` bounds; it produces no side effect beyond the calculation.
 
-### 6.2. synchronized cho chuỗi thao tác
+### 6.2. synchronized for a Sequence of Operations
 
-Khi muốn toàn bộ read-modify-write đi cùng nhau, một monitor bảo vệ cả phép tăng:
+When the entire read-modify-write must stay together, a monitor protects the whole increment:
 
 ~~~java
 public final class SynchronizedCounter {
@@ -242,11 +242,11 @@ public final class SynchronizedCounter {
 }
 ~~~
 
-Đây là lớp có thể biên dịch độc lập trong file `SynchronizedCounter.java`, nhưng không có `main`. Hai phương thức `synchronized` instance sử dụng cùng monitor của **một instance**. Nếu mọi truy cập đến `value` đều thông qua các phương thức đồng bộ đúng quy tắc, `volatile` trên `value` là **không cần thiết**: monitor cung cấp cả mutual exclusion và quan hệ visibility.
+This is a class that can compile standalone in `SynchronizedCounter.java`, though it has no `main`. The two `synchronized` instance methods use the same monitor of **one instance**. If all accesses to `value` go through properly synchronized methods, `volatile` on `value` is **unnecessary**: the monitor provides both mutual exclusion and visibility relationships.
 
-Nếu viết `synchronized void increment()` nhưng ở chỗ khác vẫn trực tiếp đọc/ghi `value` mà không cùng lock, thiết kế có thể còn race hoặc thiếu visibility. Cần kiểm soát mọi đường truy cập, không chỉ một method.
+If you write `synchronized void increment()` while elsewhere directly reading or writing `value` without the same lock, the design may still suffer from races or lack of visibility. Control every access path, not just one method.
 
-### 6.3. ReentrantLock khi cần điều khiển lock tường minh
+### 6.3. ReentrantLock When Explicit Lock Control Is Needed
 
 ~~~java
 import java.util.concurrent.locks.ReentrantLock;
@@ -275,11 +275,11 @@ public final class LockedCounter {
 }
 ~~~
 
-Lưu thành `LockedCounter.java` nếu muốn biên dịch lớp này riêng. Mẫu `try/finally` là cần thiết để luôn unlock khi phép tính ném exception. Mọi đường truy cập state phải dùng **cùng lock**. `ReentrantLock` hữu ích khi cần `tryLock`, timeout, interruptible locking hoặc `Condition`; đừng tự tăng độ phức tạp nếu `synchronized` đã đủ.
+Save as `LockedCounter.java` if you want to compile this class separately. The `try/finally` pattern is necessary to always unlock if an exception is thrown. Every path accessing state must use **the same lock**. `ReentrantLock` is useful when you need `tryLock`, timeouts, interruptible locking, or `Condition`; do not add unnecessary complexity if `synchronized` suffices.
 
-### 6.4. LongAdder cho bộ đếm thống kê tranh chấp cao
+### 6.4. LongAdder for High-Contention Statistical Counters
 
-`LongAdder` thường có throughput tốt cho nhiều luồng cùng cộng vào **metric/counter**:
+`LongAdder` typically offers good throughput when many threads concurrently add to a **metric/counter**:
 
 ~~~java
 import java.util.concurrent.atomic.LongAdder;
@@ -290,11 +290,11 @@ requests.add(4L);
 long observed = requests.sum();
 ~~~
 
-Mã trên là ví dụ đặt trong một method. `sum()` có thể không phải **snapshot nguyên tử** khi các luồng khác vẫn cập nhật; một phép `sum` đồng thời với nhiều phép tăng không phù hợp nếu bạn cần số thứ tự duy nhất, giới hạn quota cứng hoặc quyết định phải chính xác tại một thời điểm. Nếu cần giá trị nguyên tử của một bộ đếm, ưu tiên `AtomicLong`; nếu cần nhất quán nhiều điều kiện, chọn cơ chế đồng bộ logic phù hợp.
+The code above is an example placed inside a method. `sum()` may not be an **atomic snapshot** while other threads are still updating; a `sum` concurrent with multiple increments is unsuitable if you need unique sequence numbers, hard quota limits, or decisions that must be exact at a single point in time. If you need an atomic value for a counter, prefer `AtomicLong`; if consistency across multiple conditions is needed, choose an appropriate logic synchronization mechanism.
 
-## 7. CAS là gì? Vì sao compareAndSet hữu ích?
+## 7. What Is CAS? Why Is compareAndSet Useful?
 
-**Compare-and-set (CAS)** diễn đạt yêu cầu: “chỉ cập nhật thành giá trị mới nếu giá trị hiện tại vẫn là giá trị mình mong đợi”. Với `AtomicInteger`:
+**Compare-and-set (CAS)** expresses the requirement: "update to the new value only if the current value is still the expected one." With `AtomicInteger`:
 
 ~~~java
 AtomicInteger state = new AtomicInteger(0);
@@ -304,9 +304,9 @@ boolean success2 = state.compareAndSet(0, 2); // false
 System.out.println(state.get());              // 1
 ~~~
 
-Đoạn này nằm trong method có import `java.util.concurrent.atomic.AtomicInteger`. Lần thứ nhất thấy 0 và đặt thành 1 nguyên tử. Lần thứ hai kỳ vọng 0 nhưng trạng thái đã là 1, nên thất bại mà không ghi. CAS không thể bỏ qua bước xác minh trạng thái nếu yêu cầu là update điều kiện.
+This snippet lives in a method with `import java.util.concurrent.atomic.AtomicInteger`. The first call sees 0 and atomically sets it to 1. The second expects 0, but state is already 1, so it fails without writing. CAS cannot skip state verification when a conditional update is required.
 
-Vòng lặp CAS thường có dạng:
+A CAS loop typically looks like this:
 
 ~~~java
 int observed;
@@ -317,15 +317,15 @@ do {
 } while (!state.compareAndSet(observed, updated));
 ~~~
 
-Giả sử `state` là `AtomicInteger` đã được khởi tạo. Nếu luồng khác cập nhật giữa `get` và `compareAndSet`, CAS thất bại, vòng lặp đọc lại và tính lại. Không phải phép cộng tự nhiên đã atomic: **thao tác commit có điều kiện** mới giúp ngăn mất cập nhật.
+Assume `state` is an initialized `AtomicInteger`. If another thread updates between `get` and `compareAndSet`, CAS fails, and the loop re-reads and recomputes. Addition itself is not naturally atomic: **the conditional commit operation** prevents lost updates.
 
-Có thể dùng `incrementAndGet` thay vòng lặp trên khi không cần chính sách riêng; triển khai của lớp atomic đã cung cấp thao tác phù hợp. Vòng lặp CAS có thể lặp nhiều lần khi tranh chấp cao, nên tránh gọi API có side effect, gửi email, ghi log nghiệp vụ hoặc trừ số dư ngoài hệ thống từ bên trong hàm có thể bị tính lại.
+You can use `incrementAndGet` instead of the loop above when no custom policy is needed; the atomic class implementation already provides the appropriate operation. A CAS loop may iterate multiple times under high contention, so avoid calling APIs with side effects, sending emails, writing business logs, or deducting external balances inside a function that may be retried.
 
-**Chú ý phạm vi:** CAS của một `AtomicInteger` chỉ cập nhật nguyên tử một giá trị đó. Nếu cần đồng bộ số dư và một lịch sử giao dịch, phải có cơ chế phối hợp toàn bộ state; CAS một bộ đếm không tự trở thành database transaction.
+**Scope note:** CAS on a single `AtomicInteger` atomically updates only that one value. If you need to synchronize a balance and a transaction history, a mechanism coordinating the entire state is required; CAS on a counter does not automatically become a database transaction.
 
-## 8. Khi nào volatile một mình là hợp lý?
+## 8. When Is volatile Alone Reasonable?
 
-`volatile` vẫn quan trọng và hữu dụng. Ví dụ một luồng phụ thực hiện công việc theo cờ dừng được điều khiển bởi luồng khác:
+`volatile` remains important and useful. For example, a background thread performs work governed by a stop flag controlled by another thread:
 
 ~~~java
 public final class StopFlag {
@@ -341,20 +341,20 @@ public final class StopFlag {
 }
 ~~~
 
-Đây là lớp có thể biên dịch trong `StopFlag.java`. Với mô hình **một cờ điều khiển đơn giản**, ghi `true` và đọc cờ là các truy cập độc lập; không có việc nhiều writer cần phối hợp cộng dồn. Luồng thực hiện công việc phải kiểm tra `shouldStop()` theo chu kỳ và biết cách kết thúc. Trong tác vụ có blocking I/O/sleep/wait, `Thread.interrupt()` hoặc cơ chế hủy cấp cao có thể cần thiết; một cờ không tự đánh thức luồng đang chờ.
+This is a compilable class in `StopFlag.java`. With a **simple single control flag** model, writing `true` and reading the flag are independent accesses; there are no multiple writers needing coordinated accumulation. The worker thread must check `shouldStop()` periodically and know how to terminate. In tasks involving blocking I/O/sleep/wait, `Thread.interrupt()` or higher-level cancellation may be necessary; a flag will not wake a blocked thread on its own.
 
-Một trường hợp khác là **công bố tham chiếu cấu hình bất biến**: tạo đầy đủ đối tượng immutable rồi ghi tham chiếu vào trường volatile; các reader đọc tham chiếu đó có thể thấy trạng thái đã được công bố. Tuy nhiên, nếu bên trong đối tượng có `ArrayList` mutable và các luồng thay đổi danh sách mà không đồng bộ, `volatile` trên tham chiếu không bảo vệ những lần thay đổi đó.
+Another case is **publishing an immutable configuration reference**: fully construct the immutable object, then write its reference to a volatile field; readers reading that reference can see the published state. However, if the object contains a mutable `ArrayList` and threads mutate the list without synchronization, `volatile` on the reference does not protect those mutations.
 
-### volatile trên tham chiếu, mảng, wrapper và số 64 bit
+### volatile on References, Arrays, Wrappers, and 64-bit Numbers
 
-- `volatile int[] numbers` làm lần đọc/ghi **tham chiếu mảng** có ngữ nghĩa volatile; nó **không khiến `numbers[0]++` atomic**. Khi cần atomic cho từng phần tử, xem `AtomicIntegerArray` hoặc lock.
-- `volatile Integer count` cũng không biến `count++` thành atomic; mỗi lần tăng còn có unboxing/boxing và thay tham chiếu. Nếu giá trị có thể null, unboxing còn có thể ném `NullPointerException`.
-- `volatile long value` bảo đảm một lần đọc/ghi biến long là atomic theo Java Memory Model; nhưng `value++` vẫn không atomic. Đừng nhầm atomic access tới 64 bit với atomic read-modify-write.
-- `volatile` không bảo đảm thứ tự xử lý logic trên **nhiều biến**. Hai field volatile riêng không tạo ra snapshot nhất quán nếu writer cập nhật chúng từng bước.
+- `volatile int[] numbers` gives volatile semantics to reading/writing the **array reference**; it **does not make `numbers[0]++` atomic**. When element-level atomicity is needed, look at `AtomicIntegerArray` or locks.
+- `volatile Integer count` does not make `count++` atomic either; each increment also involves unboxing/boxing and swapping the reference. If the value can be null, unboxing can even throw `NullPointerException`.
+- `volatile long value` guarantees that a single read or write of the `long` variable is atomic under the Java Memory Model; however, `value++` is still not atomic. Do not confuse atomic 64-bit access with atomic read-modify-write.
+- `volatile` does not guarantee logical processing order across **multiple variables**. Two separate volatile fields do not produce a consistent snapshot if a writer updates them step by step.
 
-## 9. Check-then-act và nhiều biến: lỗi khó hơn counter++
+## 9. Check-Then-Act and Multiple Variables: Harder Bugs Than counter++
 
-Lỗi mất cập nhật chỉ là ví dụ đơn giản. Xét một quy tắc nghiệp vụ:
+Lost updates are just a simple example. Consider a business rule:
 
 ~~~java
 if (availableSeats > 0) {
@@ -363,28 +363,28 @@ if (availableSeats > 0) {
 }
 ~~~
 
-Đây là pseudocode Java nằm trong method có các biến/phương thức tương ứng. Ngay cả khi `availableSeats` là volatile, **hai luồng có thể cùng thấy 1, cùng đi vào nhánh, và cùng gọi `reserveSeat()`**. Kết quả có thể là hai lượt đặt chỗ dù chỉ còn một ghế. `availableSeats--` bị race, và gọi `reserveSeat()` còn là side effect cần bảo vệ.
+This is Java pseudocode inside a method with corresponding variables/methods. Even if `availableSeats` is volatile, **two threads can both see 1, both enter the branch, and both call `reserveSeat()`**. The result can be two bookings when only one seat remained. `availableSeats--` races, and calling `reserveSeat()` is also a side effect requiring protection.
 
-Nếu chỉ cần giảm một biến nguyên với điều kiện lớn hơn 0, có thể viết một vòng CAS để đọc điều kiện và cập nhật cùng nhau. Nhưng nếu `reserveSeat()` cần lưu dữ liệu qua DB, gọi dịch vụ ngoài hoặc phối hợp nhiều biến, còn cần transaction/lock/idempotency thích hợp ở đúng hệ thống giữ state. Một `AtomicInteger` trong JVM **không bảo vệ dữ liệu trên nhiều tiến trình hoặc nhiều instance dịch vụ**.
+If you only need to decrement an integer variable conditional on it being greater than 0, you can write a CAS loop to check the condition and update together. But if `reserveSeat()` needs to persist to a DB, call an external service, or coordinate multiple variables, appropriate transactions/locks/idempotency are needed at the actual system holding the state. An `AtomicInteger` in one JVM **does not protect data across multiple processes or multiple service instances**.
 
-Tương tự, công thức `if (balance.get() >= withdrawal) balance.addAndGet(-withdrawal)` không phải hành động nguyên tử chỉ vì `balance` là `AtomicInteger`: check và update tách rời. Phải đặt điều kiện và update trong một CAS loop hoặc cùng critical section; khi có nhiều nguồn dữ liệu phải mở rộng giải pháp cho toàn bộ invariant.
+Similarly, `if (balance.get() >= withdrawal) balance.addAndGet(-withdrawal)` is not an atomic action just because `balance` is an `AtomicInteger`: check and update are separate. The condition and update must be placed in one CAS loop or the same critical section; when multiple data sources exist, the solution must cover the entire invariant.
 
-## 10. Kiểm thử race condition đúng cách
+## 10. Properly Testing Race Conditions
 
-Đừng dùng sự ngẫu nhiên của thread scheduler làm điều kiện thành công của test. Một chương trình chạy 1.000.000 vòng có thể **không gặp interleaving lỗi trên máy hiện tại**, nhưng không chứng minh an toàn. Lệnh `Thread.sleep(100)` chỉ gây trễ; nó không cung cấp hợp đồng bảo đảm một luồng đã đọc trước khi luồng khác ghi.
+Do not rely on thread scheduler randomness as a test's success criterion. A program running 1,000,000 iterations may **never hit the faulty interleaving on the current machine**, which proves nothing about safety. `Thread.sleep(100)` only introduces a delay; it provides no contract ensuring one thread read before another wrote.
 
-Cách kiểm thử hữu ích:
+Useful testing approaches:
 
-1. **Tái hiện lịch chạy có chủ đích:** như hai `CountDownLatch` trong `VolatileLostUpdateDemo`, ép cả hai đọc cùng trạng thái cũ rồi cùng ghi.
-2. **Khẳng định bất biến:** với n luồng, mỗi luồng tăng m lần bằng phương thức atomic/lock đúng, sau `join` giá trị mong đợi là `n × m` nếu không overflow và không lần nào thất bại.
-3. **Kiểm thử trạng thái biên:** counter gần `Integer.MAX_VALUE`, giá trị âm, overflow, thao tác reset đồng thời với tăng, lỗi interrupt hoặc exception.
-4. **Kiểm thử toàn bộ state:** nếu nghiệp vụ có điều kiện check-then-act hoặc nhiều trường, test phải bao quát điều kiện và hành động, không chỉ tăng số nguyên.
-5. **Quan sát và kiểm toán:** đối với tác vụ bất đồng bộ, dùng latch, barrier, executor và timeout hợp lý để tránh test treo; ghi nhận lỗi từ thread con thay vì để thread chết mà test không biết.
-6. **Phân biệt kiểm thử chức năng và stress:** stress test hữu ích để tìm lỗi nhưng không thay cho phân tích happens-before và tính nguyên tử của giao thức.
+1. **Intentionally reproduce schedules:** like the two `CountDownLatch` instances in `VolatileLostUpdateDemo`, force both to read the same old state and then both write.
+2. **Assert invariants:** with n threads, each incrementing m times using a proper atomic/locked method, after `join` the expected value is `n × m` assuming no overflow and no failed attempts.
+3. **Test boundary states:** counters near `Integer.MAX_VALUE`, negative values, overflow, concurrent reset operations alongside increments, interrupts, or exceptions.
+4. **Test the entire state:** if business logic has check-then-act conditions or multiple fields, tests must cover both condition and action, not just incrementing an integer.
+5. **Observation and auditing:** for asynchronous tasks, use latches, barriers, executors, and sensible timeouts to avoid hanging tests; capture errors from child threads rather than letting a thread die unnoticed by the test.
+6. **Distinguish functional testing from stress testing:** stress tests are useful for uncovering bugs, but they do not replace analyzing happens-before and protocol atomicity.
 
-### Ví dụ đối chiếu giá trị mong đợi
+### Example Checking Expected Values
 
-Khi dùng `AtomicInteger`:
+When using `AtomicInteger`:
 
 ~~~java
 AtomicInteger safe = new AtomicInteger();
@@ -396,59 +396,59 @@ if (safe.get() != 2) {
 }
 ~~~
 
-Đây là đoạn minh họa đặt trong một method có import `AtomicInteger`. Để kiểm chứng trong đa luồng, cần tạo/đồng bộ thread và chờ tất cả hoàn tất trước assertion, tương tự ví dụ chạy được ở phần 4. `get()` trong lúc các luồng còn chạy cho kết quả tại thời điểm đọc, không tự mang nghĩa “tổng cuối”.
+This is an illustrative snippet placed inside a method with `AtomicInteger` imported. To verify under multithreading, create/synchronize threads and wait for all to complete before the assertion, similar to the runnable example in Section 4. `get()` while threads are still running returns the value at the time of reading, not inherently the "final total."
 
-### Không nhầm visibility sau join với tính nguyên tử
+### Do Not Confuse Post-Join Visibility with Atomicity
 
-Sau khi gọi `thread.join()` thành công, luồng đang chờ có quan hệ happens-before cần thiết với các thao tác luồng vừa kết thúc; nhưng điều đó **không phục hồi cập nhật đã mất** trước khi join. Trong ví dụ hai luồng ghi cùng 1, main thấy 1 chính xác và đầy đủ sau join. Vấn đề nằm ở việc **hai luồng đã thực hiện hai read-modify-write không nguyên tử**, không phải lỗi đọc kết quả cuối.
+After `thread.join()` completes successfully, the waiting thread has the necessary happens-before relationship with the operations of the terminated thread; however, that **does not recover updates already lost** before joining. In the example where two threads both write 1, main accurately and completely observes 1 after `join`. The flaw lay in **two threads performing two non-atomic read-modify-write operations**, not in reading the final result.
 
-## 11. Chọn cơ chế theo yêu cầu
+## 11. Choosing a Mechanism Based on Requirements
 
-| Nhu cầu | Lựa chọn thường phù hợp | Giới hạn cần nhớ |
+| Requirement | Commonly suitable choice | Limitations to remember |
 |---|---|---|
-| Một cờ dừng/công bố trạng thái với giao thức đơn giản | `volatile boolean`/tham chiếu volatile | Không đồng bộ side effect phức tạp hoặc nhiều trạng thái |
-| Nhiều luồng tăng một số nguyên chính xác | `AtomicInteger`/`AtomicLong` | Có thể overflow; một thao tác atomic không thay transaction |
-| Nhiều luồng cộng số metric với mức tranh chấp cao | `LongAdder` | `sum()` không phải snapshot atomic khi có cập nhật |
-| Cập nhật điều kiện một trường nguyên | CAS hoặc `updateAndGet` với hàm thuần | Cần xử lý retry và cạnh tranh |
-| Cần bảo vệ một chuỗi thao tác hoặc nhiều trường | `synchronized` hoặc `ReentrantLock` | Mọi đường truy cập phải dùng cùng lock |
-| Cần nhất quán trạng thái của DB/đa tiến trình | Transaction, lock/atomic update cấp lưu trữ | Bộ nhớ atomic trong một JVM không đủ |
+| A stop flag / state publication with a simple protocol | `volatile boolean` / volatile reference | Does not synchronize complex side effects or multiple states |
+| Multiple threads accurately incrementing an integer | `AtomicInteger` / `AtomicLong` | Can overflow; one atomic operation does not replace a transaction |
+| Multiple threads summing metrics under high contention | `LongAdder` | `sum()` is not an atomic snapshot during updates |
+| Conditional update of one integer field | CAS or `updateAndGet` with a pure function | Must handle retries and contention |
+| Protecting a sequence of operations or multiple fields | `synchronized` or `ReentrantLock` | Every access path must use the same lock |
+| State consistency across DB / multiple processes | Transactions, storage-level locks / atomic updates | In-memory atomics inside a single JVM are insufficient |
 
-Không có từ khóa nào thay cho việc xác định **đơn vị nguyên tử của bài toán**. Nếu đơn vị đó chỉ là một lần tăng, một thao tác `AtomicInteger` có thể là đủ. Nếu đơn vị là “kiểm tra hạn mức, tạo hóa đơn, trừ hạn mức và ghi lịch sử”, cần giải pháp bảo vệ cả quy trình ở phạm vi chia sẻ state thực tế.
+No keyword can replace identifying the **atomic unit of the problem**. If that unit is just a single increment, one `AtomicInteger` operation may suffice. If the unit is "check quota, create invoice, deduct quota, and write history," you need a solution protecting the entire workflow at the actual shared state boundary.
 
-## 12. Lỗi phổ biến
+## 12. Common Mistakes
 
-- **Cho rằng volatile khiến ++ atomic:** một lần đọc volatile và một lần ghi volatile vẫn bị các luồng khác xen giữa.
-- **Đổi `volatile int` thành `volatile long` để “an toàn hơn”:** mở rộng miền giá trị nhưng không sửa lost update.
-- **Dùng `AtomicInteger.get()` rồi `set(get() + 1)`:** hai lệnh atomic riêng lẻ vẫn **không phải atomic increment**. Dùng `incrementAndGet` hoặc CAS đúng.
-- **Cho rằng `synchronized` trên một method là đủ dù các nơi khác ghi không lock:** mọi đường truy cập tới invariant phải thống nhất.
-- **Dùng `LongAdder` để cấp ID duy nhất hoặc xử lý hạn mức cứng:** `sum` không cung cấp snapshot tuyến tính hóa theo cách đó.
-- **Đọc hai field volatile rồi tin snapshot nhất quán:** mỗi field có thể đến từ một giai đoạn cập nhật khác nhau.
-- **Chỉ chạy thử nhiều vòng rồi kết luận không có race:** race là vấn đề tính đúng với mọi lịch chạy cho phép, không được chứng minh bằng một vài lần chạy.
-- **Giải quyết bằng `sleep`, `yield` hoặc `Thread.onSpinWait`:** chúng có thể tác động lịch chạy/hiệu năng nhưng không biến read-modify-write thành atomic.
-- **Đổi counter sang atomic nhưng vẫn có những chỗ gán thẳng/reset không phối hợp:** tất cả phép thay đổi trạng thái phải tuân theo cùng contract.
-- **Bỏ qua overflow:** atomic increment của int không đồng nghĩa tăng chính xác trên tập số nguyên toán học không giới hạn.
+- **Assuming volatile makes ++ atomic:** a volatile read and a volatile write can still be interleaved by other threads.
+- **Changing `volatile int` to `volatile long` to be "safer":** widens the value range without fixing lost updates.
+- **Using `AtomicInteger.get()` then `set(get() + 1)`:** two separate atomic calls still **do not form an atomic increment**. Use `incrementAndGet` or proper CAS.
+- **Assuming `synchronized` on one method is enough while other places write unlocked:** every access path to the invariant must be consistent.
+- **Using `LongAdder` to issue unique IDs or enforce hard quotas:** `sum` does not provide a linearized snapshot in that manner.
+- **Reading two volatile fields and trusting a consistent snapshot:** each field may come from a different update phase.
+- **Running many loop iterations and concluding there is no race:** a race is a correctness issue across all allowed schedules, not disproven by a few runs.
+- **Trying to fix races with `sleep`, `yield`, or `Thread.onSpinWait`:** they may affect scheduling or performance, but do not turn read-modify-write into an atomic operation.
+- **Switching a counter to atomic while keeping uncoordinated direct assignments/resets:** every state mutation must obey the same contract.
+- **Ignoring overflow:** atomic `int` increments do not mean exact increments over unbounded mathematical integers.
 
-## 13. Bài tập tự luyện và đáp án
+## 13. Self-Practice Exercises and Answers
 
-**Bài 1.** Hai thread cùng thực hiện `volatileCounter++` khi giá trị ban đầu bằng 5. Kết quả có thể là bao nhiêu nếu mỗi thread chạy một lần và cả hai đã hoàn tất? Giải thích lịch chạy gây mất cập nhật.
+**Exercise 1.** Two threads concurrently execute `volatileCounter++` when the initial value is 5. What can the result be if each thread runs once and both have finished? Explain the schedule that causes a lost update.
 
-**Bài 2.** Thay `counter++` bằng `atomicCounter.set(atomicCounter.get() + 1)` có giải quyết race không? Nếu không, phải sửa thế nào?
+**Exercise 2.** Does replacing `counter++` with `atomicCounter.set(atomicCounter.get() + 1)` fix the race? If not, how should it be fixed?
 
-**Bài 3.** Hãy giải thích vì sao `volatile boolean stop` có thể phù hợp cho một cờ dừng đơn giản nhưng `volatile int soldTickets` không đủ cho thao tác “nếu còn vé thì bán một vé”.
+**Exercise 3.** Explain why `volatile boolean stop` can be suitable for a simple stop flag, whereas `volatile int soldTickets` is insufficient for the operation "if tickets remain, sell one ticket."
 
-**Bài 4.** Một collector dùng `LongAdder` để đếm request và cần hiển thị tổng gần thời gian thực. Nếu ở thời điểm xuất báo cáo phải có tổng chính xác, nhất quán với danh sách request cùng một thời điểm, chỉ gọi `sum()` có đủ không?
+**Exercise 4.** A collector uses `LongAdder` to count requests and needs to display a near-real-time total. If generating a report requires an exact total consistent with the list of requests at the exact same point in time, is calling `sum()` alone enough?
 
-**Bài 5.** Vì sao assertion sau `join` vẫn có thể quan sát `1` trong ví dụ hai increment? `join` đã bảo đảm visibility hay chưa?
+**Exercise 5.** Why can an assertion after `join` still observe `1` in the two-increment example? Has `join` guaranteed visibility?
 
-**Gợi ý đáp án:**
+**Suggested answers:**
 
-1. Có thể là **6 hoặc 7**: hai luồng đều đọc 5, đều ghi 6 dẫn tới 6; hoặc một luồng hoàn tất trước khi luồng kia đọc thì có 7. Với đúng hai lần tăng từ 5, không có reset/overflow, không hợp lý để lấy 8.
-2. Không; `get` và `set` tách rời. Dùng `incrementAndGet` hoặc vòng CAS; nếu cần điều kiện/side effect thì bảo vệ toàn bộ logic.
-3. Cờ dừng là thông điệp độc lập, còn bán vé là chuỗi kiểm tra số lượng rồi trừ/ghi nhận; nhiều thread có thể cùng vượt qua kiểm tra.
-4. Không đủ nếu yêu cầu snapshot nhất quán nhiều cấu trúc đang cập nhật; cần cơ chế snapshot/transaction/synchronization đáp ứng invariant.
-5. `join` đã cung cấp quan hệ happens-before giữa hoạt động thread kết thúc và luồng chờ; main thấy kết quả lưu cuối là 1, nhưng bản thân hai phép tính trước đó đã mất một lượt tăng.
+1. It can be **6 or 7**: both threads read 5 and both write 6, yielding 6; or one thread completes before the other reads, yielding 7. With exactly two increments from 5 and no reset/overflow, 8 is not a valid outcome.
+2. No; `get` and `set` are separate. Use `incrementAndGet` or a CAS loop; if conditions or side effects are involved, protect the entire logic.
+3. A stop flag is an independent message, whereas selling a ticket is a sequence of checking availability then deducting/recording; multiple threads can pass the check together.
+4. Not enough if a consistent snapshot across multiple updating structures is required; a snapshot/transaction/synchronization mechanism satisfying the invariant is needed.
+5. `join` provided the happens-before relationship between the terminated thread's activity and the waiting thread; main sees the final stored result 1, but the two earlier computations themselves lost one increment.
 
-## Tài liệu tham khảo Java SE 17
+## Java SE 17 References
 
 - [Java Language Specification §17.4 — Memory Model](https://docs.oracle.com/javase/specs/jls/se17/html/jls-17.html#jls-17.4)
 - `AtomicInteger`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/atomic/AtomicInteger.html
@@ -456,4 +456,4 @@ Không có từ khóa nào thay cho việc xác định **đơn vị nguyên t�
 - `LongAdder`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/atomic/LongAdder.html
 - `ReentrantLock`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/locks/ReentrantLock.html
 
-**Điểm cần nhớ:** `volatile` giúp xác lập visibility và ordering theo Java Memory Model; `counter++` vẫn là read-modify-write nhiều bước. Nếu cần bảo toàn mọi lần tăng, dùng thao tác atomic thực sự hoặc bảo vệ toàn bộ phép cập nhật bằng lock.
+**Key takeaway:** `volatile` establishes visibility and ordering under the Java Memory Model; `counter++` remains a multi-step read-modify-write. When every increment must be preserved, use true atomic operations or protect the entire update with a lock.

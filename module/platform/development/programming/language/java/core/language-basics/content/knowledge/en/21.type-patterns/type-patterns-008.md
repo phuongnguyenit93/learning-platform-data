@@ -1,6 +1,6 @@
-# Nhận diện record pattern để tách dữ liệu của `record` — Java 17+/21
+# Recognizing Record Patterns to Extract `record` Data — Java 17+/21
 
-**Record pattern** (*mẫu phân rã record*) cho phép kiểm tra một đối tượng có đúng kiểu `record` và **trích các thành phần của record thành biến** ngay trong phép kiểm tra. Đây là tính năng **chuẩn từ Java 21 (JEP 440)**. Trong Java 17, `record` đã là tính năng chuẩn, nhưng **cú pháp record pattern chưa phải tính năng chuẩn**.
+A **record pattern** allows checking whether an object has a specific `record` type and **extracting the record's components into variables** right inside the check. This has been a **standard feature since Java 21 (JEP 440)**. In Java 17, `record` is already a standard feature, but **record pattern syntax is not yet standard**.
 
 ~~~java
 record Point(int x, int y) {}
@@ -11,24 +11,24 @@ if (value instanceof Point(int x, int y)) { // JDK 21+
 }
 ~~~
 
-`Point(int x, int y)` là **record pattern**, khác với `new Point(2, 3)` là biểu thức **tạo đối tượng**. Khi pattern khớp, nó lấy hai thành phần của record và ràng buộc vào biến `x`, `y` mà không cần ép kiểu rồi gọi riêng `point.x()` và `point.y()`.
+`Point(int x, int y)` is a **record pattern**, distinct from `new Point(2, 3)` which is an **object creation** expression. When the pattern matches, it extracts the record's two components and binds them to variables `x` and `y` without needing to cast and separately call `point.x()` and `point.y()`.
 
-## 1. Phân biệt record, type pattern và record pattern
+## 1. Distinguishing `record`, Type Patterns, and Record Patterns
 
-| Cấu trúc | Ý nghĩa | Phiên bản chuẩn |
+| Construct | Meaning | Standard Version |
 | --- | --- | --- |
-| `record Point(int x, int y) {}` | Khai báo lớp record có hai component | Java 16+ |
-| `obj instanceof Point p` | Kiểm tra kiểu, ràng buộc cả đối tượng vào `p` | Java 16+ |
-| `obj instanceof Point(int x, int y)` | Kiểm tra kiểu **và phân rã hai component** | Java 21+ |
-| `case Point(int x, int y) -> ...` | Dùng record pattern trong switch | Java 21+ |
+| `record Point(int x, int y) {}` | Declares a record class with two components | Java 16+ |
+| `obj instanceof Point p` | Checks type, binds the entire object to `p` | Java 16+ |
+| `obj instanceof Point(int x, int y)` | Checks type **and deconstructs two components** | Java 21+ |
+| `case Point(int x, int y) -> ...` | Uses a record pattern in switch | Java 21+ |
 
-Với **type pattern**, ta có biến `p` là cả record và đọc component qua `p.x()`, `p.y()`. Với **record pattern**, biến `x` và `y` đại diện trực tiếp cho từng component. Record pattern **không phải phép destructuring assignment** độc lập: nó cần xuất hiện trong ngữ cảnh hỗ trợ pattern, chẳng hạn `instanceof` hoặc `switch`.
+With a **type pattern**, you get a variable `p` representing the entire record and read components via `p.x()` and `p.y()`. With a **record pattern**, variables `x` and `y` directly represent each component. A record pattern **is not a standalone destructuring assignment**: it must appear in a pattern-supporting context, such as `instanceof` or `switch`.
 
-**Quy tắc quan trọng:** số lượng, thứ tự và kiểu các nested pattern phải tương ứng với danh sách component của record. `Point(int x, int y)` dùng hai component theo **thứ tự khai báo**, không theo tên biến bạn đặt.
+**Important rule:** the number, order, and types of nested patterns must correspond to the record's component list. `Point(int x, int y)` matches the two components by **declaration order**, not by the variable names you choose.
 
-## 2. Chương trình chạy với JDK 21+
+## 2. Program Running on JDK 21+
 
-Tạo file UTF-8 tên **`RecordPattern21Demo.java`**:
+Create a UTF-8 file named **`RecordPattern21Demo.java`**:
 
 ~~~java
 public class RecordPattern21Demo {
@@ -94,7 +94,7 @@ public class RecordPattern21Demo {
 }
 ~~~
 
-Dùng **JDK 21 trở lên** trong PowerShell (Windows) hoặc Bash (Linux/macOS):
+Use **JDK 21 or later** in PowerShell (Windows) or Bash (Linux/macOS):
 
 ~~~bash
 java -version
@@ -103,7 +103,7 @@ javac -encoding UTF-8 RecordPattern21Demo.java
 java RecordPattern21Demo
 ~~~
 
-**Exact expected stdout** của riêng lệnh `java RecordPattern21Demo`:
+**Exact expected stdout** of the `java RecordPattern21Demo` command alone:
 
 ~~~text
 null
@@ -119,11 +119,11 @@ distance=13
 missingStart=-1
 ~~~
 
-`java -version` và `javac -version` in phiên bản phụ thuộc JDK cài trên máy. Với JDK 21, ví dụ trên **không cần `--enable-preview`**.
+`java -version` and `javac -version` print versions depending on the JDK installed on your machine. With JDK 21, the example above **does not require `--enable-preview`**.
 
-## 3. Nested record pattern: phân rã nhiều tầng
+## 3. Nested Record Patterns: Multi-Level Deconstruction
 
-`Segment` chứa hai component kiểu `Point`, nên có thể viết pattern lồng:
+`Segment` contains two components of type `Point`, so you can write a nested pattern:
 
 ~~~java
 if (value instanceof Segment(
@@ -134,28 +134,28 @@ if (value instanceof Segment(
 }
 ~~~
 
-Khi thành công, `value` phải là `Segment` và cả `start` lẫn `end` phải khớp hai pattern `Point(...)`. Các component được trích thành **bốn biến `int`**.
+When it succeeds, `value` must be a `Segment` and both `start` and `end` must match the two `Point(...)` patterns. The components are extracted into **four `int` variables**.
 
-Nếu `Segment` chứa `start == null`, pattern `Point(int x1, int y1)` cho component đó **không khớp**, nên toàn bộ nested pattern thất bại. Đó là lý do demo in `missingStart=-1` thay vì phát sinh lỗi do gọi `start.x()` trên null.
+If `Segment` contains `start == null`, the `Point(int x1, int y1)` pattern for that component **does not match**, so the entire nested pattern fails. That is why the demo prints `missingStart=-1` instead of raising an error from calling `start.x()` on null.
 
-Có thể đọc kết quả phân rã theo sơ đồ:
+The deconstruction outcome can be read via this diagram:
 
 ~~~mermaid
 flowchart TD
     A["value"] --> B{"Segment?"}
-    B -- Không --> F["Pattern không khớp"]
-    B -- Có --> C{"start khớp Point?"}
-    C -- Không --> F
-    C -- Có --> D{"end khớp Point?"}
-    D -- Không --> F
-    D -- Có --> E["Ràng buộc x1, y1, x2, y2"]
+    B -- No --> F["Pattern does not match"]
+    B -- Yes --> C{"start matches Point?"}
+    C -- No --> F
+    C -- Yes --> D{"end matches Point?"}
+    D -- No --> F
+    D -- Yes --> E["Bind x1, y1, x2, y2"]
 ~~~
 
-Với component là kiểu tham chiếu, Java có thể dùng các pattern thích hợp như `String name` để kiểm tra/ràng buộc thêm. Record pattern được kết hợp từ nhiều pattern con chứ không chỉ cho phép primitive `int`.
+For reference-type components, Java can use appropriate patterns such as `String name` for further checking/binding. Record patterns are composed from multiple subpatterns rather than allowing only primitive `int`.
 
-## 4. `null`, `when` và thứ tự pattern trong `switch`
+## 4. `null`, `when`, and Pattern Order in `switch`
 
-Pattern `Point(int x, int y)` không khớp với selector `null`. Trong **switch Java 21**, ta có thể xử lý rõ ràng:
+The pattern `Point(int x, int y)` does not match a `null` selector. In a **Java 21 switch**, we can handle it explicitly:
 
 ~~~java
 String label = switch (value) {
@@ -166,20 +166,20 @@ String label = switch (value) {
 };
 ~~~
 
-Ở đây:
+Here:
 
-- `case null` xử lý riêng selector null; **`default` không tự thay thế `case null`**.
-- `when` bổ sung điều kiện **sau khi pattern khớp**.
-- Nhánh origin phải đặt **trước** nhánh `Point(...)` chung. Đảo thứ tự có thể khiến nhánh origin bị một pattern rộng hơn chiếm hết (*dominated case*) và không biên dịch.
-- Dạng `case ... ->` không rơi tiếp xuống nhãn khác.
+- `case null` specifically handles a null selector; **`default` does not automatically replace `case null`**.
+- `when` adds a condition **after the pattern matches**.
+- The origin branch must be placed **before** the general `Point(...)` branch. Reversing the order can cause the origin branch to be shadowed by a broader pattern (*dominated case*) and fail to compile.
+- The `case ... ->` form does not fall through to other labels.
 
-**Record pattern không giải quyết mọi trường hợp `null`:** selector null cần `case null` hoặc kiểm tra từ trước; component null có thể làm nested pattern không khớp, tùy pattern bên trong. Việc phân rã component dùng các accessor của record; tránh tạo accessor có tác dụng phụ hoặc ném ngoại lệ nếu muốn phép kiểm tra dễ dự đoán.
+**Record patterns do not solve every `null` case:** a null selector needs `case null` or a prior check; a null component can cause a nested pattern not to match, depending on the inner pattern. Deconstructing components invokes the record's accessors; avoid creating accessors with side effects or exceptions if you want checks to remain predictable.
 
-## 5. Cách tương thích JDK 17 — dùng record accessor và type pattern
+## 5. JDK 17 Compatible Approach — Using Record Accessors and Type Patterns
 
-Để chạy trên **JDK 17** mà không dùng record pattern, kiểm tra kiểu bằng `instanceof Point p`, rồi đọc component bằng `p.x()` và `p.y()`.
+To run on **JDK 17** without using record patterns, check the type with `instanceof Point p`, then read components with `p.x()` and `p.y()`.
 
-Tạo tệp UTF-8 **`RecordPattern17Compat.java`**:
+Create a UTF-8 file **`RecordPattern17Compat.java`**:
 
 ~~~java
 public class RecordPattern17Compat {
@@ -252,53 +252,53 @@ public class RecordPattern17Compat {
 }
 ~~~
 
-Chạy với **JDK 17+**:
+Run with **JDK 17+**:
 
 ~~~bash
 javac -encoding UTF-8 RecordPattern17Compat.java
 java RecordPattern17Compat
 ~~~
 
-**Exact expected stdout** của lệnh `java RecordPattern17Compat` **giống hệt** khối stdout trong mục 2. Bản Java 17 truy cập accessor tường minh và kiểm tra null cho nested record, nhưng không có cú pháp phân rã trực tiếp của Java 21.
+**Exact expected stdout** of `java RecordPattern17Compat` is **identical** to the stdout block in Section 2. The Java 17 version calls accessors explicitly and checks null for nested records, without having Java 21's direct deconstruction syntax.
 
-## 6. Giới hạn và lỗi thường gặp
+## 6. Limitations and Common Mistakes
 
-| Nhầm lẫn | Cách hiểu đúng |
+| Misconception | Correct Understanding |
 | --- | --- |
-| “Có `record` ở Java 17 thì đã có `record pattern`.” | Record chuẩn từ Java 16; record pattern chuẩn từ Java 21 |
-| “`new Point(2,3)` giống `Point(int x,int y)`.” | Một bên tạo record, một bên là pattern để khớp và phân rã |
-| “Record pattern thay đổi hoặc sao chép record.” | Chỉ kiểm tra và ràng buộc component, không tạo record mới |
-| “`Point(int y,int x)` tự lấy đúng tên component theo tên biến.” | Pattern ánh xạ **theo vị trí**, không theo tên biến |
-| “Nested pattern tự bỏ qua component null.” | Pattern con phải khớp; null có thể khiến cả pattern thất bại |
-| “Đặt `case Point(...)` trước `case Point(...) when ...`.” | Nhánh tổng quát có thể làm nhánh đặc biệt bị dominance |
-| “`default` luôn bắt selector null.” | Cần xử lý null riêng khi nghiệp vụ yêu cầu |
-| “JDK 17 biên dịch file có `case Point(int x,int y)`.” | Không ở chế độ Java 17 chuẩn |
-| “Biến `x`, `y` luôn dùng được sau phép kiểm tra thất bại.” | Biến chỉ hợp lệ trong **flow scope** đã chứng minh pattern khớp |
+| "Since Java 17 has `record`, it already has `record pattern`." | Records are standard since Java 16; record patterns are standard since Java 21 |
+| "`new Point(2,3)` is the same as `Point(int x,int y)`." | One constructs a record, the other is a pattern to match and deconstruct |
+| "A record pattern modifies or copies the record." | It only checks and binds components, without creating a new record |
+| "`Point(int y,int x)` automatically matches component names by variable name." | Patterns map **by position**, not by variable name |
+| "Nested patterns automatically skip null components." | Subpatterns must match; null can cause the entire pattern to fail |
+| "Placing `case Point(...)` before `case Point(...) when ...`." | The general branch can dominate the specialized branch |
+| "`default` always catches a null selector." | Null must be handled separately when business logic requires it |
+| "JDK 17 compiles files containing `case Point(int x,int y)`." | Not in standard Java 17 mode |
+| "Variables `x` and `y` remain usable after a failed check." | Variables are only valid in the **flow scope** where the pattern is proven to match |
 
-Các component record là thành phần của mô hình dữ liệu; đừng lạm dụng record pattern quá dài nhiều tầng nếu việc đặt biến trung gian hoặc gọi accessor sẽ dễ đọc hơn.
+Record components are part of the data model; avoid overusing overly long, deeply nested record patterns if introducing intermediate variables or calling accessors would be easier to read.
 
-## 7. Bài tập tự kiểm tra
+## 7. Self-Check Exercises
 
-1. `Object p = new Point(4, 5);`, nếu khớp `Point(int x, int y)` thì `x + y` bằng gì?  
-   *Đáp án:* `9`.
-2. Record pattern kiểm tra kiểu runtime hay chỉ tên biến?  
-   *Đáp án:* Kiểm tra kiểu rồi phân rã component theo thứ tự khai báo.
-3. Với `Segment(null, new Point(1,1))`, nested pattern cần cả hai `Point(...)` có khớp không?  
-   *Đáp án:* Không.
-4. Trong switch Java 21, có thể dùng `case Point(int x,int y) when x == 0` không?  
-   *Đáp án:* Có, đặt trước nhánh Point tổng quát.
-5. `record Point` có chạy được JDK 17 không? Record pattern có chuẩn ở JDK 17 không?  
-   *Đáp án:* Có record, nhưng chưa có record pattern chuẩn.
-6. Muốn lấy component Point với JDK 17, làm thế nào?  
-   *Đáp án:* `if (obj instanceof Point p)` rồi `p.x()` và `p.y()`.
+1. Given `Object p = new Point(4, 5);`, if it matches `Point(int x, int y)`, what is `x + y`?  
+   *Answer:* `9`.
+2. Does a record pattern check runtime type or only variable names?  
+   *Answer:* It checks the type and then deconstructs components in declaration order.
+3. For `Segment(null, new Point(1,1))`, does a nested pattern requiring both `Point(...)` match?  
+   *Answer:* No.
+4. In a Java 21 switch, can `case Point(int x,int y) when x == 0` be used?  
+   *Answer:* Yes, placed before the general Point branch.
+5. Can `record Point` run on JDK 17? Are record patterns standard in JDK 17?  
+   *Answer:* Records work, but record patterns are not yet standard.
+6. How do you extract Point components with JDK 17?  
+   *Answer:* `if (obj instanceof Point p)` and then `p.x()` and `p.y()`.
 
 ## Checklist
 
-- [ ] Phân biệt khai báo `record` với cú pháp `record pattern`.
-- [ ] Nhớ record pattern chuẩn từ **Java 21**, còn record/type pattern `instanceof` đã có trên Java 17.
-- [ ] Đọc đúng component theo thứ tự và phạm vi biến sau khi pattern khớp.
-- [ ] Hiểu nested record pattern và tình huống component null.
-- [ ] Dùng `when` và `case null` có chủ đích trong switch Java 21.
-- [ ] Biết cách thay bằng `instanceof` + accessor nếu môi trường còn dùng JDK 17.
+- [ ] Distinguish a `record` declaration from `record pattern` syntax.
+- [ ] Remember that record patterns are standard since **Java 21**, whereas records and `instanceof` type patterns are already available on Java 17.
+- [ ] Read components in the right order and respect variable scope after a pattern match.
+- [ ] Understand nested record patterns and the null-component scenario.
+- [ ] Use `when` and `case null` intentionally in Java 21 switches.
+- [ ] Know how to substitute `instanceof` + accessors if the environment still uses JDK 17.
 
-**Kết luận:** Record pattern giúp tách các component của record **ngay trong bước kiểm tra kiểu**, kể cả khi các record lồng nhau. Dùng JDK 21+ để chạy cú pháp này; với dự án JDK 17, vẫn có thể làm cùng công việc thông qua type pattern `instanceof` và các phương thức accessor.
+**Conclusion:** Record patterns let you extract record components **right during the type check**, even for nested records. Use JDK 21+ to run this syntax; for JDK 17 projects, the same task can still be accomplished via `instanceof` type patterns and accessor methods.

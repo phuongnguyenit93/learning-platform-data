@@ -1,20 +1,20 @@
-# Ghép chuỗi bằng `joining` với dấu phân cách, tiền tố và hậu tố
+# Joining Strings with `joining` Using Delimiters, Prefixes, and Suffixes
 
-> **Chương:** Collector nhiều tầng và tổng hợp  
-> **Module:** `JAVA_STREAM_API` — học xử lý dữ liệu khai báo bằng Java Stream API qua pipeline lazy, `filter`, `map`, `reduce` và `collect`; thực hành grouping, collector tùy chỉnh, `Spliterator`, xử lý song song và Stream Gatherers, đồng thời nhận diện giới hạn về trạng thái, tài nguyên và hiệu năng.
+> **Chapter:** Composed Collectors and Aggregation  
+> **Module:** `JAVA_STREAM_API` — learn declarative data processing with the Java Stream API through lazy pipelines, `filter`, `map`, `reduce`, and `collect`; practice grouping, custom collectors, `Spliterator`, parallel processing, and Stream Gatherers, while recognizing constraints around state, resources, and performance.
 
-Trong các ứng dụng quản lý đơn hàng, báo cáo hoặc hiển thị giao diện, chúng ta thường cần biến một tập phần tử thành **một chuỗi duy nhất**: danh sách mã sản phẩm ngăn bởi dấu phẩy, nhãn đặt trong dấu ngoặc vuông, hoặc tên sản phẩm được ghép theo từng danh mục. Nếu tự nối chuỗi trong vòng lặp, người viết phải xử lý phần tử đầu, phần tử cuối, dấu phân cách và trường hợp danh sách rỗng. Java Stream API cung cấp `Collectors.joining` để diễn đạt những quy tắc này trực tiếp.
+In order-management, reporting, or UI rendering applications, we often need to turn a collection of elements into **a single string**: a comma-separated list of product codes, labels wrapped in square brackets, or product names joined per category. When concatenating strings manually in a loop, you have to handle the first element, last element, delimiter, and empty-list case yourself. The Java Stream API provides `Collectors.joining` to express these rules directly.
 
-Sau bài học, bạn có thể:
+After this lesson, you can:
 
-- Sử dụng đúng ba overload `joining()`, `joining(delimiter)`, `joining(delimiter, prefix, suffix)`.
-- Kết hợp `map`, `filter`, `distinct`, `sorted` với `joining`, và phân biệt kết quả trên Stream rỗng.
-- Ghép dữ liệu **theo nhóm** bằng `groupingBy`, `mapping`, `filtering` và các downstream collector.
-- Hiểu giới hạn của việc ghép chuỗi khi dữ liệu có `null`, chứa ký tự phân cách, nguồn vô hạn hoặc cần giữ thứ tự trong xử lý song song.
+- Correctly use the three overloads `joining()`, `joining(delimiter)`, and `joining(delimiter, prefix, suffix)`.
+- Combine `map`, `filter`, `distinct`, and `sorted` with `joining`, and distinguish results on an empty Stream.
+- Join data **by group** using `groupingBy`, `mapping`, `filtering`, and downstream collectors.
+- Understand string-joining limitations when data contains `null`, contains delimiter characters, comes from infinite sources, or needs ordering in parallel execution.
 
-## 1. `Collectors.joining` là gì?
+## 1. What is `Collectors.joining`?
 
-`Collectors.joining` là một **collector** nhận các phần tử kiểu `CharSequence` (ví dụ `String`) và tạo ra một `String`. Nó chỉ mô tả cách tích lũy dữ liệu; quá trình duyệt Stream xảy ra khi gọi phép toán kết thúc `collect`.
+`Collectors.joining` is a **collector** that accepts `CharSequence` elements (such as `String`) and produces a `String`. It only describes how data is accumulated; Stream traversal occurs when the terminal operation `collect` is invoked.
 
 ```java
 import java.util.List;
@@ -28,7 +28,7 @@ String result = languages.stream()
 System.out.println(result); // Java, Kotlin, Scala
 ```
 
-Sơ đồ xử lý:
+Processing flow:
 
 ```text
 List<String>
@@ -47,22 +47,22 @@ List<String>
  "Java, Kotlin, Scala"
 ```
 
-Trong ví dụ, `", "` là **dấu phân cách** (*delimiter*). Collector đặt dấu phân cách **giữa** hai phần tử liền kề, không tự thêm dấu này ở đầu hoặc cuối.
+In the example, `", "` is the **delimiter**. The collector places the delimiter **between** adjacent elements, without adding it at the start or end.
 
-**Điểm cần nhớ:** `joining` khác với `map`. `map` chuyển đổi từng phần tử nhưng vẫn tạo Stream; `collect(joining(...))` **kết thúc** pipeline và gom tất cả phần tử thành một chuỗi.
+**Key point:** `joining` differs from `map`. `map` transforms each element while still producing a Stream; `collect(joining(...))` **terminates** the pipeline and combines all elements into one string.
 
-## 2. Ba overload của `Collectors.joining`
+## 2. Three overloads of `Collectors.joining`
 
-Java cung cấp ba phương thức với cấu trúc khái quát như sau:
+Java provides three methods with the following general structure:
 
 ```java
-// Không chèn dấu phân cách.
+// Inserts no delimiter.
 Collectors.joining()
 
-// Chèn delimiter giữa các phần tử.
+// Inserts delimiter between elements.
 Collectors.joining(CharSequence delimiter)
 
-// Thêm prefix trước toàn bộ kết quả và suffix sau toàn bộ kết quả.
+// Adds prefix before the entire result and suffix after the entire result.
 Collectors.joining(
         CharSequence delimiter,
         CharSequence prefix,
@@ -70,16 +70,16 @@ Collectors.joining(
 )
 ```
 
-Chúng trả một `Collector<CharSequence, ?, String>`. `prefix` và `suffix` **bao quanh toàn bộ chuỗi đã ghép**, không được lặp lại trước và sau từng phần tử.
+They return a `Collector<CharSequence, ?, String>`. `prefix` and `suffix` **wrap the entire joined string**, and are not repeated before and after each element.
 
-| Phép gọi | Stream gồm `"A", "B", "C"` | Ý nghĩa |
+| Call | Stream of `"A", "B", "C"` | Meaning |
 | --- | --- | --- |
-| `joining()` | `ABC` | Ghép liền các chuỗi. |
-| `joining(", ")` | `A, B, C` | Thêm dấu phẩy và khoảng trắng giữa các phần tử. |
-| `joining(" / ", "[", "]")` | `[A / B / C]` | Dấu phân cách, tiền tố và hậu tố. |
-| `joining("\n", "", "")` | Mỗi giá trị trên một dòng | Ký tự xuống dòng là delimiter. |
+| `joining()` | `ABC` | Concatenates strings directly. |
+| `joining(", ")` | `A, B, C` | Inserts a comma and space between elements. |
+| `joining(" / ", "[", "]")` | `[A / B / C]` | Delimiter, prefix, and suffix. |
+| `joining("\n", "", "")` | Each value on its own line | Newline character as delimiter. |
 
-### 2.1. Ghép liền với `joining()`
+### 2.1. Concatenating directly with `joining()`
 
 ```java
 String code = List.of("VN", "-", "2026", "-", "001").stream()
@@ -88,9 +88,9 @@ String code = List.of("VN", "-", "2026", "-", "001").stream()
 System.out.println(code); // VN-2026-001
 ```
 
-Không có delimiter không có nghĩa là các phần tử phải cùng độ dài; collector chỉ nối nội dung theo thứ tự phần tử mà pipeline cung cấp.
+Having no delimiter does not require elements to have the same length; the collector simply concatenates content in the element order supplied by the pipeline.
 
-### 2.2. Chọn dấu phân cách bằng `joining(delimiter)`
+### 2.2. Choosing a delimiter with `joining(delimiter)`
 
 ```java
 List<String> tags = List.of("stream", "collector", "java");
@@ -104,31 +104,31 @@ String pathPart = tags.stream()
 // stream/collector/java
 ```
 
-Ví dụ trên chỉ tạo chuỗi có dấu phân cách; nó **chưa phải** cách mã hóa CSV hay đường dẫn URL an toàn. Nếu dữ liệu chứa dấu phẩy, dấu gạch hoặc ký tự đặc biệt, ứng dụng phải tự áp dụng quy tắc escaping/encoding theo định dạng đích.
+The example above only produces a delimited string; it is **not** safe CSV encoding or URL path encoding. If data contains commas, slashes, or special characters, the application must apply escaping/encoding rules for the target format.
 
-### 2.3. Bao toàn bộ kết quả bằng tiền tố và hậu tố
+### 2.3. Wrapping the whole result with prefix and suffix
 
 ```java
 String display = List.of("Java", "SQL", "Docker").stream()
-        .collect(Collectors.joining(" | ", "Kỹ năng: [", "]"));
+        .collect(Collectors.joining(" | ", "Skills: [", "]"));
 
 System.out.println(display);
-// Kỹ năng: [Java | SQL | Docker]
+// Skills: [Java | SQL | Docker]
 ```
 
-Ở đây:
+Here:
 
-- `delimiter = " | "`: nằm **giữa** các giá trị.
-- `prefix = "Kỹ năng: ["`: đặt **một lần ở đầu**.
-- `suffix = "]"`: đặt **một lần ở cuối**.
+- `delimiter = " | "`: placed **between** values.
+- `prefix = "Skills: ["`: placed **once at the beginning**.
+- `suffix = "]"`: placed **once at the end**.
 
-Không cần tự kiểm tra phần tử đầu và phần tử cuối để quyết định có thêm dấu `|` hay không.
+There is no need to manually check the first or last element to decide whether to append `|`.
 
-## 3. Ví dụ hoàn chỉnh: tạo mô tả đơn hàng và ghép theo danh mục
+## 3. Complete example: formatting order lines and joining by category
 
-Chương trình Java 17+ dưới đây dùng cùng một nguồn để minh họa `filter`, `map`, `distinct`, `sorted`, `joining`, cũng như composition với `groupingBy` và `mapping`.
+The Java 17+ program below uses a single source to illustrate `filter`, `map`, `distinct`, `sorted`, and `joining`, as well as composition with `groupingBy` and `mapping`.
 
-Lưu vào tệp `JoiningCollectorsDemo.java`:
+Save to `JoiningCollectorsDemo.java`:
 
 ```java
 import java.util.List;
@@ -148,13 +148,13 @@ public class JoiningCollectorsDemo {
     public static void main(String[] args) {
         List<Item> items = List.of(
                 new Item("BK-01", "BOOK", "Java Stream", 2, true),
-                new Item("PN-01", "PEN", "Bút xanh", 4, true),
+                new Item("PN-01", "PEN", "Blue pen", 4, true),
                 new Item("BK-02", "BOOK", "Java Core", 1, true),
                 new Item("BK-01", "BOOK", "Java Stream", 3, true),
-                new Item("BG-01", "BAG", "Túi vải", 1, false)
+                new Item("BG-01", "BAG", "Canvas bag", 1, false)
         );
 
-        // Ghép các tên đang bán, không lặp và sắp xếp theo tên.
+        // Join active product names without duplicates, sorted by name.
         String uniqueNames = items.stream()
                 .filter(Item::active)
                 .map(Item::name)
@@ -162,14 +162,14 @@ public class JoiningCollectorsDemo {
                 .sorted()
                 .collect(Collectors.joining(" | ", "[", "]"));
 
-        // Ghép mã kèm số lượng: mỗi Item trở thành một chuỗi.
+        // Join code with quantity: each Item becomes one string.
         String orderLines = items.stream()
                 .filter(Item::active)
                 .map(item -> item.sku() + " x" + item.quantity())
-                .collect(Collectors.joining("; ", "Giỏ hàng: ", "."));
+                .collect(Collectors.joining("; ", "Cart: ", "."));
 
-        // Với mỗi danh mục, nối tất cả tên sản phẩm đang bán.
-        // TreeMap sắp xếp các khóa BOOK, PEN.
+        // For each category, join all active product names.
+        // TreeMap sorts keys BOOK, PEN.
         Map<String, String> namesByCategory = items.stream()
                 .filter(Item::active)
                 .collect(Collectors.groupingBy(
@@ -181,41 +181,41 @@ public class JoiningCollectorsDemo {
                         )
                 ));
 
-        // Bộ lọc không giữ lại phần tử nào.
+        // Filter retains zero elements.
         String empty = items.stream()
                 .filter(item -> item.quantity() > 100)
                 .map(Item::name)
                 .collect(Collectors.joining(", ", "[", "]"));
 
-        System.out.println("Tên: " + uniqueNames);
+        System.out.println("Names: " + uniqueNames);
         System.out.println(orderLines);
-        System.out.println("Theo danh mục: " + namesByCategory);
-        System.out.println("Không có: " + empty);
+        System.out.println("By category: " + namesByCategory);
+        System.out.println("Empty: " + empty);
     }
 }
 ```
 
-Kết quả:
+Output:
 
 ```text
-Tên: [Bút xanh | Java Core | Java Stream]
-Giỏ hàng: BK-01 x2; PN-01 x4; BK-02 x1; BK-01 x3.
-Theo danh mục: {BOOK=<Java Stream / Java Core / Java Stream>, PEN=<Bút xanh>}
-Không có: []
+Names: [Blue pen | Java Core | Java Stream]
+Cart: BK-01 x2; PN-01 x4; BK-02 x1; BK-01 x3.
+By category: {BOOK=<Java Stream / Java Core / Java Stream>, PEN=<Blue pen>}
+Empty: []
 ```
 
-Phân tích những điểm quan trọng:
+Analysis of key points:
 
-1. `filter(Item::active)` giới hạn tập đầu vào **trước** khi nối chuỗi.
-2. `map(Item::name)` tạo `Stream<String>`, phù hợp với `Collectors.joining`. Nếu giữ `Stream<Item>` mà đưa thẳng vào `joining` sẽ không phù hợp kiểu đầu vào.
-3. `distinct()` loại tên lặp; `sorted()` sắp xếp trước khi `joining`, nên kết quả có thứ tự xác định theo thứ tự tự nhiên của `String`.
-4. `map(item -> item.sku() + " x" + item.quantity())` tạo **mỗi dòng biểu diễn bằng một chuỗi**, rồi `joining` thêm `"; "` giữa các dòng.
-5. `groupingBy` phân nhóm theo danh mục; `mapping(Item::name, joining(...))` tiếp tục biến từng nhóm thành **một chuỗi**. `TreeMap::new` chỉ sắp xếp **khóa danh mục**, không tự sắp xếp tên nằm trong từng nhóm.
-6. Khi kết quả sau `filter` rỗng, dạng ba đối số vẫn trả `"[]"` vì tiền tố và hậu tố vẫn được áp dụng.
+1. `filter(Item::active)` restricts the input set **before** joining strings.
+2. `map(Item::name)` produces a `Stream<String>`, compatible with `Collectors.joining`. Passing a `Stream<Item>` directly into `joining` would not match the input type.
+3. `distinct()` removes duplicate names; `sorted()` sorts before `joining`, giving a deterministic order using `String` natural ordering.
+4. `map(item -> item.sku() + " x" + item.quantity())` formats **each line as a string**, and then `joining` inserts `"; "` between lines.
+5. `groupingBy` groups by category; `mapping(Item::name, joining(...))` then turns each group into **a single string**. `TreeMap::new` only sorts **category keys**; it does not sort names inside each group.
+6. When the post-`filter` result is empty, the three-argument overload still returns `"[]"` because prefix and suffix are still applied.
 
-## 4. Stream rỗng: dấu phân cách, tiền tố và hậu tố có xuất hiện không?
+## 4. Empty Stream: do delimiter, prefix, and suffix appear?
 
-Đây là điểm thường gây nhầm lẫn. Hãy so sánh:
+This is a common source of confusion. Compare:
 
 ```java
 import java.util.stream.Collectors;
@@ -228,28 +228,28 @@ String b = Stream.<String>empty()
 String c = Stream.<String>empty()
         .collect(Collectors.joining(", ", "[", "]"));
 String d = Stream.<String>empty()
-        .collect(Collectors.joining(", ", "Danh sách: ", "."));
+        .collect(Collectors.joining(", ", "List: ", "."));
 
 System.out.println(a.isEmpty()); // true
 System.out.println(b.isEmpty()); // true
 System.out.println(c);         // []
-System.out.println(d);         // Danh sách: .
+System.out.println(d);         // List: .
 ```
 
-| Dạng collector | Kết quả khi Stream rỗng |
+| Collector form | Result on empty Stream |
 | --- | --- |
-| `joining()` | Chuỗi rỗng `""` |
-| `joining(", ")` | Chuỗi rỗng `""` |
+| `joining()` | Empty string `""` |
+| `joining(", ")` | Empty string `""` |
 | `joining(", ", "[", "]")` | `"[]"` |
 | `joining(";", "(", ")")` | `"()"` |
 
-**Không có phần tử nào** nghĩa là không có dấu phân cách cần chèn. Tuy nhiên, `prefix` và `suffix` là quy tắc định dạng **toàn bộ kết quả**, nên chúng vẫn xuất hiện.
+**Zero elements** means there are no delimiters to insert. However, `prefix` and `suffix` are formatting rules for **the entire result**, so they still appear.
 
-### Khi muốn hiển thị thông báo thay vì `[]`
+### When you want to display a message instead of `[]`
 
-Nếu đang có một `List` đầu vào được sử dụng trực tiếp và chưa lọc, có thể kiểm tra `isEmpty()` trước khi gọi Stream. Nhưng nếu pipeline có `filter`, danh sách nguồn không rỗng **không bảo đảm** có phần tử sau lọc.
+If you have an input `List` used directly without filtering, you can check `isEmpty()` before creating a Stream. Yet if the pipeline has `filter`, a non-empty source list **does not guarantee** elements remain after filtering.
 
-Trên Java 12+, có thể dùng `Collectors.teeing` để tính **số phần tử** và **chuỗi đã nối** trong cùng một lần duyệt, rồi quyết định đầu ra:
+On Java 12+, you can use `Collectors.teeing` to compute **element count** and the **joined string** in a single traversal, then choose the output:
 
 ```java
 String message = List.of("Java", "Kotlin").stream()
@@ -258,18 +258,18 @@ String message = List.of("Java", "Kotlin").stream()
                 Collectors.counting(),
                 Collectors.joining(", ", "[", "]"),
                 (count, joined) -> count == 0
-                        ? "(không có kết quả)"
+                        ? "(no results)"
                         : joined
         ));
 
-System.out.println(message); // (không có kết quả)
+System.out.println(message); // (no results)
 ```
 
-Không nên chỉ kiểm tra `joined.equals("[]")` để suy ra nguồn rỗng: một phần tử là chuỗi rỗng `""` cũng có thể tạo kết quả `"[]"` khi dùng tiền tố `"["` và hậu tố `"]"`. Số phần tử phản ánh tình trạng rỗng chính xác hơn nội dung chuỗi kết quả.
+Do not check `joined.equals("[]")` alone to infer an empty source: a single element equal to the empty string `""` also yields `"[]"` with prefix `"["` and suffix `"]"`. Element count reflects emptiness more accurately than string content.
 
-## 5. Cần chuyển dữ liệu không phải `String` trước khi `joining`
+## 5. Non-`String` data must be converted before `joining`
 
-`Collectors.joining` làm việc với `CharSequence` — không tự biết cách trình bày một `Product`, `Order`, `Integer` hoặc `BigDecimal` theo yêu cầu nghiệp vụ. Vì vậy, hãy chuyển phần tử thành chuỗi **trước** bước collect.
+`Collectors.joining` operates on `CharSequence` — it does not automatically know how to format a `Product`, `Order`, `Integer`, or `BigDecimal` per business rules. Therefore, convert elements to strings **before** the collect step.
 
 ```java
 import java.math.BigDecimal;
@@ -291,9 +291,9 @@ System.out.println(labels);
 // {BK-01=120.00; PN-01=30.50}
 ```
 
-`toPlainString()` giúp trình bày `BigDecimal` ở dạng thập phân không dùng ký pháp số mũ. Đây vẫn chỉ là định dạng chuỗi; nếu báo cáo tiền cần dấu phân nhóm, đơn vị tiền tệ hoặc quy tắc vùng miền thì nên dùng formatter với `Locale` thích hợp **trước** khi joining.
+`toPlainString()` formats `BigDecimal` in decimal form without scientific notation. This is still raw string formatting; if currency reports need grouping separators, currency symbols, or locale rules, use an appropriate formatter with a `Locale` **before** joining.
 
-Với một primitive stream như `IntStream`, hãy dùng `mapToObj`:
+With a primitive stream like `IntStream`, use `mapToObj`:
 
 ```java
 String numbers = java.util.stream.IntStream.of(3, 5, 8)
@@ -303,11 +303,11 @@ String numbers = java.util.stream.IntStream.of(3, 5, 8)
 System.out.println(numbers); // (3 + 5 + 8)
 ```
 
-Ngược lại, `IntStream.sum()` là lựa chọn đúng nếu bài toán cần **kết quả số 16**, chứ không phải chuỗi biểu thức `"(3 + 5 + 8)"`.
+Conversely, `IntStream.sum()` is the right choice if the task needs the **numeric result 16**, not the expression string `"(3 + 5 + 8)"`.
 
-## 6. Kết hợp `joining` với các thao tác trung gian
+## 6. Combining `joining` with intermediate operations
 
-`joining` thường nằm ở cuối pipeline sau khi đã chọn lọc và chuẩn hóa dữ liệu:
+`joining` typically sits at the end of a pipeline after filtering and normalizing data:
 
 ```java
 String tags = List.of(" java ", "stream", "JAVA", "", "collector")
@@ -322,18 +322,18 @@ String tags = List.of(" java ", "stream", "JAVA", "", "collector")
 System.out.println(tags); // #collector, java, stream
 ```
 
-Ý nghĩa từng bước:
+Role of each step:
 
-| Bước | Vai trò trước khi ghép |
+| Step | Role before joining |
 | --- | --- |
-| `map(String::trim)` | Loại khoảng trắng ở hai đầu từng nhãn. |
-| `filter(s -> !s.isBlank())` | Loại nhãn rỗng hoặc chỉ có khoảng trắng. |
-| `map(...toLowerCase(Locale.ROOT))` | Chuẩn hóa chữ hoa/thường theo quy tắc không phụ thuộc locale mặc định. |
-| `distinct()` | Loại nhãn trùng sau chuẩn hóa. |
-| `sorted()` | Xác định thứ tự xuất hiện trong chuỗi kết quả. |
-| `joining(", ", "#", "")` | Nối bằng dấu phẩy, thêm tiền tố `#` cho **toàn bộ** chuỗi. |
+| `map(String::trim)` | Strips leading and trailing whitespace from each tag. |
+| `filter(s -> !s.isBlank())` | Drops empty or whitespace-only tags. |
+| `map(...toLowerCase(Locale.ROOT))` | Normalizes casing independent of the default locale. |
+| `distinct()` | Removes duplicate tags after normalization. |
+| `sorted()` | Determines appearance order in the resulting string. |
+| `joining(", ", "#", "")` | Joins with commas, adding prefix `#` to **the entire** string. |
 
-**Điểm dễ nhầm:** `joining(", ", "#", "")` không biến từng nhãn thành hashtag. Nếu cần `#java, #stream`, hãy viết `map(s -> "#" + s)` **trước** `joining(", ")`.
+**Common confusion:** `joining(", ", "#", "")` does not turn each tag into a hashtag. If you need `#java, #stream`, write `map(s -> "#" + s)` **before** `joining(", ")`.
 
 ```java
 String hashtags = List.of("java", "stream").stream()
@@ -343,11 +343,11 @@ String hashtags = List.of("java", "stream").stream()
 System.out.println(hashtags); // #java, #stream
 ```
 
-Sự phân biệt này rất quan trọng giữa **định dạng từng phần tử** (`map`) và **định dạng cả tập kết quả** (`joining` có prefix/suffix).
+This distinction is essential between **formatting each element** (`map`) and **formatting the whole result** (`joining` with prefix/suffix).
 
-## 7. Ghép chuỗi theo nhóm với `groupingBy` và `mapping`
+## 7. Joining strings by group with `groupingBy` and `mapping`
 
-Khi yêu cầu không còn là một chuỗi duy nhất mà là **một chuỗi cho mỗi nhóm**, ta có thể dùng collector nhiều tầng:
+When the requirement is no longer a single string, but **one string per group**, use a composed collector:
 
 ```java
 Collectors.groupingBy(
@@ -356,7 +356,7 @@ Collectors.groupingBy(
 )
 ```
 
-Đầu ra có dạng `Map<K, String>`:
+The output has the form `Map<K, String>`:
 
 ```text
 Stream<Item>
@@ -365,13 +365,13 @@ Stream<Item>
  groupingBy(Item::category)
      │
      ├── BOOK ──► mapping(Item::name) ──► joining(", ") ──► "Java Stream, Java Core"
-     └── PEN  ──► mapping(Item::name) ──► joining(", ") ──► "Bút xanh"
+     └── PEN  ──► mapping(Item::name) ──► joining(", ") ──► "Blue pen"
      │
      ▼
  Map<String, String>
 ```
 
-Ví dụ khi có `items` và `Item` như chương trình ở mục 3:
+Example using `items` and `Item` from the program in section 3:
 
 ```java
 Map<String, String> descriptions = items.stream()
@@ -386,14 +386,14 @@ Map<String, String> descriptions = items.stream()
         ));
 
 System.out.println(descriptions);
-// {BOOK=[Java Stream, Java Core, Java Stream], PEN=[Bút xanh]}
+// {BOOK=[Java Stream, Java Core, Java Stream], PEN=[Blue pen]}
 ```
 
-Trong ví dụ này, nếu viết `.map(Item::name)` **trước** `groupingBy(Item::category)` thì đã mất thông tin `category` và không thể phân nhóm theo thuộc tính đó nữa. `Collectors.mapping` cho phép **giữ `Item` ở bước phân nhóm**, rồi mới chuyển từng phần tử trong mỗi nhóm thành `String` để nối.
+In this example, calling `.map(Item::name)` **before** `groupingBy(Item::category)` would lose the `category` info and prevent grouping by that property. `Collectors.mapping` lets you **keep `Item` during grouping**, and only then turn each element in each group into a `String` for joining.
 
-### `Collectors.filtering` nằm trước hay sau `groupingBy`?
+### Does `Collectors.filtering` go before or after `groupingBy`?
 
-Từ Java 9, `Collectors.filtering` dùng như downstream collector để lọc **bên trong từng nhóm**:
+Since Java 9, `Collectors.filtering` acts as a downstream collector to filter **inside each group**:
 
 ```java
 Map<String, String> allCategories = items.stream()
@@ -410,38 +410,38 @@ Map<String, String> allCategories = items.stream()
         ));
 
 System.out.println(allCategories);
-// {BAG=[], BOOK=[Java Stream, Java Core, Java Stream], PEN=[Bút xanh]}
+// {BAG=[], BOOK=[Java Stream, Java Core, Java Stream], PEN=[Blue pen]}
 ```
 
-Ở đây, nhóm `BAG` **vẫn tồn tại** vì có một `Item` thuộc nhóm `BAG`, nhưng downstream `filtering` loại phần tử đó, nên `joining` trong nhóm rỗng trả `[]`.
+Here, the `BAG` group **still exists** because an `Item` belonged to `BAG`, yet downstream `filtering` rejected that element, so `joining` on the empty group returns `[]`.
 
-Ngược lại, khi viết `items.stream().filter(Item::active).collect(groupingBy(...))`, phần tử `BAG` bị loại **trước khi phân nhóm**, vì vậy khóa `BAG` không xuất hiện. Đây là khác biệt ngữ nghĩa đáng chú ý khi cần báo cáo cả các nhóm không có phần tử đạt điều kiện.
+Conversely, writing `items.stream().filter(Item::active).collect(groupingBy(...))` drops the `BAG` element **before grouping**, so the `BAG` key never appears. This is a notable semantic difference when reports must include groups with no qualifying elements.
 
-## 8. `collectingAndThen`: xử lý kết quả đã ghép
+## 8. `collectingAndThen`: post-processing the joined result
 
-`Collectors.collectingAndThen(downstream, finisher)` cho phép áp dụng **một phép biến đổi cuối cùng** sau khi downstream collector đã hoàn thành.
+`Collectors.collectingAndThen(downstream, finisher)` applies **a final transformation** after the downstream collector finishes.
 
-Ví dụ, chuẩn hóa khoảng trắng của toàn bộ kết quả:
+For example, trimming whitespace from the entire result:
 
 ```java
 String summary = List.of("Java", "Stream").stream()
         .collect(Collectors.collectingAndThen(
-                Collectors.joining(", ", "Danh sách: ", "  "),
+                Collectors.joining(", ", "List: ", "  "),
                 String::strip
         ));
 
-System.out.println(summary); // Danh sách: Java, Stream
+System.out.println(summary); // List: Java, Stream
 ```
 
-Lưu ý `collectingAndThen` không cần thiết nếu chỉ muốn thêm prefix/suffix; ba đối số của `joining` đã xử lý việc đó. Hãy dùng `collectingAndThen` khi cần **hậu xử lý riêng** như gói kết quả vào một đối tượng khác, chuẩn hóa định dạng chung hoặc áp dụng một quy tắc không có sẵn trong `joining`.
+Note that `collectingAndThen` is unnecessary if you only want to add a prefix or suffix; the three-argument `joining` already handles that. Use `collectingAndThen` when you need **custom post-processing**, such as wrapping the result in another object, normalizing overall formatting, or applying a rule not built into `joining`.
 
-Nếu chỉ muốn đặt văn bản khác khi không có phần tử, nên sử dụng `teeing` với `counting` như mục 4, hoặc có sẵn thông tin số phần tử trước khi thu thập. Nội dung chuỗi sau khi ghép không phải lúc nào cũng đủ để suy ra số phần tử.
+If you only want different text when there are zero elements, use `teeing` with `counting` as in section 4, or obtain the element count prior to collecting. The joined string content is not always enough to infer element count.
 
-## 9. `null`, ký tự phân cách và an toàn dữ liệu
+## 9. `null`, delimiter characters, and data safety
 
-### `null` trong Stream
+### `null` in a Stream
 
-Nếu nguồn có phần tử `null`, implementation dựa trên `StringBuilder`/`StringJoiner` có thể biểu diễn nó bằng chuỗi chữ **`"null"`** trong kết quả thay vì loại phần tử. Tốt hơn là định nghĩa rõ chính sách hiển thị.
+If the source contains a `null` element, an implementation based on `StringBuilder`/`StringJoiner` can render it as the literal string **`"null"`** in the output rather than skipping it. It is better to define a clear display policy.
 
 ```java
 import java.util.Arrays;
@@ -456,35 +456,35 @@ String withoutNull = names.stream()
 // An | Bình
 
 String withPlaceholder = names.stream()
-        .map(name -> name == null ? "(chưa có tên)" : name)
+        .map(name -> name == null ? "(unnamed)" : name)
         .collect(Collectors.joining(" | "));
-// An | (chưa có tên) | Bình
+// An | (unnamed) | Bình
 ```
 
-`List.of(...)` không cho phép phần tử `null`; vì vậy ví dụ trên dùng `Arrays.asList(...)`. Nếu mapper gọi `item.name()` trên một **đối tượng item null**, lỗi có thể xuất hiện **trước khi** joining; cần lọc `Objects::nonNull` ở đúng vị trí.
+`List.of(...)` forbids `null` elements, which is why the example above uses `Arrays.asList(...)`. If a mapper calls `item.name()` on a **null item object**, the error happens **before** joining; filter `Objects::nonNull` at the right stage.
 
-### `joining` không tự escape nội dung
+### `joining` does not escape content automatically
 
-Giả sử dữ liệu có tên `"Java, nâng cao"`:
+Suppose data contains the name `"Java, Advanced"`:
 
 ```java
-String output = List.of("Java, nâng cao", "Stream").stream()
+String output = List.of("Java, Advanced", "Stream").stream()
         .collect(Collectors.joining(", "));
 
-System.out.println(output); // Java, nâng cao, Stream
+System.out.println(output); // Java, Advanced, Stream
 ```
 
-Từ chuỗi kết quả không thể biết dấu phẩy thứ nhất là **nội dung tên**, còn dấu phẩy thứ hai là **dấu phân cách**. Vì vậy:
+From the resulting string alone, you cannot tell that the first comma is **part of the name** while the second comma is **the delimiter**. Therefore:
 
-- Không dùng `joining(",")` như một trình ghi CSV hoàn chỉnh khi giá trị có thể chứa dấu phẩy, dấu nháy hoặc xuống dòng; phải áp dụng quy tắc quoting/escaping của CSV.
-- Không tạo JSON hoặc câu lệnh SQL bằng nối chuỗi thủ công rồi coi chúng là an toàn. Hãy dùng thư viện serialize JSON hoặc tham số hóa SQL.
-- Với dữ liệu dùng trong HTML/URL, áp dụng escaping/encoding theo **ngữ cảnh đích** thay vì kỳ vọng `joining` xử lý giúp.
+- Do not use `joining(",")` as a full CSV writer when values can contain commas, quotes, or newlines; apply CSV quoting/escaping rules.
+- Do not construct JSON or SQL statements via manual string joining and treat them as safe. Use a JSON serialization library or parameterized SQL.
+- For data used in HTML/URLs, apply escaping/encoding appropriate to the **target context** instead of expecting `joining` to handle it.
 
-Ba tham số `delimiter`, `prefix`, `suffix` là **quy tắc trình bày**, không phải cơ chế xác thực hay làm sạch dữ liệu.
+The three parameters `delimiter`, `prefix`, and `suffix` are **presentation rules**, not data validation or sanitization mechanisms.
 
-## 10. Thứ tự phần tử và Stream song song
+## 10. Element ordering and parallel Streams
 
-`joining` phụ thuộc vào thứ tự khi chuỗi kết quả phải đọc theo trình tự. Trên nguồn có encounter order như `List`, pipeline tuần tự giữ thứ tự đó nếu không có bước làm thay đổi hoặc bỏ bảo đảm thứ tự:
+`joining` is order-dependent whenever the resulting string must be read in sequence. On a source with encounter order like `List`, a sequential pipeline preserves that order unless a step alters or drops ordering guarantees:
 
 ```java
 String ordered = List.of("C", "A", "B").stream()
@@ -497,9 +497,9 @@ String sorted = List.of("C", "A", "B").stream()
 // A-B-C
 ```
 
-Không nên suy rằng `Collectors.joining` sẽ tự sắp xếp phần tử. Nếu nguồn là tập không có encounter order (ví dụ một số trường hợp dùng `HashSet`), kết quả không có một thứ tự nghiệp vụ được bảo đảm; thêm `sorted` khi cần đầu ra ổn định.
+Do not assume `Collectors.joining` sorts elements on its own. If the source has no encounter order (such as some `HashSet` usages), the result has no guaranteed business order; add `sorted` when deterministic output is required.
 
-### Khi dùng `parallelStream()`
+### When using `parallelStream()`
 
 ```java
 String joined = List.of("Java", "Kotlin", "Scala")
@@ -509,17 +509,17 @@ String joined = List.of("Java", "Kotlin", "Scala")
 System.out.println(joined); // Java | Kotlin | Scala
 ```
 
-`Collectors.joining` có thể được sử dụng trên parallel stream. Với một nguồn có thứ tự như `List` và pipeline không bỏ encounter order, kết quả phải tuân theo thứ tự đó. Việc tích lũy có thể diễn ra ở nhiều vùng trung gian rồi được gộp lại theo hợp đồng collector.
+`Collectors.joining` can be used on a parallel stream. With an ordered source such as `List` and a pipeline that retains encounter order, the result must respect that order. Accumulation can happen in multiple intermediate buffers that are merged according to the collector contract.
 
-Tuy nhiên, song song **không mặc nhiên nhanh hơn**: chia dữ liệu, tạo các chuỗi trung gian và hợp nhất có chi phí. Với các tập nhỏ hoặc kết quả chuỗi cần giữ thứ tự, xử lý tuần tự thường dễ hiểu và có thể hiệu quả hơn. Nếu một bước như `unordered()` cho phép bỏ encounter order, không được dựa vào thứ tự ghép để xác định kết quả.
+However, parallel **is not faster by default**: splitting data, building intermediate strings, and merging them all have overhead. For small collections or string results requiring strict order, sequential processing is easier to reason about and can be more efficient. If an operation like `unordered()` drops encounter order, do not rely on joining order to define the result.
 
-## 11. Bộ nhớ, độ dài kết quả và lựa chọn công cụ
+## 11. Memory, result length, and choosing the right tool
 
-Với `n` chuỗi đầu vào, `joining` phải đọc các phần tử để có kết quả cuối cùng; kết quả chứa toàn bộ nội dung đã nối và các ký tự phân cách, tiền tố, hậu tố. **Bộ nhớ tối thiểu cho chuỗi kết quả tăng theo tổng số ký tự**, không thể coi là `O(1)` bất kể dữ liệu lớn đến đâu.
+Given `n` input strings, `joining` must read the elements to build the final result; the result holds all concatenated content plus delimiters, prefix, and suffix. **Minimum memory for the resulting string grows with total character count**, and cannot be considered `O(1)` regardless of data size.
 
-Nếu danh sách dài hàng triệu phần tử, tạo một chuỗi duy nhất có thể tốn nhiều bộ nhớ, thậm chí chạm giới hạn kích thước mảng/chuỗi của JVM. Có thể cân nhắc phân trang, ghi theo lô hoặc streaming ra `Writer` khi yêu cầu không bắt buộc vật hóa cả chuỗi trong RAM.
+If a list has millions of elements, building one giant string can consume substantial memory or even hit JVM array/string size limits. Consider pagination, batching, or streaming to a `Writer` when materializing the entire string in RAM is unnecessary.
 
-`joining` cũng cần nguồn hữu hạn để hoàn tất:
+`joining` also requires a finite source to terminate:
 
 ```java
 String firstFive = java.util.stream.Stream
@@ -531,18 +531,18 @@ String firstFive = java.util.stream.Stream
 System.out.println(firstFive); // 1, 2, 3, 4, 5
 ```
 
-Một Stream vô hạn mà không giới hạn số phần tử sẽ không hoàn tất `collect(joining(...))`. Với các Stream gắn tài nguyên I/O, cần đóng tài nguyên đúng cách; gọi `collect` không thay thế `try-with-resources`.
+An unbounded infinite Stream will never finish `collect(joining(...))`. For I/O-backed Streams, close resources properly; calling `collect` does not replace `try-with-resources`.
 
-### So với `String.join`, `StringJoiner` và `reduce`
+### Comparison with `String.join`, `StringJoiner`, and `reduce`
 
-| Cách làm | Phù hợp khi | Lưu ý |
+| Approach | Best when | Notes |
 | --- | --- | --- |
-| `Collectors.joining(...)` | Đã có pipeline Stream, đặc biệt khi ghép sau `filter`/`map` hoặc làm downstream collector. | Là terminal reduction; phải có dữ liệu kiểu `CharSequence`. |
-| `String.join(delimiter, elements)` | Đã có sẵn `Iterable<? extends CharSequence>` hoặc các tham số `CharSequence`; không cần pipeline. | Không có overload riêng cho prefix/suffix. |
-| `StringJoiner` | Tích lũy từng chuỗi thủ công với delimiter/prefix/suffix. | Phải tự gọi `add` cho từng phần tử; `joining` sử dụng cơ chế tích lũy tương tự bên trong. |
-| `reduce` với phép cộng chuỗi | Thích hợp để học reduction đơn giản. | Nối chuỗi bất biến lặp đi lặp lại có thể tạo nhiều đối tượng trung gian, không phải lựa chọn ưu tiên cho bài toán ghép nhiều chuỗi. |
+| `Collectors.joining(...)` | Already in a Stream pipeline, especially after `filter`/`map` or as a downstream collector. | Terminal reduction; requires `CharSequence` data. |
+| `String.join(delimiter, elements)` | Already have an `Iterable<? extends CharSequence>` or `CharSequence` arguments; no pipeline needed. | Has no overload for prefix/suffix. |
+| `StringJoiner` | Manually accumulating strings with delimiter/prefix/suffix. | Must call `add` per element; `joining` uses a similar mechanism internally. |
+| `reduce` with string concatenation | Good for learning simple reduction. | Repeated immutable string concatenation creates many intermediate objects; not preferred for joining many strings. |
 
-Ví dụ không cần Stream:
+Example without Streams:
 
 ```java
 String direct = String.join(", ", List.of("A", "B", "C"));
@@ -555,26 +555,26 @@ joiner.add("B");
 System.out.println(joiner); // [A, B]
 ```
 
-Khi đã có Stream với nhiều bước biến đổi, `collect(Collectors.joining(...))` thường tự nhiên hơn việc đưa các phần tử ra ngoài pipeline rồi dùng vòng lặp ghép thủ công.
+Once you already have a Stream with multiple transformation steps, `collect(Collectors.joining(...))` is usually more natural than pulling elements out of the pipeline to join manually in a loop.
 
-## 12. Lỗi thường gặp
+## 12. Common mistakes
 
-| Lỗi | Hậu quả | Cách xử lý |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Gọi `joining` trực tiếp trên `Stream<Item>` | Không phù hợp kiểu `CharSequence`; có thể không biên dịch. | `map(Item::name)` hoặc định dạng từng `Item` thành chuỗi trước. |
-| Nghĩ prefix/suffix lặp lại trên từng phần tử | Đầu ra không đúng định dạng mong muốn. | Dùng `map` để tạo tiền tố/hậu tố cho mỗi phần tử; dùng `joining(..., prefix, suffix)` cho cả kết quả. |
-| Mong chuỗi rỗng trên Stream rỗng khi có prefix/suffix | Thực tế vẫn thu được `prefix + suffix`. | Chọn quy tắc hiển thị và kiểm tra count nếu cần phân biệt. |
-| Dùng `joining(",")` để ghi CSV thực sự | Dữ liệu có dấu phẩy/dấu nháy không được escape. | Dùng bộ mã hóa CSV hoặc quy tắc escaping phù hợp. |
-| Không loại hoặc thay thế `null` có chủ đích | Chuỗi kết quả có thể chứa chữ `null` ngoài ý muốn. | `filter(Objects::nonNull)` hoặc `map` sang placeholder. |
-| Nhầm `groupingBy` và `mapping` | Mất khóa phân nhóm khi `map` quá sớm. | Phân nhóm trên đối tượng, sau đó `mapping` bên trong downstream collector. |
-| Đòi hỏi thứ tự xác định từ nguồn unordered | Chuỗi nối có thứ tự khó dự đoán. | Dùng nguồn có encounter order hoặc `sorted()` trước collect. |
-| Coi `parallelStream()` luôn tăng tốc | Chi phí chia/gộp lớn hơn lợi ích. | Đo hiệu năng; ưu tiên tuần tự nếu dữ liệu nhỏ. |
-| Ghép dữ liệu vô hạn hoặc quá lớn vào một chuỗi | Không kết thúc hoặc tiêu thụ bộ nhớ cao. | Dùng `limit`, xử lý theo lô hoặc xuất tuần tự ra đích. |
-| Dùng lại cùng Stream sau `collect` | Stream đã bị tiêu thụ, có thể ném `IllegalStateException`. | Tạo Stream mới từ nguồn có thể duyệt lại. |
+| Calling `joining` directly on `Stream<Item>` | Incompatible with `CharSequence`; fails to compile. | `map(Item::name)` or format each `Item` into a string first. |
+| Expecting prefix/suffix to repeat for every element | Output does not match intended format. | Use `map` for per-element prefix/suffix; use `joining(..., prefix, suffix)` for the whole result. |
+| Expecting `""` on an empty Stream when prefix/suffix are set | Actually returns `prefix + suffix`. | Define display rules and check count if you must distinguish them. |
+| Using `joining(",")` to write real CSV | Values with commas/quotes are not escaped. | Use a CSV serializer or proper escaping rules. |
+| Failing to filter or replace `null` intentionally | Output string can contain unintended `"null"` text. | `filter(Objects::nonNull)` or `map` to a placeholder. |
+| Confusing `groupingBy` and `mapping` | Loses grouping key when mapping too early. | Group on the object, then apply `mapping` inside the downstream collector. |
+| Expecting deterministic order from an unordered source | Joined string order is unpredictable. | Use an ordered source or `sorted()` before collecting. |
+| Assuming `parallelStream()` always speeds things up | Splitting/merging cost outweighs benefits. | Benchmark; prefer sequential for small datasets. |
+| Joining infinite or huge data into one string | Never terminates or causes high memory pressure. | Use `limit`, batching, or stream sequentially to a destination. |
+| Reusing the same Stream after `collect` | Stream already consumed; throws `IllegalStateException`. | Create a new Stream from a re-iterable source. |
 
-## 13. Tự luyện tập
+## 13. Practice exercises
 
-**Bài 1 — Ba overload.** Cho `List.of("x", "y", "z")`. Hãy dự đoán ba kết quả sau:
+**Exercise 1 — Three overloads.** Given `List.of("x", "y", "z")`, predict the three results:
 
 ```java
 List<String> values = List.of("x", "y", "z");
@@ -584,17 +584,17 @@ String b = values.stream().collect(Collectors.joining("-"));
 String c = values.stream().collect(Collectors.joining("-", "<", ">"));
 ```
 
-**Đáp án:** `a = "xyz"`, `b = "x-y-z"`, `c = "<x-y-z>"`.
+**Answer:** `a = "xyz"`, `b = "x-y-z"`, `c = "<x-y-z>"`.
 
-**Bài 2 — Nguồn rỗng.** Giá trị của `Stream.<String>empty().collect(Collectors.joining("; ", "(", ")"))` là gì?
+**Exercise 2 — Empty source.** What is the value of `Stream.<String>empty().collect(Collectors.joining("; ", "(", ")"))`?
 
-**Đáp án:** `"()"`. Không có delimiter nào được chèn vì không có phần tử, nhưng prefix và suffix vẫn được giữ.
+**Answer:** `"()"`. No delimiter is inserted since there are zero elements, yet prefix and suffix are still retained.
 
-**Bài 3 — Tiền tố cho từng phần tử.** Cần biến `["java", "stream"]` thành `"#java, #stream"`. Có nên dùng `joining(", ", "#", "")` không?
+**Exercise 3 — Per-element prefix.** You need to turn `["java", "stream"]` into `"#java, #stream"`. Should you use `joining(", ", "#", "")`?
 
-**Đáp án:** Không. Dùng `.map(s -> "#" + s).collect(Collectors.joining(", "))`; prefix của `joining` chỉ thêm một lần ở đầu toàn bộ chuỗi.
+**Answer:** No. Use `.map(s -> "#" + s).collect(Collectors.joining(", "))`; `joining`'s prefix is added only once at the start of the whole string.
 
-**Bài 4 — Ghép theo nhóm.** Với `Stream<Item>`, làm thế nào tạo `Map<String, String>` theo `category`, mỗi giá trị là tên các `Item` cách nhau dấu `"; "`?
+**Exercise 4 — Joining by group.** Given `Stream<Item>`, how do you create `Map<String, String>` keyed by `category`, where each value is the `Item` names separated by `"; "`?
 
 ```java
 Map<String, String> result = items.stream()
@@ -604,18 +604,18 @@ Map<String, String> result = items.stream()
         ));
 ```
 
-**Bài 5 — Filter ở hai vị trí.** Vì sao `items.stream().filter(Item::active).collect(groupingBy(...))` có thể tạo ít khóa hơn `items.stream().collect(groupingBy(..., filtering(Item::active, ...)))`?
+**Exercise 5 — Filter in two positions.** Why can `items.stream().filter(Item::active).collect(groupingBy(...))` produce fewer keys than `items.stream().collect(groupingBy(..., filtering(Item::active, ...)))`?
 
-**Đáp án:** Lọc **trước** grouping loại cả phần tử tạo nhóm; nhóm không có phần tử đạt điều kiện có thể biến mất. Lọc **bên trong downstream** vẫn tạo nhóm cho các khóa có phần tử đầu vào, nhưng kết quả joined của nhóm không có phần tử đạt điều kiện có thể là chuỗi rỗng hoặc chỉ prefix/suffix.
+**Answer:** Filtering **before** grouping drops elements before groups are formed; groups with no matching elements can disappear. Filtering **inside the downstream** still creates groups for keys present in the input, while the joined result for a group with no matching elements can be empty or only prefix/suffix.
 
-**Bài 6 — Thứ tự.** Nếu cần cùng một chuỗi kết quả bất kể thứ tự ban đầu của danh sách, nên thêm bước nào?
+**Exercise 6 — Ordering.** If you need the exact same result string regardless of the list's initial order, what step should you add?
 
-**Đáp án:** Sắp xếp theo comparator xác định bằng `sorted()` hoặc `sorted(comparator)` **trước** `joining`. Nếu có nhiều bản ghi có giá trị so sánh bằng nhau mà thứ tự giữa chúng quan trọng, cần thêm tiêu chí phụ rõ ràng.
+**Answer:** Sort with a deterministic comparator using `sorted()` or `sorted(comparator)` **before** `joining`. If multiple records compare equal and relative order among them matters, add a clear tie-breaker criterion.
 
-## Ghi nhớ
+## Key takeaway
 
-- `Collectors.joining()` nối liền các `CharSequence`; `joining(delimiter)` chèn dấu phân cách **giữa** các phần tử; `joining(delimiter, prefix, suffix)` thêm tiền tố/hậu tố **một lần cho toàn bộ kết quả**.
-- Với Stream rỗng, hai dạng đầu trả `""`; dạng có prefix/suffix trả `prefix + suffix` (chẳng hạn `"[]"`).
-- Khi nguồn không phải `CharSequence`, hãy `map` hoặc `mapToObj` sang chuỗi trước; `joining` không tự định dạng đối tượng theo nghiệp vụ.
-- Có thể kết hợp `groupingBy(..., mapping(..., joining(...)))` để tạo một chuỗi cho mỗi nhóm; `filtering` ở downstream khác với `filter` trước grouping về việc giữ nhóm rỗng.
-- `joining` không tự escape dữ liệu cho CSV/JSON/HTML, không tự sắp xếp, và cần xét bộ nhớ, thứ tự, tài nguyên cùng giới hạn khi dùng Stream vô hạn hoặc song song.
+- `Collectors.joining()` concatenates `CharSequence` values; `joining(delimiter)` inserts the delimiter **between** elements; `joining(delimiter, prefix, suffix)` adds prefix/suffix **once for the entire result**.
+- On an empty Stream, the first two forms return `""`; the form with prefix/suffix returns `prefix + suffix` (such as `"[]"`).
+- When the source is not `CharSequence`, `map` or `mapToObj` to strings first; `joining` does not format domain objects automatically.
+- You can compose `groupingBy(..., mapping(..., joining(...)))` to build one string per group; downstream `filtering` differs from pre-grouping `filter` in keeping empty groups.
+- `joining` does not escape data for CSV/JSON/HTML, does not sort automatically, and requires attention to memory, order, resources, and bounds with infinite or parallel Streams.

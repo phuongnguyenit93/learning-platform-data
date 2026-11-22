@@ -1,42 +1,42 @@
-# Chọn `var` khi kiểu vẫn rõ ràng với người đọc — Java 17+
+# Choose `var` When the Type Remains Clear to Readers — Java 17+
 
-`var` cho phép Java **suy luận kiểu tĩnh của biến cục bộ** từ biểu thức khởi tạo. Lợi ích chính là giảm lặp tên kiểu, **không phải** biến Java thành ngôn ngữ kiểu động. Một khai báo tốt cần đồng thời đạt hai mục tiêu:
+`var` lets Java **infer the static type of a local variable** from its initializer expression. The primary benefit is reducing type-name repetition, **not** turning Java into a dynamically typed language. A good declaration should satisfy two goals at once:
 
-1. **Compiler biết kiểu chính xác** để kiểm tra mọi phép gán và lời gọi tiếp theo.
-2. **Người đọc hiểu đủ nhanh** biến chứa loại dữ liệu gì, ý nghĩa nghiệp vụ ra sao, và các thao tác nào hợp lệ.
+1. **The compiler knows the exact type** to check every subsequent assignment and call.
+2. **Human readers understand quickly enough** what kind of data the variable holds, its business meaning, and which operations are valid.
 
-Hãy chọn `var` **khi biểu thức khởi tạo, tên biến và ngữ cảnh khiến kiểu đủ rõ**. Khi kiểu đích hoặc ý đồ thiết kế không rõ, khai báo tường minh thường tốt hơn.
+Choose `var` **when the initializer expression, variable name, and context make the type clear enough**. When the target type or design intent is unclear, an explicit declaration is usually better.
 
 ~~~java
-var student = new Student("An", 8);  // De thay la Student.
-var names = new ArrayList<String>(); // De thay kieu phan tu String.
-var retryCount = 3;                  // Don gian va ro rang: int.
+var student = new Student("An", 8);  // Easy to see it is Student.
+var names = new ArrayList<String>(); // Easy to see element type String.
+var retryCount = 3;                  // Simple and clear: int.
 
-// Can the hien y do API la interface:
+// Need to express the API intent as an interface:
 List<String> visibleNames = new ArrayList<>();
 ~~~
 
-Cả `var` và khai báo tường minh đều có chỗ đứng. **Không có quy tắc “luôn dùng” hoặc “luôn tránh” `var`** áp dụng cho mọi dự án.
+Both `var` and explicit declarations have their place. **There is no “always use” or “always avoid” `var` rule** that applies to every project.
 
-## 1. Bảng quyết định nhanh
+## 1. Quick Decision Table
 
-| Tình huống | Ví dụ | Gợi ý | Vì sao |
+| Situation | Example | Recommendation | Why |
 | --- | --- | --- | --- |
-| Constructor cho biết lớp | `var user = new User("An");` | **Thường dùng `var`** | Tên kiểu hiện ngay tại initializer |
-| Kiểu phần tử generic nêu rõ | `var names = new ArrayList<String>();` | **Có thể dùng `var`** | `String` không bị che khuất |
-| Literal đơn giản | `var retries = 3;` | **Có thể dùng `var`** | Kiểu `int` dễ nhận biết |
-| Kết quả phương thức khó đoán | `var result = load();` | **Cân nhắc viết kiểu** | Phải tra chữ ký `load()` mới hiểu kết quả |
-| Muốn ràng buộc qua interface | `List<String> items = new ArrayList<>();` | **Viết kiểu tường minh** | Làm rõ API mà biến cam kết |
-| Diamond thiếu kiểu phần tử | `var items = new ArrayList<>();` | **Nên tránh** | Có thể suy thành `ArrayList<Object>` |
-| Giá trị số cần độ rộng cụ thể | `long bytes = 1_000_000;` | **Cân nhắc viết kiểu** | Tránh nhầm `int`, `long` hoặc số thực |
-| Chuỗi gọi phương thức phức tạp | `var summary = pipeline.compute();` | **Viết rõ nếu giúp hiểu** | Tên phương thức không bảo đảm rõ kiểu |
-| Biến phần tử trong vòng lặp | `for (var item : typedItems)` | **Thường dùng `var`** | Có thể suy kiểu từ collection/mảng |
+| Constructor reveals the class | `var user = new User("An");` | **Often use `var`** | The type name appears right at the initializer |
+| Generic element type is stated | `var names = new ArrayList<String>();` | **Can use `var`** | `String` is not hidden |
+| Simple literal | `var retries = 3;` | **Can use `var`** | The `int` type is easy to recognize |
+| Method return is hard to guess | `var result = load();` | **Consider writing the type** | Must look up `load()`'s signature to understand the result |
+| Want to program against an interface | `List<String> items = new ArrayList<>();` | **Write the explicit type** | Clarifies the API the variable commits to |
+| Diamond missing element type | `var items = new ArrayList<>();` | **Should avoid** | May infer `ArrayList<Object>` |
+| Numeric value needs specific width | `long bytes = 1_000_000;` | **Consider writing the type** | Avoids confusing `int`, `long`, or floating-point types |
+| Complex method call chain | `var summary = pipeline.compute();` | **Write explicitly if it helps understanding** | The method name does not guarantee clarity of the type |
+| Loop element variable | `for (var item : typedItems)` | **Often use `var`** | Type can be inferred from the collection/array |
 
-“Rõ” là tiêu chí dành cho người đọc **tại vị trí khai báo**, không phải chỉ người đã thuộc toàn bộ mã nguồn.
+“Clear” is a standard meant for a reader **at the declaration site**, not just someone who already has the entire codebase memorized.
 
-## 2. Ví dụ Java 17+ biên dịch và chạy bằng CLI
+## 2. Java 17+ Example Compiled and Run via CLI
 
-Tạo file UTF-8 **`ReadableVarDemo.java`**:
+Create a UTF-8 file named **`ReadableVarDemo.java`**:
 
 ~~~java
 import java.util.ArrayList;
@@ -71,12 +71,12 @@ public class ReadableVarDemo {
         names.add("Binh");
         System.out.println("names=" + String.join(",", names));
 
-        // Muon API bien la List, viet kieu interface tuong minh.
+        // To keep the variable API as List, write the interface type explicitly.
         List<String> publishedNames = new ArrayList<>();
         publishedNames.add("Lan");
         System.out.println("published=" + publishedNames);
 
-        // Ten ham chua cho nguoi doc biet chac kieu tra ve.
+        // The method name does not tell the reader the return type for certain.
         List<Student> students = loadStudents();
         var total = 0;
         for (var student : students) {
@@ -85,11 +85,11 @@ public class ReadableVarDemo {
         System.out.println("studentCount=" + students.size());
         System.out.println("totalPoints=" + total);
 
-        // Chon String tường minh de bieu dat hop dong du lieu.
+        // Choose explicit String to express the data contract.
         String normalizedName = normalizeName("  an  ");
         System.out.println("normalized=" + normalizedName);
 
-        // Kieu co the thay ngay qua literal va API tieu chuan.
+        // The type is immediately visible from the literal and standard API.
         var uppercase = "java".toUpperCase(Locale.ROOT);
         System.out.println("uppercase=" + uppercase);
 
@@ -99,7 +99,7 @@ public class ReadableVarDemo {
         System.out.println("wrapperType="
                 + wrapper.getClass().getSimpleName());
 
-        // Diamond khong co kieu dich ro rang: suy ra Object.
+        // Diamond without an explicit target type: infers Object.
         var mixed = new ArrayList<>();
         mixed.add("text");
         mixed.add(7);
@@ -122,7 +122,7 @@ public class ReadableVarDemo {
 }
 ~~~
 
-Dùng JDK 17 trở lên. Tại thư mục chứa file, mở PowerShell hoặc Bash và chạy:
+Use JDK 17 or later. In the directory containing the file, open PowerShell or Bash and run:
 
 ~~~bash
 java -version
@@ -131,7 +131,7 @@ javac -encoding UTF-8 ReadableVarDemo.java
 java ReadableVarDemo
 ~~~
 
-**Exact expected output** của lệnh `java ReadableVarDemo` (không tính dòng phiên bản JDK):
+**Exact expected output** of `java ReadableVarDemo` (excluding the JDK version lines):
 
 ~~~text
 retries=3
@@ -152,53 +152,53 @@ decimalDivision=2.5
 largeValue=2000000000
 ~~~
 
-### Vì sao chương trình chọn kiểu khai báo khác nhau?
+### Why Did the Program Choose Different Declaration Types?
 
-- `var first = new Student(...)` rõ vì tên lớp `Student` hiện ngay tại `new`; biến suy ra kiểu `Student`.
-- `var names = new ArrayList<String>()` thể hiện rõ kiểu phần tử. Trong khi đó, `List<String> publishedNames = new ArrayList<>()` chọn **kiểu interface `List<String>`** làm hợp đồng sử dụng thay vì cố định kiểu khai báo của biến là `ArrayList<String>`.
-- `List<Student> students = loadStudents()` làm rõ kiểu kết quả ngay cho người đọc, không buộc họ mở định nghĩa `loadStudents()`.
-- Trong `for (var student : students)`, kiểu của phần tử đã rõ từ `List<Student>`, nên tránh lặp `Student` mà vẫn dễ hiểu.
-- `String normalizedName = normalizeName(...)` làm rõ kiểu dữ liệu của một hàm nghiệp vụ có tên không nhất thiết nói hết chữ ký.
-- `var primitive = Integer.parseInt("7")` suy ra `int`, còn `var wrapper = Integer.valueOf("7")` suy ra `Integer`. Hai kết quả có thể cùng hiển thị là 7 nhưng **khác kiểu**.
-- `var mixed = new ArrayList<>()` không có kiểu đích generic cụ thể, nên trong trường hợp này `<>` suy ra `Object` và kiểu biến là `ArrayList<Object>`. Điều đó giải thích tại sao danh sách nhận được cả `String` và `Integer`.
-- `var integerDivision = 5 / 2` có kiểu `int`, giá trị 2; `var decimalDivision = 5 / 2.0` có kiểu `double`, giá trị 2.5. `var` không sửa kiểu của biểu thức trước khi gán.
+- `var first = new Student(...)` is clear because the class name `Student` appears right at `new`; the variable infers type `Student`.
+- `var names = new ArrayList<String>()` states the element type clearly. Meanwhile, `List<String> publishedNames = new ArrayList<>()` chooses the **interface type `List<String>`** as the usage contract rather than fixing the variable's declared type as `ArrayList<String>`.
+- `List<Student> students = loadStudents()` makes the result type immediately clear to readers without forcing them to open the definition of `loadStudents()`.
+- In `for (var student : students)`, the element's type is already clear from `List<Student>`, avoiding repeating `Student` while remaining easy to understand.
+- `String normalizedName = normalizeName(...)` clarifies the data type of a business method whose name does not necessarily reveal the full signature.
+- `var primitive = Integer.parseInt("7")` infers `int`, while `var wrapper = Integer.valueOf("7")` infers `Integer`. Both results may print as 7, yet they have **different types**.
+- `var mixed = new ArrayList<>()` has no concrete generic target type, so in this case `<>` infers `Object` and the variable's type is `ArrayList<Object>`. That explains why the list accepts both `String` and `Integer`.
+- `var integerDivision = 5 / 2` has type `int`, value 2; `var decimalDivision = 5 / 2.0` has type `double`, value 2.5. `var` does not alter the expression's type before assignment.
 
-## 3. `var` vẫn là kiểu tĩnh, không phải “kiểu tùy biến”
+## 3. `var` Is Still Static Typing, Not a “Flexible Type”
 
 ~~~java
 var count = 10; // int.
-count = 20;     // Hop le.
-// count = "20"; // LOI bien dich: String khong gan duoc cho int.
+count = 20;     // Valid.
+// count = "20"; // COMPILE ERROR: String cannot be assigned to int.
 
 var name = "An"; // String.
-// name = 123;    // LOI bien dich: int khong gan duoc cho String.
+// name = 123;    // COMPILE ERROR: int cannot be assigned to String.
 ~~~
 
-Compiler suy kiểu **một lần tại khai báo**, sau đó áp dụng các quy tắc Java bình thường (gán kiểu, overload, generic, truy cập thành viên).
+The compiler infers the type **once at declaration**, then applies normal Java rules (type assignment, overloads, generics, member access).
 
-Vì vậy đừng chọn `var` chỉ vì muốn biến “linh hoạt hơn”. Nếu một biến cần mang kiểu cơ sở hoặc interface để nhận nhiều lớp triển khai, hãy **chủ động chọn kiểu tường minh** phù hợp:
+Therefore, do not pick `var` just because you want a variable to be “more flexible”. If a variable needs to carry a base type or interface to accept multiple implementation classes, **deliberately choose the appropriate explicit type**:
 
 ~~~java
 CharSequence text = new StringBuilder("Hi");
-text = "Hello"; // Hop le: String cung implements CharSequence.
+text = "Hello"; // Valid: String also implements CharSequence.
 
 // var text = new StringBuilder("Hi");
-// text = "Hello"; // LOI: kieu suy ra la StringBuilder.
+// text = "Hello"; // ERROR: the inferred type is StringBuilder.
 ~~~
 
-Đây là khác biệt về **kiểu khai báo được chọn**, không phải giới hạn đặc biệt về đối tượng do `var` tạo ra.
+This is a difference in the **chosen declared type**, not a special limitation on objects created with `var`.
 
-## 4. Bẫy generic khi dùng diamond `<>`
+## 4. Generic Pitfall When Using the Diamond `<>`
 
 ~~~java
 var values = new ArrayList<>();
 values.add("Ada");
-values.add(42); // Hop le, vi ArrayList<Object>.
+values.add(42); // Valid, because ArrayList<Object>.
 ~~~
 
-Người đọc có thể đoán “đây là danh sách tên” nhưng compiler chỉ thấy biểu thức tạo `ArrayList<>` thiếu kiểu đích cụ thể. Đừng chờ các câu `add(...)` viết về sau để compiler suy lại kiểu phần tử: việc suy kiểu đã kết thúc tại khai báo.
+A reader might guess “this is a list of names”, yet the compiler only sees an `ArrayList<>` creation expression lacking a concrete target type. Do not expect later `add(...)` calls to make the compiler re-infer the element type: type inference finished at the declaration.
 
-Hai cách rõ ràng hơn:
+Two clearer ways:
 
 ~~~java
 var names = new ArrayList<String>();
@@ -206,52 +206,52 @@ var names = new ArrayList<String>();
 List<String> otherNames = new ArrayList<>();
 ~~~
 
-- Cách đầu thích hợp khi muốn `ArrayList<String>` và constructor đã nêu rõ generic.
-- Cách sau tốt khi muốn mã phụ thuộc vào **interface `List<String>`** thay vì lớp triển khai cụ thể.
+- The first is appropriate when you want `ArrayList<String>` and the constructor explicitly states the generic type.
+- The second is good when you want the code to depend on the **interface `List<String>`** rather than a concrete implementation class.
 
-`var` không tự tạo ràng buộc generic theo ý định nghiệp vụ; hãy thể hiện ràng buộc đó trong initializer hoặc kiểu tường minh.
+`var` does not automatically create generic constraints based on business intent; express that constraint in the initializer or via an explicit type.
 
-## 5. Tên phương thức không phải hợp đồng kiểu
+## 5. A Method Name Is Not a Type Contract
 
-Đoạn sau **có thể hợp lệ về mặt compiler** nếu `load()` tồn tại, nhưng khó hiểu khi chỉ đọc tại vị trí khai báo:
+The snippet below **may be valid for the compiler** if `load()` exists, yet hard to understand when reading only at the declaration site:
 
 ~~~java
 // var result = load();
 ~~~
 
-Hãy cân nhắc khai báo trực tiếp loại dữ liệu:
+Consider declaring the data type directly:
 
 ~~~java
 // List<Student> students = load();
 ~~~
 
-Khi thực sự cần biết `result` có thể là `List<Student>`, `Optional<Student>` hay `Map<String, Student>`, người đọc phải lần ngược về chữ ký phương thức. `var` tiết kiệm vài ký tự nhưng làm tăng chi phí tìm hiểu.
+When you actually need to know whether `result` could be `List<Student>`, `Optional<Student>`, or `Map<String, Student>`, readers must trace back to the method signature. `var` saves a few characters while increasing the cost of comprehension.
 
-Ngược lại, nếu tên hàm rất đặc trưng và ngữ cảnh gần đó đã chỉ rõ kiểu, `var` vẫn có thể hợp lý. Đây là **quy ước về khả năng đọc và bảo trì**, không phải quy tắc compiler bắt buộc. Trong code review, nên dựa vào sự rõ ràng của đoạn mã thay vì số lần xuất hiện của `var`.
+Conversely, if the method name is highly descriptive and the nearby context already makes the type obvious, `var` can still be reasonable. This is a **convention for readability and maintainability**, not a mandatory compiler rule. In code reviews, judge by the clarity of the snippet rather than counting occurrences of `var`.
 
-## 6. Những ngữ cảnh thường đọc rõ với `var`
+## 6. Contexts That Usually Read Clearly with `var`
 
-| Ngữ cảnh | Ví dụ hợp lệ | Nguồn suy luận |
+| Context | Valid Example | Inference Source |
 | --- | --- | --- |
-| Local có initializer | `var count = 1;` | Biểu thức `1`: `int` |
-| Constructor nêu kiểu | `var builder = new StringBuilder();` | Kiểu `StringBuilder` |
-| Enhanced `for` | `for (var name : names) { }` | Kiểu phần tử của `names` |
-| Vòng `for` thường | `for (var i = 0; i < 3; i++) { }` | Initializer `0` |
-| `try-with-resources` | `try (var reader = new java.io.StringReader("x")) { }` | Constructor của resource |
-| Local bất biến tham chiếu | `final var max = 10;` | Kiểu `int` từ `10` |
+| Local with initializer | `var count = 1;` | Expression `1`: `int` |
+| Constructor naming the type | `var builder = new StringBuilder();` | Type `StringBuilder` |
+| Enhanced `for` | `for (var name : names) { }` | Element type of `names` |
+| Traditional `for` loop | `for (var i = 0; i < 3; i++) { }` | Initializer `0` |
+| `try-with-resources` | `try (var reader = new java.io.StringReader("x")) { }` | Resource constructor |
+| Local with immutable reference | `final var max = 10;` | Type `int` from `10` |
 
-`var` không được dùng để khai báo field của class, kiểu trả về phương thức hoặc kiểu tham số phương thức thông thường. Với lambda, Java 17 hỗ trợ `var` cho tham số có kiểu suy luận từ functional interface mục tiêu, nhưng đó là một ngữ cảnh riêng.
+`var` cannot be used to declare a class field, a method return type, or a regular method parameter type. For lambdas, Java 17 supports `var` for parameters whose types are inferred from the target functional interface, though that is a separate context.
 
-Hai khai báo sau cố ý **không hợp lệ**:
+The following two declarations are intentionally **invalid**:
 
 ~~~java
-// var value;        // Thieu initializer.
-// var value = null; // Null literal khong cho kieu cu the.
+// var value;        // Missing initializer.
+// var value = null; // Null literal gives no concrete type.
 ~~~
 
-Khi cần khai báo trước rồi mới gán, hoặc cần một tham chiếu nullable mà kiểu chưa hiện trong biểu thức, hãy viết kiểu tường minh như `String value = null;`.
+When you need to declare first and assign later, or need a nullable reference whose type is not yet shown in the expression, write an explicit type such as `String value = null;`.
 
-## 7. Kiểu số và phép toán: đọc nhanh chưa chắc đoán đúng
+## 7. Numeric Types and Operations: Quick Reading Does Not Guarantee Guessing Right
 
 ~~~java
 var a = 2;        // int.
@@ -259,68 +259,68 @@ var b = 2L;       // long.
 var c = 2.0;      // double.
 var d = 2.0f;     // float.
 
-var quotient = 5 / 2;   // int, gia tri 2.
-var exact = 5 / 2.0;    // double, gia tri 2.5.
+var quotient = 5 / 2;   // int, value 2.
+var exact = 5 / 2.0;    // double, value 2.5.
 ~~~
 
-Nếu dữ liệu là số tiền, bộ đếm có thể lớn, hoặc tỷ lệ cần độ chính xác cụ thể, hãy chú ý **kiểu của literal** và **kiểu biểu thức trung gian**. `var` chỉ chọn kiểu kết quả hiện có, **không ngăn tràn số** hay tự chuyển chia nguyên thành chia số thực.
+If the data represents money, counters that may grow large, or ratios needing specific precision, pay attention to **the literal's type** and **intermediate expression types**. `var` only takes the existing result type; it **does not prevent overflow** or automatically turn integer division into floating-point division.
 
-Ví dụ:
+Example:
 
 ~~~java
 long total = 1_000_000_000L + 1_000_000_000L;
 ~~~
 
-Khai báo tường minh `long` và hậu tố `L` làm chủ đích dùng số nguyên rộng dễ nhận biết, dù trong trường hợp giá trị ví dụ chưa vượt miền `int`. Nếu phép toán có thể vượt `long`, vẫn phải xử lý phù hợp.
+The explicit `long` declaration and the `L` suffix make the intent to use a wide integer clear, even though in this example the value does not exceed the `int` range. If the operation could exceed `long`, it still must be handled appropriately.
 
-## 8. Quy tắc code review thực tế
+## 8. Practical Code Review Rules
 
-Khi nhìn vào một khai báo `var`, hãy tự hỏi:
+When looking at a `var` declaration, ask yourself:
 
-1. **Người chưa đọc hàm trả về có đoán đúng kiểu không?** Nếu không, thêm kiểu tường minh.
-2. **Kiểu phần tử generic có được xác định rõ?** Tránh `var items = new ArrayList<>()` khi muốn `String` hay một kiểu nghiệp vụ cụ thể.
-3. **Kiểu interface hoặc superclass có phải ý đồ thiết kế?** Nếu có, viết `List<String>`, `Collection<T>` hoặc interface thích hợp bên trái.
-4. **Kiểu primitive/wrapper và độ rộng số có quan trọng?** Nếu có, làm rõ literal, cast hoặc khai báo.
-5. **Đặt tên biến có giúp hiểu ý nghĩa?** `var retryCount = 3` rõ hơn `var x = 3`, dù kiểu cùng là `int`.
-6. **Có giảm lặp thực chất không?** `var student = new Student(...)` thường gọn hơn `Student student = new Student(...)` mà không giấu thông tin.
+1. **Can someone who has not read the called method's return signature guess the type?** If not, add an explicit type.
+2. **Is the generic element type clearly established?** Avoid `var items = new ArrayList<>()` when you want `String` or a specific domain type.
+3. **Is an interface or superclass type part of the design intent?** If so, write `List<String>`, `Collection<T>`, or the appropriate interface on the left.
+4. **Do primitive/wrapper types and numeric width matter?** If so, make the literal, cast, or declaration explicit.
+5. **Does the variable name help convey meaning?** `var retryCount = 3` is clearer than `var x = 3`, even though both have type `int`.
+6. **Does it genuinely reduce repetition?** `var student = new Student(...)` is usually cleaner than `Student student = new Student(...)` without hiding information.
 
-Không có câu trả lời tự động cho mọi khai báo. Mục tiêu là **giảm chữ thừa mà vẫn giữ lại thông tin cần thiết cho người đọc**.
+There is no automatic answer for every declaration. The goal is to **cut redundant characters while keeping the information readers need**.
 
-## 9. Những hiểu nhầm thường gặp
+## 9. Common Misconceptions
 
-| Nhận định | Đúng hay sai? | Giải thích |
+| Claim | True or False? | Explanation |
 | --- | --- | --- |
-| “Dùng `var` là bỏ kiểm tra kiểu.” | **Sai** | Java vẫn xác định kiểu tĩnh |
-| “Cứ có `new` thì `var` luôn dễ hiểu.” | **Sai** | `new ArrayList<>()` có thể giấu kiểu generic |
-| “`var x = 3;` có thể đổi sang `String`.” | **Sai** | `x` đã có kiểu `int` |
-| “`var list = new ArrayList<>()` chắc là `ArrayList<String>`.” | **Sai** | Không có target type; trường hợp này suy ra `ArrayList<Object>` |
-| “Kiểu của `var x = parseInt(...)` là wrapper.” | **Sai** | `Integer.parseInt` trả `int` |
-| “Viết `List<String>` bên trái có thể thể hiện interface mong muốn.” | **Đúng** | Đó là hợp đồng kiểu tĩnh của biến |
-| “Tên biến tốt có thể giúp `var` dễ đọc hơn.” | **Đúng** | Tên và initializer bổ sung ngữ cảnh |
+| “Using `var` skips type checking.” | **False** | Java still determines a static type |
+| “Whenever `new` is present, `var` is always easy to understand.” | **False** | `new ArrayList<>()` can hide the generic type |
+| “`var x = 3;` can be reassigned to `String`.” | **False** | `x` already has type `int` |
+| “`var list = new ArrayList<>()` is definitely `ArrayList<String>`.” | **False** | There is no target type; this case infers `ArrayList<Object>` |
+| “The type of `var x = parseInt(...)` is a wrapper.” | **False** | `Integer.parseInt` returns `int` |
+| “Writing `List<String>` on the left can express the desired interface.” | **True** | That is the variable's static type contract |
+| “A good variable name can make `var` more readable.” | **True** | The name and initializer add context |
 
-## 10. Bài tập tự kiểm tra
+## 10. Self-Check Exercises
 
-1. **Rõ kiểu:** `var book = new Book("Java");` hay `var result = fetch();` dễ hiểu kiểu hơn nếu chưa đọc hàm?  
-   *Gợi ý:* Câu thứ nhất thể hiện `Book` trực tiếp; câu thứ hai phụ thuộc chữ ký `fetch()`.
-2. **Generic:** `var names = new ArrayList<>();` có bảo đảm `ArrayList<String>` không?  
-   *Đáp án:* Không; trường hợp này suy ra `ArrayList<Object>`. Viết `new ArrayList<String>()` hoặc `List<String> names = new ArrayList<>()`.
-3. **Interface:** Vì sao `List<String> names = new ArrayList<>()` có thể tốt hơn `var names = new ArrayList<String>()`?  
-   *Đáp án:* Nó thể hiện biến dự kiến dùng qua API `List`, không ràng buộc kiểu khai báo vào `ArrayList`.
-4. **Số học:** `var result = 5 / 2;` và `var result = 5 / 2.0;` có kiểu gì?  
-   *Đáp án:* `int` và `double`, lần lượt có giá trị 2 và 2.5.
-5. **Chữ ký phương thức:** Nếu `loadStudents()` trả `List<Student>`, dùng `var students = loadStudents();` có sai không?  
-   *Đáp án:* Không sai về ngôn ngữ; nhưng `List<Student> students = loadStudents();` có thể rõ hơn cho người đọc.
-6. **Thực hành:** Đổi tên `var x = 3;` cho dễ hiểu nếu đây là số lần thử.  
-   *Gợi ý:* `var retryCount = 3;`.
+1. **Type clarity:** Which makes the type easier to understand without reading the method: `var book = new Book("Java");` or `var result = fetch();`?  
+   *Hint:* The first shows `Book` directly; the second depends on `fetch()`'s signature.
+2. **Generics:** Does `var names = new ArrayList<>();` guarantee `ArrayList<String>`?  
+   *Answer:* No; this case infers `ArrayList<Object>`. Write `new ArrayList<String>()` or `List<String> names = new ArrayList<>()`.
+3. **Interfaces:** Why can `List<String> names = new ArrayList<>()` be better than `var names = new ArrayList<String>()`?  
+   *Answer:* It shows the variable is intended to be used via the `List` API, rather than coupling the declared type to `ArrayList`.
+4. **Arithmetic:** What types do `var result = 5 / 2;` and `var result = 5 / 2.0;` have?  
+   *Answer:* `int` and `double`, with values 2 and 2.5 respectively.
+5. **Method signature:** If `loadStudents()` returns `List<Student>`, is `var students = loadStudents();` wrong?  
+   *Answer:* Not wrong in the language; however, `List<Student> students = loadStudents();` may be clearer to readers.
+6. **Practice:** Rename `var x = 3;` so it is easier to understand if it represents a retry count.  
+   *Hint:* `var retryCount = 3;`.
 
-## Checklist cuối bài
+## End-of-Lesson Checklist
 
-- [ ] Chỉ dùng `var` khi kiểu vẫn **rõ ràng tại chỗ khai báo**.
-- [ ] Hiểu `var` không tạo kiểu động hay thay đổi cơ chế type checking.
-- [ ] Không để diamond `<>` làm mất ràng buộc generic mong muốn.
-- [ ] Chọn kiểu tường minh khi cần thể hiện interface/superclass hoặc hợp đồng API.
-- [ ] Cân nhắc primitive/wrapper, độ rộng số và phép toán khi suy luận kiểu.
-- [ ] Ưu tiên tên biến có nghĩa và initializer nói rõ dữ liệu.
-- [ ] Trong code review, lấy **tính dễ đọc và bảo trì** làm tiêu chí, không coi việc dùng `var` là mục đích tự thân.
+- [ ] Use `var` only when the type remains **clear right at the declaration site**.
+- [ ] Understand that `var` does not create dynamic typing or alter type-checking mechanics.
+- [ ] Do not let the diamond `<>` drop the desired generic constraint.
+- [ ] Choose an explicit type when you need to express an interface/superclass or API contract.
+- [ ] Consider primitive/wrapper types, numeric width, and operations when inferring types.
+- [ ] Prefer meaningful variable names and initializers that state the data clearly.
+- [ ] In code reviews, use **readability and maintainability** as the criteria, rather than treating `var` usage as an end in itself.
 
-**Kết luận:** `var` tốt nhất khi giúp bỏ phần kiểu lặp lại **mà không bắt người đọc đi tìm kiểu ở nơi khác**. Nếu biểu thức khởi tạo không cho thấy đủ loại dữ liệu hoặc che mất hợp đồng quan trọng, viết kiểu tường minh là lựa chọn rõ ràng và an toàn hơn.
+**Conclusion:** `var` works best when it removes repetitive type names **without forcing readers to look up the type elsewhere**. If the initializer expression does not show enough about the data type or obscures an important contract, writing an explicit type is the clearer and safer choice.

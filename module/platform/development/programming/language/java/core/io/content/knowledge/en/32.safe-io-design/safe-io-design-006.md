@@ -1,78 +1,78 @@
-# Tạo tệp tạm có quyền phù hợp và dọn dẹp có kiểm soát trong Java NIO
+# Creating Temporary Files With Appropriate Permissions and Controlled Cleanup in Java NIO
 
-## 1. Vì sao tệp tạm cũng là một vấn đề bảo mật?
+## 1. Why Are Temporary Files Also a Security Concern?
 
-Ứng dụng Java thường tạo tệp tạm để xử lý ảnh tải lên, xuất báo cáo, giải nén, sắp xếp dữ liệu lớn, lưu kết quả trung gian hoặc chuyển dữ liệu giữa các bước xử lý. Tệp chỉ tồn tại trong thời gian ngắn **không có nghĩa là an toàn**.
+Java applications frequently create temporary files to process uploaded images, export reports, extract archives, sort large datasets, store intermediate results, or pass data between processing steps. A file existing only briefly **does not mean it is safe**.
 
-Các rủi ro thực tế gồm:
+Practical risks include:
 
-- **Lộ dữ liệu:** tệp chứa token, dữ liệu khách hàng, nội dung upload hoặc thông tin bí mật nhưng người dùng khác trên máy có thể đọc.
-- **Dự đoán tên và chiếm chỗ:** dùng tên cố định như `/tmp/report.txt` rồi ghi đè có thể tạo race hoặc va chạm giữa các tiến trình.
-- **Symbolic-link attack:** kẻ tấn công làm đường dẫn tạm trỏ đến file đích khác trước khi ứng dụng mở lại.
-- **TOCTOU:** ứng dụng kiểm tra `exists()`, `isSymbolicLink()` hoặc quyền truy cập ở thời điểm A, nhưng file bị thay thế trước lúc sử dụng ở thời điểm B.
-- **Rò rỉ tài nguyên:** file/channel còn mở, tệp và thư mục tạm còn lại sau exception, cancel hoặc timeout.
-- **Đầy ổ đĩa:** upload không giới hạn tạo file tạm lớn, hàng nghìn request để lại file làm dịch vụ ngừng hoạt động.
-- **Xóa không triệt để:** gọi `delete()` không đồng nghĩa dữ liệu cũ đã bị xóa vật lý khỏi SSD, swap, snapshot, backup hoặc journal.
+- **Data exposure:** a file contains tokens, customer data, uploaded content, or secrets that other users on the machine can read.
+- **Name prediction and squatting:** using a fixed name like `/tmp/report.txt` and overwriting it can create races or collisions across processes.
+- **Symbolic-link attacks:** an attacker makes the temporary path point to a different target file before the application reopens it.
+- **TOCTOU:** the application checks `exists()`, `isSymbolicLink()`, or permissions at time A, but the file is replaced before use at time B.
+- **Resource leaks:** files/channels remain open, and temporary files/directories are left behind after exceptions, cancellations, or timeouts.
+- **Disk exhaustion:** unbounded uploads create huge temporary files, or thousands of requests leave orphaned files that bring down the service.
+- **Incomplete erasure:** calling `delete()` does not mean old data has been physically wiped from SSDs, swap, snapshots, backups, or journals.
 
-Mục tiêu của bài này: **tạo tệp tạm bằng API phù hợp; áp dụng quyền ngay khi tạo; cô lập thư mục làm việc; dùng tài nguyên có quyền sở hữu rõ ràng; dọn dẹp khi thành công hoặc lỗi; hiểu rõ những giới hạn còn lại.**
+Goals of this lesson: **create temporary files with appropriate APIs; apply permissions at creation time; isolate working directories; use resources with clear ownership; clean up on both success and failure; and understand remaining limitations.**
 
-## 2. Chọn API nào để tạo file hoặc thư mục tạm?
+## 2. Which API Should You Choose to Create Temporary Files or Directories?
 
-Java NIO.2 (package `java.nio.file`) có các phương thức:
+Java NIO.2 (`java.nio.file` package) provides these methods:
 
 ~~~java
 Path file = Files.createTempFile("prefix-", ".tmp");
 Path dir  = Files.createTempDirectory("job-");
 
-// Chỉ định thư mục cha đáng tin cậy:
+// Specify a trusted parent directory:
 Path fileInDir = Files.createTempFile(dir, "data-", ".bin");
 Path nestedDir = Files.createTempDirectory(dir, "stage-");
 ~~~
 
-Các phương thức `Files.createTempFile(...)` và `Files.createTempDirectory(...)` **tạo đối tượng trong hệ thống tệp ngay tại lời gọi**, thay vì chỉ sinh một chuỗi tên để dùng sau này.
+`Files.createTempFile(...)` and `Files.createTempDirectory(...)` **create the object in the filesystem immediately upon invocation**, rather than merely generating a name string for later use.
 
-Khi provider hỗ trợ, việc tạo entry mới kiểm tra sự tồn tại và tạo file một cách **nguyên tử đối với hoạt động filesystem liên quan**, tránh lỗi phổ biến của mẫu “chọn tên rồi kiểm tra chưa tồn tại”. Chúng không tạo hợp đồng khóa hoặc giao dịch cho các thao tác **sử dụng sau khi tạo**.
+When supported by the provider, creating the new entry checks existence and creates the file **atomically with respect to the relevant filesystem operation**, avoiding the common bug of "pick a name then check it does not exist." They do not establish a lock or transaction contract for **subsequent operations after creation**.
 
-| API | Kết quả | Dùng khi nào? |
+| API | Result | When to use? |
 |---|---|---|
-| `Files.createTempFile(prefix,suffix,attrs...)` | Tệp tạm trong vị trí do provider xác định | Thao tác độc lập không cần cây riêng |
-| `Files.createTempFile(dir,prefix,suffix,attrs...)` | Tệp tạm trong thư mục đã chọn | Muốn quản lý quyền/trọn vòng đời một job |
-| `Files.createTempDirectory(prefix,attrs...)` | Thư mục tạm trong vị trí do provider xác định | Cần nơi chứa riêng nhiều file trung gian |
-| `Files.createTempDirectory(parent,prefix,attrs...)` | Thư mục con tạm trong parent | Dịch vụ có khu vực scratch do quản trị viên kiểm soát |
-| `Files.createFile(path,attrs...)` | File có tên xác định, phải chưa tồn tại | Khi application quản lý rõ pathname và yêu cầu create-new |
-| `File.createTempFile(...)` | API `java.io.File` cũ | Hệ thống legacy; code mới ưu tiên NIO `Files` |
+| `Files.createTempFile(prefix,suffix,attrs...)` | Temporary file in provider-determined location | Standalone operation not needing a dedicated tree |
+| `Files.createTempFile(dir,prefix,suffix,attrs...)` | Temporary file in chosen directory | Managing permissions/entire lifecycle of a job |
+| `Files.createTempDirectory(prefix,attrs...)` | Temporary directory in provider-determined location | Needing isolated space for multiple intermediate files |
+| `Files.createTempDirectory(parent,prefix,attrs...)` | Temporary subdirectory inside parent | Service has an administrator-controlled scratch area |
+| `Files.createFile(path,attrs...)` | File with a specific name, must not yet exist | Application explicitly manages pathname and requires create-new |
+| `File.createTempFile(...)` | Legacy `java.io.File` API | Legacy systems; new code prefers NIO `Files` |
 
-**Không viết:**
+**Do not write:**
 
 ~~~java
-// Mẫu sai: tên cố định, kiểm tra rồi mới tạo.
+// Bad pattern: fixed name, check then create.
 Path p = Path.of("/tmp/my-app-export.csv");
 if (!Files.exists(p)) {
     Files.writeString(p, confidentialData);
 }
 ~~~
 
-Có race giữa `exists()` và `writeString()`. Ngoài ra, `Files.writeString` với bộ tùy chọn mặc định có thể tạo file mới hoặc truncate file đang tồn tại, không phù hợp với yêu cầu không ghi đè dữ liệu lạ.
+There is a race between `exists()` and `writeString()`. Moreover, `Files.writeString` with its default option set can create a new file or truncate an existing file, making it unsuitable when existing external data must not be overwritten.
 
-**Nên dùng** `Files.createTempFile(...)` hoặc một lệnh create-new có semantics được xác định rõ. Tránh tự sinh tên tạm bằng timestamp, thread ID hoặc random yếu rồi ghép vào thư mục dùng chung.
+**Use** `Files.createTempFile(...)` or a create-new command with well-defined semantics. Avoid generating temporary names manually from timestamps, thread IDs, or weak randomness inside a shared directory.
 
-### Prefix/suffix có phải là thông tin bí mật?
+### Are Prefix and Suffix Secret Information?
 
-Không. Prefix/suffix để giúp nhận dạng loại file và vận hành; tên do API sinh ra giúp tránh đụng độ nhưng **không thay thế quyền truy cập**. Đừng coi tên khó đoán là lớp bảo vệ duy nhất. Không cho token, password, email khách hàng hoặc dữ liệu nhạy cảm vào tên file vì tên có thể xuất hiện trong log, danh sách thư mục hay crash report.
+No. Prefix and suffix aid file-type identification and operations; API-generated names help avoid collisions, but **do not replace access permissions**. Never treat a hard-to-guess name as the sole protection layer. Do not put tokens, passwords, customer emails, or sensitive data into filenames because filenames can appear in logs, directory listings, or crash reports.
 
-## 3. Chọn thư mục cha: không phải mọi nơi “temp” đều đáng tin
+## 3. Choosing the Parent Directory: Not Every "Temp" Location Is Trusted
 
-`Files.createTempFile("x-", ".tmp")` và `createTempDirectory("x-")` không truyền tham số thư mục sẽ sử dụng vị trí mặc định của provider. Với provider mặc định, vị trí này thường liên quan thuộc tính hệ thống `java.io.tmpdir`.
+`Files.createTempFile("x-", ".tmp")` and `createTempDirectory("x-")` without a directory argument use the provider's default location. For the default provider, this location is typically tied to the `java.io.tmpdir` system property.
 
-Tuy nhiên:
+However:
 
-- Vị trí temp thực tế có thể khác nhau theo OS/container, runtime configuration hoặc provider.
-- Thư mục tạm chung có thể cho phép nhiều người dùng tạo entry trong đó.
-- Temp trên volume mạng có đặc tính quyền, độ trễ, visibility và cleanup khác local disk.
-- Một ứng dụng chạy trong container có thể dùng filesystem ephemeral, quota riêng hoặc mount read-only.
-- Thư mục cha có thể không tồn tại, hết dung lượng hoặc không đủ quyền.
+- The actual temp location can vary across OS/containers, runtime configurations, or providers.
+- A shared temp directory may allow multiple users to create entries inside it.
+- Temp on a network volume has different permission, latency, visibility, and cleanup characteristics than local disk.
+- A containerized application may use an ephemeral filesystem, dedicated quotas, or read-only mounts.
+- The parent directory may not exist, may run out of space, or may lack permissions.
 
-**Quy tắc tốt:** với dữ liệu nhạy cảm hoặc nhiều bước xử lý, tạo **một thư mục tạm riêng cho từng job**, hạn chế truy cập trên thư mục đó, rồi tạo các tệp con bên trong.
+**Good rule:** for sensitive data or multi-step processing, create **a dedicated temporary directory per job**, restrict access on that directory, and create child files inside it.
 
 ~~~text
 trusted-temp-parent/
@@ -85,24 +85,24 @@ Job owns entire subtree:
   create -> use -> close handles -> delete children -> delete directory
 ~~~
 
-Khi chỉ một job được quyền ghi vào thư mục riêng, nhiều nguy cơ do người dùng khác thay thế pathname giảm đi đáng kể. Nhưng một tác nhân chạy **cùng tài khoản OS và có quyền tương đương**, hoặc người dùng đặc quyền, vẫn có thể can thiệp; thư mục 0700 không tạo sandbox chống chính principal sở hữu.
+When only one job can write to its private directory, many risks of other users replacing pathnames drop significantly. Still, an actor running under **the same OS account with equivalent privileges**, or a privileged user, can interfere; a `0700` directory does not create a sandbox against the owning principal itself.
 
-### Quyền của thư mục quan trọng ngang quyền file
+### Directory Permissions Matter Just as Much as File Permissions
 
-Ngay cả file có mode `0600`, một thư mục cha có quyền viết quá rộng có thể làm pathname bị đổi/xóa, gây race lúc mở lại. Trên hệ POSIX, một thư mục scratch private thường dùng mode `0700` (owner read/write/execute, không cấp group/others).
+Even with a `0600` file, an overly permissive parent directory can allow the pathname to be replaced or deleted, causing races when reopening. On POSIX systems, a private scratch directory typically uses mode `0700` (owner read/write/execute, granting nothing to group/others).
 
-**Đừng chỉ kiểm tra quyền file mà quên quyền parent chain.** Thư mục dùng để chứa dữ liệu mật nên do principal được tin cậy sở hữu, không bị ghi bởi đối tượng trái phép, và mọi symlink/mount trong đường dẫn phải thuộc chính sách kiểm soát.
+**Do not check only file permissions while forgetting the parent chain.** Directories storing confidential data should be owned by a trusted principal, not writable by unauthorized parties, and all symlinks/mounts along the path must fall under a controlled policy.
 
-## 4. POSIX: cấp quyền **ngay lúc tạo**, tránh “tạo rồi chmod”
+## 4. POSIX: Grant Permissions **at Creation Time**, Avoid "Create Then Chmod"
 
-Trên POSIX-compatible filesystem, các quyền cơ bản thường biểu diễn bằng chuỗi:
+On POSIX-compatible filesystems, basic permissions are typically expressed as strings:
 
-- `rw-------`, tức mode 0600: chỉ chủ sở hữu đọc/ghi file.
-- `rwx------`, tức mode 0700: chỉ chủ sở hữu được đọc/ghi/đi qua thư mục.
-- `r--r--r--`, tức mode 0444: chỉ quyền đọc, nhưng **không phù hợp** nếu cần sửa tệp trong quá trình xử lý.
-- Quyền group/others có thể làm tăng người có thể đọc/thay đổi dữ liệu.
+- `rw-------`, i.e., mode `0600`: owner only read/write file.
+- `rwx------`, i.e., mode `0700`: owner only read/write/traverse directory.
+- `r--r--r--`, i.e., mode `0444`: read-only, which is **unsuitable** if the file must be modified during processing.
+- Group/others permissions can broaden who can read or alter the data.
 
-Java NIO cung cấp `PosixFilePermissions.asFileAttribute(...)` để truyền quyền khi tạo:
+Java NIO provides `PosixFilePermissions.asFileAttribute(...)` to pass permissions at creation time:
 
 ~~~java
 import java.nio.file.attribute.FileAttribute;
@@ -120,38 +120,38 @@ FileAttribute<Set<PosixFilePermission>> privateDir =
 FileAttribute<Set<PosixFilePermission>> privateFile =
         PosixFilePermissions.asFileAttribute(fileMode);
 
-// Tạo với thuộc tính quyền ngay trong thao tác tạo:
+// Create with permission attributes directly in the creation operation:
 Path jobDir = Files.createTempDirectory("secure-job-", privateDir);
 Path artifact = Files.createTempFile(jobDir, "data-", ".bin", privateFile);
 ~~~
 
-Đây là **đoạn minh họa**, cần import `java.nio.file.Files` và `Path`. Chỉ chạy đúng trên provider hỗ trợ thuộc tính POSIX cho vị trí đó.
+This is an **illustrative snippet**, requiring `java.nio.file.Files` and `Path` imports. It only succeeds on providers supporting POSIX attributes at that location.
 
-Tính chất quan trọng:
+Important properties:
 
-1. File attributes được chuyển vào **thao tác tạo**, nên tránh khoảng hở giữa việc tạo file với quyền quá rộng và thao tác sửa quyền sau đó.
-2. Provider có thể từ chối attribute không hỗ trợ bằng `UnsupportedOperationException`; không được lờ đi và giả vờ quyền đã được bảo vệ.
-3. Quyền hiệu lực có thể bị hạn chế thêm bởi umask/ACL/policy nền tảng; **kiểm tra lại quyền thực tế** nếu quyền là một security invariant.
-4. `setPosixFilePermissions(path, ...)` trên một file **đã tồn tại** là thao tác thay đổi quyền riêng, không “hồi tố” việc file đã lộ dữ liệu ở thời điểm trước đó.
+1. File attributes are passed into **the creation operation**, avoiding a gap between creating a file with overly broad permissions and restricting them afterward.
+2. Providers can reject unsupported attributes with `UnsupportedOperationException`; never ignore this and pretend permissions are protected.
+3. Effective permissions can still be restricted further by umask/ACL/platform policy; **re-verify actual permissions** if permissions are a security invariant.
+4. Calling `setPosixFilePermissions(path, ...)` on an **existing** file is a separate permission change and does not retroactively undo earlier data exposure.
 
-### Vì sao “tạo rồi sửa quyền” là nguy hiểm?
+### Why Is "Create Then Fix Permissions" Dangerous?
 
 ~~~java
-// Không nên dùng cho dữ liệu nhạy cảm ở một thư mục chia sẻ.
+// Do not use for sensitive data in a shared directory.
 Path tmp = Files.createTempFile("secret-", ".bin");
 Files.setPosixFilePermissions(
         tmp, PosixFilePermissions.fromString("rw-------"));
 ~~~
 
-Với provider mặc định, `createTempFile` có thể tạo quyền mặc định chặt hơn một lệnh tạo file thông thường, nhưng **không nên coi mọi provider đều bảo đảm chính sách của ứng dụng**. Nếu quyền cụ thể là bắt buộc, cung cấp thuộc tính ngay khi tạo và xác minh chúng trên nền tảng mục tiêu.
+With the default provider, `createTempFile` may create stricter default permissions than an ordinary file creation call, but **do not assume every provider enforces your application's policy**. If specific permissions are mandatory, supply attributes at creation time and verify them on the target platform.
 
-**Lưu ý về quyền owner:** mode 0600 không chống được malware chạy cùng account, root/administrator hay cơ chế backup có quyền cao; cần sandbox/OS account isolation khi threat model đòi hỏi.
+**Note on owner permissions:** mode `0600` does not stop malware running under the same account, root/administrator, or privileged backup mechanisms; use sandboxing or OS account isolation when the threat model demands it.
 
-## 5. Windows và filesystem không hỗ trợ POSIX
+## 5. Windows and Filesystems Without POSIX Support
 
-Windows thường dùng **ACL (Access Control List)**, không dựa hoàn toàn vào các bit quyền POSIX. Cú pháp `PosixFilePermissions` **không phải chính sách di động giữa mọi provider**.
+Windows typically uses **ACLs (Access Control Lists)** rather than relying purely on POSIX permission bits. `PosixFilePermissions` syntax **is not a portable policy across all providers**.
 
-Kiểm tra hỗ trợ trước khi dùng:
+Check support before use:
 
 ~~~java
 boolean supportsPosix = FileSystems.getDefault()
@@ -159,45 +159,45 @@ boolean supportsPosix = FileSystems.getDefault()
         .contains("posix");
 ~~~
 
-Đây chỉ là kiểm tra capability của **default filesystem**; đường dẫn thực còn có thể ở provider/file store khác. Khi code xử lý nhiều filesystem, cần xử lý lỗi và xác minh trên chính đường dẫn mục tiêu.
+This only checks the capability of the **default filesystem**; the actual path could reside on a different provider or file store. When code handles multiple filesystems, handle errors and verify on the target path itself.
 
-Với Windows hoặc filesystem ACL-based:
+For Windows or ACL-based filesystems:
 
-- Dùng file owner và `AclFileAttributeView` / `AclEntry` khi chính sách yêu cầu thiết lập quyền cụ thể.
-- Kiểm soát **inherited ACL** từ thư mục cha; không giả định tài khoản khác không có quyền vì chương trình chỉ biết tên user hiện tại.
-- Nếu file share/volume có khả năng khác biệt, việc tạo file với thuộc tính ACL ngay khi tạo phụ thuộc provider; kiểm tra tài liệu platform và test security thực tế.
-- Nếu không thể xác minh chính sách tối thiểu, **fail closed** đối với dữ liệu nhạy cảm thay vì âm thầm tạo file dưới quyền không rõ.
-- Không dịch máy móc `chmod 0600` thành “an toàn tương đương trên mọi Windows filesystem”.
+- Use file owner and `AclFileAttributeView` / `AclEntry` when policy requires setting specific permissions.
+- Control **inherited ACLs** from parent directories; do not assume no other account has access just because the program only knows the current username.
+- Since file shares/volumes can differ, creating files with ACL attributes at creation time is provider-dependent; check platform documentation and run real security tests.
+- If a minimum policy cannot be verified, **fail closed** for sensitive data rather than silently creating files with unknown permissions.
+- Do not mechanically translate `chmod 0600` as "equally safe on every Windows filesystem."
 
-API liên quan:
+Related API:
 
 ~~~java
-// Minh họa truy cập ACL view, không phải một policy hoàn chỉnh.
+// Illustrative ACL view access, not a complete policy.
 AclFileAttributeView view = Files.getFileAttributeView(
         path, AclFileAttributeView.class);
 if (view == null) {
     throw new UnsupportedOperationException("ACL view unavailable");
 }
-// ACL thực tế phải được thiết kế theo owner, service account,
-// các identity được phép và quyền inherited của parent.
+// Real ACLs must be designed around owner, service account,
+// allowed identities, and parent inherited permissions.
 ~~~
 
-Các import của đoạn minh họa thuộc `java.nio.file` và `java.nio.file.attribute`. Không nên sao chép một ACL từ môi trường khác rồi đặt bừa lên thư mục/temp file vì có thể khóa chính ứng dụng hoặc mở quyền ngoài ý muốn.
+The imports for this snippet belong to `java.nio.file` and `java.nio.file.attribute`. Do not copy an ACL from another environment and blindly apply it to directories/temp files, as doing so can lock out the application itself or inadvertently grant access.
 
-## 6. Mở lại tệp tạm: tránh symbolic link và thao tác thừa
+## 6. Reopening Temporary Files: Avoid Symbolic Links and Redundant Operations
 
-Sau khi tạo, ứng dụng thường ghi file rồi đọc lại, chuyển sang bước tiếp hoặc xóa. Nếu một bên khác có thể thay pathname trong khoảng thời gian này, thao tác mở lại có thể trỏ đến **đối tượng khác**.
+After creation, an application typically writes the file and then reads it back, passes it to the next step, or deletes it. If another party can swap the pathname during this window, reopening can point to a **different object**.
 
-Các điểm phòng vệ:
+Defensive measures:
 
-1. Tạo tệp dưới một thư mục parent chỉ tài khoản tin cậy được phép ghi.
-2. Tránh giữ tên cố định trong thư mục chia sẻ công cộng.
-3. Khi mở lại, cân nhắc `LinkOption.NOFOLLOW_LINKS` trong các API nhận `OpenOption` để từ chối symlink ở thành phần cuối, **nếu provider hỗ trợ**.
-4. Không coi `Files.isSymbolicLink(path)` rồi `open(path)` là kiểm tra không race: pathname có thể thay đổi giữa hai lời gọi.
-5. Không mặc định `NOFOLLOW_LINKS` kiểm tra đầy đủ mọi thành phần cha hoặc ngăn tất cả hardlink/mount/directory swap attacks.
-6. Với trường hợp đối thủ có thể sửa directory tree, cân nhắc `SecureDirectoryStream` hoặc API cấp OS có khả năng thao tác tương đối với một directory handle an toàn khi được hỗ trợ.
+1. Create files under a parent directory writable only by a trusted account.
+2. Avoid fixed names in publicly shared directories.
+3. When reopening, consider `LinkOption.NOFOLLOW_LINKS` in APIs accepting `OpenOption` to reject a symlink at the final component, **if supported by the provider**.
+4. Do not treat `Files.isSymbolicLink(path)` followed by `open(path)` as a race-free check: the pathname can change between the two calls.
+5. Do not assume `NOFOLLOW_LINKS` checks all parent components or prevents all hardlink, mount, or directory-swap attacks.
+6. Where an adversary can modify the directory tree, consider `SecureDirectoryStream` or OS-level APIs supporting operations relative to a secure directory handle when available.
 
-Ví dụ reopen file đã tạo:
+Example reopening a previously created file:
 
 ~~~java
 import java.nio.channels.SeekableByteChannel;
@@ -212,30 +212,30 @@ try (SeekableByteChannel out = Files.newByteChannel(
                 StandardOpenOption.WRITE,
                 StandardOpenOption.TRUNCATE_EXISTING,
                 LinkOption.NOFOLLOW_LINKS))) {
-    // Ghi dữ liệu vào channel. Không mở với CREATE nếu file đã tồn tại.
+    // Write data to channel. Do not open with CREATE if the file already exists.
 }
 ~~~
 
-Đoạn trên sử dụng `artifact` được tạo trước; chưa độc lập chạy được. Vì `Files.createTempFile(...)` **đã tạo file**, thao tác mở tiếp để ghi **không cần** `CREATE` hoặc `CREATE_NEW`. Đặc biệt `CREATE_NEW` trên chính đường dẫn vừa tạo sẽ **thất bại do file đã tồn tại**.
+This snippet uses an already-created `artifact`; it is not standalone runnable. Because `Files.createTempFile(...)` **already created the file**, reopening it for writing **does not need** `CREATE` or `CREATE_NEW`. In particular, `CREATE_NEW` on the path just created will **fail because the file already exists**.
 
-### Tại sao `CREATE_NEW` là một công cụ khác?
+### Why Is `CREATE_NEW` a Different Tool?
 
-`Files.newByteChannel(path, Set.of(CREATE_NEW, WRITE), attrs...)` dùng khi muốn **tạo tệp mới tại pathname đã chọn** và tuyệt đối không ghi đè entry hiện hữu. Nó không thay cho `Files.createTempFile` trong trường hợp bạn đã có file tạm. Nếu cần tạo/tạo và mở bằng cùng một primitive atomic, có thể dùng `CREATE_NEW` với path được chọn dưới một parent tin cậy, nhưng phải tự xử lý lựa chọn tên, va chạm và quyền.
+`Files.newByteChannel(path, Set.of(CREATE_NEW, WRITE), attrs...)` is used when you want to **create a new file at a chosen pathname** and strictly refuse to overwrite an existing entry. It does not replace `Files.createTempFile` when you already have a temp file. If you need to create and open in a single atomic primitive, you can use `CREATE_NEW` with a chosen path under a trusted parent, while managing name selection, collisions, and permissions yourself.
 
-## 7. Quản lý vòng đời: tài nguyên nào phải đóng trước khi xóa?
+## 7. Lifecycle Management: Which Resources Must Be Closed Before Deletion?
 
-Tệp tạm thường được mở bởi:
+Temporary files are often opened by:
 
 - `InputStream` / `OutputStream`.
 - `BufferedReader` / `BufferedWriter`.
 - `FileChannel` / `SeekableByteChannel`.
-- Thư viện xử lý ảnh, ZIP, PDF, CSV, XML hoặc database engine.
-- Một process con đang dùng đường dẫn.
-- Một thread đang chạy operation bất đồng bộ.
+- Libraries processing images, ZIPs, PDFs, CSVs, XML, or database engines.
+- A child process using the path.
+- A thread running an asynchronous operation.
 
-**Nguyên tắc ownership:** thành phần tạo tài nguyên phải xác định ai chịu trách nhiệm đóng nó và ai được quyền xóa file. Nếu có thao tác I/O còn pending hoặc một process khác chưa kết thúc, xóa ngay có thể thất bại hoặc tạo hành vi phụ thuộc OS.
+**Ownership principle:** the component creating the resource must define who is responsible for closing it and who is authorized to delete the file. If I/O operations are still pending or another process has not finished, deleting immediately can fail or cause OS-dependent behavior.
 
-Mẫu thông thường:
+Typical pattern:
 
 ~~~java
 Path file = Files.createTempFile("work-", ".tmp");
@@ -244,40 +244,40 @@ try {
         out.write(bytes);
     }
 
-    // Xử lý bằng thư viện đọc file sau khi writer đã đóng.
+    // Process using a file-reading library after the writer has closed.
     consumeFile(file);
 } finally {
     Files.deleteIfExists(file);
 }
 ~~~
 
-Đây là mã minh họa, cần imports và các biến `bytes`/`consumeFile` do ứng dụng định nghĩa. `finally` được chạy cả khi xử lý thành công lẫn khi ném exception thông thường, nhưng **không có bảo đảm** nó chạy khi process bị kill cưỡng bức, JVM crash hoặc mất điện.
+This is an illustrative snippet requiring imports and application-defined `bytes`/`consumeFile`. `finally` executes on both normal completion and ordinary exceptions, but **there is no guarantee** it runs on forced process kill, JVM crash, or power loss.
 
-### Vì sao `try-with-resources` hữu ích hơn?
+### Why Is `try-with-resources` Better?
 
-`try-with-resources` tự đóng `AutoCloseable` ở lối thoát, kể cả khi một bước xử lý ném exception. Nếu cả phần thân lẫn `close()` đều ném lỗi, Java giữ lỗi chính và thêm lỗi đóng làm **suppressed exception** — tốt hơn việc một lỗi cleanup trong `finally` che khuất nguyên nhân thất bại ban đầu.
+`try-with-resources` automatically closes `AutoCloseable` resources on exit, even when a processing step throws an exception. If both the body and `close()` throw errors, Java preserves the primary error and attaches the close error as a **suppressed exception**—better than a cleanup error in `finally` masking the original failure cause.
 
-Một cách tổ chức là tạo đối tượng quản lý workspace tạm triển khai `AutoCloseable`:
+One way to structure this is creating a temporary workspace manager implementing `AutoCloseable`:
 
 ~~~java
 try (TempWorkspace workspace = TempWorkspace.create()) {
-    // Tạo và xử lý file bên trong workspace.
-} // close() xóa nội dung và directory theo quy tắc.
+    // Create and process files inside workspace.
+} // close() deletes contents and directory per policy.
 ~~~
 
-Ví dụ chương trình hoàn chỉnh ở mục sau triển khai cấu trúc này.
+The complete example in the next section implements this structure.
 
-## 8. Chương trình Java 17+ hoàn chỉnh: thư mục riêng 0700, file 0600 và cleanup
+## 8. Complete Java 17+ Program: Private `0700` Directory, `0600` File, and Cleanup
 
-Chương trình dưới đây dành cho **filesystem POSIX** và cố tình **fail closed** nếu default filesystem không có POSIX attribute view. Điều này có nghĩa:
+The program below targets **POSIX filesystems** and deliberately **fails closed** if the default filesystem lacks a POSIX attribute view. That means:
 
-- Trên Linux/macOS hoặc filesystem POSIX phù hợp: tạo thư mục với mode owner-only, tạo file owner-only và xác minh không có quyền group/others.
-- Trên Windows ACL-only: không cố tạo file nhạy cảm với quyền không thể chứng minh bằng POSIX; in thông báo và kết thúc bình thường.
-- Mở file để ghi với `NOFOLLOW_LINKS`; sử dụng `try-with-resources` để đóng kênh trước khi xóa.
-- Xóa file và các thư mục con bằng `Files.walkFileTree(...)`, không theo symbolic link trong traversal mặc định.
-- In kết quả ổn định không tiết lộ đường dẫn file tạm ngẫu nhiên.
+- On Linux/macOS or suitable POSIX filesystems: creates the directory with owner-only mode, creates the file owner-only, and verifies no group/others permissions exist.
+- On Windows ACL-only: does not attempt to create sensitive files with permissions unprovable via POSIX; prints a notice and exits cleanly.
+- Opens the file for writing with `NOFOLLOW_LINKS`; uses `try-with-resources` to close the channel before deleting.
+- Deletes the file and subdirectories via `Files.walkFileTree(...)`, without following symbolic links in default traversal.
+- Prints deterministic output without leaking random temporary file paths.
 
-Lưu thành **`SecureTempLifecycleDemo.java`**:
+Save as **`SecureTempLifecycleDemo.java`**:
 
 ~~~java
 import java.io.IOException;
@@ -299,7 +299,7 @@ import java.util.Set;
 
 public class SecureTempLifecycleDemo {
 
-    // Scope sở hữu toàn bộ cây thư mục tạm.
+    // Scope owns the entire temporary directory tree.
     private static final class TempWorkspace implements AutoCloseable {
         private final Path root;
 
@@ -309,7 +309,7 @@ public class SecureTempLifecycleDemo {
 
         @Override
         public void close() throws IOException {
-            // walkFileTree mặc định KHÔNG theo symbolic links.
+            // walkFileTree does NOT follow symbolic links by default.
             Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(
@@ -405,10 +405,10 @@ public class SecureTempLifecycleDemo {
                 }
             }
 
-            // Directory thuộc owner nên các tiến trình không có
-            // quyền ghi trong đó không thể thay pathname.
+            // Directory belongs to owner so processes without
+            // write permission inside it cannot swap the pathname.
             content = Files.readString(file, StandardCharsets.UTF_8);
-        } // Đã đóng channel; TempWorkspace.close() xóa cây tạm.
+        } // Channel closed; TempWorkspace.close() deletes the temp tree.
 
         System.out.println("private-directory=" + directoryPrivate);
         System.out.println("private-file=" + filePrivate);
@@ -419,14 +419,14 @@ public class SecureTempLifecycleDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac SecureTempLifecycleDemo.java
 java SecureTempLifecycleDemo
 ~~~
 
-**Stdout trên một filesystem POSIX hoạt động bình thường, có quyền tạo/xóa tệp:**
+**Stdout on a properly functioning POSIX filesystem with file create/delete permissions:**
 
 ~~~text
 private-directory=true
@@ -435,31 +435,31 @@ content=hello
 cleanup=true
 ~~~
 
-**Stdout khi default filesystem không hỗ trợ POSIX view:**
+**Stdout when the default filesystem does not support a POSIX view:**
 
 ~~~text
 POSIX unavailable: refuse sensitive temp
 ~~~
 
-Giải thích:
+Explanation:
 
-1. Chương trình xác nhận khả năng dùng POSIX và không âm thầm bỏ qua security requirement.
-2. `Files.createTempDirectory(..., asFileAttribute(0700))` tạo workspace riêng.
-3. `Files.createTempFile(root,..., asFileAttribute(0600))` tạo file trong workspace với quyền được yêu cầu ngay khi tạo.
-4. `getPosixFilePermissions(...)` xác minh không cấp quyền cho group/others. Cách kiểm tra này **không tự kiểm hết ACL bổ sung hoặc các cơ chế đặc quyền ngoài POSIX**.
-5. `NOFOLLOW_LINKS` từ chối symlink ở file cuối khi reopen nếu provider triển khai đúng option. Parent riêng giảm rủi ro thay thế entry bởi user khác, nhưng không bảo đảm an toàn khi có kẻ tấn công cùng UID.
-6. Các thao tác ghi theo `SeekableByteChannel` có vòng lặp vì không nên suy ra một lệnh `write` sẽ chuyển toàn bộ ByteBuffer trong mọi trường hợp.
-7. `TempWorkspace.close()` dùng `walkFileTree`, gọi `Files.delete` trên từng file trước rồi mới delete directory. Mặc định traversal không theo symlink; nếu có symlink xuất hiện trong thư mục, nó được xử lý như entry để xóa link, không đi theo target.
-8. `try-with-resources` đảm bảo cleanup được yêu cầu khi thoát khối bình thường hoặc do exception.
-9. In `cleanup=true` chỉ sau khi việc xóa kết thúc và `Files.notExists(root, NOFOLLOW_LINKS)` xác nhận không còn entry ở đường dẫn đó.
+1. The program checks POSIX capability and does not silently skip the security requirement.
+2. `Files.createTempDirectory(..., asFileAttribute(0700))` creates a private workspace.
+3. `Files.createTempFile(root,..., asFileAttribute(0600))` creates the file inside the workspace with the required permissions at creation time.
+4. `getPosixFilePermissions(...)` verifies no permissions are granted to group/others. This check **does not itself inspect additional ACLs or non-POSIX privilege mechanisms**.
+5. `NOFOLLOW_LINKS` rejects a symlink on the final file when reopening if the provider properly implements the option. A private parent reduces the risk of entry replacement by another user, though it does not guarantee safety against an attacker with the same UID.
+6. Writes via `SeekableByteChannel` use a loop because you must not assume a single `write` call transfers the entire `ByteBuffer` in all cases.
+7. `TempWorkspace.close()` uses `walkFileTree`, calling `Files.delete` on each file first before deleting directories. By default, traversal does not follow symlinks; if a symlink appears in the directory, it is handled as an entry to delete the link without following its target.
+8. `try-with-resources` ensures cleanup is attempted on normal exit or exception.
+9. `cleanup=true` is printed only after deletion finishes and `Files.notExists(root, NOFOLLOW_LINKS)` confirms no entry remains at that path.
 
-**Giới hạn:** đây là ví dụ POSIX, không triển khai chính sách Windows ACL. Nếu không có POSIX support, nó từ chối tạo workspace nhạy cảm thay vì rơi về quyền mặc định không được xác minh. Với nhu cầu cross-platform, cần xây policy tương ứng trên ACL provider và kiểm thử quyền thực tế.
+**Limitation:** this is a POSIX example and does not implement a Windows ACL policy. Without POSIX support, it refuses to create a sensitive workspace rather than falling back to unverified default permissions. For cross-platform needs, build an equivalent policy on the ACL provider and test actual permissions.
 
-## 9. Dọn dẹp một file và dọn dẹp cả thư mục cây
+## 9. Cleaning Up One File vs. Cleaning Up a Directory Tree
 
-### Một file tạm độc lập
+### A Single Standalone Temporary File
 
-Nếu chỉ có một file:
+If there is only one file:
 
 ~~~java
 Path temp = Files.createTempFile("job-", ".dat");
@@ -470,80 +470,80 @@ try {
 }
 ~~~
 
-`process` là hàm ứng dụng. Cần đóng mọi stream/channel do `process` mở trước khi đi tới xóa. Dùng `deleteIfExists` giúp không coi “file đã được một bước khác xóa” là lỗi, nhưng **không nuốt mọi lỗi xóa**: file còn mở, permission denied hoặc I/O failure vẫn có thể ném `IOException`.
+`process` is an application function. Close all streams/channels opened by `process` before reaching deletion. Using `deleteIfExists` avoids treating "file was already deleted by another step" as an error, but **does not swallow all deletion errors**: open files, permission denied, or I/O failures can still throw `IOException`.
 
-### Nhiều file và thư mục con
+### Multiple Files and Subdirectories
 
-Không thể xóa directory **còn chứa file** chỉ bằng một lần `Files.delete(directory)`. Cần xóa children trước và parent sau. `Files.walkFileTree` là API phù hợp khi ứng dụng **sở hữu toàn cây** và threat model không cho phép bên lạ sửa cây trong lúc cleanup.
+You cannot delete a directory **that still contains files** with a single `Files.delete(directory)` call. Children must be deleted first, then the parent. `Files.walkFileTree` is suitable when the application **owns the entire tree** and the threat model does not allow external parties to modify the tree during cleanup.
 
-Không dùng:
+Do not use:
 
 ~~~java
-// Không đủ nếu thư mục còn các entry:
+// Insufficient if the directory still has entries:
 Files.delete(tempDirectory);
 ~~~
 
-Cũng không nên viết một hàm recursive delete nhận đường dẫn tùy ý từ input người dùng rồi xóa không kiểm soát. Nếu pathname bị nhập sai, bạn có thể xóa nhầm một thư mục production.
+Nor should you write a recursive delete function that accepts an arbitrary path from user input and deletes unchecked. If the pathname is wrong, you could accidentally delete a production directory.
 
-**Quy tắc an toàn cho cleanup tree:**
+**Safety rules for tree cleanup:**
 
-- Phải có bằng chứng ứng dụng đã tạo và sở hữu root workspace.
-- Không nhận trực tiếp directory-to-delete từ request body hoặc query parameter.
-- Không đi theo symbolic link (mặc định `walkFileTree` không bật `FOLLOW_LINKS`).
-- Nếu cần bảo vệ chống cùng-account attacker sửa pathname, dùng phương án mạnh hơn như `SecureDirectoryStream` khi filesystem/provider hỗ trợ, thay vì tin rằng walk-and-delete luôn race-free.
-- Log lỗi cleanup theo cách không để lộ thông tin nhạy cảm trong file name/path.
-- Nếu xóa thất bại, báo cho hệ giám sát và có chính sách xử lý sau, không im lặng bỏ qua.
+- Have proof that the application created and owns the workspace root.
+- Never accept `directory-to-delete` directly from request bodies or query parameters.
+- Do not follow symbolic links (`walkFileTree` does not enable `FOLLOW_LINKS` by default).
+- If protection against a same-account attacker swapping pathnames is needed, use stronger mechanisms such as `SecureDirectoryStream` when supported by the filesystem/provider rather than assuming walk-and-delete is always race-free.
+- Log cleanup failures in a way that does not expose sensitive data in filenames/paths.
+- If deletion fails, alert monitoring and have a follow-up handling policy rather than silently ignoring it.
 
-## 10. Vì sao `deleteOnExit()` không nên là phương án cleanup chính?
+## 10. Why `deleteOnExit()` Should Not Be the Primary Cleanup Strategy
 
-Java có:
+Java provides:
 
 ~~~java
 temp.toFile().deleteOnExit();
 ~~~
 
-Nó yêu cầu JVM cố xóa file khi JVM **kết thúc bình thường** theo cơ chế shutdown hook; đây không phải bảo đảm đủ cho môi trường server hoặc dữ liệu nhạy cảm.
+It asks the JVM to try deleting the file when the JVM **terminates normally** via a shutdown hook; this is not an adequate guarantee for server environments or sensitive data.
 
-Nhược điểm:
+Drawbacks:
 
-- Không có bảo đảm chạy khi JVM bị kill cưỡng bức, mất điện hoặc OS crash.
-- Ứng dụng server có thể sống nhiều ngày/tuần; file vẫn tồn tại suốt thời gian đó.
-- Danh sách file đăng ký `deleteOnExit` tồn tại trong bộ nhớ JVM trong vòng đời process; dùng cho hàng triệu request sẽ tăng tiêu thụ bộ nhớ.
-- File có thể còn được sử dụng bởi process khác hoặc không xóa được do quyền.
-- Nếu có directory và nhiều child, thứ tự đăng ký xóa cần được cân nhắc; không nên dựa vào hook để thay mô hình sở hữu workspace rõ ràng.
-- Trong hệ thống container/kubernetes, lifecycle có thể bị cắt ngắn hoặc mount volume persistent vẫn còn file rác.
+- No guarantee of execution on forced JVM kill, power loss, or OS crash.
+- Server applications can stay alive for days/weeks; files remain on disk the entire time.
+- The list of files registered with `deleteOnExit` stays in JVM memory for the process lifetime; using it across millions of requests increases memory usage.
+- Files may still be in use by other processes or fail to delete due to permissions.
+- With directories and multiple children, registration deletion order must be considered; do not rely on hooks instead of a clear workspace ownership model.
+- In container/Kubernetes environments, lifecycles can be cut short or persistent mounted volumes can retain stale files.
 
-**Khuyến nghị:** dùng `try-with-resources`/`finally` để xóa ngay khi job kết thúc. Có thể cân nhắc `deleteOnExit()` làm lớp phòng vệ phụ cho tool chạy ngắn, nhưng không xem nó là cleanup SLA hoặc cơ chế bảo mật.
+**Recommendation:** use `try-with-resources`/`finally` to delete immediately when the job finishes. `deleteOnExit()` may be considered as a secondary defense for short-lived CLI tools, but never treat it as a cleanup SLA or security mechanism.
 
-## 11. `DELETE_ON_CLOSE`: hữu ích nhưng có giới hạn
+## 11. `DELETE_ON_CLOSE`: Useful but Has Limitations
 
-`StandardOpenOption.DELETE_ON_CLOSE` yêu cầu xóa file khi channel được đóng, tùy provider hỗ trợ. Có thể dùng cho một số trường hợp file tạm chỉ cần tồn tại trong lúc channel đang mở:
+`StandardOpenOption.DELETE_ON_CLOSE` requests deleting the file when the channel is closed, depending on provider support. It can be used in some cases where a temporary file only needs to exist while the channel is open:
 
 ~~~java
-// Mã minh họa, temporaryFile đã được tạo bởi ứng dụng.
+// Illustrative snippet; temporaryFile was created by the application.
 try (SeekableByteChannel channel = Files.newByteChannel(
         temporaryFile,
         Set.<OpenOption>of(
                 StandardOpenOption.WRITE,
                 StandardOpenOption.DELETE_ON_CLOSE,
                 LinkOption.NOFOLLOW_LINKS))) {
-    // Xử lý dữ liệu trong khi channel còn mở.
+    // Process data while the channel remains open.
 }
 ~~~
 
-Những điều không nên giả định:
+What you must not assume:
 
-- Không phải mọi filesystem/provider đều hỗ trợ mọi option.
-- Không nên phụ thuộc vào file vẫn còn nhìn thấy dưới pathname trong lúc channel đang mở. Một số hệ thống có thể xóa entry sớm hoặc có semantics khác.
-- Nếu thư viện khác cần **mở lại file bằng tên**, `DELETE_ON_CLOSE` có thể làm workflow không hoạt động.
-- Không đảm bảo xóa vật lý an toàn mọi bản sao của dữ liệu.
-- Không thay việc cleanup các **file khác và thư mục chứa**.
+- Not every filesystem/provider supports every option.
+- Do not rely on the file remaining visible under its pathname while the channel is open. Some systems may unlink the entry early or have different semantics.
+- If another library needs to **reopen the file by name**, `DELETE_ON_CLOSE` can break the workflow.
+- It does not guarantee secure physical erasure of all data copies.
+- It does not replace cleaning up **other files and containing directories**.
 
-Với pipeline nhiều bước, private directory + explicit cleanup thường dễ kiểm soát hơn.
+For multi-step pipelines, a private directory + explicit cleanup is usually easier to control.
 
-## 12. Exception, cancel và lỗi cleanup: tránh làm mất nguyên nhân chính
+## 12. Exceptions, Cancellation, and Cleanup Errors: Avoid Masking the Root Cause
 
-Giả sử xử lý upload ném exception, rồi trong `finally` xóa file cũng thất bại:
+Suppose upload processing throws an exception, and deleting the file in `finally` also fails:
 
 ~~~java
 Path file = Files.createTempFile("upload-", ".tmp");
@@ -554,9 +554,9 @@ try {
 }
 ~~~
 
-Nếu `importData` đã ném lỗi và `deleteIfExists` lại ném lỗi khác, lỗi cleanup có thể **che lấp lỗi nghiệp vụ ban đầu** trong cách viết `finally` này. Khi điều đó quan trọng, dùng đối tượng `AutoCloseable` để dọn resource bằng try-with-resources như mục 8: Java quản lý **suppressed exceptions** để giữ nguyên nhân chính.
+If `importData` threw an error and `deleteIfExists` throws another, the cleanup error can **mask the original business error** in this `finally` style. When that matters, use an `AutoCloseable` resource cleaner with `try-with-resources` as in Section 8: Java tracks **suppressed exceptions** so the primary cause is preserved.
 
-Có thể xem:
+For example:
 
 ~~~java
 try {
@@ -569,11 +569,11 @@ try {
 }
 ~~~
 
-Mã minh họa; `runJob` phải tự đóng tài nguyên/cleanup bằng try-with-resources theo policy. Trong production, log lỗi không nên chứa nội dung input nhạy cảm.
+Illustrative code; `runJob` must close/clean up its resources via `try-with-resources` per policy. In production, error logs must not include sensitive input contents.
 
-### I/O bất đồng bộ và process con
+### Asynchronous I/O and Child Processes
 
-Nếu file tạm đang dùng bởi `AsynchronousFileChannel`, process khác hoặc background task, việc đóng wrapper ở thread chính **không chứng minh** mọi thao tác pending đã hoàn tất và kết quả đã được tiêu thụ. Cần phối hợp lifecycle:
+If a temporary file is used by an `AsynchronousFileChannel`, another process, or a background task, closing a wrapper on the main thread **does not prove** all pending operations have finished and results have been consumed. Coordinate the lifecycle:
 
 ~~~text
 CREATE TEMP -> SUBMIT WORK -> WAIT / CANCEL / DRAIN
@@ -585,154 +585,154 @@ CREATE TEMP -> SUBMIT WORK -> WAIT / CANCEL / DRAIN
                       DELETE TEMP WORKSPACE
 ~~~
 
-Thời điểm xóa chỉ nên đến khi không còn bên hợp lệ cần sử dụng file. Nếu job bị hủy, hủy tác vụ trước, đợi hoặc cô lập đúng cách, rồi cleanup với timeout/giám sát phù hợp.
+Deletion should only happen once no legitimate party still needs the file. If a job is cancelled, cancel the task first, wait or isolate properly, then clean up with appropriate timeouts and monitoring.
 
-## 13. Lỗi cleanup trong môi trường thực tế
+## 13. Cleanup Failures in Production Environments
 
-| Vấn đề | Nguyên nhân có thể | Phản ứng phù hợp |
+| Issue | Possible cause | Appropriate response |
 |---|---|---|
-| `DirectoryNotEmptyException` | Child chưa xóa, process khác vừa tạo file | Kiểm tra ownership, duyệt đúng thứ tự, hạn chế writer |
-| `AccessDeniedException` | Quyền/ACL không cho xóa hoặc file đang được giữ | Đóng handle, kiểm policy, ghi nhận lỗi |
-| `NoSuchFileException` | Một tác nhân khác đã xóa | `deleteIfExists` khi điều đó hợp lệ |
-| `FileSystemException` | Volume lỗi, file busy, provider constraint | Báo lỗi vận hành và retry có giới hạn nếu an toàn |
-| Disk full | Ghi file/metadata không đủ chỗ | Giới hạn quota, fail request, cleanup các file đã tạo |
-| Process crash/KILL | `finally`/shutdown hook không chạy | Startup sweeper theo ownership và TTL, ngoài luồng nghiệp vụ |
-| Symlink xuất hiện trong temp tree | Pathname có thể đã bị thay | Tránh follow link, xem xét đối thủ cùng UID, dùng directory handles khi cần |
-| Thư viện giữ file handle | Windows có thể không cho xóa khi đang mở | Đóng toàn bộ readers/writers/process trước cleanup |
+| `DirectoryNotEmptyException` | Child not deleted yet, another process created a file | Check ownership, traverse in right order, restrict writers |
+| `AccessDeniedException` | Permissions/ACL forbid deletion or file is held open | Close handles, check policy, record error |
+| `NoSuchFileException` | Another actor already deleted it | `deleteIfExists` when expected |
+| `FileSystemException` | Volume error, file busy, provider constraint | Alert ops and bounded retry if safe |
+| Disk full | Insufficient space for file/metadata writes | Enforce quotas, fail request, clean up created files |
+| Process crash/KILL | `finally`/shutdown hook did not run | Ownership- and TTL-based startup sweeper outside request path |
+| Symlink appears in temp tree | Pathname may have been swapped | Avoid following links, consider same-UID adversary, use directory handles when needed |
+| Library holds file handle | Windows may forbid deletion while open | Close all readers/writers/processes before cleanup |
 
-**Không khuyến khích retry xóa vô hạn.** Retry chỉ có ích nếu lỗi có thể hồi phục (file còn tạm thời đang được dùng) và có deadline rõ. Lỗi permission do chính sách sai cần sửa ownership/ACL, không phải tăng số lượt thử.
+**Unbounded deletion retries are discouraged.** Retrying only helps when the error is transient (file temporarily in use) and has an explicit deadline. Permission errors due to misconfigured policies require fixing ownership/ACLs, not increasing retry counts.
 
-## 14. Xử lý dữ liệu nhạy cảm khi ghi vào file tạm
+## 14. Handling Sensitive Data Written to Temporary Files
 
-Một file tạm chứa token hoặc thông tin định danh nên có chính sách rõ:
+A temporary file holding tokens or identifying data needs an explicit policy:
 
-1. **Data minimization:** có cần lưu ra đĩa không? Nếu dữ liệu nhỏ và thời gian xử lý ngắn, có thể xử lý trong memory.
-2. **Quyền/identity:** chạy với service account riêng, private temp root, quyền file owner-only hoặc ACL tương đương đã kiểm chứng.
-3. **Không lộ tên:** không để thông tin nhạy cảm vào prefix/suffix, log path hay exception message cho người dùng cuối.
-4. **Không ghi lại quá nhiều:** không tạo bản sao trung gian không cần thiết.
-5. **Giới hạn dung lượng:** đặt max bytes per request, per job, per worker và quota toàn scratch volume.
-6. **Quy định thời gian lưu:** giữ file ngắn nhất có thể, dọn ngay sau completion/abort, xử lý orphaned files theo TTL.
-7. **Mã hóa nếu cần:** cân nhắc mã hóa đĩa hoặc từng file khi threat model bao gồm mất/đánh cắp thiết bị, snapshot hoặc backup.
-8. **Hạn chế thư viện bên thứ ba:** khi dùng công cụ chuyển đổi ảnh/PDF/ZIP, xác định thư viện có tự tạo tệp tạm ở đâu, có tôn trọng TMPDIR và cleanup không.
+1. **Data minimization:** does it need to touch disk at all? If data is small and processing is brief, keep it in memory.
+2. **Permissions/identity:** run with a dedicated service account, private temp root, owner-only file permissions, or verified equivalent ACLs.
+3. **Do not leak via names:** never embed sensitive info in prefixes/suffixes, logged paths, or exception messages returned to end users.
+4. **Avoid excessive copies:** do not create unnecessary intermediate copies.
+5. **Enforce storage limits:** set max bytes per request, per job, per worker, and an overall quota for the scratch volume.
+6. **Define retention duration:** keep files as briefly as possible, clean up immediately upon completion/abort, and handle orphaned files by TTL.
+7. **Encrypt if necessary:** consider disk or per-file encryption when the threat model includes device loss/theft, snapshots, or backups.
+8. **Constrain third-party libraries:** when using image/PDF/ZIP converters, verify where the library creates its own temp files, whether it honors `TMPDIR`, and whether it cleans them up.
 
-### Delete không phải secure erase
+### Delete Is Not Secure Erase
 
-`Files.delete(...)` xóa một entry filesystem. Trên SSD, copy-on-write filesystem, journal, snapshot, backup hoặc storage ảo hóa, dữ liệu có thể vẫn tồn tại trong các block hoặc bản sao. Đừng hứa “gọi delete là không thể phục hồi”. Với dữ liệu mật, kết hợp encryption-at-rest, quản lý key, chính sách retention và hủy key khi cần.
+`Files.delete(...)` removes a filesystem entry. On SSDs, copy-on-write filesystems, journals, snapshots, backups, or virtualized storage, data can persist in blocks or copies. Never promise "calling delete makes recovery impossible." For confidential data, combine encryption-at-rest, key management, retention policies, and key destruction when needed.
 
-## 15. Upload và giải nén: chống lạm dụng ổ đĩa
+## 15. Uploads and Extraction: Preventing Disk Abuse
 
-Một hệ thống nhận upload cần làm hơn việc tạo tên file khó đoán:
+An upload-receiving system must do more than generate hard-to-guess filenames:
 
-- Chặn kích thước HTTP request trước khi ghi xuống scratch.
-- Áp dụng quota số file và tổng byte trên mỗi request/user/job.
-- Với ZIP, chống zip bomb: giới hạn tổng dữ liệu sau giải nén, tỷ lệ nén, số entry, độ sâu directory và thời gian xử lý.
-- Chống path traversal: entry name như `../../secret.txt` không được phép thoát ra khỏi private temp root.
-- Không dựa duy nhất vào `Path.normalize().startsWith(root)` khi đối thủ có thể kiểm soát symlink và thư mục con; cần kiểm tra đường dẫn thực/handle cùng chính sách chống TOCTOU.
-- Không sao chép tên file upload nguyên văn thành tên file trên đĩa. Dùng tên server-generated và lưu tên hiển thị như metadata đã sanitize.
-- Sau lỗi import hoặc format parsing, dọn toàn bộ workspace mà job sở hữu, không để lại file chứa dữ liệu vừa upload.
+- Reject oversized HTTP requests before writing to scratch.
+- Apply file-count and total-byte quotas per request/user/job.
+- For ZIPs, defend against zip bombs: limit total decompressed data, compression ratio, entry count, directory depth, and processing time.
+- Prevent path traversal: entry names like `../../secret.txt` must not escape the private temp root.
+- Do not rely solely on `Path.normalize().startsWith(root)` when an adversary can control symlinks and subdirectories; enforce real-path/handle checks alongside anti-TOCTOU policies.
+- Never copy the uploaded filename verbatim as the on-disk filename. Use a server-generated name and store the display name as sanitized metadata.
+- After an import or format-parsing failure, delete the entire job-owned workspace rather than leaving uploaded data files behind.
 
-Đoạn kiểm tra **cơ bản** chống traversal theo chuỗi đường dẫn:
+**Basic** string-path traversal check snippet:
 
 ~~~java
-// Minh họa: root là thư mục private đã chuẩn hóa,
-// entryName lấy từ archive, root không cho bên lạ sửa.
+// Illustrative: root is a normalized private directory,
+// entryName comes from archive, root cannot be modified by outsiders.
 Path target = root.resolve(entryName).normalize();
 if (!target.startsWith(root)) {
     throw new SecurityException("Archive path escapes workspace");
 }
 ~~~
 
-Đây **chưa đủ chống symlink race** nếu untrusted code có thể đặt symlink/đổi directory trong subtree. Cần lớp kiểm soát thêm, không dùng đoạn này làm bằng chứng security hoàn chỉnh cho extractor nhận nội dung thù địch.
+This is **not enough against symlink races** if untrusted code can place symlinks or swap directories in the subtree. Additional control layers are needed; do not treat this snippet as complete security proof for an extractor handling hostile input.
 
-## 16. Dọn file tạm tồn dư sau crash: startup sweeper
+## 16. Cleaning Up Leftover Temp Files After Crashes: Startup Sweeper
 
-Không phải mọi ứng dụng đều có thể đảm bảo `finally` chạy. Có thể xây một tiến trình dọn **orphaned workspace** theo thời hạn:
+Not every application can guarantee `finally` runs. You can build a process to clean up **orphaned workspaces** based on expiration:
 
 ~~~text
-scratch-root/  (root được dịch vụ quản lý)
+scratch-root/  (root managed by the service)
   job-<generated>/        createdAt=...
   job-<generated>/        createdAt=...
   job-<generated>/        createdAt=...
 
-Sweeper (ngoài đường xử lý request):
-  -> liệt kê workspace thuộc ứng dụng
-  -> bỏ qua job đang có lease/heartbeat hợp lệ
-  -> chọn thư mục hết TTL an toàn
-  -> kiểm tra ownership/root boundaries
-  -> xóa cây với quy tắc no-follow và giới hạn
-  -> log failures để cảnh báo
+Sweeper (outside the request processing path):
+  -> list workspaces belonging to the application
+  -> skip jobs with a valid active lease/heartbeat
+  -> select directories safely past TTL
+  -> verify ownership/root boundaries
+  -> delete tree with no-follow rules and limits
+  -> log failures for alerting
 ~~~
 
-**Không xóa mọi thư mục có prefix giống nhau** trong một folder shared; file do job khác hoặc người dùng khác có thể trùng prefix. Sweeper cần quyền sở hữu rõ ràng (thư mục parent ứng dụng kiểm soát, metadata/lease đáng tin, account riêng) và chính sách chống xóa nhầm.
+**Do not delete every directory sharing a prefix** in a shared folder; files from other jobs or users could share that prefix. A sweeper needs clear ownership (service-controlled parent directory, trusted metadata/leases, dedicated account) and safeguards against accidental deletion.
 
-Nếu ứng dụng có nhiều instance cùng chia sẻ scratch volume, mỗi instance/job nên có namespace riêng và cơ chế fencing/lease nếu bắt buộc; TTL một mình có thể xóa file của job đang chạy rất lâu.
+If multiple application instances share a scratch volume, each instance/job should have its own namespace and fencing/lease mechanism if required; TTL alone could delete files belonging to a very long-running active job.
 
-## 17. Những nhầm lẫn thường gặp
+## 17. Common Misconceptions
 
-| Nhầm lẫn | Thực tế |
+| Misconception | Reality |
 |---|---|
-| “Tên khó đoán đủ bảo mật tệp tạm” | Cần quyền và parent directory đáng tin. |
-| “Files.createTempFile chỉ tạo tên” | Phương thức tạo file thực sự. |
-| “Đã createTempFile rồi thì dùng CREATE_NEW khi mở lại” | CREATE_NEW sẽ báo file đã tồn tại. |
-| “0600 bảo vệ file ngay cả khi parent cho attacker thay entry” | Parent ghi được có thể gây pathname race. |
-| “Tạo file rồi chmod tương đương set quyền lúc tạo” | Có thể có cửa sổ lộ quyền; dùng FileAttribute khi tạo. |
-| “POSIX permission string áp dụng mọi Windows filesystem” | Windows thường dùng ACL/provider khác. |
-| “NOFOLLOW_LINKS chặn mọi đường tấn công filesystem” | Không chặn hết các thành phần cha, hardlink hoặc đổi directory. |
-| “Files.isSymbolicLink rồi open là race-free” | Có TOCTOU giữa check và use. |
-| “deleteOnExit chắc chắn xóa khi crash” | Không chạy khi kill/OS crash và file tồn tại suốt runtime. |
-| “deleteIfExists nuốt mọi lỗi” | Vẫn có thể ném IOException/AccessDenied. |
-| “Đóng channel là xóa mọi file” | Không; close và delete là các thao tác riêng. |
-| “DELETE_ON_CLOSE luôn dùng được trên mọi provider” | Có thể unsupported, ảnh hưởng khả năng mở lại file. |
-| “walkFileTree luôn an toàn trước concurrent attacker” | Pathname có thể bị thay; dùng directory handle nếu cần. |
-| “Xóa file xong nghĩa là secure erase” | Dữ liệu có thể còn trong block/snapshot/backup. |
-| “Một request được xóa toàn bộ thư mục tmp” | Chỉ xóa subtree chính request tạo và sở hữu. |
-| “Mỗi request có thể dùng vô hạn scratch space” | Phải có quota, limit và cơ chế cleanup. |
+| "An unpredictable name is enough to secure a temp file" | Requires trusted permissions and parent directory. |
+| "`Files.createTempFile` only creates a name" | The method creates the actual file. |
+| "After `createTempFile`, use `CREATE_NEW` to reopen" | `CREATE_NEW` will fail saying the file already exists. |
+| "`0600` protects the file even if the parent lets attackers swap entries" | A writable parent can cause pathname races. |
+| "Create file then chmod is equivalent to setting permissions at creation" | Creates a window of exposure; pass `FileAttribute` at creation. |
+| "POSIX permission strings apply to every Windows filesystem" | Windows typically uses ACLs/a different provider. |
+| "`NOFOLLOW_LINKS` blocks every filesystem attack path" | Does not block all parent components, hardlinks, or directory swaps. |
+| "`Files.isSymbolicLink` then open is race-free" | There is TOCTOU between check and use. |
+| "`deleteOnExit` definitely deletes on crash" | Does not run on kill/OS crash and files linger for the entire runtime. |
+| "`deleteIfExists` swallows all errors" | Can still throw `IOException`/`AccessDeniedException`. |
+| "Closing a channel deletes the file" | No; close and delete are separate operations. |
+| "`DELETE_ON_CLOSE` always works on every provider" | May be unsupported and affects reopening by name. |
+| "`walkFileTree` is always safe against concurrent attackers" | Pathnames can be swapped; use directory handles when needed. |
+| "Deleting a file equals secure erase" | Data can remain in blocks/snapshots/backups. |
+| "One request may wipe the whole tmp directory" | Delete only the subtree created and owned by that request. |
+| "Each request can use unlimited scratch space" | Quotas, limits, and cleanup mechanisms are required. |
 
-## 18. Checklist triển khai
+## 18. Implementation Checklist
 
-1. Xác định dữ liệu có nhạy cảm hay không và yêu cầu thời gian lưu.
-2. Chọn parent scratch root do dịch vụ quản lý, giới hạn quyền ghi/traverse.
-3. Tạo private temp directory riêng cho job nếu xử lý nhiều bước.
-4. Dùng `Files.createTempFile/createTempDirectory` thay tên cố định hoặc check-then-create.
-5. Thiết lập `FileAttribute` lúc tạo nếu filesystem hỗ trợ, xác minh quyền thực tế.
-6. Với Windows, thiết kế/kiểm tra ACL; nếu không đáp ứng chính sách bảo mật, fail closed.
-7. Không lưu thông tin bí mật trong tên file hay log đường dẫn.
-8. Tránh symlink TOCTOU; `NOFOLLOW_LINKS` chỉ là một lớp phòng vệ.
-9. Dùng try-with-resources đóng streams/channels và cleanup cả khi exception.
-10. Với async/process con, chỉ xóa sau khi ownership được trả về hoặc operation được cô lập đúng cách.
-11. Dọn thư mục con trước parent, không follow symlink, không nhận path-to-delete từ request.
-12. Ghi nhận và xử lý lỗi cleanup; không bỏ qua lỗi hoặc retry vô hạn.
-13. Đặt giới hạn số file/byte/thời gian; chống ZIP bomb và path traversal.
-14. Dùng cleanup ngay sau job; không dựa vào deleteOnExit làm phương án chính.
-15. Có sweeper cho orphaned workspaces sau crash và tránh xóa job còn hoạt động.
-16. Kiểm thử Windows/Linux/container và filesystem sản xuất, không suy luận mọi provider có cùng khả năng.
+1. Determine whether data is sensitive and define retention requirements.
+2. Choose a service-managed parent scratch root, restricting write/traverse permissions.
+3. Create a dedicated private temp directory per job for multi-step processing.
+4. Use `Files.createTempFile`/`createTempDirectory` instead of fixed names or check-then-create.
+5. Set `FileAttribute` at creation time if supported by the filesystem, and verify actual permissions.
+6. On Windows, design/verify ACLs; if security policy cannot be met, fail closed.
+7. Do not store confidential info in filenames or logged paths.
+8. Avoid symlink TOCTOU; `NOFOLLOW_LINKS` is only one layer of defense.
+9. Use `try-with-resources` to close streams/channels and clean up even on exceptions.
+10. With async/child processes, delete only after ownership returns or operations are properly isolated.
+11. Delete children before parent, do not follow symlinks, and never take `path-to-delete` from requests.
+12. Record and handle cleanup failures; do not ignore errors or retry endlessly.
+13. Set limits on file count/bytes/time; defend against ZIP bombs and path traversal.
+14. Clean up immediately after the job; do not rely on `deleteOnExit` as the primary mechanism.
+15. Run a sweeper for orphaned workspaces after crashes while avoiding active jobs.
+16. Test on Windows/Linux/containers and production filesystems rather than assuming all providers share the same capabilities.
 
-## 19. Câu hỏi tự kiểm tra
+## 19. Self-Check Questions
 
-1. `Files.createTempFile(...)` chỉ trả tên hay tạo file? **Nó tạo file thực sự.**
-2. Nếu parent shared writable, tên file ngẫu nhiên có đủ chống đọc/tráo không? **Không; cần quyền/ownership và kiểm soát directory.**
-3. Mode POSIX thường phù hợp cho file chứa dữ liệu riêng tư? **`rw-------` (0600)**.
-4. Mode POSIX thường phù hợp cho thư mục scratch chỉ owner truy cập? **`rwx------` (0700)**.
-5. Vì sao truyền `asFileAttribute(...)` ngay khi tạo? **Tránh khoảng hở trước khi set quyền sau tạo.**
-6. Có thể áp dụng POSIX mode trực tiếp cho mọi Windows ACL filesystem không? **Không.**
-7. Đã `createTempFile` rồi mở bằng `CREATE_NEW` có đúng không? **Không, file đã tồn tại.**
-8. `NOFOLLOW_LINKS` có chặn mọi kiểu TOCTOU không? **Không, chỉ một lớp kiểm soát.**
-9. `Files.deleteIfExists(...)` có luôn thành công nếu file còn mở không? **Không.**
-10. `deleteOnExit()` có chạy khi JVM bị kill cưỡng bức không? **Không được bảo đảm.**
-11. `walkFileTree` mặc định có tự đi theo symbolic links không? **Không.**
-12. Vì sao xóa children trước khi xóa thư mục? **Directory còn entry thường không được xóa.**
-13. Tại sao `try-with-resources` tốt cho cleanup hơn `finally` đơn giản? **Nó quản lý close và suppressed exceptions.**
-14. `Files.delete` có chứng minh secure erase trên SSD/snapshot không? **Không.**
-15. Nếu job bị hủy giữa async write, có nên xóa file ngay khi background task vẫn dùng? **Không; cần phối hợp completion/cancel/close và ownership.**
-16. Cần gì để dọn file sau crash khi `finally` không chạy? **Sweeper/TTL có ràng buộc ownership và tránh xóa nhầm.**
+1. Does `Files.createTempFile(...)` return just a name or create a file? **It creates the actual file.**
+2. If the parent is shared and writable, is a random filename enough to prevent reading/swapping? **No; directory permissions/ownership and controls are needed.**
+3. Common POSIX mode for files containing private data? **`rw-------` (`0600`).**
+4. Common POSIX mode for scratch directories accessible only by the owner? **`rwx------` (`0700`).**
+5. Why pass `asFileAttribute(...)` at creation time? **Avoids an exposure window before setting permissions afterward.**
+6. Can POSIX mode strings be applied directly to every Windows ACL filesystem? **No.**
+7. Is calling `createTempFile` then reopening with `CREATE_NEW` valid? **No, the file already exists.**
+8. Does `NOFOLLOW_LINKS` prevent all types of TOCTOU? **No, it is only one control layer.**
+9. Does `Files.deleteIfExists(...)` always succeed if the file is still open? **No.**
+10. Does `deleteOnExit()` run when the JVM is forcibly killed? **Not guaranteed.**
+11. Does `walkFileTree` follow symbolic links automatically by default? **No.**
+12. Why delete children before deleting the directory? **Directories still containing entries usually cannot be deleted.**
+13. Why is `try-with-resources` better for cleanup than a plain `finally`? **It manages closing and suppressed exceptions.**
+14. Does `Files.delete` prove secure erasure on SSDs/snapshots? **No.**
+15. If a job is cancelled during an async write, should the file be deleted immediately while the background task still uses it? **No; coordinate completion/cancel/close and ownership.**
+16. What is needed to clean up files after crashes when `finally` does not run? **An ownership-bound sweeper/TTL that avoids accidental deletion.**
 
-## 20. Tham khảo chính thức
+## 20. Official References
 
 - [Java SE 17 — Files](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html): `createTempFile`, `createTempDirectory`, `newByteChannel`, `delete`, `deleteIfExists`, `walkFileTree`.
-- [Java SE 17 — PosixFilePermissions](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/attribute/PosixFilePermissions.html): `fromString` và `asFileAttribute`.
-- [Java SE 17 — PosixFileAttributeView](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/attribute/PosixFileAttributeView.html): quyền, owner và thuộc tính POSIX.
-- [Java SE 17 — AclFileAttributeView](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/attribute/AclFileAttributeView.html): chính sách ACL trên provider tương ứng.
-- [Java SE 17 — SecureDirectoryStream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/SecureDirectoryStream.html): thao tác relative-to-directory an toàn hơn trước pathname races khi provider hỗ trợ.
+- [Java SE 17 — PosixFilePermissions](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/attribute/PosixFilePermissions.html): `fromString` and `asFileAttribute`.
+- [Java SE 17 — PosixFileAttributeView](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/attribute/PosixFileAttributeView.html): permissions, owner, and POSIX attributes.
+- [Java SE 17 — AclFileAttributeView](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/attribute/AclFileAttributeView.html): ACL policy on corresponding providers.
+- [Java SE 17 — SecureDirectoryStream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/SecureDirectoryStream.html): safer directory-relative operations against pathname races when supported by the provider.
 - [Java SE 17 — StandardOpenOption](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/StandardOpenOption.html): `CREATE_NEW`, `TRUNCATE_EXISTING`, `DELETE_ON_CLOSE`.
 - [Java SE 17 — LinkOption](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/LinkOption.html): `NOFOLLOW_LINKS`.
-- [Java SE 17 — File.deleteOnExit](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/File.html#deleteOnExit()): giới hạn của cleanup khi JVM kết thúc.
+- [Java SE 17 — File.deleteOnExit](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/File.html#deleteOnExit()): limitations of JVM-exit cleanup.

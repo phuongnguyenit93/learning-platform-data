@@ -1,12 +1,12 @@
-# Xử lý phần tử null và kết quả ánh xạ null
+# Handling `null` Elements and `null` Mapping Results
 
-Trong Java Stream API, `null` có thể xuất hiện ở **hai thời điểm khác nhau**: đã có sẵn trong nguồn dữ liệu hoặc được một hàm biến đổi tạo ra. Ví dụ, một danh sách khách hàng có thể chứa phần tử `null`; ngay cả khi từng khách hàng khác `null`, trường `email` mà `map(Customer::getEmail)` trả về vẫn có thể là `null`. Nếu không xác định rõ cách xử lý, pipeline dễ ném `NullPointerException`, tạo kết quả khó hiểu hoặc gây lỗi khi thu thập bằng collector.
+In the Java Stream API, `null` can appear at **two different times**: already present in the data source or produced by a transformation function. For example, a customer list may contain a `null` element; even when every customer is non-`null`, the `email` field returned by `map(Customer::getEmail)` can still be `null`. Without a clearly defined handling policy, a pipeline easily throws `NullPointerException`, produces confusing results, or fails when collecting with a collector.
 
-Bài học thuộc chương **Lọc và biến đổi phần tử** của module **JAVA_STREAM_API**. Mục tiêu là sử dụng `filter`, `map`, `flatMap` và `collect` an toàn trong pipeline lazy; đồng thời hiểu khi nào có thể dùng `Optional`, `Stream.ofNullable`, cách xử lý dữ liệu thiếu trước khi grouping và những ảnh hưởng đến hiệu năng, trạng thái và xử lý song song.
+This lesson belongs to the **Filtering and Transforming Elements** chapter of the **JAVA_STREAM_API** module. The goal is to use `filter`, `map`, `flatMap`, and `collect` safely in lazy pipelines; while also understanding when to use `Optional`, `Stream.ofNullable`, how to handle missing data before grouping, and impacts on performance, state, and parallel processing.
 
-## 1. Stream có tự loại bỏ null không?
+## 1. Does Stream Automatically Remove `null`?
 
-**Không.** Một `Stream<T>` của kiểu tham chiếu có thể mang phần tử `null` nếu nguồn của nó cho phép. `map` cũng có thể tạo ra `null` và phần tử đó **tiếp tục đi xuống các bước sau**; `filter` chỉ loại phần tử khi predicate trả về `false`.
+**No.** A `Stream<T>` of reference types can carry `null` elements if its source permits them. `map` can also produce `null` and that element **continues flowing to downstream steps**; `filter` only drops elements when the predicate returns `false`.
 
 ```java
 import java.util.Arrays;
@@ -23,45 +23,45 @@ List<String> cleaned = raw.stream()
 System.out.println(cleaned); // [An, Bình]
 ```
 
-`Objects::nonNull` là method reference cho `Objects.nonNull(value)`: trả `true` nếu giá trị khác `null`. Nó là một `Predicate<T>` phù hợp với `filter`.
+`Objects::nonNull` is a method reference for `Objects.nonNull(value)`: it returns `true` if the value is not `null`. It is a `Predicate<T>` compatible with `filter`.
 
-Chú ý **nguồn dữ liệu**: `Arrays.asList("An", null, "Bình")` chấp nhận phần tử null, còn các factory như `List.of("An", null)` (Java 9+) sẽ ném `NullPointerException` ngay lúc tạo danh sách. Đó là lỗi ở lúc tạo nguồn, trước khi pipeline có cơ hội lọc.
+Watch the **data source**: `Arrays.asList("An", null, "Bình")` accepts null elements, whereas factories such as `List.of("An", null)` (Java 9+) throw `NullPointerException` right at list creation. That error occurs while constructing the source, before the pipeline even has a chance to filter.
 
-### 1.1. Null ở nguồn khác null từ map
+### 1.1. `null` in the Source vs `null` from `map`
 
-| Vị trí xuất hiện | Ví dụ | Rủi ro |
+| Where it appears | Example | Risk |
 |---|---|---|
-| Phần tử nguồn là `null` | `customers` chứa một khách hàng `null` | Gọi `Customer::getEmail` trên phần tử đó sẽ lỗi |
-| Trường bên trong đối tượng là `null` | Khách hàng tồn tại nhưng chưa khai báo email | `map(Customer::getEmail)` tạo phần tử `null` |
-| Một hàm ánh xạ chủ động trả `null` | `map(code -> lookup.get(code))` khi không tìm thấy | Các bước tiếp theo có thể không chấp nhận null |
-| Phần tử của danh sách lồng nhau là `null` | Một nhóm dữ liệu chứa phần tử trống | `flatMap` không tự loại null **bên trong** các Stream con |
+| Source element is `null` | `customers` contains a `null` customer | Calling `Customer::getEmail` on that element fails |
+| Field inside object is `null` | Customer exists but email is not set | `map(Customer::getEmail)` produces a `null` element |
+| Mapping function intentionally returns `null` | `map(code -> lookup.get(code))` when not found | Downstream steps may reject null |
+| Element of nested list is `null` | A data group contains a missing entry | `flatMap` does not automatically drop nulls **inside** sub-Streams |
 
-Hai bước lọc thường dùng giải quyết **hai vấn đề riêng**:
+Two commonly used filter steps solve **two separate problems**:
 
 ```java
 customers.stream()
-        .filter(Objects::nonNull)    // bảo vệ đối tượng Customer
-        .map(Customer::getEmail)     // có thể trả về String null
-        .filter(Objects::nonNull);   // bảo vệ các bước làm việc với email
+        .filter(Objects::nonNull)    // protects the Customer object
+        .map(Customer::getEmail)     // may return a null String
+        .filter(Objects::nonNull);   // protects steps working with email
 ```
 
-Đoạn minh họa giả định có kiểu `Customer` cùng getter `getEmail()`. Ví dụ hoàn chỉnh về kiểu này ở phần tiếp theo.
+The snippet assumes a `Customer` type with a `getEmail()` getter. A complete example of this type follows in a later section.
 
-## 2. Đặt filter trước khi truy cập phần tử
+## 2. Place `filter` Before Accessing the Element
 
-Một sai sót thường gặp là kiểm tra null **sau khi đã gọi phương thức trên null**:
+A common oversight is checking for null **after already calling a method on null**:
 
 ```java
 List<String> values = Arrays.asList("  Java  ", null, "  Stream  ");
 
-// SAI: gặp phần tử null ở map(String::trim) sẽ ném NPE.
+// WRONG: encountering null at map(String::trim) throws NPE.
 values.stream()
         .map(String::trim)
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
 ```
 
-`filter` phải đứng **trước** thao tác có thể dereference phần tử:
+`filter` must come **before** any operation that may dereference the element:
 
 ```java
 List<String> trimmed = values.stream()
@@ -72,11 +72,11 @@ List<String> trimmed = values.stream()
 System.out.println(trimmed); // [Java, Stream]
 ```
 
-Trong pipeline, các thao tác trung gian `filter` và `map` thường **lazy**: đoạn `map(String::trim)` không thực thi ngay khi được khai báo. Lỗi `NullPointerException` của phiên bản sai thường phát sinh **khi thao tác kết thúc** như `collect` bắt đầu duyệt dữ liệu. Vì thế, việc khởi tạo Stream thành công không có nghĩa mọi bước biến đổi đều an toàn.
+In a pipeline, intermediate operations `filter` and `map` are typically **lazy**: `map(String::trim)` does not execute immediately when declared. The `NullPointerException` in the wrong version usually occurs **when a terminal operation** such as `collect` begins traversing the data. Thus, creating the Stream without error does not mean all transformation steps are safe.
 
-### 2.1. Null và chuỗi rỗng là hai trường hợp khác nhau
+### 2.1. `null` and Empty Strings Are Different Cases
 
-Với dữ liệu người dùng, chuỗi `""` hoặc chuỗi chỉ chứa khoảng trắng không phải `null`. Sau khi loại null, có thể tiếp tục chuẩn hóa:
+With user input, `""` or a whitespace-only string is not `null`. After removing null, you can continue normalizing:
 
 ```java
 List<String> source = Arrays.asList(
@@ -92,24 +92,24 @@ System.out.println(emails);
 // [an@example.com, binh@example.com]
 ```
 
-`Objects::nonNull` xử lý **thiếu tham chiếu**; `isEmpty` (hoặc `isBlank` từ Java 11) xử lý **chuỗi có nội dung rỗng**. Chỉ chọn thao tác nào phù hợp với quy tắc nghiệp vụ, ví dụ hệ thống có thể muốn giữ chuỗi rỗng để biểu thị người dùng chủ động xóa giá trị.
+`Objects::nonNull` handles **missing references**; `isEmpty` (or `isBlank` from Java 11) handles **strings with empty content**. Only choose operations that match business rules—for instance, a system might want to keep an empty string to indicate the user explicitly cleared a value.
 
-## 3. Map trả null: ba chính sách xử lý
+## 3. `map` Returning `null`: Three Handling Policies
 
-Phương thức `Stream.map` biến mỗi phần tử đầu vào thành **đúng một phần tử đầu ra về mặt cấu trúc**, kể cả khi hàm ánh xạ trả `null`. Nó không ngầm chuyển null thành “không có kết quả”.
+`Stream.map` structurally turns each input element into **exactly one output element**, even when the mapping function returns `null`. It does not implicitly convert null into "no result".
 
-Giả sử `Customer::getEmail` có thể trả về null:
+Suppose `Customer::getEmail` can return null:
 
 ```java
 Stream<String> mappedEmails = customers.stream()
         .filter(Objects::nonNull)
         .map(Customer::getEmail);
-// mappedEmails vẫn có thể chứa các phần tử null.
+// mappedEmails may still contain null elements.
 ```
 
-Trước khi chọn API, hãy xác định ý nghĩa nghiệp vụ của giá trị thiếu.
+Before choosing an API, determine the business meaning of a missing value.
 
-### 3.1. Bỏ qua bản ghi không có giá trị
+### 3.1. Skip Records Without a Value
 
 ```java
 List<String> availableEmails = customers.stream()
@@ -119,9 +119,9 @@ List<String> availableEmails = customers.stream()
         .collect(Collectors.toList());
 ```
 
-Đây là lựa chọn gọn khi mục đích chỉ là “lấy các email thực sự có” và không cần giữ số vị trí hay ánh xạ một-một với các khách hàng gốc.
+This is a clean choice when the goal is simply "get emails that actually exist" and there is no need to preserve positions or a one-to-one correspondence with the original customers.
 
-### 3.2. Thay bằng giá trị mặc định
+### 3.2. Replace with a Default Value
 
 ```java
 List<String> displayEmails = customers.stream()
@@ -131,9 +131,9 @@ List<String> displayEmails = customers.stream()
         .collect(Collectors.toList());
 ```
 
-Cách này giữ **một kết quả cho mỗi khách hàng hợp lệ**. Chọn giá trị mặc định có ý nghĩa với ngữ cảnh; đừng dùng chuỗi hiển thị như `"(chưa có email)"` làm dữ liệu nghiệp vụ nếu hệ thống vẫn cần phân biệt thiếu giá trị với một email thật.
+This keeps **one result per valid customer**. Pick a default value that makes sense in context; do not use a display string like `"(chưa có email)"` as business data if the system still needs to distinguish a missing value from a real email.
 
-Nếu muốn thất bại sớm về mặt nghiệp vụ, có thể kiểm tra tường minh:
+If you want to fail fast on business rules, validate explicitly:
 
 ```java
 List<String> requiredEmails = customers.stream()
@@ -144,11 +144,11 @@ List<String> requiredEmails = customers.stream()
         .collect(Collectors.toList());
 ```
 
-Lỗi chỉ xảy ra nếu có email null **và** terminal operation duyệt đến nó.
+The error only occurs if a null email exists **and** the terminal operation reaches it.
 
-### 3.3. Giữ null nguyên trạng khi thực sự cần
+### 3.3. Keep `null` as-is When Truly Needed
 
-Đôi khi dữ liệu đầu ra cần giữ nguyên số lượng phần tử, kể cả vị trí thiếu:
+Sometimes output data must preserve element count, including missing positions:
 
 ```java
 List<String> possiblyNullEmails = customers.stream()
@@ -157,14 +157,14 @@ List<String> possiblyNullEmails = customers.stream()
         .collect(Collectors.toCollection(java.util.ArrayList::new));
 ```
 
-Ở đây `ArrayList` là kiểu danh sách cụ thể hỗ trợ phần tử null. Việc **giữ null** là quyết định có chủ đích: nhiều API phía sau không cho phép null. Không nên mặc định rằng mọi collector hoặc mọi bộ sưu tập đều nhận giá trị null.
+Here `ArrayList` is a specific list type that supports null elements. **Keeping null** is an intentional choice: many downstream APIs forbid null. Do not assume every collector or collection accepts null values.
 
-## 4. Stream.ofNullable: biến một giá trị có thể null thành 0 hoặc 1 phần tử
+## 4. `Stream.ofNullable`: Turning a Nullable Value into 0 or 1 Element
 
-Từ **Java 9**, `Stream.ofNullable(value)` trả về:
+Since **Java 9**, `Stream.ofNullable(value)` returns:
 
-- Stream chứa **một** phần tử nếu `value != null`;
-- Stream **rỗng** nếu `value == null`.
+- A Stream containing **one** element if `value != null`;
+- An **empty** Stream if `value == null`.
 
 ```java
 import java.util.stream.Stream;
@@ -173,16 +173,16 @@ System.out.println(Stream.ofNullable("Java").count());        // 1
 System.out.println(Stream.ofNullable((String) null).count()); // 0
 ```
 
-Phân biệt với `Stream.of((String) null)`: lời gọi này tạo một Stream có **một phần tử null**, không tạo Stream rỗng.
+Distinguish this from `Stream.of((String) null)`: that call creates a Stream with **one null element**, not an empty Stream.
 
 ```java
 long containsNull = Stream.of((String) null).count();      // 1
 long skipsNull = Stream.ofNullable((String) null).count(); // 0
 ```
 
-### 4.1. Bỏ kết quả null của map bằng flatMap
+### 4.1. Dropping `null` Results from `map` Using `flatMap`
 
-`flatMap` nhận mỗi phần tử rồi ghép các Stream con thành một Stream chung. Kết hợp nó với `Stream.ofNullable` để mỗi giá trị được ánh xạ thành **không hoặc một** phần tử:
+`flatMap` takes each element and merges sub-Streams into one unified Stream. Combine it with `Stream.ofNullable` so each value maps to **zero or one** element:
 
 ```java
 List<String> emails = customers.stream()
@@ -192,7 +192,7 @@ List<String> emails = customers.stream()
         .collect(Collectors.toList());
 ```
 
-Tương đương về ý định với `map(Customer::getEmail).filter(Objects::nonNull)`:
+Equivalent in intent to `map(Customer::getEmail).filter(Objects::nonNull)`:
 
 ```java
 List<String> emails = customers.stream()
@@ -202,11 +202,11 @@ List<String> emails = customers.stream()
         .collect(Collectors.toList());
 ```
 
-**Nên chọn cách nào?** Với một trường đơn giản, `map(...).filter(Objects::nonNull)` thường dễ đọc hơn. `Stream.ofNullable` đặc biệt hữu ích khi đang xây dựng pipeline `flatMap`, hoặc khi cần nối các giá trị tùy chọn với những nguồn có thể trả nhiều phần tử.
+**Which should you choose?** For a simple field, `map(...).filter(Objects::nonNull)` is often easier to read. `Stream.ofNullable` is especially useful when already building a `flatMap` pipeline, or when combining optional values with sources that may yield multiple elements.
 
-Lưu ý: `Stream.ofNullable` chỉ kiểm tra **đối số được truyền cho nó**. Nếu `customer` đang là null, biểu thức `customer.getEmail()` vẫn lỗi **trước khi** `ofNullable` được gọi; vì thế phải lọc đối tượng hoặc kiểm tra null ở lambda.
+Note: `Stream.ofNullable` only checks **the argument passed to it**. If `customer` itself is null, `customer.getEmail()` still fails **before** `ofNullable` is called; therefore, filter the object or check null in the lambda.
 
-### 4.2. Danh sách lồng nhau có nhóm null
+### 4.2. Nested Lists Containing `null` Groups
 
 ```java
 List<List<String>> groups = Arrays.asList(
@@ -215,19 +215,19 @@ List<List<String>> groups = Arrays.asList(
         Arrays.asList("B", "C"));
 
 List<String> labels = groups.stream()
-        .filter(Objects::nonNull)   // bỏ nhóm null
-        .flatMap(List::stream)      // ghép phần tử trong từng nhóm
-        .filter(Objects::nonNull)   // bỏ phần tử null ở bên trong nhóm
+        .filter(Objects::nonNull)   // drop null groups
+        .flatMap(List::stream)      // merge elements from each group
+        .filter(Objects::nonNull)   // drop null elements inside groups
         .collect(Collectors.toList());
 
 System.out.println(labels); // [A, B, C]
 ```
 
-Lọc null ở **cấp danh sách con** không thay thế cho lọc null ở **cấp phần tử**. `flatMap` không loại null được phát ra từ các Stream con. Theo hợp đồng `flatMap`, nếu chính hàm mapper trả một **Stream null** thì nó được coi là Stream rỗng; tuy vậy, trả `Stream.empty()` tường minh thường giúp ý định rõ ràng hơn.
+Filtering null at the **sublist level** does not replace filtering null at the **element level**. `flatMap` does not drop nulls emitted by sub-Streams. By `flatMap`'s contract, if the mapper function itself returns a **null Stream** it is treated as an empty Stream; however, returning `Stream.empty()` explicitly usually makes intent clearer.
 
-## 5. Optional và kết quả có thể vắng mặt
+## 5. `Optional` and Potentially Absent Results
 
-`Optional<T>` biểu thị một giá trị **có hoặc không**. Nó không chứa phần tử null: `Optional.ofNullable(null)` trả về `Optional.empty()`, trong khi `Optional.of(null)` ném `NullPointerException`.
+`Optional<T>` represents a **present or absent** value. It never holds a null element: `Optional.ofNullable(null)` returns `Optional.empty()`, while `Optional.of(null)` throws `NullPointerException`.
 
 ```java
 import java.util.Optional;
@@ -236,7 +236,7 @@ Optional<String> missing = Optional.ofNullable((String) null);
 System.out.println(missing.isPresent()); // false
 ```
 
-Nếu mapper trả về `Optional<String>`, `map` bình thường sẽ tạo `Stream<Optional<String>>`. Từ Java 9, `Optional.stream()` giúp chuyển mỗi Optional thành Stream 0 hoặc 1 phần tử:
+If a mapper returns `Optional<String>`, a plain `map` produces `Stream<Optional<String>>`. Since Java 9, `Optional.stream()` converts each Optional into a 0- or 1-element Stream:
 
 ```java
 List<String> normalized = customers.stream()
@@ -248,29 +248,29 @@ List<String> normalized = customers.stream()
         .collect(Collectors.toList());
 ```
 
-`Optional.map` cũng có tính chất đặc biệt: khi hàm ánh xạ trả null, kết quả là `Optional.empty()`. Đây là cách **Optional** xử lý null, không phải quy tắc của `Stream.map`.
+`Optional.map` also has a special property: when the mapping function returns null, the result is `Optional.empty()`. That is how **`Optional`** handles null, not the rule of `Stream.map`.
 
-Đối với phép biến đổi một trường đơn giản, `Optional` có thể thêm độ phức tạp không cần thiết. Nó phù hợp khi API đã trả Optional, khi có nhiều bước xử lý tùy chọn hoặc muốn biểu diễn rõ ràng kết quả có thể thiếu ở ranh giới phương thức.
+For transforming a single simple field, `Optional` can add unnecessary complexity. It fits well when an API already returns Optional, when there are multiple optional processing steps, or when you want to express potentially missing results explicitly at method boundaries.
 
-### 5.1. findFirst/findAny không biểu diễn kết quả null
+### 5.1. `findFirst`/`findAny` Cannot Represent a `null` Result
 
-Một bẫy ít rõ ràng:
+A subtle trap:
 
 ```java
-// Có thể ném NPE: phần tử được chọn là null.
+// May throw NPE: the selected element is null.
 Stream.of((String) null).findFirst();
 
-// An toàn: giá trị null được bỏ trước khi tìm.
+// Safe: null values are dropped before searching.
 Optional<String> first = Stream.of((String) null, "A")
         .filter(Objects::nonNull)
         .findFirst(); // Optional[A]
 ```
 
-`findFirst` và `findAny` trả `Optional<T>`, vốn không chứa được null. Nếu phần tử được chọn là null, lời gọi có thể ném `NullPointerException`. Đừng suy luận rằng `Optional` tự bỏ mọi phần tử null trong một Stream đầu vào. Cần lọc hoặc chuẩn hóa trước thao tác kết thúc.
+`findFirst` and `findAny` return `Optional<T>`, which cannot contain null. If the selected element is null, the call may throw `NullPointerException`. Do not assume `Optional` automatically drops all null elements from an input Stream. Filter or normalize before the terminal operation.
 
-## 6. Ví dụ hoàn chỉnh: làm sạch email khách hàng
+## 6. Complete Example: Cleaning Customer Emails
 
-Chương trình dưới đây chạy trên **Java 9 trở lên** (do dùng `Stream.ofNullable`). Nó phân biệt khách hàng null, email null, chuỗi trắng và danh mục null; vừa tạo danh sách email chuẩn hóa vừa thống kê dữ liệu chưa hợp lệ. Các thao tác sử dụng dữ liệu bất biến trong quá trình duyệt.
+The program below runs on **Java 9 or later** (as it uses `Stream.ofNullable`). It distinguishes null customers, null emails, blank strings, and null regions; it both builds a normalized email list and counts invalid data. Operations work over data that is immutable during traversal.
 
 ```java
 import java.util.Arrays;
@@ -308,8 +308,8 @@ public class NullSafeStreamDemo {
                 new Customer("Dũng", " dung@example.com ", "Nam")
         );
 
-        // Bỏ khách hàng null trước khi gọi getter.
-        // Bỏ tiếp email null trước khi trim/toLowerCase.
+        // Drop null customers before calling getters.
+        // Then drop null emails before trim/toLowerCase.
         List<String> normalizedEmails = customers.stream()
                 .filter(Objects::nonNull)
                 .map(Customer::getEmail)
@@ -322,7 +322,7 @@ public class NullSafeStreamDemo {
         System.out.println(normalizedEmails);
         // [an@example.com, dung@example.com]
 
-        // Hai khách hàng thực sự tồn tại nhưng chưa có email hợp lệ.
+        // Two real customers exist but lack a valid email.
         long missingEmailCount = customers.stream()
                 .filter(Objects::nonNull)
                 .filter(customer -> customer.getEmail() == null
@@ -330,14 +330,14 @@ public class NullSafeStreamDemo {
                 .count();
         System.out.println(missingEmailCount); // 2
 
-        // Lấy các vùng đã được cung cấp bằng Java 9+.
+        // Extract provided regions using Java 9+.
         List<String> regions = customers.stream()
                 .filter(Objects::nonNull)
                 .flatMap(customer -> Stream.ofNullable(customer.getRegion()))
                 .collect(Collectors.toList());
         System.out.println(regions); // [Bắc, Bắc, Nam]
 
-        // Cần lọc region null trước khi groupingBy.
+        // Must filter out null regions before groupingBy.
         Map<String, Long> countsByRegion = customers.stream()
                 .filter(Objects::nonNull)
                 .filter(customer -> customer.getRegion() != null)
@@ -360,27 +360,27 @@ public class NullSafeStreamDemo {
 }
 ```
 
-Vì đầu vào là `List` có thứ tự và pipeline ở chế độ tuần tự, thứ tự email trong ví dụ được giữ như lúc xuất hiện trong danh sách sau lọc. Thứ tự hiển thị khi duyệt các khóa của `Map` từ `groupingBy` không được bảo đảm; ví dụ dùng `get` theo khóa để không phụ thuộc thứ tự đó.
+Because the input is an ordered `List` and the pipeline runs sequentially, the email order in the example is preserved as it appears in the filtered list. Iteration order over `Map` keys from `groupingBy` is not guaranteed; the example uses key-based `get` to avoid depending on that order.
 
-## 7. Null trong các terminal operation và collector
+## 7. `null` in Terminal Operations and Collectors
 
-Không phải mọi điểm kết thúc pipeline đều có cùng hợp đồng về null. Nên xử lý null **trước khi** chuyển dữ liệu cho các API có yêu cầu chặt chẽ.
+Not every pipeline endpoint shares the same null contract. Handle nulls **before** passing data to APIs with strict requirements.
 
-| API/bước xử lý | Điều cần lưu ý |
+| API/processing step | Things to note |
 |---|---|
-| `collect(Collectors.toList())` | Trả về một `List` nhưng không cam kết kiểu, khả năng sửa đổi hoặc các thuộc tính khác; nên lọc null nếu downstream không chấp nhận |
-| `collect(Collectors.toCollection(ArrayList::new))` | Chỉ định `ArrayList`; có thể chủ động giữ phần tử null |
-| `collect(Collectors.toUnmodifiableList())` (Java 10+) | Ném `NullPointerException` nếu giá trị thu thập là null |
-| `collect(Collectors.toMap(keyMapper, valueMapper))` | Giá trị map được tạo ra không được null; cần lọc/chuẩn hóa trước; khóa cũng nên có hợp đồng không null rõ ràng |
-| `collect(Collectors.groupingBy(classifier))` | Classifier trả null sẽ gây `NullPointerException`; lọc hoặc thay nhãn nhóm trước |
-| `findFirst()` / `findAny()` | Phần tử được chọn là null có thể gây `NullPointerException` |
-| `mapToInt(Integer::intValue)` | Gặp phần tử null sẽ lỗi khi unboxing; lọc trước khi chuyển sang primitive stream |
-| `sorted()` | Thứ tự tự nhiên thường không xử lý null; nếu cần xếp null, dùng Comparator phù hợp |
+| `collect(Collectors.toList())` | Returns a `List` with no guarantees on type, mutability, or other properties; filter nulls if downstream rejects them |
+| `collect(Collectors.toCollection(ArrayList::new))` | Explicitly specifies `ArrayList`; can intentionally retain null elements |
+| `collect(Collectors.toUnmodifiableList())` (Java 10+) | Throws `NullPointerException` if any collected value is null |
+| `collect(Collectors.toMap(keyMapper, valueMapper))` | Mapped values must not be null; filter/normalize beforehand; keys should also have an explicit non-null contract |
+| `collect(Collectors.groupingBy(classifier))` | A classifier returning null throws `NullPointerException`; filter or replace group label beforehand |
+| `findFirst()` / `findAny()` | A selected null element can throw `NullPointerException` |
+| `mapToInt(Integer::intValue)` | Encountering null fails during unboxing; filter before switching to a primitive stream |
+| `sorted()` | Natural ordering usually does not handle null; if sorting nulls is needed, use a suitable Comparator |
 
-### 7.1. toMap: lọc thiếu khóa/giá trị trước khi thu thập
+### 7.1. `toMap`: Filtering Missing Keys/Values Before Collecting
 
 ```java
-// Giả định Customer::getName() là khóa, getEmail() là giá trị.
+// Assume Customer::getName() is the key, getEmail() is the value.
 Map<String, String> byName = customers.stream()
         .filter(Objects::nonNull)
         .filter(customer -> customer.getName() != null)
@@ -390,9 +390,9 @@ Map<String, String> byName = customers.stream()
                 Customer::getEmail));
 ```
 
-Đoạn trên còn đòi hỏi **khóa không trùng nhau**; nếu có tên trùng nhau, overload `toMap` hai tham số sẽ ném `IllegalStateException`. Có thể cung cấp hàm gộp khi trùng khóa, nhưng xử lý trùng khóa là một yêu cầu khác với xử lý null.
+The snippet above also requires **unique keys**; if duplicate names exist, the two-argument `toMap` overload throws `IllegalStateException`. A merge function can be provided for duplicate keys, though handling duplicate keys is a separate requirement from handling null.
 
-### 7.2. groupingBy: quyết định chính sách cho nhóm thiếu khóa
+### 7.2. `groupingBy`: Deciding Policy for Missing Group Keys
 
 ```java
 Map<String, Long> counts = customers.stream()
@@ -404,28 +404,28 @@ Map<String, Long> counts = customers.stream()
                 Collectors.counting()));
 ```
 
-Cách này **giữ khách hàng thiếu vùng** vào một nhóm riêng. Nếu quy tắc nghiệp vụ yêu cầu bỏ khách hàng đó, dùng `filter(customer -> customer.getRegion() != null)` trước `groupingBy` thay vì đặt nhãn mặc định.
+This approach **keeps customers missing a region** in a dedicated group. If business rules require excluding those customers, use `filter(customer -> customer.getRegion() != null)` before `groupingBy` instead of assigning a default label.
 
-### 7.3. sorted: cần phân biệt đối tượng null và khóa null
+### 7.3. `sorted`: Distinguishing Null Objects from Null Keys
 
 ```java
 import java.util.Comparator;
 
-// Cho phép chính phần tử String là null, đặt null cuối cùng.
+// Allow String elements themselves to be null, placing nulls last.
 List<String> ordered = Arrays.asList("B", null, "A").stream()
         .sorted(Comparator.nullsLast(Comparator.naturalOrder()))
         .collect(Collectors.toList());
 // [A, B, null]
 
-// Với Customer khác null nhưng tên có thể null:
+// For non-null Customer whose name may be null:
 Comparator<Customer> byNullableName = Comparator.comparing(
         Customer::getName,
         Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
 ```
 
-Nếu `Customer` cũng có thể null, phải thêm một lớp xử lý null bên ngoài, ví dụ `Comparator.nullsLast(byNullableName)`; chỉ dùng comparator cho khóa tên không bảo vệ việc gọi getter trên một Customer null.
+If `Customer` itself can also be null, add an outer null-handling layer such as `Comparator.nullsLast(byNullableName)`; using a null-safe comparator only on the name key does not protect calling the getter on a null Customer.
 
-### 7.4. Unboxing không tự thay null bằng 0
+### 7.4. Unboxing Does Not Automatically Turn `null` into 0
 
 ```java
 List<Integer> input = Arrays.asList(1, null, 3);
@@ -438,18 +438,18 @@ int sum = input.stream()
 System.out.println(sum); // 4
 ```
 
-Không nên viết `mapToInt(Integer::intValue)` trực tiếp nếu đầu vào có thể null. Null không có một đại diện ngầm định trong `IntStream`; nếu muốn coi null như `0`, hãy chọn chính sách đó một cách tường minh, ví dụ `mapToInt(value -> value == null ? 0 : value)`.
+Do not write `mapToInt(Integer::intValue)` directly if the input can be null. Null has no implicit representation in `IntStream`; if you want to treat null as `0`, choose that policy explicitly, such as `mapToInt(value -> value == null ? 0 : value)`.
 
-## 8. Thứ tự, tính lazy và xử lý song song
+## 8. Ordering, Laziness, and Parallel Processing
 
-Pipeline chứa `filter(Objects::nonNull)` và `map` thường được xử lý **theo nhu cầu** của thao tác kết thúc. Điều này giúp bỏ qua đối tượng null mà không tạo danh sách trung gian, nhưng cũng có ba hệ quả:
+A pipeline containing `filter(Objects::nonNull)` and `map` is typically processed **on demand** by the terminal operation. This allows skipping null objects without creating intermediate lists, yet has three consequences:
 
-1. **Giữ nguyên dữ liệu gốc**: `filter` tạo một chuỗi phần tử được nhìn qua Stream; nó không tự xóa phần tử null khỏi `List` nguồn.
-2. **Không đoán số lần gọi mapper từ tác dụng phụ**: với thao tác ngắn mạch như `findFirst` và các tối ưu có thể bỏ qua thao tác trung gian, việc ghi log, tăng biến đếm hoặc sửa dữ liệu trong `map` không phải cách đáng tin để theo dõi số phần tử.
-3. **Hàm xử lý nên không có trạng thái dùng chung**: các lambda dựa vào biến mutable hoặc thay đổi nguồn trong lúc duyệt dễ gây lỗi, nhất là khi bật `parallel()`.
+1. **Preserves original data**: `filter` produces a stream view of elements; it does not remove null elements from the source `List`.
+2. **Do not infer mapper call counts from side effects**: with short-circuiting operations like `findFirst` and optimizations that can elide intermediate operations, logging, incrementing counters, or mutating data inside `map` is not a reliable way to track element counts.
+3. **Processing functions should have no shared state**: lambdas relying on mutable variables or modifying the source during traversal easily cause bugs, especially when `parallel()` is enabled.
 
 ```java
-// Khai báo một pipeline an toàn khi chỉ cần các tên không null.
+// Declare a safe pipeline when only non-null names are needed.
 List<String> names = customers.parallelStream()
         .filter(Objects::nonNull)
         .map(Customer::getName)
@@ -457,36 +457,36 @@ List<String> names = customers.parallelStream()
         .collect(Collectors.toList());
 ```
 
-Ví dụ chỉ đọc dữ liệu và không chia sẻ bộ tích lũy mutable bên ngoài; collector điều phối việc thu thập. Tuy nhiên, `parallelStream()` không mặc nhiên nhanh hơn trên danh sách nhỏ, vì còn chi phí chia công việc và gộp kết quả. Với nguồn có encounter order như `List`, `filter` và `map` không tự đảo thứ tự, nhưng `parallelStream().forEach(...)` không bảo đảm thứ tự **thực thi hành động**.
+The example only reads data and shares no external mutable accumulator; the collector coordinates gathering results. However, `parallelStream()` is not automatically faster on small lists because of task-splitting and result-merging overhead. With ordered sources like `List`, `filter` and `map` do not reorder elements on their own, yet `parallelStream().forEach(...)` does not guarantee **action execution** order.
 
-Không dùng `peek` để “xử lý null” bằng cách sửa đối tượng tại chỗ. `peek` là thao tác quan sát và vẫn lazy; nó không thay thế cho lọc hay ánh xạ có quy tắc rõ ràng.
+Do not use `peek` to "handle null" by mutating objects in place. `peek` is an observation operation and remains lazy; it is no substitute for explicit filtering or mapping rules.
 
-## 9. Những lỗi thường gặp
+## 9. Common Mistakes
 
-| Cách viết dễ sai | Vì sao sai hoặc dễ gây hiểu nhầm | Hướng xử lý |
+| Error-prone code | Why it is wrong or misleading | How to handle |
 |---|---|---|
-| `stream.map(String::trim).filter(Objects::nonNull)` | `trim` đã dereference null trước khi lọc | Đặt `filter(Objects::nonNull)` trước `map` |
-| `customers.map(Customer::getEmail)` khi có Customer null | Gọi getter trên tham chiếu null | Lọc đối tượng null trước |
-| Nghĩ `map` trả null sẽ tự biến mất | `Stream.map` giữ một phần tử null | Lọc sau `map` hoặc dùng `flatMap(Stream::ofNullable)` |
-| `Stream.of((String) null)` với mong muốn có Stream rỗng | Đây là Stream một phần tử null | Dùng `Stream.ofNullable` (Java 9+) |
-| `findFirst` trên Stream có null đứng đầu | Không biểu diễn được null bằng `Optional` | Lọc null trước khi tìm |
-| `groupingBy` với classifier có thể null | Classifier null gây lỗi | Chọn bỏ bản ghi hay gán khóa nhóm mặc định |
-| `toMap` với value mapper trả null | Thu thập có thể ném `NullPointerException` | Lọc hoặc chuẩn hóa giá trị |
-| `mapToInt(Integer::intValue)` với phần tử null | Unboxing null gây lỗi | Lọc null hoặc áp dụng quy tắc mặc định tường minh |
-| Dùng `List.of` với null để tạo dữ liệu thử | Factory không cho phần tử null | Dùng `Arrays.asList` khi cố tình kiểm thử null |
-| Lọc null mà không xét yêu cầu nghiệp vụ | Có thể làm mất bản ghi cần báo lỗi hoặc giữ vị trí | Chọn rõ: bỏ qua, thay mặc định, giữ hay từ chối |
+| `stream.map(String::trim).filter(Objects::nonNull)` | `trim` already dereferenced null before filtering | Place `filter(Objects::nonNull)` before `map` |
+| `customers.map(Customer::getEmail)` when null Customers exist | Calls getter on a null reference | Filter null objects first |
+| Thinking `map` returning null disappears automatically | `Stream.map` preserves a null element | Filter after `map` or use `flatMap(Stream::ofNullable)` |
+| `Stream.of((String) null)` expecting an empty Stream | This is a one-element Stream containing null | Use `Stream.ofNullable` (Java 9+) |
+| `findFirst` on a Stream starting with null | `Optional` cannot represent null | Filter nulls before searching |
+| `groupingBy` with a classifier that can return null | A null classifier throws an error | Either drop records or assign a default group key |
+| `toMap` with a value mapper returning null | Collecting can throw `NullPointerException` | Filter or normalize values |
+| `mapToInt(Integer::intValue)` with null elements | Unboxing null fails | Filter nulls or apply an explicit default rule |
+| Using `List.of` with null to build test data | Factory forbids null elements | Use `Arrays.asList` when intentionally testing null |
+| Filtering null without checking business requirements | May drop records needing error reporting or positional preservation | Choose explicitly: skip, default, retain, or reject |
 
-## 10. Bài tập vận dụng
+## 10. Practice Exercises
 
-### Bài 1: Lọc và chuẩn hóa mã
+### Exercise 1: Filtering and Normalizing Codes
 
-Đầu vào:
+Input:
 
 ```java
 List<String> codes = Arrays.asList(null, " ab1 ", "", "  ", "CD2");
 ```
 
-Yêu cầu: bỏ null và chuỗi trắng, chuyển thành chữ in hoa. Một đáp án Java 8:
+Requirement: drop nulls and blank strings, convert to uppercase. A Java 8 solution:
 
 ```java
 List<String> result = codes.stream()
@@ -498,9 +498,9 @@ List<String> result = codes.stream()
 // [AB1, CD2]
 ```
 
-### Bài 2: Chọn giá trị từ một hàm lookup có thể trả null
+### Exercise 2: Selecting Values from a Lookup That Can Return `null`
 
-Giả sử `Map<String, Integer> prices` chứa giá theo mã và `codes` có những mã không tìm thấy. Hãy tạo danh sách các giá tồn tại:
+Suppose `Map<String, Integer> prices` holds prices by code and `codes` has missing codes. Build a list of existing prices:
 
 ```java
 Map<String, Integer> prices = new java.util.HashMap<>();
@@ -517,13 +517,13 @@ List<Integer> existingPrices = lookupCodes.stream()
 // [10, 20]
 ```
 
-### Bài 3: Nhận biết vị trí lọc đúng
+### Exercise 3: Recognizing the Right Filter Position
 
-Với `Arrays.asList(null, "  A  ")`, vì sao `map(String::trim).filter(Objects::nonNull)` không an toàn? Đáp án: vì `String::trim` được gọi trên null khi terminal operation duyệt phần tử đầu; cần đưa `filter(Objects::nonNull)` lên trước.
+With `Arrays.asList(null, "  A  ")`, why is `map(String::trim).filter(Objects::nonNull)` unsafe? Answer: because `String::trim` is called on null when the terminal operation visits the first element; `filter(Objects::nonNull)` must be placed earlier.
 
-### Bài 4: Giữ số lượng kết quả
+### Exercise 4: Preserving Result Count
 
-Nguồn `Arrays.asList("A", null, "C")` cần cho ra `["A", "CHƯA_CÓ", "C"]`. Có nên dùng `filter(Objects::nonNull)`? Không, vì như vậy mất vị trí thứ hai. Dùng:
+Source `Arrays.asList("A", null, "C")` needs to output `["A", "CHƯA_CÓ", "C"]`. Should you use `filter(Objects::nonNull)`? No, because that loses the second position. Use:
 
 ```java
 List<String> labels = Arrays.asList("A", null, "C").stream()
@@ -532,10 +532,10 @@ List<String> labels = Arrays.asList("A", null, "C").stream()
 // [A, CHƯA_CÓ, C]
 ```
 
-### Bài 5: Thiết kế nhóm cho dữ liệu thiếu
+### Exercise 5: Designing Groups for Missing Data
 
-Nếu `Customer::getRegion` trả null, `groupingBy(Customer::getRegion)` có phù hợp không? Không; phải chọn một chính sách: bỏ các khách hàng thiếu vùng trước khi grouping, hoặc ánh xạ null sang một khóa nhóm như `"CHƯA_XÁC_ĐỊNH"` để thống kê riêng. Việc lựa chọn phụ thuộc yêu cầu báo cáo.
+If `Customer::getRegion` returns null, is `groupingBy(Customer::getRegion)` appropriate? No; you must choose a policy: drop customers missing a region before grouping, or map null to a group key such as `"CHƯA_XÁC_ĐỊNH"` to count separately. The choice depends on reporting requirements.
 
-## 11. Nguyên tắc chọn cách xử lý
+## 11. Guidelines for Choosing a Handling Strategy
 
-Khi thiết kế pipeline, hãy hỏi lần lượt: **phần tử nguồn có thể null không**, **hàm ánh xạ có thể trả null không**, và **kết quả thiếu mang ý nghĩa nghiệp vụ gì**. Lọc bằng `Objects::nonNull` trước mọi thao tác dereference, rồi kiểm tra đầu ra của `map` nếu mapper có thể trả null. Dùng `Stream.ofNullable` hoặc `Optional.stream` khi muốn biểu diễn việc một giá trị tùy chọn tạo **0 hoặc 1 phần tử**. Trước `findFirst`, unboxing, `groupingBy`, `toMap` hoặc collector không chấp nhận null, hãy chuẩn hóa dữ liệu theo hợp đồng của API đích. Cách này giúp pipeline Stream vừa khai báo rõ ý định, vừa tránh lỗi bị trì hoãn đến lúc terminal operation thực thi.
+When designing a pipeline, ask in sequence: **can source elements be null**, **can mapping functions return null**, and **what business meaning does a missing result carry**. Filter with `Objects::nonNull` before any dereferencing operation, then inspect the output of `map` if the mapper can return null. Use `Stream.ofNullable` or `Optional.stream` when modeling an optional value producing **0 or 1 element**. Before `findFirst`, unboxing, `groupingBy`, `toMap`, or collectors rejecting null, normalize data to match the target API's contract. This keeps Stream pipelines declarative and clear while preventing errors deferred until terminal operation execution.

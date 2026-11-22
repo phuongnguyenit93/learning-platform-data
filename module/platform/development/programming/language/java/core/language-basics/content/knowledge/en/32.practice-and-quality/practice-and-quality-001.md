@@ -1,85 +1,85 @@
-# Phân tích bài toán thành dữ liệu vào, xử lý và kết quả (Java 17+)
+# Breaking Down a Problem into Input, Process, and Output (Java 17+)
 
-## 1. Mục tiêu: hiểu bài toán trước khi viết mã
+## 1. Goal: Understand the problem before writing code
 
-Khi nhận một yêu cầu bằng ngôn ngữ tự nhiên, đừng bắt đầu bằng việc viết ngay `Scanner`, `if` hay vòng lặp. Trước hết hãy trả lời ba câu hỏi theo mô hình **Input – Process – Output (IPO)**:
+When you receive a requirement in natural language, do not start by immediately writing `Scanner`, `if`, or loops. First, answer three questions following the **Input – Process – Output (IPO)** model:
 
-1. **Input (dữ liệu vào):** Chương trình cần biết những giá trị nào, đến từ đâu, có kiểu dữ liệu, đơn vị, giới hạn và điều kiện hợp lệ gì?
-2. **Process (xử lý):** Phải kiểm tra, biến đổi, tính toán và áp dụng quy tắc nghiệp vụ nào, theo thứ tự nào?
-3. **Output (kết quả):** Chương trình phải trả lại hoặc hiển thị những gì, dưới dạng nào, làm sao biết kết quả đúng và phải phản hồi thế nào khi dữ liệu vào sai?
+1. **Input:** What values does the program need to know, where do they come from, and what are their data types, units, bounds, and validity conditions?
+2. **Process:** What validations, transformations, calculations, and business rules must be applied, and in what order?
+3. **Output:** What must the program return or display, in what format, how do we know the result is correct, and how should it respond when the input is invalid?
 
-Phân tích IPO biến một đề bài chung chung thành một **hợp đồng có thể triển khai và kiểm thử**. Với Java, ba phần thường tương ứng với bước đọc tham số/input, một hoặc nhiều phương thức xử lý, rồi bước hiển thị hoặc trả kết quả.
+IPO analysis turns a vague problem statement into an **implementable and testable contract**. In Java, the three parts usually correspond to reading parameters/input, one or more processing methods, and then displaying or returning the result.
 
 ```text
-Yêu cầu người dùng
+User requirement
       |
       v
-Input: dữ liệu + điều kiện hợp lệ
+Input: data + validity conditions
       |
       v
-Process: kiểm tra -> tính toán -> quyết định
+Process: validate -> calculate -> decide
       |
       v
-Output: kết quả thành công HOẶC thông báo lỗi
+Output: success result OR error message
       |
       v
-Đối chiếu với các trường hợp thử đã xác định
+Verify against defined test cases
 ```
 
-Mô hình này phù hợp với bài tập console, hàm tính toán, xử lý file, API và các chương trình lớn hơn. **IPO là cách phân tích**, không phải cú pháp hoặc một kiểu dữ liệu có sẵn trong Java.
+This model fits console exercises, calculation methods, file processing, APIs, and larger programs. **IPO is an analysis approach**, not a syntax feature or a built-in data type in Java.
 
-## 2. Phân tích một đề bài cụ thể
+## 2. Analyzing a concrete problem
 
-**Đề bài mẫu:** *Nhập điểm của ba môn học. Mỗi điểm nằm trong khoảng từ 0 đến 10. Tính điểm trung bình cộng. Kết luận PASS nếu điểm trung bình ít nhất 5,0 **và** cả ba điểm đều từ 4,0 trở lên; ngược lại là FAIL. Nếu dữ liệu không hợp lệ, thông báo lỗi thay vì tính kết quả.*
+**Sample problem:** *Read the scores of three subjects. Each score is in the range from 0 to 10. Calculate the arithmetic average. Conclude PASS if the average score is at least 5.0 **and** all three scores are 4.0 or above; otherwise, FAIL. If the data is invalid, report an error instead of computing the result.*
 
-Từ đề này, lập bảng:
+From this problem statement, build a table:
 
-| Thành phần | Phân tích | Quyết định khi cài đặt |
+| Component | Analysis | Implementation decision |
 | --- | --- | --- |
-| Input | Ba điểm số `score1`, `score2`, `score3` | Dùng `double` để chấp nhận điểm lẻ |
-| Miền hợp lệ | Mỗi điểm hữu hạn và `0 <= score <= 10` | Kiểm tra trước khi tính |
-| Process – công thức | `average = (score1 + score2 + score3) / 3.0` | Chia cho `3.0` để biểu đạt phép chia số thực |
-| Process – điều kiện | `average >= 5.0` **và** ba điểm `>= 4.0` | Dùng `&&` giữa bốn điều kiện |
-| Output thành công | Trung bình với hai chữ số thập phân và `PASS`/`FAIL` | `printf(Locale.ROOT, "%.2f")` và thông báo trạng thái |
-| Output lỗi | Không có kết luận nếu thiếu/sai điểm | Thông báo cụ thể ở trường đầu tiên không hợp lệ |
-| Quy tắc gần ngưỡng | So sánh điểm trung bình **chưa làm tròn** | Chỉ định dạng hai chữ số khi hiển thị |
+| Input | Three scores `score1`, `score2`, `score3` | Use `double` to accept fractional scores |
+| Valid domain | Each score is finite and `0 <= score <= 10` | Validate before calculating |
+| Process – formula | `average = (score1 + score2 + score3) / 3.0` | Divide by `3.0` to express floating-point division |
+| Process – condition | `average >= 5.0` **and** all three scores `>= 4.0` | Use `&&` across the four conditions |
+| Success output | Average with two decimal places and `PASS`/`FAIL` | `printf(Locale.ROOT, "%.2f")` and status message |
+| Error output | No conclusion if a score is missing or invalid | Specific message on the first invalid field |
+| Near-threshold rule | Compare the **unrounded** average score | Only format to two decimal places when displaying |
 
-Tại sao kiểm tra `Double.isFinite()`? `Double.parseDouble("NaN")` và `Double.parseDouble("Infinity")` có thể tạo giá trị `double` đặc biệt không phải điểm hợp lệ. Chỉ kiểm tra bằng các phép so sánh với `0` và `10` là chưa đủ đối với `NaN`, vì các so sánh thứ tự với `NaN` đều cho `false`.
+Why check `Double.isFinite()`? `Double.parseDouble("NaN")` and `Double.parseDouble("Infinity")` can produce special `double` values that are not valid scores. Checking only with comparisons against `0` and `10` is not enough for `NaN`, because all ordering comparisons with `NaN` evaluate to `false`.
 
-### Làm rõ yêu cầu còn mơ hồ
+### Clarifying ambiguous requirements
 
-Trong dự án thực tế, nên làm rõ những trường hợp đề bài chưa quy định:
+In a real project, you should clarify cases that the problem statement does not specify:
 
-- Cho phép điểm âm, điểm trên 10, giá trị rỗng, giá trị `NaN` không? Ví dụ này quy định **không**.
-- Có giới hạn số chữ số thập phân đầu vào không? Ví dụ **không** giới hạn riêng, miễn số hợp lệ trong miền.
-- Khi điểm trung bình là `4.999...`, nên so sánh trước hay sau làm tròn? Ví dụ so sánh **giá trị tính được**, làm tròn chỉ để in.
-- Khi nhập sai một trường, yêu cầu nhập lại hay báo lỗi và dừng? Ví dụ **báo lỗi và kết thúc**.
-- Nhập từ bàn phím, file, tham số `main`, hay API? Ví dụ console đọc **ba dòng**, lần lượt là ba điểm.
+- Are negative scores, scores above 10, empty values, or `NaN` values allowed? This example specifies **no**.
+- Is there a limit on the number of decimal places in the input? This example places **no** specific limit, as long as the number is valid within the range.
+- When the average score is `4.999...`, should the comparison happen before or after rounding? This example compares the **computed value**; rounding is for printing only.
+- When one field is entered incorrectly, should the program prompt again or report an error and stop? This example **reports an error and terminates**.
+- Is input read from keyboard, file, `main` arguments, or an API? This console example reads **three lines**, representing the three scores in order.
 
-Những lựa chọn này thuộc **hợp đồng của bài mẫu**, không phải quy tắc mặc định của tất cả ứng dụng chấm điểm.
+These choices belong to the **contract of the sample problem**, not a universal default rule for all grading applications.
 
-## 3. Tách dữ liệu vào khỏi phần xử lý
+## 3. Separating input from processing
 
-Thói quen tốt là phân biệt rõ **cách nhận dữ liệu** với **quy tắc tính toán**. Chẳng hạn cùng một phép tính trung bình có thể được gọi từ chương trình console, bài kiểm thử hay một API.
+A good habit is to clearly separate **how data is received** from **the calculation rules**. For instance, the same average calculation can be called from a console program, a test, or an API.
 
-Phân ranh giới:
+Draw the boundaries:
 
-- **Tầng Input:** đọc ba chuỗi; kiểm tra có dữ liệu, parse số; từ chối giá trị không hợp lệ. `Scanner` và `Double.parseDouble` nằm ở đây.
-- **Tầng Process:** chỉ nhận ba số đã hợp lệ; tính trung bình và quyết định PASS/FAIL. Tầng này không cần biết người dùng nhập bằng cách nào.
-- **Tầng Output:** nhận kết quả xử lý rồi in ra theo định dạng đã thống nhất. Không tính lại công thức nghiệp vụ ở câu lệnh `println`.
+- **Input layer:** reads three strings; checks that data is present, parses numbers; rejects invalid values. `Scanner` and `Double.parseDouble` belong here.
+- **Process layer:** receives only three already-validated numbers; calculates the average and decides PASS/FAIL. This layer does not need to know how the user entered the data.
+- **Output layer:** receives the processing result and prints it in the agreed format. Do not recompute business formulas inside `println` statements.
 
-Cách tách này giúp một lỗi không bị trộn lẫn: nếu `abc` không được chấp nhận thì xem Input; nếu điểm 4, 5, 6 bị đánh FAIL thì xem Process; nếu in `5,00` thay vì `5.00` thì xem Output/locale.
+This separation prevents bugs from getting tangled together: if `abc` is not handled properly, inspect Input; if scores 4, 5, 6 are marked FAIL, inspect Process; if `5,00` is printed instead of `5.00`, inspect Output/locale.
 
-## 4. Chuyển IPO thành thuật toán
+## 4. Turning IPO into an algorithm
 
-Trước khi code, có thể viết **giả mã** độc lập với Java:
+Before coding, you can write Java-independent **pseudocode**:
 
 ```text
-Đọc score1, score2, score3 (mỗi điểm từ một dòng).
-Với từng điểm:
-    Nếu không có dòng -> báo thiếu dữ liệu và dừng.
-    Nếu không thể parse thành số thực -> báo sai định dạng và dừng.
-    Nếu không hữu hạn hoặc ngoài [0, 10] -> báo ngoài phạm vi và dừng.
+Read score1, score2, score3 (one score per line).
+For each score:
+    If there is no line -> report missing data and stop.
+    If it cannot be parsed as a floating-point number -> report invalid format and stop.
+    If it is not finite or outside [0, 10] -> report out of range and stop.
 
 average = (score1 + score2 + score3) / 3.0
 passed = average >= 5.0
@@ -87,13 +87,13 @@ passed = average >= 5.0
          AND score2 >= 4.0
          AND score3 >= 4.0
 
-In điểm trung bình với 2 chữ số thập phân.
-In PASS nếu passed, ngược lại in FAIL.
+Print the average score with 2 decimal places.
+Print PASS if passed, otherwise print FAIL.
 ```
 
-Giả mã giúp kiểm tra trình tự trước khi viết cú pháp: **xác thực → tính toán → quyết định → trình bày**. Nếu tính trước khi biết dữ liệu hợp lệ, chương trình có thể truyền giá trị vô nghĩa vào xử lý hoặc vô tình công bố một kết quả sai.
+Pseudocode helps verify the sequence before writing syntax: **validate → calculate → decide → present**. If you calculate before knowing whether the data is valid, the program may pass meaningless values into processing or accidentally announce a wrong result.
 
-Điều kiện trong Java viết:
+In Java, the condition is written as:
 
 ```java
 boolean passed = average >= 5.0
@@ -102,11 +102,11 @@ boolean passed = average >= 5.0
         && score3 >= 4.0;
 ```
 
-Đây là đoạn biểu thức minh họa, cần đặt nơi các biến đã được khai báo. Toán tử `&&` có nghĩa **và**, khác `||` (hoặc). Nếu thay nhầm bằng `||`, học sinh có điểm một môn thấp vẫn có thể được kết luận PASS.
+This is an illustrative expression snippet and must be placed where those variables are already declared. The `&&` operator means **and**, unlike `||` (or). If you mistakenly replace it with `||`, a student with a low score in one subject could still be marked PASS.
 
-## 5. Chương trình Java 17+ hoàn chỉnh
+## 5. Complete Java 17+ program
 
-Tạo tệp **`GradeReport.java`**:
+Create the file **`GradeReport.java`**:
 
 ```java
 import java.util.Locale;
@@ -169,19 +169,19 @@ public class GradeReport {
 }
 ```
 
-`record Result` là cú pháp ổn định trong Java 17. Nó gom hai kết quả logic `average` và `passed`, tự cung cấp các accessor `average()` và `passed()`. Với bài đơn giản, có thể không cần record; tuy nhiên đối tượng kết quả giúp phân biệt dữ liệu và cách hiển thị.
+`record Result` is stable syntax in Java 17. It groups the two logical results `average` and `passed`, and automatically provides the accessors `average()` and `passed()`. For a simple exercise, a record may not be strictly necessary; however, a result object helps separate data from presentation.
 
-**Vai trò từng phương thức:**
+**Role of each method:**
 
-- `readScore(...)` thuộc **Input**. Nó đọc một dòng, parse `double`, kiểm tra số hữu hạn và miền điểm; đầu vào sai làm phát sinh `IllegalArgumentException`.
-- `evaluate(...)` thuộc **Process**. Nó không đọc console và không in gì; với ba điểm hợp lệ, trả `Result`.
-- `main(...)` điều phối các bước và thuộc **Output** ở hai câu lệnh cuối. Nếu bắt lỗi input, nó chỉ in `Error: ...` rồi kết thúc.
+- `readScore(...)` belongs to **Input**. It reads one line, parses a `double`, and checks for finiteness and score range; invalid input throws `IllegalArgumentException`.
+- `evaluate(...)` belongs to **Process**. It neither reads from the console nor prints anything; given three valid scores, it returns a `Result`.
+- `main(...)` coordinates the steps and belongs to **Output** in its last two print statements. If it catches an input error, it prints `Error: ...` and terminates.
 
-`Double.parseDouble` dùng dấu chấm thập phân theo cú pháp Java, **không parse theo locale hiển thị của máy**. `Locale.ROOT` chỉ được dùng tại lúc in kết quả để đảm bảo dấu chấm trong output mẫu.
+`Double.parseDouble` uses the decimal dot according to Java syntax, **not the machine's display locale**. `Locale.ROOT` is used only when printing the result to ensure a decimal dot in the sample output.
 
-### Biên dịch và chạy
+### Compiling and running
 
-Từ thư mục chứa `GradeReport.java`, tạo thư mục `out` nếu chưa có:
+From the directory containing `GradeReport.java`, create the `out` directory if it does not exist yet:
 
 ```sh
 mkdir out
@@ -189,9 +189,9 @@ javac -encoding UTF-8 --release 17 -d out GradeReport.java
 java -cp out GradeReport
 ```
 
-Có thể chạy trên PowerShell, CMD, bash với JDK 17+. Khi chương trình hỏi `Score 1:`, nhập `7.0`, nhấn Enter; tiếp theo `6.5`, rồi `8.0`, mỗi điểm một dòng.
+You can run this in PowerShell, CMD, or bash with JDK 17+. When the program asks `Score 1:`, enter `7.0` and press Enter; next `6.5`, then `8.0`, one score per line.
 
-**Dữ liệu nhập:**
+**Input data:**
 
 ```text
 7.0
@@ -199,7 +199,7 @@ Có thể chạy trên PowerShell, CMD, bash với JDK 17+. Khi chương trình 
 8.0
 ```
 
-**Stdout chính xác do chương trình in** (không tính các ký tự bàn phím được terminal tự echo):
+**Exact stdout printed by the program** (excluding keyboard characters echoed by the terminal itself):
 
 ```text
 Score 1:
@@ -209,44 +209,44 @@ Average: 7.17
 Result: PASS
 ```
 
-Trung bình là `(7.0 + 6.5 + 8.0) / 3 = 7.1666...`, được định dạng thành `7.17`. Cả ba điểm đều ít nhất `4.0`, và trung bình ít nhất `5.0`, nên kết luận PASS.
+The average is `(7.0 + 6.5 + 8.0) / 3 = 7.1666...`, formatted as `7.17`. All three scores are at least `4.0`, and the average is at least `5.0`, so the conclusion is PASS.
 
-Nếu muốn chạy với input cố định, lưu ba dòng trên vào `sample.txt`, sau đó:
+If you want to run with fixed input, save the three lines above into `sample.txt`, then:
 
-- Linux/macOS hoặc Windows CMD: `java -cp out GradeReport < sample.txt`.
+- Linux/macOS or Windows CMD: `java -cp out GradeReport < sample.txt`.
 - Windows PowerShell: `Get-Content -LiteralPath sample.txt | java -cp out GradeReport`.
 
-Lệnh `javac` thành công thường không tạo stdout; nội dung dự kiến ở trên đến từ lệnh `java`. Nếu dùng PowerShell hoặc terminal có cài đặt encoding khác, ví dụ này dùng chuỗi ASCII cho các nhãn để tránh khác biệt hiển thị.
+A successful `javac` command normally produces no stdout; the expected output above comes from the `java` command. For PowerShell or terminals with different encoding settings, this example uses ASCII strings for labels to avoid display differences.
 
-## 6. Dùng bảng vết để kiểm tra công thức và điều kiện
+## 6. Using a trace table to verify formulas and conditions
 
-Một kỹ thuật đơn giản là viết **bảng trace**: với input cụ thể, tính từng giá trị trung gian trước khi chạy chương trình.
+A simple technique is to write a **trace table**: given concrete input, compute each intermediate value before running the program.
 
-| Input `(s1, s2, s3)` | Trung bình chưa làm tròn | Mọi điểm `>= 4`? | Trung bình `>= 5`? | Kết luận |
+| Input `(s1, s2, s3)` | Unrounded average | All scores `>= 4`? | Average `>= 5`? | Conclusion |
 | --- | ---: | --- | --- | --- |
-| `(7.0, 6.5, 8.0)` | `7.1666...` | Có | Có | PASS |
-| `(4, 5, 6)` | `5.0` | Có | Có | PASS |
-| `(3.5, 9, 9)` | `7.1666...` | Không | Có | FAIL |
-| `(0, 0, 0)` | `0.0` | Không | Không | FAIL |
-| `(10, 10, 10)` | `10.0` | Có | Có | PASS |
-| `(4, 4, 7)` | `5.0` | Có | Có | PASS |
+| `(7.0, 6.5, 8.0)` | `7.1666...` | Yes | Yes | PASS |
+| `(4, 5, 6)` | `5.0` | Yes | Yes | PASS |
+| `(3.5, 9, 9)` | `7.1666...` | No | Yes | FAIL |
+| `(0, 0, 0)` | `0.0` | No | No | FAIL |
+| `(10, 10, 10)` | `10.0` | Yes | Yes | PASS |
+| `(4, 4, 7)` | `5.0` | Yes | Yes | PASS |
 
-Bảng này giúp phát hiện lỗi dùng `||` thay vì `&&`, quên chia cho 3 hoặc quên kiểm tra từng môn. Đặc biệt, trường hợp `(3.5, 9, 9)` chứng minh **trung bình cao vẫn có thể FAIL** nếu một môn dưới `4.0`.
+This table helps catch mistakes such as using `||` instead of `&&`, forgetting to divide by 3, or forgetting to check each individual subject. In particular, the `(3.5, 9, 9)` case proves that **a high average can still result in FAIL** if one subject is below `4.0`.
 
-### Kiểm tra biên và input không hợp lệ
+### Checking boundaries and invalid input
 
-Dữ liệu sai phải dừng trước phần xử lý:
+Invalid data must stop before the processing step:
 
-| Trường hợp | Kết quả mong đợi |
+| Case | Expected result |
 | --- | --- |
-| Điểm `0`, `4`, `5`, `10` | Đều là điểm riêng lẻ hợp lệ |
-| Điểm `-0.1` hoặc `10.1` | `out of range` |
-| `abc` hoặc dòng rỗng | `invalid` |
-| `NaN` hoặc `Infinity` | `out of range` vì không hữu hạn |
-| Thiếu dòng điểm tiếp theo khi gặp EOF | `missing` |
-| Có nhiều hơn ba dòng | Chương trình mẫu chỉ dùng ba dòng theo hợp đồng; dữ liệu thừa chưa được xử lý |
+| Scores `0`, `4`, `5`, `10` | All are valid individual scores |
+| Score `-0.1` or `10.1` | `out of range` |
+| `abc` or blank line | `invalid` |
+| `NaN` or `Infinity` | `out of range` because not finite |
+| Missing next score line upon hitting EOF | `missing` |
+| More than three lines | The sample program only reads three lines per its contract; extra data is not processed |
 
-Ví dụ chạy với **input**:
+Example run with **input**:
 
 ```text
 3.5
@@ -254,7 +254,7 @@ Ví dụ chạy với **input**:
 9
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 Score 1:
@@ -264,26 +264,26 @@ Average: 7.17
 Result: FAIL
 ```
 
-Ví dụ với **input** chỉ một dòng `abc`:
+Example with **input** consisting of just one line `abc`:
 
 ```text
 abc
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 Score 1:
 Error: invalid score1
 ```
 
-Đây là những đầu vào thử **khác nhau**, mỗi bộ được dùng trong một lần chạy riêng; đừng ghép tất cả vào cùng một lượt nhập nếu muốn so khớp output trên.
+These are **different** test inputs, each used in a separate run; do not combine all of them into a single run if you want to match the outputs above.
 
-## 7. Tách phần tính toán để dễ kiểm thử
+## 7. Separating calculation logic for easier testing
 
-Lợi ích của hàm `evaluate` là có thể kiểm thử logic mà không cần giả lập bàn phím hay so khớp lời nhắc. Sau đây là chương trình độc lập khác có thể chạy trên Java 17+, tập trung vào kiểm tra **Process**.
+The benefit of the `evaluate` method is that you can test the logic without simulating keyboard input or matching prompts. Below is another standalone program runnable on Java 17+ that focuses on testing **Process**.
 
-Tạo tệp **`GradeLogicTest.java`**:
+Create the file **`GradeLogicTest.java`**:
 
 ```java
 public class GradeLogicTest {
@@ -306,14 +306,14 @@ public class GradeLogicTest {
 }
 ```
 
-Lớp `GradeLogicTest` dùng phương thức `evaluate` và record `Result` từ `GradeReport` trong cùng **unnamed package**. Biên dịch đồng thời hai tệp:
+The `GradeLogicTest` class uses the `evaluate` method and `Result` record from `GradeReport` in the same **unnamed package**. Compile both files together:
 
 ```sh
 javac -encoding UTF-8 --release 17 -d out GradeReport.java GradeLogicTest.java
 java -cp out GradeLogicTest
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 passed=true
@@ -321,66 +321,66 @@ passed=false
 passed=true
 ```
 
-Nếu một trường hợp cho quyết định sai, đoạn `throw new AssertionError(...)` làm chương trình kiểm tra thất bại ngay tại lần gọi đó. Đây là một ví dụ kiểm tra tối giản bằng Java core; trong dự án thực tế, có thể dùng JUnit để tổ chức nhiều bài kiểm thử.
+If a case produces the wrong decision, `throw new AssertionError(...)` fails the test program right at that call. This is a minimal testing example using core Java; in a real project, you can use JUnit to organize many tests.
 
-**Giới hạn có chủ đích của thiết kế mẫu:** `evaluate` giả định ba điểm đã được `readScore` kiểm tra. Nếu dự án công bố `evaluate` như public API để caller khác có thể truyền số tùy ý, cần đưa validation vào chính hàm này hoặc dùng một kiểu dữ liệu đầu vào có quy tắc bất biến. Mỗi hàm phải nêu rõ tiền điều kiện của mình.
+**Intentional limitation of the sample design:** `evaluate` assumes the three scores have already been validated by `readScore`. If a project exposes `evaluate` as a public API where other callers can pass arbitrary numbers, validation must be added inside `evaluate` itself or an input type with enforced invariants should be used. Every method must state its preconditions clearly.
 
-## 8. Phân biệt yêu cầu chức năng và phi chức năng
+## 8. Distinguishing functional and non-functional requirements
 
-Ngoài việc đúng công thức, phân tích bài toán có thể cần thêm những ràng buộc:
+Beyond getting the formula right, problem analysis may require additional constraints:
 
-| Nhóm yêu cầu | Ví dụ với bài tính điểm |
+| Requirement category | Example for the grading problem |
 | --- | --- |
-| **Chức năng** | Nhập ba điểm; tính trung bình; xác định PASS/FAIL; thông báo input sai |
-| **Tính đúng đắn** | So sánh ngưỡng bằng trung bình chưa làm tròn; cả ba điểm phải `>= 4` |
-| **Dễ dùng** | Ghi rõ đang yêu cầu nhập điểm số mấy; thông báo lỗi cụ thể |
-| **Ổn định** | Kiểm tra EOF, giá trị vô hạn và `NaN`, không ném exception không được xử lý cho input sai thường gặp |
-| **Khả năng kiểm thử** | Có `evaluate` riêng, kết quả xác định với cùng input |
-| **Khả năng bảo trì** | Tên `readScore`, `evaluate`, `Result` thể hiện trách nhiệm; không lặp công thức ở nhiều nơi |
-| **Hiệu năng** | Ba phép đọc và vài phép toán là đủ; chưa cần cấu trúc dữ liệu phức tạp |
+| **Functional** | Read three scores; calculate average; determine PASS/FAIL; report invalid input |
+| **Correctness** | Compare thresholds using the unrounded average; all three scores must be `>= 4` |
+| **Usability** | Clearly state which score number is being requested; give specific error messages |
+| **Reliability** | Check EOF, infinite values, and `NaN`; do not throw unhandled exceptions on common bad inputs |
+| **Testability** | Separate `evaluate` method; deterministic output for the same input |
+| **Maintainability** | Names `readScore`, `evaluate`, `Result` express responsibility; formula is not duplicated |
+| **Performance** | Three reads and a few arithmetic operations suffice; no complex data structures needed |
 
-Trong bài nhỏ, thời gian xử lý thuật toán là **O(1)** và bộ nhớ phụ trội cho phép tính là **O(1)**, nếu chỉ xét ba điểm cố định. Với dữ liệu nhiều môn, yêu cầu sẽ đổi thành đọc số lượng tùy ý, có thể cần mảng, danh sách hoặc vòng lặp; đó là **một bài toán khác** cần phân tích lại input, điều kiện và output.
+In this small problem, the algorithm's time complexity is **O(1)** and auxiliary memory for the calculation is **O(1)**, since only three fixed scores are considered. For data with many subjects, the requirement changes to reading an arbitrary count, which may need arrays, lists, or loops; that is **a different problem** requiring fresh analysis of input, conditions, and output.
 
-## 9. Các lỗi thường gặp khi phân tích bài toán
+## 9. Common mistakes in problem analysis
 
-**Nhầm dữ liệu vào với kết quả cần tính.** Điểm trung bình không phải input nếu đề chỉ cung cấp ba điểm môn học; nó là giá trị được tính trong Process.
+**Confusing input data with calculated results.** The average score is not an input if the problem only provides three subject scores; it is a value computed in Process.
 
-**Bỏ qua đơn vị và miền hợp lệ.** Với điểm số, `-1` hay `15` không hợp lệ dù vẫn parse được thành `double`. Với bài tiền tệ hay thời gian, đơn vị còn quan trọng hơn: VND với USD, giây với phút, mét với centimet không thể dùng lẫn.
+**Ignoring units and valid domains.** For scores, `-1` or `15` is invalid even though it parses as a `double`. For currency or time problems, units matter even more: VND vs. USD, seconds vs. minutes, meters vs. centimeters cannot be mixed.
 
-**Không phân biệt việc parse thành công với dữ liệu hợp lệ.** `Double.parseDouble("20")` thành công, nhưng `20` vẫn ngoài khoảng điểm cho phép.
+**Failing to distinguish successful parsing from valid data.** `Double.parseDouble("20")` succeeds, yet `20` is still outside the allowed score range.
 
-**Thiếu trường hợp biên.** Một bài toán thường sai ở điểm đúng bằng ngưỡng (`4.0`, `5.0`), giá trị nhỏ nhất/lớn nhất, chuỗi rỗng, input thiếu hoặc số rất lớn.
+**Missing boundary cases.** A solution often fails at scores right on the threshold (`4.0`, `5.0`), minimum/maximum values, empty strings, missing input, or very large numbers.
 
-**Tính toán ngay trong lệnh in.** Nếu viết toàn bộ công thức dài trong `System.out.println(...)`, khó kiểm tra giá trị trung gian và tái sử dụng logic. Tách ra biến hoặc phương thức có tên rõ.
+**Calculating directly inside a print statement.** If you put a long formula inside `System.out.println(...)`, it is hard to inspect intermediate values and reuse the logic. Extract it into well-named variables or methods.
 
-**Chọn kiểu dữ liệu tùy tiện.** Với điểm lẻ cần số thực; với số lượng sản phẩm dùng số nguyên; với tiền tệ chính xác đến đơn vị nhỏ nhất nên cân nhắc số nguyên hoặc `BigDecimal` tùy hợp đồng, không dùng `double` theo thói quen.
+**Choosing data types arbitrarily.** Fractional scores need floating-point numbers; product quantities use integers; currency accurate to the smallest unit should consider integers or `BigDecimal` depending on the contract, not `double` out of habit.
 
-**Làm tròn quá sớm.** Nếu chỉ định dạng `%.2f` khi in, quyết định PASS/FAIL vẫn dựa trên giá trị chưa làm tròn. Ví dụ gần ngưỡng có thể được in `5.00` nhưng kết luận FAIL khi giá trị thật còn dưới `5.0`. Nếu người dùng yêu cầu “làm tròn rồi xét”, phải đổi rõ quy tắc xử lý và kiểm thử tương ứng.
+**Rounding too early.** If you only format `%.2f` when printing, the PASS/FAIL decision still relies on the unrounded value. For example, a near-threshold value might print as `5.00` while concluding FAIL when the true value is below `5.0`. If the user requires "round first, then evaluate," you must explicitly update the processing rule and corresponding tests.
 
-**Không mô tả đầu ra lỗi.** Chương trình cần hợp đồng cho cả đầu vào sai. Một stack trace khó hiểu không phải thông báo phù hợp cho mọi chương trình console nhập liệu.
+**Leaving error output unspecified.** A program needs a contract for invalid inputs too. A cryptic stack trace is not an appropriate message for every interactive console program.
 
-**Trộn Input/Process/Output trong một khối quá dài.** Với bài nhỏ có thể chấp nhận, nhưng khi mở rộng sẽ khó thay terminal thành file/API, khó kiểm thử tính toán và dễ lặp validation.
+**Mixing Input/Process/Output in one overly long block.** Acceptable in a tiny exercise, but as it grows it becomes hard to swap the terminal for a file/API, hard to test the calculation, and easy to duplicate validation.
 
-## 10. Áp dụng IPO cho bài khác
+## 10. Applying IPO to another problem
 
-Ví dụ yêu cầu: *Nhập chiều dài và chiều rộng hình chữ nhật; tính diện tích và chu vi.*
+Example requirement: *Read the length and width of a rectangle; calculate its area and perimeter.*
 
 | Input | Process | Output |
 | --- | --- | --- |
-| Hai số dương `length`, `width`, cùng đơn vị (ví dụ mét) | `area = length * width`, `perimeter = 2 * (length + width)` | Diện tích (m²), chu vi (m), hoặc lỗi kích thước không hợp lệ |
+| Two positive numbers `length`, `width`, in the same unit (e.g., meters) | `area = length * width`, `perimeter = 2 * (length + width)` | Area (m²), perimeter (m), or invalid dimension error |
 
-Từ bảng này, có thể tạo những test: `(2, 3)` cho diện tích `6`, chu vi `10`; `(0, 3)` là input không hợp lệ nếu hợp đồng yêu cầu hai cạnh **lớn hơn 0**; `(-2, 3)` cũng không hợp lệ.
+From this table, you can create test cases: `(2, 3)` gives area `6`, perimeter `10`; `(0, 3)` is invalid input if the contract requires both sides to be **greater than 0**; `(-2, 3)` is also invalid.
 
-Nếu người dùng nhập kích thước bằng centimet nhưng muốn diện tích m², phải thêm bước **đổi đơn vị** trong Process. Chỉ đổi tên biến hoặc nối chữ `m²` ở Output sẽ không khiến kết quả tự đúng.
+If the user enters dimensions in centimeters but wants the area in m², you must add a **unit conversion** step in Process. Merely renaming variables or appending `m²` in Output will not make the result right.
 
-## 11. Checklist trước khi bắt đầu code
+## 11. Pre-coding checklist
 
-1. Tôi có thể mô tả **mỗi input** bằng tên, kiểu, đơn vị, nguồn và miền hợp lệ không?
-2. Có quy tắc nào còn mơ hồ về làm tròn, ngưỡng, dữ liệu thiếu hoặc dữ liệu thừa không?
-3. Tôi đã viết **công thức, điều kiện, thứ tự xử lý** thành giả mã hay sơ đồ rõ ràng chưa?
-4. Tôi có chỉ rõ **output thành công và output khi lỗi** không?
-5. Tôi đã thử tính tay ít nhất một trường hợp thông thường, một trường hợp sát ngưỡng và một trường hợp sai dữ liệu chưa?
-6. Có thể tách **đọc**, **xử lý** và **in/return** thành các khối hoặc phương thức có trách nhiệm rõ ràng không?
-7. Tôi đã biên dịch bằng `javac`, chạy bằng `java` và đối chiếu output thực với kết quả dự kiến chưa?
+1. Can I describe **each input** with its name, type, unit, source, and valid domain?
+2. Are there any ambiguous rules regarding rounding, thresholds, missing data, or extra data?
+3. Have I written the **formulas, conditions, and processing order** as clear pseudocode or a diagram?
+4. Have I specified both **success output and error output**?
+5. Have I hand-calculated at least one normal case, one near-threshold case, and one invalid-data case?
+6. Can **reading**, **processing**, and **printing/returning** be separated into blocks or methods with clear responsibilities?
+7. Have I compiled with `javac`, run with `java`, and compared actual output against expected results?
 
-**Ghi nhớ:** Trước khi chọn cú pháp Java, hãy chuyển yêu cầu thành **Input có hợp đồng rõ ràng → Process có công thức và quy tắc kiểm tra → Output có thể kiểm chứng**. Phân tích tốt giúp code ngắn hơn, dễ sửa hơn và tránh nhiều lỗi logic ngay từ đầu.
+**Remember:** Before choosing Java syntax, turn the requirement into **Input with a clear contract → Process with formulas and validation rules → Output that is verifiable**. Good analysis makes code shorter, easier to fix, and prevents many logic errors from the start.

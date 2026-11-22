@@ -1,32 +1,32 @@
-# Rút gọn chuỗi, đối tượng giá trị và kết quả tổng hợp
+# Reducing Strings, Value Objects, and Aggregated Results
 
-## 1. Từ nhiều phần tử về một kết quả có ý nghĩa
+## 1. From many elements to a meaningful single result
 
-Trong chương **Phép rút gọn với reduce** của **JAVA_STREAM_API**, `reduce` là terminal operation kết hợp nhiều phần tử thành một kết quả. Đầu ra có thể là số, chuỗi, **đối tượng giá trị bất biến** hoặc một **bản tổng hợp chứa nhiều chỉ tiêu**. Khi hiểu hợp đồng của `reduce`, ta có thể tiếp tục ghép nó với pipeline khai báo `filter`, `map` và các nguồn dữ liệu lazy, kể cả khi xử lý song song.
+In the **Reduction with reduce** chapter of **JAVA_STREAM_API**, `reduce` is a terminal operation that combines multiple elements into a single result. The output can be a number, a string, an **immutable value object**, or an **aggregated summary containing multiple metrics**. Once we understand the contract of `reduce`, we can continue pairing it with declarative `filter`/`map` pipelines and lazy data sources, including parallel processing.
 
-Ví dụ:
+Examples:
 
-- Một tập từ khóa thành một chuỗi để hiển thị.
-- Các khoản tiền cùng đơn vị tiền tệ thành tổng tiền.
-- Nhiều bản ghi bán hàng thành kết quả gồm số đơn, số lượng và doanh thu.
-- Nhiều điểm số thành thống kê gồm số phần tử, tổng, nhỏ nhất, lớn nhất và trung bình.
+- A set of keywords into a single display string.
+- Monetary amounts in the same currency into a total amount.
+- Multiple sales records into a result containing order count, units, and revenue.
+- Multiple scores into statistics containing count, sum, minimum, maximum, and average.
 
 ~~~text
-Nguồn           Các bước trung gian               Terminal reduce
-[ x1, x2, x3 ] ─► filter ─► map ──────────────────► GỘP THÀNH KẾT QUẢ
+Source          Intermediate steps               Terminal reduce
+[ x1, x2, x3 ] ─► filter ─► map ──────────────────► COMBINE INTO RESULT
                                                         │
                           ┌─────────────────────────────┼────────────────────────┐
                           ▼                             ▼                        ▼
                        String                  Money / Value Object       Summary / Report
 ~~~
 
-`reduce` không chỉ là “cộng các số”. Nó định nghĩa **cách gộp hai kết quả cùng cấu trúc** hoặc **cách đưa một phần tử vào một kết quả tổng hợp**. Muốn biểu thức đúng khi pipeline được phân chia và kết hợp, ta phải tuân thủ quy tắc về *identity* (phần tử đơn vị), *associativity* (tính kết hợp), tính độc lập và *combiner*.
+`reduce` is not just “adding numbers”. It defines **how to merge two identically structured results** or **how to fold an element into an aggregated result**. For an expression to be right when a pipeline is split and merged, we must obey rules for *identity*, *associativity*, independence, and the *combiner*.
 
-Các ví dụ dùng **Java 17+**, chủ yếu với `List`, `record`, `BigDecimal` và Stream. Chúng tập trung vào tính đúng của phép gộp, sau đó mới bàn đến hiệu năng.
+The examples use **Java 17+**, primarily with `List`, `record`, `BigDecimal`, and Streams. They focus on correctness of the combining operation first, and discuss performance afterward.
 
-## 2. Ba dạng reduce và kiểu trả về
+## 2. Three forms of reduce and return types
 
-`Stream<T>` có ba overload quan trọng:
+`Stream<T>` has three important overloads:
 
 ~~~java
 Optional<T> reduce(BinaryOperator<T> accumulator);
@@ -40,13 +40,13 @@ T reduce(T identity, BinaryOperator<T> accumulator);
 );
 ~~~
 
-| Dạng | Kết quả | Khi phù hợp |
+| Form | Result | When appropriate |
 | --- | --- | --- |
-| `reduce(operator)` | `Optional<T>` | Không có identity tự nhiên hoặc muốn thể hiện nguồn rỗng. |
-| `reduce(identity, operator)` | `T` | Phần tử và kết quả cùng kiểu `T`, có identity hợp lệ. |
-| `reduce(identity, accumulator, combiner)` | `U` | Đầu vào kiểu `T` nhưng đầu ra tổng hợp kiểu `U`. |
+| `reduce(operator)` | `Optional<T>` | There is no natural identity or an empty source should be represented. |
+| `reduce(identity, operator)` | `T` | Elements and result share type `T`, with a valid identity. |
+| `reduce(identity, accumulator, combiner)` | `U` | Input has type `T` while aggregated output has type `U`. |
 
-Ví dụ với số nguyên:
+Example with integers:
 
 ~~~java
 import java.util.List;
@@ -72,9 +72,9 @@ public class ReduceOverloads {
 }
 ~~~
 
-Dạng thứ ba cho phép kết quả là `Long` trong khi các phần tử đầu vào là `Integer`. Nó đặc biệt hữu ích khi tính toán một cấu trúc tổng hợp khác kiểu dữ liệu nguồn. Trong các bài toán tổng số nguyên thông thường, primitive stream như `mapToLong(...).sum()` có thể gọn hơn và tránh boxing.
+The third form allows the result to be `Long` while the input elements are `Integer`. It is especially useful when computing an aggregated structure of a different type from the source data. For ordinary integer sums, primitive streams like `mapToLong(...).sum()` can be more concise and avoid boxing.
 
-### Nguồn rỗng cho kết quả gì?
+### What does an empty source return?
 
 ~~~java
 import java.util.List;
@@ -89,54 +89,54 @@ String emptyText = empty.stream().reduce("", String::concat);
 // emptyText.equals("") == true
 ~~~
 
-Dạng không có identity trả Optional để biểu diễn trường hợp **không có phần tử để rút gọn**. Dạng có identity trả chính identity khi nguồn rỗng. Việc chọn identity vì thế ảnh hưởng trực tiếp đến ý nghĩa nghiệp vụ của kết quả.
+The form without identity returns an `Optional` to represent **no elements to reduce**. The form with identity returns the identity itself when the source is empty. Choosing the identity therefore directly affects the business meaning of the result.
 
-## 3. Hợp đồng toán học: identity, associativity và compatibility
+## 3. Mathematical contract: identity, associativity, and compatibility
 
-### 3.1. Identity phải thực sự trung hòa
+### 3.1. Identity must be truly neutral
 
-Với phép gộp `op` trên kiểu `T`, identity `e` phải thỏa mãn:
+For a combining operation `op` on type `T`, identity `e` must satisfy:
 
 ~~~text
 op(e, x) = x
 op(x, e) = x
 ~~~
 
-Ví dụ:
+Examples:
 
-| Phép gộp | Identity phù hợp | Kiểm tra nhanh |
+| Combining operation | Appropriate identity | Quick check |
 | --- | --- | --- |
-| Cộng số nguyên | `0` | `0 + x = x + 0 = x` |
-| Nhân số nguyên | `1` | `1 * x = x * 1 = x` |
-| Nối chuỗi | `""` | `"".concat(x) = x.concat("") = x` |
-| Cộng `BigDecimal` | `BigDecimal.ZERO` | `0 + amount = amount` về mặt giá trị số |
-| Hợp nhất tập hợp theo phép hợp | Tập rỗng | `empty ∪ S = S ∪ empty = S` |
+| Integer addition | `0` | `0 + x = x + 0 = x` |
+| Integer multiplication | `1` | `1 * x = x * 1 = x` |
+| String concatenation | `""` | `"".concat(x) = x.concat("") = x` |
+| `BigDecimal` addition | `BigDecimal.ZERO` | `0 + amount = amount` in numeric value |
+| Merging sets via union | Empty set | `empty ∪ S = S ∪ empty = S` |
 
-**Sai lầm dễ gặp:** dùng giá trị “mặc định cho dễ nhìn” thay cho identity.
+**Common mistake:** using a “nice-looking default” value instead of an identity.
 
 ~~~java
 import java.util.List;
 
-// Không đúng để tính tổng thông thường:
+// Incorrect for computing a regular sum:
 int wrong = List.of(2, 3).stream().reduce(10, Integer::sum);
-// wrong == 15, không phải 5.
+// wrong == 15, not 5.
 
-// Đúng:
+// Correct:
 int total = List.of(2, 3).stream().reduce(0, Integer::sum);
 // total == 5.
 ~~~
 
-Identity của một đối tượng giá trị có thể cần thêm ngữ cảnh, ví dụ **loại tiền** hoặc **đơn vị đo**. Một `Money(0, "USD")` chỉ là identity hợp lệ cho những Money có cùng đơn vị USD và một phép cộng cho phép cộng USD.
+The identity of a value object may require additional context, such as **currency** or **unit of measure**. A `Money(0, "USD")` is only a valid identity for Money values in the same USD currency and an addition operation that allows adding USD.
 
-### 3.2. Phép gộp phải có tính kết hợp
+### 3.2. The combining operation must be associative
 
-Với các giá trị `a`, `b`, `c`:
+For values `a`, `b`, `c`:
 
 ~~~text
 op(op(a, b), c) = op(a, op(b, c))
 ~~~
 
-Lấy ví dụ nối chuỗi bằng `String::concat`:
+Take string concatenation with `String::concat` as an example:
 
 ~~~text
 ("Java" + " Stream") + " API"
@@ -146,9 +146,9 @@ Lấy ví dụ nối chuỗi bằng `String::concat`:
 "Java Stream API"
 ~~~
 
-Một Stream song song có quyền rút gọn các phần dữ liệu riêng rồi ghép kết quả. Vì thế, phép gộp **phụ thuộc vị trí dấu ngoặc** có thể trả kết quả khác khi phân nhóm khác nhau.
+A parallel Stream is allowed to reduce separate parts of the data and then merge the results. Therefore, a combining operation **dependent on parenthesization** can return different results when grouped differently.
 
-Phép trừ là ví dụ **không có tính kết hợp**:
+Subtraction is a **non-associative** example:
 
 ~~~java
 import java.util.List;
@@ -156,26 +156,26 @@ import java.util.List;
 int result = List.of(10, 3, 2).stream()
     .reduce(0, (a, b) -> a - b);
 
-System.out.println(result); // -15 trong pipeline tuần tự này.
+System.out.println(result); // -15 in this sequential pipeline.
 ~~~
 
-Đây không phải một phép rút gọn phù hợp khi muốn giữ kết quả ổn định trên parallel stream. Hơn nữa, `0` không phải identity hai phía cho phép trừ vì `0 - x` khác `x`.
+This is not an appropriate reduction when you want consistent results on a parallel stream. Moreover, `0` is not a two-sided identity for subtraction because `0 - x` differs from `x`.
 
-### 3.3. Với reduce ba tham số còn cần compatibility
+### 3.3. Three-parameter reduce also requires compatibility
 
-Với đầu vào kiểu `T`, kết quả tích lũy kiểu `U`, `accumulator` và `combiner` phải phối hợp nhất quán. Với mọi kết quả trung gian `u` và phần tử `t`, cần có:
+With input type `T` and accumulated result type `U`, `accumulator` and `combiner` must coordinate consistently. For every intermediate result `u` and element `t`, we need:
 
 ~~~text
 combiner(u, accumulator(identity, t)) = accumulator(u, t)
 ~~~
 
-`combiner` cũng phải có identity `identity` và có tính kết hợp. Quy tắc này đảm bảo một phần tử được xử lý trong một nhánh riêng rồi ghép vào kết quả chung vẫn cho cùng kết quả như xử lý trực tiếp trên kết quả chung.
+`combiner` must also have `identity` as its identity and be associative. This rule ensures that an element processed in a separate branch and then merged into the overall result yields the exact same result as processing directly on the overall result.
 
-Ta sẽ áp dụng chính xác nguyên tắc này cho đối tượng tổng hợp trong các ví dụ sau.
+We will apply this exact principle to aggregated objects in the following examples.
 
-## 4. Nối chuỗi bằng reduce: từ danh sách thành văn bản
+## 4. Joining strings with reduce: from a list to text
 
-Với `String`, phép nối là ví dụ tự nhiên vì `String` bất biến: mỗi lần nối tạo ra một giá trị kết quả mới.
+With `String`, concatenation is a natural example because `String` is immutable: each concatenation creates a new result value.
 
 ~~~java
 import java.util.List;
@@ -192,11 +192,11 @@ public class StringReduce {
 }
 ~~~
 
-`""` là identity. `String::concat` kết hợp được: đặt dấu ngoặc khác nhau không thay đổi chuỗi ký tự khi thứ tự các phần tử giữ nguyên.
+`""` is the identity. `String::concat` is associative: different parenthesizations do not alter the character sequence when element order is preserved.
 
-Ví dụ này phù hợp khi cần **giải thích nguyên tắc reduce**; với dữ liệu rất lớn, nên cân nhắc `Collectors.joining()` vì `String` bất biến khiến mỗi phép nối có thể sao chép chuỗi đã tích lũy.
+This example works well to **explain the principles of reduce**; on very large data, consider `Collectors.joining()` because `String` immutability means each concatenation can copy the already-accumulated string.
 
-### 4.1. Rút gọn chuỗi sau bước làm sạch
+### 4.1. Reducing strings after a cleanup step
 
 ~~~java
 import java.util.List;
@@ -211,58 +211,58 @@ String joined = tags.stream()
 System.out.println(joined); // JavaStreamAPI
 ~~~
 
-Với ví dụ này, `filter` loại chuỗi rỗng; `map` làm sạch; `reduce` nối phần còn lại. Pipeline là lazy cho đến khi terminal `reduce` chạy.
+In this example, `filter` drops empty strings; `map` cleans whitespace; `reduce` concatenates the remainder. The pipeline is lazy until the terminal `reduce` runs.
 
-Nếu muốn nối các từ bằng một dấu phân cách có ý nghĩa, không thể đơn giản viết `reduce("", (a, b) -> a + ", " + b)`: với phần tử đầu tiên, cách đó sẽ tạo dấu phẩy ở đầu chuỗi.
+If you want to join words with a meaningful delimiter, you cannot simply write `reduce("", (a, b) -> a + ", " + b)`: for the first element, that would place a leading comma at the start of the string.
 
-### 4.2. Nối bằng dấu phân cách mà không có identity
+### 4.2. Joining with a delimiter without an identity
 
 ~~~java
 import java.util.List;
 
-List<String> cities = List.of("Hà Nội", "Đà Nẵng", "TP.HCM");
+List<String> cities = List.of("Hanoi", "Da Nang", "Ho Chi Minh City");
 
 String label = cities.stream()
     .reduce((left, right) -> left + " | " + right)
-    .orElse("(không có địa điểm)");
+    .orElse("(no location)");
 
-System.out.println(label); // Hà Nội | Đà Nẵng | TP.HCM
+System.out.println(label); // Hanoi | Da Nang | Ho Chi Minh City
 ~~~
 
-Không có identity nên khi nguồn rỗng, `reduce` trả `Optional.empty()`. Với chuỗi đầu vào khác rỗng, phép ghép có dấu `" | "` giữa các nhóm có thể kết hợp được; khi stream có encounter order, kết quả giữ thứ tự nguồn.
+Without an identity, when the source is empty, `reduce` returns `Optional.empty()`. With non-empty input strings, merging with `" | "` between groups is associative; when the stream has an encounter order, the result preserves source order.
 
-Nếu có khả năng các phần tử là chuỗi rỗng, cần xác định rõ chúng có được giữ lại không; chuỗi rỗng ở giữa hai dấu phân cách có thể vẫn là một giá trị nghiệp vụ hợp lệ. Không tự động lọc chuỗi rỗng nếu yêu cầu là giữ nguyên số trường.
+If elements may be empty strings, you must clarify whether they should be kept; an empty string between two delimiters may still be a valid business value. Do not automatically filter empty strings if the requirement is to preserve the field count.
 
-### 4.3. Chọn cách đúng cho chuỗi dài
+### 4.3. Choosing the right approach for long strings
 
-Trong ứng dụng, nếu mục tiêu chỉ là ghép chuỗi với dấu phân cách, dùng collector chuyên dụng thường hiệu quả và rõ ràng hơn:
+In applications, if the goal is simply joining strings with a delimiter, using a dedicated collector is usually more efficient and clearer:
 
 ~~~java
 import java.util.List;
 import java.util.stream.Collectors;
 
-List<String> cities = List.of("Hà Nội", "Đà Nẵng", "TP.HCM");
+List<String> cities = List.of("Hanoi", "Da Nang", "Ho Chi Minh City");
 
 String joined = cities.stream()
     .collect(Collectors.joining(" | "));
 
-System.out.println(joined); // Hà Nội | Đà Nẵng | TP.HCM
+System.out.println(joined); // Hanoi | Da Nang | Ho Chi Minh City
 ~~~
 
-`Collectors.joining` sử dụng cơ chế tích lũy chuỗi có thể thay đổi bên trong collector theo hợp đồng, tránh phải tự nối một chuỗi lớn lặp đi lặp lại như `reduce`. Nó còn hỗ trợ `joining(delimiter, prefix, suffix)`.
+`Collectors.joining` uses a mutable string accumulation mechanism inside the collector under contract, avoiding repeatedly concatenating a large string as `reduce` does. It also supports `joining(delimiter, prefix, suffix)`.
 
-| Bài toán chuỗi | Cách làm gợi ý |
+| String problem | Suggested approach |
 | --- | --- |
-| Minh họa reduce và luật kết hợp | `reduce("", String::concat)` |
-| Ghép vài chuỗi bằng quy tắc riêng, nguồn nhỏ | `reduce(BinaryOperator)` nếu quy tắc gộp thực sự có tính kết hợp |
-| Ghép nhiều chuỗi, có dấu phân cách | `Collectors.joining(delimiter)` |
-| Cần thay đổi các phần tử văn bản trong quá trình duyệt | Collector phù hợp thay vì dùng `StringBuilder` mutable làm identity trong `reduce` |
+| Illustrating `reduce` and associativity laws | `reduce("", String::concat)` |
+| Joining a few strings with a custom rule, small source | `reduce(BinaryOperator)` if the combining rule is genuinely associative |
+| Joining many strings with a delimiter | `Collectors.joining(delimiter)` |
+| Needing to mutate text buffers during traversal | An appropriate collector instead of using a mutable `StringBuilder` as `reduce` identity |
 
-## 5. Rút gọn đối tượng giá trị bất biến
+## 5. Reducing immutable value objects
 
-Đối tượng giá trị (*value object*) mô tả một giá trị miền nghiệp vụ thông qua các thuộc tính của nó, ví dụ khoản tiền, độ dài hay một vector. Khi dùng `reduce`, kiểu dữ liệu này nên có phép kết hợp **trả đối tượng mới** thay vì sửa chính đối tượng đang được sử dụng.
+A *value object* describes a business-domain value through its attributes, such as a monetary amount, a length, or a vector. When using `reduce`, this data type should have a combining operation that **returns a new object** rather than mutating the object currently in use.
 
-Ta định nghĩa `Money` có số tiền và đơn vị tiền tệ. Phép cộng chỉ hợp lệ khi hai khoản tiền có cùng đơn vị.
+We define `Money` with an amount and a currency. Addition is only valid when both monetary amounts share the same currency.
 
 ~~~java
 import java.math.BigDecimal;
@@ -279,7 +279,7 @@ public class MoneyReduce {
         Money plus(Money other) {
             if (!currency.equals(other.currency())) {
                 throw new IllegalArgumentException(
-                    "Không thể cộng hai loại tiền khác nhau"
+                    "Cannot add two different currencies"
                 );
             }
 
@@ -304,34 +304,34 @@ public class MoneyReduce {
 }
 ~~~
 
-**Vì sao cách viết này phù hợp?**
+**Why is this style appropriate?**
 
-- `Money` là record có thành phần `BigDecimal` và `String` bất biến; hàm `plus` tạo bản ghi mới.
-- Identity `Money(BigDecimal.ZERO, "VND")` giữ giá trị của mọi Money cùng tiền tệ khi cộng.
-- Với các khoản tiền hợp lệ cùng đơn vị, phép cộng `BigDecimal` có tính kết hợp về **giá trị toán học**, vì đây là phép cộng thập phân chính xác, không có sai số làm tròn trong `BigDecimal.add` khi không áp đặt `MathContext` làm tròn.
-- Mapper không sửa đối tượng nguồn, không cập nhật biến dùng chung.
+- `Money` is a record with immutable `BigDecimal` and `String` components; `plus` creates a new record.
+- Identity `Money(BigDecimal.ZERO, "VND")` preserves the value of any `Money` of the same currency when added.
+- For valid amounts in the same currency, `BigDecimal` addition is associative in **mathematical value**, because it is exact decimal addition with no rounding error in `BigDecimal.add` when no rounding `MathContext` is imposed.
+- The mapper does not mutate source objects and does not update shared variables.
 
-**Giới hạn nghiệp vụ:** Dữ liệu có nhiều loại tiền cần được quy đổi theo tỷ giá và quy tắc làm tròn thích hợp **trước khi cộng**, hoặc nhóm theo đơn vị tiền tệ bằng collector. Đừng lấy `Money(0, "VND")` làm identity cho dữ liệu hỗn hợp USD/VND rồi bỏ qua việc quy đổi.
+**Business limitation:** Multi-currency data must be converted using an exchange rate and appropriate rounding rules **before summing**, or grouped by currency using a collector. Do not pick `Money(0, "VND")` as the identity for mixed USD/VND data and skip currency conversion.
 
-### 5.1. Reduce không có identity khi không thể chọn giá trị không mặc định
+### 5.1. Reduce without identity when a zero value cannot be picked by default
 
-Nếu đơn vị tiền tệ của nguồn chỉ được xác định từ chính phần tử đầu tiên, không cần “đoán” identity:
+If the source's currency is only known from the first element itself, there is no need to “guess” an identity:
 
 ~~~java
 import java.util.Optional;
 
-// payments là List<Money> ở ví dụ MoneyReduce.
+// payments is List<Money> from the MoneyReduce example.
 Optional<Money> total = payments.stream()
     .reduce(Money::plus);
 ~~~
 
-Khi `payments` rỗng, kết quả là `Optional.empty()`. Ứng dụng có thể giữ trạng thái “không có khoản tiền”, yêu cầu cung cấp đơn vị tiền tệ mặc định, hoặc ném lỗi nếu một giao dịch bắt buộc phải có khoản tiền.
+When `payments` is empty, the result is `Optional.empty()`. The application can keep the “no amount” state, require a default currency to be supplied, or throw an error if a transaction must have an amount.
 
-Không thay `Optional.empty()` bằng một khoản tiền giả nếu điều đó làm mất thông tin kinh doanh.
+Do not replace `Optional.empty()` with a fake monetary amount if doing so loses business information.
 
-### 5.2. Lưu ý về BigDecimal
+### 5.2. Notes on BigDecimal
 
-`BigDecimal.add` không tự đổi đơn vị tiền tệ. Ngoài ra, `BigDecimal.equals` phân biệt cả **scale**:
+`BigDecimal.add` does not automatically convert currencies. In addition, `BigDecimal.equals` also distinguishes **scale**:
 
 ~~~java
 import java.math.BigDecimal;
@@ -339,15 +339,15 @@ import java.math.BigDecimal;
 BigDecimal a = new BigDecimal("1.0");
 BigDecimal b = new BigDecimal("1.00");
 
-System.out.println(a.compareTo(b) == 0); // true: cùng giá trị số.
-System.out.println(a.equals(b));         // false: scale khác nhau.
+System.out.println(a.compareTo(b) == 0); // true: same numeric value.
+System.out.println(a.equals(b));         // false: different scale.
 ~~~
 
-Nếu hệ thống yêu cầu biểu diễn tiền có scale nhất quán, hãy đặt chính sách chuẩn hóa ở tầng value object hoặc ranh giới nhập dữ liệu. Đừng suy luận từ một lần in ra rằng mọi định dạng đều được bảo toàn theo ý nghĩa mong muốn.
+If the system requires monetary representations with consistent scale, place a normalization policy at the value object layer or input boundary. Do not infer from a single printout that every format detail is preserved in the intended sense.
 
-## 6. Từ bản ghi đầu vào thành kết quả tổng hợp khác kiểu
+## 6. From input records to an aggregated result of a different type
 
-Một chương trình có thể cần báo cáo nhiều chỉ tiêu trong một lần duyệt: tổng số dòng đơn hàng, số sản phẩm và doanh thu. Phần tử nguồn là `OrderLine`, còn giá trị tích lũy là `SalesSummary`. Đây là trường hợp phù hợp với **reduce ba tham số**.
+A program may need to report multiple metrics in a single traversal: total order lines, number of units, and revenue. Source elements are `OrderLine`, while the accumulated value is `SalesSummary`. This is an ideal case for **three-parameter reduce**.
 
 ~~~java
 import java.math.BigDecimal;
@@ -393,9 +393,9 @@ public class SalesSummaryReduce {
         );
 
         SalesSummary summary = lines.parallelStream().reduce(
-            SalesSummary.zero(), // identity: trạng thái tổng hợp rỗng.
-            SalesSummary::add,    // accumulator: đưa OrderLine vào Summary.
-            SalesSummary::combine // combiner: gộp hai Summary.
+            SalesSummary.zero(), // identity: empty aggregated state.
+            SalesSummary::add,    // accumulator: folds OrderLine into Summary.
+            SalesSummary::combine // combiner: merges two Summaries.
         );
 
         System.out.println(summary);
@@ -404,27 +404,27 @@ public class SalesSummaryReduce {
 }
 ~~~
 
-Giải thích từng thành phần:
+Explanation of each component:
 
-1. `SalesSummary.zero()` tạo một kết quả rỗng: 0 dòng, 0 đơn vị, 0 doanh thu.
-2. `SalesSummary::add` là `BiFunction<SalesSummary, OrderLine, SalesSummary>`. Hàm tạo một đối tượng mới sau khi nhập thêm một dòng.
-3. `SalesSummary::combine` là `BinaryOperator<SalesSummary>`. Nó ghép kết quả do các nhánh khác nhau tạo ra.
-4. Cả hai phép toán đều giữ trạng thái bất biến, không phụ thuộc lịch chạy của parallel stream.
+1. `SalesSummary.zero()` creates an empty result: 0 lines, 0 units, 0 revenue.
+2. `SalesSummary::add` is a `BiFunction<SalesSummary, OrderLine, SalesSummary>`. It creates a new object after folding in one more line.
+3. `SalesSummary::combine` is a `BinaryOperator<SalesSummary>`. It merges results created by different branches.
+4. Both operations keep state immutable, independent of the parallel stream's execution schedule.
 
-Nếu `a` là một summary bất kỳ và `line` là một dòng đơn, thì:
+If `a` is any summary and `line` is a single line item, then:
 
 ~~~text
 combine(a, add(zero, line)) = add(a, line)
 ~~~
 
-Hai phía đều cộng thêm đúng một dòng, đúng số lượng của dòng đó và đúng thành tiền. Đây là **điều kiện tương thích** giữa accumulator và combiner.
+Both sides add exactly one line, that line's quantity, and its line amount. This is the **compatibility condition** between accumulator and combiner.
 
-**Lưu ý:** Ví dụ giả định `quantity` không âm, `unitPrice` hợp lệ và tất cả giá trị tiền có cùng đơn vị. Trong hệ thống thực cần kiểm tra dữ liệu đầu vào, giới hạn phép cộng số `long` và chính sách quy đổi/làm tròn trước khi kết luận tổng hợp là hợp lệ.
+**Note:** The example assumes `quantity` is non-negative, `unitPrice` is valid, and all monetary values share the same currency. In a real system, validate input data, check `long` addition limits, and confirm conversion/rounding policies before concluding the aggregation is valid.
 
-### 6.1. Biến thể tuần tự
+### 6.1. Sequential variant
 
 ~~~java
-// Trong ngữ cảnh lớp SalesSummaryReduce với List<OrderLine> lines:
+// Within the context of SalesSummaryReduce with List<OrderLine> lines:
 SalesSummary summary = lines.stream().reduce(
     SalesSummary.zero(),
     SalesSummary::add,
@@ -432,26 +432,26 @@ SalesSummary summary = lines.stream().reduce(
 );
 ~~~
 
-Dạng ba tham số cũng chạy tuần tự. Tuy nhiên, thiết kế vẫn phải đáp ứng hợp đồng combiner vì mã có thể chuyển sang parallel stream hoặc được tái sử dụng với nguồn khác.
+The three-parameter form also runs sequentially. Even so, the design must still satisfy the combiner contract because the code may switch to a parallel stream or be reused with another source.
 
-### 6.2. Khi chỉ cần một đại lượng
+### 6.2. When only a single metric is needed
 
-Nếu yêu cầu chỉ là tổng doanh thu, việc dựng `SalesSummary` nhiều trường có thể không cần thiết:
+If the requirement is solely total revenue, building a multi-field `SalesSummary` may be unnecessary:
 
 ~~~java
 import java.math.BigDecimal;
 
-// OrderLine đã được định nghĩa trong lớp ví dụ phía trên.
+// OrderLine is defined in the example class above.
 BigDecimal total = lines.stream()
     .map(OrderLine::lineTotal)
     .reduce(BigDecimal.ZERO, BigDecimal::add);
 ~~~
 
-Với dữ liệu lớn, lựa chọn giữa primitive terminal, `reduce` và `collect` phụ thuộc vào kiểu giá trị, khả năng tổng hợp và chi phí tạo đối tượng. Không cần một summary phức tạp nếu đầu ra chỉ là một tổng đơn giản.
+On large datasets, choosing between primitive terminals, `reduce`, and `collect` depends on value types, aggregation needs, and object creation cost. There is no need for a complex summary if the output is just a simple sum.
 
-## 7. Gộp nhiều chỉ tiêu số và xử lý tập rỗng
+## 7. Aggregating multiple numeric metrics and handling empty sets
 
-Giả sử một lớp học cần thống kê số bài đã chấm, tổng điểm, điểm nhỏ nhất, lớn nhất và điểm trung bình. Ta có thể dùng **một record bất biến** với phép `add` và `merge`.
+Suppose a classroom needs statistics for graded assignments: count, total score, minimum score, maximum score, and average score. We can use **an immutable record** with `add` and `merge` methods.
 
 ~~~java
 import java.util.List;
@@ -533,9 +533,9 @@ public class ScoreStatisticsReduce {
 }
 ~~~
 
-`Integer.MAX_VALUE` và `Integer.MIN_VALUE` ở đây chỉ là **giá trị trung hòa nội bộ** để hàm `Math.min` và `Math.max` có thể kết hợp với summary rỗng. Chúng **không** được công bố như số liệu thực khi `count == 0`. Hai phương thức `minimum()` và `maximum()` trả Optional để biểu diễn việc không có quan sát.
+`Integer.MAX_VALUE` and `Integer.MIN_VALUE` here are merely **internal neutral values** so `Math.min` and `Math.max` can combine with an empty summary. They are **not** exposed as real metrics when `count == 0`. Both `minimum()` and `maximum()` return an `Optional` to represent the absence of observations.
 
-Nếu chỉ cần các thống kê `count/sum/min/max/average` cho số nguyên, Java đã có giải pháp chuyên dụng:
+If you only need `count/sum/min/max/average` statistics for integers, Java already provides a dedicated solution:
 
 ~~~java
 import java.util.IntSummaryStatistics;
@@ -552,18 +552,18 @@ System.out.println(stats.getMax());     // 9
 System.out.println(stats.getAverage()); // 7.0
 ~~~
 
-Trong ứng dụng thông thường, **ưu tiên operation/collector có sẵn** khi chúng đã đáp ứng chính xác đầu ra. Dùng record với `reduce` khi có thêm chỉ tiêu miền nghiệp vụ hoặc kết quả tổng hợp cần kiểu riêng.
+In typical applications, **prefer built-in operations/collectors** when they already provide the exact output required. Use a record with `reduce` when there are additional domain metrics or the aggregated result requires a custom type.
 
-## 8. Nối chuỗi và reduce khi chạy song song
+## 8. String concatenation and reduce in parallel execution
 
-Một số phép gộp **có tính kết hợp nhưng không giao hoán**. Ví dụ nối chuỗi:
+Some combining operations are **associative yet non-commutative**. For example, string concatenation:
 
 ~~~text
 "a" + "b" = "ab"
 "b" + "a" = "ba"
 ~~~
 
-Phép nối có tính kết hợp về cấu trúc chuỗi, nhưng đổi **thứ tự phần tử** sẽ đổi kết quả. Với ordered stream và phép rút gọn đúng hợp đồng, parallel reduce vẫn phải bảo toàn ngữ nghĩa thứ tự tương ứng. Ta không cần các callback chạy theo đúng trình tự thời gian; kết quả cuối phụ thuộc **encounter order**, không phụ thuộc lịch xử lý thread.
+Concatenation is associative over string structure, yet changing **element order** changes the result. With an ordered stream and a contract-compliant reduction, parallel `reduce` still preserves the corresponding order semantics. We do not need callbacks to run in strict chronological order; the final result depends on **encounter order**, not thread scheduling.
 
 ~~~java
 import java.util.List;
@@ -576,18 +576,18 @@ String text = letters.parallelStream()
 System.out.println(text); // JAVA
 ~~~
 
-Nếu gọi `unordered()` trước đó, ta bỏ ràng buộc encounter order. Đối với phép nối phụ thuộc vị trí, **không nên dựa vào kết quả luôn là "JAVA"**.
+If `unordered()` is called beforehand, the encounter-order constraint is dropped. For position-dependent concatenation, **do not rely on the result always being "JAVA"**.
 
 ~~~java
 String textWithoutOrder = letters.parallelStream()
     .unordered()
     .reduce("", String::concat);
 
-// textWithoutOrder chứa các chữ cái đã ghép;
-// thứ tự ký tự không còn là một bảo đảm của pipeline.
+// textWithoutOrder contains the concatenated letters;
+// character order is no longer guaranteed by the pipeline.
 ~~~
 
-Nếu nghiệp vụ cần một chuỗi đã sắp xếp, phải thiết lập thứ tự rõ ràng trước khi nối:
+If business logic requires a sorted string, establish the order explicitly before joining:
 
 ~~~java
 String sortedText = letters.parallelStream()
@@ -597,7 +597,7 @@ String sortedText = letters.parallelStream()
 System.out.println(sortedText); // AAJV
 ~~~
 
-### 8.1. Tác dụng phụ không thay thế giá trị kết quả
+### 8.1. Side effects do not substitute for return values
 
 ~~~java
 import java.util.ArrayList;
@@ -609,32 +609,32 @@ String text = List.of("a", "b", "c").parallelStream()
     .reduce(
         "",
         (acc, value) -> {
-            shared.add(value); // SAI: mutation ngoài reduce, không thread-safe.
+            shared.add(value); // WRONG: mutation outside reduce, not thread-safe.
             return acc + value;
         }
     );
 ~~~
 
-Trong ví dụ này, kết quả `text` là đầu ra của `reduce`, còn `shared` là tác dụng phụ ngoài hợp đồng. Với parallel stream, việc ghi `ArrayList` dùng chung có thể tạo race condition. Đừng dùng callback của `reduce` để thu thập phần tử vào danh sách; nên để terminal operation hoặc collector phù hợp tạo kết quả.
+In this example, `text` is the output of `reduce`, whereas `shared` is an out-of-contract side effect. With a parallel stream, writing to a shared `ArrayList` can create race conditions. Do not use a `reduce` callback to collect elements into a list; let an appropriate terminal operation or collector produce the result.
 
-### 8.2. Những việc không được đưa vào accumulator
+### 8.2. What must not be put inside an accumulator
 
-Không nên cập nhật cơ sở dữ liệu, gửi email, ghi file hoặc tăng bộ đếm nghiệp vụ trong accumulator chỉ để “bảo đảm xử lý từng phần tử”. Khi pipeline song song, accumulator và combiner có thể được gọi theo lịch khác với tuần tự. Công việc yêu cầu giao dịch hoặc side effect cần được tổ chức riêng, với điều kiện idempotency và xử lý lỗi tương ứng.
+Do not update databases, send emails, write files, or increment business counters inside an accumulator just to “guarantee every element is processed”. When a pipeline runs in parallel, accumulator and combiner may be invoked on a different schedule than sequential execution. Work requiring transactions or side effects should be organized separately, with appropriate idempotency and error handling.
 
-## 9. Sai lầm nghiêm trọng: reduce với identity mutable
+## 9. Serious mistake: reduce with a mutable identity
 
-Một đoạn mã nhìn qua có thể “đúng” khi tuần tự:
+Code that looks “right” at first glance sequentially:
 
 ~~~java
 import java.util.ArrayList;
 import java.util.List;
 
-// MINH HỌA CÁCH SAI: không dùng cho pipeline thật.
+// ILLUSTRATING THE WRONG WAY: do not use in a real pipeline.
 List<String> broken = List.of("a", "b", "c").parallelStream()
     .reduce(
         new ArrayList<String>(),
         (acc, item) -> {
-            acc.add(item);  // Sửa identity mutable dùng chung.
+            acc.add(item);  // Mutates shared mutable identity.
             return acc;
         },
         (left, right) -> {
@@ -644,9 +644,9 @@ List<String> broken = List.of("a", "b", "c").parallelStream()
     );
 ~~~
 
-`reduce` yêu cầu phép tích lũy **không can thiệp, không trạng thái**, và identity phải hoạt động như phần tử đơn vị. Với identity là một `ArrayList` mutable được chia sẻ giữa các phần tính toán, accumulator liên tục sửa cùng đối tượng. Các nhánh có thể đua nhau ghi, còn combiner có thể nhận các tham chiếu trỏ đến cùng một list. Kết quả sai hoặc hành vi bất thường là điều có thể xảy ra.
+`reduce` requires a **non-interfering, stateless** accumulation, and `identity` must act as an identity element. With a mutable `ArrayList` identity shared across computation segments, the accumulator repeatedly mutates the same object. Branches can race to write, and the combiner can receive references pointing to the same list. Wrong results or erratic behavior can occur.
 
-Để thu thập danh sách, dùng `collect`:
+To collect a list, use `collect`:
 
 ~~~java
 import java.util.List;
@@ -656,7 +656,7 @@ List<String> good = List.of("a", "b", "c").parallelStream()
     .collect(Collectors.toList());
 ~~~
 
-Nếu cần một `ArrayList` có thể thay đổi được:
+If a mutable `ArrayList` is needed:
 
 ~~~java
 import java.util.ArrayList;
@@ -667,11 +667,11 @@ ArrayList<String> mutable = List.of("a", "b", "c").parallelStream()
     .collect(Collectors.toCollection(ArrayList::new));
 ~~~
 
-Collectors tạo những container tích lũy theo hợp đồng của cơ chế reduction có thể thay đổi (*mutable reduction*) rồi kết hợp chúng theo cách thích hợp. Đây là nhiệm vụ của `collect`, không nên mô phỏng bằng cách sửa identity trong `reduce`.
+Collectors create accumulation containers under the *mutable reduction* contract and merge them properly. That is the job of `collect`, and should not be simulated by mutating an identity in `reduce`.
 
-## 10. Những giới hạn số học dễ làm reduce sai
+## 10. Arithmetic limits that easily make reduce wrong
 
-### 10.1. Cộng số nguyên có thể tràn
+### 10.1. Integer addition can overflow
 
 ~~~java
 import java.util.List;
@@ -679,10 +679,10 @@ import java.util.List;
 int wrapped = List.of(Integer.MAX_VALUE, 1).stream()
     .reduce(0, Integer::sum);
 
-// wrapped == Integer.MIN_VALUE do tràn số int.
+// wrapped == Integer.MIN_VALUE due to int overflow.
 ~~~
 
-Nếu miền giá trị có thể lớn, chọn kiểu phù hợp và kiểm soát overflow:
+If the value domain can be large, pick an appropriate type and guard against overflow:
 
 ~~~java
 long safe = List.of(Integer.MAX_VALUE, 1).stream()
@@ -692,17 +692,17 @@ long safe = List.of(Integer.MAX_VALUE, 1).stream()
 // safe == 2147483648
 ~~~
 
-`long` vẫn có giới hạn. `Math.addExact` có thể phát hiện overflow, còn `BigInteger` / `BigDecimal` phù hợp khi yêu cầu kết quả vượt miền primitive. Với các phép cộng có thể overflow nhưng tổng toán học cuối cùng vừa miền, kết quả hoặc ngoại lệ còn có thể phụ thuộc cách phân nhóm; không tự động coi phép cộng có kiểm tra overflow là phép gộp song song an toàn cho mọi miền đầu vào.
+`long` still has limits. `Math.addExact` can detect overflow, while `BigInteger` / `BigDecimal` fit when results must exceed primitive ranges. For additions that can overflow even though the final mathematical sum fits in range, the result or exception can also depend on grouping; do not automatically assume overflow-checked addition is a safe parallel combining operation for all input domains.
 
-### 10.2. Số thực dấu chấm động không kết hợp tuyệt đối
+### 10.2. Floating-point numbers are not strictly associative
 
-Về mặt toán học, cộng là phép kết hợp. Với số thực dấu chấm động IEEE 754, việc làm tròn có thể khiến:
+Mathematically, addition is associative. With IEEE 754 floating-point numbers, rounding can cause:
 
 ~~~text
 (a + b) + c  !=  a + (b + c)
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~java
 double a = 1e16;
@@ -715,44 +715,44 @@ double right = a + (b + c); // 0.0
 System.out.println(left == right); // false
 ~~~
 
-Vì vậy, `DoubleStream.sum()` và các cách reduce số thực có thể cho chênh lệch làm tròn phụ thuộc cách tích lũy/nhóm phần tử. Khi cần kết quả có độ chính xác chặt chẽ, phải cân nhắc cấu trúc số liệu, sai số chấp nhận được và thuật toán tổng hợp chuyên dụng. Không dùng `double` làm đại diện mặc định cho tiền cần chính xác thập phân.
+Hence, `DoubleStream.sum()` and floating-point reductions can yield rounding discrepancies depending on accumulation/grouping order. When strict precision is required, consider data representation, acceptable tolerance, and specialized summation algorithms. Do not use `double` as the default representation for money requiring decimal exactness.
 
-### 10.3. Kết hợp không đúng hoặc phụ thuộc state
+### 10.3. Invalid combining or state dependence
 
-Một phép toán như “lấy trung bình của hai giá trị trung bình” không tạo trung bình đúng khi các nhóm có kích thước khác nhau:
+An operation such as “taking the average of two averages” does not yield the true average when groups have different sizes:
 
 ~~~text
-Nhóm A: [10, 20, 30]  → trung bình 20
-Nhóm B: [100]         → trung bình 100
+Group A: [10, 20, 30]  → average 20
+Group B: [100]         → average 100
 
-Trung bình hai trung bình = (20 + 100) / 2 = 60    (sai)
-Trung bình toàn bộ       = (10 + 20 + 30 + 100)/4 = 40 (đúng)
+Average of two averages = (20 + 100) / 2 = 60    (wrong)
+Overall average         = (10 + 20 + 30 + 100)/4 = 40 (right)
 ~~~
 
-Để gộp trung bình đúng, phải giữ ít nhất **tổng** và **số lượng** trong bản tổng hợp, rồi tính trung bình sau khi kết thúc reduction. Đó là lý do record kiểu `Stats(count, sum, ...)` đáng tin hơn chỉ lưu một giá trị `average`.
+To combine averages correctly, you must keep at least **sum** and **count** in the summary, and compute the average after the reduction finishes. That is why a record like `Stats(count, sum, ...)` is more reliable than storing only an `average` value.
 
-## 11. reduce hay collect? Chọn theo bản chất kết quả
+## 11. reduce or collect? Choose by the nature of the result
 
-`reduce` dùng cách gộp giá trị, thường thích hợp với những đối tượng **bất biến** và phép kết hợp có identity rõ ràng. `collect` dùng cơ chế tích lũy vào container có thể thay đổi được thông qua supplier, accumulator và combiner.
+`reduce` uses value combining, usually suited for **immutable** objects and combining operations with a clear identity. `collect` uses accumulation into mutable containers through a supplier, accumulator, and combiner.
 
-| Yêu cầu | Gợi ý | Lý do |
+| Requirement | Suggestion | Reason |
 | --- | --- | --- |
-| Cộng các số `int`/`long` | `mapToInt(...).sum()`, `mapToLong(...).sum()` | Dùng primitive terminal, tránh boxing. |
-| Nối một vài chuỗi để hiểu phép gộp | `reduce("", String::concat)` | Identity và associative rõ ràng. |
-| Ghép văn bản lớn có phân cách | `Collectors.joining(...)` | Hỗ trợ tích lũy chuỗi hiệu quả. |
-| Cộng các `Money` bất biến cùng tiền tệ | `reduce(zero, Money::plus)` | Đúng ngữ nghĩa value object. |
-| Kết quả record có nhiều chỉ tiêu riêng | `reduce(identityU, accumulator, combiner)` | Trực tiếp tạo kết quả tổng hợp bất biến. |
-| Thống kê số học chuẩn | `summaryStatistics()`, `summarizingLong(...)` | Thư viện đã cung cấp giải pháp phù hợp. |
-| Tạo `List` hoặc `Map` | `collect(toList())`, `collect(toMap(...))` | Có cơ chế mutable accumulation phù hợp. |
-| Gom theo nhóm khóa | `groupingBy(...)` / `groupingByConcurrent(...)` khi phù hợp | Bản chất là gom nhiều kết quả theo nhóm. |
+| Summing `int`/`long` numbers | `mapToInt(...).sum()`, `mapToLong(...).sum()` | Uses primitive terminals, avoiding boxing. |
+| Joining a few strings to understand combining | `reduce("", String::concat)` | Clear identity and associativity. |
+| Joining large text with a delimiter | `Collectors.joining(...)` | Supports efficient string accumulation. |
+| Adding immutable `Money` of the same currency | `reduce(zero, Money::plus)` | Proper value-object semantics. |
+| Record result with multiple custom metrics | `reduce(identityU, accumulator, combiner)` | Directly produces an immutable aggregated result. |
+| Standard numeric statistics | `summaryStatistics()`, `summarizingLong(...)` | The library already provides suitable solutions. |
+| Creating a `List` or `Map` | `collect(toList())`, `collect(toMap(...))` | Has an appropriate mutable accumulation mechanism. |
+| Grouping by key | `groupingBy(...)` / `groupingByConcurrent(...)` when appropriate | Essentially collects multiple results per group. |
 
-Nếu một `reduce` tạo ra nhiều đối tượng trung gian bất biến và hiệu năng trở thành vấn đề, có thể cân nhắc một collector tùy chỉnh. Tuy nhiên, collector cũng phải bảo đảm các quy tắc identity/associativity tương ứng, và characteristics như `CONCURRENT` chỉ nên khai báo khi accumulator/container thực sự cho phép cập nhật đồng thời theo hợp đồng.
+If a `reduce` creates many intermediate immutable objects and performance becomes an issue, a custom collector can be considered. However, the collector must still uphold the corresponding identity/associativity rules, and characteristics such as `CONCURRENT` should only be declared when the accumulator/container genuinely supports concurrent updates under the contract.
 
-Trong thực hành xử lý song song, **đúng kết quả** luôn cần được chứng minh trước khi đo tốc độ.
+In parallel processing practice, **result correctness** must always be proved before measuring speed.
 
-## 12. Vòng đời Stream, nguồn rỗng và null
+## 12. Stream lifecycle, empty sources, and null
 
-### 12.1. reduce kích hoạt pipeline lazy
+### 12.1. reduce triggers a lazy pipeline
 
 ~~~java
 import java.util.List;
@@ -762,15 +762,15 @@ Stream<Integer> pipeline = List.of(2, 4, 6).stream()
     .filter(n -> n > 2)
     .map(n -> n * 10);
 
-// Đến đây chưa cần xử lý phần tử.
+// Up to here, no elements need to be processed.
 int total = pipeline.reduce(0, Integer::sum); // 100
 ~~~
 
-`reduce` là terminal operation; sau khi gọi, `pipeline` đã được sử dụng và không được thực hiện terminal operation khác trên chính Stream đó. Với nguồn hữu hạn, reduction thường phải duyệt đủ dữ liệu còn lại để tính kết quả; với Stream vô hạn không giới hạn, một phép reduce kiểu tính tổng có thể không bao giờ kết thúc.
+`reduce` is a terminal operation; once called, `pipeline` has been consumed and no other terminal operation may be run on that same Stream. With a finite source, reduction normally must traverse all remaining data to compute the result; on an unbounded infinite Stream, a summing-style `reduce` may never terminate.
 
-### 12.2. Tránh null trong phần tử và kết quả gộp
+### 12.2. Avoid null in elements and combined results
 
-Với `reduce(BinaryOperator)`, một kết quả trung gian `null` không biểu diễn “không có kết quả” đúng nghĩa; nó có thể gây `NullPointerException`. Nếu dữ liệu đầu vào chứa null hoặc logic gộp có thể trả null, hãy xác định chính sách lọc hoặc chuyển đổi trước khi reduce.
+With `reduce(BinaryOperator)`, a `null` intermediate result does not properly represent “no result”; it can cause a `NullPointerException`. If the input data contains nulls or the combining logic could return null, establish a filtering or transformation policy before `reduce`.
 
 ~~~java
 import java.util.Arrays;
@@ -786,11 +786,11 @@ String text = words.stream()
 System.out.println(text); // JavaStream
 ~~~
 
-Không chọn `null` làm identity để “tiết kiệm” việc thiết kế phần tử đơn vị. Identity phải là giá trị hợp lệ, trung hòa đối với phép gộp.
+Do not pick `null` as the identity to “save effort” designing an identity element. Identity must be a valid value that is neutral with respect to the combining operation.
 
-### 12.3. Nguồn tài nguyên vẫn phải được đóng
+### 12.3. Resource-backed sources must still be closed
 
-Với Stream từ file:
+With a Stream from a file:
 
 ~~~java
 import java.io.IOException;
@@ -807,21 +807,21 @@ static long countChars(Path path) throws IOException {
 }
 ~~~
 
-Đây là ví dụ sử dụng `sum()` thay vì `reduce` vì chỉ cần tổng độ dài. Quan trọng là `try-with-resources` quản lý tài nguyên do `Files.lines` nắm giữ. `reduce` hay terminal operation khác không thay thế nghĩa vụ đóng tài nguyên nguồn.
+This example uses `sum()` instead of `reduce` because only total length is needed. Crucially, `try-with-resources` manages the resource held by `Files.lines`. Neither `reduce` nor other terminal operations replace the obligation to close the source resource.
 
-## 13. Kiểm tra tính đúng của một phép reduction
+## 13. Verifying the correctness of a reduction
 
-Trước khi chuyển từ tuần tự sang song song, hãy kiểm tra các tính chất có thể thử bằng dữ liệu nhỏ:
+Before switching from sequential to parallel, verify properties that can be tested on small data:
 
-1. **Identity:** Gộp với identity ở hai phía vẫn ra cùng giá trị.
-2. **Associativity:** Cách đặt nhóm khác nhau vẫn cho cùng kết quả theo mô hình số học/miền dữ liệu đã chọn.
-3. **Compatibility:** Với reduce ba tham số, xử lý một phần tử riêng rồi combine bằng xử lý phần tử đó trực tiếp trên summary hiện có.
-4. **Nguồn rỗng:** Có trả identity hoặc Optional.empty đúng ý nghĩa nghiệp vụ?
-5. **Tính độc lập:** Mapper/accumulator/combiner có tránh sửa nguồn và state mutable chia sẻ?
-6. **Phạm vi giá trị:** Có overflow, làm tròn hoặc giới hạn kiểu số cần kiểm soát?
-7. **Thứ tự:** Phép gộp có nhạy thứ tự không? Nếu có, nguồn và pipeline có encounter order không?
+1. **Identity:** Combining with identity on either side produces the same value.
+2. **Associativity:** Different groupings yield the same result under the chosen arithmetic/data model.
+3. **Compatibility:** For three-parameter `reduce`, processing one element separately and combining equals processing that element directly on an existing summary.
+4. **Empty source:** Does it return `identity` or `Optional.empty` with the right business meaning?
+5. **Independence:** Do mapper/accumulator/combiner avoid mutating the source and shared mutable state?
+6. **Value range:** Are there overflows, rounding, or numeric type limits to control?
+7. **Ordering:** Is the combining operation order-sensitive? If so, do the source and pipeline preserve encounter order?
 
-Ví dụ minh họa ba bất biến cho `String::concat`:
+Example illustrating invariants for `String::concat`:
 
 ~~~java
 public class ReduceLawsCheck {
@@ -832,13 +832,13 @@ public class ReduceLawsCheck {
         String e = "";
 
         if (!e.concat(a).equals(a) || !a.concat(e).equals(a)) {
-            throw new AssertionError("Identity không hợp lệ");
+            throw new AssertionError("Invalid identity");
         }
 
         String left = a.concat(b).concat(c);
         String right = a.concat(b.concat(c));
         if (!left.equals(right)) {
-            throw new AssertionError("Phép gộp không kết hợp");
+            throw new AssertionError("Combining operation is not associative");
         }
 
         System.out.println(left); // Java Stream API
@@ -846,24 +846,24 @@ public class ReduceLawsCheck {
 }
 ~~~
 
-Ví dụ này kiểm tra trường hợp minh họa, không phải chứng minh hình thức cho mọi giá trị đầu vào. Với phép gộp nghiệp vụ, cần kiểm thử nhiều trường hợp biên: rỗng, một phần tử, giá trị trùng, giá trị lớn, nhóm có kích thước lệch, và phép gộp thứ tự khác nhau.
+This example checks an illustrative case, not a formal proof for all input values. For business reductions, test many edge cases: empty, single element, duplicate values, large values, skewed group sizes, and different combining orders.
 
-## 14. Câu hỏi tự kiểm tra
+## 14. Self-check questions
 
-1. **`reduce("", String::concat)` trả gì khi Stream rỗng?** Chuỗi rỗng vì `""` là identity.
-2. **`reduce(String::concat)` trả gì khi Stream rỗng?** `Optional.empty()` vì không có identity.
-3. **Tại sao `reduce(10, Integer::sum)` không phù hợp để tính tổng thông thường?** Vì `10` không phải identity của phép cộng; kết quả bị cộng thêm giá trị đó.
-4. **Nối chuỗi có kết hợp không? Có giao hoán không?** Có tính kết hợp theo thứ tự ký tự; không giao hoán vì `"ab"` khác `"ba"`.
-5. **Vì sao StringBuilder mutable không nên làm identity của `reduce`?** Accumulator sửa đối tượng dùng chung, vi phạm hợp đồng rút gọn và có thể gây race/ghép sai khi chạy song song.
-6. **Khi nguồn là `Stream<OrderLine>` nhưng kết quả là `SalesSummary`, dùng overload nào?** `reduce(identityU, accumulator, combiner)`.
-7. **Combiner của reduce ba tham số dùng để làm gì?** Ghép hai kết quả tích lũy kiểu `U`, nhất là khi xử lý các nhánh song song.
-8. **Tính trung bình bằng cách lấy trung bình của các trung bình nhóm có đúng không?** Không nói chung; cần mang theo tổng và số lượng của từng nhóm.
-9. **Khi xử lý tập điểm rỗng, nên trả min/max bằng một giá trị sentinel như dữ liệu thật không?** Không; nên trả Optional hoặc kiểu kết quả giữ trạng thái không có quan sát.
-10. **Khi chỉ cần nối một danh sách lớn với dấu phẩy, chọn `reduce` hay `Collectors.joining`?** Thường dùng `Collectors.joining`.
-11. **Có thể dùng `unordered()` trước reduce nối chuỗi mà vẫn đòi kết quả theo thứ tự nguồn không?** Không; `unordered` loại bỏ bảo đảm encounter order.
-12. **Tại sao cộng `double` khi parallel có thể chênh lệch so với tuần tự?** Do phép cộng dấu chấm động có sai số làm tròn và không kết hợp tuyệt đối.
-13. **Khi nào cần BigDecimal trong value object?** Khi miền nghiệp vụ yêu cầu giá trị thập phân chính xác, kết hợp với chính sách scale và đơn vị tiền tệ rõ ràng.
-14. **Một Stream đã chạy `reduce` có dùng lại để gọi `count` được không?** Không; cần tạo một Stream mới từ nguồn.
-15. **Nếu kết quả là một `List` có thể thay đổi, có nên dùng reduce với ArrayList identity không?** Không; dùng `collect` với collector phù hợp.
+1. **What does `reduce("", String::concat)` return on an empty Stream?** Empty string because `""` is the identity.
+2. **What does `reduce(String::concat)` return on an empty Stream?** `Optional.empty()` because there is no identity.
+3. **Why is `reduce(10, Integer::sum)` unsuitable for computing a regular sum?** Because `10` is not the identity of addition; the result gets that value added to it.
+4. **Is string concatenation associative? Is it commutative?** Associative in character order; not commutative because `"ab"` differs from `"ba"`.
+5. **Why should a mutable `StringBuilder` not be the identity of `reduce`?** The accumulator mutates a shared object, violating the reduction contract and risking races/bad merges in parallel.
+6. **When the source is `Stream<OrderLine>` and the result is `SalesSummary`, which overload is used?** `reduce(identityU, accumulator, combiner)`.
+7. **What is the combiner of three-parameter `reduce` used for?** Merging two accumulated results of type `U`, especially when processing parallel branches.
+8. **Is computing an average by averaging group averages correct?** Not in general; you must carry both the sum and the count of each group.
+9. **When processing an empty set of scores, should min/max be returned as a sentinel value as if it were real data?** No; return an `Optional` or a result type preserving the no-observations state.
+10. **When you only need to join a large list with commas, choose `reduce` or `Collectors.joining`?** Usually `Collectors.joining`.
+11. **Can you use `unordered()` before a string-concatenating `reduce` and still demand source-order output?** No; `unordered` drops the encounter-order guarantee.
+12. **Why can parallel `double` addition differ from sequential?** Because floating-point addition has rounding error and is not strictly associative.
+13. **When is `BigDecimal` needed in a value object?** When the business domain requires exact decimal values, combined with explicit scale and currency policies.
+14. **Can a Stream that already ran `reduce` be reused to call `count`?** No; a fresh Stream must be created from the source.
+15. **If the result is a mutable `List`, should you use `reduce` with an `ArrayList` identity?** No; use `collect` with an appropriate collector.
 
-**Ghi nhớ:** `reduce` là phép rút gọn **từ nhiều phần tử thành một giá trị**: chuỗi, value object hoặc một summary bất biến. Hãy chọn đúng overload, định nghĩa identity trung hòa, bảo đảm tính kết hợp và compatibility của accumulator/combiner, rồi tính đến hiệu năng. Dùng `collect` khi cần mutable reduction, giữ `Optional` khi nguồn rỗng có ý nghĩa, và kiểm soát giới hạn số học khi tổng hợp dữ liệu lớn hoặc chạy song song.
+**Key takeaway:** `reduce` is a reduction **from multiple elements to a single value**: a string, a value object, or an immutable summary. Choose the right overload, define a neutral identity, ensure associativity and accumulator/combiner compatibility, and then consider performance. Use `collect` when mutable reduction is needed, keep `Optional` when an empty source is meaningful, and control numeric limits when aggregating large data or running in parallel.

@@ -1,45 +1,45 @@
-# Đánh đổi giữa tính dễ đọc và tối ưu theo dữ liệu đo khi xử lý String trong Java
+# Trade-offs Between Readability and Data-Driven Optimization in Java String Processing
 
-## 1. Mục tiêu: mã dễ hiểu, đúng trước; tối ưu khi có bằng chứng
+## 1. Goal: Readable, Correct Code First; Optimize with Evidence
 
-Xử lý `String` hiện diện trong hầu hết ứng dụng Java: ghép thông điệp, tạo đường dẫn, lọc dữ liệu, chuẩn hóa chuỗi, tách ký tự, định dạng số, đọc JSON hoặc tạo nội dung trả về. Nhiều cách viết có cùng kết quả nhưng khác độ rõ ràng, mức cấp phát bộ nhớ, lượng xử lý và khả năng bảo trì.
+`String` processing appears in almost every Java application: building messages, constructing paths, filtering data, normalizing strings, splitting characters, formatting numbers, reading JSON, or generating response bodies. Multiple coding styles can produce the same output while differing in clarity, memory allocation, processing work, and maintainability.
 
-**Nguyên tắc cốt lõi:** ưu tiên cách diễn đạt đúng, dễ đọc và dễ kiểm thử; khi có yêu cầu hiệu năng cụ thể hoặc số đo cho thấy đoạn xử lý chuỗi là nút thắt, mới chọn phương án tối ưu có thể chứng minh là cải thiện. Kết quả đo nên phản ánh đúng dữ liệu, quy mô và điều kiện chạy thực tế.
+**Core principle:** prioritize clear, readable, and testable expressions first; only when there is a specific performance requirement or measurements show the string-processing code is a bottleneck should you choose an optimization that can be proven to improve it. Measurements should reflect realistic data, scale, and runtime conditions.
 
-Điều này không có nghĩa bỏ qua các lỗi thiết kế dễ nhận thấy. Ví dụ, việc nối chuỗi tăng dần bằng `+=` trong một vòng lặp dài có khả năng gây nhiều cấp phát và sao chép lại; dùng một `StringBuilder` xuyên suốt vòng lặp thường là cách viết vừa đúng ý định vừa hợp lý. Nhưng đổi mọi `"Hello " + name` sang một `StringBuilder` nhiều dòng không tự động làm ứng dụng nhanh hơn.
+This does not mean ignoring obvious design flaws. For example, incremental string concatenation with `+=` inside a long loop is likely to cause heavy allocation and repeated copying; using a `StringBuilder` across the loop is both clear in intent and sensible. Yet rewriting every `"Hello " + name` into a multi-line `StringBuilder` does not automatically make an application faster.
 
-Ba câu hỏi trước khi sửa mã:
+Three questions before changing code:
 
-1. **Đúng không?** Hai cách làm có giống nhau về Unicode, `null`, dấu phân cách, locale, thứ tự, lỗi và kết quả không?
-2. **Chậm ở đâu?** Profiler, benchmark hoặc chỉ số production có chỉ ra đoạn chuỗi này góp phần đáng kể vào mục tiêu cần cải thiện không?
-3. **Đáng đổi không?** Mức cải thiện trong workload đại diện có đủ lớn và ổn định để bù thêm mã, bộ nhớ, rủi ro và chi phí bảo trì không?
+1. **Is it correct?** Do both approaches behave identically regarding Unicode, `null`, delimiters, locale, ordering, errors, and output?
+2. **Where is it slow?** Do a profiler, benchmark, or production metrics show that this string code contributes significantly to the target metric?
+3. **Is the trade-off worth it?** Is the improvement on a representative workload large and stable enough to justify extra code, memory, risk, and maintenance cost?
 
-## 2. Bốn tầng tối ưu cần phân biệt
+## 2. Four Optimization Layers to Distinguish
 
-Không phải mọi thay đổi nhanh hơn trong một phép đo vi mô đều cải thiện ứng dụng.
+Not every change that is faster in a micro-measurement improves the application.
 
-| Tầng | Câu hỏi cần trả lời | Bằng chứng phù hợp |
+| Layer | Question to answer | Appropriate evidence |
 |---|---|---|
-| Tính đúng và khả năng bảo trì | Mã có rõ nghĩa, đúng định dạng, dễ kiểm thử và thay đổi không? | Review, unit test, so sánh kết quả với trường hợp biên |
-| Cục bộ: xử lý String | Phép nối, chuyển đổi hoặc regex có tốn CPU/cấp phát quá mức không? | JMH với đầu vào đại diện, profiler CPU và allocation |
-| Luồng xử lý ứng dụng | Đoạn String có thực sự nằm trên critical path không? | Profiling request, số lần gọi, phân tích heap/GC |
-| Trải nghiệm/hệ thống | Thay đổi có cải thiện latency, throughput, tài nguyên hoặc chi phí không? | Load test, p95/p99 latency, throughput, GC và memory thực tế |
+| Correctness and maintainability | Is the code clear, properly formatted, easy to test, and easy to change? | Code review, unit tests, comparing outputs on edge cases |
+| Local: String processing | Do concatenation, conversion, or regex consume excessive CPU/allocations? | JMH with representative inputs, CPU and allocation profilers |
+| Application request flow | Is the String code actually on the critical path? | Request profiling, call counts, heap/GC analysis |
+| User experience / system | Does the change improve latency, throughput, resources, or cost? | Load tests, p95/p99 latency, throughput, real GC and memory |
 
-Ví dụ: thay `String.format` bằng `StringBuilder` trong một đoạn chạy 500 lần/ngày có thể cải thiện phép đo trong JMH mà gần như không ảnh hưởng thời gian phản hồi ứng dụng nếu phần lớn độ trễ là truy vấn dữ liệu hoặc mạng. Ngược lại, thay đổi nhỏ trong một vòng lặp chạy hàng triệu lần trên đường xử lý nóng có thể đáng giá.
+For instance, replacing `String.format` with `StringBuilder` in code that runs 500 times a day might improve a JMH number while having virtually no impact on application response time if most latency comes from database queries or networking. Conversely, a small change in a loop executing millions of times on a hot path can be well worth it.
 
-Trước khi tối ưu, xác định mục tiêu: giảm latency, tăng throughput, giảm byte cấp phát trên một yêu cầu, giảm thời gian GC, hay giảm bộ nhớ lưu giữ. Các mục tiêu này có thể không cùng đi theo một hướng.
+Before optimizing, define the goal: reduce latency, increase throughput, reduce bytes allocated per request, reduce GC time, or reduce retained memory. These goals do not always point in the same direction.
 
-## 3. Một số lựa chọn String thường gặp
+## 3. Common String Choices
 
-### 3.1. Phép nối `+`: ưu tiên khi biểu thức ngắn
+### 3.1. The `+` Operator: Prefer for Short Expressions
 
 ~~~java
-String greeting = "Xin chào, " + name + "!";
+String greeting = "Hello, " + name + "!";
 ~~~
 
-Đây là cách viết rõ ràng cho một vài thành phần cố định. Với Java hiện đại, trình biên dịch và JVM có cơ chế tối ưu nối chuỗi (chẳng hạn `invokedynamic` và `StringConcatFactory` trong triển khai thông thường từ Java 9), nên không chính xác khi mặc định rằng mỗi dấu `+` đồng nghĩa một `StringBuilder` được tạo hoặc một lần cấp phát độc lập.
+This is a clear way to write a few fixed components. In modern Java, the compiler and JVM have string concatenation optimizations (such as `invokedynamic` and `StringConcatFactory` in common Java 9+ implementations), so it is inaccurate to assume every `+` means a separate `StringBuilder` creation or an independent allocation.
 
-Tuy nhiên, mẫu cập nhật dồn vào cùng biến trong một vòng lặp lớn cần chú ý:
+However, the pattern of accumulating into the same variable inside a large loop deserves attention:
 
 ~~~java
 String result = "";
@@ -48,7 +48,7 @@ for (String item : items) {
 }
 ~~~
 
-Vì `String` bất biến, thao tác nối phải tạo kết quả mới về mặt ngữ nghĩa. Qua nhiều vòng lặp, lượng dữ liệu đã nối có thể bị sao chép nhiều lần; tổng chi phí có thể tăng nhanh theo số phần tử. Cách tự nhiên hơn cho kiểu tích lũy này là:
+Because `String` is immutable, concatenation must semantically create a new result. Over many iterations, the already-concatenated data may be copied repeatedly; total cost can grow rapidly with the number of elements. A more natural approach for this accumulation pattern is:
 
 ~~~java
 StringBuilder builder = new StringBuilder();
@@ -58,9 +58,9 @@ for (String item : items) {
 String result = builder.toString();
 ~~~
 
-Đây là lựa chọn thiết kế cho một quá trình xây dựng chuỗi dài; không phải quy tắc thay thế mọi dấu `+` trong mã nguồn.
+This is a design choice for building a long string; it is not a rule to replace every `+` in the codebase.
 
-### 3.2. `String.join`: ý định ghép danh sách rõ nhất
+### 3.2. `String.join`: Clearer Intent for Joining a List
 
 ~~~java
 List<String> tags = List.of("Java", "Spring", "SQL");
@@ -68,9 +68,9 @@ String output = String.join(", ", tags);
 // Java, Spring, SQL
 ~~~
 
-Nếu nhiệm vụ đơn thuần là ghép một dãy với cùng dấu phân cách, `String.join` diễn đạt trực tiếp ý định và giảm lỗi dư dấu phân cách đầu/cuối. Không cần tự cài đặt vòng lặp chỉ vì cho rằng vòng lặp chắc chắn nhanh hơn.
+If the task is simply joining a sequence with the same delimiter, `String.join` expresses intent directly and avoids leading/trailing delimiter bugs. There is no need to write a manual loop just because you assume a loop must be faster.
 
-Khi cần liên tục thêm dữ liệu từng bước, tiền tố/hậu tố hoặc quy tắc rỗng, `StringJoiner` có thể phù hợp:
+When you need to add items incrementally, with a prefix/suffix or empty-case rule, `StringJoiner` can fit well:
 
 ~~~java
 StringJoiner joiner = new StringJoiner(", ", "[", "]");
@@ -78,9 +78,9 @@ joiner.add("Java").add("Spring");
 // [Java, Spring]
 ~~~
 
-Dùng `StringBuilder` nếu cần kiểm soát chi tiết hơn: định dạng xen kẽ, chèn/xóa ký tự hoặc nhiều quy tắc nối khác nhau.
+Use `StringBuilder` if you need finer control: interleaved formatting, inserting/deleting characters, or multiple joining rules.
 
-### 3.3. `StringBuilder`: hợp lý ở đoạn tạo chuỗi có trạng thái
+### 3.3. `StringBuilder`: Sensible for Stateful String Construction
 
 ~~~java
 StringBuilder builder = new StringBuilder();
@@ -93,51 +93,51 @@ for (int i = 0; i < tags.size(); i++) {
 String output = builder.toString();
 ~~~
 
-So với `String.join`, cách này dài hơn và tự gánh trách nhiệm quản lý dấu phân cách. Nó trở nên có giá trị khi yêu cầu đầu ra phức tạp hơn và việc xây dựng chuỗi trong một bộ đệm là tự nhiên.
+Compared to `String.join`, this is longer and takes on manual delimiter management. It becomes valuable when output requirements are more complex and building text inside a buffer is natural.
 
-Một chú ý về trường hợp biên: đừng dùng `builder.length() > 0` làm dấu hiệu chắc chắn “đã thêm ít nhất một phần tử” nếu phần tử đầu có thể là chuỗi rỗng. Dùng chỉ số hoặc biến `first` để bảo toàn số phần tử đã xử lý.
+An edge-case note: do not use `builder.length() > 0` as a guaranteed signal that “at least one element was added” if the first element can be an empty string. Use an index or a `first` flag to accurately track processed elements.
 
-`StringBuilder` là đối tượng mutable, không an toàn khi nhiều luồng tự do sửa cùng instance. Thường tạo nó trong phạm vi một phương thức/tác vụ và không chia sẻ giữa các request.
+`StringBuilder` is a mutable object and is not safe for concurrent modification by multiple threads. Usually create it within the scope of a single method/task and do not share it across requests.
 
-### 3.4. Định dạng và regex: ưu tiên đúng ý nghĩa
+### 3.4. Formatting and Regex: Prioritize Exact Semantics
 
 ~~~java
 String label = String.format(Locale.US, "price=%.2f", 12.5);
 // price=12.50
 ~~~
 
-Thay bằng `"price=" + price` có thể nhanh trong một số trường hợp nhưng **không tương đương**: kết quả có thể thành `price=12.5` và không giữ quy tắc hai chữ số thập phân. Nếu cần locale hoặc làm tròn, phải bảo toàn hành vi đó.
+Replacing this with `"price=" + price` may be faster in some cases, yet it is **not equivalent**: the output could become `price=12.5` and fail to keep the two-decimal-place rule. If locale or rounding is required, that behavior must be preserved.
 
-Với regex, đoạn sau dễ hiểu:
+For regex, the following is easy to understand:
 
 ~~~java
 String normalized = text.replaceAll("\\s+", " ");
 ~~~
 
-Nếu cùng một mẫu regex được dùng lặp đi lặp lại trên đường xử lý nóng, có thể cân nhắc biên dịch một `Pattern` dùng lại:
+If the same regex pattern is used repeatedly on a hot path, consider compiling a reusable `Pattern`:
 
 ~~~java
 private static final Pattern WHITESPACE = Pattern.compile("\\s+");
 
-// Trong phương thức:
+// Inside a method:
 String normalized = WHITESPACE.matcher(text).replaceAll(" ");
 ~~~
 
-`Pattern` được biên dịch trước có thể tránh chi phí biên dịch pattern lặp lại. Nhưng tổng thời gian vẫn phụ thuộc dữ liệu và tần suất sử dụng; kiểm chứng bằng đo đạc. Không thay regex bằng một vòng lặp tự viết nếu vô tình làm thay đổi hành vi đối với tab, xuống dòng, ký tự Unicode hoặc đầu vào đặc biệt.
+A precompiled `Pattern` can avoid repeated pattern compilation cost. However, total time still depends on the data and call frequency; verify with measurements. Do not replace a regex with a hand-written loop if it inadvertently changes behavior on tabs, newlines, Unicode characters, or special inputs.
 
-## 4. “Tương đương” là điều kiện tiên quyết để so hiệu năng
+## 4. “Equivalence” Is a Prerequisite for Performance Comparisons
 
-Muốn so sánh hai cách viết, phải xác định một **hợp đồng kết quả** chung. Ví dụ với danh sách các thành phần:
+To compare two implementations, you must define a shared **output contract**. For example, with a list of components:
 
-- Dữ liệu có thể là chuỗi rỗng không?
-- Có thể chứa `null` không, và khi gặp `null` thì giữ, bỏ qua hay báo lỗi?
-- Có cần dấu phân cách, escape/quote, prefix/suffix không?
-- Thứ tự phần tử có bắt buộc giữ nguyên không?
-- Kết quả phải theo locale nào?
-- Unicode được xử lý theo code unit, code point hay grapheme cluster?
-- Có yêu cầu định dạng chuẩn CSV, JSON, SQL, URL không?
+- Can inputs be empty strings?
+- Can they contain `null`, and if `null` appears, should it be kept, skipped, or throw an error?
+- Are delimiters, escaping/quoting, or prefix/suffix needed?
+- Must element order be preserved?
+- Which locale must the output follow?
+- Is Unicode handled by code unit, code point, or grapheme cluster?
+- Are standard CSV, JSON, SQL, or URL formatting rules required?
 
-Ví dụ, hai cách sau **không tương đương** nếu danh sách có chuỗi rỗng:
+For example, the following two approaches are **not equivalent** when the list contains an empty string:
 
 ~~~java
 List<String> items = List.of("", "B");
@@ -151,10 +151,10 @@ for (String item : items) {
     }
     wrong.append(item);
 }
-// wrong.toString() là "B", không phải "|B"
+// wrong.toString() is "B", not "|B"
 ~~~
 
-Nếu muốn so đo `String.join` với `StringBuilder`, phiên bản builder phải bảo toàn đúng việc phân cách phần tử, kể cả chuỗi rỗng:
+If you want to benchmark `String.join` against `StringBuilder`, the builder version must preserve delimiter placement accurately, including for empty strings:
 
 ~~~java
 StringBuilder correct = new StringBuilder();
@@ -164,86 +164,86 @@ for (int i = 0; i < items.size(); i++) {
     }
     correct.append(items.get(i));
 }
-// correct.toString() là "|B"
+// correct.toString() is "|B"
 ~~~
 
-Tối ưu không được làm thay đổi dữ liệu mà người dùng hoặc hệ thống khác quan sát được. Hãy có unit test cho đầu vào rỗng, một phần tử, nhiều phần tử, Unicode, dữ liệu dài và các quy tắc lỗi trước khi so hiệu năng.
+Optimizations must not alter outputs observed by users or downstream systems. Have unit tests for empty inputs, single elements, multiple elements, Unicode, long data, and error rules before comparing performance.
 
-## 5. Hiểu chi phí thực tế của String
+## 5. Understanding the Real Costs of String
 
-### 5.1. Cấp phát và sao chép
+### 5.1. Allocation and Copying
 
-`String` bất biến giúp giá trị ổn định và có thể chia sẻ an toàn giữa luồng khi bản thân đối tượng được xuất bản đúng cách. Đổi lại, việc xây dựng một kết quả mới có thể cần cấp phát và sao chép dữ liệu.
+`String` immutability keeps values stable and safely shareable across threads when the object itself is properly published. In return, constructing a new result can require allocating and copying data.
 
-Cần phân biệt:
+Distinguish between:
 
-- **Số đối tượng cấp phát**: có thể ảnh hưởng áp lực GC.
-- **Số byte cấp phát**: một ít đối tượng lớn vẫn có thể tốn nhiều bộ nhớ.
-- **Tổng ký tự/byte phải duyệt hoặc sao chép**: ảnh hưởng CPU và băng thông bộ nhớ.
-- **Bộ nhớ giữ lại lâu**: ảnh hưởng heap, GC và cache; khác với cấp phát ngắn hạn.
-- **Chi phí cuối cùng của `toString()`**: xây dựng trong bộ đệm vẫn cần tạo một kết quả `String` ở cuối.
+- **Allocated object count**: can impact GC pressure.
+- **Allocated byte count**: a few large objects can still consume substantial memory.
+- **Total characters/bytes traversed or copied**: affects CPU and memory bandwidth.
+- **Long-lived retained memory**: affects heap, GC, and caches; differs from short-lived allocations.
+- **Final cost of `toString()`**: building in a buffer still needs to create a `String` result at the end.
 
-Đừng suy ra số cấp phát chỉ từ việc đếm số dòng mã. JVM có tối ưu JIT, phân tích escape và khả năng loại bỏ một số cấp phát; mức tối ưu phụ thuộc ngữ cảnh và JDK. Dùng profiler/công cụ đo allocation để biết chuyện gì thật sự diễn ra.
+Do not infer allocation counts merely by counting lines of code. The JVM has JIT optimizations, escape analysis, and the ability to eliminate some allocations; the degree of optimization depends on context and JDK. Use a profiler/allocation measurement tool to see what actually happens.
 
-### 5.2. Chi phí thuật toán thường quan trọng hơn vài ký tự mã
+### 5.2. Algorithmic Cost Often Matters More Than a Few Characters of Code
 
-Nếu mỗi vòng lặp phải ghép cả phần chuỗi đã có, chi phí có thể tăng rất nhanh khi số lượng phần tử tăng. Trong khi đó, một `StringBuilder` được sử dụng xuyên suốt thường duy trì khả năng thêm dữ liệu hiệu quả.
+If every loop iteration has to join the entire existing string, cost can grow very rapidly as element count increases. Meanwhile, a `StringBuilder` used throughout generally maintains efficient appending.
 
-Tuy nhiên, không cần tự suy đoán công thức chi phí chính xác cho mọi phiên bản compiler/JVM. Điều cần nhớ là **đặc điểm tăng trưởng theo kích thước dữ liệu**. Hãy thử nhiều cỡ dữ liệu đại diện thay vì chỉ một chuỗi ngắn.
+However, you do not need to guess exact cost formulas for every compiler/JVM version. What matters is the **growth behavior as data size scales**. Test across multiple representative data sizes rather than a single short string.
 
-### 5.3. `StringBuilder` và capacity
+### 5.3. `StringBuilder` and Capacity
 
-Có thể khởi tạo `StringBuilder` với dung lượng dự kiến:
+You can initialize `StringBuilder` with an expected capacity:
 
 ~~~java
 StringBuilder builder = new StringBuilder(1024);
 ~~~
 
-Điều này có thể giảm số lần mở rộng bộ đệm nếu đã biết gần đúng kích thước đầu ra. Nhưng cấp phát quá lớn cho hàng triệu request nhỏ cũng làm tăng chi phí bộ nhớ. Chỉ pre-size khi đã có ước lượng hợp lý và số đo chứng minh nó hữu ích.
+This can reduce buffer expansions when the approximate output size is known. However, over-allocating for millions of small requests also raises memory cost. Pre-size only when you have a reasonable estimate and measurements show it helps.
 
-`length()` là độ dài nội dung hiện có; `capacity()` là sức chứa bộ đệm và có thể lớn hơn `length()`. Đây không phải hai đại lượng tương đương.
+`length()` is the length of the current content; `capacity()` is the buffer capacity and can be greater than `length()`. These two quantities are not equivalent.
 
-### 5.4. Compact Strings và khác biệt môi trường
+### 5.4. Compact Strings and Environment Differences
 
-Các JDK hiện đại có tối ưu biểu diễn `String` (chẳng hạn Compact Strings), nên số byte chiếm dụng có thể phụ thuộc nội dung ký tự và phiên bản JVM. Không nên giả định mọi `char` của mọi chuỗi tương ứng cố định hai byte heap, cũng không nên suy ra hiệu năng thực chỉ từ một mô hình bộ nhớ đơn giản.
+Modern JDKs optimize `String` representation (such as Compact Strings), so byte footprint can depend on character content and JVM version. You should not assume every `char` of every string takes a fixed two heap bytes, nor infer real performance from a simple memory model alone.
 
-Nếu tối ưu cấp phát là yêu cầu quan trọng, ghi lại JDK, JVM, cấu hình heap, GC, dạng dữ liệu Latin/Unicode và các tham số đo để kết quả có thể tái hiện.
+If allocation optimization is an important requirement, record the JDK, JVM, heap configuration, GC, Latin/Unicode data profile, and measurement parameters so results are reproducible.
 
-## 6. Chọn phép đo theo vấn đề cần giải quyết
+## 6. Choosing Measurements Based on the Problem to Solve
 
-Đo đạc nên bắt đầu từ triệu chứng thực tế:
+Measurement should begin from actual symptoms:
 
-| Triệu chứng | Đo cái gì trước? | Có thể khám phá |
+| Symptom | What to measure first? | What it can reveal |
 |---|---|---|
-| Request chậm | p95/p99 latency, CPU profile | Chi phí xử lý String có nằm trên critical path không |
-| Throughput giảm khi tải tăng | requests/s, CPU utilization, contention | Vòng lặp xử lý, mã hóa/giải mã hay log quá nhiều |
-| GC dày đặc | allocation rate, bytes/op, thời gian GC | Tạo nhiều String tạm, phân tích regex lặp, format lặp |
-| Heap cao | retained heap, heap dump, số lượng đối tượng | Cache String không giới hạn hoặc giữ dữ liệu lâu |
-| Đoạn xử lý cụ thể bị nghi chậm | JMH time/op hoặc throughput/op | So sánh triển khai tương đương ở nhiều kích thước dữ liệu |
+| Slow requests | p95/p99 latency, CPU profile | Whether String processing cost is on the critical path |
+| Throughput drops under load | requests/s, CPU utilization, contention | Processing loops, encoding/decoding, or excessive logging |
+| Frequent GC | allocation rate, bytes/op, GC time | Many temporary Strings, repeated regex parsing, repeated formatting |
+| High heap usage | retained heap, heap dump, object counts | Unbounded String caches or long-retained data |
+| Specific processing block suspected slow | JMH time/op or throughput/op | Comparison of equivalent implementations across multiple data sizes |
 
-Đo cả **baseline** trước sửa và ứng viên sau sửa. Một kết quả đo riêng lẻ sau tối ưu không thể cho biết cải thiện bao nhiêu.
+Measure both the **baseline** before changes and the candidate afterward. An isolated measurement after optimization cannot show how much was improved.
 
-Một cách đặt mục tiêu cụ thể: “Giảm allocation của bước tạo kết quả xuống mức đủ làm giảm GC dưới tải đại diện, không đổi đầu ra”. Mục tiêu nên dựa trên nhu cầu và số đo thực, không đặt con số cải thiện tùy ý.
+A concrete way to state a goal: “Reduce allocations of the result-building step enough to lower GC under representative load, without changing output.” Goals should be grounded in actual needs and measurements, not arbitrary improvement numbers.
 
-## 7. Vì sao benchmark bằng System.nanoTime() dễ sai?
+## 7. Why Benchmarking with System.nanoTime() Easily Misleads
 
-Một cách thử thường thấy:
+A commonly seen attempt:
 
 ~~~java
 long start = System.nanoTime();
-// Một lần gọi mã cần đo
+// A single call to the code being measured
 long elapsed = System.nanoTime() - start;
 ~~~
 
-Đo một lần như vậy không đủ để kết luận API nào nhanh hơn. Kết quả bị ảnh hưởng bởi nhiều yếu tố: khởi động JVM, biên dịch JIT, warm-up, GC, lập lịch hệ điều hành, CPU frequency, cache, input quá nhỏ, noise và thậm chí việc trình biên dịch tối ưu bỏ tính toán không được sử dụng.
+Timing once like this is insufficient to conclude which API is faster. Results are affected by many factors: JVM startup, JIT compilation, warm-up, GC, OS scheduling, CPU frequency, caches, overly small inputs, noise, and even the compiler optimizing away unused computations.
 
-Lặp nhiều lần trong cùng một phương thức cũng chưa chắc giải quyết được lỗi đo: kết quả có thể bị JIT coi là bất biến, benchmark có thể tối ưu khác với production, hoặc một phiên bản đang làm ít việc hơn phiên bản kia.
+Looping many times inside the same method still does not guarantee an accurate measurement: the JIT may treat results as loop-invariant, the benchmark may optimize differently from production, or one version may be doing less work than the other.
 
-Với microbenchmark Java, **JMH (Java Microbenchmark Harness)** là lựa chọn tiêu chuẩn vì cung cấp warm-up, các vòng đo, fork JVM, quản lý trạng thái và cách tiêu thụ kết quả. Nhưng JMH cũng không thay thế profiling và load test toàn hệ thống.
+For Java microbenchmarks, **JMH (Java Microbenchmark Harness)** is the standard choice because it provides warm-up, measurement iterations, JVM forking, state management, and result consumption. Yet JMH also does not replace system-wide profiling and load testing.
 
-## 8. Thiết kế phép thử công bằng với JMH
+## 8. Designing a Fair Benchmark with JMH
 
-Phần này minh họa **mã benchmark JMH**, không phải chương trình Java độc lập chỉ cần `javac` với JDK. Cần cài dependency JMH và cấu hình annotation processor của JMH trong dự án trước khi chạy.
+This section illustrates **JMH benchmark code**, not a standalone Java program compiled solely with `javac` and the JDK. You must install JMH dependencies and configure JMH's annotation processor in the project before running.
 
 ~~~java
 import java.util.List;
@@ -289,31 +289,31 @@ public class JoinBenchmark {
 }
 ~~~
 
-Giải thích thiết kế:
+Design explanation:
 
-1. Hai phiên bản tạo **cùng một chuỗi** cho cùng danh sách đầu vào; không thực hiện thêm việc lọc, format hay tạo dữ liệu ngẫu nhiên ở chỉ một phiên bản.
-2. `@Param` kiểm thử ba quy mô để thấy xu hướng khi lượng dữ liệu tăng; những kích thước thực tế của ứng dụng có thể khác và cần thay thế phù hợp.
-3. `@Setup(Level.Trial)` tạo dữ liệu ngoài đoạn được đo để không trộn chi phí tạo input với chi phí ghép chuỗi.
-4. `@State(Scope.Thread)` cho mỗi luồng benchmark trạng thái riêng, tránh chia sẻ `List` hoặc bộ đệm mutable theo cách vô tình gây nhiễu.
-5. `@Warmup` cho JVM có cơ hội biên dịch/tối ưu trước khi đo; `@Measurement` thu kết quả sau warm-up; `@Fork` đo trên JVM mới để giảm phụ thuộc trạng thái một lần chạy.
-6. Kết quả `String` được trả từ `@Benchmark` để JMH có thể sử dụng đầu ra thay vì để trình biên dịch dễ loại bỏ toàn bộ phép tính.
+1. Both versions produce **the exact same string** for the same input list; neither performs extra filtering, formatting, or random data generation on only one side.
+2. `@Param` tests three scales to reveal trends as data size grows; actual application sizes may differ and should be substituted appropriately.
+3. `@Setup(Level.Trial)` creates data outside the measured section so input creation cost is not mixed with string-joining cost.
+4. `@State(Scope.Thread)` gives each benchmark thread its own state, avoiding accidental interference from sharing a `List` or mutable buffer.
+5. `@Warmup` lets the JVM compile and optimize before measuring; `@Measurement` collects data after warm-up; `@Fork` measures in fresh JVMs to reduce dependence on a single run's state.
+6. The `String` result is returned from `@Benchmark` so JMH consumes the output rather than letting the compiler easily eliminate the computation.
 
-**Không điền sẵn “kết quả winner” cho hai phương thức.** Máy, phiên bản JDK, dữ liệu và thiết lập JMH khác nhau có thể tạo thứ tự và mức chênh lệch khác nhau.
+**Do not pre-declare a “winner” between the two methods.** Different machines, JDK versions, datasets, and JMH setups can yield different rankings and margins.
 
-### Những biến số quan trọng cần lưu lại
+### Important Variables to Record
 
-- Phiên bản JDK/JVM, GC, CPU, hệ điều hành, cấu hình heap.
-- Cỡ và phân bố input: số phần tử, độ dài, ASCII/Unicode, có null/rỗng hay không.
-- Chế độ JMH: average time hoặc throughput, số warm-up/measurement/fork.
-- Đơn vị đo rõ ràng: microsecond/op, ops/s, bytes/op.
-- Phương pháp so sánh: cùng máy, điều kiện tải ổn định, kết quả qua nhiều lần thử; xem độ dao động và sai số chứ không chỉ giá trị trung bình.
-- Kết quả kiểm thử tính đúng của cả hai triển khai trên cùng tập dữ liệu.
+- JDK/JVM version, GC, CPU, OS, heap configuration.
+- Input size and distribution: element count, lengths, ASCII/Unicode, presence of null/empty strings.
+- JMH mode: average time or throughput, warm-up/measurement/fork counts.
+- Clear measurement units: microseconds/op, ops/s, bytes/op.
+- Comparison methodology: same machine, stable load conditions, results across multiple runs; inspect variance and error bounds, not just averages.
+- Correctness test results for both implementations on the same dataset.
 
-Nếu quan tâm memory allocation, dùng profiler JMH phù hợp (ví dụ GC profiler) để xem bytes/op bên cạnh thời gian. Nếu quan tâm latency trong dịch vụ, đo tiếp dưới tải ở tầng request.
+If memory allocation matters, use an appropriate JMH profiler (such as the GC profiler) to observe bytes/op alongside time. If service latency matters, follow up with load measurements at the request level.
 
-## 9. Ví dụ Java 17+ chạy được: giữ kết quả, so hai cách viết
+## 9. Runnable Java 17+ Example: Preserving Output, Comparing Two Approaches
 
-Tạo tệp **`StringTradeoffDemo.java`**:
+Create the file **`StringTradeoffDemo.java`**:
 
 ~~~java
 import java.util.List;
@@ -362,14 +362,14 @@ public class StringTradeoffDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac StringTradeoffDemo.java
 java StringTradeoffDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 join: Java | Spring | SQL
@@ -380,88 +380,88 @@ price=12.50
 normalized: a b c
 ~~~
 
-Ở ví dụ này, `readableJoin()` truyền đạt yêu cầu rõ hơn và dễ thay đổi hơn. `manualBuilder()` được giữ để cho thấy cách xây dựng một triển khai tương đương khi có nhu cầu bổ sung quy tắc hoặc khi benchmark cho thấy lợi ích đáng kể. Việc hai kết quả bằng nhau **chưa chứng minh** một cách nhanh hơn cách còn lại.
+In this example, `readableJoin()` communicates the requirement more clearly and is easier to change. `manualBuilder()` is kept to show how to construct an equivalent implementation if additional rules are needed or if benchmarks demonstrate a meaningful gain. Showing that both outputs are equal **does not prove** one approach is faster than the other.
 
-`String.format` bảo toàn yêu cầu hai chữ số thập phân; `Pattern` lưu regex để tái sử dụng nếu áp dụng cho nhiều chuỗi. Các lựa chọn này mang ý nghĩa khác nhau: độ rõ ràng, tính đúng của định dạng và cơ hội giảm công việc lặp; không thể thay thế đánh giá thực tế bằng suy luận từ độ dài mã.
+`String.format` preserves the two-decimal-place requirement; `Pattern` caches the regex for reuse if applied across many strings. These choices serve different needs: clarity, formatting correctness, and avoiding repeated work; actual evaluation cannot be replaced by guessing from code length.
 
-## 10. Đọc kết quả benchmark đúng cách
+## 10. Reading Benchmark Results Properly
 
-Giả sử một phép đo JMH (chỉ là ví dụ về **cách phân tích**, không phải số liệu thực nghiệm) cho thấy hai bản chênh lệch ít trên workload nhỏ. Trước khi chọn bản có số trung bình thấp hơn, hãy xem:
+Suppose a JMH run (merely an example of **how to analyze**, not empirical data) shows a small difference between two versions on a small workload. Before picking the one with the lower mean, check:
 
-- Chênh lệch có lớn so với độ dao động/sai số không?
-- Chênh lệch có tồn tại qua nhiều lần chạy, nhiều fork và bộ dữ liệu không?
-- Khi input tăng, hiệu năng thay đổi ra sao?
-- Có khác biệt allocation hoặc GC làm thay đổi mục tiêu hay không?
-- Số lần gọi thực tế đủ nhiều để tác động đến request latency hoặc tài nguyên máy chủ không?
-- Phiên bản nhanh hơn có gây thêm lỗi, phức tạp hoặc khó bảo trì không?
+- Is the difference large relative to the variance/error margin?
+- Does the difference hold across multiple runs, forks, and datasets?
+- As input grows, how does performance scale?
+- Are there allocation or GC differences that shift the target metric?
+- Is the actual call frequency high enough to affect request latency or server resources?
+- Does the faster version introduce bugs, complexity, or harder maintenance?
 
-**Hiệu năng cục bộ khác hiệu quả thực tế.** Nếu một đoạn chỉ chiếm 1% thời gian request, ngay cả tối ưu lý tưởng loại bỏ hoàn toàn chi phí đoạn đó cũng chỉ có thể tiết kiệm tối đa khoảng 1% tổng thời gian trong giả định các phần còn lại không đổi (ý tưởng của Amdahl's law). Đừng suy ra rằng cải thiện 2 lần một hàm tự động cải thiện 2 lần toàn ứng dụng.
+**Local speed differs from real-world impact.** If a block accounts for only 1% of request time, even an ideal optimization that completely eliminates that block's cost can save at most about 1% of total time assuming everything else stays constant (the idea behind Amdahl's law). Do not infer that speeding up a function 2x automatically speeds up the whole application 2x.
 
-Với các mục tiêu như giảm độ trễ đầu cuối, quyết định cuối cùng cần dựa trên số đo đầu cuối và phạm vi tác động thực, ngoài microbenchmark.
+For goals such as reducing end-to-end latency, final decisions must rest on end-to-end measurements and real impact scope, beyond microbenchmarks.
 
-## 11. Khi nào nên chấp nhận mã phức tạp hơn?
+## 11. When Should You Accept More Complex Code?
 
-Một tối ưu hóa đáng cân nhắc nếu đồng thời có nhiều điều kiện:
+An optimization is worth considering when several conditions hold simultaneously:
 
-1. Nó nằm ở đoạn xử lý quan trọng theo profiler hoặc chỉ số vận hành.
-2. Nó cải thiện chỉ số được ưu tiên trên input và quy mô đại diện.
-3. Kết quả vẫn đúng theo bộ test hiện có, gồm các trường hợp biên.
-4. Chênh lệch vượt noise đo đạc và được tái hiện.
-5. Chi phí tăng về code complexity, allocation, bảo trì và rủi ro đã được xem xét.
-6. Người đọc sau này có thể hiểu **vì sao** phương án phức tạp được chọn.
+1. It lies on an important processing path according to a profiler or operational metrics.
+2. It improves the prioritized metric on representative inputs and scale.
+3. Outputs remain correct under the existing test suite, including edge cases.
+4. The difference exceeds measurement noise and is reproducible.
+5. The added cost in code complexity, allocation, maintenance, and risk has been weighed.
+6. Future readers can understand **why** the more complex approach was chosen.
 
-Ví dụ comment hợp lý:
+Example of a sensible comment:
 
 ~~~java
 // This formatter is reused within one request because profiling
 // identified repeated pattern compilation on the hot path.
 ~~~
 
-Comment giải thích lý do đo được và điều kiện áp dụng, thay vì phát biểu chung kiểu “fast code”.
+The comment explains the measured reason and conditions for applying it, rather than making a vague claim like “fast code”.
 
-Nếu một benchmark đã cũ hoặc điều kiện JDK thay đổi, tối ưu từng hợp lý có thể cần được đánh giá lại. Mã dễ hiểu hơn là lợi ích thực: giúp sửa lỗi, kiểm thử và mở rộng mà không vô tình đổi hợp đồng dữ liệu.
+If a benchmark becomes outdated or JDK conditions change, an optimization that once made sense may need re-evaluation. More readable code is a real engineering asset: it helps fix bugs, write tests, and extend features without accidentally breaking data contracts.
 
-## 12. Checklist trước và sau một tối ưu String
+## 12. Checklist Before and After a String Optimization
 
-**Trước khi sửa:**
+**Before changing:**
 
-1. Mô tả chính xác hành vi mong muốn và các dữ liệu biên cần giữ nguyên.
-2. Có số đo baseline cho latency/throughput/allocation đúng nhu cầu.
-3. Dùng profiler xác định đoạn thực sự tốn tài nguyên.
-4. Ghi rõ JDK, input và môi trường đo.
-5. Xác định giả thuyết: ví dụ giảm việc biên dịch regex lặp lại hoặc tránh chuỗi trung gian trong vòng lặp.
+1. Describe the exact desired behavior and edge cases that must be preserved.
+2. Collect baseline measurements for latency/throughput/allocation matching the actual goal.
+3. Use a profiler to confirm which section actually consumes resources.
+4. Record the JDK, inputs, and measurement environment.
+5. State a hypothesis: for example, reducing repeated regex compilation or avoiding intermediate strings in a loop.
 
-**Sau khi sửa:**
+**After changing:**
 
-1. Chạy lại unit test và các ca Unicode/locale/null/rỗng phù hợp.
-2. Đo ứng viên và baseline trong điều kiện tương đương.
-3. Kiểm tra độ dao động, allocation/GC và hành vi khi input tăng.
-4. Đo tác động ở tầng ứng dụng hoặc load test nếu mục tiêu là hiệu năng hệ thống.
-5. Chỉ giữ phần phức tạp thêm nếu lợi ích đáng kể, lặp lại được và đáng chi phí bảo trì.
-6. Ghi chú ngắn lý do tối ưu và điều kiện đo để người bảo trì biết khi nào cần xem xét lại.
+1. Re-run unit tests and relevant Unicode/locale/null/empty cases.
+2. Measure the candidate and baseline under equivalent conditions.
+3. Check variance, allocation/GC, and scaling behavior as input grows.
+4. Measure application-level impact or run a load test if system performance is the goal.
+5. Keep the added complexity only if the gain is significant, repeatable, and worth the maintenance cost.
+6. Leave a brief note explaining the optimization reason and measurement conditions so maintainers know when to revisit it.
 
-Có thể mô tả kết luận review theo mẫu: “`String.join` vẫn được giữ vì hai phương án có kết quả tương đương, chênh lệch đo không đáng kể đối với input thực tế, và phiên bản này ngắn/dễ đọc hơn”, hoặc “Dùng bộ đệm chung trong vòng lặp vì profiling cho thấy allocation ở đường xử lý nóng giảm đáng kể và load test xác nhận cải thiện”. Đây là **mẫu diễn đạt quyết định**, không phải kết quả đo đã có sẵn của ứng dụng.
+A review conclusion can be phrased along these lines: “`String.join` is retained because both approaches produce equivalent outputs, the measured difference is negligible for real inputs, and this version is shorter/more readable,” or “Using a shared buffer inside the loop because profiling showed significantly fewer hot-path allocations and load testing confirmed the improvement.” These are **templates for expressing decisions**, not pre-existing measurement results from an application.
 
-## 13. Những ngộ nhận cần tránh
+## 13. Misconceptions to Avoid
 
-**“StringBuilder luôn nhanh hơn dấu +.”** Không có quy luật tổng quát cho mọi biểu thức, compiler/JVM và workload. `+` trong một biểu thức ngắn thường là lựa chọn hợp lý; ghép dồn bằng `+=` trong vòng lặp dài đáng xem xét.
+**“StringBuilder is always faster than +.”** There is no universal rule across all expressions, compilers/JVMs, and workloads. `+` in a short expression is usually sensible; accumulating with `+=` in a long loop warrants review.
 
-**“Đo bằng nanoTime một lần đủ để kết luận.”** Một lần chạy chứa warm-up, jitter và tối ưu JIT chưa ổn định. Sử dụng JMH cho microbenchmark, kèm profiling khi xác định nút thắt.
+**“Measuring once with nanoTime is enough to conclude.”** A single run includes warm-up, jitter, and unstable JIT optimizations. Use JMH for microbenchmarks, paired with profiling to identify bottlenecks.
 
-**“Thay String.format bằng nối chuỗi mà không đổi hành vi.”** Locale, precision, dấu nhóm và số chữ số thập phân có thể khác. Cần chứng minh tính tương đương trước khi so nhanh/chậm.
+**“Replacing String.format with string concatenation does not change behavior.”** Locale, precision, grouping separators, and decimal digits can differ. Prove equivalence before comparing speed.
 
-**“Giảm một cấp phát chắc chắn giảm latency.”** JVM có nhiều tối ưu; chi phí cấp phát, GC và phần việc khác thay đổi theo tải. Phải đo metric thực sự cần cải thiện.
+**“Reducing one allocation guarantees lower latency.”** The JVM has many optimizations; allocation cost, GC, and other work vary under load. Measure the metric you actually want to improve.
 
-**“Đầu vào benchmark càng nhỏ càng đại diện.”** Một chuỗi vài ký tự không phản ánh các xử lý trên dữ liệu hàng nghìn phần tử, Unicode, regex dài hoặc input hỗn hợp.
+**“Smaller benchmark inputs are more representative.”** A string of a few characters does not reflect processing across thousands of elements, Unicode, long regexes, or mixed inputs.
 
-**“Cách nhanh nhất trên máy phát triển chắc chắn tốt nhất ở production.”** Phần cứng, JDK, profile dữ liệu, tải song song và giới hạn tài nguyên có thể khác nhau.
+**“The fastest approach on a developer machine is definitely best in production.”** Hardware, JDK, data profiles, concurrent load, and resource limits can differ.
 
-**“Càng ít dòng mã càng nhanh.”** Độ dài source không phản ánh tổng chi phí thực thi; ngược lại, mã dài hơn cũng không chắc tối ưu hơn. Đọc logic và đo thực tế mới là căn cứ.
+**“Fewer lines of code mean faster execution.”** Source length does not reflect total runtime cost; conversely, longer code is not automatically more optimal either. Reading the logic and measuring in practice are what count.
 
-**“Đã benchmark thì không cần test đúng/sai.”** Hai cách làm có thể đạt số liệu đẹp vì một bản bỏ bớt việc cần làm. Đảm bảo output, exception, Unicode, locale và các điều kiện biên trước.
+**“Once you benchmark, you don't need correctness tests.”** Two approaches can yield great benchmark numbers simply because one skips required work. Ensure output, exceptions, Unicode, locale, and boundary conditions first.
 
-## 14. Kết luận áp dụng
+## 14. Practical Conclusion
 
-Khi xử lý `String` trong Java, hãy chọn **cách đơn giản nhất diễn đạt đúng yêu cầu**: `+` cho một biểu thức ngắn, `String.join` cho danh sách có delimiter, `StringJoiner` khi thêm phần tử từng bước và cần prefix/suffix, `StringBuilder` khi tạo chuỗi có trạng thái hoặc trong vòng lặp, `String.format` khi cần quy tắc định dạng và `Pattern` khi cùng regex phải dùng nhiều lần.
+When handling `String` in Java, choose **the simplest way that accurately expresses the requirement**: `+` for a short expression, `String.join` for a delimited list, `StringJoiner` when adding elements incrementally with prefix/suffix, `StringBuilder` for stateful or loop-based string construction, `String.format` when formatting rules are needed, and `Pattern` when the same regex must be reused many times.
 
-Nếu có nghi ngờ hiệu năng, hãy phát biểu một giả thuyết có thể đo, chuẩn bị đầu vào đại diện, lấy baseline, dùng JMH/profiler đúng phạm vi, kiểm tra lại tính đúng, rồi xác nhận tác động trong ứng dụng. **Tính dễ đọc là một giá trị kỹ thuật; số đo đáng tin mới là cơ sở để đánh đổi nó lấy độ phức tạp tối ưu.**
+If you suspect a performance issue, state a testable hypothesis, prepare representative inputs, collect a baseline, use JMH/profilers within the right scope, re-verify correctness, and confirm application-level impact. **Readability is an engineering value; reliable measurements are the basis for trading it for optimization complexity.**

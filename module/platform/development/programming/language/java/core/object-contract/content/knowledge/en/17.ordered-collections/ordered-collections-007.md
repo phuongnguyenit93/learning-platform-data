@@ -1,51 +1,51 @@
-# Thay đổi trường sắp xếp khi đối tượng đang nằm trong cây `TreeSet` hoặc `TreeMap`
+# Mutating Sort Fields While an Object Resides in a `TreeSet` or `TreeMap`
 
-## 1. Điều gì xảy ra khi trường dùng để sắp xếp bị thay đổi?
+## 1. What happens when a field used for sorting is modified?
 
-`TreeSet<E>` và `TreeMap<K, V>` của Java duy trì dữ liệu trong cấu trúc cây tìm kiếm có cân bằng, được sắp xếp theo **thứ tự tự nhiên** (`Comparable.compareTo`) hoặc một **`Comparator`** được cung cấp. Khi thêm phần tử hoặc khóa, cây dùng kết quả so sánh để xác định vị trí và cân bằng cấu trúc.
+Java's `TreeSet<E>` and `TreeMap<K, V>` maintain data in a balanced search tree structure, sorted by **natural ordering** (`Comparable.compareTo`) or a supplied **`Comparator`**. When adding an element or key, the tree uses the comparison result to determine position and balance the structure.
 
-Nếu bạn **thay đổi một trường tham gia `compareTo`/`Comparator` khi đối tượng vẫn còn trong cây**, thứ tự đúng theo giá trị mới có thể không còn khớp vị trí đã xác định từ trước. Cây **không tự phát hiện thay đổi bên trong đối tượng**, không tự rút nút ra rồi chèn lại, và không tự sắp xếp lại toàn bộ mỗi lần đối tượng đổi trạng thái.
+If you **modify a field participating in `compareTo`/`Comparator` while the object is still in the tree**, the correct order under the new value may no longer match the previously determined position. The tree **does not automatically detect changes inside the object**, does not automatically pull the node out and reinsert it, and does not automatically re-sort everything whenever an object changes state.
 
-Ví dụ, tại lúc chèn một cây có ba công việc:
+For example, at insertion time a tree holds three jobs:
 
 ```text
-Các khóa theo thứ tự: A(10), B(20), C(30)
-Trong đó số trong ngoặc là độ ưu tiên dùng để so sánh.
+Keys in order: A(10), B(20), C(30)
+Where the number in parentheses is the priority used for comparison.
 
-Đổi A.priority: 10 -> 25 khi A vẫn nằm trong cây.
-Giá trị mới cần xếp: B(20), A(25), C(30).
-Nhưng cây vẫn có thể duyệt theo vị trí cũ: A(25), B(20), C(30).
+Change A.priority: 10 -> 25 while A is still in the tree.
+New values should sort as: B(20), A(25), C(30).
+Yet the tree may still traverse in the old position: A(25), B(20), C(30).
 ```
 
-Khi đó, giả định mỗi nhánh trái chứa các khóa nhỏ hơn và nhánh phải chứa các khóa lớn hơn theo bộ so sánh hiện tại đã bị phá vỡ. **Không nên tiếp tục dựa vào kết quả tìm, thêm, xóa, duyệt hoặc truy vấn khoảng** của tập hợp đó như thể cấu trúc vẫn hợp lệ.
+At that point, the assumption that every left subtree contains smaller keys and every right subtree contains larger keys under the current comparator has been broken. **Do not continue relying on find, add, remove, iteration, or range-query results** from that collection as if the structure were still valid.
 
-Đây là vấn đề **đột biến khóa sắp xếp khi đã lưu trong cây** (mutable ordering key), không phụ thuộc vào việc trường đó có được khai báo là `private` hay không. Setter, phản chiếu (reflection), thao tác qua tham chiếu khác, hoặc thay đổi trạng thái bên ngoài mà `Comparator` đọc đều có thể gây tình huống tương tự.
+This is a **mutable ordering key** problem while stored in the tree, independent of whether that field is declared `private`. Setters, reflection, operations through another reference, or changes to external state read by a `Comparator` can all cause the same situation.
 
-## 2. Vì sao `TreeSet`/`TreeMap` không sắp xếp lại tự động?
+## 2. Why don't `TreeSet`/`TreeMap` re-sort automatically?
 
-Trong cấu trúc có thứ tự, việc tìm kiếm dựa trên các so sánh nối tiếp từ một nút tới các nhánh cây. Thao tác như `TreeSet.contains(value)` hoặc `TreeMap.get(key)` không quét tất cả nút để kiểm tra lại mọi trường; chúng dựa vào **quan hệ thứ tự đã dùng để tổ chức cây**.
+In an ordered structure, lookup relies on sequential comparisons from a node down to tree branches. Operations like `TreeSet.contains(value)` or `TreeMap.get(key)` do not scan every node to re-check all fields; they rely on **the ordering relation used to organize the tree**.
 
-Khi một khóa từng nằm ở nhánh dành cho giá trị nhỏ bị sửa thành giá trị lớn, phép tìm với khóa mới có thể đi theo nhánh khác và **không gặp đúng đối tượng đã lưu**. Cũng có thể xuất hiện các hậu quả:
+When a key that used to sit in a branch for smaller values is mutated into a larger value, a lookup with the new key may take a different branch and **fail to encounter the stored object**. Other consequences may also appear:
 
-- `contains()` / `get()` trả kết quả bất ngờ (chẳng hạn báo không tìm thấy dù đối tượng còn trong tập hợp).
-- `remove()` hoặc `TreeMap.remove()` không định vị được phần tử/khóa, vì thuật toán tìm theo giá trị đã thay đổi.
-- Thứ tự duyệt không còn tăng dần theo `compareTo()`/`Comparator` hiện tại.
-- Việc thêm giá trị mới có thể gặp xung đột với khóa cũ, để lại những phần tử mà phép so sánh hiện nay coi là tương đương hoặc khiến tập hợp có hành vi khó dự đoán.
-- `first()`, `last()`, `floor()`, `ceiling()`, `headSet()`, `tailSet()`, `subSet()` và các thao tác khoảng trên `NavigableMap` có thể không còn phản ánh đúng thứ tự kỳ vọng.
+- `contains()` / `get()` returns surprising results (for example, reporting not found even though the object is still in the collection).
+- `remove()` or `TreeMap.remove()` fails to locate the element/key, because the search algorithm follows the changed value.
+- Iteration order is no longer ascending according to the current `compareTo()`/`Comparator`.
+- Adding a new value may collide with the old key, leaving elements that current comparison considers equivalent or causing unpredictable collection behavior.
+- `first()`, `last()`, `floor()`, `ceiling()`, `headSet()`, `tailSet()`, `subSet()`, and range operations on `NavigableMap` may no longer reflect the expected order.
 
-Những triệu chứng cụ thể có thể thay đổi theo cấu trúc cây và đường đi thuật toán. Việc một lần gọi `contains()` tình cờ vẫn trả `true` **không chứng minh việc sửa khóa tại chỗ là an toàn**.
+Specific symptoms can vary depending on tree structure and algorithmic path. The fact that a single `contains()` call happens to return `true` **does not prove in-place key mutation is safe**.
 
-## 3. Điều kiện phải giữ ổn định
+## 3. Conditions that must remain stable
 
-Trong thời gian một đối tượng được dùng làm **phần tử của `TreeSet`** hoặc **khóa của `TreeMap`**, các dữ liệu quyết định kết quả so sánh với phần tử/khóa khác phải ổn định.
+While an object is used as a **`TreeSet` element** or **`TreeMap` key**, the data determining comparison results against other elements/keys must remain stable.
 
-Ví dụ nếu `compareTo()` so theo `priority` rồi `id`, cả `priority` lẫn `id` phải có ngữ nghĩa cố định đối với vị trí trong cây. Nếu `Comparator` so theo `user.getDepartment().getName()`, việc đổi tên phòng ban cũng có thể thay đổi kết quả so sánh **dù trường trực tiếp trên đối tượng `user` không đổi**.
+For example, if `compareTo()` compares by `priority` then `id`, both `priority` and `id` must have fixed semantics relative to tree position. If a `Comparator` compares by `user.getDepartment().getName()`, renaming the department can also change comparison results **even if direct fields on the `user` object did not change**.
 
-Đây là lý do nên ưu tiên **khóa bất biến**: các trường dùng để so sánh là `final`, các thành phần lồng bên trong cũng không thể bị sửa theo cách ảnh hưởng thứ tự. `record` có thể hữu ích cho khóa giá trị bất biến nông; cần lưu ý rằng trường `final` trỏ tới một đối tượng mutable vẫn có thể khiến dữ liệu được comparator đọc thay đổi.
+This is why **immutable keys** should be preferred: fields used for comparison are `final`, and nested components also cannot be mutated in ways that affect ordering. A `record` can be helpful for shallowly immutable value keys; keep in mind that a `final` field pointing to a mutable object can still cause data read by the comparator to change.
 
-## 4. Ví dụ Java 17+ có thể biên dịch và chạy
+## 4. Compilable and runnable Java 17+ example
 
-Chương trình sau cho thấy việc thay đổi trường sắp xếp tại chỗ làm thứ tự duyệt không còn tăng dần, và hai cách tạo lại thứ tự đúng. Lưu dưới tên **`MutableTreeKeyDemo.java`**:
+The following program shows how mutating a sort field in place breaks ascending iteration order, along with two ways to restore proper ordering. Save as **`MutableTreeKeyDemo.java`**:
 
 ```java
 import java.util.Objects;
@@ -111,7 +111,7 @@ public class MutableTreeKeyDemo {
         broken.add(c);
         System.out.println("before mutation: " + broken);
 
-        a.setPriority(25); // Sai: phần tử vẫn nằm trong cây
+        a.setPriority(25); // Wrong: element is still inside the tree
         System.out.println("after mutation: " + broken);
         System.out.println("order still valid: " + isSorted(broken));
 
@@ -127,9 +127,9 @@ public class MutableTreeKeyDemo {
         safe.add(safeA);
         safe.add(new Job("B", 20));
         safe.add(new Job("C", 30));
-        boolean removed = safe.remove(safeA); // Xóa bằng giá trị cũ
+        boolean removed = safe.remove(safeA); // Remove using old value
         safeA.setPriority(25);
-        boolean inserted = safe.add(safeA);   // Chèn bằng giá trị mới
+        boolean inserted = safe.add(safeA);   // Insert using new value
         System.out.println("safe remove: " + removed);
         System.out.println("safe reinsert: " + inserted);
         System.out.println("safe result: " + safe);
@@ -137,7 +137,7 @@ public class MutableTreeKeyDemo {
         Job mapKey = new Job("K", 5);
         TreeMap<Job, String> map = new TreeMap<>();
         map.put(mapKey, "pending");
-        String oldValue = map.remove(mapKey); // Xóa trước khi sửa khóa
+        String oldValue = map.remove(mapKey); // Remove before mutating key
         mapKey.setPriority(7);
         map.put(mapKey, oldValue);
         map.replace(mapKey, "done");
@@ -146,14 +146,14 @@ public class MutableTreeKeyDemo {
 }
 ```
 
-Biên dịch và chạy trong thư mục chứa tệp:
+Compile and run in the directory containing the file:
 
 ```bash
 javac MutableTreeKeyDemo.java
 java MutableTreeKeyDemo
 ```
 
-Kết quả với chương trình này trên các triển khai Java thông dụng tuân theo hợp đồng collection:
+Output of this program on standard Java implementations complying with the collection contract:
 
 ```text
 before mutation: [A(10), B(20), C(30)]
@@ -167,22 +167,22 @@ safe result: [B(20), A(25), C(30)]
 TreeMap value: done
 ```
 
-Ở đây, `Job.compareTo` xét `priority` trước rồi `id` để hai công việc trùng ưu tiên nhưng khác mã vẫn được phân biệt. `equals()` và `hashCode()` được cài đặt phù hợp với hai trường đó; điều này **không làm phép đổi `priority` khi phần tử đang trong cây trở nên an toàn**.
+Here, `Job.compareTo` checks `priority` first and then `id` so that two jobs sharing priority yet having different IDs are still distinguished. `equals()` and `hashCode()` are implemented consistently with those two fields; this **does not make changing `priority` while the element is in the tree safe**.
 
-Chương trình cố ý không dựa vào kết quả `broken.contains(a)` sau khi sửa trường, vì kết quả có thể tùy thuộc cách tổ chức cây. Việc thứ tự duyệt `[A(25), B(20), C(30)]` không tăng dần đã đủ minh họa vi phạm bất biến thứ tự; cây cũ không nên tiếp tục được sử dụng. Ví dụ tạo `rebuilt` bằng cách chèn **từng phần tử** theo so sánh hiện tại, không dựa vào việc sao chép nguyên trạng cây đã sai.
+The program intentionally avoids relying on `broken.contains(a)` after mutating the field, because the result can depend on tree layout. Seeing the traversal order `[A(25), B(20), C(30)]` fail to be ascending is sufficient to demonstrate the ordering invariant violation; the old tree should no longer be used. The example creates `rebuilt` by inserting **element by element** under current comparisons, without relying on copying the broken tree structure as-is.
 
-Trong phần `safe`, việc `remove(safeA)` diễn ra **trước** khi `safeA` thay đổi, nên phép xóa có thể tìm phần tử bằng các dữ liệu sắp xếp cũ. Chèn lại sau khi đổi giá trị giúp cấu trúc cây tổ chức vị trí mới. Nếu phép xóa thất bại, phải xử lý lỗi thay vì tiếp tục sửa và chèn như thể nó đã thành công.
+In the `safe` section, `remove(safeA)` happens **before** `safeA` mutates, so removal can locate the element via the old sort data. Reinserting after changing the value lets the tree organize the new position. If removal fails, handle the error rather than proceeding to mutate and reinsert as if it succeeded.
 
-## 5. Cách sửa an toàn trong ứng dụng
+## 5. Safe fixes in applications
 
-### Cách 1: Dùng đối tượng khóa bất biến, thay bằng đối tượng mới
+### Approach 1: Use immutable key objects, replace with a new object
 
-Nếu muốn thay độ ưu tiên của phần tử, thiết kế một giá trị mới rồi cập nhật tập hợp:
+If you want to change an element's priority, construct a new value and update the set:
 
 ```java
 record JobKey(String id, int priority) { }
 
-// Minh họa trong một phương thức:
+// Illustration inside a method:
 // TreeSet<JobKey> sorted = new TreeSet<>(
 //     Comparator.comparingInt(JobKey::priority).thenComparing(JobKey::id));
 // JobKey oldKey = new JobKey("A", 10);
@@ -191,52 +191,52 @@ record JobKey(String id, int priority) { }
 // sorted.add(new JobKey("A", 25));
 ```
 
-`JobKey` là một `record` và phần chú thích bên dưới mô tả **các dòng đặt trong phương thức**; muốn chạy đầy đủ, khai báo comparator, import `TreeSet`/`Comparator` và đặt mã trong lớp/phương thức thích hợp. Ý chính là không thay đổi trường dùng để xếp thứ tự trên đối tượng đang được lưu. Với `record` chỉ chứa `String` và `int` như trên, cả hai thành phần đều bất biến.
+`JobKey` is a `record` and the comment below describes **lines placed inside a method**; to run in full, declare the comparator, import `TreeSet`/`Comparator`, and place the code in an appropriate class/method. The core idea is never modifying fields used for ordering on an object currently stored. With a `record` holding only `String` and `int` as above, both components are immutable.
 
-### Cách 2: `remove` trước, mutate sau, rồi `add` lại
+### Approach 2: `remove` first, mutate next, then `add` back
 
-Nếu bắt buộc phải dùng đối tượng có thể thay đổi:
+If you are forced to use a mutable object:
 
 ```text
-1. Tìm phần tử/khóa với trạng thái cũ.
-2. Loại bỏ khỏi cây bằng trạng thái cũ.
-3. Chỉ sau khi xóa thành công, thay đổi các trường so sánh.
-4. Thêm trở lại với trạng thái mới.
-5. Kiểm tra kết quả thêm/cập nhật và xử lý xung đột compareTo == 0.
+1. Locate the element/key with its old state.
+2. Remove it from the tree using its old state.
+3. Only after removal succeeds, mutate the comparison fields.
+4. Add it back with its new state.
+5. Check the add/update result and handle any compareTo == 0 conflict.
 ```
 
-Đây là trình tự áp dụng được với `TreeSet`; đối với `TreeMap`, cần lưu lại **giá trị gắn với khóa** trước khi xóa, rồi `put` khóa đã thay đổi cùng giá trị cần thiết. Đừng đánh đồng `TreeMap.remove(k)` trả `null` với việc chắc chắn không có khóa nếu map cho phép giá trị `null`: dùng `containsKey(k)` trước khi xóa hoặc quản lý trạng thái theo nghiệp vụ.
+This is the sequence applicable to `TreeSet`; for `TreeMap`, save **the value associated with the key** before removing, then `put` the modified key with the required value. Do not equate `TreeMap.remove(k)` returning `null` with guaranteeing the key was absent if the map permits `null` values: use `containsKey(k)` before removing or manage state per business logic.
 
-**Quan trọng:** Không sửa khóa **trước** rồi mới `remove`; lúc đó thuật toán xóa cũng có thể không tìm thấy nó. Nếu lỡ sửa rồi, hãy xây dựng một cây mới từ dữ liệu nguồn tin cậy, kiểm tra xung đột theo comparator và thay thế cây cũ có kiểm soát.
+**Important:** Do not mutate the key **first** and then call `remove`; by then the removal algorithm may also fail to find it. If it has already been mutated by mistake, build a new tree from trusted source data, check comparator conflicts, and replace the old tree cleanly.
 
-### Cách 3: Xây lại toàn bộ cây khi cần cập nhật hàng loạt
+### Approach 3: Rebuild the entire tree when batch updates are needed
 
-Khi nhiều khóa cần đổi theo đợt, có thể thu thập các phần tử, hoàn tất cập nhật **bên ngoài tập hợp đang được sử dụng**, rồi chèn từng phần tử vào một `TreeSet`/`TreeMap` mới với comparator ổn định. Điều này bảo đảm việc xác định vị trí dựa trên giá trị mới.
+When many keys must change in bulk, gather the elements, complete updates **outside the collection currently in use**, and then insert each element into a new `TreeSet`/`TreeMap` with a stable comparator. This guarantees positioning is based on the new values.
 
-Ví dụ `new TreeSet<>(someSortedSet)` không nên được xem là một biện pháp sửa lỗi chắc chắn nếu nguồn **đã vi phạm thứ tự**: một số đường triển khai có thể tận dụng tính “đã sắp xếp” của nguồn. Thay vào đó, khởi tạo cây trống và `add`/`put` từng phần tử như ví dụ `rebuilt`.
+For instance, `new TreeSet<>(someSortedSet)` should not be treated as a guaranteed fix if the source **already violates ordering**: some implementation paths may leverage the source's “already sorted” assumption. Instead, construct an empty tree and `add`/`put` each element as in the `rebuilt` example.
 
-Đối với `TreeMap`, khi xây lại phải xác định chính sách nếu **nhiều khóa sau thay đổi cùng so sánh bằng `0`**, vì `put` có thể ghi đè giá trị của khóa tương đương; việc mất một ánh xạ có thể gây lỗi nghiệp vụ.
+For `TreeMap`, when rebuilding you must define a policy if **multiple keys compare as `0` after mutation**, because `put` may overwrite the value of an equivalent key; losing a mapping can cause business bugs.
 
-## 6. Cần phân biệt thay đổi khóa và thay đổi giá trị
+## 6. Distinguish changing the key from changing the value
 
-| Thay đổi | Ảnh hưởng tới thứ tự cây |
+| Change | Impact on tree ordering |
 | --- | --- |
-| Đổi `priority` của phần tử `TreeSet` khi comparator xét `priority` | **Không an toàn**, cây không tự cập nhật vị trí |
-| Đổi trường của khóa `TreeMap` mà `compareTo`/`Comparator` sử dụng | **Không an toàn**, tra cứu có thể sai |
-| Đổi một trường trên phần tử mà comparator **hoàn toàn không đọc** | Không làm hỏng thứ tự vì riêng thay đổi đó, miễn quan hệ so sánh thực sự vẫn ổn định |
-| Gọi `map.put(existingKey, newValue)` hoặc `map.replace(existingKey, newValue)` với khóa ổn định | **An toàn cho thứ tự cây** vì chỉ cập nhật giá trị |
-| Thay đổi nội dung đối tượng làm **value** trong `TreeMap` và comparator chỉ xét khóa | Không tự làm hỏng thứ tự các khóa |
-| Đổi trạng thái bên ngoài mà comparator sử dụng (cấu hình, bảng ưu tiên, thuộc tính lồng nhau) | Có thể **không an toàn** dù đối tượng khóa không thay trực tiếp |
+| Changing `priority` of a `TreeSet` element when the comparator inspects `priority` | **Unsafe**, the tree does not update position automatically |
+| Changing a field of a `TreeMap` key used by `compareTo`/`Comparator` | **Unsafe**, lookups may fail |
+| Changing a field on an element that the comparator **never reads** | Does not break ordering from that change alone, provided the actual comparison relation stays stable |
+| Calling `map.put(existingKey, newValue)` or `map.replace(existingKey, newValue)` with a stable key | **Safe for tree ordering** because only the value is updated |
+| Modifying the contents of an object serving as a **value** in `TreeMap` when the comparator inspects only keys | Does not itself break key ordering |
+| Changing external state used by the comparator (configuration, priority table, nested property) | Can be **unsafe** even if the key object does not change directly |
 
-Lưu ý: một đối tượng có `equals()` và `hashCode()` phụ thuộc vào trường mutable còn có thể gặp vấn đề tương tự trong `HashSet`/`HashMap`, nhưng ở đó nguyên nhân chính là **bucket băm** theo hash cũ. Với cây có thứ tự, nguyên nhân chính là **quan hệ so sánh và vị trí nút**.
+Note: an object whose `equals()` and `hashCode()` depend on mutable fields can also suffer a similar issue in `HashSet`/`HashMap`, though there the primary cause is **hash buckets** under the old hash. For ordered trees, the primary cause is **comparison relations and node positions**.
 
-## 7. `compareTo() == 0` và xung đột khi chèn lại
+## 7. `compareTo() == 0` and conflicts upon reinsertion
 
-`TreeSet` và `TreeMap` dùng `compareTo()`/`Comparator.compare()` để xác định hai khóa **tương đương theo thứ tự**, tức kết quả so sánh bằng `0`. Sau khi đổi một trường, phần tử cũ có thể trở nên tương đương với một phần tử khác đã có trong cây.
+`TreeSet` and `TreeMap` use `compareTo()`/`Comparator.compare()` to identify two keys as **equivalent in order**, meaning a comparison result of `0`. After changing a field, the old element may become equivalent to another element already in the tree.
 
-Ví dụ hai công việc có cùng `priority` nếu comparator **chỉ so sánh `priority`** thì có thể bị coi là một khóa, ngay cả khi `id` khác nhau. `TreeSet.add()` khi đó trả `false`, còn `TreeMap.put()` có thể cập nhật giá trị của khóa đã có.
+For example, two jobs with the same `priority`, if the comparator **compares only `priority`**, may be treated as one key even when `id` differs. `TreeSet.add()` then returns `false`, while `TreeMap.put()` may update the value of the existing key.
 
-Vì vậy, xác định từ trước liệu cùng độ ưu tiên có được phép chứa nhiều công việc không. Nếu có, comparator cần một tiêu chí phụ ổn định, ví dụ:
+Therefore, decide upfront whether multiple jobs are permitted at the same priority level. If so, the comparator needs a stable secondary criterion, for example:
 
 ```java
 Comparator<Job> order = Comparator
@@ -244,26 +244,26 @@ Comparator<Job> order = Comparator
         .thenComparing(job -> job.id);
 ```
 
-Đây là **đoạn đặt trong ngữ cảnh có lớp `Job` và `import java.util.Comparator`**; nếu `Job` là lớp như ví dụ phía trên và mã nằm ngoài lớp lồng, quyền truy cập trường private cần được xử lý phù hợp. Dù có tiêu chí phụ, `priority` vẫn là trường tham gia so sánh và **vẫn không được sửa khi phần tử đang nằm trong cây**.
+This is a **snippet placed in a context having the `Job` class and `import java.util.Comparator`**; if `Job` is a class like the example above and the code sits outside the nested class, private field access must be handled appropriately. Even with a secondary criterion, `priority` remains a field participating in comparison and **still must not be mutated while the element resides in the tree**.
 
-Bên cạnh đó, hợp đồng `Comparable`/`Comparator` yêu cầu tính phản đối xứng về dấu, tính bắc cầu và sự nhất quán khi hai giá trị so sánh bằng `0` với mọi giá trị thứ ba. Bộ so sánh sai hợp đồng có thể làm cây không ổn định **ngay cả khi trường không thay đổi**.
+Additionally, the `Comparable`/`Comparator` contract requires sign antisymmetry, transitivity, and consistency when two values compare as `0` against any third value. A contract-breaking comparator can destabilize the tree **even when fields do not change**.
 
-## 8. Checklist kỹ thuật khi cập nhật một khóa có thứ tự
+## 8. Technical checklist when updating an ordered key
 
-- Xác nhận dữ liệu nào thực sự tham gia `compareTo`/`Comparator`, kể cả thuộc tính lồng nhau hay trạng thái bên ngoài.
-- Ưu tiên tạo một **khóa bất biến mới** và thay thế bằng thao tác xóa/chèn.
-- Nếu cần dùng cùng đối tượng mutable, luôn kiểm tra `remove` thành công **trước** khi thay đổi trường so sánh.
-- Với `TreeMap`, giữ nguyên giá trị cần thiết khi xóa rồi chèn khóa đã cập nhật; phân biệt key absence với null value.
-- Kiểm tra xem khóa mới có bị `compareTo == 0` với khóa khác hay không và xử lý đúng chính sách nghiệp vụ.
-- Khi cây đã hỏng vì thay đổi tại chỗ, xây lại từ dữ liệu chuẩn bằng cách **chèn lại từng khóa**; đừng dựa vào truy vấn cây cũ để chứng minh tính đúng.
-- Trong chương trình đa luồng, đồng bộ hóa/điều phối thao tác cập nhật và truy cập phù hợp; `TreeSet`/`TreeMap` thường không tự đồng bộ các thay đổi song song.
+- Confirm which data actually participates in `compareTo`/`Comparator`, including nested properties or external state.
+- Prefer creating a **new immutable key** and replacing via remove/insert operations.
+- If the same mutable object must be used, always verify `remove` succeeded **before** modifying comparison fields.
+- For `TreeMap`, preserve the needed value when removing and reinserting the updated key; distinguish key absence from a null value.
+- Check whether the new key evaluates to `compareTo == 0` against another key and handle according to business policy.
+- When a tree is already corrupted by in-place mutation, rebuild from canonical data by **reinserting each key**; do not rely on querying the corrupted tree to prove correctness.
+- In multithreaded programs, synchronize/coordinate updates and reads appropriately; `TreeSet`/`TreeMap` generally do not automatically synchronize concurrent modifications.
 
-## 9. Câu hỏi tự kiểm tra
+## 9. Self-check questions
 
-1. Đã chèn `Task(priority=10)` vào `TreeSet`, sau đó đổi `priority` thành `50` bằng setter. Cây có tự chuyển nút sang vị trí đúng không? **Không**; cần xóa trước rồi chèn lại hoặc xây tập hợp mới.
-2. Đã đổi trường khóa rồi mới gọi `remove(key)`. Có bảo đảm xóa được không? **Không**; đường tìm kiếm có thể không còn đi đến nút đã lưu.
-3. Thay đổi `value` trong `TreeMap` có làm hỏng thứ tự khóa không? **Không**, nếu bộ so sánh chỉ phụ thuộc khóa và khóa vẫn ổn định.
-4. Nếu comparator chỉ xét `priority`, sau khi sửa hai công việc có cùng ưu tiên rồi chèn lại thì sao? **Có thể trùng khóa theo `compare == 0`**; cần xử lý hoặc thêm tiêu chí phụ.
-5. Sao chép trực tiếp từ một `SortedSet` đã sai thứ tự có luôn sửa được không? **Không**; nên tạo tập hợp trống và chèn từng phần tử với comparator hiện tại.
+1. Inserted `Task(priority=10)` into a `TreeSet`, then changed `priority` to `50` via a setter. Does the tree automatically move the node to the right position? **No**; you must remove first and reinsert, or build a new set.
+2. Mutated the key field first and then called `remove(key)`. Is removal guaranteed to work? **No**; the search path may no longer reach the stored node.
+3. Does modifying a `value` in `TreeMap` break key ordering? **No**, if the comparator depends only on keys and keys remain stable.
+4. If the comparator checks only `priority`, what happens after modifying two jobs to have the same priority and reinserting? **A key collision under `compare == 0` can occur**; it must be handled or a secondary criterion added.
+5. Does copying directly from a `SortedSet` whose order is already broken always fix it? **No**; create an empty set and insert each element under the current comparator.
 
-**Ghi nhớ:** `TreeSet`/`TreeMap` xây cấu trúc dựa trên kết quả so sánh **tại thời điểm thao tác với khóa**. Thay đổi dữ liệu quyết định thứ tự khi đối tượng còn nằm trong cây làm mất bất biến của cây. Hãy dùng khóa bất biến, hoặc **remove → thay đổi → add/put** theo đúng thứ tự; nếu cấu trúc đã không hợp lệ, xây lại từ dữ liệu đáng tin cậy.
+**Takeaway:** `TreeSet`/`TreeMap` build their structure from comparison results **at the time of key operations**. Mutating data that determines ordering while the object remains in the tree breaks tree invariants. Use immutable keys, or follow **remove → mutate → add/put** in strict order; if the structure is already invalid, rebuild from trusted data.

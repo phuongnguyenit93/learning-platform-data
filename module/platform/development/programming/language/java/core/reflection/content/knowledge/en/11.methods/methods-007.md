@@ -1,19 +1,19 @@
-# Liên kết động khi `Method` của lớp cha được gọi trên lớp con
+# Dynamic dispatch when a superclass `Method` is invoked on a subclass
 
-Một tình huống rất dễ hiểu sai trong Java Reflection: ta tìm thấy `Method` bằng cách nhìn vào **lớp cha**, nhưng lại truyền **đối tượng lớp con** vào `Method.invoke()`. Nếu lớp con ghi đè phương thức instance đó, **Java vẫn thực thi bản ghi đè của lớp con**.
+A very easily misunderstood scenario in Java Reflection: you look up a `Method` by inspecting the **superclass**, yet pass a **subclass object** into `Method.invoke()`. If the subclass overrides that instance method, **Java still executes the subclass's override**.
 
 ```java
 Method method = Parent.class.getMethod("speak");
 Object result = method.invoke(new Child());
 ```
 
-Giả sử `Child extends Parent` và ghi đè `speak()`, `result` là kết quả của `Child.speak()`. Đối tượng `Method` vẫn phản ánh khai báo được tra cứu từ `Parent`; việc chọn phần triển khai để thực thi diễn ra **lúc gọi**, dựa trên kiểu runtime của receiver. Đây là *dynamic method dispatch* (liên kết động), không phải cơ chế riêng biệt do Reflection phát minh.
+Assuming `Child extends Parent` and overrides `speak()`, `result` is the result of `Child.speak()`. The `Method` object still reflects the declaration looked up from `Parent`; choosing which implementation to execute happens **at invocation time**, based on the runtime type of the receiver. This is *dynamic method dispatch*, not a special mechanism invented by Reflection.
 
-Bài học thuộc nhóm **Method** trong Java Core Reflection; trọng tâm là phân biệt ba thông tin: **chữ ký phương thức được tra cứu**, **lớp khai báo trên đối tượng `Method`**, và **bản triển khai thực sự được gọi**.
+This lesson belongs to the **Method** group in Java Core Reflection; the focus is distinguishing three pieces of information: **the looked-up method signature**, **the declaring class on the `Method` object**, and **the implementation actually invoked**.
 
-## 1. Nhắc lại: override và kiểu runtime
+## 1. Recap: overriding and runtime type
 
-Trong Java, một lời gọi đến phương thức instance có thể ghi đè được sẽ được chọn theo **kiểu thực tế của đối tượng**:
+In Java, a call to an overridable instance method is selected according to the **actual type of the object**:
 
 ```java
 class Parent {
@@ -33,26 +33,26 @@ Parent object = new Child();
 System.out.println(object.speak()); // Child
 ```
 
-Biến `object` có **kiểu khai báo** là `Parent` nhưng đang tham chiếu đến đối tượng có **kiểu runtime** là `Child`. Compiler kiểm tra rằng lời gọi `speak()` hợp lệ trên `Parent`, còn JVM chọn implementation ghi đè phù hợp với receiver thực tế. Nếu lớp con không override, bản triển khai kế thừa tương ứng sẽ chạy.
+The variable `object` has **declared type** `Parent` yet references an object with **runtime type** `Child`. The compiler checks that calling `speak()` is valid on `Parent`, while the JVM chooses the override implementation matching the actual receiver. If the subclass does not override it, the corresponding inherited implementation runs.
 
-Override có quy tắc Java riêng: phương thức của lớp con phải tương thích về tên, chữ ký và return type; không được giảm mức truy cập của phương thức ghi đè; không được ghi đè phương thức `final`, `static` hoặc `private`. Với `static` có **method hiding**, không có override.
+Overriding follows Java's rules: the subclass method must be compatible in name, signature, and return type; must not reduce the access level of the overridden method; and cannot override `final`, `static`, or `private` methods. With `static`, there is **method hiding**, not overriding.
 
-Khi chuyển lời gọi sang Reflection, bản chất này vẫn giữ nguyên đối với phương thức instance có thể override.
+When moving the call to Reflection, this essence remains unchanged for overridable instance methods.
 
-## 2. `Method` đại diện cho khai báo; `invoke()` nhận receiver runtime
+## 2. `Method` represents the declaration; `invoke()` takes a runtime receiver
 
-`java.lang.reflect.Method` cung cấp metadata như:
+`java.lang.reflect.Method` provides metadata such as:
 
-| API | Cho biết điều gì? | Điều cần tránh suy diễn |
+| API | What does it tell? | What to avoid inferring |
 | --- | --- | --- |
-| `method.getDeclaringClass()` | Lớp/interface chứa khai báo mà `Method` đại diện | Không nhất thiết là lớp có body sẽ được chạy khi receiver là lớp con |
-| `method.getName()` | Tên khai báo | Không xác định riêng overload nếu thiếu tham số |
-| `method.getParameterTypes()` | Các loại tham số theo chữ ký đã được phản ánh | Không được tự thay bằng loại runtime của từng đối số |
-| `method.getReturnType()` | Return type trong khai báo tương ứng | Không phải cơ chế dò lại phương thức theo giá trị trả về runtime |
-| `method.getModifiers()` | Các modifier của khai báo | Không xác nhận trước một override nào sẽ được chọn |
-| `method.invoke(receiver, args...)` | Yêu cầu gọi phương thức trên receiver và đối số đã truyền | Với instance method ghi đè được, implementation được chọn động |
+| `method.getDeclaringClass()` | Class/interface containing the declaration that `Method` represents | Not necessarily the class whose body will execute when the receiver is a subclass |
+| `method.getName()` | Declared name | Does not uniquely identify overloads if parameters are missing |
+| `method.getParameterTypes()` | Parameter types per the reflected signature | Cannot be substituted by the runtime types of individual arguments |
+| `method.getReturnType()` | Return type in the corresponding declaration | Not a mechanism to re-lookup a method by runtime return value |
+| `method.getModifiers()` | Modifiers of the declaration | Does not confirm in advance which override will be chosen |
+| `method.invoke(receiver, args...)` | Requests invoking the method on the receiver with passed arguments | For an overridable instance method, the implementation is chosen dynamically |
 
-Đặc biệt:
+Specifically:
 
 ```java
 Method fromParent = Parent.class.getDeclaredMethod("speak");
@@ -60,55 +60,55 @@ System.out.println(fromParent.getDeclaringClass() == Parent.class); // true
 
 Parent childAsParent = new Child();
 Object result = fromParent.invoke(childAsParent);
-// Nếu Child ghi đè speak(), result nhận kết quả của Child.speak()
+// If Child overrides speak(), result receives the output of Child.speak()
 ```
 
-`getDeclaringClass()` **không biến thành `Child.class` sau khi `invoke()`**. Lớp sở hữu khai báo của `Method` và lớp sở hữu phần triển khai được chọn khi gọi là hai góc nhìn khác nhau.
+`getDeclaringClass()` **does not turn into `Child.class` after `invoke()`**. The class owning the `Method`'s declaration and the class owning the implementation selected at invocation are two different perspectives.
 
-Đối với method instance, receiver truyền vào `invoke` phải là instance của lớp khai báo hoặc một subtype hợp lệ. Vì vậy `Method` lấy từ `Parent` có thể gọi trên `new Child()`; một đối tượng không liên quan sẽ không được chấp nhận.
+For an instance method, the receiver passed to `invoke` must be an instance of the declaring class or a valid subtype. Therefore a `Method` obtained from `Parent` can be invoked on `new Child()`; an unrelated object will be rejected.
 
-## 3. Ba giai đoạn cần phân biệt
+## 3. Three phases to distinguish
 
-**Giai đoạn 1 — Lookup.** Ta chọn phương thức để phản ánh theo lớp, tên và danh sách kiểu tham số:
+**Phase 1 — Lookup.** We select a method to reflect by class, name, and parameter type list:
 
 ```java
 Method method = Parent.class.getDeclaredMethod("speak", String.class);
 ```
 
-`getDeclaredMethod` chỉ tìm các method **khai báo trực tiếp** trong `Parent` với chữ ký yêu cầu. `getMethod` tìm các phương thức `public` trong phạm vi API hỗ trợ, gồm cả các phương thức inherited. Việc chọn `Parent.class` lúc lookup không có nghĩa ta khóa receiver của mọi lời gọi tương lai vào lớp cha.
+`getDeclaredMethod` only searches for methods **declared directly** in `Parent` with the requested signature. `getMethod` searches for `public` methods within the API's supported scope, including inherited ones. Choosing `Parent.class` at lookup does not lock the receiver of all future calls to the superclass.
 
-**Giai đoạn 2 — Access/arguments.** `Method.invoke` xác định receiver, kiểm tra quyền truy cập theo quy tắc reflection/module và kiểm tra/chuyển đổi đối số. Phương thức có thể được tìm thấy mà lời gọi vẫn thất bại do access checks hoặc receiver không hợp lệ.
+**Phase 2 — Access/arguments.** `Method.invoke` validates the receiver, enforces access rights under reflection/module rules, and checks/converts arguments. A method can be found yet the call still fail due to access checks or an invalid receiver.
 
-**Giai đoạn 3 — Dispatch.** Với instance method có thể override, JVM chọn bản triển khai phù hợp với class runtime của receiver. Nếu `Child` override, `Child` chạy; nếu một `GrandChild extends Child` override tiếp, bản của `GrandChild` có thể chạy.
+**Phase 3 — Dispatch.** For an overridable instance method, the JVM chooses the implementation matching the runtime class of the receiver. If `Child` overrides it, `Child` runs; if a `GrandChild extends Child` overrides it further, `GrandChild`'s version can run.
 
-Quy trình khái quát:
+General flow:
 
 ```text
 Parent.class.getMethod("speak")
                 |
                 v
-      Method (khai báo Parent)
+      Method (Parent declaration)
                 |
                 v
     invoke(receiver = new Child())
                 |
                 v
-        Kiểu runtime: Child
+        Runtime type: Child
                 |
                 v
-    Child có override speak()?
+    Does Child override speak()?
            /           \
-         Có           Không
+         Yes            No
           |              |
           v              v
-     Child.speak()   Phương thức kế thừa
+     Child.speak()   Inherited method
 ```
 
-Đó là lý do **không thể suy ra chính xác phần thân sẽ thực thi chỉ từ `getDeclaringClass()`** đối với phương thức ảo được override.
+That is why **you cannot deduce the exact body that will execute solely from `getDeclaringClass()`** for an overridden virtual method.
 
-## 4. Ví dụ Java 17+ hoàn chỉnh, chạy độc lập
+## 4. Complete, standalone Java 17+ example
 
-Lưu chương trình vào `DynamicDispatchDemo.java`:
+Save the program to `DynamicDispatchDemo.java`:
 
 ```java
 import java.lang.reflect.Method;
@@ -138,17 +138,17 @@ public class DynamicDispatchDemo {
             return "Child:" + name;
         }
 
-        // Overload: khác kiểu tham số, không ghi đè speak(String).
+        // Overload: different parameter type, does not override speak(String).
         public String speak(Object name) {
             return "Child-overload:" + name;
         }
 
-        // Hiding static method của Parent.
+        // Hiding Parent's static method.
         public static String kind() {
             return "Child-static";
         }
 
-        // Không override Parent.secret() vì Parent.secret() là private.
+        // Does not override Parent.secret() because Parent.secret() is private.
         public String secret() {
             return "Child-public";
         }
@@ -189,8 +189,8 @@ public class DynamicDispatchDemo {
         System.out.println("Parent final: "
                 + Parent.class.getDeclaredMethod("stable").invoke(receiver));
 
-        // Method đã lookup với chữ ký speak(String), không chọn
-        // sang overload speak(Object) ở Child.
+        // Method was looked up with signature speak(String), does not switch
+        // to overload speak(Object) on Child.
         System.out.println("Parent chosen overload: "
                 + fromParent.invoke(receiver, new Object[] {"Java"}));
 
@@ -204,14 +204,14 @@ public class DynamicDispatchDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac DynamicDispatchDemo.java
 java DynamicDispatchDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 Method owner: Parent
@@ -227,34 +227,34 @@ Parent chosen overload: Child:Java
 Unrelated receiver: IllegalArgumentException
 ```
 
-**Giải thích theo từng nhóm kết quả:**
+**Explanation by result group:**
 
-1. `Method owner: Parent` vì `fromParent` được tạo từ khai báo `Parent.speak(String)`. Điều này **không đổi** khi receiver là `Child`.
-2. `Parent instance: Parent:Java` và `Child instance: Child:Java` sử dụng **cùng một `Method`**. Chỉ receiver khác nhau, nên đối với method override được, phần triển khai được chọn động.
-3. `Child method owner: Child` là kết quả của **một lookup khác**, lần này dùng `Child.class.getMethod("speak", String.class)`. API trả về khai báo override của `Child`; không phải từ `Method` cha tự biến đổi.
-4. `Parent static: Parent-static` vì `static` được *hide* chứ không override. Method lấy từ `Parent` giữ hành vi static của `Parent`.
-5. `Parent private: Parent-private` vì method `private` của `Parent` không được override. `Child.secret()` là một phương thức khác và in ra `Child-public`. Mã ví dụ sử dụng `setAccessible(true)` trong môi trường cùng ứng dụng; việc mở quyền private xuyên named modules có thể bị JPMS chặn.
-6. `Parent final: Parent-final` vì `final` không cho phép lớp con override.
-7. `Parent chosen overload: Child:Java`: lookup đã chọn chữ ký `speak(String)` và lời gọi dispatch tới override tương ứng; dù `Child` có thêm `speak(Object)`, JVM không tự chuyển sang overload đó.
-8. Receiver `new Object()` không phải instance của `Parent` nên `invoke` ném `IllegalArgumentException` trước khi có thể gọi method đích.
+1. `Method owner: Parent` because `fromParent` was created from `Parent.speak(String)`'s declaration. This **does not change** when the receiver is `Child`.
+2. `Parent instance: Parent:Java` and `Child instance: Child:Java` use **the same `Method`**. Only the receiver differs, so for an overridable method, the implementation is chosen dynamically.
+3. `Child method owner: Child` is the result of **a different lookup**, this time using `Child.class.getMethod("speak", String.class)`. The API returns `Child`'s override declaration; it does not come from the parent `Method` mutating itself.
+4. `Parent static: Parent-static` because `static` is *hidden* rather than overridden. The `Method` obtained from `Parent` retains `Parent`'s static behavior.
+5. `Parent private: Parent-private` because `Parent`'s `private` method is not overridden. `Child.secret()` is a different method and prints `Child-public`. The example code uses `setAccessible(true)` within the same application environment; opening private access across named modules can be blocked by JPMS.
+6. `Parent final: Parent-final` because `final` prevents subclasses from overriding.
+7. `Parent chosen overload: Child:Java`: lookup selected the `speak(String)` signature and the call dispatches to the corresponding override; even though `Child` adds `speak(Object)`, the JVM does not automatically switch to that overload.
+8. Receiver `new Object()` is not an instance of `Parent`, so `invoke` throws `IllegalArgumentException` before the target method can be called.
 
-Đầu ra trên phản ánh Java 17+ và không phụ thuộc vào thứ tự duyệt mảng reflection, vì tất cả lookup đều nêu tên và chữ ký cụ thể.
+The output above reflects Java 17+ and does not depend on reflection array traversal order, because all lookups specify explicit names and signatures.
 
-## 5. Vì sao `getDeclaringClass()` khác implementation lúc chạy?
+## 5. Why does `getDeclaringClass()` differ from the runtime implementation?
 
-Với đoạn:
+With the snippet:
 
 ```java
 Method m = Parent.class.getMethod("speak", String.class);
 Object value = m.invoke(new Child(), "A");
 ```
 
-Có hai câu hỏi khác nhau:
+There are two separate questions:
 
-- `m.getDeclaringClass() == Parent.class`? **Đúng** trong ví dụ này: đối tượng `m` đại diện khai báo của `Parent`.
-- Body nào được thực thi với receiver `Child`? **`Child.speak(String)`**, vì đây là phương thức instance override được và `Child` đã override.
+- Is `m.getDeclaringClass() == Parent.class`? **Yes** in this example: object `m` represents `Parent`'s declaration.
+- Which body executes for receiver `Child`? **`Child.speak(String)`**, because it is an overridable instance method and `Child` overrides it.
 
-Điều này cũng áp dụng cho lớp con nhiều cấp:
+This also applies to multi-level subclasses:
 
 ```java
 class GrandChild extends Child {
@@ -265,23 +265,23 @@ class GrandChild extends Child {
 }
 ```
 
-Đây là đoạn **minh họa bổ sung** để khai báo cùng phạm vi với `Parent` và `Child` trong ví dụ. Khi `fromParent.invoke(new GrandChild(), "Java")`, kết quả dự kiến là `GrandChild:Java`. Method của cha là **điểm vào đã tra cứu**, không phải lời yêu cầu «bắt buộc chạy body của cha».
+This is an **additional illustrative snippet** to be declared in the same scope as `Parent` and `Child` in the example. When `fromParent.invoke(new GrandChild(), "Java")` runs, the expected output is `GrandChild:Java`. The parent's `Method` is the **looked-up entry point**, not a command to "force running the parent's body".
 
-Đối với thư viện/framework, điểm này quan trọng: một proxy subclass hoặc một subclass do framework tạo ra có thể override một method. Khi gọi method của superclass bằng Reflection, code override trên proxy/subclass vẫn có thể tham gia thực thi.
+For libraries/frameworks, this point matters: a proxy subclass or a framework-generated subclass can override a method. When calling a superclass method via Reflection, the override code on the proxy/subclass can still participate in execution.
 
-## 6. Khi nào không có dynamic dispatch kiểu override?
+## 6. When is there no override-style dynamic dispatch?
 
-Các phương thức Java không phải lúc nào cũng là lời gọi ảo có thể override. Cần phân biệt:
+Java methods are not always overridable virtual calls. Distinguish:
 
-| Loại method | Child có thể override cùng method? | Khi dùng `Method` lấy từ `Parent` và receiver là `Child` |
+| Method kind | Can Child override the same method? | When using a `Method` obtained from `Parent` with a `Child` receiver |
 | --- | --- | --- |
-| Instance `public`/`protected`/package-private có thể override hợp lệ | Có, nếu Java access và quy tắc kế thừa cho phép | Thực thi bản override gần nhất phù hợp ở lớp runtime |
-| `static` | Không; có thể **hide** method static | Gọi method static được khai báo ở `Parent`; receiver không quyết định dispatch |
-| `private` | Không; phương thức không được kế thừa như method override | Gọi đúng body private của `Parent` nếu reflection access được phép |
-| `final` instance | Không | Gọi body từ khai báo của `Parent` vì không có override hợp lệ |
-| Constructor | Không thuộc `Method`, không có override | Dùng `Constructor.newInstance`, không có virtual dispatch như instance method |
+| Validly overridable `public`/`protected`/package-private instance | Yes, if Java access and inheritance rules allow | Executes the closest matching override on the runtime class |
+| `static` | No; can **hide** the static method | Calls the static method declared on `Parent`; receiver does not govern dispatch |
+| `private` | No; method is not inherited as an overridable method | Calls `Parent`'s private body directly if reflection access is permitted |
+| `final` instance | No | Calls the body from `Parent`'s declaration because no valid override exists |
+| Constructor | Not a `Method`, cannot be overridden | Uses `Constructor.newInstance`, no virtual dispatch like instance methods |
 
-### `static` là hiding, không phải overriding
+### `static` is hiding, not overriding
 
 ```java
 class Base {
@@ -291,75 +291,75 @@ class Derived extends Base {
     static String label() { return "Derived"; }
 }
 
-// Method lấy từ Base -> vẫn gọi Base.label().
+// Method obtained from Base -> still calls Base.label().
 Method m = Base.class.getDeclaredMethod("label");
 System.out.println(m.invoke(null)); // Base
 ```
 
-Đây là **đoạn minh họa cần import `java.lang.reflect.Method`**. Với method `static`, nên truyền `null` vào đối số receiver của `Method.invoke` vì target object không được sử dụng.
+This is an **illustrative snippet requiring `import java.lang.reflect.Method`**. For `static` methods, pass `null` as the receiver argument of `Method.invoke` because the target object is not used.
 
-### `private` không override
+### `private` does not override
 
-Nếu cả `Parent` và `Child` đều có method tên `secret()`, nhưng method ở `Parent` là `private`, thì hai method **không có quan hệ override**. Reflection lấy `Method` từ `Parent` có thể gọi body private của `Parent` sau khi được phép truy cập. Không suy ra việc «tên giống nhau» tạo liên kết động.
+If both `Parent` and `Child` have a method named `secret()`, yet the method in `Parent` is `private`, then the two methods **have no overriding relationship**. Reflection obtaining the `Method` from `Parent` can call `Parent`'s private body once access is granted. Do not infer that "having the same name" creates dynamic dispatch.
 
-### `final` giới hạn override
+### `final` restricts overriding
 
-Phương thức instance `final` vẫn là instance method, nhưng subclass không thể khai báo override. Vì không có override hợp lệ ở subclass, ví dụ `Parent.finalMethod` trên receiver `Child` vẫn thực thi implementation đó. Tính `final` ở đây ngăn sự thay thế body bởi subclass.
+A `final` instance method is still an instance method, yet subclasses cannot declare an override. Because there is no valid override in the subclass, e.g. `Parent.finalMethod` on a `Child` receiver still executes that implementation. Here `final` prevents replacement of the body by subclasses.
 
-## 7. Override khác overload: Reflection không tự chọn overload tốt nhất
+## 7. Overriding vs. overloading: Reflection does not pick the best overload
 
-**Overriding**: Lớp con cung cấp implementation thay thế cho một phương thức instance được kế thừa theo quy tắc Java, ví dụ `speak(String)` ở `Parent` và `Child`.
+**Overriding**: A subclass provides a replacement implementation for an inherited instance method under Java rules, e.g. `speak(String)` in `Parent` and `Child`.
 
-**Overloading**: Nhiều phương thức có cùng tên nhưng khác danh sách tham số, ví dụ `speak(String)` và `speak(Object)`.
+**Overloading**: Multiple methods share the same name with different parameter lists, e.g. `speak(String)` and `speak(Object)`.
 
-`getMethod("speak", String.class)` và `getMethod("speak", Object.class)` có thể trả về **hai đối tượng `Method` khác nhau**, đại diện hai chữ ký. Khi đã chọn `Method` cho `speak(String)`, `invoke(receiver, value)` **không thực hiện thuật toán overload resolution của compiler Java từ đầu** theo giá trị runtime. Nó chỉ kiểm tra/chuyển đối số cho chữ ký đã chọn rồi dispatch override tương ứng nếu có.
+`getMethod("speak", String.class)` and `getMethod("speak", Object.class)` can return **two distinct `Method` objects**, representing two signatures. Once the `Method` for `speak(String)` is selected, `invoke(receiver, value)` **does not re-run the Java compiler's overload resolution algorithm from scratch** based on the runtime value. It only checks/converts the argument for the selected signature and then dispatches the corresponding override if one exists.
 
-Ví dụ khi `Child` khai báo thêm `speak(Object)`, gọi `Parent.speak(String)` bằng reflection trên receiver `Child` vẫn tới `Child.speak(String)` chứ không tới `Child.speak(Object)`.
+For example, when `Child` additionally declares `speak(Object)`, calling `Parent.speak(String)` via reflection on a `Child` receiver still reaches `Child.speak(String)` rather than `Child.speak(Object)`.
 
-Nếu viết framework router theo tên method, cần quyết định chữ ký cụ thể: `getParameterTypes()`, số lượng tham số, boxing/unboxing, widening, varargs và policy chọn overload. **Dynamic dispatch không giải quyết thay bạn bài toán chọn overload.**
+If writing a method-name router framework, you must determine the exact signature: `getParameterTypes()`, parameter count, boxing/unboxing, widening, varargs, and an overload-selection policy. **Dynamic dispatch does not solve overload selection for you.**
 
-## 8. Lookup trên lớp cha hoặc lớp con có gì khác?
+## 8. What is the difference between looking up on the superclass vs. the subclass?
 
-Các API thường dùng:
+Common APIs:
 
-| Cách lấy `Method` | Hành vi tìm kiếm | Mức độ phù hợp |
+| How `Method` is obtained | Search behavior | Suitability |
 | --- | --- | --- |
-| `Parent.class.getDeclaredMethod("m", types...)` | Chỉ method khai báo trực tiếp trong `Parent`, kể cả non-public | Cần chính xác khai báo của cha |
-| `Parent.class.getMethod("m", types...)` | Method `public` theo quy tắc tra cứu `getMethod` | Cần contract công khai ở cha |
-| `Child.class.getDeclaredMethod("m", types...)` | Chỉ method khai báo trực tiếp trong `Child` | Cần biết subclass có khai báo method với chữ ký đó không |
-| `Child.class.getMethod("m", types...)` | Method `public` có thể tìm thấy trên `Child`, gồm inherited | Cần thao tác qua API công khai của Child |
+| `Parent.class.getDeclaredMethod("m", types...)` | Only methods declared directly in `Parent`, including non-public | Need the parent's exact declaration |
+| `Parent.class.getMethod("m", types...)` | `public` methods per `getMethod` lookup rules | Need the public contract on the parent |
+| `Child.class.getDeclaredMethod("m", types...)` | Only methods declared directly in `Child` | Need to know whether the subclass declares a method with that signature |
+| `Child.class.getMethod("m", types...)` | `public` methods findable on `Child`, including inherited ones | Need to work through Child's public API |
 
-Ví dụ `Child.class.getDeclaredMethod("stable")` sẽ thất bại nếu `stable()` chỉ được `Parent` khai báo, dù `Child` **kế thừa và gọi được** method `stable()`. Trong khi `Child.class.getMethod("stable")` có thể thành công, trả method public được kế thừa có `getDeclaringClass() == Parent.class`.
+For example, `Child.class.getDeclaredMethod("stable")` will fail if `stable()` is only declared by `Parent`, even though `Child` **inherits and can call** `stable()`. Meanwhile `Child.class.getMethod("stable")` can succeed, returning the inherited public method with `getDeclaringClass() == Parent.class`.
 
-Với override `Child.speak(String)`, `Child.class.getMethod("speak", String.class)` tìm thấy khai báo của `Child`; trong khi `Parent.class.getMethod("speak", String.class)` cho method của `Parent`. Nhưng cả hai có thể gọi cùng implementation của `Child` khi receiver là đối tượng `Child` và chữ ký tương ứng được override.
+For override `Child.speak(String)`, `Child.class.getMethod("speak", String.class)` finds `Child`'s declaration; whereas `Parent.class.getMethod("speak", String.class)` gives `Parent`'s method. Yet both can execute the same `Child` implementation when the receiver is a `Child` instance and that signature is overridden.
 
-**Chọn lookup dựa theo ý định metadata**, không dùng việc lookup trên `Parent` làm «mẹo» để né override.
+**Choose lookup based on metadata intent**, do not use lookup on `Parent` as a "trick" to bypass overriding.
 
-## 9. Điều kiện nhận receiver và những exception quan trọng
+## 9. Receiver requirements and important exceptions
 
-`Method.invoke(Object receiver, Object... arguments)` phân biệt method instance và static:
+`Method.invoke(Object receiver, Object... arguments)` distinguishes instance and static methods:
 
-- **Instance method:** receiver phải khác `null` và phải tương thích với class/interface khai báo method. `new Child()` hợp lệ khi `Child extends Parent`; `new Object()` không hợp lệ với method khai báo trong `Parent`.
-- **Static method:** receiver bị bỏ qua; truyền `null` giúp mã rõ ràng.
-- **Tham số:** số lượng và kiểu đối số phải tương thích với chữ ký được `Method` đại diện. Reflection có thể áp dụng unboxing và widening primitive thích hợp, nhưng không tự chọn overload khác.
-- **Quyền truy cập:** trước khi gọi, reflection vẫn tuân thủ Java access checks và giới hạn module nếu chưa suppress được checks. Method tồn tại chưa đồng nghĩa caller được phép invoke.
+- **Instance method:** receiver must be non-`null` and compatible with the class/interface declaring the method. `new Child()` is valid when `Child extends Parent`; `new Object()` is invalid for a method declared in `Parent`.
+- **Static method:** receiver is ignored; passing `null` keeps code clear.
+- **Parameters:** argument count and types must be compatible with the signature represented by `Method`. Reflection can apply appropriate unboxing and primitive widening, but does not automatically choose another overload.
+- **Access rights:** before invoking, reflection still obeys Java access checks and module restrictions unless checks have been suppressed. Finding a method does not mean the caller is allowed to invoke it.
 
-| Exception | Ngữ cảnh điển hình | Ý nghĩa |
+| Exception | Typical context | Meaning |
 | --- | --- | --- |
-| `NoSuchMethodException` | `getDeclaredMethod`/`getMethod` | Tên hoặc danh sách kiểu tham số không khớp phạm vi tìm kiếm |
-| `IllegalAccessException` | `Method.invoke` | Không được truy cập method theo access checks hiện tại |
-| `IllegalArgumentException` | `Method.invoke` | Receiver không phù hợp, sai số/kiểu đối số |
-| `NullPointerException` | `Method.invoke` trên instance method với receiver `null` | Không có đối tượng để gọi instance method |
-| `InvocationTargetException` | `Method.invoke` khi method đích ném exception | Phần thân method đã ném lỗi; xem `getCause()` |
-| `InaccessibleObjectException` | `setAccessible(true)` | Không thể suppress access checks, thường do package của named module chưa được mở |
+| `NoSuchMethodException` | `getDeclaredMethod`/`getMethod` | Name or parameter type list does not match the search scope |
+| `IllegalAccessException` | `Method.invoke` | Cannot access the method under current access checks |
+| `IllegalArgumentException` | `Method.invoke` | Incompatible receiver, wrong argument count/types |
+| `NullPointerException` | `Method.invoke` on an instance method with `null` receiver | No object available to invoke the instance method |
+| `InvocationTargetException` | `Method.invoke` when the target method throws an exception | The method body threw an error; inspect `getCause()` |
+| `InaccessibleObjectException` | `setAccessible(true)` | Cannot suppress access checks, usually because a named module's package is not open |
 
-Quan trọng: `InvocationTargetException` không có nghĩa thuật toán dispatch thất bại. Nó thường nói rằng **method đích đã được chọn và chạy**, sau đó tự ném exception.
+Important: `InvocationTargetException` does not mean the dispatch algorithm failed. It typically tells you that **the target method was selected and ran**, and then threw an exception itself.
 
-`Method.invoke` không thể được dùng như một cơ chế đặc biệt để «đi xuyên» module encapsulation. Ví dụ `setAccessible(true)` có thể bị JPMS từ chối dù một `Method` đã được tìm thấy qua `getDeclaredMethod`.
+`Method.invoke` cannot be used as a special mechanism to "pierce through" module encapsulation. For example, `setAccessible(true)` can be rejected by JPMS even though a `Method` was found via `getDeclaredMethod`.
 
-## 10. Interface method, abstract method và default method
+## 10. Interface methods, abstract methods, and default methods
 
-Virtual dispatch không giới hạn ở class cha cụ thể. Giả sử một interface khai báo `String name()`, các implementation khác nhau thực thi theo receiver:
+Virtual dispatch is not limited to concrete superclasses. Suppose an interface declares `String name()`, and different implementations execute based on the receiver:
 
 ```java
 interface Named {
@@ -379,15 +379,15 @@ System.out.println(method.invoke(new First()));  // First
 System.out.println(method.invoke(new Second())); // Second
 ```
 
-Đây là **đoạn minh họa cần import `java.lang.reflect.Method`**. Trong hai lời gọi, `Method.getDeclaringClass()` vẫn là `Named.class`, còn implementation được chọn theo class của receiver.
+This is an **illustrative snippet requiring `import java.lang.reflect.Method`**. Across both calls, `Method.getDeclaringClass()` remains `Named.class`, while the implementation is chosen according to the receiver's class.
 
-Tương tự, `Method` có thể đại diện một phương thức `abstract` của abstract superclass hoặc interface và được invoke trên instance của subclass concrete triển khai nó. Nếu interface có **default method**, lớp triển khai có thể kế thừa default implementation hoặc override nó; `Method.invoke` vẫn tuân theo cơ chế dispatch thích hợp.
+Similarly, `Method` can represent an `abstract` method of an abstract superclass or interface and be invoked on an instance of a concrete subclass implementing it. If an interface has a **default method**, an implementing class may inherit the default implementation or override it; `Method.invoke` still follows the appropriate dispatch mechanism.
 
-Không nên lẫn chuyện này với lời gọi `super.m()` được ràng buộc đặc biệt ở mã Java. Một `Method` phản ánh method của superclass và dùng `invoke(child)` **không tương đương** lệnh `super.m()` của lớp con. Để chủ động gọi một implementation bị override ở superclass phải xem các cơ chế method handles/special invocation và quyền truy cập liên quan; `Method.invoke` thông thường không có tham số «bỏ qua override».
+Do not confuse this with a `super.m()` call specially bound in Java code. A `Method` reflecting a superclass method and called via `invoke(child)` **is not equivalent** to a `super.m()` call inside the subclass. To deliberately invoke an overridden superclass implementation, look into method handles/special invocation and their associated access rights; regular `Method.invoke` has no "bypass override" option.
 
-## 11. Bridge method, generic và proxy: tình huống thực tế
+## 11. Bridge methods, generics, and proxies: real-world scenarios
 
-Với generic, compiler đôi khi sinh **bridge method** để duy trì tính đa hình sau type erasure. Ví dụ về ý tưởng:
+With generics, the compiler sometimes generates a **bridge method** to maintain polymorphism after type erasure. Conceptual example:
 
 ```java
 class Box<T> {
@@ -402,66 +402,66 @@ class TextBox extends Box<String> {
 }
 ```
 
-Vì type erasure, chữ ký erased trên `Box<T>` sử dụng `Object`. Compiler có thể sinh bridge ở `TextBox` để chuyển lời gọi `normalize(Object)` tới implementation `normalize(String)` và bảo toàn override. Một framework phản chiếu các method từ `getDeclaredMethods()` của `TextBox` có thể thấy cả method source và method bridge/synthetic; kiểm tra `method.isBridge()` và `method.isSynthetic()` trước khi quyết định chọn method nào.
+Due to type erasure, the erased signature on `Box<T>` uses `Object`. The compiler can generate a bridge in `TextBox` to forward `normalize(Object)` calls to the `normalize(String)` implementation and preserve overriding. A framework reflecting methods from `TextBox`'s `getDeclaredMethods()` can see both the source method and the bridge/synthetic method; check `method.isBridge()` and `method.isSynthetic()` before deciding which method to pick.
 
-Với **proxy subclass** do ORM, mocking framework hoặc AOP tạo ra, lớp runtime có thể override public/protected method để thêm interceptors. Khi gọi `Method` lấy từ superclass với receiver là proxy subclass, dispatch vẫn có thể tới override trên proxy. Đó là hành vi JVM phù hợp với dynamic dispatch, không phải `Method.invoke` luôn ưu tiên body của class được lookup.
+With **proxy subclasses** generated by ORM, mocking frameworks, or AOP, the runtime class can override public/protected methods to add interceptors. When invoking a `Method` obtained from a superclass with a proxy subclass receiver, dispatch can still reach the override on the proxy. That is JVM behavior consistent with dynamic dispatch, not `Method.invoke` always preferring the looked-up class's body.
 
-Tuy nhiên, proxy dùng **interface-based delegation** khác với subclass proxy; không thể suy ra mọi loại proxy đều là subclass của target class. Xác định hierarchy/runtime class thật trước khi kết luận.
+However, proxies using **interface-based delegation** differ from subclass proxies; you cannot assume every kind of proxy is a subclass of the target class. Verify the actual hierarchy/runtime class before drawing conclusions.
 
-## 12. Các hiểu nhầm thường gặp
+## 12. Common misconceptions
 
-**Hiểu nhầm 1 — «Lấy `Method` từ `Parent.class` thì luôn chạy code của `Parent`».** Sai với overridable instance method. `invoke(new Child())` vẫn gọi override của `Child` nếu có.
+**Misconception 1 — "Getting `Method` from `Parent.class` always runs `Parent`'s code".** False for overridable instance methods. `invoke(new Child())` still calls `Child`'s override if present.
 
-**Hiểu nhầm 2 — «`getDeclaringClass()` cho biết implementation đã chạy».** Không nhất thiết. Nó chỉ báo lớp/interface chứa khai báo mà đối tượng `Method` đang phản ánh. Với receiver polymorphic, phải xem runtime class và quan hệ override.
+**Misconception 2 — "`getDeclaringClass()` tells which implementation ran".** Not necessarily. It only reports the class/interface containing the declaration that the `Method` object reflects. With a polymorphic receiver, you must inspect the runtime class and overriding relationships.
 
-**Hiểu nhầm 3 — «Cứ trùng tên là override».** Sai. `static` tạo hiding, `private` không được override, chữ ký tham số khác là overload; method `final` không được override.
+**Misconception 3 — "Same name always means override".** False. `static` creates hiding, `private` is not overridden, differing parameter signatures are overloads; `final` methods cannot be overridden.
 
-**Hiểu nhầm 4 — «Reflection sẽ chọn overload tốt nhất theo class runtime của đối số».** Sai. Chữ ký được chốt ở bước `getMethod(name, parameterTypes)` hoặc `getDeclaredMethod(...)`. `invoke` thực hiện chuyển đổi đối số cho method đã chọn và dispatch override nếu cần.
+**Misconception 4 — "Reflection will choose the best overload by the runtime class of arguments".** False. The signature is fixed at the `getMethod(name, parameterTypes)` or `getDeclaredMethod(...)` step. `invoke` converts arguments for the already-selected method and dispatches overrides if applicable.
 
-**Hiểu nhầm 5 — «`setAccessible(true)` sẽ ép chạy method của cha».** Sai. `setAccessible` chỉ yêu cầu suppress Java language access checks khi được phép; nó không tắt virtual dispatch và không thay thế lời gọi bằng `super.m()`.
+**Misconception 5 — "`setAccessible(true)` forces the parent's method to run".** False. `setAccessible` only requests suppressing Java language access checks when permitted; it does not disable virtual dispatch and does not replace the call with `super.m()`.
 
-**Hiểu nhầm 6 — «Method lấy từ superclass luôn gọi được với bất kỳ Object nào».** Sai. Receiver của instance method phải thuộc lớp khai báo hoặc subtype thích hợp, nếu không `invoke` ném `IllegalArgumentException`.
+**Misconception 6 — "A Method obtained from a superclass can always be called with any Object".** False. The receiver of an instance method must belong to the declaring class or an appropriate subtype; otherwise `invoke` throws `IllegalArgumentException`.
 
-**Hiểu nhầm 7 — «Override thực thi sai là do Reflection».** Cần xem code override, proxy/interceptor, exception do target ném và quan hệ inheritance. Reflection tuân theo cơ chế dispatch Java bình thường đối với overridable instance methods.
+**Misconception 7 — "Wrong override execution is Reflection's fault".** Inspect the override code, proxies/interceptors, exceptions thrown by the target, and inheritance relationships. Reflection follows normal Java dispatch rules for overridable instance methods.
 
-## 13. Checklist khi xây dựng framework sử dụng `Method`
+## 13. Checklist when building a framework using `Method`
 
-Khi một thư viện lưu `Method` của interface/superclass và gọi trên đối tượng runtime:
+When a library stores a `Method` of an interface/superclass and invokes it on runtime objects:
 
-1. **Chốt contract:** chọn đúng method và chữ ký trong `getMethod`/`getDeclaredMethod`; đừng tự giả định overload.
-2. **Kiểm tra receiver:** nhận `receiver.getClass()` để biết runtime type, đồng thời kiểm tra receiver tương thích với lớp khai báo. Receiver `null` chỉ phù hợp với static method.
-3. **Kiểm tra modifier:** `Modifier.isStatic(method.getModifiers())`, `Modifier.isPrivate(...)` hoặc `Modifier.isFinal(...)` để biết có khả năng override không.
-4. **Dự kiến dynamic dispatch:** với overridable instance method, override của receiver, subclass/proxy có thể chạy ngay cả khi `Method` đến từ superclass/interface.
-5. **Xử lý access/module:** không coi metadata lookup là quyền gọi; chỉ `setAccessible`/`trySetAccessible` khi có nhu cầu và hiểu JPMS.
-6. **Xử lý lỗi đúng tầng:** phân biệt lỗi lookup, receiver/argument, access, và exception do method đích ném (`InvocationTargetException.getCause()`).
-7. **Xử lý compiler-generated methods:** nếu đang xây dựng bộ quét method và gặp generics/bridge methods, dùng `isBridge()`, `isSynthetic()` và luật chọn method có chủ đích.
+1. **Lock down the contract:** choose the right method and signature in `getMethod`/`getDeclaredMethod`; do not assume overloads.
+2. **Validate the receiver:** check `receiver.getClass()` for the runtime type, while verifying receiver compatibility with the declaring class. A `null` receiver is only appropriate for static methods.
+3. **Check modifiers:** `Modifier.isStatic(method.getModifiers())`, `Modifier.isPrivate(...)`, or `Modifier.isFinal(...)` to know whether overriding is possible.
+4. **Anticipate dynamic dispatch:** for overridable instance methods, overrides on the receiver, subclass, or proxy can execute even when `Method` comes from a superclass/interface.
+5. **Handle access/modules:** do not treat metadata lookup as permission to call; only call `setAccessible`/`trySetAccessible` when needed and with JPMS awareness.
+6. **Handle errors at the right layer:** separate lookup, receiver/argument, access, and target-thrown exception errors (`InvocationTargetException.getCause()`).
+7. **Handle compiler-generated methods:** if building a method scanner and encountering generics/bridge methods, use `isBridge()`, `isSynthetic()`, and deliberate method-selection rules.
 
-### Tự kiểm tra
+### Self-check
 
-**Câu 1.** `Parent.class.getMethod("speak", String.class)` trả về method có `getDeclaringClass() == Parent.class`. Với `new Child()` ghi đè `speak(String)`, implementation nào chạy?  
-**Đáp án:** `Child.speak(String)`, vì dynamic dispatch dựa trên receiver runtime.
+**Question 1.** `Parent.class.getMethod("speak", String.class)` returns a method with `getDeclaringClass() == Parent.class`. With `new Child()` overriding `speak(String)`, which implementation runs?  
+**Answer:** `Child.speak(String)`, because dynamic dispatch relies on the runtime receiver.
 
-**Câu 2.** Nếu `Parent.speak(String)` là `static`, `Child` khai báo method `static` cùng chữ ký, `Method` lấy từ `Parent` gọi method nào?  
-**Đáp án:** `Parent.speak(String)`; static hiding không phải overriding.
+**Question 2.** If `Parent.speak(String)` is `static` and `Child` declares a `static` method with the same signature, which method does the `Method` obtained from `Parent` call?  
+**Answer:** `Parent.speak(String)`; static hiding is not overriding.
 
-**Câu 3.** Tại sao `Child.class.getDeclaredMethod("stable")` có thể ném `NoSuchMethodException` dù `Child` gọi được `stable()`?  
-**Đáp án:** Vì `getDeclaredMethod` chỉ tìm khai báo trực tiếp; method `stable()` được khai báo ở `Parent` và kế thừa.
+**Question 3.** Why can `Child.class.getDeclaredMethod("stable")` throw `NoSuchMethodException` even though `Child` can call `stable()`?  
+**Answer:** Because `getDeclaredMethod` only searches direct declarations; `stable()` is declared in `Parent` and inherited.
 
-**Câu 4.** Có thể dùng `fromParent.setAccessible(true)` để ép `fromParent.invoke(new Child())` chạy body `Parent.speak(String)` không?  
-**Đáp án:** Không. Accessibility và virtual dispatch là hai cơ chế khác nhau.
+**Question 4.** Can `fromParent.setAccessible(true)` force `fromParent.invoke(new Child())` to run the body of `Parent.speak(String)`?  
+**Answer:** No. Accessibility and virtual dispatch are two separate mechanisms.
 
-## Kết luận
+## Conclusion
 
-Trong Java Reflection, **lớp dùng để tra cứu `Method` quyết định khai báo được chọn**, còn **receiver thực tế quyết định bản triển khai của overridable instance method tại thời điểm gọi**. Bởi vậy:
+In Java Reflection, **the class used to look up `Method` determines the selected declaration**, while **the actual receiver determines the implementation of an overridable instance method at invocation time**. Hence:
 
 ```text
-Method lấy từ Parent
+Method obtained from Parent
        +
-receiver runtime Child
+runtime receiver Child
        +
-Child override hợp lệ
+valid Child override
        =
-chạy Child implementation
+runs Child implementation
 ```
 
-Chỉ khi hiểu rõ ranh giới giữa **lookup → access/argument check → dynamic dispatch**, ta mới diễn giải đúng `Method.invoke()`, đặc biệt trong inheritance, interface, generic bridge và subclass proxy.
+Only by understanding the boundary between **lookup → access/argument check → dynamic dispatch** can you interpret `Method.invoke()` accurately, especially with inheritance, interfaces, generic bridges, and subclass proxies.

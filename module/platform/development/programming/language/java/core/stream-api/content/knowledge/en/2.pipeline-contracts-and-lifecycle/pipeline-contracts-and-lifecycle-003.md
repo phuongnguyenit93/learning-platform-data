@@ -1,48 +1,48 @@
-# Phân biệt phép toán không trạng thái và có trạng thái
+# Distinguishing Stateless and Stateful Operations
 
-> **Chương:** Hợp đồng và vòng đời pipeline  
-> **Module:** `JAVA_STREAM_API` — học cách xử lý dữ liệu theo lối khai báo qua pipeline lazy, `filter`, `map`, `reduce`, `collect` và các kỹ thuật nâng cao.
+> **Chapter:** Pipeline Contracts and Lifecycle  
+> **Module:** `JAVA_STREAM_API` — learn how to process data declaratively through lazy pipelines, `filter`, `map`, `reduce`, `collect`, and advanced techniques.
 
-Khi đọc một pipeline Stream, ta thường chú ý đến **dữ liệu được biến đổi thành gì**. Tuy nhiên, để dự đoán pipeline sẽ xử lý bao nhiêu phần tử, cần bao nhiêu bộ nhớ và có thể dừng sớm hay không, phải biết một phép toán trung gian (*intermediate operation*) là **không trạng thái** (*stateless*) hay **có trạng thái** (*stateful*).
+When reading a Stream pipeline, we often pay attention to **what the data is transformed into**. However, to predict how many elements a pipeline will process, how much memory it needs, and whether it can short-circuit, you must know whether an *intermediate operation* is **stateless** or **stateful**.
 
-Phân biệt này là nền tảng để viết pipeline dễ hiểu, tránh xử lý dư thừa, sử dụng Stream song song hợp lý và học tiếp `reduce`, `collect`, `groupingBy`, collector tùy chỉnh, `Spliterator` hoặc Stream Gatherers.
+This distinction is foundational for writing understandable pipelines, avoiding redundant processing, using parallel Streams appropriately, and continuing to learn `reduce`, `collect`, `groupingBy`, custom collectors, `Spliterator`, or Stream Gatherers.
 
-## 1. Bối cảnh: pipeline và phép toán trung gian
+## 1. Context: pipelines and intermediate operations
 
-Một pipeline Stream thường gồm ba phần:
+A Stream pipeline typically consists of three parts:
 
 ```text
-Nguồn dữ liệu  →  phép toán trung gian  →  phép toán kết thúc
-List / Set        filter / map / sorted     toList / collect / count
-                  distinct / limit / ...   reduce / findFirst / ...
+Data source    →  intermediate operations  →  terminal operation
+List / Set        filter / map / sorted       toList / collect / count
+                  distinct / limit / ...      reduce / findFirst / ...
 ```
 
-Ví dụ:
+Example:
 
 ```java
 List<Integer> result = List.of(5, 1, 5, 2, 3).stream()
-        .filter(n -> n > 1)   // trung gian
-        .map(n -> n * 2)      // trung gian
-        .distinct()           // trung gian
-        .toList();            // kết thúc; Java 16+
+        .filter(n -> n > 1)   // intermediate
+        .map(n -> n * 2)      // intermediate
+        .distinct()           // intermediate
+        .toList();            // terminal; Java 16+
 
 // result = [10, 4, 6]
 ```
 
-Phép toán trung gian tạo ra một Stream mới mô tả bước xử lý tiếp theo. **Các bước này thường lazy**: việc khai báo `filter`, `map` hay `sorted` chưa tự chạy qua toàn bộ nguồn. Việc duyệt nguồn bắt đầu khi có phép toán kết thúc, trừ khi Stream implementation có thể tối ưu và bỏ qua một số bước không ảnh hưởng kết quả.
+An intermediate operation produces a new Stream describing the next processing step. **These steps are usually lazy**: declaring `filter`, `map`, or `sorted` does not automatically run through the entire source. Traversing the source begins when there is a terminal operation, unless the Stream implementation can optimize and skip certain steps that do not affect the result.
 
-Hai khái niệm cần tách bạch:
+Two concepts must be kept separate:
 
-- **Không trạng thái/có trạng thái** nói về mức độ một bước xử lý cần biết hoặc lưu thông tin từ các phần tử khác.
-- **Lazy/eager** nói về thời điểm công việc được thực hiện. Cả `map()` lẫn `sorted()` đều là phép toán trung gian lazy; nhưng khi pipeline chạy, chúng có cách xử lý rất khác nhau.
+- **Stateless/stateful** describes the extent to which a processing step needs to know or store information from other elements.
+- **Lazy/eager** describes when the work is performed. Both `map()` and `sorted()` are lazy intermediate operations; yet when the pipeline runs, they process data very differently.
 
-## 2. Định nghĩa và dấu hiệu nhận biết
+## 2. Definitions and identifying signs
 
-### Phép toán trung gian không trạng thái (*stateless*)
+### Stateless intermediate operations
 
-Một phép toán **không trạng thái** có thể quyết định cách xử lý mỗi phần tử mà không phải ghi nhớ các phần tử đã gặp hoặc chờ xem toàn bộ dữ liệu. Kết quả ứng với phần tử hiện tại chỉ phụ thuộc vào phần tử đó và các tham số bất biến của phép toán.
+A **stateless** operation can decide how to process each element without having to remember previously encountered elements or wait to see all the data. The result for the current element depends only on that element and the operation's immutable parameters.
 
-Ví dụ:
+Example:
 
 ```java
 numbers.stream()
@@ -50,13 +50,13 @@ numbers.stream()
         .map(n -> n * n);
 ```
 
-`filter` kiểm tra từng số có chẵn không; `map` bình phương từng số. Với đầu vào là `8`, không bước nào cần hỏi trước đó đã gặp những số nào. Stream thường có thể kết hợp các bước để mỗi phần tử lần lượt đi qua `filter` rồi `map`, thay vì tạo một danh sách trung gian cho từng bước.
+`filter` checks whether each number is even; `map` squares each number. Given the input `8`, neither step needs to ask which numbers were seen previously. Streams can typically fuse steps so that each element passes through `filter` and then `map` sequentially, rather than creating an intermediate list for each step.
 
-### Phép toán trung gian có trạng thái (*stateful*)
+### Stateful intermediate operations
 
-Một phép toán **có trạng thái** cần theo dõi thông tin về những phần tử đã xử lý, vị trí trong luồng, hoặc thậm chí tập hợp các phần tử trước khi quyết định đầu ra.
+A **stateful** operation needs to track information about already-processed elements, position in the stream, or even the collection of elements before deciding the output.
 
-Ví dụ:
+Example:
 
 ```java
 numbers.stream()
@@ -65,32 +65,32 @@ numbers.stream()
         .limit(3);
 ```
 
-- `distinct()` cần nhận biết giá trị đã xuất hiện để bỏ trùng.
-- `sorted()` cần xét thứ tự của các giá trị; với nguồn chưa sắp xếp, việc xuất phần tử nhỏ nhất nói chung đòi hỏi xem các phần tử còn lại.
-- `limit(3)` cần theo dõi số phần tử đã được chuyển tiếp để dừng khi đủ ba phần tử.
+- `distinct()` needs to recognize values that have already appeared in order to remove duplicates.
+- `sorted()` needs to consider the ordering of values; with an unsorted source, outputting the smallest element generally requires inspecting the remaining elements.
+- `limit(3)` needs to track how many elements have been forwarded so it can stop once three elements are reached.
 
-**Có trạng thái không đồng nghĩa với lưu toàn bộ dữ liệu.** `limit(3)` chỉ cần theo dõi tiến độ trong trường hợp tuần tự thông thường, còn `sorted()` thường phải giữ nhiều phần tử để sắp xếp.
+**Stateful does not mean storing all data.** `limit(3)` only needs to track progress in the normal sequential case, whereas `sorted()` usually has to retain many elements in order to sort.
 
-## 3. Bảng phân loại những phép toán phổ biến
+## 3. Classification table of common operations
 
-| Phép toán trung gian | Loại | Cần nhớ điều gì? | Lưu ý |
+| Intermediate operation | Type | What does it need to remember? | Notes |
 | --- | --- | --- | --- |
-| `filter(predicate)` | Không trạng thái | Không cần nhớ các phần tử khác | Giữ hoặc bỏ phần tử hiện tại. |
-| `map(mapper)`, `mapToInt(...)` | Không trạng thái | Không cần nhớ các phần tử khác | Chuyển đổi từng phần tử. |
-| `flatMap(mapper)`, `mapMulti(...)` | Không trạng thái | Không cần nhớ các phần tử *nguồn* khác | Một đầu vào có thể tạo không, một hoặc nhiều đầu ra. |
-| `peek(action)` | Không trạng thái | Không cần trạng thái để quyết định dòng dữ liệu | Chủ yếu dùng quan sát/debug; không nên dựa vào side effect của `peek`. |
-| `distinct()` | Có trạng thái | Những giá trị đã gặp hoặc cấu trúc tương đương | Có thể tiêu tốn bộ nhớ theo số giá trị khác nhau. |
-| `sorted()`, `sorted(comparator)` | Có trạng thái | Thông tin để xác định thứ tự tổng thể | Thường là bước cần đệm dữ liệu. |
-| `limit(n)` | Có trạng thái | Đã chuyển tiếp bao nhiêu phần tử | Có khả năng *short-circuit*: dừng sớm khi đủ đầu ra. |
-| `skip(n)` | Có trạng thái | Đã bỏ qua bao nhiêu phần tử | Đặc biệt cần chú ý trên luồng song song có thứ tự. |
-| `takeWhile(predicate)` | Có trạng thái | Đang ở trong đoạn đầu liên tiếp thỏa điều kiện hay không | Java 9+; trên luồng có thứ tự, dừng ở phần tử đầu tiên không thỏa. |
-| `dropWhile(predicate)` | Có trạng thái | Đã đi qua đoạn đầu liên tiếp thỏa điều kiện hay chưa | Java 9+; sau điểm chuyển trạng thái, giữ mọi phần tử còn lại. |
+| `filter(predicate)` | Stateless | Does not need to remember other elements | Keeps or discards the current element. |
+| `map(mapper)`, `mapToInt(...)` | Stateless | Does not need to remember other elements | Transforms each element individually. |
+| `flatMap(mapper)`, `mapMulti(...)` | Stateless | Does not need to remember other *source* elements | One input can produce zero, one, or many outputs. |
+| `peek(action)` | Stateless | Needs no state to decide data flow | Mainly used for observation/debugging; do not rely on `peek` side effects. |
+| `distinct()` | Stateful | Values already encountered or equivalent structure | Can consume memory proportional to the number of distinct values. |
+| `sorted()`, `sorted(comparator)` | Stateful | Information to determine overall order | Usually a step that requires buffering data. |
+| `limit(n)` | Stateful | How many elements have been forwarded | Capable of *short-circuiting*: stops early once enough outputs are produced. |
+| `skip(n)` | Stateful | How many elements have been skipped | Requires special care on ordered parallel streams. |
+| `takeWhile(predicate)` | Stateful | Whether currently within the initial contiguous matching prefix | Java 9+; on ordered streams, stops at the first non-matching element. |
+| `dropWhile(predicate)` | Stateful | Whether the initial contiguous matching prefix has been passed | Java 9+; after the state transition point, keeps all remaining elements. |
 
-Ở đây, “không trạng thái” mô tả **hợp đồng của phép toán Stream với các hàm được viết đúng cách**. Nó không có nghĩa là mọi lambda truyền vào `map`/`filter` đều an toàn nếu tự ý đọc và sửa biến dùng chung; vấn đề đó được phân tích ở mục 8.
+Here, "stateless" describes **the contract of the Stream operation with properly written functions**. It does not mean every lambda passed to `map`/`filter` is safe if it arbitrarily reads and mutates shared variables; that issue is analyzed in section 8.
 
-## 4. Ví dụ thực thi: thay đổi thứ tự là thay đổi kết quả
+## 4. Execution example: changing order changes the result
 
-Chạy chương trình Java 17+ sau để quan sát hai nhóm phép toán trong cùng một nguồn:
+Run the following Java 17+ program to observe both groups of operations on the same source:
 
 ```java
 import java.util.List;
@@ -99,31 +99,31 @@ public class StreamStateDemo {
     public static void main(String[] args) {
         List<Integer> numbers = List.of(5, 1, 5, 2, 3);
 
-        // map và filter: quyết định độc lập trên từng phần tử.
+        // map and filter: independent decisions per element.
         System.out.println(numbers.stream()
                 .map(n -> n * 2)
                 .filter(n -> n > 2)
                 .toList());
 
-        // distinct cần nhớ số đã gặp; limit cần đếm số đã lấy.
+        // distinct needs to remember seen numbers; limit needs to count taken numbers.
         System.out.println(numbers.stream()
                 .distinct()
                 .limit(3)
                 .toList());
 
-        // Lấy ba phần tử trước, sau đó mới khử trùng.
+        // Take three elements first, then deduplicate.
         System.out.println(numbers.stream()
                 .limit(3)
                 .distinct()
                 .toList());
 
-        // Sắp xếp toàn bộ nguồn, sau đó lấy ba số nhỏ nhất.
+        // Sort the entire source, then take the three smallest numbers.
         System.out.println(numbers.stream()
                 .sorted()
                 .limit(3)
                 .toList());
 
-        // Chỉ sắp xếp ba phần tử đầu của nguồn.
+        // Sort only the first three elements of the source.
         System.out.println(numbers.stream()
                 .limit(3)
                 .sorted()
@@ -132,7 +132,7 @@ public class StreamStateDemo {
 }
 ```
 
-Kết quả:
+Output:
 
 ```text
 [10, 10, 4, 6]
@@ -142,18 +142,18 @@ Kết quả:
 [1, 5, 5]
 ```
 
-Từ ví dụ có thể rút ra các điều kiện quan trọng:
+From the example, important conditions can be drawn:
 
-1. `distinct().limit(3)` tìm **ba giá trị khác nhau đầu tiên** theo encounter order của nguồn có thứ tự. Nếu có trùng lặp, nó có thể phải đọc hơn ba phần tử để lấy đủ ba giá trị.
-2. `limit(3).distinct()` chỉ nhìn **ba phần tử đầu tiên**, vì vậy có thể trả về ít hơn ba giá trị.
-3. `sorted().limit(3)` lấy **ba giá trị nhỏ nhất** trên một nguồn hữu hạn chưa sắp xếp; muốn biết chúng là gì thường phải xem toàn bộ nguồn.
-4. `limit(3).sorted()` chỉ sắp xếp **ba phần tử được lấy trước**, nên không bảo đảm đó là ba giá trị nhỏ nhất của nguồn.
+1. `distinct().limit(3)` finds the **first three distinct values** according to the encounter order of an ordered source. If there are duplicates, it may have to read more than three elements to collect three values.
+2. `limit(3).distinct()` looks only at the **first three elements**, so it may return fewer than three values.
+3. `sorted().limit(3)` takes the **three smallest values** on an unsorted finite source; knowing what they are usually requires inspecting the entire source.
+4. `limit(3).sorted()` sorts only the **first three elements taken**, so it does not guarantee those are the three smallest values of the source.
 
-Vì thế, không được tùy tiện hoán đổi các phép toán có trạng thái chỉ để làm pipeline trông gọn hơn.
+Therefore, never arbitrarily swap stateful operations just to make a pipeline look cleaner.
 
-## 5. `filter` khác gì `takeWhile` và `dropWhile`?
+## 5. How does `filter` differ from `takeWhile` and `dropWhile`?
 
-Ba phép toán đều nhận `Predicate<T>`, nhưng ý nghĩa rất khác:
+All three operations accept a `Predicate<T>`, yet their semantics are very different:
 
 ```java
 List<Integer> values = List.of(2, 4, 1, 6, 8);
@@ -174,15 +174,15 @@ List<Integer> c = values.stream()
 // [1, 6, 8]
 ```
 
-- `filter`: với **mỗi phần tử**, kiểm tra điều kiện riêng và giữ các phần tử thỏa, dù chúng nằm ở vị trí nào.
-- `takeWhile`: trên Stream có thứ tự, chỉ giữ **đoạn đầu liên tiếp** thỏa điều kiện; khi gặp `1`, đoạn này kết thúc.
-- `dropWhile`: trên Stream có thứ tự, bỏ **đoạn đầu liên tiếp** thỏa điều kiện; từ `1` trở đi giữ cả `1`, `6` và `8`, dù một số sau đó vẫn là số chẵn.
+- `filter`: for **each element**, evaluates the condition independently and keeps matching elements regardless of their position.
+- `takeWhile`: on an ordered Stream, keeps only the **initial contiguous segment** satisfying the condition; when encountering `1`, this segment ends.
+- `dropWhile`: on an ordered Stream, discards the **initial contiguous segment** satisfying the condition; from `1` onward it keeps `1`, `6`, and `8`, even though some subsequent numbers are still even.
 
-Để hiểu hai phép toán `*While`, phải biết các phần tử **đã đi qua điểm ranh giới hay chưa**. Đây là trạng thái của quá trình duyệt, khác với phép kiểm tra độc lập của `filter`.
+To understand the two `*While` operations, you must know whether elements **have already crossed the boundary point**. This is state of the traversal process, unlike the independent check of `filter`.
 
-## 6. Lazy, cơ chế xử lý từng phần tử và dừng sớm
+## 6. Laziness, element-by-element processing, and short-circuiting
 
-Xét một pipeline tuần tự với nguồn có thứ tự:
+Consider a sequential pipeline with an ordered source:
 
 ```java
 List<Integer> firstTwo = List.of(5, 1, 4, 2, 3).stream()
@@ -194,9 +194,9 @@ List<Integer> firstTwo = List.of(5, 1, 4, 2, 3).stream()
 // [50, 40]
 ```
 
-Về mặt logic, các bước `filter` và `map` có thể xử lý lần lượt: `5` đi qua và tạo `50`; `1` bị loại; `4` tạo `40`; `limit(2)` đã có đủ hai kết quả nên pipeline có thể dừng mà không cần xử lý tiếp `2`, `3`. Kiểu phối hợp này thường được gọi là **fusion**: nhiều phép toán trung gian được thực hiện trong cùng lượt duyệt.
+Logically, the `filter` and `map` steps can process elements one by one: `5` passes through and produces `50`; `1` is discarded; `4` produces `40`; `limit(2)` now has enough (two) results so the pipeline can stop without needing to process `2` and `3`. This kind of coordination is often called **fusion**: multiple intermediate operations are executed within the same traversal pass.
 
-Nếu chèn `sorted()` trước `limit(2)`:
+If `sorted()` is inserted before `limit(2)`:
 
 ```java
 List<Integer> smallest = List.of(5, 1, 4, 2, 3).stream()
@@ -207,47 +207,47 @@ List<Integer> smallest = List.of(5, 1, 4, 2, 3).stream()
 // [1, 2]
 ```
 
-Trong trường hợp tổng quát, `sorted()` phải xét mọi phần tử trước khi biết hai phần tử đầu tiên theo thứ tự tăng dần. **`limit(2)` vẫn là phép toán short-circuit nhưng không thể buộc `sorted()` phía trước bỏ qua phần còn lại của nguồn.**
+In the general case, `sorted()` must examine every element before knowing the first two elements in ascending order. **`limit(2)` is still a short-circuiting operation, but it cannot force the preceding `sorted()` to skip the rest of the source.**
 
-Điều này đặc biệt quan trọng với nguồn vô hạn:
+This is especially important with infinite sources:
 
 ```java
-// Có thể kết thúc: chỉ cần đủ ba phần tử.
+// Can terminate: only needs three elements.
 List<Integer> ok = java.util.stream.Stream.generate(() -> 7)
         .limit(3)
         .toList();
 
-// Không thể kết thúc trên nguồn vô hạn như thế này:
+// Cannot terminate on an infinite source like this:
 // java.util.stream.Stream.generate(() -> 7)
 //         .sorted()
 //         .limit(3)
 //         .toList();
 ```
 
-Một lời gọi terminal như `count()` hoặc `findFirst()` cũng có thể kích hoạt tối ưu khác nhau, tùy đặc tính nguồn (`SIZED`, `SORTED`, `DISTINCT`, ...) và implementation. Vì vậy, **đừng dùng số lần `peek()` được gọi làm bằng chứng cố định về lượng công việc** của mọi pipeline: `peek` có thể không chạy cho những phần tử bị tối ưu bỏ qua.
+A terminal call such as `count()` or `findFirst()` can also trigger different optimizations, depending on source characteristics (`SIZED`, `SORTED`, `DISTINCT`, ...) and the implementation. Therefore, **do not use the number of times `peek()` is called as fixed proof of the amount of work** across all pipelines: `peek` may not run for elements skipped by optimization.
 
-## 7. Trạng thái, bộ nhớ và xử lý song song
+## 7. State, memory, and parallel processing
 
-Không có một mức chi phí chung cho mọi phép toán stateful:
+There is no single cost level for all stateful operations:
 
-| Nhóm | Trạng thái điển hình trong xử lý tuần tự | Ảnh hưởng thực tế |
+| Group | Typical state in sequential processing | Practical impact |
 | --- | --- | --- |
-| `filter`, `map` | Không cần nhớ các phần tử khác | Thường xử lý theo từng phần tử, chi phí bộ nhớ phụ nhỏ. |
-| `distinct` | Tập giá trị đã thấy; thường tỉ lệ với số giá trị khác nhau | Có thể làm tăng dùng bộ nhớ khi nguồn lớn hoặc có nhiều giá trị phân biệt. |
-| `sorted` | Vùng đệm để sắp xếp các phần tử | Thường tốn bộ nhớ theo số phần tử và chi phí sắp xếp; nên thận trọng với nguồn rất lớn. |
-| `limit`, `skip` | Bộ đếm hoặc thông tin vị trí | Trong xử lý tuần tự có thể rất gọn; với parallel stream có thứ tự, việc phối hợp nhánh có thể tốn chi phí. |
-| `takeWhile`, `dropWhile` | Trạng thái trước/sau ranh giới của đoạn đầu | Cần tôn trọng ranh giới theo thứ tự, khiến xử lý song song có thứ tự khó mở rộng hơn. |
+| `filter`, `map` | No need to remember other elements | Usually processed element by element, small auxiliary memory overhead. |
+| `distinct` | Set of seen values; usually proportional to the number of distinct values | Can increase memory usage when the source is large or has many distinct values. |
+| `sorted` | Buffer to sort the elements | Usually costs memory proportional to element count plus sorting cost; be cautious with very large sources. |
+| `limit`, `skip` | Counter or positional information | Can be very compact sequentially; with ordered parallel streams, coordinating branches can be costly. |
+| `takeWhile`, `dropWhile` | State before/after the initial segment boundary | Must respect boundaries in order, making ordered parallel execution harder to scale. |
 
-Các mức trên là **mô hình tư duy**, không phải cam kết về cấu trúc dữ liệu hay độ phức tạp tuyệt đối: Java có thể sử dụng tối ưu dựa trên `Spliterator`, đặc tính của nguồn và loại Stream. Ví dụ, một nguồn vốn đã báo `SORTED` có thể giúp triển khai tránh công việc sắp xếp không cần thiết.
+The levels above are a **mental model**, not a guarantee of exact data structures or absolute complexity: Java can apply optimizations based on `Spliterator`, source characteristics, and Stream type. For example, a source that already reports `SORTED` can allow the implementation to avoid unnecessary sorting work.
 
-Với Stream song song, cần chú ý **encounter order** (thứ tự gặp phần tử) của nguồn:
+With parallel Streams, pay attention to the **encounter order** of the source:
 
-- Trên nguồn có thứ tự như `List`, `limit(10)`, `skip(10)`, `takeWhile(...)`, `dropWhile(...)` phải giữ đúng ngữ nghĩa liên quan đến thứ tự; việc phối hợp giữa các nhánh song song có thể tốn kém.
-- Nếu thứ tự **không quan trọng về nghiệp vụ**, có thể cân nhắc `.unordered()` trước một số phép toán stateful để cho phép triển khai linh hoạt hơn. `.unordered()` không có nghĩa là tráo ngẫu nhiên dữ liệu; nó chỉ gỡ yêu cầu giữ thứ tự gặp phần tử.
-- Khi đã bỏ yêu cầu thứ tự, `limit(n)` không còn cam kết lấy **n phần tử đầu tiên của danh sách gốc**; `takeWhile`/`dropWhile` cũng không còn ngữ nghĩa đoạn tiền tố như trên nguồn có thứ tự. Chỉ dùng khi ứng dụng chấp nhận kết quả đó.
-- `parallel()` không đảm bảo nhanh hơn: overhead phân chia, gộp kết quả và quản lý trạng thái có thể lớn hơn phần công việc được song song hóa.
+- On an ordered source like `List`, `limit(10)`, `skip(10)`, `takeWhile(...)`, and `dropWhile(...)` must preserve order-related semantics; coordination across parallel branches can be expensive.
+- If order **does not matter for business logic**, consider `.unordered()` before certain stateful operations to give the implementation more flexibility. `.unordered()` does not mean randomly shuffling data; it only removes the requirement to preserve encounter order.
+- Once the ordering requirement is removed, `limit(n)` no longer guarantees taking the **first n elements of the original list**; `takeWhile`/`dropWhile` also no longer have prefix-segment semantics as on an ordered source. Use only when the application accepts that outcome.
+- `parallel()` does not guarantee being faster: the overhead of splitting, merging results, and managing state can exceed the parallelized work.
 
-Ví dụ chỉ dùng `unordered()` khi mục tiêu là **lấy bất kỳ 100 phần tử nào**:
+Example using `unordered()` only when the goal is **taking any 100 elements**:
 
 ```java
 List<Integer> sample = hugeList.parallelStream()
@@ -255,14 +255,14 @@ List<Integer> sample = hugeList.parallelStream()
         .limit(100)
         .toList();
 
-// Không bảo đảm đây là 100 phần tử đầu tiên của hugeList.
+// Not guaranteed to be the first 100 elements of hugeList.
 ```
 
-Nếu ứng dụng cần trang dữ liệu ổn định, top-N chính xác hoặc kết quả tái lập theo thứ tự, hãy giữ encounter order và ưu tiên thiết kế thuật toán rõ ràng trước khi cân nhắc song song.
+If the application needs stable data pages, exact top-N, or order-reproducible results, preserve encounter order and prioritize clear algorithm design before considering parallelism.
 
-## 8. Đừng nhầm trạng thái của phép toán với trạng thái do lambda tự tạo
+## 8. Do not confuse operation state with self-created lambda state
 
-`filter()` là một **phép toán không trạng thái**, nhưng ta vẫn có thể viết một lambda **có trạng thái và không phù hợp với hợp đồng Stream**:
+`filter()` is a **stateless operation**, yet one can still write a **stateful lambda that violates the Stream contract**:
 
 ```java
 import java.util.concurrent.atomic.AtomicInteger;
@@ -274,9 +274,9 @@ List<String> unreliable = names.parallelStream()
         .toList();
 ```
 
-Ví dụ này cố chọn “mỗi phần tử thứ hai” bằng một bộ đếm dùng chung. Dù `AtomicInteger` tránh mất cập nhật, thứ tự các lambda chạy trong `parallelStream()` không nhất thiết trùng thứ tự của `names`, nên **những tên được chọn có thể thay đổi giữa các lần chạy**. Dùng biến `int` có thể thay đổi từ nhiều luồng còn gây tranh chấp dữ liệu.
+This example attempts to pick "every second element" using a shared counter. Even though `AtomicInteger` prevents lost updates, the order in which lambdas execute in `parallelStream()` does not necessarily match the order of `names`, so **the selected names can change between runs**. Using a mutable `int` variable from multiple threads also causes data races.
 
-Nếu yêu cầu thật sự là chọn phần tử ở chỉ số chẵn của một `List` hỗ trợ truy cập theo chỉ số hiệu quả, hãy diễn đạt quy tắc bằng chỉ số:
+If the requirement is truly to select elements at even indices of a `List` that supports efficient indexed access, express the rule using indices:
 
 ```java
 import java.util.stream.IntStream;
@@ -287,39 +287,39 @@ List<String> evenIndexNames = IntStream.range(0, names.size())
         .toList();
 ```
 
-Điều kiện `i % 2 == 0` độc lập cho mỗi chỉ số nên rõ nghĩa và ổn định. Với danh sách liên kết không truy cập ngẫu nhiên hiệu quả, hãy cân nhắc cách duyệt khác để tránh chi phí `get(i)` lớn.
+The condition `i % 2 == 0` is independent for each index, making it well-defined and deterministic. For linked lists without efficient random access, consider another traversal approach to avoid high `get(i)` cost.
 
-Các hàm truyền vào `map`, `filter`, `sorted(comparator)` và các phép toán khác thường cần **không can thiệp vào nguồn** (*non-interfering*), đồng thời tránh phụ thuộc trạng thái biến đổi từ bên ngoài. Đừng thay đổi collection nguồn trong lúc pipeline đang chạy; đừng dùng `peek` hoặc side effect của lambda làm cơ chế tích lũy dữ liệu. Khi cần tổng hợp, hãy sử dụng terminal operation thích hợp như `reduce()` hoặc `collect()`.
+Functions passed to `map`, `filter`, `sorted(comparator)`, and other operations generally need to be **non-interfering** with the source, while avoiding dependence on external mutable state. Do not modify the source collection while the pipeline is running; do not use `peek` or lambda side effects as a data accumulation mechanism. When aggregation is needed, use an appropriate terminal operation such as `reduce()` or `collect()`.
 
-**Lưu ý:** `reduce()` và `collect()` có thể tích lũy trạng thái, nhưng chúng là **phép toán kết thúc**, không thuộc bảng phân loại *phép toán trung gian* ở trên. Ví dụ `collect(groupingBy(...))` xây dựng các nhóm có trạng thái trong quá trình thu thập; đó là một khía cạnh khác so với `distinct()` hoặc `sorted()`.
+**Note:** `reduce()` and `collect()` can accumulate state, but they are **terminal operations**, not part of the *intermediate operations* classification table above. For example, `collect(groupingBy(...))` builds stateful groups during collection; that is a different aspect from `distinct()` or `sorted()`.
 
-## 9. Cách quyết định khi xây dựng pipeline
+## 9. How to decide when building a pipeline
 
-Khi chọn và sắp xếp phép toán, hãy tự trả lời các câu hỏi sau:
+When choosing and ordering operations, ask yourself the following questions:
 
-1. **Mỗi đầu ra có phụ thuộc phần tử khác không?** Nếu không, ưu tiên diễn đạt bằng `filter`, `map`, `flatMap` hoặc `mapMulti`. Nếu có, xác định rõ cần nhớ giá trị đã gặp, vị trí, ranh giới hay thứ tự toàn cục.
-2. **Có cần đúng thứ tự gặp phần tử không?** `distinct().limit(n)` và `limit(n).distinct()` khác nhau; `takeWhile` và `filter` cũng khác nhau. Đừng đổi thứ tự bước mà chưa chứng minh kết quả tương đương.
-3. **Có thể dừng sớm không?** Đặt các điều kiện loại bỏ phần tử phù hợp trước bước tốn nhiều tài nguyên nếu ngữ nghĩa cho phép. `sorted().limit(n)` thường vẫn phải xử lý cả nguồn, trong khi `filter().limit(n)` tuần tự có thể dừng khi đủ kết quả.
-4. **Nguồn lớn, vô hạn hay chạy song song?** Cẩn trọng với `sorted`, `distinct` và các phép toán giữ ranh giới theo thứ tự. Ưu tiên đo với dữ liệu đại diện nếu hiệu năng là yêu cầu quan trọng.
-5. **Lambda có đọc/ghi trạng thái dùng chung không?** Nếu có, tìm cách diễn đạt thuần hàm hoặc dùng collector/reduction theo đúng hợp đồng thay vì trộn side effect vào pipeline.
+1. **Does each output depend on other elements?** If not, prefer expressing it with `filter`, `map`, `flatMap`, or `mapMulti`. If so, clearly identify whether it needs to remember seen values, position, boundaries, or global order.
+2. **Is exact encounter order required?** `distinct().limit(n)` and `limit(n).distinct()` are different; `takeWhile` and `filter` are also different. Do not reorder steps without proving the results are equivalent.
+3. **Can it short-circuit?** Place appropriate element-filtering conditions before resource-heavy steps if semantics allow. `sorted().limit(n)` usually still has to process the entire source, whereas a sequential `filter().limit(n)` can stop once enough results are found.
+4. **Is the source large, infinite, or running in parallel?** Be careful with `sorted`, `distinct`, and order-boundary operations. Prefer measuring with representative data if performance is a key requirement.
+5. **Does the lambda read/write shared state?** If so, look for a pure functional expression or use a compliant collector/reduction instead of mixing side effects into the pipeline.
 
-## 10. Tự kiểm tra
+## 10. Self-check
 
-**Câu 1.** Vì sao `limit(5)` là stateful dù không cần lưu năm phần tử?  
-**Trả lời:** Vì nó phải nhớ đã chuyển tiếp bao nhiêu phần tử để biết khi nào dừng. *Stateful* mô tả sự phụ thuộc vào tiến độ xử lý, không bắt buộc phải lưu toàn bộ phần tử.
+**Question 1.** Why is `limit(5)` stateful even though it does not need to store five elements?  
+**Answer:** Because it must remember how many elements have been forwarded to know when to stop. *Stateful* describes dependence on processing progress, not necessarily storing all elements.
 
-**Câu 2.** Với `[2, 4, 1, 6]`, `filter(n -> n % 2 == 0)` và `takeWhile(n -> n % 2 == 0)` khác nhau thế nào?  
-**Trả lời:** `filter` trả `[2, 4, 6]`; `takeWhile` trả `[2, 4]` vì dừng ở phần tử `1` đầu tiên không thỏa.
+**Question 2.** For `[2, 4, 1, 6]`, how do `filter(n -> n % 2 == 0)` and `takeWhile(n -> n % 2 == 0)` differ?  
+**Answer:** `filter` returns `[2, 4, 6]`; `takeWhile` returns `[2, 4]` because it stops at the first non-matching element `1`.
 
-**Câu 3.** Vì sao `numbers.stream().sorted().limit(3)` không đảm bảo chỉ đọc ba phần tử nguồn?  
-**Trả lời:** Để biết ba phần tử nhỏ nhất trong nguồn chưa sắp xếp, `sorted` thường cần xem tất cả phần tử; `limit` đứng sau chỉ giới hạn đầu ra.
+**Question 3.** Why does `numbers.stream().sorted().limit(3)` not guarantee reading only three source elements?  
+**Answer:** To know the three smallest elements in an unsorted source, `sorted` usually needs to inspect all elements; the trailing `limit` only restricts the output.
 
-**Câu 4.** `filter()` có tự trở thành một stateful intermediate operation nếu lambda của nó tăng biến đếm dùng chung không?  
-**Trả lời:** Không. `filter` vẫn được định nghĩa là stateless intermediate operation; lambda đó tự tạo sự phụ thuộc trạng thái bên ngoài, có thể làm kết quả không ổn định hoặc sai khi song song.
+**Question 4.** Does `filter()` itself become a stateful intermediate operation if its lambda increments a shared counter?  
+**Answer:** No. `filter` is still defined as a stateless intermediate operation; that lambda introduces external state dependence on its own, which can make results nondeterministic or wrong in parallel.
 
-## Ghi nhớ
+## Key takeaway
 
-- **Stateless:** xử lý phần tử hiện tại độc lập với các phần tử khác (`filter`, `map`, `flatMap`).
-- **Stateful:** cần nhớ giá trị đã gặp, vị trí, ranh giới hoặc thứ tự toàn cục (`distinct`, `sorted`, `limit`, `skip`, `takeWhile`, `dropWhile`).
-- **Cả hai đều có thể lazy:** sự khác biệt chủ yếu xuất hiện khi chạy pipeline, ở cách duyệt nguồn, khả năng dừng sớm, chi phí bộ nhớ và xử lý song song.
-- **Tính đúng đắn đi trước tối ưu:** thay đổi thứ tự các phép toán có thể thay đổi kết quả; không dùng side effect của lambda để thay thế các phép toán tổng hợp đúng hợp đồng.
+- **Stateless:** processes the current element independently of other elements (`filter`, `map`, `flatMap`).
+- **Stateful:** needs to remember seen values, position, boundaries, or global order (`distinct`, `sorted`, `limit`, `skip`, `takeWhile`, `dropWhile`).
+- **Both can be lazy:** the main difference appears when running the pipeline, in how the source is traversed, short-circuiting capability, memory cost, and parallel execution.
+- **Correctness before optimization:** changing the order of operations can change the result; do not use lambda side effects to replace contract-compliant aggregation operations.

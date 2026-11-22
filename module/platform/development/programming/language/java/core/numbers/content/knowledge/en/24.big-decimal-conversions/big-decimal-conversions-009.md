@@ -1,24 +1,24 @@
-# BigDecimal: phân biệt giá trị tính toán với scale trình bày
+# BigDecimal: Distinguishing Computed Value from Display Scale
 
-Trong Java, khi một phép tính `BigDecimal` cho ra `13.000` nhưng giao diện cần hiển thị `13.00`, câu hỏi cần trả lời là: **giá trị số cần thay đổi, hay chỉ số chữ số được trình bày cần thay đổi?** Hai nhu cầu này có thể dẫn đến những thao tác khác nhau, thậm chí kết quả lưu trữ và cách kiểm tra bằng nhau khác nhau.
+In Java, when a `BigDecimal` calculation yields `13.000` but the UI needs to display `13.00`, the question to answer is: **does the numeric value need to change, or does only the number of displayed digits need to change?** These two needs can lead to different operations, and even different stored results and equality checks.
 
-Bài học thuộc chủ đề **Chuyển đổi BigDecimal** và tập trung vào ranh giới giữa **giá trị tính toán**, **biểu diễn thập phân/`scale`**, **quy tắc làm tròn** và **chuỗi hiển thị**. Ví dụ dùng Java 17+ và chuỗi đầu vào thập phân để tránh sai số do chuyển đổi `double` không cần thiết.
+This lesson belongs to the **BigDecimal Conversions** topic and focuses on the boundary between **computed value**, **decimal representation/`scale`**, **rounding rules**, and **display strings**. Examples use Java 17+ and decimal input strings to avoid unnecessary `double` conversion errors.
 
-## 1. Ba lớp khái niệm cần phân biệt
+## 1. Three Conceptual Layers to Distinguish
 
-1. **Giá trị số (numeric value):** đại lượng toán học mà `BigDecimal` biểu diễn, chẳng hạn 13; 13.0; 13.00 đều có cùng giá trị số.
-2. **Biểu diễn `BigDecimal`:** cặp số nguyên `unscaledValue` và `scale`. Các cách viết cùng giá trị có thể có `scale` khác nhau. `scale` là thuộc tính của đối tượng, không đơn thuần là lựa chọn phông chữ hay định dạng màn hình.
-3. **Chuỗi trình bày:** các ký tự người dùng nhìn thấy: `13`, `13.00`, `13,00`, `1,000.00` hoặc `1E+3`. Quy tắc này có thể phụ thuộc locale, đơn vị, quy ước sản phẩm và đối tượng nhận dữ liệu.
+1. **Numeric value:** the mathematical quantity that `BigDecimal` represents; for example, `13`, `13.0`, and `13.00` all have the same numeric value.
+2. **`BigDecimal` representation:** the integer pair `unscaledValue` and `scale`. Different ways of writing the same value can have different `scale`s. `scale` is a property of the object, not merely a font choice or screen formatting option.
+3. **Presentation string:** the characters the user sees: `13`, `13.00`, `13,00`, `1,000.00`, or `1E+3`. These rules can depend on locale, units, product conventions, and the data consumer.
 
-Công thức nội tại của `BigDecimal`:
+Internal formula of `BigDecimal`:
 
 ~~~text
 numeric value = unscaledValue × 10^(-scale)
 ~~~
 
-Ví dụ:
+Examples:
 
-| Khởi tạo | Giá trị số | `unscaledValue()` | `scale()` | `toString()` |
+| Initialization | Numeric Value | `unscaledValue()` | `scale()` | `toString()` |
 |---|---:|---:|---:|---|
 | `new BigDecimal("13")` | 13 | 13 | 0 | `13` |
 | `new BigDecimal("13.0")` | 13 | 130 | 1 | `13.0` |
@@ -26,9 +26,9 @@ Ví dụ:
 | `new BigDecimal("1.3E+1")` | 13 | 13 | 0 | `13` |
 | `new BigDecimal("1E+3")` | 1000 | 1 | -3 | `1E+3` |
 
-Lưu ý dòng `"1.3E+1"`: `BigDecimal` phân tích chuỗi khoa học thành một giá trị có `unscaledValue = 13` và `scale = 0`, nên `toString()` của đối tượng là `13`. Chuỗi đầu vào ban đầu không được giữ nguyên như một nhãn hiển thị riêng.
+Note the `"1.3E+1"` row: `BigDecimal` parses the scientific string into a value with `unscaledValue = 13` and `scale = 0`, so the object's `toString()` is `13`. The original input string is not retained as a separate display label.
 
-Hai `BigDecimal` có cùng **giá trị số** khi `compareTo() == 0`. Phương thức `equals()` đòi hỏi thêm `scale` bằng nhau:
+Two `BigDecimal` objects have the same **numeric value** when `compareTo() == 0`. The `equals()` method additionally requires equal `scale`:
 
 ~~~java
 BigDecimal a = new BigDecimal("12.30");
@@ -38,23 +38,23 @@ System.out.println(a.compareTo(b) == 0); // true
 System.out.println(a.equals(b));         // false
 ~~~
 
-Vì vậy, câu "hai số bằng nhau" phải chỉ rõ là **bằng theo toán học** hay **bằng theo biểu diễn `BigDecimal`**.
+Therefore, the statement "two numbers are equal" must specify **mathematically equal** or **equal in `BigDecimal` representation**.
 
-## 2. Giá trị tính toán và scale sau phép toán
+## 2. Computed Value and Scale After Operations
 
-`BigDecimal` hỗ trợ các phép tính thập phân chính xác (trong giới hạn toán tử, precision/rounding và tài nguyên), nhưng **kết quả phép tính vẫn có `scale`**. Với các phép tính chính xác không dùng `MathContext`, Java có quy tắc `scale` ưu tiên:
+`BigDecimal` supports exact decimal arithmetic (within operator, precision/rounding, and resource limits), yet **the result of an operation still has a `scale`**. For exact operations without `MathContext`, Java specifies preferred `scale` rules:
 
-| Phép tính | `scale` ưu tiên |
+| Operation | Preferred `scale` |
 |---|---|
 | `a.add(b)` | `max(a.scale(), b.scale())` |
 | `a.subtract(b)` | `max(a.scale(), b.scale())` |
 | `a.multiply(b)` | `a.scale() + b.scale()` |
-| `a.divide(b)` chính xác | `a.scale() - b.scale()` nếu đủ; phép chia có thể cần scale lớn hơn để biểu diễn thương chính xác |
-| `a.scaleByPowerOfTen(n)` | `a.scale() - n` và **giá trị số nhân với `10^n`** |
+| Exact `a.divide(b)` | `a.scale() - b.scale()` if sufficient; division may require a larger scale to represent an exact quotient |
+| `a.scaleByPowerOfTen(n)` | `a.scale() - n` and **numeric value multiplied by `10^n`** |
 
-Các quy tắc này mô tả **biểu diễn của kết quả**; chúng không tự quyết định giao diện phải in bao nhiêu chữ số. Với phép chia có kết quả thập phân vô hạn như `1 / 3`, `divide(BigDecimal)` không rounding có thể ném `ArithmeticException`. Khi đó phải chọn overload `divide` có `scale`/`RoundingMode` hoặc `MathContext` tùy ý nghĩa tính toán.
+These rules describe the **representation of the result**; they do not automatically decide how many digits the UI must print. For divisions with non-terminating decimal results like `1 / 3`, `divide(BigDecimal)` without rounding can throw `ArithmeticException`. In that case, choose a `divide` overload with `scale`/`RoundingMode` or `MathContext` according to the calculation's semantics.
 
-Ví dụ:
+Example:
 
 ~~~java
 BigDecimal quantity = new BigDecimal("12.30"); // scale 2
@@ -65,30 +65,30 @@ System.out.println(total);         // 13.000
 System.out.println(total.scale()); // 3
 ~~~
 
-Tổng số học là **13**, còn đối tượng kết quả biểu diễn ở **scale 3**. Việc màn hình cần hiện `13.00` là một yêu cầu khác với phép cộng vừa thực hiện.
+The mathematical sum is **13**, while the result object is represented at **scale 3**. That the screen needs to display `13.00` is a different requirement from the addition just performed.
 
-**`precision()` không phải `scale()`:** `precision` là số chữ số trong phần không có dấu thập phân của biểu diễn, còn `scale` cho biết bậc thập phân. Ví dụ `123.4500` có `precision = 7` và `scale = 4`. `MathContext(5)` đặt giới hạn chữ số có nghĩa cho phép tính có context, không có nghĩa hiển thị đúng 5 chữ số sau dấu thập phân.
+**`precision()` is not `scale()`:** `precision` is the number of digits in the unscaled part of the representation, whereas `scale` indicates the decimal order. For instance, `123.4500` has `precision = 7` and `scale = 4`. `MathContext(5)` sets a significant-digit limit for context-based operations; it does not mean displaying exactly 5 digits after the decimal point.
 
-## 3. Những API nào đổi giá trị, API nào đổi biểu diễn?
+## 3. Which APIs Change Value, and Which Change Representation?
 
-| Thao tác | Có thể đổi **giá trị số**? | Ảnh hưởng `scale` và cách hiển thị |
+| Operation | Can Change **Numeric Value**? | Effect on `scale` and Display |
 |---|---|---|
-| `value.setScale(2)` | Không, nếu biểu diễn chính xác được; nếu không thì ném ngoại lệ | Chỉnh `scale` thành 2 |
-| `value.setScale(2, RoundingMode.HALF_UP)` | **Có** khi phải làm tròn | `scale = 2`, có thể bỏ hoặc tăng chữ số giá trị |
-| `value.stripTrailingZeros()` | **Không** | Bỏ các số 0 tận cùng; `scale` có thể giảm và trở thành âm |
-| `value.toString()` | **Không** | Trả chuỗi canonical, có thể dùng dạng khoa học |
-| `value.toPlainString()` | **Không** | Trả chuỗi không dùng số mũ, không bắt buộc có số chữ số thập phân cố định |
-| `DecimalFormat.format(value)` | Không thay đổi đối tượng đầu vào | Tạo chuỗi đã định dạng, có thể làm tròn cho mục đích hiển thị |
-| `value.movePointLeft(n)` | **Có** nếu `n != 0` và giá trị khác 0 | Chia cho `10^n`, đồng thời thay `scale` |
-| `value.movePointRight(n)` | **Có** nếu `n != 0` và giá trị khác 0 | Nhân với `10^n`, đồng thời thay `scale` |
-| `value.scaleByPowerOfTen(n)` | **Có** nếu `n != 0` và giá trị khác 0 | Nhân với `10^n`, giữ kết quả `scale` âm khi cần |
-| `value.round(MathContext)` | Có thể, nếu phải làm tròn chữ số có nghĩa | `precision` và `scale` sau rounding phụ thuộc kết quả |
+| `value.setScale(2)` | No, if representable exactly; otherwise throws an exception | Sets `scale` to 2 |
+| `value.setScale(2, RoundingMode.HALF_UP)` | **Yes** when rounding is needed | `scale = 2`, may drop or increment value digits |
+| `value.stripTrailingZeros()` | **No** | Strips trailing zeros; `scale` may decrease and become negative |
+| `value.toString()` | **No** | Returns canonical string, may use scientific notation |
+| `value.toPlainString()` | **No** | Returns exponent-free string, does not enforce a fixed number of decimal places |
+| `DecimalFormat.format(value)` | Does not modify input object | Produces formatted string, may round for display purposes |
+| `value.movePointLeft(n)` | **Yes** if `n != 0` and value is non-zero | Divides by `10^n`, while also changing `scale` |
+| `value.movePointRight(n)` | **Yes** if `n != 0` and value is non-zero | Multiplies by `10^n`, while also changing `scale` |
+| `value.scaleByPowerOfTen(n)` | **Yes** if `n != 0` and value is non-zero | Multiplies by `10^n`, preserving negative `scale` results when needed |
+| `value.round(MathContext)` | Possibly, if significant digits must be rounded | Resulting `precision` and `scale` depend on the outcome |
 
-Không nhìn vào tên `scaleByPowerOfTen` rồi cho rằng nó chỉ điều khiển "format": phương thức này **thực sự nhân/chia giá trị số** theo lũy thừa của 10. Ngược lại, gọi `toPlainString()` không nhân/chia và không tạo một `BigDecimal` đã được đổi `scale`.
+Do not look at the name `scaleByPowerOfTen` and assume it only controls "formatting": this method **actually multiplies/divides the numeric value** by a power of 10. Conversely, calling `toPlainString()` neither multiplies/divides nor creates a `BigDecimal` with a changed `scale`.
 
-## 4. setScale: giữ nguyên số nếu có thể, làm tròn nếu bắt buộc
+## 4. setScale: Preserves the Number When Possible, Rounds When Forced
 
-`setScale(int newScale)` yêu cầu một biểu diễn có `scale` mới **mà không được thay đổi giá trị số**. Nếu đổi `scale` cần bỏ chữ số khác 0, overload này ném `ArithmeticException`.
+`setScale(int newScale)` requests a representation with a new `scale` **without altering the numeric value**. If changing `scale` requires dropping non-zero digits, this overload throws `ArithmeticException`.
 
 ~~~java
 BigDecimal source = new BigDecimal("13.000");
@@ -98,9 +98,9 @@ System.out.println(source.setScale(1)); // 13.0
 System.out.println(source.setScale(0)); // 13
 ~~~
 
-Cả ba kết quả đều bằng số học với `source`. Nhưng với `new BigDecimal("13.005").setScale(2)`, việc loại chữ số 5 làm đổi giá trị; vì thế Java **không âm thầm cắt bỏ** mà ném ngoại lệ.
+All three results are mathematically equal to `source`. However, with `new BigDecimal("13.005").setScale(2)`, removing the digit 5 changes the value; thus Java **does not silently truncate** and instead throws an exception.
 
-Khi nghiệp vụ cho phép làm tròn, chọn `RoundingMode` **tường minh**:
+When business logic permits rounding, specify `RoundingMode` **explicitly**:
 
 ~~~java
 BigDecimal original = new BigDecimal("2.005");
@@ -114,13 +114,13 @@ System.out.println(
 ); // 2.00
 ~~~
 
-Các kết quả trên khác giá trị số 2.005: **làm tròn là quyết định của miền nghiệp vụ**, không còn là lựa chọn hiển thị thuần túy nếu lấy kết quả làm đầu vào phép tính tiếp theo.
+The results above differ from the numeric value 2.005: **rounding is a business-domain decision**, no longer purely a display choice if the result is fed into subsequent calculations.
 
-Chọn `RoundingMode.UNNECESSARY` khi muốn khẳng định phép chuyển phải chính xác: phương thức sẽ báo lỗi nếu phải làm tròn. Với tiền tệ hoặc đo lường, không chọn một quy tắc rounding chỉ vì đầu ra trông đẹp; phải theo hợp đồng nghiệp vụ.
+Choose `RoundingMode.UNNECESSARY` when you want to assert that the conversion must be exact: the method will raise an error if rounding is required. For currency or measurements, never pick a rounding rule just because the output looks nice; follow the business contract.
 
-## 5. Ví dụ Java 17+: cùng giá trị, nhiều dạng biểu diễn
+## 5. Java 17+ Example: Same Value, Multiple Representations
 
-Tạo tệp `BigDecimalValueDisplayDemo.java`:
+Create `BigDecimalValueDisplayDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -162,14 +162,14 @@ public class BigDecimalValueDisplayDemo {
 }
 ~~~
 
-Chạy trong thư mục chứa tệp:
+Run in the directory containing the file:
 
 ~~~bash
 javac BigDecimalValueDisplayDemo.java
 java BigDecimalValueDisplayDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 a: 12.30 | scale=2
@@ -186,26 +186,26 @@ display: 1,234.50
 original after format: 1234.5
 ~~~
 
-Giải thích:
+Explanation:
 
-- `a` và `b` bằng giá trị số nhưng khác `scale`. Điều này quan trọng nếu một tầng hệ thống dùng `equals()`, `hashCode()` hoặc tập hợp băm làm khóa.
-- `total` là **13** về toán học. Gọi `stripTrailingZeros()` cho biểu diễn `13`; gọi `setScale(2)` cho `13.00` mà vẫn giữ giá trị 13.
-- `scientific.toString()` hiển thị `1E+3` còn `toPlainString()` hiển thị `1000`. Đối tượng gốc vẫn có `scale = -3`.
-- `DecimalFormat` chỉ tạo chuỗi `1,234.50` để hiển thị theo quy ước `Locale.US` trong ví dụ. `amount` sau định dạng vẫn là đối tượng biểu diễn `1234.5` với `scale = 1`.
+- `a` and `b` are equal in numeric value but differ in `scale`. This matters if a system layer uses `equals()`, `hashCode()`, or a hash collection as keys.
+- `total` is **13** mathematically. Calling `stripTrailingZeros()` gives the representation `13`; calling `setScale(2)` gives `13.00` while still keeping the value 13.
+- `scientific.toString()` displays `1E+3` while `toPlainString()` displays `1000`. The original object still has `scale = -3`.
+- `DecimalFormat` only builds the string `1,234.50` for display under `Locale.US` conventions in the example. After formatting, `amount` is still an object representing `1234.5` with `scale = 1`.
 
-`BigDecimal` là immutable: các phương thức chuyển đổi/rounding trả về đối tượng mới; các phương thức chuỗi/format không chỉnh sửa đối tượng đã tính.
+`BigDecimal` is immutable: conversion/rounding methods return new objects; string/formatting methods do not modify the computed object.
 
-## 6. toString, toPlainString và chuỗi có số thập phân cố định
+## 6. toString, toPlainString, and Strings with Fixed Decimal Places
 
-Ba yêu cầu này không giống nhau:
+These three requirements are not the same:
 
-**A. Cần chuỗi canonical của BigDecimal.** `toString()` trả chuỗi có quy tắc xác định; có thể chọn ký pháp khoa học, và có thể chuyển ngược bằng constructor `BigDecimal(String)` để thu lại cùng cặp biểu diễn `unscaledValue`/`scale` trong điều kiện hợp lệ. Ví dụ `new BigDecimal("1E+3").toString()` là `"1E+3"`.
+**A. Need the canonical BigDecimal string.** `toString()` returns a string following deterministic rules; it may choose scientific notation, and can be parsed back with the `BigDecimal(String)` constructor to recover the same `unscaledValue`/`scale` representation pair under valid conditions. For example, `new BigDecimal("1E+3").toString()` is `"1E+3"`.
 
-**B. Cần chuỗi không dùng số mũ.** `toPlainString()` trả dạng thập phân phẳng, chẳng hạn `"1000"` thay cho `"1E+3"`. Nó **không tự đặt số chữ số thập phân cố định**, cũng không bảo toàn `scale` âm nếu sau đó parse lại chuỗi `"1000"`. Trong ví dụ này, parse `"1000"` tạo `scale = 0`, khác đối tượng ban đầu có `scale = -3`.
+**B. Need an exponent-free string.** `toPlainString()` returns a flat decimal form, such as `"1000"` instead of `"1E+3"`. It **does not automatically enforce a fixed number of decimal places**, nor does it preserve a negative `scale` if `"1000"` is subsequently parsed back. In this example, parsing `"1000"` yields `scale = 0`, different from the original object's `scale = -3`.
 
-**C. Cần đúng hai chữ số sau dấu thập phân.** Nếu chính sách là tạo một `BigDecimal` có `scale = 2`, dùng `setScale(2)` hoặc overload có `RoundingMode`, rồi `toPlainString()` để nhận chuỗi `"1000.00"`. Nếu chỉ cần giao diện, dùng bộ định dạng trình bày phù hợp, không làm thay đổi dữ liệu tính toán.
+**C. Need exactly two digits after the decimal point.** If the policy is to produce a `BigDecimal` with `scale = 2`, use `setScale(2)` or the overload with `RoundingMode`, then `toPlainString()` to get `"1000.00"`. If only for UI display, use an appropriate presentation formatter without altering the computed data.
 
-Ví dụ:
+Example:
 
 ~~~java
 BigDecimal amount = new BigDecimal("1000");
@@ -213,13 +213,13 @@ System.out.println(amount.toPlainString());           // 1000
 System.out.println(amount.setScale(2).toPlainString()); // 1000.00
 ~~~
 
-Chú ý `toPlainString()` trên số có số mũ cực lớn có thể tạo chuỗi rất dài, tốn bộ nhớ. Đừng dùng nó vô điều kiện trên dữ liệu số mũ do người dùng nhập mà không giới hạn.
+Note that `toPlainString()` on a number with an extremely large exponent can produce a very long string, consuming memory. Do not call it unconditionally on user-entered exponential data without bounds.
 
-Nếu giao diện theo locale Việt Nam, dấu nhóm nghìn và dấu thập phân có thể khác `Locale.US`; đừng tự thay dấu `.` thành `,` trong chuỗi canonical rồi dùng chuỗi đó làm đầu vào cho `new BigDecimal(...)`. Phân tích dữ liệu và định dạng cho người dùng nên có **các quy tắc riêng**.
+If the UI uses the Vietnamese locale, thousands grouping and decimal separators can differ from `Locale.US`; do not manually replace `.` with `,` in a canonical string and then pass that string into `new BigDecimal(...)`. Data parsing and user-facing formatting should follow **separate rules**.
 
-## 7. stripTrailingZeros: chuẩn hóa giá trị, nhưng thay đổi scale
+## 7. stripTrailingZeros: Normalizes Value, Yet Changes Scale
 
-`stripTrailingZeros()` trả `BigDecimal` bằng về giá trị số và bỏ các chữ số 0 ở cuối phần không chia tỷ lệ:
+`stripTrailingZeros()` returns a `BigDecimal` equal in numeric value with trailing zeros removed from the unscaled part:
 
 ~~~java
 BigDecimal x = new BigDecimal("1000.00");
@@ -231,18 +231,18 @@ System.out.println(y);         // 1E+3
 System.out.println(y.scale()); // -3
 ~~~
 
-Trong ví dụ này, `stripTrailingZeros()` không thay số 1000, nhưng biểu diễn mới có **scale âm**. Vì vậy:
-- Nếu mục tiêu là gộp các `BigDecimal` bằng giá trị số làm khóa, chuẩn hóa có thể hữu ích nhưng cần áp dụng cùng cách ở mọi nơi.
-- Nếu `scale` thể hiện độ phân giải, số chữ số đo lường hoặc cam kết hợp đồng, không bỏ tự động.
-- Nếu mục tiêu hiển thị `1000.00`, `stripTrailingZeros()` không phải công cụ phù hợp.
+In this example, `stripTrailingZeros()` does not change the number 1000, yet the new representation has a **negative scale**. Therefore:
+- If the goal is to unify numerically equal `BigDecimal` instances as keys, normalization can be helpful but must be applied consistently everywhere.
+- If `scale` represents measurement resolution, significant digits, or a contractual obligation, do not strip it automatically.
+- If the goal is displaying `1000.00`, `stripTrailingZeros()` is not the right tool.
 
-`stripTrailingZeros()` trên mọi giá trị bằng 0 chuẩn hóa về `BigDecimal.ZERO`, có `scale = 0`. Vì thế `new BigDecimal("0.000").stripTrailingZeros()` không giữ ba chữ số thập phân.
+`stripTrailingZeros()` on any zero value normalizes to `BigDecimal.ZERO`, which has `scale = 0`. Thus `new BigDecimal("0.000").stripTrailingZeros()` does not keep three decimal places.
 
-## 8. Scale tính toán có thể ảnh hưởng đến kết quả phép tính tiếp theo
+## 8. Computational Scale Can Affect Subsequent Operation Results
 
-Một quy tắc nguy hiểm là "hai số `compareTo() == 0` nên thay thế lẫn nhau trong mọi phép tính đều như nhau". Giá trị số trước phép tính giống nhau, nhưng **overload có rounding và scale mặc định có thể cho kết quả số học khác nhau**.
+A dangerous rule of thumb is "two numbers with `compareTo() == 0` are interchangeable in every calculation." Their numeric values before the operation are identical, yet **overloads with default rounding and scale can produce different arithmetic outcomes**.
 
-Ví dụ:
+Example:
 
 ~~~java
 BigDecimal divisor = new BigDecimal("3");
@@ -256,9 +256,9 @@ System.out.println(
 ); // 0.67
 ~~~
 
-Overload `divide(BigDecimal divisor, RoundingMode roundingMode)` trả kết quả ở **scale của số bị chia**. Với `2.0`, kết quả làm tròn có một chữ số sau dấu thập phân; với `2.00`, kết quả có hai chữ số. Do đó hai đối tượng ban đầu bằng về giá trị số nhưng cho kết quả đã làm tròn khác nhau qua overload này.
+The `divide(BigDecimal divisor, RoundingMode roundingMode)` overload returns a result with the **dividend's scale**. With `2.0`, the rounded result has one digit after the decimal point; with `2.00`, the result has two digits. Thus two objects initially equal in numeric value yield different rounded outcomes through this overload.
 
-Để tránh phụ thuộc ngầm, viết rõ quy tắc của nghiệp vụ:
+To avoid implicit dependencies, write the business rule explicitly:
 
 ~~~java
 BigDecimal ratio = new BigDecimal("2.0")
@@ -266,11 +266,11 @@ BigDecimal ratio = new BigDecimal("2.0")
 System.out.println(ratio); // 0.6667
 ~~~
 
-`MathContext` kiểm soát số chữ số **có nghĩa** và rounding của phép tính; `scale` kiểm soát vị trí dấu thập phân. Không dùng `new MathContext(2)` với ý nghĩa "hai chữ số sau dấu phẩy". Tham số `precision = 2` có nghĩa hai chữ số có nghĩa, nên kết quả sẽ phụ thuộc độ lớn của số.
+`MathContext` controls the number of **significant** digits and rounding for an operation; `scale` controls the position of the decimal point. Do not use `new MathContext(2)` to mean "two digits after the decimal point." A `precision = 2` parameter means two significant digits, so the result depends on the number's magnitude.
 
-## 9. Định dạng chỉ ở lớp hiển thị: DecimalFormat và locale
+## 9. Display-Layer-Only Formatting: DecimalFormat and Locale
 
-Để hiển thị số cho con người, Java có `DecimalFormat` và `NumberFormat`. Đây là bước **render**: nhận một giá trị và tạo chuỗi theo pattern/locale. Ví dụ với `Locale.US`:
+To display numbers to humans, Java provides `DecimalFormat` and `NumberFormat`. This is the **rendering** step: taking a value and producing a string per pattern/locale. Example with `Locale.US`:
 
 ~~~java
 DecimalFormat formatter = new DecimalFormat(
@@ -284,65 +284,65 @@ System.out.println(label); // 1,234.50
 System.out.println(value); // 1234.5
 ~~~
 
-Đoạn trên cần `import java.math.*; import java.text.*; import java.util.*;` hoặc các import cụ thể như ở chương trình mục 5.
+The snippet above requires `import java.math.*; import java.text.*; import java.util.*;` or explicit imports as in the Section 5 program.
 
-**Lựa chọn phù hợp:**
-- Cần tính toán thêm: giữ `BigDecimal` gốc với độ chính xác phù hợp.
-- Cần nhập/xuất máy với format chuẩn: định nghĩa format và chính sách parse cụ thể; chuỗi `toString()` thường phù hợp cho giá trị số canonical.
-- Cần hiển thị cho người dùng: dùng formatter theo locale và đơn vị mong muốn; chuỗi format có thể chứa dấu phân nhóm và không thể đưa trực tiếp vào constructor `BigDecimal(String)`.
-- Cần lưu **giá trị đã chốt sau làm tròn**: áp dụng rounding vào `BigDecimal` trước thời điểm chốt theo nghiệp vụ, thay vì phụ thuộc số đã hiển thị.
+**Appropriate choices:**
+- Need further computation: keep the original `BigDecimal` with appropriate precision.
+- Need machine import/export in a standard format: define explicit formatting and parsing policies; `toString()` is usually suitable for canonical numeric values.
+- Need user-facing display: use a formatter matching the desired locale and unit; formatted strings may contain grouping separators and cannot be passed directly to the `BigDecimal(String)` constructor.
+- Need to store a **finalized value after rounding**: apply rounding to the `BigDecimal` before the business finalization point, rather than relying on the displayed number.
 
-`DecimalFormat` là đối tượng **không an toàn để chia sẻ và dùng đồng thời giữa nhiều luồng** nếu không đồng bộ phù hợp. Có thể tạo mỗi lần dùng hoặc cung cấp một instance riêng theo ngữ cảnh ứng dụng.
+`DecimalFormat` is an object that is **not safe to share and use concurrently across multiple threads** without proper synchronization. You can instantiate it per use or provide a separate instance per application context.
 
-Một giao diện có thể hiển thị `12.35` từ dữ liệu `12.3456` mà không đổi dữ liệu gốc. Nếu người dùng xác nhận giao dịch ở `12.35`, ứng dụng phải quy định rõ **giá trị chốt** nào được lưu và tính toán tiếp; không suy ra ngầm rằng giá trị gốc đã bị làm tròn bởi formatter.
+A UI might display `12.35` from underlying data `12.3456` without changing the source data. If the user confirms a transaction at `12.35`, the application must clearly specify which **finalized value** is stored and carried forward in calculations; never implicitly assume the original value was rounded by the formatter.
 
-## 10. Chuyển đổi dữ liệu giữa các tầng ứng dụng
+## 10. Data Conversion Across Application Layers
 
-Hãy hình dung luồng xử lý:
+Picture the processing flow:
 
 ~~~text
-Chuỗi đầu vào / dữ liệu bên ngoài
+Input string / external data
         |
         v
-Parse thành BigDecimal với quy ước rõ
+Parse into BigDecimal with explicit convention
         |
         v
-Tính toán BigDecimal + rounding theo nghiệp vụ
+BigDecimal computation + business rounding
         |
-        +----> Lưu giá trị chốt theo hợp đồng schema
+        +----> Store finalized value per schema contract
         |
-        +----> Format theo locale và yêu cầu giao diện
+        +----> Format per locale and UI requirements
                   |
                   v
-              Chuỗi hiển thị
+              Display string
 ~~~
 
-Tại mỗi ranh giới, cần phân biệt những hợp đồng sau.
+At each boundary, distinguish the following contracts.
 
-**Đầu vào:** Với chuỗi decimal canonical `"12.345"`, `new BigDecimal("12.345")` giữ đúng giá trị thập phân. Tránh `new BigDecimal(0.1)` khi ý muốn là chính xác 0.1 vì số `double` thường không biểu diễn chính xác số thập phân đó; `BigDecimal.valueOf(0.1)` hoặc constructor từ chuỗi có hành vi phù hợp hơn cho trường hợp này.
+**Input:** For a canonical decimal string `"12.345"`, `new BigDecimal("12.345")` preserves the exact decimal value. Avoid `new BigDecimal(0.1)` when exact `0.1` is intended because `double` typically cannot represent that decimal number exactly; `BigDecimal.valueOf(0.1)` or the `String` constructor behaves more appropriately here.
 
-**Tính toán:** Dùng `add`, `subtract`, `multiply`, `divide` và `MathContext`/`RoundingMode` nếu cần. Không làm tròn sau mỗi thao tác một cách máy móc; vị trí làm tròn phải theo chính sách, vì làm tròn ở các bước khác nhau có thể tạo tổng khác nhau.
+**Computation:** Use `add`, `subtract`, `multiply`, `divide`, and `MathContext`/`RoundingMode` as needed. Do not mechanically round after every operation; where rounding occurs must follow policy, because rounding at different steps can produce different totals.
 
-**Lưu trữ:** Khi ghi vào cột cơ sở dữ liệu `DECIMAL(p,s)`/`NUMERIC(p,s)`, `p` và `s` là hợp đồng của schema/database, không mặc định trùng với `precision()` và `scale()` của đối tượng đang có. Database/driver có thể ép scale, làm tròn hoặc từ chối dữ liệu tùy hệ quản trị và schema. Hãy xác minh hành vi thực tế, dùng truy vấn có tham số và kiểm tra các trường hợp số chữ số vượt giới hạn. Không coi `toPlainString()` là một cơ chế kiểm soát schema.
+**Storage:** When writing to a `DECIMAL(p,s)`/`NUMERIC(p,s)` database column, `p` and `s` are the schema/database contract and do not by default match the `precision()` and `scale()` of your current object. The database/driver may enforce scale, round, or reject data depending on the RDBMS and schema. Verify actual behavior, use parameterized queries, and test digit-overflow cases. Do not treat `toPlainString()` as a schema enforcement mechanism.
 
-**Giao tiếp JSON:** Nhiều thư viện serialize `BigDecimal` dưới dạng số JSON; một số có tùy chọn biểu diễn dạng khoa học hoặc dạng plain. Nếu gửi như **JSON number**, consumer có thể parse thành floating point và làm mất chữ số chính xác, cũng như không giữ `scale`. Nếu hợp đồng cần cả độ chính xác và số chữ số biểu diễn, có thể định nghĩa chuỗi decimal và metadata `scale`/đơn vị, đồng thời yêu cầu consumer tuân thủ. Không phụ thuộc cú pháp JSON number để truyền ý nghĩa "luôn hai chữ số".
+**JSON communication:** Many libraries serialize `BigDecimal` as a JSON number; some offer options for scientific or plain representation. If sent as a **JSON number**, consumers may parse it as floating-point, losing significant digits and failing to preserve `scale`. If the contract requires both precision and digit count, you can define a decimal string plus `scale`/unit metadata and require consumers to honor it. Do not rely on JSON number syntax to convey "always two digits."
 
-**Hiển thị:** Chọn formatter phù hợp người dùng; ví dụ `#,##0.00` yêu cầu hai chữ số sau thập phân trong locale US. Dấu phẩy nhóm nghìn là ký hiệu trình bày, không phải thành phần của giá trị số.
+**Display:** Choose a formatter suitable for the user; e.g., `#,##0.00` requests two digits after the decimal point in the US locale. Thousands grouping commas are presentation symbols, not part of the numeric value.
 
-## 11. Ví dụ chọn thiết kế: tiền, đo lường và số liệu báo cáo
+## 11. Design Selection Examples: Money, Measurements, and Reporting Figures
 
-### Trường hợp A — tiền với đơn vị nhỏ nhất
+### Case A — Money in Smallest Units
 
-Giả sử hệ thống quy định một đơn vị lớn bằng 100 đơn vị nhỏ và chỉ chấp nhận **số nguyên đơn vị nhỏ nhất**. Giá trị gửi vào là `"12.345"` đơn vị lớn:
+Suppose a system defines one major unit as 100 minor units and accepts only an **integer number of minor units**. The incoming value is `"12.345"` major units:
 
 ~~~java
 BigDecimal amount = new BigDecimal("12.345");
 BigDecimal minor = amount.movePointRight(2); // 1234.5
 ~~~
 
-Nếu dùng `longValue()`, phần lẻ bị cắt và làm sai số tiền. Hãy yêu cầu chuyển đổi **chính xác** bằng `longValueExact()` hoặc `toBigIntegerExact()`; nếu số lẻ không hợp lệ thì từ chối, hoặc làm tròn theo quy tắc đã được phê duyệt trước khi chuyển.
+If `longValue()` is used, the fractional part is truncated and corrupts the monetary amount. Require an **exact** conversion using `longValueExact()` or `toBigIntegerExact()`; reject invalid fractions, or round according to an approved rule prior to conversion.
 
-Ví dụ quy tắc chốt giá trị rõ ràng:
+Example of an explicit value-finalization rule:
 
 ~~~java
 BigDecimal rounded = amount.setScale(2, RoundingMode.HALF_UP);
@@ -352,32 +352,32 @@ System.out.println(rounded); // 12.35
 System.out.println(cents);   // 1235
 ~~~
 
-Đây là **một quyết định làm tròn thay đổi giá trị**, không phải chỉ đổi hiển thị. Hệ số 100 chỉ đúng cho đơn vị/hệ tiền được giả định trong ví dụ; không suy rằng mọi loại tiền đều có hai chữ số đơn vị nhỏ nhất.
+This is a **value-changing rounding decision**, not merely a display change. The factor of 100 holds only for the unit/currency assumed in the example; do not assume every currency has two minor-unit decimal places.
 
-### Trường hợp B — số đo có độ phân giải
+### Case B — Measurements with Resolution
 
-Hai số `1.2` và `1.20` bằng nhau về số học, nhưng nếu nguồn đo quy ước số chữ số thập phân thể hiện độ phân giải, việc gọi `stripTrailingZeros()` có thể làm mất thông tin biểu diễn. Cần xác định rõ **độ chính xác phép đo** có được mô hình hóa bằng `scale` hay bằng metadata riêng. `BigDecimal` giữ số chữ số thập phân nhưng không tự chứng minh số liệu đo thực tế có độ chính xác đến mức đó.
+The two numbers `1.2` and `1.20` are arithmetically equal, yet if the measurement source uses decimal-place count to express resolution, calling `stripTrailingZeros()` can discard representation information. Explicitly decide whether **measurement precision** is modeled via `scale` or via separate metadata. `BigDecimal` preserves decimal digit count, though it does not by itself prove the real-world measurement was accurate to that degree.
 
-### Trường hợp C — báo cáo chỉ yêu cầu trình bày đồng nhất
+### Case C — Reports Requiring Only Uniform Presentation
 
-Dữ liệu sau cộng là `13.000` nhưng báo cáo cần đúng hai chữ số. Nếu không chốt giá trị mới, có thể dùng formatter để tạo `"13.00"`. Nếu cần xuất một giá trị decimal có `scale = 2` vì hợp đồng trao đổi dữ liệu, dùng `setScale(2)` với xử lý lỗi hoặc rounding rõ ràng. Hai hướng đều cho chữ `13.00` nhưng **ý nghĩa đối với dữ liệu gốc khác nhau**.
+Data after addition is `13.000`, while a report needs exactly two decimal places. If no new value is being finalized, a formatter can produce `"13.00"`. If a decimal value with `scale = 2` must be emitted for a data exchange contract, use `setScale(2)` with explicit error handling or rounding. Both approaches produce the text `13.00`, yet their **impact on the underlying data differs**.
 
-## 12. Sai lầm thường gặp
+## 12. Common Mistakes
 
-1. **Nhầm `scale` với độ chính xác phép tính:** `scale = 2` chỉ xác định vị trí dấu thập phân trong biểu diễn, không khẳng định con số đã được đo hoặc tính chính xác đến hai chữ số đó.
-2. **Tưởng `setScale` chỉ đổi nhãn:** nếu giảm `scale` mà phải loại chữ số khác 0, kết quả làm tròn đổi giá trị; overload không cho phép làm tròn sẽ ném ngoại lệ.
-3. **Tưởng `toPlainString()` đảm bảo hai chữ số:** nó chỉ bỏ ký pháp mũ. `new BigDecimal("1E+3").toPlainString()` là `"1000"`, không phải `"1000.00"`.
-4. **Dùng `stripTrailingZeros()` trước mọi phép tính:** có thể xóa thông tin `scale` cần thiết và làm kết quả rounding của một số overload trở nên khác trước.
-5. **Dùng `scaleByPowerOfTen` để "định dạng":** phương thức này nhân/chia giá trị số theo bậc 10, không chỉ sửa cách in số.
-6. **Tin rằng chuỗi hiển thị là dữ liệu canonical:** `"1,234.50"` còn phụ thuộc locale và dấu ngăn cách; tách parse và format.
-7. **Nhầm `compareTo` với `equals`:** `new BigDecimal("2.0").compareTo(new BigDecimal("2.00")) == 0`, nhưng `equals()` là `false`. Kết quả này có thể tác động đến khóa `HashMap` và cấu trúc có sắp xếp như `TreeMap`.
-8. **Khởi tạo bằng `new BigDecimal(double)` rồi trách rounding/scale:** sai lệch có thể xuất phát từ giá trị binary floating point ban đầu; tạo bằng chuỗi decimal hoặc `BigDecimal.valueOf(double)` khi phù hợp.
-9. **Làm tròn sớm và nhiều lần:** phép cộng các giá trị đã làm tròn từng dòng có thể khác làm tròn một lần ở tổng cuối. Quy định rõ thời điểm chốt rounding.
-10. **Quên giới hạn đầu ra:** ký pháp khoa học có thể biểu diễn số có bậc mũ lớn ngắn gọn, trong khi `toPlainString()` có thể tạo rất nhiều ký tự. Kiểm soát giới hạn tài nguyên đối với dữ liệu không tin cậy.
+1. **Confusing `scale` with calculation accuracy:** `scale = 2` only specifies the decimal point position in the representation; it does not assert the number was measured or computed accurately to two decimal places.
+2. **Thinking `setScale` only changes a label:** if decreasing `scale` drops non-zero digits, rounding changes the value; the non-rounding overload throws an exception.
+3. **Thinking `toPlainString()` guarantees two digits:** it only removes exponential notation. `new BigDecimal("1E+3").toPlainString()` is `"1000"`, not `"1000.00"`.
+4. **Calling `stripTrailingZeros()` before every operation:** can erase needed `scale` information and alter rounding results on certain overloads.
+5. **Using `scaleByPowerOfTen` to "format":** this method multiplies/divides the numeric value by a power of 10, rather than just changing how the number prints.
+6. **Believing a display string is canonical data:** `"1,234.50"` depends on locale and separators; keep parsing and formatting separate.
+7. **Confusing `compareTo` with `equals`:** `new BigDecimal("2.0").compareTo(new BigDecimal("2.00")) == 0`, whereas `equals()` is `false`. This can affect `HashMap` keys and sorted structures like `TreeMap`.
+8. **Initializing with `new BigDecimal(double)` and blaming rounding/scale:** discrepancies may stem from the initial binary floating-point value; construct from a decimal string or `BigDecimal.valueOf(double)` when appropriate.
+9. **Rounding early and repeatedly:** summing individually rounded line items can differ from rounding the final total once. Clearly define when rounding is finalized.
+10. **Forgetting output limits:** scientific notation can represent numbers with huge exponents compactly, whereas `toPlainString()` can generate enormous strings. Enforce resource limits on untrusted input.
 
-## 13. Bài tập tự kiểm tra
+## 13. Self-Check Exercises
 
-**Bài 1.** Với mã:
+**Exercise 1.** Given the code:
 
 ~~~java
 BigDecimal original = new BigDecimal("3.000");
@@ -392,26 +392,26 @@ System.out.println(original.equals(a));// ?
 System.out.println(original.compareTo(b) == 0);// ?
 ~~~
 
-**Đáp án:** `3.0`, `1`, `3`, `0`, `false`, `true`. Cả ba bằng về giá trị số nhưng khác `scale` và có thể khác `equals()`.
+**Answer:** `3.0`, `1`, `3`, `0`, `false`, `true`. All three are equal in numeric value, yet differ in `scale` and can differ in `equals()`.
 
-**Bài 2.** `new BigDecimal("3.005").setScale(2, RoundingMode.HALF_UP)` trả gì? **Đáp án:** `3.01`. Đây là thay đổi giá trị số; nếu không truyền rounding mode, overload `setScale(2)` ném `ArithmeticException`.
+**Exercise 2.** What does `new BigDecimal("3.005").setScale(2, RoundingMode.HALF_UP)` return? **Answer:** `3.01`. This changes the numeric value; without passing a rounding mode, the `setScale(2)` overload throws `ArithmeticException`.
 
-**Bài 3.** `new BigDecimal("1E+3").setScale(2).toPlainString()` trả gì? **Đáp án:** `"1000.00"`. Việc đặt `scale = 2` là một thao tác trên đối tượng mới; `toPlainString()` sau đó chuyển thành chuỗi.
+**Exercise 3.** What does `new BigDecimal("1E+3").setScale(2).toPlainString()` return? **Answer:** `"1000.00"`. Setting `scale = 2` is an operation producing a new object; `toPlainString()` then converts it to a string.
 
-**Bài 4.** Hệ thống cần tính trung bình của nhiều con số rồi hiển thị hai chữ số. Có nên `setScale(2, HALF_UP)` sau *từng phần tử* trước khi cộng? **Gợi ý:** chỉ nếu hợp đồng yêu cầu làm tròn từng phần tử. Thông thường hãy giữ giá trị tính toán phù hợp và làm tròn ở điểm xác định bởi nghiệp vụ; sau đó mới format giao diện. So sánh phương án qua các dữ liệu có chữ số thứ ba để kiểm tra chênh lệch.
+**Exercise 4.** A system needs to compute the average of several numbers and display two decimal places. Should you call `setScale(2, HALF_UP)` after *each element* before summing? **Hint:** only if the contract requires per-element rounding. Normally, keep full computed precision and round at the business-defined point, then format for the UI afterward. Compare approaches on inputs with third decimal digits to inspect the discrepancy.
 
-**Bài 5.** Một backend gửi JSON number `1.00` cho client và yêu cầu client luôn biết người nhập đã gõ hai chữ số sau dấu thập phân. Điều đó có chắc chắn không? **Đáp án:** Không. Cấu trúc JSON number và cách parser bên nhận hoạt động không bảo đảm giữ ý nghĩa `scale`. Phải thỏa thuận hợp đồng trao đổi rõ, có thể dùng chuỗi decimal hoặc metadata riêng khi số chữ số biểu diễn là dữ liệu nghiệp vụ.
+**Exercise 5.** A backend sends the JSON number `1.00` to a client and expects the client to always know the user typed two digits after the decimal point. Is that reliable? **Answer:** No. JSON number syntax and how receiving parsers behave do not guarantee preserving `scale` semantics. Agree on an explicit exchange contract, using decimal strings or separate metadata when digit count is business data.
 
-## 14. Quy tắc áp dụng và tài liệu tham khảo
+## 14. Application Rules and References
 
-Trước khi đổi một `BigDecimal`, hãy trả lời theo đúng thứ tự:
+Before modifying a `BigDecimal`, answer in order:
 
-1. **Giá trị toán học có được phép thay đổi không?** Nếu không, tránh rounding không được yêu cầu; dùng chuyển đổi chính xác và kiểm tra ngoại lệ.
-2. **`scale` có phải một phần hợp đồng dữ liệu không?** Nếu có, bảo toàn hoặc chuẩn hóa theo quy tắc được công bố; không tùy tiện bỏ số 0 cuối.
-3. **Đầu ra phục vụ tính toán, lưu trữ hay hiển thị?** Dùng `BigDecimal` cho tính toán, định nghĩa rõ schema cho lưu trữ, dùng định dạng/locale cho trình bày.
-4. **Khi nào và theo quy tắc nào sẽ làm tròn?** Mã hóa điều đó bằng `RoundingMode`/`MathContext` hoặc overload `divide` tương ứng.
+1. **Is the mathematical value allowed to change?** If not, avoid unintended rounding; use exact conversions and check exceptions.
+2. **Is `scale` part of the data contract?** If so, preserve or normalize it per published rules; do not arbitrarily strip trailing zeros.
+3. **Is the output for computation, storage, or display?** Use `BigDecimal` for computation, define explicit schemas for storage, and use formatters/locales for presentation.
+4. **When and under what rule will rounding occur?** Encode that with `RoundingMode`/`MathContext` or the corresponding `divide` overload.
 
-Tài liệu chính thức:
-- [BigDecimal — Java SE 21 API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html): biểu diễn `scale`, preferred scale, `setScale`, `toString`, `toPlainString`, `stripTrailingZeros` và các phép toán.
-- [RoundingMode — Java SE 21 API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/RoundingMode.html): ý nghĩa các chế độ làm tròn.
-- [DecimalFormat — Java SE 21 API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/DecimalFormat.html): pattern định dạng số, locale và việc sử dụng đa luồng.
+Official documentation:
+- [BigDecimal — Java SE 21 API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html): `scale` representation, preferred scale, `setScale`, `toString`, `toPlainString`, `stripTrailingZeros`, and operations.
+- [RoundingMode — Java SE 21 API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/RoundingMode.html): semantics of rounding modes.
+- [DecimalFormat — Java SE 21 API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/DecimalFormat.html): number formatting patterns, locales, and multithreaded usage.

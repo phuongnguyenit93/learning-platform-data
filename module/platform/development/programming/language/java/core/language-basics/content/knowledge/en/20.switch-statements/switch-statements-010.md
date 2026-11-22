@@ -1,11 +1,11 @@
-# Chọn `if` hoặc `switch` theo bản chất điều kiện — Java 17+
+# Choosing `if` or `switch` Based on the Nature of the Condition — Java 17+
 
-## 1. Nguyên tắc quyết định
+## 1. Decision Principle
 
-Cả `if/else if/else` và `switch` đều điều khiển luồng thực thi, nhưng diễn đạt **hai loại bài toán** khác nhau:
+Both `if/else if/else` and `switch` control execution flow, but they express **two different kinds of problems**:
 
-- **`if`**: trả lời những câu hỏi **đúng/sai** tùy ý, chẳng hạn “điểm từ 70 trở lên”, “người dùng đủ 18 tuổi **và** đã xác minh”, hoặc “ưu tiên khẩn cấp”.
-- **`switch`**: chọn xử lý theo **một giá trị rời rạc** có các trường hợp xác định, chẳng hạn mã trạng thái `1/2/3`, lệnh `"start"/"stop"` hoặc một hằng `enum`.
+- **`if`**: answers arbitrary **true/false** questions, such as "score is 70 or higher", "user is at least 18 years old **and** verified", or "emergency priority".
+- **`switch`**: selects handling based on **a single discrete value** with fixed cases, such as status codes `1/2/3`, commands `"start"/"stop"`, or an `enum` constant.
 
 ~~~java
 int score = 85;
@@ -32,32 +32,32 @@ B
 START
 ~~~
 
-**Đừng chọn theo cảm giác “switch trông ngắn hơn” hoặc “if chạy nhanh hơn”.** Hãy chọn theo **loại điều kiện cần biểu đạt**, quy tắc miền dữ liệu và khả năng bảo trì.
+**Do not choose based on feelings like "switch looks shorter" or "if runs faster".** Choose based on the **kind of condition to express**, data domain rules, and maintainability.
 
-## 2. Bảng chọn nhanh
+## 2. Quick Selection Table
 
-| Nhu cầu | Thường chọn | Lý do |
+| Need | Usually choose | Reason |
 |---|---|---|
-| Kiểm tra `age >= 18` | `if` | Điều kiện quan hệ, không phải một giá trị cố định |
-| Kiểm tra `0 <= score <= 100` | `if` | Kết hợp nhiều điều kiện boolean |
-| Phân loại điểm theo các khoảng 0–49, 50–69, 70–89, 90–100 | `if/else if` | Các ngưỡng và biên có ý nghĩa |
-| Quy tắc `isAdmin || (verified && !blocked)` | `if` | Logic `&&`, `||`, `!` |
-| Xử lý `code == 1`, `code == 2`, `code == 3` | `switch` | Các trường hợp rời rạc của cùng selector |
-| Xử lý lệnh `"start"`, `"stop"` | `switch(String)` | Nhãn giá trị String dễ đọc |
-| Xử lý `Status.NEW/RUNNING/DONE` | `switch(enum)` | Tập giá trị hữu hạn, đặt tên rõ |
-| Một điều kiện có độ ưu tiên cao phải xét trước các điều kiện khác | `if/else if` | Thứ tự là một phần của quy tắc |
-| Hai hành động phải cùng chạy nếu hai điều kiện đều true | Hai `if` độc lập | Chuỗi `else if` chỉ chọn nhánh đầu tiên |
-| Phân loại `double` theo ngưỡng | `if` | `double` không là selector switch Java 17 ổn định |
+| Checking `age >= 18` | `if` | Relational condition, not a fixed single value |
+| Checking `0 <= score <= 100` | `if` | Combines multiple boolean conditions |
+| Classifying scores into intervals 0–49, 50–69, 70–89, 90–100 | `if/else if` | Thresholds and bounds are meaningful |
+| Rule `isAdmin || (verified && !blocked)` | `if` | Logic with `&&`, `||`, `!` |
+| Handling `code == 1`, `code == 2`, `code == 3` | `switch` | Discrete cases of the same selector |
+| Handling commands `"start"`, `"stop"` | `switch(String)` | Readable String value labels |
+| Handling `Status.NEW/RUNNING/DONE` | `switch(enum)` | Finite set of clearly named values |
+| A high-priority condition must be checked before others | `if/else if` | Order is part of the rule |
+| Two actions must both run if two conditions are true | Two independent `if` statements | An `else if` chain selects only the first branch |
+| Classifying `double` by thresholds | `if` | `double` is not a stable Java 17 switch selector |
 
-Một bài toán có thể dùng **cả hai**: `if` xác thực đầu vào, sau đó `switch` xử lý mã lệnh hợp lệ.
+A single problem can use **both**: `if` validates input, then `switch` handles valid command codes.
 
-## 3. `if` phù hợp với miền liên tục và điều kiện kết hợp
+## 3. `if` Fits Continuous Ranges and Combined Conditions
 
-Giả sử điểm hợp lệ là `[0,100]` và quy định:
+Suppose valid scores are `[0,100]` with the rules:
 
-| Miền điểm | Kết quả |
+| Score range | Result |
 |---|---|
-| Ngoài `[0,100]` | INVALID |
+| Outside `[0,100]` | INVALID |
 | `[90,100]` | A |
 | `[70,90)` | B |
 | `[50,70)` | C |
@@ -79,13 +79,13 @@ static String grade(int score) {
 }
 ~~~
 
-Cách này bộc lộ rõ **ngưỡng** và **biên bao gồm**:
+This approach clearly exposes **thresholds** and **inclusive bounds**:
 
-- 90 thuộc A, 70 thuộc B, 50 thuộc C.
-- 100 vẫn hợp lệ, 101 bị loại.
-- Kiểm tra ngưỡng từ cao xuống thấp; nếu đặt `score >= 50` lên trước, các hạng A/B có thể bị nhánh rộng **che khuất**.
+- 90 belongs to A, 70 belongs to B, 50 belongs to C.
+- 100 is still valid, 101 is rejected.
+- Check thresholds from highest to lowest; if `score >= 50` were placed first, grades A/B would be **shadowed** by the broader branch.
 
-**Không nên thay bằng:**
+**Do not replace with:**
 
 ~~~java
 // switch (score) {
@@ -95,9 +95,9 @@ Cách này bộc lộ rõ **ngưỡng** và **biên bao gồm**:
 // }
 ~~~
 
-Biểu thức trên chỉ khớp **đúng các số 90 hoặc 70**, không biểu diễn “từ 90 trở lên” hay “từ 70 trở lên”. Java 17 switch thông thường **không cho nhãn `case score >= 90`**.
+The expression above matches **only the exact numbers 90 or 70**, not "90 or above" or "70 or above". Standard Java 17 switch **does not allow labels like `case score >= 90`**.
 
-## 4. `if` phù hợp với điều kiện nhiều biến và độ ưu tiên
+## 4. `if` Fits Multi-Variable Conditions and Priorities
 
 ~~~java
 boolean eligible = age >= 18
@@ -105,9 +105,9 @@ boolean eligible = age >= 18
         && !banned;
 ~~~
 
-Ba phép kiểm tra trên sử dụng **ba dữ liệu**, với quan hệ AND và NOT. `switch` không thay thế được biểu thức logic này một cách tự nhiên.
+The three checks above use **three inputs**, with AND and NOT relationships. `switch` cannot naturally replace this boolean expression.
 
-Với nhiều quy tắc ưu tiên:
+With multiple priority rules:
 
 ~~~java
 static String priority(int risk, boolean emergency) {
@@ -125,13 +125,13 @@ static String priority(int risk, boolean emergency) {
 }
 ~~~
 
-- **Khẩn cấp** thắng các ngưỡng rủi ro thông thường.
-- Khi không khẩn cấp, mức rủi ro cao hơn được xét trước.
-- Dữ liệu sai miền bị từ chối trước khi phân loại.
+- **Emergency** overrides normal risk thresholds.
+- When not an emergency, higher risk levels are evaluated first.
+- Out-of-range data is rejected before classification.
 
-**Thứ tự các nhánh có ý nghĩa nghiệp vụ.** Không tự đảo thứ tự vì nghĩ điều kiện ngắn hơn nên đặt lên trước.
+**Branch order carries business meaning.** Do not reorder branches just because a condition looks shorter to put first.
 
-Nếu cần in/đánh dấu **cả hai tính chất** cùng đúng:
+If you need to print/flag **both properties** when both are true:
 
 ~~~java
 if (score >= 50) {
@@ -142,9 +142,9 @@ if (score >= 90) {
 }
 ~~~
 
-Với score 95, **cả hai** được in. Nếu dùng `else if`, chỉ một nhánh được chạy. `switch` cũng không phải thay thế trực tiếp cho yêu cầu đánh giá nhiều tính chất độc lập.
+With score 95, **both** are printed. With `else if`, only one branch runs. `switch` is also not a direct replacement for evaluating multiple independent properties.
 
-## 5. `switch` phù hợp khi chọn một trong nhiều giá trị rời rạc
+## 5. `switch` Fits Selecting One of Many Discrete Values
 
 ~~~java
 static String status(int code) {
@@ -157,14 +157,14 @@ static String status(int code) {
 }
 ~~~
 
-Đây là **switch expression**, trả một `String`. Nó tự nhiên vì:
+This is a **switch expression**, returning a `String`. It is natural because:
 
-- Chỉ xét **một selector** `code`.
-- Mỗi nhãn `case` là một giá trị hằng rời rạc.
-- Các nhánh `->` không fall-through.
-- `default` xử lý mã không được khai báo.
+- It inspects only **one selector** `code`.
+- Each `case` label is a discrete constant value.
+- Arrow `->` branches do not fall through.
+- `default` handles undeclared codes.
 
-Nếu chỉ muốn in log hoặc thực hiện hành động mà **không tạo giá trị**, dùng switch **statement**:
+If you only want to log or perform actions without **producing a value**, use a switch **statement**:
 
 ~~~java
 switch (code) {
@@ -175,17 +175,17 @@ switch (code) {
 }
 ~~~
 
-**Phân biệt:** `case ->` không tự động biến switch thành expression; **ngữ cảnh sử dụng** mới quyết định nó là statement hay expression.
+**Distinction:** `case ->` does not automatically make a switch an expression; **the usage context** determines whether it is a statement or an expression.
 
-## 6. Kiểm tra kiểu selector trước khi chọn switch
+## 6. Check Selector Type Before Choosing Switch
 
-Java 17 ổn định (không preview) hỗ trợ selector `byte`, `short`, `char`, `int`, bốn wrapper tương ứng, `String` hoặc enum cụ thể. `long`, `float`, `double`, `boolean`, `Object` và các wrapper còn lại không được dùng trực tiếp.
+Stable Java 17 (without preview) supports selectors of type `byte`, `short`, `char`, `int`, their four corresponding wrappers, `String`, or a specific enum. `long`, `float`, `double`, `boolean`, `Object`, and the remaining wrappers cannot be used directly.
 
-Nếu mã nghiệp vụ là `long`, đừng ép sang `int` chỉ để dùng switch vì có thể mất thông tin. Chọn `if` hoặc thiết kế lại mô hình dữ liệu nếu có lý do. Bài đầu chương trình bày bảng selector và phạm vi phiên bản đầy đủ.
+If a business ID is `long`, do not cast it to `int` just to use switch, as doing so can lose information. Choose `if` or redesign the data model if appropriate. The first lesson in this chapter presents the full selector table and version scope.
 
-## 7. Chọn `switch(String)`: mã lệnh, không phải mọi chuỗi văn bản
+## 7. Choosing `switch(String)`: Command Codes, Not Arbitrary Text
 
-Một lệnh có tập giá trị nhỏ và xác định rất phù hợp với switch:
+A command with a small, well-defined set of values fits switch very well:
 
 ~~~java
 static String command(String input) {
@@ -202,15 +202,15 @@ static String command(String input) {
 }
 ~~~
 
-`switch(String)` so khớp theo **nội dung**, có phân biệt chữ hoa/thường. Ví dụ chủ động chuẩn hóa đầu vào ASCII như `"RUN"` hoặc `" Start "` trước khi chọn lệnh.
+`switch(String)` matches by **content** and is case-sensitive. The example intentionally normalizes ASCII inputs such as `"RUN"` or `" Start "` before selecting the command.
 
-**Quan trọng:**
+**Important:**
 
-- `null` cần được kiểm tra trước; selector String null có thể ném `NullPointerException` trong switch Java 17 ổn định, `default` **không bắt null**.
-- Không coi chuẩn hóa tất cả chuỗi về chữ thường là phù hợp mọi nghiệp vụ; ID, token hoặc mật khẩu có thể phân biệt hoa/thường.
-- `case` phải là hằng phù hợp; không thể dùng một biến String runtime làm case constant chỉ vì giá trị của nó hiện là `"start"`.
+- `null` must be checked first; a null String selector can throw `NullPointerException` in stable Java 17 switch, and `default` **does not catch null**.
+- Do not assume lowercasing every string suits all business domains; IDs, tokens, or passwords may be case-sensitive.
+- `case` must be a valid constant; you cannot use a runtime String variable as a case constant just because its current value is `"start"`.
 
-## 8. `switch(enum)`: các trạng thái đặt tên rõ ràng
+## 8. `switch(enum)`: Clearly Named States
 
 ~~~java
 enum Channel { WEB, MOBILE, API }
@@ -227,43 +227,43 @@ static String channelName(Channel channel) {
 }
 ~~~
 
-Vì đã liệt kê đủ tất cả hằng `Channel`, switch expression có thể **không cần `default`**. Đây là ưu điểm khi muốn compiler hỗ trợ phát hiện thiếu trường hợp nếu enum được mở rộng.
+Because all `Channel` constants are listed, the switch expression **does not need `default`**. This is advantageous when you want the compiler to help catch missing cases if the enum is extended.
 
-Ngược lại, thêm `default` là hợp lý khi thực sự có một chính sách cho giá trị chưa liệt kê; không nên thêm mặc định tùy tiện khiến một trạng thái mới bị xử lý lặng lẽ như trạng thái cũ.
+Conversely, adding `default` is reasonable when there is truly a policy for unlisted values; do not add a default casually such that a new state is silently treated like an old one.
 
-Trong switch của enum ở Java 17 ổn định, nhãn viết `case WEB`, **không** viết `case Channel.WEB`.
+In a stable Java 17 enum switch, labels are written `case WEB`, **not** `case Channel.WEB`.
 
-Với enum nullable, vẫn phải guard null trước switch.
+With nullable enums, you still must guard against null before the switch.
 
-## 9. Chọn statement hay expression
+## 9. Choosing Statement or Expression
 
-Khi cần thực hiện hành động, dùng switch statement; khi cần tạo một giá trị, dùng switch expression. Trong Java 17, nhánh `->` không fall-through. Mã `case:` vẫn hợp lệ nhưng cần xem có phải dùng `break` để dừng trước nhánh kế không. Với switch expression có block nhiều lệnh, dùng `yield` để tạo kết quả. Đây là lựa chọn **sau khi** đã xác nhận bài toán phù hợp selector rời rạc.
+When you need to perform actions, use a switch statement; when you need to produce a value, use a switch expression. In Java 17, `->` branches do not fall through. `case:` code remains valid, though you must check whether `break` is needed to stop before the next branch. In a switch expression with a multi-statement block, use `yield` to produce the result. This choice comes **after** confirming the problem fits a discrete selector.
 
-## 10. Câu hỏi lựa chọn theo yêu cầu
+## 10. Requirement-Based Selection Questions
 
-Trước khi quyết định, hãy thử trả lời theo thứ tự:
+Before deciding, try answering in order:
 
 ~~~mermaid
 flowchart TD
-    A["Yêu cầu rẽ nhánh"] --> B{"Điều kiện là khoảng, so sánh, nhiều biến, ưu tiên?"}
-    B -- "Có" --> C["Dùng if / else if"]
-    B -- "Không" --> D{"Chọn theo một selector có kiểu switch hỗ trợ?"}
-    D -- "Không" --> E["Dùng if hoặc thiết kế lại mô hình"]
-    D -- "Có" --> F{"Các trường hợp rời rạc, case constant/enum?"}
-    F -- "Có" --> G["Dùng switch"]
-    F -- "Không" --> C
-    G --> H{"Cần tạo một giá trị?"}
-    H -- "Có" --> I["Switch expression, -> và yield khi cần"]
-    H -- "Không" --> J["Switch statement, ưu tiên -> khi không muốn fall-through"]
+    A["Branching requirement"] --> B{"Condition is a range, comparison, multiple variables, or priority?"}
+    B -- "Yes" --> C["Use if / else if"]
+    B -- "No" --> D{"Select by a single selector of a type supported by switch?"}
+    D -- "No" --> E["Use if or redesign the model"]
+    D -- "Yes" --> F{"Discrete cases, case constants/enum?"}
+    F -- "Yes" --> G["Use switch"]
+    F -- "No" --> C
+    G --> H{"Need to produce a value?"}
+    H -- "Yes" --> I["Switch expression, -> and yield when needed"]
+    H -- "No" --> J["Switch statement, prefer -> when fall-through is not wanted"]
 ~~~
 
-Đây là **quy tắc thực hành**, không phải luật bắt buộc. Có thể viết `if (code == 1) ... else if (code == 2)` vẫn đúng; khi nhiều lựa chọn cùng một selector, switch thường dễ quét hơn.
+This is a **practical guideline**, not a mandatory rule. Writing `if (code == 1) ... else if (code == 2)` is still valid; when there are many options on the same selector, switch is often easier to scan.
 
-Không quyết định chỉ vì tuyên bố hiệu năng: JVM/JIT và đặc điểm dữ liệu ảnh hưởng đến tối ưu hóa, còn **đúng ngữ nghĩa và dễ đọc** là tiêu chí đầu tiên. Nếu hiệu năng thực sự là yêu cầu, đo đạc bằng benchmark đúng phương pháp với dữ liệu đại diện.
+Do not decide purely on performance claims: the JVM/JIT and data characteristics affect optimizations, while **semantic accuracy and readability** come first. If performance truly matters, measure with proper benchmarks using representative data.
 
-## 11. Kết hợp `if` và `switch` khi cần
+## 11. Combining `if` and `switch` When Needed
 
-Một ứng dụng có thể vừa kiểm tra dữ liệu, vừa phân loại lệnh:
+An application can both validate input and dispatch commands:
 
 ~~~java
 static String execute(String command, boolean authenticated) {
@@ -281,17 +281,17 @@ static String execute(String command, boolean authenticated) {
 }
 ~~~
 
-Trong ví dụ:
+In the example:
 
-1. `if` áp dụng **quy tắc xác thực** trước.
-2. `if` loại selector `null`.
-3. `switch` lựa chọn theo **giá trị command**.
+1. `if` enforces the **authentication rule** first.
+2. `if` filters out a `null` selector.
+3. `switch` dispatches based on the **command value**.
 
-Trật tự có thể quan trọng: nếu không xác thực, không nên tiết lộ những nhánh xử lý có sẵn cho người gọi. Đây chỉ là ví dụ về luồng điều khiển; kiểm soát quyền thực tế còn đòi xác thực và kiểm tra phía đáng tin cậy.
+Order can matter: if unauthenticated, you should not reveal which command handlers exist to the caller. This is only a control-flow example; real access control also requires trusted-side authentication and verification.
 
-## 12. Chương trình Java 17 hoàn chỉnh
+## 12. Complete Java 17 Program
 
-Tạo file đúng tên **`IfOrSwitchDecisionDemo.java`**:
+Create a file named **`IfOrSwitchDecisionDemo.java`**:
 
 ~~~java
 import java.util.Locale;
@@ -441,7 +441,7 @@ public final class IfOrSwitchDecisionDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 trở lên; mở terminal tại thư mục chứa file. Chỉ dùng API tiêu chuẩn JDK, không cần Maven, Gradle hoặc preview feature.
+**Requirements:** JDK 17 or higher; open terminal in the directory containing the file. Uses only standard JDK APIs, no Maven, Gradle, or preview features required.
 
 **Bash (Linux/macOS):**
 
@@ -500,40 +500,40 @@ passed 95
 excellent 95
 ~~~
 
-**Cách đọc output:**
+**How to read the output:**
 
-1. Các mốc 49/50/69/70/89/90 cho thấy `if` phù hợp với **ngưỡng**, và 101 bị từ chối trước khi xếp loại.
-2. `wrong age 70=ADULT` là lỗi **nhánh rộng che nhánh hẹp**; sửa bằng xét `age >= 65` trước.
-3. `eligible` dùng nhiều biến boolean và điều kiện kết hợp; `priority` có ưu tiên khẩn cấp.
-4. `status` xử lý các mã rời rạc; `command` xử lý String đã chuẩn hóa; `channelName` xử lý enum.
-5. `traditionalStatement` dùng `break` để ngăn fall-through; `execute` dùng `if` để bảo vệ trước `switch`.
-6. Hai câu `if` độc lập cho phép `95` in **cả** `passed` và `excellent`.
+1. The boundary points 49/50/69/70/89/90 show that `if` suits **thresholds**, and 101 is rejected before grading.
+2. `wrong age 70=ADULT` is a **broad branch shadowing a narrow branch** bug; fixed by checking `age >= 65` first.
+3. `eligible` uses multiple boolean variables and combined conditions; `priority` has emergency precedence.
+4. `status` handles discrete codes; `command` handles normalized Strings; `channelName` handles enums.
+5. `traditionalStatement` uses `break` to prevent fall-through; `execute` uses `if` guards before `switch`.
+6. Two independent `if` statements allow `95` to print **both** `passed` and `excellent`.
 
-## 13. Sai lầm thường gặp
+## 13. Common Mistakes
 
-| Sai lầm | Hậu quả | Cách phù hợp |
+| Mistake | Consequence | Appropriate approach |
 |---|---|---|
-| Dùng switch để kiểm tra `score >= 90` | `case 90` chỉ khớp số 90 | Dùng `if` cho ngưỡng |
-| Chọn switch cho `double` hoặc `long` trên Java 17 ổn định | Lỗi compile | Dùng `if` hoặc thiết kế kiểu khác |
-| Đặt `age >= 18` trước `age >= 65` | Nhánh senior bị che khuất | Xét ngưỡng cụ thể/ưu tiên trước |
-| Dùng `else if` cho hai tính chất phải cùng báo | Chỉ nhánh đầu true chạy | Hai `if` độc lập |
-| Không validate điểm ngoài `[0,100]` | Điểm 101 có thể thành A | Guard miền trước |
-| Dùng `switch(String)` với null | NullPointerException | Kiểm tra null trước |
-| Nghĩ switch trên String so tham chiếu `==` | Sai ý nghĩa so khớp | Switch so nội dung, case-sensitive |
-| Quên `break` trong dạng `case:` | Fall-through ngoài ý muốn | Dùng `break` hoặc `case ->` |
-| Nghĩ `case ->` chỉ có ở switch expression | Switch statement cũng hỗ trợ | Nhìn ngữ cảnh |
-| Không có `default` trong switch expression trên int | Không bao phủ giá trị | Thêm default |
-| Thêm `default` vào enum để che mọi thay đổi | Có thể bỏ sót trạng thái mới cần xử lý | Cân nhắc exhaustiveness của enum |
-| Chọn chỉ vì “switch nhanh hơn” | Không bảo đảm hiệu năng ở mọi tình huống | Chọn theo đúng ngữ nghĩa, đo nếu cần |
-| Chuẩn hóa String vô điều kiện | Có thể đổi ý nghĩa token phân biệt hoa/thường | Chỉ chuẩn hóa khi yêu cầu cho phép |
+| Using switch to check `score >= 90` | `case 90` only matches the number 90 | Use `if` for thresholds |
+| Choosing switch for `double` or `long` on stable Java 17 | Compile error | Use `if` or redesign the type |
+| Placing `age >= 18` before `age >= 65` | The senior branch is shadowed | Check specific/higher-priority thresholds first |
+| Using `else if` for two properties that must both be reported | Only the first true branch runs | Two independent `if` statements |
+| Not validating scores outside `[0,100]` | Score 101 could become A | Guard the range first |
+| Using `switch(String)` with null | NullPointerException | Check for null beforehand |
+| Thinking String switch compares references with `==` | Wrong matching mental model | Switch compares content, case-sensitively |
+| Forgetting `break` in `case:` form | Unintended fall-through | Use `break` or `case ->` |
+| Thinking `case ->` exists only in switch expressions | Switch statements also support it | Look at the context |
+| Omitting `default` in a switch expression on `int` | Does not cover values | Add default |
+| Adding `default` to an enum hiding every change | Might miss new states that need handling | Consider enum exhaustiveness |
+| Choosing solely because "switch is faster" | Performance is not guaranteed in every situation | Choose by semantics, measure if needed |
+| Normalizing Strings unconditionally | May alter meaning of case-sensitive tokens | Normalize only when requirements allow |
 
-## 14. Bài tập có đáp án
+## 14. Exercises with Solutions
 
-### Bài A — phân loại khoảng
+### Exercise A — Interval classification
 
-Yêu cầu: nhiệt độ dưới 0 → COLD, từ 0 đến dưới 30 → NORMAL, từ 30 trở lên → HOT.
+Requirement: temperature below 0 → COLD, from 0 to below 30 → NORMAL, 30 or above → HOT.
 
-**Nên chọn:** `if/else if`, vì so sánh **miền**:
+**Should choose:** `if/else if`, because it compares **ranges**:
 
 ~~~java
 String label;
@@ -546,11 +546,11 @@ if (temperature < 0) {
 }
 ~~~
 
-### Bài B — chọn mã thao tác
+### Exercise B — Action code selection
 
-Mã `1` → CREATE, `2` → UPDATE, `3` → DELETE, còn lại → UNKNOWN.
+Code `1` → CREATE, `2` → UPDATE, `3` → DELETE, anything else → UNKNOWN.
 
-**Nên chọn:** `switch` vì đây là các giá trị rời rạc:
+**Should choose:** `switch`, because these are discrete values:
 
 ~~~java
 String action = switch (code) {
@@ -561,23 +561,23 @@ String action = switch (code) {
 };
 ~~~
 
-### Bài C — nhiều điều kiện
+### Exercise C — Multiple conditions
 
-Yêu cầu chỉ chấp nhận khi tuổi từ 18 trở lên, đã xác minh và chưa bị khóa.
+Requirement: accept only when age is 18 or older, verified, and not blocked.
 
-**Nên chọn:** biểu thức boolean/ `if`:
+**Should choose:** boolean expression / `if`:
 
 ~~~java
 boolean accepted = age >= 18 && verified && !blocked;
 ~~~
 
-Không dùng `switch` cho ba điều kiện độc lập này.
+Do not use `switch` for these three independent conditions.
 
-### Bài D — hai hành động có thể cùng đúng
+### Exercise D — Two actions that can both apply
 
-Với điểm 95, cần ghi đồng thời PASS và EXCELLENT.
+With score 95, both PASS and EXCELLENT must be recorded.
 
-**Đáp án:** hai `if` độc lập, không dùng `else if`:
+**Solution:** two independent `if` statements, not `else if`:
 
 ~~~java
 if (score >= 50) System.out.println("PASS");
@@ -591,7 +591,7 @@ PASS
 EXCELLENT
 ~~~
 
-### Bài E — switch và null
+### Exercise E — `switch` and `null`
 
 ~~~java
 String command = null;
@@ -601,22 +601,22 @@ String command = null;
 // }
 ~~~
 
-**Đáp án:** không dùng `default` để thay null guard; selector String null gây NPE trong Java 17 ổn định. Kiểm tra `if (command == null)` trước khi switch.
+**Solution:** do not use `default` to replace a null guard; a null String selector causes NPE in stable Java 17. Check `if (command == null)` before switching.
 
-## 15. Checklist và kết luận
+## 15. Checklist and Conclusion
 
-- [ ] Chọn `if` khi cần so sánh quan hệ, khoảng giá trị, điều kiện kết hợp hay ưu tiên.
-- [ ] Chọn `switch` khi xét nhiều **giá trị rời rạc của cùng một selector** hợp lệ.
-- [ ] Phân biệt chuỗi `else if` với nhiều `if` độc lập.
-- [ ] Kiểm tra biên dưới, biên trên và các mốc phân loại.
-- [ ] Không đặt điều kiện rộng lên trước để che mất nhánh cụ thể.
-- [ ] Biết các kiểu selector được hỗ trợ trong Java 17 không bật preview.
-- [ ] Biết switch String so nội dung và phân biệt hoa/thường.
-- [ ] Kiểm tra null trước switch với String, enum và wrapper.
-- [ ] Biết switch statement `case:` có thể fall-through; `case ->` không.
-- [ ] Biết switch expression tạo kết quả và dùng `yield` khi nhánh là block.
-- [ ] Không lạm dụng `default` để che trường hợp enum mới quan trọng.
-- [ ] Đừng quyết định theo tốc độ mà không có đo đạc phù hợp.
-- [ ] Chạy `IfOrSwitchDecisionDemo.java` bằng Java 17+ và đối chiếu exact stdout.
+- [ ] Choose `if` when relational comparisons, value ranges, combined conditions, or priorities are needed.
+- [ ] Choose `switch` when checking multiple **discrete values of the same valid selector**.
+- [ ] Distinguish an `else if` chain from multiple independent `if` statements.
+- [ ] Check lower bounds, upper bounds, and classification thresholds.
+- [ ] Do not place a broad condition first and shadow specific branches.
+- [ ] Know the supported selector types in non-preview Java 17.
+- [ ] Know that String switch compares content and is case-sensitive.
+- [ ] Check for null before switching on String, enum, and wrapper selectors.
+- [ ] Know that `case:` switch statements can fall through; `case ->` does not.
+- [ ] Know that switch expressions produce a result and use `yield` when a branch is a block.
+- [ ] Do not overuse `default` to hide important new enum cases.
+- [ ] Do not decide based on speed without appropriate measurement.
+- [ ] Run `IfOrSwitchDecisionDemo.java` with Java 17+ and verify exact stdout.
 
-**Kết luận:** Hãy chọn `if` để **diễn đạt một điều kiện boolean** (ngưỡng, miền, tổ hợp, ưu tiên), và chọn `switch` để **phân phối xử lý theo một tập giá trị rời rạc đã biết**. Hai cấu trúc có thể kết hợp: dùng `if` để bảo vệ/validate, dùng `switch` để chọn hành động. Điều quan trọng nhất là **đúng bản chất điều kiện, rõ biên và dễ bảo trì**.
+**Conclusion:** Choose `if` to **express a boolean condition** (thresholds, ranges, combinations, priorities), and choose `switch` to **dispatch handling across a known set of discrete values**. The two constructs can be combined: use `if` to guard/validate, and use `switch` to select the action. What matters most is **matching the nature of the condition, having clear boundaries, and keeping the code maintainable**.

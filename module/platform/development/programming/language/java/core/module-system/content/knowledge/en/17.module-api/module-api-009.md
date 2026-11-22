@@ -1,12 +1,12 @@
-# Dùng Reflection để quan sát Module mà không phá vỡ Encapsulation
+# Using Reflection to Observe Modules Without Breaking Encapsulation
 
-Từ Java 9, Java Platform Module System (JPMS) đặt mỗi module vào một ranh giới rõ ràng: module nào được đọc, package nào được công khai và package nào cho phép truy cập sâu bằng reflection. Khi debug hoặc xây dựng công cụ kiểm tra runtime, ta thường cần biết một class thuộc module nào và module đó cho phép những kiểu truy cập nào.
+Since Java 9, the Java Platform Module System (JPMS) places each module within clear boundaries: which modules can be read, which packages are exposed, and which packages allow deep access via reflection. When debugging or building runtime inspection tools, we often need to know which module a class belongs to and what kinds of access that module permits.
 
-Có thể quan sát các thông tin này bằng Reflection API kết hợp với Module API. Việc đọc metadata không đồng nghĩa với việc mở quyền truy cập vào field hoặc method private. Mục tiêu của bài này là kiểm tra cấu trúc và quyền truy cập hiện hành mà không gọi setAccessible, không thay đổi module graph và không đọc dữ liệu nội bộ.
+This information can be observed using the Reflection API combined with the Module API. Reading metadata does not mean opening access to private fields or methods. The goal of this lesson is to inspect current structure and access permissions without calling setAccessible, without mutating the module graph, and without reading internal data.
 
-## 1. Từ Class đến Module
+## 1. From Class to Module
 
-Mỗi đối tượng Class có thể cho biết module chứa class đó thông qua Class.getModule():
+Every Class object can report the module containing that class via Class.getModule():
 
 ~~~java
 Module module = String.class.getModule();
@@ -15,41 +15,41 @@ System.out.println(module.getName()); // java.base
 System.out.println(module.isNamed()); // true
 ~~~
 
-Một số API thường dùng:
+Some commonly used APIs:
 
-| API | Ý nghĩa |
+| API | Meaning |
 | --- | --- |
-| Class.getModule() | Lấy module chứa một class |
-| Module.getName() | Lấy tên module; trả về null nếu là unnamed module |
-| Module.isNamed() | Kiểm tra module có tên hay không |
-| Module.getDescriptor() | Lấy bản mô tả module; có thể trả về null với unnamed module |
-| Module.getPackages() | Lấy các package thuộc module |
-| Module.getLayer() | Lấy ModuleLayer chứa module; có thể trả về null |
-| Module.canRead(other) | Kiểm tra module hiện tại có đọc được module other hay không |
-| Module.isExported(package, other) | Kiểm tra package có được export tới module other hay không |
-| Module.isOpen(package, other) | Kiểm tra package có được mở cho deep reflection từ module other hay không |
+| Class.getModule() | Gets the module containing a class |
+| Module.getName() | Gets the module name; returns null if it is an unnamed module |
+| Module.isNamed() | Checks whether the module is named |
+| Module.getDescriptor() | Gets the module descriptor; may return null for an unnamed module |
+| Module.getPackages() | Gets the packages belonging to the module |
+| Module.getLayer() | Gets the ModuleLayer containing the module; may return null |
+| Module.canRead(other) | Checks whether the current module can read module other |
+| Module.isExported(package, other) | Checks whether the package is exported to module other |
+| Module.isOpen(package, other) | Checks whether the package is open for deep reflection from module other |
 
-Module API là API runtime. Nó cho biết module mà JVM gắn với class đang chạy, kể cả khi class được nạp từ classpath hoặc từ một module layer.
+The Module API is a runtime API. It indicates which module the JVM associates with a running class, even when the class was loaded from the classpath or from a module layer.
 
-### Named module và unnamed module
+### Named modules and unnamed modules
 
-- **Named module** có tên và thường được mô tả bởi file module-info.java. Ví dụ: java.base.
-- **Unnamed module** thường chứa các class được nạp từ classpath. Nó không có tên và Module.getDescriptor() trả về null.
-- **Automatic module** thường được tạo khi đưa một JAR lên module path nhưng JAR không khai báo module-info.java. Nó vẫn là named module; ModuleDescriptor.isAutomatic() cho biết trường hợp này.
+- **Named module** has a name and is typically described by a module-info.java file. Example: java.base.
+- **Unnamed module** typically contains classes loaded from the classpath. It has no name and Module.getDescriptor() returns null.
+- **Automatic module** is typically created when placing a JAR onto the module path without the JAR declaring module-info.java. It is still a named module; ModuleDescriptor.isAutomatic() indicates this case.
 
-Vì vậy, không nên giả định mọi class đều thuộc một module có tên hoặc đều có ModuleDescriptor.
+Therefore, do not assume every class belongs to a named module or has a ModuleDescriptor.
 
-## 2. Đọc ModuleDescriptor để xem cấu trúc module
+## 2. Reading ModuleDescriptor to view module structure
 
-Với named module, Module.getDescriptor() trả về một ModuleDescriptor. Descriptor phản ánh các khai báo trong module-info.java, chẳng hạn:
+For a named module, Module.getDescriptor() returns a ModuleDescriptor. The descriptor reflects declarations in module-info.java, such as:
 
-- requires: module này phụ thuộc và đọc module nào.
-- exports: package nào được công khai để module khác sử dụng các kiểu public.
-- opens: package nào cho phép module khác truy cập sâu bằng reflection.
-- uses và provides: các khai báo liên quan đến Java ServiceLoader.
-- packages: danh sách package được ghi nhận trong descriptor.
+- requires: which modules this module depends on and reads.
+- exports: which packages are exposed so other modules can use public types.
+- opens: which packages allow other modules to perform deep access via reflection.
+- uses and provides: declarations related to Java ServiceLoader.
+- packages: the list of packages recorded in the descriptor.
 
-Có thể đọc các khai báo mà không cần mở package:
+You can read these declarations without opening packages:
 
 ~~~java
 Module module = String.class.getModule();
@@ -70,19 +70,19 @@ if (descriptor != null) {
 }
 ~~~
 
-ModuleDescriptor là mô tả bất biến của cấu hình module. Nếu ứng dụng thay đổi quyền truy cập lúc runtime bằng các API như addOpens hoặc addExports, descriptor không phải nơi để xác nhận trạng thái hiệu lực sau thay đổi đó. Khi cần kiểm tra quyền truy cập hiện hành, hãy dùng các phương thức trên Module như isOpen và isExported.
+ModuleDescriptor is an immutable description of module configuration. If an application changes access permissions at runtime using APIs such as addOpens or addExports, the descriptor is not the place to verify the effective state after that change. When you need to check current access permissions, use methods on Module such as isOpen and isExported.
 
-## 3. Phân biệt requires, exports và opens
+## 3. Distinguishing requires, exports, and opens
 
-Ba khái niệm này giải quyết ba câu hỏi khác nhau:
+These three concepts answer three different questions:
 
-| Khai báo/API | Câu hỏi được trả lời | Tác động |
+| Declaration/API | Question answered | Effect |
 | --- | --- | --- |
-| requires / canRead | Module gọi có đọc được module đích không? | Xác lập quan hệ readability |
-| exports / isExported | Package có công khai API public cho module gọi không? | Cho phép sử dụng public types và public members theo quy tắc truy cập Java |
-| opens / isOpen | Package có cho phép deep reflection từ module gọi không? | Cho phép reflection vượt qua một số kiểm tra truy cập thông thường khi được mở |
+| requires / canRead | Can the calling module read the target module? | Establishes a readability relationship |
+| exports / isExported | Does the package expose public API to the calling module? | Allows using public types and public members under Java access rules |
+| opens / isOpen | Does the package allow deep reflection from the calling module? | Allows reflection to bypass certain standard access checks when opened |
 
-Ví dụ module khai báo:
+Example module declaration:
 
 ~~~java
 module inventory {
@@ -95,14 +95,14 @@ module inventory {
 }
 ~~~
 
-Trong ví dụ này:
+In this example:
 
-- Module khác có thể sử dụng public API trong package com.example.inventory.api nếu module đó đọc được inventory.
-- Package com.example.inventory.model được mở cho module Jackson để framework có thể thực hiện deep reflection.
-- Export một package không tự động mở package đó. Một package có thể được export nhưng vẫn không mở cho việc truy cập field private.
-- Opens không thay thế exports. Mở package cho reflection không đồng nghĩa với việc công khai package đó như API Java thông thường.
+- Another module can use public API in the com.example.inventory.api package if that module reads inventory.
+- The com.example.inventory.model package is opened to the Jackson module so the framework can perform deep reflection.
+- Exporting a package does not automatically open that package. A package can be exported while remaining closed to accessing private fields.
+- Opens does not replace exports. Opening a package for reflection does not mean exposing that package as standard Java API.
 
-Từ phía module gọi, hãy kiểm tra theo đúng chiều:
+From the calling module side, check in the correct direction:
 
 ~~~java
 Module caller = MyApplication.class.getModule();
@@ -114,11 +114,11 @@ boolean exported = target.isExported(packageName, caller);
 boolean open = target.isOpen(packageName, caller);
 ~~~
 
-Lưu ý: canRead được gọi trên module gọi; isExported và isOpen được gọi trên module đích, với module gọi làm đối số. Chỉ một trong các điều kiện trên là chưa đủ để kết luận mọi thao tác reflection đều được phép. Các modifier public, private, protected, package-private và quy tắc truy cập của Java vẫn có hiệu lực.
+Note: canRead is called on the calling module; isExported and isOpen are called on the target module, with the calling module as an argument. Only one of these conditions is not enough to conclude that every reflection operation is permitted. The public, private, protected, and package-private modifiers and Java's access rules still apply.
 
-## 4. Ví dụ: viết công cụ quan sát module tại runtime
+## 4. Example: writing a runtime module observation tool
 
-Ví dụ sau nhận một Class, in ra module chứa class, kiểm tra quan hệ giữa module gọi và module đích, đọc các khai báo trong descriptor, rồi liệt kê tên field. Phần liệt kê field chỉ đọc metadata như tên và modifier; chương trình không đọc giá trị field.
+The following example takes a Class, prints the module containing the class, checks relationships between the calling module and the target module, reads declarations in the descriptor, and then lists field names. The field-listing part only reads metadata such as names and modifiers; the program does not read field values.
 
 ~~~java
 import java.lang.module.ModuleDescriptor;
@@ -244,13 +244,13 @@ public class ModuleInspector {
 }
 ~~~
 
-Nếu chạy trên classpath, ModuleInspector thường thuộc unnamed module nên descriptor của nó là null. String.class thuộc named module java.base. Nếu đóng gói ứng dụng thành named module, ModuleInspector.class sẽ cho biết tên module ứng dụng.
+If run on the classpath, ModuleInspector normally belongs to an unnamed module so its descriptor is null. String.class belongs to the named module java.base. If packaged as a named module, ModuleInspector.class will report the application module name.
 
-ModuleLayer.boot().modules() liệt kê các module trong boot layer. Ứng dụng có thể tạo thêm module layer riêng, vì vậy danh sách này không đại diện cho mọi module layer tồn tại trong JVM.
+ModuleLayer.boot().modules() lists the modules in the boot layer. Applications can create additional custom module layers, so this list does not represent every module layer existing in the JVM.
 
-## 5. Quan sát member metadata mà không đọc dữ liệu private
+## 5. Observing member metadata without reading private data
 
-Reflection cho phép lấy danh sách member đã khai báo trên class:
+Reflection allows retrieving the list of members declared on a class:
 
 ~~~java
 Field[] fields = SomeClass.class.getDeclaredFields();
@@ -263,9 +263,9 @@ for (Field field : fields) {
 }
 ~~~
 
-getDeclaredFields(), getDeclaredMethods() và getDeclaredConstructors() giúp quan sát cấu trúc class, kể cả member có modifier private. Việc lấy metadata này không đồng nghĩa với quyền đọc hoặc gọi member đó.
+getDeclaredFields(), getDeclaredMethods(), and getDeclaredConstructors() help observe class structure, including members with the private modifier. Retrieving this metadata does not imply permission to read or invoke that member.
 
-Nếu cần kiểm tra quyền truy cập đối với một member cụ thể, AccessibleObject.canAccess(target) có thể kiểm tra khả năng truy cập hiện tại mà không bật cờ override. Với field hoặc method instance, truyền object tương ứng; với member static, truyền null.
+If you need to check access permission for a specific member, AccessibleObject.canAccess(target) can check current accessibility without enabling the override flag. For an instance field or method, pass the corresponding object; for a static member, pass null.
 
 ~~~java
 Field field = SomeClass.class.getDeclaredField("status");
@@ -275,70 +275,70 @@ boolean accessible = field.canAccess(instance);
 System.out.println("Can access now: " + accessible);
 ~~~
 
-Đoạn kiểm tra trên không đọc giá trị field và không thay đổi chính sách truy cập. Nếu member là static, hãy dùng field.canAccess(null).
+The check above does not read the field value and does not change the access policy. If the member is static, use field.canAccess(null).
 
-## 6. Vì sao setAccessible(true) có thể thất bại?
+## 6. Why can setAccessible(true) fail?
 
-Trước JPMS, nhiều thư viện thường gọi setAccessible(true) để đọc field private. Với named module, hành vi này chịu sự kiểm soát của module:
+Before JPMS, many libraries routinely called setAccessible(true) to read private fields. With named modules, this behavior is governed by module controls:
 
-- Nếu package không mở cho module gọi, JVM có thể từ chối deep reflection.
-- setAccessible(true) có thể ném InaccessibleObjectException.
-- trySetAccessible() trả về false khi không thể bật quyền truy cập.
-- Một package được exports nhưng không opens vẫn có thể từ chối truy cập sâu vào member private.
+- If the package is not opened to the calling module, the JVM can reject deep reflection.
+- setAccessible(true) can throw InaccessibleObjectException.
+- trySetAccessible() returns false when access permission cannot be enabled.
+- A package that is exported but not opened can still reject deep access to private members.
 
-Khi mục tiêu chỉ là quan sát, không gọi setAccessible(true), trySetAccessible() hoặc dùng tùy chọn --add-opens. Các thao tác đó thay đổi hoặc cố gắng thay đổi khả năng truy cập, khiến phép quan sát không còn thuần túy.
+When the goal is purely observation, do not call setAccessible(true), trySetAccessible(), or use the --add-opens option. Those actions alter or attempt to alter accessibility, making the observation no longer non-intrusive.
 
-Nếu ứng dụng thực sự cần deep reflection, hãy yêu cầu module sở hữu package mở đúng package cho đúng module gọi, ví dụ bằng một opens có đích cụ thể. Chỉ mở rộng phạm vi khi yêu cầu kiến trúc thực sự cần thiết.
+If an application genuinely needs deep reflection, ask the module owning the package to open the exact package to the exact calling module, for example via a targeted opens. Only broaden scope when architectural requirements genuinely require it.
 
-## 7. Chạy ví dụ
+## 7. Running the example
 
-Có thể chạy ví dụ đơn giản trên classpath bằng JDK 9 trở lên:
+You can run the simple example on the classpath using JDK 9 or later:
 
 ~~~shell
 javac ModuleInspector.java
 java ModuleInspector
 ~~~
 
-Để quan sát ứng dụng như một named module, đặt file sau tại src/module-info.java:
+To observe the application as a named module, place the following file at src/module-info.java:
 
 ~~~java
 module app {
 }
 ~~~
 
-Giữ ModuleInspector trong package com.example.app, sau đó biên dịch và chạy:
+Keep ModuleInspector in package com.example.app, then compile and run:
 
 ~~~shell
 javac -d out src/module-info.java src/com/example/app/ModuleInspector.java
 java --module-path out --module app/com.example.app.ModuleInspector
 ~~~
 
-Khi chạy theo cách này, ModuleInspector.class thuộc module app. Module gọi là app và module đích của String.class là java.base.
+When run this way, ModuleInspector.class belongs to module app. The calling module is app and the target module of String.class is java.base.
 
-## 8. Những nhầm lẫn thường gặp
+## 8. Common misconceptions
 
-1. **Nhầm exports với opens:** exports công khai API public; opens cho phép deep reflection. Hai khai báo có mục đích khác nhau.
-2. **Gọi canRead trên module đích:** chiều kiểm tra phải là caller.canRead(target), vì câu hỏi là module gọi có đọc module đích không.
-3. **Cho rằng có thể đọc private field vì đã lấy được Field:** lấy metadata và đọc giá trị là hai thao tác khác nhau.
-4. **Cho rằng descriptor luôn tồn tại:** unnamed module không có ModuleDescriptor.
-5. **Cho rằng boot layer chứa mọi module:** ứng dụng có thể tạo module layer khác.
-6. **Dùng setAccessible để kiểm tra quyền:** thao tác này can thiệp vào cơ chế truy cập. Dùng canAccess và Module.isOpen để quan sát trạng thái.
-7. **Chỉ nhìn module-info.java để kết luận trạng thái runtime:** descriptor thể hiện khai báo ban đầu; các truy vấn trên Module phù hợp hơn khi cần kiểm tra quyền truy cập đang có hiệu lực.
+1. **Confusing exports with opens:** exports exposes public API; opens permits deep reflection. The two declarations have different purposes.
+2. **Calling canRead on the target module:** the check direction must be caller.canRead(target), because the question is whether the calling module reads the target module.
+3. **Assuming you can read a private field because you obtained the Field:** obtaining metadata and reading a value are two different operations.
+4. **Assuming a descriptor always exists:** an unnamed module has no ModuleDescriptor.
+5. **Assuming the boot layer contains all modules:** an application can create other module layers.
+6. **Using setAccessible to check permissions:** this operation interferes with the access mechanism. Use canAccess and Module.isOpen to observe state.
+7. **Looking only at module-info.java to conclude runtime state:** the descriptor reflects initial declarations; queries on Module are more suitable when you need to check effective access permissions.
 
-## 9. Quy trình kiểm tra đề xuất
+## 9. Recommended inspection workflow
 
-Khi một thư viện reflection không truy cập được class hoặc member, có thể kiểm tra theo thứ tự:
+When a reflection library cannot access a class or member, you can inspect in order:
 
-1. Lấy module của class đích bằng Class.getModule().
-2. Lấy module của code gọi bằng Class.getModule().
-3. Kiểm tra caller.canRead(target).
-4. Kiểm tra target.isExported(packageName, caller) nếu cần sử dụng public API.
-5. Kiểm tra target.isOpen(packageName, caller) nếu framework cần deep reflection.
-6. Đọc ModuleDescriptor để hiểu các khai báo requires, exports và opens.
-7. Dùng getDeclaredFields hoặc getDeclaredMethods để xem metadata; dùng canAccess để kiểm tra quyền trên member cụ thể.
+1. Obtain the target class's module with Class.getModule().
+2. Obtain the calling code's module with Class.getModule().
+3. Check caller.canRead(target).
+4. Check target.isExported(packageName, caller) if public API usage is needed.
+5. Check target.isOpen(packageName, caller) if the framework needs deep reflection.
+6. Read ModuleDescriptor to understand requires, exports, and opens declarations.
+7. Use getDeclaredFields or getDeclaredMethods to view metadata; use canAccess to check permission on a specific member.
 
-Cách tiếp cận này giúp xác định module boundary và nguyên nhân bị từ chối truy cập mà không cần mở encapsulation hoặc đọc dữ liệu nội bộ của class.
+This approach helps identify module boundaries and the cause of access denial without breaking encapsulation or reading a class's internal data.
 
-## Kết luận
+## Conclusion
 
-Reflection kết hợp với Module API cung cấp đủ thông tin để quan sát class thuộc module nào, module graph cho phép đọc ra sao, package nào được export và package nào được mở cho deep reflection. Hãy ưu tiên Class.getModule(), Module, ModuleDescriptor, ModuleLayer, isExported(), isOpen() và canRead() cho việc kiểm tra. Chỉ thay đổi quyền truy cập khi đó là yêu cầu có chủ đích của thiết kế ứng dụng.
+Reflection combined with the Module API provides enough information to observe which module a class belongs to, how the module graph permits reading, which packages are exported, and which packages are open for deep reflection. Prefer Class.getModule(), Module, ModuleDescriptor, ModuleLayer, isExported(), isOpen(), and canRead() for inspection. Only modify access permissions when it is an intentional requirement of the application design.

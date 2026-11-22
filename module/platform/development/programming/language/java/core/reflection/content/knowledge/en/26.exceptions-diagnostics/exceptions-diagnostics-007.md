@@ -1,31 +1,31 @@
-# ExceptionInInitializerError khi Reflection kích hoạt khởi tạo lớp trong Java
+# ExceptionInInitializerError When Reflection Triggers Class Initialization in Java
 
-## 1. Tình huống thường gặp
+## 1. A Common Scenario
 
-Bạn dùng Reflection để đọc metadata của một class: lấy `Class<?>`, liệt kê method, field, constructor. Mọi thứ hoạt động. Nhưng đến khi gọi method tĩnh, đọc field tĩnh, tạo đối tượng hoặc gọi `Class.forName(name)`, chương trình bất ngờ ném **`ExceptionInInitializerError`**, dù chưa chạy được logic của method đích.
+You use Reflection to read a class's metadata: obtaining `Class<?>`, listing methods, fields, and constructors. Everything works. Then when you invoke a static method, read a static field, create an object, or call `Class.forName(name)`, the program unexpectedly throws **`ExceptionInInitializerError`**, before the target method's logic even runs.
 
-Nguyên nhân thường là **quá trình khởi tạo lớp (class initialization) thất bại**. Những thao tác Reflection có thể kích hoạt khởi tạo lớp trước khi hoàn thành công việc thực tế. Nếu code trong quá trình khởi tạo ném ngoại lệ, bạn thấy lỗi ngay tại thao tác Reflection đã kích hoạt quá trình đó.
+The cause is usually that **class initialization failed**. Certain Reflection operations can trigger class initialization before completing the actual task. If code during initialization throws an exception, you see the error right at the Reflection operation that triggered that process.
 
-Bài này giúp bạn:
-- Phân biệt **loading, linking và initialization**; biết khi nào thao tác Reflection làm khởi tạo lớp.
-- Hiểu `<clinit>`, static field initializer, static initializer block và `ExceptionInInitializerError`.
-- Dự đoán kết quả khi gọi lại một class đã khởi tạo thất bại: thường là **`NoClassDefFoundError`**.
-- Phân biệt lỗi khởi tạo lớp với **`ClassNotFoundException`** và **`InvocationTargetException`**.
-- Chẩn đoán nguyên nhân gốc và thiết kế thao tác Reflection hạn chế side effect ngoài ý muốn.
+This guide helps you:
+- Distinguish **loading, linking, and initialization**; know when Reflection operations trigger class initialization.
+- Understand `<clinit>`, static field initializers, static initializer blocks, and `ExceptionInInitializerError`.
+- Predict the result when calling a class whose initialization previously failed: usually **`NoClassDefFoundError`**.
+- Distinguish class initialization errors from **`ClassNotFoundException`** and **`InvocationTargetException`**.
+- Diagnose the root cause and design Reflection operations that minimize unintended side effects.
 
-Ví dụ được viết cho **Java 17+** và có thể biên dịch bằng JDK tiêu chuẩn; không cần Spring, thư viện bên ngoài hay quyền mở package đặc biệt.
+Examples are written for **Java 17+** and can be compiled with a standard JDK; no Spring, external libraries, or special package-opening flags are needed.
 
-## 2. Class được nạp chưa chắc đã được khởi tạo
+## 2. A Loaded Class Is Not Necessarily Initialized
 
-Java phân biệt ba giai đoạn quan trọng trong vòng đời của kiểu:
+Java distinguishes three important stages in a type's lifecycle:
 
-| Giai đoạn | Ý nghĩa | Cần phân biệt |
+| Stage | Meaning | Key distinction |
 | --- | --- | --- |
-| **Loading (nạp)** | JVM tìm/đọc định nghĩa lớp và tạo biểu diễn runtime cho lớp | Có `Class<?>` không có nghĩa static initializer đã chạy |
-| **Linking (liên kết)** | Kiểm tra, chuẩn bị và xử lý tham chiếu ký hiệu theo quy tắc JVM | JVM có thể xử lý một số việc liên kết theo nhu cầu |
-| **Initialization (khởi tạo)** | Thực thi logic khởi tạo các biến static và các static block do compiler gom vào phương thức khởi tạo lớp `<clinit>` | Đây là giai đoạn có thể làm phát sinh `ExceptionInInitializerError` |
+| **Loading** | The JVM locates/reads the class definition and creates the runtime representation for the class | Having `Class<?>` does not mean static initializers have run |
+| **Linking** | Verifies, prepares, and resolves symbolic references per JVM rules | The JVM may perform certain linking work on demand |
+| **Initialization** | Executes static variable initialization logic and static blocks combined by the compiler into the class initialization method `<clinit>` | This is the stage that can produce `ExceptionInInitializerError` |
 
-Ví dụ lớp dưới đây khởi tạo trường static bằng một phương thức:
+For example, the class below initializes a static field using a method:
 
 ~~~java
 final class Settings {
@@ -37,42 +37,42 @@ final class Settings {
 }
 ~~~
 
-`Settings.class` có thể tạo tham chiếu `Class<Settings>` mà chưa gọi `loadToken()`. Nhưng thao tác **chủ động sử dụng** class theo quy tắc khởi tạo có thể chạy `loadToken()` và làm khởi tạo thất bại.
+`Settings.class` can produce a `Class<Settings>` reference without calling `loadToken()`. However, an operation that **actively uses** the class per initialization rules can run `loadToken()` and make initialization fail.
 
-**Lưu ý về `<clinit>`:** đây là tên phương thức khởi tạo lớp ở mức bytecode/JVM; nó không phải API mà bạn thường xuyên gọi trực tiếp bằng `getDeclaredMethod("<clinit>")`. Java compiler có thể kết hợp nhiều field initializer và static block theo thứ tự quy định vào logic khởi tạo. Không phải mọi class đều có code khởi tạo static có side effect.
+**Note on `<clinit>`:** this is the name of the class initialization method at the bytecode/JVM level; it is not an API you normally call directly via `getDeclaredMethod("<clinit>")`. The Java compiler can combine multiple field initializers and static blocks in the specified order into initialization logic. Not every class has static initialization code with side effects.
 
-## 3. Thao tác nào có thể kích hoạt khởi tạo lớp?
+## 3. Which Operations Can Trigger Class Initialization?
 
-Các quy tắc sử dụng tích cực (active use) của Java áp dụng cho cả mã Java thường lẫn nhiều lời gọi Reflection.
+Java's active-use rules apply to both normal Java code and many Reflection calls.
 
-| Thao tác | Có khởi tạo class đích chưa được khởi tạo không? | Giải thích |
+| Operation | Does it initialize an uninitialized target class? | Explanation |
 | --- | --- | --- |
-| `SomeType.class` | **Không** chỉ vì tạo class literal | Lấy biểu diễn `Class`, không chạy initializer của `SomeType` |
-| `obj.getClass()` | **Không** vì lệnh gọi này | Object đã tồn tại; lấy metadata không phải yêu cầu khởi tạo mới |
-| `Class.forName(name)` | **Có**, theo overload một tham số | Tìm lớp và yêu cầu khởi tạo lớp |
-| `Class.forName(name, false, loader)` | **Không** do tham số `false` | Có thể nạp/liên kết; không yêu cầu khởi tạo lớp đích |
-| `type.getDeclaredMethod("run")` | **Không** chỉ vì tra cứu | Lấy metadata `Method` (có thể kéo theo xử lý kiểu tham chiếu) |
-| `type.getDeclaredFields()` | **Không** chỉ vì liệt kê metadata | Chưa đọc giá trị field |
-| `staticMethod.invoke(null)` | **Có**, với method tĩnh của lớp chưa khởi tạo | JVM khởi tạo lớp khai báo method trước khi thực thi method |
-| `staticField.get(null)` hoặc `getInt(null)` | **Có**, với field tĩnh của lớp chưa khởi tạo | Reflection yêu cầu khởi tạo lớp khai báo field trước khi đọc giá trị |
-| `constructor.newInstance(args)` | **Có**, khi tạo instance của lớp chưa khởi tạo | Phải khởi tạo class trước khi tạo và dùng instance |
-| `new SomeType()` | **Có** | Đây là hành động tạo instance trực tiếp, không cần Reflection |
+| `SomeType.class` | **No** merely for creating a class literal | Obtains the `Class` representation; does not run `SomeType`'s initializer |
+| `obj.getClass()` | **No** for this call | The object already exists; retrieving metadata is not a new initialization request |
+| `Class.forName(name)` | **Yes**, for the single-parameter overload | Locates the class and requests class initialization |
+| `Class.forName(name, false, loader)` | **No** due to the `false` argument | May load/link; does not request initializing the target class |
+| `type.getDeclaredMethod("run")` | **No** merely for lookup | Retrieves `Method` metadata (may entail processing referenced types) |
+| `type.getDeclaredFields()` | **No** merely for listing metadata | Has not read field values yet |
+| `staticMethod.invoke(null)` | **Yes**, for a static method of an uninitialized class | The JVM initializes the declaring class before executing the method |
+| `staticField.get(null)` or `getInt(null)` | **Yes**, for a static field of an uninitialized class | Reflection requires initializing the field's declaring class before reading its value |
+| `constructor.newInstance(args)` | **Yes**, when creating an instance of an uninitialized class | Must initialize the class before creating and using the instance |
+| `new SomeType()` | **Yes** | This is direct instance creation, without Reflection |
 
-Các diễn giải trên xét class đích **chưa được khởi tạo** và hoạt động thông thường của JDK. Không đồng nghĩa việc thao tác metadata hoàn toàn không thể nạp các kiểu liên quan hoặc gặp các lỗi khác. Việc khởi tạo superclass hay superinterface có default method cũng có thể tham gia vào quá trình khởi tạo kiểu theo quy tắc JVM.
+These interpretations assume an **uninitialized** target class and standard JDK behavior. They do not mean metadata operations can never load related types or encounter other errors. Initializing a superclass or a superinterface with default methods can also participate in type initialization per JVM rules.
 
-**Ngoại lệ cần nhớ:** đọc trực tiếp một **constant variable** kiểu primitive hoặc `String` có giá trị hằng compile-time (ví dụ `static final int LIMIT = 10`) thường không kích hoạt khởi tạo class khai báo vì giá trị có thể được compiler nội tuyến. Quy tắc này không có nghĩa `Field.get(null)` được miễn khởi tạo: **đọc field static qua Reflection vẫn yêu cầu khởi tạo lớp khai báo field nếu chưa khởi tạo**.
+**Exception to remember:** directly reading a primitive or `String` **constant variable** with a compile-time constant value (e.g. `static final int LIMIT = 10`) typically does not trigger initialization of the declaring class because the value can be inlined by the compiler. This rule does not mean `Field.get(null)` is exempt from initialization: **reading a static field via Reflection still requires initializing the field's declaring class if not yet initialized**.
 
-## 4. Cơ chế phát sinh ExceptionInInitializerError
+## 4. Mechanism Behind ExceptionInInitializerError
 
-Khi JVM tiến hành khởi tạo một class, nó chạy phần static initialization. Nếu quá trình này kết thúc bất thường:
+When the JVM proceeds to initialize a class, it runs static initialization. If this process terminates abnormally:
 
-1. JVM xác định `Throwable` gây lỗi.
-2. Nếu `Throwable` đó **không phải `Error`**, JVM bọc nó thành **`ExceptionInInitializerError`**; lỗi gốc trở thành cause.
-3. Nếu nguyên nhân **đã là `Error`**, JVM có thể truyền chính `Error` đó ra ngoài mà không tạo thêm `ExceptionInInitializerError`.
-4. JVM đánh dấu `Class` tương ứng là **erroneous** (khởi tạo lỗi) trong phạm vi định danh lớp đó (bao gồm defining class loader).
-5. Lần sử dụng tích cực tiếp theo của cùng class trong trạng thái erroneous sẽ thất bại với **`NoClassDefFoundError`** thay vì chạy lại static initialization.
+1. The JVM identifies the `Throwable` that caused the error.
+2. If that `Throwable` is **not an `Error`**, the JVM wraps it in **`ExceptionInInitializerError`**; the original error becomes the cause.
+3. If the cause **is already an `Error`**, the JVM can propagate that `Error` directly without creating an extra `ExceptionInInitializerError`.
+4. The JVM marks the corresponding `Class` as **erroneous** (failed initialization) within that class identity's scope (including its defining class loader).
+5. Subsequent active uses of the same class in the erroneous state will fail with **`NoClassDefFoundError`** instead of re-running static initialization.
 
-Chẳng hạn:
+For example:
 
 ~~~java
 static int number = initialize();
@@ -82,15 +82,15 @@ static int initialize() {
 }
 ~~~
 
-Trong lần khởi tạo đầu tiên, `IllegalStateException` là một `RuntimeException` (không phải `Error`), nên JVM bọc bằng **`ExceptionInInitializerError`**. Người xử lý lỗi lấy được nguyên nhân bằng `error.getCause()`.
+On the first initialization attempt, `IllegalStateException` is a `RuntimeException` (not an `Error`), so the JVM wraps it in **`ExceptionInInitializerError`**. Error handlers retrieve the cause via `error.getCause()`.
 
-**Đừng suy luận ngược tuyệt đối rằng mọi lỗi static initialization đều có `ExceptionInInitializerError`:** static initialization ném `AssertionError`, `OutOfMemoryError` hay một `Error` khác có thể khiến lần kích hoạt đầu nhận trực tiếp `Error`. Các lỗi trong bước nạp hoặc liên kết cũng có loại exception/error riêng.
+**Do not infer backward as an absolute rule that every static initialization failure produces `ExceptionInInitializerError`:** static initialization throwing `AssertionError`, `OutOfMemoryError`, or another `Error` can cause the first trigger to receive that `Error` directly. Errors during loading or linking also have their own exception/error types.
 
-Dù có từ **Exception** trong tên, **`ExceptionInInitializerError extends LinkageError`**, mà `LinkageError extends Error`. Vì vậy **`catch (Exception)` không bắt được `ExceptionInInitializerError`**.
+Even though **Exception** is in its name, **`ExceptionInInitializerError extends LinkageError`**, and `LinkageError extends Error`. Therefore **`catch (Exception)` does not catch `ExceptionInInitializerError`**.
 
-## 5. Ví dụ hoàn chỉnh: tra cứu metadata bình thường, invoke thất bại
+## 5. Complete Example: Metadata Lookup Succeeds, Invoke Fails
 
-Lưu mã sau thành **`InitErrorReflectionDemo.java`** và dùng **JDK 17 trở lên**.
+Save the following code as **`InitErrorReflectionDemo.java`** and use **JDK 17 or later**.
 
 ~~~java
 import java.lang.reflect.InvocationTargetException;
@@ -115,7 +115,7 @@ public class InitErrorReflectionDemo {
     }
 
     public static void main(String[] args) throws Exception {
-        // false: chỉ yêu cầu nạp lớp, không khởi tạo BrokenInvoke.
+        // false: request loading the class only, without initializing BrokenInvoke.
         Class<?> type = Class.forName(
                 BrokenInvoke.class.getName(),
                 false,
@@ -123,11 +123,11 @@ public class InitErrorReflectionDemo {
 
         System.out.println("metadata: " + type.getSimpleName());
 
-        // Tra cứu method cũng chưa chạy static initialization.
+        // Method lookup also does not run static initialization yet.
         Method method = type.getDeclaredMethod("value");
         System.out.println("lookup: " + method.getName());
 
-        // Gọi static method: JVM phải khởi tạo BrokenInvoke trước.
+        // Calling static method: JVM must initialize BrokenInvoke first.
         try {
             method.invoke(null);
         } catch (ExceptionInInitializerError e) {
@@ -136,12 +136,12 @@ public class InitErrorReflectionDemo {
             System.out.println(
                     "root cause: " + e.getCause().getClass().getSimpleName());
         } catch (InvocationTargetException e) {
-            // Chỉ để minh họa rằng lỗi khởi tạo lớp không đến qua
-            // InvocationTargetException trong trường hợp này.
+            // Only to illustrate that class initialization errors do not arrive via
+            // InvocationTargetException in this case.
             System.out.println("unexpected wrapper: " + e);
         }
 
-        // Cùng Class đã ở trạng thái erroneous: không init lại.
+        // Same Class is already in erroneous state: does not re-init.
         try {
             method.invoke(null);
         } catch (NoClassDefFoundError e) {
@@ -149,7 +149,7 @@ public class InitErrorReflectionDemo {
                     "invoke second: " + e.getClass().getSimpleName());
         }
 
-        // Overload Class.forName một tham số yêu cầu khởi tạo lớp.
+        // Single-parameter Class.forName overload requests class initialization.
         try {
             Class.forName(BrokenForName.class.getName());
         } catch (ExceptionInInitializerError e) {
@@ -160,14 +160,14 @@ public class InitErrorReflectionDemo {
 }
 ~~~
 
-Biên dịch và chạy tại thư mục chứa tệp:
+Compile and run in the directory containing the file:
 
 ~~~bash
 javac -encoding UTF-8 InitErrorReflectionDemo.java
 java InitErrorReflectionDemo
 ~~~
 
-**Đầu ra chính xác (đã kiểm chứng trên JDK 21):**
+**Exact output (verified on JDK 21):**
 
 ~~~text
 metadata: BrokenInvoke
@@ -180,59 +180,59 @@ initializing forName
 forName first: ExceptionInInitializerError
 ~~~
 
-Đọc kết quả theo thứ tự:
+Reading the output in order:
 
-1. `Class.forName(..., false, loader)` trả metadata của **BrokenInvoke** và in `metadata: BrokenInvoke`; không in dòng **initializing** vì chưa khởi tạo class.
-2. `getDeclaredMethod("value")` tìm thấy method tĩnh và in `lookup: value`; vẫn chưa khởi tạo class.
-3. `method.invoke(null)` yêu cầu khởi tạo class khai báo method trước khi gọi method. Static field initializer chạy và in `initializing invoke`, sau đó ném **IllegalStateException**. JVM bọc thành **ExceptionInInitializerError**.
-4. Vì khởi tạo thất bại, method body **value()** thực tế chưa được thực thi. Lần `method.invoke(null)` thứ hai trên cùng class nhận **NoClassDefFoundError** và **không in lại** `initializing invoke`.
-5. Với lớp **BrokenForName** khác, `Class.forName(name)` yêu cầu khởi tạo ngay lập tức. Nó in `initializing forName` rồi ném **ExceptionInInitializerError**.
+1. `Class.forName(..., false, loader)` returns **BrokenInvoke** metadata and prints `metadata: BrokenInvoke`; no **initializing** line is printed because the class has not been initialized yet.
+2. `getDeclaredMethod("value")` finds the static method and prints `lookup: value`; still no class initialization.
+3. `method.invoke(null)` requires initializing the method's declaring class before calling the method. The static field initializer runs and prints `initializing invoke`, then throws **IllegalStateException**. The JVM wraps it in **ExceptionInInitializerError**.
+4. Because initialization failed, the **value()** method body never actually executed. The second `method.invoke(null)` on the same class receives **NoClassDefFoundError** and **does not print** `initializing invoke` again.
+5. For the separate **BrokenForName** class, `Class.forName(name)` requests initialization immediately. It prints `initializing forName` and then throws **ExceptionInInitializerError**.
 
-Ví dụ dùng hai nested static class độc lập để quan sát hai đường kích hoạt khởi tạo. Nếu chỉ dùng một class đã fail rồi thử nhiều cách kích hoạt, những lần sau thường chỉ còn thấy **NoClassDefFoundError**, khiến người học dễ tưởng lệnh kiểm thử thứ hai là nguyên nhân ban đầu.
+The example uses two independent static nested classes so you can observe two paths that trigger initialization. If you used only one already-failed class and tried multiple ways to trigger it, subsequent attempts would usually show only **NoClassDefFoundError**, tempting learners to think the second test call was the original cause.
 
-## 6. Phân biệt bốn loại lỗi dễ nhầm
+## 6. Distinguishing Four Easily Confused Error Types
 
-| Lỗi | Điều gì thất bại? | Đặc điểm chẩn đoán |
+| Error | What failed? | Diagnostic trait |
 | --- | --- | --- |
-| **ClassNotFoundException** | Yêu cầu nạp class theo tên nhưng class không được tìm thấy trong phạm vi class loader thích hợp | Checked exception; thường ở `Class.forName` hoặc `ClassLoader.loadClass` |
-| **ExceptionInInitializerError** | Khởi tạo class thất bại; nguyên nhân ban đầu không phải `Error` | Là **Error**; `getCause()` tiết lộ lỗi gốc như cấu hình sai, null, illegal state |
-| **NoClassDefFoundError** | JVM không thể sử dụng định nghĩa class như kỳ vọng, ví dụ class đã khởi tạo thất bại ở lần trước hoặc thiếu dependency khi runtime | Là **LinkageError**; kiểm tra message, cause và lần lỗi đầu tiên |
-| **InvocationTargetException** | **Method.invoke** đã gọi được method đích, nhưng method đích ném Throwable | Checked exception; `getCause()` là ngoại lệ từ method body |
+| **ClassNotFoundException** | Requested loading a class by name, but the class was not found within the appropriate class loader scope | Checked exception; typically from `Class.forName` or `ClassLoader.loadClass` |
+| **ExceptionInInitializerError** | Class initialization failed; the original cause was not an `Error` | Is an **`Error`**; `getCause()` reveals the root error such as bad config, null, or illegal state |
+| **NoClassDefFoundError** | The JVM cannot use the class definition as expected, e.g., the class failed initialization earlier or is missing a dependency at runtime | Is a **`LinkageError`**; check message, cause, and the first failure |
+| **InvocationTargetException** | **Method.invoke** successfully called the target method, but the target method threw a `Throwable` | Checked exception; `getCause()` is the exception from the method body |
 
-Lỗi được ném trong **method body** khi gọi qua `Method.invoke` thường được bọc thành **InvocationTargetException**. Nhưng lỗi xảy ra **trước khi method body có thể chạy**, trong quá trình khởi tạo class phục vụ một lời gọi tĩnh, không phải ngoại lệ do method body ném. Ví dụ trên chứng minh nhánh này ném **ExceptionInInitializerError** trực tiếp thay vì **InvocationTargetException**.
+An error thrown inside a **method body** when invoked via `Method.invoke` is normally wrapped in **InvocationTargetException**. However, an error occurring **before the method body can run**, during class initialization for a static call, is not an exception thrown by the method body. The example above proves this branch throws **ExceptionInInitializerError** directly rather than **InvocationTargetException**.
 
-Không nhầm thông điệp **"Could not initialize class ..."** của **NoClassDefFoundError** với **ClassNotFoundException**. Tên class có thể đã tìm được đầy đủ: vấn đề là JVM đã đánh dấu class đó ở trạng thái khởi tạo lỗi.
+Do not confuse **NoClassDefFoundError**'s **"Could not initialize class ..."** message with **ClassNotFoundException**. The class name may have been found completely: the issue is that the JVM marked that class in a failed initialization state.
 
-**Điều kiện phân biệt quan trọng:** không phải mọi **NoClassDefFoundError** đều bắt nguồn từ khởi tạo thất bại. Nó còn có thể xảy ra vì phụ thuộc runtime không có mặt dù class liên quan từng biên dịch được. Xem root cause và chuỗi sự kiện trước khi sửa.
+**Important distinction condition:** not every **NoClassDefFoundError** originates from failed initialization. It can also occur because a runtime dependency is absent even though the related class compiled. Check the root cause and event sequence before fixing.
 
-## 7. Vai trò của Field.get, Constructor.newInstance và Class.forName
+## 7. Roles of Field.get, Constructor.newInstance, and Class.forName
 
-### Đọc static field bằng Reflection
+### Reading a Static Field via Reflection
 
-Các thao tác tra cứu:
+Lookup operations:
 
 ~~~java
 Class<?> type = Settings.class;
 var field = type.getDeclaredField("TOKEN");
 ~~~
 
-thường chỉ lấy metadata, không khởi tạo **Settings**. Nhưng thao tác đọc:
+normally only retrieve metadata and do not initialize **Settings**. However, the read operation:
 
 ~~~java
 Object value = field.get(null);
 ~~~
 
-sẽ yêu cầu khởi tạo class khai báo field static nếu chưa khởi tạo. Truyền **null** là thích hợp cho field static vì không cần instance đích. Nếu initialization thất bại, `field.get(null)` có thể ném **ExceptionInInitializerError**; không phải `NoSuchFieldException` chỉ vì field đã tìm thấy.
+will require initializing the static field's declaring class if not yet initialized. Passing **null** is appropriate for a static field since no target instance is needed. If initialization fails, `field.get(null)` can throw **ExceptionInInitializerError**; not `NoSuchFieldException`, because the field was already found.
 
-**Phân biệt:** `Field.get` có thể ném **IllegalAccessException** vì kiểm tra quyền truy cập; đó là vấn đề độc lập với khởi tạo lớp. Không dùng `setAccessible(true)` theo phản xạ khi stack trace thực chất chỉ đến một initializer bị lỗi.
+**Distinction:** `Field.get` can throw **IllegalAccessException** due to access checks; that is independent of class initialization. Do not reflexively apply `setAccessible(true)` when the stack trace actually points to a broken initializer.
 
-### Tạo instance bằng Constructor.newInstance
+### Instantiating with Constructor.newInstance
 
-Một `Constructor<?> constructor = type.getDeclaredConstructor();` chỉ tra cứu constructor. Nhưng `constructor.newInstance()` kích hoạt khởi tạo class nếu cần, trước khi tạo instance. Nếu static initialization fail, lỗi xuất hiện tại `newInstance`; constructor body có thể chưa bắt đầu.
+`Constructor<?> constructor = type.getDeclaredConstructor();` only looks up the constructor. Yet `constructor.newInstance()` triggers class initialization if needed, before creating the instance. If static initialization fails, the error surfaces at `newInstance`; the constructor body may not have started.
 
-Nếu constructor body đã chạy và ném exception, API Reflection sẽ phản ánh qua **InvocationTargetException**. Cần xác định lỗi ở phase khởi tạo class hay trong constructor body trước khi chọn catch phù hợp.
+If the constructor body did run and threw an exception, the Reflection API reports it via **InvocationTargetException**. Determine whether the error occurred during the class initialization phase or inside the constructor body before picking a `catch` block.
 
-### Hai overload của Class.forName
+### Two Overloads of Class.forName
 
 ~~~java
 Class<?> a = Class.forName("com.example.Plugin");
@@ -242,36 +242,36 @@ Class<?> b = Class.forName(
         Thread.currentThread().getContextClassLoader());
 ~~~
 
-Dòng thứ nhất **yêu cầu khởi tạo** class `Plugin`. Dòng thứ hai dùng `initialize=false`, hữu ích cho công cụ discovery cần đọc metadata trước khi quyết định có sử dụng plugin không.
+The first line **requests initialization** of `Plugin`. The second line uses `initialize=false`, useful for discovery tools that need to read metadata before deciding whether to use a plugin.
 
-Hai dòng là **minh họa**, không phải ví dụ độc lập có sẵn class `com.example.Plugin`; cần class thật với tên và class loader tương ứng. Lệnh `Class.forName(..., false, ...)` không bảo đảm toàn bộ hệ thống không có side effect khác (ví dụ class loader tùy biến), nhưng bản thân nó không yêu cầu khởi tạo class đích.
+These two lines are **illustrative**, not a standalone example with `com.example.Plugin` already present; a real class with matching name and class loader is needed. `Class.forName(..., false, ...)` does not guarantee the entire system has no other side effects (e.g., a custom class loader), yet by itself it does not request initializing the target class.
 
-## 8. Điều xảy ra sau lần khởi tạo thất bại
+## 8. What Happens After a Failed Initialization
 
-Đối với cùng một `Class` và defining class loader, JVM ghi nhận class ở trạng thái erroneous khi khởi tạo thất bại. Vì vậy:
+For the same `Class` and defining class loader, the JVM records the class in an erroneous state when initialization fails. Consequently:
 
-- **Không khởi tạo lại class** chỉ vì gọi lại `Class.forName(name)`, `Method.invoke`, `Field.get` hay `Constructor.newInstance` trong cùng quá trình nạp lớp.
-- Các lần active use tiếp theo có thể ném **NoClassDefFoundError**, thường kèm thông báo không thể initialize class.
-- Nếu ứng dụng thay đổi cấu hình bên ngoài rồi lập tức thử lại cùng class trong cùng class loader, việc khởi tạo **không tự được chạy lại**.
-- Một class cùng tên được định nghĩa bằng class loader khác có danh tính runtime khác và có thể có vòng đời khởi tạo riêng. Đây là kiến thức để hiểu phạm vi lỗi, **không phải mẹo khuyến khích tạo class loader mới để che lỗi cấu hình**.
+- **The class is not re-initialized** merely by calling `Class.forName(name)`, `Method.invoke`, `Field.get`, or `Constructor.newInstance` again within the same class-loading lifecycle.
+- Subsequent active uses can throw **NoClassDefFoundError**, typically with a message stating the class could not be initialized.
+- If the application changes external configuration and immediately retries the same class in the same class loader, initialization **does not automatically re-run**.
+- A class of the same name defined by a different class loader has a different runtime identity and can have its own initialization lifecycle. This is knowledge to understand error scope, **not a trick encouraging creating new class loaders to hide configuration errors**.
 
-Tính chất này đặc biệt quan trọng ở hệ thống plugin, test runner hoặc ứng dụng sử dụng Reflection: lần lỗi đầu tiên cung cấp stack trace gần nguyên nhân nhất; các lỗi **NoClassDefFoundError** sau đó thường chỉ là hậu quả.
+This property is especially important in plugin systems, test runners, or Reflection-based applications: the first failure provides the stack trace closest to the cause; subsequent **NoClassDefFoundError** occurrences are usually just consequences.
 
-**Với lớp đã fail, ưu tiên sửa root cause và tái khởi động hoặc dùng vòng đời class loader được thiết kế sẵn**, thay vì viết vòng lặp retry không có khả năng đưa class về trạng thái bình thường.
+**For a failed class, prioritize fixing the root cause and restarting or using a properly designed class-loader lifecycle**, rather than writing a retry loop incapable of returning the class to a healthy state.
 
-## 9. Cách chẩn đoán ExceptionInInitializerError có hệ thống
+## 9. How to Diagnose ExceptionInInitializerError Systematically
 
-Khi thấy `ExceptionInInitializerError` hoặc `NoClassDefFoundError: Could not initialize class ...`, thực hiện theo thứ tự:
+When seeing `ExceptionInInitializerError` or `NoClassDefFoundError: Could not initialize class ...`, proceed in order:
 
-1. **Xác định thao tác đầu tiên kích hoạt class initialization**: `Class.forName(name)`, `Method.invoke` method tĩnh, `Field.get` field tĩnh, `Constructor.newInstance`, hay lời gọi Java trực tiếp.
-2. **Tìm lần lỗi đầu tiên trong cùng class loader**. Tránh chỉ nhìn stack trace ở lần retry sau khi class đã erroneous.
-3. **Mở chuỗi cause** của `ExceptionInInitializerError` bằng `getCause()` (hoặc API lịch sử `getException()`). Đừng dừng ở tên wrapper.
-4. **Kiểm tra các static field initializer, static block và phụ thuộc được khởi tạo**. Xem truy cập file/cấu hình, biến môi trường, parsing, phụ thuộc network, thứ tự static field, null, hoặc exception bị ném từ helper.
-5. **Phân biệt phase**: nếu lỗi do method/constructor body sau khi class đã khởi tạo thành công, xem `InvocationTargetException`; nếu initializer fail trước method body, tập trung vào khởi tạo lớp.
-6. **Xác nhận class loader và cấu hình runtime**. Cùng tên class có thể xuất hiện trong nhiều loader; classpath/module path cũng có thể làm nạp hoặc liên kết thất bại.
-7. **Viết test cách ly có thể lặp lại**. Dùng class riêng chưa từng được initialize cho mỗi kịch bản, hoặc chạy trong JVM mới để quan sát chính xác lần lỗi đầu.
+1. **Identify the first operation that triggered class initialization**: `Class.forName(name)`, `Method.invoke` on a static method, `Field.get` on a static field, `Constructor.newInstance`, or a direct Java call.
+2. **Find the first error in the same class loader**. Avoid looking only at the stack trace of a retry after the class became erroneous.
+3. **Unwrap the cause chain** of `ExceptionInInitializerError` using `getCause()` (or the historical API `getException()`). Do not stop at the wrapper name.
+4. **Inspect static field initializers, static blocks, and initialized dependencies**. Check file/config access, environment variables, parsing, network dependencies, static field ordering, nulls, or exceptions thrown by helpers.
+5. **Distinguish the phase**: if the error came from a method/constructor body after the class had initialized successfully, look at `InvocationTargetException`; if the initializer failed before the method body, focus on class initialization.
+6. **Confirm class loader and runtime configuration**. The same class name can appear across multiple loaders; classpath/module path issues can also make loading or linking fail.
+7. **Write an isolated, repeatable test**. Use a separate class never previously initialized for each scenario, or run in a fresh JVM to observe the exact first failure.
 
-Ví dụ để lấy nguyên nhân từ lỗi khởi tạo:
+Example for extracting the cause from an initialization error:
 
 ~~~java
 try {
@@ -282,51 +282,51 @@ try {
 }
 ~~~
 
-Đoạn trên là ví dụ cho ứng dụng **có class Plugin tương ứng**. Bắt **Error** có chủ đích ở một ranh giới giám sát có thể giúp ghi log nguyên nhân; **không nên coi bắt được lỗi là class đã có thể tiếp tục dùng an toàn**.
+The snippet above is an example for an application **that has the corresponding `Plugin` class**. Catching **`Error`** intentionally at a monitoring boundary can help log the cause; **you should not treat catching the error as meaning the class can safely continue to be used**.
 
-Nếu có nhiều tầng wrapper (ví dụ framework bọc thêm một exception), duyệt chuỗi `getCause()` và lưu stack trace đầy đủ để tìm sự kiện đầu tiên. Tránh chỉ dùng `getMessage()` vì đôi khi nó không chỉ rõ nguyên nhân.
+If there are multiple wrapper layers (for instance, a framework wrapping another exception), traverse the `getCause()` chain and preserve the full stack trace to find the first event. Avoid relying solely on `getMessage()`, as it sometimes does not clearly indicate the cause.
 
-## 10. Giảm khởi tạo lớp ngoài ý muốn khi viết công cụ Reflection
+## 10. Reducing Unintended Class Initialization When Writing Reflection Tools
 
-- **Discovery trước, activation sau:** khi chỉ liệt kê plugin hoặc đọc thông tin cấu trúc, cân nhắc `Class.forName(name, false, loader)` và API metadata. Chỉ khởi tạo khi quyết định sử dụng class.
-- **Giữ static initialization đơn giản:** tránh hoạt động IO, network, truy cập biến môi trường bất ổn hoặc phụ thuộc bên ngoài trong static field initializer nếu có thể hoãn sang thao tác khởi tạo tường minh, dễ trả lỗi có ngữ cảnh.
-- **Phân biệt method static với instance:** `Method.invoke(null)` gọi method tĩnh, yêu cầu khởi tạo class; instance method cần receiver đã được tạo thích hợp, và quá trình tạo instance thông thường đã khởi tạo class.
-- **Giữ nguyên cause khi báo lỗi:** bọc lỗi thành ngoại lệ nghiệp vụ tại ranh giới phù hợp nhưng không xóa stack trace gốc.
-- **Đừng thử chữa bằng quyền Reflection:** `setAccessible(true)` xử lý một số quy tắc kiểm tra truy cập và có thể bị giới hạn bởi module; nó không chữa lỗi từ static initializer.
-- **Không retry cùng class vô hạn:** JVM không tự chuyển class erroneous về trạng thái chưa khởi tạo.
+- **Discovery first, activation later:** when merely listing plugins or reading structural information, consider `Class.forName(name, false, loader)` and metadata APIs. Initialize only when deciding to use the class.
+- **Keep static initialization simple:** avoid IO, network calls, unstable environment variable lookups, or external dependencies in static field initializers if they can be deferred to an explicit initialization step that easily returns contextual errors.
+- **Distinguish static from instance methods:** `Method.invoke(null)` invokes a static method, requiring class initialization; an instance method requires an already-created receiver, and normal instance creation will have initialized the class.
+- **Preserve the cause when reporting errors:** wrap errors into business exceptions at the right boundary without erasing the original stack trace.
+- **Do not try to fix with Reflection permissions:** `setAccessible(true)` addresses certain access-check rules and can be restricted by modules; it does not fix errors inside a static initializer.
+- **Do not retry the same class infinitely:** the JVM does not reset an erroneous class back to an uninitialized state on its own.
 
-Một API plugin tốt nên tách **inspect/discover** (không cần thực thi) khỏi **activate/create** (có thể chạy code khởi tạo), và có bước ghi lỗi rõ ràng tại ranh giới kích hoạt.
+A good plugin API should separate **inspect/discover** (no execution required) from **activate/create** (may run initialization code), with clear error logging at the activation boundary.
 
-## 11. Những hiểu nhầm cần sửa
+## 11. Misconceptions to Correct
 
-| Hiểu nhầm | Thực tế |
+| Misconception | Reality |
 | --- | --- |
-| “Lấy được `Class<?>` tức là static block đã chạy” | Metadata có thể tồn tại khi class chưa được initialize |
-| “`getDeclaredMethod()` làm chạy method” | Nó chỉ tra cứu metadata; `invoke()` mới gọi method |
-| “Mọi lỗi phát sinh từ `Method.invoke` đều là `InvocationTargetException`” | Lỗi khởi tạo lớp khi gọi static method có thể là `ExceptionInInitializerError` trực tiếp |
-| “`ExceptionInInitializerError` là một checked exception” | Nó kế thừa `Error`, không được `catch (Exception)` bắt |
-| “Lần khởi tạo đầu thất bại thì retry sẽ chạy lại static block” | Cùng class/loader đã erroneous; lần dùng sau thường ném `NoClassDefFoundError` |
-| “Cứ thấy `NoClassDefFoundError` là thiếu file .class” | Nó cũng xuất hiện khi lớp đã khởi tạo thất bại ở lần trước |
-| “Field `static final` không bao giờ kích hoạt init” | Compile-time constant trực tiếp có ngoại lệ riêng; **`Field.get` đọc static field vẫn yêu cầu initialization** |
+| “Obtaining `Class<?>` means the static block already ran” | Metadata can exist while the class is still uninitialized |
+| “`getDeclaredMethod()` executes the method” | It only looks up metadata; `invoke()` calls the method |
+| “Every error from `Method.invoke` is `InvocationTargetException`” | Class initialization failures when calling a static method can throw `ExceptionInInitializerError` directly |
+| “`ExceptionInInitializerError` is a checked exception” | It extends `Error` and is not caught by `catch (Exception)` |
+| “If the first initialization fails, retrying will re-run the static block” | The same class/loader is already erroneous; later uses typically throw `NoClassDefFoundError` |
+| “Seeing `NoClassDefFoundError` always means a missing `.class` file” | It also occurs when the class failed initialization previously |
+| “`static final` fields never trigger initialization” | Direct compile-time constants have a specific exception; **reading a static field via `Field.get` still requires initialization** |
 
-## 12. Bài tập thực hành và tự đánh giá
+## 12. Hands-On Exercises and Self-Assessment
 
-**Bài tập 1 — tách tra cứu và kích hoạt.** Trong chương trình mẫu, thay `method.invoke(null)` bằng `type.getDeclaredFields()` và in tên field. Dự đoán: metadata được in nhưng **không xuất hiện** `initializing invoke` chỉ vì việc liệt kê. Sau đó thêm `Field.get(null)` trên field static và quan sát thời điểm xuất hiện lỗi.
+**Exercise 1 — separate lookup from activation.** In the sample program, replace `method.invoke(null)` with `type.getDeclaredFields()` and print field names. Prediction: metadata prints, yet `initializing invoke` **does not appear** just from listing. Then add `Field.get(null)` on the static field and observe when the error appears.
 
-**Bài tập 2 — thay loại nguyên nhân.** Thay `throw new IllegalStateException(...)` bằng `throw new AssertionError(...)` trong helper. Dự đoán: lần kích hoạt đầu có thể nhận **AssertionError** trực tiếp, còn lần sử dụng lại vẫn có thể gặp **NoClassDefFoundError** do class erroneous. Giải thích quy tắc JVM chỉ bọc nguyên nhân không phải `Error`.
+**Exercise 2 — change the cause type.** Replace `throw new IllegalStateException(...)` with `throw new AssertionError(...)` in the helper. Prediction: the first trigger can receive **AssertionError** directly, while reuse can still hit **NoClassDefFoundError** due to the erroneous class. Explain the JVM rule that only non-`Error` causes are wrapped.
 
-**Bài tập 3 — phân biệt lỗi trước và trong method.** Tạo một class khác có static initialization thành công, nhưng method tĩnh `run()` ném `IllegalStateException`. Gọi nó qua `Method.invoke(null)`; giải thích vì sao trường hợp này nhận **InvocationTargetException** thay cho lỗi khởi tạo.
+**Exercise 3 — distinguish errors before vs. inside a method.** Create another class whose static initialization succeeds, while its static method `run()` throws `IllegalStateException`. Invoke it via `Method.invoke(null)`; explain why this case receives **InvocationTargetException** instead of an initialization error.
 
-**Bài tập 4 — Class.forName.** So sánh `Class.forName(name, false, loader)` với `Class.forName(name)` trên hai class mẫu chưa được khởi tạo. In log từ static block để xác định khi nào quá trình khởi tạo xảy ra.
+**Exercise 4 — `Class.forName`.** Compare `Class.forName(name, false, loader)` with `Class.forName(name)` on two uninitialized sample classes. Print a log from a static block to pinpoint when initialization happens.
 
-**Câu hỏi tự kiểm tra:**
-1. Vì sao thao tác `Class.forName(name, false, loader)` thành công nhưng `Method.invoke(null)` sau đó vẫn có thể thất bại?
-2. Nếu nguyên nhân gốc là `NullPointerException` trong static field initializer, lần kích hoạt đầu thường thấy lỗi nào? Lần tiếp theo trên cùng class thường thấy lỗi nào?
-3. Vì sao `catch (Exception e)` không giữ được `ExceptionInInitializerError`?
-4. Tại sao cần tìm **lần lỗi đầu tiên** chứ không chỉ đọc `NoClassDefFoundError` ở lần gọi thứ hai?
+**Self-check questions:**
+1. Why can `Class.forName(name, false, loader)` succeed while `Method.invoke(null)` later still fails?
+2. If the root cause is a `NullPointerException` in a static field initializer, which error is typically seen on the first trigger? Which error is typically seen on the next use of the same class?
+3. Why does `catch (Exception e)` fail to catch `ExceptionInInitializerError`?
+4. Why must you look for **the first error** instead of only reading `NoClassDefFoundError` on the second call?
 
-**Đáp án ngắn:** metadata không đồng nghĩa với initialization; `NullPointerException` khi initialize thường được bọc thành `ExceptionInInitializerError`; lần sử dụng kế tiếp của class erroneous thường là `NoClassDefFoundError`; `ExceptionInInitializerError` là `Error`; lần lỗi đầu chỉ ra nguyên nhân và vị trí khởi tạo thất bại.
+**Short answers:** metadata does not mean initialization; a `NullPointerException` during initialization is typically wrapped into `ExceptionInInitializerError`; subsequent use of an erroneous class typically yields `NoClassDefFoundError`; `ExceptionInInitializerError` is an `Error`; the first failure identifies the cause and location where initialization failed.
 
-**Tiêu chí hoàn thành:** bạn chạy được ví dụ Java 17+, giải thích chính xác bảy dòng stdout, phân biệt lỗi từ class initialization và method body, xác định thao tác Reflection kích hoạt initialization, đồng thời biết dùng root cause để sửa lỗi thay vì retry class erroneous.
+**Completion criteria:** you can run the Java 17+ example, explain all eight lines of stdout accurately, distinguish errors from class initialization vs. method bodies, identify which Reflection operations trigger initialization, and use the root cause to fix the bug instead of retrying an erroneous class.
 
-**Tài liệu chuẩn để học sâu:** *Java Language Specification*, mục **12.4 Initialization of Classes and Interfaces**, và Javadoc của `Class.forName`, `Method.invoke`, `Field.get`, `Constructor.newInstance`, `ExceptionInInitializerError`, `NoClassDefFoundError`, `InvocationTargetException`.
+**Standard references for deeper study:** *Java Language Specification*, section **12.4 Initialization of Classes and Interfaces**, and the Javadocs for `Class.forName`, `Method.invoke`, `Field.get`, `Constructor.newInstance`, `ExceptionInInitializerError`, `NoClassDefFoundError`, and `InvocationTargetException`.

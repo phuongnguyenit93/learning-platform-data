@@ -1,10 +1,10 @@
-# Phân biệt giá trị biểu thức với giá trị biến sau `++` hoặc `--`
+# Distinguishing Expression Value from Variable Value After `++` or `--`
 
-## 1. Luôn theo dõi hai đại lượng
+## 1. Always Track Two Quantities
 
-Mỗi lần gặp tiền tố/hậu tố, hãy ghi riêng **giá trị biểu thức cung cấp cho phép tính bên ngoài** và **trạng thái của biến sau cập nhật**. Bốn quy tắc nền tảng là: `x++`/`x--` cung cấp giá trị **cũ** rồi cập nhật biến; `++x`/`--x` cập nhật biến và cung cấp giá trị **mới**. Việc cập nhật đã xảy ra ngay trong lần đánh giá này.
+Whenever you encounter prefix/postfix operators, separately record **the value the expression supplies to the enclosing calculation** and **the variable's state after the update**. The four foundational rules are: `x++`/`x--` supplies the **old** value and then updates the variable; `++x`/`--x` updates the variable and supplies the **new** value. The update happens immediately during this evaluation.
 
-Với hai ví dụ độc lập:
+With two independent examples:
 
 ~~~java
 int x = 5;
@@ -14,41 +14,41 @@ int y = 5;
 int b = ++y; // b=6, y=6
 ~~~
 
-| Biểu thức | Giá trị đưa vào phép gán ngoài | Trạng thái biến sau đó |
+| Expression | Value Passed to Outer Assignment | Variable State Afterward |
 |---|---:|---:|
-| `x++` với `x=5` | 5 | `x=6` |
-| `++x` với `x=5` | 6 | `x=6` |
-| `x--` với `x=5` | 5 | `x=4` |
-| `--x` với `x=5` | 4 | `x=4` |
+| `x++` with `x=5` | 5 | `x=6` |
+| `++x` with `x=5` | 6 | `x=6` |
+| `x--` with `x=5` | 5 | `x=4` |
+| `--x` with `x=5` | 4 | `x=4` |
 
-Đây là **hai thông tin khác nhau**, dù một số ví dụ có cùng số ở cả hai cột. Bài “Tăng giảm tiền tố và hậu tố” giải thích cú pháp và cách dùng trong vòng lặp; bài này tập trung vào **phương pháp truy vết kết quả khi biểu thức được sử dụng**.
+These are **two different pieces of information**, even though some examples have the same number in both columns. The lesson “Prefix and Postfix Increment and Decrement in Java” explains the syntax and loop usage; this lesson focuses on **the method for tracing results when the expression is used**.
 
-## 2. Bảng truy vết: đọc giá trị ở đúng thời điểm
+## 2. Trace Table: Reading Values at the Right Moment
 
-Với mỗi dòng Java, có thể làm theo trình tự:
+For any Java line, you can follow this sequence:
 
-1. Viết trạng thái biến **trước biểu thức**.
-2. Xác định vị trí của `++`/`--` và ghi **giá trị mà toán tử cung cấp**.
-3. Cập nhật trạng thái biến ngay khi toán tử được đánh giá.
-4. Đọc các toán hạng tiếp theo theo thứ tự đánh giá của Java, tính kết quả ngoài.
-5. Ghi **cả kết quả và trạng thái cuối**; không thay một giá trị bằng giá trị kia.
+1. Write down the variable state **before the expression**.
+2. Locate `++`/`--` and record **the value that the operator supplies**.
+3. Update the variable state immediately when the operator is evaluated.
+4. Read subsequent operands according to Java's evaluation order and compute the outer result.
+5. Record **both the result and the final state**; never substitute one value for the other.
 
-Ví dụ có **một** lần hậu tố và một lần đọc trạng thái sau:
+Example with **one** postfix operation and one subsequent state read:
 
 ~~~java
 int x = 5;
 int result = x++ * 10 + x;
 ~~~
 
-| Bước | Giá trị dùng cho phép tính | `x` đang giữ |
+| Step | Value Used in Calculation | Value Currently Held by `x` |
 |---|---:|---:|
-| Ban đầu | — | 5 |
+| Initial | — | 5 |
 | `x++` | 5 | 6 |
 | `5 * 10` | 50 | 6 |
-| Đọc `x` ở toán hạng cuối | 6 | 6 |
-| Cộng | `result = 56` | 6 |
+| Read `x` in the last operand | 6 | 6 |
+| Addition | `result = 56` | 6 |
 
-Với tiền tố:
+With prefix:
 
 ~~~java
 int y = 5;
@@ -56,9 +56,9 @@ int result = ++y * 10 + y;
 // result=66, y=6
 ~~~
 
-`++y` cung cấp 6 và biến đã bằng 6 khi toán hạng sau đọc. Kết quả cuối **không thể suy ra chỉ từ số lần xuất hiện của ký hiệu `++`** mà phải theo dõi thời điểm đọc.
+`++y` supplies 6 and the variable is already 6 when the later operand reads it. The final result **cannot be deduced solely from how many times the `++` symbol appears**; you must track the timing of each read.
 
-## 3. Biến nhận kết quả và biến bị cập nhật có thể khác nhau
+## 3. The Receiving Variable and the Updated Variable Can Differ
 
 ~~~java
 int score = 10;
@@ -68,9 +68,9 @@ System.out.println(snapshot); // 10
 System.out.println(current);  // 11
 ~~~
 
-`snapshot` lưu **giá trị biểu thức hậu tố**; `current` đọc **trạng thái sau hậu tố**. Nếu ghi log “`score++` trả 11” chỉ vì log sau đó thấy `score=11`, bạn đã nhập nhằng hai thời điểm khác nhau.
+`snapshot` stores **the postfix expression value**; `current` reads **the state after postfix**. If you log “`score++` returns 11” just because a later log shows `score=11`, you have conflated two different points in time.
 
-Một bẫy khi biến nhận và biến bị cập nhật là cùng một biến:
+A trap when the receiving variable and the updated variable are the same variable:
 
 ~~~java
 int n = 5;
@@ -78,20 +78,20 @@ n = n++;
 System.out.println(n); // 5
 ~~~
 
-`n++` trước hết làm `n` thành 6 nhưng **trả 5**; phép gán ngoài lưu lại 5. Vì vậy dòng này không dùng để tăng biến. Khi chỉ muốn cập nhật trạng thái, viết riêng `n++;`. Những chuỗi có **nhiều** lần tăng giảm trong một biểu thức được phân tích và viết lại ở bài cuối chương.
+`n++` first sets `n` to 6, yet **returns 5**; the outer assignment stores 5 back. Therefore, this line does not increment the variable. When you only want to update state, write `n++;` on its own. Chains with **multiple** increments/decrements in one expression are analyzed and rewritten in the final lesson of this chapter.
 
-## 4. Phân biệt tăng chỉ số với tăng phần tử mảng
+## 4. Distinguishing Incrementing an Index from Incrementing an Array Element
 
-Hai dòng sau có toán tử đặt tại **hai vị trí khác nhau**:
+The two lines below place the operator in **two different positions**:
 
 ~~~java
 int[] items = {7, 9};
 int index = 0;
 int picked = items[index++];
-// picked=7, index=1, items vẫn là {7,9}
+// picked=7, index=1, items remains {7,9}
 ~~~
 
-`index++` trả chỉ số cũ 0, sau đó tăng **index**; không thay đổi giá trị của `items[0]`.
+`index++` returns the old index 0, then increments **index**; it does not change the value of `items[0]`.
 
 ~~~java
 int[] items = {7, 9};
@@ -99,9 +99,9 @@ int previous = items[0]++;
 // previous=7, items[0]=8, items[1]=9
 ~~~
 
-Ở đây `++` gắn với **biến phần tử mảng `items[0]`**, không phải chỉ số. Khi debug, ghi rõ “biến nào bị thay đổi” cùng với “biểu thức trả gì”.
+Here `++` is attached to **the array element variable `items[0]`**, not the index. When debugging, explicitly record “which variable was modified” alongside “what the expression returned”.
 
-## 5. Giá trị cũ tại biên số và với wrapper
+## 5. Old Values at Numeric Boundaries and with Wrappers
 
 ~~~java
 int max = Integer.MAX_VALUE;
@@ -109,13 +109,13 @@ int old = max++;
 // old=2147483647, max=-2147483648
 ~~~
 
-Hậu tố cung cấp giá trị cũ ngay cả khi cập nhật làm `int` tràn. Java không tự ném ngoại lệ overflow ở phép `++` này. Nếu cần phát hiện tràn, cân nhắc `Math.incrementExact` và thiết kế riêng cách trả giá trị cũ.
+Postfix supplies the old value even when the update causes `int` overflow. Java does not automatically throw an overflow exception for this `++` operation. If overflow detection is needed, consider `Math.incrementExact` and design a separate way to return the old value.
 
-Với `Integer nullable`, `++` cần unboxing; `Integer absent = null; absent++;` sẽ ném `NullPointerException`. Bảng truy vết chỉ kết thúc bình thường khi từng bước đánh giá thành công.
+With a `nullable Integer`, `++` requires unboxing; `Integer absent = null; absent++;` will throw `NullPointerException`. A trace table only completes normally when every evaluation step succeeds.
 
-## 6. Chương trình Java 17+ để đối chiếu bảng
+## 6. Java 17+ Program to Cross-Check the Table
 
-Lưu thành `IncrementExpressionValueDemo.java`:
+Save as `IncrementExpressionValueDemo.java`:
 
 ~~~java
 public final class IncrementExpressionValueDemo {
@@ -173,27 +173,27 @@ element=7,8
 overflow=2147483647,-2147483648
 ~~~
 
-Các dòng `tracePost`/`tracePre` kiểm tra thời điểm toán hạng cuối đọc biến; `index`/`element` cho thấy vị trí tăng khác nhau; `overwritten` phân biệt tác dụng phụ tạm thời với trạng thái cuối sau phép gán ngoài.
+The `tracePost`/`tracePre` lines verify when the final operand reads the variable; `index`/`element` show the different increment targets; `overwritten` distinguishes a temporary side effect from the final state after the outer assignment.
 
-## 7. Bài tập có đáp án
+## 7. Exercises with Answers
 
-**Bài A.** `int x = 3; int y = x-- * 10 + x;`. **Đáp án:** `y=32`, `x=2` vì `x--` cung cấp 3 rồi `x` mới là 2.
+**Exercise A.** `int x = 3; int y = x-- * 10 + x;`. **Answer:** `y=32`, `x=2` because `x--` supplies 3 and then the new `x` is 2.
 
-**Bài B.** `int x = 3; int y = --x * 10 + x;`. **Đáp án:** `y=22`, `x=2` vì `--x` cung cấp 2 và lần đọc sau vẫn là 2.
+**Exercise B.** `int x = 3; int y = --x * 10 + x;`. **Answer:** `y=22`, `x=2` because `--x` supplies 2 and the later read is also 2.
 
-**Bài C.** `int[] data = {4,5}; int i=0; int a=data[i++];`. **Đáp án:** `a=4`, `i=1` và mảng không đổi.
+**Exercise C.** `int[] data = {4,5}; int i=0; int a=data[i++];`. **Answer:** `a=4`, `i=1`, and the array is unchanged.
 
-**Bài D.** `int[] data = {4,5}; int a=data[0]++;`. **Đáp án:** `a=4` và `data[0]=5`.
+**Exercise D.** `int[] data = {4,5}; int a=data[0]++;`. **Answer:** `a=4` and `data[0]=5`.
 
-**Bài E.** Giải thích `int n=9; n=n++;`. **Đáp án:** `n` cuối cùng vẫn là 9 vì kết quả cũ của hậu tố bị phép gán ngoài ghi trở lại.
+**Exercise E.** Explain `int n=9; n=n++;`. **Answer:** `n` ends up still 9 because the old result of postfix is written back by the outer assignment.
 
-## 8. Tự kiểm tra trước khi chuyển bài
+## 8. Self-Check Before Moving On
 
-- [ ] Phân biệt được **giá trị biểu thức** và **giá trị đang lưu**.
-- [ ] Biết hậu tố cập nhật ngay, không chờ lệnh kế tiếp.
-- [ ] Vẽ được bảng truy vết của một phép tăng/giảm nằm trong phép tính.
-- [ ] Chỉ ra biến nào đổi khi `++` nằm ở chỉ số hoặc phần tử mảng.
-- [ ] Giải thích được phép gán ngoài ghi đè `x++` mà không gọi Java là undefined.
-- [ ] Biết giá trị cũ vẫn được trả khi cập nhật bị overflow.
+- [ ] Can distinguish **expression value** from **currently stored value**.
+- [ ] Know that postfix updates immediately, without waiting for the next statement.
+- [ ] Can draw a trace table for an increment/decrement inside an arithmetic expression.
+- [ ] Identify which variable changes when `++` is on an index vs. an array element.
+- [ ] Can explain how an outer assignment overwrites `x++` without calling Java undefined.
+- [ ] Know that the old value is still returned when the update overflows.
 
-**Ghi nhớ:** Để hiểu `++`/`--` bên trong biểu thức, hãy trả lời **hai câu riêng**: *toán tử vừa cung cấp giá trị gì* và *biến nào đang giữ giá trị gì*. Với biểu thức có nhiều lần cập nhật trên cùng biến, cần thêm bảng thứ tự đánh giá và cân nhắc tách các side effect thành từng câu lệnh.
+**Key Takeaway:** To understand `++`/`--` inside an expression, answer **two separate questions**: *what value did the operator just supply* and *which variable is currently holding what value*. For expressions with multiple updates to the same variable, add an evaluation-order table and consider separating side effects into individual statements.

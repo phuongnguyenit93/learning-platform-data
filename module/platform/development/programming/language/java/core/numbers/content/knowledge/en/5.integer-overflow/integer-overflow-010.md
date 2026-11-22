@@ -1,22 +1,22 @@
-# Dùng BigInteger khi miền giá trị không có giới hạn phù hợp
+# Using `BigInteger` When Value Ranges Have No Suitable Fixed Limit
 
-> **Java core – numbers · Tràn và kiểm tra biên**  
-> Mục tiêu: nhận biết lúc `int`/`long` không đáp ứng miền dữ liệu, chuyển sang `BigInteger` trước khi tràn, tính toán số nguyên chính xác, chuyển đổi an toàn và kiểm soát rủi ro bộ nhớ/hiệu năng.
+> **Java core – numbers · Overflow and Boundary Checks**  
+> Goal: recognize when `int`/`long` cannot cover the data range, switch to `BigInteger` before overflowing, perform exact integer arithmetic, convert safely, and control memory/performance risks.
 
-## 1. Khi nào `long` là chưa đủ?
+## 1. When Is `long` Not Enough?
 
-Các kiểu nguyên primitive của Java có **miền giá trị cố định**:
+Java's primitive integer types have **fixed value ranges**:
 
-| Kiểu | Miền có dấu | Độ rộng |
+| Type | Signed Range | Width |
 | --- | --- | --- |
-| `byte` | −128 đến 127 | 8 bit |
-| `short` | −32.768 đến 32.767 | 16 bit |
-| `int` | −2.147.483.648 đến 2.147.483.647 | 32 bit |
-| `long` | −9.223.372.036.854.775.808 đến 9.223.372.036.854.775.807 | 64 bit |
+| `byte` | −128 to 127 | 8 bits |
+| `short` | −32,768 to 32,767 | 16 bits |
+| `int` | −2,147,483,648 to 2,147,483,647 | 32 bits |
+| `long` | −9,223,372,036,854,775,808 to 9,223,372,036,854,775,807 | 64 bits |
 
-Khi tính tổng, tích hoặc lũy thừa vượt giới hạn, phép số học nguyên `int`/`long` thông thường không tự mở rộng số bit. Kết quả có thể **tràn (overflow)** và quay vòng theo biểu diễn bù hai.
+When computing sums, products, or powers beyond limits, ordinary `int`/`long` integer arithmetic does not automatically expand its bit count. Results can **overflow** and wrap around under two's complement representation.
 
-Ví dụ:
+Example:
 
 ```java
 long max = Long.MAX_VALUE;
@@ -24,21 +24,21 @@ long overflowed = max + 1;
 System.out.println(overflowed); // -9223372036854775808
 ```
 
-Kết quả toán học mong muốn là **9.223.372.036.854.775.808**, nhưng giá trị này lớn hơn `Long.MAX_VALUE`. Nếu nghiệp vụ cần giữ đúng con số đó, `long` không còn phù hợp.
+The desired mathematical result is **9,223,372,036,854,775,808**, yet this value is greater than `Long.MAX_VALUE`. If the business requirement must preserve that exact number, `long` is no longer suitable.
 
-**`java.math.BigInteger` là lựa chọn để lưu và tính số nguyên chính xác vượt miền của các primitive.** “Độ chính xác tùy ý” (*arbitrary precision*) nghĩa là số bit có thể tăng theo độ lớn của số, thay vì bị chốt ở 32 hoặc 64 bit. Điều đó **không có nghĩa là vô hạn về tài nguyên**: dung lượng bộ nhớ, thời gian xử lý và giới hạn triển khai vẫn hữu hạn.
+**`java.math.BigInteger` is the choice for storing and computing exact integers beyond primitive ranges.** "Arbitrary precision" means the bit count can grow with the number's magnitude instead of being locked at 32 or 64 bits. That **does not mean unlimited resources**: memory capacity, processing time, and implementation limits remain finite.
 
-## 2. Đừng chờ tràn rồi mới chuyển sang BigInteger
+## 2. Do Not Wait for Overflow Before Switching to `BigInteger`
 
-Sai lầm hay gặp nhất là tính bằng `long` trước, sau đó mới “cứu” bằng cách tạo `BigInteger`:
+The most common mistake is computing in `long` first and then trying to "rescue" it by creating a `BigInteger`:
 
 ```java
 long a = Long.MAX_VALUE;
-long bad = a + 1;                      // đã tràn
-BigInteger tooLate = BigInteger.valueOf(bad); // giữ giá trị âm đã sai
+long bad = a + 1;                      // already overflowed
+BigInteger tooLate = BigInteger.valueOf(bad); // keeps the already-wrong negative value
 ```
 
-Phải **chuyển trước phép toán có nguy cơ tràn**:
+You must **convert before the operation that risks overflowing**:
 
 ```java
 import java.math.BigInteger;
@@ -48,42 +48,42 @@ BigInteger correct = BigInteger.valueOf(a).add(BigInteger.ONE);
 System.out.println(correct); // 9223372036854775808
 ```
 
-Với phép nhân, quy tắc hoàn toàn tương tự:
+For multiplication, the rule is identical:
 
 ```java
 long x = 5_000_000_000L;
 long y = 5_000_000_000L;
 
-// long bad = x * y; // sẽ tràn long
+// long bad = x * y; // would overflow long
 BigInteger product = BigInteger.valueOf(x)
         .multiply(BigInteger.valueOf(y));
 // product = 25000000000000000000
 ```
 
-Tránh `new BigInteger(String.valueOf(x * y))`: phần `x * y` đã chạy bằng `long` và có thể tràn. Chuyển **toán hạng** trước, không chuyển **kết quả đã hỏng**.
+Avoid `new BigInteger(String.valueOf(x * y))`: the `x * y` part already ran in `long` and could overflow. Convert the **operands** first, not the **already-corrupted result**.
 
-Nếu yêu cầu là “vẫn dùng primitive nhưng phải biết khi nào tràn”, dùng `Math.addExact`, `Math.subtractExact`, `Math.multiplyExact` và `Math.negateExact` với `int`/`long`; các phương thức này ném `ArithmeticException` khi phép toán không vừa kiểu đích. Chúng **phát hiện tràn** chứ không tạo thêm độ rộng bit.
+If the requirement is "keep using primitives while knowing when overflow occurs," use `Math.addExact`, `Math.subtractExact`, `Math.multiplyExact`, and `Math.negateExact` on `int`/`long`; these methods throw `ArithmeticException` when the operation does not fit in the target type. They **detect overflow** rather than adding bit width.
 
-## 3. Chọn BigInteger dựa trên miền giá trị và yêu cầu nghiệp vụ
+## 3. Choosing `BigInteger` Based on Value Range and Business Requirements
 
-Các tình huống thường đáng dùng `BigInteger`:
+Situations where `BigInteger` is commonly warranted:
 
-- **Bộ đếm, lượng giao dịch hoặc số lượng tổ hợp** có miền tăng trưởng mà `long` không đủ để cam kết an toàn.
-- **Giai thừa, tổ hợp, lũy thừa nguyên**: giá trị tăng rất nhanh, ngay cả khi đầu vào không lớn.
-- **Thuật toán số học nguyên** cần phép chia lấy thương, GCD, phần dư, lũy thừa modulo hoặc các số lớn.
-- **Giá trị nguyên từ hệ thống bên ngoài** dài hơn 64 bit cần giữ nguyên mọi chữ số.
-- **Bài toán miền giá trị mở**: chưa có cận trên khả dụng hoặc giới hạn kinh doanh không đủ để bảo đảm `long` an toàn.
+- **Counters, transaction volumes, or combinatoric counts** whose growth range `long` cannot safely guarantee.
+- **Factorials, combinations, integer powers**: values grow very rapidly even when inputs are small.
+- **Integer-arithmetic algorithms** needing integer quotients, GCD, remainders, modular exponentiation, or large integers.
+- **Integer values from external systems** longer than 64 bits where every digit must be preserved verbatim.
+- **Open-ended value-range problems**: no usable upper bound exists yet, or business limits are insufficient to guarantee `long` safety.
 
-Không nên thay mọi `int` và `long` bằng `BigInteger` theo thói quen. Một chỉ số mảng, số thứ tự nhỏ, timestamp ở miền đã xác định hay bộ đếm bảo đảm không vượt `long` thường phù hợp với primitive hơn. Ngược lại, **không chọn kiểu từ giá trị mẫu hiện tại**: cần xét giá trị lớn nhất có thể xuất hiện khi hệ thống vận hành thực tế.
+You should not replace every `int` and `long` with `BigInteger` out of habit. An array index, small sequence number, timestamp in a known range, or counter guaranteed not to exceed `long` is usually better suited to primitives. Conversely, **do not pick a type from current sample values**: consider the largest value that can appear during real system operation.
 
-**Ví dụ từ giai thừa:**
+**Example from factorials:**
 
 ```text
-20! = 2432902008176640000    (còn vừa long)
-21! = 51090942171709440000   (vượt Long.MAX_VALUE)
+20! = 2432902008176640000    (still fits in long)
+21! = 51090942171709440000   (exceeds Long.MAX_VALUE)
 ```
 
-Đây là bằng chứng rõ ràng rằng `long` không thích hợp nếu chương trình cần tính giai thừa cho `n >= 21` và giữ kết quả chính xác. Chọn `BigInteger` ngay từ đầu vòng lặp:
+This is clear evidence that `long` is unsuitable if a program needs to compute factorials for `n >= 21` and keep exact results. Choose `BigInteger` right from the start of the loop:
 
 ```java
 BigInteger result = BigInteger.ONE;
@@ -93,13 +93,13 @@ for (int i = 2; i <= 21; i++) {
 System.out.println(result); // 51090942171709440000
 ```
 
-Lưu ý `BigInteger` không tự ngăn chương trình nhận đầu vào quá lớn như hàng triệu chữ số hay mũ khổng lồ. Bên cạnh chọn kiểu đúng vẫn phải có **giới hạn đầu vào** và **ngân sách tài nguyên**.
+Note that `BigInteger` does not automatically prevent a program from receiving huge inputs such as millions of digits or gigantic exponents. Alongside choosing the right type, you still need **input limits** and **resource budgets**.
 
-## 4. Khởi tạo BigInteger đúng cách
+## 4. Initializing `BigInteger` Properly
 
-`BigInteger` thuộc gói `java.math`, là lớp bất biến (*immutable*) kế thừa `Number`. Nó không có cú pháp literal riêng như `123L`.
+`BigInteger` belongs to the `java.math` package and is an *immutable* class extending `Number`. It has no dedicated literal syntax like `123L`.
 
-### 4.1. Từ long đã nằm trong miền
+### 4.1. From an in-range `long`
 
 ```java
 BigInteger small = BigInteger.valueOf(123L);
@@ -109,11 +109,11 @@ BigInteger one = BigInteger.ONE;
 BigInteger ten = BigInteger.TEN;
 ```
 
-Trong Java 17+ còn có `BigInteger.TWO`. Dùng các hằng chuẩn này khi phù hợp, tránh tạo lại đối tượng không cần thiết.
+Java 17+ also provides `BigInteger.TWO`. Use these standard constants when appropriate to avoid unnecessary object creation.
 
-### 4.2. Từ chuỗi thập phân hoặc cơ số khác
+### 4.2. From a decimal or other radix string
 
-Khi giá trị vượt miền `long`, cách dễ hiểu là truyền **chuỗi đầy đủ các chữ số**:
+When a value exceeds the `long` range, the straightforward approach is passing **the full string of digits**:
 
 ```java
 BigInteger huge = new BigInteger("9223372036854775808");
@@ -122,61 +122,61 @@ BigInteger hex = new BigInteger("FF", 16); // 255
 BigInteger binary = new BigInteger("1010", 2); // 10
 ```
 
-Constructor `new BigInteger(String, radix)` chấp nhận cơ số từ 2 đến 36. **Không** truyền tiền tố `0x` khi parse chuỗi cơ số 16 kiểu này:
+The `new BigInteger(String, radix)` constructor accepts bases from 2 to 36. Do **not** pass a `0x` prefix when parsing a base-16 string this way:
 
 ```java
-BigInteger hex = new BigInteger("FF", 16);   // đúng
+BigInteger hex = new BigInteger("FF", 16);   // correct
 // new BigInteger("0xFF", 16);               // NumberFormatException
 ```
 
-Chuỗi không hợp lệ ném `NumberFormatException`; dữ liệu từ người dùng phải được validate và giới hạn độ dài trước khi parse.
+Invalid strings throw `NumberFormatException`; user-supplied data must be validated and length-bounded before parsing.
 
-### 4.3. Sai lầm: dùng literal long vượt miền
+### 4.3. Mistake: using an out-of-range `long` literal
 
 ```java
-// Không biên dịch: literal số nguyên này không vừa long
+// Does not compile: this integer literal does not fit in long
 // BigInteger bad = BigInteger.valueOf(9223372036854775808L);
 
 BigInteger good = new BigInteger("9223372036854775808");
 ```
 
-Dấu phân cách `_` được cho phép trong **numeric literals của mã Java**, nhưng không được hiểu như dấu phân cách trong chuỗi thập phân đưa vào `new BigInteger("...")`.
+The `_` separator is allowed in **Java source numeric literals**, but is not recognized as a separator inside decimal strings passed to `new BigInteger("...")`.
 
-## 5. BigInteger là immutable: phương thức trả về đối tượng mới
+## 5. `BigInteger` Is Immutable: Methods Return a New Object
 
-Khác với primitive có toán tử `+`, `-`, `*`, `/`, các phép tính thông thường trên `BigInteger` được gọi bằng **phương thức**:
+Unlike primitives with `+`, `-`, `*`, and `/` operators, standard operations on `BigInteger` are invoked via **methods**:
 
-| Nhu cầu | Phương thức `BigInteger` |
+| Need | `BigInteger` Method |
 | --- | --- |
-| Cộng | `a.add(b)` |
-| Trừ | `a.subtract(b)` |
-| Nhân | `a.multiply(b)` |
-| Chia lấy thương nguyên | `a.divide(b)` |
-| Chia lấy thương và số dư | `a.divideAndRemainder(b)` |
-| Số dư theo phép chia nguyên | `a.remainder(b)` |
-| Modulo với môđun dương | `a.mod(m)` |
-| Đối dấu | `a.negate()` |
-| Trị tuyệt đối | `a.abs()` |
-| Lũy thừa nguyên | `a.pow(exponent)` |
-| Ước số chung lớn nhất | `a.gcd(b)` |
-| Dịch bit trái/phải | `a.shiftLeft(n)`, `a.shiftRight(n)` |
+| Add | `a.add(b)` |
+| Subtract | `a.subtract(b)` |
+| Multiply | `a.multiply(b)` |
+| Integer quotient division | `a.divide(b)` |
+| Quotient and remainder | `a.divideAndRemainder(b)` |
+| Remainder per integer division | `a.remainder(b)` |
+| Modulo with positive modulus | `a.mod(m)` |
+| Negate | `a.negate()` |
+| Absolute value | `a.abs()` |
+| Integer exponentiation | `a.pow(exponent)` |
+| Greatest common divisor | `a.gcd(b)` |
+| Left/right bit shift | `a.shiftLeft(n)`, `a.shiftRight(n)` |
 
-Vì **không thể sửa trực tiếp** đối tượng sau khi tạo, phải giữ giá trị trả về:
+Because an object **cannot be modified in place** after creation, you must capture the return value:
 
 ```java
 BigInteger count = BigInteger.TEN;
-count.add(BigInteger.ONE);         // trả về 11 nhưng bị bỏ
+count.add(BigInteger.ONE);         // returns 11, but it is discarded
 System.out.println(count);       // 10
 
 count = count.add(BigInteger.ONE);
 System.out.println(count);       // 11
 ```
 
-Không thể viết `count++` hoặc `count += BigInteger.ONE`: Java không overload các toán tử số học cho `BigInteger`. Trong các phép tính liên tiếp, mã cần lưu kết quả một cách tường minh.
+You cannot write `count++` or `count += BigInteger.ONE`: Java does not overload arithmetic operators for `BigInteger`. Across consecutive calculations, the code must store the result explicitly.
 
-## 6. Phép chia và số dư: đặc biệt chú ý số âm
+## 6. Division and Remainder: Pay Special Attention to Negative Numbers
 
-`BigInteger.divide()` trả **thương nguyên làm tròn về 0**, giống phép chia nguyên primitive của Java. Nếu số chia bằng 0, `ArithmeticException` được ném.
+`BigInteger.divide()` returns an **integer quotient truncated toward 0**, just like Java's primitive integer division. If the divisor is 0, `ArithmeticException` is thrown.
 
 ```java
 BigInteger a = BigInteger.valueOf(-17);
@@ -187,11 +187,11 @@ System.out.println(a.remainder(b)); // -2
 System.out.println(a.mod(b));       // 3
 ```
 
-Sự khác nhau giữa `remainder` và `mod`:
+Difference between `remainder` and `mod`:
 
-- `a.remainder(b)` có số dư theo phép chia lấy thương hướng về 0; số dư khác 0 có **cùng dấu với số bị chia**.
-- `a.mod(m)` yêu cầu **môđun dương** và trả phần dư **không âm** từ 0 đến `m - 1`.
-- Dùng `divideAndRemainder(b)` khi cần cả thương và số dư cùng một lần tính.
+- `a.remainder(b)` gives the remainder from division truncating toward 0; a non-zero remainder has the **same sign as the dividend**.
+- `a.mod(m)` requires a **positive modulus** and returns a **non-negative** remainder from 0 to `m - 1`.
+- Use `divideAndRemainder(b)` when you need both quotient and remainder in a single calculation.
 
 ```java
 BigInteger[] qr = a.divideAndRemainder(b);
@@ -199,11 +199,11 @@ System.out.println(qr[0]); // -3
 System.out.println(qr[1]); // -2
 ```
 
-Chọn quy tắc số dư phù hợp bài toán. Với vòng đệm chỉ số tuần hoàn hoặc số học modulo, `mod(positiveModulus)` thường hợp lý hơn `remainder` khi số đầu vào có thể âm.
+Choose the remainder rule matching your problem. For circular index buffers or modular arithmetic, `mod(positiveModulus)` is usually more sensible than `remainder` when inputs can be negative.
 
-## 7. So sánh, dấu, và chuyển đổi chính xác
+## 7. Comparison, Sign, and Exact Conversions
 
-### 7.1. Không dùng toán tử so sánh primitive cho BigInteger
+### 7.1. Do not use primitive comparison operators on `BigInteger`
 
 ```java
 BigInteger a = new BigInteger("100000000000000000000");
@@ -213,34 +213,34 @@ System.out.println(a.compareTo(b) > 0); // true
 System.out.println(a.equals(b));        // false
 ```
 
-`compareTo` trả giá trị âm, 0 hoặc dương tùy `a < b`, `a == b` hay `a > b`. `equals` so sánh giá trị số nguyên của hai `BigInteger`; khác với `BigDecimal`, `BigInteger` **không có scale** làm ảnh hưởng `equals`.
+`compareTo` returns a negative value, 0, or a positive value depending on whether `a < b`, `a == b`, or `a > b`. `equals` compares the integer values of two `BigInteger`s; unlike `BigDecimal`, `BigInteger` **has no scale** affecting `equals`.
 
-- `signum()`: trả `-1`, `0`, `1` tương ứng âm, bằng 0, dương.
-- `min` và `max`: chọn giá trị nhỏ/lớn theo thứ tự.
-- `bitLength()`: hỗ trợ ước lượng độ lớn nhị phân; đây không phải số chữ số thập phân.
+- `signum()`: returns `-1`, `0`, or `1` corresponding to negative, zero, or positive.
+- `min` and `max`: pick the smaller/larger value by ordering.
+- `bitLength()`: helps estimate binary magnitude; this is not the number of decimal digits.
 
-Nếu có tham chiếu có thể `null`, xử lý `null` trước khi gọi các phương thức.
+If a reference can be `null`, handle `null` before calling methods.
 
-### 7.2. Phân biệt chuyển đổi mất dữ liệu và exact
+### 7.2. Distinguish lossy conversions from exact conversions
 
-Các phương thức kế thừa từ `Number`, như `intValue()` và `longValue()`, **không bảo đảm giữ nguyên giá trị** nếu giá trị vượt miền. Khi chuyển sang `long`, những bit cao có thể bị mất.
+Methods inherited from `Number`, such as `intValue()` and `longValue()`, **do not guarantee value preservation** if the value is out of range. When converting to `long`, high bits may be lost.
 
 ```java
 BigInteger overLong = new BigInteger("9223372036854775808");
 System.out.println(overLong.longValue()); // -9223372036854775808
 
-// long bad = overLong.longValueExact(); // ném ArithmeticException
+// long bad = overLong.longValueExact(); // throws ArithmeticException
 ```
 
-Nếu dữ liệu phải chính xác, ưu tiên `intValueExact()`, `longValueExact()`, `shortValueExact()`, `byteValueExact()`. Chúng ném `ArithmeticException` nếu giá trị không thể biểu diễn chính xác trong kiểu đích.
+If data must be exact, prefer `intValueExact()`, `longValueExact()`, `shortValueExact()`, and `byteValueExact()`. They throw `ArithmeticException` if the value cannot be represented accurately in the target type.
 
-Các kiểm tra nên thực hiện tại **ranh giới API**: chuyển đối tượng BigInteger sang kiểu của database/JSON/SDK bên ngoài, trả kết quả cho module dùng `long`, hoặc ghi vào giao thức có giới hạn số bit. Dữ liệu đúng bên trong `BigInteger` vẫn có thể sai sau khi chuyển sang kiểu hẹp.
+Checks should happen at **API boundaries**: converting a `BigInteger` to an external database/JSON/SDK type, returning a result to a module using `long`, or writing to a bit-bounded protocol. Data that is accurate inside `BigInteger` can still become wrong after converting to a narrow type.
 
-## 8. Tính toán với số lớn: tổ hợp và lũy thừa
+## 8. Large-Number Calculations: Combinatorics and Exponentiation
 
-`BigInteger` hữu ích khi số chữ số của kết quả tăng nhanh.
+`BigInteger` is useful when the digit count of results grows rapidly.
 
-### 8.1. Lũy thừa nguyên
+### 8.1. Integer exponentiation
 
 ```java
 BigInteger power = BigInteger.TWO.pow(100);
@@ -248,13 +248,13 @@ System.out.println(power);
 // 1267650600228229401496703205376
 ```
 
-`pow(exponent)` nhận số mũ kiểu `int` không âm. Nó tạo ra **số nguyên chính xác** nếu hoàn thành thành công, nhưng có thể dùng rất nhiều bộ nhớ với số mũ lớn. Các dạng `BigInteger` không biểu diễn phần thập phân: phép `divide` là chia nguyên, không phải chia chính xác cho một số hữu tỉ bất kỳ.
+`pow(exponent)` accepts a non-negative `int` exponent. It produces an **exact integer** if it completes successfully, though it can consume a lot of memory for large exponents. `BigInteger` instances do not represent fractional parts: `divide` is integer division, not exact division for an arbitrary rational number.
 
-### 8.2. Đếm tổ hợp
+### 8.2. Combinatorial counting
 
-Công thức `n!` tăng nhanh. Với hệ thống cần `n!`, `C(n,k)` hoặc các số đếm tổ hợp, các phép nhân trung gian cũng có thể vượt `long`.
+The formula `n!` grows fast. For systems needing `n!`, `C(n,k)`, or combinatorial counts, intermediate multiplications can also exceed `long`.
 
-Ví dụ cách tính `C(n,k)` mà không tạo ba giai thừa rất lớn:
+Example of computing `C(n,k)` without creating three huge factorials:
 
 ```java
 import java.math.BigInteger;
@@ -267,7 +267,7 @@ public static BigInteger choose(int n, int k) {
     k = Math.min(k, n - k);
     BigInteger result = BigInteger.ONE;
     for (int i = 1; i <= k; i++) {
-        // Mỗi bước chia hết theo tính chất của hệ số tổ hợp.
+        // Each step divides evenly by property of binomial coefficients.
         result = result.multiply(BigInteger.valueOf((long) n - k + i))
                        .divide(BigInteger.valueOf(i));
     }
@@ -275,40 +275,40 @@ public static BigInteger choose(int n, int k) {
 }
 ```
 
-Đây là **phương thức minh họa** cần đặt trong một lớp Java để chạy; nó không phải chương trình hoàn chỉnh. Kiểu `long` ở `(long) n - k + i` giúp phép tính tạo thừa số tránh tràn `int` trong các giá trị biên. Mỗi bước là số nguyên vì tích lũy công thức tổ hợp được chia hết cho `i`.
+This is an **illustrative method** that must be placed inside a Java class to run; it is not a complete program. Using `long` in `(long) n - k + i` prevents the factor calculation from overflowing `int` at boundary values. Each step stays an integer because the accumulated combinatorial product is evenly divisible by `i`.
 
-## 9. Kiểm tra overflow trước hay dùng BigInteger từ đầu?
+## 9. Check Overflow First or Use `BigInteger` from the Start?
 
-Một số hệ thống đặt yêu cầu khác nhau:
+Different systems set different requirements:
 
-| Yêu cầu | Hướng giải quyết |
+| Requirement | Solution Approach |
 | --- | --- |
-| Biết chắc miền trong `int`/`long` | Dùng primitive, kiểm tra đầu vào nếu cần |
-| Cần giữ primitive nhưng phải chặn phép toán vượt miền | Dùng `Math.*Exact`; xử lý `ArithmeticException` |
-| Phép toán có thể vượt `long`, kết quả phải là số nguyên chính xác | Chuyển các toán hạng sang `BigInteger` **trước** phép tính |
-| Kết quả lớn, nhưng cổng xuất chỉ nhận `long` | Giữ `BigInteger` ở lõi, kiểm tra biên/ `longValueExact()` tại cổng xuất |
-| Số liệu có phần thập phân và cần làm tròn theo quy tắc nghiệp vụ | Dùng `BigDecimal`, không dùng `BigInteger` trực tiếp |
+| Range known to stay inside `int`/`long` | Use primitives, validate inputs if needed |
+| Must stay primitive yet block out-of-range operations | Use `Math.*Exact`; handle `ArithmeticException` |
+| Operation may exceed `long`, result must be exact integer | Convert operands to `BigInteger` **before** the operation |
+| Large result, but output port accepts only `long` | Keep `BigInteger` in the core, check bounds / `longValueExact()` at the output port |
+| Data has fractional parts and needs business rounding rules | Use `BigDecimal`, not `BigInteger` directly |
 
-Ví dụ một phép cộng đòi **báo lỗi** khi vượt `long`:
+Example of an addition requiring **an error** when exceeding `long`:
 
 ```java
 long total = Math.addExact(current, incoming);
 ```
 
-Nếu cùng phép cộng đòi **lưu lại kết quả chính xác dù vượt `long`**:
+If the same addition requires **preserving the exact result even beyond `long`**:
 
 ```java
 BigInteger total = BigInteger.valueOf(current)
         .add(BigInteger.valueOf(incoming));
 ```
 
-Chọn theo **hợp đồng dữ liệu**. Đừng nuốt ngoại lệ từ `Math.addExact` rồi âm thầm ghi giá trị đã quay vòng; cũng đừng tự tiện trả một chuỗi BigInteger cho API vốn bắt buộc kiểu 64 bit mà chưa định nghĩa cách trao đổi giá trị.
+Choose according to the **data contract**. Do not swallow exceptions from `Math.addExact` and silently record a wrapped-around value; likewise, do not arbitrarily return a `BigInteger` string to an API requiring a 64-bit type without defining the value-exchange contract.
 
-## 10. BigInteger và biểu diễn nhị phân có dấu/không dấu
+## 10. `BigInteger` and Signed/Unsigned Binary Representation
 
-`BigInteger` là số nguyên **có dấu**. Bạn có thể parse chuỗi thập phân dương rất lớn, nhưng khi đọc **mảng byte**, cách diễn giải dấu phải được chọn rõ.
+`BigInteger` is a **signed** integer. You can parse very large positive decimal strings, yet when reading a **byte array**, sign interpretation must be chosen explicitly.
 
-Ví dụ hai byte `FF 00`:
+Example with two bytes `FF 00`:
 
 ```java
 byte[] bytes = {(byte) 0xFF, 0x00};
@@ -320,38 +320,38 @@ System.out.println(signed);   // -256
 System.out.println(unsigned); // 65280
 ```
 
-Constructor `new BigInteger(byte[])` xem các byte theo bù hai, thứ tự byte lớn trước (*big-endian*). Constructor `new BigInteger(signum, magnitude)` dùng một dấu riêng và phần độ lớn không dấu. **Không mặc định mọi byte[] là số dương** nếu byte cao nhất có bit dấu 1.
+The `new BigInteger(byte[])` constructor treats the bytes as two's complement in *big-endian* byte order. The `new BigInteger(signum, magnitude)` constructor uses a separate sign and an unsigned magnitude. **Do not assume every `byte[]` is positive** if the highest byte has sign bit 1.
 
-Khi xuất byte bằng `toByteArray()`, kết quả là biểu diễn bù hai theo thứ tự big-endian với số byte đủ để bảo toàn dấu; một số dương có bit cao nhất bằng 1 có thể cần byte `00` dẫn đầu. Nếu giao thức đòi chiều dài byte cố định hoặc unsigned, phải kiểm tra độ dài, dấu và padding trước khi ghi.
+When exporting bytes with `toByteArray()`, the output is big-endian two's complement with enough bytes to preserve the sign; a positive number whose highest bit is 1 may need a leading `00` byte. If a protocol requires fixed byte length or unsigned encoding, verify length, sign, and padding before writing.
 
-Với một mẫu 64 bit muốn diễn giải theo **unsigned long**:
+For a 64-bit pattern meant to be interpreted as an **unsigned long**:
 
 ```java
-long bits = -1L; // 64 bit đều là 1
+long bits = -1L; // all 64 bits are 1
 BigInteger unsigned64 =
         new BigInteger(Long.toUnsignedString(bits));
 System.out.println(unsigned64); // 18446744073709551615
 ```
 
-`BigInteger.valueOf(bits)` sẽ là `-1` vì nó giữ **giá trị signed long**, không đổi sang unsigned. Dùng `Long.toUnsignedString` (hoặc chuyển bằng xử lý bit đã kiểm chứng) khi đặc tả nguồn định nghĩa 64 bit không dấu.
+`BigInteger.valueOf(bits)` would be `-1` because it preserves the **signed long value**, without converting to unsigned. Use `Long.toUnsignedString` (or verified bit-level conversion) when the source specification defines 64-bit unsigned values.
 
-## 11. Bộ nhớ, hiệu năng và giới hạn an toàn
+## 11. Memory, Performance, and Safety Limits
 
-Mỗi `BigInteger` là một đối tượng, chứa dữ liệu cho độ lớn số nguyên. Số càng nhiều bit thì các phép toán càng tiêu tốn thời gian và bộ nhớ. Phép nhân các số rất lớn, `pow` với mũ lớn, chuyển đổi sang chuỗi thập phân hoặc parse hàng triệu chữ số có thể tốn nhiều tài nguyên.
+Every `BigInteger` is an object holding the data for the integer's magnitude. The more bits a number has, the more time and memory operations consume. Multiplying huge numbers, `pow` with large exponents, converting to decimal strings, or parsing millions of digits can consume heavy resources.
 
-**Các nguyên tắc thực hành:**
+**Practical principles:**
 
-1. Giới hạn độ dài chuỗi đầu vào, miền của số mũ, số vòng lặp và số chữ số kết quả **theo yêu cầu sản phẩm**.
-2. Nếu cần số nguyên có nhiều chữ số nhưng lại phải chạy trong luồng xử lý thời gian thực, đo hiệu năng với cỡ dữ liệu thực tế.
-3. Tránh tạo chuỗi kết quả cực dài chỉ để log; giới hạn log và kiểm tra thông tin cần thiết.
-4. Với tính toán số lượng lớn, định rõ yêu cầu thời gian và bộ nhớ; không giả định `BigInteger` bảo đảm hoàn thành cho mọi giá trị.
-5. Không dùng `BigInteger` làm phương án giải quyết bài toán cần **số thực**: `divide` vẫn là chia nguyên. Với tiền và số thập phân chính xác cần scale/rounding, chọn `BigDecimal`.
+1. Limit input string length, exponent range, loop counts, and result digit counts **according to product requirements**.
+2. If many-digit integers are needed on a real-time processing path, benchmark with realistic data sizes.
+3. Avoid building gigantic result strings just for logging; cap logs and inspect only necessary details.
+4. For large-scale calculations, specify time and memory requirements explicitly; do not assume `BigInteger` guarantees completion for every value.
+5. Do not use `BigInteger` as a solution for problems needing **real/decimal numbers**: `divide` is still integer division. For money and exact decimals needing scale/rounding, choose `BigDecimal`.
 
-Đừng áp dụng “`BigInteger` luôn tốt hơn vì không tràn” cho mọi trường hợp. Nó giúp **giữ đúng giá trị nguyên** khi miền lớn nhưng cần thiết kế giới hạn chi phí rõ ràng.
+Do not apply "`BigInteger` is always better because it doesn't overflow" to every case. It **preserves exact integer values** when ranges are large, while still requiring explicit cost bounds in the design.
 
-## 12. Chương trình Java 17+ chạy độc lập
+## 12. Standalone Runnable Java 17+ Program
 
-Tạo file **`BigIntegerOverflowDemo.java`**:
+Create the file **`BigIntegerOverflowDemo.java`**:
 
 ```java
 import java.math.BigInteger;
@@ -396,14 +396,14 @@ public class BigIntegerOverflowDemo {
 }
 ```
 
-Biên dịch và chạy tại thư mục chứa file:
+Compile and run in the directory containing the file:
 
 ```bash
 javac BigIntegerOverflowDemo.java
 java BigIntegerOverflowDemo
 ```
 
-**Kết quả chuẩn:**
+**Expected output:**
 
 ```text
 long overflow = -9223372036854775808
@@ -419,54 +419,54 @@ FF00 unsigned = 65280
 immutable: 10, 11
 ```
 
-Chương trình cho thấy điểm khác biệt giữa **tràn primitive** và **tính số nguyên chính xác**, giữa **chuyển kiểu có thể mất dữ liệu** và **chuyển kiểu exact**, giữa **remainder** và **mod**, cũng như ý nghĩa dấu của byte và tính bất biến của `BigInteger`.
+The program highlights the differences between **primitive overflow** and **exact integer arithmetic**, between **lossy conversion** and **exact conversion**, between **`remainder`** and **`mod`**, as well as byte signedness and `BigInteger` immutability.
 
-## 13. Các lỗi phổ biến
+## 13. Common Mistakes
 
-| Sai lầm | Hệ quả | Cách đúng |
+| Mistake | Consequence | Correct Approach |
 | --- | --- | --- |
-| Tính `long * long` rồi mới bọc vào BigInteger | Tích có thể đã tràn trước khi bọc | Chuyển toán hạng bằng `valueOf` trước `multiply` |
-| Gõ số vượt `long` như literal có hậu tố `L` | Không biên dịch | Dùng `new BigInteger("...")` |
-| Viết `value + BigInteger.ONE` | Không có overload toán tử `+` cho BigInteger | Dùng `value.add(BigInteger.ONE)` |
-| Gọi `count.add(ONE)` mà không gán | Đối tượng cũ không đổi | `count = count.add(ONE)` |
-| Dùng `longValue()` khi cần chính xác | Có thể mất bit cao và tạo số âm ngoài ý muốn | Dùng `longValueExact()` |
-| Dùng `==` để so sánh hai BigInteger | So sánh tham chiếu, không phải giá trị | Dùng `equals` hoặc `compareTo` |
-| Nghĩ `divide` giữ cả phần thập phân | Thương nguyên cắt phần lẻ | Dùng BigDecimal nếu thực sự cần số thập phân |
-| Nghĩ `remainder` luôn không âm | Với số bị chia âm, phần dư có thể âm | Xác định rõ cần `remainder` hay `mod` |
-| Đọc byte có bit cao là 1 mà mặc định unsigned | Giá trị có thể thành số âm | Xác định signedness, dùng constructor phù hợp |
-| Tin rằng độ chính xác tùy ý là tài nguyên vô hạn | Có thể hết bộ nhớ, tốn CPU | Giới hạn đầu vào/mũ/đầu ra theo hệ thống |
+| Computing `long * long` then wrapping in `BigInteger` | The product may have overflowed before wrapping | Convert operands with `valueOf` before `multiply` |
+| Writing a number exceeding `long` as a literal with `L` suffix | Does not compile | Use `new BigInteger("...")` |
+| Writing `value + BigInteger.ONE` | No `+` operator overload for `BigInteger` | Use `value.add(BigInteger.ONE)` |
+| Calling `count.add(ONE)` without assigning | The original object is unchanged | `count = count.add(ONE)` |
+| Using `longValue()` when exactness is required | Can lose high bits and produce an unintended negative number | Use `longValueExact()` |
+| Using `==` to compare two `BigInteger`s | Compares references, not values | Use `equals` or `compareTo` |
+| Thinking `divide` keeps fractional parts | Integer quotient truncates the fraction | Use `BigDecimal` if decimals are truly needed |
+| Thinking `remainder` is always non-negative | With a negative dividend, the remainder can be negative | Specify clearly whether `remainder` or `mod` is needed |
+| Reading bytes with high bit 1 assuming unsigned | Value can turn negative | Determine signedness, use the matching constructor |
+| Believing arbitrary precision means unlimited resources | Can run out of memory, burn CPU | Bound input/exponent/output per system limits |
 
-## 14. Bài tập và lời giải
+## 14. Exercises and Solutions
 
-**Bài 1.** Vì sao `BigInteger.valueOf(Long.MAX_VALUE + 1)` **không** phải cách tính đúng `Long.MAX_VALUE + 1`?  
-**Lời giải:** phép cộng chạy theo `long`, đã tràn thành `Long.MIN_VALUE`. Cách đúng: `BigInteger.valueOf(Long.MAX_VALUE).add(BigInteger.ONE)`.
+**Exercise 1.** Why is `BigInteger.valueOf(Long.MAX_VALUE + 1)` **not** the right way to compute `Long.MAX_VALUE + 1`?  
+**Solution:** the addition runs in `long` and already overflowed to `Long.MIN_VALUE`. Right way: `BigInteger.valueOf(Long.MAX_VALUE).add(BigInteger.ONE)`.
 
-**Bài 2.** Giai thừa `20!` và `21!` có vừa `long` không?  
-**Lời giải:** `20! = 2432902008176640000` còn vừa; `21! = 51090942171709440000` vượt `Long.MAX_VALUE`. Chọn `BigInteger` nếu cần `21!` chính xác.
+**Exercise 2.** Do factorials `20!` and `21!` fit in `long`?  
+**Solution:** `20! = 2432902008176640000` still fits; `21! = 51090942171709440000` exceeds `Long.MAX_VALUE`. Choose `BigInteger` if exact `21!` is needed.
 
-**Bài 3.** `new BigInteger("9223372036854775808").longValueExact()` làm gì?  
-**Lời giải:** ném `ArithmeticException` vì số lớn hơn miền dương của `long`. Gọi `longValue()` lại có thể trả giá trị âm sai với ý định, nên `Exact` phù hợp khi hợp đồng yêu cầu giữ nguyên số.
+**Exercise 3.** What does `new BigInteger("9223372036854775808").longValueExact()` do?  
+**Solution:** throws `ArithmeticException` because the number is larger than the positive range of `long`. Calling `longValue()` instead would return a negative value contrary to intent, so `Exact` is appropriate when the contract requires preserving the exact number.
 
-**Bài 4.** Với `a = -17` và `b = 5`, `a.remainder(b)` và `a.mod(b)` bằng mấy?  
-**Lời giải:** lần lượt **−2** và **3**; `mod` yêu cầu môđun dương và kết quả không âm.
+**Exercise 4.** With `a = -17` and `b = 5`, what are `a.remainder(b)` and `a.mod(b)`?  
+**Solution:** **−2** and **3** respectively; `mod` requires a positive modulus and yields a non-negative result.
 
-**Bài 5.** Có thể dùng `BigInteger` thay `BigDecimal` để cộng chính xác `0.10 + 0.20` trực tiếp không?  
-**Lời giải:** không theo nghĩa số thập phân trực tiếp; `BigInteger` biểu diễn **số nguyên**. Có thể quy đổi sang đơn vị nguyên nhỏ nhất nếu nghiệp vụ đã xác định thang đo, nhưng nếu cần phép tính thập phân có scale và rounding, sử dụng `BigDecimal` thường rõ ràng hơn.
+**Exercise 5.** Can `BigInteger` replace `BigDecimal` to add `0.10 + 0.20` directly and accurately?  
+**Solution:** not directly as decimals; `BigInteger` represents **integers**. You could convert to the smallest integer unit if the business has a fixed scale, yet when decimal operations with scale and rounding are needed, using `BigDecimal` is usually clearer.
 
-**Bài 6.** Hai byte `FF 00` được đọc bằng `new BigInteger(bytes)` và `new BigInteger(1, bytes)` cho giá trị nào?  
-**Lời giải:** lần lượt **−256** và **65280**; constructor đầu dùng bù hai có dấu, constructor sau đặt dấu dương và diễn giải magnitude không dấu.
+**Exercise 6.** What values do the two bytes `FF 00` yield when read via `new BigInteger(bytes)` and `new BigInteger(1, bytes)`?  
+**Solution:** **−256** and **65280** respectively; the first constructor uses signed two's complement, while the second sets a positive sign and interprets an unsigned magnitude.
 
-**Bài 7.** Một hệ thống lưu số lượng sản phẩm tối đa 1 triệu và không thực hiện phép nhân gây tràn. Có cần `BigInteger` không?  
-**Lời giải:** thường không; `int` có miền đủ lớn. Tính đúng phụ thuộc cả phép tính trung gian và ràng buộc dữ liệu, nên cần kiểm tra tổng/tích nếu nghiệp vụ sử dụng chúng.
+**Exercise 7.** A system stores product quantities up to 1 million and performs no overflowing multiplications. Is `BigInteger` needed?  
+**Solution:** usually not; `int` has a large enough range. Correctness also depends on intermediate operations and data constraints, so check sums/products if the business logic uses them.
 
-## 15. Checklist trước khi quyết định dùng BigInteger
+## 15. Checklist Before Choosing `BigInteger`
 
-1. **Miền giá trị:** có cận dưới/trên đáng tin hay có thể vượt `long`?
-2. **Phép tính trung gian:** ngay cả khi đầu vào vừa `long`, tích, giai thừa hoặc tổng nhiều giá trị có thể vượt ngưỡng không?
-3. **Yêu cầu lỗi:** cần báo tràn bằng `Math.*Exact` hay cần tiếp tục tính với số nguyên lớn chính xác?
-4. **Nguồn đầu vào:** là `long` đã hợp lệ, chuỗi chữ số rất dài, hay mảng byte cần xác định signedness?
-5. **Cổng ra:** có thể lưu/xuất giá trị lớn hay sẽ phải chuyển về `int`/`long`? Nếu chuyển, có dùng `*ValueExact()` không?
-6. **Ý nghĩa phép chia:** đang cần thương nguyên, số dư, modulo hay số thập phân chính xác?
-7. **Chi phí:** đã có giới hạn độ dài đầu vào, số mũ, số vòng lặp và kích thước kết quả chưa?
+1. **Value range:** are there reliable lower/upper bounds, or could values exceed `long`?
+2. **Intermediate operations:** even if inputs fit in `long`, could products, factorials, or multi-value sums cross the threshold?
+3. **Error requirement:** do you need to report overflow via `Math.*Exact`, or continue computing with exact large integers?
+4. **Input source:** is it a valid `long`, a very long digit string, or a byte array needing explicit signedness?
+5. **Output port:** can large values be stored/exported as-is, or must they convert back to `int`/`long`? If converting, will `*ValueExact()` be used?
+6. **Division semantics:** do you need an integer quotient, remainder, modulo, or exact decimal numbers?
+7. **Cost:** have limits on input length, exponents, loop counts, and result size been established?
 
-**Ghi nhớ:** Khi `int`/`long` không đủ miền biểu diễn nhưng vẫn cần **số nguyên chính xác**, đưa toán hạng vào `BigInteger` **trước phép tính**, dùng phương thức thay toán tử số học, giữ giá trị trả về vì đối tượng bất biến, và kiểm tra biên khi chuyển ra kiểu hữu hạn. “Tùy ý độ chính xác” giải quyết bài toán **giới hạn số bit**, đồng thời đòi hỏi quản lý **giới hạn tài nguyên**.
+**Remember:** When `int`/`long` do not have enough range yet **exact integers** are still required, move operands into `BigInteger` **before the operation**, use methods instead of arithmetic operators, capture return values because objects are immutable, and check bounds when converting back to finite types. "Arbitrary precision" solves the **bit-width limit** problem, while still requiring **resource-limit** management.

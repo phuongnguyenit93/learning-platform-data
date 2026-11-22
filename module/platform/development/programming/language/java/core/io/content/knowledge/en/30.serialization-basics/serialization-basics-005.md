@@ -1,25 +1,25 @@
-# Trường transient, static và trạng thái mặc định được lưu khi tuần tự hóa Java
+# transient, static Fields, and Default Persisted State in Java Serialization
 
-Trong cơ chế Java Object Serialization, `ObjectOutputStream.writeObject(object)` biến trạng thái của đồ thị đối tượng được phép tuần tự hóa thành dữ liệu có thể ghi ra stream; `ObjectInputStream.readObject()` dựng lại đồ thị đối tượng khi đọc. Tuy nhiên, **không phải mọi trường nhìn thấy trong lớp đều được ghi vào stream**.
+In Java Object Serialization, `ObjectOutputStream.writeObject(object)` converts the state of an eligible object graph into data that can be written to a stream; `ObjectInputStream.readObject()` reconstructs the object graph on read. However, **not every field visible in a class is written to the stream**.
 
-Với một lớp triển khai `Serializable` và dùng cơ chế mặc định, Java lưu các **trường instance không mang modifier `static` và không mang modifier `transient`**. Giá trị của trường `transient` không được ghi theo cơ chế mặc định; trường `static` thuộc về lớp chứ không thuộc trạng thái instance nên cũng không được lưu. Khi giải tuần tự hóa, trường `transient` có giá trị mặc định của kiểu, thay vì nhận lại giá trị đã có trước khi ghi.
+For a class implementing `Serializable` and using the default mechanism, Java persists **instance fields that do not carry the `static` modifier and do not carry the `transient` modifier**. The value of a `transient` field is not written by the default mechanism; a `static` field belongs to the class rather than instance state, so it is not persisted either. During deserialization, a `transient` field receives the default value of its type instead of recovering the value it held before writing.
 
-Hiểu quy tắc này giúp tránh vô tình lưu dữ liệu nhạy cảm, khôi phục sai cache/session, hoặc ngộ nhận rằng serialization là một bản sao toàn bộ trạng thái của JVM.
+Understanding this rule helps avoid accidentally persisting sensitive data, incorrectly restoring caches/sessions, or mistakenly thinking serialization copies the entire JVM state.
 
-## 1. Điều kiện nền tảng: Serializable và Object Streams
+## 1. Prerequisites: Serializable and Object Streams
 
-Cơ chế tuần tự hóa đối tượng chuẩn gồm:
+The standard object serialization mechanism consists of:
 
-- `java.io.Serializable`: marker interface báo lớp có thể tham gia cơ chế Java serialization mặc định. Interface này **không có phương thức cần triển khai**.
-- `ObjectOutputStream`: ghi đối tượng và các đối tượng được tham chiếu hợp lệ tới một `OutputStream`.
-- `ObjectInputStream`: đọc lại biểu diễn stream để tái tạo đối tượng; `readObject()` trả `Object` và caller cần kiểm tra/ép kiểu phù hợp.
-- `serialVersionUID`: mã phiên bản dùng kiểm tra khả năng tương thích của lớp serializable giữa lúc ghi và đọc. Thường khai báo tường minh `private static final long serialVersionUID = 1L;`.
-- `IOException`, `ClassNotFoundException`, `NotSerializableException`, `InvalidClassException`: một số lỗi cần hiểu và xử lý khi dùng object stream.
+- `java.io.Serializable`: a marker interface indicating the class can participate in Java's default serialization mechanism. This interface **has no methods to implement**.
+- `ObjectOutputStream`: writes an object and valid referenced objects to an `OutputStream`.
+- `ObjectInputStream`: reads back the stream representation to reconstruct objects; `readObject()` returns `Object` and the caller must check/cast appropriately.
+- `serialVersionUID`: a version identifier used to check compatibility of the serializable class between write and read. Usually declared explicitly as `private static final long serialVersionUID = 1L;`.
+- `IOException`, `ClassNotFoundException`, `NotSerializableException`, `InvalidClassException`: key exceptions to understand and handle when using object streams.
 
-Ví dụ khung sử dụng:
+Usage skeleton:
 
 ```java
-// Minh họa: file là Path và Account implements Serializable.
+// Illustration: file is a Path and Account implements Serializable.
 try (ObjectOutputStream out =
         new ObjectOutputStream(Files.newOutputStream(file))) {
     out.writeObject(account);
@@ -31,13 +31,13 @@ try (ObjectInputStream in =
 }
 ```
 
-Đây là **đoạn minh họa**, không phải chương trình Java độc lập: cần khai báo `file`, `account`, lớp `Account`, import `java.io.*` / `java.nio.file.*` và xử lý checked exceptions. Stream phải được đóng đúng vòng đời bằng `try-with-resources`.
+This is an **illustrative snippet**, not a standalone Java program: it requires declaring `file`, `account`, the `Account` class, importing `java.io.*` / `java.nio.file.*`, and handling checked exceptions. Streams must be properly closed with `try-with-resources`.
 
-**Quan trọng về bảo mật:** Không gọi `ObjectInputStream.readObject()` trên dữ liệu không tin cậy. Java native deserialization có thể kích hoạt code trong quá trình tái tạo đối tượng, gây nguy cơ tấn công qua object graph/gadget. Nếu buộc phải nhận dữ liệu từ nguồn bên ngoài, phải có giới hạn/filter, định dạng và mô hình tin cậy phù hợp; với giao thức công khai thường nên chọn định dạng dữ liệu tường minh như JSON hoặc Protocol Buffers thay vì native object serialization.
+**Important regarding security:** Do not call `ObjectInputStream.readObject()` on untrusted data. Java native deserialization can trigger code execution during object reconstruction, creating gadget/object-graph attack risks. If external data must be accepted, enforce appropriate limits/filters, formats, and trust models; for public protocols, prefer an explicit data format like JSON or Protocol Buffers instead of native object serialization.
 
-## 2. Chính xác trường nào thuộc trạng thái mặc định được lưu?
+## 2. Which Exact Fields Belong to Default Persisted State?
 
-Một lớp như sau:
+Consider a class like:
 
 ```java
 import java.io.Serializable;
@@ -45,15 +45,15 @@ import java.io.Serializable;
 final class Student implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    String name;                   // Instance: được lưu mặc định.
-    int score;                     // Instance: được lưu mặc định.
-    final int admissionYear;       // final instance: được lưu mặc định.
+    String name;                   // Instance: persisted by default.
+    int score;                     // Instance: persisted by default.
+    final int admissionYear;       // final instance: persisted by default.
 
-    transient String loginToken;   // transient: không lưu mặc định.
-    transient int failedAttempts;  // transient: không lưu mặc định.
+    transient String loginToken;   // transient: not persisted by default.
+    transient int failedAttempts;  // transient: not persisted by default.
 
-    static String activeSemester;  // static: không thuộc instance.
-    static int onlineCount;        // static: không lưu mặc định.
+    static String activeSemester;  // static: does not belong to the instance.
+    static int onlineCount;        // static: not persisted by default.
 
     Student(String name, int score, int admissionYear) {
         this.name = name;
@@ -63,39 +63,39 @@ final class Student implements Serializable {
 }
 ```
 
-Đoạn code này là **lớp minh họa**, có thể biên dịch khi được đặt trong tệp Java phù hợp; nó chưa có phương thức `main` hay code ghi/đọc stream.
+This code is an **illustrative class** that compiles when placed in an appropriate Java file; it does not yet have a `main` method or stream write/read code.
 
-| Khai báo field | Được lưu bởi default serialization? | Kết quả khi đọc lại |
+| Field declaration | Persisted by default serialization? | Result when read back |
 | --- | --- | --- |
-| `String name` | Có | Giá trị `name` đã ghi |
-| `int score` | Có | Giá trị `score` đã ghi |
-| `final int admissionYear` | Có | Giá trị final đã ghi vẫn được khôi phục theo cơ chế serialization |
-| `transient String loginToken` | Không | `null` nếu không được khôi phục bằng code tùy biến |
-| `transient int failedAttempts` | Không | `0` nếu không được khôi phục bằng code tùy biến |
-| `static String activeSemester` | Không | Giá trị đang có của **lớp** trong JVM đọc |
-| `static int onlineCount` | Không | Giá trị đang có của **lớp** trong JVM đọc |
-| `static final long serialVersionUID` | Không phải instance field | Được Java serialization dùng làm thông tin phiên bản trong class descriptor, không phải một giá trị field của từng đối tượng |
+| `String name` | Yes | The written `name` value |
+| `int score` | Yes | The written `score` value |
+| `final int admissionYear` | Yes | The written final value is still restored by serialization |
+| `transient String loginToken` | No | `null` unless restored by custom code |
+| `transient int failedAttempts` | No | `0` unless restored by custom code |
+| `static String activeSemester` | No | The current value of the **class** in the reading JVM |
+| `static int onlineCount` | No | The current value of the **class** in the reading JVM |
+| `static final long serialVersionUID` | Not an instance field | Used by Java serialization as version info in the class descriptor, not a per-object field value |
 
-Đây là **quy tắc mặc định**, chưa tính các cơ chế serialization tùy biến như `private writeObject/readObject`, `Externalizable` hoặc `serialPersistentFields`. Những cơ chế đó có thể quyết định lưu thêm/khác dữ liệu. Không suy rộng “transient không bao giờ được ghi” thành lời hứa tuyệt đối nếu chính lập trình viên chủ động ghi dữ liệu đó trong phương thức tùy biến.
+These are **default rules**, excluding custom serialization mechanisms such as `private writeObject/readObject`, `Externalizable`, or `serialPersistentFields`. Those mechanisms can choose to store additional or different data. Do not overgeneralize "transient is never written" into an absolute guarantee if the developer explicitly writes that data inside a custom method.
 
-### Những modifier dễ gây nhầm
+### Modifiers That Often Cause Confusion
 
-- `private`, `protected`, package-private, `public` **không tự quyết định** field có được lưu hay không. Private instance field vẫn được lưu mặc định nếu không static/transient.
-- `final` **không loại field ra khỏi serialization**. Một instance field final vẫn có thể được lưu và khôi phục.
-- `volatile` không tự loại field ra khỏi serialization; nó giải quyết quy tắc hiển thị bộ nhớ giữa luồng, không phải chính sách lưu trạng thái.
-- `static` và `transient` là hai lý do độc lập khiến field không nằm trong tập instance fields mặc định được lưu.
-- `serialVersionUID` là thành phần phục vụ tương thích class descriptor; nó không làm cho mọi static field khác trở thành dữ liệu của đối tượng.
+- `private`, `protected`, package-private, and `public` **do not determine** whether a field is persisted. A private instance field is still persisted by default if it is neither static nor transient.
+- `final` **does not exclude a field from serialization**. A final instance field can still be saved and restored.
+- `volatile` does not automatically exclude a field from serialization; it governs memory visibility across threads, not state persistence policy.
+- `static` and `transient` are two independent reasons a field is excluded from the default persisted instance field set.
+- `serialVersionUID` serves class descriptor compatibility; it does not turn any other static field into per-object data.
 
-## 3. transient: không lưu giá trị và nhận lại giá trị mặc định
+## 3. transient: Not Saving the Value and Receiving the Default Value
 
-`transient` là modifier áp dụng cho **field**, dùng khi giá trị đó không nên thuộc trạng thái tuần tự hóa mặc định của đối tượng. Trường hợp thường gặp:
+`transient` is a modifier applied to a **field**, used when that value should not belong to an object's default serialized state. Common cases:
 
-1. **Thông tin phiên làm việc tạm thời:** Token đăng nhập, session ID, kết nối đang mở, context request.
-2. **Cache hoặc dữ liệu có thể tính lại:** Kết quả cache, chỉ mục dẫn xuất, tổng hợp tạm.
-3. **Tài nguyên không thể hoặc không nên tuần tự hóa:** Socket, stream, lock, thread pool, handle hệ điều hành.
-4. **Dữ liệu chỉ có ý nghĩa trong tiến trình hiện tại:** Bộ đếm tạm, thời gian tính từ clock nội bộ, trạng thái lazy initialization.
+1. **Temporary session information:** Login tokens, session IDs, open connections, request contexts.
+2. **Caches or recomputable data:** Cached results, derived indexes, temporary aggregations.
+3. **Unserializable or unsuitable runtime resources:** Sockets, streams, locks, thread pools, OS handles.
+4. **Data meaningful only in the current process:** Temporary counters, timestamps from an internal clock, lazy initialization state.
 
-Ví dụ:
+Example:
 
 ```java
 class Profile implements java.io.Serializable {
@@ -111,68 +111,68 @@ class Profile implements java.io.Serializable {
 }
 ```
 
-Nếu `Profile("an", "SECRET")` được ghi bằng `ObjectOutputStream` rồi đọc bằng `ObjectInputStream` và không có code tùy biến, `username` sẽ là `"an"`, còn `sessionToken` là `null`. Điều này chỉ nói về **stream serialization mặc định**, không có nghĩa bản thân chuỗi bí mật đã biến mất khỏi RAM, log hay những bản ghi khác.
+If `Profile("an", "SECRET")` is written with `ObjectOutputStream` and read with `ObjectInputStream` without custom code, `username` will be `"an"` and `sessionToken` will be `null`. This applies only to **default stream serialization**; it does not mean the secret string itself vanished from RAM, logs, or other copies.
 
-### Mặc định của từng kiểu khi deserialize
+### Default Values per Type on Deserialization
 
-| Kiểu field transient | Giá trị khôi phục mặc định |
+| transient field type | Default restored value |
 | --- | --- |
 | `byte`, `short`, `int`, `long` | `0` |
 | `float`, `double` | `0.0` |
 | `boolean` | `false` |
 | `char` | `'\u0000'` (null character) |
-| Mọi tham chiếu object như `String`, `List<?>` | `null` |
+| Any object reference such as `String`, `List<?>` | `null` |
 
-**Không nhầm với giá trị trước khi ghi.** Nếu `transient int retryCount = 7;` và constructor sau đó đặt nó bằng 12, giá trị 12 không được lưu mặc định. Khi đọc lại, nó thường bằng 0, **không phải 7** và không phải 12.
+**Do not confuse with the pre-write value.** If `transient int retryCount = 7;` and the constructor later sets it to 12, the value 12 is not persisted by default. When read back, it is normally 0, **not 7** and not 12.
 
-### Field initializer và constructor không tự chạy lại cho lớp Serializable
+### Field Initializers and Constructors Do Not Re-run for the Serializable Class
 
-Đây là khác biệt rất quan trọng: Khi giải tuần tự hóa một instance của lớp triển khai `Serializable`, **constructor và instance field initializer của chính lớp serializable đó không được gọi như khi `new` một instance bình thường**. Vì vậy, field khai báo:
+This is a crucial distinction: When deserializing an instance of a class implementing `Serializable`, **constructors and instance field initializers of that serializable class itself are not invoked as in a normal `new` instantiation**. Thus, fields declared as:
 
 ```java
 transient String token = "new-session";
 transient int cachedCount = 99;
 ```
 
-sẽ **không tự nhận** `"new-session"` và 99 sau khi giải tuần tự hóa mặc định; nó có thể nhận `null` và 0. Nếu cần tái khởi tạo cache, dùng cách khôi phục rõ ràng như `readObject()` hoặc một bước khởi tạo có kiểm soát sau khi đọc.
+will **not automatically receive** `"new-session"` and 99 after default deserialization; they can receive `null` and 0. If caches need re-initialization, use explicit restoration such as `readObject()` or a controlled post-read initialization step.
 
-Có ngoại lệ liên quan **non-serializable superclass**: Constructor không đối số có khả năng truy cập của lớp cha đầu tiên không triển khai `Serializable` được chạy khi giải tuần tự hóa, do đó trạng thái của phần lớp cha đó có quy tắc khởi tạo khác. Không suy luận rằng *mọi constructor của toàn bộ phân cấp* đều bị bỏ qua.
+There is an exception involving a **non-serializable superclass**: The accessible no-argument constructor of the first superclass that does not implement `Serializable` is executed during deserialization, so that parent portion's state follows different initialization rules. Do not infer that *every constructor across the entire hierarchy* is skipped.
 
-## 4. static: trạng thái của lớp không nằm trong stream của instance
+## 4. static: Class State Does Not Live Inside an Instance Stream
 
-`static` đại diện cho biến thuộc **lớp**, chia sẻ giữa các instance cùng lớp (trong cùng ngữ cảnh class loading), không phải trạng thái riêng của từng object. Ví dụ:
+`static` represents a variable belonging to the **class**, shared among instances of that class (within the same class-loading context), rather than state private to each object. Example:
 
 ```java
 class Settings implements java.io.Serializable {
     private static final long serialVersionUID = 1L;
 
-    static String environment = "DEV"; // Không ghi theo instance.
-    String owner;                       // Có ghi mặc định.
+    static String environment = "DEV"; // Not written per instance.
+    String owner;                       // Written by default.
 }
 ```
 
-Nếu chương trình ghi một `Settings` khi `environment="DEV"`, sau đó đổi `Settings.environment="PROD"` và đọc lại object trong **chính JVM đó**, `owner` được khôi phục từ stream, nhưng `environment` vẫn là `"PROD"`. Nó không trở về `"DEV"`.
+If a program writes a `Settings` instance when `environment="DEV"`, then changes `Settings.environment="PROD"` and reads the object back in the **same JVM**, `owner` is restored from the stream, while `environment` remains `"PROD"`. It does not revert to `"DEV"`.
 
-Với **JVM khác**, giá trị static phụ thuộc quá trình tải/khởi tạo lớp và các thay đổi trong JVM đọc, chứ không phụ thuộc giá trị static của JVM ghi. Không có quy tắc rằng stream chứa snapshot của các biến global/static hay cấu hình tiến trình.
+In **another JVM**, the static value depends on class loading/initialization and mutations in the reading JVM, not the static value in the writing JVM. There is no rule saying a stream captures a snapshot of global/static variables or process configuration.
 
-Kể cả khai báo `static final` cũng không biến nó thành instance field có trong stream. `serialVersionUID` mang vai trò riêng trong giao thức serialization như đã nêu, nhưng không làm thay đổi quy tắc của những static fields thông thường.
+Even declaring `static final` does not turn it into an instance field in the stream. `serialVersionUID` plays its specific role in the serialization protocol as noted, without changing the rule for ordinary static fields.
 
-### Một hệ quả trong ứng dụng
+### An Application Consequence
 
-Nếu bạn định serialize đối tượng cấu hình:
+If you plan to serialize a configuration object:
 
 ```java
 static String region = "ap-southeast-1";
 String serviceName = "billing";
 ```
 
-thì chỉ `serviceName` thuộc dữ liệu instance được lưu mặc định. Nếu khôi phục phải đi cùng một `region` cụ thể, hãy thiết kế nó như một instance field thực sự thuộc snapshot, hoặc lưu cấu hình độc lập bằng định dạng rõ ràng, **đừng dựa vào static serialization**.
+then only `serviceName` belongs to the default persisted instance data. If restoration must carry a specific `region`, model it as an actual instance field of the snapshot, or store configuration separately in an explicit format—**do not rely on static serialization**.
 
-## 5. Ví dụ Java 17+ hoàn chỉnh: so sánh trước và sau khi đọc lại
+## 5. Complete Java 17+ Example: Comparing Before and After Reading Back
 
-Ví dụ ghi đối tượng ra tệp tạm, đổi giá trị static sau khi ghi, rồi đọc lại trong cùng JVM. Đồng thời đếm số lần constructor được gọi để minh họa rằng quá trình `readObject()` không gọi constructor của chính lớp serializable.
+This example writes an object to a temporary file, changes a static value after writing, and reads it back in the same JVM. It also counts constructor invocations to illustrate that `readObject()` does not invoke the constructor of the serializable class itself.
 
-Tạo tệp **`TransientStaticDemo.java`**:
+Create the file **`TransientStaticDemo.java`**:
 
 ```java
 import java.io.ObjectInputStream;
@@ -253,14 +253,14 @@ public final class TransientStaticDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac TransientStaticDemo.java
 java TransientStaticDemo
 ```
 
-Kết quả khi I/O tệp tạm thành công:
+Result when temporary file I/O succeeds:
 
 ```text
 before: title=Java, level=17, version=1, token=SECRET, retries=5, environment=before-save
@@ -268,53 +268,53 @@ after: title=Java, level=17, version=1, token=null, retries=0, environment=after
 constructor calls=1
 ```
 
-**Vì sao output như vậy?**
+**Why is the output like this?**
 
-1. `title`, `level`, `version` là instance fields không static/transient, do đó được lưu và khôi phục. `version` có `final` nhưng vẫn được tuần tự hóa mặc định.
-2. `sessionToken` và `retryCount` có `transient`, nên sau `readObject()` lần lượt là `null` và 0. Các initializer `"initializer-token"` và 77 **không chạy lại** để khôi phục đối tượng.
-3. `environment` là biến `static`, nên stream không ghi giá trị `"before-save"`. Khi giải tuần tự hóa trong cùng JVM, nó là `"after-save"` theo lần gán mới nhất.
-4. `constructorCalls` là biến `static` được tăng khi gọi `new Snapshot(...)` lúc tạo object đầu tiên. Nó vẫn bằng 1 sau khi `readObject()`, minh họa constructor của `Snapshot` không được gọi lần hai.
-5. Chương trình đóng stream ghi trước khi mở stream đọc, đóng stream đọc và xóa tệp tạm trong `finally`. Tệp tạm chỉ phục vụ ví dụ, không chứa dữ liệu người dùng thực.
+1. `title`, `level`, and `version` are non-static, non-transient instance fields, so they are saved and restored. `version` is `final` yet is still serialized by default.
+2. `sessionToken` and `retryCount` are `transient`, so after `readObject()` they are `null` and 0 respectively. The initializers `"initializer-token"` and 77 **do not re-run** when restoring the object.
+3. `environment` is a `static` variable, so the stream does not record `"before-save"`. When deserialized in the same JVM, it is `"after-save"` from the latest assignment.
+4. `constructorCalls` is a `static` variable incremented when calling `new Snapshot(...)` to create the first object. It remains 1 after `readObject()`, showing that `Snapshot`'s constructor was not invoked a second time.
+5. The program closes the output stream before opening the input stream, closes the input stream, and deletes the temp file in `finally`. The temp file is purely for demonstration and contains no real user data.
 
-Ví dụ là phép kiểm tra hành vi serialization **trong cùng một JVM**. Trong chương trình khác hoặc lần chạy khác, static fields thuộc lớp được khởi tạo độc lập. Đừng dựa vào việc thay đổi static trong producer có tác động tới process nhận.
+This example tests serialization behavior **within the same JVM**. In another program or run, class static fields are initialized independently. Do not rely on mutating static fields in a producer to affect a receiving process.
 
-## 6. Default serialization lưu cả đồ thị tham chiếu, không chỉ kiểu nguyên thủy
+## 6. Default Serialization Saves the Reference Graph, Not Just Primitives
 
-Các instance fields không static/transient có thể là primitive, `String`, array, collections hoặc đối tượng tùy biến. Khi `ObjectOutputStream.writeObject(root)` duyệt đồ thị được phép tuần tự hóa, những đối tượng **reachable qua các field được lưu** cũng cần tương thích với serialization.
+Non-static, non-transient instance fields can be primitives, `String`, arrays, collections, or custom objects. When `ObjectOutputStream.writeObject(root)` traverses the serializable graph, objects **reachable through persisted fields** must also be compatible with serialization.
 
-Ví dụ:
+Example:
 
 ```java
 final class Order implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    String orderId;       // String serializable.
-    java.util.ArrayList<String> items; // ArrayList và String serializable.
-    Object helper;        // Object thường không triển khai Serializable.
+    String orderId;       // String is serializable.
+    java.util.ArrayList<String> items; // ArrayList and String are serializable.
+    Object helper;        // Plain Object does not implement Serializable.
 }
 ```
 
-Đây là phần định nghĩa minh họa, cần import `Serializable`. Nếu `helper` trỏ tới một `new Object()` thông thường và không được đánh dấu `transient`, `writeObject(order)` có thể ném `NotSerializableException` khi chạm tới object này. Không đủ nếu **lớp gốc** `Order` triển khai `Serializable` nhưng một object bên dưới đồ thị lại không serializable.
+This is an illustrative definition, requiring `import java.io.Serializable`. If `helper` points to a plain `new Object()` and is not marked `transient`, `writeObject(order)` can throw `NotSerializableException` upon reaching this object. Having the **root class** `Order` implement `Serializable` is not enough if an object deeper in the graph is not serializable.
 
-Nếu `helper` chỉ là tài nguyên runtime, có thể đánh dấu:
+If `helper` is only a runtime resource, it can be marked:
 
 ```java
 transient Object helper;
 ```
 
-Khi đó default serialization không duyệt reference qua field này, tránh cố ghi `helper`. Tuy nhiên sau khi đọc, `helper` sẽ là `null` và code phải chịu trách nhiệm khởi tạo lại nếu còn cần dùng.
+Default serialization then skips traversing the reference through this field, avoiding an attempt to write `helper`. However, after reading, `helper` will be `null` and your code is responsible for re-initializing it if still needed.
 
-### Identity và tham chiếu chia sẻ
+### Identity and Shared References
 
-Java serialization có cơ chế nhận diện đối tượng trong stream: nếu hai field cùng tham chiếu tới một object và serialization thành công, khi đọc lại chúng thường cùng trỏ tới một object được khôi phục (giữ sharing/cycles trong đồ thị). Đây không phải deep-copy độc lập cho từng field. Ngược lại, những object chỉ có thể tiếp cận qua `transient` field sẽ không được đưa vào đồ thị theo đường reference đó.
+Java serialization includes object identity tracking in the stream: if two fields reference the same object and serialization succeeds, on read back they typically point to the same restored object (preserving sharing/cycles in the graph). This is not an independent deep copy per field. Conversely, objects reachable only through a `transient` field will not be included in the graph via that reference path.
 
-Một `static` field giữ một object cũng không tự khiến object ấy nằm trong stream của mọi instance. Nếu object đó còn được tham chiếu bởi một **instance field** được lưu, nó vẫn có thể được serialize theo đường tham chiếu instance.
+A `static` field holding an object does not by itself put that object into every instance's stream. If that object is also referenced by a persisted **instance field**, it can still be serialized via that instance reference path.
 
-## 7. Khôi phục các field transient bằng readObject khi thật sự cần
+## 7. Restoring transient Fields via readObject When Truly Necessary
 
-Có những field không nên lưu mà phải **tính lại** sau khi giải tuần tự hóa, ví dụ chiều dài tên hiển thị hoặc cache dẫn xuất. Một lớp serializable có thể khai báo phương thức `private void readObject(ObjectInputStream in)` để điều chỉnh hành vi giải tuần tự hóa.
+Some fields should not be persisted and instead must be **recomputed** after deserialization, such as a display-name length or a derived cache. A serializable class can declare `private void readObject(ObjectInputStream in)` to customize deserialization behavior.
 
-Ví dụ:
+Example:
 
 ```java
 import java.io.IOException;
@@ -338,39 +338,39 @@ final class CachedName implements Serializable {
 
     private void readObject(ObjectInputStream in)
             throws IOException, ClassNotFoundException {
-        in.defaultReadObject(); // Khôi phục các field mặc định.
+        in.defaultReadObject(); // Restore default fields.
         cachedLength = name == null ? 0 : name.length();
     }
 }
 ```
 
-Đây là **lớp minh họa có thể biên dịch** cùng các import đã cho, nhưng không có chương trình `main`. Khi đọc lại, `defaultReadObject()` lấy `name` từ stream, rồi `cachedLength` được tính lại. Không cần lưu một cache vốn có thể suy ra từ dữ liệu đã lưu.
+This is a **compilable illustrative class** with the given imports, without a `main` program. When read back, `defaultReadObject()` reads `name` from the stream, and then `cachedLength` is recomputed. There is no need to store a cache that can be derived from persisted data.
 
-Những điểm cần lưu ý:
+Key points to note:
 
-- `readObject` ở đây phải là **phương thức private có đúng chữ ký** cho cơ chế serialization mặc định, không phải override của `ObjectInputStream.readObject()`.
-- `in.defaultReadObject()` thực hiện khôi phục các trường mặc định của lớp; không tự phục hồi `transient`.
-- Với dữ liệu đọc từ nguồn không tin cậy, code `readObject` cũng là nơi có thể bị khai thác; **không coi việc có custom readObject là hàng rào an toàn**.
-- Khi lớp có invariants, các giá trị khôi phục cần được kiểm tra chặt chẽ. Nếu vi phạm, có thể ném `InvalidObjectException` theo thiết kế.
-- Tránh serialize những đối tượng phụ thuộc môi trường (socket, lock, executor) rồi giả định chúng hoạt động sau khi phục hồi; hãy cấp phát lại tài nguyên runtime khi cần.
+- `readObject` here must be a **private method with the exact signature** expected by the default serialization mechanism, not an override of `ObjectInputStream.readObject()`.
+- `in.defaultReadObject()` restores the class's default fields; it does not automatically restore `transient` fields.
+- For data read from untrusted sources, `readObject` code can also be exploited; **do not treat having a custom `readObject` as a security barrier**.
+- When a class has invariants, restored values must be strictly validated. If violated, you can throw `InvalidObjectException` by design.
+- Avoid serializing environment-dependent objects (sockets, locks, executors) and assuming they work after restoration; reallocate runtime resources as needed.
 
-### transient có thể bị ghi thủ công nếu code quyết định như vậy
+### transient Can Be Written Manually If Code Decides To
 
-Khi lập trình viên viết `private writeObject(ObjectOutputStream out)`, họ có thể gọi `defaultWriteObject()` để lưu các instance fields mặc định **và còn có thể tự gọi** `out.writeObject(secret)` để ghi thêm dữ liệu. Vì vậy `transient` chỉ loại field khỏi **tập field mặc định**, không ngăn một custom serializer cố ý đưa giá trị đó vào stream theo cách riêng.
+When a developer writes `private writeObject(ObjectOutputStream out)`, they can call `defaultWriteObject()` to save default instance fields **and can also explicitly call** `out.writeObject(secret)` to write extra data. Therefore, `transient` only removes a field from the **default field set**; it does not stop a custom serializer from intentionally putting that value into the stream in its own way.
 
-Nếu mục tiêu là không để bí mật xuất hiện trong file, phải kiểm tra toàn bộ đường serialization và những lớp dữ liệu liên quan, không dựa duy nhất vào một modifier.
+If the goal is to keep secrets out of a file, you must audit the entire serialization path and all related data classes, rather than relying solely on a single modifier.
 
-## 8. static, dữ liệu không tuần tự hóa và tính nhất quán sau khôi phục
+## 8. static, Non-Serializable Data, and Post-Restoration Consistency
 
-Khi một object dùng cả instance fields và static fields trong nghiệp vụ, hành vi sau khi khôi phục có thể khác thời điểm ghi:
+When an object uses both instance fields and static fields in business logic, post-restoration behavior can differ from write time:
 
 ```java
-// Đoạn minh họa nghiệp vụ.
+// Business logic illustration.
 class PricePolicy implements java.io.Serializable {
     private static final long serialVersionUID = 1L;
 
-    static double taxRate = 0.10; // Cấu hình của JVM hiện tại.
-    double subtotal;              // Một phần trạng thái instance.
+    static double taxRate = 0.10; // Configuration of the current JVM.
+    double subtotal;              // Part of instance state.
 
     double total() {
         return subtotal * (1 + taxRate);
@@ -378,21 +378,21 @@ class PricePolicy implements java.io.Serializable {
 }
 ```
 
-Nếu `subtotal` được ghi là 100 và lúc đọc trên môi trường khác `taxRate` là 0.20, `total()` có thể trả 120 thay vì 110. Stream không sai: **thông tin static không có trong snapshot**. Nhưng hệ thống sẽ sai nếu kỳ vọng phép tính luôn được tái hiện giống lúc ghi.
+If `subtotal` is saved as 100 and when read in another environment `taxRate` is 0.20, `total()` may return 120 instead of 110. The stream is not wrong: **static information is absent from the snapshot**. However, the system will be wrong if it expects the calculation to always reproduce the exact write-time result.
 
-Cách thiết kế tùy nghiệp vụ:
+Design approaches depending on business requirements:
 
-1. Nếu `taxRate` là thuộc tính của **đơn hàng tại thời điểm lập**, lưu nó như instance field `taxRateApplied` hoặc một object giá trị thuộc snapshot.
-2. Nếu `taxRate` cố tình là cấu hình hiện hành lúc chạy, việc giá trị thay đổi sau khôi phục có thể đúng; nên thể hiện rõ trong logic và kiểm thử.
-3. Không dùng serialization của object bất kỳ để thay thế cấu hình, schema lưu trữ hoặc cơ chế migration dữ liệu lâu dài.
+1. If `taxRate` is a property of the **order at creation time**, persist it as an instance field `taxRateApplied` or a value object in the snapshot.
+2. If `taxRate` is intentionally the live runtime configuration, having the value change after restoration can be correct; make this explicit in logic and tests.
+3. Do not use arbitrary object serialization as a substitute for configuration, storage schemas, or long-term data migration mechanisms.
 
-Cùng nguyên tắc áp dụng cho feature flags, đường dẫn hệ thống, singleton runtime, service locator và cache static.
+The same principle applies to feature flags, system paths, runtime singletons, service locators, and static caches.
 
-## 9. serialVersionUID, thay đổi lớp và dữ liệu mặc định của phiên bản mới
+## 9. serialVersionUID, Class Evolution, and Default Values in New Versions
 
-`serialVersionUID` hỗ trợ xác định lớp đọc có tương thích với thông tin lớp trong stream hay không. Khi không khai báo, JVM có thể tính tự động từ đặc điểm lớp, dẫn tới thay đổi giá trị không mong muốn giữa các phiên bản source/build. Với lớp dự kiến tuần tự hóa, thường nên khai báo giá trị tường minh.
+`serialVersionUID` helps verify whether the reading class is compatible with the class metadata in the stream. When omitted, the JVM computes one automatically from class characteristics, which can cause unintended value changes across source/build versions. For classes intended to be serialized, declaring an explicit value is generally recommended.
 
-Ví dụ lớp cũ:
+Old class example:
 
 ```java
 class Data implements Serializable {
@@ -401,7 +401,7 @@ class Data implements Serializable {
 }
 ```
 
-Và phiên bản mới thêm instance field:
+And a new version adding an instance field:
 
 ```java
 class Data implements Serializable {
@@ -411,50 +411,50 @@ class Data implements Serializable {
 }
 ```
 
-Đây là hai **phiên bản minh họa, không được khai báo đồng thời cùng tên trong một tệp biên dịch**. Nếu hai bên tương thích theo serialization protocol và cùng `serialVersionUID`, object cũ không có trường `priority` trong stream; khi đọc bằng lớp mới, `priority` nhận `0` (giá trị mặc định cho trường mới).
+These are two **illustrative versions, not to be declared simultaneously with the same name in a single compilation unit**. If both sides are compatible per the serialization protocol and share the same `serialVersionUID`, the old object has no `priority` field in the stream; when read by the new class, `priority` receives `0` (the default value for the new field).
 
-Nếu thay đổi gây bất tương thích, có thể gặp `InvalidClassException`. Giữ UID bằng nhau **không bảo đảm mọi thay đổi đều tương thích**: thay kiểu field, cấu trúc phân cấp hoặc cách custom serialization có thể làm dữ liệu không đọc được hoặc làm sai invariants.
+If a change is incompatible, `InvalidClassException` can occur. Keeping the same UID **does not guarantee all changes are compatible**: changing field types, inheritance hierarchy, or custom serialization logic can make data unreadable or break invariants.
 
-Lưu ý phân biệt hai trường hợp nhận giá trị mặc định:
+Distinguish two cases where a field receives a default value:
 
-- `transient` field: không được lưu bởi default mechanism, nên sau khi deserialize nhận default nếu không có khôi phục tùy biến.
-- Instance field **mới thêm** vào phiên bản class đọc: không có trong stream cũ, nên có thể nhận default nếu việc chuyển phiên bản được phép.
+- A `transient` field: not saved by the default mechanism, so after deserialization it receives its default unless custom restoration runs.
+- A **newly added** instance field in the reading class version: absent from old streams, so it can receive its default if version evolution is permitted.
 
-Trong cả hai, instance initializer của lớp serializable không tự bảo đảm chạy lại để đặt một giá trị cấu hình mong muốn.
+In neither case are the serializable class's instance initializers guaranteed to re-run to assign a desired configured value.
 
-## 10. Một số sai lầm phổ biến
+## 10. Common Pitfalls
 
-| Ngộ nhận / lỗi | Hậu quả | Cách làm đúng |
+| Misconception / bug | Consequence | Correct approach |
 | --- | --- | --- |
-| Nghĩ mọi field của object đều được ghi | Static/transient bị bỏ qua, snapshot thiếu dữ liệu nghiệp vụ | Xác định field thuộc trạng thái instance cần lưu |
-| Nghĩ `private` có nghĩa không serialize | Bí mật trong private field thường vẫn được lưu mặc định | Dùng thiết kế dữ liệu phù hợp; cân nhắc transient và custom serializer |
-| Nghĩ `final` instance field sẽ bị loại | Đánh giá sai cấu trúc stream | Final instance field vẫn được lưu mặc định |
-| Nghĩ static sẽ được khôi phục về giá trị lúc ghi | Kết quả xử lý khác nhau giữa JVM ghi/đọc | Không dựa vào static như một phần snapshot |
-| Nghĩ transient giữ giá trị được gán trong constructor | Sau deserialize nhận `0/null/false` | Khởi tạo lại rõ ràng khi cần |
-| Dùng transient trên object runtime nhưng không khởi tạo sau khi đọc | `NullPointerException` khi dùng cache, lock, service | Dùng `readObject` hoặc post-load initialization |
-| Field thường trỏ tới đối tượng không Serializable | `NotSerializableException` khi ghi graph | Kiểm tra toàn bộ graph hoặc loại reference runtime |
-| Tin rằng `transient` luôn bảo mật tuyệt đối | Code custom writeObject hoặc nguồn log khác vẫn có thể lộ | Kiểm tra toàn bộ đường xuất dữ liệu và bảo mật |
-| Không khai báo `serialVersionUID` khi cần lưu dài hạn | Rủi ro bất tương thích do UID mặc định thay đổi | Quản lý UID và migration có chủ đích |
-| Coi deserialize là gọi constructor bình thường | Invariants, cache/initializer có thể không hợp lệ | Validate, khôi phục trạng thái runtime sau đọc |
-| Đọc object stream từ nguồn không tin cậy | Nguy cơ thực thi luồng deserialization nguy hiểm | Tránh native deserialization đối với dữ liệu không tin cậy; lọc và hạn chế nơi cần |
-| Cho rằng mọi instance sau khi đọc độc lập tuyệt đối | Tham chiếu chia sẻ trong graph vẫn được bảo toàn | Hiểu identity và mutable sharing của đồ thị khôi phục |
+| Thinking every field of an object is written | Static/transient fields are skipped; snapshot lacks business data | Identify which fields belong to persisted instance state |
+| Thinking `private` means not serialized | Secrets in private fields are still persisted by default | Use proper data design; consider `transient` and custom serializers |
+| Thinking `final` instance fields are excluded | Misjudging stream contents | Final instance fields are still persisted by default |
+| Thinking static fields are restored to write-time values | Behavior differs between writing/reading JVMs | Do not rely on static fields as part of a snapshot |
+| Thinking transient fields keep constructor-assigned values | After deserialization they become `0/null/false` | Re-initialize explicitly when needed |
+| Using transient on runtime objects without post-read initialization | `NullPointerException` when using caches, locks, services | Use `readObject` or post-load initialization |
+| Regular field pointing to a non-Serializable object | `NotSerializableException` when writing the graph | Audit the entire graph or exclude runtime references |
+| Believing `transient` always provides complete security | Custom `writeObject` code or other log sources can still leak data | Audit all data output paths and security boundaries |
+| Omitting `serialVersionUID` when long-term persistence is needed | Risk of incompatibility due to changing default UID | Manage UID and migrations intentionally |
+| Treating deserialization like a normal constructor call | Invariants and caches/initializers may be invalid | Validate and restore runtime state after reading |
+| Reading object streams from untrusted sources | Risk of executing dangerous deserialization flows | Avoid native deserialization on untrusted data; filter and restrict where necessary |
+| Assuming all instances after reading are completely independent | Shared references inside the graph remain preserved | Understand identity and mutable sharing in restored graphs |
 
-## 11. Hướng dẫn chọn field cần lưu
+## 11. Guidelines for Choosing Which Fields to Persist
 
-Một cách thực tế là chia trạng thái của lớp thành ba nhóm:
+A practical approach is to divide a class's state into three groups:
 
-| Nhóm trạng thái | Ví dụ | Chiến lược |
+| State group | Example | Strategy |
 | --- | --- | --- |
-| Dữ liệu nghiệp vụ cần khôi phục đúng | Mã đơn hàng, danh sách mục, giá trị tại thời điểm lập | Instance fields được lưu hoặc schema tường minh |
-| Dữ liệu có thể tính lại/không nên lưu | Cache tính toán, session token, connection handle, listener, lock | `transient` và quy trình tái khởi tạo |
-| Trạng thái toàn cục của môi trường | Feature flag hiện hành, cấu hình service, thống kê static | Không kỳ vọng native instance serialization lưu nó; quản lý cấu hình độc lập |
+| Business data needing exact restoration | Order ID, item list, value at creation time | Persisted instance fields or an explicit schema |
+| Recomputable / non-persistable data | Computed caches, session tokens, connection handles, listeners, locks | `transient` plus a re-initialization procedure |
+| Global environment state | Current feature flags, service configs, static statistics | Do not expect native instance serialization to save it; manage configuration separately |
 
-Trước khi đánh dấu một field là `transient`, hãy tự hỏi:
+Before marking a field `transient`, ask yourself:
 
-1. Nếu field trở thành `null` hoặc `0` khi khôi phục, code có còn hoạt động đúng không?
-2. Có cần khởi tạo lại field từ dữ liệu khác, hoặc nó chỉ tồn tại trong một phiên?
-3. Field có là đường duy nhất tham chiếu tới những dữ liệu cần được lưu trong object graph không?
-4. Nếu field không bị đánh dấu transient, đối tượng phía sau có `Serializable` không?
-5. Có yêu cầu bảo mật nào khiến bản thân native serialization không phù hợp cho mục đích lưu trữ/trao đổi không?
+1. If the field becomes `null` or `0` on restoration, does the code still behave correctly?
+2. Does the field need to be recomputed from other data, or does it only live for a single session?
+3. Is this field the sole reference path to data that actually must be persisted in the object graph?
+4. If the field is not marked transient, is the object behind it `Serializable`?
+5. Are there security requirements making native serialization itself unsuitable for storage/exchange?
 
-**Ghi nhớ:** Với Java serialization mặc định, **instance field không `static` và không `transient` mới là trạng thái được lưu**. `transient` quay về giá trị mặc định của kiểu khi đọc lại nếu không có code khôi phục; `static` thuộc trạng thái lớp trong JVM đang chạy, không được phục hồi từ stream của object. Constructor và field initializer của chính lớp `Serializable` không chạy lại như lệnh `new`. Dùng các quy tắc này để thiết kế snapshot rõ ràng, tránh phụ thuộc sai vào runtime state và chỉ deserialize nguồn dữ liệu đáng tin cậy.
+**Remember:** With default Java serialization, **only non-`static`, non-`transient` instance fields are persisted**. `transient` fields revert to their type's default value on read unless custom restoration runs; `static` fields belong to class state in the running JVM and are not restored from an object stream. Constructors and field initializers of the `Serializable` class itself do not re-run like `new`. Use these rules to design clear snapshots, avoid false reliance on runtime state, and only deserialize trusted data sources.

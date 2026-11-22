@@ -1,44 +1,44 @@
-# Phân biệt ký tự chữ số (`char`) với giá trị số trong Java
+# Distinguishing Digit Characters (`char`) from Numeric Values in Java
 
-Trong Java, **ký tự trông giống một chữ số** và **giá trị số của chữ số đó** là hai thứ khác nhau. Đây là điểm quan trọng khi xử lý dữ liệu nhập, chuyển đổi chuỗi thành số, tính toán và kiểm tra ký tự.
+In Java, **a character that looks like a digit** and **the numeric value of that digit** are two different things. This is an important point when processing user input, converting strings to numbers, performing arithmetic, and validating characters.
 
-## 1. `'7'`, `7` và `"7"` khác nhau thế nào?
+## 1. How Do `'7'`, `7`, and `"7"` Differ?
 
-| Cách viết | Kiểu Java | Ý nghĩa |
+| Syntax | Java Type | Meaning |
 | --- | --- | --- |
-| `'7'` | `char` | Một ký tự chữ số, có giá trị đơn vị mã UTF-16 là **55** (U+0037) |
-| `7` | `int` | Số nguyên có giá trị **7**, dùng trực tiếp để tính toán |
-| `"7"` | `String` | Chuỗi chứa một ký tự `7`, phải chuyển đổi khi muốn dùng như số |
-| `'0'` | `char` | Ký tự `0`, đơn vị mã UTF-16 bằng **48** (U+0030) |
+| `'7'` | `char` | A digit character, with UTF-16 code unit value **55** (U+0037) |
+| `7` | `int` | An integer with value **7**, used directly in arithmetic |
+| `"7"` | `String` | A string containing one character `7`, which must be converted before use as a number |
+| `'0'` | `char` | The character `0`, with UTF-16 code unit equal to **48** (U+0030) |
 
-`char` là kiểu nguyên thủy biểu diễn **một đơn vị mã UTF-16 không dấu 16 bit** (0–65.535). Vì vậy Java cho phép đưa `char` vào biểu thức số học, nhưng số thu được từ chuyển kiểu trực tiếp là **mã của ký tự**, không đương nhiên là chữ số mà con người nhìn thấy. Với các ký tự ASCII, `'0'` đến `'9'` lần lượt có mã thập phân 48 đến 57.
+`char` is a primitive type representing **a 16-bit unsigned UTF-16 code unit** (0–65,535). Because of this, Java allows `char` in arithmetic expressions, but the number obtained from direct conversion is the **character's code**, not automatically the digit a human sees. For ASCII characters, `'0'` through `'9'` have decimal codes 48 through 57 respectively.
 
-Ví dụ, hai khai báo sau đều hợp lệ nhưng khác nghĩa:
+For example, both declarations below are valid but have different meanings:
 
 ```java
-char character = '7'; // Ký tự '7': mã UTF-16 là 55.
-int number = 7;       // Giá trị số nguyên thực sự là 7.
+char character = '7'; // Character '7': UTF-16 code is 55.
+int number = 7;       // Actual integer value is 7.
 
 int codeUnit = character; // Widening conversion: codeUnit == 55.
-int digit = character - '0'; // Hiệu hai mã ký tự: 55 - 48 == 7.
+int digit = character - '0'; // Difference of two character codes: 55 - 48 == 7.
 ```
 
-Đoạn trên là mã minh họa để đặt trong một phương thức Java. **`(int) character` hoặc `int codeUnit = character` không có nghĩa là phân tích ký tự thành số 7.** Phép trừ `'0'` mới thực hiện ánh xạ từ ký tự ASCII sang giá trị chữ số.
+The snippet above is illustrative code meant to be placed inside a Java method. **`(int) character` or `int codeUnit = character` does not parse the character into the number 7.** Subtracting `'0'` is what performs the mapping from an ASCII character to its digit value.
 
-## 2. Vì sao phép trừ `'0'` hoạt động?
+## 2. Why Does Subtracting `'0'` Work?
 
-Các chữ số ASCII được xếp **liên tiếp** trong bảng mã:
+ASCII digits are arranged **consecutively** in the character table:
 
-| Ký tự | Mã thập phân | Biểu thức | Giá trị số |
+| Character | Decimal Code | Expression | Numeric Value |
 | --- | ---: | --- | ---: |
 | `'0'` | 48 | `'0' - '0'` | 0 |
 | `'1'` | 49 | `'1' - '0'` | 1 |
 | `'7'` | 55 | `'7' - '0'` | 7 |
 | `'9'` | 57 | `'9' - '0'` | 9 |
 
-Trong Java, khi dùng toán tử số học như `+` hoặc `-`, toán hạng kiểu `char` được **nâng kiểu số học lên `int`**. Do đó, `'7' - '0'` có kiểu kết quả `int` và giá trị 7.
+In Java, when using arithmetic operators like `+` or `-`, `char` operands undergo **numeric promotion to `int`**. Therefore, `'7' - '0'` has result type `int` and value 7.
 
-**Chỉ dùng phép trừ này khi đã biết ký tự nằm trong khoảng ASCII `'0'..'9'`.** Với chữ cái, dấu câu hoặc chữ số thuộc hệ chữ khác, hiệu mã ký tự không phải cách chuyển đổi chữ số tổng quát.
+**Only use this subtraction when you know the character is in the ASCII range `'0'..'9'`.** For letters, punctuation, or digits from other scripts, subtracting character codes is not a general digit conversion method.
 
 ```java
 static int asciiDigit(char c) {
@@ -49,33 +49,33 @@ static int asciiDigit(char c) {
 }
 ```
 
-Hàm này là một phương thức cần đặt bên trong lớp Java. Nếu truyền `'7'`, kết quả là `7`. Nếu truyền `'A'` hoặc chữ số Ả Rập `'٧'`, hàm chủ động báo lỗi vì ký tự không thuộc tập chữ số ASCII đã cho phép.
+This function is a method meant to be placed inside a Java class. Passing `'7'` yields `7`. Passing `'A'` or the Arabic-Indic digit `'٧'` intentionally throws an error because the character is not in the allowed ASCII digit set.
 
-## 3. `char` trong tính toán và khi in ra
+## 3. `char` in Arithmetic and When Printing
 
-Hãy phân biệt **in ký tự**, **in giá trị mã** và **thực hiện phép tính**:
+Distinguish between **printing a character**, **printing its code value**, and **performing arithmetic**:
 
 ```java
 char c = '7';
 
-System.out.println(c);              // 7 (in dạng ký tự)
-System.out.println((int) c);        // 55 (giá trị mã UTF-16)
-System.out.println(c + 1);          // 56 (phép cộng số nguyên)
-System.out.println((char) (c + 1)); // 8 (ép kết quả 56 về ký tự)
-System.out.println(c - '0');        // 7 (giá trị chữ số)
-System.out.println("7" + 1);        // 71 (nối chuỗi)
+System.out.println(c);              // 7 (printed as a character)
+System.out.println((int) c);        // 55 (UTF-16 code value)
+System.out.println(c + 1);          // 56 (integer addition)
+System.out.println((char) (c + 1)); // 8 (cast result 56 back to character)
+System.out.println(c - '0');        // 7 (digit value)
+System.out.println("7" + 1);        // 71 (string concatenation)
 ```
 
-Đây là các câu lệnh minh họa đặt trong `main`. Với `println(c)`, Java chọn overload nhận `char` và hiển thị hình dạng ký tự. Với `println(c + 1)`, biểu thức đã được tính thành `int`, nên in ra `56`. Khi có `String` ở toán tử `+`, Java có thể thực hiện **nối chuỗi**: `"7" + 1` tạo chuỗi `"71"`, không phải số 8.
+These are illustrative statements meant to be placed in `main`. With `println(c)`, Java selects the overload accepting `char` and displays the character glyph. With `println(c + 1)`, the expression has already been evaluated as `int`, so it prints `56`. When a `String` is present with the `+` operator, Java can perform **string concatenation**: `"7" + 1` creates the string `"71"`, not the number 8.
 
-Hai tình huống dễ nhầm:
+Two easily confused situations:
 
-- `'7' + '2'` là phép cộng hai mã: `55 + 50 = 105`, **không** phải số 9 hay số 72.
-- `(char) 7` tạo ký tự điều khiển U+0007, **không** tạo ký tự `'7'`. Ngược lại, `(char) ('0' + 7)` tạo `'7'` vì nằm trong dải chữ số ASCII.
+- `'7' + '2'` adds two character codes: `55 + 50 = 105`, **not** the number 9 or 72.
+- `(char) 7` creates the control character U+0007, **not** the character `'7'`. Conversely, `(char) ('0' + 7)` creates `'7'` because it lies within the ASCII digit range.
 
-## 4. Chương trình Java 17+ chạy độc lập
+## 4. Standalone Runnable Java 17+ Program
 
-Lưu nội dung sau vào **`DigitVsCharDemo.java`**:
+Save the following content into **`DigitVsCharDemo.java`**:
 
 ```java
 public class DigitVsCharDemo {
@@ -105,14 +105,14 @@ public class DigitVsCharDemo {
 }
 ```
 
-Biên dịch và chạy trong thư mục chứa tệp:
+Compile and run in the directory containing the file:
 
 ```bash
 javac -encoding UTF-8 DigitVsCharDemo.java
 java DigitVsCharDemo
 ```
 
-Kết quả chuẩn trên stdout:
+Expected stdout output:
 
 ```text
 char=7
@@ -127,17 +127,17 @@ digit 7 -> char=7
 two digits=42
 ```
 
-Dòng cuối cho thấy cách ghép **giá trị số** của hai ký tự `'4'` và `'2'` thành số `42`: chữ số hàng chục nhân 10 rồi cộng chữ số hàng đơn vị. Đây là số học trên `int`, không phải ghép ký tự.
+The last line shows how to combine the **numeric values** of two characters `'4'` and `'2'` into the number `42`: multiply the tens digit by 10 and add the units digit. This is arithmetic on `int`, not character concatenation.
 
-## 5. Khi dữ liệu có chữ số Unicode
+## 5. When Data Contains Unicode Digits
 
-Không phải mọi ký tự được hiển thị là chữ số `7` đều có cùng mã với `'7'`. Chẳng hạn:
+Not every character rendered as the digit `7` has the same code as `'7'`. For example:
 
-- `'7'`: chữ số ASCII, mã U+0037.
-- `'٧'`: chữ số Arabic-Indic seven, mã U+0667.
-- `'７'`: chữ số fullwidth seven, mã U+FF17.
+- `'7'`: ASCII digit, code U+0037.
+- `'٧'`: Arabic-Indic digit seven, code U+0667.
+- `'７'`: fullwidth digit seven, code U+FF17.
 
-Cả ba có thể biểu thị **chữ số thập phân 7**, nhưng `c - '0'` chỉ đúng cho trường hợp ASCII. Nếu xử lý chữ số Unicode, dùng API `Character` có quy tắc rõ ràng:
+All three can represent the **decimal digit 7**, yet `c - '0'` only works for the ASCII case. When processing Unicode digits, use the `Character` API, which has well-defined rules:
 
 ```java
 char ascii = '7';
@@ -151,9 +151,9 @@ System.out.println(Character.digit(letter, 10));         // -1
 System.out.println(Character.digit(letter, 16));         // 10
 ```
 
-Đoạn này đặt trong `main`. `Character.digit(c, radix)` trả giá trị chữ số theo **cơ số** chỉ định hoặc `-1` nếu không hợp lệ. Ví dụ chữ `A` có giá trị 10 trong hệ cơ số 16 nhưng không phải chữ số hợp lệ ở cơ số 10. Các radix được hỗ trợ từ `Character.MIN_RADIX` (2) đến `Character.MAX_RADIX` (36).
+This snippet is placed in `main`. `Character.digit(c, radix)` returns the digit value in the specified **radix**, or `-1` if invalid. For example, the letter `A` has value 10 in base 16, but is not a valid digit in base 10. Supported radices range from `Character.MIN_RADIX` (2) to `Character.MAX_RADIX` (36).
 
-Dùng kết hợp kiểm tra và chuyển đổi khi nhận đúng **một ký tự chữ số thập phân**:
+Combine checking and conversion when accepting strictly **one decimal digit character**:
 
 ```java
 static int decimalDigit(char c) {
@@ -165,39 +165,39 @@ static int decimalDigit(char c) {
 }
 ```
 
-Đây là phương thức đặt bên trong lớp Java. `Character.isDigit(c)` kiểm tra tính chất chữ số thập phân theo Unicode; `Character.digit(c, 10)` lấy giá trị cần dùng để tính toán. Phép `c - '0'` chỉ kiểm tra quan hệ giữa mã, nên không thay thế được cặp API này khi đầu vào cho phép nhiều hệ chữ.
+This is a method placed inside a Java class. `Character.isDigit(c)` checks the Unicode decimal digit property; `Character.digit(c, 10)` extracts the value needed for arithmetic. `c - '0'` only checks code relationships, so it cannot replace this API pair when input allows multiple scripts.
 
-**Giới hạn của `char`:** Một số ký tự Unicode nằm ngoài Basic Multilingual Plane (BMP), cần **hai đơn vị mã UTF-16** (cặp surrogate). `charAt(index)` chỉ lấy một đơn vị mã; lúc này dùng `String.codePointAt(index)` và overload `Character.digit(int codePoint, int radix)` / `Character.isDigit(int codePoint)`.
+**Limitation of `char`:** Some Unicode characters lie outside the Basic Multilingual Plane (BMP) and require **two UTF-16 code units** (a surrogate pair). `charAt(index)` only reads one code unit; in that case use `String.codePointAt(index)` and the overloads `Character.digit(int codePoint, int radix)` / `Character.isDigit(int codePoint)`.
 
 ```java
 String s = "𝟠"; // MATHEMATICAL DOUBLE-STRUCK DIGIT EIGHT (U+1D7E0).
-System.out.println(s.length());                       // 2: hai đơn vị UTF-16.
-System.out.println(Character.digit(s.charAt(0), 10)); // -1: chỉ một surrogate.
+System.out.println(s.length());                       // 2: two UTF-16 units.
+System.out.println(Character.digit(s.charAt(0), 10)); // -1: only one surrogate.
 System.out.println(Character.digit(s.codePointAt(0), 10)); // 8.
 ```
 
-Ví dụ này đặt trong `main`; việc duyệt cả chuỗi theo code point nên tăng chỉ số bằng `Character.charCount(codePoint)` hoặc sử dụng `String.codePoints()`, thay vì mặc định mỗi `char` là một ký tự Unicode hoàn chỉnh.
+This example is placed in `main`; iterating an entire string by code point should advance the index by `Character.charCount(codePoint)` or use `String.codePoints()`, rather than assuming each `char` is a complete Unicode character.
 
-## 6. Chuyển đổi theo chiều ngược: số thành ký tự chữ số
+## 6. Converting Back: Number to Digit Character
 
-Khi đã có **giá trị số** từ 0 đến 9 và cần ký tự ASCII:
+When you have a **numeric value** from 0 to 9 and need an ASCII character:
 
 ```java
 int n = 7;
-char c1 = (char) ('0' + n);             // '7', với điều kiện 0 <= n <= 9.
+char c1 = (char) ('0' + n);             // '7', provided 0 <= n <= 9.
 char c2 = Character.forDigit(n, 10);    // '7'.
 String text = Integer.toString(n);     // "7" (String).
 ```
 
-`Character.forDigit(digit, radix)` còn dùng được cho chữ số của các hệ cơ số khác (ví dụ `Character.forDigit(10, 16)` trả về `'a'`). API trả ký tự NUL `'\0'` khi đối số chữ số/cơ số không hợp lệ, vì vậy cần kiểm tra điều kiện đầu vào khi tránh kết quả không mong muốn. Không dùng `(char) ('0' + n)` cho `n = 12`: kết quả là `'<'`, **không** phải chuỗi `"12"`. Với số có nhiều chữ số, dùng `Integer.toString(n)` hoặc `String.valueOf(n)`.
+`Character.forDigit(digit, radix)` also works for digits in other bases (for example, `Character.forDigit(10, 16)` returns `'a'`). The API returns the NUL character `'\0'` when the digit/radix arguments are invalid, so validate input conditions to avoid unexpected results. Do not use `(char) ('0' + n)` for `n = 12`: the result is `'<'`, **not** the string `"12"`. For multi-digit numbers, use `Integer.toString(n)` or `String.valueOf(n)`.
 
-## 7. Một ký tự chữ số khác với một chuỗi nhiều chữ số
+## 7. A Single Digit Character vs. a Multi-Digit String
 
-- Với **một ký tự ASCII** `'7'`, sau kiểm tra phạm vi, dùng `c - '0'`.
-- Với **một code point chữ số Unicode**, dùng `Character.digit(codePoint, 10)` và xử lý trường hợp `-1`.
-- Với **một chuỗi biểu diễn số nguyên**, ví dụ `"2048"`, dùng `Integer.parseInt(text)` hoặc kiểu số phù hợp. Chuỗi có thể chứa dấu và nhiều chữ số; `char` riêng lẻ không đại diện cho toàn bộ số nguyên đó.
+- For **one ASCII character** `'7'`, after range checking, use `c - '0'`.
+- For **one Unicode digit code point**, use `Character.digit(codePoint, 10)` and handle the `-1` case.
+- For **a string representing an integer**, such as `"2048"`, use `Integer.parseInt(text)` or an appropriate numeric type. A string can contain a sign and multiple digits; a single `char` cannot represent that entire integer.
 
-Ví dụ:
+Example:
 
 ```java
 String input = "2048";
@@ -205,28 +205,28 @@ int parsed = Integer.parseInt(input);
 System.out.println(parsed + 2); // 2050
 ```
 
-Đặt trong `main`. `Integer.parseInt` ném `NumberFormatException` khi chuỗi không có cú pháp số nguyên hợp lệ hoặc giá trị vượt phạm vi `int`. Đầu vào `null` cũng không chuyển đổi được. Nếu cần dữ liệu lớn hơn giới hạn `int`, cân nhắc `Long.parseLong` hoặc `BigInteger`.
+Placed in `main`. `Integer.parseInt` throws `NumberFormatException` when the string does not have valid integer syntax or the value exceeds the `int` range. A `null` input cannot be converted either. If you need data larger than the `int` limit, consider `Long.parseLong` or `BigInteger`.
 
-Lưu ý riêng về `Character.getNumericValue`: API này có phạm vi **giá trị số Unicode rộng hơn chữ số thập phân**, chẳng hạn có thể trả 10 với `'A'` hoặc giá trị của ký tự số La Mã. Không dùng riêng `getNumericValue` để quyết định một ký tự có phải chữ số thập phân hay không; hãy chọn `Character.isDigit` / `Character.digit(..., 10)` theo yêu cầu đầu vào.
+Special note on `Character.getNumericValue`: this API covers a **wider range of Unicode numeric values than decimal digits**, for example returning 10 for `'A'` or the value of a Roman numeral character. Do not use `getNumericValue` alone to decide whether a character is a decimal digit; choose `Character.isDigit` / `Character.digit(..., 10)` according to input requirements.
 
-## 8. Các lỗi thường gặp và cách tránh
+## 8. Common Mistakes and How to Avoid Them
 
-| Viết nhầm | Vấn đề | Cách làm đúng |
+| Mistake | Problem | Correct Approach |
 | --- | --- | --- |
-| `int n = '7';` rồi kỳ vọng `n == 7` | `n` thật ra bằng 55 | Kiểm tra rồi dùng `'7' - '0'` hoặc `Character.digit('7', 10)` |
-| `char c = (char) 7;` để lấy `'7'` | 7 là mã của ký tự điều khiển, không phải mã của chữ số | `(char) ('0' + 7)` sau kiểm tra phạm vi |
-| `'7' + '2'` để cộng 7 và 2 | Java cộng **mã ký tự** thành 105 | `('7' - '0') + ('2' - '0')` thành 9 |
-| `c - '0'` trên mọi ký tự Unicode | Chỉ đúng cho dải ASCII `'0'..'9'` | Dùng `Character.digit` khi cho phép Unicode |
-| `Character.getNumericValue(c) >= 0` nghĩa là chữ số thập phân | Một số chữ cái/ký hiệu số cũng có numeric value | Dùng `Character.isDigit(c)` và cơ số 10 |
-| `s.charAt(0)` để đọc mọi Unicode digit | Ký tự ngoài BMP có thể gồm hai `char` | Dùng code point và overload nhận `int` |
-| Dùng `"7" + 1` để tính `8` | Nối chuỗi cho ra `"71"` | Chuyển sang số trước khi cộng |
+| `int n = '7';` expecting `n == 7` | `n` is actually 55 | Validate and use `'7' - '0'` or `Character.digit('7', 10)` |
+| `char c = (char) 7;` to get `'7'` | 7 is the code of a control character, not the digit character | `(char) ('0' + 7)` after range checking |
+| `'7' + '2'` to add 7 and 2 | Java adds **character codes**, yielding 105 | `('7' - '0') + ('2' - '0')` yields 9 |
+| `c - '0'` on arbitrary Unicode characters | Only valid for ASCII `'0'..'9'` | Use `Character.digit` when Unicode is allowed |
+| `Character.getNumericValue(c) >= 0` means decimal digit | Some letters/numeric symbols also have a numeric value | Use `Character.isDigit(c)` and radix 10 |
+| `s.charAt(0)` to read any Unicode digit | Characters outside BMP may consist of two `char`s | Use code points and the `int` overload |
+| Using `"7" + 1` to compute `8` | String concatenation produces `"71"` | Convert to a number before adding |
 
-**Tự kiểm tra:**
+**Self-Check:**
 
-1. `(int) '5'` bằng bao nhiêu? **53**, vì là mã của `'5'`.
-2. `'5' - '0'` bằng bao nhiêu? **5**, vì đã chuẩn hóa theo mã chữ số ASCII `'0'`.
-3. `'9' + 1` có in thành ký tự `':'` không? **Không**, biểu thức có kiểu `int` và giá trị **58**; phải ép sang `char` mới thành `':'`.
-4. Muốn đọc chữ số `'٧'` từ đầu vào Unicode? **`Character.digit('٧', 10)`** trả `7`.
-5. Muốn đổi số nguyên `27` thành văn bản? **`Integer.toString(27)`** trả chuỗi `"27"`, không thể chứa cả hai chữ số trong một `char`.
+1. What is `(int) '5'`? **53**, because that is the character code of `'5'`.
+2. What is `'5' - '0'`? **5**, because it is normalized relative to the ASCII digit code `'0'`.
+3. Does `'9' + 1` print as the character `':'`? **No**, the expression has type `int` and value **58**; it must be cast to `char` to become `':'`.
+4. How do you read the digit `'٧'` from Unicode input? **`Character.digit('٧', 10)`** returns `7`.
+5. How do you convert the integer `27` to text? **`Integer.toString(27)`** returns the string `"27"`; both digits cannot fit into a single `char`.
 
-Điểm cần nhớ khi làm bài về **kiểu số nguyên**: `char` tham gia được vào phép toán số học vì lưu đơn vị mã 16 bit, nhưng **ý nghĩa chữ số** là một bước diễn giải riêng. Với ASCII, hiệu so với `'0'` là cách đơn giản; với Unicode, nên dùng `Character`; với chuỗi nhiều chữ số, nên dùng API phân tích số nguyên.
+Key point to remember when studying **integer types**: `char` can participate in arithmetic operations because it stores a 16-bit code unit, but its **digit meaning** is a separate interpretation step. For ASCII, subtracting `'0'` is the simple approach; for Unicode, use `Character`; for multi-digit strings, use integer parsing APIs.

@@ -1,10 +1,10 @@
-# `Comparator<T>`: định nghĩa thứ tự bên ngoài lớp
+# `Comparator<T>`: Defining Order Outside the Class
 
-## 1. Vì sao cần một thứ tự từ bên ngoài?
+## 1. Why Is an External Order Needed?
 
-Trong Java, có những lớp mà đối tượng có thể được sắp xếp theo **nhiều tiêu chí hợp lệ**. Ví dụ, một nhân viên có mã định danh, tên và tuổi. Danh sách nhân viên có thể cần hiển thị theo tuổi tăng dần, theo tên theo bảng chữ cái hoặc theo mã nhân viên. Không có lý do nào buộc một trong các tiêu chí phải được mã hóa cố định vào chính lớp `Employee`.
+In Java, there are classes whose objects can be sorted by **multiple valid criteria**. For example, an employee has an identifier, a name, and an age. A list of employees might need to be displayed in ascending order by age, alphabetically by name, or by employee ID. There is no reason to force one of those criteria to be hardcoded into the `Employee` class itself.
 
-`java.util.Comparator<T>` giải quyết nhu cầu đó: nó mô tả **một chiến lược so sánh hai đối tượng kiểu `T` ở bên ngoài lớp dữ liệu**. Ta có thể tạo nhiều comparator, chọn comparator tại nơi cần sử dụng và không phải thay đổi mã nguồn của `Employee`.
+`java.util.Comparator<T>` addresses that need: it describes **a strategy for comparing two objects of type `T` outside the data class**. You can create multiple comparators, choose the comparator where it is needed, and never have to modify the source code of `Employee`.
 
 ```java
 Comparator<Employee> byAge =
@@ -14,46 +14,46 @@ Comparator<Employee> byName =
         Comparator.comparing(Employee::name);
 ```
 
-Hai câu lệnh là **fragment minh họa**, cần import `java.util.Comparator` và một kiểu `Employee` có accessor `age()`/`name()`. Trong phần chương trình hoàn chỉnh bên dưới sẽ có lớp dữ liệu cụ thể và ví dụ chạy được.
+These two statements are **illustrative fragments**, requiring `import java.util.Comparator` and an `Employee` type with `age()`/`name()` accessors. In the complete program section below, there will be a concrete data class and a runnable example.
 
-Với một comparator hợp lệ, phép `compare(a, b)` trả:
+With a valid comparator, `compare(a, b)` returns:
 
-| Kết quả | Ý nghĩa |
+| Result | Meaning |
 | --- | --- |
-| Số âm | `a` đứng **trước** `b` |
-| `0` | `a` và `b` **tương đương về thứ tự** theo comparator |
-| Số dương | `a` đứng **sau** `b` |
+| Negative number | `a` comes **before** `b` |
+| `0` | `a` and `b` are **order-equivalent** according to the comparator |
+| Positive number | `a` comes **after** `b` |
 
-Giá trị `-1` hay `1` chỉ là các trường hợp có thể có. **Hợp đồng yêu cầu dấu**, không yêu cầu luôn trả đúng `-1, 0, 1`.
+The values `-1` or `1` are only possible cases. **The contract requires the sign**, not always returning exact `-1, 0, 1`.
 
-## 2. Phân biệt `Comparator`, `Comparable` và `equals()`
+## 2. Distinguishing `Comparator`, `Comparable`, and `equals()`
 
-| API | Người định nghĩa thứ tự | Nghiệp vụ phù hợp |
+| API | Who defines the order | Suitable use case |
 | --- | --- | --- |
-| `Comparable<T>` với `compareTo(T)` | **Bên trong lớp** triển khai `Comparable` | Một thứ tự tự nhiên, mặc định và ổn định cho kiểu |
-| `Comparator<T>` với `compare(T, T)` | **Bên ngoài lớp**, qua object/lambda/method reference | Nhiều thứ tự, hoặc kiểu dữ liệu không thể/chưa muốn sửa |
-| `Object.equals(Object)` | Bên trong lớp (hoặc kế thừa) | Xác định hai đối tượng **bằng nhau về bản sắc logic** |
+| `Comparable<T>` with `compareTo(T)` | **Inside the class** implementing `Comparable` | A single natural, default, and stable order for the type |
+| `Comparator<T>` with `compare(T, T)` | **Outside the class**, via object/lambda/method reference | Multiple orders, or a data type that cannot/should not be modified |
+| `Object.equals(Object)` | Inside the class (or inherited) | Determining whether two objects are **equal in logical identity** |
 
-`Comparable` là lựa chọn thích hợp khi có một thứ tự tự nhiên rõ ràng, ví dụ `String` so theo thứ tự từ điển, `Integer` so theo giá trị số. Ngược lại, `Comparator` phù hợp khi cần sắp xếp `Employee` theo tuổi hôm nay và theo tên ngày mai, hoặc khi thư viện cung cấp lớp `final` không thể chỉnh sửa.
+`Comparable` is the appropriate choice when there is one clear natural order, such as `String` comparing lexicographically or `Integer` comparing by numeric value. Conversely, `Comparator` is suitable when you need to sort `Employee` by age today and by name tomorrow, or when a library provides a `final` class that cannot be edited.
 
-**`compare(a, b) == 0` không tự động đồng nghĩa `a.equals(b)`.** Comparator có thể coi hai nhân viên cùng tuổi là tương đương **về thứ tự tuổi** mặc dù họ có mã định danh khác nhau. Việc này thường chấp nhận được khi chỉ sắp xếp một danh sách; nhưng cần chú ý với các cấu trúc sử dụng comparator để nhận diện khóa như `TreeSet` và `TreeMap`.
+**`compare(a, b) == 0` does not automatically mean `a.equals(b)`.** A comparator might consider two employees of the same age equivalent **with respect to age order** even though they have different identifiers. This is usually acceptable when merely sorting a list; however, care is needed with structures that use the comparator to identify keys, such as `TreeSet` and `TreeMap`.
 
-Một comparator không thay đổi `equals()` hoặc `hashCode()` của đối tượng. Nó chỉ cung cấp một quan hệ thứ tự được chọn trong lúc thao tác.
+A comparator does not alter an object's `equals()` or `hashCode()`. It only provides an ordering relation chosen for the operation at hand.
 
-## 3. Cách tạo comparator không phải viết lớp riêng
+## 3. How to Create a Comparator Without Writing a Separate Class
 
-Từ Java 8, `Comparator` là **functional interface**: phương thức trừu tượng chính là `int compare(T o1, T o2)`. Vì vậy có thể dùng lambda hoặc method reference.
+Since Java 8, `Comparator` is a **functional interface**: its primary abstract method is `int compare(T o1, T o2)`. Therefore, you can use a lambda or a method reference.
 
-### Viết bằng lambda
+### Writing with a lambda
 
 ```java
 Comparator<Employee> byAge =
         (left, right) -> Integer.compare(left.age(), right.age());
 ```
 
-`Integer.compare` được ưu tiên so với `left.age() - right.age()`: phép trừ hai số nguyên có thể **tràn số**, gây kết quả thứ tự sai. Ví dụ `Integer.MAX_VALUE - (-1)` vượt phạm vi `int`.
+`Integer.compare` is preferred over `left.age() - right.age()`: subtracting two integers can **overflow**, producing an incorrect ordering result. For example, `Integer.MAX_VALUE - (-1)` exceeds the `int` range.
 
-### Viết bằng factory method
+### Writing with factory methods
 
 ```java
 Comparator<Employee> byAge =
@@ -66,9 +66,9 @@ Comparator<Employee> byName =
         Comparator.comparing(Employee::name);
 ```
 
-Các comparator này cùng có kiểu `Comparator<Employee>`, nhưng mỗi cái dùng **một khóa sắp xếp khác nhau**. `comparingInt` tránh boxing khóa `int` thành `Integer` để so sánh. Các phương thức tương tự gồm `comparingLong`, `comparingDouble`; dùng `comparing` cho khóa đối tượng như `String`.
+These comparators all have the type `Comparator<Employee>`, but each uses **a different sort key**. `comparingInt` avoids boxing an `int` key into an `Integer` for comparison. Similar methods include `comparingLong` and `comparingDouble`; use `comparing` for object keys like `String`.
 
-Nếu khóa không phải kiểu có thứ tự tự nhiên phù hợp, truyền thêm comparator của khóa:
+If the key does not have a suitable natural order, pass an additional comparator for the key:
 
 ```java
 Comparator<Employee> byNameIgnoringCase =
@@ -77,11 +77,11 @@ Comparator<Employee> byNameIgnoringCase =
                 String.CASE_INSENSITIVE_ORDER);
 ```
 
-Đoạn này giả định tên không null. Nếu tên có thể null, cần chỉ rõ quy tắc đặt null trước/sau hoặc bỏ qua bản ghi không hợp lệ.
+This snippet assumes names are non-null. If a name can be null, you must explicitly specify the rule for placing nulls first/last or filter out invalid records.
 
-### Kết hợp nhiều khóa bằng `thenComparing`
+### Combining multiple keys with `thenComparing`
 
-Sắp xếp theo tuổi tăng dần, **nếu bằng tuổi thì theo mã tăng dần**:
+Sort by age ascending, and **if ages are equal, by ID ascending**:
 
 ```java
 Comparator<Employee> byAgeThenId =
@@ -89,18 +89,18 @@ Comparator<Employee> byAgeThenId =
                   .thenComparingInt(Employee::id);
 ```
 
-Khi hai người cùng tuổi, comparator không trả ngay `0` mà dùng mã để quyết định. Nếu mã là **duy nhất** và định nghĩa bản sắc logic của `Employee`, so sánh cuối theo mã giúp tránh coi hai người khác nhau là cùng phần tử trong `TreeSet`.
+When two people have the same age, the comparator does not immediately return `0`, but uses the ID to decide. If the ID is **unique** and defines the logical identity of `Employee`, comparing by ID last helps avoid treating two different people as the same element in a `TreeSet`.
 
-Tuy nhiên, thêm tie-breaker chỉ đúng nếu khóa cuối nhất quán với chính sách bằng nhau của lớp. Nếu một lớp có `equals()` dựa trên nhiều trường, hãy hiểu rõ các trường đó trước khi kỳ vọng `compare(a,b)==0` tương đương `equals()`.
+However, adding a tie-breaker is only correct if the final key is consistent with the class's equality policy. If a class has `equals()` based on multiple fields, understand those fields clearly before expecting `compare(a,b)==0` to be equivalent to `equals()`.
 
-### Đảo thứ tự bằng `reversed()`
+### Reversing order with `reversed()`
 
 ```java
 Comparator<Employee> descendingAgeThenId =
         byAgeThenId.reversed();
 ```
 
-`reversed()` đảo **toàn bộ** thứ tự, bao gồm cả khóa phụ: tuổi giảm dần, nếu cùng tuổi thì mã cũng giảm dần. Nếu muốn *tuổi giảm dần nhưng mã tăng dần*, hãy đảo comparator tuổi **trước** khi thêm khóa phụ:
+`reversed()` reverses the **entire** order, including secondary keys: age descending, and if ages are equal, ID also descending. If you want *age descending but ID ascending*, reverse the age comparator **before** adding the secondary key:
 
 ```java
 Comparator<Employee> ageDescendingIdAscending =
@@ -109,11 +109,11 @@ Comparator<Employee> ageDescendingIdAscending =
                   .thenComparingInt(Employee::id);
 ```
 
-Hai chiến lược khác nhau về kết quả khi có người cùng tuổi.
+The two strategies differ in their results when people have the same age.
 
-## 4. Chương trình Java 17 chạy được
+## 4. Runnable Java 17 Program
 
-Tạo tệp `ExternalComparatorDemo.java`:
+Create the file `ExternalComparatorDemo.java`:
 
 ```java
 import java.util.ArrayList;
@@ -125,7 +125,7 @@ import java.util.TreeSet;
 
 public class ExternalComparatorDemo {
 
-    // Record chỉ giữ dữ liệu; không implements Comparable.
+    // Record only holds data; does not implement Comparable.
     record Employee(int id, String name, int age) {}
 
     static List<Integer> ids(List<Employee> employees) {
@@ -203,14 +203,14 @@ public class ExternalComparatorDemo {
 }
 ```
 
-Chạy với JDK 17 trở lên:
+Run with JDK 17 or later:
 
 ```bash
 javac ExternalComparatorDemo.java
 java ExternalComparatorDemo
 ```
 
-Kết quả stdout chính xác:
+Exact stdout output:
 
 ```text
 original: [2, 1, 3]
@@ -227,37 +227,37 @@ TreeSet age-id size: 3
 nulls last IDs: [1, 3, 2, -1]
 ```
 
-Trong hàm `ids`, giá trị `-1` chỉ là **ký hiệu in ra cho phần tử null**. Người trong ví dụ đều có mã dương, nên có thể phân biệt ký hiệu này. Trong chương trình thật, không nên dùng số `-1` làm dấu hiệu null nếu `-1` là một mã hợp lệ.
+In the `ids` method, the value `-1` is only a **printed marker for a null element**. The people in the example all have positive IDs, so this marker can be distinguished. In a real program, you should not use `-1` as a null sentinel if `-1` is a valid ID.
 
-### Phân tích kết quả
+### Result analysis
 
-- Danh sách `original` giữ thứ tự được tạo: Alice (id 2), Bao (id 1), Chi (id 3). `sort` chỉ thay đổi **bản sao `ArrayList`**, không sửa `original`.
-- `byAgeThenId` đặt Bao và Chi (25 tuổi) trước Alice (30 tuổi), rồi phân định Bao id 1 trước Chi id 3.
-- `byAgeThenId.reversed()` đảo cả khóa tuổi và mã nên Alice trước, rồi Chi, rồi Bao. Đảo chỉ khóa tuổi trước khi ghép mã sẽ cho Alice, Bao, Chi.
-- `stream().sorted(byAgeThenId)` trả một danh sách mới theo thứ tự tương ứng. Nó không sửa `original`.
-- `bao.equals(chi)` là `false` vì record tự so sánh theo **tất cả thành phần**; comparator chỉ xét tuổi trả `0`.
-- `TreeSet` dùng dấu của `compare` để quyết định phần tử trùng nhau. Khi chỉ so tuổi, việc thêm Chi 25 tuổi sau Bao 25 tuổi không thêm phần tử mới; `contains(chi)` vẫn `true` vì comparator coi Chi tương đương Bao.
-- `byAgeThenId` phân biệt mã Bao và Chi, nên `TreeSet` thứ hai chứa đủ ba người.
-- `Comparator.nullsLast(byAgeThenId)` đặt phần tử null cuối, phần tử không null vẫn theo tuổi và id. Chương trình minh họa vì sao phải chủ động xử lý null khi nguồn dữ liệu cho phép.
+- The `original` list preserves creation order: Alice (id 2), Bao (id 1), Chi (id 3). `sort` only modifies the **`ArrayList` copy**, leaving `original` unchanged.
+- `byAgeThenId` places Bao and Chi (age 25) before Alice (age 30), then breaks the tie with Bao id 1 before Chi id 3.
+- `byAgeThenId.reversed()` reverses both the age and ID keys, giving Alice first, then Chi, then Bao. Reversing only the age key before chaining the ID produces Alice, Bao, Chi.
+- `stream().sorted(byAgeThenId)` returns a new list in the corresponding order. It does not modify `original`.
+- `bao.equals(chi)` is `false` because records compare **all components** automatically; the comparator checking only age returns `0`.
+- `TreeSet` uses the sign of `compare` to decide duplicate elements. When comparing only by age, adding 25-year-old Chi after 25-year-old Bao does not add a new element; `contains(chi)` is still `true` because the comparator considers Chi equivalent to Bao.
+- `byAgeThenId` distinguishes Bao's and Chi's IDs, so the second `TreeSet` contains all three people.
+- `Comparator.nullsLast(byAgeThenId)` places null elements at the end while non-null elements still follow age and id. The program illustrates why null must be actively handled when the data source allows it.
 
-## 5. Cơ chế `List.sort` và `Stream.sorted`
+## 5. Mechanics of `List.sort` and `Stream.sorted`
 
-### Sắp xếp trực tiếp trên danh sách
+### Sorting directly on a list
 
-`List.sort(Comparator<? super E> c)` **thay đổi thứ tự phần tử của danh sách đang gọi phương thức** và không tạo danh sách mới. Vì vậy với danh sách không cho phép sửa thứ tự (chẳng hạn `List.of(...)`), gọi `sort` có thể ném `UnsupportedOperationException`.
+`List.sort(Comparator<? super E> c)` **mutates the element order of the list on which the method is called** and does not create a new list. Therefore, on an unmodifiable list that does not allow reordering (such as `List.of(...)`), calling `sort` may throw `UnsupportedOperationException`.
 
 ```java
 List<Employee> mutable = new ArrayList<>(employees);
 mutable.sort(byAgeThenId);
 ```
 
-Đoạn này là fragment giả sử có `employees` và `byAgeThenId`. Tạo bản sao có thể sửa giúp giữ nguồn đầu vào nguyên vẹn.
+This snippet is a fragment assuming `employees` and `byAgeThenId` exist. Creating a mutable copy keeps the input source intact.
 
-Theo hợp đồng, sắp xếp bằng `List.sort` là **stable**: khi comparator trả `0` cho hai phần tử, thứ tự tương đối ban đầu của chúng được bảo toàn. Tuy vậy stable sort **không thay thế khóa phụ** nếu nghiệp vụ muốn một thứ tự tổng quát có thể lặp lại từ mọi cách nhập dữ liệu. Kết hợp `thenComparing` giúp quy tắc rõ ràng.
+By contract, sorting with `List.sort` is **stable**: when the comparator returns `0` for two elements, their original relative order is preserved. Even so, a stable sort **is no substitute for a secondary key** if the business logic wants a repeatable total order regardless of how the input was entered. Chaining `thenComparing` makes the rule explicit.
 
-### Sắp xếp qua stream
+### Sorting via stream
 
-`stream.sorted(comparator)` trả một stream đã sắp thứ tự để thực hiện thao tác tiếp theo; có thể tạo danh sách bằng `toList()` trong Java 17:
+`stream.sorted(comparator)` returns a sorted stream for subsequent operations; a list can be produced with `toList()` in Java 17:
 
 ```java
 List<Employee> sorted = employees.stream()
@@ -265,44 +265,44 @@ List<Employee> sorted = employees.stream()
         .toList();
 ```
 
-Kết quả `Stream.toList()` là danh sách **không cho phép sửa**, vì vậy muốn sắp xếp tiếp in-place thì nên sao chép ra `ArrayList`. Với các stream có thứ tự encounter order, `Stream.sorted` bảo đảm tính ổn định; với stream không có thứ tự, không có bảo đảm ổn định theo một encounter order vốn không tồn tại.
+The result of `Stream.toList()` is an **unmodifiable** list, so if you want to sort it in-place later, copy it into an `ArrayList`. For streams with an encounter order, `Stream.sorted` guarantees stability; for unordered streams, there is no stability guarantee with respect to a non-existent encounter order.
 
-Ngoài `List` và stream, các phương thức như `Collections.sort(list, comparator)` hoặc `Arrays.sort(array, comparator)` cũng dùng comparator phù hợp với kiểu phần tử. Chọn API theo loại dữ liệu và việc có muốn thay đổi collection gốc hay không.
+Besides `List` and streams, methods like `Collections.sort(list, comparator)` or `Arrays.sort(array, comparator)` also accept a comparator matching the element type. Choose the API based on the data type and whether you want to mutate the original collection.
 
-## 6. Hợp đồng của một `Comparator` đúng
+## 6. Contract of a Valid `Comparator`
 
-Một comparator phải mô tả quan hệ thứ tự hợp lệ trên toàn bộ miền giá trị mà nó chấp nhận. Với `sgn` là dấu của số nguyên, ba tính chất quan trọng là:
+A comparator must describe a valid ordering relation over the entire domain of values it accepts. With `sgn` denoting the sign of an integer, the three key properties are:
 
-1. **Đối dấu:** `sgn(compare(a,b)) == -sgn(compare(b,a))`.
-2. **Bắc cầu:** nếu `a > b` và `b > c` theo comparator thì `a > c`.
-3. **Nhóm tương đương nhất quán:** nếu `compare(a,b)==0`, so `a` và `b` với cùng một `z` phải cho kết quả cùng dấu.
+1. **Antisymmetry (sign symmetry):** `sgn(compare(a,b)) == -sgn(compare(b,a))`.
+2. **Transitivity:** if `a > b` and `b > c` according to the comparator, then `a > c`.
+3. **Consistent equivalence classes:** if `compare(a,b)==0`, comparing `a` and `b` against the same `z` must produce results with the same sign.
 
-Không dùng phép trừ số nguyên làm phương thức so sánh tổng quát, vì phép trừ có thể tràn. Dùng `Integer.compare`, `Long.compare`, `Double.compare` hoặc các factory `comparingInt/Long/Double` theo kiểu khóa. `Double.compare` còn định nghĩa rõ thứ tự cho `NaN`, vô cực và `-0.0`.
+Do not use integer subtraction as a general-purpose comparison method, because subtraction can overflow. Use `Integer.compare`, `Long.compare`, `Double.compare`, or the `comparingInt/Long/Double` factories depending on the key type. `Double.compare` also clearly defines the ordering for `NaN`, infinities, and `-0.0`.
 
-Nếu comparator đọc random, đồng hồ, cờ cấu hình thay đổi, hoặc thuộc tính bị sửa trong lúc sort, thứ tự có thể tự mâu thuẫn. Java có thể phát hiện một số lỗi và ném `IllegalArgumentException`, nhưng không bảo đảm phát hiện mọi comparator sai. Bài về *hợp đồng dấu, tính bắc cầu và nhóm 0* sẽ kiểm tra các điều kiện này bằng cặp, bộ ba giá trị và ca biên.
-## 7. `compare(a,b) == 0` và `equals()` trong `TreeSet` / `TreeMap`
+If a comparator reads random numbers, the system clock, mutable configuration flags, or fields that are modified during sorting, the order can contradict itself. Java may detect some errors and throw `IllegalArgumentException`, but it does not guarantee detection of every broken comparator. The lesson on *sign contract, transitivity, and zero-groups* will test these conditions using pairs, triples of values, and edge cases.
+## 7. `compare(a,b) == 0` and `equals()` in `TreeSet` / `TreeMap`
 
-`Comparator` quyết định **thứ tự**, còn `equals()` quyết định **bằng nhau theo hợp đồng của đối tượng**. Với `List.sort`, hai nhân viên cùng tuổi vẫn được giữ trong danh sách. Nhưng `TreeSet` và `TreeMap` dùng `compare(a,b)==0` để nhận diện phần tử/khóa tương đương. Trong ví dụ:
+`Comparator` determines **order**, whereas `equals()` determines **equality according to the object's contract**. With `List.sort`, two employees of the same age are still kept in the list. However, `TreeSet` and `TreeMap` use `compare(a,b)==0` to identify equivalent elements/keys. In the example:
 
-- `bao.equals(chi)` là `false` vì hai record khác mã và tên.
-- Comparator chỉ xét tuổi trả `0`, nên `TreeSet` giữ một đại diện của nhóm tuổi 25 và `contains(chi)` vẫn có thể trả `true`.
-- `TreeMap` dùng cùng quy tắc có thể thay **giá trị** của mapping hiện có khi `put` một khóa mới nhưng so sánh bằng 0.
+- `bao.equals(chi)` is `false` because the two records differ in ID and name.
+- The age-only comparator returns `0`, so `TreeSet` keeps one representative for the age-25 group and `contains(chi)` can still return `true`.
+- `TreeMap` uses the same rule and can replace the **value** of an existing mapping when `put` is called with a new key that compares equal to 0.
 
-Thứ tự **nhất quán với equals** khi `compare(a,b)==0` *khi và chỉ khi* `a.equals(b)` (xét trên miền dữ liệu hợp lệ). Phải kiểm tra **cả hai chiều**. `byAgeThenId` trong ví dụ phân biệt các bản ghi đang có, nhưng chưa chắc nhất quán với `equals` của mọi `Employee`: hai record cùng tuổi và mã nhưng tên khác vẫn so bằng 0. Với `TreeSet/TreeMap`, hãy xác định đúng khóa định danh hoặc dùng cấu trúc khác nếu muốn giữ tất cả phần tử cùng thứ hạng. Bài riêng về Comparator dùng cho hiển thị và quan hệ bằng nhau phân tích sâu hai hướng sai lệch.
-## 8. Xử lý `null` và khóa nullable
+An ordering is **consistent with equals** when `compare(a,b)==0` *if and only if* `a.equals(b)` (over the valid data domain). **Both directions** must be checked. `byAgeThenId` in the example distinguishes the existing records, but it is not necessarily consistent with `equals` for every `Employee`: two records with the same age and ID but different names still compare equal to 0. With `TreeSet/TreeMap`, identify the proper identity key or use a different structure if you want to retain all elements of the same rank. A dedicated lesson on Comparators used for display versus equality relations analyzes both mismatch directions in depth.
+## 8. Handling `null` and Nullable Keys
 
-Mặc định các comparator từ `Comparator.comparingInt(Employee::age)` sẽ gọi getter và không xử lý object `null`, nên so sánh với phần tử null có thể ném `NullPointerException`.
+By default, comparators from `Comparator.comparingInt(Employee::age)` invoke the getter and do not handle `null` objects, so comparing against a null element can throw `NullPointerException`.
 
-Muốn đặt **toàn bộ nhân viên null** ở cuối:
+To place **all null employees** at the end:
 
 ```java
 Comparator<Employee> nullableEmployees =
         Comparator.nullsLast(byAgeThenId);
 ```
 
-Muốn đặt null ở đầu thì dùng `Comparator.nullsFirst(byAgeThenId)`. Đây là hai phương thức xử lý **đối tượng được so sánh là null**.
+To place nulls at the beginning, use `Comparator.nullsFirst(byAgeThenId)`. These two methods handle **the compared object itself being null**.
 
-Khác với trường hợp **trường khóa bên trong đối tượng null**. Ví dụ `name` có thể null nhưng `Employee` vẫn là object không null. Khi đó cần xử lý comparator của khóa:
+This differs from the case of **a nullable key field inside an object**. For example, `name` can be null while `Employee` itself is a non-null object. In that case, you must wrap the key's comparator:
 
 ```java
 Comparator<Employee> nullableNames =
@@ -311,57 +311,57 @@ Comparator<Employee> nullableNames =
                 Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
 ```
 
-Đoạn này cho `name == null` xếp cuối so với tên không null, trong phạm vi các object nhân viên không null. Nếu có thể null cả nhân viên và tên, kết hợp **hai lớp chính sách**:
+This snippet sorts `name == null` after non-null names, within the scope of non-null employee objects. If both the employee and the name can be null, combine **two policy layers**:
 
 ```java
 Comparator<Employee> bothNullable =
         Comparator.nullsLast(nullableNames);
 ```
 
-Những đoạn trên là fragment minh họa, giả sử đã có record `Employee` và các comparator phù hợp. Không nên tự tiện coi chuỗi rỗng `""` là null hoặc thay null bằng một giá trị mặc định nếu điều đó có thể làm mất phân biệt dữ liệu nghiệp vụ.
+The snippets above are illustrative fragments assuming the `Employee` record and appropriate comparators exist. You should not arbitrarily treat an empty string `""` as null or replace null with a default value if doing so could erase business data distinctions.
 
-## 9. Những lỗi thường gặp khi định nghĩa thứ tự ngoài lớp
+## 9. Common Mistakes When Defining External Order
 
-- **Không dùng tie-breaker khi cần uniqueness.** So theo tuổi đơn thuần có thể khiến `TreeSet` bỏ một nhân viên khác có cùng tuổi.
-- **Quên `reversed()` đảo cả khóa phụ.** Nếu muốn chính/phụ trái chiều, đặt `reversed()` đúng vị trí trong chuỗi factory method.
-- **Viết `return a.age() - b.age()`.** Phép trừ có thể overflow; dùng `Integer.compare` hoặc `Comparator.comparingInt`.
-- **Nhầm `compare() == 0` với `equals()`.** Hai quan hệ không có cùng ý nghĩa mặc định; kiểm tra riêng khi làm khóa collection.
-- **Đọc nhầm `sort` là bất biến.** `List.sort` sửa list gọi nó; `stream.sorted(...).toList()` tạo danh sách kết quả.
-- **Bỏ qua null.** `nullsFirst/nullsLast` cho object null không tự xử lý khóa `name` null bên trong object.
-- **Cố dùng comparator cho dữ liệu biến đổi trong `TreeSet`/`TreeMap`.** Nếu trường tuổi/id dùng khi định vị trong cây thay đổi sau khi chèn, lookup và thứ tự có thể không còn hợp lệ. Ưu tiên khóa bất biến hoặc xóa rồi thêm lại với trạng thái mới.
-- **Comparator trả giá trị tùy tiện hoặc phụ thuộc vào thứ tự gọi.** Có thể vi phạm đối dấu/bắc cầu, gây lỗi sắp xếp và hành vi không xác định về ngữ nghĩa nghiệp vụ.
+- **Omitting a tie-breaker when uniqueness is needed.** Comparing solely by age can cause a `TreeSet` to drop another employee of the same age.
+- **Forgetting that `reversed()` reverses secondary keys too.** If you want opposite directions for primary/secondary keys, place `reversed()` at the right position in the factory method chain.
+- **Writing `return a.age() - b.age()`.** Subtraction can overflow; use `Integer.compare` or `Comparator.comparingInt`.
+- **Confusing `compare() == 0` with `equals()`.** The two relations do not share the same default meaning; check separately when using them as collection keys.
+- **Misreading `sort` as immutable.** `List.sort` mutates the list it is called on; `stream.sorted(...).toList()` creates a result list.
+- **Overlooking null.** `nullsFirst/nullsLast` for null objects does not automatically handle a null `name` key inside the object.
+- **Trying to use a comparator on mutable data in `TreeSet`/`TreeMap`.** If the age/id fields used to position an entry in the tree change after insertion, lookups and ordering can become invalid. Prefer immutable keys, or remove and re-insert with the new state.
+- **Comparator returning arbitrary values or depending on call order.** This can violate antisymmetry/transitivity, causing sorting failures and undefined behavior in terms of business semantics.
 
-## 10. Checklist và bài tập tự kiểm tra
+## 10. Checklist and Self-Check Exercises
 
 ### Checklist
 
-1. Thứ tự cần thiết là tự nhiên của lớp hay một yêu cầu cụ thể của màn hình/nghiệp vụ? Nếu có nhiều phương án, tạo `Comparator<T>` bên ngoài.
-2. Khóa sắp xếp là gì? Có cần nhiều khóa (`thenComparing`) để phân định trường hợp bằng nhau không?
-3. Có cần tăng/giảm riêng từng khóa hay đảo toàn bộ comparator?
-4. Các đối tượng/trường khóa có thể null không? Định nghĩa vị trí của null rõ ràng.
-5. Comparator có thỏa đối dấu, bắc cầu và ổn định khi dữ liệu không đổi không?
-6. Comparator chỉ dùng để sắp xếp một list hay còn làm bộ xác định uniqueness cho `TreeSet`/`TreeMap`?
-7. Nếu dùng làm khóa sorted collection, `compare(a,b)==0` có phù hợp chính sách `equals()` và bản sắc logic mong muốn không?
-8. Có đang so sánh số nguyên bằng phép trừ dễ overflow, hoặc so số thực với các quy tắc không nhất quán không?
+1. Is the required order natural to the class or specific to a screen/business use case? If there are multiple options, create an external `Comparator<T>`.
+2. What is the sort key? Are multiple keys (`thenComparing`) needed to break ties?
+3. Do individual keys need independent ascending/descending directions, or should the entire comparator be reversed?
+4. Can objects or key fields be null? Define the placement of null explicitly.
+5. Does the comparator satisfy antisymmetry, transitivity, and stability when data is unchanged?
+6. Is the comparator only used to sort a list, or also to determine uniqueness in a `TreeSet`/`TreeMap`?
+7. If used for sorted collection keys, does `compare(a,b)==0` match the desired `equals()` policy and logical identity?
+8. Are integers being compared via overflow-prone subtraction, or floating-point numbers via inconsistent rules?
 
-### Bài tập
+### Exercises
 
-**Bài 1.** Có ba nhân viên: A tuổi 30 id 2, B tuổi 25 id 1, C tuổi 25 id 3. Với `comparingInt(age).thenComparingInt(id)`, thứ tự là gì?
+**Exercise 1.** There are three employees: A age 30 id 2, B age 25 id 1, C age 25 id 3. With `comparingInt(age).thenComparingInt(id)`, what is the order?
 
-**Đáp án:** B, C, A; tuổi tăng trước, id tăng khi bằng tuổi.
+**Answer:** B, C, A; age ascending first, then id ascending when ages are equal.
 
-**Bài 2.** Gọi `reversed()` sau khi đã ghép `age` rồi `id` sẽ ra thứ tự gì?
+**Exercise 2.** What order will calling `reversed()` after chaining `age` then `id` produce?
 
-**Đáp án:** A, C, B; cả hai tiêu chí cùng bị đảo. Muốn A, B, C phải đảo comparator tuổi trước khi ghép id tăng.
+**Answer:** A, C, B; both criteria are reversed together. To get A, B, C, reverse the age comparator before chaining ascending id.
 
-**Bài 3.** Nếu `a.equals(b)` là false nhưng `compare(a,b)` là `0`, comparator có nhất thiết sai khi dùng `List.sort` không?
+**Exercise 3.** If `a.equals(b)` is false but `compare(a,b)` is `0`, is the comparator necessarily wrong when used with `List.sort`?
 
-**Đáp án:** Không. Nó có thể tạo một nhóm ngang thứ tự hợp lệ, ví dụ người cùng tuổi; list vẫn giữ đủ hai phần tử. Nhưng nếu dùng comparator ấy làm chính sách khóa của `TreeSet`, hai người có thể bị gộp.
+**Answer:** No. It can form a valid equal-order group, such as people of the same age; the list still keeps both elements. However, if that comparator is used as the key policy of a `TreeSet`, the two people may be merged.
 
-**Bài 4.** `Comparator.nullsLast(comparing(Employee::name))` có tự xử lý `employee.name() == null` không?
+**Exercise 4.** Does `Comparator.nullsLast(comparing(Employee::name))` automatically handle `employee.name() == null`?
 
-**Đáp án:** Không. `nullsLast` ở bên ngoài chỉ xử lý object `Employee` null. Muốn xử lý trường `name` null thì áp dụng `nullsLast` cho comparator của **khóa tên** bên trong `comparing`.
+**Answer:** No. The outer `nullsLast` only handles null `Employee` objects. To handle a null `name` field, apply `nullsLast` to the **name key** comparator inside `comparing`.
 
-## Ghi nhớ
+## Key Takeaways
 
-**`Comparator<T>` cho phép đặt quy tắc sắp xếp ở bên ngoài lớp dữ liệu**, nên một kiểu có thể được sắp theo nhiều tiêu chí mà không cần thay đổi chính class. Sử dụng `comparing...`, `thenComparing...` và `reversed()` để mô tả chính sách rõ ràng, tránh phép trừ dễ tràn và định nghĩa null khi cần. Với `TreeSet`/`TreeMap`, `compare(a,b)==0` còn là tiêu chí xem phần tử/khóa trùng nhau; vì thế comparator phải tương thích với bản sắc logic mong muốn và hợp đồng của collection.
+**`Comparator<T>` allows placing sorting rules outside the data class**, so a type can be sorted by multiple criteria without modifying the class itself. Use `comparing...`, `thenComparing...`, and `reversed()` to express policies clearly, avoid overflow-prone subtraction, and define null handling when needed. With `TreeSet`/`TreeMap`, `compare(a,b)==0` is also the criterion for treating elements/keys as duplicates; therefore, the comparator must be compatible with the intended logical identity and the collection's contract.

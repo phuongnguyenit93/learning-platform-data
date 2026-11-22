@@ -1,35 +1,35 @@
-# Compile modules trong multi-project build
+# Compiling modules in a multi-project build
 
-Trong một dự án Java có nhiều project con, mỗi project có thể tạo một JAR riêng. Nếu dùng Java Platform Module System (JPMS), từng project con có thể đồng thời là một **named module** với file `module-info.java`, dependency và API công khai riêng. Khi biên dịch, build tool cần sắp xếp đúng thứ tự project, đặt artifact đầu vào trên **module path** và bảo đảm các chỉ thị `requires`/`exports` khớp với dependency của hệ thống build.
+In a Java project with multiple subprojects, each project can produce a separate JAR. When using the Java Platform Module System (JPMS), each subproject can simultaneously be a **named module** with its own `module-info.java`, dependencies, and public API. During compilation, the build tool must order the projects properly, place input artifacts on the **module path**, and ensure that `requires`/`exports` directives align with the build system's dependencies.
 
-Điểm dễ nhầm lẫn: **multi-project build** của Maven hoặc Gradle là cấu trúc quản lý công việc build; **module graph** của JPMS là cấu trúc dependency mà `javac` và JVM kiểm tra. Hai cấu trúc có liên quan nhưng không tự đồng bộ với nhau. Một dependency được khai báo trong `pom.xml` hoặc `build.gradle` chưa tự tạo chỉ thị `requires`; ngược lại, khai báo `requires` không khiến Maven hoặc Gradle tự tải artifact không có trong dependency configuration.
+A common point of confusion: a Maven or Gradle **multi-project build** is a structure for managing build tasks; the JPMS **module graph** is the dependency structure that `javac` and the JVM verify. The two structures are related, but they do not automatically synchronize with each other. A dependency declared in `pom.xml` or `build.gradle` does not automatically generate a `requires` directive; conversely, declaring `requires` does not cause Maven or Gradle to automatically download an artifact absent from the dependency configuration.
 
-Bài này dùng cùng một ví dụ Java, sau đó biên dịch bằng `javac`, tổ chức dưới dạng **Maven multi-module reactor** và **Gradle multi-project build**.
+This lesson uses the same Java example, then compiles it with `javac`, organizes it as a **Maven multi-module reactor**, and organizes it as a **Gradle multi-project build**.
 
-## Mục tiêu
+## Objectives
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-- Phân biệt build project/module với JPMS named module.
-- Chia mã nguồn thành các project con có `module-info.java` riêng.
-- Xác định thứ tự build và module path cho từng bước biên dịch.
-- Viết `requires`, `requires transitive` và `exports` đúng theo API thực tế.
-- Cấu hình Maven reactor để biên dịch các project phụ thuộc nhau.
-- Cấu hình Gradle multi-project với `java-library` và `modularity.inferModulePath`.
-- Chẩn đoán `module not found`, `package is not visible`, classpath/module path sai, split package và lỗi do dependency không được truyền tới consumer.
-- Kiểm tra kết quả từ JAR và chạy ứng dụng bằng `java -m`.
+- Distinguish a build project/module from a JPMS named module.
+- Split source code into subprojects with separate `module-info.java` files.
+- Determine the build order and module path for each compilation step.
+- Write `requires`, `requires transitive`, and `exports` accurately according to the actual API.
+- Configure a Maven reactor to compile interdependent projects.
+- Configure a Gradle multi-project build with `java-library` and `modularity.inferModulePath`.
+- Diagnose `module not found`, `package is not visible`, incorrect classpath/module path, split packages, and errors caused by dependencies not being propagated to consumers.
+- Inspect results from JARs and run the application using `java -m`.
 
-## 1. Hai đồ thị cần hiểu
+## 1. Two graphs to understand
 
-Giả sử hệ thống có ba project:
+Suppose the system has three projects:
 
 ~~~text
-api        -> chứa public data model
-service    -> triển khai nghiệp vụ, dùng api
-app        -> điểm khởi chạy, dùng service
+api        -> contains public data model
+service    -> implements business logic, uses api
+app        -> entry point, uses service
 ~~~
 
-Ở mức build, quan hệ được mô tả như sau:
+At the build level, the relationships are described as follows:
 
 ~~~text
 app (build project)
@@ -37,7 +37,7 @@ app (build project)
         └── depends on api (build project)
 ~~~
 
-Ở mức JPMS, ứng dụng có các module:
+At the JPMS level, the application has the modules:
 
 ~~~text
 com.acme.app
@@ -51,19 +51,19 @@ com.acme.service
 com.acme.api
 ~~~
 
-Hai graph có thể cùng hướng nhưng được khai báo ở **hai nơi khác nhau**:
+Both graphs may point in the same direction, but they are declared in **two different places**:
 
-| Lớp | Nguồn cấu hình | Mục đích |
+| Layer | Configuration source | Purpose |
 |---|---|---|
-| Maven | `pom.xml` trong mỗi project | Tải artifact, thiết lập compile/test/runtime classpath, quyết định thứ tự reactor |
-| Gradle | `settings.gradle`, `build.gradle` | Khai báo project con, dependency configuration, task graph |
-| JPMS | `module-info.java` | Tên module, readability, exports, opens và service declaration |
+| Maven | `pom.xml` in each project | Downloads artifacts, sets up compile/test/runtime classpath, determines reactor order |
+| Gradle | `settings.gradle`, `build.gradle` | Declares subprojects, dependency configurations, task graph |
+| JPMS | `module-info.java` | Module name, readability, exports, opens, and service declarations |
 
-Nếu service build thiếu dependency tới api, compiler thường không tìm thấy module `com.acme.api`. Nếu service build có dependency nhưng descriptor thiếu `requires com.acme.api;`, compiler có thể thấy JAR mà vẫn từ chối sử dụng kiểu vì module service không đọc được api.
+If the service build lacks a dependency on api, the compiler typically cannot find the `com.acme.api` module. If the service build has the dependency but the descriptor lacks `requires com.acme.api;`, the compiler may see the JAR yet refuse to use the types because the service module cannot read api.
 
-## 2. Cấu trúc dự án thống nhất
+## 2. Unified project structure
 
-Ta dùng bố cục chuẩn Maven/Gradle:
+We use the standard Maven/Gradle layout:
 
 ~~~text
 jpms-multi-project/
@@ -81,7 +81,7 @@ jpms-multi-project/
         └── com/acme/app/Main.java
 ~~~
 
-Khi dùng Maven sẽ thêm `pom.xml` ở root và các project con. Khi dùng Gradle sẽ thêm `settings.gradle`, `build.gradle` ở root và cấu hình con. Hai biến thể build được trình bày riêng; **không cần áp dụng cả Maven và Gradle cho cùng một lần build**.
+When using Maven, `pom.xml` files will be added at the root and in the subprojects. When using Gradle, `settings.gradle`, root `build.gradle`, and subproject configurations will be added. The two build variants are presented separately; **you do not need to apply both Maven and Gradle for the same build**.
 
 ### 2.1. API module
 
@@ -102,7 +102,7 @@ public record Message(String text) {
 }
 ~~~
 
-Module này export package chứa kiểu dữ liệu mà các module khác được phép sử dụng. Ví dụ dùng Java 17 trở lên để dùng `record` mà không cần cấu hình preview feature.
+This module exports the package containing the data type that other modules are permitted to use. The example uses Java 17 or later to use `record` without requiring preview feature configuration.
 
 ### 2.2. Service module
 
@@ -124,14 +124,14 @@ import com.acme.api.Message;
 
 public final class GreetingService {
     public Message greet(String name) {
-        return new Message("Xin chào, " + name);
+        return new Message("Hello, " + name);
     }
 }
 ~~~
 
-Ở đây `GreetingService.greet()` trả về `Message`, một kiểu public thuộc module api. Vì kiểu từ api là một phần của public API của service, dùng `requires transitive com.acme.api;` là thiết kế hợp lý: consumer đọc service có thể đọc api theo quan hệ chuyển tiếp.
+Here `GreetingService.greet()` returns `Message`, a public type belonging to the api module. Because a type from api is part of service's public API, using `requires transitive com.acme.api;` is an appropriate design: consumers reading service can read api transitively.
 
-Nếu api chỉ là dependency implementation nội bộ, không xuất hiện trong public API, service thường chỉ cần:
+If api were only an internal implementation dependency not appearing in the public API, service would typically only need:
 
 ~~~java
 requires com.acme.api;
@@ -163,19 +163,19 @@ public class Main {
 }
 ~~~
 
-App khai báo trực tiếp `requires com.acme.service;`; module api được đọc gián tiếp nhờ `requires transitive` của service. Điều này không có nghĩa mọi dependency đều nên để transitive: chỉ dùng transitive khi module phía sau thuộc hợp đồng public API của module trung gian.
+App directly declares `requires com.acme.service;`; the api module is read indirectly thanks to service's `requires transitive`. This does not mean every dependency should be transitive: use transitive only when the downstream module belongs to the intermediate module's public API contract.
 
-Kết quả kỳ vọng khi chạy:
+Expected output when running:
 
 ~~~text
-Xin chào, JPMS
+Hello, JPMS
 ~~~
 
-## 3. Biên dịch thủ công để hiểu module path
+## 3. Manual compilation to understand the module path
 
-Trước khi dùng build tool, có thể biên dịch từng module với `javac`. Việc này làm rõ Maven/Gradle cần tự động hóa những gì.
+Before using a build tool, you can compile each module with `javac`. This clarifies what Maven/Gradle need to automate.
 
-Tạo ba thư mục đầu ra:
+Create three output directories:
 
 ~~~text
 out/
@@ -184,7 +184,7 @@ out/
 └── app/
 ~~~
 
-### 3.1. Biên dịch api trước
+### 3.1. Compile api first
 
 ~~~bash
 javac -d out/api \
@@ -192,7 +192,7 @@ javac -d out/api \
     api/src/main/java/com/acme/api/Message.java
 ~~~
 
-Kết quả có dạng:
+The output looks like:
 
 ~~~text
 out/api/
@@ -200,9 +200,9 @@ out/api/
 └── com/acme/api/Message.class
 ~~~
 
-`out/api` là root của compiled module: file `module-info.class` nằm ngay tại root đó.
+`out/api` is the root of the compiled module: `module-info.class` sits directly at that root.
 
-### 3.2. Biên dịch service với module path chỉ tới api
+### 3.2. Compile service with the module path pointing to api
 
 ~~~bash
 javac --module-path out/api -d out/service \
@@ -210,15 +210,15 @@ javac --module-path out/api -d out/service \
     service/src/main/java/com/acme/service/GreetingService.java
 ~~~
 
-`javac` đọc descriptor của service, thấy `requires transitive com.acme.api;` và dùng module path để tìm compiled module api.
+`javac` reads service's descriptor, sees `requires transitive com.acme.api;`, and uses the module path to locate the compiled api module.
 
-Nếu bỏ `--module-path out/api`, compiler có thể báo:
+If `--module-path out/api` is omitted, the compiler may report:
 
 ~~~text
 module not found: com.acme.api
 ~~~
 
-### 3.3. Biên dịch app với các module cần thiết
+### 3.3. Compile app with the required modules
 
 Linux/macOS:
 
@@ -228,15 +228,15 @@ javac --module-path "out/api:out/service" -d out/app \
     app/src/main/java/com/acme/app/Main.java
 ~~~
 
-Trên Windows, module path dùng dấu chấm phẩy:
+On Windows, the module path uses a semicolon:
 
 ~~~powershell
 javac --module-path "out/api;out/service" -d out/app app/src/main/java/module-info.java app/src/main/java/com/acme/app/Main.java
 ~~~
 
-App cần có cả service lẫn api trên module path vì app sử dụng kiểu `Message` từ api trong mã nguồn. `requires transitive` tạo readability, nhưng **compiler vẫn cần tìm được module thật** qua module path hoặc nguồn module tương ứng.
+App needs both service and api on the module path because app uses the `Message` type from api in its source code. `requires transitive` establishes readability, but **the compiler still needs to locate the actual module** via the module path or corresponding module source.
 
-### 3.4. Chạy ứng dụng
+### 3.4. Run the application
 
 Linux/macOS:
 
@@ -251,29 +251,29 @@ Windows:
 java --module-path "out/api;out/service;out/app" -m com.acme.app/com.acme.app.Main
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
-Xin chào, JPMS
+Hello, JPMS
 ~~~
 
-Thứ tự build:
+Build order:
 
 ~~~text
 compile(api) -> compile(service) -> compile(app) -> run(app)
 ~~~
 
-Đây chính là thứ tự mà build tool cần tổ chức dựa trên dependency graph của project.
+This is precisely the order that a build tool needs to organize based on the project's dependency graph.
 
-## 4. Module source path khác cách bố trí multi-project
+## 4. Module source path differs from multi-project layout
 
-Một số ví dụ JPMS dùng:
+Some JPMS examples use:
 
 ~~~bash
 javac --module-source-path src -d out -m com.acme.api,com.acme.service,com.acme.app
 ~~~
 
-Lệnh này phù hợp khi source được xếp theo module dưới một module source path như:
+This command is suitable when sources are organized by module under a single module source path such as:
 
 ~~~text
 src/
@@ -282,15 +282,15 @@ src/
 └── com.acme.app/
 ~~~
 
-Nhưng dự án Maven/Gradle thường bố trí source của mỗi project ở `api/src/main/java`, `service/src/main/java`, `app/src/main/java`. Khi đó, **không được máy móc lấy `--module-source-path src` từ ví dụ trước**, vì layout không tương ứng.
+However, Maven/Gradle projects typically place each project's sources at `api/src/main/java`, `service/src/main/java`, `app/src/main/java`. In that case, **do not mechanically copy `--module-source-path src` from the earlier example**, because the layout does not match.
 
-Build tool thường biên dịch từng project từ source set của chính nó, kết hợp compiled artifact của các dependency trên module path. Đây là cách phù hợp với multi-project build có vòng đời và output riêng cho từng project.
+Build tools usually compile each project from its own source set, combining compiled artifacts of dependencies on the module path. This approach fits multi-project builds that have separate lifecycles and outputs per project.
 
 ## 5. Maven multi-module reactor
 
-Maven dùng root aggregator POM để liệt kê các Maven module cần build. Trong ví dụ này, ta đặt một Maven project cho mỗi JPMS module.
+Maven uses a root aggregator POM to list the Maven modules to build. In this example, we set up one Maven project per JPMS module.
 
-Cấu trúc:
+Structure:
 
 ~~~text
 jpms-multi-project/
@@ -342,9 +342,9 @@ jpms-multi-project/
 </project>
 ~~~
 
-`<modules>` cho Maven biết có ba project con trong reactor. Maven sẽ sử dụng dependency quan hệ giữa các project để tính thứ tự build cần thiết; không nên dựa vào thứ tự dòng `<module>` để thay thế khai báo dependency.
+`<modules>` informs Maven that there are three subprojects in the reactor. Maven uses dependency relationships between projects to compute the required build order; you should not rely on the ordering of `<module>` lines as a substitute for dependency declarations.
 
-Thuộc tính `maven.compiler.release=17` giúp biên dịch thống nhất theo Java 17. Trong ví dụ này, Maven Compiler Plugin 3.13.0 được dùng để minh họa cấu hình; không có ý nghĩa bắt buộc mọi hệ thống phải sử dụng đúng phiên bản đó.
+The `maven.compiler.release=17` property provides consistent compilation targeting Java 17. In this example, Maven Compiler Plugin 3.13.0 is used to illustrate configuration; it does not mean every system must use that exact version.
 
 ### 5.2. api/pom.xml
 
@@ -366,7 +366,7 @@ Thuộc tính `maven.compiler.release=17` giúp biên dịch thống nhất theo
 </project>
 ~~~
 
-Artifact có tên `api`, nhưng JPMS module được đặt tên trong descriptor là `com.acme.api`. Maven artifactId và JPMS module name không nhất thiết trùng nhau.
+The artifact is named `api`, whereas the JPMS module is named `com.acme.api` in the descriptor. Maven artifactId and JPMS module name do not have to match.
 
 ### 5.3. service/pom.xml
 
@@ -395,13 +395,13 @@ Artifact có tên `api`, nhưng JPMS module được đặt tên trong descripto
 </project>
 ~~~
 
-Dependency Maven cho phép reactor biết service phải được build sau api và cấp artifact api cho quá trình biên dịch service. Descriptor service **vẫn phải** có:
+The Maven dependency tells the reactor that service must be built after api and provides the api artifact for compiling service. The service descriptor **must still** contain:
 
 ~~~java
 requires transitive com.acme.api;
 ~~~
 
-Một dòng dependency Maven và một chỉ thị JPMS giải quyết hai nhiệm vụ khác nhau.
+A Maven dependency entry and a JPMS directive solve two different tasks.
 
 ### 5.4. app/pom.xml
 
@@ -430,41 +430,41 @@ Một dòng dependency Maven và một chỉ thị JPMS giải quyết hai nhi�
 </project>
 ~~~
 
-App chỉ khai báo dependency Maven trực tiếp tới service. Vì dependency api của service có scope compile mặc định, Maven dependency transitivity thông thường sẽ mang artifact api đến compile graph của app. Điều này giúp compiler tìm module api, trong khi `requires transitive` của JPMS cho phép module app đọc api qua service.
+App declares a direct Maven dependency only on service. Because service's api dependency has the default compile scope, standard Maven dependency transitivity brings the api artifact into app's compile graph. This helps the compiler find the api module, while JPMS's `requires transitive` lets the app module read api through service.
 
-Trong các hệ thống yêu cầu kiểm soát dependency trực tiếp hoặc có cấu hình scope khác, có thể cần khai báo dependency rõ ràng tới api ở app để bảo đảm artifact có mặt. Không thay đổi descriptor một cách mù quáng: xem xét public API và dependency graph thực tế.
+In systems requiring strict direct dependency control or using different scope configurations, declaring an explicit dependency on api in app may be necessary to ensure the artifact is present. Do not change descriptors blindly: examine the public API and the actual dependency graph.
 
-### 5.5. Build bằng Maven reactor
+### 5.5. Building with the Maven reactor
 
-Chạy tại thư mục root:
+Run from the root directory:
 
 ~~~bash
 mvn clean package
 ~~~
 
-Maven xây dựng các Maven module theo thứ tự dependency phù hợp. Đối với ví dụ, thứ tự logic là:
+Maven builds the Maven modules in the appropriate dependency order. For the example, the logical order is:
 
 ~~~text
 api -> service -> app
 ~~~
 
-Chỉ build app và các project mà nó phụ thuộc:
+Build only app and the projects it depends on:
 
 ~~~bash
 mvn -pl app -am clean package
 ~~~
 
-Trong đó:
+Where:
 
-- `-pl app` chọn project app trong reactor.
-- `-am` (*also make*) bổ sung các project mà app phụ thuộc để Maven build cùng.
-- `clean package` xóa output cũ và tạo các JAR.
+- `-pl app` selects the app project in the reactor.
+- `-am` (*also make*) includes projects that app depends on so Maven builds them together.
+- `clean package` deletes old outputs and builds the JARs.
 
-Nếu chỉ chạy `mvn -pl app package` khi dependency của app chưa được cài vào local repository, build có thể thất bại vì artifact chưa có. `-am` là cách rõ ràng để Maven kéo các project upstream vào lượt reactor.
+If you run only `mvn -pl app package` when app's dependencies have not yet been installed in the local repository, the build can fail because the artifacts are unavailable. `-am` is the explicit way to have Maven pull upstream projects into the reactor run.
 
-### 5.6. Kiểm tra JAR và chạy Java module
+### 5.6. Inspecting JARs and running the Java module
 
-Sau khi package, các JAR có dạng:
+After packaging, the JARs look like:
 
 ~~~text
 api/target/api-1.0.0.jar
@@ -472,7 +472,7 @@ service/target/service-1.0.0.jar
 app/target/app-1.0.0.jar
 ~~~
 
-Xem module descriptor:
+View the module descriptors:
 
 ~~~bash
 jar --describe-module --file api/target/api-1.0.0.jar
@@ -480,32 +480,32 @@ jar --describe-module --file service/target/service-1.0.0.jar
 jar --describe-module --file app/target/app-1.0.0.jar
 ~~~
 
-Trên Linux/macOS:
+On Linux/macOS:
 
 ~~~bash
 java --module-path "api/target/api-1.0.0.jar:service/target/service-1.0.0.jar:app/target/app-1.0.0.jar" \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Trên Windows PowerShell:
+On Windows PowerShell:
 
 ~~~powershell
 java --module-path "api/target/api-1.0.0.jar;service/target/service-1.0.0.jar;app/target/app-1.0.0.jar" -m com.acme.app/com.acme.app.Main
 ~~~
 
-Kết quả mong đợi:
+Expected output:
 
 ~~~text
-Xin chào, JPMS
+Hello, JPMS
 ~~~
 
-Các JAR phải có `module-info.class` đúng ở root. Chỉ việc Maven đóng gói thành `jar` chưa đủ để khẳng định nó là explicit named module.
+The JARs must have `module-info.class` directly at the root. Merely having Maven package a `jar` is not enough to confirm it is an explicit named module.
 
 ## 6. Gradle multi-project build
 
-Gradle tổ chức project con thông qua `settings.gradle`. Mỗi project có dependency configuration riêng; Gradle sẽ chạy task cần thiết theo project dependency.
+Gradle organizes subprojects via `settings.gradle`. Each project has its own dependency configurations; Gradle executes the necessary tasks according to project dependencies.
 
-Cấu trúc:
+Structure:
 
 ~~~text
 jpms-multi-project/
@@ -530,7 +530,7 @@ rootProject.name = 'jpms-multi-project'
 include 'api', 'service', 'app'
 ~~~
 
-Khai báo này cho Gradle biết có ba project. Nó không tự tạo quan hệ dependency giữa chúng.
+This declaration tells Gradle there are three projects. It does not automatically create dependency relationships between them.
 
 ### 6.2. Root build.gradle
 
@@ -549,23 +549,23 @@ subprojects {
 }
 ~~~
 
-`modularity.inferModulePath = true` yêu cầu Java plugin suy luận module path cho compilation dựa trên các dependency có nhận diện module phù hợp. Thuộc tính này giúp build tool đặt compiled module/JAR vào đường dẫn thích hợp thay vì chỉ classpath.
+`modularity.inferModulePath = true` instructs the Java plugin to infer the module path for compilation based on dependencies with appropriate module identification. This property helps the build tool place compiled modules/JARs onto the proper path instead of only the classpath.
 
-Khi một project có `module-info.java` nhưng thư viện trong dependency chưa có tên module ổn định, cần kiểm tra cách dependency được phân loại. Không phải mọi JAR nằm trong `dependencies` đều được resolver sử dụng theo cùng cách ở mọi phiên bản/configuration Gradle.
+When a project has `module-info.java` while a library dependency lacks a stable module name, you need to check how the dependency is classified. Not every JAR listed in `dependencies` is handled identically by the resolver across all Gradle versions/configurations.
 
 ### 6.3. api/build.gradle
 
-Với cấu hình root ở trên, `api/build.gradle` có thể để trống:
+With the root configuration above, `api/build.gradle` can remain empty:
 
 ~~~groovy
-// api chưa có project dependency.
+// api has no project dependencies yet.
 ~~~
 
-Project api vẫn dùng Java plugin đã áp dụng từ root, tạo task `compileJava` và `jar` cho source set mặc định.
+The api project still uses the Java plugin applied from root, creating `compileJava` and `jar` tasks for the default source set.
 
 ### 6.4. service/build.gradle
 
-Vì public API của service trả về `Message` từ api, dùng Java Library plugin và khai báo dependency dạng `api`:
+Because service's public API returns `Message` from api, apply the Java Library plugin and declare the dependency as `api`:
 
 ~~~groovy
 apply plugin: 'java-library'
@@ -575,14 +575,14 @@ dependencies {
 }
 ~~~
 
-Tại đây có hai khái niệm cần phân biệt:
+Here, two concepts must be distinguished:
 
-- Gradle `api project(':api')`: dependency của service được công bố cho consumer compilation graph.
-- JPMS `requires transitive com.acme.api;`: module nào đọc service cũng đọc module api.
+- Gradle `api project(':api')`: service's dependency is exposed to the consumer compilation graph.
+- JPMS `requires transitive com.acme.api;`: any module reading service also reads the api module.
 
-Chúng có liên quan nhưng không tương đương. Một cấu hình Gradle `api` không tự sinh dòng `requires transitive` trong `module-info.java`, và `requires transitive` không tự thêm project dependency vào Gradle.
+They are related but not equivalent. A Gradle `api` configuration does not automatically generate `requires transitive` in `module-info.java`, and `requires transitive` does not automatically add a project dependency in Gradle.
 
-Nếu kiểu api chỉ dùng nội bộ trong service, có thể chuyển dependency Gradle sang:
+If the api type were used only internally within service, you could switch the Gradle dependency to:
 
 ~~~groovy
 dependencies {
@@ -590,11 +590,11 @@ dependencies {
 }
 ~~~
 
-và đổi descriptor service thành `requires com.acme.api;`. Việc chọn `api` hay `implementation` dựa trên hợp đồng public API và cách Gradle phân chia compile/runtime dependency.
+and change the service descriptor to `requires com.acme.api;`. Choosing between `api` and `implementation` depends on the public API contract and how Gradle separates compile and runtime dependencies.
 
 ### 6.5. app/build.gradle
 
-Ứng dụng cần Application plugin để cung cấp task `run`:
+The application needs the Application plugin to provide the `run` task:
 
 ~~~groovy
 apply plugin: 'application'
@@ -609,63 +609,63 @@ application {
 }
 ~~~
 
-`mainModule` là tên JPMS module, còn `mainClass` là tên fully qualified Java class. Chúng không nhất thiết bằng Gradle project name.
+`mainModule` is the JPMS module name, while `mainClass` is the fully qualified Java class name. They do not necessarily equal the Gradle project name.
 
-### 6.6. Build và chạy bằng Gradle
+### 6.6. Building and running with Gradle
 
-Từ root:
+From root:
 
 ~~~bash
 ./gradlew :app:build
 ~~~
 
-Trên Windows:
+On Windows:
 
 ~~~powershell
 .\gradlew.bat :app:build
 ~~~
 
-Gradle tính task dependency cần thiết để biên dịch api, service rồi app. Muốn chạy:
+Gradle computes the required task dependencies to compile api, then service, then app. To run:
 
 ~~~bash
 ./gradlew :app:run
 ~~~
 
-Trên Windows:
+On Windows:
 
 ~~~powershell
 .\gradlew.bat :app:run
 ~~~
 
-Kết quả mong đợi:
+Expected output:
 
 ~~~text
-Xin chào, JPMS
+Hello, JPMS
 ~~~
 
-Kiểm tra project graph:
+Inspect the project graph:
 
 ~~~bash
 ./gradlew projects
 ~~~
 
-Kiểm tra compile dependency của app:
+Inspect app's compile dependencies:
 
 ~~~bash
 ./gradlew :app:dependencies --configuration compileClasspath
 ~~~
 
-Kiểm tra runtime dependency:
+Inspect runtime dependencies:
 
 ~~~bash
 ./gradlew :app:dependencies --configuration runtimeClasspath
 ~~~
 
-Các dependency configuration cho biết artifact nào được Gradle đưa tới từng task. Khi debug module path, cần kết hợp chúng với descriptor và compiler arguments thực tế.
+Dependency configurations show which artifacts Gradle passes to each task. When debugging the module path, combine them with descriptors and the actual compiler arguments.
 
-## 7. Vì sao build dependency chưa đủ để compile module?
+## 7. Why is a build dependency not enough to compile a module?
 
-Một lỗi rất phổ biến trong multi-project build là nghĩ rằng:
+A very common mistake in multi-project builds is thinking that:
 
 ~~~groovy
 dependencies {
@@ -673,7 +673,7 @@ dependencies {
 }
 ~~~
 
-hoặc:
+or:
 
 ~~~xml
 <dependency>
@@ -683,51 +683,51 @@ hoặc:
 </dependency>
 ~~~
 
-đã tự tạo quan hệ đọc module.
+already creates a module readability relationship.
 
-Trong JPMS, nếu service import từ api thì `module-info.java` của service phải có `requires com.acme.api;` hoặc `requires transitive com.acme.api;` theo đúng contract.
+In JPMS, if service imports from api, then service's `module-info.java` must contain `requires com.acme.api;` or `requires transitive com.acme.api;` according to the contract.
 
-Mối quan hệ đầy đủ:
+The complete relationship:
 
 ~~~text
 Build configuration:
   service -> artifact api
-  (phân phối compiled JAR cho javac)
+  (supplies compiled JAR to javac)
 
 JPMS descriptor:
   com.acme.service -> com.acme.api
-  (khai báo readability trong module graph)
+  (declares readability in the module graph)
 ~~~
 
-Thiếu một trong hai lớp có thể gây lỗi biên dịch. Vì vậy, khi chuyển dự án classpath sang JPMS, cần cập nhật **cả build graph lẫn module graph**, không chỉ thêm `module-info.java`.
+Missing either layer can cause compilation errors. Therefore, when migrating a classpath project to JPMS, update **both the build graph and the module graph**, rather than merely adding `module-info.java`.
 
-## 8. Ba kiểu lỗi compile phổ biến
+## 8. Three common compilation error patterns
 
-### 8.1. Không tìm thấy module
+### 8.1. Module not found
 
-Ví dụ:
+Example:
 
 ~~~text
 error: module not found: com.acme.api
 ~~~
 
-Có thể xảy ra khi:
+This can happen when:
 
-- Project service chưa khai báo dependency tới project api trong Maven/Gradle.
-- Artifact api chưa được build hoặc chưa xuất hiện trong compiler module path.
-- Tên module trong `requires` không khớp tên thật của artifact.
-- Compiler dùng nhầm source/output directory hoặc profile build.
+- The service project has not declared a dependency on the api project in Maven/Gradle.
+- The api artifact has not been built or is absent from the compiler module path.
+- The module name in `requires` does not match the actual name of the artifact.
+- The compiler is using the wrong source/output directory or build profile.
 
-Cách xử lý:
+How to fix:
 
-1. Xác nhận file `api/src/main/java/module-info.java` có `module com.acme.api`.
-2. Xác nhận project service khai báo dependency build tới api.
-3. Kiểm tra module path mà `javac` thực sự nhận.
-4. Build reactor/project dependencies cùng lượt thay vì compile project con đơn lẻ khi upstream chưa sẵn sàng.
+1. Confirm `api/src/main/java/module-info.java` defines `module com.acme.api`.
+2. Confirm the service project declares a build dependency on api.
+3. Check the module path that `javac` actually receives.
+4. Build reactor/project dependencies together rather than compiling a lone subproject when upstream artifacts are not ready.
 
-### 8.2. Package không nhìn thấy do thiếu requires
+### 8.2. Package not visible due to missing requires
 
-Một thông báo có thể chứa:
+A message may say:
 
 ~~~text
 package com.acme.api is not visible
@@ -735,11 +735,11 @@ package com.acme.api is not visible
  but module com.acme.service does not read it)
 ~~~
 
-Lúc này compiler đã biết module chứa package nhưng module sử dụng không có readability. Sửa `requires` trong descriptor của module **sử dụng**.
+Here the compiler already sees the module containing the package, but the consuming module lacks readability. Fix `requires` in the **consuming** module's descriptor.
 
-### 8.3. Package không export
+### 8.3. Package not exported
 
-Ví dụ:
+Example:
 
 ~~~text
 package com.acme.api is not visible
@@ -747,45 +747,45 @@ package com.acme.api is not visible
  which does not export it)
 ~~~
 
-Sửa `exports com.acme.api;` trong descriptor của module **cung cấp**, nếu package đó thật sự được công bố cho consumer.
+Add `exports com.acme.api;` in the **providing** module's descriptor, if that package is genuinely meant to be exposed to consumers.
 
-Không dùng `--add-exports` như giải pháp mặc định cho một package nội bộ. Nếu ứng dụng đang import implementation không thuộc public API, cần xem lại thiết kế.
+Do not use `--add-exports` as the default solution for an internal package. If the application is importing an implementation class outside the public API, review the design.
 
-## 9. requires transitive và API dependency trong Maven/Gradle
+## 9. requires transitive and API dependencies in Maven/Gradle
 
-Giả sử service có public method:
+Suppose service has a public method:
 
 ~~~java
 public Message greet(String name)
 ~~~
 
-Trong đó `Message` đến từ module api. App dùng kiểu `Message` ở compile time.
+Where `Message` comes from the api module. App uses the `Message` type at compile time.
 
-Để bảo đảm toàn bộ pipeline:
+To ensure the entire pipeline works:
 
-| Lớp | Service khai báo | Ý nghĩa |
+| Layer | Service declares | Meaning |
 |---|---|---|
-| JPMS | `requires transitive com.acme.api;` | App đọc service được truyền readability tới api |
-| Maven | Dependency tới artifact `api` | Maven reactor và compiler có module api |
-| Gradle | `api project(':api')` | Public API dependency của service được truyền cho compile graph của consumer |
+| JPMS | `requires transitive com.acme.api;` | App reading service inherits readability to api |
+| Maven | Dependency on artifact `api` | Maven reactor and compiler have the api module |
+| Gradle | `api project(':api')` | Service's public API dependency is exposed to the consumer's compile graph |
 
-Không phải lúc nào cũng cần cấu hình ba dòng trong mọi dự án. Tùy build tool và thiết kế, nhưng cả **readability JPMS** và **khả năng compiler tìm artifact** phải được đáp ứng.
+Not every project needs all three lines configured identically. Depending on the build tool and design, both **JPMS readability** and **the compiler's ability to locate the artifact** must be satisfied.
 
-### 9.1. Nếu đổi requires transitive thành requires
+### 9.1. If requires transitive is changed to requires
 
-Khi service thay:
+When service changes:
 
 ~~~java
 requires transitive com.acme.api;
 ~~~
 
-thành:
+to:
 
 ~~~java
 requires com.acme.api;
 ~~~
 
-app chỉ `requires com.acme.service;` sẽ không tự đọc module api qua service nữa. Nếu app vẫn trực tiếp dùng `Message`, hãy khai báo dependency trực tiếp tại app:
+an app that only declares `requires com.acme.service;` will no longer automatically read the api module through service. If app still directly uses `Message`, declare the direct dependency in app:
 
 ~~~java
 module com.acme.app {
@@ -794,13 +794,13 @@ module com.acme.app {
 }
 ~~~
 
-Build graph cũng cần bảo đảm artifact api có mặt cho compilation của app. Không nên giả định một dependency transitive ở build tool sẽ thay thế quan hệ đọc JPMS.
+The build graph must also ensure the api artifact is present for app's compilation. Do not assume a transitive dependency in the build tool replaces a JPMS readability relationship.
 
 ### 9.2. requires static
 
-`requires static` dùng khi một module dependency cần ở compile time nhưng được phép không hiện diện ở runtime theo thiết kế. Nó không thay thế dependency configuration của Maven/Gradle và không tự mang class/JAR vào compiler module path.
+`requires static` is used when a module dependency is required at compile time but is allowed to be absent at runtime by design. It does not replace Maven/Gradle dependency configuration and does not automatically put classes/JARs onto the compiler module path.
 
-Với annotation API chỉ phục vụ compile:
+For an annotation API used only at compile time:
 
 ~~~java
 module com.acme.service {
@@ -808,47 +808,47 @@ module com.acme.service {
 }
 ~~~
 
-Build tool vẫn cần cung cấp annotation artifact khi biên dịch. Annotation processor còn có cấu hình processor path/plugin riêng, không thể suy ra chỉ từ dòng `requires static`.
+The build tool still needs to provide the annotation artifact during compilation. Annotation processors also have their own processor path/plugin configuration, which cannot be inferred solely from a `requires static` line.
 
-## 10. Compilation bằng source module so với compiled module JAR
+## 10. Compiling with source modules vs. compiled module JARs
 
-Mỗi project con có thể phụ thuộc một trong hai nguồn:
+Each subproject can depend on one of two sources:
 
-- Compiled output của project dependency (class directory có `module-info.class`).
-- Modular JAR đã được package.
+- Compiled output of a project dependency (class directory containing `module-info.class`).
+- A packaged modular JAR.
 
-Ở giai đoạn phát triển, build tool thường tái sử dụng compiled classes giữa các project để tránh package lại JAR sau mỗi thay đổi. Ở giai đoạn phát hành, JAR là artifact chuẩn được dùng trong module path.
+During development, build tools often reuse compiled classes across projects to avoid repackaging JARs after every change. At release time, the JAR is the standard artifact used on the module path.
 
-Điểm cốt lõi: compiler phải thấy module descriptor và class tương ứng qua module path, bất kể module đến từ directory hay JAR.
+The core point: the compiler must see the module descriptor and corresponding classes via the module path, regardless of whether the module comes from a directory or a JAR.
 
-Để xác định một JAR có descriptor:
+To verify a JAR has a descriptor:
 
 ~~~bash
 jar --describe-module --file api/target/api-1.0.0.jar
 ~~~
 
-Để xem file class bên trong:
+To list class files inside:
 
 ~~~bash
 jar tf api/target/api-1.0.0.jar
 ~~~
 
-Kết quả cần có:
+The output should contain:
 
 ~~~text
 module-info.class
 com/acme/api/Message.class
 ~~~
 
-Tên Maven artifact không phải tên JPMS module. Luôn tin vào descriptor thật hơn là suy đoán từ filename.
+A Maven artifact name is not a JPMS module name. Always trust the actual descriptor rather than guessing from the filename.
 
-## 11. Khác biệt giữa compile classpath và module path
+## 11. Differences between compile classpath and module path
 
-Trong dự án Java truyền thống, dependency thường nằm trên classpath. Với explicit named module, compiler cần nhận diện named module để kiểm tra `requires` và `exports`.
+In traditional Java projects, dependencies typically sit on the classpath. With explicit named modules, the compiler needs to recognize named modules to verify `requires` and `exports`.
 
-Một số nhầm lẫn:
+Some common pitfalls:
 
-**JAR ở classpath nhưng descriptor requires tên module**
+**JAR on the classpath while the descriptor requires the module name**
 
 ~~~text
 module com.acme.service {
@@ -856,25 +856,25 @@ module com.acme.service {
 }
 ~~~
 
-Nếu artifact api chỉ được cung cấp trên classpath, compiler không thể tìm nó dưới tên named module như kỳ vọng. Cần bảo đảm build tool đặt artifact đúng trên module path.
+If the api artifact is only supplied on the classpath, the compiler cannot find it under the expected named module name. Ensure the build tool places the artifact properly on the module path.
 
-**Thư viện chưa có module-info.class**
+**Libraries lacking module-info.class**
 
-JAR đặt trên module path có thể là automatic module. Tên module có thể đến từ `Automatic-Module-Name` hoặc filename. Dùng:
+A JAR placed on the module path can act as an automatic module. The module name may come from `Automatic-Module-Name` or the filename. Use:
 
 ~~~bash
 jar --describe-module --file libs/legacy.jar
 ~~~
 
-để xác định tên mà `requires` phải sử dụng.
+to determine the exact name that `requires` must use.
 
-**Giữ cùng thư viện ở cả classpath và module path**
+**Keeping the same library on both the classpath and module path**
 
-Điều này có thể gây nhầm version, class identity hoặc diagnostic khó hiểu. Không nên dùng cùng một artifact hai lần trong một lượt compile/run trừ khi có lý do kỹ thuật được kiểm soát rõ ràng.
+This can cause version confusion, class identity issues, or confusing diagnostics. Do not include the same artifact twice in a single compile/run invocation unless there is a clearly controlled technical reason.
 
-## 12. Lỗi split package trong multi-project build
+## 12. Split package errors in a multi-project build
 
-Hai project con có thể vô tình chứa class thuộc cùng một package:
+Two subprojects can inadvertently contain classes belonging to the same package:
 
 ~~~text
 api/src/main/java/com/acme/shared/Model.java
@@ -882,93 +882,93 @@ api/src/main/java/com/acme/shared/Model.java
 service/src/main/java/com/acme/shared/Helper.java
 ~~~
 
-Nếu api và service trở thành hai named module khác nhau, cùng chứa `com.acme.shared`, đó là split package.
+If api and service become two different named modules both containing `com.acme.shared`, that is a split package.
 
-Hậu quả phụ thuộc cách module được resolve và compiler/linker nhìn thấy package. Một lỗi điển hình có thể là:
+The consequence depends on how modules are resolved and how the compiler/linker views the package. A typical error may look like:
 
 ~~~text
 module com.acme.app reads package com.acme.shared
 from both com.acme.api and com.acme.service
 ~~~
 
-Cách sửa bền vững là:
+A sustainable fix is to:
 
-- Di chuyển các class API chung vào một module sở hữu duy nhất.
-- Đổi package implementation của service sang namespace như `com.acme.service.internal`.
-- Cập nhật `exports`, `requires` và imports.
-- Clean build để loại bỏ bytecode package cũ.
+- Move shared API classes into a single owning module.
+- Rename service's implementation package to a namespace such as `com.acme.service.internal`.
+- Update `exports`, `requires`, and imports.
+- Perform a clean build to eliminate old package bytecode.
 
-Đừng thêm `--add-exports` để chữa split package: flag export thay đổi khả năng truy cập, không thay đổi module sở hữu package.
+Do not add `--add-exports` to work around a split package: export flags alter accessibility, not which module owns a package.
 
-## 13. Kiểm tra thứ tự compile và dependency resolution
+## 13. Checking compilation order and dependency resolution
 
-### 13.1. Với Maven
+### 13.1. With Maven
 
-Chạy toàn reactor:
+Run the full reactor:
 
 ~~~bash
 mvn clean verify
 ~~~
 
-Hoặc build app kèm dependency:
+Or build app along with its dependencies:
 
 ~~~bash
 mvn -pl app -am package
 ~~~
 
-Nếu lỗi chỉ xuất hiện khi chạy Maven trong thư mục app riêng, nguyên nhân có thể là artifact upstream chưa được install hoặc version trong repository không khớp reactor.
+If an error occurs only when running Maven inside the standalone app directory, the cause may be that upstream artifacts have not been installed or the version in the repository does not match the reactor.
 
-Kiểm tra Maven dependency tree:
+Inspect the Maven dependency tree:
 
 ~~~bash
 mvn -pl app dependency:tree
 ~~~
 
-### 13.2. Với Gradle
+### 13.2. With Gradle
 
 ~~~bash
 ./gradlew :app:build
 ~~~
 
-Xem task graph và log chi tiết hơn khi cần:
+View the task graph and more detailed logs when needed:
 
 ~~~bash
 ./gradlew :app:compileJava --info
 ~~~
 
-Xem dependency configuration:
+Inspect dependency configurations:
 
 ~~~bash
 ./gradlew :app:dependencies --configuration compileClasspath
 ~~~
 
-Nếu app compile không nhìn thấy `com.acme.api`, kiểm tra:
+If app compilation cannot see `com.acme.api`, check:
 
-- `service/build.gradle` có `api project(':api')` hay chỉ `implementation`?
-- `service/module-info.java` có `requires transitive com.acme.api;` không?
-- App cần phụ thuộc trực tiếp vào api hay không?
-- Compile task có đang đặt named modules đúng module path không?
+- Does `service/build.gradle` have `api project(':api')` or only `implementation`?
+- Does `service/module-info.java` have `requires transitive com.acme.api;`?
+- Does app need a direct dependency on api?
+- Is the compile task placing named modules properly on the module path?
 
-Đây là hai lớp cấu hình khác nhau, nên cần đối chiếu cả build tool lẫn JPMS descriptor.
+These are two different configuration layers, so cross-check both the build tool and the JPMS descriptors.
 
-## 14. Unit tests trong multi-project modular build
+## 14. Unit tests in a multi-project modular build
 
-Project có `module-info.java` không có nghĩa các test framework luôn tự chạy trên module path như ứng dụng production.
+Having `module-info.java` in a project does not mean test frameworks will automatically run on the module path like the production application.
 
-Các tình huống thường gặp:
+Common scenarios:
 
-- Test framework cần reflection để tìm/test class.
-- Unit test nằm ở `src/test/java` nhưng module chính đã strong-encapsulated.
-- Test framework hoặc plugin build có chiến lược `--patch-module`, module path, classpath khác nhau.
-- Test dùng mocking hoặc reflection vào thành viên private, có thể yêu cầu `opens`/`--add-opens` trong phạm vi test.
+- Test frameworks need reflection to discover/run test classes.
+- Unit tests reside in `src/test/java`, while the main module is strongly encapsulated.
+- Test frameworks or build plugins use different strategies for `--patch-module`, module path, and classpath.
+- Tests using mocking or reflection into private members may require `opens`/`--add-opens` within test scope.
 
-Cách kiểm tra:
+How to verify:
 
-1. Build main code thành công trước.
-2. Chạy unit test của từng project.
-3. Chạy integration test của project app với dependency thật.
-4. Kiểm tra test runner và compiler args thực tế khi xuất hiện lỗi accessibility.
-5. Tránh mở toàn bộ module production chỉ vì test framework yêu cầu reflection; ưu tiên cấu hình test plugin phù hợp.
+1. Build main code successfully first.
+2. Run unit tests for each project.
+3. Run integration tests for the app project with real dependencies.
+4. Inspect the actual test runner and compiler arguments when accessibility errors appear.
+5. Avoid opening the entire production module merely because a test framework needs reflection; prefer configuring the test plugin appropriately.
 
 Maven:
 
@@ -982,19 +982,19 @@ Gradle:
 ./gradlew test
 ~~~
 
-Điểm đáng chú ý: thành công của `compileJava` không bảo đảm `test` chạy đúng, và test chạy đúng trên classpath chưa chứng minh runtime production trên module path cũng đúng.
+Worth noting: `compileJava` succeeding does not guarantee `test` runs properly, and tests passing on the classpath do not prove that production runtime on the module path is also right.
 
-## 15. Compile module cần service provider
+## 15. Compiling modules requiring service providers
 
-Nếu hệ thống tách SPI và implementation thành các project con khác nhau:
+If a system separates SPI and implementation into different subprojects:
 
 ~~~text
 spi -> provider -> app
 ~~~
 
-Có thể có descriptor:
+Descriptors might look like:
 
-Module SPI:
+SPI module:
 
 ~~~java
 module com.acme.spi {
@@ -1002,7 +1002,7 @@ module com.acme.spi {
 }
 ~~~
 
-Module provider:
+Provider module:
 
 ~~~java
 module com.acme.provider {
@@ -1013,7 +1013,7 @@ module com.acme.provider {
 }
 ~~~
 
-Module app:
+App module:
 
 ~~~java
 module com.acme.app {
@@ -1022,13 +1022,13 @@ module com.acme.app {
 }
 ~~~
 
-Trong build tool, project provider phải được đóng gói và cung cấp trong runtime configuration/module path phù hợp. Chỉ khai báo `provides` trong descriptor mà không phân phối module provider hoặc không đưa nó vào configuration thích hợp thì `ServiceLoader` có thể không tìm thấy provider lúc chạy.
+In the build tool, the provider project must be packaged and supplied in the appropriate runtime configuration/module path. Merely declaring `provides` in the descriptor without distributing the provider module or adding it to the right configuration can prevent `ServiceLoader` from finding the provider at runtime.
 
-Đây là ví dụ vì sao compile graph và runtime graph có thể khác nhau: app có thể biên dịch chỉ với SPI, còn provider phải xuất hiện ở runtime.
+This illustrates why the compile graph and runtime graph can differ: app can compile with only the SPI, while the provider must appear at runtime.
 
-## 16. Phối hợp với CI/CD
+## 16. Integrating with CI/CD
 
-Một pipeline phổ biến có thể gồm:
+A common pipeline might consist of:
 
 ~~~text
 Checkout source
@@ -1058,16 +1058,16 @@ Run module-resolution smoke test
 Publish artifacts
 ~~~
 
-Cần đảm bảo:
+Ensure that:
 
-- CI dùng đúng JDK/toolchain, ví dụ Java 17 nếu source dùng record.
-- Build tool dùng dependency lock hoặc version constraints nhất quán.
-- Artifact module descriptor không bị loại khỏi JAR khi đóng gói.
-- Lệnh chạy production dùng module path chứa đủ các required modules.
-- Không vô tình chạy app bằng classpath trong CI trong khi production chạy bằng module path.
-- Module path được dựng đúng với hệ điều hành và các profile build tương ứng.
+- CI uses the right JDK/toolchain, for example Java 17 if sources use records.
+- The build tool uses dependency locking or consistent version constraints.
+- Artifact module descriptors are not stripped from JARs during packaging.
+- Production launch commands use a module path containing all required modules.
+- CI does not accidentally run the app on the classpath while production runs on the module path.
+- The module path is constructed appropriately for the operating system and build profiles.
 
-Một smoke test tối thiểu sau package:
+A minimal post-packaging smoke test:
 
 ~~~bash
 java --module-path "api/target/api-1.0.0.jar:service/target/service-1.0.0.jar:app/target/app-1.0.0.jar" \
@@ -1075,92 +1075,92 @@ java --module-path "api/target/api-1.0.0.jar:service/target/service-1.0.0.jar:ap
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Trên Windows đổi dấu `:` thành `;`. Dùng `--show-module-resolution` giúp nhìn rõ module nào được resolve, còn output app xác nhận chức năng cơ bản hoạt động.
+On Windows, change `:` to `;`. Using `--show-module-resolution` clearly shows which modules were resolved, while the app output confirms basic functionality works.
 
-## 17. Những sai lầm cần tránh
+## 17. Mistakes to avoid
 
-**Chỉ cấu hình requires mà bỏ dependency trong build tool.** Compiler không tự tải module JAR theo tên trong `module-info.java`.
+**Configuring only requires and omitting build tool dependencies.** The compiler does not automatically download module JARs from names in `module-info.java`.
 
-**Chỉ cấu hình dependency trong build tool mà bỏ requires.** Artifact tồn tại không đồng nghĩa module sử dụng được phép đọc nó.
+**Configuring only build tool dependencies and omitting requires.** An artifact existing does not mean the consuming module is allowed to read it.
 
-**Đồng nhất Gradle project name/Maven artifactId với JPMS module name.** Tên JPMS đến từ descriptor hoặc quy tắc automatic module.
+**Equating Gradle project name / Maven artifactId with JPMS module name.** JPMS names come from descriptors or automatic module rules.
 
-**Dùng requires transitive cho mọi dependency.** Transitive nên phản ánh phần API mà consumer cần đọc, không phải mở rộng graph thiếu kiểm soát.
+**Using requires transitive for every dependency.** Transitivity should reflect the part of the API consumers need to read, not expand the graph uncontrollably.
 
-**Đưa tất cả thư viện lên classpath để né lỗi compile.** Việc này bỏ qua mục tiêu kiểm soát module và có thể che những lỗi package/accessibility.
+**Putting all libraries on the classpath to bypass compile errors.** This defeats modular control and can hide package/accessibility issues.
 
-**Chuyển cả package implementation của nhiều project vào một namespace chung.** Có thể tạo split package khi các project trở thành named module.
+**Moving implementation packages of multiple projects into one shared namespace.** This can create split packages when those projects become named modules.
 
-**Giả định module path trên Windows và Linux có cùng dấu phân cách.** Dùng `;` trên Windows, `:` trên Linux/macOS.
+**Assuming the module path separator is the same on Windows and Linux.** Use `;` on Windows and `:` on Linux/macOS.
 
-**Bỏ qua clean build sau khi đổi package.** Bytecode cũ có thể vẫn tồn tại trong output và xuất hiện trong artifact.
+**Skipping a clean build after renaming packages.** Old bytecode can linger in outputs and leak into artifacts.
 
-**Chạy Maven một project con mà không đưa upstream dependencies vào reactor.** Dùng `-am` khi cần build các project phụ thuộc cùng lượt.
+**Running Maven on a subproject without bringing upstream dependencies into the reactor.** Use `-am` when dependent projects need to be built together.
 
-## 18. Quy trình thực hành đề xuất
+## 18. Recommended workflow
 
-Khi chuyển một multi-project build hiện có sang JPMS, hãy thực hiện theo trình tự:
+When migrating an existing multi-project build to JPMS, follow this sequence:
 
-1. Liệt kê tất cả Maven/Gradle project con và quan hệ dependency giữa chúng.
-2. Gán tên JPMS module ổn định cho từng project thực sự muốn modular hóa.
-3. Đặt `module-info.java` trong đúng source root của từng project.
-4. Chuyển project thấp tầng trước, ví dụ API/model không có nhiều dependency.
-5. Dựng `requires`/`exports` theo quan hệ dùng public API thật.
-6. Cập nhật Maven/Gradle project dependencies để compiler tìm đủ artifact.
-7. Xác nhận việc suy luận module path hoặc cấu hình module path rõ ràng.
-8. Biên dịch từ root với reactor/task graph, không chỉ build module ngẫu nhiên.
-9. Dùng `jar --describe-module` để xác nhận modular JAR.
-10. Chạy app trên module path và xem `--show-module-resolution`.
-11. Kiểm tra test framework, reflection, providers và CI.
-12. Chỉ chuyển thêm project/library khi các mốc trước đã chạy ổn định.
+1. List all Maven/Gradle subprojects and their dependency relationships.
+2. Assign stable JPMS module names to each project you genuinely want to modularize.
+3. Place `module-info.java` in the right source root of each project.
+4. Migrate lower-level projects first, such as API/model projects with few dependencies.
+5. Author `requires`/`exports` according to actual public API usage.
+6. Update Maven/Gradle project dependencies so the compiler finds all artifacts.
+7. Verify module-path inference or configure the module path explicitly.
+8. Compile from the root using the reactor/task graph rather than building random modules alone.
+9. Use `jar --describe-module` to confirm modular JARs.
+10. Run the app on the module path and inspect `--show-module-resolution`.
+11. Test frameworks, reflection, providers, and CI.
+12. Proceed to migrate additional projects/libraries only once earlier milestones are stable.
 
-## 19. Câu hỏi tự kiểm tra
+## 19. Self-check questions
 
-**Câu 1.** Maven reactor có ba module `api`, `service`, `app`. Có phải tên JPMS của chúng lần lượt là `api`, `service` và `app` không?
+**Question 1.** A Maven reactor has three modules `api`, `service`, `app`. Are their JPMS names necessarily `api`, `service`, and `app` respectively?
 
-**Trả lời:** Không nhất thiết. Maven artifactId/build module khác tên JPMS module. Trong ví dụ, tên JPMS là `com.acme.api`, `com.acme.service` và `com.acme.app`.
+**Answer:** Not necessarily. Maven artifactId/build module names differ from JPMS module names. In the example, the JPMS names are `com.acme.api`, `com.acme.service`, and `com.acme.app`.
 
-**Câu 2.** Service khai báo dependency Gradle `implementation project(':api')` nhưng `module-info.java` không có `requires com.acme.api;`. Compiler có tự hiểu quan hệ đọc không?
+**Question 2.** Service declares the Gradle dependency `implementation project(':api')`, but `module-info.java` lacks `requires com.acme.api;`. Does the compiler infer the readability relationship automatically?
 
-**Trả lời:** Không. Build dependency làm artifact có thể được tìm, còn JPMS cần quan hệ readability từ descriptor.
+**Answer:** No. The build dependency makes the artifact discoverable, whereas JPMS requires readability from the descriptor.
 
-**Câu 3.** Tại sao app trong ví dụ chỉ `requires com.acme.service;` mà vẫn dùng `Message` từ api?
+**Question 3.** Why can app in the example write only `requires com.acme.service;` and still use `Message` from api?
 
-**Trả lời:** Vì service khai báo `requires transitive com.acme.api;` và api export package chứa `Message`; build tool cũng phải cung cấp artifact api cho compiler.
+**Answer:** Because service declares `requires transitive com.acme.api;` and api exports the package containing `Message`; the build tool must also supply the api artifact to the compiler.
 
-**Câu 4.** Vì sao trong Gradle service dùng `api project(':api')` thay vì `implementation`?
+**Question 4.** Why does service in Gradle use `api project(':api')` instead of `implementation`?
 
-**Trả lời:** Vì public API của service dùng kiểu `Message` từ api. Gradle `api` giúp truyền dependency đến compile graph của consumer, độc lập với JPMS `requires transitive`.
+**Answer:** Because service's public API uses the `Message` type from api. Gradle `api` propagates the dependency to the consumer's compile graph, independently of JPMS `requires transitive`.
 
-**Câu 5.** App POM đã khai báo service nhưng Maven chạy trong thư mục app báo không tìm thấy artifact service. Nên làm gì?
+**Question 5.** The app POM already declares service, but running Maven inside the app directory reports it cannot find the service artifact. What should be done?
 
-**Trả lời:** Chạy reactor từ root với `mvn -pl app -am package` hoặc bảo đảm artifact upstream phù hợp đã được cài/phát hành. Kiểm tra cả artifact version và dependency scope.
+**Answer:** Run the reactor from root with `mvn -pl app -am package` or ensure the appropriate upstream artifact has been installed/published. Also verify artifact version and dependency scope.
 
-**Câu 6.** Project có `module-info.java` nhưng `javac` báo `module not found: com.acme.api`. Bước đầu nên kiểm tra gì?
+**Question 6.** A project has `module-info.java`, yet `javac` reports `module not found: com.acme.api`. What should be checked first?
 
-**Trả lời:** Kiểm tra module name thực tế, dependency build và compiler module path. Nếu api mới biên dịch ra directory/JAR, xác nhận output đó được cung cấp cho bước compile đang lỗi.
+**Answer:** Check the actual module name, build dependency, and compiler module path. If api was just compiled into a directory/JAR, confirm that output is supplied to the failing compile step.
 
-**Câu 7.** Trong multi-project, một project có thể chứa nhiều JPMS module không?
+**Question 7.** In a multi-project build, can a single project contain multiple JPMS modules?
 
-**Trả lời:** Có thể thiết kế build phức tạp hơn, nhưng cấu hình đơn giản, dễ bảo trì thường là một JPMS named module cho mỗi Java project con có descriptor và artifact riêng.
+**Answer:** More complex build designs are possible, but the simplest, most maintainable setup is typically one JPMS named module per Java subproject with its own descriptor and artifact.
 
-**Câu 8.** App chạy được trên classpath nhưng khi chuyển sang module path báo package không visible. Vì sao?
+**Question 8.** An app runs on the classpath, yet moving to the module path reports package is not visible. Why?
 
-**Trả lời:** JPMS thực thi quy tắc readability/exports; class public trong package chưa export hoặc module sử dụng chưa có requires tương ứng sẽ không tự truy cập được.
+**Answer:** JPMS enforces readability/exports rules; public classes in unexported packages, or modules without corresponding requires in the consuming module, cannot be accessed automatically.
 
-**Câu 9.** Một test framework không dùng được reflection vào package của module app. Có nên tự động thêm `open module` cho production không?
+**Question 9.** A test framework cannot use reflection into a package of the app module. Should you automatically switch to `open module` for production?
 
-**Trả lời:** Không nên mặc định. Trước hết kiểm tra cấu hình test runner, cần mở đúng package cho đúng framework/module, và tránh mở rộng quyền không cần thiết trong production.
+**Answer:** Do not do so by default. Check the test runner configuration first, open only the needed package to the right framework/module, and avoid widening permissions unnecessarily in production.
 
-**Câu 10.** Làm sao biết JAR sau `mvn package` thật sự là explicit module?
+**Question 10.** How can you tell whether a JAR after `mvn package` is truly an explicit module?
 
-**Trả lời:** Dùng `jar --describe-module --file path/to/app.jar` hoặc kiểm tra `module-info.class` ở root JAR. Không suy luận chỉ từ việc file có đuôi `.jar`.
+**Answer:** Run `jar --describe-module --file path/to/app.jar` or check for `module-info.class` at the JAR root. Do not infer solely from the `.jar` file extension.
 
-## Tổng kết
+## Summary
 
-Compile các Java module trong multi-project build đòi hỏi phối hợp **hai hệ dependency**:
+Compiling Java modules in a multi-project build requires coordinating **two dependency systems**:
 
-- Maven/Gradle quyết định artifact, compile classpath/module path và thứ tự build.
-- JPMS quyết định module readability, package exports và các ràng buộc khi biên dịch/chạy.
+- Maven/Gradle determine artifacts, compile classpath/module path, and build order.
+- JPMS determines module readability, package exports, and compile/runtime constraints.
 
-Một thiết kế ổn định khai báo đúng project dependency ở build tool, đúng `requires`/`requires transitive` trong descriptor, và đúng `exports` cho những package API thực sự được công bố. Sau khi build, cần kiểm tra modular JAR và chạy bằng `java --module-path ... -m ...` để bảo đảm cả quá trình compile lẫn runtime cùng dùng một module graph nhất quán.
+A stable design declares accurate project dependencies in the build tool, accurate `requires`/`requires transitive` in descriptors, and accurate `exports` for genuinely public API packages. After building, inspect the modular JARs and run via `java --module-path ... -m ...` to ensure both compile time and runtime operate on a consistent module graph.

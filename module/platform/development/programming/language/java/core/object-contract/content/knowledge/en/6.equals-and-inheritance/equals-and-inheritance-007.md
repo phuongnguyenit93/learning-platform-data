@@ -1,26 +1,26 @@
-# Dùng composition khi mở rộng giá trị qua kế thừa làm hợp đồng khó giữ
+# Using Composition When Extending Values via Inheritance Makes the Contract Hard to Keep
 
-## 1. Vấn đề: thêm “giá trị” vào subclass có thể phá hợp đồng equals
+## 1. The Problem: Adding “Value” to a Subclass Can Break the equals Contract
 
-Trong Java, kế thừa (`extends`) phù hợp khi một đối tượng con thực sự có thể thay thế đối tượng cha theo những cam kết của kiểu cha. Nhưng **kế thừa một lớp giá trị chỉ để bổ sung thành phần dùng cho so sánh bằng nhau** thường tạo ra mâu thuẫn.
+In Java, inheritance (`extends`) is appropriate when a child object can genuinely substitute for a parent object under the guarantees of the parent type. However, **inheriting a value class solely to add a component used in equality comparisons** often creates a contradiction.
 
-Xét `Point(x, y)` định nghĩa hai điểm bằng nhau nếu tọa độ giống nhau. Sau đó ta muốn `ColorPoint(x, y, color)` bổ sung màu và định nghĩa hai điểm có màu bằng nhau khi **cả tọa độ lẫn màu** giống nhau. Nếu `ColorPoint extends Point`, cách lớp cha nhìn equality và cách lớp con nhìn equality không còn cùng tiêu chí.
+Consider `Point(x, y)`, which defines two points as equal if their coordinates match. Next we want `ColorPoint(x, y, color)` to add a color and define two colored points as equal when **both coordinates and color** match. If `ColorPoint extends Point`, the way the parent views equality and the way the subclass views equality no longer share the same criteria.
 
-Hợp đồng `Object.equals(Object)` yêu cầu, với các đối tượng khác `null`:
+The `Object.equals(Object)` contract requires, for non-`null` objects:
 
-- **Phản xạ:** `x.equals(x)` là `true`.
-- **Đối xứng:** `x.equals(y)` và `y.equals(x)` có cùng kết quả.
-- **Bắc cầu:** nếu `x.equals(y)` và `y.equals(z)` đều `true`, thì `x.equals(z)` cũng phải `true`.
-- **Nhất quán:** kết quả ổn định khi trạng thái tham gia so sánh không đổi.
-- **So sánh với null:** `x.equals(null)` là `false`.
+- **Reflexive:** `x.equals(x)` is `true`.
+- **Symmetric:** `x.equals(y)` and `y.equals(x)` have the same result.
+- **Transitive:** if both `x.equals(y)` and `y.equals(z)` are `true`, then `x.equals(z)` must also be `true`.
+- **Consistent:** the result is stable when state participating in comparison does not change.
+- **Comparison with null:** `x.equals(null)` is `false`.
 
-Ngoài ra, hai đối tượng bằng nhau phải có cùng `hashCode()`. Việc cài đặt `equals(Object)` và `hashCode()` ở hai lớp phải tương thích, không chỉ đúng riêng rẽ ở từng lớp.
+In addition, two equal objects must have the same `hashCode()`. The implementations of `equals(Object)` and `hashCode()` across both classes must be compatible, not merely correct in each class separately.
 
-Điểm khó không nằm ở cách viết `instanceof` hay cú pháp Java, mà ở **hai định nghĩa giá trị khác nhau cùng xuất hiện trong một hệ phân cấp**: `Point` bỏ qua màu, còn `ColorPoint` muốn tính cả màu.
+The difficulty lies not in how to write `instanceof` or Java syntax, but in **two different value definitions coexisting within one hierarchy**: `Point` ignores color, whereas `ColorPoint` wants to include color.
 
-## 2. Bẫy đối xứng khi ghi đè equals trong lớp con
+## 2. The Symmetry Trap When Overriding equals in a Subclass
 
-Giả sử lớp cha cài:
+Suppose the parent class implements:
 
 ```java
 @Override
@@ -30,20 +30,20 @@ public boolean equals(Object obj) {
 }
 ```
 
-Đây là **đoạn trích minh họa**, giả sử `x`, `y` là các trường của `Point` và có `hashCode()` phù hợp. Vì dùng `instanceof Point`, lớp cha chấp nhận cả các subclass có cùng tọa độ.
+This is an **illustrative snippet**, assuming `x`, `y` are fields of `Point` with a matching `hashCode()`. Because it uses `instanceof Point`, the parent class also accepts subclasses with matching coordinates.
 
-Nếu subclass chỉ chấp nhận đối tượng `ColorPoint` rồi so thêm `color`, ta nhận được:
+If the subclass only accepts `ColorPoint` objects and additionally compares `color`, we get:
 
-- `point.equals(redPoint)` → `true`: lớp cha chỉ xét tọa độ.
-- `redPoint.equals(point)` → `false`: lớp con đòi đối tượng còn phải có màu.
+- `point.equals(redPoint)` → `true`: the parent checks only coordinates.
+- `redPoint.equals(point)` → `false`: the subclass requires the object to also have a color.
 
-Hai chiều khác nhau, nên **phá tính đối xứng**. Đổi `instanceof Point` thành `getClass() == obj.getClass()` ở lớp cha có thể thay đổi ngữ nghĩa để `Point` và `ColorPoint` không bằng nhau, nhưng không phải lúc nào cũng sửa được API lớp cha đã phát hành, và có thể đi ngược kỳ vọng mà người dùng đang dựa vào.
+The two directions differ, thus **breaking symmetry**. Changing `instanceof Point` to `getClass() == obj.getClass()` in the parent class can alter semantics so `Point` and `ColorPoint` are unequal, yet you cannot always modify an already-published parent API, and it may violate expectations users already rely on.
 
-## 3. Bẫy bắc cầu khi cố “vá” đối xứng
+## 3. The Transitivity Trap When Trying to “Patch” Symmetry
 
-Một cách vá hấp dẫn là: nếu `ColorPoint` được so với `Point` thường, hãy để `Point` quyết định; nếu so với `ColorPoint`, hãy xét cả màu. Cách này khiến mỗi cặp `Point`–`ColorPoint` có thể đối xứng, nhưng lại làm hỏng **tính bắc cầu**.
+A tempting patch is: if `ColorPoint` is compared with a plain `Point`, let `Point` decide; if compared with a `ColorPoint`, inspect color as well. This approach can make each `Point`–`ColorPoint` pair symmetric, yet it breaks **transitivity**.
 
-Tạo tệp đầy đủ `InheritanceTrapDemo.java`:
+Create the complete file `InheritanceTrapDemo.java`:
 
 ```java
 import java.util.Objects;
@@ -89,7 +89,7 @@ public class InheritanceTrapDemo {
                 return false;
             }
             if (!(obj instanceof ColorPoint other)) {
-                // Chấp nhận Point thường theo định nghĩa của lớp cha.
+                // Accepts plain Point according to the parent class's definition.
                 return obj.equals(this);
             }
             return super.equals(other) && color.equals(other.color);
@@ -97,7 +97,7 @@ public class InheritanceTrapDemo {
 
         @Override
         public int hashCode() {
-            // Phải khớp cả Point thường nếu equals cho rằng chúng bằng nhau.
+            // Must also match plain Point if equals considers them equal.
             return super.hashCode();
         }
     }
@@ -114,14 +114,14 @@ public class InheritanceTrapDemo {
 }
 ```
 
-Biên dịch và chạy trên JDK 17+:
+Compile and run on JDK 17+:
 
 ```bash
 javac InheritanceTrapDemo.java
 java InheritanceTrapDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 true
@@ -129,38 +129,38 @@ true
 false
 ```
 
-Ta có:
+We have:
 
 ```text
 red == plain   (true)
 plain == blue  (true)
-red == blue    (false)  <-- mâu thuẫn với tính bắc cầu
+red == blue    (false)  <-- contradicts transitivity
 ```
 
-Vì `Point` xem hai đối tượng cùng tọa độ là bằng nhau, nó trở thành cầu nối giữa hai `ColorPoint` khác màu. Hai `ColorPoint` kia lại không bằng nhau theo định nghĩa mới. Đây là mâu thuẫn logic của cách tổ chức giá trị, không đơn thuần là lỗi điều kiện `if`.
+Because `Point` treats two objects with the same coordinates as equal, it becomes a bridge between two differently colored `ColorPoint` objects. Those two `ColorPoint` objects are unequal under the new definition. This is a logical contradiction in how values are organized, not merely a buggy `if` condition.
 
-Trong ví dụ, `hashCode()` của `ColorPoint` cố tình dùng `super.hashCode()` để không tạo thêm vi phạm quy tắc “bằng nhau ⇒ cùng mã băm” cho các cặp có `equals` trả `true`. Điều đó **không cứu được tính bắc cầu**, cũng không có nghĩa đây là implementation nên dùng trong sản phẩm. Lưu ý đoạn gọi `obj.equals(this)` chỉ minh họa trường hợp `Point` đơn giản này; nếu có thêm subclass với quy tắc so sánh riêng, cách chuyển quyền qua lại còn có thể phát sinh vấn đề khác.
+In the example, `ColorPoint`'s `hashCode()` intentionally uses `super.hashCode()` so as not to create an additional violation of “equal ⇒ same hash code” for pairs where `equals` returns `true`. That **does not save transitivity**, nor does it mean this is an implementation to use in production. Note that calling `obj.equals(this)` only illustrates this simple `Point` case; if there are additional subclasses with their own comparison rules, delegating back and forth can also introduce other issues.
 
-## 4. Giải pháp: composition thay cho extends
+## 4. Solution: Composition Instead of `extends`
 
-**Composition (kết hợp đối tượng)** nghĩa là `ColorPoint` **chứa một `Point` làm thành phần** thay vì tự nhận mình là một subtype của `Point`.
+**Composition** means `ColorPoint` **contains a `Point` as a component** instead of claiming to be a subtype of `Point`.
 
 ```text
-Kế thừa:                 Composition:
+Inheritance:             Composition:
 
 ColorPoint               ColorPoint
     extends Point            has-a Point
-    + color                   + color
+    + color                  + color
 ```
 
-Khi đó có hai miền giá trị rõ ràng:
+Then there are two clear value domains:
 
-- `Point` so sánh tọa độ với các `Point` khác.
-- `ColorPoint` so sánh tọa độ **và màu** với các `ColorPoint` khác.
-- `Point` và `ColorPoint` không bị buộc phải coi nhau là bằng nhau chỉ vì có chung tọa độ.
-- Nếu một API chỉ cần tọa độ, `ColorPoint` có thể **cung cấp thành phần `Point`** qua `position()` hoặc một phương thức chuyển đổi rõ ràng.
+- `Point` compares coordinates with other `Point` objects.
+- `ColorPoint` compares coordinates **and color** with other `ColorPoint` objects.
+- `Point` and `ColorPoint` are not forced to treat each other as equal merely because they share coordinates.
+- If an API only needs coordinates, `ColorPoint` can **provide the `Point` component** via `position()` or an explicit conversion method.
 
-Tạo tệp đầy đủ `CompositionDemo.java`:
+Create the complete file `CompositionDemo.java`:
 
 ```java
 import java.util.HashSet;
@@ -247,14 +247,14 @@ public class CompositionDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac CompositionDemo.java
 java CompositionDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 false
@@ -265,34 +265,34 @@ true
 3
 ```
 
-**Giải thích:**
+**Explanation:**
 
-1. `plain.equals(red)` và `red.equals(plain)` cùng `false` bởi hai kiểu giá trị khác nhau; không xảy ra bất đối xứng.
-2. `red.equals(redCopy)` là `true`: hai vị trí bằng nhau và hai màu bằng nhau. `hashCode()` của cả hai được tính từ cùng bộ thành phần `point` + `color`.
-3. `red.equals(blue)` là `false` vì màu khác nhau. Không có một `Point` trung gian nào đồng thời bằng cả hai `ColorPoint`; loại bỏ bẫy bắc cầu đã nêu.
-4. `red.position().equals(plain)` là `true`: người gọi vẫn lấy được *giá trị tọa độ* khi chỉ cần so sánh vị trí, mà không lẫn nó với equality của toàn bộ điểm có màu.
-5. `HashSet` chứa đúng ba giá trị khác nhau: `plain`, `red`, `blue`; `redCopy` không tạo mục mới do bằng `red`.
+1. `plain.equals(red)` and `red.equals(plain)` are both `false` because they are two distinct value types; no asymmetry occurs.
+2. `red.equals(redCopy)` is `true`: the two positions match and the two colors match. Both `hashCode()` values are computed from the same component set `point` + `color`.
+3. `red.equals(blue)` is `false` because the colors differ. There is no intermediate `Point` simultaneously equaling both `ColorPoint` objects; eliminating the transitivity trap described above.
+4. `red.position().equals(plain)` is `true`: callers can still obtain the *coordinate value* when only position needs to be compared, without conflating it with equality of the whole colored point.
+5. `HashSet` contains exactly three distinct values: `plain`, `red`, `blue`; `redCopy` does not create a new entry because it equals `red`.
 
-Ở đây `Point` và `ColorPoint` đều `final`; dữ liệu gồm hai số nguyên và chuỗi `String` bất biến, nên mã băm không bị thay đổi sau khi đưa đối tượng vào tập hợp. Việc trả về trực tiếp `point` là an toàn **trong ví dụ vì `Point` bất biến**. Nếu thành phần bên trong có thể thay đổi, cần cân nhắc bản sao phòng vệ hoặc một giao diện chỉ đọc để bảo vệ bất biến và tính nhất quán của equality.
+Here both `Point` and `ColorPoint` are `final`; the data consists of two integers and an immutable `String`, so hash codes cannot change after inserting the objects into the set. Returning `point` directly is safe **in this example because `Point` is immutable**. If an internal component can be mutated, consider defensive copying or a read-only view to protect immutability and equality consistency.
 
-## 5. Vì sao composition giúp giữ hợp đồng tốt hơn?
+## 5. Why Does Composition Preserve the Contract Better?
 
-| Tiêu chí | Kế thừa lớp giá trị rồi thêm trường vào equality | Composition |
+| Criterion | Inheriting a Value Class and Adding Fields to Equality | Composition |
 | --- | --- | --- |
-| Quan hệ kiểu | `ColorPoint` cũng là một `Point` | `ColorPoint` có một `Point` |
-| Định nghĩa bình đẳng | Lớp cha và lớp con có nguy cơ xung đột | Hai loại giá trị xác định equality độc lập |
-| Đối xứng, bắc cầu | Dễ vi phạm nếu lớp cha cho phép subclass bằng nhau | Dễ chứng minh hơn với các kiểu `final` và thành phần ổn định |
-| `hashCode` | Phải giải quyết các đối tượng “bằng nhau” chéo lớp | Tính theo đúng thành phần của từng kiểu |
-| Thay thế ở API nhận `Point` | Có thể truyền `ColorPoint` trực tiếp | Cần lấy `position()` hoặc chuyển đổi tường minh |
-| Ý nghĩa thiết kế | Cam kết “is-a” / thay thế được | Diễn đạt quan hệ “has-a” và quyền sở hữu thành phần |
+| Type relationship | `ColorPoint` is also a `Point` | `ColorPoint` has a `Point` |
+| Equality definition | Parent and subclass risk conflicting | Two value types define equality independently |
+| Symmetry, transitivity | Easy to violate if the parent allows subclasses to be equal | Easier to prove with `final` types and stable components |
+| `hashCode` | Must resolve cross-class “equal” objects | Computed from each type's exact components |
+| Substitutability in APIs taking `Point` | Can pass `ColorPoint` directly | Must retrieve `position()` or convert explicitly |
+| Design meaning | Promises “is-a” / substitutability | Expresses “has-a” and component ownership |
 
-Composition có đánh đổi thực tế: `ColorPoint` không còn được truyền trực tiếp vào phương thức có tham số `Point`. Đây là thay đổi API có chủ ý. Nếu một API chỉ cần vị trí, ta có thể gọi `render(colorPoint.position())`; nếu API thực sự cần cả vị trí và màu, hãy dùng abstraction hoặc tham số phù hợp, thay vì giả vờ rằng hai kiểu có cùng identity.
+Composition has a practical trade-off: `ColorPoint` can no longer be passed directly to a method expecting a `Point` parameter. This is an intentional API change. If an API only needs position, you can call `render(colorPoint.position())`; if the API genuinely needs both position and color, use an appropriate abstraction or parameter instead of pretending the two types share the same identity.
 
-**Composition không tự động làm equality đúng.** Bạn vẫn phải cài `equals(Object)` và `hashCode()` cùng một định nghĩa, xử lý `null`, trạng thái có thể thay đổi và lớp con. Nó chỉ loại bỏ sự xung đột không cần thiết giữa equality của hai lớp trong quan hệ kế thừa.
+**Composition does not automatically make equality right.** You still must implement `equals(Object)` and `hashCode()` with one consistent definition, handle `null`, mutable state, and subclasses. It simply eliminates the unnecessary conflict between the equality of two classes in an inheritance relationship.
 
-## 6. Java record là một lựa chọn ngắn gọn cho giá trị bất biến
+## 6. Java `record` as a Concise Option for Immutable Values
 
-Khi mục tiêu là mô hình hóa dữ liệu bất biến theo các thành phần, Java 17 có `record`. Sau đây là **đoạn khai báo minh họa** có thể đặt trong một tệp nguồn Java cùng cấp hoặc làm các kiểu lồng nhau:
+When the goal is to model immutable data by its components, Java 17 provides `record`. The following is an **illustrative declaration snippet** that can be placed in a top-level Java source file or as nested types:
 
 ```java
 record Point(int x, int y) {}
@@ -305,34 +305,34 @@ record ColorPoint(Point position, String color) {
 }
 ```
 
-Đoạn trích cần `import java.util.Objects;`. Java tự sinh `equals(Object)` và `hashCode()` cho record dựa trên các thành phần đã khai báo, cùng cách kiểm tra kiểu phù hợp với record. `Point(1,2)` là một giá trị vị trí, còn `ColorPoint(new Point(1,2),"red")` là giá trị vị trí có màu: chúng không bị nhập nhằng thành cùng một kiểu bởi kế thừa.
+The snippet requires `import java.util.Objects;`. Java automatically generates `equals(Object)` and `hashCode()` for a record from its declared components, along with type checking appropriate for records. `Point(1,2)` is a position value, whereas `ColorPoint(new Point(1,2),"red")` is a colored position value: they are not conflated into the same type by inheritance.
 
-Record không phải lời giải cho mọi trường hợp. Nếu một thành phần tham chiếu tới đối tượng có thể thay đổi, record chỉ giữ **tham chiếu** đó ở trường `final`, chứ không tự sao chép hay làm bất biến sâu. Nếu equality nghiệp vụ không tương ứng với tất cả thành phần của record, cần thiết kế khác.
+Records are not the answer for every case. If a component references a mutable object, the record only holds that **reference** in a `final` field rather than automatically copying or making it deeply immutable. If business equality does not correspond to all components of the record, a different design is needed.
 
-## 7. Khi nào nên chọn composition và khi nào cân nhắc kế thừa?
+## 7. When to Choose Composition vs When to Consider Inheritance?
 
-**Ưu tiên composition** khi:
+**Prefer composition** when:
 
-- Subclass định **thêm trường tham gia vào khái niệm bằng nhau theo giá trị** so với lớp cha, như thêm `color`, `currency` hay `unit`.
-- Lớp cha đã có hợp đồng `equals` nhận các subclass là bằng nhau theo dữ liệu riêng của nó.
-- Bạn không kiểm soát được cách lớp cha triển khai `equals` và `hashCode` (ví dụ lớp từ thư viện).
-- Bạn muốn giữ rõ ràng ranh giới giữa một giá trị nền (`Point`) và giá trị mở rộng (`ColorPoint`).
+- The subclass would **add fields participating in value equality** compared to the parent class, such as adding `color`, `currency`, or `unit`.
+- The parent class already has an `equals` contract that treats subclasses as equal based on its own data.
+- You do not control how the parent class implements `equals` and `hashCode` (for example, a library class).
+- You want to keep a clear boundary between a base value (`Point`) and an extended value (`ColorPoint`).
 
-**Kế thừa vẫn có thể phù hợp** khi subtype thực sự thay thế được supertype và không làm sai cam kết giá trị. Ví dụ một hierarchy của hành vi có thể sử dụng polymorphism mà không cần equality theo dữ liệu ở mỗi subclass; hoặc toàn bộ hierarchy được thiết kế và kiểm soát từ đầu bằng quy tắc equality thống nhất. Không có quy tắc rằng mọi trường hợp `extends` đều sai.
+**Inheritance can still be appropriate** when the subtype can genuinely substitute for the supertype without violating value guarantees. For example, a behavioral hierarchy can use polymorphism without needing data-based equality in each subclass; or the entire hierarchy is designed and controlled from the start with a unified equality rule. There is no rule saying every use of `extends` is wrong.
 
-Có thể cân nhắc `getClass()` để chỉ coi các đối tượng cùng lớp là bằng nhau, hoặc một giao thức tương tác giữa lớp cha/con được thiết kế cẩn thận. Nhưng những cách đó thay đổi ý nghĩa equality và đòi hỏi hợp đồng toàn hierarchy nhất quán; thêm một phương thức kiểm tra kiểu đơn lẻ không tự chữa mọi vấn đề. Nếu muốn nhiều kiểu hỗ trợ cùng hành vi, interface mô tả hành vi có thể phù hợp hơn so với dùng chung kế thừa từ một lớp giá trị.
+You can consider `getClass()` to treat only same-class objects as equal, or a carefully designed cooperative protocol between parent and child. However, those approaches change the meaning of equality and require a consistent hierarchy-wide contract; adding a single type-checking method does not automatically cure every issue. If you want multiple types to support the same behavior, a behavioral interface may fit better than sharing inheritance from a value class.
 
-## 8. Checklist để thiết kế và kiểm thử
+## 8. Design and Testing Checklist
 
-1. **Định nghĩa “bằng nhau” trước khi viết code:** yếu tố nào quyết định hai giá trị là một? Các kiểu có khác nhau về identity không?
-2. **Kiểm tra quan hệ is-a:** có thể thay `Point` bằng `ColorPoint` ở mọi nơi mà hợp đồng vẫn đúng không? Nếu không, chọn quan hệ chứa đối tượng.
-3. **Dùng đúng chữ ký:** `public boolean equals(Object obj)` kèm `@Override`; viết `hashCode()` từ cùng các trường tham gia equality.
-4. **Kiểm thử đối xứng theo hai chiều:** `a.equals(b)` và `b.equals(a)` với cả cùng lớp và khác lớp.
-5. **Kiểm thử bắc cầu trên ba đối tượng:** đặc biệt thử `red`, `plain`, `blue` có cùng vị trí nhưng màu khác nhau.
-6. **Kiểm tra tính nhất quán và trạng thái:** nếu đối tượng được dùng làm khóa `HashMap` hoặc phần tử `HashSet`, tránh thay đổi trường tham gia `equals/hashCode` trong thời gian nó nằm trong bộ sưu tập.
-7. **Kiểm thử qua API chung:** so sánh dưới kiểu `Object`, qua `Objects.equals`, và đưa giá trị vào `HashSet` để phát hiện lỗi hợp đồng mà cách gọi trực tiếp có thể bỏ sót.
-8. **Giữ trách nhiệm rõ ràng:** API nào chỉ cần tọa độ thì nhận `Point`; API nào cần thông tin màu thì nhận `ColorPoint` hoặc abstraction thể hiện đủ dữ liệu.
+1. **Define “equal” before writing code:** what determines that two values are the same? Do the types differ in identity?
+2. **Check the is-a relationship:** can `ColorPoint` substitute for `Point` everywhere while keeping the contract intact? If not, choose object composition.
+3. **Use the exact signature:** `public boolean equals(Object obj)` with `@Override`; write `hashCode()` from the exact fields participating in equality.
+4. **Test symmetry in both directions:** `a.equals(b)` and `b.equals(a)` for both same-class and cross-class pairs.
+5. **Test transitivity across three objects:** especially test `red`, `plain`, `blue` with the same position but different colors.
+6. **Check consistency and state:** if objects are used as `HashMap` keys or `HashSet` elements, avoid mutating fields participating in `equals/hashCode` while they remain in the collection.
+7. **Test through generic APIs:** compare under type `Object`, via `Objects.equals`, and insert values into a `HashSet` to catch contract bugs that direct calls might miss.
+8. **Keep responsibilities clear:** APIs needing only coordinates accept `Point`; APIs needing color info accept `ColorPoint` or an abstraction representing the full data.
 
-**Tự kiểm tra:** Nếu `Point(1,2)` bằng cả `ColorPoint(1,2,"red")` và `ColorPoint(1,2,"blue")`, còn hai điểm có màu này không bằng nhau, hợp đồng nào bị vi phạm? **Tính bắc cầu.** Nếu `Point` nói “bằng” và `ColorPoint` nói “không bằng” cho cùng một cặp thì bị vi phạm **tính đối xứng**. Composition giúp định nghĩa các miền giá trị riêng và cung cấp tọa độ tường minh khi cần.
+**Self-check:** If `Point(1,2)` equals both `ColorPoint(1,2,"red")` and `ColorPoint(1,2,"blue")`, while those two colored points do not equal each other, which contract property is violated? **Transitivity.** If `Point` says “equal” and `ColorPoint` says “not equal” for the same pair, **symmetry** is violated. Composition lets you define separate value domains and expose coordinates explicitly when needed.
 
-**Ghi nhớ:** Kế thừa là một cam kết thay thế được, trong khi equality là hợp đồng logic áp dụng xuyên suốt các lời gọi và collection. Khi subclass thêm thành phần giá trị làm tiêu chí equality của lớp cha không còn đủ, composition thường là thiết kế rõ ràng và ổn định hơn.
+**Takeaway:** Inheritance is a substitutability commitment, whereas equality is a logical contract enforced across calls and collections. When a subclass adds a value component that makes the parent class's equality criteria insufficient, composition is usually the clearer and more stable design.

@@ -1,48 +1,48 @@
-# Các toán tử `&`, `|`, `^` và `~` trong Java — Bit và số không dấu
+# The `&`, `|`, `^`, and `~` Operators in Java — Bits and Unsigned Numbers
 
-## 1. Mục tiêu của bài học
+## 1. Lesson Objectives
 
-Trong Java, **toán tử thao tác bit (bitwise operators)** tác động lên từng bit của giá trị số nguyên. Chúng rất hữu ích khi làm việc với cờ trạng thái, quyền được mã hóa thành bit, giao thức nhị phân, dữ liệu thiết bị, trường màu RGB và các phép biến đổi ở mức bit.
+In Java, **bitwise operators** act on the individual bits of integer values. They are very useful when working with status flags, bit-encoded permissions, binary protocols, device data, RGB color channels, and bit-level transformations.
 
-Bài này tập trung vào bốn toán tử:
+This lesson focuses on four operators:
 
-- `&` — AND theo từng bit;
-- `|` — OR theo từng bit;
-- `^` — XOR theo từng bit;
-- `~` — NOT (đảo tất cả các bit).
+- `&` — bitwise AND;
+- `|` — bitwise OR;
+- `^` — bitwise XOR;
+- `~` — NOT (inverts all bits).
 
-Sau bài học, bạn cần tự tính được kết quả nhị phân, hiểu vì sao `~12` cho ra `-13`, biết kiểu `byte`/`short`/`char` được nâng lên `int`, sử dụng mặt nạ bit (bitmask), và nhận biết điểm khác biệt giữa thao tác bit với diễn giải số nguyên **có dấu/không dấu**.
+After this lesson, you should be able to compute binary results by hand, understand why `~12` produces `-13`, know how `byte`/`short`/`char` are promoted to `int`, use bitmasks, and recognize the difference between bit manipulation and **signed/unsigned** integer interpretation.
 
-**Điều kiện:** đã biết `int`, `long`, literal nhị phân `0b...`, literal hex `0x...` và các toán tử cơ bản. Ví dụ chạy độc lập với JDK 17 trở lên. Java không có kiểu nguyên thủy `unsigned int` hay `unsigned long`; chủ đề “không dấu” ở đây chủ yếu nói về **cách diễn giải bit** và các API hỗ trợ unsigned.
+**Prerequisites:** familiarity with `int`, `long`, binary literals `0b...`, hex literals `0x...`, and basic operators. The examples run standalone with JDK 17 or later. Java does not have primitive `unsigned int` or `unsigned long` types; the topic of "unsigned" here mainly refers to **how bits are interpreted** and the APIs that support unsigned operations.
 
-## 2. Bit và biểu diễn số nguyên Java
+## 2. Bits and Java Integer Representation
 
-Mỗi bit chỉ có thể là `0` hoặc `1`. Java sử dụng các kiểu số nguyên có độ rộng xác định:
+Each bit can only be `0` or `1`. Java uses integer types with fixed widths:
 
-| Kiểu | Độ rộng | Có dấu? | Lưu ý |
+| Type | Width | Signed? | Notes |
 | --- | ---: | --- | --- |
-| `byte` | 8 bit | Có dấu | −128 đến 127 |
-| `short` | 16 bit | Có dấu | −32.768 đến 32.767 |
-| `char` | 16 bit | Không dấu | Đơn vị mã UTF-16, không phải kiểu số lượng thông thường |
-| `int` | 32 bit | Có dấu | −2³¹ đến 2³¹ − 1 |
-| `long` | 64 bit | Có dấu | −2⁶³ đến 2⁶³ − 1 |
+| `byte` | 8 bits | Signed | −128 to 127 |
+| `short` | 16 bits | Signed | −32,768 to 32,767 |
+| `char` | 16 bits | Unsigned | UTF-16 code unit, not a general-purpose numeric count type |
+| `int` | 32 bits | Signed | −2³¹ to 2³¹ − 1 |
+| `long` | 64 bits | Signed | −2⁶³ to 2⁶³ − 1 |
 
-Các giá trị `byte`, `short`, `int` và `long` được diễn giải theo biểu diễn **bù hai (two's complement)**. Bit cao nhất của `int` hoặc `long` có ý nghĩa dấu khi diễn giải như số nguyên có dấu.
+Values of `byte`, `short`, `int`, and `long` are interpreted using **two's complement** representation. The highest bit of an `int` or `long` carries the sign meaning when interpreted as a signed integer.
 
-Ta có thể dùng tám hoặc bốn bit để **minh họa trên giấy**, nhưng cần nhớ: phép toán Java trên một biến `int` thực tế làm việc với **32 bit**; biến `long` là **64 bit**. Đó là điểm đặc biệt quan trọng với `~`.
+We can use eight or four bits to **illustrate on paper**, but remember: a Java operation on an `int` variable actually operates on **32 bits**; a `long` variable is **64 bits**. That is especially important with `~`.
 
-Ví dụ lấy bốn bit thấp:
+For example, taking the low four bits:
 
 ```text
 x = 12 = 1100
 y = 10 = 1010
 ```
 
-`12` ở dạng nhị phân là `1100`, `10` là `1010`. Khi biểu diễn hai giá trị `int`, các bit cao hơn trong ví dụ này là `0`.
+`12` in binary is `1100`, and `10` is `1010`. When representing two `int` values, the higher bits in this example are `0`.
 
-## 3. Bảng chân trị: cách bốn toán tử xử lý một bit
+## 3. Truth Tables: How the Four Operators Process One Bit
 
-Ba toán tử `&`, `|`, `^` so sánh **hai bit tương ứng**:
+The three operators `&`, `|`, and `^` compare **two corresponding bits**:
 
 | Bit A | Bit B | A `&` B | A `|` B | A `^` B |
 | ---: | ---: | ---: | ---: | ---: |
@@ -51,25 +51,25 @@ Ba toán tử `&`, `|`, `^` so sánh **hai bit tương ứng**:
 | 1 | 0 | 0 | 1 | 1 |
 | 1 | 1 | 1 | 1 | 0 |
 
-Với NOT `~`, chỉ có **một toán hạng**:
+For NOT `~`, there is only **one operand**:
 
 | Bit A | `~`A |
 | ---: | ---: |
 | 0 | 1 |
 | 1 | 0 |
 
-Có thể ghi nhớ:
+You can remember them as:
 
-- AND chỉ bật bit khi **cả hai** bit đều bật.
-- OR bật bit khi **ít nhất một** bit bật.
-- XOR bật bit khi **hai** bit khác nhau.
-- NOT đảo từng bit, `0` thành `1` và ngược lại.
+- AND sets a bit only when **both** bits are set.
+- OR sets a bit when **at least one** bit is set.
+- XOR sets a bit when the **two** bits differ.
+- NOT flips each bit, turning `0` into `1` and vice versa.
 
-Không nên áp dụng bảng chân trị trên một vị trí duy nhất rồi quên các bit còn lại. Toán tử bitwise xử lý toàn bộ các bit của toán hạng sau khi Java thực hiện quy tắc chuyển kiểu.
+Do not apply the truth table to a single position and forget the remaining bits. Bitwise operators process all bits of the operands after Java applies its type promotion rules.
 
-## 4. Toán tử `&`: AND theo từng bit
+## 4. The `&` Operator: Bitwise AND
 
-Xét `12` và `10`:
+Consider `12` and `10`:
 
 ```text
      1100    (12)
@@ -78,9 +78,9 @@ Xét `12` và `10`:
      1000     (8)
 ```
 
-Kết quả là `8` vì chỉ bit tương ứng ở vị trí `2³` cùng bằng `1`.
+The result is `8` because only the corresponding bit at position `2³` is `1` in both.
 
-Ví dụ Java:
+Java example:
 
 ```java
 int x = 0b1100;
@@ -88,9 +88,9 @@ int y = 0b1010;
 int both = x & y;      // 0b1000 = 8
 ```
 
-### 4.1. Ứng dụng phổ biến: kiểm tra một bit
+### 4.1. Common Use Case: Checking a Bit
 
-Mỗi bit có thể đại diện cho một khả năng hoặc cờ. Giả sử bit `2` biểu thị quyền thực thi:
+Each bit can represent a capability or flag. Suppose bit `2` indicates execute permission:
 
 ```java
 int flags = 0b0101;
@@ -99,32 +99,32 @@ int execute = 0b0100;
 boolean enabled = (flags & execute) != 0; // true
 ```
 
-`flags & execute` sẽ giữ lại đúng các bit có `1` ở **cả** `flags` và `execute`. Nếu chỉ cần kiểm tra **một cờ được biểu diễn bằng một bit**, điều kiện `!= 0` là đủ.
+`flags & execute` keeps exactly the bits that are `1` in **both** `flags` and `execute`. If you only need to check **a single flag represented by one bit**, the `!= 0` condition is sufficient.
 
-Với mặt nạ có **nhiều bit**, hai câu hỏi khác nhau:
+With a **multi-bit** mask, there are two different questions:
 
 ```java
 int state = 0b0101;
 int mask = 0b0110;
 
-boolean any = (state & mask) != 0;    // true: ít nhất một bit trong mask bật
-boolean all = (state & mask) == mask; // false: chưa đủ tất cả bit trong mask
+boolean any = (state & mask) != 0;    // true: at least one bit in mask is set
+boolean all = (state & mask) == mask; // false: not all bits in mask are set
 ```
 
-Đặc biệt, khi `mask == 0`, biểu thức `(state & mask) == mask` luôn đúng. Nếu mã nghiệp vụ yêu cầu mask phải chứa ít nhất một bit, cần xác thực `mask != 0` riêng.
+In particular, when `mask == 0`, the expression `(state & mask) == mask` is always true. If business logic requires the mask to contain at least one bit, validate `mask != 0` separately.
 
-### 4.2. Ứng dụng: giữ lại một phần bit
+### 4.2. Use Case: Keeping a Subset of Bits
 
-`value & 0xFF` giữ **8 bit thấp** và xóa tất cả bit cao hơn. Nó thường được dùng khi cần diễn giải một `byte` thành số từ `0` đến `255`:
+`value & 0xFF` keeps the **low 8 bits** and clears all higher bits. It is commonly used when interpreting a `byte` as a number from `0` to `255`:
 
 ```java
-byte signed = (byte) 0xF0; // bit pattern 11110000, byte có dấu = -16
+byte signed = (byte) 0xF0; // bit pattern 11110000, signed byte = -16
 int unsigned = signed & 0xFF; // 240
 ```
 
-Đây là phép bitwise AND và quy tắc promotion của Java, không phải việc biến `byte` thành một kiểu primitive unsigned mới. Xem phần về số không dấu bên dưới.
+This is a bitwise AND operation combined with Java's promotion rules, not turning `byte` into a new unsigned primitive type. See the section on unsigned numbers below.
 
-## 5. Toán tử `|`: OR theo từng bit
+## 5. The `|` Operator: Bitwise OR
 
 ```text
      1100    (12)
@@ -133,7 +133,7 @@ int unsigned = signed & 0xFF; // 240
      1110    (14)
 ```
 
-Ví dụ:
+Example:
 
 ```java
 int x = 0b1100;
@@ -141,22 +141,22 @@ int y = 0b1010;
 int either = x | y;    // 0b1110 = 14
 ```
 
-`|` thường dùng để **bật bit** hoặc **kết hợp các cờ độc lập**:
+`|` is commonly used to **set bits** or **combine independent flags**:
 
 ```java
 int flags = 0b0001;
 int writeFlag = 0b0010;
 
 flags = flags | writeFlag; // 0b0011
-// Cách viết gọn:
-flags |= writeFlag;        // vẫn là 0b0011
+// Shorthand:
+flags |= writeFlag;        // still 0b0011
 ```
 
-Nếu bit đã bật, OR với `1` vẫn giữ bit đó bằng `1`. Vì vậy thao tác `flags |= mask` có tính **idempotent theo giá trị bit**: lặp nhiều lần sẽ không tự tắt cờ. Nhưng phép OR không bảo đảm việc cập nhật biến dùng chung giữa các luồng là nguyên tử.
+If the bit is already set, ORing with `1` keeps that bit at `1`. Therefore, `flags |= mask` is **idempotent with respect to bit values**: repeating it multiple times will not accidentally clear the flag. However, the OR operation does not guarantee atomic updates to a shared variable across threads.
 
-**Không cộng số học thay cho OR để bật cờ.** Nếu bit đã bật, `flags + mask` có thể gây nhớ sang bit khác; `flags | mask` diễn đạt rõ thao tác bật bit.
+**Do not use arithmetic addition instead of OR to set a flag.** If the bit is already set, `flags + mask` can carry into another bit; `flags | mask` clearly expresses setting bits.
 
-## 6. Toán tử `^`: XOR theo từng bit
+## 6. The `^` Operator: Bitwise XOR
 
 ```text
      1100    (12)
@@ -165,7 +165,7 @@ Nếu bit đã bật, OR với `1` vẫn giữ bit đó bằng `1`. Vì vậy th
      0110     (6)
 ```
 
-Ví dụ:
+Example:
 
 ```java
 int x = 0b1100;
@@ -173,64 +173,64 @@ int y = 0b1010;
 int different = x ^ y; // 0b0110 = 6
 ```
 
-XOR hữu ích khi cần **đảo trạng thái các bit được chọn**:
+XOR is useful when you need to **toggle selected bits**:
 
 ```java
 int flags = 0b0101;
 int mask = 0b0100;
 
-flags ^= mask; // 0b0001: tắt bit 2
-flags ^= mask; // 0b0101: bật lại bit 2
+flags ^= mask; // 0b0001: turns bit 2 off
+flags ^= mask; // 0b0101: turns bit 2 back on
 ```
 
-Các tính chất quan trọng với bit nguyên:
+Important properties for integer bits:
 
 - `x ^ 0 == x`.
 - `x ^ x == 0`.
-- `(x ^ mask) ^ mask == x`: áp dụng cùng XOR hai lần sẽ phục hồi bit ban đầu.
-- `a ^ b == b ^ a` với toán hạng nguyên cùng kiểu.
+- `(x ^ mask) ^ mask == x`: applying the same XOR twice restores the original bits.
+- `a ^ b == b ^ a` for integer operands of the same type.
 
-**XOR không phải phép lũy thừa.** Trong Java, `2 ^ 3` bằng `1` vì `010 ^ 011 = 001`, **không** phải `8`. Muốn tính lũy thừa, cân nhắc `Math.pow` cho số thực hoặc thuật toán nhân nguyên có kiểm tra tràn tùy yêu cầu.
+**XOR is not exponentiation.** In Java, `2 ^ 3` equals `1` because `010 ^ 011 = 001`, **not** `8`. To compute powers, consider `Math.pow` for floating-point numbers or an integer multiplication algorithm with overflow checking depending on your requirements.
 
-Một ứng dụng khác là phát hiện bit khác nhau giữa hai trạng thái: `changed = oldState ^ newState` tạo mask với bit `1` đúng tại những vị trí có khác biệt.
+Another application is detecting bits that differ between two states: `changed = oldState ^ newState` produces a mask with `1` bits at the exact positions where they differ.
 
-## 7. Toán tử `~`: NOT trên *toàn bộ* bit của toán hạng
+## 7. The `~` Operator: NOT Across *All* Bits of the Operand
 
-`~` là toán tử **một ngôi**:
+`~` is a **unary** operator:
 
 ```java
 int x = 12;
 int flipped = ~x; // -13
 ```
 
-Tại sao `~12` là `-13` mà không phải `3`?
+Why is `~12` equal to `-13` instead of `3`?
 
-Nếu chỉ **vẽ bốn bit**, phép NOT cho:
+If you only **draw four bits**, NOT gives:
 
 ```text
 x = 1100
 ~   ----
-    0011   (3, nếu chỉ đảo trong một mặt nạ rộng 4 bit)
+    0011   (3, if inverted only within a 4-bit mask)
 ```
 
-Nhưng `x` là `int` 32 bit. Java đảo cả **32 bit**:
+But `x` is a 32-bit `int`. Java inverts all **32 bits**:
 
 ```text
 x:  00000000 00000000 00000000 00001100
 ~x: 11111111 11111111 11111111 11110011
 ```
 
-Bit cao nhất trở thành `1`, nên khi diễn giải theo bù hai, giá trị là `-13`. Với `int`/`long`, đồng nhất thức đúng theo số học Java là:
+The highest bit becomes `1`, so when interpreted in two's complement, the value is `-13`. For `int`/`long`, the exact identity in Java arithmetic is:
 
 ```text
 ~x == -x - 1
 ```
 
-Ví dụ `~0 == -1`, `~(-1) == 0` và `~12 == -13`.
+For example, `~0 == -1`, `~(-1) == 0`, and `~12 == -13`.
 
-### 7.1. Muốn đảo trong phạm vi N bit, phải dùng mặt nạ
+### 7.1. To Invert Within N Bits, You Must Use a Mask
 
-Giả sử chỉ quan tâm bốn bit thấp:
+Suppose you only care about the low four bits:
 
 ```java
 int x = 0b1100;            // 12
@@ -238,47 +238,47 @@ int lowFourInverted = ~x & 0b1111;
 System.out.println(lowFourInverted); // 3
 ```
 
-Mặt nạ `0b1111` xóa các bit cao sau khi NOT, giữ lại `0011`. Tương tự, `~x & 0xFF` giữ tám bit thấp của giá trị sau đảo.
+The mask `0b1111` clears the high bits after NOT, keeping `0011`. Similarly, `~x & 0xFF` keeps the low eight bits of the inverted value.
 
-### 7.2. `~` không giống `!`
+### 7.2. `~` Is Not the Same as `!`
 
-- `~` làm việc trên **kiểu nguyên** (sau unary numeric promotion), đảo tất cả bit.
-- `!` làm việc trên **`boolean`** (hoặc `Boolean` được unbox), đảo giá trị logic.
+- `~` operates on **integer types** (after unary numeric promotion), inverting all bits.
+- `!` operates on **`boolean`** (or unboxed `Boolean`), inverting the logical value.
 
-`~true` không hợp lệ; `!12` cũng không hợp lệ. Cách dùng đúng:
+`~true` is invalid; `!12` is also invalid. Correct usage:
 
 ```java
 int invertedBits = ~12;       // -13
 boolean invertedFlag = !true; // false
 ```
 
-## 8. Kiểu dữ liệu, binary numeric promotion và kết quả trung gian
+## 8. Data Types, Binary Numeric Promotion, and Intermediate Results
 
-Các toán tử `&`, `|`, `^` với **toán hạng nguyên** dùng quy tắc **binary numeric promotion**. Toán tử `~` dùng **unary numeric promotion**.
+The operators `&`, `|`, and `^` with **integer operands** use **binary numeric promotion**. The `~` operator uses **unary numeric promotion**.
 
-- `byte`, `short` và `char` được nâng lên `int` trước phép toán.
-- `int` với `int` cho kết quả `int`.
-- `long` kết hợp với kiểu nguyên nhỏ hơn dẫn đến kết quả `long`.
-- `~byteValue`, `~shortValue` hoặc `~charValue` cho kết quả `int`, không tự trở về kiểu nhỏ.
-- Không có bitwise `&`/`|`/`^`/`~` trực tiếp trên `float` hay `double`.
+- `byte`, `short`, and `char` are promoted to `int` before the operation.
+- `int` with `int` produces an `int` result.
+- `long` combined with a smaller integer type produces a `long` result.
+- `~byteValue`, `~shortValue`, or `~charValue` produces an `int`, not the narrower type automatically.
+- There is no direct bitwise `&`/`|`/`^`/`~` on `float` or `double`.
 
-Ví dụ:
+Example:
 
 ```java
 byte a = 0b0101;
 byte b = 0b0011;
-int andResult = a & b;     // 1, kiểu int
-int notResult = ~a;        // -6, kiểu int
+int andResult = a & b;     // 1, type int
+int notResult = ~a;        // -6, type int
 
-// byte invalid = a & b;  // lỗi: biểu thức là int, không tự thu hẹp thành byte
-byte narrowed = (byte) (a & b); // cast tường minh, giá trị 1 ở ví dụ này
+// byte invalid = a & b;  // error: expression is int, does not automatically narrow to byte
+byte narrowed = (byte) (a & b); // explicit cast, value 1 in this example
 ```
 
-**Lưu ý với compound assignment:** `a &= b` có thể biên dịch khi `a` là `byte`, vì phép gán ghép có chuyển kiểu ngầm về kiểu biến đích. Nhưng `a = a & b` thường lỗi kiểu do vế phải là `int`. Chuyển hẹp có thể mất các bit cao nên cần chủ động xác định miền dữ liệu.
+**Note on compound assignment:** `a &= b` compiles when `a` is `byte`, because compound assignment includes an implicit cast to the target variable's type. However, `a = a & b` causes a type error because the right-hand side is `int`. Narrowing casts can discard high bits, so you should explicitly verify the value range.
 
-### 8.1. Sign extension khi nâng một `byte` âm
+### 8.1. Sign Extension When Promoting a Negative `byte`
 
-Xem giá trị có tám bit `1111_0000`:
+Consider the eight-bit pattern `1111_0000`:
 
 ```java
 byte raw = (byte) 0xF0;  // raw == -16
@@ -287,39 +287,39 @@ int unsigned = raw & 0xFF; // 0x000000F0 = 240
 int inverse = ~raw;      // 0x0000000F = 15
 ```
 
-Bởi `raw` là số có dấu, khi chuyển lên `int`, các bit cao được **mở rộng dấu**. Trong `raw & 0xFF`, mask xóa 24 bit cao và giữ nguyên tám bit thấp.
+Because `raw` is signed, when converted to `int`, the high bits are **sign-extended**. In `raw & 0xFF`, the mask clears the high 24 bits and preserves the low eight bits.
 
-Java cũng có `Byte.toUnsignedInt(raw)` để nhận `240` rõ ý định hơn. Đối với `short`, có `Short.toUnsignedInt`. Không nên viết `Math.abs(raw)` thay cho việc diễn giải 8 bit không dấu; giá trị âm của kiểu signed và unsigned representation là hai vấn đề khác nhau.
+Java also provides `Byte.toUnsignedInt(raw)` to obtain `240` with clearer intent. For `short`, there is `Short.toUnsignedInt`. Do not write `Math.abs(raw)` as a substitute for interpreting an unsigned 8-bit value; the negative value of a signed type and an unsigned representation are two different things.
 
-### 8.2. `char` không mở rộng dấu
+### 8.2. `char` Does Not Sign-Extend
 
-`char` là giá trị 16 bit không dấu. Khi promoted thành `int`, các bit cao là `0`. Ví dụ `char ch = 0xFF00; int n = ch;` cho `n = 65280`, không phải một số âm. Tuy vậy `~ch` vẫn có kiểu `int` và có thể âm vì đảo đủ 32 bit.
+`char` is an unsigned 16-bit value. When promoted to `int`, the high bits are `0`. For example, `char ch = 0xFF00; int n = ch;` yields `n = 65280`, not a negative number. Still, `~ch` has type `int` and can be negative because all 32 bits are inverted.
 
-Trong xử lý text, `char` đại diện cho **đơn vị mã UTF-16**, không tương đương một Unicode code point trong mọi trường hợp; không dùng toán tử bit chỉ vì muốn thao tác chuỗi ký tự.
+In text processing, `char` represents a **UTF-16 code unit**, which is not equivalent to a Unicode code point in all cases; do not use bitwise operators merely to manipulate character strings.
 
-## 9. Phân biệt bitwise integer và các phép boolean `&`, `|`, `^`
+## 9. Distinguishing Integer Bitwise Operators from Boolean `&`, `|`, `^`
 
-Java còn định nghĩa `&`, `|` và `^` cho hai toán hạng **boolean`. Khi đó chúng trả `boolean`:
+Java also defines `&`, `|`, and `^` for two **`boolean`** operands. In that case, they return `boolean`:
 
-| Toán tử boolean | Quy tắc |
+| Boolean operator | Rule |
 | --- | --- |
-| `a & b` | `true` khi cả `a` và `b` đều `true` |
-| `a | b` | `true` khi ít nhất một bên `true` |
-| `a ^ b` | `true` khi hai bên khác nhau |
+| `a & b` | `true` when both `a` and `b` are `true` |
+| `a | b` | `true` when at least one side is `true` |
+| `a ^ b` | `true` when the two sides differ |
 
-Điểm khác biệt quan trọng so với `&&` và `||` là **`&`/`|` trên boolean đánh giá cả hai toán hạng**, còn `&&`/`||` có **short circuit**:
+The key difference compared to `&&` and `||` is that **`&`/`|` on booleans evaluate both operands**, whereas `&&`/`||` **short-circuit**:
 
-- `false && method()` không gọi `method()`.
-- `true || method()` không gọi `method()`.
-- `false & method()` vẫn gọi `method()`.
-- `true | method()` vẫn gọi `method()`.
-- `a ^ b` cũng đánh giá cả hai bên.
+- `false && method()` does not call `method()`.
+- `true || method()` does not call `method()`.
+- `false & method()` still calls `method()`.
+- `true | method()` still calls `method()`.
+- `a ^ b` also evaluates both sides.
 
-Không thể áp dụng `&` giữa một `int` và một `boolean`; biểu thức `flags & true` lỗi biên dịch. Java không tự coi số nguyên `0` là `false` hoặc số nguyên khác `0` là `true`.
+You cannot apply `&` between an `int` and a `boolean`; the expression `flags & true` is a compile-time error. Java does not treat the integer `0` as `false` or nonzero integers as `true`.
 
-### Ví dụ chạy được: so sánh short circuit
+### Runnable example: comparing short-circuiting
 
-Lưu tệp **`BooleanBitwise.java`**:
+Save the file **`BooleanBitwise.java`**:
 
 ```java
 public class BooleanBitwise {
@@ -338,7 +338,7 @@ public class BooleanBitwise {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac --release 17 BooleanBitwise.java
@@ -357,18 +357,18 @@ true
 false
 ```
 
-Hai nhãn “AND skipped” và “OR skipped” **không xuất hiện**, vì hai phương thức tương ứng không được gọi. Trong biểu thức boolean thông thường, nên ưu tiên `&&`/`||` khi muốn short circuit; dùng `&`/`|` khi thực sự cần cả hai biểu thức được đánh giá và điều đó rõ ràng trong yêu cầu.
+The two labels "AND skipped" and "OR skipped" **do not appear**, because their corresponding methods are not called. In ordinary boolean expressions, prefer `&&`/`||` when you want short-circuiting; use `&`/`|` when you genuinely need both expressions evaluated and that intent is clear in the requirements.
 
-## 10. Độ ưu tiên: `~`, `&`, `^`, `|`
+## 10. Precedence: `~`, `&`, `^`, `|`
 
-Trong các toán tử đang học, thứ tự ưu tiên là:
+Among the operators covered here, the precedence order is:
 
 1. `~` (unary bitwise complement).
 2. `&`.
 3. `^`.
 4. `|`.
 
-Ví dụ:
+Example:
 
 ```java
 int a = 0b1100;
@@ -379,36 +379,36 @@ int first = a | b & c;       // a | (b & c)
 int second = (a | b) & c;    // (a | b) & c
 ```
 
-Tính thủ công:
+Computing by hand:
 
-- `b & c = 0010`; `a | 0010 = 1110` nên `first == 14`.
-- `a | b = 1110`; `1110 & 0011 = 0010` nên `second == 2`.
+- `b & c = 0010`; `a | 0010 = 1110` so `first == 14`.
+- `a | b = 1110`; `1110 & 0011 = 0010` so `second == 2`.
 
-Với XOR:
+With XOR:
 
 ```java
 int ungrouped = a ^ b & c;   // a ^ (b & c) => 1100 ^ 0010 = 1110
 int grouped = (a ^ b) & c;   // 0110 & 0011 = 0010
 ```
 
-Hai biểu thức lần lượt cho `14` và `2`.
+The two expressions yield `14` and `2`, respectively.
 
-**Bẫy thường gặp với phép so sánh:** Trong Java, `==` có độ ưu tiên **cao hơn** bitwise `&`. Vì thế:
+**Common trap with comparisons:** In Java, `==` has **higher** precedence than bitwise `&`. Therefore:
 
 ```java
 // boolean invalid = flags & MASK == MASK;
-// Java nhóm như flags & (MASK == MASK): int & boolean -> lỗi biên dịch.
+// Java groups this as flags & (MASK == MASK): int & boolean -> compile error.
 
 boolean correct = (flags & MASK) == MASK;
 ```
 
-Đoạn trên chỉ là **minh họa cú pháp**, cần khai báo `flags` và `MASK` nếu đưa vào class chạy. Luôn đặt ngoặc quanh phần bitwise trong điều kiện, chẳng hạn `(flags & mask) != 0`, để vừa tránh lỗi vừa bộc lộ ý định.
+The snippet above is just a **syntax illustration**; you need to declare `flags` and `MASK` if placing it in a runnable class. Always wrap the bitwise part in parentheses inside conditions, such as `(flags & mask) != 0`, both to avoid errors and to make your intent clear.
 
-Các toán tử shift `<<`, `>>`, `>>>` có độ ưu tiên cao hơn `&`/`^`/`|`. Chúng dùng để định vị bit, nhưng là một nhóm toán tử khác; bài này chỉ dùng shift khi cần tạo mask và tách dữ liệu.
+The shift operators `<<`, `>>`, and `>>>` have higher precedence than `&`/`^`/`|`. They are used to position bits, but belong to a different group of operators; this lesson only uses shifts when creating masks and extracting data.
 
-## 11. Một chương trình đầy đủ cho bốn toán tử
+## 11. A Complete Program for All Four Operators
 
-Lưu thành **`BitwiseBasics.java`**:
+Save as **`BitwiseBasics.java`**:
 
 ```java
 public class BitwiseBasics {
@@ -428,14 +428,14 @@ public class BitwiseBasics {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac --release 17 BitwiseBasics.java
 java BitwiseBasics
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 8
@@ -447,25 +447,25 @@ java BitwiseBasics
 0
 ```
 
-Giải thích: ba dòng đầu tương ứng bảng bit `1100`/`1010`; `~x` đảo 32 bit của `int` và thành `-13`; `& 0b1111` giữ bốn bit thấp nên nhận `3`. Đảo toàn bộ bit của `0` cho `-1`, và đảo `-1` cho `0`.
+Explanation: the first three lines match the bit tables for `1100`/`1010`; `~x` inverts all 32 bits of the `int` and becomes `-13`; `& 0b1111` keeps the low four bits, giving `3`. Inverting all bits of `0` produces `-1`, and inverting `-1` produces `0`.
 
-**Đừng dùng `Integer.toBinaryString(~x)` rồi mong chỉ có bốn ký tự**, vì kết quả `int` âm được thể hiện đầy đủ bằng chuỗi 32 bit theo two's complement. Muốn xem phần bit thấp, dùng mask trước khi chuyển sang chuỗi.
+**Do not call `Integer.toBinaryString(~x)` expecting only four characters**, because a negative `int` result is displayed in full as a 32-bit two's complement string. To inspect only the low bits, apply a mask before converting to a string.
 
-## 12. Dùng bitmask để bật, tắt, kiểm tra và đảo cờ
+## 12. Using Bitmasks to Set, Clear, Check, and Toggle Flags
 
-Một cờ một bit có thể tạo bằng `1 << vị_trí_bit`. Từ đây có bốn công thức quan trọng:
+A single-bit flag can be created with `1 << bit_position`. This gives four key idioms:
 
-| Mục đích | Công thức | Ý nghĩa |
+| Purpose | Idiom | Meaning |
 | --- | --- | --- |
-| Kiểm tra **một** cờ | `(flags & FLAG) != 0` | Bit đại diện cờ đang bật |
-| Bật cờ | `flags |= FLAG` | Đặt bit thành 1 |
-| Tắt cờ | `flags &= ~FLAG` | Xóa bit về 0 |
-| Đảo cờ | `flags ^= FLAG` | Đổi 0↔1 |
-| Kiểm tra đủ **nhiều** cờ | `(flags & MASK) == MASK` | Tất cả bit trong mask đều bật |
+| Check **one** flag | `(flags & FLAG) != 0` | The bit representing the flag is on |
+| Set a flag | `flags |= FLAG` | Set the bit to 1 |
+| Clear a flag | `flags &= ~FLAG` | Reset the bit to 0 |
+| Toggle a flag | `flags ^= FLAG` | Flip 0↔1 |
+| Check all of **multiple** flags | `(flags & MASK) == MASK` | Every bit in the mask is on |
 
-### Ví dụ chạy được: trạng thái quyền bằng bit
+### Runnable example: bit-based permission states
 
-Lưu thành **`FlagDemo.java`**:
+Save as **`FlagDemo.java`**:
 
 ```java
 public class FlagDemo {
@@ -490,7 +490,7 @@ public class FlagDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac --release 17 FlagDemo.java
@@ -507,33 +507,33 @@ false
 2
 ```
 
-Trình tự:
+Sequence:
 
-- `READ | EXECUTE` bật bit `0` và bit `2`, giá trị là `101₂ = 5`.
-- Chưa có `WRITE` nên kiểm tra trả `false`.
-- `|= WRITE` bật thêm bit `1` → `111₂ = 7`.
-- `^= EXECUTE` đảo bit `2` từ `1` về `0` → `011₂ = 3`.
-- `&= ~READ` xóa bit `0` → `010₂ = 2`.
+- `READ | EXECUTE` sets bit `0` and bit `2`, giving `101₂ = 5`.
+- `WRITE` is not set yet, so the check returns `false`.
+- `|= WRITE` also sets bit `1` → `111₂ = 7`.
+- `^= EXECUTE` toggles bit `2` from `1` to `0` → `011₂ = 3`.
+- `&= ~READ` clears bit `0` → `010₂ = 2`.
 
-**Chọn đúng thao tác:** muốn **bảo đảm bật** thì dùng `|`; muốn **bảo đảm tắt** thì dùng `& ~`; chỉ dùng `^` khi thật sự muốn **đảo** trạng thái. Việc dùng mask tự nó không thay thế quy tắc phân quyền của ứng dụng hay kiểm tra quyền theo người dùng/tài nguyên.
+**Choosing the right operation:** when you want to **ensure a bit is on**, use `|`; when you want to **ensure a bit is off**, use `& ~`; only use `^` when you truly want to **toggle** the state. Using masks by itself does not replace application authorization rules or per-user/per-resource permission checks.
 
-### 12.1. Khi bit vượt phạm vi 31
+### 12.1. When the Bit Position Exceeds 31
 
-`int` có 32 bit; `1 << 31` vẫn hợp lệ nhưng cho giá trị `Integer.MIN_VALUE` âm vì bật bit dấu. Nếu cần cờ ở vị trí `40`, phải dùng `long`:
+`int` has 32 bits; `1 << 31` is valid but yields the negative value `Integer.MIN_VALUE` because it sets the sign bit. If you need a flag at position `40`, you must use `long`:
 
 ```java
 long flag40 = 1L << 40;
 ```
 
-Viết `1 << 40` **không** tạo bit 40 của `int`: Java chỉ dùng 5 bit thấp của shift distance với `int`, nên hiệu ứng tương đương dịch `1 << 8`. Với `long`, số bước dịch chỉ xét 6 bit thấp. Luôn chọn độ rộng trước khi tạo mask và kiểm tra phạm vi chỉ số bit.
+Writing `1 << 40` **does not** produce bit 40 of an `int`: Java uses only the low 5 bits of the shift distance for `int`, so the effect is equivalent to shifting `1 << 8`. For `long`, the shift distance uses only the low 6 bits. Always choose the width before creating a mask and validate the bit index range.
 
-## 13. `&` với số không dấu: cùng bit, cách diễn giải khác
+## 13. `&` with Unsigned Numbers: Same Bits, Different Interpretation
 
-Java không có kiểu nguyên thủy `unsigned int` hoặc `unsigned long`. `int` và `long` vẫn dùng các bit tương ứng cho phép AND/OR/XOR/NOT dù chúng được diễn giải như số âm. Sự khác biệt giữa có dấu và không dấu nằm ở **cách diễn giải giá trị và một số phép toán khác** (so sánh, chia, dịch phải), không phải bảng chân trị của bốn toán tử bitwise.
+Java has no primitive `unsigned int` or `unsigned long` types. `int` and `long` still use their respective bits for AND/OR/XOR/NOT even when interpreted as negative numbers. The difference between signed and unsigned lies in **how the value is interpreted and in certain other operations** (comparison, division, right shift), not in the truth tables of the four bitwise operators.
 
-### 13.1. Đọc một `byte` thành 0..255
+### 13.1. Reading a `byte` as 0..255
 
-Lưu thành **`UnsignedBits.java`**:
+Save as **`UnsignedBits.java`**:
 
 ```java
 public class UnsignedBits {
@@ -550,7 +550,7 @@ public class UnsignedBits {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac --release 17 UnsignedBits.java
@@ -568,20 +568,20 @@ java UnsignedBits
 4294967295
 ```
 
-Giải thích:
+Explanation:
 
-1. `0xF0` có 8 bit thấp `11110000`; khi ép về `byte` có dấu, đó là `-16`.
-2. `raw & 0xFF` xóa bit cao đã được mở rộng dấu → `240`.
-3. `Byte.toUnsignedInt(raw)` trả cùng giá trị `240` với ý nghĩa unsigned tường minh.
-4. `~raw` được tính ở kiểu `int` sau unary promotion: `~(-16) = 15`.
-5. Cast `(byte) ~raw` trong ví dụ vẫn là `15` vì vừa trong miền `byte`; với dữ liệu khác, cast hẹp có thể cắt bit.
-6. `Integer.toUnsignedString(-1)` diễn giải 32 bit toàn `1` thành `4294967295`. Biểu diễn bit không đổi; chỉ thay cách đọc giá trị.
+1. `0xF0` has low 8 bits `11110000`; when cast to a signed `byte`, that is `-16`.
+2. `raw & 0xFF` clears the sign-extended high bits → `240`.
+3. `Byte.toUnsignedInt(raw)` returns the same value `240` with explicit unsigned intent.
+4. `~raw` is computed as `int` after unary promotion: `~(-16) = 15`.
+5. Casting `(byte) ~raw` in this example is still `15` because it fits within the `byte` range; with other data, a narrowing cast can truncate bits.
+6. `Integer.toUnsignedString(-1)` interprets 32 all-`1` bits as `4294967295`. The bit representation does not change; only the way the value is read changes.
 
-Để so sánh/chia số nguyên theo hướng unsigned, Java còn có `Integer.compareUnsigned`, `Integer.divideUnsigned`, `Integer.remainderUnsigned` cùng các API `Long` tương ứng. `char` là trường hợp primitive không dấu 16 bit, nhưng chủ yếu phục vụ UTF-16.
+To compare or divide integers as unsigned values, Java also provides `Integer.compareUnsigned`, `Integer.divideUnsigned`, `Integer.remainderUnsigned`, along with the corresponding `Long` APIs. `char` is a 16-bit unsigned primitive case, though it primarily serves UTF-16.
 
-### 13.2. Cách tách nhiều trường từ một số
+### 13.2. Extracting Multiple Fields from One Number
 
-Một tình huống thực tế là tách ba kênh màu RGB được đóng gói vào 24 bit:
+A practical scenario is extracting three RGB color channels packed into 24 bits:
 
 ```java
 int rgb = 0x12AB34;
@@ -590,104 +590,104 @@ int green = (rgb >>> 8)  & 0xFF;
 int blue  = rgb & 0xFF;
 ```
 
-Trong đó `>>>` là **dịch phải điền 0**, đưa nhóm bit cần đọc xuống vị trí thấp; `& 0xFF` chỉ giữ tám bit tương ứng. Ba giá trị nhận được: `red = 18`, `green = 171`, `blue = 52`. Dùng `&` để mask là điều cốt lõi; cần học riêng `>>`, `>>>`, `<<` để hiểu toàn bộ thuật toán đóng gói bit.
+Here `>>>` is **zero-fill right shift**, moving the group of bits to read into the low position; `& 0xFF` keeps only the corresponding eight bits. The three resulting values are: `red = 18`, `green = 171`, `blue = 52`. Using `&` to mask is central; you should study `>>`, `>>>`, and `<<` separately to understand full bit-packing algorithms.
 
-## 14. Các tính chất đại số hữu ích và giới hạn áp dụng
+## 14. Useful Algebraic Properties and Limits of Applicability
 
-Với các toán hạng nguyên cùng kiểu và phép bitwise thuần, những luật sau đúng trên toàn bộ bit của kiểu:
+For integer operands of the same type and pure bitwise operations, the following laws hold across all bits of the type:
 
-| Tính chất | Biểu thức |
+| Property | Expression |
 | --- | --- |
-| AND với 0 | `x & 0 == 0` |
-| AND với toàn bit 1 | `x & -1 == x` |
-| OR với 0 | `x | 0 == x` |
-| OR với toàn bit 1 | `x | -1 == -1` |
-| XOR với 0 | `x ^ 0 == x` |
-| XOR với chính nó | `x ^ x == 0` |
-| Đảo hai lần | `~~x == x` (khi `x` đã là `int`/`long`) |
+| AND with 0 | `x & 0 == 0` |
+| AND with all 1 bits | `x & -1 == x` |
+| OR with 0 | `x | 0 == x` |
+| OR with all 1 bits | `x | -1 == -1` |
+| XOR with 0 | `x ^ 0 == x` |
+| XOR with itself | `x ^ x == 0` |
+| Double inversion | `~~x == x` (when `x` is already `int`/`long`) |
 | De Morgan | `~(x & y) == (~x | ~y)` |
 | De Morgan | `~(x | y) == (~x & ~y)` |
 
-Các luật này rất hữu ích khi đơn giản hóa mặt nạ. Tuy nhiên cần giữ **cùng độ rộng**, xét promotion, và không tự ý biến phép toán có lời gọi hàm/side effect thành biểu thức khác.
+These laws are very helpful when simplifying masks. However, keep **the same bit width**, account for promotion, and do not arbitrarily rewrite expressions containing method calls or side effects into another form.
 
-### 14.1. XOR không bảo đảm hoán đổi biến an toàn
+### 14.1. XOR Does Not Guarantee Safe Variable Swapping
 
-Mẹo `a ^= b; b ^= a; a ^= b;` thường được dùng để swap hai số. Nó khó đọc, có thể sai khi hai tham chiếu/vị trí thực chất trỏ vào cùng phần tử, và không mang lợi ích mặc định trong Java hiện đại. Hãy dùng biến tạm tường minh để swap giá trị. Mục tiêu học XOR là hiểu bit, không phải thay thế mọi thao tác dữ liệu bằng “mẹo”.
+The trick `a ^= b; b ^= a; a ^= b;` is often used to swap two numbers. It is hard to read, can fail when two references/locations actually point to the same element, and offers no default advantage in modern Java. Use an explicit temporary variable to swap values. The goal of learning XOR is to understand bits, not to replace every data operation with "tricks".
 
-### 14.2. Thao tác bit không đồng nghĩa phép cập nhật nguyên tử
+### 14.2. Bit Manipulation Does Not Mean Atomic Updates
 
-`flags |= mask` là phép đọc, OR và ghi lại theo ngữ nghĩa bình thường. Nếu nhiều luồng cùng thay đổi một biến, có thể mất cập nhật nếu không đồng bộ. Với yêu cầu đồng thời, dùng cơ chế đồng bộ hoặc các phương thức cập nhật nguyên tử phù hợp; phạm vi của toán tử `|` không tự cung cấp thread safety.
+`flags |= mask` is a read, OR, and write-back under normal semantics. If multiple threads modify the same variable concurrently, updates can be lost without synchronization. For concurrency requirements, use synchronization mechanisms or appropriate atomic update methods; the `|` operator itself does not provide thread safety.
 
-## 15. Lỗi phổ biến và cách phát hiện
+## 15. Common Mistakes and How to Spot Them
 
-1. **Nhầm `^` với mũ:** `2 ^ 3` = `1`, không phải 8.
-2. **Nghĩ `~12` là 3:** đó chỉ là kết quả NOT ở **bốn bit thấp**; `~12` với `int` 32 bit bằng `-13`. Muốn 3 dùng `(~12) & 0xF`.
-3. **Quên promotion của `byte`:** `~byteValue` cho `int`, không cho `byte`; `byteA & byteB` cũng cho `int`.
-4. **Không mask sau sign extension:** `byte raw = (byte) 0xF0` là `-16`; `raw & 0xFF` hoặc `Byte.toUnsignedInt(raw)` trả 240.
-5. **Dùng `^` để “bật cờ”:** XOR sẽ tắt một cờ đang bật. Dùng `|` khi yêu cầu chắc chắn bật.
-6. **Dùng `|` để “tắt cờ”:** muốn tắt một bit phải dùng `flags &= ~FLAG`.
-7. **Sai mức ưu tiên:** `flags & MASK == MASK` không có nhóm mong muốn; đặt `(flags & MASK) == MASK`.
-8. **Nhầm `&` với `&&`:** với `boolean`, `&` luôn đánh giá cả hai bên, nên lời gọi hàm thứ hai vẫn chạy.
-9. **Quên rằng `~` là NOT cho toàn độ rộng:** mask hẹp chỉ được áp dụng khi ghi rõ `& mask` sau đó.
-10. **Tạo mask dùng `int` cho bit cao:** `1 << 40` không phải cờ vị trí 40; dùng `1L << 40`.
-11. **Nhầm unsigned bit pattern với giá trị signed:** cùng `0xFFFFFFFF` là bit toàn 1; đọc kiểu `int` là `-1`, đọc unsigned 32 bit là `4294967295`.
-12. **Trộn số thực/boolean với integer bitwise:** `1.5 & 2`, `~1.0` hoặc `3 & true` không có kiểu toán hạng hợp lệ trong Java.
+1. **Confusing `^` with exponentiation:** `2 ^ 3` = `1`, not 8.
+2. **Thinking `~12` is 3:** that is only the NOT result on the **low four bits**; `~12` as a 32-bit `int` equals `-13`. To get 3, use `(~12) & 0xF`.
+3. **Forgetting `byte` promotion:** `~byteValue` yields `int`, not `byte`; `byteA & byteB` also yields `int`.
+4. **Not masking after sign extension:** `byte raw = (byte) 0xF0` is `-16`; `raw & 0xFF` or `Byte.toUnsignedInt(raw)` returns 240.
+5. **Using `^` to "turn a flag on":** XOR turns off a flag that is already on. Use `|` when you need to guarantee it is on.
+6. **Using `|` to "turn a flag off":** to turn off a bit, you must use `flags &= ~FLAG`.
+7. **Wrong precedence:** `flags & MASK == MASK` does not group as intended; write `(flags & MASK) == MASK`.
+8. **Confusing `&` with `&&`:** for `boolean`, `&` always evaluates both sides, so the second method call still runs.
+9. **Forgetting that `~` is NOT over the full width:** a narrower mask is only applied when you explicitly write `& mask` afterward.
+10. **Creating a high-bit mask with `int`:** `1 << 40` is not a flag at bit position 40; use `1L << 40`.
+11. **Confusing an unsigned bit pattern with a signed value:** the same `0xFFFFFFFF` is all 1 bits; read as `int` it is `-1`, read as unsigned 32-bit it is `4294967295`.
+12. **Mixing floating-point/boolean with integer bitwise operators:** `1.5 & 2`, `~1.0`, or `3 & true` do not have valid operand types in Java.
 
-## 16. Bài luyện tập kèm giải thích
+## 16. Practice Exercises with Explanations
 
-### Bài 1 — Tính tay bảng bit
+### Exercise 1 — Hand-compute the bit tables
 
-Với `a = 0b1100` và `b = 0b1010`, hãy tính `a & b`, `a | b` và `a ^ b`.
+Given `a = 0b1100` and `b = 0b1010`, compute `a & b`, `a | b`, and `a ^ b`.
 
-**Đáp án:** `1000₂ = 8`, `1110₂ = 14`, `0110₂ = 6`. AND giữ bit cùng 1, OR giữ bit có ít nhất một 1, XOR chỉ giữ bit khác nhau.
+**Answer:** `1000₂ = 8`, `1110₂ = 14`, `0110₂ = 6`. AND keeps bits that are 1 in both, OR keeps bits where at least one is 1, and XOR keeps only bits that differ.
 
-### Bài 2 — Vì sao NOT ra số âm?
+### Exercise 2 — Why does NOT produce a negative number?
 
-Tính `~0`, `~12` và `~(-1)` với toán hạng `int`.
+Compute `~0`, `~12`, and `~(-1)` with `int` operands.
 
-**Đáp án:** `-1`, `-13` và `0`. `~` đảo đủ 32 bit; công thức `~x = -x - 1` có thể giúp kiểm tra.
+**Answer:** `-1`, `-13`, and `0`. `~` inverts all 32 bits; the formula `~x = -x - 1` can help verify.
 
-### Bài 3 — Bật, tắt, đảo
+### Exercise 3 — Set, clear, toggle
 
-Ban đầu `flags = 0b0101`; cần (a) bật bit `1`, (b) tắt bit `2`, (c) đảo bit `0`.
+Initially `flags = 0b0101`; you need to (a) set bit `1`, (b) clear bit `2`, and (c) toggle bit `0`.
 
-**Đáp án:** (a) `flags |= 0b0010` → `0111`; (b) `flags &= ~0b0100` → `0011`; (c) `flags ^= 0b0001` → `0010`. Ba bước thực hiện **liên tiếp**.
+**Answer:** (a) `flags |= 0b0010` → `0111`; (b) `flags &= ~0b0100` → `0011`; (c) `flags ^= 0b0001` → `0010`. The three steps are performed **sequentially**.
 
-### Bài 4 — Một bit và nhiều bit
+### Exercise 4 — One bit vs. multiple bits
 
-`flags = 0b0101`, `mask = 0b0110`. Kết quả `(flags & mask) != 0` và `(flags & mask) == mask` là gì?
+`flags = 0b0101`, `mask = 0b0110`. What are the results of `(flags & mask) != 0` and `(flags & mask) == mask`?
 
-**Đáp án:** `true` và `false`. Mask yêu cầu bit 1 và 2, nhưng flags chỉ chứa bit 2 trong hai bit đó.
+**Answer:** `true` and `false`. The mask requires bits 1 and 2, but `flags` only has bit 2 set among those two bits.
 
-### Bài 5 — Promotion và unsigned byte
+### Exercise 5 — Promotion and unsigned byte
 
-`byte raw = (byte) 0xF0;`. Hãy tính `raw`, `raw & 0xFF` và `~raw`.
+`byte raw = (byte) 0xF0;`. Compute `raw`, `raw & 0xFF`, and `~raw`.
 
-**Đáp án:** `-16`, `240`, `15`. `raw` sign-extends lên `int` trong hai phép bitwise, còn mask `0xFF` giữ tám bit thấp.
+**Answer:** `-16`, `240`, `15`. `raw` sign-extends to `int` in the two bitwise operations, while the `0xFF` mask keeps the low eight bits.
 
-### Bài 6 — Chọn toán tử theo ý định
+### Exercise 6 — Choosing the operator by intent
 
-Tại sao `flags ^= FLAG` không phải lựa chọn mặc định để đảm bảo một cờ bật?
+Why is `flags ^= FLAG` not the default choice to ensure a flag is enabled?
 
-**Đáp án:** XOR **đảo** bit. Nếu cờ đã bật, XOR tắt nó. OR với `FLAG` bảo đảm bit bật, tức `flags |= FLAG`.
+**Answer:** XOR **toggles** the bit. If the flag is already on, XOR turns it off. OR with `FLAG` ensures the bit is on, i.e., `flags |= FLAG`.
 
-### Bài 7 — Boolean có side effect
+### Exercise 7 — Boolean with side effects
 
-Giả sử `probe()` in thông báo rồi trả `true`. So sánh `false & probe()` với `false && probe()`.
+Suppose `probe()` prints a message and returns `true`. Compare `false & probe()` with `false && probe()`.
 
-**Đáp án:** biểu thức thứ nhất vẫn gọi `probe()` và trả `false`; biểu thức thứ hai bỏ qua `probe()` do short circuit và cũng trả `false`.
+**Answer:** the first expression still calls `probe()` and returns `false`; the second expression skips `probe()` due to short-circuiting and also returns `false`.
 
-### Bài 8 — Mask ở bit 40
+### Exercise 8 — Mask at bit 40
 
-Tại sao `1 << 40` sai nếu mục tiêu là tạo một cờ tại vị trí bit 40? Viết lại đúng.
+Why is `1 << 40` wrong if the goal is to create a flag at bit position 40? Rewrite it correctly.
 
-**Đáp án:** `1` là `int` 32 bit; khoảng dịch hiệu dụng chỉ xét năm bit thấp nên `40` được xử lý như `8`. Viết `1L << 40` để dùng `long` và dịch đúng vị trí.
+**Answer:** `1` is a 32-bit `int`; the effective shift distance only considers the low five bits, so `40` is treated as `8`. Write `1L << 40` to use `long` and shift to the right position.
 
-### Bài 9 — Tách màu RGB
+### Exercise 9 — Extracting RGB colors
 
-Cho `rgb = 0x12AB34`. Dùng `& 0xFF` và dịch phải để lấy red, green, blue.
+Given `rgb = 0x12AB34`. Use `& 0xFF` and right shifts to extract red, green, and blue.
 
-**Đáp án:**
+**Answer:**
 
 ```java
 int red   = (rgb >>> 16) & 0xFF; // 18
@@ -695,28 +695,28 @@ int green = (rgb >>> 8)  & 0xFF; // 171
 int blue  = rgb & 0xFF;          // 52
 ```
 
-Đoạn này là **mảnh mã**; đặt trong phương thức với `int rgb = 0x12AB34;` trước khi chạy.
+This is a **code snippet**; place it inside a method with `int rgb = 0x12AB34;` before running.
 
-## 17. Checklist thành thạo
+## 17. Mastery Checklist
 
-- [ ] Tôi tự dựng được bảng chân trị của AND, OR, XOR và NOT.
-- [ ] Tôi lý giải được `12 & 10 = 8`, `12 | 10 = 14`, `12 ^ 10 = 6`.
-- [ ] Tôi không nhầm `~12` với việc đảo chỉ bốn bit.
-- [ ] Tôi biết `&`/`|`/`^` và `~` áp dụng lên kiểu nguyên sau promotion; `~byte` cho `int`.
-- [ ] Tôi phân biệt `&`/`|` trên `boolean` với `&&`/`||` và cơ chế short circuit.
-- [ ] Tôi chọn được mask để bật, tắt, kiểm tra hoặc đảo cờ.
-- [ ] Tôi biết phải đặt ngoặc với biểu thức kiểm tra `(flags & mask) != 0` và `(flags & mask) == mask`.
-- [ ] Tôi hiểu ý nghĩa dấu khi đọc `byte`/`int` và cách mask ra phần thấp không dấu.
-- [ ] Tôi biết cờ ở bit cao cần `long` và literal `1L` trước phép dịch.
-- [ ] Tôi đã chạy ví dụ Java 17+ và kiểm tra các trường hợp số âm, bit cao và mask nhiều bit.
+- [ ] I can construct the truth tables for AND, OR, XOR, and NOT on my own.
+- [ ] I can explain `12 & 10 = 8`, `12 | 10 = 14`, and `12 ^ 10 = 6`.
+- [ ] I do not confuse `~12` with inverting only four bits.
+- [ ] I know `&`/`|`/`^` and `~` apply to integer types after promotion; `~byte` yields `int`.
+- [ ] I can distinguish `&`/`|` on `boolean` from `&&`/`||` and short-circuit evaluation.
+- [ ] I can choose a mask to set, clear, check, or toggle flags.
+- [ ] I know to wrap check expressions in parentheses: `(flags & mask) != 0` and `(flags & mask) == mask`.
+- [ ] I understand sign meaning when reading `byte`/`int` and how to mask out the unsigned low bits.
+- [ ] I know flags at high bit positions require `long` and a `1L` literal before shifting.
+- [ ] I have run the Java 17+ examples and checked negative numbers, high bits, and multi-bit masks.
 
-**Tài liệu tham khảo chính thức:**
+**Official references:**
 
-- [JLS 17 §15.22 — Bitwise and Logical Operators](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.22): quy tắc `&`, `^`, `|` với integer/boolean.
-- [JLS 17 §15.15.5 — Bitwise Complement Operator](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.15.5): quy tắc toán tử `~`.
+- [JLS 17 §15.22 — Bitwise and Logical Operators](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.22): rules for `&`, `^`, `|` with integers/booleans.
+- [JLS 17 §15.15.5 — Bitwise Complement Operator](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.15.5): rules for the `~` operator.
 - [JLS 17 §5.6 — Numeric Contexts](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.6): unary/binary numeric promotion.
-- [JLS 17 §15.19 — Shift Operators](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.19): dịch bit và số bước dịch hiệu dụng.
-- [Java SE 17 Integer API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Integer.html): `toBinaryString`, `toUnsignedString` và các phương thức unsigned.
+- [JLS 17 §15.19 — Shift Operators](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.19): bit shifting and effective shift distance.
+- [Java SE 17 Integer API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Integer.html): `toBinaryString`, `toUnsignedString`, and unsigned methods.
 - [Java SE 17 Byte API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Byte.html): `toUnsignedInt`.
 
-Hãy luôn đọc biểu thức bitwise theo **bit width, kiểu sau promotion, mask và mục đích thao tác**. Bốn toán tử đơn giản về bảng chân trị, nhưng hiệu quả và độ đúng phụ thuộc vào cách bạn diễn giải các bit thành giá trị trong Java.
+Always read bitwise expressions by **bit width, post-promotion type, mask, and operation intent**. The four operators have simple truth tables, but effectiveness and correctness depend on how you interpret those bits as values in Java.

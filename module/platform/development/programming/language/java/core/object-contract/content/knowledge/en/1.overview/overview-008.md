@@ -1,70 +1,70 @@
-# Lộ trình học Java Object Contract với một đối tượng giá trị xuyên suốt
+# A Learning Roadmap for Java Object Contracts Using One End-to-End Value Object
 
-## 1. Mục tiêu và bối cảnh
+## 1. Goal and Context
 
-Trong Java, mọi lớp thông thường đều kế thừa các hành vi nền tảng từ `java.lang.Object`. Khi một lớp biểu diễn **giá trị** (value object), hai instance khác địa chỉ bộ nhớ có thể mang cùng một ý nghĩa nghiệp vụ. Vì vậy, phải xác định rõ khái niệm “bằng nhau”, cách đưa đối tượng vào cấu trúc băm, cách mô tả đối tượng và (nếu cần) cách sắp xếp.
+In Java, every ordinary class inherits foundational behavior from `java.lang.Object`. When a class represents a **value** (a value object), two instances at different memory addresses can carry the same business meaning. Therefore, it is necessary to clearly define the concept of "equality", how the object is placed into hash-based structures, how the object is described, and (if needed) how it is ordered.
 
-Bài học dùng duy nhất một tình huống xuyên suốt: `OrderKey` là khóa đơn hàng gồm **mã cửa hàng** (`tenant`) và **số đơn hàng** (`number`). Chẳng hạn `new OrderKey(" shop ", 42)` và `new OrderKey("SHOP", 42)` cùng xác định một đơn hàng sau khi chuẩn hóa mã cửa hàng. `OrderKey` là value object: giá trị các trường quyết định danh tính logic của nó; object không đổi sau khi được tạo.
+This lesson uses a single end-to-end scenario: `OrderKey` is an order key consisting of a **store code** (`tenant`) and an **order number** (`number`). For example, `new OrderKey(" shop ", 42)` and `new OrderKey("SHOP", 42)` identify the same order after normalizing the store code. `OrderKey` is a value object: the values of its fields determine its logical identity; the object does not change after creation.
 
-Sau bài này, người học cần có thể:
-- Phân biệt `==` (cùng tham chiếu) với `equals` (bằng nhau về giá trị theo hợp đồng của lớp).
-- Phát biểu và kiểm tra hợp đồng `equals`/`hashCode`, giải thích tại sao `HashMap` và `HashSet` phụ thuộc vào cả hai.
-- Thiết kế `toString` phục vụ quan sát/gỡ lỗi nhưng không nhầm nó với định dạng lưu trữ ổn định.
-- Viết `Comparable`/`Comparator` phù hợp với định nghĩa bằng nhau; hiểu rủi ro khi thứ tự tự nhiên không nhất quán với `equals`.
-- Giữ value object bất biến, kiểm tra đầu vào, tránh thay đổi khóa sau khi đưa vào collection.
+After this lesson, learners should be able to:
+- Distinguish `==` (same reference) from `equals` (equality by value per the class's contract).
+- State and verify the `equals`/`hashCode` contract, and explain why `HashMap` and `HashSet` depend on both.
+- Design `toString` for observation/debugging without mistaking it for a stable storage format.
+- Write `Comparable`/`Comparator` matching the equality definition; understand the risks when natural ordering is inconsistent with `equals`.
+- Keep value objects immutable, validate inputs, and avoid mutating keys after inserting them into a collection.
 
-## 2. Lộ trình đề xuất và tiêu chí hoàn thành
+## 2. Suggested Roadmap and Completion Criteria
 
-| Chặng | Câu hỏi cần trả lời | Thực hành trên `OrderKey` | Dấu hiệu đã hiểu |
+| Stage | Question to answer | Practice on `OrderKey` | Sign of understanding |
 |---|---|---|---|
-| 0. Nền tảng | Object, tham chiếu, instance, giá trị, bất biến khác nhau thế nào? | Tạo hai instance riêng có cùng dữ liệu | Giải thích được tại sao `a == b` là `false` |
-| 1. Equality | Khi nào hai đơn hàng là “cùng khóa”? | Chọn cặp trường `tenant` và `number` cho `equals` | Kiểm tra đủ 5 tính chất của `equals` |
-| 2. Hashing | Vì sao lookup bằng đối tượng khác vẫn tìm được? | Ghi đè `hashCode` đồng bộ với `equals` | `HashSet` loại trùng, `HashMap` tra cứu thành công |
-| 3. Representation | Log cho biết gì về đối tượng? | Ghi đè `toString` với thông tin rõ ràng | Đọc log mà không cần biết địa chỉ bộ nhớ |
-| 4. Ordering | Sắp xếp các khóa theo quy tắc nào? | So sánh `tenant` rồi `number` với `Comparable` | `TreeSet` không làm mất khóa khác nhau |
-| 5. Immutability | Khóa thay đổi sau khi hash sẽ ra sao? | Trường `private final`, chuẩn hóa đầu vào, không setter | Giá trị băm không đổi trong suốt vòng đời |
-| 6. Tích hợp và kiểm thử | Hợp đồng hoạt động trong collection thật không? | Chạy chương trình cuối bài và bài tập biến thể | Dự đoán, giải thích đúng toàn bộ output |
+| 0. Foundations | How do object, reference, instance, value, and immutability differ? | Create two separate instances with the same data | Can explain why `a == b` is `false` |
+| 1. Equality | When are two orders "the same key"? | Choose the `(tenant, number)` field pair for `equals` | Verify all 5 properties of `equals` |
+| 2. Hashing | Why does lookup with a different object still find it? | Override `hashCode` in sync with `equals` | `HashSet` deduplicates, `HashMap` lookup succeeds |
+| 3. Representation | What do logs tell us about the object? | Override `toString` with clear information | Read logs without needing memory addresses |
+| 4. Ordering | By what rules are keys sorted? | Compare `tenant` then `number` with `Comparable` | `TreeSet` does not lose distinct keys |
+| 5. Immutability | What happens if a key changes after hashing? | `private final` fields, input normalization, no setters | Hash value stays unchanged across its lifecycle |
+| 6. Integration and testing | Does the contract work in real collections? | Run the end-of-lesson program and variant exercises | Predict and correctly explain all output |
 
-**Thứ tự thực hành:** bắt đầu bằng hai tham chiếu khác nhau; thêm equality; ngay sau đó thêm hashing; kiểm tra bằng `HashSet`/`HashMap`; cải thiện cách in đối tượng; cuối cùng mới bổ sung natural ordering và kiểm tra `TreeSet`. Không cần học thuộc mọi phương thức của `Object` cùng lúc.
+**Practice order:** start with two different references; add equality; immediately add hashing; test with `HashSet`/`HashMap`; improve object printing; finally add natural ordering and test `TreeSet`. There is no need to memorize every method of `Object` all at once.
 
-## 3. Các hợp đồng cần nắm
+## 3. Contracts to Master
 
-### 3.1. `==` và `equals`
+### 3.1. `==` and `equals`
 
-Với hai biến kiểu tham chiếu, `a == b` hỏi chúng có trỏ tới **cùng một object** hay không. `a.equals(b)` hỏi lớp định nghĩa “bằng nhau” như thế nào. `Object.equals` mặc định tương đương so sánh danh tính tham chiếu; một value object thường cần ghi đè.
+For two reference-type variables, `a == b` asks whether they point to **the same object**. `a.equals(b)` asks how the class defines "equality". Default `Object.equals` is equivalent to comparing reference identity; a value object usually needs to override it.
 
-Hợp đồng `equals` với các tham chiếu khác `null`:
-1. **Phản xạ:** `x.equals(x)` luôn `true`.
-2. **Đối xứng:** `x.equals(y)` và `y.equals(x)` cho cùng kết quả.
-3. **Bắc cầu:** nếu `x.equals(y)` và `y.equals(z)` đều đúng thì `x.equals(z)` đúng.
-4. **Nhất quán:** khi dữ liệu tham gia so sánh không đổi, gọi lại cho cùng kết quả.
-5. **Với null:** `x.equals(null)` luôn `false`.
+The `equals` contract for non-`null` references:
+1. **Reflexive:** `x.equals(x)` is always `true`.
+2. **Symmetric:** `x.equals(y)` and `y.equals(x)` produce the same result.
+3. **Transitive:** if `x.equals(y)` and `y.equals(z)` are both true, then `x.equals(z)` is true.
+4. **Consistent:** when data participating in comparison does not change, repeated calls return the same result.
+5. **With null:** `x.equals(null)` is always `false`.
 
-Đối với `OrderKey`, toàn bộ định nghĩa “bằng nhau” là `tenant` chuẩn hóa bằng nhau **và** `number` bằng nhau. Không dùng tên biến, địa chỉ bộ nhớ, `toString` hoặc chỉ một trường để suy đoán sự bằng nhau.
+For `OrderKey`, the entire definition of "equal" is equal normalized `tenant` **and** equal `number`. Do not use variable names, memory addresses, `toString`, or just a single field to infer equality.
 
 ### 3.2. `hashCode`
 
-Nếu `x.equals(y)` là `true` thì **bắt buộc** `x.hashCode() == y.hashCode()`. Chiều ngược lại không đúng: hai object khác nhau vẫn có thể trùng mã băm (collision). Giá trị băm của một object phải nhất quán khi các dữ liệu dùng bởi `equals` không thay đổi.
+If `x.equals(y)` is `true`, then `x.hashCode() == y.hashCode()` is **mandatory**. The converse is not true: two different objects can still share the same hash code (collision). The hash value of an object must remain consistent while the data used by `equals` does not change.
 
-`HashMap`/`HashSet` dùng mã băm để định hướng tìm bucket và dùng equality để phân biệt khóa/phần tử trong bucket. Ghi đè `equals` mà bỏ `hashCode` khiến hai value object bằng nhau có thể có hash khác nhau, dẫn tới hành vi tìm kiếm/loại trùng sai. Vì thế **luôn ghi đè chúng cùng nhau**, dựa trên cùng bộ thuộc tính. `Objects.hash(tenant, number)` dễ đọc cho ví dụ; code nhạy hiệu năng có thể dùng phép kết hợp hash cụ thể sau khi đo đạc.
+`HashMap`/`HashSet` use hash codes to guide bucket lookup and use equality to distinguish keys/elements within a bucket. Overriding `equals` while omitting `hashCode` can cause two equal value objects to have different hashes, leading to incorrect lookup/deduplication behavior. Therefore **always override them together**, based on the same set of attributes. `Objects.hash(tenant, number)` is easy to read for examples; performance-sensitive code can use a specific hash-combining operation after benchmarking.
 
 ### 3.3. `toString`
 
-`toString` của `Object` thường cho chuỗi dạng tên lớp và mã băm dạng hex; đây không phải danh sách thuộc tính nghiệp vụ. Ghi đè `toString` để phục vụ log và debug, ví dụ `OrderKey[tenant=SHOP, number=42]`. Không dùng `toString` làm cơ sở so sánh hay khóa dữ liệu, không coi định dạng này là API serialization. Tránh in thông tin nhạy cảm trong object thực tế.
+`Object`'s `toString` typically produces a string in the form of class name and hexadecimal hash code; this is not a list of business attributes. Override `toString` to support logging and debugging, such as `OrderKey[tenant=SHOP, number=42]`. Do not use `toString` as a basis for comparison or data keys, and do not treat this format as a serialization API. Avoid printing sensitive information in real-world objects.
 
-### 3.4. `Comparable`, `Comparator` và tính nhất quán
+### 3.4. `Comparable`, `Comparator`, and Consistency
 
-`Comparable<T>` đặt **thứ tự tự nhiên** cho một lớp thông qua `compareTo` (âm/0/dương khi nhỏ hơn/bằng về thứ tự/lớn hơn). `Comparator<T>` diễn tả một cách sắp xếp bên ngoài, tiện khi cần nhiều tiêu chí khác nhau.
+`Comparable<T>` establishes a **natural ordering** for a class via `compareTo` (negative/0/positive for less than/equal in ordering/greater than). `Comparator<T>` expresses an external sorting rule, convenient when multiple different criteria are needed.
 
-Với value object dùng trong `TreeSet` hoặc làm khóa `TreeMap`, nên thiết kế:
+For a value object used in `TreeSet` or as a `TreeMap` key, design it so that:
 
 `a.compareTo(b) == 0` ⇔ `a.equals(b)`.
 
-Các collection có thứ tự dùng kết quả so sánh bằng 0 để xác định phần tử/khóa tương đương theo thứ tự. Nếu quy tắc này không nhất quán với `equals`, `TreeSet` và `HashSet` có thể cho số phần tử khác nhau. Ví dụ quen thuộc: `new BigDecimal("1.0").compareTo(new BigDecimal("1.00")) == 0` nhưng hai số này có `equals` là `false` vì scale khác nhau. Đây là điểm cần cân nhắc khi chọn value object hoặc comparator.
+Ordered collections use a comparison result of 0 to determine elements/keys equivalent in order. If this rule is inconsistent with `equals`, `TreeSet` and `HashSet` can produce different element counts. A familiar example: `new BigDecimal("1.0").compareTo(new BigDecimal("1.00")) == 0`, yet these two numbers have `equals` as `false` because their scales differ. This is a point to weigh when choosing value objects or comparators.
 
-## 4. Ví dụ Java 17+ chạy độc lập
+## 4. Standalone Runnable Java 17+ Example
 
-Tạo tệp **`ObjectContractDemo.java`** với nội dung sau. Chương trình dùng một lớp value object `final` lồng bên trong để có thể biên dịch toàn bộ bằng một tệp. Java 17 hỗ trợ pattern matching với `instanceof` được dùng ở đây.
+Create the file **`ObjectContractDemo.java`** with the following content. The program uses a nested `final` value object class so the entire example can be compiled from a single file. Java 17 supports pattern matching with `instanceof`, which is used here.
 
 ```java
 import java.util.HashMap;
@@ -156,14 +156,14 @@ public class ObjectContractDemo {
 }
 ```
 
-Chạy tại thư mục chứa tệp bằng JDK 17 trở lên:
+Run from the directory containing the file with JDK 17 or later:
 
 ```bash
 javac --release 17 ObjectContractDemo.java
 java ObjectContractDemo
 ```
 
-Output dự kiến (thứ tự in của `TreeSet` đã được cố định bởi `compareTo`; không phụ thuộc thứ tự của `HashSet`):
+Expected output (the printing order of `TreeSet` is fixed by `compareTo`; it does not depend on `HashSet` order):
 
 ```text
 ==: false
@@ -176,70 +176,70 @@ compareTo == 0: true
 toString: OrderKey[tenant=SHOP, number=42]
 ```
 
-Giải thích theo thứ tự:
-- `first` và `sameValue` là hai object khác nhau nên `==` trả về `false`. Constructor đã chuẩn hóa khoảng trắng và chữ hoa bằng `Locale.ROOT`, vì vậy `equals` trả về `true`.
-- Khi `equals` là `true`, hai object này buộc có cùng `hashCode`; phần tử trùng được `HashSet` gộp, còn `next` với `number=43` là khóa khác. Kết quả tập hợp có 2 phần tử.
-- `HashMap` có thể lấy giá trị đã lưu với `first` bằng khóa `sameValue`, minh họa lookup theo giá trị.
-- `TreeSet` dùng `compareTo`: so sánh `tenant` trước, `number` sau. Hai object cùng khóa cho `compareTo` bằng 0, nên tập hợp có một khóa 42 và một khóa 43.
-- Chuỗi hiển thị do `toString` chủ động quyết định; không dùng output này để thực hiện logic equality.
+Step-by-step explanation:
+- `first` and `sameValue` are two different objects, so `==` returns `false`. The constructor normalized whitespace and uppercase using `Locale.ROOT`, so `equals` returns `true`.
+- When `equals` is `true`, these two objects must have the same `hashCode`; the duplicate element is merged by `HashSet`, while `next` with `number=43` is a different key. Consequently, the set has 2 elements.
+- `HashMap` can retrieve the value stored with `first` using the key `sameValue`, illustrating value-based lookup.
+- `TreeSet` uses `compareTo`: comparing `tenant` first, then `number`. Two objects with the same key yield `compareTo` equal to 0, so the set contains one key 42 and one key 43.
+- The displayed string is deliberately chosen by `toString`; do not use this output to implement equality logic.
 
-### Vì sao ví dụ là một value object hợp lệ?
+### Why Is This Example a Valid Value Object?
 
-**Bất biến:** Lớp được khai báo `final`, hai trường `private final`, không có setter. `String` là kiểu bất biến, `long` là primitive nên caller không thể thay đổi dữ liệu bên trong qua tham chiếu rò rỉ. Chuẩn hóa và kiểm tra ngay trong constructor ngăn trạng thái không hợp lệ.
+**Immutable:** The class is declared `final`, both fields are `private final`, and there are no setters. `String` is immutable and `long` is primitive, so callers cannot mutate internal data through a leaked reference. Normalizing and validating directly in the constructor prevents invalid states.
 
-**Bình đẳng có ngữ nghĩa:** `equals` dựa trên đúng hai trường quyết định ý nghĩa của khóa. Nhánh `this == other` là tối ưu nhanh; phép `instanceof OrderKey` an toàn ở đây vì lớp `final` không có subclass gây phá đối xứng.
+**Meaningful equality:** `equals` is based on the exact two fields that determine the key's meaning. The `this == other` branch is a fast optimization; `instanceof OrderKey` is safe here because the `final` class has no subclasses that could break symmetry.
 
-**Hashing phù hợp:** `hashCode` dùng cùng `tenant`, `number`; cả hai bất biến nên hash ổn định sau khi đưa object vào `HashMap`.
+**Appropriate hashing:** `hashCode` uses the same `tenant` and `number`; both are immutable, so the hash remains stable after placing the object into a `HashMap`.
 
-**Sắp xếp phù hợp:** `compareTo` xét cả hai trường, cùng thứ tự ý nghĩa với `equals`; dùng `Long.compare` tránh lỗi khi tự trừ hai số `long` rồi ép về `int`.
+**Appropriate ordering:** `compareTo` checks both fields in the same semantic order as `equals`; using `Long.compare` avoids bugs from subtracting two `long` values and casting to `int`.
 
-**Biên đầu vào rõ ràng:** `null` tenant làm phát sinh `NullPointerException` từ `requireNonNull`; chuỗi rỗng sau `strip` và số đơn không dương bị từ chối bằng `IllegalArgumentException`. Quy tắc chuẩn hóa chữ hoa phải phù hợp miền nghiệp vụ thực tế; ví dụ giả định mã cửa hàng không phân biệt hoa/thường.
+**Clear input boundaries:** A `null` tenant triggers `NullPointerException` from `requireNonNull`; an empty string after `strip` and non-positive order numbers are rejected with `IllegalArgumentException`. Uppercase normalization rules must match the real business domain; the example assumes store codes are case-insensitive.
 
-## 5. Các lỗi thường gặp và cách phát hiện
+## 5. Common Mistakes and How to Detect Them
 
-| Sai lầm | Hậu quả quan sát được | Cách xử lý |
+| Mistake | Observable consequence | How to handle |
 |---|---|---|
-| Chỉ ghi đè `equals` | `HashSet`/`HashMap` có thể không nhận ra hai khóa bằng nhau | Ghi đè `hashCode` với cùng các trường |
-| `hashCode` tính thêm trường không có trong `equals` | Hai object bằng nhau có thể có hash khác nhau | Dùng cùng nguồn dữ liệu quyết định equality |
-| Khóa có setter làm thay đổi trường tham gia hash | Tra cứu có thể thất bại sau khi đưa khóa vào map/set | Dùng value object bất biến; không thay đổi khóa |
-| So sánh chuỗi bằng `==` | So sánh tham chiếu thay vì nội dung | Dùng `String.equals` hoặc `Objects.equals` khi có thể null |
-| `compareTo` chỉ xét `tenant`, bỏ `number` | Hai đơn khác số có thể bị `TreeSet` gộp thành một | Đưa toàn bộ trường khóa vào quy tắc so sánh |
-| Dùng phép trừ trong `compareTo` số nguyên | Có thể overflow và trả sai dấu | Dùng `Integer.compare`/`Long.compare` |
-| Tự động sinh `toString` chứa mật khẩu/token | Dữ liệu nhạy cảm có thể lộ trong log | Chỉ đưa trường cần thiết, che thông tin nhạy cảm |
-| Dùng lớp có kế thừa tự do rồi thêm trường equality ở subclass | Có nguy cơ phá đối xứng/bắc cầu | Ưu tiên value object `final` hoặc một thiết kế equality nhất quán |
-| So sánh `double`/`BigDecimal` mà chưa chọn chính sách chuẩn hóa | Khác biệt về NaN, -0.0, scale hoặc rounding dễ gây bất ngờ | Định nghĩa miền giá trị, chuẩn hóa và kiểm thử các biên |
+| Overriding only `equals` | `HashSet`/`HashMap` may fail to recognize two equal keys | Override `hashCode` with the same fields |
+| `hashCode` includes a field absent from `equals` | Two equal objects may have different hashes | Use the same data sources that determine equality |
+| Key has a setter changing fields involved in hashing | Lookup may fail after placing the key into a map/set | Use immutable value objects; do not mutate keys |
+| Comparing strings with `==` | Compares references instead of content | Use `String.equals` or `Objects.equals` when nullable |
+| `compareTo` checks only `tenant`, omitting `number` | Two orders with different numbers may be merged into one by `TreeSet` | Include all key fields in the comparison rule |
+| Using subtraction in integer `compareTo` | Can overflow and return the wrong sign | Use `Integer.compare`/`Long.compare` |
+| Auto-generated `toString` containing passwords/tokens | Sensitive data may leak into logs | Include only necessary fields; mask sensitive information |
+| Using a freely inheritable class and adding equality fields in a subclass | Risks breaking symmetry/transitivity | Prefer `final` value objects or a consistent equality design |
+| Comparing `double`/`BigDecimal` without choosing a normalization policy | Differences in NaN, -0.0, scale, or rounding easily cause surprises | Define the value domain, normalize, and test boundary cases |
 
-**Phân biệt hai mục đích:** Băm để tìm phần tử nhanh và thứ tự để sắp xếp là hai hợp đồng riêng. `hashCode` không cần tăng theo thứ tự; `compareTo` không quyết định bucket băm.
+**Distinguishing two purposes:** Hashing to find elements quickly and ordering to sort are two separate contracts. `hashCode` does not need to increase with ordering; `compareTo` does not determine hash buckets.
 
-## 6. Tự kiểm thử và mở rộng ví dụ
+## 6. Self-Testing and Extending the Example
 
-Sau khi chạy chương trình, thực hiện tuần tự các bài tập sau; luôn dự đoán trước kết quả rồi kiểm tra:
-1. Tạo `a = new OrderKey("Shop", 42)`, `b = new OrderKey(" SHOP ", 42)` và `c = new OrderKey("SHOP", 43)`. Kiểm tra `a.equals(b)`, `b.equals(a)`, `a.equals(c)`, `a.equals(null)`, `a.equals(a)`.
-2. Tạo `d = new OrderKey("shop", 42)`. Kiểm tra chuỗi `a.equals(b)`, `b.equals(d)`, `a.equals(d)` để quan sát tính bắc cầu; thêm kiểm tra hash khi bằng nhau.
-3. Tạm bỏ `hashCode` trong một bản thử **riêng** của lớp rồi quan sát `HashSet`/`HashMap`; trả lại code đúng sau thí nghiệm. Đây là cách thấy lỗi hợp đồng, không phải một triển khai được chấp nhận.
-4. Trong bản thử riêng, sửa `compareTo` chỉ so `tenant`, giữ nguyên `equals`. So số phần tử của `HashSet` và `TreeSet` khi thêm khóa 42 và 43; giải thích vì sao kết quả khác nhau.
-5. Thử `new OrderKey(null, 1)`, `new OrderKey("   ", 1)`, `new OrderKey("shop", 0)`; xác định lỗi được phát ra và lý do.
-6. Viết kiểm thử tự động cho identity, 5 tính chất của `equals`, đồng nhất hash, behavior của `HashMap`/`HashSet`/`TreeSet` và thứ tự so sánh. Các kiểm thử chỉ cần các giá trị mẫu cố định; với lớp phức tạp hơn, dùng nhiều mẫu và property-based testing.
+After running the program, work through these exercises in sequence; always predict the output first and then verify:
+1. Create `a = new OrderKey("Shop", 42)`, `b = new OrderKey(" SHOP ", 42)`, and `c = new OrderKey("SHOP", 43)`. Check `a.equals(b)`, `b.equals(a)`, `a.equals(c)`, `a.equals(null)`, and `a.equals(a)`.
+2. Create `d = new OrderKey("shop", 42)`. Check the chain `a.equals(b)`, `b.equals(d)`, `a.equals(d)` to observe transitivity; also check that hashes match when equal.
+3. Temporarily remove `hashCode` in a **separate** test copy of the class and observe `HashSet`/`HashMap`; restore the correct code after the experiment. This is a way to see a contract bug, not an acceptable implementation.
+4. In a separate test copy, modify `compareTo` to compare only `tenant` while keeping `equals` unchanged. Compare the element counts of `HashSet` and `TreeSet` when adding keys 42 and 43; explain why the results differ.
+5. Try `new OrderKey(null, 1)`, `new OrderKey("   ", 1)`, `new OrderKey("shop", 0)`; identify the exception thrown and the reason.
+6. Write automated tests for identity, the 5 properties of `equals`, hash consistency, behavior of `HashMap`/`HashSet`/`TreeSet`, and comparison ordering. The tests only need fixed sample values; for more complex classes, use multiple samples and property-based testing.
 
-Một bộ test tối thiểu (có thể chuyển sang JUnit) nên có:
+A minimal test suite (convertible to JUnit) should include:
 
-| Assertion | Kết quả cần đúng |
+| Assertion | Expected correctness |
 |---|---|
-| `a != b` và `a.equals(b)` | Hai instance khác nhau nhưng cùng giá trị |
-| `a.equals(null) == false` | Không bằng null |
-| `a.equals(b) == b.equals(a)` | Đối xứng |
-| `a.equals(b) && b.equals(d) && a.equals(d)` | Bắc cầu |
-| `a.equals(b)` kéo theo `a.hashCode() == b.hashCode()` | Hợp đồng hash |
-| `map.put(a, "ok"); map.get(b)` trả `"ok"` | Tra cứu theo giá trị |
-| `a.compareTo(b) == 0` và `a.compareTo(c) < 0` | Thứ tự nhất quán |
-| `new HashSet<>(List.of(a,b,c)).size() == 2` | Loại trùng đúng |
+| `a != b` and `a.equals(b)` | Two different instances with the same value |
+| `a.equals(null) == false` | Not equal to null |
+| `a.equals(b) == b.equals(a)` | Symmetry |
+| `a.equals(b) && b.equals(d) && a.equals(d)` | Transitivity |
+| `a.equals(b)` implies `a.hashCode() == b.hashCode()` | Hash contract |
+| `map.put(a, "ok"); map.get(b)` returns `"ok"` | Value-based lookup |
+| `a.compareTo(b) == 0` and `a.compareTo(c) < 0` | Consistent ordering |
+| `new HashSet<>(List.of(a,b,c)).size() == 2` | Proper deduplication |
 
-## 7. Liên hệ các cơ chế khác của Java và hướng học tiếp
+## 7. Connections to Other Java Mechanisms and Next Steps
 
-- **`record` (Java 16+)** phù hợp với nhiều value object vì compiler tự cung cấp `equals`, `hashCode`, `toString` theo các component; record không tự cung cấp `Comparable`. Nếu cần chuẩn hóa input, hãy dùng compact constructor và kiểm chứng kết quả equality trên giá trị đã chuẩn hóa.
-- **`Objects.equals`, `Objects.hash`, `Objects.requireNonNull`** giúp biểu đạt rõ null handling và các hợp đồng, nhưng không tự chọn đúng thuộc tính nghiệp vụ thay cho người thiết kế.
-- **`Arrays.equals`/`Arrays.hashCode`** (hoặc phiên bản `deepEquals`/`deepHashCode` cho cấu trúc lồng thích hợp) cần được cân nhắc nếu value object có mảng: `array.equals` mặc định so tham chiếu.
-- **`Object.getClass`** giúp kiểm tra lớp runtime; **`clone`** có hợp đồng riêng và thường không cần thiết với value object bất biến. **`finalize`** đã bị loại khỏi hướng thiết kế Java hiện đại (deprecated for removal), không dùng để quản lý tài nguyên. Các phương thức `wait`/`notify` liên quan phối hợp thread, không phải nền tảng của equality.
-- Khi tiến tới lớp entity có danh tính vòng đời, collection mutable, ORM hoặc quan hệ kế thừa phức tạp, hãy xác định lại identity/equality theo quy tắc của mô hình đó; không bê nguyên định nghĩa value object sang mọi trường hợp.
+- **`record` (Java 16+)** suits many value objects because the compiler automatically provides `equals`, `hashCode`, and `toString` from the components; records do not automatically provide `Comparable`. If input normalization is needed, use a compact constructor and verify equality results on the normalized values.
+- **`Objects.equals`, `Objects.hash`, `Objects.requireNonNull`** help express null handling and contracts clearly, though they do not automatically choose the right business attributes for the designer.
+- **`Arrays.equals`/`Arrays.hashCode`** (or `deepEquals`/`deepHashCode` versions for appropriate nested structures) must be considered if a value object contains arrays: `array.equals` defaults to reference comparison.
+- **`Object.getClass`** helps inspect the runtime class; **`clone`** has its own contract and is usually unnecessary for immutable value objects. **`finalize`** has been phased out of modern Java design (deprecated for removal) and should not be used to manage resources. The `wait`/`notify` methods relate to thread coordination, not the foundation of equality.
+- When advancing to entity classes with lifecycle identity, mutable collections, ORMs, or complex inheritance hierarchies, redefine identity/equality according to that model's rules; do not copy a value-object definition blindly into every case.
 
-**Tiêu chí hoàn thành bài:** có thể tự xây dựng `OrderKey` từ yêu cầu nghiệp vụ, giải thích từng ghi đè, chạy đúng ví dụ và dự đoán được khác biệt giữa `HashSet`, `HashMap`, `TreeSet` khi một hợp đồng bị vi phạm.
+**Lesson completion criteria:** be able to build `OrderKey` from business requirements, explain each override, run the example successfully, and predict differences between `HashSet`, `HashMap`, and `TreeSet` when a contract is broken.

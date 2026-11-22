@@ -1,43 +1,43 @@
-# Kiểm thử `null`, `NaN`, `+0.0`, `-0.0`, mảng và cấu trúc lồng trong hợp đồng đối tượng Java
+# Testing `null`, `NaN`, `+0.0`, `-0.0`, Arrays, and Nested Structures in the Java Object Contract
 
-Một phương thức `equals()` trông đúng với dữ liệu thông thường vẫn có thể sai khi gặp `null`, số thực đặc biệt, mảng hoặc đối tượng lồng nhau. Sai lệch thường kéo theo `hashCode()` không nhất quán, hoặc `compareTo()`/`Comparator` coi hai khóa như nhau trong khi `equals()` không coi chúng bằng nhau. Hậu quả có thể là `HashSet` chứa phần tử trùng về mặt nghiệp vụ, `HashMap` tra khóa thất bại hoặc `TreeSet` loại bỏ dữ liệu không mong muốn.
+An `equals()` method that looks right on ordinary data can still fail when encountering `null`, special floating-point values, arrays, or nested objects. Discrepancies often entail an inconsistent `hashCode()`, or a `compareTo()`/`Comparator` treating two keys as tied while `equals()` does not consider them equal. Consequences can include a `HashSet` holding business-duplicate elements, a `HashMap` failing key lookups, or a `TreeSet` discarding data unexpectedly.
 
-Bài này tập trung **cách xác định kỳ vọng, triển khai và kiểm thử hợp đồng** trong Java 17+: phân biệt toán tử `==` với giá trị bằng nhau, lựa chọn ngữ nghĩa cho `double`/`float`, so sánh mảng đúng chiều sâu, và giữ hợp đồng ổn định với cấu trúc lồng. Không có một phép so sánh nào đúng cho mọi mô hình: phải xác định "bằng nhau" có nghĩa gì với kiểu đối tượng cụ thể, rồi dùng cùng một quy tắc cho `equals()`, `hashCode()` và quan hệ thứ tự nếu cần.
+This lesson focuses on **how to define expectations, implement, and test the contract** in Java 17+: distinguishing the `==` operator from value equality, choosing semantics for `double`/`float`, comparing arrays at the right depth, and keeping the contract stable with nested structures. No single comparison rule fits every model: you must decide what "equal" means for a specific object type, then apply that same rule consistently across `equals()`, `hashCode()`, and ordering if needed.
 
-## 1. Các bất biến phải kiểm chứng trước trường hợp biên
+## 1. Invariants to Verify Before Edge Cases
 
-Với các đối tượng không `null` là `x`, `y`, `z`:
+For non-`null` objects `x`, `y`, `z`:
 
-1. **Phản xạ:** `x.equals(x)` là `true`.
-2. **Đối xứng:** `x.equals(y) == y.equals(x)`.
-3. **Bắc cầu:** nếu `x.equals(y)` và `y.equals(z)` thì `x.equals(z)`.
-4. **Nhất quán:** kết quả không đổi giữa các lần gọi nếu trạng thái tham gia so sánh không thay đổi.
-5. **Với `null`:** `x.equals(null)` phải là `false`.
-6. **Ràng buộc băm:** nếu `x.equals(y)` thì **bắt buộc** `x.hashCode() == y.hashCode()`. Hai đối tượng không bằng nhau **vẫn có thể** cùng hash; không dùng điều ngược lại làm tiêu chuẩn.
-7. **Ràng buộc thứ tự:** `compareTo`/`Comparator` phải nhất quán về dấu khi đảo đối số, có tính bắc cầu và nhất quán theo lớp tương đương của phép so sánh. Với `TreeSet`/`TreeMap`, hai khóa có kết quả `compare(...) == 0` được xem là cùng khóa. Nếu loại dữ liệu kỳ vọng tính duy nhất theo `equals`, nên thiết kế comparator **consistent with equals**, tức `compare(x,y)==0` khi và chỉ khi `x.equals(y)`.
+1. **Reflexive:** `x.equals(x)` is `true`.
+2. **Symmetric:** `x.equals(y) == y.equals(x)`.
+3. **Transitive:** if `x.equals(y)` and `y.equals(z)`, then `x.equals(z)`.
+4. **Consistent:** results do not change across calls if the state participating in comparison does not change.
+5. **Against `null`:** `x.equals(null)` must be `false`.
+6. **Hash constraint:** if `x.equals(y)`, it is **mandatory** that `x.hashCode() == y.hashCode()`. Two unequal objects **may still** share a hash; do not use the converse as a standard.
+7. **Ordering constraint:** `compareTo`/`Comparator` must be sign-consistent when reversing arguments, transitive, and consistent across comparison equivalence classes. For `TreeSet`/`TreeMap`, two keys yielding `compare(...) == 0` are treated as the same key. If a data type expects uniqueness per `equals`, design the comparator to be **consistent with equals**, meaning `compare(x,y)==0` if and only if `x.equals(y)`.
 
-Kiểm thử cần tạo **hai instance độc lập nhưng cùng giá trị**, vì `x.equals(x)` luôn đúng do nhánh `this == other` có thể che lỗi so sánh trường. Với mỗi cặp đã cho là bằng nhau, kiểm tra cả hai hướng `equals` và hash tương ứng; với mỗi giá trị biên, kiểm tra khác biệt có chủ đích.
+Tests should create **two independent instances with equal values**, because `x.equals(x)` always returns true due to the `this == other` branch and can mask field-comparison bugs. For every pair specified as equal, verify both directions of `equals` and matching hashes; for every boundary value, test intentional differences.
 
-### Bảng ca kiểm thử tối thiểu
+### Minimum Test Case Table
 
-| Ca | Điều cần kiểm tra | Kỳ vọng nền tảng Java |
+| Case | What to check | Java platform expectation |
 | --- | --- | --- |
-| Đối tượng so với `null` | `x.equals(null)` | `false` |
-| Hai tham chiếu đều `null` | `Objects.equals(null, null)` | `true` |
-| Thuộc tính nullable | Hai đối tượng có trường `null` cùng vị trí | Bằng nhau nếu các trường khác cùng giá trị |
-| `NaN` với toán tử số học | `Double.NaN == Double.NaN` | `false` |
-| Hai số `NaN` dưới `Double.equals` | Bao gồm các payload bit khác nhau | `true` |
-| `+0.0` với `-0.0` dùng `==` | `+0.0 == -0.0` | `true` |
-| `+0.0` với `-0.0` dùng `Double.equals` | So sánh hai wrapper | `false` |
-| Mảng nguyên thủy cùng phần tử | `Arrays.equals(a,b)` | `true` |
-| Hai mảng lồng cùng dữ liệu | `Arrays.deepEquals(a,b)` | `true` với cấu trúc tương thích, không có chu trình |
-| Collection lồng có mảng bên trong | `List.equals` trên phần tử kiểu mảng | **Không** tự trở thành so sánh theo nội dung mảng |
-| Đối tượng tùy biến | `equals` cùng `hashCode` | Hai đối tượng bằng nhau có hash bằng nhau |
-| Khóa trong sorted collection | `compare(x,y)==0` | `TreeSet`/`TreeMap` xem là một khóa |
+| Object against `null` | `x.equals(null)` | `false` |
+| Both references `null` | `Objects.equals(null, null)` | `true` |
+| Nullable property | Two objects with `null` field in the same position | Equal if other fields match |
+| `NaN` with arithmetic operator | `Double.NaN == Double.NaN` | `false` |
+| Two `NaN` values under `Double.equals` | Including different bit payloads | `true` |
+| `+0.0` vs `-0.0` using `==` | `+0.0 == -0.0` | `true` |
+| `+0.0` vs `-0.0` using `Double.equals` | Comparing two wrappers | `false` |
+| Primitive arrays with same elements | `Arrays.equals(a,b)` | `true` |
+| Two nested arrays with same data | `Arrays.deepEquals(a,b)` | `true` for compatible structures without cycles |
+| Nested collection containing arrays | `List.equals` on array-typed elements | Does **not** automatically become content-based array comparison |
+| Custom object | `equals` paired with `hashCode` | Two equal objects have equal hashes |
+| Key in sorted collection | `compare(x,y)==0` | `TreeSet`/`TreeMap` treats them as one key |
 
-## 2. `null`: kiểm tra cả receiver lẫn trường thành phần
+## 2. `null`: Check Both the Receiver and Member Fields
 
-`null` không phải một instance để gọi phương thức. Biểu thức `null.equals(x)` không hợp lệ về ngữ nghĩa và nếu biến tham chiếu bằng `null` rồi gọi `reference.equals(x)` sẽ ném `NullPointerException`. Sử dụng `Objects.equals(a,b)` cho phép so sánh hai tham chiếu an toàn:
+`null` is not an instance on which to invoke a method. The expression `null.equals(x)` is semantically invalid, and if a reference variable is `null` when calling `reference.equals(x)`, it throws `NullPointerException`. Using `Objects.equals(a,b)` compares two references safely:
 
 ```java
 Objects.equals(null, null);      // true
@@ -46,17 +46,17 @@ Objects.equals("x", "x");        // true
 Objects.hashCode(null);          // 0
 ```
 
-Đoạn trên là các biểu thức minh họa, cần `import java.util.Objects;` khi đặt trong một lớp Java.
+The lines above are illustrative expressions, requiring `import java.util.Objects;` when placed in a Java class.
 
-Trong một lớp giá trị có trường `name` có thể `null`, nên viết `Objects.equals(name, that.name)` thay cho `name.equals(that.name)`. Trong một mảng/collection, phân biệt rõ **tham chiếu collection bằng `null`**, **collection rỗng** và **collection chứa phần tử `null`**. Đây là ba trạng thái khác nhau tùy hợp đồng nghiệp vụ.
+In a value class with a nullable `name` field, write `Objects.equals(name, that.name)` instead of `name.equals(that.name)`. In an array or collection, clearly distinguish a **`null` collection reference**, an **empty collection**, and a **collection containing a `null` element**. These are three distinct states depending on the business contract.
 
-Đừng tự biến mọi `null` thành giá trị mặc định nếu mô hình không yêu cầu. Nếu constructor cấm `null`, dùng `Objects.requireNonNull(...)` và kiểm thử nó ném lỗi ở biên tạo đối tượng; nếu cho phép `null`, `equals`/`hashCode` phải xử lý nhất quán.
+Do not arbitrarily convert every `null` into a default value if the model does not call for it. If the constructor forbids `null`, use `Objects.requireNonNull(...)` and test that it throws at construction boundaries; if `null` is allowed, `equals`/`hashCode` must handle it consistently.
 
-Với so sánh có thứ tự, `Comparator.naturalOrder()` không chấp nhận `null`; `Comparator.nullsFirst(...)` hoặc `nullsLast(...)` đưa ra quy tắc rõ ràng khi thứ tự cần chứa `null`. `equals()` của một đối tượng không được coi bản thân bằng `null` chỉ vì comparator đặt `null` ở đầu/cuối.
+For ordered comparisons, `Comparator.naturalOrder()` does not accept `null`; `Comparator.nullsFirst(...)` or `nullsLast(...)` establishes a clear rule when an ordering needs to accommodate `null`. An object's `equals()` must never treat itself as equal to `null` just because a comparator places `null` first or last.
 
-## 3. `NaN` và số thực: `==` khác `Double.equals()`
+## 3. `NaN` and Floating-Point Numbers: `==` Differs From `Double.equals()`
 
-Theo IEEE 754 và ngữ nghĩa Java, `NaN` không bằng bất kỳ giá trị nào khi so sánh bằng toán tử `==`, kể cả chính nó:
+Under IEEE 754 and Java semantics, `NaN` does not equal any value when compared with the `==` operator, including itself:
 
 ```java
 double a = Double.NaN;
@@ -69,11 +69,11 @@ double b = Double.longBitsToDouble(0x7ff8000000000001L);
 // Double.valueOf(a).equals(Double.valueOf(b)) => true
 ```
 
-`b` có payload NaN khác `a` ở dạng bit thô. `Double.equals` dùng `Double.doubleToLongBits` để xét bit với **các giá trị NaN được canonicalize**. Vì vậy nó coi mọi NaN bằng nhau. `Double.hashCode` dùng cách diễn giải bit tương thích, nên những giá trị NaN được `Double.equals` coi bằng nhau cũng có hash giống nhau. `Float.equals`/`Float.hashCode` áp dụng nguyên tắc tương ứng với `float`.
+`b` has a different NaN payload from `a` in raw bits. `Double.equals` uses `Double.doubleToLongBits` to inspect bits with **canonicalized NaN values**. Hence it treats all NaN values as equal. `Double.hashCode` uses a compatible bit interpretation, so NaN values deemed equal by `Double.equals` also share the same hash. `Float.equals`/`Float.hashCode` apply the corresponding rule to `float`.
 
-**Không dùng `x == y` cho `double` trong một `equals()` rồi dùng `Double.hashCode(x)` nếu dự định coi các NaN là bằng nhau**: hai đối tượng có NaN tương đương theo mô hình sẽ bị `equals` từ chối, trong khi các thành phần khác có thể cùng. Điều này có thể không vi phạm mệnh đề một chiều về hash, nhưng lại **khác ngữ nghĩa mong muốn**. Để thực hiện ngữ nghĩa kiểu `Double`, dùng `Double.compare(a,b)==0` và `Double.hashCode(a)` hoặc `Double.doubleToLongBits(a)==Double.doubleToLongBits(b)` cùng phép băm tương ứng.
+**Do not use `x == y` for `double` in an `equals()` while using `Double.hashCode(x)` if you intend NaNs to be equal**: two objects with model-equivalent NaNs will be rejected by `equals` while other components may match. This might not break the one-way hash implication, yet it **diverges from the intended semantics**. To implement `Double`-style semantics, use `Double.compare(a,b)==0` and `Double.hashCode(a)`, or `Double.doubleToLongBits(a)==Double.doubleToLongBits(b)` with the corresponding hash.
 
-### `+0.0` và `-0.0`: cùng toán tử nhưng khác wrapper
+### `+0.0` and `-0.0`: Same Operator, Different Wrapper
 
 ```java
 // +0.0 == -0.0                                      => true
@@ -82,9 +82,9 @@ double b = Double.longBitsToDouble(0x7ff8000000000001L);
 // Double.hashCode(+0.0) == Double.hashCode(-0.0)    => false
 ```
 
-Lý do: `+0.0` và `-0.0` có biểu diễn bit khác nhau, dù `==` coi chúng bằng nhau. `Double.compare` định nghĩa một thứ tự toàn phần tiện cho sắp xếp: `-0.0` đứng trước `+0.0`; các NaN đứng sau mọi giá trị số khác và được so sánh như cùng một nhóm. Kiểm thử `Double.compare(a,b)` tại `-Infinity`, số hữu hạn, `-0.0`, `+0.0`, `+Infinity` và `NaN` khi lớp cần thứ tự.
+Reason: `+0.0` and `-0.0` have different bit representations, even though `==` considers them equal. `Double.compare` defines a total order convenient for sorting: `-0.0` precedes `+0.0`; NaNs follow all other numeric values and are compared as a single group. Test `Double.compare(a,b)` at `-Infinity`, finite numbers, `-0.0`, `+0.0`, `+Infinity`, and `NaN` when a class requires ordering.
 
-Nếu nghiệp vụ muốn **coi hai số không là cùng một giá trị**, có thể chuẩn hóa cả hai trước so sánh **và trước hash**, ví dụ:
+If the business domain wants to **treat both zeros as the same value**, normalize both before comparison **and before hashing**, for example:
 
 ```java
 static double normalizeZero(double value) {
@@ -100,11 +100,11 @@ static int metricHash(double value) {
 }
 ```
 
-Đây là các phương thức minh họa đặt bên trong một lớp. Quy tắc này giữ NaN theo cách của `Double.compare`, gộp `+0.0` với `-0.0`, và tránh vi phạm hợp đồng hash. Chọn cách này **chỉ khi phù hợp đặc tả đối tượng**; không thay đổi quy tắc ngầm trong một codebase đã phụ thuộc vào phân biệt signed zero. Khi số thực đại diện cho phép đo, cần quyết định riêng có chấp nhận sai số hay không; **không tùy tiện dùng phép so sánh gần đúng `abs(a-b) < epsilon` cho `equals`**, vì quan hệ đó nói chung không bắc cầu (A gần B, B gần C, nhưng A không gần C), đồng thời làm khóa hash khó đúng.
+These are illustrative methods placed inside a class. This rule preserves `Double.compare` behavior for NaN, merges `+0.0` with `-0.0`, and avoids violating the hash contract. Choose this approach **only when it matches the object's specification**; do not silently alter rules in a codebase that already depends on distinguishing signed zeros. When floating-point numbers represent measurements, decide separately whether a tolerance is acceptable; **never arbitrarily use approximate comparison `abs(a-b) < epsilon` for `equals`**, because that relation is generally non-transitive (A is near B, B is near C, yet A is not near C) and also makes hash keys hard to keep valid.
 
-## 4. Mảng: `equals()` của chính mảng, `Arrays.equals` và `Arrays.deepEquals`
+## 4. Arrays: An Array's Own `equals()`, `Arrays.equals`, and `Arrays.deepEquals`
 
-Mảng trong Java **không ghi đè `Object.equals`**, do đó `a.equals(b)` so sánh danh tính đối tượng. Hai mảng khác nhau nhưng chứa cùng phần tử vẫn trả `false`. Sử dụng `Arrays.equals` để so sánh phần tử ở một chiều:
+Java arrays **do not override `Object.equals`**, so `a.equals(b)` compares object identity. Two distinct arrays containing the exact same elements still return `false`. Use `Arrays.equals` to compare elements in one dimension:
 
 ```java
 int[] a = {1, 2};
@@ -115,28 +115,28 @@ Arrays.equals(a,b); // true
 Arrays.hashCode(a) == Arrays.hashCode(b); // true
 ```
 
-Cần `import java.util.Arrays;` nếu đưa các biểu thức vào lớp hoàn chỉnh. `Arrays.equals` có các overload cho mảng nguyên thủy và mảng đối tượng. Với `Object[]`, phép so sánh phần tử dùng ngữ nghĩa `equals` của từng phần tử; nếu một phần tử lại là mảng, lần so sánh đó vẫn là **so sánh tham chiếu**.
+`import java.util.Arrays;` is required when placing these expressions into a complete class. `Arrays.equals` provides overloads for primitive arrays and object arrays. For `Object[]`, element comparison uses each element's `equals` semantics; if an element is itself an array, that comparison remains a **reference comparison**.
 
-Với cấu trúc nhiều tầng, dùng `Arrays.deepEquals(Object[],Object[])` và `Arrays.deepHashCode(Object[])`:
+For multi-level structures, use `Arrays.deepEquals(Object[],Object[])` and `Arrays.deepHashCode(Object[])`:
 
 ```java
 Object[] first = {new int[]{1, 2}, new Object[]{"A", new String[]{"B"}}};
 Object[] second = {new int[]{1, 2}, new Object[]{"A", new String[]{"B"}}};
 
-Arrays.equals(first, second);     // false: phần tử kiểu mảng là tham chiếu khác
-Arrays.deepEquals(first, second); // true: so sánh mảng con theo nội dung
+Arrays.equals(first, second);     // false: array-typed elements are different references
+Arrays.deepEquals(first, second); // true: compares nested arrays by content
 Arrays.deepHashCode(first) == Arrays.deepHashCode(second); // true
 ```
 
-Mảng hai chiều kiểu `int[][]` cũng là mảng các tham chiếu `int[]`, do đó cần `deepEquals/deepHashCode` khi kỳ vọng so sánh nội dung mọi tầng. `Arrays.deepEquals` áp dụng cho `Object[]` ở lớp ngoài, **không** gọi trực tiếp `Arrays.deepEquals(int[], int[])` vì không có overload như vậy. Với mảng nguyên thủy một chiều, chọn đúng `Arrays.equals(int[],int[])` và `Arrays.hashCode(int[])`.
+A two-dimensional array like `int[][]` is also an array of `int[]` references, so `deepEquals/deepHashCode` is required when expecting content comparison at every level. `Arrays.deepEquals` applies to `Object[]` at the outer level; **do not** call `Arrays.deepEquals(int[], int[])` directly because no such overload exists. For one-dimensional primitive arrays, choose `Arrays.equals(int[],int[])` and `Arrays.hashCode(int[])`.
 
-Hai tham chiếu mảng đều `null` được `Arrays.equals` coi là bằng nhau, còn một bên `null` và một bên mảng rỗng là khác nhau. `Arrays.deepEquals` cũng xử lý hai tham chiếu mảng `Object[]` đều `null`. Cấu trúc tự chứa chu trình (mảng tham chiếu lại chính nó, hoặc hai mảng tham chiếu vòng) **không thích hợp cho phép đệ quy sâu này**; thiết kế so sánh theo đồ thị có cơ chế phát hiện chu trình riêng khi dữ liệu có vòng.
+Two array references that are both `null` are treated as equal by `Arrays.equals`, whereas one `null` and one empty array are unequal. `Arrays.deepEquals` also handles two `Object[]` references that are both `null`. Self-referential cyclic structures (an array referencing itself, or two arrays referencing each other in a cycle) **are not suitable for this deep recursion**; design graph comparison with dedicated cycle detection when data contains cycles.
 
-**Đừng ghép `Arrays.deepEquals(...)` với `Arrays.hashCode(...)` một cách máy móc.** Nếu bằng nhau được xét ở mọi tầng, phép hash cũng phải xét ở mọi tầng; ngược lại có thể làm hai đối tượng bằng nhau tạo hash khác nhau.
+**Do not mechanically pair `Arrays.deepEquals(...)` with `Arrays.hashCode(...)`.** If equality is evaluated at all levels, hashing must likewise inspect all levels; otherwise two equal objects can produce different hashes.
 
-### `record` và mảng: tự sinh `equals` chưa chắc là so sánh sâu
+### `record` and Arrays: Auto-Generated `equals` May Not Compare Deeply
 
-Java `record` tự sinh `equals`/`hashCode` theo các component, nhưng component kiểu mảng vẫn dùng đặc tính so sánh danh tính của mảng. Do đó:
+Java `record` auto-generates `equals`/`hashCode` from its components, yet an array-typed component still uses the array's identity comparison behavior. Therefore:
 
 ```java
 record IntBundle(int[] values) {}
@@ -145,31 +145,31 @@ new IntBundle(new int[]{1, 2})
     .equals(new IntBundle(new int[]{1, 2})); // false
 ```
 
-Đó là lý do không giả định `record` tự làm deep equality cho mọi kiểu component. Nếu mảng là một phần danh tính giá trị, cần viết hợp đồng tùy chỉnh và sao chép phòng vệ phù hợp, hoặc biểu diễn bằng kiểu collection bất biến có ngữ nghĩa nội dung.
+That is why you must not assume a `record` automatically performs deep equality for every component type. If an array is part of value identity, write a custom contract and appropriate defensive copying, or represent it with an immutable collection type that has content semantics.
 
-## 5. Danh sách, tập hợp, bản đồ và cấu trúc lồng
+## 5. Lists, Sets, Maps, and Nested Structures
 
-`List.equals` so sánh theo thứ tự từng phần tử; `Set.equals` so theo tập phần tử không quan tâm thứ tự; `Map.equals` so theo ánh xạ khóa–giá trị. Những hợp đồng này dựa trên `equals/hashCode` của phần tử hoặc khóa/giá trị, vì vậy **nội dung bên trong không được so sánh sâu tự động nếu chính kiểu phần tử thiếu hợp đồng giá trị**.
+`List.equals` compares elements sequentially by order; `Set.equals` compares element sets regardless of order; `Map.equals` compares key–value mappings. These contracts rely on the `equals/hashCode` of the elements or keys/values, so **inner contents are not automatically compared deeply if the element type itself lacks a value contract**.
 
 ```java
 List<List<String>> left = List.of(List.of("a", "b"), List.of("c"));
 List<List<String>> right = List.of(List.of("a", "b"), List.of("c"));
-// left.equals(right) => true: List lồng có equality theo phần tử.
+// left.equals(right) => true: nested Lists have element-wise equality.
 
 List<int[]> leftArrays = List.of(new int[]{1, 2});
 List<int[]> rightArrays = List.of(new int[]{1, 2});
-// leftArrays.equals(rightArrays) => false: phần tử int[] so sánh danh tính.
+// leftArrays.equals(rightArrays) => false: int[] elements compare by identity.
 ```
 
-Đây là các biểu thức minh họa bên trong một lớp có `import java.util.List;`. Với nested objects, xác định rõ tầng nào tham gia nhận diện đối tượng và tầng nào được bỏ qua. Một đối tượng bao gồm `List<List<String>>` sẽ so sánh nội dung xuyên các tầng List theo hợp đồng sẵn có, nhưng khi danh sách chứa `int[]` hay đối tượng tự định nghĩa không ghi đè `equals` thì cần xử lý thêm.
+These are illustrative expressions inside a class with `import java.util.List;`. With nested objects, clearly define which levels participate in identifying the object and which levels are ignored. An object wrapping `List<List<String>>` will compare contents across List levels under built-in contracts, whereas when a list contains `int[]` or custom objects that do not override `equals`, extra handling is required.
 
-Với `Map` có key là mảng hoặc đối tượng mutable, dễ xảy ra lỗi khó thấy: thay đổi trường tham gia `equals/hashCode` **sau khi đưa vào `HashMap`/`HashSet`** có thể khiến không tìm lại được khóa vì bucket hash lúc tra đã khác bucket khi chèn. Giải pháp là thiết kế khóa có trạng thái liên quan đến equality được cố định hợp lý, và **sao chép phòng vệ** khi chứa hoặc trả mảng/collection mutable.
+For a `Map` whose keys are arrays or mutable objects, subtle bugs easily arise: mutating fields participating in `equals/hashCode` **after insertion into a `HashMap`/`HashSet`** can prevent finding the key again because the lookup bucket differs from the insertion bucket. The solution is designing keys whose equality-related state is appropriately fixed, and **defensively copying** when storing or returning mutable arrays/collections.
 
-Nếu cần so sánh một cấu trúc lồng pha trộn `Map`, `List`, mảng, và đối tượng tùy biến, không thể gọi duy nhất `Objects.deepEquals` rồi mặc định có một hợp đồng deep equality tổng quát cho mọi loại collection. `Objects.deepEquals` chỉ có xử lý mảng đặc biệt khi cả hai đối số là mảng; nó không đệ quy hiểu quy tắc nghiệp vụ của một đồ thị đối tượng bất kỳ.
+If you need to compare a nested structure mixing `Map`, `List`, arrays, and custom objects, you cannot solely call `Objects.deepEquals` and assume a universal deep-equality contract for all collection kinds. `Objects.deepEquals` only has special array handling when both arguments are arrays; it does not recursively understand the business rules of an arbitrary object graph.
 
-## 6. Ví dụ Java 17 hoàn chỉnh: kiểm chứng equality, hash và dữ liệu lồng
+## 6. Complete Java 17 Example: Verifying Equality, Hashing, and Nested Data
 
-Tạo **`ObjectContractEdgeCases.java`**. `Snapshot` là một lớp giá trị có `name` nullable, số `double`, mảng nguyên thủy và `List<List<String>>`. Constructor tạo bản sao của mảng và các List để không cho caller thay đổi trạng thái tham gia `equals/hashCode` sau khi tạo. Trong ví dụ, List bên trong phải không chứa phần tử `null`; List bên ngoài cũng không được chứa List `null` khi không `null` toàn bộ.
+Create **`ObjectContractEdgeCases.java`**. `Snapshot` is a value class with nullable `name`, a `double`, a primitive array, and `List<List<String>>`. The constructor creates copies of the array and Lists so callers cannot mutate state participating in `equals/hashCode` after creation. In this example, inner Lists must not contain `null` elements; the outer List must also not contain `null` Lists when not `null` overall.
 
 ```java
 import java.util.Arrays;
@@ -243,7 +243,7 @@ public class ObjectContractEdgeCases {
         Snapshot emptyA = new Snapshot(null, 0.0, null, null);
         Snapshot emptyB = new Snapshot(null, 0.0, null, null);
 
-        // Kiểm tra hợp đồng, không phụ thuộc việc chạy java -ea.
+        // Verify contract, independent of running with java -ea.
         check(!first.equals(null), "non-null object must differ from null");
         check(first.equals(first), "reflexivity");
         check(first.equals(second) && second.equals(first), "symmetry");
@@ -297,14 +297,14 @@ public class ObjectContractEdgeCases {
 }
 ```
 
-Biên dịch/chạy với JDK 17+:
+Compile/run with JDK 17+:
 
 ```bash
 javac ObjectContractEdgeCases.java
 java ObjectContractEdgeCases
 ```
 
-Kết quả chuẩn:
+Standard output:
 
 ```text
 Objects.equals(null,null): true
@@ -329,61 +329,61 @@ signed-zero snapshots equal: false
 HashSet size: 1
 ```
 
-Giải thích ý nghĩa kiểm chứng:
+Explanation of verification meaning:
 
-- `first` và `second` dùng hai NaN khác payload bit, mảng `int[]` độc lập và hai cấu trúc `List<List<String>>` độc lập. Chúng vẫn bằng nhau vì `Snapshot.equals` xử lý từng kiểu đúng cách; `hashCode` cũng cho cùng kết quả và `HashSet` chỉ giữ một instance theo equality.
-- `plusZero` và `minusZero` khác nhau vì chủ động theo ngữ nghĩa của `Double.compare`, phù hợp với thành phần băm `Double.hashCode`. Đây là một quyết định thiết kế, không phải bắt buộc mọi đối tượng số đều phải phân biệt hai số không.
-- `emptyA`/`emptyB` kiểm tra `name`, `samples` và `groups` có thể `null`. `Arrays.equals(null,null)` và `Objects.equals(null,null)` hỗ trợ quy tắc này mà không ném `NullPointerException`.
-- Hai `IntBundle` record mang mảng nội dung giống nhau vẫn không bằng nhau, vì mảng so sánh theo danh tính.
-- `Snapshot` phòng vệ ở constructor, không cung cấp getter trả thẳng mảng mutable. Nếu cần getter, phải trả `samples.clone()` hoặc view/copy không sửa được; đồng thời cần bảo đảm phần tử lồng không phải đối tượng mutable làm thay đổi equality.
+- `first` and `second` use two NaNs with different bit payloads, independent `int[]` arrays, and two independent `List<List<String>>` structures. They are still equal because `Snapshot.equals` handles each type properly; `hashCode` yields the same result and `HashSet` retains only one instance per equality.
+- `plusZero` and `minusZero` differ because they intentionally follow `Double.compare` semantics, matching the `Double.hashCode` hashing component. This is a design decision, not a requirement that every numeric object must distinguish both zeros.
+- `emptyA`/`emptyB` test nullable `name`, `samples`, and `groups`. `Arrays.equals(null,null)` and `Objects.equals(null,null)` support this rule without throwing `NullPointerException`.
+- Two `IntBundle` records carrying arrays with identical contents are still unequal, because arrays compare by identity.
+- `Snapshot` defensively copies in the constructor and provides no getter returning the mutable array directly. If a getter is needed, it must return `samples.clone()` or an unmodifiable view/copy; you must also ensure nested elements are not mutable objects that alter equality.
 
-Ví dụ dùng dữ liệu không có chu trình và các danh sách bên trong không chứa `null`. Nếu hợp đồng đầu vào cho phép List con `null` hoặc element `null`, phải chọn chiến lược copy và định nghĩa equality tương ứng trước khi dùng trong sản phẩm.
+The example uses cycle-free data and inner lists that contain no `null`. If the input contract permits `null` sublists or `null` elements, you must choose an appropriate copying strategy and equality definition before using it in production.
 
-## 7. Kiểm thử so sánh có thứ tự: tránh comparator làm mất khóa
+## 7. Testing Ordered Comparisons: Avoiding Comparators That Lose Keys
 
-`Comparable`/`Comparator` là hợp đồng **thứ tự**, không phải bản sao của `equals`. Ví dụ `Comparator.comparingDouble(...)` dùng thứ tự theo `Double.compare`, nên phân biệt signed zero và nhóm các NaN. Tuy nhiên, nếu comparator chỉ xét `metric` trong khi `Snapshot.equals` còn xét `name`, `samples` và `groups`, hai `Snapshot` khác nhau có thể bị xếp kết quả `0`. Với `TreeSet`/`TreeMap`, điều đó khiến một trong hai bị coi là trùng khóa.
+`Comparable`/`Comparator` is an **ordering** contract, not a duplicate of `equals`. For example, `Comparator.comparingDouble(...)` orders according to `Double.compare`, so it distinguishes signed zeros and groups NaNs. However, if a comparator only checks `metric` while `Snapshot.equals` also checks `name`, `samples`, and `groups`, two distinct `Snapshot` objects can be ranked `0`. With `TreeSet`/`TreeMap`, that causes one of them to be treated as a duplicate key.
 
-Một comparator phù hợp cần xét đủ các thành phần nhận diện theo cách nhất quán với `equals`, hoặc tài liệu hóa rằng sorted collection đang dùng **khái niệm khóa khác**. Đối với mảng và cấu trúc lồng, việc định nghĩa thứ tự từ điển phải có quy tắc rõ ràng (thứ tự phần tử, độ dài, `null`, signed zero, NaN), tránh chỉ dựa `toString` hay giá trị hash.
+An appropriate comparator must inspect all identifying components in a manner consistent with `equals`, or document that the sorted collection uses a **different key concept**. For arrays and nested structures, defining lexicographical ordering requires clear rules (element order, length, `null`, signed zeros, NaN), avoiding reliance on `toString` or hash values.
 
-Bộ ca kiểm thử cho comparator nếu được sử dụng:
+Test cases for the comparator if used:
 
-1. `sign(compare(x,y)) == -sign(compare(y,x))`, với cách kiểm tra dấu an toàn bằng `Integer.signum`.
-2. Nếu `compare(x,y)>0` và `compare(y,z)>0` thì `compare(x,z)>0`; tương tự với `<0`.
-3. Nếu `compare(x,y)==0` thì dấu của `compare(x,z)` và `compare(y,z)` phải giống nhau với mọi `z`.
-4. Nếu cần consistent with equals: `compare(x,y)==0` đúng chính xác khi `x.equals(y)`; đặc biệt kiểm tra `null` (khi comparator hỗ trợ), NaN, signed zero, mảng trùng nội dung và nested fields khác nhau.
-5. Với `TreeSet`, thử thêm hai instance bằng nhau; và hai instance khác nhau theo đặc tả để chắc không bị gộp nhầm.
+1. `sign(compare(x,y)) == -sign(compare(y,x))`, checking signs safely with `Integer.signum`.
+2. If `compare(x,y)>0` and `compare(y,z)>0`, then `compare(x,z)>0`; similarly for `<0`.
+3. If `compare(x,y)==0`, then the signs of `compare(x,z)` and `compare(y,z)` must match for all `z`.
+4. If consistency with equals is needed: `compare(x,y)==0` holds precisely when `x.equals(y)`; specifically test `null` (when supported by the comparator), NaN, signed zeros, equal-content arrays, and differing nested fields.
+5. With `TreeSet`, test inserting two equal instances and two distinct instances per specification to make sure they are not erroneously merged.
 
-Không viết comparator dạng `(int)(a-b)` cho số thực hay số nguyên rộng: có thể tràn số, mất phần lẻ, biến NaN thành giá trị sai và phá tính bắc cầu. Dùng `Double.compare`, `Integer.compare` hoặc comparator chuẩn phù hợp.
+Do not write comparators of the form `(int)(a-b)` for floating-point or wide integer numbers: this can overflow, truncate fractional parts, turn NaN into bogus values, and break transitivity. Use `Double.compare`, `Integer.compare`, or an appropriate standard comparator.
 
-## 8. Thiết kế dữ liệu kiểm thử và test tự động
+## 8. Designing Test Data and Automated Tests
 
-Để kiểm chứng hợp đồng một cách có hệ thống, lập ma trận ca thay vì chỉ thử một cặp:
+To verify the contract systematically, build a case matrix rather than testing a single pair:
 
-| Nhóm dữ liệu | Trường hợp đại diện | Điều cần assert |
+| Data group | Representative cases | What to assert |
 | --- | --- | --- |
-| `null` | đối tượng `null`; trường `null`/không `null`; mảng `null`/rỗng | Không ném lỗi bất ngờ, đúng quy tắc equality |
-| Số thực | số thường, hai NaN khác bit, `±0.0`, `±Infinity` | Equality, hash, ordering đúng theo đặc tả |
-| Mảng | cùng tham chiếu, hai mảng độc lập cùng phần tử, phần tử khác, độ dài khác | Đúng nông/sâu; hash tương ứng |
-| Nested | `List<List<T>>`, mảng trong `List`, mảng trong `Map`, object con | Đúng ngữ nghĩa từng tầng |
-| Tính ổn định | Đầu vào mutable bị sửa sau constructor | Trạng thái khóa không đổi nếu lớp cam kết immutable |
-| Tính tương đương | ba đối tượng `x,y,z` cùng nội dung và dữ liệu biên | Phản xạ, đối xứng, bắc cầu, hash |
-| Collections | `HashSet`/`HashMap` và `TreeSet`/`TreeMap` nếu có comparator | Không gộp nhầm/không mất khả năng tra khóa |
+| `null` | `null` object; `null`/non-`null` fields; `null`/empty arrays | No unexpected exceptions, obeys equality rules |
+| Floating-point | normal numbers, two NaNs with different bits, `±0.0`, `±Infinity` | Equality, hash, and ordering match specification |
+| Arrays | same reference, two independent arrays with equal elements, differing elements, differing lengths | Proper shallow/deep behavior; matching hash |
+| Nested | `List<List<T>>`, arrays inside `List`, arrays inside `Map`, child objects | Proper semantics at each level |
+| Stability | Mutable inputs modified after constructor | Key state remains unchanged if class promises immutability |
+| Equivalence | three objects `x,y,z` with equal contents and boundary data | Reflexivity, symmetry, transitivity, hash |
+| Collections | `HashSet`/`HashMap` and `TreeSet`/`TreeMap` if a comparator exists | No erroneous merging or lost key lookups |
 
-Nên dùng test có tên chỉ rõ tình huống, chẳng hạn `equalInstancesWithDistinctNaNPayloadsShareHash`, `negativeZeroAndPositiveZeroFollowChosenPolicy`, `nestedPrimitiveArraysUseDeepEquality` và `defensiveCopyKeepsHashStable`. Với JUnit 5, có thể tổ chức `@ParameterizedTest` cùng `@MethodSource` để chạy bảng cặp giá trị, và gọi các assertion như `assertEquals`/`assertNotEquals`/`assertTrue`. Cần nhớ `assertEquals(double, double)` trong thư viện kiểm thử có quy tắc riêng với kiểu số thực; khi muốn kiểm tra **chính xác hợp đồng do bạn xây**, hãy assert biểu thức `Double.compare(...)`, `x.equals(y)`, `Objects.equals(...)`, `Arrays.equals(...)` hoặc `Arrays.deepEquals(...)` cụ thể, không suy diễn mọi overload `assertEquals` có cùng logic với primitive `==`.
+Use descriptive test names, such as `equalInstancesWithDistinctNaNPayloadsShareHash`, `negativeZeroAndPositiveZeroFollowChosenPolicy`, `nestedPrimitiveArraysUseDeepEquality`, and `defensiveCopyKeepsHashStable`. With JUnit 5, you can organize `@ParameterizedTest` with `@MethodSource` to run value pair tables and call assertions such as `assertEquals`/`assertNotEquals`/`assertTrue`. Remember that `assertEquals(double, double)` in testing libraries has its own rules for floating-point types; when verifying the **exact contract you built**, assert explicit expressions such as `Double.compare(...)`, `x.equals(y)`, `Objects.equals(...)`, `Arrays.equals(...)`, or `Arrays.deepEquals(...)`, rather than assuming every `assertEquals` overload uses primitive `==` logic.
 
-Với property-based testing (như jqwik hoặc QuickTheories) nếu dự án có thư viện, tạo giá trị gồm `null` có kiểm soát, kích cỡ mảng biến đổi, nested collections và những mẫu bit tạo NaN khác nhau; kiểm tra các bất biến ở mục 1 thay vì chỉ đầu ra cố định. Với dữ liệu đệ quy, đặt giới hạn độ sâu và tránh chu trình khi hợp đồng chưa hỗ trợ chu trình.
+With property-based testing (such as jqwik or QuickTheories) if available in the project, generate values including controlled `null`s, varying array sizes, nested collections, and different NaN bit patterns; check the invariants in Section 1 instead of fixed outputs alone. For recursive data, set a depth limit and avoid cycles when the contract does not yet support cycles.
 
-### Những lỗi phổ biến cần chủ động phát hiện
+### Common Bugs to Proactively Catch
 
-- Dùng `a.equals(b)` với `a` nullable gây `NullPointerException`; dùng `Objects.equals` hoặc bảo đảm non-null trước.
-- Dùng `==` cho trường `double` nhưng mong mọi NaN bằng nhau; dùng `Double.compare`/`Double.hashCode` theo cùng chính sách.
-- Coi `+0.0` và `-0.0` bằng nhau trong `equals` nhưng dùng `Double.hashCode` gốc trong `hashCode`; sẽ vi phạm hợp đồng hash. Phải chuẩn hóa cùng cách trước cả hai thao tác.
-- Dùng `Arrays.equals` cho `int[][]` hoặc `Object[]` chứa mảng con rồi tưởng được so sâu; cần `Arrays.deepEquals` và `deepHashCode` đúng cặp.
-- Để record tự sinh equality cho component là mảng trong khi mong so sánh nội dung; phải thay kiểu representation hoặc cài hợp đồng rõ ràng.
-- Dùng mảng/collection mutable làm trường hash key nhưng cho bên ngoài sửa được; thiết kế bản sao phòng vệ và API bất biến.
-- Viết comparator chỉ so một phần của đối tượng rồi sử dụng `TreeSet` như thể nó thực hiện uniqueness theo toàn bộ `equals`.
-- Kiểm thử chỉ cùng tham chiếu, bỏ qua hai instance độc lập, các giá trị biên và quan hệ hash.
+- Calling `a.equals(b)` with nullable `a` throws `NullPointerException`; use `Objects.equals` or ensure non-null first.
+- Using `==` for a `double` field while expecting all NaNs to be equal; use `Double.compare`/`Double.hashCode` under the same policy.
+- Treating `+0.0` and `-0.0` as equal in `equals` while using raw `Double.hashCode` in `hashCode`; this violates the hash contract. Normalize identically before both operations.
+- Using `Arrays.equals` for `int[][]` or `Object[]` containing sub-arrays and assuming deep comparison; pair `Arrays.deepEquals` and `deepHashCode` properly.
+- Letting a record auto-generate equality for an array component when content comparison is desired; change the representation type or implement an explicit contract.
+- Using mutable arrays/collections as hash key fields while allowing external callers to mutate them; design defensive copies and immutable APIs.
+- Writing a comparator that checks only part of an object and using `TreeSet` as if it enforced uniqueness across all of `equals`.
+- Testing only the same reference, skipping two independent instances, boundary values, and the hash relationship.
 
-**Tự kiểm tra:** (1) Hai `double` NaN khác payload bit có thể bằng nhau theo `Double.equals` không? Có. (2) `+0.0 == -0.0` có đúng không, trong khi `Double.equals` khác nhau? Đúng. (3) Hai `int[][]` độc lập có dữ liệu giống nhau nên dùng `Arrays.equals` hay `Arrays.deepEquals`? `deepEquals`. (4) Nếu chuẩn hóa signed zero trong `equals` thì có phải chuẩn hóa khi băm không? Bắt buộc. (5) `HashMap` và `TreeMap` có cùng định nghĩa khóa trùng không? Không: `HashMap` dựa vào equality/hash, còn `TreeMap` dựa vào comparator hoặc natural order.
+**Self-check:** (1) Can two `double` NaNs with different bit payloads be equal under `Double.equals`? Yes. (2) Is `+0.0 == -0.0` true while `Double.equals` differs? Yes. (3) For two independent `int[][]` with identical data, should you use `Arrays.equals` or `Arrays.deepEquals`? `deepEquals`. (4) If you normalize signed zeros in `equals`, must you also normalize when hashing? Mandatory. (5) Do `HashMap` and `TreeMap` share the same definition of duplicate keys? No: `HashMap` relies on equality/hashing, whereas `TreeMap` relies on a comparator or natural ordering.
 
-**Nguyên tắc cốt lõi:** xác định cùng một ngữ nghĩa giá trị xuyên suốt **so sánh – băm – thứ tự – tính bất biến của khóa**, rồi kiểm thử riêng `null`, NaN, hai dấu của số không, mảng một/nhiều chiều và từng tầng dữ liệu lồng. Chính các ca biên này mới làm lộ một hợp đồng đối tượng tưởng như đúng nhưng không đủ vững khi dùng với collection Java.
+**Core principle:** establish one unified value semantics across **comparison – hashing – ordering – key immutability**, and then specifically test `null`, NaN, both signs of zero, 1D/multidimensional arrays, and every level of nested data. It is precisely these edge cases that expose an object contract that looks right yet proves too fragile for Java collections.

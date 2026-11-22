@@ -1,30 +1,30 @@
-# Method.invoke với receiver và mảng đối số trong Java Reflection
+# Method.invoke with receiver and argument array in Java Reflection
 
-## 1. Nắm đúng hai tham số của Method.invoke
+## 1. Understanding the two parameters of Method.invoke
 
-Java Reflection cho phép gọi một phương thức được tìm ở runtime thông qua `java.lang.reflect.Method`. Chữ ký API:
+Java Reflection allows invoking a method discovered at runtime via `java.lang.reflect.Method`. API signature:
 
 ```java
 public Object invoke(Object obj, Object... args)
         throws IllegalAccessException, InvocationTargetException
 ```
 
-Ý nghĩa:
+Meaning:
 
-- `Method` đã xác định **phương thức đích**: khai báo, tên, kiểu tham số. `invoke` không tự chọn overload dựa trên runtime class của từng đối số.
-- `obj` là **receiver**, đối tượng thực thi instance method. Với static method, receiver bị bỏ qua, truyền `null` thường là cách rõ ràng nhất.
-- `args` là danh sách đối số thực sự của method đích, ở dạng một mảng `Object[]`. Mỗi phần tử của mảng phải tương ứng **một formal parameter** theo đúng thứ tự, kể cả khi formal parameter đó chính nó là một array.
-- `invoke` trả về `Object`: primitive được boxing; `void` trả `null`; reference/array được giữ nguyên kiểu đối tượng. Method đích ném exception sẽ được bọc trong `InvocationTargetException`.
+- `Method` already identifies the **target method**: declaration, name, and parameter types. `invoke` does not re-select an overload based on the runtime class of each argument.
+- `obj` is the **receiver**, the object on which an instance method executes. For a static method, the receiver is ignored, and passing `null` is usually the clearest approach.
+- `args` is the list of actual arguments for the target method, in the form of an `Object[]` array. Each element of the array must correspond to **one formal parameter** in exact order, even when that formal parameter is itself an array.
+- `invoke` returns `Object`: primitives are boxed; `void` returns `null`; references/arrays preserve their object types. Exceptions thrown by the target method are wrapped in `InvocationTargetException`.
 
-Ví dụ, method đích `int add(int a, long b)` cần hai phần tử trong `args`; method đích `void print(String[] names)` chỉ cần một phần tử, chính là một `String[]`.
+For example, the target method `int add(int a, long b)` needs two elements in `args`; the target method `void print(String[] names)` needs only one element, which is a `String[]`.
 
-Điểm gây nhầm phổ biến nhất: **`Method.invoke` có cú pháp `Object... args`, còn method đích có thể cũng khai báo `String... values`. Đó là hai tầng varargs khác nhau**, cần phân biệt rõ.
+The most common source of confusion: **`Method.invoke` has the syntax `Object... args`, while the target method might also declare `String... values`. Those are two separate layers of varargs**, and must be clearly distinguished.
 
-## 2. Receiver cho instance method và static method
+## 2. Receiver for instance methods and static methods
 
-### Instance method cần receiver tương thích
+### Instance methods require a compatible receiver
 
-Giả sử có lớp:
+Suppose we have a class:
 
 ```java
 class Greeter {
@@ -34,7 +34,7 @@ class Greeter {
 }
 ```
 
-Trong một phương thức có xử lý ngoại lệ Reflection:
+Inside a method that handles Reflection exceptions:
 
 ```java
 Method hello = Greeter.class.getMethod("hello", String.class);
@@ -42,11 +42,11 @@ Greeter greeter = new Greeter();
 Object answer = hello.invoke(greeter, "Mai"); // "Hi, Mai"
 ```
 
-Receiver phải là một instance phù hợp với lớp hoặc interface khai báo underlying method. `hello.invoke(null, "Mai")` ném `NullPointerException`; `hello.invoke(new Object(), "Mai")` ném `IllegalArgumentException`. Những lỗi này khác lỗi trả về từ body `hello`.
+The receiver must be an instance compatible with the class or interface declaring the underlying method. `hello.invoke(null, "Mai")` throws `NullPointerException`; `hello.invoke(new Object(), "Mai")` throws `IllegalArgumentException`. These errors differ from errors thrown by the body of `hello`.
 
-Với **instance method bị override**, Reflection vẫn thực hiện dynamic method lookup theo runtime class của receiver. Một `Method` lấy từ lớp cha có thể thực thi implementation override của lớp con. `Method.getDeclaringClass()` vẫn mô tả lớp chứa khai báo ban đầu, không tự đổi thành runtime class của receiver.
+For **overridden instance methods**, Reflection still performs dynamic method lookup according to the runtime class of the receiver. A `Method` obtained from a superclass can execute the subclass's overridden implementation. `Method.getDeclaringClass()` still describes the class containing the original declaration and does not change to the receiver's runtime class.
 
-### Static method bỏ qua receiver
+### Static methods ignore the receiver
 
 ```java
 class Settings {
@@ -60,48 +60,48 @@ Object a = status.invoke(null);         // "READY"
 Object b = status.invoke(new Object()); // "READY"
 ```
 
-Đây là các đoạn minh họa, có import `java.lang.reflect.Method` và xử lý ngoại lệ trong phương thức chứa chúng. Receiver `new Object()` không thuộc `Settings` nhưng **không bị kiểm tra về tính tương thích**, bởi static method không chạy trên object đó. Static method có thể khiến declaring class **được khởi tạo** lần đầu khi `invoke`, nên việc gọi Reflection có thể chạy static initializer.
+These are illustrative snippets, with `java.lang.reflect.Method` imported and exceptions handled in the enclosing method. The receiver `new Object()` does not belong to `Settings` yet **is not checked for compatibility**, because a static method does not run on that object. A static method can cause its declaring class to **be initialized** for the first time upon `invoke`, so a Reflection call can trigger static initializers.
 
-Cần phân biệt bỏ qua **giá trị** receiver với bỏ qua **đánh giá biểu thức** receiver: trong `status.invoke(buildReceiver())`, Java vẫn chạy `buildReceiver()` trước lời gọi, sau đó Reflection bỏ qua giá trị trả về đối với static method.
+Distinguish ignoring the receiver **value** from skipping **evaluation of the receiver expression**: in `status.invoke(buildReceiver())`, Java still executes `buildReceiver()` before the call, and then Reflection ignores the returned value for the static method.
 
-Cách chọn receiver có chủ ý:
+Choosing the receiver intentionally:
 
 ```java
 Object target = Modifier.isStatic(method.getModifiers()) ? null : instance;
 Object result = method.invoke(target, arguments);
 ```
 
-Đây là mảnh mã, không phải chương trình hoàn chỉnh; cần có các biến `method`, `instance`, `arguments` và import `Modifier`. Khi `method` là instance, `instance` phải đúng kiểu; với static, truyền `null` diễn đạt rõ rằng không cần một đối tượng.
+This is a code fragment, not a complete program; variables `method`, `instance`, `arguments` and import `Modifier` are required. When `method` is an instance method, `instance` must be of the right type; for static, passing `null` clearly expresses that no object is needed.
 
-| Loại method | Receiver | Hành vi |
+| Method kind | Receiver | Behavior |
 | --- | --- | --- |
-| Instance | Đối tượng đúng kiểu hoặc subtype | Có thể gọi override trên runtime class |
+| Instance | Object of the right type or subtype | Can invoke override on runtime class |
 | Instance | `null` | `NullPointerException` |
-| Instance | Đối tượng không tương thích | `IllegalArgumentException` |
-| Static | `null` | Hợp lệ |
-| Static | Bất kỳ object, kể cả không liên quan | Giá trị receiver bị bỏ qua |
+| Instance | Incompatible object | `IllegalArgumentException` |
+| Static | `null` | Valid |
+| Static | Any object, even unrelated | Receiver value is ignored |
 
-Bảng giả định quyền truy cập, các đối số khác và class initialization không gây lỗi.
+The table assumes access permissions, other arguments, and class initialization do not cause errors.
 
-## 3. Mảng Object[] của Reflection là danh sách đối số, không phải nội dung array
+## 3. Reflection's Object[] array is the argument list, not the array's contents
 
-Với method `add(int a, long b)`, hai cách truyền tương đương:
+For the method `add(int a, long b)`, two ways of passing arguments are equivalent:
 
 ```java
 addMethod.invoke(service, 2, 5);
 addMethod.invoke(service, new Object[]{2, 5});
 ```
 
-Hai formal parameters nghĩa là **hai** phần tử trong `Object[]`. Khi formal parameter là array như `String[] names`, phải bọc chính array này vào một **phần tử duy nhất** của danh sách:
+Two formal parameters mean **two** elements in `Object[]`. When a formal parameter is an array such as `String[] names`, you must wrap that array itself into a **single element** of the list:
 
 ```java
 Method join = Service.class.getMethod("join", String[].class);
 Object result = join.invoke(service, new Object[]{new String[]{"a", "b"}});
 ```
 
-Ở đây `join` có một formal parameter `String[]`, vì vậy `Object[]` bên ngoài có đúng một phần tử, còn `String[]` bên trong có hai phần tử. Điều này đúng dù method khai báo `join(String[] values)` hay `join(String... values)`: trong metadata, cả hai có formal parameter type `String[].class`. `join.isVarArgs()` cho biết khai báo có cờ varargs hay không, nhưng **`Method.invoke` không tự gom phần tử `String` thành mảng cho method đích**.
+Here `join` has one formal parameter `String[]`, so the outer `Object[]` has exactly one element, while the inner `String[]` has two elements. This holds whether the method is declared as `join(String[] values)` or `join(String... values)`: in metadata, both have formal parameter type `String[].class`. `join.isVarArgs()` indicates whether the declaration has the varargs flag, but **`Method.invoke` does not automatically gather `String` elements into an array for the target method**.
 
-**Tra cứu method phải khớp chính xác signature**:
+**Method lookup must match the exact signature**:
 
 ```java
 Method m = Service.class.getMethod("join", String[].class);
@@ -109,11 +109,11 @@ Class<?>[] formalTypes = m.getParameterTypes();
 int count = m.getParameterCount(); // 1
 ```
 
-`getMethod` và `getDeclaredMethod` nhận danh sách `Class<?>` của formal parameters, không phải danh sách wrapper runtime values, và không tự chọn overload theo widening. Chẳng hạn để tìm `f(long)` phải dùng `getMethod("f", long.class)`; `getMethod("f", int.class)` không tìm ra chỉ vì `int` có thể widen sang `long` khi gọi.
+`getMethod` and `getDeclaredMethod` take the `Class<?>` list of formal parameters, not a list of runtime value wrappers, and do not select overloads via widening. For example, to look up `f(long)` you must use `getMethod("f", long.class)`; `getMethod("f", int.class)` will not find it just because `int` can widen to `long` when called.
 
-## 4. Chương trình Java 17+ có thể chạy đầy đủ
+## 4. Complete runnable Java 17+ program
 
-Lưu chương trình sau vào **`InvokeReceiverDemo.java`**:
+Save the following program to **`InvokeReceiverDemo.java`**:
 
 ```java
 import java.lang.reflect.InvocationTargetException;
@@ -182,14 +182,14 @@ public class InvokeReceiverDemo {
 }
 ```
 
-Dùng JDK 17 trở lên:
+Use JDK 17 or later:
 
 ```bash
 javac InvokeReceiverDemo.java
 java InvokeReceiverDemo
 ```
 
-Stdout đã được chạy và xác minh trên JDK 24:
+Stdout compiled and verified on JDK 24:
 
 ```text
 instance = Hello, Ana
@@ -208,70 +208,70 @@ narrowing = IllegalArgumentException
 target cause = IllegalStateException: failed
 ```
 
-Giải thích:
+Explanation:
 
-1. `greet` là instance method nên phải có receiver `service` đúng kiểu.
-2. `label` là static method nên cả receiver `null` lẫn `new Object()` đều bị bỏ qua. Đây **không** là hành vi đúng cho instance method.
-3. `add` khai báo `(int, long)`. `Integer(2)` được unbox thành `int`, `Integer(5)` unbox rồi widen từ `int` lên `long`. Kết quả `int` được boxing thành `Integer`.
-4. `join` có `isVarArgs() == true` và signature chỉ nhận **một `String[]`**; hai cách gọi thành công đều truyền mảng chuỗi thành **một argument**.
-5. `noResult` khai báo `void`; giá trị trả về từ Reflection là `null`.
-6. Các lỗi receiver `null`, sai lớp, sai số lượng args, dùng array bị bung, hoặc chuyển `Long` sang `int` đều biểu hiện bằng loại ngoại lệ đã in.
-7. `boom` ném `IllegalStateException` bên trong body; mã gọi Reflection nhận `InvocationTargetException` và lấy nguyên nhân từ `getCause()`.
+1. `greet` is an instance method so it requires a properly typed receiver `service`.
+2. `label` is a static method so both `null` and `new Object()` receivers are ignored. This is **not** valid behavior for an instance method.
+3. `add` declares `(int, long)`. `Integer(2)` is unboxed to `int`, and `Integer(5)` is unboxed and then widened from `int` to `long`. The `int` result is boxed into `Integer`.
+4. `join` has `isVarArgs() == true` and its signature accepts only **one `String[]`**; both successful calls pass the string array as **one argument**.
+5. `noResult` declares `void`; the return value from Reflection is `null`.
+6. The errors for `null` receiver, wrong class, wrong number of args, spread array, or converting `Long` to `int` all manifest as the printed exception types.
+7. `boom` throws `IllegalStateException` inside its body; the Reflection caller receives `InvocationTargetException` and retrieves the cause from `getCause()`.
 
-## 5. Phân biệt hai tầng varargs, kể cả các dạng null
+## 5. Distinguishing two layers of varargs, including null forms
 
-### Array của method đích phải nằm trong một ô của Object[]
+### The target method's array must occupy a single slot of Object[]
 
-Với `join(String... values)`, runtime formal parameter là `String[]`:
+For `join(String... values)`, the runtime formal parameter is `String[]`:
 
 ```java
-join.invoke(service, (Object) new String[]{"a", "b"});       // đúng
-join.invoke(service, new Object[]{new String[]{"a", "b"}});   // đúng
-join.invoke(service, (Object[]) new String[]{"a", "b"});     // sai arity
+join.invoke(service, (Object) new String[]{"a", "b"});       // valid
+join.invoke(service, new Object[]{new String[]{"a", "b"}});   // valid
+join.invoke(service, (Object[]) new String[]{"a", "b"});     // wrong arity
 ```
 
-Cast `(Object)` trong dòng thứ nhất ép Java coi array `String[]` là **một argument** của API `invoke`, nhờ đó tạo danh sách `Object[]` có một phần tử. Dòng thứ hai tự xây danh sách có một phần tử. Dòng thứ ba cast cả `String[]` thành `Object[]` của `invoke` (hợp lệ vì `String[]` là subtype `Object[]`) và do đó bung **hai chuỗi** thành **hai formal arguments**; `join` yêu cầu chỉ một `String[]`, dẫn tới `IllegalArgumentException`.
+The `(Object)` cast in the first line forces Java to treat the `String[]` array as **one argument** of the `invoke` API, thereby creating an `Object[]` list with one element. The second line explicitly builds a one-element list. The third line casts the entire `String[]` to `Object[]` of `invoke` (valid because `String[]` is a subtype of `Object[]`) and thus spreads **two strings** as **two formal arguments**; `join` expects only one `String[]`, leading to `IllegalArgumentException`.
 
-Viết `join.invoke(service, new String[]{"a","b"})` không có cast cũng dễ gây compiler warning “non-varargs call for last parameter” và trải array theo tầng ngoài. Với code framework cần ổn định và dễ đọc, nên luôn xây `new Object[]{...}` hoặc cast array sang `Object`.
+Writing `join.invoke(service, new String[]{"a","b"})` without a cast is also prone to causing a compiler warning "non-varargs call for last parameter" and spreading the array at the outer layer. For stable and readable framework code, always build `new Object[]{...}` or cast the array to `Object`.
 
-Với `int[]`, đừng cố ép `int[]` sang `Object[]`: mảng primitive không phải subtype của `Object[]`. Ví dụ method `sum(int[] numbers)` phải nhận:
+For `int[]`, do not attempt to cast `int[]` to `Object[]`: primitive arrays are not subtypes of `Object[]`. For example, a method `sum(int[] numbers)` must receive:
 
 ```java
 sumMethod.invoke(receiver, new Object[]{new int[]{1, 2, 3}});
 ```
 
-Đây là mảnh minh họa, với `sumMethod` là metadata của method nhận `int[]`. Reflection không tự biến `Integer[]` thành `int[]` hay tự unbox từng phần tử trong array.
+This is an illustrative snippet, with `sumMethod` as metadata for a method taking `int[]`. Reflection does not automatically convert `Integer[]` into `int[]` or automatically unbox each element in an array.
 
-### null receiver, null danh sách và một null argument
+### null receiver, null argument list, and a single null argument
 
-Các lệnh sau có ngữ nghĩa khác nhau (biến `greet`, `noResult`, `service` lấy từ ví dụ chính):
+The following calls have different semantics (variables `greet`, `noResult`, `service` are taken from the main example):
 
-| Lời gọi | Ý nghĩa |
+| Call | Meaning |
 | --- | --- |
-| `noResult.invoke(service)` | Không có argument; đúng vì method đích không tham số |
-| `noResult.invoke(service, new Object[0])` | Danh sách rỗng; hợp lệ |
-| `noResult.invoke(service, (Object[]) null)` | Mảng args là `null`, hợp lệ khi method đích không tham số |
-| `greet.invoke(service, (Object) null)` | Một argument có giá trị `null`; body trả `"Hello, null"` |
-| `greet.invoke(service, new Object[]{null})` | Tương tự: một argument `null` |
-| `greet.invoke(service, (Object[]) null)` | Danh sách có 0 argument, trong khi method cần 1: `IllegalArgumentException` |
-| `greet.invoke(null, "Ana")` | Receiver `null` của instance method: `NullPointerException` |
+| `noResult.invoke(service)` | No arguments; valid because the target method takes no parameters |
+| `noResult.invoke(service, new Object[0])` | Empty list; valid |
+| `noResult.invoke(service, (Object[]) null)` | The `args` array is `null`, valid when the target method has no parameters |
+| `greet.invoke(service, (Object) null)` | One argument with value `null`; body returns `"Hello, null"` |
+| `greet.invoke(service, new Object[]{null})` | Same: one `null` argument |
+| `greet.invoke(service, (Object[]) null)` | List has 0 arguments, while the method needs 1: `IllegalArgumentException` |
+| `greet.invoke(null, "Ana")` | `null` receiver for an instance method: `NullPointerException` |
 
-`invoke(service, null)` không cast có thể gây compiler warning hoặc được hiểu theo dạng varargs không mong muốn. Viết rõ `(Object) null` để truyền **một argument null** hoặc `new Object[0]`/`(Object[]) null` để truyền **không argument**. Nếu formal parameter là primitive (`int`, `boolean`...), một giá trị `null` không thể unbox và bị từ chối.
+Uncast `invoke(service, null)` can trigger a compiler warning or be interpreted as an unintended varargs form. Explicitly write `(Object) null` to pass **one null argument**, or `new Object[0]`/`(Object[]) null` to pass **zero arguments**. If a formal parameter is primitive (`int`, `boolean`, etc.), a `null` value cannot be unboxed and is rejected.
 
-**Lưu ý:** khi mảng `args` của `Method.invoke` là `null` và method đích không có formal parameters, API chấp nhận điều này; không suy ra rằng mọi method có thể được gọi với danh sách `null`.
+**Note:** when the `args` array of `Method.invoke` is `null` and the target method has no formal parameters, the API accepts this; do not infer that every method can be invoked with a `null` list.
 
-## 6. Chuyển đổi đối số và trả về
+## 6. Argument and return conversions
 
 ### Method invocation conversions
 
-Java kiểm tra số lượng args và tương thích kiểu tại lời gọi `invoke`:
+Java checks argument count and type compatibility at the `invoke` call:
 
-- Reference parameter nhận `null` hoặc reference subtype phù hợp (ví dụ `String` cho `CharSequence`).
-- Primitive parameter nhận wrapper thích hợp được unbox; các chuyển đổi **widening primitive** như `int` sang `long` được phép.
-- **Narrowing primitive** như `long` sang `int` không tự diễn ra. Một `String` chứa chữ số không được tự parse thành `int`.
-- Các chuyển đổi áp dụng **cho mỗi phần tử `Object[]`**, không tự lan vào phần tử của một array formal parameter.
+- Reference parameters accept `null` or a compatible reference subtype (e.g., `String` for `CharSequence`).
+- Primitive parameters accept a suitable wrapper that gets unboxed; **widening primitive** conversions such as `int` to `long` are allowed.
+- **Narrowing primitive** conversions such as `long` to `int` do not happen automatically. A `String` containing digits is not automatically parsed into `int`.
+- Conversions apply **per element of `Object[]`**, and do not propagate into elements of an array formal parameter.
 
-Ví dụ:
+Example:
 
 ```java
 Method m = Service.class.getMethod("add", int.class, long.class);
@@ -280,61 +280,61 @@ m.invoke(service, Long.valueOf(2), Integer.valueOf(5));    // IllegalArgumentExc
 m.invoke(service, (Object) null, Integer.valueOf(5));       // IllegalArgumentException
 ```
 
-Đây là mảnh code minh họa, không phải chương trình chạy độc lập. Method đích `add` không được chọn lại để khớp `Long`; `Method` đã được tra cứu theo signature `(int,long)`.
+This is an illustrative code fragment, not a standalone runnable program. Target method `add` is not re-selected to match `Long`; `Method` was already looked up by signature `(int,long)`.
 
-### Giá trị trả về
+### Return value
 
-| Return type của method đích | Giá trị `invoke` trả |
+| Return type of target method | Value returned by `invoke` |
 | --- | --- |
-| `String` hoặc reference type | Reference kết quả, có thể `null` |
-| `int`, `long` hoặc primitive khác | Wrapper như `Integer`, `Long` |
+| `String` or reference type | Result reference, possibly `null` |
+| `int`, `long`, or other primitive | Wrapper such as `Integer`, `Long` |
 | `void` | `null` |
-| `int[]` hoặc array khác | Chính array, không boxing từng phần tử |
+| `int[]` or other array | The array itself, without boxing each element |
 
-`method.getReturnType()` mô tả kiểu khai báo. `result.getClass()` chỉ mô tả runtime class nếu kết quả khác `null`; không phân biệt được `void` với method reference trả `null`. Với generic, `getGenericReturnType()` xem được generic signature khi metadata có sẵn; runtime invoke không kiểm tra mọi type argument đã bị erasure.
+`method.getReturnType()` describes the declared type. `result.getClass()` only describes the runtime class if the result is non-`null`; it cannot distinguish `void` from a reference-returning method that returns `null`. For generics, `getGenericReturnType()` can inspect the generic signature when metadata is available; runtime invocation does not check erased type arguments.
 
-## 7. Exception: lỗi gọi sai khác lỗi bên trong method
+## 7. Exceptions: invocation errors vs. errors inside the method
 
-Theo Javadoc Java 17 của `Method.invoke`:
+Per the Java 17 Javadoc for `Method.invoke`:
 
-| Lỗi | Nguyên nhân điển hình |
+| Error | Typical cause |
 | --- | --- |
-| `NoSuchMethodException` | Xảy ra khi `getMethod`/`getDeclaredMethod` không tìm thấy đúng chữ ký; đây là lỗi **tra cứu**, trước khi invoke |
-| `IllegalAccessException` | Caller không có quyền gọi underlying method theo Java access control |
-| `NullPointerException` | Receiver `null` khi underlying method là instance |
-| `IllegalArgumentException` | Receiver không đúng kiểu, sai số formal/actual args hoặc một argument không chuyển đổi được sang formal type |
-| `InvocationTargetException` | Method đích đã chạy và ném exception/error; đọc `getCause()` |
-| `ExceptionInInitializerError` | Khởi tạo declaring class do gọi static method thất bại |
-| `InaccessibleObjectException` | Có thể xuất hiện khi yêu cầu deep reflection bằng `setAccessible(true)` không được module cho phép |
+| `NoSuchMethodException` | Occurs when `getMethod`/`getDeclaredMethod` cannot find the exact signature; this is a **lookup** error, before invoking |
+| `IllegalAccessException` | Caller lacks permission to call the underlying method under Java access control |
+| `NullPointerException` | `null` receiver when the underlying method is an instance method |
+| `IllegalArgumentException` | Wrong receiver type, wrong number of formal/actual args, or an argument cannot be converted to the formal type |
+| `InvocationTargetException` | Target method ran and threw an exception/error; read `getCause()` |
+| `ExceptionInInitializerError` | Initialization of the declaring class triggered by invoking a static method failed |
+| `InaccessibleObjectException` | Can occur when requesting deep reflection with `setAccessible(true)` not permitted by the module |
 
-Ví dụ pattern xử lý đúng gốc lỗi:
+Example pattern for handling the root cause properly:
 
 ```java
 try {
     method.invoke(receiver, arguments);
 } catch (InvocationTargetException ex) {
     Throwable underlying = ex.getCause();
-    // Xử lý/ghi log ngoại lệ của chính method đích.
+    // Handle/log the exception thrown by the target method itself.
 } catch (IllegalAccessException ex) {
-    // Kiểm tra quyền truy cập của method.
+    // Check method access permissions.
 } catch (IllegalArgumentException ex) {
-    // Kiểm tra receiver, arity và conversion của args.
+    // Check receiver, arity, and argument conversions.
 }
 ```
 
-Đây là mảnh code cần ngữ cảnh `method`, `receiver`, `arguments`. Không gộp `InvocationTargetException` thành lỗi “sai tham số Reflection”; nó là **lớp bọc quanh lỗi đã xảy ra bên trong method**. Với ứng dụng thực tế, policy xử lý checked exceptions, unchecked exceptions và `Error` ở tầng framework phải được thiết kế rõ.
+This is a code fragment requiring context `method`, `receiver`, `arguments`. Do not lump `InvocationTargetException` together with "wrong Reflection parameters" errors; it is a **wrapper around an error that occurred inside the method**. In real applications, the policy for handling checked exceptions, unchecked exceptions, and `Error` at the framework layer must be clearly designed.
 
-### getMethod khác getDeclaredMethod và quyền truy cập
+### getMethod vs. getDeclaredMethod and access permissions
 
-- `getMethod(name, parameterTypes...)` tìm public method theo quy tắc tra cứu, có thể thấy inherited public method.
-- `getDeclaredMethod(name, parameterTypes...)` tìm method khai báo **trực tiếp** trong class, bao gồm private, không tự duyệt superclasses.
-- Lấy được `Method` private **không đồng nghĩa gọi được**. `Method.invoke` có thể ném `IllegalAccessException`; `trySetAccessible()`/`setAccessible(true)` chỉ có thể nới quyền nếu quy tắc module và runtime cho phép.
-- `Method.invoke` trên instance method được override có dynamic dispatch; static method không override theo nghĩa ấy. Việc truyền subtype receiver cho static method không làm chọn một static method bị hiding ở subtype.
-- Nếu method đích nằm trong Java module không mở package cho caller, không dựa vào Reflection để vượt encapsulation. Ưu tiên public API hoặc cấu hình `opens` khi thực sự cần.
+- `getMethod(name, parameterTypes...)` searches for public methods according to lookup rules, and can see inherited public methods.
+- `getDeclaredMethod(name, parameterTypes...)` searches for methods declared **directly** in the class, including private ones, without automatically walking superclasses.
+- Obtaining a private `Method` **does not mean you can call it**. `Method.invoke` can throw `IllegalAccessException`; `trySetAccessible()`/`setAccessible(true)` can only relax access if module and runtime rules allow it.
+- `Method.invoke` on an overridden instance method uses dynamic dispatch; static methods do not override in that sense. Passing a subtype receiver for a static method does not select a static method hidden in the subtype.
+- If the target method resides in a Java module whose package is not open to the caller, do not rely on Reflection to bypass encapsulation. Prefer public APIs or configure `opens` only when truly needed.
 
-## 8. Một utility giảm lỗi receiver và kiểm soát signature
+## 8. A utility to reduce receiver errors and control signatures
 
-Đây là class Java hoàn chỉnh dùng làm helper trong dự án (không có `main`):
+Here is a complete Java class used as a helper in a project (without `main`):
 
 ```java
 import java.lang.reflect.InvocationTargetException;
@@ -354,33 +354,33 @@ public final class ReflectiveCalls {
 }
 ```
 
-Helper này chỉ thực hiện lựa chọn receiver rõ nghĩa. Nó **không tự sửa** arity, ép kiểu tùy ý, tra cứu overload, bypass private/module access hay bắt lỗi của method đích. Trước khi dùng, mã gọi cần biết:
+This helper only performs explicit receiver selection. It **does not automatically fix** arity, cast arbitrarily, resolve overloads, bypass private/module access, or catch errors from the target method. Before using it, calling code needs to know:
 
-1. Method nào đang được yêu cầu và formal parameter types chính xác (`getParameterTypes()`).
-2. Method static hay instance (`Modifier.isStatic(getModifiers())`), receiver phải đúng kiểu nếu instance.
-3. `Object[]` chứa đúng một phần tử cho mỗi formal parameter, đặc biệt array formal và varargs.
-4. Caller có quyền gọi method và liệu static class initialization có tác dụng phụ hay không.
-5. Cách xử lý `InvocationTargetException.getCause()` và return value đã được boxing/`null`.
+1. Which method is being requested and its exact formal parameter types (`getParameterTypes()`).
+2. Whether the method is static or instance (`Modifier.isStatic(getModifiers())`), ensuring the receiver has the right type if it is an instance method.
+3. That `Object[]` contains exactly one element per formal parameter, especially for array formal parameters and varargs.
+4. Whether the caller has permission to invoke the method and whether static class initialization has side effects.
+5. How to handle `InvocationTargetException.getCause()` and boxed/`null` return values.
 
-Khi method cần gọi đã biết trước tại compile time, lời gọi Java bình thường thường có type checking rõ ràng hơn. Reflection phù hợp khi tên/kiểu method chỉ biết tại runtime, ví dụ mapper, test runner, plugin framework hoặc dependency injection container.
+When the method to call is known at compile time, a regular Java call usually offers clearer type checking. Reflection is appropriate when method names/types are only known at runtime, such as in mappers, test runners, plugin frameworks, or dependency injection containers.
 
-## 9. Tự kiểm tra
+## 9. Self-check
 
-**Câu 1.** `Method m` mô tả `static void run()`. `m.invoke(new Object())` có sai receiver không? **Không**; target bị bỏ qua. Nên dùng `m.invoke(null)` để rõ ràng.
+**Question 1.** `Method m` describes `static void run()`. Does `m.invoke(new Object())` have a wrong receiver? **No**; the target is ignored. Using `m.invoke(null)` is preferable for clarity.
 
-**Câu 2.** Method đích là `void accept(String[] names)`. Có truyền hai chuỗi bằng `m.invoke(receiver, (Object[]) new String[]{"A","B"})` không? **Không**: call này tạo hai actual args `String`, trong khi formal chỉ có một `String[]`. Dùng `m.invoke(receiver, (Object) new String[]{"A","B"})` hoặc `m.invoke(receiver, new Object[]{new String[]{"A","B"}})`.
+**Question 2.** The target method is `void accept(String[] names)`. Can you pass two strings via `m.invoke(receiver, (Object[]) new String[]{"A","B"})`? **No**: this call creates two actual `String` args, whereas there is only one formal `String[]`. Use `m.invoke(receiver, (Object) new String[]{"A","B"})` or `m.invoke(receiver, new Object[]{new String[]{"A","B"}})`.
 
-**Câu 3.** `m` mô tả `void greet(String s)`. `m.invoke(receiver, (Object) null)` truyền gì? **Một `null`**. `m.invoke(receiver, (Object[]) null)` thì sao? **Không có actual args**, thiếu tham số và thất bại.
+**Question 3.** `m` describes `void greet(String s)`. What does `m.invoke(receiver, (Object) null)` pass? **One `null`**. What about `m.invoke(receiver, (Object[]) null)`? **Zero actual args**, missing a parameter and failing.
 
-**Câu 4.** Method trả `long`; `Method.invoke` trả loại gì? **`Object` chứa `Long`** qua boxing. Method trả `void` thì `invoke` trả `null`.
+**Question 4.** A method returns `long`; what type does `Method.invoke` return? **`Object` containing `Long`** via boxing. For a `void` method, `invoke` returns `null`.
 
-**Câu 5.** Method đích ném `IOException`. Reflection gọi phương thức này sẽ ném thẳng `IOException`? **Không**; `InvocationTargetException` bọc exception gốc, xem `getCause()`.
+**Question 5.** The target method throws `IOException`. Will Reflection invoking this method throw `IOException` directly? **No**; `InvocationTargetException` wraps the original exception—check `getCause()`.
 
-**Câu 6.** Đã có `Method` của instance method lớp `Base`; receiver là `Derived` override method ấy. Chạy bản nào? **Implementation override trên `Derived`**. Nếu là static method thì không có dynamic override.
+**Question 6.** You have a `Method` for an instance method on class `Base`; the receiver is `Derived` which overrides that method. Which version runs? **The overridden implementation on `Derived`**. If it is a static method, there is no dynamic overriding.
 
-**Câu 7.** Tại sao `getMethod("f", int.class)` không tìm được `f(long)` dù `Integer` có thể widen thành `long` khi `invoke`? **Tra cứu dùng formal signature chính xác; chuyển đổi giá trị chỉ diễn ra lúc gọi**.
+**Question 7.** Why can't `getMethod("f", int.class)` find `f(long)` even though `Integer` can widen to `long` during `invoke`? **Lookup uses the exact formal signature; value conversion only happens at invocation time**.
 
-## 10. Tài liệu chính thức
+## 10. Official documentation
 
 - [Java SE 17 Javadoc — Method.invoke(Object, Object...)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html)
 - [Java SE 17 Javadoc — Class.getMethod / getDeclaredMethod](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html)

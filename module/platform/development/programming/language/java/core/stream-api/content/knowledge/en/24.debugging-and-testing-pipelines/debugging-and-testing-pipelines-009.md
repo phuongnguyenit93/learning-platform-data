@@ -1,14 +1,14 @@
-# Kiểm thử tính chất và tạo dữ liệu ngẫu nhiên có thể tái lập
+# Property-Based Testing and Reproducible Random Data Generation
 
-Trong chương **Gỡ lỗi và kiểm thử pipeline** của **Java Stream API**, kiểm thử một vài ví dụ cố định là cần thiết nhưng chưa đủ. Một pipeline có thể chạy đúng với danh sách năm phần tử mà sai khi nguồn rỗng, có giá trị trùng, thứ tự thay đổi, kết quả nhiều nhóm hoặc chuyển từ `stream()` sang `parallelStream()`. Đặc biệt, lỗi của `reduce`, `collect`, bộ lọc, phép nhóm và thao tác có trạng thái thường xuất hiện ở **sự kết hợp dữ liệu** mà tác giả chưa nghĩ tới.
+In the **Debugging and Testing Pipelines** chapter of **Java Stream API**, testing a few fixed examples is necessary yet insufficient. A pipeline can work cleanly on a five-element list yet fail when the source is empty, contains duplicates, changes order, spans multiple groups, or switches from `stream()` to `parallelStream()`. In particular, bugs in `reduce`, `collect`, filters, grouping, and stateful operations often appear in **data combinations** the author never anticipated.
 
-**Kiểm thử tính chất** (*property-based testing*) đặt câu hỏi khác kiểm thử ví dụ thông thường: thay vì chỉ kiểm tra một đầu vào và một kết quả định sẵn, ta xác định **điều luôn phải đúng** đối với một lớp đầu vào hợp lệ, rồi tạo nhiều bộ dữ liệu để tìm phản ví dụ. Việc tạo ngẫu nhiên phải **có thể tái lập**: khi phát hiện lỗi, lưu lại seed, cấu hình và dữ liệu gây lỗi để chạy lại chính xác, sửa mã và kiểm thử hồi quy.
+**Property-based testing** asks a different question than example-based testing: instead of checking only one predefined input and one hardcoded output, you specify **what must always hold** across a class of valid inputs, then generate many datasets to hunt for counterexamples. Random generation must be **reproducible**: whenever a failure occurs, save the seed, configuration, and failing input so you can rerun the exact case, fix the code, and keep a regression test.
 
-Bài này hướng dẫn cách thiết kế bộ sinh dữ liệu dựa trên seed, xây *oracle* độc lập, kiểm tra bất biến và phép biến đổi bảo toàn tính chất, so sánh pipeline tuần tự/song song, thu nhỏ ca lỗi và tránh các bẫy ngẫu nhiên không ổn định. Ví dụ hoàn chỉnh sử dụng **Java 17+**, `SplittableRandom` và các API có sẵn trong JDK; không yêu cầu framework kiểm thử bổ sung.
+This lesson explains how to design seed-driven data generators, build independent *oracles*, test invariants and property-preserving transformations, compare sequential/parallel pipelines, shrink failing cases, and avoid non-deterministic test pitfalls. Complete examples use **Java 17+**, `SplittableRandom`, and standard JDK APIs; no extra testing frameworks are required.
 
-## 1. Từ kiểm thử ví dụ đến kiểm thử tính chất
+## 1. From Example-Based Testing to Property-Based Testing
 
-Một kiểm thử ví dụ có thể là:
+An example-based test might look like:
 
 ~~~java
 import java.util.List;
@@ -22,31 +22,31 @@ if (count != 2L) {
 }
 ~~~
 
-Nó xác minh một trường hợp cụ thể: danh sách `[1,2,3,4]` có hai số chẵn. Nhưng vẫn còn nhiều trường hợp chưa được thử: danh sách rỗng, toàn số chẵn, toàn số lẻ, số trùng, số âm, số `0`, đầu vào rất lớn.
+It verifies one specific case: `[1,2,3,4]` contains two even numbers. Yet many cases remain untested: an empty list, all even numbers, all odd numbers, duplicates, negative numbers, `0`, and very large inputs.
 
-Có thể nâng mục tiêu thành một **tính chất**:
+We can elevate this goal into a **property**:
 
-> Với mọi danh sách số nguyên hợp lệ, số lượng phần tử đi qua `filter(even)` bằng số phần tử chẵn khi đếm bằng một vòng lặp tham chiếu độc lập.
+> For any valid list of integers, the number of elements passing `filter(even)` equals the number of even integers counted by an independent reference loop.
 
-Tính chất đó có thể được kiểm tra trên hàng trăm danh sách được tạo tự động, thay vì viết thủ công hàng trăm `assert` riêng lẻ.
+That property can be checked across hundreds of automatically generated lists instead of hand-writing hundreds of individual `assert` statements.
 
-Một số nhóm tính chất hữu ích cho Stream API:
+Several useful property categories for the Stream API:
 
-| Nhóm | Câu hỏi kiểm tra | Ví dụ |
+| Category | Question checked | Example |
 | --- | --- | --- |
-| **Bất biến kết quả** | Đầu ra có luôn tuân thủ ràng buộc? | Không có phần tử không thỏa `filter` |
-| **Oracle tham chiếu** | Kết quả có bằng cách tính độc lập? | `groupingBy + summingLong` so với vòng lặp `for` |
-| **Quan hệ biến hình** (*metamorphic*) | Đổi đầu vào theo một cách hợp lệ có giữ một đặc tính không? | Xáo thứ tự đầu vào không đổi tổng theo nhóm |
-| **Luật đại số** | Phép gộp có thỏa identity/tính kết hợp? | Tổng hai đoạn bằng tổng cả dãy |
-| **Tương đương thực thi** | Tuần tự và song song có cùng ý nghĩa không? | Cùng `Map<region, total>` |
-| **Đường biên** | Trường hợp nhỏ nhất/cực trị có đúng không? | Stream rỗng, một phần tử, nhiều bản ghi trùng khóa |
-| **Vòng đời nguồn** | Tài nguyên có đóng cả khi lỗi/dừng sớm? | `Files.lines` trong `try-with-resources` |
+| **Output invariant** | Does the output always obey a constraint? | No element fails the `filter` predicate |
+| **Reference oracle** | Does output match an independent computation? | `groupingBy + summingLong` vs. a `for` loop |
+| **Metamorphic relation** | Does a valid input transform preserve a property? | Shuffling input keeps per-group sums unchanged |
+| **Algebraic laws** | Does merging satisfy identity/associativity? | Sum of two halves equals sum of whole sequence |
+| **Execution equivalence** | Do sequential and parallel agree semantically? | Identical `Map<region, total>` |
+| **Boundary cases** | Are minimal/extreme inputs handled right? | Empty Stream, single element, many duplicate keys |
+| **Source lifecycle** | Do resources close on errors/early exits? | `Files.lines` inside `try-with-resources` |
 
-Không phải mọi pipeline đều phải thỏa tất cả tính chất trên. **Chọn tính chất từ yêu cầu nghiệp vụ và hợp đồng API**, không tự đặt một tính chất sai rồi coi mọi phản ví dụ là lỗi.
+Not every pipeline must satisfy all of these properties. **Derive properties from business requirements and API contracts**, rather than inventing a false property and treating valid behavior as a failure.
 
-## 2. Đặc tả bài toán dùng xuyên suốt
+## 2. Problem Specification Used Throughout
 
-Giả sử một hệ thống cần tổng hợp doanh thu theo vùng từ danh sách giao dịch:
+Suppose a system aggregates revenue by region from a list of transactions:
 
 ~~~java
 record Sale(
@@ -60,16 +60,16 @@ record Sale(
 }
 ~~~
 
-Một giao dịch có:
+Each transaction has:
 
-- `region`: mã vùng, trong tập `NORTH`, `SOUTH`, `CENTRAL`.
-- `units`: số lượng đơn vị hàng, không âm.
-- `unitPriceCents`: đơn giá theo **xu nguyên**, không âm.
-- `totalCents`: thành tiền = số lượng × đơn giá, tính bằng `long`.
+- `region`: region code in `{NORTH, SOUTH, CENTRAL}`.
+- `units`: item quantity, non-negative.
+- `unitPriceCents`: unit price in **integer cents**, non-negative.
+- `totalCents`: line total = units × unit price, stored as `long`.
 
-Chúng ta chủ động sử dụng số xu nguyên thay vì `double` để tránh sai số dấu phẩy động trong ví dụ tổng hợp tiền. `Math.multiplyExact` cho phép phát hiện tràn số khi đầu vào vượt giới hạn kiểu `long`.
+We deliberately use integer cents instead of `double` to avoid floating-point rounding noise in this monetary aggregation example. `Math.multiplyExact` detects overflow if inputs exceed `long` bounds.
 
-Pipeline cần kiểm thử:
+Pipeline under test:
 
 ~~~java
 Map<String, Long> totalsByRegion = sales.stream()
@@ -79,20 +79,20 @@ Map<String, Long> totalsByRegion = sales.stream()
         ));
 ~~~
 
-Yêu cầu kết quả:
+Result requirements:
 
-1. Mỗi vùng có giao dịch xuất hiện **đúng một khóa** trong Map.
-2. Giá trị của khóa là tổng thành tiền của **mọi giao dịch thuộc vùng đó**.
-3. Giao dịch có thành tiền bằng 0 vẫn là giao dịch có mặt trong vùng; vùng đó có thể có tổng bằng 0.
-4. Danh sách rỗng tạo Map rỗng.
-5. Vì phép cộng số nguyên được giới hạn không tràn, tổng không phụ thuộc thứ tự duyệt hoặc cách chia dữ liệu.
-6. `Map` không cần giữ thứ tự khóa; phép kiểm thử phải so **ánh xạ khóa–giá trị**, không so chuỗi được in từ `HashMap`.
+1. Each region with transactions appears as **exactly one key** in the Map.
+2. Each key's value is the sum of line totals for **all transactions in that region**.
+3. A transaction with total 0 is still present in its region; that region may have a sum of 0.
+4. An empty list produces an empty Map.
+5. Because integer addition is bounded to avoid overflow, totals do not depend on traversal order or data partitioning.
+6. The `Map` need not preserve key order; tests must compare **key–value mappings**, not printed `HashMap` strings.
 
-Đây là hợp đồng cụ thể. Nếu nghiệp vụ cần loại đơn hủy, bổ sung điều kiện lọc vào cả pipeline lẫn oracle; nếu cho phép dữ liệu `null`, phải định nghĩa chính sách riêng thay vì mặc định bỏ qua.
+This is a concrete contract. If business rules require excluding canceled orders, add the filter to both the pipeline and the oracle; if `null` data is allowed, define an explicit policy instead of silently skipping it.
 
-## 3. Thiết kế bộ sinh dữ liệu: đúng miền, có giới hạn, có khả năng lặp lại
+## 3. Designing a Data Generator: In-Domain, Bounded, Repeatable
 
-Nguồn ngẫu nhiên phải cho ra dữ liệu **nằm trong miền hợp lệ** của tính chất đang kiểm tra. Ví dụ:
+A random source must produce data **within the valid domain** of the property being tested. Example:
 
 ~~~java
 import java.util.ArrayList;
@@ -118,43 +118,43 @@ static List<Sale> generateSales(long seed) {
 }
 ~~~
 
-Với cùng `seed`, cùng thuật toán sinh và cùng môi trường thực thi, bộ sinh cho ra cùng trình tự lựa chọn. Miền dữ liệu được giới hạn có chủ đích:
+Given the same `seed`, generation algorithm, and runtime environment, the generator produces the exact same sequence of choices. The domain is intentionally bounded:
 
-| Thuộc tính | Miền sinh | Lý do |
+| Attribute | Generation range | Reason |
 | --- | --- | --- |
-| Số giao dịch | Từ 0 đến 200 | Có thể sinh nguồn rỗng; bộ thử không tốn bộ nhớ lớn |
-| Vùng | Ba mã cố định | Tạo khóa trùng để thử `groupingBy` |
-| `units` | Từ 0 đến 20 | Có trường hợp tổng bằng 0 |
-| `unitPriceCents` | Từ 0 đến 100.000 | Có giá trị 0 và giá trị lớn |
-| Giá trị bản ghi | Không `null` | Tính chất đầu tiên tập trung trên dữ liệu hợp lệ |
-| Thứ tự | Thứ tự sinh được giữ trong `List` | Có encounter order để thử các thao tác có thứ tự |
+| Transaction count | 0 to 200 | Can generate empty sources; keeps tests lightweight in memory |
+| Region | Three fixed codes | Creates duplicate keys to exercise `groupingBy` |
+| `units` | 0 to 20 | Includes zero-total cases |
+| `unitPriceCents` | 0 to 100,000 | Covers 0 and large values |
+| Record values | Non-`null` | First property focuses on valid inputs |
+| Order | Generation order preserved in `List` | Provides encounter order for ordered operations |
 
-`nextInt(origin, bound)` và `nextLong(origin, bound)` sử dụng **cận trên loại trừ**. Vì vậy `nextInt(0, 201)` có thể tạo 200, còn `nextLong(0L, 100_001L)` có thể tạo 100.000.
+`nextInt(origin, bound)` and `nextLong(origin, bound)` use an **exclusive upper bound**. Thus `nextInt(0, 201)` can produce 200, and `nextLong(0L, 100_001L)` can produce 100,000.
 
-Với tối đa 200 giao dịch, mỗi thành tiền không quá `20 × 100.000 = 2.000.000` xu, nên tổng tuyệt đối không quá 400.000.000 xu. Miền sinh này đủ nhỏ để các phép cộng `long` trong ví dụ không bị tràn. Kiểm thử xử lý overflow phải được thực hiện bằng **nhóm test riêng**, không trộn vào một tính chất đang giả định phép cộng hợp lệ.
+With at most 200 transactions, each line total is at most `20 × 100,000 = 2,000,000` cents, so the grand total never exceeds 400,000,000 cents. This range is small enough that `long` additions in our example never overflow. Overflow handling should be tested in a **dedicated test group**, never mixed into a property that assumes valid non-overflowing sums.
 
-### Vì sao không dùng Math.random()?
+### Why avoid `Math.random()`?
 
-`Math.random()` không cho phép caller đặt một seed riêng cho từng ca kiểm thử theo cách tiện và rõ ràng như bộ sinh đối tượng. `ThreadLocalRandom.current()` cũng không thích hợp nếu mục tiêu là tái lập chính xác một ca bằng seed do test sở hữu.
+`Math.random()` does not let callers assign an explicit per-case seed as cleanly and transparently as an instantiated generator. `ThreadLocalRandom.current()` is also unsuitable when your goal is reproducing an exact case from a test-owned seed.
 
-`SplittableRandom(seed)` thuận tiện để tạo nhiều số có seed. Tuy nhiên, **seed không phải toàn bộ dữ liệu tái lập**: còn cần ghi rõ thuật toán sinh, khoảng giá trị, thứ tự gọi generator và phiên bản/cấu hình môi trường nếu muốn tái lập lâu dài giữa những hệ thống khác nhau.
+`SplittableRandom(seed)` is convenient for seeded generation. Still, **the seed alone is not the entire reproduction state**: you also need the generation algorithm, value ranges, generator call order, and environment/version details for long-term reproducibility across systems.
 
-Nếu cần một fixture **ổn định tuyệt đối giữa các JDK/toolchain**, hãy lưu lại chính danh sách đầu vào đã gây lỗi, thay vì chỉ dựa vào seed.
+If you need a fixture that is **100% stable across JDKs/toolchains**, persist the failing input list itself rather than relying solely on a seed.
 
-## 4. Ngẫu nhiên có thể tái lập khác với “mỗi lần chạy một dữ liệu mới”
+## 4. Reproducible Randomness vs. "Different Data on Every Run"
 
-Một cách tạo dữ liệu không thể tái lập tốt:
+An anti-pattern that hurts reproducibility:
 
 ~~~java
-// Không phù hợp để debug một ca lỗi đã xảy ra.
+// Unsuitable for debugging a failure after it happens.
 List<Integer> data = Stream.generate(
         () -> (int) (Math.random() * 100)
 ).limit(100).toList();
 ~~~
 
-Nếu kiểm thử thất bại trên máy CI, lập trình viên có thể không tái tạo được đầu vào đã kích hoạt lỗi.
+If this test fails on CI, developers cannot reconstruct the exact input that triggered the bug.
 
-Thay vào đó, dùng một **seed gốc** và quy tắc suy ra seed cho từng lượt:
+Instead, use a **base seed** and derive a deterministic seed per trial:
 
 ~~~java
 long baseSeed = 20261118L;
@@ -163,27 +163,27 @@ for (int trial = 0; trial < 500; trial++) {
     long caseSeed = baseSeed + trial;
     List<Sale> data = generateSales(caseSeed);
 
-    // Kiểm tra các tính chất trên data.
+    // Check properties on data.
 }
 ~~~
 
-Để tái lập ca lỗi thứ 137, cần biết `caseSeed = 20261118 + 137` và chạy lại **đúng ca đó**. Đây là lý do mỗi lượt kiểm thử nên tự tạo một `SplittableRandom` mới, không chỉ dùng một generator chung chạy liên tục qua mọi lượt.
+To replay trial 137, you compute `caseSeed = 20261118 + 137` and rerun **that exact case**. This is why each trial should construct its own fresh `SplittableRandom`, rather than advancing one shared generator across every trial.
 
-Những thứ nên ghi khi test thất bại:
+What to log whenever a test fails:
 
-- Tên tính chất bị vi phạm.
-- `caseSeed` và số thứ tự lượt thử.
-- Danh sách hoặc file chứa đầu vào tối thiểu.
-- Kết quả mong đợi và kết quả thực tế.
-- Phiên bản JDK, phiên bản mã và cấu hình quan trọng nếu lỗi chỉ xuất hiện ở môi trường cụ thể.
+- Name of the violated property.
+- `caseSeed` and trial number.
+- Minimal input list or file.
+- Expected result and actual result.
+- JDK version, code version, and key settings if environment-specific.
 
-**Đừng chỉ in “Random test failed”.** Một ca lỗi mà không có seed và dữ liệu là ca lỗi khó tái lập, thường tốn thời gian điều tra hơn nhiều so với chính lỗi thuật toán.
+**Never print only "Random test failed."** A failing trial without its seed and input is hard to reproduce and usually wastes far more time than fixing the actual bug.
 
-## 5. Oracle độc lập: so Stream với vòng lặp dễ hiểu
+## 5. Independent Oracle: Comparing a Stream Against a Clear Loop
 
-Một `oracle` là cách tính tham chiếu đủ đơn giản để tin tưởng, độc lập ở mức hợp lý với code cần thử.
+An `oracle` is a reference computation simple enough to trust and reasonably independent of the code under test.
 
-Ví dụ tính doanh thu theo vùng bằng vòng lặp:
+Example computing regional revenue with a loop:
 
 ~~~java
 import java.util.HashMap;
@@ -208,17 +208,17 @@ static Map<String, Long> referenceTotals(List<Sale> sales) {
 }
 ~~~
 
-Oracle này không dùng `groupingBy` hoặc `summingLong`, nên nếu collector bị viết sai, phép so sánh có cơ hội phát hiện khác biệt.
+This oracle avoids `groupingBy` and `summingLong`, so if the collector is written wrong, the comparison exposes the difference.
 
-Một số nguyên tắc khi xây oracle:
+Guidelines for writing an oracle:
 
-1. **Ưu tiên thuật toán dễ đọc hơn tốc độ.** Bộ dữ liệu kiểm thử nhỏ, không cần tối ưu oracle như pipeline sản xuất.
-2. **Tránh dùng cùng một hàm có thể sai ở cả hai phía.** Ở đây oracle tự tính nhân thay vì gọi `Sale::totalCents`; giảm nguy cơ cả hai cùng che một lỗi.
-3. **Dùng cùng đặc tả nghiệp vụ.** Nếu đầu ra bỏ giao dịch `units == 0`, oracle cũng phải làm như vậy.
-4. **Kiểm tra oracle bằng fixture cố định.** Một oracle sai cũng có thể tạo kết luận sai về pipeline.
-5. **Không phụ thuộc thứ tự duyệt Map.** `Map.equals` so đúng các cặp khóa–giá trị.
+1. **Favor readability over speed.** Test datasets are small; an oracle doesn't need production-level optimization.
+2. **Avoid sharing helpers that could fail identically on both sides.** Here the oracle computes multiplication itself instead of calling `Sale::totalCents`, reducing the risk of hiding a shared bug.
+3. **Follow the exact same business spec.** If output drops `units == 0` transactions, the oracle must too.
+4. **Verify the oracle with fixed fixtures.** A buggy oracle leads to false conclusions about the pipeline.
+5. **Do not depend on Map traversal order.** `Map.equals` compares key–value pairs properly.
 
-Ví dụ so sánh:
+Comparison example:
 
 ~~~java
 Map<String, Long> expected = referenceTotals(sales);
@@ -230,63 +230,63 @@ if (!expected.equals(actual)) {
 }
 ~~~
 
-Trong đó `totalsByRegion(sales, false)` là hàm pipeline sẽ được định nghĩa trong chương trình hoàn chỉnh.
+Here `totalsByRegion(sales, false)` is the pipeline function defined in our complete program.
 
-## 6. Các tính chất cần kiểm chứng cho phép tổng hợp
+## 6. Properties to Verify for Aggregations
 
-### 6.1. Tương đương với oracle
+### 6.1. Equivalence with the oracle
 
-Với mọi danh sách `sales` trong miền hợp lệ:
+For every `sales` list in the valid domain:
 
 ~~~text
 streamTotals(sales) == referenceTotals(sales)
 ~~~
 
-Đây là tính chất mạnh nhất trong bài, vì nó so toàn bộ Map với phép tính tham chiếu.
+This is our strongest property because it checks the entire Map against the reference calculation.
 
-### 6.2. Tổng theo nhóm bằng tổng toàn bộ dữ liệu
+### 6.2. Sum of group totals equals grand total
 
 ~~~text
 sum(totalsByRegion.values())
     == sum(each sale.units * sale.unitPriceCents)
 ~~~
 
-Bất biến giúp phát hiện bỏ sót hoặc đếm hai lần một giao dịch, miễn các tổng không tràn. Nhưng chỉ kiểm tra tổng chung **không đủ**: một giao dịch bị gán nhầm vùng có thể không làm thay đổi tổng cuối.
+This invariant catches dropped or double-counted transactions, provided sums do not overflow. Still, checking only the grand total **is not enough**: assigning a transaction to the wrong region leaves the grand total unchanged.
 
-### 6.3. Hoán vị không làm đổi tổng theo vùng
+### 6.3. Permutation does not change per-region sums
 
-Nếu chỉ quan tâm doanh thu theo vùng, thứ tự giao dịch không phải phần ngữ nghĩa kết quả:
+When only revenue by region matters, transaction order is not part of output semantics:
 
 ~~~text
 totalsByRegion(sales) == totalsByRegion(shuffle(sales))
 ~~~
 
-Lưu ý, đây **không** phải tính chất đúng cho mọi pipeline. Ví dụ `findFirst`, `limit`, `takeWhile` và `joining` có thể phụ thuộc encounter order. Chỉ dùng tính chất hoán vị cho phép tổng hợp có hợp đồng **không phụ thuộc thứ tự**.
+Note that this is **not** valid for every pipeline. Operations like `findFirst`, `limit`, `takeWhile`, and `joining` can depend on encounter order. Apply permutation invariance only to aggregations whose contract is **order-independent**.
 
-### 6.4. Tách dữ liệu rồi gộp báo cáo
+### 6.4. Splitting data and merging reports
 
-Nếu chia danh sách làm hai đoạn liên tiếp `left` và `right`:
+If you split the list into two contiguous slices `left` and `right`:
 
 ~~~text
 aggregate(sales)
     == merge(aggregate(left), aggregate(right))
 ~~~
 
-Hàm `merge` phải cộng tổng của cùng vùng. Tính chất này mô phỏng việc chia và kết hợp công việc trong Stream song song, giúp phát hiện các lỗi như combiner bỏ qua một nhánh hoặc dùng identity sai.
+The `merge` function must sum totals for matching regions. This models how parallel Streams split and merge work, exposing bugs such as a combiner dropping a branch or using the wrong identity.
 
-### 6.5. Tuần tự và song song phải cho cùng ý nghĩa
+### 6.5. Sequential and parallel must agree semantically
 
-Với kiểu `long` và miền thử không tràn:
+With `long` and a non-overflowing test domain:
 
 ~~~text
 sequentialTotals(sales) == parallelTotals(sales)
 ~~~
 
-Không yêu cầu Map có cùng lớp triển khai, thứ tự duyệt khóa hay số luồng sử dụng. **Chỉ so nội dung theo khóa.**
+Do not require the Maps to share the same implementation class, key iteration order, or worker thread count. **Compare only key-to-value contents.**
 
-### 6.6. Filter và map phải giữ đúng thứ tự trên nguồn có thứ tự
+### 6.6. `filter` and `map` must preserve order on ordered sources
 
-Giả sử cần danh sách thành tiền của các giao dịch thuộc `NORTH`:
+Suppose we want the list of line totals for `NORTH` transactions:
 
 ~~~java
 List<Long> northAmounts = sales.stream()
@@ -295,11 +295,11 @@ List<Long> northAmounts = sales.stream()
         .toList();
 ~~~
 
-Với nguồn `List` có encounter order, kết quả phải là dãy thành tiền **theo đúng thứ tự xuất hiện của các giao dịch `NORTH`**. Có thể kiểm tra bằng một vòng lặp riêng. Không được áp tính chất xáo thứ tự cho danh sách này nếu yêu cầu giữ encounter order.
+On an ordered `List` source, the output must list amounts **in the exact order `NORTH` transactions appear**. Verify this with a separate loop. Never apply a shuffle property to this list if preserving encounter order is required.
 
-## 7. Chương trình Java 17+ hoàn chỉnh, chạy không cần thư viện ngoài
+## 7. Complete Java 17+ Program, Zero External Libraries
 
-Lưu đoạn mã dưới đây thành `StreamPropertyTest.java`. Nó tạo 500 bộ dữ liệu bằng seed, so pipeline với oracle, kiểm tra các bất biến, hoán vị, phép chia–gộp, chế độ song song và đường đi `filter/map`. Chương trình còn hỗ trợ **chạy lại đúng một seed** được truyền qua command line.
+Save the code below as `StreamPropertyTest.java`. It generates 500 seeded datasets, compares the pipeline against the oracle, checks invariants, permutations, split-and-merge, parallel execution, and ordered `filter/map`. It also supports **replaying a single seed** passed on the command line.
 
 ~~~java
 import java.util.ArrayList;
@@ -326,7 +326,7 @@ public class StreamPropertyTest {
         }
     }
 
-    // Mỗi seed tạo một bộ dữ liệu độc lập, hữu hạn.
+    // Each seed generates an independent, finite dataset.
     static List<Sale> generate(long seed) {
         SplittableRandom random = new SplittableRandom(seed);
         int count = random.nextInt(0, 201);
@@ -345,8 +345,8 @@ public class StreamPropertyTest {
         return List.copyOf(data);
     }
 
-    // Code cần kiểm thử: một pipeline có thể chạy
-    // tuần tự hoặc song song với cùng thuật toán.
+    // Code under test: a pipeline that can run
+    // sequentially or in parallel with the same algorithm.
     static Map<String, Long> totalsByRegion(
             List<Sale> sales, boolean parallel) {
 
@@ -360,7 +360,7 @@ public class StreamPropertyTest {
         ));
     }
 
-    // Oracle độc lập: không dùng groupingBy/summingLong.
+    // Independent oracle: avoids groupingBy/summingLong.
     static Map<String, Long> referenceTotals(
             List<Sale> sales) {
 
@@ -381,7 +381,7 @@ public class StreamPropertyTest {
         return result;
     }
 
-    // Kết quả có encounter order, cần kiểm tra List.
+    // Output has encounter order; check as a List.
     static List<Long> northAmounts(List<Sale> sales) {
         return sales.stream()
                 .filter(s -> "NORTH".equals(s.region()))
@@ -403,7 +403,7 @@ public class StreamPropertyTest {
         return result;
     }
 
-    // In đủ thông tin để tái tạo một lần thử.
+    // Print enough details to replay a failing trial.
     static void checkEqual(
             String property,
             Object expected,
@@ -432,15 +432,15 @@ public class StreamPropertyTest {
         Map<String, Long> parallel =
                 totalsByRegion(sales, true);
 
-        // Tính chất 1: khớp vòng lặp tham chiếu.
+        // Property 1: matches reference loop.
         checkEqual(
                 "oracle", expected, sequential, seed, sales);
 
-        // Tính chất 2: song song không đổi giá trị.
+        // Property 2: parallel produces identical values.
         checkEqual(
                 "parallel", sequential, parallel, seed, sales);
 
-        // Tính chất 3: đổi thứ tự không đổi tổng theo vùng.
+        // Property 3: reordering does not change per-region sums.
         List<Sale> shuffled = new ArrayList<>(sales);
         Collections.shuffle(
                 shuffled,
@@ -455,7 +455,7 @@ public class StreamPropertyTest {
                 sales
         );
 
-        // Tính chất 4: chia hai đoạn rồi gộp tương đương.
+        // Property 4: split into two halves and merge matches.
         int mid = sales.size() / 2;
 
         Map<String, Long> combined = new HashMap<>(
@@ -483,7 +483,7 @@ public class StreamPropertyTest {
                 sales
         );
 
-        // Tính chất 5: tổng các vùng == tổng giao dịch.
+        // Property 5: sum of region totals == sum of all sales.
         long overall = 0L;
         for (Sale sale : sales) {
             overall = Math.addExact(
@@ -508,7 +508,7 @@ public class StreamPropertyTest {
                 sales
         );
 
-        // Tính chất 6: filter/map giữ encounter order.
+        // Property 6: filter/map preserves encounter order.
         checkEqual(
                 "ordered-filter-map",
                 referenceNorthAmounts(sales),
@@ -519,16 +519,16 @@ public class StreamPropertyTest {
     }
 
     static void edgeCases() {
-        // Không có giao dịch.
+        // No transactions.
         verify(-1L, List.of());
 
-        // Có giao dịch doanh thu bằng 0: phải giữ khóa.
+        // Transaction with zero revenue: must retain key.
         verify(-2L, List.of(
                 new Sale("NORTH", 0, 100L)
         ));
 
-        // Nhiều bản ghi cùng vùng, đơn giá bằng 0,
-        // nhiều vùng và giá trị lớn nhưng không tràn.
+        // Multiple records in same region, zero unit price,
+        // multiple regions, and large non-overflowing values.
         verify(-3L, List.of(
                 new Sale("SOUTH", 20, 100_000L),
                 new Sale("SOUTH", 20, 100_000L),
@@ -539,7 +539,7 @@ public class StreamPropertyTest {
 
     public static void main(String[] args) {
         // java StreamPropertyTest 12345
-        // -> chỉ kiểm tra dữ liệu tạo bằng đúng seed 12345.
+        // -> verifies only the dataset generated with seed 12345.
         if (args.length == 1) {
             long seed = Long.parseLong(args[0]);
             verify(seed, generate(seed));
@@ -571,61 +571,61 @@ public class StreamPropertyTest {
 }
 ~~~
 
-Lệnh chạy:
+Run commands:
 
 ~~~bash
 javac --release 17 StreamPropertyTest.java
 java StreamPropertyTest
 ~~~
 
-Khi thành công:
+On success:
 
 ~~~text
 PASS fixed-cases and 500 random cases; baseSeed=20261118
 ~~~
 
-Để chạy lại đúng một ca có `seed = 20261234`:
+To replay a single case with `seed = 20261234`:
 
 ~~~bash
 java StreamPropertyTest 20261234
 ~~~
 
-Nếu thuộc tính thất bại, `AssertionError` in tên tính chất, seed và dữ liệu đầu vào; có thể dán seed vào command line để tái lập. Trong ví dụ, mỗi `Sale` là record bất biến và dữ liệu được tạo trước khi chạy pipeline; không có một nguồn ngẫu nhiên mutable bị nhiều tác vụ `parallelStream` cùng dùng.
+If a property fails, `AssertionError` prints the property name, seed, and input data; you can paste the seed into the command line to reproduce it. Here each `Sale` is an immutable record generated before the pipeline runs; no mutable random source is shared across `parallelStream` workers.
 
-**Lưu ý:** Đây là một *test harness* độc lập để học bản chất property-based testing, không phải thay thế toàn bộ JUnit hoặc framework quản lý test suite. Khi đưa vào dự án thực, hãy chuyển hàm kiểm tra thành test trong công cụ build đang dùng, để test runner báo lỗi, thống kê và lưu artifact thuận tiện.
+**Note:** This is a standalone *test harness* for learning the essence of property-based testing, not a full replacement for JUnit or a test-suite manager. In real projects, integrate checks into your build tool's test framework so the runner handles reporting, statistics, and CI artifacts cleanly.
 
-## 8. Đọc kết quả: tại sao các tính chất trên hữu ích?
+## 8. Interpreting Failures: Why Each Property Helps
 
-Một trường hợp kết quả kiểm thử có thể thất bại ở **chỉ một** tính chất:
+A failing run might break **only one** property:
 
-| Tính chất lỗi | Khả năng cần điều tra |
+| Failed property | What to investigate |
 | --- | --- |
-| `oracle` | Sai logic gom nhóm, bộ lọc, phép nhân hoặc phép tổng |
-| `parallel` | Accumulator/combiner không tương thích, dùng state chung, phụ thuộc thứ tự hoặc phép toán không kết hợp |
-| `permutation` | Dùng toán tử phụ thuộc thứ tự dù yêu cầu tổng theo nhóm không phụ thuộc thứ tự |
-| `split-and-merge` | Phép gộp hai phần không đúng, mất nhóm hoặc trùng nhóm |
-| `conservation` | Bỏ sót hoặc nhân đôi giá trị; có thể gán sai vùng mà tổng vẫn đúng |
-| `ordered-filter-map` | Làm mất encounter order hoặc chọn sai phần tử của vùng |
+| `oracle` | Bug in grouping logic, filter, multiplication, or summation |
+| `parallel` | Incompatible accumulator/combiner, shared state, order dependence, or non-associative op |
+| `permutation` | Used an order-sensitive operator despite an order-independent sum requirement |
+| `split-and-merge` | Broken two-part merge, dropped group, or duplicate group |
+| `conservation` | Dropped or doubled values; note wrong region assignment can leave grand total unchanged |
+| `ordered-filter-map` | Lost encounter order or picked wrong region elements |
 
-**Không có một tính chất nào đủ chứng minh toàn bộ chương trình đúng.** Ví dụ pipeline có thể cộng đúng tổng tiền nhưng gán mọi khoản vào vùng `NORTH`: bất biến tổng chung vẫn đúng, còn oracle theo từng vùng phát hiện lỗi.
+**No single property suffices to prove the entire program correct.** For instance, a pipeline could sum amounts accurately while assigning every transaction to `NORTH`: conservation still passes, while the per-region oracle catches the bug.
 
-Tương tự, so tuần tự với song song chỉ chứng minh hai cách thực thi **giống nhau trên bộ dữ liệu đã thử**. Nếu cả hai cùng sai một quy tắc nghiệp vụ, phép so đó sẽ không báo lỗi. Vì vậy cần kết hợp **oracle, bất biến, fixture cố định và quan hệ biến hình**.
+Similarly, comparing sequential vs. parallel only proves both execution modes **agree on the tested inputs**. If both share the same business-rule bug, comparing them won't catch it. That is why you combine **oracles, invariants, fixed fixtures, and metamorphic relations**.
 
-## 9. Không dùng cùng một Stream cho nhiều phép thử
+## 9. Never Reuse One Stream Across Multiple Checks
 
-Một `Stream` thường chỉ được phép thực hiện **một terminal operation**. Nếu muốn kiểm tra nhiều tính chất trên cùng dữ liệu, giữ dữ liệu trong một `List` hoặc nguồn có thể mở lại, sau đó tạo Stream mới cho từng phép thử.
+A `Stream` generally permits only **one terminal operation**. To check multiple properties on the same dataset, keep the data in a `List` or re-openable source and create a fresh Stream for each check.
 
-**Sai:**
+**Wrong:**
 
 ~~~java
 Stream<Integer> source = List.of(1, 2, 3).stream();
 
 long count = source.count();
 long sum = source.mapToLong(Integer::longValue).sum();
-// Không thể tiếp tục sử dụng cùng source đã bị tiêu thụ.
+// Cannot continue using the same already-consumed source.
 ~~~
 
-**Đúng:**
+**Right:**
 
 ~~~java
 List<Integer> data = List.of(1, 2, 3);
@@ -636,15 +636,15 @@ long sum = data.stream()
         .sum();
 ~~~
 
-Trong chương trình đầy đủ, mỗi lời gọi `totalsByRegion(...)` tạo một Stream mới từ `List<Sale>`. Vì `Sale` là immutable record và `List.copyOf` ngăn sửa cấu trúc danh sách, các phép thử trên cùng dữ liệu không vô tình tác động lẫn nhau.
+In the full program, each call to `totalsByRegion(...)` opens a fresh Stream from `List<Sale>`. Because `Sale` is an immutable record and `List.copyOf` prevents structural mutation, checks on the same data never interfere with each other.
 
-Với một Stream gắn I/O như `Files.lines`, **không** được dùng lại Stream sau khi đóng. Nếu cần chạy nhiều thuật toán độc lập trên cùng một tệp, cần mở tệp lại trong các khối `try-with-resources` riêng hoặc vật hóa một bộ dữ liệu thử hữu hạn có kiểm soát.
+For I/O-backed Streams like `Files.lines`, **never** reuse a Stream after closing. To run multiple independent algorithms on the same file, reopen it inside separate `try-with-resources` blocks or materialize a bounded, controlled test dataset.
 
-## 10. Kiểm thử tính chất theo thứ tự và không thứ tự
+## 10. Testing Ordered vs. Unordered Properties
 
-Không được tự động dùng phép hoán vị cho **mọi thao tác Stream**.
+Never blindly apply permutation properties to **every Stream operation**.
 
-### 10.1. Phép tổng hợp không phụ thuộc thứ tự
+### 10.1. Order-independent aggregations
 
 ~~~java
 long sum = data.stream()
@@ -652,9 +652,9 @@ long sum = data.stream()
         .sum();
 ~~~
 
-Với số nguyên trong miền không tràn và cùng tập phần tử, việc xáo thứ tự không làm thay đổi tổng toán học.
+For non-overflowing integers and the same multiset of elements, shuffling does not change the mathematical sum.
 
-### 10.2. Phép lấy phần tử đầu phụ thuộc encounter order
+### 10.2. First-element selection depends on encounter order
 
 ~~~java
 List<String> names = List.of("Lan", "An", "Minh");
@@ -666,9 +666,9 @@ String first = names.stream()
 // "Lan"
 ~~~
 
-Nếu đổi thứ tự danh sách thành `[Minh, Lan, An]`, kết quả hợp lệ là `"Minh"`. Một tính chất “xáo thứ tự mà `findFirst` không đổi” là **sai từ định nghĩa**.
+Reordering the list to `[Minh, Lan, An]` makes `"Minh"` the valid answer. A property asserting "shuffling leaves `findFirst` unchanged" is **wrong by definition**.
 
-### 10.3. distinct giữ thứ tự xuất hiện đầu tiên trên Stream ordered
+### 10.3. `distinct` preserves first-seen order on ordered Streams
 
 ~~~java
 List<Integer> input = List.of(2, 1, 2, 3, 1);
@@ -680,15 +680,15 @@ List<Integer> unique = input.stream()
 // [2, 1, 3]
 ~~~
 
-Với nguồn có encounter order, `distinct` giữ phần tử đầu tiên tương ứng với mỗi giá trị theo hợp đồng ổn định. Một tính chất phù hợp là:
+On a source with encounter order, `distinct` retains the first element matching each value per its stability contract. A valid property is:
 
 ~~~text
 distinct(distinct(input)) == distinct(input)
 ~~~
 
-Và danh sách kết quả **không có phần tử trùng**, nhưng không được giả định kết quả vẫn giữ thứ tự cũ nếu đầu vào bị xáo trước phép `distinct`.
+And the resulting list **has no duplicates**, though you must not expect the same output order if the input is shuffled before `distinct`.
 
-### 10.4. sorted và limit có hợp đồng riêng
+### 10.4. `sorted` and `limit` have their own contracts
 
 ~~~java
 List<Integer> top3 = input.stream()
@@ -697,15 +697,15 @@ List<Integer> top3 = input.stream()
         .toList();
 ~~~
 
-Nếu yêu cầu “ba số nhỏ nhất” thì việc xáo thứ tự đầu vào không ảnh hưởng danh sách `top3` đối với phần tử so sánh bằng nhau không có thuộc tính phân biệt khác. Trường hợp phần tử là object có comparator chỉ xem một trường, phải xác định rõ quy tắc phá hòa nếu kết quả cần thứ tự ổn định giữa những phần tử được xem là bằng nhau.
+If the requirement is "the three smallest numbers," shuffling the input leaves `top3` unchanged for elements that compare equal with no distinguishing fields. When elements are objects compared by a single field, define an explicit tie-breaker if deterministic ordering among equal elements is needed.
 
-Các tính chất về thứ tự nên bám vào **encounter order, comparator và terminal operation** cụ thể; đừng dựa vào thứ tự mà một `HashMap` tình cờ hiển thị.
+Tie ordering properties directly to **encounter order, comparators, and terminal operations**; never rely on whatever order a `HashMap` happens to display.
 
-## 11. Kiểm thử song song: tính kết hợp, state và combiner
+## 11. Parallel Testing: Associativity, State, and Combiners
 
-Đổi từ `stream()` sang `parallelStream()` có thể làm thay đổi cách chia/ghép các phần dữ liệu. Đó là nơi property-based testing đặc biệt hữu ích.
+Switching from `stream()` to `parallelStream()` changes how data is split and merged. That is where property-based testing shines.
 
-### 11.1. Phép reduce phải có identity và toán tử phù hợp
+### 11.1. `reduce` must have a valid identity and operator
 
 ~~~java
 int correct = List.of(1, 2, 3, 4)
@@ -713,9 +713,9 @@ int correct = List.of(1, 2, 3, 4)
         .reduce(0, Integer::sum);
 ~~~
 
-Identity của phép cộng là `0`, và phép cộng số nguyên Java có tính kết hợp theo ngữ nghĩa số học modulo khi tràn. Tuy nhiên, nếu nghiệp vụ cấm tràn thì phải thiết kế kiểm soát riêng.
+The identity for addition is `0`, and Java integer addition is associative under modular overflow semantics. Still, if the business forbids overflow, add dedicated overflow checks.
 
-**Không dùng phép trừ để giảm song song theo cách thông thường:**
+**Never use subtraction for standard parallel reduction:**
 
 ~~~java
 int wrong = List.of(1, 2, 3, 4)
@@ -723,11 +723,11 @@ int wrong = List.of(1, 2, 3, 4)
         .reduce(0, (a, b) -> a - b);
 ~~~
 
-Phép trừ **không có tính kết hợp**: `(a-b)-c` khác `a-(b-c)`. Các cách chia dữ liệu có thể cho kết quả khác nhau. Một test chỉ chạy tuần tự có thể không phát hiện lỗi này.
+Subtraction **is not associative**: `(a-b)-c` differs from `a-(b-c)`. Different splits yield different outputs. A sequential-only test would completely miss this bug.
 
-### 11.2. Kiểm thử trực tiếp luật combiner
+### 11.2. Testing combiner laws directly
 
-Nếu tự viết collector tích lũy nhiều chỉ số, hãy kiểm tra:
+When writing a custom collector accumulating multiple metrics, verify:
 
 ~~~text
 combine(identity, result) == result
@@ -735,21 +735,21 @@ combine(combine(a, b), c) == combine(a, combine(b, c))
 aggregate(left + right) == combine(aggregate(left), aggregate(right))
 ~~~
 
-Phép thử chia–gộp trong chương trình đầy đủ là một phiên bản của luật thứ ba. Với collector có state mutable, cần kiểm tra cả việc hai vùng tích lũy là **độc lập**, không cùng tham chiếu tới một Map/List bên ngoài.
+The split-and-merge check in the full program is a form of the third law. For collectors with mutable state, also verify both accumulation containers are **independent** and do not alias an external Map or List.
 
-### 11.3. Tránh side effect trong lambda
+### 11.3. Avoid side effects inside lambdas
 
-**Sai:**
+**Wrong:**
 
 ~~~java
 List<Long> output = new ArrayList<>();
 
 sales.parallelStream()
         .map(Sale::totalCents)
-        .forEach(output::add); // ArrayList không an toàn khi ghi đồng thời.
+        .forEach(output::add); // ArrayList is not thread-safe for concurrent writes.
 ~~~
 
-**Đúng:**
+**Right:**
 
 ~~~java
 List<Long> output = sales.parallelStream()
@@ -757,13 +757,13 @@ List<Long> output = sales.parallelStream()
         .toList();
 ~~~
 
-Với nguồn `List` có encounter order và `toList()`, danh sách đầu ra giữ thứ tự logic; nhưng **thứ tự thực thi các lời gọi mapper không được cam kết**.
+With an ordered `List` source and `toList()`, the output preserves logical order; yet **mapper invocation order is not guaranteed**.
 
-Không nên dùng `AtomicInteger` để đánh số thứ tự trong `map` rồi coi các số đó là chỉ số encounter order. Atomicity bảo đảm không mất lượt tăng, không bảo đảm tác vụ chạy theo thứ tự nguồn.
+Do not use `AtomicInteger` to assign sequence numbers inside `map` and treat them as encounter-order indices. Atomicity prevents lost increments, not out-of-order task scheduling.
 
-## 12. Ngẫu nhiên trong parallel stream: tạo đầu vào trước, xử lý sau
+## 12. Randomness in Parallel Streams: Generate Input First, Process Second
 
-Một anti-pattern là đặt generator mutable vào mapper:
+An anti-pattern is placing a mutable generator inside a mapper:
 
 ~~~java
 SplittableRandom random = new SplittableRandom(123L);
@@ -773,12 +773,12 @@ List<Integer> values = source.parallelStream()
         .toList();
 ~~~
 
-`SplittableRandom` không được thiết kế để chia sẻ sử dụng đồng thời giữa nhiều thread. Ngoài nguy cơ sử dụng không an toàn, thứ tự tiêu thụ các số ngẫu nhiên còn phụ thuộc lịch chạy, nên seed đơn lẻ **không đảm bảo mỗi phần tử luôn nhận đúng số ngẫu nhiên như lần trước**.
+`SplittableRandom` is not designed to be shared concurrently across threads. Besides thread-safety hazards, the order in which random numbers are drawn depends on scheduling, so a single seed **never guarantees each element receives the same random value across runs**.
 
-Cách được ưu tiên trong kiểm thử:
+Preferred testing pattern:
 
 ~~~java
-List<Sale> data = generate(123L); // Sinh tuần tự, xác định.
+List<Sale> data = generate(123L); // Generated sequentially, deterministically.
 
 Map<String, Long> result = data.parallelStream()
         .collect(Collectors.groupingBy(
@@ -787,55 +787,55 @@ Map<String, Long> result = data.parallelStream()
         ));
 ~~~
 
-Đầu vào đã cố định; pipeline chỉ thực hiện tính toán thuần trên dữ liệu đó.
+The input is fixed upfront; the pipeline executes pure computations over that data.
 
-Nếu thật sự cần sinh dữ liệu ngẫu nhiên song song, phải thiết kế **seed riêng theo phần tử/chỉ số hoặc theo nhánh**, cùng quy tắc ánh xạ ổn định. Ví dụ, lập danh sách các chỉ số rồi tạo generator mới từ seed suy ra từ chỉ số; tránh khẳng định việc gọi `split()` theo lịch chạy không xác định sẽ tự tạo dãy đầu vào có cùng thứ tự trên mọi lần thực thi.
+If you genuinely need parallel random generation, design **per-element/per-index or per-branch seeds** with a deterministic mapping rule—for example, iterating over indices and creating fresh generators from index-derived seeds rather than assuming non-deterministic `split()` scheduling will match across runs.
 
-**Kiểm thử tính đúng không đồng nghĩa benchmark.** Sinh dữ liệu ngẫu nhiên trong phần đang đo có thể làm sai kết quả đo do thêm chi phí generator; nên sinh fixture trước phép đo.
+**Correctness testing is not benchmarking.** Generating random data inside a timed section skews measurements with generator overhead; build fixtures before measuring.
 
-## 13. Tập trung vào đường biên, không chỉ phân bố ngẫu nhiên
+## 13. Focus on Boundaries, Not Only Uniform Random Distributions
 
-Một bộ sinh hoàn toàn đồng đều có thể hiếm khi sinh ra **trường hợp khó**. Ví dụ, với `count` từ 0 đến 200, xác suất tạo đúng danh sách rỗng trong một lượt chỉ là `1/201`; ngay cả 500 lượt cũng không đảm bảo nó đã xuất hiện.
+A purely uniform generator can rarely hit **hard edge cases**. For instance, with `count` from 0 to 200, the probability of generating an empty list in one trial is only `1/201`; even 500 trials do not guarantee it appeared.
 
-Vì vậy phải có **fixture cố định** bên cạnh random tests:
+Therefore, always pair random tests with **fixed boundary fixtures**:
 
-| Tình huống | Điều cần kiểm tra |
+| Scenario | What to verify |
 | --- | --- |
-| Danh sách rỗng | Map rỗng, tổng 0 |
-| Một giao dịch | Xuất đúng một khóa và số tiền |
-| Nhiều giao dịch cùng vùng | Gộp đúng, không mất khoản |
-| Doanh thu bằng 0 | Vùng vẫn tồn tại nếu có giao dịch |
-| Mọi giao dịch cùng vùng | Không tạo nhóm thừa |
-| Một số vùng vắng mặt | Không tạo khóa cho vùng chưa xuất hiện |
-| Giá trị cực đại hợp lệ | Không tràn trong miền được cho phép |
-| Giá trị gây tràn | Báo lỗi hoặc thực hiện chính sách số học riêng |
-| `null` trong region hoặc bản ghi | Từ chối/chấp nhận theo hợp đồng đã xác định |
-| Dữ liệu chưa sắp xếp và đã sắp xếp | So đúng các thuộc tính về encounter order |
-| Nguồn có phần tử trùng nhau | Xem có cần giữ số lần xuất hiện hay loại trùng |
-| Dữ liệu lớn và chia nhiều nhánh | Kiểm tra tính tương đương song song và giới hạn bộ nhớ |
+| Empty list | Empty Map, total 0 |
+| Single transaction | Exactly one key and amount |
+| Multiple transactions in same region | Summed accurately, none dropped |
+| Zero revenue | Region still appears if it had a transaction |
+| All transactions in one region | No spurious empty groups |
+| Some regions absent | No keys synthesized for absent regions |
+| Maximum valid values | No overflow inside allowed range |
+| Overflowing values | Throws or follows explicit arithmetic policy |
+| `null` in region or record | Rejected/accepted per defined contract |
+| Unsorted vs. sorted input | Appropriate encounter-order properties |
+| Duplicate elements in source | Whether multiplicities are kept or deduplicated |
+| Large data across many splits | Parallel equivalence and memory limits |
 
-Bộ sinh chính trong ví dụ không tạo `null` và không vượt giới hạn `long`. Đó là **lựa chọn cho một họ tính chất**, không phải bằng chứng pipeline chịu được mọi dữ liệu xấu. Hãy viết test riêng cho dữ liệu không hợp lệ, với kỳ vọng rõ ràng: ném `IllegalArgumentException`, từ chối bản ghi, hay ghi nhận một kết quả parse lỗi.
+The main generator here emits no `null`s and stays within `long` bounds. That is **a deliberate choice for one property family**, not proof the pipeline tolerates bad inputs. Write separate tests for invalid inputs with explicit expectations: throwing `IllegalArgumentException`, rejecting the row, or recording a parse error.
 
-### Luật cần chú ý khi làm việc với null
+### Rule to remember when working with `null`
 
-`Collectors.groupingBy` tiêu chuẩn không chấp nhận classifier trả khóa `null`; nếu dữ liệu nguồn có region thiếu, có thể phát sinh `NullPointerException`. Không nên để generator tạo null ngẫu nhiên rồi coi lỗi đó là bug, trừ khi hợp đồng của pipeline nói rằng null phải được xử lý một cách hợp lệ.
+Standard `Collectors.groupingBy` rejects classifiers returning a `null` key; if a source record has a missing region, `NullPointerException` can occur. Do not let a random generator emit nulls accidentally and label the crash a pipeline bug unless the pipeline's contract requires handling null gracefully.
 
-Thiết kế test tốt **phân biệt rõ miền hợp lệ với miền dữ liệu cần bị từ chối**.
+Good test design **clearly separates the valid input domain from inputs that must be rejected**.
 
-## 14. Thu nhỏ phản ví dụ: từ 200 phần tử về vài phần tử
+## 14. Shrinking Counterexamples: From 200 Elements Down to a Few
 
-Một lần chạy ngẫu nhiên có thể báo lỗi trên danh sách 180 giao dịch. Đọc toàn bộ danh sách và suy luận bằng mắt rất khó. Kỹ thuật **shrinking** hoặc **delta debugging** cố tìm một đầu vào nhỏ hơn nhưng vẫn gây cùng lỗi.
+A random trial may fail on a 180-transaction list. Reading 180 records by eye is painful. **Shrinking** or **delta debugging** seeks a smaller input that still triggers the exact same failure.
 
-Quy trình thủ công hữu ích:
+A practical manual shrinking workflow:
 
-1. Lưu `seed` và danh sách đầu vào gây lỗi.
-2. Chia danh sách thành các phần, thử **loại bỏ từng khối lớn**.
-3. Nếu bỏ khối mà lỗi vẫn xảy ra, giữ đầu vào đã thu nhỏ.
-4. Giảm dần kích thước khối; thử rút danh sách về một hoặc hai bản ghi.
-5. Thu nhỏ giá trị: số tiền nhỏ hơn, số vùng ít hơn, đưa số lượng về `0`/`1`, rút ngắn chuỗi ID.
-6. Lưu **đầu vào tối thiểu** thành fixture hồi quy không phụ thuộc generator.
+1. Save the failing `seed` and input list.
+2. Split the list into chunks and try **removing large chunks**.
+3. If removing a chunk still reproduces the bug, keep the smaller input.
+4. Shrink chunk size gradually; try narrowing down to one or two records.
+5. Shrink field values: smaller amounts, fewer regions, quantities down to `0`/`1`, shorter ID strings.
+6. Save the **minimal input** as a fixed regression fixture independent of the generator.
 
-Ví dụ một collector sai chỉ gộp một phần Map khi chạy song song. Random test 200 phần tử có thể được thu nhỏ thành:
+For example, a buggy collector merges only part of the Map in parallel. A 200-element random failure might shrink to:
 
 ~~~java
 List<Sale> counterExample = List.of(
@@ -844,53 +844,53 @@ List<Sale> counterExample = List.of(
 );
 ~~~
 
-Nếu pipeline song song vẫn mất một trong hai khóa trên input nhỏ này, việc tìm lỗi ở combiner đơn giản hơn nhiều.
+If the parallel pipeline still drops one key on this tiny input, diagnosing the combiner becomes vastly simpler.
 
-Tuy nhiên, **phản ví dụ nhỏ nhất phụ thuộc lỗi**. Không khẳng định ví dụ hai phần tử trên luôn tái tạo lỗi parallel trên mọi JDK; runtime có thể không chia nguồn nhỏ. Đối với lỗi chỉ xuất hiện khi chia song song, hãy kiểm tra **luật combiner trực tiếp** bằng các vùng tích lũy được tạo thủ công, ngoài việc chạy `parallelStream`.
+Keep in mind that **the minimal counterexample depends on the bug**. Do not assume a two-element input will always trigger a parallel bug on every JDK; the runtime might skip splitting tiny inputs. For parallel-split-only bugs, test **combiner laws directly** with hand-built accumulation containers in addition to running `parallelStream`.
 
-Các framework property-based testing có khả năng shrinking tích hợp có thể tự động hóa bước này; nguyên lý quan trọng vẫn là **lưu phản ví dụ dễ hiểu làm test cố định sau khi sửa**.
+Property-based testing frameworks with built-in shrinking automate this step; the vital habit remains **saving a readable counterexample as a permanent regression test after fixing the bug**.
 
-## 15. Metamorphic testing khi không có oracle dễ tính
+## 15. Metamorphic Testing When No Simple Oracle Exists
 
-Đôi khi kết quả chính xác khó xác định bằng một thuật toán tham chiếu độc lập, ví dụ một pipeline gồm nhiều phép biến đổi phức tạp. Khi đó các **quan hệ biến hình** có thể bổ sung bằng chứng.
+Sometimes exact outputs are hard to compute with an independent reference algorithm—for example, in pipelines chaining complex domain transformations. **Metamorphic relations** provide additional evidence.
 
-### 15.1. Thêm dữ liệu không liên quan
+### 15.1. Adding unrelated data
 
-Nếu đang tính riêng tổng của vùng `NORTH`, thêm một giao dịch vùng `SOUTH` không được làm đổi tổng `NORTH`:
+When computing only `NORTH`'s total, adding a `SOUTH` sale must not change `NORTH`'s total:
 
 ~~~text
 northTotal(sales + [SOUTH sale]) == northTotal(sales)
 ~~~
 
-Chỉ áp dụng nếu không có quy tắc toàn cục khác như mức giảm giá dựa trên tổng tất cả vùng.
+This applies only when there are no global cross-region rules such as tier discounts based on overall volume.
 
-### 15.2. Tách một giao dịch thành hai giao dịch tương đương
+### 15.2. Splitting one sale into two equivalent sales
 
-Một giao dịch `(NORTH, 3 units, 100 cents)` có thể tách thành `(NORTH, 1, 100)` và `(NORTH, 2, 100)`. Nếu báo cáo chỉ cộng thành tiền theo vùng, tổng `NORTH` không đổi.
+One transaction `(NORTH, 3 units, 100 cents)` can split into `(NORTH, 1, 100)` and `(NORTH, 2, 100)`. If the report only sums line totals by region, `NORTH`'s total stays unchanged.
 
-Đừng áp tính chất này cho phép đếm **số giao dịch**, vì sau khi tách, số giao dịch đúng là tăng thêm một.
+Do not apply this relation to **transaction counts**, since splitting legitimately increases transaction count by one.
 
-### 15.3. Đổi thứ tự các phần tử
+### 15.3. Reordering elements
 
-Đối với tổng theo vùng, hoán vị không đổi kết quả. Đối với phép nối chuỗi, lấy phần tử đầu, đánh số theo vị trí hoặc `takeWhile`, phép hoán vị có thể đổi ngữ nghĩa.
+For per-region sums, permutation leaves results unchanged. For string joining, first-element selection, positional numbering, or `takeWhile`, permutation changes semantics.
 
-### 15.4. Ghép hai input
+### 15.4. Concatenating two inputs
 
-Với phép tổng có tính kết hợp trong miền hợp lệ:
+For associative sums within valid bounds:
 
 ~~~text
 total(A ++ B) = total(A) + total(B)
 ~~~
 
-Nhưng với tính trung bình, không thể cộng trực tiếp hai giá trị trung bình của hai nhóm. Phải ghép theo **tổng và số lượng**, sau đó mới chia. Đây là ví dụ điển hình về việc một quan hệ biến hình tưởng đúng nhưng thiếu dữ liệu trung gian.
+For averages, however, you cannot add or average two group averages directly. You must combine **(sum, count)** pairs first and divide only at the end. This is a classic case where an apparently plausible metamorphic relation is missing intermediate state.
 
-### 15.5. Chạy lại cùng đầu vào
+### 15.5. Re-running on the same input
 
-Một pipeline tính toán thuần và không phụ thuộc external state phải cho cùng nội dung đầu ra khi chạy lại trên cùng snapshot dữ liệu. Tuy nhiên, `findAny` trên parallel stream hoặc thứ tự duyệt một Map unordered có thể khác theo hợp đồng API. Hãy chỉ khẳng định những thuộc tính **được đặc tả**, ví dụ tập phần tử kết quả, thay vì yêu cầu chuỗi in ra hoàn toàn giống nhau khi không có thứ tự.
+A pure pipeline independent of external state must yield the same output content when rerun on the same data snapshot. Still, `findAny` on parallel streams or iteration order of an unordered Map may vary per API contract. Assert only **specified properties**, such as the output element set, rather than demanding identical `toString()` output when order is unspecified.
 
-## 16. Vì sao kiểm thử side effect bằng peek thường gây hiểu nhầm?
+## 16. Why Testing Side Effects with `peek` Often Misleads
 
-`peek` hữu ích khi **quan sát chẩn đoán** trong một số pipeline, nhưng không phù hợp làm nơi đặt logic bắt buộc.
+`peek` is handy for **diagnostic observation** in some pipelines, yet unsuitable for mandatory logic.
 
 ~~~java
 List<String> data = List.of("A", "B", "C");
@@ -900,23 +900,23 @@ long count = data.stream()
         .count();
 ~~~
 
-Không nên viết tính chất “`peek` phải được gọi đúng ba lần”. Một số implementation có thể tính `count` từ đặc tính `SIZED` của nguồn mà không cần duyệt từng phần tử, vì thế những action không cần thiết có thể không được thực thi.
+Never write a property saying "`peek` must be called exactly three times." Implementations can compute `count` from a `SIZED` source without traversing elements, skipping unnecessary actions altogether.
 
-Các thao tác short-circuit như `findFirst` và `anyMatch` cũng có thể dừng trước khi thấy mọi phần tử. Trong parallel stream, thứ tự/thời điểm gọi side effect không được bảo đảm như một vòng lặp tuần tự.
+Short-circuiting operations like `findFirst` and `anyMatch` can also halt before inspecting every element. In parallel streams, side-effect order and timing lack sequential loop guarantees.
 
-**Tách mục tiêu kiểm thử:**
+**Separate testing concerns:**
 
-- Kiểm tra **kết quả** bằng oracle, bất biến và quan hệ biến hình.
-- Ghi log/`peek` chỉ làm phương tiện quan sát tạm thời.
-- Nếu một hành động **phải** được thực hiện đúng một lần cho từng bản ghi, thiết kế nó ở tầng tác vụ có hợp đồng riêng thay vì dựa vào một intermediate operation có thể được tối ưu hóa hoặc short-circuit.
+- Verify **outputs** using oracles, invariants, and metamorphic relations.
+- Use logging/`peek` strictly as temporary observation.
+- If an action **must** execute exactly once per record, implement it at a dedicated task layer with its own contract rather than relying on an intermediate operation that may be optimized away or short-circuited.
 
-Đừng đưa `sleep`, lệnh in log hay bộ đếm dùng chung vào mapper chỉ để "ép" biểu hiện lỗi song song; những thay đổi đó có thể làm biến mất hoặc tạo thêm race condition.
+Never insert `sleep`, log prints, or shared counters into mappers just to "force" parallel bugs to surface; those perturbations can hide or create race conditions.
 
-## 17. Kiểm thử độ chính xác số học và giới hạn của long
+## 17. Testing Arithmetic Precision and `long` Bounds
 
-Miền dữ liệu trong ví dụ được chọn để không tràn `long`, nên ta có thể so tổng chính xác giữa tuần tự và song song.
+Our example's domain avoids `long` overflow, allowing exact equality checks between sequential and parallel sums.
 
-Nếu thay bằng `double`:
+If switched to `double`:
 
 ~~~java
 List<Double> values = List.of(
@@ -924,7 +924,7 @@ List<Double> values = List.of(
 );
 ~~~
 
-Phép cộng floating-point **không có tính kết hợp tuyệt đối**:
+Floating-point addition **is not strictly associative**:
 
 ~~~java
 double a = 1.0e16;
@@ -935,22 +935,22 @@ System.out.println((a + b) + c); // 1.0
 System.out.println(a + (b + c)); // 0.0
 ~~~
 
-Do thay đổi cách nhóm, pipeline song song có thể tạo khác biệt nhỏ trong một số phép tổng dấu phẩy động; hơn nữa, những thao tác tổng của JDK có thể dùng chiến lược bù sai số riêng. Không nên áp một tính chất `Double.equals` giữa mọi cách chia phần nếu nghiệp vụ chỉ đòi độ chính xác theo dung sai.
+Because grouping changes, parallel pipelines can produce slight differences in floating-point sums; moreover, JDK summation routines may use specialized error-compensation strategies. Never enforce a `Double.equals` property across arbitrary splits when business requirements specify tolerance-based accuracy.
 
-Thay vào đó:
+Instead:
 
-- Xác định sai số chấp nhận được; xét sai số tương đối/tuyệt đối phù hợp với miền số.
-- Với tiền tệ, dùng số nguyên đơn vị nhỏ nhất hoặc `BigDecimal` theo chính sách làm tròn rõ.
-- Không làm tròn từng bước accumulator/combiner nếu yêu cầu làm tròn **sau tổng**, vì làm tròn trung gian có thể phá tính kết hợp.
-- Kiểm thử overflow của `int`/`long` thành một nhóm riêng: dùng `Math.addExact`/`Math.multiplyExact` khi cần báo lỗi thay vì tràn âm thầm.
+- Define acceptable tolerance; pick relative/absolute error bounds suited to the numeric domain.
+- For money, use integer minor units or `BigDecimal` with an explicit rounding policy.
+- Do not round inside every accumulator/combiner step when business rules specify rounding **after summing**, because intermediate rounding breaks associativity.
+- Test `int`/`long` overflow separately: use `Math.addExact`/`Math.multiplyExact` when failures must surface instead of wrapping silently.
 
-Nếu muốn kiểm thử một phép `reduce` với `BigDecimal`, sử dụng `BigDecimal.ZERO` và `BigDecimal::add` không kèm `MathContext` để tổng hợp chính xác, rồi làm tròn ở ranh giới nghiệp vụ. **Không tự giả định mọi `reduce` là phép toán kết hợp**: điều đó là hợp đồng mà người thiết kế accumulator và combiner phải bảo đảm.
+To test a `reduce` with `BigDecimal`, use `BigDecimal.ZERO` and `BigDecimal::add` without a `MathContext` for exact summation, then round at the business boundary. **Never assume every `reduce` is associative**: associativity is a contract the accumulator and combiner author must uphold.
 
-## 18. Kiểm thử pipeline với nguồn I/O và vòng đời tài nguyên
+## 18. Testing Pipelines with I/O Sources and Resource Lifecycles
 
-Tạo dữ liệu ngẫu nhiên trong bộ nhớ giúp kiểm tra logic nhanh và có thể tái lập, nhưng **không chứng minh** phần nguồn I/O được đóng đúng.
+In-memory random generation tests logic quickly and reproducibly, yet **does not prove** I/O sources close properly.
 
-Ví dụ:
+Example:
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -969,15 +969,15 @@ static long countNonBlankLines(Path path) throws Exception {
 }
 ~~~
 
-`Files.lines` tạo Stream gắn với tài nguyên tệp; `count()` không tự gọi `close()`. Test về vòng đời cần kiểm tra cả:
+`Files.lines` returns a Stream backed by a file resource; `count()` does not invoke `close()`. Lifecycle tests must cover:
 
-- Thành công khi đọc hết.
-- Dừng sớm do `limit`, `findFirst` hoặc `anyMatch`.
-- Ngoại lệ trong parser/mapper.
-- Lỗi I/O khi mở hoặc đọc nguồn.
-- Nguồn được đóng sau mỗi trường hợp, và không dùng Stream đã đóng.
+- Normal completion reading the whole file.
+- Early exit via `limit`, `findFirst`, or `anyMatch`.
+- Exceptions thrown inside a parser/mapper.
+- I/O failures when opening or reading the source.
+- Source closure after every case, and never using a closed Stream.
 
-Có thể kiểm tra **cơ chế đóng** bằng `onClose`:
+You can verify **the closing mechanism** with `onClose`:
 
 ~~~java
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -994,79 +994,79 @@ if (!closed.get()) {
 }
 ~~~
 
-Đây là phép thử `onClose` trên Stream giả lập, không chứng minh một file handle thực tế được hệ điều hành giải phóng. Cần kiểm thử tích hợp nguồn thật hoặc quan sát tài nguyên phù hợp nếu đó là yêu cầu trọng yếu.
+This tests `onClose` on a synthetic Stream; it does not prove an OS file handle was released. Pair it with real-source integration tests or resource monitors when critical.
 
-Với một file đầu vào được dùng làm oracle, nhớ rằng tệp có thể bị ghi đồng thời hoặc thay đổi giữa các lần chạy; cần fixture cố định hoặc snapshot để bảo đảm sự tái lập.
+When a file input serves as an oracle, remember files can be written concurrently or modified between runs; use an immutable fixture or snapshot to guarantee reproducibility.
 
-## 19. Đưa phương pháp vào JUnit và framework property-based
+## 19. Bringing This Method into JUnit and Property-Based Frameworks
 
-Chương trình tự chạy ở phần 7 chỉ dùng Java chuẩn. Trong dự án có JUnit hoặc một thư viện property-based testing như **jqwik**, bạn có thể biểu diễn những tính chất tương tự dưới dạng nhiều lần chạy được test runner quản lý.
+Section 7's standalone program uses only standard Java. In projects with JUnit or a property-based testing library like **jqwik**, you can express the same properties across many runner-managed trials.
 
-Sơ đồ trách nhiệm:
+Responsibility flow:
 
 ~~~text
 Generator
    |
-   +-- chọn seed / sinh dữ liệu hợp lệ
+   +-- pick seed / generate valid data
    |
    v
 Property
    |
-   +-- gọi code cần thử
-   +-- gọi oracle hoặc biến đổi đầu vào
-   +-- so bất biến / kết quả
+   +-- invoke code under test
+   +-- invoke oracle or input transformation
+   +-- assert invariant / output
    |
    v
 Test runner
    |
-   +-- lặp nhiều ca
-   +-- báo seed và đầu vào khi lỗi
-   +-- thu nhỏ phản ví dụ (nếu framework hỗ trợ)
-   +-- lưu báo cáo / kết quả CI
+   +-- repeat across trials
+   +-- report seed and input on failure
+   +-- shrink counterexample (if supported)
+   +-- store CI reports / artifacts
 ~~~
 
-Lợi ích của framework: tích hợp vào build, báo cáo test, sinh dữ liệu theo constraint và có thể hỗ trợ shrinking. Nhưng framework không tự biết **tính chất nghiệp vụ nào đúng**. Nếu bạn viết thuộc tính sai, nó sẽ tìm "phản ví dụ" cho một giả định sai.
+Framework benefits: build integration, test reporting, constrained generation, and built-in shrinking. Still, frameworks don't know **which business property is valid**. Write the wrong property, and the framework will happily find a "counterexample" to your mistaken assumption.
 
-Khi dùng công cụ bên thứ ba:
+When adopting third-party tools:
 
-- Kiểm tra phiên bản thư viện tương thích với JDK, JUnit và build hiện tại.
-- Cấu hình seed, số lượt thử, miền kích thước và hành vi shrinking theo API phiên bản đang dùng.
-- Không hardcode tên annotation/cấu hình theo phiên bản khác nếu chưa kiểm tra.
-- Khi CI phát hiện lỗi, lưu **input tối giản** thành test hồi quy bình thường, không chỉ lưu một seed ngẫu nhiên.
+- Verify library compatibility with your JDK, JUnit, and build versions.
+- Configure seeds, trial counts, size bounds, and shrinking per your exact library version's API.
+- Do not hardcode annotations or config names from another version without checking.
+- Whenever CI catches a failure, save the **minimal input** as a standard regression test, not merely a random seed.
 
-**Kết hợp ba lớp kiểm thử** hiệu quả hơn chỉ dùng một lớp: fixture biên cố định, property-based tests và test tích hợp với nguồn/tài nguyên thật.
+**Combining three test layers** outperforms relying on just one: fixed boundary fixtures, property-based tests, and integration tests against real sources/resources.
 
-## 20. Thiết kế ca thử để tránh test không ổn định
+## 20. Designing Tests to Avoid Flakiness
 
-Một kiểm thử có thể thất bại ngẫu nhiên vì hai nguyên nhân rất khác nhau:
+A test can fail intermittently for two very different reasons:
 
-1. **Pipeline thực sự sai:** ví dụ race condition, combiner sai, lệ thuộc thứ tự không được cam kết.
-2. **Test tự sai hoặc khó tái lập:** seed không lưu, nguồn thay đổi, dùng thời gian hiện tại, thứ tự HashMap trong expected string hoặc tạo ngẫu nhiên trong mapper song song.
+1. **The pipeline is genuinely buggy:** e.g., race conditions, broken combiners, dependence on unguaranteed ordering.
+2. **The test itself is flawed or non-reproducible:** unsaved seeds, mutating sources, wall-clock dependence, `HashMap` order in expected strings, or random generation inside parallel mappers.
 
-Checklist thiết kế:
+Design checklist:
 
-| Quyết định | Nên làm | Tránh |
+| Decision | Do | Avoid |
 | --- | --- | --- |
-| Seed | Ghi rõ seed cho từng case | Chỉ ghi "random failed" |
-| Generator | Có miền giá trị và kích thước có giới hạn | Sinh vô hạn hoặc ngẫu nhiên không kiểm soát |
-| Test data | Sinh trước, coi input là bất biến | Vừa sinh vừa sửa cùng dữ liệu trong pipeline |
-| Oracle | Vòng lặp rõ và kiểm tra bằng fixture | Copy nguyên pipeline rồi coi là tham chiếu |
-| Map | So `Map.equals` | So `map.toString()` với thứ tự khóa ngầm định |
-| List có thứ tự | So cả nội dung và thứ tự | Coi kết quả unordered như ordered |
-| Parallel | Kiểm tra kết quả và luật combiner | Kiểm tra số thread/tên thread cố định |
-| Random trong mapper | Không cần trong test tổng hợp | Chia sẻ `SplittableRandom` mutable giữa task |
-| Số học | Giới hạn overflow hoặc kiểm tra overflow riêng | Để tràn ngầm rồi kết luận tính chất sai |
-| Lỗi | Lưu seed + input + expected/actual | Chỉ chạy lại toàn bộ suite để "bắt" lỗi |
-| Thời gian/I/O | Dùng fixture/snapshot, đóng resource | Dựa vào clock/network live cho expected |
-| Shrinking | Lưu đầu vào tối giản làm hồi quy | Chỉ giữ một input rất lớn khó phân tích |
+| Seed | Log explicit per-case seed | Printing only "random failed" |
+| Generator | Bounded value ranges and sizes | Unbounded or uncontrolled generation |
+| Test data | Generate upfront; treat input as immutable | Mutating/generating mid-pipeline |
+| Oracle | Clear loop verified with fixed fixtures | Copying the pipeline and calling it a reference |
+| Map | Compare `Map.equals` | Comparing `map.toString()` expecting implicit key order |
+| Ordered List | Compare content and order | Treating unordered results as ordered |
+| Parallel | Assert outputs and combiner laws | Asserting fixed thread counts or thread names |
+| Random in mapper | Unneeded in aggregation tests | Sharing mutable `SplittableRandom` across tasks |
+| Arithmetic | Bound overflow or test overflow separately | Silent wraparound causing misleading failures |
+| Failures | Log seed + input + expected/actual | Just rerunning the whole suite to "catch" flakes |
+| Time/I/O | Use fixtures/snapshots, close resources | Depending on live clocks/network for expected values |
+| Shrinking | Save minimal input as regression test | Keeping only a huge unreadable failing input |
 
-Với ứng dụng có yêu cầu hiệu năng, hãy **benchmark sau khi đã kiểm tra tính đúng**. Kiểm thử sinh ngẫu nhiên 500 lần không tự chứng minh pipeline nhanh, và microbenchmark tự viết có thể bị sai lệch vì JIT warm-up, GC và chi phí sinh input. Sử dụng công cụ phù hợp như JMH khi cần đánh giá hiệu năng nghiêm túc.
+For performance-sensitive applications, **benchmark only after verifying correctness**. Running 500 random trials proves nothing about speed, and ad-hoc microbenchmarks are skewed by JIT warm-up, GC, and input generation cost. Use proper tools like JMH for serious performance evaluation.
 
-## 21. Bài tập thực hành
+## 21. Practice Exercises
 
-### Bài 1 — Viết tính chất của filter
+### Exercise 1 — Writing properties for `filter`
 
-Cho:
+Given:
 
 ~~~java
 List<Integer> actual = data.stream()
@@ -1074,74 +1074,74 @@ List<Integer> actual = data.stream()
         .toList();
 ~~~
 
-**Yêu cầu:** Nêu hai tính chất hợp lệ.
+**Task:** State two valid properties.
 
-**Gợi ý/đáp án:** (1) Mọi phần tử trong `actual` đều không âm; (2) `actual` bằng danh sách tạo bởi vòng lặp chỉ thêm phần tử `n >= 0` theo encounter order của `data`. Chỉ kiểm tra tính chất (1) chưa đủ vì pipeline trả danh sách rỗng luôn thỏa (1).
+**Hint/Answer:** (1) Every element in `actual` is non-negative; (2) `actual` equals the list built by a loop appending `n >= 0` elements in `data`'s encounter order. Checking only property (1) is insufficient because a buggy pipeline returning `List.of()` always satisfies (1).
 
-### Bài 2 — Seed và tái lập
+### Exercise 2 — Seeds and reproducibility
 
-Một test dùng `new SplittableRandom(System.nanoTime())` nhưng chỉ in `"failed"`. Vì sao khó debug?
+A test uses `new SplittableRandom(System.nanoTime())` and prints only `"failed"`. Why is it hard to debug?
 
-**Đáp án:** Seed không được lưu, nên khó sinh lại cùng input. Hãy ghi seed, số lượt thử và input khi thất bại; có thể dùng seed hằng trong CI và cho phép chạy lại một seed đơn.
+**Answer:** The seed wasn't recorded, making it hard to regenerate the exact input. Log the seed, trial index, and failing input; use a constant base seed in CI and support replaying a single seed.
 
-### Bài 3 — Kiểm thử groupingBy
+### Exercise 3 — Testing `groupingBy`
 
-Với `List<Sale>` của bài, nêu ba tính chất hợp lệ cho `groupingBy(region, summingLong(amount))`.
+For the lesson's `List<Sale>`, state three valid properties for `groupingBy(region, summingLong(amount))`.
 
-**Đáp án:** Kết quả bằng oracle dùng vòng lặp; tổng của các nhóm bằng tổng tiền của mọi giao dịch; hoán vị input không làm thay đổi Map. Có thể bổ sung phép chia–gộp và so tuần tự/song song.
+**Answer:** Matches a loop-based oracle; sum of group totals equals grand total across all transactions; permuting input leaves the Map unchanged. You can also add split-and-merge and sequential-vs.-parallel checks.
 
-### Bài 4 — Có được hoán vị trước findFirst?
+### Exercise 4 — Can we permute before `findFirst`?
 
-Một pipeline dùng `findFirst()` trên `List` đã sắp ưu tiên. Tính chất "xáo thứ tự input nhưng kết quả giữ nguyên" đúng không?
+A pipeline calls `findFirst()` on a priority-sorted `List`. Is the property "shuffling input preserves the result" valid?
 
-**Đáp án:** Không. `findFirst` giữ phần tử đầu theo encounter order. Xáo thứ tự có thể đổi kết quả hợp lệ; cần kiểm tra phần tử đầu của **input sau biến đổi**.
+**Answer:** No. `findFirst` returns the first element in encounter order. Shuffling can change the valid result; check the first element of the **transformed input** instead.
 
-### Bài 5 — Test phát hiện sai combiner
+### Exercise 5 — Catching a broken combiner
 
-Một collector tính trung bình chỉ giữ `double average` của từng phần rồi gộp bằng `(a+b)/2`. Tính chất nào có thể phát hiện lỗi?
+An averaging collector stores only a `double average` per partition and merges via `(a+b)/2`. Which property catches the bug?
 
-**Đáp án:** `aggregate(A ++ B) == combine(aggregate(A), aggregate(B))` trên các đoạn có kích thước khác nhau. Trung bình chung không phải trung bình đơn giản của hai trung bình nếu số phần tử hai nhóm khác nhau. Đúng hơn là giữ cặp `(sum, count)`, cộng hai cặp rồi mới chia.
+**Answer:** `aggregate(A ++ B) == combine(aggregate(A), aggregate(B))` on differently sized slices. The combined average is not the simple average of two group averages when group sizes differ. Store `(sum, count)`, merge pairs, and divide at the end.
 
-### Bài 6 — Ngẫu nhiên trong parallel map
+### Exercise 6 — Randomness inside parallel `map`
 
-Vì sao chia sẻ một `SplittableRandom(seed)` giữa tất cả lambda trong `parallelStream().map(...)` không phù hợp cho kiểm thử tái lập?
+Why is sharing one `SplittableRandom(seed)` across all lambdas in `parallelStream().map(...)` unsuitable for reproducible tests?
 
-**Đáp án:** Generator có trạng thái không dành cho chia sẻ đa luồng; thứ tự gọi phụ thuộc lịch thực thi, khiến mỗi phần tử có thể nhận giá trị khác. Nên sinh input trước hoặc tạo các bộ sinh độc lập theo chỉ số/seed được xác định rõ.
+**Answer:** The generator holds mutable state unsafe for multi-threaded sharing; call order depends on scheduling, giving elements different values across runs. Generate inputs upfront or derive per-index deterministic generators instead.
 
-### Bài 7 — Một property test luôn pass có thể vẫn sai?
+### Exercise 7 — Can a passing property test still hide a bug?
 
-Một test chỉ kiểm tra rằng mọi phần tử trong kết quả `filter(even)` đều chẵn. Hàm sản xuất bị lỗi và luôn trả `List.of()`. Test có thất bại không?
+A test checks only that every element returned by `filter(even)` is even. Production code has a bug and always returns `List.of()`. Does the test fail?
 
-**Đáp án:** Không. Mọi phần tử trong danh sách rỗng đều thỏa điều kiện một cách hiển nhiên. Cần so thêm với oracle hoặc kiểm tra số lượng/phép bảo toàn thích hợp.
+**Answer:** No. Every element in an empty list satisfies the predicate vacuously. Pair it with an oracle or appropriate cardinality/conservation checks.
 
-### Bài 8 — Phân biệt miền hợp lệ và kiểm tra lỗi
+### Exercise 8 — Valid domain vs. error testing
 
-Generator tạo `region == null` trong khi pipeline dùng `groupingBy(Sale::region)` và hợp đồng yêu cầu region khác null. Test bị `NullPointerException`. Đây có chắc là lỗi pipeline không?
+A generator emits `region == null` while the pipeline uses `groupingBy(Sale::region)` under a contract requiring non-null regions. The test throws `NullPointerException`. Is this definitely a pipeline bug?
 
-**Đáp án:** Không. Nếu region null nằm ngoài miền hợp lệ, test phải kỳ vọng hành vi từ chối dữ liệu hoặc không sinh null trong nhóm thử dữ liệu hợp lệ. Nếu nghiệp vụ cần chấp nhận null, phải sửa đặc tả và bổ sung xử lý rõ.
+**Answer:** No. If null regions lie outside the valid domain, either expect rejection or exclude nulls from the valid-input generator. If business logic must accept nulls, update the spec and add explicit handling.
 
-### Bài 9 — Shrinking với lỗi chỉ xuất hiện khi parallel
+### Exercise 9 — Shrinking parallel-only failures
 
-Tại sao sau khi thu nhỏ từ 100.000 phần tử còn 2 phần tử, cùng phép thử `parallelStream` có thể không tái hiện lỗi?
+Why might shrinking from 100,000 elements down to 2 elements stop reproducing a `parallelStream` bug?
 
-**Đáp án:** Runtime có thể không chia input cực nhỏ thành nhiều task, nên race/combiner sai không bộc lộ. Cần kiểm thử luật combiner trực tiếp, hoặc giữ kích thước đủ để tái tạo điều kiện lỗi, và lưu bằng chứng về môi trường thực thi.
+**Answer:** The runtime may not split tiny inputs across multiple tasks, leaving races or broken combiners unexercised. Test combiner laws directly, or keep enough size to trigger the failure condition while recording environment details.
 
-### Bài 10 — Lỗi tài nguyên
+### Exercise 10 — Resource bugs
 
-Một pipeline đọc file bằng `Files.lines(path)` rồi gọi `limit(5).toList()`. Làm thế nào viết test đáng tin cậy hơn?
+A pipeline reads a file with `Files.lines(path)` and calls `limit(5).toList()`. How do you write a more reliable test?
 
-**Đáp án:** Đặt `Files.lines` trong `try-with-resources` và kiểm tra kết quả năm dòng đầu; bổ sung kiểm thử đường đi exception/short-circuit và tài nguyên được đóng. Đừng coi terminal `toList` là cơ chế tự đóng file.
+**Answer:** Wrap `Files.lines` in `try-with-resources` and check the first five lines; add tests for exception/short-circuit paths and verified resource closure. Never treat `toList` as an automatic file-closing mechanism.
 
-## 22. Ghi nhớ
+## 22. Key Takeaways
 
-- **Property-based testing** kiểm tra các luật tổng quát trên nhiều input, không chỉ một vài ví dụ cố định.
-- Dùng **seed được kiểm soát** để sinh dữ liệu ngẫu nhiên có thể tái lập; lưu seed, cấu hình và input khi thất bại.
-- Xây **oracle độc lập** khi có thể; bổ sung bất biến và quan hệ biến hình (*metamorphic*) để giảm nguy cơ cả oracle lẫn code cùng sai.
-- Chọn tính chất đúng hợp đồng: tổng theo nhóm không phụ thuộc thứ tự, nhưng `findFirst`, `limit`, `takeWhile` và `joining` có thể phụ thuộc encounter order.
-- Kiểm tra **tính kết hợp, identity và phép ghép** khi reduction/collector sẽ chạy song song; không chia sẻ collection mutable bằng `parallelStream().forEach`.
-- **Sinh dữ liệu trước khi chạy pipeline**; tránh dùng generator mutable chung trong mapper song song.
-- Luôn có fixture biên cố định: rỗng, một phần tử, dữ liệu trùng, null không hợp lệ, số 0 và giá trị cực trị.
-- Thu nhỏ input gây lỗi và lưu thành test hồi quy; một seed có thể giúp tái lập nhưng một input tối giản giúp hiểu lỗi nhanh hơn.
-- Tách kiểm thử ngữ nghĩa khỏi benchmark hiệu năng và kiểm thử vòng đời tài nguyên; `peek` không phải cơ chế bảo đảm callback được gọi đúng số lần.
+- **Property-based testing** checks general laws over many inputs, not just a few hardcoded examples.
+- Use **controlled seeds** for reproducible random data; log seed, configuration, and failing input.
+- Build **independent oracles** whenever possible; add invariants and *metamorphic* relations to reduce the risk of oracle and implementation sharing bugs.
+- Pick contract-aligned properties: per-group sums are order-independent, whereas `findFirst`, `limit`, `takeWhile`, and `joining` can depend on encounter order.
+- Test **associativity, identity, and merging** whenever reductions/collectors run in parallel; never populate shared mutable collections via `parallelStream().forEach`.
+- **Generate data before running pipelines**; avoid shared mutable generators inside parallel mappers.
+- Always maintain fixed boundary fixtures: empty, single element, duplicates, invalid nulls, zeros, and extreme values.
+- Shrink failing inputs and save them as regression tests; seeds enable replay while minimal inputs reveal root causes faster.
+- Separate semantic testing from performance benchmarks and resource-lifecycle tests; `peek` never guarantees exact callback invocation counts.
 
-**Ý chính:** Muốn gỡ lỗi pipeline Stream API hiệu quả, hãy kiểm tra **những điều phải luôn đúng** trên nhiều dữ liệu, đồng thời khiến mọi phản ví dụ **có thể tạo lại và thu nhỏ**. Sự kết hợp giữa seed xác định, oracle dễ hiểu, bất biến theo nhóm, kiểm thử song song, fixture biên và kiểm tra tài nguyên mang lại bằng chứng tốt hơn nhiều so với những lần chạy ngẫu nhiên không ghi lại đầu vào.
+**Main takeaway:** To debug Stream API pipelines effectively, test **properties that must always hold** across varied inputs while keeping every counterexample **reproducible and shrinkable**. Combining deterministic seeds, clear oracles, group invariants, parallel checks, boundary fixtures, and resource-closure tests gives far stronger evidence than unrecorded random runs.

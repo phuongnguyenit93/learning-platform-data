@@ -1,32 +1,32 @@
-# Phân nhóm dữ liệu bằng `Collectors.groupingBy`
+# Grouping Data with `Collectors.groupingBy`
 
-## 1. Mục tiêu và bài toán
+## 1. Objectives and Problem Statement
 
-Trong **Java Stream API** (`JAVA_STREAM_API`), pipeline xử lý dữ liệu theo cách khai báo: lấy nguồn, thực hiện các phép trung gian lazy như `filter` và `map`, rồi kết thúc bằng `collect` hoặc `reduce`. Khi muốn tổ chức nhiều phần tử theo một thuộc tính chung, **`Collectors.groupingBy`** là một công cụ cốt lõi.
+In the **Java Stream API** (`JAVA_STREAM_API`), a pipeline processes data declaratively: obtaining a source, performing lazy intermediate operations such as `filter` and `map`, and terminating with `collect` or `reduce`. When you want to organize multiple elements by a common attribute, **`Collectors.groupingBy`** is a core tool.
 
-Ví dụ, từ danh sách đơn hàng, ta cần biết:
+For example, given a list of orders, we need to know:
 
-- Mỗi danh mục có những đơn nào?
-- Có bao nhiêu đơn trong từng danh mục?
-- Tổng doanh thu theo từng danh mục là bao nhiêu?
-- Trong từng danh mục, có bao nhiêu đơn đã hoàn tất?
-- Cần trả kết quả thành `Map` có thứ tự khóa như thế nào?
+- Which orders are in each category?
+- How many orders are in each category?
+- What is the total revenue for each category?
+- Within each category, how many orders are completed?
+- What key order should the resulting `Map` have?
 
-Bài này thuộc chương **Phân nhóm và phân hoạch**. Sau bài, bạn có thể dùng cả ba overload của `groupingBy`, kết hợp downstream collector, xử lý dữ liệu rỗng/khóa không hợp lệ và hiểu giới hạn về thứ tự, tài nguyên, hiệu năng và xử lý song song. Đây là nền tảng cho các nội dung nâng cao như collector tùy chỉnh và grouping song song.
+This lesson belongs to the **Grouping and Partitioning** chapter. After this lesson, you can use all three overloads of `groupingBy`, combine downstream collectors, handle empty data or invalid keys, and understand limitations regarding ordering, resources, performance, and parallel processing. This forms the foundation for advanced topics such as custom collectors and parallel grouping.
 
-## 2. Tư duy cơ bản: classifier biến phần tử thành khóa nhóm
+## 2. Core Mental Model: The Classifier Turns an Element into a Group Key
 
-`groupingBy` nhận một **hàm phân loại** (*classifier*), dùng để tính **khóa nhóm** từ mỗi phần tử. Những phần tử có khóa được coi là bằng nhau sẽ được đưa vào cùng một nhóm.
+`groupingBy` accepts a **classifier function** (*classifier*), used to compute a **group key** from each element. Elements whose keys are considered equal are placed into the same group.
 
 ```text
-                      classifier: lấy danh mục
+                      classifier: get category
                        │
-Đơn DH01 (Sách)  ───────┼───────────────┐
-Đơn DH02 (Đồ dùng) ─────┼───────────┐   │
-Đơn DH03 (Sách)  ───────┼───────────│───┤
-Đơn DH04 (Đồ dùng) ─────┼───────────┤   │
-Đơn DH05 (Điện tử) ─────┼───────┐   │   │
-Đơn DH06 (Sách)  ───────┼───────│───│───┤
+Order DH01 (Sách)    ──┼───────────────┐
+Order DH02 (Đồ dùng) ──┼───────────┐   │
+Order DH03 (Sách)    ──┼───────────│───┤
+Order DH04 (Đồ dùng) ──┼───────────┤   │
+Order DH05 (Điện tử) ──┼───────┐   │   │
+Order DH06 (Sách)    ──┼───────│───│───┤
                        ▼       ▼   ▼   ▼
                    Map<String, List<DonHang>>
                    "Điện tử" → [DH05]
@@ -34,7 +34,7 @@ Bài này thuộc chương **Phân nhóm và phân hoạch**. Sau bài, bạn c�
                    "Sách"    → [DH01, DH03, DH06]
 ```
 
-Cách nhìn tổng quát:
+General view:
 
 ```java
 Map<K, List<T>> ketQua = stream.collect(
@@ -42,15 +42,15 @@ Map<K, List<T>> ketQua = stream.collect(
 );
 ```
 
-- `T`: kiểu phần tử nguồn.
-- `K`: kiểu khóa do classifier trả về.
-- `Map<K, List<T>>`: ánh xạ mỗi khóa tới danh sách các phần tử thuộc khóa đó.
+- `T`: source element type.
+- `K`: key type returned by the classifier.
+- `Map<K, List<T>>`: maps each key to the list of elements belonging to that key.
 
-**Quan trọng:** `groupingBy` là một collector đưa vào terminal operation `collect`. Việc phân nhóm thực tế diễn ra khi `collect` tiêu thụ stream; nó không tự phát sinh một nguồn mới để tiếp tục xử lý như `map` hay `filter`.
+**Important:** `groupingBy` is a collector passed to the `collect` terminal operation. The actual grouping happens when `collect` consumes the stream; it does not produce a new source for further stream processing like `map` or `filter`.
 
-## 3. Ví dụ Java 8 hoàn chỉnh: nhóm đơn hàng theo danh mục
+## 3. Complete Java 8 Example: Grouping Orders by Category
 
-Chạy đoạn chương trình sau bằng Java 8 trở lên:
+Run the following program using Java 8 or later:
 
 ```java
 import java.util.Arrays;
@@ -118,7 +118,7 @@ public class NhomDonHang {
 }
 ```
 
-Kết quả:
+Output:
 
 ```text
 [DH01, DH03, DH06]
@@ -126,37 +126,37 @@ Kết quả:
 [DH05]
 ```
 
-Ở đây:
+Here:
 
-1. `donHang.stream()` tạo `Stream<DonHang>`.
-2. `DonHang::getDanhMuc` là classifier kiểu `Function<DonHang, String>`.
-3. `groupingBy` tạo `Map<String, List<DonHang>>`.
-4. Mỗi danh mục trở thành một khóa của `Map`.
-5. Những đơn có cùng danh mục được tích lũy vào danh sách thuộc khóa đó.
+1. `donHang.stream()` creates a `Stream<DonHang>`.
+2. `DonHang::getDanhMuc` is a classifier of type `Function<DonHang, String>`.
+3. `groupingBy` creates a `Map<String, List<DonHang>>`.
+4. Each category becomes a key of the `Map`.
+5. Orders with the same category are accumulated into the list for that key.
 
-Các ví dụ tiếp theo giả định **lớp `DonHang` và phương thức `duLieu()` ở trên**, và được đặt trong `main` hoặc phương thức khác của chính lớp `NhomDonHang`:
+The following examples assume **the `DonHang` class and `duLieu()` method above**, placed inside `main` or another method of the same `NhomDonHang` class:
 
 ```java
 List<DonHang> donHang = duLieu();
 ```
 
-Ví dụ in giá trị theo từng khóa một cách tường minh để không phụ thuộc thứ tự duyệt khóa của kiểu `Map` mặc định.
+The examples print values key by key explicitly so as not to depend on the key iteration order of the default `Map` type.
 
-## 4. Ba overload quan trọng của `groupingBy`
+## 4. Three Important Overloads of `groupingBy`
 
-Có ba cách gọi phổ biến từ Java 8. Chữ ký dưới đây lược bỏ chi tiết không ảnh hưởng tới việc đọc:
+There are three common ways to call it since Java 8. The signatures below omit details that do not affect readability:
 
 ```java
-// 1. Chọn classifier, giữ toàn bộ phần tử từng nhóm.
+// 1. Choose classifier, keep all elements of each group.
 groupingBy(Function<? super T, ? extends K> classifier)
 
-// 2. Chọn classifier và downstream collector cho từng nhóm.
+// 2. Choose classifier and downstream collector for each group.
 groupingBy(
     Function<? super T, ? extends K> classifier,
     Collector<? super T, A, D> downstream
 )
 
-// 3. Chọn classifier, loại Map kết quả và downstream collector.
+// 3. Choose classifier, resulting Map type, and downstream collector.
 groupingBy(
     Function<? super T, ? extends K> classifier,
     Supplier<M> mapFactory,
@@ -164,21 +164,21 @@ groupingBy(
 )
 ```
 
-So sánh:
+Comparison:
 
-| Overload | Kiểu kết quả điển hình | Khi sử dụng |
+| Overload | Typical return type | When to use |
 | --- | --- | --- |
-| `groupingBy(classifier)` | `Map<K, List<T>>` | Muốn giữ các phần tử của mỗi nhóm. |
-| `groupingBy(classifier, downstream)` | `Map<K, D>` | Muốn đếm, tính tổng, lấy tên, thống kê hoặc rút gọn từng nhóm. |
-| `groupingBy(classifier, mapFactory, downstream)` | Một loại `Map` cụ thể | Cần kiểm soát kiểu map, ví dụ `LinkedHashMap` hoặc `TreeMap`. |
+| `groupingBy(classifier)` | `Map<K, List<T>>` | When you want to keep the elements of each group. |
+| `groupingBy(classifier, downstream)` | `Map<K, D>` | When you want to count, sum, extract names, gather statistics, or reduce each group. |
+| `groupingBy(classifier, mapFactory, downstream)` | A specific `Map` type | When you need to control the map implementation, such as `LinkedHashMap` or `TreeMap`. |
 
-Trong overload hai và ba tham số, kiểu `D` là **kết quả của downstream collector**, không nhất thiết là `List<T>`. Vì vậy `groupingBy` là công cụ phân nhóm có thể kết hợp phép tổng hợp, không chỉ là thao tác chia dữ liệu vào các list.
+In the two- and three-parameter overloads, the type `D` is the **result of the downstream collector**, not necessarily `List<T>`. Therefore, `groupingBy` is a grouping tool that can combine aggregations, not just an operation for splitting data into lists.
 
-Với overload chỉ có classifier, kết quả tương đương về mục đích với downstream `Collectors.toList()`. Tuy nhiên, **không có bảo đảm** về kiểu `Map` cụ thể, tính có thể sửa, thread-safety hoặc serializability của `Map` và `List` kết quả. Không được dựa vào việc triển khai hiện tại tình cờ trả `HashMap` hoặc `ArrayList`.
+For the classifier-only overload, the result is equivalent in intent to using downstream `Collectors.toList()`. However, there are **no guarantees** on the specific `Map` type, mutability, thread-safety, or serializability of the resulting `Map` and `List`. Do not rely on the current implementation happening to return `HashMap` or `ArrayList`.
 
-## 5. Đếm số phần tử trong mỗi nhóm với `counting()`
+## 5. Counting Elements in Each Group with `counting()`
 
-Nếu chỉ muốn thống kê số lượng, không cần lưu tất cả phần tử vào các danh sách:
+If you only want count statistics without storing all elements in lists:
 
 ```java
 Map<String, Long> soDon = donHang.stream()
@@ -192,25 +192,25 @@ System.out.println(soDon.get("Đồ dùng")); // 2
 System.out.println(soDon.get("Điện tử")); // 1
 ```
 
-Đọc kiểu:
+Reading the types:
 
 ```text
 Stream<DonHang>
     └─ classifier: DonHang -> String
-    └─ downstream: nhiều DonHang -> Long
+    └─ downstream: multiple DonHang -> Long
                      │
                      ▼
              Map<String, Long>
 ```
 
-`Collectors.counting()` trả `Long`, nên `Map<String, Long>` là kiểu đúng. Nếu viết `Map<String, Integer>` sẽ gặp lỗi biên dịch.
+`Collectors.counting()` returns `Long`, so `Map<String, Long>` is the correct type. Writing `Map<String, Integer>` will cause a compilation error.
 
-**Không nhầm** `donHang.stream().count()` với `groupingBy(..., counting())`:
+**Do not confuse** `donHang.stream().count()` with `groupingBy(..., counting())`:
 
-- `count()` trả một số `long` cho **toàn bộ stream**.
-- `groupingBy(..., counting())` trả một `Map` chứa **số đếm cho từng khóa**.
+- `count()` returns a single `long` for the **entire stream**.
+- `groupingBy(..., counting())` returns a `Map` containing **the count for each key**.
 
-Nếu thêm bộ lọc, chỉ các phần tử vượt qua `filter` mới đóng góp vào các nhóm:
+If a filter is added, only elements that pass `filter` contribute to the groups:
 
 ```java
 Map<String, Long> soDonHoanTat = donHang.stream()
@@ -222,16 +222,16 @@ Map<String, Long> soDonHoanTat = donHang.stream()
 
 System.out.println(soDonHoanTat.get("Sách"));    // 2
 System.out.println(soDonHoanTat.get("Đồ dùng")); // 1
-System.out.println(soDonHoanTat.get("Điện tử")); // null (không có khóa)
+System.out.println(soDonHoanTat.get("Điện tử")); // null (no key present)
 ```
 
-`get("Điện tử") == null` biểu thị **không có nhóm tương ứng**, khác với một nhóm có số đếm bằng 0. Nếu yêu cầu báo cáo phải hiển thị cả các danh mục không có đơn hoàn tất, hãy bổ sung các khóa theo danh sách danh mục nghiệp vụ ở bước riêng.
+`get("Điện tử") == null` indicates **there is no corresponding group**, which is different from a group with a count of 0. If a report must also display categories with no completed orders, populate the keys from the business category list in a separate step.
 
-## 6. Tính tổng và thống kê theo từng khóa
+## 6. Summing and Summarizing Statistics per Key
 
-### 6.1. Tổng giá trị mỗi danh mục
+### 6.1. Total value per category
 
-`Collectors.summingLong` nhận hàm biến phần tử thành giá trị `long` rồi tính tổng từng nhóm:
+`Collectors.summingLong` takes a function that converts an element into a `long` value and computes the sum for each group:
 
 ```java
 Map<String, Long> tongGiaTri = donHang.stream()
@@ -245,11 +245,11 @@ System.out.println(tongGiaTri.get("Đồ dùng")); // 130000
 System.out.println(tongGiaTri.get("Điện tử")); // 900000
 ```
 
-Dữ liệu trong ví dụ tính bằng đơn vị giả định; ở bài toán tiền tệ thực tế cần chọn kiểu dữ liệu, quy tắc làm tròn và giới hạn tràn số phù hợp. `long` rộng hơn `int` nhưng vẫn có thể tràn khi tổng lớn hơn `Long.MAX_VALUE`.
+Values in the example use hypothetical units; in real monetary problems, choose an appropriate data type, rounding rules, and overflow bounds. `long` is wider than `int` but can still overflow when the sum exceeds `Long.MAX_VALUE`.
 
-### 6.2. Trung bình theo danh mục
+### 6.2. Average per category
 
-`Collectors.averagingLong` trả về `Double`, ngay cả khi đầu vào là `long`:
+`Collectors.averagingLong` returns `Double`, even when the input is `long`:
 
 ```java
 Map<String, Double> giaTrungBinh = donHang.stream()
@@ -263,11 +263,11 @@ System.out.println(giaTrungBinh.get("Đồ dùng")); // 65000.0
 System.out.println(giaTrungBinh.get("Điện tử")); // 900000.0
 ```
 
-`double` có sai số dấu phẩy động. Nếu cần tính số tiền trung bình theo quy tắc làm tròn nghiệp vụ, không dùng kết quả `Double` như biểu diễn tiền chính xác tuyệt đối.
+`double` has floating-point precision error. If you need to calculate average monetary amounts according to business rounding rules, do not use the `Double` result as an exact monetary representation.
 
-### 6.3. Nhiều thống kê bằng `summarizingLong`
+### 6.3. Multiple statistics with `summarizingLong`
 
-`LongSummaryStatistics` cung cấp số lượng, tổng, min, max và trung bình trong cùng một kết quả:
+`LongSummaryStatistics` provides count, sum, min, max, and average in a single result:
 
 ```java
 import java.util.LongSummaryStatistics;
@@ -286,11 +286,11 @@ System.out.println(sach.getMin());     // 70000
 System.out.println(sach.getMax());     // 180000
 ```
 
-Với `summingLong`, `averagingLong` hoặc `summarizingLong`, bạn không cần tạo các `List<DonHang>` chỉ để tính số liệu. Đây là cách khai báo thường tiết kiệm bộ nhớ hơn khi không cần giữ lại toàn bộ các bản ghi.
+With `summingLong`, `averagingLong`, or `summarizingLong`, you do not need to create `List<DonHang>` instances just to compute metrics. This declarative approach is typically more memory-efficient when you do not need to retain all records.
 
-## 7. Biến đổi phần tử bên trong từng nhóm bằng `mapping()`
+## 7. Transforming Elements Inside Each Group with `mapping()`
 
-Khi chỉ muốn giữ **mã đơn hàng** thay vì toàn bộ đối tượng, sử dụng downstream `mapping`:
+When you only want to keep the **order code** instead of the entire object, use the `mapping` downstream collector:
 
 ```java
 Map<String, List<String>> maTheoDanhMuc = donHang.stream()
@@ -306,19 +306,19 @@ System.out.println(maTheoDanhMuc.get("Sách"));
 // [DH01, DH03, DH06]
 ```
 
-`Collectors.mapping(mapper, downstream)` chuyển từng phần tử **sau khi đã phân nhóm** thành giá trị phù hợp với downstream collector. Kiểu kết quả thay đổi như sau:
+`Collectors.mapping(mapper, downstream)` transforms each element **after grouping** into a value suitable for the downstream collector. The resulting type changes as follows:
 
 ```text
 Stream<DonHang>
   ├─ classifier: DanhMuc → String
-  └─ mapping: DonHang → String (mã đơn)
+  └─ mapping: DonHang → String (order code)
       └─ toList() → List<String>
              │
              ▼
      Map<String, List<String>>
 ```
 
-Có thể thay `Collectors.toList()` bằng `Collectors.toSet()` nếu chỉ cần các mã duy nhất:
+You can replace `Collectors.toList()` with `Collectors.toSet()` if you only need unique codes:
 
 ```java
 import java.util.Set;
@@ -333,7 +333,7 @@ Map<String, Set<String>> maDuyNhat = donHang.stream()
     ));
 ```
 
-**Lưu ý:** `Collectors.toSet()` không bảo đảm thứ tự duyệt của set. Nếu cần giữ thứ tự xuất hiện đầu tiên của các mã trong từng nhóm, hãy chọn rõ `LinkedHashSet`:
+**Note:** `Collectors.toSet()` does not guarantee iteration order of the set. If you need to preserve the order of first appearance of codes within each group, explicitly choose `LinkedHashSet`:
 
 ```java
 import java.util.LinkedHashSet;
@@ -351,11 +351,11 @@ System.out.println(maCoThuTu.get("Sách"));
 // [DH01, DH03, DH06]
 ```
 
-Trên nguồn `List` có thứ tự và pipeline tuần tự, thứ tự trong collection của mỗi nhóm phản ánh thứ tự gặp các phần tử thuộc nhóm đó.
+On an ordered `List` source and a sequential pipeline, the order within each group's collection reflects the encounter order of elements belonging to that group.
 
-## 8. Tạo phân nhóm nhiều cấp
+## 8. Multi-Level Grouping
 
-Có thể đặt một `groupingBy` khác làm downstream collector để phân nhóm hai chiều. Ví dụ: **danh mục → trạng thái hoàn tất → danh sách đơn hàng**.
+You can nest another `groupingBy` as a downstream collector for two-dimensional grouping. For example: **category → completion status → list of orders**.
 
 ```java
 Map<String, Map<Boolean, List<DonHang>>> theoDanhMucVaTrangThai =
@@ -375,7 +375,7 @@ System.out.println(
 ); // [DH06]
 ```
 
-Kiểu có nhiều tầng `Map` vì mỗi downstream collector lại trả về một map. Có thể thay danh sách ở tầng cuối bằng số đếm:
+The type has nested `Map` levels because each downstream collector also returns a map. You can replace the list at the inner level with a count:
 
 ```java
 Map<String, Map<Boolean, Long>> demTheoDanhMucVaTrangThai =
@@ -394,7 +394,7 @@ System.out.println(
 ); // 2
 ```
 
-Không phải mọi nhóm đều có đủ cả hai trạng thái. Ví dụ, danh mục "Điện tử" chỉ có đơn chưa hoàn tất, nên map con có thể **không có khóa `true`**:
+Not every group has both statuses. For example, the "Điện tử" category only has uncompleted orders, so the inner map may **lack the `true` key**:
 
 ```java
 System.out.println(
@@ -402,7 +402,7 @@ System.out.println(
 ); // null
 ```
 
-Cần phân biệt **khóa vắng mặt** với **giá trị thống kê 0**, nhất là khi giao tiếp với báo cáo hoặc JSON. Nếu muốn đảm bảo cả hai khóa Boolean trong từng nhóm đã xuất hiện, sử dụng `partitioningBy` làm downstream:
+You need to distinguish between an **absent key** and a **statistic value of 0**, especially when interfacing with reports or JSON. If you want to guarantee both Boolean keys exist for each group that appears, use `partitioningBy` as the downstream collector:
 
 ```java
 Map<String, Map<Boolean, Long>> demHaiTrangThai =
@@ -421,20 +421,20 @@ System.out.println(
 ); // 0
 ```
 
-Ở đây khóa danh mục chỉ được tạo khi có phần tử thuộc danh mục đó, nhưng trong map con của mỗi danh mục đã có, `partitioningBy` cung cấp cả nhánh `true` và `false`.
+Here, a category key is only created when there is an element belonging to that category, but inside the inner map of each existing category, `partitioningBy` provides both the `true` and `false` branches.
 
-## 9. Chọn loại `Map` với overload ba tham số
+## 9. Choosing the `Map` Type with the Three-Parameter Overload
 
-Mặc định, `groupingBy(classifier)` **không cam kết** `Map` thuộc lớp nào hoặc thứ tự duyệt các khóa. Do đó, không nên dựa vào thứ tự in của:
+By default, `groupingBy(classifier)` **does not guarantee** the `Map` class or key iteration order. Therefore, you should not rely on the print order of:
 
 ```java
 Map<String, List<DonHang>> ketQua = donHang.stream()
     .collect(Collectors.groupingBy(DonHang::getDanhMuc));
 
-System.out.println(ketQua); // Không cam kết thứ tự các khóa.
+System.out.println(ketQua); // Key order is not guaranteed.
 ```
 
-Nếu cần giữ **thứ tự các danh mục xuất hiện lần đầu** trong một nguồn `List` có thứ tự, dùng `LinkedHashMap` và stream tuần tự:
+If you need to preserve the **first-appearance order of categories** from an ordered `List` source, use `LinkedHashMap` and a sequential stream:
 
 ```java
 import java.util.LinkedHashMap;
@@ -452,9 +452,9 @@ System.out.println(theoThuTuXuatHien.keySet());
 // [Sách, Đồ dùng, Điện tử]
 ```
 
-`LinkedHashMap` giữ thứ tự chèn khóa; ở pipeline tuần tự có thứ tự, đó là thứ tự xuất hiện đầu tiên của từng danh mục.
+`LinkedHashMap` preserves key insertion order; in an ordered sequential pipeline, that is the order in which each category first appears.
 
-Nếu cần sắp xếp khóa theo **thứ tự tự nhiên** của `String`, dùng `TreeMap`:
+If you need keys sorted in the **natural order** of `String`, use `TreeMap`:
 
 ```java
 import java.util.TreeMap;
@@ -471,23 +471,23 @@ TreeMap<String, Long> theoKhoaSapXep =
 System.out.println(theoKhoaSapXep.firstKey());
 ```
 
-`TreeMap` mặc định dùng so sánh tự nhiên của `String` theo thứ tự Unicode; không có nghĩa là sắp xếp ngôn ngữ tiếng Việt đúng quy tắc từ điển. Khi cần thứ tự đặc thù theo locale, hãy cung cấp `Comparator` phù hợp thông qua map factory.
+`TreeMap` defaults to `String`'s natural comparison in Unicode order; this does not mean sorting Vietnamese language text according to dictionary rules. When a locale-specific order is needed, provide an appropriate `Comparator` via the map factory.
 
-**Ghi nhớ:** loại map quyết định cách duyệt **các khóa nhóm**, còn downstream collector quyết định dữ liệu **bên trong từng nhóm**. `LinkedHashMap<String, Set<DonHang>>` chẳng hạn có thứ tự khóa nhưng `Set` thường vẫn không cam kết thứ tự giá trị.
+**Remember:** the map type determines how **group keys** are traversed, while the downstream collector determines the data **inside each group**. For instance, `LinkedHashMap<String, Set<DonHang>>` has ordered keys, but a general `Set` still does not guarantee value order.
 
-## 10. `groupingBy` và `partitioningBy` khác nhau ra sao?
+## 10. How Do `groupingBy` and `partitioningBy` Differ?
 
-Hai phương thức đều phân loại phần tử nhưng có mục đích riêng.
+Both methods classify elements, but they serve different purposes.
 
-| Đặc điểm | `groupingBy(classifier)` | `partitioningBy(predicate)` |
+| Feature | `groupingBy(classifier)` | `partitioningBy(predicate)` |
 | --- | --- | --- |
-| Khóa | Loại `K` tùy ý | Chỉ hai giá trị Boolean: `true`/`false` |
-| Hàm đầu vào | `Function<T, K>` | `Predicate<T>` |
-| Số nhóm có thể có | Từ 0 đến số khóa phân biệt | Luôn có hai khóa Boolean trong map trả về |
-| Nguồn rỗng | Map rỗng | Cả hai nhánh tồn tại với kết quả downstream rỗng/tương ứng |
-| Trường hợp điển hình | Phân theo danh mục, tỉnh, trạng thái nhiều mức | Phân đạt/không đạt, đã hoàn tất/chưa hoàn tất |
+| Keys | Arbitrary type `K` | Only two Boolean values: `true`/`false` |
+| Input function | `Function<T, K>` | `Predicate<T>` |
+| Possible number of groups | From 0 up to the number of distinct keys | Always has both Boolean keys in the returned map |
+| Empty source | Empty map | Both branches exist with empty/corresponding downstream results |
+| Typical use cases | Grouping by category, province, multi-level status | Splitting passed/failed, completed/incomplete |
 
-Ví dụ partition:
+Partition example:
 
 ```java
 Map<Boolean, List<DonHang>> theoHoanTat = donHang.stream()
@@ -500,9 +500,9 @@ System.out.println(theoHoanTat.get(false));
 // [DH02, DH05, DH06]
 ```
 
-Nếu dùng `groupingBy(DonHang::isHoanTat)`, kết quả có thể giống khi dữ liệu tồn tại ở cả hai nhánh, nhưng **không có cam kết xuất hiện hai khóa** nếu một nhánh không có phần tử.
+If you use `groupingBy(DonHang::isHoanTat)`, the result may look similar when data exists in both branches, but there is **no guarantee both keys will appear** if one branch has no elements.
 
-Ví dụ trên nguồn rỗng:
+Example on an empty source:
 
 ```java
 import java.util.Collections;
@@ -520,11 +520,11 @@ System.out.println(chia.containsKey(false)); // true
 System.out.println(nhom.isEmpty());          // true
 ```
 
-## 11. Dữ liệu rỗng, khóa null và chất lượng dữ liệu
+## 11. Empty Data, Null Keys, and Data Quality
 
-### 11.1. Nguồn rỗng
+### 11.1. Empty source
 
-Trên một stream rỗng, `groupingBy` không tạo các nhóm vắng mặt:
+On an empty stream, `groupingBy` does not create absent groups:
 
 ```java
 Map<String, List<DonHang>> rong = java.util.stream.Stream
@@ -534,23 +534,23 @@ Map<String, List<DonHang>> rong = java.util.stream.Stream
 System.out.println(rong.isEmpty()); // true
 ```
 
-Ngay cả khi downstream là `counting()` hoặc `summingLong()`, nó không tự tạo kết quả 0 cho tất cả các danh mục có thể có. Để làm báo cáo đủ danh mục, cần danh sách khóa chuẩn từ nghiệp vụ và xử lý bổ sung.
+Even when the downstream collector is `counting()` or `summingLong()`, it does not automatically produce 0 results for all possible categories. To build a report covering all categories, you need a canonical list of keys from the business domain and fill them in additionally.
 
-### 11.2. Classifier trả về `null`
+### 11.2. Classifier returning `null`
 
-Không nên trả `null` làm khóa phân nhóm. Các triển khai JDK thông dụng của `Collectors.groupingBy` không chấp nhận khóa phân loại `null` và có thể ném `NullPointerException` khi thu thập, dù một số loại `Map` thuần túy cho phép khóa `null`.
+You should not return `null` as a grouping key. Common JDK implementations of `Collectors.groupingBy` do not accept `null` classification keys and can throw `NullPointerException` during collection, even though some plain `Map` implementations allow `null` keys.
 
-Giả sử dữ liệu có thể thiếu danh mục, một cách xử lý rõ nghĩa là **chuẩn hóa khóa**:
+Suppose data may lack a category; a clear way to handle it is **key normalization**:
 
 ```java
 Map<String, List<DonHang>> theoDanhMuc = donHang.stream()
     .collect(Collectors.groupingBy(d -> {
         String danhMuc = d.getDanhMuc();
-        return danhMuc == null ? "Chưa phân loại" : danhMuc;
+        return danhMuc == null ? "Uncategorized" : danhMuc;
     }));
 ```
 
-Hoặc nếu nghiệp vụ yêu cầu bỏ bản ghi thiếu danh mục, hãy lọc trước:
+Or if business requirements call for dropping records missing a category, filter first:
 
 ```java
 Map<String, List<DonHang>> hopLe = donHang.stream()
@@ -558,26 +558,26 @@ Map<String, List<DonHang>> hopLe = donHang.stream()
     .collect(Collectors.groupingBy(DonHang::getDanhMuc));
 ```
 
-Hai cách có **ý nghĩa dữ liệu khác nhau**: cách đầu giữ đơn chưa phân loại, cách sau bỏ chúng. Hãy chọn theo yêu cầu, không âm thầm mất dữ liệu.
+These two approaches have **different data semantics**: the first keeps uncategorized orders, while the second drops them. Choose according to requirements rather than silently losing data.
 
-### 11.3. Khóa là đối tượng tùy chỉnh
+### 11.3. Custom objects as keys
 
-`Map` xác định khóa trùng theo `equals` và `hashCode` (trừ các map dùng comparator hoặc cơ chế đặc biệt). Nếu classifier trả về đối tượng làm khóa, hãy dùng thuộc tính định danh ổn định và triển khai `equals`/`hashCode` nhất quán.
+A `Map` determines duplicate keys using `equals` and `hashCode` (except for maps using a comparator or special mechanism). If the classifier returns an object as a key, use stable identifying fields and implement `equals`/`hashCode` consistently.
 
-Tránh sửa thuộc tính tham gia vào hash code sau khi khóa đã được đặt trong map. Hành vi tra cứu và phân nhóm có thể sai nếu khóa có thể đổi giá trị trong khi đang được sử dụng.
+Avoid mutating fields that participate in the hash code after the key has been placed in the map. Lookup and grouping behavior can break if a key can change its value while in use.
 
-## 12. Tính lazy, trạng thái và hiệu năng
+## 12. Laziness, Statefulness, and Performance
 
-`groupingBy` làm việc bên trong `collect`: **nó phải tiêu thụ dữ liệu cần phân nhóm** để xác định các nhóm và kết quả downstream. Các thao tác `filter`/`map` phía trước vẫn là intermediate lazy, chỉ thực sự chạy khi terminal `collect` yêu cầu.
+`groupingBy` operates inside `collect`: **it must consume the data to be grouped** in order to determine the groups and downstream results. Upstream `filter`/`map` operations remain lazy intermediate operations, running only when requested by the terminal `collect`.
 
-Nếu muốn thống kê tổng hợp, tránh lưu toàn bộ phần tử không cần thiết:
+If you want aggregate statistics, avoid storing all elements unnecessarily:
 
 ```java
-// Giữ mọi đơn hàng theo danh mục:
+// Keep all orders by category:
 Map<String, List<DonHang>> dayDu = donHang.stream()
     .collect(Collectors.groupingBy(DonHang::getDanhMuc));
 
-// Chỉ giữ số lượng theo danh mục:
+// Keep only the count by category:
 Map<String, Long> soLuong = donHang.stream()
     .collect(Collectors.groupingBy(
         DonHang::getDanhMuc,
@@ -585,11 +585,11 @@ Map<String, Long> soLuong = donHang.stream()
     ));
 ```
 
-Cách thứ nhất cần không gian để giữ các tham chiếu tới đơn hàng trong các danh sách; cách thứ hai chủ yếu giữ khóa và giá trị đếm. Cả hai đều cần dung lượng tăng theo số lượng khóa phân biệt.
+The first approach needs space to hold references to the orders inside the lists; the second mainly holds keys and counts. Both require space that grows with the number of distinct keys.
 
-**Không coi `collect(groupingBy(...))` là một cách xử lý vô hạn dữ liệu:** nếu nguồn có thể vô hạn và không được giới hạn, thao tác thu thập có thể không bao giờ hoàn tất hoặc cạn bộ nhớ.
+**Do not treat `collect(groupingBy(...))` as a way to process infinite data:** if the source can be infinite and is not bounded, the collection operation may never finish or may run out of memory.
 
-Ví dụ có giới hạn:
+Bounded example:
 
 ```java
 import java.util.stream.IntStream;
@@ -607,11 +607,11 @@ System.out.println(theoSoDu.get(1)); // 34
 System.out.println(theoSoDu.get(2)); // 33
 ```
 
-Lưu ý số phần tử thực sự được tính **sau** các bộ lọc và giới hạn. Đưa `limit` trước hay sau `filter` có thể làm thay đổi dữ liệu được phân nhóm.
+Note that the actual number of elements is counted **after** filters and limits. Placing `limit` before or after `filter` can change the data that gets grouped.
 
-## 13. Phân nhóm trong parallel stream
+## 13. Grouping in Parallel Streams
 
-`groupingBy` có thể được dùng trên một `parallelStream()` đúng hợp đồng:
+`groupingBy` can be used on a `parallelStream()` according to contract:
 
 ```java
 Map<String, Long> tongSongSong = donHang.parallelStream()
@@ -623,7 +623,7 @@ Map<String, Long> tongSongSong = donHang.parallelStream()
 System.out.println(tongSongSong.get("Sách")); // 370000
 ```
 
-Collector có thể tạo nhiều vùng tích lũy riêng rồi **ghép các map nhóm**. Việc ghép có chi phí, đặc biệt khi số lượng nhóm lớn. `groupingBy` không phải collector concurrent; muốn tối ưu cho một số tình huống song song, Java có `groupingByConcurrent`:
+The collector may create multiple separate accumulation containers and then **merge the group maps**. Merging has overhead, especially when the number of groups is large. `groupingBy` is not a concurrent collector; to optimize certain parallel scenarios, Java provides `groupingByConcurrent`:
 
 ```java
 import java.util.concurrent.ConcurrentMap;
@@ -635,31 +635,31 @@ ConcurrentMap<String, Long> tongConcurrent = donHang.parallelStream()
     ));
 ```
 
-**Phân biệt những điều được bảo đảm:**
+**Distinguish what is guaranteed:**
 
-- `groupingByConcurrent` tạo một collector **concurrent** và **unordered**; không dựa vào thứ tự phần tử trong từng nhóm.
-- `groupingBy` thông thường có thể bảo toàn ngữ nghĩa encounter order của các nhóm giá trị trên nguồn có thứ tự và collector downstream phù hợp, nhưng **không cam kết thứ tự duyệt khóa** của map mặc định.
-- Kết quả là `ConcurrentMap` không có nghĩa mọi đối tượng giá trị bên trong đều là collection thread-safe cho các thao tác chỉnh sửa sau khi collect xong.
-- Hiệu năng phụ thuộc số lượng nhóm, độ lệch phân bố nhóm, downstream collector và môi trường chạy. Không nên giả định `parallelStream()` hoặc `groupingByConcurrent` luôn nhanh hơn.
+- `groupingByConcurrent` produces a **concurrent** and **unordered** collector; do not rely on element order within each group.
+- Regular `groupingBy` can preserve encounter order semantics of value groups on an ordered source with a suitable downstream collector, but **does not guarantee key iteration order** of the default map.
+- Returning a `ConcurrentMap` does not mean every inner value object is a thread-safe collection for modifications after collection finishes.
+- Performance depends on the number of groups, group distribution skew, the downstream collector, and the runtime environment. Do not assume `parallelStream()` or `groupingByConcurrent` is always faster.
 
-Tránh cập nhật một `HashMap` hay `ArrayList` dùng chung từ `parallelStream().forEach(...)` để tự phân nhóm; đó là nguồn gây lỗi race condition và sai dữ liệu. Dùng collector phù hợp giúp quá trình tích lũy tuân thủ cơ chế của Stream API.
+Avoid updating a shared `HashMap` or `ArrayList` from `parallelStream().forEach(...)` to perform manual grouping; that causes race conditions and corrupted data. Using an appropriate collector ensures accumulation conforms to the Stream API's contract.
 
-## 14. `groupingBy` so với `toMap`
+## 14. `groupingBy` vs. `toMap`
 
-Hai collector đều cho kết quả dạng `Map` nhưng giải quyết bài toán khác nhau:
+Both collectors produce a `Map` result, but they solve different problems:
 
-| Nhu cầu | Collector phù hợp | Đặc điểm |
+| Need | Appropriate collector | Characteristics |
 | --- | --- | --- |
-| Một khóa có thể có **nhiều phần tử** | `groupingBy` | Gom các phần tử cùng khóa; mặc định tạo list. |
-| Mỗi khóa cần đúng **một giá trị**, đầu vào không có khóa trùng | `toMap(keyMapper, valueMapper)` | Khóa trùng thường gây `IllegalStateException` nếu không có hàm gộp. |
-| Khóa trùng cần gộp thành một giá trị duy nhất | `toMap(keyMapper, valueMapper, mergeFunction)` | Cần định nghĩa phép gộp giá trị. |
-| Tổng hoặc số đếm **theo nhóm** | `groupingBy(..., summingLong/counting)` | Nêu rõ ý định thống kê theo nhóm. |
+| A key may have **multiple elements** | `groupingBy` | Groups elements with the same key; defaults to creating a list. |
+| Each key needs exactly **one value**, input has no duplicate keys | `toMap(keyMapper, valueMapper)` | Duplicate keys typically cause `IllegalStateException` without a merge function. |
+| Duplicate keys must be merged into a single value | `toMap(keyMapper, valueMapper, mergeFunction)` | Requires defining a value merge function. |
+| Sum or count **by group** | `groupingBy(..., summingLong/counting)` | Clearly expresses group-level aggregation intent. |
 
-Ví dụ `toMap` không có hàm gộp sẽ không phù hợp nếu nhiều đơn cùng danh mục:
+For example, `toMap` without a merge function is unsuitable if multiple orders share the same category:
 
 ```java
-// KHÔNG NÊN CHẠY: có nhiều đơn cùng danh mục, sẽ gặp lỗi
-// IllegalStateException vì khóa trùng.
+// DO NOT RUN: multiple orders share a category, will throw
+// IllegalStateException due to duplicate keys.
 Map<String, DonHang> sai = donHang.stream()
     .collect(Collectors.toMap(
         DonHang::getDanhMuc,
@@ -667,51 +667,51 @@ Map<String, DonHang> sai = donHang.stream()
     ));
 ```
 
-Nếu yêu cầu là "danh mục → danh sách đơn", `groupingBy` diễn đạt trực tiếp và an toàn hơn.
+If the requirement is "category → list of orders", `groupingBy` expresses it more directly and safely.
 
-## 15. Lỗi thường gặp và hướng xử lý
+## 15. Common Errors and How to Handle Them
 
-| Triệu chứng | Nguyên nhân | Cách xử lý |
+| Symptom | Cause | Resolution |
 | --- | --- | --- |
-| `Map<String, Integer>` không biên dịch với `counting()` | `counting()` trả `Long` | Dùng `Map<String, Long>`. |
-| `get("Điện tử")` trả `null` sau khi lọc | Không có nhóm nào cho khóa đó | Kiểm tra `containsKey` hoặc `getOrDefault`; bổ sung khóa nếu báo cáo cần. |
-| Thứ tự khóa thay đổi khi in map | `groupingBy` mặc định không cam kết thứ tự map | Dùng `LinkedHashMap`/`TreeMap` qua map factory. |
-| `NullPointerException` khi phân nhóm | Classifier có thể trả khóa `null` | Chuẩn hóa/loại bản ghi thiếu khóa trước khi collect. |
-| Đếm nhóm chỉ có một con số tổng | Gọi `stream.count()` thay vì downstream `counting` | Dùng `groupingBy(classifier, counting())`. |
-| Nhóm chỉ có `true` nhưng thiếu `false` | `groupingBy` không tự tạo khóa vắng mặt | Nếu muốn cả hai nhánh, dùng `partitioningBy`. |
-| `toSet` làm mất thứ tự mã trong nhóm | `Collectors.toSet()` không cam kết thứ tự | Dùng `toCollection(LinkedHashSet::new)`. |
-| Sai số tiền trung bình | `averagingLong` trả `Double` | Thiết kế chính sách chính xác/ làm tròn nghiệp vụ. |
-| Dữ liệu sai khi phân nhóm song song thủ công | Cùng sửa cấu trúc chung từ nhiều thread | Dùng collector và tránh tác dụng phụ trong classifier. |
-| Hết bộ nhớ khi giữ toàn bộ bản ghi | `groupingBy` mặc định lưu list từng nhóm | Chỉ dùng downstream thống kê nếu không cần bản ghi. |
-| Ngữ nghĩa khóa không ổn định | `equals`/`hashCode` không nhất quán hoặc khóa bị sửa | Dùng khóa bất biến, định nghĩa so sánh rõ ràng. |
+| `Map<String, Integer>` fails to compile with `counting()` | `counting()` returns `Long` | Use `Map<String, Long>`. |
+| `get("Điện tử")` returns `null` after filtering | No group exists for that key | Check `containsKey` or use `getOrDefault`; add missing keys if required by the report. |
+| Key order changes when printing the map | Default `groupingBy` does not guarantee map order | Use `LinkedHashMap`/`TreeMap` via the map factory. |
+| `NullPointerException` when grouping | Classifier may return a `null` key | Normalize or filter out records missing keys before collecting. |
+| Group count produces only a single total number | Calling `stream.count()` instead of downstream `counting` | Use `groupingBy(classifier, counting())`. |
+| Group only has `true` and is missing `false` | `groupingBy` does not create absent keys automatically | If you want both branches, use `partitioningBy`. |
+| `toSet` loses code order within a group | `Collectors.toSet()` does not guarantee order | Use `toCollection(LinkedHashSet::new)`. |
+| Precision error in average currency amount | `averagingLong` returns `Double` | Design proper precision/business rounding policies. |
+| Corrupted data with manual parallel grouping | Modifying a shared structure from multiple threads | Use a collector and avoid side effects in the classifier. |
+| Out of memory when keeping all records | Default `groupingBy` stores a list per group | Use only statistical downstream collectors if records are not needed. |
+| Unstable key semantics | Inconsistent `equals`/`hashCode` or mutable keys | Use immutable keys and define equality clearly. |
 
-## 16. Bài tập tự thực hành
+## 16. Practice Exercises
 
-Dùng lại tập sáu đơn hàng trong mục 3.
+Reuse the set of six orders from Section 3.
 
-### Bài 1: Phân nhóm và đếm
+### Exercise 1: Group and count
 
-Viết `groupingBy` để tạo `Map<String, Long>` đếm số đơn trong từng danh mục. Dự đoán số lượng của "Sách", "Đồ dùng" và "Điện tử".
+Write a `groupingBy` pipeline to create a `Map<String, Long>` counting the number of orders in each category. Predict the counts for "Sách", "Đồ dùng", and "Điện tử".
 
-### Bài 2: Tổng giá trị từng nhóm
+### Exercise 2: Total value per group
 
-Tạo `Map<String, Long>` chứa tổng `gia` theo danh mục, **không tạo `List<DonHang>` trung gian**. So sánh với kết quả ở mục 6.
+Create a `Map<String, Long>` containing the total `gia` by category, **without creating intermediate `List<DonHang>` objects**. Compare with the result in Section 6.
 
-### Bài 3: Chỉ lấy mã và giữ thứ tự
+### Exercise 3: Extract only codes and preserve order
 
-Tạo `Map<String, List<String>>` sao cho mỗi danh mục ánh xạ tới danh sách **mã đơn hàng**, giữ thứ tự gặp trong nguồn `List`. Nhóm "Sách" phải có `[DH01, DH03, DH06]`.
+Create a `Map<String, List<String>>` where each category maps to a list of **order codes**, preserving encounter order from the source `List`. The "Sách" group must have `[DH01, DH03, DH06]`.
 
-### Bài 4: Phân nhóm lồng nhau
+### Exercise 4: Nested grouping
 
-Tạo `Map<String, Map<Boolean, Long>>` chứa số đơn theo danh mục và trạng thái hoàn tất. Khi hỏi nhóm "Điện tử" và trạng thái `true`, vì sao có thể nhận `null`? Muốn có giá trị 0 thì đổi downstream bằng gì?
+Create a `Map<String, Map<Boolean, Long>>` containing order counts by category and completion status. When querying the "Điện tử" group and status `true`, why might you receive `null`? What should you change the downstream collector to if you want the value 0 instead?
 
-### Bài 5: Kiểm soát thứ tự khóa và nguồn rỗng
+### Exercise 5: Controlling key order and empty sources
 
-Dùng `LinkedHashMap::new` để đảm bảo thứ tự khóa trong một pipeline tuần tự từ `List`. Nguồn `Collections.<DonHang>emptyList()` được phân nhóm thì có bao nhiêu khóa? Nếu giao diện yêu cầu luôn hiển thị cả ba danh mục, cần bổ sung bước gì?
+Use `LinkedHashMap::new` to guarantee key order in a sequential pipeline from a `List`. When `Collections.<DonHang>emptyList()` is grouped, how many keys does it have? If the UI requires always displaying all three categories, what additional step is needed?
 
-### Đáp án tham khảo
+### Reference Solutions
 
-**Bài 1:**
+**Exercise 1:**
 
 ```java
 Map<String, Long> dem = donHang.stream()
@@ -723,7 +723,7 @@ Map<String, Long> dem = donHang.stream()
 // Sách = 3, Đồ dùng = 2, Điện tử = 1
 ```
 
-**Bài 2:**
+**Exercise 2:**
 
 ```java
 Map<String, Long> tong = donHang.stream()
@@ -735,7 +735,7 @@ Map<String, Long> tong = donHang.stream()
 // Sách = 370000, Đồ dùng = 130000, Điện tử = 900000
 ```
 
-**Bài 3:**
+**Exercise 3:**
 
 ```java
 Map<String, List<String>> ma = donHang.stream()
@@ -750,7 +750,7 @@ Map<String, List<String>> ma = donHang.stream()
 System.out.println(ma.get("Sách")); // [DH01, DH03, DH06]
 ```
 
-**Bài 4:**
+**Exercise 4:**
 
 ```java
 Map<String, Map<Boolean, Long>> thongKe =
@@ -765,9 +765,9 @@ Map<String, Map<Boolean, Long>> thongKe =
     );
 ```
 
-Khóa `true` không xuất hiện ở nhóm "Điện tử" vì không có đơn nào hoàn tất. Muốn luôn có hai nhánh Boolean, đổi collector bên trong thành `Collectors.partitioningBy(DonHang::isHoanTat, Collectors.counting())`.
+The `true` key does not appear in the "Điện tử" group because there are no completed orders. To always have both Boolean branches, change the inner collector to `Collectors.partitioningBy(DonHang::isHoanTat, Collectors.counting())`.
 
-**Bài 5:**
+**Exercise 5:**
 
 ```java
 LinkedHashMap<String, List<DonHang>> nhom =
@@ -783,30 +783,30 @@ System.out.println(nhom.keySet());
 // [Sách, Đồ dùng, Điện tử]
 ```
 
-Stream rỗng được `groupingBy` thu thành map không có khóa. Nếu giao diện cần đủ các danh mục ngay cả khi không có đơn, phải lấy danh sách danh mục hợp lệ từ nghiệp vụ rồi điền các kết quả rỗng hoặc 0 theo hợp đồng, không mong `groupingBy` tự tạo nhóm.
+An empty stream is collected by `groupingBy` into a map with no keys. If the UI needs all categories even when there are no orders, you must take the list of valid categories from the business domain and fill in empty or 0 results per contract, rather than expecting `groupingBy` to create groups automatically.
 
-## 17. Ghi nhớ
+## 17. Key Takeaways
 
-`Collectors.groupingBy` tổ chức các phần tử Stream theo **khóa do classifier trả về**. Cùng một classifier có thể tạo nhiều kiểu kết quả tùy downstream collector:
+`Collectors.groupingBy` organizes Stream elements by the **key returned by the classifier**. The same classifier can produce different result types depending on the downstream collector:
 
 ```java
-// Danh mục -> danh sách đơn
+// Category -> list of orders
 groupingBy(DonHang::getDanhMuc)
 
-// Danh mục -> số lượng đơn
+// Category -> order count
 groupingBy(DonHang::getDanhMuc, counting())
 
-// Danh mục -> tổng giá trị
+// Category -> total value
 groupingBy(DonHang::getDanhMuc, summingLong(DonHang::getGia))
 
-// Danh mục -> danh sách mã
+// Category -> list of codes
 groupingBy(DonHang::getDanhMuc, mapping(DonHang::getMa, toList()))
 
-// Danh mục -> trạng thái -> số lượng
+// Category -> status -> count
 groupingBy(DonHang::getDanhMuc,
     groupingBy(DonHang::isHoanTat, counting()))
 ```
 
-Các biểu thức rút gọn trên giả định có `import static java.util.stream.Collectors.*;` và được đặt làm collector của `stream.collect(...)`.
+The shorthand expressions above assume `import static java.util.stream.Collectors.*;` and are placed as the collector in `stream.collect(...)`.
 
-Khi áp dụng thực tế, hãy xác định **kiểu khóa**, **kiểu kết quả từng nhóm**, **yêu cầu thứ tự**, **cách xử lý nhóm vắng mặt** và **giới hạn tài nguyên**. Dùng `mapFactory` khi cần loại `Map` cụ thể; dùng `partitioningBy` khi muốn chia thành hai nhánh Boolean; dùng downstream thống kê khi không cần giữ toàn bộ bản ghi. Các lựa chọn đó giúp pipeline khai báo rõ ràng và dễ mở rộng sang xử lý dữ liệu lớn hoặc song song.
+When applying this in practice, determine the **key type**, **per-group result type**, **ordering requirements**, **how absent groups are handled**, and **resource limits**. Use `mapFactory` when a specific `Map` type is needed; use `partitioningBy` when splitting into two Boolean branches; and use statistical downstream collectors when there is no need to retain all records. Those choices keep pipelines declarative, clear, and easy to scale to large or parallel data processing.

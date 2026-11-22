@@ -1,12 +1,12 @@
-# Module::isNamed, getName và getDescriptor
+# Module::isNamed, getName, and getDescriptor
 
-JPMS cung cấp lớp **java.lang.Module** để biểu diễn một module trong runtime. Từ một đối tượng Module, chương trình có thể xác định module đó có tên hay không, lấy tên module và đọc descriptor mô tả dependency, package export, package mở cho reflection và service. Ba API **isNamed()**, **getName()** và **getDescriptor()** là điểm bắt đầu khi cần quan sát module của một class hoặc kiểm tra các module trong một ModuleLayer.
+JPMS provides the **java.lang.Module** class to represent a module at runtime. From a Module object, a program can determine whether the module is named, retrieve the module name, and read the descriptor describing dependencies, exported packages, packages opened for reflection, and services. The three APIs **isNamed()**, **getName()**, and **getDescriptor()** are the starting point when observing a class's module or inspecting modules in a ModuleLayer.
 
-Cần phân biệt đối tượng **Module** với **ModuleDescriptor**. Module là đối tượng runtime đại diện cho module đã được định nghĩa; ModuleDescriptor là mô tả bất biến về cấu trúc và metadata của module. Một module không có tên (unnamed module) không có descriptor, vì vậy code cần xử lý kết quả null khi đọc tên hoặc descriptor.
+You must distinguish the **Module** object from **ModuleDescriptor**. Module is the runtime object representing a defined module; ModuleDescriptor is an immutable description of the module's structure and metadata. An unnamed module has no descriptor, so code must handle null results when reading the name or descriptor.
 
-## 1. Lấy Module object từ một class
+## 1. Obtaining the Module object from a class
 
-Mỗi class được JVM định nghĩa đều có thể cho biết module mà nó thuộc về bằng **Class.getModule()**:
+Every class defined by the JVM can report the module it belongs to via **Class.getModule()**:
 
 ~~~java
 Module module = OrderService.class.getModule();
@@ -16,26 +16,26 @@ System.out.println(module.getName());
 System.out.println(module.getDescriptor());
 ~~~
 
-Trong ví dụ, **OrderService** là một class thuộc module của ứng dụng. Nếu class được biên dịch trong named module, đối tượng trả về đại diện cho module đó. Nếu class được nạp từ classpath, nó thuộc unnamed module của class loader tương ứng.
+In the example, **OrderService** is a class belonging to an application module. If the class was compiled in a named module, the returned object represents that module. If the class was loaded from the classpath, it belongs to the unnamed module of the corresponding class loader.
 
-Có thể lấy module của chính class đang chạy:
+You can obtain the module of the currently running class itself:
 
 ~~~java
 Module currentModule = Main.class.getModule();
 ~~~
 
-Hoặc lấy module của một kiểu JDK:
+Or obtain the module of a JDK type:
 
 ~~~java
 Module baseModule = String.class.getModule();
 System.out.println(baseModule.getName()); // java.base
 ~~~
 
-Đây là cách hữu ích để kiểm tra runtime thực tế. Không nên suy luận module chỉ từ tên package, tên file JAR hoặc vị trí source; class có thể được nạp từ module path, classpath hoặc một ModuleLayer được tạo động.
+This is a useful way to check actual runtime state. Do not infer a module solely from package names, JAR file names, or source locations; a class may have been loaded from the module path, classpath, or a dynamically created ModuleLayer.
 
 ## 2. Module.isNamed()
 
-**Module.isNamed()** trả về boolean cho biết module object có phải named module hay không.
+**Module.isNamed()** returns a boolean indicating whether the module object is a named module.
 
 ~~~java
 Module module = OrderService.class.getModule();
@@ -47,19 +47,19 @@ if (module.isNamed()) {
 }
 ~~~
 
-Named module có tên được module system nhận diện. Những trường hợp thường gặp gồm:
+A named module has a name recognized by the module system. Common cases include:
 
-- **Explicit named module:** module có descriptor **module-info.class** được tác giả khai báo.
-- **Automatic module:** JAR không có module descriptor tường minh nhưng được đặt trên module path, vì vậy module system tạo descriptor tự động.
-- **System module:** module thuộc runtime image/JDK, ví dụ **java.base**.
+- **Explicit named module:** a module with a **module-info.class** descriptor declared by the author.
+- **Automatic module:** a JAR without an explicit module descriptor placed on the module path, so the module system generates an automatic descriptor.
+- **System module:** a module belonging to the runtime image/JDK, such as **java.base**.
 
-Automatic module vẫn là named module, vì vậy **isNamed()** trả về **true**. Đừng dùng phương thức này để phân biệt explicit module với automatic module; hãy đọc **Module.getDescriptor()** rồi kiểm tra **ModuleDescriptor.isAutomatic()**.
+An automatic module is still a named module, so **isNamed()** returns **true**. Do not use this method to distinguish an explicit module from an automatic module; read **Module.getDescriptor()** and then check **ModuleDescriptor.isAutomatic()**.
 
-Code nằm trên classpath thuộc **unnamed module**, nên **isNamed()** trả về **false**. Mỗi class loader có unnamed module riêng. Vì vậy, hai class loader khác nhau có thể có hai unnamed module khác nhau, dù cả hai đều không có tên.
+Code on the classpath belongs to an **unnamed module**, so **isNamed()** returns **false**. Each class loader has its own unnamed module. Therefore, two different class loaders can have two different unnamed modules, even though both are unnamed.
 
 ## 3. Module.getName()
 
-**Module.getName()** trả về tên của module nếu module đó là named module. Với unnamed module, phương thức trả về **null**.
+**Module.getName()** returns the name of the module if it is a named module. For an unnamed module, the method returns **null**.
 
 ~~~java
 Module module = OrderService.class.getModule();
@@ -72,7 +72,7 @@ if (moduleName != null) {
 }
 ~~~
 
-Ví dụ, một class trong module có descriptor:
+For example, a class in a module with descriptor:
 
 ~~~java
 module com.acme.orders {
@@ -80,16 +80,16 @@ module com.acme.orders {
 }
 ~~~
 
-sẽ có tên module là **com.acme.orders**. Class **String** thuộc module **java.base**, nên **String.class.getModule().getName()** trả về **java.base**.
+will have the module name **com.acme.orders**. The **String** class belongs to the **java.base** module, so **String.class.getModule().getName()** returns **java.base**.
 
-Nếu class nằm trên classpath, kết quả tên module là null. Không nên gọi các thao tác như **module.getName().equals(...)** mà chưa kiểm tra null. Có thể dùng **Objects.equals(...)** để so sánh an toàn:
+If a class is on the classpath, the module name result is null. Do not call operations like **module.getName().equals(...)** without checking for null. You can use **Objects.equals(...)** for safe comparison:
 
 ~~~java
 boolean isOrdersModule =
     Objects.equals(module.getName(), "com.acme.orders");
 ~~~
 
-Nếu chỉ cần lọc named module trong một stream, method reference **Module::isNamed** giúp code rõ ràng:
+If you only need to filter named modules in a stream, the method reference **Module::isNamed** keeps code clear:
 
 ~~~java
 ModuleLayer.boot().modules().stream()
@@ -97,11 +97,11 @@ ModuleLayer.boot().modules().stream()
     .forEach(module -> System.out.println(module.getName()));
 ~~~
 
-Các module trong boot layer vốn là named modules; ví dụ này minh họa cách dùng method reference trên một tập Module. Với một tập module có thể chứa unnamed module, hãy giữ bước lọc trước khi dùng tên.
+Modules in the boot layer are already named modules; this example illustrates using the method reference on a set of Modules. For a set of modules that might contain an unnamed module, keep the filter step before using the name.
 
 ## 4. Module.getDescriptor()
 
-**Module.getDescriptor()** trả về **java.lang.module.ModuleDescriptor** mô tả module. Nếu module là unnamed module, phương thức trả về **null**.
+**Module.getDescriptor()** returns the **java.lang.module.ModuleDescriptor** describing the module. If the module is an unnamed module, the method returns **null**.
 
 ~~~java
 Module module = OrderService.class.getModule();
@@ -114,9 +114,9 @@ if (descriptor != null) {
 }
 ~~~
 
-Với explicit named module, descriptor được tạo từ **module-info.java**. Với automatic module, module system tạo descriptor tự động từ metadata như **Automatic-Module-Name** hoặc tên JAR. Vì vậy, descriptor tồn tại không có nghĩa module chắc chắn là explicit module.
+For an explicit named module, the descriptor is produced from **module-info.java**. For an automatic module, the module system constructs an automatic descriptor from metadata such as **Automatic-Module-Name** or the JAR name. Therefore, the presence of a descriptor does not mean the module is definitely an explicit module.
 
-Có thể phân biệt automatic module bằng:
+You can distinguish an automatic module with:
 
 ~~~java
 if (descriptor != null && descriptor.isAutomatic()) {
@@ -124,27 +124,27 @@ if (descriptor != null && descriptor.isAutomatic()) {
 }
 ~~~
 
-Một descriptor là đối tượng mô tả bất biến. Đọc descriptor không thay đổi module hoặc cấp thêm quyền truy cập. Nó cho phép công cụ và ứng dụng quan sát metadata đã được khai báo hoặc được module system suy ra.
+A descriptor is an immutable descriptive object. Reading the descriptor does not modify the module or grant additional access permissions. It allows tools and applications to observe metadata declared or inferred by the module system.
 
-## 5. Đọc thông tin từ ModuleDescriptor
+## 5. Reading information from ModuleDescriptor
 
-**ModuleDescriptor** cung cấp các thông tin quan trọng về cấu trúc module:
+**ModuleDescriptor** provides important information about module structure:
 
-| API | Thông tin |
+| API | Information |
 |---|---|
-| **name()** | Tên module trong descriptor. |
-| **requires()** | Tập các dependency được khai báo. |
-| **exports()** | Các package được export, gồm cả qualified exports. |
-| **opens()** | Các package được mở cho deep reflection, gồm cả qualified opens. |
-| **uses()** | Các service type mà module sử dụng. |
-| **provides()** | Các service và provider implementation mà module cung cấp. |
-| **packages()** | Tập tên package thuộc module. |
-| **isOpen()** | Cho biết descriptor khai báo open module hay không. |
-| **isAutomatic()** | Cho biết descriptor đại diện automatic module hay không. |
-| **version()** | Phiên bản module nếu descriptor có khai báo metadata phiên bản. |
-| **mainClass()** | Main class nếu descriptor có khai báo. |
+| **name()** | Module name in the descriptor. |
+| **requires()** | Set of declared dependencies. |
+| **exports()** | Exported packages, including qualified exports. |
+| **opens()** | Packages opened for deep reflection, including qualified opens. |
+| **uses()** | Service types that the module uses. |
+| **provides()** | Services and provider implementations that the module supplies. |
+| **packages()** | Set of package names belonging to the module. |
+| **isOpen()** | Indicates whether the descriptor declares an open module. |
+| **isAutomatic()** | Indicates whether the descriptor represents an automatic module. |
+| **version()** | Module version if the descriptor declares version metadata. |
+| **mainClass()** | Main class if declared by the descriptor. |
 
-Ví dụ in tên, dependency và package được export:
+Example printing the name, dependencies, and exported packages:
 
 ~~~java
 Module module = OrderService.class.getModule();
@@ -165,21 +165,21 @@ if (descriptor != null) {
 }
 ~~~
 
-**requires()** trả về tập đối tượng **ModuleDescriptor.Requires**; **exports()** trả về tập **ModuleDescriptor.Exports**. Các đối tượng này chứa thông tin chi tiết như tên module phụ thuộc, package nguồn và các modifier liên quan. Dùng descriptor để quan sát metadata, còn việc module có thực sự đọc hoặc export package cho một module cụ thể trong runtime cần kiểm tra trên Module object.
+**requires()** returns a set of **ModuleDescriptor.Requires** objects; **exports()** returns a set of **ModuleDescriptor.Exports**. These objects contain details such as dependent module name, source package, and related modifiers. Use the descriptor to observe metadata, whereas whether a module actually reads or exports a package to a specific module at runtime must be checked on the Module object.
 
-Ví dụ, **Module.canRead(other)** kiểm tra readability trong runtime; **Module.isExported(packageName, other)** kiểm tra package có được export cho module đích hay không; **Module.isOpen(packageName, other)** kiểm tra quyền deep reflection. Descriptor cho biết những directive đã khai báo, trong khi các API trên Module phản ánh quyền truy cập trong runtime context.
+For example, **Module.canRead(other)** checks readability at runtime; **Module.isExported(packageName, other)** checks whether a package is exported to the target module; **Module.isOpen(packageName, other)** checks deep reflection permission. The descriptor shows declared directives, while APIs on Module reflect access permissions in the runtime context.
 
-## 6. So sánh ba phương thức
+## 6. Comparing the three methods
 
-Ba phương thức trả lời ba câu hỏi khác nhau:
+The three methods answer three different questions:
 
-| Phương thức | Kiểu trả về | Câu hỏi |
+| Method | Return type | Question |
 |---|---|---|
-| **isNamed()** | boolean | Module này có phải named module không? |
-| **getName()** | String hoặc null | Tên module là gì? |
-| **getDescriptor()** | ModuleDescriptor hoặc null | Descriptor mô tả module là gì? |
+| **isNamed()** | boolean | Is this module a named module? |
+| **getName()** | String or null | What is the module name? |
+| **getDescriptor()** | ModuleDescriptor or null | What is the descriptor describing the module? |
 
-Ví dụ:
+Example:
 
 ~~~java
 Module module = OrderService.class.getModule();
@@ -194,22 +194,22 @@ if (descriptor != null) {
 }
 ~~~
 
-Các kết quả thường gặp:
+Common results:
 
-| Loại module | isNamed() | getName() | getDescriptor() |
+| Module type | isNamed() | getName() | getDescriptor() |
 |---|---:|---|---|
-| Explicit named module | true | Tên trong module-info.class | Descriptor tường minh |
-| Automatic module | true | Tên automatic module | Descriptor tự động |
+| Explicit named module | true | Name in module-info.class | Explicit descriptor |
+| Automatic module | true | Automatic module name | Automatic descriptor |
 | Unnamed module | false | null | null |
-| System module như java.base | true | java.base | Descriptor của system module |
+| System module such as java.base | true | java.base | System module descriptor |
 
-Bảng này mô tả các trường hợp phổ biến. Khi viết code dùng chung cho nhiều nguồn class, hãy kiểm tra kết quả null thay vì giả định mọi Module object đều có tên và descriptor.
+This table describes the common cases. When writing code shared across multiple class sources, check for null results rather than assuming every Module object has a name and descriptor.
 
-## 7. Dùng method reference trong Stream API
+## 7. Using method references in the Stream API
 
-Tên bài học nhắc tới dạng **Module::isNamed**, **Module::getName** và **Module::getDescriptor**. Đây là method reference trỏ tới phương thức instance của kiểu **Module**. Nó có thể được dùng khi stream đang xử lý các đối tượng Module.
+The lesson title mentions the forms **Module::isNamed**, **Module::getName**, and **Module::getDescriptor**. These are method references pointing to instance methods of the **Module** type. They can be used when a stream is processing Module objects.
 
-Ví dụ lấy tên các named module trong boot layer:
+Example retrieving the names of named modules in the boot layer:
 
 ~~~java
 List<String> names = ModuleLayer.boot()
@@ -221,7 +221,7 @@ List<String> names = ModuleLayer.boot()
     .toList();
 ~~~
 
-Ví dụ lấy descriptor của những module có descriptor:
+Example retrieving descriptors of modules that have a descriptor:
 
 ~~~java
 List<ModuleDescriptor> descriptors = ModuleLayer.boot()
@@ -232,7 +232,7 @@ List<ModuleDescriptor> descriptors = ModuleLayer.boot()
     .toList();
 ~~~
 
-Ví dụ kết hợp để in tên và trạng thái automatic:
+Combined example printing name and automatic status:
 
 ~~~java
 ModuleLayer.boot().modules().stream()
@@ -248,11 +248,11 @@ ModuleLayer.boot().modules().stream()
     });
 ~~~
 
-**Module::getName** tương đương việc gọi **module.getName()** cho từng phần tử. **Module::getDescriptor** tương đương gọi **module.getDescriptor()**. Khi dùng method reference trả về giá trị có thể null, hãy lọc null trước khi gọi tiếp các phương thức trên kết quả.
+**Module::getName** is equivalent to calling **module.getName()** for each element. **Module::getDescriptor** is equivalent to calling **module.getDescriptor()**. When using a method reference that returns a possibly null value, filter out nulls before invoking further methods on the result.
 
-## 8. Quan sát module của class trong các nguồn khác nhau
+## 8. Observing modules of classes from different sources
 
-Một chương trình có thể chứa class từ nhiều nguồn: module của ứng dụng, system module, automatic module hoặc classpath. Có thể viết helper để in thông tin:
+A program can contain classes from multiple sources: application modules, system modules, automatic modules, or the classpath. You can write a helper to print information:
 
 ~~~java
 static void printModuleInfo(Class<?> type) {
@@ -273,7 +273,7 @@ static void printModuleInfo(Class<?> type) {
 }
 ~~~
 
-Có thể gọi:
+You can call:
 
 ~~~java
 printModuleInfo(Main.class);
@@ -281,19 +281,19 @@ printModuleInfo(String.class);
 printModuleInfo(OrderService.class);
 ~~~
 
-Kết quả phụ thuộc vào cách các class được đóng gói và nạp:
+The output depends on how the classes are packaged and loaded:
 
-- **String.class** thuộc **java.base**.
-- **OrderService.class** thuộc module ứng dụng nếu được biên dịch và nạp như named module.
-- **Main.class** thuộc unnamed module nếu ứng dụng đang chạy từ classpath; nếu chạy từ module path thì nó thuộc named module tương ứng.
+- **String.class** belongs to **java.base**.
+- **OrderService.class** belongs to the application module if compiled and loaded as a named module.
+- **Main.class** belongs to an unnamed module if the application is running from the classpath; if running from the module path, it belongs to the corresponding named module.
 
-Helper này phù hợp để chẩn đoán cấu hình runtime. Nếu class được nạp từ custom ModuleLayer, tên module và descriptor có thể giống một module ở layer khác, nhưng Module object là đối tượng runtime thuộc layer/class loader cụ thể.
+This helper is suitable for diagnosing runtime configuration. If a class is loaded from a custom ModuleLayer, the module name and descriptor may match a module in another layer, but the Module object is the runtime object belonging to a specific layer/class loader.
 
-## 9. Module name không phải runtime identity duy nhất
+## 9. A module name is not a unique runtime identity
 
-**getName()** trả về tên module, nhưng tên string không nên được dùng làm định danh duy nhất cho mọi module object trong toàn bộ JVM. Các ModuleLayer độc lập có thể chứa các module cùng tên nhưng được định nghĩa trong runtime context khác nhau.
+**getName()** returns the module name, but the string name should not be used as a unique identifier for every module object across the entire JVM. Independent ModuleLayers can contain modules with the same name defined in different runtime contexts.
 
-Khi cần phân biệt module thực tế, hãy giữ hoặc so sánh Module object và kiểm tra layer:
+When you need to distinguish actual modules, keep or compare the Module object and check the layer:
 
 ~~~java
 Module module = OrderService.class.getModule();
@@ -303,45 +303,45 @@ System.out.println("Layer: " + module.getLayer());
 System.out.println("Loader: " + module.getClassLoader());
 ~~~
 
-Tên module hữu ích để log, tra cứu và hiển thị descriptor. Module object, layer và class loader cung cấp ngữ cảnh runtime để phân biệt các module khi ứng dụng dùng nhiều layer hoặc plugin.
+The module name is useful for logging, lookup, and displaying descriptors. The Module object, layer, and class loader provide runtime context to distinguish modules when an application uses multiple layers or plugins.
 
-Cũng cần nhớ rằng **ModuleDescriptor** mô tả cấu trúc, còn **Module** biểu diễn module đang tồn tại trong runtime. Hai đối tượng có vai trò khác nhau; không dùng descriptor thay cho Module object khi cần kiểm tra readability hoặc quyền truy cập thực tế.
+Also remember that **ModuleDescriptor** describes structure, while **Module** represents the module existing at runtime. The two objects have different roles; do not use the descriptor in place of the Module object when you need to check readability or actual access permissions.
 
-## 10. Lỗi thường gặp
+## 10. Common errors
 
-| Triệu chứng | Nguyên nhân | Cách xử lý |
+| Symptom | Cause | How to handle |
 |---|---|---|
-| Gọi **getName().equals(...)** gây NullPointerException | Class thuộc unnamed module nên getName() trả về null | Kiểm tra **isNamed()** hoặc dùng **Objects.equals(...)** |
-| **getDescriptor()** trả về null | Module là unnamed module | Xác định class có được nạp từ classpath hay không |
-| isNamed() trả về true nhưng module vẫn là automatic | Automatic module cũng là named module | Kiểm tra **getDescriptor().isAutomatic()** |
-| Tên module không như tên file JAR | Explicit descriptor hoặc Automatic-Module-Name quyết định tên module | Dùng **jar --describe-module** để xác nhận |
-| Hai module có cùng tên trong log | Có thể chúng thuộc các layer/runtime context khác nhau | Kiểm tra Module object, **getLayer()** và class loader |
-| Descriptor có export nhưng truy cập runtime vẫn lỗi | Readability, qualified export hoặc runtime context chưa phù hợp | Kiểm tra **canRead** và **isExported(packageName, targetModule)** |
+| Calling **getName().equals(...)** causes NullPointerException | Class belongs to an unnamed module so getName() returns null | Check **isNamed()** or use **Objects.equals(...)** |
+| **getDescriptor()** returns null | Module is an unnamed module | Determine whether the class was loaded from the classpath |
+| isNamed() returns true but module is still automatic | An automatic module is also a named module | Check **getDescriptor().isAutomatic()** |
+| Module name differs from JAR filename | Explicit descriptor or Automatic-Module-Name determines the module name | Use **jar --describe-module** to confirm |
+| Two modules have the same name in logs | They may belong to different layers/runtime contexts | Check the Module object, **getLayer()**, and class loader |
+| Descriptor has export but runtime access still fails | Readability, qualified export, or runtime context does not match | Check **canRead** and **isExported(packageName, targetModule)** |
 
-Khi debug, hãy lấy Module object trực tiếp từ class gặp lỗi. Sau đó đọc isNamed, getName và getDescriptor trước khi suy luận về loại module. Điều này giúp tránh kết luận sai dựa trên tên package hoặc tên artifact.
+When debugging, obtain the Module object directly from the class encountering the error. Then read isNamed, getName, and getDescriptor before making assumptions about the module type. This helps avoid wrong conclusions based on package names or artifact names.
 
-## 11. Bài tập thực hành
+## 11. Practice exercises
 
-1. Tạo một explicit named module **com.acme.orders** và lấy Module object bằng **OrderService.class.getModule()**.
-2. In kết quả của **isNamed()**, **getName()** và **getDescriptor()**.
-3. Chạy một class trên classpath và so sánh ba kết quả với class trong named module.
-4. Đặt một JAR legacy không có module-info.class lên module path; xác nhận **isNamed()** trả về true và kiểm tra **getDescriptor().isAutomatic()**.
-5. Dùng **String.class.getModule()** để quan sát thông tin của **java.base**.
-6. Dùng **ModuleLayer.boot().modules()** kết hợp **Module::isNamed** và **Module::getName** để in tên module.
-7. Dùng **Module::getDescriptor** trong stream, lọc descriptor null rồi in requires và exports.
-8. Thử truy cập **getName()** và **getDescriptor()** từ unnamed module, xử lý null an toàn.
-9. Tạo hai layer có module cùng tên trong hai runtime context khác nhau và so sánh tên với Module object/layer.
-10. Dùng **ModuleDescriptor.isAutomatic()** để phân biệt automatic module với explicit named module.
+1. Create an explicit named module **com.acme.orders** and obtain the Module object via **OrderService.class.getModule()**.
+2. Print the results of **isNamed()**, **getName()**, and **getDescriptor()**.
+3. Run a class on the classpath and compare the three results with a class in a named module.
+4. Place a legacy JAR without module-info.class on the module path; confirm **isNamed()** returns true and check **getDescriptor().isAutomatic()**.
+5. Use **String.class.getModule()** to observe information about **java.base**.
+6. Use **ModuleLayer.boot().modules()** combined with **Module::isNamed** and **Module::getName** to print module names.
+7. Use **Module::getDescriptor** in a stream, filter null descriptors, and then print requires and exports.
+8. Attempt to access **getName()** and **getDescriptor()** from an unnamed module, handling null safely.
+9. Create two layers containing modules with the same name in two different runtime contexts and compare the name with the Module object/layer.
+10. Use **ModuleDescriptor.isAutomatic()** to distinguish an automatic module from an explicit named module.
 
-## 12. Những điểm cần ghi nhớ
+## 12. Key points to remember
 
-- **Module.isNamed()** trả về true cho explicit named module, automatic module và system module; unnamed module trả về false.
-- **Module.getName()** trả về tên module hoặc null nếu module là unnamed module.
-- **Module.getDescriptor()** trả về ModuleDescriptor hoặc null nếu module là unnamed module.
-- Descriptor của automatic module vẫn tồn tại và có thể nhận diện qua **ModuleDescriptor.isAutomatic()**.
-- **ModuleDescriptor** mô tả requires, exports, opens, uses, provides và các metadata của module.
-- **Module::isNamed**, **Module::getName** và **Module::getDescriptor** là method reference hữu ích khi xử lý Stream<Module>.
-- Tên module là dữ liệu nhận diện để đọc/log; khi cần phân biệt runtime module cụ thể, hãy xét Module object, ModuleLayer và class loader.
-- Luôn xử lý null khi code có thể gặp class thuộc unnamed module.
+- **Module.isNamed()** returns true for explicit named modules, automatic modules, and system modules; unnamed modules return false.
+- **Module.getName()** returns the module name or null if the module is an unnamed module.
+- **Module.getDescriptor()** returns a ModuleDescriptor or null if the module is an unnamed module.
+- An automatic module's descriptor still exists and can be identified via **ModuleDescriptor.isAutomatic()**.
+- **ModuleDescriptor** describes requires, exports, opens, uses, provides, and module metadata.
+- **Module::isNamed**, **Module::getName**, and **Module::getDescriptor** are useful method references when processing Stream<Module>.
+- The module name is identifying data for reading/logging; when you need to distinguish a specific runtime module, inspect the Module object, ModuleLayer, and class loader.
+- Always handle null when code might encounter classes belonging to an unnamed module.
 
-Khi biết cách lấy Module object từ class và đọc ba phương thức cơ bản này, bạn có thể xác định class đang thuộc loại module nào, xem module name/descriptor và bắt đầu điều tra dependency hoặc quyền truy cập ở runtime.
+Once you know how to obtain a Module object from a class and read these three basic methods, you can determine what kind of module a class belongs to, inspect the module name/descriptor, and begin investigating dependencies or access permissions at runtime.

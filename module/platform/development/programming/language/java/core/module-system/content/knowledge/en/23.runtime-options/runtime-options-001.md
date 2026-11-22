@@ -1,10 +1,10 @@
-# --add-reads thêm readability tạm thời
+# --add-reads: Adding Temporary Readability
 
-## 1. Readability trong Java Module System
+## 1. Readability in the Java Module System
 
-Trong Java Platform Module System (JPMS), mỗi named module có một tập module mà nó **reads** (đọc được). Quan hệ readability quyết định mã trong module hiện tại có thể tham chiếu đến các kiểu public được module khác xuất ra hay không.
+In the Java Platform Module System (JPMS), each named module has a set of modules that it **reads**. The readability relationship determines whether code in the current module can reference public types exported by another module.
 
-Thông thường, quan hệ này được khai báo trong **module-info.java** bằng **requires**:
+Normally, this relationship is declared in **module-info.java** using **requires**:
 
 ~~~java
 module com.example.app {
@@ -12,33 +12,33 @@ module com.example.app {
 }
 ~~~
 
-Khai báo trên tạo phụ thuộc rõ ràng giữa **com.example.app** và **com.example.logging**. Khi build và chạy, hệ thống module phải phân giải được module logging cùng các phụ thuộc bắt buộc của nó.
+The declaration above creates an explicit dependency between **com.example.app** and **com.example.logging**. At build time and runtime, the module system must resolve the logging module along with its required dependencies.
 
-Tuy nhiên, có những tình huống cần bổ sung readability tạm thời mà không sửa module descriptor, chẳng hạn:
+However, there are situations where temporary readability needs to be added without modifying the module descriptor, such as:
 
-- Đang chuyển một ứng dụng từ classpath sang named module.
-- Cần kết nối một named module với thư viện cũ nằm trên classpath.
-- Đang kiểm thử hoặc chẩn đoán một module graph.
-- Một plugin hoặc module được chọn theo cấu hình runtime, nên phụ thuộc không thể ghi trực tiếp trong descriptor của module chính.
+- Migrating an application from the classpath to a named module.
+- Needing to connect a named module with a legacy library on the classpath.
+- Testing or diagnosing a module graph.
+- A plugin or module is selected by runtime configuration, so the dependency cannot be written directly in the main module's descriptor.
 
-Tùy chọn **--add-reads** cho phép thêm một cạnh readability vào module graph của lần biên dịch hoặc lần khởi chạy. Đây là điều chỉnh qua dòng lệnh, không ghi lại **module-info.java** và không biến phụ thuộc tạm thời thành hợp đồng module lâu dài.
+The **--add-reads** option allows adding a readability edge to the module graph for a compilation or launch. This is a command-line adjustment that does not rewrite **module-info.java** and does not turn a temporary dependency into a long-term module contract.
 
-## 2. Cú pháp của --add-reads
+## 2. Syntax of --add-reads
 
-Cú pháp tổng quát:
+General syntax:
 
 ~~~text
 --add-reads <module>=<target-module>(,<target-module>)*
 ~~~
 
-Trong đó:
+Where:
 
-- **module** là named module cần được bổ sung quyền đọc.
-- **target-module** là module mà module nguồn sẽ đọc được.
-- Có thể chỉ định nhiều module đích, phân tách bằng dấu phẩy.
-- **ALL-UNNAMED** là tên đặc biệt đại diện cho tất cả unnamed module, thường là các class và JAR trên classpath.
+- **module** is the named module to which read access is being added.
+- **target-module** is the module that the source module will be able to read.
+- Multiple target modules can be specified, separated by commas.
+- **ALL-UNNAMED** is a special name representing all unnamed modules, typically classes and JARs on the classpath.
 
-Ví dụ:
+Example:
 
 ~~~bash
 java --add-reads com.example.app=com.example.logging \
@@ -46,9 +46,9 @@ java --add-reads com.example.app=com.example.logging \
      -m com.example.app/com.example.app.Main
 ~~~
 
-Lệnh này bổ sung quan hệ để **com.example.app** đọc được **com.example.logging** trong lần chạy hiện tại.
+This command adds a relationship so that **com.example.app** can read **com.example.logging** during the current run.
 
-Có thể thêm nhiều module đích:
+Multiple target modules can be added:
 
 ~~~bash
 java --add-reads com.example.app=com.example.logging,com.example.metrics \
@@ -56,7 +56,7 @@ java --add-reads com.example.app=com.example.logging,com.example.metrics \
      -m com.example.app/com.example.app.Main
 ~~~
 
-Cần bảo đảm các module đích có thể được tìm thấy và phân giải trong module graph. Nếu một module chưa được đưa vào tập module gốc cần phân giải, có thể cần chỉ định thêm **--add-modules**:
+You must ensure that the target modules can be found and resolved in the module graph. If a module has not yet been included in the set of root modules to resolve, you may also need to specify **--add-modules**:
 
 ~~~bash
 java --module-path mods \
@@ -65,13 +65,13 @@ java --module-path mods \
      -m com.example.app/com.example.app.Main
 ~~~
 
-**--add-modules** đưa module vào tập module cần phân giải; **--add-reads** bổ sung quan hệ readability từ module nguồn đến module đích. Hai tùy chọn giải quyết hai việc khác nhau.
+**--add-modules** adds the module to the set of modules to resolve; **--add-reads** adds the readability relationship from the source module to the target module. The two options solve two different problems.
 
-## 3. Dùng --add-reads với ALL-UNNAMED
+## 3. Using --add-reads with ALL-UNNAMED
 
-Các thư viện cũ thường được đặt trên classpath và thuộc unnamed module. Một named module không tự động đọc unnamed module. Khi cần named module sử dụng API public của thư viện classpath trong giai đoạn chuyển đổi, có thể thêm readability đến **ALL-UNNAMED**.
+Legacy libraries are often placed on the classpath and belong to the unnamed module. A named module does not automatically read the unnamed module. When a named module needs to use the public API of a classpath library during a transition period, you can add readability to **ALL-UNNAMED**.
 
-Giả sử thư viện cũ có class:
+Suppose the legacy library has a class:
 
 ~~~java
 package com.legacy.codec;
@@ -83,7 +83,7 @@ public class LegacyEncoder {
 }
 ~~~
 
-JAR chứa class này nằm trong thư mục **legacy-libs**. Ứng dụng modular có mã:
+The JAR containing this class is in the **legacy-libs** directory. The modular application has the code:
 
 ~~~java
 package com.example.app;
@@ -98,14 +98,14 @@ public class Main {
 }
 ~~~
 
-Module descriptor của ứng dụng:
+The application's module descriptor:
 
 ~~~java
 module com.example.app {
 }
 ~~~
 
-Để biên dịch module và cho nó đọc thư viện classpath, có thể dùng:
+To compile the module and allow it to read the classpath library, you can use:
 
 ~~~bash
 javac \
@@ -116,7 +116,7 @@ javac \
   -m com.example.app
 ~~~
 
-Khi chạy, cần bổ sung readability tương ứng cho runtime:
+When running, the corresponding readability must be added for the runtime:
 
 ~~~bash
 java \
@@ -126,15 +126,15 @@ java \
   -m com.example.app/com.example.app.Main
 ~~~
 
-Ví dụ này minh họa một cầu nối tạm thời giữa named module và thư viện trên classpath. **ALL-UNNAMED** bao gồm tất cả classpath JAR thuộc unnamed module trong môi trường chạy đó; nó không chỉ giới hạn ở một JAR cụ thể.
+This example illustrates a temporary bridge between a named module and a library on the classpath. **ALL-UNNAMED** includes all classpath JARs belonging to unnamed modules in that runtime environment; it is not limited to a single specific JAR.
 
-Do phạm vi rộng, hãy cân nhắc chuyển thư viện cũ thành named module hoặc đưa phụ thuộc vào module descriptor khi kiến trúc đã ổn định. Nếu ứng dụng dùng API của thư viện trong thời gian dài, một khai báo **requires** tường minh trên module path thường dễ quản lý và kiểm soát hơn.
+Because of its broad scope, consider converting the legacy library into a named module or placing the dependency in the module descriptor once the architecture has stabilized. If the application uses the library's API over the long term, an explicit **requires** declaration on the module path is usually easier to manage and control.
 
-## 4. Dùng --add-reads khi biên dịch
+## 4. Using --add-reads at Compile Time
 
-javac hỗ trợ **--add-reads** để điều chỉnh readability trong quá trình biên dịch. Điều này có thể hữu ích khi đang kiểm thử một thay đổi module hoặc khi phải tích hợp tạm thời với một thư viện chưa có module descriptor phù hợp.
+javac supports **--add-reads** to adjust readability during compilation. This can be useful when testing a module change or when temporarily integrating with a library that does not yet have an appropriate module descriptor.
 
-Ví dụ module **com.example.app** cần đọc module **com.example.legacy** trong thư mục **mods**:
+For example, module **com.example.app** needs to read module **com.example.legacy** in the **mods** directory:
 
 ~~~bash
 javac \
@@ -146,16 +146,16 @@ javac \
   -m com.example.app
 ~~~
 
-Trong ví dụ:
+In the example:
 
-- **--module-path mods** cung cấp module legacy.
-- **--add-modules com.example.legacy** yêu cầu đưa module legacy vào tập module gốc cần phân giải.
-- **--add-reads com.example.app=com.example.legacy** cho phép module app đọc module legacy trong lượt biên dịch.
-- **-m com.example.app** chọn module app để biên dịch.
+- **--module-path mods** provides the legacy module.
+- **--add-modules com.example.legacy** requests adding the legacy module to the set of root modules to resolve.
+- **--add-reads com.example.app=com.example.legacy** allows the app module to read the legacy module during the compilation pass.
+- **-m com.example.app** selects the app module to compile.
 
-Nếu mã nguồn thuộc named module và trực tiếp sử dụng API của legacy, việc build chỉ thành công nhờ tùy chọn dòng lệnh này chưa đủ để ứng dụng chạy đúng. Khi chạy, phải có quan hệ readability tương ứng trong runtime module graph.
+If the source code belongs to a named module and directly uses the legacy API, succeeding at the build step with this command-line option alone is not enough for the application to run properly. At runtime, the corresponding readability relationship must also exist in the runtime module graph.
 
-Ví dụ lệnh chạy:
+Example run command:
 
 ~~~bash
 java \
@@ -165,19 +165,19 @@ java \
   -m com.example.app/com.example.app.Main
 ~~~
 
-Trên Windows, thay dấu phân cách module path bằng dấu chấm phẩy:
+On Windows, replace the module path separator with a semicolon:
 
 ~~~powershell
 java --module-path "out;mods" --add-modules com.example.legacy --add-reads com.example.app=com.example.legacy -m com.example.app/com.example.app.Main
 ~~~
 
-Cần cấu hình cả giai đoạn biên dịch và runtime. Tùy chọn javac không tự được lưu vào module descriptor đã biên dịch để JVM tự áp dụng ở lần chạy sau.
+Both the compile phase and runtime must be configured. The javac option is not automatically saved into the compiled module descriptor for the JVM to apply on subsequent runs.
 
-## 5. --add-reads không thay thế requires
+## 5. --add-reads Does Not Replace requires
 
-Giả sử module app cần sử dụng API của module logging. Có hai cách mô tả quan hệ:
+Suppose the app module needs to use the logging module's API. There are two ways to describe the relationship:
 
-**Cách lâu dài trong module descriptor:**
+**Long-term approach in the module descriptor:**
 
 ~~~java
 module com.example.app {
@@ -185,7 +185,7 @@ module com.example.app {
 }
 ~~~
 
-**Cách bổ sung tạm thời trên dòng lệnh:**
+**Temporary addition on the command line:**
 
 ~~~bash
 java --add-reads com.example.app=com.example.logging \
@@ -193,28 +193,28 @@ java --add-reads com.example.app=com.example.logging \
      -m com.example.app/com.example.app.Main
 ~~~
 
-Cả hai đều có thể tạo readability trong ngữ cảnh tương ứng, nhưng ý nghĩa quản lý khác nhau:
+Both can establish readability in their respective contexts, but their management implications differ:
 
-- **requires** là một phần của thiết kế module, được biên dịch vào module descriptor và đi cùng module khi phân phối.
-- **--add-reads** là cấu hình bên ngoài, chỉ có hiệu lực trong lần biên dịch hoặc khởi chạy mà tùy chọn được truyền vào.
+- **requires** is part of the module design, compiled into the module descriptor, and distributed along with the module.
+- **--add-reads** is an external configuration that takes effect only for the compilation or launch to which the option is passed.
 
-Nếu phụ thuộc là một phần ổn định của API hoặc implementation, nên khai báo **requires**. Dùng **--add-reads** khi cần can thiệp tạm thời, kiểm thử, tương thích ngược hoặc xử lý cấu hình runtime đặc biệt.
+If a dependency is a stable part of the API or implementation, declare **requires**. Use **--add-reads** when you need temporary intervention, testing, backward compatibility, or special runtime configuration handling.
 
-Đừng dùng **--add-reads** để che giấu module descriptor thiếu phụ thuộc trong sản phẩm đã modular hóa. Người khác có thể chạy cùng module mà không có tùy chọn đó và gặp lỗi readability.
+Do not use **--add-reads** to hide a module descriptor missing dependencies in a modularized product. Others may run the same module without that option and encounter readability errors.
 
-## 6. Readability khác exports và opens
+## 6. Readability Differs from exports and opens
 
-Một lỗi phổ biến là nhầm lẫn giữa việc module đọc được module khác và việc package của module đó có thể truy cập được.
+A common mistake is confusing whether a module can read another module with whether a package of that module is accessible.
 
-Giả sử module **com.example.internal** chứa:
+Suppose module **com.example.internal** contains:
 
 ~~~java
 module com.example.internal {
-    // Không export package com.example.internal.api
+    // Does not export package com.example.internal.api
 }
 ~~~
 
-Module app được bổ sung readability:
+The app module is granted additional readability:
 
 ~~~bash
 java --add-reads com.example.app=com.example.internal \
@@ -222,45 +222,45 @@ java --add-reads com.example.app=com.example.internal \
      -m com.example.app/com.example.app.Main
 ~~~
 
-Mặc dù app đọc được module internal, nó vẫn không thể truy cập các kiểu trong package chưa được module internal export.
+Even though app can read the internal module, it still cannot access types in packages that the internal module has not exported.
 
-Các cơ chế liên quan:
+Related mechanisms:
 
-| Cơ chế | Điều khiển điều gì? |
+| Mechanism | What does it control? |
 |---|---|
-| **requires** | Readability được khai báo trong descriptor |
-| **--add-reads** | Readability bổ sung qua dòng lệnh |
-| **exports** | Công khai package để module đọc có thể dùng kiểu public |
-| **--add-exports** | Bổ sung quyền truy cập package public qua dòng lệnh |
-| **opens** | Cho phép deep reflection vào package |
-| **--add-opens** | Bổ sung quyền deep reflection qua dòng lệnh |
-| **--add-modules** | Bổ sung module vào tập module gốc cần phân giải |
+| **requires** | Readability declared in the descriptor |
+| **--add-reads** | Additional readability via the command line |
+| **exports** | Exposes a package so reading modules can use public types |
+| **--add-exports** | Grants additional access to public package types via the command line |
+| **opens** | Allows deep reflection into a package |
+| **--add-opens** | Grants additional deep reflection access via the command line |
+| **--add-modules** | Adds modules to the set of root modules to resolve |
 
-Ví dụ, để module app đọc module library và truy cập package public mà library export có điều kiện, cần xác định đúng cả quan hệ readability lẫn quy tắc export. Nếu mục tiêu là reflection sâu vào thành viên private, cần xem xét **opens** hoặc **--add-opens**.
+For example, for the app module to read the library module and access a public package that the library exports conditionally, both the readability relationship and the export rules must be properly satisfied. If the goal is deep reflection on private members, consider **opens** or **--add-opens**.
 
-Không phải lỗi truy cập nào cũng giải quyết được bằng **--add-reads**. Hãy đọc nội dung lỗi để phân biệt lỗi module không đọc, package chưa export và reflection bị đóng.
+Not every access error can be solved with **--add-reads**. Read the error message to distinguish between a module not reading another, an unexported package, and closed reflection.
 
-## 7. Phạm vi và giới hạn của --add-reads
+## 7. Scope and Limitations of --add-reads
 
-**--add-reads** bổ sung quan hệ readability, nhưng không thực hiện các việc sau:
+**--add-reads** adds a readability relationship, but it does not perform the following:
 
-- Không thêm module hoặc JAR vào module path.
-- Không tự phân giải module đích nếu module đó chưa được đưa vào graph.
-- Không export package từ module đích.
-- Không mở package cho deep reflection.
-- Không sửa hoặc ghi lại **module-info.java**.
-- Không tự động truyền cấu hình từ javac sang JVM.
-- Không tải dependency từ mạng hoặc thay thế công cụ quản lý dependency.
+- Does not add modules or JARs to the module path.
+- Does not automatically resolve the target module if that module has not been included in the graph.
+- Does not export packages from the target module.
+- Does not open packages for deep reflection.
+- Does not modify or rewrite **module-info.java**.
+- Does not automatically propagate configuration from javac to the JVM.
+- Does not download dependencies from the network or replace dependency management tools.
 
-Tùy chọn này cũng không làm thay đổi mã nguồn hoặc cấu trúc đóng gói của thư viện. Nếu module đích không tồn tại hoặc tên module sai, cần sửa module path hoặc tên module trước.
+This option also does not alter the source code or packaging structure of a library. If the target module does not exist or the module name is incorrect, fix the module path or module name first.
 
-Với **ALL-UNNAMED**, hãy nhớ đây là pseudo-module đại diện cho unnamed module, không phải một module JAR có thể tìm thấy trên module path. Nó hữu ích trong tích hợp legacy classpath, nhưng có phạm vi rộng hơn một named module cụ thể.
+With **ALL-UNNAMED**, remember that this is a pseudo-module representing unnamed modules, not a module JAR that can be found on the module path. It is useful for legacy classpath integration, but has a broader scope than a specific named module.
 
-## 8. Dùng --add-reads trong môi trường kiểm thử
+## 8. Using --add-reads in Testing Environments
 
-Một ứng dụng có thể cần thêm readability chỉ trong một bài kiểm thử tích hợp. Khi đó, có thể truyền tùy chọn vào lệnh chạy test thay vì sửa descriptor của module chính.
+An application may need additional readability only during an integration test. In that case, you can pass the option to the test run command instead of modifying the main module's descriptor.
 
-Ví dụ chạy một module test hoặc ứng dụng với một module hỗ trợ:
+Example running a test module or application with a support module:
 
 ~~~bash
 java \
@@ -270,65 +270,65 @@ java \
   -m com.example.test/com.example.test.Runner
 ~~~
 
-Ví dụ này yêu cầu module **com.example.app** đọc module hỗ trợ trong module graph của lần chạy test. Tên module và module gốc cần được thay bằng cấu trúc thực tế của dự án.
+This example instructs module **com.example.app** to read the support module in the test run's module graph. The module names and root module should be replaced with the project's actual structure.
 
-Nếu một framework test dùng reflection sâu vào package của module ứng dụng, **--add-reads** chưa đủ. Cần cấu hình **--add-opens** cho đúng package và module framework, hoặc khai báo mở package phù hợp trong descriptor của cấu hình test.
+If a test framework uses deep reflection into packages of the application module, **--add-reads** is not sufficient. You must configure **--add-opens** for the appropriate package and framework module, or declare appropriate package opening in the test configuration's descriptor.
 
-Hãy giữ các tùy chọn mở rộng này trong cấu hình test riêng. Không đưa chúng vào lệnh chạy production nếu ứng dụng không cần.
+Keep these expanded options in a separate test configuration. Do not include them in production launch commands if the application does not need them.
 
-## 9. Chẩn đoán lỗi readability
+## 9. Diagnosing Readability Errors
 
-Khi gặp thông báo dạng:
+When encountering a message such as:
 
 ~~~text
 module com.example.app does not read module com.example.legacy
 ~~~
 
-Có thể thực hiện các bước sau:
+You can take the following steps:
 
-1. Xác định module nguồn được nêu trong lỗi.
-2. Xác định module đích sở hữu class hoặc package mà mã đang sử dụng.
-3. Kiểm tra module đích có mặt trên module path hay không.
-4. Nếu phụ thuộc là chính thức, khai báo **requires** trong module descriptor.
-5. Nếu chỉ cần điều chỉnh tạm thời, thử **--add-reads source=target** trong đúng lệnh javac hoặc java.
-6. Nếu module đích chưa được phân giải, xem xét **--add-modules target**.
-7. Nếu sau đó lỗi chuyển thành package không visible, kiểm tra **exports**.
-8. Nếu lỗi xuất hiện khi reflection truy cập private member, kiểm tra **opens** hoặc **--add-opens**.
+1. Identify the source module mentioned in the error.
+2. Identify the target module that owns the class or package the code is using.
+3. Check whether the target module is present on the module path.
+4. If the dependency is permanent, declare **requires** in the module descriptor.
+5. If only a temporary adjustment is needed, try **--add-reads source=target** in the corresponding javac or java command.
+6. If the target module is not yet resolved, consider **--add-modules target**.
+7. If the error subsequently turns into a package-not-visible error, check **exports**.
+8. If an error occurs when reflection accesses a private member, check **opens** or **--add-opens**.
 
-Có thể xem module descriptor bằng:
+You can inspect a module descriptor using:
 
 ~~~bash
 java --module-path mods --describe-module com.example.legacy
 ~~~
 
-Và xem các module đang được nhận diện:
+And view the modules currently recognized:
 
 ~~~bash
 java --module-path mods --list-modules
 ~~~
 
-Các lệnh này giúp xác nhận tên module và vị trí phân giải trước khi thay đổi cấu hình.
+These commands help confirm module names and resolution locations before changing configuration.
 
-## 10. Quy trình sử dụng an toàn
+## 10. Safe Usage Workflow
 
-Khi cần thêm readability tạm thời, hãy làm theo quy trình:
+When you need to add temporary readability, follow this workflow:
 
-1. Xác định rõ module nào cần đọc module nào.
-2. Kiểm tra module đích có thể được tìm thấy trên module path hoặc trong runtime.
-3. Xác định lỗi thực sự là readability, exports hay deep reflection.
-4. Truyền **--add-reads** vào đúng giai đoạn cần điều chỉnh: javac hoặc java.
-5. Nếu module đích chưa được phân giải, cân nhắc **--add-modules**.
-6. Kiểm thử cả compile và runtime vì cấu hình của hai giai đoạn độc lập.
-7. Ghi lại lý do dùng tùy chọn và phạm vi module được mở rộng.
-8. Khi phụ thuộc trở thành ổn định, chuyển sang khai báo **requires** phù hợp trong module descriptor.
+1. Clearly identify which module needs to read which module.
+2. Verify that the target module can be found on the module path or in the runtime.
+3. Determine whether the error is actually readability, exports, or deep reflection.
+4. Pass **--add-reads** to the exact phase that needs adjustment: javac or java.
+5. If the target module is not yet resolved, consider **--add-modules**.
+6. Test both compile time and runtime because the configurations of the two phases are independent.
+7. Document the reason for using the option and the scope of modules expanded.
+8. When the dependency becomes stable, switch to an appropriate **requires** declaration in the module descriptor.
 
-## 11. Ghi nhớ
+## 11. Key Takeaways
 
-- **--add-reads source=target** bổ sung quan hệ readability từ module nguồn đến module đích.
-- **ALL-UNNAMED** đại diện cho các class và JAR thuộc unnamed module trên classpath.
-- Có thể dùng tùy chọn ở javac để biên dịch và ở java để chạy; hai cấu hình không tự đồng bộ.
-- Module đích phải được tìm thấy và phân giải; **--add-modules** có thể cần thiết để bổ sung module vào graph.
-- Readability không đồng nghĩa với package visibility hoặc deep reflection.
-- **--add-reads** là điều chỉnh qua dòng lệnh, không thay thế khai báo phụ thuộc chính thức bằng **requires**.
+- **--add-reads source=target** adds a readability relationship from the source module to the target module.
+- **ALL-UNNAMED** represents classes and JARs belonging to unnamed modules on the classpath.
+- The option can be used with javac for compilation and with java for execution; the two configurations do not synchronize automatically.
+- The target module must be found and resolved; **--add-modules** may be needed to add the module to the graph.
+- Readability does not mean package visibility or deep reflection.
+- **--add-reads** is a command-line adjustment and does not replace a formal dependency declaration via **requires**.
 
-Hãy dùng **--add-reads** như một công cụ điều chỉnh module graph có chủ đích cho migration, test hoặc tích hợp legacy. Với phụ thuộc ổn định của một named module, ghi rõ **requires** trong module descriptor giúp build và runtime nhất quán hơn.
+Use **--add-reads** as an intentional module graph adjustment tool for migration, testing, or legacy integration. For stable dependencies of a named module, explicitly declaring **requires** in the module descriptor keeps builds and runtime more consistent.

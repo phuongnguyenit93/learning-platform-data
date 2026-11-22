@@ -1,38 +1,38 @@
-# Static import cho thành viên static (Java 17+)
+# Static Import for Static Members (Java 17+)
 
-## 1. Static import là gì?
+## 1. What is static import?
 
-`static import` cho phép dùng **tên ngắn** của một thành viên `static` có thể truy cập từ lớp hoặc interface khác, thay vì luôn viết `TênKiểu.tênThànhViên`. Đây là cú pháp phân giải tên ở **thời điểm biên dịch**, không tạo bản sao thành viên, không biến thành viên thành biến cục bộ và không thay đổi hành vi hay hiệu năng của phương thức.
+`static import` allows using the **short name** of an accessible `static` member from another class or interface, instead of always writing `TypeName.memberName`. This is a **compile-time** name-resolution syntax; it does not create a copy of the member, does not turn the member into a local variable, and does not change the method's behavior or performance.
 
-Ví dụ, thay `Math.PI`, `Math.pow(2, 3)` bằng `PI`, `pow(2, 3)` nếu có các khai báo import tương ứng. Cả hai cách vẫn truy cập đúng thành viên của `java.lang.Math`.
+For example, replace `Math.PI` and `Math.pow(2, 3)` with `PI` and `pow(2, 3)` when the corresponding import declarations are present. Both forms still access the exact same members of `java.lang.Math`.
 
-## 2. Cú pháp và vị trí
+## 2. Syntax and placement
 
-Khai báo `import static` nằm **sau dòng `package` (nếu có), trước các khai báo kiểu** và ở cùng cấp với `import` thông thường:
+`import static` declarations go **after the `package` line (if any), before type declarations**, at the same level as regular `import` statements:
 
 ```java
 package lesson;
 
-import java.util.List;              // import tên kiểu List
-import static java.lang.Math.PI;    // một trường static
-import static java.lang.Math.pow;   // một phương thức static (các overload cùng tên)
-import static java.lang.Math.*;     // toàn bộ thành viên static có thể truy cập, theo nhu cầu
+import java.util.List;              // import the type name List
+import static java.lang.Math.PI;    // a single static field
+import static java.lang.Math.pow;   // a static method (all overloads with the same name)
+import static java.lang.Math.*;     // all accessible static members, on demand
 ```
 
-Hai dòng `import static java.lang.Math.PI;` và `import static java.lang.Math.*;` ở đây được đặt cạnh nhau để minh họa cú pháp; trong mã thực tế chỉ cần dùng các khai báo phù hợp, tránh import thừa.
+The two lines `import static java.lang.Math.PI;` and `import static java.lang.Math.*;` are placed side by side here to illustrate syntax; in real code only use the declarations you need and avoid redundant imports.
 
-Có hai dạng chính:
+There are two main forms:
 
-| Dạng | Cú pháp | Ý nghĩa |
+| Form | Syntax | Meaning |
 | --- | --- | --- |
-| Import rõ tên | `import static ten.package.TenKieu.TEN;` | Đưa tên của một thành viên static vào phạm vi tra cứu tên ngắn |
-| Import theo nhu cầu | `import static ten.package.TenKieu.*;` | Cho phép tra cứu các thành viên static có thể truy cập của kiểu đó bằng tên ngắn |
+| Single static import | `import static pkg.name.TypeName.MEMBER;` | Brings the name of one static member into short-name lookup scope |
+| Static import on demand | `import static pkg.name.TypeName.*;` | Allows looking up accessible static members of that type by short name |
 
-Dấu `*` không nhập package con, không tự nhập thành viên của tất cả lớp trong package và không nhập thành viên instance. `static import` không thay thế `package`, `classpath`, `module path` hoặc việc biên dịch lớp chứa thành viên.
+`*` does not import subpackages, does not automatically import members of all classes in a package, and does not import instance members. `static import` does not replace `package`, `classpath`, `module path`, or compiling the class that defines the member.
 
-## 3. Ví dụ đầy đủ với Math
+## 3. Complete example with Math
 
-Tạo tệp `src/lesson/CircleDemo.java`:
+Create `src/lesson/CircleDemo.java`:
 
 ```java
 package lesson;
@@ -51,27 +51,27 @@ public class CircleDemo {
 }
 ```
 
-Chạy tại thư mục chứa `src` (Java 17+). **Trước lần đầu dùng `javac -d out`, cần tạo sẵn thư mục `out`**: Bash/Linux/macOS dùng `mkdir -p out`; PowerShell dùng `New-Item -ItemType Directory -Force out | Out-Null` (CMD dùng `if not exist out mkdir out`). Sau đó biên dịch và chạy:
+Run from the directory containing `src` (Java 17+). **Before using `javac -d out` for the first time, create the `out` directory**: on Bash/Linux/macOS use `mkdir -p out`; on PowerShell use `New-Item -ItemType Directory -Force out | Out-Null` (CMD: `if not exist out mkdir out`). Then compile and run:
 
 ```sh
 javac -d out src/lesson/CircleDemo.java
 java -cp out lesson.CircleDemo
 ```
 
-Kết quả chính xác:
+Exact output:
 
 ```text
 area=12.57
 max=7
 ```
 
-`PI` là trường `public static final`, `pow` và `max` là các phương thức `public static`. Phép tính tương đương `Math.PI * Math.pow(radius, 2)`; `max(3, 7)` tương đương `Math.max(3, 7)`. `Locale.ROOT` giúp dấu thập phân trong output là dấu chấm, không lệ thuộc locale hệ thống.
+`PI` is a `public static final` field, while `pow` and `max` are `public static` methods. The calculation is equivalent to `Math.PI * Math.pow(radius, 2)`; `max(3, 7)` is equivalent to `Math.max(3, 7)`. `Locale.ROOT` ensures the decimal separator in the output is a period regardless of system locale.
 
-## 4. Static import cho thành viên tự định nghĩa và kiểu lồng nhau
+## 4. Static import for custom members and nested types
 
-Không chỉ API JDK: ta có thể import một trường static, một phương thức static và một kiểu thành viên static từ lớp do mình viết.
+Not only JDK APIs: you can import a static field, a static method, and a static member type from a class you wrote yourself.
 
-Tạo `src/lesson/util/Toolbox.java`:
+Create `src/lesson/util/Toolbox.java`:
 
 ```java
 package lesson.util;
@@ -93,7 +93,7 @@ public final class Toolbox {
 }
 ```
 
-Tạo `src/lesson/ToolboxDemo.java`:
+Create `src/lesson/ToolboxDemo.java`:
 
 ```java
 package lesson;
@@ -111,7 +111,7 @@ public class ToolboxDemo {
 }
 ```
 
-Biên dịch cả hai tệp và chạy:
+Compile both files and run:
 
 ```sh
 javac -d out src/lesson/util/Toolbox.java src/lesson/ToolboxDemo.java
@@ -126,39 +126,39 @@ Hi, Java
 token
 ```
 
-`LIMIT`, `label` và `Token` đều là thành viên static của `Toolbox`; `Token` là **kiểu lớp lồng static**, nên có thể dùng như tên kiểu sau static import. Nếu muốn, ba import này có thể được thay bằng `import static lesson.util.Toolbox.*;`; cách import từng tên thường dễ đọc và kiểm soát xung đột hơn.
+`LIMIT`, `label`, and `Token` are all static members of `Toolbox`; `Token` is a **static nested class type**, so it can be used as a type name after a static import. If desired, these three imports could be replaced with `import static lesson.util.Toolbox.*;`; importing individual names is usually easier to read and better at controlling conflicts.
 
-## 5. Thành viên nào được phép import?
+## 5. Which members can be imported?
 
-- **Trường static**: hằng `PI`, `MAX_VALUE`, trường `public static` khác. `final` không phải điều kiện bắt buộc.
-- **Phương thức static**: `Math.max`, `Math.pow`, phương thức static của interface như `List.of`. Import theo tên phương thức cho phép trình biên dịch cân nhắc các overload thích hợp.
-- **Kiểu thành viên static có thể truy cập**: ví dụ `Toolbox.Token` là nested static class; các kiểu thành viên của interface cũng là static theo quy tắc ngôn ngữ.
+- **Static fields**: constants like `PI`, `MAX_VALUE`, and other `public static` fields. `final` is not a strict requirement.
+- **Static methods**: `Math.max`, `Math.pow`, interface static methods such as `List.of`. Importing by method name allows the compiler to consider all appropriate overloads.
+- **Accessible static member types**: for example, `Toolbox.Token` is a static nested class; member types of interfaces are also static by language rule.
 
-Quy tắc truy cập vẫn giữ nguyên: thành viên `private` ở lớp khác, thành viên `package-private` ngoài package hay thành viên `protected` không đủ điều kiện truy cập từ ngữ cảnh hiện tại sẽ không hợp lệ chỉ vì thêm static import. Không thể static import phương thức hoặc trường **instance**; chẳng hạn `import static java.lang.String.length;` là sai vì `length()` là phương thức đối tượng. Muốn dùng phải gọi `"abc".length()`.
+Access rules still apply: a `private` member in another class, a `package-private` member outside its package, or a `protected` member without valid access in the current context will not become legal just by adding a static import. You cannot static import **instance** methods or fields; for instance, `import static java.lang.String.length;` is invalid because `length()` is an instance method. To use it, you must call `"abc".length()`.
 
-## 6. Phân giải tên, trùng tên và bẫy thường gặp
+## 6. Name resolution, collisions, and common traps
 
-**Trùng tên:** Khi nhiều import theo nhu cầu đưa vào các phương thức hoặc trường cùng tên có thể áp dụng, sử dụng tên ngắn có thể mơ hồ. Ví dụ, nếu vừa dùng `import static java.lang.Math.*;` vừa dùng `import static java.lang.StrictMath.*;`, gọi `sqrt(9.0)` bằng tên ngắn sẽ gặp xung đột; có thể viết rõ `Math.sqrt(9.0)` hoặc chỉ import một `sqrt` cần dùng. Phương thức cùng tên vẫn chịu cơ chế chọn overload của Java.
+**Name collisions:** When multiple on-demand imports bring in applicable methods or fields with the same name, using the short name can be ambiguous. For example, if you use both `import static java.lang.Math.*;` and `import static java.lang.StrictMath.*;`, calling `sqrt(9.0)` by its short name will conflict; you can write `Math.sqrt(9.0)` explicitly or import only the one `sqrt` you need. Methods with the same name still undergo Java's overload selection mechanism.
 
-**Tên trong phạm vi gần:** Khai báo cùng tên ở lớp hoặc biến cục bộ có thể che khuất trường được static import; phương thức thành viên cũng có thể được ưu tiên khi phân giải lời gọi. Khi đọc code mà tên ngắn khó truy nguồn gốc, viết rõ `TênLớp.tên` sẽ an toàn hơn.
+**Names in nearer scope:** Declarations with the same name in the class or local variables can shadow a statically imported field; member methods can also take precedence during call resolution. When reading code where a short name's origin is hard to trace, writing `ClassName.member` explicitly is safer.
 
-**Thứ tự import:** `import static` là khai báo cấp tệp; đặt trong thân class hoặc phương thức sẽ lỗi cú pháp. `import java.lang.Math;` chỉ đưa tên kiểu `Math` vào phạm vi và vẫn phải viết `Math.PI`; muốn dùng `PI` riêng phải viết `import static java.lang.Math.PI;`. Java tự nhận diện nhiều kiểu trong `java.lang`, nhưng không tự static import các thành viên của chúng.
+**Import ordering:** `import static` is a file-level declaration; placing it inside a class or method body causes a syntax error. `import java.lang.Math;` only brings the type name `Math` into scope and still requires writing `Math.PI`; to use `PI` by itself, you must write `import static java.lang.Math.PI;`. Java automatically recognizes many types in `java.lang`, but does not automatically static-import their members.
 
-**Wildcard:** `import static some.Type.*;` không có nghĩa mọi tên được chép thành biến cục bộ, không nhập thành viên instance và không phải cơ chế tải lớp ngay lúc chạy. Dùng wildcard quá rộng ở nhiều lớp tiện ích có thể khiến code khó đọc và tăng nguy cơ tên mơ hồ.
+**Wildcards:** `import static some.Type.*;` does not copy all names into local variables, does not import instance members, and is not a mechanism for loading classes immediately at runtime. Overusing wildcards across multiple utility classes can make code harder to read and increase the risk of ambiguous names.
 
-**Phụ thuộc:** Static import không tạo quyền truy cập đặc biệt; kiểu được import phải có thể biên dịch/giải quyết từ mã nguồn hoặc thư viện sẵn có trên classpath/module path. Đổi tên hoặc xóa thành viên static ở thư viện có thể làm mã dùng import không biên dịch.
+**Dependencies:** Static imports do not create special access permissions; the imported type must be compilable/resolvable from source code or libraries present on the classpath/module path. Renaming or removing a static member in a library can cause code using the import to fail compilation.
 
-## 7. Khi nào nên dùng?
+## 7. When should you use it?
 
-Nên cân nhắc static import khi một nhóm thao tác thực sự xuất hiện liên tục và nguồn của chúng vẫn rõ ràng: phép toán `PI`/`pow`, các hàm xác nhận trong mã kiểm thử, hoặc hằng enum rất dễ nhận ra ngữ cảnh. Ưu tiên import **từng tên** và tránh dùng hai nguồn cho cùng một tên.
+Consider static imports when a group of operations genuinely appears repeatedly and their origin remains clear: mathematical operations `PI`/`pow`, assertion functions in test code, or enum constants whose context is immediately obvious. Prefer importing **individual names** and avoid importing the same name from two sources.
 
-Nên giữ tiền tố `Math.`, `Collections.`, `Objects.` hoặc `TênLớp.` nếu việc chỉ rõ nguồn giúp người đọc nhanh chóng hiểu ý nghĩa, nhất là trong code nghiệp vụ. Static import là lựa chọn về **độ dễ đọc** chứ không phải yêu cầu để gọi thành viên static.
+Keep prefixes like `Math.`, `Collections.`, `Objects.`, or `ClassName.` when stating the origin helps readers quickly understand meaning, especially in business code. Static import is a **readability** choice, not a requirement for calling static members.
 
-## 8. Tự kiểm tra
+## 8. Self-check
 
-1. `import java.lang.Math;` có đủ để viết `sqrt(4)` không? **Không**; viết `Math.sqrt(4)` hoặc `import static java.lang.Math.sqrt;`.
-2. Có thể `import static` một phương thức đối tượng không? **Không**; đối tượng phải cung cấp receiver để gọi.
-3. `import static lesson.util.Toolbox.Token;` có hợp lệ khi `Token` là `public static class` không? **Có**, nếu `Toolbox` truy cập được và có trong đường dẫn biên dịch.
-4. Khi trùng tên do static import, cách sửa dễ hiểu nhất là gì? **Gọi đầy đủ với tên kiểu**, hoặc thu hẹp các import.
+1. Is `import java.lang.Math;` enough to write `sqrt(4)`? **No**; write `Math.sqrt(4)` or `import static java.lang.Math.sqrt;`.
+2. Can you `import static` an instance method? **No**; an object must provide a receiver for the call.
+3. Is `import static lesson.util.Toolbox.Token;` valid when `Token` is a `public static class`? **Yes**, if `Toolbox` is accessible and on the compilation path.
+4. When a name collision occurs due to static imports, what is the clearest fix? **Qualify the call with the type name**, or narrow down the imports.
 
-Ghi nhớ: `static import` rút gọn tên thành viên static có thể truy cập; quy tắc phạm vi, quyền truy cập, overload và biên dịch của Java vẫn được áp dụng bình thường.
+Key takeaway: `static import` shortens names of accessible static members; Java's scope, access control, overloading, and compilation rules still apply as usual.

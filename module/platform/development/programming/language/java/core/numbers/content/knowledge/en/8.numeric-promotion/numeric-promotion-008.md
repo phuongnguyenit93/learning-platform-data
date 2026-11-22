@@ -1,64 +1,64 @@
-# Unboxing khi biểu thức chứa wrapper trong Java
+# Unboxing when expressions contain wrappers in Java
 
-## 1. Vì sao một biểu thức chứa `Integer` có thể gây lỗi?
+## 1. Why can an expression containing `Integer` throw an error?
 
-Java có các **kiểu nguyên thủy** như `int`, `long`, `double`, `boolean` và các **lớp bao** (*wrapper*) tương ứng như `Integer`, `Long`, `Double`, `Boolean`. Wrapper là đối tượng và có thể mang tham chiếu `null`; primitive lưu giá trị của kiểu nguyên thủy và không thể là `null`.
+Java has **primitive types** such as `int`, `long`, `double`, `boolean`, and corresponding **wrapper classes** such as `Integer`, `Long`, `Double`, `Boolean`. Wrappers are objects and can hold a `null` reference; primitives store a primitive value and cannot be `null`.
 
-**Unboxing** là việc Java tự chuyển giá trị của wrapper sang primitive tương ứng khi ngữ cảnh đòi hỏi primitive. Ví dụ:
+**Unboxing** is when Java automatically converts a wrapper's value into its corresponding primitive when the context requires a primitive. Example:
 
 ```java
 Integer boxed = 10;
 int primitive = boxed; // unboxing: Integer -> int
 ```
 
-Ngược lại, **boxing** là chuyển giá trị primitive thành wrapper:
+Conversely, **boxing** converts a primitive value into a wrapper:
 
 ```java
 int primitive = 10;
 Integer boxed = primitive; // boxing: int -> Integer
 ```
 
-Trong một phép toán số học, Java có thể thực hiện một chuỗi bước: **unboxing → thăng cấp số học → tính toán → (nếu cần) boxing khi gán kết quả**. Vì vậy nhìn thấy các toán hạng có kiểu `Integer` không có nghĩa phép cộng tạo ra `Integer` hay phép cộng được thực hiện giữa các đối tượng.
+In an arithmetic operation, Java can perform a chain of steps: **unboxing → numeric promotion → computation → (if needed) boxing when assigning the result**. Therefore, seeing operands of type `Integer` does not mean addition produces an `Integer` or that addition happens directly between objects.
 
-Ví dụ trực tiếp:
+Direct example:
 
 ```java
 Integer left = 7;
 Integer right = 5;
 
-int sum = left + right;      // unbox cả hai, cộng int -> 12
-Integer boxedSum = left + right; // unbox, cộng int, boxing kết quả -> 12
+int sum = left + right;      // unbox both, int addition -> 12
+Integer boxedSum = left + right; // unbox, int addition, box result -> 12
 ```
 
-Nếu một wrapper bị unbox khi đang là `null`, Java ném **`NullPointerException` (NPE)**. Nó không tự coi `null` là 0, `false` hoặc một giá trị mặc định.
+If a wrapper is unboxed while it is `null`, Java throws **`NullPointerException` (NPE)**. It does not treat `null` as 0, `false`, or any default value.
 
-## 2. Nhận diện đúng kiểu primitive và lớp bao
+## 2. Identifying primitives and wrapper classes accurately
 
-| Primitive | Wrapper | Giá trị wrapper có thể là `null`? | Khi unbox |
+| Primitive | Wrapper | Can wrapper value be `null`? | When unboxed |
 |---|---|---|---|
-| `byte` | `Byte` | Có | `byteValue()` tương ứng |
-| `short` | `Short` | Có | `shortValue()` tương ứng |
-| `int` | `Integer` | Có | `intValue()` tương ứng |
-| `long` | `Long` | Có | `longValue()` tương ứng |
-| `float` | `Float` | Có | `floatValue()` tương ứng |
-| `double` | `Double` | Có | `doubleValue()` tương ứng |
-| `char` | `Character` | Có | `charValue()` tương ứng |
-| `boolean` | `Boolean` | Có | `booleanValue()` tương ứng |
+| `byte` | `Byte` | Yes | Corresponding `byteValue()` |
+| `short` | `Short` | Yes | Corresponding `shortValue()` |
+| `int` | `Integer` | Yes | Corresponding `intValue()` |
+| `long` | `Long` | Yes | Corresponding `longValue()` |
+| `float` | `Float` | Yes | Corresponding `floatValue()` |
+| `double` | `Double` | Yes | Corresponding `doubleValue()` |
+| `char` | `Character` | Yes | Corresponding `charValue()` |
+| `boolean` | `Boolean` | Yes | Corresponding `booleanValue()` |
 
-Cụm “tương ứng” là cách hình dung quá trình chuyển đổi; mã nguồn thường chỉ viết biểu thức tự nhiên, ví dụ `boxed + 1`. Java thực hiện chuyển đổi cần thiết theo quy tắc của ngữ cảnh.
+The phrase "corresponding" is a mental model for the conversion process; source code normally just writes natural expressions, such as `boxed + 1`. Java performs the necessary conversion according to the context's rules.
 
-Các tình huống wrapper hữu ích gồm kiểu tổng quát như `List<Integer>` (Java generics không nhận `List<int>`), API cho phép thiếu dữ liệu dưới dạng `null`, hoặc thư viện yêu cầu đối tượng. Khi thực hiện tính toán thuần túy và không cần khả năng `null`, primitive thường rõ ràng hơn.
+Situations where wrappers are useful include generic types such as `List<Integer>` (Java generics do not accept `List<int>`), APIs that allow missing data as `null`, or libraries requiring objects. When performing pure calculations without needing `null` capability, primitives are usually clearer.
 
-## 3. Unboxing trong phép cộng, trừ, nhân và chia
+## 3. Unboxing in addition, subtraction, multiplication, and division
 
-Khi toán tử số học yêu cầu kiểu số, wrapper được unbox trước. Với các kiểu tích phân, Java tiếp tục áp dụng **binary numeric promotion**:
+When an arithmetic operator requires a numeric type, wrappers are unboxed first. For integral types, Java then applies **binary numeric promotion**:
 
-- `Byte`, `Short` và `Character` sau unbox được nâng lên `int` khi dùng toán tử số học nhị phân.
-- `Integer` sau unbox thành `int`.
-- Nếu có toán hạng `Long` hoặc `long`, biểu thức tích phân dùng `long`.
-- Với `Float`/`Double` hoặc `float`/`double`, kết quả theo quy tắc thăng cấp số thực tương ứng.
+- `Byte`, `Short`, and `Character` after unboxing are promoted to `int` when used with binary arithmetic operators.
+- `Integer` after unboxing becomes `int`.
+- If there is a `Long` or `long` operand, the integral expression uses `long`.
+- With `Float`/`Double` or `float`/`double`, the result follows the corresponding floating-point promotion rules.
 
-Ví dụ:
+Example:
 
 ```java
 Integer a = 10;
@@ -74,14 +74,14 @@ long mixed = a + wide;     // long 12
 int promoted = small * 4;  // int 12
 ```
 
-Cách diễn giải `a + wide`:
+How to trace `a + wide`:
 
-1. `a` được unbox thành `int` 10.
-2. `wide` được unbox thành `long` 2.
-3. Thăng cấp `int` 10 thành `long` 10.
-4. Cộng `long`, cho **`long` 12**.
+1. `a` is unboxed to `int` 10.
+2. `wide` is unboxed to `long` 2.
+3. `int` 10 is promoted to `long` 10.
+4. `long` addition yields **`long` 12**.
 
-**Kiểu kết quả do toán tử và quy tắc thăng cấp quyết định**. Kiểu wrapper của biến nhận kết quả chỉ có thể khiến Java boxing **sau khi tính**:
+**The result type is determined by the operator and promotion rules**. The wrapper type of the receiving variable can only trigger boxing **after computation**:
 
 ```java
 Integer first = 10;
@@ -90,11 +90,11 @@ Integer result = first + second; // int + int -> int 30 -> Integer
 Long largeResult = first + 20L;  // int + long -> long 30 -> Long
 ```
 
-Phép cộng số nguyên vẫn có thể **tràn** giống primitive. `Integer.MAX_VALUE + 1` khi được tính bằng `int` vẫn thành `Integer.MIN_VALUE`; wrapper không làm tăng miền giá trị.
+Integer addition can still **overflow** just like with primitives. `Integer.MAX_VALUE + 1` computed in `int` still becomes `Integer.MIN_VALUE`; wrappers do not expand value ranges.
 
-## 4. Chương trình Java 17+: nhìn thấy kiểu và NPE
+## 4. Java 17+ program: seeing types and NPE
 
-Lưu thành `UnboxingArithmeticDemo.java`:
+Save as `UnboxingArithmeticDemo.java`:
 
 ```java
 public class UnboxingArithmeticDemo {
@@ -139,14 +139,14 @@ public class UnboxingArithmeticDemo {
 }
 ```
 
-Chạy trên Java 17+:
+Run on Java 17+:
 
 ```bash
 javac UnboxingArithmeticDemo.java
 java UnboxingArithmeticDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 int addition: 9
@@ -160,87 +160,87 @@ arithmetic: NullPointerException
 increment: NullPointerException
 ```
 
-Hai overload của `typeOf` là công cụ minh họa **kiểu của biểu thức tại lúc biên dịch**. Với `count + 2`, Java chọn overload `int`; với `count + increment`, Java chọn `long`.
+The two `typeOf` overloads serve as a tool to demonstrate the **compile-time type of the expression**. For `count + 2`, Java picks the `int` overload; for `count + increment`, Java picks `long`.
 
-Một điểm đáng chú ý: `"string concat: " + nullable` là **nối chuỗi**, nên giá trị tham chiếu `null` được biểu diễn bằng văn bản `"null"`. Ngược lại, `nullable + 1` cần lấy giá trị số, dẫn đến unboxing và NPE. Hai biểu thức cùng dùng `+` nhưng thuộc **hai ngữ cảnh khác nhau**.
+One notable point: `"string concat: " + nullable` is **string concatenation**, so the `null` reference value is represented by the text `"null"`. Conversely, `nullable + 1` needs a numeric value, leading to unboxing and NPE. Both expressions use `+` yet belong to **two different contexts**.
 
-## 5. Phép gán và phép gán kết hợp
+## 5. Assignment and compound assignment
 
-### 5.1. Gán primitive từ wrapper
+### 5.1. Assigning a primitive from a wrapper
 
 ```java
 Integer boxed = 42;
 int number = boxed; // unboxing
 ```
 
-Nếu `boxed == null`, phép gán trên sẽ ném NPE. Nếu muốn mặc định 0 khi thiếu giá trị:
+If `boxed == null`, the assignment above throws NPE. If you want to default to 0 when the value is missing:
 
 ```java
 Integer boxed = null;
 int number = boxed != null ? boxed : 0; // 0
 ```
 
-Biểu thức điều kiện chỉ đánh giá nhánh được chọn. Ở đây nhánh `boxed` chỉ được chọn khi khác `null`; do đó quá trình unboxing an toàn trong điều kiện này.
+The conditional expression evaluates only the selected branch. Here the `boxed` branch is chosen only when non-`null`; therefore unboxing is safe under this condition.
 
-### 5.2. `+=`, `-=`, `*=` và `++` cũng có thể unbox
+### 5.2. `+=`, `-=`, `*=`, and `++` can also unbox
 
 ```java
 Integer count = 10;
-count += 5; // unboxing -> cộng int -> boxing, count = 15
-count++;    // unboxing -> tăng int -> boxing, count = 16
+count += 5; // unboxing -> int addition -> boxing, count = 15
+count++;    // unboxing -> int increment -> boxing, count = 16
 ```
 
-`Integer` là **đối tượng bất biến** (*immutable*). Các phép cập nhật trên biến wrapper không sửa giá trị bên trong cùng đối tượng; Java tính một giá trị primitive rồi gán lại tham chiếu wrapper phù hợp.
+`Integer` is an **immutable object**. Update operations on a wrapper variable do not mutate the value inside the same object; Java computes a primitive value and reassigns an appropriate wrapper reference.
 
-Nếu `count` đang là `null` thì `count += 5` hoặc `count++` cần unboxing và ném NPE. Không thể dựa vào cú pháp `+=` để suy ra null được coi là 0.
+If `count` is `null`, then `count += 5` or `count++` requires unboxing and throws NPE. You cannot rely on `+=` syntax to treat null as 0.
 
-### 5.3. Gán kết quả sang kiểu wrapper khác cần đúng quy tắc chuyển đổi
+### 5.3. Assigning the result to another wrapper type must follow conversion rules
 
 ```java
 Integer a = 10;
 Long b = 20L;
 
-Long total = a + b; // hợp lệ: long 30 -> Long
-// Long invalid = a + a; // lỗi biên dịch: int -> Long không phải chuỗi chuyển đổi gán này
-long primitiveTotal = a + a; // hợp lệ: int 20 -> long
+Long total = a + b; // valid: long 30 -> Long
+// Long invalid = a + a; // compile error: int -> Long is not a valid assignment conversion chain
+long primitiveTotal = a + a; // valid: int 20 -> long
 ```
 
-Dòng comment minh họa một giới hạn: Java không tự kết hợp **mở rộng primitive `int` thành `long` rồi boxing thành `Long`** trong phép gán thông thường từ biểu thức `int`. Nếu cần `Long`, hãy thực hiện phép toán kiểu `long`, ví dụ `Long total = (long) a + a;`.
+The commented line illustrates a limitation: Java does not automatically combine **widening primitive `int` to `long` and then boxing to `Long`** in an ordinary assignment from an `int` expression. If a `Long` is needed, perform the operation in `long`, e.g., `Long total = (long) a + a;`.
 
-## 6. So sánh: khi nào `==` unbox, khi nào so tham chiếu?
+## 6. Comparisons: when does `==` unbox, and when does it compare references?
 
-Toán tử `==` có những quy tắc khác nhau tùy kiểu toán hạng.
+The `==` operator has different rules depending on operand types.
 
-### 6.1. Wrapper so với primitive số: có unboxing
+### 6.1. Wrapper compared to a numeric primitive: unboxing occurs
 
 ```java
 Integer boxed = 10;
-boolean equal = boxed == 10; // true, boxed được unbox
+boolean equal = boxed == 10; // true, boxed is unboxed
 ```
 
-Nếu `boxed` là `null`, biểu thức `boxed == 10` có thể ném NPE vì phải unbox trước khi so sánh số.
+If `boxed` is `null`, the expression `boxed == 10` can throw NPE because it must unbox before the numeric comparison.
 
 ```java
 Integer boxed = null;
-boolean isMissing = boxed == null; // true, so sánh tham chiếu, an toàn
-// boolean zero = boxed == 0;     // khi chạy sẽ ném NullPointerException
+boolean isMissing = boxed == null; // true, reference comparison, safe
+// boolean zero = boxed == 0;     // throws NullPointerException at runtime
 ```
 
-**`boxed == null` không unbox**, vì đang so sánh tham chiếu với `null`. Đó là cách kiểm tra thiếu dữ liệu hợp lệ.
+**`boxed == null` does not unbox**, because it is comparing a reference with `null`. That is a valid way to check for missing data.
 
-### 6.2. Hai wrapper cùng kiểu: có thể so tham chiếu
+### 6.2. Two wrappers of the same type: compares references
 
 ```java
 Integer a = Integer.valueOf(200);
 Integer b = Integer.valueOf(200);
 
-boolean sameReference = a == b; // so tham chiếu; đừng dựa vào true/false
+boolean sameReference = a == b; // reference comparison; do not rely on true/false
 boolean sameValue = a.equals(b); // true
 ```
 
-Khi hai toán hạng đều là `Integer`, `==` kiểm tra **có cùng đối tượng không**. Việc wrapper có thể tái sử dụng đối tượng qua cache khiến `==` đôi khi trả `true` cho cùng giá trị; **đó không phải quy tắc so sánh giá trị đáng tin cậy**.
+When both operands are `Integer`, `==` checks **whether they are the same object**. Because wrappers can reuse cached objects, `==` sometimes returns `true` for equal values; **that is not a reliable rule for value comparison**.
 
-Dùng `a.equals(b)` để so giá trị khi chắc `a` khác `null`, hoặc `java.util.Objects.equals(a, b)` khi một hay cả hai có thể là `null`:
+Use `a.equals(b)` for value comparison when `a` is known to be non-`null`, or `java.util.Objects.equals(a, b)` when one or both may be `null`:
 
 ```java
 Integer a = null;
@@ -250,11 +250,11 @@ System.out.println(java.util.Objects.equals(a, b)); // true
 System.out.println(java.util.Objects.equals(a, 0)); // false
 ```
 
-Ngoài ra, so hai wrapper **khác kiểu** như `Integer` và `Long` có những hạn chế về khả năng so sánh tham chiếu trong biểu thức `==`. Khi mục tiêu là so giá trị số, hãy xác định kiểu số mong muốn và chuyển đổi có kiểm tra, thay vì kỳ vọng `==` tự so mọi loại wrapper theo giá trị.
+Furthermore, comparing two wrappers of **different types** such as `Integer` and `Long` has restrictions on reference comparability in `==` expressions. When the goal is comparing numeric values, decide the intended numeric type and convert explicitly with checks, instead of expecting `==` to compare all wrapper types by value.
 
-### 6.3. So sánh quan hệ `<`, `>`, `<=`, `>=`
+### 6.3. Relational comparisons `<`, `>`, `<=`, `>=`
 
-Các toán tử quan hệ yêu cầu giá trị số nên wrapper số bị unbox:
+Relational operators require numeric values, so numeric wrappers are unboxed:
 
 ```java
 Integer min = 3;
@@ -263,11 +263,11 @@ Long max = 7L;
 System.out.println(min < max); // true
 ```
 
-Nếu một toán hạng cần unbox mà là `null`, Java ném NPE. Cách an toàn là kiểm tra null trước hoặc thiết lập chính sách mặc định/từ chối dữ liệu thiếu.
+If an operand needing unboxing is `null`, Java throws NPE. The safe approach is checking for null first or establishing a default/rejection policy for missing data.
 
-## 7. `Boolean` trong điều kiện và toán tử logic
+## 7. `Boolean` in conditions and logical operators
 
-Wrapper `Boolean` có thể mang ba trạng thái ở mức tham chiếu: `Boolean.TRUE`, `Boolean.FALSE`, và `null`. Nhưng một điều kiện `if` hay vòng lặp `while` cần **giá trị primitive `boolean`**.
+The `Boolean` wrapper can represent three states at the reference level: `Boolean.TRUE`, `Boolean.FALSE`, and `null`. However, an `if` condition or `while` loop requires a **primitive `boolean` value**.
 
 ```java
 Boolean enabled = Boolean.TRUE;
@@ -276,9 +276,9 @@ if (enabled) { // unbox Boolean -> boolean
 }
 ```
 
-Nếu `enabled == null`, `if (enabled)` ném NPE.
+If `enabled == null`, `if (enabled)` throws NPE.
 
-Tương tự, các toán tử `!`, `&&`, `||` khi cần giá trị `boolean` cũng có thể unbox wrapper:
+Similarly, the operators `!`, `&&`, and `||` when needing a `boolean` value can also unbox wrappers:
 
 ```java
 Boolean flag = null;
@@ -286,24 +286,24 @@ Boolean flag = null;
 // boolean result = flag && true; // NullPointerException
 ```
 
-### Kiểm tra null bằng short-circuit
+### Null checking with short-circuiting
 
-Toán tử `&&` và `||` có **short-circuit**: nhánh bên phải chỉ được đánh giá khi cần.
+The `&&` and `||` operators **short-circuit**: the right branch is evaluated only when needed.
 
 ```java
 Boolean flag = null;
 
-boolean safeEnabled = flag != null && flag; // false, không unbox null
+boolean safeEnabled = flag != null && flag; // false, does not unbox null
 boolean alsoSafe = Boolean.TRUE.equals(flag); // false
 ```
 
-Với `flag != null && flag`, vế trái sai nên vế phải không được đánh giá. Với `Boolean.TRUE.equals(flag)`, phương thức của đối tượng `Boolean.TRUE` không bị gọi trên null; nó trả false nếu flag null.
+With `flag != null && flag`, the left side is false, so the right side is not evaluated. With `Boolean.TRUE.equals(flag)`, the method is called on the `Boolean.TRUE` object rather than on null; it returns false if flag is null.
 
-Hai cách biểu đạt chính sách khác nhau tùy ứng dụng: coi null là false có thể hợp lý với cờ tùy chọn, nhưng **không** nên mặc định null thành false khi null có nghĩa “chưa xác minh”, “chưa nhập” hoặc “không biết”. Trong trường hợp đó, hãy xử lý trạng thái thiếu dữ liệu một cách tường minh.
+The two ways express different application policies: treating null as false can make sense for optional flags, but **never** default null to false when null means "unverified", "not entered", or "unknown". In such cases, handle the missing-data state explicitly.
 
-## 8. Chương trình Java 17+: so sánh và điều kiện null-safe
+## 8. Java 17+ program: null-safe comparisons and conditions
 
-Lưu tệp `UnboxingConditionsDemo.java`:
+Save the file `UnboxingConditionsDemo.java`:
 
 ```java
 import java.util.Objects;
@@ -342,14 +342,14 @@ public class UnboxingConditionsDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac UnboxingConditionsDemo.java
 java UnboxingConditionsDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 enabled == null: true
@@ -362,38 +362,38 @@ boolean unboxing: NullPointerException
 numeric comparison: NullPointerException
 ```
 
-Ở hai biểu thức `enabled != null && enabled` và `limit != null && limit > 0`, Java dừng tại vế trái khi kết quả false, nên **tránh được unboxing của null**. Còn `boolean active = enabled` và `limit > 0` bắt buộc lấy giá trị primitive nên NPE là kết quả đúng theo quy tắc ngôn ngữ.
+In both `enabled != null && enabled` and `limit != null && limit > 0`, Java stops at the left-hand side when it evaluates to false, thereby **avoiding unboxing null**. Meanwhile, `boolean active = enabled` and `limit > 0` require a primitive value, so NPE is the expected outcome per language rules.
 
-## 9. Toán tử ba ngôi `?:` và unboxing ẩn
+## 9. Ternary operator `?:` and hidden unboxing
 
-Biểu thức điều kiện dạng `condition ? left : right` là một nơi rất dễ bỏ sót việc chuyển đổi kiểu.
+A conditional expression of the form `condition ? left : right` is a place where type conversions are very easy to overlook.
 
-Trong Java, **chỉ một trong hai nhánh `left` hoặc `right` được đánh giá**; tuy nhiên kiểu của toàn biểu thức được xác định theo quy tắc kiểu của toán tử điều kiện khi biên dịch. Nếu quy tắc kiểu yêu cầu primitive, **nhánh wrapper được chọn có thể bị unbox**.
+In Java, **only one of `left` or `right` is evaluated**; however, the type of the whole expression is determined by the conditional operator's typing rules at compile time. If the typing rule requires a primitive, **the chosen wrapper branch can be unboxed**.
 
-Ví dụ:
+Example:
 
 ```java
 Integer maybe = null;
 
-int safe = maybe != null ? maybe : 0; // 0; nhánh null không được chọn
-int chosen = true ? 7 : maybe;       // 7; nhánh maybe không được đánh giá
-// int bad = false ? 7 : maybe;       // sẽ ném NullPointerException
+int safe = maybe != null ? maybe : 0; // 0; null branch is not chosen
+int chosen = true ? 7 : maybe;       // 7; maybe branch is not evaluated
+// int bad = false ? 7 : maybe;       // will throw NullPointerException
 ```
 
-Không nên dựa vào khả năng “nhánh này thường không chạy” để bỏ qua chính sách null. Khi điều kiện thay đổi ở runtime, một nhánh chứa wrapper null có thể trở thành nhánh được chọn.
+Do not rely on "this branch usually doesn't run" to skip a null policy. When conditions change at runtime, a branch holding a null wrapper can become the chosen branch.
 
-Mã rõ ràng hơn cho dữ liệu có thể thiếu:
+Clearer code for potentially missing data:
 
 ```java
 Integer value = null;
 int effective = value == null ? 0 : value;
 ```
 
-Nếu null là lỗi nghiệp vụ, thay vì mặc định 0, hãy kiểm tra và báo lỗi rõ ràng trước khi thực hiện phép toán.
+If null is a business error, rather than defaulting to 0, validate and report an explicit error before performing operations.
 
-## 10. Wrapper với nối chuỗi: trường hợp `+` không unbox
+## 10. Wrappers with string concatenation: when `+` does not unbox
 
-Toán tử `+` vừa là phép cộng số học, vừa là phép nối chuỗi. Khi **một toán hạng là `String`**, Java nối biểu diễn văn bản của toán hạng còn lại:
+The `+` operator is both arithmetic addition and string concatenation. When **one operand is `String`**, Java concatenates the textual representation of the other operand:
 
 ```java
 Integer count = null;
@@ -401,9 +401,9 @@ Integer count = null;
 String message = "count=" + count; // "count=null"
 ```
 
-Biến `count` vẫn là `null`; Java chỉ sinh văn bản `"null"` để nối chuỗi. Nó **không** thực hiện unboxing để cộng số.
+The variable `count` remains `null`; Java simply produces the text `"null"` for concatenation. It **does not** unbox to add numbers.
 
-Sự khác biệt xuất hiện khi có dấu ngoặc:
+The difference appears when parentheses are present:
 
 ```java
 Integer a = 2;
@@ -413,16 +413,16 @@ String first = "sum=" + a + b;     // "sum=23"
 String second = "sum=" + (a + b); // "sum=5"
 ```
 
-- `first`: phép `"sum=" + a` đã là nối chuỗi, phép `+ b` tiếp tục nối.
-- `second`: dấu ngoặc buộc `a + b` chạy bằng **phép cộng số**, unbox hai wrapper, cho `int` 5; sau đó mới nối chuỗi.
+- `first`: `"sum=" + a` is already string concatenation, and `+ b` continues concatenating.
+- `second`: parentheses force `a + b` to run as **numeric addition**, unboxing both wrappers to yield `int` 5; only then does string concatenation occur.
 
-Với `Integer a = null`, `"sum=" + a` cho `"sum=null"` nhưng `"sum=" + (a + 1)` ném NPE do phép cộng trong ngoặc cần unboxing.
+With `Integer a = null`, `"sum=" + a` produces `"sum=null"`, whereas `"sum=" + (a + 1)` throws NPE because the addition inside parentheses requires unboxing.
 
-**Lưu ý:** đừng kết luận phép nối với mọi loại đối tượng đều an toàn tuyệt đối; một `toString()` do ứng dụng tự viết vẫn có thể ném ngoại lệ. Với wrapper null, hành vi nối ra văn bản `"null"` là quy tắc đơn giản và ổn định.
+**Note:** do not assume concatenation with every kind of object is completely safe; a custom `toString()` written by an application can still throw an exception. For null wrappers, concatenating as `"null"` is a simple and consistent rule.
 
-## 11. Unboxing trong Collections, Stream và API tổng hợp
+## 11. Unboxing in Collections, Streams, and aggregate APIs
 
-Java generics yêu cầu các tham số kiểu là **reference type**. Vì vậy dùng `List<Integer>`, không dùng `List<int>`:
+Java generics require type arguments to be **reference types**. Therefore you use `List<Integer>`, not `List<int>`:
 
 ```java
 java.util.List<Integer> values = java.util.Arrays.asList(1, 2, 3);
@@ -433,13 +433,13 @@ for (Integer value : values) {
 }
 ```
 
-Danh sách có thể chứa `null` nếu API cho phép, khi đó phép cộng trong vòng lặp ném NPE. Điều tương tự xảy ra ở các API cần primitive:
+A list can contain `null` if the API permits it, in which case the addition in the loop throws NPE. The same happens in APIs expecting primitives:
 
 ```java
 // values.stream().mapToInt(Integer::intValue).sum()
 ```
 
-`Integer::intValue` cần được gọi trên từng phần tử; nếu có phần tử null, lời gọi gặp NPE. Có thể **lọc null** trước khi chuyển:
+`Integer::intValue` must be called on each element; if there is a null element, the call hits NPE. You can **filter out nulls** before converting:
 
 ```java
 int sum = values.stream()
@@ -448,11 +448,11 @@ int sum = values.stream()
         .sum();
 ```
 
-Cách này ngầm áp dụng chính sách “bỏ qua các phần tử null”. Nếu null biểu thị dữ liệu bị lỗi hoặc cần được ghi nhận, hãy thay bằng kiểm tra tường minh thay vì âm thầm loại bỏ.
+This implicitly applies a "skip null elements" policy. If null indicates corrupted data or must be recorded, replace silent filtering with explicit validation.
 
-### Ví dụ runnable với danh sách chứa null
+### Runnable example with a list containing null
 
-Tạo file `UnboxingCollectionDemo.java`:
+Create the file `UnboxingCollectionDemo.java`:
 
 ```java
 import java.util.Arrays;
@@ -481,25 +481,25 @@ public class UnboxingCollectionDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac UnboxingCollectionDemo.java
 java UnboxingCollectionDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 filtered sum: 4
 raw stream: NullPointerException
 ```
 
-Đây là ví dụ về **hành vi thực tế của giá trị null trong pipeline**, không có nghĩa `Stream<Integer>` tự động loại bỏ null hay tự nhận giá trị 0.
+This is an example of the **actual behavior of null values in a pipeline**; it does not mean `Stream<Integer>` automatically removes nulls or defaults them to 0.
 
-## 12. Unboxing không bảo vệ khỏi tràn số và phép chia cho 0
+## 12. Unboxing does not protect against overflow or division by zero
 
-Sau unboxing, các phép toán primitive áp dụng quy tắc bình thường:
+After unboxing, primitive operations follow normal rules:
 
 ```java
 Integer max = Integer.MAX_VALUE;
@@ -510,37 +510,37 @@ Integer denominator = 0;
 // int q = numerator / denominator; // ArithmeticException: / by zero
 ```
 
-Ở dòng cộng, kết quả vẫn tràn theo miền `int`. Ở phép chia, các wrapper được unbox thành số nguyên trước; phép chia cho 0 ném `ArithmeticException`, **không** phải lỗi của boxing/unboxing.
+In the addition line, the result still overflows within the `int` range. In division, wrappers are unboxed to integers first; division by zero throws `ArithmeticException`, which is **not** a boxing/unboxing error.
 
-Nếu mẫu dữ liệu cho phép null, ba tình huống cần phân biệt:
+If the data model allows null, three cases must be distinguished:
 
-1. **Wrapper null** khi cần unbox → `NullPointerException`.
-2. **Số chia bằng 0** sau unbox → `ArithmeticException` đối với phép chia nguyên.
-3. **Giá trị vượt miền** khi cộng/trừ/nhân số nguyên bình thường → thường không tự ném ngoại lệ mà cho kết quả theo độ rộng số nguyên.
+1. **Null wrapper** when unboxing is needed → `NullPointerException`.
+2. **Zero divisor** after unboxing → `ArithmeticException` for integer division.
+3. **Out-of-range value** in normal integer addition/subtraction/multiplication → normally does not throw an exception automatically and wraps according to integer width.
 
-Khi tràn là lỗi nghiệp vụ, chọn API kiểm tra như `Math.addExact`, `Math.multiplyExact`; chúng vẫn không thay thế bước kiểm tra null nếu đầu vào là wrapper.
+When overflow is a business error, choose checked APIs like `Math.addExact` and `Math.multiplyExact`; they still do not replace null checks if the inputs are wrappers.
 
-## 13. Thiết kế API an toàn với wrapper nullable
+## 13. Designing null-safe APIs with nullable wrappers
 
-Trước khi xử lý, cần quyết định rõ **null có nghĩa gì**:
+Before processing, explicitly decide **what null means**:
 
-- **Bắt buộc phải có số:** kiểm tra null và báo lỗi với thông điệp hữu ích, trước khi unbox.
-- **Null có nghĩa “mặc định 0”:** chuyển thành primitive 0 bằng biểu thức có kiểm tra.
-- **Null có nghĩa “chưa biết”:** lưu trạng thái thiếu và xử lý riêng, không biến thành 0.
-- **Một dãy cho phép bỏ giá trị null:** lọc null có chủ đích, đồng thời bảo đảm điều đó phù hợp yêu cầu.
+- **Number is required:** check for null and report an error with a helpful message before unboxing.
+- **Null means "default 0":** convert to primitive 0 using a checked expression.
+- **Null means "unknown":** preserve the missing state and handle it separately rather than turning it into 0.
+- **A sequence allows skipping null values:** filter nulls intentionally, while ensuring that matches requirements.
 
-Ví dụ phương thức yêu cầu giá trị:
+Example method requiring a value:
 
 ```java
 static int requireQuantity(Integer quantity) {
     if (quantity == null) {
         throw new IllegalArgumentException("quantity is required");
     }
-    return quantity; // unboxing an toàn sau khi kiểm tra
+    return quantity; // safe unboxing after check
 }
 ```
 
-Và ví dụ mặc định bằng 0:
+And example defaulting to 0:
 
 ```java
 static int quantityOrZero(Integer quantity) {
@@ -548,21 +548,21 @@ static int quantityOrZero(Integer quantity) {
 }
 ```
 
-Các đoạn trên là **phương thức minh họa**, cần được đặt trong một class mới tạo thành mã chạy độc lập. Chọn phương thức theo hợp đồng API chứ không đặt mặc định 0 ở mọi nơi: thiếu dữ liệu và dữ liệu thật bằng 0 có thể mang ý nghĩa khác nhau.
+The snippets above are **illustrative methods**, which need to be placed inside a class to form standalone runnable code. Choose the method based on the API contract rather than defaulting to 0 everywhere: missing data and actual zero values can carry different meanings.
 
-Với `Boolean` nullable, cách viết `Boolean.TRUE.equals(flag)` đặc biệt dễ đọc khi chính sách là **chỉ trạng thái true mới được tính là bật**. Nếu cần ba trạng thái true/false/unknown, nên giữ `Boolean` hoặc dùng kiểu miền dữ liệu tường minh thay vì ép mọi giá trị về primitive.
+With nullable `Boolean`, writing `Boolean.TRUE.equals(flag)` is especially readable when the policy is **only the true state counts as enabled**. If three states (true/false/unknown) are needed, keep `Boolean` or use an explicit domain type instead of forcing everything into a primitive.
 
-### Dùng `Objects.requireNonNull` khi null là lỗi
+### Use `Objects.requireNonNull` when null is an error
 
-`java.util.Objects.requireNonNull(quantity, "quantity is required")` có thể kiểm tra không-null ở ranh giới API và ném NPE với thông báo rõ ràng. Sau khi kiểm tra, unboxing từ wrapper đã được xác nhận hợp lệ.
+`java.util.Objects.requireNonNull(quantity, "quantity is required")` can validate non-null at the API boundary and throw NPE with a clear message. After the check, unboxing from the wrapper is confirmed valid.
 
-Những phương thức như `Objects.equals(a, b)` phục vụ **so sánh đối tượng null-safe**, không phải phương thức tự động chuyển wrapper null thành số 0.
+Methods like `Objects.equals(a, b)` serve **null-safe object equality**, not automatically converting null wrappers into 0.
 
-## 14. Hiệu năng và tính rõ ràng
+## 14. Performance and clarity
 
-Autoboxing và unboxing giúp mã Java gọn, nhưng mỗi lần chuyển có thể liên quan đến hoạt động đối tượng, sự kiện null hoặc bộ nhớ/cấp phát tùy ngữ cảnh và tối ưu JVM.
+Autoboxing and unboxing keep Java code concise, but each conversion can involve object operations, null checks, or memory/allocation depending on context and JVM optimizations.
 
-Với vòng lặp tính toán lớn, `int`, `long` và các mảng primitive thường phù hợp nếu không cần nullable hoặc generics:
+For heavy calculation loops, `int`, `long`, and primitive arrays are usually suitable when nullability or generics are unnecessary:
 
 ```java
 long total = 0;
@@ -573,72 +573,72 @@ for (int number : numbers) {
 }
 ```
 
-Điều này không có nghĩa phải thay mọi `List<Integer>` bằng mảng primitive. Hãy chọn kiểu theo tính đúng đắn và ràng buộc API; cân nhắc hiệu năng khi đo được vấn đề thực tế.
+This does not mean replacing every `List<Integer>` with a primitive array. Choose types for correctness and API constraints; evaluate performance when an actual issue is measured.
 
-Một lỗi thiết kế dễ gặp là dùng wrapper nullable trong mã nghiệp vụ nhưng **không xác định chính sách null**. Hệ thống có thể vẫn chạy ở các ca thông thường, rồi ném NPE khi nhận giá trị thiếu từ database, JSON hoặc lời gọi API. Kiểm tra null tại ranh giới dữ liệu giúp đặt lỗi đúng nơi và dễ truy vết hơn.
+A common design mistake is using nullable wrappers in business code **without defining a null policy**. The system may work fine in normal cases, then throw NPE upon receiving missing values from a database, JSON, or API call. Checking null at data boundaries keeps errors localized and easier to trace.
 
-## 15. Các nhầm lẫn thường gặp
+## 15. Common misconceptions
 
-| Nhầm lẫn | Thực tế | Cách xử lý |
+| Misconception | Reality | How to handle |
 |---|---|---|
-| `Integer + Integer` trả `Integer` | Unbox rồi cộng `int`; kết quả biểu thức là `int` | Xác định kiểu của toán tử; boxing chỉ xảy ra sau nếu cần |
-| `Integer null + 1` tự xem null là 0 | Unbox null ném NPE | Kiểm tra/định nghĩa null trước khi cộng |
-| Gán sang `Integer` bảo vệ khỏi tràn | Phép cộng `int` vẫn có thể tràn | Dùng kiểu rộng, `Math.*Exact` khi phù hợp |
-| `Integer a == Integer b` luôn so giá trị | Với hai wrapper cùng kiểu, `==` có thể so tham chiếu | Dùng `equals` hoặc `Objects.equals` |
-| `Integer a == 0` luôn an toàn | Wrapper bị unbox; null gây NPE | Kiểm tra null trước khi so số |
-| `a == null` cũng unbox | So với null là so tham chiếu | Dùng được để phát hiện thiếu dữ liệu |
-| `Boolean flag` dùng trong `if` không cần kiểm tra | `if` cần primitive boolean, có unboxing | Dùng null-check hoặc `Boolean.TRUE.equals` |
-| `"value=" + nullable` luôn unbox | Đây là nối chuỗi và có thể hiển thị `null` | Phân biệt nối chuỗi với cộng số |
-| `List<Integer>` không thể có null | List có thể chứa null tùy API | Kiểm tra trước phép cộng hoặc mapping primitive |
-| `count++` trên `Integer` sửa cùng object | Unbox, tính primitive, boxing rồi gán lại | Hiểu tính bất biến của wrapper |
-| `int` → `Long` tự chuyển mọi bước | Không có chuỗi widening primitive rồi boxing trong phép gán này | Tạo biểu thức `long` trước khi boxing |
+| `Integer + Integer` returns `Integer` | Unboxes then performs `int` addition; expression type is `int` | Identify the operator's type; boxing happens afterward only if needed |
+| `Integer null + 1` treats null as 0 | Unboxing null throws NPE | Check/define null handling before adding |
+| Assigning to `Integer` prevents overflow | `int` addition can still overflow | Use wide types or `Math.*Exact` when appropriate |
+| `Integer a == Integer b` always compares values | With two wrappers of the same type, `==` compares references | Use `equals` or `Objects.equals` |
+| `Integer a == 0` is always safe | Wrapper is unboxed; null causes NPE | Check null before numeric comparison |
+| `a == null` also unboxes | Comparing against null is a reference comparison | Safe to use for detecting missing data |
+| Using `Boolean flag` in `if` needs no check | `if` requires primitive boolean, causing unboxing | Use null-check or `Boolean.TRUE.equals` |
+| `"value=" + nullable` always unboxes | This is string concatenation and can display `null` | Distinguish string concatenation from numeric addition |
+| `List<Integer>` cannot contain null | Lists can contain null depending on API | Check before adding or mapping to primitives |
+| `count++` on `Integer` mutates the same object | Unboxes, computes primitive, boxes, and reassigns | Remember wrapper immutability |
+| `int` → `Long` converts automatically in all steps | No combined primitive widening then boxing in this assignment | Create a `long` expression before boxing |
 
-## 16. Bài tập tự kiểm tra
+## 16. Self-check exercises
 
-**Câu 1.** Biểu thức `Integer a = 2; Integer b = 3; a + b` có kiểu gì?  
-**Đáp án:** `int`. Java unbox hai wrapper rồi cộng hai số nguyên primitive.
+**Question 1.** What is the type of `Integer a = 2; Integer b = 3; a + b`?  
+**Answer:** `int`. Java unboxes both wrappers and adds two primitive ints.
 
-**Câu 2.** Nếu `Integer x = null;`, `x == null` và `x == 0` khác nhau thế nào?  
-**Đáp án:** `x == null` trả true vì so tham chiếu; `x == 0` cần unbox và ném `NullPointerException`.
+**Question 2.** If `Integer x = null;`, how do `x == null` and `x == 0` differ?  
+**Answer:** `x == null` returns true because it compares references; `x == 0` requires unboxing and throws `NullPointerException`.
 
-**Câu 3.** Với `Integer x = null;`, `"x=" + x` cho gì?  
-**Đáp án:** Chuỗi `"x=null"` vì đây là nối chuỗi, không cần unbox số.
+**Question 3.** Given `Integer x = null;`, what does `"x=" + x` produce?  
+**Answer:** The string `"x=null"` because it is string concatenation, requiring no numeric unboxing.
 
-**Câu 4.** `Integer a = 2, b = 3;`: vì sao `"sum=" + a + b` khác `"sum=" + (a + b)`?  
-**Đáp án:** Dạng đầu nối hai biểu diễn văn bản, cho `"sum=23"`; dạng sau tính số `a + b` bằng unboxing trước, cho `"sum=5"`.
+**Question 4.** Given `Integer a = 2, b = 3;`: why does `"sum=" + a + b` differ from `"sum=" + (a + b)`?  
+**Answer:** The first concatenates two textual representations, giving `"sum=23"`; the second computes `a + b` numerically via unboxing first, giving `"sum=5"`.
 
-**Câu 5.** `Short s = 2; int value = s * 4;` có hợp lệ không?  
-**Đáp án:** Có. Unbox thành `short`, nâng lên `int` và nhân, cho 8.
+**Question 5.** Is `Short s = 2; int value = s * 4;` valid?  
+**Answer:** Yes. Unboxes to `short`, promotes to `int`, and multiplies, giving 8.
 
-**Câu 6.** `Boolean enabled = null; if (enabled) { ... }` có an toàn không?  
-**Đáp án:** Không. Điều kiện phải unbox `Boolean` thành `boolean` và ném NPE.
+**Question 6.** Is `Boolean enabled = null; if (enabled) { ... }` safe?  
+**Answer:** No. The condition must unbox `Boolean` to `boolean` and throws NPE.
 
-**Câu 7.** Cách nào an toàn nếu null được coi là false: `enabled != null && enabled` hay `Boolean.TRUE.equals(enabled)`?  
-**Đáp án:** Cả hai. Cách đầu dựa vào short-circuit; cách thứ hai so với đối tượng `Boolean.TRUE`.
+**Question 7.** Which is safer if null should be treated as false: `enabled != null && enabled` or `Boolean.TRUE.equals(enabled)`?  
+**Answer:** Both. The first relies on short-circuiting; the second compares against the `Boolean.TRUE` object.
 
-**Câu 8.** Tại sao `Integer count = 1; count++;` hợp lệ còn `count = null; count++;` gây NPE?  
-**Đáp án:** `++` trên wrapper cần unbox, cộng 1 và boxing lại. Khi count null, bước unbox thất bại.
+**Question 8.** Why is `Integer count = 1; count++;` valid while `count = null; count++;` causes NPE?  
+**Answer:** `++` on a wrapper requires unboxing, adding 1, and boxing back. When count is null, the unboxing step fails.
 
-**Câu 9.** Với `List<Integer> list = Arrays.asList(1, null, 3)`, lệnh `mapToInt(Integer::intValue)` có an toàn không?  
-**Đáp án:** Không nếu gặp null; có thể lọc `Objects::nonNull` nếu hợp đồng dữ liệu cho phép bỏ phần tử đó.
+**Question 9.** Given `List<Integer> list = Arrays.asList(1, null, 3)`, is `mapToInt(Integer::intValue)` safe?  
+**Answer:** No if it encounters null; you can filter with `Objects::nonNull` if the data contract allows skipping such elements.
 
-**Câu 10.** `Integer max = Integer.MAX_VALUE; int result = max + 1;` có ném NPE hoặc ArithmeticException không?  
-**Đáp án:** Không, vì max không null. Phép cộng `int` tràn và trả `Integer.MIN_VALUE`. Muốn phát hiện tràn dùng `Math.addExact`.
+**Question 10.** Does `Integer max = Integer.MAX_VALUE; int result = max + 1;` throw NPE or ArithmeticException?  
+**Answer:** No, because max is non-null. The `int` addition overflows and returns `Integer.MIN_VALUE`. To detect overflow, use `Math.addExact`.
 
-**Câu 11.** `Integer a = 10; Long b = 20L;` thì biểu thức `a + b` có kiểu gì?  
-**Đáp án:** `long`. Hai wrapper được unbox; `int` được nâng lên `long` trước phép cộng.
+**Question 11.** Given `Integer a = 10; Long b = 20L;`, what is the type of `a + b`?  
+**Answer:** `long`. Both wrappers are unboxed; `int` is promoted to `long` before addition.
 
-**Câu 12.** Muốn dùng `Long result` nhận tổng hai biến `Integer x, y` mà không mất quy tắc kiểu, nên làm gì?  
-**Đáp án:** Nếu đã xác nhận x và y không null, viết `Long result = (long) x + y;` để tính bằng `long` rồi boxing kết quả thành `Long`.
+**Question 12.** What should you do to receive the sum of two `Integer` variables `x, y` in `Long result` without violating typing rules?  
+**Answer:** Once x and y are confirmed non-null, write `Long result = (long) x + y;` to compute in `long` and then box the result to `Long`.
 
-## 17. Kết luận và tài liệu tham khảo
+## 17. Conclusion and references
 
-Unboxing là **chuyển wrapper về primitive do ngữ cảnh biểu thức yêu cầu**. Với phép cộng, trừ, nhân, chia, so sánh số, điều kiện `boolean` hoặc phép tăng/giảm, Java có thể unbox mà không có từ khóa cast hiển thị. Sau unboxing, **thăng cấp số học và quy tắc số nguyên primitive** tiếp tục quyết định kiểu, tràn số, chia cho 0 và kết quả.
+Unboxing is **converting a wrapper to its primitive when required by an expression context**. In addition, subtraction, multiplication, division, numeric comparisons, `boolean` conditions, or increment/decrement operations, Java can unbox without a visible cast keyword. After unboxing, **numeric promotion and primitive integer rules** continue to govern types, overflow, division by zero, and results.
 
-Ba nguyên tắc thực hành:
+Three practical principles:
 
-1. **Kiểm tra hoặc định nghĩa chính sách null** trước khi wrapper phải tham gia phép toán primitive.
-2. **Phân biệt nối chuỗi với cộng số và so tham chiếu với so giá trị**; cùng cú pháp `+` hoặc `==` có thể chịu quy tắc khác nhau.
-3. **Đừng nhầm boxing/unboxing với bảo vệ số học**; nếu cần chống tràn, vẫn phải tính bằng kiểu phù hợp hoặc dùng phép toán có kiểm tra.
+1. **Check or define a null policy** before wrappers participate in primitive operations.
+2. **Distinguish string concatenation from numeric addition, and reference equality from value equality**; the same syntax `+` or `==` can follow different rules.
+3. **Do not confuse boxing/unboxing with arithmetic protection**; if overflow prevention is needed, still compute with appropriate types or checked operations.
 
-Tham khảo chuẩn ngôn ngữ: [Java Language Specification — §5.1.8 Unboxing Conversion](https://docs.oracle.com/javase/specs/jls/se21/html/jls-5.html#jls-5.1.8), [§5.6 Numeric Contexts](https://docs.oracle.com/javase/specs/jls/se21/html/jls-5.html#jls-5.6), [§15.18 Additive Operators](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.18).
+Language specification references: [Java Language Specification — §5.1.8 Unboxing Conversion](https://docs.oracle.com/javase/specs/jls/se21/html/jls-5.html#jls-5.1.8), [§5.6 Numeric Contexts](https://docs.oracle.com/javase/specs/jls/se21/html/jls-5.html#jls-5.6), [§15.18 Additive Operators](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.18).

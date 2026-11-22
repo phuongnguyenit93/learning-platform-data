@@ -1,16 +1,16 @@
-# `Field.get()` trả về wrapper khi field có kiểu primitive
+# `Field.get()` returns a wrapper when the field has a primitive type
 
-## 1. Vấn đề: field là `int`, vì sao kết quả của `get()` là `Integer`?
+## 1. The problem: the field is `int`, why is the result of `get()` an `Integer`?
 
-Khi dùng Java Reflection để đọc một field, chữ ký API quan trọng nhất là:
+When using Java Reflection to read a field, the most important API signature is:
 
 ~~~java
 public Object get(Object obj) throws IllegalArgumentException, IllegalAccessException
 ~~~
 
-`Field.get(Object)` có kiểu trả về **`Object`**, trong khi Java có tám kiểu primitive (`boolean`, `byte`, `short`, `char`, `int`, `long`, `float`, `double`). Primitive không phải đối tượng, nên không thể trực tiếp là giá trị trả về kiểu `Object`. Vì vậy, nếu field được khai báo là primitive, Java đọc giá trị primitive rồi **boxing** thành một đối tượng của wrapper tương ứng.
+`Field.get(Object)` has a return type of **`Object`**, while Java has eight primitive types (`boolean`, `byte`, `short`, `char`, `int`, `long`, `float`, `double`). Primitives are not objects, so they cannot directly serve as an `Object` return value. Therefore, if a field is declared as primitive, Java reads the primitive value and **boxes** it into an object of the corresponding wrapper class.
 
-Ví dụ:
+Example:
 
 ~~~java
 class Counter {
@@ -20,27 +20,27 @@ class Counter {
 Counter counter = new Counter();
 java.lang.reflect.Field field = Counter.class.getField("count");
 
-Object result = field.get(counter);           // Integer chứa 42
+Object result = field.get(counter);           // Integer holding 42
 System.out.println(field.getType());          // int
 System.out.println(result.getClass());        // class java.lang.Integer
 int count = (Integer) result;                 // cast + unboxing
 ~~~
 
-Đoạn code trên là minh họa. `Field.getType()` trả về kiểu **khai báo trong class** (`int.class`), còn `result.getClass()` trả về class **của đối tượng được boxing** (`Integer.class`). Không có chuyện field ban đầu bị đổi từ `int` sang `Integer` trong đối tượng `Counter`.
+The code above is illustrative. `Field.getType()` returns the type **declared in the class** (`int.class`), while `result.getClass()` returns the class **of the boxed object** (`Integer.class`). The original field is not changed from `int` to `Integer` inside the `Counter` object.
 
-Tư duy đúng là:
+The right mental model is:
 
 ~~~text
-Field khai báo int -> đọc giá trị int -> boxing thành Integer -> trả về Object
-                                               |
-                              getType() vẫn là int.class
+Field declared as int -> read int value -> box into Integer -> return Object
+                                              |
+                             getType() is still int.class
 ~~~
 
-Với field kiểu tham chiếu, `get()` trả về chính giá trị tham chiếu hiện tại (hoặc `null`), không tạo thêm wrapper chỉ vì kiểu trả về của phương thức là `Object`.
+For reference-type fields, `get()` returns the current reference value itself (or `null`), without creating any extra wrapper just because the method's return type is `Object`.
 
-## 2. Bảng ánh xạ primitive và wrapper
+## 2. Primitive-to-wrapper mapping table
 
-| Kiểu khai báo của field | Đối tượng do `Field.get()` trả về khi field primitive |
+| Field's declared type | Object returned by `Field.get()` when field is primitive |
 | --- | --- |
 | `boolean` | `Boolean` |
 | `byte` | `Byte` |
@@ -51,18 +51,18 @@ Với field kiểu tham chiếu, `get()` trả về chính giá trị tham chi�
 | `float` | `Float` |
 | `double` | `Double` |
 
-Đây là ánh xạ kiểu, không phải việc mọi lần gọi đều bắt buộc tạo đối tượng wrapper mới. Đừng dựa vào `==` giữa hai kết quả `Field.get()` để kiểm tra “có cùng giá trị primitive hay không”. Nếu cần so sánh dữ liệu, hãy unbox để dùng toán tử của primitive hoặc dùng phép so sánh giá trị phù hợp.
+This is a type mapping, not a guarantee that every call must allocate a new wrapper object. Do not rely on `==` between two `Field.get()` results to check "whether they have the same primitive value". If you need to compare data, unbox to use primitive operators or use appropriate value comparison.
 
-Một số điểm cần phân biệt:
+Some points to distinguish:
 
-- Field `int number` luôn lưu giá trị primitive `int`; `Field.get` biểu diễn kết quả bằng `Integer`. Primitive field không thể mang `null`.
-- Field `Integer number` vốn là **kiểu tham chiếu**. `Field.get` trả chính tham chiếu `Integer` hoặc `null` đang có; bản thân field không phải primitive.
-- Field `String name` cho ra `String`, không phải một “wrapper của String”.
-- Field `int[] numbers` là **kiểu mảng tham chiếu**. `Field.get` trả về đối tượng `int[]`; nó không tự boxing từng phần tử thành `Integer[]`. Muốn lấy riêng một phần tử qua Reflection, xem `java.lang.reflect.Array.get`; với phần tử primitive, thao tác đó cũng biểu diễn giá trị bằng wrapper.
+- An `int number` field always stores a primitive `int` value; `Field.get` represents the result as `Integer`. A primitive field cannot hold `null`.
+- An `Integer number` field is already a **reference type**. `Field.get` returns the existing `Integer` reference or `null`; the field itself is not primitive.
+- A `String name` field yields a `String`, not a "wrapper of String".
+- An `int[] numbers` field is a **reference array type**. `Field.get` returns the `int[]` object; it does not automatically box each element into `Integer[]`. To retrieve a single element via Reflection, see `java.lang.reflect.Array.get`; for primitive elements, that operation also represents the value using a wrapper.
 
-## 3. Ví dụ Java 17+ có thể biên dịch/chạy
+## 3. Compilable and runnable Java 17+ example
 
-Tạo file `FieldGetBoxingDemo.java`:
+Create file `FieldGetBoxingDemo.java`:
 
 ~~~java
 import java.lang.reflect.Field;
@@ -131,14 +131,14 @@ public class FieldGetBoxingDemo {
 }
 ~~~
 
-Biên dịch và chạy từ thư mục chứa file:
+Compile and run from the directory containing the file:
 
 ~~~bash
 javac --release 17 FieldGetBoxingDemo.java
 java FieldGetBoxingDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 field type: int
@@ -157,20 +157,20 @@ getInt from long: IllegalArgumentException
 getInt from Integer: IllegalArgumentException
 ~~~
 
-### Giải thích kết quả
+### Output explanation
 
-1. `count` được **khai báo** kiểu `int`, nên `count.getType().getName()` là `"int"`. Sau `count.get(data)`, biến `value` giữ tham chiếu đến `Integer` chứa 42, vì `get` bắt buộc trả `Object`.
-2. `(Integer) value + 1` gồm phép cast sang `Integer`, sau đó **auto-unboxing** khi thực hiện phép cộng, kết quả là 43. Không nên cast trực tiếp `(int) value` trong code cần tương thích/tường minh vì kiểu tĩnh của `value` là `Object` và cần đảm bảo giá trị là wrapper phù hợp; cách dễ hiểu là `((Integer) value).intValue()` hoặc `int n = (Integer) value;`.
-3. `getInt(data)` là API chuyên biệt trả về trực tiếp `int`. `getLong(data)` cũng hợp lệ đối với field `int` vì Java cho phép **widening primitive conversion** từ `int` sang `long`.
-4. `enabled`, `letter`, `large`, `factor` được khai báo lần lượt `boolean`, `char`, `long`, `double`. `Field.get` cho về `Boolean`, `Character`, `Long`, `Double`; field static `factor` không cần một instance để đọc nên gọi `get(null)`.
-5. `nullable` là field tham chiếu kiểu `Integer` có giá trị `null`; `get` trả `null`, không tự cung cấp số 0 hay sinh một wrapper. `label` là field tham chiếu kiểu `String`, kết quả thực sự là `String`.
-6. `getInt` không chấp nhận đọc field `long` bằng cách thu hẹp kiểu (`long` → `int`), nên báo `IllegalArgumentException`. Nó cũng không đọc được field **khai báo `Integer`**: đây là kiểu tham chiếu, không phải field primitive `int`. Nếu cần wrapper field, dùng `get` rồi kiểm tra/null-check và ép kiểu thích hợp.
+1. `count` is **declared** as type `int`, so `count.getType().getName()` is `"int"`. After `count.get(data)`, the `value` variable holds a reference to an `Integer` containing 42, because `get` must return `Object`.
+2. `(Integer) value + 1` consists of a cast to `Integer`, followed by **auto-unboxing** when performing addition, yielding 43. Do not cast directly as `(int) value` in code requiring compatibility/explicitness because `value`'s static type is `Object` and you must ensure the value is the right wrapper; clear alternatives are `((Integer) value).intValue()` or `int n = (Integer) value;`.
+3. `getInt(data)` is a specialized API returning `int` directly. `getLong(data)` is also valid for an `int` field because Java allows **widening primitive conversion** from `int` to `long`.
+4. `enabled`, `letter`, `large`, and `factor` are declared respectively as `boolean`, `char`, `long`, and `double`. `Field.get` returns `Boolean`, `Character`, `Long`, and `Double`; the static field `factor` does not need an instance to read, so `get(null)` is called.
+5. `nullable` is a reference field of type `Integer` with value `null`; `get` returns `null`, without supplying 0 or synthesizing a wrapper. `label` is a reference field of type `String`, so the actual result is `String`.
+6. `getInt` does not accept reading a `long` field by narrowing (`long` → `int`), so it throws `IllegalArgumentException`. It also cannot read a field **declared as `Integer`**: that is a reference type, not a primitive `int` field. If a wrapper field is needed, use `get` then check/null-check and cast appropriately.
 
-Ví dụ dùng các public field để tập trung vào quy tắc boxing. Với field private hoặc field thuộc module đóng, có thể cần xử lý quyền truy cập trước khi đọc; boxing không làm thay đổi access check.
+The example uses public fields to focus on boxing rules. For private fields or fields in closed modules, access permissions may need to be handled before reading; boxing does not alter access checks.
 
-## 4. Khác biệt giữa `get()` và các typed getter
+## 4. Differences between `get()` and typed getters
 
-`Field` cung cấp các getter trả về primitive cụ thể:
+`Field` provides getters that return specific primitives:
 
 ~~~java
 boolean getBoolean(Object obj)
@@ -183,32 +183,32 @@ float   getFloat(Object obj)
 double  getDouble(Object obj)
 ~~~
 
-Các method trên là API của `java.lang.reflect.Field`, không phải code mới cần tự cài đặt. Mỗi method nhận receiver tương tự `get(obj)`, nhưng **kiểu trả về là primitive**, nên phù hợp khi cần tính toán và muốn tránh API trả `Object`.
+These methods are APIs of `java.lang.reflect.Field`, not new code you need to implement yourself. Each method accepts a receiver just like `get(obj)`, but **the return type is primitive**, making them suitable when computation is needed and you want to avoid an API returning `Object`.
 
-### Quy tắc chuyển đổi kiểu
+### Type conversion rules
 
-- `get()` trả `Object`: field primitive được boxing thành **đúng wrapper tương ứng với kiểu của field**. Không tự chuyển field `int` thành `Long` chỉ vì caller muốn số `long`.
-- `getInt()` đọc được một field nguyên thủy kiểu `byte`, `short`, `char` hoặc `int` thông qua phép mở rộng kiểu primitive (widening) đến `int`. Không đọc được field `long`, `float`, `double`, `boolean` hoặc field tham chiếu `Integer`.
-- `getLong()` đọc được các field primitive `byte`, `short`, `char`, `int` hoặc `long`; ví dụ từ field `int` có thể mở rộng thành `long`.
-- `getDouble()` có thể đọc các kiểu số primitive được phép widening đến `double` (`byte`, `short`, `char`, `int`, `long`, `float`, `double`).
-- `getBoolean()` chỉ phù hợp với field có kiểu primitive `boolean`. `boolean` không widening sang số.
-- `getByte()` chỉ nhận `byte`; `getChar()` chỉ nhận `char`. Các getter còn lại tuân theo widening primitive hợp lệ của Java.
+- `get()` returns `Object`: a primitive field is boxed into **the exact wrapper corresponding to the field's type**. It does not convert an `int` field into `Long` just because the caller wants a `long` number.
+- `getInt()` can read a primitive field of type `byte`, `short`, `char`, or `int` via primitive widening conversion to `int`. It cannot read `long`, `float`, `double`, `boolean`, or an `Integer` reference field.
+- `getLong()` can read primitive fields `byte`, `short`, `char`, `int`, or `long`; for example, an `int` field can be widened to `long`.
+- `getDouble()` can read primitive numeric types eligible for widening to `double` (`byte`, `short`, `char`, `int`, `long`, `float`, `double`).
+- `getBoolean()` only works with a field of primitive `boolean` type. `boolean` does not widen to numbers.
+- `getByte()` only accepts `byte`; `getChar()` only accepts `char`. The remaining getters follow valid Java primitive widening rules.
 
-Typed getter không thực hiện unboxing field kiểu tham chiếu. Một field khai báo `Integer` vẫn cần `Field.get()`; đối tượng trả về có thể là `null`. Đây là khác biệt thiết yếu giữa **chuyển đổi widening primitive** và **unboxing wrapper**.
+Typed getters do not unbox reference-type fields. A field declared as `Integer` still needs `Field.get()`; the returned object may be `null`. This is the essential difference between **primitive widening conversion** and **wrapper unboxing**.
 
-Ví dụ dưới đây là mảnh code dùng lại `count` và `data` trong chương trình trên:
+The example below is a snippet reusing `count` and `data` from the program above:
 
 ~~~java
 int exact = count.getInt(data);     // 42, primitive int
 long wider = count.getLong(data);   // 42L, int -> long
-Object boxed = count.get(data);    // Integer, vì get trả Object
+Object boxed = count.get(data);    // Integer, because get returns Object
 ~~~
 
-Không nên mặc định typed getter là “cách đọc nào cũng ép được” như cơ chế chuyển đổi của trình ánh xạ dữ liệu. Khi kiểu khai báo không phù hợp, nó ném `IllegalArgumentException` thay vì tự parse số hay thực hiện narrowing cast.
+Do not assume typed getters are a "catch-all read that coerces anything" like a data mapper's conversion mechanism. When the declared type is incompatible, they throw `IllegalArgumentException` instead of parsing numbers or performing narrowing casts.
 
-## 5. Kiểu khai báo và kiểu giá trị: cách kiểm tra đúng
+## 5. Declared type vs. value type: how to check properly
 
-Trong mã làm việc với nhiều field khác nhau, thường cần xét `Field.getType()` **trước** khi ép kiểu:
+In code working with many different fields, you often need to inspect `Field.getType()` **before** casting:
 
 ~~~java
 Class<?> declared = count.getType();
@@ -218,56 +218,56 @@ if (declared == int.class) {
 }
 ~~~
 
-Đây là mảnh code dùng lại biến `count` và `data` từ ví dụ. Với field primitive, `getType()` trả về `int.class`, `boolean.class`,… (các `Class` đại diện kiểu primitive). Với field kiểu wrapper, `getType()` là `Integer.class`, `Boolean.class`,… và `isPrimitive()` trả `false`. Có thể phân nhánh:
+This snippet reuses the `count` and `data` variables from the example. For primitive fields, `getType()` returns `int.class`, `boolean.class`, etc. (the `Class` objects representing primitive types). For wrapper-type fields, `getType()` is `Integer.class`, `Boolean.class`, etc., and `isPrimitive()` returns `false`. You can branch as follows:
 
 ~~~java
 Class<?> declared = field.getType();
 if (declared.isPrimitive()) {
-    // Dữ liệu trong field là primitive; get() sẽ boxing khi trả Object.
+    // The data in the field is primitive; get() will box when returning Object.
 } else {
-    // Dữ liệu field là tham chiếu, có thể null.
+    // The field data is a reference, which may be null.
 }
 ~~~
 
-Đây cũng là mảnh minh họa; `field` đại diện một `Field` đã được tra cứu. Không gọi `result.getClass()` trước khi kiểm tra `result != null`: với field tham chiếu chứa `null`, bạn sẽ gặp `NullPointerException`. Ngược lại, field primitive luôn có một giá trị primitive (kể cả giá trị mặc định 0, `false`, `'\0'`), nên kết quả `Field.get` của một field primitive đã đọc thành công không phải `null`.
+This is also an illustrative snippet; `field` represents an already looked-up `Field`. Do not call `result.getClass()` before checking `result != null`: for a reference field holding `null`, you will get `NullPointerException`. Conversely, a primitive field always has a primitive value (even default values 0, `false`, `'\0'`), so the `Field.get` result of a successfully read primitive field is never `null`.
 
-Một lỗi khác là dựa vào `value.getClass() == Integer.class` để suy rằng **field khai báo `int`**. Điều đó không chính xác: kết quả `Field.get` từ một field `int` và một field `Integer` không-null đều có thể là `Integer`. Muốn phân biệt, phải dùng **`Field.getType()`**.
+Another mistake is relying on `value.getClass() == Integer.class` to infer that **the field is declared as `int`**. That is inaccurate: the `Field.get` result from an `int` field and a non-null `Integer` field can both be `Integer`. To distinguish them, you must use **`Field.getType()`**.
 
-## 6. Những yếu tố dễ làm việc đọc field thất bại
+## 6. Factors that commonly cause field reads to fail
 
-Cơ chế boxing chỉ diễn ra sau khi đọc field thành công. Các lỗi khi tìm/đọc field là vấn đề riêng:
+Boxing only occurs after a field is read successfully. Errors while finding/reading fields are a separate matter:
 
-| Tình huống | Hành vi cần lưu ý |
+| Scenario | Behavior to watch out for |
 | --- | --- |
-| `getField("x")` nhưng field không public/không nằm trong public lookup | `NoSuchFieldException`; thử `getDeclaredField` trên đúng declaring class nếu thực sự cần member không-public |
-| `get()` field private khi caller không có quyền | `IllegalAccessException`; `getDeclaredField` không tự bật quyền |
-| Đọc instance field với `null` receiver | `NullPointerException`; phải có object đích |
-| Truyền object không thuộc kiểu khai báo field | `IllegalArgumentException` |
-| Đọc static field bằng `get(null)` | Hợp lệ; receiver bị bỏ qua cho static field, vẫn phải đáp ứng quyền truy cập |
-| Gọi typed getter `getInt` trên field `Integer`/`long` | `IllegalArgumentException` do kiểu khai báo không phù hợp |
-| Truy cập private field xuyên named module bằng deep reflection | `trySetAccessible()` có thể trả `false`; `setAccessible(true)` có thể ném `InaccessibleObjectException` |
-| `get()` trả `null`, sau đó gọi `getClass()`/unbox | `NullPointerException` của code xử lý `null`, không phải “boxing primitive thành null” |
+| `getField("x")` when the field is not public / not in public lookup | `NoSuchFieldException`; try `getDeclaredField` on the right declaring class if a non-public member is truly needed |
+| `get()` on a private field when caller lacks permission | `IllegalAccessException`; `getDeclaredField` does not automatically grant permission |
+| Reading an instance field with a `null` receiver | `NullPointerException`; a target object is required |
+| Passing an object not belonging to the field's declared type | `IllegalArgumentException` |
+| Reading a static field with `get(null)` | Valid; the receiver is ignored for static fields, access permissions still must be satisfied |
+| Calling typed getter `getInt` on an `Integer`/`long` field | `IllegalArgumentException` due to incompatible declared type |
+| Accessing a private field across a named module using deep reflection | `trySetAccessible()` may return `false`; `setAccessible(true)` may throw `InaccessibleObjectException` |
+| `get()` returns `null`, followed by calling `getClass()`/unboxing | `NullPointerException` in the `null`-handling code, not "boxing a primitive to null" |
 
-Với named module, cần phân biệt `exports` cho API public và `opens` cho deep reflection vào package khi module khác yêu cầu. Không mặc định `setAccessible(true)` thành công. Nếu một ứng dụng phụ thuộc vào field private, hãy ưu tiên API truy cập chính thức khi có thể.
+With named modules, distinguish `exports` for public APIs and `opens` for deep reflection into a package when required by another module. Do not assume `setAccessible(true)` succeeds. If an application depends on private fields, prefer official accessor APIs whenever possible.
 
-## 7. Hiệu năng, boxing và lựa chọn API
+## 7. Performance, boxing, and choosing the API
 
-Nếu mục đích là xử lý một số lượng lớn field primitive trên đường thực thi nóng, `getInt`/`getLong` có kiểu trả về primitive và tránh việc **API bắt buộc** trả `Object`, nên là lựa chọn tự nhiên khi biết trước kiểu. Tuy nhiên Reflection nói chung có chi phí runtime, và JVM có thể tối ưu boxing/cấp phát tùy trường hợp; không nên kết luận `Field.get` **luôn** cấp phát một wrapper mới hay một typed getter **luôn** nhanh hơn đáng kể khi chưa đo đạc.
+If the goal is processing a large number of primitive fields on a hot execution path, `getInt`/`getLong` have primitive return types and avoid the **API forcing** an `Object` return, making them a natural choice when the type is known upfront. However, Reflection in general has runtime overhead, and the JVM may optimize boxing/allocation depending on the case; you should not conclude that `Field.get` **always** allocates a new wrapper or that a typed getter is **always** significantly faster without benchmarking.
 
-Các cách chọn thường hợp lý:
+Generally sensible choices:
 
-1. Biết rõ field `int` và cần tính toán: dùng `getInt(receiver)`, có xử lý `IllegalAccessException`.
-2. Cần một API chung đọc nhiều kiểu field: dùng `get(receiver)`; khi field primitive, kết quả sẽ được boxing, và bạn xử lý qua `Object`/wrapper.
-3. Field thực sự khai báo wrapper `Integer`: dùng `get(receiver)`, xét trường hợp `null`; không dùng `getInt`.
-4. Cần phân loại kiểu một cách đáng tin: dùng `field.getType()`, xét `isPrimitive()` và các class nguyên thủy cụ thể; đừng chỉ dựa vào class của object kết quả.
+1. Know the field is `int` and need computation: use `getInt(receiver)`, handling `IllegalAccessException`.
+2. Need a general API reading multiple field types: use `get(receiver)`; when the field is primitive, the result will be boxed, and you handle it via `Object`/wrapper.
+3. Field is actually declared as wrapper `Integer`: use `get(receiver)`, handle the `null` case; do not use `getInt`.
+4. Need to classify types reliably: use `field.getType()`, checking `isPrimitive()` and specific primitive classes; do not rely solely on the class of the returned object.
 
-**Tự kiểm tra:**
+**Self-check:**
 
-- Một field `double price = 1.25;` được đọc qua `Field.get` trả đối tượng kiểu gì? → `Double`.
-- Một field `Integer price = null;` được đọc qua `Field.get` trả gì? → `null`; không boxing giá trị mới.
-- `Field.getType()` của field `int count` là `Integer.class` hay `int.class`? → `int.class`.
-- `getLong` đọc field `int` được không? → Được, nhờ widening primitive `int` sang `long`.
-- `getInt` đọc field khai báo `Integer` được không? → Không, vì typed getter không unbox field tham chiếu.
-- `Field.get` đọc field `int[]` có trả `Integer[]` không? → Không, nó trả tham chiếu đến `int[]`; mảng primitive không tự đổi thành mảng wrapper.
+- What type of object does reading a `double price = 1.25;` field via `Field.get` return? → `Double`.
+- What does reading an `Integer price = null;` field via `Field.get` return? → `null`; no new wrapper is boxed.
+- Is `Field.getType()` of field `int count` `Integer.class` or `int.class`? → `int.class`.
+- Can `getLong` read an `int` field? → Yes, thanks to primitive widening from `int` to `long`.
+- Can `getInt` read a field declared as `Integer`? → No, because typed getters do not unbox reference fields.
+- Does `Field.get` reading an `int[]` field return `Integer[]`? → No, it returns a reference to `int[]`; primitive arrays do not automatically turn into wrapper arrays.
 
-Điểm cần nhớ là **Reflection giữ nguyên kiểu khai báo của field**. Chỉ giá trị trả về qua `Field.get(Object)` cần được biểu diễn dưới dạng `Object`, nên primitive mới được boxing thành wrapper; những thao tác typed getter và kiểm tra `getType()` giúp giữ ranh giới này rõ ràng.
+The key takeaway is that **Reflection preserves the field's declared type**. Only the value returned through `Field.get(Object)` needs to be represented as `Object`, which is why primitives are boxed into wrappers; typed getters and `getType()` checks help keep this boundary clear.

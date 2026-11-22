@@ -1,60 +1,60 @@
-# Xác định quyền sở hữu và trách nhiệm đóng Stream trả về từ API
+# Determining Ownership and Closing Responsibility for Streams Returned by APIs
 
-Một API trả về `Stream<T>` trông rất tiện lợi: bên gọi có thể nối tiếp `filter`, `map`, `limit`, `findFirst` hoặc `collect` mà không phải tải tất cả dữ liệu vào bộ nhớ. Tuy nhiên, khi Stream đọc từ **tệp, thư mục hoặc một nguồn I/O còn mở**, cách trả về đó cũng đặt ra một câu hỏi thiết kế quan trọng: **ai sở hữu tài nguyên và ai phải gọi `close()`?**
+An API returning `Stream<T>` looks very convenient: the caller can chain `filter`, `map`, `limit`, `findFirst`, or `collect` without loading all data into memory. However, when the Stream reads from **a file, directory, or open I/O source**, returning a Stream also raises a critical design question: **who owns the resource and who must call `close()`?**
 
-Bài học thuộc chương **Nguồn vào ra và quản lý tài nguyên** của mô-đun **JAVA_STREAM_API**. Chúng ta sẽ phân biệt Stream chỉ xử lý dữ liệu trong bộ nhớ với Stream gắn tài nguyên, thiết kế hợp đồng API trả về Stream, nhận diện lỗi đóng quá sớm hoặc rò rỉ tài nguyên, sử dụng `try-with-resources` và `onClose`, cũng như xử lý các trường hợp pipeline lazy, dừng sớm, ngoại lệ và song song. Những nguyên tắc này có liên hệ với `filter`, `map`, `reduce`, `collect`, `Spliterator` và các phép xử lý Stream nâng cao; nhưng điểm cốt lõi của bài là **vòng đời tài nguyên**, không phải cú pháp phép biến đổi.
+This lesson belongs to the **I/O Sources and Resource Management** chapter of the **JAVA_STREAM_API** module. We will distinguish in-memory Streams from resource-backed Streams, design Stream-returning API contracts, identify premature-closing or resource-leak bugs, use `try-with-resources` and `onClose`, and handle lazy pipelines, early termination, exceptions, and parallelism. These principles connect to `filter`, `map`, `reduce`, `collect`, `Spliterator`, and advanced Stream operations; however, the core of this lesson is **resource lifecycle**, not transformation syntax.
 
-## 1. Hai vòng đời phải phân biệt: Stream và tài nguyên bên dưới
+## 1. Two Lifecycles to Distinguish: The Stream and the Underlying Resource
 
-`Stream<T>` biểu diễn một chuỗi thao tác xử lý phần tử. Một Stream có thể được tạo từ:
+`Stream<T>` represents a sequence of element-processing operations. A Stream can be created from:
 
-- `List.stream()`, `Arrays.stream(...)` hoặc `Stream.of(...)`: thông thường không nắm giữ tệp hoặc kết nối bên ngoài.
-- `Files.lines(path)`: đọc các dòng từ một tệp còn mở khi duyệt dữ liệu.
-- `Files.list(path)`, `Files.walk(path)` hoặc `Files.find(...)`: duyệt các mục trong hệ thống tệp với những tài nguyên I/O cần được giải phóng.
-- Một API riêng dùng `BufferedReader`, cơ sở dữ liệu, socket hoặc tài nguyên khác làm nguồn dữ liệu.
+- `List.stream()`, `Arrays.stream(...)`, or `Stream.of(...)`: normally do not hold external files or connections.
+- `Files.lines(path)`: reads lines from an open file while traversing data.
+- `Files.list(path)`, `Files.walk(path)`, or `Files.find(...)`: traverses file-system entries with I/O resources that must be released.
+- A custom API using a `BufferedReader`, database, socket, or other resource as the data source.
 
-Tất cả Stream đều có phương thức `close()` vì `BaseStream` mở rộng `AutoCloseable`. Nhưng **không phải mọi Stream đều cần đóng trong thực tế**. Stream chỉ từ bộ sưu tập thông thường không có tài nguyên I/O phải giải phóng; ngược lại, những Stream do `Files.lines` hoặc `Files.walk` trả về phải được đóng đúng cách.
+All Streams have a `close()` method because `BaseStream` extends `AutoCloseable`. However, **not every Stream needs to be closed in practice**. Streams backed only by ordinary collections have no I/O resources to release; conversely, Streams returned by `Files.lines` or `Files.walk` must be closed properly.
 
-| Nguồn | Có tài nguyên ngoài cần đóng? | Cách xử lý điển hình |
+| Source | Has external resource to close? | Typical handling |
 | --- | --- | --- |
-| `List.of(...).stream()` | Không, trong trường hợp bình thường | Có thể gọi terminal operation mà không cần `try-with-resources` |
-| `IntStream.range(...)` | Không | Không cần đóng vì I/O |
-| `Stream.of(...)` | Không | Không cần đóng vì I/O |
-| `Files.lines(path)` | Có, tài nguyên đọc tệp | `try (Stream<String> lines = ...) { ... }` |
-| `Files.list(path)` | Có, tài nguyên duyệt thư mục | Đóng Stream khi xong |
-| `Files.walk(path)` / `Files.find(...)` | Có, tài nguyên duyệt cây thư mục | Đóng Stream khi xong |
-| `BufferedReader.lines()` | Tài nguyên thuộc `BufferedReader` được cung cấp | Đóng `BufferedReader` theo hợp đồng sở hữu; đừng mặc định đóng Stream sẽ đóng reader |
-| Stream từ API ứng dụng | Tùy cách triển khai | **Hợp đồng API phải nói rõ** ai đóng và đóng sẽ giải phóng gì |
+| `List.of(...).stream()` | No, in normal cases | Can call a terminal operation without `try-with-resources` |
+| `IntStream.range(...)` | No | No closing needed for I/O |
+| `Stream.of(...)` | No | No closing needed for I/O |
+| `Files.lines(path)` | Yes, file-reading resource | `try (Stream<String> lines = ...) { ... }` |
+| `Files.list(path)` | Yes, directory-listing resource | Close Stream when done |
+| `Files.walk(path)` / `Files.find(...)` | Yes, directory-tree traversal resource | Close Stream when done |
+| `BufferedReader.lines()` | Resource belongs to the supplied `BufferedReader` | Close `BufferedReader` per ownership contract; do not assume closing the Stream closes the reader |
+| Stream from application API | Depends on implementation | **API contract must state clearly** who closes and what closing releases |
 
-### Hai khái niệm thường bị nhầm
+### Two Frequently Confused Concepts
 
-1. **Tiêu thụ (consume)**: gọi terminal operation như `count()`, `toList()` hoặc `findFirst()`. Sau đó không được tiếp tục sử dụng cùng Stream để thực hiện một terminal operation khác.
-2. **Đóng (close)**: yêu cầu đóng Stream, chạy các close handler đã đăng ký và giải phóng các tài nguyên gắn với pipeline theo hợp đồng nguồn.
+1. **Consume**: invoking a terminal operation such as `count()`, `toList()`, or `findFirst()`. Afterward, you cannot reuse the same Stream for another terminal operation.
+2. **Close**: requesting Stream closure, running registered close handlers, and releasing pipeline-associated resources per the source contract.
 
-Hai hành động **không đồng nghĩa**. Việc terminal operation đã chạy đến cuối **không tự động bảo đảm nguồn I/O được đóng**. Ngược lại, đóng Stream khi bên gọi vẫn cần duyệt nó là đóng quá sớm.
+The two actions **are not synonymous**. Having a terminal operation run to completion **does not automatically guarantee the I/O source is closed**. Conversely, closing a Stream while the caller still needs to traverse it is premature closing.
 
-## 2. Quy tắc sở hữu cơ bản: bên nào nhận quyền sở hữu phải đóng
+## 2. Basic Ownership Rule: Whoever Holds Ownership Must Close
 
-Với API trả về Stream, có hai mô hình hợp lệ, miễn là được định nghĩa tường minh:
+For APIs returning a Stream, there are two valid models, provided they are explicitly defined:
 
-| Thiết kế API | Chủ sở hữu tài nguyên khi xử lý | Trách nhiệm đóng |
+| API design | Resource owner during processing | Closing responsibility |
 | --- | --- | --- |
-| API mở tệp và **trả về Stream còn sống** | Chuyển quyền sở hữu Stream cho bên gọi | **Bên gọi** đóng Stream trả về |
-| API tự mở tệp, thực hiện terminal operation, chỉ trả về `List`/`long`/kết quả domain | **API** giữ quyền sở hữu suốt thao tác | **API** đóng tài nguyên trước khi trả kết quả |
-| Bên gọi tạo Stream rồi **truyền vào** phương thức xử lý mượn | Bên gọi vẫn sở hữu, trừ khi có thỏa thuận chuyển giao | Bên gọi đóng nếu Stream có tài nguyên |
-| API trả Stream được xây trên tài nguyên do **bên khác quản lý** | Phụ thuộc hợp đồng của đối tượng nguồn | Không tự đóng hoặc chuyển quyền sở hữu nếu chưa được thỏa thuận |
+| API opens a file and **returns a live Stream** | Transfers Stream ownership to the caller | **Caller** closes the returned Stream |
+| API opens a file, runs a terminal operation, returns only `List`/`long`/domain result | **API** retains ownership throughout the operation | **API** closes the resource before returning |
+| Caller creates a Stream and **passes it into** a borrowing helper method | Caller remains owner, unless ownership transfer is agreed | Caller closes if the Stream holds resources |
+| API returns a Stream built on a resource managed by **another party** | Depends on the source object's contract | Do not close or transfer ownership unless agreed |
 
-Không có quy tắc kỹ thuật rằng “ai tạo Stream thì luôn phải đóng”. Đúng hơn: **ai tạo tài nguyên phải bảo đảm một hợp đồng sở hữu rõ ràng**; họ có thể tự đóng hoặc chủ động chuyển trách nhiệm đóng cho bên gọi khi trả Stream. Việc chuyển giao phải hiển thị trong tài liệu, vì kiểu `Stream<T>` tự nó không nói cho bên gọi rằng có tệp đang mở.
+There is no technical rule stating "whoever creates a Stream must always close it." Rather: **whoever creates a resource must ensure a clear ownership contract**; they can either close it themselves or explicitly transfer closing responsibility to the caller when returning the Stream. This handoff must be visible in documentation, because the `Stream<T>` type alone does not tell the caller an open file is attached.
 
-Quy ước đơn giản nên ưu tiên:
+Simple conventions to prefer:
 
-- API trả **Stream còn sống**: tài liệu ghi rõ “caller must close returned Stream”, ví dụ với `try-with-resources`.
-- API trả **kết quả đã tính xong**: phương thức sở hữu và đóng tài nguyên bên trong.
-- API nhận **Stream mượn từ người gọi**: không tự đóng Stream đầu vào, trừ khi hợp đồng nói quyền sở hữu được chuyển giao.
+- API returning a **live Stream**: documentation explicitly states "caller must close returned Stream", e.g., with `try-with-resources`.
+- API returning a **computed result**: the method owns and closes the resource internally.
+- API accepting a **borrowed Stream from the caller**: does not close the input Stream unless the contract states ownership is transferred.
 
-## 3. API trả Stream do `Files.lines` tạo: chuyển trách nhiệm cho caller
+## 3. API Returning a Stream Created by `Files.lines`: Transferring Responsibility to the Caller
 
-Ví dụ một phương thức trả về các dòng không trống, đã loại khoảng trắng đầu/cuối. API muốn giữ tính lazy: chưa đọc toàn bộ tệp thành một danh sách.
+Consider a method returning non-blank lines with leading/trailing whitespace stripped. The API wants to stay lazy: without reading the whole file into a list.
 
 ```java
 import java.io.IOException;
@@ -67,12 +67,12 @@ public final class TextLineApi {
     private TextLineApi() {}
 
     /**
-     * Mở một nguồn đọc tệp và trả về Stream còn sống.
+     * Opens a file-reading source and returns a live Stream.
      *
-     * Bên gọi sở hữu Stream trả về và PHẢI đóng bằng
-     * try-with-resources, kể cả khi chỉ dùng findFirst()/limit().
+     * The caller owns the returned Stream and MUST close it with
+     * try-with-resources, even when only using findFirst()/limit().
      *
-     * @throws IOException nếu không mở được nguồn đọc.
+     * @throws IOException if the source cannot be opened.
      */
     public static Stream<String> readNonBlankLines(Path path)
             throws IOException {
@@ -83,7 +83,7 @@ public final class TextLineApi {
 }
 ```
 
-Bên gọi đúng:
+Correct caller:
 
 ```java
 import java.io.IOException;
@@ -101,39 +101,39 @@ public class ReadNonBlankExample {
                 .toList();
 
             System.out.println(results);
-        } // close() được gọi kể cả khi pipeline dừng sớm.
+        } // close() is called even when the pipeline stops early.
     }
 }
 ```
 
-Trong ví dụ trên, `TextLineApi` mở nguồn tệp và **chuyển quyền sở hữu Stream trả về** cho bên gọi. Khi đóng Stream được trả về (sau các thao tác trung gian `map` và `filter`), các close handler của pipeline sẽ được chạy, từ đó đóng tài nguyên đọc tệp do `Files.lines` quản lý.
+In the example above, `TextLineApi` opens the file source and **transfers ownership of the returned Stream** to the caller. When the returned Stream is closed (after the intermediate operations `map` and `filter`), the pipeline's close handlers run, closing the file-reading resource managed by `Files.lines`.
 
-Điểm cần nhớ: `map`, `filter` và `limit` không biến một Stream gắn tệp thành Stream độc lập với tệp. Chúng chỉ tạo pipeline xử lý trên **cùng nguồn còn mở**.
+Key point: `map`, `filter`, and `limit` do not turn a file-backed Stream into a file-independent Stream. They only build a processing pipeline over **the same open source**.
 
-### 3.1. Vì sao cần khai báo rõ trong tài liệu API?
+### 3.1. Why Must This Be Explicitly Declared in API Documentation?
 
-Chữ ký:
+The signature:
 
 ```java
 Stream<String> readNonBlankLines(Path path) throws IOException;
 ```
 
-không thể hiện quyền sở hữu ở cấp hệ thống kiểu. Nếu bên gọi chỉ nhìn phương thức trả `Stream<String>`, họ có thể tưởng `count()` tự giải phóng nguồn.
+does not express ownership at the type-system level. If a caller sees only a method returning `Stream<String>`, they might assume `count()` releases the source automatically.
 
-Tài liệu API nên cho biết tối thiểu:
+API documentation should state at a minimum:
 
-1. **Ai đóng**: bên gọi phải đóng Stream trả về.
-2. **Khi nào đóng**: sau khi hoàn thành terminal operation hoặc khi không dùng nữa, kể cả dừng sớm và khi có lỗi.
-3. **Nguồn tài nguyên**: Stream duyệt tệp/thư mục và giữ tài nguyên trong vòng đời của nó.
-4. **Trạng thái tiêu thụ**: Stream dùng được một lần, không được dùng lại sau terminal operation.
-5. **Ngoại lệ**: lỗi mở có thể là `IOException`; lỗi đọc phát sinh khi duyệt có thể xuất hiện dưới dạng `UncheckedIOException`.
-6. **Tính nhất quán**: dữ liệu tệp có thể thay đổi giữa lúc tạo Stream và lúc duyệt; không hứa ảnh chụp dữ liệu nếu API không bảo đảm điều đó.
+1. **Who closes**: the caller must close the returned Stream.
+2. **When to close**: after completing the terminal operation or when no longer needed, including early termination and errors.
+3. **Resource source**: the Stream traverses a file/directory and holds resources during its lifetime.
+4. **Consumption state**: the Stream is single-use and cannot be reused after a terminal operation.
+5. **Exceptions**: open errors may be `IOException`; read errors during traversal may appear as `UncheckedIOException`.
+6. **Consistency**: file data may change between Stream creation and traversal; do not promise a snapshot if the API does not guarantee one.
 
-Một tên hàm chứa chữ `open` (chẳng hạn `openLines`) có thể gợi ý có tài nguyên, nhưng **không thay thế được hợp đồng đóng**.
+A method name containing `open` (such as `openLines`) can hint at a resource, but **it cannot substitute for an explicit closing contract**.
 
-## 4. Lỗi nghiêm trọng: trả Stream từ bên trong `try-with-resources`
+## 4. Serious Bug: Returning a Stream from Inside `try-with-resources`
 
-Đoạn sau **sai vòng đời tài nguyên**:
+The following snippet has a **broken resource lifecycle**:
 
 ```java
 import java.io.IOException;
@@ -144,27 +144,27 @@ import java.util.stream.Stream;
 public static Stream<String> brokenApi(Path path) throws IOException {
     try (Stream<String> lines = Files.lines(path)) {
         return lines.filter(s -> !s.isBlank());
-    } // lines bị đóng TRƯỚC khi caller thực hiện terminal operation!
+    } // lines is closed BEFORE the caller runs a terminal operation!
 }
 ```
 
-`return` xảy ra trong khối `try` nhưng việc thoát khối vẫn đóng `lines`. Pipeline trả về chưa được tiêu thụ vì `filter` là thao tác trung gian lazy. Khi bên gọi cố gọi `toList()`, `count()` hoặc `findFirst()`, Stream đã bị đóng và không còn hợp lệ để sử dụng.
+`return` happens inside the `try` block, yet exiting the block still closes `lines`. The returned pipeline has not been consumed because `filter` is a lazy intermediate operation. When the caller attempts `toList()`, `count()`, or `findFirst()`, the Stream is already closed and no longer valid to use.
 
-**Cách sửa A — trả Stream còn mở và chuyển quyền sở hữu:**
+**Fix A — return an open Stream and transfer ownership:**
 
 ```java
 public static Stream<String> openLines(Path path) throws IOException {
     return Files.lines(path).filter(s -> !s.isBlank());
 }
 
-// Bên gọi:
+// Caller:
 try (Stream<String> lines = openLines(path)) {
     long count = lines.count();
     System.out.println(count);
 }
 ```
 
-**Cách sửa B — API tự quản lý tài nguyên và trả kết quả vật hóa:**
+**Fix B — API manages the resource itself and returns a materialized result:**
 
 ```java
 import java.util.List;
@@ -175,15 +175,15 @@ public static List<String> loadLines(Path path) throws IOException {
     }
 }
 
-// Bên gọi nhận List<String>, không giữ tài nguyên tệp.
+// Caller receives List<String>, holding no file resource.
 List<String> values = loadLines(path);
 ```
 
-Hai cách đều hợp lệ, nhưng chọn theo mục tiêu: muốn duyệt lazy/không giữ toàn bộ dữ liệu thì trả Stream còn sống và ghi rõ trách nhiệm đóng; muốn API che giấu tài nguyên và có kết quả độc lập thì xử lý bên trong, đóng trước khi trả.
+Both approaches are valid; choose based on the goal: if you want lazy traversal without retaining all data, return a live Stream and document closing responsibility; if you want the API to encapsulate the resource and return a standalone result, process inside and close before returning.
 
-## 5. Terminal operation, xử lý lazy và dừng sớm không tự đóng
+## 5. Terminal Operations, Lazy Processing, and Early Stopping Do Not Auto-Close
 
-Một nguồn `Files.lines` mở tài nguyên đọc tệp. Các thao tác `filter`, `map`, `skip`, `limit` tạo các bước trung gian; terminal operation mới kích hoạt việc xử lý phần tử.
+A `Files.lines` source opens a file-reading resource. Operations like `filter`, `map`, `skip`, and `limit` build intermediate steps; only a terminal operation triggers element processing.
 
 ```java
 import java.nio.file.Files;
@@ -201,40 +201,40 @@ try (Stream<String> stream = Files.lines(file)) {
 }
 ```
 
-`anyMatch` có thể dừng ngay khi thấy lỗi; nó không có nghĩa mọi dòng đã được đọc. Nhưng **đóng Stream vẫn cần thiết** để giải phóng tài nguyên được giữ bởi `Files.lines`.
+`anyMatch` can stop as soon as it sees an error; it does not mean every line was read. Still, **closing the Stream remains necessary** to release the resource held by `Files.lines`.
 
-Tương tự:
+Similarly:
 
 ```java
 try (Stream<String> stream = Files.lines(file)) {
     String first = stream
         .filter(line -> line.startsWith("WARN"))
         .findFirst()
-        .orElse("không có cảnh báo");
+        .orElse("no warnings");
 
     System.out.println(first);
 }
 ```
 
-Với `findFirst`, không được suy rằng hệ thống sẽ đọc đến cuối tệp trước khi đóng. Try-with-resources gọi `close()` khi rời khối, dù pipeline chỉ tiêu thụ một phần nhỏ nguồn.
+With `findFirst`, do not assume the system reads to the end of the file before closing. Try-with-resources calls `close()` when exiting the block, even if the pipeline consumed only a small portion of the source.
 
-### 5.1. Các tình huống thường gặp
+### 5.1. Common Scenarios
 
-| Pipeline | Có thể không đọc hết dữ liệu? | Cần đóng Stream gắn I/O? |
+| Pipeline | Can stop before reading all data? | Must close I/O-backed Stream? |
 | --- | --- | --- |
-| `filter(...).count()` | Thông thường phải xét dữ liệu để đếm; có thể có tối ưu | **Có** |
-| `findFirst()` | Có | **Có** |
-| `anyMatch(...)` | Có | **Có** |
-| `limit(5).toList()` | Có | **Có** |
-| `noneMatch(...)` | Có | **Có** |
-| `toList()` | Thường thu thập toàn bộ phần tử đi đến cuối pipeline | **Có** |
-| `reduce(...)` | Thường cần tiêu thụ mọi phần tử được giảm | **Có** |
+| `filter(...).count()` | Usually must inspect data to count; optimizations may exist | **Yes** |
+| `findFirst()` | Yes | **Yes** |
+| `anyMatch(...)` | Yes | **Yes** |
+| `limit(5).toList()` | Yes | **Yes** |
+| `noneMatch(...)` | Yes | **Yes** |
+| `toList()` | Usually collects all elements reaching the end of the pipeline | **Yes** |
+| `reduce(...)` | Usually must consume all elements being reduced | **Yes** |
 
-Quy tắc không phụ thuộc số lượng phần tử đã xử lý: **nguồn có tài nguyên ngoài thì cần được đóng khi kết thúc sử dụng**, kể cả khi nguồn rỗng hoặc terminal operation trả về sớm.
+The rule does not depend on how many elements were processed: **a source with external resources must be closed when finished**, even when the source is empty or the terminal operation returns early.
 
-## 6. Ngoại lệ trong pipeline: `try-with-resources` vẫn đóng nguồn
+## 6. Exceptions in the Pipeline: `try-with-resources` Still Closes the Source
 
-Lỗi có thể xuất hiện **sau lúc API trả Stream**, bởi nhiều công việc đọc và biến đổi được hoãn đến terminal operation. Ví dụ dòng có định dạng không hợp lệ:
+Errors can surface **after the API returns the Stream**, because much of the reading and transformation work is deferred until the terminal operation. For example, a line with an invalid format:
 
 ```java
 import java.io.IOException;
@@ -252,20 +252,20 @@ public static long sumFile(Path path) throws IOException {
 }
 ```
 
-Nếu có dòng `"abc"`, `Long.parseLong` ném `NumberFormatException` trong lúc tiêu thụ pipeline. **Try-with-resources vẫn gọi `close()`**, sau đó ngoại lệ được truyền ra ngoài theo ngữ nghĩa Java.
+If there is a line `"abc"`, `Long.parseLong` throws `NumberFormatException` while consuming the pipeline. **Try-with-resources still calls `close()`**, and then the exception propagates outward per Java semantics.
 
-Khi đọc từ `Files.lines` hoặc `Files.walk`, cần phân biệt:
+When reading from `Files.lines` or `Files.walk`, distinguish:
 
-- **Lúc mở Stream**: có thể phát sinh `IOException` được khai báo.
-- **Lúc duyệt Stream**: lỗi I/O có thể được đóng gói thành `UncheckedIOException`.
-- **Trong lambda**: lỗi từ logic nghiệp vụ (ví dụ `NumberFormatException`) có thể xuất hiện trong terminal operation.
-- **Lúc đóng**: close handler hoặc nguồn có thể gặp lỗi; try-with-resources quản lý cơ chế *suppressed exceptions* khi vừa có lỗi xử lý vừa có lỗi đóng.
+- **When opening the Stream**: can raise a declared `IOException`.
+- **When traversing the Stream**: I/O failures can be wrapped in `UncheckedIOException`.
+- **Inside lambdas**: business-logic errors (such as `NumberFormatException`) can appear during the terminal operation.
+- **When closing**: close handlers or the source may fail; try-with-resources manages *suppressed exceptions* when both processing and closing fail.
 
-Không chỉ đóng trong nhánh xử lý thành công. Cũng không nên gọi `close()` thủ công ở nhiều nhánh `return`/`catch` khi `try-with-resources` đã thể hiện hợp đồng rõ ràng.
+Do not close only on the success path. Nor should you call `close()` manually across multiple `return`/`catch` branches when `try-with-resources` already expresses the contract cleanly.
 
-### 6.1. Không nên chỉ đóng trong `finally` khi đã có try-with-resources
+### 6.1. Prefer try-with-resources Over Manual Closing in `finally`
 
-Dạng thủ công vẫn có thể đúng nếu xử lý cẩn thận:
+The manual form can be correct if handled carefully:
 
 ```java
 Stream<String> lines = Files.lines(path);
@@ -276,7 +276,7 @@ try {
 }
 ```
 
-Nhưng dạng khuyến nghị gọn hơn và xử lý ngoại lệ đóng tốt hơn:
+However, the recommended form is more concise and handles close exceptions better:
 
 ```java
 try (Stream<String> lines = Files.lines(path)) {
@@ -284,9 +284,9 @@ try (Stream<String> lines = Files.lines(path)) {
 }
 ```
 
-## 7. API tự sở hữu tài nguyên: trả kết quả đã tính
+## 7. API Owning the Resource Itself: Returning a Computed Result
 
-Không phải API nào cũng nên trả Stream. Khi mục tiêu chỉ là đếm, tìm một giá trị hoặc tạo danh sách nhỏ, API có thể tự mở và đóng nguồn.
+Not every API should return a Stream. When the goal is just counting, finding one value, or producing a small list, the API can open and close the source itself.
 
 ```java
 import java.io.IOException;
@@ -316,16 +316,16 @@ public final class LogReportApi {
 }
 ```
 
-Ở đây:
+Here:
 
-- API **giữ quyền sở hữu** từ khi `Files.lines` được gọi đến khi khối `try` kết thúc.
-- Caller nhận `long` hoặc `List<String>`, **không phải Stream còn giữ tệp**.
-- `firstFiveErrors` vẫn có thể dừng sớm nhờ `limit(5)`, nhưng nguồn luôn được đóng.
-- `List` là kết quả vật hóa; nếu lọc rất nhiều phần tử và trả toàn bộ danh sách, phải cân nhắc bộ nhớ.
+- The API **retains ownership** from the `Files.lines` call until the `try` block exits.
+- The caller receives `long` or `List<String>`, **not a Stream still holding a file**.
+- `firstFiveErrors` can still stop early via `limit(5)`, while the source is always closed.
+- `List` is a materialized result; if filtering many elements and returning the full list, consider memory usage.
 
-### 7.1. API tự đóng có thể nhận một hàm xử lý
+### 7.1. A Self-Closing API Can Accept a Processing Function
 
-Khi muốn cho caller linh hoạt nhưng **không chuyển trách nhiệm đóng**, một thiết kế khác là API nhận một hàm xử lý nguồn.
+When you want to give callers flexibility without **transferring closing responsibility**, another design is an API accepting a function to process the source.
 
 ```java
 import java.io.IOException;
@@ -349,7 +349,7 @@ public final class SafeFileStreams {
 }
 ```
 
-Bên gọi sử dụng:
+Caller usage:
 
 ```java
 long count = SafeFileStreams.withLines(
@@ -358,13 +358,13 @@ long count = SafeFileStreams.withLines(
 );
 ```
 
-Hợp đồng của `withLines`: hàm `action` phải **tiêu thụ và trả kết quả hoàn tất ngay bên trong lời gọi**, không trả ra một Stream lười hay đối tượng phụ thuộc vào Stream đó. Nếu `action` trả về một Stream chứa các phép trung gian nhưng chưa được tiêu thụ, nguồn sẽ đóng trước khi caller dùng nó. Vì vậy nên ghi rõ ràng buộc này trong JavaDoc và cân nhắc API chuyên biệt nếu muốn bảo đảm mạnh hơn ở cấp kiểu.
+The contract of `withLines`: the `action` function must **consume and complete its work right inside the call**, without returning a lazy Stream or an object dependent on that Stream. If `action` returns a Stream containing intermediate operations that has not yet been consumed, the source will close before the caller uses it. State this constraint clearly in JavaDoc and consider specialized APIs if stronger type-level guarantees are desired.
 
-Thiết kế callback phù hợp khi muốn caller tùy chọn `filter`, `map`, `reduce` và `collect` mà không phải nhớ đóng tài nguyên. Đổi lại, API cần kiểm soát rõ phạm vi xử lý đồng bộ và không để rò rỉ tham chiếu nguồn.
+The callback design fits when callers want to customize `filter`, `map`, `reduce`, and `collect` without remembering to close resources. In return, the API needs to control synchronous execution scope clearly and prevent source references from escaping.
 
-## 8. API nhận Stream của bên gọi: tiêu thụ không đồng nghĩa sở hữu
+## 8. API Accepting a Caller's Stream: Consuming Does Not Mean Owning
 
-Xét phương thức chỉ tổng hợp các dòng và **nhận** một Stream được tạo ở nơi khác:
+Consider a method that simply aggregates lines and **receives** a Stream created elsewhere:
 
 ```java
 import java.util.stream.Stream;
@@ -374,9 +374,9 @@ public static long countNonBlank(Stream<String> lines) {
 }
 ```
 
-Phương thức này **tiêu thụ** Stream được truyền vào, nhưng điều đó không có nghĩa nó được phép **đóng** tài nguyên thuộc bên gọi. Khi kiểu đầu vào chỉ là `Stream<String>`, có thể gặp cả Stream in-memory và Stream đang đọc tệp.
+This method **consumes** the passed Stream, but that does not mean it is allowed to **close** a resource belonging to the caller. When the parameter type is simply `Stream<String>`, it could receive either an in-memory Stream or a file-reading Stream.
 
-Quy tắc đề xuất: phương thức **mượn** Stream để tiêu thụ, **không đóng** nó; bên gọi giữ trách nhiệm đóng khi nguồn có tài nguyên I/O.
+Recommended rule: a method **borrows** a Stream to consume it and **does not close** it; the caller retains closing responsibility when the source holds I/O resources.
 
 ```java
 import java.nio.file.Files;
@@ -390,25 +390,25 @@ try (Stream<String> lines = Files.lines(path)) {
 }
 ```
 
-Nếu API muốn **nhận luôn quyền sở hữu** và tự đóng Stream đầu vào, phải nói rõ điều đó là một **ownership transfer**, ví dụ thông qua tên phương thức, tài liệu API hoặc kiểu wrapper riêng. Không được vừa cho rằng caller sẽ đóng vừa tự âm thầm đóng trong hàm mượn, đặc biệt khi tài nguyên bên dưới có thể được chia sẻ.
+If an API intends to **take over ownership** and close the input Stream itself, it must state that explicitly as an **ownership transfer**, for instance via the method name, API documentation, or a dedicated wrapper type. Never assume the caller will close while also silently closing inside a borrowing helper, especially when underlying resources may be shared.
 
-### 8.1. Đừng truyền một Stream đã dùng
+### 8.1. Do Not Pass an Already-Used Stream
 
 ```java
 Stream<String> values = Stream.of("A", "B");
 
-long count = countNonBlank(values); // Stream đã được tiêu thụ.
+long count = countNonBlank(values); // Stream has been consumed.
 
-// values.findFirst(); // Không hợp lệ: Stream không thể sử dụng lần hai.
+// values.findFirst(); // Invalid: a Stream cannot be used twice.
 ```
 
-Ngay cả khi không đóng, terminal operation đã tiêu thụ Stream. Đây là **hạn chế sử dụng một lần**, tách biệt với hợp đồng sở hữu và việc đóng.
+Even without closing, the terminal operation has consumed the Stream. This is the **single-use restriction**, separate from ownership and closing contracts.
 
-## 9. Đặc điểm của `BufferedReader.lines()`: ai sở hữu reader?
+## 9. Specifics of `BufferedReader.lines()`: Who Owns the Reader?
 
-`BufferedReader.lines()` trả một `Stream<String>` đọc từ `BufferedReader`. Trong thiết kế này, đối tượng **reader** vẫn là tài nguyên được quản lý. Không nên giả định rằng **đóng Stream trả về từ `reader.lines()` sẽ tự đóng reader**.
+`BufferedReader.lines()` returns a `Stream<String>` reading from the `BufferedReader`. In this design, the **reader** object remains the managed resource. Do not assume that **closing the Stream returned by `reader.lines()` will automatically close the reader**.
 
-Cách sử dụng đúng khi API sở hữu reader:
+Correct usage when the API owns the reader:
 
 ```java
 import java.io.BufferedReader;
@@ -427,11 +427,11 @@ public static long countComments(Path path) throws IOException {
 }
 ```
 
-Khối `try` đóng **`BufferedReader`**, là tài nguyên thật sự được mở. `reader.lines()` chỉ biểu diễn việc duyệt các dòng từ reader đó.
+The `try` block closes **`BufferedReader`**, which is the resource actually opened. `reader.lines()` merely represents traversing lines from that reader.
 
-### 9.1. Nếu buộc phải trả Stream từ reader, gắn trách nhiệm đóng
+### 9.1. If You Must Return a Stream from a Reader, Attach Closing Responsibility
 
-Có thể gắn `onClose` để khi bên gọi đóng Stream, reader cũng được đóng:
+You can attach `onClose` so that when the caller closes the Stream, the reader closes too:
 
 ```java
 import java.io.BufferedReader;
@@ -460,13 +460,13 @@ try (Stream<String> lines = openReaderLines(Path.of("events.log"))) {
 }
 ```
 
-`onClose` không tự đóng reader ngay khi khai báo pipeline; nó chỉ đăng ký **hành động khi Stream được đóng**. Nếu caller quên đóng, reader vẫn có nguy cơ còn mở. Vì nguồn tệp đơn giản đã có `Files.lines` với hợp đồng đóng rõ ràng, hãy ưu tiên nó thay vì tự xây adapter từ reader nếu không có yêu cầu đặc biệt.
+`onClose` does not close the reader when declaring the pipeline; it only registers **an action for when the Stream is closed**. If the caller forgets to close, the reader still risks staying open. Since simple file sources already have `Files.lines` with a clear closing contract, prefer it over building a custom reader adapter unless you have a special requirement.
 
-Với adapter thực tế phức tạp hơn, phải bảo đảm giải phóng reader nếu quá trình tạo Stream/đăng ký handler thất bại **trước khi trả quyền sở hữu** cho bên gọi; đồng thời xử lý đúng các ngoại lệ phát sinh lúc đóng.
+For more complex real-world adapters, ensure the reader is released if Stream creation or handler registration fails **before transferring ownership** to the caller, and handle close-time exceptions properly.
 
-## 10. `onClose`: close handler khác với terminal operation
+## 10. `onClose`: Close Handlers Differ from Terminal Operations
 
-Phương thức `onClose(Runnable)` đăng ký một hành động sẽ được gọi khi Stream đóng. Nó hữu ích để gắn bước giải phóng tài nguyên, đánh dấu một phiên hoặc ghi nhận sự kiện đóng.
+`onClose(Runnable)` registers an action to be called when the Stream closes. It is useful for attaching resource-release steps, marking a session, or recording close events.
 
 ```java
 import java.util.List;
@@ -480,17 +480,17 @@ try (Stream<String> words = Stream.of("A", "B")
     List<String> result = words.toList();
 
     System.out.println(result);       // [A, B]
-    System.out.println(closed.get());  // 0: chưa rời khối try.
+    System.out.println(closed.get());  // 0: have not left the try block yet.
 }
 
-System.out.println(closed.get());      // 1: close handler đã chạy.
+System.out.println(closed.get());      // 1: close handler has run.
 ```
 
-Ví dụ `Stream.of` không cần đóng vì I/O; `try-with-resources` được sử dụng ở đây để **minh họa hành vi handler**. Trong ứng dụng, không nên lạm dụng `onClose` để tạo side effect thay thế cho logic nghiệp vụ.
+The `Stream.of` example needs no closing for I/O; `try-with-resources` is used here to **illustrate handler behavior**. In real applications, avoid abusing `onClose` to produce side effects in place of business logic.
 
-Khi một handler ném ngoại lệ, Java vẫn phải xử lý các handler đã đăng ký khác theo hợp đồng đóng, và lỗi bổ sung có thể được ghi nhận dưới dạng suppressed exception. Đừng mặc định mọi lỗi khi đóng đều xảy ra tại thời điểm tạo Stream.
+When a handler throws an exception, Java still processes the other registered handlers per the close contract, and additional errors may be recorded as suppressed exceptions. Do not assume all close errors occur at Stream creation time.
 
-### 10.1. Đóng Stream được trả về sau `map`/`filter`
+### 10.1. Closing the Stream Returned After `map`/`filter`
 
 ```java
 AtomicInteger closeCount = new AtomicInteger();
@@ -507,15 +507,15 @@ try (Stream<String> transformed = source
 System.out.println(closeCount.get()); // 1
 ```
 
-Trong pipeline này, `transformed` và `source` thuộc **cùng pipeline**, không phải hai nguồn độc lập. Đóng Stream được trả về ở cuối pipeline sẽ thực thi handler đã gắn lên nguồn.
+In this pipeline, `transformed` and `source` belong to **the same pipeline**, not two independent sources. Closing the Stream returned at the end of the pipeline runs the handlers attached to the source.
 
-Không giữ cả `source` và `transformed` như hai tài nguyên độc lập để tiêu thụ riêng. Sau khi kết thúc pipeline, Stream không được dùng lại.
+Do not hold both `source` and `transformed` as two independent resources to consume separately. Once the pipeline finishes, the Stream cannot be reused.
 
-## 11. Hoàn tất với `flatMap` và các Stream con
+## 11. Completing `flatMap` and Child Streams
 
-`flatMap` có thể tạo một Stream con cho mỗi phần tử nguồn. Theo hợp đồng Stream, từng Stream con được sinh bởi mapper sẽ được **đóng sau khi nội dung của nó được đưa vào pipeline**.
+`flatMap` can create a child Stream for each source element. By the Stream contract, each child Stream produced by the mapper is **closed after its contents have been placed into the pipeline**.
 
-Ví dụ tách mỗi chuỗi thành các ký tự:
+Example splitting each string into characters:
 
 ```java
 import java.util.List;
@@ -530,7 +530,7 @@ List<String> chars = tokens.stream()
 System.out.println(chars); // [A, B, C, D]
 ```
 
-Nhưng việc `flatMap` đóng các Stream con **không có nghĩa Stream nguồn có tài nguyên I/O luôn được tự đóng sau terminal operation**. Nếu luồng ngoài được lấy từ `Files.lines`, bên gọi vẫn phải đóng luồng ngoài:
+However, `flatMap` closing child Streams **does not mean an outer I/O-backed source Stream is automatically closed after a terminal operation**. If the outer stream comes from `Files.lines`, the caller must still close the outer stream:
 
 ```java
 import java.nio.file.Files;
@@ -546,11 +546,11 @@ try (Stream<String> lines = Files.lines(Path.of("codes.txt"))) {
 }
 ```
 
-Trường hợp các Stream con cũng sở hữu tài nguyên riêng cần được xem xét theo hợp đồng của API tạo Stream con; đừng xây một cấu trúc phân cấp tài nguyên phức tạp mà không xác định rõ nơi phát sinh và nơi đóng từng nguồn.
+Cases where child Streams also own separate resources should be evaluated according to the child-Stream-creating API's contract; avoid building complex resource hierarchies without clearly defining where each source is created and closed.
 
-## 12. Ví dụ Java 17 hoàn chỉnh: API trả Stream và API tự đóng
+## 12. Complete Java 17 Example: Stream-Returning API vs. Self-Closing API
 
-Ví dụ sau minh họa **hai kiểu hợp đồng** trên một tệp tạm do chương trình tạo ra. Phần `openRecords` chuyển quyền sở hữu Stream cho caller; phần `countRecords` tự đóng và chỉ trả kết quả `long`.
+The following example demonstrates **both contract styles** on a temporary file created by the program. `openRecords` transfers Stream ownership to the caller; `countRecords` closes internally and returns only a `long` result.
 
 ```java
 import java.io.IOException;
@@ -590,12 +590,12 @@ public class StreamOwnershipDemo {
                 StandardCharsets.UTF_8
             );
 
-            // Hợp đồng 1: Caller đóng Stream trả về.
+            // Contract 1: Caller closes the returned Stream.
             try (Stream<String> records = openRecords(file)) {
                 System.out.println(records.toList()); // [A, B]
             }
 
-            // Hợp đồng 2: API đóng bên trong, trả số.
+            // Contract 2: API closes internally, returns count.
             System.out.println(countRecords(file));   // 2
         } finally {
             Files.deleteIfExists(file);
@@ -604,30 +604,30 @@ public class StreamOwnershipDemo {
 }
 ```
 
-Những điều ví dụ chứng minh về thiết kế:
+What this example demonstrates about design:
 
-1. `openRecords` **không** đóng Stream trước khi trả về.
-2. Caller luôn bao kết quả của `openRecords` trong `try-with-resources`.
-3. `countRecords` tiêu thụ Stream bên trong phạm vi chính nó và tự đóng.
-4. `Files.write` và `Files.deleteIfExists` chỉ phục vụ việc dựng dữ liệu minh họa; API thực tế nên áp dụng chính sách quyền tệp và lỗi I/O phù hợp.
-5. Sau khi `openRecords` được tiêu thụ bằng `toList()`, danh sách là dữ liệu trong bộ nhớ; không phụ thuộc nguồn tệp đã đóng.
+1. `openRecords` does **not** close the Stream before returning.
+2. The caller always wraps the result of `openRecords` in `try-with-resources`.
+3. `countRecords` consumes the Stream within its own scope and closes it itself.
+4. `Files.write` and `Files.deleteIfExists` only serve to prepare demo data; real-world APIs should apply appropriate file permission and I/O error policies.
+5. Once `openRecords` is consumed with `toList()`, the list is in-memory data and no longer depends on the closed file source.
 
-Nếu ứng dụng đang xử lý tệp có thể thay đổi do một tiến trình khác, cần thêm quy tắc nhất quán hoặc cách cố định dữ liệu; hợp đồng đóng tài nguyên **không tự tạo snapshot nhất quán**.
+If the application processes files that may be modified by another process, add consistency rules or data-pinning mechanisms; a resource-closing contract **does not automatically create a consistent snapshot**.
 
-## 13. Thiết kế API theo nhu cầu: nên trả loại gì?
+## 13. Designing APIs by Need: What Type Should You Return?
 
-| Mong muốn của caller | Thiết kế khuyến nghị | Trách nhiệm đóng |
+| Caller's need | Recommended design | Closing responsibility |
 | --- | --- | --- |
-| Duyệt rất nhiều dòng, tự chọn `filter`/`map`, tránh giữ toàn bộ | Trả `Stream<T>` lazy từ nguồn I/O | Caller đóng Stream; phải có tài liệu hợp đồng |
-| Chỉ cần số lượng hoặc một phép tổng | Trả `long`, `int`, `BigInteger` hoặc kết quả domain | API mở, tiêu thụ, đóng bên trong |
-| Cần danh sách có thể sử dụng lâu dài sau khi tệp đóng | Trả `List<T>` đã vật hóa | API đóng trước khi trả |
-| Muốn linh hoạt chọn phép xử lý nhưng không muốn lộ quyền sở hữu | Nhận callback xử lý đồng bộ trong phạm vi mở nguồn | API đóng, callback không được để dữ liệu lazy thoát ra |
-| Đã có `BufferedReader` thuộc caller | Phương thức nhận reader hoặc Stream mượn; không tự đóng trừ khi chuyển giao rõ | Chủ sở hữu reader đóng |
-| Cần điều khiển vòng đời phức tạp nhiều tài nguyên | Thiết kế wrapper `AutoCloseable` chuyên dụng kèm hợp đồng đóng | Theo wrapper/API; không chỉ dựa vào kiểu `Stream` |
+| Traverse very many lines, pick custom `filter`/`map`, avoid holding everything | Return a lazy `Stream<T>` from an I/O source | Caller closes the Stream; must document contract |
+| Only need a count or an aggregate | Return `long`, `int`, `BigInteger`, or a domain result | API opens, consumes, and closes internally |
+| Need a list usable long after the file closes | Return a materialized `List<T>` | API closes before returning |
+| Want processing flexibility without exposing ownership | Accept a synchronous processing callback inside open scope | API closes; callback must not let lazy data escape |
+| Already have a caller-owned `BufferedReader` | Method accepts reader or borrowed Stream; does not close unless explicitly transferred | Reader owner closes |
+| Need complex lifecycle control over multiple resources | Design a dedicated `AutoCloseable` wrapper with a closing contract | Per wrapper/API; do not rely solely on `Stream` type |
 
-Không có một dạng API tốt cho mọi trường hợp. Đánh đổi là giữa **tính lazy và quyền kiểm soát phía caller**, **bộ nhớ khi vật hóa kết quả**, cùng **độ rõ của vòng đời tài nguyên**.
+No single API shape fits every case. The trade-off is among **laziness and caller control**, **memory when materializing results**, and **clarity of resource lifecycles**.
 
-### 13.1. Một mẫu JavaDoc tối thiểu
+### 13.1. A Minimal JavaDoc Template
 
 ```java
 /**
@@ -645,11 +645,11 @@ Không có một dạng API tốt cho mọi trường hợp. Đánh đổi là g
 public static Stream<String> openRecords(Path path) throws IOException;
 ```
 
-Mẫu này chỉ minh họa **hợp đồng tài liệu**, không phải một khai báo phương thức dùng để biên dịch độc lập mà không có thân hàm. Nếu API có thêm ràng buộc về encoding, thời gian sống của kết nối, thứ tự hoặc thread-safety, cũng phải ghi cụ thể.
+This template only illustrates **the documentation contract**, not a standalone compilable declaration without a method body. If the API adds constraints on encoding, connection lifetime, ordering, or thread-safety, document those specifically as well.
 
-## 14. Xử lý song song và vòng đời tài nguyên
+## 14. Parallel Processing and Resource Lifecycle
 
-`parallel()` thay đổi cách pipeline có thể xử lý các phần tử, **không chuyển trách nhiệm đóng** sang JVM. Nếu Stream từ `Files.lines` được xử lý song song, caller vẫn phải đóng:
+`parallel()` changes how the pipeline can process elements; **it does not transfer closing responsibility** to the JVM. If a Stream from `Files.lines` is processed in parallel, the caller still must close it:
 
 ```java
 import java.nio.file.Files;
@@ -665,43 +665,43 @@ try (Stream<String> lines = Files.lines(Path.of("events.log"))) {
 }
 ```
 
-Không nên mặc định xử lý song song nhanh hơn với I/O. Truy cập tệp, chi phí giải mã, contention và đặc tính chia nguồn của `Spliterator` đều ảnh hưởng hiệu năng. Với nhiều nguồn hoặc tài nguyên không an toàn khi đồng thời, cần xem xét hợp đồng của nguồn trước khi chuyển sang parallel Stream.
+Do not assume parallel processing is faster for I/O. File access, decoding overhead, contention, and `Spliterator` splitting characteristics all affect performance. For many sources or resources that are not concurrency-safe, review the source's contract before switching to a parallel Stream.
 
-### 14.1. Không sửa hoặc đóng nguồn giữa lúc đang duyệt
+### 14.1. Do Not Mutate or Close the Source Mid-Traversal
 
-Nếu một luồng khác đóng Stream hoặc tài nguyên I/O khi pipeline vẫn đang hoạt động, kết quả có thể thất bại hoặc không được bảo đảm theo hợp đồng nguồn. Tránh thiết kế mà nhiều thành phần cùng tưởng mình là chủ sở hữu được phép đóng bất kỳ lúc nào.
+If another thread closes the Stream or underlying I/O resource while the pipeline is still active, results may fail or lack guarantees under the source contract. Avoid designs where multiple components believe they are owners entitled to close at any time.
 
-Đặc biệt, nếu API trả Stream từ cơ sở dữ liệu hoặc kết nối có trạng thái, cần một hợp đồng riêng về concurrency, transaction và lifetime của connection. Không suy từ việc `Stream<T>` có `parallel()` rằng nguồn bên dưới cũng hỗ trợ truy cập đồng thời.
+In particular, if an API returns a Stream from a database or stateful connection, define a dedicated contract for concurrency, transactions, and connection lifetime. Do not infer from `Stream<T>` having `parallel()` that the underlying source supports concurrent access.
 
-## 15. Lỗi thường gặp và cách khắc phục
+## 15. Common Mistakes and How to Fix Them
 
-| Sai lầm | Hậu quả | Cách làm đúng |
+| Mistake | Consequence | Correct practice |
 | --- | --- | --- |
-| API trả `Files.lines(...).filter(...)` nhưng không nói caller phải đóng | Người dùng API dễ bỏ quên tài nguyên | Viết rõ hợp đồng và mẫu `try-with-resources` |
-| API `return stream` trong khối `try-with-resources` | Stream đóng trước khi caller tiêu thụ | Hoặc trả Stream còn mở, hoặc tiêu thụ trong `try` và trả kết quả |
-| Cho rằng `toList()`/`count()` tự đóng Stream I/O | Tài nguyên có thể tiếp tục mở | Dùng `try-with-resources` |
-| Dừng sớm bằng `findFirst`/`anyMatch` rồi bỏ qua `close()` | Không giải phóng tài nguyên | Vẫn đóng nguồn khi rời phạm vi |
-| Chỉ đóng ở nhánh thành công | Rò rỉ khi mapper/terminal operation ném ngoại lệ | Bao nguồn bằng `try-with-resources` |
-| Đóng `Stream` từ `reader.lines()` rồi tưởng reader đã đóng | Reader còn mở | Đóng `BufferedReader`, hoặc gắn close handler khi chuyển quyền sở hữu |
-| Tạo `onClose` rồi tưởng hành động đóng sẽ tự chạy sau terminal operation | Handler không chạy nếu Stream không đóng | Caller/API vẫn phải gọi `close()` đúng trách nhiệm |
-| Phương thức nhận Stream mượn rồi tự ý đóng | Phá vòng đời của caller | Chỉ đóng khi hợp đồng nói đã nhận chuyển quyền sở hữu |
-| Dùng lại cùng Stream sau `count()`/`toList()` | Stream đã tiêu thụ | Tạo nguồn mới nếu cần duyệt lại |
-| Đóng source rồi cố duyệt pipeline đã tạo từ source | Đóng quá sớm, không thể duyệt | Đóng **sau** toàn bộ terminal operation của pipeline |
-| Dùng `Files.lines` rồi thu tất cả bằng `toList()` mà không nghĩ đến bộ nhớ | Có thể giữ dữ liệu lớn trong bộ nhớ | Chọn kết quả tổng hợp/Stream lazy tùy mục tiêu |
-| Truyền Stream I/O cho API callback rồi để Stream lazy thoát khỏi phạm vi | Tài nguyên đóng trước khi pipeline được dùng | Chỉ trả kết quả đã hoàn tất trong callback |
-| Bật `parallel` nhưng nghĩ framework sẽ tự quản lý đóng nguồn | Quyền sở hữu không đổi | Đóng ở chủ sở hữu đã xác định |
-| Dùng `map`/`peek` để giải phóng tài nguyên của nguồn | Không bảo đảm chạy đủ, đặc biệt khi short-circuit | Dùng `close`/`onClose`/`try-with-resources` |
-| Đóng nhiều thành phần chia sẻ cùng connection mà không có hợp đồng | Đóng trùng hoặc làm hỏng tác vụ khác | Thiết kế vòng đời owner/borrower rõ ràng |
+| API returns `Files.lines(...).filter(...)` without stating caller must close | API users easily forget the resource | Document ownership and show `try-with-resources` usage |
+| API does `return stream` inside `try-with-resources` | Stream closes before the caller consumes it | Either return an open Stream, or consume inside `try` and return the result |
+| Assuming `toList()`/`count()` automatically closes an I/O Stream | Resource can stay open | Use `try-with-resources` |
+| Stopping early with `findFirst`/`anyMatch` and skipping `close()` | Resource is not released | Still close the source when leaving scope |
+| Closing only on the success path | Leaks when mapper/terminal operation throws | Wrap the source in `try-with-resources` |
+| Closing `Stream` from `reader.lines()` thinking the reader is closed | Reader remains open | Close `BufferedReader`, or attach a close handler when transferring ownership |
+| Adding `onClose` thinking the close action runs automatically after terminal op | Handler never runs if Stream is not closed | Caller/API still must call `close()` per ownership |
+| Method takes a borrowed Stream and closes it unasked | Breaks caller's lifecycle | Close only when contract specifies ownership transfer |
+| Reusing the same Stream after `count()`/`toList()` | Stream already consumed | Create a new source if re-traversal is needed |
+| Closing source then attempting to traverse pipeline built from it | Premature close, cannot traverse | Close **after** the pipeline's terminal operation completes |
+| Using `Files.lines` then collecting all with `toList()` without considering RAM | May hold huge data in memory | Choose aggregated result or lazy Stream based on goal |
+| Passing an I/O Stream to a callback API and letting a lazy Stream escape | Resource closes before pipeline is used | Return only completed results from callbacks |
+| Enabling `parallel` thinking the framework handles closing | Ownership does not change | Close at the designated owner |
+| Using `map`/`peek` to release source resources | Not guaranteed to run completely, especially with short-circuiting | Use `close`/`onClose`/`try-with-resources` |
+| Multiple components closing a shared connection without a contract | Double-closing or breaking other tasks | Design clear owner/borrower lifecycles |
 
-## 16. Bài tập thực hành
+## 16. Practice Exercises
 
-### Bài 1: Xác định bên nào phải đóng
+### Exercise 1: Identify Who Must Close
 
-Phân loại sáu nguồn: `List.stream()`, `IntStream.range()`, `Files.lines()`, `Files.list()`, `BufferedReader.lines()` và một API `openRecords(path)` trả về Stream có JavaDoc “caller must close”. Nêu **tài nguyên thực sự** cần đóng và bên chịu trách nhiệm.
+Classify six sources: `List.stream()`, `IntStream.range()`, `Files.lines()`, `Files.list()`, `BufferedReader.lines()`, and an API `openRecords(path)` returning a Stream with JavaDoc "caller must close". State **the actual resource** that needs closing and the responsible party.
 
-### Bài 2: Sửa API đóng quá sớm
+### Exercise 2: Fix an API That Closes Too Early
 
-Cho:
+Given:
 
 ```java
 Stream<String> openBadly(Path path) throws IOException {
@@ -711,58 +711,58 @@ Stream<String> openBadly(Path path) throws IOException {
 }
 ```
 
-Giải thích vì sao `openBadly(path).count()` không hợp lệ. Viết hai phiên bản sửa: (a) trả Stream lazy có JavaDoc chuyển ownership và (b) trả `List<String>` đã thu thập bên trong `try-with-resources`.
+Explain why `openBadly(path).count()` is invalid. Write two fixed versions: (a) returning a lazy Stream with JavaDoc transferring ownership, and (b) returning a `List<String>` collected inside `try-with-resources`.
 
-### Bài 3: Dừng sớm vẫn đóng nguồn
+### Exercise 3: Early Stop Still Closes the Source
 
-Viết API tìm dòng đầu tiên bắt đầu bằng `"ERROR"` trong một tệp:
+Write an API finding the first line starting with `"ERROR"` in a file:
 
 ```java
 Optional<String> firstError(Path path) throws IOException
 ```
 
-Cài đặt bằng `Files.lines`, `filter` và `findFirst`. Chỉ ra vị trí đặt `try-with-resources` để nguồn luôn được đóng, kể cả khi tìm thấy dòng đầu tiên.
+Implement using `Files.lines`, `filter`, and `findFirst`. Point out where to place `try-with-resources` so the source always closes, even when the first line matches.
 
-### Bài 4: Thiết kế API hai kiểu ownership
+### Exercise 4: Design Two Ownership API Styles
 
-Triển khai hai phương thức:
+Implement two methods:
 
 ```java
 Stream<String> openNames(Path path) throws IOException;
 long countNames(Path path) throws IOException;
 ```
 
-Một phương thức chuyển trách nhiệm đóng cho caller, phương thức còn lại tự đóng. Viết ví dụ caller đúng cho cả hai và mô tả điều gì xảy ra nếu caller quên đóng kết quả của `openNames`.
+One transfers closing responsibility to the caller, while the other closes internally. Write correct caller examples for both and describe what happens if the caller forgets to close the result of `openNames`.
 
-### Bài 5: Callback và kết quả lazy
+### Exercise 5: Callback and Lazy Results
 
-Cho API `withLines(path, Function<Stream<String>, R>)`. Thử callback trả `lines.filter(...)` mà chưa gọi terminal operation. Vì sao kết quả Stream không thể duyệt sau khi `withLines` trả về? Hãy thay callback bằng `lines.filter(...).count()` hoặc `toList()` rồi giải thích sự khác biệt.
+Given `withLines(path, Function<Stream<String>, R>)`, try a callback that returns `lines.filter(...)` without calling a terminal operation. Why can the resulting Stream not be traversed after `withLines` returns? Replace the callback with `lines.filter(...).count()` or `toList()` and explain the difference.
 
-### Bài 6: `onClose` và lỗi xử lý
+### Exercise 6: `onClose` and Processing Errors
 
-Tạo một Stream từ `Stream.of(...)` có `onClose` tăng bộ đếm `AtomicInteger`. Bên trong `try-with-resources`, gọi một terminal operation có mapper ném `IllegalArgumentException` cho một phần tử. Kiểm tra bộ đếm sau khi bắt ngoại lệ để xác nhận handler vẫn chạy khi Stream được đóng.
+Create a Stream from `Stream.of(...)` with an `onClose` that increments an `AtomicInteger`. Inside `try-with-resources`, invoke a terminal operation whose mapper throws `IllegalArgumentException` for an element. Check the counter after catching the exception to confirm the handler still ran when the Stream closed.
 
-### Bài 7: Quản lý `BufferedReader`
+### Exercise 7: Managing `BufferedReader`
 
-Viết `countNonBlank(Path path)` bằng `Files.newBufferedReader` và `reader.lines()`. Dùng `try-with-resources` cho đúng đối tượng owner. Sau đó giải thích vì sao `reader.lines().onClose(...)` có thể cần thiết nếu API buộc phải trả Stream từ reader cho caller.
+Write `countNonBlank(Path path)` using `Files.newBufferedReader` and `reader.lines()`. Use `try-with-resources` on the proper owner object. Then explain why `reader.lines().onClose(...)` may be needed if an API must return a Stream from a reader to the caller.
 
-### Bài 8: Lựa chọn cho tệp lớn
+### Exercise 8: Choosing for Large Files
 
-Một tệp log có hàng chục triệu dòng. Đánh giá ba API: (a) trả `List<String>` toàn bộ, (b) trả `Stream<String>` lazy có trách nhiệm đóng ở caller, và (c) nhận callback trả số liệu tổng hợp. So sánh bộ nhớ, độ linh hoạt, thời gian giữ tài nguyên và rủi ro caller quên đóng.
+A log file has tens of millions of lines. Evaluate three APIs: (a) returning a full `List<String>`, (b) returning a lazy `Stream<String>` with caller closing responsibility, and (c) taking a callback returning summary metrics. Compare memory, flexibility, resource hold time, and the risk of the caller forgetting to close.
 
-## 17. Tự kiểm tra kiến thức
+## 17. Self-Check Knowledge
 
-- Vì sao tiêu thụ `Stream` bằng `count()` không có nghĩa nguồn I/O đã được đóng?
-- Với API trả `Stream` từ `Files.lines`, ai phải đóng và tại sao?
-- Điều gì sai khi `return stream.filter(...)` bên trong `try-with-resources`?
-- `findFirst()`, `limit(5)` và `anyMatch()` có thay đổi yêu cầu đóng nguồn không?
-- `onClose` có tự thực thi ngay khi đăng ký hay không?
-- Đóng Stream trả về từ `BufferedReader.lines()` có tự đóng reader không?
-- Phương thức chỉ **mượn** Stream từ caller nên đóng nó hay không, và phải ghi hợp đồng gì nếu muốn sở hữu?
-- Trường hợp nào API nên trả `List<T>` hoặc `long` thay vì Stream?
-- Khi có lỗi trong lambda sau khi mở tệp, `try-with-resources` giúp bảo vệ tài nguyên ra sao?
-- Vì sao `parallel()` không thay thế hợp đồng ownership và không bảo đảm I/O nhanh hơn?
-- Khi nào callback xử lý Stream trong phạm vi tài nguyên mở là một thiết kế hữu ích?
-- Quy tắc nào để không nhầm “đã tiêu thụ một lần” với “đã đóng”?
+- Why does consuming a `Stream` with `count()` not mean the I/O source has been closed?
+- For an API returning a `Stream` from `Files.lines`, who must close it and why?
+- What is wrong with `return stream.filter(...)` inside `try-with-resources`?
+- Do `findFirst()`, `limit(5)`, and `anyMatch()` change the requirement to close the source?
+- Does `onClose` execute immediately upon registration?
+- Does closing the Stream returned by `BufferedReader.lines()` automatically close the reader?
+- Should a method that merely **borrows** a Stream from the caller close it, and what contract must be documented if it wants ownership?
+- When should an API return `List<T>` or `long` instead of a Stream?
+- When a lambda throws after a file is opened, how does `try-with-resources` protect the resource?
+- Why does `parallel()` neither replace the ownership contract nor guarantee faster I/O?
+- When is a callback processing a Stream inside an open resource scope a useful design?
+- What rule prevents confusing "consumed once" with "closed"?
 
-**Ghi nhớ:** Với Stream gắn tệp hoặc nguồn I/O, **terminal operation không tự thay thế `close()`**. API hoặc **tự đóng sau khi tính xong** rồi trả kết quả độc lập, hoặc **trả Stream còn sống và chuyển rõ trách nhiệm đóng cho caller**. Dùng `try-with-resources` ở đúng nơi sở hữu; đừng trả Stream từ khối `try` đã đóng, đừng bỏ qua việc đóng sau short-circuit, và đừng suy rằng `BufferedReader.lines()` hay `onClose` tự giải phóng tài nguyên nếu không có lời gọi đóng thích hợp.
+**Key takeaway:** With Streams backed by files or I/O sources, **a terminal operation does not replace `close()`**. Either the API **closes internally after finishing computation** and returns an independent result, or it **returns a live Stream and explicitly transfers closing responsibility to the caller**. Use `try-with-resources` at the true owner; never return a Stream from a `try` block that has already closed, never skip closing after short-circuiting, and never assume `BufferedReader.lines()` or `onClose` releases resources without an appropriate close call.

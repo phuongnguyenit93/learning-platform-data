@@ -1,16 +1,16 @@
-# compare, compareTo, equals và hashCode — Java Core: Number và wrapper
+# compare, compareTo, equals, and hashCode — Java Core: Number and Wrappers
 
-## 1. Vì sao cùng là “so sánh số” mà Java có nhiều cách?
+## 1. Why Does Java Have Multiple Ways to "Compare Numbers"?
 
-Java có nhiều kiểu số nguyên thủy (`byte`, `short`, `int`, `long`, `float`, `double`) và các lớp wrapper tương ứng (`Byte`, `Short`, `Integer`, `Long`, `Float`, `Double`). Ngoài phép so sánh bằng toán tử `==`, người lập trình còn gặp:
+Java has several numeric primitive types (`byte`, `short`, `int`, `long`, `float`, `double`) and corresponding wrapper classes (`Byte`, `Short`, `Integer`, `Long`, `Float`, `Double`). Beyond comparing with the `==` operator, developers also encounter:
 
-- `Integer.compare(a, b)`, `Long.compare(a, b)`, `Double.compare(a, b)`…: **phương thức static** so sánh hai giá trị cùng kiểu primitive.
-- `wrapperA.compareTo(wrapperB)`: **phương thức instance** so sánh thứ tự giữa các wrapper cùng lớp.
-- `wrapperA.equals(other)`: **phương thức instance** quyết định hai đối tượng có được coi là cùng giá trị theo hợp đồng của lớp không.
-- `wrapperA.hashCode()`: mã băm phù hợp với `equals` khi làm khóa trong `HashMap`, phần tử trong `HashSet`.
-- Các toán tử `==`, `<`, `>`, `<=`, `>=`: so sánh **primitive** hoặc có thể kích hoạt unboxing khi toán hạng là wrapper.
+- `Integer.compare(a, b)`, `Long.compare(a, b)`, `Double.compare(a, b)`…: **static methods** comparing two values of the same primitive type.
+- `wrapperA.compareTo(wrapperB)`: **instance method** comparing ordering between wrappers of the same class.
+- `wrapperA.equals(other)`: **instance method** deciding whether two objects are considered to have the same value under the class's contract.
+- `wrapperA.hashCode()`: hash code consistent with `equals` when used as keys in `HashMap` or elements in `HashSet`.
+- Operators `==`, `<`, `>`, `<=`, `>=`: compare **primitives**, or may trigger unboxing when operands are wrappers.
 
-Chúng có liên quan nhưng **không thay thế nhau một cách tùy tiện**. Ví dụ:
+They are related, yet **are not arbitrarily interchangeable**. For example:
 
 ```java
 Integer a = 9;
@@ -20,115 +20,115 @@ System.out.println(a.equals(b)); // false
 System.out.println(a.longValue() == b.longValue()); // true
 ```
 
-`Integer.equals` không xem `Long` cùng lượng toán học là cùng kiểu đối tượng. Ngược lại, khi trích giá trị primitive và so sánh đúng kiểu, `9L == 9L` là true.
+`Integer.equals` does not treat a `Long` with the same mathematical quantity as the same object type. Conversely, after extracting primitive values and comparing with a matching type, `9L == 9L` is true.
 
-**Mục tiêu bài học:**
+**Lesson objectives:**
 
-1. Phân biệt so sánh **giá trị**, **kiểu đối tượng**, **identity** và **thứ tự**.
-2. Dùng đúng `compare` và `compareTo` cho signed integer, unsigned interpretation và floating point.
-3. Hiểu `equals`/`hashCode`, hợp đồng bắt buộc và ảnh hưởng tới collection.
-4. Xử lý đúng `Float`/`Double` với `NaN`, `+0.0` và `-0.0`.
-5. Biết vì sao `==` trên wrapper không đáng dùng để so sánh giá trị đối tượng, đặc biệt với cache/boxing.
-6. Tránh comparator bằng phép trừ, tránh so sánh “gần bằng epsilon” làm equality hoặc sắp xếp.
-7. Đọc và kiểm thử các ví dụ Java 17+ với đầu ra có thể lặp lại.
+1. Distinguish comparing **value**, **object type**, **identity**, and **ordering**.
+2. Use `compare` and `compareTo` properly for signed integers, unsigned interpretation, and floating-point numbers.
+3. Understand `equals`/`hashCode`, required contracts, and impact on collections.
+4. Handle `Float`/`Double` properly with `NaN`, `+0.0`, and `-0.0`.
+5. Know why `==` on wrappers should not be used to compare object values, especially with caching/boxing.
+6. Avoid subtraction-based comparators and avoid using "within epsilon" comparisons for equality or sorting.
+7. Read and test Java 17+ examples with reproducible outputs.
 
-**Phạm vi:** Number và các wrapper chuẩn Java, cách chúng tham gia so sánh/collection. `BigDecimal` và `BigInteger` chỉ được đưa vào để làm rõ trường hợp so sánh khác nhau trong họ `Number`, không biến bài này thành hướng dẫn tính toán thập phân chi tiết.
+**Scope:** `Number` and standard Java wrappers, and how they participate in comparison/collections. `BigDecimal` and `BigInteger` are included only to clarify differing comparison behaviors in the `Number` family, without turning this lesson into a detailed decimal arithmetic guide.
 
-## 2. Kiểu primitive, wrapper và lớp `Number`
+## 2. Primitive Types, Wrappers, and the `Number` Class
 
-| Primitive | Wrapper | Họ kiểu trong Java | Comparable |
+| Primitive | Wrapper | Type family in Java | Comparable |
 | --- | --- | --- | --- |
-| `byte` | `Byte` | Kế thừa `Number` | `Comparable<Byte>` |
-| `short` | `Short` | Kế thừa `Number` | `Comparable<Short>` |
-| `int` | `Integer` | Kế thừa `Number` | `Comparable<Integer>` |
-| `long` | `Long` | Kế thừa `Number` | `Comparable<Long>` |
-| `float` | `Float` | Kế thừa `Number` | `Comparable<Float>` |
-| `double` | `Double` | Kế thừa `Number` | `Comparable<Double>` |
+| `byte` | `Byte` | Extends `Number` | `Comparable<Byte>` |
+| `short` | `Short` | Extends `Number` | `Comparable<Short>` |
+| `int` | `Integer` | Extends `Number` | `Comparable<Integer>` |
+| `long` | `Long` | Extends `Number` | `Comparable<Long>` |
+| `float` | `Float` | Extends `Number` | `Comparable<Float>` |
+| `double` | `Double` | Extends `Number` | `Comparable<Double>` |
 
-`Number` là abstract class cung cấp cách **lấy giá trị dưới những kiểu số nhất định** qua `intValue()`, `longValue()`, `floatValue()`, `doubleValue()` và các phương thức chuyển đổi khác. Nó **không đưa ra một `compareTo` chung để so sánh mọi `Number`** và không quy định mọi subclass phải dùng chung một định nghĩa `equals`.
+`Number` is an abstract class providing ways to **obtain values in specific numeric types** via `intValue()`, `longValue()`, `floatValue()`, `doubleValue()`, and other conversion methods. It **does not define a common `compareTo` for comparing any `Number`** and does not mandate a shared `equals` definition across all subclasses.
 
-Điều đó có nghĩa:
+This means:
 
 ```java
 Number a = Integer.valueOf(5);
 Number b = Double.valueOf(5.0);
 ```
 
-Không thể đơn giản gọi `a.compareTo(b)` trên kiểu khai báo `Number`; `Number` không có `compareTo(Number)`. Nếu gọi `a.equals(b)`, dispatch tới `Integer.equals` và trả false. Cần xác định rõ chính sách so sánh khi nhận nhiều subclass `Number`; chuyển hết sang `double` cũng không tự an toàn vì có thể mất chính xác với số nguyên lớn hoặc `BigDecimal`.
+You cannot simply call `a.compareTo(b)` on the declared type `Number`; `Number` has no `compareTo(Number)`. Calling `a.equals(b)` dispatches to `Integer.equals` and returns `false`. You must specify an explicit comparison policy when accepting multiple `Number` subclasses; converting everything to `double` is not automatically safe either, because it can lose precision for large integers or `BigDecimal`.
 
-### 2.1. Auto-boxing và unboxing
+### 2.1. Auto-boxing and unboxing
 
-`Integer n = 9;` có thể được compiler chuyển thành thao tác boxing. `int x = n;` có thể được chuyển thành unboxing, tương đương lấy giá trị primitive. Khi có `null`:
+`Integer n = 9;` can be compiled into a boxing operation. `int x = n;` can be compiled into unboxing, equivalent to extracting the primitive value. When `null` is involved:
 
 ```java
 Integer missing = null;
-// int x = missing; // runtime NullPointerException do unboxing
+// int x = missing; // runtime NullPointerException due to unboxing
 ```
 
-Các phương thức `compareTo` và `equals` cũng có quy tắc về null: `a.equals(null)` trả false nếu `a` khác null, trong khi `a.compareTo(null)` với `Integer a` không null thường ném `NullPointerException`. Nếu receiver `a` chính nó null, gọi method sẽ ném `NullPointerException`.
+`compareTo` and `equals` also have null rules: `a.equals(null)` returns `false` when `a` is non-null, whereas `a.compareTo(null)` on a non-null `Integer a` normally throws `NullPointerException`. If the receiver `a` itself is null, calling any method throws `NullPointerException`.
 
-## 3. Bảng quyết định nhanh giữa các cách so sánh
+## 3. Quick Decision Table Among Comparison Approaches
 
-| Mục đích | Cách dùng | Ghi chú |
+| Purpose | Approach | Notes |
 | --- | --- | --- |
-| Hai `int` có cùng giá trị? | `a == b` | Primitive equality |
-| So thứ tự hai `int` không lo overflow? | `Integer.compare(a,b)` | Trả giá trị âm/0/dương |
-| So thứ tự hai `long` | `Long.compare(a,b)` | Không dùng `(int)(a-b)` |
-| So thứ tự hai wrapper cùng kiểu | `a.compareTo(b)` | Receiver/đối số phải có kiểu phù hợp |
-| Hai wrapper có bằng theo hợp đồng lớp? | `a.equals(b)` | Null-safe nếu `a` chắc chắn khác null |
-| Wrapper có thể null ở hai vế? | `Objects.equals(a,b)` | Trả true nếu hai tham chiếu đều null |
-| Wrapper làm khóa hash? | `equals` đi cùng `hashCode` | Java wrappers đã có hợp đồng phù hợp |
-| Sắp xếp dữ liệu số `double` | `Double.compare(a,b)` | Có quy tắc với NaN, signed zero |
-| Diễn giải bit `int` dưới dạng không dấu | `Integer.compareUnsigned(a,b)` | Không thay bit, chỉ đổi thứ tự |
-| Kiểm tra kết quả số thực nằm trong sai số? | Hàm `near(a,b,tolerance)` riêng | Không dùng làm `equals`/`compareTo` mặc định |
+| Do two `int`s have the same value? | `a == b` | Primitive equality |
+| Order two `int`s without overflow risk? | `Integer.compare(a,b)` | Returns negative/0/positive |
+| Order two `long`s | `Long.compare(a,b)` | Do not use `(int)(a-b)` |
+| Order two wrappers of the same type | `a.compareTo(b)` | Receiver/argument must have matching type |
+| Are two wrappers equal per class contract? | `a.equals(b)` | Null-safe if `a` is guaranteed non-null |
+| Wrappers may be null on either side? | `Objects.equals(a,b)` | Returns true if both references are null |
+| Wrapper used as a hash key? | `equals` paired with `hashCode` | Java wrappers already satisfy the contract |
+| Sort `double` numeric data | `Double.compare(a,b)` | Has rules for NaN and signed zero |
+| Interpret `int` bits as unsigned | `Integer.compareUnsigned(a,b)` | Does not change bits, only ordering |
+| Check floating-point results within tolerance? | Dedicated `near(a,b,tolerance)` function | Do not use as default `equals`/`compareTo` |
 
-Cần phân biệt ý nghĩa `compare(a,b) < 0` với `compare(a,b) == -1`. Hợp đồng so sánh tổng quát chỉ bảo đảm **dấu của kết quả**, không bảo đảm luôn chỉ có `-1`, `0`, `1`. Ví dụ `Byte.compare((byte)-1, (byte)1)` có thể trả `-2` theo đặc tả phép trừ giá trị byte trong phương thức đó. Hãy viết `< 0`, `== 0`, `> 0`.
+Distinguish `compare(a,b) < 0` from `compare(a,b) == -1`. The general comparison contract only guarantees the **sign of the result**, not that it will always be `-1`, `0`, or `1`. For instance, `Byte.compare((byte)-1, (byte)1)` can return `-2` by subtracting byte values in that method's implementation. Write `< 0`, `== 0`, `> 0`.
 
-## 4. `compare`: phương thức static nhận primitive
+## 4. `compare`: Static Methods Accepting Primitives
 
-Các lớp wrapper số có các phương thức so sánh static:
+Numeric wrapper classes have static comparison methods:
 
 ```java
-int c1 = Integer.compare(9, 12);       // âm
-int c2 = Long.compare(9L, 12L);        // âm
-int c3 = Float.compare(9.0f, 12.0f);   // âm
-int c4 = Double.compare(9.0, 12.0);    // âm
+int c1 = Integer.compare(9, 12);       // negative
+int c2 = Long.compare(9L, 12L);        // negative
+int c3 = Float.compare(9.0f, 12.0f);   // negative
+int c4 = Double.compare(9.0, 12.0);    // negative
 ```
 
-Dù tên thuộc lớp wrapper, đầu vào của các phương thức này là **primitive** (ví dụ `int,int` hoặc `double,double`) và kết quả là `int` biểu thị thứ tự.
+Although named on wrapper classes, the inputs to these methods are **primitives** (e.g., `int,int` or `double,double`) and the return value is an `int` indicating ordering.
 
-Với `Byte`/`Short` cũng có `Byte.compare(byte,byte)`, `Short.compare(short,short)`. Các phương thức này hữu ích khi viết `Comparator` bằng lambda hoặc phương thức tham chiếu.
+`Byte`/`Short` also have `Byte.compare(byte,byte)` and `Short.compare(short,short)`. These methods are handy when writing a `Comparator` via lambdas or method references.
 
-### 4.1. Không so sánh số nguyên bằng phép trừ
+### 4.1. Do not compare integers by subtraction
 
-Đoạn mã sau có thể sai:
+The following snippet can be wrong:
 
 ```java
-// KHÔNG NÊN DÙNG:
+// DO NOT USE:
 Comparator<Integer> bad = (a, b) -> a - b;
 ```
 
-Nếu `a=Integer.MAX_VALUE` và `b=-1`, hiệu số toán học vượt miền `int`; kết quả phép trừ `int` tràn, làm sai dấu thứ tự. Hãy dùng:
+If `a=Integer.MAX_VALUE` and `b=-1`, the mathematical difference exceeds the `int` range; `int` subtraction overflows, flipping the ordering sign. Instead use:
 
 ```java
 Comparator<Integer> order = Integer::compare;
 ```
 
-Hoặc:
+Or:
 
 ```java
 Comparator<Integer> order = Comparator.naturalOrder();
 ```
 
-Đoạn `Comparator` cần import `java.util.Comparator` hoặc viết tên đầy đủ. Với `long`, tránh `return (int)(a-b);` vì vừa có nguy cơ `long` overflow vừa cắt xuống 32 bit; dùng `Long.compare(a,b)`.
+The `Comparator` snippets require `import java.util.Comparator` or a fully qualified name. For `long`, avoid `return (int)(a-b);` because it risks both `long` overflow and 32-bit truncation; use `Long.compare(a,b)`.
 
-### 4.2. Static compare trả thứ tự, không phải boolean
+### 4.2. Static compare returns ordering, not boolean
 
-`Integer.compare(10,10)` trả số nguyên `0`. Nó **không** trả `true`; muốn hỏi bằng nhau thông qua compare, viết `Integer.compare(a,b)==0`, dù với primitive `int` thông thường `a==b` rõ hơn.
+`Integer.compare(10,10)` returns the integer `0`. It **does not** return `true`; to test equality via compare, write `Integer.compare(a,b)==0`, though for ordinary primitive `int`s `a==b` is clearer.
 
-## 5. `compareTo`: hợp đồng Comparable của wrapper
+## 5. `compareTo`: The Wrapper `Comparable` Contract
 
-Các wrapper triển khai `Comparable` cho **cùng loại đối tượng**. Ví dụ:
+Wrappers implement `Comparable` for **the same object type**. For example:
 
 ```java
 Integer a = 9;
@@ -136,29 +136,29 @@ Integer b = 12;
 System.out.println(a.compareTo(b)); // -1
 ```
 
-Kết quả âm: `a` đứng trước `b`; kết quả 0: cùng vị trí theo natural ordering; kết quả dương: `a` đứng sau `b`.
+Negative result: `a` comes before `b`; 0 result: same position under natural ordering; positive result: `a` comes after `b`.
 
-`Integer.compareTo` nhận `Integer`; `Long.compareTo` nhận `Long`. Chúng **không** cho phép:
+`Integer.compareTo` takes `Integer`; `Long.compareTo` takes `Long`. They **do not** allow:
 
 ```java
 Integer left = 9;
 Long right = 9L;
-// left.compareTo(right); // KHÔNG BIÊN DỊCH: Long không phải Integer
+// left.compareTo(right); // DOES NOT COMPILE: Long is not Integer
 ```
 
-Tương tự, `Number` không có một natural ordering chung cho mọi subclass. `BigDecimal` và `BigInteger` có compareTo riêng của từng lớp.
+Likewise, `Number` has no common natural ordering across all subclasses. `BigDecimal` and `BigInteger` each have their own `compareTo`.
 
-### 5.1. Natural ordering và `Collections.sort`
+### 5.1. Natural ordering and `Collections.sort`
 
-Với một `List<Integer>`, có thể gọi `Collections.sort(list)` hoặc `list.sort(null)` để dùng natural ordering của `Integer`. Với một `List<Double>`, natural ordering của `Double` có quy tắc đặc biệt cho `NaN` và signed zero.
+For a `List<Integer>`, you can call `Collections.sort(list)` or `list.sort(null)` to use `Integer`'s natural ordering. For a `List<Double>`, `Double`'s natural ordering has special rules for `NaN` and signed zero.
 
-Đừng giả định rằng danh sách kiểu `List<Number>` trộn `Integer` với `Double` sẽ tự có một comparator đúng. Hãy chọn **mô hình dữ liệu đồng nhất** hoặc tự định nghĩa một thứ tự có hợp đồng rõ ràng.
+Do not assume a `List<Number>` mixing `Integer` and `Double` automatically has a valid comparator. Choose a **homogeneous data model** or define an ordering with an explicit contract.
 
-### 5.2. `compareTo` và `equals` không luôn đồng nhất ở mọi loại Number
+### 5.2. `compareTo` and `equals` are not always consistent across all Number types
 
-Các wrapper `Byte`, `Short`, `Integer`, `Long`, `Float`, `Double` thiết kế natural ordering phù hợp với equality của chính lớp (đặc biệt `Float`/`Double` xử lý NaN/zero theo contract của wrapper).
+The wrappers `Byte`, `Short`, `Integer`, `Long`, `Float`, and `Double` design natural ordering to align with each class's equality (in particular `Float`/`Double` handle NaN/zero per the wrapper contract).
 
-Nhưng một subclass `Number` khác, như `BigDecimal`, có khác biệt:
+However, another `Number` subclass, such as `BigDecimal`, differs:
 
 ```java
 BigDecimal x = new BigDecimal("2.0");
@@ -168,11 +168,11 @@ System.out.println(x.compareTo(y)); // 0
 System.out.println(x.equals(y));    // false
 ```
 
-Hai `BigDecimal` bằng về **giá trị số** nhưng khác **scale**, nên `equals` trả false. Đoạn trên cần `import java.math.BigDecimal;`. Tình huống này cho thấy không thể khẳng định mọi đối tượng kế thừa `Number` có `compareTo()==0` đồng nghĩa `equals()==true`.
+The two `BigDecimal`s are equal in **numeric value** yet differ in **scale**, so `equals` returns `false`. The snippet above requires `import java.math.BigDecimal;`. This case shows you cannot claim every `Number` object with `compareTo()==0` also satisfies `equals()==true`.
 
-## 6. `equals`: bằng nhau theo hợp đồng lớp, không chỉ cùng con số
+## 6. `equals`: Equality by Class Contract, Not Just Same Number
 
-Với `Integer`:
+For `Integer`:
 
 ```java
 System.out.println(Integer.valueOf(9)
@@ -182,47 +182,47 @@ System.out.println(Integer.valueOf(9)
         .equals(Long.valueOf(9L)));   // false
 ```
 
-`Integer.equals` yêu cầu đối tượng đối chiếu **là một `Integer`** và có cùng giá trị primitive `int`. `Long.equals` tương tự trong lớp `Long`. Vì thế `Integer.valueOf(9)` và `Long.valueOf(9)` không bằng theo `equals` dù cùng lượng toán học.
+`Integer.equals` requires the compared object **to be an `Integer`** and have the same primitive `int` value. `Long.equals` works similarly within `Long`. Therefore `Integer.valueOf(9)` and `Long.valueOf(9)` are not equal under `equals` despite having the same mathematical quantity.
 
-Một số ví dụ phân biệt:
+Distinguishing examples:
 
-| So sánh | Kết quả | Vì sao |
+| Comparison | Result | Why |
 | --- | --- | --- |
-| `Integer.valueOf(9).equals(Integer.valueOf(9))` | true | Cùng class, cùng giá trị |
-| `Integer.valueOf(9).equals(Long.valueOf(9))` | false | Khác class |
-| `Double.valueOf(9.0).equals(Float.valueOf(9.0f))` | false | Khác class |
+| `Integer.valueOf(9).equals(Integer.valueOf(9))` | true | Same class, same value |
+| `Integer.valueOf(9).equals(Long.valueOf(9))` | false | Different class |
+| `Double.valueOf(9.0).equals(Float.valueOf(9.0f))` | false | Different class |
 | `Long.valueOf(9).equals(null)` | false | `equals(null)` |
 | `Integer.valueOf(9).intValue() == 9` | true | Primitive int equality |
-| `Integer.valueOf(9).longValue() == Long.valueOf(9L).longValue()` | true | Sau chuyển đổi phù hợp, primitive long equality |
+| `Integer.valueOf(9).longValue() == Long.valueOf(9L).longValue()` | true | After appropriate conversion, primitive long equality |
 
-**Không biến mọi `Number` thành `double` chỉ để so sánh.** `double` có 53 bit precision significand; nhiều giá trị `long` lớn hơn `2⁵³` không còn phân biệt chính xác. `BigDecimal.doubleValue()` cũng có thể làm tròn hoặc tràn sang vô cực, gây mất thông tin. Nếu domain thật sự cần so sánh giữa các loại `Number`, phải định nghĩa yêu cầu về miền/độ chính xác và chọn biểu diễn trung gian thích hợp.
+**Do not convert every `Number` to `double` just to compare.** `double` has 53 bits of significand precision; many `long` values above `2⁵³` are no longer distinguishable accurately. `BigDecimal.doubleValue()` can also round or overflow to infinity, losing information. If a domain truly needs cross-`Number` comparison, define range/precision requirements and pick an appropriate intermediate representation.
 
-### 6.1. `Objects.equals` chỉ xử lý null, không làm ép kiểu tương đương
+### 6.1. `Objects.equals` only handles null, it does not coerce types
 
-`java.util.Objects.equals(a,b)` trả true nếu cả hai null; nếu một bên null thì false; nếu cả hai khác null thì sử dụng `a.equals(b)`.
+`java.util.Objects.equals(a,b)` returns `true` if both are null; `false` if only one is null; and delegates to `a.equals(b)` if both are non-null.
 
-`Objects.equals(Integer.valueOf(9), Long.valueOf(9))` vẫn false. Đây không phải phép “so sánh giá trị số tổng quát” mà là cách gọi `equals` an toàn khi có null.
+`Objects.equals(Integer.valueOf(9), Long.valueOf(9))` is still `false`. This is not a "general numeric value comparison," but a null-safe way to invoke `equals`.
 
-## 7. `hashCode`: hợp đồng với `equals`
+## 7. `hashCode`: Contract with `equals`
 
-`hashCode` là phương thức từ `Object`. Với hai đối tượng `x`, `y`:
+`hashCode` is a method from `Object`. For two objects `x` and `y`:
 
-> Nếu `x.equals(y)` là true, thì **bắt buộc** `x.hashCode() == y.hashCode()`.
+> If `x.equals(y)` is true, then **it is required** that `x.hashCode() == y.hashCode()`.
 
-Chiều ngược lại **không bắt buộc**: hai đối tượng khác nhau vẫn có thể cùng hash, gọi là **hash collision**. Hash không phải mã định danh duy nhất và không bảo đảm tính bảo mật.
+The converse **is not required**: two unequal objects can share the same hash, known as a **hash collision**. A hash is not a unique identifier and does not guarantee security properties.
 
-Các wrapper triển khai `hashCode` theo nội dung giá trị phù hợp `equals`:
+Wrappers implement `hashCode` based on value contents consistent with `equals`:
 
-- `Integer.hashCode(int value)` trả chính `int` đầu vào.
-- `Long.hashCode(long value)` gộp các bit cao/thấp của `long` xuống `int`.
-- `Float.hashCode(float value)` và `Double.hashCode(double value)` dựa trên biểu diễn bit phù hợp hợp đồng `equals`, gồm phân biệt signed zero và canonicalize NaN.
-- `Byte` và `Short` dùng giá trị số tương ứng cho hash, theo quy tắc của từng API.
+- `Integer.hashCode(int value)` returns the input `int` itself.
+- `Long.hashCode(long value)` folds the high/low bits of `long` into an `int`.
+- `Float.hashCode(float value)` and `Double.hashCode(double value)` use bit representations consistent with `equals`, including distinguishing signed zero and canonicalizing NaN.
+- `Byte` and `Short` use their corresponding numeric values for hashing, per each API's rules.
 
-`Integer.hashCode(9)` là một **static method**, còn `Integer.valueOf(9).hashCode()` là **instance method**. Cả hai tạo hash tương ứng với cùng giá trị.
+`Integer.hashCode(9)` is a **static method**, while `Integer.valueOf(9).hashCode()` is an **instance method**. Both produce the hash corresponding to the same value.
 
-### 7.1. HashMap và HashSet
+### 7.1. HashMap and HashSet
 
-`HashMap`/`HashSet` dùng hash để tìm bucket ứng viên rồi dùng equality của khóa để xác định trùng hay không. Do đó:
+`HashMap`/`HashSet` use hashes to find candidate buckets and then use key equality to determine duplicates. Hence:
 
 ```java
 Set<Number> values = new HashSet<>();
@@ -231,97 +231,97 @@ values.add(Long.valueOf(9L));
 System.out.println(values.size()); // 2
 ```
 
-Cần import `java.util.Set` và `java.util.HashSet`; đoạn này là mảnh code đặt trong một phương thức. `Integer(9)` và `Long(9)` không bằng nhau theo `equals`, nên là hai phần tử khác nhau.
+Requires importing `java.util.Set` and `java.util.HashSet`; this snippet belongs inside a method. `Integer(9)` and `Long(9)` are not equal under `equals`, so they remain two distinct elements.
 
-**Không dùng `hashCode` để kết luận hai đối tượng bằng nhau.** Hash giống chỉ là điều kiện kiểm tra nhanh, không thay `equals`.
+**Do not use `hashCode` to conclude two objects are equal.** Matching hashes are only a quick pre-check, not a replacement for `equals`.
 
-**Không chọn hash ngẫu nhiên** cho một wrapper hoặc object bất biến. Nếu khóa tùy chỉnh có nhiều field, `equals` và `hashCode` phải dùng cùng ý niệm danh tính, tránh sửa field tham gia hash khi khóa đã được đưa vào map/set.
+**Do not pick a random hash** for a wrapper or immutable object. If a custom key has multiple fields, `equals` and `hashCode` must share the same notion of identity, and you must avoid mutating fields used in hashing after placing the key in a map/set.
 
-## 8. `==` trên wrapper: so tham chiếu hay unbox?
+## 8. `==` on Wrappers: Reference Comparison or Unboxing?
 
-Khi cả hai toán hạng của `==` là **tham chiếu wrapper cùng loại** (ví dụ hai `Integer`), phép `==` có thể so **identity** của object, không phải nội dung. Vì Java boxing/valueOf có cache ở một số miền giá trị, kết quả có thể gây hiểu nhầm:
+When both operands of `==` are **wrapper references of the same type** (e.g., two `Integer`s), `==` checks **object identity**, not contents. Because Java boxing/`valueOf` caches certain value ranges, results can be misleading:
 
 ```java
 Integer a = Integer.valueOf(42);
 Integer b = Integer.valueOf(42);
-boolean sameReference = (a == b); // true với Integer.valueOf trong miền -128..127
+boolean sameReference = (a == b); // true for Integer.valueOf in -128..127
 
 Integer c = Integer.valueOf(1000);
 Integer d = Integer.valueOf(1000);
-// c == d không nên được dùng làm kiểm tra giá trị: khả năng cache ngoài miền chuẩn tùy triển khai.
+// c == d should not be used to check value: caching outside standard range depends on implementation.
 boolean sameValue = c.equals(d); // true
 ```
 
-Để **so giá trị wrapper**, dùng `a.equals(b)` khi receiver chắc chắn không null, hoặc `Objects.equals(a,b)` khi có thể null. Để so primitive, unbox có chủ đích và xử lý null:
+To **compare wrapper values**, use `a.equals(b)` when the receiver is known non-null, or `Objects.equals(a,b)` when null is possible. To compare as primitives, unbox deliberately and handle null:
 
 ```java
 Integer maybe = Integer.valueOf(42);
 boolean equalsPrimitive = maybe != null && maybe.intValue() == 42;
 ```
 
-### 8.1. Hai wrapper khác kiểu không dùng trực tiếp `==`
+### 8.1. Two wrappers of different types cannot use `==` directly
 
-Hai tham chiếu thuộc hai lớp wrapper độc lập như `Integer` và `Long` **không thể trực tiếp so sánh với nhau bằng `==`**. Biểu thức này không được Java tự động unbox cả hai phía:
+Two references belonging to two independent wrapper classes such as `Integer` and `Long` **cannot be compared directly with `==`**. Java does not automatically unbox both sides in this expression:
 
 ```java
 Integer a = Integer.valueOf(9);
 Long b = Long.valueOf(9L);
-// boolean invalid = (a == b); // LỖI BIÊN DỊCH: incomparable types.
+// boolean invalid = (a == b); // COMPILE ERROR: incomparable types.
 boolean sameNumericValue = a.longValue() == b.longValue(); // true.
-boolean sameObjectValue = a.equals(b); // false: khác wrapper class.
+boolean sameObjectValue = a.equals(b); // false: different wrapper class.
 ```
 
-Khi **một toán hạng là primitive**, ví dụ `a == 9L`, Java có thể unbox `Integer` thành `int` rồi widening lên `long` để so sánh. Nếu cả hai tham chiếu được khai báo là `Number`, phép `==` giữa chúng kiểm tra **cùng object** chứ không so sánh giá trị số. Khi muốn so sánh số của các wrapper khác kiểu, hãy chuyển đổi tường minh có bảo toàn miền và xử lý `null` trước khi gọi phương thức; `longValue()` phù hợp với cặp `Integer`/`Long`.
+When **one operand is a primitive**, such as `a == 9L`, Java can unbox `Integer` to `int` and widen to `long` for comparison. If both references are declared as `Number`, `==` between them checks **same object**, not numeric value. When comparing numbers across different wrapper types, convert explicitly in a range-preserving way and check `null` before calling methods; `longValue()` fits the `Integer`/`Long` pair.
 
-## 9. `Float`/`Double`: NaN và signed zero làm khác biệt rõ nhất
+## 9. `Float`/`Double`: NaN and Signed Zero Make the Sharpest Difference
 
-Số thực IEEE 754 có các giá trị đặc biệt mà số nguyên không có:
+IEEE 754 floating-point numbers have special values that integers lack:
 
-- `+0.0` và `-0.0`: hai mẫu bit khác nhau nhưng primitive `+0.0 == -0.0` là true.
-- `NaN`: primitive `Double.NaN == Double.NaN` là false.
-- `+Infinity`, `-Infinity`: vô cực có thứ tự số học tương ứng.
+- `+0.0` and `-0.0`: two distinct bit patterns, yet primitive `+0.0 == -0.0` is `true`.
+- `NaN`: primitive `Double.NaN == Double.NaN` is `false`.
+- `+Infinity`, `-Infinity`: infinities with corresponding arithmetic ordering.
 
-Với wrapper `Double`:
+With the `Double` wrapper:
 
-- `Double.compare(-0.0, +0.0)` trả số âm: **−0.0 đứng trước +0.0**.
-- `Double.valueOf(-0.0).equals(Double.valueOf(+0.0))` trả false.
-- `Double.compare(Double.NaN, Double.POSITIVE_INFINITY)` trả số dương: NaN đứng sau +Infinity.
-- `Double.valueOf(Double.NaN).equals(Double.valueOf(Double.NaN))` trả true, dù primitive `NaN == NaN` false.
+- `Double.compare(-0.0, +0.0)` returns a negative number: **−0.0 precedes +0.0**.
+- `Double.valueOf(-0.0).equals(Double.valueOf(+0.0))` returns `false`.
+- `Double.compare(Double.NaN, Double.POSITIVE_INFINITY)` returns a positive number: NaN comes after +Infinity.
+- `Double.valueOf(Double.NaN).equals(Double.valueOf(Double.NaN))` returns `true`, even though primitive `NaN == NaN` is `false`.
 
-Các hành vi tương ứng cũng áp dụng cho `Float` ở độ rộng 32 bit.
+Corresponding behaviors apply to `Float` at 32-bit width.
 
-### 9.1. Bảng đối chiếu thường dùng
+### 9.1. Common reference table
 
-| Biểu thức | Kết quả |
+| Expression | Result |
 | --- | --- |
 | `+0.0 == -0.0` | true |
-| `Double.compare(-0.0,+0.0)` | giá trị âm (JDK trả -1) |
+| `Double.compare(-0.0,+0.0)` | negative value (JDK returns -1) |
 | `Double.valueOf(-0.0).equals(Double.valueOf(+0.0))` | false |
 | `Double.NaN == Double.NaN` | false |
 | `Double.compare(Double.NaN,Double.NaN)` | 0 |
 | `Double.valueOf(Double.NaN).equals(Double.valueOf(Double.NaN))` | true |
-| `Double.compare(Double.NaN,Double.POSITIVE_INFINITY)` | giá trị dương |
+| `Double.compare(Double.NaN,Double.POSITIVE_INFINITY)` | positive value |
 | `Double.hashCode(-0.0) == Double.hashCode(+0.0)` | false |
 
-Vì sao wrapper có các lựa chọn này? `equals` của `Double` dựa trên `doubleToLongBits` để phân biệt ±0, và phương thức bit này **chuẩn hóa các mẫu NaN**. Natural ordering/`compare` được xác định nhất quán với equality của wrapper, phù hợp để làm khóa/sắp xếp theo semantics của `Double`.
+Why do wrappers make these choices? `Double.equals` is based on `doubleToLongBits` to distinguish ±0, and that bit method **canonicalizes NaN patterns**. Natural ordering/`compare` is defined consistently with wrapper equality, making it suitable for keys/sorting under `Double` semantics.
 
-**Đừng dùng dấu của số thực như điều kiện “thế nào cũng giống nhau vì zero”.** Signed zero có thể tác động đến phép chia, `Math.atan2`, `Math.min/max`. Nếu muốn gộp zero âm/dương cho một nghiệp vụ cụ thể, phải có chính sách chuẩn hóa riêng.
+**Do not treat the sign of zero as "they are always identical anyway."** Signed zero can affect division, `Math.atan2`, and `Math.min/max`. If a specific business rule wants positive and negative zero merged, apply an explicit normalization policy.
 
-### 9.2. NaN không bằng chính nó dưới primitive `==`
+### 9.2. NaN does not equal itself under primitive `==`
 
-`Double.NaN == Double.NaN` false là quy tắc của phép so sánh số thực primitive. Nhưng `Double.NaN` được bọc vào wrapper có hợp đồng `equals` khác, vốn cho phép các NaN được xem như một nhóm bằng nhau.
+`Double.NaN == Double.NaN` being false is the rule for primitive floating-point comparison. Yet `Double.NaN` wrapped in a wrapper follows a different `equals` contract, which treats NaNs as an equal equivalence group.
 
-Đừng dùng `value == Double.NaN` để phát hiện NaN; dùng `Double.isNaN(value)` hoặc `Float.isNaN(value)`. Không dùng epsilon một cách tùy tiện để biến NaN thành một giá trị “gần bằng”.
+Do not use `value == Double.NaN` to detect NaN; use `Double.isNaN(value)` or `Float.isNaN(value)`. Do not arbitrarily apply epsilon comparisons to treat NaN as "nearly equal."
 
-### 9.3. Floating-point hash lấy bit đã canonicalize
+### 9.3. Floating-point hashing uses canonicalized bits
 
-`Double.hashCode(value)` dùng các bit tương thích với `Double.equals`, bao gồm canonicalize NaN. Nếu bạn tự viết `equals` trên raw bits bằng `doubleToRawLongBits` nhưng dùng `Double.hashCode` không xét khác biệt NaN payload, sự nhất quán “equal ⇒ same hash” vẫn có thể giữ, nhưng hai khái niệm equality/hash không mô tả hoàn toàn cùng tập thông tin; cần xem xét cẩn thận khi thiết kế khóa bit-level.
+`Double.hashCode(value)` uses bits compatible with `Double.equals`, including canonicalizing NaN. If you write a custom `equals` over raw bits with `doubleToRawLongBits` while using `Double.hashCode` which ignores NaN payload differences, the "equal ⇒ same hash" invariant still holds, yet equality and hashing no longer describe the exact same information; consider carefully when designing bit-level keys.
 
-Một lựa chọn đơn giản khi muốn mô phỏng đúng wrapper là dùng `Double.doubleToLongBits` cho `equals` và `Double.hashCode` cho hash, thay vì tự cố gắng ghép logic signed zero/NaN từ các phép `==` riêng lẻ.
+A simple option when wanting to mirror wrapper semantics is using `Double.doubleToLongBits` for `equals` and `Double.hashCode` for hashing, instead of trying to piece together signed-zero/NaN logic from individual `==` checks.
 
-## 10. Chương trình chạy được A — `compare`, `compareTo`, `equals` và unsigned
+## 10. Runnable Program A — `compare`, `compareTo`, `equals`, and Unsigned
 
-Lưu thành **`WrapperComparison.java`**:
+Save as **`WrapperComparison.java`**:
 
 ```java
 public class WrapperComparison {
@@ -345,14 +345,14 @@ public class WrapperComparison {
 }
 ```
 
-Chạy với JDK 17+:
+Run with JDK 17+:
 
 ```bash
 javac --release 17 WrapperComparison.java
 java WrapperComparison
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 -1
@@ -366,17 +366,17 @@ false
 1
 ```
 
-Lưu ý:
+Notes:
 
-1. `Integer.compare(9,12)` và `Integer(9).compareTo(Integer(12))` đều trả âm (ở trường hợp này là -1).
-2. `Integer.equals` trả true với cùng `Integer(9)` nhưng false với `Long(9L)`.
-3. `Integer.hashCode(9)` bằng 9.
-4. `Byte.compare(-1,1)` trả `-2`; minh họa vì sao chỉ nên xét **dấu** của kết quả comparator, không yêu cầu luôn đúng `-1/0/1`.
-5. Theo signed order, `-1` đứng trước `1`; theo unsigned interpretation của 32/64 bit, bit pattern toàn 1 lớn hơn 1. `compareUnsigned` không chuyển `int` thành một primitive unsigned mới.
+1. `Integer.compare(9,12)` and `Integer(9).compareTo(Integer(12))` both return negative (in this case `-1`).
+2. `Integer.equals` returns `true` for the same `Integer(9)` but `false` for `Long(9L)`.
+3. `Integer.hashCode(9)` equals `9`.
+4. `Byte.compare(-1,1)` returns `-2`; demonstrating why you should check the **sign** of a comparator result, not require strictly `-1/0/1`.
+5. Under signed order, `-1` precedes `1`; under unsigned interpretation of 32/64 bits, the all-ones bit pattern is greater than `1`. `compareUnsigned` does not turn `int` into a new unsigned primitive type.
 
-## 11. Chương trình chạy được B — `Double`, NaN, signed zero và collection
+## 11. Runnable Program B — `Double`, NaN, Signed Zero, and Collections
 
-Lưu thành **`FloatingWrapperComparison.java`**:
+Save as **`FloatingWrapperComparison.java`**:
 
 ```java
 import java.util.HashSet;
@@ -418,14 +418,14 @@ public class FloatingWrapperComparison {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac --release 17 FloatingWrapperComparison.java
 java FloatingWrapperComparison
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 true
@@ -440,16 +440,16 @@ true
 NaN
 ```
 
-Giải thích:
+Explanation:
 
-- `primitive ==` coi hai signed zero bằng nhau; `Double.compare` và `Double.equals` phân biệt chúng.
-- `NaN == NaN` false, trong khi `Double.equals` coi các NaN wrapper tương đương.
-- `HashSet<Double>` dùng `equals`/`hashCode`, còn `TreeSet<Double>` dùng natural ordering; với những giá trị `Double` này, chúng đều giữ `+0.0`, `-0.0`, và một giá trị NaN, tổng `3` phần tử.
-- `TreeSet.first()` là `-0.0`, `TreeSet.last()` là `NaN` theo thứ tự của `Double`; thứ tự duyệt `HashSet` không được dùng để suy ra natural ordering.
+- `primitive ==` treats the two signed zeros as equal; `Double.compare` and `Double.equals` distinguish them.
+- `NaN == NaN` is false, whereas `Double.equals` treats `NaN` wrappers as equivalent.
+- `HashSet<Double>` uses `equals`/`hashCode`, and `TreeSet<Double>` uses natural ordering; for these `Double` values, both retain `+0.0`, `-0.0`, and one `NaN` value, totaling `3` elements.
+- `TreeSet.first()` is `-0.0`, `TreeSet.last()` is `NaN` per `Double`'s ordering; `HashSet` iteration order must not be used to infer natural ordering.
 
-## 12. Chương trình chạy được C — boxing, null và `Objects.equals`
+## 12. Runnable Program C — Boxing, Null, and `Objects.equals`
 
-Lưu thành **`BoxingEquality.java`**:
+Save as **`BoxingEquality.java`**:
 
 ```java
 import java.util.Objects;
@@ -476,14 +476,14 @@ public class BoxingEquality {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac --release 17 BoxingEquality.java
 java BoxingEquality
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 true
@@ -494,35 +494,35 @@ false
 true
 ```
 
-Đoạn code này **cố ý không in** `bigA == bigB`: việc cache ngoài vùng tối thiểu của `Integer.valueOf` có thể khác tùy triển khai/cấu hình, nên không đặt đầu ra đó làm hợp đồng portable. `equals` vẫn trả true với cùng nội dung số nguyên.
+This code **intentionally does not print** `bigA == bigB`: caching outside the minimum range of `Integer.valueOf` can vary by implementation/configuration, so that output is not made a portable contract. `equals` still returns `true` for the same integer content.
 
-## 13. Lớp `Number` và so sánh hỗn hợp: tránh chuyển kiểu tùy tiện
+## 13. The `Number` Class and Mixed Comparisons: Avoid Arbitrary Conversions
 
-Giả sử API nhận `Number x, Number y`. Có nhiều chính sách so sánh có thể đúng, nhưng phải chọn **một** dựa trên hợp đồng:
+Suppose an API receives `Number x, Number y`. Multiple comparison policies can be valid, yet you must pick **one** based on the contract:
 
-**Chính sách A — loại phải giống nhau:** chỉ chấp nhận cùng wrapper class và dùng `equals`. Hữu ích khi kiểu số mang ý nghĩa nghiệp vụ, chẳng hạn `int` là số đếm còn `double` là phép đo.
+**Policy A — types must match:** only accept the same wrapper class and use `equals`. Useful when the numeric type carries business meaning, e.g., `int` is a count while `double` is a measurement.
 
-**Chính sách B — giá trị nguyên chính xác:** chỉ nhận các kiểu nguyên trong một miền xác định, chuyển sang `long` hoặc `BigInteger` với kiểm tra để so sánh, tránh làm tròn.
+**Policy B — exact integer values:** accept only integer types within a defined range, convert to `long` or `BigInteger` with checks to compare, avoiding rounding.
 
-**Chính sách C — giá trị số thực theo độ chính xác được chấp nhận:** so sánh `doubleValue()` với tiêu chí phù hợp, đồng thời xử lý NaN/infinity. Nhưng không thích hợp nếu đầu vào chứa `BigDecimal` cực lớn hoặc số nguyên cần độ chính xác ngoài 53 bit.
+**Policy C — floating-point values within acceptable precision:** compare `doubleValue()` with suitable criteria while handling NaN/infinity. However, this is unsuitable if inputs include huge `BigDecimal`s or integers requiring precision beyond 53 bits.
 
-**Chính sách D — sắp xếp kiểu số hỗn hợp:** phải định nghĩa thứ tự tổng quát cho loại, giá trị, NaN, ±Infinity, signed zero, những trường hợp không thể chuyển đổi chính xác. Thứ tự dựa trên kiểu trước rồi giá trị sau có thể phù hợp với một số domain, nhưng không đồng nghĩa thứ tự toán học giữa mọi `Number`.
+**Policy D — sorting mixed numeric types:** must define a total order over type, value, NaN, ±Infinity, signed zero, and values that cannot convert exactly. Ordering by type first and value second may fit some domains, yet does not represent a mathematical order across all `Number`s.
 
-**Cảnh báo:** ép tất cả `Number` sang `double` rồi gọi `Double.compare` có thể nhập nhằng những `long` lớn khác nhau. Ví dụ `9_007_199_254_740_992L` và `9_007_199_254_740_993L` có thể chuyển sang **cùng** giá trị `double` vì độ chính xác binary64 chỉ là 53 bit significand.
+**Warning:** forcing every `Number` to `double` and calling `Double.compare` can conflate distinct large `long` values. For example, `9_007_199_254_740_992L` and `9_007_199_254_740_993L` convert to the **same** `double` value because binary64 precision has only 53 significand bits.
 
-Nếu không có yêu cầu cụ thể cho so sánh nhiều lớp `Number`, giữ generic type nhất quán ngay từ API thường an toàn hơn.
+Without a specific requirement to compare across multiple `Number` classes, keeping a consistent generic/concrete type directly in the API is usually safer.
 
-## 14. Hợp đồng `Comparable` và `Comparator` khi đưa wrapper vào sort/map
+## 14. `Comparable` and `Comparator` Contracts When Putting Wrappers in Sort/Map
 
-Với `Comparable<T>`/`Comparator<T>`, dấu của kết quả phải mô tả thứ tự thỏa các quy tắc cơ bản: đối xứng dấu, tính bắc cầu và nhất quán khi so sánh bằng 0.
+For `Comparable<T>`/`Comparator<T>`, the sign of the result must describe an ordering satisfying basic rules: sign antisymmetry, transitivity, and consistency when comparing as 0.
 
-Một comparator hợp lệ cho dữ liệu đo kiểu `double` thường bắt đầu bằng:
+A valid comparator for `double` measurement data typically starts with:
 
 ```java
 Comparator<Double> natural = Double::compare;
 ```
 
-Một comparator hợp lệ cho đối tượng có field `double` có thể viết:
+A valid comparator for an object with a `double` field can be written:
 
 ```java
 Comparator<Sample> ordered =
@@ -530,40 +530,40 @@ Comparator<Sample> ordered =
                 .thenComparingLong(Sample::id);
 ```
 
-Trong đó `Sample` là một lớp/record có phương thức `measurement()` và `id()` phù hợp; đây là **mảnh mã**, không phải chương trình độc lập khi chưa định nghĩa `Sample`.
+Where `Sample` is a class/record with matching `measurement()` and `id()` methods; this is a **code snippet**, not a standalone program without defining `Sample`.
 
-Tại sao có `thenComparingLong`? Khi hai `Sample` có cùng kết quả đo theo `Double.compare`, ứng dụng vẫn có thể muốn thứ tự phân biệt theo ID. Nhưng **Comparator.compare(a,b)==0 không buộc phải đồng nhất với a.equals(b) trong mọi tình huống**; nếu dùng làm khóa `TreeMap` hoặc `TreeSet`, sự không nhất quán với `equals` có thể làm hành vi khác kỳ vọng của `Map`/`Set`.
+Why `thenComparingLong`? When two `Sample`s have the same measurement under `Double.compare`, the application may still want a tie-breaking order by ID. Note that **`Comparator.compare(a,b)==0` is not required to match `a.equals(b)` in every situation**; however, if used as keys in `TreeMap` or `TreeSet`, inconsistency with `equals` can cause behavior that differs from `Map`/`Set` expectations.
 
-### 14.1. Tuyệt đối không biến epsilon thành comparator tùy tiện
+### 14.1. Never turn epsilon into an arbitrary comparator
 
-Không viết:
+Do not write:
 
 ```java
-// Ý tưởng SAI:
+// WRONG idea:
 int compare(double a, double b) {
     return Math.abs(a - b) <= 0.1 ? 0 : Double.compare(a, b);
 }
 ```
 
-Đây là mảnh method minh họa **không nên dùng**. Ba số `0.00`, `0.09` và `0.18` thỏa “0.00 gần 0.09”, “0.09 gần 0.18”, nhưng “0.00 không gần 0.18”. Quan hệ trả `0` không bắc cầu và vi phạm hợp đồng `Comparator`/`Comparable`.
+This is an illustrative method snippet **not to use**. The three numbers `0.00`, `0.09`, and `0.18` satisfy "0.00 is close to 0.09" and "0.09 is close to 0.18," yet "0.00 is not close to 0.18." Returning `0` is non-transitive and violates the `Comparator`/`Comparable` contract.
 
-Hãy tách **truy vấn số học gần bằng** khỏi **equality và ordering**:
+Separate **approximate numerical queries** from **equality and ordering**:
 
 ```java
 static boolean near(double a, double b, double tolerance) {
     if (!Double.isFinite(a) || !Double.isFinite(b)
             || !Double.isFinite(tolerance) || tolerance < 0) {
-        return false; // một chính sách miền dữ liệu cụ thể
+        return false; // a specific domain data policy
     }
     return Math.abs(a - b) <= tolerance;
 }
 ```
 
-Đây là một phương thức **truy vấn riêng** cho các số hữu hạn; không dùng làm `equals`/`compareTo`. Với thang giá trị rất rộng, cần cân nhắc relative tolerance, overflow của phép trừ và yêu cầu nghiệp vụ. Tolerance phải được xác định theo đơn vị đo, không tự lấy một epsilon cho mọi trường.
+This is a **dedicated query** method for finite numbers; do not use it as `equals`/`compareTo`. Across very wide value scales, consider relative tolerance, subtraction overflow, and business requirements. Tolerance must be determined per unit of measurement, not by picking one epsilon for every field.
 
-## 15. `equals` và `compareTo` của `BigDecimal` khác nhau
+## 15. `BigDecimal`'s `equals` and `compareTo` Differ
 
-`BigDecimal` là subclass của `Number` với cách biểu diễn **unscaled value** và **scale**. Các ví dụ:
+`BigDecimal` is a subclass of `Number` represented by an **unscaled value** and a **scale**. Examples:
 
 ```java
 BigDecimal a = new BigDecimal("2.0");
@@ -573,18 +573,18 @@ System.out.println(a.equals(b));      // false
 System.out.println(a.compareTo(b));   // 0
 ```
 
-Cần `import java.math.BigDecimal;`.
+Requires `import java.math.BigDecimal;`.
 
-- `equals` của `BigDecimal` xét **giá trị cùng scale**: `2.0` có scale 1, `2.00` có scale 2.
-- `compareTo` xét **giá trị số**: cả hai bằng 2 nên trả 0.
-- `hashCode` của hai `BigDecimal` có thể khác, phù hợp với `equals` của lớp đó.
-- `HashSet<BigDecimal>` có thể giữ cả `2.0` và `2.00`; `TreeSet<BigDecimal>` có natural ordering theo `compareTo` và có thể coi chúng là cùng vị trí trong cây.
+- `BigDecimal.equals` checks **value along with scale**: `2.0` has scale 1, `2.00` has scale 2.
+- `BigDecimal.compareTo` checks **numeric value**: both equal 2, so it returns 0.
+- The `hashCode` of the two `BigDecimal`s can differ, consistent with that class's `equals`.
+- `HashSet<BigDecimal>` can hold both `2.0` and `2.00`; `TreeSet<BigDecimal>` uses natural ordering via `compareTo` and treats them as the same position in the tree.
 
-Đây là ví dụ tiêu biểu về một natural ordering **không nhất quán với equals**; không áp dụng kết luận này cho mọi wrapper. Khi nghiệp vụ muốn “cùng số thập phân nhưng bỏ qua scale”, hãy định nghĩa một chính sách canonicalization minh bạch, cân nhắc cách `stripTrailingZeros` thay đổi scale và trường hợp zero. Không dùng `equals` mặc định rồi giả định nó giống `compareTo`.
+This is the classic example of a natural ordering **inconsistent with equals**; do not generalize this conclusion to all wrappers. When business logic wants "same decimal number ignoring scale," define a transparent canonicalization policy, considering how `stripTrailingZeros` alters scale and the zero case. Do not use default `equals` and assume it behaves like `compareTo`.
 
-### 15.1. Chương trình ngắn chứng minh khác biệt collection
+### 15.1. Short program demonstrating collection differences
 
-Lưu thành **`DecimalCollectionIdentity.java`**:
+Save as **`DecimalCollectionIdentity.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -612,7 +612,7 @@ public class DecimalCollectionIdentity {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac --release 17 DecimalCollectionIdentity.java
@@ -628,26 +628,26 @@ false
 1
 ```
 
-`HashSet` dùng `equals`/`hashCode`, `TreeSet` dùng `compareTo`. Nếu scale quan trọng cho nghiệp vụ, natural ordering của `BigDecimal` có thể **không** phù hợp làm chính sách loại trùng; lựa chọn cần dựa trên dữ liệu thực tế.
+`HashSet` uses `equals`/`hashCode`, and `TreeSet` uses `compareTo`. If scale matters to business logic, `BigDecimal`'s natural ordering may **not** be suitable as a deduplication policy; the choice must reflect the actual data.
 
-## 16. Những trường hợp đặc biệt cần kiểm tra khi wrapper được dùng làm khóa
+## 16. Edge Cases to Check When Wrappers Are Used as Keys
 
 ### 16.1. Null
 
-`Integer.compare(a,b)` nhận primitive nên nếu `a` hoặc `b` là wrapper null và được unbox sẽ ném `NullPointerException`. `Integer.compareTo(null)` cũng không định nghĩa null như một `Integer` hợp lệ.
+`Integer.compare(a,b)` takes primitives, so if `a` or `b` is a null wrapper and gets unboxed, it throws `NullPointerException`. `Integer.compareTo(null)` also does not define null as a valid `Integer`.
 
-Nếu collection cho phép null trong dữ liệu và cần sắp xếp, dùng `Comparator.nullsFirst` hoặc `Comparator.nullsLast` quanh comparator phù hợp, ví dụ:
+If a collection allows nulls in data and needs sorting, wrap an appropriate comparator with `Comparator.nullsFirst` or `Comparator.nullsLast`, e.g.:
 
 ```java
 Comparator<Integer> byValueWithNull =
         Comparator.nullsLast(Integer::compare);
 ```
 
-Đoạn này cần `import java.util.Comparator;`.
+This snippet requires `import java.util.Comparator;`.
 
-### 16.2. Signed zero và NaN
+### 16.2. Signed zero and NaN
 
-Nếu `+0.0` và `-0.0` phải có cùng danh tính nghiệp vụ, mặc định `Double.equals`/`Double.compare` **không** gom chúng. Có thể chuẩn hóa tại ranh giới:
+If `+0.0` and `-0.0` must share the same business identity, default `Double.equals`/`Double.compare` **do not** merge them. You can normalize at the boundary:
 
 ```java
 static double normalizeZero(double value) {
@@ -655,128 +655,128 @@ static double normalizeZero(double value) {
 }
 ```
 
-Nhưng dấu zero có thể ảnh hưởng phép chia và `Math.atan2`; chỉ chuẩn hóa khi phù hợp.
+However, the sign of zero can affect division and `Math.atan2`; normalize only when appropriate.
 
-Với NaN, `Double.compare` đặt NaN lớn hơn các giá trị số khác và `Double.equals` canonicalize các mẫu NaN. Nếu NaN là giá trị dữ liệu lỗi, lựa chọn tốt hơn có thể là **không cho nó vào khóa**, thay vì mặc nhiên sắp sau infinity.
+For NaN, `Double.compare` places NaN above other numeric values and `Double.equals` canonicalizes NaN bit patterns. If NaN represents invalid data, a better choice may be **rejecting it from keys** rather than letting it sort after infinity by default.
 
-### 16.3. So sánh unsigned
+### 16.3. Unsigned comparison
 
-`Integer.compare(-1,1)` và `Integer.compareUnsigned(-1,1)` cho thứ tự ngược nhau. Một trường dữ liệu chứa 32 bit nhưng được diễn giải unsigned theo giao thức phải dùng `compareUnsigned` khi thứ tự không dấu là yêu cầu; khi dùng `equals`/`hashCode` theo bit-pattern `Integer`, equality có thể vẫn đúng vì bit không đổi.
+`Integer.compare(-1,1)` and `Integer.compareUnsigned(-1,1)` yield opposite orders. A data field holding 32 bits interpreted as unsigned by a protocol must use `compareUnsigned` when unsigned order is required; when using `equals`/`hashCode` on `Integer` bit patterns, equality can remain valid because the bits do not change.
 
 ### 16.4. Immutable keys
 
-Các wrapper chuẩn là bất biến. Nhưng nếu một object bao wrapper được tự viết và chứa field mutable quyết định `equals`/`hashCode`, sửa field đó sau khi đưa vào `HashMap`/`HashSet` có thể khiến việc tra cứu sai bucket. Giữ khóa bất biến hoặc quản lý cập nhật bằng xóa rồi chèn lại theo đúng chính sách.
+Standard wrappers are immutable. However, if a custom key object wrapping a wrapper contains mutable fields determining `equals`/`hashCode`, mutating those fields after inserting into `HashMap`/`HashSet` can cause lookups to target the wrong bucket. Keep keys immutable or manage updates by removing and reinserting under an explicit policy.
 
-## 17. Checklist chọn đúng API theo tình huống
+## 17. Checklist for Choosing the Right API by Scenario
 
-- Khi dữ liệu là hai primitive `int`: dùng `==` cho bằng nhau, `Integer.compare` cho thứ tự.
-- Khi dữ liệu là hai `Integer` non-null: dùng `equals` cho equality, `compareTo`/`Integer.compare` cho thứ tự.
-- Khi wrapper có thể null: dùng `Objects.equals` hoặc comparator null-aware.
-- Khi trộn `Integer` và `Long`: không tự coi `equals` là numeric equality xuyên kiểu; chọn miền/cách chuyển phù hợp.
-- Khi xử lý `Double`: nhớ khác nhau giữa `==`, `equals` và `Double.compare` với `NaN`/signed zero.
-- Khi so sánh dữ liệu nhị phân không dấu: dùng `compareUnsigned` theo nhu cầu.
-- Khi sắp xếp: không trả hiệu số nguyên hoặc chênh lệch số thực ép thành `int`.
-- Khi làm khóa `HashMap`: tuân thủ `equals`/`hashCode`; không dùng hash riêng lẻ làm kết luận bằng nhau.
-- Khi làm khóa `TreeMap`: comparator hợp lệ, transitive và nhất quán; biết `compare==0` quyết định trùng khóa.
-- Khi dùng `BigDecimal`: quyết định scale có phải một phần danh tính không.
-- Khi đo gần bằng: dùng hàm riêng có tolerance/phạm vi rõ, không nhét vào `equals` hoặc comparator.
+- When data are two primitive `int`s: use `==` for equality, `Integer.compare` for ordering.
+- When data are two non-null `Integer`s: use `equals` for equality, `compareTo`/`Integer.compare` for ordering.
+- When wrappers may be null: use `Objects.equals` or a null-aware comparator.
+- When mixing `Integer` and `Long`: do not assume `equals` provides cross-type numeric equality; choose an appropriate range/conversion method.
+- When handling `Double`: remember the differences among `==`, `equals`, and `Double.compare` for `NaN`/signed zero.
+- When comparing unsigned binary data: use `compareUnsigned` as needed.
+- When sorting: do not return integer differences or floating-point differences cast to `int`.
+- When using as `HashMap` keys: respect `equals`/`hashCode`; never use `hashCode` alone to conclude equality.
+- When using as `TreeMap` keys: provide a valid, transitive, consistent comparator; know that `compare==0` determines key duplication.
+- When using `BigDecimal`: decide whether scale is part of identity.
+- When checking approximate equality: use a dedicated function with explicit tolerance/scope; never put it in `equals` or a comparator.
 
-## 18. Bài tập kèm đáp án
+## 18. Exercises with Solutions
 
-### Bài 1 — `Integer` và `Long` cùng số
+### Exercise 1 — `Integer` and `Long` with the same number
 
-`Integer a = 9; Long b = 9L;`. `a.equals(b)` là gì, và tại sao?
+`Integer a = 9; Long b = 9L;`. What is `a.equals(b)`, and why?
 
-**Đáp án:** false. `Integer.equals` đòi đối tượng bên phải là `Integer`; `Long` là class khác. `a.longValue() == b.longValue()` sẽ là true với dữ liệu này.
+**Answer:** `false`. `Integer.equals` requires the right-hand object to be an `Integer`; `Long` is a different class. `a.longValue() == b.longValue()` is `true` for this data.
 
-### Bài 2 — Static và instance compare
+### Exercise 2 — Static and instance compare
 
-Viết hai cách so thứ tự hai giá trị 9 và 12 bằng `Integer`. Chúng trả kết quả gì?
+Write two ways to compare the order of 9 and 12 using `Integer`. What do they return?
 
-**Đáp án:** `Integer.compare(9,12)` và `Integer.valueOf(9).compareTo(Integer.valueOf(12))` cùng trả số âm (ở đây là `-1`).
+**Answer:** `Integer.compare(9,12)` and `Integer.valueOf(9).compareTo(Integer.valueOf(12))` both return a negative number (here `-1`).
 
-### Bài 3 — Hash collision
+### Exercise 3 — Hash collision
 
-Nếu `x.hashCode() == y.hashCode()`, có đủ khẳng định `x.equals(y)` true không?
+If `x.hashCode() == y.hashCode()`, is that enough to conclude `x.equals(y)` is true?
 
-**Đáp án:** không. Hai đối tượng khác nhau có thể trùng hash; chỉ chiều `equals true ⇒ hash equal` là bắt buộc.
+**Answer:** No. Two unequal objects can have colliding hashes; only the implication `equals true ⇒ hash equal` is required.
 
-### Bài 4 — Byte.compare
+### Exercise 4 — Byte.compare
 
-Vì sao `Byte.compare((byte)-1,(byte)1)` có thể trả `-2` mà vẫn đúng?
+Why can `Byte.compare((byte)-1,(byte)1)` return `-2` and still be correct?
 
-**Đáp án:** API so sánh chỉ yêu cầu dấu âm/0/dương thể hiện thứ tự; không phải luôn trả đúng `-1,0,1`. `-2 < 0` phản ánh -1 nhỏ hơn 1.
+**Answer:** The comparison API only requires a negative/0/positive sign to indicate ordering; it does not have to return strictly `-1,0,1`. `-2 < 0` reflects that -1 is less than 1.
 
-### Bài 5 — Signed vs unsigned
+### Exercise 5 — Signed vs. unsigned
 
-Tính dấu của `Integer.compare(-1,1)` và `Integer.compareUnsigned(-1,1)`.
+Determine the signs of `Integer.compare(-1,1)` and `Integer.compareUnsigned(-1,1)`.
 
-**Đáp án:** signed so sánh trả âm; unsigned so sánh trả dương. Cùng bit pattern của -1 được đọc là số unsigned 32-bit lớn nhất.
+**Answer:** Signed comparison returns negative; unsigned comparison returns positive. The same all-ones bit pattern of -1 is read as the largest 32-bit unsigned integer.
 
-### Bài 6 — Cache/identity
+### Exercise 6 — Cache/identity
 
-Tại sao `Integer.valueOf(42) == Integer.valueOf(42)` có thể true, nhưng không nên dùng `==` để so giá trị hai `Integer` tùy ý?
+Why can `Integer.valueOf(42) == Integer.valueOf(42)` be true, yet `==` should not be used to compare the values of two arbitrary `Integer`s?
 
-**Đáp án:** `Integer.valueOf` cache các giá trị nhỏ trong miền được bảo đảm; `==` giữa hai `Integer` so identity tham chiếu. Với giá trị ngoài miền cache chuẩn, không có bảo đảm identity, trong khi `equals` vẫn so giá trị.
+**Answer:** `Integer.valueOf` caches small values within a guaranteed range; `==` between two `Integer`s compares reference identity. For values outside the standard cache range there is no identity guarantee, while `equals` still compares values.
 
-### Bài 7 — Signed zero
+### Exercise 7 — Signed zero
 
-`Double.compare(-0.0,+0.0)` và `Double.valueOf(-0.0).equals(Double.valueOf(+0.0))` cho gì?
+What do `Double.compare(-0.0,+0.0)` and `Double.valueOf(-0.0).equals(Double.valueOf(+0.0))` return?
 
-**Đáp án:** compare trả âm; equals trả false. Primitive `-0.0 == +0.0` lại true.
+**Answer:** `compare` returns negative; `equals` returns `false`. Meanwhile, primitive `-0.0 == +0.0` is `true`.
 
-### Bài 8 — NaN
+### Exercise 8 — NaN
 
-`Double.NaN == Double.NaN` và `Double.valueOf(Double.NaN).equals(Double.valueOf(Double.NaN))` cho gì?
+What do `Double.NaN == Double.NaN` and `Double.valueOf(Double.NaN).equals(Double.valueOf(Double.NaN))` return?
 
-**Đáp án:** false và true. Wrapper canonicalize NaN cho equality.
+**Answer:** `false` and `true`. The wrapper canonicalizes NaN for equality.
 
-### Bài 9 — HashSet/TreeSet với Double
+### Exercise 9 — HashSet/TreeSet with Double
 
-Thêm `+0.0`, `-0.0`, `Double.NaN` hai lần vào hai tập `HashSet<Double>` và `TreeSet<Double>`; mỗi tập có mấy phần tử?
+Add `+0.0`, `-0.0`, and `Double.NaN` twice into both a `HashSet<Double>` and a `TreeSet<Double>`; how many elements does each set contain?
 
-**Đáp án:** 3. Cả hai đều phân biệt hai zero, nhưng hai NaN được coi tương đương theo `Double.equals` và natural ordering.
+**Answer:** `3`. Both distinguish the two zeros, while both `NaN`s are treated as equivalent under `Double.equals` and natural ordering.
 
-### Bài 10 — BigDecimal và scale
+### Exercise 10 — BigDecimal and scale
 
-`new BigDecimal("2.0").compareTo(new BigDecimal("2.00"))` và `equals` cho gì?
+What do `new BigDecimal("2.0").compareTo(new BigDecimal("2.00"))` and `equals` return?
 
-**Đáp án:** 0 và false. `compareTo` xét giá trị số; `equals` còn xét scale.
+**Answer:** `0` and `false`. `compareTo` considers numeric value; `equals` also considers scale.
 
-### Bài 11 — Comparator bằng hiệu số
+### Exercise 11 — Comparator via subtraction
 
-Vì sao `(a,b) -> a-b` không là lựa chọn an toàn cho `Comparator<Integer>`?
+Why is `(a,b) -> a-b` not a safe choice for `Comparator<Integer>`?
 
-**Đáp án:** phép trừ `int` có thể overflow, khiến dấu của kết quả không còn phản ánh thứ tự. Dùng `Integer.compare(a,b)`.
+**Answer:** `int` subtraction can overflow, causing the sign of the result to no longer reflect ordering. Use `Integer.compare(a,b)`.
 
-### Bài 12 — Number hỗn hợp
+### Exercise 12 — Mixed Numbers
 
-Tại sao dùng `a.doubleValue() == b.doubleValue()` trên mọi `Number` là nguy hiểm?
+Why is using `a.doubleValue() == b.doubleValue()` on arbitrary `Number`s dangerous?
 
-**Đáp án:** mất chính xác với `long` lớn hơn miền biểu diễn nguyên chính xác của `double`, với `BigDecimal` có precision cao, và gây nhầm giữa NaN/signed zero nếu coi như một equality tổng quát. Phải xác định miền dữ liệu/hợp đồng trước khi chuyển.
+**Answer:** Precision is lost for `long`s exceeding `double`'s exact integer range and for high-precision `BigDecimal`s, and it conflates NaN/signed zero if treated as a general equality. Data ranges/contracts must be defined before converting.
 
-### Bài 13 — Null
+### Exercise 13 — Null
 
-`Integer a = null;`. `Objects.equals(a,null)` trả gì? `a.compareTo(1)` thì sao?
+`Integer a = null;`. What does `Objects.equals(a,null)` return? What about `a.compareTo(1)`?
 
-**Đáp án:** true với `Objects.equals` vì cả hai null; gọi method trên receiver null gây `NullPointerException`.
+**Answer:** `true` for `Objects.equals` since both are null; calling a method on a null receiver causes `NullPointerException`.
 
-### Bài 14 — Hash và cây với BigDecimal
+### Exercise 14 — Hash and tree with BigDecimal
 
-Thêm `2.0` và `2.00` dưới dạng `BigDecimal` vào `HashSet` và `TreeSet`. Kết quả kích thước?
+Add `2.0` and `2.00` as `BigDecimal`s into a `HashSet` and a `TreeSet`. What are the resulting sizes?
 
-**Đáp án:** HashSet có 2, TreeSet có 1 theo default equality/natural ordering của `BigDecimal`.
+**Answer:** `HashSet` has 2, `TreeSet` has 1 according to `BigDecimal`'s default equality/natural ordering.
 
-## 19. Tài liệu Java SE 17 để đối chiếu
+## 19. Java SE 17 Reference Documentation
 
-- [Java SE 17 Number API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Number.html): class trừu tượng cho các wrapper số.
+- [Java SE 17 Number API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Number.html): abstract class for numeric wrappers.
 - [Integer API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Integer.html): `compare`, `compareUnsigned`, `compareTo`, `equals`, `hashCode`, `valueOf`.
-- [Long API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Long.html): so sánh signed/unsigned và hash.
-- [Byte API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Byte.html) và [Short API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Short.html): so sánh và promotion.
-- [Float API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Float.html) và [Double API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html): signed zero/NaN và bit-based equality.
-- [Object.equals/hashCode](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html): hợp đồng equality và hash.
-- [Comparable](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Comparable.html) và [Comparator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Comparator.html): natural ordering, comparator contract.
-- [HashSet](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/HashSet.html), [TreeSet](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/TreeSet.html): tiêu chí trùng phần tử.
-- [BigDecimal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): `compareTo` vs `equals` khi scale khác nhau.
+- [Long API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Long.html): signed/unsigned comparisons and hashing.
+- [Byte API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Byte.html) and [Short API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Short.html): comparison and promotion.
+- [Float API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Float.html) and [Double API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html): signed zero/NaN and bit-based equality.
+- [Object.equals/hashCode](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html): equality and hashing contracts.
+- [Comparable](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Comparable.html) and [Comparator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Comparator.html): natural ordering and comparator contract.
+- [HashSet](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/HashSet.html), [TreeSet](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/TreeSet.html): duplicate-element criteria.
+- [BigDecimal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): `compareTo` vs. `equals` when scale differs.
 
-**Kết luận:** dùng **`compare`/`compareTo`** để biểu đạt *thứ tự*, **`equals`** để biểu đạt *bằng nhau theo hợp đồng lớp*, và **`hashCode`** để hỗ trợ *tra cứu dựa trên equality*. Với wrapper số, luôn xem xét **kiểu**, **null**, **boxing identity**, **signed/unsigned**, **NaN**, **±0.0** và **scale** thay vì mặc nhiên coi “cùng lượng toán học” là cùng khóa Java.
+**Conclusion:** use **`compare`/`compareTo`** to express *ordering*, **`equals`** to express *equality under the class contract*, and **`hashCode`** to support *equality-based lookup*. With numeric wrappers, always consider **type**, **null**, **boxing identity**, **signed/unsigned**, **NaN**, **±0.0**, and **scale** instead of assuming "same mathematical quantity" means the same Java key.

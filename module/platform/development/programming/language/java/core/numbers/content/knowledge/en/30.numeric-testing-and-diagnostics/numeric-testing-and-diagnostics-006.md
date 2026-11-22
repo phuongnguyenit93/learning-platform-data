@@ -1,8 +1,8 @@
-# Kiểm tra `BigDecimal` cả giá trị và scale khi hợp đồng yêu cầu
+# Checking `BigDecimal` Value and Scale When Required by Contract
 
-## 1. Vì sao kiểm thử `BigDecimal` phải xác định rõ hợp đồng?
+## 1. Why Must `BigDecimal` Testing Clearly Define the Contract?
 
-Một `BigDecimal` chứa **giá trị thập phân** và **scale** (vị trí dấu thập phân). Hai đối tượng có thể cùng giá trị toán học nhưng khác scale:
+A `BigDecimal` holds a **decimal value** and a **scale** (decimal point position). Two objects can share the same mathematical value yet have different scales:
 
 ~~~java
 BigDecimal a = new BigDecimal("12.0");
@@ -14,28 +14,28 @@ System.out.println(a.scale());            // 1
 System.out.println(b.scale());            // 2
 ~~~
 
-Về số học, cả hai đều bằng 12. Tuy nhiên, `12.0` lưu unscaled value 120 và scale 1; `12.00` lưu unscaled value 1200 và scale 2. Hai cách biểu diễn này có thể mang ý nghĩa khác nhau đối với định dạng đầu ra, chính sách phần thập phân, hợp đồng dữ liệu hoặc kiểm thử.
+Arithmetically, both equal 12. However, `12.0` stores unscaled value 120 and scale 1; `12.00` stores unscaled value 1200 and scale 2. These two representations can carry different meanings for output formatting, fractional policies, data contracts, or testing.
 
-**Quy tắc quan trọng:** Trước khi viết phép kiểm tra, phải hỏi hợp đồng yêu cầu gì:
+**Key rule:** Before writing a check, ask what the contract requires:
 
-1. Chỉ cần **giá trị toán học** bằng nhau?
-2. Cần **giá trị và scale** bằng nhau?
-3. Cần một **scale chuẩn cụ thể**, ví dụ đúng 2, dù nguồn có thể truyền scale khác?
-4. Cần **biểu diễn văn bản** giống hệt, gồm chữ số 0 tận cùng, dấu cộng, ký pháp mũ hay định dạng locale?
+1. Equal **mathematical value** only?
+2. Equal **value and scale**?
+3. A **specific canonical scale**, such as exactly 2, even if sources pass other scales?
+4. Exact **text representation**, including trailing zeros, plus sign, exponential notation, or locale formatting?
 
-Đây là các yêu cầu khác nhau. Không có một phép so sánh duy nhất phù hợp mọi trường hợp.
+These are distinct requirements. No single comparison method fits all cases.
 
-## 2. Hiểu rõ giá trị, scale và precision
+## 2. Understanding Value, Scale, and Precision
 
-Về cấu trúc:
+Structurally:
 
 ~~~text
-Giá trị = unscaledValue × 10^(-scale)
+Value = unscaledValue × 10^(-scale)
 ~~~
 
-Ví dụ:
+Examples:
 
-| Cách tạo | Giá trị toán học | Unscaled value | Scale | Precision |
+| Construction | Mathematical value | Unscaled value | Scale | Precision |
 | --- | --- | ---: | ---: | ---: |
 | `new BigDecimal("12")` | 12 | 12 | 0 | 2 |
 | `new BigDecimal("12.0")` | 12 | 120 | 1 | 3 |
@@ -43,32 +43,32 @@ Ví dụ:
 | `new BigDecimal("0.000")` | 0 | 0 | 3 | 1 |
 | `new BigDecimal("1E+3")` | 1000 | 1 | -3 | 1 |
 
-**Scale** không phải precision:
+**Scale** is not precision:
 
-- Scale có thể **dương, bằng 0 hoặc âm**. Scale âm biểu diễn bội của 10 mũ dương, chẳng hạn `1E+3` có scale -3.
-- Precision là số chữ số thập phân trong giá trị nguyên không scale, bỏ dấu; với zero, precision là 1.
-- Hai số bằng nhau về giá trị có thể có precision lẫn scale khác nhau.
-- `BigDecimal` không giữ trọn văn bản gốc: các ký tự `+0012.00` và `12.00` tạo ra đối tượng có cùng giá trị và scale, dù chuỗi nguồn khác nhau.
+- Scale can be **positive, zero, or negative**. A negative scale represents a positive power-of-10 multiple; for example `1E+3` has scale -3.
+- Precision is the number of decimal digits in the unscaled integer value, ignoring sign; for zero, precision is 1.
+- Two numerically equal values can differ in both precision and scale.
+- `BigDecimal` does not retain the exact original text: the characters `+0012.00` and `12.00` create objects with the same value and scale, even though the source strings differ.
 
-Nếu kiểm thử yêu cầu giữ nguyên **từng ký tự** đầu vào, chỉ so sánh `BigDecimal` là chưa đủ. Cần giữ và kiểm tra cả văn bản hoặc một bản ghi biểu diễn riêng.
+If tests require preserving **every character** of the input, comparing `BigDecimal` alone is insufficient. You must also retain and test the raw text or a separate representation record.
 
-## 3. `compareTo()` kiểm tra giá trị toán học
+## 3. `compareTo()` Checks Mathematical Value
 
-Phương thức:
+The method:
 
 ~~~java
 int comparison = expected.compareTo(actual);
 ~~~
 
-trả số âm, 0 hoặc số dương tùy giá trị của `expected` nhỏ hơn, bằng hoặc lớn hơn `actual`. Khi cần kiểm tra bằng nhau **chỉ về giá trị số học**, dùng:
+returns a negative number, 0, or a positive number depending on whether `expected` is less than, equal to, or greater than `actual`. When checking equality **solely by numerical value**, use:
 
 ~~~java
 boolean sameNumericValue = expected.compareTo(actual) == 0;
 ~~~
 
-Các cặp ví dụ:
+Example pairs:
 
-| Giá trị thứ nhất | Giá trị thứ hai | `compareTo(...) == 0` |
+| First value | Second value | `compareTo(...) == 0` |
 | --- | --- | --- |
 | `1.0` | `1.00` | `true` |
 | `0` | `0.000` | `true` |
@@ -76,15 +76,15 @@ Các cặp ví dụ:
 | `12.00` | `12.01` | `false` |
 | `-2.50` | `-2.5` | `true` |
 
-`compareTo` phù hợp khi hợp đồng chỉ yêu cầu **kết quả số học bằng nhau**, ví dụ tổng 10.0 và 10.00 là tương đương về giá trị.
+`compareTo` is appropriate when the contract requires only **equal numerical results**, such as totals 10.0 and 10.00 being equivalent in value.
 
-**Không nên so sánh `BigDecimal` bằng cách đổi sang `double` rồi so sánh gần đúng** nếu chính xác thập phân là mục tiêu. Ép sang `double` có thể làm tròn hoặc tràn phạm vi và khiến hai giá trị khác nhau thành cùng một giá trị nhị phân.
+**Do not compare `BigDecimal` values by converting to `double` and using approximate comparison** when decimal exactness is the goal. Casting to `double` can round or overflow range and collapse two distinct values into the same binary value.
 
-Tuy nhiên, `compareTo` **cố ý bỏ qua sự khác nhau về scale**. Nó không chứng minh đầu ra đáp ứng yêu cầu “phải có đúng hai chữ số thập phân ở dạng `BigDecimal`”.
+However, `compareTo` **intentionally ignores differences in scale**. It does not prove that an output satisfies a requirement like “must have exactly two decimal places as a `BigDecimal`”.
 
-## 4. `equals()` kiểm tra cả giá trị và scale
+## 4. `equals()` Checks Both Value and Scale
 
-`BigDecimal.equals(Object)` yêu cầu cả giá trị và scale giống nhau. Có thể dùng:
+`BigDecimal.equals(Object)` requires both value and scale to match. You can use:
 
 ~~~java
 BigDecimal expected = new BigDecimal("12.00");
@@ -94,7 +94,7 @@ System.out.println(expected.equals(actual)); // false
 System.out.println(expected.compareTo(actual) == 0); // true
 ~~~
 
-Nếu hai đối tượng là `BigDecimal` hợp lệ, `equals` bằng `true` khi **cùng giá trị và cùng scale**. Một cách diễn đạt tường minh tương đương:
+If both objects are valid `BigDecimal` instances, `equals` is `true` when they have the **same value and same scale**. An explicit equivalent expression is:
 
 ~~~java
 boolean sameValueAndScale =
@@ -102,30 +102,30 @@ boolean sameValueAndScale =
         && expected.scale() == actual.scale();
 ~~~
 
-Nếu `expected` và `actual` có thể `null`, cần có chính sách null riêng. `Objects.equals(expected, actual)` hỗ trợ so sánh null an toàn nhưng vẫn sử dụng ngữ nghĩa `BigDecimal.equals`; hai giá trị null cùng nhau sẽ được xem là bằng nhau, điều này có thể **không hợp lệ** nếu hợp đồng bắt buộc có giá trị.
+If `expected` and `actual` can be `null`, an explicit null policy is needed. `Objects.equals(expected, actual)` provides null-safe comparison yet still uses `BigDecimal.equals` semantics; two null values will be treated as equal, which may be **invalid** if the contract requires a non-null value.
 
-### 4.1. `equals` không phải kiểm tra định dạng chuỗi
+### 4.1. `equals` Is Not a String Format Check
 
-Hai chuỗi sau khác nhau về mặt ký tự:
+These two strings differ character by character:
 
 ~~~java
 String rawA = "+0012.00";
 String rawB = "12.00";
 ~~~
 
-Nhưng `new BigDecimal(rawA).equals(new BigDecimal(rawB))` là `true`. Constructor đã chuyển chuỗi thành số và không giữ nguyên ký tự cộng hay các zero đứng đầu.
+Yet `new BigDecimal(rawA).equals(new BigDecimal(rawB))` is `true`. The constructor parses the string into a number and does not preserve the plus sign or leading zeros.
 
-Vì vậy:
+Therefore:
 
-- **Chỉ giá trị:** kiểm tra `compareTo == 0`.
-- **Giá trị và scale:** dùng `equals` hoặc hai assertion tường minh.
-- **Chuỗi hiển thị/trao đổi:** kiểm tra `String` sau khi format/serialize theo hợp đồng, ngoài kiểm tra giá trị số khi cần.
+- **Value only:** check `compareTo == 0`.
+- **Value and scale:** use `equals` or two explicit assertions.
+- **Display/interchange string:** check the `String` after formatting/serializing per contract, in addition to numeric checks where needed.
 
-## 5. Viết assertion rõ ràng trong kiểm thử
+## 5. Writing Clear Assertions in Tests
 
-### 5.1. Kiểm thử chỉ yêu cầu giá trị
+### 5.1. Tests Requiring Only Value
 
-Nếu dùng JUnit 5:
+Using JUnit 5:
 
 ~~~java
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -137,34 +137,34 @@ BigDecimal actual = new BigDecimal("12.0");
 assertEquals(0, expected.compareTo(actual));
 ~~~
 
-Đây là **đoạn mã đặt bên trong phương thức test JUnit 5**, không phải chương trình chạy độc lập. Câu assertion nói rõ rằng **khác scale được phép**.
+This is a **snippet placed inside a JUnit 5 test method**, not a standalone runnable program. The assertion clearly states that **different scales are allowed**.
 
-Nếu muốn thông báo thất bại mang ý nghĩa nghiệp vụ:
+If you want a business-meaningful failure message:
 
 ~~~java
 assertEquals(0, expected.compareTo(actual),
-        "Gia tri thap phan phai bang nhau");
+        "Decimal values must be equal");
 ~~~
 
-### 5.2. Kiểm thử cần cả giá trị và scale
+### 5.2. Tests Requiring Both Value and Scale
 
 ~~~java
 BigDecimal expected = new BigDecimal("12.00");
 BigDecimal actual = new BigDecimal("12.0");
 
-assertEquals(0, expected.compareTo(actual), "Sai gia tri");
-assertEquals(expected.scale(), actual.scale(), "Sai scale");
+assertEquals(0, expected.compareTo(actual), "Wrong value");
+assertEquals(expected.scale(), actual.scale(), "Wrong scale");
 ~~~
 
-Đoạn này sẽ **thất bại ở assertion scale**: expected scale = 2, actual scale = 1. Chia hai assertion giúp chẩn đoán nhanh **giá trị sai** hay **chỉ sai cách biểu diễn scale**.
+This snippet will **fail on the scale assertion**: expected scale = 2, actual scale = 1. Splitting into two assertions helps quickly diagnose whether the **value is wrong** or **only the scale representation is wrong**.
 
-Nếu chỉ cần một assertion, `assertEquals(expected, actual)` của JUnit sử dụng `equals` nên cũng kiểm tra cả hai. Việc tách assertion có giá trị khi thông báo lỗi cần nhấn mạnh hai khía cạnh khác nhau.
+If only a single assertion is desired, JUnit's `assertEquals(expected, actual)` uses `equals` and checks both. Splitting assertions is valuable when error messages need to highlight the two distinct aspects.
 
-Trong production, tránh dùng câu lệnh Java `assert condition;` làm cơ chế thực thi hợp đồng vì Java assertion mặc định có thể bị tắt nếu không chạy với `-ea`. Trong kiểm thử, dùng API assertions của framework; ở ranh giới dữ liệu production, dùng kiểm tra và exception tường minh.
+In production, avoid using Java's `assert condition;` statement to enforce contracts because Java assertions may be disabled by default unless run with `-ea`. In tests, use the framework's assertion APIs; at production data boundaries, use explicit checks and exceptions.
 
-### 5.3. Nếu yêu cầu scale cố định
+### 5.3. When a Fixed Scale Is Required
 
-Có hợp đồng không cần giữ scale giống một đối tượng expected, mà quy định **mọi kết quả phải có scale = 2**:
+Some contracts do not require matching an expected object's scale, instead specifying that **every result must have scale = 2**:
 
 ~~~java
 BigDecimal actual = new BigDecimal("12.00");
@@ -173,13 +173,13 @@ assertEquals(0, actual.compareTo(new BigDecimal("12")));
 assertEquals(2, actual.scale());
 ~~~
 
-Đây là yêu cầu **giá trị bằng 12 và scale đúng 2**. Tách hai điều kiện là cách dễ thấy nhất để xác nhận hợp đồng.
+This expresses **value equal to 12 and scale exactly 2**. Separating the two checks is the clearest way to verify the contract.
 
-Không thay assertion scale bằng `actual.toPlainString().endsWith("00")`: kiểm tra ký tự cuối không chứng minh đúng số chữ số sau dấu thập phân hoặc giá trị mong muốn.
+Do not replace the scale assertion with `actual.toPlainString().endsWith("00")`: checking trailing characters does not prove the exact number of digits after the decimal point or the intended numeric value.
 
-## 6. Chuẩn hóa scale: `setScale` phải có chính sách rõ
+## 6. Normalizing Scale: `setScale` Must Have a Clear Policy
 
-Khi các nguồn vào có scale khác nhau nhưng contract quy định scale chuẩn, có thể chuẩn hóa ở **ranh giới nhập/xuất hoặc tầng domain**:
+When input sources have different scales but the contract mandates a canonical scale, you can normalize at the **input/output boundary or domain layer**:
 
 ~~~java
 BigDecimal raw = new BigDecimal("12.0");
@@ -189,17 +189,17 @@ System.out.println(canonical); // 12.00
 System.out.println(canonical.scale()); // 2
 ~~~
 
-`setScale(2, UNNECESSARY)` yêu cầu kết quả giữ nguyên giá trị khi chuyển sang scale 2. Các tình huống:
+`setScale(2, UNNECESSARY)` requires the result to preserve the exact value when converted to scale 2. Scenarios:
 
-| Giá trị đầu vào | `setScale(2, UNNECESSARY)` | Lý do |
+| Input value | `setScale(2, UNNECESSARY)` | Reason |
 | --- | --- | --- |
-| `12` | `12.00` | Thêm zero, không đổi giá trị |
-| `12.0` | `12.00` | Thêm zero |
-| `12.000` | `12.00` | Bỏ zero dư |
-| `12.345` | `ArithmeticException` | Không thể bỏ chữ số 5 mà giữ đúng giá trị |
-| `-0.000` | `0.00` | `BigDecimal` không bảo toàn zero âm theo IEEE 754 |
+| `12` | `12.00` | Adds zeros, value unchanged |
+| `12.0` | `12.00` | Adds zero |
+| `12.000` | `12.00` | Drops redundant zero |
+| `12.345` | `ArithmeticException` | Cannot drop digit 5 while keeping exact value |
+| `-0.000` | `0.00` | `BigDecimal` does not preserve IEEE 754 negative zero |
 
-Nếu hợp đồng **cho phép làm tròn**, có thể chọn `HALF_UP` hoặc `HALF_EVEN`, chẳng hạn:
+If the contract **permits rounding**, you can choose `HALF_UP` or `HALF_EVEN`, for example:
 
 ~~~java
 BigDecimal rounded =
@@ -207,26 +207,26 @@ BigDecimal rounded =
 // 12.35
 ~~~
 
-Lúc này giá trị đã thay đổi theo quy tắc được chọn. Hãy **kiểm tra giá trị sau làm tròn**, đồng thời kiểm tra scale. Không tự chuẩn hóa bằng `HALF_UP` chỉ để một bài test từ đỏ thành xanh, bởi hành động đó có thể che mất lỗi hợp đồng “không được làm tròn”.
+At this point the value has changed according to the chosen rule. **Check the rounded value** as well as the scale. Do not normalize with `HALF_UP` just to turn a failing test green, because doing so can hide a violation of a “no rounding allowed” contract.
 
-### 6.1. Không sửa cả expected và actual bằng cùng cách rồi coi như xong
+### 6.1. Do Not Transform Both `expected` and `actual` the Same Way and Call It Done
 
-Một anti-pattern:
+An anti-pattern:
 
 ~~~java
-// Che lỗi scale nếu hợp đồng đòi kết quả có scale = 2:
+// Masks scale bugs if the contract demands scale = 2:
 BigDecimal e = expected.stripTrailingZeros();
 BigDecimal a = actual.stripTrailingZeros();
 assertEquals(e, a);
 ~~~
 
-Cách này bỏ khác biệt về scale trước khi kiểm tra. Nó phù hợp **chỉ khi** hợp đồng thực chất là so sánh giá trị, lúc đó hãy dùng `compareTo` để biểu đạt trực tiếp.
+This discards scale differences before checking. It is appropriate **only when** the contract truly means value comparison, in which case use `compareTo` to express that directly.
 
-Ngược lại, nếu contract cho phép mọi biểu diễn đầu vào nhưng bắt buộc API xuất trả scale 2, hãy chuẩn hóa **ở đúng nơi sản xuất kết quả** rồi assert đầu ra có scale 2. Không nên để test tự sửa `actual` trước khi kiểm tra, vì có thể làm mất lỗi của code cần kiểm thử.
+Conversely, if the contract allows any input representation yet requires the API to output scale 2, normalize **at the exact place producing the result** and assert that the output has scale 2. Tests should not alter `actual` before asserting, as that can hide bugs in the code under test.
 
-## 7. Cạm bẫy `stripTrailingZeros()`: scale có thể thành số âm
+## 7. The `stripTrailingZeros()` Pitfall: Scale Can Become Negative
 
-Phương thức `stripTrailingZeros()` loại bỏ số 0 tận cùng trong cách biểu diễn của `BigDecimal`, có thể làm scale giảm, kể cả sang **giá trị âm**:
+`stripTrailingZeros()` removes trailing zeros in `BigDecimal`'s representation, which can reduce the scale, even into **negative values**:
 
 ~~~java
 BigDecimal x = new BigDecimal("1000.00");
@@ -236,9 +236,9 @@ System.out.println(stripped);         // 1E+3
 System.out.println(stripped.scale()); // -3
 ~~~
 
-Giá trị vẫn bằng 1000, nhưng biểu diễn `1E+3` có scale -3. Nếu hợp đồng yêu cầu scale 2, việc gọi `stripTrailingZeros` làm đầu ra **vi phạm hợp đồng** dù giá trị số học không thay đổi.
+The value is still 1000, yet the representation `1E+3` has scale -3. If the contract requires scale 2, calling `stripTrailingZeros` causes the output to **violate the contract** even though the mathematical value did not change.
 
-Với zero:
+For zero:
 
 ~~~java
 BigDecimal zero = new BigDecimal("0.000");
@@ -246,23 +246,23 @@ System.out.println(zero.scale()); // 3
 System.out.println(zero.stripTrailingZeros().scale()); // 0
 ~~~
 
-Zero sau `stripTrailingZeros()` được chuẩn hóa về `BigDecimal.ZERO` có scale 0. Khi kiểm thử hợp đồng “số không phải biểu diễn `0.00`”, cần cố ý tạo hoặc kiểm tra scale 2, ví dụ `BigDecimal.ZERO.setScale(2)`.
+Zero after `stripTrailingZeros()` is normalized to `BigDecimal.ZERO` with scale 0. When testing a contract that “zero must be represented as `0.00`”, intentionally construct or assert scale 2, e.g., `BigDecimal.ZERO.setScale(2)`.
 
-**Không xem `stripTrailingZeros` là cách chuẩn hóa scale về một scale cố định.** Nó là phép loại bỏ zero dư, có kết quả scale phụ thuộc vào giá trị cụ thể.
+**Do not treat `stripTrailingZeros` as a way to normalize to a fixed scale.** It is a redundant-zero removal operation whose resulting scale depends on the specific value.
 
-## 8. Những phép toán nào làm thay đổi scale?
+## 8. Which Operations Change Scale?
 
-Khi test các pipeline tính toán, không nên giả định scale đầu ra luôn trùng scale của một đầu vào. `BigDecimal` có các quy tắc preferred scale:
+When testing calculation pipelines, do not assume output scale always matches one of the inputs' scales. `BigDecimal` has preferred-scale rules:
 
-| Phép toán chính xác | Preferred scale điển hình |
+| Exact operation | Typical preferred scale |
 | --- | --- |
 | `a.add(b)`, `a.subtract(b)` | `max(a.scale(), b.scale())` |
 | `a.multiply(b)` | `a.scale() + b.scale()` |
-| `a.divide(b)` khi kết quả chính xác có biểu diễn thập phân hữu hạn | `a.scale() - b.scale()` là preferred scale; kết quả có thể cần scale lớn hơn |
-| `a.setScale(target, mode)` | `target` khi thành công |
-| `a.stripTrailingZeros()` | Có thể giảm, về 0 hoặc âm |
+| `a.divide(b)` when exact result has finite decimal representation | `a.scale() - b.scale()` is preferred scale; result may need a larger scale |
+| `a.setScale(target, mode)` | `target` when successful |
+| `a.stripTrailingZeros()` | Can decrease, to 0 or negative |
 
-Ví dụ:
+Example:
 
 ~~~java
 BigDecimal first = new BigDecimal("1.20"); // scale 2
@@ -272,13 +272,13 @@ System.out.println(first.add(second));      // 4.20, scale 2
 System.out.println(first.multiply(second)); // 3.600, scale 3
 ~~~
 
-Phép chia với `MathContext`, phép `round(context)`, hoặc thao tác có quy tắc làm tròn cụ thể có thể tạo scale khác các phép toán chính xác đơn giản. Vì vậy nếu API cam kết scale cụ thể, hãy kiểm tra scale **ở điểm trả kết quả**, không suy luận chỉ từ scale đầu vào.
+Division with `MathContext`, `round(context)`, or operations with specific rounding rules can yield different scales than simple exact operations. Therefore, if an API promises a specific scale, assert scale **at the return point**, rather than deducing it solely from input scales.
 
-**Precision cũng là khái niệm khác:** `new MathContext(3, HALF_UP)` giới hạn ba chữ số có nghĩa. Nó **không** tự bảo đảm scale 3 hoặc scale 2. Nếu cả precision và scale đều là điều kiện hợp đồng, phải kiểm tra cả hai theo chính sách có thứ tự rõ ràng.
+**Precision is also a separate concept:** `new MathContext(3, HALF_UP)` limits to three significant digits. It does **not** guarantee scale 3 or scale 2. If both precision and scale are contract requirements, check both under an explicitly ordered policy.
 
-## 9. Kết quả trong tập hợp và dữ liệu tra cứu
+## 9. Behavior in Collections and Lookup Structures
 
-`BigDecimal.compareTo` và `BigDecimal.equals` có cách nhận định bằng nhau khác nhau. Điều này ảnh hưởng đến collection:
+`BigDecimal.compareTo` and `BigDecimal.equals` define equality differently. This affects collections:
 
 ~~~java
 BigDecimal a = new BigDecimal("12.0");
@@ -291,20 +291,20 @@ System.out.println(hashSet.size()); // 2
 System.out.println(treeSet.size()); // 1
 ~~~
 
-Đây là đoạn mã minh họa với import `java.math.BigDecimal` và `java.util.*`.
+This is an illustrative snippet requiring `import java.math.BigDecimal` and `import java.util.*`.
 
-- `HashSet` dựa trên `equals`/`hashCode`, nên giữ hai `BigDecimal` khác scale thành **hai phần tử**.
-- `TreeSet` dùng thứ tự tự nhiên `compareTo` để xác định phần tử bằng nhau theo comparator, nên xem hai giá trị bằng nhau về số học là **một phần tử**.
+- `HashSet` relies on `equals`/`hashCode`, so it keeps two `BigDecimal` values with different scales as **two elements**.
+- `TreeSet` uses natural ordering `compareTo` to determine element equality in the comparator, so it treats two numerically equal values as **one element**.
 
-Khi dùng `BigDecimal` làm khóa trong `HashMap` hoặc `TreeMap`, hãy chọn collection có ngữ nghĩa phù hợp: đối tượng khác scale là khóa khác hay không? Đừng giả định chuyển từ map dạng hash sang map có sắp thứ tự chỉ ảnh hưởng thứ tự duyệt.
+When using `BigDecimal` as keys in `HashMap` or `TreeMap`, pick a collection with the right semantics: are objects with different scales distinct keys or not? Do not assume switching from a hash map to a sorted map only affects iteration order.
 
-Nếu muốn các giá trị có scale khác nhau là cùng một khóa, nên thiết kế quy tắc chuẩn hóa rõ ràng; nếu muốn khác biệt scale có ý nghĩa, giữ ngữ nghĩa `equals` và kiểm thử cấu trúc dữ liệu tương ứng.
+If values with different scales should map to the same key, design an explicit normalization rule; if scale differences are meaningful, keep `equals` semantics and test the corresponding data structures.
 
-## 10. Test dữ liệu qua API, JSON, database
+## 10. Testing Data Across APIs, JSON, and Databases
 
 ### 10.1. API/JSON
 
-Giả sử một API công bố:
+Suppose an API publishes:
 
 ~~~json
 {
@@ -313,30 +313,30 @@ Giả sử một API công bố:
 }
 ~~~
 
-Nếu `amount` là chuỗi chuẩn với **đúng hai chữ số sau dấu thập phân**, có thể cần hai lớp assertion:
+If `amount` is a canonical string with **exactly two digits after the decimal point**, two assertion layers may be needed:
 
-1. Parse `"12.00"` thành `BigDecimal` và xác minh **giá trị**, **scale**.
-2. Kiểm tra chuỗi trao đổi đúng pattern, ví dụ **đúng hai chữ số ở phần thập phân, dấu chấm, không phân nhóm**.
+1. Parse `"12.00"` into `BigDecimal` and verify **value** and **scale**.
+2. Check that the wire string matches the pattern, e.g., **exactly two fractional digits, dot decimal separator, no grouping**.
 
-`BigDecimal.equals` không bảo đảm chuỗi gốc không có dấu `+` hay zero dẫn đầu. Dù cùng một giá trị và scale, `"+0012.00"` và `"12.00"` khác nhau về văn bản. Nếu hợp đồng yêu cầu biểu diễn canonical, nên kiểm tra thêm trường chuỗi.
+`BigDecimal.equals` does not guarantee the original string lacked a `+` sign or leading zeros. Even with the same value and scale, `"+0012.00"` and `"12.00"` differ textually. If the contract requires canonical text representation, inspect the string field as well.
 
-Nếu hợp đồng chỉ yêu cầu **giá trị thập phân bằng nhau**, không nên tự áp assertion scale chặt hơn đặc tả. Một producer có thể serialize cùng giá trị dưới các dạng `12`, `12.0` hoặc `12.00` mà vẫn thỏa yêu cầu giá trị. JSON number và JSON string cũng có cách parse khác nhau tùy thư viện và consumer; hãy kiểm tra đúng kiểu dữ liệu contract quy định.
+If the contract requires only **equal decimal value**, do not impose stricter scale assertions than specified. A producer might serialize the same value as `12`, `12.0`, or `12.00` and still satisfy the value requirement. JSON numbers and JSON strings also parse differently depending on library and consumer; test the exact data type specified by the contract.
 
-### 10.2. JDBC và cột `DECIMAL`/`NUMERIC`
+### 10.2. JDBC and `DECIMAL`/`NUMERIC` Columns
 
-Các cột số thập phân ở database thường có precision/scale được khai báo trong schema, ví dụ `DECIMAL(12,2)`. Nhưng **cách driver/database trả về `BigDecimal` có thể chịu ảnh hưởng schema và hệ quản trị cụ thể**. Không suy ra một scale Java cụ thể từ dữ liệu mẫu mà không kiểm chứng hệ thống thực.
+Database decimal columns typically declare precision/scale in the schema, such as `DECIMAL(12,2)`. However, **how a driver/database returns `BigDecimal` can be affected by the schema and specific DBMS**. Do not assume a particular Java scale from sample data without verifying against the real system.
 
-Nếu hợp đồng yêu cầu số đã đọc về có scale 2, kiểm tra tại boundary JDBC/repository. Nếu yêu cầu chỉ là cùng giá trị toán học, tránh để test thất bại chỉ vì scale khác mà schema hoặc driver cho phép.
+If the contract requires returned numbers to have scale 2, verify at the JDBC/repository boundary. If the requirement is only equal mathematical value, avoid failing tests merely because of differing scales permitted by the schema or driver.
 
-Không biến `BigDecimal` sang `double` làm trung gian khi so sánh kết quả database nếu độ chính xác thập phân là yêu cầu. Việc làm tròn nhị phân có thể che hoặc tạo sai lệch.
+Do not convert `BigDecimal` to `double` as an intermediate when comparing database results if decimal exactness is required. Binary rounding can mask or introduce discrepancies.
 
-### 10.3. Định dạng hiển thị
+### 10.3. Display Formatting
 
-`DecimalFormat` hoặc `NumberFormat` có thể in `12.0` thành `12.00` mà **không sửa `BigDecimal` đầu vào**. Nếu hợp đồng chỉ nói “UI phải hiển thị hai số sau dấu chấm”, nên test chuỗi format. Nếu hợp đồng nói “domain trả `BigDecimal` scale 2”, phải test `scale()`. Hai phép kiểm tra khác nhau.
+`DecimalFormat` or `NumberFormat` can print `12.0` as `12.00` without **modifying the input `BigDecimal`**. If the contract only says “the UI must display two decimal places”, test the formatted string. If the contract says “the domain returns `BigDecimal` with scale 2”, test `scale()`. The two checks are different.
 
-## 11. Ví dụ Java 17+ chạy độc lập: hai loại hợp đồng
+## 11. Standalone Runnable Java 17+ Example: Two Kinds of Contracts
 
-Tạo tệp **BigDecimalContractDemo.java**:
+Create file **BigDecimalContractDemo.java**:
 
 ~~~java
 import java.math.BigDecimal;
@@ -412,14 +412,14 @@ public class BigDecimalContractDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac BigDecimalContractDemo.java
 java BigDecimalContractDemo
 ~~~
 
-Đầu ra chính xác:
+Exact output:
 
 ~~~text
 compareTo zero: true
@@ -435,52 +435,52 @@ zero stripped scale: 0
 strict scale: ArithmeticException
 ~~~
 
-Chương trình sử dụng `AssertionError` để mô phỏng một phép assertion chủ động; `passes` chỉ giúp in ra `true`/`false` mà không dừng toàn bộ demo. Trong kiểm thử thật, **đừng bao lỗi assertion bằng `passes` rồi bỏ qua kết quả**: để JUnit báo test failed với tên trường hợp và thông tin expected/actual.
+The program uses `AssertionError` to simulate an active assertion; `passes` simply prints `true`/`false` without halting the entire demo. In real tests, **do not wrap assertion failures with `passes` and ignore the result**: let JUnit report the test failure with the case name and expected/actual details.
 
-## 12. Các trường hợp kiểm thử cần có
+## 12. Required Test Cases
 
-Nên lập bộ test dựa trên chính hợp đồng, gồm các nhóm sau:
+Build the test suite directly from the contract, covering these groups:
 
-| Trường hợp | Giá trị mẫu | Điều cần xác minh |
+| Case | Sample values | What to verify |
 | --- | --- | --- |
-| Bằng giá trị, khác scale | `12.0` vs `12.00` | Chọn `compareTo` hay `equals` đúng yêu cầu |
-| Bằng 0, khác scale | `0` vs `0.000` | Zero vẫn có scale |
-| Dạng lũy thừa | `1E+3` vs `1000.00` | `compareTo` bằng 0; scale khác |
-| Chuyển sang scale lớn hơn | `12` thành `12.00` | Không mất giá trị |
-| Giảm scale nhờ zero dư | `12.000` thành `12.00` | Chuyển chính xác |
-| Giảm scale làm mất chữ số | `12.345` sang scale 2 | Exception khi `UNNECESSARY`, hoặc làm tròn nếu được phép |
-| `stripTrailingZeros` | `1000.00` | Scale có thể âm |
-| Tính toán tổng | `1.20 + 2.345` | Giá trị chính xác và preferred scale |
-| Pipeline serialize/parse | `"12.00"` qua JSON/JDBC | Giá trị, scale, chuỗi theo contract riêng |
-| Đầu vào null | `null` | Từ chối hay chấp nhận có chủ đích |
-| Số âm, số lớn và số rất nhỏ | `-0.0010`, `1E+20` | Không suy diễn scale theo độ lớn |
+| Equal value, different scale | `12.0` vs `12.00` | Choose `compareTo` or `equals` per requirement |
+| Equal to 0, different scale | `0` vs `0.000` | Zero still has scale |
+| Exponential notation | `1E+3` vs `1000.00` | `compareTo` is 0; scales differ |
+| Increasing scale | `12` to `12.00` | No value loss |
+| Reducing scale via trailing zeros | `12.000` to `12.00` | Exact conversion |
+| Reducing scale losing digits | `12.345` to scale 2 | Exception with `UNNECESSARY`, or rounding if permitted |
+| `stripTrailingZeros` | `1000.00` | Scale can become negative |
+| Sum calculation | `1.20 + 2.345` | Exact value and preferred scale |
+| Serialize/parse pipeline | `"12.00"` via JSON/JDBC | Value, scale, string per respective contract |
+| Null input | `null` | Reject or accept intentionally |
+| Negative, large, and tiny numbers | `-0.0010`, `1E+20` | Do not assume scale from magnitude |
 
-Một bộ kiểm thử đủ mạnh có thể gồm **test numeric**, **test value-and-scale**, **test canonical string** và **test chuyển đổi scale không mất giá trị**, tùy contract. Không cần ép mọi use case đều phải so scale: điều đó có thể biến khác biệt biểu diễn vô hại thành lỗi giả.
+A strong test suite may include **numeric tests**, **value-and-scale tests**, **canonical string tests**, and **lossless scale-conversion tests**, depending on the contract. Do not force every use case to check scale: doing so can turn harmless representation differences into false failures.
 
-## 13. Các hiểu lầm thường gặp
+## 13. Common Misconceptions
 
-| Nhận định sai | Điều đúng |
+| Misconception | Reality |
 | --- | --- |
-| Hai `BigDecimal` cùng số thì `equals` luôn `true` | `equals` xét cả scale |
-| `compareTo == 0` chứng minh scale bằng nhau | Nó chỉ chứng minh cùng giá trị toán học |
-| `setScale(2, UNNECESSARY)` luôn thành công | Nó thất bại nếu muốn giữ giá trị mà phải loại chữ số khác 0 |
-| `stripTrailingZeros` chuẩn hóa thành scale 0 | Scale có thể âm, như `1000.00 -> 1E+3` |
-| `precision == scale` | Precision và scale là hai khái niệm độc lập |
-| Test hiển thị chuỗi `12.00` đủ chứng minh domain scale 2 | Formatter có thể tạo chuỗi đó từ domain scale 1 |
-| `HashSet` và `TreeSet` xem các `BigDecimal` bằng nhau theo cách giống nhau | Hash dùng `equals`/`hashCode`; tree dùng `compareTo` |
-| Chuyển sang `double` sẽ làm so sánh đơn giản hơn | Có thể mất độ chính xác và làm sai kết quả |
-| Dữ liệu từ SQL `DECIMAL` luôn có scale Java đúng như ta đoán | Phải dựa vào contract, schema và hành vi driver thực tế |
-| Assertion Java luôn được chạy khi triển khai | Câu lệnh `assert` có thể bị vô hiệu hóa nếu không bật assertions |
+| Two `BigDecimal`s with the same number always have `equals` `true` | `equals` also checks scale |
+| `compareTo == 0` proves scales are equal | It only proves equal mathematical value |
+| `setScale(2, UNNECESSARY)` always succeeds | It fails if keeping the value requires dropping nonzero digits |
+| `stripTrailingZeros` normalizes to scale 0 | Scale can become negative, like `1000.00 -> 1E+3` |
+| `precision == scale` | Precision and scale are independent concepts |
+| Testing display string `12.00` proves domain scale 2 | A formatter can produce that string from domain scale 1 |
+| `HashSet` and `TreeSet` treat `BigDecimal` equality the same way | Hash uses `equals`/`hashCode`; tree uses `compareTo` |
+| Converting to `double` makes comparison simpler | Can lose precision and corrupt results |
+| Data from SQL `DECIMAL` always has the Java scale we guess | Must rely on actual contract, schema, and driver behavior |
+| Java `assert` always runs in deployment | `assert` statements can be disabled if assertions are not enabled |
 
-## 14. Tự kiểm tra
+## 14. Self-Check
 
-1. `new BigDecimal("1.00").equals(new BigDecimal("1.0"))` trả gì? **`false`**, vì scale lần lượt là 2 và 1.
-2. Cặp trên có `compareTo == 0` không? **Có**, vì giá trị toán học bằng nhau.
-3. Khi một DTO cam kết amount có đúng scale 2, chỉ dùng `compareTo` đã đủ chưa? **Chưa**; phải kiểm tra scale 2.
-4. Vì sao `new BigDecimal("1000.00").stripTrailingZeros().scale()` là -3? **Vì dạng kết quả `1E+3` giữ nguyên giá trị với unscaled value 1 và scale -3**.
-5. `new BigDecimal("12.340").setScale(2, UNNECESSARY)` có thành công không? **Có**, kết quả `12.34`, vì chỉ bỏ zero dư.
-6. `new BigDecimal("12.345").setScale(2, UNNECESSARY)` có thành công không? **Không**, vì không thể giữ nguyên giá trị ở scale 2.
-7. Khi nào `assertEquals(expected, actual)` hợp lý hơn `assertEquals(0, expected.compareTo(actual))`? **Khi hợp đồng yêu cầu cùng cả giá trị và scale**.
-8. Nếu API yêu cầu giữ chính xác văn bản `"0012.00"`, kiểm tra `BigDecimal.equals` có đủ không? **Không**, phải kiểm tra chuỗi gốc hoặc chuỗi xuất đúng quy tắc biểu diễn.
+1. What does `new BigDecimal("1.00").equals(new BigDecimal("1.0"))` return? **`false`**, because the scales are 2 and 1 respectively.
+2. Does the pair above have `compareTo == 0`? **Yes**, because their mathematical values are equal.
+3. When a DTO promises `amount` has exact scale 2, is `compareTo` alone enough? **No**; you must also verify scale 2.
+4. Why is `new BigDecimal("1000.00").stripTrailingZeros().scale()` equal to -3? **Because the resulting form `1E+3` preserves the value with unscaled value 1 and scale -3**.
+5. Does `new BigDecimal("12.340").setScale(2, UNNECESSARY)` succeed? **Yes**, yielding `12.34`, because only a redundant zero is dropped.
+6. Does `new BigDecimal("12.345").setScale(2, UNNECESSARY)` succeed? **No**, because the value cannot be preserved at scale 2.
+7. When is `assertEquals(expected, actual)` more appropriate than `assertEquals(0, expected.compareTo(actual))`? **When the contract requires both value and scale to match**.
+8. If an API requires preserving the exact text `"0012.00"`, is checking `BigDecimal.equals` enough? **No**, you must check the source string or output string against representation rules.
 
-**Ghi nhớ:** Đối với `BigDecimal`, **bằng nhau về số** (`compareTo == 0`) và **bằng nhau về số lẫn scale** (`equals`, hoặc hai phép kiểm tra rõ ràng) không đồng nghĩa. Hãy viết assertion theo hợp đồng dữ liệu; chỉ chuẩn hóa scale khi chính sách cho phép và đừng vô tình bỏ scale bằng `stripTrailingZeros` trước khi kiểm thử một yêu cầu cần giữ scale.
+**Takeaway:** For `BigDecimal`, **numerical equality** (`compareTo == 0`) and **value-plus-scale equality** (`equals`, or two explicit checks) are not synonymous. Write assertions matching the data contract; normalize scale only when policy allows, and do not inadvertently strip scale with `stripTrailingZeros` before testing a requirement that depends on scale.

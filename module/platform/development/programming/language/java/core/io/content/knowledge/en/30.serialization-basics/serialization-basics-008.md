@@ -1,39 +1,39 @@
-# Constructor của lớp Serializable và lớp cha không Serializable
+# Constructors of Serializable Classes and Non-Serializable Superclasses
 
-## 1. Câu hỏi cốt lõi
+## 1. The Core Question
 
-Khi gọi `new` để tạo một đối tượng Java, các constructor của những lớp trong chuỗi kế thừa được chạy theo quy tắc khởi tạo đối tượng thông thường. Nhưng khi dùng **Java Object Serialization** với `ObjectInputStream.readObject()` để khôi phục một đối tượng có lớp triển khai `java.io.Serializable`, quy tắc constructor **khác đáng kể**.
+When calling `new` to create a Java object, constructors of classes along the inheritance chain run according to normal object initialization rules. However, when using **Java Object Serialization** with `ObjectInputStream.readObject()` to restore an object whose class implements `java.io.Serializable`, constructor rules **differ significantly**.
 
-**Quy tắc phải nhớ:** Trong quá trình *deserialization* mặc định của một lớp `Serializable` thông thường, **constructor của chính lớp `Serializable` và của các lớp cha cũng `Serializable` không được gọi**. Thay vào đó, Java **gọi constructor không tham số, có thể truy cập được, của lớp cha gần nhất không triển khai `Serializable`**. Từ constructor đó, các constructor của những tổ tiên không `Serializable` tiếp tục được thực thi theo quy tắc `super()` bình thường.
+**Rule to remember:** During default *deserialization* of an ordinary `Serializable` class, **the constructors of the `Serializable` class itself and of any `Serializable` superclasses are not invoked**. Instead, Java **invokes the accessible no-argument constructor of the nearest superclass that does not implement `Serializable`**. From that constructor, constructors of non-`Serializable` ancestors continue executing according to normal `super()` rules.
 
-Ví dụ:
+Example:
 
 ```text
-Object                 (không Serializable)
+Object                 (non-Serializable)
    |
    v
-Base                   (không Serializable)  <-- no-arg constructor được gọi
+Base                   (non-Serializable)  <-- no-arg constructor is called
    |
    v
-Account                (implements Serializable) <-- constructor KHÔNG chạy
+Account                (implements Serializable) <-- constructor does NOT run
    |
    v
-PremiumAccount         (kế thừa Serializable) <-- constructor KHÔNG chạy
+PremiumAccount         (inherits Serializable) <-- constructor does NOT run
 
 new PremiumAccount()                -> Object -> Base -> Account -> PremiumAccount
 ObjectInputStream.readObject()      -> Object -> Base
-                                   -> phục hồi field của Account/PremiumAccount
+                                   -> restore fields of Account/PremiumAccount
 ```
 
-Sơ đồ được giản lược để mô tả constructor của đối tượng đang được khôi phục; quá trình thật còn giải quyết descriptor, handles, references, chuỗi đối tượng và hook serialization.
+The diagram is simplified to illustrate constructors of the object being restored; the actual process also resolves descriptors, handles, references, object chains, and serialization hooks.
 
-Đặc biệt, **không được nói “deserialization không chạy constructor nào”**. Đúng hơn: nó **không chạy constructor của các lớp thuộc chuỗi kế thừa `Serializable`**, nhưng **vẫn chạy constructor không tham số của lớp cha không `Serializable` gần nhất** và constructor tổ tiên mà constructor đó gọi.
+Specifically, **never say "deserialization runs no constructors at all."** More accurately: it **skips constructors of classes in the `Serializable` part of the hierarchy**, while **running the no-arg constructor of the nearest non-`Serializable` superclass** and whatever ancestor constructors that constructor calls.
 
-Đây là chủ đề quyết định việc field nào được khôi phục, field nào có giá trị khởi tạo mới và tại sao việc thiếu constructor phù hợp ở lớp cha có thể làm `readObject()` thất bại.
+This topic determines which fields are restored, which fields get freshly initialized values, and why lacking an appropriate superclass constructor causes `readObject()` to fail.
 
-## 2. `Serializable` chỉ là marker interface
+## 2. `Serializable` Is Only a Marker Interface
 
-`java.io.Serializable` là **marker interface**: không khai báo phương thức bắt buộc phải hiện thực. Một class trực tiếp ghi `implements Serializable` hoặc **kế thừa** từ class đã triển khai interface này đều thuộc nhóm serializable theo cơ chế mặc định, miễn những điều kiện serialization khác được đáp ứng.
+`java.io.Serializable` is a **marker interface**: it declares no mandatory methods to implement. A class that directly writes `implements Serializable` or **inherits** from a class implementing this interface belongs to the default serializable group, provided other serialization conditions are satisfied.
 
 ```java
 import java.io.Serializable;
@@ -51,60 +51,60 @@ class Child extends Parent implements Serializable {
 }
 ```
 
-Đây là đoạn mã minh họa, không có `main`. `Parent` **không** cần implements `Serializable` để `Child` trở thành Serializable. Nhưng việc không Serializable của `Parent` có hệ quả:
+This is an illustrative snippet, without `main`. `Parent` does **not** need to implement `Serializable` for `Child` to be Serializable. However, `Parent` being non-Serializable has consequences:
 
-- **Field khai báo tại `Parent` không được cơ chế Java serialization mặc định lưu và khôi phục tự động**.
-- Khi deserialization một `Child`, Java gọi **no-arg constructor hợp lệ của `Parent`**.
-- Constructor của `Child` không được gọi; field Serializable của `Child` được khôi phục từ stream thay vì khởi tạo qua constructor thông thường.
+- **Fields declared in `Parent` are not automatically saved and restored by default Java serialization**.
+- When deserializing a `Child`, Java invokes the **valid no-arg constructor of `Parent`**.
+- `Child`'s constructor is not called; `Child`'s Serializable fields are restored from the stream instead of being initialized via a normal constructor.
 
-Lưu ý: `Serializable` được kế thừa như một khả năng của class. Nếu `GrandParent implements Serializable`, `Parent extends GrandParent` và `Child extends Parent`, cả `Parent` và `Child` đều là Serializable ngay cả khi chúng không lặp lại chữ `implements Serializable`.
+Note: `Serializable` is inherited as a class capability. If `GrandParent implements Serializable`, `Parent extends GrandParent`, and `Child extends Parent`, both `Parent` and `Child` are Serializable even without repeating `implements Serializable`.
 
-## 3. Vì sao constructor xử lý khác với `new`?
+## 3. Why Are Constructors Handled Differently from `new`?
 
-### 3.1. Tạo đối tượng bằng `new`
+### 3.1. Creating an Object with `new`
 
-Trong Java thông thường:
+In ordinary Java:
 
 ```java
 Child child = new Child();
 ```
 
-Trình tự constructor về nguyên tắc là:
+The constructor sequence in principle is:
 
-1. Khởi tạo object theo cơ chế JVM.
-2. Constructor của lớp trên cùng không có cha rõ ràng, chẳng hạn `Object()`, chạy theo chuỗi `super`.
-3. Constructor của các lớp cha chạy từ trên xuống.
-4. Constructor của class cụ thể `Child` chạy; field initializers và instance initializer blocks được thực hiện theo thứ tự khởi tạo Java.
+1. Object allocation per JVM rules.
+2. The top-level class with no explicit parent, such as `Object()`, runs along the `super` chain.
+3. Superclass constructors run top-down.
+4. The concrete class `Child`'s constructor runs; field initializers and instance initializer blocks execute in Java initialization order.
 
-Nếu field hoặc constructor của `Child` gọi `super(args)`, quy tắc trình tự tương ứng được áp dụng.
+If `Child`'s field or constructor invokes `super(args)`, the corresponding ordering rules apply.
 
-### 3.2. Khôi phục bằng `readObject()`
+### 3.2. Restoring with `readObject()`
 
-Khi:
+When calling:
 
 ```java
 Child restored = (Child) objectInput.readObject();
 ```
 
-cơ chế serialization cần tái tạo **trạng thái đã được lưu** của phần serializable, chứ không “gọi `new Child()` rồi gán vài field” theo cách ứng dụng bình thường.
+the serialization mechanism must recreate the **persisted state** of the serializable portion, rather than "calling `new Child()` and setting a few fields" like normal application code.
 
-Vì vậy:
+Therefore:
 
-- Không thực thi constructor `Child`.
-- Không thực thi **instance field initializer** hoặc **instance initializer block** của những class nằm trong phần Serializable của chuỗi kế thừa.
-- Không thực thi constructor của các superclass Serializable nằm giữa.
-- Có thực thi constructor không tham số được chọn ở lớp cha gần nhất **không** Serializable; constructor ấy có thể gọi tiếp superclass non-serializable của nó.
-- Sau đó các field thuộc những class serializable được phục hồi từ dữ liệu stream theo cơ chế Object Serialization.
+- `Child`'s constructor does not execute.
+- **Instance field initializers** and **instance initializer blocks** of classes in the Serializable portion of the hierarchy do not execute.
+- Constructors of intermediate Serializable superclasses do not execute.
+- The selected no-argument constructor of the nearest **non**-Serializable superclass does execute; that constructor may in turn call its non-serializable superclass.
+- Fields belonging to serializable classes are then restored from stream data per the Object Serialization mechanism.
 
-**Quan trọng:** static initialization là cơ chế riêng của JVM. Khi class lần đầu được khởi tạo, static initializer có thể chạy theo quy tắc khởi tạo class; không được nhầm điều đó với việc constructor instance được gọi cho mỗi đối tượng deserialize.
+**Important:** static initialization is a separate JVM mechanism. When a class is first initialized, static initializers can run under class initialization rules; do not confuse that with instance constructors running per deserialized object.
 
-## 4. Ví dụ Java 17: constructor nào chạy và field nào được giữ?
+## 4. Java 17 Example: Which Constructor Runs and Which Fields Are Kept?
 
-Chương trình chạy độc lập sau sử dụng lớp cha **không Serializable** và lớp con **Serializable**.
+The following standalone program uses a **non-Serializable** superclass and a **Serializable** subclass.
 
-Ở lúc tạo mới, lớp cha đặt `baseValue = 10`; constructor lớp con ghi đè thành 99 và đặt `childValue = 77`. Sau khi ghi rồi đọc đối tượng bằng stream, constructor lớp cha lại chạy và đặt `baseValue = 10`, nhưng constructor lớp con không chạy. Vì `baseValue` là field của lớp cha không Serializable nên giá trị 99 **không được tự khôi phục**; `childValue` là field của lớp con Serializable và được khôi phục thành 77.
+At creation time, the superclass sets `baseValue = 10`; the subclass constructor overwrites it to 99 and sets `childValue = 77`. After writing and reading the object via a stream, the superclass constructor runs again and sets `baseValue = 10`, while the subclass constructor does not run. Since `baseValue` belongs to the non-Serializable superclass, the value 99 **is not automatically restored**; `childValue` belongs to the Serializable subclass and is restored to 77.
 
-**Tệp `SerializableConstructorDemo.java`:**
+**File `SerializableConstructorDemo.java`:**
 
 ```java
 import java.io.ByteArrayInputStream;
@@ -130,7 +130,7 @@ public class SerializableConstructorDemo {
         int childValue;
 
         Child() {
-            // super() được compiler thêm mặc định.
+            // super() is added implicitly by the compiler.
             System.out.println("Child constructor");
             baseValue = 99;
             childValue = 77;
@@ -162,14 +162,14 @@ public class SerializableConstructorDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17+:
+Compile and run with JDK 17+:
 
 ```bash
 javac SerializableConstructorDemo.java
 java SerializableConstructorDemo
 ```
 
-**Stdout chính xác khi chương trình thành công:**
+**Exact stdout when the program succeeds:**
 
 ```text
 Base constructor
@@ -179,40 +179,40 @@ Base constructor
 After: base=10, child=77
 ```
 
-**Phân tích:**
+**Analysis:**
 
-1. `new Child()`: chạy `Base()` rồi `Child()`, nên `baseValue=99` và `childValue=77`.
-2. `ObjectOutputStream.writeObject(original)`: lưu state Serializable của `Child`. Nó không tự lưu `Base.baseValue` trong cơ chế mặc định vì `Base` không Serializable.
-3. `ObjectInputStream.readObject()`: JVM tạo một instance của `Child` theo cơ chế phục hồi, **không gọi `Child()`**.
-4. `Base()` được gọi vì `Base` là superclass không Serializable gần nhất có constructor không tham số hợp lệ, nên `baseValue=10`.
-5. `childValue` thuộc phần Serializable và được khôi phục từ stream thành `77`.
+1. `new Child()`: runs `Base()` then `Child()`, resulting in `baseValue=99` and `childValue=77`.
+2. `ObjectOutputStream.writeObject(original)`: saves the Serializable state of `Child`. It does not automatically save `Base.baseValue` under the default mechanism because `Base` is not Serializable.
+3. `ObjectInputStream.readObject()`: the JVM allocates an instance of `Child` via the restoration mechanism, **without calling `Child()`**.
+4. `Base()` is called because `Base` is the nearest non-Serializable superclass with a valid no-argument constructor, setting `baseValue=10`.
+5. `childValue` belongs to the Serializable portion and is restored from the stream as `77`.
 
-Đây là cách kiểm chứng thực nghiệm rõ nhất: lần thứ hai output có dòng **`Base constructor`** nhưng **không có dòng `Child constructor`**.
+This is the clearest empirical verification: the second pass prints **`Base constructor`** without **`Child constructor`**.
 
-## 5. Nếu có nhiều lớp Serializable kế thừa nhau thì sao?
+## 5. What If Multiple Serializable Classes Inherit from Each Other?
 
-Giả sử:
+Suppose:
 
 ```text
-PlainRoot              không Serializable
+PlainRoot              non-Serializable
    |
    +-- SerialParent    implements Serializable
           |
           +-- SerialChild  extends SerialParent
 ```
 
-Khi khôi phục một `SerialChild`:
+When restoring a `SerialChild`:
 
-- Constructor `PlainRoot()` được chạy.
-- Constructor `SerialParent()` **không chạy**.
-- Constructor `SerialChild()` **không chạy**.
-- Các field Serializable của **cả `SerialParent` lẫn `SerialChild`** được khôi phục từ stream, trừ những field không được serialization mặc định ghi (như `transient`).
+- Constructor `PlainRoot()` runs.
+- Constructor `SerialParent()` **does not run**.
+- Constructor `SerialChild()` **does not run**.
+- Serializable fields of **both `SerialParent` and `SerialChild`** are restored from the stream, except fields excluded from default serialization (such as `transient`).
 
-Các lớp dưới `SerialParent` tự động Serializable do kế thừa. Việc chúng có constructor rỗng hay không **không quyết định** cách gọi constructor khi deserialization mặc định.
+Subclasses below `SerialParent` are automatically Serializable by inheritance. Whether they have empty constructors **does not decide** constructor invocation during default deserialization.
 
-### Ví dụ Java 17: ba cấp kế thừa
+### Java 17 Example: Three Levels of Inheritance
 
-**Tệp `SerializationHierarchyDemo.java`:**
+**File `SerializationHierarchyDemo.java`:**
 
 ```java
 import java.io.ByteArrayInputStream;
@@ -275,14 +275,14 @@ public class SerializationHierarchyDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac SerializationHierarchyDemo.java
 java SerializationHierarchyDemo
 ```
 
-**Stdout chính xác nếu I/O thành công:**
+**Exact stdout if I/O succeeds:**
 
 ```text
 PlainRoot()
@@ -292,18 +292,18 @@ PlainRoot()
 Values: 1, 2, 3
 ```
 
-**Tại sao root=1 thay vì 99?** `rootNumber` là field khai báo trên lớp `PlainRoot` không Serializable. Khi tạo instance `new`, constructor `SerialParent` đổi thành 99; nhưng quá trình deserialize không gọi `SerialParent()`, mà gọi `PlainRoot()` đặt lại 1. Hai field Serializable `parentNumber` và `childNumber` được phục hồi thành 2 và 3 từ stream.
+**Why is `root=1` instead of `99`?** `rootNumber` is a field declared on the non-Serializable class `PlainRoot`. On `new`, `SerialParent`'s constructor changed it to 99; however, deserialization does not call `SerialParent()` and instead calls `PlainRoot()`, resetting it to 1. The two Serializable fields `parentNumber` and `childNumber` are restored as 2 and 3 from the stream.
 
-## 6. Constructor cần tồn tại ở **superclass đầu tiên không Serializable**
+## 6. The Constructor Must Exist on the **First Non-Serializable Superclass**
 
-Giả sử `Child implements Serializable` và `Base` là superclass trực tiếp không Serializable. `ObjectInputStream` yêu cầu **constructor không tham số hợp lệ** của `Base` để khôi phục đối tượng.
+Suppose `Child implements Serializable` and `Base` is its direct non-Serializable superclass. `ObjectInputStream` requires a **valid no-argument constructor** on `Base` to restore the object.
 
-### 6.1. Chấp nhận được
+### 6.1. Acceptable
 
 ```java
 class Base {
     protected Base() {
-        // Thiết lập trạng thái nền tảng.
+        // Initialize foundational state.
     }
 }
 
@@ -316,14 +316,14 @@ class Child extends Base implements java.io.Serializable {
 }
 ```
 
-Vì `Base()` là `protected`, constructor đó có thể được lớp con truy cập theo quy tắc Java. Constructor `Child(int)` có tham số hay không **không quan trọng đối với việc constructor Child được gọi lúc deserialize**, vì constructor ấy không được dùng trong cơ chế mặc định.
+Because `Base()` is `protected`, that constructor is accessible to the subclass under Java rules. Whether `Child(int)` takes parameters **does not matter for constructor invocation at deserialization time**, since `Child`'s constructor is not used in the default mechanism.
 
-### 6.2. Không có constructor không tham số
+### 6.2. Missing No-Argument Constructor
 
 ```java
 class Base {
     Base(int value) {
-        // Không khai báo Base() không tham số.
+        // No no-arg Base() declared.
     }
 }
 
@@ -336,30 +336,30 @@ class Child extends Base implements java.io.Serializable {
 }
 ```
 
-**Code này có thể biên dịch**, vì constructor `Child()` chủ động gọi `super(42)` khi tạo mới. Nhưng `Base` **không có no-arg constructor**, nên deserialization một `Child` thông thường không thể thực hiện đúng bước khởi tạo superclass và sẽ thất bại với `InvalidClassException` báo không có constructor hợp lệ.
+**This code compiles**, because `Child()` explicitly calls `super(42)` during normal instantiation. However, `Base` **has no no-arg constructor**, so ordinary deserialization of `Child` cannot perform superclass initialization and fails with `InvalidClassException` reporting no valid constructor.
 
-Điều đó không chỉ là lỗi lúc compile. **Việc `new Child()` và `writeObject(child)` thành công không chứng minh `readObject()` sẽ thành công.**
+This is not caught at compile time. **Having `new Child()` and `writeObject(child)` succeed does not prove `readObject()` will succeed.**
 
-### 6.3. Constructor riêng tư hoặc không truy cập được
+### 6.3. Private or Inaccessible Constructor
 
-Constructor của superclass không Serializable được chọn cần **accessible to the subclass that is Serializable** theo đặc tả Java Object Serialization.
+The chosen non-Serializable superclass constructor must be **accessible to the subclass that is Serializable** per the Java Object Serialization specification.
 
-- `public` hoặc `protected` no-arg constructor nhìn chung là lựa chọn rõ ràng.
-- No-arg constructor *package-private* chỉ dùng được trong bối cảnh truy cập phù hợp (ví dụ cùng package).
-- Constructor `private` không thể được lớp con thường truy cập; việc có constructor rỗng private **không** giải quyết yêu cầu.
-- Các rào cản module/access giữa package và module có thể tạo vấn đề quyền truy cập trong thiết kế phức tạp.
+- `public` or `protected` no-arg constructors are generally clear choices.
+- A *package-private* no-arg constructor works only in a matching access context (e.g., same package).
+- A `private` constructor cannot be accessed by a normal subclass; having a private no-arg constructor **does not** satisfy the requirement.
+- Module/access boundaries across packages and modules can create accessibility issues in complex designs.
 
-**Không nên lược giản thành “phải có public no-arg constructor”.** Với `Serializable` thông thường, `protected` hoặc no-arg constructor có khả năng truy cập theo ngữ cảnh cũng có thể hợp lệ; yêu cầu **public** áp dụng nổi bật cho `Externalizable`, một cơ chế khác được so sánh phía dưới.
+**Do not oversimplify to "there must be a public no-arg constructor."** For ordinary `Serializable`, `protected` or contextually accessible no-arg constructors can also be valid; the **public** requirement specifically applies to `Externalizable`, a distinct mechanism compared below.
 
-## 7. Ví dụ Java 17: thiếu no-arg constructor dẫn đến InvalidClassException
+## 7. Java 17 Example: Missing No-Arg Constructor Leads to InvalidClassException
 
-Ví dụ này cố ý tạo một class có superclass chỉ có constructor một tham số. Nó chứng minh:
+This example deliberately uses a superclass with only a single-parameter constructor. It proves:
 
-- Constructor lớp con dùng để tạo mới có thể hoạt động.
-- Serialization bằng `writeObject` có thể hoàn thành.
-- **Deserialization thất bại** vì superclass không cung cấp no-arg constructor hợp lệ.
+- The subclass constructor used for `new` works.
+- Serialization via `writeObject` completes.
+- **Deserialization fails** because the superclass lacks a valid no-arg constructor.
 
-**Tệp `MissingSuperclassConstructorDemo.java`:**
+**File `MissingSuperclassConstructorDemo.java`:**
 
 ```java
 import java.io.ByteArrayInputStream;
@@ -409,23 +409,23 @@ public class MissingSuperclassConstructorDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac MissingSuperclassConstructorDemo.java
 java MissingSuperclassConstructorDemo
 ```
 
-**Stdout chính xác khi lỗi như mong đợi xảy ra:**
+**Exact stdout when the expected error occurs:**
 
 ```text
 Write succeeded
 Read failed: InvalidClassException
 ```
 
-Thông điệp chi tiết của `InvalidClassException` có thể khác nhau giữa các JDK/triển khai. Vì vậy chương trình chỉ in **tên loại ngoại lệ**, không giả định một message cố định.
+The detailed message of `InvalidClassException` can vary across JDKs/implementations. Therefore, the program prints only the **exception class name** without assuming fixed message wording.
 
-Cách sửa phù hợp nếu có quyền chỉnh lớp cha:
+Appropriate fix if you own the superclass:
 
 ```java
 class Base {
@@ -441,30 +441,30 @@ class Base {
 }
 ```
 
-Đoạn này là phần minh họa thay thế định nghĩa `Base`, không chạy riêng. Nếu deserialize `Child`, giá trị `Base.value` được khởi tạo theo `Base()`, **không tự lấy lại giá trị 42** từng được đặt lúc tạo mới. Nếu cần phục hồi trạng thái superclass nonserializable, phải bổ sung cách lưu/khôi phục tường minh theo hợp đồng serialization.
+This snippet illustrates replacing the `Base` definition and does not run standalone. When deserializing `Child`, `Base.value` is initialized by `Base()`, **not automatically restored to 42** as set during creation. If non-serializable superclass state must be restored, add explicit save/restore logic per the serialization contract.
 
-## 8. Phân biệt **constructor lớp cha được gọi** và **field được serialize**
+## 8. Distinguishing **Superclass Constructor Called** from **Fields Serialized**
 
-Đây là hai chuyện khác nhau:
+These are two separate things:
 
-| Field khai báo ở đâu? | Constructor phần class đó khi deserialize? | Field được khôi phục tự động? |
+| Where is the field declared? | Does that class's constructor run on deserialize? | Is the field restored automatically? |
 | --- | --- | --- |
-| Class cha đầu tiên **không Serializable** | **Có**, gọi no-arg constructor | **Không**, không mặc định lưu field của superclass này |
-| Tổ tiên không Serializable phía trên | Có theo chuỗi `super()` của constructor được gọi | **Không** theo cơ chế mặc định |
-| Class đầu tiên `implements Serializable` | **Không** | Có đối với field instance thuộc dữ liệu serializable, trừ ngoại lệ như `transient` |
-| Class con của một class Serializable | **Không** | Có đối với field instance phù hợp |
-| `static` field | Không phải field của từng instance | **Không** lưu như instance state |
-| `transient` field | Field initializer của Serializable không chạy | **Không** tự lưu/khôi phục; nhận mặc định trừ custom logic |
+| First **non-Serializable** superclass | **Yes**, invokes no-arg constructor | **No**, fields of this superclass are not saved by default |
+| Non-Serializable ancestors above it | Yes, via the `super()` chain of the invoked constructor | **No** under the default mechanism |
+| First class `implements Serializable` | **No** | Yes for eligible serializable instance fields, except exclusions like `transient` |
+| Subclass of a Serializable class | **No** | Yes for eligible instance fields |
+| `static` field | Not a per-instance field | **Not** persisted as instance state |
+| `transient` field | Initializers of Serializable class do not run | **Not** saved/restored automatically; takes default unless custom logic runs |
 
-Những field **không được lưu** theo cơ chế mặc định không tự biết trạng thái trước đó. `Base()` có thể thiết lập lại field của superclass nonserializable, hoặc nếu không thiết lập thì chúng nhận giá trị mặc định theo quy tắc JVM/constructor chain.
+Fields **not persisted** by the default mechanism have no awareness of their previous state. `Base()` can re-initialize fields of the non-serializable superclass, or if left uninitialized they take default values per JVM/constructor-chain rules.
 
-Một nuance: field của lớp nonserializable có thể là đối tượng chứa socket, file descriptor hoặc state runtime. Ngay cả khi có cách serialize một phần giá trị của nó, việc khôi phục kết nối bên ngoài **không** đồng nghĩa deserialize một object có thể tự tái lập tài nguyên đó. Khi thiết kế object graph, nên mô hình hóa rõ phần trạng thái bền vững và phần tài nguyên sống.
+A nuance: a non-serializable class's field might hold a socket, file descriptor, or runtime state. Even if part of its values could be serialized, restoring an external connection **does not** mean deserializing an object can automatically rebuild that resource. When designing object graphs, clearly separate persistent state from live resources.
 
-## 9. Instance field initializers và initializer blocks có chạy lại không?
+## 9. Do Instance Field Initializers and Initializer Blocks Re-run?
 
-**Không đối với phần serializable của đối tượng được deserialize theo cơ chế mặc định.** Đây là điểm khiến giá trị field trông “bất ngờ”.
+**No for the serializable portion of an object deserialized by the default mechanism.** This is what makes field values look "surprising."
 
-Ví dụ minh họa:
+Illustrative example:
 
 ```java
 class Base {
@@ -492,24 +492,24 @@ class Child extends Base implements java.io.Serializable {
 }
 ```
 
-Khi `new Child()`:
+On `new Child()`:
 
-- `Base` field initializer đặt `parentCounter=100`, constructor tăng thành 101.
-- `Child.number` bắt đầu 10, initializer block tăng thành 15, constructor tăng thành 16.
-- `cache` bắt đầu 20, initializer block tăng thành 25.
+- `Base` field initializer sets `parentCounter=100`, constructor increments it to 101.
+- `Child.number` starts at 10, initializer block increments to 15, constructor increments to 16.
+- `cache` starts at 20, initializer block increments to 25.
 
-Nếu serialize rồi deserialize với cơ chế mặc định:
+If serialized and deserialized with the default mechanism:
 
-- `Base()` chạy lại; `parentCounter` lại là **101**.
-- `Child` instance initializers và constructor **không** chạy.
-- `number` khôi phục giá trị đã lưu, ví dụ **16**.
-- `cache` là `transient` nên được khôi phục về **0** (giá trị mặc định của `int`) nếu không có custom deserialization xử lý thêm.
+- `Base()` re-runs; `parentCounter` is **101** again.
+- `Child` instance initializers and constructor **do not** run.
+- `number` restores its saved value, e.g., **16**.
+- `cache` is `transient`, so it is restored to **0** (default value of `int`) unless custom deserialization handles it.
 
-**Cẩn thận:** ví dụ này là đoạn class minh họa, không có `main`. Mọi giả định về giá trị cache cần xét thêm `readObject` custom nếu lớp có triển khai hook này.
+**Careful:** this example is an illustrative class snippet without `main`. Any assumptions about `cache` values must account for custom `readObject` if the class implements that hook.
 
-## 10. Ví dụ Java 17: transient và initializer không được gọi lại
+## 10. Java 17 Example: transient and Initializers Are Not Re-invoked
 
-**Tệp `TransientInitializationDemo.java`:**
+**File `TransientInitializationDemo.java`:**
 
 ```java
 import java.io.ByteArrayInputStream;
@@ -567,48 +567,48 @@ public class TransientInitializationDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac TransientInitializationDemo.java
 java TransientInitializationDemo
 ```
 
-**Stdout chính xác khi thao tác thành công:**
+**Exact stdout when the operation succeeds:**
 
 ```text
 Before: parent=101, number=16, cache=25
 After: parent=101, number=16, cache=0
 ```
 
-`parentCounter` không tự được khôi phục từ stream nhưng no-arg constructor `Base()` thiết lập thành 101 ở cả hai thời điểm. `number` được khôi phục từ stream, còn `cache` mặc định về 0. Vì initializer của `Child` không chạy lại lúc deserialization, nó không được đặt lại thành 20 hay 25.
+`parentCounter` is not automatically restored from the stream, yet no-arg constructor `Base()` sets it to 101 at both points. `number` is restored from the stream, whereas `cache` defaults to 0. Because `Child`'s initializers do not re-run on deserialization, it is not reset to 20 or 25.
 
-Trong ứng dụng thực, trường `transient` đôi khi cần được khởi tạo lại theo logic của ứng dụng sau deserialize, ví dụ dùng `readObject` custom để tính cache từ các field đã khôi phục (kèm kiểm tra invariants). Không nên mong constructor Serializable tự làm việc đó.
+In real applications, `transient` fields sometimes need re-initialization per application logic after deserialization, such as using custom `readObject` to compute a cache from restored fields (alongside invariant checks). Do not expect the Serializable constructor to do that automatically.
 
-## 11. Khi superclass không Serializable có constructor tác dụng phụ
+## 11. When a Non-Serializable Superclass Constructor Has Side Effects
 
-Constructor của lớp cha có thể chứa hành vi ngoài việc đặt field:
+A superclass constructor can perform actions beyond setting fields:
 
 ```java
 class ResourceBase {
     protected ResourceBase() {
-        // Có thể mở tài nguyên, tăng metric, đăng ký listener...
+        // May open resources, increment metrics, register listeners...
     }
 }
 ```
 
-Vì constructor này **chạy khi deserialization**, tác dụng phụ có thể xảy ra **một lần nữa cho mỗi object thực sự được khôi phục**. Hệ quả cần xét:
+Because this constructor **runs during deserialization**, side effects can occur **once more for every actually restored object**. Consequences to consider:
 
-- Constructor có thể tạo tài nguyên mới, khác tài nguyên đã tồn tại khi object được serialize.
-- Constructor có thể đăng ký vào singleton, listener hoặc hệ thống giám sát.
-- Nếu constructor phụ thuộc môi trường hiện tại (clock, cấu hình, OS, quyền), trạng thái cha có thể khác thời điểm ghi stream.
-- Constructor ném ngoại lệ có thể làm quá trình deserialization thất bại hoặc bị bao gói thành lỗi I/O/stream theo cơ chế khôi phục.
+- The constructor may allocate new resources distinct from those that existed when the object was serialized.
+- The constructor may register into singletons, listeners, or monitoring systems.
+- If the constructor depends on the current environment (clock, config, OS, permissions), parent state may differ from when the stream was written.
+- A constructor throwing an exception can fail deserialization or be wrapped into an I/O/stream error per the restoration mechanism.
 
-Không nên thiết kế constructor superclass có tác dụng phụ nặng mà không hiểu nó có thể được chạy trong một quy trình deserialize. Mặt khác, **constructor của lớp Serializable không chạy** nên tuyệt đối không thể dùng constructor đó làm nơi duy nhất bảo đảm kiểm tra invariants cho dữ liệu lấy từ stream.
+Avoid designing superclass constructors with heavy side effects without understanding they can run during a deserialization workflow. On the other hand, **the Serializable class's constructor does not run**, so never rely on that constructor as the sole place enforcing invariants for data read from a stream.
 
-### Điểm nguy hiểm: constructor của cha gọi phương thức có thể override
+### Danger Point: Superclass Constructor Calling an Overridable Method
 
-Giả sử:
+Suppose:
 
 ```java
 class Base {
@@ -617,7 +617,7 @@ class Base {
     }
 
     void init() {
-        // logic nền
+        // base logic
     }
 }
 
@@ -628,22 +628,22 @@ class Child extends Base implements java.io.Serializable {
 
     @Override
     void init() {
-        // Có thể quan sát name khi nó chưa được khôi phục.
+        // Can observe name before it has been restored.
     }
 }
 ```
 
-Đây là đoạn class minh họa. Gọi phương thức có thể override từ constructor superclass có thể đi vào implementation của subclass **trước khi state serializable được phục hồi**. Khi đó `name` có thể vẫn là `null` dù stream lưu tên khác null.
+This is an illustrative class snippet. Calling an overridable method from a superclass constructor can dispatch into the subclass implementation **before serializable state has been restored**. At that moment `name` can still be `null` even though the stream holds a non-null name.
 
-Đây cũng là vấn đề khởi tạo object thông thường trong Java khi superclass constructor gọi virtual method, nhưng với deserialization sự khác biệt càng dễ bị bỏ sót vì constructor của subclass không chạy và dữ liệu được phục hồi sau bước khởi tạo superclass.
+This is also a classic object initialization issue in Java whenever a superclass constructor calls a virtual method, yet with deserialization the subtlety is even easier to miss because the subclass constructor never runs and data is restored only after superclass initialization.
 
-**Khuyến nghị:** tránh gọi những phương thức có thể override từ constructor nền tảng, nhất là khi chúng phụ thuộc field của lớp con; nếu cần kiểm tra consistency sau deserialization, dùng hook phù hợp và validate sau khi khôi phục trạng thái.
+**Recommendation:** avoid calling overridable methods from foundational constructors, especially when they depend on subclass fields; to check consistency after deserialization, use an appropriate hook and validate after state restoration.
 
-## 12. Nếu cần khôi phục field của superclass không Serializable thì làm thế nào?
+## 12. How to Restore Fields of a Non-Serializable Superclass If Needed?
 
-Cơ chế mặc định **không tự lưu** các field khai báo ở superclass không Serializable. Nếu ứng dụng cần giữ một số giá trị, class Serializable có thể tùy chỉnh `writeObject` và `readObject` của **chính nó** để lưu và khôi phục thêm state, miễn dữ liệu an toàn/được phiên bản hóa hợp lý.
+The default mechanism **does not automatically save** fields declared in a non-Serializable superclass. If an application needs to keep certain values, the Serializable class can customize **its own** `writeObject` and `readObject` to save and restore additional state, provided data is safely handled and properly versioned.
 
-Cấu trúc thường gặp:
+Typical structure:
 
 ```java
 private void writeObject(ObjectOutputStream out)
@@ -659,69 +659,69 @@ private void readObject(ObjectInputStream in)
 }
 ```
 
-**Đây chỉ là pseudocode gần Java:** field `valueInheritedFromNonSerializableParent` phải thực sự tồn tại và có quyền ghi, hook phải đặt trong class phù hợp, thêm import và quản lý stream format. Đặc biệt, cần cân nhắc **phạm vi truy cập**: field private của superclass không thể được subclass trực tiếp gán chỉ vì nó là Serializable; cần setter/protected API phù hợp nếu lớp cha cho phép.
+**This is only Java-like pseudocode:** the field `valueInheritedFromNonSerializableParent` must actually exist and be writable, hooks must reside in the right class, imports must be added, and stream formatting must be managed. In particular, consider **access visibility**: a private field of a superclass cannot be directly assigned by a subclass just because the subclass is Serializable; an appropriate setter or protected API is needed if the superclass allows it.
 
-Những điểm cần nhớ:
+Key points to remember:
 
-1. `defaultWriteObject()` và `defaultReadObject()` xử lý phần field thông thường của class Serializable theo cơ chế mặc định.
-2. Các giá trị được ghi thêm bằng `writeInt`, `writeUTF`… cần đọc lại **đúng thứ tự và đúng kiểu**.
-3. Hook `readObject` **không phải constructor**. Nó được gọi theo cơ chế Object Serialization và có thể kiểm tra lại state sau khi các field cần thiết được phục hồi.
-4. Dữ liệu stream có thể thiếu, không hợp lệ hoặc bị sửa; phải kiểm tra ràng buộc nghiệp vụ và xem xét `InvalidObjectException` khi state không đáp ứng invariants.
-5. Việc thay đổi định dạng dữ liệu của custom hook cần kế hoạch tương thích phiên bản.
+1. `defaultWriteObject()` and `defaultReadObject()` handle the Serializable class's ordinary fields via the default mechanism.
+2. Extra values written with `writeInt`, `writeUTF`… must be read back **in the exact order and matching types**.
+3. The `readObject` hook **is not a constructor**. It is invoked by the Object Serialization mechanism and can re-verify state after required fields are restored.
+4. Stream data can be missing, invalid, or tampered with; validate business constraints and consider `InvalidObjectException` when state violates invariants.
+5. Changing a custom hook's data format requires a version compatibility plan.
 
-### Ví dụ tư duy
+### Conceptual Example
 
-Một superclass không Serializable `BasePerson` có field `protected int age`. Subclass `PersonRecord implements Serializable` có thể tự ghi `age` vào phần dữ liệu bổ sung. Trong deserialization, `BasePerson()` chạy trước và tạo age mặc định; sau đó `PersonRecord.readObject(...)` đọc giá trị age đã được serialize rồi cập nhật field. Kết quả là state cha có thể được phục hồi một cách **có chủ đích**, thay vì dựa vào cơ chế mặc định vốn không lưu nó.
+A non-Serializable superclass `BasePerson` has `protected int age`. Subclass `PersonRecord implements Serializable` can explicitly write `age` into the extra data section. During deserialization, `BasePerson()` runs first and sets a default age; then `PersonRecord.readObject(...)` reads the serialized age value and updates the field. As a result, parent state is restored **deliberately**, rather than relying on the default mechanism which does not save it.
 
-Hãy cân nhắc tránh lưu những field trạng thái hệ thống có tính không thể tái tạo, như native handles, sockets đang mở, thread hay locks đang sống. Serialization không bảo đảm khôi phục nguyên trạng các tài nguyên hệ điều hành ấy.
+Avoid saving non-reproducible system state fields, such as native handles, open sockets, live threads, or locks. Serialization does not guarantee restoring such OS resources intact.
 
-## 13. `serialVersionUID` và lỗi lớp không tương thích
+## 13. `serialVersionUID` and Incompatible Class Errors
 
-Nên khai báo `serialVersionUID` rõ ràng trong class Serializable:
+Declare `serialVersionUID` explicitly in Serializable classes:
 
 ```java
 private static final long serialVersionUID = 1L;
 ```
 
-ID này dùng trong kiểm tra khả năng tương thích của serialized class descriptor. Nếu class cục bộ không tương thích với descriptor trong stream, `readObject()` có thể ném `InvalidClassException` trước hoặc trong quá trình khôi phục đối tượng.
+This ID is used when checking compatibility of the serialized class descriptor. If the local class is incompatible with the descriptor in the stream, `readObject()` can throw `InvalidClassException` before or during object restoration.
 
-**Phải phân biệt nguyên nhân:**
+**Distinguish the root causes:**
 
-| Vấn đề | Lỗi/hậu quả thường gặp |
+| Problem | Typical error/consequence |
 | --- | --- |
-| Superclass không Serializable thiếu no-arg constructor hợp lệ | `InvalidClassException`, ví dụ nguyên nhân “no valid constructor” |
-| `serialVersionUID` không khớp hoặc class descriptor không tương thích | `InvalidClassException`, nhưng là lý do khác |
-| Field chứa object không serializable trong lúc `writeObject` | `NotSerializableException` |
-| Class cần khôi phục không có ở classpath | `ClassNotFoundException` |
-| Dữ liệu hỏng hoặc stream không hợp lệ | `StreamCorruptedException`/`IOException` hoặc lỗi khác theo tình huống |
+| Non-Serializable superclass lacks a valid no-arg constructor | `InvalidClassException`, e.g., reason "no valid constructor" |
+| `serialVersionUID` mismatch or incompatible class descriptor | `InvalidClassException`, but for a different reason |
+| Field holds a non-serializable object during `writeObject` | `NotSerializableException` |
+| Class to restore is missing from the classpath | `ClassNotFoundException` |
+| Corrupted data or invalid stream | `StreamCorruptedException`/`IOException` or other errors depending on context |
 
-Không xử lý mọi `InvalidClassException` bằng cách “thêm constructor” nếu gốc lỗi là phiên bản lớp không tương thích. Ngược lại, **khai báo `serialVersionUID` không thể bù cho constructor superclass bị thiếu**.
+Do not fix every `InvalidClassException` by "adding a constructor" if the real cause is an incompatible class version. Conversely, **declaring `serialVersionUID` cannot compensate for a missing superclass constructor**.
 
-## 14. `Serializable` khác `Externalizable`
+## 14. `Serializable` Differs from `Externalizable`
 
-`Externalizable` **mở rộng `Serializable`**, nhưng là một giao thức serialization khác: class chủ động ghi/đọc toàn bộ nội dung cần lưu bằng `writeExternal` và `readExternal`.
+`Externalizable` **extends `Serializable`**, yet is a distinct serialization protocol: the class actively writes/reads all persisted contents via `writeExternal` and `readExternal`.
 
-Điểm rất quan trọng đối với constructor:
+A critical point regarding constructors:
 
-- **Serializable thông thường:** khi deserialize, **không gọi constructor của class Serializable**; gọi no-arg constructor hợp lệ của superclass gần nhất **không Serializable**.
-- **Externalizable:** khi deserialize, runtime gọi **public no-arg constructor của chính class Externalizable** rồi gọi `readExternal(...)`; vì constructor của class Externalizable chạy, **chuỗi `super()` thông thường cũng chạy**.
+- **Ordinary `Serializable`:** on deserialize, **does not call the Serializable class's constructor**; calls the valid no-arg constructor of the nearest **non-Serializable** superclass.
+- **`Externalizable`:** on deserialize, the runtime calls the **public no-arg constructor of the `Externalizable` class itself** and then calls `readExternal(...)`; because the `Externalizable` class's constructor runs, **the normal `super()` chain also runs**.
 
-Bảng so sánh:
+Comparison table:
 
-| Tiêu chí | `Serializable` mặc định | `Externalizable` |
+| Criterion | Default `Serializable` | `Externalizable` |
 | --- | --- | --- |
-| Có marker interface? | Có | Có, nhưng thêm phương thức |
-| Constructor class được khôi phục có chạy? | **Không** | **Có**, public no-arg constructor |
-| Superclass không Serializable được khởi tạo? | Có, qua no-arg constructor được chọn | Có, qua chuỗi constructor thông thường |
-| Ai định nghĩa dữ liệu được ghi? | Default serialization, có thể thêm hook | `writeExternal` / `readExternal` |
-| Yêu cầu constructor đặc trưng | No-arg của superclass nonserializable gần nhất, có thể truy cập | **Public** no-arg của class Externalizable |
-| Lỗi thường gặp | Superclass thiếu no-arg hợp lệ | Externalizable thiếu public no-arg hoặc custom read/write không đối xứng |
+| Marker interface? | Yes | Yes, but adds methods |
+| Does the restored class's constructor run? | **No** | **Yes**, public no-arg constructor |
+| Is the non-Serializable superclass initialized? | Yes, via the selected no-arg constructor | Yes, via the normal constructor chain |
+| Who defines what data is written? | Default serialization, optionally with hooks | `writeExternal` / `readExternal` |
+| Specific constructor requirement | Accessible no-arg on nearest non-serializable superclass | **Public** no-arg on the `Externalizable` class |
+| Common pitfalls | Superclass missing valid no-arg constructor | `Externalizable` missing public no-arg constructor or asymmetric custom read/write |
 
-**Đừng áp dụng quy tắc “constructor Serializable không chạy” cho `Externalizable` mà không phân biệt giao thức.** Đây là ngoại lệ quan trọng dễ bị hỏi trong phỏng vấn.
+**Do not apply the rule "Serializable constructors do not run" to `Externalizable` without distinguishing the two protocols.** This is a key exception frequently asked in interviews.
 
-## 15. Ví dụ Java 17: constructor `Externalizable` được gọi
+## 15. Java 17 Example: `Externalizable` Constructor Is Invoked
 
-**Tệp `ExternalizableConstructorDemo.java`:**
+**File `ExternalizableConstructorDemo.java`:**
 
 ```java
 import java.io.ByteArrayInputStream;
@@ -777,131 +777,131 @@ public class ExternalizableConstructorDemo {
 }
 ```
 
-Biên dịch, chạy:
+Compile and run:
 
 ```bash
 javac ExternalizableConstructorDemo.java
 java ExternalizableConstructorDemo
 ```
 
-**Stdout chính xác nếu thao tác thành công:**
+**Exact stdout if the operation succeeds:**
 
 ```text
 Data constructor
 Value: 25
 ```
 
-Tại sao chỉ có **một** dòng “Data constructor”? `new Data(25)` chạy constructor **một tham số**, không in gì. Khi `readObject()` khôi phục Externalizable, runtime gọi **public `Data()`**, in “Data constructor”, rồi gọi `readExternal()` để lấy số 25.
+Why is there only **one** "Data constructor" line? `new Data(25)` runs the **one-argument** constructor, which prints nothing. When `readObject()` restores the `Externalizable`, the runtime invokes **public `Data()`**, prints "Data constructor", and then calls `readExternal()` to read the number 25.
 
-Nếu constructor một tham số cũng in log, ta sẽ thấy log của nó lúc tạo object mới, nhưng **lúc deserialize vẫn chỉ chọn public no-arg**.
+If the one-argument constructor also logged output, we would see its log when creating the new object, whereas **during deserialization only the public no-arg constructor is chosen**.
 
-Chú ý lớp ở ví dụ là **public static nested class**, có public no-arg constructor. Dùng một **non-static inner class** để serialize có nhiều bẫy về tham chiếu tới enclosing instance và yêu cầu constructor; khi minh họa nên ưu tiên static nested class hoặc top-level class.
+Note that the class in the example is a **public static nested class**, providing a public no-arg constructor. Serializing a **non-static inner class** carries traps involving the enclosing instance reference and constructor requirements; prefer static nested classes or top-level classes in examples.
 
-## 16. Trường hợp lớp cha thay đổi giữa lúc ghi và đọc
+## 16. When the Superclass Changes Between Write and Read
 
-Phần mô tả class nằm trong chương trình nhận stream, không chỉ trong serialized bytes. Vì vậy việc thay đổi cây kế thừa giữa lúc write và read có thể ảnh hưởng khả năng deserialize và cách khởi tạo lớp cha.
+Class descriptors live in the program receiving the stream, not just in the serialized bytes. Thus changing the inheritance hierarchy between write and read can affect deserializability and superclass initialization.
 
-Ví dụ tư duy:
+Conceptual example:
 
-1. Phiên bản đầu có `Child implements Serializable` và `Base` là nonserializable với `Base()` hợp lệ.
-2. Phiên bản mới thay `Base()` bằng một constructor chỉ nhận tham số.
-3. Stream cũ có thể vẫn có `serialVersionUID` khớp với `Child`, nhưng **deserialization thất bại** vì superclass `Base` hiện không còn constructor hợp lệ.
+1. Version 1 has `Child implements Serializable` and a non-serializable `Base` with a valid `Base()`.
+2. A new version replaces `Base()` with a constructor that only accepts arguments.
+3. An old stream may still have a `serialVersionUID` matching `Child`, yet **deserialization fails** because superclass `Base` no longer has a valid constructor.
 
-Hành vi tương thích còn phụ thuộc những thay đổi lớp/field/serial descriptor khác. Vì vậy khi sửa thư viện có các class được serialize lâu dài, hãy thử **deserialize dữ liệu đã lưu từ phiên bản cũ bằng phiên bản mới**; đừng chỉ chạy test roundtrip `writeObject -> readObject` trong một binary duy nhất.
+Compatibility behavior also depends on other class/field/serial-descriptor changes. Therefore, when modifying a library containing long-lived serialized classes, test **deserializing data saved from older versions using the new version**; do not rely solely on a `writeObject -> readObject` roundtrip test within a single binary.
 
-Nếu phải lưu dữ liệu lâu dài qua nhiều phiên bản và nhiều ngôn ngữ, Java native serialization có nhiều hạn chế so với định dạng schema có phiên bản như JSON/CBOR/Protocol Buffers hoặc các giải pháp chuyên biệt. Không nên chọn Java serialization chỉ vì muốn tự động lưu object graph mà không đánh giá yêu cầu tương thích.
+If data must be stored long-term across many versions and languages, Java native serialization has significant limitations compared to versioned schema formats like JSON/CBOR/Protocol Buffers or dedicated storage solutions. Do not pick Java serialization merely to auto-save object graphs without evaluating compatibility requirements.
 
-## 17. Những lỗi suy luận phổ biến
+## 17. Common Reasoning Errors
 
-| Suy luận sai | Vì sao sai | Hiểu đúng |
+| Wrong reasoning | Why it is wrong | Correct understanding |
 | --- | --- | --- |
-| “Deserialization không bao giờ gọi constructor.” | Superclass nonserializable vẫn cần được khởi tạo | Chọn no-arg constructor hợp lệ của superclass gần nhất không Serializable |
-| “Serializable class bắt buộc có no-arg constructor.” | Constructor của lớp đó không được gọi theo cơ chế mặc định | Yêu cầu nằm ở superclass đầu tiên không Serializable |
-| “Bất kỳ no-arg constructor nào của superclass đều được.” | Private/inaccessible no-arg không đáp ứng hợp đồng | Phải accessible cho subclass Serializable |
-| “Subclass không có `implements Serializable` thì constructor của nó chạy.” | Serializable được kế thừa | Mọi class trong đoạn cây serializable có constructor bị bỏ qua lúc deserialize |
-| “Field của superclass không Serializable tự được lưu.” | Default serialization chỉ lưu phần serializable | Superclass state do constructor khởi tạo lại hoặc custom logic |
-| “Initializer của Serializable chạy lại.” | Khôi phục không chạy instance initialization của Serializable | Serial fields từ stream; transient về mặc định |
-| “Thêm `serialVersionUID` sửa được lỗi no-arg constructor.” | Hai điều kiện độc lập | Sửa cấu trúc/constructor superclass hoặc mô hình serialization |
-| “`Externalizable` cũng bỏ qua constructor class.” | Giao thức Externalizable gọi public no-arg constructor | Phân biệt hai cơ chế |
-| “Constructor lớp con luôn xác thực stream.” | Constructor lớp con không chạy | Xác thực qua custom readObject/readResolve hay cơ chế phù hợp |
-| “Superclass constructor có thể gọi mọi method override an toàn.” | Method có thể quan sát subclass state chưa restored | Tránh virtual call từ superclass constructor |
-| “Một stream không tin cậy có thể deserialize vô điều kiện.” | Object graph/hook có tác dụng phụ và nhiều rủi ro | Dùng filter hoặc tránh native serialization của input không tin cậy |
+| "Deserialization never calls any constructor." | Non-serializable superclasses still need initialization | Calls the valid no-arg constructor of the nearest non-Serializable superclass |
+| "A Serializable class must have a no-arg constructor." | That class's constructor is not called under the default mechanism | The requirement applies to the first non-Serializable superclass |
+| "Any no-arg constructor on the superclass works." | Private/inaccessible no-arg constructors do not satisfy the contract | It must be accessible to the Serializable subclass |
+| "A subclass without `implements Serializable` runs its constructor." | Serializability is inherited | Every class in the serializable subtree has its constructor skipped on deserialize |
+| "Fields of a non-Serializable superclass are saved automatically." | Default serialization only saves the serializable portion | Superclass state is re-initialized by its constructor or handled via custom logic |
+| "Initializers of the Serializable class re-run." | Restoration skips Serializable instance initialization | Serial fields come from the stream; transient fields take defaults |
+| "Adding `serialVersionUID` fixes missing no-arg constructor errors." | Two independent requirements | Fix the superclass structure/constructor or serialization model |
+| "`Externalizable` also skips the class's constructor." | The Externalizable protocol calls its public no-arg constructor | Distinguish the two mechanisms |
+| "The subclass constructor always validates the stream." | The subclass constructor does not run | Validate via custom `readObject`/`readResolve` or appropriate verification |
+| "A superclass constructor can safely call any overridden method." | The method can observe subclass state not yet restored | Avoid virtual calls from superclass constructors |
+| "An untrusted stream can be deserialized unconditionally." | Object graphs/hooks have side effects and high risks | Use filters or avoid native serialization for untrusted input |
 
-## 18. Về bảo mật và sự an toàn khi deserialize
+## 18. Security and Safety During Deserialization
 
-Java native deserialization từ nguồn **không tin cậy** có rủi ro nghiêm trọng: object graph phức tạp, nội dung không mong muốn, chuỗi phương thức/hook và những class có tác dụng phụ. Ngay cả khi constructor của Serializable class **không chạy**, các **hook như `readObject`, `readResolve`**, việc khởi tạo superclass nonserializable và việc tạo những object khác trong graph vẫn có thể thực thi logic.
+Java native deserialization from **untrusted** sources carries serious risks: complex object graphs, unexpected types, method/hook chains, and classes with side effects. Even though the `Serializable` class's constructor **does not run**, **hooks like `readObject`, `readResolve`**, non-serializable superclass initialization, and creation of other objects in the graph can still execute logic.
 
-Vì vậy không kết luận “deserialization an toàn vì bỏ qua constructor”. Với ứng dụng nhận byte từ client hoặc nguồn bên ngoài:
+Therefore, never conclude "deserialization is safe because constructors are skipped." For applications accepting bytes from clients or external sources:
 
-- Ưu tiên **định dạng dữ liệu có schema** và decoder có kiểm tra chặt nếu có thể.
-- Nếu buộc sử dụng Object Serialization, thiết lập `ObjectInputFilter` với allowlist/denylist phù hợp, giới hạn độ sâu, số lượng đối tượng và kích thước dữ liệu theo bối cảnh.
-- Kiểm tra invariants sau khi khôi phục và không đưa object chưa xác thực trực tiếp vào logic đặc quyền.
-- Quản lý phiên bản stream, loại class được phép nhận, giới hạn tài nguyên và cơ chế cô lập.
+- Prefer **schema-based data formats** and strictly validating decoders whenever possible.
+- If Object Serialization must be used, configure `ObjectInputFilter` with context-appropriate allowlists/denylists, depth limits, object counts, and data size limits.
+- Validate invariants after restoration and never pass unverified objects directly into privileged logic.
+- Manage stream versions, permitted class types, resource limits, and isolation mechanisms.
 
-ObjectInputFilter giảm rủi ro nhưng **không biến việc deserialize mọi dữ liệu không tin cậy thành an toàn tuyệt đối**. Việc thiết kế loại class được khôi phục và chính sách xử lý vẫn cần rà soát riêng.
+`ObjectInputFilter` reduces risk, yet **does not make deserializing arbitrary untrusted data completely safe**. Allowed restored classes and processing policies still require separate review.
 
-## 19. Câu hỏi tự kiểm tra
+## 19. Self-Check Questions
 
-**Câu 1.** Class `Child extends Base implements Serializable`, `Base` không Serializable và có `protected Base()`. Khi `readObject()` trả về một `Child`, constructor nào chạy?
+**Question 1.** Class `Child extends Base implements Serializable`, where `Base` is non-Serializable and has `protected Base()`. When `readObject()` returns a `Child`, which constructor runs?
 
-**Đáp án:** `Base()` và chuỗi constructor các tổ tiên nonserializable mà `Base()` gọi. `Child()` không chạy trong cơ chế Serializable thông thường.
+**Answer:** `Base()` and the constructor chain of any non-serializable ancestors that `Base()` calls. `Child()` does not run under the ordinary Serializable mechanism.
 
-**Câu 2.** `Base` chỉ có `Base(int)`, còn `Child()` gọi `super(1)` nên `new Child()` biên dịch. Deserialization có thành công không?
+**Question 2.** `Base` only has `Base(int)`, while `Child()` calls `super(1)`, so `new Child()` compiles. Will deserialization succeed?
 
-**Đáp án:** Không theo cơ chế default Serializable thông thường: thiếu no-arg constructor hợp lệ của superclass nonserializable. `readObject()` sẽ gặp `InvalidClassException`.
+**Answer:** Not under the ordinary default Serializable mechanism: the non-serializable superclass lacks a valid no-arg constructor. `readObject()` will throw `InvalidClassException`.
 
-**Câu 3.** `Base` không Serializable có field `int x = 5` và no-arg constructor đặt `x = 8`. Sau khi `new Child()`, ứng dụng đổi `x = 20` rồi serialize `Child`. Sau deserialize, x có giá trị nào?
+**Question 3.** Non-Serializable `Base` has field `int x = 5` and a no-arg constructor setting `x = 8`. After `new Child()`, the application changes `x = 20` and serializes `Child`. After deserialization, what is `x`?
 
-**Đáp án:** **8**, nếu không có custom serialization khác. Field của `Base` không được cơ chế mặc định lưu; no-arg constructor `Base()` chạy lại và đặt giá trị 8.
+**Answer:** **8**, assuming no other custom serialization. `Base`'s field is not saved by the default mechanism; the no-arg constructor `Base()` runs again and sets the value to 8.
 
-**Câu 4.** `Child` Serializable có `transient int cache = 100`. Sau khi deserialize, `cache` bằng 100 hay 0?
+**Question 4.** Serializable `Child` has `transient int cache = 100`. After deserialization, is `cache` 100 or 0?
 
-**Đáp án:** **0** nếu không có custom read hook. Field initializer của `Child` không chạy lại, và `transient` không được khôi phục bởi default serialization.
+**Answer:** **0** if there is no custom read hook. `Child`'s field initializer does not re-run, and `transient` is not restored by default serialization.
 
-**Câu 5.** Một class `Data implements Externalizable` có `public Data()` và `Data(int)`. Khi đọc từ stream, constructor nào chạy?
+**Question 5.** A class `Data implements Externalizable` has `public Data()` and `Data(int)`. When reading from a stream, which constructor runs?
 
-**Đáp án:** Runtime gọi **public `Data()`**, rồi gọi `readExternal`. Trường hợp Externalizable không áp dụng quy tắc bỏ qua constructor của chính class như Serializable thông thường.
+**Answer:** The runtime invokes **public `Data()`**, then calls `readExternal`. `Externalizable` does not follow the ordinary Serializable rule of skipping the class's own constructor.
 
-**Câu 6.** Có đúng rằng `static` field được serialize nếu khai báo ở Serializable class không?
+**Question 6.** Is it true that `static` fields are serialized if declared in a Serializable class?
 
-**Đáp án:** Không. Java Object Serialization mặc định xử lý instance state; `static` là state thuộc class. Giá trị static có thể khác khi chạy chương trình đọc so với chương trình đã ghi.
+**Answer:** No. Default Java Object Serialization handles instance state; `static` is class-level state. Static values may differ in the reading program compared to the writing program.
 
-**Câu 7.** Có thể dùng constructor của `Child implements Serializable` làm nơi duy nhất kiểm tra `balance >= 0` với đối tượng đọc từ stream không?
+**Question 7.** Can the constructor of `Child implements Serializable` be used as the sole place checking `balance >= 0` for objects read from a stream?
 
-**Đáp án:** Không. Constructor `Child` không chạy khi deserialize theo cơ chế mặc định. Cần kiểm tra invariants trong hook phục hồi hoặc cơ chế xác thực phù hợp trước khi sử dụng object.
+**Answer:** No. `Child`'s constructor does not run under default deserialization. Invariants must be checked in a restoration hook or an appropriate validation layer before using the object.
 
-## 20. Tổng kết
+## 20. Summary
 
-Trong Java Object Serialization, cần nhớ ba “vùng” của chuỗi kế thừa:
+In Java Object Serialization, remember the three "zones" of the inheritance chain:
 
 ```text
-               Object (không Serializable)
+               Object (non-Serializable)
                    |
-               Base   (không Serializable)
+               Base   (non-Serializable)
                    |
-            --- ranh giới ---
+            --- boundary ---
                    |
              Parent (Serializable)
                    |
              Child  (Serializable)
 
 new Child():
-  Constructor Object -> Base -> Parent -> Child
+  Constructors Object -> Base -> Parent -> Child
 
 deserialize Child:
-  Constructor Object -> Base
-  KHÔNG gọi Parent/Child constructors;
-  phục hồi state Serializable Parent/Child từ stream.
+  Constructors Object -> Base
+  Do NOT call Parent/Child constructors;
+  restore Serializable state of Parent/Child from stream.
 ```
 
-**Quy tắc vàng:** *Java chỉ yêu cầu một constructor không tham số phù hợp ở lớp cha gần nhất **không Serializable**; constructor của các class thuộc đoạn Serializable được bỏ qua khi khôi phục object thông thường. Vì vậy field của cha không Serializable cần được khởi tạo lại hoặc phục hồi tường minh, trong khi field Serializable được đọc từ stream.*
+**Golden rule:** *Java only requires a suitable no-argument constructor on the nearest **non-Serializable** superclass; constructors of classes in the Serializable segment are skipped during ordinary object restoration. Therefore, fields of non-Serializable superclasses must be re-initialized or explicitly restored, while Serializable fields are read from the stream.*
 
-Cần kiểm tra kỹ `transient`, instance initializer, tính accessible của constructor, sự khác biệt với `Externalizable`, tương thích phiên bản và các rủi ro bảo mật. Đây là nền tảng để giải thích phần lớn câu hỏi về constructor trong Java serialization và để thiết kế class có khả năng deserialize ổn định.
+Carefully check `transient`, instance initializers, constructor accessibility, differences with `Externalizable`, version compatibility, and security risks. This forms the foundation for explaining most constructor questions in Java serialization and designing classes that deserialize reliably.
 
-**Tài liệu tham khảo Java SE 17:**
+**Java SE 17 References:**
 
-1. [Serializable](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/Serializable.html) — yêu cầu no-arg constructor của nonserializable superclass và cơ chế khôi phục.
-2. [ObjectInputStream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/ObjectInputStream.html) — `readObject()` và khôi phục object graph.
-3. [Externalizable](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/Externalizable.html) — constructor và giao thức externalization.
-4. [Java Object Serialization Specification](https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/index.html) — quy trình khôi phục, trạng thái lớp và stream format.
-5. [ObjectInputFilter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/ObjectInputFilter.html) — các giới hạn khi xử lý dữ liệu serialized.
+1. [Serializable](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/Serializable.html) — non-serializable superclass no-arg constructor requirement and restoration mechanism.
+2. [ObjectInputStream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/ObjectInputStream.html) — `readObject()` and object graph restoration.
+3. [Externalizable](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/Externalizable.html) — constructor and externalization protocol.
+4. [Java Object Serialization Specification](https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/index.html) — restoration flow, class state, and stream format.
+5. [ObjectInputFilter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/ObjectInputFilter.html) — limits when processing serialized data.

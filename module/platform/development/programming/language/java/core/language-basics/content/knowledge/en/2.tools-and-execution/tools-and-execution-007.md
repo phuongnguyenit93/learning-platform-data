@@ -1,53 +1,53 @@
-# Phân biệt tham số JVM với đối số chương trình trong Java
+# Distinguishing JVM Options from Program Arguments in Java
 
-Khi chạy Java bằng terminal, bạn có thể thấy một lệnh như sau:
+When running Java from the terminal, you might see a command like this:
 
 ~~~bash
 java -Xmx128m -Dstudy.mode=lab -cp out ArgsBoundaryDemo 45 "Java core" --check
 ~~~
 
-Ở đây, `-Xmx128m` và `-Dstudy.mode=lab` là các tùy chọn cấu hình môi trường chạy Java. `-cp out` cho **Java launcher** biết nơi tìm lớp. Trong khi đó, `45`, `Java core` và `--check` là **đối số của chương trình**; chúng được truyền đến `main(String[] args)`.
+Here, `-Xmx128m` and `-Dstudy.mode=lab` are options configuring the Java execution environment. `-cp out` tells the **Java launcher** where to look for classes. Meanwhile, `45`, `Java core`, and `--check` are **program arguments**; they are passed to `main(String[] args)`.
 
-Bài học này giúp bạn nhận ra **ranh giới giữa phần cấu hình chạy Java và dữ liệu do ứng dụng nhận**. Ví dụ sử dụng **JDK 17 trở lên**, chỉ cần terminal Windows PowerShell hoặc Linux và một tệp nguồn Java.
+This lesson helps you recognize **the boundary between Java runtime configuration and data received by the application**. The examples use **JDK 17 or higher**, requiring only a Windows PowerShell or Linux terminal and a single Java source file.
 
-## 1. Nhìn cấu trúc lệnh từ trái sang phải
+## 1. Reading the command structure from left to right
 
-Ở dạng chạy một lớp đã biên dịch, lệnh thường có cấu trúc:
+In the form that runs a compiled class, the command usually has the structure:
 
 ~~~text
-java [tùy chọn cho launcher/JVM] TênLớp [đối số chương trình]
-        ^                           ^         ^
-        cấu hình                điểm bắt đầu  args[]
+java [launcher/JVM options] ClassName [program arguments]
+        ^                       ^              ^
+  configuration            entry point       args[]
 ~~~
 
-Trong ví dụ:
+In the example:
 
 ~~~text
 java -Xmx128m -Dstudy.mode=lab -cp out ArgsBoundaryDemo 45 "Java core" --check
-     └──────── tùy chọn ────────┘    └lớp───┘ └──── args[] ────────┘
+     └─────────── options ───────────┘ └──── class ───┘ └────── args[] ──────┘
 ~~~
 
-Một số tài liệu gọi chung các phần trước tên lớp là **“JVM arguments”**. Cách gọi này tiện trong hội thoại, nhưng nên phân biệt chính xác:
+Some documentation broadly refers to everything before the class name as **“JVM arguments”**. That phrasing is convenient in conversation, yet it is better to distinguish accurately:
 
-| Thành phần | Ai xử lý? | Tác dụng | Có xuất hiện trong `args[]`? |
+| Component | Who handles it? | Effect | Appears in `args[]`? |
 | --- | --- | --- | --- |
-| `-Xmx128m` | JVM/Java launcher | Cấu hình giới hạn heap tối đa | Không |
-| `-Xms64m` | JVM/Java launcher | Cấu hình heap ban đầu | Không |
-| `-Dstudy.mode=lab` | JVM/Java launcher | Đặt Java system property | Không |
-| `-ea` | JVM/Java launcher | Bật kiểm tra `assert` | Không |
-| `-cp out` | Java launcher | Chọn classpath tìm lớp/thư viện | Không |
-| `ArgsBoundaryDemo` | Java launcher | Chọn lớp có điểm bắt đầu `main` | Không |
-| `45` | Ứng dụng | Chuỗi đối số thứ nhất | Có: `args[0]` |
-| `"Java core"` | Shell rồi ứng dụng | Một chuỗi chứa khoảng trắng | Có: `args[1]` |
-| `--check` | Ứng dụng | Cờ do ứng dụng tự quy định | Có: `args[2]` |
+| `-Xmx128m` | JVM/Java launcher | Configures maximum heap limit | No |
+| `-Xms64m` | JVM/Java launcher | Configures initial heap size | No |
+| `-Dstudy.mode=lab` | JVM/Java launcher | Sets a Java system property | No |
+| `-ea` | JVM/Java launcher | Enables `assert` checks | No |
+| `-cp out` | Java launcher | Selects classpath to find classes/libraries | No |
+| `ArgsBoundaryDemo` | Java launcher | Selects the class containing the `main` entry point | No |
+| `45` | Application | First argument string | Yes: `args[0]` |
+| `"Java core"` | Shell then application | A single string containing a space | Yes: `args[1]` |
+| `--check` | Application | Flag defined by the application | Yes: `args[2]` |
 
-`-cp` là **tùy chọn của launcher** chứ không phải phép đặt giới hạn bộ nhớ cho JVM. Còn `-D` tạo **system property**, không phải biến môi trường của hệ điều hành.
+`-cp` is a **launcher option**, not a JVM memory limit setting. And `-D` creates a **system property**, not an operating system environment variable.
 
-**Quy tắc thực hành:** các tùy chọn Java như `-Xmx`, `-D`, `-cp` phải đặt ở phần trước tên lớp đối với dạng chạy này; nội dung sau tên lớp được coi là dữ liệu ứng dụng.
+**Practical rule:** Java options such as `-Xmx`, `-D`, and `-cp` must be placed before the class name in this execution form; everything after the class name is treated as application data.
 
-## 2. Tạo chương trình minh họa để nhìn thấy `args[]`
+## 2. Creating a demo program to inspect `args[]`
 
-Tạo tệp **`ArgsBoundaryDemo.java`** chứa mã Java sau:
+Create the file **`ArgsBoundaryDemo.java`** containing the following Java code:
 
 ~~~java
 public class ArgsBoundaryDemo {
@@ -77,52 +77,52 @@ public class ArgsBoundaryDemo {
 }
 ~~~
 
-Ý nghĩa:
+Meaning:
 
-- `main(String[] args)` nhận **mảng chuỗi**. Dù bạn gõ `45`, trong `args[0]` ban đầu vẫn là `String` `"45"`, không phải số `int`.
-- `System.getProperty("study.mode", "default")` đọc system property đã được cấu hình; nếu property chưa có thì dùng chuỗi mặc định `default`.
-- Vòng `for` in **đúng từng chuỗi** nhận được và chỉ số của nó.
-- `Integer.parseInt` minh họa việc ứng dụng tự phân tích đối số. Java launcher không tự chuyển mọi đối số ứng dụng thành số.
-- Giá trị âm và chuỗi không phải số được xử lý tường minh; đó là **quy tắc ứng dụng**, không phải quy tắc của `-Xmx` hay `-D`.
+- `main(String[] args)` receives an **array of strings**. Even when you type `45`, in `args[0]` it is initially the `String` `"45"`, not an `int`.
+- `System.getProperty("study.mode", "default")` reads the configured system property; if the property is not set, it uses the default string `default`.
+- The `for` loop prints **each exact string** received along with its index.
+- `Integer.parseInt` illustrates that the application parses arguments itself. The Java launcher does not automatically convert application arguments into numbers.
+- Negative values and non-numeric strings are handled explicitly; those are **application rules**, not rules of `-Xmx` or `-D`.
 
-Đây là chương trình Java độc lập, không cần thư viện bên ngoài, không cần framework hay tệp cấu hình đặc biệt.
+This is a standalone Java program, requiring no external libraries, frameworks, or special configuration files.
 
-## 3. Biên dịch và chạy trên Windows PowerShell hoặc Linux
+## 3. Compiling and running on Windows PowerShell or Linux
 
-Trước tiên kiểm tra JDK:
+First check the JDK:
 
 ~~~bash
 java -version
 javac -version
 ~~~
 
-Lưu `ArgsBoundaryDemo.java` trong một thư mục làm việc, mở terminal ở thư mục đó.
+Save `ArgsBoundaryDemo.java` in a working directory, and open a terminal in that directory.
 
-**Tạo thư mục đầu ra trên Windows PowerShell:**
+**Create the output directory on Windows PowerShell:**
 
 ~~~powershell
 New-Item -ItemType Directory -Force -Path out | Out-Null
 ~~~
 
-**Tạo thư mục đầu ra trên Linux/Bash:**
+**Create the output directory on Linux/Bash:**
 
 ~~~bash
 mkdir -p out
 ~~~
 
-Biên dịch — lệnh giống nhau ở cả hai hệ điều hành:
+Compile — the command is identical on both operating systems:
 
 ~~~bash
 javac -encoding UTF-8 -d out ArgsBoundaryDemo.java
 ~~~
 
-Sau đó chạy:
+Then run:
 
 ~~~bash
 java -Xmx128m -Dstudy.mode=lab -cp out ArgsBoundaryDemo 45 "Java core" --check
 ~~~
 
-**Kết quả dự kiến:**
+**Expected output:**
 
 ~~~text
 study.mode=lab
@@ -133,21 +133,21 @@ args[2]=--check
 minutes=45
 ~~~
 
-**Tại sao?**
+**Why?**
 
-1. Java launcher nhận `-Xmx128m` để yêu cầu cấu hình heap tối đa; tùy chọn này **không đi vào `args[]`**.
-2. `-Dstudy.mode=lab` tạo property `study.mode` mang giá trị `lab`. Mã đọc nó qua `System.getProperty`.
-3. `-cp out` chỉ thư mục tìm lớp `ArgsBoundaryDemo` đã được biên dịch.
-4. `ArgsBoundaryDemo` xác định lớp được chạy.
-5. Ba chuỗi còn lại đi vào `args[0]`, `args[1]` và `args[2]`. Dấu nháy quanh `"Java core"` được **shell** dùng để giữ hai từ thành **một đối số**, không phải ký tự thuộc nội dung chuỗi nhận được.
+1. The Java launcher accepts `-Xmx128m` to request a maximum heap configuration; this option **does not go into `args[]`**.
+2. `-Dstudy.mode=lab` creates the property `study.mode` with value `lab`. The code reads it via `System.getProperty`.
+3. `-cp out` points to the directory containing the compiled `ArgsBoundaryDemo` class.
+4. `ArgsBoundaryDemo` identifies the class to run.
+5. The remaining three strings go into `args[0]`, `args[1]`, and `args[2]`. The quotes around `"Java core"` are used by the **shell** to keep two words as **one argument**, not characters inside the received string content.
 
-Không nên dựa vào con số bộ nhớ heap thực tế để kiểm chứng ví dụ: `-Xmx128m` quy định cấu hình giới hạn, không cam kết JVM cấp phát hoặc sử dụng đúng 128 MiB ngay khi chạy.
+Do not rely on actual heap memory figures to verify this example: `-Xmx128m` sets a limit configuration, and does not guarantee the JVM allocates or uses exactly 128 MiB immediately upon launch.
 
-## 4. Đặt `-D` sai vị trí: kết quả thay đổi rõ rệt
+## 4. Placing `-D` in the wrong position: output changes noticeably
 
-Hãy so sánh hai lệnh có cùng văn bản `-Dstudy.mode=lab`:
+Compare two commands containing the exact same text `-Dstudy.mode=lab`:
 
-**Đặt trước tên lớp — đây là tùy chọn Java:**
+**Placed before the class name — this is a Java option:**
 
 ~~~bash
 java -Dstudy.mode=lab -cp out ArgsBoundaryDemo 45
@@ -160,7 +160,7 @@ args[0]=45
 minutes=45
 ~~~
 
-**Đặt sau tên lớp — đây là đối số chương trình:**
+**Placed after the class name — this is a program argument:**
 
 ~~~bash
 java -cp out ArgsBoundaryDemo 45 -Dstudy.mode=lab
@@ -174,52 +174,52 @@ args[1]=-Dstudy.mode=lab
 minutes=45
 ~~~
 
-Lệnh thứ hai **không đặt system property** `study.mode`. Chuỗi bắt đầu bằng `-D` chỉ là một phần tử trong `args[]`, và vì ứng dụng ví dụ không tự phân tích chuỗi đó nên nó không thay đổi cách chạy.
+The second command **does not set the system property** `study.mode`. The string starting with `-D` is merely an element in `args[]`, and because the example application does not parse that string itself, it does not change how the program runs.
 
-Tương tự, chạy:
+Similarly, running:
 
 ~~~bash
 java -cp out ArgsBoundaryDemo 45 -Xmx128m
 ~~~
 
-sẽ đưa chuỗi `-Xmx128m` vào đối số ứng dụng, **không đặt giới hạn heap qua chuỗi đó**. Tác dụng của ký tự `-` phụ thuộc **bộ phân tích lệnh nào đang đọc nó**.
+passes the string `-Xmx128m` into application arguments, **without setting a heap limit via that string**. The effect of the `-` character depends on **which parser is reading it**.
 
-Đây là nguyên nhân phổ biến của những lỗi kiểu “đã thêm `-D` mà ứng dụng vẫn đọc property mặc định”.
+This is a common cause of issues like “I added `-D` yet the application still reads the default property.”
 
-## 5. Đối số ứng dụng không tự có ý nghĩa
+## 5. Application arguments do not carry inherent meaning
 
-Java chỉ đưa các chuỗi sau lớp tới `main`. Chương trình phải **tự quyết định** chúng đại diện cho gì.
+Java only forwards the strings after the class name to `main`. The program must **decide for itself** what they represent.
 
-Giả sử một ứng dụng khác quy định:
+Suppose another application specifies:
 
 ~~~text
 java App 15 --verbose --output=result.txt
 ~~~
 
-`15` có thể là số lượng, số phút hay một mã tùy ý; `--verbose` có thể bật log; `--output=result.txt` có thể chọn tên tệp. **Đó là quy ước riêng của `App`**, không phải bộ tùy chọn chuẩn do JVM xử lý.
+`15` could be a quantity, minutes, or an arbitrary code; `--verbose` could enable logging; `--output=result.txt` could choose a file name. **Those are `App`'s own conventions**, not a standard set of options handled by the JVM.
 
-Trong chương trình `ArgsBoundaryDemo`:
+In `ArgsBoundaryDemo`:
 
-- `45` được diễn giải thành số phút chỉ vì mã chủ động gọi `Integer.parseInt(args[0])`.
-- `--check` được in ra nhưng chưa làm gì khác vì mã không có điều kiện xử lý nó.
-- Khi không có đối số, `args.length = 0`; vòng lặp không in phần tử nào, và khối parse được bỏ qua.
-- Khi `args[0]` là `abc` hoặc số vượt miền `int`, `parseInt` thất bại; chương trình in `minutes=INVALID_NUMBER`.
-- Khi `args[0] = -5`, phép parse thành công nhưng ứng dụng báo `minutes=INVALID_NEGATIVE`.
+- `45` is interpreted as minutes only because the code explicitly calls `Integer.parseInt(args[0])`.
+- `--check` is printed out yet does nothing else because the code has no condition handling it.
+- With no arguments, `args.length = 0`; the loop prints no elements, and the parsing block is skipped.
+- When `args[0]` is `abc` or a number outside the `int` range, `parseInt` fails; the program prints `minutes=INVALID_NUMBER`.
+- When `args[0] = -5`, parsing succeeds yet the application reports `minutes=INVALID_NEGATIVE`.
 
-Lỗi parse và dữ liệu âm là hai tình huống khác nhau: một tình huống **sai định dạng số**, tình huống còn lại **định dạng đúng nhưng vi phạm yêu cầu**.
+A parse error and negative data are two different situations: one is a **malformed number format**, and the other is **valid format that violates requirements**.
 
-## 6. `-D`, biến môi trường và classpath khác nhau thế nào?
+## 6. How do `-D`, environment variables, and classpath differ?
 
-Một hệ thống thường có cả **Java system properties**, **environment variables** và **program arguments**. Chúng không thay thế cho nhau.
+A system often has **Java system properties**, **environment variables**, and **program arguments**. They do not substitute for one another.
 
-| Cơ chế | Cách thiết lập / truyền | Cách Java đọc | Đặc điểm |
+| Mechanism | How it is set / passed | How Java reads it | Characteristics |
 | --- | --- | --- | --- |
-| System property | `java -Dstudy.mode=lab ...` | `System.getProperty("study.mode")` | Thuộc hệ thống properties của tiến trình JVM |
-| Biến môi trường | Do shell/hệ điều hành đặt trước khi chạy | `System.getenv("STUDY_MODE")` | Được tiến trình thừa hưởng từ môi trường |
-| Đối số chương trình | Sau tên lớp | `args[0]`, `args[1]`... | Mảng chuỗi ứng dụng nhận |
-| Classpath | `java -cp out ...` | Được launcher/loader sử dụng | Xác định nơi tìm lớp và các thư viện |
+| System property | `java -Dstudy.mode=lab ...` | `System.getProperty("study.mode")` | Belongs to the JVM process's properties system |
+| Environment variable | Set by shell/OS before running | `System.getenv("STUDY_MODE")` | Inherited by the process from the environment |
+| Program argument | After the class name | `args[0]`, `args[1]`... | String array received by the application |
+| Classpath | `java -cp out ...` | Used by launcher/loader | Specifies where to locate classes and libraries |
 
-Ví dụ thiết lập **biến môi trường** chỉ trong phiên terminal hiện tại:
+Example of setting an **environment variable** only in the current terminal session:
 
 **PowerShell:**
 
@@ -233,118 +233,118 @@ $env:STUDY_MODE = "lab"
 export STUDY_MODE=lab
 ~~~
 
-Nếu muốn thử trực tiếp trong mã, bổ sung lời gọi này vào `main`:
+If you want to test directly in code, add this call to `main`:
 
 ~~~java
 System.out.println(
         "env.STUDY_MODE=" + System.getenv("STUDY_MODE"));
 ~~~
 
-Đây là **đoạn bổ sung**, không có sẵn trong đầu ra chuẩn ở mục 3. Lệnh đặt biến môi trường `STUDY_MODE` không tự tạo Java system property `study.mode`; nếu muốn hỗ trợ cả hai, ứng dụng phải định nghĩa rõ quy tắc ưu tiên.
+This is an **optional addition**, not included in the standard output in section 3. Setting the `STUDY_MODE` environment variable does not automatically create the Java system property `study.mode`; if you want to support both, the application must explicitly define precedence rules.
 
-Lưu ý: classpath nhiều mục dùng ký tự phân tách **`;` trên Windows** và **`:` trên Linux/macOS**. Ví dụ ở bài này chỉ có một thư mục `out` nên cùng một lệnh `-cp out` hoạt động trên cả hai nền tảng.
+Note: a multi-entry classpath uses **`;` on Windows** and **`:` on Linux/macOS** as the separator. The example in this lesson has only one directory `out`, so the same `-cp out` command works on both platforms.
 
-## 7. Các cách khởi chạy khác vẫn có ranh giới tương tự
+## 7. Other launch modes still share a similar boundary
 
-### Chạy JAR thực thi
+### Running an executable JAR
 
-Nếu đã có tệp JAR hợp lệ chứa cấu hình `Main-Class`, cú pháp điển hình là:
+If you already have a valid JAR file containing a `Main-Class` configuration, the typical syntax is:
 
 ~~~bash
 java -Xmx256m -Dstudy.mode=prod -jar app.jar 45 --check
 ~~~
 
-- `-Xmx256m` và `-Dstudy.mode=prod`: tùy chọn JVM.
-- `-jar app.jar`: Java launcher chọn JAR và main class được cấu hình trong manifest.
-- `45`, `--check`: đối số ứng dụng được truyền đến `main`.
+- `-Xmx256m` and `-Dstudy.mode=prod`: JVM options.
+- `-jar app.jar`: the Java launcher selects the JAR and the main class configured in the manifest.
+- `45`, `--check`: application arguments passed to `main`.
 
-Đây chỉ là **ví dụ cú pháp**: bài này không tạo `app.jar`, nên không chạy lệnh trên nếu chưa có JAR tương ứng. Tên JAR không được truyền thành `args[0]`.
+This is only a **syntax example**: this lesson does not build `app.jar`, so do not run that command without a corresponding JAR. The JAR name is not passed as `args[0]`.
 
-### Chạy thẳng tệp nguồn trên JDK 17+
+### Running a source file directly on JDK 17+
 
-Java cũng hỗ trợ chế độ chạy tệp nguồn:
+Java also supports source-file execution mode:
 
 ~~~bash
 java -Xmx128m -Dstudy.mode=lab ArgsBoundaryDemo.java 45 "Java core" --check
 ~~~
 
-Trong cách này, `java` biên dịch mã nguồn trong bộ nhớ rồi chạy nó; không cần lệnh `javac` riêng. Tùy chọn JVM vẫn đi **trước tệp nguồn**; dữ liệu ứng dụng vẫn đi **sau tệp nguồn**.
+In this mode, `java` compiles the source code in memory and then runs it; no separate `javac` command is needed. JVM options still go **before the source file**; application data still goes **after the source file**.
 
-Lệnh trên giả định bạn đang ở thư mục có `ArgsBoundaryDemo.java`. Nếu đã chỉ định đường dẫn khác, thay tên tệp bằng đường dẫn thực tế.
+The command above assumes you are in the directory containing `ArgsBoundaryDemo.java`. If you specify another path, replace the file name with the actual path.
 
-## 8. Xử lý lỗi thường gặp
+## 8. Handling common errors
 
-| Hiện tượng | Nguyên nhân có thể | Cách kiểm tra/sửa |
+| Symptom | Possible cause | How to check/fix |
 | --- | --- | --- |
-| `System.getProperty` trả `default` dù đã gõ `-D` | Đặt `-D` sau tên lớp, sai key hoặc chưa cấu hình | Đưa `-Dkey=value` lên trước lớp, kiểm tra chính tả |
-| `args.length` khác số mong đợi | Đếm cả tên lớp hoặc chia nhầm chuỗi có khoảng trắng | Chỉ đếm chuỗi sau tên lớp; đặt chuỗi có khoảng trắng trong nháy kép |
-| `-Xmx...` xuất hiện trong `args[]` | Đã đặt tùy chọn ở vị trí đối số ứng dụng | Đưa lên trước tên lớp hoặc tên tệp/JAR |
-| JVM báo không nhận diện tùy chọn | Gõ sai flag hoặc phiên bản JDK không hỗ trợ | Kiểm tra `java -version` và `java --help` |
-| Không tìm được main class | Thiếu `-cp out`, classpath sai hoặc chưa biên dịch | Xem tệp `.class` và kiểm tra tên lớp |
-| `NumberFormatException` | Đối số được parse không phải số `int` hợp lệ | Kiểm tra chuỗi, miền số và thông báo |
-| Heap hết bộ nhớ | Dữ liệu hoặc hành vi cấp phát vượt khả năng JVM | Đo/điều tra sử dụng bộ nhớ, không chỉ tăng `-Xmx` tùy tiện |
+| `System.getProperty` returns `default` despite typing `-D` | Placed `-D` after class name, wrong key, or not configured | Move `-Dkey=value` before the class name, check spelling |
+| `args.length` differs from expected count | Counted the class name or mis-split a string with spaces | Count only strings after the class name; wrap strings with spaces in double quotes |
+| `-Xmx...` appears inside `args[]` | Placed the option in the application arguments position | Move it before the class name or file/JAR name |
+| JVM reports unrecognized option | Typo in flag or unsupported JDK version | Check `java -version` and `java --help` |
+| Main class not found | Missing `-cp out`, wrong classpath, or not yet compiled | Check `.class` files and verify class name |
+| `NumberFormatException` | Parsed argument is not a valid `int` | Check the string, numeric range, and message |
+| Heap runs out of memory | Data or allocation behavior exceeds JVM capacity | Measure/investigate memory usage, do not just arbitrarily raise `-Xmx` |
 
-Muốn xem thêm các tùy chọn launcher:
+To see more launcher options:
 
 ~~~bash
 java --help
 java -X
 ~~~
 
-Một số tùy chọn JVM chuyên sâu có dạng `-XX:...`; cú pháp và sự hỗ trợ phụ thuộc phiên bản/triển khai JVM. Không nên chép tùy chọn chuyên sâu từ môi trường khác mà chưa hiểu tác dụng.
+Some advanced JVM options take the form `-XX:...`; syntax and support depend on the JVM version/implementation. Do not copy advanced options from another environment without understanding their effect.
 
-### Đừng nhầm lỗi Java với lỗi của shell
+### Do not confuse Java errors with shell errors
 
-Trước khi Java launcher đọc đối số, **shell** đã xử lý dấu nháy, khoảng trắng, biến môi trường và một số ký tự đặc biệt. PowerShell và Bash không có quy tắc hoàn toàn giống nhau. Ví dụ cách trích dẫn một đối số chứa khoảng trắng bằng `"Java core"` hoạt động trong cả hai, nhưng quy tắc escape các dấu nháy lồng nhau khác nhau.
+Before the Java launcher reads arguments, the **shell** has already processed quotes, spaces, environment variables, and certain special characters. PowerShell and Bash do not have identical rules. For example, quoting an argument with spaces using `"Java core"` works in both, yet escaping nested quotes differs.
 
-Khi cần chẩn đoán, hãy bắt đầu bằng ví dụ đơn giản và in `args.length` cùng từng `args[i]` như chương trình trên. Đừng vội kết luận JVM đã làm mất một chuỗi nếu shell là bên đã phân tách nó khác dự kiến.
+When diagnosing, start with a simple example and print `args.length` along with each `args[i]` as in the program above. Do not rush to conclude the JVM dropped a string if the shell split it differently from what you expected.
 
-## 9. Bài tập tự kiểm tra
+## 9. Self-check exercises
 
-**Bài 1 — Dự đoán đầu ra.** Với:
+**Exercise 1 — Predict output.** With:
 
 ~~~bash
 java -Dstudy.mode=study -cp out ArgsBoundaryDemo 20 "bai mot"
 ~~~
 
-Hãy dự đoán property, số đối số và giá trị từng đối số.
+Predict the property, argument count, and value of each argument.
 
-*Đáp án:* property `study`, `args.length=2`, `args[0]=20`, `args[1]=bai mot`, `minutes=20`.
+*Answer:* property `study`, `args.length=2`, `args[0]=20`, `args[1]=bai mot`, `minutes=20`.
 
-**Bài 2 — Phát hiện đặt sai vị trí.**
+**Exercise 2 — Spot misplacement.**
 
 ~~~bash
 java -cp out ArgsBoundaryDemo -Xmx256m 20
 ~~~
 
-Ở đây giới hạn heap có được đặt bởi chuỗi `-Xmx256m` không? `args[]` chứa gì?
+Is the heap limit set by `-Xmx256m` here? What does `args[]` contain?
 
-*Đáp án:* Không. `args[0]="-Xmx256m"`, `args[1]="20"`, ứng dụng in `minutes=INVALID_NUMBER` do cố parse phần tử đầu.
+*Answer:* No. `args[0]="-Xmx256m"`, `args[1]="20"`, and the application prints `minutes=INVALID_NUMBER` because it tries to parse the first element.
 
-**Bài 3 — Phân biệt ba cơ chế.** Muốn ứng dụng đọc cấu hình `study.mode` qua `System.getProperty`, bạn nên dùng `-D`, biến môi trường hay `args[0]`?
+**Exercise 3 — Distinguish three mechanisms.** If you want the application to read the `study.mode` configuration via `System.getProperty`, should you use `-D`, an environment variable, or `args[0]`?
 
-*Đáp án:* Dùng `-Dstudy.mode=...` ở trước tên lớp. Hai cách kia chỉ có tác dụng nếu ứng dụng chủ động đọc và ánh xạ chúng.
+*Answer:* Use `-Dstudy.mode=...` before the class name. The other two only work if the application actively reads and maps them.
 
-**Bài 4 — Sửa câu lệnh chạy.** Chương trình cần nhận `45` và `--check` trong `args[]`, giới hạn heap được yêu cầu là `128m`, property `study.mode=qa`. Hãy viết một lệnh chạy đúng.
+**Exercise 4 — Fix the run command.** The program needs to receive `45` and `--check` in `args[]`, the requested heap limit is `128m`, and property `study.mode=qa`. Write a valid run command.
 
-*Một đáp án:*
+*One answer:*
 
 ~~~bash
 java -Xmx128m -Dstudy.mode=qa -cp out ArgsBoundaryDemo 45 --check
 ~~~
 
-**Bài 5 — Thử dữ liệu lỗi.** Lần lượt đặt `args[0]` thành `-1`, `abc` và `2147483648`. Chúng khác nhau thế nào?
+**Exercise 5 — Test invalid data.** Set `args[0]` to `-1`, `abc`, and `2147483648` in turn. How do they differ?
 
-*Đáp án:* `-1` parse thành công nhưng vi phạm miền dữ liệu; `abc` không phải số; `2147483648` là số viết đúng hình thức thập phân nhưng vượt miền `int`, nên hai giá trị sau đều bị `NumberFormatException`.
+*Answer:* `-1` parses successfully yet violates the data range; `abc` is not a number; `2147483648` is a properly formatted decimal number yet exceeds the `int` range, so both of the latter two trigger `NumberFormatException`.
 
-## Checklist ghi nhớ
+## Checklist to remember
 
-- [ ] Biết phân biệt **tùy chọn trước tên lớp/JAR/tệp nguồn** và **đối số sau điểm bắt đầu**.
-- [ ] Biết `-Xmx` cấu hình heap, `-D` cấu hình system property, còn `-cp` là tùy chọn tìm lớp của launcher.
-- [ ] Biết `String[] args` chỉ chứa những chuỗi mà ứng dụng được truyền sau entry point.
-- [ ] Biết vì sao `"hai tu"` được truyền thành một đối số trên PowerShell/Bash.
-- [ ] Biết `System.getProperty` và `System.getenv` đọc hai nguồn cấu hình khác nhau.
-- [ ] Biết cách chạy `javac` rồi `java -cp out ...` trên cả Windows/Linux và so sánh với `java TenTep.java`.
-- [ ] Có thể tự đọc `args.length`, phân loại lỗi parse và sửa vị trí `-D` khi cấu hình không có hiệu lực.
+- [ ] Know how to distinguish **options before the class/JAR/source file name** from **arguments after the entry point**.
+- [ ] Know that `-Xmx` configures heap, `-D` configures system properties, and `-cp` is the launcher's class lookup option.
+- [ ] Know that `String[] args` only contains strings passed to the application after the entry point.
+- [ ] Know why `"hai tu"` is passed as a single argument in PowerShell/Bash.
+- [ ] Know that `System.getProperty` and `System.getenv` read two different configuration sources.
+- [ ] Know how to run `javac` followed by `java -cp out ...` on both Windows/Linux and compare with `java TenTep.java`.
+- [ ] Can inspect `args.length`, classify parse errors, and fix `-D` placement when configuration takes no effect.
 
-**Kết luận:** Hãy nhìn lệnh Java như hai phần: **cấu hình cách chạy Java** và **dữ liệu đưa cho ứng dụng**. Đặt đúng phía của ranh giới tên lớp/JAR/tệp nguồn giúp tránh nhầm lẫn giữa JVM, Java launcher và `main(String[] args)`.
+**Conclusion:** View a Java command as two parts: **configuring how Java runs** and **data handed to the application**. Placing each on the right side of the class/JAR/source-file boundary avoids confusion between the JVM, Java launcher, and `main(String[] args)`.

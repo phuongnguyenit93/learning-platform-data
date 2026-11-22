@@ -1,10 +1,10 @@
-# Split package là gì?
+# What Is a Split Package?
 
-## 1. Khái niệm split package
+## 1. The Split Package Concept
 
-Một package trong Java được nhận diện bằng tên package, ví dụ **com.example.logging**. Một **split package** xuất hiện khi các lớp thuộc cùng tên package được phân bố qua nhiều module. Trong môi trường cũ, các lớp đó cũng thường được đóng gói trong nhiều JAR khác nhau trên classpath.
+A package in Java is identified by its package name, for example **com.example.logging**. A **split package** occurs when classes belonging to the same package name are distributed across multiple modules. In legacy environments, those classes are also often packaged in multiple different JARs on the classpath.
 
-Ví dụ, hai thư viện có cấu trúc:
+For example, two libraries have the structure:
 
     logging-api.jar
       com/example/logging/Logger.class
@@ -12,21 +12,21 @@ Ví dụ, hai thư viện có cấu trúc:
     logging-impl.jar
       com/example/logging/ConsoleLogger.class
 
-Cả hai JAR đều chứa lớp thuộc package **com.example.logging**. Khi các JAR nằm trên classpath của cùng một ứng dụng, chúng thường được nạp vào unnamed module của class loader tương ứng. Vì vậy, việc một package được đóng góp từ nhiều JAR không tự tạo ra lỗi split package của JPMS.
+Both JARs contain classes belonging to the package **com.example.logging**. When the JARs are on the classpath of the same application, they are usually loaded into the unnamed module of the corresponding class loader. Therefore, having a package contributed by multiple JARs does not by itself create a JPMS split package error.
 
-Khi chuyển các JAR thành named modules, tình huống thay đổi. Nếu logging-api.jar và logging-impl.jar trở thành hai module riêng biệt nhưng cùng chứa package **com.example.logging**, đó là split package giữa các named modules. Cấu hình có thể bị module resolution từ chối nếu một module tiêu thụ đọc đồng thời các module cùng export package đó.
+When converting the JARs into named modules, the situation changes. If logging-api.jar and logging-impl.jar become two separate modules while still containing the package **com.example.logging**, that is a split package between named modules. The configuration may be rejected by module resolution if a consuming module simultaneously reads the modules that both export that package.
 
-Cần phân biệt:
+It is important to distinguish:
 
-- **Split package:** cùng tên package được phân bố giữa nhiều module hoặc artifact.
-- **Duplicate class:** cùng tên nhị phân của một lớp xuất hiện nhiều lần, ví dụ hai JAR cùng chứa **com.example.logging.Logger**.
-- **Package dùng chung trên classpath:** nhiều JAR đóng góp các lớp khác nhau vào một package thuộc cùng unnamed module của một class loader. Đây là cách tổ chức có thể hoạt động trên classpath nhưng gây khó khăn khi modular hóa.
+- **Split package:** the same package name distributed across multiple modules or artifacts.
+- **Duplicate class:** the same binary name of a class appearing multiple times, for example two JARs both containing **com.example.logging.Logger**.
+- **Shared package on the classpath:** multiple JARs contributing different classes to one package belonging to the same unnamed module of a class loader. This organization can work on the classpath but causes difficulties when modularizing.
 
-## 2. Vì sao split package gây vấn đề trong JPMS?
+## 2. Why Do Split Packages Cause Problems in JPMS?
 
-JPMS tạo ranh giới module để xác định module nào đọc được module nào và package nào được công khai. Nếu cùng một package được export từ nhiều module tới một module tiêu thụ, module tiêu thụ sẽ không có một nguồn package duy nhất rõ ràng.
+JPMS creates module boundaries to determine which module can read which module and which packages are exposed. If the same package is exported from multiple modules to a consuming module, the consuming module will not have a single clear source for the package.
 
-Ví dụ:
+For example:
 
     module com.example.logging.api {
         exports com.example.logging;
@@ -41,96 +41,96 @@ Ví dụ:
         requires com.example.logging.impl;
     }
 
-Cả hai module thư viện đều export **com.example.logging**, và application đọc cả hai. Module resolution có thể thất bại vì application nhận cùng một package từ hai module khác nhau. Một lỗi điển hình là **ResolutionException** báo các module cùng export một package tới module tiêu thụ.
+Both library modules export **com.example.logging**, and application reads both. Module resolution can fail because application receives the same package from two different modules. A typical error is a **ResolutionException** reporting that the modules both export one package to the consuming module.
 
-Không phải mọi lần trùng tên package ở bất kỳ đâu cũng nhất thiết làm toàn bộ runtime thất bại. Xung đột được phát hiện trong quan hệ đọc/export của cấu hình module. Tuy vậy, để thiết kế ổn định, nên tránh để cùng một package thuộc về nhiều named modules có thể được sử dụng đồng thời.
+Not every occurrence of the same package name anywhere necessarily causes the entire runtime to fail. Conflicts are detected in the readability/export relationships of the module configuration. However, for a stable design, you should avoid letting the same package belong to multiple named modules that may be used simultaneously.
 
-Một module cũng không thể dùng việc thêm quyền truy cập để biến hai package thành một package thống nhất. **exports**, **opens** và **reads** giải quyết quyền truy cập; chúng không hợp nhất nội dung package từ các module khác nhau.
+A module also cannot use additional access permissions to turn two packages into a unified package. **exports**, **opens**, and **reads** handle access permissions; they do not merge package contents from different modules.
 
-## 3. Split package trên classpath và module path
+## 3. Split Packages on the Classpath and Module Path
 
-### Nhiều JAR trên classpath
+### Multiple JARs on the classpath
 
-Classpath truyền thống cho phép nhiều JAR đóng góp lớp vào cùng một package:
+The traditional classpath allows multiple JARs to contribute classes to the same package:
 
     java -cp "lib/logging-api.jar;lib/logging-impl.jar;app.jar" com.example.Main
 
-Trên Windows, dấu phân cách classpath thường là dấu chấm phẩy. Trên Linux và macOS, dùng dấu hai chấm:
+On Windows, the classpath separator is usually a semicolon. On Linux and macOS, use a colon:
 
     java -cp "lib/logging-api.jar:lib/logging-impl.jar:app.jar" com.example.Main
 
-Các lớp trong cùng package có thể được nhìn thấy như thành phần của unnamed module do class loader tương ứng quản lý. Cách tổ chức này không có module descriptor để xác định ranh giới giữa logging-api và logging-impl.
+Classes in the same package can be seen as members of the unnamed module managed by the corresponding class loader. This organization has no module descriptor to define boundaries between logging-api and logging-impl.
 
-Nếu hai JAR cùng chứa một lớp có tên đầy đủ giống nhau, class loader thông thường sẽ tìm theo thứ tự đường dẫn classpath. Lớp được tìm thấy trước có thể che khuất bản còn lại. Với class loader tùy biến, hành vi tìm kiếm phụ thuộc cách loader được triển khai.
+If two JARs both contain a class with the exact same full name, a standard class loader will search in the order of the classpath. The class found first may shadow the remaining one. With custom class loaders, search behavior depends on how the loader is implemented.
 
-### Nhiều named modules trên module path
+### Multiple named modules on the module path
 
-Khi mỗi JAR trở thành một named module, module descriptor xác định package và quan hệ export. Nếu nhiều module cùng chứa package, một module tiêu thụ đọc các module đó có thể gặp lỗi split package trong quá trình resolve.
+When each JAR becomes a named module, the module descriptor defines its packages and export relationships. If multiple modules contain the same package, a consuming module that reads those modules may encounter a split package error during resolution.
 
-Ví dụ cấu trúc:
+Example structure:
 
     mods/
       com.example.logging.api.jar
       com.example.logging.impl.jar
       com.example.application.jar
 
-Kiểm tra từng JAR:
+Inspect each JAR:
 
     jar --describe-module --file mods/com.example.logging.api.jar
     jar --describe-module --file mods/com.example.logging.impl.jar
 
-Nếu cả hai module đều chứa và export **com.example.logging**, cần xem lại ranh giới module thay vì cố giải quyết bằng cách thêm quyền truy cập ở launcher.
+If both modules contain and export **com.example.logging**, you should review the module boundaries instead of trying to resolve it by adding access permissions in the launcher.
 
-### Automatic modules cũng có thể tạo xung đột
+### Automatic modules can also create conflicts
 
-Một JAR không có module-info.class khi đặt trên module path có thể được xem là automatic module. Automatic module export các package của nó theo quy tắc automatic module. Vì vậy, hai JAR legacy cùng chứa package **com.example.logging** khi trở thành hai automatic modules vẫn có thể tạo split package trong cấu hình JPMS.
+A JAR without module-info.class when placed on the module path can be treated as an automatic module. An automatic module exports its packages according to automatic module rules. Therefore, two legacy JARs that both contain the package **com.example.logging** when becoming two automatic modules can still create a split package in a JPMS configuration.
 
-Việc thêm thuộc tính **Automatic-Module-Name** chỉ đặt tên ổn định cho automatic module. Nó không gộp các package trùng tên và không giải quyết xung đột package.
+Adding the **Automatic-Module-Name** attribute only gives a stable name to an automatic module. It does not merge identically named packages and does not resolve package conflicts.
 
-## 4. Cách nhận diện split package
+## 4. How to Identify a Split Package
 
-Bắt đầu bằng việc xem nội dung từng JAR:
+Start by inspecting the contents of each JAR:
 
     jar --list --file logging-api.jar
     jar --list --file logging-impl.jar
 
-Tìm các đường dẫn có cùng tiền tố package, ví dụ:
+Look for paths with the same package prefix, for example:
 
     com/example/logging/Logger.class
     com/example/logging/ConsoleLogger.class
 
-Tiếp theo, kiểm tra module descriptor:
+Next, inspect the module descriptors:
 
     jar --describe-module --file logging-api.jar
     jar --describe-module --file logging-impl.jar
 
-Kết quả giúp xác định tên module, các package được chứa và các package được export. Với explicit module, chú ý dòng **exports** và **contains**. Với automatic module, xem tên module suy ra và danh sách package được xuất.
+The output helps identify the module name, contained packages, and exported packages. For an explicit module, pay attention to the **exports** and **contains** lines. For an automatic module, look at the inferred module name and the list of exported packages.
 
-Có thể kiểm tra danh sách module runtime nhìn thấy:
+You can inspect the list of modules visible to the runtime:
 
     java --module-path mods --list-modules
 
-Và xem quá trình resolve:
+And observe the resolution process:
 
     java --show-module-resolution \
          --module-path mods \
          --module com.example.application/com.example.application.Main
 
-Nếu cấu hình có xung đột package, thông báo lỗi module resolution thường chỉ ra tên các module và package bị trùng. Hãy dùng đúng tên package và module trong thông báo để lần ngược về JAR chứa lớp.
+If the configuration has a package conflict, the module resolution error message usually points out the names of the modules and the conflicting package. Use the exact package and module names from the message to trace back to the JARs containing the classes.
 
-Đối với dependency phức tạp, **jdeps** giúp xem quan hệ phụ thuộc module và package:
+For complex dependencies, **jdeps** helps inspect module and package dependency relationships:
 
     jdeps --module-path mods --check com.example.application
 
-**jdeps** không thay thế việc đọc nội dung JAR hoặc phân tích module resolution, nhưng có thể giúp xác định module nào đang đọc hoặc phụ thuộc vào thư viện liên quan.
+**jdeps** does not replace reading JAR contents or analyzing module resolution, but it can help determine which module is reading or depending on the libraries involved.
 
-## 5. Cách xử lý split package khi modular hóa
+## 5. How to Handle Split Packages When Modularizing
 
-### Gộp các lớp cùng package vào một module
+### Merge classes in the same package into one module
 
-Nếu hai JAR thực chất là các phần của cùng một thư viện và cần cùng sở hữu package, giải pháp rõ ràng thường là đóng gói chúng vào một named module duy nhất.
+If two JARs are actually parts of the same library and need to co-own the package, the clear solution is usually to package them into a single named module.
 
-Ví dụ, thay vì:
+For example, instead of:
 
     com.example.logging.api
       com.example.logging.Logger
@@ -138,28 +138,28 @@ Ví dụ, thay vì:
     com.example.logging.impl
       com.example.logging.ConsoleLogger
 
-Có thể tổ chức thành:
+It can be organized into:
 
     com.example.logging
       com.example.logging.Logger
       com.example.logging.ConsoleLogger
 
-Module descriptor duy nhất:
+Single module descriptor:
 
     module com.example.logging {
         exports com.example.logging;
     }
 
-Việc gộp có thể được thực hiện ở bước build hoặc bằng cách tái cấu trúc artifact. Khi gộp, cần giữ nguyên các dependency, service metadata và tài nguyên cần thiết của thư viện.
+Merging can be performed in the build step or by restructuring the artifacts. When merging, you must preserve the library's required dependencies, service metadata, and resources.
 
-### Tách package theo trách nhiệm
+### Separate packages by responsibility
 
-Nếu API và implementation có thể độc lập, nên đặt chúng ở các package khác nhau:
+If the API and implementation can be independent, you should place them in different packages:
 
     com.example.logging.api
     com.example.logging.internal
 
-Ví dụ:
+For example:
 
     module com.example.logging.api {
         exports com.example.logging.api;
@@ -171,74 +171,74 @@ Ví dụ:
             with com.example.logging.internal.ConsoleLoggerProvider;
     }
 
-Module implementation không cần export package nội bộ nếu ứng dụng chỉ tương tác qua API service. Cách này tạo ranh giới module rõ ràng và giảm khả năng xung đột package.
+The implementation module does not need to export its internal package if the application only interacts through the service API. This creates clear module boundaries and reduces the likelihood of package conflicts.
 
-### Di chuyển lớp sang module sở hữu package
+### Move classes to the module that owns the package
 
-Khi một package đang bị chia giữa nhiều module, xác định module nào là chủ sở hữu hợp lý. Chuyển các lớp còn lại vào module đó hoặc đổi package của chúng để package có một chủ sở hữu duy nhất trong kiến trúc.
+When a package is split across multiple modules, determine which module is the logical owner. Move the remaining classes into that module or change their package so that the package has a single owner in the architecture.
 
-Đừng chỉ đổi tên module mà giữ nguyên package ở cả hai nơi; tên module khác nhau không làm split package biến mất.
+Do not just rename the module while keeping the same package in both places; different module names do not make a split package disappear.
 
-### Tách module theo các module layer độc lập
+### Isolate modules across independent module layers
 
-Một ứng dụng plugin có thể dùng các module layer riêng để cô lập những nhóm module độc lập. Các layer khác nhau có thể chứa module với cùng tên package mà không tự động hợp nhất chúng thành một package dùng chung.
+A plugin application can use separate module layers to isolate independent groups of modules. Different layers can contain modules with the same package name without automatically merging them into a shared package.
 
-Cách này chỉ phù hợp khi các plugin thực sự độc lập về kiểu và dependency. Nếu host cần truyền đối tượng thuộc package đó giữa các plugin, hai phía có thể có các lớp khác nhau về danh tính runtime. API chia sẻ giữa host và plugin nên nằm trong một module chung mà cả hai cùng đọc.
+This approach is only suitable when plugins are genuinely independent in terms of types and dependencies. If the host needs to pass objects belonging to that package between plugins, the two sides may have different classes in terms of runtime identity. APIs shared between the host and plugins should reside in a common module that both read.
 
-## 6. Vai trò và giới hạn của --patch-module
+## 6. Role and Limitations of --patch-module
 
-Option **--patch-module** cho phép bổ sung lớp và tài nguyên vào một module đã tồn tại. Nó thường hữu ích trong kiểm thử, instrumentation hoặc khi cần vá module trong một môi trường triển khai có kiểm soát.
+The **--patch-module** option allows adding classes and resources to an existing module. It is often useful in testing, instrumentation, or when patching a module in a controlled deployment environment.
 
-Ví dụ:
+For example:
 
     java --patch-module com.example.logging=patches/logging \
          --module-path mods \
          --module com.example.application/com.example.application.Main
 
-Các lớp và tài nguyên từ đường dẫn patch được xem như nội dung của module đích trong quá trình chạy. Nếu patch chứa package mà module đích sở hữu, các lớp đó thuộc module đích thay vì tạo một named module mới.
+Classes and resources from the patch path are treated as contents of the target module at runtime. If the patch contains a package owned by the target module, those classes belong to the target module rather than creating a new named module.
 
-Tuy nhiên, **--patch-module không phải giải pháp tổng quát để hợp nhất hai named modules độc lập**. Nó không thay thế việc thiết kế lại ranh giới module, không sửa các dependency sai và không nên được dùng để che giấu cấu trúc package xung đột lâu dài.
+However, **--patch-module is not a general solution for merging two independent named modules**. It does not replace redesigning module boundaries, does not fix incorrect dependencies, and should not be used to hide conflicting package structures long-term.
 
-Khi dùng trong test, hãy giới hạn patch path vào đúng module và môi trường test. Không đưa patch nội bộ vào lệnh production nếu không có lý do vận hành rõ ràng.
+When using it in tests, restrict the patch path to the exact target module and test environment. Do not put internal patches into production commands without a clear operational reason.
 
-## 7. Những option không giải quyết split package
+## 7. Options That Do Not Solve Split Packages
 
-| Option | Chức năng | Có hợp nhất package không? |
+| Option | Function | Does it merge packages? |
 |---|---|---|
-| **--add-modules** | Thêm root module vào quá trình resolve | Không |
-| **--add-reads** | Bổ sung quan hệ readability | Không |
-| **--add-exports** | Export thêm package cho module đích | Không |
-| **--add-opens** | Mở package cho deep reflection | Không |
-| **--module-path** | Chỉ định nơi tìm named modules | Không |
-| **--patch-module** | Bổ sung lớp/tài nguyên vào module đích | Chỉ bổ sung vào module đích; không tự thiết kế lại các module xung đột |
+| **--add-modules** | Adds root modules to the resolution process | No |
+| **--add-reads** | Adds readability relationships | No |
+| **--add-exports** | Exports additional packages to target modules | No |
+| **--add-opens** | Opens packages for deep reflection | No |
+| **--module-path** | Specifies where to find named modules | No |
+| **--patch-module** | Adds classes/resources to a target module | Only adds to the target module; does not redesign conflicting modules |
 
-Ví dụ, nếu application đọc cả hai module cùng export package **com.example.logging**, thêm:
+For example, if application reads both modules that export the package **com.example.logging**, adding:
 
     --add-reads com.example.application=com.example.logging.api
 
-không làm package của hai module trở thành một. Tương tự, --add-exports chỉ điều chỉnh package nào được truy cập, không chuyển lớp từ module này sang module khác.
+does not turn the packages of the two modules into one. Similarly, --add-exports only adjusts which packages can be accessed, not moving classes from one module to another.
 
-Cần xác định đúng loại vấn đề: thiếu module, thiếu readability, thiếu export, thiếu open cho reflection hay split package. Mỗi vấn đề có cơ chế xử lý riêng.
+You need to identify the exact type of issue: missing module, missing readability, missing export, missing open for reflection, or split package. Each issue has its own resolution mechanism.
 
-## 8. Quy trình chuyển một ứng dụng classpath sang JPMS
+## 8. Process for Migrating a Classpath Application to JPMS
 
-Khi một hệ thống cũ có nhiều JAR cùng đóng góp lớp vào package, nên kiểm tra trước khi tạo module descriptor:
+When a legacy system has multiple JARs contributing classes to the same package, you should check before creating module descriptors:
 
-1. Liệt kê các JAR dependency và các package mà mỗi JAR chứa.
-2. Dùng jar --list để phát hiện package trùng tên giữa các artifact.
-3. Dùng jar --describe-module để xác định tên module và package export của các JAR đã modular hoặc automatic.
-4. Xác định package nào cần là API công khai, package nào chỉ dùng nội bộ.
-5. Gộp các artifact cùng sở hữu một package hoặc tách package theo trách nhiệm.
-6. Viết module-info.java với requires, exports, uses và provides phù hợp.
-7. Build lại các JAR và kiểm tra module descriptor.
-8. Chạy java --validate-modules hoặc ứng dụng với --show-module-resolution để phát hiện xung đột còn lại.
-9. Chạy integration test để xác nhận class loading, service discovery và reflection.
+1. List the dependency JARs and the packages each JAR contains.
+2. Use jar --list to detect duplicate package names across artifacts.
+3. Use jar --describe-module to determine the module names and exported packages of already modular or automatic JARs.
+4. Determine which packages need to be public APIs and which are for internal use only.
+5. Merge artifacts that share ownership of a package or separate packages by responsibility.
+6. Write module-info.java with appropriate requires, exports, uses, and provides.
+7. Rebuild the JARs and verify the module descriptors.
+8. Run java --validate-modules or the application with --show-module-resolution to detect remaining conflicts.
+9. Run integration tests to confirm class loading, service discovery, and reflection.
 
-Không nên modular hóa bằng cách chỉ thêm module-info.java vào từng JAR mà không xem package layout. Một cấu trúc classpath hợp lệ có thể trở thành cấu hình module không hợp lệ sau khi chia các JAR thành nhiều named modules.
+Do not modularize by merely adding module-info.java to each JAR without reviewing the package layout. A valid classpath structure can become an invalid module configuration after splitting JARs into multiple named modules.
 
-## 9. Ví dụ minh họa
+## 9. Illustrative Example
 
-Giả sử hai JAR cũ:
+Suppose there are two legacy JARs:
 
     legacy-api.jar
       com/example/payment/Payment.class
@@ -247,13 +247,13 @@ Giả sử hai JAR cũ:
     legacy-adapter.jar
       com/example/payment/LegacyPaymentAdapter.class
 
-Khi chạy classpath:
+When running on the classpath:
 
     java -cp "legacy-api.jar;legacy-adapter.jar;app.jar" com.example.Main
 
-Các lớp trên có thể cùng thuộc package của unnamed module do application class loader quản lý.
+The classes above can belong to the same package of the unnamed module managed by the application class loader.
 
-Nếu chuyển thành hai module:
+If converted into two modules:
 
     module com.example.payment.api {
         exports com.example.payment;
@@ -263,16 +263,16 @@ Nếu chuyển thành hai module:
         exports com.example.payment;
     }
 
-và application yêu cầu cả hai:
+and application requires both:
 
     module com.example.application {
         requires com.example.payment.api;
         requires com.example.payment.adapter;
     }
 
-thì application đọc hai module cùng export **com.example.payment**. Module resolution có thể từ chối cấu hình vì split package.
+then application reads two modules that both export **com.example.payment**. Module resolution may reject the configuration due to a split package.
 
-Một thiết kế thay thế là đổi package implementation:
+An alternative design is to change the implementation package:
 
     module com.example.payment.api {
         exports com.example.payment.api;
@@ -283,30 +283,30 @@ Một thiết kế thay thế là đổi package implementation:
         exports com.example.payment.adapter;
     }
 
-Các lớp được tổ chức lại:
+The classes are reorganized:
 
     com/example/payment/api/Payment.class
     com/example/payment/api/PaymentRequest.class
     com/example/payment/adapter/LegacyPaymentAdapter.class
 
-Application chỉ cần đọc API và module adapter. Package đã có ranh giới rõ ràng, không còn cùng một package được export từ hai module.
+Application only needs to read the API and adapter modules. The packages now have clear boundaries, and the same package is no longer exported from two modules.
 
-## 10. Ghi nhớ
+## 10. Key Takeaways
 
-- Split package là tình trạng cùng tên package được chia giữa nhiều module.
-- Trên classpath, nhiều JAR có thể đóng góp lớp vào package của unnamed module; điều này không đồng nghĩa với xung đột split package của JPMS.
-- Trên module path, nhiều named modules cùng export một package tới một module tiêu thụ có thể khiến module resolution thất bại.
-- Automatic modules cũng có thể gây xung đột package khi nhiều JAR cùng chứa package và cùng được đọc.
-- Split package khác duplicate class: một trường hợp chia các lớp trong package, trường hợp kia lặp lại cùng tên lớp.
-- **--add-reads**, **--add-exports** và **--add-opens** không hợp nhất package.
-- **--patch-module** bổ sung nội dung vào module đích nhưng không thay thế một thiết kế module tốt.
-- Ưu tiên gộp các artifact cùng sở hữu package hoặc tách package theo trách nhiệm.
-- Với plugin độc lập, module layer có thể hỗ trợ cô lập, nhưng API dùng chung cần nằm trong module được chia sẻ.
-- Dùng **jar --list**, **jar --describe-module**, **jdeps** và **--show-module-resolution** để tìm nguồn xung đột.
+- A split package is the condition where the same package name is divided across multiple modules.
+- On the classpath, multiple JARs can contribute classes to a package of the unnamed module; this is not synonymous with a JPMS split package conflict.
+- On the module path, multiple named modules exporting the same package to a consuming module can cause module resolution to fail.
+- Automatic modules can also cause package conflicts when multiple JARs contain the same package and are read together.
+- Split packages differ from duplicate classes: one case splits classes within a package, while the other duplicates the same class name.
+- **--add-reads**, **--add-exports**, and **--add-opens** do not merge packages.
+- **--patch-module** supplements content into a target module but does not replace a good module design.
+- Prefer merging artifacts that share ownership of a package or separating packages by responsibility.
+- For independent plugins, module layers can support isolation, but shared APIs need to reside in a shared module.
+- Use **jar --list**, **jar --describe-module**, **jdeps**, and **--show-module-resolution** to find the source of conflicts.
 
-**Split package thường bộc lộ vấn đề ranh giới thư viện khi một ứng dụng chuyển từ classpath sang JPMS.** Cách xử lý bền vững là xác định một module sở hữu mỗi package API, tổ chức lại package và khai báo dependency rõ ràng.
+**Split packages often reveal library boundary issues when an application migrates from the classpath to JPMS.** A sustainable way to handle this is to identify a single module that owns each API package, reorganize the packages, and declare dependencies clearly.
 
-## Tài liệu tham khảo
+## References
 
 - Java Language Specification, Java SE 21 — Packages: https://docs.oracle.com/javase/specs/jls/se21/html/jls-7.html
 - Java SE 21 API — java.lang.module package: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/module/package-summary.html

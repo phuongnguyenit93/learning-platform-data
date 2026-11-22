@@ -1,12 +1,12 @@
-# Yêu cầu bao phủ các trường hợp và chọn kiểu kết quả của `switch` trong Java
+# Exhaustiveness Requirements and Result Type Selection in Java `switch`
 
 > **Java core — language-basics / Switch**  
-> **Phiên bản:** Java 17+ (không bật preview); chương trình độc lập, chỉ dùng JDK.  
-> **Mục tiêu:** Hiểu vì sao `switch expression` phải **bao phủ toàn bộ trường hợp**, khi nào cần `default`, cách `yield`/`throw` ảnh hưởng đến đường đi, và vì sao **kiểu kết quả** phải phù hợp với nơi dùng biểu thức.
+> **Version:** Java 17+ (preview disabled); standalone program, JDK only.  
+> **Goal:** Understand why a `switch expression` must **cover all cases**, when `default` is needed, how `yield`/`throw` affect paths, and why the **result type** must fit where the expression is used.
 
-## 1. Phân biệt `switch statement` với `switch expression`
+## 1. Distinguishing `switch statement` from `switch expression`
 
-`switch statement` điều khiển các thao tác; nó **không bắt buộc** có `default`:
+A `switch statement` controls actions; it is **not required** to have `default`:
 
 ~~~java
 int code = 9;
@@ -14,10 +14,10 @@ switch (code) {
     case 1 -> System.out.println("ONE");
     case 2 -> System.out.println("TWO");
 }
-// Không in gì khi code = 9: statement không có nhánh phù hợp.
+// Prints nothing when code = 9: the statement has no matching branch.
 ~~~
 
-`switch expression` **tính một giá trị** để trả về hoặc gán:
+A `switch expression` **computes a value** to return or assign:
 
 ~~~java
 int code = 9;
@@ -29,13 +29,13 @@ String text = switch (code) {
 System.out.println(text); // OTHER
 ~~~
 
-Nếu không có `default` cho hai nhãn 1 và 2 ở `switch expression` trên `int`, trình biên dịch không thể đảm bảo có giá trị khi code bằng 9. Vì thế nó báo lỗi **switch expression does not cover all possible input values** (câu chữ tùy JDK).
+Without `default` for just labels 1 and 2 in a `switch expression` over `int`, the compiler cannot guarantee a value when `code` is 9. Therefore it reports an error like **switch expression does not cover all possible input values** (wording varies by JDK).
 
-**Tính bao phủ (exhaustiveness)** là yêu cầu được kiểm tra khi **biên dịch** cho switch expression; nó không có nghĩa mọi nhánh đều chạy hoặc mọi giá trị đều phải có một nhãn riêng.
+**Exhaustiveness** is a **compile-time** check for switch expressions; it does not mean every branch runs or every value must have its own separate label.
 
-## 2. `default` và bao phủ các giá trị số hoặc `String`
+## 2. `default` and Covering Numeric or `String` Values
 
-Đối với selector kiểu `int` hoặc `String` trong Java 17, cách thông dụng để bao phủ toàn bộ miền là thêm **một `default`**:
+For an `int` or `String` selector in Java 17, the standard way to cover the entire domain is adding **one `default`**:
 
 ~~~java
 static String classify(int value) {
@@ -47,19 +47,19 @@ static String classify(int value) {
 }
 ~~~
 
-`case 1, 2` gộp **hai giá trị khác nhau** vào một nhánh. `default` xử lý mọi giá trị `int` khác 0, 1, 2. Thứ tự nhãn trong dạng mũi tên không tạo fall-through.
+`case 1, 2` combines **two distinct values** into one branch. `default` handles every `int` value other than 0, 1, and 2. Label order in arrow form does not cause fall-through.
 
-Ví dụ lỗi (để trong comment, không đưa vào code chạy):
+Error example (kept in comments, not in runnable code):
 
 ~~~java
-// KHÔNG BIÊN DỊCH: còn vô số giá trị int không được xử lý.
+// DOES NOT COMPILE: infinitely many int values remain unhandled.
 // String label = switch (code) {
 //     case 0 -> "ZERO";
 //     case 1 -> "ONE";
 // };
 ~~~
 
-Với `String` cũng cần nhánh cho các nội dung không liệt kê:
+With `String`, you also need a branch for unlisted contents:
 
 ~~~java
 static String command(String input) {
@@ -71,11 +71,11 @@ static String command(String input) {
 }
 ~~~
 
-**`default` không phải nhánh `null`**: Java 17 không bật preview sẽ ném `NullPointerException` nếu selector `String`/`enum`/wrapper là null. Nếu null là đầu vào hợp lệ của ứng dụng, cần kiểm tra nó **trước `switch`**.
+**`default` is not a `null` branch**: non-preview Java 17 throws `NullPointerException` if a `String`/enum/wrapper selector is null. If null is a valid application input, check for it **before `switch`**.
 
-## 3. `enum` có thể exhaustive mà không cần `default`
+## 3. `enum` Can Be Exhaustive Without `default`
 
-Với một `enum` đã biết đủ các hằng, mọi trường hợp có thể được liệt kê:
+With an `enum` whose constants are all known, every case can be listed:
 
 ~~~java
 enum State { NEW, RUNNING, DONE }
@@ -89,17 +89,17 @@ static String status(State state) {
 }
 ~~~
 
-`switch expression` trên `State` ở trên **đã bao phủ đủ** các hằng enum và không cần `default`.
+The `switch expression` on `State` above **already covers all** enum constants and needs no `default`.
 
-Lợi ích khi **không** viết `default` cho enum đã liệt kê đầy đủ: nếu thêm một hằng mới rồi biên dịch lại mã nguồn, trình biên dịch có thể chỉ ra các switch expression cần cập nhật thay vì âm thầm chuyển trạng thái mới vào một nhánh mặc định chung.
+Benefit of **not** writing `default` for an exhaustively listed enum: if a new constant is added and the code is recompiled, the compiler can point out which switch expressions need updating instead of silently routing the new state into a generic default branch.
 
-Nếu bỏ sót `DONE` mà không có `default`, switch expression **không exhaustive** và không biên dịch. Ngược lại, `switch statement` có thể chỉ xử lý một số trạng thái mà không bắt buộc phải bao phủ tất cả.
+If `DONE` is omitted without `default`, the switch expression is **not exhaustive** and will not compile. By contrast, a `switch statement` may handle only some states without being forced to cover all of them.
 
-Bao phủ đủ các hằng enum **không đồng nghĩa bao phủ null**. Cần guard null riêng khi dữ liệu có thể thiếu.
+Covering all enum constants **does not mean covering null**. A separate null guard is still required when data may be missing.
 
-## 4. Mỗi đường đi bình thường phải tạo được giá trị
+## 4. Every Normal Path Must Produce a Value
 
-Với `switch expression`, một nhánh mũi tên ngắn có thể cung cấp kết quả trực tiếp:
+In a `switch expression`, a short arrow branch can supply a result directly:
 
 ~~~java
 int score = 1;
@@ -110,7 +110,7 @@ int points = switch (score) {
 };
 ~~~
 
-Nếu một nhánh cần nhiều câu lệnh, đặt trong khối và dùng `yield value;`:
+If a branch needs multiple statements, place them in a block and use `yield value;`:
 
 ~~~java
 int result = switch (score) {
@@ -122,9 +122,9 @@ int result = switch (score) {
 };
 ~~~
 
-Đường đi **kết thúc bình thường** của khối trong một switch expression phải cung cấp giá trị qua `yield`; không thể đi tới cuối khối mà thiếu kết quả.
+Any path that **completes normally** in a switch expression block must provide a value via `yield`; execution cannot reach the end of the block without a result.
 
-Một nhánh được phép **ném ngoại lệ** thay vì trả giá trị:
+A branch is allowed to **throw an exception** instead of returning a value:
 
 ~~~java
 static int priority(int value) {
@@ -140,13 +140,13 @@ static int priority(int value) {
 }
 ~~~
 
-Cách này vẫn exhaustive: `default` xử lý tất cả giá trị khác 0, nhưng trường hợp âm kết thúc bằng exception chứ không hoàn thành bình thường.
+This remains exhaustive: `default` handles all non-zero values, while negative cases terminate by exception rather than normal completion.
 
-Đừng nhầm `yield` với `break`: `break;` thoát switch statement dạng truyền thống; `yield expression;` tạo kết quả cho switch expression. `break value;` không phải cú pháp Java 17 hợp lệ.
+Do not confuse `yield` with `break`: `break;` exits a traditional switch statement; `yield expression;` produces a result for a switch expression. `break value;` is not valid Java 17 syntax.
 
-## 5. Kiểu kết quả phải phù hợp với nơi dùng biểu thức
+## 5. The Result Type Must Fit Where the Expression Is Used
 
-Java không chỉ xét nhánh nào chạy mà còn kiểm tra **kiểu của các biểu thức nhánh khi biên dịch**.
+Java does not only consider which branch runs — it also checks **the types of branch expressions at compile time**.
 
 ~~~java
 int code = 1;
@@ -156,24 +156,24 @@ String label = switch (code) {
 };
 ~~~
 
-Ở đây mọi kết quả đều chuyển được sang `String`. Nhưng đoạn sau **không biên dịch**:
+Here every result converts to `String`. However, the following **does not compile**:
 
 ~~~java
-// KHÔNG BIÊN DỊCH: nhánh int không dùng làm String.
+// DOES NOT COMPILE: an int branch cannot be used as String.
 // String wrong = switch (code) {
 //     case 1 -> "ONE";
 //     default -> 2;
 // };
 ~~~
 
-Quy tắc hữu ích:
+Useful rules:
 
-- Nếu switch expression xuất hiện trong **ngữ cảnh gán hoặc truyền đối số**, nó có thể được **target-typed** (biểu thức *poly*): từng nhánh phải tương thích với kiểu đích.
-- Ở ngữ cảnh không có kiểu đích thích hợp (*standalone expression*), Java xác định kiểu theo quy tắc riêng từ các nhánh, gồm nâng kiểu số hoặc kiểu tham chiếu chung khi phù hợp.
-- `yield` bên trong khối cũng phải tạo một giá trị tương thích với kiểu kết quả yêu cầu.
-- Không suy đoán kiểu từ **nhánh thực sự được chọn lúc chạy**; trình biên dịch kiểm tra các nhánh có thể cho kết quả.
+- If a switch expression appears in an **assignment or method-argument context**, it can be **target-typed** (a *poly* expression): each branch must be compatible with the target type.
+- In a context without an applicable target type (*standalone expression*), Java determines the type by its own rules from the branches, including numeric promotion or a common reference supertype when appropriate.
+- `yield` inside a block must also produce a value compatible with the required result type.
+- Do not infer types from **whichever branch is actually chosen at runtime**; the compiler checks all branches that can yield a result.
 
-Ví dụ đích là `double`, nhánh có literal `int` vẫn chuyển được:
+For example, when the target is `double`, a branch with an `int` literal still converts:
 
 ~~~java
 double number = switch (code) {
@@ -183,36 +183,36 @@ double number = switch (code) {
 // code=1: number=1.0.
 ~~~
 
-Nếu đích là `Number`, có thể chọn các đối tượng số khác lớp:
+If the target is `Number`, numeric objects of different subclasses can be chosen:
 
 ~~~java
 Number boxed = switch (code) {
     case 1 -> Integer.valueOf(10);
     default -> Double.valueOf(2.5);
 };
-// code=1: boxed thuộc lớp Integer.
+// code=1: boxed has runtime class Integer.
 ~~~
 
-`Number` là lớp cha chung; kết quả thực tế vẫn có thể là `Integer` hoặc `Double` tùy nhánh. Đây **không** phải lời khuyên trộn kiểu tùy tiện: trong code nghiệp vụ, chọn kiểu đích thống nhất và rõ nghĩa sẽ giảm bất ngờ khi chuyển đổi/boxing.
+`Number` is the common superclass; the actual runtime value can still be an `Integer` or a `Double` depending on the branch. This is **not** advice to mix types arbitrarily: in business code, choosing a consistent, clear target type reduces surprises from conversions/boxing.
 
-## 6. Bảng chọn cách bao phủ và kiểu kết quả
+## 6. Table for Choosing Coverage and Result Types
 
-| Tình huống | Bao phủ hợp lệ trong Java 17 | Kiểu kết quả |
+| Scenario | Valid coverage in Java 17 | Result type |
 | --- | --- | --- |
-| Switch expression trên `int` | Có `default` cho các giá trị ngoài `case` | Mọi nhánh trả kiểu phù hợp |
-| Switch expression trên `String` | Có `default` cho nội dung chưa liệt kê; xử lý `null` riêng | Ví dụ `String` |
-| Switch expression trên `enum` | Liệt kê đủ hằng, hoặc có nhánh mặc định phù hợp | Ví dụ `String` |
-| Nhánh arrow chứa nhiều lệnh | `{ ... yield value; }` hoặc ném ngoại lệ | `yield` tương thích kiểu đích |
-| Nhánh chỉ có `throw` | Kết thúc bất thường, không cần giá trị trên đường đó | Các nhánh trả kết quả còn lại vẫn phải tương thích |
-| Switch statement dùng để in log | Có thể không cần `default` | Không có kiểu giá trị của cả switch |
+| Switch expression on `int` | Has `default` for values outside `case` | Every branch returns a compatible type |
+| Switch expression on `String` | Has `default` for unlisted contents; handle `null` separately | E.g., `String` |
+| Switch expression on `enum` | List all constants, or have an appropriate default branch | E.g., `String` |
+| Arrow branch with multiple statements | `{ ... yield value; }` or throws an exception | `yield` compatible with target type |
+| Branch with only `throw` | Completes abnormally, no value needed on that path | Remaining value-returning branches must still be compatible |
+| Switch statement used to log | Can omit `default` | The switch itself has no value type |
 
-Hai kiểm tra **độc lập**: (1) cấu trúc bao phủ mọi selector cần thiết; (2) các nhánh trả kết quả tương thích với kiểu đích. Có `default` vẫn có thể lỗi vì nhánh trả sai kiểu; mọi nhánh cùng trả `String` vẫn có thể lỗi vì thiếu `default`.
+The two checks are **independent**: (1) the construct covers all required selector values; (2) the branches return results compatible with the target type. Having `default` can still fail if a branch returns the wrong type; every branch returning `String` can still fail if `default` is missing.
 
-Đừng nhầm exhaustive với “không bao giờ lỗi”: một nhánh có thể ném exception, selector null có thể gây NPE, và dữ liệu đầu vào vẫn cần được kiểm tra theo nghiệp vụ.
+Do not confuse exhaustive with "never fails": a branch can throw an exception, a null selector can cause NPE, and input data still needs business validation.
 
-## 7. Ví dụ Java 17+ chạy độc lập
+## 7. Standalone Java 17+ Example
 
-Tạo file **ExhaustiveSwitchTypeDemo.java**:
+Create file **`ExhaustiveSwitchTypeDemo.java`**:
 
 ~~~java
 public final class ExhaustiveSwitchTypeDemo {
@@ -310,14 +310,14 @@ public final class ExhaustiveSwitchTypeDemo {
 }
 ~~~
 
-Biên dịch và chạy tại thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Compile and run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 ExhaustiveSwitchTypeDemo.java
 java ExhaustiveSwitchTypeDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 action0=ZERO
@@ -340,30 +340,30 @@ priorityNegative=IllegalArgumentException
 nullSelector=NullPointerException
 ~~~
 
-`action3`/`actionMinus1` đi qua `default` và `yield`; enum không cần `default` do đã đủ hằng. `numeric1=1.0` là chuyển `int` sang `double`; `boxed1`/`boxed2` cho thấy kiểu đích `Number` có thể nhận các lớp con khác nhau. Nhánh `priority(-1)` ném ngoại lệ nhưng toàn bộ biểu thức vẫn exhaustive.
+`action3`/`actionMinus1` go through `default` and `yield`; the enum needs no `default` because all constants are covered. `numeric1=1.0` shows converting `int` to `double`; `boxed1`/`boxed2` show that target type `Number` can hold different subclasses. Branch `priority(-1)` throws an exception, yet the entire expression remains exhaustive.
 
-## 8. Lỗi thường gặp và bài tập
+## 8. Common Mistakes and Exercises
 
-| Lỗi | Cách sửa |
+| Error | Fix |
 | --- | --- |
-| Switch expression trên `int` chỉ có `case 1` | Thêm `default` để bao phủ đầu vào khác |
-| Switch expression trên enum thiếu một hằng | Thêm `case` còn thiếu hoặc nhánh mặc định phù hợp |
-| Nhánh block không `yield` trên đường hoàn thành bình thường | Viết `yield value;` hoặc dùng nhánh biểu thức trực tiếp |
-| Dùng `break value;` để tạo kết quả | Thay bằng `yield value;` |
-| Kết quả `String` và `int` trong đích `String` | Đổi nhánh sang kiểu tương thích |
-| Cho rằng `default` xử lý `null` | Kiểm tra null trước switch Java 17 tiêu chuẩn |
-| Dùng switch statement mong nhận giá trị | Chuyển sang switch expression |
+| Switch expression on `int` with only `case 1` | Add `default` to cover other inputs |
+| Switch expression on enum missing a constant | Add the missing `case` or an appropriate default branch |
+| Block branch missing `yield` on normal completion path | Write `yield value;` or use a direct expression branch |
+| Using `break value;` to produce a result | Replace with `yield value;` |
+| `String` and `int` results for a `String` target | Change branch to a compatible type |
+| Assuming `default` handles `null` | Check for null before standard Java 17 switch |
+| Using a switch statement expecting a returned value | Convert to a switch expression |
 
-**Bài 1.** Viết switch expression phân loại `int level`: 0 → `"LOW"`, 1 → `"MEDIUM"`, còn lại → `"OTHER"`. Thử bỏ `default` và giải thích lỗi.
+**Exercise 1.** Write a switch expression classifying `int level`: 0 → `"LOW"`, 1 → `"MEDIUM"`, others → `"OTHER"`. Try removing `default` and explain the error.
 
-**Bài 2.** Tạo enum có ba hằng và viết switch expression liệt kê đủ ba nhánh không có `default`. Thêm hằng thứ tư rồi thử biên dịch lại.
+**Exercise 2.** Create an enum with three constants and write a switch expression listing all three branches without `default`. Add a fourth constant and try recompiling.
 
-**Bài 3.** Viết một nhánh `case 2 -> { int x = 20; yield "Value=" + x; }`. Vì sao không thể chỉ viết `x;` ở cuối khối?
+**Exercise 3.** Write a branch `case 2 -> { int x = 20; yield "Value=" + x; }`. Why can you not simply write `x;` at the end of the block?
 
-**Bài 4.** So sánh kiểu của kết quả `double x = switch (...) { case 1 -> 1; default -> 2.5; };` với `Number x = switch (...) { case 1 -> Integer.valueOf(1); default -> Double.valueOf(2.5); };`.
+**Exercise 4.** Compare the result types of `double x = switch (...) { case 1 -> 1; default -> 2.5; };` and `Number x = switch (...) { case 1 -> Integer.valueOf(1); default -> Double.valueOf(2.5); };`.
 
-**Bài 5.** Viết nhánh `default` ném `IllegalArgumentException` nếu đầu vào âm, trả giá trị nếu dương. Hệ thống có cần giá trị từ nhánh ném exception không? Vì sao?
+**Exercise 5.** Write a `default` branch that throws `IllegalArgumentException` if input is negative, and returns a value if positive. Does the compiler require a value from the exception-throwing branch? Why?
 
-### Ghi nhớ
+### Key Takeaway
 
-**Switch expression phải exhaustive và có kiểu kết quả hợp lệ.** Với `int`/`String` thường cần `default`; với `enum` có thể bao phủ đủ hằng. Nhánh một biểu thức trả giá trị trực tiếp, khối nhiều lệnh dùng **`yield`**, nhánh lỗi có thể `throw`. Java kiểm tra sự tương thích kiểu của **các nhánh khi biên dịch**, không đợi đến khi một nhánh được chọn.
+**A switch expression must be exhaustive and have a valid result type.** For `int`/`String`, `default` is usually needed; for `enum`, all constants can be covered. Single-expression branches return values directly, multi-statement blocks use **`yield`**, and error branches may `throw`. Java checks type compatibility across **all branches at compile time**, without waiting for a branch to be selected.

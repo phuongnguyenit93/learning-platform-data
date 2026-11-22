@@ -1,16 +1,16 @@
-# Migration khi code test vẫn ở unnamed module
+# Migration when test code is still in the unnamed module
 
-Khi chuyển một ứng dụng Java từ classpath sang Java Platform Module System (JPMS), không nhất thiết phải chuyển toàn bộ mã test thành named module ngay lập tức. Một cách migration phổ biến là giữ test source và test framework trên classpath, trong khi module production đã có `module-info.java` và được chạy trên module path.
+When migrating a Java application from the classpath to the Java Platform Module System (JPMS), it is not necessary to convert all test code into a named module immediately. A common migration approach is to keep test sources and the test framework on the classpath, while production modules already have `module-info.java` and run on the module path.
 
-Trong cấu hình này, các lớp test thuộc **unnamed module** của class loader. Unnamed module có thể đọc các named module đã được phân giải, nhưng quyền truy cập vẫn chịu sự chi phối của ranh giới JPMS: test có thể sử dụng public API trong package được export; package nội bộ chưa export vẫn bị đóng đối với truy cập mã nguồn thông thường.
+In this configuration, test classes belong to the **unnamed module** of the class loader. An unnamed module can read resolved named modules, but access is still governed by JPMS boundaries: tests can use public APIs in exported packages; unexported internal packages remain closed to normal source access.
 
-Để migration diễn ra có kiểm soát, cần hiểu cách kết hợp `--module-path`, `--add-modules`, `--add-exports` và `--add-opens`, đồng thời phân biệt kiểm thử API công khai với kiểm thử nội bộ cần quyền truy cập đặc biệt.
+To ensure a controlled migration, you need to understand how to combine `--module-path`, `--add-modules`, `--add-exports`, and `--add-opens`, as well as distinguish public API testing from internal testing that requires special access permissions.
 
-## 1. Unnamed module trong bối cảnh test
+## 1. Unnamed modules in the test context
 
-Khi một lớp được nạp từ classpath, nó thuộc unnamed module gắn với class loader tương ứng. Khác với named module, unnamed module không có một `module-info.java` để khai báo `requires`, `exports` hoặc `opens`.
+When a class is loaded from the classpath, it belongs to the unnamed module associated with the corresponding class loader. Unlike a named module, an unnamed module does not have a `module-info.java` to declare `requires`, `exports`, or `opens`.
 
-Ví dụ dự án:
+Project example:
 
 ```text
 application/
@@ -27,15 +27,15 @@ application/
         └── OrderServiceTest.java
 ```
 
-Mã production thuộc named module `com.example.application`. Nếu test được biên dịch và chạy từ classpath, `OrderServiceTest` thuộc unnamed module, dù nó dùng cùng tên package trong source code.
+Production code belongs to the named module `com.example.application`. If tests are compiled and run from the classpath, `OrderServiceTest` belongs to an unnamed module, even though it uses the same package name in the source code.
 
-Đây là một ranh giới quan trọng: cùng viết `package com.example.application;` không làm cho test trên classpath trở thành một phần của named module production. Test và production vẫn ở hai module khác nhau.
+This is an important boundary: writing the same `package com.example.application;` does not make tests on the classpath part of the production named module. Tests and production still reside in two different modules.
 
-## 2. Unnamed module có thể đọc named module
+## 2. An unnamed module can read named modules
 
-Unnamed module có khả năng đọc các named module đã được phân giải trong cấu hình runtime. Vì vậy, test trên classpath có thể tham chiếu các public type trong package mà named module export.
+An unnamed module can read resolved named modules in the runtime configuration. Therefore, tests on the classpath can reference public types in packages exported by a named module.
 
-Descriptor production:
+Production descriptor:
 
 ```java
 module com.example.application {
@@ -53,20 +53,20 @@ import com.example.application.api.OrderService;
 class OrderServiceTest {
     void createsOrder() {
         OrderService service = new OrderService();
-        // Thực hiện kiểm tra hành vi public của service.
+        // Verify the public behavior of the service.
     }
 }
 ```
 
-Test có thể import và sử dụng `OrderService` nếu package API được export, module production có mặt trên module path và đã được phân giải.
+Tests can import and use `OrderService` if the API package is exported, the production module is present on the module path, and it has been resolved.
 
-Trong trường hợp này, test không cần một `module-info.java` riêng. Việc test nằm trong unnamed module không ngăn nó gọi public API được export.
+In this case, the tests do not need a separate `module-info.java`. Being in the unnamed module does not prevent tests from calling exported public APIs.
 
-## 3. Vì sao cần --module-path và --add-modules?
+## 3. Why are --module-path and --add-modules needed?
 
-Khi biên dịch hoặc chạy test từ classpath, các named module production cần được đặt trên module path. Ngoài ra, module được test phải được đưa vào tập module được phân giải.
+When compiling or running tests from the classpath, production named modules must be placed on the module path. In addition, the module under test must be added to the set of resolved modules.
 
-Ví dụ biên dịch test bằng `javac`:
+Example compiling tests with `javac`:
 
 ```shell
 javac ^
@@ -77,7 +77,7 @@ javac ^
   @build/test-sources.txt
 ```
 
-Trên Windows PowerShell hoặc CMD, dấu `^` trong ví dụ là ký tự nối dòng của CMD; nếu chạy trong PowerShell, có thể viết lệnh trên một dòng hoặc dùng backtick để nối dòng. Trên Linux/macOS, có thể viết:
+On Windows PowerShell or CMD, the `^` character in the example is CMD's line continuation character; if running in PowerShell, you can write the command on one line or use a backtick for line continuation. On Linux/macOS, you can write:
 
 ```shell
 javac \
@@ -88,14 +88,14 @@ javac \
   @build/test-sources.txt
 ```
 
-Ý nghĩa các tùy chọn:
+Meaning of the options:
 
-- `--module-path build/mods` cung cấp các named module đã biên dịch.
-- `--add-modules com.example.application` yêu cầu đưa module production vào tập module được phân giải.
-- `--class-path` cung cấp thư viện test như JUnit Platform Console Standalone.
-- `-d build/test-classes` xác định thư mục chứa class test đã biên dịch.
+- `--module-path build/mods` provides the compiled named modules.
+- `--add-modules com.example.application` requests adding the production module to the resolved module set.
+- `--class-path` provides test libraries such as JUnit Platform Console Standalone.
+- `-d build/test-classes` specifies the output directory for compiled test classes.
 
-Khi chạy test bằng JUnit Console Launcher:
+When running tests with JUnit Console Launcher:
 
 ```shell
 java \
@@ -106,15 +106,15 @@ java \
   --scan-class-path
 ```
 
-Trên Windows, dấu phân cách các phần tử classpath là dấu chấm phẩy (`;`); trên Linux và macOS là dấu hai chấm (`:`). Thay đường dẫn thư mục và tên module theo cấu trúc build thực tế.
+On Windows, the separator for classpath elements is a semicolon (`;`); on Linux and macOS, it is a colon (`:`). Adjust directory paths and module names to match your actual build structure.
 
-`--add-modules` đặc biệt hữu ích vì test đang ở unnamed module. Test có thể đọc các named module đã được phân giải, nhưng module production vẫn cần hiện diện trong configuration runtime để lớp của nó được tìm thấy.
+`--add-modules` is especially useful because the tests are in the unnamed module. Tests can read resolved named modules, yet the production module still needs to be present in the runtime configuration for its classes to be found.
 
-## 4. Kiểm thử public API: trường hợp nên ưu tiên
+## 4. Testing public APIs: the preferred case
 
-Nếu test chỉ kiểm tra hợp đồng công khai của module, cách migration đơn giản nhất là export đúng package API và giữ test trên classpath.
+If tests only verify the module's public contract, the simplest migration path is to export the proper API packages and keep the tests on the classpath.
 
-Ví dụ production:
+Production example:
 
 ```java
 module com.example.application {
@@ -139,15 +139,15 @@ class OrderServiceTest {
 }
 ```
 
-Test gọi các phương thức public như một client thông thường. Đây cũng là một lợi ích về thiết kế: test kiểm tra hành vi mà người dùng module có thể dựa vào, không cần biết cách module lưu dữ liệu hoặc tổ chức class nội bộ.
+The test calls public methods like a regular client. This is also a design benefit: tests verify behavior that module users can rely on, without needing to know how the module stores data or organizes internal classes.
 
-Không nên export package nội bộ chỉ để test có thể truy cập dễ hơn. Export là một phần của hợp đồng module; khi export package, module khác có thể phụ thuộc vào public type trong package đó.
+You should not export internal packages merely to make test access easier. Exports are part of the module contract; once a package is exported, other modules can depend on public types in that package.
 
-## 5. Khi test cần truy cập public type trong package chưa export
+## 5. When tests need to access public types in an unexported package
 
-Trong một số giai đoạn migration, test có thể cần truy cập một public class ở package nội bộ. Có thể tạm thời cấp quyền export bằng tùy chọn `--add-exports`.
+During certain migration stages, tests might need to access a public class in an internal package. Export permission can be granted temporarily using the `--add-exports` option.
 
-Ví dụ module production:
+Example production module:
 
 ```java
 module com.example.application {
@@ -155,19 +155,19 @@ module com.example.application {
 }
 ```
 
-Test muốn tham chiếu một public class trong package:
+The test wants to reference a public class in the package:
 
 ```text
 com.example.application.internal
 ```
 
-Có thể thêm:
+You can add:
 
 ```shell
 --add-exports com.example.application/com.example.application.internal=ALL-UNNAMED
 ```
 
-Cần áp dụng tùy chọn ở cả giai đoạn biên dịch test và runtime nếu test tham chiếu package đó:
+This option must be applied at both test compile time and runtime if tests reference that package:
 
 ```shell
 javac --module-path build/mods ^
@@ -177,7 +177,7 @@ javac --module-path build/mods ^
       -d build/test-classes @build/test-sources.txt
 ```
 
-Khi chạy:
+When running:
 
 ```shell
 java --module-path build/mods ^
@@ -187,31 +187,31 @@ java --module-path build/mods ^
      org.junit.platform.console.ConsoleLauncher execute --scan-class-path
 ```
 
-Cú pháp có dạng:
+The syntax has the form:
 
 ```text
 --add-exports <module>/<package>=<target-module>
 ```
 
-Ở đây:
+Here:
 
-- `com.example.application` là module sở hữu package.
-- `com.example.application.internal` là package được export bổ sung.
-- `ALL-UNNAMED` đại diện cho các unnamed module.
+- `com.example.application` is the module owning the package.
+- `com.example.application.internal` is the additionally exported package.
+- `ALL-UNNAMED` represents unnamed modules.
 
-Tùy chọn này là một ngoại lệ ở cấp dòng lệnh, không sửa `module-info.java` trong JAR. Nên giới hạn nó vào test task và chỉ dùng cho package thật sự cần kiểm tra. Nếu package nội bộ thường xuyên phải được sử dụng, cần xem lại ranh giới API thay vì duy trì export bổ sung vô thời hạn.
+This option is a command-line exception and does not modify `module-info.java` inside the JAR. It should be scoped to test tasks and used only for packages that genuinely need testing. If an internal package must be used frequently, revisit the API boundaries rather than keeping extra exports indefinitely.
 
-## 6. --add-exports không cấp quyền deep reflection
+## 6. --add-exports does not grant deep reflection
 
-`--add-exports` cho phép truy cập API Java thông thường vào package được chỉ định. Nó không tự cấp quyền cho framework dùng reflection sâu để đọc hoặc thay đổi private field, private method hay constructor không public.
+`--add-exports` allows normal Java API access to the specified package. It does not automatically grant frameworks permission to use deep reflection to read or modify private fields, private methods, or non-public constructors.
 
-Nếu test hoặc framework cần deep reflection, có thể dùng `--add-opens`:
+If tests or frameworks need deep reflection, `--add-opens` can be used:
 
 ```shell
 --add-opens com.example.application/com.example.application.internal=ALL-UNNAMED
 ```
 
-Ví dụ test dùng reflection:
+Example test using reflection:
 
 ```java
 Field field = OrderRepository.class.getDeclaredField("connection");
@@ -220,22 +220,22 @@ boolean accessible = field.trySetAccessible();
 assertTrue(accessible);
 ```
 
-Để thao tác trên thành viên private được chấp nhận, module chứa package cần mở package đó cho module thực hiện reflection.
+For operations on private members to be allowed, the module containing the package must open that package to the module performing reflection.
 
-Cần nhớ:
+Remember:
 
-- `--add-exports` phục vụ truy cập kiểu public từ package chưa export.
-- `--add-opens` phục vụ deep reflection tại runtime.
-- `--add-opens` không thay thế `--add-exports` khi mã test cần import một public type từ package chưa export.
-- `--add-opens` là tùy chọn runtime, không phải giải pháp để biên dịch mã nguồn tham chiếu package chưa export.
+- `--add-exports` serves normal access to public types from an unexported package.
+- `--add-opens` serves deep reflection at runtime.
+- `--add-opens` does not replace `--add-exports` when test code needs to import a public type from an unexported package.
+- `--add-opens` is a runtime option, not a solution for compiling source code that references an unexported package.
 
-Nếu framework test thực hiện reflection, đích mở phải là module thực sự chứa mã reflection. Khi JUnit hoặc thư viện hỗ trợ chạy trên classpath, đích thường là `ALL-UNNAMED`. Nếu framework được chạy như named module, cần dùng tên module của framework thay vì mặc định ALL-UNNAMED.
+If a test framework performs reflection, the open target must be the module actually containing the reflection code. When JUnit or supporting libraries run on the classpath, the target is usually `ALL-UNNAMED`. If the framework runs as a named module, use the framework's module name instead of defaulting to ALL-UNNAMED.
 
-## 7. Test cùng package name vẫn không truy cập được package-private
+## 7. Tests with the same package name still cannot access package-private members
 
-Một nhầm lẫn phổ biến là đặt test trong cùng package với production rồi kỳ vọng truy cập được package-private member.
+A common misconception is placing a test in the same package as production code and expecting to access package-private members.
 
-Ví dụ production:
+Production example:
 
 ```java
 package com.example.application.internal;
@@ -246,7 +246,7 @@ class OrderRepository {
 }
 ```
 
-Test cũng khai báo:
+The test also declares:
 
 ```java
 package com.example.application.internal;
@@ -259,50 +259,50 @@ class OrderRepositoryTest {
 }
 ```
 
-Nếu production thuộc named module còn test thuộc unnamed module, cùng tên package không khiến test trở thành thành viên của module production. Package-private access vẫn bị giới hạn theo ranh giới runtime package/module; test không thể dựa vào việc trùng tên package để truy cập class hoặc member package-private.
+If production belongs to a named module while the test belongs to an unnamed module, sharing the same package name does not make the test a member of the production module. Package-private access remains restricted by runtime package/module boundaries; tests cannot rely on matching package names to access package-private classes or members.
 
-Thêm `--add-exports` cũng không biến package-private thành public. Nó chỉ mở quyền truy cập package ở cấp module cho các kiểu và thành viên vốn đã được phép truy cập theo access modifier Java.
+Adding `--add-exports` also does not turn package-private into public. It only opens package access at the module level for types and members that are already accessible under Java access modifiers.
 
-Có ba hướng xử lý:
+There are three ways to handle this:
 
-1. Kiểm tra hành vi qua public API nếu đó là hợp đồng cần bảo vệ.
-2. Chuyển test white-box vào module đang kiểm thử, ví dụ cấu hình `--patch-module` hoặc dùng cơ chế test module path do build tool hỗ trợ.
-3. Tái cấu trúc code để phần cần kiểm tra có một abstraction hoặc seam phù hợp, thay vì buộc test phụ thuộc vào chi tiết nội bộ.
+1. Test behavior through the public API if that is the contract to protect.
+2. Move white-box tests into the module under test, for example by configuring `--patch-module` or using a test module path mechanism supported by the build tool.
+3. Refactor the code so the part under test has a suitable abstraction or seam, rather than forcing tests to depend on internal details.
 
-Khi dùng `--patch-module`, test được đưa vào module đích trong quá trình biên dịch hoặc chạy. Cách này có thể cho phép test nằm trong cùng module boundary với mã production, nhưng cần cấu hình đồng bộ cả compile và runtime; các dependency test như JUnit cũng cần được module test đọc phù hợp. Không nên thêm `--patch-module` tùy tiện nếu chỉ cần kiểm tra public API.
+When using `--patch-module`, tests are injected into the target module during compilation or execution. This approach can place tests within the same module boundary as production code, but compile and runtime configurations must be aligned; test dependencies such as JUnit must also be readable by the test module. Do not add `--patch-module` arbitrarily if only public API testing is needed.
 
-## 8. Phân biệt --add-reads trong migration
+## 8. Distinguishing --add-reads during migration
 
-`--add-reads` điều chỉnh quan hệ đọc giữa các module. Nó thường cần khi một named module cần đọc một module khác mà descriptor không khai báo, ví dụ trong một số cấu hình test hoặc tích hợp legacy.
+`--add-reads` adjusts readability relationships between modules. It is typically needed when a named module must read another module that its descriptor does not declare, for example in certain test configurations or legacy integrations.
 
-Ví dụ:
+For example:
 
 ```shell
 --add-reads com.example.application=ALL-UNNAMED
 ```
 
-Tùy chọn này nói rằng named module `com.example.application` được phép đọc unnamed module.
+This option states that the named module `com.example.application` is allowed to read unnamed modules.
 
-Trong kịch bản test thông thường, chiều truy cập là test ở unnamed module gọi API đã export của production named module. Unnamed module vốn có thể đọc các named module đã được phân giải, nên thường không cần `--add-reads` cho chiều truy cập này.
+In typical test scenarios, the access direction is tests in the unnamed module calling exported APIs of the production named module. An unnamed module can already read resolved named modules, so `--add-reads` is usually unnecessary for this direction.
 
-Không nên nhầm:
+Do not confuse them:
 
-- `--add-reads` bổ sung quan hệ readability.
-- `--add-exports` mở package cho truy cập mã Java thông thường.
-- `--add-opens` mở package cho deep reflection.
+- `--add-reads` adds a readability relationship.
+- `--add-exports` opens a package for normal Java code access.
+- `--add-opens` opens a package for deep reflection.
 
-Ba tùy chọn xử lý ba khía cạnh khác nhau. Chỉ thêm đúng tùy chọn mà lỗi hoặc nhu cầu thực tế yêu cầu.
+These three options address three distinct aspects. Add only the exact option required by the actual error or need.
 
-## 9. Cấu hình test trong Gradle hoặc Maven
+## 9. Configuring tests in Gradle or Maven
 
-Khi dùng Gradle hoặc Maven, nguyên tắc vẫn giống lệnh JDK trực tiếp:
+When using Gradle or Maven, the principles remain the same as direct JDK commands:
 
-- Module production phải được biên dịch và đặt đúng trên module path.
-- Test framework và test classes có thể vẫn nằm trên classpath.
-- Module production phải được resolve trong runtime configuration.
-- Các tùy chọn mở rộng quyền chỉ nên gắn với test task hoặc test JVM.
+- Production modules must be compiled and placed properly on the module path.
+- The test framework and test classes can remain on the classpath.
+- Production modules must be resolved in the runtime configuration.
+- Permission-expanding options should only be attached to test tasks or the test JVM.
 
-Trong Gradle, có thể cấu hình JVM arguments cho test task:
+In Gradle, JVM arguments can be configured for the test task:
 
 ```groovy
 tasks.test {
@@ -314,7 +314,7 @@ tasks.test {
 }
 ```
 
-Ví dụ này chỉ minh họa nơi đặt runtime arguments. Để module production thực sự nằm trên module path, build cần cấu hình modularity phù hợp, ví dụ bật suy luận module path khi dự án đáp ứng điều kiện của Gradle:
+This example only illustrates where to place runtime arguments. For production modules to actually be placed on the module path, the build must configure modularity appropriately, such as enabling module path inference when the project meets Gradle's conditions:
 
 ```groovy
 java {
@@ -322,29 +322,29 @@ java {
 }
 ```
 
-Nếu test source vẫn ở unnamed module, hãy xác minh cách Gradle tổ chức test compile classpath, test runtime classpath và module path trước khi thêm các flags. Không phải mọi dự án đều có cùng layout, đặc biệt khi dùng nhiều source set hoặc plugin test tùy chỉnh.
+If test sources remain in the unnamed module, verify how Gradle organizes the test compile classpath, test runtime classpath, and module path before adding flags. Not every project shares the same layout, especially when using multiple source sets or custom test plugins.
 
-Với Maven, các tùy chọn JVM thường được truyền vào forked test JVM thông qua cấu hình Surefire/Failsafe. Cần kiểm tra phiên bản plugin và cách plugin tạo module path trong dự án cụ thể. Đừng sao chép một cấu hình module-path chung mà chưa xác nhận command line thực tế của test process.
+With Maven, JVM options are typically passed to the forked test JVM via Surefire/Failsafe configuration. Check the plugin version and how the plugin constructs the module path in the specific project. Do not copy a generic module-path configuration without verifying the actual command line of the test process.
 
-## 10. Lộ trình migration thực tế
+## 10. Practical migration roadmap
 
-Một lộ trình thận trọng có thể chia thành các bước:
+A cautious roadmap can be divided into steps:
 
-1. **Modularize production trước:** thêm `module-info.java` và khai báo dependency, package API.
-2. **Giữ test trên classpath:** test tiếp tục thuộc unnamed module trong giai đoạn đầu.
-3. **Resolve production module:** cấu hình module path và thêm module cần kiểm thử vào runtime configuration.
-4. **Kiểm tra public API:** ưu tiên test qua package đã export.
-5. **Chỉ mở package khi có lý do:** dùng `--add-exports` cho public type trong package chưa export và `--add-opens` cho deep reflection.
-6. **Tách white-box test:** nếu cần package-private access, cân nhắc patch test vào module hoặc thiết kế lại điểm kiểm tra.
-7. **Đưa flags về phạm vi test:** không để các tùy chọn mở rộng quyền vô tình trở thành cấu hình production.
-8. **Đánh giá lại sau migration:** khi test đã ổn định, quyết định test có cần trở thành named module hoặc tiếp tục ở unnamed module.
+1. **Modularize production first:** add `module-info.java` and declare dependencies and API packages.
+2. **Keep tests on the classpath:** tests continue belonging to the unnamed module in the initial phase.
+3. **Resolve production modules:** configure the module path and add modules under test to the runtime configuration.
+4. **Test public APIs:** prioritize testing through exported packages.
+5. **Open packages only with justification:** use `--add-exports` for public types in unexported packages and `--add-opens` for deep reflection.
+6. **Separate white-box tests:** if package-private access is required, consider patching tests into the module or redesigning test seams.
+7. **Scope flags to tests:** do not let permission-expanding options accidentally become production configuration.
+8. **Re-evaluate after migration:** once tests stabilize, decide whether tests need to become a named module or remain in the unnamed module.
 
-Mục tiêu là giữ được tốc độ chuyển đổi nhưng vẫn nhìn thấy những điểm mà test đang phụ thuộc vào implementation nội bộ. Mỗi lần thêm `--add-exports` hoặc `--add-opens` nên có lý do cụ thể và có thể loại bỏ khi không còn cần thiết.
+The goal is to maintain migration velocity while keeping visibility into where tests depend on internal implementation. Every addition of `--add-exports` or `--add-opens` should have a specific reason and be removable when no longer needed.
 
-## Kết luận
+## Conclusion
 
-Code test vẫn có thể nằm trong unnamed module trong khi production đã chuyển sang JPMS. Unnamed module có thể đọc named module đã được phân giải và sử dụng public API thuộc package được export. Với cấu hình phù hợp, test có thể tiếp tục chạy từ classpath trong giai đoạn migration.
+Test code can remain in the unnamed module while production has already migrated to JPMS. An unnamed module can read resolved named modules and use public APIs belonging to exported packages. With proper configuration, tests can continue running from the classpath during migration.
 
-Khi cần truy cập sâu hơn, hãy phân biệt đúng quyền: `--add-exports` cho public type trong package chưa export, `--add-opens` cho deep reflection, còn `--add-reads` điều chỉnh chiều readability. Các flags này không biến test trên classpath thành thành viên của named module và không cấp quyền package-private.
+When deeper access is needed, distinguish the permissions properly: `--add-exports` for public types in unexported packages, `--add-opens` for deep reflection, and `--add-reads` for adjusting readability direction. These flags do not make classpath tests members of a named module and do not grant package-private access.
 
-Nên bắt đầu bằng kiểm thử public API, giới hạn các ngoại lệ vào test runtime và chỉ dùng `--patch-module` hoặc chuyển test lên module path khi cần white-box testing. Như vậy production có thể giữ ranh giới module rõ ràng trong khi test suite được migration theo từng bước.
+Start with public API testing, restrict exceptions to the test runtime, and only use `--patch-module` or move tests to the module path when white-box testing is required. That way, production can maintain clear module boundaries while the test suite is migrated step by step.

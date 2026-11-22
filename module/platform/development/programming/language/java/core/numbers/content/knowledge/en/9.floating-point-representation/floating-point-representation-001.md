@@ -1,36 +1,36 @@
-# `float` theo binary32 và `double` theo binary64 trong Java
+# `float` as binary32 and `double` as binary64 in Java
 
-`float` và `double` đều là kiểu nguyên thủy để làm việc với số dấu phẩy động nhị phân trong Java. `float` dùng **IEEE 754 binary32 (32 bit)**, còn `double` dùng **IEEE 754 binary64 (64 bit)**. Điểm khác biệt cần nắm đầu tiên là **độ phân giải và miền độ lớn có thể biểu diễn**, chứ không phải một số lượng cố định chữ số sau dấu chấm thập phân.
+`float` and `double` are both primitive types for working with binary floating-point numbers in Java. `float` uses **IEEE 754 binary32 (32-bit)**, while `double` uses **IEEE 754 binary64 (64-bit)**. The first distinction to grasp is **resolution and representable magnitude range**, not a fixed number of digits after the decimal point.
 
-Bài này tập trung vào **so sánh hai định dạng và ra quyết định chọn kiểu**. Các bài tiếp theo giải mã bit, phân tích precision, underflow, giá trị đặc biệt và API chuyển bit ở chiều sâu riêng.
+This lesson focuses on **comparing the two formats and deciding which type to choose**. Subsequent lessons cover bit decoding, precision analysis, underflow, special values, and bit-conversion APIs in dedicated depth.
 
-## 1. Bảng so sánh binary32 và binary64
+## 1. Comparison Table of binary32 and binary64
 
-| Thuộc tính | `float` (binary32) | `double` (binary64) |
+| Property | `float` (binary32) | `double` (binary64) |
 | --- | --- | --- |
-| Tổng độ rộng | 32 bit | 64 bit |
-| Bit dấu | 1 | 1 |
-| Trường exponent lưu | 8 bit | 11 bit |
-| Trường fraction lưu | 23 bit | 52 bit |
-| Significand của số normal, kể cả bit 1 ẩn | 24 bit | 53 bit |
+| Total width | 32 bits | 64 bits |
+| Sign bit | 1 | 1 |
+| Stored exponent field | 8 bits | 11 bits |
+| Stored fraction field | 23 bits | 52 bits |
+| Significand of a normal number, including implicit leading 1 bit | 24 bits | 53 bits |
 | Exponent bias | 127 | 1023 |
-| Exponent thật ở miền normal | −126 đến +127 | −1022 đến +1023 |
-| Chữ số thập phân có nghĩa thường dùng làm ước lượng | Khoảng 6–7 | Khoảng 15–16 |
-| Số normal dương nhỏ nhất | `Float.MIN_NORMAL = 2^-126` | `Double.MIN_NORMAL = 2^-1022` |
-| Số dương khác zero nhỏ nhất | `Float.MIN_VALUE = 2^-149` | `Double.MIN_VALUE = 2^-1074` |
-| Số hữu hạn dương lớn nhất | `Float.MAX_VALUE ≈ 3.4 × 10^38` | `Double.MAX_VALUE ≈ 1.8 × 10^308` |
+| Actual exponent in the normal range | −126 to +127 | −1022 to +1023 |
+| Significant decimal digits commonly used as an estimate | About 6–7 | About 15–16 |
+| Smallest positive normal number | `Float.MIN_NORMAL = 2^-126` | `Double.MIN_NORMAL = 2^-1022` |
+| Smallest nonzero positive number | `Float.MIN_VALUE = 2^-149` | `Double.MIN_VALUE = 2^-1074` |
+| Largest finite positive number | `Float.MAX_VALUE ≈ 3.4 × 10^38` | `Double.MAX_VALUE ≈ 1.8 × 10^308` |
 
-Trong số **normal**, một bit 1 dẫn đầu phần trị được ngầm hiểu. Vì thế trường fraction 23/52 bit đem lại **24/53 bit precision** tương ứng. Với số **subnormal** rất gần zero, bit dẫn này không có; độ chính xác tương đối giảm dần. `MIN_VALUE` của hai wrapper dấu phẩy động là **số dương khác 0 nhỏ nhất**, không phải số âm hữu hạn nhỏ nhất; số âm hữu hạn có trị tuyệt đối lớn nhất là `-MAX_VALUE`.
+In a **normal** number, a leading 1 bit in the significand is implicit. Therefore, the 23/52-bit fraction field provides **24/53 bits of precision**, respectively. For **subnormal** numbers very close to zero, this leading bit is absent; relative accuracy decreases gradually. `MIN_VALUE` on both floating-point wrapper classes is the **smallest nonzero positive number**, not the smallest finite negative number; the finite negative number with the largest magnitude is `-MAX_VALUE`.
 
-### Miền lớn không đồng nghĩa chính xác từng đơn vị
+### Large Range Does Not Mean Unit-Exact Precision
 
-Phần **exponent** cho phép biến thiên rộng về độ lớn. Phần **significand** giới hạn chi tiết giữa các số ở cùng độ lớn. Chẳng hạn binary32 có thể chứa số hữu hạn khoảng `10^38`, nhưng ở quanh `2^24` đã không còn phân biệt được tất cả số nguyên kề nhau. Tương tự, binary64 không phân biệt liên tiếp mọi số nguyên sau `2^53`.
+The **exponent** allows a wide variation in magnitude. The **significand** limits the detail between numbers at the same magnitude. For example, binary32 can hold finite numbers around `10^38`, yet around `2^24` it can no longer distinguish all adjacent integers. Similarly, binary64 does not consecutively distinguish every integer past `2^53`.
 
-Nhờ nhiều bit exponent và fraction hơn, binary64 biểu diễn được các số có độ lớn rộng hơn và thường gần giá trị toán học hơn binary32. Tuy nhiên, không kiểu nào có thể lưu chính xác **mọi phân số thập phân**.
+Thanks to having more exponent and fraction bits, binary64 can represent numbers across a wider magnitude range and is usually closer to the mathematical value than binary32. However, neither type can store **every decimal fraction** exactly.
 
-## 2. Quan sát cùng giá trị đầu vào ở hai định dạng
+## 2. Observing the Same Input Value in Both Formats
 
-Trong Java, literal `0.1` mặc định là `double`; hậu tố `f` tạo literal `float`:
+In Java, the literal `0.1` is `double` by default; the `f` suffix creates a `float` literal:
 
 ```java
 float lowPrecision = 0.1f;
@@ -46,9 +46,9 @@ System.out.println(Double.toHexString(highPrecision));
 // 0x1.999999999999ap-4
 ```
 
-`1/10` có khai triển nhị phân vô hạn, nên mỗi định dạng lưu số gần nhất theo độ chính xác của mình. Hai lời gọi `println` đầu cùng in `0.1` vì Java chọn chuỗi có thể đọc ngược về **giá trị đã lưu ở từng kiểu**. Khi `float` được mở rộng thành `double`, Java giữ đúng **giá trị binary32 đã làm tròn**; phép widening không tái tạo phân số 1/10 ban đầu.
+`1/10` has an infinite binary expansion, so each format stores the closest number within its precision. The first two `println` calls both print `0.1` because Java chooses a string that can round-trip back to the **value stored in each respective type**. When `float` is widened to `double`, Java preserves the exact **rounded binary32 value**; widening does not reconstruct the original 1/10 fraction.
 
-Muốn xem mã hóa thay vì chuỗi số thập phân, dùng bit API:
+To inspect the encoding instead of a decimal string, use the bit APIs:
 
 ```java
 System.out.printf("0x%08x%n", Float.floatToRawIntBits(0.1f));
@@ -57,24 +57,24 @@ System.out.printf("0x%016x%n", Double.doubleToRawLongBits(0.1));
 // 0x3fb999999999999a
 ```
 
-Đây là **hai mẫu bit IEEE 754**, không phải hai số nguyên được tạo bằng cast số học. Bài về sign/exponent/fraction sẽ chỉ cách giải mã từng trường; hai bài cuối chương sẽ phân biệt `raw`/canonical NaN và cách dựng lại số từ bit pattern.
+These are **two IEEE 754 bit patterns**, not two integers produced by numeric casting. The lesson on sign/exponent/fraction will show how to decode each field; the last two lessons in this chapter will distinguish `raw`/canonical NaN and how to reconstruct numbers from bit patterns.
 
-## 3. Chọn định dạng theo yêu cầu dữ liệu
+## 3. Choosing a Format Based on Data Requirements
 
-| Tình huống | Kiểu/cách biểu diễn thường phù hợp | Điều kiện quyết định |
+| Scenario | Typically Appropriate Type / Representation | Deciding Condition |
 | --- | --- | --- |
-| Tính toán khoa học hoặc nghiệp vụ chấp nhận xấp xỉ nhị phân | `double` | Cần precision rộng hơn và đủ miền; vẫn đánh giá sai số số học |
-| Buffer ảnh, dữ liệu đồ họa hoặc cảm biến bắt buộc 32 bit | `float` | Hợp đồng lưu/truyền binary32 và sai số ở các miền giá trị thực tế đều đạt |
-| Mảng primitive rất lớn, nhạy với bộ nhớ và băng thông | `float[]` nếu đủ precision | Mỗi phần tử primitive 4 byte thay vì 8 byte; xét cả overhead cấu trúc |
-| Số đếm, ID, offset cần chính xác từng đơn vị | `int`, `long` hoặc `BigInteger` | Không để làm tròn chấm động gộp hai giá trị nguyên khác nhau |
-| Tiền, thuế, thập phân theo số chữ số cố định | `BigDecimal` từ chuỗi hoặc số nguyên đơn vị nhỏ nhất | Xác định scale, rounding và miền số chính xác ngay từ đầu |
-| Giao thức nhị phân phải giữ mọi bit, kể cả payload NaN | `int`, `long`, `byte[]` ở lớp truyền tải | Chốt độ rộng, byte order và yêu cầu bit-exact trước khi tính toán |
+| Scientific or business calculations accepting binary approximation | `double` | Wider precision and sufficient range needed; still evaluate arithmetic error |
+| Image buffers, graphics data, or sensors requiring 32-bit | `float` | Binary32 storage/transmission contract and errors across actual value ranges are acceptable |
+| Very large primitive arrays sensitive to memory and bandwidth | `float[]` if precision suffices | 4 bytes per primitive element instead of 8 bytes; also account for structural overhead |
+| Counts, IDs, offsets needing unit-level exactness | `int`, `long`, or `BigInteger` | Avoid letting floating-point rounding merge two distinct integer values |
+| Money, taxes, fixed-digit decimals | `BigDecimal` from strings or integer smallest units | Define scale, rounding, and exact numeric domain from the outset |
+| Binary protocols that must preserve every bit, including NaN payloads | `int`, `long`, `byte[]` at the transport layer | Lock down width, byte order, and bit-exact requirements before computing |
 
-**`double` là lựa chọn mặc định hợp lý cho nhiều phép tính số thực Java**, nhưng không tự động là lựa chọn tốt nhất khi API ngoài bắt buộc binary32 hay khi biểu diễn số thập phân phải chính xác. Chọn `float` vì dung lượng chỉ hợp lý sau khi kiểm tra sai số ở **giá trị lớn, nhỏ, gần 0 và sau nhiều bước tính**, không phải vì hai biến đều hiển thị giống nhau.
+**`double` is a reasonable default choice for many floating-point calculations in Java**, but it is not automatically the best choice when external APIs mandate binary32 or when decimal representation must be exact. Choosing `float` for storage size is only justified after verifying errors at **large, small, near-zero values, and across many computation steps**, not because two variables happen to print identically.
 
-### Kiểm tra giới hạn khi đổi kiểu
+### Checking Bounds When Converting Types
 
-Chuyển `double` sang `float` là narrowing; một giá trị còn hữu hạn ở binary64 có thể thành Infinity ở binary32:
+Converting `double` to `float` is a narrowing conversion; a value that is finite in binary64 can become Infinity in binary32:
 
 ```java
 double large = 1e40;
@@ -83,22 +83,22 @@ System.out.println(narrowed);            // Infinity
 System.out.println(Float.isFinite(narrowed)); // false
 ```
 
-Tương tự, số rất nhỏ có thể biến thành `float` subnormal hoặc zero. Ngược lại, chuyển `float` sang `double` giữ đúng giá trị số đã lưu trong `float`, nhưng **không** khôi phục thông tin bị mất trong chuyển đổi trước đó.
+Similarly, a very small number can turn into a `float` subnormal or zero. Conversely, converting `float` to `double` preserves the exact numeric value stored in the `float`, but **does not** recover information lost in an earlier conversion.
 
-Khi dữ liệu phải hữu hạn, hãy kiểm tra `Float.isFinite`/`Double.isFinite` trên **kết quả sau chuyển kiểu** và ràng buộc miền theo nghiệp vụ. Các toán tử chấm động có thể tạo NaN hoặc Infinity mà không ném `ArithmeticException`, khác phép chia số nguyên cho zero.
+When data must remain finite, check `Float.isFinite`/`Double.isFinite` on the **post-conversion result** and enforce domain range constraints. Floating-point operators can produce NaN or Infinity without throwing `ArithmeticException`, unlike integer division by zero.
 
-## 4. Literal, biểu thức và điểm làm tròn
+## 4. Literals, Expressions, and Rounding Points
 
 ```java
-double d = 1.25;  // literal mặc định double
-float f = 1.25f;  // hậu tố f yêu cầu float
+double d = 1.25;  // literal is double by default
+float f = 1.25f;  // f suffix requests float
 float explicitlyNarrowed = (float) d;
-// float invalid = d;  // không tự chuyển double sang float
+// float invalid = d;  // does not automatically convert double to float
 ```
 
-`float` và `double` có cùng nhóm phép toán nhưng **mỗi phép toán có thể làm tròn** theo độ chính xác của kiểu thực hiện. Nếu biểu thức trộn `float` với `double`, quy tắc promotion có thể đưa toán hạng `float` sang `double` trước phép toán, nhưng vẫn mang giá trị `float` đã được làm tròn. Trong Java 17+, ngữ nghĩa floating-point luôn strict theo JEP 306; điều này không biến tính toán thành số học thực tuyệt đối chính xác.
+`float` and `double` share the same set of operations, but **each operation can round** according to the precision of the type in which it executes. If an expression mixes `float` and `double`, promotion rules promote the `float` operand to `double` before the operation, still carrying the already-rounded `float` value. In Java 17+, floating-point semantics are always strict under JEP 306; this does not turn computation into exact real-number arithmetic.
 
-Một ví dụ chọn sai kiểu lưu số nguyên:
+An example of choosing the wrong type to store an integer:
 
 ```java
 int original = 16_777_217; // 2^24 + 1
@@ -107,15 +107,15 @@ System.out.println((int) rounded); // 16777216
 System.out.println(Math.ulp(16_777_216f)); // 2.0
 ```
 
-Do phần trị binary32 có 24 bit chính xác, số nguyên này bị làm tròn. `double` có ngưỡng tương tự tại `2^53`, không có nghĩa mọi số nguyên lớn hơn ngưỡng đều không biểu diễn được. Bài về **phạm vi số nguyên liên tiếp** sẽ phân tích đầu mút và những bẫy khi so sánh `long` với `double`.
+Because the binary32 significand has 24 bits of precision, this integer is rounded. `double` has a similar threshold at `2^53`, which does not mean every integer larger than the threshold is unrepresentable. The lesson on **consecutive integer ranges** will analyze the endpoints and pitfalls when comparing `long` with `double`.
 
-### Một ngưỡng sai số không dùng chung cho mọi số
+### One Error Threshold Does Not Fit All Numbers
 
-`Math.ulp(1f)` khoảng `1.19E-7`, còn `Math.ulp(1d)` khoảng `2.22E-16`. Ở số lớn hơn, bước biểu diễn thường lớn hơn. Ngưỡng so sánh gần bằng phải xuất phát từ dữ liệu và bài toán (có thể kết hợp sai số tuyệt đối/tương đối), đồng thời xử lý NaN, Infinity và signed zero. ULP mô tả lưới biểu diễn; **không phải** một bảo đảm sai số của mọi chuỗi phép toán.
+`Math.ulp(1f)` is about `1.19E-7`, while `Math.ulp(1d)` is about `2.22E-16`. At larger numbers, the representation step is usually larger. An approximate-equality threshold must derive from the data and problem domain (potentially combining absolute/relative error), while also handling NaN, Infinity, and signed zero. ULP describes the representation grid; it is **not** an error bound guarantee for arbitrary sequences of operations.
 
-## 5. Một chương trình so sánh có thể tự kiểm chứng
+## 5. A Self-Verifiable Comparison Program
 
-Lưu dưới tên `FloatingFormatsComparisonDemo.java`, chạy bằng Java 17+:
+Save as `FloatingFormatsComparisonDemo.java`, and run with Java 17+:
 
 ```java
 public class FloatingFormatsComparisonDemo {
@@ -159,22 +159,22 @@ narrowed large=Infinity
 narrowed tiny=0.0
 ```
 
-Bốn phép thử dùng giá trị thập phân, bit pattern, ULP và chuyển kiểu để trả lời bốn câu hỏi khác nhau: đang lưu **mã nào**, khoảng lưới dày tới đâu, phép thu hẹp mất gì và giá trị còn hữu hạn hay không. Không suy tất cả từ một lần `println`.
+The four tests use decimal values, bit patterns, ULP, and type conversions to answer four different questions: **which code** is stored, how dense the grid spacing is, what narrowing loses, and whether a value remains finite. Do not infer everything from a single `println`.
 
-## 6. Câu hỏi tự kiểm tra
+## 6. Self-Check Questions
 
-1. Vì sao `float` có 23 bit fraction lưu trữ nhưng 24 bit precision cho số normal? Sự khác biệt đó ảnh hưởng lựa chọn kiểu ra sao?
-2. Tại sao `float f = 0.1f; double d = f;` không tương đương với `double d = 0.1;`?
-3. Khi nào `float` là yêu cầu hợp đồng dữ liệu, và khi nào `double` cải thiện chất lượng phép tính?
-4. Nếu cảm biến truyền `float` nhưng phép tính cần `double`, thông tin nào còn nguyên khi widening và thông tin nào không thể phục hồi?
-5. Nếu một `double` phải dùng để lưu tiền chính xác theo cent, vấn đề là miền số, precision hay cơ số biểu diễn?
-6. Làm sao xác nhận một bước narrowing từ `double` sang `float` vẫn thỏa yêu cầu về hữu hạn và sai số?
+1. Why does `float` have 23 stored fraction bits yet 24 bits of precision for normal numbers? How does that difference affect type selection?
+2. Why is `float f = 0.1f; double d = f;` not equivalent to `double d = 0.1;`?
+3. When is `float` a data-contract requirement, and when does `double` improve calculation quality?
+4. If a sensor transmits `float` but calculations require `double`, what information stays intact during widening and what information cannot be recovered?
+5. If a `double` must be used to store money exact to the cent, is the issue numeric range, precision, or representation radix?
+6. How do you verify that a narrowing step from `double` to `float` still satisfies finiteness and error requirements?
 
-## 7. Liên hệ tới các bài chuyên sâu
+## 7. Connections to In-Depth Lessons
 
-- **Bit dấu, phần mũ và phần trị**: giải mã cụ thể cách 1/8/23 và 1/11/52 bit tạo giá trị.
-- **Precision, 0.1, khoảng nguyên chính xác**: làm rõ sai số về độ phân giải, thập phân và chuyển số nguyên.
-- **Normal/subnormal, ba hằng giới hạn, giá trị đặc biệt và ULP**: khảo sát các tình huống sát zero, tràn và khoảng cách giữa các số.
-- **API đọc bit và dựng lại giá trị**: phục vụ debug, kiểm tra bit và trao đổi dữ liệu nhị phân đúng giao thức.
+- **Sign bit, exponent, and fraction**: decodes specifically how the 1/8/23 and 1/11/52 bits produce a value.
+- **Precision, 0.1, exact integer range**: clarifies resolution, decimal, and integer-conversion errors.
+- **Normal/subnormal, three boundary constants, special values, and ULP**: examines near-zero behavior, overflow, and spacing between numbers.
+- **APIs for reading bits and reconstructing values**: supports debugging, bit inspection, and protocol-compliant binary data exchange.
 
-**Ghi nhớ:** sự khác nhau giữa binary32 và binary64 là một đánh đổi có thể kiểm chứng giữa **dung lượng, miền giá trị và độ phân giải**. Hãy chọn kiểu theo hợp đồng dữ liệu cùng sai số chấp nhận; chọn kiểu nguyên cho các đại lượng đếm cần đúng từng đơn vị và kiểu thập phân phù hợp cho nghiệp vụ cần decimal exact.
+**Remember:** the difference between binary32 and binary64 is a verifiable trade-off among **storage size, value range, and resolution**. Choose the type based on the data contract and acceptable error; choose integer types for countable quantities requiring unit exactness and an appropriate decimal type for domains requiring exact decimal arithmetic.

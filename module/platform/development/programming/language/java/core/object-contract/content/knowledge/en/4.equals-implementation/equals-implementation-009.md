@@ -1,34 +1,34 @@
-# Cài đặt equals: tránh so sánh thông qua toString() hoặc hashCode()
+# Implementing equals: Avoid Comparing via toString() or hashCode()
 
-## 1. Vấn đề cốt lõi
+## 1. The Core Problem
 
-Khi ghi đè **equals(Object)** trong Java, mục tiêu là trả lời: *hai đối tượng có được coi là cùng một giá trị theo quy tắc của lớp này không?* Quy tắc đó cần dựa trên những thuộc tính tạo nên ý nghĩa bình đẳng (equality) của đối tượng.
+When overriding **equals(Object)** in Java, the goal is to answer: *should two objects be considered the same value according to this class's rules?* That rule must be based on the attributes that constitute the object's equality meaning.
 
-Hai cách viết tắt dễ gây lỗi là:
+Two error-prone shortcuts are:
 
 ~~~java
-// Sai về mặt thiết kế: lấy chuỗi hiển thị làm tiêu chí bằng nhau.
+// Wrong in design: using display string as the equality criterion.
 return this.toString().equals(other.toString());
 
-// Sai về mặt logic: lấy mã băm trùng nhau làm bằng chứng bằng nhau.
+// Wrong in logic: treating matching hash codes as proof of equality.
 return this.hashCode() == other.hashCode();
 ~~~
 
-Các đoạn trên **chỉ minh họa biểu thức sai** trong một ngữ cảnh đã có biến other, không phải phương thức hoàn chỉnh. Vấn đề không nằm ở cú pháp Java mà ở việc dùng sai vai trò của phương thức:
+The snippets above **only illustrate wrong expressions** in a context where an `other` variable already exists, not complete methods. The issue does not lie in Java syntax, but in misusing the role of the methods:
 
-| Phương thức | Mục đích | Điều KHÔNG được bảo đảm |
+| Method | Purpose | What is NOT guaranteed |
 | --- | --- | --- |
-| equals(Object) | Xác định hai đối tượng có bằng nhau về mặt logic theo hợp đồng của lớp hay không | Không tự biết tiêu chí nghiệp vụ; người thiết kế phải định nghĩa |
-| toString() | Tạo chuỗi biểu diễn cho con người, ghi log hoặc gỡ lỗi | Không bảo đảm duy nhất, đầy đủ, ổn định, hoặc phản ánh chính xác tiêu chí equals |
-| hashCode() | Tạo số nguyên băm để hỗ trợ cấu trúc như HashMap, HashSet | Không bảo đảm mỗi đối tượng hoặc mỗi giá trị khác nhau có số băm khác nhau |
+| equals(Object) | Determines whether two objects are logically equal under the class's contract | Does not know business criteria on its own; the designer must define them |
+| toString() | Produces a string representation for humans, logging, or debugging | Not guaranteed to be unique, complete, stable, or to accurately reflect `equals` criteria |
+| hashCode() | Produces a hash integer to support structures like HashMap, HashSet | Not guaranteed that every distinct object or value has a distinct hash integer |
 
-**Quy tắc chính:** so sánh các trường mang ý nghĩa giá trị bằng equals/Objects.equals hoặc cách so sánh phù hợp với kiểu dữ liệu; triển khai hashCode tương thích dựa trên chính các trường ấy. Không suy ngược kết quả equals từ văn bản trình bày hoặc số băm.
+**Main rule:** compare fields carrying value meaning using equals/Objects.equals or a comparison suitable for the data type; implement a compatible hashCode based on those exact fields. Do not infer the result of equals backwards from display text or hash integers.
 
-## 2. Vì sao không dùng toString() để quyết định equals?
+## 2. Why Not Use toString() to Decide equals?
 
-### 2.1. Hai đối tượng khác nhau có thể in ra cùng một chuỗi
+### 2.1. Two different objects can print the exact same string
 
-Giả sử lớp Account có mã tài khoản id và tên hiển thị displayName. Yêu cầu nghiệp vụ là **hai Account bằng nhau khi cùng id**. toString lại được thiết kế chỉ in tên:
+Suppose class Account has an account ID `id` and a display name `displayName`. The business requirement is **two Accounts are equal when they have the same id**. toString, however, is designed to print only the name:
 
 ~~~java
 @Override
@@ -37,48 +37,48 @@ public String toString() {
 }
 ~~~
 
-Account(id = "A-01", displayName = "Lan") và Account(id = "A-02", displayName = "Lan") cùng in ra chuỗi Account{name='Lan'}, nhưng **không bằng nhau** theo id. Nếu equals so sánh hai chuỗi toString, nó trả true sai.
+Account(id = "A-01", displayName = "Lan") and Account(id = "A-02", displayName = "Lan") both print the string Account{name='Lan'}, yet they are **not equal** by id. If equals compares the two toString strings, it falsely returns true.
 
-Nguyên nhân: văn bản phục vụ người đọc thường lược bỏ thuộc tính, che dữ liệu nhạy cảm, làm tròn số, rút gọn danh sách hoặc chọn một nhãn chung. Những quyết định trình bày đó không phải tiêu chí bình đẳng.
+Reason: human-readable text often omits attributes, masks sensitive data, rounds numbers, truncates lists, or picks a generic label. Those presentation choices are not equality criteria.
 
-### 2.2. Hai đối tượng bằng nhau có thể in ra chuỗi khác nhau
+### 2.2. Two equal objects can print different strings
 
-Account(id = "A-01", displayName = "Lan") và Account(id = "A-01", displayName = "Linh") có cùng định danh nên equals phải là true theo quy tắc đã chọn, dù hai chuỗi toString khác nhau.
+Account(id = "A-01", displayName = "Lan") and Account(id = "A-01", displayName = "Linh") share the same identifier so equals must be true under the chosen rule, even though their toString strings differ.
 
-Trường displayName có thể thay đổi theo ý người dùng và **không tham gia equals**. Nếu đem toString ra so sánh, việc sửa tên hiển thị vô tình thay đổi danh tính logic.
+The displayName field can change at the user's discretion and **does not participate in equals**. If toString is used for comparison, editing the display name accidentally changes logical identity.
 
-Hai chiều đều không đúng:
+Neither direction holds:
 
-- Kết quả x.toString().equals(y.toString()) là true **không suy ra** x.equals(y) là true.
-- Kết quả x.equals(y) là true **không đòi hỏi** x.toString().equals(y.toString()) phải true.
+- Having x.toString().equals(y.toString()) be true **does not imply** x.equals(y) is true.
+- Having x.equals(y) be true **does not require** x.toString().equals(y.toString()) to be true.
 
-### 2.3. toString là giao diện biểu diễn, có thể thay đổi
+### 2.3. toString is a presentation interface that can change
 
-Đổi cách viết log từ Account{name='Lan'} sang Account(Lan), thêm timestamp, đổi định dạng số/ngày, thay đổi ngôn ngữ, hoặc chỉ đổi thứ tự trường trong chuỗi không được làm thay đổi ý nghĩa equals. Nếu equals phụ thuộc toString, một chỉnh sửa mang tính trình bày có thể trở thành lỗi logic trong tập hợp, so sánh dữ liệu hoặc kiểm thử.
+Changing log formatting from Account{name='Lan'} to Account(Lan), adding a timestamp, changing number/date formatting, changing language, or merely reordering fields in the string must not alter the meaning of equals. If equals depends on toString, a presentation tweak can turn into a logic bug in sets, data comparisons, or tests.
 
-Ngoài ra, Object.toString mặc định trả biểu diễn có dạng tên lớp, ký tự @ và biểu diễn hex của hashCode (đối với lớp không ghi đè toString). Chuỗi này **không phải định danh nghiệp vụ hay cam kết duy nhất**, và giá trị hex không nên được diễn giải như địa chỉ bộ nhớ được bảo đảm. Dùng toString mặc định làm phép so sánh thậm chí gián tiếp mắc vấn đề của hashCode.
+In addition, the default Object.toString returns a representation formatted as class name, the @ character, and the hex representation of hashCode (for classes that do not override toString). This string **is not a business identifier or uniqueness guarantee**, and the hex value should not be interpreted as a guaranteed memory address. Using the default toString as a comparison even indirectly suffers from the hashCode problem.
 
-Với mảng Java, việc gọi toString trực tiếp cũng không phải phép so sánh nội dung; muốn so sánh các phần tử phải dùng Arrays.equals hoặc Arrays.deepEquals theo cấu trúc.
+For Java arrays, calling toString directly is also not a content comparison; to compare elements, Arrays.equals or Arrays.deepEquals must be used according to structure.
 
-## 3. Vì sao không dùng hashCode() để quyết định equals?
+## 3. Why Not Use hashCode() to Decide equals?
 
-### 3.1. Hợp đồng chỉ có một chiều
+### 3.1. The contract is strictly one-way
 
-Java quy định:
+Java specifies:
 
-> Nếu hai đối tượng bằng nhau theo equals, chúng **phải** có cùng hashCode.
+> If two objects are equal according to equals, they **must** have the same hashCode.
 
-Viết bằng ký hiệu:
+Written symbolically:
 
 **x.equals(y) == true ⇒ x.hashCode() == y.hashCode().**
 
-**Chiều ngược lại không đúng:** từ hashCode bằng nhau **không thể kết luận** equals là true.
+**The converse is false:** from equal hashCodes, **you cannot conclude** equals is true.
 
-Lý do: hashCode trả về một giá trị int 32 bit, trong khi tập các giá trị đối tượng có thể lớn hơn rất nhiều. **Va chạm băm (hash collision)** xảy ra khi hai giá trị khác nhau có cùng hashCode. Đây là điều bình thường, không phải bằng chứng rằng hai giá trị bằng nhau.
+Reason: hashCode returns a 32-bit int value, whereas the set of object values can be much larger. A **hash collision** occurs when two different values share the same hashCode. This is normal, not evidence that two values are equal.
 
-### 3.2. Va chạm có thể quan sát ngay với String
+### 3.2. Collisions can be observed immediately with String
 
-Ví dụ nổi tiếng và có thể lặp lại trong Java:
+A well-known and reproducible example in Java:
 
 ~~~java
 System.out.println("Aa".hashCode()); // 2112
@@ -86,36 +86,36 @@ System.out.println("BB".hashCode()); // 2112
 System.out.println("Aa".equals("BB")); // false
 ~~~
 
-Chuỗi "Aa" và "BB" khác nội dung nhưng cùng mã băm 2112. Nếu viết equals kiểu chỉ kiểm tra this.hashCode() == other.hashCode(), hai đối tượng dùng hai chuỗi đó làm định danh có thể bị coi là bằng nhau sai.
+The strings "Aa" and "BB" differ in content yet share the hash code 2112. If you write equals by only checking this.hashCode() == other.hashCode(), two objects using those two strings as identifiers can be falsely considered equal.
 
-Một phép kiểm tra như sau có thể loại nhanh một số trường hợp trong một thiết kế có hashCode đúng và ổn định:
+A check like the following can short-circuit some cases in a design with a correct and stable hashCode:
 
 ~~~java
 if (hashCode() != other.hashCode()) {
     return false;
 }
-// Hash giống nhau vẫn cần so sánh các trường thực sự.
+// Matching hashes still require comparing the actual fields.
 ~~~
 
-Đó chỉ là đoạn minh họa, không phải phương thức equals hoàn chỉnh. Việc tối ưu thường không cần thiết cho equals thông thường; gọi hashCode có thể tốn thêm công và tăng độ phức tạp. Quan trọng nhất là **hash bằng nhau không đủ để trả true**.
+That is only an illustrative snippet, not a complete equals method. That optimization is usually unnecessary for ordinary equals; calling hashCode can add overhead and increase complexity. Most importantly, **matching hashes are not enough to return true**.
 
-### 3.3. HashMap/HashSet vẫn phân biệt khóa bị va chạm
+### 3.3. HashMap/HashSet still distinguish colliding keys
 
-HashMap và HashSet sử dụng giá trị băm để hỗ trợ tìm kiếm, đồng thời phải dùng phép so sánh bằng nhau phù hợp để phân biệt các khóa khi có va chạm. Hai khóa khác nhau cùng hashCode **vẫn có thể tồn tại riêng** trong HashSet hoặc HashMap.
+HashMap and HashSet use hash values to assist lookup, while also having to use proper equality comparison to distinguish keys when collisions occur. Two distinct keys with the same hashCode **can still coexist separately** in a HashSet or HashMap.
 
-Nếu bạn định nghĩa equals bằng việc “hash bằng nhau”, chính equals sai sẽ khiến bộ sưu tập coi các khóa khác giá trị là một. Sửa thuật toán hashCode để “ít va chạm hơn” không thể biến việc so sánh hash thành một cách triển khai equals đúng tổng quát.
+If you define equals as “hashes are equal”, the broken equals itself will cause the collection to treat keys of different values as one. Tweaking the hashCode algorithm to “collide less” cannot turn hash comparison into a generally valid equals implementation.
 
-## 4. Triển khai đúng: chọn trường định danh rồi so sánh trực tiếp
+## 4. Proper Implementation: Choose Identity Fields and Compare Directly
 
-Xét quy tắc nghiệp vụ cho Account:
+Consider the business rules for Account:
 
-- Trường id khác null và là **định danh logic**.
-- Trường displayName chỉ để hiển thị; hai tài khoản cùng id vẫn bằng nhau dù tên hiển thị khác.
-- Khi ghi đè equals, lớp cũng ghi đè hashCode bằng đúng thuộc tính id.
-- toString dùng displayName để minh họa sự độc lập giữa chuỗi hiển thị và phép so sánh giá trị.
-- Các trường để final giúp trạng thái làm khóa băm giữ ổn định sau khởi tạo.
+- The id field is non-null and serves as the **logical identity**.
+- The displayName field is for display only; two accounts with the same id remain equal even with different display names.
+- When overriding equals, the class also overrides hashCode using the exact id attribute.
+- toString uses displayName to illustrate the independence between the display string and value comparison.
+- Keeping fields final helps state used as hash keys stay stable after initialization.
 
-Mẫu cốt lõi:
+Core template:
 
 ~~~java
 @Override
@@ -135,13 +135,13 @@ public int hashCode() {
 }
 ~~~
 
-Ở đây, Account là lớp final nên phép kiểm tra instanceof không tạo ra vấn đề đối xứng giữa lớp cha và lớp con. Với hệ phân cấp kế thừa có thể ghi đè equals, cần xem xét chính sách kiểu đối tượng, tính đối xứng và bắc cầu cẩn thận; không được tự động sao chép một công thức cho mọi cấu trúc lớp.
+Here, Account is a final class so the instanceof check creates no symmetry issues between superclass and subclass. In an inheritance hierarchy that can override equals, object type policy, symmetry, and transitivity must be examined carefully; one formula must not be copied blindly across every class structure.
 
-Dùng Objects.equals(a, b) khi các trường được phép null, hoặc gọi equals trực tiếp sau khi bảo đảm không null. Với nhiều trường cùng tham gia equality, so sánh **từng trường liên quan** một cách nhất quán và xây dựng hashCode từ các trường đó. Không đưa thêm displayName vào hashCode nếu equals không dùng nó: hai Account cùng id nhưng khác displayName phải có hashCode bằng nhau.
+Use Objects.equals(a, b) when fields are allowed to be null, or call equals directly after guaranteeing non-null. With multiple fields participating in equality, compare **each relevant field** consistently and build hashCode from those fields. Do not include displayName in hashCode if equals does not use it: two Accounts with the same id but different displayName must have equal hashCodes.
 
-## 5. Chương trình Java 17+ chạy được và kết quả chính xác
+## 5. Runnable Java 17+ Program and Exact Output
 
-Lưu thành tệp **EqualsWithoutShortcutsDemo.java**:
+Save as file **EqualsWithoutShortcutsDemo.java**:
 
 ~~~java
 import java.util.HashSet;
@@ -207,14 +207,14 @@ public class EqualsWithoutShortcutsDemo {
 }
 ~~~
 
-Chạy trong thư mục chứa tệp:
+Run in the directory containing the file:
 
 ~~~bash
 javac EqualsWithoutShortcutsDemo.java
 java EqualsWithoutShortcutsDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Same text: true
@@ -229,81 +229,81 @@ Equals, collision: false
 HashSet size: 2
 ~~~
 
-Diễn giải theo từng nhóm:
+Interpretation by group:
 
-1. **Same text: true** nhưng **Equals, different id: false** chứng minh chuỗi giống nhau không đủ để kết luận hai Account bằng nhau.
-2. **Different text: true** nhưng **Equals, same id: true** chứng minh chuỗi hiển thị khác nhau cũng không đủ để kết luận hai Account khác nhau.
-3. "Aa" và "BB" cùng có hash 2112, nhưng String.equals là false. Hai Account tương ứng cũng cùng hashCode và không bằng nhau.
-4. HashSet chứa đủ **hai** Account có id khác nhau dù xảy ra va chạm hashCode, vì equals được xây dựng đúng từ id.
+1. **Same text: true** yet **Equals, different id: false** proves matching strings are not enough to conclude two Accounts are equal.
+2. **Different text: true** yet **Equals, same id: true** proves differing display strings are also not enough to conclude two Accounts are different.
+3. "Aa" and "BB" both have hash 2112, yet String.equals is false. The two corresponding Accounts also share the same hashCode and are not equal.
+4. HashSet holds both **two** Accounts with different ids even though a hashCode collision occurred, because equals is properly built from id.
 
-Đây là chương trình độc lập đầy đủ. Các ví dụ ngắn ở phần trên chỉ là trích đoạn minh họa, nên không nên biên dịch riêng từng mảnh.
+This is a complete standalone program. The short examples in earlier sections are illustrative excerpts only, so each fragment should not be compiled on its own.
 
-## 6. Các lỗi thường gặp và cách tránh
+## 6. Common Mistakes and How to Avoid Them
 
-### Lỗi A — so sánh chuỗi biểu diễn thay vì giá trị
+### Mistake A — comparing display strings instead of values
 
 ~~~java
-// Không nên: chuỗi in ra không đại diện đầy đủ cho bình đẳng logic.
+// Do not do this: printed string does not fully represent logical equality.
 return this.toString().equals(that.toString());
 ~~~
 
-**Cách sửa:** xác định thuộc tính thực sự quyết định equality; so sánh trực tiếp trường đó. Trong ví dụ Account, dùng id.equals(that.id) sau bước xác minh kiểu.
+**How to fix:** identify the attributes that genuinely determine equality; compare those fields directly. In the Account example, use id.equals(that.id) after the type verification step.
 
-### Lỗi B — coi hashCode giống nhau là bằng nhau
+### Mistake B — treating identical hashCodes as equal
 
 ~~~java
-// Sai: va chạm băm làm phát sinh false positive.
+// Wrong: hash collisions cause false positives.
 return this.hashCode() == that.hashCode();
 ~~~
 
-**Cách sửa:** hashCode chỉ hỗ trợ phân vùng/tìm kiếm theo băm; equals phải kiểm tra giá trị thật. Đặc biệt tránh dùng Objects.hash(...) làm “chữ ký duy nhất” để so sánh hai đối tượng.
+**How to fix:** hashCode only assists hash-based partitioning/lookup; equals must inspect actual values. In particular, avoid using Objects.hash(...) as a “unique signature” to compare two objects.
 
-### Lỗi C — equals đúng nhưng hashCode không khớp
+### Mistake C — correct equals but mismatched hashCode
 
 ~~~java
-// Ý tưởng sai: equals chỉ dùng id nhưng hashCode lại dùng cả displayName.
+// Wrong idea: equals uses only id while hashCode also uses displayName.
 @Override
 public int hashCode() {
     return Objects.hash(id, displayName);
 }
 ~~~
 
-Nếu hai Account có cùng id nhưng khác displayName, chúng bằng nhau theo equals mà có thể có hashCode khác nhau, vi phạm hợp đồng bắt buộc. **Cách sửa:** chỉ tính hash từ các trường được sử dụng trong equals, ví dụ return id.hashCode();. Đây là mảnh code minh họa sai, không phải một lớp độc lập.
+If two Accounts share the same id but have different displayName, they are equal by equals yet can have different hashCodes, violating the mandatory contract. **How to fix:** compute the hash only from the fields used in equals, for example return id.hashCode();. This is an erroneous illustrative code snippet, not a standalone class.
 
-### Lỗi D — nhầm equals với so sánh tham chiếu
+### Mistake D — confusing equals with reference comparison
 
-Với các đối tượng String hoặc lớp giá trị, toán tử == hỏi xem hai biến có trỏ tới **cùng đối tượng** không. Nó không thay thế so sánh giá trị:
+For String objects or value classes, the == operator asks whether two variables point to the **same object**. It does not substitute for value comparison:
 
 ~~~java
 Objects.equals(left.id, right.id)
 ~~~
 
-Trong trường hợp id bảo đảm không null, left.id.equals(right.id) cũng phù hợp. Với kiểu nguyên thủy như int, dùng == để so sánh giá trị; với mảng, dùng Arrays.equals hoặc Arrays.deepEquals tùy cấu trúc. Chọn phép so sánh đúng cho từng kiểu thay vì tuần tự hóa qua toString.
+In cases where id is guaranteed non-null, left.id.equals(right.id) is also suitable. For primitive types such as int, use == to compare values; for arrays, use Arrays.equals or Arrays.deepEquals depending on structure. Choose the right comparison for each type instead of serializing through toString.
 
-### Lỗi E — thay đổi trường định danh của khóa đang lưu trong HashSet/HashMap
+### Mistake E — mutating an identity field of a key currently stored in HashSet/HashMap
 
-Nếu trường tham gia equals/hashCode bị sửa sau khi đối tượng làm khóa được chèn vào tập băm, thao tác tra cứu có thể thất bại vì vị trí băm ban đầu không được tự cập nhật. Mẫu trên dùng trường id final để tránh vấn đề phổ biến này; cần lưu ý final của một tham chiếu **không** làm đối tượng mutable mà nó trỏ tới trở thành bất biến.
+If a field participating in equals/hashCode is modified after the object is inserted as a key into a hash collection, lookup operations can fail because the original hash bucket is not automatically updated. The template above uses a final id field to avoid this common issue; keep in mind that final on a reference **does not** make a mutable object it points to immutable.
 
-### Lỗi F — nghĩ toString, hashCode và equals cần cho ra cùng “định danh”
+### Mistake F — thinking toString, hashCode, and equals must yield the same “identifier”
 
-Không có hợp đồng nào bắt buộc toString phải chứa mọi trường bằng nhau, trùng với hashCode, hoặc có nội dung giống nhau trên những đối tượng được coi là bằng nhau. Hợp đồng thực sự liên quan **equals và hashCode**: equal ⇒ same hash. toString là trách nhiệm biểu diễn khác biệt.
+There is no contract requiring toString to contain all equal fields, match hashCode, or have identical content across objects considered equal. The real contract concerns **equals and hashCode**: equal ⇒ same hash. toString is a separate presentation responsibility.
 
-## 7. Kiểm thử quan trọng cho lớp có equals riêng
+## 7. Important Tests for Classes with Custom equals
 
-Với lựa chọn “bằng nhau khi cùng id”, cần bao phủ cả trường hợp khiến hai shortcut sai:
+With the choice “equal when sharing the same id”, both cases that break the two shortcuts must be covered:
 
-| Trường hợp | Kỳ vọng equals | Điều được kiểm chứng |
+| Case | Expected equals | What is verified |
 | --- | --- | --- |
-| Cùng id, khác displayName | true | toString khác nhau không ảnh hưởng equality |
-| Khác id, cùng displayName | false | toString giống nhau không tạo equality giả |
-| Khác id nhưng hashCode trùng nhau | false | Va chạm băm không tạo equality giả |
-| Cùng id, hashCode tương ứng | Bằng nhau và cùng hashCode | Hợp đồng equals/hashCode |
-| Một tham chiếu so với chính nó | true | Tính phản xạ |
-| Bất kỳ Account nào so với null | false | Điều kiện null |
-| Đổi thứ tự so sánh hai Account | Cùng kết quả | Tính đối xứng |
-| Ba Account có cùng id | Kết quả bắc cầu | Tính bắc cầu |
+| Same id, different displayName | true | Different toString does not affect equality |
+| Different id, same displayName | false | Identical toString does not create false equality |
+| Different id but colliding hashCode | false | Hash collision does not create false equality |
+| Same id, corresponding hashCode | Equal and same hashCode | The equals/hashCode contract |
+| One reference compared to itself | true | Reflexivity |
+| Any Account compared to null | false | The null condition |
+| Swapping comparison order of two Accounts | Same result | Symmetry |
+| Three Accounts with the same id | Transitive result | Transitivity |
 
-Một kiểm tra nhanh đối với ba Account bất biến:
+A quick check for three immutable Accounts:
 
 ~~~java
 Account x = new Account("A-01", "Lan");
@@ -311,24 +311,24 @@ Account y = new Account("A-01", "Linh");
 Account z = new Account("A-02", "Lan");
 
 if (!x.equals(y) || x.hashCode() != y.hashCode()) {
-    throw new AssertionError("Cùng id phải bằng nhau và có cùng hash");
+    throw new AssertionError("Same id must be equal and have the same hash");
 }
 if (x.equals(z)) {
-    throw new AssertionError("Khác id không được bằng nhau");
+    throw new AssertionError("Different id must not be equal");
 }
 ~~~
 
-Đoạn này là ví dụ **đặt trong phạm vi có lớp Account đã khai báo**; trong chương trình đầy đủ ở phần 5, Account là lớp lồng bên trong EqualsWithoutShortcutsDemo nên không biên dịch đoạn kiểm thử này thành một tệp đứng riêng. Để kiểm thử thực tế, đặt nó trong cùng lớp bao ngoài/phương thức phù hợp hoặc dùng một framework như JUnit. Các kiểm tra trong bảng trên cần kết hợp để bảo vệ toàn bộ hợp đồng, không chỉ một ca thử.
+This snippet is an example **placed within scope where the Account class is already declared**; in the full program in section 5, Account is nested inside EqualsWithoutShortcutsDemo, so this test snippet cannot be compiled as a standalone file. For real testing, place it in the same enclosing class/appropriate method or use a framework like JUnit. The checks in the table above must be combined to protect the entire contract, not just one test case.
 
-Với Java record, trình biên dịch có thể tạo equals/hashCode/toString từ các component của record. Điều đó tiện lợi khi **tất cả component** thực sự phù hợp với định nghĩa equality mong muốn; vẫn cần thiết kế thành phần dữ liệu theo nghĩa nghiệp vụ. Dù record sinh sẵn toString, cũng không dùng kết quả chuỗi đó làm cách cài đặt equals riêng.
+With a Java record, the compiler can generate equals/hashCode/toString from the record components. That is convenient when **all components** genuinely match the desired equality definition; data components must still be designed according to domain semantics. Even though a record provides a generated toString, do not use that string result as a custom equals implementation.
 
-## 8. Quy trình chọn cài đặt
+## 8. Implementation Selection Process
 
-1. **Xác định bình đẳng logic:** khóa định danh hay toàn bộ giá trị nào làm hai đối tượng được coi là tương đương? Ví dụ Account dùng id.
-2. **Kiểm tra kiểu và null:** tự so sánh với chính nó trả true, kiểu không tương thích/null trả false; cẩn thận với kế thừa.
-3. **So sánh trực tiếp trường liên quan:** dùng Objects.equals, các phương thức equals của kiểu giá trị, Arrays.equals cho mảng, hoặc phép so sánh phù hợp cho primitive.
-4. **Sinh hashCode từ cùng dữ liệu:** bảo đảm nếu equals true thì hashCode bằng nhau, đồng thời chấp nhận collision giữa hai giá trị khác nhau.
-5. **Để toString phục vụ hiển thị:** chỉnh log/định dạng không được vô tình đổi kết quả equality.
-6. **Đánh giá tính bất biến và kiểm thử:** nhất là trường hợp cùng text nhưng khác giá trị, khác text nhưng cùng giá trị, cùng hash nhưng khác giá trị, đối xứng, bắc cầu và null.
+1. **Define logical equality:** which identity key or full set of values makes two objects considered equivalent? For example, Account uses id.
+2. **Check type and null:** comparing with itself returns true, incompatible type/null returns false; be careful with inheritance.
+3. **Compare relevant fields directly:** use Objects.equals, value-type equals methods, Arrays.equals for arrays, or appropriate operators for primitives.
+4. **Compute hashCode from the same data:** ensure that if equals is true then hashCode is equal, while accepting collisions between two different values.
+5. **Keep toString for display:** editing logs/formatting must not accidentally alter equality results.
+6. **Evaluate immutability and test:** especially cases with same text but different values, different text but same value, same hash but different values, symmetry, transitivity, and null.
 
-**Ghi nhớ:** toString() tạo biểu diễn; hashCode() cung cấp mã băm có thể va chạm; chỉ **equals() dựa trên các thuộc tính có ý nghĩa** mới quyết định hai đối tượng bằng nhau về mặt logic.
+**Key takeaway:** toString() produces a representation; hashCode() provides a hash integer that can collide; only **equals() based on meaningful attributes** determines whether two objects are logically equal.

@@ -1,50 +1,50 @@
-# Không xem sửa field là thay thế constructor và bất biến đối tượng
+# Do Not Treat Field Mutation as a Substitute for Constructors and Object Immutability
 
-## 1. Bản chất vấn đề
+## 1. Nature of the Problem
 
-Trong Java Reflection, `Field` cho phép quan sát metadata của trường và, trong những trường hợp được phép, thay đổi giá trị bằng `Field.set(Object, Object)`. Tuy nhiên, **ghi một field sau khi object đã được tạo ra không tương đương với việc khởi tạo object qua constructor**. Constructor là nơi tập trung quy tắc hợp lệ của dữ liệu, chuẩn hóa, tạo defensive copy, và thiết lập trạng thái nhất quán trước khi object được công bố để sử dụng.
+In Java Reflection, `Field` lets you observe field metadata and, in permitted cases, modify a value with `Field.set(Object, Object)`. However, **writing a field after an object has already been created is not equivalent to initializing the object through a constructor**. A constructor is where data validation rules, normalization, defensive copying, and establishing a consistent state are centralized before the object is published for use.
 
-Hãy tưởng tượng một đơn hàng có `amountCents >= 0`, mã đơn không rỗng và danh sách sản phẩm cố định. Nếu ai đó dùng Reflection viết trực tiếp `amountCents = -100` lên một object đã xây dựng, họ có thể làm sai invariant dù field đó khai báo `private final`. Nếu thay đổi danh sách bên trong mà không qua quy trình kiểm tra, các quy tắc liên quan cũng có thể không còn đúng.
+Imagine an order with `amountCents >= 0`, a non-empty order ID, and a fixed list of products. If someone uses Reflection to write `amountCents = -100` directly onto an already-constructed object, they can violate the invariant even though the field is declared `private final`. If the internal list is modified without going through validation, related rules may also cease to hold.
 
-Bài này trả lời các câu hỏi thực tế:
+This lesson answers practical questions:
 
-- Constructor tạo ra các bảo đảm gì mà `Field.set(...)` không tự tạo ra?
-- `final` có nghĩa là bất biến hoàn toàn không? Có thể sửa final field bằng Reflection trong trường hợp nào?
-- Vì sao “gọi Reflection thành công” không chứng minh object được khởi tạo hợp lệ hoặc an toàn giữa nhiều luồng?
-- Nên thay đổi dữ liệu bằng cách nào để vẫn bảo toàn invariant?
+- What guarantees does a constructor establish that `Field.set(...)` does not automatically provide?
+- Does `final` mean complete immutability? Under what circumstances can a final field be modified via Reflection?
+- Why does "calling Reflection successfully" not prove an object is validly initialized or safe across multiple threads?
+- How should data be changed while still preserving invariants?
 
-**Nguyên tắc làm việc:** tạo object hợp lệ qua constructor/factory/builder, sau đó dùng API có kiểm soát để thay đổi trạng thái được phép; với object bất biến, tạo **instance mới** thay vì can thiệp vào field cũ.
+**Working principle:** create valid objects via constructors/factories/builders, then use controlled APIs for permitted state changes; for immutable objects, create a **new instance** instead of intervening in old fields.
 
-## 2. Ba khái niệm cần phân biệt
+## 2. Three Concepts to Distinguish
 
-### 2.1. Constructor thiết lập invariant
+### 2.1. Constructors establish invariants
 
-**Invariant** là điều kiện mà mọi object ở trạng thái sử dụng hợp lệ phải thỏa mãn. Ví dụ đối với `Receipt`:
+An **invariant** is a condition that every object in a valid usable state must satisfy. For example, for `Receipt`:
 
-- `orderId` không được `null` hoặc rỗng.
-- `totalCents` không âm.
-- `items` phải có ít nhất một sản phẩm.
-- Danh sách sản phẩm không được thay đổi ngoài ý muốn sau khi object được tạo ra.
+- `orderId` must not be `null` or empty.
+- `totalCents` must be non-negative.
+- `items` must contain at least one item.
+- The item list must not be altered unintentionally after the object is created.
 
-Constructor có thể kiểm tra tất cả điều kiện này **trước khi trả object cho caller**. Sau đó method hoặc factory của lớp có thể duy trì quy tắc tương tự khi cần thay đổi dữ liệu.
+The constructor can check all these conditions **before returning the object to the caller**. Afterward, methods or factories of the class can maintain the same rules when data needs to change.
 
-### 2.2. `final` bảo vệ phép gán vào biến/field, không tự bảo vệ toàn bộ đồ thị object
+### 2.2. `final` protects variable/field assignment, not automatically the entire object graph
 
-Với `private final int totalCents`, Java bình thường yêu cầu field được gán trong quá trình khởi tạo hợp lệ và không cho method Java thông thường gán lại nó về sau.
+For `private final int totalCents`, ordinary Java requires the field to be assigned during valid initialization and prevents ordinary Java methods from reassigning it later.
 
-Với `private final List<String> items`, `final` **chỉ cố định tham chiếu** đến đối tượng `List`; nó không tự khóa nội dung của danh sách. Nếu nhận một `ArrayList` từ caller rồi giữ nguyên tham chiếu, caller vẫn có thể thêm/xóa phần tử, dù field chứa nó là `final`.
+For `private final List<String> items`, `final` **only fixes the reference** to the `List` object; it does not automatically lock the contents of the list. If an `ArrayList` is accepted from a caller and kept as the exact same reference, the caller can still add/remove elements even though the field holding it is `final`.
 
-Bất biến cấp đối tượng cần thêm: không lộ tham chiếu mutable, defensive copy đầu vào/đầu ra, kiểm tra tất cả dữ liệu đầu vào, và không để phương thức cập nhật phá invariant.
+Object-level immutability also requires: not exposing mutable references, defensive copying on input/output, validating all input data, and ensuring no update method breaks invariants.
 
-### 2.3. `Field.set` là thao tác mức thấp lên trạng thái
+### 2.3. `Field.set` is a low-level operation on state
 
-`Field.set(receiver, value)` xét metadata field, receiver, quyền truy cập và khả năng gán giá trị/kiểu dữ liệu. Nó **không tự gọi lại constructor** của receiver, không tự áp dụng quy tắc nghiệp vụ, không kích hoạt validator tùy chỉnh, và không thực hiện defensive copy theo ý định thiết kế của class.
+`Field.set(receiver, value)` checks field metadata, receiver, access permissions, and value/type assignability. It **does not re-invoke the receiver's constructor**, does not automatically apply business rules, does not trigger custom validators, and does not perform defensive copying as intended by the class design.
 
-Ngay cả khi một lần ghi được Java Reflection chấp nhận, giá trị mới vẫn có thể làm object không hợp lệ theo domain. Vì vậy khả năng *thao tác kỹ thuật* không đồng nghĩa *quyền thay đổi hợp lệ theo mô hình đối tượng*.
+Even when a write is accepted by Java Reflection, the new value may still render the object invalid according to the domain. Thus, *technical manipulability* does not mean *valid modification under the object model*.
 
-## 3. Chương trình Java 17+: bảo toàn invariant bằng constructor và tạo instance mới
+## 3. Java 17+ Program: Preserving Invariants with Constructors and Creating New Instances
 
-Lưu đoạn sau vào file **`FinalFieldGuidanceDemo.java`**. Đây là chương trình độc lập chỉ sử dụng thư viện chuẩn Java:
+Save the following code into **`FinalFieldGuidanceDemo.java`**. This is a standalone program using only the Java standard library:
 
 ```java
 import java.lang.reflect.Field;
@@ -86,7 +86,7 @@ public class FinalFieldGuidanceDemo {
         List<String> supplied = new ArrayList<>(List.of("Book"));
         Receipt original = new Receipt("ORD-1", supplied, 1200);
 
-        supplied.add("Pen"); // Không làm thay đổi danh sách trong Receipt.
+        supplied.add("Pen"); // Does not modify the list inside Receipt.
         System.out.println("Original: " + original.summary());
 
         Receipt updated = original.withTotal(1500);
@@ -112,14 +112,14 @@ public class FinalFieldGuidanceDemo {
 }
 ```
 
-Chạy tại thư mục chứa file:
+Run in the directory containing the file:
 
 ```bash
 javac --release 17 FinalFieldGuidanceDemo.java
 java FinalFieldGuidanceDemo
 ```
 
-Kết quả chuẩn:
+Expected output:
 
 ```text
 Original: ORD-1 | [Book] | 1200
@@ -130,107 +130,107 @@ Invalid total: rejected
 Mutating items: rejected
 ```
 
-**Ý nghĩa của ví dụ:**
+**Significance of the example:**
 
-1. Constructor kiểm tra mã đơn, danh sách và tổng tiền. Giá trị âm được từ chối ngay lúc tạo, nên không tồn tại instance hợp lệ có `totalCents < 0` do đường khởi tạo thông thường tạo ra.
-2. `List.copyOf(items)` tạo dữ liệu lưu trữ không thể sửa qua các phép thêm/xóa, bảo vệ trước thay đổi từ danh sách caller cung cấp. Với phần tử kiểu `String` vốn bất biến, đây là cách phòng vệ đủ cho ví dụ. Với phần tử là object có trạng thái mutable, cần thêm chính sách sao chép sâu/thiết kế bất biến thích hợp.
-3. `withTotal(...)` dựng một `Receipt` **mới** thông qua constructor, nên mọi invariant vẫn được kiểm tra. `original` không thay đổi; `updated` có giá trị mới.
-4. `getDeclaredField("totalCents")` và `Modifier.isFinal(...)` đọc **metadata**, không can thiệp vào dữ liệu. Field là `private final` mà chương trình vẫn tìm được metadata.
-5. Việc gọi `original.items.add(...)` bị chặn bởi danh sách bất biến. Trong chương trình, class bao ngoài được phép truy cập private member của nested class theo quy tắc nestmate; caller bên ngoài không nên trực tiếp đụng vào field private này.
+1. The constructor validates the order ID, list, and total amount. Negative values are rejected at creation time, so no valid instance with `totalCents < 0` exists through normal initialization paths.
+2. `List.copyOf(items)` creates storage that cannot be modified via add/remove operations, protecting against changes from the caller-supplied list. With `String` elements, which are already immutable, this defense is sufficient for the example. With elements that are objects with mutable state, an appropriate deep-copy policy/immutability design is also needed.
+3. `withTotal(...)` constructs a **new** `Receipt` via the constructor, so all invariants continue to be checked. `original` remains unchanged; `updated` has the new value.
+4. `getDeclaredField("totalCents")` and `Modifier.isFinal(...)` read **metadata**, without intervening in data. The field is `private final`, yet the program can still inspect its metadata.
+5. Calling `original.items.add(...)` is blocked by the immutable list. Within the program, the enclosing class is allowed to access private members of a nested class under nestmate rules; external callers should not directly touch this private field.
 
-**Thiết kế cần nhớ:** nếu có nghiệp vụ sửa tổng tiền, quyết định API là `withTotal(...)` hoặc một phương thức cập nhật có validation, chứ không phải thao tác `Field.set(...)` trực tiếp từ code sử dụng.
+**Design takeaway:** if there is a business requirement to change the total amount, the API decision is `withTotal(...)` or an update method with validation, not calling `Field.set(...)` directly from calling code.
 
-## 4. Cơ chế của `final` và Reflection trên Java 17–21
+## 4. Mechanism of `final` and Reflection on Java 17–21
 
-### 4.1. Khi nào `Field.set(...)` có thể thay đổi một final field?
+### 4.1. When can `Field.set(...)` modify a final field?
 
-Theo hợp đồng `java.lang.reflect.Field.set` ở Java 17/21, ghi field `final` bằng Reflection chỉ được phép trong điều kiện hẹp: việc tắt kiểm tra truy cập cho `Field` bằng `setAccessible(true)` đã **thành công**, field **không static**, và lớp khai báo **không phải hidden class hoặc record class**. Nếu không đáp ứng, `set` ném `IllegalAccessException`. Hơn nữa, `setAccessible(true)` tự nó có thể không được cho phép do ranh giới package/module.
+According to the contract of `java.lang.reflect.Field.set` in Java 17/21, writing a `final` field via Reflection is permitted only under narrow conditions: disabling access checks for the `Field` via `setAccessible(true)` has **succeeded**, the field is **not static**, and the declaring class is **not a hidden class or record class**. Otherwise, `set` throws `IllegalAccessException`. Moreover, `setAccessible(true)` itself may not be permitted due to package/module boundaries.
 
-| Kiểu field | Ý nghĩa thực tế |
+| Field type | Practical meaning |
 | --- | --- |
-| `private final int n` trong instance class thông thường | Có thể được phép ghi bởi Reflection **nếu** suppression hợp lệ và các điều kiện API khác thỏa mãn; không phải cách sửa domain object |
-| `static final int N` | Không thể dùng `Field.set` để ghi như một instance final field; kể cả suppression không cấp write access cho static final |
-| Thành phần record (`record Receipt(...)`) | Field final của record thuộc nhóm không cho viết qua `Field.set` |
-| Final field khai báo trong hidden class | Cũng thuộc nhóm không cho viết qua `Field.set` |
-| Instance field không final | Có thể ghi nếu receiver, kiểu giá trị và quyền truy cập phù hợp; vẫn có thể phá invariant nếu bypass API |
+| `private final int n` in an ordinary instance class | May be allowed to be written by Reflection **if** suppression is valid and other API conditions are met; not the way to edit domain objects |
+| `static final int N` | Cannot use `Field.set` to write like an instance final field; even suppression does not grant write access for static final |
+| Record component (`record Receipt(...)`) | Final fields of a record belong to the group disallowed from writing via `Field.set` |
+| Final field declared in a hidden class | Also belongs to the group disallowed from writing via `Field.set` |
+| Non-final instance field | Writable if receiver, value type, and access permissions match; can still break invariants if bypassing the API |
 
-Không được kết luận “`private final` thì Reflection luôn không sửa được”, cũng không được kết luận “`setAccessible(true)` sẽ luôn sửa được mọi thứ”. Cả hai phát biểu đều sai về phạm vi.
+One must neither conclude "`private final` can never be modified by Reflection" nor conclude "`setAccessible(true)` will always modify everything". Both statements are wrong about the scope.
 
-### 4.2. Ví dụ **phản mẫu**: bypass validation
+### 4.2. **Anti-pattern** example: bypassing validation
 
-Đoạn sau chỉ minh họa vấn đề; **không phải đoạn cần chạy để cập nhật object trong ứng dụng**. Giả sử đang trong `main` của chương trình ở mục 3 và có biến `original`:
+The following snippet only illustrates the problem; **it is not code to run for updating objects in an application**. Assume we are inside `main` of the program in section 3 and have the variable `original`:
 
 ```java
 Field f = Receipt.class.getDeclaredField("totalCents");
 
-// Chỉ khi được phép bởi access/module rules; có thể bị từ chối.
+// Only when permitted by access/module rules; may be rejected.
 if (f.trySetAccessible()) {
-    // Phản mẫu: bỏ qua validation trong Receipt constructor.
+    // Anti-pattern: bypasses validation in the Receipt constructor.
     f.set(original, -100);
 }
 ```
 
-Nếu lệnh ghi thực sự thành công trong môi trường hỗ trợ trường hợp này, dữ liệu có thể vi phạm `totalCents >= 0`. Đặc biệt, **không dựa vào các getter/instructions tiếp theo để chứng minh mọi nơi đã thấy giá trị mới**, vì cơ chế tối ưu hóa đối với `final` khiến việc sửa sau khởi tạo có những hệ quả khó dự đoán.
+If the write command actually succeeds in an environment supporting this case, the data can violate `totalCents >= 0`. In particular, **do not rely on subsequent getters/instructions to prove that all sites observe the new value**, because optimizations for `final` cause post-initialization modification to have unpredictable consequences.
 
-Đừng nhầm `trySetAccessible()` trả `true` với việc field đã được ghi thành công: nó chỉ cho biết nỗ lực bật suppression thành công, còn `Field.set(...)` có thể thất bại ở điều kiện final, receiver hoặc kiểu dữ liệu.
+Do not confuse `trySetAccessible()` returning `true` with the field having been written successfully: it only indicates that the attempt to enable suppression succeeded, while `Field.set(...)` can still fail on final, receiver, or data-type conditions.
 
-### 4.3. `setAccessible` và JPMS không phải cơ chế chuyển một API kín thành public
+### 4.3. `setAccessible` and JPMS are not mechanisms to turn a closed API into a public one
 
-Với named module (JPMS), quyền deep reflection còn phụ thuộc package có được `opens` cho module đang gọi hay không. `exports` hỗ trợ tiếp cận public API trong các điều kiện thông thường, nhưng không tự cho phép chỉnh sửa private final field. Nhiều thư viện framework phải cấu hình `opens` rõ ràng nếu thực sự cần deep reflection.
+With named modules (JPMS), deep reflection permission also depends on whether the package is opened via `opens` to the calling module. `exports` supports accessing public APIs under normal conditions, but does not by itself permit editing private final fields. Many framework libraries must explicitly configure `opens` if they genuinely require deep reflection.
 
-Ngay cả khi có quyền deep reflection, **việc sửa field bỏ qua constructor vẫn không được tự động xem là hợp lệ** về nghiệp vụ và an toàn đồng thời.
+Even when deep reflection permission exists, **modifying fields by bypassing the constructor is still not automatically valid** in terms of business logic and concurrency safety.
 
-## 5. Vì sao constructor có ý nghĩa đặc biệt trong Java Memory Model?
+## 5. Why Do Constructors Have Special Significance in the Java Memory Model?
 
-Java Language Specification (JLS `17.5) quy định **final field semantics** cho các field final được khởi tạo đúng cách. Khi constructor hoàn tất, một **freeze action** gắn với final field giúp hỗ trợ việc quan sát các giá trị đã khởi tạo đúng trong điều kiện mô hình bộ nhớ quy định. Quy tắc sử dụng cơ bản:
+The Java Language Specification (JLS §17.5) defines **final field semantics** for properly initialized final fields. When a constructor completes, a **freeze action** associated with final fields helps support observing properly initialized values under the conditions specified by the memory model. Basic usage rules:
 
-1. Gán các final field trong quá trình khởi tạo hợp lệ.
-2. Không làm rò rỉ tham chiếu `this` tới luồng/đối tượng khác **trước khi constructor kết thúc**.
-3. Sau khi khởi tạo, không xem final field là nơi lưu trạng thái cần liên tục thay đổi.
+1. Assign final fields during valid initialization.
+2. Do not leak the `this` reference to other threads/objects **before the constructor finishes**.
+3. After initialization, do not treat final fields as storage for state that needs continuous mutation.
 
-Đây là một lý do `final` hỗ trợ thiết kế immutable class an toàn giữa các luồng. Tuy nhiên, **final-field guarantees không phải phép màu bảo đảm mọi object đa luồng đều thread-safe**. Nếu final field trỏ đến một object mutable, các thay đổi sau đó trên object được trỏ tới vẫn phải tuân thủ quy tắc đồng bộ riêng.
+This is one reason `final` supports thread-safe immutable class design. However, **final-field guarantees are not magic that makes every multi-threaded object thread-safe**. If a final field points to a mutable object, subsequent changes on the referenced object must still follow separate synchronization rules.
 
-### 5.1. Phép ghi phản chiếu sau constructor có semantics đặc biệt và hạn chế
+### 5.1. Post-constructor reflective writes have special and restricted semantics
 
-JLS `17.5.3 thừa nhận vài trường hợp đặc biệt như deserialization/reconstruction phải điều chỉnh final field sau khi tạo object. Mô hình có ý nghĩa trong phạm vi hẹp là:
+JLS §17.5.3 acknowledges a few special cases such as deserialization/reconstruction that must adjust final fields after object creation. The model makes sense only within a narrow scope:
 
-- Object đang ở giai đoạn tái dựng nội bộ, **chưa công bố cho các thành phần/luồng khác**.
-- Hoàn tất tất cả cập nhật final field trước khi bất kỳ phần nào đọc những field ấy.
-- Sau đó mới cho hệ thống truy cập object đã hoàn chỉnh.
+- The object is in an internal reconstruction phase, **not yet published to other components/threads**.
+- All final-field updates complete before any part reads those fields.
+- Only afterward is the completed object exposed to the system.
 
-JLS mô tả freeze sau việc sửa final field bằng một số cơ chế đặc biệt, nhưng cũng cảnh báo các phép đọc sau đó có thể bị tối ưu hóa/reorder làm khó dự đoán nếu dùng theo cách tùy tiện. **Không suy ra rằng ghi bằng Reflection sau khi object được sử dụng rộng rãi có semantics giống gán trong constructor**.
+The JLS describes freezing after modifying final fields via certain special mechanisms, but also warns that subsequent reads can be optimized/reordered in unpredictable ways if used arbitrarily. **Do not infer that writing via Reflection after an object is widely used has the same semantics as assignment inside a constructor.**
 
-### 5.2. Vì sao không nên sửa final field của object đã công bố?
+### 5.2. Why shouldn't final fields of an already-published object be modified?
 
-Nếu object đã được chia sẻ cho nhiều luồng, hoặc code đã đọc giá trị final của nó, sau đó một luồng dùng Reflection ghi lại final field, các luồng/code khác có thể đã giữ/hoặc được compiler tối ưu hóa quanh giá trị cũ. Kết quả quan sát có thể không như mong đợi; đây là lý do các API Java cảnh báo việc dùng Reflection để thay đổi final field ngoài quá trình tái dựng có thể cho kết quả khó dự đoán.
+If an object has already been shared across multiple threads, or code has already read its final value, and then one thread uses Reflection to rewrite the final field, other threads/code may have retained or been compiler-optimized around the old value. Observed results may not match expectations; this is why Java APIs warn that using Reflection to modify final fields outside reconstruction can yield unpredictable results.
 
-Điều này **không thể sửa chỉ bằng việc thêm `volatile` hay gọi `synchronized` một cách tùy tiện** sau hành động bypass; mô hình đúng là ngăn thực thể bất biến bị sửa sau khi nó được sử dụng. Nếu dữ liệu cần thay đổi thường xuyên, dùng trạng thái mutable được đồng bộ và thiết kế API phù hợp từ đầu, hoặc thay cả tham chiếu tới object bất biến mới bằng cơ chế công bố an toàn.
+This **cannot be fixed merely by arbitrarily adding `volatile` or calling `synchronized`** after bypassing; the right model is preventing immutable entities from being modified after they are in use. If data needs to change frequently, use synchronized mutable state and design a proper API from the start, or replace the entire reference to a new immutable object via safe publication.
 
-## 6. Bất biến đối tượng không chỉ là tất cả field mang `final`
+## 6. Object Immutability Is More Than Marking All Fields `final`
 
-### 6.1. Field final giữ tham chiếu mutable
+### 6.1. Final fields holding mutable references
 
-Phản mẫu:
+Anti-pattern:
 
 ```java
 final class BadCart {
     private final java.util.List<String> products;
 
     BadCart(java.util.List<String> products) {
-        this.products = products; // Giữ nguyên alias mutable của caller.
+        this.products = products; // Keeps the caller's mutable alias.
     }
 
     java.util.List<String> products() {
-        return products; // Lộ alias mutable ra ngoài.
+        return products; // Exposes the mutable alias outside.
     }
 }
 ```
 
-Cách khai báo này cho phép caller sửa danh sách đã truyền vào hoặc danh sách trả về, khiến nội dung thay đổi dù `products` là `final`. Sửa bằng `List.copyOf(products)` khi phù hợp (lưu ý shallow copy) và không trả lại cấu trúc mutable có thể sửa từ bên ngoài.
+This declaration lets callers modify the list passed in or the list returned, causing contents to change even though `products` is `final`. Fix this with `List.copyOf(products)` when appropriate (noting shallow copy) and avoid returning mutable structures modifiable from outside.
 
-### 6.2. Invariant liên trường
+### 6.2. Cross-field invariants
 
-Với khoảng giá trị `start <= end`, không thể coi cập nhật trực tiếp từng field là tương đương tạo một object hợp lệ. Ví dụ:
+For a range `start <= end`, directly updating individual fields cannot be considered equivalent to creating a valid object. Example:
 
 ```java
 public record Range(int start, int end) {
@@ -246,66 +246,66 @@ public record Range(int start, int end) {
 }
 ```
 
-Đây là **khai báo độc lập** cho file `Range.java` trong Java 17+. Compact canonical constructor của record luôn kiểm tra quan hệ `start <= end`. `withEnd` tạo record mới và kiểm tra lại. Trường thành phần record là final và không thuộc nhóm mà `Field.set` được phép ghi.
+This is a **standalone declaration** for `Range.java` in Java 17+. The record's compact canonical constructor always checks the `start <= end` relation. `withEnd` creates a new record and re-validates. Record component fields are final and do not belong to the group that `Field.set` is allowed to write.
 
-Với object có nhiều field phụ thuộc nhau, code cập nhật cần xử lý cả invariant và trạng thái trung gian. Với immutable data, tạo instance mới thường giúp loại bỏ trạng thái “nửa cập nhật” có thể bị quan sát.
+For objects with multiple interdependent fields, update code must handle both invariants and intermediate states. With immutable data, creating a new instance often eliminates observable "half-updated" states.
 
-## 7. So sánh các phương án thay đổi dữ liệu
+## 7. Comparison of Data-Modification Approaches
 
-| Nhu cầu | Phương án phù hợp | Vì sao |
+| Need | Suitable approach | Why |
 | --- | --- | --- |
-| Tạo instance lần đầu | Constructor/factory/builder có validation | Có thể bảo đảm object hợp lệ trước khi trả ra |
-| Điều chỉnh giá trị trên immutable object | `withX(...)` hoặc factory trả instance mới | Duy trì kiểm tra, giữ object cũ ổn định |
-| Thay đổi trạng thái mutable object | Method nghiệp vụ có validation và đồng bộ khi cần | Giữ invariant và kiểm soát tính đồng thời |
-| Hiển thị/đọc metadata | `Field.getName`, `getType`, `getModifiers`, `getDeclaringClass` | Có thể phân tích cấu trúc mà không đổi dữ liệu |
-| Đọc field khi được phép | `Field.get(receiver)` | Chỉ quan sát dữ liệu; vẫn phải tôn trọng quyền truy cập |
-| Framework tái dựng object đặc thù | Cơ chế serialization đã thiết kế riêng, với quy tắc lifecycle và visibility | Chỉ dùng low-level mutation trước khi công bố object và theo giới hạn runtime |
-| Sửa trực tiếp private final field của object đang chạy | Tránh; thiết kế lại API cập nhật | Có nguy cơ phá invariant và final-field semantics |
+| Creating an instance initially | Constructor/factory/builder with validation | Ensures a valid object before returning it |
+| Adjusting a value on an immutable object | `withX(...)` or factory returning a new instance | Preserves checks, keeps the old object stable |
+| Changing state of a mutable object | Business method with validation and synchronization when needed | Preserves invariants and controls concurrency |
+| Displaying/reading metadata | `Field.getName`, `getType`, `getModifiers`, `getDeclaringClass` | Analyzes structure without altering data |
+| Reading a field when permitted | `Field.get(receiver)` | Observes data only; must still respect access permissions |
+| Specialized object-reconstruction framework | Purpose-built serialization mechanism, with lifecycle and visibility rules | Uses low-level mutation only before publishing the object and within runtime limits |
+| Directly modifying a private final field of a running object | Avoid; redesign the update API | Risks breaking invariants and final-field semantics |
 
-**Lưu ý:** không phải mọi thao tác Reflection đều nguy hiểm hoặc không nên dùng. Lấy metadata, dependency injection hay deserialization có phạm vi hợp lệ nếu tuân theo hợp đồng API/runtime. Bài học cụ thể ở đây là không thay thế vòng đời khởi tạo và luật bất biến bằng việc tự do sửa field.
+**Note:** not every Reflection operation is dangerous or discouraged. Reading metadata, dependency injection, or deserialization has legitimate scope when following API/runtime contracts. The specific lesson here is not replacing the initialization lifecycle and immutability rules with free-form field mutation.
 
-## 8. Các lỗi nhận thức và hậu quả
+## 8. Conceptual Mistakes and Consequences
 
-| Nhận định sai | Sửa lại cho đúng |
+| Wrong assumption | Accurate correction |
 | --- | --- |
-| “`Field.set` thành công thì object hợp lệ.” | Reflection không tự chạy validation của constructor/method nghiệp vụ |
-| “Tất cả field đều `final` thì object chắc chắn immutable.” | Mutable object bên trong, alias và việc lộ `this` có thể phá an toàn |
-| “`setAccessible(true)` luôn vượt mọi quyền truy cập.” | JPMS, loại field, record/hidden class và hạn chế runtime có thể chặn |
-| “`final` luôn khiến Reflection không sửa được.” | Một số instance final field trong ordinary class có thể ghi trong điều kiện hẹp |
-| “Sửa final field sau khi chia sẻ object sẽ được tất cả luồng thấy giống như cập nhật `volatile`.” | Final-field semantics và tối ưu hóa JIT không cho phép suy luận đó |
-| “Serialization cần Reflection nên mọi domain update cũng nên sửa field.” | Tái dựng object trước khi công bố có lifecycle rất khác sửa object đang được sử dụng |
-| “Muốn chỉnh một thuộc tính immutable thì sửa field cũ cho đỡ cấp phát.” | Dùng object mới hợp lệ và quản lý việc công bố tham chiếu mới |
-| “Một constructor gán field là đủ; không cần kiểm tra liên trường.” | Constructor phải xác minh các invariant cần thiết, kể cả quan hệ giữa các field |
+| "If `Field.set` succeeds, the object is valid." | Reflection does not automatically run constructor/business-method validation |
+| "If all fields are `final`, the object is definitely immutable." | Inner mutable objects, aliases, and leaking `this` can break safety |
+| "`setAccessible(true)` always bypasses all access permissions." | JPMS, field category, record/hidden class, and runtime limits can block it |
+| "`final` always makes a field unmodifiable by Reflection." | Certain instance final fields in ordinary classes may be writable under narrow conditions |
+| "Modifying a final field after sharing an object will be seen by all threads like a `volatile` update." | Final-field semantics and JIT optimizations do not permit that assumption |
+| "Serialization needs Reflection, so domain updates should also mutate fields." | Reconstructing an object before publication has a very different lifecycle from mutating an in-use object |
+| "To tweak an immutable property, mutate the old field to save allocation." | Use a new valid object and manage publishing the new reference |
+| "A constructor that assigns fields is enough; no cross-field checks needed." | Constructors must verify required invariants, including relationships between fields |
 
-## 9. Quy trình ra quyết định khi gặp một yêu cầu “sửa field”
+## 9. Decision Process When Facing a "Modify Field" Requirement
 
-**Bước 1:** Xác định đây là field instance hay static, `final` hay mutable, của class thường, record hay hidden class.
+**Step 1:** Determine whether the field is instance or static, `final` or mutable, and belongs to an ordinary class, record, or hidden class.
 
-**Bước 2:** Xác định yêu cầu là đọc metadata, đọc giá trị, tái dựng object từ dữ liệu lưu trữ, hay **cập nhật nghiệp vụ trên object đã tồn tại**. Đây là các mục đích khác nhau.
+**Step 2:** Determine whether the requirement is reading metadata, reading values, reconstructing an object from stored data, or **performing a business update on an existing object**. These are distinct goals.
 
-**Bước 3:** Với cập nhật nghiệp vụ, tìm constructor/factory, getter, `withX` hoặc method cập nhật được thiết kế cho invariant. Nếu chưa có, thiết kế API phù hợp và thêm validation; không để caller tự tiện ghi vào trường private.
+**Step 3:** For business updates, look for a constructor/factory, getter, `withX`, or update method designed for invariants. If none exists, design an appropriate API and add validation; do not let callers arbitrarily write to private fields.
 
-**Bước 4:** Nếu dữ liệu có reference mutable, kiểm tra defensive copying và alias. Nếu nhiều luồng có thể truy cập object, xác định cơ chế công bố và đồng bộ trạng thái.
+**Step 4:** If the data holds mutable references, check defensive copying and aliasing. If multiple threads can access the object, determine the publication and state-synchronization mechanism.
 
-**Bước 5:** Chỉ khi làm công cụ tái dựng/deserialization đặc thù mới xét low-level field mutation; phải đọc hợp đồng `Field.set` của JDK đang dùng, giới hạn module, điều kiện final field và lifecycle “trước khi công bố”. Không tự suy luận từ kết quả một lần chạy hoặc từ một JVM cụ thể.
+**Step 5:** Only when building specialized reconstruction/deserialization tools should low-level field mutation be considered; read the `Field.set` contract of the target JDK, module restrictions, final-field conditions, and the "before publication" lifecycle. Do not generalize from a single test run or a specific JVM.
 
-## 10. Câu hỏi tự kiểm tra
+## 10. Self-Check Questions
 
-1. `private final List<String> items` có bảo đảm caller không thể sửa nội dung `items` không? Tại sao?
-2. Constructor của `Receipt` từ chối `totalCents < 0`. Nếu code khác ghi trực tiếp field thành `-100`, invariant còn đúng không?
-3. Tại sao Java Reflection tìm được một private final field bằng `getDeclaredField` mà chưa chắc ghi được bằng `set`?
-4. `static final`, record component và instance final field của ordinary class có cùng khả năng ghi bằng `Field.set` không?
-5. Vì sao việc Reflection sửa final field sau khi object đã được dùng bởi các luồng không thể coi là cập nhật bình thường?
-6. Nếu cần thay `totalCents` của `Receipt` một cách hợp lệ, cách nào được dùng trong chương trình chạy độc lập?
+1. Does `private final List<String> items` guarantee callers cannot alter the contents of `items`? Why?
+2. `Receipt`'s constructor rejects `totalCents < 0`. If other code directly writes the field to `-100`, does the invariant still hold?
+3. Why can Java Reflection locate a private final field with `getDeclaredField` without necessarily being able to write it with `set`?
+4. Do `static final`, record components, and ordinary-class instance final fields have the same writability via `Field.set`?
+5. Why can using Reflection to modify a final field after an object is already in use by threads not be treated as a normal update?
+6. If `Receipt`'s `totalCents` needs to be changed validly, what approach is used in the standalone runnable program?
 
-**Đáp án:** (1) không; `final` chỉ cố định tham chiếu, phải ngăn mutable alias; (2) không; (3) tra cứu metadata và kiểm tra quyền ghi là hai giai đoạn khác nhau; (4) không; (5) final-field/JMM semantics và tối ưu hóa cho phép kết quả quan sát không như mong đợi; (6) `original.withTotal(newTotal)` tạo một `Receipt` mới qua constructor.
+**Answers:** (1) No; `final` only fixes the reference, so mutable aliases must be prevented; (2) No; (3) Metadata lookup and write-permission checking are two separate stages; (4) No; (5) Final-field/JMM semantics and optimizations allow unexpected observed results; (6) `original.withTotal(newTotal)` creates a new `Receipt` via the constructor.
 
-## 11. Kết luận và tài liệu kỹ thuật
+## 11. Conclusion and Technical References
 
-**Constructor và factory là ranh giới tạo ra trạng thái hợp lệ; `final` hỗ trợ thiết kế trạng thái ổn định; Reflection là công cụ truy cập metadata và field theo các quy tắc nghiêm ngặt.** Việc một final instance field có thể bị sửa trong trường hợp đặc biệt không làm cho `Field.set` trở thành API thay thế constructor hoặc phương pháp chỉnh sửa immutable object. Luôn duy trì invariant, kiểm soát alias và lifecycle công bố object trước khi nghĩ tới phép sửa field ở mức thấp.
+**Constructors and factories are the boundary that creates valid state; `final` supports stable state design; Reflection is a tool for accessing metadata and fields under strict rules.** The fact that a final instance field can be modified in special cases does not make `Field.set` a replacement for constructors or a way to edit immutable objects. Always preserve invariants, control aliases, and respect the object-publication lifecycle before considering low-level field mutation.
 
-Tham khảo đặc tả chính thức:
+Official specification references:
 
-- [Java SE 21 – `java.lang.reflect.Field.set`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Field.html#set(java.lang.Object,java.lang.Object)): điều kiện ghi field và giới hạn đối với final field.
-- [Java Language Specification 17 – `17.5 final Field Semantics`](https://docs.oracle.com/javase/specs/jls/se17/html/jls-17.html#jls-17.5): ý nghĩa final field trong Java Memory Model.
-- [JLS `17.5.3 – Subsequent Modification of final Fields](https://docs.oracle.com/javase/specs/jls/se17/html/jls-17.html#jls-17.5.3): trường hợp tái dựng đặc thù và rủi ro khi sửa final field sau constructor.
+- [Java SE 21 – `java.lang.reflect.Field.set`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Field.html#set(java.lang.Object,java.lang.Object)): field write conditions and limits for final fields.
+- [Java Language Specification 17 – `17.5 final Field Semantics`](https://docs.oracle.com/javase/specs/jls/se17/html/jls-17.html#jls-17.5): meaning of final fields in the Java Memory Model.
+- [JLS §17.5.3 – Subsequent Modification of final Fields](https://docs.oracle.com/javase/specs/jls/se17/html/jls-17.html#jls-17.5.3): specialized reconstruction cases and risks when modifying final fields after the constructor.

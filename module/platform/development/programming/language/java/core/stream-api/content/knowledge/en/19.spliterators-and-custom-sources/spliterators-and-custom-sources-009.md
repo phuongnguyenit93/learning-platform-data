@@ -1,19 +1,19 @@
-# Thiết kế Spliterator từ Iterator với kích thước biết trước hoặc chưa biết
+# Designing a Spliterator from an Iterator with Known or Unknown Size
 
-Trong chương **Spliterator và nguồn tự định nghĩa** của **Java Stream API**, không phải nguồn dữ liệu nào cũng đã cung cấp `Stream` hoặc `Spliterator`. Một thư viện cũ có thể chỉ trả về `Iterator<T>`; một hệ thống phân trang có thể lấy phần tử lần lượt; một bộ đọc tệp có thể cung cấp từng bản ghi nhưng không biết trước tổng số bản ghi. Muốn kết hợp các nguồn này với `filter`, `map`, `reduce`, `collect` hoặc xử lý song song, ta có thể **bọc Iterator thành Spliterator** rồi dùng `StreamSupport.stream(...)`.
+In the **Spliterators and Custom Sources** chapter of the **Java Stream API**, not every data source already provides a `Stream` or `Spliterator`. A legacy library might only return an `Iterator<T>`; a pagination system might fetch elements sequentially; a file reader might yield records without knowing the total record count upfront. To combine these sources with `filter`, `map`, `reduce`, `collect`, or parallel processing, you can **wrap the Iterator into a Spliterator** and pass it to `StreamSupport.stream(...)`.
 
-Lựa chọn quan trọng nhất là: **có biết chính xác số phần tử còn lại hay không?**
+The most critical choice is: **do you know the exact remaining element count or not?**
 
-- **Biết chính xác**: dùng `Spliterators.spliterator(iterator, size, characteristics)`.
-- **Chưa biết chính xác**: dùng `Spliterators.spliteratorUnknownSize(iterator, characteristics)`.
+- **Known exactly**: use `Spliterators.spliterator(iterator, size, characteristics)`.
+- **Not known exactly**: use `Spliterators.spliteratorUnknownSize(iterator, characteristics)`.
 
-Hai factory giống nhau về mục tiêu chuyển đổi nhưng có hợp đồng khác nhau về **kích thước, đặc tính `SIZED`/`SUBSIZED` và khả năng tối ưu**. Bài này giải thích cách chọn factory, khai báo characteristics trung thực, hiểu `tryAdvance`/`trySplit` và tránh lỗi về số lượng, thứ tự, tài nguyên hoặc trạng thái của Iterator.
+Both factories share the same wrapping goal yet carry different contracts regarding **size, `SIZED`/`SUBSIZED` characteristics, and optimization opportunities**. This lesson explains how to pick the right factory, declare characteristics honestly, understand `tryAdvance`/`trySplit`, and avoid pitfalls with counts, ordering, resources, or Iterator state.
 
-**Phiên bản Java:** `Spliterators`, `Spliterator` và `StreamSupport` có từ Java 8. Một số ví dụ dùng `List.of(...)` (Java 9+), `Path.of(...)` (Java 11+) và `Stream.toList()` (Java 16+). Nếu học trên Java 8, có thể thay bằng `Arrays.asList(...)`, `Paths.get(...)` và `collect(Collectors.toList())` tương ứng; với lớp vô danh `new Iterator<>()`, Java 8 cần viết đầy đủ kiểu như `new Iterator<Integer>()`.
+**Java version:** `Spliterators`, `Spliterator`, and `StreamSupport` have existed since Java 8. Some examples use `List.of(...)` (Java 9+), `Path.of(...)` (Java 11+), and `Stream.toList()` (Java 16+). If studying on Java 8, substitute `Arrays.asList(...)`, `Paths.get(...)`, and `collect(Collectors.toList())` respectively; for anonymous classes `new Iterator<>()`, Java 8 requires explicit type arguments such as `new Iterator<Integer>()`.
 
-## 1. Iterator và Spliterator khác nhau như thế nào?
+## 1. How Do Iterator and Spliterator Differ?
 
-`Iterator<T>` cung cấp một giao diện duyệt tuần tự cơ bản:
+`Iterator<T>` provides a basic sequential traversal interface:
 
 ~~~java
 import java.util.Iterator;
@@ -22,24 +22,24 @@ Iterator<String> iterator = source.iterator();
 
 while (iterator.hasNext()) {
     String value = iterator.next();
-    // Xử lý một phần tử.
+    // Process one element.
 }
 ~~~
 
-Hai phương thức `hasNext()` và `next()` giúp lấy lần lượt các phần tử. Tuy nhiên, `Iterator` không có phương thức chuẩn để công bố tổng số phần tử còn lại, chia nguồn thành phần con hoặc mô tả các đặc tính như `DISTINCT` hay `ORDERED`.
+The two methods `hasNext()` and `next()` retrieve elements one by one. However, `Iterator` has no standard method to publish remaining element counts, split a source into sub-parts, or describe properties like `DISTINCT` or `ORDERED`.
 
-`Spliterator<T>` mở rộng mô hình duyệt theo cách phù hợp hơn với Stream API:
+`Spliterator<T>` extends the traversal model in a way better suited to the Stream API:
 
-| Khả năng | `Iterator<T>` | `Spliterator<T>` |
+| Capability | `Iterator<T>` | `Spliterator<T>` |
 | --- | --- | --- |
-| Yêu cầu một phần tử | `hasNext()` rồi `next()` | `tryAdvance(Consumer)` |
-| Duyệt những phần tử còn lại | `forEachRemaining(Consumer)` | `forEachRemaining(Consumer)` |
-| Ước lượng số phần tử còn lại | Không có API chung | `estimateSize()` |
-| Khai báo kích thước chính xác | Không có API chung | Characteristic `SIZED` |
-| Chia phần việc | Không có API chung | `trySplit()` |
-| Khai báo thứ tự / tính chất nguồn | Không có API chung | `characteristics()`, `hasCharacteristics(...)` |
+| Request one element | `hasNext()` then `next()` | `tryAdvance(Consumer)` |
+| Traverse remaining elements | `forEachRemaining(Consumer)` | `forEachRemaining(Consumer)` |
+| Estimate remaining count | No common API | `estimateSize()` |
+| Declare exact size | No common API | `SIZED` characteristic |
+| Split work units | No common API | `trySplit()` |
+| Declare order / source properties | No common API | `characteristics()`, `hasCharacteristics(...)` |
 
-Ví dụ gọi một `Spliterator`:
+Example invoking a `Spliterator`:
 
 ~~~java
 import java.util.List;
@@ -47,30 +47,30 @@ import java.util.Spliterator;
 
 Spliterator<String> split = List.of("A", "B", "C").spliterator();
 
-split.tryAdvance(System.out::println);       // In A, trả true.
-split.forEachRemaining(System.out::println);  // In B rồi C.
+split.tryAdvance(System.out::println);       // Prints A, returns true.
+split.forEachRemaining(System.out::println);  // Prints B then C.
 ~~~
 
-Cả Iterator và Spliterator đều là công cụ **duyệt tiến**, không tự động quay lại đầu nguồn sau khi đã tiêu thụ. `Spliterator` cũng không biến một nguồn chỉ đọc tuần tự thành nguồn chia nhỏ hiệu quả chỉ vì có phương thức `trySplit()`.
+Both Iterator and Spliterator are **forward-only traversal** tools; neither automatically rewinds to the start once consumed. `Spliterator` also does not magically turn a sequential-only source into an efficiently splittable source merely by having a `trySplit()` method.
 
-## 2. Hai factory từ Iterator cần phân biệt
+## 2. Two Iterator Factories to Distinguish
 
-Lớp tiện ích `java.util.Spliterators` cung cấp hai phương thức dùng trực tiếp với `Iterator`:
+The `java.util.Spliterators` utility class provides two methods directly for `Iterator`:
 
 ~~~java
-// Biết chính xác số phần tử còn lại:
+// Exact remaining element count known:
 static <T> Spliterator<T> spliterator(
         Iterator<? extends T> iterator,
         long size,
         int characteristics);
 
-// Không biết chính xác số phần tử còn lại:
+// Exact remaining element count unknown:
 static <T> Spliterator<T> spliteratorUnknownSize(
         Iterator<? extends T> iterator,
         int characteristics);
 ~~~
 
-Sau khi có `Spliterator<T>`, tạo Stream bằng:
+Once you have a `Spliterator<T>`, create a Stream via:
 
 ~~~java
 import java.util.stream.Stream;
@@ -79,25 +79,25 @@ import java.util.stream.StreamSupport;
 Stream<T> stream = StreamSupport.stream(spliterator, false);
 ~~~
 
-`false` yêu cầu pipeline tuần tự; `true` yêu cầu chế độ song song. Ở đây `T` là kiểu phần tử thực tế của nguồn; các đoạn mã minh họa chữ ký tổng quát, còn ví dụ đầy đủ bên dưới sẽ dùng `String` và `Integer` cụ thể.
+`false` requests a sequential pipeline; `true` requests parallel mode. Here `T` stands for the source's actual element type; these snippets illustrate generic signatures, while full examples below use concrete `String` and `Integer`.
 
-### Bảng so sánh
+### Comparison table
 
-| Tiêu chí | `spliterator(iterator, size, flags)` | `spliteratorUnknownSize(iterator, flags)` |
+| Criterion | `spliterator(iterator, size, flags)` | `spliteratorUnknownSize(iterator, flags)` |
 | --- | --- | --- |
-| Thông tin độ dài | Caller cung cấp **số phần tử còn lại chính xác** | Không cần thông tin độ dài |
-| `estimateSize()` ban đầu | Dựa trên `size` đã cung cấp | Dùng giá trị ước lượng không xác định, thường là `Long.MAX_VALUE` |
-| `SIZED` / `SUBSIZED` | Được bổ sung theo hợp đồng của factory, trừ trường hợp công bố `CONCURRENT` | Không công bố `SIZED` hay `SUBSIZED` |
-| Có thể dùng với nguồn hữu hạn | Có, nếu biết số lượng chính xác | Có, kể cả nguồn hữu hạn |
-| Có thể dùng với nguồn không giới hạn | Không phù hợp nếu không có số lượng hữu hạn chính xác | Có thể bọc, nhưng terminal operation cần điểm dừng |
-| Khả năng chia việc | Có thể tách theo lô bằng cách đọc Iterator vào mảng | Cũng có thể tách theo lô, không cần biết trước tổng số |
-| Rủi ro chính | Cung cấp `size` sai làm vi phạm hợp đồng nguồn | Không có tối ưu dựa trên kích thước chính xác |
+| Length information | Caller provides **exact remaining element count** | No length information needed |
+| Initial `estimateSize()` | Based on the supplied `size` | Uses unknown-size estimate, typically `Long.MAX_VALUE` |
+| `SIZED` / `SUBSIZED` | Added per factory contract, except when `CONCURRENT` is declared | Does not declare `SIZED` or `SUBSIZED` |
+| Usable with finite sources | Yes, when exact count is known | Yes, including finite sources |
+| Usable with unbounded sources | Inappropriate without exact finite count | Can wrap, though terminal operation needs a stopping point |
+| Work splitting capability | Can split in batches by buffering Iterator into arrays | Can also split in batches without knowing total count upfront |
+| Main risk | Passing wrong `size` violates source contract | No optimizations based on exact size |
 
-**Không biết kích thước ≠ nguồn vô hạn.** Một Iterator có thể kết thúc sau năm phần tử nhưng không có phương thức nào cho biết con số năm từ trước. Đây chính là trường hợp nên dùng `spliteratorUnknownSize`.
+**Unknown size ≠ infinite source.** An Iterator might terminate after five elements yet expose no method revealing the number five beforehand. That is precisely when `spliteratorUnknownSize` should be used.
 
-## 3. Trường hợp 1: biết chính xác kích thước
+## 3. Case 1: Exact Size Known
 
-Giả sử có một Iterator và metadata độc lập xác nhận số phần tử còn lại. Ví dụ đơn giản nhất là Iterator vừa tạo từ một danh sách không bị sửa trong lúc xử lý.
+Suppose you have an Iterator and independent metadata confirming the remaining element count. The simplest example is an Iterator freshly obtained from a list that will not be mutated during processing.
 
 ~~~java
 import java.util.Iterator;
@@ -116,7 +116,7 @@ public class KnownSizeIteratorDemo {
         );
 
         Iterator<String> iterator = events.iterator();
-        long remaining = events.size(); // Đúng tại thời điểm tạo Iterator.
+        long remaining = events.size(); // Accurate when Iterator is created.
 
         Spliterator<String> split = Spliterators.spliterator(
                 iterator,
@@ -142,28 +142,28 @@ public class KnownSizeIteratorDemo {
 }
 ~~~
 
-Giải thích từng đối số của factory:
+Explanation of each factory argument:
 
-1. `iterator` là **nguồn duyệt**, sẽ được tiêu thụ khi Spliterator hoặc Stream cần phần tử.
-2. `remaining = 4` là **số phần tử còn lại**, không phải dung lượng vùng chứa hay số lượng từng được sinh ra.
-3. `Spliterator.ORDERED` khẳng định nguồn có *encounter order* theo danh sách.
-4. `Spliterator.NONNULL` phù hợp vì `List.of(...)` không chứa `null`.
-5. Factory biết kích thước thông thường công bố `SIZED` và `SUBSIZED`, giúp downstream có thêm thông tin để lập kế hoạch xử lý.
+1. `iterator` is the **traversal source**, consumed as the Spliterator or Stream requests elements.
+2. `remaining = 4` is the **remaining element count**, not container capacity or previously generated totals.
+3. `Spliterator.ORDERED` asserts the source has a list-based *encounter order*.
+4. `Spliterator.NONNULL` fits because `List.of(...)` disallows `null`.
+5. The known-size factory normally declares `SIZED` and `SUBSIZED`, giving downstream stages extra planning metadata.
 
-Đây là ví dụ để hiểu factory; trong chương trình thực tế, nếu đã có `List` thì thường dùng `events.stream()` hoặc `events.spliterator()` sẽ trực tiếp và tự nhiên hơn. Cách bọc Iterator có giá trị khi nguồn chỉ cung cấp API Iterator.
+This example illustrates the factory; in real programs, when you already hold a `List`, calling `events.stream()` or `events.spliterator()` directly is more natural. Wrapping an Iterator adds value when a source exposes only an Iterator API.
 
-### Kích thước phải là số phần tử **còn lại**
+### Size must be the **remaining** element count
 
-Giả sử danh sách có năm phần tử nhưng Iterator đã trả hai phần tử:
+Suppose a list has five elements, yet the Iterator has already yielded two:
 
 ~~~java
 List<Integer> values = List.of(10, 20, 30, 40, 50);
 Iterator<Integer> it = values.iterator();
 
-it.next(); // Đã lấy 10.
-it.next(); // Đã lấy 20.
+it.next(); // Already took 10.
+it.next(); // Already took 20.
 
-// Iterator lúc này chỉ còn 30, 40, 50.
+// Iterator now only has 30, 40, 50 left.
 Spliterator<Integer> rest = Spliterators.spliterator(
         it,
         3L,
@@ -171,44 +171,44 @@ Spliterator<Integer> rest = Spliterators.spliterator(
 );
 ~~~
 
-Truyền `5L` vào factory tại thời điểm này là **khai báo sai**. Nếu không còn biết chính xác số phần tử chưa duyệt, dùng `spliteratorUnknownSize` an toàn hơn việc đoán.
+Passing `5L` to the factory at this point is a **false declaration**. If you no longer know the exact untraversed count, using `spliteratorUnknownSize` is safer than guessing.
 
-> **Quy tắc:** “Biết trước kích thước” chỉ đúng khi con số cung cấp phản ánh chính xác phần tử còn lại theo hợp đồng nguồn, không phải một dự đoán hoặc thông tin đã hết hiệu lực.
+> **Rule:** "Known size" holds only when the supplied count accurately reflects remaining elements per source contract, not an estimate or stale metadata.
 
-## 4. Vì sao báo kích thước sai lại nguy hiểm?
+## 4. Why Is Reporting a Wrong Size Dangerous?
 
-Một `Spliterator` có `SIZED` cam kết kích thước theo hợp đồng API; Stream có quyền dùng thông tin này cho tối ưu hóa.
+A `SIZED` `Spliterator` guarantees its size under the API contract; a Stream is entitled to use this information for optimizations.
 
-Ví dụ **không nên dùng**:
+Example **to avoid**:
 
 ~~~java
-// Sai: Iterator thực sự chỉ có ba phần tử.
+// Wrong: Iterator actually contains only three elements.
 Iterator<Integer> it = List.of(1, 2, 3).iterator();
 
 Spliterator<Integer> wrong = Spliterators.spliterator(
         it,
-        100L, // Không đúng số phần tử còn lại.
+        100L, // Incorrect remaining element count.
         Spliterator.ORDERED
 );
 ~~~
 
-Nếu tạo Stream từ `wrong` và gọi `count()`, một số triển khai/phiên bản JDK có thể dựa trên thông tin `SIZED` thay vì duyệt từng phần tử, nên kết quả hoặc hành vi có thể không đúng với nguồn thực tế. Khi kết hợp `limit`, `skip`, xử lý song song hoặc phép thu thập dùng mảng, một kích thước sai cũng có thể làm các giả định nội bộ không còn hợp lệ.
+If you build a Stream from `wrong` and call `count()`, some JDK implementations or versions may rely on `SIZED` metadata instead of traversing every element, so results or behavior may diverge from the actual source. Combined with `limit`, `skip`, parallel execution, or array-backed collection, a wrong size can also invalidate internal assumptions.
 
-Không cần khẳng định phương thức nào *chắc chắn* trả sai trên mọi JDK để thấy vấn đề: **bản thân đặc tả của Spliterator đã bị vi phạm**.
+You do not need to assert which specific method *always* returns wrong values across every JDK to see the flaw: **the Spliterator specification itself has been violated**.
 
-Các tình huống dễ đưa ra số lượng sai:
+Situations prone to producing wrong counts:
 
-- Dùng kích thước ban đầu sau khi đã gọi `next()` nhiều lần.
-- Nguồn có thể thêm/xóa phần tử trong lúc duyệt.
-- Đọc metadata “tổng số bản ghi” nhưng Iterator chỉ trả những bản ghi vượt qua bộ lọc nội bộ.
-- Số phần tử trong API phân trang là ước lượng, không phải con số cuối.
-- Coi giới hạn cấp phát bộ đệm là số phần tử còn lại.
+- Passing the initial size after already calling `next()` several times.
+- Sources that can add/remove items during traversal.
+- Reading a "total record count" metadata field when the Iterator only returns records passing an internal filter.
+- Pagination API counts that are approximations rather than exact final totals.
+- Treating buffer allocation limits as remaining element counts.
 
-Khi chỉ biết **giới hạn trên** hoặc số lượng dự kiến, không truyền con số đó làm kích thước chính xác cho factory báo `SIZED`.
+When you only know an **upper bound** or expected count, never pass that number as an exact size to a `SIZED`-reporting factory.
 
-## 5. Trường hợp 2: chưa biết trước số phần tử
+## 5. Case 2: Element Count Unknown Upfront
 
-Giả sử một Iterator phát ra các số lẻ cho đến khi hết dữ liệu. Người sử dụng Iterator không cần biết trước tổng số để bắt đầu duyệt.
+Suppose an Iterator emits odd numbers until exhausted. The Iterator consumer does not need to know the total count upfront to begin traversing.
 
 ~~~java
 import java.util.Iterator;
@@ -257,11 +257,11 @@ public class UnknownSizeIteratorDemo {
 }
 ~~~
 
-Factory không cần `size`. Dù nguồn ví dụ thực sự dừng sau **năm** phần tử, Spliterator **không công bố số lượng chính xác từ trước**. Stream vẫn tiêu thụ từng phần tử cho tới khi Iterator báo `hasNext() == false`.
+The factory requires no `size`. Even though the sample source actually stops after **five** elements, the Spliterator **does not publish an exact count in advance**. The Stream still consumes elements one by one until the Iterator reports `hasNext() == false`.
 
-Nếu nguồn có thể bị chặn khi tìm phần tử kế tiếp, `spliteratorUnknownSize` không tự tạo timeout hay giới hạn lượt đọc. Tương tự, nếu Iterator thực sự vô hạn, `collect` hoặc `toList` không thể kết thúc bằng cách duyệt đến hết. Cần thêm điều kiện dừng hữu hạn như `limit(n)` khi bài toán cho phép.
+If the source can block while fetching the next element, `spliteratorUnknownSize` does not add timeouts or read limits automatically. Similarly, if the Iterator is truly infinite, `collect` or `toList` cannot terminate by exhausting it. Add a finite stopping condition like `limit(n)` when appropriate for the problem.
 
-### Không gắn SIZED cho nguồn không biết kích thước
+### Do not attach SIZED to an unknown-size source
 
 ~~~java
 Spliterator<Integer> split = Spliterators.spliteratorUnknownSize(
@@ -270,9 +270,9 @@ Spliterator<Integer> split = Spliterators.spliteratorUnknownSize(
 );
 ~~~
 
-Factory `spliteratorUnknownSize` loại bỏ các cờ `SIZED` và `SUBSIZED` mà caller có thể truyền vào. Việc truyền hai cờ này không biến nguồn thành nguồn biết trước kích thước.
+The `spliteratorUnknownSize` factory strips any `SIZED` and `SUBSIZED` flags that a caller might pass in. Passing those two flags does not turn the source into a known-size source.
 
-Cách viết rõ ràng hơn:
+Clearer code:
 
 ~~~java
 Spliterator<Integer> split = Spliterators.spliteratorUnknownSize(
@@ -281,22 +281,22 @@ Spliterator<Integer> split = Spliterators.spliteratorUnknownSize(
 );
 ~~~
 
-Hãy chỉ công bố các đặc tính thật sự được nguồn bảo đảm.
+Only publish characteristics genuinely guaranteed by the source.
 
-## 6. SIZED, SUBSIZED và estimateSize khác nhau ra sao?
+## 6. How Do SIZED, SUBSIZED, and estimateSize Differ?
 
-`SIZED` và `SUBSIZED` là **characteristics**, còn `estimateSize()` là một phương thức trên `Spliterator`.
+`SIZED` and `SUBSIZED` are **characteristics**, whereas `estimateSize()` is a method on `Spliterator`.
 
-| Khái niệm | Ý nghĩa |
+| Concept | Meaning |
 | --- | --- |
-| `estimateSize()` | Ước lượng số phần tử còn lại; có thể là giá trị gần đúng hoặc `Long.MAX_VALUE` nếu không biết/không có giới hạn hữu hạn được biết. |
-| `SIZED` | Công bố rằng ước lượng kích thước là chính xác theo hợp đồng khi không có biến đổi cấu trúc nguồn. |
-| `SUBSIZED` | Công bố rằng Spliterator này và mọi Spliterator do nó phân tách cũng có `SIZED`. |
-| `getExactSizeIfKnown()` | Trả kích thước nếu Spliterator có `SIZED`; nếu không, trả `-1`. |
+| `estimateSize()` | Estimates remaining elements; may be approximate or `Long.MAX_VALUE` when unknown or no finite bound is known. |
+| `SIZED` | Declares that the size estimate is exact per contract absent structural source changes. |
+| `SUBSIZED` | Declares that this Spliterator and all Spliterators split from it also have `SIZED`. |
+| `getExactSizeIfKnown()` | Returns the size if `SIZED` is present; otherwise returns `-1`. |
 
-Đối với factory bọc Iterator **biết chính xác kích thước**, `SIZED` và `SUBSIZED` thường được thêm tự động, ngoại trừ trường hợp `CONCURRENT` được cung cấp theo hợp đồng factory. Đối với factory **không biết kích thước**, các cờ `SIZED`/`SUBSIZED` không được công bố.
+For the factory wrapping a **known-size** Iterator, `SIZED` and `SUBSIZED` are generally added automatically, except when `CONCURRENT` is supplied per factory contract. For the **unknown-size** factory, `SIZED`/`SUBSIZED` are never declared.
 
-Với Spliterator không biết kích thước, giá trị `Long.MAX_VALUE` thường đóng vai trò *sentinel* cho kích thước chưa xác định, **không phải bằng chứng rằng nguồn thực sự có 9,22 × 10¹⁸ phần tử** hoặc vô hạn.
+For an unknown-size Spliterator, `Long.MAX_VALUE` typically acts as a *sentinel* for undetermined size, **not proof that the source literally contains 9.22 × 10¹⁸ elements** or is infinite.
 
 ~~~java
 Spliterator<Integer> split = Spliterators.spliteratorUnknownSize(
@@ -308,47 +308,47 @@ System.out.println(split.estimateSize() == Long.MAX_VALUE); // true
 System.out.println(split.getExactSizeIfKnown());             // -1
 ~~~
 
-Ở ví dụ trên Iterator chỉ có ba phần tử. `estimateSize()` chưa xác định bởi vì factory không nhận được kích thước, chứ không phải vì nguồn không bao giờ kết thúc.
+In the example above, the Iterator has only three elements. `estimateSize()` is undetermined because the factory was not given a size, not because the source never ends.
 
-Không nên đặt logic nghiệp vụ như “chọn mảng có đúng `estimateSize()` phần tử” khi `SIZED` không tồn tại. Với nguồn lớn, ngay cả `SIZED` cũng cần xét giới hạn kích thước mảng và bộ nhớ trước khi vật hóa toàn bộ Stream.
+Never write business logic like "allocate an array of exact length `estimateSize()`" when `SIZED` is absent. For large sources, even with `SIZED`, evaluate array length limits and memory capacity before materializing an entire Stream.
 
-## 7. Chọn characteristics trung thực
+## 7. Choosing Characteristics Honestly
 
-Đối số `characteristics` là tổ hợp cờ bit, ví dụ `Spliterator.ORDERED | Spliterator.NONNULL`. Không nên thêm càng nhiều cờ càng tốt; **mỗi cờ là một lời cam kết của nguồn**.
+The `characteristics` argument is a bit-flag combination, such as `Spliterator.ORDERED | Spliterator.NONNULL`. Do not pile on as many flags as possible; **every flag is a commitment made by the source**.
 
-| Characteristic | Chỉ khai báo khi | Lưu ý |
+| Characteristic | Declare Only When | Note |
 | --- | --- | --- |
-| `ORDERED` | Nguồn có encounter order được định nghĩa | Iterator từ `List` có thứ tự; Iterator từ `HashSet` không có thứ tự duyệt được cam kết. |
-| `NONNULL` | Không phần tử nào là `null` | Nếu có thể có `null`, bỏ cờ này. |
-| `DISTINCT` | Không có hai phần tử trùng nhau theo quy tắc bằng nhau của nguồn | Không gắn cho log sự kiện có thể lặp giá trị. |
-| `IMMUTABLE` | Nguồn không thể bị sửa cấu trúc trong quá trình duyệt theo hợp đồng | Không đồng nghĩa với “caller hứa sẽ không sửa” nếu bản thân nguồn mutable và không có bảo đảm phù hợp. |
-| `CONCURRENT` | Nguồn được thiết kế để chấp nhận thay đổi đồng thời trong lúc duyệt | Không dùng chỉ vì Stream sẽ chạy `parallel()`. |
-| `SORTED` | Nguồn có thứ tự sắp xếp theo hợp đồng của Spliterator | Cần tương thích với `getComparator()`; không gắn chỉ vì dữ liệu trông có vẻ đã sắp xếp. |
-| `SIZED` | Có số phần tử còn lại chính xác | Factory biết kích thước xử lý cờ này theo hợp đồng; đừng tự gắn cho số ước lượng. |
-| `SUBSIZED` | Mọi phần được tách cũng báo kích thước chính xác | Không được suy diễn nếu nguồn phân tách tùy ý, không giữ kích thước chính xác. |
+| `ORDERED` | Source has a defined encounter order | A `List` Iterator is ordered; a `HashSet` Iterator has no guaranteed traversal order. |
+| `NONNULL` | No element is `null` | If `null` can appear, omit this flag. |
+| `DISTINCT` | No two elements are duplicates per source equality rules | Do not attach to event logs that may repeat values. |
+| `IMMUTABLE` | Source cannot be structurally modified during traversal per contract | Not equivalent to "caller promises not to edit" if the source itself is mutable without guarantees. |
+| `CONCURRENT` | Source is designed to accept concurrent edits during traversal | Do not set merely because the Stream will call `parallel()`. |
+| `SORTED` | Source follows a sort order per Spliterator contract | Must pair with `getComparator()`; do not attach just because data looks sorted. |
+| `SIZED` | Exact remaining element count is known | Known-size factory manages this per contract; never attach to estimates. |
+| `SUBSIZED` | Every split part also reports exact size | Cannot be inferred if splitting is arbitrary without preserving exact sizes. |
 
-Ví dụ một nguồn mã sự kiện có thứ tự, có thể chứa `null` và có bản ghi lặp:
+Example of an ordered event-code source that may contain `null` and duplicate records:
 
 ~~~java
 int characteristics = Spliterator.ORDERED;
-// Không khai báo NONNULL, DISTINCT hay SORTED nếu không thể bảo đảm.
+// Do not declare NONNULL, DISTINCT, or SORTED unless guaranteed.
 ~~~
 
-Nếu có thể bảo đảm từng phần tử không bao giờ `null`:
+If each element is guaranteed never to be `null`:
 
 ~~~java
 int characteristics = Spliterator.ORDERED | Spliterator.NONNULL;
 ~~~
 
-### Lưu ý với nguồn có thể thay đổi
+### Note on mutable sources
 
-Spliterator được bọc từ một `Iterator` kế thừa các hạn chế của Iterator đó. Nếu collection nguồn bị sửa trong khi Stream đang duyệt, hành vi phụ thuộc hợp đồng collection/iterator: có thể có `ConcurrentModificationException`, có thể quan sát dữ liệu yếu nhất quán hoặc có kết quả không được bảo đảm.
+A Spliterator wrapped around an `Iterator` inherits that Iterator's constraints. If the underlying collection is modified while the Stream is traversing it, behavior depends on the collection/iterator contract: `ConcurrentModificationException` may be thrown, weakly consistent data may be observed, or results may become undefined.
 
-**Không có “phép màu” về thread safety khi dùng `Spliterators`.** Chỉ khai báo `CONCURRENT` nếu nguồn thực sự bảo đảm semantics đó. Khi dùng nguồn thông thường, tránh sửa collection trong khi duyệt và tránh nhiều luồng truy cập trực tiếp cùng Iterator.
+**There is no thread-safety "magic" from `Spliterators`.** Only declare `CONCURRENT` if the source genuinely upholds those semantics. For ordinary sources, avoid modifying the collection during traversal and avoid concurrent access from multiple threads to the same Iterator.
 
-## 8. tryAdvance: cầu nối từ Iterator sang cơ chế kéo phần tử
+## 8. tryAdvance: Bridging from Iterator to Pull-Based Elements
 
-`Spliterator.tryAdvance(action)` gọi `action` cho một phần tử tiếp theo nếu có, rồi trả về `true`; nếu hết dữ liệu, trả về `false`.
+`Spliterator.tryAdvance(action)` invokes `action` for the next element if one exists and returns `true`; when data is exhausted, it returns `false`.
 
 ~~~java
 import java.util.List;
@@ -364,36 +364,36 @@ Spliterator<Integer> split = Spliterators.spliterator(
 );
 
 boolean firstFound = split.tryAdvance(System.out::println);
-// In 10, firstFound == true.
+// Prints 10, firstFound == true.
 
 split.forEachRemaining(System.out::println);
-// In 20 và 30.
+// Prints 20 and 30.
 
 boolean more = split.tryAdvance(System.out::println);
 // false
 ~~~
 
-`tryAdvance` không tự tạo một phần tử mới; nó lấy tiếp phần tử từ Iterator được bọc. Khi đã gọi một hoặc nhiều lần, Iterator **đã bị tiêu thụ** tương ứng. Nếu sau đó tạo Stream từ cùng Spliterator, Stream chỉ còn nhận phần chưa duyệt, không thể “chạy lại” từ đầu.
+`tryAdvance` does not synthesize a new element; it pulls the next element from the wrapped Iterator. Once called one or more times, the Iterator **has been consumed** accordingly. Creating a Stream afterward from the same Spliterator only sees the untraversed remainder—it cannot "replay" from the start.
 
-Lý do Stream API dựa trên cơ chế kéo phần tử là để các terminal operation có thể yêu cầu dữ liệu khi cần và dừng ở điều kiện thích hợp, ví dụ `findFirst` hoặc `limit`. Tuy vậy, một số thao tác có trạng thái như `sorted` vẫn có thể cần xem nhiều phần tử trước khi xuất kết quả.
+The reason the Stream API is pull-based is so terminal operations can request data on demand and stop at appropriate conditions, such as `findFirst` or `limit`. Still, stateful operations like `sorted` may need to inspect many elements before emitting output.
 
-## 9. trySplit: chia việc theo lô chứ không đảo ngược Iterator
+## 9. trySplit: Batch Splitting Without Reversing the Iterator
 
-`trySplit()` cố tách một phần dữ liệu thành Spliterator mới để xử lý độc lập. Phương thức có thể trả về `null` khi không thể hoặc không đáng tách.
+`trySplit()` attempts to split off a portion of data into a new Spliterator for independent processing. It may return `null` when splitting is impossible or not worthwhile.
 
-Các factory bọc Iterator thường phải **đọc lần lượt một lô phần tử từ Iterator và đặt chúng vào mảng** để tạo phần có thể tách. Vì Iterator không có truy cập ngẫu nhiên, việc chia này không tương đương với thao tác chia dãy theo chỉ số.
+Factories wrapping an Iterator typically must **sequentially read a batch of elements from the Iterator into an array** to construct a splittable chunk. Because an Iterator lacks random access, this split is not equivalent to index-range splitting.
 
 ~~~text
-Iterator gốc:
+Original Iterator:
   A -> B -> C -> D -> E -> F -> ...
 
 trySplit():
-  Đọc một lô từ Iterator vào mảng: [A, B, C]
-  Trả Spliterator tách cho lô [A, B, C]
-  Spliterator gốc giữ phần chưa đọc: D -> E -> F -> ...
+  Reads a batch from Iterator into an array: [A, B, C]
+  Returns split Spliterator for batch [A, B, C]
+  Original Spliterator keeps unread part: D -> E -> F -> ...
 ~~~
 
-Số phần tử mỗi lô và cách chia thật sự do triển khai quyết định; sơ đồ trên chỉ minh họa. Không nên viết mã nghiệp vụ phụ thuộc vào kích thước hoặc số lần `trySplit()`.
+Actual batch sizes and splitting strategies are implementation-defined; the diagram above is illustrative. Never write business logic dependent on chunk sizes or the number of `trySplit()` calls.
 
 ~~~java
 Spliterator<Integer> original = Spliterators.spliterator(
@@ -410,9 +410,9 @@ if (prefix != null) {
 original.forEachRemaining(System.out::println);
 ~~~
 
-Nếu Spliterator có encounter order, phần trả về từ `trySplit()` là một **tiền tố** của phần dữ liệu được chia. Khi duyệt tiền tố trước phần còn lại như ví dụ, có thể tái hiện thứ tự phần tử. Tuy nhiên, `trySplit` **không bắt buộc** phải trả một phần tách trong mọi tình huống.
+If the Spliterator has an encounter order, the part returned by `trySplit()` is a **prefix** of the split data. Traversing the prefix before the remainder, as shown, reconstructs element order. However, `trySplit` is **not required** to return a split in every situation.
 
-### Tác động tới parallel stream
+### Impact on parallel streams
 
 ~~~java
 Spliterator<Integer> split = Spliterators.spliteratorUnknownSize(
@@ -425,13 +425,13 @@ long sum = StreamSupport.stream(split, true)
         .sum();
 ~~~
 
-`true` yêu cầu Stream song song, nhưng **không bảo đảm tốc độ cao hơn**. Việc tách từ Iterator có thể phải đọc tuần tự để tạo lô dữ liệu, phát sinh cấp phát mảng và đồng bộ tác vụ. Nếu nguồn chủ yếu là I/O chậm hoặc phần xử lý trên mỗi phần tử rất nhẹ, chi phí này có thể lớn hơn lợi ích.
+`true` requests a parallel Stream, yet **does not guarantee higher speed**. Splitting an Iterator may require sequential reads to build batches, incurring array allocations and task synchronization. If the source is mostly slow I/O or per-element processing is trivial, this overhead can exceed any benefit.
 
-Nếu nguồn cho phép truy cập theo đoạn hoặc theo chỉ số, một Spliterator tự định nghĩa có `trySplit()` chia khoảng chỉ số có thể hiệu quả hơn. Nhưng điều đó là một bài toán thiết kế nguồn khác; không nên lạm dụng custom Spliterator khi wrapper mặc định đã đủ.
+If a source permits chunked or indexed access, a custom Spliterator whose `trySplit()` divides index ranges may perform better. That is a separate source-design problem, though; do not over-engineer a custom Spliterator when a standard wrapper suffices.
 
-## 10. Ví dụ gần thực tế: nguồn token từ tệp không biết kích thước
+## 10. Near-Real-World Example: Unknown-Size File Token Source
 
-Giả sử ứng dụng nhận một tệp văn bản có số token chưa xác định. `Scanner` tự triển khai `Iterator<String>` và cũng cần được đóng khi sử dụng nguồn tệp. Ta có thể bọc Scanner thành Spliterator không biết kích thước, rồi lọc token.
+Suppose an application receives a text file with an undetermined number of tokens. `Scanner` implements `Iterator<String>` and also needs to be closed when backed by a file. We can wrap `Scanner` into an unknown-size Spliterator and filter tokens.
 
 ~~~java
 import java.io.IOException;
@@ -459,27 +459,27 @@ public class ScannerIteratorSourceDemo {
                     .filter(token -> token.equalsIgnoreCase("ERROR"))
                     .count();
 
-            System.out.println("Số token ERROR: " + errors);
+            System.out.println("ERROR token count: " + errors);
         }
     }
 }
 ~~~
 
-Điều quan trọng trong ví dụ:
+Key points in this example:
 
-- `Scanner` không biết trước số token phải đọc cho tới khi duyệt hết.
-- `spliteratorUnknownSize` không gán kích thước chính xác không có thật.
-- `StreamSupport.stream(split, false)` cho phép dùng Stream API trên nguồn Iterator.
-- `try-with-resources` đóng **Scanner sở hữu tệp** khi xử lý hoàn tất hoặc phát sinh ngoại lệ.
-- `Scanner` phân tách token theo delimiter mặc định (thường là khoảng trắng); ví dụ **đếm token**, không đếm dòng. Muốn xử lý dòng, có thể dùng `Files.lines` với `try-with-resources`.
+- `Scanner` does not know how many tokens exist until traversal finishes.
+- `spliteratorUnknownSize` avoids fabricating a non-existent exact size.
+- `StreamSupport.stream(split, false)` enables Stream API operations on the Iterator source.
+- `try-with-resources` closes the **file-owning `Scanner`** when processing finishes or throws an exception.
+- `Scanner` splits tokens by its default delimiter (typically whitespace); the example **counts tokens**, not lines. To process lines, use `Files.lines` with `try-with-resources`.
 
-Việc đóng Stream được tạo từ một Iterator bất kỳ **không tự động đóng tài nguyên gốc** nếu không có close handler thích hợp. Ở đây Scanner được đóng riêng, vì Scanner mới là đối tượng sở hữu nguồn I/O.
+Closing a Stream created from an arbitrary Iterator **does not automatically close the underlying resource** without an appropriate close handler. Here `Scanner` is closed explicitly because `Scanner` owns the I/O resource.
 
-Nếu nguồn là HTTP cursor hoặc database cursor, nguyên tắc cũng tương tự: phải có **quyền sở hữu vòng đời** rõ ràng; chỉ chuyển sang Spliterator không bảo đảm cursor được giải phóng.
+If the source is an HTTP cursor or database cursor, the same principle holds: **lifecycle ownership** must be explicit; merely converting to a Spliterator does not ensure the cursor is released.
 
-## 11. Biết kích thước: không đồng nghĩa phải vật hóa toàn bộ dữ liệu
+## 11. Known Size Does Not Mean Materializing All Data
 
-Việc biết trước `size` chỉ cung cấp metadata; bọc Iterator không có nghĩa là toàn bộ phần tử được đưa ngay vào List.
+Knowing `size` upfront only supplies metadata; wrapping an Iterator does not mean all elements are immediately loaded into a List.
 
 ~~~java
 Spliterator<String> split = Spliterators.spliterator(
@@ -493,15 +493,15 @@ long matches = StreamSupport.stream(split, false)
         .count();
 ~~~
 
-Trong ví dụ này, `iterator` phải là nguồn `Iterator<String>` và `exactRemainingCount` phải là `long` biểu diễn đúng số phần tử còn lại. Stream có thể duyệt dần các phần tử; `filter` chỉ xử lý dữ liệu khi terminal operation yêu cầu.
+In this example, `iterator` must be an `Iterator<String>` source and `exactRemainingCount` must be a `long` representing the exact remaining element count. The Stream can pull elements lazily; `filter` processes data only as the terminal operation demands.
 
-Tuy nhiên, nếu bật song song, `trySplit` có thể tạo **mảng đệm theo lô** để chia Iterator. Các thao tác như `sorted` hoặc `toList` cũng có thể giữ nhiều phần tử trong bộ nhớ. Không nên suy rằng “nguồn từ Iterator” bảo đảm chi phí bộ nhớ luôn hằng số.
+However, if parallelism is enabled, `trySplit` may allocate **batch buffer arrays** to split the Iterator. Operations like `sorted` or `toList` can also retain many elements in memory. Never assume an "Iterator-backed source" guarantees constant memory usage.
 
-Nếu đã có một `Collection<T>`, nên ưu tiên `collection.stream()` hoặc `collection.spliterator()`. Collection có thể cung cấp Spliterator phù hợp hơn với cấu trúc dữ liệu, tránh bước bọc lại Iterator.
+If you already hold a `Collection<T>`, prefer `collection.stream()` or `collection.spliterator()`. A Collection can provide a Spliterator tailored to its data structure, avoiding the Iterator wrapping layer.
 
-## 12. Một nguồn, một lượt duyệt và quản lý trạng thái
+## 12. One Source, Single Pass, and State Management
 
-Iterator thường là một đối tượng **có trạng thái**. Mỗi lần gọi `next()` tiến nguồn lên một bước. Spliterator bọc Iterator kế thừa tính chất đó:
+An Iterator is typically a **stateful** object. Each `next()` call advances the source by one step. A Spliterator wrapping an Iterator inherits that property:
 
 ~~~java
 Iterator<String> it = List.of("a", "b", "c").iterator();
@@ -513,81 +513,81 @@ Spliterator<String> split = Spliterators.spliteratorUnknownSize(
 List<String> first = StreamSupport.stream(split, false).toList();
 // [a, b, c]
 
-// Không tạo Stream mới từ cùng một Spliterator đã dùng để mong đọc lại.
+// Never build a new Stream from the same consumed Spliterator expecting to re-read.
 ~~~
 
-Bản thân Stream cũng chỉ hỗ trợ một pipeline terminal operation. Khi cần chạy hai phép tổng hợp độc lập, có thể:
+A Stream itself also supports only one terminal operation. When you need two independent aggregations, you can:
 
-1. Đọc một lần rồi thu danh sách hữu hạn, nếu đủ bộ nhớ, sau đó tạo Stream mới từ danh sách.
-2. Dùng một collector kết hợp nhiều chỉ số trong cùng một lượt duyệt.
-3. Nếu nguồn có thể mở lại, **tạo Iterator mới** cho lượt thứ hai và đảm bảo đóng nguồn tương ứng.
+1. Read once into a finite list (if memory permits), then create new Streams from that list.
+2. Use a single collector combining multiple metrics in one pass.
+3. If the source can be reopened, **create a new Iterator** for the second pass and manage closing each source properly.
 
-Không nên dùng một Iterator vừa để “đếm trước” vừa để “duyệt sau” nếu không thể tái tạo Iterator. Làm vậy có thể khiến Stream chỉ còn nhìn thấy phần đuôi, hoặc kích thước khai báo trở thành sai.
+Do not use one Iterator to "pre-count" and then "traverse later" if the Iterator cannot be recreated. Doing so can leave the Stream seeing only the tail, or invalidate the declared size.
 
-## 13. Những đặc tính cần xác minh khi thiết kế nguồn tự định nghĩa
+## 13. Invariants to Verify When Designing Custom Sources
 
-Dù chỉ dùng factory có sẵn, người viết ứng dụng vẫn chịu trách nhiệm về dữ liệu đầu vào và cờ được công bố.
+Even when using standard factories, the application author remains responsible for the input data and declared flags.
 
-### 13.1. Các bất biến về Iterator
+### 13.1. Iterator invariants
 
-Một Iterator bình thường cần đáp ứng:
+A normal Iterator must satisfy:
 
-- `hasNext()` cho biết liệu `next()` có thể trả về phần tử tiếp theo hay không.
-- `next()` trả một phần tử nếu còn; khi hết phải ném `NoSuchElementException`.
-- Nếu hỗ trợ `remove()`, không gọi nó bừa bãi trong lúc Stream đang xử lý cùng nguồn.
-- Không thay đổi nguồn từ bên ngoài theo cách vi phạm hợp đồng Iterator, nhất là trong xử lý song song.
-- Nếu lấy dữ liệu từ I/O hoặc cursor, quản lý tài nguyên độc lập với quyền duyệt.
+- `hasNext()` indicates whether `next()` can return another element.
+- `next()` returns an element if available; once exhausted, it must throw `NoSuchElementException`.
+- If `remove()` is supported, never call it arbitrarily while a Stream is processing the same source.
+- Never mutate the source externally in ways that violate the Iterator contract, especially under parallel execution.
+- If backed by I/O or a cursor, manage resources independently of traversal.
 
-### 13.2. Các bất biến về Spliterator
+### 13.2. Spliterator invariants
 
-Với Spliterator biết kích thước:
+For a known-size Spliterator:
 
-- `size` mô tả **đúng số phần tử còn lại tại thời điểm bọc**, theo hợp đồng của nguồn.
-- `SIZED`/`SUBSIZED` phải nhất quán với cách nguồn được duyệt và chia.
-- `ORDERED`, `NONNULL` và những cờ khác chỉ được khai báo nếu thật sự đúng.
-- `trySplit` có thể trả `null`; code dùng Spliterator không được xem đây là lỗi.
-- Việc đọc phần còn lại phải cung cấp **đúng tập phần tử cần duyệt**, không nhân đôi hay bỏ sót khi phân tách.
-- Không có bảo đảm rằng Stream sẽ gọi `tryAdvance`, `trySplit` hay mapper đúng số lần mà ứng dụng mong đợi nếu những side effect đó không được đặc tả.
+- `size` describes **the exact remaining element count at wrap time**, per the source's contract.
+- `SIZED`/`SUBSIZED` must align with how the source is traversed and split.
+- `ORDERED`, `NONNULL`, and other flags are declared only when genuinely true.
+- `trySplit` may return `null`; Spliterator callers must not treat that as an error.
+- Reading remaining parts must supply **the exact set of elements to traverse**, without duplicating or skipping items across splits.
+- There is no guarantee that the Stream will call `tryAdvance`, `trySplit`, or mappers a specific number of times expected by the application if those side effects are unspecified.
 
-Với Spliterator chưa biết kích thước, các điều kiện tương tự vẫn áp dụng, chỉ khác là không được giả định có số lượng chính xác để tối ưu.
+For an unknown-size Spliterator, the same rules apply, except you must not assume an exact count for optimization.
 
-## 14. Bảng quyết định: chọn cách chuyển nguồn
+## 14. Decision Table: Choosing How to Adapt a Source
 
-| Tình huống | Cách chọn | Lý do |
+| Situation | Choice | Reason |
 | --- | --- | --- |
-| Đã có `List<T>` hoặc `Collection<T>` | `collection.stream()` | Nguồn đã hỗ trợ Stream, không cần bọc Iterator. |
-| API cũ chỉ trả Iterator nhưng có metadata chính xác về số phần tử còn lại | `spliterator(iterator, size, flags)` | Có thể công bố kích thước chính xác. |
-| API chỉ trả Iterator, không biết trước còn bao nhiêu phần tử | `spliteratorUnknownSize(iterator, flags)` | Không tạo cam kết sai về `SIZED`. |
-| Chỉ có giới hạn trên hoặc dự báo số phần tử | `spliteratorUnknownSize(iterator, flags)` | Ước lượng không phải kích thước chính xác. |
-| Iterator đã bị tiêu thụ một phần nhưng chỉ có kích thước ban đầu | `spliteratorUnknownSize(...)` hoặc tính lại số còn lại chính xác | Không khai báo số cũ là `size`. |
-| Cần xử lý song song hiệu quả trên nguồn có thể chia theo chỉ số | Cân nhắc Spliterator tự định nghĩa | Wrapper Iterator thường phải gom phần tử theo lô. |
-| Nguồn gắn tệp, Scanner, socket hoặc cursor | Bọc phù hợp **và** quản lý AutoCloseable nguồn | `StreamSupport` không tự giải phóng tài nguyên của Iterator tùy ý. |
-| Nguồn không giới hạn nhưng chỉ lấy N phần tử | `spliteratorUnknownSize(...), rồi limit(N)` | Tạo ranh giới hữu hạn cho terminal operation. |
+| Already have `List<T>` or `Collection<T>` | `collection.stream()` | Source already supports Stream; no Iterator wrapping needed. |
+| Legacy API returns only Iterator, with exact metadata for remaining count | `spliterator(iterator, size, flags)` | Exact size can be safely declared. |
+| API returns only Iterator, remaining count unknown upfront | `spliteratorUnknownSize(iterator, flags)` | Avoids making false `SIZED` promises. |
+| Only an upper bound or forecast count is known | `spliteratorUnknownSize(iterator, flags)` | An estimate is not an exact size. |
+| Iterator partially consumed while only initial size is known | `spliteratorUnknownSize(...)` or recompute exact remaining count | Never pass stale initial count as `size`. |
+| Need efficient parallel processing on an index-splittable source | Consider a custom Spliterator | Iterator wrappers usually batch-buffer elements. |
+| Source backed by file, Scanner, socket, or cursor | Wrap appropriately **and** manage AutoCloseable resource | `StreamSupport` does not auto-release arbitrary Iterator resources. |
+| Unbounded source where only N elements are needed | `spliteratorUnknownSize(...)`, then `limit(N)` | Establishes a finite boundary for the terminal operation. |
 
-## 15. Bẫy thường gặp và cách sửa
+## 15. Common Pitfalls and Fixes
 
-| Dấu hiệu | Nguyên nhân | Hướng sửa |
+| Symptom | Cause | Fix |
 | --- | --- | --- |
-| `count()` có kết quả kỳ lạ hoặc pipeline tối ưu bỏ qua phần tử | Dùng `spliterator(iterator, size, ...)` với `size` không chính xác | Chỉ truyền số còn lại chính xác; nếu không chắc, dùng `spliteratorUnknownSize`. |
-| `getExactSizeIfKnown()` trả `-1` dù nguồn cuối cùng hữu hạn | Factory không được cung cấp kích thước chính xác | Đây là hành vi đúng; không cần tự gắn `SIZED`. |
-| Có giá trị `Long.MAX_VALUE` ở `estimateSize()` | Kích thước chưa biết | Không coi là số phần tử thực hoặc bắt buộc vô hạn. |
-| Tạo Stream xong nhưng một số phần tử biến mất | Iterator đã bị gọi `next()` trước khi tạo Spliterator | Bọc từ đúng vị trí và cập nhật số còn lại. |
-| Kết quả đổi sau khi sửa collection nguồn | Vi phạm giả định ổn định nguồn hoặc semantics Iterator | Tránh sửa nguồn trong lúc duyệt; dùng snapshot khi cần. |
-| Thứ tự đầu ra không đúng giả định | Khai báo `ORDERED` sai hoặc dùng nguồn unordered | Chỉ công bố thứ tự khi nguồn bảo đảm, hoặc `sorted` theo yêu cầu. |
-| Dùng `parallel()` nhưng chậm hơn | Spliterator tách Iterator bằng cách đọc lô và tạo mảng | Đo hiệu năng; ưu tiên Stream trực tiếp từ Collection hoặc Spliterator chia theo chỉ số nếu cần. |
-| Tệp/cursor còn mở sau khi thu kết quả | Chỉ đóng Stream bọc Iterator, không đóng nguồn I/O | Đặt resource gốc vào `try-with-resources` hoặc thiết kế close handler/ownership rõ ràng. |
-| Terminal operation không hoàn tất | Iterator không kết thúc hoặc thao tác kéo phần tử bị chặn | Giới hạn đầu vào, đặt timeout/hủy ở tầng nguồn khi thích hợp. |
-| Null xuất hiện dù đã gắn `NONNULL` | Cờ characteristic không đúng dữ liệu | Bỏ cờ hoặc xác thực/chuẩn hóa nguồn theo hợp đồng. |
+| Strange `count()` results or pipeline skips elements | Used `spliterator(iterator, size, ...)` with inaccurate `size` | Pass exact remaining count only; if unsure, use `spliteratorUnknownSize`. |
+| `getExactSizeIfKnown()` returns `-1` even though source is finite | Factory was not supplied an exact size | Expected behavior; do not force `SIZED`. |
+| `estimateSize()` returns `Long.MAX_VALUE` | Size is unknown | Do not treat as actual count or necessarily infinite. |
+| Some elements missing after creating Stream | Iterator had `next()` called prior to wrapping | Wrap from current position with updated remaining count. |
+| Output changes after modifying source collection | Violates source stability or Iterator semantics | Avoid mutating source during traversal; snapshot when needed. |
+| Output order breaks assumptions | Misdeclared `ORDERED` or used unordered source | Declare order only when guaranteed by source, or call `sorted` as needed. |
+| Slower with `parallel()` | Iterator Spliterator splits via batch reads and array allocation | Benchmark; prefer direct Collection Stream or index-splitting Spliterator if needed. |
+| File/cursor left open after collecting results | Only closed the Iterator-wrapping Stream, not the I/O source | Put original resource in `try-with-resources` or define explicit close handler/ownership. |
+| Terminal operation hangs | Non-terminating Iterator or blocking pull operation | Bound input and configure timeouts/cancellation at the source layer. |
+| `null` appears despite `NONNULL` | Characteristic flag mismatched data | Remove flag or validate/sanitize source per contract. |
 
-## 16. Bài tập tự kiểm tra
+## 16. Self-Check Exercises
 
-### Bài 1 — Chọn đúng factory
+### Exercise 1 — Choosing the right factory
 
-Một API trả `Iterator<Event>`. API công bố chính xác còn 2.500 bản ghi, chưa có bản ghi nào được tiêu thụ và nguồn không bị sửa trong lúc đọc. Nên chọn factory nào?
+An API returns `Iterator<Event>`. The API explicitly reports 2,500 remaining records, none consumed yet, and the source will not mutate during reading. Which factory should you choose?
 
-**Đáp án:** `Spliterators.spliterator(iterator, 2_500L, characteristics)`, với characteristics chỉ gồm những đặc tính thật sự được API bảo đảm. Nếu Iterator có encounter order cố định, có thể cung cấp `Spliterator.ORDERED`. Không tự thêm `NONNULL` nếu nguồn vẫn có thể trả `null`.
+**Answer:** `Spliterators.spliterator(iterator, 2_500L, characteristics)`, where `characteristics` includes only properties genuinely guaranteed by the API. If the Iterator has a fixed encounter order, `Spliterator.ORDERED` can be supplied. Do not add `NONNULL` if the source can still return `null`.
 
-### Bài 2 — Có phải Long.MAX_VALUE chứng minh vô hạn?
+### Exercise 2 — Does Long.MAX_VALUE prove infinity?
 
 ~~~java
 var split = Spliterators.spliteratorUnknownSize(
@@ -597,9 +597,9 @@ var split = Spliterators.spliteratorUnknownSize(
 System.out.println(split.estimateSize());
 ~~~
 
-**Đáp án:** Không. Spliterator không biết kích thước nên có thể báo `Long.MAX_VALUE`, nhưng nguồn này rõ ràng chỉ có hai phần tử. Giá trị đó mô tả **độ thiếu thông tin về kích thước**, không phải số phần tử thực.
+**Answer:** No. The Spliterator has unknown size so it can report `Long.MAX_VALUE`, yet this source clearly has only two elements. That value represents **lack of size information**, not the actual element count.
 
-### Bài 3 — Iterator đã đi qua một phần dữ liệu
+### Exercise 3 — Partially consumed Iterator
 
 ~~~java
 List<String> values = List.of("a", "b", "c", "d");
@@ -609,17 +609,17 @@ iterator.next();
 iterator.next();
 ~~~
 
-**Câu hỏi:** Nếu bọc Iterator với kích thước biết trước, cần truyền bao nhiêu?
+**Question:** If wrapping this Iterator with a known size, what value should be passed?
 
-**Đáp án:** Truyền `2L` vì chỉ còn `"c"` và `"d"`. Nếu ứng dụng không thể tính số còn lại chính xác, dùng `spliteratorUnknownSize`.
+**Answer:** Pass `2L` because only `"c"` and `"d"` remain. If the application cannot compute the exact remaining count, use `spliteratorUnknownSize`.
 
-### Bài 4 — Công bố characteristics
+### Exercise 4 — Declaring characteristics
 
-Một Iterator đọc các ID có thể lặp, có `null` và không có thứ tự được cam kết. Có thể gắn `ORDERED | DISTINCT | NONNULL` không?
+An Iterator reads IDs that may repeat, may contain `null`, and have no guaranteed order. May you attach `ORDERED | DISTINCT | NONNULL`?
 
-**Đáp án:** Không. Cả ba cờ đều vi phạm hợp đồng nguồn. Dùng `0` nếu không có characteristic nào khác được chứng minh. Việc một lần chạy trả dữ liệu theo thứ tự cụ thể không đủ để biến thứ tự đó thành cam kết.
+**Answer:** No. All three flags violate the source contract. Use `0` if no other characteristic is proven. A single run returning data in some order is not enough to make that order a contract.
 
-### Bài 5 — Thiết kế dữ liệu theo Stream
+### Exercise 5 — Processing data with a Stream
 
 ~~~java
 Iterator<Integer> iterator = List.of(1, 2, 3).iterator();
@@ -633,31 +633,31 @@ int sum = StreamSupport.stream(split, false)
         .sum();
 ~~~
 
-**Câu hỏi:** Kết quả là gì? Có cần `SIZED` để `sum` đúng không?
+**Question:** What is the result? Is `SIZED` required for `sum` to be correct?
 
-**Đáp án:** `sum = 6`. Không cần `SIZED` để tổng hợp chính xác. `SIZED` là thông tin về kích thước phục vụ hợp đồng và khả năng tối ưu, không phải điều kiện bắt buộc của phép cộng.
+**Answer:** `sum = 6`. `SIZED` is not required for accurate summation. `SIZED` is size metadata for contracts and potential optimizations, not a prerequisite for addition.
 
-### Bài 6 — Tại sao không tự động nhanh khi song song?
+### Exercise 6 — Why isn't parallel automatically faster?
 
-**Câu hỏi:** Một Iterator đọc dữ liệu mạng tuần tự. Bọc bằng `spliteratorUnknownSize` rồi tạo `parallelStream` có chắc nhanh hơn không?
+**Question:** An Iterator reads network data sequentially. Will wrapping it with `spliteratorUnknownSize` and running a parallel Stream definitely be faster?
 
-**Đáp án:** Không. Việc tách Iterator có thể cần đọc tuần tự để tạo lô; nguồn mạng bị chặn và các lambda nhẹ có thể khiến song song chỉ thêm overhead. Muốn cải thiện tốc độ cần xem lại khả năng chia nguồn, chi phí I/O, giới hạn kết nối và đo hiệu năng trên dữ liệu thực.
+**Answer:** No. Splitting an Iterator may require sequential reads to form batches; blocking network I/O and lightweight lambdas can cause parallelism to merely add overhead. Improving throughput requires examining source splittability, I/O costs, connection limits, and benchmarking on real data.
 
-### Bài 7 — Ai đóng nguồn?
+### Exercise 7 — Who closes the source?
 
-Một `Scanner` đọc tệp được bọc thành Spliterator rồi thành Stream. Sau `count()`, tệp đã chắc chắn đóng chưa?
+A file-reading `Scanner` is wrapped into a Spliterator and then into a Stream. After `count()`, is the file guaranteed to be closed?
 
-**Đáp án:** Không. `count()` chỉ là terminal operation; `StreamSupport.stream(...)` không tự thiết lập hợp đồng đóng Scanner. Đặt Scanner trong `try-with-resources` và thực hiện toàn bộ pipeline khi Scanner còn mở.
+**Answer:** No. `count()` is only a terminal operation; `StreamSupport.stream(...)` does not establish a closing contract for the Scanner. Place the Scanner in `try-with-resources` and execute the entire pipeline while the Scanner remains open.
 
-## 17. Ghi nhớ
+## 17. Remember
 
-- `Spliterators.spliterator(iterator, size, characteristics)` dành cho Iterator có **số phần tử còn lại chính xác**; factory thông thường công bố `SIZED` và `SUBSIZED` khi nguồn không khai báo `CONCURRENT`.
-- `Spliterators.spliteratorUnknownSize(iterator, characteristics)` dành cho nguồn **chưa biết số phần tử**; không công bố `SIZED`/`SUBSIZED`, dù nguồn thực sự hữu hạn.
-- `estimateSize() == Long.MAX_VALUE` không có nghĩa nguồn chắc chắn vô hạn; `getExactSizeIfKnown() == -1` nghĩa Spliterator không cam kết kích thước chính xác.
-- Khai báo `ORDERED`, `NONNULL`, `DISTINCT`, `IMMUTABLE` hoặc `CONCURRENT` **chỉ khi đúng hợp đồng** của nguồn. Cờ sai có thể khiến các tối ưu và kết quả không đáng tin cậy.
-- `tryAdvance` tiêu thụ tiếp dữ liệu từ Iterator; `trySplit` trên wrapper Iterator có thể đọc trước và tạo mảng theo lô để chia việc.
-- `StreamSupport.stream(split, parallel)` kết nối Spliterator với Stream API; `parallel = true` không tự bảo đảm hiệu năng hoặc an toàn luồng.
-- Stream và Iterator thường chỉ dùng cho một lượt duyệt; nguồn I/O cần có cơ chế đóng riêng như `try-with-resources`.
-- Nếu nguồn đã là Collection có Stream/Spliterator phù hợp, **ưu tiên dùng trực tiếp** thay vì bọc lại Iterator.
+- `Spliterators.spliterator(iterator, size, characteristics)` is for an Iterator with an **exact remaining element count**; the factory normally adds `SIZED` and `SUBSIZED` when `CONCURRENT` is absent.
+- `Spliterators.spliteratorUnknownSize(iterator, characteristics)` is for sources with an **unknown element count**; it never declares `SIZED`/`SUBSIZED`, even when the source is actually finite.
+- `estimateSize() == Long.MAX_VALUE` does not mean the source is necessarily infinite; `getExactSizeIfKnown() == -1` means the Spliterator does not guarantee an exact size.
+- Declare `ORDERED`, `NONNULL`, `DISTINCT`, `IMMUTABLE`, or `CONCURRENT` **only when true to the source's contract**. False flags can cause unreliable optimizations and results.
+- `tryAdvance` pulls further from the Iterator; `trySplit` on an Iterator wrapper may pre-read and buffer batches into arrays to split work.
+- `StreamSupport.stream(split, parallel)` connects a Spliterator to the Stream API; `parallel = true` does not automatically guarantee performance or thread safety.
+- Streams and Iterators are normally single-pass; I/O-backed sources require explicit closing mechanisms such as `try-with-resources`.
+- When the source is already a Collection with a suitable Stream/Spliterator, **prefer using it directly** rather than wrapping an Iterator.
 
-**Ý chính:** Thiết kế Spliterator từ Iterator không chỉ là chọn một factory. Bạn cần **biết mình có thật sự biết số phần tử còn lại không, khai báo chính xác characteristics, hiểu giới hạn của việc chia lô và chịu trách nhiệm quản lý nguồn**. Khi các hợp đồng này đúng, Stream API có thể áp dụng pipeline lazy, lọc, biến đổi, rút gọn và thu thập lên cả những nguồn chỉ cung cấp Iterator.
+**Key takeaway:** Designing a Spliterator from an Iterator is not just picking a factory. You must **know whether you truly know the remaining count, declare characteristics accurately, understand batch-splitting limits, and take responsibility for source lifecycle management**. When those contracts hold, the Stream API can apply lazy pipelines, filtering, mapping, reduction, and collection even to Iterator-only sources.

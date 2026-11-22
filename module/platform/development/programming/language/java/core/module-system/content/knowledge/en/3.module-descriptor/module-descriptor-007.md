@@ -1,14 +1,14 @@
-# Descriptor tĩnh và module graph runtime
+# Static Descriptors and the Runtime Module Graph
 
-Trong Java Platform Module System (JPMS), **module descriptor** mô tả hợp đồng và các phụ thuộc mà một module khai báo; **module graph runtime** là đồ thị các module thực tế được JVM giải quyết cho một lần chạy. Hai khái niệm liên quan chặt chẽ nhưng không đồng nhất: descriptor là metadata được đóng gói cùng module, còn graph được hình thành khi JVM kết hợp các descriptor với module có thể tìm thấy, module gốc được chọn và cấu hình khởi chạy.
+In the Java Platform Module System (JPMS), a **module descriptor** describes the contract and dependencies declared by a module; the **runtime module graph** is the graph of modules actually resolved by the JVM for a given run. The two concepts are closely related yet distinct: the descriptor is metadata packaged with the module, whereas the graph is formed when the JVM combines descriptors with observable modules, selected root modules, and launch configuration.
 
-Hiểu sự khác nhau này giúp giải thích vì sao một module có thể biên dịch thành công nhưng chạy thất bại, vì sao một thư viện có trong module path vẫn chưa chắc được đưa vào cấu hình runtime, và vì sao các tùy chọn như `--add-modules` hoặc `--add-reads` có thể thay đổi hành vi chạy mà không sửa file `module-info.java`.
+Understanding this difference helps explain why a module can compile successfully yet fail to run, why a library on the module path is not guaranteed to be included in the runtime configuration, and why options such as `--add-modules` or `--add-reads` can alter runtime behavior without modifying `module-info.java`.
 
-## 1. Module descriptor là mô tả tĩnh
+## 1. A Module Descriptor Is a Static Description
 
-Một named module thường khai báo descriptor trong file nguồn `module-info.java`. Khi biên dịch, `javac` tạo file nhị phân `module-info.class`. File này nằm ở gốc modular JAR và được JVM đọc khi giải quyết module.
+A named module typically declares its descriptor in the `module-info.java` source file. When compiled, `javac` generates the binary file `module-info.class`. This file sits at the root of a modular JAR and is read by the JVM when resolving modules.
 
-Ví dụ descriptor của một thư viện:
+Example descriptor of a library:
 
 ~~~java
 module com.acme.service {
@@ -18,22 +18,22 @@ module com.acme.service {
 }
 ~~~
 
-Descriptor trên khai báo các thông tin có tính tĩnh:
+The descriptor above declares static information:
 
-- Tên module là `com.acme.service`.
-- Module phụ thuộc vào `com.acme.api` và truyền khả năng đọc dependency này cho module sử dụng nó bằng `requires transitive`.
-- Package `com.acme.service.api` là API được export.
-- Module sử dụng service có kiểu `com.acme.service.spi.Engine`.
+- The module name is `com.acme.service`.
+- The module depends on `com.acme.api` and propagates readability of this dependency to modules using it via `requires transitive`.
+- The `com.acme.service.api` package is the exported API.
+- The module uses a service of type `com.acme.service.spi.Engine`.
 
-Descriptor có thể chứa các directive khác như `requires static`, `exports ... to ...`, `opens`, `provides ... with ...`. Những khai báo này mô tả yêu cầu, quyền truy cập và quan hệ service của module.
+A descriptor can contain other directives such as `requires static`, `exports ... to ...`, `opens`, `provides ... with ...`. These declarations describe the module's requirements, access permissions, and service relationships.
 
-Descriptor không lưu danh sách tất cả JAR đang có trên máy, không ghi lại module nào đã được JVM nạp trong một tiến trình cụ thể, cũng không chứa module graph runtime hoàn chỉnh. Nó là đầu vào để công cụ biên dịch và JVM giải quyết cấu hình.
+The descriptor does not store a list of all JARs present on the machine, does not record which modules were loaded by the JVM in a specific process, and does not contain the complete runtime module graph. It is an input for the compiler and the JVM to resolve configurations.
 
-## 2. Module graph runtime là gì?
+## 2. What Is the Runtime Module Graph?
 
-Khi khởi chạy ứng dụng theo module path, JVM tìm các module có thể quan sát được, chọn các module gốc (root modules), rồi lần theo các directive phụ thuộc để giải quyết cấu hình. Kết quả là một tập hợp module đã được giải quyết cùng các quan hệ đọc module giữa chúng.
+When launching an application via the module path, the JVM locates observable modules, selects root modules, and then follows dependency directives to resolve a configuration. The result is a set of resolved modules together with module readability relationships among them.
 
-Có thể hình dung đơn giản:
+You can picture this simply:
 
 ~~~text
 module descriptor (.class)
@@ -46,19 +46,19 @@ module resolution
 resolved configuration / module graph
         |
         v
-module layer trong JVM
+module layer in the JVM
         |
         v
-class loading, access checks và execution
+class loading, access checks, and execution
 ~~~
 
-Trong graph, module là các nút. Các quan hệ `requires` tạo ra quan hệ đọc module (readability) theo quy tắc JPMS. Module được chọn làm root sẽ kéo theo các module cần thiết theo dependency graph. Những module chỉ tình cờ nằm trong thư mục module path nhưng không thuộc cấu hình được giải quyết có thể không trở thành thành viên của layer đang chạy.
+In the graph, modules are the nodes. `requires` relationships establish module readability according to JPMS rules. Modules chosen as roots pull in the required modules along the dependency graph. Modules that merely happen to sit in the module path directory without belonging to the resolved configuration may not become members of the running layer.
 
-Module graph gắn với cấu hình và module layer cụ thể. Một ứng dụng có thể tạo thêm module layer trong runtime; vì thế không phải mọi module có mặt trong toàn bộ tiến trình đều nhất thiết thuộc boot layer ban đầu.
+The module graph is tied to a specific configuration and module layer. An application can create additional module layers at runtime; therefore, not every module present in the entire process necessarily belongs to the initial boot layer.
 
-## 3. Ví dụ: từ các descriptor đến graph runtime
+## 3. Example: From Descriptors to the Runtime Graph
 
-Giả sử có ba module:
+Suppose there are three modules:
 
 ~~~text
 com.acme.api
@@ -72,7 +72,7 @@ com.acme.app
     requires com.acme.service
 ~~~
 
-Descriptor tương ứng có thể viết như sau:
+The corresponding descriptors can be written as follows:
 
 ~~~java
 // com.acme.api/module-info.java
@@ -96,49 +96,49 @@ module com.acme.app {
 }
 ~~~
 
-Biên dịch cả ba module với JDK 21:
+Compile all three modules with JDK 21:
 
 ~~~bash
 javac --module-source-path src -d out \
       -m com.acme.api,com.acme.service,com.acme.app
 ~~~
 
-Khởi chạy module ứng dụng:
+Launch the application module:
 
 ~~~bash
 java --module-path out \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Khi `com.acme.app` là module chính được khởi chạy, nó là root của cấu hình ứng dụng. JVM giải quyết `com.acme.service` vì ứng dụng khai báo `requires com.acme.service`. Module service lại yêu cầu `com.acme.api`, do đó module API cũng được đưa vào graph.
+When `com.acme.app` is the main module being launched, it is the root of the application configuration. The JVM resolves `com.acme.service` because the application declares `requires com.acme.service`. The service module in turn requires `com.acme.api`, so the API module is also brought into the graph.
 
-Quan hệ đọc có ý nghĩa như sau:
+The readability relationships mean the following:
 
-- `com.acme.service` đọc `com.acme.api` vì có `requires transitive com.acme.api`.
-- `com.acme.app` đọc `com.acme.service` vì có `requires com.acme.service`.
-- `com.acme.app` cũng đọc `com.acme.api` vì dependency của service được khai báo `transitive`.
+- `com.acme.service` reads `com.acme.api` because it has `requires transitive com.acme.api`.
+- `com.acme.app` reads `com.acme.service` because it has `requires com.acme.service`.
+- `com.acme.app` also reads `com.acme.api` because the service's dependency is declared `transitive`.
 
-Nếu đổi directive trong module service thành `requires com.acme.api` thông thường, `com.acme.app` không tự động có quyền đọc `com.acme.api` chỉ vì nó đọc service. Nếu mã của ứng dụng cần import kiểu từ API module, ứng dụng nên khai báo dependency trực tiếp hoặc service phải công khai quan hệ phụ thuộc bằng `requires transitive` khi phù hợp với hợp đồng API.
+If the directive in the service module is changed to a regular `requires com.acme.api`, `com.acme.app` does not automatically gain permission to read `com.acme.api` just because it reads service. If the application's code needs to import types from the API module, the application should declare a direct dependency or service should expose the dependency relationship with `requires transitive` when appropriate for the API contract.
 
-Đọc module và truy cập package là hai bước khác nhau. Dù `com.acme.app` đọc được `com.acme.api`, ứng dụng chỉ truy cập được các kiểu public trong package đã được module API export cho ứng dụng theo quy tắc JPMS.
+Reading a module and accessing a package are two separate steps. Even though `com.acme.app` reads `com.acme.api`, the application can only access public types in packages that the API module has exported to the application under JPMS rules.
 
-## 4. Cách JVM hình thành cấu hình runtime
+## 4. How the JVM Forms the Runtime Configuration
 
-Có thể xem quá trình giải quyết module theo các bước:
+You can view the module resolution process in steps:
 
-1. **Xác định nguồn module:** JVM lấy module từ module path, runtime image của JDK và các nguồn module khác được cấu hình.
-2. **Chọn root modules:** module chính được khởi chạy và các root bổ sung được chọn bởi tùy chọn runtime.
-3. **Theo dependency:** JVM đọc các directive `requires` của root và những module được kéo vào, rồi tìm module tương ứng.
-4. **Giải quyết service khi được yêu cầu:** quá trình service binding có thể đưa các module cung cấp service phù hợp vào cấu hình.
-5. **Tạo module layer:** các module đã giải quyết được định nghĩa trong layer để JVM nạp lớp và thực thi chương trình.
+1. **Identify module sources:** the JVM gathers modules from the module path, the JDK runtime image, and other configured module sources.
+2. **Select root modules:** the main module being launched and additional roots selected by runtime options.
+3. **Follow dependencies:** the JVM reads `requires` directives of the roots and pulled-in modules, then locates the corresponding modules.
+4. **Resolve services when requested:** the service binding process can bring matching service-provider modules into the configuration.
+5. **Create the module layer:** resolved modules are defined in a layer for the JVM to load classes and execute the program.
 
-Nếu một dependency bắt buộc không thể tìm thấy hoặc graph có xung đột, quá trình giải quyết có thể thất bại trước khi lớp main được chạy. Ví dụ thường gặp là `FindException: Module ... not found`.
+If a required dependency cannot be found or the graph has a conflict, resolution can fail before the main class runs. A common example is `FindException: Module ... not found`.
 
-### Root module và module có thể quan sát
+### Root Modules and Observable Modules
 
-Module path là nơi JVM tìm module, không phải cam kết rằng mọi module trong đó đều được đưa vào graph. Root modules quyết định điểm bắt đầu của quá trình resolution. Với cách chạy `-m module/class`, module được chỉ định là module ứng dụng chính.
+The module path is where the JVM looks for modules, not a guarantee that every module in it will be placed into the graph. Root modules determine the starting point of the resolution process. When running with `-m module/class`, the specified module is the main application module.
 
-Tùy chọn `--add-modules` bổ sung root modules:
+The `--add-modules` option adds root modules:
 
 ~~~bash
 java --module-path mods \
@@ -146,27 +146,27 @@ java --module-path mods \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Trong ví dụ, `com.acme.tools` được yêu cầu làm root bổ sung ngay cả khi module ứng dụng không có dependency `requires` trực tiếp tới nó. Module vẫn phải tìm thấy được và graph phải hợp lệ.
+In this example, `com.acme.tools` is requested as an additional root even though the application module has no direct `requires` dependency on it. The module must still be locatable and the graph must be valid.
 
-Tùy chọn `--limit-modules` giới hạn tập module có thể quan sát trong quá trình resolution. Nó hữu ích khi muốn giới hạn cấu hình runtime, nhưng phải bảo đảm các dependency cần thiết vẫn nằm trong tập module được phép quan sát.
+The `--limit-modules` option limits the set of observable modules during resolution. It is useful when you want to restrict the runtime configuration, provided you ensure required dependencies remain within the set of observable modules.
 
-## 5. Descriptor và các tùy chọn runtime tác động khác nhau
+## 5. Descriptors and Runtime Options Act Differently
 
-Descriptor là metadata được đóng gói trong module. Một số tùy chọn JVM có thể điều chỉnh graph hoặc quyền truy cập trong một lần chạy mà không thay đổi descriptor đã biên dịch.
+A descriptor is metadata packaged inside a module. Certain JVM options can adjust the graph or access permissions for a single run without modifying the compiled descriptor.
 
-| Thành phần | Vai trò |
+| Component | Role |
 |---|---|
-| `requires` | Khai báo dependency bắt buộc của module |
-| `requires transitive` | Truyền khả năng đọc dependency tới module phụ thuộc vào module hiện tại |
-| `requires static` | Dependency cần khi biên dịch nhưng có thể vắng mặt khi chạy |
-| `--add-modules` | Thêm module làm root để giải quyết |
-| `--limit-modules` | Giới hạn tập module có thể quan sát |
-| `--add-reads` | Bổ sung quan hệ đọc module trong cấu hình runtime |
-| `--add-exports` | Bổ sung quyền truy cập tới package export cho module đích |
-| `--add-opens` | Mở package cho deep reflection ở runtime |
-| `--bind-services` | Yêu cầu resolution thực hiện service binding để tìm các provider module phù hợp |
+| `requires` | Declares a module's mandatory dependency |
+| `requires transitive` | Propagates dependency readability to modules depending on the current module |
+| `requires static` | Dependency needed at compile time that may be absent at runtime |
+| `--add-modules` | Adds modules as roots for resolution |
+| `--limit-modules` | Limits the set of observable modules |
+| `--add-reads` | Adds module readability relationships in the runtime configuration |
+| `--add-exports` | Adds access to an exported package for target modules |
+| `--add-opens` | Opens a package for deep reflection at runtime |
+| `--bind-services` | Instructs resolution to perform service binding to locate matching provider modules |
 
-Ví dụ, trong giai đoạn chuyển đổi một ứng dụng cũ, có thể cấp quyền đọc từ named module tới unnamed module:
+For example, while migrating a legacy application, read access can be granted from a named module to the unnamed module:
 
 ~~~bash
 java --add-reads com.acme.app=ALL-UNNAMED \
@@ -174,13 +174,13 @@ java --add-reads com.acme.app=ALL-UNNAMED \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Tùy chọn này bổ sung quan hệ readability cho lần chạy đó. Nó không ghi ngược một directive mới vào `module-info.class`. Tương tự, `--add-exports` và `--add-opens` điều chỉnh quyền truy cập khi khởi chạy, nhưng không làm thay đổi descriptor trong JAR.
+This option adds the readability relationship for that run. It does not write a new directive back into `module-info.class`. Similarly, `--add-exports` and `--add-opens` adjust access permissions at launch time without altering descriptors inside JARs.
 
-Nên xem các tùy chọn trên là cấu hình runtime có chủ đích, công cụ tương thích hoặc chẩn đoán. Nếu một quan hệ là yêu cầu ổn định của module, hãy thể hiện nó trong descriptor khi JPMS hỗ trợ directive tương ứng.
+These options should be treated as intentional runtime configuration, compatibility tools, or diagnostics. If a relationship is a stable requirement of the module, express it in the descriptor whenever JPMS supports the corresponding directive.
 
-## 6. requires static và khác biệt giữa compile-time với runtime
+## 6. requires static and the Difference Between Compile Time and Runtime
 
-`requires static` thường được dùng cho dependency hỗ trợ biên dịch, ví dụ annotation hoặc API chỉ cần ở một số chế độ chạy:
+`requires static` is commonly used for compile-time support dependencies, such as annotations or APIs needed only in certain execution modes:
 
 ~~~java
 module com.acme.domain {
@@ -189,18 +189,18 @@ module com.acme.domain {
 }
 ~~~
 
-Khi biên dịch, module `com.acme.annotations` phải có thể được tìm thấy để giải quyết kiểu và annotation mà mã nguồn sử dụng. Khi chạy, dependency static có thể không hiện diện. Nếu module đó có mặt trong cấu hình runtime, quan hệ đọc tương ứng vẫn được thiết lập theo quy tắc JPMS; nếu vắng mặt, chỉ riêng directive `requires static` không buộc runtime phải thất bại.
+At compile time, the `com.acme.annotations` module must be locatable to resolve the types and annotations used by the source code. At runtime, the static dependency may be absent. If that module is present in the runtime configuration, the corresponding readability relationship is still established per JPMS rules; if absent, the `requires static` directive alone does not force the runtime to fail.
 
-Điều này không có nghĩa mọi dependency đều có thể khai báo static. Nếu mã thực thi cần nạp lớp của dependency để chạy một chức năng, việc thiếu module hoặc lớp đó vẫn có thể dẫn đến lỗi khi đường thực thi được gọi. Hãy phân biệt dependency chỉ phục vụ biên dịch với dependency cần thiết cho hành vi runtime.
+This does not mean every dependency can be declared static. If executing code needs to load a dependency's class to run a feature, the absence of that module or class can still lead to errors when that execution path is invoked. Distinguish compile-time-only dependencies from dependencies needed for runtime behavior.
 
-## 7. Service binding có thể làm graph runtime mở rộng
+## 7. Service Binding Can Expand the Runtime Graph
 
-Descriptor hỗ trợ service bằng hai directive:
+Descriptors support services with two directives:
 
-- `uses` khai báo module tiêu thụ một service.
-- `provides ... with ...` khai báo module cung cấp implementation.
+- `uses` declares that a module consumes a service.
+- `provides ... with ...` declares that a module supplies an implementation.
 
-Ví dụ module ứng dụng:
+Example application module:
 
 ~~~java
 module com.acme.app {
@@ -208,7 +208,7 @@ module com.acme.app {
 }
 ~~~
 
-Module provider:
+Provider module:
 
 ~~~java
 module com.acme.formatter.json {
@@ -219,7 +219,7 @@ module com.acme.formatter.json {
 }
 ~~~
 
-Việc provider có trên module path không đồng nghĩa nó luôn được đưa vào mọi graph. Khi resolution thực hiện service binding, các module cung cấp service được yêu cầu có thể được kéo vào cấu hình. Với Java launcher, tùy chọn `--bind-services` yêu cầu hành vi binding này:
+Having a provider on the module path does not mean it is always included in every graph. When resolution performs service binding, modules providing requested services can be pulled into the configuration. With the Java launcher, the `--bind-services` option requests this binding behavior:
 
 ~~~bash
 java --module-path mods \
@@ -227,15 +227,15 @@ java --module-path mods \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Khi dùng `ServiceLoader`, cần kiểm tra cả khai báo `uses`, `provides`, sự hiện diện của provider module và cách cấu hình runtime thực hiện service binding. Điều này giúp tránh giả định rằng chỉ cần chép JAR provider vào thư mục `mods` là implementation chắc chắn được khám phá.
+When using `ServiceLoader`, check the `uses` and `provides` declarations, the presence of the provider module, and how the runtime configuration performs service binding. This avoids assuming that merely copying the provider JAR into the `mods` directory guarantees the implementation will be discovered.
 
-## 8. Quan sát module graph ở runtime
+## 8. Observing the Module Graph at Runtime
 
-JDK cung cấp các công cụ để xem module được giải quyết và kiểm tra cấu hình thực tế.
+The JDK provides tools to view resolved modules and inspect the actual configuration.
 
-### Hiển thị quá trình resolution
+### Displaying the Resolution Process
 
-Thêm `--show-module-resolution` vào lệnh chạy:
+Add `--show-module-resolution` to the launch command:
 
 ~~~bash
 java --show-module-resolution \
@@ -243,21 +243,21 @@ java --show-module-resolution \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-JVM sẽ in thông tin về các module được giải quyết và quan hệ phụ thuộc mà nó phát hiện. Đây là cách nhanh để xác định module nào được đưa vào cấu hình và dependency được tìm từ nguồn nào.
+The JVM prints information about resolved modules and the dependency relationships it detects. This is a quick way to determine which modules were included in the configuration and from which source dependencies were found.
 
-### Kiểm tra module bằng công cụ jar
+### Inspecting Modules with the jar Tool
 
-Để xem descriptor được đóng gói trong một JAR:
+To view the descriptor packaged in a JAR:
 
 ~~~bash
 jar --describe-module --file mods/com.acme.service.jar
 ~~~
 
-Lệnh này mô tả module mà JAR khai báo. Nó giúp kiểm tra metadata tĩnh của JAR, nhưng không thay thế việc quan sát graph của một tiến trình chạy cụ thể.
+This command describes the module declared by the JAR. It helps inspect static metadata of the JAR, but does not replace observing the graph of a specific running process.
 
-### Quan sát boot layer từ Java code
+### Observing the Boot Layer from Java Code
 
-Có thể xem các module trong boot layer bằng API:
+You can view modules in the boot layer via the API:
 
 ~~~java
 import java.util.Comparator;
@@ -274,9 +274,9 @@ public class ModuleGraphInspection {
 }
 ~~~
 
-`ModuleLayer.boot().modules()` trả về các module thuộc boot layer. Tập hợp này hữu ích để quan sát cấu hình layer ban đầu, nhưng không đại diện cho mọi module có thể quan sát trên module path và cũng không bao gồm các module chỉ được định nghĩa trong custom layer khác.
+`ModuleLayer.boot().modules()` returns the modules belonging to the boot layer. This set is useful for observing the initial layer configuration, but does not represent every observable module on the module path, nor does it include modules defined only in other custom layers.
 
-Có thể kiểm tra một quan hệ readability cụ thể:
+You can check a specific readability relationship:
 
 ~~~java
 Module appModule = ModuleGraphInspection.class.getModule();
@@ -287,36 +287,36 @@ Module apiModule = ModuleLayer.boot()
 System.out.println(appModule.canRead(apiModule));
 ~~~
 
-Kết quả `true` cho biết module chứa lớp đang chạy có thể đọc module API trong cấu hình hiện tại. Nếu module API không thuộc boot layer, cần tìm trong layer tương ứng thay vì giả định nó nằm trong boot layer.
+A result of `true` indicates that the module containing the running class can read the API module in the current configuration. If the API module does not belong to the boot layer, search in the corresponding layer instead of assuming it resides in the boot layer.
 
-## 9. Lỗi thường gặp khi phân tích graph runtime
+## 9. Common Errors When Analyzing the Runtime Graph
 
-| Triệu chứng | Nguyên nhân có thể gặp | Hướng kiểm tra |
+| Symptom | Possible Cause | Where to Check |
 |---|---|---|
-| `FindException: Module ... not found` | Dependency bắt buộc không có trong các nguồn module được quan sát | Kiểm tra module path, tên module và `requires` |
-| Module nằm trong thư mục `mods` nhưng không xuất hiện trong graph | Module không phải root và không được kéo vào bởi dependency hoặc service binding | Kiểm tra root, `requires`, `--add-modules` và `--bind-services` |
-| Ứng dụng không đọc được một module dù JAR đã có | Module chưa được giải quyết vào cấu hình hoặc thiếu quan hệ readability | Kiểm tra graph, `requires` và `--add-reads` |
-| Đọc được module nhưng không truy cập được kiểu | Package chưa được export cho module sử dụng | Kiểm tra `exports` hoặc `--add-exports` |
-| Framework bị chặn khi reflection | Package chưa được mở cho deep reflection | Kiểm tra `opens` hoặc `--add-opens` |
-| Biên dịch thành công nhưng runtime thiếu lớp | Dependency chỉ có ở compile-time hoặc thiếu module/lớp lúc chạy | Phân biệt `requires static` với dependency runtime thực sự cần |
-| Provider service không được tìm thấy | Thiếu `uses`/`provides`, provider không quan sát được hoặc service binding chưa được thực hiện | Kiểm tra descriptor và `--bind-services` |
+| `FindException: Module ... not found` | Required dependency is missing from observable module sources | Check module path, module name, and `requires` |
+| Module is in the `mods` directory but absent from the graph | Module is not a root and is not pulled in by a dependency or service binding | Check roots, `requires`, `--add-modules`, and `--bind-services` |
+| Application cannot read a module even though the JAR is present | Module was not resolved into the configuration or lacks a readability relationship | Check graph, `requires`, and `--add-reads` |
+| Module is readable but types are inaccessible | Package has not been exported to the consuming module | Check `exports` or `--add-exports` |
+| Framework is blocked during reflection | Package has not been opened for deep reflection | Check `opens` or `--add-opens` |
+| Compiles successfully but runtime is missing classes | Dependency is compile-time only or module/class is missing at runtime | Distinguish `requires static` from genuinely required runtime dependencies |
+| Service provider is not found | Missing `uses`/`provides`, unobservable provider, or service binding not performed | Check descriptor and `--bind-services` |
 
-## 10. Quy trình chẩn đoán thực tế
+## 10. Practical Diagnostic Workflow
 
-Khi một ứng dụng module hóa chạy khác với dự kiến, hãy lần lượt kiểm tra:
+When a modularized application runs differently than expected, check step by step:
 
-1. **Đọc descriptor:** chạy `jar --describe-module` trên JAR của ứng dụng và các thư viện liên quan để xác nhận tên module, `requires`, `exports`, `opens`, `uses` và `provides`.
-2. **Kiểm tra nguồn module:** xác nhận module path trỏ tới đúng thư mục/JAR và module bắt buộc có thể được quan sát.
-3. **Kiểm tra root modules:** xác định module nào được khởi chạy và các root bổ sung qua `--add-modules`.
-4. **Quan sát resolution:** chạy với `--show-module-resolution` để xem graph thực tế.
-5. **Kiểm tra readability và export:** phân biệt lỗi không đọc được module với lỗi package chưa export.
-6. **Kiểm tra service binding:** nếu dùng ServiceLoader, xác nhận provider được tìm thấy và binding được bật khi cấu hình cần nó.
-7. **Đối chiếu runtime options:** kiểm tra các tùy chọn `--add-reads`, `--add-exports`, `--add-opens` hoặc `--limit-modules` có làm thay đổi cấu hình mong muốn không.
+1. **Read descriptors:** run `jar --describe-module` on the application JAR and related libraries to confirm module names, `requires`, `exports`, `opens`, `uses`, and `provides`.
+2. **Check module sources:** confirm the module path points to the right directories/JARs and required modules are observable.
+3. **Check root modules:** identify which module is launched and any additional roots passed via `--add-modules`.
+4. **Observe resolution:** run with `--show-module-resolution` to view the actual graph.
+5. **Check readability and exports:** distinguish an unreadable-module error from an unexported-package error.
+6. **Check service binding:** if using ServiceLoader, confirm providers are found and binding is enabled when the configuration needs it.
+7. **Compare runtime options:** check whether `--add-reads`, `--add-exports`, `--add-opens`, or `--limit-modules` alter the intended configuration.
 
-Không nên chỉ nhìn vào nội dung thư mục module path để kết luận một module đang hoạt động trong tiến trình. Cần xem cấu hình được giải quyết và layer thực tế.
+Do not look solely at the contents of the module path directory to conclude that a module is active in the process. Check the resolved configuration and actual layer.
 
-## 11. Ghi nhớ
+## 11. Key Takeaways
 
-Module descriptor là **mô tả tĩnh** được biên dịch và đóng gói cùng module. Nó khai báo module muốn phụ thuộc vào đâu, công khai package nào và tham gia service như thế nào. Module graph runtime là **cấu hình thực tế** mà JVM tạo ra từ các descriptor, nguồn module có thể quan sát, root modules và tùy chọn khởi chạy.
+A module descriptor is a **static description** compiled and packaged with a module. It declares what the module wants to depend on, which packages it exposes, and how it participates in services. The runtime module graph is the **actual configuration** that the JVM constructs from descriptors, observable module sources, root modules, and launch options.
 
-Descriptor định hình những quan hệ mà module yêu cầu; runtime resolution quyết định module nào thực sự tham gia cấu hình của lần chạy. Khi cần tìm hiểu một module vì sao có hoặc không có trong tiến trình, hãy kiểm tra root modules, dependency graph, service binding và output của `--show-module-resolution` thay vì chỉ đọc riêng `module-info.java`.
+Descriptors shape the relationships a module requests; runtime resolution decides which modules actually participate in a run's configuration. When you need to find out why a module is or is not in a process, inspect root modules, the dependency graph, service binding, and the output of `--show-module-resolution` instead of reading `module-info.java` alone.

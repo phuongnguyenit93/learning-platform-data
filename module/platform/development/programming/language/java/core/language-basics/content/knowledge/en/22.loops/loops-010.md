@@ -1,28 +1,28 @@
-# Chọn `while`, `do-while` hoặc `for` theo bài toán — Java 17+
+# Choosing `while`, `do-while`, or `for` for a problem — Java 17+
 
-Java có ba cấu trúc lặp cơ bản. **Chọn vòng lặp dựa vào thời điểm kiểm tra điều kiện và cách xác định điểm dừng**, không phải vì một cú pháp luôn chạy nhanh hơn cú pháp khác:
+Java has three basic looping constructs. **Choose a loop based on when the condition is checked and how the stopping point is determined**, not because one syntax always runs faster than another:
 
-- **`for`**: phù hợp khi quản lý chỉ số, biến đếm hoặc các bước khởi tạo–kiểm tra–cập nhật thuộc về cùng một vòng.
-- **`while`**: phù hợp khi chưa biết trước số lượt, chỉ tiếp tục khi điều kiện còn đúng; thân **có thể chạy 0 lần**.
-- **`do-while`**: phù hợp khi cần thực hiện thân **ít nhất một lần** trước khi quyết định lặp tiếp, chẳng hạn yêu cầu nhập dữ liệu lần đầu.
+- **`for`**: suitable when managing indices, counters, or initialization–check–update steps that belong to the same loop.
+- **`while`**: suitable when the iteration count is not known in advance and execution only continues while a condition remains true; the body **can run 0 times**.
+- **`do-while`**: suitable when the body needs to run **at least once** before deciding whether to repeat, such as prompting for input the first time.
 
-## 1. Bảng chọn nhanh
+## 1. Quick selection table
 
-| Tình huống | Nên cân nhắc | Lý do |
+| Situation | Consider | Reason |
 | --- | --- | --- |
-| Duyệt các chỉ số `0..n-1` | `for` | Khởi tạo, điều kiện và cập nhật biến đếm nằm cùng một chỗ |
-| Lặp đúng `n` lượt | `for` | Số lượt và biên được biểu đạt rõ |
-| Đọc đến khi hết dữ liệu/đến dấu kết thúc | `while` | Số lượt không cố định; có thể không có dữ liệu nào |
-| Chờ trạng thái thay đổi, có giới hạn số lần thử | `while` hoặc `for` | Dừng khi điều kiện đạt hoặc hết lượt |
-| Hiển thị yêu cầu nhập rồi kiểm tra để nhập lại | `do-while` | Thân cần chạy ít nhất một lần |
-| Muốn thực thi thân 0 lần khi điều kiện ban đầu sai | `while` hoặc `for` | Cả hai đều kiểm tra trước |
-| Duyệt giá trị từng phần tử mảng, không cần vị trí | Enhanced `for` | Đọc dễ hơn, không quản lý chỉ số thủ công |
+| Traversing indices `0..n-1` | `for` | Initialization, condition, and counter update sit in one place |
+| Repeating exactly `n` times | `for` | Iteration count and bounds are clearly expressed |
+| Reading until end of data / sentinel marker | `while` | Iteration count is not fixed; there may be no data at all |
+| Waiting for state to change, with a retry limit | `while` or `for` | Stops when condition is met or attempts run out |
+| Showing a prompt then validating to re-prompt | `do-while` | Body needs to run at least once |
+| Wanting body to run 0 times if initial condition is false | `while` or `for` | Both check beforehand |
+| Reading each array element's value without needing position | Enhanced `for` | Easier to read, no manual index management |
 
-**Không có quy tắc bắt buộc**: cùng một thuật toán có thể viết đúng bằng nhiều loại vòng lặp. Chọn cấu trúc làm nổi bật **điều kiện dừng**, giảm rủi ro quên cập nhật và dễ kiểm thử.
+**There is no mandatory rule**: the same algorithm can be written correctly with multiple loop types. Choose the construct that highlights the **stopping condition**, reduces the risk of forgetting an update, and is easy to test.
 
-## 2. Ba cú pháp và thứ tự thực thi
+## 2. The three syntaxes and execution orders
 
-### `for` — biểu đạt các bước biến đếm
+### `for` — expresses counter steps
 
 ~~~java
 for (int i = 0; i < 3; i++) {
@@ -30,9 +30,9 @@ for (int i = 0; i < 3; i++) {
 }
 ~~~
 
-Thứ tự: **khởi tạo một lần → kiểm tra → thân → cập nhật → kiểm tra lại**. Khi điều kiện sai ngay từ đầu, thân không chạy. Nếu biến `i` được khai báo ngay trong phần khởi tạo, nó không còn nằm trong phạm vi sử dụng sau câu lệnh `for`.
+Order: **initialize once → check → body → update → re-check**. When the condition is false right from the start, the body does not run. If `i` is declared directly in the initialization part, it is no longer in scope after the `for` statement.
 
-### `while` — kiểm tra trước khi chạy thân
+### `while` — checks before running the body
 
 ~~~java
 int remaining = 3;
@@ -42,9 +42,9 @@ while (remaining > 0) {
 }
 ~~~
 
-Thứ tự: **kiểm tra → thân → kiểm tra lại**. Người viết thường chịu trách nhiệm cập nhật trạng thái trong thân; nếu `remaining--` bị quên, vòng có thể không kết thúc. `while` phù hợp khi điểm dừng phụ thuộc dữ liệu/trạng thái chứ không chỉ một chỉ số đếm.
+Order: **check → body → re-check**. The author is normally responsible for updating state inside the body; if `remaining--` is forgotten, the loop may never terminate. `while` fits when the stopping point depends on data/state rather than just a counter index.
 
-### `do-while` — chạy trước rồi mới kiểm tra
+### `do-while` — runs first, then checks
 
 ~~~java
 int attempt = 0;
@@ -54,17 +54,17 @@ do {
 } while (attempt < 2);
 ~~~
 
-Thứ tự: **thân → kiểm tra → thân...**; thân chạy ít nhất một lần nếu đi vào vòng lặp bình thường. Cú pháp có **dấu chấm phẩy bắt buộc sau `while (condition);`**. Khác `while`, dù điều kiện ban đầu đã false, thân vẫn được chạy một lần trước lần kiểm tra đầu tiên.
+Order: **body → check → body...**; the body runs at least once if execution enters the loop normally. The syntax has a **mandatory semicolon after `while (condition);`**. Unlike `while`, even if the initial condition is already false, the body still runs once before the first check.
 
-| Cấu trúc | Kiểm tra trước thân đầu tiên? | Số lượt tối thiểu | Nơi cập nhật thường gặp |
+| Construct | Checked before first body? | Minimum iterations | Typical update location |
 | --- | --- | ---: | --- |
-| Basic `for` | Có | 0 | Phần cập nhật trong đầu vòng |
-| `while` | Có | 0 | Trong thân, hoặc từ thay đổi trạng thái |
-| `do-while` | Không | 1 | Trong thân trước khi kiểm tra |
+| Basic `for` | Yes | 0 | Update part in the loop header |
+| `while` | Yes | 0 | Inside body, or from state changes |
+| `do-while` | No | 1 | Inside body before checking |
 
-## 3. Demo Java 17+ tự chứa, runnable CLI
+## 3. Self-contained, CLI-runnable Java 17+ demo
 
-Tạo tệp UTF-8 tên **`ChooseLoopDemo.java`**:
+Create a UTF-8 file named **`ChooseLoopDemo.java`**:
 
 ~~~java
 public class ChooseLoopDemo {
@@ -178,7 +178,7 @@ public class ChooseLoopDemo {
 }
 ~~~
 
-Sử dụng **JDK 17+**. Mở PowerShell (Windows) hoặc Bash (Linux/macOS) tại thư mục chứa file:
+Use **JDK 17+**. Open PowerShell (Windows) or Bash (Linux/macOS) in the directory containing the file:
 
 ~~~bash
 java -version
@@ -187,7 +187,7 @@ javac -encoding UTF-8 ChooseLoopDemo.java
 java ChooseLoopDemo
 ~~~
 
-**Exact expected stdout** của riêng lệnh `java ChooseLoopDemo`:
+**Exact expected stdout** of the `java ChooseLoopDemo` command alone:
 
 ~~~text
 == counted for ==
@@ -220,11 +220,11 @@ enhancedTotal=12
 done
 ~~~
 
-`java -version` và `javac -version` cho thông tin phiên bản phụ thuộc máy, không thuộc stdout cố định. Chương trình mô phỏng dữ liệu sẵn để kết quả không phụ thuộc bàn phím hay mạng.
+`java -version` and `javac -version` print machine-dependent version information and are not part of the fixed stdout. The program simulates pre-populated data so results do not depend on keyboard or network.
 
-## 4. Chọn theo điều kiện đầu vào, không chỉ số lượt
+## 4. Choosing by input condition, not just iteration count
 
-### Đã biết số lượt hoặc giới hạn chỉ số: `for`
+### Known iteration count or index bound: `for`
 
 ~~~java
 int[] values = {10, 20, 30};
@@ -233,9 +233,9 @@ for (int i = 0; i < values.length; i++) {
 }
 ~~~
 
-Biên đúng là `i < values.length`, không phải `<=`. Với mảng rỗng, vòng lặp chạy **0 lượt**. Enhanced `for (int value : values)` còn gọn hơn nếu chỉ cần giá trị, không cần chỉ số hoặc thay đổi phần tử qua vị trí.
+The right bound is `i < values.length`, not `<=`. For an empty array, the loop runs **0 iterations**. Enhanced `for (int value : values)` is even more concise if you only need values and do not need indices or modifying elements by position.
 
-### Lặp phụ thuộc trạng thái: `while`
+### State-dependent looping: `while`
 
 ~~~java
 int attempts = 0;
@@ -246,22 +246,22 @@ while (!success && attempts < 3) {
 }
 ~~~
 
-`tryOnce` ở đây chỉ là tên mô tả một phương thức nghiệp vụ do ứng dụng cung cấp; ví dụ **chạy được** trong phần 3 đã dùng điều kiện giả lập `attempts == 2`. Thực tế nên đặt giới hạn để tránh thử vô hạn, và xác định rõ một lần thử có được thực hiện nếu trạng thái thành công ngay từ đầu hay không.
+`tryOnce` here is just an illustrative name for a business method provided by the application; the **runnable** example in section 3 used the simulated condition `attempts == 2`. In practice, set a limit to avoid infinite retries, and make clear whether an attempt should occur if the state is already successful from the start.
 
-### Phải thực hiện lần đầu rồi mới biết nên lặp không: `do-while`
+### Must execute the first time before knowing whether to repeat: `do-while`
 
 ~~~java
 String input;
 do {
-    input = askForName(); // Phương thức lấy dữ liệu do ứng dụng cung cấp.
+    input = askForName(); // Data-retrieval method provided by the application.
 } while (input == null || input.isBlank());
 ~~~
 
-Đây là hình thức thường thấy khi cần hiển thị lời nhắc ít nhất một lần. Trong ứng dụng thực, cần thêm chính sách hủy, đóng input hoặc giới hạn thử; nếu luôn nhận dữ liệu không hợp lệ, vòng có thể không bao giờ kết thúc. Phương thức `askForName()` trong ví dụ ý tưởng này **không thuộc file demo**.
+This is the common form when a prompt needs to be displayed at least once. In a real application, you need to add a cancellation policy, input closing, or retry limit; if invalid data is always received, the loop may never finish. The `askForName()` method in this conceptual snippet is **not part of the demo file**.
 
-## 5. Có thể chuyển đổi `for` và `while`, nhưng phải giữ thứ tự
+## 5. `for` and `while` can be converted, but order must be preserved
 
-Hai đoạn sau thường tương đương nếu không có điều khiển luồng đặc biệt:
+The following two snippets are normally equivalent when there is no special flow control:
 
 ~~~java
 for (int i = 0; i < 3; i++) {
@@ -277,57 +277,57 @@ while (i < 3) {
 }
 ~~~
 
-Nhưng **`continue` làm thay đổi cách chuyển đổi**:
+However, **`continue` changes how conversion works**:
 
 ~~~java
 for (int i = 0; i < 4; i++) {
     if (i == 1) {
-        continue; // Java vẫn chạy phần cập nhật i++ của for.
+        continue; // Java still runs the for loop's i++ update part.
     }
     System.out.println(i);
 }
 ~~~
 
-Nếu chép sang `while` rồi đặt `i++` sau `continue`, vòng có thể lặp mãi với `i == 1` vì cập nhật bị bỏ qua. Khi chuyển đổi, bảo đảm mọi đường tiếp tục vòng đều **tiến triển**.
+If rewritten into `while` with `i++` placed after `continue`, the loop can spin forever at `i == 1` because the update is skipped. When converting, ensure every continuing loop path **makes progress**.
 
-| Lệnh trong thân | Basic `for` | `while` / `do-while` |
+| Statement in body | Basic `for` | `while` / `do-while` |
 | --- | --- | --- |
-| `continue` nhắm đến vòng này | Chạy phần cập nhật của `for` rồi kiểm tra điều kiện | Chuyển tới kiểm tra điều kiện; tự bảo đảm trạng thái được cập nhật |
-| `break` | Thoát vòng ngay, không chạy cập nhật `for` | Thoát vòng ngay |
-| `return` hoặc `throw` | Thoát phương thức hoặc ném ngoại lệ | Tác dụng tương tự |
+| `continue` targeting this loop | Runs the `for` update part, then checks condition | Jumps to condition check; you must ensure state is updated |
+| `break` | Exits loop immediately, skips `for` update | Exits loop immediately |
+| `return` or `throw` | Exits method or throws exception | Same effect |
 
-`do-while` còn khác ở bước kiểm tra **sau thân**, vì thế không thể đổi máy móc thành `while` mà vẫn giữ đúng hành vi nếu điều kiện sai từ đầu.
+`do-while` also differs in checking **after the body**, so it cannot be mechanically converted to `while` while preserving behavior if the condition is initially false.
 
-## 6. Lưu ý về độ an toàn và khả năng đọc
+## 6. Safety and readability notes
 
-- **Điều kiện phải là `boolean`**, không dùng `while (1)` hay `for (; number;)` như cách coi số là boolean trong một số ngôn ngữ.
-- **Dấu `;` có vị trí quan trọng**: basic `for` có hai dấu `;` trong phần đầu; `do-while` có `;` ở cuối; vô tình đặt `;` sau `while (condition)` hoặc `for (...)` sẽ tạo **thân rỗng**.
-- **Có điểm dừng rõ ràng**: thay đổi biến đếm/trạng thái, tiêu thụ dữ liệu hoặc dùng `break`/`return` có chủ đích. `while (true)` không tự sai, nhưng phải có chiến lược thoát.
-- **Đừng dựa vào độ dài của vòng để chọn cấu trúc**: ba cú pháp không có thứ hạng tốc độ cố định. Hãy ưu tiên biểu đạt đúng hành vi và dễ bảo trì.
-- **Phạm vi biến**: `int i` khai báo trong phần đầu `for` không thể dùng ngoài vòng; biến khai báo trước `while` thường vẫn trong phạm vi sau vòng.
+- **Condition must be `boolean`**: do not use `while (1)` or `for (; number;)` as in languages that treat numbers as booleans.
+- **Semicolon `;` placement matters**: basic `for` has two `;` in its header; `do-while` has `;` at the end; accidentally placing `;` after `while (condition)` or `for (...)` creates an **empty body**.
+- **Have a clear stopping point**: update counter/state, consume data, or use `break`/`return` intentionally. `while (true)` is not inherently wrong, but must have an exit strategy.
+- **Do not pick a construct based on loop length**: the three syntaxes have no fixed speed ranking. Prioritize expressing behavior accurately and maintainability.
+- **Variable scope**: `int i` declared in a `for` header cannot be used outside the loop; a variable declared before `while` usually stays in scope after the loop.
 
-## 7. Bài tập tự kiểm tra
+## 7. Self-check exercises
 
-1. Muốn duyệt mọi phần tử mảng bằng chỉ số `0..length-1`, nên chọn gì?  
-   *Gợi ý:* `for` với `i < array.length`.
-2. Muốn đọc dữ liệu cho tới khi gặp `"stop"`, chưa biết bao nhiêu mục, chọn gì?  
-   *Gợi ý:* `while`, cập nhật vị trí hoặc đọc mục tiếp theo mỗi lượt.
-3. Muốn hiển thị yêu cầu nhập **ít nhất một lần** rồi kiểm tra hợp lệ, chọn gì?  
-   *Gợi ý:* `do-while`.
-4. Điều kiện sai ngay từ đầu, ba dạng có số lượt tối thiểu lần lượt là bao nhiêu?  
-   *Đáp án:* Basic `for` = 0, `while` = 0, `do-while` = 1.
-5. Khi chuyển `for` có `continue` sang `while`, dễ quên điều gì?  
-   *Đáp án:* Cập nhật trạng thái trước khi kiểm tra tiếp.
-6. Nếu không cần chỉ số khi duyệt mảng, cú pháp nào làm mã đơn giản hơn?  
-   *Gợi ý:* Enhanced `for`.
+1. To traverse every array element using indices `0..length-1`, what should you choose?  
+   *Hint:* `for` with `i < array.length`.
+2. To read data until encountering `"stop"`, when the number of items is unknown, what should you choose?  
+   *Hint:* `while`, updating position or reading the next item each pass.
+3. To display an input prompt **at least once** and then validate, what should you choose?  
+   *Hint:* `do-while`.
+4. When the condition is false right from the start, what are the minimum iterations for the three forms?  
+   *Answer:* Basic `for` = 0, `while` = 0, `do-while` = 1.
+5. When converting a `for` with `continue` into a `while`, what is easy to forget?  
+   *Answer:* Updating state before the next check.
+6. If indices are not needed when traversing an array, which syntax makes the code simpler?  
+   *Hint:* Enhanced `for`.
 
 ## Checklist
 
-- [ ] Chọn **`for`** khi các bước đếm/duyệt chỉ số rõ ràng.
-- [ ] Chọn **`while`** khi điều kiện được kiểm tra **trước** và số lượt tùy trạng thái.
-- [ ] Chọn **`do-while`** khi thân cần chạy **ít nhất một lần**.
-- [ ] Kiểm tra biên chỉ số, điều kiện đầu và cơ chế tiến triển.
-- [ ] Hiểu `continue`/`break` trước khi chuyển đổi loại vòng lặp.
-- [ ] Biết phân biệt basic `for` với enhanced `for`.
+- [ ] Choose **`for`** when counting / index traversal steps are clear.
+- [ ] Choose **`while`** when the condition is checked **beforehand** and iteration count depends on state.
+- [ ] Choose **`do-while`** when the body needs to run **at least once**.
+- [ ] Check index bounds, initial condition, and progression mechanism.
+- [ ] Understand `continue`/`break` before converting loop types.
+- [ ] Know how to distinguish basic `for` from enhanced `for`.
 
-**Kết luận:** Hãy chọn theo **ngữ nghĩa bài toán**: `for` cho vòng đếm rõ ràng, `while` cho điều kiện tiếp diễn kiểm tra trước và `do-while` cho bước thực thi đầu tiên bắt buộc. Kiểm tra kỹ điều kiện dừng và cập nhật sẽ quan trọng hơn việc cố dùng một loại vòng lặp cho mọi trường hợp.
+**Conclusion:** Choose according to **problem semantics**: `for` for clear counting loops, `while` for pre-checked continuation conditions, and `do-while` for a mandatory first execution step. Checking stopping conditions and updates carefully matters more than trying to use one loop type for every case.

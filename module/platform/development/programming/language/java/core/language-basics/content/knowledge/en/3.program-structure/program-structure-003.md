@@ -1,11 +1,11 @@
-# Quy tắc tên tệp với lớp public trong Java
+# Filename Rules for Public Classes in Java
 
-## 1. Quy tắc cần nhớ
+## 1. The Rule to Remember
 
-Với quy trình biên dịch tệp nguồn thông thường bằng **`javac`** (JDK 17+), một **lớp top-level được khai báo `public`** phải nằm trong tệp `.java` có **tên cơ sở trùng với tên lớp**, đúng cả chữ hoa/chữ thường.
+With the standard source-file compilation workflow using **`javac`** (JDK 17+), a **top-level class declared `public`** must reside in a `.java` file whose **base name matches the class name**, with exact case matching.
 
 ~~~java
-// Tệp Greeting.java
+// File Greeting.java
 public class Greeting {
     public static void main(String[] args) {
         System.out.println("Xin chao Java");
@@ -13,15 +13,15 @@ public class Greeting {
 }
 ~~~
 
-Tên class là `Greeting`, do đó tên tệp phải là **`Greeting.java`**. Không đặt tên `Hello.java`, `greeting.java` hoặc `Greeting.class`.
+The class name is `Greeting`, so the filename must be **`Greeting.java`**. Do not name it `Hello.java`, `greeting.java`, or `Greeting.class`.
 
-Nếu lưu cùng mã vào `Hello.java` rồi chạy:
+If you save the same code in `Hello.java` and run:
 
 ~~~bash
 javac --release 17 Hello.java
 ~~~
 
-Bạn sẽ gặp lỗi gần giống:
+You will get an error similar to:
 
 ~~~text
 Hello.java:2: error: class Greeting is public, should be declared in a file named Greeting.java
@@ -30,16 +30,16 @@ public class Greeting {
 1 error
 ~~~
 
-**Cách sửa:** đổi tên tệp thành `Greeting.java` **hoặc** đổi khai báo `public class Greeting` thành `public class Hello` và cập nhật các chỗ tham chiếu tên lớp.
+**How to fix:** rename the file to `Greeting.java` **or** change the declaration `public class Greeting` to `public class Hello` and update all references to the class name.
 
-Quy tắc này liên quan đến **tên tệp nguồn và khai báo top-level public type lúc biên dịch**. Nó khác với lỗi không tìm thấy class lúc chạy và không được sửa bằng cách đổi tên file `.class` thủ công.
+This rule applies to the **source filename and top-level public type declaration at compile time**. It is different from a class-not-found error at runtime and is not fixed by manually renaming the `.class` file.
 
-## 2. Top-level, public và package-private
+## 2. Top-Level, Public, and Package-Private
 
-**Top-level class** là class khai báo trực tiếp trong đơn vị mã nguồn, không nằm bên trong một class hay interface khác.
+A **top-level class** is a class declared directly in a compilation unit, not nested inside another class or interface.
 
 ~~~java
-// Tệp Catalog.java
+// File Catalog.java
 public class Catalog {   // top-level public class
 }
 
@@ -47,23 +47,23 @@ class CatalogItem {       // top-level package-private class
 }
 ~~~
 
-Trong ví dụ này, `Catalog.java` hợp lệ vì có **một** top-level public class tên `Catalog`; class `CatalogItem` không `public`, nên không cần tệp riêng chỉ vì tên nó khác tên source.
+In this example, `Catalog.java` is valid because there is **one** top-level public class named `Catalog`; the class `CatalogItem` is not `public`, so it does not need a separate file just because its name differs from the source filename.
 
-| Trường hợp | Hợp lệ khi biên dịch bằng javac? | Lý do |
+| Case | Valid when compiled with javac? | Reason |
 |---|---|---|
-| `public class A` trong `A.java` | Có | Khớp tên |
-| `public class A` trong `B.java` | Không | Tên top-level public class khác tên tệp |
-| `class A` trong `B.java` | Có | Top-level class không public |
-| `public class A` và `class B` trong `A.java` | Có | Chỉ `A` public |
-| `public class A` và `public class B` trong `A.java` | Không | Hai top-level public type không thể cùng đáp ứng quy tắc đặt tên |
+| `public class A` in `A.java` | Yes | Name matches |
+| `public class A` in `B.java` | No | Top-level public class name differs from filename |
+| `class A` in `B.java` | Yes | Top-level class is not public |
+| `public class A` and `class B` in `A.java` | Yes | Only `A` is public |
+| `public class A` and `public class B` in `A.java` | No | Two top-level public types cannot both satisfy the naming rule |
 
-Bỏ `public` ở mức top-level tạo quyền truy cập **package-private**, tức là các mã phù hợp ở cùng package có thể tham chiếu. Điều đó không tự ngăn class có phương thức `main` hoặc tạo ra file bytecode.
+Omitting `public` at the top level gives **package-private** access, meaning appropriate code in the same package can reference it. That does not prevent the class from having a `main` method or producing a bytecode file.
 
-Một class **lồng bên trong** class khác (*nested class*) không phải top-level class, nên không bị quy tắc “một tên tệp riêng” này áp đặt theo cách tương tự.
+A class **nested inside** another class (*nested class*) is not a top-level class, so it is not subject to this "one dedicated filename" rule in the same way.
 
-## 3. Biên dịch và chạy một public class đúng tên
+## 3. Compiling and Running a Properly Named Public Class
 
-Lưu đoạn ví dụ đầu trong `Greeting.java`, mở terminal tại thư mục chứa tệp. Kiểm tra JDK:
+Save the first example in `Greeting.java` and open a terminal in the directory containing the file. Check the JDK:
 
 ~~~bash
 java -version
@@ -84,36 +84,36 @@ javac --release 17 -encoding UTF-8 .\Greeting.java
 java -cp . Greeting
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 Xin chao Java
 ~~~
 
-Sau khi biên dịch, thư mục thường có:
+After compiling, the directory normally contains:
 
 ~~~text
 Greeting.java
 Greeting.class
 ~~~
 
-- `javac` nhận **tên tệp nguồn** `Greeting.java`.
-- `java` trong **class mode** nhận **tên lớp** `Greeting`, không phải `Greeting.java` hay `Greeting.class`.
-- `-cp .` chỉ định thư mục hiện tại là classpath root.
-- `--release 17` yêu cầu trình biên dịch tạo mã tương thích với Java 17 trong khả năng JDK đang dùng; cần compiler hỗ trợ release đó.
+- `javac` takes the **source filename** `Greeting.java`.
+- `java` in **class mode** takes the **class name** `Greeting`, not `Greeting.java` or `Greeting.class`.
+- `-cp .` specifies the current directory as the classpath root.
+- `--release 17` asks the compiler to produce Java 17-compatible code within the capabilities of the JDK in use; the compiler must support that release.
 
-Hãy thử đặt nội dung `Greeting.java` vào `Welcome.java` nhưng giữ `public class Greeting`. Compiler sẽ từ chối. Nếu thay khai báo thành `public class Welcome`, bạn có thể dùng:
+Try putting the content of `Greeting.java` into `Welcome.java` while keeping `public class Greeting`. The compiler will reject it. If you change the declaration to `public class Welcome`, you can run:
 
 ~~~bash
 javac --release 17 Welcome.java
 java -cp . Welcome
 ~~~
 
-và nhận cùng dòng đầu ra. **Tên class và tên tệp phải được thay đồng bộ.**
+and receive the same output line. **The class name and filename must be changed together.**
 
-## 4. Tệp không có public class: tên nguồn không nhất thiết là tên class chạy
+## 4. Files Without a Public Class: Source Name Need Not Match the Runnable Class Name
 
-Tạo tệp **`Examples.java`**:
+Create the file **`Examples.java`**:
 
 ~~~java
 class Printer {
@@ -129,31 +129,31 @@ class Runner {
 }
 ~~~
 
-Lệnh:
+Commands:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 Examples.java
 java -cp . Runner
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Da chay Runner
 ~~~
 
-Thông thường `javac` tạo ra **`Printer.class`** và **`Runner.class`**, dù source tên **`Examples.java`**. Không có class `Examples` được khai báo, nên `java Examples` không phải lệnh chạy đúng.
+Normally `javac` generates **`Printer.class`** and **`Runner.class`**, even though the source file is named **`Examples.java`**. No class named `Examples` is declared, so `java Examples` is not the right command to run.
 
-Kết luận từ ví dụ:
+Conclusions from the example:
 
-1. Một source có thể chứa nhiều top-level class không `public`.
-2. Một source có thể tạo ra nhiều file `.class`.
-3. Phương thức `main` có thể nằm trong class top-level không public; class ấy vẫn có thể được chọn để launch trong Java 17.
-4. Dù quy tắc cho phép tên tệp khác tên class package-private, dự án thường dễ bảo trì hơn nếu tổ chức file theo tên class chính.
+1. One source file can contain multiple non-`public` top-level classes.
+2. One source file can produce multiple `.class` files.
+3. The `main` method can reside in a non-public top-level class; that class can still be selected to launch in Java 17.
+4. Although the rule allows a filename to differ from package-private class names, projects are usually easier to maintain when files are organized by their primary class name.
 
-## 5. Không viết hai top-level public class trong cùng một tệp
+## 5. Do Not Write Two Top-Level Public Classes in the Same File
 
-Ví dụ **không hợp lệ** trong `Alpha.java`:
+**Invalid** example in `Alpha.java`:
 
 ~~~java
 public class Alpha {
@@ -163,9 +163,9 @@ public class Beta {
 }
 ~~~
 
-`javac Alpha.java` sẽ báo lỗi vì `public class Beta` yêu cầu tệp **`Beta.java`**.
+`javac Alpha.java` will report an error because `public class Beta` requires the file **`Beta.java`**.
 
-Hướng sửa chuẩn là tách thành hai tệp:
+The standard fix is to split them into two files:
 
 **`Alpha.java`:**
 
@@ -187,24 +187,24 @@ public class Beta {
 }
 ~~~
 
-Từ thư mục chứa hai tệp:
+From the directory containing both files:
 
 ~~~bash
 javac --release 17 Alpha.java Beta.java
 java -cp . Alpha
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 Hello from Beta
 ~~~
 
-Không phải class nào cũng cần `main`: `Alpha` làm điểm vào, `Beta` là class cộng tác. Quy tắc tên file vẫn áp dụng cho cả hai vì cả hai đều là **top-level public class**.
+Not every class needs `main`: `Alpha` serves as the entry point, and `Beta` is a collaborating class. The filename rule still applies to both because both are **top-level public classes**.
 
-## 6. Có package thì tên tệp vẫn khớp tên class cơ sở
+## 6. With a Package, the Filename Still Matches the Simple Class Name
 
-Tạo dự án:
+Create a project:
 
 ~~~text
 project/
@@ -225,14 +225,14 @@ public class Launcher {
 }
 ~~~
 
-Ở đây:
+Here:
 
-- Tên tệp nguồn: **`Launcher.java`**.
-- Tên lớp đơn giản: **`Launcher`**.
-- Tên lớp đầy đủ: **`demo.Launcher`**.
-- `demo` là tên package; không đặt tên tệp là `demo.Launcher.java`.
+- Source filename: **`Launcher.java`**.
+- Simple class name: **`Launcher`**.
+- Fully qualified class name: **`demo.Launcher`**.
+- `demo` is the package name; do not name the file `demo.Launcher.java`.
 
-Từ thư mục `project`:
+From the `project` directory:
 
 **Bash:**
 
@@ -250,19 +250,19 @@ javac --release 17 -encoding UTF-8 -d out .\src\demo\Launcher.java
 java -cp out demo.Launcher
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 Package demo OK
 ~~~
 
-Sau biên dịch, file bytecode nằm ở **`out/demo/Launcher.class`**. Lệnh chạy dùng `demo.Launcher`; classpath phải trỏ tới **`out`**, không phải `out/demo`.
+After compilation, the bytecode file is located at **`out/demo/Launcher.class`**. The run command uses `demo.Launcher`; the classpath must point to **`out`**, not `out/demo`.
 
-Cấu trúc thư mục source phản ánh package là quy ước tốt và thuận tiện cho build tools. Nhưng **quy tắc tên cơ sở của file public class** vẫn là `Launcher.java`: package không được ghép thêm vào tên file.
+Mirroring packages in the source directory structure is a good convention and convenient for build tools. However, the **base filename rule for a public class** is still `Launcher.java`: the package name is not prepended to the filename.
 
-## 7. Public nested class không cần file riêng
+## 7. Public Nested Classes Do Not Need a Separate File
 
-Tạo **`Outer.java`**:
+Create **`Outer.java`**:
 
 ~~~java
 public class Outer {
@@ -278,28 +278,28 @@ public class Outer {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac --release 17 Outer.java
 java -cp . Outer
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Inner
 ~~~
 
-`Outer` là top-level public class nên tệp có tên `Outer.java`. `Inner` là **nested public class** nên không cần tệp `Inner.java`. Compiler thường tạo các class file `Outer.class` và `Outer$Inner.class`.
+`Outer` is the top-level public class, so the file is named `Outer.java`. `Inner` is a **nested public class**, so it does not need an `Inner.java` file. The compiler normally generates the class files `Outer.class` and `Outer$Inner.class`.
 
-Nếu đưa `public class Inner` ra **ngoài** thân của `Outer`, nó trở thành top-level class; khi ấy hai public class cần hai tệp riêng.
+If you move `public class Inner` **outside** the body of `Outer`, it becomes a top-level class; at that point, two public classes require two separate files.
 
-## 8. Quy tắc cũng áp dụng cho các top-level public type khác
+## 8. The Rule Also Applies to Other Top-Level Public Types
 
-Với Java 17, không chỉ `class` mới bị yêu cầu khớp tên:
+In Java 17, it is not only `class` that requires a matching filename:
 
-| Khai báo top-level | Tên tệp |
+| Top-level declaration | Filename |
 |---|---|
 | `public class Account` | `Account.java` |
 | `public interface Payment` | `Payment.java` |
@@ -307,60 +307,60 @@ Với Java 17, không chỉ `class` mới bị yêu cầu khớp tên:
 | `public record Point(int x, int y)` | `Point.java` |
 | `public @interface Tracked` | `Tracked.java` |
 
-Ví dụ **`Point.java`**:
+Example **`Point.java`**:
 
 ~~~java
 public record Point(int x, int y) {
 }
 ~~~
 
-Chạy `javac --release 17 Point.java` để biên dịch. Nếu giữ nguyên `public record Point` mà đổi tên source thành `Coordinate.java`, lỗi đặt tên sẽ xuất hiện.
+Run `javac --release 17 Point.java` to compile. If you keep `public record Point` and rename the source file to `Coordinate.java`, the naming error will appear.
 
-Không suy ra mọi interface, enum hay record phải là `public`. Một top-level type thiếu modifier `public` có thể dùng quyền truy cập package-private như ví dụ class thông thường.
+Do not infer that every interface, enum, or record must be `public`. A top-level type without the `public` modifier can use package-private access just like ordinary classes.
 
-## 9. Phân biệt lỗi compile và lỗi launch
+## 9. Distinguishing Compile Errors from Launch Errors
 
-| Triệu chứng | Giai đoạn | Điều cần sửa |
+| Symptom | Phase | What to fix |
 |---|---|---|
-| `class X is public, should be declared in a file named X.java` | `javac` | Đổi tên source hoặc tên top-level public type |
-| Có hai top-level public type trong một source | `javac` | Tách thành hai source files |
-| `Could not find or load main class` | `java` tìm class | Kiểm tra tên đầy đủ, classpath root và file bytecode |
-| `Main method not found` | `java` tìm entry point | Bổ sung main hợp lệ vào class định chạy |
-| Chạy ra phiên bản kết quả cũ sau khi sửa source | Runtime | Lưu source, biên dịch lại và kiểm tra đúng classpath |
-| `UnsupportedClassVersionError` | JVM nạp bytecode | Kiểm tra runtime và mức release build; không phải lỗi đặt tên source |
+| `class X is public, should be declared in a file named X.java` | `javac` | Rename the source file or the top-level public type |
+| Two top-level public types in one source file | `javac` | Split into two source files |
+| `Could not find or load main class` | `java` locating class | Check fully qualified name, classpath root, and bytecode file |
+| `Main method not found` | `java` locating entry point | Add a valid `main` method to the class you intend to run |
+| Running shows old output after editing source | Runtime | Save source, recompile, and check the right classpath |
+| `UnsupportedClassVersionError` | JVM loading bytecode | Check the runtime and release build level; this is not a source naming error |
 
-**Ghi nhớ:** lỗi đặt tên tệp xảy ra **trước khi chạy**, trong bước biên dịch của `javac`. Đổi classpath hoặc thêm `-cp` không giải quyết lỗi này.
+**Remember:** the filename error happens **before running**, during the `javac` compilation step. Changing the classpath or adding `-cp` will not resolve this error.
 
-Ngược lại, class public có tên đúng, compile tốt vẫn có thể không launch được nếu package/classpath sai hoặc không có `main`.
+Conversely, a properly named public class that compiles cleanly can still fail to launch if the package/classpath is wrong or `main` is missing.
 
-## 10. Các trường hợp dễ nhầm
+## 10. Common Points of Confusion
 
-**Chữ hoa/chữ thường.** `public class Order` yêu cầu `Order.java`. Trên các hệ thống phân biệt hoa/thường, `order.java` có thể là file khác. Luôn dùng đúng ký tự để tránh lỗi khi chuyển dự án sang Linux.
+**Case sensitivity.** `public class Order` requires `Order.java`. On case-sensitive systems, `order.java` can be a completely different file. Always use exact casing to avoid issues when moving projects to Linux.
 
-**Tên file và tên package là hai phần riêng.** `public class App` trong `package demo;` vẫn ở `App.java`; khi chạy class mode dùng tên `demo.App`.
+**Filename and package name are separate.** `public class App` in `package demo;` still lives in `App.java`; when running in class mode, use `demo.App`.
 
-**Class có main nhưng không public.** Điều này không buộc source file phải mang tên class. Ví dụ `Runner` trong `Examples.java` vẫn được chạy nếu có `main` phù hợp và classpath đúng.
+**Class with `main` that is not public.** This does not require the source file to bear the class's name. For instance, `Runner` in `Examples.java` can still run if it has a valid `main` and the right classpath.
 
-**Public class không có main.** Biên dịch vẫn hợp lệ; một class làm thư viện không nhất thiết có entry point riêng.
+**Public class without `main`.** Compilation is still valid; a library class does not necessarily have its own entry point.
 
-**Một source có nhiều bytecode file.** Top-level khác nhau hoặc nested class đều có thể khiến `javac` tạo nhiều `.class`. Đừng tự đổi tên output bytecode để sửa lỗi tên public class.
+**One source file producing multiple bytecode files.** Multiple top-level classes or nested classes can cause `javac` to emit multiple `.class` files. Do not manually rename bytecode outputs to work around a public class naming error.
 
-**`java File.java` khác `java ClassName`.** Java 11+ hỗ trợ source-file launching với quy tắc riêng. Trong bài này, để kiểm chứng tên file của top-level public type, hãy dùng `javac File.java` trước, sau đó `java ClassName`. Đừng lấy hành vi của source-file mode làm bằng chứng phủ định quy tắc biên dịch tệp nguồn bằng `javac`.
+**`java File.java` differs from `java ClassName`.** Java 11+ supports source-file launching with its own rules. In this lesson, to verify the filename rule for top-level public types, run `javac File.java` first, then `java ClassName`. Do not use source-file mode behavior as evidence to contradict the `javac` source-file compilation rule.
 
-## 11. Bài tập có đáp án
+## 11. Exercises with Answers
 
-### Bài A — chọn tên tệp
+### Exercise A — choose the filename
 
 ~~~java
 public class PaymentService {
 }
 ~~~
 
-**Đáp án:** đặt trong `PaymentService.java`, đúng hoa/thường. Không dùng `paymentservice.java`.
+**Answer:** place it in `PaymentService.java`, with exact case. Do not use `paymentservice.java`.
 
-### Bài B — một public và một package-private class
+### Exercise B — one public and one package-private class
 
-Tệp **`Demo.java`**:
+File **`Demo.java`**:
 
 ~~~java
 class Helper {
@@ -374,18 +374,18 @@ public class Demo {
 }
 ~~~
 
-Biên dịch:
+Compile:
 
 ~~~bash
 javac --release 17 Demo.java
 java -cp . Demo
 ~~~
 
-**Đáp án:** hợp lệ; in **`12`**. `Demo` là top-level public class khớp tên tệp, `Helper` không public nên được giữ chung file.
+**Answer:** valid; prints **`12`**. `Demo` is the top-level public class matching the filename, and `Helper` is not public so it can stay in the same file.
 
-### Bài C — phân biệt hai vấn đề
+### Exercise C — distinguish two issues
 
-Tệp **`Hello.java`** chứa:
+File **`Hello.java`** contains:
 
 ~~~java
 package demo;
@@ -396,29 +396,29 @@ public class Welcome {
 }
 ~~~
 
-**Đáp án:** `javac Hello.java` báo lỗi đặt tên vì phải là **`Welcome.java`**. Sau khi sửa tên nguồn, compile với `-d out`, lệnh chạy cần dùng **`java -cp out demo.Welcome`** vì class thuộc package `demo`.
+**Answer:** `javac Hello.java` reports a naming error because it must be **`Welcome.java`**. After fixing the source name and compiling with `-d out`, the run command must use **`java -cp out demo.Welcome`** because the class belongs to package `demo`.
 
-### Bài D — hai top-level public class
+### Exercise D — two top-level public classes
 
-Tệp `A.java` có cả `public class A` và `public class B`. Hãy nêu cách sửa.
+File `A.java` has both `public class A` and `public class B`. State how to fix it.
 
-**Đáp án:** tách ra `A.java` và `B.java`, mỗi file giữ public class tương ứng. Nếu `B` chỉ cần sử dụng nội bộ package và thiết kế cho phép, một lựa chọn khác là bỏ `public` khỏi `B`; không tự đổi API public khi còn mã phụ thuộc.
+**Answer:** split into `A.java` and `B.java`, each keeping its corresponding public class. If `B` only needs to be used inside the package and the design permits, another option is to remove `public` from `B`; do not arbitrarily change a public API when other code depends on it.
 
-### Bài E — nested class
+### Exercise E — nested class
 
-Có `public class Outer` chứa `public static class Inner`. Có cần tạo `Inner.java` không?
+Given `public class Outer` containing `public static class Inner`, is it necessary to create `Inner.java`?
 
-**Đáp án:** **không**. `Inner` không phải top-level type; `Outer.java` là tệp cần khớp tên của `Outer`.
+**Answer:** **no**. `Inner` is not a top-level type; `Outer.java` is the file that must match the name of `Outer`.
 
-## 12. Checklist ghi nhớ
+## 12. Checklist
 
-- [ ] Giải thích được `public class X` ở top-level cần tệp `X.java`.
-- [ ] Phân biệt top-level class, package-private class và nested public class.
-- [ ] Biết khi nào có thể có nhiều class trong một tệp, khi nào phải tách.
-- [ ] Không nhầm tên tệp `.java` với tên class dùng ở lệnh `java`.
-- [ ] Chạy được ví dụ `Greeting.java` và `demo.Launcher` trên JDK 17+.
-- [ ] Nắm quy tắc với top-level `public interface`, `public enum`, `public record`, `public @interface`.
-- [ ] Biết đọc lỗi `should be declared in a file named...` và sửa đúng nguyên nhân.
-- [ ] Phân biệt lỗi tên source khi compile với lỗi classpath/main lúc chạy.
+- [ ] Explain why a top-level `public class X` requires the file `X.java`.
+- [ ] Distinguish a top-level class, a package-private class, and a nested public class.
+- [ ] Know when multiple classes can live in one file and when they must be split.
+- [ ] Avoid confusing the `.java` filename with the class name used in the `java` command.
+- [ ] Run the `Greeting.java` and `demo.Launcher` examples on JDK 17+.
+- [ ] Know the rule for top-level `public interface`, `public enum`, `public record`, and `public @interface`.
+- [ ] Read the `should be declared in a file named...` error and fix the root cause.
+- [ ] Distinguish source-naming errors at compile time from classpath/main errors at launch time.
 
-**Kết luận:** Quy tắc trung tâm khi biên dịch bằng `javac` là **tên tệp nguồn `.java` phải khớp tên top-level type `public` khai báo bên trong**. Những class top-level không public và class lồng nhau không phải áp dụng theo cách này. Khi chạy class đã biên dịch, `java` nhận tên class (kèm package nếu có), nên cần phân biệt tên source, tên class và vị trí bytecode.
+**Conclusion:** The central rule when compiling with `javac` is that **the `.java` source filename must match the name of the top-level `public` type declared inside it**. Non-public top-level classes and nested classes do not follow this requirement in the same way. When running compiled classes, `java` takes the class name (including the package if present), so you must distinguish the source name, class name, and bytecode location.

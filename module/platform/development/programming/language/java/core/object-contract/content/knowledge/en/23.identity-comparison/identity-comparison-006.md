@@ -1,12 +1,12 @@
-# IdentityHashMap: Vì sao cố ý khác hợp đồng Map thông thường ở quan hệ so sánh
+# IdentityHashMap: Why It Intentionally Differs from the Standard Map Contract on Comparison Semantics
 
-Trong Java, `IdentityHashMap<K, V>` triển khai giao diện `Map<K, V>` nhưng **cố ý sử dụng danh tính đối tượng (reference identity, toán tử `==`)** để phân biệt các khóa và so sánh các giá trị, thay cho quan hệ bằng nhau về mặt logic (`equals()`). Đây là ngoại lệ được mô tả công khai trong API, phù hợp với một số bài toán đặc biệt; không phải lỗi của `IdentityHashMap`.
+In Java, `IdentityHashMap<K, V>` implements the `Map<K, V>` interface yet **intentionally uses object identity (reference identity, the `==` operator)** to distinguish keys and compare values, instead of logical equality (`equals()`). This is a publicly documented exception in the API, suitable for certain specialized problems; it is not a bug in `IdentityHashMap`.
 
-Ý chính cần ghi nhớ: **hai đối tượng có `equals() == true` vẫn có thể là hai khóa khác nhau trong `IdentityHashMap`**. Khi đem map này so sánh với một map thông thường như `HashMap`, thậm chí `Map.equals()` có thể không còn đối xứng.
+Key point to remember: **two objects with `equals() == true` can still be two distinct keys in `IdentityHashMap`**. When comparing this map against a standard map such as `HashMap`, even `Map.equals()` may cease to be symmetric.
 
-## 1. Phân biệt bằng nhau về giá trị và bằng nhau về danh tính
+## 1. Distinguishing value equality and identity equality
 
-Giả sử:
+Suppose:
 
 ```java
 String a = new String("java");
@@ -16,38 +16,38 @@ System.out.println(a.equals(b)); // true
 System.out.println(a == b);      // false
 ```
 
-- `a.equals(b)` trả về `true` vì hai chuỗi mang cùng nội dung.
-- `a == b` trả về `false` vì `new` tạo ra hai đối tượng riêng biệt.
-- Việc `equals()` trả về `true` không có nghĩa là hai biến trỏ tới cùng đối tượng. Cùng tham chiếu thì `==` luôn là `true`, bất kể lớp ghi đè `equals()` ra sao.
+- `a.equals(b)` returns `true` because both strings carry the same content.
+- `a == b` returns `false` because `new` creates two separate objects.
+- Having `equals()` return `true` does not mean two variables point to the same object. Having the same reference always makes `==` `true`, regardless of how the class overrides `equals()`.
 
-Với khóa trong `HashMap`, Java dùng `hashCode()` và `equals()` để tìm khóa tương đương logic. `IdentityHashMap` dùng `==` kết hợp mã băm danh tính (`System.identityHashCode()`). Mã băm danh tính chỉ là công cụ tra cứu: **hai đối tượng khác nhau vẫn có thể trùng identity hash code**, và map phải phân biệt chúng bằng `==`. Mã băm này không phải địa chỉ bộ nhớ hoặc ID duy nhất tuyệt đối.
+For keys in `HashMap`, Java uses `hashCode()` and `equals()` to find logically equivalent keys. `IdentityHashMap` uses `==` combined with the identity hash code (`System.identityHashCode()`). The identity hash code is only a lookup aid: **two different objects can still share the same identity hash code**, and the map must distinguish them using `==`. This hash code is neither a memory address nor an absolute unique ID.
 
-| Tình huống | `HashMap` thông thường | `IdentityHashMap` |
+| Scenario | Ordinary `HashMap` | `IdentityHashMap` |
 | --- | --- | --- |
-| Hai khóa cùng một tham chiếu | Cùng một khóa | Cùng một khóa |
-| Hai khóa khác tham chiếu nhưng `equals()` là `true` | Cùng khóa nếu tuân thủ hợp đồng `hashCode/equals` | Hai khóa riêng |
-| `get(key)` / `containsKey(key)` | Dựa trên tương đương logic của key | Dựa trên đúng tham chiếu đã lưu |
-| `containsValue(value)` | So sánh theo `equals()` | So sánh bằng `==` |
-| Hai entry có key/value bằng nhau về nội dung nhưng khác tham chiếu | Có thể là cùng mapping | Không cùng mapping theo danh tính |
+| Two keys with the same reference | Same key | Same key |
+| Two keys with different references where `equals()` is `true` | Same key if obeying the `hashCode/equals` contract | Two separate keys |
+| `get(key)` / `containsKey(key)` | Based on logical equivalence of the key | Based on the exact stored reference |
+| `containsValue(value)` | Compares via `equals()` | Compares via `==` |
+| Two entries with content-equal key/value but different references | Can be the same mapping | Not the same mapping by identity |
 
-**Lưu ý:** `IdentityHashMap` không băm theo value; việc kiểm tra danh tính value thể hiện ở `containsValue()` và quan hệ so sánh các entry/map. `get()` vẫn chọn mapping dựa trên **danh tính key**.
+**Note:** `IdentityHashMap` does not hash by value; value identity checking appears in `containsValue()` and entry/map comparison operations. `get()` still selects a mapping based on **key identity**.
 
-## 2. “Vi phạm hợp đồng Map” chính xác là gì?
+## 2. What exactly is "violating the Map contract"?
 
-Hợp đồng `Map` thông thường mô tả tính tương đương của khóa dựa trên `equals()` và quan hệ bằng nhau giữa hai map dựa trên các mapping tương đương. `IdentityHashMap` triển khai thao tác `Map` nhưng chủ ý thay tiêu chí tương đương khóa/giá trị bằng **cùng tham chiếu đối tượng**.
+The standard `Map` contract describes key equivalence based on `equals()` and map equality based on equivalent mappings. `IdentityHashMap` implements `Map` operations yet intentionally replaces key/value equivalence criteria with **same object reference**.
 
-Các hệ quả quan trọng:
+Important consequences:
 
-1. **Tính duy nhất của khóa thay đổi.** `put(k1, v1)` rồi `put(k2, v2)` không thay mapping cũ chỉ vì `k1.equals(k2)` là `true`; hai key phải là chính cùng đối tượng.
-2. **`IdentityHashMap.equals(other)` xét các mapping theo danh tính.** Đặc tả diễn đạt bằng `this.entrySet().equals(other.entrySet())`, trong đó các entry của `IdentityHashMap` sử dụng quan hệ tham chiếu.
-3. **So sánh với map thông thường có thể bất đối xứng:** tồn tại trường hợp `normalMap.equals(identityMap) == true` nhưng `identityMap.equals(normalMap) == false`. Javadoc còn cảnh báo tính bắc cầu (`transitivity`) của `Object.equals` có thể bị vi phạm khi trộn các kiểu map.
-4. **`hashCode()` của map dựa trên entry với ngữ nghĩa identity.** Quy tắc “bằng nhau thì hash code bằng nhau” được đảm bảo khi so sánh giữa các `IdentityHashMap`; khi so sánh chéo với map thường, không thể mặc định quy tắc đó còn đúng.
+1. **Key uniqueness changes.** `put(k1, v1)` followed by `put(k2, v2)` does not replace the old mapping just because `k1.equals(k2)` is `true`; both keys must be the exact same object.
+2. **`IdentityHashMap.equals(other)` evaluates mappings by identity.** The specification expresses it as `this.entrySet().equals(other.entrySet())`, where `IdentityHashMap` entries use reference semantics.
+3. **Comparing with a standard map can be asymmetric:** cases exist where `normalMap.equals(identityMap) == true` while `identityMap.equals(normalMap) == false`. The Javadoc also warns that `Object.equals` transitivity (`transitivity`) may be violated when mixing map types.
+4. **A map's `hashCode()` is based on entries with identity semantics.** The rule "equal maps have equal hash codes" is guaranteed when comparing between `IdentityHashMap` instances; when cross-comparing with standard maps, you cannot assume that rule still holds.
 
-Điểm mấu chốt: **giữa các instance `IdentityHashMap`, hợp đồng `equals/hashCode` vẫn được bảo đảm**; rủi ro xuất hiện khi code áp dụng giả định của `HashMap`/`Map` thông thường hoặc so sánh chéo các kiểu map.
+Key takeaway: **across `IdentityHashMap` instances, the `equals/hashCode` contract is still upheld**; risks arise when code applies assumptions of `HashMap`/ordinary `Map` or cross-compares different map types.
 
-## 3. Ví dụ Java 17+: Chứng minh khác biệt và tính bất đối xứng
+## 3. Java 17+ example: demonstrating the difference and asymmetry
 
-Lưu thành `IdentityMapContractDemo.java`:
+Save as `IdentityMapContractDemo.java`:
 
 ```java
 import java.util.HashMap;
@@ -80,7 +80,7 @@ public class IdentityMapContractDemo {
         System.out.println("IdentityHashMap.containsValue(v1) = "
                 + byIdentity.containsValue(v1));
 
-        // Cùng object khóa, hai object giá trị khác nhau nhưng equals() == true.
+        // Same key object, two different value objects with equals() == true.
         Object sharedKey = new Object();
         Map<Object, String> regularOne = new HashMap<>();
         Map<Object, String> identityOne = new IdentityHashMap<>();
@@ -95,14 +95,14 @@ public class IdentityMapContractDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac IdentityMapContractDemo.java
 java IdentityMapContractDemo
 ```
 
-Kết quả chuẩn:
+Standard output:
 
 ```text
 k1.equals(k2) = true
@@ -116,78 +116,78 @@ HashMap.equals(IdentityHashMap) = true
 IdentityHashMap.equals(HashMap) = false
 ```
 
-Giải thích:
+Explanation:
 
-- Hai chuỗi khóa cùng nội dung nhưng khác đối tượng. `HashMap` giữ một mapping vì khóa thứ hai tương đương khóa đầu; `IdentityHashMap` giữ cả hai vì `k1 != k2`.
-- Tạo chuỗi mới `new String("code")` để tra cứu không tìm thấy key của `IdentityHashMap` dù nội dung bằng nhau. Tương tự, `containsValue(new String("same"))` là `false`; dùng đúng object `v1` thì là `true`.
-- Ở phần cuối, hai map chứa **chính cùng object `sharedKey`**, nhưng value là hai `String` khác tham chiếu, cùng nội dung. `HashMap.equals` chấp nhận value tương đương theo `equals()` nên trả `true`. `IdentityHashMap.equals` đòi đúng value reference nên trả `false`. Đây là phản ví dụ cụ thể cho tính đối xứng, **không phải** hiện tượng ngẫu nhiên do thứ tự duyệt hay va chạm hash.
+- The two key strings have identical content but are different objects. `HashMap` retains one mapping because the second key is equivalent to the first; `IdentityHashMap` retains both because `k1 != k2`.
+- Creating a new string `new String("code")` for lookup fails to find the key in `IdentityHashMap` despite identical content. Similarly, `containsValue(new String("same"))` is `false`; passing the exact `v1` object gives `true`.
+- At the end, both maps contain **the exact same `sharedKey` object**, while the values are two `String` objects with different references and identical content. `HashMap.equals` accepts `equals()`-equivalent values, returning `true`. `IdentityHashMap.equals` requires the exact value reference, returning `false`. This is a concrete counterexample to symmetry, **not** a random artifact of iteration order or hash collisions.
 
-**Không dùng `System.identityHashCode(...)` để dự đoán output:** con số hash có thể khác giữa các lần chạy, không biểu thị thứ tự map và không chứng minh hai tham chiếu là cùng object.
+**Do not use `System.identityHashCode(...)` to predict output:** hash numbers can differ across runs, do not indicate map ordering, and do not prove two references are the same object.
 
-## 4. Ảnh hưởng đến API, collection views và chuyển đổi map
+## 4. Impact on APIs, collection views, and map conversion
 
-### Các thao tác tra cứu
+### Lookup operations
 
-- `put(k, v)` thay thế value chỉ khi đã tồn tại mapping với **chính object `k`**; object khóa mới có cùng nội dung được thêm thành mapping mới.
-- `get(k)`, `containsKey(k)`, `remove(k)` tra cứu bằng identity của key. `get(k) == null` có thể nghĩa là không có key **hoặc** key đang ánh xạ tới `null`; dùng `containsKey(k)` để phân biệt.
-- `containsValue(v)` dùng identity của value, không dùng `v.equals(...)`.
-- `IdentityHashMap` cho phép một key `null` và các value `null`.
+- `put(k, v)` replaces the value only when a mapping already exists for **the exact object `k`**; a new key object with identical content is added as a new mapping.
+- `get(k)`, `containsKey(k)`, `remove(k)` look up by key identity. `get(k) == null` may mean the key is absent **or** the key maps to `null`; use `containsKey(k)` to distinguish.
+- `containsValue(v)` uses value identity, not `v.equals(...)`.
+- `IdentityHashMap` allows one `null` key and `null` values.
 
 ### `keySet()`, `entrySet()`, `values()`
 
-- `keySet()` là một **set dựa trên danh tính**: hai key khác object nhưng `equals() == true` vẫn cùng xuất hiện. Không nên mặc định rằng view này so sánh với mọi `HashSet` theo quy ước `Set.equals` thông thường.
-- `entrySet()` thể hiện mapping theo identity của **cả key lẫn value**. Đây là nền tảng của `IdentityHashMap.equals/hashCode`.
-- `values()` là collection view, được liên kết với map gốc, không phải bản sao. Việc kiểm tra value hiện diện tuân theo identity semantics.
-- `IdentityHashMap` không bảo đảm thứ tự duyệt; không viết test phụ thuộc thứ tự `keySet()`/`entrySet()`/`values()`.
+- `keySet()` is an **identity-based set**: two keys that are different objects yet have `equals() == true` both appear. Do not assume this view compares with any `HashSet` under standard `Set.equals` conventions.
+- `entrySet()` represents mappings by identity of **both key and value**. This forms the basis of `IdentityHashMap.equals/hashCode`.
+- `values()` is a collection view backed by the original map, not a copy. Presence checks on values obey identity semantics.
+- `IdentityHashMap` does not guarantee iteration order; do not write tests depending on the order of `keySet()`/`entrySet()`/`values()`.
 
-### Chuyển qua `HashMap` có thể làm mất mapping
+### Converting to `HashMap` can lose mappings
 
-Nếu `identityMap` chứa hai khóa `k1` và `k2` khác object nhưng `k1.equals(k2) == true`:
+If `identityMap` contains two keys `k1` and `k2` that are different objects with `k1.equals(k2) == true`:
 
 ```java
 Map<String, String> copied = new HashMap<>(identityMap);
 ```
 
-`copied` có thể gộp hai mapping thành một; value còn lại phụ thuộc thứ tự duyệt nguồn nên không được dựa vào nó. Ngược lại, tạo `IdentityHashMap` từ `HashMap` không thể khôi phục các khóa khác object đã bị gộp. Hai lớp cùng triển khai `Map<K,V>` nhưng việc đổi implementation có thể thay **ý nghĩa dữ liệu**.
+`copied` may collapse the two mappings into one; which value survives depends on source iteration order and must not be relied upon. Conversely, constructing an `IdentityHashMap` from a `HashMap` cannot recover distinct-object keys that were already merged. Both classes implement `Map<K,V>`, yet changing implementations can alter **the meaning of data**.
 
-### Bẫy khi dùng `Map.equals/hashCode` để tích hợp
+### Pitfalls when using `Map.equals/hashCode` for integration
 
-Một API nhận `Map` bất kỳ thường giả định `equals` đối xứng, bắc cầu và tương thích `hashCode`. Với `IdentityHashMap`, các giả định ấy có thể thất bại khi trộn với map thường. Cần xem xét code so sánh map, dùng map làm key trong map khác, kiểm tra `assertEquals(expectedHashMap, actualIdentityMap)`, hoặc chuyển đổi dữ liệu qua API không nêu rõ tiêu chí equality. **Thứ tự hai đối số so sánh có thể làm thay kết quả.**
+An API accepting any `Map` normally assumes `equals` is symmetric, transitive, and compatible with `hashCode`. With `IdentityHashMap`, those assumptions can fail when mixed with ordinary maps. Inspect code that compares maps, uses maps as keys in another map, checks `assertEquals(expectedHashMap, actualIdentityMap)`, or passes data through APIs that do not specify equality criteria. **The order of the two comparison arguments can change the result.**
 
-## 5. Khi nào nên dùng IdentityHashMap?
+## 5. When should IdentityHashMap be used?
 
-Chỉ dùng khi bài toán cần định danh **đúng từng instance**, kể cả các instance tình cờ mang dữ liệu giống nhau:
+Use it only when the problem requires identifying **each exact instance**, including instances that happen to carry identical data:
 
-- **Sao chép/chuyển đổi đồ thị object có chia sẻ hoặc chu trình:** ánh xạ mỗi *node object gốc* sang đúng *node object mới*. Nếu hai node khác nhau nhưng `equals()` giống nhau, nhập chúng làm một sẽ phá cấu trúc đồ thị.
-- **Theo dõi object đã thăm trong quá trình duyệt đồ thị:** các node đại diện hai thực thể riêng phải được xử lý riêng, dù cùng thuộc tính.
-- **Ánh xạ object gốc sang proxy hoặc metadata chẩn đoán:** giữ một proxy riêng cho từng object cụ thể trong runtime.
+- **Cloning/transforming object graphs with sharing or cycles:** mapping each *original node object* to its exact *new node object*. If two different nodes share the same `equals()`, merging them into one would corrupt the graph structure.
+- **Tracking visited objects during graph traversal:** nodes representing two separate entities must be processed separately, even with identical attributes.
+- **Mapping original objects to proxies or diagnostic metadata:** keeping a separate proxy for each specific runtime object.
 
-Khi chỉ cần tập các đối tượng đã thăm, dùng `Collections.newSetFromMap(new IdentityHashMap<>())` với map ban đầu trống. Bài **Dùng danh tính khi duyệt và theo dõi đồ thị đối tượng** có ví dụ DFS và phân biệt việc gặp lại node với chu kỳ.
+When you only need a set of visited objects, use `Collections.newSetFromMap(new IdentityHashMap<>())` with an initially empty map. The lesson **Using Identity When Traversing and Tracking Object Graphs** provides DFS examples and distinguishes revisiting a node from a cycle.
 
-## 6. Những nhầm lẫn## 6. Những nhầm lẫn và giới hạn cần tránh
+## 6. Misconceptions## 6. Misconceptions and limitations to avoid
 
-1. **Không nghĩ `IdentityHashMap` là `HashMap` nhanh hơn.** Hai cấu trúc có ngữ nghĩa khác nhau. Chi tiết bảng băm và tối ưu không phải lý do thay thế nếu nghiệp vụ dùng `equals()`.
-2. **Không dùng cho khóa nghiệp vụ “bằng giá trị”.** Email, mã sản phẩm, ID hay chuỗi được tạo lại qua request có thể thành nhiều entry khó tra cứu dù cùng nội dung.
-3. **Không hiểu `==` là `equals()`.** Với object, `==` so tham chiếu; ghi đè `equals/hashCode` không thay đổi điều này.
-4. **Không dùng identity hash code làm ID toàn cục.** `System.identityHashCode(x)` có thể trùng giữa các object khác nhau và không phải định danh bền vững qua tiến trình.
-5. **Không giả định thứ tự, thread safety hoặc tự giải phóng key.** `IdentityHashMap` không bảo đảm thứ tự, không đồng bộ hóa mặc định và giữ tham chiếu mạnh tới key/value. Khi nhiều luồng có sửa cấu trúc phải đồng bộ phù hợp; nếu cần weak keys, chọn cấu trúc theo yêu cầu đó.
-6. **Không trông chờ iterator fail-fast làm cơ chế đồng bộ.** `ConcurrentModificationException` chỉ được phát hiện ở mức cố gắng tốt nhất, không thay cho synchronization.
-7. **Không so sánh bằng `Map.equals` khi hai bên dùng tiêu chí khác nhau.** Xác định rõ cần cùng instance hay cùng dữ liệu; nếu chuyển sang cấu trúc dùng equality theo giá trị, phải đánh giá trước rủi ro gộp key.
+1. **Do not think `IdentityHashMap` is a faster `HashMap`.** The two structures have different semantics. Hash table details and optimization are not reasons to substitute it if business logic uses `equals()`.
+2. **Do not use it for "value-equal" business keys.** Emails, product codes, IDs, or strings recreated across requests can become multiple hard-to-look-up entries despite identical content.
+3. **Do not misunderstand `==` as `equals()`.** For objects, `==` compares references; overriding `equals/hashCode` does not change this.
+4. **Do not use identity hash code as a global ID.** `System.identityHashCode(x)` can collide across different objects and is not a durable identifier across processes.
+5. **Do not assume ordering, thread safety, or automatic key release.** `IdentityHashMap` guarantees no ordering, is not synchronized by default, and holds strong references to keys/values. When multiple threads perform structural modifications, synchronize appropriately; if weak keys are needed, choose a structure matching that requirement.
+6. **Do not rely on fail-fast iterators as a synchronization mechanism.** `ConcurrentModificationException` is only detected on a best-effort basis and does not replace synchronization.
+7. **Do not compare via `Map.equals` when both sides use different criteria.** Clarify whether the same instance or the same data is needed; if switching to a value-equality structure, evaluate key-merging risks beforehand.
 
-## 7. Checklist thực hành
+## 7. Practical checklist
 
-Trước khi chọn `IdentityHashMap`, hãy trả lời:
+Before choosing `IdentityHashMap`, answer:
 
-- Hai key khác tham chiếu nhưng `equals() == true` có **bắt buộc** phải được giữ riêng không?
-- Việc so sánh value (`containsValue`, `entrySet`, `Map.equals`) có thật sự cần `==` thay cho `equals()` không?
-- Code gọi có dựa vào hợp đồng `Map.equals/hashCode` khi so sánh với `HashMap`/`TreeMap` không?
-- Có bước copy map, serialize, cache hoặc expose `Map` ra API khác làm mất ý nghĩa identity không?
-- Test bao gồm cả **cùng tham chiếu**, **khác tham chiếu nhưng bằng giá trị**, **`null`**, và **so sánh chéo loại map** chưa?
+- Must two keys with different references yet `equals() == true` **strictly** be kept separate?
+- Do value comparisons (`containsValue`, `entrySet`, `Map.equals`) truly require `==` instead of `equals()`?
+- Does calling code rely on the `Map.equals/hashCode` contract when comparing against `HashMap`/`TreeMap`?
+- Is there any map copying, serialization, caching, or exposing of `Map` to another API that would lose identity semantics?
+- Do tests cover **same reference**, **different references with equal values**, **`null`**, and **cross-type map comparison**?
 
-Nếu tiêu chí là bằng nhau về logic, `HashMap` thường phù hợp. Nếu tiêu chí là **object nào trong bộ nhớ**, `IdentityHashMap` đáp ứng mục đích đó; hãy bảo vệ ranh giới ngữ nghĩa khi kết hợp với collection khác.
+If the criterion is logical equality, `HashMap` is usually appropriate. If the criterion is **which object in memory**, `IdentityHashMap` serves that purpose; protect semantic boundaries when combining it with other collections.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 17 API — IdentityHashMap](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/IdentityHashMap.html): mô tả identity semantics, ngoại lệ với hợp đồng `Map`, `equals/hashCode`, collection views và ứng dụng trên đồ thị object.
-- [Java SE 17 API — Map](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html): hợp đồng tổng quát về key, value, `equals` và `hashCode`.
-- [Java SE 17 API — System.identityHashCode](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/System.html#identityHashCode(java.lang.Object)): mã băm theo danh tính, độc lập với override `hashCode()`.
+- [Java SE 17 API — IdentityHashMap](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/IdentityHashMap.html): describes identity semantics, exceptions to the `Map` contract, `equals/hashCode`, collection views, and object-graph applications.
+- [Java SE 17 API — Map](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html): general contract for keys, values, `equals`, and `hashCode`.
+- [Java SE 17 API — System.identityHashCode](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/System.html#identityHashCode(java.lang.Object)): identity-based hash code, independent of `hashCode()` overrides.

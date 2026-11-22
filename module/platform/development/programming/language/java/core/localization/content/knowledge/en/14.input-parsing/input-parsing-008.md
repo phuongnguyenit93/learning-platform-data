@@ -1,80 +1,80 @@
-# Quy ước máy đọc được cho tệp, API và dữ liệu lưu trữ trong Java
+# Machine-Readable Conventions for Files, APIs, and Stored Data in Java
 
-Ứng dụng bản địa hóa cần xử lý **hai thế giới khác nhau**: văn bản người dùng đọc/nhập theo `Locale`, và dữ liệu máy móc truyền/lưu với một **hợp đồng định dạng ổn định**. Một người dùng ở Đức có thể nhập `1.234,50`; một người dùng tại Hoa Kỳ nhìn thấy `1,234.50`. Tuy nhiên, API, tệp trao đổi và bản ghi lưu trữ không nên phụ thuộc vào `Locale.getDefault()` của máy đang chạy để quyết định số đó là bao nhiêu.
+Localized applications deal with **two different worlds**: human-facing text formatted/parsed by `Locale`, and machine-facing data transmitted or stored under a **stable format contract**. A user in Germany may enter `1.234,50`; a user in the United States sees `1,234.50`. However, APIs, interchange files, and stored records must never depend on the running host's `Locale.getDefault()` to decide what a number means.
 
-**Nguyên tắc:** *Giao diện bản địa hóa dữ liệu cho người dùng; ranh giới trao đổi và lưu trữ phải dùng kiểu dữ liệu, mã hóa, cú pháp và quy tắc kiểm tra đã được định nghĩa rõ.* Với Java 17+, điều này thường có nghĩa: số thập phân dùng `BigDecimal` và biểu diễn decimal theo hợp đồng; ngày thuần dùng ISO `yyyy-MM-dd`; thời điểm dùng `Instant` ở UTC hoặc chuỗi có offset rõ ràng; locale dùng thẻ BCP 47 như `vi-VN`; nội dung tệp/API dùng UTF-8 và parser phù hợp với định dạng.
+**Principle:** *User interfaces localize data for people; interchange and storage boundaries must use explicitly defined data types, encodings, syntax, and validation rules.* In Java 17+, this typically means: decimals use `BigDecimal` and contract-defined decimal representations; pure calendar dates use ISO `yyyy-MM-dd`; instants use UTC `Instant` or explicit-offset strings; locales use BCP 47 tags like `vi-VN`; files and APIs use UTF-8 and format-appropriate parsers.
 
-Bài học tập trung **quy ước máy đọc được**: cách tạo, đọc, xác thực và chuyển đổi dữ liệu an toàn ở các ranh giới *file → ứng dụng → API → database*, không phải cách dịch nhãn giao diện.
+This lesson focuses on **machine-readable conventions**: how to produce, read, validate, and convert data safely across *file → application → API → database* boundaries, rather than translating UI labels.
 
-## 1. Vì sao không được dùng định dạng hiển thị làm định dạng truyền/lưu?
+## 1. Why Display Formats Must Never Be Used for Transmission or Storage
 
-Xét cùng giá trị số một nghìn hai trăm ba mươi tư phẩy năm:
+Consider the same value one thousand two hundred thirty-four point five:
 
-| Ngữ cảnh | Biểu diễn minh họa | Tính chất |
+| Context | Illustrative Representation | Characteristics |
 | --- | --- | --- |
-| UI `en-US` | `1,234.50` | Dấu phẩy phân nhóm, dấu chấm thập phân |
-| UI `de-DE` | `1.234,50` | Dấu chấm phân nhóm, dấu phẩy thập phân |
-| UI `vi-VN` | Có thể dùng ký hiệu phân nhóm/thập phân theo dữ liệu locale của JDK | Kết quả phụ thuộc locale/provider |
-| Dữ liệu decimal dạng text theo hợp đồng đề xuất | `1234.50` | Không grouping, dấu chấm ASCII, chữ số rõ ràng |
-| Database cột DECIMAL/NUMERIC | Giá trị decimal có kiểu | Không phải chuỗi được format cho một locale |
-| JSON number | `1234.50` | Cú pháp số của JSON; độ chính xác phụ thuộc bên tiêu thụ |
-| JSON string mang decimal chính xác | `"1234.50"` | Cần hợp đồng nói rõ phải parse thành decimal |
+| `en-US` UI | `1,234.50` | Comma grouping separator, dot decimal separator |
+| `de-DE` UI | `1.234,50` | Dot grouping separator, comma decimal separator |
+| `vi-VN` UI | May use grouping/decimal symbols per JDK locale data | Output depends on locale/provider |
+| Recommended contract-based text decimal | `1234.50` | No grouping, ASCII dot, unambiguous digits |
+| Database `DECIMAL`/`NUMERIC` column | Typed decimal value | Not a locale-formatted string |
+| JSON number | `1234.50` | JSON numeric syntax; precision depends on consumer |
+| JSON string carrying exact decimal | `"1234.50"` | Requires contract stating it parses as decimal |
 
-Nếu ghi trực tiếp chuỗi `1.234,50` vào một tệp CSV rồi để dịch vụ khác gọi `Double.parseDouble`, việc phân tích thất bại hoặc bị diễn giải sai. Nếu dùng `NumberFormat.getInstance()` không truyền locale tại server, kết quả còn phụ thuộc cấu hình của máy chạy.
+If you write `"1.234,50"` directly into a CSV file and another service calls `Double.parseDouble`, parsing fails or misinterprets the number. If a server calls `NumberFormat.getInstance()` without a locale, behavior varies with the host machine's configuration.
 
-### Hai trục cần tách
+### Two Axes to Separate
 
-1. **Ý nghĩa dữ liệu:** decimal tiền tệ, tỷ lệ, số đếm, ngày trên lịch, timestamp, mã locale, mã khách hàng.
-2. **Cách biểu diễn ở ranh giới:** JSON number hay string, chuỗi ISO, cột SQL kiểu `DECIMAL`, byte UTF-8, dấu phân cách CSV, timezone, quy ước null.
+1. **Data semantics:** monetary decimal, ratio, integer count, calendar date, timestamp, locale code, customer ID.
+2. **Boundary representation:** JSON number vs. string, ISO string, SQL `DECIMAL` column, UTF-8 bytes, CSV delimiter, time zone, nullability convention.
 
-Một `Locale` chỉ hỗ trợ cách gọi tên/định dạng/đọc theo vùng; nó **không tự định nghĩa** toàn bộ giao thức trao đổi hoặc lược đồ lưu trữ. Hãy bắt đầu bằng **hợp đồng dữ liệu** thay vì bắt đầu bằng `NumberFormat`.
+A `Locale` only governs regional naming, formatting, and reading conventions; it **does not define** an entire interchange protocol or storage schema. Start from the **data contract** rather than starting from `NumberFormat`.
 
-## 2. Chọn kiểu trong mô hình nội bộ trước khi chọn chuỗi ngoài
+## 2. Choose Internal Model Types Before Choosing External Strings
 
-Java có kiểu thích hợp cho các khái niệm thông dụng:
+Java provides well-suited types for common domain concepts:
 
-| Ý nghĩa | Kiểu Java nên cân nhắc | Biểu diễn trao đổi thường dùng |
+| Semantics | Recommended Java Type | Common Interchange Representation |
 | --- | --- | --- |
-| Số lượng nguyên | `int`, `long`, `BigInteger` tùy phạm vi | JSON integer, cột integer, chuỗi chữ số nếu cần |
-| Decimal chính xác, tiền | `BigDecimal` | JSON string decimal có hợp đồng hoặc JSON number có giới hạn tương thích |
-| Số đo xấp xỉ | `double` | JSON number hữu hạn với quy ước sai số/độ chính xác rõ |
-| Ngày không kèm giờ | `LocalDate` | `2026-10-28` (ISO calendar date) |
-| Giờ không kèm ngày, vùng | `LocalTime` | `14:30:00` theo quy tắc đã thống nhất |
-| Thời điểm tuyệt đối | `Instant` | `2026-10-28T03:30:00Z` |
-| Thời gian với offset | `OffsetDateTime` | `2026-10-28T10:30:00+07:00` |
-| Giờ địa phương + vùng | `ZonedDateTime` hoặc cặp `LocalDateTime` và `ZoneId` | Truyền cả local time, zone ID và chính sách DST nếu ý nghĩa nghiệp vụ cần |
-| Ngôn ngữ/vùng người dùng | `Locale` | BCP 47, ví dụ `en-US` |
-| Mã định danh có số 0 đầu | `String` | `"001234"`, không ép sang số |
+| Integer quantity | `int`, `long`, `BigInteger` depending on range | JSON integer, integer column, digit string if needed |
+| Exact decimal, money | `BigDecimal` | Contracted JSON decimal string or JSON number within compatible limits |
+| Approximate measurement | `double` | Finite JSON number with clear error/precision contract |
+| Date without time | `LocalDate` | `2026-10-28` (ISO calendar date) |
+| Time without date or zone | `LocalTime` | `14:30:00` per agreed rules |
+| Absolute instant | `Instant` | `2026-10-28T03:30:00Z` |
+| Date-time with offset | `OffsetDateTime` | `2026-10-28T10:30:00+07:00` |
+| Local wall-clock time + zone | `ZonedDateTime` or pair of `LocalDateTime` and `ZoneId` | Transmit local time, zone ID, and DST policy if business semantics require |
+| User language/region | `Locale` | BCP 47 tag, e.g., `en-US` |
+| Identifier with leading zeros | `String` | `"001234"`, never coerce to a number |
 
-**Không chọn `double` cho mọi giá trị chỉ vì API nhận số.** Decimal tài chính có thể cần độ chính xác thập phân và quy tắc làm tròn có thể kiểm toán. **Không chọn `Date`/`Instant` cho một ngày sinh** nếu ý nghĩa chỉ là ngày trên lịch: chuyển ngày sang timestamp có thể gây đổi ngày khi dịch múi giờ.
+**Do not choose `double` for everything just because an API accepts numbers.** Financial decimals require decimal exactness and auditable rounding rules. **Do not choose `Date`/`Instant` for a birth date** when the meaning is strictly a calendar date: turning a date into a timestamp can shift the day across time zones.
 
-Kiểu trong bộ nhớ và kiểu khi trao đổi phải có **ánh xạ rõ ràng**, không dựa vào `toString()` của một đối tượng tùy ý như một hợp đồng vĩnh viễn.
+In-memory types and wire types must have an **explicit mapping**, never relying on an arbitrary object's `toString()` as a permanent contract.
 
-## 3. Số thập phân máy đọc: không có grouping, dấu chấm được quy định
+## 3. Machine-Readable Decimals: No Grouping, Explicit Decimal Point
 
-Với một trường decimal do ứng dụng tự định nghĩa dưới dạng chuỗi, hợp đồng đơn giản có thể yêu cầu:
+For an application-defined string decimal field, a clean contract might require:
 
-- Chỉ dùng các chữ số ASCII `0–9`; dấu trừ ASCII `-` nếu cho phép số âm.
-- Dấu thập phân **`.`**, không phải dấu phẩy.
-- Không ký hiệu phân nhóm như `,`, khoảng trắng, dấu chấm nhóm, dấu phân cách theo locale.
-- Không ký hiệu tiền tệ, phần trăm, khoảng trắng tùy ý, `NaN` hoặc `Infinity`.
-- Phải xác định có chấp nhận phần mũ `E`, số 0 đầu, dấu `+`, số âm bằng `-0` và số chữ số tối đa hay không.
+- ASCII digits `0–9` only; ASCII minus `-` if negative values are permitted.
+- Decimal separator **`.`**, never a comma.
+- No grouping symbols such as `,`, whitespace, grouping dots, or locale-specific separators.
+- No currency signs, percent signs, arbitrary whitespace, `NaN`, or `Infinity`.
+- Explicit decisions on whether exponent `E`, leading zeros, `+` sign, negative `-0`, and maximum digit counts are allowed.
 
-Một grammar **do ứng dụng lựa chọn** (không phải grammar duy nhất của tất cả giao thức) là:
+One **application-chosen** grammar (not the sole grammar of all protocols) is:
 
 ```text
 decimal := "-"? ( "0" | [1-9][0-9]* ) ( "." [0-9]+ )?
-Hợp lệ:  0, -0, 12, 1234.50, -0.75
-Không hợp lệ: 01, +2, .5, 1., 1,000.5, NaN, 1e3
+Valid:   0, -0, 12, 1234.50, -0.75
+Invalid: 01, +2, .5, 1., 1,000.5, NaN, 1e3
 ```
 
-Cú pháp ở trên cố ý **không cho phép số mũ** để hợp đồng dễ kiểm soát. JSON number lại có grammar riêng và *có* phần số mũ; đừng lấy regex này rồi tuyên bố nó là parser cho toàn bộ JSON.
+The syntax above intentionally **forbids exponents** to keep the contract tight. JSON numbers have their own grammar and *do* allow exponents; do not take this regex and claim it parses all JSON numbers.
 
-Với Java, `new BigDecimal("1234.50")` tạo giá trị thập phân không phụ thuộc locale; `toPlainString()` tạo chuỗi decimal không có ký pháp mũ. Tuy nhiên, `BigDecimal(String)` chấp nhận một phạm vi cú pháp khác grammar đề xuất, nên **phải xác thực riêng** nếu giao thức yêu cầu grammar hẹp.
+In Java, `new BigDecimal("1234.50")` constructs a locale-independent decimal value; `toPlainString()` outputs a decimal string without scientific notation. However, `BigDecimal(String)` accepts a wider syntax than our proposed grammar, so **validate explicitly** if your protocol requires the narrower grammar.
 
-### Ví dụ Java 17+ kiểm tra decimal theo hợp đồng
+### Java 17+ Example Validating Contract Decimals
 
-Lưu **`StrictWireDecimalDemo.java`**:
+Save **`StrictWireDecimalDemo.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -104,7 +104,7 @@ public class StrictWireDecimalDemo {
 }
 ```
 
-Lệnh chạy tại thư mục chứa file:
+Run in the directory containing the file:
 
 ```bash
 javac -encoding UTF-8 StrictWireDecimalDemo.java
@@ -121,37 +121,37 @@ Accepted: -0.75
 Rejected: 1e3
 ```
 
-**Giải thích:** `matches()` yêu cầu **toàn bộ** chuỗi đúng grammar; không chấp nhận một prefix hợp lệ rồi bỏ phần còn lại. Khi grammar hợp lệ, chuyển sang `BigDecimal`; từ đó các phép toán decimal có thể dùng `setScale(RoundingMode)` hoặc `MathContext` theo chính sách riêng. `toPlainString()` không tự thêm phân nhóm và không đọc cấu hình `Locale.getDefault()`.
+**Explanation:** `matches()` requires the **entire** string to match the grammar; it never accepts a valid prefix and ignores the rest. Once the grammar matches, convert to `BigDecimal`; arithmetic can then use `setScale(RoundingMode)` or `MathContext` per policy. `toPlainString()` never adds grouping separators and never reads `Locale.getDefault()`.
 
-**Cảnh báo cần thiết:** ví dụ minh họa cú pháp, chưa giới hạn kích thước chuỗi, số chữ số, quy mô tuyệt đối, scale, khoảng số hợp lệ hay tài nguyên máy dùng để xử lý input rất dài. Trong API thực, phải có giới hạn độ dài, precision, scale và phạm vi trước/sau parse. `BigDecimal` chính xác hơn `double` về decimal, nhưng không tự động bảo đảm input hợp lệ cho nghiệp vụ.
+**Essential warning:** this example demonstrates syntax only and does not yet bound string length, digit count, magnitude, scale, valid range, or resource consumption for huge inputs. In real APIs, enforce length, precision, scale, and range limits before and after parsing. `BigDecimal` is decimal-exact compared to `double`, but it does not automatically validate business suitability.
 
-## 4. Chuyển đổi đúng tại ranh giới UI → mô hình → storage
+## 4. Converting Properly at the UI → Model → Storage Boundary
 
-Giả sử người dùng ở Đức nhập `1.234,50` và ứng dụng muốn lưu giá trị `1234.50`:
+Suppose a user in Germany enters `1.234,50` and the application needs to store `1234.50`:
 
 ```text
-UI người dùng (de-DE): "1.234,50"
+User UI (de-DE): "1.234,50"
             |
-            | parse theo locale ĐƯỢC CHỌN cho input
+            | parse with SELECTED input locale
             v
-Mô hình Java: BigDecimal 1234.50
+Java model: BigDecimal 1234.50
             |
-            | validate số lượng, precision, scale, range
+            | validate quantity, precision, scale, range
             v
-Cột DECIMAL hoặc trường wire "1234.50"
+DECIMAL column or wire field "1234.50"
             |
-            | dữ liệu độc lập với locale
+            | locale-independent data
             v
-Đọc lại -> BigDecimal -> format theo locale của người xem
+Read back -> BigDecimal -> format in viewer's locale
 ```
 
-**Không cố thay dấu phẩy thành dấu chấm bằng `String.replace(...)`** một cách phổ quát. Dấu phẩy có thể là grouping ở `en-US`, dấu thập phân ở `de-DE`, hoặc xuất hiện trong nội dung không phải số. Dùng parser locale-aware cho input do người dùng tạo, và kiểm tra toàn bộ chuỗi đã được tiêu thụ.
+**Never attempt to turn commas into dots universally via `String.replace(...)`.** A comma can be a grouping separator in `en-US`, a decimal separator in `de-DE`, or part of non-numeric text. Use a locale-aware parser for user-entered text and verify full-string consumption.
 
-Trong Java, `NumberFormat.parse(String)` có thể chấp nhận **một prefix hợp lệ** mà không xác nhận phần ký tự còn lại. `DecimalFormat.setParseBigDecimal(true)` có thể giúp giữ giá trị thập phân thay vì chuyển về `double`, nhưng chỉ gọi được nếu parser thật sự là `DecimalFormat`. Với code yêu cầu decimal chính xác, một cách có kiểm soát là tạo `DecimalFormat` tường minh với `DecimalFormatSymbols.getInstance(userLocale)`, bật `setParseBigDecimal(true)`, dùng `ParsePosition` và kiểm tra `position.getIndex() == input.length()`. Mẫu pattern của parser còn có thể cho phép cách viết rộng hơn yêu cầu nghiệp vụ, nên vẫn cần validation.
+In Java, `NumberFormat.parse(String)` can accept a **valid prefix** without checking trailing characters. `DecimalFormat.setParseBigDecimal(true)` preserves decimal values instead of converting to `double`, though it is only available when the parser is actually a `DecimalFormat`. When exact decimals are needed, a controlled approach is constructing an explicit `DecimalFormat` with `DecimalFormatSymbols.getInstance(userLocale)`, enabling `setParseBigDecimal(true)`, using `ParsePosition`, and verifying `position.getIndex() == input.length()`. Parser patterns can still accept broader shapes than business rules allow, so validation remains essential.
 
-### Minh họa Java 17+ đọc số UI theo locale
+### Java 17+ Demo Reading UI Numbers by Locale
 
-Tạo file **`UserNumberBoundaryDemo.java`**:
+Create the file **`UserNumberBoundaryDemo.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -194,26 +194,26 @@ javac -encoding UTF-8 UserNumberBoundaryDemo.java
 java UserNumberBoundaryDemo
 ```
 
-Stdout trên JDK có dữ liệu `Locale.GERMANY` tương ứng:
+Stdout on a JDK with corresponding `Locale.GERMANY` data:
 
 ```text
 Wire: 1234.50
 Value unchanged: true
 ```
 
-Ứng dụng thực còn phải kiểm tra quy tắc grouping (parser có thể khá dung thứ), số chữ số tối đa, scale, phạm vi và liệu có chấp nhận chuỗi input đã trim hay không. `DecimalFormat` là đối tượng mutable, không chia sẻ cùng một instance không đồng bộ giữa nhiều request.
+Real applications must also enforce grouping rules (parsers can be permissive), maximum digit counts, scale, range, and whether trimmed input is allowed. `DecimalFormat` is mutable, so never share a single instance unsynchronized across requests.
 
-**Tách rõ hai luồng:** `user-entered text` có thể parse theo locale người dùng; `machine wire text` phải parse theo **grammar của giao thức**, không theo locale mặc định server. Đừng sử dụng phương thức locale-aware để đọc JSON numbers hoặc dữ liệu SQL decimal.
+**Keep the two flows strictly separate:** `user-entered text` can be parsed using the user's locale; `machine wire text` must be parsed against the **protocol grammar**, never the server's default locale. Never use locale-aware parsers to read JSON numbers or SQL decimal values.
 
-## 5. Định dạng máy đọc của ngày: LocalDate là ngày, không phải timestamp
+## 5. Machine-Readable Dates: `LocalDate` Is a Date, Not a Timestamp
 
-Một ngày như ngày sinh hoặc ngày giao hàng chỉ có năm-tháng-ngày. Dùng `LocalDate` và biểu diễn ISO `yyyy-MM-dd`:
+A date such as a birth date or delivery date consists only of year, month, and day. Use `LocalDate` and ISO representation `yyyy-MM-dd`:
 
 ```text
 2026-10-28
 ```
 
-Đối với ngày lịch, định dạng này **không mang múi giờ**. Không nên tự chuyển `2026-10-28` thành `2026-10-28T00:00:00Z` rồi coi hai giá trị là đồng nghĩa: đó là một **thời điểm UTC**, trong khi ngày lịch chỉ là ngày và có thể diễn ra tại nhiều múi giờ.
+For calendar dates, this format **carries no time zone**. Do not convert `2026-10-28` into `2026-10-28T00:00:00Z` and treat the two as synonymous: the latter is a **UTC instant**, whereas a calendar date is purely a date that occurs across many time zones.
 
 Java:
 
@@ -223,19 +223,19 @@ LocalDate date = LocalDate.parse(
 String wire = date.format(DateTimeFormatter.ISO_LOCAL_DATE);
 ```
 
-Đây là **fragment trong một phương thức** với imports `java.time.LocalDate` và `java.time.format.DateTimeFormatter`. `LocalDate.parse` theo formatter ISO có kiểm tra ngày hợp lệ; chẳng hạn ngày `2026-02-30` không tồn tại và không được tự chuyển thành tháng ba trong cách parse chuẩn này.
+This is a **fragment inside a method** requiring imports for `java.time.LocalDate` and `java.time.format.DateTimeFormatter`. `LocalDate.parse` with the ISO formatter validates calendar dates; for example, `2026-02-30` does not exist and will not silently roll into March under this standard parse mode.
 
-Khi hiển thị trên UI, dùng `DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(uiLocale)` để render. Chuỗi ngày trên giao diện có thể khác giữa các locale, trong khi giá trị wire giữ nguyên.
+When displaying in the UI, use `DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(uiLocale)` to render. The displayed date string varies by locale while the wire value stays invariant.
 
-## 6. Thời điểm tuyệt đối: UTC, offset và zone ID
+## 6. Absolute Instants: UTC, Offsets, and Zone IDs
 
-Ba khái niệm dễ bị đánh đồng:
+Three concepts that are easily conflated:
 
-- **`Instant`:** một thời điểm trên trục thời gian; có thể trao đổi bằng chuỗi ISO-8601 với `Z`, ví dụ `2026-10-28T03:30:00Z`.
-- **`OffsetDateTime`:** ngày-giờ kèm độ lệch UTC, ví dụ `2026-10-28T10:30:00+07:00`. Hai chuỗi có thể mô tả cùng một instant.
-- **`ZonedDateTime`/`ZoneId`:** vùng múi giờ với quy tắc lịch sử và DST, chẳng hạn `Europe/Paris`. **Offset +07:00 không phải zone ID**: nó không mang theo toàn bộ quy tắc chuyển giờ theo khu vực.
+- **`Instant`:** a point on the timeline; can be exchanged using ISO-8601 strings ending in `Z`, e.g., `2026-10-28T03:30:00Z`.
+- **`OffsetDateTime`:** date-time paired with a UTC offset, e.g., `2026-10-28T10:30:00+07:00`. Both strings can denote the same instant.
+- **`ZonedDateTime`/`ZoneId`:** a time zone region with historical rules and DST, such as `Europe/Paris`. **An offset `+07:00` is not a zone ID**: it does not carry regional transition rules.
 
-### Ví dụ đầy đủ — `TemporalWireDemo.java`
+### Complete Example — `TemporalWireDemo.java`
 
 ```java
 import java.time.Instant;
@@ -282,28 +282,28 @@ Same instant: true
 Invalid date rejected
 ```
 
-Nhận xét: cùng một instant có thể được biểu diễn bằng `Z` hoặc một offset cụ thể. Nếu API yêu cầu **UTC canonical form**, hãy chuyển qua `Instant` và định dạng theo hợp đồng đó; đừng chỉ xóa phần `+07:00` khỏi chuỗi. Cần quy định rõ độ chính xác phần giây (giây/millisecond/microsecond/nanosecond), cách làm tròn và sự tương thích của bên tiêu thụ; `Instant.toString()` có thể bỏ các chữ số phần giây không cần thiết và không phải cam kết độ rộng cố định.
+Observation: the same instant can be represented with `Z` or a specific offset. If an API requires a **UTC canonical form**, convert via `Instant` and format per that contract rather than simply stripping `+07:00` from the string. Specify sub-second precision (seconds/milliseconds/microseconds/nanoseconds), rounding, and consumer compatibility clearly; `Instant.toString()` omits unnecessary fractional digits and does not promise fixed width.
 
-**Dữ liệu về cuộc hẹn theo giờ địa phương:** nếu người dùng đặt lịch “09:00 hằng ngày ở Europe/Paris”, chỉ lưu `Instant` của một lần xảy ra có thể không đủ để tái tạo lịch lặp theo quy tắc DST. Khi nghiệp vụ cần, lưu **local date/time + IANA zone ID + chính sách xử lý giờ trùng/không tồn tại**. Lưu một offset tức thời không thay thế được zone ID.
+**Local wall-clock appointment data:** if a user schedules “09:00 daily in Europe/Paris,” storing only the `Instant` of a single occurrence is insufficient to regenerate recurring times under DST rules. When business logic requires it, store **local date/time + IANA zone ID + policy for ambiguous/nonexistent times**. Storing an instantaneous offset cannot replace a zone ID.
 
-## 7. Mã locale trong tệp và API: dùng BCP 47, không dùng tên hiển thị
+## 7. Locale Codes in Files and APIs: Use BCP 47, Never Display Names
 
-Cần phân biệt:
+Distinguish the following:
 
-| Vai trò | Giá trị |
+| Role | Value |
 | --- | --- |
-| Thẻ locale chuẩn hóa để trao đổi | `vi-VN`, `en-US`, `pt-BR` |
-| Java tạo đối tượng | `Locale.forLanguageTag("vi-VN")` hoặc `Locale.Builder` |
-| Java xuất thẻ | `locale.toLanguageTag()` |
-| Java `locale.toString()` cũ | Có thể dùng dấu `_` và có phần mở rộng theo cú pháp Java riêng |
-| Nhãn UI | `locale.getDisplayName(uiLocale)`, phụ thuộc locale hiển thị |
-| Tên file `ResourceBundle` | Ví dụ `messages_vi_VN.properties`; đây là quy ước tài nguyên, không phải wire tag |
+| Standardized interchange locale tag | `vi-VN`, `en-US`, `pt-BR` |
+| Java object construction | `Locale.forLanguageTag("vi-VN")` or `Locale.Builder` |
+| Java tag serialization | `locale.toLanguageTag()` |
+| Legacy Java `locale.toString()` | May use `_` and Java-specific extension syntax |
+| UI label | `locale.getDisplayName(uiLocale)`, depends on display locale |
+| `ResourceBundle` file name | E.g., `messages_vi_VN.properties`; resource naming convention, not a wire tag |
 
-Nếu API nhận `languageTag`, **đừng lưu nhãn tiếng Việt `"Tiếng Anh (Hoa Kỳ)"` hoặc chuỗi `Locale.toString()` như thể đó là BCP 47**. Locale label phụ thuộc ngôn ngữ giao diện/JDK; `Locale.toString()` không phải serialisation thẻ BCP 47 được thiết kế cho HTTP/JSON.
+If an API accepts `languageTag`, **never store Vietnamese labels like `"Tiếng Anh (Hoa Kỳ)"` or `Locale.toString()` strings as if they were BCP 47**. Display labels depend on UI language and JDK data; `Locale.toString()` is not designed as an HTTP/JSON BCP 47 serialization.
 
-**Lưu ý về parse:** `Locale.forLanguageTag(String)` cố tình khoan dung với input lỗi theo BCP 47, có thể bỏ hoặc điều chỉnh phần không hợp lệ. Nếu cần **từ chối cú pháp sai**, dùng `new Locale.Builder().setLanguageTag(input).build()` và bắt `IllformedLocaleException`; sau đó còn phải đối chiếu với **tập locale được sản phẩm hỗ trợ**. Cú pháp hợp lệ **không** có nghĩa ứng dụng có tài nguyên dịch/định dạng nghiệp vụ tương ứng.
+**Parsing note:** `Locale.forLanguageTag(String)` is intentionally lenient with malformed BCP 47 tags and may ignore or adjust invalid subtags. When you need to **reject malformed syntax**, use `new Locale.Builder().setLanguageTag(input).build()` and catch `IllformedLocaleException`; afterward, still validate against the **set of locales supported by your product**. Valid syntax **does not** imply your application has translations or business formatting for that locale.
 
-### Ví dụ Java 17+ — `LocaleWireDemo.java`
+### Java 17+ Example — `LocaleWireDemo.java`
 
 ```java
 import java.util.IllformedLocaleException;
@@ -338,32 +338,32 @@ Tag: pt-BR
 Invalid tag rejected
 ```
 
-Dấu gạch nối `-` của thẻ BCP 47 khác dấu gạch dưới `_` ở một số tên file properties truyền thống. Đừng suy diễn một định dạng từ định dạng còn lại bằng replace nếu yêu cầu hỗ trợ đủ language/script/region/variant/extension; dùng API locale chuyên dụng.
+The hyphen `-` in BCP 47 tags differs from the underscore `_` used in traditional properties filenames. Never derive one format from the other via string replacement if full language/script/region/variant/extension tags must be supported; use dedicated `Locale` APIs.
 
-## 8. Tệp văn bản: bytes phải có charset, newline và cấu trúc rõ
+## 8. Text Files: Bytes Need Explicit Charset, Newlines, and Structure
 
-Một tệp máy đọc không chỉ là `String`: nó là **byte + encoding + format + version/schema**. Trong hệ thống mới, **UTF-8** thường là lựa chọn hợp lý để hỗ trợ tiếng Việt và các bảng chữ khác.
+A machine-readable file is not just a `String`: it is **bytes + encoding + format + version/schema**. In modern systems, **UTF-8** is usually the right choice to support Vietnamese and other scripts.
 
-Java 17 có API tạo/đọc file văn bản với charset tường minh:
+Java 17 provides file read/write APIs with explicit charsets:
 
 ```java
 Files.writeString(path, text, StandardCharsets.UTF_8);
 String loaded = Files.readString(path, StandardCharsets.UTF_8);
 ```
 
-Đây là **fragment** có biến `path` và `text` được khai báo. Hai phương thức có overload có default charset UTF-8 trong Java hiện đại, nhưng truyền `StandardCharsets.UTF_8` tường minh làm hợp đồng rõ ràng, nhất là khi code bị chuyển sang API I/O khác.
+This is a **fragment** with `path` and `text` declared. Both methods have overloads defaulting to UTF-8 in modern Java, yet passing `StandardCharsets.UTF_8` explicitly clarifies the contract, especially if code is refactored onto other I/O APIs.
 
-Một bộ quy tắc file nên xác định:
+A file specification should define:
 
-- **Encoding:** UTF-8, có/không BOM, xử lý byte không hợp lệ; không đoán qua default charset.
-- **Dấu kết thúc dòng:** LF hoặc CRLF, có chấp nhận dòng cuối không có newline hay không.
-- **Cấu trúc:** JSON, CSV, TSV, NDJSON hoặc định dạng domain đã được version; có delimiter và quoting được định nghĩa.
-- **Schema:** tên trường, kiểu, null/missing, precision, phạm vi, bắt buộc/tùy chọn và khả năng mở rộng.
-- **Đọc/ghi lỗi:** khi parse sai cần báo nguyên nhân, không biến dữ liệu lỗi thành zero/ngày hiện tại mà không có chính sách.
+- **Encoding:** UTF-8, presence/absence of BOM, handling of malformed bytes; never guess via the platform default charset.
+- **Line endings:** LF or CRLF, and whether a final line without a trailing newline is permitted.
+- **Structure:** JSON, CSV, TSV, NDJSON, or a versioned domain format with defined delimiters and quoting.
+- **Schema:** field names, types, null/missing rules, precision, ranges, required/optional fields, and extensibility.
+- **Read/write failures:** report parse errors with clear causes rather than silently turning bad rows into zeros or today's date.
 
-### Ví dụ Java 17+ round-trip UTF-8
+### Java 17+ UTF-8 Round-Trip Example
 
-Lưu **`Utf8FileRoundTripDemo.java`**:
+Save **`Utf8FileRoundTripDemo.java`**:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -400,11 +400,11 @@ Stdout:
 Round trip: true
 ```
 
-Mã dùng tệp tạm để bảo đảm ví dụ độc lập; nó xóa tệp trong `finally` khi đã thử. Trong ứng dụng thực, lưu ý quyền ghi, lỗi I/O, atomic write, tính toàn vẹn và encoding của dữ liệu nguồn. Một round-trip thành công chỉ chứng minh hai phía cùng dùng UTF-8 trong ví dụ, **không chứng minh mọi hệ thống khác đều đang đọc đúng format**.
+The code uses a temporary file to keep the example self-contained and deletes it in `finally`. In production applications, account for write permissions, I/O failures, atomic writes, integrity, and source data encoding. One successful round-trip only proves both sides of this example used UTF-8; **it does not prove other external systems are reading the format properly**.
 
-## 9. JSON trong API: grammar của JSON không phải grammar của NumberFormat
+## 9. JSON in APIs: JSON Grammar Is Not `NumberFormat` Grammar
 
-JSON sử dụng cấu trúc với number, string, boolean, null, array và object. Trong JSON, **number token** viết bằng chữ số ASCII và `.` làm dấu thập phân; **không dùng dấu phân nhóm theo locale**:
+JSON uses a structured grammar of numbers, strings, booleans, nulls, arrays, and objects. In JSON, a **number token** uses ASCII digits and `.` as the decimal point; **never use locale-specific grouping separators**:
 
 ```json
 {
@@ -416,23 +416,23 @@ JSON sử dụng cấu trúc với number, string, boolean, null, array và obje
 }
 ```
 
-Một chuỗi JSON chứa `"amount": 1.234,50` là sai cú pháp JSON, kể cả người dùng đang xem giao diện tiếng Đức. Việc hiển thị của UI nằm **sau khi** JSON đã được parse thành dữ liệu có kiểu.
+A JSON payload containing `"amount": 1.234,50` is invalid JSON syntax, even if the user is viewing a German UI. UI formatting occurs **after** JSON has been parsed into typed data.
 
-**JSON number và độ chính xác:** JSON không định nghĩa rằng mọi implementation bên nhận phải dùng `BigDecimal`. Nhiều client JavaScript dùng `Number` (binary floating point), khiến số nguyên rất lớn hoặc decimal tiền tệ có thể mất precision. Nếu API tài chính cần decimal chính xác end-to-end, cần hợp đồng rõ: ví dụ trường `"amount": "1234.50"` là string decimal hợp lệ và cả hai phía parse bằng kiểu decimal phù hợp, hoặc sử dụng phương án typed/decimal đã thỏa thuận. Không mặc định JSON number nào cũng giữ nguyên decimal scale hay precision ở mọi ngôn ngữ.
+**JSON numbers and precision:** JSON does not require every receiving implementation to use `BigDecimal`. Many JavaScript clients use `Number` (binary floating point), which can lose precision on huge integers or financial decimals. If a financial API needs end-to-end decimal exactness, define an explicit contract—such as `"amount": "1234.50"` as a valid decimal string parsed into decimal types on both ends, or an agreed typed decimal approach. Never assume every JSON number preserves decimal scale or precision across all languages.
 
-**Java SE 17 không có parser/generator JSON tổng quát dựng sẵn trong `java.base`.** Ở ứng dụng thực, sử dụng thư viện JSON chuẩn của stack (ví dụ Jackson hoặc JSON-B) với cấu hình serialize/deserialize kiểu `BigDecimal`, `LocalDate`, `Instant` và validation thích hợp. Đừng nối chuỗi thủ công để tạo JSON từ input người dùng: ký tự trích dẫn, backslash, control characters và Unicode cần được escape theo JSON.
+**Java SE 17 has no built-in general-purpose JSON parser/generator in `java.base`.** In real applications, use your stack's standard JSON library (such as Jackson or JSON-B) configured to serialize/deserialize `BigDecimal`, `LocalDate`, and `Instant` with proper validation. Never build JSON by hand via string concatenation on user input: quotes, backslashes, control characters, and Unicode must be escaped per JSON rules.
 
-### HTTP: charset và media type
+### HTTP: Charset and Media Type
 
-Khi gửi JSON, dùng media type `application/json` và nội dung UTF-8 theo hợp đồng JSON hiện đại. Tránh dựa vào locale của HTTP server để mã hóa hoặc parse payload. Header `Accept-Language` là **gợi ý ngôn ngữ cho nội dung trình bày**, không thay grammar của số JSON. `Content-Language` có thể mô tả ngôn ngữ của phần nội dung, nhưng không biến `1234.50` thành `1.234,50` trong JSON number.
+When sending JSON, use media type `application/json` and UTF-8 encoding under modern JSON contracts. Avoid relying on the HTTP server's locale to encode or parse payloads. The `Accept-Language` header is a **language hint for presentation content**, not a directive that changes JSON number grammar. `Content-Language` can describe the natural language of content, but it does not turn `1234.50` into `1.234,50` inside a JSON number.
 
-Nếu API muốn trả giá trị đã format cho UI, nên phân biệt trường **giá trị có kiểu** và **nhãn hiển thị**. Một trường có tên `amount` dùng cho máy không nên âm thầm thay từ number sang string theo locale của request.
+If an API needs to return formatted display strings for a UI, keep **typed value fields** separate from **display label fields**. A machine-oriented field named `amount` must never silently flip from a number to a localized string based on a request header.
 
-## 10. CSV và TSV: định nghĩa delimiter, quoting, encoding và schema
+## 10. CSV and TSV: Define Delimiters, Quoting, Encoding, and Schema
 
-CSV là một **định dạng trao đổi văn bản**; dấu phẩy vừa có thể là delimiter, vừa có thể xuất hiện trong một trường tên hoặc trong chuỗi số được format theo locale. Nếu không có hợp đồng quoting, parser có thể nhầm số cột.
+CSV is a **text interchange format**; commas can appear both as column delimiters and inside person names or locale-formatted number strings. Without a quoting contract, parsers miscount columns.
 
-Ví dụ CSV với ba cột: `id,amount,customerName`:
+CSV example with three columns `id,amount,customerName`:
 
 ```csv
 id,amount,customerName
@@ -440,9 +440,9 @@ id,amount,customerName
 2,15.00,"Lê ""An"""
 ```
 
-Theo quy ước CSV kiểu RFC 4180, dấu `"` trong trường trích dẫn được biểu diễn bằng **hai dấu `""`**, và dấu phẩy bên trong trường đã quote **không tách cột**. File trao đổi nên quy định charset UTF-8, delimiter, header, newline và quy tắc quote; không tự dùng dấu chấm phẩy chỉ vì `Locale` của một người xem dùng dấu phẩy thập phân.
+Under RFC 4180-style CSV conventions, a `"` inside a quoted field is escaped as **two quotes `""`**, and commas inside quoted fields **do not split columns**. Interchange files should specify UTF-8 charset, delimiter, header, newline convention, and quoting rules; never switch to semicolons merely because a viewer's `Locale` uses a decimal comma.
 
-**Fragment encoder đơn giản cho một trường CSV** (không phải parser hoặc writer CSV đầy đủ):
+**Simple encoder fragment for a single CSV field** (not a full CSV parser or writer):
 
 ```java
 static String quotedCsvField(String value) {
@@ -450,76 +450,76 @@ static String quotedCsvField(String value) {
 }
 ```
 
-Nó **luôn quote** một trường và nhân đôi các dấu `"` bên trong. Khi ghi cả file cần xử lý newline, CRLF, delimiter, null và schema nhất quán; khi đọc, **không dùng `String.split(",")` làm CSV parser** vì hàm đó không hiểu quoted fields hoặc dấu xuống dòng trong trường. Sử dụng thư viện CSV uy tín hoặc parser theo grammar hợp đồng.
+It **always quotes** the field and doubles embedded `"` characters. Writing an entire file requires handling newlines, CRLF, delimiters, nulls, and consistent schemas; when reading, **never use `String.split(",")` as a CSV parser** because it does not understand quoted fields or embedded newlines. Use a battle-tested CSV library or a parser implementing your contract grammar.
 
-### Bài học từ số thập phân trong CSV
+### Lessons from Decimals in CSV
 
-Một file có cột `amount` theo máy có thể chứa `1234.50`. Không được dùng `NumberFormat.getCurrencyInstance(locale).format(amount)` rồi lưu vào cột dữ liệu vì có thể thêm dấu phân nhóm và ký hiệu tiền tệ. Khi cần lưu thêm nhãn `1.234,50 €` cho một báo cáo phục vụ con người, đó là **cột trình bày khác**, không thay cho trường giá trị.
+A machine-oriented `amount` column should hold `1234.50`. Never call `NumberFormat.getCurrencyInstance(locale).format(amount)` and write that into the data column, because it adds grouping separators and currency symbols. If you also need a human-friendly label like `1.234,50 €` for a report, put it in a **separate display column**, never in place of the typed value field.
 
-Nếu phần mềm bảng tính của người dùng tự nhận diện CSV theo locale, hãy coi đó là **hành vi nhập của client**, không phải lý do để thay đổi hợp đồng hệ thống máy đọc. Có thể cung cấp một bản xuất “cho Excel người dùng” riêng với thông số delimiter rõ ràng.
+If a user's spreadsheet software guesses CSV delimiters based on OS locale, treat that as **client import behavior**, not a reason to break your machine-readable system contract. You can offer a separate “Excel-friendly export” with explicit delimiter settings if needed.
 
-## 11. Database: lưu số/ngày theo kiểu cột, không lưu bản dịch chuỗi
+## 11. Databases: Store Numbers/Dates in Typed Columns, Not Localized Strings
 
-Trong một cơ sở dữ liệu quan hệ, hãy ưu tiên các cột có kiểu tương ứng:
+In a relational database, prefer appropriately typed columns:
 
-| Dữ liệu | Kiểu cột thường gặp | Java |
+| Data | Common Column Type | Java Type |
 | --- | --- | --- |
-| Giá trị tiền/decimal | `DECIMAL(p,s)` hoặc `NUMERIC(p,s)` | `BigDecimal` |
-| Số lượng nguyên | `INTEGER`, `BIGINT` | `int`/`long` |
-| Ngày lịch | `DATE` | `LocalDate` (JDBC 4.2+ và driver hỗ trợ) |
-| Timestamp | Cột thời gian tương ứng với hệ CSDL; chọn ngữ nghĩa UTC/offset/zone rõ | `Instant`/`OffsetDateTime` theo mapping của driver |
-| Thẻ locale | `VARCHAR` với constraint ứng dụng | BCP 47 string như `vi-VN` |
-| Mã khách có leading zeros | `VARCHAR` | `String` |
+| Monetary/decimal value | `DECIMAL(p,s)` or `NUMERIC(p,s)` | `BigDecimal` |
+| Integer quantity | `INTEGER`, `BIGINT` | `int`/`long` |
+| Calendar date | `DATE` | `LocalDate` (JDBC 4.2+ with driver support) |
+| Timestamp | Database-appropriate timestamp type with clear UTC/offset/zone semantics | `Instant`/`OffsetDateTime` per driver mapping |
+| Locale tag | `VARCHAR` with application constraint | BCP 47 string like `vi-VN` |
+| Customer code with leading zeros | `VARCHAR` | `String` |
 
-**Không lưu `"1.234,50"` vào cột decimal, `"28/10/2026"` vào cột DATE** chỉ vì đó là cách người dùng nhìn thấy. Dữ liệu có kiểu giúp truy vấn, index, tính toán và di chuyển môi trường an toàn hơn.
+**Never store `"1.234,50"` in a decimal column or `"28/10/2026"` in a `DATE` column** just because that is how users view it. Typed storage enables safe querying, indexing, arithmetic, and environment portability.
 
-Với JDBC, dùng **prepared statements và typed parameters**, không nối literal số/ngày đã format vào SQL:
+With JDBC, use **prepared statements and typed parameters**, never concatenate formatted numeric/date literals into SQL:
 
 ```java
-// Fragment bên trong phương thức với PreparedStatement ps.
+// Fragment inside a method with PreparedStatement ps.
 ps.setBigDecimal(1, new BigDecimal("1234.50"));
 ps.setObject(2, LocalDate.of(2026, 10, 28));
 ps.setString(3, "vi-VN");
 ```
 
-Đoạn này giả định câu SQL đã có các tham số `?` đúng thứ tự, cùng kết nối/driver JDBC phù hợp. `LocalDate` được hỗ trợ ở JDBC 4.2 nhưng mapping timestamp/zone còn phụ thuộc DB/driver và loại cột. Với thời điểm tuyệt đối, cần xem tài liệu driver về cách lưu UTC, offset và chuyển timezone; không mặc định mọi cột `TIMESTAMP` của mọi DB có nghĩa như `Instant`.
+This assumes the SQL statement has matching `?` placeholders in order, along with a compatible JDBC connection/driver. `LocalDate` is supported in JDBC 4.2, whereas timestamp/zone mappings still depend on the database, driver, and column type. For absolute instants, consult your driver's documentation on UTC storage, offsets, and time zone conversions; never assume every `TIMESTAMP` column in every database behaves identically to `Instant`.
 
-**PreparedStatement không chỉ tránh lỗi dấu phân cách decimal**, mà còn tách cấu trúc truy vấn và dữ liệu đầu vào, giảm nguy cơ SQL injection. Locale dùng để format báo cáo **không phải** một tham số quyết định SQL parser sẽ hiểu dấu phẩy hay dấu chấm.
+**`PreparedStatement` does more than prevent decimal separator bugs**: it separates query structure from input data, mitigating SQL injection risks. The locale used to format reports **is never** a parameter controlling whether SQL parsers expect commas or dots.
 
-## 12. Ký tự, Unicode và mã định danh
+## 12. Characters, Unicode, and Identifiers
 
-UTF-8 chuyển ký tự thành byte nhất quán, nhưng **không tự chuẩn hóa Unicode**. Một chữ có dấu có thể có biểu diễn Unicode dạng ký tự dựng sẵn hoặc dạng ký tự cơ sở + dấu kết hợp. Hai chuỗi trông giống nhau có thể có dãy code point khác nhau.
+UTF-8 encodes characters into consistent byte sequences, yet it **does not automatically normalize Unicode**. An accented character may exist in precomposed form or as a base character plus combining mark. Visually identical strings can contain different code point sequences.
 
-Đối với tên người và văn bản tự do, phải có chính sách lưu trữ/so sánh phù hợp, tránh tự bỏ dấu hoặc đổi chữ hoa/thường bằng default locale mà không hiểu hậu quả. Nếu hệ thống chọn một form chuẩn hóa như **NFC**, làm ở ranh giới được định nghĩa và kiểm thử hiệu quả; không chuẩn hóa vô điều kiện mọi chuỗi mã/ID nếu giao thức yêu cầu giữ nguyên byte hoặc có chữ ký số.
+For personal names and free text, establish clear storage and comparison policies—avoid blindly stripping diacritics or changing case using the default locale without understanding the consequences. If the system standardizes on a normalization form such as **NFC**, apply it at a defined boundary and test thoroughly; never unconditionally normalize code/ID strings if the protocol requires preserving exact bytes or digital signatures.
 
-Đối với machine-readable identifiers:
+For machine-readable identifiers:
 
-- `"001234"` là **mã**, không phải số 1234; nếu đổi sang `int` sẽ mất số 0 đầu.
-- UUID, hash, enum code, currency code như `USD` nên theo chính tả chuẩn giao thức, không theo tên hiển thị `"Đô la Mỹ"`.
-- Đừng dùng `getDisplayName()` của locale làm khóa database; nhãn có thể thay đổi theo ngôn ngữ giao diện/JDK.
-- Nếu ký số/canonicalize JSON hoặc file, phải dùng **quy tắc canonicalization** được định nghĩa bởi giao thức và hai phía, không chỉ tùy tiện trim hoặc dùng `toString()`.
+- `"001234"` is a **code**, not the number 1234; converting it to `int` drops leading zeros.
+- UUIDs, hashes, enum codes, and currency codes like `USD` should follow canonical protocol spelling, never a localized display name like “US Dollar”.
+- Never use `Locale.getDisplayName()` as a database key; display names vary with UI language and JDK versions.
+- When signing or canonicalizing JSON or files, apply the **canonicalization rules** agreed upon by both parties in the protocol rather than ad-hoc trimming or `toString()`.
 
-## 13. Một mô hình API Java tách dữ liệu khỏi nhãn
+## 13. A Java API Architecture Separating Data from Labels
 
-Có thể tổ chức luồng xử lý thành các bước sau:
+You can organize the processing flow into the following stages:
 
 ```text
 Request/CSV/file
-    ↓ Parse đúng grammar + charset
+    ↓ Parse with exact grammar + charset
 Typed input DTO (BigDecimal, LocalDate, Instant, Locale tag)
     ↓ Validate domain (precision, scale, date range, supported locale)
-Domain/service + database typed columns
-    ↓ Serialize theo schema máy đọc
+Domain/service + typed database columns
+    ↓ Serialize per machine-readable schema
 Stable API/file values
-    ↓ Tại tầng UI: format theo Locale người xem
+    ↓ At UI layer: format for viewer's Locale
 Human-readable labels
 ```
 
-Nếu một request mang cả `locale=de-DE` và `amount="1234.50"`, nên diễn giải `locale` là cài đặt/gợi ý trình bày được sản phẩm cho phép, còn `amount` vẫn là wire decimal theo schema. Nếu sản phẩm thiết kế endpoint **nhận chuỗi số người dùng nhập** theo locale, hãy nêu rõ endpoint ấy là đường nhập của UI và parse theo locale đã được xác thực, không lẫn với endpoint dùng numeric wire format.
+If a request carries both `locale=de-DE` and `amount="1234.50"`, treat `locale` as a product-supported presentation preference/hint while keeping `amount` as a schema-compliant wire decimal. If a product intentionally exposes an endpoint **accepting user-typed localized number strings**, clearly designate it as a UI input path, parse with the validated input locale, and keep it separate from endpoints using numeric wire format.
 
-### Ví dụ Java 17+ round-trip một bản ghi
+### Java 17+ Example Round-Tripping a Record
 
-Tạo file **`StableRecordDemo.java`**:
+Create the file **`StableRecordDemo.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -577,99 +577,99 @@ Locale: vi-VN
 Same data: true
 ```
 
-Đây là ví dụ **định nghĩa và kiểm tra các giá trị canonical cho một mô hình nhỏ**, chưa phải JSON serializer hoặc JDBC adapter. Trong hệ thống thật, schema cần rõ trường nào bắt buộc, null hay vắng trường, định dạng decimal, precision, timestamp fraction, giới hạn độ dài và chiến lược version. `BigDecimal.equals` còn quan tâm **scale**, do đó nếu hệ thống không yêu cầu giữ scale, phải chọn chính sách so sánh/normalize thích hợp và kiểm tra bằng `compareTo` theo nhu cầu.
+This example **defines and checks canonical values for a small model**; it is not a full JSON serializer or JDBC adapter. In real systems, the schema must specify required fields, null vs. absent handling, decimal formatting, precision, timestamp fractional precision, length bounds, and versioning strategy. `BigDecimal.equals` also inspects **scale**, so if the system does not preserve scale, define an appropriate comparison/normalization policy and use `compareTo` where needed.
 
-## 14. Quy ước phải được version và kiểm tra nghiêm túc
+## 14. Contracts Must Be Versioned and Rigorously Verified
 
-**“Máy đọc được” không đồng nghĩa “hễ parse thành công là đúng”.** Một dữ liệu trao đổi phải tuân thủ những điều kiện:
+**“Machine-readable” does not mean “valid as long as parsing succeeds.”** Interchange data must satisfy:
 
-1. **Định dạng được đặt tên:** JSON/CSV/ISO/BCP47/decimal grammar; không mô tả mơ hồ “dạng số quốc tế”.
-2. **Kiểu và nullability:** trường nào là number/string/date, trường nào có thể null hoặc không có mặt.
-3. **Precision, scale, range:** số chữ số tối đa, phần lẻ cho phép, vùng giá trị, đơn vị tiền/đo.
-4. **Time semantics:** ngày lịch hay instant; offset, zone ID, độ chính xác phần giây và DST khi liên quan.
-5. **Charset và newline:** UTF-8, có/không BOM, policy khi byte không hợp lệ, newline CSV.
-6. **Canonicalization nếu cần:** định dạng ổn định phục vụ so sánh/chữ ký/kiểm toán; không tự coi mọi `toString` canonical.
-7. **Version/schema evolution:** có chính sách thêm field, bỏ field, tương thích client cũ và migration dữ liệu.
-8. **Thông báo lỗi:** lỗi parse/validate phải có mã lỗi và trường liên quan; không âm thầm đổi input lỗi thành giá trị khác.
-9. **Khả năng round-trip:** parse → serialize → parse không làm mất ý nghĩa đã cam kết; thử locale default khác nhau.
-10. **An toàn:** giới hạn kích thước request, số chữ số, độ sâu JSON, file CSV, ký tự điều khiển; dùng thư viện parse phù hợp để tránh injection và DoS.
+1. **Named formats:** JSON/CSV/ISO/BCP 47/decimal grammar; never vague descriptions like “international number format.”
+2. **Types and nullability:** which fields are numbers/strings/dates, and which may be null or omitted.
+3. **Precision, scale, range:** maximum digits, allowed fractional places, value bounds, and currency/measurement units.
+4. **Time semantics:** calendar date vs. instant; offsets, zone IDs, sub-second precision, and DST rules where relevant.
+5. **Charset and newlines:** UTF-8, BOM policy, invalid-byte handling, and CSV line endings.
+6. **Canonicalization when required:** deterministic format for comparisons, signatures, and audits; never assume any `toString` is canonical.
+7. **Versioning/schema evolution:** policies for adding/removing fields, backward compatibility, and data migration.
+8. **Error reporting:** parse/validation errors must return structured error codes and field references rather than silently altering bad input.
+9. **Round-trip fidelity:** parse → serialize → parse preserves committed semantics; test under different default locales.
+10. **Safety:** bound payload size, digit counts, JSON nesting depth, CSV file size, and control characters; use hardened parsing libraries to prevent injection and DoS.
 
-Ví dụ, format `BigDecimal("1234.50")` qua một `NumberFormat` tối đa một chữ số lẻ rồi parse ngược có thể thành `1234.5`; **giá trị số** bằng nhau nhưng **scale** và chuỗi ban đầu đã khác. Cần biết hợp đồng của mình yêu cầu giữ giá trị, giữ số chữ số lẻ, hay giữ nguyên literal.
+For instance, formatting `BigDecimal("1234.50")` with a `NumberFormat` limited to one fractional digit and parsing it back yields `1234.5`; the **numeric value** matches, while **scale** and original literal differ. Know whether your contract requires preserving value, fractional digit count, or exact literal.
 
-## 15. Kiểm thử độc lập với locale mặc định của máy chạy
+## 15. Testing Independently of the Host's Default Locale
 
-Một bài test có giá trị là chạy việc đọc dữ liệu máy với **hai locale JVM khác nhau** và chứng minh kết quả không thay đổi:
+A valuable test runs machine-data parsing under **two different JVM locales** and proves identical results:
 
 ```bash
 java -Duser.language=en -Duser.country=US StableRecordDemo
 java -Duser.language=de -Duser.country=DE StableRecordDemo
 ```
 
-Chương trình `StableRecordDemo` không dùng `Locale.getDefault()` để parse/serialize nên những trường máy đọc của ví dụ giữ cùng ý nghĩa. Lưu ý `-D...` trong đây là **cấu hình khởi động JVM**, không phải lời khuyên đổi default trong chương trình server.
+`StableRecordDemo` does not rely on `Locale.getDefault()` for parsing or serialization, so machine-readable fields preserve identical semantics. Note that `-D...` here is a **JVM startup configuration**, not a recommendation to mutate defaults inside server code.
 
-Các trường hợp QA nên có:
+QA test cases should cover:
 
-| Nhóm | Input kiểm thử | Kết quả mong muốn |
+| Group | Test Input | Expected Result |
 | --- | --- | --- |
-| Decimal hợp lệ | `1234.50` | Parse đúng decimal; không grouping |
-| Decimal sai wire grammar | `1.234,50`, `1,234.50` | Reject ở endpoint sử dụng grammar hẹp |
-| Số quá lớn/quá nhiều chữ số | Chuỗi nhiều chữ số vượt policy | Reject có giới hạn trước khi tiêu tốn tài nguyên |
-| Date chuẩn | `2026-10-28` | Parse thành `LocalDate` |
-| Date sai | `2026-02-30` | Reject, không tự đổi ngày |
-| Instant/offset | `...Z` và `...+07:00` tương đương | So cùng instant sau chuyển offset |
-| Locale hợp lệ/cú pháp sai | `pt-BR` / `en_US` | Validate tag, đối chiếu supported locales |
-| Unicode text | `Chào bạn`, ký tự kết hợp | UTF-8 đúng, áp dụng policy Unicode rõ |
-| CSV quoted field | `"Nguyễn, Lan"` | Không bị tách thành hai cột |
-| JSON decimal lớn | Số ngoài safe-integer của client | Áp dụng schema string decimal hoặc giải pháp precision |
-| DB typed parameter | `BigDecimal`, `LocalDate` | Không cần chuỗi hiển thị để chèn SQL |
-| Locale mặc định đổi | JVM `en-US` và `de-DE` | Machine representations vẫn ổn định |
+| Valid decimal | `1234.50` | Parses as exact decimal; no grouping |
+| Invalid wire grammar | `1.234,50`, `1,234.50` | Rejected on endpoints enforcing narrow grammar |
+| Oversized number / too many digits | Digit string exceeding policy | Rejected within bounds before heavy processing |
+| Standard date | `2026-10-28` | Parses to `LocalDate` |
+| Invalid date | `2026-02-30` | Rejected without silent date rollover |
+| Instant/offset | Equivalent `...Z` and `...+07:00` | Equal instants after offset conversion |
+| Valid / malformed locale tag | `pt-BR` / `en_US` | Validates tag syntax and checks supported locales |
+| Unicode text | `Chào bạn`, combining characters | Proper UTF-8 handling with clear Unicode policy |
+| CSV quoted field | `"Nguyễn, Lan"` | Not split into two columns |
+| Large JSON decimal | Number beyond client safe-integer range | Handled via decimal string schema or precision strategy |
+| Typed DB parameters | `BigDecimal`, `LocalDate` | No display strings interpolated into SQL |
+| Changed default locale | JVM `en-US` and `de-DE` | Machine representations remain invariant |
 
-**Không kiểm thử chỉ bằng mắt** rằng số nhìn “đẹp”; phải so sánh giá trị có kiểu, literal wire và khả năng round-trip. Với JSON/CSV, có thể viết test contract giữa hai service dùng parser khác nhau để phát hiện khác biệt trước khi phát hành.
+**Do not verify only visually** that numbers “look nice”; compare typed values, wire literals, and round-trip behavior. For JSON/CSV, write contract tests between services using distinct parsers to catch discrepancies before release.
 
-## 16. Các lỗi phổ biến
+## 16. Common Mistakes
 
-| Sai lầm | Tác hại | Cách khắc phục |
+| Mistake | Harm | Fix |
 | --- | --- | --- |
-| Dùng `NumberFormat.getInstance()` mặc định cho API/DB | Kết quả thay đổi theo locale máy chủ | Dùng kiểu/grammar máy đọc đã định nghĩa |
-| Lưu số ở dạng `1.234,50` | Bên nhận hiểu sai decimal hoặc dấu nhóm | Chuyển sang `BigDecimal` và serialize theo schema |
-| Dùng `String.replace(",", ".")` để chuẩn hóa mọi số | Sai khi có grouping và format khác nhau | Parse UI theo locale cụ thể, kiểm tra toàn input |
-| Dùng `double` cho decimal tiền cần chính xác | Sai số nhị phân, mất precision | `BigDecimal` và policy rounding rõ |
-| Dùng `BigDecimal.toString()` rồi tin luôn không có số mũ | Có thể dùng dạng scientific notation | Chọn `toPlainString()` nếu grammar cấm số mũ |
-| Dùng `Date.toString()` làm timestamp API | Không phải hợp đồng wire ổn định, có timezone | `Instant`/ISO với offset/UTC rõ |
-| Lưu ngày sinh thành midnight UTC | Khi đổi múi giờ có thể lệch ngày | `LocalDate`, cột DATE |
-| Lưu giờ hẹn lặp chỉ bằng offset | Không có quy tắc DST của địa phương | Lưu `ZoneId` và local schedule khi cần |
-| Lưu `Locale.getDisplayName()` vào API | Nhãn phụ thuộc ngôn ngữ UI | Dùng `toLanguageTag()` |
-| Tin `Locale.forLanguageTag` tự từ chối mọi lỗi | API khoan dung với phần sai | Dùng `Locale.Builder` và supported-locale validation |
-| Gọi `String.split(",")` cho CSV | Không xử lý dấu phẩy trong quoted field | Dùng CSV parser theo grammar |
-| Nối chuỗi JSON thủ công | Escape sai, JSON injection/sai cú pháp | Dùng JSON serializer |
-| Lưu mã `001234` dưới dạng số nguyên | Mất leading zeros | Dùng String |
-| Đổi `Locale.setDefault` cho từng request | Ảnh hưởng toàn JVM, race condition | Truyền locale theo request cho tầng UI |
-| Ghi tệp qua charset mặc định mà không có hợp đồng | Bị hỏng Unicode khi đổi môi trường | UTF-8 tường minh |
-| Bỏ validation vì parser trả object | Có thể sai domain/precision/scale | Validate cả cú pháp, phạm vi, scale và đơn vị |
-| Chuyển SQL literal từ số đã format | Sai syntax và nguy cơ injection | PreparedStatement typed parameters |
+| Using default `NumberFormat.getInstance()` for API/DB | Results vary with server host locale | Use explicitly defined machine types/grammars |
+| Storing numbers formatted as `1.234,50` | Consumers misread decimal vs. grouping separators | Convert to `BigDecimal` and serialize per schema |
+| Using `String.replace(",", ".")` to normalize all numbers | Breaks when grouping and formats vary | Parse UI input by specific locale and validate fully |
+| Using `double` for exact monetary decimals | Binary rounding bugs and precision loss | Use `BigDecimal` with explicit rounding policies |
+| Calling `BigDecimal.toString()` assuming no exponents | Can output scientific notation | Use `toPlainString()` if grammar forbids exponents |
+| Using `Date.toString()` as an API timestamp | Unstable wire contract, environment timezone leakage | Use `Instant`/ISO with explicit offset or UTC |
+| Storing birth dates as midnight UTC | Time zone shifts can change the calendar date | Use `LocalDate` and a `DATE` column |
+| Storing recurring appointments with only an offset | Missing regional DST rules | Store `ZoneId` and local schedule when needed |
+| Saving `Locale.getDisplayName()` in APIs | Labels vary with UI language | Use `toLanguageTag()` |
+| Assuming `Locale.forLanguageTag` rejects all invalid tags | API silently ignores/fixes malformed parts | Use `Locale.Builder` plus supported-locale validation |
+| Calling `String.split(",")` on CSV | Breaks on commas inside quoted fields | Use a grammar-compliant CSV parser |
+| Building JSON via string concatenation | Broken escaping, JSON injection/syntax errors | Use a proper JSON serializer |
+| Storing code `001234` as an integer | Drops leading zeros | Store as `String` |
+| Calling `Locale.setDefault` per request | Corrupts JVM-wide state, race conditions | Pass per-request locale only to the UI layer |
+| Writing files with default charset and no contract | Unicode corruption across environments | Specify UTF-8 explicitly |
+| Skipping validation because the parser returned an object | Can violate domain/precision/scale rules | Validate syntax, range, scale, and units |
+| Building SQL literals from formatted numbers | Syntax errors and SQL injection risk | Use `PreparedStatement` typed parameters |
 
-## 17. Bài tập ứng dụng
+## 17. Applied Exercises
 
-**Bài 1 — Chuẩn hóa đường nhập số.** Tạo một giao diện ở `de-DE` nhận `1.234,50`. Parse bằng `DecimalFormat` với symbols tương ứng và `ParsePosition`; validate precision/scale; lưu thành `BigDecimal`. Khi trả API machine decimal, dùng `toPlainString()` theo grammar đã công bố. So sánh kết quả với nhập `1,234.50` ở `en-US`.
+**Exercise 1 — Standardizing a numeric input path.** Build a `de-DE` UI accepting `1.234,50`. Parse with `DecimalFormat`, matching symbols, and `ParsePosition`; validate precision/scale; store as `BigDecimal`. When returning a machine decimal from an API, output `toPlainString()` per a published grammar. Compare the result with entering `1,234.50` in `en-US`.
 
-**Bài 2 — Phân biệt ngày với thời điểm.** Thiết kế DTO cho `birthDate=2026-10-28` và `createdAt=2026-10-28T03:30:00Z`. Chọn `LocalDate`/`Instant` tương ứng; thử chuyển cùng instant sang offset `+07:00` và so sánh bằng `toInstant()`.
+**Exercise 2 — Separating calendar dates from instants.** Design a DTO containing `birthDate=2026-10-28` and `createdAt=2026-10-28T03:30:00Z`. Choose `LocalDate`/`Instant` accordingly; convert the same instant to offset `+07:00` and compare via `toInstant()`.
 
-**Bài 3 — Hợp đồng JSON decimal.** Giả sử frontend JavaScript cần xử lý hóa đơn decimal chính xác. Đề xuất schema dùng `"amount": "1234.50"` và nêu rõ đơn vị tiền (ví dụ `"currency": "USD"`), cách parse, precision/scale/rounding. Giải thích vì sao một trường hiển thị như `"1,234.50 USD"` không đủ dùng cho tính toán.
+**Exercise 3 — JSON decimal contract.** Suppose a JavaScript frontend must handle exact invoice decimals. Propose a schema using `"amount": "1234.50"` alongside an explicit currency unit (e.g., `"currency": "USD"`), specifying parsing, precision, scale, and rounding. Explain why a display field like `"1,234.50 USD"` is unsuitable for calculations.
 
-**Bài 4 — CSV có tên chứa dấu phẩy.** Tạo một CSV với trường `customerName=Nguyễn, Lan`, số decimal `1234.50` và timestamp ISO. Kiểm chứng parser CSV không nhầm dấu phẩy trong quoted field thành dấu phân cột.
+**Exercise 4 — CSV with comma-containing names.** Create a CSV with `customerName=Nguyễn, Lan`, decimal `1234.50`, and an ISO timestamp. Verify that your CSV parser does not split the quoted comma into an extra column.
 
-**Bài 5 — Locale tag.** Kiểm tra `pt-BR`, `zh-Hant-TW`, `en_US` bằng `Locale.Builder`. Ghi nhận giá trị hợp lệ về cú pháp, và thử đối chiếu với danh sách locale hỗ trợ của ứng dụng. Phân biệt “tag hợp lệ” với “ứng dụng có bản dịch”.
+**Exercise 5 — Locale tags.** Validate `pt-BR`, `zh-Hant-TW`, and `en_US` using `Locale.Builder`. Record which tags are syntactically valid, and match them against your application's supported locale list. Distinguish “syntactically valid tag” from “application has translations.”
 
-## 18. Tài liệu tham khảo
+## 18. References
 
-- [Java SE 21 — BigDecimal](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html): numeric string, `toPlainString`, precision và scale.
-- [Java SE 21 — DateTimeFormatter](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/format/DateTimeFormatter.html): ISO formatters, parse/format và locale.
-- [Java SE 21 — Locale](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Locale.html): `toLanguageTag`, `forLanguageTag` và `Locale.Builder`.
-- [Java SE 21 — DecimalFormat](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/DecimalFormat.html): parsing theo locale, `setParseBigDecimal`, rounding.
-- [RFC 8259 — JSON](https://www.rfc-editor.org/rfc/rfc8259): cú pháp JSON và trao đổi UTF-8.
-- [RFC 4180 — CSV](https://www.rfc-editor.org/rfc/rfc4180): quy tắc quoted fields của CSV truyền thống.
-- [RFC 5646 — Language Tags](https://www.rfc-editor.org/rfc/rfc5646): cơ sở cú pháp thẻ ngôn ngữ BCP 47.
+- [Java SE 21 — BigDecimal](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html): numeric strings, `toPlainString`, precision, and scale.
+- [Java SE 21 — DateTimeFormatter](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/format/DateTimeFormatter.html): ISO formatters, parsing/formatting, and locales.
+- [Java SE 21 — Locale](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Locale.html): `toLanguageTag`, `forLanguageTag`, and `Locale.Builder`.
+- [Java SE 21 — DecimalFormat](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/DecimalFormat.html): locale-aware parsing, `setParseBigDecimal`, and rounding.
+- [RFC 8259 — JSON](https://www.rfc-editor.org/rfc/rfc8259): JSON syntax and UTF-8 interchange.
+- [RFC 4180 — CSV](https://www.rfc-editor.org/rfc/rfc4180): traditional CSV quoted-field rules.
+- [RFC 5646 — Language Tags](https://www.rfc-editor.org/rfc/rfc5646): syntax foundation for BCP 47 language tags.
 
-## 19. Ghi nhớ
+## 19. Key Takeaways
 
-**Không lưu hoặc truyền “số/ngày đã được dịch” khi bên nhận cần dữ liệu có kiểu.** Dùng `BigDecimal` cho decimal chính xác, `LocalDate` cho ngày lịch, `Instant`/offset rõ ràng cho thời điểm, BCP 47 cho locale, UTF-8 cho tệp và các chuẩn cụ thể như JSON/CSV/JDBC với schema được version. Parse input người dùng theo **locale của input**; parse machine wire theo **grammar của giao thức**, độc lập default JVM. Luôn kiểm tra toàn input, precision/scale/range, múi giờ và khả năng round-trip; chỉ khi hiển thị cho người dùng mới áp dụng `Locale` để tạo nhãn phù hợp.
+**Never store or transmit “translated numbers/dates” when the consumer needs typed data.** Use `BigDecimal` for exact decimals, `LocalDate` for calendar dates, `Instant`/explicit offsets for points in time, BCP 47 for locales, UTF-8 for files, and explicit versioned schemas for JSON/CSV/JDBC. Parse user input using the **input's locale**; parse machine wire data using the **protocol grammar**, independent of the JVM default. Always validate full input consumption, precision/scale/range, time zones, and round-trip behavior; apply `Locale` only at the UI boundary to produce human-readable labels.

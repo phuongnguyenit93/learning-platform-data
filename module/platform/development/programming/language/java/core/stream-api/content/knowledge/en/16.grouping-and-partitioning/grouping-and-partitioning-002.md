@@ -1,18 +1,18 @@
-# Chọn kiểu Map và Collector phía sau của groupingBy
+# Choosing the Map Type and Downstream Collector for groupingBy
 
-## 1. Phân nhóm không chỉ là chọn khóa
+## 1. Grouping Is More Than Choosing a Key
 
-Trong **JAVA_STREAM_API**, ta thường bắt đầu bằng một pipeline khai báo: lấy dữ liệu, `filter` bản ghi hợp lệ, `map` sang dạng cần thiết, rồi dùng `collect` để tạo kết quả. Khi muốn tập hợp các phần tử có cùng thuộc tính, `Collectors.groupingBy` là lựa chọn tự nhiên.
+In **JAVA_STREAM_API**, we often start with a declarative pipeline: obtain data, `filter` valid records, `map` to the required form, and use `collect` to produce the result. When you want to gather elements sharing a common attribute, `Collectors.groupingBy` is the natural choice.
 
-Ví dụ, từ một danh sách đơn hàng, ta muốn biết:
+For example, from a list of orders, we want to know:
 
-- Mỗi khu vực có **những đơn hàng nào**?
-- Mỗi khu vực có **bao nhiêu đơn**?
-- **Tổng doanh thu** của từng khu vực là bao nhiêu?
-- Mỗi khu vực có những **mã sản phẩm phân biệt** nào?
-- Khi hiển thị báo cáo, **các nhóm cần theo thứ tự xuất hiện, thứ tự bảng chữ cái hay không quan tâm thứ tự**?
+- **Which orders** belong to each region?
+- **How many orders** are in each region?
+- What is the **total revenue** of each region?
+- Which **distinct product SKUs** does each region have?
+- When displaying a report, should the **groups follow appearance order, alphabetical order, or no specific order**?
 
-Các câu hỏi trên đều có thể có cùng hàm phân nhóm, nhưng **kiểu Map** và **downstream collector** quyết định hình dạng và hợp đồng của kết quả.
+All of these questions can share the same grouping function, but the **Map type** and **downstream collector** determine the shape and contract of the result.
 
 ~~~text
                       Stream<Order>
@@ -22,42 +22,42 @@ Các câu hỏi trên đều có thể có cùng hàm phân nhóm, nhưng **ki�
                              │
           ┌──────────────────┴──────────────────┐
           ▼                                     ▼
-    Chọn Map chứa nhóm                    Chọn downstream
+    Choose Map to hold groups             Choose downstream
     ─ HashMap (*)                         ─ toList() (*)
     ─ LinkedHashMap                       ─ counting()
     ─ TreeMap                             ─ summingLong()
     ─ EnumMap                             ─ mapping(..., toSet())
-                                          ─ groupingBy(...) lồng nhau
+                                          ─ nested groupingBy(...)
           └──────────────────┬──────────────────┘
                              ▼
                        Map<K, D>
-             khóa nhóm K → kết quả D của nhóm
+             group key K → group result D
 
-(*) Mô tả kiểu thường gặp, không phải cam kết mặc định
-    về lớp triển khai cụ thể của Collectors.groupingBy.
+(*) Description of common types, not a default guarantee
+    on the concrete implementation class of Collectors.groupingBy.
 ~~~
 
-Đây là bài thuộc chương **Phân nhóm và phân hoạch**. Ta sẽ tìm hiểu ba overload của `groupingBy`, cách kiểm soát thứ tự và tính sửa đổi được của Map, cách chọn collector phía sau để trả `List`, `Set`, số đếm hoặc thống kê, cùng các lưu ý về `null`, tài nguyên và parallel stream.
+This lesson belongs to the **Grouping and Partitioning** chapter. We will explore the three overloads of `groupingBy`, how to control the ordering and mutability of the Map, how to choose a downstream collector to return a `List`, `Set`, count, or statistics, along with considerations for `null`, resources, and parallel streams.
 
-Ví dụ sử dụng **Java 17+**. Những API như `Collectors.mapping`, `groupingBy`, `counting` và `summingLong` đã có từ Java 8; `filtering` và `flatMapping` có từ Java 9; `teeing` có từ Java 12.
+Examples use **Java 17+**. APIs such as `Collectors.mapping`, `groupingBy`, `counting`, and `summingLong` have been available since Java 8; `filtering` and `flatMapping` since Java 9; and `teeing` since Java 12.
 
-## 2. Ba overload của Collectors.groupingBy
+## 2. Three Overloads of Collectors.groupingBy
 
-Dạng tổng quát của API:
+General form of the API:
 
 ~~~java
-// 1. Nhóm theo khóa, mỗi nhóm thu thành List<T>.
+// 1. Group by key, collecting each group into a List<T>.
 <T, K> Collector<T, ?, Map<K, List<T>>> groupingBy(
     Function<? super T, ? extends K> classifier
 );
 
-// 2. Nhóm theo khóa, tùy chọn cách tích lũy từng nhóm.
+// 2. Group by key, customizing how each group is accumulated.
 <T, K, A, D> Collector<T, ?, Map<K, D>> groupingBy(
     Function<? super T, ? extends K> classifier,
     Collector<? super T, A, D> downstream
 );
 
-// 3. Tùy chọn cả Map đầu ra lẫn cách tích lũy từng nhóm.
+// 3. Customize both the output Map and how each group is accumulated.
 <T, K, D, A, M extends Map<K, D>> Collector<T, ?, M> groupingBy(
     Function<? super T, ? extends K> classifier,
     Supplier<M> mapFactory,
@@ -65,22 +65,22 @@ Dạng tổng quát của API:
 );
 ~~~
 
-Đọc từng tham số:
+Reading each parameter:
 
-| Thành phần | Vai trò | Ví dụ |
+| Component | Role | Example |
 | --- | --- | --- |
-| `classifier` | Tính khóa nhóm `K` từ một phần tử đầu vào. | `Order::region` |
-| `mapFactory` | Tạo Map lưu nhóm; giúp quy định loại Map. | `LinkedHashMap::new` |
-| `downstream` | Rút gọn các phần tử **trong từng nhóm** thành kết quả `D`. | `Collectors.counting()` |
-| `Map<K, D>` | Mỗi khóa `K` tương ứng một kết quả nhóm kiểu `D`. | `Map<String, Long>` |
+| `classifier` | Computes the group key `K` from an input element. | `Order::region` |
+| `mapFactory` | Creates the Map storing groups; specifies the Map implementation. | `LinkedHashMap::new` |
+| `downstream` | Reduces elements **within each group** into a result `D`. | `Collectors.counting()` |
+| `Map<K, D>` | Each key `K` maps to a group result of type `D`. | `Map<String, Long>` |
 
-Với overload chỉ nhận `classifier`, downstream mặc định về mặt ngữ nghĩa là `toList()`, nên mỗi khóa ánh xạ tới một `List<T>`. API **không cam kết** chính xác kiểu Map/List triển khai, khả năng sửa đổi, khả năng tuần tự hóa hoặc tính an toàn luồng của các Collection mặc định.
+For the overload accepting only `classifier`, the default downstream semantically corresponds to `toList()`, so each key maps to a `List<T>`. The API **does not guarantee** the exact Map/List implementation class, mutability, serializability, or thread-safety of the default collections.
 
-Overload ba tham số là cách rõ nhất khi hai yêu cầu cần được kiểm soát độc lập: **Map lưu các khóa như thế nào** và **giá trị của từng khóa phải là loại kết quả gì**.
+The three-parameter overload is the clearest choice when two requirements must be controlled independently: **how the Map stores the keys** and **what kind of result each key's value should be**.
 
-## 3. Ví dụ nền: nhóm đơn hàng theo khu vực
+## 3. Baseline Example: Grouping Orders by Region
 
-Đầu tiên, dùng một `record` bất biến để mô tả dòng đơn hàng và các phép phân nhóm đơn giản. Ví dụ này chạy độc lập trên Java 17+.
+First, use an immutable `record` to represent an order line and perform simple grouping operations. This example runs standalone on Java 17+.
 
 ~~~java
 import java.util.List;
@@ -118,36 +118,36 @@ public class GroupingBasics {
 }
 ~~~
 
-Ở đây:
+Here:
 
-- `Order::region` là classifier: mỗi `Order` cho ra khóa nhóm như `"Nam"` hoặc `"Bắc"`.
-- `groupingBy(Order::region)` trả về `Map<String, List<Order>>`.
-- `grouped.get("Nam")` có hai đơn `O1` và `O3`.
-- Không nên suy ra thứ tự duyệt **các khóa của Map** từ thứ tự in ra một lần.
+- `Order::region` is the classifier: each `Order` produces a group key such as `"Nam"` or `"Bắc"`.
+- `groupingBy(Order::region)` returns `Map<String, List<Order>>`.
+- `grouped.get("Nam")` contains two orders, `O1` and `O3`.
+- You should not infer the iteration order of **Map keys** from a single print output.
 
-Ta sẽ dùng cấu trúc `Order` này làm ngữ cảnh trong các đoạn code ngắn ở phần sau. Khi muốn chạy riêng một ví dụ trong lớp khác, hãy khai báo `record Order` và danh sách `orders` tương ứng.
+We will use this `Order` structure as context in the short code snippets in later sections. When running an individual example in another class, declare the corresponding `record Order` and `orders` list.
 
-## 4. Chọn Map: mặc định, LinkedHashMap, TreeMap và EnumMap
+## 4. Choosing a Map: Default, LinkedHashMap, TreeMap, and EnumMap
 
-### 4.1. Map mặc định: khi không có yêu cầu cụ thể về thứ tự khóa
+### 4.1. Default Map: when there is no specific key-ordering requirement
 
 ~~~java
 Map<String, List<Order>> byRegion = orders.stream()
     .collect(Collectors.groupingBy(Order::region));
 ~~~
 
-Với Java phổ biến, kết quả thường được lưu trong `HashMap`, nhưng tài liệu `groupingBy` không cam kết một lớp Map cụ thể. Đừng viết code phụ thuộc vào:
+In common Java implementations, the result is typically stored in a `HashMap`, but the `groupingBy` specification does not guarantee a concrete Map class. Do not write code that depends on:
 
-- Map luôn là `HashMap`.
-- Map luôn có thể gọi `put` hoặc `remove`.
-- Các khóa luôn xuất hiện theo thứ tự đầu vào.
-- Map luôn thread-safe.
+- The Map always being a `HashMap`.
+- The Map always supporting `put` or `remove`.
+- Keys always appearing in input order.
+- The Map always being thread-safe.
 
-Nếu yêu cầu nghiệp vụ chỉ là tra cứu theo khóa và không phụ thuộc thứ tự duyệt, kiểu khai báo `Map<K,D>` là đủ.
+If the business requirement is only key-based lookup and does not depend on iteration order, declaring the type as `Map<K,D>` is sufficient.
 
-### 4.2. LinkedHashMap: thứ tự xuất hiện đầu tiên của nhóm
+### 4.2. LinkedHashMap: first-appearance order of groups
 
-Khi cần hiển thị theo thứ tự **nhóm được gặp lần đầu** trong một pipeline tuần tự có thứ tự, dùng `LinkedHashMap`:
+When you need to display groups in the order they were **first encountered** in an ordered sequential pipeline, use `LinkedHashMap`:
 
 ~~~java
 import java.util.LinkedHashMap;
@@ -166,11 +166,11 @@ System.out.println(inFirstSeenOrder.keySet());
 // [Nam, Bắc, Trung]
 ~~~
 
-`LinkedHashMap` duyệt các khóa theo thứ tự chèn. Vì nguồn `List` có encounter order và pipeline này là tuần tự, khóa `"Nam"` được chèn đầu tiên, tiếp theo `"Bắc"` và `"Trung"`. Các lần gặp lại `"Nam"` chỉ cập nhật nhóm đang có, không biến nó thành khóa cuối.
+`LinkedHashMap` iterates over keys in insertion order. Because the `List` source has encounter order and this pipeline is sequential, the key `"Nam"` is inserted first, followed by `"Bắc"` and `"Trung"`. Subsequent encounters of `"Nam"` only update the existing group without moving it to the end.
 
-Đây là lựa chọn phù hợp cho báo cáo cần bám theo thứ tự nhóm xuất hiện trong dữ liệu đầu vào. Nếu nguồn đã `unordered()` hoặc các phần tử đến từ một nguồn không có encounter order, thứ tự khóa theo thứ tự nguồn gốc không còn được bảo đảm.
+This is the appropriate choice for reports that need to follow the order in which groups appear in the input data. If the source is `unordered()` or elements come from a source without encounter order, key ordering according to the original source order is no longer guaranteed.
 
-### 4.3. TreeMap: thứ tự khóa được sắp xếp
+### 4.3. TreeMap: sorted key order
 
 ~~~java
 import java.util.List;
@@ -186,12 +186,12 @@ Map<String, List<Order>> sortedByRegion = orders.stream()
     ));
 
 System.out.println(sortedByRegion.keySet());
-// [Bắc, Nam, Trung] theo String.compareTo.
+// [Bắc, Nam, Trung] according to String.compareTo.
 ~~~
 
-`TreeMap` sắp xếp khóa theo thứ tự tự nhiên hoặc theo comparator cung cấp khi tạo Map. Nó phù hợp khi yêu cầu là **thứ tự chữ cái, mã số hoặc quy tắc ưu tiên rõ ràng**.
+`TreeMap` sorts keys by their natural order or by a comparator provided when creating the Map. It is suitable when the requirement specifies **alphabetical order, code order, or an explicit priority rule**.
 
-Nếu cần comparator riêng:
+If a custom comparator is needed:
 
 ~~~java
 import java.util.Comparator;
@@ -205,11 +205,11 @@ Map<String, List<Order>> reverseOrder = orders.stream()
     ));
 ~~~
 
-Cần chọn comparator nhất quán với định nghĩa **hai khóa có thuộc cùng nhóm hay không**. Một `TreeMap` coi hai khóa tương đương nếu comparator trả `0`. Nếu comparator gộp hai khóa không bằng nhau theo `equals`, số nhóm có thể ít hơn dự kiến.
+Choose a comparator consistent with the definition of **whether two keys belong to the same group**. A `TreeMap` treats two keys as equivalent if the comparator returns `0`. If the comparator merges two keys that are not equal under `equals`, the number of groups may be smaller than expected.
 
-### 4.4. EnumMap: khóa là enum hữu hạn
+### 4.4. EnumMap: keys are a finite enum
 
-Với các trạng thái có miền giá trị hữu hạn, `EnumMap` thường diễn đạt miền khóa rõ và có thứ tự theo thứ tự khai báo hằng enum:
+For statuses with a finite domain of values, `EnumMap` clearly expresses the key domain and orders keys by enum constant declaration order:
 
 ~~~java
 import java.util.EnumMap;
@@ -242,32 +242,32 @@ public class GroupingByStatus {
 }
 ~~~
 
-`EnumMap` không tự tạo các khóa chưa xuất hiện: nhóm `CANCELLED` không có trong Map vì không có invoice thuộc trạng thái này. Muốn báo cáo gồm **tất cả trạng thái kể cả 0**, phải bổ sung các trạng thái rỗng có chủ đích sau khi grouping hoặc khởi tạo một cấu trúc kết quả phù hợp.
+`EnumMap` does not automatically create keys that have not appeared: the `CANCELLED` group is absent from the Map because no invoice has that status. To produce a report containing **all statuses including 0**, you must deliberately add the empty statuses after grouping or initialize an appropriate result structure.
 
-### Bảng lựa chọn Map
+### Map Selection Table
 
-| Mong muốn | mapFactory điển hình | Thứ tự duyệt khóa |
+| Requirement | Typical mapFactory | Key iteration order |
 | --- | --- | --- |
-| Tra cứu nhóm, không quan tâm thứ tự | Không truyền factory | Không cam kết |
-| Giữ thứ tự gặp nhóm đầu tiên | `LinkedHashMap::new` | Thứ tự chèn |
-| Sắp theo khóa/comparator | `TreeMap::new` hoặc supplier có comparator | Thứ tự so sánh |
-| Khóa là enum | `() -> new EnumMap<>(MyEnum.class)` | Thứ tự khai báo enum |
-| Khóa cần lookup đồng thời trong kết quả | Cân nhắc `groupingByConcurrent` | Không cam kết thứ tự |
+| Group lookup, order does not matter | Omit factory | Not guaranteed |
+| Preserve first-seen group order | `LinkedHashMap::new` | Insertion order |
+| Sort by key/comparator | `TreeMap::new` or supplier with comparator | Comparison order |
+| Keys are an enum | `() -> new EnumMap<>(MyEnum.class)` | Enum declaration order |
+| Keys need concurrent lookup in result | Consider `groupingByConcurrent` | Order not guaranteed |
 
-## 5. Chọn downstream collector: List, Set, số đếm và tổng
+## 5. Choosing a Downstream Collector: List, Set, Count, and Sum
 
-Downstream quyết định kiểu **giá trị** của Map, không quyết định kiểu khóa. Cùng classifier `Order::region` có thể tạo nhiều báo cáo khác nhau.
+The downstream collector determines the Map's **value** type, not its key type. The same classifier `Order::region` can produce many different reports.
 
-### 5.1. Mặc định: List<Order>
+### 5.1. Default: List<Order>
 
 ~~~java
 Map<String, List<Order>> ordersByRegion = orders.stream()
     .collect(Collectors.groupingBy(Order::region));
 ~~~
 
-Dùng khi cần giữ các bản ghi trong từng nhóm để tiếp tục xử lý. Nếu nguồn có encounter order và collector downstream là `toList()`, các phần tử mỗi nhóm được tích lũy theo thứ tự gặp; tuy nhiên, **thứ tự khóa của Map** vẫn phụ thuộc Map.
+Use this when you need to retain the records in each group for further processing. If the source has encounter order and the downstream collector is `toList()`, elements in each group are accumulated in encounter order; however, the **key order of the Map** still depends on the Map.
 
-Nếu cần đảm bảo từng List **có thể sửa**, dùng supplier rõ ràng:
+If you need to guarantee each List is **mutable**, use an explicit supplier:
 
 ~~~java
 import java.util.ArrayList;
@@ -283,7 +283,7 @@ editableGroups.get("Nam").add(
 );
 ~~~
 
-Không dựa vào việc `Collectors.toList()` trên JDK hiện tại tình cờ trả `ArrayList` mutable: hợp đồng không bảo đảm kiểu hay khả năng sửa của Collection đó.
+Do not rely on `Collectors.toList()` happening to return a mutable `ArrayList` on the current JDK: the contract does not guarantee the collection's concrete type or mutability.
 
 ### 5.2. Counting: Map<K, Long>
 
@@ -298,9 +298,9 @@ System.out.println(orderCounts.get("Nam")); // 2
 System.out.println(orderCounts.get("Bắc"));  // 1
 ~~~
 
-`counting()` đếm **phần tử trong nhóm**, không đếm tổng `quantity`. Nếu muốn tính số đơn vị hàng đã bán thì dùng `summingInt(Order::quantity)` hoặc `summingLong(...)`.
+`counting()` counts **elements in the group**, not the sum of `quantity`. If you want to calculate the number of units sold, use `summingInt(Order::quantity)` or `summingLong(...)`.
 
-### 5.3. Summing: doanh thu theo vùng
+### 5.3. Summing: revenue by region
 
 ~~~java
 Map<String, Long> revenueByRegion = orders.stream()
@@ -314,9 +314,9 @@ System.out.println(revenueByRegion.get("Bắc"));  // 30000
 System.out.println(revenueByRegion.get("Trung")); // 50000
 ~~~
 
-`summingLong` trả giá trị `Long` ở từng nhóm. Nếu tổng có khả năng vượt miền `long`, cả phép nhân `quantity * unitPrice` lẫn phép cộng tổng đều cần chính sách overflow. Ví dụ dùng `Math.multiplyExact` để phát hiện overflow phép nhân; collector `summingLong` không tự phát hiện overflow phép cộng.
+`summingLong` returns a `Long` value for each group. If the sum may exceed the `long` range, both the multiplication `quantity * unitPrice` and the summation require an overflow policy. The example uses `Math.multiplyExact` to detect multiplication overflow; the `summingLong` collector does not automatically detect addition overflow.
 
-### 5.4. Mapping: chỉ lưu thuộc tính cần thiết
+### 5.4. Mapping: storing only the needed attribute
 
 ~~~java
 import java.util.Set;
@@ -331,12 +331,12 @@ Map<String, Set<String>> skusByRegion = orders.stream()
     ));
 
 System.out.println(skusByRegion.get("Nam"));
-// Chứa BOOK và PEN, không cam kết thứ tự in.
+// Contains BOOK and PEN, print order not guaranteed.
 ~~~
 
-`mapping` biến mỗi `Order` thành `sku` **bên trong từng nhóm**, rồi `toSet` loại các SKU trùng nhau. Đây là khác biệt quan trọng với việc gọi `stream.map(Order::sku)` **trước khi grouping**: khi đó ta mất trường `region` cần thiết để tính khóa.
+`mapping` transforms each `Order` into `sku` **inside each group**, and then `toSet` removes duplicate SKUs. This is an important difference from calling `stream.map(Order::sku)` **before grouping**: doing so loses the `region` field needed to compute the key.
 
-Nếu cần giữ thứ tự xuất hiện đầu tiên của các SKU trong từng nhóm, chọn `LinkedHashSet`:
+If you need to preserve the first-appearance order of SKUs within each group, choose `LinkedHashSet`:
 
 ~~~java
 import java.util.LinkedHashSet;
@@ -351,13 +351,13 @@ Map<String, LinkedHashSet<String>> orderedSkus = orders.stream()
     ));
 ~~~
 
-`toSet()` không cam kết thứ tự hoặc khả năng sửa được của Set trả về; `toCollection(LinkedHashSet::new)` chọn rõ cấu trúc và tính sửa đổi được.
+`toSet()` does not guarantee order or mutability of the returned Set; `toCollection(LinkedHashSet::new)` explicitly selects both the structure and mutability.
 
-## 6. Chọn downstream để tạo Map con và cấu trúc nhiều tầng
+## 6. Choosing a Downstream Collector to Build Sub-Maps and Multi-Level Structures
 
-### 6.1. Grouping hai cấp
+### 6.1. Two-level grouping
 
-Bài toán: mỗi khu vực có nhiều mã SKU; ta muốn số lượng dòng đơn hàng theo từng SKU trong từng vùng.
+Problem: each region has multiple SKUs; we want the count of order lines per SKU within each region.
 
 ~~~java
 import java.util.Map;
@@ -379,17 +379,17 @@ System.out.println(countsByRegionAndSku);
 // {Bắc={PEN=1}, Nam={BOOK=1, PEN=1}, Trung={BOOK=1}}
 ~~~
 
-Ở đây:
+Here:
 
-- Outer `TreeMap` sắp các khóa **khu vực**.
-- Inner `TreeMap` sắp các khóa **SKU**.
-- `counting()` đếm đơn hàng ở mỗi cặp (khu vực, SKU).
+- The outer `TreeMap` sorts **region** keys.
+- The inner `TreeMap` sorts **SKU** keys.
+- `counting()` counts orders for each `(region, SKU)` pair.
 
-Nếu muốn số lượng sản phẩm thay vì số dòng, thay downstream trong cùng bằng `summingInt(Order::quantity)`. Kiểu kết quả khi đó là `Map<String, Map<String, Integer>>`.
+If you want product unit quantities instead of line counts, replace the innermost downstream collector with `summingInt(Order::quantity)`. The result type is then `Map<String, Map<String, Integer>>`.
 
-### 6.2. Mỗi nhóm chứa Map từ SKU tới tổng số lượng
+### 6.2. Each group holds a Map from SKU to total quantity
 
-Một SKU có thể xuất hiện nhiều lần trong cùng khu vực. `Collectors.toMap` với merge function cho phép gộp trùng SKU:
+An SKU may appear multiple times within the same region. `Collectors.toMap` with a merge function allows merging duplicate SKUs:
 
 ~~~java
 import java.util.Map;
@@ -406,14 +406,14 @@ Map<String, Map<String, Integer>> unitsByRegionAndSku =
     ));
 
 System.out.println(unitsByRegionAndSku.get("Nam"));
-// {BOOK=2, PEN=1}; thứ tự key của Map con không được cam kết.
+// {BOOK=2, PEN=1}; key order of the inner Map is not guaranteed.
 ~~~
 
-Nếu không truyền merge function vào `toMap` mà hai đơn có cùng SKU, collector có thể ném `IllegalStateException` vì khóa trùng. Điều này khác với `groupingBy`, vốn **thiết kế để gom nhiều phần tử cùng khóa**.
+If you do not pass a merge function to `toMap` and two orders have the same SKU, the collector can throw `IllegalStateException` due to duplicate keys. This differs from `groupingBy`, which is **designed to gather multiple elements sharing the same key**.
 
-### 6.3. Kết quả chỉ là một số thống kê của mỗi nhóm
+### 6.3. Result is a single summary statistic per group
 
-Khi yêu cầu là giá trị min/max/tổng/trung bình, ưu tiên downstream tính trực tiếp:
+When the requirement is min/max/sum/average values, prefer a downstream collector that computes them directly:
 
 ~~~java
 import java.util.IntSummaryStatistics;
@@ -430,15 +430,15 @@ System.out.println(quantityStats.get("Nam").getMin());   // 1
 System.out.println(quantityStats.get("Nam").getMax());   // 2
 ~~~
 
-`IntSummaryStatistics` là kiểu tổng hợp có các thao tác cập nhật; không xem nó như một value object bất biến sâu. Nếu cần trả ra ngoài một API không cho chỉnh sửa, hãy chuyển nó sang record bất biến hoặc các giá trị số riêng trước khi công bố.
+`IntSummaryStatistics` is an aggregation type with mutating operations; do not treat it as a deeply immutable value object. If you need to return it from an unmodifiable API, convert it into an immutable record or separate numeric values before publishing.
 
-## 7. filtering và flatMapping làm việc *bên trong* nhóm
+## 7. filtering and flatMapping Work *Inside* Groups
 
-Hai downstream được bổ sung từ Java 9 giúp tránh phải tự xây dựng vòng lặp hoặc Map tạm. Chúng khác việc đặt `filter`/`flatMap` trước `groupingBy`.
+Two downstream collectors added in Java 9 help avoid writing manual loops or temporary Maps. They differ from placing `filter`/`flatMap` before `groupingBy`.
 
-### 7.1. filtering downstream giữ nhóm dù không có phần tử đạt điều kiện
+### 7.1. Downstream filtering preserves the group even when no elements match
 
-Giả sử mọi đơn ở vùng `"Trung"` có số lượng dưới 2. Ta cần báo cáo các vùng đã xuất hiện, nhưng chỉ liệt kê đơn có `quantity >= 2`.
+Suppose all orders in the `"Trung"` region have a quantity below 2. We need to report all regions that appeared, but only list orders with `quantity >= 2`.
 
 ~~~java
 import java.util.List;
@@ -459,9 +459,9 @@ System.out.println(largeOrdersByRegion.get("Bắc").size()); // 1
 System.out.println(largeOrdersByRegion.get("Trung"));      // []
 ~~~
 
-`groupingBy` tạo khóa vùng trước, sau đó `filtering` quyết định có đưa `Order` vào downstream List không. Vì thế vùng `"Trung"` vẫn có key với List rỗng.
+`groupingBy` creates the region key first, and then `filtering` decides whether to put the `Order` into the downstream List. Therefore, the `"Trung"` region still has a key with an empty List.
 
-Đối chiếu với `filter` **trước** `groupingBy`:
+Contrast this with `filter` **before** `groupingBy`:
 
 ~~~java
 Map<String, List<Order>> onlyRegionsWithLargeOrders = orders.stream()
@@ -471,11 +471,11 @@ Map<String, List<Order>> onlyRegionsWithLargeOrders = orders.stream()
 System.out.println(onlyRegionsWithLargeOrders.containsKey("Trung")); // false
 ~~~
 
-**Chọn theo nghiệp vụ:** nếu báo cáo phải có mọi vùng đã xuất hiện (kể cả vùng không có đơn đạt điều kiện), dùng downstream `filtering`; nếu chỉ cần vùng có ít nhất một đơn đạt điều kiện, dùng upstream `filter`.
+**Choose by business requirement:** if the report must include every region that appeared (even regions with no qualifying orders), use downstream `filtering`; if you only need regions with at least one qualifying order, use upstream `filter`.
 
-### 7.2. flatMapping downstream phát nhiều giá trị trong từng nhóm
+### 7.2. Downstream flatMapping emits multiple values per group
 
-Một vé hỗ trợ có thể có nhiều thẻ. Ta muốn tập thẻ theo mỗi đội xử lý:
+A support ticket can have multiple tags. We want the set of tags for each handling team:
 
 ~~~java
 import java.util.List;
@@ -504,20 +504,20 @@ public class GroupTicketTags {
             ));
 
         System.out.println(tagsByTeam.get("Core"));
-        // Chứa java, api, stream; thứ tự không được cam kết.
+        // Contains java, api, stream; order is not guaranteed.
     }
 }
 ~~~
 
-`flatMapping` chuyển mỗi phần tử trong nhóm thành một Stream con rồi gửi các phần tử của Stream đó xuống collector tiếp theo. Nếu Stream con cần đóng tài nguyên, việc đóng được `flatMapping` quản lý theo hợp đồng; dù vậy, nguồn tài nguyên bên ngoài pipeline vẫn cần được quản lý đúng.
+`flatMapping` turns each element in the group into a sub-Stream and sends that Stream's elements to the next collector. If the sub-Stream requires closing resources, closing is managed by `flatMapping` per contract; nevertheless, external resources outside the pipeline must still be managed properly.
 
-Nếu một team chỉ có các danh sách tag rỗng, team đó vẫn có một nhóm và kết quả là một Set rỗng. Đặt `flatMap` trước grouping sẽ làm mất thông tin classifier nếu các tag không còn mang tên team.
+If a team only has empty tag lists, that team still gets a group and the result is an empty Set. Placing `flatMap` before grouping would lose the classifier information if the tags no longer carry the team name.
 
-## 8. Downstream kết hợp nhiều phép thống kê: collectingAndThen và teeing
+## 8. Downstream Collectors Combining Multiple Aggregations: collectingAndThen and teeing
 
-### 8.1. collectingAndThen để hoàn thiện kết quả mỗi nhóm
+### 8.1. collectingAndThen to finalize each group's result
 
-Với `Collectors.collectingAndThen(downstream, finisher)`, ta để một downstream tích lũy xong rồi áp dụng bước cuối.
+With `Collectors.collectingAndThen(downstream, finisher)`, we let a downstream collector finish accumulating and then apply a final transformation step.
 
 ~~~java
 import java.util.List;
@@ -534,9 +534,9 @@ Map<String, List<Order>> readonlyLists = orders.stream()
     ));
 ~~~
 
-Các List bên trong không sửa đổi được. **Map bên ngoài** vẫn theo hợp đồng chung của `groupingBy`, không tự trở thành Map không sửa đổi được. Ngoài ra, `List.copyOf` không chấp nhận phần tử `null`.
+The inner Lists are unmodifiable. The **outer Map** still follows the general `groupingBy` contract and does not automatically become an unmodifiable Map. Additionally, `List.copyOf` does not accept `null` elements.
 
-Nếu muốn rõ cả **Map theo thứ tự chèn và List không sửa đổi được**:
+If you explicitly want both an **insertion-ordered Map and unmodifiable Lists**:
 
 ~~~java
 import java.util.LinkedHashMap;
@@ -552,7 +552,7 @@ Map<String, List<Order>> result = orders.stream()
     ));
 ~~~
 
-Kết quả có cấu trúc `LinkedHashMap` và mỗi List không sửa đổi được; bản thân Map vẫn là LinkedHashMap có thể thay đổi. Để công bố một kết quả không sửa cấu trúc được ở cả hai tầng, có thể bọc bản sao của Map:
+The result has a `LinkedHashMap` structure and each List is unmodifiable; the Map itself is still a mutable LinkedHashMap. To publish a structurally unmodifiable result at both levels, you can wrap a copy of the Map:
 
 ~~~java
 import java.util.Collections;
@@ -562,11 +562,11 @@ Map<String, List<Order>> immutableStructure =
     Collections.unmodifiableMap(new LinkedHashMap<>(result));
 ~~~
 
-Các `Order` là record bất biến về các trường được lưu ở ví dụ, nên dữ liệu minh họa khá gần với snapshot bất biến. Với object con mutable, bọc Map và List **không tự làm bất biến sâu** đồ thị dữ liệu.
+The `Order` instances are immutable records for the fields stored in the example, so the sample data is close to an immutable snapshot. With mutable child objects, wrapping the Map and Lists **does not automatically make the object graph deeply immutable**.
 
-### 8.2. teeing để tính hai chỉ tiêu trong một lần gom
+### 8.2. teeing to compute two metrics in a single pass
 
-Từ Java 12, `Collectors.teeing` cho hai downstream xử lý cùng một dòng và ghép kết quả bằng một hàm.
+Since Java 12, `Collectors.teeing` lets two downstream collectors process the same stream and merges their results with a function.
 
 ~~~java
 import java.util.List;
@@ -605,24 +605,24 @@ public class GroupCountAndRevenue {
 }
 ~~~
 
-Ở ví dụ này, khóa nhóm là `String`, còn downstream trả một `Summary` bất biến với hai chỉ tiêu. Không phải tạo `List<Order>` cho từng nhóm rồi duyệt lại để đếm và cộng. Tuy nhiên, mọi phép cộng số nguyên vẫn phải nằm trong giới hạn kiểu `long`, và `teeing` không biến phép tính có tác dụng phụ thành an toàn.
+In this example, the group key is `String`, and the downstream collector returns an immutable `Summary` with two metrics. You do not have to build a `List<Order>` for each group and iterate over it again to count and sum. However, all integer arithmetic must still remain within `long` limits, and `teeing` does not make operations with side effects safe.
 
-## 9. Tính sửa đổi được, thứ tự và null của kết quả nhóm
+## 9. Mutability, Ordering, and Null Behavior of Grouped Results
 
-### 9.1. Hai tầng Map và Collection có hợp đồng riêng
+### 9.1. The two levels (Map and Collection) have separate contracts
 
-Dù ta chọn `LinkedHashMap`, kết quả downstream có thể là List, Set hoặc số; khả năng sửa được và thứ tự của **mỗi tầng** độc lập.
+Even if you choose `LinkedHashMap`, the downstream result can be a List, Set, or number; the mutability and ordering of **each level** are independent.
 
-| Cấu hình | Map bên ngoài | Giá trị mỗi nhóm |
+| Configuration | Outer Map | Value per group |
 | --- | --- | --- |
-| `groupingBy(key)` | Loại Map và mutability không cam kết | `List<T>`; mutability không cam kết |
-| `groupingBy(key, LinkedHashMap::new, toList())` | LinkedHashMap theo thứ tự chèn | List theo encounter order (nếu có), mutability không cam kết |
-| `groupingBy(key, TreeMap::new, toSet())` | TreeMap theo comparator | Set bỏ trùng, thứ tự không cam kết |
-| `groupingBy(key, LinkedHashMap::new, toCollection(LinkedHashSet::new))` | LinkedHashMap theo thứ tự chèn | LinkedHashSet theo thứ tự chèn |
-| `groupingBy(key, counting())` | Loại Map không cam kết | Long là số lượng |
-| `groupingBy(key, toUnmodifiableList())` | Mutability Map không cam kết | List không sửa đổi được, cấm phần tử null |
+| `groupingBy(key)` | Map type and mutability not guaranteed | `List<T>`; mutability not guaranteed |
+| `groupingBy(key, LinkedHashMap::new, toList())` | LinkedHashMap in insertion order | List in encounter order (if any), mutability not guaranteed |
+| `groupingBy(key, TreeMap::new, toSet())` | TreeMap by comparator | Deduplicated Set, order not guaranteed |
+| `groupingBy(key, LinkedHashMap::new, toCollection(LinkedHashSet::new))` | LinkedHashMap in insertion order | LinkedHashSet in insertion order |
+| `groupingBy(key, counting())` | Map type not guaranteed | Long representing count |
+| `groupingBy(key, toUnmodifiableList())` | Map mutability not guaranteed | Unmodifiable List, forbids null elements |
 
-Một ví dụ trực quan:
+A concrete example:
 
 ~~~java
 Map<String, List<Order>> grouped = orders.stream()
@@ -632,13 +632,13 @@ Map<String, List<Order>> grouped = orders.stream()
         Collectors.toUnmodifiableList()
     ));
 
-// grouped.put("Tây", List.of());  // Map có thể sửa được.
-// grouped.get("Nam").add(...);  // Ném UnsupportedOperationException.
+// grouped.put("Tây", List.of());  // Map is mutable.
+// grouped.get("Nam").add(...);  // Throws UnsupportedOperationException.
 ~~~
 
-### 9.2. Classifier trả null: phải quy định chính sách trước grouping
+### 9.2. Classifier returning null: define policy before grouping
 
-Với triển khai chuẩn của Java, `groupingBy` yêu cầu khóa nhóm do classifier trả về **khác null**; nếu classifier trả null, quá trình thu thập sẽ ném `NullPointerException`.
+In standard Java implementations, `groupingBy` requires the group key returned by the classifier to be **non-null**; if the classifier returns null, collection will throw `NullPointerException`.
 
 ~~~java
 record Customer(String name, String region) {}
@@ -648,11 +648,11 @@ List<Customer> customers = List.of(
     new Customer("Bình", null)
 );
 
-// Không được dựa vào việc groupingBy sẽ tạo một nhóm có khóa null.
+// Do not rely on groupingBy creating a group with a null key.
 // customers.stream().collect(groupingBy(Customer::region));
 ~~~
 
-Nếu “chưa rõ khu vực” là một nhóm nghiệp vụ hợp lệ, chuyển nó thành khóa tường minh:
+If "unknown region" is a valid business group, convert it into an explicit key:
 
 ~~~java
 Map<String, List<Customer>> grouped = customers.stream()
@@ -665,11 +665,11 @@ Map<String, List<Customer>> grouped = customers.stream()
 System.out.println(grouped.get("CHUA_XAC_DINH").size()); // 1
 ~~~
 
-Cần tránh xung đột nếu `"CHUA_XAC_DINH"` cũng là giá trị hợp lệ của dữ liệu. Có thể dùng enum riêng hoặc kiểu khóa kết quả có trạng thái thay vì chuỗi sentinel nếu cần phân biệt chính xác.
+Avoid collisions if `"CHUA_XAC_DINH"` can also be a valid data value. You can use a dedicated enum or a stateful key type instead of a sentinel string when exact distinction is needed.
 
-### 9.3. Null trong downstream
+### 9.3. Null in downstream collectors
 
-`Collectors.toUnmodifiableList()` và `toUnmodifiableSet()` cấm phần tử `null`. `Collectors.toList()` không cam kết đặc tính mutability hay lớp triển khai, nên nếu chính sách null là yêu cầu quan trọng, hãy xử lý rõ trước khi collecting: lọc bỏ, ánh xạ sang giá trị thay thế, hoặc cố ý báo lỗi.
+`Collectors.toUnmodifiableList()` and `toUnmodifiableSet()` forbid `null` elements. `Collectors.toList()` does not guarantee mutability or implementation class, so if null handling policy is an important requirement, handle it explicitly before collecting: filter out, map to a replacement value, or intentionally fail.
 
 ~~~java
 Map<String, List<String>> cleanSkus = orders.stream()
@@ -684,11 +684,11 @@ Map<String, List<String>> cleanSkus = orders.stream()
     ));
 ~~~
 
-Với ví dụ `Order` mẫu, SKU đều có giá trị; đoạn này minh họa chính sách nếu hệ thống khác có thể cung cấp SKU null.
+In the sample `Order` data, SKUs all have values; this snippet illustrates the policy when another system might supply null SKUs.
 
-## 10. groupBy và partitioningBy: khác nhau về miền khóa
+## 10. groupingBy and partitioningBy: Differences in Key Domain
 
-`Collectors.partitioningBy(predicate)` chia phần tử thành hai nhóm Boolean `true` và `false`. Nó phù hợp khi bài toán thật sự có **hai phía của một điều kiện**.
+`Collectors.partitioningBy(predicate)` splits elements into two Boolean groups, `true` and `false`. It is suitable when the problem truly has **two sides of a condition**.
 
 ~~~java
 import java.util.List;
@@ -701,17 +701,17 @@ Map<Boolean, List<Order>> partitions = orders.stream()
     ));
 ~~~
 
-Sự khác nhau cần ghi nhớ:
+Differences to remember:
 
-| Tiêu chí | `groupingBy` | `partitioningBy` |
+| Criterion | `groupingBy` | `partitioningBy` |
 | --- | --- | --- |
-| Khóa | Hàm classifier trả `K` | Predicate trả Boolean |
-| Số nhóm | Chỉ những khóa xuất hiện trong nguồn | Luôn có hai khóa `true` và `false` |
-| Nguồn rỗng | Map rỗng | Map có hai khóa với kết quả downstream rỗng |
-| Có thể chọn Map supplier? | Có ở overload ba tham số | Không có tham số mapFactory |
-| Chọn downstream? | Có | Có, qua `partitioningBy(predicate, downstream)` |
+| Key | Classifier function returning `K` | Predicate returning Boolean |
+| Number of groups | Only keys that appear in the source | Always has both keys `true` and `false` |
+| Empty source | Empty Map | Map with both keys and empty downstream results |
+| Can choose Map supplier? | Yes, in the three-parameter overload | No `mapFactory` parameter |
+| Can choose downstream? | Yes | Yes, via `partitioningBy(predicate, downstream)` |
 
-Ví dụ đếm hai phía:
+Example counting both sides:
 
 ~~~java
 Map<Boolean, Long> counts = orders.stream()
@@ -724,11 +724,11 @@ System.out.println(counts.get(true));  // 2
 System.out.println(counts.get(false)); // 2
 ~~~
 
-Với `groupingBy(order -> order.quantity() >= 2)`, một bên có thể hoàn toàn không có trong Map nếu nguồn chỉ chứa dữ liệu của bên còn lại; `partitioningBy` giữ cả hai khóa. Đây là khác biệt thường ảnh hưởng tới báo cáo và giao diện.
+With `groupingBy(order -> order.quantity() >= 2)`, one side can be completely absent from the Map if the source only contains data for the other side; `partitioningBy` preserves both keys. This is a difference that often affects reports and UIs.
 
-## 11. groupingBy và groupingByConcurrent khi chạy song song
+## 11. groupingBy and groupingByConcurrent in Parallel Execution
 
-### 11.1. groupingBy trên parallel stream
+### 11.1. groupingBy on a parallel stream
 
 ~~~java
 Map<String, Long> counts = orders.parallelStream()
@@ -738,11 +738,11 @@ Map<String, Long> counts = orders.parallelStream()
     ));
 ~~~
 
-`groupingBy` có thể dùng trên parallel stream, nhưng theo tài liệu API nó **không là concurrent collector**. Ở giai đoạn kết hợp, triển khai có thể cần hợp nhất các Map trung gian, gây overhead khi có nhiều khóa hoặc nhiều dữ liệu.
+`groupingBy` can be used on a parallel stream, but according to the API documentation it is **not a concurrent collector**. During the combine phase, the implementation may need to merge intermediate Maps, causing overhead when there are many keys or large datasets.
 
-Với nguồn có encounter order và downstream có thứ tự như `toList()`, groupingBy giúp giữ ý nghĩa thứ tự phần tử theo từng nhóm; việc Map đầu ra duyệt các **khóa** theo thứ tự nào vẫn cần mapFactory phù hợp.
+With an ordered source and an ordered downstream such as `toList()`, `groupingBy` helps preserve per-group element order semantics; the order in which the output Map iterates over **keys** still requires an appropriate `mapFactory`.
 
-### 11.2. groupingByConcurrent khi không cần thứ tự
+### 11.2. groupingByConcurrent when order is not needed
 
 ~~~java
 import java.util.concurrent.ConcurrentMap;
@@ -757,9 +757,9 @@ ConcurrentMap<String, Long> concurrentCounts =
     );
 ~~~
 
-`groupingByConcurrent` là concurrent, unordered collector; kết quả là `ConcurrentMap<K,D>`. Nó cho phép triển khai phù hợp với việc tích lũy các nhóm song song, nhưng **không cam kết encounter order** của phần tử trong từng nhóm hoặc thứ tự duyệt khóa.
+`groupingByConcurrent` is a concurrent, unordered collector; the result is a `ConcurrentMap<K,D>`. It allows an implementation suited to accumulating groups in parallel, but **does not guarantee encounter order** of elements within each group or key iteration order.
 
-Nếu cần chọn loại ConcurrentMap cụ thể, dùng overload ba tham số với supplier thích hợp:
+If you need to choose a specific `ConcurrentMap` type, use the three-parameter overload with an appropriate supplier:
 
 ~~~java
 import java.util.concurrent.ConcurrentHashMap;
@@ -775,23 +775,23 @@ ConcurrentMap<String, Long> counts =
     );
 ~~~
 
-Không thể dùng `LinkedHashMap::new` làm supplier cho overload này: nó yêu cầu `ConcurrentMap`. Bản thân việc Map đầu ra là concurrent **không có nghĩa** mọi giá trị downstream như `List` sẽ có thể tùy ý sửa đồng thời sau khi thu thập.
+You cannot pass `LinkedHashMap::new` as the supplier for this overload: it requires a `ConcurrentMap`. The fact that the output Map itself is concurrent **does not mean** downstream values such as `List` can be arbitrarily mutated concurrently after collection finishes.
 
-### 11.3. Chọn theo mục tiêu và đo hiệu năng
+### 11.3. Choosing by goal and measuring performance
 
-| Mục tiêu | Lựa chọn thường hợp lý |
+| Goal | Usually reasonable choice |
 | --- | --- |
-| Báo cáo nhỏ hoặc logic rõ ràng, cần thứ tự theo nguồn | `groupingBy` trên stream tuần tự |
-| Cần chia việc song song và vẫn giữ ngữ nghĩa ordered của nhóm | `groupingBy` trên parallel stream, kiểm thử và đo |
-| Nhiều phần tử, nhiều nhóm, không quan tâm thứ tự | Cân nhắc `groupingByConcurrent` |
-| Cần Map có khóa sắp xếp | `groupingBy(..., TreeMap::new, ...)` |
-| Chỉ cần hai nhóm true/false | `partitioningBy` |
+| Small report or straightforward logic needing source order | `groupingBy` on a sequential stream |
+| Need parallel work while preserving ordered group semantics | `groupingBy` on a parallel stream, test and measure |
+| Many elements, many groups, order does not matter | Consider `groupingByConcurrent` |
+| Need a Map with sorted keys | `groupingBy(..., TreeMap::new, ...)` |
+| Only need two true/false groups | `partitioningBy` |
 
-Đừng mặc định concurrent luôn nhanh hơn: kích thước nguồn, số nhóm, độ lệch giữa các nhóm, chi phí classifier và downstream, contention và số CPU đều tác động đến hiệu năng. Không dùng các lambda ghi trạng thái mutable bên ngoài để “tăng tốc” grouping; hãy giữ classifier không trạng thái và không can thiệp nguồn.
+Do not assume concurrent is always faster: source size, number of groups, skew across groups, classifier and downstream cost, contention, and CPU count all affect performance. Do not use lambdas that mutate external state to "speed up" grouping; keep the classifier stateless and non-interfering with the source.
 
-## 12. Hoàn chỉnh báo cáo nghiệp vụ: Map có thứ tự và giá trị thống kê
+## 12. Completing a Business Report: Ordered Map and Summary Statistics
 
-Giả sử một dashboard cần hiển thị khu vực theo thứ tự tên. Mỗi khu vực cần số đơn, tổng đơn vị, tổng doanh thu. Có thể dùng downstream tùy chỉnh cho một đối tượng kết quả bất biến:
+Suppose a dashboard needs to display regions in alphabetical order. Each region needs order count, total units, and total revenue. You can use a custom downstream collector producing an immutable result object:
 
 ~~~java
 import java.util.List;
@@ -859,24 +859,24 @@ public class SalesDashboard {
 }
 ~~~
 
-Phép `reducing(identity, mapper, op)` trong downstream chuyển mỗi `Order` thành một summary một phần tử rồi gộp bằng `Summary::merge`. `Summary` là record bất biến, `zero()` trung hòa và `merge` kết hợp được trong miền giá trị không tràn số. Cách này thích hợp khi muốn trả về đúng một đối tượng tổng hợp. Khi báo cáo chỉ cần đếm/tổng chuẩn, `counting()`, `summingLong()` hay `teeing()` thường ngắn gọn hơn.
+`reducing(identity, mapper, op)` in the downstream collector converts each `Order` into a single-element summary and combines them using `Summary::merge`. `Summary` is an immutable record, `zero()` is the identity element, and `merge` is associative within non-overflowing ranges. This approach fits well when you want to return a single aggregate object. When a report only needs standard counts/sums, `counting()`, `summingLong()`, or `teeing()` is usually more concise.
 
-Với dữ liệu tiền tệ thật, hãy bảo đảm các đơn hàng cùng đơn vị, kiểm tra số lượng/đơn giá hợp lệ và phát hiện overflow hoặc dùng kiểu số phù hợp. `TreeMap` chỉ giải quyết **thứ tự khóa hiển thị**, không thay thế các kiểm tra nghiệp vụ.
+With real monetary data, ensure all orders share the same currency unit, validate quantities/unit prices, and detect overflow or use an appropriate numeric type. `TreeMap` only solves **display key ordering**, not business validation.
 
-## 13. Lỗi thường gặp và cách sửa
+## 13. Common Mistakes and Fixes
 
-### Lỗi 1: giả định Map mặc định có thứ tự chèn
+### Mistake 1: Assuming the default Map preserves insertion order
 
 ~~~java
 Map<String, List<Order>> map = orders.stream()
     .collect(Collectors.groupingBy(Order::region));
 
-// Không dựa vào map.keySet() theo thứ tự Nam, Bắc, Trung.
+// Do not rely on map.keySet() being in Nam, Bắc, Trung order.
 ~~~
 
-Nếu cần thứ tự chèn của các nhóm theo một nguồn tuần tự có encounter order, hãy chọn `LinkedHashMap::new`. Nếu cần thứ tự theo tên, chọn `TreeMap::new`.
+If you need insertion order of groups from a sequential source with encounter order, choose `LinkedHashMap::new`. If you need alphabetical order, choose `TreeMap::new`.
 
-### Lỗi 2: nhầm số đơn với tổng số lượng
+### Mistake 2: Confusing order count with total quantity
 
 ~~~java
 Map<String, Long> orderCount = orders.stream()
@@ -889,17 +889,17 @@ Map<String, Integer> units = orders.stream()
     ));
 ~~~
 
-Với khu vực `"Nam"` trong bộ dữ liệu mẫu, `orderCount` là `2` nhưng `units` là `3`.
+For the `"Nam"` region in the sample dataset, `orderCount` is `2`, whereas `units` is `3`.
 
-### Lỗi 3: dùng upstream filter khi cần giữ nhóm rỗng
+### Mistake 3: Using upstream filter when empty groups must be preserved
 
 ~~~java
-// Chỉ tạo nhóm có phần tử đạt điều kiện:
+// Creates groups only when at least one element matches:
 orders.stream()
     .filter(order -> order.quantity() >= 2)
     .collect(Collectors.groupingBy(Order::region));
 
-// Giữ mọi nhóm đã gặp; mỗi nhóm có thể có danh sách rỗng:
+// Keeps every seen group; each group may have an empty list:
 orders.stream()
     .collect(Collectors.groupingBy(
         Order::region,
@@ -910,84 +910,84 @@ orders.stream()
     ));
 ~~~
 
-Hai pipeline không tương đương khi một nhóm chỉ có phần tử không đạt điều kiện.
+The two pipelines are not equivalent when a group contains only elements that fail the condition.
 
-### Lỗi 4: muốn List mutable nhưng chỉ dùng toList downstream
+### Mistake 4: Wanting a mutable List but only using the toList downstream
 
 ~~~java
-// Đặc tả không cam kết mutability của List:
+// Specification does not guarantee List mutability:
 Collectors.groupingBy(Order::region, Collectors.toList());
 
-// Rõ ràng hơn nếu cần ArrayList có thể sửa:
+// More explicit if a mutable ArrayList is required:
 Collectors.groupingBy(
     Order::region,
     Collectors.toCollection(java.util.ArrayList::new)
 );
 ~~~
 
-Nếu cần kết quả không sửa được, cân nhắc `toUnmodifiableList()` và bọc Map ngoài sau khi thu thập.
+If an unmodifiable result is needed, consider `toUnmodifiableList()` and wrapping the outer Map after collection.
 
-### Lỗi 5: key null hoặc giá trị null không được xử lý
+### Mistake 5: Unhandled null keys or null values
 
-Một key null từ classifier có thể làm `groupingBy` ném NPE, trong khi downstream `toUnmodifiableList` cũng ném NPE nếu phần tử null. Hãy xác định chính sách: **lọc**, **thay bằng trạng thái rõ ràng** hoặc **báo lỗi**, trước khi lựa chọn collector.
+A null key from the classifier can cause `groupingBy` to throw NPE, while the `toUnmodifiableList` downstream also throws NPE on null elements. Define the policy—**filter**, **replace with an explicit state**, or **fail**—before selecting the collector.
 
-### Lỗi 6: nghĩ dùng parallel là luôn nhanh hơn
+### Mistake 6: Thinking parallel is always faster
 
 ~~~java
 Map<String, Long> counts = orders.parallelStream()
     .collect(Collectors.groupingBy(Order::region, Collectors.counting()));
 ~~~
 
-Đoạn này đúng hợp đồng, nhưng có thể chậm hơn stream tuần tự nếu đầu vào nhỏ hoặc có chi phí gộp Map lớn. Đo với dữ liệu đại diện và cân nhắc `groupingByConcurrent` nếu thứ tự không quan trọng.
+This conforms to the contract, but can be slower than a sequential stream if the input is small or Map merging has high overhead. Measure with representative data and consider `groupingByConcurrent` if order does not matter.
 
-### Lỗi 7: cố cập nhật Map chia sẻ từ bên trong classifier
+### Mistake 7: Trying to update a shared Map from inside the classifier
 
 ~~~java
-// Không làm: classifier chỉ nên tính khóa thuần,
-// không viết vào một Map bên ngoài ở mỗi phần tử.
+// Do not do this: the classifier should only compute the key purely,
+// not write to an external Map on every element.
 orders.parallelStream()
     .collect(Collectors.groupingBy(order -> {
-        // sharedMap.put(...); // Side effect nguy hiểm.
+        // sharedMap.put(...); // Dangerous side effect.
         return order.region();
     }));
 ~~~
 
-Hãy để `Collector` tích lũy kết quả, không viết cùng lúc vào một cấu trúc mutable ngoài pipeline.
+Let the `Collector` accumulate the results rather than concurrently writing to a mutable structure outside the pipeline.
 
-## 14. Cách lựa chọn nhanh
+## 14. Quick Decision Guide
 
-| Câu hỏi | Phương án nên cân nhắc |
+| Question | Option to consider |
 | --- | --- |
-| Cần danh sách bản ghi theo khóa? | `groupingBy(classifier)` |
-| Cần đếm số bản ghi mỗi nhóm? | `groupingBy(classifier, counting())` |
-| Cần tổng doanh thu mỗi nhóm? | `groupingBy(classifier, summingLong(...))` |
-| Chỉ cần một trường của mỗi phần tử? | `mapping(fieldMapper, downstream)` |
-| Muốn giữ nhóm dù phần tử sau lọc là 0? | `filtering(predicate, downstream)` |
-| Một phần tử phát nhiều giá trị cho nhóm? | `flatMapping(..., downstream)` |
-| Cần hai chỉ tiêu cho một nhóm? | `teeing(downstream1, downstream2, merger)` |
-| Cần phân nhóm hai tầng? | `groupingBy(classifier1, groupingBy(classifier2, downstream))` |
-| Cần thứ tự gặp khóa trong nguồn tuần tự? | `groupingBy(key, LinkedHashMap::new, downstream)` |
-| Cần khóa sắp theo comparator? | `groupingBy(key, TreeMap::new, downstream)` |
-| Khóa là enum? | `groupingBy(key, () -> new EnumMap<>(Type.class), downstream)` |
-| Chỉ có hai miền true/false? | `partitioningBy(predicate, downstream)` |
-| Có thể bỏ encounter order để xử lý song song? | Cân nhắc `groupingByConcurrent` và benchmark |
+| Need a list of records per key? | `groupingBy(classifier)` |
+| Need record count per group? | `groupingBy(classifier, counting())` |
+| Need total revenue per group? | `groupingBy(classifier, summingLong(...))` |
+| Need only one field of each element? | `mapping(fieldMapper, downstream)` |
+| Want to keep the group even if filtered count is 0? | `filtering(predicate, downstream)` |
+| One element emits multiple values for its group? | `flatMapping(..., downstream)` |
+| Need two metrics for a group? | `teeing(downstream1, downstream2, merger)` |
+| Need two-level grouping? | `groupingBy(classifier1, groupingBy(classifier2, downstream))` |
+| Need key appearance order from a sequential source? | `groupingBy(key, LinkedHashMap::new, downstream)` |
+| Need keys sorted by a comparator? | `groupingBy(key, TreeMap::new, downstream)` |
+| Keys are an enum? | `groupingBy(key, () -> new EnumMap<>(Type.class), downstream)` |
+| Only have two true/false domains? | `partitioningBy(predicate, downstream)` |
+| Can drop encounter order for parallel execution? | Consider `groupingByConcurrent` and benchmark |
 
-## 15. Tự kiểm tra kiến thức
+## 15. Knowledge Self-Check
 
-1. **Ba tham số của overload đầy đủ `groupingBy` là gì?** Classifier, mapFactory và downstream collector.
-2. **Tại sao `groupingBy(Order::region)` không có nghĩa khóa Map sẽ theo thứ tự vùng xuất hiện?** Vì collector mặc định không cam kết kiểu Map hoặc thứ tự duyệt khóa.
-3. **Khi nào chọn `LinkedHashMap` và khi nào chọn `TreeMap`?** LinkedHashMap cho thứ tự chèn; TreeMap cho thứ tự so sánh.
-4. **`groupingBy(region, counting())` trả giá trị mỗi key kiểu gì?** `Long`, là số phần tử được phân vào nhóm.
-5. **Muốn tổng số lượng, dùng `counting()` được không?** Không, dùng `summingInt(Order::quantity)` hoặc `summingLong(...)`.
-6. **`mapping(Order::sku, toSet())` làm gì?** Chọn SKU trong từng nhóm, tạo Set các giá trị phân biệt.
-7. **Sự khác nhau giữa `filter(...)` trước `groupingBy` và `Collectors.filtering(...)` downstream là gì?** Cách đầu có thể loại cả khóa nhóm; cách sau vẫn giữ khóa đã được classifier nhìn thấy với kết quả downstream rỗng.
-8. **Một group có thể chứa một Map con không?** Có, dùng downstream `groupingBy` hoặc `toMap` phù hợp.
-9. **Classifier trả null có được bảo đảm tạo nhóm null không?** Không; trong Java chuẩn hiện hành nó ném `NullPointerException`.
-10. **Đặt `TreeMap::new` ở mapFactory có làm List nhóm được sắp xếp không?** Không. Nó chỉ sắp thứ tự khóa; muốn sắp giá trị nhóm cần downstream hoặc bước xử lý thích hợp.
-11. **`groupingByConcurrent` có bảo đảm encounter order của các phần tử trong nhóm không?** Không; collector là unordered.
-12. **`partitioningBy` khác `groupingBy(booleanClassifier)` ở trường hợp nguồn chỉ có một loại giá trị thế nào?** PartitioningBy vẫn giữ hai khóa Boolean; groupingBy chỉ có khóa xuất hiện.
-13. **Map có List không sửa được có nghĩa Map ngoài cũng không sửa được không?** Không, hai tầng có hợp đồng riêng.
-14. **Tại sao không tăng một bộ đếm dùng chung trong classifier khi chạy song song?** Vì lambda nên không trạng thái/không can thiệp, mutation dùng chung có thể race và phá hợp đồng.
-15. **Nếu nhu cầu chỉ là đếm theo khóa, có nhất thiết tạo List rồi tính size không?** Không; dùng downstream `counting()` để tính trực tiếp.
+1. **What are the three parameters of the full `groupingBy` overload?** Classifier, mapFactory, and downstream collector.
+2. **Why does `groupingBy(Order::region)` not mean Map keys will follow region appearance order?** Because the default collector does not guarantee the Map type or key iteration order.
+3. **When should you choose `LinkedHashMap` vs. `TreeMap`?** LinkedHashMap for insertion order; TreeMap for comparison order.
+4. **What value type does `groupingBy(region, counting())` return per key?** `Long`, representing the number of elements classified into the group.
+5. **If you want total quantity, can you use `counting()`?** No, use `summingInt(Order::quantity)` or `summingLong(...)`.
+6. **What does `mapping(Order::sku, toSet())` do?** Extracts the SKU within each group and builds a Set of distinct values.
+7. **What is the difference between `filter(...)` before `groupingBy` and downstream `Collectors.filtering(...)`?** The former can eliminate the group key altogether; the latter keeps keys seen by the classifier with an empty downstream result.
+8. **Can a group contain a sub-Map?** Yes, using an appropriate downstream `groupingBy` or `toMap`.
+9. **Is a classifier returning null guaranteed to create a null group?** No; in current standard Java it throws `NullPointerException`.
+10. **Does passing `TreeMap::new` as mapFactory sort each group's List?** No. It only sorts the keys; to sort group values, use an appropriate downstream collector or post-processing step.
+11. **Does `groupingByConcurrent` guarantee encounter order of elements within a group?** No; the collector is unordered.
+12. **How does `partitioningBy` differ from `groupingBy(booleanClassifier)` when the source has only one value?** `partitioningBy` still keeps both Boolean keys; `groupingBy` only contains the key that appeared.
+13. **Does a Map containing unmodifiable Lists mean the outer Map is also unmodifiable?** No, the two levels have separate contracts.
+14. **Why should you not increment a shared counter inside the classifier when running in parallel?** Because the lambda must be stateless and non-interfering; shared mutation can race and violate the contract.
+15. **If you only need a count by key, do you need to create a List and call size?** No; use downstream `counting()` to compute it directly.
 
-**Ghi nhớ:** `groupingBy` là một cơ chế **phân nhóm và rút gọn từng nhóm**. `classifier` quyết định khóa, `mapFactory` quyết định cấu trúc Map và thứ tự duyệt khóa, còn `downstream` quyết định kết quả của từng nhóm: List, Set, số đếm, tổng, Map lồng nhau hoặc một summary. Hãy thiết kế ba phần theo yêu cầu nghiệp vụ, kiểm soát `null` và encounter order, rồi chỉ song song hóa khi đã bảo đảm phép tích lũy đúng và có lợi về hiệu năng.
+**Key takeaway:** `groupingBy` is a mechanism for **grouping and reducing each group**. `classifier` determines the key, `mapFactory` determines the Map structure and key iteration order, and `downstream` determines each group's result: List, Set, count, sum, nested Map, or a summary. Design all three parts according to business requirements, handle `null` and encounter order explicitly, and parallelize only after verifying that accumulation is correct and performance benefits are measured.

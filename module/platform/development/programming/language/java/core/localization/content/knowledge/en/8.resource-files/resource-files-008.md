@@ -1,36 +1,36 @@
-# Phát hiện khóa trùng, khóa thiếu, khóa thừa và khoảng trắng ngoài ý muốn trong tệp tài nguyên Java
+# Detecting Duplicate, Missing, Extra Keys, and Unintended Whitespace in Java Resource Files
 
-## 1. Vì sao cần kiểm tra chất lượng tệp tài nguyên?
+## 1. Why audit resource file quality?
 
-Ứng dụng Java thường lưu văn bản bản địa hóa trong các tệp `.properties` để `ResourceBundle` chọn theo ngôn ngữ và khu vực, chẳng hạn `messages.properties`, `messages_vi.properties`, `messages_en.properties`. Khi số ngôn ngữ và số khóa tăng, bốn lỗi dễ xảy ra:
+Java applications commonly store localized text in `.properties` files so `ResourceBundle` can select them by language and region, such as `messages.properties`, `messages_vi.properties`, and `messages_en.properties`. As the number of languages and keys grows, four issues easily creep in:
 
-1. **Khóa trùng:** cùng một khóa được khai báo từ hai lần trở lên trong một tệp. Khi tải bằng `Properties.load`, lần xuất hiện sau ghi đè giá trị trước, thường không có lỗi mặc định.
-2. **Khóa thiếu:** một bản dịch không có khóa dự kiến từ danh mục khóa chuẩn. Khi chạy qua `ResourceBundle`, ứng dụng có thể kế thừa bản dịch từ bundle cha, khiến lỗi khó nhận biết.
-3. **Khóa thừa:** bản dịch chứa khóa không còn nằm trong danh mục chuẩn hoặc chỉ được viết nhầm tên. Khóa có thể bị bỏ quên mãi và không bao giờ được sử dụng.
-4. **Khoảng trắng ngoài ý muốn:** dấu cách hoặc tab ở đầu/cuối **giá trị thực**, ở khóa, hoặc cuối dòng vật lý. Chúng có thể làm lệch giao diện, sai phép so sánh và che lỗi nối dòng.
+1. **Duplicate keys:** the same key is declared two or more times in one file. When loaded with `Properties.load`, later occurrences overwrite earlier ones, usually with no error by default.
+2. **Missing keys:** a translation lacks an expected key from the canonical key catalog. When run through `ResourceBundle`, the application can inherit the value from a parent bundle, making the omission hard to notice.
+3. **Extra keys:** a translation contains keys no longer in the canonical catalog or simply misspelled. Keys can linger indefinitely and never be used.
+4. **Unintended whitespace:** spaces or tabs at the start/end of **actual values**, in keys, or at the end of physical lines. These can skew UI layout, break equality checks, and mask line-continuation bugs.
 
-Tệp tải thành công **không đồng nghĩa tài nguyên đúng**. Kiểm tra cần dựa vào cả **giá trị sau khi parser xử lý** và **văn bản nguồn**. Không thể dùng một trong hai để thay thế hoàn toàn cho bên kia.
+A file loading without exceptions **does not mean the resource is correct**. Auditing must rely on both **values after parser processing** and **raw source text**. Neither can completely replace the other.
 
-Một ví dụ sai thường gặp:
+A common mistaken example:
 
 ~~~properties
 button.save=Lưu
 button.save=Lưu ngay
 ~~~
 
-Đọc bằng `Properties.load(...)` cho kết quả cuối `button.save = Lưu ngay`. Cần quy trình kiểm tra trước khi build/deploy nếu việc ghi đè là không được phép.
+Reading with `Properties.load(...)` produces the final result `button.save = Lưu ngay`. You need a pre-build/pre-deploy check whenever silent overrides are unacceptable.
 
-## 2. Hiểu đúng cú pháp .properties trước khi viết linter
+## 2. Understanding .properties syntax before writing a linter
 
-Tệp `.properties` không chỉ gồm các dòng `key=value`. Java hỗ trợ:
+A `.properties` file is not just `key=value` lines. Java supports:
 
-- Các dấu phân tách khóa–giá trị: `=`, `:` hoặc khoảng trắng chưa được escape.
-- Dòng trống, dòng chú thích bắt đầu bằng `#` hoặc `!` sau phần trắng dẫn đầu.
-- Escape như `\ ` (dấu cách), `\=`, ``, `\n`, `\t` và `\uXXXX`.
-- Dòng nối tiếp khi dòng logic kết thúc bằng số lượng lẻ dấu `` liên tiếp (line continuation).
-- Các biến thể viết khóa có **cùng giá trị logic** sau unescape.
+- Key–value separators: `=`, `:`, or unescaped whitespace.
+- Blank lines, and comment lines starting with `#` or `!` after leading whitespace.
+- Escapes such as `\ ` (space), `\=`, ``, `\n`, `\t`, and `\uXXXX`.
+- Line continuations when a logical line ends with an odd number of consecutive `` characters.
+- Different ways of writing keys that resolve to the **same logical key** after unescaping.
 
-Ví dụ:
+Example:
 
 ~~~properties
 button.save=Save
@@ -39,29 +39,29 @@ status : ready
 welcome.message = Hello
 ~~~
 
-Hai dòng đầu tạo ra **hai khóa khác nhau** vì `button\.save` không cần escape dấu chấm và vẫn thành `button.save`? **Không:** theo ngữ nghĩa `Properties`, escape ký tự `.` không phải một dạng escape đặc biệt nhưng dấu `` bị loại bỏ, nên kết quả vẫn là khóa `button.save`; do đó phải coi là *khóa trùng* sau khi parse. Trường hợp này nhấn mạnh việc so sánh nguyên văn bên trái dấu `=` có thể bỏ sót trùng lặp.
+Do the first two lines create **two distinct keys** because `button\.save` does not need a dot escape and still becomes `button.save`? **No:** under `Properties` semantics, escaping `.` is not a special escape sequence, yet the `` is stripped, so the result is still the key `button.save`; therefore, it must be treated as a *duplicate key* after parsing. This case highlights how comparing raw text to the left of `=` can miss duplicates.
 
-Cách viết an toàn cho ví dụ đó là hiểu rõ hiệu ứng parser: `status : ready` sinh `status = ready`, còn `welcome.message = Hello` sinh giá trị `Hello` (khoảng trắng ngay sau delimiter mặc định bị bỏ qua).
+Safe authoring for that example relies on understanding parser effects: `status : ready` yields `status = ready`, and `welcome.message = Hello` yields the value `Hello` (whitespace right after the delimiter is discarded by default).
 
-Một số quy tắc khoảng trắng dễ nhầm:
+Several easily confused whitespace rules:
 
-| Dạng nguồn | Kết quả khi đọc `Properties` | Kết luận QA |
+| Source form | Result when read by `Properties` | QA conclusion |
 | --- | --- | --- |
-| `label = Hello` | `Hello` | Dấu cách quanh delimiter là cú pháp hợp lệ, không tự coi là lỗi |
-| `label=Hello   ` | `Hello   ` | Khoảng trắng cuối **giá trị** có thể là lỗi |
-| `label=Hello\u0020` | `Hello ` | Escape Unicode tạo dấu cách có thật trong giá trị |
-| `label=  Hello` | `Hello` | Khoảng trắng sau delimiter bị bỏ qua; linter giá trị không nhìn thấy nó |
-| `message=Hello\ World` | `Hello World` | Dấu cách trong nội dung có chủ đích |
-| `key\ name=value` | Khóa logic `key name` | Khóa có dấu cách là hợp lệ về cú pháp nhưng thường nên hạn chế theo quy ước đặt tên |
-| `welcome.message = Hello` | Khóa `welcome.message`, giá trị `Hello` | Khoảng trắng thông thường ở vùng delimiter |
+| `label = Hello` | `Hello` | Spaces around the delimiter are valid syntax, not automatically an error |
+| `label=Hello   ` | `Hello   ` | Trailing spaces in the **value** may be a bug |
+| `label=Hello\u0020` | `Hello ` | Unicode escape creates a real trailing space in the value |
+| `label=  Hello` | `Hello` | Whitespace after delimiter is ignored; a value linter will not see it |
+| `message=Hello\ World` | `Hello World` | Space inside content is intentional |
+| `key\ name=value` | Logical key `key name` | Keys with spaces are syntactically valid, though usually discouraged by naming conventions |
+| `welcome.message = Hello` | Key `welcome.message`, value `Hello` | Normal whitespace around the delimiter |
 
-Dấu cách giữa các từ là cần thiết trong bản dịch: **không được xóa mọi khoảng trắng**. Phát hiện whitespace phải cho người dịch biết **vị trí đáng nghi**, để quyết định trường hợp nào là chủ đích.
+Spaces between words are necessary in translations: **never strip all whitespace blindly**. Whitespace detection should flag **suspicious locations** for translators to decide which cases are intentional.
 
-**Lưu ý encoding:** `Properties.load(InputStream)` đọc byte theo ISO-8859-1; nếu muốn kiểm tra tài nguyên UTF-8, dùng `Properties.load(Reader)` với `Files.newBufferedReader(path, StandardCharsets.UTF_8)`. Với `ResourceBundle` trên Java 17, `PropertyResourceBundle` mặc định thử UTF-8 (có cơ chế fallback sang ISO-8859-1 trong trường hợp dữ liệu không hợp lệ theo UTF-8). Nếu trộn nhiều chế độ đọc, kiểm tra có thể cho kết quả khác nhau. Chốt encoding của dự án và dùng nhất quán.
+**Encoding note:** `Properties.load(InputStream)` reads bytes as ISO-8859-1; to inspect UTF-8 resources, use `Properties.load(Reader)` with `Files.newBufferedReader(path, StandardCharsets.UTF_8)`. With `ResourceBundle` on Java 17, `PropertyResourceBundle` tries UTF-8 by default (with an ISO-8859-1 fallback for invalid UTF-8 data). Mixing reading modes can cause audits to produce different results. Lock down the project's encoding and use it consistently.
 
-## 3. Khóa trùng: phải phát hiện ngay trong một tệp
+## 3. Duplicate keys: detect them within a single file
 
-`java.util.Properties` là một `Map` dạng key → value; khi `load` gặp key đã tồn tại, giá trị sau thay thế giá trị trước. Do đó:
+`java.util.Properties` is a key → value `Map`; when `load` encounters an existing key, the later value replaces the earlier one. Thus:
 
 ~~~java
 Properties props = new Properties();
@@ -69,9 +69,9 @@ props.load(reader);
 System.out.println(props.getProperty("button.save"));
 ~~~
 
-Đoạn minh họa trên chỉ thấy **giá trị cuối**; `Properties` đã không còn lưu danh sách lần xuất hiện. Muốn phát hiện trùng sau chuẩn hóa cú pháp, cần theo dõi mỗi lần parser thêm key hoặc dùng công cụ kiểm tra chuyên biệt.
+The snippet above sees only **the final value**; `Properties` no longer retains the list of occurrences. To detect duplicates after syntax normalization, track each key insertion during parsing or use a dedicated checker.
 
-Ở Java 17, `Properties.load` đưa các mục đã parse vào `put`. Ta có thể tạo lớp con theo dõi việc key xuất hiện lại:
+In Java 17, `Properties.load` inserts parsed entries via `put`. We can subclass it to record repeated keys:
 
 ~~~java
 static final class CheckedProperties extends Properties {
@@ -87,7 +87,7 @@ static final class CheckedProperties extends Properties {
 }
 ~~~
 
-Đây là **một phần của chương trình đầy đủ ở mục 6**, không phải file biên dịch riêng. Nó bắt được cả những khai báo khác nhau về dấu phân cách/escape nếu parser đưa chúng về cùng **khóa logic**. Ví dụ:
+This is **part of the complete program in section 6**, not a standalone compilable file. It catches declarations that differ in separators or escaping whenever the parser resolves them to the same **logical key**. For example:
 
 ~~~properties
 title=Title
@@ -95,13 +95,13 @@ title:Another title
 title = Third title
 ~~~
 
-Kết quả là một key `title` trong `Properties`, nhưng tập `duplicates` phát hiện `title`. Công cụ trong ví dụ chỉ ghi tên key trùng, **không ghi số dòng**; nếu cần số dòng chính xác, phải có parser/lexer giữ metadata dòng vật lý và dòng logic theo đúng quy tắc `.properties`.
+The resulting `Properties` holds one `title` key, while `duplicates` records `title`. This example checker records only duplicate key names, **not line numbers**; if exact line numbers are needed, you need a parser/lexer that tracks physical and logical line metadata according to `.properties` rules.
 
-Không kiểm tra trùng bằng cách đếm số dòng chứa `=`: phương pháp đó sai cho separator `:`, khoảng trắng, comment, escape và các dòng nối tiếp.
+Do not check for duplicates by counting lines containing `=`: that fails for `:` and whitespace separators, comments, escapes, and line continuations.
 
-## 4. Khóa thiếu: so với tập khóa chuẩn, không chỉ dựa trên runtime fallback
+## 4. Missing keys: compare against the canonical key set, not just runtime fallback
 
-Giả sử `messages.properties` là **danh mục khóa chuẩn**:
+Suppose `messages.properties` is the **canonical key catalog**:
 
 ~~~properties
 title=Orders
@@ -111,7 +111,7 @@ status.new=New
 greeting=Hello
 ~~~
 
-Tệp `messages_vi.properties` chỉ có:
+`messages_vi.properties` contains only:
 
 ~~~properties
 title=Đơn hàng
@@ -119,53 +119,53 @@ button.save=Lưu
 button.cancel=Hủy
 ~~~
 
-Tập khóa thiếu trong bản dịch tiếng Việt là:
+The set of keys missing in the Vietnamese translation is:
 
 ~~~text
 [greeting, status.new]
 ~~~
 
-Cách tính theo tập hợp:
+Computing via set difference:
 
 ~~~java
 Set<String> missing = new TreeSet<>(base.stringPropertyNames());
 missing.removeAll(translated.stringPropertyNames());
 ~~~
 
-Đây là **đoạn minh họa**, cần `base`, `translated` là hai `Properties` được tải riêng, cùng import `java.util.Set`, `java.util.TreeSet`.
+This is an **illustrative snippet**, requiring `base` and `translated` as two separately loaded `Properties` instances, along with `java.util.Set` and `java.util.TreeSet` imports.
 
-Một điểm quan trọng: `ResourceBundle.getBundle("messages", Locale.forLanguageTag("vi-VN"))` có thể trả về bundle con liên kết với cha, và `bundle.containsKey("greeting")` vẫn trả `true` do key được kế thừa. Vì thế **không dùng `ResourceBundle.keySet()` của bundle con để khẳng định bản dịch trực tiếp đã đủ khóa**. Hãy phân tích file nguồn riêng lẻ hoặc metadata riêng từng bundle.
+An important point: `ResourceBundle.getBundle("messages", Locale.forLanguageTag("vi-VN"))` can return a child bundle linked to its parent, and `bundle.containsKey("greeting")` still returns `true` due to inheritance. Therefore, **never use a child bundle's `ResourceBundle.keySet()` to claim the direct translation file has all keys**. Inspect individual source files or per-bundle metadata separately.
 
-Khóa thiếu có luôn là lỗi không? Tùy hợp đồng bản địa hóa:
+Is a missing key always a bug? That depends on the localization contract:
 
-- Nếu mỗi ngôn ngữ phải dịch **100% các khóa bắt buộc**, thiếu là lỗi build/CI.
-- Nếu hệ thống cho phép bản dịch vùng (`messages_vi_VN.properties`) chỉ ghi những khác biệt so với tiếng Việt chung (`messages_vi.properties`), thiếu là **kế thừa có chủ đích**.
-- Nếu một số message chỉ dùng ở tính năng riêng, danh mục chuẩn nên nêu rõ nhóm optional/feature-specific, không phán đoán bằng một phép so set đơn giản.
+- If every language must translate **100% of required keys**, missing keys are a build/CI error.
+- If the system allows regional overrides (`messages_vi_VN.properties`) to specify only differences from general Vietnamese (`messages_vi.properties`), missing keys are **intentional inheritance**.
+- If certain messages belong only to optional features, the canonical catalog should explicitly mark optional/feature-specific groups instead of judging with a naive set difference.
 
-Phải quy định **file nào làm chuẩn** và **file nào được phép kế thừa** trước khi kết luận một bản dịch “không đầy đủ”.
+You must specify **which file is the baseline** and **which files are allowed to inherit** before concluding a translation is "incomplete."
 
-## 5. Khóa thừa và khoảng trắng ngoài ý muốn
+## 5. Extra keys and unintended whitespace
 
-### 5.1. Phát hiện khóa thừa
+### 5.1. Detecting extra keys
 
-Tập khóa thừa:
+Extra key set:
 
 ~~~java
 Set<String> extra = new TreeSet<>(translated.stringPropertyNames());
 extra.removeAll(base.stringPropertyNames());
 ~~~
 
-Ví dụ tệp tiếng Việt chứa thêm `obsolete.key`, trong khi tệp gốc không có khóa này, kiểm tra sẽ trả:
+For example, if the Vietnamese file also contains `obsolete.key` while the base file does not, the check returns:
 
 ~~~text
 [obsolete.key]
 ~~~
 
-Đây là **ứng viên cần rà soát**, không có nghĩa luôn phải xóa: một tệp chuyên biệt có thể được thiết kế để chứa khóa riêng theo region/feature. Ngược lại, khóa bị đánh sai chính tả (`button.svae`) thường đồng thời tạo ra **một khóa thiếu** (`button.save`) và **một khóa thừa** (`button.svae`), là tín hiệu khá tốt để sửa.
+These are **candidates for review**, not automatically items to delete: a specialized file might be designed to hold region- or feature-specific keys. Conversely, a misspelled key (`button.svae`) typically produces both **one missing key** (`button.save`) and **one extra key** (`button.svae`), which is a strong signal to fix.
 
-### 5.2. Khoảng trắng ở giá trị sau khi parse
+### 5.2. Whitespace in values after parsing
 
-Sau `Properties.load(Reader)`, kiểm tra đầu/cuối giá trị bằng `String.strip()`:
+After `Properties.load(Reader)`, check leading/trailing whitespace in values with `String.strip()`:
 
 ~~~java
 String value = props.getProperty(key);
@@ -174,21 +174,21 @@ if (!value.equals(value.strip())) {
 }
 ~~~
 
-Đây là **đoạn minh họa**; `props` là biến `Properties`, `key` là `String` lấy từ tập khóa. Không tự `strip()` khi ghi lại resource hoặc sửa bản dịch: có thông điệp cố tình chứa xuống dòng hoặc khoảng trắng ở cuối, và việc tự sửa có thể thay đổi ý nghĩa trình bày. `strip()` dựa trên `Character.isWhitespace`; nó không phát hiện mọi loại dấu cách Unicode như no-break space (NBSP). Nếu dự án cần phát hiện `U+00A0`, dấu cách không ngắt dòng hoặc ký tự vô hình, phải bổ sung kiểm tra Unicode có chủ đích.
+This is an **illustrative snippet**; `props` is a `Properties` variable and `key` is a `String` from the key set. Do not automatically `strip()` when writing resources back or auto-fixing translations: some messages intentionally include trailing spaces or newlines, and auto-stripping can alter presentation meaning. `strip()` relies on `Character.isWhitespace`; it does not catch every Unicode space character such as no-break space (NBSP). If your project needs to detect `U+00A0`, non-breaking spaces, or invisible characters, add explicit Unicode checks.
 
-### 5.3. Khoảng trắng ở nguồn vật lý
+### 5.3. Whitespace in raw physical lines
 
-Parser `.properties` có thể bỏ qua khoảng trắng sau delimiter, xử lý dòng continuation và diễn giải escape. Vì vậy kiểm tra giá trị đã parse **không thấy được** tất cả lỗi style ở tệp gốc.
+The `.properties` parser skips whitespace after delimiters, processes line continuations, and interprets escapes. Thus checking parsed values alone **cannot see** every style issue in the source file.
 
-Một kiểm tra đơn giản và ít tranh cãi là đánh dấu **dấu cách/tab ở cuối dòng vật lý** trong file nguồn. Các dòng kết thúc bằng dấu cách hoặc tab có thể che dấu `` nối dòng hoặc tạo giá trị có whitespace vô ý. Có thể duyệt `Files.readAllLines` và kiểm tra ký tự cuối từng dòng.
+A simple, low-controversy check is flagging **trailing spaces or tabs at the end of physical lines** in the source file. Lines ending with spaces or tabs can mask a line-continuation `` or introduce unintended whitespace in values. You can iterate over `Files.readAllLines` and check the last character of each line.
 
-**Không nên tự động xóa whitespace cuối file trước khi kiểm tra cú pháp continuation:** nếu một dòng đang có `` ở cuối và dấu cách phía sau, việc xóa dấu cách có thể biến hai dòng logic độc lập thành một dòng nối tiếp, làm thay đổi key/value. Nên báo và sửa có kiểm thử.
+**Do not automatically strip trailing whitespace from files before checking continuation syntax:** if a line ends with `` followed by a space, removing that space can turn two independent logical lines into one continued line, changing keys and values. Report it and fix it under test coverage.
 
-Với **khoảng trắng đầu dòng**, cú pháp properties chấp nhận thụt dòng và bỏ qua khoảng trắng trước key. Vì vậy không được tự đánh dấu mọi dòng thụt đầu là lỗi; thay vào đó thống nhất quy ước code style và linter nhận diện được continuation.
+Regarding **leading whitespace on lines**, properties syntax allows indentation and skips whitespace before keys. So never flag every indented line as an error; instead, agree on a style convention and use a continuation-aware linter.
 
-## 6. Chương trình Java 17 hoàn chỉnh: kiểm tra một cặp tệp
+## 6. Complete Java 17 program: auditing a pair of files
 
-Đặt ba file sau trong cùng thư mục. Dữ liệu chủ đích có: một khóa trùng ở tệp dịch; hai khóa thiếu; một khóa thừa; một dấu cách ở cuối giá trị được tạo bằng escape `\u0020`. Chọn escape thay vì gõ dấu cách cuối dòng để người đọc thấy rõ dữ liệu mẫu.
+Place the following three files in the same directory. The sample data intentionally includes: one duplicate key in the translation file; two missing keys; one extra key; and one trailing space in a value created via `\u0020`. Escaping is chosen instead of a literal trailing space so readers can clearly see the sample data.
 
 **File `messages.properties`**:
 
@@ -280,7 +280,7 @@ public class ResourceFileAudit {
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i);
             if (line.endsWith(" ") || line.endsWith("\t")) {
-                result.add(i + 1); // Số dòng trong file bắt đầu từ 1.
+                result.add(i + 1); // Line numbers in the file are 1-based.
             }
         }
         return result;
@@ -318,14 +318,14 @@ public class ResourceFileAudit {
 }
 ~~~
 
-Chạy từ thư mục chứa cả ba file với **JDK 17+**:
+Run from the directory containing all three files with **JDK 17+**:
 
 ~~~bash
 javac -encoding UTF-8 ResourceFileAudit.java
 java ResourceFileAudit messages.properties messages_vi.properties
 ~~~
 
-**Stdout kỳ vọng** (các tập dùng `TreeSet`, thứ tự ổn định):
+**Expected stdout** (sets use `TreeSet`, so order is deterministic):
 
 ~~~text
 base duplicates: []
@@ -337,23 +337,23 @@ translation outer whitespace values: [button.cancel]
 translation physical trailing lines: []
 ~~~
 
-Giải thích: các dòng `button.save` trùng được parser đưa về một key, nhưng `CheckedProperties.put` ghi nhận lần khai báo lặp; `greeting` và `status.new` thiếu; `obsolete.key` không nằm trong danh mục gốc; escape `\u0020` tạo dấu cách cuối giá trị `button.cancel`; tuy nhiên trong file nguồn, dòng đó kết thúc bằng ký tự `0`, nên **không có dấu cách cuối dòng vật lý**.
+Explanation: the duplicate `button.save` lines are collapsed by the parser into one key, yet `CheckedProperties.put` records the repeated declaration; `greeting` and `status.new` are missing; `obsolete.key` is absent from the base catalog; the `\u0020` escape creates a trailing space in `button.cancel`'s value; however, in the source file that line ends with the character `0`, so **there is no physical trailing space on the line**.
 
-Chương trình là **công cụ kiểm tra tối thiểu có thể chạy được**, không phải một parser đưa ra số dòng cho từng khóa trùng. Nó cũng không tự quyết định khóa thiếu/thừa là lỗi theo chính sách: phần đó phải được cấu hình theo mục tiêu dịch thuật của từng ứng dụng.
+This program is a **minimal runnable checker**, not a parser reporting line numbers for each duplicate key. Nor does it decide by policy whether missing/extra keys are build errors: that policy must be configured according to each application's localization goals.
 
-## 7. Kiểm tra thực tế trong dự án nhiều locale
+## 7. Practical auditing in a multi-locale project
 
-Khi có `messages.properties`, `messages_vi.properties`, `messages_vi_VN.properties`, `messages_en.properties`…, không nên so sánh mọi file với root bằng cùng một quy tắc:
+When you have `messages.properties`, `messages_vi.properties`, `messages_vi_VN.properties`, `messages_en.properties`, and so on, you should not compare every file against the root with the exact same rule:
 
-| Loại tệp | Chính sách đề xuất | Vì sao |
+| File kind | Suggested policy | Why |
 | --- | --- | --- |
-| Root `messages.properties` | Định nghĩa danh mục khóa chuẩn, không trùng, không lỗi whitespace | Là cơ sở so sánh |
-| Bundle theo ngôn ngữ `messages_vi.properties` | Yêu cầu đầy đủ khóa nếu sản phẩm cam kết dịch hoàn chỉnh | Ngăn thiếu bản dịch bị fallback che |
-| Bundle theo khu vực `messages_vi_VN.properties` | Chỉ cần các khóa ghi đè; không bắt buộc trùng toàn bộ root | Phù hợp mô hình kế thừa con–cha |
-| Bundle tùy tính năng | So với danh mục khóa riêng của tính năng | Tránh coi các key đặc thù là thừa |
-| Bundle được sinh từ nền tảng dịch | Chạy QA sau export, trước khi đóng gói | Tránh để lỗi escape/Unicode lọt vào sản phẩm |
+| Root `messages.properties` | Defines canonical key catalog, no duplicates, no whitespace errors | Serves as the comparison baseline |
+| Language bundle `messages_vi.properties` | Require complete key coverage if the product commits to full translation | Prevents missing translations from being masked by fallback |
+| Regional bundle `messages_vi_VN.properties` | Only overriding keys required; full match with root not mandatory | Fits child–parent inheritance model |
+| Feature-specific bundle | Compare against that feature's dedicated key catalog | Avoids flagging feature keys as extra |
+| Bundle generated by a translation platform | Run QA after export, before packaging | Prevents escape/Unicode errors from shipping |
 
-Đối với dự án thật, định nghĩa cấu hình kiểu:
+For a real project, define a configuration such as:
 
 ~~~yaml
 base: messages.properties
@@ -368,104 +368,104 @@ required:
   - button.cancel
 ~~~
 
-Đây là **một ví dụ chính sách QA ở định dạng YAML**, không phải cấu hình được Java hay `ResourceBundle` tự hiểu. Công cụ build/CI phải được lập trình để áp dụng chính sách này. Với **override bundles**, chỉ kiểm tra key lạ và trùng; khóa thiếu có thể là bình thường.
+This is **an example QA policy in YAML format**, not a configuration automatically understood by Java or `ResourceBundle`. Build/CI tooling must be programmed to enforce this policy. For **override bundles**, check only unknown keys and duplicates; missing keys can be normal.
 
-Cũng nên kiểm tra placeholder (`{0}`, `{1}`...), dấu nháy của `MessageFormat`, bản dịch rỗng, encoding và câu dài bất thường. Những kiểm tra này khác nhóm bốn lỗi của bài hiện tại nhưng thường được kết hợp trong bước kiểm tra tài nguyên trước khi phát hành.
+You should also check placeholders (`{0}`, `{1}`, ...), `MessageFormat` quotes, empty translations, encoding, and unusually long strings. Those checks differ from the four defect categories of this lesson, yet are commonly combined in pre-release resource validation.
 
-## 8. Các trường hợp biên cần chú ý
+## 8. Edge cases to watch out for
 
-### Khóa bị đổi do escape hoặc ký tự Unicode
+### Keys altered by escapes or Unicode characters
 
-Hai khóa trông khác trong editor có thể cùng **khóa logic** sau `Properties.load`, ví dụ `title` và `ti\u0074le`. Ngược lại, các ký tự Unicode trông giống nhau có thể có mã điểm khác (ký tự tổ hợp và dạng dựng sẵn). `Properties` không tự chuẩn hóa Unicode theo NFC để giúp nhóm dịch, nên nếu chuẩn tên khóa chỉ cho ASCII hoặc normalization NFC, cần thêm kiểm tra theo chính sách riêng.
+Two keys that look different in an editor can resolve to the same **logical key** after `Properties.load`, such as `title` and `ti\u0074le`. Conversely, visually identical Unicode characters can have different code points (combining vs. precomposed forms). `Properties` does not automatically apply Unicode NFC normalization for translators, so if your naming standard requires ASCII-only or NFC-normalized keys, add an explicit policy check.
 
-### Dòng continuation
+### Continuation lines
 
-Ví dụ:
+Example:
 
 ~~~properties
 long.message=Hello \
     world
 ~~~
 
-Hai dòng vật lý tạo một giá trị logic, và khoảng trắng đầu dòng tiếp nối có thể bị parser bỏ qua. Một linter chỉ đọc từng dòng riêng có thể hiểu sai đây là hai key. Công cụ ví dụ dùng `Properties.load(Reader)` nên so sánh **key/value logic** đúng theo cú pháp Java; phần quét dòng vật lý chỉ báo dấu cách/tab cuối dòng và không đoán key.
+Two physical lines form one logical value, and leading whitespace on the continued line is discarded by the parser. A naive line-by-line linter might mistake this for two keys. Our example tool uses `Properties.load(Reader)` so it compares **logical keys/values** per Java syntax; the physical-line scan only flags trailing spaces/tabs and does not guess keys.
 
-### Khóa trùng sau khi parse
+### Duplicate keys after parsing
 
-Ví dụ:
+Example:
 
 ~~~properties
 button.save=Save
 button.save:Save again
 ~~~
 
-`Properties` giữ `Save again`. Để chặn duplicate một cách đáng tin, nên chạy kiểm tra trong pipeline từ **file nguồn**; nếu chỉ nhìn `ResourceBundle` sau khi load thì không còn lịch sử vị trí từng khai báo.
+`Properties` keeps `Save again`. To block duplicates reliably, run checks in the pipeline against **source files**; inspecting only `ResourceBundle` after loading leaves no record of how many times a key was declared.
 
-### Khoảng trắng hợp lệ và không hợp lệ về nghiệp vụ
+### Legitimate vs. unintended whitespace
 
-Một thông điệp như `indent=\\u0020\\u0020Name` cố ý có hai dấu cách đầu; một linter `strip()` sẽ cảnh báo. Không coi mọi cảnh báo là bug. Đặc biệt có thể có NBSP, thin space, tab hoặc newline cần giữ nguyên. Thiết kế allowlist theo key, ghi chú cho người dịch và kiểm thử giao diện để xác nhận intent.
+A message like `indent=\\u0020\\u0020Name` intentionally starts with two spaces; a `strip()` linter will warn on it. Do not treat every warning as a bug. In particular, NBSP, thin spaces, tabs, or newlines may need to be preserved. Maintain per-key allowlists, translator notes, and UI tests to confirm intent.
 
-### ResourceBundle cache và parent fallback
+### ResourceBundle caching and parent fallback
 
-`ResourceBundle.getBundle` có cache và kế thừa tài nguyên cha. Nếu sửa file trên đĩa trong khi JVM chạy, việc đọc lại bundle không chắc phản ánh nội dung mới ngay. QA file nguồn nên chạy trong build/CI hoặc môi trường kiểm thử sạch, không suy ra tập key trực tiếp từ đối tượng bundle đã cache.
+`ResourceBundle.getBundle` caches bundles and inherits parent resources. If files on disk change while the JVM is running, re-reading a bundle may not immediately reflect new content. Source-file QA should run during build/CI or in a clean test environment rather than inferring key sets directly from cached bundle objects.
 
-### Trùng giữa hai ngôn ngữ không phải “duplicate key”
+### Same key across two languages is not a "duplicate key"
 
-Việc `messages.properties` và `messages_vi.properties` cùng có `button.save` là **hợp lệ và cần thiết**: bundle con ghi đè cha. **Duplicate** cần phát hiện là **cùng một khóa xuất hiện lặp lại trong chính một file/bundle đơn**, không phải việc khóa có mặt ở nhiều locale khác nhau.
+Having `button.save` in both `messages.properties` and `messages_vi.properties` is **valid and necessary**: the child bundle overrides the parent. The **duplicate** to detect is **the same key appearing multiple times within a single file/bundle**, not a key appearing across multiple locales.
 
-## 9. Quy trình kiểm tra tự động và kiểm thử
+## 9. Automated checking workflow and testing
 
-Một quy trình đơn giản để tích hợp vào CI:
+A straightforward workflow to integrate into CI:
 
-1. **Xác định danh mục chuẩn:** root hoặc manifest của ứng dụng, có quy tắc optional và override rõ ràng.
-2. **Đọc từng file riêng lẻ bằng charset thống nhất:** ưu tiên UTF-8, bắt lỗi file không hợp lệ và lỗi escape.
-3. **Bắt khóa trùng trước khi mất thông tin:** theo dõi ở bước parse như `CheckedProperties.put`.
-4. **Tính missing/extra theo chính sách:** file dịch đầy đủ so với root; file chuyên biệt theo vùng có quy tắc khác.
-5. **Quét whitespace:** phân biệt semantic value, logical key, physical source line và Unicode invisible characters.
-6. **Xuất báo cáo hữu ích:** file, loại lỗi, key, vị trí dòng nếu parser có metadata; với warning, nêu rõ tiêu chí và lý do.
-7. **Fail build với lỗi nghiêm trọng:** duplicate, missing-required, extra không được phép; các whitespace warning có thể cần người dịch xác nhận.
-8. **Kiểm tra runtime:** đảm bảo resource bundle tải được, override/fallback đúng và UI không lẫn ngôn ngữ do thiếu khóa.
+1. **Define the canonical catalog:** root or application manifest, with explicit rules for optional and override keys.
+2. **Read each file individually with a consistent charset:** prefer UTF-8, catching invalid files and malformed escapes.
+3. **Catch duplicate keys before information is lost:** hook into parsing, such as `CheckedProperties.put`.
+4. **Compute missing/extra keys per policy:** full translation files against root; regional overrides under override rules.
+5. **Scan whitespace:** distinguish semantic values, logical keys, physical source lines, and invisible Unicode characters.
+6. **Produce actionable reports:** file, issue type, key, and line number if the parser tracks metadata; for warnings, state the criterion and reason.
+7. **Fail the build on critical errors:** duplicates, missing required keys, disallowed extra keys; whitespace warnings can require translator confirmation.
+8. **Run runtime checks:** verify resource bundles load cleanly, override/fallback works as intended, and the UI does not mix languages due to missing keys.
 
-Các trường hợp nên tự tạo trong test: key trùng với `=` và `:`, key dùng escape, comment chứa `=`, key ở dòng continuation, giá trị rỗng có chủ đích, file dùng UTF-8, file có CRLF, file chỉ có root và override vùng, dấu cách cuối giá trị, tab cuối dòng, no-break space và file chưa có tên locale đúng quy ước.
+Test cases you should create yourself: duplicate keys using `=` and `:`, keys with escapes, comments containing `=`, keys on continuation lines, intentional empty values, UTF-8 files, CRLF files, root-plus-regional-override setups, trailing spaces in values, trailing tabs on lines, no-break spaces, and files with non-standard locale names.
 
-Để tránh false positive, hãy kiểm thử theo **quy tắc cấu hình**: tệp theo vùng được phép thiếu key do kế thừa, tệp theo ngôn ngữ đầy đủ thì không; một số nội dung được phép khoảng trắng có chủ đích.
+To avoid false positives, test against **configured rules**: regional files are allowed to omit keys due to inheritance, whereas full-language files are not; certain messages are allowed intentional whitespace.
 
-## 10. Những lỗi phổ biến và cách xử lý
+## 10. Common mistakes and how to handle them
 
-| Lỗi | Vì sao nguy hiểm | Cách sửa |
+| Mistake | Why it is dangerous | Fix |
 | --- | --- | --- |
-| Chỉ gọi `Properties.load` rồi so số lượng key | Khóa trùng đã bị ghi đè, đếm cuối không phát hiện | Theo dõi số lần khai báo trong parser |
-| Dùng `split("=")` để đếm khóa | Bỏ sót `:`, escape, continuation và comment | Dùng parser properties tương thích Java |
-| Dùng `ResourceBundle.keySet()` để đo đủ khóa trực tiếp | Key được kế thừa từ cha vẫn xuất hiện | So từng file nguồn, xét chính sách bundle |
-| Gọi mọi missing key là lỗi | Bundle vùng cố ý chỉ ghi đè | Phân loại complete vs override |
-| Xóa mọi extra key tự động | Một số key dùng riêng cho locale/feature | Xác minh manifest, phạm vi feature |
-| Tự gọi `trim()` và ghi đè mọi bản dịch | Có thể thay nội dung hợp lệ; `trim` không đầy đủ với Unicode | Cảnh báo, review, sửa có kiểm chứng |
-| Coi whitespace quanh delimiter là phần của value | Parser bỏ các khoảng trắng cú pháp đó | Kiểm tra theo giá trị logic và nguồn |
-| Đọc UTF-8 bằng `load(InputStream)` | Dữ liệu có dấu có thể bị giải mã sai | Dùng `Reader` UTF-8 hoặc cơ chế ResourceBundle phù hợp |
-| Quên rằng tệp resource đã cache | Test dựa vào dữ liệu cũ | QA trên file build và kiểm soát cache/reload |
-| Trông thấy `button.save` ở hai locale rồi báo trùng | Đây là override thông thường | Chỉ bắt trùng **trong một tài nguyên đơn** |
+| Calling `Properties.load` and checking only the final key count | Duplicate keys were overwritten and are invisible in the final count | Track declaration count inside the parser |
+| Using `split("=")` to count keys | Misses `:`, escapes, continuations, and comments | Use a Java-compatible properties parser |
+| Using `ResourceBundle.keySet()` to measure direct key completeness | Keys inherited from parents still appear | Compare individual source files according to bundle policy |
+| Treating every missing key as an error | Regional bundles intentionally override only a subset | Classify complete vs. override bundles |
+| Automatically deleting every extra key | Some keys are locale- or feature-specific | Verify against the manifest and feature scope |
+| Calling `trim()` and overwriting all translations | Can alter valid content; `trim` is incomplete for Unicode | Warn, review, and fix with verification |
+| Treating whitespace around delimiters as part of the value | The parser strips syntactic delimiter whitespace | Check logical values and source lines separately |
+| Reading UTF-8 with `load(InputStream)` | Accented text can be decoded wrongly | Use a UTF-8 `Reader` or the appropriate `ResourceBundle` mechanism |
+| Forgetting that resource files are cached | Tests read stale data | Run QA on built files and control cache/reload |
+| Seeing `button.save` in two locales and reporting a duplicate | That is normal overriding | Flag duplicates **only within a single resource** |
 
-## 11. Bài tập thực hành
+## 11. Practice exercises
 
-Từ hai file mẫu ở mục 6, thử tuần tự:
+Starting from the two sample files in section 6, try step by step:
 
-1. Xóa một trong hai dòng `button.save` của `messages_vi.properties`: danh sách duplicate phải rỗng, còn missing/extra giữ nguyên.
-2. Thêm `greeting=Xin chào` vào tệp dịch: missing chỉ còn `status.new`.
-3. Xóa `obsolete.key`: extra phải rỗng.
-4. Đổi `button.cancel=Hủy\u0020` thành `button.cancel=Hủy`: cảnh báo outer whitespace của giá trị biến mất.
-5. Thêm một dấu cách ở **cuối dòng vật lý** (không phải chuỗi escape): `physicalTrailingWhitespace` sẽ liệt kê số dòng đó.
-6. Đặt `button.save:Lưu ngay` thay cho cú pháp `=` ở dòng trùng: duplicate vẫn bị phát hiện do hai cách phân tách cùng một khóa logic.
-7. Đổi tệp dịch thành override locale theo vùng, cho phép kế thừa mọi khóa không khai báo: thay chính sách kiểm tra, không thay parser.
-8. Tạo `button.save` và `button\.save` trong cùng file: thử quan sát hai key có được parser đưa về cùng tên không; đây là lý do không dùng regex thô để kết luận uniqueness.
+1. Remove one of the two `button.save` lines in `messages_vi.properties`: the duplicate list must become empty, while missing/extra remain unchanged.
+2. Add `greeting=Xin chào` to the translation file: missing leaves only `status.new`.
+3. Remove `obsolete.key`: extra must become empty.
+4. Change `button.cancel=Hủy\u0020` to `button.cancel=Hủy`: the outer-whitespace warning on the value disappears.
+5. Add a space at the **end of a physical line** (not an escape sequence): `physicalTrailingWhitespace` will list that line number.
+6. Use `button.save:Lưu ngay` instead of `=` on the duplicate line: the duplicate is still detected because both separator styles resolve to the same logical key.
+7. Treat the translation file as a regional locale override that allows inheriting all undeclared keys: change the audit policy without changing the parser.
+8. Put `button.save` and `button\.save` in the same file: observe whether the parser resolves both keys to the same name; this is why you should not rely on naive regex to prove uniqueness.
 
-Mỗi bài tập tách **lỗi dữ liệu**, **cơ chế parser** và **chính sách bản dịch**. Khi hiểu ranh giới đó, bạn sẽ biết khi nào nên fail build, khi nào nên cảnh báo và khi nào một khóa thiếu là kế thừa có chủ đích.
+Each exercise separates **data defects**, **parser behavior**, and **translation policy**. Once you understand those boundaries, you will know when to fail the build, when to warn, and when a missing key is intentional inheritance.
 
-## 12. Ghi nhớ
+## 12. Summary
 
-Với các tệp tài nguyên của Java, hãy kiểm tra **cú pháp nguồn trước khi nạp**, **key/value logic sau khi nạp**, rồi **đối chiếu các tập khóa theo quy tắc từng loại bundle**. Duplicate bị che bởi cơ chế ghi đè; missing có thể bị fallback từ parent che; extra có thể là lỗi chính tả hoặc key chuyên biệt hợp lệ; whitespace có thể bị parser bỏ qua hoặc trở thành một phần giá trị thực.
+For Java resource files, inspect **source syntax before loading**, **logical keys/values after loading**, and then **compare key sets according to each bundle kind's rules**. Duplicates are masked by overwriting; missing keys can be masked by parent fallback; extra keys may be typos or valid specialized keys; whitespace may be discarded by the parser or become part of the actual value.
 
-Một bước QA có kiểm soát, chạy trước khi build/deploy, sẽ bảo đảm resource bundle không chỉ tải được mà còn có nội dung đáng tin cậy, đồng thời tránh làm hỏng những khoảng trắng và override có chủ đích.
+A controlled QA step run before build/deploy ensures resource bundles not only load without exceptions, but also contain trustworthy content without breaking intentional whitespace or overrides.
 
-**Tài liệu tham khảo:**
+**References:**
 
 - Java SE 17 `Properties`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Properties.html
 - Java SE 17 `ResourceBundle`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html

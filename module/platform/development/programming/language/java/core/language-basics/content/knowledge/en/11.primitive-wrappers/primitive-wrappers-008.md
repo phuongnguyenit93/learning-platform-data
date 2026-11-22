@@ -1,40 +1,40 @@
-# Chọn kiểu nguyên thủy hay lớp bao theo yêu cầu dữ liệu — Java 17+
+# Choosing Primitives vs. Wrappers Based on Data Requirements — Java 17+
 
-## 1. Nguyên tắc quyết định
+## 1. Decision Principles
 
-Java cung cấp hai dạng liên quan nhưng **không tương đương**:
+Java provides two related but **non-equivalent** forms:
 
-- **Kiểu nguyên thủy** (*primitive*), ví dụ `int`, `boolean`, `double`: giữ trực tiếp một giá trị thuộc miền của kiểu; **không thể nhận `null`**.
-- **Lớp bao nguyên thủy** (*wrapper class*), ví dụ `Integer`, `Boolean`, `Double`: biến giữ **tham chiếu tới đối tượng wrapper** (hoặc `null`), có thể dùng trong generic, collection và những API yêu cầu object.
+- **Primitive types**, such as `int`, `boolean`, `double`: directly hold a value within the type's domain; **cannot accept `null`**.
+- **Wrapper classes**, such as `Integer`, `Boolean`, `Double`: variables hold a **reference to a wrapper object** (or `null`), and can be used in generics, collections, and APIs requiring objects.
 
 ~~~java
-int stock = 0;               // Có dữ liệu: số lượng thật sự bằng 0
-Integer reportedStock = null; // Chưa có dữ liệu, chưa phải số 0
+int stock = 0;               // Has data: quantity is genuinely 0
+Integer reportedStock = null; // No data yet, not the number 0
 
-boolean enabled = false;     // Có dữ liệu: trạng thái không bật
-Boolean approved = null;     // Chưa được duyệt, chưa phải false
+boolean enabled = false;     // Has data: state is off
+Boolean approved = null;     // Not yet approved, not false
 ~~~
 
-**Câu hỏi quyết định đầu tiên không phải “kiểu nào tốt hơn?” mà là “dữ liệu có được phép vắng mặt hay không?”**
+**The first decision question is not "which type is better?" but "is the data allowed to be absent?"**
 
-Nếu giá trị **luôn phải tồn tại** và chủ yếu dùng trong tính toán/điều kiện, primitive thường phù hợp. Nếu cần **biểu diễn trạng thái vắng mặt** hoặc API yêu cầu kiểu tham chiếu, wrapper có thể cần thiết. Dù chọn wrapper, vẫn phải quy định rõ cách xử lý `null`.
+If a value **must always exist** and is mainly used in calculations/conditions, a primitive is usually appropriate. If you need to **represent an absent state** or an API requires a reference type, a wrapper may be necessary. Even when choosing a wrapper, you must still clearly define how `null` is handled.
 
-## 2. Bảng tám cặp primitive và wrapper
+## 2. Table of the Eight Primitive and Wrapper Pairs
 
-| Primitive | Wrapper | Đặc điểm dữ liệu điển hình |
+| Primitive | Wrapper | Typical Data Characteristics |
 |---|---|---|
-| `byte` | `Byte` | Số nguyên 8 bit có dấu |
-| `short` | `Short` | Số nguyên 16 bit có dấu |
-| `int` | `Integer` | Số đếm/số nguyên 32 bit |
-| `long` | `Long` | Số nguyên 64 bit |
-| `float` | `Float` | Số dấu phẩy động 32 bit |
-| `double` | `Double` | Số dấu phẩy động 64 bit |
-| `char` | `Character` | Một UTF-16 code unit |
-| `boolean` | `Boolean` | Giá trị true hoặc false |
+| `byte` | `Byte` | 8-bit signed integer |
+| `short` | `Short` | 16-bit signed integer |
+| `int` | `Integer` | 32-bit count/integer |
+| `long` | `Long` | 64-bit integer |
+| `float` | `Float` | 32-bit floating-point number |
+| `double` | `Double` | 64-bit floating-point number |
+| `char` | `Character` | Single UTF-16 code unit |
+| `boolean` | `Boolean` | `true` or `false` value |
 
-`String` không phải kiểu nguyên thủy và cũng không phải lớp bao của `char`; nó là class biểu diễn một chuỗi UTF-16 code units. `Void` có vai trò đặc biệt trong một số API phản chiếu/generic nhưng **không có giá trị primitive `void` để boxing như các cặp trên**.
+`String` is neither a primitive type nor the wrapper for `char`; it is a class representing a sequence of UTF-16 code units. `Void` plays a special role in certain reflection/generic APIs, but **there is no primitive `void` value to box like the pairs above**.
 
-Ví dụ chuyển đổi tự động (*autoboxing* và *unboxing*):
+Example of automatic conversion (*autoboxing* and *unboxing*):
 
 ~~~java
 int primitive = 12;
@@ -44,31 +44,31 @@ int restored = boxed;      // Integer -> int
 System.out.println(restored); // 12
 ~~~
 
-Việc Java hỗ trợ chuyển đổi tự động **không xóa bỏ** khác biệt giữa primitive và wrapper, đặc biệt là trạng thái `null` và cách so sánh.
+Java's support for automatic conversion **does not erase** the differences between primitives and wrappers, especially the `null` state and how comparisons behave.
 
-## 3. Bảng quyết định theo yêu cầu dữ liệu
+## 3. Decision Table by Data Requirements
 
-| Yêu cầu | Thường ưu tiên | Lý do |
+| Requirement | Usually Preferred | Reason |
 |---|---|---|
-| Số lượng đơn hàng **bắt buộc có giá trị** | `int` | 0 là một số lượng hợp lệ; không có trạng thái null |
-| ID nguyên bắt buộc, vượt giới hạn int | `long` | Miền nguyên 64 bit, không cần wrapper khi không có nullable |
-| Số lượng **chưa được nhập hoặc chưa báo cáo** | `Integer` | Phân biệt null với số 0 |
-| Cờ bật/tắt chỉ có hai trạng thái | `boolean` | Đúng hai trạng thái `true`, `false` |
-| Trạng thái duyệt gồm có/chưa/không | `Boolean` hoặc `enum` | `null` có thể biểu thị chưa xác định; enum rõ hơn khi trạng thái có ý nghĩa nghiệp vụ |
-| API nhận hoặc trả `List<Integer>` | `Integer` | Generic Java 17 cần reference type |
-| Mảng phép đo lớn, tính toán lặp nhiều | `int[]`, `double[]` khi phù hợp | Tránh nhu cầu wrapper từng phần tử |
-| Trả kết quả tìm kiếm số nguyên có thể không có | `OptionalInt` hoặc hợp đồng nullable rõ ràng | Tách “không tìm thấy” khỏi giá trị 0 |
-| Trường dữ liệu nguồn bắt buộc nhưng chưa xác minh | Kiểm tra trước rồi primitive | Không biến “không biết” thành 0/false |
-| Số tiền cần đúng chính xác thập phân | `BigDecimal` hoặc số nguyên đơn vị nhỏ nhất | `Double` wrapper không sửa sai số binary floating-point |
+| Order quantity **must always have a value** | `int` | 0 is a valid quantity; no null state |
+| Required integer ID, exceeding `int` limits | `long` | 64-bit integer range, no wrapper needed when non-nullable |
+| Quantity **not yet entered or reported** | `Integer` | Distinguishes null from 0 |
+| On/off flag with only two states | `boolean` | Exactly two states: `true`, `false` |
+| Approval status with yes/pending/no | `Boolean` or `enum` | `null` can indicate undetermined; enum is clearer when states carry business meaning |
+| API accepts or returns `List<Integer>` | `Integer` | Java 17 generics require reference types |
+| Large array of measurements, heavy repeated math | `int[]`, `double[]` when appropriate | Avoids needing a wrapper per element |
+| Returning an integer search result that may not exist | `OptionalInt` or clear nullable contract | Separates "not found" from value 0 |
+| Required source data field not yet verified | Validate first, then primitive | Do not turn "unknown" into 0/false |
+| Monetary amount needing exact decimal precision | `BigDecimal` or integer smallest unit | `Double` wrapper does not fix binary floating-point inaccuracy |
 
-**Điểm chốt:** tính **có mặt/vắng mặt**, **miền giá trị**, **độ chính xác** và **API sử dụng** quan trọng hơn sở thích viết kiểu. Một kiểu wrapper không phải luôn chậm/không an toàn, và primitive cũng không tự khiến dữ liệu hợp lệ về nghiệp vụ.
+**Bottom line:** **presence/absence**, **value range**, **precision**, and **the APIs used** matter more than stylistic preference for writing a type. A wrapper type is not always slow/unsafe, nor does a primitive automatically make data valid for business logic.
 
-## 4. Phân biệt “không có dữ liệu” với số 0
+## 4. Distinguishing "No Data" from Zero
 
-Giả sử ứng dụng thống kê số đơn hàng đã được xác nhận:
+Suppose an application tracks the number of confirmed orders:
 
-- `confirmedOrders = 0`: hệ thống xác nhận **không có đơn hàng nào**.
-- `confirmedOrders = null`: **chưa nhận được báo cáo**, chưa thể khẳng định bằng 0.
+- `confirmedOrders = 0`: the system confirms there are **zero orders**.
+- `confirmedOrders = null`: **no report has been received yet**; it cannot be confirmed as 0.
 
 ~~~java
 Integer confirmedOrders = null;
@@ -80,25 +80,25 @@ if (confirmedOrders == null) {
 }
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 no report
 ~~~
 
-Nếu ép dữ liệu thiếu thành 0 tùy tiện:
+If you arbitrarily force missing data to 0:
 
 ~~~java
 int count = confirmedOrders == null ? 0 : confirmedOrders;
 ~~~
 
-thì bạn **đã quyết định gộp** hai trạng thái khác nhau. Điều đó chỉ đúng nếu yêu cầu nghiệp vụ thật sự cho phép coi “chưa có báo cáo” là 0, ví dụ một phép hiển thị có nhãn “mặc định 0” và có giải thích.
+then you **have decided to merge** two different states. That is only valid if business requirements genuinely permit treating "no report yet" as 0—for instance, a display labeled "default 0" with an explanation.
 
-**Quy tắc thiết kế API:** nếu giá trị bắt buộc, validate lúc nhận input hoặc lúc tạo object thay vì đưa một biến `Integer` tùy ý xuống sâu các tầng tính toán rồi hy vọng chúng không `null`.
+**API design rule:** if a value is required, validate upon receiving input or constructing the object rather than passing an arbitrary `Integer` deep into computation layers and hoping it is not `null`.
 
-## 5. Boolean và bài toán ba trạng thái
+## 5. `Boolean` and the Three-State Problem
 
-Một `boolean` có đúng hai giá trị `true`/`false`. Với `Boolean`, tham chiếu còn có thể `null`.
+A `boolean` has exactly two values, `true`/`false`. With `Boolean`, the reference can also be `null`.
 
 ~~~java
 Boolean approved = null;
@@ -112,13 +112,13 @@ if (approved == null) {
 }
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 pending
 ~~~
 
-Trường hợp này hợp lý khi dữ liệu có **ba trạng thái**: chưa đánh giá, đồng ý, từ chối. Tuy nhiên, nếu hệ thống có nhiều trạng thái hơn (đang duyệt, tạm hoãn, bị khóa...), dùng `enum` thường rõ nghĩa hơn:
+This case makes sense when the data has **three states**: unreviewed, approved, rejected. However, if the system has more states (in review, on hold, locked...), using an `enum` is usually clearer:
 
 ~~~java
 enum Decision {
@@ -128,11 +128,11 @@ enum Decision {
 Decision decision = Decision.PENDING;
 ~~~
 
-**Đừng lạm dụng `null` làm một “trạng thái bí mật”** khi API không mô tả ý nghĩa của nó. Có thể dùng wrapper nullable, nhưng phải thống nhất hợp đồng dữ liệu và tài liệu hóa cách xử lý.
+**Do not abuse `null` as a "secret state"** when the API does not document its meaning. You can use a nullable wrapper, but the data contract and handling rules must be agreed upon and documented.
 
-## 6. Giá trị mặc định của field khác với biến cục bộ
+## 6. Default Values of Fields Differ from Local Variables
 
-Nếu tạo object Java mà **không gán khởi tạo cho field**, primitive field nhận default value; reference field mặc định `null`:
+If a Java object is created **without explicitly initializing its fields**, primitive fields receive default values; reference fields default to `null`:
 
 ~~~java
 static final class Defaults {
@@ -143,31 +143,31 @@ static final class Defaults {
 }
 ~~~
 
-Điều này hữu ích để hiểu hành vi, nhưng **không chứng minh các default value đó là dữ liệu hợp lệ**.
+This is useful for understanding behavior, but **does not prove those default values are valid data**.
 
-| Field | Mặc định khi tạo object | Nguy cơ hiểu sai |
+| Field | Default on Object Creation | Risk of Misinterpretation |
 |---|---|---|
-| `int count` | `0` | 0 có thể bị nhầm với “chưa nạp dữ liệu” |
-| `Integer count` | `null` | Unboxing khi chưa kiểm tra sẽ lỗi |
-| `boolean enabled` | `false` | false có thể bị nhầm với “chưa đánh giá” |
-| `Boolean enabled` | `null` | Phải quy định cách xử lý chưa xác định |
+| `int count` | `0` | 0 may be confused with "data not loaded yet" |
+| `Integer count` | `null` | Unboxing without checking will fail |
+| `boolean enabled` | `false` | false may be confused with "not evaluated yet" |
+| `Boolean enabled` | `null` | Must define how undetermined is handled |
 
-**Biến cục bộ không tự nhận default value:**
+**Local variables do not automatically receive default values:**
 
 ~~~java
 static void example() {
     int count;
-    // System.out.println(count); // Lỗi compile: biến cục bộ chưa gán
+    // System.out.println(count); // Compile error: unassigned local variable
     count = 0;
     System.out.println(count); // 0
 }
 ~~~
 
-Hãy khởi tạo field có ý nghĩa rõ ràng hoặc dùng constructor để buộc cung cấp các giá trị bắt buộc.
+Initialize fields with meaningful values or use constructors to enforce supplying required values.
 
-## 7. Đưa yêu cầu dữ liệu vào model: record Java 17
+## 7. Encoding Data Requirements in the Model: Java 17 `record`
 
-Một `record` giúp thể hiện ranh giới **bắt buộc** và **có thể chưa có** trong chữ ký:
+A `record` helps express the boundary between **required** and **optional/potentially missing** right in its signature:
 
 ~~~java
 record Stock(String sku, int onHand, Integer reserved, Boolean approved) {
@@ -183,12 +183,12 @@ record Stock(String sku, int onHand, Integer reserved, Boolean approved) {
 }
 ~~~
 
-Ý nghĩa:
+Meaning:
 
-- `onHand` là `int`: bắt buộc có giá trị tại thời điểm tạo record, nhưng vẫn cần kiểm tra `onHand >= 0`.
-- `reserved` là `Integer`: có thể chưa nhận dữ liệu (null), có thể nhận giá trị **0** hoặc số dương.
-- `approved` là `Boolean`: có thể chưa đánh giá, `true` hoặc `false`.
-- `sku` là `String` tham chiếu: không tự cấm null, nên constructor gọi `Objects.requireNonNull`.
+- `onHand` is `int`: must have a value when constructing the record, yet still needs checking `onHand >= 0`.
+- `reserved` is `Integer`: may not have received data yet (null), or may hold **0** or a positive number.
+- `approved` is `Boolean`: may be unreviewed, `true`, or `false`.
+- `sku` is a `String` reference: does not forbid null on its own, so the constructor calls `Objects.requireNonNull`.
 
 ~~~java
 Stock unknown = new Stock("SKU-1", 10, null, null);
@@ -198,26 +198,26 @@ System.out.println(unknown.reserved() == null); // true
 System.out.println(knownZero.reserved());         // 0
 ~~~
 
-**Điểm cốt lõi:** Java không có kiểu primitive nullable. Nếu phải đại diện vắng mặt, cần một cơ chế trong model (wrapper, `OptionalInt` cho API trả về, trạng thái riêng, object kết quả...) và phải thực thi hợp đồng nghiệp vụ bằng validation.
+**Core point:** Java has no nullable primitive types. If absence must be represented, you need a mechanism in the model (wrapper, `OptionalInt` for return APIs, explicit state, result object...) and must enforce the business contract with validation.
 
-## 8. Chặn null ở ranh giới dữ liệu
+## 8. Guarding `null` at Data Boundaries
 
-Một `Integer` hoặc `Boolean` có thể chứa `null`. Khi Java cần giá trị primitive để cộng, so sánh với số hoặc chạy `if (flag)`, unboxing `null` sẽ gây `NullPointerException`. Điểm cần quyết định trong thiết kế dữ liệu là **được phép thiếu** hay **phải từ chối đầu vào thiếu**.
+An `Integer` or `Boolean` can contain `null`. When Java needs a primitive value to add, compare with a number, or run `if (flag)`, unboxing `null` causes `NullPointerException`. What must be decided in data design is whether missing input is **allowed** or **must be rejected**.
 
 ~~~java
 static int requireCount(Integer count) {
     if (count == null) {
         throw new IllegalArgumentException("count is required");
     }
-    return count; // Chỉ unbox sau khi kiểm tra
+    return count; // Only unbox after checking
 }
 ~~~
 
-Nếu null là trạng thái hợp lệ, giữ wrapper đến lúc có quy tắc xử lý rõ ràng; đừng mặc định đổi null thành 0. Bài unboxing null phân tích chi tiết các bẫy ba ngôi, short-circuit và điều kiện.
+If null is a valid state, keep the wrapper until an explicit handling rule applies; do not default null to 0. The unboxing-null lesson analyzes ternary, short-circuit, and conditional traps in detail.
 
-## 9. So sánh theo giá trị hay tham chiếu?
+## 9. Comparing by Value or by Reference?
 
-Khi hai biến có kiểu `Integer`, `a == b` hỏi chúng có cùng object không; cache có thể khiến hai wrapper của một số nhỏ dùng chung object. Khi muốn hỏi hai **giá trị** có bằng nhau, chọn `a.equals(b)` nếu `a` không null, hoặc `Objects.equals(a, b)` khi cả hai có thể null.
+When two variables have type `Integer`, `a == b` asks whether they are the same object; caching can cause two wrappers for a small number to share an object. When you want to ask whether two **values** are equal, choose `a.equals(b)` if `a` is non-null, or `Objects.equals(a, b)` when both can be null.
 
 ~~~java
 Integer first = Integer.valueOf(1000);
@@ -225,11 +225,11 @@ Integer second = Integer.valueOf(1000);
 System.out.println(java.util.Objects.equals(first, second)); // true
 ~~~
 
-Với `Integer == int`, Java unbox để so số; nếu wrapper null sẽ gây NPE. `Integer.equals(Long)` không tự đổi kiểu để so. Các bài equality và cache là nơi giải thích chính cho những quy tắc này.
+With `Integer == int`, Java unboxes to compare numbers; if the wrapper is null, it causes an NPE. `Integer.equals(Long)` does not convert types to compare. The equality and cache lessons are the main references for these rules.
 
-## 10. Generic collection và chính sách dữ liệu thiếu
+## 10. Generic Collections and Missing-Data Policies
 
-`List<Integer>` chứa wrapper vì generic Java 17 dùng kiểu tham chiếu. Khi chuyển sang `int` để tính toán, mỗi phần tử phải có giá trị:
+`List<Integer>` holds wrappers because Java 17 generics use reference types. When converting to `int` for calculations, each element must have a value:
 
 ~~~java
 java.util.List<Integer> readings =
@@ -243,11 +243,11 @@ for (Integer n : readings) {
 System.out.println(sum); // 5
 ~~~
 
-Bỏ qua null ở đây là **chính sách minh họa**, không phải mặc định đúng cho mọi hệ thống. `List.of(...)` không chấp nhận phần tử null. Nếu dữ liệu số luôn bắt buộc, cần tính toán nhiều và không phụ thuộc generic, mảng primitive hoặc primitive stream có thể hợp lý hơn; phần hiệu năng ở dưới giải thích cách đánh giá.
+Skipping null here is an **illustrative policy**, not the right default for every system. `List.of(...)` does not accept null elements. If numeric data is always required, involves heavy calculation, and does not depend on generics, primitive arrays or primitive streams may make more sense; the performance section below explains how to evaluate this.
 
-## 11. `OptionalInt` cho API trả về kết quả có thể vắng mặt
+## 11. `OptionalInt` for APIs Returning Potentially Absent Results
 
-Đôi khi caller cần biết **một kết quả số nguyên có tồn tại không**, nhưng bạn không muốn trả `Integer` nullable. Java cung cấp `java.util.OptionalInt`:
+Sometimes the caller needs to know **whether an integer result exists**, without returning a nullable `Integer`. Java provides `java.util.OptionalInt`:
 
 ~~~java
 import java.util.OptionalInt;
@@ -257,7 +257,7 @@ static OptionalInt findScore(boolean found) {
 }
 ~~~
 
-Bên gọi:
+Caller side:
 
 ~~~java
 OptionalInt missing = findScore(false);
@@ -267,39 +267,39 @@ System.out.println(missing.isEmpty());     // true
 System.out.println(existingZero.orElse(-1)); // 0
 ~~~
 
-`OptionalInt.empty()` **khác** `OptionalInt.of(0)`. Một API dùng `OptionalInt` thể hiện trạng thái có/không ngay trên kiểu trả về.
+`OptionalInt.empty()` is **different** from `OptionalInt.of(0)`. An API using `OptionalInt` expresses presence/absence directly in its return type.
 
-**Cân nhắc thực tế:** `OptionalInt` phù hợp nhất ở **kiểu trả về của method** có thể không có kết quả. Không mặc định thay mọi field `Integer` bằng field `OptionalInt`, vì các framework/định dạng dữ liệu hoặc code hiện có có thể có quy ước riêng. Chọn dựa trên hợp đồng API và hệ sinh thái đang dùng.
+**Practical consideration:** `OptionalInt` fits best as the **return type of a method** that may have no result. Do not blindly replace every `Integer` field with an `OptionalInt` field, because frameworks, data formats, or existing codebases may have their own conventions. Choose based on the API contract and ecosystem in use.
 
-## 12. Primitive và wrapper về hiệu năng, bộ nhớ
+## 12. Primitives and Wrappers: Performance and Memory
 
-Wrapper là object tham chiếu và có thể phát sinh chi phí **boxing/unboxing**, lưu tham chiếu, cấp phát, áp lực garbage collection tùy tình huống.
+Wrappers are reference objects and can incur **boxing/unboxing**, reference storage, allocation, and garbage-collection pressure depending on the scenario.
 
 ~~~java
 int[] primitiveArray = new int[1_000];
 Integer[] wrapperArray = new Integer[1_000];
 ~~~
 
-Hai cấu trúc **khác nhau về ý nghĩa**:
+The two structures **differ in meaning**:
 
-- `int[]` giữ 1000 giá trị `int`, mỗi phần tử mặc định 0.
-- `Integer[]` giữ 1000 **tham chiếu**, mỗi phần tử ban đầu null. Tạo mảng **không** tự tạo 1000 object `Integer`.
-- Cách bố trí bộ nhớ, header và căn chỉnh object phụ thuộc JVM; **không** suy ra tổng RAM thực tế chỉ từ `Integer.SIZE`.
+- `int[]` holds 1000 `int` values, each element defaulting to 0.
+- `Integer[]` holds 1000 **references**, each element initially null. Creating the array does **not** automatically create 1000 `Integer` objects.
+- Memory layout, headers, and object alignment depend on the JVM; do **not** deduce actual total RAM solely from `Integer.SIZE`.
 
-Trong xử lý số liệu khối lượng lớn, primitive array, primitive streams (`IntStream`, `LongStream`, `DoubleStream`) có thể giúp tránh một số wrapper không cần thiết:
+In high-volume numeric processing, primitive arrays and primitive streams (`IntStream`, `LongStream`, `DoubleStream`) can help avoid unnecessary wrappers:
 
 ~~~java
 int total = java.util.stream.IntStream.of(2, 3, 5).sum();
 System.out.println(total); // 10
 ~~~
 
-Nhưng **không** nên khẳng định mọi primitive luôn nhanh hơn mọi wrapper trong mọi JVM. JIT có thể tối ưu hóa, cache có thể tái sử dụng wrapper, và hiệu năng còn tùy workload. Khi tối ưu thật sự quan trọng, hãy đo benchmark có phương pháp (ví dụ JMH).
+However, you should **not** claim that every primitive is always faster than every wrapper on every JVM. The JIT can optimize, caches can reuse wrappers, and performance also depends on the workload. When optimization truly matters, measure with a proper benchmark (such as JMH).
 
-**Nguyên tắc:** ưu tiên mô hình dữ liệu đúng trước; nếu nhiều lựa chọn đều đúng, cân nhắc tính đơn giản và đo hiệu năng thực tế.
+**Principle:** prioritize the right data model first; when multiple choices are correct, consider simplicity and measure actual performance.
 
-## 13. Wrapper không giải quyết bài toán độ chính xác thập phân
+## 13. Wrappers Do Not Solve Decimal Precision Problems
 
-Chọn `Double` thay `double` chỉ thay đổi **cách đóng gói giá trị và khả năng null**, không thay đổi quy tắc biểu diễn **binary floating-point**:
+Choosing `Double` instead of `double` only changes **how the value is boxed and nullability**, not the **binary floating-point** representation rules:
 
 ~~~java
 double primitive = 0.1 + 0.2;
@@ -309,7 +309,7 @@ System.out.println(primitive); // 0.30000000000000004
 System.out.println(boxed);     // 0.30000000000000004
 ~~~
 
-Nếu nghiệp vụ yêu cầu phép tính số tiền chính xác theo thập phân, cần chọn mô hình như `BigDecimal` hoặc số nguyên biểu diễn đơn vị nhỏ nhất:
+If business rules require exact decimal monetary calculations, choose a model such as `BigDecimal` or an integer representing the smallest unit:
 
 ~~~java
 java.math.BigDecimal exact =
@@ -319,16 +319,16 @@ java.math.BigDecimal exact =
 System.out.println(exact); // 0.3
 ~~~
 
-**Tách hai quyết định độc lập:**
+**Separate two independent decisions:**
 
-1. Giá trị có thể **thiếu** không? → primitive hay wrapper/kiểu kết quả có trạng thái vắng mặt.
-2. Giá trị cần **độ chính xác và miền nào**? → int/long/double/BigDecimal/... theo toán học và nghiệp vụ.
+1. Can the value be **missing**? → primitive vs. wrapper/result type with an absent state.
+2. What **precision and range** does the value need? → int/long/double/BigDecimal/... based on math and business needs.
 
-Dùng wrapper chỉ vì “có vẻ chính xác hơn primitive” là sai về bản chất.
+Using a wrapper just because it "looks more accurate than a primitive" is fundamentally wrong.
 
-## 14. Thiết kế API: nêu rõ hợp đồng null và validation
+## 14. API Design: State Null Contracts and Validation Explicitly
 
-Ví dụ một method nhận số lượng được phép thiếu:
+Example of a method accepting a quantity that is allowed to be missing:
 
 ~~~java
 static String describeCount(Integer count) {
@@ -336,7 +336,7 @@ static String describeCount(Integer count) {
 }
 ~~~
 
-Nó hợp lý khi **thiếu là một trạng thái hợp lệ**. Ngược lại, nếu dữ liệu bắt buộc có số lượng, hãy khai báo primitive:
+This makes sense when **missing is a valid state**. Conversely, if data must have a quantity, declare a primitive:
 
 ~~~java
 static boolean hasStock(int count) {
@@ -347,15 +347,15 @@ static boolean hasStock(int count) {
 }
 ~~~
 
-Một field wrapper không nhất thiết nên `null`, và một primitive mặc định không nhất thiết hợp lệ. **Thiết kế dữ liệu cần thống nhất với validation**.
+A wrapper field does not necessarily allow `null`, and a default primitive is not necessarily valid. **Data design must align with validation**.
 
-Các API nhận dữ liệu ngoài (JSON, database, HTTP request, form...) còn có thể phân biệt **không gửi field**, **gửi null**, **gửi 0**, hoặc **gửi chuỗi "0"**. Mapping cụ thể phụ thuộc framework, schema và quy ước API; không được đoán rằng mọi framework Java đều tự chuyển chúng thành primitive/wrapper giống nhau.
+APIs receiving external data (JSON, database, HTTP request, forms...) may also distinguish **field omitted**, **null sent**, **0 sent**, or **string "0" sent**. Exact mapping depends on the framework, schema, and API conventions; never assume every Java framework converts them into primitives/wrappers the same way.
 
-Khi nhận wrapper từ lớp ngoài, validate/chuẩn hóa tại ranh giới trước khi chuyển sang logic nội bộ cần primitive.
+When receiving wrappers from an outer layer, validate/normalize at the boundary before passing into internal logic that requires primitives.
 
-## 15. Chương trình Java 17 độc lập: chọn kiểu theo yêu cầu thực tế
+## 15. Standalone Java 17 Program: Choosing Types for Real Requirements
 
-Tạo tệp đúng tên **`PrimitiveOrWrapperDemo.java`**:
+Create the file with the exact name **`PrimitiveOrWrapperDemo.java`**:
 
 ~~~java
 import java.math.BigDecimal;
@@ -467,7 +467,7 @@ public final class PrimitiveOrWrapperDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17+; mở terminal trong thư mục chứa tệp. Không cần Maven, Gradle hoặc thư viện bên ngoài JDK.
+**Requirements:** JDK 17+; open terminal in the directory containing the file. No Maven, Gradle, or libraries outside the JDK are needed.
 
 **Bash (Linux/macOS):**
 
@@ -483,7 +483,7 @@ javac --release 17 -encoding UTF-8 .\PrimitiveOrWrapperDemo.java
 java -cp . PrimitiveOrWrapperDemo
 ~~~
 
-**Expected output chính xác:**
+**Exact expected output:**
 
 ~~~text
 default int=0
@@ -509,62 +509,62 @@ decimal exact=0.3
 negative stock rejected
 ~~~
 
-**Điểm cần tự kiểm chứng:**
+**Points to verify yourself:**
 
-1. Field primitive `int`/`boolean` mặc định 0/false; field wrapper mặc định null.
-2. Cùng một kiểu `Integer` phân biệt `reserved=null` và `reserved=0`.
-3. `Boolean` cho phép trạng thái unknown bên cạnh false/true, nếu API có hợp đồng tương ứng.
-4. Vòng lặp `List<Integer>` chủ động bỏ qua null **theo chính sách của ví dụ**.
-5. So wrapper 1000 qua `Objects.equals` không dựa vào identity cache; `first == alias` true vì thật sự cùng tham chiếu.
-6. Tăng `counter` không sửa object wrapper mà `snapshot` đang giữ.
-7. Unboxing null được catch có chủ đích, minh họa lý do phải kiểm tra dữ liệu.
-8. `OptionalInt.empty()` khác `OptionalInt.of(0)`.
-9. `Double` wrapper không làm phép cộng thập phân trở nên exact; `BigDecimal` từ chuỗi đáp ứng một mô hình khác.
-10. Constructor từ chối số lượng âm, thể hiện chọn đúng kiểu vẫn cần validation.
+1. Primitive fields `int`/`boolean` default to 0/false; wrapper fields default to null.
+2. The same `Integer` type distinguishes `reserved=null` and `reserved=0`.
+3. `Boolean` allows an unknown state alongside false/true, if the API has a matching contract.
+4. The `List<Integer>` loop intentionally skips null **per the example's policy**.
+5. Comparing wrappers for 1000 via `Objects.equals` does not rely on identity caching; `first == alias` is true because they truly share the same reference.
+6. Incrementing `counter` does not modify the wrapper object held by `snapshot`.
+7. Null unboxing is caught intentionally, illustrating why data must be checked.
+8. `OptionalInt.empty()` differs from `OptionalInt.of(0)`.
+9. The `Double` wrapper does not make decimal addition exact; `BigDecimal` from strings serves a different model.
+10. The constructor rejects negative quantities, showing that choosing the right type still requires validation.
 
-## 16. Những lỗi thường gặp và cách sửa
+## 16. Common Mistakes and How to Fix Them
 
-| Lỗi hoặc giả định | Vấn đề | Cách làm phù hợp |
+| Mistake or Assumption | Problem | Appropriate Approach |
 |---|---|---|
-| Dùng `int` cho dữ liệu “chưa được nhập” rồi ngầm dùng 0 | Gộp thiếu dữ liệu với số 0 | Dùng `Integer`/trạng thái vắng mặt rõ nghĩa |
-| Dùng `Integer` cho mọi biến đếm | Tăng nhu cầu kiểm tra null/boxing | Dùng `int` khi dữ liệu bắt buộc và tính toán nhiều |
-| `Boolean flag = null; if (flag)` | Unboxing null gây NPE | Kiểm tra null hoặc thiết kế enum |
-| `Integer n = null; int x = n;` | Unboxing null gây NPE | Validate hoặc chọn policy rõ |
-| Hai `Integer` so bằng `==` khi muốn so số | `==` so identity của hai tham chiếu | `equals`/`Objects.equals` |
-| Coi mặc định field `int = 0` là dữ liệu hợp lệ | Default JVM không phải validation nghiệp vụ | Constructor/validation |
-| Coi `Integer = null` tương đương số 0 | Mất ý nghĩa “chưa có dữ liệu” | Giữ và xử lý riêng null |
-| Dùng `List<int>` | Generic Java 17 không nhận primitive | `List<Integer>` |
-| Duyệt `List<Integer>` bằng `for (int n : list)` khi có null | Unboxing null trong vòng lặp | Validation hoặc xử lý từng `Integer` |
-| Dùng `OptionalInt` bất kể API/framework | Khác hợp đồng/khả năng tích hợp | Dùng phù hợp ở kiểu trả về |
-| Dùng `Double` thay `double` để sửa sai số thập phân | Wrapper không đổi biểu diễn binary | `BigDecimal` hoặc số nguyên đơn vị nhỏ nhất |
-| Cho rằng wrapper luôn cấp phát mới khi boxing | JVM có thể cache/tối ưu | Không phụ thuộc identity/cấp phát |
-| Dùng primitive để tránh mọi lỗi dữ liệu | Primitive vẫn có giới hạn/tràn/giá trị không hợp lệ | Validation và chọn miền giá trị |
-| Tự động đổi null → 0 ở mọi nơi | Có thể làm sai ý nghĩa nghiệp vụ | Thống nhất chính sách mặc định trước |
+| Using `int` for "not yet entered" data and silently using 0 | Merges missing data with 0 | Use `Integer`/explicit absent state |
+| Using `Integer` for every counter variable | Increases null-checking/boxing needs | Use `int` when data is required and math-heavy |
+| `Boolean flag = null; if (flag)` | Unboxing null causes NPE | Check for null or design an enum |
+| `Integer n = null; int x = n;` | Unboxing null causes NPE | Validate or choose a clear policy |
+| Comparing two `Integer`s with `==` when wanting numeric comparison | `==` compares identity of two references | `equals`/`Objects.equals` |
+| Treating default field `int = 0` as valid data | JVM default is not business validation | Constructor/validation |
+| Treating `Integer = null` as equivalent to 0 | Loses the meaning "no data yet" | Keep and handle null separately |
+| Using `List<int>` | Java 17 generics do not accept primitives | `List<Integer>` |
+| Iterating `List<Integer>` with `for (int n : list)` when nulls exist | Unboxing null inside loop | Validate or handle each `Integer` |
+| Using `OptionalInt` regardless of API/framework | Differs from integration conventions/contracts | Use appropriately in return types |
+| Using `Double` instead of `double` to fix decimal errors | Wrapper does not change binary representation | `BigDecimal` or integer smallest unit |
+| Assuming wrappers always allocate new objects on boxing | JVM may cache/optimize | Do not depend on identity/allocation |
+| Using primitives to avoid all data errors | Primitives still have limits/overflow/invalid values | Validation and choosing proper range |
+| Automatically converting null → 0 everywhere | Can corrupt business meaning | Agree on a default policy first |
 
-## 17. Bài tập ngắn và đáp án
+## 17. Short Exercises and Answers
 
-### Bài A — số lượng đã báo cáo
+### Exercise A — Reported Quantity
 
-`count=0` khác `count=null` như thế nào trong hệ thống ghi nhận hàng hóa?
+How does `count=0` differ from `count=null` in an inventory tracking system?
 
-**Đáp án:** `0` nghĩa là có một báo cáo xác nhận số lượng bằng không; `null` có thể biểu thị chưa có số liệu (nếu hợp đồng API định nghĩa như vậy). Nếu cần phân biệt hai trạng thái này, `Integer` hoặc kiểu có trạng thái vắng mặt là phù hợp.
+**Answer:** `0` means there is a report confirming the quantity is zero; `null` can signify no figures have been reported yet (if the API contract defines it that way). When these two states must be distinguished, `Integer` or a type with an absent state is appropriate.
 
-### Bài B — primitive hay wrapper cho cờ trạng thái?
+### Exercise B — Primitive or Wrapper for a Status Flag?
 
-API chỉ có bật/tắt, không có trạng thái chưa biết. Chọn `boolean` hay `Boolean`?
+An API only has on/off, with no unknown state. Choose `boolean` or `Boolean`?
 
-**Đáp án:** thường chọn `boolean`. Nếu API có trạng thái “chưa duyệt” riêng, có thể dùng `Boolean` cùng quy tắc null hoặc một `enum` mang tên trạng thái rõ ràng.
+**Answer:** usually choose `boolean`. If the API has a separate "not yet reviewed" state, you can use `Boolean` with null rules or an `enum` with explicit state names.
 
-### Bài C — null và unboxing
+### Exercise C — Null and Unboxing
 
 ~~~java
 Integer n = null;
 // System.out.println(n + 1);
 ~~~
 
-**Đáp án:** nếu bật dòng comment sẽ biên dịch được nhưng ném `NullPointerException` lúc chạy, vì phép cộng phải unbox `n` thành int trước.
+**Answer:** if the commented line is enabled, it will compile but throw `NullPointerException` at runtime, because addition must unbox `n` to `int` first.
 
-### Bài D — so giá trị
+### Exercise D — Comparing Values
 
 ~~~java
 Integer a = Integer.valueOf(1000);
@@ -572,9 +572,9 @@ Integer b = Integer.valueOf(1000);
 System.out.println(java.util.Objects.equals(a, b));
 ~~~
 
-**Đáp án:** `true`. Dùng equality theo giá trị, không phụ thuộc vùng object cache.
+**Answer:** `true`. Uses value-based equality, without depending on the object cache range.
 
-### Bài E — generic
+### Exercise E — Generics
 
 ~~~java
 java.util.List<Integer> nums = java.util.List.of(2, 3);
@@ -585,29 +585,29 @@ for (int n : nums) {
 System.out.println(sum);
 ~~~
 
-**Đáp án:** `5`. List dùng wrapper; mỗi phần tử được unbox khi gán vào biến vòng lặp int. Đối với `List.of`, không được đưa null vào danh sách.
+**Answer:** `5`. The list holds wrappers; each element is unboxed when assigned to the `int` loop variable. For `List.of`, null must not be placed in the list.
 
-### Bài F — lựa chọn kiểu và miền nghiệp vụ
+### Exercise F — Choosing Type and Business Range
 
-Một field `age` luôn phải được cung cấp và phải không âm. Dùng `int` có đủ để đảm bảo dữ liệu hợp lệ?
+An `age` field must always be provided and must be non-negative. Is using `int` sufficient to guarantee valid data?
 
-**Đáp án:** **chưa đủ**. `int` loại bỏ khả năng null nhưng vẫn chứa số âm. Cần kiểm tra `age >= 0` tại ranh giới input hoặc constructor.
+**Answer:** **not sufficient**. `int` eliminates nullability, but it can still hold negative numbers. You must check `age >= 0` at the input boundary or constructor.
 
-## 18. Checklist và kết luận
+## 18. Checklist and Conclusion
 
-- [ ] Biết tám cặp primitive-wrapper Java.
-- [ ] Hiểu primitive không mang `null`, wrapper có thể `null`.
-- [ ] Phân biệt dữ liệu bằng 0/false với dữ liệu chưa có.
-- [ ] Chọn primitive khi giá trị bắt buộc và chủ yếu tính toán.
-- [ ] Chọn wrapper khi thật sự cần nullable hoặc dùng API/generic yêu cầu reference type.
-- [ ] Biết default field primitive và wrapper khác nhau; local variable phải được gán trước khi đọc.
-- [ ] Biết boxing/unboxing và xử lý null trước khi unbox.
-- [ ] Không so giá trị của hai wrapper bằng `==`.
-- [ ] Kiểm tra input/miền dữ liệu ngay cả khi chọn primitive.
-- [ ] Hiểu `List<Integer>` khác `int[]`, và lưu ý null trong collection.
-- [ ] Biết `OptionalInt` là một lựa chọn cho method trả kết quả có thể vắng mặt.
-- [ ] Không nhầm `Double` wrapper với giải pháp tính toán decimal chính xác.
-- [ ] Biết cân nhắc bộ nhớ/hiệu năng dựa trên workload, không chỉ cảm tính.
-- [ ] Chạy `PrimitiveOrWrapperDemo.java` trên Java 17+ và so từng dòng expected output.
+- [ ] Know Java's eight primitive–wrapper pairs.
+- [ ] Understand primitives cannot hold `null`, whereas wrappers can.
+- [ ] Distinguish data equal to 0/false from missing data.
+- [ ] Choose primitives when values are required and primarily computed.
+- [ ] Choose wrappers when nullability is genuinely needed or APIs/generics require reference types.
+- [ ] Know that default primitive and wrapper fields differ; local variables must be assigned before reading.
+- [ ] Know boxing/unboxing and handle null before unboxing.
+- [ ] Do not compare the values of two wrappers using `==`.
+- [ ] Validate input/data range even when choosing primitives.
+- [ ] Understand how `List<Integer>` differs from `int[]`, and watch for null in collections.
+- [ ] Know `OptionalInt` is an option for methods returning potentially absent results.
+- [ ] Do not mistake `Double` wrapper for a solution to exact decimal arithmetic.
+- [ ] Know how to consider memory/performance based on workload, not just intuition.
+- [ ] Run `PrimitiveOrWrapperDemo.java` on Java 17+ and compare every line of expected output.
 
-**Kết luận:** Chọn **primitive** hay **wrapper** dựa trước tiên vào **ý nghĩa dữ liệu**: bắt buộc hay có thể vắng mặt. Primitive phù hợp với giá trị luôn tồn tại và tính toán trực tiếp; wrapper phù hợp với nullable, collection và API cần object. Dù chọn kiểu nào, bạn vẫn cần quy định miền hợp lệ, cách xử lý null, phép so sánh và độ chính xác đúng với yêu cầu thực tế.
+**Conclusion:** Choosing **primitive** vs. **wrapper** depends first on **data meaning**: required or potentially absent. Primitives suit values that always exist and direct calculations; wrappers suit nullable values, collections, and APIs needing objects. Regardless of which type you choose, you still must specify valid ranges, null handling, comparison rules, and precision appropriate to actual requirements.

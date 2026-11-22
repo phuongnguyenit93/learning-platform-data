@@ -1,16 +1,16 @@
-# Phát kết quả qua Downstream.push và xử lý tín hiệu từ chối
+# Emitting Results via Downstream.push and Handling Rejection Signals
 
-Trong chương **Xây dựng Gatherer tùy biến** của **Java Stream API**, `Gatherer` mở rộng mô hình xử lý dữ liệu khai báo vượt ra ngoài những thao tác `filter`, `map`, `flatMap`, `reduce` và `collect` quen thuộc. Một gatherer có thể phát **không, một hoặc nhiều phần tử kết quả** cho mỗi phần tử đầu vào, duy trì trạng thái giữa những lần nhận dữ liệu và chủ động kết thúc quá trình nhận nguồn.
+In the **Building Custom Gatherers** chapter of the **Java Stream API**, `Gatherer` extends the declarative data-processing model beyond the familiar `filter`, `map`, `flatMap`, `reduce`, and `collect` operations. A gatherer can emit **zero, one, or multiple result elements** per input element, maintain state across incoming elements, and proactively terminate source consumption.
 
-Điểm then chốt của bài này là **`Gatherer.Downstream.push(result)`**. Khi một gatherer muốn chuyển kết quả sang bước kế tiếp của pipeline, nó gọi `push` và nhận lại tín hiệu `boolean` cho biết downstream **còn muốn nhận thêm phần tử nữa hay không**. Tín hiệu này phải được xử lý đúng, đặc biệt khi downstream có `limit`, `findFirst`, `takeWhile` hoặc một gatherer khác có thể dừng sớm.
+The core focus of this lesson is **`Gatherer.Downstream.push(result)`**. When a gatherer wants to pass a result to the next stage of the pipeline, it calls `push` and receives a `boolean` signal indicating whether downstream **still wants to receive more elements**. This signal must be handled properly, especially when downstream contains `limit`, `findFirst`, `takeWhile`, or another gatherer that can stop early.
 
-Nếu bỏ qua tín hiệu từ chối, gatherer có thể tiếp tục tạo kết quả vô ích hoặc tiêu thụ đầu vào không cần thiết. Nếu hiểu nhầm `false` là "phần tử vừa phát không được nhận", chương trình có thể bù thêm phần tử, tạo kết quả thừa hoặc vi phạm hợp đồng kết thúc. Bài học xây từ ví dụ nhỏ đến gatherer phát nhiều phần tử, đóng gói bộ đệm, xử lý `finisher` và lựa chọn integrator phù hợp.
+If rejection signals are ignored, the gatherer may continue producing useless results or consuming input unnecessarily. If `false` is misunderstood as "the element just pushed was rejected", the program may try to re-emit elements, produce duplicate outputs, or violate the termination contract. This lesson builds from small examples to gatherers emitting multiple elements, packaging buffers, handling `finisher`, and choosing the right integrator.
 
-> **Yêu cầu JDK:** Stream Gatherers là API chính thức từ **Java 24** (JEP 485); từng xuất hiện dưới dạng preview ở Java 22 và 23. Ví dụ hoàn chỉnh trong bài nhắm **JDK 24+**, không có trong Java 8, 11, 17 hoặc 21 tiêu chuẩn. Chạy ví dụ trên JDK 24+ không cần bật preview.
+> **JDK Requirement:** Stream Gatherers are an official API starting in **Java 24** (JEP 485); they previously appeared as preview features in Java 22 and 23. Complete examples in this lesson target **JDK 24+**, and are not present in standard Java 8, 11, 17, or 21. Running examples on JDK 24+ does not require enabling preview.
 
-## 1. Vị trí của Downstream trong một gatherer
+## 1. Position of Downstream in a Gatherer
 
-Một pipeline có thể trông như sau:
+A pipeline might look like this:
 
 ~~~java
 List<Integer> result = Stream.of(1, 2, 3)
@@ -19,48 +19,48 @@ List<Integer> result = Stream.of(1, 2, 3)
         .toList();
 ~~~
 
-Nếu `myGatherer()` phát ra hai kết quả cho mỗi phần tử nhận vào, kết quả cuối có thể được giới hạn ở ba phần tử. Gatherer cần biết khi nào **bước phía sau không cần thêm kết quả**.
+If `myGatherer()` emits two results per input element, the final result may be capped at three elements. The gatherer needs to know when **the next stage no longer needs additional results**.
 
-Sơ đồ luồng dữ liệu:
+Data flow diagram:
 
 ~~~text
-Nguồn Stream<T>
+Source Stream<T>
       |
       v
   Gatherer<T, A, R>
       |
-      +-- initializer(): tạo state A (nếu cần)
+      +-- initializer(): creates state A (if needed)
       |
       +-- integrator(state, T, downstream)
       |        |
       |        +---- downstream.push(R)
       |                    |
       |                    v
-      |             Bước tiếp theo
+      |               Next stage
       |           (limit / map / collect ...)
       |                    |
       |               boolean
       |              /       \
       |            true      false
-      |        nhận tiếp    không nhận thêm
+      |        accept more   no more wanted
       |
-      +-- finisher(state, downstream) (nếu có)
+      +-- finisher(state, downstream) (if any)
 ~~~
 
-Bốn thành phần tạo nên hợp đồng tổng quát của `Gatherer<T, A, R>`:
+Four components make up the general contract of `Gatherer<T, A, R>`:
 
-| Thành phần | Chức năng | Có bắt buộc tự viết không? |
+| Component | Function | Must you write it yourself? |
 | --- | --- | --- |
-| `initializer` | Tạo trạng thái tích lũy `A` | Không, gatherer không trạng thái có thể dùng dạng tiện ích |
-| `integrator` | Xử lý một phần tử `T`; tùy ý đẩy ra các kết quả `R` | Có, là logic xử lý trung tâm |
-| `combiner` | Gộp trạng thái khi triển khai song song | Không; gatherer tuần tự có thể không hỗ trợ gộp |
-| `finisher` | Xử lý dữ liệu còn lại khi kết thúc nguồn | Không; chỉ dùng khi cần phát kết quả cuối hoặc dọn logic trạng thái |
+| `initializer` | Creates accumulation state `A` | No, a stateless gatherer can use convenience factories |
+| `integrator` | Processes one element `T`; optionally pushes results `R` | Yes, it is the core processing logic |
+| `combiner` | Merges states during parallel execution | No; sequential gatherers need not support merging |
+| `finisher` | Processes remaining data when the source ends | No; only used when final emissions or state cleanup are needed |
 
-`Downstream<? super R>` là đối tượng đại diện cho **bước kế tiếp trong pipeline**, chứ không phải một `List` hay `Consumer` do ứng dụng tự tạo. Gatherer có thể gọi `push` nhiều lần trong một invocation của integrator, hoặc không gọi lần nào.
+`Downstream<? super R>` is an object representing **the next stage in the pipeline**, not an application-created `List` or `Consumer`. A gatherer can call `push` multiple times during a single integrator invocation, or not at all.
 
-## 2. Hợp đồng chính xác của Downstream.push
+## 2. The Exact Contract of Downstream.push
 
-Trong Java 24, giao diện `Gatherer.Downstream<T>` có hai thao tác liên quan:
+In Java 24, the `Gatherer.Downstream<T>` interface has two related operations:
 
 ~~~java
 boolean push(T element);
@@ -68,28 +68,28 @@ boolean push(T element);
 default boolean isRejecting();
 ~~~
 
-Ý nghĩa của `push(element)`:
+Meaning of `push(element)`:
 
-- Gatherer **đề xuất chuyển phần tử `element`** cho downstream.
-- Nếu kết quả là `true`, downstream **vẫn có thể nhận thêm** kết quả.
-- Nếu kết quả là `false`, downstream **không muốn nhận thêm kết quả**; các lần gọi `push` tiếp theo trên cùng downstream sẽ tiếp tục trả `false`.
-- **Không suy ra phần tử vừa truyền bị loại** chỉ vì `push` trả `false`. Downstream có thể đã nhận phần tử đó rồi, và chính phần tử vừa nhận là phần tử cuối đáp ứng một giới hạn.
-- Khi đã nhận `false`, gatherer nên **ngừng tạo/push thêm phần tử**, đồng thời truyền tín hiệu dừng ngược về upstream nếu không còn việc gì cần nhận thêm.
+- The gatherer **offers `element`** to downstream.
+- If the result is `true`, downstream **can still accept more** results.
+- If the result is `false`, downstream **does not want any more results**; subsequent `push` calls on the same downstream will continue returning `false`.
+- **Do not infer that the element just passed was dropped** solely because `push` returned `false`. Downstream may have accepted that element, and that exact element may have been the final one satisfying a limit.
+- Once `false` has been received, the gatherer should **stop creating/pushing more elements**, while propagating the stop signal upstream if there is nothing further to consume.
 
-Ví dụ với `limit(3)`: downstream có thể nhận phần tử thứ ba, sau đó báo `false` vì đã đủ ba phần tử. Nếu gatherer cho rằng phần tử thứ ba chưa được gửi rồi cố gửi lại, nó đang diễn giải tín hiệu sai.
+For example, with `limit(3)`: downstream may accept the third element and then return `false` because three elements have now been reached. If the gatherer assumes the third element was not sent and tries to send it again, it is misinterpreting the signal.
 
-| Kết quả của `push(value)` | Cách hiểu | Hướng xử lý thông thường |
+| Result of `push(value)` | Interpretation | Typical Action |
 | --- | --- | --- |
-| `true` | Vẫn có thể chuyển **thêm** kết quả | Tiếp tục logic nếu còn đầu ra hoặc đầu vào |
-| `false` | Downstream không cần thêm kết quả | Dừng phát thêm, báo ngược rằng không cần tiếp tục |
-| `false` ở lần push đầu | Downstream không cần nhận thêm sau lần này | Không tự suy rằng giá trị đầu đã bị mất |
-| Tiếp tục gọi sau `false` | Các lời gọi sau vẫn trả `false` | Tránh vì chỉ gây công việc thừa |
+| `true` | Can still pass **more** results | Continue logic if more outputs or inputs remain |
+| `false` | Downstream needs no more results | Stop emitting further, signal upstream not to continue |
+| `false` on the first push | Downstream needs no more after this one | Do not assume the first value was lost |
+| Continuing to call after `false` | Subsequent calls also return `false` | Avoid as it only creates wasted work |
 
-Điểm tinh tế: `push` không phải giao thức "xác nhận ghi thành công vào cơ sở dữ liệu" hay "phần tử vừa gửi chắc chắn tồn tại trong một danh sách". Nó là **tín hiệu nhu cầu tiếp nhận tiếp theo** của pipeline. Nếu bước sau là một filter, có thể phần tử được xét rồi bị lọc; nếu là `limit`, phần tử vừa được xét có thể là phần tử cuối.
+A subtle point: `push` is not a protocol meaning "confirmed written to database" or "the sent element definitely exists in a list". It is a **signal of downstream demand**. If the next stage is a filter, the element may be inspected and then filtered out; if it is `limit`, the element just inspected may be the last one.
 
-## 3. Boolean của integrator khác boolean của push
+## 3. The Integrator's Boolean Differs from Push's Boolean
 
-Integrator có hợp đồng:
+The integrator has the contract:
 
 ~~~java
 boolean integrate(
@@ -98,44 +98,44 @@ boolean integrate(
         Gatherer.Downstream<? super R> downstream);
 ~~~
 
-Boolean mà **integrator trả về cho runtime** có ý nghĩa:
+The boolean that the **integrator returns to the runtime** means:
 
-- `true`: integrator còn muốn nhận phần tử **đầu vào tiếp theo**.
-- `false`: integrator muốn **ngừng nhận đầu vào tiếp theo**; thao tác gather có thể kết thúc sớm.
+- `true`: the integrator still wants to receive the **next input element**.
+- `false`: the integrator wants to **stop receiving further input elements**; the gather operation can terminate early.
 
-Hai tín hiệu thường liên quan nhưng không đồng nhất:
+The two signals are often related, yet not identical:
 
 ~~~text
 downstream.push(output) -> false
        |
        v
-Integrator nên return false
+Integrator should return false
        |
        v
-Runtime dừng cung cấp đầu vào mới cho gatherer
+Runtime stops supplying new inputs to the gatherer
 ~~~
 
-Tuy nhiên, integrator còn có thể **chủ động return false** vì chính điều kiện nghiệp vụ của nó, ngay cả khi downstream chưa từ chối. Ví dụ gatherer tự dừng sau khi gặp một mốc hoặc sau khi đã phát đủ `N` phần tử.
+However, an integrator can also **proactively return false** due to its own business condition, even before downstream rejects. For example, a gatherer stops on its own after hitting a marker or emitting `N` elements.
 
-Trường hợp không phát phần tử:
+Case where no element is emitted:
 
 ~~~java
 if (!shouldEmit(element)) {
-    return true; // Bỏ một đầu ra nhưng vẫn nhận đầu vào tiếp theo.
+    return true; // Skip an output, yet keep receiving next input.
 }
 ~~~
 
-Trường hợp phát một phần tử và không có chính sách dừng riêng:
+Case where one element is emitted and there is no custom stop policy:
 
 ~~~java
 return downstream.push(transform(element));
 ~~~
 
-Đây là cách truyền thẳng tín hiệu nhu cầu từ downstream tới upstream. **Không tự động dùng `return false` chỉ vì không phát kết quả**: như thế sẽ dừng cả nguồn thay vì chỉ lọc một phần tử.
+This directly forwards downstream's demand signal upstream. **Do not automatically `return false` merely because no result was emitted**: doing so stops the whole source instead of filtering a single element.
 
-## 4. Ví dụ nhỏ: phát một giá trị và chuyển tiếp tín hiệu
+## 4. Small Example: Emitting One Value and Forwarding the Signal
 
-Một gatherer không có trạng thái có thể được tạo bằng `Gatherer.ofSequential`:
+A stateless gatherer can be created with `Gatherer.ofSequential`:
 
 ~~~java
 import java.util.stream.Gatherer;
@@ -150,15 +150,15 @@ static Gatherer<Integer, Void, Integer> plusOne() {
 }
 ~~~
 
-Ý nghĩa kiểu:
+Type meanings:
 
-- Đầu vào `T = Integer`.
-- Không cần state nghiệp vụ nên kiểu trạng thái `A = Void`.
-- Đầu ra `R = Integer`.
-- `ofSequential` chọn gatherer xử lý theo chế độ tuần tự phù hợp với bài minh họa.
-- `Integrator.of(...)` tạo integrator có thể truyền tín hiệu dừng.
+- Input `T = Integer`.
+- No business state needed, so state type `A = Void`.
+- Output `R = Integer`.
+- `ofSequential` selects sequential evaluation suitable for this demonstration.
+- `Integrator.of(...)` creates an integrator capable of propagating stop signals.
 
-Dùng:
+Usage:
 
 ~~~java
 List<Integer> values = Stream.of(1, 2, 3)
@@ -168,7 +168,7 @@ List<Integer> values = Stream.of(1, 2, 3)
 // [2, 3, 4]
 ~~~
 
-Nếu downstream giới hạn đầu ra:
+If downstream limits output:
 
 ~~~java
 List<Integer> values = Stream.of(1, 2, 3)
@@ -179,11 +179,11 @@ List<Integer> values = Stream.of(1, 2, 3)
 // [2]
 ~~~
 
-Sau khi giá trị `2` được đẩy xuống và `limit(1)` đã có đủ kết quả, `push` có thể trả `false`; integrator chuyển `false` trở lại runtime để ngừng lấy thêm nguồn. Không nên thêm side effect vào `plusOne` rồi khẳng định mọi phần tử của Stream nguồn chắc chắn đã được xử lý.
+After `2` is pushed downstream and `limit(1)` has enough results, `push` may return `false`; the integrator returns `false` back to the runtime to stop fetching from the source. Do not add side effects inside `plusOne` and assert that every element of the source Stream was definitely processed.
 
-## 5. Phát nhiều kết quả: phải kiểm tra sau mỗi push
+## 5. Emitting Multiple Results: Check After Every push
 
-Ví dụ mỗi số nguyên sinh hai kết quả: chính số đó và số nhân mười.
+For example, each integer generates two results: the number itself and ten times the number.
 
 ~~~java
 static Gatherer<Integer, Void, Integer> expand() {
@@ -200,7 +200,7 @@ static Gatherer<Integer, Void, Integer> expand() {
 }
 ~~~
 
-Với nguồn `[1, 2, 3]`:
+With source `[1, 2, 3]`:
 
 ~~~java
 List<Integer> expanded = Stream.of(1, 2, 3)
@@ -211,7 +211,7 @@ System.out.println(expanded);
 // [1, 10, 2, 20, 3, 30]
 ~~~
 
-Khi thêm `limit(3)`:
+When adding `limit(3)`:
 
 ~~~java
 List<Integer> firstThree = Stream.of(1, 2, 3)
@@ -223,31 +223,31 @@ System.out.println(firstThree);
 // [1, 10, 2]
 ~~~
 
-Trình tự logic trong thực thi tuần tự:
+Logical sequence in sequential execution:
 
 ~~~text
 Input 1:
-  push(1)   -> downstream còn muốn nhận thêm
-  push(10)  -> downstream còn muốn nhận thêm
+  push(1)   -> downstream still wants more
+  push(10)  -> downstream still wants more
 
 Input 2:
-  push(2)   -> downstream đủ 3 kết quả; có thể trả false
-  KHÔNG push(20)
-  KHÔNG cần lấy thêm input 3
+  push(2)   -> downstream has 3 results; may return false
+  DO NOT push(20)
+  NO NEED to fetch input 3
 ~~~
 
-**Không nên viết**:
+**Do not write**:
 
 ~~~java
-// Sai về giao thức từ chối: vẫn cố phát tiếp sau khi bị từ chối.
+// Violates rejection protocol: keeps pushing after being rejected.
 downstream.push(value);
 downstream.push(value * 10);
 return true;
 ~~~
 
-Với downstream từ chối sớm, kết quả cuối có thể vẫn trông "đúng" do các `push` sau bị bỏ qua, nhưng gatherer đã làm thêm công việc không cần thiết và tiếp tục nhận đầu vào mà không có lý do. Nếu sinh kết quả liên quan đến I/O hoặc tính toán nặng, chi phí này đáng kể.
+With early rejection downstream, the final output might still look "right" because subsequent `push` calls are ignored, yet the gatherer performed unnecessary work and kept pulling input for no reason. If generating outputs involves I/O or heavy computation, this cost is significant.
 
-Dùng mẫu:
+Use this pattern:
 
 ~~~java
 if (!downstream.push(firstOutput)) {
@@ -257,11 +257,11 @@ if (!downstream.push(firstOutput)) {
 return downstream.push(secondOutput);
 ~~~
 
-Nếu có `N` đầu ra trong một vòng lặp, kiểm tra kết quả của **mỗi** `push` rồi thoát ngay khi gặp `false`.
+If there are `N` outputs in a loop, check the result of **every** `push` and exit immediately upon encountering `false`.
 
-## 6. Ví dụ hoàn chỉnh chạy trên Java 24+: phát nhiều, dừng downstream và dừng chủ động
+## 6. Complete Runnable Java 24+ Example: Multi-Emit, Downstream Stop, and Proactive Stop
 
-Chương trình `DownstreamPushDemo.java` dưới đây minh họa hai khả năng: downstream từ chối qua `limit` và gatherer tự dừng sau khi phát đủ số phần tử theo cấu hình.
+The program `DownstreamPushDemo.java` below demonstrates both possibilities: downstream rejecting via `limit` and a gatherer stopping on its own after emitting a configured count.
 
 ~~~java
 import java.util.List;
@@ -304,8 +304,8 @@ public class DownstreamPushDemo {
                             state.emitted++;
                             boolean wantsMore = downstream.push(number);
 
-                            // Dừng nếu chính Gatherer đạt giới hạn
-                            // HOẶC downstream không cần thêm dữ liệu.
+                            // Stop if the Gatherer itself reaches the limit
+                            // OR downstream needs no more data.
                             return wantsMore && state.emitted < max;
                         }
                 )
@@ -333,7 +333,7 @@ public class DownstreamPushDemo {
 }
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 [1, 10, 2, 20, 3, 30]
@@ -341,23 +341,23 @@ Kết quả:
 [1, 2]
 ~~~
 
-Chạy trên JDK 24+:
+Run on JDK 24+:
 
 ~~~bash
 javac --release 24 DownstreamPushDemo.java
 java DownstreamPushDemo
 ~~~
 
-Phân biệt hai tình huống trong mã:
+Distinguish the two scenarios in the code:
 
-- `limitedDownstream`: `expand` **không tự biết** giới hạn ba kết quả. Nó biết cần dừng khi `push` trả `false` do `limit(3)` phía sau.
-- `limitedGatherer`: `takeAtMost(2)` **tự chủ động dừng** sau khi phát hai phần tử, cho dù downstream sẵn sàng nhận thêm.
+- `limitedDownstream`: `expand` **does not know** the three-result limit itself. It knows to stop when `push` returns `false` due to `limit(3)` downstream.
+- `limitedGatherer`: `takeAtMost(2)` **proactively stops** after emitting two elements, even if downstream is still ready for more.
 
-**Lưu ý với `max == 0`:** gatherer `takeAtMost(0)` không phát gì nhưng có thể cần runtime đưa tới integrator một phần tử đầu vào để nó nhận ra phải trả `false`. Nếu yêu cầu là **không tiêu thụ bất kỳ phần tử upstream nào** khi giới hạn bằng 0, dùng `stream.limit(0)` hoặc thiết kế một nhánh trước khi bắt đầu pipeline; đừng khẳng định ví dụ gatherer này có thuộc tính zero-consumption.
+**Note on `max == 0`:** the `takeAtMost(0)` gatherer emits nothing, yet the runtime may need to pass one input element into the integrator for it to realize it must return `false`. If the requirement is **zero consumption of any upstream element** when the limit is 0, use `stream.limit(0)` or branch before starting the pipeline; do not claim this gatherer example has the zero-consumption property.
 
-## 7. Lọc phần tử: không push cũng không có nghĩa dừng
+## 7. Filtering Elements: Not Pushing Does Not Mean Stopping
 
-Gatherer có thể quyết định không phát gì với một đầu vào, tương tự `filter`. Khi bỏ qua một phần tử mà chưa có lý do dừng, integrator phải trả `true`.
+A gatherer can decide to emit nothing for an input, similar to `filter`. When skipping an element without a reason to stop, the integrator must return `true`.
 
 ~~~java
 static Gatherer<Integer, Void, Integer> evenOnly() {
@@ -374,7 +374,7 @@ static Gatherer<Integer, Void, Integer> evenOnly() {
 }
 ~~~
 
-Dùng:
+Usage:
 
 ~~~java
 List<Integer> evens = Stream.of(1, 2, 3, 4, 5, 6)
@@ -384,21 +384,21 @@ List<Integer> evens = Stream.of(1, 2, 3, 4, 5, 6)
 System.out.println(evens); // [2, 4, 6]
 ~~~
 
-Nếu viết `return false` cho số lẻ đầu tiên, pipeline có thể dừng ngay khi gặp `1` và không bao giờ đến `2`, `4` hoặc `6`.
+If you wrote `return false` for the first odd number, the pipeline could stop immediately upon seeing `1` and never reach `2`, `4`, or `6`.
 
-| Hành vi trong integrator | Giá trị trả về thường đúng |
+| Behavior inside integrator | Typically correct return value |
 | --- | --- |
-| Bỏ qua phần tử hiện tại nhưng còn muốn đọc tiếp | `true` |
-| Đẩy một phần tử; downstream vẫn nhận thêm | `true` từ `push` |
-| Đẩy một phần tử; downstream từ chối thêm | `false` từ `push` |
-| Đã đạt điều kiện kết thúc riêng của gatherer | `false` |
-| Chưa có đầu ra nhưng chưa đạt điều kiện kết thúc | `true` |
+| Skip current element yet still want to read more | `true` |
+| Push an element; downstream still accepts more | `true` from `push` |
+| Push an element; downstream rejects more | `false` from `push` |
+| Gatherer's own termination condition reached | `false` |
+| No output yet and termination condition not reached | `true` |
 
-**Quy tắc thiết kế:** Hãy hỏi "còn cần **phần tử nguồn tiếp theo** không?" để chọn boolean của integrator. Hãy hỏi "bước phía sau còn muốn **đầu ra tiếp theo** không?" để hiểu boolean của `push`.
+**Design rule:** Ask "do I still need the **next source element**?" to choose the integrator's boolean. Ask "does the next stage still want the **next output**?" to interpret `push`'s boolean.
 
-## 8. Phân biệt Integrator.of và Integrator.ofGreedy
+## 8. Distinguishing Integrator.of and Integrator.ofGreedy
 
-Java cung cấp:
+Java provides:
 
 ~~~java
 Gatherer.Integrator.of(integrator)
@@ -406,11 +406,11 @@ Gatherer.Integrator.of(integrator)
 Gatherer.Integrator.ofGreedy(greedyIntegrator)
 ~~~
 
-`Integrator.of` cho phép integrator **tự khởi tạo short-circuit** bằng cách trả `false`, kể cả khi downstream chưa từ chối.
+`Integrator.of` allows the integrator to **initiate short-circuiting itself** by returning `false`, even when downstream has not rejected.
 
-`Integrator.ofGreedy` mô tả một integrator **không tự ý dừng đọc nguồn**. Nó có thể trả `false` để **chuyển tiếp sự từ chối của downstream**, nhưng không được tự dừng vì một điều kiện nghiệp vụ riêng. Thông tin này giúp implementation tối ưu hóa pipeline phù hợp.
+`Integrator.ofGreedy` describes an integrator that **never stops reading the source on its own**. It may return `false` to **propagate downstream's rejection**, but must not stop on its own due to a private business condition. This information helps the implementation optimize the pipeline accordingly.
 
-Ví dụ integrator lọc giá trị trống nhưng vẫn duyệt đến hết nguồn (trừ khi downstream yêu cầu dừng):
+Example of an integrator that filters blank values yet still traverses to the end of the source (unless downstream asks to stop):
 
 ~~~java
 static Gatherer<String, Void, String> nonBlank() {
@@ -427,30 +427,30 @@ static Gatherer<String, Void, String> nonBlank() {
 }
 ~~~
 
-Đây là ví dụ dùng Java 24+ nên có thể sử dụng `String.isBlank()` (Java 11+).
+Because this example uses Java 24+, `String.isBlank()` (Java 11+) is available.
 
-Không dùng `ofGreedy` cho gatherer `takeAtMost` ở phần 6. Gatherer đó **có thể return false vì đã đạt giới hạn riêng**, ngay cả khi downstream còn sẵn sàng nhận, nên không phù hợp với lời cam kết "greedy".
+Do not use `ofGreedy` for the `takeAtMost` gatherer in section 6. That gatherer **can return false because its own limit is reached**, even when downstream is still willing to receive, so it does not satisfy the "greedy" promise.
 
-Một lưu ý: "greedy" không có nghĩa **phải phát ít nhất một kết quả cho mỗi input**. Một integrator greedy có thể lọc bỏ phần tử, tích lũy trong bộ đệm hoặc phát nhiều phần tử; nó chỉ không tự khởi tạo việc ngừng lấy đầu vào.
+Note: "greedy" does not mean **must emit at least one result per input**. A greedy integrator can filter elements out, accumulate in a buffer, or emit multiple elements; it simply does not initiate stopping input consumption on its own.
 
-## 9. isRejecting: khi nào cần và giới hạn bảo đảm
+## 9. isRejecting: When It Is Needed and Guarantee Limits
 
-Bên cạnh `push`, downstream có phương thức:
+Besides `push`, downstream has the method:
 
 ~~~java
 boolean isRejecting();
 ~~~
 
-Nó cho biết downstream **được biết là đang từ chối** nhận thêm phần tử hay không. Đây là một cơ chế **best-effort**:
+It indicates whether downstream **is known to be rejecting** further elements. This is a **best-effort** mechanism:
 
-- Khi `isRejecting()` trả `true`, downstream đã được biết là không cần thêm dữ liệu.
-- Khi trả `false`, **không nên suy ra chắc chắn** downstream sẽ nhận mọi lần `push` kế tiếp. Giao diện cho phép implementation mặc định luôn trả `false`.
-- Trong xử lý bình thường, kết quả của `push` là nguồn thông tin trực tiếp cần kiểm tra.
-- Một khi `push` đã trả `false`, các lần `push` sau trên cùng downstream cũng trả `false`; tránh làm những lần gọi dư thừa.
+- When `isRejecting()` returns `true`, downstream is already known to need no more data.
+- When it returns `false`, **you must not infer with certainty** that downstream will accept every subsequent `push`. The interface allows default implementations to always return `false`.
+- During normal processing, the return value of `push` is the direct source of truth to check.
+- Once `push` has returned `false`, later `push` calls on the same downstream also return `false`; avoid redundant calls.
 
-`isRejecting` đặc biệt hữu ích ở **finisher**, bởi vì finisher có thể được gọi sau khi quá trình tích lũy kết thúc mà downstream đã không cần thêm đầu ra.
+`isRejecting` is especially useful in the **finisher**, because the finisher may be called after accumulation ends when downstream no longer wants additional output.
 
-Ví dụ:
+Example:
 
 ~~~java
 (state, downstream) -> {
@@ -460,13 +460,13 @@ Ví dụ:
 }
 ~~~
 
-Mã này kiểm tra trước để tránh công việc phát còn sót **khi đã biết** downstream từ chối. Nhưng kết quả `false` của `isRejecting()` vẫn chỉ là tín hiệu best-effort; nếu có nhiều đầu ra trong finisher, phải kiểm tra kết quả `push` sau từng lần phát.
+This code checks upfront to avoid leftover emission work **when downstream is already known** to be rejecting. However, `isRejecting()` returning `false` is still only a best-effort signal; if emitting multiple outputs in the finisher, check the `push` result after each emission.
 
-**Không dùng `isRejecting` làm điều kiện thay thế cho mọi `push`**, hoặc dùng nó như một khóa đồng bộ hóa giữa các luồng. Nó là cơ chế thông báo nhu cầu trong pipeline, không phải API điều phối thread.
+**Do not use `isRejecting` as a replacement for checking `push`**, or use it like a synchronization lock across threads. It is a pipeline demand notification mechanism, not a thread coordination API.
 
-## 10. Finisher phát phần còn lại: kiểm tra downstream trước khi đẩy
+## 10. Finisher Emitting Remaining Items: Check Downstream Before Pushing
 
-Gatherer có trạng thái thường tích lũy một phần dữ liệu rồi phát ra kết quả. Ví dụ, gom từng **hai** số thành một danh sách; khi nguồn hết mà còn một số lẻ, finisher phát nhóm cuối.
+Stateful gatherers often accumulate part of the data before emitting results. For example, grouping every **two** numbers into a list; when the source ends with an odd number left over, the finisher emits the final group.
 
 ~~~java
 import java.util.ArrayList;
@@ -494,8 +494,8 @@ public class BatchGathererDemo {
                                     return true;
                                 }
 
-                                // Sao chép trước khi xóa để không
-                                // lộ buffer mutable ra ngoài.
+                                // Copy before clearing so the mutable
+                                // buffer does not leak externally.
                                 List<Integer> batch = List.copyOf(buffer);
                                 buffer.clear();
 
@@ -503,8 +503,8 @@ public class BatchGathererDemo {
                             }
                     ),
                     (buffer, downstream) -> {
-                        // Có thể còn một nhóm chưa đủ size.
-                        // Tránh phát nếu biết downstream từ chối.
+                        // A partial group smaller than size may remain.
+                        // Avoid emitting if downstream is known to reject.
                         if (!buffer.isEmpty() &&
                                 !downstream.isRejecting()) {
                             downstream.push(List.copyOf(buffer));
@@ -529,39 +529,39 @@ public class BatchGathererDemo {
 }
 ~~~
 
-Với danh sách năm phần tử, integrator phát hai nhóm đủ cỡ `[1,2]`, `[3,4]`, rồi finisher phát `[5]`. Kết quả không cần giữ toàn bộ nguồn, chỉ giữ bộ đệm tối đa `size` phần tử trong quá trình tích lũy.
+With a five-element list, the integrator emits two full-sized groups `[1,2]`, `[3,4]`, and then the finisher emits `[5]`. The computation does not need to hold the entire source, only a buffer of at most `size` elements during accumulation.
 
-Với `limit(1)`, downstream chỉ cần nhóm `[1,2]`. `push([1,2])` có thể trả `false`; integrator trả `false`, nguồn không cần được tiêu thụ tiếp cho gatherer. Nếu finisher được gọi sau một lượt xử lý đã dừng, nó không được cố phát thêm nhóm không cần thiết.
+With `limit(1)`, downstream only needs `[1,2]`. `push([1,2])` may return `false`; the integrator returns `false`, so the source does not need to be consumed further for the gatherer. If the finisher is invoked after a stopped pass, it must not attempt to emit unnecessary extra groups.
 
-**Chi tiết kỹ thuật quan trọng:** `List.copyOf(buffer)` tạo danh sách đầu ra không sửa đổi được; nhờ đó lần `buffer.clear()` tiếp theo không làm thay đổi nhóm đã phát. Cách này chỉ chấp nhận các phần tử không `null`; ví dụ dùng `Integer` có giá trị hợp lệ.
+**Important technical detail:** `List.copyOf(buffer)` creates an unmodifiable output list; therefore the subsequent `buffer.clear()` does not alter already-emitted groups. This approach only accepts non-`null` elements; the example uses valid `Integer` values.
 
-Cách làm trên ưu tiên minh họa **giao thức downstream và quyền sở hữu buffer**. Nếu hệ thống cần chia batch song song hiệu quả theo cách vẫn giữ ranh giới encounter order, phải thiết kế thêm semantics của combiner và các quy tắc kết hợp trạng thái — không chỉ thay `ofSequential` bằng `of`.
+The implementation above prioritizes illustrating **the downstream protocol and buffer ownership**. If a system needs efficient parallel batching while preserving encounter-order boundaries, you must additionally design combiner semantics and state-merging rules — not merely replace `ofSequential` with `of`.
 
-## 11. Không giữ tham chiếu Downstream cho lần gọi sau
+## 11. Do Not Retain a Downstream Reference for Later Calls
 
-Một đối tượng `Gatherer.Downstream` chỉ có ý nghĩa trong **phạm vi lời gọi callback** mà implementation cung cấp. Không cất nó vào một trường để sử dụng trong thread khác, callback bất đồng bộ, task nền hoặc sau khi `integrate`/`finisher` đã trả về.
+A `Gatherer.Downstream` object is only valid within **the scope of the callback invocation** supplied by the implementation. Never store it in a field for use on another thread, in an async callback, in a background task, or after `integrate`/`finisher` has returned.
 
-**Sai ý tưởng:**
+**Wrong idea:**
 
 ~~~java
-// Đừng làm thế này trong state của gatherer:
+// Do not do this inside gatherer state:
 state.savedDownstream = downstream;
 
-// ... hoặc gửi downstream vào một task khác rồi gọi push sau.
+// ... or pass downstream to another task and call push later.
 ~~~
 
-Lý do:
+Reasons:
 
-1. API không cấp quyền sở hữu lâu dài đối với downstream.
-2. Runtime có thể thay đổi trạng thái xử lý và dừng pipeline sau khi callback kết thúc.
-3. Việc giữ lại/downstream và truy cập từ luồng khác phá giả định quản lý phân vùng và kết hợp của Gatherer.
-4. Tín hiệu từ chối có thể đã thay đổi; công việc phát ra muộn không còn hợp đồng hợp lệ.
+1. The API does not grant long-lived ownership of downstream.
+2. The runtime may change execution state and stop the pipeline after the callback ends.
+3. Retaining downstream and accessing it from another thread breaks Gatherer's partitioning and combining assumptions.
+4. Rejection signals may have changed; late emissions no longer have a valid contract.
 
-Nếu cần xử lý bất đồng bộ, phải thiết kế một cơ chế queue, cancellation, lifecycle và điều phối riêng phù hợp với ứng dụng. Không biến `Gatherer.Downstream` thành một API push bất đồng bộ đa luồng tự do.
+If asynchronous processing is required, design dedicated queueing, cancellation, lifecycle, and coordination mechanisms tailored to the application. Never turn `Gatherer.Downstream` into an arbitrary multi-threaded async push API.
 
-## 12. Một đầu vào tạo nhiều đầu ra: tránh lãng phí sau khi bị từ chối
+## 12. One Input Producing Multiple Outputs: Avoid Waste After Rejection
 
-Giả sử mỗi sự kiện cần tạo nhiều chuỗi kết quả:
+Suppose each event needs to produce multiple result strings:
 
 ~~~java
 static Gatherer<String, Void, String> variants() {
@@ -583,11 +583,11 @@ static Gatherer<String, Void, String> variants() {
 }
 ~~~
 
-Điểm tối ưu ở đây không chỉ là tránh `push` thứ hai. Ta còn **không tính `upper` nếu downstream đã đủ kết quả sau `normalized`**. Khi tạo đầu ra tốn CPU, cấp phát nhiều object hoặc gọi một thao tác có chi phí cao, thứ tự này quan trọng.
+The optimization here is not only avoiding the second `push`. We also **avoid computing `upper` if downstream already had enough results after `normalized`**. When generating outputs is CPU-intensive, allocates many objects, or calls an expensive operation, this ordering matters.
 
-Nếu không biết trước downstream cần bao nhiêu kết quả, đừng tạo một `List` chứa hàng nghìn biến thể trước rồi mới cố đẩy. Có thể sinh từng giá trị và kiểm tra `push` ngay, miễn việc sinh đó đúng hợp đồng và không dựa vào side effect bị bỏ dở.
+If you do not know upfront how many results downstream needs, do not build a `List` of thousands of variants first before attempting to push. Generate each value lazily and check `push` immediately, provided that generation obeys the contract and does not depend on abandoned side effects.
 
-Ví dụ mẫu khi mỗi phần tử có một collection các kết quả con:
+Example pattern when each element has a collection of sub-results:
 
 ~~~java
 for (String candidate : candidates) {
@@ -598,28 +598,28 @@ for (String candidate : candidates) {
 return true;
 ~~~
 
-Với nguồn con từ I/O hoặc `Stream` có tài nguyên, phải đóng tài nguyên đó đúng phạm vi, kể cả khi gặp `push == false` và thoát sớm. `push` không tự đóng `Files.lines`, `Scanner` hay HTTP cursor được mở trong mã người dùng.
+For sub-sources from I/O or resource-backed `Stream`s, close those resources in the proper scope even when encountering `push == false` and returning early. `push` does not automatically close `Files.lines`, `Scanner`, or HTTP cursors opened in user code.
 
-## 13. Phân biệt rejection, short-circuit và exception
+## 13. Distinguishing Rejection, Short-Circuiting, and Exceptions
 
-Các tình huống sau không giống nhau:
+The following scenarios are not the same:
 
-| Tình huống | Tín hiệu / hành vi | Cách hiểu |
+| Scenario | Signal / Behavior | Interpretation |
 | --- | --- | --- |
-| Downstream đã đủ đầu ra | `push(...) == false` | Không cần push thêm |
-| Gatherer đạt ngưỡng riêng | `integrator returns false` | Không cần lấy input tiếp theo |
-| Một đầu vào bị lọc | Không push; `integrator returns true` | Tiếp tục xử lý đầu vào khác |
-| Mapper hoặc integrator ném exception | Pipeline thất bại | Cần báo lỗi và giải phóng tài nguyên theo vòng đời |
-| Finisher còn dữ liệu khi downstream rejecting | `isRejecting()` có thể true | Không cố phát giá trị dư |
-| Terminal hoàn tất bình thường | Kết quả được tạo xong | Không đồng nghĩa với việc Stream I/O tự đóng |
+| Downstream has enough output | `push(...) == false` | No need to push more |
+| Gatherer reaches its own threshold | `integrator returns false` | No need to pull next input |
+| An input is filtered out | No push; `integrator returns true` | Continue processing other inputs |
+| Mapper or integrator throws an exception | Pipeline fails | Report error and release resources per lifecycle |
+| Finisher has data when downstream is rejecting | `isRejecting()` may be true | Do not try to emit excess values |
+| Terminal completes normally | Result is produced | Does not imply I/O Streams auto-close |
 
-Một gatherer **không nên coi từ chối downstream là lỗi** và ném exception chỉ vì `push` trả `false`. Đó thường là **cơ chế kết thúc bình thường** khi pipeline đã có đủ dữ liệu.
+A gatherer **must not treat downstream rejection as an error** and throw an exception just because `push` returns `false`. That is usually **normal termination** when the pipeline already has enough data.
 
-Ngược lại, nếu một hàm biến đổi không thể xử lý dữ liệu vì lỗi nghiệp vụ, không được che lỗi bằng cách `return false`: caller sẽ hiểu pipeline **kết thúc bình thường**, có thể công bố kết quả thiếu dữ liệu. Hãy sử dụng cơ chế báo lỗi rõ ràng nếu đó là failure.
+Conversely, if a transformation function cannot process data due to a business error, never mask the error by doing `return false`: the caller would interpret the pipeline as having **completed normally**, potentially publishing incomplete results. Use explicit error reporting if it is a failure.
 
-## 14. Hành vi với limit(0), findFirst, takeWhile và downstream lồng nhau
+## 14. Behavior with limit(0), findFirst, takeWhile, and Chained Downstream
 
-Một gatherer tùy biến không thể giả định terminal operation luôn duyệt toàn bộ nguồn.
+A custom gatherer cannot assume the terminal operation always traverses the entire source.
 
 ### `limit(0)`
 
@@ -632,7 +632,7 @@ List<Integer> none = Stream.of(1, 2, 3)
 // []
 ~~~
 
-Downstream đã biết không cần đầu ra. Runtime có thể tối ưu để không gọi integrator; không được dựa vào callback `integrate` luôn chạy ít nhất một lần.
+Downstream already knows it needs zero outputs. The runtime may optimize by never calling the integrator; never rely on the `integrate` callback always running at least once.
 
 ### `findFirst`
 
@@ -645,7 +645,7 @@ int first = Stream.of(1, 2, 3)
 // 1
 ~~~
 
-Khi kết quả đầu tiên đáp ứng yêu cầu, downstream không cần thêm. Gatherer không nên tạo đầu ra thứ hai hay đọc input sau chỉ để phục vụ một terminal operation đã hoàn tất.
+Once the first result satisfies the requirement, downstream needs no more. The gatherer should not generate a second output or read later inputs just to serve an already-completed terminal operation.
 
 ### `takeWhile`
 
@@ -658,9 +658,9 @@ List<Integer> prefix = Stream.of(1, 2, 3, 4)
 // [1, 10, 2]
 ~~~
 
-Dãy logic sau gatherer là `[1,10,2,20,3,30,4,40]`. `takeWhile(n -> n < 15)` dừng tại `20`, chỉ giữ `[1,10,2]`. Giá trị `20` **không nằm trong kết quả**, nhưng đã được đưa tới downstream để kiểm tra predicate. Đây là ví dụ vì sao `push(false)` **không nói lên phần tử vừa đẩy có thuộc kết quả hay không** — điều đó phụ thuộc bước downstream.
+The logical sequence after the gatherer is `[1,10,2,20,3,30,4,40]`. `takeWhile(n -> n < 15)` stops at `20`, keeping only `[1,10,2]`. The value `20` **is not in the result**, yet it was delivered to downstream to evaluate the predicate. This illustrates why `push` returning `false` **does not tell you whether the pushed element belongs in the final result** — that depends on downstream steps.
 
-### Gatherer ghép tiếp gatherer
+### Gatherer Chained into Another Gatherer
 
 ~~~java
 List<Integer> result = Stream.of(1, 2, 3, 4)
@@ -671,24 +671,24 @@ List<Integer> result = Stream.of(1, 2, 3, 4)
 // [1, 10, 2]
 ~~~
 
-Tín hiệu dừng có thể truyền qua nhiều tầng: gatherer `takeAtMost(3)` ngừng nhận sau ba kết quả, khiến gatherer `expand` phía trước không phải sinh thêm. Không nên giả định mỗi gatherer hoạt động độc lập về nhu cầu tiêu thụ.
+Stop signals can propagate across multiple layers: the `takeAtMost(3)` gatherer stops accepting after three results, preventing the upstream `expand` gatherer from generating more. Do not assume each gatherer operates independently with respect to consumption demand.
 
-## 15. Song song hóa và tín hiệu từ chối: đừng hứa điều API không cam kết
+## 15. Parallelization and Rejection Signals: Do Not Promise What the API Doesn't
 
-Các ví dụ trong bài dùng `Gatherer.ofSequential` để mô tả hành vi rõ ràng trên nguồn có thứ tự. Khi nguồn gọi `parallel()`, tính đúng còn phụ thuộc kiểu gatherer và hợp đồng kết hợp trạng thái.
+Examples in this lesson use `Gatherer.ofSequential` to demonstrate clear behavior on ordered sources. When the source calls `parallel()`, correctness also depends on the gatherer kind and state-combining contract.
 
-- Gatherer có `defaultCombiner()` được xử lý theo cơ chế tuần tự của Gatherer, **không trở thành song song hiệu quả** chỉ nhờ upstream `parallel()`.
-- Muốn parallel hóa một gatherer có state, cần thiết kế `initializer` độc lập theo phân vùng và `combiner` đúng, đặc biệt khi kết quả phụ thuộc encounter order.
-- Với gatherer có thể short-circuit, runtime phải quản lý các phân vùng và đầu ra theo hợp đồng Stream/Gatherer. **Không giả định số lượng callback, thứ tự callback hay tác dụng phụ tương đương một vòng lặp tuần tự**.
-- `push == false` vẫn có nghĩa "downstream không muốn nhận thêm"; không được suy rằng mọi tác vụ upstream ở các phân vùng khác đã dừng tức thời.
-- Lambda gọi `push` phải hoàn tất trong phạm vi invocation của nó; không giữ downstream để đẩy từ thread khác.
-- Tránh side effect cần đúng một lần hoặc có giao dịch trong integrator; short-circuit và parallelism làm số lần thực hiện tác dụng phụ khó suy luận.
+- A gatherer with `defaultCombiner()` is evaluated under Gatherer's sequential mechanism, and **does not become effectively parallel** just because upstream called `parallel()`.
+- To parallelize a stateful gatherer, design partition-independent `initializer` and a valid `combiner`, especially when output depends on encounter order.
+- For short-circuiting gatherers, the runtime must manage partitions and outputs according to Stream/Gatherer contracts. **Do not assume callback counts, callback order, or side effects match a sequential loop**.
+- `push == false` still means "downstream wants no more"; do not assume every upstream task in other partitions stops instantaneously.
+- Lambdas calling `push` must finish within their invocation scope; do not save downstream to push from another thread.
+- Avoid side effects requiring exactly-once or transactional execution inside an integrator; short-circuiting and parallelism make side-effect counts hard to predict.
 
-Trong thực tế, bắt đầu với gatherer tuần tự đúng hợp đồng, đo lường, rồi mới cân nhắc triển khai kết hợp song song. Một gatherer trả đúng `List` trên 10 phần tử không đủ chứng minh an toàn song song trên hàng triệu bản ghi.
+In practice, start with a contract-correct sequential gatherer, measure, and only then consider parallel combiner designs. A gatherer returning the right `List` on 10 elements is not proof of parallel safety on millions of records.
 
-## 16. Tài nguyên I/O và việc hủy sớm
+## 16. I/O Resources and Early Cancellation
 
-Khi upstream đọc tệp bằng `Files.lines`, việc downstream từ chối sớm **không tự đóng nguồn**. Cần `try-with-resources`:
+When upstream reads a file via `Files.lines`, early downstream rejection **does not close the source automatically**. Use `try-with-resources`:
 
 ~~~java
 import java.io.IOException;
@@ -710,45 +710,45 @@ static List<Integer> firstNumbers(Path path) throws IOException {
 }
 ~~~
 
-Ở đây `expand()` là phương thức trong cùng lớp của ví dụ `DownstreamPushDemo`. Nếu đặt mã trong lớp khác, cần gọi đúng tên lớp hoặc truyền Gatherer từ bên ngoài.
+Here `expand()` is the method in the same class as the `DownstreamPushDemo` example. If placed in another class, qualify with the class name or pass the Gatherer in from outside.
 
-`limit(3)` làm pipeline có thể dừng sớm, nhưng **`Files.lines` vẫn cần được đóng** khi ra khỏi khối `try`. Nếu `Integer.parseInt` ném `NumberFormatException`, `try-with-resources` vẫn gọi `close()` trước khi exception được truyền ra ngoài.
+`limit(3)` enables the pipeline to stop early, yet **`Files.lines` still needs to be closed** upon exiting the `try` block. If `Integer.parseInt` throws `NumberFormatException`, `try-with-resources` still calls `close()` before propagating the exception.
 
-Nếu integrator mở tài nguyên riêng cho từng input, đừng đợi một callback `onClose` không chắc đã được gọi theo cách bạn mong muốn. Hãy quản lý từng nguồn trong phạm vi `try-with-resources` hoặc thiết kế quyền sở hữu tài nguyên rõ ràng. Từ chối downstream là cơ chế kết thúc **nhu cầu dữ liệu**, không phải một cơ chế đóng file/transaction.
+If an integrator opens a separate resource per input, do not wait for an `onClose` callback that may not be invoked as you expect. Manage each resource inside `try-with-resources` or design clear resource ownership. Downstream rejection is a mechanism to end **data demand**, not a file/transaction closing mechanism.
 
-## 17. Các lỗi thường gặp và cách sửa
+## 17. Common Mistakes and How to Fix Them
 
-| Dấu hiệu | Nguyên nhân | Cách xử lý |
+| Symptom | Cause | Fix |
 | --- | --- | --- |
-| Pipeline vẫn xử lý nhiều input sau khi `limit` đã đủ | Integrator bỏ qua `push == false` và luôn `return true` | Trả ngay `false` khi downstream từ chối |
-| Phát thừa giá trị thứ hai trong gatherer một-nhiều | Không kiểm tra kết quả của lần `push` đầu | Kiểm tra sau từng `push`, dùng early return |
-| `return false` cho phần tử bị lọc | Nhầm "không phát" với "ngừng đọc nguồn" | Không push và `return true` |
-| Mất phần tử cuối khi `push` trả `false` | Hiểu sai rằng phần tử vừa push chắc chắn bị từ chối | Không phát bù; boolean chỉ nói về việc nhận thêm |
-| Phát thêm batch trong finisher sau khi đã đủ `limit` | Không kiểm tra trạng thái downstream | Dùng `isRejecting` best-effort, tránh phát khi biết rejecting |
-| `isRejecting() == false` nhưng `push` vẫn trả `false` | `isRejecting` chỉ best-effort | Dựa vào kết quả `push` để quyết định dừng |
-| `ofGreedy` chủ động dừng vì đạt ngưỡng | Vi phạm cam kết greedy | Dùng `Integrator.of` cho short-circuit riêng |
-| Kết quả cũ bị thay đổi sau khi batch mới hình thành | Phát tham chiếu tới buffer mutable rồi `clear()` | Copy snapshot trước khi push |
-| Thread khác gọi `push` sau khi callback đã kết thúc | Giữ Downstream trong state hoặc task bất đồng bộ | Chỉ dùng Downstream trong phạm vi callback |
-| Một phần I/O bị giữ mở sau `findFirst` | Short-circuit không đồng nghĩa đóng nguồn | Dùng `try-with-resources` |
-| Chuyển sang parallel khiến thứ tự/hiệu năng khó đoán | Thiếu thiết kế combiner và encounter order | Bắt đầu `ofSequential`; thiết kế song song riêng nếu cần |
-| Báo lỗi bằng `return false` | Lẫn lộn kết thúc bình thường với lỗi nghiệp vụ | Ném/ghi nhận lỗi đúng cơ chế của ứng dụng |
+| Pipeline keeps processing inputs after `limit` is satisfied | Integrator ignores `push == false` and always does `return true` | Immediately return `false` when downstream rejects |
+| Emits superfluous second value in one-to-many gatherer | Does not check result of the first `push` | Check after each `push`, use early return |
+| `return false` for a filtered-out element | Confuses "do not emit" with "stop reading source" | Do not push and `return true` |
+| Missing last element when `push` returns `false` | Misunderstands `push == false` as rejecting the pushed value itself | Do not re-emit; boolean is about accepting *more* |
+| Finisher emits an extra batch after `limit` was met | Does not check downstream state | Use best-effort `isRejecting`, avoid emitting when known rejecting |
+| `isRejecting() == false` yet `push` returns `false` | `isRejecting` is only best-effort | Rely on `push` return value to decide stopping |
+| `ofGreedy` proactively stops on its own threshold | Violates greedy contract | Use `Integrator.of` for custom short-circuiting |
+| Previously emitted result mutates when new batch forms | Pushed reference to mutable buffer then called `clear()` | Copy a snapshot before pushing |
+| Another thread calls `push` after callback ended | Stored Downstream in state or async task | Use Downstream only within callback scope |
+| I/O handle stays open after `findFirst` | Short-circuiting does not close sources | Use `try-with-resources` |
+| Switching to parallel makes order/performance unpredictable | Missing combiner design and encounter-order handling | Start with `ofSequential`; design parallelism separately if needed |
+| Reporting errors by doing `return false` | Confuses normal completion with business failure | Throw/record errors using proper application mechanisms |
 
-## 18. Chiến lược kiểm thử gatherer
+## 18. Gatherer Testing Strategy
 
-Một bộ kiểm thử tốt phải kiểm tra cả **giá trị đầu ra** lẫn **hành vi ngừng phát/ngừng tiêu thụ**:
+A good test suite must verify both **output values** and **stop-emitting/stop-consuming behavior**:
 
-1. **Nguồn rỗng:** không phát kết quả khi không có input; finisher chỉ phát nếu có dữ liệu cần hoàn tất.
-2. **Một input → một output:** `push` được chuyển tiếp đúng.
-3. **Một input → nhiều output:** giữ thứ tự kết quả trong pipeline tuần tự có encounter order.
-4. **Một input → không output:** không vô tình dừng toàn bộ nguồn.
-5. **`limit(0)`, `limit(1)`, `limit(k)`:** không phát quá số lượng downstream cần.
-6. **`findFirst`, `takeWhile`:** đúng phần tử đầu/tiền tố, không sinh thêm kết quả vô ích sau khi biết từ chối.
-7. **Gatherer tự dừng:** ngừng sau điều kiện riêng mà không cần chờ downstream từ chối.
-8. **Finisher có buffer:** phát phần còn lại khi thích hợp, không phát dư khi downstream đã đủ dữ liệu.
-9. **Input có lỗi hoặc I/O:** exception không bị chuyển thành thành công giả, nguồn được đóng.
-10. **Trạng thái/parallel:** không chia sẻ state mutable hoặc giữ downstream vượt quá phạm vi callback.
+1. **Empty source:** emits no results when there is no input; finisher only emits if there is data to finalize.
+2. **One input → one output:** `push` is forwarded properly.
+3. **One input → multiple outputs:** preserves output order in sequential pipelines with encounter order.
+4. **One input → zero outputs:** does not accidentally stop the entire source.
+5. **`limit(0)`, `limit(1)`, `limit(k)`:** does not emit more than downstream requires.
+6. **`findFirst`, `takeWhile`:** returns the exact first element/prefix without generating needless extra outputs after rejection.
+7. **Self-stopping gatherer:** stops upon its own condition without waiting for downstream rejection.
+8. **Finisher with buffer:** emits remainder when appropriate, does not emit extra when downstream already has enough.
+9. **Failing inputs or I/O:** exceptions are not silently turned into fake success; sources are closed.
+10. **State/parallel:** does not share mutable state or retain downstream beyond callback scope.
 
-Ví dụ những phép kiểm tra đơn giản trên JDK 24+:
+Examples of simple checks on JDK 24+:
 
 ~~~java
 List<Integer> all = Stream.of(1, 2, 3)
@@ -772,11 +772,11 @@ if (!all.equals(List.of(1, 10, 2, 20, 3, 30))
 }
 ~~~
 
-Những kiểm tra này giúp phát hiện sai nội dung, nhưng **không tự chứng minh** gatherer không tạo công việc thừa bên trong. Để xem xét hiệu năng, dùng một mapper tính toán có bộ đếm **chỉ trong môi trường kiểm thử**, hoặc mô phỏng downstream từ chối theo hợp đồng. Không biến side effect quan sát được thành thành phần của logic sản xuất.
+These checks catch wrong outputs, yet **do not by themselves prove** the gatherer avoids wasted internal work. To inspect work done, use a counting mapper **strictly in test code**, or simulate downstream rejection per contract. Never turn observable side effects into part of production logic.
 
-## 19. Bài tập thực hành
+## 19. Practice Exercises
 
-### Bài 1 — Dự đoán output và tín hiệu từ chối
+### Exercise 1 — Predict Output and Rejection Signal
 
 ~~~java
 List<Integer> result = Stream.of(3, 4)
@@ -785,9 +785,9 @@ List<Integer> result = Stream.of(3, 4)
         .toList();
 ~~~
 
-**Đáp án:** `[3, 30, 4]`. Khi đã nhận ba kết quả, downstream không cần thêm; `push(4)` có thể trả `false`, nên gatherer không cần `push(40)`.
+**Answer:** `[3, 30, 4]`. Once three results have been received, downstream needs no more; `push(4)` may return `false`, so the gatherer does not need to call `push(40)`.
 
-### Bài 2 — Vì sao trả false cho phần tử bị lọc là sai?
+### Exercise 2 — Why Is Returning false for a Filtered Element Wrong?
 
 ~~~java
 if (number % 2 != 0) {
@@ -796,40 +796,40 @@ if (number % 2 != 0) {
 return downstream.push(number);
 ~~~
 
-**Đáp án:** `false` của integrator nghĩa là **ngừng đọc input tiếp theo**, không phải "bỏ qua phần tử". Với nguồn bắt đầu bằng `1`, gatherer có thể dừng trước `2`, `4` và `6`. Cần `return true` khi bỏ một phần tử nhưng vẫn muốn xử lý nguồn.
+**Answer:** `false` from an integrator means **stop reading further inputs**, not "skip this element". With a source starting with `1`, the gatherer stops before `2`, `4`, and `6`. Use `return true` when skipping an element while still wanting to process the source.
 
-### Bài 3 — Downstream.push trả false có nghĩa giá trị vừa push bị mất?
+### Exercise 3 — Does Downstream.push Returning false Mean the Pushed Value Was Lost?
 
-**Đáp án:** Không. Ví dụ `limit(1)` có thể nhận chính giá trị vừa đẩy rồi trả `false` vì đã đủ. Tùy bước downstream, phần tử vừa xử lý có thể được giữ hoặc bị filter/takeWhile loại; boolean chỉ biểu thị **nhu cầu thêm dữ liệu**.
+**Answer:** No. For example, `limit(1)` may accept the exact value just pushed and then return `false` because it now has enough. Depending on downstream steps, the processed element may be kept or dropped by `filter`/`takeWhile`; the boolean only expresses **demand for further data**.
 
-### Bài 4 — Chọn Integrator.of hay ofGreedy?
+### Exercise 4 — Choose Integrator.of or ofGreedy?
 
-Một gatherer đọc các số cho đến khi gặp số âm đầu tiên, sau đó tự dừng dù downstream còn nhận thêm. Dùng gì?
+A gatherer reads numbers until it encounters the first negative number, then stops on its own even if downstream still accepts more. Which should you use?
 
-**Đáp án:** Dùng `Integrator.of`. Nó cho phép integrator tự trả `false` vì điều kiện kết thúc riêng. `ofGreedy` chỉ thích hợp khi integrator không tự khởi tạo short-circuit.
+**Answer:** Use `Integrator.of`. It allows the integrator to return `false` itself due to its own termination condition. `ofGreedy` is only appropriate when the integrator does not initiate short-circuiting on its own.
 
-### Bài 5 — Vì sao phải copy buffer trước khi push?
+### Exercise 5 — Why Must the Buffer Be Copied Before push?
 
 ~~~java
 downstream.push(buffer);
 buffer.clear();
 ~~~
 
-**Đáp án:** Nếu `buffer` là `ArrayList` mutable, downstream có thể giữ tham chiếu đến chính object đó, và `clear()` khiến kết quả đã gửi trở thành danh sách rỗng. Dùng `List.copyOf(buffer)` hoặc bản sao riêng trước khi xóa để tránh thay đổi output đã phát.
+**Answer:** If `buffer` is a mutable `ArrayList`, downstream may keep a reference to that exact object, and `clear()` turns the previously sent result into an empty list. Use `List.copyOf(buffer)` or a separate copy before clearing to avoid mutating emitted output.
 
-### Bài 6 — Dùng isRejecting khi nào?
+### Exercise 6 — When to Use isRejecting?
 
-Một finisher giữ phần tử cuối còn sót, nhưng downstream đã đủ `limit(1)`. Có nên cố đẩy phần tử cuối không?
+A finisher holds one leftover element, yet downstream already satisfied `limit(1)`. Should it try to push the final element?
 
-**Đáp án:** Không. Có thể kiểm tra `downstream.isRejecting()` để tránh đẩy khi đã biết downstream từ chối. Nhưng `isRejecting() == false` không chứng minh chắc chắn downstream còn cần dữ liệu; nếu phát nhiều phần tử, cần kiểm tra kết quả từng `push`.
+**Answer:** No. You can check `downstream.isRejecting()` to avoid pushing when downstream is already known to be rejecting. However, `isRejecting() == false` does not guarantee downstream still wants data; if emitting multiple elements, check the result of each `push`.
 
-### Bài 7 — Tương thích JDK
+### Exercise 7 — JDK Compatibility
 
-Một dự án có runtime **Java 21** muốn dùng `Stream.gather` chính thức mà không có preview. Có biên dịch/chạy trực tiếp được không?
+A project running on **Java 21** wants to use official `Stream.gather` without preview. Can it compile/run directly?
 
-**Đáp án:** Không. Gatherer là API chính thức từ Java 24; trước đó Java 22/23 chỉ có preview phù hợp với phiên bản tương ứng. Với Java 21, cần nâng JDK hoặc triển khai giải pháp khác bằng Stream API/iterator/collector hiện có.
+**Answer:** No. Gatherer is an official API starting in Java 24; earlier Java 22/23 only had preview versions for their respective releases. On Java 21, upgrade the JDK or implement another solution using existing Stream API/iterators/collectors.
 
-### Bài 8 — Kiểm tra quyền sở hữu I/O
+### Exercise 8 — Checking I/O Ownership
 
 ~~~java
 List<Integer> result = Files.lines(path)
@@ -839,26 +839,26 @@ List<Integer> result = Files.lines(path)
         .toList();
 ~~~
 
-**Đáp án:** Cần quản lý tài nguyên nguồn bằng `try-with-resources`. `limit(1)` dừng sớm nhưng không tự gọi `close()` trên Stream đọc tệp.
+**Answer:** The source resource must be managed with `try-with-resources`. `limit(1)` stops early, yet does not automatically call `close()` on the file-reading Stream.
 
-## 20. Ghi nhớ
+## 20. Takeaways
 
-- `Gatherer.Downstream.push(value)` đẩy một kết quả sang bước tiếp theo và trả `true` nếu downstream **còn muốn nhận thêm**, `false` nếu không.
-- `push == false` **không phải lời khẳng định giá trị vừa gửi bị loại**. Nó là tín hiệu *không cần thêm kết quả*.
-- Khi phát nhiều kết quả từ một đầu vào, **kiểm tra sau mỗi `push`**; ngừng tạo/phát thêm ngay khi bị từ chối.
-- Boolean từ `integrator.integrate` hỏi **có cần thêm đầu vào hay không**; có thể trả `false` vì downstream từ chối hoặc vì gatherer tự dừng.
-- Không push một phần tử nhưng vẫn muốn đọc input tiếp theo thì `return true`, không phải `false`.
-- `Integrator.ofGreedy` dành cho integrator không tự khởi tạo short-circuit; nó vẫn được phép chuyển tiếp `false` do downstream từ chối.
-- `isRejecting()` là tín hiệu best-effort, hữu ích trong finisher; **kết quả của `push`** vẫn là điều phải kiểm tra khi phát.
-- Không giữ tham chiếu `Downstream` vượt quá phạm vi callback; tránh state chia sẻ hoặc side effect phụ thuộc lịch chạy.
-- Dừng sớm không tự giải phóng nguồn I/O: vẫn cần `try-with-resources`.
-- Các ví dụ dùng Stream Gatherers **chính thức trên JDK 24+**, không thể dùng nguyên dạng trên Java 21 hoặc thấp hơn.
+- `Gatherer.Downstream.push(value)` sends a result to the next stage and returns `true` if downstream **still wants more**, `false` if not.
+- `push == false` **is not an assertion that the sent value was discarded**. It is a signal meaning *no more results needed*.
+- When emitting multiple results from one input, **check after every `push`**; stop generating/emitting immediately upon rejection.
+- The boolean from `integrator.integrate` asks **whether more inputs are needed**; it may return `false` due to downstream rejection or because the gatherer stops itself.
+- If not pushing an element while still wanting to read the next input, `return true`, not `false`.
+- `Integrator.ofGreedy` is for integrators that do not initiate short-circuiting themselves; it is still allowed to forward `false` from downstream rejection.
+- `isRejecting()` is a best-effort signal, useful in the finisher; **the result of `push`** remains what must be checked during emission.
+- Never retain a `Downstream` reference beyond callback scope; avoid shared state or schedule-dependent side effects.
+- Early termination does not auto-release I/O sources: `try-with-resources` is still required.
+- Examples use Stream Gatherers **officially on JDK 24+**, and cannot run as-is on Java 21 or lower.
 
-**Ý chính:** `Downstream.push` là cơ chế **phối hợp nhu cầu đầu ra** giữa các tầng của pipeline. Một gatherer đúng không chỉ biết phát kết quả, mà còn phải **dừng phát khi downstream đã đủ, truyền tín hiệu dừng ngược về upstream, và phân biệt kết thúc bình thường với lỗi**. Làm đúng các nguyên tắc này giúp gatherer phát nhiều phần tử, tích lũy theo batch hoặc dừng sớm hoạt động dự đoán được và tránh công việc thừa. 
+**Main Takeaway:** `Downstream.push` is the **output demand coordination** mechanism between pipeline layers. A well-written gatherer not only emits results, but also **stops emitting when downstream has enough, propagates stop signals upstream, and distinguishes normal completion from errors**. Getting these principles right ensures multi-emit, batching, and short-circuiting gatherers behave predictably and avoid wasted work.
 
-### Tài liệu đối chiếu API
+### API References
 
-- [JDK 24 — Gatherer.Downstream](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.Downstream.html): hợp đồng `push` và `isRejecting`.
-- [JDK 24 — Gatherer.Integrator](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.Integrator.html): ý nghĩa của boolean do integrator trả về.
-- [JDK 24 — Gatherer](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.html): initializer, integrator, combiner, finisher và quyền sở hữu state/downstream.
-- [Dev.java — The Gatherer API](https://dev.java/learn/api/streams/gatherers/): ví dụ ngừng sớm và cách truyền tín hiệu từ chối.
+- [JDK 24 — Gatherer.Downstream](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.Downstream.html): `push` and `isRejecting` contracts.
+- [JDK 24 — Gatherer.Integrator](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.Integrator.html): meaning of the boolean returned by an integrator.
+- [JDK 24 — Gatherer](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.html): initializer, integrator, combiner, finisher, and state/downstream ownership.
+- [Dev.java — The Gatherer API](https://dev.java/learn/api/streams/gatherers/): examples of early stopping and propagating rejection signals.

@@ -1,68 +1,68 @@
-# Thiết kế named module cho thư viện công khai
+# Designing Named Modules for Public Libraries
 
-## 1. Bối cảnh và mục tiêu
+## 1. Context and goals
 
-Một thư viện Java công khai thường phải đáp ứng hai nhóm người dùng: ứng dụng dùng `classpath` truyền thống và ứng dụng dùng Java Platform Module System (JPMS) từ Java 9 trở lên. Khi xuất bản dưới dạng **named module**, thư viện có tên module ổn định, mô tả phụ thuộc bằng `module-info.java` và công bố rõ những package nào thuộc API được phép truy cập.
+A public Java library often needs to serve two groups of users: applications using the traditional `classpath` and applications using the Java Platform Module System (JPMS) from Java 9 onward. When published as a **named module**, the library has a stable module name, describes dependencies in `module-info.java`, and explicitly declares which packages belong to the accessible API.
 
-Mục tiêu của thiết kế không chỉ là làm cho JAR chứa `module-info.class`. Một thư viện tốt cần:
+The goal of the design is not merely to include `module-info.class` in the JAR. A good library needs to:
 
-- Cho ứng dụng khác sử dụng API qua `requires <module-name>` mà không cần truy cập package nội bộ.
-- Giữ tên module, API xuất bản và các kiểu xuất hiện trong chữ ký phương thức ổn định qua các bản phát hành.
-- Khai báo đủ phụ thuộc lúc biên dịch/chạy; tránh tạo phụ thuộc ngầm giữa các module.
-- Có chủ đích với reflection, ServiceLoader, thư viện chưa modular hóa và khả năng chạy trên classpath.
-- Được kiểm chứng bằng một ứng dụng tiêu thụ thực tế và công cụ của JDK.
+- Allow other applications to use the API via `requires <module-name>` without needing access to internal packages.
+- Keep the module name, published API, and types appearing in method signatures stable across releases.
+- Declare sufficient compile-time/runtime dependencies; avoid creating implicit dependencies between modules.
+- Be intentional about reflection, ServiceLoader, unmodularized libraries, and running on the classpath.
+- Be verified with a real consuming application and JDK tools.
 
-**Phạm vi ví dụ:** JDK 17+, Java thuần, tên module minh họa là `com.example.greetings`. Đổi tên và package theo tên miền/namespace thực tế trước khi xuất bản.
+**Example scope:** JDK 17+, plain Java, illustrative module name `com.example.greetings`. Rename the module and packages to your actual domain/namespace before publishing.
 
-## 2. Hiểu đúng ranh giới của named module
+## 2. Properly understanding named module boundaries
 
-Đối với một JAR đặt trên `--module-path`, descriptor `module-info.class` cho phép JPMS nhận diện đây là **explicit named module**. Tên module là định danh logic, không đồng nhất với tên file JAR, Maven `groupId` hoặc Maven `artifactId`.
+For a JAR placed on `--module-path`, the `module-info.class` descriptor enables JPMS to recognize it as an **explicit named module**. The module name is a logical identifier, not identical to the JAR file name, Maven `groupId`, or Maven `artifactId`.
 
-Các quan hệ cần phân biệt:
+Relationships to distinguish:
 
-| Thành phần | Ý nghĩa với thư viện công khai |
+| Element | Meaning for a public library |
 | --- | --- |
-| `module com.example.greetings` | Đặt tên module ổn định để ứng dụng tiêu thụ khai báo `requires` |
-| `exports com.example.greetings.api` | Công khai các `public` type trong package API cho module khác ở thời điểm biên dịch và chạy |
-| Package không được `exports` | Có thể chứa `public` class, nhưng code từ module khác không được truy cập trực tiếp qua module path |
-| `requires other.module` | Module hiện tại đọc các public API đã export của dependency |
-| `requires transitive other.module` | Những module đọc module hiện tại cũng đọc được dependency đó |
-| `opens package` | Cho phép deep reflection vào package lúc chạy; không đồng nghĩa với `exports` |
-| `uses` / `provides ... with` | Khai báo điểm mở rộng qua `ServiceLoader`, tránh buộc consumer phụ thuộc implementation |
+| `module com.example.greetings` | Establishes a stable module name for consuming applications to declare `requires` |
+| `exports com.example.greetings.api` | Publishes `public` types in the API package to other modules at compile time and runtime |
+| Package without `exports` | Can contain `public` classes, but code from other modules cannot access them directly via the module path |
+| `requires other.module` | The current module reads exported public APIs of the dependency |
+| `requires transitive other.module` | Modules reading the current module also read that dependency |
+| `opens package` | Allows deep reflection into the package at runtime; not synonymous with `exports` |
+| `uses` / `provides ... with` | Declares extension points via `ServiceLoader`, avoiding forcing consumers to depend on implementations |
 
-`public` trên class/method chỉ giải quyết mức truy cập trong Java; JPMS thêm ranh giới package/module. Vì vậy một class `public` nằm trong package không export vẫn được xem là implementation detail ở phía consumer dùng module path.
+`public` on a class/method only addresses access level within Java; JPMS adds package/module boundaries. Therefore, a `public` class located in an unexported package is still considered an implementation detail on the side of a consumer using the module path.
 
-### Tên module và package
+### Module names and packages
 
-Đặt tên module bằng reverse DNS, ví dụ `com.example.greetings`; thông thường thống nhất prefix với package, nhưng không có quy tắc buộc chúng phải trùng hoàn toàn. Chọn tên có thể duy trì nhiều năm. Đừng gắn version vào tên module, ví dụ `com.example.greetings.v2` chỉ để phản ánh thay đổi bản phát hành: module name là một phần hợp đồng tích hợp của consumer.
+Name the module using reverse DNS, such as `com.example.greetings`; typically align the prefix with packages, though there is no rule forcing them to match identically. Choose a name that can be maintained for years. Do not attach a version to the module name, such as `com.example.greetings.v2`, merely to reflect a release change: the module name is part of the consumer integration contract.
 
-Cùng một package không được phân tán vào hai module được phân giải chung trong một layer. Đây là rủi ro **split package**; nên thiết kế package boundary rõ từ đầu.
+The same package must not be scattered across two modules resolved together in a single layer. This is a **split package** risk; design clear package boundaries from the start.
 
-## 3. Thiết kế mặt công khai trước khi viết module-info.java
+## 3. Designing the public surface before writing module-info.java
 
-Chia package theo vai trò thay vì export toàn bộ cây source:
+Divide packages by role instead of exporting the entire source tree:
 
-- `com.example.greetings.api`: facade, interface, value type, exception mà khách hàng cần sử dụng.
-- `com.example.greetings.spi`: hợp đồng dành cho plugin/nhà cung cấp dịch vụ, chỉ export nếu muốn cho người khác triển khai.
-- `com.example.greetings.internal`: parser, cache, thuật toán, helper, default implementation; giữ không export.
-- `com.example.greetings.model`: chỉ export khi model thực sự là API; không export đơn thuần vì framework cần reflection.
+- `com.example.greetings.api`: facades, interfaces, value types, and exceptions that clients need to use.
+- `com.example.greetings.spi`: contracts for plugins/service providers, exported only if meant for others to implement.
+- `com.example.greetings.internal`: parsers, caches, algorithms, helpers, default implementations; keep unexported.
+- `com.example.greetings.model`: export only when the model is truly part of the API; do not export solely because a framework needs reflection.
 
-Đánh giá **toàn bộ chữ ký public/protected** của type trong package export: tham số, kiểu trả về, superclass, interface, generic bound, checked exception, annotation có ý nghĩa với consumer. Nếu một API trả về kiểu nằm trong package bị giấu, consumer sẽ khó biên dịch hoặc sử dụng đúng hợp đồng. Có hai lựa chọn: xuất bản kiểu đó một cách có chủ đích hoặc đổi API để phụ thuộc vào abstraction công khai.
+Evaluate **every public/protected signature** of types in exported packages: parameters, return types, superclasses, interfaces, generic bounds, checked exceptions, and annotations meaningful to consumers. If an API returns a type located in a hidden package, consumers will struggle to compile or use the contract properly. There are two choices: publish that type intentionally or change the API to depend on a public abstraction.
 
-Ví dụ API nên cho consumer gọi:
+Example API that consumers should call:
 
 ```java
 import com.example.greetings.api.Greetings;
 String message = Greetings.greet("An");
 ```
 
-Consumer không nên phải biết `GreetingFormatter` ở package `internal`, và không nên cần `--add-exports` để dùng thư viện.
+Consumers should not have to know about `GreetingFormatter` in the `internal` package, and should not need `--add-exports` to use the library.
 
-**Nguyên tắc:** export tối thiểu những package có hợp đồng hỗ trợ lâu dài. Mỗi package export tạo cam kết tương thích cho các release sau.
+**Principle:** export the minimum set of packages that carry a long-term support contract. Every exported package creates a compatibility commitment for future releases.
 
-## 4. Ví dụ hoàn chỉnh: thư viện và ứng dụng tiêu thụ
+## 4. Complete example: library and consuming application
 
-Cấu trúc project mẫu:
+Sample project structure:
 
 ```text
 project/
@@ -78,7 +78,7 @@ project/
         └── com/example/greetings/demo/Main.java
 ```
 
-### 4.1. Descriptor của thư viện
+### 4.1. Library descriptor
 
 File `lib/src/main/java/module-info.java`:
 
@@ -88,9 +88,9 @@ module com.example.greetings {
 }
 ```
 
-Thư viện này không cần directive `requires java.base;` vì mọi module đều đọc `java.base` theo mặc định. Package `internal` không có trong `exports`, nên không trở thành API truy cập trực tiếp từ bên ngoài.
+This library does not need a `requires java.base;` directive because every module reads `java.base` by default. The `internal` package is not in `exports`, so it does not become an API directly accessible from outside.
 
-### 4.2. API công khai
+### 4.2. Public API
 
 File `lib/src/main/java/com/example/greetings/api/Greetings.java`:
 
@@ -109,7 +109,7 @@ public final class Greetings {
 }
 ```
 
-### 4.3. Implementation được đóng gói
+### 4.3. Encapsulated implementation
 
 File `lib/src/main/java/com/example/greetings/internal/GreetingFormatter.java`:
 
@@ -124,14 +124,14 @@ public final class GreetingFormatter {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("name must not be blank");
         }
-        return "Xin chào, " + name.trim() + "!";
+        return "Hello, " + name.trim() + "!";
     }
 }
 ```
 
-`GreetingFormatter` vẫn có thể là `public` để các package bên trong **cùng một module** gọi được; khả năng truy cập của consumer từ module khác bị giới hạn bởi descriptor.
+`GreetingFormatter` can still be `public` so packages inside **the same module** can call it; accessibility for consumers from other modules is restricted by the descriptor.
 
-### 4.4. Consumer là named module khác
+### 4.4. Consumer as another named module
 
 File `app/src/main/java/module-info.java`:
 
@@ -155,11 +155,11 @@ public class Main {
 }
 ```
 
-Nếu consumer thử import `com.example.greetings.internal.GreetingFormatter`, trình biên dịch từ chối truy cập vì package này không được export sang module consumer. Đó là hành vi bảo vệ ranh giới mong muốn.
+If the consumer attempts to import `com.example.greetings.internal.GreetingFormatter`, the compiler rejects access because this package is not exported to the consuming module. That is the desired boundary-protection behavior.
 
-### 4.5. Biên dịch, đóng JAR và chạy
+### 4.5. Compiling, packaging the JAR, and running
 
-Trong thư mục `project/`, dùng JDK 17+ và PowerShell:
+Inside `project/`, using JDK 17+ and PowerShell:
 
 ```powershell
 New-Item -ItemType Directory -Force out/lib, out/app | Out-Null
@@ -169,31 +169,31 @@ javac --release 17 --module-path out/com.example.greetings.jar -d out/app app/sr
 java --module-path "out/com.example.greetings.jar;out/app" --module com.example.greetings.demo/com.example.greetings.demo.Main
 ```
 
-Kết quả mong đợi:
+Expected output:
 
 ```text
-Xin chào, An!
+Hello, An!
 ```
 
-Trên Linux/macOS, dấu phân cách nhiều entry trong module path là `:` thay cho `;`. Các lệnh `javac` trên liệt kê tường minh toàn bộ file Java để dễ tái hiện; dự án thực tế nên để Maven/Gradle đảm nhiệm biên dịch và đóng gói.
+On Linux/macOS, the separator for multiple entries in the module path is `:` instead of `;`. The `javac` commands above list all Java files explicitly for easy reproduction; real projects should let Maven/Gradle handle compilation and packaging.
 
-Kiểm tra descriptor đã nằm trong JAR:
+Verify that the descriptor is inside the JAR:
 
 ```powershell
 jar --describe-module --file out/com.example.greetings.jar
 ```
 
-Thông tin phải phản ánh module `com.example.greetings` và package export `com.example.greetings.api`. Không cần công khai package `internal` để consumer hoạt động.
+The output should reflect module `com.example.greetings` and exported package `com.example.greetings.api`. There is no need to expose the `internal` package for the consumer to work.
 
-## 5. Chọn requires, requires transitive và requires static
+## 5. Choosing requires, requires transitive, and requires static
 
-### `requires`: phụ thuộc trực tiếp
+### `requires`: direct dependency
 
-Khai báo `requires com.example.parser;` khi code trong thư viện cần đọc API đã export của module `com.example.parser`. Các module khác yêu cầu thư viện của bạn không tự động đọc module parser qua quan hệ này.
+Declare `requires com.example.parser;` when code in the library needs to read exported APIs of module `com.example.parser`. Other modules requiring your library do not automatically read the parser module through this relationship.
 
-### `requires transitive`: dependency hiện diện trong API
+### `requires transitive`: dependency present in the API
 
-Giả sử package API của `com.example.reports` công khai phương thức trả về `java.sql.Connection`:
+Suppose the API package of `com.example.reports` exposes a method returning `java.sql.Connection`:
 
 ```java
 package com.example.reports.api;
@@ -203,7 +203,7 @@ public interface ConnectionFactory {
 }
 ```
 
-Descriptor phù hợp:
+Appropriate descriptor:
 
 ```java
 module com.example.reports {
@@ -212,17 +212,17 @@ module com.example.reports {
 }
 ```
 
-Một module `requires com.example.reports;` khi đó cũng đọc `java.sql`, nên API có thể sử dụng được đúng kiểu mà nó phơi ra. Chỉ dùng `transitive` khi dependency thực sự là một phần hợp đồng công khai; dùng tràn lan khiến đồ thị phụ thuộc rộng và khó kiểm soát.
+A module with `requires com.example.reports;` then also reads `java.sql`, so the API can be used with the exact types it exposes. Only use `transitive` when the dependency is genuinely part of the public contract; overusing it makes the dependency graph wide and hard to control.
 
-### `requires static`: dependency chỉ bắt buộc tại thời điểm biên dịch
+### `requires static`: dependency required only at compile time
 
-`requires static com.example.annotations;` diễn đạt dependency cần cho biên dịch nhưng không nhất thiết có khi chạy. Cách này phù hợp với một số annotation API hoặc integration tùy chọn. Nó **không tự bảo đảm** mã vẫn hoạt động khi gọi vào những kiểu không hiện diện ở runtime: hãy thiết kế đường thực thi và thử nghiệm khi dependency bị bỏ đi.
+`requires static com.example.annotations;` expresses a dependency needed for compilation but not necessarily present at runtime. This fits certain annotation APIs or optional integrations. It **does not automatically guarantee** that code will continue working when calling types absent at runtime: design execution paths and test when the dependency is omitted.
 
-Module descriptor không khóa phiên bản dependency bằng một cú pháp tương đương Maven version range. Phiên bản được xử lý bởi hệ thống build/phân phối, kết hợp với chính sách tương thích API.
+The module descriptor does not lock dependency versions with syntax equivalent to a Maven version range. Versions are handled by the build/distribution system, combined with API compatibility policies.
 
-## 6. exports, qualified exports và opens: chọn đúng quyền truy cập
+## 6. exports, qualified exports, and opens: choosing the right access permissions
 
-### `exports` là API tĩnh
+### `exports` is static API
 
 ```java
 module com.example.greetings {
@@ -230,9 +230,9 @@ module com.example.greetings {
 }
 ```
 
-Mọi module đọc được `com.example.greetings` có thể dùng public type trong package `api`.
+Any module that reads `com.example.greetings` can use public types in the `api` package.
 
-### Qualified export dành cho tích hợp giới hạn
+### Qualified exports for restricted integration
 
 ```java
 module com.example.greetings {
@@ -241,11 +241,11 @@ module com.example.greetings {
 }
 ```
 
-Chỉ module `com.example.greetings.testkit` được phép truy cập public type trong `internal.bridge` qua module path. Cách này phù hợp với integration có kiểm soát nhưng tạo kết nối tên module cụ thể; đừng dùng nó để “vá” API chưa rõ ranh giới.
+Only module `com.example.greetings.testkit` is allowed to access public types in `internal.bridge` via the module path. This fits controlled integrations, though it creates coupling to a specific module name; do not use it to "patch" an API with unclear boundaries.
 
-### `opens` dành cho deep reflection
+### `opens` for deep reflection
 
-Các framework serialization, ORM hoặc dependency injection đôi khi cần truy cập constructor/field không public bằng reflection. Khi có yêu cầu thực sự, ưu tiên mở đúng package cho đúng module:
+Serialization, ORM, or dependency injection frameworks sometimes need to access non-public constructors/fields via reflection. When there is a genuine requirement, prefer opening only the right package to the right module:
 
 ```java
 module com.example.greetings {
@@ -254,15 +254,15 @@ module com.example.greetings {
 }
 ```
 
-Directive minh họa này chỉ phù hợp khi project có package `model` và module thư viện Jackson tương ứng trong đồ thị module. `opens` cho phép deep reflection lúc chạy, nhưng không cho phép consumer biên dịch code truy cập các type như `exports`. Nếu cần cả API tĩnh và reflection, thiết kế hai quyền theo nhu cầu. Tránh `open module` (mở toàn bộ package) khi chỉ một package cần reflection.
+This illustrative directive is only appropriate when the project has a `model` package and the corresponding Jackson library module in the module graph. `opens` allows deep reflection at runtime, but does not allow consumers compiling code to access types like `exports` does. If both static API and reflection are needed, design both permissions according to need. Avoid `open module` (opening all packages) when only a single package requires reflection.
 
-Cũng tránh phụ thuộc lâu dài vào tham số JVM như `--add-opens` hoặc `--add-exports` cho API phổ thông; chúng thường là dấu hiệu cần chỉnh descriptor, packaging hoặc cách tích hợp.
+Also avoid long-term reliance on JVM flags such as `--add-opens` or `--add-exports` for general-purpose APIs; they are usually a sign that the descriptor, packaging, or integration approach needs adjustment.
 
-## 7. Điểm mở rộng bằng ServiceLoader
+## 7. Extension points with ServiceLoader
 
-Một thư viện cần plugin có thể công khai **SPI nhỏ**, giữ implementation mặc định trong package nội bộ và cho bên thứ ba đóng gói provider riêng.
+A library needing plugins can publish a **small SPI**, keep the default implementation in an internal package, and allow third parties to package their own providers.
 
-Giả sử có interface:
+Suppose there is an interface:
 
 ```java
 package com.example.greetings.spi;
@@ -272,7 +272,7 @@ public interface GreetingProvider {
 }
 ```
 
-Descriptor phía thư viện khi tự tìm provider và có provider mặc định:
+Library-side descriptor when discovering providers itself and having a default provider:
 
 ```java
 module com.example.greetings {
@@ -285,9 +285,9 @@ module com.example.greetings {
 }
 ```
 
-Implementation `DefaultGreetingProvider` phải thực hiện đúng hợp đồng provider của `ServiceLoader` (ví dụ public class implements SPI, có constructor không tham số phù hợp), nhưng package chứa nó **không cần export** cho consumer.
+The `DefaultGreetingProvider` implementation must fulfill the `ServiceLoader` provider contract (e.g., public class implementing the SPI with an appropriate no-arg constructor), yet the package containing it **does not need to be exported** to consumers.
 
-Thư viện truy vấn service:
+Library querying the service:
 
 ```java
 ServiceLoader<GreetingProvider> providers =
@@ -298,7 +298,7 @@ for (GreetingProvider provider : providers) {
 }
 ```
 
-Module plugin bên ngoài có thể khai báo:
+An external plugin module can declare:
 
 ```java
 module com.partner.greetings.french {
@@ -309,26 +309,26 @@ module com.partner.greetings.french {
 }
 ```
 
-Điều kiện quan trọng: module provider phải nằm trong cấu hình module được phân giải khi chạy (đặc biệt trong runtime image hoặc module layer tùy chỉnh). Không giả định thứ tự các provider do `ServiceLoader` trả về; nếu ứng dụng cần ưu tiên, hãy xác lập tiêu chí lựa chọn trong hợp đồng SPI. Giữ SPI hẹp và ghi rõ tương thích phiên bản để đối tác dễ triển khai.
+Important condition: the provider module must be in the module configuration resolved at runtime (especially in custom runtime images or module layers). Do not assume the order of providers returned by `ServiceLoader`; if the application needs priority, establish selection criteria in the SPI contract. Keep the SPI narrow and document version compatibility clearly so partners can implement it easily.
 
-`uses` dành cho module gọi `ServiceLoader`. `provides` dành cho module đóng góp implementation. Chúng bổ sung cho `exports`, không thay thế quyền truy cập cần thiết vào interface SPI.
+`uses` is for the module calling `ServiceLoader`. `provides` is for the module contributing an implementation. They complement `exports` and do not replace the required access to the SPI interface.
 
-## 8. Đóng gói và tương thích với hệ sinh thái
+## 8. Packaging and ecosystem compatibility
 
-### 8.1. Một artifact, hai cách sử dụng
+### 8.1. One artifact, two ways to use it
 
-Một modular JAR chứa `module-info.class` vẫn có thể được đưa vào classpath truyền thống, nơi cơ chế module resolution/encapsulation không được áp dụng theo cùng cách với named module. Vì vậy, với thư viện hướng đến nhiều đối tượng:
+A modular JAR containing `module-info.class` can still be placed on the traditional classpath, where module resolution/encapsulation mechanisms are not applied the same way as with named modules. Therefore, for libraries targeting broad audiences:
 
-- Chạy thử consumer bằng `--module-path` và descriptor `requires`.
-- Chạy thử consumer truyền thống bằng `-cp`/`--class-path`.
-- Đảm bảo các dependency và resource cần thiết xuất hiện trong cả hai chế độ.
-- Không dựa vào việc JPMS giấu package nội bộ như biện pháp bảo mật dữ liệu; classpath cho phép truy cập theo các quy tắc khác.
+- Test consumers using `--module-path` and `requires` descriptors.
+- Test traditional consumers using `-cp`/`--class-path`.
+- Ensure required dependencies and resources are present in both modes.
+- Do not rely on JPMS hiding internal packages as a data security measure; the classpath permits access under different rules.
 
-Một thiết kế API sạch vẫn hữu ích cho classpath consumer, nhưng lớp bảo vệ module mạnh nhất hiện diện khi ứng dụng chạy dưới dạng named modules.
+A clean API design still benefits classpath consumers, while the strongest module protection layer is present when the application runs as named modules.
 
-### 8.2. Maven hoặc Gradle
+### 8.2. Maven or Gradle
 
-Đặt `module-info.java` ở `src/main/java/module-info.java`, các lớp ở namespace package tương ứng. Với Maven, có thể đặt:
+Place `module-info.java` at `src/main/java/module-info.java`, with classes in their corresponding package namespaces. With Maven, you can set:
 
 ```xml
 <properties>
@@ -336,88 +336,88 @@ Một thiết kế API sạch vẫn hữu ích cho classpath consumer, nhưng l�
 </properties>
 ```
 
-Sử dụng phiên bản plugin compiler hỗ trợ dự án modular và kiểm tra output JAR. Với Gradle, cấu hình Java toolchain và Java module path phù hợp. Chỉ thêm `Automatic-Module-Name` vào manifest khi bạn chủ động phát hành **JAR chưa có descriptor** để ổn định tên automatic module; nó không thay thế `module-info.java` của explicit named module.
+Use a compiler plugin version that supports modular projects and inspect the output JAR. With Gradle, configure the Java toolchain and Java module path appropriately. Only add `Automatic-Module-Name` to the manifest when intentionally releasing a **JAR without a descriptor** to stabilize its automatic module name; it does not replace `module-info.java` of an explicit named module.
 
-### 8.3. Dependency chưa modular hóa
+### 8.3. Unmodularized dependencies
 
-JAR không có descriptor đặt trên module path có thể được coi là **automatic module**. Tên có thể đến từ manifest `Automatic-Module-Name` hoặc được suy ra từ filename; tên suy ra dễ thay đổi theo cách đóng gói. Dùng `jar --describe-module --file <dependency.jar>` để xem tên trước khi khai báo `requires`.
+A JAR without a descriptor placed on the module path can be treated as an **automatic module**. The name can come from the `Automatic-Module-Name` manifest attribute or be derived from the filename; derived names can easily change depending on packaging. Use `jar --describe-module --file <dependency.jar>` to inspect the name before declaring `requires`.
 
-Nếu dependency vẫn ở classpath, nó thuộc unnamed module; một explicit named module không thể chỉ viết `requires` để đọc unnamed module như đọc named module khác. Đưa dependency phù hợp lên module path, dùng bản đã modular hóa, hoặc tổ chức adapter/compatibility layer theo nhu cầu; tránh dựa vào các JVM flag ngoại lệ trong API được phát hành rộng rãi.
+If a dependency remains on the classpath, it belongs to the unnamed module; an explicit named module cannot simply write `requires` to read an unnamed module like another named module. Move appropriate dependencies onto the module path, use modularized versions, or organize an adapter/compatibility layer as needed; avoid relying on exceptional JVM flags in widely distributed APIs.
 
-### 8.4. Java 8 và multi-release JAR
+### 8.4. Java 8 and multi-release JARs
 
-Đặt `module-info.class` ở root JAR khiến cách build thông thường cần JDK 9+ để tạo descriptor. Nếu phải hỗ trợ Java 8, có thể cân nhắc **multi-release JAR**: bytecode ứng dụng tương thích Java 8 ở root, descriptor dành cho Java 9+ tại `META-INF/versions/9/module-info.class`, kèm manifest `Multi-Release: true`. Đây là chiến lược đóng gói riêng, cần kiểm tra thực tế trên cả JDK 8 và phiên bản JDK hỗ trợ; không nên chọn nếu thư viện chỉ nhắm JDK 17+.
+Placing `module-info.class` at the JAR root causes standard builds to require JDK 9+ to produce the descriptor. If Java 8 must be supported, you can consider a **multi-release JAR**: Java 8-compatible application bytecode at the root, the Java 9+ descriptor at `META-INF/versions/9/module-info.class`, accompanied by manifest `Multi-Release: true`. This is a specialized packaging strategy that requires real testing on both JDK 8 and supported JDK versions; do not choose it if the library only targets JDK 17+.
 
-## 9. API evolution: những quyết định khó đảo ngược
+## 9. API evolution: decisions that are hard to reverse
 
-Khi một thư viện đã công khai named module, API contract gồm nhiều lớp:
+Once a library has published a named module, the API contract consists of multiple layers:
 
-| Thành phần thay đổi | Tác động có thể xảy ra |
+| Changed element | Possible impact |
 | --- | --- |
-| Đổi tên `module` | Consumer phải sửa `requires`, module launch và cấu hình build |
-| Bỏ `exports` hoặc đổi package | Consumer ở module khác mất quyền truy cập source/binary |
-| Đổi public method/constructor/type | Có thể phá source compatibility hoặc binary compatibility |
-| Thêm kiểu dependency vào chữ ký API | Có thể cần `requires transitive` và dependency runtime rõ ràng |
-| Bỏ service interface hoặc thay đổi SPI | Plugin provider của bên thứ ba có thể không còn tải/chạy |
-| Tạo split package trong dependency graph | Có thể khiến module resolution/compilation thất bại |
-| Mở thêm package bằng `opens` | Tăng bề mặt reflection và mức độ phụ thuộc vào framework |
+| Renaming `module` | Consumers must update `requires`, module launch, and build configurations |
+| Removing `exports` or changing packages | Consumers in other modules lose source/binary access |
+| Changing public methods/constructors/types | May break source compatibility or binary compatibility |
+| Adding dependency types to API signatures | May require `requires transitive` and explicit runtime dependencies |
+| Removing service interfaces or changing the SPI | Third-party provider plugins may fail to load/run |
+| Creating a split package in the dependency graph | May cause module resolution/compilation to fail |
+| Opening additional packages with `opens` | Increases reflection surface and coupling to frameworks |
 
-Một chiến lược hợp lý là giữ **facade/interface ổn định** ở package export và thay đổi implementation trong package kín. Xem tên module và exported package là hợp đồng công khai, có versioning/release notes thích hợp. Semantic Versioning có thể là quy ước phát hành, nhưng JPMS không tự giải quyết chọn phiên bản hoặc cho phép hai version cùng tên module trong một layer.
+A sound strategy is to keep a **stable facade/interface** in exported packages and evolve implementations in closed packages. Treat the module name and exported packages as a public contract, with appropriate versioning/release notes. Semantic Versioning can serve as a release convention, but JPMS does not resolve version selection itself or allow two versions with the same module name in a single layer.
 
-Đối với annotation processor, reflection framework, serializer hay test framework, kiểm tra khả năng tương thích thực tế của từng dependency; đừng quyết định `opens` chỉ từ việc framework “có dùng reflection”.
+For annotation processors, reflection frameworks, serializers, or test frameworks, check the actual compatibility of each dependency; do not decide on `opens` merely because a framework "uses reflection".
 
-## 10. Kiểm chứng kỹ thuật trước khi xuất bản
+## 10. Technical verification before publishing
 
-### 10.1. Kiểm tra descriptor và phụ thuộc
+### 10.1. Checking descriptors and dependencies
 
 ```powershell
 jar --describe-module --file out/com.example.greetings.jar
 jdeps --module-path out/com.example.greetings.jar --check com.example.greetings
 ```
 
-`jar --describe-module` xác nhận artifact có descriptor, tên module và directives như kỳ vọng. `jdeps --check` giúp nhìn đồ thị dependency và những quan hệ đáng cân nhắc; nó không thay thế phép thử tích hợp.
+`jar --describe-module` confirms that the artifact has the expected descriptor, module name, and directives. `jdeps --check` helps inspect the dependency graph and relationships worth reviewing; it does not replace integration tests.
 
-### 10.2. Kiểm tra consumer biên dịch và thực thi
+### 10.2. Testing consumer compilation and execution
 
-Duy trì project consumer nhỏ, độc lập với source của thư viện. Trên module path, xác nhận:
+Maintain a small consumer project independent of the library's source. On the module path, verify:
 
-1. Module consumer chỉ cần `requires com.example.greetings;` cho API công khai thuần Java của ví dụ.
-2. Import `com.example.greetings.api.Greetings` biên dịch, chạy và in ra nội dung mong đợi.
-3. Import package `internal` bị từ chối ở biên dịch, thể hiện encapsulation.
-4. Nếu có reflection hoặc provider, tải/khởi tạo thực tế trên module path; kiểm tra cả đường đi khi thiếu dependency optional.
-5. Chạy song song thử nghiệm classpath nếu thư viện cam kết hỗ trợ ứng dụng chưa modular hóa.
+1. The consumer module only needs `requires com.example.greetings;` for the example's pure Java public API.
+2. Importing `com.example.greetings.api.Greetings` compiles, runs, and prints the expected output.
+3. Importing the `internal` package is rejected at compile time, demonstrating encapsulation.
+4. If reflection or providers exist, actually load/instantiate them on the module path; also test execution paths when optional dependencies are absent.
+5. Run classpath tests in parallel if the library commits to supporting unmodularized applications.
 
-Đối với JUnit, integration test hoặc Mockito/Byte Buddy có thể cần cấu hình module path, `--patch-module` hay `--add-opens` **trong môi trường test**; không mặc định suy ra cần mở cùng quyền trong artifact công khai.
+For JUnit, integration tests, or Mockito/Byte Buddy, configuring the module path, `--patch-module`, or `--add-opens` may be needed **in the test environment**; do not assume the same permissions need to be opened in the published artifact.
 
-### 10.3. Các lỗi thường gặp và cách xử lý
+### 10.3. Common errors and how to handle them
 
-| Triệu chứng | Khả năng nguyên nhân | Cách xử lý hướng thiết kế |
+| Symptom | Likely cause | Design-oriented resolution |
 | --- | --- | --- |
-| `package ... is not visible` | API chưa export hoặc consumer chưa đọc đúng module | Kiểm tra `exports` và `requires` |
-| `module not found: ...` | Dependency/module path sai hoặc dùng sai tên automatic module | Xem `jar --describe-module`, đường dẫn và tên thực |
-| `java.lang.reflect.InaccessibleObjectException` | Framework cần deep reflection nhưng package chưa mở | Dùng qualified `opens` đúng package/module nếu hợp đồng cho phép |
-| `ServiceConfigurationError` | Provider không hợp lệ, thiếu class/dependency, chưa resolve module | Kiểm tra `uses`/`provides`, constructor/provider factory, resolution |
-| `package is accessible from more than one module` | Split package giữa các module được phân giải | Tái tổ chức namespace hoặc dependency |
-| API compile nhưng runtime lỗi liên quan dependency | Dependency optional/automatic/module resolution chưa được thử đủ | Rà soát module path và đường thực thi runtime |
+| `package ... is not visible` | API is not exported or consumer does not read the right module | Check `exports` and `requires` |
+| `module not found: ...` | Wrong dependency/module path or wrong automatic module name used | Inspect `jar --describe-module`, paths, and actual names |
+| `java.lang.reflect.InaccessibleObjectException` | Framework needs deep reflection but the package is not open | Use qualified `opens` for the right package/module if the contract allows |
+| `ServiceConfigurationError` | Invalid provider, missing class/dependency, module not resolved | Check `uses`/`provides`, constructor/provider factory, resolution |
+| `package is accessible from more than one module` | Split package across resolved modules | Reorganize namespaces or dependencies |
+| API compiles but runtime fails due to dependencies | Optional/automatic/module resolution paths were not sufficiently tested | Review module path and runtime execution paths |
 
-Các thông báo cụ thể khác nhau theo JDK và tình huống; đọc cả nguyên nhân gốc của stack trace trước khi chọn giải pháp.
+Exact messages vary by JDK and scenario; read the root cause of the stack trace before choosing a solution.
 
-## 11. Checklist thiết kế cho tác giả thư viện
+## 11. Design checklist for library authors
 
-Trước khi phát hành, tự xác nhận:
+Before releasing, verify:
 
-- **Tên ổn định:** module name mang tính lâu dài, không phụ thuộc tên JAR có version.
-- **API có chủ đích:** chỉ export package cần được người dùng gọi; không ép consumer import `internal`.
-- **Chữ ký rõ ràng:** public API không vô tình phơi ra kiểu implementation và dependency bị giấu.
-- **Dependency đúng:** khai báo `requires`, `requires transitive`, `requires static` theo tình huống; tránh transitive tùy tiện.
-- **Reflection tối thiểu:** chỉ `opens` package cần thiết; chỉ định module đích khi có thể.
-- **SPI đúng hợp đồng:** interface đủ ổn định, provider được phân giải, có chiến lược lựa chọn nếu nhiều provider.
-- **Packaging được xác minh:** modular JAR chứa đúng descriptor; tên automatic dependency không bị đoán sai.
-- **Tương thích được thử:** consumer trên module path và classpath hoạt động theo các chế độ thư viện công bố.
-- **Phát hành có kiểm soát:** mọi thay đổi module name, exports, dependencies và public types được xem xét như thay đổi API.
+- **Stable name:** the module name is long-term, independent of versioned JAR filenames.
+- **Intentional API:** export only packages users need to call; do not force consumers to import `internal`.
+- **Clean signatures:** the public API does not accidentally expose implementation types or hidden dependencies.
+- **Right dependencies:** declare `requires`, `requires transitive`, and `requires static` according to the situation; avoid arbitrary `transitive`.
+- **Minimal reflection:** only `opens` necessary packages; specify target modules whenever possible.
+- **Contract-compliant SPI:** stable interfaces, resolved providers, and a selection strategy if multiple providers exist.
+- **Verified packaging:** the modular JAR contains the right descriptor; automatic dependency names are not guessed wrongly.
+- **Tested compatibility:** consumers on the module path and classpath work under the modes the library claims to support.
+- **Controlled releases:** every change to module name, exports, dependencies, and public types is reviewed as an API change.
 
-## 12. Bài tập tự thực hành
+## 12. Self-practice exercise
 
-Mở rộng ví dụ theo ba bước: (1) tạo interface `GreetingStyle` ở package `api` và cài đặt trong `internal`; (2) tạo một module consumer mới gọi API, thử import trực tiếp implementation nội bộ và quan sát lỗi biên dịch; (3) thêm `GreetingProvider` ở package `spi`, khai báo `uses`/`provides` và chạy consumer với một provider module ngoài. Khi mỗi bước chạy được, mô tả module nào đọc module nào, package nào export và package nào chỉ mở cho reflection (nếu có).
+Extend the example in three steps: (1) create a `GreetingStyle` interface in the `api` package and implement it in `internal`; (2) create a new consumer module calling the API, try importing the internal implementation directly, and observe the compile error; (3) add `GreetingProvider` in the `spi` package, declare `uses`/`provides`, and run the consumer with an external provider module. Once each step works, describe which module reads which module, which packages are exported, and which packages are only opened for reflection (if any).
 
-**Điểm cần nhớ:** named module của thư viện công khai là một **hợp đồng API và dependency**. Thiết kế từ boundary và consumer trước, sau đó để `module-info.java` phản ánh chính xác hợp đồng đó.
+**Key point to remember:** a public library's named module is an **API and dependency contract**. Design from the boundaries and consumers first, then let `module-info.java` accurately reflect that contract.

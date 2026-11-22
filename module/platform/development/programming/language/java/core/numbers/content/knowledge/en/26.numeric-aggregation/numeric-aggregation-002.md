@@ -1,18 +1,18 @@
-# IntStream, LongStream, DoubleStream và cách giảm boxing khi tổng hợp số trong Java
+# IntStream, LongStream, DoubleStream, and Reducing Boxing in Java Numeric Aggregation
 
-## 1. Vấn đề: tổng hợp số có cần tạo đối tượng Integer, Long, Double?
+## 1. The Problem: Does Numeric Aggregation Need Integer, Long, or Double Objects?
 
-Java Stream API cho phép xử lý tập dữ liệu bằng các phép biến đổi như `filter`, `map` và các phép tổng hợp như `sum`, `average`, `min`, `max`. Khi phần tử là giá trị nguyên thủy (*primitive*) `int`, `long` hoặc `double`, Java cung cấp ba loại stream chuyên biệt:
+The Java Stream API lets you process datasets using transformations like `filter` and `map`, and aggregations like `sum`, `average`, `min`, and `max`. When elements are *primitive* values `int`, `long`, or `double`, Java provides three specialized stream types:
 
-- `IntStream` xử lý phần tử kiểu `int`.
-- `LongStream` xử lý phần tử kiểu `long`.
-- `DoubleStream` xử lý phần tử kiểu `double`.
+- `IntStream` processes `int` elements.
+- `LongStream` processes `long` elements.
+- `DoubleStream` processes `double` elements.
 
-Ba kiểu đều nằm trong package `java.util.stream`. Khác với `Stream<Integer>`, `Stream<Long>` hoặc `Stream<Double>`, phần tử của chúng được truyền trong các thao tác chuyên biệt dưới dạng giá trị primitive. Vì thế chúng **có thể giảm việc boxing/unboxing và số đối tượng trung gian** khi tính tổng, trung bình hay tìm cực trị.
+All three live in the `java.util.stream` package. Unlike `Stream<Integer>`, `Stream<Long>`, or `Stream<Double>`, their elements are passed through specialized operations as primitive values. Therefore, they **can reduce boxing/unboxing and intermediate object allocations** when computing sums, averages, or extrema.
 
-**Boxing** là chuyển primitive thành wrapper, như `int → Integer`. **Unboxing** là lấy primitive từ wrapper, như `Integer → int`. Java có thể tự động thực hiện hai chuyển đổi này, nhưng chúng vẫn là các thao tác có chi phí và có thể phát sinh đối tượng hoặc lỗi `NullPointerException` khi unbox giá trị `null`.
+**Boxing** converts a primitive into a wrapper, such as `int → Integer`. **Unboxing** extracts the primitive from a wrapper, such as `Integer → int`. Java can perform both conversions automatically, but they are still operations with cost and can create objects or trigger `NullPointerException` when unboxing a `null` value.
 
-Ví dụ cùng một mục tiêu tính tổng:
+An example with the same summation goal:
 
 ~~~java
 import java.util.List;
@@ -20,39 +20,39 @@ import java.util.stream.IntStream;
 
 List<Integer> numbers = List.of(10, 20, 30);
 
-// Đã có List<Integer>: chuyển một lần sang IntStream để tính toán primitive.
+// Already have List<Integer>: convert once to IntStream for primitive calculation.
 int sumFromList = numbers.stream()
         .mapToInt(Integer::intValue)
         .sum(); // 60
 
-// Tạo dữ liệu bằng primitive ngay từ nguồn.
+// Create data as primitives right from the source.
 int sumFromPrimitive = IntStream.of(10, 20, 30).sum(); // 60
 ~~~
 
-Cả hai cho kết quả 60. Lựa chọn tối ưu phụ thuộc nguồn dữ liệu: nếu dữ liệu đã được chứa trong `List<Integer>` thì việc unbox tại ranh giới là cần thiết; nếu có thể tạo và giữ dữ liệu primitive từ đầu, `IntStream` tránh được bước tạo wrapper chỉ để tính tổng.
+Both produce 60. The optimal choice depends on the data source: if data is already held in a `List<Integer>`, unboxing at the boundary is necessary; if data can be created and kept as primitives from the start, `IntStream` avoids creating wrappers just to compute a sum.
 
-## 2. Phân biệt Stream<T> và ba primitive stream
+## 2. Distinguishing Stream<T> from the Three Primitive Streams
 
-| Khía cạnh | `Stream<Integer>` (tương tự Long/Double) | `IntStream` | `LongStream` | `DoubleStream` |
+| Aspect | `Stream<Integer>` (similar for Long/Double) | `IntStream` | `LongStream` | `DoubleStream` |
 |---|---|---|---|---|
-| Kiểu phần tử | Đối tượng `Integer` | `int` | `long` | `double` |
-| Có `sum()`? | Không | Có, trả `int` | Có, trả `long` | Có, trả `double` |
-| Có `average()`? | Không | `OptionalDouble` | `OptionalDouble` | `OptionalDouble` |
-| `min()`, `max()` | `Optional<T>` khi có comparator/natural order | `OptionalInt` | `OptionalLong` | `OptionalDouble` |
-| `summaryStatistics()` | Không có phương thức tương ứng trực tiếp | `IntSummaryStatistics` | `LongSummaryStatistics` | `DoubleSummaryStatistics` |
-| `toArray()` | `T[]` nếu dùng constructor thích hợp; không đối số trả `Object[]` | `int[]` | `long[]` | `double[]` |
-| `boxed()` | Không cần vì đã là stream đối tượng | `Stream<Integer>` | `Stream<Long>` | `Stream<Double>` |
-| `map(...)` | Biến đổi đối tượng → đối tượng | `int → int` | `long → long` | `double → double` |
+| Element type | `Integer` object | `int` | `long` | `double` |
+| Has `sum()`? | No | Yes, returns `int` | Yes, returns `long` | Yes, returns `double` |
+| Has `average()`? | No | `OptionalDouble` | `OptionalDouble` | `OptionalDouble` |
+| `min()`, `max()` | `Optional<T>` with comparator/natural order | `OptionalInt` | `OptionalLong` | `OptionalDouble` |
+| `summaryStatistics()` | No direct equivalent method | `IntSummaryStatistics` | `LongSummaryStatistics` | `DoubleSummaryStatistics` |
+| `toArray()` | `T[]` with proper constructor; no-arg returns `Object[]` | `int[]` | `long[]` | `double[]` |
+| `boxed()` | Not needed because already an object stream | `Stream<Integer>` | `Stream<Long>` | `Stream<Double>` |
+| `map(...)` | Transforms object → object | `int → int` | `long → long` | `double → double` |
 
-`Stream<T>` là abstraction cho đối tượng tham chiếu; nó không cung cấp `sum()` vì một `T` bất kỳ không nhất thiết là số, cũng không có một kiểu kết quả tổng mặc định. Trong khi đó, stream primitive biết sẵn kiểu của phần tử nên cung cấp phép toán số học chuyên biệt.
+`Stream<T>` is an abstraction for reference objects; it does not provide `sum()` because an arbitrary `T` is not necessarily a number, nor is there a default sum result type. Meanwhile, primitive streams know the element type ahead of time and therefore provide specialized arithmetic operations.
 
-Một điểm cần chú ý: `IntStream` không thể chứa `null`. Điều này loại bỏ lỗi null do chính phần tử primitive, nhưng nếu nguồn là `Stream<Integer>` có `null`, thao tác `mapToInt(Integer::intValue)` vẫn có thể ném `NullPointerException` khi unbox.
+One thing to note: `IntStream` cannot contain `null`. This eliminates null errors from the primitive elements themselves, though if the source is a `Stream<Integer>` containing `null`, `mapToInt(Integer::intValue)` can still throw `NullPointerException` when unboxing.
 
-Các primitive stream chỉ chuyên biệt cho ba kiểu `int`, `long`, `double`. Không có `ByteStream`, `ShortStream`, `CharStream` hoặc `FloatStream` trong Stream API chuẩn. Các giá trị `byte`, `short`, `char` có thể được đẩy sang `IntStream` khi phù hợp; `float` thường được xử lý bằng `DoubleStream` nếu cần phép toán số thực.
+Primitive streams are only specialized for `int`, `long`, and `double`. There is no `ByteStream`, `ShortStream`, `CharStream`, or `FloatStream` in the standard Stream API. Values of `byte`, `short`, and `char` can be widened into `IntStream` when appropriate; `float` is typically handled via `DoubleStream` when floating-point operations are needed.
 
-## 3. Cách tạo stream primitive
+## 3. Ways to Create Primitive Streams
 
-### 3.1. Từ các giá trị, mảng primitive
+### 3.1. From Values and Primitive Arrays
 
 ~~~java
 import java.util.Arrays;
@@ -68,9 +68,9 @@ int[] readings = {4, 6, 8};
 int total = Arrays.stream(readings).sum(); // 18
 ~~~
 
-`Arrays.stream(int[])` trả `IntStream`. Tương tự, `Arrays.stream(long[])` trả `LongStream` và `Arrays.stream(double[])` trả `DoubleStream`. Đây là con đường tự nhiên khi dữ liệu đã nằm trong mảng primitive.
+`Arrays.stream(int[])` returns an `IntStream`. Similarly, `Arrays.stream(long[])` returns a `LongStream` and `Arrays.stream(double[])` returns a `DoubleStream`. This is the natural path when data already resides in a primitive array.
 
-Dễ mắc lỗi với `Stream.of(array)`:
+An easy mistake with `Stream.of(array)`:
 
 ~~~java
 int[] readings = {4, 6, 8};
@@ -79,9 +79,9 @@ long a = Arrays.stream(readings).count(); // 3
 long b = java.util.stream.Stream.of(readings).count(); // 1
 ~~~
 
-`Stream.of(readings)` trong ví dụ này là stream chứa **một đối tượng mảng `int[]`**, không phải ba số nguyên. Muốn duyệt các phần tử số, dùng `Arrays.stream(readings)` hoặc `IntStream.of(readings)`.
+`Stream.of(readings)` in this example is a stream containing **one `int[]` array object**, not three integers. To traverse the numeric elements, use `Arrays.stream(readings)` or `IntStream.of(readings)`.
 
-### 3.2. Tạo dãy liên tiếp với range, rangeClosed
+### 3.2. Generating Contiguous Sequences with range and rangeClosed
 
 ~~~java
 IntStream.range(1, 5);         // 1, 2, 3, 4
@@ -90,11 +90,11 @@ LongStream.range(10L, 13L);   // 10, 11, 12
 LongStream.rangeClosed(10L, 13L); // 10, 11, 12, 13
 ~~~
 
-`range(startInclusive, endExclusive)` gồm đầu, không gồm cuối; `rangeClosed(startInclusive, endInclusive)` gồm cả hai đầu. Hai họ phương thức này có trên `IntStream` và `LongStream`; `DoubleStream` **không có** `range`/`rangeClosed`.
+`range(startInclusive, endExclusive)` includes the start and excludes the end; `rangeClosed(startInclusive, endInclusive)` includes both ends. Both families of methods exist on `IntStream` and `LongStream`; `DoubleStream` **does not have** `range`/`rangeClosed`.
 
-`range` rất hữu ích cho chỉ số mảng, vòng lặp đếm và dữ liệu có khoảng liên tục, nhưng lưu ý tính đúng của biên trước khi thay thế vòng lặp thông thường.
+`range` is very useful for array indices, counting loops, and contiguous range data, though be mindful of boundary correctness before replacing ordinary loops.
 
-### 3.3. Từ Stream đối tượng qua mapToInt, mapToLong, mapToDouble
+### 3.3. From an Object Stream via mapToInt, mapToLong, mapToDouble
 
 ~~~java
 import java.util.List;
@@ -116,11 +116,11 @@ double average = Stream.of("1.5", "2.5", "3.5")
         .orElseThrow(); // 2.5
 ~~~
 
-Các toán tử `mapToInt`/`mapToLong`/`mapToDouble` là ranh giới chuyển từ stream đối tượng sang stream primitive. Sau chuyển đổi, phép lọc, ánh xạ và tổng hợp số có thể diễn ra mà không phải liên tục chuyển đổi từng phần tử sang wrapper.
+`mapToInt`/`mapToLong`/`mapToDouble` are the conversion boundary from an object stream to a primitive stream. After conversion, filtering, mapping, and numeric aggregation can proceed without repeatedly converting each element to a wrapper.
 
-## 4. Các phép tổng hợp số: sum, average, min, max, count
+## 4. Numeric Aggregations: sum, average, min, max, count
 
-Ví dụ:
+Example:
 
 ~~~java
 int sum = IntStream.of(2, 4, 6).sum(); // 12
@@ -130,11 +130,11 @@ int maximum = IntStream.of(2, 4, 6).max().orElseThrow(); // 6
 long count = IntStream.of(2, 4, 6).count(); // 3
 ~~~
 
-`count()` trả `long`, không phải `int`. `average()` trên cả ba primitive stream đều trả `OptionalDouble`, vì trung bình của các số nguyên có thể là phân số: ví dụ trung bình của `1` và `2` là `1.5`.
+`count()` returns `long`, not `int`. `average()` on all three primitive streams returns `OptionalDouble`, because the average of integers can be fractional: for example, the average of `1` and `2` is `1.5`.
 
-`min()`/`max()` trả `OptionalInt`, `OptionalLong` hoặc `OptionalDouble` tương ứng; chúng không trả trực tiếp primitive vì stream có thể rỗng.
+`min()`/`max()` return `OptionalInt`, `OptionalLong`, or `OptionalDouble` respectively; they do not return a primitive directly because the stream may be empty.
 
-### 4.1. Xử lý stream rỗng đúng cách
+### 4.1. Handling Empty Streams Properly
 
 ~~~java
 import java.util.OptionalDouble;
@@ -145,20 +145,20 @@ long count = IntStream.empty().count();  // 0
 OptionalDouble avg = IntStream.empty().average(); // OptionalDouble.empty()
 ~~~
 
-Với `min()`, `max()` và `average()`, hãy chọn cách xử lý stream rỗng theo nghiệp vụ:
+For `min()`, `max()`, and `average()`, choose how to handle empty streams according to business requirements:
 
 ~~~java
 double fallback = IntStream.empty().average().orElse(0.0); // 0.0
 
-// Chỉ dùng khi tập dữ liệu bắt buộc không rỗng.
+// Only use when the dataset is required to be non-empty.
 // double required = IntStream.empty().average().orElseThrow();
 ~~~
 
-`orElse(0.0)` là quyết định riêng của ứng dụng: về mặt toán học, trung bình của tập rỗng không phải 0. Nếu 0 có thể bị hiểu thành kết quả hợp lệ, tốt hơn nên giữ `OptionalDouble` hoặc báo lỗi rõ ràng.
+`orElse(0.0)` is an application-specific decision: mathematically, the average of an empty set is not 0. If 0 could be misinterpreted as a valid measurement, it is better to keep `OptionalDouble` or report an error explicitly.
 
-### 4.2. summaryStatistics: tổng hợp nhiều chỉ số trong một lượt
+### 4.2. summaryStatistics: Aggregating Multiple Metrics in One Pass
 
-Thay vì tạo nhiều stream riêng cho `count`, `sum`, `min`, `max` và `average`, có thể lấy một đối tượng thống kê:
+Instead of creating separate streams for `count`, `sum`, `min`, `max`, and `average`, you can obtain a single statistics object:
 
 ~~~java
 import java.util.IntSummaryStatistics;
@@ -173,18 +173,18 @@ System.out.println(stats.getMax());     // 6
 System.out.println(stats.getAverage()); // 4.0
 ~~~
 
-Tương tự:
+Similarly:
 
-- `LongStream.summaryStatistics()` trả `LongSummaryStatistics`.
-- `DoubleStream.summaryStatistics()` trả `DoubleSummaryStatistics`.
+- `LongStream.summaryStatistics()` returns `LongSummaryStatistics`.
+- `DoubleStream.summaryStatistics()` returns `DoubleSummaryStatistics`.
 
-Các lớp thống kê cung cấp tổng, số lượng, cực trị và trung bình. Đối với stream rỗng, các giá trị cực trị và trung bình của summary-statistics dùng giá trị mặc định theo API; cần **kiểm tra `getCount()`** trước khi coi kết quả là một cực trị/trung bình có ý nghĩa.
+The statistics classes provide sum, count, extrema, and average. For empty streams, summary-statistics extrema and average use API default values; you must **check `getCount()`** before treating the result as a meaningful extremum or average.
 
-`summaryStatistics()` cũng là một **terminal operation**: nó tiêu thụ stream. Không thể gọi lại `sum()` trên cùng một instance stream đã dùng.
+`summaryStatistics()` is also a **terminal operation**: it consumes the stream. You cannot subsequently call `sum()` on the same stream instance.
 
-## 5. Biến đổi primitive rồi tổng hợp: filter, map, reduce
+## 5. Transforming Primitives Then Aggregating: filter, map, reduce
 
-Primitive stream có các thao tác trung gian `filter`, `map`, `flatMap`, `distinct`, `sorted`, `limit`, `skip` và nhiều thao tác khác với hàm nhận primitive:
+Primitive streams have intermediate operations `filter`, `map`, `flatMap`, `distinct`, `sorted`, `limit`, `skip`, and others taking primitive-accepting functions:
 
 ~~~java
 int totalEvenSquares = IntStream.rangeClosed(1, 5)
@@ -193,17 +193,17 @@ int totalEvenSquares = IntStream.rangeClosed(1, 5)
         .sum();                  // 20
 ~~~
 
-Trong chuỗi này, `filter` và `map` làm việc với `int` qua các functional interface chuyên biệt `IntPredicate`, `IntUnaryOperator`. Dữ liệu không phải biến thành `Integer` giữa các thao tác.
+In this chain, `filter` and `map` operate on `int` via specialized functional interfaces `IntPredicate` and `IntUnaryOperator`. Data does not need to become `Integer` between operations.
 
-Một số kiểu callback quan trọng:
+Some key callback types:
 
-| Primitive stream | `filter` nhận | `map` nhận | `forEach` nhận |
+| Primitive stream | `filter` takes | `map` takes | `forEach` takes |
 |---|---|---|---|
 | `IntStream` | `IntPredicate` | `IntUnaryOperator` | `IntConsumer` |
 | `LongStream` | `LongPredicate` | `LongUnaryOperator` | `LongConsumer` |
 | `DoubleStream` | `DoublePredicate` | `DoubleUnaryOperator` | `DoubleConsumer` |
 
-### 5.1. reduce với phép gộp tùy chọn
+### 5.1. reduce with Custom Combining Operations
 
 ~~~java
 int product = IntStream.rangeClosed(1, 4)
@@ -214,13 +214,13 @@ int biggest = IntStream.of(4, 9, 2)
         .orElseThrow(); // 9
 ~~~
 
-`reduce(identity, operator)` trả một primitive (có giá trị identity nếu stream rỗng). `reduce(operator)` không có identity trả một `OptionalInt`/`OptionalLong`/`OptionalDouble`. Dùng phép kết hợp **có tính kết hợp (associative)** và identity phù hợp để đúng cả khi stream chạy parallel. Ví dụ phép cộng với identity 0, phép nhân với identity 1; không dùng phép trừ như một phép reduce tổng quát nếu cần kết quả ổn định dưới phân hoạch song song.
+`reduce(identity, operator)` returns a primitive (yielding the identity value if the stream is empty). `reduce(operator)` without an identity returns an `OptionalInt`/`OptionalLong`/`OptionalDouble`. Use an **associative** combining operation and matching identity so it remains correct even when the stream runs in parallel. For example, addition with identity 0, multiplication with identity 1; do not use subtraction as a general reduction if you need stable results under parallel partitioning.
 
-Khi chỉ cần tổng, ưu tiên `sum()` hơn `reduce(0, Integer::sum)` vì mã rõ mục đích hơn.
+When you only need a sum, prefer `sum()` over `reduce(0, Integer::sum)` because the code expresses intent more clearly.
 
-### 5.2. Không phải lúc nào cũng cần reduce tùy biến
+### 5.2. You Do Not Always Need a Custom reduce
 
-`sum`, `average`, `summaryStatistics` đã thể hiện các kiểu tổng hợp phổ biến. Nếu cần gom vào cấu trúc đặc biệt mà không muốn boxing từng phần tử, `IntStream` có overload `collect(supplier, accumulator, combiner)` với accumulator là `ObjIntConsumer<R>`:
+`sum`, `average`, and `summaryStatistics` already cover common aggregations. If you need to collect into a specialized structure without boxing every element, `IntStream` provides an overload `collect(supplier, accumulator, combiner)` whose accumulator is `ObjIntConsumer<R>`:
 
 ~~~java
 String joined = IntStream.of(2, 3, 5)
@@ -232,13 +232,13 @@ String joined = IntStream.of(2, 3, 5)
         .toString(); // "235"
 ~~~
 
-Accumulator nhận `int` primitive. Với tác vụ song song, supplier tạo container riêng cho các nhánh và combiner phải ghép đúng, không dùng một container chia sẻ bên ngoài. Trường hợp chỉ nối chuỗi đơn giản chưa chắc cần collector tùy biến; ví dụ này minh họa cơ chế chuyên biệt.
+The accumulator receives a primitive `int`. For parallel tasks, the supplier must create a separate container per branch and the combiner must merge properly, without relying on a shared external container. Simple string joining may not need a custom collector; this example illustrates the specialized mechanism.
 
-## 6. Chuyển đổi qua lại: boxed(), mapToObj(), mapToInt()
+## 6. Converting Back and Forth: boxed(), mapToObj(), mapToInt()
 
-Khi API phía sau cần đối tượng, hãy **boxing ở ranh giới thực sự cần thiết**.
+When downstream APIs require objects, **box only at the boundary where it is actually necessary**.
 
-### 6.1. Primitive stream → Stream wrapper bằng boxed()
+### 6.1. Primitive Stream → Wrapper Stream via boxed()
 
 ~~~java
 import java.util.List;
@@ -251,19 +251,19 @@ List<Integer> ids = IntStream.of(3, 1, 3, 2)
         .toList(); // [1, 2, 3]
 ~~~
 
-`boxed()` chuyển:
+`boxed()` converts:
 
-| Đầu vào | Kết quả |
+| Input | Result |
 |---|---|
 | `IntStream.boxed()` | `Stream<Integer>` |
 | `LongStream.boxed()` | `Stream<Long>` |
 | `DoubleStream.boxed()` | `Stream<Double>` |
 
-`toList()` trong ví dụ là terminal operation của `Stream<Integer>` (có từ Java 16); `IntStream` không có phương thức `toList()` để tạo `List<Integer>` trực tiếp. Bước `boxed()` là cần thiết khi kiểu đầu ra được yêu cầu là list các wrapper.
+`toList()` in the example is a terminal operation on `Stream<Integer>` (available since Java 16); `IntStream` has no `toList()` method to create a `List<Integer>` directly. The `boxed()` step is necessary when the required output type is a list of wrappers.
 
-Chỉ nên chuyển sang wrapper khi thực sự cần đối tượng, ví dụ gọi API nhận `List<Integer>`. Nếu chỉ tính tổng thì `IntStream.of(...).sum()` gọn và tránh ranh giới boxing đó.
+You should only convert to wrappers when objects are actually required, such as calling an API that accepts `List<Integer>`. If you are only computing a sum, `IntStream.of(...).sum()` is concise and avoids that boxing boundary.
 
-### 6.2. Primitive → kiểu đối tượng khác bằng mapToObj()
+### 6.2. Primitive → Other Object Types via mapToObj()
 
 ~~~java
 List<String> labels = IntStream.of(2, 3, 5)
@@ -271,9 +271,9 @@ List<String> labels = IntStream.of(2, 3, 5)
         .toList(); // [id-2, id-3, id-5]
 ~~~
 
-`mapToObj` khác `boxed`: nó ánh xạ primitive sang **đối tượng bất kỳ**. Tương tự, `LongStream` và `DoubleStream` cũng có `mapToObj`. Việc tạo `String` là chủ ý của nghiệp vụ, không phải boxing số nguyên không cần thiết.
+`mapToObj` differs from `boxed`: it maps primitives to **any object type**. Similarly, `LongStream` and `DoubleStream` also have `mapToObj`. Creating `String` objects is intentional business logic, not unnecessary integer boxing.
 
-### 6.3. Stream wrapper → primitive bằng mapToInt(), mapToLong(), mapToDouble()
+### 6.3. Wrapper Stream → Primitive via mapToInt(), mapToLong(), mapToDouble()
 
 ~~~java
 List<Integer> values = List.of(5, 10, 15);
@@ -283,9 +283,9 @@ int total = values.stream()
         .sum(); // 30
 ~~~
 
-Ở ranh giới này, Java cần unbox từng `Integer` thành `int`. Điều hữu ích là phần còn lại của pipeline có thể tiếp tục làm việc với primitive. Nếu danh sách có `null` thì `Integer::intValue` gây `NullPointerException`; nên xử lý nguồn có null rõ ràng, ví dụ lọc trước bằng `filter(java.util.Objects::nonNull)` nếu nghiệp vụ cho phép bỏ qua dữ liệu thiếu.
+At this boundary, Java needs to unbox each `Integer` into an `int`. The benefit is that the rest of the pipeline can continue working with primitives. If the list contains `null`, `Integer::intValue` throws `NullPointerException`; handle nullable sources explicitly, such as filtering first with `filter(java.util.Objects::nonNull)` if the business logic allows skipping missing data.
 
-`IntStream` còn có `mapToLong`, `mapToDouble` để đổi loại primitive; `LongStream` có `mapToInt`, `mapToDouble`; `DoubleStream` có `mapToInt`, `mapToLong`. Các chuyển đổi *narrowing* từ `long`/`double` xuống `int` có thể mất thông tin, vì thế không coi chúng là thao tác luôn an toàn.
+`IntStream` also has `mapToLong` and `mapToDouble` to switch primitive types; `LongStream` has `mapToInt` and `mapToDouble`; `DoubleStream` has `mapToInt` and `mapToLong`. *Narrowing* conversions from `long`/`double` down to `int` can lose information, so do not treat them as always safe.
 
 ### 6.4. asLongStream(), asDoubleStream()
 
@@ -300,11 +300,11 @@ double mean = IntStream.of(1, 2)
         .orElseThrow(); // 1.5
 ~~~
 
-`asLongStream()` trên `IntStream` là phép *widening* giữ chính xác giá trị `int`. `IntStream.asDoubleStream()` cũng giữ chính xác mọi giá trị `int` (vì `double` biểu diễn chính xác các số nguyên 32 bit). Nhưng `LongStream.asDoubleStream()` **có thể mất độ chính xác** đối với `long` lớn hơn ngưỡng chính xác nguyên của `double` (khoảng `2^53`). Không dùng chuyển đổi đó cho phép tính đòi hỏi giữ chính xác từng đơn vị với số nguyên lớn.
+`asLongStream()` on `IntStream` is a *widening* conversion that preserves `int` values exactly. `IntStream.asDoubleStream()` also preserves every `int` value exactly (since `double` represents all 32-bit integers exactly). However, `LongStream.asDoubleStream()` **can lose precision** for `long` values larger than `double`'s exact integer threshold (around `2^53`). Do not use that conversion for calculations requiring unit-level precision on large integers.
 
-## 7. Chương trình Java 17+ hoàn chỉnh và kết quả kiểm chứng
+## 7. Complete Java 17+ Program and Verified Output
 
-Tạo tệp `PrimitiveStreamsDemo.java`:
+Create `PrimitiveStreamsDemo.java`:
 
 ~~~java
 import java.util.Arrays;
@@ -368,14 +368,14 @@ public class PrimitiveStreamsDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac PrimitiveStreamsDemo.java
 java PrimitiveStreamsDemo
 ~~~
 
-Kết quả stdout:
+Stdout output:
 
 ~~~text
 array sum=20
@@ -394,15 +394,15 @@ double avg=2.5
 collected=235
 ~~~
 
-Chương trình minh họa các ranh giới quan trọng. `Arrays.stream(int[])` và `IntStream.range` tạo luồng primitive; `summaryStatistics` tổng hợp các chỉ số trong một lần tiêu thụ; `boxed()` chỉ xuất hiện tại nơi cần `List<Integer>`; `mapToObj` tạo đối tượng `String` khi cần. Hai dòng `long sum` và `int sum` cố ý cho thấy tràn số `int` trong một phép tổng hợp mặc định.
+The program illustrates important boundaries. `Arrays.stream(int[])` and `IntStream.range` create primitive streams; `summaryStatistics` aggregates metrics in one consumption pass; `boxed()` appears only where `List<Integer>` is needed; `mapToObj` creates `String` objects when required. The two lines `long sum` and `int sum` intentionally demonstrate `int` overflow in a default aggregation.
 
-## 8. Kiểm soát overflow khi tổng hợp số nguyên
+## 8. Controlling Overflow During Integer Aggregation
 
-Dùng stream primitive **không tự động bảo đảm tổng luôn nằm trong kiểu kết quả**.
+Using primitive streams **does not automatically guarantee the sum stays within the result type**.
 
 ~~~java
 int overflowed = IntStream.of(Integer.MAX_VALUE, 1).sum();
-// -2147483648 do tràn int
+// -2147483648 due to int overflow
 
 long widenedFirst = IntStream.of(Integer.MAX_VALUE, 1)
         .asLongStream()
@@ -410,13 +410,13 @@ long widenedFirst = IntStream.of(Integer.MAX_VALUE, 1)
 // 2147483648
 ~~~
 
-`IntStream.sum()` trả `int` nên có thể overflow theo quy tắc số nguyên Java; `LongStream.sum()` cũng có thể overflow với dữ liệu `long` đủ lớn. Không phải lúc nào `asLongStream()` cũng giải quyết được mọi bài toán: nó chỉ mở rộng giới hạn từ 32 bit sang 64 bit.
+`IntStream.sum()` returns `int`, so it can overflow according to Java integer rules; `LongStream.sum()` can also overflow with sufficiently large `long` data. `asLongStream()` does not always solve every problem: it only widens the limit from 32 bits to 64 bits.
 
-Quan trọng là **mở rộng trước khi thực hiện phép toán có thể tràn**, không phải cast sau:
+Crucially, **widen before performing operations that can overflow**, rather than casting afterward:
 
 ~~~java
 long wrong = IntStream.of(50_000, 60_000)
-        .map(n -> n * n)        // phép nhân trong int: đã tràn
+        .map(n -> n * n)        // multiplication in int: already overflowed
         .asLongStream()
         .sum();
 
@@ -425,9 +425,9 @@ long correct = IntStream.of(50_000, 60_000)
         .sum(); // 6100000000
 ~~~
 
-Cast `(long) n` được đặt **trước phép nhân** nên toán tử nhân tính ở `long`. Với dữ liệu có thể vượt cả phạm vi `long`, cần thiết kế phép tổng hợp dùng `BigInteger` hoặc xử lý giới hạn theo yêu cầu.
+The `(long) n` cast is placed **before the multiplication** so the multiplication runs in `long`. For data that can exceed even the `long` range, design the aggregation using `BigInteger` or handle bounds as required.
 
-Khi cần **phát hiện** overflow thay vì để giá trị wrap, có thể dùng `Math.addExact`:
+When you need to **detect** overflow instead of letting values wrap, you can use `Math.addExact`:
 
 ~~~java
 int exact = IntStream.of(1, 2, 3)
@@ -435,14 +435,14 @@ int exact = IntStream.of(1, 2, 3)
 
 // IntStream.of(Integer.MAX_VALUE, 1)
 //          .reduce(0, Math::addExact);
-// Ném ArithmeticException khi phép cộng vượt miền int.
+// Throws ArithmeticException when addition exceeds the int range.
 ~~~
 
-Đối với một pipeline song song, các phép reduce phải thỏa điều kiện về phép kết hợp; phép cộng chính xác bằng `Math.addExact` có thể ném ngoại lệ trong quá trình gộp nếu một bước vượt giới hạn. Hãy xác định rõ bạn muốn kết quả kiểu `int`, `long`, số nguyên không giới hạn, hay hành vi lỗi khi tràn.
+For a parallel pipeline, reductions must satisfy associativity; exact addition via `Math.addExact` can throw an exception during combining if a step exceeds the limit. Decide clearly whether you want an `int` result, a `long` result, arbitrary-precision integers, or an error on overflow.
 
-## 9. DoubleStream có tốc độ và đặc tính số thực riêng
+## 9. DoubleStream Has Its Own Speed and Floating-Point Characteristics
 
-`DoubleStream` phù hợp với dữ liệu đo lường hoặc số thực mà độ chính xác xấp xỉ IEEE 754 được chấp nhận:
+`DoubleStream` fits measurement data or real numbers where IEEE 754 approximate precision is acceptable:
 
 ~~~java
 double sum = DoubleStream.of(1.5, 2.5, 3.5).sum(); // 7.5
@@ -450,30 +450,30 @@ double average = DoubleStream.of(1.5, 2.5, 3.5)
         .average().orElseThrow(); // 2.5
 ~~~
 
-Tuy nhiên `double` **không thể biểu diễn chính xác mọi phân số thập phân**, chẳng hạn `0.1`. `DoubleStream.sum()` có cơ chế cộng bù (*compensated summation*) nhằm giảm sai số so với cộng ngây thơ trong nhiều tình huống, nhưng **không bảo đảm** kết quả thập phân chính xác như một phép tính `BigDecimal`.
+However, `double` **cannot represent every decimal fraction exactly**, such as `0.1`. `DoubleStream.sum()` uses compensated summation to reduce error compared to naive addition in many situations, but **does not guarantee** exact decimal results like a `BigDecimal` calculation.
 
-Ví dụ diễn giải:
+Illustrative example:
 
 ~~~java
 double a = 0.1;
 double b = 0.2;
-System.out.println(a + b == 0.3); // false trên phép cộng double thông thường
+System.out.println(a + b == 0.3); // false under regular double addition
 ~~~
 
-Không nên dùng ví dụ này để khẳng định một chuỗi `DoubleStream.sum()` cụ thể luôn tạo cùng chuỗi thập phân với phép cộng trực tiếp: thuật toán gộp có thể khác. Bài học là phải chọn kiểu số phù hợp với yêu cầu chính xác.
+Do not use this example to claim that a specific `DoubleStream.sum()` sequence always produces the exact same decimal string as direct addition: the summation algorithm may differ. The takeaway is to choose the numeric type suited to your precision requirements.
 
-Nếu xử lý số tiền hoặc các đại lượng có quy định thập phân chính xác, `BigDecimal` thường là lựa chọn thích hợp hơn; khi đó pipeline đối tượng có thể là chủ ý đúng đắn, và lợi ích giảm boxing không quan trọng bằng bảo đảm tính đúng của phép toán.
+When handling monetary amounts or quantities with exact decimal rules, `BigDecimal` is usually the better choice; in that case an object pipeline may be the right design decision, and reducing boxing is less important than ensuring arithmetic correctness.
 
-Một số khác biệt khác cần biết:
+Other differences to know:
 
-- `DoubleStream` có thể chứa `NaN`, `Infinity` và `-Infinity`; cách các giá trị này lan truyền trong tổng hợp cần được quy định ở ứng dụng.
-- `DoubleStream.min()`/`max()` trả `OptionalDouble`. Không dùng kết quả nếu rỗng mà thiếu kiểm tra.
-- `double` mất khả năng biểu diễn chính xác mọi số nguyên lớn hơn `2^53`. Tránh chuyển số lượng `long` lớn thành `double` chỉ để dùng `average()` nếu nghiệp vụ cần giữ nguyên từng đơn vị.
-- Trong phép cộng số thực, thứ tự gộp có thể ảnh hưởng chữ số thấp của kết quả. Chạy parallel có thể thay đổi thứ tự tính, vì vậy so sánh số thực thường cần ngưỡng sai số thay vì `==` khi nghiệp vụ cho phép.
+- `DoubleStream` can contain `NaN`, `Infinity`, and `-Infinity`; how these values propagate through aggregation must be defined by the application.
+- `DoubleStream.min()`/`max()` return `OptionalDouble`. Do not use the result when empty without checking.
+- `double` loses the ability to represent every integer larger than `2^53` exactly. Avoid converting large `long` counts to `double` just to use `average()` if business logic requires exact unit precision.
+- In floating-point addition, combining order can affect the low-order digits of the result. Running in parallel can change evaluation order, so floating-point comparisons often require an error tolerance rather than `==` when the domain allows.
 
-## 10. flatMapToInt và xử lý nhiều mảng primitive
+## 10. flatMapToInt and Processing Multiple Primitive Arrays
 
-Một dữ liệu đầu vào có thể là nhiều mảng `int[]` nằm trong một `Stream<int[]>`. Không cần boxing từng phần tử để nối chúng:
+Input data may consist of multiple `int[]` arrays inside a `Stream<int[]>`. You do not need to box every element to concatenate them:
 
 ~~~java
 import java.util.Arrays;
@@ -487,9 +487,9 @@ int total = Stream.of(
     .sum(); // 15
 ~~~
 
-`flatMapToInt` lấy từng `int[]`, tạo `IntStream` tương ứng rồi nối các phần tử primitive. Tương tự, `flatMapToLong` và `flatMapToDouble` áp dụng khi kết quả ánh xạ là `LongStream` hoặc `DoubleStream`.
+`flatMapToInt` takes each `int[]`, creates the corresponding `IntStream`, and flattens the primitive elements. Similarly, `flatMapToLong` and `flatMapToDouble` apply when the mapping result is a `LongStream` or `DoubleStream`.
 
-Nếu nguồn đã là `IntStream` và mỗi giá trị phải sinh ra nhiều `int`, chính `IntStream.flatMap` nhận hàm trả `IntStream`:
+If the source is already an `IntStream` and each value must produce multiple `int` values, `IntStream.flatMap` itself takes a function returning an `IntStream`:
 
 ~~~java
 int sum = IntStream.of(1, 2, 3)
@@ -497,11 +497,11 @@ int sum = IntStream.of(1, 2, 3)
         .sum(); // 66
 ~~~
 
-Đây là mô hình hữu ích khi trải phẳng dữ liệu số trước khi tổng hợp mà không cần dựng `List<Integer>` trung gian.
+This is a useful pattern for flattening numeric data before aggregation without building an intermediate `List<Integer>`.
 
-## 11. Parallel stream: có thể nhanh hơn, nhưng không phải mặc định
+## 11. Parallel Streams: Can Be Faster, But Not by Default
 
-Các primitive stream hỗ trợ `parallel()`:
+Primitive streams support `parallel()`:
 
 ~~~java
 long sum = IntStream.rangeClosed(1, 1_000_000)
@@ -510,73 +510,73 @@ long sum = IntStream.rangeClosed(1, 1_000_000)
         .sum(); // 500000500000
 ~~~
 
-Phép tính này hợp lệ vì tổng `long` trong ví dụ không overflow, và việc cộng số nguyên có tính kết hợp phù hợp cho phân hoạch dữ liệu. Tuy nhiên `parallel()` **không mặc nhiên nhanh hơn**; với đầu vào nhỏ hoặc mỗi phần tử xử lý quá nhẹ, chi phí chia việc, lập lịch và gộp có thể cao hơn lợi ích.
+This calculation is valid because the `long` sum in the example does not overflow, and integer addition is associative, making it suitable for data partitioning. However, `parallel()` **is not automatically faster**; for small inputs or very lightweight per-element work, the overhead of splitting, scheduling, and combining can outweigh the benefit.
 
-Đừng thay một pipeline tuần tự nhỏ bằng parallel chỉ vì nó dùng primitive. Cũng không nên ghi vào biến cộng dồn dùng chung trong `forEach`:
+Do not replace a small sequential pipeline with a parallel one just because it uses primitives. Also, do not write into a shared accumulator variable inside `forEach`:
 
 ~~~java
-// Không an toàn khi chạy parallel vì cập nhật biến chung không đồng bộ:
+// Unsafe when running in parallel due to unsynchronized shared variable updates:
 int[] total = {0};
 IntStream.rangeClosed(1, 100).parallel()
         .forEach(n -> total[0] += n);
 ~~~
 
-Kết quả ví dụ trên có thể sai do data race. Hãy dùng `sum()`, `reduce()` hoặc collector có supplier/accumulator/combiner hợp lệ. Với `forEach` trên parallel stream, thứ tự thực thi không được bảo đảm; `forEachOrdered` giữ thứ tự gặp phần tử khi cần nhưng có thể làm giảm lợi ích song song.
+The result of the example above can be wrong due to a data race. Use `sum()`, `reduce()`, or a collector with proper supplier/accumulator/combiner. With `forEach` on a parallel stream, execution order is not guaranteed; `forEachOrdered` preserves encounter order when needed, though it can reduce parallel speedup.
 
-Các primitive stream, giống `Stream<T>`, thường **chỉ được tiêu thụ một lần**. Sau một terminal operation (`sum`, `toArray`, `count`, `collect`...), muốn tính chỉ số khác cần tạo stream mới hoặc lấy nhiều thống kê trong một lượt bằng `summaryStatistics`.
+Primitive streams, like `Stream<T>`, are normally **consumed only once**. After a terminal operation (`sum`, `toArray`, `count`, `collect`, ...), to compute another metric you need to create a new stream or gather multiple statistics in one pass with `summaryStatistics`.
 
-## 12. Giảm boxing thế nào cho đúng, và khi nào nên đo hiệu năng?
+## 12. How to Reduce Boxing Properly, and When to Benchmark
 
-So sánh hai pipeline cùng mục tiêu:
+Compare two pipelines with the same goal:
 
 ~~~java
-// Có thể tạo các giá trị wrapper ở nhiều bước.
+// Can create wrapper values across multiple steps.
 int totalA = IntStream.rangeClosed(1, 1000)
         .boxed()
         .map(n -> n * 2)
         .reduce(0, Integer::sum);
 
-// Giữ primitive xuyên suốt.
+// Keeps primitives throughout.
 int totalB = IntStream.rangeClosed(1, 1000)
         .map(n -> n * 2)
         .sum();
 ~~~
 
-Cả hai trả kết quả `1001000`. Pipeline thứ hai mô tả ý định tính toán rõ hơn và tránh chuyển phần tử thành `Integer` trước khi `map`/`reduce`. Tuy nhiên không suy luận một tỉ lệ tăng tốc cố định: JVM có tối ưu JIT, cache wrapper trong một số trường hợp, escape analysis và chi phí tối ưu khác tùy workload.
+Both return `1001000`. The second pipeline expresses the computation intent more clearly and avoids converting elements to `Integer` before `map`/`reduce`. However, do not assume a fixed speedup ratio: the JVM has JIT optimizations, wrapper caching in some cases, escape analysis, and other optimization effects depending on the workload.
 
-Các quy tắc thực hành:
+Practical rules:
 
-1. **Bắt đầu từ nguồn primitive nếu có thể:** `int[]`, `long[]`, `double[]`, `IntStream.range`.
-2. **Giữ primitive trong phần xử lý số học:** `filter`, `map`, `sum`, `average`, `summaryStatistics`.
-3. **Chuyển khi cần:** dùng `mapToInt` cho dữ liệu đối tượng đầu vào; dùng `boxed` khi đầu ra bắt buộc là wrapper/list; dùng `mapToObj` khi cần một đối tượng nghiệp vụ.
-4. **Không hy sinh tính đúng:** chọn `long` hoặc `BigInteger` khi `int` có thể tràn; chọn `BigDecimal` khi cần tính thập phân chính xác.
-5. **Đo ở môi trường phù hợp:** với hệ thống quan trọng hiệu năng, dùng profiler và microbenchmark đáng tin cậy (thường dùng JMH) trên dữ liệu và kích thước thực tế; tránh kết luận từ một lần chạy nhỏ hoặc đo qua `System.currentTimeMillis()`.
+1. **Start from a primitive source when possible:** `int[]`, `long[]`, `double[]`, `IntStream.range`.
+2. **Stay primitive through arithmetic processing:** `filter`, `map`, `sum`, `average`, `summaryStatistics`.
+3. **Convert when needed:** use `mapToInt` for object input data; use `boxed` when the output must be wrappers/lists; use `mapToObj` when you need a domain object.
+4. **Never sacrifice correctness:** choose `long` or `BigInteger` when `int` can overflow; choose `BigDecimal` when exact decimal arithmetic is needed.
+5. **Measure in the right environment:** for performance-critical systems, use a profiler and reliable microbenchmarking (commonly JMH) on realistic data and sizes; avoid drawing conclusions from a single small run or measuring with `System.currentTimeMillis()`.
 
-Mục tiêu của primitive stream không phải "xóa sạch mọi đối tượng" trong JVM. Mục tiêu là tránh boxing/unboxing của **từng phần tử số** tại những điểm không cần thiết, đồng thời có API tổng hợp số rõ ràng, dễ kiểm tra.
+The goal of primitive streams is not to "eliminate every object" in the JVM. The goal is to avoid unnecessary boxing/unboxing of **individual numeric elements** while providing a clear, verifiable numeric aggregation API.
 
-## 13. Những lỗi thường gặp
+## 13. Common Mistakes
 
-| Lỗi | Hậu quả | Hướng xử lý |
+| Mistake | Consequence | Fix |
 |---|---|---|
-| `Stream.of(intArray)` để tính tổng các phần tử | Stream chứa một mảng, không phải nhiều số | `Arrays.stream(intArray).sum()` |
-| Gọi `sum()` trực tiếp trên `Stream<Integer>` | Không có phương thức `sum()` | `mapToInt(Integer::intValue).sum()` |
-| Gọi `toList()` trên `IntStream` | Không có API trả `List<Integer>` như vậy | `boxed().toList()` nếu cần list |
-| Boxing sớm trước chuỗi tính toán dài | Thêm chuyển đổi và có thể tăng cấp phát wrapper | Giữ primitive tới ranh giới object |
-| Unbox `Integer` có `null` | `NullPointerException` | Xử lý null theo nghiệp vụ trước `mapToInt` |
-| Cho rằng `IntStream.sum()` không thể overflow | Tổng có thể wrap ra số âm | Mở rộng sớm sang long, hoặc kiểm tra bằng `Math.addExact` |
-| Cast sang long **sau** khi nhân int | Tích đã overflow trước cast | Ép kiểu `(long) n * n` ngay trong `mapToLong` |
-| Gọi `max().getAsInt()` trên stream rỗng | `NoSuchElementException` | Kiểm tra `isPresent` hoặc `orElseThrow` theo contract |
-| Dùng `DoubleStream` cho tiền cần thập phân chính xác | Sai số số thực | Dùng `BigDecimal` và quy tắc làm tròn rõ |
-| Kỳ vọng parallel luôn nhanh | Chi phí đồng bộ/phân hoạch lớn | Benchmark và chỉ parallel khi đáng giá |
-| Tích lũy vào biến chung trong parallel `forEach` | Data race, kết quả không xác định | Dùng `sum`, `reduce`, collector đúng |
-| Gọi `sum()` rồi `average()` trên cùng stream | `IllegalStateException` vì stream đã tiêu thụ | Tạo stream mới hoặc `summaryStatistics` |
-| Chuyển `long` rất lớn sang `double` để làm tổng/trung bình | Có thể mất độ chính xác nguyên | Giữ `long`/`BigInteger` hoặc chọn kỹ thuật chính xác thích hợp |
+| `Stream.of(intArray)` to sum elements | Stream contains one array, not multiple numbers | `Arrays.stream(intArray).sum()` |
+| Calling `sum()` directly on `Stream<Integer>` | No `sum()` method exists | `mapToInt(Integer::intValue).sum()` |
+| Calling `toList()` on `IntStream` | No such API returning `List<Integer>` | `boxed().toList()` if a list is needed |
+| Boxing early before a long calculation chain | Extra conversions and potential wrapper allocations | Stay primitive up to the object boundary |
+| Unboxing `Integer` containing `null` | `NullPointerException` | Handle nulls per business logic before `mapToInt` |
+| Assuming `IntStream.sum()` cannot overflow | Sum can wrap to a negative number | Widen early to long, or check with `Math.addExact` |
+| Casting to long **after** int multiplication | Product already overflowed before cast | Cast `(long) n * n` directly inside `mapToLong` |
+| Calling `max().getAsInt()` on an empty stream | `NoSuchElementException` | Check `isPresent` or `orElseThrow` per contract |
+| Using `DoubleStream` for money needing decimal exactness | Floating-point rounding error | Use `BigDecimal` and explicit rounding rules |
+| Expecting parallel to always be faster | High synchronization/partitioning overhead | Benchmark and parallelize only when worthwhile |
+| Accumulating into a shared variable in parallel `forEach` | Data race, indeterminate results | Use `sum`, `reduce`, or a proper collector |
+| Calling `sum()` then `average()` on the same stream | `IllegalStateException` because stream is consumed | Create a new stream or `summaryStatistics` |
+| Converting very large `long` to `double` for sum/average | Can lose integer precision | Keep `long`/`BigInteger` or choose an appropriate exact technique |
 
-## 14. Bài tập tự kiểm tra
+## 14. Self-Check Exercises
 
-**Bài 1.** Viết tổng các số chẵn từ 1 đến 10 mà không boxing.
+**Exercise 1.** Write the sum of even numbers from 1 to 10 without boxing.
 
-**Đáp án:**
+**Answer:**
 
 ~~~java
 int sum = IntStream.rangeClosed(1, 10)
@@ -584,30 +584,30 @@ int sum = IntStream.rangeClosed(1, 10)
         .sum(); // 30
 ~~~
 
-**Bài 2.** Với mảng `int[] data = {3, 6, 9}`, vì sao `Stream.of(data).count()` trả 1 còn `Arrays.stream(data).count()` trả 3?
+**Exercise 2.** Given the array `int[] data = {3, 6, 9}`, why does `Stream.of(data).count()` return 1 while `Arrays.stream(data).count()` returns 3?
 
-**Đáp án:** `Stream.of(data)` coi cả `int[]` là một phần tử đối tượng; `Arrays.stream(data)` tạo `IntStream` gồm ba phần tử primitive.
+**Answer:** `Stream.of(data)` treats the entire `int[]` as a single object element; `Arrays.stream(data)` creates an `IntStream` of three primitive elements.
 
-**Bài 3.** Tổng `Integer.MAX_VALUE + 1` nên dùng thao tác nào để tránh overflow `int` trong phép tổng hợp này?
+**Exercise 3.** Which operation should be used for the sum `Integer.MAX_VALUE + 1` to avoid `int` overflow during this aggregation?
 
-**Đáp án:** `IntStream.of(Integer.MAX_VALUE, 1).asLongStream().sum()` trả `2147483648`; không dùng `IntStream.sum()` cho trường hợp đó.
+**Answer:** `IntStream.of(Integer.MAX_VALUE, 1).asLongStream().sum()` returns `2147483648`; do not use `IntStream.sum()` for that case.
 
-**Bài 4.** `IntStream.of(1, 2, 3).average()` trả loại gì? Nếu stream rỗng thì sao?
+**Exercise 4.** What type does `IntStream.of(1, 2, 3).average()` return? What happens if the stream is empty?
 
-**Đáp án:** `OptionalDouble`, có giá trị trung bình `2.0` khi có phần tử. Với stream rỗng là `OptionalDouble.empty()`; người gọi quyết định fallback hoặc báo lỗi.
+**Answer:** `OptionalDouble`, containing the average value `2.0` when elements exist. For an empty stream it is `OptionalDouble.empty()`; the caller decides on a fallback or error.
 
-**Bài 5.** Sau `IntStream.range(0, 4).sum()` có thể tiếp tục dùng cùng stream để tính `max()` không?
+**Exercise 5.** After `IntStream.range(0, 4).sum()`, can you continue using the same stream to compute `max()`?
 
-**Đáp án:** Không, stream đã kết thúc sau terminal operation. Hãy tạo stream mới, hoặc nếu cần nhiều chỉ số trong một lượt thì dùng `summaryStatistics()`.
+**Answer:** No, the stream is already closed after the terminal operation. Create a new stream, or if you need multiple metrics in one pass, use `summaryStatistics()`.
 
-**Bài 6.** Khi đầu ra phải là `List<Integer>` có tăng dần từ 1 đến 5, có phải boxing không?
+**Exercise 6.** When the output must be a `List<Integer>` ascending from 1 to 5, is boxing required?
 
-**Đáp án:** Có vì `List<Integer>` chứa đối tượng wrapper. Ví dụ `IntStream.rangeClosed(1, 5).boxed().toList()`. Điều cần tránh là boxing sớm hơn nhu cầu đầu ra.
+**Answer:** Yes, because `List<Integer>` holds wrapper objects. For example, `IntStream.rangeClosed(1, 5).boxed().toList()`. What should be avoided is boxing earlier than the output requires.
 
-**Bài 7.** Kết quả của `IntStream.of(50_000, 60_000).mapToLong(n -> (long)n * n).sum()` bằng bao nhiêu?
+**Exercise 7.** What is the result of `IntStream.of(50_000, 60_000).mapToLong(n -> (long)n * n).sum()`?
 
-**Đáp án:** `6_100_000_000L`. Cast lên long trước phép nhân giữ chính xác hai bình phương và tổng trong giới hạn long.
+**Answer:** `6_100_000_000L`. Casting to long before multiplication keeps both squares and the sum exact within long limits.
 
 ---
 
-**Ghi nhớ:** `IntStream`, `LongStream` và `DoubleStream` là những stream chuyên biệt cho tính toán số, cung cấp `sum`, `average`, `summaryStatistics` và nhiều phép toán trên phần tử primitive. **Giữ primitive trong phần tính toán, boxing khi API thực sự cần đối tượng**, đồng thời luôn kiểm tra overflow, độ chính xác số thực, trường hợp stream rỗng và yêu cầu nghiệp vụ.
+**Remember:** `IntStream`, `LongStream`, and `DoubleStream` are specialized streams for numeric computation, providing `sum`, `average`, `summaryStatistics`, and many operations on primitive elements. **Stay primitive during computation, box only when an API genuinely needs objects**, and always check overflow, floating-point precision, empty-stream cases, and business requirements.

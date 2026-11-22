@@ -1,99 +1,99 @@
-# Literal chuỗi và cú pháp dấu nháy kép trong Java
+# String Literals and Double-Quote Syntax in Java
 
-## 1. Literal chuỗi là gì?
+## 1. What is a String Literal?
 
-**String literal** (literal chuỗi) là một đoạn văn bản được viết trực tiếp trong mã nguồn Java và đặt giữa **hai dấu nháy kép** ASCII (`"`). Nó biểu diễn một đối tượng `String` chứa dãy ký tự tương ứng.
+A **string literal** is a piece of text written directly in Java source code and enclosed between **two ASCII double quotes** (`"`). It represents a `String` object containing the corresponding sequence of characters.
 
 ```java
-String greeting = "Xin chào, Java!";
+String greeting = "Hello, Java!";
 String empty = "";
 String numberAsText = "123";
 ```
 
-- `"Xin chào, Java!"` và `"123"` đều là biểu thức kiểu `String`, dù nội dung có chữ hay chữ số.
-- `""` là **chuỗi rỗng**, có độ dài bằng `0`, không phải `null`.
-- Dấu nháy kép **đánh dấu ranh giới** của literal; chúng không trở thành ký tự trong chuỗi.
-- `String` là lớp `java.lang.String`; Java tự import `java.lang`, nên không cần câu lệnh `import` riêng.
+- `"Hello, Java!"` and `"123"` are both expressions of type `String`, whether the content contains letters or digits.
+- `""` is the **empty string**, which has length `0`, not `null`.
+- Double quotes **mark the boundaries** of the literal; they do not become characters inside the string.
+- `String` is the class `java.lang.String`; Java imports `java.lang` automatically, so no separate `import` statement is needed.
 
-Đọc `String greeting = "Xin chào, Java!";` theo hai phần: `String greeting` khai báo biến tham chiếu kiểu `String`, còn `"Xin chào, Java!"` là literal dùng để khởi tạo giá trị. Tên biến, kiểu dữ liệu và literal là các thành phần khác nhau.
+Read `String greeting = "Hello, Java!";` in two parts: `String greeting` declares a reference variable of type `String`, while `"Hello, Java!"` is the literal used to initialize its value. The variable name, data type, and literal are distinct components.
 
-## 2. Quy tắc cú pháp của dấu nháy kép
+## 2. Double-Quote Syntax Rules
 
-Cú pháp cơ bản:
+Basic syntax:
 
 ```java
-String variableName = "nội dung";
+String variableName = "content";
 ```
 
-1. Literal chuỗi thông thường **mở bằng `"` và đóng bằng `"`** trên cùng một dòng nguồn; trình biên dịch xác định chuỗi kết thúc ở dấu `"` không được escape tiếp theo.
-2. Nội dung có thể không có ký tự nào (`""`), có dấu cách (`" "`), ký tự tiếng Việt, ký hiệu, hoặc các **escape sequence** hợp lệ.
-3. Muốn đưa một dấu `"` thành **nội dung** của chuỗi, phải viết `\"`. Muốn đưa dấu gạch chéo ngược `\` thành nội dung, phải viết `\\`.
-4. Trong literal thông thường, không được chèn trực tiếp một ký tự xuống dòng của mã nguồn ở giữa hai dấu nháy; dùng `\n` để biểu diễn xuống dòng.
+1. A standard string literal **opens with `"` and closes with `"`** on the same source line; the compiler determines that the string ends at the next unescaped `"`.
+2. The content may have no characters (`""`), spaces (`" "`), Vietnamese characters, symbols, or valid **escape sequences**.
+3. To include a `"` character as **content** in the string, you must write `\"`. To include a backslash `\` as content, you must write `\\`.
+4. In a standard literal, you cannot insert a source-code line break directly between the two double quotes; use `\n` to represent a newline.
 
-Các ví dụ minh họa cú pháp, **không phải chương trình hoàn chỉnh**:
+Syntax illustration examples, **not a complete program**:
 
 ```java
-String a = "Java";                 // Hợp lệ
-String b = "";                     // Hợp lệ: chuỗi rỗng
-String c = " ";                    // Hợp lệ: một dấu cách
-String d = "Anh ấy nói: \"Chào\"";  // Hợp lệ: chứa dấu nháy kép
-String e = "Dòng 1\nDòng 2";       // Hợp lệ: có ký tự xuống dòng khi chạy
+String a = "Java";                 // Valid
+String b = "";                     // Valid: empty string
+String c = " ";                    // Valid: single space
+String d = "He said: \"Hello\"";  // Valid: contains double quotes
+String e = "Line 1\nLine 2";       // Valid: has a newline character at runtime
 ```
 
-Phân biệt dấu nháy:
+Distinguishing quotes:
 
-| Cách viết | Kiểu / ý nghĩa | Ghi chú |
+| Syntax | Type / Meaning | Notes |
 |---|---|---|
-| `"A"` | `String` | Một chuỗi dài 1 ký tự |
-| `'A'` | `char` | Một giá trị ký tự |
-| `""` | `String` | Chuỗi rỗng |
-| `"null"` | `String` | Văn bản gồm 4 chữ cái |
-| `null` | Literal `null` | Không tham chiếu đến đối tượng nào |
+| `"A"` | `String` | A 1-character-long string |
+| `'A'` | `char` | A single character value |
+| `""` | `String` | Empty string |
+| `"null"` | `String` | Text consisting of 4 letters |
+| `null` | `null` literal | References no object |
 
-Ví dụ: `String value = 'A';` **không biên dịch** vì `'A'` là `char`, không phải `String`. Muốn gán một chuỗi, viết `String value = "A";`.
+For example: `String value = 'A';` **does not compile** because `'A'` is a `char`, not a `String`. To assign a string, write `String value = "A";`.
 
-## 3. Escape sequence trong literal chuỗi
+## 3. Escape Sequences in String Literals
 
-Dấu `\` mở đầu một **escape sequence**: cách viết đặc biệt trong mã nguồn để đưa ký tự khó gõ trực tiếp hoặc có ý nghĩa cú pháp vào chuỗi.
+The `\` character introduces an **escape sequence**: a special notation in source code for inserting characters that are hard to type directly or have syntactic meaning into a string.
 
-| Viết trong mã nguồn | Ký tự được tạo ra | Tình huống thường gặp |
+| Written in source code | Generated character | Common use case |
 |---|---|---|
-| `\"` | `"` | Hiển thị dấu nháy kép |
-| `\\` | `\` | Đường dẫn Windows, ký tự gạch chéo ngược |
-| `\n` | Xuống dòng (line feed) | Văn bản nhiều dòng |
-| `\t` | Tab ngang | Phân cách cột |
+| `\"` | `"` | Displaying double quotes |
+| `\\` | `\` | Windows paths, backslash character |
+| `\n` | Newline (line feed) | Multi-line text |
+| `\t` | Horizontal tab | Separating columns |
 
-Các escape còn lại như `\r`, `\b`, `\f`, `\s` và `\'` được trình bày đầy đủ ở bài chuyên về escape ngay sau bài này.
+The remaining escapes such as `\r`, `\b`, `\f`, `\s`, and `\'` are covered in full in the dedicated escape lesson immediately following this one.
 
-Phân biệt **mã nguồn** và **giá trị thực**:
+Distinguishing **source code** from **actual value**:
 
 ```java
-String newline = "\n";      // Chứa 1 ký tự xuống dòng, không chứa '\' và 'n'
-String letters = "\\n";     // Chứa 2 ký tự: '\' và 'n'
-String quote = "\"";        // Chứa 1 ký tự: '"'
+String newline = "\n";      // Contains 1 newline character, not '\' and 'n'
+String letters = "\\n";     // Contains 2 characters: '\' and 'n'
+String quote = "\"";        // Contains 1 character: '"'
 String windowsPath = "C:\\temp\\log.txt";
 ```
 
-Đặc biệt, viết đường dẫn như `"C:\temp\log.txt"` là sai ý định: `\t` sẽ thành tab còn `\l` không phải escape hợp lệ nên trình biên dịch báo lỗi. Nếu cần biểu diễn dấu `\` thật, dùng `\\`.
+In particular, writing a path like `"C:\temp\log.txt"` does not match the intent: `\t` becomes a tab and `\l` is not a valid escape, so the compiler reports an error. If you need to represent an actual `\`, use `\\`.
 
-Một escape không được Java nhận biết, chẳng hạn `"\q"`, sẽ gây lỗi biên dịch (*illegal escape character*), không âm thầm giữ nguyên dấu `\`.
+An escape unrecognized by Java, such as `"\q"`, causes a compile error (*illegal escape character*), rather than silently keeping the `\`.
 
-### Unicode trong chuỗi
+### Unicode in Strings
 
-Java có thể dùng ký tự Unicode trực tiếp, chẳng hạn `"Tiếng Việt"`, khi tệp nguồn được đọc đúng encoding. Dạng `\u0041` tạo ký tự `A` ở giai đoạn dịch mã nguồn, **trước khi** phân tích literal. Vì vậy không dùng `\u000A` để viết ký tự xuống dòng trong literal: hãy dùng `\n`. Cơ chế và các bẫy này được phân tích trong bài Unicode escape riêng.
+Java can use Unicode characters directly, such as `"Tiếng Việt"`, when the source file is read with the proper encoding. The form `\u0041` produces the character `A` during source translation, **before** literal parsing. Therefore, do not use `\u000A` to write a newline character in a literal: use `\n` instead. This mechanism and its pitfalls are analyzed in the dedicated Unicode escape lesson.
 
-## 4. Ví dụ Java 17+ có thể chạy
+## 4. Runnable Java 17+ Example
 
-Lưu tệp **`StringLiteralDemo.java`** với nội dung:
+Save the file **`StringLiteralDemo.java`** with the content:
 
 ```java
 public class StringLiteralDemo {
     public static void main(String[] args) {
-        String greeting = "Xin chào, Java!";
+        String greeting = "Hello, Java!";
         String empty = "";
-        String quoted = "Bạn nói: \"Java\"";
+        String quoted = "You said: \"Java\"";
         String path = "C:\\docs\\note.txt";
-        String twoLines = "Dòng 1\nDòng 2";
+        String twoLines = "Line 1\nLine 2";
         String tabSeparated = "A\tB";
 
         System.out.println(greeting);
@@ -106,51 +106,51 @@ public class StringLiteralDemo {
 }
 ```
 
-Biên dịch và chạy ở thư mục chứa tệp:
+Compile and run in the directory containing the file:
 
 ```bash
 javac -encoding UTF-8 StringLiteralDemo.java
 java StringLiteralDemo
 ```
 
-**Stdout** (mỗi dòng đúng thứ tự; ví dụ thay tab bằng `[TAB]` để nhìn thấy vị trí tab):
+**Stdout** (each line in exact order; the example replaces the tab with `[TAB]` so the tab position is visible):
 
 ```text
-Xin chào, Java!
+Hello, Java!
 empty.length() = 0
-Bạn nói: "Java"
+You said: "Java"
 C:\docs\note.txt
-Dòng 1
-Dòng 2
+Line 1
+Line 2
 A[TAB]B
 ```
 
-Giải thích:
+Explanation:
 
-- Literal `""` tạo chuỗi rỗng nên `empty.length()` là `0`.
-- Trong `quoted`, `\"` tạo dấu nháy kép xuất hiện ở stdout.
-- Trong `path`, mỗi `\\` tạo ra **một** dấu `\`.
-- Trong `twoLines`, `\n` làm `println` hiển thị hai dòng nội dung.
-- `\t` tạo tab thật; `replace` chỉ đổi tab thành nhãn dễ quan sát lúc in kết quả.
+- The literal `""` creates an empty string, so `empty.length()` is `0`.
+- In `quoted`, `\"` produces double quotes that appear in stdout.
+- In `path`, each `\\` produces **one** `\` character.
+- In `twoLines`, `\n` makes `println` display two lines of content.
+- `\t` creates a real tab; `replace` only swaps the tab for an observable label when printing the output.
 
-## 5. Literal chuỗi, biến và đối tượng String
+## 5. String Literals, Variables, and String Objects
 
-### Literal có thể dùng ở nhiều vị trí
+### Literals Can Be Used in Many Places
 
-Literal là **biểu thức** kiểu `String`, không chỉ xuất hiện bên phải phép gán:
+A literal is an **expression** of type `String`, not something that only appears on the right-hand side of an assignment:
 
 ```java
-System.out.println("Sẵn sàng");
+System.out.println("Ready");
 boolean isEmpty = "".isEmpty();
 int length = "Java".length(); // 4
-String message = "Xin " + "chào";
+String message = "Hello, " + "world";
 ```
 
-Nối bằng `+` tạo một biểu thức chuỗi. Trong Java, `"Java"` không tự biến thành tên biến, `"123"` không tự biến thành số nguyên và `"Xin ${name}"` **không có cơ chế nội suy biến** theo cú pháp `${...}`. Nếu có biến `name`, một cách đơn giản là `"Xin " + name`.
+Concatenation with `+` produces a string expression. In Java, `"Java"` does not automatically turn into a variable name, `"123"` does not automatically turn into an integer, and `"Hello, ${name}"` **has no variable interpolation mechanism** with `${...}` syntax. If there is a variable `name`, a simple way is `"Hello, " + name`.
 
-### Vì sao không nên so sánh chuỗi bằng `==`?
+### Why Shouldn't You Compare Strings with `==`?
 
-Java **intern** các string literal: cùng nội dung literal thường tham chiếu đến cùng đối tượng trong string pool. Trình biên dịch còn có thể gộp những biểu thức nối chỉ chứa hằng tại thời điểm biên dịch. Nhưng `==` trên hai tham chiếu `String` kiểm tra **cùng đối tượng hay không**, không kiểm tra nội dung.
+Java **interns** string literals: literals with the same content usually reference the same object in the string pool. The compiler can also fold concatenation expressions containing only constants at compile time. However, `==` on two `String` references checks **whether they are the same object**, not whether they have the same content.
 
 ```java
 String first = "Java";
@@ -162,45 +162,45 @@ System.out.println(first == builtAtRuntime); // false
 System.out.println(first.equals(builtAtRuntime)); // true
 ```
 
-Đây là đoạn minh họa đặt **bên trong một phương thức**, không phải tệp Java độc lập. Sử dụng `.equals(...)` để so sánh nội dung; đừng dựa vào pool để suy luận `==` sẽ luôn đúng với hai chuỗi có chữ giống nhau.
+This is an illustration snippet placed **inside a method**, not a standalone Java file. Use `.equals(...)` to compare content; do not rely on the pool to assume `==` will always be true for two strings with identical text.
 
-Một literal vẫn là đối tượng `String` bất biến (*immutable*). Ví dụ `text.toUpperCase()` trả về chuỗi mới (hoặc có thể trả lại chính chuỗi nếu không cần thay đổi), chứ không sửa nội dung bên trong đối tượng `String` ban đầu.
+A literal is still an *immutable* `String` object. For example, `text.toUpperCase()` returns a new string (or may return the same string if no change is needed), rather than modifying the internal content of the original `String` object.
 
-## 6. Những lỗi thường gặp
+## 6. Common Mistakes
 
-| Đoạn mã | Vấn đề | Cách sửa |
+| Code snippet | Problem | Fix |
 |---|---|---|
-| `String s = 'Java';` | Dấu `'...'` không tạo `String`; nhiều ký tự còn không hợp lệ cho `char` | `String s = "Java";` |
-| `String s = "Java;` | Thiếu dấu `"` đóng | `String s = "Java";` |
-| `String s = "C:\temp\file";` | `\t`, `\f` bị hiểu thành ký tự điều khiển | `String s = "C:\\temp\\file";` |
-| `String s = "A "B" C";` | Dấu `"` bên trong làm kết thúc literal sớm | `String s = "A \"B\" C";` |
-| `String s = "\q";` | `\q` không phải escape hợp lệ | Sử dụng `\\q` nếu cần ký tự `\` và `q` |
-| `String s = ""; if (s == null) ...` | Chuỗi rỗng không phải `null` | Kiểm tra `s.isEmpty()` nếu mục tiêu là rỗng |
-| `a == b` với `String` | So sánh tham chiếu | Dùng `a.equals(b)` khi chắc `a` không `null` |
+| `String s = 'Java';` | `'...'` does not create a `String`; multiple characters are also invalid for `char` | `String s = "Java";` |
+| `String s = "Java;` | Missing closing `"` | `String s = "Java";` |
+| `String s = "C:\temp\file";` | `\t`, `\f` are interpreted as control characters | `String s = "C:\\temp\\file";` |
+| `String s = "A "B" C";` | Inner `"` terminates the literal prematurely | `String s = "A \"B\" C";` |
+| `String s = "\q";` | `\q` is not a valid escape | Use `\\q` if you need `\` and `q` |
+| `String s = ""; if (s == null) ...` | An empty string is not `null` | Check `s.isEmpty()` if checking for emptiness |
+| `a == b` with `String` | Compares references | Use `a.equals(b)` when sure `a` is not `null` |
 
-Các dòng lỗi trong bảng là ví dụ chẩn đoán, **không phải mã nguồn chạy được**.
+The error rows in the table are diagnostic examples, **not runnable source code**.
 
-### Chuỗi chứa nhiều dòng thì sao?
+### What About Multi-Line Strings?
 
-Một literal chuỗi **thông thường** dùng `"..."`
-không thể xuống dòng trực tiếp trong mã nguồn:
+A **standard** string literal using `"..."`
+cannot contain a direct line break in source code:
 
 ```java
-// KHÔNG hợp lệ nếu xuống dòng thật bên trong "..."
-String invalid = "Dòng 1
-Dòng 2";
+// INVALID if there is an actual line break inside "..."
+String invalid = "Line 1
+Line 2";
 ```
 
-Viết `"Dòng 1\nDòng 2"` hoặc ghép `"Dòng 1\n" + "Dòng 2"`. Từ Java 15 còn có **text block** sử dụng `"""` cho văn bản nhiều dòng; đó là cú pháp riêng, phù hợp khi cần trình bày nội dung lớn, và khác với cặp dấu `"` của literal thông thường đang xét.
+Write `"Line 1\nLine 2"` or concatenate `"Line 1\n" + "Line 2"`. Since Java 15, there is also the **text block** using `"""` for multi-line text; that is a separate syntax suited for presenting large blocks of content, and differs from the standard literal's `"` pair discussed here.
 
-## 7. Tự kiểm tra
+## 7. Self-Check
 
-1. `"A"` và `'A'` khác nhau về kiểu như thế nào?
-2. `" "` có rỗng không? `""` có bằng `null` không?
-3. Viết literal biểu diễn nội dung chính xác `C:\java\src`.
-4. Vì sao `String text = "Dòng 1\nDòng 2";` có thể in ra hai dòng, dù mã nguồn chỉ có một dòng?
-5. Hai biến `String` cùng nội dung thì nên dùng `==` hay `.equals()` để kiểm tra văn bản?
+1. How do `"A"` and `'A'` differ in type?
+2. Is `" "` empty? Is `""` equal to `null`?
+3. Write a literal representing the exact content `C:\java\src`.
+4. Why can `String text = "Line 1\nLine 2";` print two lines even though the source code is on one line?
+5. For two `String` variables with the same content, should you use `==` or `.equals()` to check the text?
 
-**Đáp án:** (1) `String` và `char`; (2) `" "` chứa một dấu cách, `""` là chuỗi rỗng khác `null`; (3) `"C:\\java\\src"`; (4) `\n` là ký tự xuống dòng trong giá trị của chuỗi; (5) `.equals()`.
+**Answers:** (1) `String` and `char`; (2) `" "` contains one space, `""` is an empty string distinct from `null`; (3) `"C:\\java\\src"`; (4) `\n` is a newline character in the string's value; (5) `.equals()`.
 
-Một literal chuỗi hợp lệ cần có đúng ranh giới dấu nháy kép, các escape phù hợp và ý thức rõ sự khác nhau giữa những ký tự **viết trong mã nguồn** và những ký tự **thực sự tồn tại trong đối tượng `String`**.
+A valid string literal requires proper double-quote boundaries, appropriate escapes, and a clear awareness of the difference between characters **written in source code** and characters **that actually exist inside the `String` object**.

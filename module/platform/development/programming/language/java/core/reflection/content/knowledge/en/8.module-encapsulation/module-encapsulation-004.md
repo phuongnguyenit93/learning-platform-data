@@ -1,61 +1,61 @@
-# Java Reflection và JPMS: điều kiện truy cập khi caller và lớp đích ở cùng module
+# Java Reflection and JPMS: Access Conditions When Caller and Target Class Are in the Same Module
 
-Trong Java 9+ (bao gồm Java 17, 21), **JPMS — Java Platform Module System** đặt thêm ranh giới giữa các module. Tuy vậy, khi lớp **thực sự thực hiện Reflection** (*caller*) và lớp **khai báo thành viên cần truy cập** cùng nằm trong **một module**, việc kiểm tra và mở quyền Reflection có quy tắc thuận lợi hơn so với tình huống đi qua ranh giới module. Điều quan trọng là không đánh đồng *cùng module* với *được quyền truy cập trực tiếp mọi thành viên `private`*.
+In Java 9+ (including Java 17 and 21), **JPMS — Java Platform Module System** introduces boundaries between modules. However, when the class **actually performing Reflection** (*caller*) and the class **declaring the member to access** reside in **the same module**, checking and enabling Reflection access follow more permissive rules than crossing a module boundary. It is important not to equate *same module* with *having direct access to every `private` member*.
 
-Kết luận cốt lõi:
+Core takeaways:
 
-- **Tra cứu metadata** qua `getDeclaredField()`, `getDeclaredMethod()`, `getDeclaredConstructor()` là bước tìm thành viên; tìm thấy thành viên `private` không có nghĩa là đọc/gọi được ngay.
-- **Truy cập Java thông thường** vẫn tuân theo `public`, `protected`, package-private và `private`. Hai lớp khác nhau nhưng ở cùng module không tự động được xem là cùng package hoặc cùng nest.
-- Với Reflection, nếu **caller và lớp khai báo thành viên ở cùng module**, `AccessibleObject#trySetAccessible()` có thể bật chế độ bỏ qua kiểm tra truy cập Java cho thành viên đó; `setAccessible(true)` cũng được phép theo điều kiện *same module* của JPMS. Việc sử dụng các thao tác sau khi bật quyền vẫn phải tuân theo những giới hạn riêng, như giới hạn sửa `final`.
-- Không cần khai báo `exports` hoặc `opens` **chỉ để phục vụ truy cập nội bộ cùng module**. Hai chỉ thị này chủ yếu điều khiển việc package được sử dụng từ **module khác**.
+- **Looking up metadata** via `getDeclaredField()`, `getDeclaredMethod()`, or `getDeclaredConstructor()` is the member-discovery step; finding a `private` member does not mean you can immediately read or invoke it.
+- **Regular Java access** still obeys `public`, `protected`, package-private, and `private`. Two different classes in the same module are not automatically treated as being in the same package or same nest.
+- With Reflection, if **the caller and the member's declaring class are in the same module**, `AccessibleObject#trySetAccessible()` can enable suppressing Java access checks for that member; `setAccessible(true)` is also permitted under JPMS's *same module* condition. Operations after enabling access must still follow specific restrictions, such as limits on modifying `final`.
+- You do not need to declare `exports` or `opens` **just to support internal access within the same module**. Those two directives primarily control how packages are used from **other modules**.
 
-Bài này làm rõ phạm vi "same module", hai tầng kiểm tra truy cập, cách xác minh bằng mã Java có `module-info.java`, và các trường hợp dễ sai khi xây công cụ Reflection.
+This lesson clarifies the scope of "same module", the two layers of access checks, how to verify using Java code with `module-info.java`, and common mistakes when building Reflection utilities.
 
-## 1. "Caller" và "cùng module" chính xác là gì?
+## 1. What Do "Caller" and "Same Module" Mean Exactly?
 
-Một module là đơn vị đóng gói các package. Named module được khai báo bằng `module-info.java`; còn mã trên classpath thường thuộc **unnamed module** gắn với class loader.
+A module is a unit packaging multiple packages. Named modules are declared with `module-info.java`; code on the classpath typically belongs to an **unnamed module** tied to a class loader.
 
-Trong ngữ cảnh Reflection:
+In the context of Reflection:
 
-- **Target/declarer** là lớp hoặc interface thực sự **khai báo** field, method hoặc constructor cần thao tác; xem `member.getDeclaringClass()`.
-- **Caller** là lớp có mã **thực sự gọi** API kiểm tra/mở quyền Reflection, chẳng hạn `trySetAccessible()`. Không nên mặc định caller là lớp khởi đầu một yêu cầu ở tầng ứng dụng.
-- Muốn kiểm tra hai lớp có đúng là **cùng một đối tượng module**, so sánh `Class#getModule()` bằng `==`.
+- **Target/declarer** is the class or interface that actually **declares** the field, method, or constructor to operate on; see `member.getDeclaringClass()`.
+- **Caller** is the class whose code **actually calls** the Reflection access-check/enabling API, such as `trySetAccessible()`. Do not assume the caller is the application-layer class that initiated a request.
+- To check whether two classes belong to **the exact same module object**, compare `Class#getModule()` using `==`.
 
-Ví dụ:
+Example:
 
 ~~~java
 boolean sameModule = Caller.class.getModule()
         == Target.class.getModule();
 ~~~
 
-Đoạn trên là **mã minh họa**, với `Caller` và `Target` là hai lớp đã định nghĩa ở ứng dụng. So sánh module theo **danh tính** tốt hơn so sánh chuỗi từ `Module#getName()`: unnamed module có tên `null`; đồng thời cùng một tên module không đủ chứng minh hai lớp thuộc cùng một đối tượng module ở các môi trường class loader/layer khác nhau.
+The snippet above is **illustrative code**, where `Caller` and `Target` are two classes defined in the application. Comparing modules by **identity** is better than comparing strings from `Module#getName()`: unnamed modules have a `null` name, and having the same module name is not enough to prove two classes belong to the same module object across different class loader/layer environments.
 
-**Đối với unnamed module:** đừng kết luận mọi lớp trên mọi class loader đều ở cùng một unnamed module. Mỗi class loader có unnamed module của nó. Vì vậy hãy kiểm tra đối tượng `Module` thực tế khi lớp được tải động hoặc ứng dụng có nhiều class loader.
+**Regarding unnamed modules:** do not conclude that all classes across all class loaders share the same unnamed module. Each class loader has its own unnamed module. Always inspect the actual `Module` object when classes are loaded dynamically or when an application uses multiple class loaders.
 
-## 2. Phân biệt ba câu hỏi về quyền truy cập
+## 2. Separating Three Questions About Access Permissions
 
-Có ba câu hỏi độc lập:
+There are three independent questions:
 
-| Câu hỏi | API hoặc quy tắc liên quan | Khi hai lớp cùng module |
+| Question | Related API or Rule | When Two Classes Are in the Same Module |
 | --- | --- | --- |
-| **Có tìm thấy metadata của thành viên không?** | `Class#getDeclaredField`, `getDeclaredMethod`, `getDeclaredConstructor` | Có thể tìm cả thành viên `private` khai báo trực tiếp, nếu tên/chữ ký đúng |
-| **Có sử dụng được thành viên theo kiểm tra truy cập hiện tại không?** | Quy tắc Java `public`/`protected`/package-private/`private`, `canAccess(receiver)` | Vẫn phải thỏa quyền thông thường, trừ khi đã bật bỏ qua kiểm tra |
-| **Có được bật bỏ qua kiểm tra truy cập Java bằng Reflection không?** | `trySetAccessible()`, `setAccessible(true)` | Điều kiện *declaring class cùng module với caller* cho phép bật quyền; không cần package `opens` |
+| **Is the member's metadata found?** | `Class#getDeclaredField`, `getDeclaredMethod`, `getDeclaredConstructor` | Can find even directly declared `private` members, if name/signature match |
+| **Can the member be used under current access checks?** | Java rules `public`/`protected`/package-private/`private`, `canAccess(receiver)` | Must still satisfy normal permissions, unless access-check suppression has been enabled |
+| **Can Java access-check suppression be enabled via Reflection?** | `trySetAccessible()`, `setAccessible(true)` | The *declaring class in same module as caller* condition permits enabling access; package `opens` is not required |
 
-Ví dụ: `app.Main` và `model.Vault` có thể cùng module, nhưng ở **hai package khác nhau**. Nếu `Vault` có field `private String token`, `Vault.class.getDeclaredField("token")` vẫn trả về `Field`. Tuy nhiên `field.canAccess(vault)` thường trả `false` trước khi bật quyền vì `Main` không phải lớp/nest được phép truy cập `private` của `Vault`. Sau khi `field.trySetAccessible()` thành công, `field.get(vault)` có thể đọc giá trị.
+Example: `app.Main` and `model.Vault` may be in the same module, yet in **two different packages**. If `Vault` has field `private String token`, `Vault.class.getDeclaredField("token")` still returns the `Field`. However, `field.canAccess(vault)` typically returns `false` before enabling access because `Main` is not a class/nest allowed to access `Vault`'s `private` members. Once `field.trySetAccessible()` succeeds, `field.get(vault)` can read the value.
 
-### Quy tắc Java thông thường vẫn giữ nguyên
+### Normal Java Rules Still Apply
 
-- `public`: cần chú ý mức truy cập của **cả lớp khai báo lẫn thành viên**; việc package không `exports` không cấm mã trong **cùng module** truy cập các khai báo `public` hợp lệ.
-- `protected`: được phép theo quy tắc cùng package hoặc quan hệ kế thừa, với các điều kiện bổ sung đối với truy cập ngoài package. Chỉ "cùng module" là chưa đủ.
-- Package-private (không ghi modifier): hai lớp ở **khác package** không được tự động truy cập, cho dù thuộc cùng module.
-- `private`: tuân theo quy tắc lớp/nest của Java. Hai lớp top-level không cùng nest không có quyền truy cập trực tiếp `private` của nhau chỉ vì ở cùng module.
+- `public`: pay attention to the access level of **both the declaring class and the member**; a package not having `exports` does not forbid code in the **same module** from accessing valid `public` declarations.
+- `protected`: permitted under same-package or inheritance rules, with additional conditions for cross-package access. Merely being in the "same module" is not enough.
+- Package-private (no modifier): two classes in **different packages** do not automatically gain access to each other, even if they belong to the same module.
+- `private`: follows Java's class/nest rules. Two top-level classes not in the same nest do not gain direct access to each other's `private` members just by being in the same module.
 
-**Cùng module không có nghĩa là cùng package** và cũng không biến một thao tác truy cập `private` trong mã nguồn thành hợp lệ. Khi thật sự cần thao tác sâu qua Reflection, quyền mở truy cập là một **bước rõ ràng**.
+**Same module does not mean same package**, nor does it make a `private` access in source code valid. When deep access via Reflection is truly needed, enabling access is an **explicit step**.
 
-## 3. Named module nội bộ: không cần `exports` và `opens`
+## 3. Inside a Named Module: No Need for `exports` and `opens`
 
-Giả sử một dự án có cấu trúc:
+Suppose a project has the structure:
 
 ~~~text
 src/
@@ -68,20 +68,20 @@ src/
             └── Vault.java
 ~~~
 
-Tất cả các file `.java` thuộc **cùng named module** `demo.same`, dù phân thành hai package `lesson.app` và `lesson.domain`.
+All `.java` files belong to **the same named module** `demo.same`, even though they are split into two packages `lesson.app` and `lesson.domain`.
 
-Nội dung `src/demo.same/module-info.java`:
+Contents of `src/demo.same/module-info.java`:
 
 ~~~java
 module demo.same {
 }
 ~~~
 
-Module này **không khai báo** `exports lesson.domain;` hoặc `opens lesson.domain;`. Đối với mã nằm trong `demo.same`, điều đó không ngăn truy cập Java `public` hợp lệ từ package khác cùng module, cũng không ngăn mở quyền sâu bằng Reflection khi đáp ứng điều kiện *same module*.
+This module **does not declare** `exports lesson.domain;` or `opens lesson.domain;`. For code inside `demo.same`, that neither prevents valid `public` Java access from another package in the same module, nor prevents enabling deep access via Reflection when the *same module* condition is met.
 
-### Lớp đích `Vault`
+### Target Class `Vault`
 
-Tệp **`src/demo.same/lesson/domain/Vault.java`**:
+File **`src/demo.same/lesson/domain/Vault.java`**:
 
 ~~~java
 package lesson.domain;
@@ -107,11 +107,11 @@ public final class Vault {
 }
 ~~~
 
-Ở đây `Vault` là lớp `public` để `lesson.app.Main` có thể dùng trực tiếp từ **package khác cùng module**. Nhưng constructor `Vault(String)`, field `token` và method `reveal(String)` là `private`; `Main` không thể gọi/đọc trực tiếp những thành viên đó bằng cú pháp Java thông thường.
+Here `Vault` is a `public` class so `lesson.app.Main` can use it directly from **another package in the same module**. However, constructor `Vault(String)`, field `token`, and method `reveal(String)` are `private`; `Main` cannot call or read those members directly with normal Java syntax.
 
-### Caller thực hiện Reflection
+### Caller Performing Reflection
 
-Tệp **`src/demo.same/lesson/app/Main.java`**:
+File **`src/demo.same/lesson/app/Main.java`**:
 
 ~~~java
 package lesson.app;
@@ -147,14 +147,14 @@ public class Main {
 }
 ~~~
 
-Chạy từ thư mục dự án bằng **JDK 17+**:
+Run from the project directory using **JDK 17+**:
 
 ~~~bash
 javac --module-source-path src -d out -m demo.same
 java --module-path out --module demo.same/lesson.app.Main
 ~~~
 
-**Stdout đã kiểm chứng:**
+**Verified stdout:**
 
 ~~~text
 Same module: true
@@ -170,50 +170,50 @@ Constructor override: true
 Constructed: value=custom
 ~~~
 
-### Đọc kết quả từng bước
+### Reading the Output Step by Step
 
-1. So sánh `Main.class.getModule() == Vault.class.getModule()` trả `true`: đây là một named module duy nhất; không suy đoán dựa trên tên package.
-2. `Vault.create()` và `vault.status()` là API `public`, có thể gọi trực tiếp từ `lesson.app` dù `module-info.java` không có `exports`. Hai package nằm nội bộ cùng module.
-3. `getDeclaredField("token")` tìm thấy metadata field `private`. `token.canAccess(vault)` trả `false` với caller là `Main` vì truy cập Java thông thường không cho đọc `private` đó.
-4. `token.trySetAccessible()` trả `true` vì lớp gọi và lớp khai báo ở cùng module. Sau đó `canAccess` là `true` và `get(vault)` trả `"initial"`.
-5. `getDeclaredMethod("reveal", String.class)` tra đúng private method. Sau khi bật quyền, `invoke(vault, "value=")` trả `"value=initial"`.
-6. `getDeclaredConstructor(String.class)` tra đúng private constructor. `ctor.canAccess(null)` ban đầu `false`; bật quyền xong, `newInstance("custom")` tạo một đối tượng mới.
-7. `reveal.invoke(created, "value=")` trả `"value=custom"`, chứng minh đối tượng tạo qua constructor này có state riêng.
+1. Comparing `Main.class.getModule() == Vault.class.getModule()` returns `true`: this is a single named module; do not guess based on package names.
+2. `Vault.create()` and `vault.status()` are `public` APIs and can be called directly from `lesson.app` even though `module-info.java` has no `exports`. Both packages are internal to the same module.
+3. `getDeclaredField("token")` finds the `private` field metadata. `token.canAccess(vault)` returns `false` for caller `Main` because normal Java access does not allow reading that `private` field.
+4. `token.trySetAccessible()` returns `true` because the calling class and declaring class are in the same module. Afterward `canAccess` is `true` and `get(vault)` returns `"initial"`.
+5. `getDeclaredMethod("reveal", String.class)` looks up the right private method. After enabling access, `invoke(vault, "value=")` returns `"value=initial"`.
+6. `getDeclaredConstructor(String.class)` looks up the right private constructor. `ctor.canAccess(null)` is initially `false`; once access is enabled, `newInstance("custom")` creates a new object.
+7. `reveal.invoke(created, "value=")` returns `"value=custom"`, proving the object created through this constructor has its own state.
 
-Cả ba trường hợp `Field`, `Method`, `Constructor` đều **tra cứu được trước**, sau đó mới bật quyền và dùng đối tượng Reflection. Ví dụ dùng `trySetAccessible()` rõ ràng để không che khuất bước kiểm tra.
+All three cases—`Field`, `Method`, and `Constructor`—are **looked up first**, then access is enabled before using the Reflection object. The example uses `trySetAccessible()` explicitly so the permission-check step is not hidden.
 
-## 4. Vì sao `exports`/`opens` không cần trong ví dụ trên?
+## 4. Why Are `exports`/`opens` Not Needed in the Example Above?
 
-JPMS dùng hai chỉ thị có mục đích khác nhau:
+JPMS uses two directives with distinct purposes:
 
-| Chỉ thị `module-info.java` | Mục đích điển hình | Có bắt buộc cho caller cùng module không? |
+| `module-info.java` Directive | Typical Purpose | Required for a Same-Module Caller? |
 | --- | --- | --- |
-| `exports lesson.domain;` | Cho module khác dùng API `public` của package qua truy cập Java thông thường | **Không** |
-| `opens lesson.domain;` | Cho module khác truy cập sâu qua Reflection vào các thành viên nếu các điều kiện khác phù hợp | **Không** |
-| `opens lesson.domain to some.framework;` | Chỉ định module ngoài nào có quyền deep reflection vào package đó | **Không** |
-| Không khai báo hai chỉ thị | Package bị đóng đối với module ngoài theo những ranh giới tương ứng | Mã **cùng module** vẫn theo các quy tắc trong bài |
+| `exports lesson.domain;` | Let other modules use the package's `public` API via normal Java access | **No** |
+| `opens lesson.domain;` | Let other modules perform deep Reflection on members when other conditions fit | **No** |
+| `opens lesson.domain to some.framework;` | Specify which external module has deep reflection permission into that package | **No** |
+| Neither directive declared | Package is closed to external modules along the corresponding boundaries | Code in the **same module** still follows the rules in this lesson |
 
-Điều kiện cùng module là một nhánh cấp phép độc lập trong tài liệu của `AccessibleObject#setAccessible` và `trySetAccessible`. Một framework ở **module khác** không tự hưởng quyền này chỉ vì nó nhận đối tượng `Class` hoặc `Field` do mã trong module đích chuyển qua.
+The same-module condition is an independent permission branch in the documentation of `AccessibleObject#setAccessible` and `trySetAccessible`. A framework in **another module** does not automatically inherit this permission simply because it receives a `Class` or `Field` object passed from code in the target module.
 
-**Không nên thêm `opens` cho cả module** chỉ để cho mã nội bộ truy cập Reflection. Việc mở package là quyết định kiến trúc có tác động tới các module khác và không cần thiết trong ví dụ *same module*.
+**Do not add `opens` for an entire module** just to let internal code use Reflection. Opening a package is an architectural decision affecting other modules and is unnecessary in a *same module* scenario.
 
-## 5. `canAccess`, `trySetAccessible` và `setAccessible`
+## 5. `canAccess`, `trySetAccessible`, and `setAccessible`
 
-Cả `Field`, `Method` và `Constructor` đều kế thừa từ `AccessibleObject`.
+`Field`, `Method`, and `Constructor` all inherit from `AccessibleObject`.
 
 ### `canAccess(Object obj)`
 
-Kiểm tra liệu thành viên có được truy cập theo trạng thái hiện tại với caller đang gọi hay không. Đối số `obj` phải đúng loại:
+Checks whether the member is accessible in its current state to the invoking caller. The `obj` argument must match the member kind:
 
-- Field hoặc method **instance**: truyền instance chứa thành viên, ví dụ `field.canAccess(vault)`.
-- Field hoặc method **static**: truyền `null`.
-- Constructor: truyền `null`, ví dụ `ctor.canAccess(null)`.
+- **Instance** field or method: pass the instance holding the member, e.g., `field.canAccess(vault)`.
+- **Static** field or method: pass `null`.
+- Constructor: pass `null`, e.g., `ctor.canAccess(null)`.
 
-Đối số không hợp lệ có thể gây `IllegalArgumentException`; không dùng `canAccess(null)` cho instance field/method chỉ để hỏi "có quyền không".
+An invalid argument can cause `IllegalArgumentException`; do not pass `canAccess(null)` for an instance field/method just to ask "do I have permission?".
 
 ### `trySetAccessible()`
 
-Thử bật khả năng bỏ qua kiểm tra truy cập Java của đối tượng Reflection. Khi caller và declaring class **cùng module**, điều kiện same-module của JPMS cho phép thao tác này. Hàm trả một `boolean` cho biết có bật được hay không, vì vậy mã thư viện nên kiểm tra kết quả thay vì bỏ qua.
+Attempts to enable suppressing Java access checks on the Reflection object. When the caller and declaring class are in the **same module**, JPMS's same-module condition allows this operation. The method returns a `boolean` indicating whether enabling succeeded, so library code should check the return value rather than ignoring it.
 
 ~~~java
 if (!member.trySetAccessible()) {
@@ -221,35 +221,35 @@ if (!member.trySetAccessible()) {
 }
 ~~~
 
-Đoạn trên là **mã minh họa**, với `member` là `AccessibleObject` hợp lệ. Trường hợp trong bài sẽ thành công vì caller và target ở cùng module; trong thiết kế tổng quát cần xử lý cả trường hợp từ chối, đặc biệt khi thay đổi kiến trúc module hoặc caller.
+The snippet above is **illustrative code**, where `member` is a valid `AccessibleObject`. In this lesson's scenario it succeeds because caller and target are in the same module; in general-purpose designs you must still handle rejection, especially when module boundaries or caller locations change.
 
 ### `setAccessible(true)`
 
-Cũng yêu cầu bỏ qua kiểm tra truy cập Java, nhưng khi yêu cầu không được phép, `setAccessible(true)` có thể ném `java.lang.reflect.InaccessibleObjectException`. `trySetAccessible()` thường thuận tiện hơn nếu bạn muốn kiểm tra khả năng truy cập mà không xử lý ngoại lệ cho trường hợp JPMS từ chối. `setAccessible(false)` đưa trạng thái cờ về mặc định.
+Also requests suppressing Java access checks, but when the request is not permitted, `setAccessible(true)` can throw `java.lang.reflect.InaccessibleObjectException`. `trySetAccessible()` is often more convenient if you want to check accessibility without exception handling when JPMS denies access. `setAccessible(false)` resets the flag to its default state.
 
-**Lưu ý:** bật flag trên **đối tượng `Field`/`Method`/`Constructor` cụ thể**; nó không đổi modifier trong khai báo `private`, không chuyển class thành `public`, không sửa `module-info.java` và không làm mọi đối tượng Reflection khác tự động được mở quyền.
+**Note:** the flag is toggled on **a specific `Field`/`Method`/`Constructor` object**; it does not alter modifiers in a `private` declaration, does not turn a class into `public`, does not edit `module-info.java`, and does not automatically unlock all other Reflection objects.
 
-## 6. Điều gì được phép và điều gì vẫn bị giới hạn?
+## 6. What Is Permitted and What Remains Restricted?
 
-| Tình huống | Cùng module thì sao? | Giải thích |
+| Scenario | What About Same Module? | Explanation |
 | --- | --- | --- |
-| `public` class và `public` member ở hai package khác nhau | Có thể truy cập bình thường theo luật Java | `exports` không bắt buộc giữa các package **nội bộ module** |
-| `private` field/method/constructor khai báo ở lớp khác | Không có quyền trực tiếp chỉ vì cùng module | Có thể tìm qua `getDeclared...` và thử bật quyền Reflection |
-| Package-private class ở package khác | Mã Java bên ngoài package không thể trực tiếp gọi bằng tên lớp theo cách thông thường | Reflection có thể tìm bằng tên ở runtime và mở quyền sâu khi thỏa *same module* |
-| `protected` member ở package khác | Vẫn áp dụng quy tắc `protected` của Java | Cùng module không thay thế yêu cầu kế thừa/cách dùng receiver |
-| `final` field | Có thể được cấp quyền đọc sâu; sửa giá trị có các hạn chế riêng | Đặc biệt các field `static final`, field `final` của record và hidden class không thể ghi chỉ nhờ `setAccessible(true)` |
-| Thành viên `static` | Tra cứu/bật quyền vẫn theo các quy tắc trên | Các thao tác kiểm tra/gọi với receiver `null` khi API yêu cầu |
-| Một utility thực hiện Reflection từ module khác | Phải xét **module của utility thực sự gọi** | Việc request khởi phát từ module đích không đủ để tạo quyền same-module cho utility |
+| `public` class and `public` member in two different packages | Accessible normally under Java rules | `exports` is not required between packages **internal to a module** |
+| `private` field/method/constructor declared in another class | No direct access just for being in the same module | Can be found via `getDeclared...` and enabled for Reflection |
+| Package-private class in another package | Java code outside the package cannot directly refer to it by class name normally | Reflection can find it by name at runtime and open deep access when *same module* holds |
+| `protected` member in another package | Java `protected` rules still apply | Same module does not replace inheritance/receiver rules |
+| `final` field | Can be granted deep read access; modifying values has separate restrictions | In particular, `static final` fields, record `final` fields, and hidden class `final` fields cannot be written via `setAccessible(true)` alone |
+| `static` member | Lookup/enabling still follows the rules above | Check/invoke operations use `null` receiver when required by the API |
+| A utility performing Reflection from another module | Must evaluate **the module of the utility actually making the call** | Originating a request from the target module is not enough to give the utility same-module permission |
 
-Đối với `final`, đừng coi việc `trySetAccessible()` thành công là bảo đảm `Field#set` sẽ ghi được. Tài liệu Java phân biệt quyền **đọc** với khả năng **ghi** vào field final không thể sửa; ngoài ra thay đổi field final bằng Reflection có thể vi phạm giả định tối ưu hóa và tính bất biến của đối tượng.
+For `final` fields, do not treat a successful `trySetAccessible()` as a guarantee that `Field#set` will be able to write. Java documentation distinguishes **read** permission from the ability to **write** non-modifiable final fields; additionally, mutating final fields via Reflection can violate optimization assumptions and object immutability.
 
-### Package-private class ở package khác cùng module
+### Package-Private Class in Another Package of the Same Module
 
-Giả sử có `lesson.domain.Internal` là một **top-level class package-private**. Mã trong `lesson.app` không thể `import lesson.domain.Internal;` rồi dùng trực tiếp kiểu đó. Tuy nhiên một công cụ Reflection chạy trong cùng module có thể tìm class bằng tên runtime phù hợp, lấy `Class<?>`, đọc metadata, rồi xét quyền truy cập phù hợp. Không nên coi việc Reflection cấp quyền là lý do để bỏ thiết kế API rõ ràng khi chỉ cần dữ liệu `public`.
+Suppose `lesson.domain.Internal` is a **package-private top-level class**. Code in `lesson.app` cannot `import lesson.domain.Internal;` and use that type directly. However, a Reflection utility running in the same module can look up the class by its runtime name, obtain `Class<?>`, read metadata, and evaluate appropriate access permissions. You should not treat Reflection permissions as an excuse to skip clear API design when only `public` data is needed.
 
-## 7. Chú ý tới module của nơi gọi API, không chỉ luồng nghiệp vụ
+## 7. Pay Attention to the Module Where the API Is Called, Not Just the Business Flow
 
-Xét một ứng dụng trong module `business.app`:
+Consider an application in module `business.app`:
 
 ~~~text
 business.app
@@ -259,42 +259,42 @@ reflection.helper
   └── helper.Accessor
 ~~~
 
-Nếu `business.Main` trực tiếp gọi `field.trySetAccessible()` cho field của `business.Secret`, điều kiện module có thể là *same module*. Nhưng nếu `Main` giao đối tượng `Field` cho `helper.Accessor` rồi **chính `Accessor`** gọi `trySetAccessible()`, caller lúc đó thuộc `reflection.helper`. Việc cấp phép bị xét lại theo module của caller ở thời điểm gọi; nếu package đích không mở phù hợp, yêu cầu deep reflection có thể không được chấp thuận.
+If `business.Main` directly calls `field.trySetAccessible()` on a field of `business.Secret`, the module condition can be *same module*. However, if `Main` passes the `Field` object to `helper.Accessor` and **`Accessor` itself** calls `trySetAccessible()`, the caller is now in `reflection.helper`. Permission is evaluated against the caller's module at the call site; if the target package is not opened appropriately, the deep reflection request may be rejected.
 
-Ví dụ kiến trúc trên chỉ minh họa sự khác biệt, không phải chương trình chạy độc lập. Khi dùng thư viện serialization, dependency injection, mapper hoặc test framework, cần xác định **lớp trong module nào thực hiện lời gọi Reflection**. Đây là lý do code hoạt động khi viết trực tiếp trong module ứng dụng nhưng có thể thất bại khi được chuyển sang helper library ở module khác.
+The architectural example above only illustrates the distinction, not a standalone runnable program. When using serialization libraries, dependency injection, mappers, or test frameworks, identify **which class in which module actually makes the Reflection call**. That is why code that works when written directly inside an application module can fail when moved into a helper library in another module.
 
-## 8. Những lỗi thường gặp
+## 8. Common Mistakes
 
-1. **Đồng nhất "cùng module" với "cùng package".** JPMS không thay đổi phạm vi package-private và các quy tắc `protected`. Hai package nội bộ là hai package khác nhau.
-2. **Cho rằng `getDeclaredField()` trả về `Field` tức là đã được đọc.** Lookup thành công chỉ xác nhận tồn tại metadata; phải xét `canAccess` hoặc bật quyền hợp lệ trước thao tác `get`/`set`.
-3. **Cho rằng `getDeclaredMethod()` tự tìm method kế thừa.** API "declared" tìm thành viên do chính lớp khai báo; nếu cần method `public` được kế thừa, cân nhắc `getMethod()`. Điều này độc lập với JPMS.
-4. **Thêm `exports` hoặc `opens` chỉ vì có hai package trong cùng module.** Trong cùng module, quyền internal source access và nhánh same-module của Reflection đã có quy tắc riêng.
-5. **So sánh `Module#getName()` thay cho đối tượng `Module`.** Với unnamed module, `getName()` có thể là `null` cho nhiều module khác nhau. Hãy dùng `==` nếu mục tiêu là xác minh chính xác same module.
-6. **Không kiểm tra giá trị của `trySetAccessible()`.** Hàm trả `boolean`, còn việc đổi module, đổi vị trí helper hoặc dùng module khác có thể khiến yêu cầu không còn đủ điều kiện.
-7. **Dùng sai receiver của `canAccess`.** Constructor và static member yêu cầu `null`; instance member yêu cầu đối tượng instance đúng loại.
-8. **Cho rằng được bật access là có thể sửa `static final`.** Reflection không biến mọi field bất biến thành field có thể ghi; hạn chế non-modifiable final vẫn tồn tại.
-9. **Dựa vào `--add-opens` để chạy ví dụ same-module.** Ví dụ trong bài không cần tham số đó; nếu phải mở package, cần xem lại module chứa caller thực sự và ranh giới ứng dụng.
+1. **Equating "same module" with "same package".** JPMS does not change package-private scope or `protected` rules. Two internal packages are still two different packages.
+2. **Assuming `getDeclaredField()` returning a `Field` means it is already readable.** A successful lookup only confirms metadata exists; you must check `canAccess` or validly enable access before calling `get`/`set`.
+3. **Assuming `getDeclaredMethod()` automatically finds inherited methods.** "Declared" APIs find members declared by the class itself; if you need an inherited `public` method, consider `getMethod()`. This is independent of JPMS.
+4. **Adding `exports` or `opens` just because there are two packages in the same module.** Within the same module, internal source access and Reflection's same-module branch have their own rules.
+5. **Comparing `Module#getName()` instead of `Module` objects.** For unnamed modules, `getName()` can be `null` for many distinct modules. Use `==` if the goal is to verify exact same-module identity.
+6. **Ignoring the return value of `trySetAccessible()`.** The method returns a `boolean`, and changing modules, relocating a helper, or using another module can make the request no longer eligible.
+7. **Passing the wrong receiver to `canAccess`.** Constructors and static members require `null`; instance members require an instance object of the proper type.
+8. **Assuming enabling access lets you modify `static final`.** Reflection does not turn every immutable field into a writable one; non-modifiable final restrictions still hold.
+9. **Relying on `--add-opens` to run a same-module example.** The example in this lesson does not need that flag; if you have to open a package, recheck which module holds the actual caller and the application boundaries.
 
-## 9. Tự kiểm tra
+## 9. Self-Check
 
-**Câu 1.** Trong named module `demo.same`, `lesson.app.Main` có được gọi `public static Vault.create()` từ `lesson.domain.Vault` khi `module-info.java` không có `exports lesson.domain;`?
+**Question 1.** In named module `demo.same`, can `lesson.app.Main` call `public static Vault.create()` from `lesson.domain.Vault` when `module-info.java` lacks `exports lesson.domain;`?
 
-**Trả lời:** Có, nếu `Vault` và method là `public` và cả hai package cùng module. `exports` liên quan chủ yếu đến truy cập từ module khác.
+**Answer:** Yes, if `Vault` and the method are `public` and both packages are in the same module. `exports` pertains primarily to access from other modules.
 
-**Câu 2.** Nếu `token` là `private`, vì sao `getDeclaredField("token")` tìm được mà `field.canAccess(vault)` ban đầu trả `false`?
+**Question 2.** If `token` is `private`, why does `getDeclaredField("token")` find it while `field.canAccess(vault)` initially returns `false`?
 
-**Trả lời:** Lookup trả metadata cả của private member khai báo trực tiếp; còn `canAccess` xét quyền sử dụng theo quy tắc Java và trạng thái accessibility hiện tại. `Main` là lớp khác, không có quyền private thông thường của `Vault`.
+**Answer:** The lookup returns metadata even for directly declared private members; `canAccess` checks usage permission under Java rules and current accessibility state. `Main` is a different class and lacks normal private access to `Vault`.
 
-**Câu 3.** Khi `Main` và `Vault` cùng module, `trySetAccessible()` trên private field có thể trả gì?
+**Question 3.** When `Main` and `Vault` are in the same module, what can `trySetAccessible()` return on a private field?
 
-**Trả lời:** Trong điều kiện bình thường của ví dụ, trả `true` do nhánh cấp phép same-module. Sau đó có thể đọc bằng `Field#get`; không suy ra rằng mọi phép ghi vào final field cũng hợp lệ.
+**Answer:** Under the normal conditions of the example, it returns `true` via the same-module permission branch. Afterward it can be read via `Field#get`; do not infer that every write to a final field is also valid.
 
-**Câu 4.** Nếu helper ở module khác thực hiện `trySetAccessible()` thì vẫn là "same-module" vì `Main` gọi helper không?
+**Question 4.** If a helper in another module executes `trySetAccessible()`, is it still "same-module" because `Main` called the helper?
 
-**Trả lời:** Không. Điều kiện xét lớp **thực hiện lời gọi** cùng module với declaring class. Phải đánh giá quyền của helper ở module khác theo quy tắc JPMS tương ứng.
+**Answer:** No. The condition checks whether the class **executing the call** is in the same module as the declaring class. The helper in the other module must be evaluated under the corresponding JPMS rules.
 
-**Câu 5.** Có thể kiểm tra chính xác hai lớp cùng module bằng cách nào?
+**Question 5.** How can you accurately check if two classes are in the same module?
 
-**Trả lời:** `First.class.getModule() == Second.class.getModule()`. Đừng chỉ đối chiếu tên module, nhất là với unnamed module và nhiều class loader.
+**Answer:** `First.class.getModule() == Second.class.getModule()`. Do not merely compare module names, especially with unnamed modules and multiple class loaders.
 
-**Ghi nhớ:** *cùng module* mở ra khả năng Reflection bỏ qua kiểm tra truy cập Java vào các thành viên của module ấy, nhưng **không làm mất quy tắc `private`/`protected`/package-private của Java source**. Luồng đúng là xác minh module của caller, tìm thành viên theo tên/chữ ký, kiểm tra trạng thái truy cập, bật quyền khi thật sự cần và được phép, rồi mới đọc/gọi/khởi tạo.
+**Takeaway:** *Same module* unlocks Reflection's ability to bypass Java access checks on members of that module, yet **does not erase `private`/`protected`/package-private rules in Java source**. The proper flow is to verify the caller's module, locate the member by name/signature, check access status, enable permission only when truly needed and permitted, and then read/invoke/instantiate.

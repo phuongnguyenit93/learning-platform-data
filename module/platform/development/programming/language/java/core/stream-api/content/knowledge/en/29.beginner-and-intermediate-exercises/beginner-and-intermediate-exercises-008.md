@@ -1,60 +1,60 @@
-# Xử lý nguồn rỗng, null và kết quả tìm kiếm vắng mặt
+# Handling Empty Sources, `null`, and Absent Search Results
 
-## 1. Mục tiêu của chuỗi bài tập
+## 1. Series Objectives
 
-Trong chương **Bài tập nền tảng và trung cấp** của **JAVA_STREAM_API**, ta đã có thể dùng pipeline khai báo gồm `filter`, `map`, `reduce`, `collect` và những terminal operation tìm kiếm. Tuy nhiên, dữ liệu thực tế không phải lúc nào cũng đầy đủ: có nguồn rỗng, tham chiếu danh sách bằng `null`, phần tử bên trong danh sách bằng `null`, trường của đối tượng bị thiếu hoặc không có phần tử nào thỏa điều kiện tìm kiếm.
+In the **Beginner and Intermediate Exercises** chapter of **JAVA_STREAM_API**, you have learned to build declarative pipelines using `filter`, `map`, `reduce`, `collect`, and search terminal operations. Real-world data, however, is rarely complete: sources may be empty, list references may be `null`, elements inside a list may be `null`, object fields may be missing, or no element may satisfy a search predicate.
 
-Bài này hướng tới kỹ năng **viết pipeline đúng ngữ nghĩa với dữ liệu vắng mặt**, thay vì chỉ làm code không ném ngoại lệ. Sau khi thực hành, người học có thể:
+This lesson builds the skill of **writing pipelines that handle missing data with clear semantics**, rather than merely keeping code from throwing exceptions. After practicing, you will be able to:
 
-- Phân biệt **Stream rỗng**, **nguồn tham chiếu `null`**, **phần tử `null`** và **`Optional.empty()`**.
-- Chọn chính sách phù hợp: bỏ dữ liệu thiếu, trả giá trị mặc định, giữ trạng thái không có kết quả hoặc báo lỗi.
-- Dùng `Objects::nonNull`, `Stream.ofNullable`, `Optional.ofNullable` và `Optional.stream` đúng phạm vi.
-- Xử lý `findFirst`, `findAny`, `min`, `max`, `average`, `reduce` khi nguồn rỗng.
-- Tránh lỗi do `Collectors.toUnmodifiableList`, `toMap` và `groupingBy` khi gặp `null`.
-- Thiết kế chương trình nhỏ có thể kiểm thử với dữ liệu đầu vào không hoàn chỉnh.
+- Distinguish an **empty Stream**, a **`null` source reference**, a **`null` element**, and **`Optional.empty()`**.
+- Choose the right policy: skip missing data, return a default, preserve absence, or fail fast.
+- Use `Objects::nonNull`, `Stream.ofNullable`, `Optional.ofNullable`, and `Optional.stream` appropriately.
+- Handle `findFirst`, `findAny`, `min`, `max`, `average`, and `reduce` on empty sources.
+- Avoid `null`-related errors with `Collectors.toUnmodifiableList`, `toMap`, and `groupingBy`.
+- Design small, testable programs that behave predictably on incomplete inputs.
 
-Các lời giải sử dụng **Java 17+**. `Stream.ofNullable` và `Optional.stream` có từ Java 9; `Stream.toList()` có từ Java 16. Phần lớn ví dụ dùng stream tuần tự để bảo đảm dễ hiểu, sau đó mới giải thích các điểm cần lưu ý khi chạy song song.
+Solutions target **Java 17+**. `Stream.ofNullable` and `Optional.stream` arrived in Java 9; `Stream.toList()` arrived in Java 16. Most examples use sequential streams for clarity, followed by parallel considerations.
 
-### Bốn tình huống không được xem là một
+### Four Situations That Must Not Be Conflated
 
-| Tình huống | Ví dụ | Ý nghĩa | Rủi ro điển hình |
+| Situation | Example | Meaning | Typical Risk |
 | --- | --- | --- | --- |
-| **Nguồn rỗng** | `List.<String>of().stream()` | Có nguồn hợp lệ, nhưng không có phần tử | `findFirst()` trả `Optional.empty()` |
-| **Tham chiếu nguồn null** | `List<String> names = null` | Chưa có đối tượng nguồn | `names.stream()` ném `NullPointerException` |
-| **Phần tử null** | `Arrays.asList("A", null)` | Có nguồn, một phần tử không có giá trị | `map(String::trim)` có thể ném NPE |
-| **Kết quả tìm kiếm vắng mặt** | `stream.filter(...).findFirst()` | Không tìm thấy phần tử phù hợp | `Optional.get()` ném `NoSuchElementException` nếu rỗng |
+| **Empty source** | `List.<String>of().stream()` | Valid source containing zero elements | `findFirst()` returns `Optional.empty()` |
+| **`null` source reference** | `List<String> names = null` | No source object exists | `names.stream()` throws `NullPointerException` |
+| **`null` element** | `Arrays.asList("A", null)` | Source exists; one element has no value | `map(String::trim)` can throw NPE |
+| **Absent search result** | `stream.filter(...).findFirst()` | No matching element found | `Optional.get()` throws `NoSuchElementException` if empty |
 
-Sơ đồ:
+Diagram:
 
 ~~~text
-Đầu vào
-  ├─ source == null ──────────► báo lỗi HOẶC quy ước nguồn rỗng
+Input
+  ├─ source == null ──────────► fail fast OR treat as empty source
   └─ source != null
        │
        ▼
      stream()
        │
-       ├─ phần tử null? ──────► filter / ofNullable / báo lỗi
-       └─ phần tử hợp lệ
+       ├─ null element? ──────► filter / ofNullable / fail fast
+       └─ valid elements
              │
              ▼
         filter / map / ...
              │
-             ├─ không còn phần tử ─────► Stream rỗng
+             ├─ no elements left ──────► Empty Stream
              │                              │
              │                              ▼
              │                        Optional.empty()
              │
-             └─ có phần tử ───────────► Optional chứa giá trị
+             └─ element found ─────────► Optional holding value
                                             │
                                 orElse / orElseGet / orElseThrow
 ~~~
 
-**Quy ước trình bày:** Với mỗi bài tập có các phần **Yêu cầu**, **Lời giải**, **Giải thích và trường hợp biên**. Một số snippet ngắn dùng biến đã được định nghĩa ở ngay trước đó; các chương trình có `public class` là ví dụ độc lập và có thể lưu thành file trùng tên lớp để biên dịch bằng `javac`.
+**Presentation convention:** Each exercise includes **Requirement**, **Solution**, and **Explanation and Edge Cases**. Short snippets reuse variables defined just above them; programs with a `public class` are standalone and can be saved in a matching file to compile with `javac`.
 
-## 2. Kiến thức nền: terminal operation trên Stream rỗng
+## 2. Background: Terminal Operations on an Empty Stream
 
-Trước khi giải bài tập, hãy dự đoán các kết quả sau:
+Before tackling the exercises, predict these outputs:
 
 ~~~java
 import java.util.List;
@@ -78,32 +78,32 @@ public class EmptyStreamBasics {
 }
 ~~~
 
-Không được dùng lại một Stream sau khi đã chạy terminal operation. Các lời gọi trên tạo Stream mới từ nguồn ở từng biểu thức.
+Never reuse a Stream after invoking a terminal operation. Each call above opens a new Stream for its expression.
 
-| Terminal operation | Nguồn rỗng trả gì? | Ghi chú |
+| Terminal Operation | Empty Source Return | Notes |
 | --- | --- | --- |
-| `count()` | `0L` | Không cần Optional |
-| `toList()` | List rỗng | List từ `Stream.toList()` không sửa đổi được |
-| `collect(Collectors.toList())` | List rỗng | Không cam kết kiểu List/mutability |
-| `findFirst()` hoặc `findAny()` | `Optional.empty()` | Đừng gọi `get()` trực tiếp |
-| `min(comparator)` / `max(comparator)` | `Optional.empty()` | Không có phần tử để so sánh |
-| `reduce(operator)` | `Optional.empty()` | Dạng không identity |
-| `reduce(identity, op)` | `identity` | Phải chọn identity hợp lệ |
-| `IntStream.sum()` | `0` | Có thể tràn khi tổng dữ liệu lớn |
-| `IntStream.average()` | `OptionalDouble.empty()` | Không nhầm với trung bình bằng 0 |
-| `anyMatch(predicate)` | `false` | Không có phần tử thỏa |
-| `allMatch(predicate)` | `true` | Đúng theo logic mệnh đề trên tập rỗng |
-| `noneMatch(predicate)` | `true` | Không có phần tử vi phạm |
+| `count()` | `0L` | No Optional needed |
+| `toList()` | Empty List | List from `Stream.toList()` is unmodifiable |
+| `collect(Collectors.toList())` | Empty List | Does not guarantee exact List class/mutability |
+| `findFirst()` or `findAny()` | `Optional.empty()` | Do not call `get()` directly |
+| `min(comparator)` / `max(comparator)` | `Optional.empty()` | No elements to compare |
+| `reduce(operator)` | `Optional.empty()` | Overload without identity |
+| `reduce(identity, op)` | `identity` | Must supply a valid identity |
+| `IntStream.sum()` | `0` | Can still overflow on large inputs |
+| `IntStream.average()` | `OptionalDouble.empty()` | Do not confuse with a 0 average |
+| `anyMatch(predicate)` | `false` | No matching element exists |
+| `allMatch(predicate)` | `true` | Holds by propositional logic on empty sets |
+| `noneMatch(predicate)` | `true` | No element violates the predicate |
 
-`allMatch` và `noneMatch` trả `true` trên nguồn rỗng không phải lỗi. Chúng biểu diễn quy tắc *đúng một cách rỗng* (*vacuous truth*). Nếu nghiệp vụ yêu cầu **phải có ít nhất một phần tử** mới được chấp nhận, hãy kiểm tra điều kiện tồn tại một cách tường minh.
+`allMatch` and `noneMatch` returning `true` on an empty source is not a bug; it is *vacuous truth*. If business rules require **at least one element** to be present, check non-emptiness explicitly.
 
-## 3. Bài tập 1 — Nguồn List bị null và nguồn rỗng
+## 3. Exercise 1 — `null` List Reference vs. Empty List
 
-**Mức độ:** Nền tảng.
+**Level:** Beginner.
 
-**Yêu cầu:** Viết hàm `normalize(List<String> source)` trả về một danh sách tên đã bỏ khoảng trắng thừa ở hai đầu. Quy tắc của bài tập: nếu tham chiếu nguồn là `null`, xem như **không có dữ liệu** và trả danh sách rỗng. Nếu List hợp lệ nhưng rỗng, cũng trả danh sách rỗng. Bài này giả định **các phần tử chưa bị null**; bài 2 sẽ xử lý trường hợp đó.
+**Requirement:** Write `normalize(List<String> source)` returning a list of names with leading and trailing whitespace stripped. Exercise rule: if the source reference is `null`, treat it as **no data** and return an empty list. If the List is non-null but empty, also return an empty list. This exercise assumes **elements themselves are non-null**; Exercise 2 handles null elements.
 
-**Lời giải:**
+**Solution:**
 
 ~~~java
 import java.util.List;
@@ -127,39 +127,39 @@ public class NullListExercise {
 }
 ~~~
 
-**Giải thích:**
+**Explanation:**
 
-- `Optional.ofNullable(source)` trả `Optional.empty()` khi nguồn bằng `null`.
-- `orElseGet(List::of)` tạo List rỗng khi không có nguồn.
-- `stream()` duyệt danh sách hợp lệ.
-- `map(String::strip)` làm sạch từng tên.
-- `toList()` trả List không sửa đổi được và giữ encounter order của List đầu vào.
+- `Optional.ofNullable(source)` returns `Optional.empty()` when `source` is `null`.
+- `orElseGet(List::of)` supplies an empty List when the source is absent.
+- `stream()` traverses the valid list.
+- `map(String::strip)` cleans each name.
+- `toList()` returns an unmodifiable List preserving the input List's encounter order.
 
-**Trường hợp biên:** nếu một phần tử của danh sách bằng `null`, `String::strip` vẫn ném `NullPointerException`. Không được hiểu rằng kiểm tra `source != null` tự xử lý cả những phần tử null.
+**Edge case:** if an element inside the list is `null`, `String::strip` still throws `NullPointerException`. Do not assume checking `source != null` guards against null elements.
 
-### Khi nào không nên coi nguồn null như nguồn rỗng?
+### When Should a `null` Source Not Be Treated as Empty?
 
-Trong ứng dụng thực, `null` có thể mang nghĩa **lỗi tích hợp, thiếu dữ liệu bắt buộc hoặc chưa tải dữ liệu**. Nếu đó là hợp đồng, nên báo lỗi thay vì âm thầm trả danh sách rỗng:
+In production systems, `null` may signify **an integration failure, missing required input, or unloaded data**. If that is the contract, fail explicitly instead of silently returning an empty list:
 
 ~~~java
 import java.util.List;
 import java.util.Objects;
 
 static List<String> normalizeStrict(List<String> source) {
-    Objects.requireNonNull(source, "source không được null");
+    Objects.requireNonNull(source, "source must not be null");
     return source.stream().map(String::strip).toList();
 }
 ~~~
 
-Đây là một **chính sách khác**, không phải câu trả lời duy nhất cho mọi bài toán. Hãy quyết định dựa trên hợp đồng đầu vào.
+This is an **alternative policy**, not the single answer for every problem. Decide based on the input contract.
 
-## 4. Bài tập 2 — Lọc phần tử null trước khi gọi method
+## 4. Exercise 2 — Filtering `null` Elements Before Calling Methods
 
-**Mức độ:** Nền tảng.
+**Level:** Beginner.
 
-**Yêu cầu:** Danh sách nhận từ hệ thống cũ có thể chứa phần tử `null`. Hãy làm sạch, loại tên null và tên trắng/rỗng, rồi chuyển thành chữ hoa để hiển thị. Giữ thứ tự ban đầu.
+**Requirement:** A list from a legacy system may contain `null` elements. Clean the names, drop null and blank/empty names, and convert to uppercase for display. Preserve original order.
 
-**Lời giải:**
+**Solution:**
 
 ~~~java
 import java.util.Arrays;
@@ -185,31 +185,31 @@ public class NullableElementsExercise {
 }
 ~~~
 
-**Giải thích và trường hợp biên:**
+**Explanation and edge cases:**
 
-- `Arrays.asList(...)` có thể chứa `null`; `List.of(...)` **không cho phép** phần tử null.
-- `filter(Objects::nonNull)` phải đứng **trước** `String::strip`.
-- `String::strip` bỏ khoảng trắng đầu/cuối theo định nghĩa Unicode của Java.
-- `filter(name -> !name.isEmpty())` bỏ các chuỗi rỗng sau khi strip.
-- `Locale.ROOT` tránh phụ thuộc vào locale mặc định của máy khi chuẩn hóa chữ hoa.
-- `toList()` giữ thứ tự phần tử còn lại nếu nguồn có encounter order.
+- `Arrays.asList(...)` allows `null`; `List.of(...)` **forbids** null elements.
+- `filter(Objects::nonNull)` must come **before** `String::strip`.
+- `String::strip` removes leading/trailing whitespace using Java's Unicode whitespace definition.
+- `filter(name -> !name.isEmpty())` removes strings that became empty after stripping.
+- `Locale.ROOT` avoids machine-locale-dependent uppercasing.
+- `toList()` preserves the order of remaining elements when the source has encounter order.
 
-**Lỗi dễ gặp:**
+**Common mistake:**
 
 ~~~java
-// Sai thứ tự: String::strip nhận null và ném NPE.
+// Wrong order: String::strip receives null and throws NPE.
 // raw.stream().map(String::strip).filter(Objects::nonNull).toList();
 ~~~
 
-Việc `filter` xuất hiện sau `map` là **quá muộn** nếu method trong `map` đã bị gọi với null.
+Putting `filter` after `map` is **too late** if the method inside `map` has already been invoked on `null`.
 
-## 5. Bài tập 3 — Phân biệt Stream.ofNullable và Stream.of
+## 5. Exercise 3 — Distinguishing `Stream.ofNullable` and `Stream.of`
 
-**Mức độ:** Nền tảng.
+**Level:** Beginner.
 
-**Yêu cầu:** Với một `String` có thể bằng `null`, tạo Stream chứa **0 hoặc 1 phần tử không null** để tiếp tục xử lý. So sánh với `Stream.of(...)`.
+**Requirement:** Given a `String` that may be `null`, create a Stream containing **0 or 1 non-null elements** for further processing. Compare with `Stream.of(...)`.
 
-**Lời giải:**
+**Solution:**
 
 ~~~java
 import java.util.List;
@@ -226,7 +226,7 @@ public class OfNullableExercise {
         System.out.println(a); // []
         System.out.println(b); // [Java]
 
-        // Có một phần tử null (không phải Stream rỗng):
+        // Contains one null element (not an empty Stream):
         List<String> c = Stream.of((String) null).toList();
         System.out.println(c); // [null]
 
@@ -236,9 +236,9 @@ public class OfNullableExercise {
 }
 ~~~
 
-`Stream.ofNullable(x)` (Java 9+) tạo Stream rỗng khi `x == null`; nếu khác null, Stream chứa đúng một phần tử. `Stream.of((String) null)` lại tạo Stream có **một phần tử null**. Cast `(String) null` trong ví dụ giúp thể hiện ý định sử dụng overload một phần tử, tránh sự mơ hồ với overload varargs trong các cách viết khác.
+`Stream.ofNullable(x)` (Java 9+) returns an empty Stream when `x == null`; otherwise it returns a single-element Stream. `Stream.of((String) null)`, by contrast, produces a Stream with **one null element**. Casting `(String) null` makes the single-argument overload explicit and avoids varargs ambiguity.
 
-### Khi một trường object có thể null
+### When an Object Field May Be `null`
 
 ~~~java
 import java.util.List;
@@ -259,7 +259,7 @@ List<String> emails = customers.stream()
 System.out.println(emails); // [a@example.com, b@example.com]
 ~~~
 
-`flatMap` làm phẳng các Stream 0/1 phần tử thành một Stream email duy nhất. Giải pháp tương đương, thường ngắn hơn khi trường đã được ánh xạ sang `String`:
+`flatMap` flattens the 0/1-element Streams into a single email Stream. An equivalent alternative, often shorter when the field is already mapped to `String`:
 
 ~~~java
 List<String> emails = customers.stream()
@@ -268,15 +268,15 @@ List<String> emails = customers.stream()
     .toList();
 ~~~
 
-**Phân biệt:** `Stream.ofNullable` xử lý **một giá trị nullable**, không tự bảo vệ khi chính danh sách nguồn hoặc chính phần tử `Customer` bị null. Nếu có cả hai, cần kết hợp với bài 1 và bài 2.
+**Distinction:** `Stream.ofNullable` handles **one nullable value**; it does not protect against a `null` source list or a `null` `Customer` element. If both can happen, combine this with Exercises 1 and 2.
 
-## 6. Bài tập 4 — Tìm phần tử đầu tiên và xử lý Optional.empty
+## 6. Exercise 4 — Finding the First Element and Handling `Optional.empty`
 
-**Mức độ:** Nền tảng.
+**Level:** Beginner.
 
-**Yêu cầu:** Viết hàm lấy tên đầu tiên có độ dài ít nhất 4 ký tự. Nếu không tìm thấy, trả chuỗi `"KHONG_CO"`; nếu danh sách chứa phần tử null, bỏ qua phần tử đó.
+**Requirement:** Write a method returning the first name of length at least 4. If none is found, return `"NOT_FOUND"`; if the list contains `null` elements, skip them.
 
-**Lời giải:**
+**Solution:**
 
 ~~~java
 import java.util.Arrays;
@@ -291,7 +291,7 @@ public class FindFirstExercise {
             .filter(Objects::nonNull)
             .filter(name -> name.length() >= 4)
             .findFirst()
-            .orElse("KHONG_CO");
+            .orElse("NOT_FOUND");
     }
 
     public static void main(String[] args) {
@@ -301,26 +301,26 @@ public class FindFirstExercise {
 
         System.out.println(firstLongName(
             Arrays.asList(null, "An", "Vy")
-        )); // KHONG_CO
+        )); // NOT_FOUND
 
-        System.out.println(firstLongName(List.of())); // KHONG_CO
+        System.out.println(firstLongName(List.of())); // NOT_FOUND
     }
 }
 ~~~
 
-Ở đây `findFirst()` trả `Optional<String>`, bởi một Stream sau lọc có thể không còn phần tử nào. `orElse(...)` biến Optional thành giá trị `String` theo chính sách đề bài.
+Here `findFirst()` returns `Optional<String>`, because no elements may remain after filtering. `orElse(...)` converts the Optional to `String` per the problem policy.
 
-### Bẫy quan trọng: findFirst có tự bỏ qua null không?
+### Important Trap: Does `findFirst` Automatically Skip `null`?
 
-**Không.** `findFirst()` và `findAny()` có thể ném `NullPointerException` nếu phần tử được chọn là null. Không xem `Optional.empty()` như cách Stream tự mã hóa một phần tử null.
+**No.** `findFirst()` and `findAny()` can throw `NullPointerException` if the selected element is null. Never expect `Optional.empty()` to silently wrap a `null` stream element.
 
 ~~~java
 import java.util.Arrays;
 
-// Có thể ném NPE: phần tử đầu của Stream là null.
+// May throw NPE: the first element of the Stream is null.
 // Arrays.<String>asList(null, "A").stream().findFirst();
 
-// Tránh điều đó nếu quy tắc nghiệp vụ là bỏ null:
+// Guard against this when business policy is to skip nulls:
 var first = Arrays.<String>asList(null, "A")
     .stream()
     .filter(java.util.Objects::nonNull)
@@ -329,15 +329,15 @@ var first = Arrays.<String>asList(null, "A")
 System.out.println(first); // Optional[A]
 ~~~
 
-Bài tập này chọn chính sách **lọc null** trước tìm kiếm. Trong bài toán cần phát hiện dữ liệu bẩn, thay bằng kiểm tra/báo lỗi có chủ đích, không tự động bỏ qua.
+This exercise selects the **skip-null** policy before searching. In pipelines that must flag dirty data, replace filtering with explicit validation/error reporting rather than ignoring nulls silently.
 
-## 7. Bài tập 5 — orElse và orElseGet khi giá trị dự phòng tốn kém
+## 7. Exercise 5 — `orElse` vs. `orElseGet` When the Fallback Is Expensive
 
-**Mức độ:** Nền tảng → Trung cấp.
+**Level:** Beginner → Intermediate.
 
-**Yêu cầu:** Sau `findFirst`, chương trình có thể phải tải giá trị mặc định từ nguồn khác. Hãy làm sao để **chỉ tải giá trị dự phòng khi không tìm thấy**.
+**Requirement:** After `findFirst`, the program may need to load a default value from another source. Ensure the fallback is **loaded only when nothing is found**.
 
-**Lời giải:**
+**Solution:**
 
 ~~~java
 import java.util.List;
@@ -345,8 +345,8 @@ import java.util.Optional;
 
 public class LazyFallbackExercise {
     static String loadFallback() {
-        System.out.println("Đang tải giá trị dự phòng");
-        return "KHACH_MAC_DINH";
+        System.out.println("Loading fallback value");
+        return "DEFAULT_GUEST";
     }
 
     public static void main(String[] args) {
@@ -366,17 +366,17 @@ public class LazyFallbackExercise {
 }
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
-Đang tải giá trị dự phòng
+Loading fallback value
 orElse: Bình
 orElseGet: Bình
 ~~~
 
-**Giải thích:** `orElse(loadFallback())` tính đối số trước lời gọi, nên `loadFallback()` vẫn chạy ngay cả khi Optional có giá trị. `orElseGet(supplier)` chỉ gọi thân Supplier nếu Optional rỗng.
+**Explanation:** `orElse(loadFallback())` evaluates its argument before the call, so `loadFallback()` runs even when the Optional already holds a value. `orElseGet(supplier)` invokes the Supplier body only if the Optional is empty.
 
-Trường hợp không tìm thấy:
+When no match is found:
 
 ~~~java
 String value = List.of("An", "Vy")
@@ -385,18 +385,18 @@ String value = List.of("An", "Vy")
     .findFirst()
     .orElseGet(LazyFallbackExercise::loadFallback);
 
-// In log tải dự phòng, value == "KHACH_MAC_DINH".
+// Prints the fallback log; value == "DEFAULT_GUEST".
 ~~~
 
-**Chính sách:** Nếu fallback chỉ là một hằng số như `"KHONG_CO"`, `orElse` đơn giản hơn. Nếu fallback cần tính toán, tạo object lớn hoặc thực hiện I/O, `orElseGet` thường phù hợp. Nó không tự xử lý lỗi mạng, transaction hay retry bên trong fallback.
+**Policy:** When the fallback is a simple constant such as `"NOT_FOUND"`, `orElse` is simpler. When the fallback performs computation, allocates large objects, or runs I/O, `orElseGet` is usually appropriate. Note that `orElseGet` does not handle network errors, transactions, or retries inside the fallback on its own.
 
-## 8. Bài tập 6 — Thiếu kết quả là lỗi nghiệp vụ: orElseThrow
+## 8. Exercise 6 — Missing Result as a Business Error: `orElseThrow`
 
-**Mức độ:** Trung cấp.
+**Level:** Intermediate.
 
-**Yêu cầu:** Danh sách mã giao dịch chứa các mã hợp lệ. Một giao dịch phải được tìm thấy theo ID bắt buộc; nếu thiếu, hãy báo lỗi thay vì tạo giá trị giả.
+**Requirement:** A transaction list holds valid entries. A specific transaction must be found by required ID; if missing, throw an error instead of fabricating a dummy value.
 
-**Lời giải:**
+**Solution:**
 
 ~~~java
 import java.util.List;
@@ -417,7 +417,7 @@ public class RequiredTransactionExercise {
             .filter(t -> id.equals(t.id()))
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException(
-                "Không tìm thấy giao dịch: " + id
+                "Transaction not found: " + id
             ));
     }
 
@@ -432,26 +432,26 @@ public class RequiredTransactionExercise {
         ); // 200
 
         // requireById(transactions, "T99");
-        // Ném IllegalArgumentException với thông báo rõ ràng.
+        // Throws IllegalArgumentException with a clear message.
     }
 }
 ~~~
 
-Sử dụng `id.equals(t.id())` để tránh gọi method trên `t.id()` nếu trường đó null. Một giao dịch có `id == null` sẽ không khớp ID yêu cầu đã được kiểm tra khác null.
+Calling `id.equals(t.id())` avoids invoking a method on `t.id()` if that field is null. A transaction with `id == null` will simply not match the non-null requested ID.
 
-### orElseThrow và get khác nhau thế nào?
+### How Do `orElseThrow` and `get` Differ?
 
-`Optional.get()` trên Optional rỗng ném `NoSuchElementException`, nhưng khó diễn đạt **vì sao đây là lỗi nghiệp vụ**. `orElseThrow(() -> new ...)` cho phép nêu lỗi cụ thể. Nếu chỉ cần exception mặc định, `orElseThrow()` (không đối số) cũng có thể dùng.
+`Optional.get()` on an empty Optional throws `NoSuchElementException`, which makes it hard to explain **why it is a business error**. `orElseThrow(() -> new ...)` lets you throw a domain-specific exception with context. If the default exception suffices, no-arg `orElseThrow()` can also be used.
 
-**Quyết định quan trọng:** Không tìm thấy người dùng ở một màn hình tra cứu có thể là trạng thái bình thường; không tìm thấy giao dịch bắt buộc để ghi sổ lại có thể là lỗi. Cùng một `Optional.empty()` nhưng chính sách xử lý khác nhau.
+**Key decision:** Failing to find a user on a search screen may be a normal empty state; failing to find a mandatory transaction during posting is an error. The same `Optional.empty()` demands different handling policies.
 
-## 9. Bài tập 7 — Tính trung bình, min/max trên Stream nguyên thủy rỗng
+## 9. Exercise 7 — Computing Average, `min`, and `max` on Empty Primitive Streams
 
-**Mức độ:** Nền tảng → Trung cấp.
+**Level:** Beginner → Intermediate.
 
-**Yêu cầu:** Có danh sách điểm số; chỉ các điểm từ 0 đến 100 hợp lệ. Tính điểm trung bình; nếu không có điểm hợp lệ, giữ thông tin **không có kết quả** thay vì tự thay bằng 0. Đồng thời in min/max khi có dữ liệu.
+**Requirement:** Given a list of scores where only values from 0 to 100 are valid, compute the average score; if no valid scores exist, preserve **absence of result** instead of substituting 0. Also print min/max when data exists.
 
-**Lời giải:**
+**Solution:**
 
 ~~~java
 import java.util.Arrays;
@@ -498,33 +498,33 @@ public class PrimitiveOptionalExercise {
 }
 ~~~
 
-Các phương thức `IntStream.min()`, `max()` trả `OptionalInt`; `average()` trả `OptionalDouble`. Đây là cách biểu diễn đúng trạng thái không có số liệu.
+`IntStream.min()` and `max()` return `OptionalInt`; `average()` returns `OptionalDouble`. These accurately represent the absence of measurements.
 
-### Vì sao không nên luôn dùng average().orElse(0.0)?
+### Why Should You Not Always Write `average().orElse(0.0)`?
 
-Kết quả **không có dữ liệu** và **trung bình thực sự bằng 0.0** có thể khác nhau về nghiệp vụ. Nếu màn hình muốn hiển thị `"Chưa có điểm"`, hãy giữ Optional đến tầng hiển thị:
+**No data** and **an actual average of 0.0** carry very different business meanings. If the UI should display `"No scores"`, keep the Optional until the presentation layer:
 
 ~~~java
 OptionalDouble avg = Arrays.stream(emptyScores).average();
 
 String label = avg.isPresent()
     ? String.format(java.util.Locale.ROOT, "%.1f", avg.getAsDouble())
-    : "Chưa có điểm";
+    : "No scores";
 
-System.out.println(label); // Chưa có điểm
+System.out.println(label); // No scores
 ~~~
 
-`getAsDouble()` chỉ được gọi sau khi đã kiểm tra `isPresent()`. Nếu không thể có điểm thiếu mà vẫn được chấp nhận, hãy báo lỗi thay vì ép `0.0`.
+Call `getAsDouble()` only after confirming `isPresent()`. If missing scores are disallowed altogether, fail fast instead of forcing `0.0`.
 
-**Lưu ý:** `Arrays.stream(scores)` tạo một IntStream mới ở mỗi lần tính vì Stream đã dùng terminal không được tái sử dụng. Nếu chỉ cần thống kê chuẩn trong một lần duyệt, có thể dùng `summaryStatistics()`.
+**Note:** `Arrays.stream(scores)` creates a fresh `IntStream` for each metric because a consumed Stream cannot be reused. If you just need standard summary stats in a single pass, `summaryStatistics()` is available.
 
-## 10. Bài tập 8 — reduce trên nguồn rỗng và identity
+## 10. Exercise 8 — `reduce` on Empty Sources and Identity
 
-**Mức độ:** Trung cấp.
+**Level:** Intermediate.
 
-**Yêu cầu:** Từ một danh sách số nguyên, tính tổng hai cách: (1) dùng `reduce(Integer::sum)`, (2) dùng `reduce(0, Integer::sum)`. Giải thích kết quả khi danh sách rỗng.
+**Requirement:** Given a list of integers, compute the sum in two ways: (1) `reduce(Integer::sum)`, and (2) `reduce(0, Integer::sum)`. Explain the behavior on an empty list.
 
-**Lời giải:**
+**Solution:**
 
 ~~~java
 import java.util.List;
@@ -556,14 +556,14 @@ public class ReduceEmptyExercise {
 }
 ~~~
 
-**Giải thích:**
+**Explanation:**
 
-- `reduce(BinaryOperator)` không có identity nên trả Optional, rỗng nếu không có phần tử.
-- `reduce(identity, BinaryOperator)` có kết quả ban đầu. Với nguồn rỗng, trả đúng identity.
-- `0` là identity hợp lệ cho phép cộng vì `0 + x = x + 0 = x`.
-- `10` không phải identity của phép cộng. `reduce(10, Integer::sum)` trên nguồn `[2,3,5]` sẽ thành `20` ở chế độ tuần tự; đó không phải tổng đơn thuần.
+- `reduce(BinaryOperator)` has no identity, so it returns an Optional, empty when there are no elements.
+- `reduce(identity, BinaryOperator)` starts from an identity value. On an empty source, it returns that identity.
+- `0` is a valid additive identity because `0 + x = x + 0 = x`.
+- `10` is not an additive identity. `reduce(10, Integer::sum)` on `[2,3,5]` yields `20` sequentially; that is not a pure sum.
 
-### Vấn đề null trong reduce
+### Handling `null` in `reduce`
 
 ~~~java
 import java.util.Arrays;
@@ -578,17 +578,17 @@ int sum = values.stream()
 System.out.println(sum); // 5
 ~~~
 
-Không để `Integer::sum` nhận null. Đồng thời, `reduce(BinaryOperator)` không thể dùng một giá trị kết quả `null` để thay thế trạng thái Optional rỗng; phép rút gọn có thể ném `NullPointerException` nếu kết quả gộp là null.
+Never pass `null` to `Integer::sum`. Also, `reduce(BinaryOperator)` cannot return `null` to represent an empty Optional; reduction may throw `NullPointerException` if a combiner/accumulator yields `null`.
 
-Đối với số lượng lớn, ưu tiên `mapToLong(...).sum()` khi tổng có thể vượt miền `int`; `long` vẫn có giới hạn và cần kiểm tra theo quy mô thực tế.
+For large counts, prefer `mapToLong(...).sum()` if sums may exceed `int`; `long` still has bounds that must be checked against real scale.
 
-## 11. Bài tập 9 — Gom nhiều Optional thành một Stream hợp lệ
+## 11. Exercise 9 — Flattening Multiple Optionals into a Valid Stream
 
-**Mức độ:** Trung cấp.
+**Level:** Intermediate.
 
-**Yêu cầu:** Một danh sách kết quả tra cứu ở dạng `List<Optional<String>>`. Hãy lấy ra các giá trị thực sự có mặt, giữ thứ tự và không gọi `get()` trên Optional rỗng.
+**Requirement:** Given a list of lookup results `List<Optional<String>>`, extract only present values, preserve order, and never call `get()` on an empty Optional.
 
-**Lời giải:**
+**Solution:**
 
 ~~~java
 import java.util.List;
@@ -613,9 +613,9 @@ public class FlattenOptionalExercise {
 }
 ~~~
 
-`Optional.stream()` tạo Stream 0 phần tử nếu Optional rỗng, hoặc một phần tử nếu Optional có giá trị. `flatMap(Optional::stream)` làm phẳng toàn bộ kết quả mà không cần `isPresent()` + `get()`.
+`Optional.stream()` returns a 0-element Stream when the Optional is empty, or a 1-element Stream when present. `flatMap(Optional::stream)` flattens all results cleanly without `isPresent()` + `get()`.
 
-Một cách khác trên Java 8 là:
+A Java 8 alternative is:
 
 ~~~java
 List<String> names = lookups.stream()
@@ -624,11 +624,11 @@ List<String> names = lookups.stream()
     .toList();
 ~~~
 
-Cách sau biên dịch với Java 17+, nhưng `Optional::stream` thường súc tích hơn và tránh gọi `get()` trực tiếp. `Stream.toList()` chỉ có từ Java 16, nên với Java 8 cần thay terminal bằng collector tương thích.
+This compiles on Java 17+, though `Optional::stream` is more concise and avoids calling `get()` directly. Because `Stream.toList()` requires Java 16+, replace the terminal operation with a compatible collector on Java 8.
 
-### Nếu List có thể chứa chính đối tượng Optional null?
+### What If the List Contains a `null` `Optional` Reference?
 
-Hãy lọc chính đối tượng Optional trước:
+Filter out null Optional references first:
 
 ~~~java
 import java.util.Arrays;
@@ -647,15 +647,15 @@ List<String> valid = raw.stream()
 System.out.println(valid); // [A]
 ~~~
 
-`Optional.empty()` là một đối tượng hợp lệ; một biến `Optional` bằng `null` lại là **vi phạm quy ước thiết kế Optional**. Thông thường hãy sửa nguồn phát sinh Optional null, thay vì dựa mãi vào việc lọc nó ở downstream.
+`Optional.empty()` is a valid object; a variable of type `Optional` holding `null` **violates Optional design conventions**. Fix the producer returning null Optionals rather than relying indefinitely on downstream null filtering.
 
-## 12. Bài tập 10 — Null trong kết quả collect và chính sách dữ liệu
+## 12. Exercise 10 — `null` in `collect` Results and Data Policies
 
-**Mức độ:** Trung cấp.
+**Level:** Intermediate.
 
-**Yêu cầu:** Một Stream có thể chứa phần tử null. So sánh hai cách tạo List không sửa đổi được và đề xuất cách không cho null đi vào kết quả.
+**Requirement:** A Stream may contain `null` elements. Compare two ways of creating an unmodifiable List and show how to keep nulls out of the result.
 
-**Lời giải:**
+**Solution:**
 
 ~~~java
 import java.util.List;
@@ -670,7 +670,7 @@ public class CollectNullExercise {
 
         System.out.println(acceptsNull); // [A, null, B]
 
-        // Đoạn dưới ném NullPointerException:
+        // The snippet below throws NullPointerException:
         // List<String> fails = Stream.of("A", null, "B")
         //     .collect(Collectors.toUnmodifiableList());
 
@@ -683,18 +683,18 @@ public class CollectNullExercise {
 }
 ~~~
 
-Hai lời gọi `Stream.toList()` và `Collectors.toUnmodifiableList()` **đều trả List không sửa đổi được**, nhưng **khác nhau về null**:
+Both `Stream.toList()` and `Collectors.toUnmodifiableList()` **return unmodifiable Lists**, yet they **differ on `null`**:
 
-| Cách thu thập | List sửa được? | Có thể chứa phần tử null? |
+| Collection Method | Mutable List? | Allows `null` Elements? |
 | --- | --- | --- |
-| `Stream.toList()` | Không | Có |
-| `Collectors.toUnmodifiableList()` | Không | Không; ném NPE |
-| `Collectors.toCollection(ArrayList::new)` | Có | Có, theo hợp đồng của ArrayList |
-| `Collectors.toList()` | Không cam kết | Không nên dựa vào đặc điểm triển khai khi chính sách null là yêu cầu cốt lõi |
+| `Stream.toList()` | No | Yes |
+| `Collectors.toUnmodifiableList()` | No | No; throws NPE |
+| `Collectors.toCollection(ArrayList::new)` | Yes | Yes, per ArrayList contract |
+| `Collectors.toList()` | Not guaranteed | Do not rely on implementation behavior when null policy is critical |
 
-**Đừng đánh đồng List không sửa đổi được với List không chứa null.** Nếu muốn phát hiện null như một lỗi dữ liệu, việc collector ném NPE có thể là một tín hiệu nhưng thường nên đưa ra thông báo lỗi nghiệp vụ rõ hơn.
+**Do not equate an unmodifiable List with a non-null List.** If you want to reject nulls as invalid data, relying on a collector's NPE works as a guard, though raising a clear domain exception is usually better.
 
-### Kiểm thử đúng theo quy tắc
+### Testing According to Policy
 
 ~~~java
 List<String> noNulls = Stream.of("A", null, "B")
@@ -702,19 +702,19 @@ List<String> noNulls = Stream.of("A", null, "B")
     .toList();
 
 if (noNulls.size() != 2 || noNulls.contains(null)) {
-    throw new AssertionError("Không được giữ null");
+    throw new AssertionError("Nulls must not be kept");
 }
 ~~~
 
-Ở đây đầu ra là danh sách không sửa đổi được, thứ tự `A` trước `B` được giữ vì nguồn Stream có encounter order.
+Here the output is an unmodifiable list preserving `A` before `B` because the Stream source has encounter order.
 
-## 13. Bài tập 11 — groupingBy và toMap khi khóa hoặc giá trị có thể null
+## 13. Exercise 11 — `groupingBy` and `toMap` When Keys or Values May Be `null`
 
-**Mức độ:** Trung cấp.
+**Level:** Intermediate.
 
-**Yêu cầu:** Mỗi bản ghi nhân viên có tên và phòng ban, nhưng phòng ban có thể null. Hãy đếm nhân viên theo phòng ban, đưa phòng ban thiếu vào nhóm `"CHUA_XAC_DINH"`. Sau đó tạo Map tra cứu theo tên, loại những bản ghi không có tên.
+**Requirement:** Each employee record has a name and a department, where department may be null. Count employees by department, placing missing departments into `"UNASSIGNED"`. Then build a lookup Map by name, excluding records without a name.
 
-**Lời giải:**
+**Solution:**
 
 ~~~java
 import java.util.List;
@@ -737,14 +737,14 @@ public class NullableKeysExercise {
         Map<String, Long> countByDepartment = employees.stream()
             .collect(Collectors.groupingBy(
                 e -> e.department() == null
-                    ? "CHUA_XAC_DINH"
+                    ? "UNASSIGNED"
                     : e.department(),
                 TreeMap::new,
                 Collectors.counting()
             ));
 
         System.out.println(countByDepartment.get("Engineering")); // 2
-        System.out.println(countByDepartment.get("CHUA_XAC_DINH")); // 1
+        System.out.println(countByDepartment.get("UNASSIGNED")); // 1
         System.out.println(countByDepartment.get("Finance")); // 1
 
         Map<String, String> byName = employees.stream()
@@ -752,32 +752,32 @@ public class NullableKeysExercise {
             .collect(Collectors.toMap(
                 Employee::name,
                 e -> e.department() == null
-                    ? "CHUA_XAC_DINH"
+                    ? "UNASSIGNED"
                     : e.department()
             ));
 
-        System.out.println(byName.get("Bình")); // CHUA_XAC_DINH
+        System.out.println(byName.get("Bình")); // UNASSIGNED
     }
 }
 ~~~
 
-`groupingBy` trong Java chuẩn hiện hành **không chấp nhận classifier trả null**; nó có thể ném `NullPointerException`. Mẫu trên thay thế bằng khóa tường minh trước khi dữ liệu đi vào Map. Trong hệ thống có phòng ban tên thật bằng `"CHUA_XAC_DINH"`, nên dùng enum hoặc kiểu khóa có trạng thái rõ ràng để tránh nhập nhằng với sentinel.
+`groupingBy` in standard Java **forbids classifiers returning `null`**; it can throw `NullPointerException`. The pattern above substitutes an explicit key before entering the Map. If the system could have a real department literally named `"UNASSIGNED"`, use an enum or a tagged key type to avoid sentinel ambiguity.
 
-`Collectors.toMap(keyMapper, valueMapper)` ném `IllegalStateException` khi khóa trùng; ở đây tên được giả định duy nhất để minh họa. Nó cũng không phải công cụ để lưu giá trị null tùy ý; mẫu đã chuyển trường department null thành chuỗi hợp lệ.
+`Collectors.toMap(keyMapper, valueMapper)` throws `IllegalStateException` on duplicate keys; names are assumed unique here for illustration. It also cannot store arbitrary `null` values; the pattern converts null departments into a valid string.
 
-### Trường hợp nguồn chứa phần tử Employee null
+### When the Source List Contains `null` `Employee` Elements
 
-Nếu bản thân List có phần tử null, phải thêm `filter(Objects::nonNull)` trước `Employee::name` hoặc `Employee::department`. `List.of(...)` không cho tạo một phần tử null; `Arrays.asList(...)` hoặc nguồn bên ngoài có thể chứa null.
+If the List itself can hold null elements, add `filter(Objects::nonNull)` before `Employee::name` or `Employee::department`. `List.of(...)` forbids null elements; `Arrays.asList(...)` or external sources can contain them.
 
-**Bài thử mở rộng:** Nếu một nhân viên có `name == null` mà nghiệp vụ không cho phép bỏ qua, hãy thay `filter` bằng bước kiểm tra và ném exception có thông tin vị trí/dòng dữ liệu.
+**Extension experiment:** If an employee with `name == null` is not permitted to be skipped by business rules, replace `filter` with a validation step throwing an exception containing the row/index context.
 
-## 14. Bài tập 12 — Quy tắc tìm kiếm có thứ tự và nguồn trống
+## 14. Exercise 12 — Ordered Search Rules and Empty Sources
 
-**Mức độ:** Trung cấp.
+**Level:** Intermediate.
 
-**Yêu cầu:** Một danh sách tác vụ được sắp theo thứ tự ưu tiên. Viết hàm tìm tác vụ đầu tiên có `priority >= 5` và trả `Optional<Task>`. Đảm bảo kết quả có thể vắng mặt; không tự biến nó thành một tác vụ giả.
+**Requirement:** A task list is ordered by priority. Write a method returning the first task with `priority >= 5` as `Optional<Task>`. Ensure absence is preserved without inventing a dummy task.
 
-**Lời giải:**
+**Solution:**
 
 ~~~java
 import java.util.List;
@@ -814,38 +814,38 @@ public class OptionalTaskExercise {
 }
 ~~~
 
-Với `List.stream()`, encounter order phản ánh thứ tự danh sách. `findFirst` chọn tác vụ phù hợp đầu tiên **theo thứ tự đầu vào**. Nếu danh sách chưa được sắp theo tiêu chí ưu tiên mong muốn, `findFirst` không tự thực hiện sắp xếp.
+With `List.stream()`, encounter order reflects list order. `findFirst` selects the first matching task **in input order**. If the list is not already sorted by the desired priority rule, `findFirst` does not sort it automatically.
 
-Để tìm **tác vụ ưu tiên cao nhất** thay vì **đầu tiên vượt ngưỡng**, phải dùng `max(Comparator.comparingInt(Task::priority))` hoặc sắp xếp có quy tắc:
+To find the **highest-priority task** rather than the **first task meeting a threshold**, use `max(Comparator.comparingInt(Task::priority))` or sort explicitly:
 
 ~~~java
 Optional<Task> highest = tasks.stream()
     .filter(Objects::nonNull)
     .max(java.util.Comparator.comparingInt(Task::priority));
 
-// Trong dữ liệu mẫu: Optional[Task[code=C, priority=9]].
+// On the sample data: Optional[Task[code=C, priority=9]].
 ~~~
 
-### Song song có làm thay đổi câu trả lời không?
+### Does Parallelism Change the Answer?
 
-`parallelStream().findFirst()` vẫn phải tôn trọng encounter order nếu nguồn có thứ tự. `parallelStream().findAny()` được phép chọn bất kỳ phần tử phù hợp nào; không dùng `findAny` nếu yêu cầu là “đầu tiên”.
+`parallelStream().findFirst()` still honors encounter order if the source is ordered. `parallelStream().findAny()` is free to return any matching element; do not use `findAny` when "first" is required.
 
-Nếu source đã `unordered()` hoặc là nguồn không có encounter order, `findFirst` không đảm bảo trả “đầu tiên trong danh sách gốc”. Để xử lý kết quả không có phần tử, cả `findFirst` và `findAny` đều trả Optional rỗng; không tự phát ra null.
+If the source is `unordered()` or inherently lacks encounter order, `findFirst` does not guarantee returning the "first in the original list". When no element matches, both `findFirst` and `findAny` return an empty Optional, never `null`.
 
-## 15. Bài tập tổng hợp — Báo cáo đơn hàng từ dữ liệu không hoàn chỉnh
+## 15. Capstone Exercise — Order Report from Incomplete Data
 
-**Mức độ:** Trung cấp.
+**Level:** Intermediate.
 
-**Đề bài thực tế:** Một API trả danh sách đơn hàng; đôi khi tham chiếu danh sách là null. Bên trong có thể có phần tử Order null, mã đơn thiếu, khu vực thiếu hoặc giá trị tiền thiếu. Hệ thống cần:
+**Practical prompt:** An API returns a list of orders; occasionally the list reference itself is `null`. Inside, there may be `null` `Order` elements, missing order IDs, missing regions, or missing amounts. The system requires:
 
-1. Nếu nguồn là null, theo quy ước **không có dữ liệu để báo cáo**; trả kết quả rỗng.
-2. Loại đối tượng null, mã null/trắng và đơn không có giá trị tiền.
-3. Thay khu vực null/trắng bằng nhóm `"UNKNOWN"`.
-4. Tính số đơn hợp lệ và tổng tiền `long` theo khu vực; sắp xếp các khóa để báo cáo dễ đọc.
-5. Tìm **mã của đơn hợp lệ đầu tiên** có tiền từ 150 trở lên, giữ kết quả ở dạng Optional.
-6. Không sửa nguồn, không dùng biến đếm chia sẻ và không tái sử dụng Stream sau terminal.
+1. If the source is `null`, by convention **there is no data to report**; return an empty result.
+2. Drop `null` objects, `null`/blank IDs, and orders without an amount.
+3. Map `null`/blank regions to `"UNKNOWN"`.
+4. Compute the valid order count and `long` total amount per region; sort keys for readable reporting.
+5. Find the **ID of the first valid order** with amount at least 150, keeping the result as an `Optional`.
+6. Do not mutate the source, use shared counters, or reuse a Stream after a terminal operation.
 
-**Lời giải đầy đủ:**
+**Complete Solution:**
 
 ~~~java
 import java.util.Arrays;
@@ -867,7 +867,7 @@ public class IncompleteOrdersReport {
     ) {}
 
     static Report analyze(List<Order> source) {
-        // Quy ước riêng của đề bài: null source == nguồn rỗng.
+        // Exercise-specific convention: null source == empty source.
         List<Order> valid = Optional.ofNullable(source)
             .orElseGet(List::of)
             .stream()
@@ -890,7 +890,7 @@ public class IncompleteOrdersReport {
             .map(Order::id)
             .findFirst();
 
-        // Chỉ công bố một view không cho sửa cấu trúc Map.
+        // Expose only a structurally unmodifiable Map view.
         return new Report(
             valid.size(),
             Collections.unmodifiableMap(totals),
@@ -900,19 +900,19 @@ public class IncompleteOrdersReport {
 
     public static void main(String[] args) {
         List<Order> raw = Arrays.asList(
-            new Order("O1", "Nam", 120L),
+            new Order("O1", "South", 120L),
             null,
-            new Order(" ", "Bắc", 50L),
+            new Order(" ", "North", 50L),
             new Order("O2", null, 75L),
-            new Order("O3", "Nam", null),
-            new Order("O4", "Nam", 200L)
+            new Order("O3", "South", null),
+            new Order("O4", "South", 200L)
         );
 
         Report report = analyze(raw);
 
         System.out.println(report.validCount()); // 3
         System.out.println(report.amountByRegion());
-        // {Nam=320, UNKNOWN=75}
+        // {South=320, UNKNOWN=75}
         System.out.println(report.firstLargeOrderId());
         // Optional[O4]
 
@@ -925,46 +925,46 @@ public class IncompleteOrdersReport {
 }
 ~~~
 
-### Vì sao lời giải đáp ứng yêu cầu?
+### Why Does This Solution Meet Every Requirement?
 
-- `Optional.ofNullable(source).orElseGet(List::of)` chỉ chuyển **tham chiếu nguồn null** thành List rỗng theo đúng quy ước đề bài.
-- `filter(Objects::nonNull)` loại **đối tượng Order null** trước khi truy cập trường.
-- Hai điều kiện tiếp theo loại ID thiếu/trắng và amount thiếu; không dùng `null` như giá trị tiền bằng 0.
-- `groupingBy(..., TreeMap::new, summingLong(...))` tạo báo cáo với khóa có thứ tự; classifier luôn trả khóa không null.
-- `findFirst()` trả `Optional<String>` khi không có đơn nào đủ ngưỡng. Không có mã giả kiểu `"NONE"` dễ bị nhầm với ID thực.
-- Dùng `valid.stream()` **hai lần**, tức mỗi lần là một Stream mới trên một List đã materialize, chứ không chạy terminal hai lần trên cùng Stream.
-- `Collections.unmodifiableMap(totals)` chặn sửa Map qua kết quả `Report`. Map nguồn `totals` không bị trả ra bằng tham chiếu khác trong ví dụ; `Order` cũng là record chỉ chứa các trường bất biến (`String` và `Long`). Đây vẫn là **view không sửa cấu trúc**, không phải lời hứa bất biến sâu cho mọi kiểu object.
+- `Optional.ofNullable(source).orElseGet(List::of)` converts only a **`null` source reference** into an empty List per the problem rule.
+- `filter(Objects::nonNull)` eliminates **`null` `Order` objects** before reading fields.
+- The next two filters drop missing/blank IDs and missing amounts without treating `null` as amount 0.
+- `groupingBy(..., TreeMap::new, summingLong(...))` produces a key-sorted report; the classifier always returns a non-null key.
+- `findFirst()` returns `Optional<String>` when no order qualifies. No fake sentinel like `"NONE"` can be mistaken for a real ID.
+- `valid.stream()` is called **twice**, opening a fresh Stream each time from a materialized List rather than invoking two terminals on one Stream.
+- `Collections.unmodifiableMap(totals)` prevents mutating the Map through `Report`. No other reference to `totals` is leaked here, and `Order` is a record with immutable components (`String` and `Long`). Note this is still a **structurally unmodifiable view**, not a deep-immutability guarantee for arbitrary object types.
 
-### Những chính sách khác cũng có thể hợp lệ
+### Other Policies May Also Be Valid
 
-Bài chọn **bỏ bản ghi không có ID hoặc amount**. Trong quy trình thanh toán thật, đây có thể là lỗi dữ liệu nghiêm trọng, phải **giữ lại danh sách bản ghi lỗi** hoặc chấm dứt xử lý. Tương tự, amount có thể âm để biểu diễn hoàn tiền; không được tự loại số âm nếu chưa có yêu cầu. `Collectors.summingLong` có thể tràn `long`; với dữ liệu tài chính lớn cần giới hạn hoặc kiểu số có kiểm soát.
+This exercise chooses to **discard records missing ID or amount**. In real payment pipelines, those may be critical errors requiring you to **collect an error list** or halt processing. Likewise, negative amounts might represent refunds; never filter out negatives unless required. `Collectors.summingLong` can also overflow `long`; large financial volumes require bounds or overflow-checked arithmetic.
 
-Nếu yêu cầu là **tránh giữ danh sách trung gian**, có thể dùng collector tùy chỉnh hoặc các phép thống kê ghép, nhưng lời giải ở đây ưu tiên tính rõ ràng và an toàn cho cấp độ trung cấp.
+If you must **avoid materializing an intermediate list**, use a custom collector or combined statistics, though this solution prioritizes clarity and safety at the intermediate level.
 
-## 16. Checklist kiểm thử các trường hợp biên
+## 16. Edge-Case Testing Checklist
 
-Với mỗi pipeline xử lý dữ liệu không hoàn chỉnh, nên xác minh tối thiểu các trường hợp sau. Không cần làm tất cả bằng một hàm khổng lồ; tách kiểm thử theo hợp đồng đầu vào và đầu ra:
+For every pipeline processing incomplete data, verify at least these scenarios. Avoid cramming everything into one giant function; split tests by input and output contracts:
 
-| Tình huống thử | Điều mong đợi |
+| Test Scenario | Expected Behavior |
 | --- | --- |
-| Nguồn `null` | Theo chính sách đã định: báo lỗi hoặc coi rỗng |
-| Nguồn `List.of()` | Kết quả rỗng / Optional rỗng, không NPE |
-| List chỉ có phần tử null | Lọc đúng hoặc báo lỗi; không gọi method trên null |
-| Có null xen giữa phần tử hợp lệ | Phần tử hợp lệ vẫn được giữ theo quy tắc |
-| Trường nullable bên trong record | Chuẩn hóa hoặc đưa sang nhánh lỗi trước collector |
-| `findFirst` không có phần tử phù hợp | `Optional.empty()` hoặc fallback rõ ràng |
-| `findFirst` gặp phần tử null | Không để null được chọn trực tiếp |
-| `average` trên IntStream rỗng | `OptionalDouble.empty()` |
-| `reduce` không identity trên nguồn rỗng | `Optional.empty()` |
-| `reduce` có identity trên nguồn rỗng | Identity, ví dụ `0` cho phép cộng |
-| `allMatch` trên nguồn rỗng | `true`; nếu cần không rỗng, kiểm tra thêm |
-| `toUnmodifiableList` gặp null | NPE; phải lọc hoặc chủ động báo lỗi |
-| `groupingBy` classifier trả null | NPE; phải dùng khóa thay thế hợp lệ hoặc báo lỗi |
-| `toMap` gặp khóa trùng | Ném `IllegalStateException` nếu không có merge function |
-| Phép cộng số lớn | Không bỏ qua rủi ro overflow |
-| Parallel có tác dụng phụ | Không dựa vào thứ tự callback hoặc state dùng chung |
+| `null` source | Per policy: throw error or treat as empty |
+| `List.of()` source | Empty result / empty Optional, no NPE |
+| List containing only `null`s | Filtered cleanly or rejected; never invoke methods on null |
+| `null`s interspersed with valid items | Valid items retained per rules |
+| Nullable fields inside records | Normalized or routed to error path before collectors |
+| `findFirst` with no matching element | `Optional.empty()` or explicit fallback |
+| `findFirst` hitting a `null` element | Prevent null from being selected directly |
+| `average` on empty `IntStream` | `OptionalDouble.empty()` |
+| `reduce` without identity on empty source | `Optional.empty()` |
+| `reduce` with identity on empty source | Returns identity, e.g., `0` for addition |
+| `allMatch` on empty source | `true`; add non-empty check if required |
+| `toUnmodifiableList` encountering `null` | Throws NPE; filter or fail explicitly beforehand |
+| `groupingBy` classifier returning `null` | Throws NPE; substitute valid key or fail fast |
+| `toMap` encountering duplicate keys | Throws `IllegalStateException` without merge function |
+| Large-number sums | Account for overflow risks |
+| Parallel with side effects | Never depend on callback order or shared mutable state |
 
-### Một bộ kiểm tra nhỏ không cần thư viện ngoài
+### A Small Dependency-Free Test Suite
 
 ~~~java
 import java.util.Arrays;
@@ -985,17 +985,17 @@ public class MissingDataChecks {
 
     public static void main(String[] args) {
         if (firstValid(null).isPresent()) {
-            throw new AssertionError("Null source phải trả empty");
+            throw new AssertionError("Null source must return empty");
         }
 
         if (firstValid(List.of()).isPresent()) {
-            throw new AssertionError("List rỗng phải trả empty");
+            throw new AssertionError("Empty list must return empty");
         }
 
         if (firstValid(Arrays.asList(null, "  ", " An "))
                 .filter("An"::equals)
                 .isEmpty()) {
-            throw new AssertionError("Đã bỏ mất phần tử hợp lệ");
+            throw new AssertionError("Valid element was dropped");
         }
 
         System.out.println("PASS");
@@ -1003,11 +1003,11 @@ public class MissingDataChecks {
 }
 ~~~
 
-Kiểm thử trên kiểm tra ba tình huống: không có đối tượng nguồn, nguồn hợp lệ nhưng rỗng và dữ liệu có null/trắng xen kẽ. Khi bài toán phức tạp hơn, nên đặt tên ca kiểm thử theo từng quy tắc nghiệp vụ và thêm trường hợp đầu ra bị trùng, độ lớn vượt kiểu số hoặc thứ tự nguồn thay đổi.
+This checks three cases: missing source object, valid empty source, and interleaved null/blank entries. As problems grow, name test cases after specific business rules and add checks for duplicate keys, numeric overflow, and reordered inputs.
 
-## 17. Những cách viết nên tránh
+## 17. Anti-Patterns to Avoid
 
-### 17.1. Gọi stream() trực tiếp trên nguồn nullable
+### 17.1. Calling `stream()` Directly on a Nullable Source
 
 ~~~java
 List<String> source = null;
@@ -1015,51 +1015,51 @@ List<String> source = null;
 // source.stream().count(); // NullPointerException.
 ~~~
 
-Nếu null hợp lệ theo hợp đồng, thay bằng cách chuyển nó thành List/Stream rỗng. Nếu null là lỗi, dùng `Objects.requireNonNull` với thông báo rõ ràng.
+If `null` is allowed by contract, convert it to an empty List/Stream. If `null` is an error, fail explicitly with `Objects.requireNonNull` and a clear message.
 
-### 17.2. Gọi method trên phần tử trước khi lọc null
+### 17.2. Calling Methods on Elements Before Filtering `null`
 
 ~~~java
-// Sai nếu có phần tử null:
+// Broken when null elements exist:
 // source.stream().map(String::strip).filter(Objects::nonNull);
 ~~~
 
-Lọc `null` trước method có thể ném NPE, hoặc dùng `flatMap(x -> Stream.ofNullable(x))` ở vị trí phù hợp.
+Filter `null` before any method that can throw NPE, or use `flatMap(x -> Stream.ofNullable(x))` where appropriate.
 
-### 17.3. Ép Optional rỗng thành giá trị thật mà không cân nhắc nghiệp vụ
+### 17.3. Turning an Empty Optional into a Real Value Without Checking Semantics
 
 ~~~java
 double average = java.util.stream.IntStream.empty()
     .average()
     .orElse(0.0);
 
-// Giá trị 0.0 ở đây là fallback, không phải trung bình đo được.
+// 0.0 here is a fallback, not a measured average.
 ~~~
 
-Khi hai trạng thái cần phân biệt, giữ `OptionalDouble` tới khi trình bày kết quả.
+When the two states must stay distinct, preserve `OptionalDouble` until presentation.
 
-### 17.4. Tin rằng findAny và findFirst tự bỏ qua null
+### 17.4. Believing `findAny` and `findFirst` Automatically Skip `null`
 
 ~~~java
-// Có thể ném NPE khi giá trị được chọn là null:
+// Can throw NPE when the selected element is null:
 // java.util.stream.Stream.of((String) null).findAny();
 ~~~
 
-Nếu chính sách là bỏ null, dùng `filter(Objects::nonNull)` trước terminal tìm kiếm.
+If the policy is to skip nulls, add `filter(Objects::nonNull)` before the search terminal operation.
 
-### 17.5. Dùng orElse với lời gọi tốn kém
+### 17.5. Using `orElse` with Expensive Calls
 
 ~~~java
-// loadFromNetwork() chạy ngay cả khi Optional có giá trị:
+// loadFromNetwork() runs even when the Optional is present:
 // String value = found.orElse(loadFromNetwork());
 
-// Trì hoãn fallback:
+// Defer fallback evaluation:
 // String value = found.orElseGet(() -> loadFromNetwork());
 ~~~
 
-`orElseGet` chỉ trì hoãn **thân Supplier**. Nếu tạo kết quả dự phòng ở một biến trước lambda, công việc vẫn được thực hiện sớm.
+`orElseGet` defers only the **Supplier body**. If you compute the fallback into a local variable before the lambda, the work still runs eagerly.
 
-### 17.6. Tái sử dụng Stream sau terminal
+### 17.6. Reusing a Stream After a Terminal Operation
 
 ~~~java
 import java.util.List;
@@ -1068,36 +1068,36 @@ import java.util.stream.Stream;
 Stream<String> once = List.of("A", "B").stream();
 long count = once.count();
 
-// once.findFirst(); // Không được dùng lại Stream đã tiêu thụ.
+// once.findFirst(); // Cannot reuse a consumed Stream.
 ~~~
 
-Mỗi yêu cầu terminal độc lập thường cần một Stream mới từ nguồn hoặc một `Supplier<Stream<T>>` tạo Stream hợp lệ.
+Each independent terminal query requires a fresh Stream from the source or a `Supplier<Stream<T>>` producing valid Streams.
 
-## 18. Câu hỏi tự kiểm tra và bài mở rộng
+## 18. Self-Check Questions and Extension Exercises
 
-1. **Nguồn List rỗng có giống tham chiếu List bằng null không?** Không. List rỗng là đối tượng hợp lệ; gọi `stream()` trên null ném NPE.
-2. **`Stream.ofNullable(null)` tạo bao nhiêu phần tử?** 0 phần tử.
-3. **`Stream.of((String) null)` tạo bao nhiêu phần tử?** 1 phần tử, và phần tử đó bằng null.
-4. **Tại sao phải `filter(Objects::nonNull)` trước `map(String::strip)`?** Vì `String::strip` không được gọi trên tham chiếu null.
-5. **`findFirst()` có trả null khi không tìm thấy không?** Không; trả `Optional.empty()`.
-6. **`findFirst()` có an toàn nếu phần tử đầu tiên bằng null không?** Không; có thể ném NPE nếu chọn null.
-7. **`Optional.ofNullable(value)` khác `Optional.of(value)` khi `value == null`?** `ofNullable` trả Optional rỗng; `of` ném NPE.
-8. **`orElse(default())` khác `orElseGet(() -> default())` thế nào?** Cách đầu tính đối số trước lời gọi; cách sau chỉ chạy Supplier khi Optional rỗng.
-9. **Khi thiếu dữ liệu bắt buộc, nên trả chuỗi "UNKNOWN" hay báo lỗi?** Chọn theo hợp đồng; nếu bắt buộc có dữ liệu, thường dùng `orElseThrow` hoặc mô hình lỗi rõ ràng.
-10. **`IntStream.empty().average()` trả gì?** `OptionalDouble.empty()`.
-11. **`IntStream.empty().sum()` trả gì?** `0`.
-12. **Vì sao `allMatch` trên Stream rỗng trả true?** Vì không có phần tử nào phản ví dụ.
-13. **`flatMap(Optional::stream)` có tác dụng gì?** Biến mỗi Optional thành Stream 0/1 phần tử rồi gộp lại.
-14. **`toList()` và `toUnmodifiableList()` có cùng chính sách null không?** Không. `toList()` có thể chứa null, `toUnmodifiableList()` cấm null.
-15. **`groupingBy` có tự tạo nhóm cho classifier trả null không?** Không; Java chuẩn hiện hành ném NPE.
-16. **`findAny` trên parallel stream có bảo đảm phần tử đầu tiên không?** Không; có thể chọn bất kỳ phần tử phù hợp.
-17. **Khi cần tính trung bình trên tập không có dữ liệu, tại sao Optional có ích?** Nó giữ khác biệt giữa “không có số liệu” và “trung bình thật bằng 0”.
-18. **Một pipeline đã gọi `count()` có dùng lại để gọi `findFirst()` được không?** Không; phải tạo Stream mới.
+1. **Is an empty `List` the same as a `null` `List` reference?** No. An empty List is a valid object; calling `stream()` on `null` throws NPE.
+2. **How many elements does `Stream.ofNullable(null)` produce?** 0 elements.
+3. **How many elements does `Stream.of((String) null)` produce?** 1 element, and that element is `null`.
+4. **Why must `filter(Objects::nonNull)` precede `map(String::strip)`?** Because `String::strip` cannot be invoked on a `null` reference.
+5. **Does `findFirst()` return `null` when nothing matches?** No; it returns `Optional.empty()`.
+6. **Is `findFirst()` safe if the first element is `null`?** No; it can throw NPE if it selects `null`.
+7. **How does `Optional.ofNullable(value)` differ from `Optional.of(value)` when `value == null`?** `ofNullable` returns an empty Optional; `of` throws NPE.
+8. **How does `orElse(default())` differ from `orElseGet(() -> default())`?** The first evaluates its argument eagerly before the call; the second runs the Supplier only if the Optional is empty.
+9. **When required data is missing, should you return `"UNKNOWN"` or throw an error?** Follow the contract; when data is mandatory, prefer `orElseThrow` or an explicit error model.
+10. **What does `IntStream.empty().average()` return?** `OptionalDouble.empty()`.
+11. **What does `IntStream.empty().sum()` return?** `0`.
+12. **Why does `allMatch` return `true` on an empty Stream?** Because there is no counterexample element.
+13. **What does `flatMap(Optional::stream)` do?** Converts each Optional into a 0/1-element Stream and flattens them.
+14. **Do `toList()` and `toUnmodifiableList()` share the same `null` policy?** No. `toList()` allows nulls; `toUnmodifiableList()` forbids nulls.
+15. **Does `groupingBy` automatically create a group for a classifier returning `null`?** No; standard Java throws NPE.
+16. **Does `findAny` on a parallel stream guarantee returning the first element?** No; it may return any matching element.
+17. **Why is `Optional` helpful when computing an average over potentially empty data?** It preserves the distinction between "no data" and "an actual average of 0".
+18. **Can a pipeline that already ran `count()` be reused to run `findFirst()`?** No; you must open a new Stream.
 
-**Bài mở rộng A:** Sửa bài tổng hợp đơn hàng để trả thêm một `List<String> invalidIds` ghi nhận các ID lỗi, thay vì âm thầm loại tất cả bản ghi thiếu dữ liệu. Chú ý phân biệt bản ghi null với bản ghi có `id == null`.
+**Extension Exercise A:** Modify the incomplete-orders exercise to also return a `List<String> invalidIds` recording bad IDs instead of silently dropping incomplete records. Be careful to distinguish `null` records from records with `id == null`.
 
-**Bài mở rộng B:** Thêm trường `currency` vào đơn hàng. Không cộng các amount khác đơn vị nếu không có phép quy đổi hợp lệ. Thiết kế một Map theo (region, currency) hoặc nhóm lồng nhau để tránh tổng sai nghiệp vụ.
+**Extension Exercise B:** Add a `currency` field to orders. Never add amounts in different currencies without a valid conversion rate. Design a Map keyed by `(region, currency)` or nested grouping to avoid invalid cross-currency sums.
 
-**Bài mở rộng C:** Viết hàm `Optional<String> findNormalizedEmail(List<Customer>)` có thể nhận danh sách null, phần tử Customer null, email null/trắng. Khi không có email hợp lệ phải trả Optional.empty, không trả null hoặc chuỗi giả.
+**Extension Exercise C:** Write `Optional<String> findNormalizedEmail(List<Customer>)` accepting a `null` list, `null` `Customer` elements, and `null`/blank emails. When no valid email exists, return `Optional.empty`, never `null` or a dummy string.
 
-**Ghi nhớ:** Stream API không tự sửa dữ liệu thiếu. Hãy đặt **chính sách rõ ràng cho từng tầng**: nguồn null, phần tử null, trường nullable, Stream rỗng và kết quả Optional rỗng. `filter`, `Stream.ofNullable` và `Optional.stream` giúp biểu diễn “bỏ giá trị vắng mặt”; `orElse`, `orElseGet` và `orElseThrow` giúp biểu diễn “thay thế hoặc báo lỗi”. Một pipeline tốt phải đúng với cả dữ liệu thường lẫn các trường hợp biên, không chỉ là pipeline không ném exception trên bộ dữ liệu đẹp.
+**Key takeaway:** The Stream API does not repair missing data automatically. Define **explicit policies at every layer**: `null` source, `null` element, nullable field, empty Stream, and empty Optional. `filter`, `Stream.ofNullable`, and `Optional.stream` express "skip absent values"; `orElse`, `orElseGet`, and `orElseThrow` express "substitute or fail". A strong pipeline behaves accurately on both clean data and edge cases, not merely avoiding exceptions on happy-path inputs.

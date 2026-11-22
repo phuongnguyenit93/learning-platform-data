@@ -1,19 +1,19 @@
-# String.valueOf với primitive và Object trong Java
+# String.valueOf with Primitives and Objects in Java
 
-## 1. Mục tiêu bài học
+## 1. Lesson Objectives
 
-`String.valueOf(...)` là nhóm **phương thức tĩnh** của `java.lang.String` dùng để tạo biểu diễn dạng chuỗi từ một giá trị. Nó đặc biệt hữu ích khi chuyển `boolean`, `char`, các kiểu số nguyên, số thực hoặc một đối tượng sang `String` để hiển thị, ghép thông báo hay đưa vào một API nhận chuỗi.
+`String.valueOf(...)` is a group of **static methods** in `java.lang.String` used to create a string representation from a value. It is especially useful when converting `boolean`, `char`, integer types, floating-point types, or an object to a `String` for display, message concatenation, or passing into an API that accepts strings.
 
-Sau bài này, bạn sẽ:
-- Phân biệt các overload `valueOf` dành cho **primitive**, `Object` và `char[]`.
-- Hiểu khi nào giá trị được biểu diễn bằng chuỗi có sẵn, khi nào `toString()` được gọi.
-- Giải thích vì sao `String.valueOf((Object) null)` trả `"null"`, còn `String.valueOf((char[]) null)` gây lỗi.
-- Biết cách biểu diễn mảng và dữ liệu số khi `valueOf` không đáp ứng định dạng mong muốn.
-- Chọn đúng giữa `String.valueOf`, `Objects.toString`, `Integer.toString` và `String.format` theo mục đích.
+After this lesson, you will be able to:
+- Distinguish the `valueOf` overloads for **primitives**, `Object`, and `char[]`.
+- Understand when a value is represented by a predefined string and when `toString()` is called.
+- Explain why `String.valueOf((Object) null)` returns `"null"`, whereas `String.valueOf((char[]) null)` throws an error.
+- Know how to represent arrays and numeric data when `valueOf` does not meet the desired formatting.
+- Choose correctly among `String.valueOf`, `Objects.toString`, `Integer.toString`, and `String.format` depending on the purpose.
 
-## 2. Các overload của String.valueOf
+## 2. Overloads of String.valueOf
 
-Những khai báo thường gặp trong Java 17:
+Common declarations in Java 17:
 
 ```java
 public static String valueOf(boolean b);
@@ -28,13 +28,13 @@ public static String valueOf(char[] data);
 public static String valueOf(char[] data, int offset, int count);
 ```
 
-Java chọn overload dựa trên **kiểu biểu thức lúc biên dịch** cùng các quy tắc phân giải lời gọi phương thức. Sau đó mỗi overload tạo nội dung chuỗi tương ứng.
+Java selects an overload based on the **compile-time type of the expression** along with method invocation resolution rules. Then each overload produces the corresponding string content.
 
-| Giá trị đầu vào | Overload điển hình | Ví dụ | Kết quả |
+| Input value | Typical overload | Example | Result |
 | --- | --- | --- | --- |
 | `boolean` | `valueOf(boolean)` | `String.valueOf(true)` | `"true"` |
 | `char` | `valueOf(char)` | `String.valueOf('J')` | `"J"` |
-| `byte`, `short` | `valueOf(int)` qua mở rộng kiểu | `String.valueOf((byte) 7)` | `"7"` |
+| `byte`, `short` | `valueOf(int)` via widening | `String.valueOf((byte) 7)` | `"7"` |
 | `int` | `valueOf(int)` | `String.valueOf(-42)` | `"-42"` |
 | `long` | `valueOf(long)` | `String.valueOf(5000000000L)` | `"5000000000"` |
 | `float` | `valueOf(float)` | `String.valueOf(1.25f)` | `"1.25"` |
@@ -42,37 +42,37 @@ Java chọn overload dựa trên **kiểu biểu thức lúc biên dịch** cùn
 | `Object` | `valueOf(Object)` | `String.valueOf((Object) null)` | `"null"` |
 | `char[]` | `valueOf(char[])` | `String.valueOf(new char[]{'A','B'})` | `"AB"` |
 
-**Không có overload dành riêng cho `byte` và `short`**; đối số primitive tương ứng có thể mở rộng sang `int`. Các kiểu wrapper như `Integer`, `Boolean` hoặc `Double` là **đối tượng** khi bạn truyền một biến có kiểu wrapper; Java có thể chọn overload `Object` thông qua chuyển đổi tham chiếu, và biểu diễn đầu ra thông thường vẫn giống dạng chuỗi của giá trị.
+**There is no dedicated overload for `byte` or `short`**; the corresponding primitive argument can be widened to `int`. Wrapper types such as `Integer`, `Boolean`, or `Double` are **objects** when you pass a variable of wrapper type; Java can select the `Object` overload via reference conversion, and the output representation typically remains the same as the string form of the value.
 
-Một trường hợp riêng là **mảng ký tự `char[]`**. Đây không phải kiểu primitive đơn lẻ `char` và được xử lý bằng overload chuyên biệt.
+A special case is the **character array `char[]`**. It is not a single primitive `char` and is handled by a dedicated overload.
 
-## 3. Chuyển các kiểu primitive
+## 3. Converting Primitive Types
 
-### Boolean: chỉ có "true" và "false"
+### Boolean: only "true" and "false"
 
 ```java
 String yes = String.valueOf(true);    // "true"
 String no = String.valueOf(false);    // "false"
 ```
 
-Đây là hai chuỗi chữ thường theo quy tắc của Java, không phụ thuộc locale. `String.valueOf(boolean)` không dịch sang “Có/Không” hay “Đúng/Sai”; việc bản địa hóa phải thực hiện riêng.
+These are two lowercase strings defined by Java rules, independent of locale. `String.valueOf(boolean)` does not translate to "Yes/No" or "True/False"; localization must be done separately.
 
-### Char: tạo chuỗi từ một ký tự
+### Char: creating a String from a single character
 
 ```java
 char initial = 'K';
 String text = String.valueOf(initial); // "K"
 ```
 
-Một `char` trong Java là một **đơn vị mã UTF-16**, không phải lúc nào cũng đại diện cho một ký tự Unicode hoàn chỉnh. Những ký tự nằm ngoài Basic Multilingual Plane (ví dụ nhiều emoji) cần cặp surrogate; nếu có một code point Unicode, có thể dùng `Character.toChars(codePoint)` rồi tạo chuỗi từ mảng `char[]`.
+A `char` in Java is a **UTF-16 code unit**, which does not always represent a complete Unicode character. Characters outside the Basic Multilingual Plane (for example, many emojis) require a surrogate pair; if you have a Unicode code point, you can use `Character.toChars(codePoint)` and then create a string from the `char[]` array.
 
 ```java
 int codePoint = 0x1F600;
 String emoji = String.valueOf(Character.toChars(codePoint));
-// Một chuỗi chứa emoji U+1F600
+// A String containing emoji U+1F600
 ```
 
-### Số nguyên: dạng thập phân có dấu khi cần
+### Integers: signed decimal form when needed
 
 ```java
 String quantity = String.valueOf(125);       // "125"
@@ -80,7 +80,7 @@ String negative = String.valueOf(-12L);      // "-12"
 String small = String.valueOf((short) 8);    // "8"
 ```
 
-Định dạng mặc định của `valueOf` cho số nguyên là **hệ thập phân**, không tự thêm dấu phân cách hàng nghìn hoặc số 0 ở đầu. Nếu cần cơ số khác, dùng API phù hợp:
+The default format of `valueOf` for integers is **decimal**, without automatically adding thousands separators or leading zeros. If you need another radix, use the appropriate API:
 
 ```java
 String hex = Integer.toHexString(255); // "ff"
@@ -88,7 +88,7 @@ String binary = Integer.toBinaryString(5); // "101"
 String base16 = Integer.toString(255, 16); // "ff"
 ```
 
-### Số thực: biểu diễn mặc định, không phải khuôn mẫu hiển thị cố định
+### Floating-point numbers: default representation, not a fixed display pattern
 
 ```java
 String a = String.valueOf(1.25f); // "1.25"
@@ -97,15 +97,15 @@ String c = String.valueOf(Double.NaN); // "NaN"
 String d = String.valueOf(Double.POSITIVE_INFINITY); // "Infinity"
 ```
 
-Các overload cho `float` và `double` theo quy tắc biểu diễn chuỗi tương ứng của `Float` và `Double`. Tùy giá trị, kết quả có thể dùng ký pháp khoa học, và số chữ số sau dấu thập phân không phải một số cố định.
+The overloads for `float` and `double` follow the corresponding string representation rules of `Float` and `Double`. Depending on the value, the result may use scientific notation, and the number of digits after the decimal point is not a fixed count.
 
-Đừng dùng `String.valueOf(12.5)` khi yêu cầu là luôn đúng **hai chữ số thập phân** hoặc dấu nhóm hàng nghìn theo ngôn ngữ. Khi đó dùng `String.format(Locale.US, "%.2f", 12.5)` để được `"12.50"` hoặc `NumberFormat` cho giao diện có locale.
+Do not use `String.valueOf(12.5)` when the requirement is always exactly **two decimal places** or locale-specific grouping separators. In that case, use `String.format(Locale.US, "%.2f", 12.5)` to get `"12.50"` or `NumberFormat` for a locale-aware UI.
 
-`String.valueOf` chỉ quyết định **biểu diễn**, không làm thay đổi độ chính xác của giá trị `float`/`double` và không giải quyết sai số số học dấu chấm động.
+`String.valueOf` only determines the **representation**; it does not change the precision of a `float`/`double` value and does not resolve floating-point arithmetic inaccuracies.
 
-## 4. `String.valueOf(Object)`: biểu diễn đối tượng và xử lý null
+## 4. `String.valueOf(Object)`: Object Representation and Null Handling
 
-Khi đối số có **kiểu tĩnh `Object`**, Java chọn `valueOf(Object)`. Overload này trả chữ `"null"` nếu tham chiếu bằng `null`; nếu khác `null`, nó gọi `toString()` theo lớp thực tế của đối tượng:
+When the argument has **static type `Object`**, Java selects `valueOf(Object)`. This overload returns the literal string `"null"` if the reference is `null`; if non-null, it calls `toString()` according to the actual runtime class of the object:
 
 ```java
 Object count = Integer.valueOf(42);
@@ -114,13 +114,13 @@ System.out.println(String.valueOf(count));   // 42
 System.out.println(String.valueOf(missing)); // null
 ```
 
-Vì kết quả phụ thuộc `toString()`, một đối tượng có thể in mô tả tùy chỉnh hoặc dạng mặc định như `Type@hexHash`. Đây là cách biểu diễn văn bản, không phải serialization hay ép kiểu thành `String`. Gọi `obj.toString()` trực tiếp trên `null` sẽ ném `NullPointerException`.
+Because the result depends on `toString()`, an object may print a custom description or a default form like `Type@hexHash`. This is a textual representation, not serialization or casting to `String`. Calling `obj.toString()` directly on `null` throws a `NullPointerException`.
 
-**Bẫy overload:** `String.valueOf(null)` với **literal null không ép kiểu** chọn overload `char[]` cụ thể hơn `Object`, nên ném `NullPointerException`. Viết `String.valueOf((Object) null)` nếu muốn chữ `"null"`. Bài riêng về `null` của chương giải thích cơ chế phân giải overload theo kiểu tĩnh cùng các trường hợp ép kiểu.
+**Overload trap:** `String.valueOf(null)` with an **uncast null literal** selects the `char[]` overload, which is more specific than `Object`, and thus throws a `NullPointerException`. Write `String.valueOf((Object) null)` if you want the string `"null"`. A dedicated lesson in this chapter on `null` explains the static-type overload resolution mechanism along with casting cases.
 
-## 5. Overload `char[]`: lấy nội dung ký tự
+## 5. `char[]` Overloads: Extracting Character Content
 
-Khác `Object`, `char[]` được `String.valueOf` xử lý như **dữ liệu văn bản**:
+Unlike `Object`, `char[]` is treated by `String.valueOf` as **text data**:
 
 ```java
 char[] chars = {'J', 'a', 'v', 'a'};
@@ -128,13 +128,13 @@ String entire = String.valueOf(chars);       // "Java"
 String middle = String.valueOf(chars, 1, 2); // "av"
 ```
 
-Với overload ba tham số, `offset` là chỉ số bắt đầu, `count` là **số phần tử `char`** lấy từ mảng. Mảng `null` gây `NullPointerException`; phạm vi sai gây `IndexOutOfBoundsException`. Chuỗi đã tạo không thay đổi khi sau đó sửa mảng nguồn. Dữ liệu `char[]` là các đơn vị UTF-16, vì vậy muốn cắt theo Unicode code point phải xác định ranh giới đúng.
+With the three-parameter overload, `offset` is the starting index, and `count` is the **number of `char` elements** taken from the array. A `null` array causes a `NullPointerException`; an invalid range causes an `IndexOutOfBoundsException`. The created string does not change if the source array is modified afterward. The `char[]` data consists of UTF-16 code units, so slicing by Unicode code points requires determining boundaries properly.
 
-`String.valueOf((Object) chars)` chuyển sang overload `Object` và in biểu diễn đối tượng mảng như `[C@...`, **không** phải `"Java"`. Khi tập trung vào thao tác sao chép và lấy đoạn mảng, `String.copyValueOf(char[])` và `new String(char[])` cũng có hợp đồng tạo nội dung chuỗi tương ứng.
+`String.valueOf((Object) chars)` switches to the `Object` overload and prints the array object representation such as `[C@...`, **not** `"Java"`. When focusing on copying and extracting array slices, `String.copyValueOf(char[])` and `new String(char[])` also share the corresponding contract for creating string content.
 
-## 6. Mảng khác không tự chuyển thành danh sách phần tử
+## 6. Other Arrays Do Not Automatically Convert to Element Lists
 
-`valueOf(char[])` là overload đặc biệt. Với mảng như `int[]`, `double[]` hoặc `String[]`, lời gọi `valueOf` thông thường nhận `Object`, nên kết quả mặc định mô tả **đối tượng mảng**, không liệt kê phần tử:
+`valueOf(char[])` is a special overload. For arrays such as `int[]`, `double[]`, or `String[]`, a normal `valueOf` call takes `Object`, so the default result describes the **array object**, not a list of its elements:
 
 ```java
 int[] ids = {1, 2, 3};
@@ -145,11 +145,11 @@ int[][] grid = {{1, 2}, {3, 4}};
 System.out.println(java.util.Arrays.deepToString(grid));   // [[1, 2], [3, 4]]
 ```
 
-Dùng `Arrays.toString` để quan sát phần tử mảng một chiều và `Arrays.deepToString` cho mảng đối tượng lồng nhau. Đó là quyết định **định dạng đầu ra**, khác với `valueOf` chỉ dựa trên `toString()` của đối tượng truyền vào.
+Use `Arrays.toString` to inspect elements of a one-dimensional array and `Arrays.deepToString` for nested object arrays. That is an **output formatting** choice, distinct from `valueOf`, which simply relies on the `toString()` of the passed-in object.
 
-## 7. Chương trình Java 17+ hoàn chỉnh
+## 7. Complete Java 17+ Program
 
-Lưu mã sau vào tệp `ValueOfDemo.java` bằng UTF-8:
+Save the following code to `ValueOfDemo.java` in UTF-8:
 
 ```java
 import java.util.Arrays;
@@ -178,7 +178,7 @@ public class ValueOfDemo {
         Object missing = null;
         System.out.println("null object: " + String.valueOf(missing));
         System.out.println("fallback: " +
-                Objects.toString(missing, "(trống)"));
+                Objects.toString(missing, "(empty)"));
 
         char[] data = {'J', 'a', 'v', 'a'};
         System.out.println("char array: " + String.valueOf(data));
@@ -198,14 +198,14 @@ public class ValueOfDemo {
 }
 ```
 
-Biên dịch và chạy trong thư mục chứa tệp:
+Compile and run in the directory containing the file:
 
 ```bash
 javac -encoding UTF-8 ValueOfDemo.java
 java ValueOfDemo
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 boolean: true
@@ -216,7 +216,7 @@ float: 1.25
 double: 2.5
 object: P01 x 3
 null object: null
-fallback: (trống)
+fallback: (empty)
 char array: Java
 char slice: av
 copy preserved: Java
@@ -224,35 +224,35 @@ array items: [1, 2, 3]
 formatted: 2.50
 ```
 
-Các dòng minh họa cùng một họ phương thức nhưng nhiều kiểu đầu vào. Ví dụ đối tượng `Product` dùng phương thức `toString()` riêng; `char[]` tạo chuỗi từ nội dung ký tự; `int[]` được in đúng phần tử bằng `Arrays.toString`; `String.format` tạo hai chữ số thập phân, trái với `String.valueOf(2.5)`.
+These lines illustrate the same method family across multiple input types. For example, the `Product` object uses its own `toString()` method; `char[]` creates a string from character content; `int[]` prints its elements properly with `Arrays.toString`; `String.format` produces two decimal places, unlike `String.valueOf(2.5)`.
 
-## 8. Chọn giữa `valueOf`, `toString` và `Objects.toString`
+## 8. Choosing Between `valueOf`, `toString`, and `Objects.toString`
 
-| Cách gọi | Đối tượng không null | Đối tượng null |
+| Call | Non-null object | Null object |
 | --- | --- | --- |
-| `String.valueOf(obj)` khi `obj` có kiểu tĩnh `Object` | Dùng `obj.toString()` | Chuỗi `"null"` |
-| `obj.toString()` | Gọi trực tiếp `toString()` | `NullPointerException` |
-| `Objects.toString(obj)` | Dùng `toString()` | Chuỗi `"null"` |
-| `Objects.toString(obj, fallback)` | Dùng `toString()` | Dùng `fallback` (có thể là null) |
+| `String.valueOf(obj)` when `obj` has static type `Object` | Uses `obj.toString()` | String `"null"` |
+| `obj.toString()` | Calls `toString()` directly | `NullPointerException` |
+| `Objects.toString(obj)` | Uses `toString()` | String `"null"` |
+| `Objects.toString(obj, fallback)` | Uses `toString()` | Uses `fallback` (may be null) |
 
-Nếu muốn một thông điệp dự phòng có chủ ý, `Objects.toString(value, "(trống)")` rõ nghĩa hơn chữ `"null"`. Với biến đã là `String`, dùng trực tiếp biến thường đơn giản nhất; `String.toString()` trả chính đối tượng chuỗi đó. Bài riêng về `toString()` giải thích chi tiết override, mảng và biểu diễn của từng lớp.
+If you want an intentional fallback message, `Objects.toString(value, "(empty)")` is clearer than the string `"null"`. For a variable that is already a `String`, using the variable directly is usually simplest; `String.toString()` returns that same string object. A separate lesson on `toString()` explains overriding, arrays, and per-class representations in detail.
 
-`String.valueOf(obj)` **không tương đương ép kiểu `(String) obj`**: phép ép kiểu yêu cầu đối tượng runtime thật sự là `String` tương thích, trong khi `valueOf` tạo biểu diễn văn bản của đối tượng bất kỳ.
+`String.valueOf(obj)` **is not equivalent to casting `(String) obj`**: a cast requires the actual runtime object to be a compatible `String`, whereas `valueOf` creates a textual representation of any object.
 
-## 9. valueOf trong phép nối chuỗi và StringBuilder
+## 9. valueOf in String Concatenation and StringBuilder
 
-Khi nối chuỗi với toán tử `+`, Java sử dụng quy tắc chuyển đổi sang chuỗi tương ứng với kiểu đối số. Trong nhiều tình huống, bạn **không cần viết `String.valueOf(...)` tường minh**:
+When concatenating strings with the `+` operator, Java uses string conversion rules corresponding to the argument's type. In many situations, you **do not need to write `String.valueOf(...)` explicitly**:
 
 ```java
 int count = 3;
-String a = "Số lượng: " + count;
-String b = "Số lượng: " + String.valueOf(count);
-// Cả a và b đều là "Số lượng: 3"
+String a = "Quantity: " + count;
+String b = "Quantity: " + String.valueOf(count);
+// Both a and b are "Quantity: 3"
 ```
 
-Trình biên dịch/runtime có thể tối ưu phép nối chuỗi; đừng giả định mã bytecode của mọi phiên bản Java đều gọi đúng một overload `String.valueOf`. Điều cần hiểu ở mức ngôn ngữ là **quy tắc kết quả**, không phụ thuộc một cách cài đặt bytecode cụ thể.
+The compiler/runtime may optimize string concatenation; do not assume the bytecode of every Java version calls the exact same `String.valueOf` overload. What matters at the language level is the **result rule**, independent of a specific bytecode implementation.
 
-Với nhiều bước ghép trong vòng lặp, `StringBuilder` hữu ích:
+For multiple concatenation steps in a loop, `StringBuilder` is useful:
 
 ```java
 StringBuilder builder = new StringBuilder();
@@ -261,11 +261,11 @@ String result = builder.toString();
 // "ID=12, active=true"
 ```
 
-`StringBuilder.append(...)` cũng có overload cho primitive và Object. Không cần chuyển từng giá trị bằng `String.valueOf` trước rồi mới `append`, trừ khi bạn muốn kiểm soát biểu diễn cụ thể.
+`StringBuilder.append(...)` also has overloads for primitives and `Object`. There is no need to convert each value with `String.valueOf` before calling `append`, unless you want to control a specific representation.
 
-## 10. Khi nào cần formatter hoặc converter chuyên biệt?
+## 10. When Do You Need a Specialized Formatter or Converter?
 
-### Giá trị số có yêu cầu trình bày
+### Numeric values with presentation requirements
 
 ```java
 import java.util.Locale;
@@ -277,44 +277,44 @@ String fixed = String.format(Locale.US, "%,.2f", amount);
 // "1,234.50"
 ```
 
-`String.valueOf` không tự phân nhóm hàng nghìn, không tự chọn đơn vị tiền tệ và không theo locale. Với số tiền, thường cần `BigDecimal` để tính toán chính xác và `NumberFormat` hoặc một format policy rõ ràng để hiển thị.
+`String.valueOf` does not automatically group thousands, choose a currency unit, or follow a locale. For monetary values, you typically need `BigDecimal` for accurate calculations and `NumberFormat` or an explicit format policy for display.
 
-### Chuyển String ngược lại thành primitive
+### Converting a String back into a primitive
 
-`String.valueOf(42)` chuyển **int → String**, còn `Integer.parseInt("42")` chuyển **String → int**; đây là hai hướng khác nhau.
+`String.valueOf(42)` converts **int → String**, while `Integer.parseInt("42")` converts **String → int**; these are two opposite directions.
 
 ```java
 String text = String.valueOf(42); // "42"
 int back = Integer.parseInt(text); // 42
 ```
 
-Nếu dữ liệu không hợp lệ, `Integer.parseInt(...)` có thể ném `NumberFormatException`. `valueOf` không kiểm tra xem một chuỗi bất kỳ có phải là số hợp lệ không, vì bản thân nó đang chuyển từ một giá trị có kiểu sang văn bản.
+If the data is invalid, `Integer.parseInt(...)` may throw `NumberFormatException`. `valueOf` does not validate whether an arbitrary string is a valid number, because it converts from a typed value to text.
 
-### Chuyển String thành đối tượng nghiệp vụ
+### Converting a String into a domain object
 
-Đối với đối tượng có `toString()` tùy biến, không mặc nhiên có phép đảo `String.valueOf(object)` thành lại object. Muốn chuyển ngược, cần parser/factory thích hợp hoặc định dạng serialization có quy tắc rõ ràng.
+For objects with a custom `toString()`, there is no automatic inverse operation to turn `String.valueOf(object)` back into an object. To convert back, you need an appropriate parser/factory or a serialization format with well-defined rules.
 
-## 11. Những lỗi phổ biến
+## 11. Common Mistakes
 
-**1. Gọi `String.valueOf(null)` và kỳ vọng `"null"`.** Vì có overload `char[]`, biểu thức literal null có thể chọn overload đó và ném `NullPointerException`. Viết `String.valueOf((Object) null)` hoặc dùng biến `Object` nếu mục tiêu là văn bản `"null"`.
+**1. Calling `String.valueOf(null)` and expecting `"null"`.** Because a `char[]` overload exists, a null literal expression selects that overload and throws a `NullPointerException`. Write `String.valueOf((Object) null)` or use an `Object` variable if the goal is the text `"null"`.
 
-**2. Cho rằng mọi mảng đều được in phần tử.** `char[]` có overload riêng, còn `int[]`/`String[]` dùng `Object.toString()`. Hãy chọn `Arrays.toString` hoặc `Arrays.deepToString` khi cần nhìn thấy phần tử.
+**2. Assuming all arrays print their elements.** `char[]` has its own overload, whereas `int[]`/`String[]` use `Object.toString()`. Choose `Arrays.toString` or `Arrays.deepToString` when you need to see the elements.
 
-**3. Dùng `toString()` trực tiếp khi dữ liệu có thể null.** `String.valueOf((Object) ref)` an toàn trước null theo nghĩa trả `"null"`; `ref.toString()` có thể ném `NullPointerException`.
+**3. Calling `toString()` directly when data may be null.** `String.valueOf((Object) ref)` is null-safe in the sense that it returns `"null"`; `ref.toString()` can throw a `NullPointerException`.
 
-**4. Cho rằng `String.valueOf(double)` luôn có hai chữ số thập phân.** Số thực được biểu diễn theo quy tắc mặc định. Muốn fixed precision, dấu nhóm hoặc locale, cần formatter.
+**4. Assuming `String.valueOf(double)` always has two decimal places.** Floating-point numbers are represented according to default rules. For fixed precision, grouping separators, or locales, a formatter is required.
 
-**5. Dùng `String.valueOf(obj)` như thao tác ép kiểu.** Phương thức trả String biểu diễn đối tượng; nó không trả về đối tượng ban đầu được ép thành String.
+**5. Using `String.valueOf(obj)` as a type cast.** The method returns a `String` representing the object; it does not return the original object cast to `String`.
 
-**6. Để `toString()` của đối tượng chứa dữ liệu không mong muốn.** `valueOf(Object)` tuân theo `toString()` và có thể in tên lớp + mã băm, hoặc nội dung nhạy cảm do lớp tự định nghĩa. Hãy thiết kế `toString()` có chủ đích và thận trọng khi log.
+**6. Letting an object's `toString()` expose unintended data.** `valueOf(Object)` delegates to `toString()` and may print a class name + hash code, or sensitive content defined by the class. Design `toString()` intentionally and be careful when logging.
 
-**7. Trộn biểu diễn kỹ thuật và biểu diễn cho người dùng.** `true/false`, dấu thập phân và cách hiển thị object của `valueOf` không tự thích ứng ngôn ngữ hay quy tắc giao diện.
+**7. Mixing technical representations with user-facing representations.** `true/false`, decimal points, and `valueOf`'s object output do not automatically adapt to languages or UI conventions.
 
-**8. Nhầm tham số `count` với chỉ số cuối khi cắt `char[]`.** `String.valueOf(chars, 1, 2)` lấy **2 ký tự**, bắt đầu từ index `1`.
+**8. Confusing the `count` parameter with the end index when slicing `char[]`.** `String.valueOf(chars, 1, 2)` takes **2 characters**, starting from index `1`.
 
-## 12. Bài tập tự luyện
+## 12. Practice Exercises
 
-### Bài 1. Dự đoán kết quả
+### Exercise 1. Predict the result
 
 ```java
 String a = String.valueOf(false);
@@ -323,11 +323,11 @@ String c = String.valueOf(10.0d);
 String d = String.valueOf('Z');
 ```
 
-Đáp án: `a = "false"`, `b = "-5"`, `c = "10.0"`, `d = "Z"`.
+Answer: `a = "false"`, `b = "-5"`, `c = "10.0"`, `d = "Z"`.
 
-### Bài 2. Phân biệt null
+### Exercise 2. Distinguish null handling
 
-Xét các lời gọi sau (không thực hiện đồng thời nếu dòng có thể ném ngoại lệ):
+Consider the following calls (do not execute simultaneously if a line may throw an exception):
 
 ```java
 Object x = null;
@@ -339,11 +339,11 @@ String b = String.valueOf((Object) null);
 // String d = String.valueOf(null);
 ```
 
-Đáp án: `a` và `b` là chuỗi `"null"`. Các lời gọi ở hai dòng cuối, nếu bỏ comment, có thể ném `NullPointerException` vì overload `char[]` được chọn.
+Answer: `a` and `b` are the string `"null"`. The calls on the last two lines, if uncommented, will throw a `NullPointerException` because the `char[]` overload is selected.
 
-### Bài 3. Cắt mảng ký tự
+### Exercise 3. Slice a character array
 
-Cho `char[] chars = {'s','t','r','i','n','g'};`. Tạo chuỗi `"rin"` mà không cần vòng lặp.
+Given `char[] chars = {'s','t','r','i','n','g'};`. Create the string `"rin"` without using a loop.
 
 ```java
 char[] chars = {'s', 't', 'r', 'i', 'n', 'g'};
@@ -351,20 +351,20 @@ String answer = String.valueOf(chars, 2, 3);
 // "rin"
 ```
 
-### Bài 4. In nội dung mảng số nguyên
+### Exercise 4. Print the contents of an integer array
 
-Vì sao `String.valueOf(new int[]{10, 20})` không trả `"[10, 20]"`?
+Why does `String.valueOf(new int[]{10, 20})` not return `"[10, 20]"`?
 
-Đáp án: không có overload `int[]`; mảng được chuyển qua `Object` và biểu diễn mặc định không liệt kê phần tử. Dùng:
+Answer: there is no `int[]` overload; the array is passed as `Object`, and its default representation does not list elements. Use:
 
 ```java
 String result = java.util.Arrays.toString(new int[]{10, 20});
 // "[10, 20]"
 ```
 
-### Bài 5. Định dạng số thực
+### Exercise 5. Format a floating-point number
 
-Yêu cầu hiển thị `2.5` thành `"2.50"` trên mọi máy, cách nào phù hợp?
+When required to display `2.5` as `"2.50"` on every machine, which approach is appropriate?
 
 ```java
 String result = String.format(
@@ -372,16 +372,16 @@ String result = String.format(
 // "2.50"
 ```
 
-Lý do: `valueOf(double)` không có tham số số chữ số thập phân, còn formatter có.
+Reason: `valueOf(double)` has no parameter for the number of decimal places, whereas a formatter does.
 
-## 13. Ghi nhớ
+## 13. Key Takeaways
 
-- **`String.valueOf(...)` là phương thức tĩnh**, trả chuỗi biểu diễn giá trị đầu vào.
-- Có overload cho **boolean, char, int, long, float, double, Object, char[]** và một đoạn `char[]`.
-- **`byte`/`short` primitive** có thể đi qua `valueOf(int)` bằng mở rộng kiểu.
-- **`String.valueOf(Object)`**: khác null thì dùng `toString()`; null thì trả chuỗi chữ `"null"`.
-- **Literal `null` không ép kiểu** có thể chọn `char[]` và gây `NullPointerException`. Khi cần overload Object, hãy chỉ rõ kiểu.
-- **`char[]`** được chuyển từ các ký tự; **mảng khác** không tự in phần tử. Dùng `Arrays.toString`/`deepToString` khi thích hợp.
-- **`valueOf` không phải công cụ format theo locale, serialize dữ liệu hay parse chuỗi.** Chọn `String.format`, `NumberFormat`, `Integer.parseInt` hoặc serializer phù hợp khi có yêu cầu đó.
+- **`String.valueOf(...)` is a static method** that returns a string representing the input value.
+- Overloads exist for **boolean, char, int, long, float, double, Object, char[]**, and a `char[]` slice.
+- **Primitive `byte`/`short`** go through `valueOf(int)` via widening conversion.
+- **`String.valueOf(Object)`**: if non-null, it uses `toString()`; if null, it returns the literal string `"null"`.
+- **An uncast `null` literal** selects `char[]` and causes a `NullPointerException`. When you need the `Object` overload, specify the type explicitly.
+- **`char[]`** is converted from its characters; **other arrays** do not automatically print their elements. Use `Arrays.toString`/`deepToString` when appropriate.
+- **`valueOf` is not a locale formatter, data serializer, or string parser.** Choose `String.format`, `NumberFormat`, `Integer.parseInt`, or an appropriate serializer when those requirements apply.
 
-Tài liệu tham khảo: [Java SE 17 — String.valueOf](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html#valueOf(java.lang.Object)), [Java SE 17 — Object.toString](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#toString()), [Java SE 17 — Arrays](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Arrays.html), [Java SE 17 — Objects.toString](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Objects.html#toString(java.lang.Object,java.lang.String)).
+References: [Java SE 17 — String.valueOf](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html#valueOf(java.lang.Object)), [Java SE 17 — Object.toString](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#toString()), [Java SE 17 — Arrays](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Arrays.html), [Java SE 17 — Objects.toString](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Objects.html#toString(java.lang.Object,java.lang.String)).

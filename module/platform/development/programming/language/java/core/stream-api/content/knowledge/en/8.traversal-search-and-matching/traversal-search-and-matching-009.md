@@ -1,77 +1,77 @@
-# Chọn phép toán kết thúc theo mục đích và yêu cầu dừng sớm
+# Choosing a Terminal Operation by Goal and Early-Stopping Needs
 
-Trong Java Stream API, các bước trung gian như `filter`, `map` và `sorted` chủ yếu mô tả **cách xử lý** phần tử; **phép toán kết thúc** (*terminal operation*) xác định chương trình cần **loại kết quả nào**. Chọn đúng terminal operation giúp code thể hiện rõ ý định, tránh duyệt dữ liệu không cần thiết và kiểm soát được những trường hợp pipeline có thể dừng sớm.
+In the Java Stream API, intermediate steps such as `filter`, `map`, and `sorted` mainly describe **how to process** elements; the **terminal operation** determines **what kind of result** the program needs. Choosing the right terminal operation makes code state its intent clearly, avoids unnecessary data traversal, and controls when a pipeline can stop early.
 
-Bài học thuộc chương **Duyệt, tìm kiếm và đối sánh** của module **JAVA_STREAM_API**. Kiến thức này kết nối mô hình pipeline lười với các phép tổng hợp `reduce`, `collect`, các Collector để grouping, nguồn hữu hạn/vô hạn, xử lý song song và giới hạn hiệu năng. Trọng tâm là câu hỏi thực tế: *Muốn biết có phần tử phù hợp, lấy một phần tử, lấy tất cả, đếm, tính toán hay thực hiện một hành động?* Mỗi mục đích dẫn tới một terminal operation khác nhau.
+This lesson belongs to the **Traversal, Search, and Matching** chapter of the **JAVA_STREAM_API** module. It connects the lazy pipeline model to `reduce` and `collect` aggregations, grouping Collectors, finite/infinite sources, parallel processing, and performance limits. The focus is a practical question: *Do you want to know if a matching element exists, get one element, get all elements, count, compute a value, or perform an action?* Each goal leads to a different terminal operation.
 
-## 1. Terminal operation quyết định yêu cầu tiêu thụ
+## 1. The Terminal Operation Determines Consumption Requirements
 
-Một pipeline thường gồm **source → zero hoặc nhiều intermediate operations → terminal operation**:
+A typical pipeline consists of **source → zero or more intermediate operations → terminal operation**:
 
 ```java
 List<String> names = Arrays.asList("An", "Binh", "Chi", "Dung");
 
-boolean hasLongName = names.stream()            // Nguồn
-    .map(String::trim)                           // Trung gian, lười
-    .filter(name -> name.length() >= 4)         // Trung gian, lười
-    .anyMatch(name -> name.startsWith("B"));     // Kết thúc: chỉ hỏi có hay không
+boolean hasLongName = names.stream()            // Source
+    .map(String::trim)                           // Intermediate, lazy
+    .filter(name -> name.length() >= 4)         // Intermediate, lazy
+    .anyMatch(name -> name.startsWith("B"));     // Terminal: asks yes or no only
 
 System.out.println(hasLongName); // true
 ```
 
-`anyMatch` không cần tạo danh sách những tên thỏa cả hai điều kiện. Một khi tìm thấy `Binh`, terminal đã đủ bằng chứng để trả về `true`. Với pipeline tuần tự, các phần tử còn lại không cần được kiểm tra. Đây là ví dụ của **dừng sớm** (*short-circuiting*).
+`anyMatch` does not need to build a list of names matching both conditions. As soon as `Binh` is found, the terminal has enough proof to return `true`. In a sequential pipeline, the remaining elements do not need to be inspected. This is an example of **early stopping** (*short-circuiting*).
 
-Phân biệt hai ý:
+Distinguish two ideas:
 
-- **Tính lười:** các phép toán trung gian thường chưa duyệt nguồn khi mới được ghép vào pipeline.
-- **Dừng sớm:** sau khi terminal bắt đầu tiêu thụ, một số phép toán có thể trả kết quả **trước khi đọc hết nguồn**.
+- **Laziness:** intermediate operations generally do not traverse the source when they are attached to the pipeline.
+- **Short-circuiting:** once the terminal starts consuming, certain operations can return a result **before reading the entire source**.
 
-Không phải terminal nào cũng dừng sớm. `collect(toList())` cần thu thập mọi phần tử còn lại; `sum()` cần cộng mọi giá trị đầu ra của pipeline. Ngược lại, `findFirst`, `findAny` và ba phép `match` có thể kết thúc sau một phần nguồn khi điều kiện phù hợp.
+Not every terminal short-circuits. `collect(toList())` must collect every remaining element; `sum()` must add every value emitted by the pipeline. Conversely, `findFirst`, `findAny`, and the three `match` operations can finish after part of the source when conditions align.
 
-> **Lưu ý về thuật ngữ:** `limit` và `takeWhile` là **phép toán trung gian có khả năng ngắn mạch**; chúng không phải terminal operation. Chúng có thể giúp terminal cần toàn bộ dữ liệu kết thúc trên một nguồn ban đầu rất dài hoặc vô hạn.
+> **Terminology note:** `limit` and `takeWhile` are **short-circuiting intermediate operations**; they are not terminal operations. They can help a terminal that needs all downstream data finish on a very long or infinite initial source.
 
-## 2. Bảng chọn nhanh theo mục tiêu
+## 2. Quick Selection Table by Goal
 
-| Mục đích | Terminal operation nên chọn | Kiểu kết quả | Có thể dừng sớm? |
+| Goal | Terminal Operation to Choose | Return Type | Can Short-Circuit? |
 | --- | --- | --- | --- |
-| Có **ít nhất một** phần tử thỏa điều kiện? | `anyMatch(predicate)` | `boolean` | Có, khi gặp phần tử đúng |
-| **Tất cả** phần tử đều thỏa điều kiện? | `allMatch(predicate)` | `boolean` | Có, khi gặp phần tử sai |
-| **Không có** phần tử nào thỏa điều kiện? | `noneMatch(predicate)` | `boolean` | Có, khi gặp phần tử đúng |
-| Lấy **phần tử đầu tiên** theo thứ tự nguồn? | `findFirst()` | `Optional<T>` | Có, khi xác định được phần tử đầu |
-| Chỉ cần **bất kỳ một** phần tử nào? | `findAny()` | `Optional<T>` | Có, khi tìm được một phần tử |
-| Cần **toàn bộ** các phần tử sau lọc/biến đổi? | `collect(collector)`; hoặc `toList()` từ Java 16 | Collection hoặc giá trị thu thập | Thông thường phải xem hết đầu ra |
-| Cần biết có **bao nhiêu** phần tử? | `count()` | `long` | Có thể tối ưu bằng kích thước đã biết; không phải terminal tìm kiếm ngắn mạch |
-| Cần **nhỏ nhất/lớn nhất**? | `min(comparator)` / `max(comparator)` | `Optional<T>` | Thông thường phải xem hết đầu ra |
-| Cần **tổng/tích lũy một giá trị**? | `sum()` trên primitive Stream, `reduce(...)` | Số, giá trị hoặc `Optional` | Thông thường phải xem hết đầu ra |
-| Cần **gom nhóm, thống kê, cấu trúc đích**? | `collect(Collectors.groupingBy(...))`, `collect(...)` | `Map`, `List`, v.v. | Thông thường phải xem hết đầu ra |
-| Cần **thực hiện hành động** trên phần tử? | `forEach(action)` / `forEachOrdered(action)` | `void` | Thông thường phải duyệt hết đầu ra |
+| Does **at least one** element satisfy the condition? | `anyMatch(predicate)` | `boolean` | Yes, upon encountering a matching element |
+| Do **all** elements satisfy the condition? | `allMatch(predicate)` | `boolean` | Yes, upon encountering a failing element |
+| Do **no** elements satisfy the condition? | `noneMatch(predicate)` | `boolean` | Yes, upon encountering a matching element |
+| Get the **first element** in source order? | `findFirst()` | `Optional<T>` | Yes, once the first element is determined |
+| Need **any single** matching element? | `findAny()` | `Optional<T>` | Yes, once one element is found |
+| Need **all** elements after filtering/transforming? | `collect(collector)`; or `toList()` from Java 16 | Collection or collected value | Typically must inspect all output |
+| Need to know **how many** elements? | `count()` | `long` | Can optimize using known size; not a search-short-circuiting terminal |
+| Need the **smallest/largest**? | `min(comparator)` / `max(comparator)` | `Optional<T>` | Typically must inspect all output |
+| Need the **sum/accumulation of a value**? | `sum()` on primitive Stream, `reduce(...)` | Number, value, or `Optional` | Typically must inspect all output |
+| Need **grouping, statistics, target structure**? | `collect(Collectors.groupingBy(...))`, `collect(...)` | `Map`, `List`, etc. | Typically must inspect all output |
+| Need to **perform an action** on elements? | `forEach(action)` / `forEachOrdered(action)` | `void` | Typically must traverse all output |
 
-**Quy tắc lựa chọn:** Nếu kết quả chỉ cần một **câu trả lời có/không**, hãy ưu tiên `anyMatch`, `allMatch`, `noneMatch` thay vì `filter(...).collect(...).isEmpty()`. Nếu kết quả cần **một phần tử**, ưu tiên `findFirst` hoặc `findAny` thay vì thu cả danh sách để lấy phần tử đầu.
+**Selection rule:** If the result only needs a **yes/no answer**, prefer `anyMatch`, `allMatch`, or `noneMatch` over `filter(...).collect(...).isEmpty()`. If the result needs **one element**, prefer `findFirst` or `findAny` over collecting the whole list just to take its first item.
 
-## 3. anyMatch, allMatch và noneMatch: ba câu hỏi logic khác nhau
+## 3. `anyMatch`, `allMatch`, and `noneMatch`: Three Different Logical Questions
 
-Các phép toán đối sánh nhận `Predicate<T>` và trả về một `boolean`:
+Matching operations take a `Predicate<T>` and return a `boolean`:
 
 ```java
 List<Integer> scores = Arrays.asList(45, 68, 82, 91);
 
 boolean hasExcellent = scores.stream()
-    .anyMatch(score -> score >= 90); // true: có 91
+    .anyMatch(score -> score >= 90); // true: 91 exists
 
 boolean allPassed = scores.stream()
-    .allMatch(score -> score >= 50); // false: có 45
+    .allMatch(score -> score >= 50); // false: 45 fails
 
 boolean noneNegative = scores.stream()
-    .noneMatch(score -> score < 0); // true: không có số âm
+    .noneMatch(score -> score < 0); // true: no negative numbers
 ```
 
-| Phép toán | Khi nào có thể quyết định ngay? | Nếu duyệt hết mà không gặp điều kiện ngắt |
+| Operation | When can it decide immediately? | If exhausted without hitting a stopping condition |
 | --- | --- | --- |
-| `anyMatch(p)` | Gặp **một phần tử đúng** → `true` | `false` |
-| `allMatch(p)` | Gặp **một phần tử sai** → `false` | `true` |
-| `noneMatch(p)` | Gặp **một phần tử đúng** → `false` | `true` |
+| `anyMatch(p)` | Sees **one true element** → `true` | `false` |
+| `allMatch(p)` | Sees **one false element** → `false` | `true` |
+| `noneMatch(p)` | Sees **one true element** → `false` | `true` |
 
-Với **Stream rỗng**, không có phần tử nào để kiểm tra:
+On an **empty Stream**, there are no elements to test:
 
 ```java
 boolean any = Stream.<Integer>empty()
@@ -84,13 +84,13 @@ boolean none = Stream.<Integer>empty()
     .noneMatch(n -> n > 0); // true
 ```
 
-`allMatch` trả về `true` trên Stream rỗng vì **không có phản ví dụ**; `noneMatch` cũng trả về `true` vì không có phần tử thỏa predicate. Đây là quy tắc logic (*vacuous truth*), không phải lỗi.
+`allMatch` returns `true` on an empty Stream because **there is no counterexample**; `noneMatch` also returns `true` because no element matches the predicate. This is a logical rule (*vacuous truth*), not a bug.
 
-**Lỗi thường gặp:** dùng `allMatch` để kiểm tra “danh sách không rỗng và tất cả hợp lệ”. Chỉ `allMatch` thì **không kiểm tra được điều kiện không rỗng**. Nếu nguồn là `List`, có thể kết hợp `!list.isEmpty()` và `list.stream().allMatch(...)`; nếu nguồn là Stream dùng một lần, cần một thiết kế xử lý vừa xác định rỗng vừa kiểm tra điều kiện, chẳng hạn thu thập thông tin bằng một collector phù hợp.
+**Common mistake:** using `allMatch` to check “list is non-empty and all are valid”. `allMatch` alone **cannot check non-emptiness**. If the source is a `List`, combine `!list.isEmpty()` and `list.stream().allMatch(...)`; if the source is a single-use Stream, you need a processing design that checks emptiness and the condition together, such as gathering the information with a suitable collector.
 
-## 4. findFirst và findAny: yêu cầu thứ tự quyết định lựa chọn
+## 4. `findFirst` and `findAny`: Ordering Requirements Determine the Choice
 
-Cả hai phép toán tìm kiếm đều trả về `Optional<T>`, vì kết quả có thể không tồn tại.
+Both search operations return `Optional<T>`, because a result may not exist.
 
 ```java
 List<String> employees = Arrays.asList("An", "Binh", "Chi", "Duc");
@@ -103,34 +103,34 @@ Optional<String> firstMatching = employees.stream()
 Optional<String> anyMatching = employees.parallelStream()
     .filter(name -> name.length() >= 3)
     .findAny();
-// Có thể là Binh, Chi hoặc Duc; không dựa vào lựa chọn cụ thể.
+// May be Binh, Chi, or Duc; do not rely on a specific choice.
 ```
 
-**Chọn `findFirst`** khi yêu cầu là “bản ghi đầu tiên theo một thứ tự có ý nghĩa”: giao dịch sớm nhất, lỗi đầu tiên trong tập đã sắp xếp, bản ghi đầu tiên của một `List`. `findFirst` tuân thủ **encounter order** nếu nguồn có thứ tự.
+**Choose `findFirst`** when the requirement is “the first record in a meaningful order”: earliest transaction, first error in a sorted set, or first record of a `List`. `findFirst` respects **encounter order** if the source is ordered.
 
-**Chọn `findAny`** khi chỉ cần **một phần tử bất kỳ** để xử lý tiếp. Nó được phép không giữ thứ tự, nhất là với pipeline song song, nên có thể mang lại lợi ích hiệu năng.
+**Choose `findAny`** when you just need **any matching element** to process next. It is allowed to disregard order, especially in parallel pipelines, which can yield performance benefits.
 
-**Không suy ra “đầu tiên” trên nguồn không có encounter order.** Ví dụ `HashSet.stream()` không hứa thứ tự duyệt. Nếu muốn phần tử có giá trị nhỏ nhất, tốt hơn là dùng `min(comparator)` thay vì giả định `findFirst` trả phần tử nhỏ nhất.
+**Do not infer “first” on a source without encounter order.** For example, `HashSet.stream()` promises no traversal order. If you want the element with the smallest value, it is better to use `min(comparator)` instead of assuming `findFirst` returns the minimum element.
 
-### Xử lý Optional an toàn
+### Handling `Optional` Safely
 
 ```java
 String result = employees.stream()
     .filter(name -> name.startsWith("Z"))
     .findFirst()
-    .orElse("Không tìm thấy");
+    .orElse("Not found");
 
-System.out.println(result); // Không tìm thấy
+System.out.println(result); // Not found
 ```
 
-Các cách đọc `Optional` thường dùng:
+Common ways to read an `Optional`:
 
-- `isPresent()` và `get()` chỉ phù hợp khi đã kiểm tra chắc chắn; gọi `get()` trên `Optional.empty()` ném `NoSuchElementException`.
-- `orElse(defaultValue)` cung cấp giá trị mặc định; biểu thức `defaultValue` được đánh giá trước khi gọi phương thức.
-- `orElseGet(supplier)` chỉ tính giá trị thay thế khi `Optional` thực sự rỗng.
-- `orElseThrow(...)` báo lỗi có chủ đích khi không có kết quả.
+- `isPresent()` and `get()` are appropriate only when presence is guaranteed; calling `get()` on `Optional.empty()` throws `NoSuchElementException`.
+- `orElse(defaultValue)` provides a fallback value; the `defaultValue` expression is evaluated before the method call.
+- `orElseGet(supplier)` computes the fallback value only when the `Optional` is actually empty.
+- `orElseThrow(...)` intentionally signals an error when no result is found.
 
-Stream chứa phần tử `null` có thể gây `NullPointerException` khi `findFirst` hoặc `findAny` chọn đúng phần tử `null` (vì `Optional` không biểu diễn giá trị hiện diện là `null`). Nếu dữ liệu có thể chứa `null`, lọc trước:
+A Stream containing `null` elements can cause `NullPointerException` if `findFirst` or `findAny` selects a `null` element (because `Optional` does not represent a present `null` value). If data may contain `null`, filter first:
 
 ```java
 Optional<String> first = Arrays.asList(null, "Binh", "Chi")
@@ -139,9 +139,9 @@ Optional<String> first = Arrays.asList(null, "Binh", "Chi")
     .findFirst(); // Optional[Binh]
 ```
 
-## 5. Khi cần tất cả kết quả: collect, count, min, max và reduce
+## 5. When All Results Are Needed: `collect`, `count`, `min`, `max`, and `reduce`
 
-`findFirst` hay `anyMatch` không phù hợp nếu mục tiêu là xuất **danh sách đầy đủ**. Hãy chọn terminal thể hiện kết quả mà người dùng cần:
+`findFirst` or `anyMatch` is unsuitable if the goal is outputting a **complete list**. Choose a terminal representing the result the user needs:
 
 ```java
 List<Integer> prices = Arrays.asList(40, 120, 85, 200, 120);
@@ -162,9 +162,9 @@ int total = prices.stream()
     .sum(); // 565
 ```
 
-Chỉ để **đếm**, dùng `count()` thay vì `collect(toList()).size()`: cách thứ hai tạo cấu trúc dữ liệu không cần thiết. Để **cộng số**, `mapToInt(...).sum()` thường rõ ý định hơn `reduce(0, Integer::sum)`, đồng thời tránh việc đóng/mở hộp ở bước tính tổng.
+Just to **count**, use `count()` instead of `collect(toList()).size()`: the latter allocates an unnecessary data structure. To **sum numbers**, `mapToInt(...).sum()` usually expresses intent clearer than `reduce(0, Integer::sum)` while avoiding boxing/unboxing during summation.
 
-Khi yêu cầu một phép gộp tùy biến:
+When a custom reduction rule is needed:
 
 ```java
 int sumOfSquares = prices.stream()
@@ -172,9 +172,9 @@ int sumOfSquares = prices.stream()
     .reduce(0, Integer::sum);
 ```
 
-`reduce` phải dùng phép kết hợp phù hợp hợp đồng Stream. Khi xử lý song song, toán tử tích lũy cần **kết hợp được** (*associative*), với giá trị đồng nhất (*identity*) đúng. Các phép phụ thuộc vào thứ tự như phép trừ không thể tùy tiện đem áp dụng như một phép reduce song song mà vẫn mong có nghĩa như vòng lặp tuần tự.
+`reduce` must use a combining operation that obeys the Stream contract. When running in parallel, the accumulator must be **associative**, with a valid **identity** value. Order-dependent operations like subtraction cannot simply be plugged into a parallel reduction expecting sequential-loop semantics.
 
-### collect để tạo cấu trúc hoặc tổng hợp phức tạp
+### `collect` to Build Structures or Complex Aggregations
 
 ```java
 Map<Integer, Long> countsByLength = Arrays.asList(
@@ -184,38 +184,38 @@ Map<Integer, Long> countsByLength = Arrays.asList(
         String::length,
         Collectors.counting()
     ));
-// {2=1, 3=1, 4=3} (không dựa vào thứ tự duyệt khóa của Map).
+// {2=1, 3=1, 4=3} (do not rely on Map key iteration order).
 ```
 
-`collect` hợp với việc xây danh sách, tập hợp, nhóm hoặc kết quả thống kê. Từ Java 16 có `stream.toList()`, trả về một List **không thể sửa đổi**. `Collectors.toList()` không hứa loại List cụ thể hay tính có thể sửa đổi. Khi cần đích có thể thêm/xóa, dùng `collect(Collectors.toCollection(ArrayList::new))`.
+`collect` suits building lists, sets, groups, or statistical summaries. Java 16 introduced `stream.toList()`, returning an **unmodifiable** List. `Collectors.toList()` promises neither a specific List implementation nor mutability. When you need a target that supports adding/removing, use `collect(Collectors.toCollection(ArrayList::new))`.
 
-**Quan trọng về dừng sớm:** đa số phép tổng hợp trên cần tất cả phần tử đầu ra để xác định kết quả. `count()` có thể là ngoại lệ về **tối ưu hóa**: nếu nguồn có kích thước đã biết và các bước trung gian không thay đổi số lượng, Java có thể trả kết quả mà không duyệt từng phần tử. Vì vậy, dù có terminal, đừng dựa vào tác dụng phụ trong `peek` hay `map` để chắc chắn mọi lambda đã chạy.
+**Important note on early stopping:** most of the aggregations above require all output elements to determine their result. `count()` can be an **optimization** exception: if the source has a known size and intermediate steps do not change element counts, Java can return the result without traversing individual elements. Thus, even with a terminal operation, never rely on side effects inside `peek` or `map` to ensure every lambda ran.
 
-## 6. forEach/forEachOrdered: dùng khi mục tiêu là hành động
+## 6. `forEach`/`forEachOrdered`: Use When the Goal Is an Action
 
-`forEach` và `forEachOrdered` có kiểu trả về `void`: chúng dành cho trường hợp cần thực hiện hành động ở ranh giới tiêu thụ, chẳng hạn in kết quả, ghi đến một đầu ra do chương trình quản lý hoặc gửi từng phần tử cho một thành phần khác.
+`forEach` and `forEachOrdered` return `void`: they are meant for performing actions at the consumption boundary, such as printing output, writing to a managed sink, or passing each element to another component.
 
 ```java
 List<String> messages = Arrays.asList("A", "B", "C");
 
 messages.stream().forEach(System.out::println);
-// Với Stream tuần tự có thứ tự: A, B, C.
+// With an ordered sequential Stream: A, B, C.
 
 messages.parallelStream().forEach(System.out::println);
-// Thứ tự in không được bảo đảm.
+// Print order is not guaranteed.
 
 messages.parallelStream().forEachOrdered(System.out::println);
-// Giữ encounter order: A, B, C.
+// Preserves encounter order: A, B, C.
 ```
 
-`forEachOrdered` giữ thứ tự **thực hiện hành động** khi Stream có encounter order, nhưng có thể thêm chi phí phối hợp. Nó không biến toàn bộ các phép toán trung gian phía trước thành xử lý tuần tự.
+`forEachOrdered` preserves **action execution order** when the Stream has encounter order, though it may add coordination overhead. It does not convert all preceding intermediate operations into sequential processing.
 
-Nếu cần **tạo danh sách**, hãy dùng `collect` thay vì sửa một List bên ngoài từ `forEach`:
+If you need to **build a list**, use `collect` rather than mutating an external List from `forEach`:
 
 ```java
 List<Integer> input = Arrays.asList(1, 2, 3, 4);
 
-// Không an toàn nếu dùng trên parallelStream:
+// Unsafe if used on parallelStream:
 // List<Integer> shared = new ArrayList<>();
 // input.parallelStream().forEach(n -> shared.add(n * 2));
 
@@ -224,11 +224,11 @@ List<Integer> doubled = input.parallelStream()
     .collect(Collectors.toList()); // [2, 4, 6, 8]
 ```
 
-`ArrayList` không hỗ trợ nhiều luồng ghi đồng thời theo cách trên. Mặt khác, `peek` là phép toán **trung gian**, không phải công cụ bảo đảm mọi thao tác ghi log/kiểm toán sẽ thực thi. Với mã có tác dụng phụ, cần thiết kế tính an toàn luồng, khả năng thất bại và thứ tự thực thi phù hợp.
+`ArrayList` does not support concurrent writes from multiple threads that way. Meanwhile, `peek` is an **intermediate** operation, not a tool guaranteeing every logging/auditing action will execute. For code with side effects, design thread safety, failure handling, and execution order properly.
 
-## 7. Dừng sớm phụ thuộc cả phần trước terminal
+## 7. Short-Circuiting Depends on Everything Before the Terminal
 
-Một terminal có khả năng ngắn mạch **không bảo đảm** luôn trả kết quả nhanh. Hãy xét các bước trước nó.
+A short-circuiting terminal **does not guarantee** always returning quickly. Inspect the steps preceding it.
 
 ```java
 int firstEven = IntStream.rangeClosed(1, 1_000_000)
@@ -237,7 +237,7 @@ int firstEven = IntStream.rangeClosed(1, 1_000_000)
     .orElse(-1); // 2
 ```
 
-Trên nguồn tuần tự có thứ tự, `findFirst` chỉ cần đi tới số `2`. Nhưng nếu thêm bước phải nhận toàn bộ nguồn trước khi xuất kết quả:
+On an ordered sequential source, `findFirst` only needs to advance to `2`. However, if you add a step that must consume the entire source before emitting results:
 
 ```java
 int smallest = IntStream.rangeClosed(1, 1_000_000)
@@ -246,30 +246,30 @@ int smallest = IntStream.rangeClosed(1, 1_000_000)
     .orElse(-1); // 1
 ```
 
-Với một bước `sorted` thông thường trên nguồn chưa biết đã sắp xếp, việc duyệt và sắp xếp thường cần toàn bộ đầu vào. Ví dụ trên là `IntStream.rangeClosed` vốn có thứ tự sắp xếp; một triển khai có thể tận dụng đặc tính nguồn để tối ưu. **Không dùng riêng ví dụ này làm phép đo chi phí sắp xếp.** Điều cần nhớ là việc có `findFirst` phía cuối không tự xóa chi phí của một bước có trạng thái phía trước.
+With an ordinary `sorted` step on a source not known to be sorted, traversing and sorting typically require the entire input. The example above uses `IntStream.rangeClosed`, which is inherently sorted; an implementation might exploit that source property to optimize. **Do not use this example alone to benchmark sorting cost.** The takeaway is that having `findFirst` at the end does not erase the cost of a stateful step before it.
 
-Các bước khác cần xét:
+Other upstream steps to examine:
 
-- `filter(p)`: dừng sớm chỉ có ích khi phần tử phù hợp xuất hiện. Nếu không bao giờ có phần tử phù hợp trên nguồn vô hạn, `filter(p).findFirst()` không kết thúc.
-- `distinct()`: có thể cần ghi nhận các giá trị đã gặp; kết hợp `limit(n)` chỉ dừng khi có đủ `n` giá trị phân biệt.
-- `sorted()`: thường là bước chặn cần quan sát toàn bộ đầu vào trước khi phát phần tử đã sắp xếp; đặc biệt nguy hiểm với nguồn vô hạn.
-- `limit(n)`: là bước trung gian giúp các terminal cần toàn bộ phần còn lại xử lý tối đa `n` phần tử **sau giới hạn**, miễn các bước trước cung cấp đủ dữ liệu.
-- `takeWhile(p)` (Java 9+): trên nguồn có encounter order, dừng tại phần tử đầu tiên không thỏa; với nguồn vô hạn mà `p` luôn đúng thì không giúp kết thúc.
+- `filter(p)`: early stopping helps only when a matching element appears. If no matching element ever appears in an infinite source, `filter(p).findFirst()` does not terminate.
+- `distinct()`: may need to track seen values; combining with `limit(n)` stops only once `n` distinct values are found.
+- `sorted()`: typically a blocking step needing the entire input before emitting sorted elements; especially dangerous with infinite sources.
+- `limit(n)`: an intermediate step letting downstream terminals that need all remaining elements process at most `n` elements **after the limit**, provided upstream steps supply enough data.
+- `takeWhile(p)` (Java 9+): on a source with encounter order, stops at the first element failing `p`; on an infinite source where `p` is always true, it will not help termination.
 
-| Pipeline | Có thể trả kết quả? | Giải thích |
+| Pipeline | Can return a result? | Explanation |
 | --- | --- | --- |
-| `Stream.generate(() -> "x").findAny()` | Có | Nguồn có thể cung cấp ngay một phần tử. |
-| `IntStream.iterate(1, n -> n + 1).anyMatch(n -> n == 5)` | Có | Gặp giá trị `5` sau một đoạn hữu hạn. |
-| `Stream.generate(() -> 1).allMatch(n -> n == 1)` | Không kết thúc theo cách duyệt thông thường | Không gặp phản ví dụ và nguồn không có điểm kết thúc. |
-| `Stream.generate(() -> 1).anyMatch(n -> n == 2)` | Không kết thúc theo cách duyệt thông thường | Không xuất hiện phần tử làm predicate đúng. |
-| `Stream.generate(() -> 1).limit(5).count()` | Có | Pipeline được giới hạn; terminal cũng có thể tối ưu khi biết kích thước. |
-| `Stream.generate(() -> 1).distinct().limit(2).count()` | Không kết thúc theo cách duyệt thông thường | Chỉ có một giá trị khác nhau nên không đủ hai phần tử. |
+| `Stream.generate(() -> "x").findAny()` | Yes | Source can supply one element immediately. |
+| `IntStream.iterate(1, n -> n + 1).anyMatch(n -> n == 5)` | Yes | Encounters value `5` after finitely many steps. |
+| `Stream.generate(() -> 1).allMatch(n -> n == 1)` | Does not terminate via normal traversal | No counterexample appears and the source has no endpoint. |
+| `Stream.generate(() -> 1).anyMatch(n -> n == 2)` | Does not terminate via normal traversal | No element making the predicate true appears. |
+| `Stream.generate(() -> 1).limit(5).count()` | Yes | Pipeline is bounded; terminal may also optimize when size is known. |
+| `Stream.generate(() -> 1).distinct().limit(2).count()` | Does not terminate via normal traversal | Only one distinct value exists, so two elements are never reached. |
 
-Khi làm việc với nguồn vô hạn, chỉ nên chạy terminal cần toàn bộ dữ liệu như `collect`, `count`, `sum` hoặc `reduce` **sau khi bảo đảm pipeline có điểm dừng**. Dù vậy, `limit(10)` không phải timeout: nếu nguồn chặn ở một lần lấy dữ liệu hoặc không cho đủ phần tử vượt qua các bước lọc, pipeline vẫn có thể chờ vô hạn.
+When working with infinite sources, only run full-consumption terminals like `collect`, `count`, `sum`, or `reduce` **after ensuring the pipeline has a stopping point**. Even so, `limit(10)` is not a timeout: if a source blocks on fetching or never lets enough elements pass filters, the pipeline can still wait indefinitely.
 
-## 8. Khi chạy song song: hiệu năng, thứ tự và tác dụng phụ
+## 8. When Running in Parallel: Performance, Ordering, and Side Effects
 
-Stream song song có thể xử lý nhiều phần tử đồng thời. `anyMatch`/`allMatch`/`noneMatch` vẫn có hợp đồng kết quả tương tự tuần tự, nhưng có thể nhiều predicate đã được gọi trên các phần tử khác nhau trước khi công việc ngắn mạch dừng. **Không bảo đảm** mỗi lambda chỉ được gọi đến đúng phần tử quyết định kết quả.
+Parallel Streams can process multiple elements concurrently. `anyMatch`/`allMatch`/`noneMatch` retain the same result contract as sequential mode, though multiple predicates may have been invoked on different elements before short-circuiting halts work. **There is no guarantee** each lambda is invoked only up to the exact deciding element.
 
 ```java
 List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6);
@@ -283,21 +283,21 @@ Optional<Integer> firstEven = numbers.parallelStream()
 
 Optional<Integer> anyEven = numbers.parallelStream()
     .filter(n -> n % 2 == 0)
-    .findAny(); // Một trong 2, 4, 6
+    .findAny(); // One of 2, 4, 6
 ```
 
-Trên `List` có thứ tự, `findFirst` phải bảo toàn khái niệm “đầu tiên”; `findAny` có thể trả một phần tử phù hợp bất kỳ, nên thường có nhiều tự do tối ưu song song hơn. `forEachOrdered` bảo toàn thứ tự hành động, còn `forEach` không.
+On an ordered `List`, `findFirst` must preserve the concept of “first”; `findAny` may return any matching element, giving parallel execution more freedom to optimize. `forEachOrdered` preserves action order, whereas `forEach` does not.
 
-Một số nguyên tắc:
+Key principles:
 
-1. Lambda trong pipeline nên **không sửa trạng thái dùng chung** và không dựa vào lịch chạy của các luồng.
-2. Đừng gọi `unordered()` nếu kết quả nghiệp vụ yêu cầu “đầu tiên”, chẳng hạn phần tử đầu theo thời gian.
-3. Đừng mặc định `parallelStream()` nhanh hơn: chi phí chia việc, hủy tác vụ, ràng buộc thứ tự và bước có trạng thái có thể lớn hơn lợi ích.
-4. Nếu hiệu năng quan trọng, đo trên dữ liệu và môi trường đại diện; với danh sách rất nhỏ, tuần tự thường đơn giản hơn.
+1. Lambdas in a pipeline should **never mutate shared state** and must not depend on thread scheduling.
+2. Never call `unordered()` if business output requires “first”, such as the earliest element by timestamp.
+3. Do not assume `parallelStream()` is faster: splitting overhead, task cancellation, ordering constraints, and stateful steps can outweigh the gains.
+4. When performance matters, benchmark on representative data and environments; for very small lists, sequential is usually simpler.
 
-## 9. Ví dụ hoàn chỉnh: mỗi yêu cầu chọn đúng terminal
+## 9. Complete Example: Choosing the Right Terminal for Each Requirement
 
-Đoạn mã dưới đây chạy được với Java 8+, dùng cùng một nguồn `List` và tạo **Stream mới cho từng truy vấn**:
+The snippet below runs on Java 8+, reuses the same `List` source, and creates **a fresh Stream for each query**:
 
 ```java
 import java.util.Arrays;
@@ -311,91 +311,91 @@ public class TerminalChoiceDemo {
             "pen", "book", "ruler", "eraser"
         );
 
-        // Có ít nhất một tên dài từ 5 ký tự không?
+        // Is there at least one name of 5 or more characters?
         boolean hasLongName = products.stream()
             .anyMatch(name -> name.length() >= 5);
 
-        // Có phải mọi tên đều không rỗng?
+        // Are all names non-empty?
         boolean allNamed = products.stream()
             .allMatch(name -> !name.isEmpty());
 
-        // Không có tên nào chứa chữ số?
+        // Do no names contain digits?
         boolean noDigit = products.stream()
             .noneMatch(name -> name.matches(".*\\d.*"));
 
-        // Tên dài từ 5 ký tự đầu tiên theo List.
+        // First name of 5 or more characters in List order.
         Optional<String> firstLong = products.stream()
             .filter(name -> name.length() >= 5)
             .findFirst();
 
-        // Có bao nhiêu tên dài hơn 3 ký tự?
+        // How many names are longer than 3 characters?
         long count = products.stream()
             .filter(name -> name.length() > 3)
             .count();
 
-        // Thu toàn bộ tên dài hơn 3 ký tự, giữ thứ tự List.
+        // Collect all names longer than 3 characters, preserving List order.
         List<String> selected = products.stream()
             .filter(name -> name.length() > 3)
             .collect(Collectors.toList());
 
-        // Tổng số ký tự trong các tên.
+        // Total number of characters across all names.
         int totalLength = products.stream()
             .mapToInt(String::length)
             .sum();
 
-        System.out.println("Có tên dài: " + hasLongName);
-        System.out.println("Tất cả có tên: " + allNamed);
-        System.out.println("Không có chữ số: " + noDigit);
-        System.out.println("Tên dài đầu tiên: " + firstLong.orElse("Không có"));
-        System.out.println("Số tên > 3 ký tự: " + count);
-        System.out.println("Tên đã chọn: " + selected);
-        System.out.println("Tổng ký tự: " + totalLength);
+        System.out.println("Has long name: " + hasLongName);
+        System.out.println("All named: " + allNamed);
+        System.out.println("No digits: " + noDigit);
+        System.out.println("First long name: " + firstLong.orElse("None"));
+        System.out.println("Names > 3 chars: " + count);
+        System.out.println("Selected names: " + selected);
+        System.out.println("Total chars: " + totalLength);
     }
 }
 ```
 
-Đầu ra:
+Output:
 
 ```text
-Có tên dài: true
-Tất cả có tên: true
-Không có chữ số: true
-Tên dài đầu tiên: ruler
-Số tên > 3 ký tự: 3
-Tên đã chọn: [book, ruler, eraser]
-Tổng ký tự: 18
+Has long name: true
+All named: true
+No digits: true
+First long name: ruler
+Names > 3 chars: 3
+Selected names: [book, ruler, eraser]
+Total chars: 18
 ```
 
-Mỗi terminal trả về đúng loại dữ liệu cần thiết: `boolean` cho câu hỏi logic, `Optional` cho tìm kiếm, `long` cho đếm, `List` cho thu thập và `int` cho tổng.
+Each terminal returns the exact data type needed: `boolean` for logical queries, `Optional` for searches, `long` for counting, `List` for collection, and `int` for summation.
 
-## 10. Những nhầm lẫn thường gặp
+## 10. Common Misconceptions
 
-| Nhầm lẫn | Điều cần làm |
+| Misconception | What to Do Instead |
 | --- | --- |
-| Dùng `filter(p).collect(toList()).isEmpty()` chỉ để hỏi có hay không | Dùng `anyMatch(p)` (hoặc `noneMatch(p)` cho câu hỏi phủ định) |
-| Dùng `filter(p).count() > 0` để tìm phần tử phù hợp | Dùng `anyMatch(p)` để có cơ hội dừng sớm |
-| Dùng `findAny` rồi coi kết quả là phần tử đầu tiên | Dùng `findFirst` trên nguồn có encounter order phù hợp |
-| Dùng `findFirst` trên `HashSet` để lấy giá trị nhỏ nhất | Dùng `min(comparator)` hoặc thiết lập thứ tự rõ ràng |
-| Mong `allMatch` trên nguồn rỗng trả `false` | Nhớ rằng `allMatch` trên rỗng trả `true` |
-| Gọi `Optional.get()` mà không kiểm tra | Dùng `orElse`, `orElseGet` hoặc `orElseThrow` phù hợp |
-| Dùng `forEach` để thêm vào `ArrayList` chung trong parallel stream | Dùng `collect` với cơ chế tích lũy được thư viện quản lý |
-| Nghĩ mọi terminal đều tự dừng sớm | Xem hợp đồng từng terminal và các bước có trạng thái ở phía trước |
-| Nghĩ `count()` chắc chắn gọi mọi `peek` | Không dựa vào tác dụng phụ trong bước trung gian |
-| Chạy `allMatch` vô hạn khi mọi phần tử đều đúng | Đặt giới hạn hữu hạn hoặc một điều kiện dừng có thể đạt |
-| Dùng lại một Stream cho nhiều terminal | Tạo Stream mới từ nguồn cho từng phép tính |
+| Using `filter(p).collect(toList()).isEmpty()` just to ask yes/no | Use `anyMatch(p)` (or `noneMatch(p)` for a negative question) |
+| Using `filter(p).count() > 0` to test for a matching element | Use `anyMatch(p)` to enable early stopping |
+| Using `findAny` and treating the result as the first element | Use `findFirst` on a source with appropriate encounter order |
+| Using `findFirst` on `HashSet` to get the smallest value | Use `min(comparator)` or establish an explicit order |
+| Expecting `allMatch` on an empty source to return `false` | Remember that `allMatch` on empty returns `true` |
+| Calling `Optional.get()` without checking | Use `orElse`, `orElseGet`, or `orElseThrow` appropriately |
+| Using `forEach` to add into a shared `ArrayList` in a parallel stream | Use `collect` with library-managed accumulation |
+| Thinking every terminal stops early automatically | Check each terminal's contract and preceding stateful steps |
+| Thinking `count()` always calls every `peek` | Never rely on side effects in intermediate steps |
+| Running `allMatch` infinitely when every element matches | Add a finite bound or an achievable stopping condition |
+| Reusing one Stream for multiple terminals | Create a new Stream from the source for each computation |
 
-## 11. Câu hỏi tự kiểm tra
+## 11. Self-Check Questions
 
-**Bài 1 — Chọn phép toán.** Có một triệu đơn hàng, chỉ cần biết liệu **có bất kỳ đơn nào** vượt 10 triệu đồng. Chọn `count() > 0`, `collect(toList()).isEmpty()` hay `anyMatch`?
+**Exercise 1 — Choosing an operation.** Given one million orders, you only need to know whether **any order** exceeds 10 million VND. Choose `count() > 0`, `collect(toList()).isEmpty()`, or `anyMatch`?
 
 ```java
 boolean hasLargeOrder = amounts.stream()
     .anyMatch(amount -> amount > 10_000_000L);
 ```
 
-**Đáp án:** `anyMatch` thể hiện trực tiếp câu hỏi tồn tại và có khả năng dừng sớm khi gặp một đơn phù hợp. `count` phải xác định số phần tử sau bộ lọc trong trường hợp tổng quát.
+**Answer:** `anyMatch` directly expresses the existence question and can stop early upon finding one matching order. `count` must determine the post-filter count in the general case.
 
-**Bài 2 — Kết quả trên Stream rỗng.** Dự đoán:
+**Exercise 2 — Results on an empty Stream.** Predict:
 
 ```java
 boolean a = Stream.<Integer>empty().anyMatch(n -> n > 0);
@@ -404,9 +404,9 @@ boolean c = Stream.<Integer>empty().noneMatch(n -> n > 0);
 Optional<Integer> d = Stream.<Integer>empty().findFirst();
 ```
 
-**Đáp án:** `a = false`, `b = true`, `c = true`, `d = Optional.empty()`.
+**Answer:** `a = false`, `b = true`, `c = true`, `d = Optional.empty()`.
 
-**Bài 3 — Tìm kiếm có thứ tự.** Với `List<Integer> values = Arrays.asList(9, 4, 6, 2);`, lấy **số chẵn đầu tiên theo vị trí List**; khi chạy song song cần terminal nào?
+**Exercise 3 — Ordered search.** Given `List<Integer> values = Arrays.asList(9, 4, 6, 2);`, get the **first even number by List position**; when running in parallel, which terminal is needed?
 
 ```java
 Optional<Integer> first = values.parallelStream()
@@ -414,9 +414,9 @@ Optional<Integer> first = values.parallelStream()
     .findFirst(); // Optional[4]
 ```
 
-**Đáp án:** `findFirst` giữ encounter order; `findAny` được phép trả `4`, `6` hoặc `2`.
+**Answer:** `findFirst` preserves encounter order; `findAny` is allowed to return `4`, `6`, or `2`.
 
-**Bài 4 — Nguồn vô hạn.** `Stream.generate(() -> 1).noneMatch(n -> n == 2)` có kết thúc không? Làm sao kiểm tra 100 giá trị đầu?
+**Exercise 4 — Infinite source.** Does `Stream.generate(() -> 1).noneMatch(n -> n == 2)` terminate? How do you check the first 100 values?
 
 ```java
 boolean noneInSample = Stream.generate(() -> 1)
@@ -424,9 +424,9 @@ boolean noneInSample = Stream.generate(() -> 1)
     .noneMatch(n -> n == 2); // true
 ```
 
-**Đáp án:** Không có điều kiện ngắt trên nguồn vô hạn ban đầu, vì không có `2`; terminal không thể biết đã duyệt hết. `limit(100)` thu hẹp câu hỏi thành một mẫu hữu hạn.
+**Answer:** There is no stopping condition on the original infinite source, because `2` never appears; the terminal can never know it has traversed everything. `limit(100)` narrows the question to a finite sample.
 
-**Bài 5 — Thu thập và hành động.** Để tạo `List<String>` chứa tên viết hoa từ một `List` lớn chạy song song, nên dùng `forEach` thêm vào List chung hay `collect`?
+**Exercise 5 — Collecting vs acting.** To build a `List<String>` containing uppercase names from a large `List` run in parallel, should you use `forEach` to append to a shared List or `collect`?
 
 ```java
 List<String> upperNames = names.parallelStream()
@@ -434,8 +434,8 @@ List<String> upperNames = names.parallelStream()
     .collect(Collectors.toList());
 ```
 
-**Đáp án:** Dùng `collect` để tạo dữ liệu đầu ra. Việc cùng thêm vào một `ArrayList` từ nhiều luồng có thể gây race condition và sai kết quả.
+**Answer:** Use `collect` to produce output data. Adding concurrently into an `ArrayList` from multiple threads can cause race conditions and wrong results.
 
-## Ghi nhớ
+## Key Takeaways
 
-Trong **JAVA_STREAM_API**, hãy bắt đầu từ **câu hỏi nghiệp vụ** để chọn terminal: `anyMatch`/`allMatch`/`noneMatch` cho câu trả lời logic; `findFirst`/`findAny` cho một phần tử; `collect` cho cấu trúc kết quả; `count`, `min`/`max`, `sum` hoặc `reduce` cho phép tổng hợp; `forEach` khi mục đích thực sự là một hành động. Khả năng dừng sớm chỉ có ích khi pipeline có thể cung cấp đủ bằng chứng và không bị bước trước đó chặn lại. Khi chuyển sang Stream song song, phải giữ đúng yêu cầu thứ tự, không phụ thuộc vào trạng thái chia sẻ và đánh giá hiệu năng bằng phép đo thực tế.
+In **JAVA_STREAM_API**, start from the **business question** to choose a terminal: `anyMatch`/`allMatch`/`noneMatch` for logical answers; `findFirst`/`findAny` for a single element; `collect` for result structures; `count`, `min`/`max`, `sum`, or `reduce` for aggregations; and `forEach` when the goal is genuinely an action. Early stopping helps only when the pipeline can supply sufficient proof and is not blocked by an upstream step. When switching to parallel Streams, preserve ordering requirements, avoid shared state, and evaluate performance with real measurements.

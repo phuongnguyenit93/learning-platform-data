@@ -1,54 +1,54 @@
-# Dùng Comparator để sắp xếp và chọn phần tử cực trị
+# Using Comparator to Sort and Select Extreme Elements
 
-Trong Java Stream API, `Comparator<T>` là cách diễn đạt **quy tắc so sánh hai đối tượng cùng kiểu**. Từ một quy tắc đó, ta có thể sắp xếp danh sách bằng `sorted(comparator)`, tìm phần tử nhỏ nhất/lớn nhất bằng `min(comparator)` và `max(comparator)`, hoặc tìm cực trị theo từng nhóm với `Collectors.minBy`/`maxBy`. Điều quan trọng là xác định **khóa so sánh, chiều tăng/giảm, cách phá hòa** và chi phí xử lý trước khi viết pipeline.
+In the Java Stream API, `Comparator<T>` is the way to express **a rule for comparing two objects of the same type**. From a single rule, you can sort a list with `sorted(comparator)`, find the minimum/maximum element with `min(comparator)` and `max(comparator)`, or find extremes per group with `Collectors.minBy`/`maxBy`. The key is to determine the **comparison key, ascending/descending direction, tie-breaking rule**, and processing cost before writing the pipeline.
 
-Bài thuộc chương **Hàm hành vi và kiểu dữ liệu**, module **JAVA_STREAM_API**. Đây là một phần của cách xử lý dữ liệu khai báo bằng pipeline lazy, `filter`, `map`, `reduce` và `collect`; việc hiểu Comparator cũng hữu ích khi chuyển sang grouping, collector tùy chỉnh, xử lý song song hoặc những bài toán có giới hạn về hiệu năng và trạng thái.
+This lesson belongs to the **Behavioral Functions and Types** chapter, **JAVA_STREAM_API** module. It is part of declarative data processing using lazy pipelines, `filter`, `map`, `reduce`, and `collect`; understanding `Comparator` is also useful when moving on to grouping, custom collectors, parallel processing, or problems with performance and state constraints.
 
-## 1. Comparator là gì?
+## 1. What Is a Comparator?
 
-`Comparator<T>` nằm trong `java.util`, là *functional interface* với phương thức:
+`Comparator<T>` lives in `java.util` and is a *functional interface* with the method:
 
 ```java
 int compare(T left, T right);
 ```
 
-Giá trị trả về có ý nghĩa về **dấu**, không phải trị tuyệt đối:
+The return value carries meaning in its **sign**, not its absolute magnitude:
 
-| Kết quả | Ý nghĩa khi sắp xếp tăng dần theo Comparator |
+| Result | Meaning when sorting ascending by Comparator |
 |---|---|
-| Số âm | `left` đứng trước `right` |
-| `0` | Hai phần tử ngang nhau **theo tiêu chí so sánh** |
-| Số dương | `left` đứng sau `right` |
+| Negative number | `left` comes before `right` |
+| `0` | The two elements are equal **according to the comparison criteria** |
+| Positive number | `left` comes after `right` |
 
-Ví dụ tạo Comparator từ lambda:
+Example creating a Comparator from a lambda:
 
 ```java
 Comparator<String> byLength = (a, b) ->
         Integer.compare(a.length(), b.length());
 ```
 
-`Integer.compare` diễn đạt rõ so sánh số nguyên và tránh tràn số do viết `a.length() - b.length()`. Cách phổ biến hơn là khai báo *khóa sắp xếp* qua các factory method:
+`Integer.compare` explicitly expresses integer comparison and avoids integer overflow that writing `a.length() - b.length()` can cause. A more idiomatic approach is declaring a *sort key* via factory methods:
 
 ```java
 Comparator<String> byLength = Comparator.comparingInt(String::length);
 ```
 
-Hai ví dụ đều dùng `Comparator<String>`; biểu thức `String::length` là method reference đóng vai trò hàm lấy khóa từ chuỗi.
+Both examples use `Comparator<String>`; the expression `String::length` is a method reference serving as the key-extraction function from a string.
 
-### Comparator và Comparable
+### Comparator vs. Comparable
 
 | `Comparable<T>` | `Comparator<T>` |
 |---|---|
-| Định nghĩa **thứ tự tự nhiên** của đối tượng qua `compareTo` | Định nghĩa **quy tắc so sánh bên ngoài** qua `compare` |
-| Lớp đối tượng tự triển khai interface | Có thể dùng lambda, method reference và các phương thức của `Comparator` |
-| Phù hợp khi kiểu có thứ tự tự nhiên rõ ràng, ví dụ `Integer`, `String` | Phù hợp khi một kiểu cần nhiều cách sắp xếp: giá, tên, điểm đánh giá... |
-| `stream.sorted()` đòi phần tử có thứ tự tự nhiên phù hợp | `stream.sorted(comparator)` sử dụng quy tắc được truyền vào |
+| Defines an object's **natural ordering** via `compareTo` | Defines an **external comparison rule** via `compare` |
+| The object's class implements the interface itself | Can use lambdas, method references, and `Comparator` helper methods |
+| Suitable when a type has one clear natural order, e.g., `Integer`, `String` | Suitable when a type needs multiple sort orders: price, name, rating... |
+| `stream.sorted()` requires elements with a suitable natural ordering | `stream.sorted(comparator)` uses the supplied rule |
 
-Một lớp `Product` không cần triển khai `Comparable` để vẫn có thể sắp xếp theo giá, mã hay đánh giá bằng nhiều Comparator khác nhau.
+A `Product` class does not need to implement `Comparable` in order to be sorted by price, code, or rating using different Comparators.
 
-## 2. Ví dụ thực tế: sản phẩm trong cửa hàng
+## 2. Practical Example: Products in a Store
 
-Ta có danh sách sản phẩm với mã, tên, nhóm hàng, giá tính bằng đồng và điểm đánh giá. Ví dụ dưới đây chạy với **Java 8 trở lên** và có thể dán vào một tệp `ComparatorStreamDemo.java` để chạy trực tiếp.
+Suppose we have a list of products with code, name, category, price in VND, and rating score. The example below runs on **Java 8 and later** and can be pasted into a `ComparatorStreamDemo.java` file to run directly.
 
 ```java
 import java.util.Arrays;
@@ -89,14 +89,14 @@ public class ComparatorStreamDemo {
 
     public static void main(String[] args) {
         List<Product> products = Arrays.asList(
-                new Product("P01", "Bút", "Văn phòng", 15_000, 4.5),
-                new Product("P02", "Sổ", "Văn phòng", 32_000, 4.8),
-                new Product("P03", "Bìa", "Văn phòng", 15_000, 4.4),
-                new Product("P04", "Túi", "Phụ kiện", 90_000, 4.8),
-                new Product("P05", "Cặp", "Phụ kiện", 32_000, 4.7)
+                new Product("P01", "Pen", "Office", 15_000, 4.5),
+                new Product("P02", "Notebook", "Office", 32_000, 4.8),
+                new Product("P03", "Binder", "Office", 15_000, 4.4),
+                new Product("P04", "Bag", "Accessories", 90_000, 4.8),
+                new Product("P05", "Briefcase", "Accessories", 32_000, 4.7)
         );
 
-        // Giá tăng dần, nếu cùng giá thì mã tăng dần.
+        // Price ascending; if tied on price, code ascending.
         Comparator<Product> priceAscThenCode =
                 Comparator.comparingInt(Product::getPrice)
                         .thenComparing(Product::getCode);
@@ -104,22 +104,22 @@ public class ComparatorStreamDemo {
         List<Product> priceSorted = products.stream()
                 .sorted(priceAscThenCode)
                 .collect(Collectors.toList());
-        System.out.println("Giá tăng: " + priceSorted);
-        // Giá tăng: [P01, P03, P02, P05, P04]
+        System.out.println("Price ascending: " + priceSorted);
+        // Price ascending: [P01, P03, P02, P05, P04]
 
         Optional<Product> cheapest = products.stream()
                 .min(priceAscThenCode);
         Optional<Product> mostExpensive = products.stream()
                 .max(priceAscThenCode);
 
-        System.out.println("Rẻ nhất: " +
-                cheapest.map(Product::getCode).orElse("(không có)"));
-        System.out.println("Đắt nhất: " +
-                mostExpensive.map(Product::getCode).orElse("(không có)"));
-        // Rẻ nhất: P01
-        // Đắt nhất: P04
+        System.out.println("Cheapest: " +
+                cheapest.map(Product::getCode).orElse("(none)"));
+        System.out.println("Most expensive: " +
+                mostExpensive.map(Product::getCode).orElse("(none)"));
+        // Cheapest: P01
+        // Most expensive: P04
 
-        // Điểm đánh giá giảm dần, giá tăng dần, mã tăng dần.
+        // Rating descending, price ascending, code ascending.
         Comparator<Product> bestRatedFirst =
                 Comparator.comparingDouble(Product::getRating)
                         .reversed()
@@ -129,8 +129,8 @@ public class ComparatorStreamDemo {
         List<Product> ranked = products.stream()
                 .sorted(bestRatedFirst)
                 .collect(Collectors.toList());
-        System.out.println("Xếp hạng: " + ranked);
-        // Xếp hạng: [P02, P04, P05, P01, P03]
+        System.out.println("Ranked: " + ranked);
+        // Ranked: [P02, P04, P05, P01, P03]
 
         Map<String, Optional<Product>> cheapestPerCategory =
                 products.stream().collect(
@@ -140,31 +140,31 @@ public class ComparatorStreamDemo {
 
         cheapestPerCategory.forEach((category, product) ->
                 System.out.println(category + ": " +
-                        product.map(Product::getCode).orElse("(không có)")));
-        // Văn phòng: P01; Phụ kiện: P05
-        // Thứ tự in các nhóm không được bảo đảm.
+                        product.map(Product::getCode).orElse("(none)")));
+        // Office: P01; Accessories: P05
+        // Group printing order is not guaranteed.
     }
 }
 ```
 
-Các điểm cần đọc từ ví dụ:
+Key points to read from this example:
 
-- Cả `sorted`, `min` và `max` đều sử dụng **cùng quy tắc giá tăng, mã tăng**; không cần tự viết ba thuật toán riêng.
-- P01 và P03 đều có giá 15.000, nhưng `thenComparing(Product::getCode)` chọn P01 đứng trước P03. Điều này giúp thứ tự và phần tử cực trị được xác định rõ khi khóa chính bằng nhau.
-- P02 và P04 cùng đánh giá 4,8. Trong Comparator xếp hạng, giá là khóa phụ tăng dần nên P02 đứng trước P04.
-- `groupingBy(..., minBy(...))` tìm sản phẩm có khóa nhỏ nhất **trong từng nhóm**. Kiểu kết quả của `minBy` là `Optional<Product>`.
+- `sorted`, `min`, and `max` all reuse **the same price-ascending, code-ascending rule**; you do not need to write three separate algorithms.
+- P01 and P03 both cost 15,000, yet `thenComparing(Product::getCode)` places P01 before P03. This makes order and extreme elements deterministic when primary keys tie.
+- P02 and P04 share a rating of 4.8. In the ranking Comparator, price is an ascending secondary key, so P02 comes before P04.
+- `groupingBy(..., minBy(...))` finds the product with the smallest key **within each group**. The result value type of `minBy` is `Optional<Product>`.
 
-## 3. Sắp xếp với Stream.sorted
+## 3. Sorting with Stream.sorted
 
-`sorted()` là **thao tác trung gian có trạng thái** (*stateful intermediate operation*). Nó mô tả thứ tự kết quả và chỉ thực hiện khi pipeline có một terminal operation phù hợp. Với dữ liệu hữu hạn thông thường, việc sắp xếp cần thu thập/quan sát các phần tử để xác định thứ tự.
+`sorted()` is a **stateful intermediate operation**. It describes the output order and only executes when the pipeline has an appropriate terminal operation. For ordinary finite data, sorting must collect/inspect elements to determine order.
 
-Hai dạng thường gặp:
+Two common forms:
 
 ```java
 List<Integer> numbers = Arrays.asList(9, 2, 7, 2);
 
 List<Integer> ascending = numbers.stream()
-        .sorted() // Thứ tự tự nhiên: [2, 2, 7, 9]
+        .sorted() // Natural order: [2, 2, 7, 9]
         .collect(Collectors.toList());
 
 List<Integer> descending = numbers.stream()
@@ -172,50 +172,50 @@ List<Integer> descending = numbers.stream()
         .collect(Collectors.toList());
 ```
 
-Đối tượng không có `Comparable` hoặc cần so sánh theo tiêu chí khác thứ tự tự nhiên thì truyền Comparator vào `sorted(comparator)`.
+For objects that do not implement `Comparable` or need ordering by criteria other than natural order, pass a Comparator to `sorted(comparator)`.
 
-### 3.1. Chọn khóa bằng comparing và thenComparing
+### 3.1. Choosing Keys with comparing and thenComparing
 
-| Cách tạo Comparator | Ý nghĩa |
+| Comparator creation | Meaning |
 |---|---|
-| `Comparator.comparing(Product::getName)` | Theo tên, dùng thứ tự tự nhiên của `String` |
-| `Comparator.comparingInt(Product::getPrice)` | Theo giá kiểu `int`, tránh boxing khóa |
-| `Comparator.comparingLong(...)` | Theo khóa kiểu `long` |
-| `Comparator.comparingDouble(Product::getRating)` | Theo đánh giá kiểu `double` |
-| `comparator.thenComparing(Product::getCode)` | Nếu khóa trước bằng nhau, so tiếp bằng mã |
-| `comparator.reversed()` | Đảo chiều **toàn bộ** Comparator hiện có |
+| `Comparator.comparing(Product::getName)` | By name, using `String`'s natural order |
+| `Comparator.comparingInt(Product::getPrice)` | By `int` price, avoiding key boxing |
+| `Comparator.comparingLong(...)` | By `long` key |
+| `Comparator.comparingDouble(Product::getRating)` | By `double` rating |
+| `comparator.thenComparing(Product::getCode)` | If previous key ties, compare further by code |
+| `comparator.reversed()` | Reverses the direction of the **entire** Comparator built so far |
 
-Khi dùng `Comparator.comparing(keyExtractor)`, `keyExtractor` thường là một `Function<T, U>`; còn `comparingInt`, `comparingLong`, `comparingDouble` nhận các hàm lấy khóa nguyên thủy như `ToIntFunction<T>`. Điều này liên kết Comparator với nhóm **kiểu hàm hành vi** trong Java.
+When using `Comparator.comparing(keyExtractor)`, `keyExtractor` is typically a `Function<T, U>`; while `comparingInt`, `comparingLong`, and `comparingDouble` accept primitive key extractors such as `ToIntFunction<T>`. This connects `Comparator` with Java's family of **behavioral function types**.
 
-### 3.2. Vị trí gọi reversed rất quan trọng
+### 3.2. Where You Call reversed Matters Greatly
 
-Giả sử hai sản phẩm cùng giá và ta muốn **giá giảm nhưng mã vẫn tăng**:
+Suppose two products have the same price and we want **price descending, yet code still ascending**:
 
 ```java
 Comparator<Product> priceDescCodeAsc =
         Comparator.comparingInt(Product::getPrice)
                 .reversed()
                 .thenComparing(Product::getCode);
-// Giá giảm; các sản phẩm cùng giá có mã tăng.
+// Price descending; products with the same price are ordered by code ascending.
 ```
 
-Nếu viết khác vị trí:
+If written in a different order:
 
 ```java
 Comparator<Product> priceDescCodeDesc =
         Comparator.comparingInt(Product::getPrice)
                 .thenComparing(Product::getCode)
                 .reversed();
-// Đảo cả quy tắc giá và quy tắc mã: hai khóa đều giảm.
+// Reverses both the price rule and the code rule: both keys are descending.
 ```
 
-`reversed()` tác động lên **Comparator đã được tạo đến thời điểm gọi nó**. Sự khác nhau thường chỉ lộ ra khi có nhiều bản ghi trùng khóa chính; vì vậy dữ liệu kiểm thử sắp xếp nên có trường hợp hòa.
+`reversed()` applies to **the Comparator constructed up to the point where it is called**. The difference often only shows up when multiple records share the same primary key; therefore, sorting test data should include tied cases.
 
-### 3.3. Thứ tự ổn định và dữ liệu bằng nhau theo Comparator
+### 3.3. Stable Ordering and Ties According to the Comparator
 
-Với Stream có *encounter order* (ví dụ Stream từ `List`), `sorted` **ổn định** (*stable*): những phần tử có `compare(a, b) == 0` giữ nguyên thứ tự gặp ban đầu. Với Stream không có encounter order, không có cam kết ổn định tương tự.
+For Streams with an *encounter order* (such as a Stream from a `List`), `sorted` is **stable**: elements with `compare(a, b) == 0` preserve their original encounter order. For Streams without an encounter order, no such stability guarantee exists.
 
-Tuy vậy, điều này chỉ nói về `sorted`. Không nên dựa vào “phần tử xuất hiện trước trong danh sách” khi gọi `min`/`max` với nhiều đối tượng có cùng khóa cực trị. Nếu nghiệp vụ cần chọn chính xác một bản ghi, hãy xây dựng khóa phụ mang tính quyết định, chẳng hạn mã duy nhất:
+Still, this only applies to `sorted`. Do not rely on "whichever element appeared first in the list" when calling `min`/`max` with multiple objects sharing the extreme key. If business logic requires selecting one exact record, construct a deterministic secondary key such as a unique code:
 
 ```java
 Comparator<Product> byPriceThenCode =
@@ -223,11 +223,11 @@ Comparator<Product> byPriceThenCode =
                 .thenComparing(Product::getCode);
 ```
 
-Đây cũng là cách dễ bảo đảm kết quả không phụ thuộc vào sự khác biệt của thứ tự duyệt trong một pipeline song song.
+This is also the easiest way to ensure results do not depend on differences in traversal order inside a parallel pipeline.
 
-## 4. Tìm cực trị bằng min và max
+## 4. Finding Extremes with min and max
 
-`Stream.min(comparator)` và `Stream.max(comparator)` là **thao tác kết thúc**. Chúng lần lượt chọn phần tử nhỏ nhất/lớn nhất **theo chính Comparator truyền vào**, và trả về `Optional<T>` vì nguồn có thể rỗng.
+`Stream.min(comparator)` and `Stream.max(comparator)` are **terminal operations**. They select the smallest/largest element **according to the supplied Comparator**, respectively, and return `Optional<T>` because the source might be empty.
 
 ```java
 Optional<Integer> smallest = Arrays.asList(8, 3, 11)
@@ -243,11 +243,11 @@ Optional<Integer> absent = Collections.<Integer>emptyList()
         .min(Integer::compare); // Optional.empty
 ```
 
-Ví dụ này cần `import java.util.Collections;` cùng các import tương ứng. Không gọi `get()` trên một Optional khi chưa kiểm tra có giá trị; ưu tiên `ifPresent`, `orElse`, `orElseGet` hoặc `orElseThrow` khi vắng dữ liệu là lỗi nghiệp vụ.
+This snippet requires `import java.util.Collections;` along with the corresponding imports. Do not call `get()` on an `Optional` without checking for presence; prefer `ifPresent`, `orElse`, `orElseGet`, or `orElseThrow` when missing data is a business error.
 
-### 4.1. max và min luôn theo chiều của Comparator
+### 4.1. max and min Always Follow the Comparator's Direction
 
-Đây là lỗi rất thường gặp:
+This is a very common mistake:
 
 ```java
 Comparator<Product> priceDescending =
@@ -255,45 +255,45 @@ Comparator<Product> priceDescending =
 
 Optional<Product> firstInDescendingOrder =
         products.stream().min(priceDescending);
-// Chọn giá cao nhất theo nghĩa nghiệp vụ.
+// Picks the highest price in business terms.
 
 Optional<Product> lastInDescendingOrder =
         products.stream().max(priceDescending);
-// Chọn giá thấp nhất theo nghĩa nghiệp vụ.
+// Picks the lowest price in business terms.
 ```
 
-Vì Comparator đã đảo chiều, **phần tử nhỏ nhất theo Comparator** lại là sản phẩm có giá lớn nhất. Cách dễ đọc hơn khi chỉ muốn giá lớn nhất là giữ Comparator tăng dần và gọi `max(Comparator.comparingInt(Product::getPrice))`.
+Because the Comparator is reversed, the **minimum element according to the Comparator** is actually the product with the highest price. A more readable approach when you only want the highest price is to keep the Comparator ascending and call `max(Comparator.comparingInt(Product::getPrice))`.
 
-Nếu muốn “sản phẩm đứng đầu bảng xếp hạng” trong ví dụ `bestRatedFirst`, hãy dùng `min(bestRatedFirst)` hoặc `sorted(bestRatedFirst).findFirst()`. Cách thứ nhất tránh việc sắp xếp toàn bộ khi chỉ cần một phần tử.
+If you want the "top-ranked product" in the `bestRatedFirst` example, use `min(bestRatedFirst)` or `sorted(bestRatedFirst).findFirst()`. The first approach avoids sorting the entire stream when only one element is needed.
 
-### 4.2. min/max hay sorted(...).findFirst()?
+### 4.2. min/max or sorted(...).findFirst()?
 
 ```java
-// Chỉ cần một phần tử rẻ nhất:
+// Only need the single cheapest element:
 Optional<Product> cheapest = products.stream()
         .min(Comparator.comparingInt(Product::getPrice));
 
-// Cần toàn bộ danh sách theo thứ tự giá:
+// Need the entire list ordered by price:
 List<Product> sortedByPrice = products.stream()
         .sorted(Comparator.comparingInt(Product::getPrice))
         .collect(Collectors.toList());
 ```
 
-Với `n` phần tử và phép so sánh có chi phí coi như hằng số:
+For `n` elements and a constant-cost comparison:
 
-| Nhu cầu | Cách làm | Chi phí điển hình |
+| Need | Approach | Typical cost |
 |---|---|---|
-| Lấy một phần tử cực trị | `min` hoặc `max` | `O(n)` phép so sánh; không cần giữ danh sách đã sắp xếp |
-| Sắp xếp toàn bộ để hiển thị | `sorted` rồi `collect` | Thường `O(n log n)` thời gian, thêm bộ nhớ cho việc sắp xếp |
-| Lấy `k` phần tử đầu theo thứ tự | `sorted(comparator).limit(k)` | Gọn và đúng cho nguồn hữu hạn, nhưng không mặc nhiên có chi phí `O(n log k)` |
+| Get one extreme element | `min` or `max` | `O(n)` comparisons; no need to retain a sorted list |
+| Sort everything for display | `sorted` then `collect` | Typically `O(n log n)` time, plus memory for sorting |
+| Get top `k` elements in order | `sorted(comparator).limit(k)` | Concise and correct for finite sources, but not automatically `O(n log k)` cost |
 
-Với tập cực lớn và chỉ cần `k` phần tử đứng đầu, một cấu trúc heap giới hạn kích thước có thể hiệu quả hơn sắp xếp toàn bộ. Không mặc định rằng đặt `limit(k)` sau `sorted` sẽ khiến Stream tự tối ưu thành thuật toán top-k.
+For huge datasets where only the top `k` elements are needed, a bounded heap structure can be more efficient than sorting everything. Do not assume that placing `limit(k)` after `sorted` makes the Stream automatically optimize into a top-k algorithm.
 
-Các phép duyệt như `min`, `max` và `sorted` cần tiêu thụ nguồn để biết kết quả; nguồn vô hạn có thể khiến phép tính không kết thúc. Việc thêm `limit` **trước** `sorted` giới hạn số đầu vào nhưng cũng thay đổi ý nghĩa: lúc đó chỉ chọn trong số phần tử đầu đã lấy.
+Traversal operations like `min`, `max`, and `sorted` must consume the source to know the result; an infinite source can cause computation never to terminate. Adding `limit` **before** `sorted` caps the input count, yet also changes the semantics: it then selects only among the first elements taken.
 
-## 5. Cực trị theo nhóm với Collectors.minBy/maxBy
+## 5. Per-Group Extremes with Collectors.minBy/maxBy
 
-Khi bài toán là “rẻ nhất **trong mỗi danh mục**” hoặc “đánh giá cao nhất **theo nhà cung cấp**”, một `min`/`max` đơn lẻ không đủ vì nó trả một kết quả cho toàn Stream. Dùng downstream collector:
+When the problem is "cheapest **in each category**" or "highest rated **by supplier**", a single `min`/`max` is insufficient because it returns one result for the whole Stream. Use a downstream collector:
 
 ```java
 Comparator<Product> byPriceThenCode =
@@ -307,9 +307,9 @@ Map<String, Optional<Product>> cheapestByCategory =
                         Collectors.minBy(byPriceThenCode)));
 ```
 
-`groupingBy` tạo các nhóm theo `category`, còn `minBy` chọn cực trị **trong từng nhóm**. Giá trị là `Optional<Product>` theo hợp đồng của collector, dù một nhóm được tạo từ các phần tử đầu vào thường không rỗng.
+`groupingBy` creates groups by `category`, while `minBy` picks the extreme **within each group**. The value type is `Optional<Product>` per the collector's contract, even though a group formed from input elements is normally non-empty.
 
-Tìm sản phẩm có điểm đánh giá cao nhất theo nhóm:
+Finding the highest-rated product per group:
 
 ```java
 Comparator<Product> byRatingThenCode =
@@ -323,15 +323,15 @@ Map<String, Optional<Product>> highestRatedByCategory =
                         Collectors.maxBy(byRatingThenCode)));
 ```
 
-Với quy tắc `byRatingThenCode`, nếu cùng điểm thì mã **lớn hơn** được chọn bởi `max`. Nếu nghiệp vụ muốn khi điểm bằng nhau chọn mã **nhỏ hơn**, phải điều chỉnh khóa phụ thay vì kỳ vọng `max` “tự lấy bản ghi đầu tiên”.
+With the `byRatingThenCode` rule, on equal ratings the **larger** code is chosen by `max`. If the business rule wants the **smaller** code on tied ratings, adjust the secondary key rather than expecting `max` to "pick the first record automatically".
 
-Các collector như `minBy`/`maxBy` cũng phù hợp với mô hình xử lý khai báo; không cần tự chia nhóm rồi viết vòng lặp duyệt từng nhóm.
+Collectors like `minBy`/`maxBy` also fit the declarative processing model; there is no need to group manually and write loops over each group.
 
-## 6. Xử lý null và dữ liệu đặc biệt
+## 6. Handling Nulls and Special Data
 
-Vì `Comparator.comparing(Product::getName)` cần khóa so sánh, giá trị `null` có thể gây `NullPointerException`. `Comparator.nullsFirst` và `Comparator.nullsLast` thể hiện rõ thứ tự mong muốn.
+Because `Comparator.comparing(Product::getName)` needs a comparison key, a `null` value can throw `NullPointerException`. `Comparator.nullsFirst` and `Comparator.nullsLast` explicitly state the desired order.
 
-**Khóa tên có thể null, nhưng bản thân Product khác null:**
+**The name key may be null, while the Product itself is non-null:**
 
 ```java
 Comparator<Product> byNullableName =
@@ -340,7 +340,7 @@ Comparator<Product> byNullableName =
                 Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
 ```
 
-**Phần tử Product trong Stream có thể null:**
+**Product elements in the Stream may be null:**
 
 ```java
 Comparator<Product> byPriceWithNullProducts =
@@ -348,59 +348,59 @@ Comparator<Product> byPriceWithNullProducts =
                 Comparator.comparingInt(Product::getPrice));
 ```
 
-Hai trường hợp khác nhau: cách thứ nhất xử lý **khóa trả về từ getter**; cách thứ hai xử lý **đối tượng đem so sánh**. Nếu cả đối tượng lẫn khóa có thể null, có thể kết hợp hai lớp Comparator tương ứng.
+These two cases differ: the first handles **the key returned by the getter**; the second handles **the object being compared**. If both the object and the key can be null, you can combine both Comparator layers accordingly.
 
-Đối với tiền tệ, nếu lưu bằng `BigDecimal`, có thể dùng `Comparator.comparing(Product::getAmount)` khi phương thức `getAmount()` trả `BigDecimal` không null; `BigDecimal.compareTo` so giá trị số theo thứ tự tự nhiên. Lưu ý hai `BigDecimal` có thể so sánh bằng `0` dù `equals` khác nhau vì thang đo (*scale*) khác.
+For currency stored as `BigDecimal`, you can use `Comparator.comparing(Product::getAmount)` when `getAmount()` returns a non-null `BigDecimal`; `BigDecimal.compareTo` compares numeric values in natural order. Note that two `BigDecimal` values can compare as `0` even if `equals` differs due to different *scales*.
 
-Đối với khóa `double`, `comparingDouble` sử dụng quy tắc của `Double.compare`, trong đó `NaN` và `-0.0` có quy tắc thứ tự riêng. Nếu điểm đánh giá không được phép mang những giá trị này, hãy kiểm tra/chuẩn hóa dữ liệu theo quy tắc nghiệp vụ trước khi sắp xếp.
+For `double` keys, `comparingDouble` uses `Double.compare` rules, where `NaN` and `-0.0` have specific ordering rules. If ratings are not allowed to hold these values, validate/normalize data per business rules before sorting.
 
-## 7. Hợp đồng Comparator và các lỗi khó thấy
+## 7. Comparator Contract and Subtle Bugs
 
-Comparator đúng cần tuân thủ các quy tắc nhất quán, bao gồm:
+A correct Comparator must uphold consistency rules, including:
 
-1. **Đối xứng về dấu:** dấu của `compare(a, b)` phải đối lập dấu của `compare(b, a)`.
-2. **Bắc cầu:** nếu `a > b` và `b > c` theo Comparator thì `a > c`.
-3. **Nhất quán khi so sánh bằng 0:** nếu `compare(a, b) == 0` thì hai đối tượng phải cho cùng quan hệ thứ tự với một đối tượng thứ ba bất kỳ.
+1. **Antisymmetry of sign:** the sign of `compare(a, b)` must be the opposite of `compare(b, a)`.
+2. **Transitivity:** if `a > b` and `b > c` under the Comparator, then `a > c`.
+3. **Consistency with equivalence (`0`):** if `compare(a, b) == 0`, both objects must have the same ordering relation with any third object.
 
-`compare(a, b) == 0` **không bắt buộc** đồng nghĩa `a.equals(b)`, nhưng nên hiểu hệ quả. Ví dụ `TreeSet` dựa vào Comparator để quyết định hai phần tử trùng nhau theo thứ tự, nên hai đối tượng khác nhau nhưng so bằng 0 có thể bị coi là cùng phần tử trong `TreeSet`. Trong `Stream.sorted`, chúng vẫn là hai phần tử của Stream nếu nguồn chứa cả hai.
+`compare(a, b) == 0` **does not have to** imply `a.equals(b)`, yet you should understand the consequences. For example, `TreeSet` relies on its Comparator to decide whether two elements are order-duplicates, so two distinct objects comparing as `0` may be treated as the same element in a `TreeSet`. In `Stream.sorted`, they remain two elements in the Stream if the source contains both.
 
-Các lỗi phổ biến:
+Common mistakes:
 
 ```java
-// KHÔNG NÊN: phép trừ có thể tràn int.
+// AVOID: subtraction can overflow int.
 Comparator<Product> unsafe = (a, b) -> a.getPrice() - b.getPrice();
 
-// NÊN: so sánh số nguyên có hợp đồng rõ ràng.
+// PREFER: integer comparison with a clear contract.
 Comparator<Product> safe =
         Comparator.comparingInt(Product::getPrice);
 ```
 
-- Không dùng Comparator trả kết quả ngẫu nhiên, phụ thuộc đồng hồ, hoặc đọc dữ liệu có thể bị sửa trong lúc sắp xếp.
-- Tránh tự thêm side effect như ghi vào danh sách dùng chung trong Comparator. Một phép so sánh có thể được gọi nhiều lần, không có cam kết thứ tự gọi và có thể chạy trong các worker khác nhau nếu Stream song song.
-- Không kỳ vọng kết quả đúng từ quy tắc không bắc cầu hoặc thứ tự thay đổi giữa chừng; thuật toán sắp xếp có thể cho kết quả vô nghĩa hoặc ném `IllegalArgumentException` trong một số trường hợp vi phạm hợp đồng.
-- Không gọi `sorted()` không tham số trên kiểu thiếu thứ tự tự nhiên phù hợp; lỗi có thể chỉ bộc lộ khi terminal operation thực thi.
+- Do not use a Comparator that returns random results, depends on the clock, or reads data that can be mutated during sorting.
+- Avoid adding side effects such as writing to a shared list inside a Comparator. A comparison may be called multiple times, with no guaranteed call order, and may run across different workers in a parallel Stream.
+- Do not expect valid results from non-transitive rules or ordering that changes mid-sort; sorting algorithms can produce nonsensical results or throw `IllegalArgumentException` in certain contract violations.
+- Do not call zero-argument `sorted()` on types lacking an appropriate natural ordering; the error may only surface when the terminal operation executes.
 
-## 8. Comparator trong pipeline song song
+## 8. Comparator in Parallel Pipelines
 
-`products.parallelStream().sorted(comparator)` vẫn sắp xếp theo quy tắc Comparator; với nguồn có encounter order, `sorted` tiếp tục có bảo đảm ổn định. Nhưng song song **không tự động nhanh hơn**:
+`products.parallelStream().sorted(comparator)` still sorts according to the Comparator rule; for sources with an encounter order, `sorted` continues to guarantee stability. Yet parallel execution is **not automatically faster**:
 
-- Sắp xếp và ghép các phần kết quả phát sinh chi phí điều phối, bộ nhớ và đồng bộ.
-- Comparator cần an toàn khi được gọi từ nhiều worker. Nên dùng hàm thuần, lấy khóa từ đối tượng không đổi trong lúc xử lý.
-- Nếu các phần tử khác nhau có khóa so sánh bằng nhau, `min`/`max` không nên được dùng để ngầm chọn phần tử “đến trước”. Bổ sung khóa phụ duy nhất khi cần kết quả xác định.
-- `sorted(comparator).forEach(...)` trên Stream song song **không bảo đảm thứ tự hành động** do `forEach` không bảo đảm encounter order. Dùng `forEachOrdered(...)` nếu thực sự cần thứ tự, dù điều đó có thể giảm lợi thế song song.
+- Sorting and merging partial results incurs coordination, memory, and synchronization overhead.
+- The Comparator must be safe when called from multiple workers. Use pure functions extracting keys from objects that do not change during processing.
+- If distinct elements have equal comparison keys, `min`/`max` must not be relied upon to implicitly pick the "first-arriving" element. Add a unique secondary key when deterministic results are needed.
+- `sorted(comparator).forEach(...)` on a parallel Stream **does not guarantee action order** because `forEach` does not preserve encounter order. Use `forEachOrdered(...)` if ordering is truly needed, even though it may reduce parallel gains.
 
-Đối với tập dữ liệu nhỏ và phép lấy khóa rẻ, hãy bắt đầu với Stream tuần tự. Chỉ cân nhắc song song khi khối lượng đủ lớn, kiểm tra dữ liệu đầu vào, tính đúng của Comparator và đo hiệu năng thực tế.
+For small datasets and cheap key extractors, start with a sequential Stream. Only consider parallelism when data volume is large enough, after checking input data, Comparator correctness, and measuring actual performance.
 
-## 9. Bài tập vận dụng
+## 9. Practice Exercises
 
-Cho một danh sách `Product` như ở ví dụ chính:
+Given a `Product` list as in the main example:
 
-1. **Sắp xếp theo giá giảm, cùng giá theo mã tăng.** Gợi ý: `Comparator.comparingInt(Product::getPrice).reversed().thenComparing(Product::getCode)`. Đáp án mã: `[P04, P02, P05, P01, P03]`.
-2. **Chọn sản phẩm rẻ nhất có điểm từ 4,6 trở lên.** Dùng `filter(p -> p.getRating() >= 4.6)` rồi `min(byPriceThenCode)`. Kết quả: P02 (P05 cùng giá nhưng mã lớn hơn).
-3. **Lấy hai sản phẩm đầu bảng theo điểm giảm và giá tăng.** Dùng `sorted(bestRatedFirst).limit(2)`. Kết quả: `[P02, P04]`.
-4. **Tìm sản phẩm đắt nhất trong từng danh mục.** Dùng `groupingBy(Product::getCategory, maxBy(byPriceThenCode))`. Với dữ liệu mẫu: Văn phòng → P02, Phụ kiện → P04.
-5. **Nếu danh sách rỗng thì điều gì xảy ra?** `min`/`max` trả `Optional.empty()`; còn `sorted(...).collect(toList())` trả danh sách rỗng.
+1. **Sort by price descending, then code ascending on ties.** Hint: `Comparator.comparingInt(Product::getPrice).reversed().thenComparing(Product::getCode)`. Expected codes: `[P04, P02, P05, P01, P03]`.
+2. **Pick the cheapest product with rating 4.6 or higher.** Use `filter(p -> p.getRating() >= 4.6)` then `min(byPriceThenCode)`. Result: P02 (P05 has the same price but a larger code).
+3. **Take the top two products by rating descending and price ascending.** Use `sorted(bestRatedFirst).limit(2)`. Result: `[P02, P04]`.
+4. **Find the most expensive product in each category.** Use `groupingBy(Product::getCategory, maxBy(byPriceThenCode))`. With sample data: Office → P02, Accessories → P04.
+5. **What happens if the list is empty?** `min`/`max` return `Optional.empty()`; while `sorted(...).collect(toList())` returns an empty list.
 
-## 10. Ghi nhớ khi thiết kế pipeline
+## 10. Takeaways When Designing Pipelines
 
-Khi cần thứ tự hiển thị, hãy mô tả thứ tự bằng `Comparator.comparing...`, kết hợp khóa bằng `thenComparing` rồi dùng `sorted(comparator)`. Khi chỉ cần **một** phần tử nhỏ nhất/lớn nhất, dùng `min` hoặc `max` để tránh sắp xếp không cần thiết. Khi cần cực trị **theo nhóm**, kết hợp `groupingBy` với `Collectors.minBy`/`maxBy`. Trong mọi trường hợp, hãy xác định chiều của Comparator, cách phá hòa, dữ liệu null, hợp đồng so sánh, khả năng giữ trạng thái và chi phí của pipeline.
+When you need display ordering, describe the order with `Comparator.comparing...`, chain keys with `thenComparing`, and use `sorted(comparator)`. When you only need **one** smallest/largest element, use `min` or `max` to avoid unnecessary sorting. When you need extremes **per group**, combine `groupingBy` with `Collectors.minBy`/`maxBy`. In all cases, clarify Comparator direction, tie-breaking, null data, comparison contracts, statefulness, and pipeline cost.

@@ -1,20 +1,20 @@
-# Reflection: `isAssignableFrom`, `cast` và `asSubclass`
+# Reflection: `isAssignableFrom`, `cast`, and `asSubclass`
 
-Ba phương thức của `java.lang.Class` giúp xử lý **tương thích kiểu tại runtime** khi lớp hoặc đối tượng chỉ được biết sau khi chương trình chạy, chẳng hạn khi nạp plugin, chọn implementation theo cấu hình hay xử lý kết quả từ reflection. Chúng liên quan nhau nhưng trả lời **ba câu hỏi khác nhau**:
+Three methods on `java.lang.Class` help handle **type compatibility at runtime** when a class or object is only known after the program starts running, such as when loading plugins, selecting implementations from configuration, or processing results from reflection. They are related, yet they answer **three different questions**:
 
-| Phương thức | Câu hỏi | Đầu vào | Kết quả |
+| Method | Question | Input | Result |
 | --- | --- | --- | --- |
-| `target.isAssignableFrom(source)` | Giá trị mang kiểu `source` có thể gán cho biến kiểu `target` không? | `Class<?>` | `boolean` |
-| `target.cast(object)` | Đối tượng `object` có phù hợp với kiểu `target` không? | `Object` | Đối tượng được kiểm tra và trả về với kiểu `T`, hoặc ném `ClassCastException` |
-| `candidate.asSubclass(base)` | Kiểu `candidate` có thể được xem là lớp con/kiểu triển khai của `base` không? | `Class<U>` | Chính token `Class` hiện tại với kiểu tĩnh `Class<? extends U>`, hoặc ném `ClassCastException` |
+| `target.isAssignableFrom(source)` | Can a value of type `source` be assigned to a variable of type `target`? | `Class<?>` | `boolean` |
+| `target.cast(object)` | Is `object` compatible with type `target`? | `Object` | The checked object returned with type `T`, or throws `ClassCastException` |
+| `candidate.asSubclass(base)` | Can type `candidate` be viewed as a subclass/implementation type of `base`? | `Class<U>` | The same current `Class` token with static type `Class<? extends U>`, or throws `ClassCastException` |
 
-Điểm chung là chúng dựa trên **danh tính kiểu ở runtime** và quan hệ kế thừa/triển khai thực tế. Chúng không tạo đối tượng mới, không ép kiểu dữ liệu theo nghĩa chuyển giá trị, và không thay thế việc kiểm tra generic type arguments.
+What they have in common is that they rely on **runtime type identity** and actual inheritance/implementation relationships. They do not create new objects, do not convert data in the sense of value conversion, and do not replace checking generic type arguments.
 
-## 1. Nền tảng: `Class<T>` là token kiểu
+## 1. Foundation: `Class<T>` Is a Type Token
 
-Ví dụ `String.class` có kiểu tĩnh `Class<String>`; `Runnable.class` là `Class<Runnable>`. Khi tên lớp chỉ có ở runtime, chẳng hạn sau `Class.forName("...")`, ta thường chỉ có `Class<?>`: biết có một kiểu cụ thể nhưng chưa biết đó là kiểu nào lúc biên dịch.
+For example, `String.class` has static type `Class<String>`; `Runnable.class` is `Class<Runnable>`. When a class name is only known at runtime—such as after `Class.forName("...")`—we typically only have `Class<?>`: we know there is a concrete type, but do not know which type it is at compile time.
 
-Giả sử:
+Suppose:
 
 ~~~java
 interface Task {}
@@ -22,128 +22,128 @@ class EmailTask implements Task {}
 class Other {}
 ~~~
 
-Các quan hệ sau là hợp lệ:
+The following relationships are valid:
 
 ~~~java
 Task task = new EmailTask();   // widening reference conversion
-Object value = task;           // upcast hợp lệ
+Object value = task;           // valid upcast
 ~~~
 
-Ngược lại, `EmailTask task = (EmailTask) someTask` cần kiểm tra giá trị thực tại runtime. Với reflection, ta cần kiểm tra quan hệ này thông qua `Class`, vì không phải lúc nào tên kiểu cũng được biết ở compile time.
+Conversely, `EmailTask task = (EmailTask) someTask` requires checking the actual value at runtime. With reflection, we need to check this relationship through `Class`, because the type name is not always known at compile time.
 
-## 2. `Class.isAssignableFrom(Class<?>)`: kiểm tra quan hệ hai kiểu
+## 2. `Class.isAssignableFrom(Class<?>)`: Checking the Relationship Between Two Types
 
-Cú pháp:
+Syntax:
 
 ~~~java
 boolean accepted = Target.class.isAssignableFrom(Source.class);
 ~~~
 
-**Đọc từ phải sang trái:** “Một giá trị kiểu `Source` có gán được vào biến kiểu `Target` hay không?”. Gọi trên **kiểu đích** và truyền **kiểu nguồn**. Phương thức trả về `true` khi hai kiểu giống nhau hoặc nguồn có thể chuyển sang đích bằng **identity conversion** hay **widening reference conversion**; không tính những chuyển đổi cần cast thu hẹp kiểu.
+**Read from right to left:** "Can a value of type `Source` be assigned to a variable of type `Target`?". Call it on the **target type** and pass the **source type**. The method returns `true` when both types are identical or the source can be converted to the target via **identity conversion** or **widening reference conversion**; it does not count conversions requiring a narrowing cast.
 
 ~~~java
 Task.class.isAssignableFrom(EmailTask.class);   // true: implements Task
-EmailTask.class.isAssignableFrom(Task.class);   // false: chiều ngược
-Task.class.isAssignableFrom(Task.class);        // true: cùng kiểu
-Object.class.isAssignableFrom(Task.class);      // true: interface cũng quy chiếu được đến Object
+EmailTask.class.isAssignableFrom(Task.class);   // false: reverse direction
+Task.class.isAssignableFrom(Task.class);        // true: same type
+Object.class.isAssignableFrom(Task.class);      // true: interface also widens to Object
 Runnable.class.isAssignableFrom(Thread.class); // true: Thread implements Runnable
 ~~~
 
-Một lớp có thể triển khai nhiều interface, nên quan hệ tương thích kiểu rộng hơn chuỗi `extends`. Không cần đối tượng `new EmailTask()` để thực hiện phép kiểm tra này.
+A class can implement multiple interfaces, so type compatibility is broader than an `extends` chain. You do not need an instance `new EmailTask()` to perform this check.
 
-### Khi nào nên dùng?
+### When should you use it?
 
-Khi duyệt `Class<?>` nhận được từ scan classpath, plugin registry hoặc `Class.forName`, kiểm tra nó có đáp ứng contract mong muốn trước khi đăng ký:
+When iterating over `Class<?>` obtained from classpath scanning, a plugin registry, or `Class.forName`, check whether it satisfies the desired contract before registering it:
 
 ~~~java
 Class<?> candidate = EmailTask.class;
 if (Task.class.isAssignableFrom(candidate)) {
-    // candidate mang kiểu Task hoặc một subtype/implementation tương thích.
+    // candidate has type Task or a compatible subtype/implementation.
 }
 ~~~
 
-Đây chỉ là kiểm tra **kiểu**. Một lớp phù hợp vẫn có thể là abstract, interface, thiếu constructor thích hợp hoặc không thể khởi tạo vì quyền truy cập.
+This is only a **type** check. A matching class could still be abstract, an interface, lack a suitable constructor, or be uninstantiable due to access restrictions.
 
-### Primitive và array: các trường hợp dễ nhầm
+### Primitives and arrays: commonly confused cases
 
-`isAssignableFrom` xét tương thích **tham chiếu**, không mô phỏng mọi quy tắc gán ở ngôn ngữ Java:
+`isAssignableFrom` checks **reference** compatibility and does not mirror every assignment rule in the Java language:
 
-| Biểu thức | Kết quả | Lý do |
+| Expression | Result | Reason |
 | --- | --- | --- |
-| `long.class.isAssignableFrom(int.class)` | `false` | Không áp dụng primitive widening `int → long` |
-| `int.class.isAssignableFrom(int.class)` | `true` | Cùng token primitive |
-| `Integer.class.isAssignableFrom(int.class)` | `false` | Không áp dụng boxing |
-| `Number[].class.isAssignableFrom(Integer[].class)` | `true` | Mảng tham chiếu có covariance |
-| `Object[].class.isAssignableFrom(String[].class)` | `true` | `String[]` là subtype của `Object[]` |
-| `Object[].class.isAssignableFrom(int[].class)` | `false` | `int[]` không phải mảng các tham chiếu `Object` |
-| `Object.class.isAssignableFrom(int[].class)` | `true` | Mọi array là một `Object` |
-| `Cloneable.class.isAssignableFrom(int[].class)` | `true` | Mọi array implement `Cloneable` |
-| `java.io.Serializable.class.isAssignableFrom(int[].class)` | `true` | Mọi array implement `Serializable` |
+| `long.class.isAssignableFrom(int.class)` | `false` | Primitive widening `int → long` is not applied |
+| `int.class.isAssignableFrom(int.class)` | `true` | Same primitive token |
+| `Integer.class.isAssignableFrom(int.class)` | `false` | Boxing is not applied |
+| `Number[].class.isAssignableFrom(Integer[].class)` | `true` | Reference arrays have covariance |
+| `Object[].class.isAssignableFrom(String[].class)` | `true` | `String[]` is a subtype of `Object[]` |
+| `Object[].class.isAssignableFrom(int[].class)` | `false` | `int[]` is not an array of `Object` references |
+| `Object.class.isAssignableFrom(int[].class)` | `true` | Every array is an `Object` |
+| `Cloneable.class.isAssignableFrom(int[].class)` | `true` | Every array implements `Cloneable` |
+| `java.io.Serializable.class.isAssignableFrom(int[].class)` | `true` | Every array implements `Serializable` |
 
-Array covariance **không bảo đảm** mọi phép ghi phần tử an toàn: một biến `Object[]` tham chiếu tới `String[]` vẫn ném `ArrayStoreException` nếu cố ghi `Integer` vào đó.
+Array covariance **does not guarantee** that every element write is safe: an `Object[]` variable referencing a `String[]` still throws `ArrayStoreException` if you try to store an `Integer` in it.
 
-Truyền `null` vào `isAssignableFrom(null)` ném `NullPointerException` vì phương thức cần một token lớp để so sánh.
+Passing `null` to `isAssignableFrom(null)` throws `NullPointerException` because the method requires a class token to compare against.
 
-## 3. `Class.cast(Object)`: kiểm tra và chuyển kiểu một đối tượng
+## 3. `Class.cast(Object)`: Checking and Casting an Object
 
-`Class<T>.cast(Object)` thực hiện runtime cast theo token kiểu đại diện. Kết quả có kiểu tĩnh `T` nhờ generic của token `Class<T>`:
+`Class<T>.cast(Object)` performs a runtime cast according to the represented type token. The result has static type `T` thanks to the generic parameter of the `Class<T>` token:
 
 ~~~java
 Object raw = "hello";
 String text = String.class.cast(raw); // "hello"
-Runnable.class.cast(raw);             // ClassCastException: String không implements Runnable
+Runnable.class.cast(raw);             // ClassCastException: String does not implement Runnable
 ~~~
 
-Đối với kiểu tham chiếu, có thể hiểu gần như cast có kiểm tra ở runtime. Sự khác biệt quan trọng là **kiểu đích có thể được truyền vào dưới dạng tham số**:
+For reference types, you can think of it roughly as a runtime-checked cast. The key difference is that **the target type can be passed in as a parameter**:
 
 ~~~java
 static <T> T requireType(Class<T> expected, Object value) {
     return expected.cast(value);
 }
 
-// Gọi: String name = requireType(String.class, someObject);
+// Call: String name = requireType(String.class, someObject);
 ~~~
 
-Các trường hợp cần nhớ:
+Cases to remember:
 
-- `target.cast(null)` trả `null`, **không** ném exception.
-- Đối tượng không thuộc kiểu đích hoặc subtype tương thích → `ClassCastException`.
-- Cast thành công trả **chính cùng tham chiếu đối tượng**, không clone, chuyển đổi giá trị hay gọi constructor.
-- `int.class.cast(Integer.valueOf(1))` ném `ClassCastException`: `int.class` là token primitive, còn đối tượng là `Integer`; boxing/unboxing không xảy ra trong `Class.cast`.
-- `Class<?> unknown = ...` vẫn có thể gọi `unknown.cast(value)`, nhưng trình biên dịch không thể tự suy ra đó là `Task`. Cần token `Class<Task>` hoặc một bước thu hẹp token hợp lệ.
+- `target.cast(null)` returns `null` and **does not** throw an exception.
+- An object not belonging to the target type or a compatible subtype → `ClassCastException`.
+- A successful cast returns **the exact same object reference**, without cloning, converting values, or calling a constructor.
+- `int.class.cast(Integer.valueOf(1))` throws `ClassCastException`: `int.class` is a primitive token, while the object is an `Integer`; boxing/unboxing does not happen in `Class.cast`.
+- `Class<?> unknown = ...` can still call `unknown.cast(value)`, but the compiler cannot infer it is a `Task`. You need a `Class<Task>` token or a valid token-narrowing step.
 
-Nếu chỉ cần câu trả lời `true/false` cho **một đối tượng**, dùng `expected.isInstance(value)` (dynamic equivalent of `instanceof`), thay vì bắt `ClassCastException` để kiểm tra thường xuyên.
+If you only need a `true/false` answer for **an object**, use `expected.isInstance(value)` (dynamic equivalent of `instanceof`) instead of catching `ClassCastException` for routine checks.
 
-## 4. `Class.asSubclass(Class<U>)`: thu hẹp *token lớp* an toàn
+## 4. `Class.asSubclass(Class<U>)`: Narrowing a *Class Token* Safely
 
-Giả sử bộ quét trả về `Class<?>`, trong khi API phía sau cần `Class<? extends Task>`. Việc cast generic trực tiếp:
+Suppose a scanner returns `Class<?>`, while a downstream API requires `Class<? extends Task>`. Casting the generic directly:
 
 ~~~java
-// Không nên: unchecked cast, quan hệ kiểu không được xác minh tại runtime.
+// Avoid: unchecked cast, type relationship is not verified at runtime.
 // Class<? extends Task> typed = (Class<? extends Task>) candidate;
 ~~~
 
-không có bảo đảm an toàn từ trình biên dịch. Thay vào đó:
+has no safety guarantee from the compiler. Instead:
 
 ~~~java
 Class<?> candidate = EmailTask.class;
 Class<? extends Task> typed = candidate.asSubclass(Task.class);
 ~~~
 
-`asSubclass` kiểm tra `Task.class.isAssignableFrom(candidate)` theo quan hệ tương thích và trả **chính token `candidate`** với kiểu tĩnh mới. Nếu không phù hợp, nó ném `ClassCastException`:
+`asSubclass` checks `Task.class.isAssignableFrom(candidate)` for compatibility and returns **the same `candidate` token** with the new static type. If incompatible, it throws `ClassCastException`:
 
 ~~~java
 String.class.asSubclass(Task.class); // ClassCastException
-Task.class.asSubclass(Task.class);   // Hợp lệ: cùng kiểu
+Task.class.asSubclass(Task.class);   // Valid: same type
 ~~~
 
-Tên “subclass” ở API này bao gồm trường hợp **chính kiểu đó** và kiểu **implement interface**. Nó không đòi hỏi phải có một nhánh `extends` trực tiếp.
+The name "subclass" in this API includes **the type itself** and types that **implement an interface**. It does not require a direct `extends` branch.
 
-Điều `asSubclass` thay đổi là **cách trình biên dịch hiểu token `Class`**; nó không cast một object instance. Muốn kiểm tra một object, dùng `cast`; muốn biết quan hệ giữa hai token mà không ném exception, dùng `isAssignableFrom`.
+What `asSubclass` changes is **how the compiler views the `Class` token**; it does not cast an object instance. To check an object, use `cast`; to learn the relationship between two tokens without throwing an exception, use `isAssignableFrom`.
 
-## 5. Ví dụ chạy hoàn chỉnh (Java 17+)
+## 5. Complete Runnable Example (Java 17+)
 
-Lưu toàn bộ vào **`ClassCompatibilityDemo.java`**. Ví dụ bao gồm interface, quan hệ hướng gán, array, primitive, cast đối tượng và thu hẹp token để khởi tạo implementation bằng reflection.
+Save everything into **`ClassCompatibilityDemo.java`**. The example covers interfaces, assignment direction, arrays, primitives, object casting, and narrowing a token to instantiate an implementation via reflection.
 
 ~~~java
 public class ClassCompatibilityDemo {
@@ -191,14 +191,14 @@ public class ClassCompatibilityDemo {
 }
 ~~~
 
-Biên dịch bằng JDK 17 trở lên:
+Compile with JDK 17 or later:
 
 ~~~bash
 javac --release 17 ClassCompatibilityDemo.java
 java ClassCompatibilityDemo
 ~~~
 
-Stdout chính xác (đã biên dịch và chạy với `--release 17`):
+Exact stdout (compiled and run with `--release 17`):
 
 ~~~text
 Task <- EmailTask: true
@@ -217,11 +217,11 @@ cast error: ClassCastException
 asSubclass error: ClassCastException
 ~~~
 
-Các dòng bắt lỗi in **tên loại exception** qua `getSimpleName()` nên không phụ thuộc vào chi tiết thông báo lỗi giữa các bản JDK. Hai thao tác `cast` và `asSubclass` chỉ xác minh tương thích: lời gọi constructor qua `getDeclaredConstructor().newInstance()` mới thực sự tạo đối tượng.
+The error-catching lines print the **exception type name** via `getSimpleName()`, so they do not depend on error message details across JDK versions. Both `cast` and `asSubclass` only verify compatibility: the constructor call via `getDeclaredConstructor().newInstance()` is what actually creates the object.
 
-## 6. Áp dụng trong thiết kế plugin / factory
+## 6. Applying in Plugin / Factory Design
 
-Một factory có thể nhận tên lớp từ cấu hình và contract kiểu từ caller. **Đoạn sau là phương thức minh họa**, cần đặt bên trong một class Java và cung cấp một implementation hợp lệ; nó không phải chương trình độc lập:
+A factory can receive a class name from configuration and a type contract from the caller. **The following snippet is an illustrative method**, which must be placed inside a Java class with a valid implementation provided; it is not a standalone program:
 
 ~~~java
 static <S> S create(String className, Class<S> contract)
@@ -238,47 +238,47 @@ static <S> S create(String className, Class<S> contract)
 }
 ~~~
 
-Giải thích từng bước:
+Step-by-step explanation:
 
-1. `Class.forName(className)` nạp/lấy token lớp theo tên đầy đủ; ở overload một tham số, việc khởi tạo class có thể diễn ra. Không nên nạp tùy ý tên lớp từ đầu vào không tin cậy.
-2. `contract.isAssignableFrom(raw)` kiểm tra khả năng đáp ứng contract; sai thì trả lỗi nghiệp vụ rõ ràng.
-3. `raw.asSubclass(contract)` đưa quan hệ đã kiểm tra vào **kiểu tĩnh** `Class<? extends S>`, thuận tiện cho reflection API.
-4. `getDeclaredConstructor().newInstance()` gọi constructor không tham số rồi trả object thuộc `S`. Phải bảo đảm class cụ thể, constructor tồn tại và có thể truy cập; nếu không, reflection có thể ném `NoSuchMethodException`, `InstantiationException`, `IllegalAccessException` hoặc `InvocationTargetException`.
+1. `Class.forName(className)` loads/retrieves the class token by its full name; in the single-argument overload, class initialization may occur. You should not arbitrarily load class names from untrusted input.
+2. `contract.isAssignableFrom(raw)` checks whether the contract is satisfied; if not, it throws a clear business error.
+3. `raw.asSubclass(contract)` brings the checked relationship into the **static type** `Class<? extends S>`, convenient for reflection APIs.
+4. `getDeclaredConstructor().newInstance()` invokes the no-argument constructor and returns an object of type `S`. You must ensure the class is concrete and the constructor exists and is accessible; otherwise reflection can throw `NoSuchMethodException`, `InstantiationException`, `IllegalAccessException`, or `InvocationTargetException`.
 
-Một nơi khác có thể nhận object từ framework hoặc reflection rồi áp contract:
+Another place might receive an object from a framework or reflection and apply the contract:
 
 ~~~java
-Object value = /* kết quả từ framework */ null;
-Task task = Task.class.cast(value); // Có thể trả null; kiểm tra null nếu contract cấm.
+Object value = /* result from framework */ null;
+Task task = Task.class.cast(value); // May return null; check for null if the contract forbids it.
 ~~~
 
-`cast` **không bảo đảm non-null**. Nếu kết quả có thể trống, phải kiểm tra `null` theo yêu cầu nghiệp vụ. Trong factory ở trên, constructor thành công sẽ trả một object; việc lớp đó có hành vi an toàn/hợp lệ hay không vẫn là trách nhiệm riêng của ứng dụng.
+`cast` **does not guarantee non-null**. If the result can be empty, you must check for `null` according to business requirements. In the factory above, a successful constructor call returns an object; whether that class behaves safely/validly remains a separate responsibility of the application.
 
-## 7. Giới hạn và các lỗi phổ biến
+## 7. Limitations and Common Mistakes
 
-**Sai chiều của `isAssignableFrom`.** Khi lọc class triển khai `Task`, viết `Task.class.isAssignableFrom(candidate)`. Viết ngược `candidate.isAssignableFrom(Task.class)` thường lọc nhầm hoặc bỏ mất subtype cần chọn.
+**Wrong direction of `isAssignableFrom`.** When filtering classes implementing `Task`, write `Task.class.isAssignableFrom(candidate)`. Writing it backward as `candidate.isAssignableFrom(Task.class)` usually filters the wrong types or drops the subtypes you want to select.
 
-**Đồng nhất `Class` với instance.** `Task.class.isAssignableFrom(EmailTask.class)` so hai kiểu; `Task.class.isInstance(object)` kiểm tra instance và trả boolean; `Task.class.cast(object)` kiểm tra instance và trả tham chiếu kiểu `Task` hoặc ném lỗi; `EmailTask.class.asSubclass(Task.class)` kiểm tra token và trả token có generic hẹp hơn. Không thay thế lẫn nhau tùy tiện.
+**Equating `Class` with an instance.** `Task.class.isAssignableFrom(EmailTask.class)` compares two types; `Task.class.isInstance(object)` checks an instance and returns a boolean; `Task.class.cast(object)` checks an instance and returns a `Task`-typed reference or throws an error; `EmailTask.class.asSubclass(Task.class)` checks a token and returns a token with a narrower generic type. Do not substitute them for one another arbitrarily.
 
-**Tưởng `cast` sẽ chuyển giá trị.** `String.class.cast(123)` không biến `123` thành `"123"`. Dùng API chuyển đổi giá trị như `String.valueOf` hoặc parse phù hợp khi yêu cầu là chuyển đổi dữ liệu.
+**Assuming `cast` converts values.** `String.class.cast(123)` does not turn `123` into `"123"`. Use value conversion APIs such as `String.valueOf` or appropriate parsing when the requirement is data conversion.
 
-**Tưởng phương thức xác nhận generic parameter.** Vì type erasure, `List.class.isAssignableFrom(ArrayList.class)` chỉ xác nhận quan hệ kiểu raw; không chứng minh phần tử là `String` hay `Integer`. Không có literal `List<String>.class` trong Java. Muốn kiểm tra kiểu phần tử, cần kiểm tra nội dung hoặc đọc metadata generic phù hợp (`ParameterizedType`) khi metadata đó thật sự hiện diện.
+**Assuming these methods verify generic parameters.** Because of type erasure, `List.class.isAssignableFrom(ArrayList.class)` only verifies the raw type relationship; it does not prove elements are `String` or `Integer`. There is no `List<String>.class` literal in Java. To verify element types, you must inspect the contents or read appropriate generic metadata (`ParameterizedType`) when that metadata is actually present.
 
-**Nhầm primitive với wrapper.** `Integer.class` khác `int.class`; `Integer.class.isAssignableFrom(int.class)` là `false`. Cả widening primitive lẫn boxing/unboxing đều không được `isAssignableFrom` áp dụng. `Class.cast` cũng không chuyển object thành primitive.
+**Confusing primitives with wrappers.** `Integer.class` differs from `int.class`; `Integer.class.isAssignableFrom(int.class)` is `false`. Neither primitive widening nor boxing/unboxing is applied by `isAssignableFrom`. `Class.cast` also does not convert an object into a primitive.
 
-**Bỏ qua class loader.** Hai class có cùng tên đầy đủ nhưng do hai defining class loader khác nhau định nghĩa vẫn có thể là hai runtime type khác nhau. Vì vậy tên khớp không đủ để `isAssignableFrom`, `cast` hoặc `asSubclass` thành công; hệ thống plugin phải chú ý cách chia sẻ contract interface giữa các loader.
+**Ignoring class loaders.** Two classes with the same full name defined by two different defining class loaders can still be two distinct runtime types. Thus matching names are not enough for `isAssignableFrom`, `cast`, or `asSubclass` to succeed; plugin systems must pay attention to how contract interfaces are shared across loaders.
 
-**Cho rằng tương thích kiểu đồng nghĩa có thể khởi tạo.** `asSubclass` không kiểm tra class có `abstract` hay interface, constructor phù hợp, accessibility, exception từ constructor hoặc side effect khi class loading. `Class.newInstance()` đã deprecated; ưu tiên `getDeclaredConstructor().newInstance()` khi cần reflection construction.
+**Assuming type compatibility means instantiability.** `asSubclass` does not check whether a class is `abstract` or an interface, whether a suitable constructor exists, accessibility, exceptions from constructors, or side effects during class loading. `Class.newInstance()` is deprecated; prefer `getDeclaredConstructor().newInstance()` when reflective construction is needed.
 
-**Truyền null thiếu suy xét.** `isAssignableFrom(null)` và `asSubclass(null)` ném `NullPointerException`, còn `cast(null)` trả `null`. Khi thiết kế API, nên xác định rõ đầu vào nào được chấp nhận.
+**Passing null without care.** `isAssignableFrom(null)` and `asSubclass(null)` throw `NullPointerException`, whereas `cast(null)` returns `null`. When designing APIs, define clearly which inputs are accepted.
 
-## 8. Chọn phương thức theo tình huống
+## 8. Choosing a Method by Scenario
 
-- Có **hai `Class`**, chỉ cần quyết định chấp nhận subtype hay không → `target.isAssignableFrom(candidate)`.
-- Có **một object**, cần giá trị typed và chấp nhận exception nếu sai → `target.cast(object)`.
-- Có **một object**, chỉ muốn thử trước rồi rẽ nhánh → `target.isInstance(object)`.
-- Có **`Class<?>`** từ reflection, cần chuyển thành **`Class<? extends Contract>`** để đưa cho API hoặc lấy typed constructor → `candidate.asSubclass(Contract.class)`.
+- Have **two `Class` objects** and only need to decide whether to accept a subtype → `target.isAssignableFrom(candidate)`.
+- Have **an object**, need a typed value, and accept an exception if wrong → `target.cast(object)`.
+- Have **an object** and only want to test first and branch → `target.isInstance(object)`.
+- Have a **`Class<?>`** from reflection and need to convert it to **`Class<? extends Contract>`** to pass to an API or obtain a typed constructor → `candidate.asSubclass(Contract.class)`.
 
-Một chuỗi thường dùng trong runtime extensibility là: **nạp token `Class<?>` → kiểm tra `Contract.class.isAssignableFrom(raw)` → thu hẹp bằng `raw.asSubclass(Contract.class)` → khởi tạo qua constructor → dùng giá trị như `Contract`**. Nếu đối tượng xuất phát từ nguồn khác, có thể dùng `Contract.class.cast(value)` để kiểm tra ngay tại ranh giới nhận object.
+A common sequence in runtime extensibility is: **load `Class<?>` token → check `Contract.class.isAssignableFrom(raw)` → narrow via `raw.asSubclass(Contract.class)` → instantiate via constructor → use the value as `Contract`**. If an object comes from another source, you can use `Contract.class.cast(value)` to check right at the boundary where the object is received.
 
-Tài liệu chuẩn: [Java SE 21 — `java.lang.Class`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html), mục `isAssignableFrom`, `cast`, `asSubclass` và `isInstance`.
+Standard documentation: [Java SE 21 — `java.lang.Class`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html), sections `isAssignableFrom`, `cast`, `asSubclass`, and `isInstance`.

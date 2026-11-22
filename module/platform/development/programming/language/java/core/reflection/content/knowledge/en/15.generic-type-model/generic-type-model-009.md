@@ -1,51 +1,51 @@
-# getGenericType, getGenericReturnType và getGenericExceptionTypes trong Java Reflection
+# `getGenericType`, `getGenericReturnType`, and `getGenericExceptionTypes` in Java Reflection
 
-## 1. Vì sao API generic khác API kiểu thông thường?
+## 1. Why Do Generic APIs Differ from Ordinary Type APIs?
 
-Java hỗ trợ generic trong source như `List<String>`, `Map<String, List<T>>`, `T extends Number` và method `<E extends Exception> void execute() throws E`. Phần lớn thao tác runtime chịu **type erasure**: nhiều vị trí generic được biểu diễn bằng kiểu thô hoặc bound của type variable. Tuy nhiên, compiler có thể lưu **generic signature metadata** trong class file, và Reflection cho phép đọc lại phần khai báo đó.
+Java supports generics in source code such as `List<String>`, `Map<String, List<T>>`, `T extends Number`, and methods `<E extends Exception> void execute() throws E`. Most runtime operations undergo **type erasure**: many generic positions are represented by raw types or the bounds of type variables. However, the compiler can store **generic signature metadata** in the class file, and Reflection allows reading those declarations back.
 
-Ví dụ một field `List<String> names`:
+For example, a field `List<String> names`:
 
-- `field.getType()` trả `Class<?>` đại diện cho `java.util.List`.
-- `field.getGenericType()` trả `Type` phản ánh `java.util.List<java.lang.String>`, thông thường là một `ParameterizedType`.
-- Hai kết quả cùng nói về **một field**, nhưng khác độ chi tiết: kiểu erasure cần cho truy cập runtime và khai báo generic hữu ích cho mapper, schema generator, serializer, dependency injection.
+- `field.getType()` returns `Class<?>` representing `java.util.List`.
+- `field.getGenericType()` returns a `Type` reflecting `java.util.List<java.lang.String>`, typically a `ParameterizedType`.
+- Both results refer to **the same field**, yet at different levels of detail: the erased type is needed for runtime access, while the generic declaration is useful for mappers, schema generators, serializers, and dependency injection.
 
-Đối với method, phân biệt tương tự:
+For methods, distinguish similarly:
 
-- `method.getReturnType()` so với `method.getGenericReturnType()`.
-- `method.getExceptionTypes()` so với `method.getGenericExceptionTypes()`.
+- `method.getReturnType()` vs. `method.getGenericReturnType()`.
+- `method.getExceptionTypes()` vs. `method.getGenericExceptionTypes()`.
 
-**Mục tiêu học tập:** gọi đúng API theo loại thành viên; hiểu các dạng `Type`; biết khi nào metadata còn type variable chưa được thay thế; phân biệt kiểu khai báo từ generic signature với kiểm tra kiểu đối tượng thực tế.
+**Learning goal:** call the right API for each member kind; understand the forms of `Type`; know when metadata still contains unsubstituted type variables; and distinguish declared types from generic signatures versus actual object type checks.
 
-## 2. Ba API chính thuộc về đối tượng Reflection nào?
+## 2. Which Reflection Objects Own the Three Core APIs?
 
-| API | Chủ sở hữu | Nội dung trả về |
+| API | Owner | What it returns |
 | --- | --- | --- |
-| `Field.getGenericType()` | `Field` | `Type` mô tả kiểu khai báo của **field**, kể cả parameterized type và type variable. |
-| `Method.getGenericReturnType()` | `Method` | `Type` mô tả **kiểu trả về được khai báo** của method; có thể là `Class`, `ParameterizedType`, `TypeVariable` hoặc `GenericArrayType`. |
-| `Executable.getGenericExceptionTypes()` | `Method` hoặc `Constructor<?>` (qua superclass `Executable`) | `Type[]` mô tả các **kiểu exception trong mệnh đề `throws`** theo thứ tự; có thể gồm type variable như `E`. |
+| `Field.getGenericType()` | `Field` | `Type` describing the declared type of the **field**, including parameterized types and type variables. |
+| `Method.getGenericReturnType()` | `Method` | `Type` describing the **declared return type** of the method; can be `Class`, `ParameterizedType`, `TypeVariable`, or `GenericArrayType`. |
+| `Executable.getGenericExceptionTypes()` | `Method` or `Constructor<?>` (via superclass `Executable`) | `Type[]` describing the **exception types in the `throws` clause** in order; can include type variables such as `E`. |
 
-Bộ API không-generic đi kèm:
+Companion non-generic APIs:
 
-| Không-generic | Generic | Khác biệt thực tế |
+| Non-generic | Generic | Practical difference |
 | --- | --- | --- |
-| `Field.getType(): Class<?>` | `Field.getGenericType(): Type` | `List<String>` trở thành `List.class` ở `getType()`. |
-| `Method.getReturnType(): Class<?>` | `Method.getGenericReturnType(): Type` | `T extends Number` trở thành `Number.class` ở `getReturnType()`. |
-| `Executable.getExceptionTypes(): Class<?>[]` | `Executable.getGenericExceptionTypes(): Type[]` | `throws E` có thể trở thành `Exception.class` ở bản erasure và `TypeVariable E` ở bản generic. |
+| `Field.getType(): Class<?>` | `Field.getGenericType(): Type` | `List<String>` becomes `List.class` in `getType()`. |
+| `Method.getReturnType(): Class<?>` | `Method.getGenericReturnType(): Type` | `T extends Number` becomes `Number.class` in `getReturnType()`. |
+| `Executable.getExceptionTypes(): Class<?>[]` | `Executable.getGenericExceptionTypes(): Type[]` | `throws E` can become `Exception.class` in the erased form and `TypeVariable E` in the generic form. |
 
-Cần tránh gọi sai loại thành viên: **`Field` không có `getGenericReturnType()`**; **`Constructor` không có kiểu trả về**; `getGenericExceptionTypes()` được kế thừa qua `Executable` và sử dụng được trên cả method lẫn constructor.
+Avoid calling the wrong method for a member kind: **`Field` has no `getGenericReturnType()`**; **`Constructor` has no return type**; `getGenericExceptionTypes()` is inherited through `Executable` and works on both methods and constructors.
 
-Nếu không có mệnh đề `throws` thì `getGenericExceptionTypes()` trả **mảng rỗng**, không trả `null`. Với method khai báo `void`, `getGenericReturnType()` có thể trả `void.class`; đây vẫn là một `Class<?>` ở cấp Reflection, dù `void` không phải một giá trị trả về.
+If there is no `throws` clause, `getGenericExceptionTypes()` returns an **empty array**, not `null`. For a method declared `void`, `getGenericReturnType()` can return `void.class`; this is still a `Class<?>` at the Reflection level, even though `void` is not a return value.
 
-## 3. Dạng `Type` quyết định cách đọc kết quả
+## 3. The `Type` Form Determines How to Read the Result
 
-Cả ba getter generic trong bài trả `Type` hoặc `Type[]` vì một chữ ký có thể chứa `Class<?>` (ví dụ `String`), `ParameterizedType` (`List<String>`), `TypeVariable` (`T`, `E` trong `throws E`), `WildcardType` nằm trong argument (`List<? extends T>`) hoặc `GenericArrayType` (`T[]`). Vì vậy `(Class<?>) field.getGenericType()` chỉ an toàn sau khi xác nhận đúng subtype; nó sẽ thất bại với `List<String>`.
+All three generic getters in this lesson return `Type` or `Type[]` because a signature can contain `Class<?>` (e.g. `String`), `ParameterizedType` (`List<String>`), `TypeVariable` (`T`, or `E` in `throws E`), `WildcardType` inside an argument (`List<? extends T>`), or `GenericArrayType` (`T[]`). Thus `(Class<?>) field.getGenericType()` is safe only after verifying the right subtype; it will fail on `List<String>`.
 
-`Type.getTypeName()` giúp in tên, nhưng một parser cần `instanceof` để đi từ `ParameterizedType` tới arguments, từ `TypeVariable` tới bounds/declaration, và từ `GenericArrayType` tới component. Trong bài này chúng ta dùng những nhánh đó để hiểu **field type, method return và declared throws**, không xây lại toàn bộ mô hình `Type` chung.
+`Type.getTypeName()` helps print names, but a parser needs `instanceof` to move from `ParameterizedType` to arguments, from `TypeVariable` to bounds/declaration, and from `GenericArrayType` to component. In this lesson we use those branches to understand **field types, method returns, and declared `throws`**, without rebuilding the entire general `Type` model.
 
-## 4. `Field.getGenericType()`: giữ thông tin trên field
+## 4. `Field.getGenericType()`: Preserving Information on Fields
 
-Xét khai báo:
+Consider the declaration:
 
 ~~~java
 class Container<T extends Number> {
@@ -56,20 +56,20 @@ class Container<T extends Number> {
 }
 ~~~
 
-Đây là mảnh code hợp lệ dùng để giải thích; các kiểu `Type` có thể được Reflection quan sát như sau:
+This is a valid code fragment for explanation; the `Type` objects observable via Reflection are:
 
-- `current.getType()` trả `Number.class`, do erasure của `T extends Number` là bound đầu tiên `Number`. `current.getGenericType()` trả một `TypeVariable` tên `T`.
-- `history.getType()` trả `List.class`; `getGenericType()` trả `ParameterizedType` chứa argument `T`.
-- `view.getGenericType()` là `ParameterizedType` chứa `WildcardType` đại diện cho `? extends T`.
-- `batch.getType()` trả class của mảng `Number[]`; `getGenericType()` trả `GenericArrayType` cho `T[]`.
+- `current.getType()` returns `Number.class`, because the erasure of `T extends Number` is the first bound `Number`. `current.getGenericType()` returns a `TypeVariable` named `T`.
+- `history.getType()` returns `List.class`; `getGenericType()` returns a `ParameterizedType` containing argument `T`.
+- `view.getGenericType()` is a `ParameterizedType` containing a `WildcardType` representing `? extends T`.
+- `batch.getType()` returns the array class `Number[]`; `getGenericType()` returns a `GenericArrayType` for `T[]`.
 
-Quan trọng: khi subclass cụ thể hóa `T`, ví dụ `class IntContainer extends Container<Integer> {}`, việc lấy field từ `Container.class` hoặc field kế thừa trên `IntContainer.class` **không tự làm `getGenericType()` biến `T` thành `Integer`**. `Field` vẫn mô tả **khai báo gốc**. Muốn áp dụng substitution `T → Integer`, framework phải tìm quan hệ generic supertype (thí dụ `getGenericSuperclass()`), xây bản đồ type variable và giải quyết đệ quy qua superclass/interface.
+Important: when a subclass concretizes `T`, such as `class IntContainer extends Container<Integer> {}`, retrieving the field from `Container.class` or the inherited field on `IntContainer.class` **does not automatically make `getGenericType()` turn `T` into `Integer`**. `Field` still describes **the original declaration**. To apply the substitution `T → Integer`, a framework must inspect the generic supertype relationship (e.g., `getGenericSuperclass()`), build a type-variable map, and resolve recursively across superclasses/interfaces.
 
-Ngoài ra, `getGenericType()` cho biết **kiểu khai báo**, không biết generic parameter thực của một object bất kỳ trong heap. Một instance `new Container<Integer>()` không tự mang toàn bộ tham số generic runtime để field có thể suy ra `Integer` từ nó.
+Furthermore, `getGenericType()` tells you the **declared type**, not the real generic parameter of an arbitrary object on the heap. An instance `new Container<Integer>()` does not itself carry all runtime generic parameters so that a field could infer `Integer` from it.
 
-## 5. `Method.getGenericReturnType()`: kiểu kết quả đã khai báo
+## 5. `Method.getGenericReturnType()`: Declared Result Type
 
-Với method:
+With methods:
 
 ~~~java
 class Service<T extends Number> {
@@ -79,21 +79,21 @@ class Service<T extends Number> {
 }
 ~~~
 
-- `list().getReturnType()`: `List.class`; `getGenericReturnType()`: `ParameterizedType` dạng `List<T>`.
-- `latest().getReturnType()`: `Number.class`; `getGenericReturnType()`: `TypeVariable T` của **class**.
-- `echo(Object).getReturnType()`: `Object.class`; `getGenericReturnType()`: `TypeVariable U` của **method**.
+- `list().getReturnType()`: `List.class`; `getGenericReturnType()`: `ParameterizedType` of the form `List<T>`.
+- `latest().getReturnType()`: `Number.class`; `getGenericReturnType()`: `TypeVariable T` of the **class**.
+- `echo(Object).getReturnType()`: `Object.class`; `getGenericReturnType()`: `TypeVariable U` of the **method**.
 
-`Method.getTypeParameters()` trả type parameters do **method tự khai báo**, như `U`; `Class.getTypeParameters()` trả type parameters của class, như `T`. Khi thấy một `TypeVariable`, dùng `getGenericDeclaration()` nếu cần xác định nó thuộc class, method hay constructor nào.
+`Method.getTypeParameters()` returns type parameters **declared by the method itself**, such as `U`; `Class.getTypeParameters()` returns the class's type parameters, such as `T`. When encountering a `TypeVariable`, use `getGenericDeclaration()` if you need to determine whether it belongs to a class, method, or constructor.
 
-Phân biệt **kiểu generic trả về khai báo** với **kiểu object trả về sau một lời gọi**: `getGenericReturnType()` không gọi method, không xét polymorphism tại một instance cụ thể và không bảo đảm người gọi nhận đúng object theo generic ở runtime. Nó là metadata dùng để phân tích API và hỗ trợ conversion.
+Distinguish **declared generic return type** from **the object type returned after an invocation**: `getGenericReturnType()` does not invoke the method, does not account for polymorphism on a concrete instance, and does not guarantee the caller receives an object matching the generic at runtime. It is metadata used to analyze APIs and support conversion.
 
-### Bridge method có thể ảnh hưởng công cụ quét
+### Bridge Methods Can Affect Scanning Tools
 
-Compiler có thể tạo **bridge method** để duy trì overriding sau erasure. Công cụ dùng `getDeclaredMethods()` đôi lúc thấy cả method source và bridge method; `method.isBridge()`/`method.isSynthetic()` có ích khi muốn chọn method nghiệp vụ. Đừng phân tích generic return type của một bridge rồi nhận nhầm đó là khai báo source mà người dùng viết. Nếu làm bytecode analysis, có thể cần giữ cả hai như hai entry khác nhau.
+The compiler can generate **bridge methods** to preserve overriding after erasure. Tools using `getDeclaredMethods()` sometimes see both the source method and the bridge method; `method.isBridge()`/`method.isSynthetic()` are useful when selecting business methods. Do not inspect the generic return type of a bridge and mistake it for the source declaration written by the author. If performing bytecode analysis, you may need to keep both as separate entries.
 
-## 6. `getGenericExceptionTypes()`: generic ở mệnh đề `throws`
+## 6. `getGenericExceptionTypes()`: Generics in `throws` Clauses
 
-Với một generic method:
+With a generic method:
 
 ~~~java
 class Worker {
@@ -103,18 +103,18 @@ class Worker {
 }
 ~~~
 
-- `run(Exception).getExceptionTypes()` trả `Class<?>[]` chứa `Exception.class` do erasure của `E extends Exception`.
-- `run(Exception).getGenericExceptionTypes()` trả `Type[]` chứa `TypeVariable E`, phản ánh khai báo `throws E`.
-- `getGenericExceptionTypes()` của method không khai báo `throws` trả mảng rỗng.
-- Nếu method khai báo `throws java.io.IOException, IllegalStateException`, hai API đều trả hai phần tử theo thứ tự, bản generic thường là các `Class<?>` vì không có type variable tại hai chỗ đó.
+- `run(Exception).getExceptionTypes()` returns `Class<?>[]` containing `Exception.class` due to erasure of `E extends Exception`.
+- `run(Exception).getGenericExceptionTypes()` returns `Type[]` containing `TypeVariable E`, reflecting the `throws E` declaration.
+- `getGenericExceptionTypes()` on a method declaring no `throws` returns an empty array.
+- If a method declares `throws java.io.IOException, IllegalStateException`, both APIs return two elements in order; the generic version generally returns `Class<?>` objects because there are no type variables at those two positions.
 
-Điều này hữu ích cho framework biểu diễn hợp đồng lỗi ở mức source/generic nhưng **không** có nghĩa runtime kiểm tra checked exceptions theo generic khi method được gọi. Java compile-time type checking quyết định yêu cầu `catch`/`throws` cho code Java; JVM không có hệ thống checked exception enforcement ở mức `Method.invoke`. Khi gọi qua Reflection, exception từ body method được đóng trong `InvocationTargetException` và phải được xử lý riêng.
+This is useful for frameworks representing error contracts at the source/generic level, but **does not** mean the runtime checks checked exceptions by generic type when a method is invoked. Java compile-time type checking governs `catch`/`throws` requirements for Java code; the JVM has no checked-exception enforcement at the `Method.invoke` level. When invoked via Reflection, an exception thrown by the method body is wrapped in `InvocationTargetException` and must be handled separately.
 
-Lưu ý giới hạn ngôn ngữ: không được khai báo một generic class trực tiếp kế thừa `Throwable`; trong `throws`, type variable phải có bound phù hợp với `Throwable`. Cũng không có `throws List<IOException>`; generic exception type ở đây thường là **type variable**, không phải một parameterized collection of exceptions.
+Note language limits: you cannot declare a generic class directly extending `Throwable`; in `throws`, a type variable must have a bound compatible with `Throwable`. Nor is there `throws List<IOException>`; a generic exception type here is usually a **type variable**, not a parameterized collection of exceptions.
 
-### Method và constructor đều có generic exception types
+### Both Methods and Constructors Have Generic Exception Types
 
-`Constructor<?>` cũng kế thừa `Executable.getGenericExceptionTypes()`. Một constructor generic có thể khai báo type parameter riêng:
+`Constructor<?>` also inherits `Executable.getGenericExceptionTypes()`. A generic constructor can declare its own type parameter:
 
 ~~~java
 class Factory {
@@ -124,11 +124,11 @@ class Factory {
 }
 ~~~
 
-Khi tra cứu constructor theo kiểu **erasure** của `E` là `IOException.class`, `getGenericExceptionTypes()[0]` mô tả `E`; `getExceptionTypes()[0]` là `IOException.class`. Đây là metadata của **constructor**, không phải generic return type; constructor không có giá trị trả về như method.
+When looking up the constructor by the **erased** type of `E`, `IOException.class`, `getGenericExceptionTypes()[0]` describes `E`; `getExceptionTypes()[0]` is `IOException.class`. This is **constructor** metadata, not a generic return type; constructors do not have a return value like methods.
 
-## 7. Ví dụ Java 17+ đầy đủ và kết quả kiểm chứng
+## 7. Complete Java 17+ Example and Verified Output
 
-Lưu file `GenericTypeIntrospectionDemo.java`:
+Save the file `GenericTypeIntrospectionDemo.java`:
 
 ~~~java
 import java.io.IOException;
@@ -259,14 +259,14 @@ public class GenericTypeIntrospectionDemo {
 }
 ~~~
 
-Chạy với Java 17 hoặc mới hơn:
+Run with Java 17 or newer:
 
 ~~~bash
 javac -encoding UTF-8 GenericTypeIntrospectionDemo.java
 java GenericTypeIntrospectionDemo
 ~~~
 
-Kết quả dự kiến:
+Expected output:
 
 ~~~text
 value raw=java.lang.Number
@@ -287,98 +287,98 @@ concrete super argument=java.lang.Long
 inherited field generic=T
 ~~~
 
-Đối chiếu ý nghĩa:
+Matching the meaning:
 
-1. `value` thuộc kiểu biến `T` với bound đầu tiên `Number`, nên erasure của field là `Number`. Phần metadata generic vẫn là `T`.
-2. `view` là `ParameterizedType`; nếu cần lấy wildcard `? extends T`, ép `view.getGenericType()` sang `ParameterizedType` rồi lấy `getActualTypeArguments()[0]` và kiểm tra `instanceof WildcardType`.
-3. `batch` minh họa `GenericArrayType`: class runtime của mảng đã erasure thành `Number[]`, trong generic signature vẫn là `T[]`.
-4. `load()` trả về `List<T>` ở generic metadata nhưng `List.class` ở kiểu raw; `current()` có generic return type là `T`.
-5. `fail(...)` dùng một type variable `E` trong `throws`, bản raw trả bound `Exception`; `save()` khai báo hai exception types thực.
-6. `Factory` cho thấy constructor cũng có `getGenericExceptionTypes()` và type variable trong `throws`.
-7. `LongRepository` biết đối số generic của superclass là `Long`, nhưng field kế thừa `value` vẫn do `Repository` khai báo. `Field.getGenericType()` trả `T`, **không tự resolve thành `Long`**.
+1. `value` has variable type `T` with first bound `Number`, so the field's erasure is `Number`. The generic metadata remains `T`.
+2. `view` is a `ParameterizedType`; if you need to extract wildcard `? extends T`, cast `view.getGenericType()` to `ParameterizedType`, take `getActualTypeArguments()[0]`, and check `instanceof WildcardType`.
+3. `batch` illustrates `GenericArrayType`: the runtime array class was erased to `Number[]`, while the generic signature remains `T[]`.
+4. `load()` returns `List<T>` in generic metadata but `List.class` in raw type; `current()` has generic return type `T`.
+5. `fail(...)` uses a type variable `E` in `throws`, while the raw version returns bound `Exception`; `save()` declares two concrete exception types.
+6. `Factory` shows that constructors also have `getGenericExceptionTypes()` and type variables in `throws`.
+7. `LongRepository` knows the superclass's generic argument is `Long`, yet inherited field `value` is still declared by `Repository`. `Field.getGenericType()` returns `T`, **without automatically resolving to `Long`**.
 
-Ví dụ không cần `-parameters` vì không đọc tên formal parameters. Metadata generic signature được trình biên dịch lưu trong class file và khác với cờ lưu parameter names.
+The example does not need `-parameters` because it does not read formal parameter names. Generic signature metadata is stored in the class file by the compiler and is separate from the flag for storing parameter names.
 
-## 8. Quy trình đọc chữ ký thành viên
+## 8. Workflow for Reading Member Signatures
 
-Bắt đầu từ đúng loại member: `Field.getGenericType()` cho một field, `Method.getGenericReturnType()` cho kiểu trả về, và `Executable.getGenericExceptionTypes()` cho danh sách kiểu ở `throws` (method **hoặc** constructor). So sánh với `getType()`, `getReturnType()`, `getExceptionTypes()` khi cần erasure.
+Start from the right member kind: `Field.getGenericType()` for a field, `Method.getGenericReturnType()` for a return type, and `Executable.getGenericExceptionTypes()` for the type list in `throws` (method **or** constructor). Compare with `getType()`, `getReturnType()`, and `getExceptionTypes()` when you need erasure.
 
-Với mỗi `Type` nhận được, kiểm tra `instanceof`. Field `Map<String,List<T>>` cần duyệt hai tầng `ParameterizedType`; return `T[]` cần `GenericArrayType.getGenericComponentType()`; `throws E` cần `TypeVariable.getGenericDeclaration()` và bounds. Nếu subclass gắn `T = Long`, phải đọc thêm generic superclass/interface và ánh xạ theo declaration; **getter của member không tự thế `T`**. Đặc biệt, `getGenericExceptionTypes()` chỉ cho những exception khai báo trong `throws`, không là danh sách đầy đủ exception thực thi có thể ném.
+For each `Type` obtained, check `instanceof`. A field `Map<String,List<T>>` requires traversing two `ParameterizedType` levels; a return `T[]` requires `GenericArrayType.getGenericComponentType()`; `throws E` requires `TypeVariable.getGenericDeclaration()` and bounds. If a subclass binds `T = Long`, you must also read generic superclasses/interfaces and map by declaration; **member getters do not substitute `T` automatically**. In particular, `getGenericExceptionTypes()` only gives exceptions declared in `throws`, not an exhaustive list of exceptions execution might throw.
 
-## 9. Erasure, generic signature và khả năng thực thi
+## 9. Erasure, Generic Signatures, and Execution Capability
 
-Ba khía cạnh cần tách bạch:
+Three aspects to keep separate:
 
-- **Source declaration:** `List<String>`, `T extends Number`, `throws E`; compiler kiểm tra ràng buộc generic khi biên dịch.
-- **JVM method/field descriptors:** sử dụng type sau erasure để liên kết và gọi, ví dụ `List`, `Number`, `Exception`.
-- **Signature metadata:** khi có và hợp lệ, Reflection dùng nó để dựng `ParameterizedType`, `TypeVariable` hoặc các dạng `Type` khác.
+- **Source declaration:** `List<String>`, `T extends Number`, `throws E`; the compiler checks generic constraints at compile time.
+- **JVM method/field descriptors:** use erased types for linking and invocation, e.g., `List`, `Number`, `Exception`.
+- **Signature metadata:** when present and valid, Reflection uses it to construct `ParameterizedType`, `TypeVariable`, or other `Type` forms.
 
-Vì thế `Field.getGenericType()` không ép JVM ngăn đặt một `List<Integer>` vào field khai báo `List<String>` qua raw Reflection; compiler có kiểm tra generic nhưng runtime check trên `Field.set` chủ yếu dựa vào raw type `List`. Công cụ serializer/mapper muốn bảo đảm kiểu phần tử phải tự kiểm tra hoặc chuyển đổi theo generic metadata.
+Thus `Field.getGenericType()` does not force the JVM to prevent putting a `List<Integer>` into a field declared `List<String>` via raw Reflection; the compiler checks generics, whereas runtime checks on `Field.set` are mainly based on raw type `List`. Serializer/mapper tools wanting to guarantee element types must validate or convert according to generic metadata themselves.
 
-Tương tự, `Method.getGenericReturnType()` không biến giá trị trả về thành một object kiểu generic có thể kiểm tra mọi phần tử. Những công cụ phản xạ chỉ có thể phân tích **khai báo**; nếu cần đảm bảo dữ liệu runtime thỏa schema, cần validation riêng.
+Similarly, `Method.getGenericReturnType()` does not turn the return value into a generic-typed object capable of checking every element. Reflection tools can only analyze **declarations**; if you need to ensure runtime data conforms to a schema, separate validation is required.
 
-Ngoài ra, vì mảng `Type[]` của exceptions mô tả `throws` khai báo, nó **không thống kê mọi exception có thể ném** ở runtime: unchecked exception có thể không liệt kê, và nhiều nhánh thực thi có thể ném exception được phép bởi hệ thống kiểu mà không hiện diện như một type trực tiếp tại vị trí phản xạ.
+Furthermore, because the `Type[]` array of exceptions describes declared `throws`, it **does not list every exception that can be thrown** at runtime: unchecked exceptions may be omitted, and execution paths may throw exceptions permitted by the type system without appearing directly at the reflected site.
 
-## 10. Lưu ý với generic kế thừa, override và bridge
+## 10. Notes on Generic Inheritance, Overriding, and Bridges
 
-### Type variable thuộc declaration nào?
+### Which Declaration Does a Type Variable Belong To?
 
-Cùng chuỗi `T` có thể xuất hiện ở nhiều class/method hoàn toàn khác nhau. `TypeVariable.getGenericDeclaration()` xác định declaration sở hữu `T`. Ví dụ `Repository<T>` khác với method `<T> T identity(T input)`; gộp chúng chỉ vì tên `T` giống nhau là sai.
+The same string `T` can appear in completely different classes/methods. `TypeVariable.getGenericDeclaration()` identifies the declaration that owns `T`. For example, `Repository<T>` differs from method `<T> T identity(T input)`; merging them merely because the name `T` matches is wrong.
 
-Khi phân tích field/method kế thừa:
+When analyzing inherited fields/methods:
 
-- `Field.getDeclaringClass()` và `Method.getDeclaringClass()` cho biết owner của khai báo gốc.
-- `subclass.getGenericSuperclass()` hoặc `getGenericInterfaces()` giúp truy vết kiểu cụ thể hóa tại class con.
-- `getGenericType()` và `getGenericReturnType()` vẫn báo kiểu tại **declaration**. Muốn có kiểu áp dụng trong ngữ cảnh subclass, framework phải thay type variable có ngữ cảnh.
+- `Field.getDeclaringClass()` and `Method.getDeclaringClass()` indicate the owner of the original declaration.
+- `subclass.getGenericSuperclass()` or `getGenericInterfaces()` help trace concretized types at the subclass.
+- `getGenericType()` and `getGenericReturnType()` still report the type at the **declaration**. To get the effective type in the subclass context, a framework must substitute contextual type variables.
 
-### Bridge methods
+### Bridge Methods
 
-Compiler đôi khi sinh bridge method vì erasure của override generic/covariant return. `getDeclaredMethods()` có thể trả cả method người viết và bridge; dùng `isBridge()` / `isSynthetic()` để phân biệt theo nhu cầu. Với công cụ phân tích metadata cho người học, thường nên chọn method thực; với công cụ bytecode/debug phải xem cả bridge.
+The compiler sometimes generates bridge methods because of erasure in generic overrides or covariant returns. `getDeclaredMethods()` can return both user-written methods and bridges; use `isBridge()` / `isSynthetic()` to distinguish them as needed. For learner-facing metadata analyzers, you usually want the real method; for bytecode/debugging tools, you must look at bridges too.
 
-Không nên kết luận một bridge có generic return type mà người dùng trực tiếp khai báo. Hãy kiểm tra declaring class, signature raw, flags và quan hệ override.
+Do not conclude a bridge has a generic return type directly declared by the user. Check the declaring class, raw signature, flags, and override relationship.
 
-## 11. Ngoại lệ và kiểm thử các tình huống biên
+## 11. Exceptions and Edge-Case Testing
 
-Các API generic đọc thông tin class file có thể gặp dữ liệu metadata bất thường:
+Generic APIs reading class-file information can encounter abnormal metadata:
 
-| Sự cố | Tác động |
+| Issue | Impact |
 | --- | --- |
-| `GenericSignatureFormatError` | Generic signature trong class file không tuân định dạng hợp lệ. |
-| `TypeNotPresentException` | Generic signature tham chiếu một kiểu không tìm được/không load được. |
-| `MalformedParameterizedTypeException` | Không thể dựng biểu diễn parameterized type theo signature. |
-| `NoSuchFieldException` hoặc `NoSuchMethodException` | Sai thành viên hoặc chữ ký raw lúc tra cứu, không phải lỗi generic metadata. |
-| `ClassCastException` trong code người dùng | Ép một `Type` là `ParameterizedType`/`TypeVariable` trực tiếp sang `Class<?>` hoặc ép nhầm loại metadata. |
+| `GenericSignatureFormatError` | Generic signature in the class file does not conform to a valid format. |
+| `TypeNotPresentException` | Generic signature references a type that cannot be found/loaded. |
+| `MalformedParameterizedTypeException` | Cannot construct the parameterized type representation from the signature. |
+| `NoSuchFieldException` or `NoSuchMethodException` | Wrong member or raw lookup signature, not a generic metadata error. |
+| `ClassCastException` in user code | Directly casting a `ParameterizedType`/`TypeVariable` `Type` to `Class<?>` or casting to the wrong metadata kind. |
 
-Tài liệu Java SE 17 mô tả ngoại lệ cụ thể trên từng getter (`Field.getGenericType`, `Method.getGenericReturnType`, `Executable.getGenericExceptionTypes`). Phân biệt lỗi đọc generic signature với lỗi tìm field/method hay lỗi gọi method.
+Java SE 17 documentation describes the specific exceptions on each getter (`Field.getGenericType`, `Method.getGenericReturnType`, `Executable.getGenericExceptionTypes`). Distinguish errors reading generic signatures from errors looking up fields/methods or invoking methods.
 
-Các trường hợp đáng thử thêm:
+Additional cases worth testing:
 
-- Field `String plain`: cả `getType()` và `getGenericType()` thường là `String.class`.
-- Field `List raw`: generic type có thể là `Class<?>` (không phải `ParameterizedType`).
-- Field `List<?>`: cần duyệt wildcard, upper bound mặc định.
-- Field `T[]`: phân biệt `GenericArrayType` và `Class<?>` biểu diễn array sau erasure.
-- Method `void close()`: generic return type đại diện `void`, danh sách generic throws rỗng khi không khai báo.
-- Method `<E extends Exception> void fail() throws E`: exception generic là `TypeVariable E`, không phải `Exception.class`.
-- Class implements `Interface<String>` hoặc extends `Base<Integer>`: thử dựng bảng type variable substitution nhiều tầng.
+- Field `String plain`: both `getType()` and `getGenericType()` are usually `String.class`.
+- Field `List raw`: generic type can be `Class<?>` (not `ParameterizedType`).
+- Field `List<?>`: must traverse wildcard and default upper bound.
+- Field `T[]`: distinguish `GenericArrayType` from `Class<?>` representing the erased array.
+- Method `void close()`: generic return type represents `void`, generic throws list is empty when undeclared.
+- Method `<E extends Exception> void fail() throws E`: generic exception is `TypeVariable E`, not `Exception.class`.
+- Class implementing `Interface<String>` or extending `Base<Integer>`: try building a multi-level type-variable substitution table.
 
-## 12. Bài tập thực hành
+## 12. Practice Exercises
 
-1. Thêm `public Map<String, List<T>> grouped` vào output demo; phân tích `ParameterizedType` cấp ngoài và argument `List<T>` cấp trong.
-2. Thêm field `List<? super T> sink`; dùng `WildcardType.getLowerBounds()` để thấy bound dưới.
-3. Với `LongRepository`, viết hàm giải `T` sang `Long` từ `getGenericSuperclass()` rồi áp dụng vào field `value` mà không thay tên field.
-4. Viết method `public <R> R convert(R input)`; so sánh owner của `TypeVariable R` với type variable `T` của class.
-5. Thêm method `void normal()` không khai báo `throws` và xác minh `getGenericExceptionTypes().length == 0`.
-6. So sánh thông tin `throws IOException`, `throws E extends IOException` và `throws IOException, IllegalStateException`; in cả raw và generic exception arrays.
-7. Phát hiện bridge method khi override method trả generic hoặc covariant return, rồi thiết kế điều kiện chọn method dùng cho documentation.
-8. Thử field raw `List` cạnh `List<String>` để quan sát khác biệt `Class<?>` và `ParameterizedType`.
+1. Add `public Map<String, List<T>> grouped` to the demo output; analyze the outer `ParameterizedType` and inner `List<T>` argument.
+2. Add field `List<? super T> sink`; use `WildcardType.getLowerBounds()` to see the lower bound.
+3. For `LongRepository`, write a function resolving `T` to `Long` from `getGenericSuperclass()` and apply it to field `value` without changing the field name.
+4. Write method `public <R> R convert(R input)`; compare the owner of `TypeVariable R` with the class's type variable `T`.
+5. Add method `void normal()` without declaring `throws` and verify `getGenericExceptionTypes().length == 0`.
+6. Compare the metadata of `throws IOException`, `throws E extends IOException`, and `throws IOException, IllegalStateException`; print both raw and generic exception arrays.
+7. Detect bridge methods when overriding a method returning a generic or covariant return, then design a filter selecting methods for documentation.
+8. Test a raw `List` field alongside `List<String>` to observe the difference between `Class<?>` and `ParameterizedType`.
 
-## 13. Tham khảo
+## 13. References
 
-- [Java SE 17 — Field#getGenericType](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html#getGenericType()): kiểu khai báo generic của field và các exception liên quan.
-- [Java SE 17 — Method#getGenericReturnType](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html#getGenericReturnType()): kiểu kết quả được khai báo sau khi phân tích signature.
-- [Java SE 17 — Executable#getGenericExceptionTypes](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Executable.html#getGenericExceptionTypes()): các exception types theo mệnh đề `throws`; dùng cho method và constructor.
-- [Java SE 17 — Type](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Type.html): hợp đồng của các biểu diễn Type.
+- [Java SE 17 — Field#getGenericType](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html#getGenericType()): declared generic type of a field and related exceptions.
+- [Java SE 17 — Method#getGenericReturnType](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html#getGenericReturnType()): declared return type after parsing the signature.
+- [Java SE 17 — Executable#getGenericExceptionTypes](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Executable.html#getGenericExceptionTypes()): exception types per the `throws` clause; applies to methods and constructors.
+- [Java SE 17 — Type](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Type.html): contract of `Type` representations.
 - [Java SE 17 — ParameterizedType](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/ParameterizedType.html), [TypeVariable](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/TypeVariable.html), [WildcardType](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/WildcardType.html), [GenericArrayType](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/GenericArrayType.html).
-- [Java Language Specification §4.6 — Type Erasure](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.6): quy tắc xóa kiểu generic khi biên dịch.
+- [Java Language Specification §4.6 — Type Erasure](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.6): generic type erasure rules during compilation.
 
-**Ghi nhớ:** API `getType()`/`getReturnType()`/`getExceptionTypes()` trả `Class` theo kiểu sau erasure; `getGenericType()`/`getGenericReturnType()`/`getGenericExceptionTypes()` trả cấu trúc `Type` mô tả **generic declaration**. Từ khai báo này tới kiểu đã cụ thể hóa trong một subclass là một bước phân giải độc lập do công cụ cần thực hiện.
+**Takeaway:** `getType()`/`getReturnType()`/`getExceptionTypes()` return `Class` according to erased types; `getGenericType()`/`getGenericReturnType()`/`getGenericExceptionTypes()` return `Type` structures describing the **generic declaration**. Going from this declaration to the concretized type in a subclass is an independent resolution step that tools must perform.

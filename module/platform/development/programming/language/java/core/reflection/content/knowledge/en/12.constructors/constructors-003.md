@@ -1,16 +1,16 @@
-# `Constructor.newInstance` với danh sách đối số đúng kiểu
+# `Constructor.newInstance` with Properly Typed Argument Lists
 
-## 1. Từ chữ ký constructor đến đối số khởi tạo
+## 1. From Constructor Signature to Initialization Arguments
 
-Trong Java Reflection, `java.lang.reflect.Constructor<T>` biểu diễn **một constructor đã được xác định**, còn `newInstance(Object... initargs)` dùng constructor đó để tạo và khởi tạo một đối tượng.
+In Java Reflection, `java.lang.reflect.Constructor<T>` represents **an identified constructor**, while `newInstance(Object... initargs)` uses that constructor to create and initialize an object.
 
-Quy trình cơ bản:
+Basic workflow:
 
-1. Xác định đúng constructor của lớp bằng **danh sách kiểu tham số được khai báo**, theo thứ tự.
-2. Chuẩn bị danh sách **giá trị đối số** với số lượng và kiểu tương thích với constructor đó.
-3. Gọi `constructor.newInstance(args...)`; xử lý lỗi về số đối số, kiểu, quyền truy cập và ngoại lệ phát sinh khi khởi tạo.
+1. Identify the exact constructor of the class using the **declared parameter type list**, in order.
+2. Prepare the list of **argument values** with count and types compatible with that constructor.
+3. Call `constructor.newInstance(args...)`; handle errors involving argument count, types, access permissions, and exceptions thrown during initialization.
 
-Ví dụ một lớp có constructor `Order(String, long)`. Để tra cứu, cần truyền `String.class` và `long.class`. Để gọi, cần truyền một giá trị kiểu `String` và một giá trị có thể chuyển đổi hợp lệ sang `long`.
+For example, a class has the constructor `Order(String, long)`. To look it up, pass `String.class` and `long.class`. To invoke it, pass a value of type `String` and a value that can be validly converted to `long`.
 
 ~~~java
 Constructor<Order> ctor =
@@ -19,34 +19,34 @@ Constructor<Order> ctor =
 Order order = ctor.newInstance("Notebook", 3L);
 ~~~
 
-Đoạn trên chỉ minh họa cú pháp trong ngữ cảnh có class `Order` và khai báo/xử lý ngoại lệ. **`getConstructor` nhận kiểu; `newInstance` nhận giá trị.** Không được nhầm hai danh sách này.
+The snippet above only illustrates syntax in a context where class `Order` exists and exceptions are declared/handled. **`getConstructor` takes types; `newInstance` takes values.** Do not confuse these two lists.
 
-## 2. Chọn constructor: phải khớp đúng kiểu đã khai báo
+## 2. Selecting a Constructor: Must Match the Exact Declared Types
 
-Các phương thức tra cứu thường dùng:
+Common lookup methods:
 
-| API | Phạm vi | Cách so khớp |
+| API | Scope | How it matches |
 | --- | --- | --- |
-| `Class.getConstructor(Class<?>... parameterTypes)` | Constructor `public` của lớp | Khớp chính xác danh sách kiểu tham số được khai báo |
-| `Class.getDeclaredConstructor(Class<?>... parameterTypes)` | Constructor khai báo trong lớp, kể cả non-public | Cũng khớp chính xác kiểu tham số |
-| `Class.getConstructors()` | Các constructor `public` | Trả metadata để duyệt, không tự lựa chọn |
-| `Class.getDeclaredConstructors()` | Các constructor khai báo trong lớp | Trả metadata để duyệt, kể cả non-public |
+| `Class.getConstructor(Class<?>... parameterTypes)` | `public` constructors of the class | Matches exact list of declared parameter types |
+| `Class.getDeclaredConstructor(Class<?>... parameterTypes)` | Constructors declared in the class, including non-public | Also matches exact parameter types |
+| `Class.getConstructors()` | `public` constructors | Returns metadata to iterate over, does not auto-select |
+| `Class.getDeclaredConstructors()` | Constructors declared in the class | Returns metadata to iterate over, including non-public |
 
-Ví dụ với một lớp có hai constructor `Order(String, int)` và `Order(String, long)`:
+For example, with a class having two constructors `Order(String, int)` and `Order(String, long)`:
 
-- `getConstructor(String.class, int.class)` lấy constructor thứ nhất.
-- `getConstructor(String.class, long.class)` lấy constructor thứ hai.
-- `getConstructor(String.class, Integer.class)` **không tự tìm** `Order(String, int)`. Nếu không có constructor đúng kiểu `Integer`, nó ném `NoSuchMethodException`.
+- `getConstructor(String.class, int.class)` retrieves the first constructor.
+- `getConstructor(String.class, long.class)` retrieves the second constructor.
+- `getConstructor(String.class, Integer.class)` **does not automatically find** `Order(String, int)`. If there is no constructor with the exact `Integer` type, it throws `NoSuchMethodException`.
 
-Trình biên dịch có cơ chế **overload resolution** khi xử lý biểu thức `new Order("A", 1)`. Reflection không chạy lại thuật toán ấy khi tra cứu constructor: lời gọi `getConstructor` đòi hỏi chữ ký chính xác.
+The compiler has an **overload resolution** mechanism when processing the expression `new Order("A", 1)`. Reflection does not re-run that algorithm when looking up a constructor: calling `getConstructor` requires an exact signature.
 
-Tương tự, `getConstructor()` tìm constructor **không tham số**; không tìm thấy thì ném `NoSuchMethodException`, kể cả lớp có constructor nhận tham số hoặc constructor no-arg không `public`.
+Similarly, `getConstructor()` searches for a **no-arg** constructor; if not found, it throws `NoSuchMethodException`, even if the class has parameterized constructors or a non-`public` no-arg constructor.
 
-Các kiểu tham số dùng khi tra cứu là kiểu đã được **erasure** ở runtime. Nếu constructor khai báo `Order(List<String> items)`, phần kiểu tham số tra cứu là `List.class`, không tồn tại `List<String>.class`.
+The parameter types used during lookup are the **erased** types at runtime. If a constructor declares `Order(List<String> items)`, the parameter type for lookup is `List.class`; there is no `List<String>.class`.
 
-## 3. `newInstance` kiểm tra và chuyển đổi đối số như thế nào?
+## 3. How Does `newInstance` Validate and Convert Arguments?
 
-Chữ ký:
+Signature:
 
 ~~~java
 public T newInstance(Object... initargs)
@@ -56,34 +56,34 @@ public T newInstance(Object... initargs)
                InvocationTargetException
 ~~~
 
-Đây là chữ ký API để giải thích, không phải đoạn khai báo phương thức cần chép vào lớp ứng dụng.
+This is the API signature for explanation, not a method declaration to copy into an application class.
 
-Sau khi đã có đúng `Constructor<T>`, `newInstance` yêu cầu các đối số thực tế **tương thích theo từng vị trí** với tham số hình thức của constructor. Runtime có thể tự **unboxing** wrapper và thực hiện một số **widening conversions** thích hợp; nó không tự co hẹp kiểu nguyên thủy (*narrowing*) và không chạy thuật toán chọn overload lần nữa.
+Once the right `Constructor<T>` has been obtained, `newInstance` requires the actual arguments to be **positionally compatible** with the constructor's formal parameters. The runtime can automatically **unbox** wrappers and perform appropriate **widening conversions**; it does not automatically narrow primitive types (*narrowing*) and does not re-run the overload selection algorithm.
 
-| Tham số khai báo | Đối số truyền cho `newInstance` | Kết quả |
+| Declared parameter | Argument passed to `newInstance` | Result |
 | --- | --- | --- |
-| `long` | `Long.valueOf(3)` | Hợp lệ: unboxing `Long → long` |
-| `long` | `Integer.valueOf(3)` | Hợp lệ: unboxing `Integer → int`, rồi widening `int → long` |
-| `int` | `Long.valueOf(3)` | Không hợp lệ: phải narrowing `long → int` |
-| `Number` | `Integer.valueOf(3)` | Hợp lệ: tham chiếu `Integer` là một `Number` |
-| `Integer` | `Long.valueOf(3)` | Không hợp lệ: wrapper khác loại, không tự đổi sang `Integer` |
-| `String` | `null` | Hợp lệ: tham chiếu có thể nhận `null` |
-| `long` | `null` | Không hợp lệ: không unbox được `null` |
-| `long` | `"3"` | Không hợp lệ: Reflection không parse chuỗi thành số |
+| `long` | `Long.valueOf(3)` | Valid: unboxing `Long → long` |
+| `long` | `Integer.valueOf(3)` | Valid: unboxing `Integer → int`, then widening `int → long` |
+| `int` | `Long.valueOf(3)` | Invalid: requires narrowing `long → int` |
+| `Number` | `Integer.valueOf(3)` | Valid: `Integer` reference is a `Number` |
+| `Integer` | `Long.valueOf(3)` | Invalid: different wrapper type, not automatically converted to `Integer` |
+| `String` | `null` | Valid: reference type can accept `null` |
+| `long` | `null` | Invalid: cannot unbox `null` |
+| `long` | `"3"` | Invalid: Reflection does not parse strings into numbers |
 
-Các kiểu nguyên thủy truyền trong mã gọi Java sẽ được **boxing vào Object** bởi cú pháp varargs `newInstance(Object...)`. Việc nhận wrapper ấy rồi chuyển sang tham số nguyên thủy là bước riêng của Reflection.
+Primitive types passed in Java calling code are **boxed into Object** by the varargs syntax `newInstance(Object...)`. Accepting that wrapper and converting it to a primitive parameter is a separate step performed by Reflection.
 
-Lỗi do số lượng đối số sai, vị trí sai, kiểu không tương thích hoặc phép narrowing không được cho phép thường gây `IllegalArgumentException`, **không phải** `NoSuchMethodException`. `NoSuchMethodException` thuộc giai đoạn *tra cứu constructor*, trước lúc gọi `newInstance`.
+Errors due to wrong argument count, wrong position, incompatible type, or disallowed narrowing typically cause `IllegalArgumentException`, **not** `NoSuchMethodException`. `NoSuchMethodException` belongs to the *constructor lookup* stage, before calling `newInstance`.
 
-### Kiểu tĩnh của biến và giá trị runtime
+### Static Type of Variables vs. Runtime Value
 
-Nếu bạn có `Object quantity = Integer.valueOf(3)`, khi gọi `ctor.newInstance("Notebook", quantity)` thì Reflection nhìn giá trị runtime là `Integer`. Nếu constructor đã chọn nhận `long`, nó có thể unbox và widening. Tuy nhiên `getConstructor(String.class, Object.class)` không thể dùng để tìm constructor `(String, long)`, bởi tra cứu cần đúng kiểu khai báo.
+If you have `Object quantity = Integer.valueOf(3)`, when calling `ctor.newInstance("Notebook", quantity)` Reflection looks at the runtime value `Integer`. If the selected constructor takes `long`, it can unbox and widen. However, `getConstructor(String.class, Object.class)` cannot be used to find constructor `(String, long)`, because lookup requires the exact declared types.
 
-Không nên lấy `arg.getClass()` rồi coi đó luôn là danh sách kiểu constructor cần tìm. Cách này thất bại với `null`, primitive (đã boxing) và overload nhận superclass hoặc interface.
+Do not take `arg.getClass()` and treat that as the constructor type list to search for. This fails for `null`, primitives (already boxed), and overloads taking a superclass or interface.
 
-## 4. Ví dụ Java 17+ chạy được
+## 4. Runnable Java 17+ Example
 
-Tạo file **`ConstructorArgumentsDemo.java`**:
+Create the file **`ConstructorArgumentsDemo.java`**:
 
 ~~~java
 import java.lang.reflect.Constructor;
@@ -165,14 +165,14 @@ public class ConstructorArgumentsDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17 hoặc mới hơn:
+Compile and run with JDK 17 or newer:
 
 ~~~bash
 javac ConstructorArgumentsDemo.java
 java ConstructorArgumentsDemo
 ~~~
 
-Kết quả chính xác:
+Exact output:
 
 ~~~text
 exact lookup: [class java.lang.String, long]
@@ -186,83 +186,83 @@ expanded arguments: IllegalArgumentException
 constructor threw: quantity must be >= 0
 ~~~
 
-Giải thích:
+Explanation:
 
-1. `getConstructor(String.class, long.class)` tìm đúng chữ ký khai báo; `Integer.valueOf(3)` là **đối số gọi được** cho constructor nhận `long` vì có unboxing rồi widening.
-2. `getConstructor(String.class, Integer.class)` thất bại ở **tra cứu**: không có constructor nhận `Integer`; lỗi này xảy ra trước khi tạo đối tượng.
-3. `numeric.newInstance("Notebook", "3")` và `numeric.newInstance("Notebook", (Object) null)` đã xác định được constructor, nhưng **đối số sai kiểu** cho `long`, nên phát sinh `IllegalArgumentException`.
-4. Constructor khai báo `String... labels` được phản chiếu như tham số **`String[]`**. Khi gọi `newInstance`, phải đưa mảng đó vào **một vị trí đối số**; `(Object) new String[]{...}` diễn đạt rõ điều này.
-5. Gọi `labels.newInstance("Notebook", "A", "B")` đưa **ba đối số thực tế** cho constructor chỉ có **hai tham số khai báo** (`String`, `String[]`). Reflection không tự gom hai chuỗi vào mảng varargs của constructor đích.
-6. Constructor `Order(String, long)` tự ném `IllegalArgumentException` khi số lượng âm. Reflection bọc ngoại lệ **phát sinh bên trong constructor** trong `InvocationTargetException`; lấy ngoại lệ gốc qua `getCause()`.
+1. `getConstructor(String.class, long.class)` finds the exact declared signature; `Integer.valueOf(3)` is a **callable argument** for the constructor taking `long` due to unboxing followed by widening.
+2. `getConstructor(String.class, Integer.class)` fails at **lookup**: there is no constructor taking `Integer`; this error occurs before object creation.
+3. `numeric.newInstance("Notebook", "3")` and `numeric.newInstance("Notebook", (Object) null)` already identified the constructor, but the **argument has the wrong type** for `long`, so `IllegalArgumentException` occurs.
+4. The constructor declared as `String... labels` is reflected as a **`String[]`** parameter. When calling `newInstance`, that array must be passed in **a single argument slot**; `(Object) new String[]{...}` expresses this explicitly.
+5. Calling `labels.newInstance("Notebook", "A", "B")` passes **three actual arguments** to a constructor that only has **two declared parameters** (`String`, `String[]`). Reflection does not automatically pack the two strings into the target constructor's varargs array.
+6. The `Order(String, long)` constructor itself throws `IllegalArgumentException` when the quantity is negative. Reflection wraps exceptions **originating inside the constructor** in `InvocationTargetException`; retrieve the original exception via `getCause()`.
 
-Ví dụ dùng lớp lồng `static` và constructor `public`, nên không cần thao tác `setAccessible` và không cần truyền enclosing instance.
+The example uses a `static` nested class and `public` constructors, so `setAccessible` and passing an enclosing instance are not needed.
 
-## 5. Varargs: phân biệt hai lớp `...`
+## 5. Varargs: Distinguishing Two Layers of `...`
 
-Điểm dễ nhầm nhất là có **hai nơi xuất hiện varargs**:
+The most common point of confusion is that there are **two places where varargs appear**:
 
-- Constructor đích: `Order(String name, String... labels)`, được biểu diễn ở runtime bằng danh sách kiểu `(String, String[])`.
-- API Reflection: `Constructor.newInstance(Object... initargs)`, nhận một mảng `Object[]` chứa **các đối số dùng để gọi constructor đích**.
+- Target constructor: `Order(String name, String... labels)`, represented at runtime by the type list `(String, String[])`.
+- Reflection API: `Constructor.newInstance(Object... initargs)`, which accepts an `Object[]` array containing **the arguments used to invoke the target constructor**.
 
-Mô hình:
+Model:
 
 ~~~text
-Constructor cần gọi: Order(String, String[])
+Constructor to invoke: Order(String, String[])
                                ^
-                               | mảng String[] là một đối số
+                               | String[] array is a single argument
 newInstance(Object... initargs)
     Object[0] = "Notebook"
     Object[1] = new String[]{"A", "B"}
 ~~~
 
-Vì vậy:
+Therefore:
 
 ~~~java
 Constructor<Order> ctor =
         Order.class.getConstructor(String.class, String[].class);
 
-// Đúng: hai đối số của constructor đích, vị trí 2 là String[].
+// Correct: two arguments for the target constructor, position 2 is String[].
 Order a = ctor.newInstance(
         "Notebook", (Object) new String[]{"A", "B"});
 
-// Sai cho constructor đích: ba đối số, không tự gom thành String[].
+// Wrong for the target constructor: three arguments, not auto-packed into String[].
 // ctor.newInstance("Notebook", "A", "B");
 ~~~
 
-Đoạn trên minh họa với class `Order` đã định nghĩa. `(Object)` giúp tránh nhầm tầng varargs của chính API `newInstance`; việc đóng gói thủ công bằng `new Object[]{"Notebook", new String[]{"A", "B"}}` cũng cho ra danh sách đối số đúng.
+The snippet above illustrates with the already-defined `Order` class. `(Object)` avoids confusing the varargs layer of `newInstance` itself; manually packing with `new Object[]{"Notebook", new String[]{"A", "B"}}` also produces the right argument list.
 
-**Không tự mở rộng varargs đích** là quy tắc đặc biệt cần ghi nhớ: tính chất `isVarArgs() == true` của `Constructor` không khiến Reflection thực hiện cú pháp lời gọi biến số lượng như compiler.
+**Not automatically expanding target varargs** is a special rule to remember: `Constructor`'s `isVarArgs() == true` property does not make Reflection perform variable-argument call syntax like the compiler does.
 
-Với constructor **không tham số**, gọi `ctor.newInstance()` hoặc `ctor.newInstance(new Object[0])` đều phù hợp. Javadoc còn cho phép mảng `initargs` là `null` khi constructor không có tham số, nhưng `newInstance()` rõ ràng và ít gây nhầm lẫn hơn.
+For a **no-arg** constructor, calling `ctor.newInstance()` or `ctor.newInstance(new Object[0])` both work. The Javadoc also allows the `initargs` array to be `null` when the constructor takes no parameters, but `newInstance()` is clearer and less error-prone.
 
-## 6. `null`, mảng đối số và đúng thứ tự
+## 6. `null`, Argument Arrays, and Exact Order
 
-Mỗi đối số gắn với **vị trí tham số** tương ứng:
+Each argument corresponds to its **parameter position**:
 
 ~~~java
-// Giả sử có constructor User(String name, Integer age):
+// Suppose there is a constructor User(String name, Integer age):
 Constructor<User> ctor =
         User.class.getConstructor(String.class, Integer.class);
 
 User u = ctor.newInstance("Mai", null);
 ~~~
 
-Đây là đoạn minh họa; cần có lớp `User` tương ứng. `null` hợp lệ tại vị trí `Integer`, bởi đó là kiểu tham chiếu. Nhưng `null` không hợp lệ với `int` hoặc `long`.
+This is an illustrative snippet; a matching `User` class is required. `null` is valid at the `Integer` position because it is a reference type. However, `null` is invalid for `int` or `long`.
 
-Phân biệt:
+Distinguish:
 
-- `ctor.newInstance((Object) null)`: có **một đối số** thực tế với giá trị `null`.
-- `ctor.newInstance((Object[]) null)`: truyền **mảng đối số `initargs` là null** vào API Reflection; chỉ dùng dạng này nếu hiểu rõ quy tắc của API, đặc biệt với constructor không tham số.
-- `ctor.newInstance(new Object[]{"Mai", null})`: truyền **hai đối số** cụ thể.
-- `ctor.newInstance("Mai", null)`: cú pháp tiện lợi tương ứng hai đối số cho constructor nhận `String`, `Integer`.
+- `ctor.newInstance((Object) null)`: passes **one actual argument** with value `null`.
+- `ctor.newInstance((Object[]) null)`: passes a **null `initargs` argument array** to the Reflection API; use this form only if you clearly understand the API rules, especially for a no-arg constructor.
+- `ctor.newInstance(new Object[]{"Mai", null})`: passes **two explicit arguments**.
+- `ctor.newInstance("Mai", null)`: convenient syntax corresponding to two arguments for a constructor taking `String`, `Integer`.
 
-Nếu các đối số bị đảo vị trí, chẳng hạn `(Integer, String)` thay vì `(String, Integer)`, Reflection không tự sắp xếp lại. Nó kiểm tra lần lượt vị trí 1, 2, ... của đúng constructor đã chọn.
+If arguments are swapped in position, such as `(Integer, String)` instead of `(String, Integer)`, Reflection does not reorder them automatically. It checks position 1, 2, ... sequentially against the exact selected constructor.
 
-Với dữ liệu động (JSON, form hoặc cấu hình), **đừng suy constructor chỉ bằng các giá trị runtime**. Nên thiết kế schema ánh xạ rõ từng tham số và chuyển dữ liệu chuỗi/số sang kiểu mong muốn trước khi gọi Reflection.
+For dynamic data (JSON, forms, or configuration), **do not infer constructors solely from runtime values**. Design a schema mapping each parameter clearly and convert string/numeric data to the desired types before invoking Reflection.
 
-## 7. Constructor không public và Java Platform Module System
+## 7. Non-Public Constructors and the Java Platform Module System
 
-`getDeclaredConstructor(...)` có thể lấy metadata cho constructor `private`, `protected` hoặc package-private, nhưng metadata không đồng nghĩa quyền gọi:
+`getDeclaredConstructor(...)` can retrieve metadata for `private`, `protected`, or package-private constructors, but metadata does not equal permission to invoke:
 
 ~~~java
 Constructor<Example> ctor =
@@ -270,21 +270,21 @@ Constructor<Example> ctor =
 
 if (!ctor.canAccess(null) && !ctor.trySetAccessible()) {
     throw new IllegalAccessException(
-            "Không thể mở quyền truy cập constructor");
+            "Cannot open access to constructor");
 }
 
 Example value = ctor.newInstance("demo");
 ~~~
 
-Đây là đoạn minh họa cho lớp `Example`, không phải file Java độc lập. **`Constructor.canAccess` phải nhận `null`**, bởi chưa có đối tượng đích trước khi tạo instance. `trySetAccessible()` trả `false` khi không thể bật cờ bỏ qua kiểm tra truy cập theo điều kiện của JPMS; `setAccessible(true)` có thể ném `InaccessibleObjectException`.
+This is an illustrative snippet for an `Example` class, not a standalone Java file. **`Constructor.canAccess` must receive `null`**, because there is no target object yet before creating the instance. `trySetAccessible()` returns `false` when the flag to bypass access checks cannot be enabled under JPMS conditions; `setAccessible(true)` can throw `InaccessibleObjectException`.
 
-Khi một package thuộc **named module** không được mở thích hợp, mã Reflection từ module khác không thể tùy ý truy cập thành viên private. Các quyền `opens` hoặc `--add-opens` cần được cấu hình một cách có chủ ý; `exports` chỉ cho phép các đường truy cập public theo phạm vi export và không tự cho phép deep reflection.
+When a package belongs to a **named module** that is not appropriately opened, Reflection code from another module cannot arbitrarily access private members. `opens` or `--add-opens` permissions must be configured intentionally; `exports` only permits public access paths within the export scope and does not automatically allow deep reflection.
 
-Khuyến nghị: ưu tiên constructor public/factory method được hỗ trợ. Chỉ mở quyền Reflection ở nơi thực sự cần, và kiểm tra kết quả xin quyền trước khi gọi.
+Recommendation: prefer supported public constructors/factory methods. Only open Reflection access where genuinely needed, and check the permission-request result before invoking.
 
-## 8. Constructor của inner class không static
+## 8. Constructors of Non-Static Inner Classes
 
-Với non-static inner class:
+For a non-static inner class:
 
 ~~~java
 class Outer {
@@ -294,7 +294,7 @@ class Outer {
 }
 ~~~
 
-Một instance `Outer.Inner` luôn gắn với một instance `Outer`. Vì vậy, compiler bổ sung **tham số enclosing instance** vào constructor phản chiếu. Ví dụ tra cứu thường là:
+An `Outer.Inner` instance is always tied to an `Outer` instance. Therefore, the compiler adds an **enclosing instance parameter** to the reflected constructor. A typical lookup example is:
 
 ~~~java
 Outer owner = new Outer();
@@ -303,78 +303,78 @@ Constructor<Outer.Inner> innerCtor =
         Outer.Inner.class.getDeclaredConstructor(
                 Outer.class, String.class);
 
-// Trong ví dụ các class cùng ngữ cảnh truy cập hợp lệ:
+// In the example where classes are in a valid access context:
 Outer.Inner value = innerCtor.newInstance(owner, "hello");
 ~~~
 
-Đoạn này minh họa trong một ngữ cảnh Java có quyền truy cập hợp lệ; hãy đặt mã trong vị trí tương thích với visibility của các class. Truyền `"hello"` mà quên `owner` sẽ khiến số lượng/kiểu đối số không khớp. Với lớp lồng **`static`**, không có tham số enclosing instance này.
+This snippet illustrates within a Java context with valid access permissions; place the code in a location compatible with the visibility of the classes. Passing `"hello"` while forgetting `owner` will cause the argument count/types not to match. For **`static`** nested classes, this enclosing instance parameter does not exist.
 
-Một số constructor do compiler sinh còn có tham số ẩn/synthetic, nên khi metadata thực tế khác với mã nguồn, hãy kiểm tra `getParameterTypes()`, `getParameterCount()` và `getParameters()` thay vì chỉ đoán từ chữ ký hiển thị trong IDE.
+Some compiler-generated constructors also have hidden/synthetic parameters, so when actual metadata differs from source code, inspect `getParameterTypes()`, `getParameterCount()`, and `getParameters()` rather than guessing from the signature shown in an IDE.
 
-## 9. Các nhóm lỗi phải phân biệt
+## 9. Error Categories to Distinguish
 
-| Lỗi | Xảy ra ở đâu | Cách nhận diện |
+| Error | Where it occurs | How to identify |
 | --- | --- | --- |
-| `NoSuchMethodException` | Tra cứu `getConstructor` / `getDeclaredConstructor` | Không có đúng danh sách kiểu tham số yêu cầu |
-| `IllegalArgumentException` | `newInstance` | Sai số lượng/kiểu đối số, narrowing không hợp lệ, hoặc cố tạo enum bằng Reflection |
-| `IllegalAccessException` | `newInstance` | Caller không có quyền truy cập constructor đang được kiểm soát |
-| `InvocationTargetException` | `newInstance` | **Chính constructor đích** ném ngoại lệ; xem `getCause()` |
-| `InstantiationException` | `newInstance` | Không thể tạo instance do đặc tính của lớp, ví dụ abstract class |
-| `ExceptionInInitializerError` | Khởi tạo lớp lúc dùng `newInstance` | Static initializer thất bại |
-| `InaccessibleObjectException` | Có thể tại `setAccessible(true)` | Không thể bật quyền deep reflection do ranh giới module |
+| `NoSuchMethodException` | Lookup `getConstructor` / `getDeclaredConstructor` | Requested parameter type list does not exist |
+| `IllegalArgumentException` | `newInstance` | Wrong argument count/type, invalid narrowing, or attempting to instantiate an enum via Reflection |
+| `IllegalAccessException` | `newInstance` | Caller lacks permission to access a controlled constructor |
+| `InvocationTargetException` | `newInstance` | **The target constructor itself** threw an exception; inspect `getCause()` |
+| `InstantiationException` | `newInstance` | Cannot create instance due to class nature, e.g. abstract class |
+| `ExceptionInInitializerError` | Class initialization during `newInstance` | Static initializer failed |
+| `InaccessibleObjectException` | Possibly at `setAccessible(true)` | Cannot enable deep reflection permission due to module boundaries |
 
-**Phân biệt đặc biệt:** nếu đối số `newInstance` không đúng kiểu, `IllegalArgumentException` đi ra trực tiếp từ API. Nhưng nếu constructor chạy và **bản thân constructor** ném `IllegalArgumentException`, Reflection bọc nó trong `InvocationTargetException`. Đây là hai trường hợp có hướng xử lý khác nhau.
+**Special distinction:** if `newInstance` arguments have the wrong type, `IllegalArgumentException` comes directly from the API. But if the constructor runs and **the constructor itself** throws `IllegalArgumentException`, Reflection wraps it in `InvocationTargetException`. These are two cases with different handling paths.
 
-Không cố gọi reflective constructor của `enum`: `Constructor.newInstance` cấm tạo enum theo cách này, kể cả có metadata constructor. Interface, kiểu primitive và mảng cũng không có constructor thông thường để tra cứu như lớp concrete.
+Do not attempt to reflectively invoke an `enum` constructor: `Constructor.newInstance` forbids creating enums this way, even when constructor metadata exists. Interfaces, primitive types, and arrays also do not have ordinary constructors to look up like concrete classes.
 
-## 10. Trường hợp `Class.newInstance()` cũ
+## 10. The Legacy `Class.newInstance()` Case
 
-`Class.newInstance()` đã **deprecated từ Java 9**. Hạn chế chính:
+`Class.newInstance()` has been **deprecated since Java 9**. Main limitations:
 
-- Chỉ gọi constructor không tham số.
-- Có thể truyền thẳng ngoại lệ do constructor ném, kể cả checked exception, khiến hợp đồng ngoại lệ kém rõ ràng.
-- Khả năng xử lý constructor không public không tương đương với cách lấy `Constructor` rồi kiểm soát quyền rõ ràng.
+- Only invokes the no-arg constructor.
+- Can directly propagate exceptions thrown by the constructor, including checked exceptions, making the exception contract unclear.
+- Handling of non-public constructors does not match obtaining a `Constructor` and controlling access explicitly.
 
-Thay:
+Instead:
 
 ~~~java
 T value = clazz.getDeclaredConstructor().newInstance();
 ~~~
 
-Đây là cú pháp minh họa khi `clazz` có kiểu `Class<T>` và caller xử lý các ngoại lệ Reflection. Nếu constructor không public, vẫn phải đáp ứng quyền truy cập theo đúng quy tắc.
+This is illustrative syntax when `clazz` has type `Class<T>` and the caller handles Reflection exceptions. If the constructor is non-public, access permissions must still be satisfied according to the rules.
 
-## 11. Checklist để gọi `newInstance` đúng
+## 11. Checklist for Calling `newInstance` Correctly
 
-1. **Xác định lớp có thể tạo instance**: một concrete class, không phải enum được gọi bằng Reflection; chú ý static initialization.
-2. **Tra đúng constructor**: dùng `getConstructor` cho public, `getDeclaredConstructor` khi cần metadata mọi mức truy cập; truyền `Class<?>...` đúng số lượng và thứ tự.
-3. **Kiểm tra chữ ký runtime**: `getParameterTypes()` và `getParameterCount()`; nếu `isVarArgs()`, tham số cuối là **mảng**.
-4. **Chuẩn bị Object[] đối số**: chuyển chuỗi dữ liệu sang kiểu nghiệp vụ thật; đánh giá wrapper, unboxing, widening, `null`, inner enclosing instance.
-5. **Kiểm tra quyền truy cập**: `canAccess(null)`; chỉ xin quyền mở rộng khi cần và được phép.
-6. **Gọi `newInstance` rồi phân loại lỗi**: lỗi lookup, lỗi đối số, lỗi truy cập và lỗi từ constructor đích là các nhóm khác nhau.
-7. **Không tự giải overload bằng thứ tự mảng**: nếu cần chọn constructor động, xây luật chọn rõ ràng và xử lý ambiguous cases; tránh lấy constructor đầu tiên từ `getConstructors()`.
+1. **Verify the class can be instantiated**: a concrete class, not an enum invoked via Reflection; watch out for static initialization.
+2. **Look up the right constructor**: use `getConstructor` for public, `getDeclaredConstructor` when metadata at any access level is needed; pass `Class<?>...` with the exact count and order.
+3. **Inspect the runtime signature**: `getParameterTypes()` and `getParameterCount()`; if `isVarArgs()`, the last parameter is an **array**.
+4. **Prepare the `Object[]` arguments**: convert string data to actual domain types; evaluate wrappers, unboxing, widening, `null`, and inner enclosing instances.
+5. **Check access permissions**: `canAccess(null)`; only request expanded access when necessary and permitted.
+6. **Invoke `newInstance` and classify errors**: lookup errors, argument errors, access errors, and errors from the target constructor are distinct categories.
+7. **Do not resolve overloads by array order**: if dynamic constructor selection is needed, build explicit selection rules and handle ambiguous cases; avoid grabbing the first constructor from `getConstructors()`.
 
-### Tự kiểm tra
+### Self-Check
 
-**Câu 1:** Constructor khai báo `(String, long)`. `getConstructor(String.class, Integer.class)` có tìm được không?  
-**Không.** Tra cứu cần kiểu đúng `long.class`.
+**Question 1:** A constructor is declared `(String, long)`. Can `getConstructor(String.class, Integer.class)` find it?  
+**No.** Lookup requires the exact type `long.class`.
 
-**Câu 2:** Đã tìm đúng constructor `(String, long)`. `newInstance("A", Integer.valueOf(2))` có hợp lệ không?  
-**Có.** `Integer` được unbox thành `int`, sau đó widen sang `long`.
+**Question 2:** Having found the `(String, long)` constructor, is `newInstance("A", Integer.valueOf(2))` valid?  
+**Yes.** `Integer` is unboxed to `int`, then widened to `long`.
 
-**Câu 3:** Constructor đích khai báo `(String, String...)`. Truyền ba đối số `"A", "B", "C"` vào `newInstance` có tự gom `"B", "C"` thành `String[]` không?  
-**Không.** Chuẩn bị đúng hai đối số: `"A"` và một `String[]`.
+**Question 3:** The target constructor is declared `(String, String...)`. Does passing three arguments `"A", "B", "C"` to `newInstance` automatically pack `"B", "C"` into `String[]`?  
+**No.** Prepare exactly two arguments: `"A"` and a `String[]`.
 
-**Câu 4:** `newInstance` ném `InvocationTargetException`. Có luôn là do đối số sai kiểu không?  
-**Không.** Nó thường cho biết **mã constructor đã chạy và ném ngoại lệ**; lấy `getCause()` để xem lỗi gốc.
+**Question 4:** `newInstance` throws `InvocationTargetException`. Is it always due to wrong argument types?  
+**No.** It usually indicates **the constructor code ran and threw an exception**; call `getCause()` to see the root error.
 
-**Câu 5:** Constructor private có thể tìm bằng `getDeclaredConstructor` nghĩa là luôn gọi được?  
-**Không.** Phải đáp ứng Java access control và giới hạn module.
+**Question 5:** Does being able to find a private constructor with `getDeclaredConstructor` mean it can always be invoked?  
+**No.** Java access control and module restrictions must be satisfied.
 
-**Ghi nhớ:** `getConstructor(...)` tìm **chữ ký chính xác**; `Constructor.newInstance(...)` thực thi **constructor đã chọn** với số lượng và kiểu giá trị phù hợp. Hiểu rõ hai bước này sẽ tránh các lỗi phổ biến về primitive/wrapper, `null`, varargs và ngoại lệ.
+**Key takeaway:** `getConstructor(...)` finds the **exact signature**; `Constructor.newInstance(...)` executes the **selected constructor** with matching argument count and types. Understanding these two steps clearly avoids common bugs with primitives/wrappers, `null`, varargs, and exceptions.
 
-### Tài liệu tham khảo
+### References
 
 - [JDK 17 — `Constructor<T>`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Constructor.html)
-- [JDK 17 — `Class.getConstructor` và `getDeclaredConstructor`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html)
+- [JDK 17 — `Class.getConstructor` and `getDeclaredConstructor`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html)
 - [Dev.java — Invoking Constructors](https://dev.java/learn/api/reflection-method-handles/reflection/constructors/)
 - [Java Language Specification §15.9 — Class Instance Creation Expressions](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.9)

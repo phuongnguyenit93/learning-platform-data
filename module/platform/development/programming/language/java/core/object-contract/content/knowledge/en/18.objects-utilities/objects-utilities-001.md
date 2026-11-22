@@ -1,74 +1,74 @@
-# `Objects.equals()` xử lý `null` và ủy quyền tới `equals()`
+# `Objects.equals()` handles `null` and delegates to `equals()`
 
-## Mục tiêu bài học
+## Lesson Objectives
 
-`java.util.Objects.equals(Object a, Object b)` là một tiện ích nhỏ nhưng rất thường gặp khi viết Java. Phương thức này giúp so sánh hai tham chiếu **mà không phải tự kiểm tra xem tham chiếu nhận lời gọi `equals()` có phải `null` hay không**. Khi hai đối tượng đều tồn tại và không cùng tham chiếu, kết quả được quyết định bởi phương thức `equals()` của **đối số thứ nhất**.
+`java.util.Objects.equals(Object a, Object b)` is a small but very common utility when writing Java. This method helps compare two references **without having to manually check whether the reference receiving the `equals()` call is `null`**. When both objects exist and are not the same reference, the result is determined by the `equals()` method of **the first argument**.
 
-Học xong bài này, bạn có thể:
+After completing this lesson, you can:
 
-- Dự đoán kết quả `Objects.equals(a, b)` khi một hoặc cả hai đối số là `null`.
-- Giải thích việc kiểm tra `a == b` trước và cơ chế ngắn mạch trước khi gọi `a.equals(b)`.
-- Phân biệt so sánh danh tính bằng `==` với so sánh logic bằng `equals()`.
-- Hiểu chính xác rằng `Objects.equals()` ủy quyền cho `a.equals(b)`, không tự so sánh từng trường, không gọi `b.equals(a)` để kiểm tra hai chiều.
-- Sử dụng tiện ích này khi viết `equals(Object)` cho lớp có trường tham chiếu nullable.
-- Chọn phép so sánh phù hợp với `String`, record, wrapper, mảng và những đối tượng có hợp đồng `equals()` chuyên biệt.
+- Predict the result of `Objects.equals(a, b)` when one or both arguments are `null`.
+- Explain the `a == b` check first and the short-circuit mechanism before calling `a.equals(b)`.
+- Distinguish identity comparison using `==` from logical comparison using `equals()`.
+- Understand accurately that `Objects.equals()` delegates to `a.equals(b)`, does not compare fields on its own, and does not call `b.equals(a)` for a two-way check.
+- Use this utility when writing `equals(Object)` for a class with nullable reference fields.
+- Choose the appropriate comparison for `String`, records, wrappers, arrays, and objects with specialized `equals()` contracts.
 
-## 1. Ý nghĩa và chữ ký phương thức
+## 1. Purpose and method signature
 
-`Objects` là lớp tiện ích trong package `java.util`. Hai đối số của `Objects.equals` được khai báo là `Object`:
+`Objects` is a utility class in the `java.util` package. The two arguments of `Objects.equals` are declared as `Object`:
 
 ```java
 public static boolean equals(Object a, Object b)
 ```
 
-Phương thức trả về `true` nếu hai đối số được xem là bằng nhau và `false` trong trường hợp còn lại theo logic sau:
+The method returns `true` if the two arguments are considered equal and `false` otherwise according to the following logic:
 
 ```java
 return (a == b) || (a != null && a.equals(b));
 ```
 
-Đây là **biểu thức tương đương với cách cài đặt trong thư viện Java**, dùng để giải thích cơ chế; không phải yêu cầu bạn tự định nghĩa lại phương thức `Objects.equals()`.
+This is an **equivalent expression to the implementation in the Java library**, used to explain the mechanism; it is not asking you to redefine the `Objects.equals()` method yourself.
 
-Biểu thức có ba phần:
+The expression has three parts:
 
-1. **`a == b`**: nếu cùng tham chiếu, bao gồm hai đối số đều `null`, trả về `true` ngay.
-2. **`a != null`**: nếu đối số đầu tiên là `null` và chưa qua nhánh đầu, không được gọi phương thức trên `a`; kết quả là `false`.
-3. **`a.equals(b)`**: khi `a` khác `null` và hai tham chiếu khác nhau, gọi phương thức `equals` do kiểu chạy thực tế của `a` cung cấp. Nó có thể là `Object.equals()` mặc định hoặc phương thức ghi đè của lớp như `String`, `Integer`, record, hoặc lớp do bạn thiết kế.
+1. **`a == b`**: if they are the same reference, including both arguments being `null`, return `true` immediately.
+2. **`a != null`**: if the first argument is `null` and did not pass the first branch, do not call a method on `a`; the result is `false`.
+3. **`a.equals(b)`**: when `a` is non-`null` and the two references differ, call the `equals` method provided by the actual runtime type of `a`. It may be the default `Object.equals()` or an overridden method of a class such as `String`, `Integer`, a record, or a class you designed.
 
-Hai toán tử `||` và `&&` **đánh giá ngắn mạch** từ trái sang phải: khi `a == b` đã là `true` thì không đánh giá vế phải của `||`; khi `a != null` là `false` thì không đánh giá `a.equals(b)`. Nhờ vậy, `Objects.equals(null, x)` không ném `NullPointerException` do gọi một phương thức trên đối số thứ nhất `null`.
+The two operators `||` and `&&` **short-circuit evaluate** from left to right: when `a == b` is already `true`, the right side of `||` is not evaluated; when `a != null` is `false`, `a.equals(b)` is not evaluated. Thanks to this, `Objects.equals(null, x)` does not throw `NullPointerException` from calling a method on a `null` first argument.
 
-Lưu ý phạm vi bảo đảm: tiện ích này **tránh việc dereference đối số `a` khi nó là `null`**. Nó không ngăn một triển khai `equals()` tùy chỉnh ném ngoại lệ bên trong, và cũng không sửa các lỗi vi phạm hợp đồng `equals()` của lớp.
+Note the scope of this guarantee: this utility **avoids dereferencing argument `a` when it is `null`**. It does not prevent a custom `equals()` implementation from throwing an exception internally, nor does it fix violations of a class's `equals()` contract.
 
-## 2. Bốn trường hợp `null` căn bản
+## 2. Four fundamental `null` cases
 
-Với các lớp có `equals()` tuân thủ hợp đồng thông thường (đối tượng khác `null` phải không bằng `null`), bảng kết quả là:
+For classes whose `equals()` follows the standard contract (a non-`null` object must not be equal to `null`), the result table is:
 
-| Đối số `a` | Đối số `b` | `Objects.equals(a, b)` | Vì sao? |
+| Argument `a` | Argument `b` | `Objects.equals(a, b)` | Why? |
 | --- | --- | --- | --- |
-| `null` | `null` | `true` | `a == b` là `true`. |
-| `null` | `"Java"` | `false` | `a == b` sai; `a != null` sai; không gọi `equals()`. |
-| `"Java"` | `null` | `false` | Gọi `"Java".equals(null)` và nhận `false`. |
-| `"Java"` | `"Java"` | `true` | Cùng tham chiếu hoặc cùng nội dung theo `String.equals()`. |
+| `null` | `null` | `true` | `a == b` is `true`. |
+| `null` | `"Java"` | `false` | `a == b` is false; `a != null` is false; `equals()` is not called. |
+| `"Java"` | `null` | `false` | Calls `"Java".equals(null)` and gets `false`. |
+| `"Java"` | `"Java"` | `true` | Same reference or same content according to `String.equals()`. |
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.Objects;
 
-// Các lệnh nằm trong một phương thức:
+// Statements inside a method:
 System.out.println(Objects.equals(null, null));     // true
 System.out.println(Objects.equals(null, "Java"));   // false
 System.out.println(Objects.equals("Java", null));   // false
 System.out.println(Objects.equals("Java", "Java")); // true
 ```
 
-Đoạn này minh họa các lệnh trong phương thức; chương trình độc lập có ở phần 4.
+This snippet illustrates statements inside a method; a standalone program is in section 4.
 
-Một sắc thái kỹ thuật quan trọng: việc `Objects.equals(a, b)` với `a` khác `null` cuối cùng gọi `a.equals(b)` có nghĩa là **một lớp tự ghi đè `equals(null)` trả về `true` đã vi phạm hợp đồng `equals`**, và tiện ích không tự sửa sai. Trong code đúng hợp đồng, một bên `null`, một bên không `null` sẽ không bằng nhau. Vì vậy, đừng lấy tiện ích này làm cơ chế kiểm tra hay “chữa” mọi cài đặt `equals` lỗi.
+An important technical nuance: the fact that `Objects.equals(a, b)` with a non-`null` `a` ultimately calls `a.equals(b)` means that **a class that overrides `equals(null)` to return `true` has already violated the `equals` contract**, and the utility does not automatically correct that mistake. In contract-compliant code, when one side is `null` and the other is non-`null`, they will not be equal. Therefore, do not treat this utility as a mechanism to check or "fix" every buggy `equals` implementation.
 
-### `Objects.equals(a, b)` không nhất thiết gọi `equals()`
+### `Objects.equals(a, b)` does not necessarily call `equals()`
 
-Nếu `a` và `b` cùng tham chiếu:
+If `a` and `b` are the same reference:
 
 ```java
 Object one = new Object();
@@ -77,13 +77,13 @@ Object alias = one;
 System.out.println(Objects.equals(one, alias)); // true
 ```
 
-Kết quả đến ngay từ `a == b`. Không cần gọi `one.equals(alias)`, dù phương thức ấy ở lớp `Object` cũng trả về `true` cho cùng tham chiếu. Điều này vừa là tối ưu vừa giải thích vì sao một phép kiểm tra dùng `Objects.equals(x, x)` không thể một mình chứng minh rằng phương thức `x.equals(x)` được ghi đè đúng.
+The result comes directly from `a == b`. There is no need to call `one.equals(alias)`, even though that method on `Object` also returns `true` for the same reference. This is both an optimization and the reason why a test using `Objects.equals(x, x)` cannot by itself prove that `x.equals(x)` is overridden correctly.
 
-## 3. Vì sao phải hiểu rõ việc “ủy quyền”?
+## 3. Why is it important to understand "delegation"?
 
-`Objects.equals(a, b)` **không tự biết** hai đối tượng nên được coi là bằng nhau theo ID, tên, số tiền, các trường hay danh tính. Nó giao quyết định cho `a.equals(b)` (sau các kiểm tra nhanh).
+`Objects.equals(a, b)` **does not know on its own** whether two objects should be considered equal by ID, name, amount, fields, or identity. It delegates the decision to `a.equals(b)` (after the fast checks).
 
-So sánh ba ví dụ:
+Compare three examples:
 
 ```java
 String a = new String("Java");
@@ -97,38 +97,38 @@ Object y = new Object();
 System.out.println(Objects.equals(x, y));    // false
 ```
 
-- `a == b` so sánh tham chiếu. Hai lệnh `new String(...)` tạo hai đối tượng riêng.
-- `Objects.equals(a, b)` cuối cùng gọi `String.equals(b)`, so sánh nội dung chuỗi; hai chuỗi cùng `"Java"` nên kết quả `true`.
-- `Object` mặc định không so trường theo nội dung mà dùng tính đồng nhất đối tượng. Hai đối tượng mới `x`, `y` khác nhau nên `Objects.equals(x, y)` vẫn là `false`.
+- `a == b` compares references. Two `new String(...)` statements create two separate objects.
+- `Objects.equals(a, b)` ultimately calls `String.equals(b)`, comparing string content; both strings contain `"Java"`, so the result is `true`.
+- Default `Object` does not compare fields by content and instead uses object identity. The two new objects `x` and `y` are different, so `Objects.equals(x, y)` is still `false`.
 
-Ví dụ này cho thấy “an toàn với `null`” **không đồng nghĩa** với “mọi đối tượng sẽ được so theo giá trị”. Khi cần so dữ liệu theo một định nghĩa riêng, kiểu dữ liệu phải cài đặt `equals()` phù hợp.
+This example shows that "safe with `null`" **does not mean** "every object will be compared by value". When data needs to be compared according to a custom definition, the data type must implement `equals()` appropriately.
 
-### Vế nào quyết định?
+### Which side decides?
 
-Hãy chú ý hướng gọi:
+Pay attention to the call direction:
 
 ```text
 Objects.equals(a, b)
 
-  nếu a == b
+  if a == b
       → true
-  ngược lại nếu a == null
+  else if a == null
       → false
-  ngược lại
+  else
       → a.equals(b)
 ```
 
-Không có bước tự động gọi `b.equals(a)`, kiểm tra kết quả hai chiều, hay chuẩn hóa hai đối tượng thành cùng kiểu.
+There is no step that automatically calls `b.equals(a)`, checks the result in both directions, or normalizes the two objects to the same type.
 
-Nếu một lớp viết `equals()` sai khiến `a.equals(b)` và `b.equals(a)` khác nhau, `Objects.equals` có thể cho kết quả khác nhau khi đảo thứ tự đối số. **Lỗi nằm ở việc vi phạm tính đối xứng của hợp đồng `equals`**, không phải phương thức `Objects.equals`.
+If a class writes `equals()` incorrectly so that `a.equals(b)` and `b.equals(a)` differ, `Objects.equals` can produce different results when the argument order is swapped. **The bug lies in violating the symmetry of the `equals` contract**, not in the `Objects.equals` method.
 
-Đối với `String` và những kiểu chuẩn có hợp đồng đúng, người dùng thường không nhận thấy khác biệt hướng gọi vì tính đối xứng đã được bảo đảm.
+For `String` and standard types with a proper contract, users usually do not notice the call direction difference because symmetry is already guaranteed.
 
-## 4. Chương trình Java 17+ có thể biên dịch và chạy
+## 4. Compilable and runnable Java 17+ program
 
-Để quan sát chính xác khi nào `equals()` được gọi, ví dụ sử dụng lớp `Observed` với bộ đếm số lần đi vào phương thức `equals()`. Bộ đếm **không tham gia** định nghĩa bằng nhau hay mã băm.
+To observe exactly when `equals()` is called, the example uses an `Observed` class with a counter for how many times `equals()` is entered. The counter **does not participate** in defining equality or the hash code.
 
-Lưu tệp `ObjectsEqualsDemo.java`:
+Save the file `ObjectsEqualsDemo.java`:
 
 ```java
 import java.util.Objects;
@@ -236,14 +236,14 @@ public class ObjectsEqualsDemo {
 }
 ```
 
-Biên dịch và chạy trên JDK 17 hoặc mới hơn:
+Compile and run on JDK 17 or newer:
 
 ```bash
 javac ObjectsEqualsDemo.java
 java ObjectsEqualsDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 both null: true
@@ -266,21 +266,21 @@ reverse delegation: true
 right calls after reverse: 1
 ```
 
-**Giải thích quan trọng:**
+**Important explanation:**
 
-- Ba dòng đầu thể hiện cách xử lý `null`. Chúng không ném `NullPointerException` do gọi phương thức trên đối số đầu.
-- Hai `String` có nội dung như nhau nhưng tham chiếu khác nhau; `Objects.equals` ủy quyền cho `String.equals` nên bằng nhau.
-- Hai `Book` khác instance có thể bằng nhau vì `Book.equals` so sánh `id` và `title`; với hai `title` đều `null`, `Objects.equals(title, other.title)` trả về `true`.
-- Ở `Objects.equals(left, right)`, hai tham chiếu khác nhau và `left` tồn tại, nên `left.equals(right)` chạy đúng một lần. Bộ đếm của `right` vẫn là 0.
-- Ở `Objects.equals(left, left)`, hai tham chiếu trùng nhau nên dùng nhánh nhanh `a == b`; không tăng bộ đếm.
-- Ở `Objects.equals(null, right)`, đối số đầu là `null` nên không gọi `right.equals(...)`. Bộ đếm của `right` vẫn là 0.
-- Đảo thứ tự thành `Objects.equals(right, left)` thì chính `right.equals(left)` được gọi; bộ đếm của `right` trở thành 1.
+- The first three lines demonstrate `null` handling. They do not throw `NullPointerException` from calling a method on the first argument.
+- Two `String` objects have the same content but different references; `Objects.equals` delegates to `String.equals`, so they are equal.
+- Two different `Book` instances can be equal because `Book.equals` compares `id` and `title`; when both `title` fields are `null`, `Objects.equals(title, other.title)` returns `true`.
+- In `Objects.equals(left, right)`, the two references differ and `left` exists, so `left.equals(right)` runs exactly once. The counter on `right` stays 0.
+- In `Objects.equals(left, left)`, the two references match, so the `a == b` fast branch is used; the counter is not incremented.
+- In `Objects.equals(null, right)`, the first argument is `null`, so `right.equals(...)` is not called. The counter on `right` stays 0.
+- Reversing the order to `Objects.equals(right, left)` invokes `right.equals(left)`; the counter on `right` becomes 1.
 
-Bộ đếm nằm trong đối tượng chỉ phục vụ quan sát, không quyết định giá trị `equals` hay `hashCode`. Trong mô hình sản xuất, `equals` thường được thiết kế không có tác dụng phụ để giữ hành vi dễ đoán.
+The counter inside the object is only for observation and does not determine the value of `equals` or `hashCode`. In production models, `equals` is typically designed without side effects to keep behavior predictable.
 
-## 5. Áp dụng khi viết `equals(Object)` cho lớp có trường nullable
+## 5. Applying this when writing `equals(Object)` for a class with nullable fields
 
-Một tình huống thường gặp là lớp có các trường tham chiếu có thể mang giá trị `null`. Ví dụ `Book` trong chương trình trên có `title` nullable:
+A common situation is a class with reference fields that may hold `null`. For example, `Book` in the program above has a nullable `title`:
 
 ```java
 @Override
@@ -296,27 +296,27 @@ public boolean equals(Object obj) {
 }
 ```
 
-Đây là **phần thân một phương thức bên trong lớp `Book`**, không phải chương trình Java độc lập.
+This is **a method body inside the `Book` class**, not a standalone Java program.
 
-Các trách nhiệm khác nhau:
+Different responsibilities:
 
-1. `this == obj` xử lý trường hợp cùng đối tượng và tối ưu lối thoát sớm.
-2. `instanceof Book other` kiểm tra rằng đối số không phải `null` và có kiểu phù hợp; trong Java 17, pattern matching tạo biến `other` đúng kiểu.
-3. `id == other.id` so sánh hai giá trị nguyên thủy `int`.
-4. `Objects.equals(title, other.title)` so sánh hai tham chiếu `String`, bao gồm trường hợp cả hai cùng `null`.
+1. `this == obj` handles the same-object case and provides an early-exit optimization.
+2. `instanceof Book other` checks that the argument is not `null` and has a matching type; in Java 17, pattern matching creates the correctly typed `other` variable.
+3. `id == other.id` compares two primitive `int` values.
+4. `Objects.equals(title, other.title)` compares two `String` references, including the case where both are `null`.
 
-Không nhầm `Objects.equals(title, other.title)` với một phép kiểm tra kiểu của toàn bộ đối số `obj`. Nếu chưa xác minh `obj` thuộc kiểu thích hợp, bạn vẫn không thể truy cập `other.title` một cách an toàn. Hãy kiểm tra đối số trước rồi mới đọc các trường.
+Do not confuse `Objects.equals(title, other.title)` with a type check for the entire `obj` argument. Without verifying that `obj` has the appropriate type first, you still cannot safely access `other.title`. Always validate the argument first before reading its fields.
 
-### Vì sao không dùng `title.equals(other.title)` trực tiếp?
+### Why not use `title.equals(other.title)` directly?
 
-Giả sử `title == null`. Khi đó:
+Suppose `title == null`. Then:
 
 ```java
-// Có thể ném NullPointerException:
+// May throw NullPointerException:
 boolean same = title.equals(other.title);
 ```
 
-Một cách khác vẫn đúng là kiểm tra null thủ công:
+Another still-valid alternative is manual null checking:
 
 ```java
 boolean same =
@@ -324,11 +324,11 @@ boolean same =
                       : title.equals(other.title);
 ```
 
-Cả hai đoạn trên là minh họa bên trong lớp có trường `title` và biến `other`. Đối với hầu hết trường hợp so sánh nullable, `Objects.equals(title, other.title)` ngắn gọn hơn và thể hiện đúng ý định.
+Both snippets above are illustrations inside a class that has a `title` field and an `other` variable. For most nullable comparisons, `Objects.equals(title, other.title)` is more concise and expresses the intent directly.
 
-### Nhớ ghi đè `hashCode()` nhất quán
+### Remember to override `hashCode()` consistently
 
-Nếu `equals()` được ghi đè theo `id` và `title`, hai đối tượng bằng nhau phải có cùng hash. Ví dụ:
+If `equals()` is overridden using `id` and `title`, two equal objects must have the same hash. For example:
 
 ```java
 @Override
@@ -337,36 +337,36 @@ public int hashCode() {
 }
 ```
 
-`Objects.hash(...)` là tiện ích tính mã băm kết hợp nhiều giá trị; nó **khác** `Objects.equals(...)` và không tự quyết định lớp nào được xem là bằng nhau. Sự tương thích giữa `equals` và `hashCode` vẫn là trách nhiệm của người cài đặt.
+`Objects.hash(...)` is a utility for computing a hash code that combines multiple values; it is **different** from `Objects.equals(...)` and does not by itself decide which class instances are considered equal. Compatibility between `equals` and `hashCode` remains the implementer's responsibility.
 
-Nếu các trường tham gia equality có thể thay đổi sau khi một đối tượng đã được đưa vào `HashSet` hay dùng làm khóa `HashMap`, kết quả tra cứu có thể không còn đúng như mong đợi; nên xem xét thiết kế đối tượng bất biến hoặc vòng đời khóa phù hợp.
+If the fields participating in equality can change after an object has been inserted into a `HashSet` or used as a `HashMap` key, lookup results may no longer behave as expected; consider an immutable object design or an appropriate key lifecycle.
 
-## 6. So sánh `Objects.equals`, `==` và gọi trực tiếp `equals`
+## 6. Comparing `Objects.equals`, `==`, and direct `equals` calls
 
-| Cách viết | Có an toàn khi đối số bên trái `null`? | Kiểm tra điều gì? | Khi nào nên dùng? |
+| Form | Safe when the left argument is `null`? | What does it check? | When should it be used? |
 | --- | --- | --- | --- |
-| `a == b` | Có | Danh tính của tham chiếu, hoặc giá trị nếu kiểu nguyên thủy | Kiểm tra cùng instance, kiểm tra `null`, enum |
-| `a.equals(b)` | Không | Phụ thuộc định nghĩa `equals` của đối tượng `a` | Khi đã biết `a` khác `null` |
-| `Objects.equals(a, b)` | Có, đối với phép dereference `a` | Cùng tham chiếu hoặc ủy quyền tới `a.equals(b)` | So sánh logic các tham chiếu có thể `null` |
-| `"OK".equals(a)` | Có đối với literal `"OK"` | So sánh nội dung theo `String.equals()` | So sánh chuỗi với hằng số đã biết |
+| `a == b` | Yes | Reference identity, or value if primitive | Same-instance checks, `null` checks, enums |
+| `a.equals(b)` | No | Depends on object `a`'s `equals` definition | When `a` is already known to be non-`null` |
+| `Objects.equals(a, b)` | Yes, for dereferencing `a` | Same reference or delegates to `a.equals(b)` | Logical comparison of potentially `null` references |
+| `"OK".equals(a)` | Yes for the `"OK"` literal | Content comparison via `String.equals()` | Comparing a string against a known constant |
 
-Những tình huống chỉ cần kiểm tra `null` nên dùng `a == null` hoặc `a != null`. Không cần viết `Objects.equals(a, null)`, vì biểu thức trực tiếp rõ ràng hơn và không phụ thuộc vào một `equals(null)` được cài đặt sai hợp đồng.
+Situations that only need a `null` check should use `a == null` or `a != null`. There is no need to write `Objects.equals(a, null)`, because the direct expression is clearer and does not depend on an `equals(null)` implemented against the contract.
 
-Với kiểu nguyên thủy, nên dùng `==` để so sánh giá trị tương ứng. `Objects.equals` nhận `Object` nên giá trị nguyên thủy phải được boxing thành wrapper; việc này không đem lại lợi ích trong so sánh các giá trị nguyên thủy đơn giản.
+For primitive types, use `==` to compare their values. `Objects.equals` accepts `Object`, so primitive values have to be boxed into wrappers; this provides no benefit when comparing simple primitive values.
 
-### Wrapper: bình đẳng theo giá trị vẫn phụ thuộc kiểu
+### Wrappers: value equality still depends on type
 
-`Objects.equals(Integer.valueOf(5), Integer.valueOf(5))` là `true` vì `Integer.equals` so sánh giá trị int. Tuy nhiên, `Objects.equals(Integer.valueOf(5), Long.valueOf(5))` là `false` vì `Integer.equals` không coi một đối tượng `Long` là bằng `Integer` dù giá trị số trông giống nhau.
+`Objects.equals(Integer.valueOf(5), Integer.valueOf(5))` is `true` because `Integer.equals` compares the int value. However, `Objects.equals(Integer.valueOf(5), Long.valueOf(5))` is `false` because `Integer.equals` does not consider a `Long` object equal to an `Integer` even though the numeric values look identical.
 
-Không có cơ chế tự chuyển đổi hai đối tượng bất kỳ sang một “kiểu số chung” chỉ vì bạn gọi `Objects.equals`. Nếu nghiệp vụ cần so số ở nhiều kiểu, phải xác định quy tắc chuyển đổi và độ chính xác rồi triển khai tường minh.
+There is no mechanism that automatically converts any two objects to a "common numeric type" just because you call `Objects.equals`. If business logic needs to compare numbers across multiple types, conversion rules and precision must be defined and implemented explicitly.
 
-### `BigDecimal`: cùng số toán học chưa chắc `equals`
+### `BigDecimal`: the same mathematical number is not necessarily `equals`
 
 ```java
 import java.math.BigDecimal;
 import java.util.Objects;
 
-// Trong một phương thức:
+// Inside a method:
 BigDecimal a = new BigDecimal("1.0");
 BigDecimal b = new BigDecimal("1.00");
 
@@ -374,11 +374,11 @@ System.out.println(Objects.equals(a, b)); // false
 System.out.println(a.compareTo(b) == 0);  // true
 ```
 
-`BigDecimal.equals` xét cả giá trị chưa được scale và scale; `compareTo` dùng thứ tự giá trị số. `Objects.equals` không biến `equals` thành `compareTo == 0`. Điều này nhắc lại rằng tiện ích chỉ ủy quyền vào hợp đồng của kiểu cụ thể.
+`BigDecimal.equals` considers both the unscaled value and the scale; `compareTo` uses numeric value ordering. `Objects.equals` does not turn `equals` into `compareTo == 0`. This reinforces that the utility simply delegates to the specific type's contract.
 
-## 7. Cạm bẫy với mảng: an toàn `null` không phải so sánh sâu
+## 7. Array pitfall: `null`-safe does not mean deep comparison
 
-Mảng Java không ghi đè `Object.equals()` để so phần tử. Vì vậy hai mảng `int[]` được tạo riêng vẫn cho `Objects.equals(a, b) == false` ngay cả khi cùng nội dung. Với mảng một chiều, `Arrays.equals` thường biểu đạt mục tiêu rõ nhất; với mảng lồng, chọn `Arrays.deepEquals` hoặc `Objects.deepEquals` theo ngữ nghĩa cần thiết.
+Java arrays do not override `Object.equals()` to compare elements. Therefore, two separately created `int[]` arrays still yield `Objects.equals(a, b) == false` even when they have the same contents. For one-dimensional arrays, `Arrays.equals` usually expresses the goal most clearly; for nested arrays, choose `Arrays.deepEquals` or `Objects.deepEquals` depending on the required semantics.
 
 ```java
 int[] a = {1, 2};
@@ -387,46 +387,46 @@ System.out.println(Objects.equals(a, b));     // false
 System.out.println(Objects.deepEquals(a, b)); // true
 ```
 
-Đây là các câu lệnh minh họa trong một phương thức, cần import `java.util.Objects`. `Objects.deepEquals` xử lý nội dung mảng và `null` nhưng **không tự so sâu mọi lớp hoặc List chứa mảng**. Bài **Objects.deepEquals() khác Objects.equals() ở đối số mảng** đi sâu vào mảng nhiều chiều, record/List bọc mảng và cặp hàm hash tương thích.
+These are illustrative statements inside a method and require `import java.util.Objects;`. `Objects.deepEquals` handles array contents and `null`, but **does not automatically deep-compare arbitrary classes or a List containing arrays**. The lesson **Objects.deepEquals() differs from Objects.equals() on array arguments** goes deeper into multidimensional arrays, records/Lists wrapping arrays, and compatible hash functions.
 
-## 8. `Objects.equals` không sửa được một `equals` viết sai
+## 8. `Objects.equals` cannot fix a broken `equals`
 
-Giả sử một lớp cài đặt `equals()` lệch hợp đồng, chẳng hạn coi người dùng có ID giống nhau là bằng nhau theo chiều này nhưng không theo chiều kia. `Objects.equals` không gọi cả hai chiều để “hòa giải”. Nó chỉ gọi `a.equals(b)` khi cần.
+Suppose a class implements `equals()` off-contract, for example considering users with the same ID equal in one direction but not the other. `Objects.equals` does not call both directions to "reconcile" them. It only calls `a.equals(b)` when needed.
 
-Một số lỗi thường gặp ở phương thức `equals` của lớp:
+Some common mistakes in a class's `equals` method:
 
-- **Không đối xứng:** `a.equals(b) == true` nhưng `b.equals(a) == false`.
-- **Không bắc cầu:** `a.equals(b)` và `b.equals(c)` đều `true` nhưng `a.equals(c)` lại `false`.
-- **Không ổn định:** cùng dữ liệu nhưng kết quả thay đổi qua nhiều lần gọi do trạng thái ngoài hoặc tác dụng phụ.
-- **Ném ngoại lệ cho đối số sai kiểu:** ép kiểu trước khi kiểm tra bằng `instanceof` hoặc `getClass()`.
-- **Trả `true` cho `null`:** vi phạm hợp đồng `equals`.
-- **Ghi đè `equals` nhưng không cập nhật `hashCode`:** gây lỗi trong cấu trúc băm khi hai đối tượng bằng nhau lại có mã băm không tương thích.
+- **Not symmetric:** `a.equals(b) == true` while `b.equals(a) == false`.
+- **Not transitive:** `a.equals(b)` and `b.equals(c)` are both `true` while `a.equals(c)` is `false`.
+- **Not consistent:** same data, yet the result changes across calls due to external state or side effects.
+- **Throws an exception on wrong-type arguments:** casting before checking with `instanceof` or `getClass()`.
+- **Returns `true` for `null`:** violates the `equals` contract.
+- **Overrides `equals` without updating `hashCode`:** causes failures in hash-based structures when two equal objects have incompatible hash codes.
 
-`Objects.equals` chỉ cung cấp nhánh xử lý an toàn với `null` ở bên ngoài và gọi phương thức của đối tượng thích hợp. Muốn hành vi bằng nhau đúng về logic, phải cài đặt và kiểm thử `equals(Object)` của lớp đúng hợp đồng.
+`Objects.equals` only provides a `null`-safe outer branch and calls the appropriate object's method. To get logically sound equality behavior, the class's `equals(Object)` must be implemented and tested in accordance with the contract.
 
-### Chi tiết cần nhớ về shortcut cùng tham chiếu
+### Important detail about the same-reference shortcut
 
-Biểu thức `Objects.equals(a, a)` trả về `true` mà không cần gọi `a.equals(a)`. Vì vậy, nếu bạn đang **kiểm thử chính triển khai `equals` của lớp**, hãy gọi trực tiếp `a.equals(a)` để kiểm tra tính phản xạ, và sử dụng hai instance tương đương khác nhau để kiểm tra cách so sánh theo dữ liệu.
+The expression `Objects.equals(a, a)` returns `true` without calling `a.equals(a)`. Therefore, if you are **testing the class's own `equals` implementation**, call `a.equals(a)` directly to test reflexivity, and use two different equivalent instances to test data comparison.
 
-Không sử dụng shortcut `Objects.equals(a, a)` để “chứng minh” rằng lớp đã ghi đè `equals` đúng.
+Do not use the `Objects.equals(a, a)` shortcut to "prove" that a class overrode `equals` properly.
 
-## 9. So sánh nhanh với các tiện ích `Objects` khác
+## 9. Quick comparison with other `Objects` utilities
 
-Lớp `java.util.Objects` có nhiều phương thức tên gần nhau nhưng chức năng khác nhau:
+The `java.util.Objects` class has several similarly named methods with different purposes:
 
-- **`Objects.equals(a, b)`:** so hai tham chiếu an toàn với `null` ở cấp gọi.
-- **`Objects.deepEquals(a, b)`:** so sâu khi hai đối số là mảng; với đối tượng thường, dựa vào `equals` như thích hợp.
-- **`Objects.isNull(a)`:** tương đương ý nghĩa với kiểm tra `a == null`, thường dùng làm method reference như `Objects::isNull`.
-- **`Objects.nonNull(a)`:** tương đương ý nghĩa với `a != null`, có thể dùng làm predicate.
-- **`Objects.requireNonNull(a)`:** trả lại tham chiếu nếu khác `null`, nếu `null` thì **ném `NullPointerException`**; hữu ích để bảo vệ tiền điều kiện, không phải so sánh bằng nhau.
-- **`Objects.hashCode(a)`:** trả 0 nếu `a` là `null`, nếu không gọi `a.hashCode()`.
-- **`Objects.hash(values...)`:** tổng hợp hash từ nhiều giá trị bằng cơ chế varargs; dùng khi cài đặt `hashCode` cho lớp có nhiều trường.
+- **`Objects.equals(a, b)`:** compares two references in a `null`-safe way at the call level.
+- **`Objects.deepEquals(a, b)`:** deep-compares when both arguments are arrays; for ordinary objects, relies on `equals` as appropriate.
+- **`Objects.isNull(a)`:** semantically equivalent to checking `a == null`, often used as a method reference like `Objects::isNull`.
+- **`Objects.nonNull(a)`:** semantically equivalent to `a != null`, usable as a predicate.
+- **`Objects.requireNonNull(a)`:** returns the reference if non-`null`, or **throws `NullPointerException`** if `null`; useful for enforcing preconditions, not equality comparison.
+- **`Objects.hashCode(a)`:** returns 0 if `a` is `null`, otherwise calls `a.hashCode()`.
+- **`Objects.hash(values...)`:** combines hashes from multiple values via varargs; used when implementing `hashCode` for multi-field classes.
 
-Đặc biệt, `Objects.requireNonNull(a)` có mục đích **từ chối `null`**, trái với `Objects.equals` là **chấp nhận `null` làm đối số để so sánh**. Dùng đúng công cụ cho đúng hợp đồng dữ liệu.
+In particular, `Objects.requireNonNull(a)` is meant to **reject `null`**, in contrast to `Objects.equals`, which **accepts `null` as an argument for comparison**. Use the right tool for the right data contract.
 
-## 10. Cách dùng trong mã ứng dụng
+## 10. Usage in application code
 
-### So sánh hai trường nullable
+### Comparing two nullable fields
 
 ```java
 String oldEmail = null;
@@ -435,9 +435,9 @@ String newEmail = "a@example.com";
 boolean changed = !Objects.equals(oldEmail, newEmail); // true
 ```
 
-Đây là đoạn minh họa trong phương thức với `import java.util.Objects;`. Khi chỉ cần biết hai giá trị nullable có khác nhau hay không, cách viết này rõ ràng và không yêu cầu chuỗi bên trái tồn tại.
+This is an illustrative snippet inside a method with `import java.util.Objects;`. When you only need to know whether two nullable values differ, this form is clear and does not require the left-hand string to exist.
 
-### So sánh giá trị khi tìm kiếm hoặc cập nhật
+### Comparing values during search or update
 
 ```java
 static boolean sameLabel(String current, String expected) {
@@ -445,9 +445,9 @@ static boolean sameLabel(String current, String expected) {
 }
 ```
 
-Đây là khai báo một phương thức trong lớp đã import `Objects`. Nó tuân theo chính sách **hai `null` được xem là bằng nhau**. Nếu nghiệp vụ không muốn xem “cả hai thiếu dữ liệu” là bằng nhau, hãy viết chính sách riêng thay vì mặc định xem `Objects.equals` là giải pháp cho mọi tình huống.
+This is a method declaration inside a class that has imported `Objects`. It follows the policy that **two `null` values are considered equal**. If business rules do not want "both missing data" to count as equal, write a custom policy instead of assuming `Objects.equals` fits every situation.
 
-### Với record
+### With records
 
 ```java
 record Point(int x, int y) {}
@@ -455,27 +455,27 @@ record Point(int x, int y) {}
 Point p1 = new Point(1, 2);
 Point p2 = new Point(1, 2);
 
-// Trong một phương thức:
+// Inside a method:
 boolean equal = Objects.equals(p1, p2); // true
 ```
 
-`Objects.equals` dùng cách so sánh `equals` mà record cung cấp; với các component như `int`, kết quả là bình đẳng theo thành phần. Nhưng record có component là mảng không tự so nội dung mảng sâu chỉ vì được bọc trong `Objects.equals`.
+`Objects.equals` uses the `equals` comparison provided by the record; with components like `int`, the result is component-wise equality. However, a record with an array component does not automatically deep-compare array contents just because it is wrapped in `Objects.equals`.
 
-## 11. Các lỗi thường gặp và cách sửa
+## 11. Common mistakes and fixes
 
-1. **Viết `a.equals(b)` khi `a` có thể `null`.** Khi `a == null`, lời gọi gây `NullPointerException`. Dùng `Objects.equals(a, b)` nếu muốn hai tham chiếu nullable được so sánh theo `equals`.
-2. **Dùng `==` để so nội dung chuỗi.** `==` kiểm tra hai tham chiếu có trỏ đến cùng object. Dùng `Objects.equals(a, b)` hoặc `String.equals` với receiver khác `null`.
-3. **Cho rằng `Objects.equals` so mọi trường của mọi object.** Nó chỉ ủy quyền tới `equals` của toán hạng đầu. Nếu lớp giữ `Object.equals` mặc định, phép so có thể vẫn theo danh tính.
-4. **Giả định `Objects.equals(a, b)` sẽ gọi cả `a.equals(b)` và `b.equals(a)`.** Không có bước này. Lớp phải tự bảo đảm tính đối xứng.
-5. **Coi `Objects.equals(a, a)` là bài test đầy đủ cho `a.equals(a)`.** Shortcut `a == b` khiến hàm `equals` của đối tượng không được gọi.
-6. **Dùng `Objects.equals` để so mảng theo phần tử.** Với mảng thông thường, kết quả vẫn dựa trên danh tính mảng. Dùng `Arrays.equals` hoặc API sâu phù hợp.
-7. **Bỏ qua chính sách hai `null` bằng nhau.** `Objects.equals(null, null) == true` là hành vi chủ đích; nếu nghiệp vụ yêu cầu khác, phải có điều kiện riêng.
-8. **Cho rằng null-safe đồng nghĩa exception-safe.** Một `equals` tùy chỉnh có thể ném ngoại lệ vì lỗi nội bộ, dữ liệu hỏng hoặc giả định sai. `Objects.equals` không nuốt hoặc tự sửa ngoại lệ đó.
-9. **Nhầm `Objects.equals` với `Objects.requireNonNull`.** Một phương thức so sánh có chấp nhận `null`, phương thức kia từ chối `null` bằng ngoại lệ.
+1. **Writing `a.equals(b)` when `a` may be `null`.** When `a == null`, the call throws `NullPointerException`. Use `Objects.equals(a, b)` if two nullable references should be compared via `equals`.
+2. **Using `==` to compare string contents.** `==` checks whether two references point to the same object. Use `Objects.equals(a, b)` or `String.equals` with a non-`null` receiver.
+3. **Assuming `Objects.equals` compares every field of every object.** It only delegates to the first operand's `equals`. If the class keeps the default `Object.equals`, comparison may still be by identity.
+4. **Assuming `Objects.equals(a, b)` calls both `a.equals(b)` and `b.equals(a)`.** There is no such step. The class must ensure symmetry itself.
+5. **Treating `Objects.equals(a, a)` as a sufficient test for `a.equals(a)`.** The `a == b` shortcut prevents the object's `equals` method from being called.
+6. **Using `Objects.equals` to compare arrays element-by-element.** For ordinary arrays, the result still depends on array identity. Use `Arrays.equals` or an appropriate deep API.
+7. **Ignoring the two-`null` equality policy.** `Objects.equals(null, null) == true` is intentional behavior; if business rules require otherwise, add an explicit condition.
+8. **Assuming null-safe means exception-safe.** A custom `equals` can throw an exception due to internal bugs, corrupted data, or wrong assumptions. `Objects.equals` does not swallow or automatically fix that exception.
+9. **Confusing `Objects.equals` with `Objects.requireNonNull`.** One comparison method accepts `null`, while the other rejects `null` with an exception.
 
-## 12. Bài tập tự kiểm tra
+## 12. Self-check exercises
 
-Dự đoán kết quả của các biểu thức sau. Giả sử chúng nằm trong một phương thức đã import `java.util.Objects` và `java.util.Arrays`:
+Predict the result of the following expressions. Assume they are inside a method that has imported `java.util.Objects` and `java.util.Arrays`:
 
 ```java
 String s1 = null;
@@ -497,20 +497,20 @@ Object same = new Object();
 boolean q7 = Objects.equals(same, same);
 ```
 
-**Đáp án:**
+**Answers:**
 
-| Biểu thức | Kết quả | Giải thích |
+| Expression | Result | Explanation |
 | --- | --- | --- |
-| `q1` | `true` | Cả hai cùng `null` nên `a == b` đúng. |
-| `q2` | `false` | Đối số đầu là `null`, đối số sau không `null`. |
-| `q3` | `true` | `String.equals` so nội dung `"Hello"`. |
-| `q4` | `false` | Chuỗi `s4` được tạo thành instance riêng bởi `new`. |
-| `q5` | `false` | Mảng không tự so theo phần tử trong `Objects.equals`. |
-| `q6` | `true` | `Arrays.equals` so phần tử của hai mảng `int[]`. |
-| `q7` | `true` | Nhánh `a == b` nhận diện cùng object. |
+| `q1` | `true` | Both are `null`, so `a == b` is true. |
+| `q2` | `false` | The first argument is `null`, the second is non-`null`. |
+| `q3` | `true` | `String.equals` compares the `"Hello"` content. |
+| `q4` | `false` | String `s4` was created as a separate instance by `new`. |
+| `q5` | `false` | Arrays do not automatically compare element-by-element in `Objects.equals`. |
+| `q6` | `true` | `Arrays.equals` compares the elements of the two `int[]` arrays. |
+| `q7` | `true` | The `a == b` branch recognizes the same object. |
 
-**Thực hành mở rộng:** sửa lớp `Book` ở phần 4 để thêm trường `String author` có thể `null`. Cập nhật `equals` bằng `Objects.equals(author, other.author)` và cập nhật `hashCode` bằng `Objects.hash(id, title, author)`. Thử hai sách có cả `title` và `author` đều `null`; sau đó thay đổi một giá trị và kiểm tra kết quả. Mục tiêu là duy trì đúng quan hệ giữa bằng nhau và mã băm mà không dereference trường `null`.
+**Extended practice:** modify the `Book` class in section 4 to add a nullable `String author` field. Update `equals` with `Objects.equals(author, other.author)` and update `hashCode` with `Objects.hash(id, title, author)`. Test two books with both `title` and `author` set to `null`; then change one value and check the result. The goal is to preserve the proper relationship between equality and hash code without dereferencing a `null` field.
 
-## Ghi nhớ
+## Key Takeaways
 
-`Objects.equals(a, b)` tương đương với logic **`a == b || (a != null && a.equals(b))`**. Nó trả `true` khi cả hai `null`, trả `false` khi đối số đầu `null` và đối số sau khác `null`, và ủy quyền cho `equals()` của **đối số đầu tiên** khi cần. Đây là tiện ích so sánh null-safe ở cấp gọi, không phải cơ chế tự so sâu hay bộ sửa lỗi hợp đồng `equals`. Khi làm việc với mảng, số có quy tắc so riêng hoặc các đối tượng nghiệp vụ tùy chỉnh, luôn lựa chọn đúng định nghĩa bằng nhau của kiểu.
+`Objects.equals(a, b)` is equivalent to the logic **`a == b || (a != null && a.equals(b))`**. It returns `true` when both are `null`, returns `false` when the first argument is `null` and the second is non-`null`, and delegates to `equals()` of **the first argument** when needed. It is a call-level null-safe comparison utility, not an automatic deep comparator or an `equals` contract repair tool. When working with arrays, numbers with custom comparison rules, or custom business objects, always choose the type's proper equality definition.

@@ -1,20 +1,20 @@
-# Loại bỏ rồi thêm lại dữ liệu khi nghiệp vụ thật sự cần đổi khóa
+# Removing and Re-adding Data When Business Logic Truly Requires Changing a Key
 
-Một đối tượng Java đôi khi được dùng làm **phần tử của `HashSet`** hoặc **khóa của `HashMap`**. Nếu `equals()` và `hashCode()` dựa trên một thuộc tính nghiệp vụ như `customerId`, việc thay đổi thuộc tính này **khi đối tượng còn nằm trong collection** có thể làm mất khả năng tra cứu, xóa hoặc ngăn trùng lặp đúng cách.
+A Java object is sometimes used as an **element of a `HashSet`** or a **key of a `HashMap`**. If `equals()` and `hashCode()` rely on a business attribute such as `customerId`, modifying this attribute **while the object is still inside the collection** can break lookup, removal, or duplicate prevention.
 
-Khi yêu cầu nghiệp vụ thực sự cần đổi khóa, trình tự an toàn ở cấp collection là:
+When business requirements genuinely call for changing a key, the safe sequence at the collection level is:
 
-1. Xác định và kiểm tra **khóa cũ** khi collection vẫn đang hoạt động bình thường.
-2. Kiểm tra khóa mới hợp lệ và không va chạm với khóa đang tồn tại.
-3. **Loại bỏ phần tử hoặc entry bằng khóa cũ**, trước khi thay đổi dữ liệu có ảnh hưởng tới `equals()`/`hashCode()`.
-4. Thay đổi khóa trên đối tượng đã tháo ra, hoặc tạo đối tượng khóa mới.
-5. **Thêm lại** bằng khóa mới và xác nhận tra cứu theo khóa mới hoạt động.
+1. Identify and verify the **old key** while the collection is still operating normally.
+2. Validate the new key and ensure it does not collide with any existing key.
+3. **Remove the element or entry using the old key**, before modifying data that affects `equals()`/`hashCode()`.
+4. Change the key on the detached object, or create a new key object.
+5. **Re-add** using the new key and confirm that lookup by the new key works.
 
-Đây là cách xử lý có điều kiện khi **thực sự phải đổi khóa**. Trong thiết kế thông thường, ưu tiên một định danh ổn định, bất biến; nếu nghiệp vụ chỉ đổi tên hiển thị hoặc trạng thái, không cần và không nên động tới khóa dùng cho `equals()`/`hashCode()`.
+This is a conditional approach when **a key truly has to change**. In ordinary design, prefer a stable, immutable identifier; if business logic only changes a display name or status, there is no need to—and you should not—touch the key used for `equals()`/`hashCode()`.
 
-## 1. Vì sao không được thay đổi khóa ngay trong collection?
+## 1. Why shouldn't you modify the key directly inside the collection?
 
-Với `HashSet` và `HashMap`, Java dựa trên `hashCode()` để xác định vùng lưu/tra cứu, rồi dùng `equals()` để nhận biết hai phần tử hoặc khóa bằng nhau. Giả sử:
+For `HashSet` and `HashMap`, Java relies on `hashCode()` to determine the storage/lookup region, then uses `equals()` to recognize two equal elements or keys. Suppose:
 
 ~~~java
 @Override
@@ -34,53 +34,53 @@ public int hashCode() {
 }
 ~~~
 
-Đây là **mảnh mã nằm trong lớp `Customer`**, không phải chương trình độc lập. Hai phương thức đều dựa trên `customerId`.
+This is a **code snippet inside a `Customer` class**, not a standalone program. Both methods rely on `customerId`.
 
-Khi thêm một `Customer("C-01")` vào `HashSet`, cấu trúc sẽ dùng hash ứng với `"C-01"`. Nếu sau đó đổi chính đối tượng ấy thành `"C-02"` ngay trong set, hash được tính khi tra cứu có thể khác hash dùng lúc chèn. Collection không tự động tái định vị phần tử mỗi khi trường của object thay đổi. Vì vậy, `contains` hoặc `remove` có thể không tìm thấy phần tử, và các quy tắc không trùng lặp có thể bị phá.
+When adding a `Customer("C-01")` to a `HashSet`, the structure uses the hash corresponding to `"C-01"`. If that same object is subsequently changed to `"C-02"` while still in the set, the hash computed during lookup may differ from the hash used at insertion time. The collection does not automatically relocate the element whenever an object's field changes. Consequently, `contains` or `remove` may fail to find the element, and uniqueness rules may be broken.
 
-Ví dụ thao tác **sai về thứ tự**:
+Example of **wrong operation order**:
 
 ~~~java
-// Đoạn minh họa; giả định customer đã nằm trong customers.
-customer.changeId("C-02"); // SAI: sửa khóa trong khi còn ở HashSet.
-customers.remove(customer); // Có thể không tìm thấy bằng hash mới.
+// Illustrative snippet; assumes customer is already in customers.
+customer.changeId("C-02"); // WRONG: mutating the key while still in the HashSet.
+customers.remove(customer); // May not be found under the new hash.
 ~~~
 
-Lệnh `remove` sau khi thay đổi không được đảm bảo sẽ sửa được tình huống này. Ngay cả nếu một bộ giá trị tình cờ vẫn tra cứu thành công, code vẫn phụ thuộc hành vi không bảo đảm của collection.
+Calling `remove` after mutation is not guaranteed to fix this situation. Even if a particular pair of values happens to succeed in lookup, the code still depends on unguaranteed collection behavior.
 
-**Thứ tự đúng:**
+**Correct order:**
 
 ~~~java
-// Đoạn minh họa; thực tế cần kiểm tra điều kiện trước đó.
-boolean removed = customers.remove(customer); // Khi ID vẫn là "C-01".
+// Illustrative snippet; in practice, check preconditions beforehand.
+boolean removed = customers.remove(customer); // While ID is still "C-01".
 if (!removed) {
     throw new IllegalStateException("Old key not found");
 }
-customer.changeId("C-02");                     // Giờ mới đổi khóa.
-customers.add(customer);                       // Hash lại theo khóa mới.
+customer.changeId("C-02");                     // Now change the key.
+customers.add(customer);                       // Re-hash under the new key.
 ~~~
 
-Với `HashSet`, `remove` phải xảy ra **trước** khi sửa một trường ảnh hưởng tới quan hệ bằng nhau. Với `HashMap`, ta dùng `remove(oldKey)` rồi `put(newKey, value)`. Hai thao tác này không tự tạo ra một giao dịch nguyên tử; xử lý cạnh tranh và lỗi giữa chừng được bàn ở phần sau.
+With `HashSet`, `remove` must happen **before** modifying a field that affects the equality relation. With `HashMap`, we use `remove(oldKey)` followed by `put(newKey, value)`. These two operations do not automatically form an atomic transaction; handling contention and mid-way errors is discussed later.
 
-## 2. Phân biệt đổi khóa với sửa thuộc tính bình thường
+## 2. Distinguishing a key change from normal attribute edits
 
-Không phải mọi thay đổi trạng thái của đối tượng đều nguy hiểm.
+Not every state change on an object is dangerous.
 
-| Dữ liệu đổi | Tham gia `equals()`/`hashCode()`? | Tác động khi object ở trong collection |
+| Data modified | Participates in `equals()`/`hashCode()`? | Impact while object is in a collection |
 | --- | --- | --- |
-| `customerId` là khóa bằng nhau | Có | Phải xử lý chuyển khóa an toàn hoặc thiết kế khóa bất biến |
-| `displayName` chỉ để hiển thị | Không | Có thể sửa mà không cần tháo khỏi hash collection vì hash và quan hệ bằng nhau không đổi |
-| `status` bị loại khỏi phép bằng nhau | Không | Có thể cập nhật như dữ liệu thường; cần xét đồng bộ nếu đa luồng |
-| Nội dung một trường mảng hoặc đối tượng lồng nhau dùng trong mã băm | Có | Cũng là đổi khóa logic dù tham chiếu trường không đổi |
-| `hashCode()` dựa vào trường mà `equals()` bỏ qua | Thiết kế sai | Phải sửa hợp đồng `equals()`/`hashCode()` trước; remove/add không chữa được sự không nhất quán này |
+| `customerId` as the equality key | Yes | Must perform a safe key transition or design an immutable key |
+| `displayName` for display only | No | Can be modified without removing from hash collections because hash and equality do not change |
+| `status` excluded from equality | No | Can be updated like normal data; consider synchronization if multithreaded |
+| Contents of an array field or nested object used in hash code | Yes | Also constitutes a logical key change even though the field reference does not change |
+| `hashCode()` relies on a field ignored by `equals()` | Broken design | Fix the `equals()`/`hashCode()` contract first; remove/add cannot cure this inconsistency |
 
-Một thuộc tính được khai báo `final` cũng **chưa đủ** bảo đảm bất biến sâu nếu nó trỏ tới đối tượng mutable (ví dụ mảng hay collection). Điều quan trọng là **giá trị tham gia bằng nhau và băm không đổi** trong khoảng thời gian đối tượng làm khóa.
+A property declared `final` is **still not enough** to guarantee deep immutability if it points to a mutable object (such as an array or collection). What matters is that **values participating in equality and hashing do not change** during the period the object serves as a key.
 
-Nếu khóa được tạo từ giá trị chuẩn hóa (ví dụ mã viết hoa được chuẩn hóa trước khi lưu), hãy xác định **giá trị chuẩn hóa** nào thay đổi; đừng dựa vào thay đổi bề ngoài không ảnh hưởng khóa.
+If a key is derived from a normalized value (for example, an uppercase code normalized before storage), identify which **normalized value** changes; do not rely on superficial changes that do not affect the key.
 
-## 3. Ví dụ Java 17 hoàn chỉnh: chuyển khóa an toàn trong `HashSet` và `HashMap`
+## 3. Complete Java 17 example: safe key transition in `HashSet` and `HashMap`
 
-Tạo tệp **`KeyChangeDemo.java`**:
+Create the file **`KeyChangeDemo.java`**:
 
 ~~~java
 import java.util.HashMap;
@@ -91,8 +91,8 @@ import java.util.Set;
 
 public class KeyChangeDemo {
 
-    // Ví dụ có chủ đích cho phép sửa ID; trong thiết kế thực tế,
-    // ID bất biến thường dễ quản lý hơn.
+    // Example intentionally allows editing ID; in real designs,
+    // an immutable ID is usually easier to manage.
     static final class Customer {
         private String id;
         private final String displayName;
@@ -123,7 +123,7 @@ public class KeyChangeDemo {
         }
     }
 
-    // Một record Java 17: khóa String được lưu bất biến.
+    // A Java 17 record: String key stored immutably.
     record AccountKey(String id) {
         AccountKey {
             Objects.requireNonNull(id, "id");
@@ -134,7 +134,7 @@ public class KeyChangeDemo {
             Set<Customer> customers, Customer target, String newId) {
         Objects.requireNonNull(newId, "newId");
 
-        // Tiền điều kiện: collection hiện đang hợp lệ.
+        // Precondition: the collection is currently valid.
         if (!customers.contains(target)) {
             throw new IllegalArgumentException("Customer not found");
         }
@@ -142,7 +142,7 @@ public class KeyChangeDemo {
             return;
         }
 
-        // Kiểm tra va chạm với ID mới trước khi xóa ID cũ.
+        // Check for collision with the new ID before removing the old ID.
         if (customers.contains(new Customer(newId, "probe"))) {
             throw new IllegalArgumentException("New customer ID exists");
         }
@@ -171,7 +171,7 @@ public class KeyChangeDemo {
             throw new IllegalArgumentException("New map key exists");
         }
 
-        // Chuyển cả mapping, kể cả khi giá trị được lưu là null.
+        // Move the entire mapping, even when the stored value is null.
         V value = map.remove(oldKey);
         map.put(newKey, value);
     }
@@ -215,14 +215,14 @@ public class KeyChangeDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac KeyChangeDemo.java
 java KeyChangeDemo
 ~~~
 
-**Đầu ra dự kiến trên Java 17+:**
+**Expected output on Java 17+:**
 
 ~~~text
 before old: true
@@ -236,79 +236,79 @@ map new value: OPEN
 map entries: 1
 ~~~
 
-Giải thích từng phần:
+Part-by-part explanation:
 
-- Trước thay đổi, `Customer("C-01")` có thể được tìm bằng một bản thể hiện khác cùng ID.
-- `changeCustomerId` xác minh ID mới `"C-02"` chưa tồn tại, **xóa `lan` khi `lan.id` vẫn là `"C-01"`**, sau đó mới đổi `id` và thêm lại. Bởi vậy, tra cứu ID cũ là `false` và ID mới là `true`.
-- Set vẫn có hai khách hàng (`"C-02"` và `"C-03"`). Lần thử đổi sang `"C-03"` bị từ chối trước khi xóa hay sửa, nên `lan` vẫn ở `"C-02"`.
-- Với `Map`, `AccountKey` là record chứa `String` không đổi. Thay vì sửa khóa đang lưu, ta xóa mapping `"A-10"`, giữ giá trị `"OPEN"` rồi thêm mapping `"A-20"`. Entry cũ biến mất; entry mới chứa cùng giá trị, và kích thước map giữ nguyên.
-- `moveMapKey` dùng `containsKey` để phân biệt **không có mapping** với **mapping có value `null`**; chỉ nhìn `remove(...) == null` là không đủ cho trường hợp này.
+- Before the change, `Customer("C-01")` can be found using a different instance with the same ID.
+- `changeCustomerId` verifies that the new ID `"C-02"` does not yet exist, **removes `lan` while `lan.id` is still `"C-01"`**, and only then changes `id` and re-adds it. Consequently, lookup for the old ID is `false` and for the new ID is `true`.
+- The set still has two customers (`"C-02"` and `"C-03"`). The attempt to change to `"C-03"` is rejected before removing or modifying, so `lan` remains at `"C-02"`.
+- For `Map`, `AccountKey` is a record containing an immutable `String`. Instead of mutating a stored key, we remove the `"A-10"` mapping, retain the `"OPEN"` value, and add the `"A-20"` mapping. The old entry disappears; the new entry holds the same value, and the map size stays unchanged.
+- `moveMapKey` uses `containsKey` to distinguish **no mapping** from **a mapping with value `null`**; merely checking `remove(...) == null` is insufficient for that case.
 
-**Phạm vi của ví dụ:** code chạy đơn luồng, trên `HashSet`/`HashMap` thông thường với dữ liệu hợp lệ; nó minh họa **trình tự của collection trong bộ nhớ**, chưa phải thao tác giao dịch có khôi phục khi lỗi hoặc có nhiều tác nhân cập nhật đồng thời.
+**Scope of the example:** the code runs single-threaded on ordinary `HashSet`/`HashMap` with valid data; it illustrates **the sequence of in-memory collection operations**, not a transactional operation with error rollback or multiple concurrent updaters.
 
-## 4. Những tiền điều kiện cần kiểm tra trước khi chuyển khóa
+## 4. Preconditions to check before transitioning a key
 
-Một thao tác đổi khóa tốt thường cần kiểm tra đầy đủ trước khi tháo entry cũ:
+A good key-change operation usually checks all of the following before detaching the old entry:
 
-1. **Khóa cũ tồn tại:** phần tử/entry phải đang ở trong collection với `equals()`/`hashCode()` nhất quán. Nếu cấu trúc đã hỏng bởi việc sửa khóa trước đó, `contains` và `remove` không phải cơ chế sửa chữa đáng tin cậy.
-2. **Khóa mới hợp lệ:** kiểm tra định dạng, độ dài, quy tắc chuẩn hóa và ràng buộc nghiệp vụ trước khi xóa dữ liệu cũ. Không để một validation ném lỗi sau khi đã tháo phần tử.
-3. **Khóa mới chưa bị chiếm:** `Set.add(...)` có thể trả `false` vì trùng; `Map.put(...)` có thể ghi đè giá trị cũ. Không nên âm thầm coi những tình huống ấy là cập nhật thành công.
-4. **Không đổi nghĩa phép bằng nhau giữa chừng:** quy tắc `equals()`, `hashCode()` và cách biểu diễn khóa phải thống nhất. Khóa khác dưới dạng chuỗi nhưng bằng nhau sau chuẩn hóa vẫn là một xung đột logic.
-5. **Phần tử có đang bị tham chiếu ở nơi khác?** Nếu cùng object làm khóa ở nhiều `HashSet`/`HashMap`, việc tháo khỏi một nơi rồi sửa ID có thể làm hỏng **những nơi còn lại**. Cần thay khóa ở mọi cấu trúc có liên quan hoặc ưu tiên tạo khóa bất biến mới.
+1. **Old key exists:** the element/entry must currently be in the collection with consistent `equals()`/`hashCode()`. If the structure was already corrupted by an earlier key mutation, `contains` and `remove` are not reliable repair mechanisms.
+2. **New key is valid:** validate format, length, normalization rules, and business constraints before removing old data. Do not let validation throw an exception after the element has already been detached.
+3. **New key is not already taken:** `Set.add(...)` can return `false` due to duplication; `Map.put(...)` can overwrite an old value. Do not silently treat such situations as successful updates.
+4. **Equality semantics do not change mid-way:** `equals()`, `hashCode()`, and key representation rules must agree. Keys that differ as raw strings yet become equal after normalization still constitute a logical collision.
+5. **Is the element referenced elsewhere?** If the same object serves as a key in multiple `HashSet`/`HashMap` instances, removing it from one place and mutating its ID can corrupt **all the remaining places**. You must update the key across every related structure or prefer creating a new immutable key.
 
-Trường hợp `newKey.equals(oldKey)`, phương thức chuyển khóa có thể **không làm gì** vì danh tính logic không đổi. Chỉ khi chính khóa theo định nghĩa bằng nhau thay đổi mới cần quy trình chuyển khóa.
+In the case where `newKey.equals(oldKey)`, the key-transition method can **do nothing** because the logical identity has not changed. Only when the key itself according to the equality definition changes is the key-transition workflow needed.
 
-## 5. Ba chiến lược và lúc nên dùng
+## 5. Three strategies and when to use them
 
-### Chiến lược A — Ưu tiên: khóa bất biến, tạo khóa mới
+### Strategy A — Preferred: immutable key, create a new key
 
-Đặt một `String`, `UUID`, `record` hoặc giá trị bất biến khác làm khóa `Map`; nếu nghiệp vụ đổi mã thì tạo key mới và chuyển entry. Với `Set` lưu object giá trị bất biến, có thể xóa object theo khóa cũ rồi thêm object mới.
+Use a `String`, `UUID`, `record`, or another immutable value as the `Map` key; if business logic changes the code, create a new key and move the entry. With a `Set` storing immutable value objects, you can remove the object by the old key and then add the new object.
 
-Ưu điểm: không có đối tượng khóa nào bị sửa lén trong khi các collection khác đang sử dụng nó; rõ ràng hơn với việc truyền dữ liệu qua các lớp hoặc luồng xử lý.
+Advantage: no key object gets secretly mutated while other collections are using it; clearer when passing data across classes or processing threads.
 
-Ví dụ với `Map`:
+Example with `Map`:
 
 ~~~java
-// Giả sử oldKey, newKey là các khóa bất biến đã kiểm tra.
-// Phải kiểm tra tồn tại và xung đột theo quy tắc nghiệp vụ.
+// Assume oldKey and newKey are validated immutable keys.
+// Existence and collision checks must follow business rules.
 V saved = map.remove(oldKey);
 map.put(newKey, saved);
 ~~~
 
-Đây là **mã giả ở mức phương thức generic**, không phải một chương trình Java độc lập; xem `moveMapKey` ở ví dụ chạy được để thấy đầy đủ kiểm tra đầu vào và không làm mất mapping chứa `null`.
+This is **generic method-level pseudocode**, not a standalone Java program; see `moveMapKey` in the runnable example for complete input validation and preserving mappings whose value is `null`.
 
-### Chiến lược B — Đối tượng mutable trong `HashSet`, bắt buộc remove → mutate → add
+### Strategy B — Mutable object in `HashSet`, strictly remove → mutate → add
 
-Nếu thiết kế cũ cho phép thay ID trên một object đã được chia sẻ tham chiếu, hãy giữ đúng thứ tự **xóa khi còn ID cũ → sửa ID → thêm lại**. Cần kiểm soát nơi nào khác cũng giữ object đó làm key. Việc thay đổi khóa bên trong một object mutable tiềm ẩn rủi ro lớn hơn tạo object/key mới và nên được cô lập trong phương thức nghiệp vụ duy nhất.
+If a legacy design allows changing the ID on an object whose reference is already shared, strictly preserve the order **remove while old ID is intact → mutate ID → re-add**. You must control everywhere else that holds that object as a key. Mutating a key inside a mutable object carries greater risk than creating a new object/key and should be isolated within a single business method.
 
-### Chiến lược C — Không đổi khóa collection nếu chỉ đổi thông tin hiển thị
+### Strategy C — Do not change the collection key if only display info changes
 
-Nếu `customerId` là định danh không thay đổi, còn tên, email liên hệ hoặc trạng thái giao diện được cập nhật độc lập, giữ nguyên khóa. Khi đó không cần remove/add chỉ vì giá trị không tham gia bằng nhau thay đổi; việc thao tác thừa còn làm tăng nguy cơ mất phần tử do lỗi giữa chừng.
+If `customerId` is an unchanging identifier while name, contact email, or UI status are updated independently, leave the key untouched. Then there is no need to remove/add simply because non-equality values changed; unnecessary operations also increase the risk of losing elements due to mid-way failures.
 
-**Lưu ý:** `Map` phân biệt *khóa* (`key`) và *giá trị* (`value`). Sửa thuộc tính của value thường không đổi cách tra cứu map miễn thuộc tính ấy không phải một phần của key và không có chỉ mục phụ dựa trên nó.
+**Note:** `Map` distinguishes *key* from *value*. Modifying attributes of a value normally does not alter map lookup as long as those attributes are not part of the key and there is no secondary index based on them.
 
-## 6. Vì sao remove/add chưa tự động bảo đảm tính nguyên tử?
+## 6. Why don't remove/add automatically guarantee atomicity?
 
-Trong một `HashMap` thông thường, chuỗi `remove(oldKey)` rồi `put(newKey, value)` có khoảng thời gian mapping chưa hiện diện dưới khóa nào. Với `HashSet` có object mutable, trình tự remove → mutate → add cũng có giai đoạn phần tử tạm thời bị tháo khỏi set. Nếu thao tác bị lỗi hoặc có luồng khác đọc giữa chừng, chương trình có thể quan sát trạng thái không đầy đủ.
+In a standard `HashMap`, the sequence `remove(oldKey)` followed by `put(newKey, value)` has a window where the mapping is absent under any key. With a `HashSet` holding a mutable object, the remove → mutate → add sequence also has a phase where the element is temporarily detached from the set. If the operation fails or another thread reads mid-way, the program can observe an incomplete state.
 
-Các vấn đề cần xử lý ở **cấp nghiệp vụ**:
+Issues to address at the **business level**:
 
-- **Đồng thời:** `HashMap` và `HashSet` không tự thread-safe. Hai lời gọi đổi khóa cùng lúc có thể vượt qua kiểm tra va chạm rồi ghi đè nhau. Nếu có truy cập cạnh tranh, cần một cơ chế đồng bộ bảo vệ **toàn bộ bước kiểm tra + chuyển khóa**, hoặc cấu trúc/thiết kế khác với ngữ nghĩa cập nhật nguyên tử rõ ràng. Chỉ thay collection bằng `ConcurrentHashMap` không biến chuỗi `remove` rồi `put` độc lập thành một giao dịch nguyên tử.
-- **Lỗi ở giữa:** kiểm tra trước tất cả điều kiện có thể kiểm tra giúp giảm rủi ro; với quy trình thực tế có I/O, callback hoặc ràng buộc khác, cần cơ chế rollback hoặc thay thế nguyên tử được thiết kế rõ ràng. Mã ví dụ không cố tuyên bố xử lý được mọi ngoại lệ sau khi remove.
-- **Cơ sở dữ liệu:** nếu mã nghiệp vụ còn là khóa duy nhất trong database, cập nhật ở bộ nhớ phải phối hợp với transaction, unique constraint và mọi tham chiếu liên quan. Remove/add trong Java không tự cập nhật foreign key, chỉ mục hay dữ liệu của phiên làm việc khác.
-- **Khóa được dùng ở nhiều nơi:** trong hệ thống có cache, index hoặc những collection khác, chuyển khóa cần cập nhật từng nơi theo chính sách nhất quán; không thể chỉ sửa một `HashSet` rồi coi toàn hệ thống đã hoàn tất.
+- **Concurrency:** `HashMap` and `HashSet` are not thread-safe on their own. Two simultaneous key-change calls can both pass collision checks and overwrite each other. If there is concurrent access, you need a synchronization mechanism protecting **the entire check + key-transition step**, or another structure/design with explicit atomic update semantics. Simply replacing the collection with `ConcurrentHashMap` does not turn two independent `remove` then `put` calls into an atomic transaction.
+- **Mid-way failures:** checking all checkable preconditions upfront reduces risk; for real workflows involving I/O, callbacks, or other constraints, an explicitly designed rollback or atomic replacement mechanism is needed. The example code does not claim to handle every possible exception after `remove`.
+- **Database:** if the business code is also a unique key in a database, in-memory updates must coordinate with transactions, unique constraints, and any related references. Java remove/add does not automatically update foreign keys, database indices, or other sessions' data.
+- **Key used in multiple places:** in a system with caches, indices, or other collections, transitioning a key requires updating every place under a consistency policy; you cannot update just one `HashSet` and treat the whole system as done.
 
-Với `TreeSet` hoặc `TreeMap`, việc sửa trường tham gia `Comparator`/`compareTo` cũng có thể làm hỏng thứ tự cây, dù `hashCode()` không được sử dụng. Ý tưởng tháo khi còn khóa cũ, thay khóa, thêm lại vẫn có ích; nhưng phải kiểm tra quy tắc sắp thứ tự và định nghĩa trùng khóa theo comparator.
+With `TreeSet` or `TreeMap`, modifying a field used by `Comparator`/`compareTo` can also corrupt tree ordering, even though `hashCode()` is not used. The idea of detaching while the old key is intact, changing the key, and re-adding remains useful; however, you must verify ordering rules and key-duplicate definitions according to the comparator.
 
-## 7. Nếu khóa đã bị thay đổi khi object còn ở trong set/map?
+## 7. What if the key was already modified while still in the set/map?
 
-Sau khi lỡ đổi thuộc tính ảnh hưởng đến `equals()`/`hashCode()`, **không dựa vào `contains(mutableKey)` hoặc `remove(mutableKey)` để khôi phục**, vì chính đường tra cứu theo hash có thể đã sai.
+After accidentally modifying an attribute affecting `equals()`/`hashCode()`, **do not rely on `contains(mutableKey)` or `remove(mutableKey)` to recover**, because the hash lookup path itself may already be broken.
 
-Trong một cấu trúc in-memory mà bạn kiểm soát độc quyền, có thể tìm đúng phần tử qua iteration rồi gọi `Iterator.remove()` để tháo nó; sau đó mới tái lập dữ liệu với khóa hợp lệ. Ví dụ khôi phục một instance cụ thể:
+In an in-memory structure over which you have exclusive control, you can locate the exact element via iteration and call `Iterator.remove()` to detach it; only then re-establish the data with a valid key. Example of recovering a specific instance:
 
 ~~~java
-// Minh họa; chỉ dùng khi kiểm soát độc quyền Set,
-// đồng thời biết chính xác tham chiếu object cần tháo.
+// Illustrative; only use when holding exclusive control of the Set,
+// and knowing the exact object reference to detach.
 var iterator = customers.iterator();
 while (iterator.hasNext()) {
     if (iterator.next() == target) {
@@ -316,25 +316,25 @@ while (iterator.hasNext()) {
         break;
     }
 }
-// Kiểm tra hậu điều kiện, giải quyết xung đột nếu có,
-// rồi mới thêm target bằng trạng thái khóa đã xác thực.
+// Verify postconditions, resolve conflicts if any,
+// and only then add target with a validated key state.
 ~~~
 
-`Iterator.remove()` loại bỏ **phần tử vừa được iterator trả về**, không dựa trên việc tìm lại object theo hash mới. Nhưng đây là **biện pháp sửa chữa tình huống hỏng**, không phải luồng bình thường; phải tránh sửa collection đồng thời khi đang duyệt, xác nhận object thực sự được tìm thấy và xử lý những chỉ mục khác có thể đã bị hỏng. Một cách rõ ràng hơn trong nhiều trường hợp là **tái xây dựng collection từ dữ liệu nguồn đáng tin**, theo bộ khóa đã được xác thực.
+`Iterator.remove()` removes **the element just returned by the iterator**, without relying on finding the object again by its new hash. Still, this is a **broken-state repair measure**, not a normal flow; you must avoid concurrent modifications to the collection while iterating, verify the object was actually found, and address any other indices that may have been corrupted. A cleaner approach in many cases is **rebuilding the collection from trusted source data**, using a validated set of keys.
 
-Với `Map`, có thể cân nhắc duyệt `entrySet().iterator()` và remove đúng entry trong tình huống tương tự, hoặc xây lại map. Tránh áp dụng một thủ thuật recovery nếu hệ thống có nhiều nơi giữ khóa cùng object mà chưa biết trạng thái của chúng.
+For `Map`, you can consider iterating `entrySet().iterator()` and removing the exact entry in a similar situation, or rebuilding the map. Avoid applying a recovery trick if multiple parts of the system hold the same object as a key without knowing their state.
 
-## 8. Checklist thực hành
+## 8. Practical checklist
 
-Trước khi cho phép đổi một khóa nghiệp vụ, tự kiểm tra:
+Before allowing a business key to be changed, check yourself:
 
-- [ ] Thuộc tính định đổi có thực sự tham gia `equals()`/`hashCode()` hoặc comparator không?
-- [ ] Nếu chỉ là thông tin hiển thị, có thể cập nhật bình thường mà không thay khóa không?
-- [ ] Có thể thiết kế khóa bất biến và thay bằng instance mới thay vì sửa object đang được dùng làm key không?
-- [ ] Đã xác nhận khóa cũ tồn tại, khóa mới hợp lệ, chưa bị chiếm và tuân thủ cùng quy tắc chuẩn hóa chưa?
-- [ ] Mọi `remove` có diễn ra **khi khóa cũ vẫn còn nguyên** không?
-- [ ] Sau thay đổi, đã kiểm tra `contains/get` theo khóa cũ và khóa mới, số phần tử/entry, và xung đột bị từ chối chưa?
-- [ ] Có nơi khác giữ object làm key, có truy cập đồng thời hoặc có database cần transaction không?
-- [ ] Nếu một bước thất bại, có phương án đảm bảo không mất mapping/không để object ở trạng thái nửa cập nhật không?
+- [ ] Does the attribute to be changed actually participate in `equals()`/`hashCode()` or a comparator?
+- [ ] If it is only display info, can it be updated normally without changing the key?
+- [ ] Can the key be designed as immutable and replaced with a new instance instead of mutating an object currently used as a key?
+- [ ] Have you confirmed the old key exists, and that the new key is valid, unclaimed, and follows the same normalization rules?
+- [ ] Does every `remove` happen **while the old key is still intact**?
+- [ ] After the change, have you verified `contains/get` by both old and new keys, element/entry counts, and rejection of collisions?
+- [ ] Does anywhere else hold the object as a key, is there concurrent access, or is there a database requiring a transaction?
+- [ ] If a step fails, is there a plan to ensure no mapping is lost and no object is left half-updated?
 
-**Ghi nhớ:** Khi một object đang tham gia cấu trúc dựa trên `hashCode()` hoặc phép sắp thứ tự, đổi trường quyết định khóa có thể khiến collection không còn tìm đúng phần tử. Nếu nghiệp vụ thực sự yêu cầu đổi khóa, hãy **xóa theo khóa cũ trước, chuyển sang khóa mới sau, rồi thêm lại và xác minh**. Ưu tiên các khóa bất biến và xử lý tính nguyên tử ở cấp thích hợp khi bài toán không còn đơn luồng.
+**Takeaway:** When an object participates in a structure based on `hashCode()` or ordering, changing a key-defining field can cause the collection to stop finding the element properly. If business logic genuinely requires changing a key, **remove under the old key first, transition to the new key afterward, then re-add and verify**. Prefer immutable keys and handle atomicity at the appropriate level once the problem is no longer single-threaded.

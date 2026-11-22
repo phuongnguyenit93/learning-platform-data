@@ -1,31 +1,31 @@
-# Phân biệt chuỗi rỗng, chuỗi trắng và `null` trong Java 17+
+# Distinguishing Empty Strings, Blank Strings, and `null` in Java 17+
 
-Khi nhận tên người dùng, ghi chú hay dữ liệu từ biểu mẫu, ba trường hợp thường bị lẫn với nhau là **`null`**, **chuỗi rỗng `""`** và **chuỗi chỉ chứa khoảng trắng**. Chúng có ý nghĩa khác nhau, và lựa chọn giữa `isEmpty()`, `isBlank()`, `trim()`, `strip()` quyết định chương trình xử lý đúng hay sai.
+When receiving usernames, notes, or form data, three cases are frequently confused: **`null`**, **empty string `""`**, and **whitespace-only strings**. They carry different meanings, and choosing properly among `isEmpty()`, `isBlank()`, `trim()`, and `strip()` determines whether a program handles input correctly or not.
 
-- **`null`**: biến tham chiếu `String` không trỏ tới đối tượng nào.
-- **Chuỗi rỗng `""`**: có đối tượng `String`, nhưng độ dài bằng **0**.
-- **Chuỗi trắng (*blank string*)**: có thể rỗng hoặc chỉ chứa các ký tự được Java xem là **whitespace** theo `Character.isWhitespace`. Ví dụ `"   "`, `"\t"` và `"\n"`. Chuỗi trắng **không nhất thiết có độ dài 0**.
+- **`null`**: the `String` reference variable does not point to any object.
+- **Empty string `""`**: a `String` object exists, but its length is **0**.
+- **Blank string**: may be empty or contain only characters that Java considers **whitespace** according to `Character.isWhitespace`. Examples include `"   "`, `"\t"`, and `"\n"`. A blank string **does not necessarily have length 0**.
 
-## 1. Bảng so sánh chính xác
+## 1. Exact comparison table
 
-Giả sử biến `s` chứa giá trị ở cột đầu:
+Suppose variable `s` holds the value in the first column:
 
-| Giá trị `s` | `s == null` | `s.isEmpty()` | `s.isBlank()` | Vì sao |
+| Value of `s` | `s == null` | `s.isEmpty()` | `s.isBlank()` | Why |
 | --- | --- | --- | --- | --- |
-| `null` | `true` | **Ném `NullPointerException`** | **Ném `NullPointerException`** | Không có đối tượng String |
-| `""` | `false` | `true` | `true` | Rỗng cũng được coi là blank |
-| `" "` | `false` | `false` | `true` | Có một space |
-| `" \t\n"` | `false` | `false` | `true` | Chỉ gồm space, tab, xuống dòng |
-| `"\u2003"` (EM SPACE) | `false` | `false` | `true` | EM SPACE được `Character.isWhitespace` nhận diện |
-| `"\u00A0"` (NBSP) | `false` | `false` | `false` | Non-breaking space **không** được `Character.isWhitespace` xem là whitespace |
-| `"Java"` | `false` | `false` | `false` | Chứa chữ |
-| `" Java "` | `false` | `false` | `false` | Có chữ dù hai bên có space |
+| `null` | `true` | **Throws `NullPointerException`** | **Throws `NullPointerException`** | No String object exists |
+| `""` | `false` | `true` | `true` | Empty is also considered blank |
+| `" "` | `false` | `false` | `true` | Contains one space |
+| `" \t\n"` | `false` | `false` | `true` | Contains only space, tab, newline |
+| `"\u2003"` (EM SPACE) | `false` | `false` | `true` | EM SPACE is recognized by `Character.isWhitespace` |
+| `"\u00A0"` (NBSP) | `false` | `false` | `false` | Non-breaking space is **not** considered whitespace by `Character.isWhitespace` |
+| `"Java"` | `false` | `false` | `false` | Contains letters |
+| `" Java "` | `false` | `false` | `false` | Contains letters despite spaces on both sides |
 
-**Điểm then chốt:** `isBlank()` bao hàm cả chuỗi rỗng; còn `isEmpty()` chỉ kiểm tra `length() == 0`. Cả hai đều là phương thức instance, vì thế **không thể gọi trực tiếp trên `null`**.
+**Key point:** `isBlank()` encompasses empty strings as well; whereas `isEmpty()` only checks `length() == 0`. Both are instance methods, so **neither can be called directly on `null`**.
 
-## 2. Chương trình Java 17+ chạy được
+## 2. Runnable Java 17+ program
 
-Lưu tệp UTF-8 tên **`EmptyBlankNullDemo.java`**:
+Save a UTF-8 file named **`EmptyBlankNullDemo.java`**:
 
 ~~~java
 public class EmptyBlankNullDemo {
@@ -87,7 +87,7 @@ public class EmptyBlankNullDemo {
 }
 ~~~
 
-Mở PowerShell (Windows) hoặc Bash (Linux/macOS) tại thư mục chứa tệp, dùng **JDK 17+**:
+Open PowerShell (Windows) or Bash (Linux/macOS) in the directory containing the file, using **JDK 17+**:
 
 ~~~bash
 java -version
@@ -96,7 +96,7 @@ javac -encoding UTF-8 EmptyBlankNullDemo.java
 java EmptyBlankNullDemo
 ~~~
 
-**Expected output chính xác của chương trình:**
+**Exact expected output of the program:**
 
 ~~~text
 null=NULL,length=N/A
@@ -115,25 +115,25 @@ safeMissing=true
 normalized=(missing)
 ~~~
 
-**Giải thích:** hàm `classify` phải kiểm tra `null` **trước** khi gọi phương thức. Với giá trị không null, nó phân biệt chuỗi rỗng với chuỗi có whitespace. `String.isBlank()` ra đời từ Java 11, nên có sẵn trong Java 17. `"\u2003"` là một EM SPACE: `strip()` bỏ được nhưng `trim()` không bỏ. `"\u00A0"` là NBSP, nên `isBlank()` trả false.
+**Explanation:** the `classify` method must check for `null` **before** calling methods. For non-null values, it distinguishes empty strings from strings containing whitespace. `String.isBlank()` was introduced in Java 11, so it is available in Java 17. `"\u2003"` is an EM SPACE: `strip()` removes it whereas `trim()` does not. `"\u00A0"` is NBSP, so `isBlank()` returns false.
 
-Mã kiểm tra kết quả bằng nhãn thay vì in trực tiếp chuỗi chứa tab hoặc dấu cách, giúp bạn nhìn thấy sự khác biệt rõ ràng trên terminal.
+The code verifies results using labels instead of printing strings containing tabs or spaces directly, letting you clearly see the differences in the terminal.
 
-## 3. Chọn kiểm tra nào theo yêu cầu nghiệp vụ?
+## 3. Which check should you choose for your business requirement?
 
-### A. Muốn kiểm tra “không có đối tượng”
+### A. Want to check “no object”
 
 ~~~java
 String input = null;
 
 if (input == null) {
-    System.out.println("Chua duoc cung cap");
+    System.out.println("Not provided");
 }
 ~~~
 
-`null` thường có nghĩa **không được cung cấp**, **chưa có** hoặc một trạng thái đặc biệt do thiết kế API quy định. Đừng tự mặc định `null` và `""` là một nếu API cần phân biệt “chưa trả lời” với “đã trả lời rỗng”.
+`null` usually means **not provided**, **not yet available**, or a special state defined by the API design. Do not automatically treat `null` and `""` as identical if the API needs to distinguish “not answered” from “answered empty”.
 
-### B. Muốn kiểm tra “đúng 0 đơn vị mã”
+### B. Want to check “exactly 0 code units”
 
 ~~~java
 String input = " ";
@@ -142,23 +142,23 @@ System.out.println(input.isEmpty()); // false
 System.out.println(input.length());  // 1
 ~~~
 
-`isEmpty()` phù hợp khi **một space cũng là dữ liệu hợp lệ**, chẳng hạn nội dung biên tập văn bản hoặc mật khẩu mà yêu cầu là không rỗng về độ dài. `isEmpty()` không loại khoảng trắng.
+`isEmpty()` is appropriate when **even a space is valid data**, such as edited text content or passwords whose requirement is non-zero length. `isEmpty()` does not ignore whitespace.
 
-### C. Muốn kiểm tra “không có nội dung hữu ích ngoài whitespace”
+### C. Want to check “no useful content beyond whitespace”
 
 ~~~java
 String input = " \t";
 
 if (input != null && !input.isBlank()) {
-    System.out.println("Co noi dung");
+    System.out.println("Has content");
 } else {
-    System.out.println("Thieu noi dung");
+    System.out.println("Missing content");
 }
 ~~~
 
-Đây thường là lựa chọn phù hợp cho **tên hiển thị**, **ghi chú** hay **mô tả** mà chỉ nhập dấu cách/tab/xuống dòng thì bị xem là thiếu nội dung. Tuy nhiên, phạm vi whitespace của `isBlank()` không bao trùm **mọi** ký tự mà mắt người cảm nhận là khoảng trắng (ví dụ NBSP).
+This is usually the right choice for **display names**, **notes**, or **descriptions** where entering only spaces/tabs/newlines counts as missing content. However, the whitespace scope of `isBlank()` does not cover **every** character a human eye perceives as blank space (for example, NBSP).
 
-### D. Gộp `null` và blank thành cùng trạng thái
+### D. Combining `null` and blank into the same status
 
 ~~~java
 static boolean isMissing(String s) {
@@ -166,20 +166,20 @@ static boolean isMissing(String s) {
 }
 ~~~
 
-Toán tử `||` có **short-circuit**: nếu `s == null` là true, vế `s.isBlank()` sẽ không chạy nên tránh `NullPointerException`. Đừng đổi thứ tự hai điều kiện.
+The `||` operator uses **short-circuiting**: if `s == null` is true, the `s.isBlank()` side will not execute, avoiding `NullPointerException`. Never swap the order of the two conditions.
 
-## 4. `trim()` khác `strip()` như thế nào?
+## 4. How does `trim()` differ from `strip()`?
 
-Cả hai tạo kết quả **chuỗi đã lược bớt ký tự ở hai đầu**, không thay đổi đối tượng `String` ban đầu.
+Both produce a result **string with leading and trailing characters removed**, without modifying the original `String` object.
 
-| Phương thức | Quy tắc | Tình huống |
+| Method | Rule | Scenario |
 | --- | --- | --- |
-| `trim()` | Loại các ký tự đầu/cuối có giá trị mã `<= U+0020` | Cách xử lý cũ, có giới hạn với Unicode |
-| `strip()` | Loại whitespace đầu/cuối theo `Character.isWhitespace` | Thường phù hợp hơn với một số khoảng trắng Unicode |
-| `stripLeading()` | Chỉ loại whitespace **đầu chuỗi** | Giữ phần cuối |
-| `stripTrailing()` | Chỉ loại whitespace **cuối chuỗi** | Giữ phần đầu |
+| `trim()` | Removes leading/trailing characters with code value `<= U+0020` | Older behavior, limited with Unicode |
+| `strip()` | Removes leading/trailing whitespace per `Character.isWhitespace` | Usually more suitable for certain Unicode spaces |
+| `stripLeading()` | Removes **leading** whitespace only | Preserves trailing part |
+| `stripTrailing()` | Removes **trailing** whitespace only | Preserves leading part |
 
-`strip()`, `stripLeading()`, `stripTrailing()` có từ Java 11. Ví dụ:
+`strip()`, `stripLeading()`, and `stripTrailing()` have existed since Java 11. Example:
 
 ~~~java
 String raw = "  Java  ";
@@ -189,24 +189,24 @@ System.out.println(raw.length());   // 8
 System.out.println(clean.length()); // 4
 ~~~
 
-`raw` không đổi. Nếu muốn lưu kết quả vào biến đang dùng, viết `raw = raw.strip();` (khi biến không `final`).
+`raw` does not change. If you want to store the result in the variable in use, write `raw = raw.strip();` (when the variable is not `final`).
 
-**Lưu ý Unicode:** `strip()`/`isBlank()` dựa trên `Character.isWhitespace`, vì vậy một số khoảng trắng *non-breaking* như U+00A0 vẫn được giữ. Nếu ứng dụng muốn coi các ký tự đó là trống, bạn phải xác định rõ tập ký tự cần xử lý và bổ sung quy tắc phù hợp, thay vì cho rằng mọi khoảng trống nhìn thấy đều được `isBlank()` nhận diện.
+**Unicode note:** `strip()`/`isBlank()` rely on `Character.isWhitespace`, so some *non-breaking* spaces like U+00A0 are retained. If the application should treat those characters as empty/blank, define the exact set of characters to handle and add explicit rules rather than assuming every visible space is recognized by `isBlank()`.
 
-## 5. Sai lầm phổ biến
+## 5. Common mistakes
 
-| Cách viết / nhận định | Vấn đề | Cách sửa |
+| Code / statement | Problem | Fix |
 | --- | --- | --- |
-| `text.isEmpty()` khi `text == null` | `NullPointerException` | Kiểm tra `null` trước |
-| `"".equals(text)` và `text == null` là như nhau | Sai: một bên so nội dung với chuỗi rỗng, một bên so với null | Chọn theo nghĩa dữ liệu |
-| `text.isEmpty()` coi `"   "` là rỗng | Sai: độ dài khác 0 | Dùng `isBlank()` nếu cần |
-| `text.isBlank()` chỉ đúng khi độ dài lớn hơn 0 | Sai: `"".isBlank()` cũng true | Nếu muốn ba trạng thái riêng, kiểm tra `isEmpty()` trước `isBlank()` |
-| `text.trim();` tự thay đổi `text` | Sai: `String` bất biến | Gán lại `text = text.trim();` |
-| `strip()` xóa mọi whitespace Unicode | Sai, không gồm một số dấu cách non-breaking | Xác định chính sách whitespace của ứng dụng |
-| `text == ""` để kiểm tra rỗng | `==` so sánh tham chiếu | Dùng `text.isEmpty()` sau khi kiểm tra null |
-| `isBlank()` luôn có trong Java 8 | Sai: từ Java 11 | Java 17+ dùng được |
+| `text.isEmpty()` when `text == null` | `NullPointerException` | Check `null` first |
+| `"".equals(text)` and `text == null` are the same | False: one compares content with empty string, the other compares with null | Choose according to data semantics |
+| `text.isEmpty()` considers `"   "` empty | False: length is non-zero | Use `isBlank()` if needed |
+| `text.isBlank()` is only true when length > 0 | False: `"".isBlank()` is also true | If you want three separate states, check `isEmpty()` before `isBlank()` |
+| `text.trim();` mutates `text` automatically | False: `String` is immutable | Reassign `text = text.trim();` |
+| `strip()` removes all Unicode whitespace | False, excludes some non-breaking spaces | Define the application's whitespace policy |
+| `text == ""` to check empty | `==` compares references | Use `text.isEmpty()` after checking null |
+| `isBlank()` is always available in Java 8 | False: since Java 11 | Available in Java 17+ |
 
-### So sánh null-safe nhưng đúng ý nghĩa
+### Null-safe comparison with accurate meaning
 
 ~~~java
 String text = null;
@@ -214,13 +214,13 @@ System.out.println("".equals(text)); // false
 System.out.println(text == null);     // true
 ~~~
 
-`"".equals(text)` không ném lỗi vì đối tượng nhận lời gọi là literal `""` chắc chắn không null, nhưng câu này chỉ kiểm tra nội dung **chuỗi rỗng**, không thay thế phép kiểm tra `null`.
+`"".equals(text)` does not throw an error because the target object is the literal `""`, which is guaranteed non-null, yet this expression only checks for **empty string** content and does not replace a `null` check.
 
-`java.util.Objects.toString(text, "")` có thể chuyển null thành chuỗi rỗng theo chủ đích; tuy nhiên việc chuẩn hóa như vậy sẽ **mất thông tin phân biệt** hai trạng thái. Chỉ làm khi yêu cầu sản phẩm thực sự muốn gộp chúng.
+`java.util.Objects.toString(text, "")` can intentionally convert null to an empty string; however, such normalization **loses the distinction** between the two states. Do this only when product requirements truly intend to merge them.
 
-## 6. Quy trình xử lý đầu vào gọn và an toàn
+## 6. Clean and safe input processing flow
 
-Nếu quy định nghiệp vụ là “bỏ whitespace ở hai đầu, và bỏ qua giá trị rỗng hoặc blank”, có thể viết:
+If the business rule is “strip leading and trailing whitespace, and discard empty or blank values”, you can write:
 
 ~~~java
 static String normalizeName(String input) {
@@ -233,30 +233,30 @@ static String normalizeName(String input) {
 }
 ~~~
 
-Đây chỉ là **ví dụ chính sách**: trả `null` để đánh dấu “không có tên”. Trong hệ thống thật, bạn cũng có thể chọn trả `""`, `Optional<String>` hoặc báo lỗi validation, tùy hợp đồng API. Không tự động `strip()` dữ liệu mà whitespace đầu/cuối có ý nghĩa, chẳng hạn nội dung code hoặc dữ liệu cần giữ nguyên định dạng.
+This is only an **example policy**: returning `null` to indicate “no name”. In a real system, you might instead choose to return `""`, `Optional<String>`, or raise a validation error, depending on the API contract. Do not automatically `strip()` data where leading/trailing whitespace is meaningful, such as source code content or text whose formatting must be preserved.
 
-Chú ý: hàm trên xem NBSP đơn lẻ là nội dung (`isBlank() == false`, `strip()` cũng giữ lại). Nếu đây không phải hành vi mong muốn, cần thiết kế quy tắc làm sạch rõ ràng thay vì dùng mặc định.
+Note: the function above treats a lone NBSP as content (`isBlank() == false`, and `strip()` preserves it too). If that is not the desired behavior, design an explicit cleaning rule rather than relying on the default.
 
-## 7. Bài tập tự kiểm tra
+## 7. Self-check exercises
 
-1. **Phân loại:** `null`, `""`, `" \t"`, `"x"` tương ứng thuộc nhóm nào?  
-   *Đáp án:* null, empty, blank, text.
-2. **Dự đoán:** `"".isEmpty()`, `"".isBlank()` và `" ".isEmpty()` lần lượt là gì?  
-   *Đáp án:* `true`, `true`, `false`.
-3. **An toàn:** Vì sao `s == null || s.isBlank()` không ném lỗi khi `s == null`?  
-   *Đáp án:* `||` dừng sớm nếu vế trái true.
-4. **Unicode:** Vì sao `"\u2003".isBlank()` là true nhưng `"\u00A0".isBlank()` là false?  
-   *Đáp án:* `Character.isWhitespace` xem EM SPACE là whitespace nhưng không xem NBSP là whitespace.
-5. **Đổi dữ liệu:** Với `String s = "  A  "; s.strip();`, sau hai câu lệnh, `s.length()` là bao nhiêu?  
-   *Đáp án:* 5, vì kết quả `strip()` không được gán lại.
+1. **Classification:** Which group do `null`, `""`, `" \t"`, and `"x"` belong to respectively?  
+   *Answer:* null, empty, blank, text.
+2. **Prediction:** What are `"".isEmpty()`, `"".isBlank()`, and `" ".isEmpty()` respectively?  
+   *Answer:* `true`, `true`, `false`.
+3. **Safety:** Why does `s == null || s.isBlank()` not throw an error when `s == null`?  
+   *Answer:* `||` short-circuits if the left-hand side is true.
+4. **Unicode:** Why is `"\u2003".isBlank()` true whereas `"\u00A0".isBlank()` is false?  
+   *Answer:* `Character.isWhitespace` considers EM SPACE whitespace but does not consider NBSP whitespace.
+5. **Data modification:** Given `String s = "  A  "; s.strip();`, after those two statements, what is `s.length()`?  
+   *Answer:* 5, because the result of `strip()` was not reassigned.
 
-## Ghi nhớ
+## Key takeaways
 
-- `null`: không có đối tượng; kiểm tra bằng `== null`.
-- `""`: chuỗi rỗng có `length() == 0`; `isEmpty() == true`.
-- Chuỗi blank: rỗng **hoặc** chỉ chứa whitespace theo `Character.isWhitespace`; `isBlank() == true`.
-- `isBlank()` khác `isEmpty()`, và **không** tự xử lý `null`.
-- `trim()`/`strip()` trả kết quả mới hoặc kết quả tương đương, **không sửa `String` cũ**.
-- Với Unicode non-breaking space, cần quy định nghiệp vụ rõ ràng thay vì mặc định mọi khoảng trắng sẽ được `strip()` xóa.
+- `null`: no object; check with `== null`.
+- `""`: empty string with `length() == 0`; `isEmpty() == true`.
+- Blank string: empty **or** contains only whitespace per `Character.isWhitespace`; `isBlank() == true`.
+- `isBlank()` differs from `isEmpty()`, and **does not** handle `null` automatically.
+- `trim()`/`strip()` return a new or equivalent result, **without modifying the old `String`**.
+- For Unicode non-breaking spaces, establish clear business rules rather than assuming every whitespace character will be removed by `strip()`.
 
-**Kết luận:** Trước khi kiểm tra đầu vào, hãy quyết định **“thiếu dữ liệu” nghĩa là `null`, rỗng, blank, hay tổ hợp nào?** Rồi áp dụng `== null`, `isEmpty()` và `isBlank()` đúng theo ngữ nghĩa đó. Đây là cách tránh lỗi `NullPointerException` và tránh loại bỏ nhầm thông tin.
+**Conclusion:** Before validating input, decide whether **“missing data” means `null`, empty, blank, or which combination?** Then apply `== null`, `isEmpty()`, and `isBlank()` according to that semantics. This avoids `NullPointerException` errors and prevents accidentally discarding information.

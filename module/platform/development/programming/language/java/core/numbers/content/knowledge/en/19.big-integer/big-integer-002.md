@@ -1,20 +1,20 @@
-# BigInteger: Tạo từ String, radix, long hoặc mảng byte
+# BigInteger: Creating from String, Radix, long, or Byte Array
 
 > **Java core – numbers · BigInteger**  
-> **Mục tiêu:** Chọn đúng cách khởi tạo `java.math.BigInteger` từ văn bản thập phân, văn bản có cơ số, primitive `long`, dữ liệu nhị phân `byte[]` có dấu và dữ liệu nhị phân không dấu; đọc đúng big-endian/bù hai, xử lý dấu, đầu vào lỗi, độ rộng byte và kiểm tra chuyển đổi ngược.
+> **Goal:** Choose the right way to initialize `java.math.BigInteger` from decimal text, radix-based text, `long` primitive, signed `byte[]` binary data, and unsigned binary data; read big-endian/two's complement properly, handle signs, invalid input, byte widths, and verify round-trip conversions.
 
-## 1. BigInteger giải quyết vấn đề gì?
+## 1. What Problem Does BigInteger Solve?
 
-Các kiểu nguyên primitive trong Java có độ rộng cố định:
+Primitive integer types in Java have fixed widths:
 
-| Kiểu | Độ rộng | Miền giá trị |
+| Type | Width | Value range |
 | --- | ---: | --- |
-| `byte` | 8 bit | −128 đến 127 |
-| `short` | 16 bit | −32.768 đến 32.767 |
-| `int` | 32 bit | −2³¹ đến 2³¹−1 |
-| `long` | 64 bit | −2⁶³ đến 2⁶³−1 |
+| `byte` | 8 bits | −128 to 127 |
+| `short` | 16 bits | −32,768 to 32,767 |
+| `int` | 32 bits | −2³¹ to 2³¹−1 |
+| `long` | 64 bits | −2⁶³ to 2⁶³−1 |
 
-`BigInteger` là lớp **số nguyên độ chính xác tùy ý** (*arbitrary-precision integer*) trong `java.math`. Nó không giới hạn cố định ở 32 hoặc 64 bit như `int`/`long`; các giá trị rất lớn được xử lý bằng nhiều bit nội bộ, trong phạm vi tài nguyên và giới hạn triển khai của JVM.
+`BigInteger` is an **arbitrary-precision integer** class in `java.math`. It is not fixed to 32 or 64 bits like `int`/`long`; very large values are handled using multiple internal bits, within the resource and implementation limits of the JVM.
 
 ```java
 import java.math.BigInteger;
@@ -27,25 +27,25 @@ System.out.println(sum);
 // 123456789012345678901234567900
 ```
 
-**Không có toán tử `+` cho hai đối tượng `BigInteger`.** Sử dụng `add`, `subtract`, `multiply`, `divide` và các phương thức khác. `BigInteger` là **immutable**: phép `add` trả một giá trị mới thay vì sửa x.
+**There is no `+` operator for two `BigInteger` objects.** Use `add`, `subtract`, `multiply`, `divide`, and other methods. `BigInteger` is **immutable**: `add` returns a new value instead of modifying `x`.
 
-Một BigInteger có thể được xây dựng bằng nhiều con đường. Việc chọn API phải dựa vào **kiểu và cách mã hóa dữ liệu nguồn**, không chỉ giá trị muốn nhận:
+A `BigInteger` can be constructed through several paths. Choosing an API must be based on **the source data's type and encoding**, not just the desired value:
 
-| Dữ liệu hiện có | API nên dùng | Điểm cần hiểu |
+| Available data | API to use | Key point to understand |
 | --- | --- | --- |
-| Chuỗi số thập phân | `new BigInteger(text)` | Cho phép dấu `+`/`-` đầu chuỗi |
-| Chuỗi số cơ số 2–36 | `new BigInteger(text, radix)` | Cần chỉ rõ cơ số, không tự hiểu `0x` |
-| Primitive `long` | `BigInteger.valueOf(number)` | Giữ nguyên giá trị có dấu của long |
-| `byte[]` đã mã hóa signed two's complement | `new BigInteger(bytes)` | Big-endian, bit dấu của byte đầu có ý nghĩa |
-| `byte[]` chứa độ lớn **unsigned** | `new BigInteger(1, bytes)` | Signum dương, không coi bit cao là dấu |
-| Độ lớn và dấu được truyền riêng | `new BigInteger(signum, magnitude)` | Signum −1, 0, +1; magnitude là big-endian unsigned |
-| Chỉ một lát cắt trong `byte[]` | Constructor có `off,len` (Java 9+) | Không cần tự tạo mảng con để gọi constructor |
+| Decimal digit string | `new BigInteger(text)` | Allows leading `+`/`-` sign |
+| Base 2–36 digit string | `new BigInteger(text, radix)` | Must specify radix; does not auto-detect `0x` |
+| Primitive `long` | `BigInteger.valueOf(number)` | Preserves the signed value of `long` |
+| `byte[]` encoded as signed two's complement | `new BigInteger(bytes)` | Big-endian; sign bit of first byte matters |
+| `byte[]` containing **unsigned** magnitude | `new BigInteger(1, bytes)` | Positive signum; does not treat high bit as sign |
+| Magnitude and sign passed separately | `new BigInteger(signum, magnitude)` | Signum −1, 0, +1; magnitude is big-endian unsigned |
+| Only a slice within `byte[]` | Constructors with `off,len` (Java 9+) | No need to allocate a subarray to call constructor |
 
-**Câu hỏi quyết định cho byte array:** “Đây là số nguyên signed theo bù hai, hay một chuỗi byte unsigned biểu diễn độ lớn?” Hai cách hiểu này có thể cho kết quả **trái dấu** từ chính các byte giống nhau.
+**Decision question for byte arrays:** "Is this a signed integer in two's complement, or an unsigned byte sequence representing a magnitude?" These two interpretations can produce **opposite-signed** results from the exact same bytes.
 
-## 2. Tạo từ String thập phân
+## 2. Creating from a Decimal String
 
-Constructor thông dụng nhất:
+The most common constructor:
 
 ```java
 BigInteger decimal = new BigInteger("123456789012345678901234567890");
@@ -57,32 +57,32 @@ System.out.println(negative); // -255
 System.out.println(positive); // 255
 ```
 
-`new BigInteger(String)` đọc chuỗi **decimal radix 10** theo mặc định. Chuỗi gồm một dấu đầu `+` hoặc `-` tùy chọn, theo sau bởi ít nhất một chữ số hợp lệ. Không truyền chuỗi rỗng hoặc chỉ có dấu.
+`new BigInteger(String)` reads a **decimal radix 10** string by default. The string consists of an optional leading `+` or `-` sign, followed by at least one valid digit. Do not pass an empty string or a sign alone.
 
-Các chuỗi sau là các trường hợp cần phân biệt:
+The following strings are cases to distinguish:
 
-| Đầu vào | Kết quả |
+| Input | Result |
 | --- | --- |
 | `"123"` | 123 |
 | `"+123"` | 123 |
 | `"-123"` | −123 |
-| `"000123"` | 123, bỏ các số 0 đầu |
-| `"-0"` | 0, không có trạng thái “âm zero” như float |
+| `"000123"` | 123, leading zeros stripped |
+| `"-0"` | 0, no "negative zero" state like float |
 | `""` | `NumberFormatException` |
 | `"+"` | `NumberFormatException` |
 | `"12.0"` | `NumberFormatException` |
-| `" 123 "` | `NumberFormatException` vì có ký tự thừa |
-| `"1_000"` | `NumberFormatException` với quy tắc parser chuẩn |
+| `" 123 "` | `NumberFormatException` due to extra characters |
+| `"1_000"` | `NumberFormatException` under standard parser rules |
 
-**BigInteger chỉ biểu diễn số nguyên.** Nó không âm thầm cắt phần lẻ của chuỗi decimal hay chấp nhận dấu chấm như `BigDecimal`. Nếu nguồn là `"12.5"` và nghiệp vụ thực sự cho phép phần lẻ, hãy dùng kiểu/luồng chuyển đổi được thiết kế cho decimal có scale, không ép dữ liệu thành BigInteger bằng cách tự bỏ ký tự.
+**BigInteger represents integers only.** It does not silently truncate the fractional part of a decimal string or accept a decimal point like `BigDecimal`. If the source is `"12.5"` and business logic genuinely permits fractional parts, use a type/conversion flow designed for scaled decimals rather than forcing data into `BigInteger` by stripping characters.
 
-### Chữ số Unicode
+### Unicode Digits
 
-Quy tắc ánh xạ ký tự thành chữ số dùng `Character.digit(char, radix)`, có thể chấp nhận một số ký tự chữ số Unicode. Nếu giao thức chỉ cho phép **ASCII `0..9`**, cần **validate riêng** trước hoặc cùng lúc với parse. Thành công của `new BigInteger(text)` không tự chứng minh token chứa toàn ASCII.
+The character-to-digit mapping rule uses `Character.digit(char, radix)`, which can accept certain Unicode digit characters. If a protocol only allows **ASCII `0..9`**, you must **validate separately** before or alongside parsing. Success of `new BigInteger(text)` does not by itself prove the token contains only ASCII.
 
-## 3. Tạo từ String theo radix (cơ số)
+## 3. Creating from a String by Radix (Base)
 
-Dùng constructor:
+Use the constructor:
 
 ```java
 BigInteger binary = new BigInteger("101101", 2); // 45
@@ -91,9 +91,9 @@ BigInteger hex = new BigInteger("FF", 16);       // 255
 BigInteger base36 = new BigInteger("ZZ", 36);    // 1295
 ```
 
-`radix` phải nằm trong khoảng **2 đến 36**. Các chữ số thập phân và chữ cái hợp lệ được quy đổi theo `Character.digit`. Chữ `A`/`a` là 10 trong cơ số 16, `F`/`f` là 15, `Z`/`z` là 35 trong cơ số 36.
+`radix` must be between **2 and 36**. Decimal digits and valid letters are converted via `Character.digit`. Letter `A`/`a` is 10 in base 16, `F`/`f` is 15, and `Z`/`z` is 35 in base 36.
 
-Ví dụ có dấu:
+Signed examples:
 
 ```java
 System.out.println(new BigInteger("-FF", 16));  // -255
@@ -101,16 +101,16 @@ System.out.println(new BigInteger("+100", 2));  // 4
 System.out.println(new BigInteger("000101", 2)); // 5
 ```
 
-**Sai lầm dễ gặp: tiền tố không tự được loại bỏ.**
+**Common pitfall: prefixes are not automatically stripped.**
 
 ```java
 // new BigInteger("0xFF", 16); // NumberFormatException
 // new BigInteger("0b101", 2); // NumberFormatException
 ```
 
-Đây là **dữ liệu chuỗi runtime**, không phải literal Java trong mã nguồn. Với radix 16, hãy đưa chuỗi chữ số `"FF"` (và dấu nếu có), **không đưa `"0x"`**. Nếu giao thức cho phép tiền tố, tách và validate prefix trước khi truyền chuỗi chữ số cho constructor.
+These are **runtime string data**, not Java literals in source code. For radix 16, pass the digit string `"FF"` (and sign if present), **do not pass `"0x"`**. If the protocol allows prefixes, strip and validate the prefix before passing the digit string to the constructor.
 
-Ví dụ parse định dạng có tiền tố cố định:
+Example parsing a fixed-prefix format:
 
 ```java
 static BigInteger parsePrefixedHex(String text) {
@@ -121,9 +121,9 @@ static BigInteger parsePrefixedHex(String text) {
 }
 ```
 
-Đây là **phương thức minh họa**, cần đặt trong một class. Nó cố ý chỉ chấp nhận `0x` chữ thường ở đầu và số **không có dấu** sau prefix; nếu cần nhận `-0xFF` hoặc `0XFF`, phải định nghĩa cú pháp ấy và kiểm tra riêng. Đừng dùng một thao tác `replace` xóa `0x` ở mọi vị trí vì có thể chấp nhận chuỗi sai.
+This is an **illustrative method**, needing to be placed in a class. It intentionally accepts only lowercase `0x` at the start and **unsigned** digits after the prefix; if you need to accept `-0xFF` or `0XFF`, you must define that syntax and check separately. Do not use a `replace` call that deletes `0x` everywhere, as it can accept malformed strings.
 
-### toString(radix) là hướng chuyển đổi ngược
+### toString(radix) Is the Reverse Conversion
 
 ```java
 BigInteger n = new BigInteger("255");
@@ -132,7 +132,7 @@ System.out.println(n.toString(16)); // ff
 System.out.println(n.toString(10)); // 255
 ```
 
-`toString(radix)` thường dùng chữ cái **thường** cho cơ số lớn hơn 10 và không thêm `0x`/`0b`. Với radix hợp lệ, có thể dùng hai đầu của một cặp round-trip:
+`toString(radix)` uses **lowercase** letters for bases greater than 10 and does not prepend `0x`/`0b`. With a valid radix, they can serve as both ends of a round-trip pair:
 
 ```java
 BigInteger original = new BigInteger("-12345678901234567890");
@@ -142,11 +142,11 @@ BigInteger restored = new BigInteger(encoded, 16);
 System.out.println(original.equals(restored)); // true
 ```
 
-Dùng `equals` để so sánh **giá trị** đối tượng, không dùng `==` để kiểm tra hai biến có cùng số hay không.
+Use `equals` to compare object **values**, do not use `==` to check whether two variables hold the same number.
 
-## 4. Tạo từ long: dùng BigInteger.valueOf(long)
+## 4. Creating from `long`: Use `BigInteger.valueOf(long)`
 
-Nếu đầu vào đã là primitive `long`, dùng static factory:
+If the input is already a `long` primitive, use the static factory:
 
 ```java
 long id = 9_000_000_000L;
@@ -155,14 +155,14 @@ BigInteger bigId = BigInteger.valueOf(id);
 System.out.println(bigId); // 9000000000
 ```
 
-Không có constructor public `BigInteger(long)` tương ứng:
+There is no corresponding public `BigInteger(long)` constructor:
 
 ```java
-// BigInteger wrong = new BigInteger(123L); // Không biên dịch
+// BigInteger wrong = new BigInteger(123L); // Does not compile
 BigInteger correct = BigInteger.valueOf(123L);
 ```
 
-Phương thức `valueOf` bảo toàn **giá trị có dấu** của `long`, bao gồm biên âm và dương:
+`valueOf` preserves the **signed value** of `long`, including negative and positive bounds:
 
 ```java
 BigInteger low = BigInteger.valueOf(Long.MIN_VALUE);
@@ -172,18 +172,18 @@ System.out.println(low); // -9223372036854775808
 System.out.println(high); // 9223372036854775807
 ```
 
-Nếu đầu vào là `int`, Java tự mở rộng int sang long khi gọi `BigInteger.valueOf`:
+If the input is `int`, Java widens `int` to `long` automatically when calling `BigInteger.valueOf`:
 
 ```java
 int count = 12;
 BigInteger n = BigInteger.valueOf(count);
 ```
 
-Phương thức không “đoán” giá trị ban đầu đã nằm ngoài miền long: nếu một phép toán `long` bị tràn **trước** khi gọi, `valueOf` chỉ nhận giá trị sau tràn.
+The method does not "guess" that the original value was outside `long` range: if a `long` operation overflowed **before** the call, `valueOf` only receives the post-overflow value.
 
 ```java
 long a = Long.MAX_VALUE;
-long wrong = a + 1; // overflow thành Long.MIN_VALUE
+long wrong = a + 1; // overflows to Long.MIN_VALUE
 
 BigInteger alreadyLost = BigInteger.valueOf(wrong);
 BigInteger exact = BigInteger.valueOf(a).add(BigInteger.ONE);
@@ -192,33 +192,33 @@ System.out.println(alreadyLost); // -9223372036854775808
 System.out.println(exact);       // 9223372036854775808
 ```
 
-**Giữ dữ liệu chính xác ngay từ đầu:** với số nguyên literal ngoài miền `long`, tạo từ **chuỗi decimal** chứ không ép literal vào `long` rồi mới chuyển. Đối với phép tính có thể tràn, chuyển các toán hạng sang BigInteger **trước khi thực hiện phép cộng/nhân**.
+**Keep data exact from the start:** for integer literals outside the `long` range, create from a **decimal string** instead of forcing a literal into `long` first. For calculations that might overflow, convert operands to `BigInteger` **before performing addition/multiplication**.
 
-### valueOf không phải parser chuỗi
+### `valueOf` Is Not a String Parser
 
-`BigInteger.valueOf("123")` **không tồn tại**. Dùng:
+`BigInteger.valueOf("123")` **does not exist**. Use:
 
 ```java
 BigInteger fromText = new BigInteger("123");
 BigInteger fromPrimitive = BigInteger.valueOf(123L);
 ```
 
-Khác với `Integer.valueOf(String)` hoặc `Long.valueOf(String)`, BigInteger dùng constructor từ `String` để parse.
+Unlike `Integer.valueOf(String)` or `Long.valueOf(String)`, `BigInteger` uses the `String` constructor for parsing.
 
-## 5. Tạo từ byte[]: Java mặc định hiểu signed two's complement
+## 5. Creating from `byte[]`: Java Assumes Signed Two's Complement by Default
 
-Constructor:
+The constructor:
 
 ```java
 BigInteger n = new BigInteger(byteArray);
 ```
 
-giả định mảng biểu diễn **số nguyên theo bù hai có dấu** (*two's complement*) theo thứ tự **big-endian**: phần tử ở chỉ số 0 là byte có trọng số lớn nhất.
+assumes the array represents a **signed two's complement integer** in **big-endian** order: the element at index 0 is the most significant byte.
 
-Ví dụ một byte:
+Single-byte examples:
 
 ```text
-Byte hex    8 bit             BigInteger(byte[])
+Byte hex    8 bits            BigInteger(byte[])
 ---------------------------------------------------
 0x00        00000000                0
 0x01        00000001                1
@@ -227,7 +227,7 @@ Byte hex    8 bit             BigInteger(byte[])
 0xFF        11111111               -1
 ```
 
-Trong Java:
+In Java:
 
 ```java
 byte[] bytes = {(byte) 0xFF};
@@ -235,9 +235,9 @@ BigInteger signed = new BigInteger(bytes);
 System.out.println(signed); // -1
 ```
 
-**Tại sao `0xFF` lại thành −1 chứ không phải 255?** Bit cao nhất của byte đầu là bit dấu trong biểu diễn hai's complement dài 8 bit. Mẫu toàn bit 1 mô tả −1.
+**Why does `0xFF` become −1 instead of 255?** The highest bit of the first byte is the sign bit in an 8-bit two's complement representation. An all-1s bit pattern represents −1.
 
-Nhiều byte có cùng quy tắc:
+Multiple bytes follow the same rule:
 
 ```java
 BigInteger positive128 = new BigInteger(
@@ -249,13 +249,13 @@ System.out.println(positive128); // 128
 System.out.println(negative256); // -256
 ```
 
-Với `[00,80]`, byte `00` đầu tiên giữ bit dấu bằng 0; giá trị là 128. Với `[FF,00]`, mẫu 16 bit `11111111 00000000` là −256 theo bù hai.
+With `[00,80]`, the leading `00` byte keeps the sign bit at 0; the value is 128. With `[FF,00]`, the 16-bit pattern `11111111 00000000` is −256 in two's complement.
 
-**Đừng bỏ byte `00` đầu trong bản mã signed nếu byte kế tiếp có bit cao là 1.** Bỏ `00` khỏi `[00,FF]` biến số 255 thành −1.
+**Do not strip a leading `00` byte in signed encoding if the next byte has its high bit set to 1.** Stripping `00` from `[00,FF]` turns 255 into −1.
 
-## 6. Byte array không dấu: constructor (signum, magnitude)
+## 6. Unsigned Byte Arrays: The `(signum, magnitude)` Constructor
 
-Nhiều giao thức gửi **độ lớn unsigned** dưới dạng mảng byte: một octet `0xFF` có nghĩa 255 chứ không phải −1. Khi đó dùng:
+Many protocols send an **unsigned magnitude** as a byte array: an octet `0xFF` means 255 rather than −1. In that case use:
 
 ```java
 byte[] unsignedMagnitude = {(byte) 0xFF};
@@ -263,15 +263,15 @@ BigInteger n = new BigInteger(1, unsignedMagnitude);
 System.out.println(n); // 255
 ```
 
-Constructor `BigInteger(int signum, byte[] magnitude)` nhận:
+The constructor `BigInteger(int signum, byte[] magnitude)` takes:
 
-- `signum = 1`: giá trị không âm/dương với độ lớn mảng byte;
-- `signum = -1`: giá trị âm với độ lớn mảng byte;
-- `signum = 0`: chỉ hợp lệ khi toàn bộ magnitude biểu diễn **0**.
+- `signum = 1`: non-negative/positive value with the byte array's magnitude;
+- `signum = -1`: negative value with the byte array's magnitude;
+- `signum = 0`: valid only when the entire magnitude represents **0**.
 
-Mảng `magnitude` chứa **độ lớn nguyên không dấu** big-endian. Các giá trị `byte` trong Java có thể âm khi cast hoặc in trực tiếp, nhưng constructor đọc **mẫu 8 bit** của từng byte như octet thuộc phần độ lớn.
+The `magnitude` array holds a big-endian **unsigned integer magnitude**. Java `byte` values may look negative when cast or printed directly, but the constructor reads the **8-bit pattern** of each byte as an octet of the magnitude.
 
-Ví dụ:
+Example:
 
 ```java
 byte[] mag = {(byte) 0xFF};
@@ -281,19 +281,19 @@ System.out.println(new BigInteger(1, mag)); // 255: positive magnitude
 System.out.println(new BigInteger(-1, mag));// -255: negative magnitude
 ```
 
-Đây là **ba cách đọc khác nhau** từ cùng byte `FF`. Hãy đọc contract của định dạng nguồn trước khi chọn constructor.
+These are **three different interpretations** of the exact same byte `FF`. Read the source format's contract before choosing a constructor.
 
-### Signum sai gây lỗi
+### Invalid Signum Causes Errors
 
 ```java
 // new BigInteger(0, new byte[] {1});
-// NumberFormatException: signum 0 nhưng magnitude khác 0
+// NumberFormatException: signum is 0 but magnitude is nonzero
 
 // new BigInteger(2, new byte[] {1});
-// NumberFormatException: signum không thuộc -1,0,1
+// NumberFormatException: signum is not in -1,0,1
 ```
 
-Mảng độ lớn rỗng hoặc toàn số 0 biểu diễn giá trị **0** kể cả khi signum truyền vào là +1 hoặc −1:
+An empty or all-zero magnitude array represents the value **0** even when the passed signum is +1 or −1:
 
 ```java
 BigInteger zero = new BigInteger(1, new byte[0]);
@@ -301,15 +301,15 @@ System.out.println(zero);        // 0
 System.out.println(zero.signum());// 0
 ```
 
-BigInteger không có âm zero hay dương zero dưới dạng giá trị nguyên riêng biệt.
+`BigInteger` has no separate negative zero or positive zero integer values.
 
-### Không nhầm signum với byte dấu
+### Do Not Confuse Signum with a Sign Byte
 
-Tham số đầu tiên trong `new BigInteger(1, bytes)` là **chính dấu** do caller cung cấp; nó không lấy từ bit cao của dữ liệu byte. Nếu giao thức của bạn đã mã hóa dấu trong mảng byte bù hai, **đừng** thêm signum=1 tùy tiện vì sẽ làm số âm thành số dương.
+The first argument in `new BigInteger(1, bytes)` is **the sign itself** supplied by the caller; it is not taken from the high bit of the byte data. If your protocol already encodes the sign inside a two's complement byte array, **do not** arbitrarily pass `signum=1` because doing so turns negative numbers positive.
 
-## 7. Cấu trúc big-endian: byte có trọng số cao nhất nằm trước
+## 7. Big-Endian Structure: Most Significant Byte Comes First
 
-Big-endian với byte unsigned `{0x01,0x00}`:
+Big-endian with unsigned bytes `{0x01,0x00}`:
 
 \[
 1\times256 + 0=256
@@ -320,9 +320,9 @@ byte[] bytes = {0x01, 0x00};
 System.out.println(new BigInteger(1, bytes)); // 256
 ```
 
-Nếu nguồn của bạn là **little-endian**, byte thấp nhất nằm trước. Không được truyền thẳng mảng little-endian vào các constructor BigInteger rồi kỳ vọng đúng trị số.
+If your source is **little-endian**, the least significant byte comes first. Never pass a little-endian array directly to `BigInteger` constructors and expect the right numeric value.
 
-Ví dụ số `0x0102 = 258`:
+Example of the number `0x0102 = 258`:
 
 ```java
 byte[] bigEndian = {0x01, 0x02};
@@ -332,67 +332,67 @@ System.out.println(new BigInteger(1, bigEndian));     // 258
 System.out.println(new BigInteger(1, littleEndian)); // 513
 ```
 
-Nếu giao thức little-endian, chuyển thứ tự byte **theo đúng đặc tả** hoặc dùng một bộ đọc byte theo endianness đã chọn rồi chuyển sang BigInteger. Không nên làm lật byte vô điều kiện: một số trường đã là big-endian, một số trường chỉ có một byte, một số trường dùng signed two's complement.
+If the protocol is little-endian, reorder the bytes **according to the specification** or use a byte reader with the chosen endianness before converting to `BigInteger`. Do not reverse bytes unconditionally: some fields are already big-endian, some fields are only one byte, and some fields use signed two's complement.
 
-### ByteBuffer và toByteArray
+### `ByteBuffer` and `toByteArray`
 
-`ByteBuffer` có cấu hình thứ tự byte riêng cho các phép đọc primitive đa byte. Nhưng `BigInteger(byte[])` **không nhận ByteBuffer và không tự đọc `ByteOrder`** của buffer. Chỉ khi đã có `byte[]` đúng thứ tự mong muốn mới truyền vào constructor thích hợp.
+`ByteBuffer` has its own byte-order configuration for multi-byte primitive reads. However, `BigInteger(byte[])` **does not accept `ByteBuffer` and does not inspect a buffer's `ByteOrder`**. Only after obtaining a `byte[]` in the desired order should you pass it to the appropriate constructor.
 
-Khi đọc từ buffer với vị trí/giới hạn, kiểm tra byte nào thuộc token, không vô tình đưa header/checksum vào số.
+When reading from a buffer with position/limit, verify which bytes belong to the token and do not accidentally include headers/checksums in the number.
 
-## 8. Java 9+: constructor đọc một đoạn của byte[]
+## 8. Java 9+: Constructors Reading a Slice of `byte[]`
 
-Java 9 bổ sung hai constructor có offset/length, đều có trong Java 17:
+Java 9 added two offset/length constructors, both present in Java 17:
 
 ```java
 new BigInteger(byte[] val, int off, int len);
 new BigInteger(int signum, byte[] magnitude, int off, int len);
 ```
 
-- `off`: chỉ số phần tử bắt đầu trong mảng (zero-based).
-- `len`: **số byte cần đọc**, **không phải chỉ số kết thúc**.
-- Hai phiên bản đều coi các byte được chọn theo **big-endian**.
-- Phiên bản không signum đọc **two's complement signed**.
-- Phiên bản có signum đọc **unsigned magnitude** có dấu ngoài mảng.
+- `off`: starting element index in the array (zero-based).
+- `len`: **number of bytes to read**, **not the ending index**.
+- Both versions treat the selected bytes as **big-endian**.
+- The version without signum reads **signed two's complement**.
+- The version with signum reads **unsigned magnitude** with an external sign.
 
-Ví dụ một buffer có byte header/trailer:
+Example of a buffer with header/trailer bytes:
 
 ```java
 byte[] packet = {0x55, 0x00, (byte) 0x80, 0x66};
 
-// Lấy 2 byte ở [1,3): 00 80, signed = 128
+// Take 2 bytes at [1,3): 00 80, signed = 128
 BigInteger value = new BigInteger(packet, 1, 2);
 
-// Lấy đúng 1 byte ở [2,3): 80, unsigned magnitude = 128
+// Take exact 1 byte at [2,3): 80, unsigned magnitude = 128
 BigInteger positive = new BigInteger(1, packet, 2, 1);
 
 System.out.println(value);    // 128
 System.out.println(positive); // 128
 ```
 
-Nếu dùng signed constructor với `off=2,len=1`, chỉ có byte `80` và kết quả là **−128**:
+If using the signed constructor with `off=2,len=1`, there is only byte `80` and the result is **−128**:
 
 ```java
 System.out.println(new BigInteger(packet, 2, 1)); // -128
 ```
 
-Đây là sai lầm **rất khó phát hiện nếu chỉ thử dữ liệu có bit đầu bằng 0**.
+This is a mistake **very hard to catch if you only test data whose leading bit is 0**.
 
-Chỉ số vượt miền gây `IndexOutOfBoundsException`. Với dữ liệu bù hai, khoảng rỗng không mô tả một số hợp lệ và có thể gây `NumberFormatException`; với constructor signum/magnitude, độ lớn rỗng là số 0 hợp lệ.
+Out-of-bounds indices throw `IndexOutOfBoundsException`. For two's complement data, an empty slice does not describe a valid number and can throw `NumberFormatException`; for the signum/magnitude constructor, an empty magnitude is a valid zero.
 
-Một constructor đọc subarray giúp tránh việc **người gọi phải tạo mảng con** chỉ để parse. Nó **không cam kết zero-allocation nội bộ**, và không bảo đảm an toàn nếu mảng bị sửa đồng thời trong quá trình constructor đọc: yêu cầu caller giữ dữ liệu ổn định trong cuộc gọi.
+A slice-reading constructor avoids forcing **the caller to allocate a subarray** just to parse. It **does not guarantee zero internal allocation**, and does not guarantee safety if the array is mutated concurrently while the constructor reads: callers must keep data stable during the call.
 
-## 9. toByteArray(): mã hóa ngược bằng bù hai, không phải magnitude unsigned
+## 9. `toByteArray()`: Reverse Encoding in Two's Complement, Not Unsigned Magnitude
 
-Phương thức `value.toByteArray()` trả byte **big-endian signed two's complement tối thiểu**. `BigInteger.valueOf(255).toByteArray()` là `00 FF`, còn `BigInteger.valueOf(-1).toByteArray()` là `FF`. Byte `00` bảo vệ dấu của số dương có bit cao bật; mảng này không phải magnitude unsigned. Vòng `new BigInteger(value.toByteArray())` khôi phục **giá trị số** chính xác, nhưng không cam kết khôi phục độ dài input gốc.
+The method `value.toByteArray()` returns **minimal big-endian signed two's complement** bytes. `BigInteger.valueOf(255).toByteArray()` is `00 FF`, while `BigInteger.valueOf(-1).toByteArray()` is `FF`. The `00` byte protects the sign of positive numbers with the high bit set; this array is not an unsigned magnitude. A `new BigInteger(value.toByteArray())` round-trip restores the **numeric value** accurately, but does not promise to preserve the original input length.
 
-## 10. Dữ liệu unsigned có chiều rộng cố định: cần hợp đồng rõ ràng
+## 10. Fixed-Width Unsigned Data: Clear Contract Required
 
-Với một trường hai byte unsigned `FF FF`, `new BigInteger(bytes)` cho -1, còn `new BigInteger(1,bytes)` cho 65535. Khi **xuất** unsigned N byte, phải kiểm tra số không âm và vừa `0..2^(8N)-1`, loại đúng byte dấu `00` khi có, sau đó đệm `00` ở bên trái đến N byte. Không được cắt dữ liệu mang giá trị hoặc quên trường hợp zero; các codec signed/unsigned fixed-width và round trip chi tiết được thực hành ở bài chuyên về `toByteArray`.
+For a two-byte unsigned field `FF FF`, `new BigInteger(bytes)` gives -1, while `new BigInteger(1,bytes)` gives 65535. When **writing** N unsigned bytes, you must verify the number is non-negative and fits in `0..2^(8N)-1`, strip the `00` sign-guard byte if present, and then left-pad with `00` up to N bytes. Never truncate significant data or forget the zero case; detailed signed/unsigned fixed-width codecs and round-trips are practiced in the dedicated `toByteArray` lesson.
 
-## 11. Cảnh giác dữ liệu ASCII/UTF-8: byte chuỗi KHÔNG phải giá trị số
+## 11. Beware of ASCII/UTF-8 Data: String Bytes Are NOT Numeric Values
 
-Nếu có văn bản số `"123"`, có thể nghĩ:
+If you have numeric text `"123"`, you might think:
 
 ```java
 byte[] textBytes = "123".getBytes(
@@ -400,36 +400,36 @@ byte[] textBytes = "123".getBytes(
 BigInteger wrong = new BigInteger(textBytes);
 ```
 
-Nhưng byte UTF-8 của ba ký tự `'1','2','3'` là `0x31,0x32,0x33`. `new BigInteger(textBytes)` sẽ diễn giải **ba byte này như số nguyên nhị phân big-endian**, không thực hiện phân tích decimal từ chuỗi.
+However, the UTF-8 bytes for the three characters `'1','2','3'` are `0x31,0x32,0x33`. `new BigInteger(textBytes)` will interpret **these three bytes as a big-endian binary integer**, rather than performing decimal string parsing.
 
-Cách đúng:
+The right way:
 
 ```java
 BigInteger fromDecimal = new BigInteger("123");
 ```
 
-Ngược lại, nếu byte array đến từ một protocol truyền **giá trị số nhị phân**, không biến nó thành `new String(bytes, UTF_8)` rồi parse decimal: byte `0xFF` hoặc nhiều byte điều khiển không phải chữ số văn bản hợp lệ.
+Conversely, if a byte array comes from a protocol transmitting **binary numeric values**, do not turn it into `new String(bytes, UTF_8)` and parse decimal: byte `0xFF` or many control bytes are not valid text digits.
 
-**Quy tắc lựa chọn:** xác định đầu vào là **văn bản biểu diễn số** hay **mẫu bit biểu diễn số**. Không thể thay lẫn hai cách này chỉ vì cả hai cuối cùng đều nằm trong `byte[]` ở tầng mạng.
+**Selection rule:** determine whether the input is **text representing a number** or **a bit pattern representing a number**. These two cannot be swapped just because both end up inside a `byte[]` at the network layer.
 
-## 12. Xử lý lỗi khi tạo BigInteger
+## 12. Error Handling When Creating `BigInteger`
 
-Các lỗi cần phân biệt theo loại nguồn:
+Errors to distinguish by source type:
 
-| Nguồn và tình huống | Lỗi / cách xử lý |
+| Source and situation | Error / handling |
 | --- | --- |
 | `new BigInteger("12X")` radix 10 | `NumberFormatException` |
-| `new BigInteger("FF", 1)` radix ngoài 2..36 | `NumberFormatException` |
+| `new BigInteger("FF", 1)` radix outside 2..36 | `NumberFormatException` |
 | `new BigInteger("")` | `NumberFormatException` |
 | `new BigInteger("0xFF",16)` | `NumberFormatException` |
 | `new BigInteger(new byte[0])` | `NumberFormatException` |
 | `new BigInteger(0,new byte[]{1})` | `NumberFormatException` |
 | `new BigInteger(2,new byte[]{1})` | `NumberFormatException` |
-| Constructor byte[] với off/len vượt phạm vi | `IndexOutOfBoundsException` |
-| Tham số đối tượng `null` | `NullPointerException` |
-| Giá trị quá lớn vượt khả năng triển khai/tài nguyên | Có thể lỗi giới hạn/`ArithmeticException` hoặc lỗi tài nguyên; không coi là vô hạn |
+| `byte[]` constructor with out-of-range off/len | `IndexOutOfBoundsException` |
+| `null` object argument | `NullPointerException` |
+| Value too large exceeding implementation/resource capacity | May fail with limit/`ArithmeticException` or resource error; do not treat as infinite |
 
-Ví dụ:
+Example:
 
 ```java
 try {
@@ -439,13 +439,13 @@ try {
 }
 ```
 
-Đừng bắt tất cả `RuntimeException` và trả `BigInteger.ZERO`. Giá trị 0 hoàn toàn hợp lệ, nên **không được** dùng như mã thay thế chung cho token sai nếu nghiệp vụ cần phân biệt dữ liệu trống/sai với số 0 thật.
+Do not catch all `RuntimeException`s and return `BigInteger.ZERO`. The value 0 is completely valid, so it **must not** be used as a generic fallback code for malformed tokens when business logic needs to distinguish empty/invalid data from a real zero.
 
-Nếu đầu vào đến từ người dùng hoặc mạng, cân nhắc giới hạn số chữ số/byte trước khi parse để bảo vệ CPU/bộ nhớ, xác nhận radix, sign, endianness và độ dài của trường.
+If input comes from users or the network, consider limiting the number of digits/bytes before parsing to protect CPU/memory, and verifying radix, sign, endianness, and field length.
 
-## 13. BigInteger không biến mọi phép chuyển đổi ngược thành an toàn
+## 13. `BigInteger` Does Not Make Every Reverse Conversion Safe
 
-Tạo BigInteger từ `long` giữ đúng giá trị; nhưng đọc ngược về `long` có thể mất dữ liệu nếu số BigInteger vượt miền long:
+Creating a `BigInteger` from `long` preserves the exact value; however, reading back into `long` can lose data if the `BigInteger` exceeds the `long` range:
 
 ```java
 BigInteger huge = BigInteger.valueOf(Long.MAX_VALUE)
@@ -455,7 +455,7 @@ System.out.println(huge);             // 9223372036854775808
 System.out.println(huge.longValue()); // -9223372036854775808
 ```
 
-`longValue()` giữ các bit thấp phù hợp theo quy tắc chuyển đổi, **không tự ném lỗi**. Nếu cần bảo toàn giá trị hoặc báo lỗi, dùng:
+`longValue()` retains the low-order bits matching conversion rules and **does not throw an error automatically**. If you need to preserve the value or fail, use:
 
 ```java
 try {
@@ -465,13 +465,13 @@ try {
 }
 ```
 
-Tương tự có `intValueExact()`, `shortValueExact()`, `byteValueExact()`. Khi đầu vào BigInteger được tạo từ String rất dài hoặc unsigned field vượt phạm vi signed, **đừng** tự đổi về `int`/`long` chỉ vì kiểu nghiệp vụ trước đây dùng primitive.
+Similarly, there are `intValueExact()`, `shortValueExact()`, and `byteValueExact()`. When a `BigInteger` input was created from a very long `String` or an unsigned field exceeding signed bounds, **do not** automatically convert back to `int`/`long` just because legacy business code used primitives.
 
-Một BigInteger có thể chứa giá trị unsigned 64-bit từ mảng 8 byte `FF FF FF FF FF FF FF FF`, tương đương `18446744073709551615`, nhưng `longValue()` của nó là −1. Đây là **cùng bit thấp diễn giải signed**, không phải lỗi parser.
+A `BigInteger` can hold an unsigned 64-bit value from an 8-byte array `FF FF FF FF FF FF FF FF`, equivalent to `18446744073709551615`, yet its `longValue()` is −1. This is **the same low bits interpreted as signed**, not a parser bug.
 
-## 14. Immutable, equals và các hằng thường dùng
+## 14. Immutability, `equals`, and Common Constants
 
-Các BigInteger bất biến. Ví dụ:
+`BigInteger` instances are immutable. Example:
 
 ```java
 BigInteger a = new BigInteger("123");
@@ -481,7 +481,7 @@ System.out.println(a); // 123
 System.out.println(b); // 124
 ```
 
-Các hằng có sẵn: `BigInteger.ZERO`, `BigInteger.ONE`, `BigInteger.TWO` (có từ Java 9) và `BigInteger.TEN`. Chúng phù hợp để thể hiện giá trị cố định mà không phải parse chuỗi nhiều lần:
+Built-in constants: `BigInteger.ZERO`, `BigInteger.ONE`, `BigInteger.TWO` (available since Java 9), and `BigInteger.TEN`. They are suitable for expressing fixed values without repeatedly parsing strings:
 
 ```java
 BigInteger zero = BigInteger.ZERO;
@@ -489,7 +489,7 @@ BigInteger power = BigInteger.TWO.pow(16);
 System.out.println(power); // 65536
 ```
 
-Dùng `equals` để kiểm tra giá trị:
+Use `equals` to check value equality:
 
 ```java
 BigInteger x = new BigInteger("255");
@@ -498,11 +498,11 @@ BigInteger y = new BigInteger(1, new byte[]{(byte) 0xFF});
 System.out.println(x.equals(y)); // true
 ```
 
-Toán tử `==` so sánh **tham chiếu đối tượng**, không phải nội dung số. `BigInteger.valueOf` có thể tái sử dụng đối tượng cho một số giá trị; **không dựa vào identity/cache** để kiểm tra hai số bằng nhau.
+The `==` operator compares **object references**, not numeric content. `BigInteger.valueOf` may reuse objects for certain values; **do not rely on identity/caching** to check whether two numbers are equal.
 
-## 15. Demo Java 17+ đầy đủ, đã kiểm chứng stdout
+## 15. Complete Java 17+ Demo with Verified Stdout
 
-Tạo tệp **`BigIntegerConstructionDemo.java`**:
+Save the file as **`BigIntegerConstructionDemo.java`**:
 
 ```java
 import java.math.BigInteger;
@@ -606,14 +606,14 @@ public class BigIntegerConstructionDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac --release 17 BigIntegerConstructionDemo.java
 java BigIntegerConstructionDemo
 ```
 
-**Stdout đã đối chiếu bằng một chương trình biên dịch với `javac --release 17`:**
+**Stdout verified with a program compiled using `javac --release 17`:**
 
 ```text
 decimal = 123456789012345678901234567890
@@ -643,103 +643,103 @@ range: rejected
 long exact: rejected
 ```
 
-### Cách đọc kết quả
+### How to Read the Results
 
-1. `new BigInteger("...")` giữ số nguyên decimal dài, `new BigInteger("FF",16)` nhận 255, `valueOf(Long.MIN_VALUE)` giữ đúng biên âm long.
-2. Cùng byte `FF` được đọc **−1** khi dùng signed constructor, nhưng **255** khi dùng signum +1.
-3. `00 FF` là bản mã signed dương của 255; `FF 00` biểu diễn signed −256.
-4. `toByteArray()` không hứa một byte cho 255; nó cần thêm `00` đầu để giữ dấu dương.
-5. Các constructor có `off,len` cho phép đọc một vùng byte mà không cần `Arrays.copyOfRange` ở phía caller.
-6. Những chuỗi chứa prefix/underscore, radix sai, mảng signed rỗng, signum sai, phạm vi sai và chuyển đổi long không an toàn đều có cách báo lỗi riêng.
+1. `new BigInteger("...")` retains long decimal integers, `new BigInteger("FF",16)` yields 255, and `valueOf(Long.MIN_VALUE)` preserves the negative `long` bound accurately.
+2. The same byte `FF` is read as **−1** when using the signed constructor, but **255** when using signum +1.
+3. `00 FF` is the positive signed encoding of 255; `FF 00` represents signed −256.
+4. `toByteArray()` does not promise one byte for 255; it must prepend `00` to preserve the positive sign.
+5. Constructors with `off,len` allow reading a byte region without `Arrays.copyOfRange` on the caller side.
+6. Strings with prefixes/underscores, invalid radix, empty signed arrays, invalid signum, out-of-bounds ranges, and unsafe `long` conversions each have distinct failure modes.
 
-## 16. Lỗi phổ biến cần tránh
+## 16. Common Mistakes to Avoid
 
-| Sai lầm | Cách hiểu đúng |
+| Mistake | Correct understanding |
 | --- | --- |
-| “BigInteger có constructor nhận long” | Dùng `BigInteger.valueOf(long)` |
-| “valueOf nhận chuỗi như Integer.valueOf” | BigInteger parse chuỗi bằng `new BigInteger(String)` |
-| “BigInteger(String) tự nhận `0xFF`” | Constructor mặc định radix 10; với hex truyền `"FF",16` |
-| “`new BigInteger("1_000")` giống literal Java `1_000`” | Parser runtime không hiểu dấu gạch dưới như cú pháp mã nguồn |
-| “Tạo từ String thì không thể vượt giới hạn long” | Chuỗi decimal có thể dài hơn miền long nhiều lần |
-| “Giá trị byte 0xFF luôn là 255” | `BigInteger(byte[])` diễn giải signed `FF` thành −1 |
-| “Mảng byte theo little-endian truyền trực tiếp là đúng” | Constructor BigInteger dùng big-endian |
-| “`new BigInteger(1,bytes)` vẫn suy dấu từ bit cao” | Signum=1 buộc cách đọc **độ lớn dương** |
-| “`toByteArray` trả unsigned magnitude cố định N byte” | Nó trả signed two's complement, độ dài biến thiên |
-| “Byte `00` đầu luôn thừa” | Có thể là byte cần thiết giữ sign dương khi byte kế có bit cao 1 |
-| “Mảng signed rỗng và magnitude rỗng có cùng hành vi” | Signed rỗng bị từ chối; magnitude rỗng có thể cho zero |
-| “Offset,length nghĩa là hai vị trí đầu/cuối” | `len` là số byte, không phải endIndex |
-| “BigInteger có nghĩa là tài nguyên vô hạn” | Vẫn chịu giới hạn bộ nhớ, CPU và hỗ trợ JVM |
-| “big.longValue() luôn an toàn” | Có thể cắt bit; dùng `longValueExact()` nếu cần toàn vẹn |
-| “So sánh BigInteger bằng ==” | Dùng `equals` hoặc `compareTo` theo giá trị |
-| “Có thể tạo BigInteger từ byte UTF-8 của chuỗi số” | Byte mã hóa ký tự không đồng nghĩa byte biểu diễn số |
-| “Đổi số sang BigInteger sau khi tràn sẽ sửa tràn” | Phải chuyển toán hạng **trước** phép tính có thể tràn |
+| "BigInteger has a constructor taking long" | Use `BigInteger.valueOf(long)` |
+| "valueOf accepts a string like Integer.valueOf" | BigInteger parses strings with `new BigInteger(String)` |
+| "BigInteger(String) automatically recognizes `0xFF`" | Default radix is 10; for hex pass `"FF",16` |
+| "`new BigInteger("1_000")` works like Java literal `1_000`" | Runtime parser does not understand underscores like source syntax |
+| "Creating from String cannot exceed long limits" | Decimal strings can be many times longer than the `long` range |
+| "The byte value 0xFF is always 255" | `BigInteger(byte[])` interprets signed `FF` as −1 |
+| "Passing a little-endian byte array directly works" | BigInteger constructors use big-endian |
+| "`new BigInteger(1,bytes)` still infers sign from the high bit" | Signum=1 forces **positive magnitude** interpretation |
+| "`toByteArray` returns fixed N-byte unsigned magnitude" | It returns signed two's complement of variable length |
+| "A leading `00` byte is always redundant" | It may be required to preserve a positive sign when the next byte has high bit 1 |
+| "Empty signed array and empty magnitude behave the same" | Empty signed is rejected; empty magnitude can yield zero |
+| "Offset,length means start/end positions" | `len` is byte count, not `endIndex` |
+| "BigInteger means infinite resources" | Still bound by memory, CPU, and JVM support |
+| "`big.longValue()` is always safe" | Can truncate bits; use `longValueExact()` if integrity is required |
+| "Comparing BigInteger with ==" | Use `equals` or `compareTo` by value |
+| "Can create BigInteger from UTF-8 bytes of a numeric string" | Character-encoding bytes are not numeric representation bytes |
+| "Converting to BigInteger after overflow fixes overflow" | Operands must be converted **before** potentially overflowing operations |
 
-## 17. Bài tập có lời giải
+## 17. Exercises with Solutions
 
-**Bài 1.** Tạo BigInteger từ số decimal `"987654321098765432109876543210"` mà không đi qua long.  
-**Lời giải:** `new BigInteger("987654321098765432109876543210")`; không có bước chuyển sang primitive.
+**Exercise 1.** Create a `BigInteger` from the decimal number `"987654321098765432109876543210"` without going through `long`.  
+**Solution:** `new BigInteger("987654321098765432109876543210")`; no conversion step to a primitive.
 
-**Bài 2.** Giá trị của `new BigInteger("101101",2)`?  
-**Lời giải:** `32+8+4+1=45`. Chuỗi nhị phân không cần tiền tố `0b`.
+**Exercise 2.** What is the value of `new BigInteger("101101",2)`?  
+**Solution:** `32+8+4+1=45`. Binary strings do not take the `0b` prefix.
 
-**Bài 3.** Giá trị của `new BigInteger("FF",16)`? Vì sao `"0xFF"` khác?  
-**Lời giải:** 255. Constructor radix 16 không tự bỏ prefix `0x`; `new BigInteger("0xFF",16)` ném `NumberFormatException`.
+**Exercise 3.** What is the value of `new BigInteger("FF",16)`? Why is `"0xFF"` different?  
+**Solution:** 255. The radix-16 constructor does not strip the `0x` prefix; `new BigInteger("0xFF",16)` throws `NumberFormatException`.
 
-**Bài 4.** Tạo từ `Long.MIN_VALUE` thế nào?  
-**Lời giải:** `BigInteger.valueOf(Long.MIN_VALUE)`. Không cần dựng chuỗi, không có constructor `BigInteger(long)`.
+**Exercise 4.** How do you construct from `Long.MIN_VALUE`?  
+**Solution:** `BigInteger.valueOf(Long.MIN_VALUE)`. No need to build a string; there is no `BigInteger(long)` constructor.
 
-**Bài 5.** Hai biểu thức `new BigInteger(new byte[]{(byte)0x80})` và `new BigInteger(1,new byte[]{(byte)0x80})` bằng bao nhiêu?  
-**Lời giải:** −128 và +128. Mẫu bit `80` là signed two's complement âm nhưng magnitude unsigned là 128.
+**Exercise 5.** What do `new BigInteger(new byte[]{(byte)0x80})` and `new BigInteger(1,new byte[]{(byte)0x80})` equal?  
+**Solution:** −128 and +128. The bit pattern `80` is negative in signed two's complement, while its unsigned magnitude is 128.
 
-**Bài 6.** Vì sao `new BigInteger(new byte[]{0x00,(byte)0xFF})` là 255?  
-**Lời giải:** Byte 00 đầu có bit dấu 0, mẫu 16 bit `00FF` là +255. Bỏ 00 còn `FF` sẽ bị hiểu là −1 dưới signed constructor.
+**Exercise 6.** Why is `new BigInteger(new byte[]{0x00,(byte)0xFF})` equal to 255?  
+**Solution:** The leading `00` byte has sign bit 0, so the 16-bit pattern `00FF` is +255. Dropping `00` leaves `FF`, which is read as −1 under the signed constructor.
 
-**Bài 7.** Byte mảng `{0x01,0x00}` big-endian unsigned biểu diễn giá trị nào?  
-**Lời giải:** `0x0100 = 256`. Dùng `new BigInteger(1,bytes)` nếu contract dữ liệu là unsigned magnitude.
+**Exercise 7.** What value does big-endian unsigned byte array `{0x01,0x00}` represent?  
+**Solution:** `0x0100 = 256`. Use `new BigInteger(1,bytes)` if the data contract is unsigned magnitude.
 
-**Bài 8.** `new BigInteger(0,new byte[]{1})` có giá trị là 0 không?  
-**Lời giải:** Không; ném `NumberFormatException` vì signum=0 không khớp với magnitude khác 0.
+**Exercise 8.** Does `new BigInteger(0,new byte[]{1})` evaluate to 0?  
+**Solution:** No; it throws `NumberFormatException` because `signum=0` conflicts with a nonzero magnitude.
 
-**Bài 9.** Với `byte[] packet={0x55,0x00,(byte)0x80,0x66}`, `new BigInteger(packet,1,2)` lấy những byte nào?  
-**Lời giải:** Byte ở chỉ số 1 và 2 (`00 80`), kết quả 128; `len=2` là chiều dài, không phải chỉ số kết thúc.
+**Exercise 9.** Given `byte[] packet={0x55,0x00,(byte)0x80,0x66}`, which bytes does `new BigInteger(packet,1,2)` read?  
+**Solution:** Bytes at indices 1 and 2 (`00 80`), giving 128; `len=2` is the length, not the ending index.
 
-**Bài 10.** `BigInteger.valueOf(255).toByteArray()` có chắc chỉ chứa một byte `FF` không?  
-**Lời giải:** Không; nó trả `00 FF` ở dạng signed, vì `FF` đơn lẻ biểu diễn −1.
+**Exercise 10.** Is `BigInteger.valueOf(255).toByteArray()` guaranteed to contain only one byte `FF`?  
+**Solution:** No; it returns `00 FF` in signed form, because a lone `FF` represents −1.
 
-**Bài 11.** Một trường mạng hai byte có `FF FF` và được định nghĩa là unsigned. Dùng constructor nào và giá trị nào?  
-**Lời giải:** `new BigInteger(1,new byte[]{(byte)0xFF,(byte)0xFF})`, cho 65535. Signed constructor sẽ cho −1.
+**Exercise 11.** A two-byte network field contains `FF FF` and is defined as unsigned. Which constructor and value apply?  
+**Solution:** `new BigInteger(1,new byte[]{(byte)0xFF,(byte)0xFF})`, yielding 65535. The signed constructor would yield −1.
 
-**Bài 12.** `new BigInteger("-0")` và `new BigInteger(1,new byte[0])` có giá trị khác nhau không?  
-**Lời giải:** Không. Cả hai là số nguyên zero; BigInteger không có ±0 như floating-point.
+**Exercise 12.** Do `new BigInteger("-0")` and `new BigInteger(1,new byte[0])` have different values?  
+**Solution:** No. Both are integer zero; `BigInteger` has no ±0 like floating-point.
 
-**Bài 13.** Muốn chuyển BigInteger rất lớn về long mà **không mất dữ liệu** thì làm gì?  
-**Lời giải:** Dùng `longValueExact()`. Nếu không biểu diễn được trong long, phương thức ném `ArithmeticException` thay vì âm thầm bỏ bit.
+**Exercise 13.** How do you convert a very large `BigInteger` to `long` **without data loss**?  
+**Solution:** Use `longValueExact()`. If unrepresentable in `long`, the method throws `ArithmeticException` instead of silently dropping bits.
 
-**Bài 14.** Vì sao `new BigInteger("123".getBytes(UTF_8))` không tương đương `new BigInteger("123")`?  
-**Lời giải:** Cái đầu đọc mẫu byte `31 32 33` như số nhị phân; cái sau parse ba chữ số decimal thành 123.
+**Exercise 14.** Why is `new BigInteger("123".getBytes(UTF_8))` not equivalent to `new BigInteger("123")`?  
+**Solution:** The first reads the byte pattern `31 32 33` as a binary number; the second parses three decimal digits into 123.
 
-**Bài 15.** Chương trình lấy `BigInteger.valueOf(a+b)` với a,b là long lớn. Khi nào có thể sai?  
-**Lời giải:** Nếu `a+b` tràn **trước khi được chuyển sang BigInteger**; sửa thành `BigInteger.valueOf(a).add(BigInteger.valueOf(b))`.
+**Exercise 15.** A program computes `BigInteger.valueOf(a+b)` with large `long`s `a` and `b`. When can this go wrong?  
+**Solution:** If `a+b` overflows **before being converted to `BigInteger`**; fix it to `BigInteger.valueOf(a).add(BigInteger.valueOf(b))`.
 
-## 18. Checklist chọn cách tạo BigInteger
+## 18. Checklist for Choosing How to Create `BigInteger`
 
-1. **Nhận diện định dạng nguồn:** text decimal, text radix khác, primitive long, byte array signed hay unsigned?
-2. **Với String:** quyết định radix 2–36, chính sách dấu, khoảng trắng, prefix, ASCII/Unicode digits và giới hạn độ dài.
-3. **Với long:** dùng `valueOf(long)`, nhưng bảo đảm phép toán trước đó chưa overflow.
-4. **Với byte[] signed:** dùng `new BigInteger(bytes)` và hiểu big-endian two's complement.
-5. **Với byte[] unsigned:** dùng `new BigInteger(1,bytes)` hoặc signum theo hợp đồng, không suy dấu từ byte đầu.
-6. **Với byte subarray:** constructor `(off,len)` từ Java 9+, chú ý `len` là chiều dài và input phải ổn định khi được đọc.
-7. **Khi lưu ngược ra byte[]:** `toByteArray()` là signed, độ dài biến thiên; cần quy tắc riêng nếu protocol unsigned/fixed-width.
-8. **Không trộn ASCII bytes và binary bytes**: byte mã hóa ký tự `'1'` không phải số nguyên 1.
-9. **Kiểm tra lỗi riêng:** parse/radix/signed byte rỗng, signum sai, index sai, null, vượt giới hạn tài nguyên.
-10. **Khi chuyển về primitive:** dùng các phương thức `*ValueExact` nếu nghiệp vụ không được mất thông tin.
-11. **So sánh bằng `equals`**, không dùng `==` cho hai BigInteger.
-12. **Dùng bài test biên:** 0, −1, 127, 128, 255, 256, long min/max, mảng trống, byte đầu `80`/`FF`, little-/big-endian và số vượt chiều rộng trường.
+1. **Identify the source format:** decimal text, other-radix text, primitive `long`, signed byte array, or unsigned byte array?
+2. **For `String`:** decide on radix 2–36, sign policy, whitespace, prefix, ASCII/Unicode digits, and length limit.
+3. **For `long`:** use `valueOf(long)`, but ensure prior arithmetic has not overflowed.
+4. **For signed `byte[]`:** use `new BigInteger(bytes)` and understand big-endian two's complement.
+5. **For unsigned `byte[]`:** use `new BigInteger(1,bytes)` or signum per contract, without inferring sign from the first byte.
+6. **For a byte subarray:** `(off,len)` constructors from Java 9+, noting `len` is count and the input must stay stable while read.
+7. **When serializing back to `byte[]`:** `toByteArray()` is signed and variable-length; custom rules are needed if the protocol is unsigned/fixed-width.
+8. **Do not mix ASCII bytes and binary bytes:** the byte encoding character `'1'` is not the integer 1.
+9. **Check specific error cases:** invalid parse/radix/empty signed bytes, bad signum, bad indices, null, exceeding resource limits.
+10. **When converting back to primitives:** use `*ValueExact` methods if business logic cannot lose information.
+11. **Compare using `equals`**, do not use `==` for two `BigInteger`s.
+12. **Use boundary test cases:** 0, −1, 127, 128, 255, 256, `long` min/max, empty array, leading byte `80`/`FF`, little-/big-endian, and values exceeding field width.
 
-### Tài liệu tham khảo
+### References
 
 - [BigInteger — Javadoc Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html)
 - [Character.digit — Javadoc Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html#digit(char,int))
-- [ByteBuffer và ByteOrder — Javadoc Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/ByteBuffer.html)
+- [ByteBuffer and ByteOrder — Javadoc Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/ByteBuffer.html)
 
-**Ghi nhớ:** `BigInteger` có thể khởi tạo từ số lớn thập phân, văn bản ở cơ số 2–36, `long` hoặc `byte[]`. Với mảng byte, phải phân biệt **signed two's complement** với **unsigned sign-magnitude**, giữ đúng **big-endian** và xác định byte dấu. Đây là yếu tố quyết định chương trình hiểu đúng giá trị, không chỉ là khác biệt cú pháp constructor.
+**Key takeaway:** `BigInteger` can be initialized from large decimal numbers, text in bases 2–36, `long`, or `byte[]`. For byte arrays, you must distinguish **signed two's complement** from **unsigned sign-magnitude**, preserve **big-endian** order, and determine the sign byte. This is what decides whether the program reads the right value, not merely constructor syntax differences.

@@ -1,41 +1,41 @@
-# Type erasure và giới hạn nhìn thấy kiểu List<String> của một instance trong Java Reflection
+# Type Erasure and the Visibility Limits of List<String> on an Instance in Java Reflection
 
-## 1. Một đối tượng List<String> có lưu String như một kiểu runtime không?
+## 1. Does a List<String> object store String as a runtime type?
 
-Giả sử Java 17+ có:
+Suppose in Java 17+ we have:
 
 ```java
 List<String> names = new ArrayList<>();
 List<Integer> numbers = new ArrayList<>();
 ```
 
-Trong mã nguồn, compiler xem `List<String>` và `List<Integer>` là hai kiểu generic khác nhau để kiểm tra tính hợp lệ của `add`, `get` và phép gán. Nhưng khi hai biến chứa object được tạo từ `new ArrayList<>()` thông thường, Java chỉ có **một runtime class `java.util.ArrayList`** cho cả hai.
+In source code, the compiler treats `List<String>` and `List<Integer>` as two different generic types to check the validity of `add`, `get`, and assignments. However, when two variables hold objects created from a normal `new ArrayList<>()`, Java only has **one runtime class `java.util.ArrayList`** for both.
 
 ```java
 System.out.println(names.getClass() == numbers.getClass()); // true
 ```
 
-**Type erasure** là cơ chế compiler chuyển nhiều biểu diễn generic về kiểu JVM tương ứng mà không tạo một class riêng cho mỗi type argument. Do vậy, từ một instance bình thường như `new ArrayList<String>()`, `getClass()` không cho biết đối số kiểu `String` của biểu thức nguồn. Thứ tự phần tử, lớp của từng phần tử, thậm chí việc list đang rỗng cũng không tiết lộ **khai báo generic gốc**.
+**Type erasure** is the mechanism by which the compiler transforms many generic representations into their corresponding JVM types without creating a separate class for each type argument. Therefore, from an ordinary instance such as `new ArrayList<String>()`, `getClass()` does not tell you the type argument `String` of the source expression. Element order, the class of each element, or even whether the list is empty does not reveal the **original generic declaration**.
 
-Cần phân biệt:
+It is important to distinguish:
 
-- **Runtime class của instance:** `instance.getClass()` trả `ArrayList.class` (hoặc class implementation thực tế).
-- **Generic signature của một khai báo:** `Field.getGenericType()` hoặc `Method.getGenericReturnType()` có thể đọc `List<String>` từ class-file metadata nếu field/method được khai báo như vậy.
-- **Dữ liệu trong collection:** duyệt phần tử và gọi `element.getClass()` chỉ cho biết lớp của các phần tử hiện tại khác `null`, không cho biết type argument được khai báo trong source.
+- **Runtime class of an instance:** `instance.getClass()` returns `ArrayList.class` (or the actual implementation class).
+- **Generic signature of a declaration:** `Field.getGenericType()` or `Method.getGenericReturnType()` can read `List<String>` from class-file metadata if the field/method is declared that way.
+- **Data inside a collection:** iterating over elements and calling `element.getClass()` only reveals the classes of the current non-`null` elements, not the type argument declared in the source.
 
-**Thông tin generic của khai báo có thể còn; type argument gắn riêng với một instance ArrayList thông thường thì không được tự động lưu lại.** Đây là ranh giới quan trọng nhất khi dùng Reflection.
+**The generic information of a declaration may remain; a type argument attached specifically to an ordinary ArrayList instance is not automatically preserved.** This is the most important boundary when using Reflection.
 
-## 2. Type erasure làm gì lúc biên dịch?
+## 2. What does type erasure do at compile time?
 
-Tại compile time, Java generics giúp kiểm tra type safety. Khi tạo JVM class file, compiler áp dụng erasure:
+At compile time, Java generics help check type safety. When generating JVM class files, the compiler applies erasure:
 
-1. Type parameter không có bound, ví dụ `T` trong `class Box<T>`, thường có erasure là `Object`.
-2. Type parameter có upper bound như `T extends Number` có erasure là `Number`. Nếu có nhiều bound, quy tắc erasure dùng leftmost bound.
-3. Compiler có thể chèn cast tại chỗ giá trị lấy từ generic API cần được xử lý như kiểu cụ thể.
-4. Compiler có thể tạo bridge method để giữ đúng overriding/đa hình sau erasure.
-5. Một số generic declarations vẫn có thuộc tính `Signature` trong class file để Reflection và công cụ đọc class file có thể phân tích.
+1. An unbounded type parameter, such as `T` in `class Box<T>`, typically has an erasure of `Object`.
+2. A type parameter with an upper bound such as `T extends Number` has an erasure of `Number`. If there are multiple bounds, the erasure rule uses the leftmost bound.
+3. The compiler may insert casts wherever a value retrieved from a generic API needs to be treated as a specific type.
+4. The compiler may generate bridge methods to preserve proper overriding/polymorphism after erasure.
+5. Certain generic declarations still carry a `Signature` attribute in the class file so Reflection and class-file inspection tools can parse them.
 
-Ví dụ:
+For example:
 
 ```java
 List<String> names = new ArrayList<>();
@@ -43,31 +43,31 @@ names.add("An");
 String first = names.get(0);
 ```
 
-Sau erasure, method `List.get(int)` có kết quả mức bytecode là `Object`. Compiler chèn kiểm tra/cast cần thiết để giá trị gán cho `String first` đáp ứng yêu cầu type nguồn. Runtime object `"An"` vẫn là một `String` thực tế; erasure **không xóa lớp của phần tử**. Điều không còn được lưu trên một object `ArrayList` thường là “nó đã được tạo ra với `<String>`”.
+After erasure, the `List.get(int)` method has a bytecode-level return type of `Object`. The compiler inserts the necessary check/cast so that the value assigned to `String first` satisfies the source type requirement. The runtime object `"An"` is still an actual `String`; erasure **does not erase the class of the element**. What is no longer stored on an ordinary `ArrayList` object is "it was created with `<String>`".
 
-Vì vậy, chương trình có thể giữ được generic type safety nếu toàn bộ mã được type-check chuẩn, nhưng có thể gặp **heap pollution** nếu cố ý đi qua raw type/unchecked operations hoặc bytecode không bảo đảm những quy tắc đó.
+Therefore, a program can maintain generic type safety if all code is properly type-checked, yet can suffer **heap pollution** if it intentionally goes through raw types/unchecked operations or bytecode that does not uphold those rules.
 
-## 3. Reflection thấy được gì?
+## 3. What can Reflection see?
 
-| Câu hỏi | API thích hợp | Giới hạn |
+| Question | Appropriate API | Limitation |
 | --- | --- | --- |
-| Object đang là class nào? | `object.getClass()` | Không đọc được `<String>` từ ordinary `ArrayList` instance |
-| Object có implement List không? | `object instanceof List<?>` hoặc `List.class.isInstance(object)` | Không xác định kiểu generic phần tử |
-| Field được khai báo kiểu nào? | `field.getType()` | Cho kiểu đã erasure, như `List.class` |
-| Field được khai báo với type arguments nào? | `field.getGenericType()` | Cho metadata của *khai báo field*, không phải nội dung runtime |
-| Method được khai báo trả generic type gì? | `method.getGenericReturnType()` | Không phải kiểu concrete của object mà lần gọi hiện tại trả về |
-| Method nhận tham số generic nào? | `method.getGenericParameterTypes()` | Thể hiện chữ ký khai báo, không phải actual argument |
-| Class khai báo generic superclass gì? | `clazz.getGenericSuperclass()` | Có thể trả type variable `E` hoặc type argument cụ thể tùy khai báo |
-| Class khai báo generic interfaces gì? | `clazz.getGenericInterfaces()` | Chỉ mô tả generic declarations của class |
-| Mỗi element hiện là lớp nào? | `element.getClass()` nếu khác `null` | Không chứng minh list được khai báo `List<String>` |
+| What class is the object? | `object.getClass()` | Cannot read `<String>` from an ordinary `ArrayList` instance |
+| Does the object implement List? | `object instanceof List<?>` or `List.class.isInstance(object)` | Does not determine the element generic type |
+| What type is the field declared with? | `field.getType()` | Gives the erased type, such as `List.class` |
+| With what type arguments is the field declared? | `field.getGenericType()` | Gives metadata of the *field declaration*, not runtime contents |
+| What generic return type is the method declared with? | `method.getGenericReturnType()` | Not the concrete type of the object returned by the current invocation |
+| What generic parameters does the method accept? | `method.getGenericParameterTypes()` | Reflects the declared signature, not the actual arguments |
+| What generic superclass does the class declare? | `clazz.getGenericSuperclass()` | May return a type variable `E` or a concrete type argument depending on the declaration |
+| What generic interfaces does the class declare? | `clazz.getGenericInterfaces()` | Only describes the generic declarations of the class |
+| What class is each current element? | `element.getClass()` if non-`null` | Does not prove the list was declared as `List<String>` |
 
-Ví dụ, một field khai báo `List<String> names` có thể có `getGenericType()` trả `java.util.List<java.lang.String>`. Nếu field hiện trỏ tới `new LinkedList<String>()`, `Field.getType()` vẫn là `List.class`, `Field.getGenericType()` vẫn mô tả `List<String>`, còn `field.get(instance).getClass()` cho `LinkedList.class`. Đó là **ba loại thông tin khác nhau**.
+For example, a field declared as `List<String> names` can have `getGenericType()` return `java.util.List<java.lang.String>`. If the field currently points to `new LinkedList<String>()`, `Field.getType()` is still `List.class`, `Field.getGenericType()` still describes `List<String>`, while `field.get(instance).getClass()` gives `LinkedList.class`. Those are **three different kinds of information**.
 
-Các local variables trong method như `List<String> local` không được Java core Reflection cung cấp một API trực tiếp tương đương `Field.getGenericType()` để hỏi kiểu khai báo của biến ấy từ chính object mà nó trỏ đến. Metadata debug/bytecode có thể chứa dữ liệu khác nhưng không phải một đặc tính runtime có thể truy xuất từ mỗi object.
+Local variables inside a method such as `List<String> local` are not provided a direct Java core Reflection API equivalent to `Field.getGenericType()` to query that variable's declared type from the object it references. Debug/bytecode metadata may contain other data, but it is not a runtime property accessible from each object.
 
-## 4. Chương trình Java 17+ đầy đủ, kết quả đã kiểm chứng
+## 4. Complete Java 17+ program, verified output
 
-Lưu tệp `ErasureInstanceDemo.java`:
+Save the file `ErasureInstanceDemo.java`:
 
 ```java
 import java.lang.reflect.Field;
@@ -139,14 +139,14 @@ public class ErasureInstanceDemo {
 }
 ```
 
-Biên dịch hướng tới Java 17; chạy trên JDK 17 trở lên:
+Compile targeting Java 17; run on JDK 17 or higher:
 
 ```bash
 javac --release 17 ErasureInstanceDemo.java
 java ErasureInstanceDemo
 ```
 
-Stdout chính xác của lần biên dịch/chạy bằng JDK 24 với `--release 17`:
+Exact stdout from compiling/running on JDK 24 with `--release 17`:
 
 ```text
 same runtime class = true
@@ -165,36 +165,36 @@ read as String = ClassCastException
 List<String> instanceof List<?> = true
 ```
 
-Phân tích:
+Analysis:
 
-1. Hai object tạo từ `new ArrayList<>()` có chung runtime `Class<?>`. Kiểu tham số hóa của local variables không khiến JVM tạo lớp riêng.
-2. `ArrayList.class` khai báo generic superclass `AbstractList<E>`; khi đọc từ instance thường, `E` là **type variable của declaration**, không phải `String` đã gắn cho biến.
-3. Field `Holder.names` khai báo trực tiếp `List<String>`, nên `Field.getGenericType()` đọc được chữ ký generic; `Field.getType()` chỉ trả raw `List`.
-4. `new ArrayList<String>() {}` tạo **anonymous subclass** và ghi quan hệ `extends ArrayList<String>` trong metadata. Vì vậy có thể đọc `ArrayList<String>` từ **generic superclass của anonymous subclass**.
-5. Field `Box<T>.value` được khai báo bằng type variable `T`. Reflection trực tiếp trên `Box.value` thấy `T`. `StringBox extends Box<String>` mang ánh xạ `T → String` ở metadata của quan hệ superclass; Reflection không tự đổi kiểu field khi hỏi `Box.class`.
-6. `pollute` cố tình sử dụng raw List để thêm `Integer` vào object được tham chiếu qua `List<String>`. Bản thân list vẫn là List runtime hợp lệ. Lỗi xảy ra muộn, khi code muốn dùng phần tử như một `String` và cast được compiler chèn thất bại.
+1. Two objects created from `new ArrayList<>()` share the same runtime `Class<?>`. Parameterized types on local variables do not cause the JVM to create separate classes.
+2. `ArrayList.class` declares the generic superclass `AbstractList<E>`; when read from an ordinary instance, `E` is the **type variable of the declaration**, not the `String` bound to the variable.
+3. Field `Holder.names` directly declares `List<String>`, so `Field.getGenericType()` can read the generic signature; `Field.getType()` only returns the raw `List`.
+4. `new ArrayList<String>() {}` creates an **anonymous subclass** and records the `extends ArrayList<String>` relationship in metadata. Therefore, `ArrayList<String>` can be read from the **generic superclass of the anonymous subclass**.
+5. Field `Box<T>.value` is declared with the type variable `T`. Reflection directly on `Box.value` sees `T`. `StringBox extends Box<String>` carries the `T → String` mapping in the superclass relationship metadata; Reflection does not automatically rewrite the field type when querying `Box.class`.
+6. `pollute` intentionally uses a raw List to add an `Integer` into the object referenced through `List<String>`. The list itself remains a valid runtime List. The error occurs later, when code tries to use the element as a `String` and the compiler-inserted cast fails.
 
-Đừng dùng `@SuppressWarnings` như cách “sửa” heap pollution. Annotation này chỉ loại thông báo compiler ở điểm đang cố ý minh họa thao tác unchecked; nó không đổi kiểm tra runtime.
+Do not use `@SuppressWarnings` as a way to "fix" heap pollution. This annotation only suppresses compiler warnings at the point intentionally demonstrating an unchecked operation; it does not change runtime checks.
 
-## 5. getGenericType trả Type, không phải luôn Class<?>
+## 5. getGenericType returns Type, not always Class<?>
 
-Các API generic reflection trả interface `java.lang.reflect.Type`. Giá trị cụ thể có thể thuộc một số họ:
+Generic reflection APIs return the `java.lang.reflect.Type` interface. The concrete value may belong to several families:
 
-- `Class<?>`: kiểu có runtime class như `String.class`, `List.class`, `int.class`, `String[].class`.
-- `ParameterizedType`: khai báo `List<String>`, `Map<String, Integer>`; đọc `getRawType()` và `getActualTypeArguments()`.
-- `TypeVariable<?>`: tham số kiểu chưa được thay bằng type cụ thể, ví dụ `T` trong `Box<T>`. `getBounds()` cho bound.
-- `WildcardType`: thành phần wildcard như `? extends Number` hoặc `? super Integer`, truy cập upper/lower bounds.
-- `GenericArrayType`: kiểu mảng có component generic non-reifiable trong chữ ký như `T[]`.
+- `Class<?>`: a type with a runtime class such as `String.class`, `List.class`, `int.class`, `String[].class`.
+- `ParameterizedType`: declarations like `List<String>`, `Map<String, Integer>`; exposes `getRawType()` and `getActualTypeArguments()`.
+- `TypeVariable<?>`: a type parameter not yet replaced by a concrete type, such as `T` in `Box<T>`. `getBounds()` gives its bounds.
+- `WildcardType`: a wildcard component such as `? extends Number` or `? super Integer`, exposing upper/lower bounds.
+- `GenericArrayType`: an array type whose component in the signature is a non-reifiable generic type such as `T[]`.
 
-Vì vậy, không nên viết vô điều kiện:
+Therefore, you should not unconditionally write:
 
 ```java
 ParameterizedType generic = (ParameterizedType) field.getGenericType();
 ```
 
-Nó chỉ đúng nếu `field.getGenericType()` thực sự là `ParameterizedType`. Với `String title` hoặc raw `List values`, kết quả có thể là `Class<?>`. Với `T value` trong `Box<T>`, kết quả là `TypeVariable<?>`. Cast nhầm sẽ gây `ClassCastException`.
+It is only valid if `field.getGenericType()` is actually a `ParameterizedType`. For `String title` or a raw `List values`, the result may be a `Class<?>`. For `T value` in `Box<T>`, the result is a `TypeVariable<?>`. A blind cast will throw `ClassCastException`.
 
-Một utility đọc metadata có kiểm tra, biên dịch được trên Java 17:
+A checked metadata-reading utility that compiles on Java 17:
 
 ```java
 import java.lang.reflect.Field;
@@ -217,13 +217,13 @@ public final class GenericFieldInspector {
 }
 ```
 
-Đây là class utility độc lập có thể biên dịch khi lưu vào `GenericFieldInspector.java` nhưng **không có `main`**. Gọi `describe` từ chương trình khác với `Field` đã tra cứu. Utility phân tích declared type, không kiểm tra các phần tử đang nằm trong collection.
+This is a standalone utility class that compiles when saved to `GenericFieldInspector.java` but **has no `main`**. Call `describe` from another program with a looked-up `Field`. The utility analyzes the declared type; it does not inspect the elements currently inside a collection.
 
-Với `Map<String, List<Integer>>`, argument thứ hai của `Map` lại là một `ParameterizedType`. Vì vậy công cụ giải generic đầy đủ phải đi theo **cây Type**. Với `List<? extends Number>`, argument là `WildcardType`, không phải `Number.class` chính xác. Đừng chỉ cast mọi phần tử của `getActualTypeArguments()` thành `Class<?>`.
+For `Map<String, List<Integer>>`, the second argument of `Map` is itself a `ParameterizedType`. Thus a complete generic resolution tool must traverse the **Type tree**. For `List<? extends Number>`, the argument is a `WildcardType`, not literally `Number.class`. Never blindly cast every element of `getActualTypeArguments()` to `Class<?>`.
 
-## 6. Type variable, inheritance và giới hạn của suy luận
+## 6. Type variables, inheritance, and limits of inference
 
-Ví dụ:
+Example:
 
 ```java
 class Box<T> {
@@ -232,24 +232,24 @@ class Box<T> {
 class StringBox extends Box<String> { }
 ```
 
-`Box.class.getDeclaredField("value").getGenericType()` cho `T` vì field **được khai báo ở Box**. Trong khi đó, `StringBox.class.getGenericSuperclass()` mô tả `Box<String>`. Để suy ra kiểu dùng cho `value` trong ngữ cảnh `StringBox`, framework phải tự resolve ánh xạ type variables, có thể phải đi qua nhiều lớp superclass/interface.
+`Box.class.getDeclaredField("value").getGenericType()` returns `T` because the field **is declared on Box**. Meanwhile, `StringBox.class.getGenericSuperclass()` describes `Box<String>`. To infer the type used for `value` in the context of `StringBox`, a framework must resolve the type variable mapping itself, potentially across multiple superclass/interface levels.
 
-Nếu generic declaration là `class Holder<T extends Number>` thì erasure của `T` liên quan `Number`, nhưng metadata có thể vẫn biểu diễn `T` khi dùng `getGenericType()`. Cần phân biệt **erased type dùng cho JVM** với **generic declaration được Reflection đọc qua Signature**.
+If a generic declaration is `class Holder<T extends Number>`, then the erasure of `T` relates to `Number`, yet the metadata may still represent `T` when calling `getGenericType()`. You must distinguish the **erased type used by the JVM** from the **generic declaration read by Reflection via Signature**.
 
-Không thể dùng `getClass()` của field value để tự động suy ra mapping này: nếu field chứa `null` thì thậm chí không có runtime class, còn một object có thể là subclass của kiểu declared type.
+You cannot use `getClass()` of the field value to automatically infer this mapping: if the field holds `null`, there is not even a runtime class, and an object may be a subclass of the declared type.
 
-## 7. Anonymous subclass và type token giữ generic metadata ở đâu?
+## 7. Where do anonymous subclasses and type tokens store generic metadata?
 
-So sánh:
+Compare:
 
 ```java
 ArrayList<String> ordinary = new ArrayList<>();
 ArrayList<String> captured = new ArrayList<String>() {};
 ```
 
-`ordinary.getClass()` là `ArrayList.class`; generic superclass trên `ArrayList` là `AbstractList<E>`. `captured.getClass()` là một **anonymous subclass riêng**, có metadata khai báo `extends ArrayList<String>`; vì vậy `captured.getClass().getGenericSuperclass()` có thể cho `ParameterizedType` của `ArrayList<String>`.
+`ordinary.getClass()` is `ArrayList.class`; the generic superclass on `ArrayList` is `AbstractList<E>`. `captured.getClass()` is a **distinct anonymous subclass**, with metadata declaring `extends ArrayList<String>`; therefore `captured.getClass().getGenericSuperclass()` can return the `ParameterizedType` for `ArrayList<String>`.
 
-Kỹ thuật type token tận dụng ý tưởng khai báo một subclass chứa concrete generic parameter:
+The type token technique leverages the idea of declaring a subclass containing a concrete generic parameter:
 
 ```java
 abstract class TypeRef<T> {
@@ -259,19 +259,19 @@ abstract class TypeRef<T> {
                 .getActualTypeArguments()[0];
 }
 
-// Đặt các lệnh dưới đây trong một method, với import java.util.List:
+// Place the statements below inside a method, with import java.util.List:
 TypeRef<List<String>> ref = new TypeRef<List<String>>() {};
 System.out.println(ref.type.getTypeName());
 // java.util.List<java.lang.String>
 ```
 
-Đây là **mã minh họa**, không phải một tệp có thể chạy độc lập: phần tạo `ref` phải đặt trong một method và cần import `List`. Cách cast trong `TypeRef` giả định caller tạo **anonymous direct subclass với superclass có tham số hóa**, không tự giải quyết trường hợp nhiều tầng kế thừa hoặc subclass raw.
+This is **illustrative code**, not a standalone runnable file: the instantiation of `ref` must be placed inside a method and requires importing `List`. The cast in `TypeRef` assumes the caller creates a **direct anonymous subclass with a parameterized superclass**, and does not automatically handle multi-level inheritance or raw subclasses.
 
-**Type token không đọc kiểu generic ẩn từ một instance ArrayList bình thường.** Nó giữ `Type` do **code đã khai báo tường minh trong anonymous subclass**. Khi một framework nhận `TypeRef<List<String>>` cùng một list object, type token là *metadata bổ sung do caller cấp*. Runtime collection vẫn có thể bị nhiễm phần tử sai kiểu, và cần validation khi xử lý dữ liệu không tin cậy.
+**A type token does not read a hidden generic type from an ordinary ArrayList instance.** It holds the `Type` from **code explicitly declared in the anonymous subclass**. When a framework receives `TypeRef<List<String>>` alongside a list object, the type token is *supplementary metadata provided by the caller*. The runtime collection can still be polluted with elements of the wrong type, and validation is still needed when processing untrusted data.
 
-## 8. Kiểm tra thực tế từng phần tử khác với xác định List<String>
+## 8. Checking each actual element differs from identifying List<String>
 
-Nếu nhận `Object unknown` từ API, ta có thể xác nhận nó đang là một list chỉ gồm `String` tại thời điểm duyệt:
+If you receive `Object unknown` from an API, you can verify that it is currently a list containing only `String`s at the time of iteration:
 
 ```java
 import java.util.List;
@@ -293,88 +293,88 @@ public final class ListContents {
 }
 ```
 
-Đây là utility class có thể biên dịch với Java 17, không có `main`. Chính sách ví dụ coi phần tử `null` là không hợp lệ; ứng dụng khác có thể muốn cho phép `null`.
+This is a utility class that compiles with Java 17, without `main`. The example policy treats `null` elements as invalid; another application might want to allow `null`.
 
-Nhưng kết quả `true` **không chứng minh** source type `List<String>`:
+However, a `true` result **does not prove** the source type `List<String>`:
 
-- Một `List<Object>` cũng có thể đang chứa toàn `String`.
-- Một danh sách rỗng trả `true` dù chẳng có element nào để kiểm chứng; không suy ra được source generic argument.
-- Danh sách có thể bị thay đổi sau khi kiểm tra hoặc thay đổi đồng thời.
-- Element runtime có subtype của kiểu khai báo; quan sát kiểu runtime không cho biết tổng thể generic declaration.
-- `(List<String>) someObject` là unchecked cast trong những bối cảnh thường gặp, không tự kiểm tra tất cả phần tử. Lỗi `ClassCastException` có thể chỉ xuất hiện khi truy cập phần tử.
+- A `List<Object>` might also currently contain only `String`s.
+- An empty list returns `true` even though there are no elements to verify; the source generic argument cannot be inferred.
+- The list may be mutated after checking or modified concurrently.
+- Runtime elements may be subtypes of the declared type; observing runtime types does not reveal the overall generic declaration.
+- `(List<String>) someObject` is an unchecked cast in typical contexts and does not automatically check every element. A `ClassCastException` may only surface when accessing an element.
 
-Đối với serialization, mapping JSON hay binding dữ liệu, nên **dùng generic declared Type/schema do caller cung cấp** để quyết định kiểu phần tử cần chuyển đổi, sau đó validation các giá trị tương ứng. Không nên chỉ lấy `instance.getClass()` rồi suy đoán.
+For serialization, JSON mapping, or data binding, you should **use the declared generic Type/schema provided by the caller** to decide the target element type to convert to, then validate the corresponding values. You should not just take `instance.getClass()` and guess.
 
-## 9. instanceof, generic array và tính reifiable
+## 9. instanceof, generic arrays, and reifiability
 
-Trong Java, `List<String>` thường **không reifiable**: type argument `String` không được JVM kiểm tra riêng cho một List runtime. Các phép sau không hợp lệ trong mã Java thông thường:
+In Java, `List<String>` is generally **non-reifiable**: the type argument `String` is not individually verified by the JVM for a runtime List. The following operations are illegal in ordinary Java code:
 
 ```java
-// Không hợp lệ; được comment để code mẫu không gây lỗi biên dịch:
+// Invalid; commented out so the sample code does not cause a compile error:
 // if (obj instanceof List<String>) { }
 // Class<?> type = List<String>.class;
 // List<String>[] xs = new List<String>[4];
 ```
 
-`obj instanceof List<?>` hợp lệ vì `List<?>` là dạng reifiable: chỉ kiểm tra xem object có implement List không. Với array như `String[]`, JVM giữ runtime component type (`getClass().getComponentType() == String.class`). `List<?>[]` có thể được tạo, nhưng từng element trong array chỉ được kiểm tra là List chứ không có generic argument cụ thể.
+`obj instanceof List<?>` is valid because `List<?>` is a reifiable form: it only checks whether the object implements List. For arrays like `String[]`, the JVM preserves the runtime component type (`getClass().getComponentType() == String.class`). `List<?>[]` can be created, but each element in the array is only checked to be a List, without a specific generic argument.
 
-Đừng nhầm **array covariance** với **generic invariance**. `String[]` có thể gán cho `Object[]` và gặp `ArrayStoreException` nếu ghi object sai kiểu, nhưng `List<String>` không phải subtype của `List<Object>`. Điều này giúp hiểu vì sao Java cấm tạo trực tiếp `new List<String>[...]`: runtime array kiểm tra component class, còn generic parameter `String` đã bị erasure.
+Do not confuse **array covariance** with **generic invariance**. `String[]` can be assigned to `Object[]` and throw `ArrayStoreException` if an element of the wrong type is written, whereas `List<String>` is not a subtype of `List<Object>`. This helps explain why Java forbids directly creating `new List<String>[...]`: runtime arrays check the component class, whereas the generic parameter `String` has been erased.
 
-Một biểu hiện của erasure là không thể khai báo hai overload chỉ khác generic argument:
+Another manifestation of erasure is that you cannot declare two overloads differing only in generic arguments:
 
 ```java
-// Hai overload dưới đây nếu cùng nằm trong một class sẽ bị name clash:
+// The two overloads below, if placed in the same class, will cause a name clash:
 // void handle(List<String> strings) {}
 // void handle(List<Integer> numbers) {}
 ```
 
-Vì cả hai bị erasure về chữ ký JVM với một tham số `List`, không có cách chọn overload theo `<String>` hay `<Integer>` lúc chạy.
+Because both are erased to a JVM signature with a single `List` parameter, there is no way to dispatch an overload based on `<String>` or `<Integer>` at runtime.
 
-## 10. Checklist cho người viết công cụ Reflection
+## 10. Checklist for Reflection tool authors
 
-1. **Nếu cần runtime class**, hỏi `getClass()` và chấp nhận rằng nó chỉ phản ánh implementation, không tự tái tạo `List<String>`.
-2. **Nếu cần generic declaration**, xác định *vị trí khai báo*: field, method return/parameter, constructor parameter, generic superclass hoặc interface. Dùng API `getGeneric...` tương ứng.
-3. **Nếu đang cầm một Type**, kiểm tra biến thể `Class`/`ParameterizedType`/`TypeVariable`/`WildcardType`/`GenericArrayType` trước khi cast. Với generic nested types, duyệt cây Type.
-4. **Nếu generic type là T**, cần phân tích quan hệ inheritance và ánh xạ TypeVariable theo context. Không lấy class của giá trị field để kết luận declaration.
-5. **Nếu cần runtime type token**, yêu cầu caller khai báo nó tường minh hoặc sử dụng generic declaration của API. Đừng nghĩ `new ArrayList<String>()` thông thường tự tạo được token.
-6. **Nếu cần bảo đảm dữ liệu**, định nghĩa schema và validation từng phần tử; lưu ý list rỗng, null, raw types, unchecked casts và concurrency.
-7. **Nếu chẩn đoán class file**, có thể dùng `javap -v` xem attribute `Signature`. Cần kiểm tra đúng artifact và classloader đang được sử dụng; toolchain/obfuscation có thể ảnh hưởng metadata.
-8. **Nếu chỉ gọi generic API với code Java bình thường**, ưu tiên type checking của compiler. Reflection phù hợp khi schema và type metadata chỉ được xác định lúc runtime.
+1. **If you need the runtime class**, call `getClass()` and accept that it only reflects the implementation, not reconstructing `List<String>`.
+2. **If you need the generic declaration**, identify the *declaration site*: field, method return/parameter, constructor parameter, generic superclass, or interface. Use the corresponding `getGeneric...` API.
+3. **If you are holding a Type**, inspect the variant `Class`/`ParameterizedType`/`TypeVariable`/`WildcardType`/`GenericArrayType` before casting. For nested generic types, traverse the Type tree.
+4. **If the generic type is T**, analyze the inheritance hierarchy and map the TypeVariable by context. Do not use the class of a field's value to conclude its declaration.
+5. **If you need a runtime type token**, require the caller to declare it explicitly or use the API's generic declaration. Do not assume an ordinary `new ArrayList<String>()` automatically creates a token.
+6. **If you need data guarantees**, define a schema and validate every element; watch out for empty lists, nulls, raw types, unchecked casts, and concurrency.
+7. **If diagnosing a class file**, you can use `javap -v` to inspect the `Signature` attribute. Verify the exact artifact and classloader in use; toolchains/obfuscation can affect metadata.
+8. **If simply calling generic APIs from ordinary Java code**, prefer compiler type checking. Reflection is appropriate when schemas and type metadata are only determined at runtime.
 
-## 11. Các lỗi phổ biến
+## 11. Common pitfalls
 
-| Nhận định | Điều đúng |
+| Claim | Fact |
 | --- | --- |
-| “`List<String>` và `List<Integer>` tạo hai runtime class khác nhau” | Ordinary `new ArrayList<>()` của cả hai vẫn có runtime class `ArrayList` |
-| “`getClass()` cho biết type argument `String`” | Chỉ cho runtime class implementation |
-| “`Field.getGenericType()` chứng minh tất cả phần tử là String” | Nó chỉ mô tả type khai báo của field |
-| “`getGenericType()` luôn cast được thành `ParameterizedType`” | Nó có thể là `Class`, `TypeVariable` hoặc loại `Type` khác |
-| “Lấy phần tử đầu tiên sẽ biết generic type gốc” | Sai với list rỗng, null, subtype hoặc list khai báo `List<Object>` |
-| “Anonymous subclass khiến mọi ArrayList đều có type argument runtime” | Generic signature chỉ nằm trong khai báo superclass của subclass cụ thể |
-| “`instanceof List<String>` hợp lệ” | Dùng `instanceof List<?>`; không kiểm tra được `String` generic argument |
-| “Unchecked cast sang `List<String>` kiểm tra toàn bộ phần tử” | Không; type pollution có thể lộ khi đọc |
-| “`T extends Number` bị erasure thành Object trong mọi trường hợp” | Erasure dùng bound, với ví dụ này là `Number` |
-| “Type token bảo đảm dữ liệu collection đúng schema” | Type token mô tả type được khai báo; dữ liệu phải được kiểm tra riêng |
+| "`List<String>` and `List<Integer>` create two different runtime classes" | Ordinary `new ArrayList<>()` for both still has the runtime class `ArrayList` |
+| "`getClass()` reveals the type argument `String`" | It only gives the runtime implementation class |
+| "`Field.getGenericType()` proves all elements are Strings" | It only describes the declared type of the field |
+| "`getGenericType()` can always be cast to `ParameterizedType`" | It may be `Class`, `TypeVariable`, or another `Type` kind |
+| "Inspecting the first element reveals the original generic type" | Fails for empty lists, nulls, subtypes, or lists declared as `List<Object>` |
+| "Anonymous subclasses give every ArrayList a runtime type argument" | The generic signature only lives in the superclass declaration of that specific subclass |
+| "`instanceof List<String>` is valid" | Use `instanceof List<?>`; the `String` generic argument cannot be checked |
+| "An unchecked cast to `List<String>` validates all elements" | No; type pollution may only surface when reading |
+| "`T extends Number` is erased to Object in all cases" | Erasure uses the bound, which in this example is `Number` |
+| "A type token guarantees collection data conforms to the schema" | A type token describes the declared type; data must be validated separately |
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-check questions
 
-**Câu 1.** `List<String> a = new ArrayList<>(); List<Integer> b = new ArrayList<>();`. `a.getClass() == b.getClass()` là gì? **`true`** (cùng runtime class `ArrayList`).
+**Question 1.** `List<String> a = new ArrayList<>(); List<Integer> b = new ArrayList<>();`. What is `a.getClass() == b.getClass()`? **`true`** (same runtime class `ArrayList`).
 
-**Câu 2.** Field `List<String> names` có hai cách đọc `getType()` và `getGenericType()`. Chúng khác nhau thế nào? **`getType()` cho raw `List.class`; `getGenericType()` có thể cho `ParameterizedType` mô tả `List<String>`**.
+**Question 2.** A field `List<String> names` has two ways to read it: `getType()` and `getGenericType()`. How do they differ? **`getType()` returns the raw `List.class`; `getGenericType()` can return a `ParameterizedType` describing `List<String>`**.
 
-**Câu 3.** Một list chỉ chứa `String` chứng minh nó được khai báo `List<String>`? **Không**. `List<Object>`, `List<CharSequence>` hoặc raw list cũng có thể chứa chỉ String.
+**Question 3.** Does a list containing only `String`s prove it was declared as `List<String>`? **No**. `List<Object>`, `List<CharSequence>`, or a raw list can also contain only Strings.
 
-**Câu 4.** Một anonymous `new ArrayList<String>() {}` giữ được gì? **Chữ ký generic `extends ArrayList<String>` trong class của anonymous subclass**; không phải metadata tự động trên object `ArrayList` bình thường.
+**Question 4.** What does an anonymous `new ArrayList<String>() {}` retain? **The generic signature `extends ArrayList<String>` in the anonymous subclass's class**; not automatic metadata on an ordinary `ArrayList` object.
 
-**Câu 5.** `Box<T>.value` khi đọc từ `Box.class` trong chương trình ví dụ trả `String` hay `T`? **`T`**. Muốn resolve sang `String` trong ngữ cảnh `StringBox` phải phân tích superclass metadata.
+**Question 5.** When `Box<T>.value` is read from `Box.class` in the example program, does it return `String` or `T`? **`T`**. Resolving it to `String` in the context of `StringBox` requires analyzing the superclass metadata.
 
-**Câu 6.** Tại sao có thể xảy ra `ClassCastException` khi đọc từ `List<String>`? Một raw/unchecked operation có thể đưa `Integer` vào list; cast compiler dùng khi đọc dưới dạng String thất bại.
+**Question 6.** Why can a `ClassCastException` happen when reading from `List<String>`? A raw/unchecked operation may insert an `Integer` into the list; the cast inserted by the compiler when reading it as a String fails.
 
-**Câu 7.** List rỗng có thể chứng minh type argument từ các phần tử? **Không**. Không có element nào để kiểm tra.
+**Question 7.** Can an empty list prove its type argument from its elements? **No**. There are no elements to inspect.
 
-**Câu 8.** `obj instanceof List<?>` cho biết điều gì? **Chỉ rằng object là List runtime**, không xác minh element type.
+**Question 8.** What does `obj instanceof List<?>` tell you? **Only that the object is a List at runtime**, without verifying the element type.
 
-## 13. Nguồn tài liệu chính thức
+## 13. Official references
 
 - [Java Language Specification 17, Section 4.6: Type Erasure](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.6)
 - [Java Language Specification 17, Section 4.7: Reifiable Types](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.7)

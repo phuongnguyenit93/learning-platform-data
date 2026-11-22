@@ -1,31 +1,31 @@
-# Chia hoặc lấy dư cho 0 với số nguyên trong Java
+# Integer Division or Remainder by Zero in Java
 
-## 1. Quy tắc cốt lõi
+## 1. Core Rule
 
-Với các kiểu số nguyên trong Java, **mẫu số (toán hạng bên phải) bằng `0` trong phép chia `/` hoặc phép lấy dư `%` luôn gây `ArithmeticException` khi phép toán được thực thi**. Java không đưa ra một thương hoặc số dư hợp lệ cho những biểu thức này.
+For integer types in Java, **a divisor (right-hand operand) equal to `0` in division `/` or remainder `%` always throws `ArithmeticException` when the operation executes**. Java does not produce a valid quotient or remainder for these expressions.
 
 ```java
 int a = 12;
 int zero = 0;
 
-// Hai phép tính sau đều ném ArithmeticException khi chạy:
+// Both operations below throw ArithmeticException at runtime:
 // int quotient = a / zero;
 // int remainder = a % zero;
 ```
 
-Những điểm cần nhớ ngay:
+Immediate points to remember:
 
-- `12 / 0` **không** trả về số vô cực với số nguyên; phép tính thất bại.
-- `12 % 0` **không** trả về `0` hay `12`; phép tính cũng thất bại.
-- `0 / 0` và `0 % 0` **đều** gây lỗi. Tử số bằng `0` không cứu được phép toán.
-- Kiểm tra **toán hạng bên phải** (`divisor == 0`), không chỉ kiểm tra tử số.
-- `ArithmeticException` là **unchecked exception** (lớp con của `RuntimeException`). Không bắt buộc khai báo `throws` hoặc `catch`, nhưng chương trình phải xác định cách xử lý đầu vào có thể bằng `0`.
+- `12 / 0` does **not** return infinity for integers; the operation fails.
+- `12 % 0` does **not** return `0` or `12`; the operation also fails.
+- `0 / 0` and `0 % 0` **both** throw an error. A dividend of `0` does not save the operation.
+- Check the **right-hand operand** (`divisor == 0`), not just the dividend.
+- `ArithmeticException` is an **unchecked exception** (a subclass of `RuntimeException`). Declaring `throws` or `catch` is not mandatory, but the program must define how to handle inputs that might be `0`.
 
-Đây là quy tắc đối với **integer arithmetic** của Java, bao gồm phép chia/lấy dư thực hiện theo kiểu `int` hoặc `long` sau khi áp dụng quy tắc nâng kiểu số (*numeric promotion*). Không nên suy ra kết quả cho số nguyên từ hành vi của `double`/`float`.
+This rule applies to Java **integer arithmetic**, including division/remainder performed as `int` or `long` after *numeric promotion*. Do not infer integer behavior from the behavior of `double`/`float`.
 
-## 2. Tại sao phép chia và phép lấy dư cho 0 không xác định?
+## 2. Why Are Division and Remainder by Zero Undefined?
 
-Với số nguyên `a` và `b != 0`, Java định nghĩa thương nguyên `q = a / b` bằng phép chia làm tròn về **0**. Số dư `r = a % b` đi cùng thương và thỏa mãn hệ thức (theo số học nguyên Java):
+For integers `a` and `b != 0`, Java defines the integer quotient `q = a / b` via division truncated toward **0**. The remainder `r = a % b` accompanies the quotient and satisfies the identity (in Java integer arithmetic):
 
 ```text
 a = b * q + r
@@ -33,7 +33,7 @@ q = a / b
 r = a % b
 ```
 
-Ví dụ:
+For example:
 
 ```java
 System.out.println(17 / 5);    // 3
@@ -42,15 +42,15 @@ System.out.println(-17 / 5);   // -3
 System.out.println(-17 % 5);   // -2
 ```
 
-Ở đây `17 = 5 * 3 + 2`, còn `-17 = 5 * (-3) + (-2)`. Với `%` trên số nguyên, số dư khác `0` có cùng dấu với **tử số** (số bị chia), không nhất thiết dương.
+Here `17 = 5 * 3 + 2`, and `-17 = 5 * (-3) + (-2)`. With `%` on integers, a non-zero remainder has the same sign as the **dividend** (numerator), not necessarily positive.
 
-Nếu `b = 0`, không thể xác định thương nguyên duy nhất theo ý nghĩa phép chia. Công thức `a = b * q + r` không còn cung cấp một phép chia có nghĩa thông thường; Java **chủ động từ chối cả `/` và `%` khi mẫu số bằng 0**. Vì vậy, việc tính `a % 0` không phải một cách “an toàn hơn” để xử lý `a / 0`.
+If `b = 0`, no unique integer quotient can be determined under division semantics. The formula `a = b * q + r` no longer provides a meaningful division operation; Java **explicitly rejects both `/` and `%` when the divisor is zero**. Therefore, computing `a % 0` is not a "safer" way to handle `a / 0`.
 
-Không cần ghi nhớ một thông báo lỗi văn bản cố định: ý nghĩa đáng tin cậy là **loại ngoại lệ `java.lang.ArithmeticException`**; chi tiết nội dung message do triển khai đưa ra.
+You do not need to memorize a fixed text error message: what you can rely on is the **exception type `java.lang.ArithmeticException`**; the exact message string is implementation-defined.
 
-## 3. Khi nào lỗi xảy ra và ảnh hưởng đến luồng chương trình ra sao?
+## 3. When Does the Error Occur and How Does It Affect Program Flow?
 
-Ngoại lệ xảy ra **khi JVM thực thi phép chia/lấy dư nguyên với mẫu số thực tế bằng 0**. Ví dụ, tham số hoặc phép tính trung gian có thể trở thành 0:
+The exception occurs **when the JVM executes an integer division/remainder whose actual divisor evaluates to `0`**. For example, a parameter or intermediate calculation might become `0`:
 
 ```java
 static int averagePerGroup(int total, int groups) {
@@ -58,32 +58,32 @@ static int averagePerGroup(int total, int groups) {
 }
 ```
 
-Nếu ngoại lệ không được bắt ở nơi phù hợp, luồng thực thi bình thường bị ngắt và ngoại lệ được truyền lên trên chuỗi gọi. Khi không có nơi xử lý, luồng thực thi kết thúc với lỗi; ứng dụng không nhận được một giá trị “thương mặc định”.
+If the exception is not caught at an appropriate place, normal execution flow is interrupted and the exception propagates up the call stack. If unhandled, the execution thread terminates with an error; the application does not receive a "default quotient" value.
 
-Phép tính **không được thực thi** thì không thể phát sinh ngoại lệ do chính phép tính đó. Ví dụ:
+An operation that **is not executed** cannot throw an exception from itself. For example:
 
 ```java
 int divisor = 0;
 if (divisor != 0) {
-    int q = 10 / divisor; // Không được chạy trong trường hợp hiện tại.
+    int q = 10 / divisor; // Not executed in the current case.
 }
 ```
 
-Một điều kiện ngắn mạch giúp bảo vệ phép toán nếu đặt đúng thứ tự:
+A short-circuit condition protects the operation if placed in the right order:
 
 ```java
 int divisor = 0;
 boolean valid = divisor != 0 && 100 / divisor > 5;
-// valid == false; vế 100 / divisor bị bỏ qua.
+// valid == false; the 100 / divisor side is skipped.
 ```
 
-Ở đây `&&` chỉ đánh giá vế phải khi vế trái `true`. Nếu thay bằng `&` với hai toán hạng boolean, **cả hai vế** được đánh giá và phép chia có thể ném ngoại lệ. Cũng cần tránh đảo thứ tự thành `100 / divisor > 5 && divisor != 0`: phép chia đã chạy trước khi kiểm tra mẫu số.
+Here `&&` evaluates the right-hand side only when the left-hand side is `true`. If replaced with `&` on two boolean operands, **both sides** are evaluated and the division can throw an exception. Also avoid reversing the order to `100 / divisor > 5 && divisor != 0`: the division already runs before the divisor is checked.
 
-Các biểu thức điều kiện chỉ an toàn nếu **mẫu số được kiểm tra là đúng mẫu số dùng trong phép tính** và không thể thay đổi bất ngờ giữa lúc kiểm tra và sử dụng. Với giá trị số cục bộ, hãy chụp giá trị cần dùng vào cùng một biến nếu phép tính ban đầu đọc từ một nguồn có thể thay đổi.
+Conditional expressions are only safe if **the divisor checked is the exact same divisor used in the operation** and cannot change unexpectedly between check and use. For local numeric values, capture the value to be used into a single variable if the original read comes from a mutable source.
 
-## 4. Những kiểu số nguyên nào chịu quy tắc này?
+## 4. Which Integer Types Are Subject to This Rule?
 
-Các phép toán số nguyên với `byte`, `short`, `char` và `int` thường được *numeric promotion* lên `int`; nếu có toán hạng `long` (không có số thực tham gia), phép tính diễn ra ở `long`. Cả phép chia/lấy dư kiểu `int` và `long` đều ném `ArithmeticException` nếu mẫu số bằng `0`.
+Integer operations on `byte`, `short`, `char`, and `int` undergo *numeric promotion* to `int`; if a `long` operand is present (with no floating-point operands), the operation runs in `long`. Both `int` and `long` division/remainder throw `ArithmeticException` if the divisor is `0`.
 
 ```java
 byte a = 12;
@@ -91,42 +91,42 @@ byte b = 0;
 long big = 12L;
 long longZero = 0L;
 
-// int x = a / b;       // ArithmeticException khi thực thi (chia bằng int).
-// int y = a % b;       // ArithmeticException khi thực thi (lấy dư bằng int).
-// long z = big / longZero; // ArithmeticException (chia bằng long).
-// long r = big % longZero; // ArithmeticException (lấy dư bằng long).
+// int x = a / b;       // ArithmeticException at runtime (int division).
+// int y = a % b;       // ArithmeticException at runtime (int remainder).
+// long z = big / longZero; // ArithmeticException (long division).
+// long r = big % longZero; // ArithmeticException (long remainder).
 ```
 
-Toán tử ghép gán cũng không được miễn trừ:
+Compound assignment operators are not exempt either:
 
 ```java
 int count = 10;
 int zero = 0;
 
-// count /= zero; // ArithmeticException; count không nhận được thương hợp lệ.
-// count %= zero; // ArithmeticException; không nhận được số dư hợp lệ.
+// count /= zero; // ArithmeticException; count does not receive a valid quotient.
+// count %= zero; // ArithmeticException; no valid remainder is produced.
 ```
 
-Ngoài các toán tử, những API thực hiện phép chia/lấy dư nguyên như `Math.floorDiv(a, b)`, `Math.floorMod(a, b)`, `Integer.divideUnsigned(a, b)` và `Integer.remainderUnsigned(a, b)` cũng không chấp nhận mẫu số bằng 0. Với `BigInteger`, `divide(BigInteger.ZERO)` và `remainder(BigInteger.ZERO)` cũng ném `ArithmeticException`. **Độ rộng lớn hơn hoặc khả năng biểu diễn số nguyên rất lớn không làm cho phép chia cho 0 có nghĩa.**
+In addition to operators, APIs performing integer division/remainder such as `Math.floorDiv(a, b)`, `Math.floorMod(a, b)`, `Integer.divideUnsigned(a, b)`, and `Integer.remainderUnsigned(a, b)` also reject a zero divisor. With `BigInteger`, `divide(BigInteger.ZERO)` and `remainder(BigInteger.ZERO)` likewise throw `ArithmeticException`. **A wider bit width or arbitrary-precision integer capability does not make division by zero valid.**
 
-Lưu ý nhỏ nhưng hữu ích: các hàm `Math.floorDiv`/`Math.floorMod` có quy tắc làm tròn và dấu khác chia nguyên thông thường đối với một số toán hạng âm, nhưng điều kiện mẫu số khác 0 **vẫn bắt buộc**.
+A small but useful note: `Math.floorDiv`/`Math.floorMod` have different rounding and sign rules from regular integer division for some negative operands, but the non-zero divisor requirement **still holds**.
 
-## 5. Phân biệt phép chia cho 0 kiểu số nguyên và kiểu dấu phẩy động
+## 5. Distinguishing Integer vs. Floating-Point Division by Zero
 
-Cùng ký hiệu `/` hoặc `%`, hành vi có thể khác khi biểu thức được tính bằng `double` hoặc `float`. Đối với phép toán dấu phẩy động Java theo chuẩn IEEE 754:
+With the same `/` or `%` symbol, behavior differs when the expression is evaluated as `double` or `float`. For Java floating-point arithmetic following IEEE 754:
 
-| Biểu thức | Kiểu phép toán | Kết quả |
+| Expression | Operation type | Result |
 | --- | --- | --- |
-| `10 / 0` | Số nguyên (`int`) | `ArithmeticException` khi chạy |
-| `10L / 0L` | Số nguyên (`long`) | `ArithmeticException` khi chạy |
-| `10 % 0` | Lấy dư nguyên | `ArithmeticException` khi chạy |
-| `0 / 0` | Số nguyên | `ArithmeticException` khi chạy |
-| `10.0 / 0` | Dấu phẩy động (`double`) | `Infinity` |
-| `-10.0 / 0.0` | Dấu phẩy động | `-Infinity` |
-| `0.0 / 0.0` | Dấu phẩy động | `NaN` |
-| `10.0 % 0` | Lấy dư dấu phẩy động | `NaN` |
+| `10 / 0` | Integer (`int`) | `ArithmeticException` at runtime |
+| `10L / 0L` | Integer (`long`) | `ArithmeticException` at runtime |
+| `10 % 0` | Integer remainder | `ArithmeticException` at runtime |
+| `0 / 0` | Integer | `ArithmeticException` at runtime |
+| `10.0 / 0` | Floating-point (`double`) | `Infinity` |
+| `-10.0 / 0.0` | Floating-point | `-Infinity` |
+| `0.0 / 0.0` | Floating-point | `NaN` |
+| `10.0 % 0` | Floating-point remainder | `NaN` |
 
-Trong `10.0 / 0`, toán hạng `10.0` có kiểu `double`, nên `0` được nâng lên `double` và phép chia thuộc ngữ nghĩa số thực. Ngược lại, `10 / 0` chỉ có toán hạng nguyên nên không tự chuyển sang phép chia số thực.
+In `10.0 / 0`, the operand `10.0` has type `double`, so `0` is promoted to `double` and the division follows floating-point semantics. Conversely, `10 / 0` has only integer operands and does not automatically switch to floating-point division.
 
 ```java
 System.out.println(Double.isInfinite(10.0 / 0)); // true
@@ -134,13 +134,13 @@ System.out.println(Double.isNaN(0.0 / 0.0));     // true
 System.out.println(Double.isNaN(10.0 % 0));      // true
 ```
 
-**Không sử dụng phép chuyển sang `double` chỉ để tránh ngoại lệ** nếu bài toán yêu cầu số nguyên chính xác. `Infinity` hoặc `NaN` có thể tiếp tục lan truyền vào tính toán sau và làm kết quả sai về ý nghĩa nghiệp vụ. Nếu quy tắc là “số nhóm phải lớn hơn 0”, hãy kiểm tra quy tắc đó thay vì chuyển kiểu.
+**Do not convert to `double` solely to avoid the exception** if the problem requires exact integers. `Infinity` or `NaN` can propagate into subsequent calculations and corrupt business meaning. If the rule is "the number of groups must be greater than 0", enforce that rule instead of changing types.
 
-## 6. Cách xử lý đúng trong ứng dụng
+## 6. Handling It Properly in Applications
 
-### 6.1. Kiểm tra mẫu số trước khi tính
+### 6.1. Validate the Divisor Before Computing
 
-Nếu `0` là dữ liệu đầu vào **không hợp lệ**, hãy từ chối sớm bằng thông báo rõ ràng:
+If `0` is **invalid input**, reject it early with a clear message:
 
 ```java
 static int dividePositiveGroups(int total, int groups) {
@@ -151,26 +151,26 @@ static int dividePositiveGroups(int total, int groups) {
 }
 ```
 
-Ở đây kiểm tra `<= 0` vì **quy tắc nghiệp vụ** yêu cầu số nhóm dương; riêng để phòng lỗi chia cho 0 về mặt ngôn ngữ chỉ cần `groups == 0`. Số âm là mẫu số hợp lệ trong phép chia nguyên Java, nhưng có thể không hợp lệ trong bài toán đếm nhóm.
+Here we check `<= 0` because **business logic** requires a positive group count; strictly to prevent a language-level division-by-zero error, only `groups == 0` is needed. Negative numbers are valid divisors in Java integer division, though they may be invalid in a group-counting problem.
 
-Nếu cần tính cả thương và số dư, chỉ tính sau khi xác nhận mẫu số:
+If both quotient and remainder are needed, compute them only after confirming the divisor:
 
 ```java
 static String describeDivision(int total, int groups) {
     if (groups == 0) {
-        return "Không thể chia khi số nhóm bằng 0";
+        return "Cannot divide when group count is 0";
     }
     int quotient = total / groups;
     int remainder = total % groups;
-    return "Thương=" + quotient + ", dư=" + remainder;
+    return "Quotient=" + quotient + ", remainder=" + remainder;
 }
 ```
 
-Giá trị trả về ở trường hợp `groups == 0` là **quyết định thiết kế của ứng dụng**, không phải kết quả số học mặc định của Java. Các hệ thống khác có thể chọn báo lỗi, yêu cầu nhập lại, hoặc dùng kiểu trả về thể hiện phép tính không có kết quả.
+The return value in the `groups == 0` case is an **application design decision**, not a default arithmetic result from Java. Other systems may choose to report an error, prompt for re-entry, or use a return type representing an absent calculation result.
 
-### 6.2. Bắt ngoại lệ tại ranh giới xử lý phù hợp
+### 6.2. Catch the Exception at an Appropriate Handling Boundary
 
-Khi mẫu số có thể đến từ dữ liệu bên ngoài hoặc một thành phần khác, có thể bắt `ArithmeticException` tại điểm ứng dụng biết cách thông báo và phục hồi:
+When the divisor may come from external data or another component, you can catch `ArithmeticException` at a point where the application knows how to report and recover:
 
 ```java
 int total = 10;
@@ -179,15 +179,15 @@ try {
     int perGroup = total / groups;
     System.out.println(perGroup);
 } catch (ArithmeticException ex) {
-    System.out.println("Không thể chia cho 0");
+    System.out.println("Cannot divide by zero");
 }
 ```
 
-Nếu có thể kiểm tra đầu vào sớm, giải pháp kiểm tra trước thường dễ đọc hơn. **Không nên bắt `ArithmeticException` quá rộng rồi bỏ qua** vì còn có những trường hợp số học khác, khiến lỗi lập trình bị che khuất. Khi không thể khôi phục hợp lệ, để ngoại lệ lan lên tầng xử lý lỗi là lựa chọn phù hợp hơn việc tự gán một giá trị giả như `0`.
+If early input validation is possible, pre-checking is usually clearer to read. **Avoid catching `ArithmeticException` too broadly and ignoring it**, because other arithmetic errors exist and programming bugs could be masked. When no valid recovery is possible, letting the exception propagate to an error-handling layer is preferable to inventing a fake value like `0`.
 
-### 6.3. Tránh mất an toàn do mẫu số được tính động
+### 6.3. Avoid Hazards with Dynamically Computed Divisors
 
-Mẫu số có thể phát sinh từ phép tính trung gian:
+A divisor can arise from an intermediate calculation:
 
 ```java
 int users = 8;
@@ -200,7 +200,7 @@ if (inactiveUsers != 0) {
 }
 ```
 
-Khi nguồn dữ liệu có thể thay đổi đồng thời, lấy mẫu số một lần, kiểm tra, rồi dùng **chính giá trị đó**:
+When the data source can change concurrently, read the divisor once, validate it, and then use **that exact value**:
 
 ```java
 int currentDivisor = getCurrentDivisor();
@@ -210,11 +210,11 @@ if (currentDivisor != 0) {
 }
 ```
 
-`getCurrentDivisor()` trong đoạn ngắn thứ hai là **hàm minh họa do ứng dụng định nghĩa**, không phải API chuẩn của Java. Nếu gọi nguồn dữ liệu thêm lần nữa trong phép chia, giá trị có thể đã đổi thành 0. Với chương trình song song, còn cần thiết kế đồng bộ khi những dữ liệu liên quan phải nhất quán theo một thao tác.
+`getCurrentDivisor()` in the second snippet is an **application-defined illustrative function**, not a standard Java API. Calling the data source a second time inside the division could read a value that has changed to `0`. In concurrent programs, synchronization is also required when related data must remain consistent across an operation.
 
-## 7. Ví dụ Java 17+ chạy độc lập và kết quả chính xác
+## 7. Standalone Java 17+ Example and Exact Output
 
-Tạo tệp **`IntegerDivisionByZeroDemo.java`**:
+Create a file **`IntegerDivisionByZeroDemo.java`**:
 
 ```java
 public class IntegerDivisionByZeroDemo {
@@ -257,14 +257,14 @@ public class IntegerDivisionByZeroDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac IntegerDivisionByZeroDemo.java
 java IntegerDivisionByZeroDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 10 / 3 = 3
@@ -277,18 +277,18 @@ floating / zero infinite = true
 floating % zero NaN = true
 ```
 
-Vì đoạn chương trình **bắt riêng từng ngoại lệ**, các ví dụ sau vẫn tiếp tục thực thi. Đây chỉ là ví dụ giải thích sự khác nhau giữa phép toán nguyên và phép toán dấu phẩy động. Trong code nghiệp vụ, kiểm tra miền dữ liệu và báo lỗi theo yêu cầu thực tế là lựa chọn thường rõ ràng hơn.
+Because the program **catches each exception individually**, the remaining examples continue to execute. This is purely an example illustrating the difference between integer and floating-point operations. In business code, validating data ranges and reporting errors per actual requirements is usually clearer.
 
-## 8. Những hiểu lầm phổ biến
+## 8. Common Misconceptions
 
-1. **“Chỉ chia cho 0 mới lỗi; lấy dư cho 0 thì trả lại tử số.”** Sai: với số nguyên, cả `/ 0` lẫn `% 0` đều ném `ArithmeticException`.
-2. **“Nếu tử số bằng 0, `0 / 0` sẽ bằng 0.”** Sai: mẫu số vẫn bằng 0, nên phép chia không hợp lệ.
-3. **“Java tự trả về `Infinity` khi có lỗi chia cho 0.”** Chỉ có hành vi `Infinity`/`NaN` liên quan tới phép toán dấu phẩy động; phép chia nguyên ném ngoại lệ.
-4. **“Đổi biến nhận kết quả thành `double` là đủ.”** Sai: `double x = 10 / zero;` vẫn đánh giá `10 / zero` theo kiểu `int` trước khi gán, nên ngoại lệ vẫn xảy ra. Phải có toán hạng dấu phẩy động ngay **trong biểu thức** mới dùng ngữ nghĩa số thực.
-5. **“Đã kiểm tra `divisor != 0` ở vế sau của `&&` thì an toàn.”** Sai nếu phép chia đứng trước; thứ tự đánh giá quyết định phép chia có chạy hay không.
-6. **“`Math.floorMod(a, 0)` hoặc `BigInteger.divide(BigInteger.ZERO)` tự xử lý được.”** Sai: các API chia/lấy dư nguyên cũng từ chối mẫu số bằng 0.
-7. **“Catch mọi `ArithmeticException` rồi trả về `0` là xử lý xong.”** Không có kết quả thương/số dư mặc định bằng 0. Trả về một giá trị thay thế phải là quy tắc được xác định rõ của hệ thống.
+1. **"Only division by 0 fails; remainder by 0 returns the dividend."** False: for integers, both `/ 0` and `% 0` throw `ArithmeticException`.
+2. **"If the dividend is 0, `0 / 0` will equal 0."** False: the divisor is still `0`, so the division is invalid.
+3. **"Java automatically returns `Infinity` on a divide-by-zero error."** `Infinity`/`NaN` behavior applies only to floating-point operations; integer division throws an exception.
+4. **"Changing the receiving variable to `double` is enough."** False: `double x = 10 / zero;` still evaluates `10 / zero` as `int` before assigning, so the exception still occurs. There must be a floating-point operand **inside the expression** to use floating-point semantics.
+5. **"Checking `divisor != 0` on the right side of `&&` is safe."** False if the division comes first; evaluation order determines whether the division runs.
+6. **"`Math.floorMod(a, 0)` or `BigInteger.divide(BigInteger.ZERO)` handles it automatically."** False: integer division/remainder APIs also reject a zero divisor.
+7. **"Catching any `ArithmeticException` and returning `0` solves it."** There is no default quotient/remainder of `0`. Returning a fallback value must be an explicit system rule.
 
-**Ghi nhớ:** Với phép tính nguyên trong Java, hãy xác nhận **mẫu số khác 0 trước khi thực hiện cả `/` và `%`**. Nếu mẫu số 0 là dữ liệu không hợp lệ, xử lý nó như một lỗi đầu vào hoặc tình huống không có kết quả. Số thực có `Infinity`/`NaN` theo quy tắc khác, nhưng không thay đổi tính không hợp lệ của phép chia nguyên cho 0.
+**Key Takeaway:** For integer operations in Java, verify that **the divisor is non-zero before executing both `/` and `%`**. If a zero divisor is invalid data, handle it as an input error or a no-result condition. Floating-point numbers have `Infinity`/`NaN` under different rules, which do not change the invalidity of integer division by zero.
 
-**Tài liệu đặc tả:** [JLS §15.17.2 — Division Operator /](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.17.2), [JLS §15.17.3 — Remainder Operator %](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.17.3), [Java SE 21 — ArithmeticException](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/ArithmeticException.html).
+**Specifications:** [JLS §15.17.2 — Division Operator /](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.17.2), [JLS §15.17.3 — Remainder Operator %](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.17.3), [Java SE 21 — ArithmeticException](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/ArithmeticException.html).

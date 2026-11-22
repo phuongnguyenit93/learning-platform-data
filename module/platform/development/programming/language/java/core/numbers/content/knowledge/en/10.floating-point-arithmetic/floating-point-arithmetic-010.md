@@ -1,70 +1,70 @@
-# Math.fma và sự khác biệt với nhân rồi cộng trong Java
+# `Math.fma` and How It Differs from Multiply-Then-Add in Java
 
-**`Math.fma(a, b, c)`** tính phép **fused multiply-add** (FMA): lấy tích `a × b`, cộng `c`, sau đó **làm tròn kết quả cuối cùng một lần** sang `float` hoặc `double`. Trái lại, biểu thức Java thông thường **`a * b + c`** thực hiện **phép nhân có làm tròn trước**, rồi mới cộng và **làm tròn thêm lần nữa**.
+**`Math.fma(a, b, c)`** computes a **fused multiply-add** (FMA): it takes the product `a × b`, adds `c`, and then **rounds the final result once** to `float` or `double`. By contrast, the ordinary Java expression **`a * b + c`** performs **multiplication with rounding first**, and then adds and **rounds a second time**.
 
-Đây không chỉ là khác biệt cú pháp hay hiệu năng. Khi các chữ số thấp của tích bị mất và phép cộng tiếp theo hủy bỏ gần hết phần lớn của tích, hai cách tính có thể trả **hai kết quả số học khác nhau**. FMA đôi khi còn tránh việc **phép nhân trung gian overflow hoặc underflow** dù kết quả toán học của cả biểu thức vẫn biểu diễn được.
+This is not merely a syntax or performance difference. When low-order digits of the product are lost and the subsequent addition cancels most of the product's magnitude, the two ways of computing can return **two different numerical results**. FMA can also sometimes avoid **intermediate multiplication overflow or underflow** even though the mathematical result of the whole expression is representable.
 
 ```java
 double a = 1.0 + 0x1.0p-27;
 double b = 1.0 - 0x1.0p-27;
 
 double separate = a * b - 1.0;      // +0.0
-double fused = Math.fma(a, b, -1.0); // -2^-54, khác 0
+double fused = Math.fma(a, b, -1.0); // -2^-54, non-zero
 ```
 
-Các khai báo trên là **mảnh mã** có thể đặt trong phương thức Java. Bài học này giải thích nguyên nhân của khác biệt, cách dùng API Java 17+, trường hợp biên và giới hạn của việc dùng FMA để cải thiện độ chính xác.
+The declarations above are a **code snippet** that can be placed inside a Java method. This lesson explains the cause of the difference, how to use the Java 17+ API, boundary cases, and the limits of using FMA to improve accuracy.
 
-## 1. Bối cảnh: phép tính dấu phẩy động luôn có bước làm tròn
+## 1. Background: Floating-Point Operations Always Include Rounding Steps
 
-Java cung cấp hai kiểu dấu phẩy động nhị phân thường dùng:
+Java provides two commonly used binary floating-point types:
 
-| Kiểu | Tổng bit | Độ chính xác phần trị (significand) | Số mũ | Đặc điểm |
+| Type | Total Bits | Significand Precision | Exponent | Characteristics |
 | --- | ---: | ---: | --- | --- |
-| `float` | 32 | 24 bit hiệu dụng | Phạm vi hẹp hơn | Nhanh/gọn hơn về lưu trữ; lưới số thưa hơn |
-| `double` | 64 | 53 bit hiệu dụng | Phạm vi rộng hơn | Thường là lựa chọn mặc định cho tính toán dấu phẩy động |
+| `float` | 32 | 24 effective bits | Narrower range | Faster/more compact storage; coarser number grid |
+| `double` | 64 | 53 effective bits | Wider range | Usually the default choice for floating-point computation |
 
-Với một số thực toán học, không phải mọi chữ số đều có thể lưu trong `float` hay `double`. Phép toán cần chọn **số biểu diễn được gần nhất**, thông thường theo quy tắc **gần nhất; khi đúng giữa hai số thì chọn phần trị chẵn** (*round to nearest, ties to even*).
+For a mathematical real number, not every digit can be stored in `float` or `double`. The operation must select the **nearest representable number**, typically under **round to nearest; when exactly halfway between two numbers, choose the even significand** (*round to nearest, ties to even*).
 
-Một cách ký hiệu kết quả làm tròn về đúng kiểu là `round(x)`. Với các toán hạng hữu hạn và không gặp ngoại lệ đặc biệt:
+One notation for rounding to the target type is `round(x)`. For finite operands without special exceptions:
 
 ```text
-Nhân rồi cộng:
+Multiply then add:
 intermediate = round(a × b)
 result       = round(intermediate + c)
 
 Fused multiply-add:
 result       = round((a × b) + c)
-               ↑ tích và tổng được xét ở độ chính xác toán học
-                 trước khi làm tròn một lần
+               ↑ product and sum are evaluated at mathematical precision
+                 before rounding once
 ```
 
-FMA không có nghĩa Java cất một `double` với vô hạn bit; nó có nghĩa **phép nhân trung gian không bị làm tròn độc lập trước phép cộng**. Kết quả trả về vẫn là một `float` hoặc `double` hữu hạn độ chính xác, hoặc một giá trị đặc biệt theo quy tắc IEEE 754.
+FMA does not mean Java stores a `double` with infinite bits; it means **the intermediate product is not rounded independently before addition**. The returned result is still a finite-precision `float` or `double`, or a special value under IEEE 754 rules.
 
-Đặc biệt, các toán hạng truyền vào hàm có thể **đã bị làm tròn từ trước** khi được tạo ra. FMA chỉ giúp kết hợp phép `a*b+c` đối với **các giá trị đầu vào hiện có**, không khôi phục thông tin đã mất trong bước tính `a`, `b` hay `c` trước đó.
+In particular, the operands passed into the function may **already have been rounded beforehand** when they were created. FMA only helps fuse `a*b+c` for the **existing input values**; it does not recover information lost when `a`, `b`, or `c` was computed earlier.
 
-## 2. API `Math.fma` và kiểu kết quả
+## 2. The `Math.fma` API and Result Type
 
-Java có hai overload chính:
+Java has two main overloads:
 
 ```java
 static double Math.fma(double a, double b, double c)
 static float  Math.fma(float a, float b, float c)
 ```
 
-Đây là **chữ ký phương thức**, không phải một chương trình độc lập. Với mọi đối số `double`, phương thức trả `double`; với toàn bộ đối số `float`, có overload trả `float`.
+These are **method signatures**, not a standalone program. With all `double` arguments, the method returns `double`; with all `float` arguments, there is an overload returning `float`.
 
 ```java
 double d = Math.fma(2.0, 3.0, 4.0);  // 10.0
 float f = Math.fma(2.0f, 3.0f, 4.0f); // 10.0f
 ```
 
-Khi trộn `float` với `double`, Java có thể chọn overload `double` vì một số đối số cần được nâng kiểu. Do vậy nên **chọn kiểu toán hạng có chủ đích**. Ví dụ `Math.fma(1.0f, 2.0f, 3.0)` trả `double`, còn `Math.fma(1.0f, 2.0f, 3.0f)` trả `float`.
+When mixing `float` and `double`, Java may select the `double` overload because some arguments require widening. Therefore, **choose operand types intentionally**. For example, `Math.fma(1.0f, 2.0f, 3.0)` returns `double`, whereas `Math.fma(1.0f, 2.0f, 3.0f)` returns `float`.
 
-Trong Java 17 trở lên, ngữ nghĩa dấu phẩy động được quy định nhất quán; một biểu thức Java `a * b + c` thông thường **không được tự coi như FMA nếu việc thay thế làm thay đổi kết quả bắt buộc**. Hãy dùng `Math.fma` tường minh khi bạn muốn phép toán fused một lần làm tròn.
+In Java 17 and newer, floating-point semantics are specified consistently; an ordinary Java expression `a * b + c` **is not automatically treated as FMA if substituting it would change the required result**. Explicitly call `Math.fma` when you want a single-rounding fused operation.
 
-## 3. Ví dụ chính: sai số phép nhân bị lộ ra sau khi trừ 1
+## 3. Core Example: Multiplication Error Exposed After Subtracting 1
 
-Đặt:
+Set:
 
 ```text
 a = 1 + 2^-27
@@ -72,7 +72,7 @@ b = 1 - 2^-27
 c = -1
 ```
 
-Các số `a` và `b` biểu diễn **chính xác** bằng `double`. Tích toán học là:
+The numbers `a` and `b` are represented **exactly** as `double`. The mathematical product is:
 
 ```text
 a × b = (1 + 2^-27)(1 - 2^-27)
@@ -82,7 +82,7 @@ a × b + c = (1 - 2^-54) - 1
           = -2^-54
 ```
 
-**Cách tính thông thường:**
+**Ordinary computation:**
 
 ```java
 double a = 1.0 + 0x1.0p-27;
@@ -90,45 +90,45 @@ double b = 1.0 - 0x1.0p-27;
 double separate = a * b - 1.0;
 ```
 
-Quanh `1.0`, số `double` biểu diễn được ngay phía dưới là `1 - 2^-53`. Giá trị `1 - 2^-54` nằm **gần `1.0` hơn** giá trị phía dưới đó, nên phép nhân được làm tròn thành chính xác `1.0`. Sau khi trừ `1.0`, `separate` là **`+0.0`**: phần dư nhỏ nhưng có thật đã bị mất trong bước nhân.
+Around `1.0`, the representable `double` immediately below is `1 - 2^-53`. The value `1 - 2^-54` lies **closer to `1.0`** than to that value below, so the multiplication rounds to exact `1.0`. After subtracting `1.0`, `separate` is **`+0.0`**: the small yet real remainder was lost during the multiplication step.
 
-**Cách tính fused:**
+**Fused computation:**
 
 ```java
 double fused = Math.fma(a, b, -1.0);
 ```
 
-FMA tính tích và phép trừ dưới dạng một phép toán kết hợp trước khi làm tròn:
+FMA evaluates the product and subtraction as one combined operation before rounding:
 
 ```text
 round((1 - 2^-54) - 1) = round(-2^-54) = -2^-54
 ```
 
-Vì `-2^-54` cũng là một số `double` biểu diễn được, FMA giữ chính xác kết quả ấy. Khi in bằng dạng hex floating-point:
+Because `-2^-54` is also a representable `double`, FMA preserves that exact result. When printed in hexadecimal floating-point format:
 
 ```text
 separate = 0x0.0p0
 fused    = -0x1.0p-54
 ```
 
-**Điểm mấu chốt:** chênh lệch không đến từ việc gọi hàm thay vì toán tử; nó đến từ **số lần và thời điểm làm tròn**. Cả hai phép tính nhận **cùng ba giá trị đầu vào** nhưng cách tính trung gian khác nhau.
+**Key takeaway:** the difference does not come from calling a method instead of an operator; it comes from **the number and timing of roundings**. Both computations receive the **exact same three input values**, yet the intermediate steps differ.
 
-## 4. Vì sao ví dụ này liên quan đến ULP?
+## 4. Why Does This Example Relate to ULP?
 
-**ULP (Unit in the Last Place)** biểu diễn kích cỡ một bước của lưới giá trị dấu phẩy động quanh một độ lớn. Với `double`, `Math.ulp(1.0)` là `2^-52`, nhưng **khoảng cách từ `1.0` xuống số kề dưới** là `2^-53`, vì `1.0` là ranh giới lũy thừa 2.
+**ULP (Unit in the Last Place)** represents the size of one step in the floating-point value grid around a magnitude. For `double`, `Math.ulp(1.0)` is `2^-52`, yet the **distance from `1.0` down to the adjacent lower number** is `2^-53`, because `1.0` is a power-of-2 boundary.
 
-Trong ví dụ:
+In the example:
 
-- Tích thực `1 - 2^-54` cách `1.0` đúng `2^-54`.
-- Bước đến số `double` ngay dưới `1.0` là `2^-53`.
-- Khoảng sai lệch `2^-54` là **nửa khoảng ở phía dưới**, nên ở điểm chính giữa, quy tắc *ties to even* chọn `1.0` thay vì số kề dưới (bit phần trị cuối của `1.0` là chẵn).
-- Nhân rồi cộng làm mất phần chênh ấy; `Math.fma` giữ phần chênh đến lúc cuối mới làm tròn.
+- The true product `1 - 2^-54` is `2^-54` away from `1.0`.
+- The step to the `double` immediately below `1.0` is `2^-53`.
+- The offset `2^-54` is **half the gap on the lower side**, so at the midpoint, the *ties to even* rule selects `1.0` instead of the lower neighbor (the last significand bit of `1.0` is even).
+- Multiply-then-add loses that difference; `Math.fma` preserves the difference until the single final rounding.
 
-Vì vậy, các biểu thức kiểu `a*b + c` có **cancellation** (tích gần bằng `-c`) là nơi sự khác nhau về độ chính xác thể hiện rõ. Không có bảo đảm FMA làm sai số tuyệt đối của **toàn bộ thuật toán** nhỏ nhất; nó chỉ tính đúng phép fused với một lần làm tròn cuối cùng.
+Therefore, expressions of the form `a*b + c` with **cancellation** (product nearly equal to `-c`) are where the accuracy difference shows up clearly. There is no guarantee that FMA minimizes the absolute error of the **entire algorithm**; it only computes the fused operation accurately with a single final rounding.
 
-## 5. Cùng hiện tượng ở `float`
+## 5. The Same Phenomenon in `float`
 
-`float` có 24 bit significand hiệu dụng, ít hơn `double`. Chọn:
+`float` has 24 effective significand bits, fewer than `double`. Choose:
 
 ```java
 float a = 1.0f + 0x1.0p-13f;
@@ -138,18 +138,18 @@ float separate = a * b - 1.0f;      // +0.0f
 float fused = Math.fma(a, b, -1.0f); // -2^-26f
 ```
 
-Tích chính xác là `1 - 2^-26`; phép nhân kiểu `float` thông thường làm tròn thành `1.0f`, sau đó trừ `1.0f` cho 0. FMA trả `-2^-26f`, và hai giá trị được in như sau:
+The exact product is `1 - 2^-26`; ordinary `float` multiplication rounds to `1.0f`, and subtracting `1.0f` yields 0. FMA returns `-2^-26f`, and the two values print as:
 
 ```text
 floatSeparate=0x0.0p0
 floatFused=-0x1.0p-26
 ```
 
-Ví dụ này cho thấy cả **overload float** cũng có ý nghĩa fused, không chỉ `double`. Hãy thêm hậu tố `f` cho literal khi muốn duy trì phép tính và kiểu đầu ra `float`. Nếu vô tình dùng literal `double` như `1.0` hoặc `-1.0` trong biểu thức, kết quả có thể được tính ở kiểu khác do quy tắc nâng kiểu và overload.
+This example shows that the **`float` overload** also has fused semantics, not just `double`. Add the `f` suffix to literals when you want to maintain `float` computation and output type. If you accidentally use `double` literals such as `1.0` or `-1.0` in the expression, the result may be evaluated in a different type due to promotion and overload resolution rules.
 
-## 6. Khi phép nhân riêng lẻ overflow nhưng FMA vẫn trả số hữu hạn
+## 6. When Separate Multiplication Overflows Yet FMA Still Returns a Finite Number
 
-Có các phép `a*b+c` mà tích riêng lẻ vượt `Double.MAX_VALUE`, nhưng phép cộng với `c` **triệt tiêu phần vượt giới hạn** trước khi kết quả cuối được làm tròn.
+There are `a*b+c` operations where the standalone product exceeds `Double.MAX_VALUE`, yet adding `c` **cancels out the excess** before the final result is rounded.
 
 ```java
 double max = Double.MAX_VALUE;
@@ -157,17 +157,17 @@ double separate = max * 2.0 - max;       // +Infinity
 double fused = Math.fma(max, 2.0, -max); // Double.MAX_VALUE
 ```
 
-Giải thích:
+Explanation:
 
-- Với phép nhân độc lập, `max * 2.0` vượt dải hữu hạn của `double`, nên được làm tròn thành `+Infinity`.
-- Sau đó `+Infinity - max` vẫn là `+Infinity`; thông tin về tích hữu hạn thực đã mất.
-- FMA xét biểu thức toán học `max × 2 - max = max` **trước bước làm tròn cuối**. Kết quả `max` vẫn là `double` hữu hạn, nên trả đúng `Double.MAX_VALUE`.
+- With standalone multiplication, `max * 2.0` exceeds `double`'s finite range, so it rounds to `+Infinity`.
+- Afterward, `+Infinity - max` remains `+Infinity`; information about the true finite product has been lost.
+- FMA evaluates the mathematical expression `max × 2 - max = max` **before the final rounding step**. The result `max` is still a finite `double`, so it returns `Double.MAX_VALUE` exactly.
 
-Đây là trường hợp mà khác biệt không chỉ vài bit cuối mà là **Infinity so với một giá trị hữu hạn rất lớn**. Cần phân biệt đầu vào `max` hữu hạn với đầu vào **đã là Infinity**: nếu truyền `Double.POSITIVE_INFINITY` từ trước, FMA không “khôi phục” nó thành `max`.
+This is a case where the difference is not merely a few low-order bits, but **`Infinity` versus a very large finite value**. Distinguish a finite input `max` from an input that is **already `Infinity`**: if `Double.POSITIVE_INFINITY` is passed in beforehand, FMA does not "restore" it back to `max`.
 
-## 7. Khi tích riêng lẻ underflow và làm mất phần đóng góp nhỏ
+## 7. When a Standalone Product Underflows and Loses a Small Contribution
 
-Ngược lại, xét số dương subnormal nhỏ nhất:
+Conversely, consider the smallest positive subnormal number:
 
 ```java
 double tiny = Double.MIN_VALUE; // 2^-1074
@@ -175,22 +175,22 @@ double separate = tiny * 0.5 + tiny;
 double fused = Math.fma(tiny, 0.5, tiny);
 ```
 
-- Tích toán học `tiny × 0.5 = 2^-1075` nhỏ hơn bước subnormal nhỏ nhất. Làm tròn phép nhân riêng lẻ thành **`0.0`** (điểm hòa được giải theo *ties to even*).
-- Sau đó `0.0 + tiny = tiny`, nên kết quả `separate` bằng **1 đơn vị** `Double.MIN_VALUE`.
-- FMA giữ tích nhỏ cho tới khi cộng: `2^-1075 + 2^-1074 = 1.5 × 2^-1074`. Khi làm tròn cuối, kết quả thành **2 đơn vị** `Double.MIN_VALUE` (điểm hòa chọn phần trị chẵn).
+- The mathematical product `tiny × 0.5 = 2^-1075` is smaller than the smallest subnormal step. Rounding the standalone multiplication yields **`0.0`** (the tie is broken by *ties to even*).
+- Then `0.0 + tiny = tiny`, so `separate` equals **1 unit** of `Double.MIN_VALUE`.
+- FMA preserves the small product until addition: `2^-1075 + 2^-1074 = 1.5 × 2^-1074`. On final rounding, the result becomes **2 units** of `Double.MIN_VALUE` (the tie chooses the even significand).
 
-Do đó:
+Therefore:
 
 ```text
 separate / Double.MIN_VALUE = 1.0
 fused / Double.MIN_VALUE    = 2.0
 ```
 
-Ví dụ chứng minh việc làm tròn một lần có thể quan trọng ngay tại miền **subnormal/underflow**, không chỉ ở giá trị gần 1 hay khi phép nhân bị overflow.
+This example proves that single rounding can matter right in the **subnormal/underflow** region, not only near 1 or when multiplication overflows.
 
-## 8. Chương trình Java 17+ hoàn chỉnh và kết quả đã kiểm thử
+## 8. Complete Java 17+ Program and Verified Output
 
-Tạo tệp **`FmaDemo.java`**:
+Create the file **`FmaDemo.java`**:
 
 ```java
 public class FmaDemo {
@@ -230,14 +230,14 @@ public class FmaDemo {
 }
 ```
 
-Biên dịch và chạy trong thư mục chứa tệp:
+Compile and run in the directory containing the file:
 
 ```bash
 javac --release 17 -encoding UTF-8 FmaDemo.java
 java FmaDemo
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 a=0x1.0000002p0
@@ -257,31 +257,31 @@ nanOppositeInfinities=true
 nanOperand=true
 ```
 
-Nhìn vào từng nhóm dòng:
+Looking at each group of lines:
 
-1. `separate=0x0.0p0` và `fused=-0x1.0p-54`: hai phép tính nhận cùng đầu vào nhưng giữ lượng thông tin khác nhau. `fusedExact=true` xác minh phần dư `-2^-54`.
-2. `plainExample=10.0`: nếu phép nhân/cộng đều biểu diễn chính xác thì không nhất thiết có khác biệt; `2×3+4` là phép tính đơn giản cho cùng kết quả.
-3. `floatSeparate` so với `floatFused`: kiểm chứng overload `float`.
-4. `separateOverflow=Infinity`, `fusedAvoidsOverflow=true`: FMA tránh overflow trung gian trong ví dụ cụ thể.
-5. `separateUnderflowUnits=1.0`, `fusedUnderflowUnits=2.0`: FMA giữ phần đóng góp rất nhỏ đến bước làm tròn cuối.
-6. Ba kết quả `nan...=true`: kiểm tra các quy tắc đặc biệt với `NaN` và vô cực.
+1. `separate=0x0.0p0` and `fused=-0x1.0p-54`: both computations receive the same inputs yet retain different amounts of information. `fusedExact=true` verifies the `-2^-54` residual.
+2. `plainExample=10.0`: if multiplication and addition are both exact, there is no difference; `2×3+4` is a simple operation yielding the same result.
+3. `floatSeparate` vs. `floatFused`: verifies the `float` overload.
+4. `separateOverflow=Infinity`, `fusedAvoidsOverflow=true`: FMA avoids intermediate overflow in this specific example.
+5. `separateUnderflowUnits=1.0`, `fusedUnderflowUnits=2.0`: FMA retains the tiny contribution until the final rounding step.
+6. The three `nan...=true` results: verify special rules with `NaN` and infinity.
 
-Sử dụng `Double.toHexString` và `Float.toHexString` giúp thể hiện chính xác dạng mũ nhị phân của kết quả, tránh việc chỉ nhìn chuỗi thập phân ngắn rồi nhầm `0.0` với một số khác rất nhỏ.
+Using `Double.toHexString` and `Float.toHexString` shows the exact binary-exponent form of the results, preventing confusion from looking only at short decimal strings and mistaking `0.0` for another very small number.
 
-## 9. `NaN`, vô cực, dấu zero và quy tắc trường hợp đặc biệt
+## 9. `NaN`, Infinity, Signed Zero, and Special-Case Rules
 
-Giống các phép toán dấu phẩy động khác, `Math.fma` không thể bỏ qua các giá trị IEEE 754 đặc biệt:
+Like other floating-point operations, `Math.fma` cannot ignore special IEEE 754 values:
 
-| Tình huống | Kết quả |
+| Scenario | Result |
 | --- | --- |
-| Một toán hạng là `NaN` | Kết quả `NaN` |
-| `a` hoặc `b` là vô cực, toán hạng kia là zero | `NaN`: tích `0 × ∞` không hợp lệ |
-| Tích vô cực và `c` vô cực có dấu ngược | `NaN`: hai lượng vô cực đối nhau |
-| Cả ba toán hạng hữu hạn nhưng kết quả toán học vượt kiểu đích | Có thể trả `+Infinity` hoặc `-Infinity` sau làm tròn cuối |
-| Kết quả quá nhỏ để thành số subnormal khác 0 | Có thể làm tròn về `+0.0` hoặc `-0.0` |
-| Tích trung gian lớn nhưng tổng cuối vẫn hữu hạn | FMA có thể trả số hữu hạn, không bắt buộc overflow như phép nhân riêng |
+| One operand is `NaN` | Result is `NaN` |
+| `a` or `b` is infinite, the other is zero | `NaN`: `0 × ∞` product is invalid |
+| Infinite product and `c` infinite with opposite sign | `NaN`: two opposing infinities |
+| All three operands finite yet mathematical result exceeds target type | Can return `+Infinity` or `-Infinity` after final rounding |
+| Result too small to be a non-zero subnormal | Can round to `+0.0` or `-0.0` |
+| Intermediate product is huge yet final sum is finite | FMA can return a finite number, not forced to overflow like standalone multiplication |
 
-Ví dụ:
+Example:
 
 ```java
 boolean invalid1 = Double.isNaN(
@@ -290,93 +290,93 @@ boolean invalid2 = Double.isNaN(
         Math.fma(Double.POSITIVE_INFINITY, 2.0, Double.NEGATIVE_INFINITY)); // true
 ```
 
-Các dòng trên là mã minh họa, có thể đặt vào phương thức. Đây là tính chất của toán học dấu phẩy động IEEE 754, **không phải `ArithmeticException`**. Để kiểm tra kết quả, dùng `Double.isFinite`, `Double.isNaN`, `Double.isInfinite` (hoặc API tương ứng của `Float`).
+The lines above are illustrative code that can be placed inside a method. This is a property of IEEE 754 floating-point math, **not `ArithmeticException`**. To check results, use `Double.isFinite`, `Double.isNaN`, and `Double.isInfinite` (or the corresponding `Float` APIs).
 
-IEEE 754 có cả `+0.0` và `-0.0`. Dấu của một kết quả zero có thể có ý nghĩa trong tính toán (ví dụ phép chia cho zero), mặc dù `+0.0 == -0.0` là `true`. Khi làm việc với zero và phép toán fused, không chỉ so sánh `== 0.0` nếu yêu cầu phân biệt mẫu bit dấu; có thể xem `Double.doubleToRawLongBits`.
+IEEE 754 has both `+0.0` and `-0.0`. The sign of a zero result can matter in computations (e.g., dividing by zero), even though `+0.0 == -0.0` is `true`. When working with zero and fused operations, do not rely solely on `== 0.0` if sign-bit patterns must be distinguished; inspect `Double.doubleToRawLongBits`.
 
-## 10. FMA giúp được gì và không giúp được gì?
+## 10. What FMA Can and Cannot Help With
 
-**Ưu điểm trực tiếp:** với cùng đầu vào đã được biểu diễn trong kiểu đích, FMA loại bỏ phép **làm tròn trung gian giữa nhân và cộng**, nên trả kết quả của `round(a*b+c)` với một bước làm tròn cuối theo quy tắc của API. Điều này đặc biệt có ích trong:
+**Direct advantages:** given the same inputs already represented in the target type, FMA eliminates **intermediate rounding between multiplication and addition**, returning `round(a*b+c)` with a single final rounding step per the API's rules. This is especially useful in:
 
-- **Tích lũy tích vô hướng:** `sum = Math.fma(x[i], y[i], sum)` kết hợp nhân và cộng ở mỗi bước, giảm một điểm làm tròn so với `sum += x[i] * y[i]`.
-- **Đánh giá đa thức:** bước Horner `value = Math.fma(value, x, coefficient)` khi thích hợp, giảm làm tròn trung gian.
-- **Một số bộ lọc số, tính toán hình học và thuật toán numerical linear algebra**, khi độ chính xác gần máy quan trọng và phân tích số cho thấy việc dùng FMA có lợi.
+- **Dot-product accumulation:** `sum = Math.fma(x[i], y[i], sum)` combines multiplication and addition at each step, removing one rounding point compared to `sum += x[i] * y[i]`.
+- **Polynomial evaluation:** Horner step `value = Math.fma(value, x, coefficient)` when appropriate, reducing intermediate rounding.
+- **Certain digital filters, geometric computations, and numerical linear algebra algorithms**, where precision near machine epsilon matters and numerical analysis shows FMA helps.
 
-**Giới hạn bắt buộc nhớ:**
+**Mandatory limits to remember:**
 
-1. FMA **không làm mọi số thực trở nên biểu diễn chính xác**. Ví dụ `0.1` vẫn không được lưu hoàn toàn chính xác bằng `double`.
-2. Nếu `a`, `b`, `c` đã bị làm tròn hoặc sai từ trước, FMA không thể khôi phục dữ liệu ban đầu.
-3. Chuỗi nhiều phép FMA vẫn **làm tròn sau mỗi lời gọi FMA**; không phải toàn bộ vòng lặp được thực hiện bằng độ chính xác vô hạn.
-4. Kết quả FMA có thể khác kết quả biểu thức cũ theo một hoặc nhiều bit. Đây là khác biệt tính toán có chủ đích; khi đổi mã sản xuất, cần xác nhận việc thay đổi đáp ứng **hợp đồng kết quả và các bài kiểm thử**, đặc biệt nơi tính tái lập bit là yêu cầu.
-5. FMA **không có nghĩa trả số chính xác tuyệt đối cho mọi bài toán** hoặc loại bỏ các vấn đề mất ổn định số, điều kiện bài toán kém hay cancellation ở các bước khác.
+1. FMA **does not make all real numbers exactly representable**. For instance, `0.1` is still not stored completely accurately in `double`.
+2. If `a`, `b`, or `c` was already rounded or inaccurate beforehand, FMA cannot restore the original data.
+3. A chain of multiple FMA calls still **rounds after every FMA call**; the entire loop is not executed in infinite precision.
+4. An FMA result can differ from the old expression by one or more bits. This is an intentional computational difference; when changing production code, verify the change meets **result contracts and tests**, especially where bitwise reproducibility is required.
+5. FMA **does not guarantee exact answers for every problem** or eliminate numerical instability, ill-conditioned problems, or cancellation in other steps.
 
-Về hiệu năng, một số CPU có chỉ thị FMA và JVM có thể tận dụng; nhưng **không nên coi `Math.fma` luôn nhanh hơn** phép nhân/cộng trong mọi môi trường. JVM, kiến trúc, khả năng tối ưu và tải công việc đều ảnh hưởng. Cân nhắc benchmark như JMH khi hiệu năng là mục tiêu chính, và ưu tiên lựa chọn FMA theo **ngữ nghĩa số học** trước.
+Regarding performance, some CPUs have FMA instructions that the JVM can leverage; however, **never assume `Math.fma` is always faster** than multiply/add in every environment. JVM, architecture, optimization capabilities, and workload all affect speed. Consider a benchmark like JMH when performance is a primary goal, and choose FMA based on **numerical semantics** first.
 
-## 11. Ví dụ ứng dụng: dot product và Horner
+## 11. Application Examples: Dot Product and Horner's Method
 
-### Tích vô hướng
+### Dot Product
 
-Một thuật toán thường tính:
+An algorithm commonly computes:
 
 ```java
-// Giả sử x và y là hai mảng double có cùng chiều dài.
+// Assume x and y are two double arrays of the same length.
 double sum = 0.0;
 for (int i = 0; i < x.length; i++) {
     sum = Math.fma(x[i], y[i], sum);
 }
 ```
 
-Đoạn này là **mảnh code** cần đặt trong phương thức có sẵn mảng `x`, `y`. Mỗi bước tính tích một phần tử `x[i] * y[i]` cộng vào `sum`, rồi làm tròn một lần. So với `sum += x[i] * y[i]`, nó loại bỏ một bước làm tròn của tích tại từng vòng.
+This is a **code snippet** that must be placed inside a method where arrays `x` and `y` exist. Each step computes the product `x[i] * y[i]`, adds it to `sum`, and rounds once. Compared to `sum += x[i] * y[i]`, it eliminates one product rounding step on each iteration.
 
-Tuy nhiên, thứ tự các số hạng vẫn có thể ảnh hưởng; khi các giá trị khác bậc độ lớn hoặc có hủy triệt tiêu mạnh, một phương pháp cộng bù (Kahan/Neumaier), chia nhóm hoặc thuật toán số khác có thể cần thiết. Dùng FMA **không tự bảo đảm** kết quả chính xác hoặc độc lập thứ tự phép cộng.
+However, term order can still affect the result; when values span different orders of magnitude or exhibit strong cancellation, a compensated summation method (Kahan/Neumaier), grouping, or another numerical algorithm may be needed. Using FMA **does not automatically guarantee** exact results or summation-order independence.
 
-### Đánh giá đa thức theo Horner
+### Polynomial Evaluation Using Horner's Method
 
-Với `p(x) = a*x*x + b*x + c`, cách Horner là `(a*x + b)*x + c`. Nếu thuật toán muốn dùng FMA tại mỗi bước:
+For `p(x) = a*x*x + b*x + c`, Horner's form is `(a*x + b)*x + c`. If the algorithm wants to use FMA at each step:
 
 ```java
 double result = Math.fma(Math.fma(a, x, b), x, c);
 ```
 
-Đây là **mảnh mã** khi `a`, `b`, `c`, `x` là các biến `double` đã có. Mỗi lời gọi FMA chỉ làm tròn một lần. Kết quả có thể khác `a*x*x + b*x + c` vì **cả cấu trúc đánh giá lẫn số lần làm tròn** đã thay đổi; với bài toán cần kết quả tham chiếu, hãy chọn thứ tự phép tính rõ ràng và kiểm chứng sai số.
+This is a **code snippet** where `a`, `b`, `c`, and `x` are existing `double` variables. Each FMA call rounds only once. The result can differ from `a*x*x + b*x + c` because **both the evaluation structure and the number of roundings** have changed; for problems needing a reference result, pick an explicit order of operations and verify error.
 
-## 12. Khi nào không nên thay `a*b+c` thành `Math.fma(a,b,c)`?
+## 12. When Should You Not Replace `a*b+c` With `Math.fma(a,b,c)`?
 
-Có thể không phù hợp nếu:
+It may be unsuitable if:
 
-- **Yêu cầu tương thích kết quả bit-for-bit** với chương trình từng sử dụng hai phép toán làm tròn riêng. Đổi sang FMA có thể là thay đổi hành vi, dù đôi khi chính xác hơn.
-- **Muốn quan sát hoặc kiểm tra tích trung gian** (`product`) như một kết quả có ý nghĩa riêng; FMA chỉ trả kết quả tổng, không lộ tích đã làm tròn.
-- **Phép toán thuộc hệ số nguyên, decimal exact hoặc tiền tệ**. `Math.fma` là API cho `float` và `double`, không phải `BigDecimal`, không loại bỏ sai số nhị phân của số thập phân; với tài chính có thể cần `BigDecimal` và chính sách `MathContext`/rounding rõ ràng.
-- **Biên `NaN`, Infinity, zero** có ngữ nghĩa nghiệp vụ cần xử lý tường minh. FMA có quy tắc đặc biệt và không tự “sửa” dữ liệu không hợp lệ.
-- **Hiệu năng là lý do duy nhất** nhưng chưa có benchmark trên nền tảng mục tiêu. Tập trung lựa chọn dựa trên độ chính xác và phép đo thực tế.
+- **Bit-for-bit compatibility is required** with a program that used two separate rounded operations. Switching to FMA can be a behavioral change, even if sometimes more accurate.
+- **You want to observe or inspect the intermediate product** (`product`) as a meaningful value on its own; FMA only returns the sum, without exposing the rounded product.
+- **Operations belong to integer, exact decimal, or currency domains.** `Math.fma` is an API for `float` and `double`, not `BigDecimal`, and does not eliminate binary error of decimal numbers; finance may require `BigDecimal` and explicit `MathContext`/rounding policies.
+- **Boundaries like `NaN`, Infinity, and zero** carry business semantics that must be handled explicitly. FMA has special rules and does not automatically "fix" invalid data.
+- **Performance is the sole reason** yet no benchmark has been run on the target platform. Base the choice on accuracy and actual measurements.
 
-Ngược lại, nếu yêu cầu phép toán fused đúng đặc tả và muốn giảm làm tròn trung gian, `Math.fma` là API thể hiện ý định rõ nhất trong Java.
+Conversely, if you want fused semantics per specification and want to reduce intermediate rounding, `Math.fma` is the clearest API to express that intent in Java.
 
-## 13. Những lỗi và nhầm lẫn thường gặp
+## 13. Common Mistakes and Misconceptions
 
-| Nhầm lẫn | Sự thật | Cách xử lý |
+| Misconception | Reality | How to Handle |
 | --- | --- | --- |
-| `Math.fma(a,b,c)` luôn bằng `a*b+c` | Hai bước làm tròn so với một bước có thể khác nhau | Kiểm thử ví dụ cancellation và các biên |
-| FMA “làm tròn tích chính xác hơn” rồi mới cộng | FMA **không làm tròn tích riêng** | Hiểu công thức `round((a×b)+c)` |
-| FMA luôn giảm sai số của cả chương trình | Chỉ bảo đảm ngữ nghĩa của **một phép fused** | Phân tích sai số cả thuật toán |
-| Dùng `double` thì không còn cancellation | `double` vẫn có số bit fraction hữu hạn | Xem ví dụ `-2^-54` |
-| Tràn khi `a*b` nghĩa FMA cũng phải trả Infinity | Nếu `a*b+c` cuối cùng hữu hạn, FMA có thể trả hữu hạn | `Math.fma(MAX,2,-MAX)` |
-| Underflow ở tích nhỏ không quan trọng | Sau khi cộng, phần đóng góp có thể thay đổi việc làm tròn | Thử `Double.MIN_VALUE` |
-| `Math.fma` dùng được cho `BigDecimal` | API chỉ có overload dấu phẩy động | Dùng phương thức `BigDecimal.multiply/add` theo yêu cầu |
-| `Math.fma` biến literal `0.1` thành chính xác | Literal đã làm tròn khi trở thành `double` | Chọn biểu diễn decimal chính xác nếu cần |
-| Thay toàn bộ `a*b+c` là tối ưu hiển nhiên | Có thể đổi bit kết quả; hiệu năng không bất biến | Kiểm thử tính đúng và benchmark |
-| Một kết quả `NaN` nghĩa Java ném lỗi | IEEE 754 có thể trả `NaN` mà không có exception | Dùng `Double.isNaN`/isFinite |
+| `Math.fma(a,b,c)` always equals `a*b+c` | Two roundings vs. one rounding can differ | Test cancellation examples and boundaries |
+| FMA "rounds the product more accurately" and then adds | FMA **does not round the product separately** | Understand the formula `round((a×b)+c)` |
+| FMA always reduces error across the whole program | Only guarantees semantics of **one fused operation** | Analyze error of the entire algorithm |
+| Using `double` eliminates cancellation | `double` still has finite fraction bits | Check the `-2^-54` example |
+| Overflow in `a*b` means FMA must also return Infinity | If `a*b+c` is ultimately finite, FMA can return a finite value | `Math.fma(MAX,2,-MAX)` |
+| Underflow on a small product does not matter | After adding, the contribution can change rounding | Test `Double.MIN_VALUE` |
+| `Math.fma` works for `BigDecimal` | The API only has floating-point overloads | Use `BigDecimal.multiply/add` as required |
+| `Math.fma` makes the `0.1` literal exact | The literal already rounded when becoming `double` | Choose an exact decimal representation if needed |
+| Replacing all `a*b+c` is an obvious optimization | Can change result bits; performance is not invariant | Test correctness and benchmark |
+| A `NaN` result means Java threw an error | IEEE 754 can return `NaN` without an exception | Use `Double.isNaN`/`isFinite` |
 
-## 14. Tự kiểm tra
+## 14. Self-Check
 
-1. **`Math.fma(a,b,c)` khác `a*b+c` ở đâu?** FMA cộng tích chính xác với `c` rồi làm tròn **một lần**; biểu thức thường làm tròn sau nhân và sau cộng.
-2. **Với `a=1+2^-27`, `b=1-2^-27`, `c=-1`, kết quả fused là gì?** `-2^-54`. Nhân rồi cộng cho `0.0` vì mất phần chênh ở bước nhân.
-3. **FMA có thể giúp khi phép nhân riêng overflow không?** Có trong một số trường hợp, ví dụ `Math.fma(Double.MAX_VALUE,2.0,-Double.MAX_VALUE)` trả `Double.MAX_VALUE` hữu hạn.
-4. **FMA có thể tạo kết quả khác ở miền subnormal không?** Có, vì tích rất nhỏ có thể chỉ đóng góp đủ để đổi lựa chọn làm tròn sau khi cộng.
-5. **Khi nào `Math.fma` vẫn trả `NaN`?** Ví dụ khi một đối số là `NaN`, khi nhân vô cực với 0, hoặc khi tích vô cực bị cộng với vô cực trái dấu.
-6. **Nếu `a` đã bị làm tròn từ một số thực nhập vào thì FMA có lấy lại giá trị thực gốc không?** Không. Nó chỉ xử lý chính xác phép fused trên những toán hạng hiện có.
-7. **Đối số đều là `float`, kiểu trả về là gì?** `float` khi overload `Math.fma(float,float,float)` được chọn. Có `double` trong lời gọi thì overload `double` có thể được chọn.
-8. **FMA có nên thay mọi phép tính tiền bằng `double` không?** Không. Yêu cầu thập phân chính xác và chính sách làm tròn cần cách biểu diễn phù hợp, thường là `BigDecimal`.
-9. **FMA có làm toàn bộ vòng lặp dot product tính bằng vô hạn độ chính xác không?** Không. Mỗi lời gọi FMA vẫn làm tròn kết quả một lần, vòng lặp vẫn có thể tích lũy sai số.
+1. **Where does `Math.fma(a,b,c)` differ from `a*b+c`?** FMA adds the exact product to `c` and rounds **once**; the ordinary expression rounds after multiplication and again after addition.
+2. **With `a=1+2^-27`, `b=1-2^-27`, `c=-1`, what is the fused result?** `-2^-54`. Multiply-then-add yields `0.0` because the difference is lost at the multiplication step.
+3. **Can FMA help when standalone multiplication overflows?** Yes in some cases, such as `Math.fma(Double.MAX_VALUE,2.0,-Double.MAX_VALUE)` returning finite `Double.MAX_VALUE`.
+4. **Can FMA produce a different result in the subnormal region?** Yes, because a tiny product may contribute enough to change the rounding choice after addition.
+5. **When does `Math.fma` still return `NaN`?** For example, when an argument is `NaN`, when multiplying infinity by 0, or when an infinite product is added to an infinity of the opposite sign.
+6. **If `a` was already rounded from an input real number, does FMA recover the original true value?** No. It only computes the fused operation accurately on the current operands.
+7. **If all arguments are `float`, what is the return type?** `float` when the `Math.fma(float,float,float)` overload is selected. Having a `double` in the call may select the `double` overload.
+8. **Should FMA replace all currency calculations using `double`?** No. Exact decimal requirements and rounding policies need an appropriate representation, typically `BigDecimal`.
+9. **Does FMA make an entire dot-product loop run at infinite precision?** No. Each FMA call still rounds its result once, so the loop can still accumulate error.
 
-**Ghi nhớ:** `Math.fma(a,b,c)` biểu diễn **fused multiply-add**, tức **một bước làm tròn cuối sau khi nhân và cộng**. Với dữ liệu nhạy ở phần bit thấp hoặc cancellation, kết quả có thể khác hoàn toàn biểu thức `a*b+c` gồm hai bước làm tròn. Dùng FMA để kiểm soát ngữ nghĩa và đôi khi cải thiện độ chính xác, nhưng luôn kiểm tra đầu vào, trường hợp biên và yêu cầu kết quả của ứng dụng.
+**Remember:** `Math.fma(a,b,c)` represents **fused multiply-add**, meaning **one final rounding step after multiplying and adding**. For data sensitive in low-order bits or cancellation, the result can differ completely from `a*b+c` with two rounding steps. Use FMA to control semantics and sometimes improve accuracy, while always validating inputs, boundary cases, and application result requirements.

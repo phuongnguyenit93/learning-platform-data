@@ -1,8 +1,8 @@
-# Phân biệt `&&` với `&` và `||` với `|` — Java 17+
+# Distinguishing `&&` from `&` and `||` from `|` — Java 17+
 
-## 1. Vấn đề cần nắm
+## 1. Key Concept to Master
 
-Trong Java, `&&` và `||` là **toán tử logic ngắn mạch** (*short-circuit*). `&` và `|` cũng có thể thao tác trên `boolean`, nhưng **không ngắn mạch**: vế phải vẫn được đánh giá dù kết quả logic đã được xác định. Khi dùng với kiểu số nguyên, `&` và `|` còn mang ý nghĩa **bitwise**, không phải phép so điều kiện.
+In Java, `&&` and `||` are **short-circuit logical operators**. `&` and `|` can also operate on `boolean`, but they are **non-short-circuiting**: the right-hand side is still evaluated even when the logical result is already determined. When used on integer types, `&` and `|` instead have **bitwise** meaning, not conditional logic.
 
 ~~~java
 boolean a = false;
@@ -14,40 +14,40 @@ System.out.println(b || a); // true
 System.out.println(b | a);  // true
 ~~~
 
-Bốn kết quả trên **giống nhau về giá trị logic**. Sự khác biệt quan trọng không nằm ở bảng chân trị mà ở **vế phải có được đánh giá hay không**. Vế phải có thể gọi method, sửa trạng thái, tốn tài nguyên hoặc ném ngoại lệ.
+The four results above are **identical in logical value**. The critical difference lies not in the truth table, but in **whether the right-hand side is evaluated**. The right-hand side can call a method, mutate state, consume resources, or throw an exception.
 
-**Mục tiêu bài học:** biết chọn đúng toán tử, giải thích thứ tự thực thi, bảo vệ truy cập `null`/mảng, nhận diện side effect, hiểu bitwise trên kiểu nguyên và tránh lỗi do dấu ngoặc/độ ưu tiên.
+**Lesson goal:** know how to choose the right operator, explain execution order, guard `null`/array accesses, recognize side effects, understand bitwise operations on integer types, and avoid bugs from parentheses/precedence.
 
-## 2. Bảng so sánh nhanh
+## 2. Quick Comparison Table
 
-| Toán tử | Toán hạng hợp lệ tiêu biểu | Khi nào bỏ qua vế phải? | Ý nghĩa |
+| Operator | Typical valid operands | When is the right side skipped? | Meaning |
 |---|---|---|---|
-| `&&` | `boolean` / `Boolean` qua unboxing | Khi vế trái `false` | AND ngắn mạch |
-| `&` | `boolean` hoặc số nguyên | **Không bao giờ** bỏ qua theo short-circuit | AND boolean không ngắn mạch hoặc AND từng bit |
-| `||` | `boolean` / `Boolean` qua unboxing | Khi vế trái `true` | OR ngắn mạch |
-| `|` | `boolean` hoặc số nguyên | **Không bao giờ** bỏ qua theo short-circuit | OR boolean không ngắn mạch hoặc OR từng bit |
+| `&&` | `boolean` / `Boolean` via unboxing | When left side is `false` | Short-circuit AND |
+| `&` | `boolean` or integers | **Never** skipped via short-circuiting | Non-short-circuit boolean AND or bitwise AND |
+| `||` | `boolean` / `Boolean` via unboxing | When left side is `true` | Short-circuit OR |
+| `|` | `boolean` or integers | **Never** skipped via short-circuiting | Non-short-circuit boolean OR or bitwise OR |
 
-**Trong bài này, “không ngắn mạch” nghĩa là** khi đã tới phép toán đó trong luồng thực thi bình thường, Java đánh giá cả hai toán hạng theo thứ tự từ trái sang phải. Nếu đánh giá vế trái đã ném exception, quá trình vẫn dừng; không có quy tắc nào buộc vế phải phải chạy sau một exception.
+**In this lesson, "non-short-circuiting" means** when the operation is reached in normal execution flow, Java evaluates both operands in left-to-right order. If evaluating the left side throws an exception, execution still stops; no rule forces the right side to run after an exception.
 
-`&&` và `||` **không áp dụng cho hai toán hạng số nguyên**:
+`&&` and `||` **do not apply to two integer operands**:
 
 ~~~java
 int x = 6, y = 3;
-int bits = x & y; // Hợp lệ
-// int invalid = x && y; // Lỗi compile: toán hạng không phải boolean
+int bits = x & y; // Valid
+// int invalid = x && y; // Compile error: operands are not boolean
 ~~~
 
-Java không coi số nguyên 0 là `false` và số nguyên khác 0 là `true` như trong một số ngôn ngữ khác.
+Java does not treat integer 0 as `false` and non-zero integers as `true` as in some other languages.
 
-## 3. Quy tắc ngắn mạch của `&&`
+## 3. Short-Circuit Rule of `&&`
 
-`left && right` hoạt động như sau:
+`left && right` works as follows:
 
-1. Đánh giá `left`.
-2. Nếu `left` là `false`, **trả `false` ngay**; không đánh giá `right`.
-3. Nếu `left` là `true`, đánh giá `right` và lấy kết quả boolean đó.
+1. Evaluate `left`.
+2. If `left` is `false`, **return `false` immediately**; do not evaluate `right`.
+3. If `left` is `true`, evaluate `right` and take that boolean result.
 
-Ví dụ:
+Example:
 
 ~~~java
 int denominator = 0;
@@ -56,25 +56,25 @@ boolean safe = (denominator != 0) && (10 / denominator > 2);
 System.out.println(safe); // false
 ~~~
 
-Do `denominator != 0` là false, Java **không thực hiện** `10 / denominator`; không có `ArithmeticException`.
+Because `denominator != 0` is false, Java **does not execute** `10 / denominator`; there is no `ArithmeticException`.
 
-### Nếu đổi sang `&` sẽ khác hẳn
+### Changing to `&` behaves completely differently
 
 ~~~java
 int denominator = 0;
 // boolean unsafe = (denominator != 0) & (10 / denominator > 2);
-// Nếu chạy: ArithmeticException (chia số nguyên cho 0).
+// If run: ArithmeticException (integer division by zero).
 ~~~
 
-Với `&` trên boolean, vế phải **bắt buộc được đánh giá** khi vế trái đã hoàn tất bình thường, kể cả khi vế trái false. Đừng coi `&` là cách viết ngắn của `&&`.
+With `&` on booleans, the right side **must be evaluated** once the left side completes normally, even when the left side is false. Do not treat `&` as shorthand for `&&`.
 
-## 4. Quy tắc ngắn mạch của `||`
+## 4. Short-Circuit Rule of `||`
 
-`left || right` hoạt động như sau:
+`left || right` works as follows:
 
-1. Đánh giá `left`.
-2. Nếu `left` là `true`, **trả `true` ngay**; không đánh giá `right`.
-3. Nếu `left` là `false`, đánh giá `right` và lấy kết quả boolean đó.
+1. Evaluate `left`.
+2. If `left` is `true`, **return `true` immediately**; do not evaluate `right`.
+3. If `left` is `false`, evaluate `right` and take that boolean result.
 
 ~~~java
 int denominator = 0;
@@ -84,32 +84,32 @@ boolean invalidOrLarge = (denominator == 0)
 System.out.println(invalidOrLarge); // true
 ~~~
 
-Vế trái true, nên Java **bỏ qua phép chia**.
+The left side is true, so Java **skips the division**.
 
-Nếu đổi sang `|`:
+If changed to `|`:
 
 ~~~java
 // boolean unsafe = (denominator == 0) | (10 / denominator > 2);
-// Nếu chạy: ArithmeticException.
+// If run: ArithmeticException.
 ~~~
 
-**Mẹo nhớ:** `&&` dừng khi thấy false; `||` dừng khi thấy true. `&` và `|` trên boolean không có cơ chế bỏ qua vế phải này.
+**Memory tip:** `&&` stops on false; `||` stops on true. Boolean `&` and `|` do not have this right-side skipping mechanism.
 
 ~~~mermaid
 flowchart TD
-    A["Đánh giá vế trái của &&"] --> B{"left là true?"}
-    B -- "Không" --> C["Trả false; bỏ qua right"]
-    B -- "Có" --> D["Đánh giá right"]
-    E["Đánh giá vế trái của ||"] --> F{"left là true?"}
-    F -- "Có" --> G["Trả true; bỏ qua right"]
-    F -- "Không" --> H["Đánh giá right"]
-    I["& hoặc | trên boolean"] --> J["Đánh giá left rồi right"]
-    J --> K["Tính AND/OR từ hai kết quả"]
+    A["Evaluate left side of &&"] --> B{"Is left true?"}
+    B -- "No" --> C["Return false; skip right"]
+    B -- "Yes" --> D["Evaluate right"]
+    E["Evaluate left side of ||"] --> F{"Is left true?"}
+    F -- "Yes" --> G["Return true; skip right"]
+    F -- "No" --> H["Evaluate right"]
+    I["& or | on boolean"] --> J["Evaluate left then right"]
+    J --> K["Compute AND/OR from both results"]
 ~~~
 
-## 5. `&` và `|` trên boolean có cùng bảng chân trị
+## 5. `&` and `|` on Booleans Share the Same Truth Table
 
-Nếu **cả hai toán hạng là boolean thuần**, không có side effect và không ném lỗi, `&&` và `&` cho cùng giá trị; `||` và `|` cũng vậy.
+If **both operands are pure booleans**, with no side effects and no thrown errors, `&&` and `&` produce the same value; likewise for `||` and `|`.
 
 | `a` | `b` | `a && b` | `a & b` | `a || b` | `a | b` |
 |---|---|---|---|---|---|
@@ -118,20 +118,20 @@ Nếu **cả hai toán hạng là boolean thuần**, không có side effect và 
 | true | false | false | false | true | true |
 | true | true | true | true | true | true |
 
-Vì sao không nên thay bừa?
+Why shouldn't you swap them carelessly?
 
 ~~~java
-boolean result = false && doWork(); // doWork() KHÔNG được gọi
-boolean other = false & doWork();   // doWork() ĐƯỢC gọi
+boolean result = false && doWork(); // doWork() is NOT called
+boolean other = false & doWork();   // doWork() IS called
 ~~~
 
-Trong code thật, `doWork()` có thể cập nhật counter, gọi API bên ngoài hoặc phát sinh exception. Hai lệnh không có cùng hành vi, dù cùng cho giá trị false khi method chạy bình thường.
+In real code, `doWork()` might update a counter, call an external API, or throw an exception. The two statements do not behave identically, even though both return false when the method runs normally.
 
-**Chọn ngắn mạch theo mặc định** khi viết điều kiện thông thường. Chỉ chọn `&`/`|` boolean khi **chủ ý yêu cầu đánh giá cả hai vế** và đã xem xét tác dụng phụ, chi phí và ngoại lệ.
+**Default to short-circuiting** when writing ordinary conditions. Choose boolean `&`/`|` only when you **deliberately require both sides to be evaluated** and have accounted for side effects, cost, and exceptions.
 
-## 6. Thứ tự đánh giá và side effect
+## 6. Evaluation Order and Side Effects
 
-Java đánh giá vế trái trước; khi phải đánh giá vế phải, nó diễn ra **sau vế trái**. Có thể quan sát bằng một method in ra tên:
+Java evaluates the left side first; when the right side must be evaluated, it happens **after the left side**. You can observe this with a method that prints its label:
 
 ~~~java
 static boolean trace(String label, boolean answer) {
@@ -140,7 +140,7 @@ static boolean trace(String label, boolean answer) {
 }
 ~~~
 
-Minh họa:
+Illustration:
 
 ~~~java
 boolean a = false && trace("skip-and", true);
@@ -149,31 +149,31 @@ boolean c = true || trace("skip-or", false);
 boolean d = true | trace("eager-or", false);
 ~~~
 
-Chỉ hai dòng được in:
+Only two lines are printed:
 
 ~~~text
 called eager-and
 called eager-or
 ~~~
 
-Nếu vế trái cũng có side effect:
+If the left side also has a side effect:
 
 ~~~java
 boolean result = trace("left", true) & trace("right", false);
 ~~~
 
-thứ tự là:
+the order is:
 
 ~~~text
 called left
 called right
 ~~~
 
-rồi kết quả boolean của phép `&` là false. **Không có việc hai vế được tính song song chỉ vì dùng `&` hoặc `|`**.
+and then the boolean result of `&` is false. **Both sides are never evaluated in parallel simply because `&` or `|` is used**.
 
-## 7. Guard cho tham chiếu có thể null
+## 7. Guards for Nullable References
 
-Khi viết `text != null && !text.isBlank()`, Java chỉ gọi `isBlank()` nếu `text` không null. Điều kiện đối xứng `text == null || text.isBlank()` cũng an toàn: nếu giá trị null, vế phải của `||` không chạy.
+When writing `text != null && !text.isBlank()`, Java calls `isBlank()` only if `text` is non-null. The symmetric condition `text == null || text.isBlank()` is also safe: if the value is null, the right side of `||` does not run.
 
 ~~~java
 String text = null;
@@ -181,11 +181,11 @@ boolean hasText = text != null && !text.isBlank();  // false
 boolean missing = text == null || text.isBlank();    // true
 ~~~
 
-Nếu thay `&&` bằng `&`, hoặc `||` bằng `|`, lời gọi trên null vẫn diễn ra và có thể gây `NullPointerException`. Với `Boolean enabled = null`, phép unboxing cũng có rủi ro tương tự; `enabled != null && enabled` hoặc `Boolean.TRUE.equals(enabled)` diễn đạt rõ chính sách cho phép true. Bài **Dùng ngắn mạch để kiểm tra null và giới hạn mảng** hướng dẫn các guard nhiều tầng; ở đây trọng tâm là **sự khác biệt về đánh giá giữa hai cặp toán tử**.
+Replacing `&&` with `&`, or `||` with `|`, still executes the call on null and can throw `NullPointerException`. With `Boolean enabled = null`, unboxing carries the same risk; `enabled != null && enabled` or `Boolean.TRUE.equals(enabled)` clearly expresses the policy for allowing true. The lesson **Using Short-Circuiting for Null Checks and Array Bounds** covers multi-level guards; here the focus is the **evaluation difference between the two operator pairs**.
 
-## 8. Mảng: thứ tự guard thay đổi hành vi
+## 8. Arrays: Guard Order Changes Behavior
 
-Một chỉ số hợp lệ phải không âm và nhỏ hơn độ dài mảng; với mảng nullable, kiểm tra tham chiếu trước:
+A valid index must be non-negative and less than the array length; for nullable arrays, check the reference first:
 
 ~~~java
 static boolean positiveAt(int[] array, int index) {
@@ -196,11 +196,11 @@ static boolean positiveAt(int[] array, int index) {
 }
 ~~~
 
-Viết các dấu `&` thay cho `&&` khiến Java có thể đánh giá `array.length` ngay cả khi mảng null, hoặc `array[index]` dù chỉ số ngoài miền, rồi ném ngoại lệ. Ví dụ này đủ để so sánh toán tử; kiểm tra phần tử nullable, mảng hai chiều, các ca biên và cách chọn guard clause được thực hành trong bài riêng ở hàng về **null và giới hạn mảng**.
+Writing `&` instead of `&&` lets Java evaluate `array.length` even when the array is null, or `array[index]` even when the index is out of bounds, throwing an exception. This example suffices to compare the operators; checking nullable elements, two-dimensional arrays, boundary cases, and choosing guard clauses are practiced in the dedicated lesson on **null and array bounds**.
 
-## 9. Khi nào thật sự muốn đánh giá cả hai vế?
+## 9. When Do You Truly Want Both Sides Evaluated?
 
-Đôi khi hai phép kiểm tra **độc lập** cần được thực hiện dù kiểm tra đầu không đạt, ví dụ ghi nhận đầy đủ lỗi đầu vào:
+Sometimes two **independent** checks must both run even if the first check fails—for example, collecting all input validation errors:
 
 ~~~java
 boolean hasName = validateName();
@@ -208,21 +208,21 @@ boolean hasEmail = validateEmail();
 boolean allValid = hasName && hasEmail;
 ~~~
 
-Hai method được gọi **một lần mỗi method**, sau đó `&&` chỉ nối hai giá trị boolean đã tính. Cách này thường **rõ chủ đích hơn**:
+Both methods are called **once each**, and then `&&` simply combines the two precomputed boolean values. This approach usually **shows intent more clearly** than:
 
 ~~~java
 boolean allValid = validateName() & validateEmail();
 ~~~
 
-Dòng thứ hai có thể hợp lệ nếu API thật sự muốn **cả hai method chạy**, nhưng kém rõ ràng đối với người đọc vốn quen `&` như toán tử bitwise. Khi việc chạy đầy đủ quan trọng, cách tách method thành các câu lệnh giúp bảo trì, test và log dễ hơn.
+The second line may be valid if the API genuinely wants **both methods to run**, but it is less clear to readers accustomed to `&` as a bitwise operator. When running everything is important, splitting method calls into separate statements makes maintenance, testing, and logging easier.
 
-**Cẩn thận:** Nếu `validateName()` ném exception, Java không tiếp tục gọi `validateEmail()` trong **cả hai mẫu** trên nếu không có xử lý exception thích hợp. “Không ngắn mạch” không đồng nghĩa “luôn gọi đủ hai method bất kể lỗi”.
+**Caution:** If `validateName()` throws an exception, Java does not proceed to call `validateEmail()` in **either** pattern above without appropriate exception handling. "Non-short-circuiting" does not mean "always call both methods regardless of errors".
 
-## 10. `&` và `|` còn là toán tử bitwise trên số nguyên
+## 10. `&` and `|` Are Also Bitwise Operators on Integers
 
-Khác với `&&`/`||`, toán tử `&`/`|` cũng có ý nghĩa bitwise với `byte`, `short`, `char`, `int`, `long` (sau numeric promotion).
+Unlike `&&`/`||`, the `&`/`|` operators also have bitwise meaning for `byte`, `short`, `char`, `int`, and `long` (after numeric promotion).
 
-Ví dụ:
+Example:
 
 ~~~java
 int a = 0b1100; // 12
@@ -232,7 +232,7 @@ System.out.println(a & b); // 8: 1000
 System.out.println(a | b); // 14: 1110
 ~~~
 
-Biểu diễn:
+Representation:
 
 ~~~text
   1100 (12)
@@ -244,10 +244,10 @@ Biểu diễn:
 = 1110 (14)
 ~~~
 
-- Bitwise AND `&`: bit kết quả là 1 **khi cả hai bit ở cùng vị trí là 1**.
-- Bitwise OR `|`: bit kết quả là 1 **khi ít nhất một bit ở vị trí đó là 1**.
+- Bitwise AND `&`: the resulting bit is 1 **when both bits at the same position are 1**.
+- Bitwise OR `|`: the resulting bit is 1 **when at least one bit at that position is 1**.
 
-Một ứng dụng thực tế là kiểm tra flag:
+A practical application is checking a flag:
 
 ~~~java
 int flags = 0b1100;
@@ -255,22 +255,22 @@ boolean hasRead = (flags & 0b0100) != 0;
 System.out.println(hasRead); // true
 ~~~
 
-**Dấu ngoặc cần thiết để thể hiện ý định:** `(flags & 0b0100) != 0` là phép AND bit trước rồi so khác 0. Dùng `&&` trực tiếp giữa hai số nguyên sẽ lỗi compile.
+**Parentheses are necessary to express intent:** `(flags & 0b0100) != 0` performs the bitwise AND first and then compares against 0. Using `&&` directly between two integers causes a compile error.
 
-## 11. Độ ưu tiên toán tử và dấu ngoặc
+## 11. Operator Precedence and Parentheses
 
-Các toán tử có **độ ưu tiên khác nhau**. Với các nhóm đang học, theo thứ tự từ cao xuống thấp:
+Operators have **different precedence levels**. For the groups being studied, from highest to lowest:
 
-| Nhóm toán tử | Ví dụ | Ghi chú |
+| Operator group | Examples | Notes |
 |---|---|---|
-| So sánh bằng | `==`, `!=` | Ưu tiên cao hơn bitwise AND/OR |
-| Bitwise/boolean AND | `&` | Ưu tiên cao hơn `^` và `|` |
-| Bitwise/boolean XOR | `^` | Nằm giữa `&` và `|` |
-| Bitwise/boolean OR | `|` | Ưu tiên cao hơn `&&` |
-| AND ngắn mạch | `&&` | Ưu tiên cao hơn `||` |
-| OR ngắn mạch | `||` | Thấp hơn `&&` |
+| Equality comparison | `==`, `!=` | Higher precedence than bitwise AND/OR |
+| Bitwise/boolean AND | `&` | Higher precedence than `^` and `|` |
+| Bitwise/boolean XOR | `^` | Between `&` and `|` |
+| Bitwise/boolean OR | `|` | Higher precedence than `&&` |
+| Short-circuit AND | `&&` | Higher precedence than `||` |
+| Short-circuit OR | `||` | Lower than `&&` |
 
-Ví dụ:
+Example:
 
 ~~~java
 boolean a = true;
@@ -281,38 +281,38 @@ System.out.println(a || b && c);   // true: a || (b && c)
 System.out.println((a || b) && c); // false
 ~~~
 
-**Đặt ngoặc theo yêu cầu nghiệp vụ** khi trộn `&&` và `||`, hoặc `&`, `|` với so sánh số. Dấu ngoặc không tự biến `&` thành ngắn mạch và cũng không xóa side effect.
+**Place parentheses according to business requirements** when mixing `&&` and `||`, or `&`/`|` with numeric comparisons. Parentheses do not turn `&` into a short-circuit operator and do not eliminate side effects.
 
-Lưu ý toán tử `!` (phủ định) áp dụng trên boolean: `!(a && b)` tương đương `!a || !b` về kết quả logic. Tuy nhiên, khi các toán hạng có side effect, **cần giữ thứ tự và số lần đánh giá** khi refactor.
+Note the `!` (negation) operator applied to booleans: `!(a && b)` is logically equivalent to `!a || !b`. However, when operands have side effects, **evaluation order and call counts must be preserved** when refactoring.
 
-## 12. Phép gán kết hợp `&=` và `|=` cũng không ngắn mạch
+## 12. Compound Assignments `&=` and `|=` Are Also Non-Short-Circuiting
 
-Trên biến `boolean`:
+On `boolean` variables:
 
 ~~~java
 boolean good = false;
-good &= expensiveCheck(); // expensiveCheck() vẫn chạy
+good &= expensiveCheck(); // expensiveCheck() still runs
 
 boolean ready = true;
-ready |= expensiveCheck(); // expensiveCheck() vẫn chạy
+ready |= expensiveCheck(); // expensiveCheck() still runs
 ~~~
 
-`&=`/`|=` là **compound assignment** ứng với `&`/`|`, không phải `&&`/`||`.
+`&=`/`|=` are **compound assignments** corresponding to `&`/`|`, not `&&`/`||`.
 
-Java **không có** các toán tử `&&=` hoặc `||=`.
+Java **does not have** `&&=` or `||=` operators.
 
-Nếu mục tiêu là giữ ngắn mạch và cập nhật biến:
+If the goal is to keep short-circuiting while updating the variable:
 
 ~~~java
 good = good && expensiveCheck();
 ready = ready || expensiveCheck();
 ~~~
 
-Tuy nhiên, đây là **thay đổi ngữ nghĩa** nếu code gốc cần thực hiện `expensiveCheck()` dù giá trị `good`/ `ready` đã quyết định kết quả. Chỉ refactor sau khi xác nhận điều đó.
+However, this is a **semantic change** if the original code needed `expensiveCheck()` to run even when the value of `good`/`ready` already determined the result. Refactor only after confirming that.
 
-## 13. Tách việc cập nhật trạng thái khỏi guard
+## 13. Separating State Updates from Guards
 
-Toán tử ngắn mạch không tự sửa lỗi khi guard **thay đổi chính chỉ số đang kiểm tra**. Với `index = 1` và `values.length = 2`, phép `index++ < values.length` đúng rồi tăng `index` lên 2, khiến lần đọc `values[index]` tiếp theo vượt miền.
+Short-circuit operators do not fix bugs when a guard **mutates the very index being checked**. With `index = 1` and `values.length = 2`, `index++ < values.length` evaluates to true and then increments `index` to 2, causing the subsequent `values[index]` read to go out of bounds.
 
 ~~~java
 int[] values = {10, 20};
@@ -320,15 +320,15 @@ int index = 1;
 boolean valid = index >= 0 && index < values.length;
 if (valid) {
     int current = values[index];
-    index++; // Tách thay đổi khỏi điều kiện bảo vệ.
+    index++; // Separate the mutation from the guard condition.
 }
 ~~~
 
-Guard cũng không tạo tính nguyên tử trước thay đổi từ thread khác; khi chia sẻ dữ liệu, cần đồng bộ hoặc snapshot đúng cách. Trọng tâm so sánh ở đây là **trình tự và số lần đánh giá**, không chỉ bảng chân trị.
+Guards also do not provide atomicity against modifications from other threads; when sharing data, use proper synchronization or snapshotting. The comparison focus here is **evaluation order and count**, not just the truth table.
 
-## 14. Chương trình Java 17 hoàn chỉnh, chạy độc lập
+## 14. Complete, Standalone Java 17 Program
 
-Lưu file đúng tên **`ShortCircuitVsEagerDemo.java`**:
+Save the file as **`ShortCircuitVsEagerDemo.java`**:
 
 ~~~java
 public final class ShortCircuitVsEagerDemo {
@@ -442,7 +442,7 @@ public final class ShortCircuitVsEagerDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 trở lên, terminal ở thư mục chứa file. Không cần Maven, Gradle hay thư viện ngoài JDK.
+**Requirements:** JDK 17 or later, terminal in the directory containing the file. No Maven, Gradle, or external libraries needed.
 
 **Bash (Linux/macOS):**
 
@@ -499,41 +499,41 @@ called compound-or
 compound |=true
 ~~~
 
-### Đối chiếu ý nghĩa của output
+### Verifying the Meaning of the Output
 
-1. Bốn dòng đầu chứng minh `&&`/`&`, `||`/`|` có **cùng bảng chân trị** trên boolean thuần.
-2. Không có `called skip-and` hoặc `called skip-or`: vế phải của `&&`/`||` đã bị bỏ qua.
-3. `called eager-and` và `called eager-or` xuất hiện: `&`/`|` boolean vẫn đánh giá vế phải.
-4. `called left` trước `called right`: hai toán hạng của phép `&` được đánh giá từ trái sang phải.
-5. Guard chia nguyên và null tránh exception; dùng eager boolean thì exception xuất hiện như in ra.
-6. Wrapper `Boolean` null được bỏ qua bởi ngắn mạch nhưng gây NPE nếu buộc phải unbox.
-7. Mảng truy cập an toàn nhờ đủ ba điều kiện; toán tử `&` với chỉ số ngoài miền gây exception.
-8. `0b1100 & 0b1010 = 8`; `0b1100 | 0b1010 = 14`; đây là **bitwise**, không phải boolean short-circuit.
-9. Hai dòng precedence khác nhau vì dấu ngoặc thay đổi nhóm logic.
-10. Compound `&=`/`|=` vẫn gọi method ở vế phải, kể cả khi giá trị biến đã quyết định kết quả.
+1. The first four lines confirm `&&`/`&` and `||`/`|` share the **same truth table** on pure booleans.
+2. Neither `called skip-and` nor `called skip-or` appears: the right side of `&&`/`||` was skipped.
+3. `called eager-and` and `called eager-or` appear: boolean `&`/`|` still evaluate the right side.
+4. `called left` precedes `called right`: both operands of `&` are evaluated left to right.
+5. Integer-division and null guards avoid exceptions; with eager boolean operators, the exceptions occur as printed.
+6. A null `Boolean` wrapper is skipped by short-circuiting, but causes NPE if forced to unbox.
+7. The array is accessed safely thanks to all three checks; `&` with an out-of-bounds index throws an exception.
+8. `0b1100 & 0b1010 = 8`; `0b1100 | 0b1010 = 14`; these are **bitwise**, not boolean short-circuit operations.
+9. The two precedence lines differ because parentheses alter logical grouping.
+10. Compound `&=`/`|=` still call the method on the right side, even when the variable's value already determines the result.
 
-## 15. Lỗi thường gặp và cách xử lý
+## 15. Common Mistakes and How to Handle Them
 
-| Lỗi / ngộ nhận | Vì sao sai? | Hướng xử lý |
+| Mistake / misconception | Why is it wrong? | How to handle |
 |---|---|---|
-| `&&` và `&` boolean giống nhau trong mọi trường hợp | `&` đánh giá cả vế phải | Dùng `&&` nếu cần short-circuit |
-| `||` và `|` boolean giống nhau trong mọi trường hợp | `|` đánh giá cả vế phải | Dùng `||` nếu cần short-circuit |
-| `obj != null & obj.ready()` | Gọi method trên null | `obj != null && obj.ready()` |
-| `array == null | array.length == 0` | Có thể đọc length của null | `array == null || array.length == 0` |
-| `i < array.length && array[i] > 0` | Chưa kiểm tra `i >= 0` | Thêm guard chỉ số âm |
-| Dùng `&` để buộc cả hai validation chạy, nhưng không xét exception | Exception vế trái vẫn dừng toàn biểu thức | Gọi từng validation có xử lý lỗi phù hợp |
-| Nghĩ `&`/`|` chạy hai vế đồng thời | Java đánh giá tuần tự từ trái sang phải | Không giả định parallel |
-| `int result = a && b;` | `&&` không thao tác trên int | `a & b` nếu mục tiêu là bitwise |
-| `flags & MASK != 0` viết không ngoặc | Dễ hiểu nhầm precedence; có thể lỗi kiểu | `(flags & MASK) != 0` |
-| `a || b && c` xem như `(a || b) && c` | `&&` ưu tiên cao hơn `||` | Dùng ngoặc theo ý định |
-| `Boolean flag = null; false & flag` | Vế phải bị unbox dù vế trái false | Dùng `false && flag` nếu thật sự muốn skip |
-| `flag &= check()` là ngắn mạch | `&=` không short-circuit | `flag = flag && check()` khi phù hợp |
-| Đưa `index++` vào điều kiện guard | Chỉ số đổi trước lần đọc sau | Tách cập nhật thành câu lệnh riêng |
-| Tin rằng short-circuit tạo thread safety | Guard không đồng bộ trạng thái giữa thread | Có chính sách đồng bộ/ownership |
+| Boolean `&&` and `&` are identical in all cases | `&` evaluates the right side too | Use `&&` when short-circuiting is needed |
+| Boolean `||` and `|` are identical in all cases | `|` evaluates the right side too | Use `||` when short-circuiting is needed |
+| `obj != null & obj.ready()` | Calls method on null | `obj != null && obj.ready()` |
+| `array == null | array.length == 0` | May read length of null | `array == null || array.length == 0` |
+| `i < array.length && array[i] > 0` | Missing `i >= 0` check | Add negative-index guard |
+| Using `&` to force both validations to run without considering exceptions | Left-side exception still aborts the whole expression | Call each validation with proper error handling |
+| Thinking `&`/`|` evaluate both sides concurrently | Java evaluates sequentially from left to right | Do not assume parallelism |
+| `int result = a && b;` | `&&` does not operate on int | Use `a & b` if bitwise is intended |
+| `flags & MASK != 0` without parentheses | Easy to misread precedence; can cause type error | `(flags & MASK) != 0` |
+| Treating `a || b && c` as `(a || b) && c` | `&&` has higher precedence than `||` | Use parentheses per intent |
+| `Boolean flag = null; false & flag` | Right side is unboxed even though left side is false | Use `false && flag` if skipping is truly wanted |
+| `flag &= check()` is short-circuiting | `&=` does not short-circuit | `flag = flag && check()` when appropriate |
+| Putting `index++` inside guard condition | Index changes before subsequent read | Move update to a separate statement |
+| Believing short-circuiting provides thread safety | Guards do not synchronize state across threads | Apply synchronization/ownership policies |
 
-## 16. Bài tập có đáp án
+## 16. Exercises with Answers
 
-### Bài A — null guard
+### Exercise A — null guard
 
 ~~~java
 String text = null;
@@ -541,9 +541,9 @@ boolean result = text != null && text.length() > 0;
 System.out.println(result);
 ~~~
 
-**Đáp án:** `false`, không ném NPE. Nếu đổi `&&` thành `&`, vế phải vẫn chạy và có thể ném NPE.
+**Answer:** `false`, does not throw NPE. If `&&` is changed to `&`, the right side still runs and can throw NPE.
 
-### Bài B — OR ngắn mạch
+### Exercise B — short-circuit OR
 
 ~~~java
 int divisor = 0;
@@ -551,9 +551,9 @@ boolean invalid = divisor == 0 || 10 / divisor > 2;
 System.out.println(invalid);
 ~~~
 
-**Đáp án:** `true`; phép chia không chạy. Với `|`, phép chia sẽ được đánh giá và ném `ArithmeticException`.
+**Answer:** `true`; the division does not run. With `|`, the division is evaluated and throws `ArithmeticException`.
 
-### Bài C — side effect
+### Exercise C — side effect
 
 ~~~java
 int[] calls = {0};
@@ -562,16 +562,16 @@ System.out.println(result);
 System.out.println(calls[0]);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 false
 1
 ~~~
 
-Dù vế trái false, `&` vẫn tăng bộ đếm. Nếu thay bằng `&&`, kết quả false nhưng bộ đếm là 0.
+Even though the left side is false, `&` still increments the counter. If replaced with `&&`, the result is false and the counter stays 0.
 
-### Bài D — bitwise
+### Exercise D — bitwise
 
 ~~~java
 int a = 0b0101;
@@ -580,16 +580,16 @@ System.out.println(a & b);
 System.out.println(a | b);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 1
 7
 ~~~
 
-Đây là phép toán trên **các bit**, không phải logic `&&`/`||`.
+These are operations on **bits**, not `&&`/`||` logic.
 
-### Bài E — compound assignment
+### Exercise E — compound assignment
 
 ~~~java
 int[] calls = {0};
@@ -599,20 +599,20 @@ System.out.println(ready);
 System.out.println(calls[0]);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 true
 1
 ~~~
 
-`|=` vẫn đánh giá vế phải. Nếu chỉ muốn tăng khi `ready` false, có thể xem xét `ready = ready || (++calls[0] > 0);`, nhưng phải bảo đảm việc thay đổi side effect là đúng yêu cầu.
+`|=` still evaluates the right side. If you only want to increment when `ready` is false, you could consider `ready = ready || (++calls[0] > 0);`, while ensuring the change in side effect matches requirements.
 
-### Bài F — chọn cách kiểm tra đủ hai trường
+### Exercise F — choosing how to validate both fields
 
-Yêu cầu chạy cả `validateName()` và `validateEmail()` để thu thập thông báo lỗi từ mỗi hàm. Nên viết gì?
+Requirement: run both `validateName()` and `validateEmail()` to collect error messages from each method. What should be written?
 
-**Một đáp án dễ đọc:**
+**A readable answer:**
 
 ~~~java
 boolean nameValid = validateName();
@@ -620,22 +620,22 @@ boolean emailValid = validateEmail();
 boolean valid = nameValid && emailValid;
 ~~~
 
-Hai lời gọi độc lập đều chạy khi thực hiện bình thường; biểu thức cuối chỉ tổng hợp boolean. Nếu từng validator có thể ném exception, cần xử lý exception theo hợp đồng để bảo đảm mục tiêu thu thập đủ lỗi.
+Both independent calls run during normal execution; the final expression only combines the booleans. If each validator can throw an exception, handle exceptions according to the contract to ensure all errors are still collected.
 
-## 17. Checklist và kết luận
+## 17. Checklist and Conclusion
 
-- [ ] Biết `&&` bỏ qua vế phải khi trái false, còn `||` bỏ qua vế phải khi trái true.
-- [ ] Biết `&`/`|` trên boolean **luôn đánh giá vế phải khi phép toán được thực hiện bình thường**.
-- [ ] Phân biệt cùng **kết quả bảng chân trị** với khác **side effect/exception/chi phí**.
-- [ ] Biết Java đánh giá vế trái trước vế phải, không tự chạy song song.
-- [ ] Dùng `&&` cho null guard, index guard và phép toán có thể lỗi.
-- [ ] Dùng `||` cho điều kiện loại trừ: null hoặc giá trị không hợp lệ.
-- [ ] Tránh dùng `&`/`|` boolean thay toán tử ngắn mạch trong guard.
-- [ ] Nhớ `&`/`|` còn là bitwise trên kiểu số nguyên.
-- [ ] Dùng ngoặc khi kết hợp bitwise với so sánh và khi trộn `&&`/`||`.
-- [ ] Biết `&=`/`|=` không ngắn mạch; Java không có `&&=`/`||=`.
-- [ ] Không dùng side effect như `index++` làm thay đổi trạng thái giữa guard và truy cập.
-- [ ] Hiểu short-circuit không thay thế xử lý exception hoặc đồng bộ đa luồng.
-- [ ] Chạy `ShortCircuitVsEagerDemo.java` bằng Java 17+ và đối chiếu từng dòng stdout.
+- [ ] Know that `&&` skips the right side when the left is false, while `||` skips the right side when the left is true.
+- [ ] Know that boolean `&`/`|` **always evaluate the right side when the operation executes normally**.
+- [ ] Distinguish matching **truth-table results** from differing **side effects/exceptions/costs**.
+- [ ] Know that Java evaluates left before right, never running both in parallel automatically.
+- [ ] Use `&&` for null guards, index guards, and potentially failing operations.
+- [ ] Use `||` for exclusion conditions: null or invalid values.
+- [ ] Avoid using boolean `&`/`|` in place of short-circuit operators inside guards.
+- [ ] Remember `&`/`|` are also bitwise on integer types.
+- [ ] Use parentheses when combining bitwise ops with comparisons and when mixing `&&`/`||`.
+- [ ] Know `&=`/`|=` do not short-circuit; Java has no `&&=`/`||=`.
+- [ ] Do not use side effects like `index++` to mutate state between a guard and an access.
+- [ ] Understand short-circuiting does not replace exception handling or multithreaded synchronization.
+- [ ] Run `ShortCircuitVsEagerDemo.java` with Java 17+ and verify each stdout line.
 
-**Kết luận:** `&&` và `||` là lựa chọn mặc định cho **điều kiện logic có bảo vệ**, vì Java bảo đảm bỏ qua vế phải khi kết quả đã được quyết định. `&` và `|` trên boolean cho cùng bảng chân trị nhưng **đánh giá cả hai vế**, nên có thể làm thay đổi tác dụng phụ và ngoại lệ; trên số nguyên, chúng là **toán tử bitwise**. Chọn toán tử dựa trên **ngữ nghĩa đánh giá** chứ không chỉ nhìn vào kết quả true/false.
+**Conclusion:** `&&` and `||` are the default choice for **guarded logical conditions**, because Java guarantees skipping the right side once the result is determined. `&` and `|` on booleans have the same truth table but **evaluate both sides**, which can alter side effects and exceptions; on integers, they are **bitwise operators**. Choose operators based on **evaluation semantics**, not just true/false output.

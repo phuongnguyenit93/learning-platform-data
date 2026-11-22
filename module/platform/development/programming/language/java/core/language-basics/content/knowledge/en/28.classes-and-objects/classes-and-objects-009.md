@@ -1,37 +1,37 @@
-# Từ chương trình chỉ có `main` tới chương trình có nhiều lớp — Java 17+
+# From a `main`-Only Program to a Multi-Class Program — Java 17+
 
-> **Java core — language-basics / Lớp và đối tượng**  
-> **Yêu cầu:** JDK 17+, không dùng thư viện ngoài hoặc công cụ build.  
-> **Mục tiêu:** Biết khi nào chương trình một `main` bắt đầu khó bảo trì; chuyển dữ liệu và hành vi liên quan vào lớp riêng; tạo đối tượng bằng `new`, gọi phương thức qua dấu chấm, biên dịch nhiều file `.java` và chạy đúng lớp có `main`.
+> **Java core — language-basics / Classes and Objects**  
+> **Requirements:** JDK 17+, no external libraries or build tools.  
+> **Goal:** Know when a single-`main` program becomes hard to maintain; move related data and behavior into separate classes; create objects with `new`, invoke methods via dot notation, compile multiple `.java` files, and run the class containing `main`.
 
-## 1. Vì sao ban đầu chỉ cần một `main`?
+## 1. Why Start with Just One `main`?
 
-Một chương trình Java rất nhỏ có thể đặt tất cả công việc trong `main`:
+A very small Java program can place all its work inside `main`:
 
 ~~~java
 public final class Hello {
     public static void main(String[] args) {
         String name = "Lan";
-        System.out.println("Xin chào " + name);
+        System.out.println("Hello " + name);
     }
 }
 ~~~
 
-`main(String[] args)` là điểm bắt đầu quen thuộc khi chạy một lớp từ lệnh `java Hello`. Nó là phương thức `static`, vì Java launcher không cần tạo đối tượng `Hello` để gọi vào điểm bắt đầu này.
+`main(String[] args)` is the familiar entry point when running a class via `java Hello`. It is a `static` method because the Java launcher does not need to create a `Hello` object to invoke this entry point.
 
-Khi ứng dụng chỉ thực hiện vài lệnh tuần tự, một `main` ngắn, rõ ràng là hợp lý. Nhưng nếu `main` vừa lưu dữ liệu, vừa kiểm tra hợp lệ, vừa tính toán, vừa in ra màn hình, các thay đổi sau này sẽ dễ làm ảnh hưởng nhiều phần khác nhau.
+When an application only performs a few sequential statements, a short, clear `main` makes sense. However, if `main` stores data, validates inputs, performs calculations, and prints to the screen all at once, future changes will easily affect many unrelated parts.
 
-Bài này dùng cùng một yêu cầu đơn giản cho hai phiên bản:
+This lesson uses the same simple requirement for both versions:
 
-- Có hai học viên: **Lan** đạt 7 điểm, **Minh** đạt 9 điểm.
-- Cộng thêm 1 điểm cho Lan.
-- In điểm từng người và điểm trung bình của lớp.
+- There are two students: **Lan** with score 7, **Minh** with score 9.
+- Add 1 point to Lan.
+- Print each student's score and the class average.
 
-Kết quả của cả hai phiên bản phải **giống nhau**; mục tiêu của việc tách lớp là làm cấu trúc tốt hơn, không thay đổi nghiệp vụ.
+The output of both versions must be **identical**; the goal of splitting classes is better structure, not changing business behavior.
 
-## 2. Phiên bản đầu: tất cả logic nằm trong `main`
+## 2. First Version: All Logic Inside `main`
 
-Tạo file **MainOnly.java**:
+Create file **MainOnly.java**:
 
 ~~~java
 public final class MainOnly {
@@ -39,15 +39,15 @@ public final class MainOnly {
         String[] names = {"Lan", "Minh"};
         int[] scores = {7, 9};
 
-        // Thay đổi điểm Lan.
+        // Update Lan's score.
         scores[0] += 1;
 
-        // In điểm của từng học viên.
+        // Print each student's score.
         for (int i = 0; i < names.length; i++) {
             System.out.println(names[i] + "=" + scores[i]);
         }
 
-        // Tính và in điểm trung bình.
+        // Compute and print the average score.
         int total = 0;
         for (int score : scores) {
             total += score;
@@ -57,14 +57,14 @@ public final class MainOnly {
 }
 ~~~
 
-Biên dịch và chạy tại thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Compile and run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 MainOnly.java
 java MainOnly
 ~~~
 
-**Expected stdout:**
+**Exact expected stdout:**
 
 ~~~text
 Lan=8
@@ -72,45 +72,45 @@ Minh=9
 average=8.5
 ~~~
 
-Cú pháp `(double) total / scores.length` bảo đảm phép chia ra kết quả thập phân; nếu dùng `int / int`, phép chia nguyên sẽ loại bỏ phần thập phân.
+The syntax `(double) total / scores.length` ensures division yields a decimal result; using `int / int` would perform integer division and drop the fractional part.
 
-Phiên bản một lớp **không sai**. Nhưng khi cần thêm học viên, kiểm tra điểm từ 0 đến 10, lưu thông tin khác hoặc tái sử dụng cách tính trung bình ở nhiều nơi, những dòng mã này bắt đầu có vấn đề:
+The single-class version is **not wrong**. However, when you need to add students, validate scores from 0 to 10, store additional information, or reuse the average calculation across multiple places, those lines of code begin to cause problems:
 
-| Phần hiện tại | Vấn đề khi mở rộng |
+| Current part | Problem when scaling |
 | --- | --- |
-| `names[i]` và `scores[i]` | Hai mảng song song phải luôn cùng độ dài, cùng vị trí |
-| `scores[0] += 1` | Bất kỳ đoạn mã nào cũng có thể gán điểm ngoài giới hạn |
-| Vòng lặp in điểm | Logic trình bày và xử lý dữ liệu nằm lẫn trong `main` |
-| Phép tính trung bình | Dễ phải sao chép khi màn hình/chức năng khác cũng cần |
-| Chỉ số `0` gắn với Lan | Thay thứ tự học viên có thể khiến thao tác đổi nhầm người |
+| `names[i]` and `scores[i]` | Two parallel arrays must always stay the same length and aligned by index |
+| `scores[0] += 1` | Any code snippet can assign an out-of-range score |
+| Score-printing loop | Presentation logic and data processing are mixed in `main` |
+| Average calculation | Easy to end up copying it when another screen/feature needs it too |
+| Index `0` tied to Lan | Changing student order could cause updates to hit the wrong person |
 
-Hướng cải thiện: gom **tên + điểm + quy tắc thay đổi điểm** thành một đối tượng `Student`; gom **danh sách học viên + tính trung bình + in danh sách** thành một đối tượng `Classroom`; giữ `main` ở lớp điều phối `SchoolApp`.
+Improvement direction: group **name + score + score-change rules** into a `Student` object; group **student list + average calculation + printing list** into a `Classroom` object; keep `main` in the coordinator class `SchoolApp`.
 
-## 3. Nhận diện trách nhiệm của từng lớp
+## 3. Identifying Each Class's Responsibility
 
-| Lớp | Trạng thái / vai trò | Hành vi chính |
+| Class | State / Role | Main behavior |
 | --- | --- | --- |
-| `Student` | Tên và điểm của **một học viên** | Tạo học viên, đọc tên/điểm, tăng điểm có kiểm tra |
-| `Classroom` | Các tham chiếu học viên trong **một lớp học** | In danh sách và tính điểm trung bình |
-| `SchoolApp` | Điểm bắt đầu chạy chương trình | Tạo đối tượng, phối hợp lời gọi, in kết quả tổng hợp |
+| `Student` | Name and score of **one student** | Create student, read name/score, increase score with validation |
+| `Classroom` | Student references in **one classroom** | Print list and compute average score |
+| `SchoolApp` | Program entry point | Create objects, coordinate calls, print overall results |
 
-Cấu trúc thư mục đơn giản, mọi file nằm cùng một thư mục và **không khai báo `package`** trong ví dụ:
+Simple folder layout, all files in the same directory and **no `package` declaration** in the example:
 
 ~~~text
 study/
-├── MainOnly.java      # Phiên bản một main để so sánh.
-├── Student.java       # Đối tượng học viên.
-├── Classroom.java     # Danh sách học viên và phép tính.
-└── SchoolApp.java     # Main điều phối phiên bản nhiều lớp.
+├── MainOnly.java      # Single-main version for comparison.
+├── Student.java       # Student object.
+├── Classroom.java     # Student list and calculations.
+└── SchoolApp.java     # Main coordinating the multi-class version.
 ~~~
 
-Có thể giữ `MainOnly.java` để học đối chiếu; khi chạy `SchoolApp`, JVM không tự chạy `MainOnly.main`.
+You can keep `MainOnly.java` for comparison; when running `SchoolApp`, the JVM does not automatically execute `MainOnly.main`.
 
-Không phải cứ có nhiều lớp là chương trình “hướng đối tượng tốt”. Chỉ tách lớp khi lớp có **trách nhiệm rõ ràng**; tránh tạo những lớp chỉ chuyển tiếp một dòng lệnh mà không giúp mã dễ hiểu.
+Having many classes does not automatically make a program "good object-oriented design". Only extract a class when it has a **clear responsibility**; avoid creating classes that merely forward a single line without making the code clearer.
 
-## 4. Tách một học viên thành `Student.java`
+## 4. Extracting One Student into `Student.java`
 
-Tạo file **Student.java**:
+Create file **Student.java**:
 
 ~~~java
 public final class Student {
@@ -145,22 +145,22 @@ public final class Student {
 }
 ~~~
 
-Giải thích:
+Explanation:
 
-1. `class Student` tạo một **kiểu tham chiếu mới** tên `Student`. Mỗi lần `new Student("Lan", 7)` tạo một **đối tượng học viên** mới.
-2. `private final String name` và `private int score` là **trường instance**. Mỗi đối tượng giữ giá trị riêng; mã lớp khác không truy cập trường `private` trực tiếp.
-3. Constructor `Student(String name, int score)` kiểm tra đầu vào rồi khởi tạo trường qua `this.name = name` và `this.score = score`.
-4. `name()`, `score()` và `improve(int points)` là **phương thức instance**; cần đối tượng nhận lời gọi, ví dụ `lan.improve(1)`.
-5. `improve` bảo vệ quy tắc điểm không vượt 10. Dùng `points > 10 - score` thay vì `score + points > 10` để tránh phép cộng số nguyên lớn tràn trước khi kiểm tra.
-6. `final` trên tên cấm thay **tham chiếu tên** sau khi khởi tạo. `score` không final vì nghiệp vụ cho phép tăng điểm. `final class Student` ở đầu cấm kế thừa lớp này; nó không tự làm mọi đối tượng Student bất biến.
+1. `class Student` creates a **new reference type** named `Student`. Each `new Student("Lan", 7)` creates a new **student object**.
+2. `private final String name` and `private int score` are **instance fields**. Each object holds its own values; code in other classes cannot access `private` fields directly.
+3. The constructor `Student(String name, int score)` validates input and initializes fields via `this.name = name` and `this.score = score`.
+4. `name()`, `score()`, and `improve(int points)` are **instance methods**; they require an object receiver, such as `lan.improve(1)`.
+5. `improve` enforces the rule that score cannot exceed 10. Using `points > 10 - score` instead of `score + points > 10` avoids large integer addition overflowing before the check.
+6. `final` on `name` forbids changing the **name reference** after initialization. `score` is not `final` because business logic allows increasing the score. `final class Student` at the top prevents subclassing; it does not automatically make every `Student` object immutable.
 
-Đặt logic kiểm tra trong lớp `Student` giúp các nơi sử dụng không phải lặp lại cùng quy tắc khi đổi điểm.
+Placing validation logic in the `Student` class saves callers from repeating the same rules whenever scores change.
 
-**Ví dụ lời gọi:** `Student lan = new Student("Lan", 7);` rồi `lan.improve(1);` và `lan.score()` trả `8`. Việc tạo `Student minh = new Student("Minh", 9);` không ảnh hưởng đối tượng `lan`.
+**Call example:** `Student lan = new Student("Lan", 7);` then `lan.improve(1);`, and `lan.score()` returns `8`. Creating `Student minh = new Student("Minh", 9);` does not affect the `lan` object.
 
-## 5. Tạo `Classroom.java` để quản lý nhiều học viên
+## 5. Creating `Classroom.java` to Manage Multiple Students
 
-Tạo file **Classroom.java**:
+Create file **Classroom.java**:
 
 ~~~java
 public final class Classroom {
@@ -196,19 +196,19 @@ public final class Classroom {
 }
 ~~~
 
-`Classroom` dùng kiểu `Student[]` vì đã có lớp mô tả **một học viên**, không còn cần giữ hai mảng song song `String[]` và `int[]`. Nó tập trung vào hoạt động liên quan tới **cả lớp**.
+`Classroom` uses `Student[]` because there is now a class describing **one student**, eliminating the need to maintain two parallel arrays `String[]` and `int[]`. It focuses on operations concerning **the whole class**.
 
-- Constructor nhận một mảng `Student[]` và dùng `students.clone()` để **sao chép mảng ngoài**, tránh người gọi đổi vị trí các phần tử trong mảng đầu vào làm thay đổi danh sách bên trong.
-- Các **đối tượng Student không được nhân bản** bởi `clone()` của mảng: hai mảng vẫn giữ tham chiếu tới cùng các đối tượng. Vì thế nếu `lan.improve(1)`, lớp học sẽ quan sát được điểm cập nhật.
-- Vòng lặp kiểm tra không có phần tử `null` giúp `printScores()` và `average()` có thể gọi phương thức trên từng `Student`.
-- `average()` không chia cho 0 vì constructor đã từ chối mảng rỗng.
-- `printScores()` minh họa chức năng in cho bài học; trong ứng dụng có giao diện phức tạp, có thể tách phần hiển thị riêng và để `Classroom` trả dữ liệu.
+- The constructor receives a `Student[]` array and calls `students.clone()` to **copy the outer array**, preventing callers from reordering elements in the input array and altering the internal list.
+- The **`Student` objects are not cloned** by the array's `clone()`: both arrays still hold references to the same objects. Therefore, if `lan.improve(1)` is called, the classroom sees the updated score.
+- The loop checking for no `null` elements lets `printScores()` and `average()` safely invoke methods on each `Student`.
+- `average()` never divides by 0 because the constructor already rejected empty arrays.
+- `printScores()` illustrates printing for this lesson; in an application with a complex UI, you can separate display logic and have `Classroom` return data.
 
-`students` được khai báo `final` nghĩa là biến trường này không thể bị gán sang mảng khác sau khởi tạo, **không** có nghĩa mọi phần tử hoặc trạng thái `Student` đều bất biến.
+Declaring `students` as `final` means this field variable cannot be reassigned to another array after initialization; it does **not** mean every element or `Student` state is immutable.
 
-## 6. `SchoolApp.java`: `main` chỉ điều phối các đối tượng
+## 6. `SchoolApp.java`: `main` Only Coordinates Objects
 
-Tạo file **SchoolApp.java**:
+Create file **SchoolApp.java**:
 
 ~~~java
 public final class SchoolApp {
@@ -227,7 +227,7 @@ public final class SchoolApp {
 }
 ~~~
 
-Phiên bản này thực hiện đúng các bước của `MainOnly`, nhưng `main` không cần biết cách lưu điểm hay cách cộng điểm trung bình:
+This version performs the exact same steps as `MainOnly`, yet `main` does not need to know how scores are stored or how the average is summed:
 
 ~~~text
 SchoolApp.main(...)
@@ -241,20 +241,20 @@ SchoolApp.main(...)
    +--> classroom.average()
 ~~~
 
-Trong `classroom.printScores()`, dấu chấm `.` biểu thị gọi **phương thức của đối tượng classroom**; tương tự `lan.improve(1)` gọi phương thức của đối tượng `Student` mà biến `lan` đang tham chiếu. `Student[]` là mảng chứa **các tham chiếu Student**, không phải một loại lớp học có tính năng in/tính trung bình tự động.
+In `classroom.printScores()`, the dot `.` denotes calling a **method on the `classroom` object**; similarly, `lan.improve(1)` calls a method on the `Student` object referenced by `lan`. `Student[]` is an array holding **`Student` references**, not a classroom type with built-in printing/averaging capabilities.
 
-`SchoolApp.main` là `static` vì nó là điểm vào; nó **được phép tạo đối tượng và gọi instance method thông qua các tham chiếu**, chứ không phải vì `static` thì bị cấm mọi lời gọi phương thức instance.
+`SchoolApp.main` is `static` because it is the entry point; it **is allowed to create objects and call instance methods through references**, rather than being forbidden from all instance method calls because of `static`.
 
-## 7. Biên dịch và chạy chương trình nhiều lớp
+## 7. Compiling and Running a Multi-Class Program
 
-Đặt `Student.java`, `Classroom.java` và `SchoolApp.java` cùng thư mục. Trong terminal đang đứng tại thư mục đó, dùng lệnh sau; tên file **phải** khớp tên lớp top-level `public`:
+Place `Student.java`, `Classroom.java`, and `SchoolApp.java` in the same directory. In a terminal open in that directory, run the following commands; filenames **must** match the `public` top-level class names:
 
 ~~~bash
 javac -encoding UTF-8 Student.java Classroom.java SchoolApp.java
 java SchoolApp
 ~~~
 
-**Expected stdout chính xác của `java SchoolApp`:**
+**Exact expected stdout of `java SchoolApp`:**
 
 ~~~text
 Lan=8
@@ -262,24 +262,24 @@ Minh=9
 average=8.5
 ~~~
 
-Kết quả **giống hệt `MainOnly`**. Biên dịch nhiều tệp tạo ra `Student.class`, `Classroom.class`, `SchoolApp.class` ở thư mục hiện hành. `javac` cần biết các lớp tham chiếu nhau; liệt kê đủ ba file như trên là cách đơn giản và rõ ràng cho người mới.
+The output is **identical to `MainOnly`**. Compiling multiple files produces `Student.class`, `Classroom.class`, and `SchoolApp.class` in the current directory. `javac` needs to locate classes that reference one another; listing all three files as above is the simplest and clearest way for beginners.
 
-Có thể biên dịch vào thư mục riêng; tạo `out` trước và chạy tên lớp từ classpath root:
+You can compile into a separate output directory; create `out` first and run the class name from the classpath root:
 
 ~~~bash
 javac -encoding UTF-8 -d out Student.java Classroom.java SchoolApp.java
 java -cp out SchoolApp
 ~~~
 
-Ở lệnh này, **thư mục `out` phải tồn tại trước** khi truyền cho `javac -d`. Với Bash/Linux/macOS có thể tạo bằng `mkdir -p out`; với PowerShell: `New-Item -ItemType Directory -Force out | Out-Null`. Đây là lựa chọn để giữ tệp `.class` tách khỏi nguồn, không bắt buộc nếu đang dùng cặp lệnh đầu tiên.
+In this command, **the `out` directory must already exist** before passing it to `javac -d`. On Bash/Linux/macOS you can create it with `mkdir -p out`; on PowerShell: `New-Item -ItemType Directory -Force out | Out-Null`. This is an option to keep `.class` files separate from source files, not required if you use the first pair of commands.
 
-**Lệnh `java SchoolApp` chọn đúng một điểm vào:** JVM không lần lượt chạy tất cả phương thức `main` của các lớp hiện diện. Nếu muốn chạy phiên bản cũ, dùng `java MainOnly` riêng (sau khi biên dịch `MainOnly.java`).
+**The command `java SchoolApp` selects one exact entry point:** the JVM does not sequentially run every `main` method across all present classes. If you want to run the old version, run `java MainOnly` separately (after compiling `MainOnly.java`).
 
-Ví dụ trên nằm trong **unnamed package** để tập trung vào sự chuyển đổi từ một sang nhiều lớp. Khi dự án lớn, tổ chức theo `package` và dùng `javac -d`/`java -cp` với **tên lớp đầy đủ**; việc chuyển sang package không làm thay đổi trách nhiệm các đối tượng.
+The example above is in the **unnamed package** to focus on the transition from one class to multiple classes. In larger projects, organize by `package` and use `javac -d`/`java -cp` with **fully qualified class names**; moving into packages does not change object responsibilities.
 
-## 8. Quan hệ đối tượng và biến tham chiếu sau khi tách lớp
+## 8. Object Relationships and Reference Variables After Splitting Classes
 
-Đoạn mã:
+Code snippet:
 
 ~~~java
 Student lan = new Student("Lan", 7);
@@ -288,7 +288,7 @@ Student[] list = {lan, minh};
 Classroom room = new Classroom(list);
 ~~~
 
-Có thể hình dung:
+You can visualize it as:
 
 ~~~text
 lan -------> Student(name="Lan", score=7) <------ list[0]
@@ -302,50 +302,50 @@ minh ------> Student(name="Minh", score=9) <----- list[1]
                       room.students[1]
 ~~~
 
-`room.students` là mảng riêng do `clone()` tạo, nhưng các phần tử tham chiếu tới **cùng hai đối tượng Student**. Vì vậy:
+`room.students` is a separate array created by `clone()`, yet its elements reference **the same two `Student` objects**. Therefore:
 
-- `lan.improve(1)` khiến `room.average()` dùng điểm Lan mới bằng 8.
-- `list[0] = new Student("Hoa", 10)` **không tự thay** `room.students[0]` vì lớp học đã sao chép các vị trí của mảng đầu vào.
-- `Student alias = lan; alias.improve(1)` tiếp tục sửa **cùng đối tượng Lan**; gán `alias = new Student(...)` chỉ đổi biến alias.
-- Nếu truyền `null` thay mảng cho constructor hoặc để một phần tử null, constructor từ chối với `IllegalArgumentException` trước khi phương thức khác dùng dữ liệu.
+- `lan.improve(1)` causes `room.average()` to use Lan's new score of 8.
+- `list[0] = new Student("Hoa", 10)` **does not automatically change** `room.students[0]` because the classroom copied the input array's slots.
+- `Student alias = lan; alias.improve(1)` continues modifying **the same Lan object**; assigning `alias = new Student(...)` only changes the `alias` variable.
+- Passing `null` instead of an array to the constructor, or leaving an element `null`, causes the constructor to reject it with `IllegalArgumentException` before other methods use the data.
 
-Nhờ phân biệt **biến tham chiếu**, **đối tượng** và **mảng tham chiếu**, ta tránh hiểu nhầm rằng truyền đối tượng vào constructor sẽ tạo bản sao sâu của toàn bộ dữ liệu.
+Distinguishing **reference variables**, **objects**, and **reference arrays** helps avoid the misconception that passing objects into a constructor creates a deep copy of all data.
 
-## 9. Những bước refactor an toàn và lỗi thường gặp
+## 9. Safe Refactoring Steps and Common Mistakes
 
-Khi chuyển từ một `main` dài sang nhiều lớp, có thể đi theo trình tự:
+When migrating from one long `main` to multiple classes, you can follow this sequence:
 
-1. **Giữ hành vi đầu ra làm mốc.** Biên dịch/chạy bản ban đầu và lưu những trường hợp cần kiểm tra, gồm cả dữ liệu không hợp lệ nếu có.
-2. **Nhóm dữ liệu luôn đi cùng nhau.** Ở đây `name` và `score` thuộc cùng một học viên, nên được giữ trong `Student` thay vì hai mảng song song.
-3. **Đưa hành vi gắn với dữ liệu vào lớp đó.** Việc đổi và kiểm tra điểm thuộc `Student.improve`; việc tính trung bình thuộc `Classroom.average`.
-4. **Giữ `main` làm nơi khởi tạo và điều phối.** Tạo `new Student(...)` rồi truyền cho `Classroom`; gọi các phương thức có trách nhiệm rõ ràng.
-5. **Biên dịch tất cả lớp liên quan và so sánh kết quả.** Phiên bản mới phải cho kết quả nghiệp vụ tương đương và không thay đổi ngoài ý muốn.
-6. **Chỉ tách thêm khi có lý do.** Không bắt buộc mỗi phương thức, biến hay phép tính nhỏ phải có một lớp riêng.
+1. **Keep the output behavior as a baseline.** Compile/run the original version and record test cases, including invalid inputs if any.
+2. **Group data that always goes together.** Here `name` and `score` belong to one student, so they are kept in `Student` instead of two parallel arrays.
+3. **Move behavior tied to data into that class.** Changing and validating scores belongs to `Student.improve`; computing the average belongs to `Classroom.average`.
+4. **Keep `main` as the place for instantiation and coordination.** Create `new Student(...)` and pass them to `Classroom`; call methods with clear responsibilities.
+5. **Compile all related classes and compare results.** The new version must produce equivalent business results without unintended changes.
+6. **Split further only when justified.** Not every method, variable, or small calculation needs its own class.
 
-| Sai sót | Cách hiểu / cách sửa |
+| Mistake | Understanding / Fix |
 | --- | --- |
-| Đặt tất cả các trường thành `public` để `main` tự sửa | Ưu tiên trường `private` và API có hợp đồng rõ |
-| Cố gọi `Student.improve(1)` | `improve` là instance method; gọi qua đối tượng như `lan.improve(1)` |
-| Viết `new Student(...)` nhưng gọi `new Classroom()` khi không có constructor không tham số | Phải dùng đúng constructor đã khai báo |
-| Có hai lớp top-level `public` trong cùng một file `.java` | Tách thành file đúng tên lớp, hoặc dùng cách tổ chức hợp lệ khác |
-| Chỉ biên dịch `SchoolApp.java` khi mã nguồn phụ thuộc chưa được tìm thấy | Chỉ rõ đủ file nguồn hoặc cấu hình sourcepath/classpath phù hợp |
-| `java Student` dù `Student` không có `main` | Chạy `java SchoolApp` là lớp chứa điểm vào |
-| Giả định `clone()` trên `Student[]` sao chép luôn từng `Student` | `clone()` chỉ sao chép mảng, các tham chiếu phần tử vẫn chung |
-| Một lớp có cả giao diện, dữ liệu, lưu file và mọi phép tính | Xem xét tách trách nhiệm, nhưng không chia nhỏ một cách máy móc |
-| Kết quả khác phiên bản `main` ban đầu | So lại dữ liệu đầu vào, thứ tự thay đổi trạng thái và phép tính |
+| Making all fields `public` so `main` can edit them directly | Prefer `private` fields and APIs with clear contracts |
+| Trying to call `Student.improve(1)` | `improve` is an instance method; call it on an object such as `lan.improve(1)` |
+| Writing `new Student(...)` but calling `new Classroom()` when no no-arg constructor exists | Must use the declared constructor |
+| Having two `public` top-level classes in the same `.java` file | Split into files matching class names, or use another valid organization |
+| Compiling only `SchoolApp.java` when dependent sources are not found | Specify all source files or configure sourcepath/classpath properly |
+| Running `java Student` even though `Student` has no `main` | Run `java SchoolApp`, the class containing the entry point |
+| Assuming `clone()` on `Student[]` also copies each `Student` | `clone()` only copies the array; element references remain shared |
+| One class holding UI, data, file storage, and all calculations | Consider splitting responsibilities, without dividing mechanically |
+| Output differs from the initial `main` version | Re-check input data, state mutation order, and calculations |
 
-### Bài tập
+### Exercises
 
-**Bài 1.** Thêm một học viên `Student("Hoa", 10)` vào đầu vào của `Classroom`, dự đoán điểm trung bình và kiểm tra bằng chạy chương trình.
+**Exercise 1.** Add a student `Student("Hoa", 10)` to the `Classroom` input, predict the average score, and verify by running the program.
 
-**Bài 2.** Gọi `lan.improve(3)` khi Lan đang đạt 8. Vì sao bị từ chối? Phân tích trách nhiệm kiểm tra thuộc lớp nào.
+**Exercise 2.** Call `lan.improve(3)` when Lan currently has 8. Why is it rejected? Analyze which class owns the validation responsibility.
 
-**Bài 3.** Viết phương thức `isPassing()` trong `Student` với điều kiện điểm từ 5 trở lên. Có cần thay `SchoolApp` để biết cách so sánh điểm không?
+**Exercise 3.** Write a method `isPassing()` in `Student` requiring a score of 5 or higher. Does `SchoolApp` need to change to know how scores are compared?
 
-**Bài 4.** Thêm `highestScore()` vào `Classroom`. Giải thích vì sao phép tính toàn lớp thuộc `Classroom` chứ không thuộc riêng từng `Student`.
+**Exercise 4.** Add `highestScore()` to `Classroom`. Explain why a class-wide calculation belongs in `Classroom` rather than in individual `Student` objects.
 
-**Bài 5.** Tạo `Student[] input = {lan, minh}`; đưa nó vào `Classroom`, rồi gán `input[0] = new Student("Hoa", 10)`. Vì sao danh sách trong lớp học không thay theo thao tác này, trong khi `lan.improve(1)` vẫn có thể được lớp học quan sát?
+**Exercise 5.** Create `Student[] input = {lan, minh}`; pass it into `Classroom`, then assign `input[0] = new Student("Hoa", 10)`. Why does the classroom's list not change from this assignment, while `lan.improve(1)` is still observed by the classroom?
 
-### Ghi nhớ
+### Takeaways
 
-**`main` là điểm bắt đầu, không cần chứa toàn bộ logic của chương trình.** Bắt đầu bằng một `main` đơn giản là hợp lý; khi dữ liệu và hành vi phát triển, hãy tách thành các lớp có trách nhiệm rõ ràng, giữ trạng thái sau trường `private`, tạo đối tượng bằng `new` và gọi instance method qua biến tham chiếu. Các lớp có thể nằm ở file `.java` khác nhau, được biên dịch cùng nhau; khi chạy hãy chỉ rõ lớp có `main`. Mục tiêu tách lớp là **bảo toàn hành vi, giảm phụ thuộc và giúp mã dễ mở rộng/kiểm tra**, không phải tăng số lượng lớp cho đẹp.
+**`main` is the entry point; it does not need to hold the entire program's logic.** Starting with a simple `main` is reasonable; as data and behavior grow, split them into classes with clear responsibilities, keep state behind `private` fields, create objects with `new`, and invoke instance methods through reference variables. Classes can live in separate `.java` files and be compiled together; when running, specify the class containing `main`. The goal of splitting classes is to **preserve behavior, reduce coupling, and make code easier to extend/test**, not to inflate the number of classes for appearances.

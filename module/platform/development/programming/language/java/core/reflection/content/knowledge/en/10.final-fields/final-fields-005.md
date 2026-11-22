@@ -1,10 +1,10 @@
-# Giá trị hằng có thể đã được nhúng vào mã sử dụng
+# Constant Values May Already Be Inlined Into Calling Code
 
-## 1. Vì sao sửa `final` field mà chương trình khác vẫn thấy giá trị cũ?
+## 1. Why Does Calling Code Still See the Old Value After Modifying a `final` Field?
 
-Trong Java, khi một field đủ điều kiện là **hằng tại thời điểm biên dịch** (*compile-time constant variable*), compiler có thể thay thao tác đọc field bằng chính giá trị hằng ngay trong bytecode của lớp sử dụng. Hiện tượng thường gọi là **constant inlining** hoặc **constant folding tại chỗ sử dụng**.
+In Java, when a field qualifies as a **compile-time constant variable**, the compiler can replace reads of the field with the constant value itself directly in the bytecode of the calling class. This phenomenon is commonly called **constant inlining** or **constant folding at the use site**.
 
-Hệ quả quan trọng: nếu thư viện thay đổi giá trị một hằng như `public static final int LIMIT = 10` thành `20` và chỉ biên dịch lại thư viện, bytecode của ứng dụng đã được biên dịch trước đó **có thể tiếp tục dùng 10**. Đổi file `.class` chứa field không tự động sửa những giá trị đã được nhúng vào file `.class` của các chương trình sử dụng.
+An important consequence: if a library changes the value of a constant such as `public static final int LIMIT = 10` to `20` and only recompiles the library, previously compiled application bytecode **may continue using 10**. Changing the `.class` file containing the field does not automatically update values already embedded in the `.class` files of calling programs.
 
 ~~~java
 public class Limits {
@@ -13,49 +13,49 @@ public class Limits {
 }
 ~~~
 
-Với mã sử dụng:
+With calling code:
 
 ~~~java
 System.out.println(Limits.MAX_ITEMS);
 System.out.println(Limits.VERSION);
 ~~~
 
-Hai biểu thức trên có thể được compiler thay bằng literal `100` và `"v1"`. Ở bytecode của caller, có thể **không còn lệnh đọc field `Limits.MAX_ITEMS`/`Limits.VERSION`**. Vì vậy cần phân biệt:
+The two expressions above can be replaced by the compiler with the literals `100` and `"v1"`. In the caller's bytecode, there may **no longer be any instruction reading the `Limits.MAX_ITEMS`/`Limits.VERSION` fields**. Therefore, we must distinguish:
 
-- **Giá trị runtime của field:** giá trị hiện có trong lớp được JVM nạp.
-- **Giá trị đã nhúng vào mã sử dụng:** literal được đặt trong bytecode của caller khi caller được biên dịch.
-- **Giá trị quan sát qua Reflection:** `Field.get(...)` đọc field của lớp runtime sau khi áp dụng các quy tắc quyền truy cập, không đọc literal đã nhúng trong caller.
+- **Runtime value of the field:** the value currently present in the class loaded by the JVM.
+- **Value embedded in calling code:** the literal placed into the caller's bytecode when the caller was compiled.
+- **Value observed via Reflection:** `Field.get(...)` reads the field of the runtime class after applying access-permission rules, not the literal embedded in the caller.
 
-Điều này đặc biệt quan trọng với field `final` của API thư viện, module dùng chung, cấu hình dưới dạng constant và các dự án build nhiều module.
+This is especially important for `final` fields in library APIs, shared modules, configuration stored as constants, and multi-module build projects.
 
-## 2. Field nào thực sự là compile-time constant?
+## 2. Which Fields Are Actually Compile-Time Constants?
 
-Theo quy tắc ngôn ngữ Java, một **constant variable** là biến `final` có kiểu **primitive** hoặc `String`, được khởi tạo bằng **constant expression**. Trong thực tế, các field dễ gặp nhất là `static final` kiểu `int`, `long`, `boolean`, `char`, `String`... gán trực tiếp bằng literal hoặc biểu thức hằng.
+According to Java language rules, a **constant variable** is a `final` variable of **primitive** or `String` type initialized with a **constant expression**. In practice, the most common fields are `static final` of type `int`, `long`, `boolean`, `char`, `String`, etc., assigned directly with a literal or constant expression.
 
-| Khai báo | Là constant variable? | Vì sao |
+| Declaration | Is it a constant variable? | Why |
 | --- | --- | --- |
-| `public static final int PORT = 8080;` | Có | Primitive, `final` và biểu thức literal |
-| `public static final int TOTAL = 40 + 2;` | Có | `40 + 2` là constant expression |
-| `public static final String LABEL = "core" + "-api";` | Có | Ghép các chuỗi hằng tại compile time |
-| `public static final boolean ENABLED = true;` | Có | Primitive, biểu thức hằng |
-| `public static final Integer COUNT = 42;` | Không | `Integer` là kiểu tham chiếu khác `String`, dù giá trị biểu diễn số nguyên |
-| `public static final int PORT = Integer.parseInt("8080");` | Không | Lời gọi method thông thường không phải constant expression |
-| `public static final String LABEL = new String("core");` | Không | Tạo đối tượng bằng `new` không phải constant expression |
-| `public static final long CREATED_AT = System.currentTimeMillis();` | Không | Giá trị tính lúc runtime |
-| `public final int id = 7;` | Có, xét định nghĩa constant variable | Field instance cũng có thể là constant variable nếu `final`, primitive/`String` và khởi tạo bằng constant expression |
-| `public final int id;` được gán trong constructor | Không | Không khởi tạo bằng constant expression ngay tại khai báo |
+| `public static final int PORT = 8080;` | Yes | Primitive, `final`, and literal expression |
+| `public static final int TOTAL = 40 + 2;` | Yes | `40 + 2` is a constant expression |
+| `public static final String LABEL = "core" + "-api";` | Yes | Concatenates constant strings at compile time |
+| `public static final boolean ENABLED = true;` | Yes | Primitive, constant expression |
+| `public static final Integer COUNT = 42;` | No | `Integer` is a reference type other than `String`, even though the value represents an integer |
+| `public static final int PORT = Integer.parseInt("8080");` | No | An ordinary method call is not a constant expression |
+| `public static final String LABEL = new String("core");` | No | Creating an object with `new` is not a constant expression |
+| `public static final long CREATED_AT = System.currentTimeMillis();` | No | Value is computed at runtime |
+| `public final int id = 7;` | Yes, per the constant variable definition | An instance field can also be a constant variable if `final`, primitive/`String`, and initialized with a constant expression |
+| `public final int id;` assigned in constructor | No | Not initialized with a constant expression directly at declaration |
 
-**Không phải cứ có `final` là sẽ được nhúng.** `final` thể hiện giới hạn gán lại field theo ngôn ngữ, còn khả năng xem như compile-time constant phụ thuộc thêm **kiểu** và **biểu thức khởi tạo**. Hằng `static final` là trường hợp có ảnh hưởng lớn nhất đến API công khai vì nhiều class khác cùng tham chiếu một field.
+**Not every `final` field gets inlined.** `final` expresses a language-level restriction on reassigning the field, whereas whether it is treated as a compile-time constant also depends on its **type** and **initializer expression**. `static final` constants have the greatest impact on public APIs because many other classes reference the same field.
 
-Để tránh nhầm lẫn, `static final Integer VALUE = 42` **không** là compile-time constant theo quy tắc này. Compiler khi dùng field đó theo cơ chế thông thường phải lấy tham chiếu runtime; autoboxing số 42 ở chỗ khởi tạo không biến một field `Integer` thành constant variable.
+To avoid confusion, `static final Integer VALUE = 42` is **not** a compile-time constant under this rule. When using that field normally, the compiler must fetch the runtime reference; autoboxing the number 42 at the initializer does not turn an `Integer` field into a constant variable.
 
-## 3. Ví dụ Java 17+: sửa class chứa hằng nhưng không biên dịch lại caller
+## 3. Java 17+ Example: Modifying the Constant-Holding Class Without Recompiling the Caller
 
-Bài thực hành này dùng **hai file nằm cùng thư mục**. Thực hiện qua hai vòng biên dịch để nhìn thấy sự khác nhau giữa bytecode của thư viện và bytecode của consumer.
+This exercise uses **two files in the same directory**. Run through two compilation rounds to observe the difference between the library's bytecode and the consumer's bytecode.
 
-### Bước A — Phiên bản đầu tiên
+### Step A — Initial Version
 
-Tạo file `Constants.java`:
+Create the file `Constants.java`:
 
 ~~~java
 public class Constants {
@@ -69,7 +69,7 @@ public class Constants {
 }
 ~~~
 
-Tạo file `Consumer.java`:
+Create the file `Consumer.java`:
 
 ~~~java
 public class Consumer {
@@ -86,14 +86,14 @@ public class Consumer {
 }
 ~~~
 
-Trong terminal tại thư mục chứa hai file:
+In a terminal in the directory containing both files:
 
 ~~~bash
 javac --release 17 Constants.java Consumer.java
 java Consumer
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 direct LIMIT = 10
@@ -104,11 +104,11 @@ reflection LIMIT = 10
 reflection LABEL = v1
 ~~~
 
-Giải thích: `LIMIT` và `LABEL` là compile-time constants. Hai dòng `direct` đầu tiên được tạo từ giá trị có thể nhúng ngay vào bytecode của `Consumer`; chúng **không làm `Constants` được khởi tạo**. Đến dòng dùng `Constants.RUNTIME`, JVM phải đọc field runtime bằng cơ chế truy cập static field, nên lớp `Constants` được khởi tạo và static initializer in `Constants initialized`. Reflection ở cuối đọc đúng giá trị field của lớp đã nạp.
+Explanation: `LIMIT` and `LABEL` are compile-time constants. The first two `direct` lines are produced from values that can be embedded directly into `Consumer`'s bytecode; they **do not cause `Constants` to be initialized**. When execution reaches the line using `Constants.RUNTIME`, the JVM must read the runtime field via static field access, so the `Constants` class is initialized and the static initializer prints `Constants initialized`. Reflection at the end reads the actual field values of the loaded class.
 
-### Bước B — Đổi thư viện, không biên dịch lại `Consumer`
+### Step B — Update the Library Without Recompiling `Consumer`
 
-**Chỉ thay nội dung `Constants.java`** bằng:
+**Only replace the contents of `Constants.java`** with:
 
 ~~~java
 public class Constants {
@@ -122,16 +122,16 @@ public class Constants {
 }
 ~~~
 
-Sau đó chỉ chạy:
+Then run only:
 
 ~~~bash
 javac --release 17 Constants.java
 java Consumer
 ~~~
 
-Chú ý **không** chạy lại `javac Consumer.java` ở bước này. `Consumer.class` cũ vẫn tồn tại.
+Note: **do not** re-run `javac Consumer.java` in this step. The old `Consumer.class` remains intact.
 
-Kết quả đã kiểm tra với Java 21:
+Output verified on Java 21:
 
 ~~~text
 direct LIMIT = 10
@@ -142,23 +142,23 @@ reflection LIMIT = 20
 reflection LABEL = v2
 ~~~
 
-Cùng một lần chạy, chương trình vừa thấy `10`, `"v1"` qua code sử dụng đã biên dịch từ trước, vừa thấy `20`, `"v2"` trong field hiện tại. Đây không phải JVM “ghi nhớ sai” field; bytecode `Consumer.class` vẫn chứa các literal cũ.
+In the same run, the program simultaneously sees `10`, `"v1"` via previously compiled calling code, and `20`, `"v2"` in the current fields. This is not the JVM "misremembering" the field; the `Consumer.class` bytecode still contains the old literals.
 
-- `Constants.LIMIT` và `Constants.LABEL` ở hai câu lệnh `direct` đã được biên dịch thành các chuỗi đầu ra chứa literal cũ.
-- `Constants.RUNTIME` **không** là constant variable vì được khởi tạo bằng `Integer.parseInt(...)`; caller dùng phép đọc field runtime nên thấy `20` từ `Constants.class` mới.
-- `Constants.class.getField("LIMIT").getInt(null)` và `getField("LABEL").get(null)` đọc metadata/giá trị field từ lớp `Constants` thực sự được nạp tại runtime. Chúng thấy phiên bản mới.
-- Trong ví dụ, `Constants` là public class và các field đều public; `getField` thành công và `getInt(null)` hợp lệ với static field primitive `int`.
+- `Constants.LIMIT` and `Constants.LABEL` in the two `direct` statements were compiled into output strings containing the old literals.
+- `Constants.RUNTIME` is **not** a constant variable because it is initialized with `Integer.parseInt(...)`; the caller performs a runtime field read and therefore sees `20` from the new `Constants.class`.
+- `Constants.class.getField("LIMIT").getInt(null)` and `getField("LABEL").get(null)` read metadata/field values from the `Constants` class actually loaded at runtime. They see the new version.
+- In this example, `Constants` is a public class and its fields are public; `getField` succeeds and `getInt(null)` is valid for a primitive `int` static field.
 
-### Bước C — Biên dịch lại caller
+### Step C — Recompile the Caller
 
-Sau khi đã cập nhật `Constants.java`, tiếp tục:
+After updating `Constants.java`, continue with:
 
 ~~~bash
 javac --release 17 Consumer.java
 java Consumer
 ~~~
 
-Giờ hai dòng `direct` đọc theo hằng mới vì `Consumer.class` được biên dịch lại:
+Now the two `direct` lines read the new constants because `Consumer.class` has been recompiled:
 
 ~~~text
 direct LIMIT = 20
@@ -169,85 +169,85 @@ reflection LIMIT = 20
 reflection LABEL = v2
 ~~~
 
-Quy tắc thực hành: khi **thay giá trị public compile-time constant** trong thư viện, cần **biên dịch lại cả các consumer liên quan** để chắc chắn bytecode của họ không giữ literal cũ.
+Practical rule: when **changing the value of a public compile-time constant** in a library, you must **also recompile the relevant consumers** to ensure their bytecode does not retain old literals.
 
-## 4. Nhìn vào bytecode để hiểu nguyên nhân
+## 4. Inspecting Bytecode to Understand the Cause
 
-Sau bước B (trước khi biên dịch lại `Consumer`), chạy:
+After Step B (before recompiling `Consumer`), run:
 
 ~~~bash
 javap -c Consumer
 ~~~
 
-Trong bytecode của `main` sẽ thấy phần tương đương:
+In the bytecode of `main`, you will see the equivalent of:
 
-- Lệnh `ldc` nạp chuỗi đã tạo sẵn `"direct LIMIT = 10"`.
-- Lệnh `ldc` nạp chuỗi đã tạo sẵn `"direct LABEL = v1"`.
-- Với `RUNTIME`, lệnh `getstatic Constants.RUNTIME:I` đọc trường số nguyên của lớp `Constants` lúc runtime.
+- An `ldc` instruction loading the prebuilt string `"direct LIMIT = 10"`.
+- An `ldc` instruction loading the prebuilt string `"direct LABEL = v1"`.
+- For `RUNTIME`, a `getstatic Constants.RUNTIME:I` instruction reading the integer field of the `Constants` class at runtime.
 
-`javap` có thể hiển thị thêm chỉ số constant pool và các lệnh `invokedynamic` phục vụ nối chuỗi; vị trí/chỉ số bytecode có thể khác tùy JDK. Điều cần kiểm chứng là **không có `getstatic` đến `Constants.LIMIT` hay `Constants.LABEL` trong hai biểu thức direct đã được compiler rút gọn**. Vì caller không thực hiện thao tác đọc static field cho hai hằng đó, thay đổi giá trị field trong class khác không sửa được các literal trong bytecode cũ.
+`javap` may also display constant pool indices and `invokedynamic` instructions used for string concatenation; exact bytecode offsets/indices may vary by JDK. What to verify is that **there is no `getstatic` to `Constants.LIMIT` or `Constants.LABEL` in the two direct expressions folded by the compiler**. Because the caller does not perform a static field read for those two constants, changing the field value in another class cannot update the literals in old bytecode.
 
-Đây là một tối ưu hóa và ngữ nghĩa được ngôn ngữ Java cho phép; không nên quy kết chung cho JIT cache. JIT có thể thực hiện các tối ưu khác ở runtime, nhưng ví dụ trên tái hiện vấn đề ngay trong **file `Consumer.class` sau bước compile**.
+This is an optimization and language semantics permitted by Java; it should not be attributed generally to a JIT cache. The JIT may perform other optimizations at runtime, but the example above reproduces the issue directly inside the **`Consumer.class` file after compilation**.
 
-## 5. Reflection nhìn thấy gì, và có nên sửa `final` bằng Reflection?
+## 5. What Does Reflection See, and Should You Modify `final` via Reflection?
 
-Với `public static final int LIMIT = 20`:
+With `public static final int LIMIT = 20`:
 
 ~~~java
 java.lang.reflect.Field field = Constants.class.getField("LIMIT");
 System.out.println(field.getType());  // int
 System.out.println(field.getInt(null)); // 20
-System.out.println(field.get(null));    // Integer chứa 20
+System.out.println(field.get(null));    // Integer containing 20
 ~~~
 
-Đây là **đoạn minh họa** dùng lại `Constants` phiên bản ở bước B, không phải chương trình độc lập. `getInt(null)` đọc primitive `int` trực tiếp; `get(null)` trả `Object` nên boxing thành `Integer`. Đối với static field, receiver có thể là `null`.
+This is an **illustrative snippet** reusing the Step B version of `Constants`, not a standalone program. `getInt(null)` reads the primitive `int` directly; `get(null)` returns `Object`, boxing into `Integer`. For static fields, the receiver can be `null`.
 
-Điều Reflection **không** làm là thay literal đã nhúng trong bytecode `Consumer.class`. `getInt(null)` phản ánh giá trị field đang tồn tại; còn câu lệnh `System.out.println("direct LIMIT = " + Constants.LIMIT)` của caller cũ đã được dịch sang chuỗi chứa `10`.
+What Reflection **cannot** do is change literals already embedded in `Consumer.class` bytecode. `getInt(null)` reflects the existing field value; meanwhile, the old caller's `System.out.println("direct LIMIT = " + Constants.LIMIT)` statement has already been compiled into a string containing `10`.
 
-**Đừng cố sửa `static final` bằng `Field.set` để “cập nhật mọi nơi”.** Trong Java hiện đại, `static final` là nhóm final field không được phép ghi qua Reflection, kể cả khi `setAccessible(true)` có thể được chấp nhận cho mục đích đọc. Thêm nữa, ngay cả một cơ chế có thể chỉnh một giá trị nào đó ở runtime cũng **không thể sửa những literal đã có sẵn trong caller bytecode**. Mở quyền truy cập không đồng nghĩa thay đổi cách compiler tạo và sử dụng compile-time constants.
+**Do not try to modify `static final` with `Field.set` to "update everywhere".** In modern Java, `static final` belongs to the category of final fields not permitted to be written via Reflection, even when `setAccessible(true)` might be accepted for reading. Furthermore, even a mechanism capable of altering some value at runtime **cannot modify literals already baked into caller bytecode**. Opening access permission does not change how the compiler generates and uses compile-time constants.
 
-Nếu cần cập nhật giá trị sau khi phát hành, hãy thiết kế điểm truy cập runtime chính thức (method, cấu hình, dịch vụ/registry có lifecycle rõ ràng) thay vì dùng một public compile-time constant như giá trị cấu hình có thể thay đổi.
+If a value needs to be updated after release, design a formal runtime access point (a method, configuration, or service/registry with an explicit lifecycle) instead of using a public compile-time constant as a mutable configuration value.
 
-## 6. Đọc `static final` có luôn kích hoạt class initialization không?
+## 6. Does Reading `static final` Always Trigger Class Initialization?
 
-**Không.** Theo quy tắc Java về khởi tạo class, việc sử dụng một `static final` **constant variable** có thể được biên dịch thành literal và không phải thao tác kích hoạt khởi tạo class sở hữu field.
+**No.** Under Java's class-initialization rules, using a `static final` **constant variable** can be compiled into a literal and is not an operation that triggers initialization of the class owning the field.
 
-Trong ví dụ:
+In the example:
 
 ~~~java
 System.out.println("direct LIMIT = " + Constants.LIMIT);
 System.out.println("direct LABEL = " + Constants.LABEL);
 ~~~
 
-Không có dòng `Constants initialized` xen giữa hai lệnh này. Lớp `Constants` chỉ được khởi tạo khi chương trình đọc `Constants.RUNTIME`, là field `static final` **không** phải constant variable vì nó được tính bằng lời gọi method lúc runtime.
+There is no `Constants initialized` line between these two statements. The `Constants` class is only initialized when the program reads `Constants.RUNTIME`, which is a `static final` field that is **not** a constant variable because it is computed via a method call at runtime.
 
-Phân biệt:
+Distinction:
 
-| Phép sử dụng | Kết quả thường gặp |
+| Usage | Typical result |
 | --- | --- |
-| Tham chiếu `Constants.LIMIT` compile-time constant qua code đã biên dịch | Bytecode dùng literal; không cần đọc field runtime và không khởi tạo lớp vì phép đọc đó |
-| Tham chiếu `Constants.RUNTIME` có initializer không hằng | Lệnh `getstatic`; JVM khởi tạo class trước khi đọc theo quy tắc JVM |
-| Lấy `Constants.class` | Class literal không tự nó kích hoạt class initialization |
-| Dùng Reflection để lấy giá trị static field bằng `Field.get` | Thao tác đọc static field có thể kích hoạt khởi tạo class nếu chưa khởi tạo |
-| Gọi static method hoặc tạo instance | Thường là thao tác kích hoạt class initialization theo quy tắc Java |
+| Referencing compile-time constant `Constants.LIMIT` in compiled code | Bytecode uses a literal; no runtime field read is needed and the class is not initialized by that read |
+| Referencing `Constants.RUNTIME` with a non-constant initializer | `getstatic` instruction; the JVM initializes the class before reading per JVM rules |
+| Obtaining `Constants.class` | A class literal does not by itself trigger class initialization |
+| Using Reflection to get a static field value via `Field.get` | Reading a static field can trigger class initialization if not yet initialized |
+| Calling a static method or creating an instance | Normally triggers class initialization per Java rules |
 
-Vì vậy logging trong static initializer **không phải phép đo tin cậy** cho việc caller đã đọc một compile-time constant hay chưa. Compiler có thể loại bỏ hoàn toàn truy cập field tại runtime.
+Therefore, logging in a static initializer **is not a reliable measurement** of whether callers have read a compile-time constant. The compiler may completely eliminate runtime field access.
 
-## 7. Ảnh hưởng đến binary compatibility và versioning
+## 7. Impact on Binary Compatibility and Versioning
 
-Thay một constant từ `10` thành `20` không nhất thiết tạo lỗi liên kết (`LinkageError`). Ứng dụng vẫn có thể chạy với file `Constants.class` mới nhưng giữ giá trị cũ do đã được nhúng tại thời điểm biên dịch. Đây là nguy cơ **thay đổi hành vi khi cập nhật phiên bản** rất dễ bị bỏ sót.
+Changing a constant from `10` to `20` does not necessarily produce a linkage error (`LinkageError`). The application can still run with the new `Constants.class` file while keeping the old value embedded at compile time. This is a risk of **behavioral change upon version upgrades** that is very easy to overlook.
 
-Một tình huống điển hình:
+A typical scenario:
 
-1. Thư viện `api-v1.jar` công bố `public static final int MAX_RETRY = 3`.
-2. Dịch vụ A biên dịch với `api-v1.jar`; bytecode A mang literal `3` tại các chỗ dùng compile-time constant.
-3. Thư viện phát hành `api-v2.jar` thay `MAX_RETRY = 5`.
-4. Nếu chỉ thay JAR thư viện và chạy lại dịch vụ A mà **không biên dịch lại A**, A vẫn có thể dùng `3` trong logic đã compile.
-5. Recompile toàn bộ consumer với `api-v2.jar` mới làm các literal đó được cập nhật thành `5`.
+1. Library `api-v1.jar` publishes `public static final int MAX_RETRY = 3`.
+2. Service A compiles against `api-v1.jar`; A's bytecode carries the literal `3` wherever the compile-time constant is used.
+3. The library releases `api-v2.jar`, changing `MAX_RETRY = 5`.
+4. If only the library JAR is swapped and Service A is restarted without **recompiling A**, A may still use `3` in its compiled logic.
+5. Recompiling all consumers against the new `api-v2.jar` updates those literals to `5`.
 
-Do vậy, với hằng công khai là một phần của hợp đồng giữa module, **việc thay giá trị phải được đánh giá như thay đổi API về mặt hành vi**. Build sạch/rebuild và kiểm tra bytecode giúp phát hiện trạng thái trộn giữa mã tiêu thụ cũ và thư viện mới.
+Consequently, for public constants that form part of a contract between modules, **changing a value must be evaluated as a behavioral API change**. Clean builds/rebuilds and bytecode inspection help detect mixed states between old consumer code and a new library.
 
-Nếu một giá trị cần có thể thay đổi theo cấu hình, phiên bản triển khai hoặc môi trường, cân nhắc API runtime:
+If a value needs to vary by configuration, deployment version, or environment, consider a runtime API:
 
 ~~~java
 public final class RuntimeSettings {
@@ -259,43 +259,43 @@ public final class RuntimeSettings {
 }
 ~~~
 
-Đoạn code trên là một ví dụ API runtime; gọi `RuntimeSettings.maxRetry()` đọc property hệ thống hiện tại (nếu không phải số hợp lệ thì `Integer.getInteger` trả giá trị mặc định theo hợp đồng API). Đây không phải compile-time constant nên caller không thể nhúng sẵn kết quả như literal từ field constant. Thiết kế cấu hình thực tế phải tính đến validation, caching và thời điểm cho phép thay đổi giá trị.
+The code above is an example runtime API; calling `RuntimeSettings.maxRetry()` reads the current system property (if it is not a valid number, `Integer.getInteger` returns the default value per its API contract). This is not a compile-time constant, so callers cannot pre-embed the result as a literal from a constant field. Real-world configuration design must account for validation, caching, and when values are allowed to change.
 
-Một lựa chọn khác khi dữ liệu **cố ý bất biến suốt vòng đời một phiên bản ứng dụng** là dùng `static final` như trước, nhưng phải xác định rõ consumer cần được biên dịch lại khi thay đổi giá trị.
+Another option when data is **intentionally immutable for the lifetime of an application release** is to keep using `static final`, while making clear that consumers must be recompiled when values change.
 
-## 8. Các hiểu lầm thường gặp
+## 8. Common Misconceptions
 
-| Nhầm lẫn | Hiểu đúng |
+| Misconception | Accurate understanding |
 | --- | --- |
-| “`final` tức là compiler luôn nhúng giá trị.” | Chỉ constant variables đáp ứng kiểu primitive/`String` + biểu thức khởi tạo hằng mới có cơ chế này; field final khác vẫn có thể được đọc ở runtime |
-| “`static final Integer N = 1` là hằng giống `static final int N = 1`.” | `Integer` không phải primitive hoặc `String`, nên `N` không phải constant variable |
-| “Đã đổi JAR chứa field thì mọi chương trình lập tức thấy giá trị mới.” | Consumer cũ có thể giữ literal đã nhúng; cần recompile các consumer |
-| “Dùng `final` đảm bảo mọi field access đều chạy `getstatic`.” | Compile-time constant có thể biến thành literal và không còn `getstatic` ở caller |
-| “Reflection luôn trả cùng giá trị với code gọi field trực tiếp.” | `Field.get` đọc field runtime; code cũ có thể dùng literal nhúng |
-| “Sửa field bằng Reflection sẽ cập nhật được hằng trong consumer.” | Không: code consumer có thể không còn đọc field. Ghi static final bằng Reflection còn bị hạn chế độc lập |
-| “`static final` lúc nào cũng khởi tạo class khi truy cập.” | Tham chiếu compile-time constant không kích hoạt khởi tạo class nếu đã được biên dịch thành literal; static field không hằng được đọc runtime |
-| “`String` nối bằng `+` luôn được tính ở runtime.” | Nếu mọi thành phần là constant expression, phép nối có thể được tính ngay khi compile |
+| "`final` means the compiler always inlines the value." | Only constant variables satisfying primitive/`String` type + constant initializer expression have this behavior; other final fields can still be read at runtime |
+| "`static final Integer N = 1` is a constant just like `static final int N = 1`." | `Integer` is neither a primitive nor `String`, so `N` is not a constant variable |
+| "Once the JAR containing the field is updated, all programs immediately see the new value." | Old consumers may retain embedded literals; consumers must be recompiled |
+| "Using `final` guarantees every field access executes `getstatic`." | A compile-time constant may become a literal and have no `getstatic` left in the caller |
+| "Reflection always returns the same value as code accessing the field directly." | `Field.get` reads the runtime field; old code may use an embedded literal |
+| "Modifying the field via Reflection will update constants in consumers." | No: consumer code might no longer read the field. Writing static final via Reflection is also independently restricted |
+| "`static final` always initializes the class when accessed." | Referencing a compile-time constant does not trigger class initialization if compiled into a literal; non-constant static fields are read at runtime |
+| "`String` concatenation with `+` is always evaluated at runtime." | If all components are constant expressions, concatenation can be evaluated at compile time |
 
-### Cách chẩn đoán một lỗi thực tế
+### How to diagnose a real-world bug
 
-Nếu một thành phần báo giá trị cấu hình cũ sau khi cập nhật thư viện, hãy kiểm tra theo trình tự:
+If a component reports an old configuration value after a library upgrade, inspect in order:
 
-1. Field có phải `final`, kiểu primitive/`String` và initializer constant expression không?
-2. Component đang chạy có phải bytecode cũ của consumer được biên dịch với giá trị trước đây không?
-3. Dùng `javap -c Consumer` để tìm literal hoặc `getstatic` tại chính điểm sử dụng.
-4. Đọc field qua Reflection ở runtime (trong điều kiện có quyền) để đối chiếu giá trị hiện tại của class.
-5. Biên dịch lại tất cả consumer liên quan và triển khai phiên bản tương ứng; kiểm tra JAR/classpath để tránh trộn phiên bản.
+1. Is the field `final`, of primitive/`String` type, with a constant-expression initializer?
+2. Is the running component old consumer bytecode compiled against the previous value?
+3. Use `javap -c Consumer` to look for literals or `getstatic` at the exact usage site.
+4. Read the field via Reflection at runtime (when permitted) to compare against the class's current value.
+5. Recompile all relevant consumers and deploy matching versions; inspect JARs/classpath to avoid mixed versions.
 
-## 9. Câu hỏi tự kiểm tra
+## 9. Self-Check Questions
 
-**1.** `public static final String NAME = "A" + "B";` có thể được nhúng vào caller không? **Có**: phép nối các string literal là constant expression, kết quả `"AB"` có thể xuất hiện trong bytecode consumer.
+**1.** Can `public static final String NAME = "A" + "B";` be inlined into the caller? **Yes**: concatenating string literals is a constant expression, so the result `"AB"` can appear in the consumer's bytecode.
 
-**2.** `public static final String NAME = System.getProperty("name");` có giống vậy không? **Không**: method call được tính ở runtime, không phải constant expression.
+**2.** Is `public static final String NAME = System.getProperty("name");` the same? **No**: a method call is evaluated at runtime, not a constant expression.
 
-**3.** Vì sao `Field.getInt(null)` thấy `20` trong khi `Consumer` vẫn in `10`? Reflection đọc field của class runtime mới; `Consumer.class` cũ dùng literal đã nhúng trước khi thư viện thay đổi.
+**3.** Why does `Field.getInt(null)` see `20` while `Consumer` still prints `10`? Reflection reads the field of the new runtime class; the old `Consumer.class` uses the literal embedded before the library changed.
 
-**4.** Có thể chỉ cập nhật file thư viện mà không biên dịch lại caller để nhận giá trị hằng mới không? **Không thể bảo đảm** với compile-time constant: caller có thể không còn truy cập field runtime. Phương án chắc chắn là recompile consumer.
+**4.** Can you update only the library file without recompiling callers and still receive the new constant value? **Cannot be guaranteed** for compile-time constants: callers might no longer access the field at runtime. The reliable solution is recompiling consumers.
 
-**5.** `final int id = 7` ở instance có phải không bao giờ là constant variable vì thiếu `static`? **Không**: định nghĩa constant variable không bắt buộc `static`, dù bài toán nhúng giá trị xuyên các lớp độc lập thường nổi bật nhất với `public static final`.
+**5.** Is an instance field `final int id = 7` never a constant variable just because it lacks `static`? **No**: the constant variable definition does not require `static`, though cross-class inlining issues are most prominent with `public static final`.
 
-**Ghi nhớ:** `final` và *compile-time constant* là hai khái niệm có liên hệ nhưng không đồng nhất. Khi đã có constant inlining, thay đổi field sau đó không sửa được các literal trong bytecode consumer; vì vậy việc phát hành hằng public và việc build lại caller phải được xem xét cùng nhau.
+**Remember:** `final` and *compile-time constant* are related but distinct concepts. Once constant inlining has occurred, changing the field afterward cannot fix literals in consumer bytecode; therefore, publishing public constants and rebuilding callers must be considered together.

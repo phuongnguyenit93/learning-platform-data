@@ -1,41 +1,41 @@
-# Chọn khóa chung khi cần phối hợp nhiều thao tác trên StringBuffer
+# Choosing a Shared Lock When Coordinating Multiple Operations on StringBuffer
 
-## Mục tiêu
+## Objective
 
-StringBuffer là bộ đệm chuỗi có thể thay đổi; nhiều phương thức như append(), insert(), delete() được đồng bộ để bảo vệ từng lời gọi trên cùng một đối tượng. Tuy nhiên, **thread-safe ở cấp phương thức không đồng nghĩa một chuỗi phương thức là nguyên tử**. Khi có nhiều luồng cùng kiểm tra điều kiện rồi sửa nội dung, hoặc phải thêm nhiều mảnh văn bản như một bản ghi liền mạch, ta cần một **khóa chung** bao trùm toàn bộ thao tác logic.
+StringBuffer is a mutable string buffer; many methods such as append(), insert(), and delete() are synchronized to protect individual calls on the same object. However, **thread-safety at the method level does not mean a sequence of methods is atomic**. When multiple threads check a condition before modifying content, or must append multiple text fragments as one contiguous record, we need a **shared lock** covering the entire logical operation.
 
-Sau bài này, người học cần biết khi nào cần đồng bộ bổ sung, chọn monitor nào, vì sao mọi luồng phải dùng cùng một đối tượng khóa, và cách kiểm tra bất biến sau khi thực thi đồng thời.
+After this lesson, learners should know when additional synchronization is needed, which monitor to choose, why all threads must use the exact same lock object, and how to verify invariants after concurrent execution.
 
-## 1. Vì sao đồng bộ từng phương thức là chưa đủ?
+## 1. Why Is Per-Method Synchronization Not Enough?
 
-Xét yêu cầu: log chỉ có một dòng HEADER ở đầu, sau đó mỗi luồng thêm tên mình. Đoạn mã sau **chưa an toàn cho thao tác ghép**, dù StringBuffer có các phương thức synchronized:
+Consider a requirement: the log has only one HEADER line at the beginning, then each thread appends its name. The following snippet is **not safe for the compound operation**, even though StringBuffer has synchronized methods:
 
 ```java
-// Minh họa một đoạn xử lý, không phải chương trình chạy độc lập.
+// Illustrates a processing snippet, not a standalone runnable program.
 if (log.length() == 0) {
     log.append("HEADER\n");
 }
 log.append(Thread.currentThread().getName()).append('\n');
 ```
 
-Một trình tự xen kẽ hợp lệ:
+A valid interleaving sequence:
 
-1. T1 gọi length() và thấy 0; lời gọi kết thúc, monitor được nhả.
-2. T2 gọi length() và cũng thấy 0.
-3. T1 append("HEADER\n").
-4. T2 append("HEADER\n").
-5. Hai luồng thêm bản ghi của mình: log có hai HEADER, vi phạm yêu cầu.
+1. T1 calls length() and sees 0; the call ends and the monitor is released.
+2. T2 calls length() and also sees 0.
+3. T1 executes append("HEADER\n").
+4. T2 executes append("HEADER\n").
+5. Both threads append their records: the log has two HEADERs, violating the requirement.
 
-Đây là lỗi **check-then-act**: giá trị đã kiểm tra không còn đáng tin khi hành động được thực hiện ở lời gọi khác. Tương tự, ba lời gọi append("["); append(data); append("]") có thể bị một luồng khác chen vào giữa; từng append() vẫn bảo vệ trạng thái nội bộ của StringBuffer nhưng không bảo đảm ba mảnh là một bản ghi nguyên tử.
+This is a **check-then-act** bug: the checked value is no longer reliable when the action runs in another call. Similarly, three calls append("["); append(data); append("]") can have another thread interleave in between; each append() still protects StringBuffer's internal state, yet does not guarantee the three fragments form an atomic record.
 
-**Nguyên tắc:** Nếu quyết định của bước sau phụ thuộc kết quả bước trước, hoặc nhiều bước phải xuất hiện như một đơn vị, hãy bảo vệ toàn bộ chuỗi bước bằng một vùng tới hạn.
+**Rule:** If a later step's decision depends on a previous step's result, or multiple steps must appear as a single unit, protect the entire sequence of steps with one critical section.
 
-## 2. Khóa chung là cùng một đối tượng, không chỉ cùng tên
+## 2. A Shared Lock Means the Same Object, Not Just the Same Name
 
-Trong Java, synchronized(lock) lấy monitor gắn với **danh tính đối tượng** của lock. Hai luồng chỉ chặn nhau khi lấy đúng monitor của cùng một instance. Với một StringBuffer đã được chia sẻ, chọn chính buffer làm khóa thường đơn giản nhất:
+In Java, synchronized(lock) acquires the monitor associated with lock's **object identity**. Two threads only block each other when acquiring the monitor of the exact same instance. For an already shared StringBuffer, choosing the buffer itself as the lock is often simplest:
 
 ```java
-// Các luồng phải được chia sẻ cùng tham chiếu buffer.
+// Threads must share the exact same buffer reference.
 synchronized (buffer) {
     if (buffer.length() == 0) {
         buffer.append("HEADER\n");
@@ -44,15 +44,15 @@ synchronized (buffer) {
 }
 ```
 
-Phương thức synchronized của StringBuffer cũng sử dụng monitor của chính buffer. Do khóa Java có tính **reentrant**, một luồng đã ở trong synchronized(buffer) có thể gọi các phương thức synchronized trên buffer đó. Luồng khác lấy cùng monitor phải chờ toàn bộ khối kết thúc.
+StringBuffer's synchronized methods also use the buffer's own monitor. Because Java locks are **reentrant**, a thread already inside synchronized(buffer) can call synchronized methods on that buffer. Another thread acquiring the same monitor must wait for the entire block to finish.
 
-Phạm vi nguyên tử ở đây là cả việc kiểm tra rỗng, quyết định ghi header, và ghi bản ghi. Nếu chỉ khóa riêng length(), rồi nhả khóa trước append(), lỗi vẫn tồn tại. Một luồng chỉ dùng synchronized(otherLock) trong khi luồng kia dùng synchronized(buffer) cũng không phối hợp được; hai monitor không tự liên kết với nhau.
+The atomic scope here covers checking emptiness, deciding to write the header, and writing the record. If you lock only length(), and release the lock before append(), the bug remains. One thread using synchronized(otherLock) while another uses synchronized(buffer) cannot coordinate either; two monitors are not automatically linked to each other.
 
-Cần thỏa thuận và thực thi **cùng quy ước khóa trên mọi đường truy cập liên quan đến bất biến**. Một append() đứng ngoài vùng tới hạn vẫn an toàn ở cấp lời gọi, nhưng có thể chen giữa các bước của thao tác ghép và phá vỡ quy tắc nghiệp vụ.
+You must agree upon and enforce **the same locking convention on every access path related to the invariant**. An append() outside the critical section is still safe at the call level, yet can interleave between steps of the compound operation and break the business rule.
 
-## 3. Chương trình đầy đủ trên Java 17+
+## 3. Complete Program on Java 17+
 
-Chương trình dưới đây cho hai luồng khởi động gần nhau, mỗi luồng muốn bảo đảm có HEADER rồi ghi tên mình. CountDownLatch chỉ điều phối thời điểm bắt đầu; **synchronized(log) mới bảo vệ điều kiện và cập nhật**.
+The program below starts two threads close together, each wanting to ensure a HEADER exists and then record its own name. CountDownLatch only coordinates start timing; **synchronized(log) is what protects the condition and update**.
 
 ```java
 import java.util.concurrent.CountDownLatch;
@@ -109,14 +109,14 @@ public class SharedLockDemo {
 }
 ```
 
-Lưu thành SharedLockDemo.java và chạy:
+Save as SharedLockDemo.java and run:
 
 ```bash
 javac SharedLockDemo.java
 java SharedLockDemo
 ```
 
-Kết quả ổn định:
+Consistent output:
 
 ```text
 headers=1
@@ -124,16 +124,16 @@ records=2
 headerFirst=true
 ```
 
-Thứ tự T1/T2 trong chuỗi có thể thay đổi theo lịch CPU, nên chương trình không in hoặc khẳng định thứ tự ấy. Chỉ luồng vào vùng synchronized(log) đầu tiên thấy log rỗng; luồng sau thấy HEADER đã có. join() khiến main chờ cả hai kết thúc. Việc chụp snapshot trong cùng monitor là mẫu đọc nhất quán, đặc biệt hữu ích nếu ứng dụng sau này vẫn còn luồng ghi chạy.
+The order of T1/T2 in the string can vary by CPU scheduling, so the program does not print or assert that order. Only the first thread entering synchronized(log) sees an empty log; the later thread sees HEADER already present. join() makes main wait for both to finish. Capturing the snapshot under the same monitor is a consistent read pattern, especially useful if the application later still has active writer threads.
 
-Nếu bỏ synchronized(log) bao quanh điều kiện và các lần append(), chương trình có **khả năng** ghi trùng HEADER, nhưng không phải lần chạy nào cũng bộc lộ race. Kết quả đúng ở một vài lần chạy không chứng minh mã không có lỗi đồng thời.
+If you remove synchronized(log) wrapping the condition and appends, the program has the **potential** to write duplicate HEADERs, though not every run exposes the race. Correct results over a few runs do not prove code is free of concurrency bugs.
 
-## 4. Đối tượng khóa riêng cho lớp quản lý dữ liệu
+## 4. A Private Lock Object for a Data-Managing Class
 
-Khi StringBuffer được quản lý trong một lớp, hoặc một bất biến trải qua cả nội dung chuỗi và dữ liệu khác, dùng một trường khóa riêng thường rõ quyền sở hữu hơn:
+When StringBuffer is managed inside a class, or an invariant spans both string content and other data, using a private lock field often makes ownership clearer:
 
 ```java
-// Lớp minh họa dùng trong một dự án Java; không có main() riêng.
+// Illustrative class used inside a Java project; no standalone main().
 final class Transcript {
     private final Object lock = new Object();
     private final StringBuffer buffer = new StringBuffer();
@@ -157,42 +157,42 @@ final class Transcript {
 }
 ```
 
-Cả buffer và recordCount cùng nằm trong quy tắc cập nhật. Chọn private final Object lock giúp danh tính khóa không đổi và ngăn mã bên ngoài tự ý giữ monitor này. Không trả về tham chiếu buffer để người khác sửa mà không lấy lock.
+Both buffer and recordCount fall under the same update rule. Choosing private final Object lock keeps the lock identity constant and prevents external code from arbitrarily holding this monitor. Do not return the buffer reference for callers to modify without acquiring lock.
 
-Phải hiểu sự khác nhau: synchronized(lock) dùng monitor của lock, còn các phương thức synchronized trên StringBuffer dùng monitor của buffer. Các phương thức của StringBuffer **không tự đồng bộ trên khóa riêng**. Thiết kế trên bảo vệ thao tác ghép vì **toàn bộ đường đọc/ghi do lớp sở hữu** đều thống nhất lấy lock. Nếu mã bên ngoài có tham chiếu buffer và trực tiếp append() vào đó, nó có thể chen vào lúc một luồng giữ lock; bất biến cấp lớp không còn được bảo đảm.
+Understand the difference: synchronized(lock) uses lock's monitor, whereas synchronized methods on StringBuffer use buffer's monitor. StringBuffer's methods **do not automatically synchronize on the private lock**. The design above protects compound operations because **every read/write path owned by the class** consistently acquires lock. If external code held a reference to buffer and called append() directly, it could interleave while a thread held lock; the class-level invariant would no longer be guaranteed.
 
-Khi toàn bộ dữ liệu chỉ được truy cập qua một khóa riêng, có thể cân nhắc StringBuilder thay StringBuffer để tránh đồng bộ lặp lại ở cấp phương thức. Điều kiện bắt buộc là không còn bất kỳ truy cập StringBuilder nào ngoài giao ước khóa, và việc chọn StringBuilder không làm thay đổi yêu cầu bài học về StringBuffer.
+When all data is accessed exclusively through a private lock, you can consider StringBuilder instead of StringBuffer to avoid redundant method-level synchronization. The mandatory condition is that zero StringBuilder accesses exist outside the lock convention, and choosing StringBuilder does not change the lesson's requirements regarding StringBuffer.
 
-## 5. Cách xác định vùng tới hạn đúng
+## 5. How to Identify the Right Critical Section
 
-Trước khi dùng synchronized, hãy xác định rõ:
+Before using synchronized, clearly identify:
 
-1. **Bất biến:** điều gì luôn phải đúng? Ví dụ HEADER đúng một lần; tiền tố, nội dung và hậu tố của mỗi bản ghi liền nhau; recordCount bằng số bản ghi đã thêm.
-2. **Các bước tạo thành một đơn vị:** kiểm tra trạng thái → quyết định → cập nhật một hay nhiều trường → hoàn tất bản ghi.
-3. **Các luồng và lối truy cập:** những phương thức nào có thể quan sát hoặc thay đổi trạng thái ấy, có dùng cùng một khóa không?
+1. **Invariant:** what must always hold true? For example, HEADER appears exactly once; each record's prefix, body, and suffix stay contiguous; recordCount equals the number of appended records.
+2. **Steps forming one unit:** check state → decide → update one or more fields → complete the record.
+3. **Threads and access paths:** which methods can observe or modify that state, and do they use the exact same lock?
 
-Đọc cũng có thể cần chung khóa. Một lần buffer.toString() lấy được chuỗi tại một thời điểm, nhưng nếu sau đó đọc recordCount ở một thời điểm khác, không bảo đảm số đếm khớp ảnh chụp. Nếu cần trạng thái tổng hợp nhất quán, hãy đọc cả nội dung và bộ đếm dưới cùng monitor mà luồng ghi dùng.
+Reads may also need the shared lock. A single buffer.toString() captures the string at one point in time, yet reading recordCount afterward at a different time does not guarantee the count matches the snapshot. When consistent aggregate state is required, read both content and counter under the same monitor used by writers.
 
-Việc nhả một monitor và luồng khác sau đó lấy **cùng monitor** thiết lập quan hệ happens-before theo Java Memory Model: các thay đổi trước khi nhả được công bố để luồng nhận khóa nhìn thấy. Đặt tham chiếu buffer thành volatile chỉ hỗ trợ tính hiển thị tham chiếu, **không làm cho length() rồi append() trở thành nguyên tử**.
+One thread releasing a monitor and another thread later acquiring **the same monitor** establishes a happens-before relationship under the Java Memory Model: modifications prior to release are published for the lock-acquiring thread to see. Marking the buffer reference volatile only aids reference visibility; it **does not make length() followed by append() atomic**.
 
-Nếu bất biến trải qua **hai StringBuffer**, có thể dùng một khóa riêng chung:
+If an invariant spans **two StringBuffers**, a shared private lock can be used:
 
 ```java
-// Giả định mọi truy cập liên quan đến ready/processed đều lấy lock.
+// Assumes all accesses involving ready/processed acquire lock.
 synchronized (lock) {
     processed.append(ready);
     ready.setLength(0);
 }
 ```
 
-Một luồng không được chỉ khóa ready rồi nghĩ rằng đã bảo vệ cả processed. Nếu buộc lấy hai monitor lồng nhau, mọi đường đi phải lấy khóa theo một thứ tự nhất quán; T1 giữ khóa A rồi chờ B trong khi T2 giữ B rồi chờ A có thể gây deadlock. Một khóa chung thường dễ kiểm chứng hơn cho bất biến nhỏ liên quan nhiều trường, dù nó cũng có thể tạo nhiều tranh chấp hơn.
+One thread must not lock only ready and assume it has protected processed as well. If forced to acquire two nested monitors, every code path must acquire locks in a consistent order; T1 holding lock A and waiting for B while T2 holds B and waits for A can cause deadlock. One shared lock is usually easier to reason about for small multi-field invariants, though it can also create more contention.
 
-## 6. Những cách chọn khóa sai
+## 6. Wrong Ways to Choose a Lock
 
-**Khóa mới mỗi lần gọi:** synchronized(new Object()) dùng các monitor khác nhau giữa các lần gọi và các luồng, nên không phối hợp được.
+**A new lock on every call:** synchronized(new Object()) uses different monitors across calls and threads, failing to coordinate.
 
 ```java
-// Sai cho bài toán nhiều luồng cùng sửa buffer.
+// Wrong for multiple threads concurrently modifying the buffer.
 synchronized (new Object()) {
     if (buffer.length() == 0) {
         buffer.append("HEADER\n");
@@ -200,35 +200,35 @@ synchronized (new Object()) {
 }
 ```
 
-**Khóa ảnh chụp chuỗi:** synchronized(buffer.toString()) khóa một đối tượng String, không khóa monitor của buffer. Những lần toString() có thể tạo đối tượng khác, nên không có giao ước khóa chung.
+**Locking on a string snapshot:** synchronized(buffer.toString()) locks a String object, not the buffer's monitor. Separate toString() calls can create different objects, so there is no shared locking convention.
 
-**Khóa this trên các wrapper khác nhau:** hai instance wrapper có hai monitor this khác nhau; nếu chúng cùng sửa một buffer chia sẻ, synchronized(this) ở mỗi wrapper không bảo vệ chung. Nó chỉ thích hợp khi tất cả luồng thực sự dùng cùng một instance quản lý trạng thái.
+**Locking `this` across different wrapper instances:** two wrapper instances have two different `this` monitors; if both modify a shared buffer, synchronized(this) on each wrapper provides no shared protection. It is only suitable when all threads actually use the exact same state-managing instance.
 
-**Khóa chuỗi literal:** synchronized("LOG_LOCK") có thể vô tình dùng chung monitor với mã khác bởi cơ chế intern của String, gây chờ đợi hoặc deadlock không mong muốn. Khóa riêng private final thường dễ kiểm soát.
+**Locking on string literals:** synchronized("LOG_LOCK") can accidentally share a monitor with unrelated code due to String interning, causing unwanted waiting or deadlock. A private final lock is much easier to control.
 
-**Thay đối tượng làm khóa:** gán lại biến buffer hoặc lock giữa chừng khiến luồng này khóa instance cũ, luồng kia khóa instance mới. Danh tính khóa dùng để phối hợp phải ổn định và nhất quán.
+**Changing the lock object:** reassigning the buffer or lock variable mid-flight causes one thread to lock the old instance and another to lock the new instance. The identity of a coordinating lock must remain stable and consistent.
 
-**Khóa quá hẹp:** chỉ synchronized quanh length(), hoặc quanh từng append() riêng lẻ, không bảo vệ khoảng giữa kiểm tra và cập nhật. Một chuỗi gọi append("["); append(value); append("]") vẫn có thể bị xen kẽ.
+**Lock too narrow:** putting synchronized only around length(), or around each individual append(), leaves the gap between check and update unprotected. A call chain append("["); append(value); append("]") can still be interleaved.
 
-**Khóa quá rộng:** giữ monitor trong lúc đợi mạng, thực hiện I/O chậm, sleep hoặc tính toán dài không đụng trạng thái chung làm tăng chờ đợi. Chuẩn bị dữ liệu độc lập trước, rồi giữ vùng tới hạn đủ ngắn nhưng bao trọn các bước duy trì bất biến.
+**Lock too wide:** holding the monitor while waiting on network calls, performing slow I/O, sleeping, or running long computations that do not touch shared state increases waiting. Prepare independent data beforehand, then keep the critical section short enough while still covering all invariant-maintaining steps.
 
-**Dùng hai quy ước khóa cùng lúc:** T1 synchronized(buffer), T2 synchronized(lock) không đủ điều phối thao tác ghép dù các phương thức StringBuffer vẫn an toàn riêng lẻ. Mọi bên có thể ảnh hưởng bất biến phải cùng tuân theo giao ước.
+**Using two locking conventions simultaneously:** T1 using synchronized(buffer) and T2 using synchronized(lock) fails to coordinate compound operations even though individual StringBuffer methods remain safe. Every party able to affect the invariant must follow the same convention.
 
-## 7. Khi nào thực sự cần khóa ngoài?
+## 7. When Is an External Lock Truly Needed?
 
-- **Một lời gọi độc lập** như append(wholeRecord), và không có bất biến liên quan nhiều lời gọi hay trường khác: bảo vệ nội bộ của StringBuffer thường đủ cho lời gọi ấy.
-- **Nhiều lời gọi cần liền mạch** như check-then-append, ghép tiền tố/nội dung/hậu tố qua nhiều append(), hoặc đọc-sửa-ghi dựa trên nội dung hiện tại: cần khóa chung bao quanh cả chuỗi.
-- **Nhiều trường có quan hệ** như buffer với recordCount, hoặc hai buffer phải chuyển dữ liệu cùng nhau: bảo vệ cả dữ liệu liên quan và cả thao tác đọc snapshot tổng hợp.
-- **Không có chia sẻ giữa các luồng:** không cần áp đặt khóa bổ sung để bảo vệ dữ liệu chỉ một luồng sở hữu; StringBuilder có thể phù hợp hơn trong phạm vi cục bộ.
+- **A single independent call** such as append(wholeRecord), with no invariant spanning multiple calls or other fields: StringBuffer's internal protection is usually sufficient for that call.
+- **Multiple calls that must stay contiguous** such as check-then-append, assembling prefix/body/suffix across multiple append() calls, or read-modify-write based on current content: a shared lock wrapping the whole sequence is needed.
+- **Multiple related fields** such as buffer with recordCount, or two buffers transferring data together: protect all related data as well as aggregate snapshot reads.
+- **No sharing across threads:** no extra lock needs to be imposed to protect data owned by a single thread; StringBuilder may fit better in local scope.
 
-Đừng khóa chỉ vì thấy kiểu StringBuffer, và cũng đừng bỏ khóa chỉ vì từng phương thức đã synchronized. Ranh giới nguyên tử phải do **bất biến của ứng dụng** quyết định.
+Do not lock merely because you see the StringBuffer type, and do not omit locking merely because each method is already synchronized. Atomic boundaries must be decided by **the application's invariants**.
 
-## 8. Kiểm tra và review
+## 8. Testing and Review
 
-Với ứng dụng có nhiều luồng, hãy kiểm tra các thuộc tính ổn định: HEADER đúng một lần; số bản ghi bằng số yêu cầu; mỗi bản ghi có đủ dấu mở/đóng; các bộ đếm khớp với dữ liệu. Lặp kiểm thử và tăng mức cạnh tranh giúp phát hiện lỗi nhưng không thay thế lập luận về khóa. Race có thể không xuất hiện trong hàng nghìn lần chạy.
+In multi-threaded applications, verify stable properties: HEADER appears exactly once; record count matches request count; each record has intact opening/closing delimiters; counters match the data. Repeating tests and increasing contention help uncover bugs, yet do not replace reasoning about locks. A race might not manifest across thousands of runs.
 
-Trong review, đánh dấu toàn bộ đường vào/ra vùng tới hạn, xác minh tất cả dùng **cùng một instance khóa**, khóa không bị thay tham chiếu, và không có đường ghi nào đi vòng ngoài. Khi nhiều monitor được lấy lồng nhau, kiểm tra thứ tự khóa để tránh deadlock. Khi thấy vùng khóa chứa thao tác chậm, xem có thể chuyển phần độc lập ra ngoài mà vẫn giữ nguyên bất biến hay không.
+During code review, mark all entry/exit paths of critical sections, verify all use **the exact same lock instance**, confirm the lock reference is never reassigned, and ensure no write path bypasses it. When multiple monitors are acquired nestedly, verify lock ordering to prevent deadlock. When seeing slow operations inside a locked block, check whether independent work can be moved outside while preserving the invariant.
 
-## Ghi nhớ
+## Key Takeaway
 
-**StringBuffer đồng bộ từng phương thức; khóa chung đồng bộ cả một quy trình nhiều phương thức.** Dùng synchronized(buffer) khi nhiều luồng chia sẻ đúng một StringBuffer và cần bảo vệ toàn bộ thao tác ghép. Dùng private final Object lock khi một lớp quản lý nhiều trạng thái liên quan và kiểm soát mọi đường truy cập. Điều kiện cốt lõi là các luồng phải phối hợp trên **chính cùng một monitor**, và khối khóa phải bao trọn việc kiểm tra, quyết định cùng cập nhật cần được nhìn như một đơn vị.
+**StringBuffer synchronizes individual methods; a shared lock synchronizes an entire multi-method workflow.** Use synchronized(buffer) when multiple threads share a single StringBuffer and need to protect an entire compound operation. Use private final Object lock when a class manages multiple related pieces of state and controls every access path. The core condition is that threads must coordinate on **the exact same monitor**, and the lock block must encompass the check, decision, and update that must be observed as one unit.

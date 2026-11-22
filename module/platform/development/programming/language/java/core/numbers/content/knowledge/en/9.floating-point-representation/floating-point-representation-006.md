@@ -1,187 +1,187 @@
-# Normal, subnormal và gradual underflow trong Java
+# Normal, Subnormal, and Gradual Underflow in Java
 
-## 1. Mục tiêu của bài học
+## 1. Lesson Objectives
 
-Trong Java, **float** và **double** biểu diễn số dấu phẩy động nhị phân với độ rộng cố định. Khi một số rất gần 0, cách biểu diễn của nó có thể thay đổi từ **normal** (số chuẩn hóa) sang **subnormal** (số dưới chuẩn), rồi cuối cùng thành **+0.0** hoặc **-0.0** nếu kết quả nhỏ tới mức không còn số khác 0 biểu diễn được.
+In Java, **float** and **double** represent binary floating-point numbers with fixed bit widths. When a number gets very close to 0, its representation can transition from **normal** to **subnormal**, and finally to **+0.0** or **-0.0** if the result becomes too small for any nonzero representable value.
 
-**Gradual underflow** là cơ chế cho phép các kết quả nhỏ tiếp tục tồn tại dưới dạng subnormal thay vì lập tức bị thay bằng 0 tại ngưỡng nhỏ nhất của số normal. Đây là một phần quan trọng của ngữ nghĩa dấu phẩy động trong Java.
+**Gradual underflow** is the mechanism that allows small results to continue existing as subnormal numbers instead of abruptly turning into 0 at the smallest normal threshold. This is an essential part of Java's floating-point semantics.
 
-Sau bài này, bạn cần có khả năng:
+After this lesson, you should be able to:
 
-- Nhận biết normal, subnormal, zero, infinity và NaN từ các trường bit của float/double.
-- Giải thích **hidden leading bit** là 1 ở số normal và 0 ở số subnormal.
-- Phân biệt **Float.MIN_NORMAL** với **Float.MIN_VALUE**, và tương tự ở double.
-- Tính ngưỡng nhỏ nhất, khoảng cách giữa các số subnormal, cũng như thời điểm làm tròn thành 0.
-- Hiểu gradual underflow giữ được gì, mất độ chính xác tương đối ở đâu và tại sao kết quả Java không tự động “flush to zero”.
-- Đọc mẫu bit và tái hiện các tình huống bằng Java 17+.
+- Identify normal, subnormal, zero, infinity, and NaN from the bit fields of float/double.
+- Explain the **hidden leading bit** as 1 in normal numbers and 0 in subnormal numbers.
+- Distinguish **Float.MIN_NORMAL** from **Float.MIN_VALUE**, and similarly for double.
+- Compute the smallest threshold, spacing between subnormals, and when rounding to 0 occurs.
+- Understand what gradual underflow preserves, where relative precision is lost, and why Java results do not automatically “flush to zero.”
+- Read bit patterns and reproduce these cases in Java 17+.
 
-## 2. Cấu trúc IEEE 754 của float và double
+## 2. IEEE 754 Structure of float and double
 
-Java dùng hai định dạng nhị phân thông dụng:
+Java uses two standard binary formats:
 
-| Thuộc tính | **float** (binary32) | **double** (binary64) |
+| Property | **float** (binary32) | **double** (binary64) |
 | --- | ---: | ---: |
-| Tổng số bit | 32 | 64 |
-| Bit dấu | 1 | 1 |
-| Bit số mũ lưu trữ | 8 | 11 |
-| Bit phân số lưu trữ | 23 | 52 |
-| Độ chính xác của significand ở miền normal | 24 bit | 53 bit |
-| Độ lệch số mũ (bias) | 127 | 1023 |
-| Số mũ nhỏ nhất của normal | −126 | −1022 |
-| Số mũ lớn nhất của normal | +127 | +1023 |
+| Total bits | 32 | 64 |
+| Sign bit | 1 | 1 |
+| Stored exponent bits | 8 | 11 |
+| Stored fraction bits | 23 | 52 |
+| Significand precision in normal range | 24 bits | 53 bits |
+| Exponent bias | 127 | 1023 |
+| Smallest normal exponent | −126 | −1022 |
+| Largest normal exponent | +127 | +1023 |
 
-Một mẫu bit float có bố cục:
+A float bit pattern has the layout:
 
 ~~~text
-float (32 bit)
+float (32 bits)
 +---+----------+-------------------------+
 | s | exponent |         fraction        |
-| 1 |  8 bit   |          23 bit         |
+| 1 |  8 bits  |          23 bits        |
 +---+----------+-------------------------+
 ~~~
 
-Một mẫu bit double:
+A double bit pattern:
 
 ~~~text
-double (64 bit)
+double (64 bits)
 +---+-------------+----------------------------------------------+
 | s |  exponent   |                   fraction                   |
-| 1 |   11 bit    |                     52 bit                   |
+| 1 |   11 bits   |                     52 bits                  |
 +---+-------------+----------------------------------------------+
 ~~~
 
-Gọi **s** là bit dấu, **E** là số nguyên không dấu lưu trong trường exponent, và **F** là số nguyên không dấu lưu trong trường fraction. Dấu của giá trị do **(−1)^s** quyết định. **E** là trường bit được mã hóa và không phải luôn là số mũ thực tế.
+Let **s** be the sign bit, **E** be the unsigned integer stored in the exponent field, and **F** be the unsigned integer stored in the fraction field. The sign of the value is determined by **(−1)^s**. **E** is an encoded bit field and is not always the actual exponent.
 
-Những trường hợp đặc biệt phụ thuộc vào mẫu của exponent:
+Special cases depend on the exponent pattern:
 
-| Trường exponent | Fraction | Loại giá trị |
+| Exponent Field | Fraction | Value Kind |
 | --- | --- | --- |
-| Khác 0 và chưa phải toàn bit 1 | Bất kỳ | **Normal** |
-| Toàn bit 0 | Khác 0 | **Subnormal** |
-| Toàn bit 0 | Bằng 0 | **+0.0** hoặc **−0.0** |
-| Toàn bit 1 | Bằng 0 | **+Infinity** hoặc **−Infinity** |
-| Toàn bit 1 | Khác 0 | **NaN** |
+| Nonzero and not all 1-bits | Any | **Normal** |
+| All 0-bits | Nonzero | **Subnormal** |
+| All 0-bits | Zero | **+0.0** or **−0.0** |
+| All 1-bits | Zero | **+Infinity** or **−Infinity** |
+| All 1-bits | Nonzero | **NaN** |
 
-Đừng nhầm **subnormal** với NaN, infinity hoặc zero. Subnormal là **số hữu hạn khác 0**, có thể tham gia cộng, trừ, nhân, chia thông thường. Dấu âm không thay đổi quy tắc phân loại.
+Do not confuse **subnormal** with NaN, infinity, or zero. A subnormal is a **nonzero finite number** that can participate in ordinary addition, subtraction, multiplication, and division. A negative sign does not change the classification rule.
 
-## 3. Normal: số chuẩn hóa và bit 1 ẩn
+## 3. Normal: Normalized Numbers and the Hidden 1 Bit
 
-Đối với float, khi **1 ≤ E ≤ 254**, số normal có giá trị:
+For float, when **1 ≤ E ≤ 254**, a normal number has the value:
 
 \[
 (-1)^s \times \left(1+\frac{F}{2^{23}}\right)\times 2^{E-127}
 \]
 
-Đối với double, khi **1 ≤ E ≤ 2046**:
+For double, when **1 ≤ E ≤ 2046**:
 
 \[
 (-1)^s \times \left(1+\frac{F}{2^{52}}\right)\times 2^{E-1023}
 \]
 
-Phần **1 + F/2^n** có một bit **1** ở đầu trong dạng nhị phân của significand. Bit 1 này **không cần lưu trữ trong trường fraction**, vì biết chắc nó tồn tại đối với mọi số normal. Nó thường được gọi là **implicit leading 1** hoặc **hidden bit**.
+The **1 + F/2^n** part has a leading **1** bit in the binary form of the significand. This 1 bit **does not need to be stored in the fraction field**, because it is guaranteed to exist for every normal number. It is commonly called the **implicit leading 1** or **hidden bit**.
 
-Ví dụ số float **1.0f**:
+Example of float **1.0f**:
 
 ~~~text
-Bit dấu:      0
+Sign bit:     0
 Exponent E:   01111111 (127)
 Fraction F:   00000000000000000000000 (0)
 
-Giá trị: (+1) × (1 + 0/2^23) × 2^(127−127) = 1
-Mẫu 32 bit: 0x3F800000
+Value: (+1) × (1 + 0/2^23) × 2^(127−127) = 1
+32-bit pattern: 0x3F800000
 ~~~
 
-Trong miền normal, các số không cách đều nhau trên toàn trục số. Với cùng số mũ thực tế, các số kế tiếp nhau có độ chênh cố định, nhưng khi số mũ thay đổi thì khoảng cách cũng thay đổi theo lũy thừa của 2. Nhờ vậy, số normal duy trì một mức **độ chính xác tương đối** gần như ổn định trong miền biểu diễn.
+In the normal range, numbers are not evenly spaced across the entire number line. For the same actual exponent, consecutive numbers have a fixed difference, but when the exponent changes, the spacing scales by a power of 2. Because of this, normal numbers maintain a nearly constant level of **relative accuracy** across the representable range.
 
-### Ranh giới nhỏ nhất của số normal
+### Smallest Normal Boundary
 
-Số normal dương nhỏ nhất xuất hiện khi E = 1 và F = 0:
+The smallest positive normal number occurs when E = 1 and F = 0:
 
-| Hằng Java | Công thức | Mẫu bit |
+| Java Constant | Formula | Bit Pattern |
 | --- | --- | --- |
 | **Float.MIN_NORMAL** | **2^−126** ≈ **1.17549435 × 10^−38** | **0x00800000** |
 | **Double.MIN_NORMAL** | **2^−1022** ≈ **2.2250738585072014 × 10^−308** | **0x0010000000000000** |
 
-Nếu định dạng chỉ có số normal và zero, mọi kết quả dương nhỏ hơn ngưỡng này có nguy cơ phải nhảy mạnh xuống 0. **Subnormal** tạo ra các mức trung gian giữa zero và normal nhỏ nhất.
+If a format only had normal numbers and zero, any positive result smaller than this threshold would risk dropping abruptly to 0. **Subnormals** provide intermediate levels between zero and the smallest normal.
 
-## 4. Subnormal: bỏ bit 1 ẩn và dùng số mũ cố định
+## 4. Subnormal: Dropping the Hidden 1 Bit and Using a Fixed Exponent
 
-Với **E = 0 và F ≠ 0**, bit đầu của significand là **0**, thay vì 1. Giá trị float lúc này là:
+When **E = 0 and F ≠ 0**, the leading bit of the significand is **0**, rather than 1. The float value is then:
 
 \[
 (-1)^s \times \left(\frac{F}{2^{23}}\right)\times 2^{-126}
 = (-1)^s \times F \times 2^{-149}
 \]
 
-Với double:
+For double:
 
 \[
 (-1)^s \times \left(\frac{F}{2^{52}}\right)\times 2^{-1022}
 = (-1)^s \times F \times 2^{-1074}
 \]
 
-Điều cần nhớ là **E = 0 không có nghĩa dùng số mũ −127 ở float hay −1023 ở double**. Trong công thức subnormal, số mũ nền vẫn là **−126** với float và **−1022** với double. Sự lựa chọn này làm cho bước khoảng cách nối tiếp từ subnormal lớn nhất đến normal nhỏ nhất **không bị gián đoạn**.
+Remember that **E = 0 does not mean using exponent −127 in float or −1023 in double**. In the subnormal formula, the base exponent remains **−126** for float and **−1022** for double. This choice ensures that the step size from the largest subnormal to the smallest normal **has no discontinuity**.
 
-Minh họa significand với một số float:
+Illustrating the significand for a float:
 
 ~~~text
-Normal nhỏ nhất:
+Smallest normal:
 1.00000000000000000000000 × 2^-126
-^ bit 1 ẩn
+^ hidden 1 bit
 
-Subnormal lớn nhất:
+Largest subnormal:
 0.11111111111111111111111 × 2^-126
-^ bit 0 ẩn
+^ hidden 0 bit
 
-Subnormal nhỏ nhất:
+Smallest subnormal:
 0.00000000000000000000001 × 2^-126
 ~~~
 
-Vì subnormal không có bit 1 ẩn, khi độ lớn giảm, số bit có nghĩa thực sự giảm theo. Điều này tạo ra phần “gradual”: ta vẫn biểu diễn được những số khác 0, nhưng độ chính xác **tương đối** suy giảm gần 0.
+Because subnormals lack the hidden 1 bit, as magnitude decreases, the effective number of significant bits shrinks accordingly. This creates the “gradual” aspect: nonzero numbers can still be represented, but **relative** accuracy degrades near 0.
 
-### Hằng MIN_VALUE dễ gây hiểu nhầm
+### The Misleading MIN_VALUE Constant
 
-| Hằng Java | Nghĩa chính xác | Giá trị xấp xỉ | Mẫu bit |
+| Java Constant | Exact Meaning | Approximate Value | Bit Pattern |
 | --- | --- | --- | --- |
-| **Float.MIN_VALUE** | Số **float dương khác 0 nhỏ nhất** | 1.40129846 × 10^−45 | **0x00000001** |
-| **Double.MIN_VALUE** | Số **double dương khác 0 nhỏ nhất** | 4.9406564584124654 × 10^−324 | **0x0000000000000001** |
+| **Float.MIN_VALUE** | **Smallest nonzero positive float** | 1.40129846 × 10^−45 | **0x00000001** |
+| **Double.MIN_VALUE** | **Smallest nonzero positive double** | 4.9406564584124654 × 10^−324 | **0x0000000000000001** |
 
-Cả hai **MIN_VALUE đều là subnormal**, không phải số âm nhất. Số âm hữu hạn có độ lớn lớn nhất tương ứng với **−Float.MAX_VALUE** hoặc **−Double.MAX_VALUE**.
+Both **MIN_VALUE constants are subnormals**, not the most negative numbers. The finite negative numbers with the largest magnitude correspond to **−Float.MAX_VALUE** or **−Double.MAX_VALUE**.
 
-Giá trị subnormal dương lớn nhất có F toàn bit 1:
+The largest positive subnormal has F all 1-bits:
 
-| Kiểu | Công thức | Mẫu bit |
+| Type | Formula | Bit Pattern |
 | --- | --- | --- |
 | float | **2^−126 − 2^−149** | **0x007FFFFF** |
 | double | **2^−1022 − 2^−1074** | **0x000FFFFFFFFFFFFF** |
 
-Có thể lấy số subnormal lớn nhất bằng **Math.nextDown(Float.MIN_NORMAL)** hoặc **Math.nextDown(Double.MIN_NORMAL)** mà không cần tự tính.
+You can obtain the largest subnormal via **Math.nextDown(Float.MIN_NORMAL)** or **Math.nextDown(Double.MIN_NORMAL)** without computing it manually.
 
-## 5. Gradual underflow: từ normal xuống subnormal rồi mới tới zero
+## 5. Gradual Underflow: From Normal to Subnormal Before Reaching Zero
 
-**Underflow** là tình huống phép tính dấu phẩy động tạo ra kết quả có độ lớn quá nhỏ so với miền normal. Java áp dụng **gradual underflow**: khi kết quả có thể biểu diễn hoặc làm tròn thành subnormal khác 0, số đó vẫn được giữ.
+**Underflow** is the condition where a floating-point operation produces a result whose magnitude is too small for the normal range. Java applies **gradual underflow**: when a result can be represented or rounded to a nonzero subnormal, that number is retained.
 
-Hãy nhìn vào một phép chia cho 2 trong float:
+Look at repeated division by 2 in float:
 
 ~~~text
 2^-125                     normal
-2^-126                     normal nhỏ nhất = Float.MIN_NORMAL
-2^-127                     subnormal, biểu diễn chính xác
-2^-128                     subnormal, biểu diễn chính xác
+2^-126                     smallest normal = Float.MIN_NORMAL
+2^-127                     subnormal, represented exactly
+2^-128                     subnormal, represented exactly
 ...
-2^-148                     subnormal, biểu diễn chính xác
-2^-149                     subnormal nhỏ nhất = Float.MIN_VALUE
-2^-150                     nằm giữa 0 và Float.MIN_VALUE; làm tròn thành +0.0
+2^-148                     subnormal, represented exactly
+2^-149                     smallest subnormal = Float.MIN_VALUE
+2^-150                     halfway between 0 and Float.MIN_VALUE; rounds to +0.0
 ~~~
 
-Từ **2^−126** đến **2^−149**, các phép chia đúng cho 2 được minh họa vẫn cho số khác 0 và biểu diễn chính xác. Khi tới **2^−150**, kết quả đúng toán học nằm đúng giữa 0 và **2^−149**; quy tắc làm tròn **nearest, ties to even** chọn **+0.0** vì bit cuối được chọn là bit 0.
+From **2^−126** down to **2^−149**, these exact divisions by 2 still yield nonzero, exactly representable numbers. Upon reaching **2^−150**, the exact mathematical result sits halfway between 0 and **2^−149**; the **nearest, ties to even** rounding rule chooses **+0.0** because its least-significant bit is 0.
 
-Nếu hệ thống dùng cơ chế **flush-to-zero (FTZ)**, một kết quả nằm trong miền subnormal có thể bị thay ngay thành 0. Đây không phải ngữ nghĩa của toán tử dấu phẩy động Java 17+: Java yêu cầu hỗ trợ subnormal và gradual underflow.
+If a system uses **flush-to-zero (FTZ)**, a result in the subnormal range may be replaced immediately by 0. That is not the semantics of Java 17+ floating-point operators: Java requires support for subnormals and gradual underflow.
 
-### Hình dung “bậc thang” sát zero
+### Visualizing the “Staircase” Near Zero
 
 ~~~text
-float dương, không theo tỉ lệ hình học:
+positive float, not to geometric scale:
 
 0        1·u       2·u       ...   (2^23−1)·u      2^23·u
 |---------|---------|-------------------|-----------------|
@@ -191,36 +191,36 @@ u = 2^-149 = Float.MIN_VALUE
 minNormal = 2^23 · u = 2^-126
 ~~~
 
-Các số subnormal dương float chính xác là **k × 2^−149** với k nguyên từ **1** đến **2^23 − 1**. Vì thế chúng **cách nhau một lượng tuyệt đối cố định u**. Bước từ subnormal lớn nhất đến normal nhỏ nhất cũng đúng bằng **u**, tạo liên tục về *khoảng cách biểu diễn* ở ranh giới. Điều này không có nghĩa các số thực nằm giữa hai giá trị float cũng biểu diễn được; mọi kết quả vẫn phải làm tròn về giá trị khả dụng.
+Positive float subnormals are exactly **k × 2^−149** for integers k from **1** to **2^23 − 1**. Thus they are **spaced by a constant absolute amount u**. The step from the largest subnormal to the smallest normal is also **u**, preserving continuity of *representation spacing* across the boundary. This does not mean real numbers between two float values are representable; every result must still round to an available value.
 
-Tương tự, các subnormal dương double có bước cố định **2^−1074**.
+Similarly, positive double subnormals have a fixed step of **2^−1074**.
 
-## 6. Mất dần độ chính xác tương đối
+## 6. Gradual Loss of Relative Precision
 
-Trong miền normal, significand chứa **24 bit có nghĩa với float** và **53 bit với double** (gồm bit 1 ẩn). Khi sang subnormal, bit đầu bắt buộc là 0, phần có nghĩa hiệu dụng ít dần khi giá trị tiến về zero.
+In the normal range, the significand contains **24 significant bits for float** and **53 bits for double** (including the hidden 1 bit). Upon entering subnormals, the leading bit becomes 0, and the effective significant bits decrease as values approach zero.
 
-Hai ý tưởng về sai số cần phân biệt:
+Two notions of error must be distinguished:
 
-- **Độ phân giải tuyệt đối (absolute spacing)**: khoảng cách giữa hai giá trị biểu diễn được gần nhau. Với mọi float subnormal dương, đó là **2^−149**.
-- **Độ phân giải tương đối (relative spacing)**: tỉ lệ của khoảng cách trên so với độ lớn số đang xét. Tỉ lệ này tăng mạnh khi số tiến về zero.
+- **Absolute resolution (absolute spacing)**: the distance between two adjacent representable values. For all positive float subnormals, this is **2^−149**.
+- **Relative resolution (relative spacing)**: the ratio of that spacing to the magnitude of the number under consideration. This ratio grows sharply as the number approaches zero.
 
-Ví dụ tại **Float.MIN_NORMAL = 2^−126**:
+For example, at **Float.MIN_NORMAL = 2^−126**:
 
 ~~~text
-Bước lưới             = 2^-149
-Bước / giá trị        = 2^-149 / 2^-126 = 2^-23
+Grid step             = 2^-149
+Step / value          = 2^-149 / 2^-126 = 2^-23
                       ≈ 1.1920929 × 10^-7
 ~~~
 
-Nhưng tại **Float.MIN_VALUE = 2^−149**, bước lưới lại **bằng chính giá trị đó**. Số rất nhỏ có thể có sai số tương đối lớn khi nhân, chia, cộng hoặc trừ. Đó là đánh đổi có chủ đích của gradual underflow: bảo toàn được nhiều giá trị rất nhỏ, nhưng không bảo toàn được độ chính xác tương đối như ở miền normal.
+However, at **Float.MIN_VALUE = 2^−149**, the grid step **equals the value itself**. Very small numbers can suffer large relative errors when multiplied, divided, added, or subtracted. That is the intentional trade-off of gradual underflow: preserving many tiny values without preserving the same relative accuracy as in the normal range.
 
-**Subnormal không mặc nhiên là kết quả sai.** Ví dụ phép tính **Float.MIN_NORMAL / 2** tạo ra một subnormal **chính xác**. Ngược lại, một phép tính dưới ngưỡng có thể phải làm tròn; tình trạng “kết quả là subnormal” và “kết quả bị làm tròn không chính xác” không đồng nghĩa nhau. Theo IEEE 754, khái niệm cờ *underflow* còn liên quan điều kiện tininess/inexact; Java không cung cấp một API thông thường để đọc cờ trạng thái phần cứng đó.
+**A subnormal is not inherently an erroneous result.** For example, **Float.MIN_NORMAL / 2** produces an **exact** subnormal. Conversely, an underflowing calculation may require rounding; “the result is subnormal” and “the result was rounded inexactly” are not synonymous. Under IEEE 754, the *underflow* flag also relates to tininess/inexactness conditions; Java does not provide a standard API to read such hardware status flags.
 
-## 7. Làm tròn khi độ lớn nhỏ hơn subnormal nhỏ nhất
+## 7. Rounding When Magnitude Drops Below the Smallest Subnormal
 
-Java 17+ áp dụng ngữ nghĩa dấu phẩy động strict, phù hợp với quy tắc làm tròn của các toán tử tương ứng. Đối với cộng/trừ/nhân/chia dấu phẩy động thông thường, kết quả hữu hạn không biểu diễn chính xác sẽ được làm tròn về giá trị gần nhất; khi ở đúng trung điểm, chọn giá trị có bit thấp nhất chẵn (*ties to even*).
+Java 17+ enforces strict floating-point semantics matching the rounding rules of the respective operators. For ordinary floating-point addition/subtraction/multiplication/division, a finite result that cannot be represented exactly rounds to the nearest value; on an exact tie, the value with an even least-significant bit is chosen (*ties to even*).
 
-Xét float dương:
+Consider positive float:
 
 ~~~text
 0.0f                   = 0
@@ -228,19 +228,19 @@ Float.MIN_VALUE        = 2^-149
 Float.MIN_VALUE / 2    = 2^-150
 ~~~
 
-**2^−150** nằm đúng giữa 0 và **2^−149**, nên làm tròn thành **+0.0f**. Với số âm, **−2^−150** làm tròn thành **−0.0f**: bit dấu vẫn có ý nghĩa trong biểu diễn mặc dù hai số zero so sánh bằng nhau qua **==**.
+**2^−150** lies halfway between 0 and **2^−149**, so it rounds to **+0.0f**. For negative numbers, **−2^−150** rounds to **−0.0f**: the sign bit remains meaningful in the representation even though both zeros compare equal under **==**.
 
-Một trường hợp khác:
+Another case:
 
 ~~~text
 Float.MIN_VALUE * 1.5 = 1.5 × 2^-149
 ~~~
 
-Giá trị toán học nằm đúng giữa **1 × 2^−149** và **2 × 2^−149**; ties-to-even chọn **2 × 2^−149**, nên kết quả có trường fraction là **2**, tương ứng mẫu **0x00000002**.
+The mathematical value lies exactly halfway between **1 × 2^−149** and **2 × 2^−149**; ties-to-even chooses **2 × 2^−149**, so the result has fraction field **2**, corresponding to pattern **0x00000002**.
 
-**Không có ArithmeticException** khi kết quả phép toán float/double bị làm tròn thành 0 do underflow. Các phép toán này trả về giá trị floating-point thích hợp.
+**No ArithmeticException occurs** when a float/double operation rounds to 0 due to underflow. These operations return the appropriate floating-point value.
 
-### Signed zero khác nhau khi quan sát bằng bit
+### Signed Zeros Differ When Inspected by Bits
 
 ~~~java
 float positiveZero = Float.MIN_VALUE / 2.0f;
@@ -251,11 +251,11 @@ System.out.println(1.0f / positiveZero);            // Infinity
 System.out.println(1.0f / negativeZero);            // -Infinity
 ~~~
 
-Đoạn mã trên minh họa, không phải chương trình độc lập. Dùng **Float.floatToRawIntBits** để quan sát bit dấu chính xác; so sánh **==** không phân biệt +0.0 với −0.0.
+The snippet above is illustrative, not a standalone program. Use **Float.floatToRawIntBits** to observe the exact sign bit; **==** comparison does not distinguish +0.0 from −0.0.
 
-## 8. Ví dụ Java 17+ kiểm tra các ranh giới bằng bit
+## 8. Java 17+ Example Checking Boundaries by Bits
 
-Tạo tệp **SubnormalDemo.java** với toàn bộ mã sau:
+Create the file **SubnormalDemo.java** with the following complete code:
 
 ~~~java
 public class SubnormalDemo {
@@ -326,14 +326,14 @@ public class SubnormalDemo {
 }
 ~~~
 
-Biên dịch, chạy:
+Compile and run:
 
 ~~~bash
 javac --release 17 SubnormalDemo.java
 java SubnormalDemo
 ~~~
 
-Kết quả stdout chính xác:
+Exact stdout result:
 
 ~~~text
 float minNormal: 0x00800000 / normal
@@ -357,27 +357,27 @@ double minNormal hex: 0x1.0p-1022
 double minSub hex: 0x0.0000000000001p-1022
 ~~~
 
-**Giải thích những dòng quan trọng:**
+**Explanation of key lines:**
 
-- **float minNormal 0x00800000**: bit exponent đầu tiên bằng 1, fraction bằng 0 → normal nhỏ nhất.
-- **float maxSub 0x007FFFFF**: exponent bằng 0, fraction toàn bit 1 → subnormal lớn nhất.
-- **float minSub 0x00000001**: exponent bằng 0, chỉ bit fraction thấp nhất bằng 1 → subnormal nhỏ nhất.
-- **float minNormal / 2 0x00400000**: kết quả đã chuyển sang miền subnormal, nhưng không mất đi.
-- **float maxSub + minSub 0x00800000**: từ subnormal lớn nhất tiến đúng một bước đến normal nhỏ nhất; chứng minh tính liên tục của khoảng cách biểu diễn ở ngưỡng.
-- **float minSub / 2 0x00000000**: giá trị đúng toán học quá nhỏ, làm tròn thành zero dương.
-- **float -minSub / 2 0x80000000**: sự mất độ lớn không xóa bit dấu.
-- **float minSub * 1.5 0x00000002**: ví dụ một phép làm tròn đúng trung điểm về phía significand chẵn.
-- **double minNormal / 2 0x0008000000000000**: gradual underflow cũng hiện diện ở kiểu double, với độ rộng trường fraction là 52 bit.
+- **float minNormal 0x00800000**: lowest exponent bit is 1, fraction is 0 → smallest normal.
+- **float maxSub 0x007FFFFF**: exponent is 0, fraction is all 1-bits → largest subnormal.
+- **float minSub 0x00000001**: exponent is 0, only the lowest fraction bit is 1 → smallest subnormal.
+- **float minNormal / 2 0x00400000**: the result moved into the subnormal range without vanishing.
+- **float maxSub + minSub 0x00800000**: advancing one step from the largest subnormal reaches the smallest normal; demonstrates continuity of representation spacing across the threshold.
+- **float minSub / 2 0x00000000**: exact mathematical value is too small, rounding to positive zero.
+- **float -minSub / 2 0x80000000**: loss of magnitude does not erase the sign bit.
+- **float minSub * 1.5 0x00000002**: example of rounding an exact midpoint toward an even significand.
+- **double minNormal / 2 0x0008000000000000**: gradual underflow is also present in double, with a 52-bit fraction field.
 
-**Float.toHexString/Double.toHexString** in số hexa dấu phẩy động dạng **0x...p...**, trong đó **p** mô tả số mũ cơ số 2. Nó không giống chuỗi **0x00800000** biểu thị nguyên mẫu bit. Đó là lý do chương trình dùng cả **toHexString** và **floatToRawIntBits/doubleToRawLongBits**.
+**Float.toHexString/Double.toHexString** prints floating-point hex in **0x...p...** form, where **p** denotes the base-2 exponent. It is not the same as **0x00800000**, which displays the raw bit pattern. That is why the program uses both **toHexString** and **floatToRawIntBits/doubleToRawLongBits**.
 
-Hàm **category** dựa trên trường bit và phù hợp để hiểu cách phân loại số float. Java còn có **Float.isFinite**, **Float.isNaN**, **Float.isInfinite**, nhưng các hàm này không phân biệt riêng normal/subnormal; nếu cần xác định subnormal, hãy xét trường exponent và fraction như ví dụ.
+The **category** method relies on bit fields and is suitable for understanding how float values are classified. Java also has **Float.isFinite**, **Float.isNaN**, and **Float.isInfinite**, but those methods do not separately distinguish normal from subnormal; to identify subnormals, inspect the exponent and fraction fields as shown in the example.
 
-## 9. Vì sao gradual underflow có ích trong tính toán?
+## 9. Why Is Gradual Underflow Useful in Computation?
 
-Các thuật toán khoa học, xử lý tín hiệu và phép tính giá trị xác suất đôi khi tạo ra những lượng rất nhỏ. Gradual underflow có thể duy trì chúng để các phép tính tiếp theo còn khai thác được thay vì đột ngột biến mất.
+Scientific algorithms, signal processing, and probability calculations sometimes generate very small quantities. Gradual underflow can keep them alive so subsequent operations can still utilize them instead of having them vanish abruptly.
 
-Ví dụ, giả sử một bước tính cho ra **x = Float.MIN_NORMAL / 2**. Nếu kết quả ấy còn được giữ, **x × 2** phục hồi đúng **Float.MIN_NORMAL**:
+For instance, suppose an intermediate step yields **x = Float.MIN_NORMAL / 2**. If that result is preserved, **x × 2** recovers **Float.MIN_NORMAL** exactly:
 
 ~~~java
 float x = Float.MIN_NORMAL / 2.0f;
@@ -385,86 +385,86 @@ float restored = x * 2.0f;
 System.out.println(restored == Float.MIN_NORMAL); // true
 ~~~
 
-Trong phép tính này, giá trị trung gian là subnormal khác 0. Nếu nó bị làm tròn ngay thành 0, phép nhân sau đó không thể khôi phục thông tin. Tuy nhiên không phải mọi thao tác với subnormal đều chính xác; gần ngưỡng nhỏ nhất, một bước làm tròn thành 0 là điều không tránh được.
+In this calculation, the intermediate value is a nonzero subnormal. If it had been rounded straight to 0, the subsequent multiplication could not recover the information. Nevertheless, not every operation with subnormals is exact; near the smallest threshold, rounding to 0 is unavoidable.
 
-Với những ứng dụng cần **độ chính xác tương đối ổn định** ở miền rất nhỏ, chỉ dựa vào gradual underflow chưa đủ. Có thể cần **đổi thang đo (rescaling)**, tính tổng theo thuật toán số ổn định, sử dụng **logarithm** để lưu giá trị xác suất rất nhỏ, hoặc chọn biểu diễn số khác theo bài toán. Mỗi hướng đều đòi hỏi đánh giá lại công thức; không mặc nhiên chuyển mọi phép tính sang BigDecimal nếu vấn đề gốc là sự ổn định của thuật toán nhị phân.
+For applications requiring **consistent relative accuracy** in very small ranges, relying on gradual underflow alone is insufficient. You may need **rescaling**, numerically stable summation algorithms, **logarithms** to store tiny probabilities, or a different numeric representation depending on the problem. Each approach requires re-evaluating the formulas; do not blindly convert everything to BigDecimal when the root issue is binary algorithm stability.
 
-## 10. Những lưu ý riêng khi chạy trên Java
+## 10. Specific Considerations When Running on Java
 
-### Java 17+ yêu cầu ngữ nghĩa strict
+### Java 17+ Requires Strict Semantics
 
-Từ Java 17, [JEP 306 — Restore Always-Strict Floating-Point Semantics](https://openjdk.org/jeps/306) khôi phục việc đánh giá strict cho các biểu thức dấu phẩy động. Các toán tử floating-point Java phải tuân theo ngữ nghĩa tương ứng, bao gồm subnormal và gradual underflow. Từ khóa **strictfp** không còn làm thay đổi cách đánh giá số học ở Java 17+, dù vẫn tồn tại để tương thích mã nguồn.
+Since Java 17, [JEP 306 — Restore Always-Strict Floating-Point Semantics](https://openjdk.org/jeps/306) restored strict evaluation for floating-point expressions. Java floating-point operators must obey the corresponding semantics, including subnormals and gradual underflow. The **strictfp** keyword no longer alters arithmetic evaluation in Java 17+, though it remains valid for source compatibility.
 
-Đừng nhầm yêu cầu ngữ nghĩa Java với cách cấu hình xử lý subnormal trong các thư viện native/JNI, GPU hoặc môi trường tính toán khác. Các hệ thống ngoài Java có thể sử dụng thiết lập flush-to-zero riêng; kết quả ở ranh giới liên kết cần kiểm chứng theo môi trường cụ thể.
+Do not confuse Java's semantic requirements with how subnormals are configured in native/JNI libraries, GPUs, or other compute environments. Systems outside Java may enable flush-to-zero settings; results across interop boundaries should be verified in the target environment.
 
-### Tối ưu hiệu năng không làm thay đổi quy tắc số học
+### Performance Optimization Does Not Alter Arithmetic Rules
 
-Trên một số phần cứng hoặc đường xử lý nhất định, phép toán liên quan subnormal có thể có chi phí hiệu năng khác normal. Không nên mặc định mọi JVM hay CPU đều bị chậm. Khi cần tối ưu, đo trên JVM và đầu vào thực tế, đồng thời bảo toàn tính đúng đắn của thuật toán.
+On certain hardware or execution pipelines, operations involving subnormals may have different performance costs than normals. Do not assume every JVM or CPU slows down. When optimization is needed, measure on the actual JVM and inputs while preserving algorithmic correctness.
 
-### Những hàm giúp khảo sát giá trị
+### Functions That Help Inspect Values
 
-| API | Công dụng |
+| API | Purpose |
 | --- | --- |
-| **Float.MIN_NORMAL**, **Double.MIN_NORMAL** | Ngưỡng normal dương nhỏ nhất |
-| **Float.MIN_VALUE**, **Double.MIN_VALUE** | Subnormal dương nhỏ nhất, không phải số âm nhỏ nhất |
-| **Math.nextDown(x)** | Giá trị dấu phẩy động biểu diễn được gần nhất ở phía nhỏ hơn |
-| **Math.nextUp(x)** | Giá trị dấu phẩy động biểu diễn được gần nhất ở phía lớn hơn |
-| **Math.ulp(x)** | Khoảng đơn vị tại mức độ lớn của x theo định nghĩa của API |
-| **Float.toHexString(x)**, **Double.toHexString(x)** | Biểu diễn hexa dấu phẩy động với số mũ nhị phân |
-| **Float.floatToRawIntBits(x)** | Xem 32 bit của float, bao gồm bit dấu của −0.0 |
-| **Double.doubleToRawLongBits(x)** | Xem 64 bit của double |
+| **Float.MIN_NORMAL**, **Double.MIN_NORMAL** | Smallest positive normal threshold |
+| **Float.MIN_VALUE**, **Double.MIN_VALUE** | Smallest positive subnormal, not the smallest negative number |
+| **Math.nextDown(x)** | Closest representable floating-point value in the smaller direction |
+| **Math.nextUp(x)** | Closest representable floating-point value in the larger direction |
+| **Math.ulp(x)** | Unit spacing at the magnitude of x as defined by the API |
+| **Float.toHexString(x)**, **Double.toHexString(x)** | Hexadecimal floating-point representation with binary exponent |
+| **Float.floatToRawIntBits(x)** | Inspect the 32 bits of a float, including the sign bit of −0.0 |
+| **Double.doubleToRawLongBits(x)** | Inspect the 64 bits of a double |
 
-**Math.ulp(Float.MIN_NORMAL)** và **Math.ulp(Float.MIN_VALUE)** đều bằng **Float.MIN_VALUE**. Mẫu này phản ánh bước lưới không đổi của miền subnormal tại phía gần ngưỡng normal.
+**Math.ulp(Float.MIN_NORMAL)** and **Math.ulp(Float.MIN_VALUE)** both equal **Float.MIN_VALUE**. This reflects the constant grid step of the subnormal range right up to the normal boundary.
 
-### Float và double không có cùng ngưỡng
+### Float and Double Do Not Share the Same Thresholds
 
-Một giá trị dưới **Float.MIN_NORMAL** chưa chắc là subnormal đối với **double**. Ví dụ giá trị toán học **2^−149** là subnormal nhỏ nhất của float, nhưng là số **normal** trong double, vì **−149** vẫn lớn hơn rất nhiều so với số mũ normal nhỏ nhất **−1022** của double. Khi đổi kiểu từ double sang float, một giá trị có thể bị làm tròn thành subnormal hoặc zero; hãy xét kiểu lưu trữ của kết quả, không chỉ giá trị ban đầu.
+A value below **Float.MIN_NORMAL** is not necessarily subnormal for **double**. For example, the mathematical value **2^−149** is the smallest float subnormal, yet it is a **normal** number in double, because **−149** is still far larger than double's smallest normal exponent **−1022**. When converting from double to float, a value can be rounded to a subnormal or zero; consider the destination type of the result, not just the initial value.
 
-## 11. Những nhầm lẫn phổ biến
+## 11. Common Confusions
 
-| Nhầm lẫn | Điều đúng cần ghi nhớ |
+| Confusion | Truth to Remember |
 | --- | --- |
-| **Float.MIN_VALUE** là float âm nhất | Nó là float **dương khác 0 nhỏ nhất**, thuộc miền subnormal |
-| Subnormal nghĩa là zero | Subnormal có fraction khác 0, là số hữu hạn khác 0 |
-| Exponent E=0 luôn có nghĩa số mũ thực bằng −bias | Subnormal dùng số mũ nền **−126** (float) hoặc **−1022** (double) và leading bit **0** |
-| Số normal vừa dưới ngưỡng sẽ trở thành 0 ngay | Java giữ subnormal khi làm tròn có giá trị subnormal |
-| Subnormal có đủ 24/53 bit có nghĩa như normal | Độ chính xác tương đối giảm dần khi tiến về zero |
-| Giá trị subnormal luôn do phép tính sai số tạo ra | Nhiều kết quả subnormal, ví dụ chia đôi MIN_NORMAL, là chính xác |
-| Underflow luôn ném exception | Phép toán float/double trả subnormal hoặc signed zero, không ném ArithmeticException do underflow |
-| **0.0f == -0.0f** nghĩa là mẫu bit giống nhau | Hai zero so sánh bằng nhau nhưng khác bit dấu và có thể dẫn tới +/−Infinity khi làm mẫu số |
-| Toán tử Java có thể tự flush mọi subnormal về 0 để tối ưu | Ngữ nghĩa floating-point Java yêu cầu gradual underflow; việc tối ưu phải giữ kết quả tương đương |
-| In giá trị thập phân là đủ để hiểu biểu diễn | Dùng **toHexString** và **RawBits** để thấy ngưỡng, số mũ, bit fraction và signed zero |
+| **Float.MIN_VALUE** is the most negative float | It is the **smallest nonzero positive** float, in the subnormal range |
+| Subnormal means zero | Subnormals have a nonzero fraction and are nonzero finite numbers |
+| Exponent E=0 always means actual exponent −bias | Subnormals use base exponent **−126** (float) or **−1022** (double) and leading bit **0** |
+| A normal number just below the threshold immediately becomes 0 | Java retains subnormals when rounding produces a subnormal value |
+| Subnormals have the full 24/53 significant bits like normals | Relative precision decreases gradually toward zero |
+| Subnormal values are always caused by rounding errors | Many subnormal results, such as halving MIN_NORMAL, are exact |
+| Underflow always throws an exception | float/double operations return a subnormal or signed zero, never throwing ArithmeticException for underflow |
+| **0.0f == -0.0f** means identical bit patterns | The two zeros compare equal yet differ in sign bit and can yield +/−Infinity as divisors |
+| Java operators can silently flush subnormals to 0 for optimization | Java floating-point semantics require gradual underflow; optimizations must preserve equivalent results |
+| Printing decimal values is enough to understand representation | Use **toHexString** and **RawBits** to see thresholds, exponents, fraction bits, and signed zero |
 
-## 12. Câu hỏi và bài tập tự kiểm tra
+## 12. Self-Check Questions and Exercises
 
-**Câu 1.** Vì sao **Float.MIN_NORMAL / 2.0f** là số khác 0?
+**Q1.** Why is **Float.MIN_NORMAL / 2.0f** a nonzero number?
 
-**Đáp án:** Kết quả bằng **2^−127**, vẫn là bội nguyên của **2^−149**, nên biểu diễn được chính xác bằng subnormal có mẫu **0x00400000**.
+**Answer:** The result equals **2^−127**, which is still an integer multiple of **2^−149**, so it is represented exactly as a subnormal with pattern **0x00400000**.
 
-**Câu 2.** Mẫu bit **0x00000001** của float thuộc loại nào? Giá trị là bao nhiêu?
+**Q2.** What kind of float is bit pattern **0x00000001**? What is its value?
 
-**Đáp án:** Exponent bằng 0 và fraction bằng 1, nên là **subnormal** dương nhỏ nhất, giá trị **2^−149 = Float.MIN_VALUE**.
+**Answer:** Exponent is 0 and fraction is 1, so it is the smallest positive **subnormal**, with value **2^−149 = Float.MIN_VALUE**.
 
-**Câu 3.** Vì sao **Float.MIN_VALUE / 2.0f** thành **+0.0f**, nhưng **Float.MIN_VALUE * 1.5f** thành **0x00000002**?
+**Q3.** Why does **Float.MIN_VALUE / 2.0f** become **+0.0f**, whereas **Float.MIN_VALUE * 1.5f** becomes **0x00000002**?
 
-**Đáp án:** Cả hai kết quả toán học đều ở đúng trung điểm trên lưới biểu diễn. Ties-to-even chọn **0** trong trường hợp đầu và chọn **2 × 2^−149** trong trường hợp sau.
+**Answer:** Both mathematical results lie at exact midpoints on the representation grid. Ties-to-even selects **0** in the first case and **2 × 2^−149** in the second case.
 
-**Câu 4.** Số subnormal dương lớn nhất của float là gì? Số normal dương nhỏ nhất cách nó bao xa?
+**Q4.** What is the largest positive subnormal float? How far is it from the smallest positive normal float?
 
-**Đáp án:** **0x007FFFFF = (2^23−1) × 2^−149**; khoảng cách đến **Float.MIN_NORMAL** đúng **Float.MIN_VALUE = 2^−149**.
+**Answer:** **0x007FFFFF = (2^23−1) × 2^−149**; the distance to **Float.MIN_NORMAL** is exactly **Float.MIN_VALUE = 2^−149**.
 
-**Câu 5.** Khi chuyển **float** nhỏ nhất dương sang **double**, nó còn là subnormal không?
+**Q5.** When converting the smallest positive **float** to **double**, is it still subnormal?
 
-**Đáp án:** Không. **2^−149** là số normal của double. Loại normal/subnormal phụ thuộc **định dạng đích**.
+**Answer:** No. **2^−149** is a normal number in double. Normal/subnormal classification depends on the **target format**.
 
-**Câu 6.** Nếu tính xác suất rất nhỏ, chỉ có gradual underflow thì đã tránh được mọi mất độ chính xác chưa?
+**Q6.** If computing very small probabilities, does gradual underflow alone prevent all accuracy loss?
 
-**Đáp án:** Chưa. Nó kéo dài miền số hữu hạn khác 0, nhưng độ chính xác tương đối vẫn suy giảm ở subnormal và các kết quả đủ nhỏ vẫn bị làm tròn về zero. Có thể cần biến đổi công thức hoặc làm việc trong miền log tùy thuật toán.
+**Answer:** No. It extends the nonzero finite range, but relative accuracy still degrades in subnormals and sufficiently small results still round to zero. Depending on the algorithm, you may need to reformulate or compute in log space.
 
-## 13. Tài liệu đối chiếu
+## 13. Reference Documentation
 
-- [Java Language Specification SE 17 — §4.2.3 Floating-Point Types, Formats, and Values](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2.3): miền biểu diễn normal/subnormal, độ rộng và độ chính xác.
-- [Java Language Specification SE 17 — §15.4 Floating-Point Expressions](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.4): ngữ nghĩa phép tính, underflow và các giá trị đặc biệt.
-- [Float API, Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Float.html): các hằng **MIN_NORMAL**, **MIN_VALUE**, phương thức **toHexString** và thao tác bit.
-- [Double API, Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html): hằng số và hàm tương ứng với binary64.
-- [OpenJDK JEP 306](https://openjdk.org/jeps/306): ngữ nghĩa floating-point luôn strict từ Java 17.
+- [Java Language Specification SE 17 — §4.2.3 Floating-Point Types, Formats, and Values](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2.3): normal/subnormal representation ranges, widths, and precision.
+- [Java Language Specification SE 17 — §15.4 Floating-Point Expressions](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.4): operation semantics, underflow, and special values.
+- [Float API, Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Float.html): **MIN_NORMAL**, **MIN_VALUE** constants, **toHexString** method, and bit operations.
+- [Double API, Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html): corresponding constants and methods for binary64.
+- [OpenJDK JEP 306](https://openjdk.org/jeps/306): always-strict floating-point semantics since Java 17.

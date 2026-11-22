@@ -1,26 +1,26 @@
-# Tách phép so khớp gần đúng khỏi `equals()` khi không tạo quan hệ tương đương
+# Separating Approximate Matching From `equals()` When It Does Not Form an Equivalence Relation
 
-Trong Java, `equals(Object)` biểu thị **bằng nhau về mặt logic** theo hợp đồng của `Object`. Còn các câu hỏi như “hai số đo lệch nhau không quá 1°C?”, “hai tọa độ cách nhau dưới 10 mét?”, “hai chuỗi có độ tương tự trên 90%?” thường là **phép so khớp gần đúng**. Chúng có thể hữu ích trong nghiệp vụ, nhưng không nhất thiết tạo ra quan hệ tương đương. Nếu đưa chúng vào `equals()`, kết quả của `HashSet`, `HashMap` và các phép so sánh trong chương trình có thể khó hiểu hoặc sai.
+In Java, `equals(Object)` expresses **logical equality** under the `Object` contract. Meanwhile, questions such as “do two measurements differ by at most 1°C?”, “are two coordinates less than 10 meters apart?”, or “do two strings have over 90% similarity?” are usually **approximate matching operations**. They can be useful in the business domain, yet do not necessarily form an equivalence relation. Putting them into `equals()` can make the behavior of `HashSet`, `HashMap`, and comparisons in the program confusing or wrong.
 
-**Nguyên tắc:** giữ `equals()` cho một định nghĩa bằng nhau ổn định, có tính tương đương; thể hiện phép gần đúng qua API riêng như `isCloseTo`, `matchesWithinTolerance` hoặc `isSimilarTo`, với quy tắc và ngưỡng rõ ràng.
+**Rule:** reserve `equals()` for a stable equality definition that forms an equivalence relation; express approximation through a dedicated API such as `isCloseTo`, `matchesWithinTolerance`, or `isSimilarTo`, with explicit rules and thresholds.
 
-## 1. Thế nào là một quan hệ tương đương?
+## 1. What Is an Equivalence Relation?
 
-Một quan hệ `~` trên các đối tượng là *quan hệ tương đương* khi thỏa ba tính chất:
+A relation `~` over objects is an *equivalence relation* when it satisfies three properties:
 
-| Tính chất | Diễn đạt | Ví dụ với đối tượng `a`, `b`, `c` |
+| Property | Expression | Example with objects `a`, `b`, `c` |
 | --- | --- | --- |
-| Phản xạ (*reflexive*) | Mỗi đối tượng bằng chính nó | `a ~ a` |
-| Đối xứng (*symmetric*) | Nếu `a` bằng `b` thì `b` bằng `a` | `a ~ b ⇒ b ~ a` |
-| Bắc cầu (*transitive*) | Nếu `a` bằng `b` và `b` bằng `c`, thì `a` phải bằng `c` | `a ~ b` và `b ~ c` ⇒ `a ~ c` |
+| Reflexive | Every object equals itself | `a ~ a` |
+| Symmetric | If `a` equals `b`, then `b` equals `a` | `a ~ b ⇒ b ~ a` |
+| Transitive | If `a` equals `b` and `b` equals `c`, then `a` must equal `c` | `a ~ b` and `b ~ c` ⇒ `a ~ c` |
 
-Hợp đồng `Object.equals(Object)` trong Java đòi hỏi các tính chất này. Nó còn yêu cầu **nhất quán** (khi thông tin dùng để so sánh không đổi, gọi lặp lại phải cho cùng kết quả) và `x.equals(null)` luôn trả `false`. Khi ghi đè `equals()`, phải đồng thời bảo đảm: nếu `a.equals(b)` là `true` thì `a.hashCode() == b.hashCode()`. Chiều ngược lại không bắt buộc.
+Java's `Object.equals(Object)` contract requires these properties. It also requires **consistency** (when the information used for comparison does not change, repeated calls must return the same result) and that `x.equals(null)` always returns `false`. When overriding `equals()`, you must simultaneously guarantee: if `a.equals(b)` is `true`, then `a.hashCode() == b.hashCode()`. The converse is not required.
 
-Quan hệ tương đương chia tập đối tượng thành các nhóm bằng nhau rõ ràng: hai đối tượng trong cùng nhóm phải được xem là bằng nhau, bất kể thứ tự so sánh. Điều này đặc biệt quan trọng với các collection tổ chức phần tử theo tính bằng nhau.
+An equivalence relation partitions a set of objects into well-defined equality groups: any two objects in the same group must be considered equal, regardless of comparison order. This is especially important for collections that organize elements by equality.
 
-## 2. Vì sao so khớp bằng khoảng sai số thường không bắc cầu?
+## 2. Why Is Tolerance-Range Matching Usually Not Transitive?
 
-Giả sử hai nhiệt độ “gần nhau” nếu độ chênh lệch tuyệt đối không quá `1.0`:
+Suppose two temperatures are “close” if their absolute difference is at most `1.0`:
 
 ~~~java
 static boolean close(double x, double y, double tolerance) {
@@ -28,20 +28,20 @@ static boolean close(double x, double y, double tolerance) {
 }
 ~~~
 
-Đây chỉ là **đoạn minh họa quy tắc**, chưa có kiểm tra `NaN`, vô cực và ngưỡng đầu vào; ví dụ chạy đầy đủ ở phần sau sẽ có kiểm tra đó.
+This is only a **rule-illustration snippet**, lacking checks for `NaN`, infinity, and input threshold validation; the full runnable example later will include those checks.
 
-Xét ba giá trị:
+Consider three values:
 
-- `a = 0.0` và `b = 0.6`: chênh lệch `0.6`, nên `a ~ b` là `true`.
-- `b = 0.6` và `c = 1.2`: chênh lệch `0.6`, nên `b ~ c` là `true`.
-- `a = 0.0` và `c = 1.2`: chênh lệch `1.2`, nên `a ~ c` là `false`.
+- `a = 0.0` and `b = 0.6`: difference `0.6`, so `a ~ b` is `true`.
+- `b = 0.6` and `c = 1.2`: difference `0.6`, so `b ~ c` is `true`.
+- `a = 0.0` and `c = 1.2`: difference `1.2`, so `a ~ c` is `false`.
 
-Ta có `a ~ b` và `b ~ c` nhưng **không có** `a ~ c`. Như vậy, quy tắc “chênh lệch ≤ ngưỡng” **không có tính bắc cầu** với ngưỡng dương nói chung. Dù quy tắc này có phản xạ và đối xứng cho số hữu hạn và ngưỡng hợp lệ, chỉ cần hỏng một trong ba tính chất là nó không còn là quan hệ tương đương.
+We have `a ~ b` and `b ~ c`, yet **not** `a ~ c`. Thus, the rule “difference ≤ threshold” **is not transitive** for a general positive threshold. Even though this rule is reflexive and symmetric for finite numbers and valid thresholds, breaking just one of the three properties means it is no longer an equivalence relation.
 
-Đó là lý do **không nên** viết:
+That is why you **should not** write:
 
 ~~~java
-// Sai về hợp đồng equals: minh họa điều KHÔNG nên làm.
+// Violates the equals contract: illustrates what NOT to do.
 @Override
 public boolean equals(Object obj) {
     if (!(obj instanceof Temperature other)) {
@@ -51,24 +51,24 @@ public boolean equals(Object obj) {
 }
 ~~~
 
-Mảnh mã trên giả định có lớp `Temperature` và trường `celsius`; đây không phải lớp hoàn chỉnh để biên dịch độc lập. Kể cả khi viết một `hashCode()` trả cùng hằng số cho mọi đối tượng, việc vi phạm tính bắc cầu **vẫn còn nguyên**. Cố tìm công thức hash không thể sửa một quan hệ không hợp lệ.
+The code fragment above assumes a `Temperature` class and a `celsius` field; it is not a complete class for standalone compilation. Even if you write a `hashCode()` returning the same constant for every object, the transitivity violation **still remains**. Trying to invent a hash formula cannot fix an invalid relation.
 
-Ngưỡng còn có thể phụ thuộc người dùng, phép đo, màn hình hoặc thời điểm. Nếu lấy một ngưỡng thay đổi theo ngữ cảnh để cài đặt `equals()`, cùng cặp đối tượng có thể lúc được xem bằng nhau, lúc không, ngay cả khi bản thân đối tượng không đổi. Điều này cũng trái kỳ vọng về tính nhất quán của `equals()`.
+A threshold can also depend on the user, measurement, screen, or time. If a context-varying threshold is used to implement `equals()`, the exact same pair of objects can sometimes be considered equal and sometimes not, even when the objects themselves have not changed. This also violates the expectation of `equals()` consistency.
 
-## 3. Thiết kế đúng: `equals()` diễn đạt danh tính; API riêng diễn đạt độ gần
+## 3. Proper Design: `equals()` Expresses Identity; Dedicated API Expresses Closeness
 
-Giả sử mỗi lần đọc cảm biến có một **mã lần đọc** (`readingId`) duy nhất, cố định. Hai đối tượng cùng mã đại diện cho cùng một lần đọc logic, nên có thể coi là bằng nhau theo danh tính nghiệp vụ. Giá trị nhiệt độ (`celsius`) chỉ dùng để hỏi “hai lần đọc có gần nhau về nhiệt độ không?”.
+Suppose each sensor reading has a unique, fixed **reading ID** (`readingId`). Two objects with the same ID represent the same logical reading, so they can be treated as equal by business identity. The temperature value (`celsius`) is only used to ask “are these two readings close in temperature?”.
 
-Thiết kế khi đó có hai phép độc lập:
+The design then has two independent operations:
 
-- `equals(Object)`: so sánh `readingId`, trả lời **“cùng lần đọc?”**; đây là quan hệ tương đương nếu mã ổn định và được gán nhất quán.
-- `isCloseTo(Reading other, double tolerance)`: so sánh nhiệt độ trong ngưỡng, trả lời **“hai số đo gần nhau?”**; không tuyên bố hai đối tượng bằng nhau.
+- `equals(Object)`: compares `readingId`, answering **“same reading?”**; this is an equivalence relation if the ID is stable and consistently assigned.
+- `isCloseTo(Reading other, double tolerance)`: compares temperatures within a threshold, answering **“are two measurements close?”**; it does not claim the two objects are equal.
 
-Một đối tượng có thể **khác** đối tượng kia theo `equals()`, nhưng **gần** nhau theo `isCloseTo()`. Điều đó không mâu thuẫn: hai phương thức trả lời hai câu hỏi nghiệp vụ khác nhau.
+One object can **differ** from another under `equals()`, yet be **close** under `isCloseTo()`. That is not a contradiction: the two methods answer two different business questions.
 
-### Ví dụ Java 17 hoàn chỉnh
+### Complete Java 17 Example
 
-Tạo tệp **`ApproximateMatchDemo.java`** với nội dung sau:
+Create the file **`ApproximateMatchDemo.java`** with the following content:
 
 ~~~java
 import java.util.HashSet;
@@ -143,14 +143,14 @@ public class ApproximateMatchDemo {
 }
 ~~~
 
-Biên dịch/chạy với JDK 17 trở lên:
+Compile/run with JDK 17 or newer:
 
 ~~~bash
 javac ApproximateMatchDemo.java
 java ApproximateMatchDemo
 ~~~
 
-**Kết quả mong đợi:**
+**Expected output:**
 
 ~~~text
 a close b: true
@@ -163,67 +163,67 @@ a close null: false
 HashSet size: 3
 ~~~
 
-Giải thích:
+Explanation:
 
-1. Ba lệnh `close` cố ý tái hiện phản ví dụ không bắc cầu. Đây là hành vi **đúng** của phép so khớp gần đúng, vì phương thức này không được dùng làm `equals()`.
-2. `a.equals(b)` là `false` vì hai mã lần đọc khác nhau, dù nhiệt độ đủ gần.
-3. `a.equals(copyOfA)` là `true` vì chúng mang cùng `readingId`; `hashCode()` dựa trên cùng mã nên tuân thủ quy tắc hash.
-4. `isCloseTo(null, tolerance)` chọn trả `false` theo thiết kế API này; `equals(null)` cũng trả `false` theo hợp đồng `Object`.
-5. `HashSet` có ba phần tử: `A`, `B`, `C`. Bản sao của `A` không thêm phần tử thứ tư, và ngưỡng so nhiệt độ không ảnh hưởng đến membership.
+1. The three `close` calls intentionally reproduce the non-transitive counterexample. This is **correct** behavior for approximate matching, since this method is not used as `equals()`.
+2. `a.equals(b)` is `false` because the two reading IDs differ, even though the temperatures are close enough.
+3. `a.equals(copyOfA)` is `true` because they carry the same `readingId`; `hashCode()` is based on the same ID and therefore obeys the hash rule.
+4. `isCloseTo(null, tolerance)` chooses to return `false` per this API's design; `equals(null)` also returns `false` per the `Object` contract.
+5. `HashSet` holds three elements: `A`, `B`, `C`. The copy of `A` does not add a fourth element, and the temperature comparison threshold does not affect membership.
 
-**Giới hạn có chủ đích:** lớp `Reading` là `final`, các trường là `final` và `readingId` không đổi sau khi tạo. Điều này giúp định nghĩa bằng nhau dựa trên mã ổn định. Quy tắc “cùng `readingId` là cùng một lần đọc logic” chỉ đúng khi hệ thống thực sự bảo đảm ý nghĩa đó; không nên tự áp dụng cùng cách cho mọi mô hình dữ liệu. `isCloseTo` kiểm tra nhiệt độ và ngưỡng đều hữu hạn; nếu ngưỡng âm, `NaN` hoặc vô cực, phương thức ném `IllegalArgumentException`.
+**Intentional limitations:** the `Reading` class is `final`, its fields are `final`, and `readingId` does not change after construction. This keeps equality defined on a stable identifier. The rule “same `readingId` means the same logical reading” holds only when the system genuinely guarantees that meaning; do not blindly apply the same approach to every data model. `isCloseTo` checks that both temperature and threshold are finite; if the threshold is negative, `NaN`, or infinite, the method throws `IllegalArgumentException`.
 
-## 4. Tác hại của việc nhét phép gần đúng vào `equals()`
+## 4. Harm of Stuffing Approximate Matching Into `equals()`
 
-### Collection dựa vào hash
+### Hash-Based Collections
 
-`HashSet` và `HashMap` dùng `hashCode()` để xác định vùng tra cứu rồi dùng `equals()` để xác định phần tử hoặc khóa bằng nhau. Nếu `equals()` không có tính bắc cầu, việc coi một giá trị là trùng lặp có thể phụ thuộc các phần tử đã được thêm và thứ tự thao tác. Không còn một cách phân hoạch nhất quán thành những nhóm bằng nhau.
+`HashSet` and `HashMap` use `hashCode()` to locate the lookup region and then use `equals()` to determine equal elements or keys. If `equals()` is not transitive, whether a value is treated as a duplicate can depend on which elements were already added and the order of operations. There is no longer a consistent partitioning into equality groups.
 
-Ví dụ với `a = 0.0`, `b = 0.6`, `c = 1.2`: nếu cho `b` đại diện cả `a` lẫn `c` theo ngưỡng `1.0`, thì `a` và `c` lại không bằng nhau theo cùng quy tắc. Không thể coi “tất cả các giá trị gần nhau” là một khóa hash logic mà vẫn giữ đúng ý nghĩa của phép gần nhau trực tiếp.
+For example, with `a = 0.0`, `b = 0.6`, `c = 1.2`: if `b` represents both `a` and `c` under threshold `1.0`, yet `a` and `c` are not equal under the same rule, you cannot treat “all nearby values” as one logical hash key while preserving the meaning of direct closeness.
 
-**Không đưa quan hệ gần đúng làm khóa đồng nhất của `Map`, điều kiện loại trùng của `Set` hoặc cơ sở cho `hashCode()`.** Hãy lưu đối tượng theo khóa định danh/giá trị chính xác và tìm các đối tượng gần nhau bằng thao tác riêng.
+**Do not make an approximate relation the identity key of a `Map`, the deduplication condition of a `Set`, or the basis for `hashCode()`.** Store objects by an exact identifier/value key and find nearby objects via a separate operation.
 
-### So sánh để sắp xếp
+### Comparing for Ordering
 
-Tránh viết `Comparator` trả `0` cho hai giá trị chỉ vì chúng cách nhau dưới ngưỡng: một quy tắc kiểu đó thường phá vỡ yêu cầu sắp thứ tự nhất quán. `TreeSet` và `TreeMap` dựa vào kết quả so sánh để xác định thứ tự và việc hai khóa có được coi là tương đương trong cấu trúc cây. Nếu cần sắp xếp, hãy dùng một thứ tự rõ ràng (chẳng hạn `Double.compare` trên số đo hợp lệ), rồi thực hiện tìm kiếm trong khoảng sai số riêng.
+Avoid writing a `Comparator` that returns `0` for two values merely because they are within a threshold: such a rule generally breaks consistent ordering requirements. `TreeSet` and `TreeMap` rely on comparison results to determine order and whether two keys are considered equivalent in the tree structure. If sorting is needed, use a clear order (such as `Double.compare` on valid measurements), then search within the tolerance range separately.
 
-### Sai số tương đối và phép so khớp bất đối xứng
+### Relative Error and Asymmetric Matching
 
-Không phải công thức “gần đúng” nào cũng tự động đối xứng. Chẳng hạn `abs(a-b) / abs(a) <= p` phụ thuộc chọn `a` làm mẫu số; đổi chiều hai đối số có thể cho kết quả khác. Cần xác định rõ ý nghĩa của ngưỡng tuyệt đối, ngưỡng tương đối, đơn vị đo và cách xử lý số 0. Ngay cả khi sửa công thức để đối xứng, vấn đề **không bắc cầu** nhìn chung vẫn có thể tồn tại.
+Not every “approximate” formula is automatically symmetric. For example, `abs(a-b) / abs(a) <= p` depends on picking `a` as the denominator; swapping the two arguments can yield different results. You must clearly define the meaning of absolute thresholds, relative thresholds, measurement units, and how `0` is handled. Even if the formula is fixed to be symmetric, the **non-transitivity** issue can generally still exist.
 
-## 5. Nếu thật sự cần nhóm bằng nhau theo độ chính xác thì sao?
+## 5. What If You Genuinely Need Equality Grouping by Precision?
 
-Có lúc yêu cầu nghiệp vụ thực sự là **xem các giá trị thuộc cùng một mức độ phân giải là bằng nhau**, ví dụ chỉ quan tâm nhiệt độ đã được ghi nhận tới phần mười độ. Khi đó có thể **chuẩn hóa thành một giá trị đại diện ổn định trước khi so sánh**, rồi định nghĩa bằng nhau bằng sự bằng nhau của giá trị đại diện.
+Sometimes the business requirement genuinely is **to treat values belonging to the same resolution level as equal**, such as caring only about temperatures recorded to the nearest tenth of a degree. In that case, you can **normalize into a stable representative value before comparing**, then define equality as equality of the representative value.
 
-Ví dụ minh họa ý tưởng:
+Illustrative example of the idea:
 
 ~~~java
-// Sau khi đã xác thực đầu vào hữu hạn và miền giá trị phù hợp:
+// After validating finite input and appropriate value range:
 long tenthDegrees = Math.round(celsius * 10.0);
 ~~~
 
-Nếu một kiểu dữ liệu lưu khóa chuẩn hóa `tenthDegrees` và dùng `Long.equals`/so sánh `long` (cùng `hashCode` tương ứng), quan hệ bằng nhau theo khóa **có tính bắc cầu**: cùng khóa thì cùng nhóm. Tuy nhiên, đây là một **quy tắc khác** phép `Math.abs(a - b) <= 0.1`: hai số rất gần nhưng nằm hai phía ranh giới làm tròn có thể khác nhóm, còn hai số cùng nhóm được xem là bằng nhau theo mức phân giải đã chọn. Phải chấp nhận ranh giới này ở cấp yêu cầu nghiệp vụ, không giả vờ hai quy tắc tương đương.
+If a data type stores the canonical key `tenthDegrees` and uses `Long.equals`/comparing `long` (with matching `hashCode`), key-based equality **is transitive**: same key means same group. However, this is a **different rule** from `Math.abs(a - b) <= 0.1`: two very close numbers lying on opposite sides of a rounding boundary can land in different groups, whereas two numbers in the same group are treated as equal at the chosen resolution. This boundary must be accepted at the business-requirement level, without pretending the two rules are equivalent.
 
-Cách chọn tùy ý nghĩa dữ liệu:
+Choosing based on data meaning:
 
-| Yêu cầu thật | Thiết kế phù hợp |
+| Actual requirement | Appropriate design |
 | --- | --- |
-| “Cùng một bản ghi/lần đo?” | `equals()` dựa trên ID ổn định của bản ghi |
-| “Cùng giá trị đã chuẩn hóa đến độ phân giải cố định?” | Chuẩn hóa rồi so khóa chính xác; đồng bộ `equals()` và `hashCode()` |
-| “Hai phép đo cách nhau không quá ε?” | `isCloseTo(other, epsilon)` / `matchesWithinTolerance` |
-| “Các điểm đo hình thành nhóm liên thông theo khoảng cách?” | Thuật toán gom cụm/đồ thị riêng, mô tả rõ quy tắc thành viên |
-| “Cần tìm mọi giá trị trong khoảng gần X?” | Lọc/tìm trong khoảng theo tiêu chí rõ ràng, không giả lập bằng `equals()` |
+| “Same record/measurement?” | `equals()` based on the record's stable ID |
+| “Same value normalized to a fixed resolution?” | Normalize then compare exact keys; keep `equals()` and `hashCode()` in sync |
+| “Two measurements within ε of each other?” | `isCloseTo(other, epsilon)` / `matchesWithinTolerance` |
+| “Measurement points forming connected clusters by distance?” | Dedicated clustering/graph algorithm with clearly documented membership rules |
+| “Need to find every value within a neighborhood around X?” | Range filtering/search with explicit criteria, without faking it via `equals()` |
 
-Với gom cụm theo quan hệ gần, các phần tử cùng cụm qua chuỗi nối không nhất thiết phải gần nhau trực tiếp. Ví dụ `a` và `c` có thể nằm cùng thành phần liên thông thông qua `b`, dù `a` không gần `c`. Vì thế cần đặt tên và kiểm thử đúng quan hệ mà sản phẩm muốn biểu diễn.
+With clustering by proximity, elements in the same cluster via a chain do not necessarily lie close to each other directly. For example, `a` and `c` may belong to the same connected component through `b`, even though `a` is not close to `c`. Therefore, name and test the exact relation the product intends to express.
 
-## 6. Checklist thiết kế và kiểm thử
+## 6. Design and Testing Checklist
 
-Trước khi định nghĩa `equals()` cho một lớp, hãy tự trả lời:
+Before defining `equals()` for a class, ask yourself:
 
-1. “Bằng nhau” có nghĩa là cùng danh tính, cùng giá trị hay cùng khóa chuẩn hóa? Quy tắc có **phản xạ, đối xứng, bắc cầu** không?
-2. Dữ liệu dùng cho `equals()` và `hashCode()` có ổn định trong thời gian đối tượng được dùng làm khóa `HashMap` hoặc phần tử `HashSet` không?
-3. Ngưỡng “gần”, đơn vị đo, thuật toán độ tương tự hoặc ý kiến người dùng có đang bị trộn vào `equals()` không? Nếu có, tách thành API chuyên biệt.
-4. Với API gần đúng, đã định nghĩa rõ hành vi cho `null`, ngưỡng âm, `NaN`, vô cực, giới hạn sai số và ranh giới chưa?
-5. Đã kiểm thử bộ ba `a, b, c` mà `a` gần `b`, `b` gần `c` nhưng `a` không gần `c` chưa? Trường hợp này phải **được phép** ở API gần đúng, nhưng sẽ tố cáo lỗi nếu xảy ra ở `equals()`.
+1. Does “equal” mean same identity, same value, or same canonical key? Is the rule **reflexive, symmetric, and transitive**?
+2. Is the data used for `equals()` and `hashCode()` stable while the object is used as a `HashMap` key or `HashSet` element?
+3. Are “closeness” thresholds, measurement units, similarity algorithms, or user preferences getting mixed into `equals()`? If so, separate them into a dedicated API.
+4. For the approximate API, have behaviors for `null`, negative thresholds, `NaN`, infinity, error bounds, and boundary cases been explicitly defined?
+5. Have you tested a triple `a, b, c` where `a` is close to `b`, `b` is close to `c`, yet `a` is not close to `c`? This case must be **allowed** in an approximate API, yet exposes a bug if it occurs in `equals()`.
 
-**Kết luận học tập:** `equals()` nói về *quan hệ bằng nhau logic* và phải tuân thủ hợp đồng của `Object`. Một phép so khớp theo ngưỡng có thể rất đúng về nghiệp vụ mà vẫn không phải quan hệ tương đương. Hãy đặt tên riêng cho nó, truyền ngưỡng rõ ràng, kiểm thử các trường hợp biên và giữ `equals()`/`hashCode()` dựa trên định nghĩa bằng nhau ổn định.
+**Learning takeaway:** `equals()` is about *logical equality* and must obey the `Object` contract. A threshold-based match can be completely valid in the business domain while still not being an equivalence relation. Give it its own name, pass thresholds explicitly, test edge cases, and keep `equals()`/`hashCode()` grounded in a stable equality definition.

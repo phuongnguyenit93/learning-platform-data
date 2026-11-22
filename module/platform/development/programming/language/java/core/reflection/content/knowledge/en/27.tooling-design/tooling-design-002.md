@@ -1,33 +1,33 @@
-# Định nghĩa chính sách field, property hoặc accessor cần dùng trong công cụ Java Reflection
+# Defining Field, Property, or Accessor Policies in Java Reflection Tools
 
-## 1. Vì sao phải có chính sách thay vì quét mọi member?
+## 1. Why have a policy instead of scanning every member?
 
-Khi xây một công cụ dùng reflection (serializer, object inspector, mapper, validator, form generator, exporter...), cùng một giá trị có thể xuất hiện dưới nhiều hình thức:
+When building a tool using reflection (serializer, object inspector, mapper, validator, form generator, exporter...), the same value can appear in multiple forms:
 
-- **Field**: vùng lưu trữ như `private String name` hoặc `public int count`, được mô tả bởi `java.lang.reflect.Field`.
-- **JavaBeans property**: thuộc tính logic xác định qua cặp phương thức theo quy ước, ví dụ `getName()` / `setName(String)`, hoặc `isActive()` cho boolean; có thể **không có field cùng tên**. Metadata thường được đọc qua `java.beans.Introspector` và `PropertyDescriptor`.
-- **Record component**: thành phần khai báo trong header của record, ví dụ `record User(String name) {}`, có accessor `name()` và `RecordComponent` riêng.
-- **Accessor tùy biến**: phương thức có ngữ nghĩa lấy dữ liệu như `displayName()` hoặc `fetchBalance()`; không phải mọi method không tham số đều nên trở thành property.
+- **Field**: a storage slot such as `private String name` or `public int count`, described by `java.lang.reflect.Field`.
+- **JavaBeans property**: a logical attribute determined by convention-based method pairs, e.g. `getName()` / `setName(String)`, or `isActive()` for booleans; there may be **no field with the same name**. Metadata is typically read via `java.beans.Introspector` and `PropertyDescriptor`.
+- **Record component**: a component declared in a record header, e.g. `record User(String name) {}`, with accessor `name()` and its own `RecordComponent`.
+- **Custom accessor**: a method with data-retrieval semantics like `displayName()` or `fetchBalance()`; not every zero-parameter method should become a property.
 
-Nếu công cụ vừa quét field, vừa quét getter, nó có thể xuất `name` hai lần; nếu ép gọi tất cả getter, có thể làm phát sinh truy vấn cơ sở dữ liệu, lỗi nghiệp vụ hoặc làm lộ thông tin. Nếu tùy tiện dùng `setAccessible(true)`, công cụ có thể vi phạm ranh giới module hoặc đọc dữ liệu không được phép.
+If a tool scans both fields and getters, it may output `name` twice; if it forces calls to all getters, it can trigger database queries, business errors, or data leaks. If it arbitrarily uses `setAccessible(true)`, the tool can violate module boundaries or read unauthorized data.
 
-**Chính sách truy cập (access policy)** là quy tắc xác định rõ *nguồn metadata*, *đối tượng nào được chọn*, *cách đặt tên*, *quyền đọc/ghi*, *ưu tiên khi trùng*, *thứ tự đầu ra*, *xử lý lỗi* và *ranh giới bảo mật*. Chính sách cần được quyết định trước khi quét/đọc object; không để hành vi vô tình phụ thuộc thứ tự trả về của `getDeclaredFields()` hay `getDeclaredMethods()`.
+An **access policy** is a rule set that clearly specifies *metadata sources*, *which members are selected*, *naming rules*, *read/write permissions*, *precedence on conflict*, *output order*, *error handling*, and *security boundaries*. The policy must be decided before scanning/reading an object; never let behavior accidentally depend on the return order of `getDeclaredFields()` or `getDeclaredMethods()`.
 
-### Một số tình huống
+### Some scenarios
 
-| Bối cảnh | Chính sách có thể phù hợp | Điểm cần kiểm soát |
+| Context | Potentially suitable policy | Points to control |
 | --- | --- | --- |
-| Inspector đơn giản trên DTO có public fields | Public instance fields | Không suy đoán private fields cũng được phép đọc |
-| Framework dùng hợp đồng JavaBeans | Getter/setter hợp lệ từ `Introspector` | Loại getter lỗi, getter có tác dụng phụ; kiểm tra quyền |
-| Export dữ liệu record | Record components theo header | Dùng `getRecordComponents()` và accessor `name()`, không giả định tên `getName()` |
-| API serializer dữ liệu nhạy cảm | Explicit allowlist + annotation/config | Chỉ xuất trường được chấp thuận; bảo vệ secret |
-| Framework có domain object hỗn hợp | Chính sách rõ ràng theo loại hoặc theo annotation | Tránh tự động gộp/ghi đè field và property trùng tên |
+| Simple inspector on DTOs with public fields | Public instance fields | Do not assume private fields are also allowed to be read |
+| Framework using JavaBeans contract | Valid getters/setters from `Introspector` | Exclude broken getters and getters with side effects; check permissions |
+| Exporting record data | Record components by header | Use `getRecordComponents()` and accessor `name()`, do not assume `getName()` |
+| API serializer for sensitive data | Explicit allowlist + annotation/config | Only output approved fields; protect secrets |
+| Framework with mixed domain objects | Explicit policy per type or annotation | Avoid automatically merging/overwriting colliding fields and properties |
 
-## 2. Phân biệt đúng field, property và accessor
+## 2. Properly distinguishing fields, properties, and accessors
 
-### Field: lưu trữ trực tiếp
+### Field: direct storage
 
-Với:
+Given:
 
 ```java
 class Account {
@@ -36,71 +36,71 @@ class Account {
 }
 ```
 
-`Account.class.getDeclaredFields()` tìm field **khai báo ngay trên lớp** (bao gồm private), còn `Account.class.getFields()` tìm public fields khả dụng, gồm các public fields được kế thừa. Hai API này có phạm vi khác nhau; `getDeclaredFields()` không tự lấy field kế thừa.
+`Account.class.getDeclaredFields()` finds fields **declared directly on the class** (including private ones), whereas `Account.class.getFields()` finds accessible public fields, including inherited public fields. These two APIs have different scopes; `getDeclaredFields()` does not automatically fetch inherited fields.
 
-Phát hiện field bằng metadata không có nghĩa chương trình có quyền đọc giá trị. `Field.get(target)` cần receiver hợp lệ và quyền truy cập thích hợp. Với static field, đối số target được bỏ qua; với instance field, target phải là instance tương thích. Java reflection cũng có `Field.getInt`, `getBoolean`... cho primitive.
+Discovering a field via metadata does not mean the program has permission to read its value. `Field.get(target)` requires a valid receiver and appropriate access rights. For static fields, the target argument is ignored; for instance fields, target must be a compatible instance. Java reflection also provides `Field.getInt`, `getBoolean`, etc. for primitives.
 
-**Field không tương đương property**: một field có thể là dữ liệu nội bộ; một property có thể tính toán giá trị hoặc ủy quyền vào hệ thống khác. Không tự động serialize mọi private field chỉ vì công cụ đủ quyền kỹ thuật để làm vậy.
+**A field is not equivalent to a property**: a field may be internal data; a property may compute a value or delegate to another system. Do not automatically serialize every private field just because the tool has the technical capability to do so.
 
-### JavaBeans property: hợp đồng phương thức
+### JavaBeans property: method contract
 
-`Introspector.getBeanInfo(type, Object.class).getPropertyDescriptors()` trả metadata property theo JavaBeans convention, bỏ qua phần đến từ `Object` theo mức stop class. Một `PropertyDescriptor` có thể cung cấp:
+`Introspector.getBeanInfo(type, Object.class).getPropertyDescriptors()` returns property metadata according to the JavaBeans convention, excluding parts inherited from `Object` via the stop class. A `PropertyDescriptor` can provide:
 
-- `getName()`: tên logic, chẳng hạn `active`.
-- `getReadMethod()`: getter nếu có.
-- `getWriteMethod()`: setter nếu có.
-- `getPropertyType()`: kiểu property khi xác định được.
+- `getName()`: logical name, such as `active`.
+- `getReadMethod()`: getter if present.
+- `getWriteMethod()`: setter if present.
+- `getPropertyType()`: property type when determinable.
 
-Ví dụ `boolean isActive()` theo quy ước JavaBeans thường tạo property `active`; `getBalance()` có thể là property chỉ đọc nếu không có setter. Một setter-only property có `getReadMethod() == null` và **không thể đọc** chỉ dựa trên descriptor đó.
+For example, `boolean isActive()` under the JavaBeans convention typically produces property `active`; `getBalance()` can be a read-only property if there is no setter. A setter-only property has `getReadMethod() == null` and **cannot be read** from that descriptor alone.
 
-`Introspector.decapitalize` có quy tắc tên riêng, ví dụ `getURL()` thường ánh xạ property `URL` chứ không phải `uRL`. Đừng tự chuyển tên bằng cách hạ chữ cái đầu trong mọi trường hợp. Các JavaBeans descriptor đến từ inheritance và `BeanInfo` tùy biến có thể khác suy luận đơn giản từ tên method.
+`Introspector.decapitalize` has its own naming rules; for instance, `getURL()` typically maps to property `URL`, not `uRL`. Do not convert names simply by lowercasing the first letter in all cases. JavaBeans descriptors coming from inheritance and custom `BeanInfo` may differ from naive inference from method names.
 
-### Record component: hợp đồng header record
+### Record component: record header contract
 
-Ví dụ:
+Example:
 
 ```java
 public record Receipt(String code, int total) {}
 ```
 
-`Receipt.class.isRecord()` là `true`. `Receipt.class.getRecordComponents()` trả các `RecordComponent` theo thứ tự khai báo: `code`, `total`. Accessor là `code()`, `total()`, **không phải** `getCode()` hay `getTotal()`. `getRecordComponents()` trả `null` với class không phải record, vì vậy phải kiểm tra `isRecord()` trước.
+`Receipt.class.isRecord()` is `true`. `Receipt.class.getRecordComponents()` returns `RecordComponent` objects in declaration order: `code`, `total`. The accessors are `code()`, `total()`, **not** `getCode()` or `getTotal()`. `getRecordComponents()` returns `null` for non-record classes, so you must check `isRecord()` first.
 
-Record components không tự đồng nhất với JavaBeans properties trong mọi công cụ: JavaBeans introspection truyền thống dựa vào `getX()/isX()`, trong khi record accessor được đặt theo tên thành phần. Nếu công cụ phải hỗ trợ record, hãy quy định riêng nhánh record.
+Record components are not automatically identical to JavaBeans properties in every tool: traditional JavaBeans introspection relies on `getX()/isX()`, whereas record accessors are named after the components. If a tool must support records, define a dedicated record branch.
 
-### Accessor tùy biến: chỉ nhận khi có hợp đồng
+### Custom accessor: accept only with a contract
 
-Một `public String displayName()` không có tham số **chưa chắc** là property. Nếu công cụ chọn các accessor không theo JavaBeans, cần có điều kiện minh bạch như annotation `@Expose`, metadata do người dùng khai báo hoặc interface chuẩn của ứng dụng. Không quét tất cả zero-argument methods rồi gọi thử: có thể gặp `close()`, `reset()`, `delete()` hoặc thao tác tốn kém, mặc dù một số có kiểu trả về phù hợp.
+A parameterless `public String displayName()` is **not necessarily** a property. If a tool selects non-JavaBeans accessors, there must be a transparent condition such as an `@Expose` annotation, user-declared metadata, or a standard application interface. Do not scan all zero-argument methods and speculatively invoke them: you may hit `close()`, `reset()`, `delete()`, or expensive operations, even if some have matching return types.
 
-## 3. Những quyết định chính sách cần chốt
+## 3. Policy decisions to lock down
 
-Trước khi viết bộ quét, ghi rõ câu trả lời cho các câu hỏi sau:
+Before writing the scanner, explicitly record answers to these questions:
 
-| Quyết định | Các lựa chọn thường gặp | Khuyến nghị triển khai |
+| Decision | Common options | Implementation recommendation |
 | --- | --- | --- |
-| Nguồn thành viên | `PUBLIC_FIELD`, `BEAN_PROPERTY`, `RECORD_COMPONENT`, `ANNOTATED_ACCESSOR` hoặc phối hợp | Chọn một mặc định xác định; có override có chủ đích |
-| Thành viên được chọn | Public-only, allowlist, annotation, visibility do module cho phép | Public + allowlist mặc định cho dữ liệu xuất ra ngoài |
-| Instance/static | Chỉ instance hay gồm cả static | Thông thường loại static vì không thuộc trạng thái một object |
-| Synthetic/bridge | Có tính thành viên do compiler tạo không | Loại synthetic field/method và bridge method nếu quét method thô |
-| Mutable/read-only | Đọc, ghi hay cả hai | Phân tách `readable` và `writable`; không suy từ tồn tại field |
-| Kế thừa | Lấy member inherited hay chỉ declared | Ghi rõ từng API; xử lý override/hiding |
-| Tên public | Field name, bean property name, record component name hoặc annotation alias | Chuẩn hóa tên đầu ra và kiểm tra trùng |
-| Thứ tự | Theo header record, theo tên, theo annotation `order` | Quy định rõ, không dựa vào thứ tự reflection trả về |
-| Null & lỗi getter | Giữ null, bỏ qua, ghi lỗi theo đường dẫn | Không im lặng đổi null thành chuỗi `"null"` |
-| Trùng tên | Ưu tiên nào? lỗi? | Mặc định báo ambiguity; chỉ ưu tiên khi policy công bố |
-| Quyền truy cập | Public, `privateLookupIn`, `setAccessible` có điều kiện | Tôn trọng module boundary, hạn chế deep reflection |
-| Hiệu năng | Introspect mỗi lần hoặc cache metadata | Cache descriptor theo `Class<?>`; không cache giá trị object tùy tiện |
+| Member source | `PUBLIC_FIELD`, `BEAN_PROPERTY`, `RECORD_COMPONENT`, `ANNOTATED_ACCESSOR`, or combination | Pick a deterministic default; allow intentional overrides |
+| Selected members | Public-only, allowlist, annotation, module-allowed visibility | Public + allowlist by default for externally exported data |
+| Instance/static | Instance only or include static | Usually exclude static because it does not belong to an object's state |
+| Synthetic/bridge | Include compiler-generated members or not | Exclude synthetic fields/methods and bridge methods when scanning raw methods |
+| Mutable/read-only | Read, write, or both | Separate `readable` and `writable`; do not infer from field existence |
+| Inheritance | Include inherited members or declared only | Document per API; handle override/hiding |
+| Public name | Field name, bean property name, record component name, or annotation alias | Normalize output names and check for duplicates |
+| Order | Record header order, by name, by `order` annotation | Specify explicitly; do not rely on reflection return order |
+| Null & getter errors | Keep null, skip, record error by path | Do not silently convert null to the string `"null"` |
+| Name collisions | Which takes priority? error? | Default to reporting ambiguity; prioritize only when policy explicitly declares it |
+| Access rights | Public, `privateLookupIn`, conditional `setAccessible` | Respect module boundaries, minimize deep reflection |
+| Performance | Introspect every time or cache metadata | Cache descriptors by `Class<?>`; do not arbitrarily cache object values |
 
-**Policy phải dựa vào mục tiêu đầu ra:** serializer phục vụ API public thường có ranh giới khác debugger nội bộ; policy đọc (export) cũng khác policy ghi (binding/deserialization). Tránh một cờ `includeAll=true` gom tất cả trường hợp với nhiều hệ quả khó dự đoán.
+**Policy must match the output goal:** a serializer serving a public API usually has different boundaries from an internal debugger; a read (export) policy also differs from a write (binding/deserialization) policy. Avoid an `includeAll=true` flag that merges all cases with unpredictable consequences.
 
-## 4. Mô hình policy và quy trình duyệt đề xuất
+## 4. Recommended policy model and traversal flow
 
-Một bản thiết kế có thể gồm ba lớp:
+A design can consist of three layers:
 
-1. **Discovery**: từ `Class<?>` lấy danh sách field, property, record component hoặc accessor đã đăng ký theo policy.
-2. **Selection & normalization**: áp dụng allowlist/denylist/annotation, loại static/synthetic, xác định tên logic, visibility, nullability, readable/writable, xử lý trùng và sắp xếp ổn định.
-3. **Execution**: chỉ khi được yêu cầu, gọi `Field.get` hoặc getter/record accessor; ghi kết quả, phân loại exception và không để lỗi một property làm hỏng toàn bộ dữ liệu nếu hợp đồng cho phép partial result.
+1. **Discovery**: from `Class<?>`, gather the list of fields, properties, record components, or registered accessors according to the policy.
+2. **Selection & normalization**: apply allowlist/denylist/annotations, exclude static/synthetic, determine logical name, visibility, nullability, readable/writable, resolve collisions, and sort deterministically.
+3. **Execution**: only when requested, invoke `Field.get` or the getter/record accessor; record results, classify exceptions, and avoid letting one property's error break the entire output if the contract permits partial results.
 
-Ví dụ descriptor trung gian (fragment, chưa phải chương trình đầy đủ):
+Example intermediate descriptor (fragment, not a complete program):
 
 ```java
 enum SourceKind { FIELD, BEAN, RECORD, EXPLICIT_ACCESSOR }
@@ -114,11 +114,11 @@ record MemberDescriptor(
 ) {}
 ```
 
-Trong hệ thống thật, descriptor nên có strategy thực thi có kiểm soát, ví dụ hàm đọc/ghi hoặc tham chiếu `Field`/`Method`/`MethodHandle`, và metadata về annotation/ownership. **Đừng tự chọn cách đọc bằng chuỗi tên** sau khi đã nhận descriptor: tên có thể bị alias, override hoặc trùng.
+In a real system, the descriptor should hold a controlled execution strategy, such as a reader/writer function or `Field`/`Method`/`MethodHandle` reference, plus annotation/ownership metadata. **Do not choose how to read by string name** after receiving a descriptor: names may be aliased, overridden, or duplicated.
 
-Quy tắc đề xuất cho `AUTO`: nếu target là record thì dùng record components; nếu là bean do ứng dụng định nghĩa thì dùng JavaBeans; nếu muốn public fields thì chọn rõ `PUBLIC_FIELD`. Đây chỉ là **một chính sách do công cụ tự định nghĩa**, không phải hành vi tự động của JVM hay reflection API. Muốn phối hợp nhiều nguồn, thiết kế precedence riêng, ví dụ explicit annotation → record → JavaBeans → public field, và báo trùng khi hai nguồn không cùng ngữ nghĩa.
+Recommended rule for `AUTO`: if target is a record, use record components; if it is an application-defined bean, use JavaBeans; if public fields are desired, explicitly choose `PUBLIC_FIELD`. This is simply **a tool-defined policy**, not automatic behavior of the JVM or reflection API. To combine multiple sources, design an explicit precedence, e.g., explicit annotation → record → JavaBeans → public field, and report a collision when two sources do not share the same semantics.
 
-Luồng quyết định:
+Decision flow:
 
 ```text
 target + policy
@@ -127,23 +127,23 @@ target + policy
     |
     +-- policy=AUTO ? BEAN_PROPERTY
     |
-    +-- policy explicit ? nguồn tương ứng
+    +-- policy explicit ? corresponding source
     |
     v
 metadata -> filter -> normalize names -> collision check
     -> stable order -> access check -> execute accessor -> result
 ```
 
-## 5. Ví dụ Java 17+ hoàn chỉnh: cùng object, ba cách đọc
+## 5. Complete Java 17+ example: same object, three reading modes
 
-Chương trình sau cố ý hỗ trợ **ba chế độ tách biệt**:
+The following program intentionally supports **three separate modes**:
 
-- `PUBLIC_FIELD`: đọc public, non-static, non-synthetic fields.
-- `BEAN_PROPERTY`: đọc getter được phát hiện bằng JavaBeans `Introspector`; bỏ property chỉ ghi, chỉ đọc `getReadMethod() != null`.
-- `RECORD_COMPONENT`: đọc chính các component của record.
-- `AUTO` là chính sách do chương trình chọn: record dùng record component; object khác dùng JavaBeans. Nó không cố hợp nhất hai nguồn.
+- `PUBLIC_FIELD`: reads public, non-static, non-synthetic fields.
+- `BEAN_PROPERTY`: reads getters discovered via JavaBeans `Introspector`; skips write-only properties, reading only when `getReadMethod() != null`.
+- `RECORD_COMPONENT`: reads the record's components directly.
+- `AUTO` is a program-chosen policy: records use record components; other objects use JavaBeans. It does not try to merge two sources.
 
-Lưu thành **`AccessPolicyDemo.java`**:
+Save as **`AccessPolicyDemo.java`**:
 
 ```java
 import java.beans.IntrospectionException;
@@ -253,14 +253,14 @@ public class AccessPolicyDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17+:
+Compile and run with JDK 17+:
 
 ```bash
 javac --release 17 AccessPolicyDemo.java
 java AccessPolicyDemo
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 FIELD(Account): alias=alpha
@@ -270,85 +270,85 @@ RECORD(Receipt): code=R1, total=45
 AUTO(Receipt): code=R1, total=45
 ```
 
-Giải thích kết quả:
+Output explanation:
 
-- `Account.alias` là public field nên được chọn bởi `PUBLIC_FIELD`. `credits` là private field, không xuất hiện trong danh sách `getFields()`.
-- JavaBeans nhìn thấy `getCredits()` và `isActive()`, nên đọc `credits=7` và `active=true`. Nó không suy ra một JavaBeans property từ riêng field `alias`.
-- `Receipt` là record: `getRecordComponents()` nhận `code` và `total`; accessor tương ứng là `code()` và `total()`. Chính sách `AUTO` dùng nhánh record.
-- Thứ tự đầu ra ổn định vì chương trình **chủ động sort theo tên**. Thứ tự xuất hiện trong phản hồi của các API reflection nói chung không nên được xem là hợp đồng sắp xếp.
-- Ví dụ dùng các nested type thuộc chương trình kiểm soát, không cần `setAccessible(true)`. Đối tượng chứa bên thứ ba có thể đặt ra yêu cầu quyền/module khác.
+- `Account.alias` is a public field so it is selected by `PUBLIC_FIELD`. `credits` is a private field and does not appear in `getFields()`.
+- JavaBeans sees `getCredits()` and `isActive()`, so it reads `credits=7` and `active=true`. It does not infer a JavaBeans property from the `alias` field alone.
+- `Receipt` is a record: `getRecordComponents()` gets `code` and `total`; the corresponding accessors are `code()` and `total()`. The `AUTO` policy uses the record branch.
+- The output order is deterministic because the program **explicitly sorts by name**. The order in which reflection APIs return items in general should not be treated as a sorting contract.
+- The example uses nested types controlled by the program, so `setAccessible(true)` is not needed. Objects owned by third parties may impose different permission/module requirements.
 
-Đây là ví dụ **read-only**, chưa xử lý alias, annotation, deep reflection, duplicate-name hay lỗi từng getter. Trong công cụ thực tế, các quy tắc bên dưới cần được cấu hình thêm trước khi đưa vào xử lý dữ liệu người dùng.
+This is a **read-only** example and does not yet handle aliases, annotations, deep reflection, duplicate names, or per-getter errors. In a real tool, the rules below should be additionally configured before processing user data.
 
-## 6. Chính sách lọc, đặt tên và giải quyết xung đột
+## 6. Filtering, naming, and conflict-resolution policies
 
-### 6.1. Whitelist có chủ đích
+### 6.1. Intentional whitelisting
 
-Không nên mặc định xuất tất cả field/getter tìm được. Ví dụ entity có `getPasswordHash()`, `getApiToken()` hoặc `getInternalAuditTrail()`. Dù method là public, điều đó không tự làm thông tin thích hợp cho API hay file xuất.
+You should not export every discovered field/getter by default. For example, an entity might have `getPasswordHash()`, `getApiToken()`, or `getInternalAuditTrail()`. Even if a method is public, that does not automatically make the information appropriate for an API or export file.
 
-Một chính sách chắc chắn hơn:
+A safer policy:
 
-- Có allowlist tên property hoặc annotation riêng của công cụ (ví dụ `@Exportable`) được xem xét trong phạm vi khai báo và nơi đặt annotation hợp lệ.
-- Có denylist cho dữ liệu nhạy cảm như secret, nhưng **allowlist mới là cơ chế kiểm soát chính** khi dữ liệu đi ra ranh giới tin cậy.
-- Nếu một property không thuộc allowlist, bỏ qua **trước khi gọi getter**, tránh chạy code không cần thiết.
-- Định nghĩa điều kiện annotation nằm trên field, getter, record component hay parameter, và việc kế thừa/override được xử lý ra sao. Không giả định annotation trên field tự chuyển sang getter hoặc ngược lại.
+- Have a property-name allowlist or a tool-specific annotation (such as `@Exportable`) evaluated within valid declaration scopes and placement targets.
+- Have a denylist for sensitive data like secrets, though **an allowlist is the primary control mechanism** when data crosses a trust boundary.
+- If a property is not on the allowlist, skip it **before invoking the getter**, avoiding unnecessary code execution.
+- Define whether annotations are placed on fields, getters, record components, or parameters, and how inheritance/overrides are handled. Do not assume an annotation on a field automatically transfers to its getter or vice versa.
 
-Ví dụ pseudocode cho chính sách đọc (không phải API có sẵn trong JDK):
+Example pseudocode for a read policy (not a built-in JDK API):
 
 ```java
-// Minh họa thuật toán; selected và policy do công cụ của bạn định nghĩa.
+// Algorithm illustration; selected and policy are defined by your tool.
 for (MemberDescriptor member : selected) {
     if (!policy.isAllowed(member.externalName())) continue;
     if (!member.readable()) continue;
-    // Chỉ lúc này mới thực thi accessor và đưa vào kết quả.
+    // Only at this point is the accessor executed and added to the result.
 }
 ```
 
-### 6.2. Tên trùng và ưu tiên nguồn
+### 6.2. Duplicate names and source precedence
 
-Giả sử có `private String name`, `getName()` và record component `name`. Nếu quét nhiều nguồn, ba mục này có thể đại diện cùng một thuộc tính logic hoặc có ngữ nghĩa khác nhau (getter trả giá trị tính toán). Nếu gộp tùy tiện bằng `Map.put`, thứ tự duyệt quyết định giá trị nào thắng, dễ gây lỗi khó tái hiện.
+Suppose a class has `private String name`, `getName()`, and a record component `name`. If multiple sources are scanned, these three items might represent the same logical property or have different semantics (e.g., a getter returning a computed value). If merged arbitrarily with `Map.put`, traversal order decides which value wins, easily causing hard-to-reproduce bugs.
 
-Chốt một trong hai hợp đồng:
+Lock down one of two contracts:
 
-1. **Chỉ một nguồn mỗi class** theo policy, như ví dụ `AccessPolicyDemo`: tránh phần lớn xung đột.
-2. **Kết hợp nhiều nguồn theo precedence rõ ràng**, ví dụ annotation khai báo cụ thể có quyền ưu tiên, rồi record component, JavaBeans property, public field. Nếu cùng cấp có hai ứng viên khác nhau hoặc alias đụng nhau, báo `AMBIGUOUS_PROPERTY` với tên, declaring class và source.
+1. **Only one source per class** per policy, as in `AccessPolicyDemo`: avoids most conflicts.
+2. **Combine multiple sources with clear precedence**, e.g. explicit annotation takes priority, then record component, JavaBeans property, public field. If two distinct candidates appear at the same level or aliases collide, report `AMBIGUOUS_PROPERTY` with the name, declaring class, and source.
 
-Không dựa vào `getDeclaredMethods()` hay `getDeclaredFields()` để xác định precedence. Kiểm tra field hiding giữa cha/con, getter override và inheritance để tránh chọn nhầm member cũ. Nếu cần hỗ trợ alias, kiểm tra trùng **sau khi đã áp dụng alias**, không chỉ trên Java identifier ban đầu.
+Do not rely on `getDeclaredMethods()` or `getDeclaredFields()` to determine precedence. Check field hiding between parent/child classes, getter overrides, and inheritance to avoid picking an obsolete member. If aliases are supported, check for duplicates **after aliases have been applied**, not just on the original Java identifiers.
 
-### 6.3. Thứ tự cố định
+### 6.3. Deterministic ordering
 
-Serializer hoặc công cụ sinh schema có thể cần kết quả ổn định để snapshot test, hash và diff không thay đổi ngẫu nhiên. Quy định thứ tự: alphabet theo external name; hoặc theo `order` explicit; hoặc thứ tự record components trong header khi cần tương thích schema. Ví dụ đang sort alphabet cho tất cả để nhất quán.
+Serializers or schema generators may require deterministic output so snapshot tests, hashes, and diffs do not change randomly. Specify an ordering rule: alphabetical by external name; or by explicit `order`; or by record component declaration order in the header when schema compatibility is needed. The example sorts alphabetically for everything for consistency.
 
-## 7. Read policy khác write policy
+## 7. Read policy differs from write policy
 
-Một property đọc được chưa chắc ghi được:
+A readable property is not necessarily writable:
 
-| Nguồn | Đọc | Ghi | Ghi chú |
+| Source | Read | Write | Notes |
 | --- | --- | --- | --- |
-| Public non-final field | Thường có thể bằng `Field.get` | Có thể bằng `Field.set` nếu quyền và kiểu hợp lệ | Không suy ra atomic/thread safety |
-| Private field | Tùy quyền reflection/module | Tùy quyền, có thể bị giới hạn | Không tự deep-reflect vì tiện |
-| JavaBeans getter-only | Có | Không có setter theo descriptor | Getter có thể tính toán/có side effect |
-| JavaBeans setter-only | Không có getter | Có setter phù hợp | Không đoán giá trị hiện tại |
-| Record component | Accessor có | Không thể ghi như mutable property | Tạo record mới qua constructor khi cần thay đổi giá trị |
-| Static field | Không thuộc state instance theo policy thông thường | Cần chính sách riêng | Nên loại khỏi serializer instance |
+| Public non-final field | Usually possible via `Field.get` | Possible via `Field.set` if permissions and types match | Does not imply atomicity/thread safety |
+| Private field | Depends on reflection/module permissions | Depends on permissions, may be restricted | Do not deep-reflect just for convenience |
+| JavaBeans getter-only | Yes | No setter in descriptor | Getter may compute values or have side effects |
+| JavaBeans setter-only | No getter | Has matching setter | Do not guess the current value |
+| Record component | Has accessor | Cannot be written as a mutable property | Construct a new record via constructor when values must change |
+| Static field | Not part of instance state under typical policy | Needs separate policy | Should be excluded from instance serializers |
 
-Với JavaBeans, kiểm tra `getReadMethod()` và `getWriteMethod()` riêng. Với field, xét `Modifier.isFinal` và quyền truy cập. Record có các field thành phần `private final`, nhưng quan trọng hơn, public API record thể hiện một cấu trúc giá trị không hỗ trợ sửa component sau khi tạo; mutation của object được tham chiếu bên trong vẫn có thể xảy ra (shallow immutability).
+For JavaBeans, check `getReadMethod()` and `getWriteMethod()` separately. For fields, inspect `Modifier.isFinal` and access rights. A record has `private final` component fields, and more importantly, the public record API represents a value structure that does not support mutating components after creation; mutation of referenced objects inside can still occur (shallow immutability).
 
-**Việc validate type** phải dựa vào hợp đồng của API dùng để gán: `Field.set` và `Method.invoke` có ràng buộc kiểu/primitive conversion riêng; không tự chuyển chuỗi `"42"` thành `int` nếu không có conversion policy đã định nghĩa. Khi binding dữ liệu người dùng, validation, coercion và access policy là các quyết định tách biệt.
+**Type validation** must follow the contract of the assignment API: `Field.set` and `Method.invoke` have their own type/primitive conversion rules; do not automatically convert the string `"42"` to `int` without a defined conversion policy. When binding user data, validation, coercion, and access policy are separate decisions.
 
-## 8. Quyền truy cập và lỗi runtime
+## 8. Access rights and runtime errors
 
-### Giới hạn của Java Platform Module System
+### Java Platform Module System limitations
 
-Tìm được `getDeclaredField("secret")` không chứng tỏ có thể đọc field đó. `setAccessible(true)` không luôn hợp lệ dưới strong encapsulation; có thể ném `InaccessibleObjectException`. `trySetAccessible()` có thể trả false khi không được phép. `MethodHandles.privateLookupIn` cũng yêu cầu caller có quyền và điều kiện module phù hợp; nó không phải đường vòng qua Java access control.
+Finding `getDeclaredField("secret")` does not prove that the field can be read. `setAccessible(true)` is not always valid under strong encapsulation; it can throw `InaccessibleObjectException`. `trySetAccessible()` can return false when disallowed. `MethodHandles.privateLookupIn` also requires the caller to have appropriate privileges and module conditions; it is not a bypass around Java access control.
 
-Cho công cụ dùng trong sản phẩm, ưu tiên public contract/annotation rõ ràng, mở package chính xác nếu bắt buộc và được chủ sở hữu module cho phép. Không tự đặt `--add-opens ALL-UNNAMED` tràn lan chỉ để vượt quyền đọc dữ liệu.
+For production tools, prefer explicit public contracts/annotations, and open specific packages only if strictly necessary and permitted by the module owner. Do not scatter `--add-opens ALL-UNNAMED` broadly just to bypass data-reading restrictions.
 
-### Xử lý lỗi getter, field và record accessor
+### Handling getter, field, and record accessor errors
 
-Một getter có thể ném ngoại lệ do logic nghiệp vụ, side effect hoặc I/O. `Method.invoke` bọc ngoại lệ từ code đích trong `InvocationTargetException`; còn `Field.get` có thể ném `IllegalAccessException` hay `IllegalArgumentException` khi receiver không hợp lệ. `RecordComponent.getAccessor().invoke` cũng là gọi một `Method`, nên cần xử lý ngoại lệ tương tự. Đừng nuốt exception rồi ghi một giá trị `null` khó phân biệt.
+A getter may throw exceptions due to business logic, side effects, or I/O. `Method.invoke` wraps exceptions from target code in `InvocationTargetException`; `Field.get` can throw `IllegalAccessException` or `IllegalArgumentException` when the receiver is invalid. `RecordComponent.getAccessor().invoke` is also a `Method` invocation, so exceptions must be handled similarly. Never swallow exceptions and write an indistinguishable `null` value.
 
-Ví dụ thiết kế result (fragment):
+Example result design (fragment):
 
 ```java
 record ReadIssue(
@@ -359,50 +359,50 @@ record ReadIssue(
 ) {}
 ```
 
-Có thể có các chính sách lỗi như fail-fast cho hệ thống giao dịch, hoặc collect-errors khi làm object inspector nội bộ. Nếu trả partial result, phải đánh dấu rõ mục nào lỗi và không được xem nó là giá trị `null` thực sự. Cần tránh log full value/stack trace ra API response vì getter có thể chạm tới dữ liệu cá nhân hoặc secret.
+Error policies can be fail-fast for transactional systems, or collect-errors for internal object inspectors. If returning partial results, clearly mark which item failed and do not treat it as an actual `null` value. Avoid logging full values/stack traces to API responses because getters may touch personal data or secrets.
 
-## 9. Hiệu năng, ổn định và khả năng mở rộng
+## 9. Performance, stability, and extensibility
 
-Phần tốn công của một công cụ reflection thường là discovery, chuẩn hóa và quyết định quyền, nên có thể cache **metadata descriptors** theo `Class<?>` và policy version; không cache giá trị của từng instance dưới cùng key vì giá trị thay đổi theo object.
+The expensive part of a reflection tool is typically discovery, normalization, and permission checks, so **metadata descriptors** can be cached by `Class<?>` and policy version; do not cache per-instance values under the same key since values vary by object.
 
-- **Cache theo class/policy**: `ClassValue<T>` là lựa chọn đáng cân nhắc khi muốn cache gắn với lifecycle của `Class`; đối với `Introspector`, JDK đã có cơ chế cache `BeanInfo` riêng. Nếu công cụ dùng classloader động hoặc hot reload, đánh giá nguy cơ giữ tham chiếu classloader.
-- **Cache decision**: lưu các member đã lọc và thứ tự chuẩn hóa để tránh lặp lại thao tác trên mỗi object; invalidation khi policy/annotation mapping thay đổi.
-- **MethodHandle**: có thể cân nhắc khi có lời gọi lặp lại đủ nhiều và biết chữ ký; việc chuyển từ `Method` sang handle không thay thế discovery policy. Không khẳng định `MethodHandle` luôn nhanh hơn `Method.invoke`, vì JDK, warm-up và workload ảnh hưởng kết quả.
-- **Thread-safety**: cache metadata bất biến và cấu trúc concurrent phù hợp; không lẫn cache với đồng bộ giá trị mutable của bean.
-- **Cycle detection**: nếu serializer duyệt object graph, phải tách chính sách chọn property khỏi cơ chế xử lý tham chiếu vòng và giới hạn độ sâu. Không phải property nào cũng được phép recursively expand.
+- **Caching by class/policy**: `ClassValue<T>` is worth considering when you want caching tied to the lifecycle of `Class`; for `Introspector`, the JDK already has its own `BeanInfo` cache. If the tool uses dynamic classloaders or hot reload, evaluate the risk of retaining classloader references.
+- **Caching decisions**: store filtered members and normalized order to avoid repeating the work per object; invalidate when policy or annotation mappings change.
+- **MethodHandle**: worth considering when invocations are frequent enough and signatures are known; switching from `Method` to a handle does not replace the discovery policy. Do not claim `MethodHandle` is always faster than `Method.invoke`, because JDK version, warm-up, and workload affect results.
+- **Thread-safety**: cache immutable metadata using appropriate concurrent structures; do not mix metadata caching with synchronizing mutable bean values.
+- **Cycle detection**: if a serializer traverses an object graph, separate the property selection policy from cycle handling and depth limits. Not every property is allowed to be recursively expanded.
 
-Tạo test dựa trên các trường hợp như getter-only, setter-only, record, inherited getter, field hiding, private field, static/synthetic, annotation allowlist, duplicate alias, getter throwing, JPMS, classloader. Thứ tự ổn định làm kết quả dễ đối chiếu giữa các phiên chạy.
+Write tests covering cases such as getter-only, setter-only, record, inherited getter, field hiding, private field, static/synthetic, annotation allowlist, duplicate alias, getter throwing, JPMS, and classloader. Deterministic ordering makes results easy to compare across test runs.
 
-## 10. Checklist quyết định và lỗi thường gặp
+## 10. Decision checklist and common mistakes
 
-Trước khi chốt policy của công cụ, trả lời:
+Before finalizing your tool's policy, answer:
 
-1. Công cụ này phục vụ mục tiêu gì: serialization, binding, diagnostics, schema generation hay test introspection?
-2. Nguồn mặc định là public field, JavaBeans property, record component hay accessor đăng ký riêng?
-3. Ai được phép tham gia: mọi public member hay chỉ allowlist được duyệt?
-4. Có cho private access không, và module chủ sở hữu có cho phép không?
-5. Static, synthetic, bridge, transient, final, inherited được xử lý ra sao?
-6. Getter-only/setter-only, alias, null, duplicate name và exception được biểu diễn thế nào?
-7. Kết quả có yêu cầu thứ tự ổn định và backward compatibility của schema không?
-8. Có cache metadata theo class/policy và xử lý unload/reload classloader không?
+1. What goal does this tool serve: serialization, binding, diagnostics, schema generation, or test introspection?
+2. Is the default source public fields, JavaBeans properties, record components, or separately registered accessors?
+3. Who is allowed to participate: all public members or only an approved allowlist?
+4. Is private access allowed, and does the owning module permit it?
+5. How are static, synthetic, bridge, transient, final, and inherited members handled?
+6. How are getter-only/setter-only, aliases, nulls, duplicate names, and exceptions represented?
+7. Does output require deterministic ordering and schema backward compatibility?
+8. Is metadata cached by class/policy and is classloader unload/reload handled?
 
-Các sai lầm cần tránh:
+Mistakes to avoid:
 
-- **“Có field là có property”**: JavaBeans có thể không có field; getter có thể tính toán.
-- **“Record accessor luôn tên `getX`”**: thực tế accessor mặc định theo component name, như `code()`.
-- **“Method public nào không tham số cũng an toàn để gọi”**: getter có thể side effect, và nhiều method không phải accessor.
-- **“Quét `getDeclaredFields` là đã lấy toàn bộ inheritance”**: nó chỉ lấy field khai báo trực tiếp.
-- **“`setAccessible(true)` luôn mở khóa được”**: còn access checks và module boundaries.
-- **“Dùng cả field lẫn getter luôn đầy đủ hơn”**: có thể sinh duplicate, dữ liệu nội bộ và giá trị khác nhau; cần precedence và policy.
-- **“Có getter thì chắc chắn ghi được”**: write contract là chuyện riêng; record component về bản chất không phải mutable property.
-- **“Đầu ra reflection có thứ tự cố định”**: phải định nghĩa/sort rõ nếu cần ổn định.
+- **"If there is a field, there is a property"**: JavaBeans may have no backing field; getters may compute values.
+- **"Record accessors are always named `getX`"**: actual default accessors match the component name, such as `code()`.
+- **"Any public method with no parameters is safe to call"**: getters can have side effects, and many methods are not accessors.
+- **"Scanning `getDeclaredFields` captures the entire inheritance hierarchy"**: it only retrieves directly declared fields.
+- **"`setAccessible(true)` always unlocks access"**: access checks and module boundaries still apply.
+- **"Using both fields and getters is always more complete"**: can produce duplicates, internal data, and conflicting values; requires precedence and policy.
+- **"Having a getter guarantees writability"**: the write contract is separate; record components are inherently not mutable properties.
+- **"Reflection output has a fixed order"**: you must define/sort explicitly if stability is needed.
 
-Tự kiểm tra:
+Self-check:
 
-- Một lớp có `private int age` cùng `getAge()`: `PUBLIC_FIELD` và `BEAN_PROPERTY` cùng chọn `age` không? **Không**; public-field policy không chọn private field, bean policy có thể chọn getter.
-- `record Point(int x, int y)`, chỉ dùng `Introspector` mặc định liệu có bảo đảm lấy được `x`/`y`? **Không**; nên dùng `getRecordComponents()` khi chủ đích hỗ trợ record.
-- Getter `getSecret()` là public, liệu nên tự động xuất secret? **Không**; API public không tự đồng nghĩa được xuất ra bên ngoài.
-- Khi hai accessor cùng alias `userId`, liệu chọn phần tử duyệt sau có an toàn? **Không**; cần deterministic precedence hoặc báo collision.
-- Một inspector cần hiển thị 100 bean nhiều lần: tối ưu bước nào trước? **Cache metadata/selection policy**, rồi đo hiệu năng execution nếu thực sự cần.
+- A class has `private int age` and `getAge()`: do both `PUBLIC_FIELD` and `BEAN_PROPERTY` select `age`? **No**; a public-field policy does not select private fields, while a bean policy can select the getter.
+- For `record Point(int x, int y)`, does using default `Introspector` alone guarantee retrieving `x`/`y`? **No**; use `getRecordComponents()` when intentionally supporting records.
+- A getter `getSecret()` is public; should secrets be exported automatically? **No**; a public API does not automatically mean it should be exposed externally.
+- When two accessors share the alias `userId`, is picking the later-visited one safe? **No**; deterministic precedence or collision reporting is required.
+- An inspector needs to display 100 beans repeatedly: which step should be optimized first? **Cache metadata/selection policy**, then measure execution performance if actually needed.
 
-Tài liệu gốc: [`Class`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html), [`Field`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html), [`Introspector`](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/java/beans/Introspector.html), [`PropertyDescriptor`](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/java/beans/PropertyDescriptor.html), [`RecordComponent`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/RecordComponent.html) và [JavaBeans Specification](https://www.oracle.com/java/technologies/javase/javabeans-spec.html).
+Original references: [`Class`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html), [`Field`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html), [`Introspector`](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/java/beans/Introspector.html), [`PropertyDescriptor`](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/java/beans/PropertyDescriptor.html), [`RecordComponent`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/RecordComponent.html), and [JavaBeans Specification](https://www.oracle.com/java/technologies/javase/javabeans-spec.html).

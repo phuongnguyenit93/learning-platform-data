@@ -1,24 +1,24 @@
-# Đặt module-info.java ở source root
+# Placing module-info.java at the Source Root
 
-Trong một dự án Java modular, `module-info.java` phải nằm ở **source root của module**, cùng cấp với các thư mục package ở bên dưới. File này mô tả module và không thuộc package của class ứng dụng.
+In a modular Java project, `module-info.java` must reside at the **module's source root**, at the same level as the package directories beneath it. This file describes the module and does not belong to any application class package.
 
-Vị trí đúng giúp compiler nhận diện ranh giới module, biên dịch descriptor thành `module-info.class` và đặt file đó ở root của output directory hoặc root của modular JAR. Nếu đặt file trong thư mục package, compiler và công cụ build có thể không nhận diện nó như module descriptor của source set.
+Placing it in the right location allows the compiler to recognize module boundaries, compile the descriptor into `module-info.class`, and place that file at the root of the output directory or the root of the modular JAR. If the file is placed inside a package directory, the compiler and build tools may fail to recognize it as the source set's module descriptor.
 
-## 1. Source root là gì?
+## 1. What is a Source Root?
 
-Source root là thư mục mà từ đó compiler bắt đầu tìm các package của một source set. Ví dụ, nếu class khai báo:
+A source root is the directory from which the compiler starts looking for the packages of a source set. For example, if a class declares:
 
 ~~~java
 package com.example.app;
 ~~~
 
-thì file thường nằm dưới đường dẫn:
+then the file typically resides under the path:
 
 ~~~text
 <source-root>/com/example/app/
 ~~~
 
-Với module đơn, cấu trúc phổ biến là:
+For a single module, a common structure is:
 
 ~~~text
 my-app/
@@ -31,18 +31,18 @@ my-app/
 └── out/
 ~~~
 
-Ở đây:
+Here:
 
-- `src/` là source root.
-- `module-info.java` nằm ngay tại source root.
-- `Main.java` nằm trong package `com.example.app`.
-- `out/` là nơi compiler ghi class và module descriptor sau khi biên dịch.
+- `src/` is the source root.
+- `module-info.java` sits directly at the source root.
+- `Main.java` is in the `com.example.app` package.
+- `out/` is where the compiler writes classes and the module descriptor after compilation.
 
-Không đặt descriptor tại `src/com/example/app/module-info.java` hoặc trong một package con. Module descriptor không có khai báo `package` và không phải class thuộc package ứng dụng.
+Do not place the descriptor at `src/com/example/app/module-info.java` or inside a subpackage. The module descriptor has no `package` declaration and is not a class belonging to an application package.
 
-## 2. Nội dung của module-info.java
+## 2. Contents of module-info.java
 
-Một module descriptor bắt đầu bằng khai báo `module` hoặc `open module`:
+A module descriptor begins with a `module` or `open module` declaration:
 
 ~~~java
 module com.example.app {
@@ -52,15 +52,15 @@ module com.example.app {
 }
 ~~~
 
-Một số quy tắc cần nhớ:
+A few rules to keep in mind:
 
-- Tên module nằm sau từ khóa `module`.
-- File không có dòng `package ...;`.
-- Các chỉ thị như `requires`, `exports`, `opens`, `uses` và `provides` nằm bên trong cặp ngoặc nhọn.
-- Tên package trong `exports` phải khớp với package thực tế trong source.
-- Tên module được dùng trong `requires` phải khớp với tên module mà dependency cung cấp.
+- The module name follows the `module` keyword.
+- The file does not contain a `package ...;` line.
+- Directives such as `requires`, `exports`, `opens`, `uses`, and `provides` go inside the curly braces.
+- Package names in `exports` must match actual packages in the source.
+- Module names used in `requires` must match the module names provided by the dependencies.
 
-Ví dụ đầy đủ:
+Complete example:
 
 ~~~java
 module com.example.app {
@@ -73,11 +73,11 @@ module com.example.app {
 }
 ~~~
 
-`module-info.java` chỉ mô tả cấu trúc và quan hệ của module. Các class ứng dụng vẫn nằm trong những file Java thuộc package tương ứng.
+`module-info.java` only describes the structure and relationships of the module. Application classes still live in Java files inside their corresponding packages.
 
-## 3. Biên dịch module đơn bằng javac
+## 3. Compiling a Single Module with javac
 
-Giả sử dự án có cấu trúc:
+Suppose the project has the following structure:
 
 ~~~text
 my-app/
@@ -86,14 +86,14 @@ my-app/
     └── com/example/app/Main.java
 ~~~
 
-File `src/module-info.java`:
+`src/module-info.java` file:
 
 ~~~java
 module com.example.app {
 }
 ~~~
 
-File `src/com/example/app/Main.java`:
+`src/com/example/app/Main.java` file:
 
 ~~~java
 package com.example.app;
@@ -105,13 +105,13 @@ public class Main {
 }
 ~~~
 
-Đứng tại thư mục gốc dự án, biên dịch:
+From the project root directory, compile:
 
 ~~~shell
 javac -d out src/module-info.java src/com/example/app/Main.java
 ~~~
 
-Sau khi biên dịch, output có dạng:
+After compilation, the output looks like:
 
 ~~~text
 out/
@@ -122,25 +122,25 @@ out/
             └── Main.class
 ~~~
 
-Điểm quan trọng là `module-info.class` nằm trực tiếp ở root của output directory, cùng cấp với thư mục package `com/`. Đây là cấu trúc output của một module đã biên dịch.
+The important point is that `module-info.class` resides directly at the root of the output directory, at the same level as the `com/` package directory. This is the output structure of a compiled module.
 
-Có thể chạy module từ output directory:
+You can run the module from the output directory:
 
 ~~~shell
 java --module-path out --module com.example.app/com.example.app.Main
 ~~~
 
-`--module-path` trỏ tới thư mục chứa module đã biên dịch. `--module` chỉ định tên module và main class.
+`--module-path` points to the directory containing the compiled module. `--module` specifies the module name and main class.
 
-## 4. Đóng gói modular JAR
+## 4. Packaging a Modular JAR
 
-Khi đã có output directory đúng cấu trúc, có thể đóng gói thành JAR:
+Once you have an output directory with the right structure, you can package it into a JAR:
 
 ~~~shell
 jar --create --file dist/com.example.app.jar -C out .
 ~~~
 
-JAR sẽ chứa:
+The JAR will contain:
 
 ~~~text
 com.example.app.jar
@@ -151,27 +151,27 @@ com.example.app.jar
             └── Main.class
 ~~~
 
-Module descriptor đã biên dịch phải nằm ở root của JAR modular. Không tạo một thư mục package bao quanh `module-info.class`.
+The compiled module descriptor must sit at the root of the modular JAR. Do not create a package directory wrapping `module-info.class`.
 
-Kiểm tra descriptor trong artifact:
+Inspect the descriptor in the artifact:
 
 ~~~shell
 jar --describe-module --file dist/com.example.app.jar
 ~~~
 
-Kết quả cần cho thấy tên module `com.example.app` và các package hoặc chỉ thị được khai báo. Đây là cách xác nhận artifact được đóng gói có descriptor mà compiler đã tạo.
+The output should show the module name `com.example.app` and the declared packages or directives. This confirms the packaged artifact contains the descriptor generated by the compiler.
 
-Chạy từ JAR:
+Run from the JAR:
 
 ~~~shell
 java --module-path dist --module com.example.app/com.example.app.Main
 ~~~
 
-Nếu `jar --describe-module` không nhận diện module theo tên mong đợi, hãy kiểm tra lại nội dung JAR, vị trí `module-info.class` và source layout trước khi điều chỉnh module path.
+If `jar --describe-module` does not recognize the module under the expected name, re-check the JAR contents, the location of `module-info.class`, and the source layout before adjusting the module path.
 
-## 5. Source root trong Maven và Gradle
+## 5. Source Root in Maven and Gradle
 
-Các build tool Java phổ biến đã định nghĩa source root mặc định. Với một module Maven hoặc Gradle thông thường, cấu trúc thường là:
+Popular Java build tools already define a default source root. For a typical Maven or Gradle module, the structure is usually:
 
 ~~~text
 project/
@@ -186,23 +186,23 @@ project/
             └── ...
 ~~~
 
-Trong cấu trúc này, `src/main/java/` là source root của main source set. Vì vậy, đặt descriptor tại:
+In this structure, `src/main/java/` is the source root of the main source set. Therefore, place the descriptor at:
 
 ~~~text
 src/main/java/module-info.java
 ~~~
 
-Không đặt tại:
+Do not place it at:
 
 ~~~text
 src/main/java/com/example/app/module-info.java
 ~~~
 
-Maven và Gradle sẽ tìm source trong source root đã cấu hình. Nếu dự án thay đổi `sourceSets` hoặc `sourceDirectory`, vị trí đúng cũng phải thay đổi theo source root mới.
+Maven and Gradle look for sources inside the configured source root. If a project changes `sourceSets` or `sourceDirectory`, the proper location must also change to match the new source root.
 
 ### Maven
 
-Với Maven Compiler Plugin, `module-info.java` được biên dịch cùng source của module khi source root là `src/main/java`. Ví dụ descriptor:
+With the Maven Compiler Plugin, `module-info.java` is compiled alongside the module's sources when the source root is `src/main/java`. Example descriptor:
 
 ~~~java
 module com.example.app {
@@ -210,25 +210,25 @@ module com.example.app {
 }
 ~~~
 
-Sau khi chạy:
+After running:
 
 ~~~shell
 mvn clean package
 ~~~
 
-Kiểm tra JAR tạo ra:
+Inspect the generated JAR:
 
 ~~~shell
 jar --describe-module --file target/com.example.app-1.0.jar
 ~~~
 
-Tên file JAR phụ thuộc vào `artifactId` và `version` trong `pom.xml`. Tên module vẫn lấy từ descriptor, không nhất thiết được suy ra từ tên file.
+The JAR file name depends on `artifactId` and `version` in `pom.xml`. The module name still comes from the descriptor and is not necessarily derived from the file name.
 
-Nếu dự án cần biên dịch module với một release cụ thể, hãy cấu hình `maven.compiler.release` phù hợp với JDK mục tiêu. Module System được giới thiệu từ Java 9, vì vậy source/target thấp hơn Java 9 không thể biên dịch module descriptor theo cách này.
+If the project needs to compile the module against a specific release, configure `maven.compiler.release` to match the target JDK. The Module System was introduced in Java 9, so source/target levels lower than Java 9 cannot compile a module descriptor in this manner.
 
 ### Gradle
 
-Với Gradle Java plugin, source root mặc định của main source set cũng là `src/main/java`:
+With the Gradle Java plugin, the default source root of the main source set is also `src/main/java`:
 
 ~~~text
 src/main/java/
@@ -236,29 +236,29 @@ src/main/java/
 └── com/example/app/Main.java
 ~~~
 
-Sau khi chạy:
+After running:
 
 ~~~shell
 ./gradlew clean jar
 ~~~
 
-JAR thường được tạo trong:
+The JAR is usually created in:
 
 ~~~text
 build/libs/
 ~~~
 
-Kiểm tra descriptor:
+Inspect the descriptor:
 
 ~~~shell
 jar --describe-module --file build/libs/<artifact-name>.jar
 ~~~
 
-Nếu dự án dùng custom source set hoặc thay đổi `java.srcDirs`, hãy đặt descriptor ở root của source directory tương ứng. Đừng giả định mọi dự án Gradle đều dùng cùng một source root sau khi cấu hình đã được tùy chỉnh.
+If the project uses a custom source set or modifies `java.srcDirs`, place the descriptor at the root of the corresponding source directory. Do not assume every Gradle project uses the same source root once the configuration has been customized.
 
-## 6. Cấu trúc source cho nhiều module
+## 6. Source Structure for Multiple Modules
 
-Khi một dự án có nhiều module được biên dịch cùng lúc, có thể tổ chức mỗi module thành một thư mục riêng dưới module source path:
+When a project has multiple modules compiled together, you can organize each module into its own directory under a module source path:
 
 ~~~text
 workspace/
@@ -271,13 +271,13 @@ workspace/
         └── com/example/app/Main.java
 ~~~
 
-Mỗi thư mục con trực tiếp dưới `src/` đại diện cho một module source. Trong từng module source:
+Each direct subdirectory under `src/` represents a module source. Within each module source:
 
-- `module-info.java` nằm ở root của module.
-- Package source nằm trong các thư mục con.
-- Tên module trong descriptor phải tương ứng với module mà source tree đại diện.
+- `module-info.java` sits at the module root.
+- Package sources reside in subdirectories.
+- The module name in the descriptor must correspond to the module represented by the source tree.
 
-Ví dụ `src/com.example.api/module-info.java`:
+Example `src/com.example.api/module-info.java`:
 
 ~~~java
 module com.example.api {
@@ -285,7 +285,7 @@ module com.example.api {
 }
 ~~~
 
-Ví dụ `src/com.example.app/module-info.java`:
+Example `src/com.example.app/module-info.java`:
 
 ~~~java
 module com.example.app {
@@ -293,13 +293,13 @@ module com.example.app {
 }
 ~~~
 
-Biên dịch nhiều module bằng module source path:
+Compile multiple modules using the module source path:
 
 ~~~shell
 javac --module-source-path src -d out -m com.example.api,com.example.app
 ~~~
 
-Output sẽ có cấu trúc:
+The output will have the structure:
 
 ~~~text
 out/
@@ -311,38 +311,38 @@ out/
     └── com/example/app/Main.class
 ~~~
 
-Ở đây, mỗi module có output root riêng và có `module-info.class` tại root của chính module đó.
+Here, each module has its own output root and has `module-info.class` at the root of that module.
 
-Có thể chạy app với:
+You can run the app with:
 
 ~~~shell
 java --module-path out --module com.example.app/com.example.app.Main
 ~~~
 
-Không nhầm lẫn giữa source root của một module đơn (`src/`) với module source path chứa nhiều module (`src/com.example.api/`, `src/com.example.app/`). Cả hai đều đặt `module-info.java` ở root tương ứng, nhưng cấp thư mục khác nhau.
+Do not confuse the source root of a single module (`src/`) with a module source path containing multiple modules (`src/com.example.api/`, `src/com.example.app/`). Both place `module-info.java` at their respective roots, but the directory levels differ.
 
-## 7. Source root, package root và module root khác nhau thế nào?
+## 7. How Do Source Root, Package Root, and Module Root Differ?
 
-Các thuật ngữ này dễ bị nhầm khi cấu hình IDE hoặc build tool:
+These terms are easily confused when configuring an IDE or build tool:
 
-| Khái niệm | Ví dụ | Vai trò |
+| Concept | Example | Role |
 | --- | --- | --- |
-| Project root | `my-app/` | Thư mục gốc của dự án |
-| Source root | `my-app/src/main/java/` | Gốc của source set Java |
-| Package directory | `src/main/java/com/example/app/` | Nơi chứa class thuộc package `com.example.app` |
-| Module source root | `src/com.example.app/` | Gốc source của một module trong multi-module source path |
-| Compiled module root | `out/` hoặc `out/com.example.app/` | Nơi chứa `module-info.class` và package class |
-| JAR root | Root entries bên trong file JAR | Nơi chứa descriptor và package entries của module |
+| Project root | `my-app/` | Root directory of the project |
+| Source root | `my-app/src/main/java/` | Root of a Java source set |
+| Package directory | `src/main/java/com/example/app/` | Directory containing classes belonging to the `com.example.app` package |
+| Module source root | `src/com.example.app/` | Source root of one module in a multi-module source path |
+| Compiled module root | `out/` or `out/com.example.app/` | Directory containing `module-info.class` and package classes |
+| JAR root | Root entries inside the JAR file | Location containing the module's descriptor and package entries |
 
-`module-info.java` không đặt trong package directory. Nó được compiler xử lý như module descriptor của source root.
+`module-info.java` is not placed in a package directory. It is processed by the compiler as the module descriptor of the source root.
 
-Trong IDE, cần đánh dấu đúng thư mục là Sources Root hoặc Source Folder. Nếu IDE đánh dấu `src/main/java/com/example/app` là source root thay vì `src/main/java`, package có thể bị nhận diện sai và descriptor ở cấp trên không còn thuộc source root mà IDE đang biên dịch.
+In an IDE, make sure the right directory is marked as Sources Root or Source Folder. If the IDE marks `src/main/java/com/example/app` as the source root instead of `src/main/java`, packages may be misidentified and the descriptor at the parent level will no longer belong to the source root the IDE is compiling.
 
-## 8. Các lỗi thường gặp khi đặt module-info.java
+## 8. Common Mistakes When Placing module-info.java
 
-### Đặt descriptor trong package directory
+### Placing the descriptor in a package directory
 
-Sai:
+Wrong:
 
 ~~~text
 src/
@@ -351,7 +351,7 @@ src/
     └── Main.java
 ~~~
 
-Đúng:
+Right:
 
 ~~~text
 src/
@@ -360,9 +360,9 @@ src/
     └── Main.java
 ~~~
 
-### Thêm package declaration vào module-info.java
+### Adding a package declaration to module-info.java
 
-Sai:
+Wrong:
 
 ~~~java
 package com.example.app;
@@ -371,54 +371,54 @@ module com.example.app {
 }
 ~~~
 
-Đúng:
+Right:
 
 ~~~java
 module com.example.app {
 }
 ~~~
 
-Module descriptor không có package declaration.
+A module descriptor does not have a package declaration.
 
-### Đặt sai source root trong IDE
+### Setting the wrong source root in an IDE
 
-Nếu IDE không nhận `src/main/java` là source root, nó có thể báo package không tồn tại, module không tìm thấy hoặc không biên dịch descriptor. Kiểm tra cấu hình source folder của module và bảo đảm file descriptor nằm trực tiếp trong source root đã đánh dấu.
+If the IDE does not recognize `src/main/java` as the source root, it may report missing packages, module not found, or fail to compile the descriptor. Check the module's source folder configuration and ensure the descriptor file sits directly inside the marked source root.
 
-### Biên dịch chỉ một class mà bỏ qua descriptor
+### Compiling only a single class and omitting the descriptor
 
-Nếu biên dịch riêng `Main.java` mà không đưa module descriptor hoặc module path phù hợp vào compiler, kết quả có thể là một class không được biên dịch trong module context mong muốn.
+If you compile `Main.java` alone without passing the module descriptor or an appropriate module path to the compiler, the result may be a class not compiled in the desired module context.
 
-Với module đơn, hãy biên dịch descriptor và source liên quan cùng nhau:
+For a single module, compile the descriptor and related sources together:
 
 ~~~shell
 javac -d out src/module-info.java src/com/example/app/Main.java
 ~~~
 
-Với nhiều module, dùng `--module-source-path` và `-m` để compiler biết các module source cần biên dịch.
+For multiple modules, use `--module-source-path` and `-m` so the compiler knows which module sources to compile.
 
-### Đặt nhầm module-info.class trong JAR
+### Misplacing module-info.class inside the JAR
 
-Một JAR modular cần có `module-info.class` tại root. Nếu lệnh đóng gói đưa cả thư mục `out/` thành một entry folder bên trong JAR, cấu trúc có thể không như mong đợi. Hãy kiểm tra lệnh `jar -C out .` và kết quả `jar --describe-module`.
+A modular JAR needs `module-info.class` at the root. If the packaging command includes the `out/` directory itself as an entry folder inside the JAR, the structure will not be as expected. Check the `jar -C out .` command and the output of `jar --describe-module`.
 
-### Nhầm tên file JAR với tên module
+### Confusing the JAR file name with the module name
 
-Tên file như `com.example.app-1.0.jar` không phải nguồn xác định duy nhất của module name. Với explicit module, tên lấy từ `module-info.class`. Hãy dùng `jar --describe-module` để kiểm tra tên module thực tế.
+A file name like `com.example.app-1.0.jar` is not the sole source of truth for the module name. For explicit modules, the name comes from `module-info.class`. Use `jar --describe-module` to inspect the actual module name.
 
-## 9. Quy trình kiểm tra nhanh
+## 9. Quick Verification Checklist
 
-Khi tạo một modular JAR mới, có thể làm theo trình tự:
+When creating a new modular JAR, you can follow this sequence:
 
-1. Xác định source root mà compiler hoặc build tool đang sử dụng.
-2. Đặt `module-info.java` ngay tại root đó.
-3. Đặt class trong các thư mục package bên dưới source root.
-4. Kiểm tra descriptor không có package declaration và tên module hợp lệ.
-5. Biên dịch với JDK hỗ trợ JPMS và cấu hình source/release phù hợp.
-6. Kiểm tra `module-info.class` nằm ở root output của module.
-7. Đóng gói JAR sao cho descriptor nằm ở root của JAR.
-8. Chạy `jar --describe-module` trên artifact cuối.
-9. Chạy thử với `--module-path` và `--module` để xác nhận runtime nhận diện module.
+1. Identify the source root used by the compiler or build tool.
+2. Place `module-info.java` directly at that root.
+3. Place classes inside package directories beneath the source root.
+4. Verify that the descriptor has no package declaration and has a valid module name.
+5. Compile with a JDK that supports JPMS and configure the appropriate source/release version.
+6. Verify that `module-info.class` sits at the module's output root.
+7. Package the JAR so that the descriptor sits at the root of the JAR.
+8. Run `jar --describe-module` on the final artifact.
+9. Test running with `--module-path` and `--module` to confirm the runtime recognizes the module.
 
-Có thể dùng các lệnh sau làm checklist tối thiểu:
+You can use the following commands as a minimal checklist:
 
 ~~~shell
 # Compile a single module.
@@ -437,6 +437,6 @@ jar --describe-module --file dist/com.example.app.jar
 java --module-path dist --module com.example.app/com.example.app.Main
 ~~~
 
-## Kết luận
+## Conclusion
 
-`module-info.java` phải nằm tại source root của module, cùng cấp với các thư mục package. Compiler chuyển file này thành `module-info.class` và đặt descriptor ở root của output module; khi đóng gói, descriptor tiếp tục nằm ở root của modular JAR. Với dự án nhiều module, mỗi module có source root riêng và descriptor nằm ở root tương ứng. Xác định đúng source root trong javac, Maven, Gradle hoặc IDE là bước đầu tiên để tạo một modular JAR có cấu trúc hợp lệ.
+`module-info.java` must be placed at the module's source root, alongside the package directories. The compiler turns this file into `module-info.class` and places the descriptor at the root of the module output; when packaged, the descriptor continues to sit at the root of the modular JAR. For multi-module projects, each module has its own source root and its descriptor resides at the corresponding root. Identifying the correct source root in `javac`, Maven, Gradle, or your IDE is the first step toward producing a validly structured modular JAR.

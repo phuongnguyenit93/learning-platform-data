@@ -1,39 +1,39 @@
-# getAnnotationsByType khác getDeclaredAnnotationsByType trong Java Reflection
+# getAnnotationsByType vs. getDeclaredAnnotationsByType in Java Reflection
 
-## 1. Vấn đề: tìm annotation theo loại không chỉ là đọc danh sách annotation
+## 1. Problem: finding annotations by type is not just reading an annotation list
 
-Khi sử dụng Java Reflection, một lớp, phương thức hoặc field có thể mang **runtime annotation**. Nếu annotation được khai báo lặp lại nhờ `@Repeatable`, một phần tử có thể có nhiều annotation cùng loại. Nếu annotation được đánh dấu `@Inherited`, một **class** có thể quan sát annotation từ superclass khi không khai báo annotation cùng loại ở chính mình.
+When using Java Reflection, a class, method, or field can carry **runtime annotations**. If an annotation is declared repeatable via `@Repeatable`, a single element can have multiple annotations of the same type. If an annotation is marked `@Inherited`, a **class** can observe annotations from a superclass when it does not declare an annotation of the same type itself.
 
-Hai API trong `java.lang.reflect.AnnotatedElement` giải quyết hai phạm vi khác nhau:
+Two APIs in `java.lang.reflect.AnnotatedElement` address two different scopes:
 
-- `getAnnotationsByType(Class<T> annotationClass)`: tìm tất cả annotation **associated** của một loại tại phần tử. Với `Class`, kết quả có thể bao gồm annotation kế thừa từ superclass theo luật `@Inherited`.
-- `getDeclaredAnnotationsByType(Class<T> annotationClass)`: tìm tất cả annotation của loại đó **directly present** hoặc **indirectly present** tại **chính phần tử được truy vấn**, không lấy từ superclass.
+- `getAnnotationsByType(Class<T> annotationClass)`: finds all **associated** annotations of a type on the element. For a `Class`, the result can include annotations inherited from superclasses under `@Inherited` rules.
+- `getDeclaredAnnotationsByType(Class<T> annotationClass)`: finds all annotations of that type **directly present** or **indirectly present** on **the queried element itself**, without taking from superclasses.
 
-Điểm dễ nhầm là cả hai đều hỗ trợ **repeatable annotation** bằng cách mở rộng (*unpack*) container annotation. Khác biệt quan trọng của chúng là **ngữ nghĩa kế thừa**, chứ không phải “một phương thức hiểu repeatable, phương thức kia không”.
+A common point of confusion is that both support **repeatable annotations** by expanding (*unpacking*) the container annotation. Their key difference is **inheritance semantics**, not “one method understands repeatable and the other does not”.
 
-> Trong bài, “declared” nghĩa là metadata nằm trên phần tử hiện tại; nó **không** nghĩa là annotation có visibility `private`, và cũng không tương đương với `getDeclaredAnnotations()` vì phương thức không có `ByType` thường không tự mở rộng container.
+> In this lesson, “declared” means metadata residing on the current element; it does **not** mean annotations with `private` visibility, nor is it equivalent to `getDeclaredAnnotations()`, because the method without `ByType` normally does not auto-expand containers.
 
-## 2. Bốn khái niệm: trực tiếp, gián tiếp, present, associated
+## 2. Four concepts: directly present, indirectly present, present, associated
 
-Để hiểu chính xác hai API, cần phân biệt các trạng thái annotation:
+To understand both APIs accurately, distinguish these annotation states:
 
-| Thuật ngữ | Ý nghĩa thực tế | Ví dụ |
+| Term | Practical meaning | Example |
 | --- | --- | --- |
-| **Directly present** | Annotation của đúng loại xuất hiện trực tiếp trong metadata runtime của phần tử | `@Label("x")` khai báo một lần |
-| **Indirectly present** | Annotation được chứa trong **containing annotation** của một loại `@Repeatable` | Hai `@Label` được compiler đóng vào `@Labels` |
-| **Present** | Directly present hoặc annotation kế thừa theo quy tắc `@Inherited` áp dụng cho `Class` | `Child` kế thừa một annotation hiện diện trên `Parent` |
-| **Associated** | Directly present, indirectly present, hoặc được kế thừa theo quy tắc áp dụng nếu trên phần tử hiện tại không có annotation của loại đó theo cách trực tiếp/gián tiếp | `Child.class.getAnnotationsByType(Label.class)` có thể trả các `Label` ở `Parent` |
+| **Directly present** | An annotation of the exact type appears directly in the element's runtime metadata | `@Label("x")` declared once |
+| **Indirectly present** | The annotation is held inside a **containing annotation** of a `@Repeatable` type | Two `@Label`s packed by the compiler into `@Labels` |
+| **Present** | Directly present, or an annotation inherited under `@Inherited` rules applicable to `Class` | `Child` inherits an annotation present on `Parent` |
+| **Associated** | Directly present, indirectly present, or inherited under applicable rules if the current element has no annotation of that type directly/indirectly | `Child.class.getAnnotationsByType(Label.class)` can return `Label`s on `Parent` |
 
-Cụ thể:
+Specifically:
 
-- `getDeclaredAnnotationsByType(T.class)` trả các annotation loại `T` **trực tiếp và gián tiếp** trên phần tử đang xét.
-- `getAnnotationsByType(T.class)` trả các annotation loại `T` **associated** với phần tử; nếu phần tử là `Class` và `T` có `@Inherited`, phương thức có thể xét superclass.
-- Nếu class con **đã có** annotation loại `T` trực tiếp hoặc gián tiếp, kết quả của `getAnnotationsByType` ưu tiên tập **cục bộ** này, **không tự gộp** với tập cùng loại ở superclass.
-- `@Inherited` không làm annotation trên **method, field hoặc interface** tự được kế thừa theo cùng cách như annotation trên class.
+- `getDeclaredAnnotationsByType(T.class)` returns annotations of type `T` that are **directly and indirectly** on the element under inspection.
+- `getAnnotationsByType(T.class)` returns annotations of type `T` **associated** with the element; if the element is a `Class` and `T` has `@Inherited`, the method may inspect superclasses.
+- If a subclass **already has** annotations of type `T` directly or indirectly, the result of `getAnnotationsByType` prefers this **local** set and **does not auto-merge** with the set of the same type on the superclass.
+- `@Inherited` does not cause annotations on **methods, fields, or interfaces** to be automatically inherited in the same way as annotations on classes.
 
-### Repeatable annotation và container
+### Repeatable annotations and containers
 
-Với kiểu annotation lặp lại:
+With a repeatable annotation type:
 
 ```java
 @Repeatable(Labels.class)
@@ -46,9 +46,9 @@ Với kiểu annotation lặp lại:
 }
 ```
 
-Đây là phần minh họa cú pháp, chưa có `@Retention(RUNTIME)` nên **chưa đủ** để đọc qua Reflection ở runtime. Phần ví dụ runnable bên dưới bổ sung đầy đủ metadata.
+This is a syntax illustration without `@Retention(RUNTIME)`, so it is **not yet sufficient** to read via Reflection at runtime. The runnable example below supplies the complete metadata.
 
-Hai annotation:
+Two annotations:
 
 ```java
 @Label("alpha")
@@ -56,40 +56,40 @@ Hai annotation:
 class Service {}
 ```
 
-thường được thể hiện trong class file bằng **container** `@Labels` với mảng `value()` chứa hai `@Label`. Do đó:
+are normally represented in the class file by the **container** `@Labels` with a `value()` array holding two `@Label`s. Therefore:
 
-- `Service.class.getDeclaredAnnotationsByType(Label.class)` thấy hai `Label`.
-- `Service.class.getDeclaredAnnotation(Label.class)` thường trả `null` vì runtime metadata lưu **container `Labels`**, không lưu hai `Label` như hai annotation trực tiếp độc lập.
-- `Service.class.getDeclaredAnnotation(Labels.class)` thấy container `Labels`.
-- `Service.class.getDeclaredAnnotations()` có thể cho biết container `Labels`, không tự bung ra thành hai `Label`.
+- `Service.class.getDeclaredAnnotationsByType(Label.class)` sees two `Label`s.
+- `Service.class.getDeclaredAnnotation(Label.class)` normally returns `null` because runtime metadata stores **container `Labels`**, not two `Label`s as two independent direct annotations.
+- `Service.class.getDeclaredAnnotation(Labels.class)` sees container `Labels`.
+- `Service.class.getDeclaredAnnotations()` may show container `Labels`, without automatically expanding it into two `Label`s.
 
-Đây là lý do cần sử dụng API có hậu tố **`ByType`** khi muốn lấy danh sách các annotation repeatable theo **loại annotation bên trong**, thay vì tự dò và unpack container.
+This is why you must use the APIs with the **`ByType`** suffix when you want a list of repeatable annotations by the **inner annotation type**, rather than manually locating and unpacking the container.
 
-## 3. So sánh nhanh các API Reflection
+## 3. Quick comparison of Reflection APIs
 
-| API | Loại trả về | Mở rộng annotation repeatable? | Xét kế thừa? |
+| API | Return type | Expands repeatable annotations? | Considers inheritance? |
 | --- | --- | --- | --- |
-| `getAnnotation(T.class)` | `T` hoặc `null` | Không phải API chuyên để unpack tất cả phần tử trong container | Có thể, theo `@Inherited` và luật present trên `Class` |
-| `getDeclaredAnnotation(T.class)` | `T` hoặc `null` | Không tự trả nhiều annotation được chứa trong container | Không |
-| `getAnnotationsByType(T.class)` | `T[]` | **Có** | **Có thể**, với `Class` và `@Inherited` |
-| `getDeclaredAnnotationsByType(T.class)` | `T[]` | **Có** | **Không** |
-| `getAnnotations()` | `Annotation[]` | Không tự chuyển container thành nhiều `T` | Có thể phản ánh annotation kế thừa theo quy tắc runtime |
-| `getDeclaredAnnotations()` | `Annotation[]` | Không tự chuyển container thành nhiều `T` | Không |
+| `getAnnotation(T.class)` | `T` or `null` | Not a specialized API to unpack all container elements | Possible, under `@Inherited` and present rules on `Class` |
+| `getDeclaredAnnotation(T.class)` | `T` or `null` | Does not auto-return multiple annotations held in a container | No |
+| `getAnnotationsByType(T.class)` | `T[]` | **Yes** | **Possible**, with `Class` and `@Inherited` |
+| `getDeclaredAnnotationsByType(T.class)` | `T[]` | **Yes** | **No** |
+| `getAnnotations()` | `Annotation[]` | Does not auto-convert containers into multiple `T`s | Can reflect inherited annotations under runtime rules |
+| `getDeclaredAnnotations()` | `Annotation[]` | Does not auto-convert containers into multiple `T`s | No |
 
-**Dấu hiệu lựa chọn:** khi đọc một repeatable annotation từ class và muốn xem annotation hiệu lực sau kế thừa, dùng `getAnnotationsByType`. Khi viết công cụ phân tích **đúng annotation đặt trên class hiện tại**, dùng `getDeclaredAnnotationsByType`.
+**Selection rule:** when reading a repeatable annotation from a class and wanting to see the effective annotations after inheritance, use `getAnnotationsByType`. When writing a tool that analyzes **only annotations placed on the current class**, use `getDeclaredAnnotationsByType`.
 
-Các API có `Declared` không đồng nghĩa “chỉ trả annotation thuộc class chưa biên dịch”; `Class`, `Method`, `Field` và các đối tượng `AnnotatedElement` khác đều có thể cung cấp các phương thức này theo phạm vi tương ứng.
+APIs with `Declared` do not mean “only return annotations from uncompiled classes”; `Class`, `Method`, `Field`, and other `AnnotatedElement` objects can all provide these methods within their respective scopes.
 
-## 4. Ví dụ Java 17+ chạy độc lập
+## 4. Standalone runnable Java 17+ example
 
-Lưu nguyên chương trình sau vào **`AnnotationByTypeDemo.java`**. Chương trình có annotation `Label` vừa `@Repeatable` vừa `@Inherited`, và container `Labels` cũng có retention runtime/`@Inherited`. Các class kiểm thử gồm:
+Save the entire program below to **`AnnotationByTypeDemo.java`**. The program has an annotation `Label` that is both `@Repeatable` and `@Inherited`, and container `Labels` also has runtime retention/`@Inherited`. The test classes include:
 
-- `Parent`: hai nhãn lặp lại.
-- `Child`: không khai báo `Label` riêng, nên có thể thấy nhãn từ superclass khi dùng API associated.
-- `OwnChild`: một nhãn riêng, che tập nhãn inherited của `Parent` đối với truy vấn by-type.
-- `TwoChild`: hai nhãn riêng, kiểm tra container local.
-- `ContainerChild`: khai báo trực tiếp container `@Labels`.
-- `Implementation`: triển khai interface đã đánh dấu, chứng minh `@Inherited` không chạy qua interface.
+- `Parent`: two repeated labels.
+- `Child`: declares no own `Label`, so it can see labels from the superclass when using the associated API.
+- `OwnChild`: one own label, shadowing `Parent`'s inherited label set for by-type queries.
+- `TwoChild`: two own labels, testing a local container.
+- `ContainerChild`: directly declares container `@Labels`.
+- `Implementation`: implements an annotated interface, proving `@Inherited` does not run through interfaces.
 
 ```java
 import java.lang.annotation.*;
@@ -167,14 +167,14 @@ public class AnnotationByTypeDemo {
 }
 ```
 
-Biên dịch bằng **Java 17** hoặc JDK mới hơn:
+Compile with **Java 17** or a newer JDK:
 
 ```bash
 javac --release 17 AnnotationByTypeDemo.java
 java AnnotationByTypeDemo
 ```
 
-**Output chính xác** khi chạy chương trình độc lập:
+**Exact output** when running the standalone program:
 
 ```text
 Parent: all=[parent-a, parent-b] declared=[parent-a, parent-b]
@@ -189,90 +189,90 @@ child inherited container: true
 child declared container: false
 ```
 
-Hàm `names` sắp xếp nhãn theo tên để output ổn định và dễ đọc, không phụ thuộc vào cách trình bày thứ tự của các annotation trong ví dụ. Khi cần bảo toàn thứ tự xuất hiện của các annotation repeatable, không được tùy tiện sắp xếp kết quả như hàm trình diễn này.
+The `names` method sorts labels by name so the output is stable and easy to read, independent of how annotation order is presented in the example. When you need to preserve the appearance order of repeatable annotations, do not arbitrarily sort the results like this demo helper does.
 
-### 4.1. Parent: hai API đều trả hai annotation
+### 4.1. Parent: both APIs return two annotations
 
-`Parent` tự khai báo hai `@Label`. Trong metadata runtime, compiler dùng container `@Labels` cho tập lặp lại. Hai API `getAnnotationsByType(Label.class)` và `getDeclaredAnnotationsByType(Label.class)` đều unpack container thành hai `Label`. Bởi vậy cả `all` và `declared` đều là `[parent-a, parent-b]`.
+`Parent` declares two `@Label`s itself. In runtime metadata, the compiler uses the `@Labels` container for the repeated set. Both `getAnnotationsByType(Label.class)` and `getDeclaredAnnotationsByType(Label.class)` unpack the container into two `Label`s. Thus both `all` and `declared` are `[parent-a, parent-b]`.
 
-### 4.2. Child: chỉ API không có Declared mới kế thừa
+### 4.2. Child: only the API without Declared inherits
 
-`Child extends Parent` nhưng không khai báo `@Label`. Do `Label` có `@Inherited`, lời gọi:
+`Child extends Parent` but does not declare `@Label`. Because `Label` has `@Inherited`, the call:
 
 ```java
 Child.class.getAnnotationsByType(Label.class)
 ```
 
-trả các nhãn associated từ superclass: `[parent-a, parent-b]`.
+returns the associated labels from the superclass: `[parent-a, parent-b]`.
 
-Trong khi đó:
+Meanwhile:
 
 ```java
 Child.class.getDeclaredAnnotationsByType(Label.class)
 ```
 
-trả **mảng rỗng**, vì `Child` không khai báo `Label` trực tiếp hay gián tiếp. Hai API khác nhau về **phạm vi**, không khác nhau về khả năng unpack container.
+returns an **empty array**, because `Child` declares `Label` neither directly nor indirectly. The two APIs differ in **scope**, not in their ability to unpack containers.
 
-### 4.3. OwnChild: annotation cục bộ không hợp nhất với superclass
+### 4.3. OwnChild: local annotations do not merge with the superclass
 
-`OwnChild` có `@Label("child")` trực tiếp. Vì đã có `Label` cục bộ, `getAnnotationsByType(Label.class)` trả `[child]`, **không** trả `[parent-a, parent-b, child]`. Phương thức declared cũng trả `[child]`.
+`OwnChild` has `@Label("child")` directly. Because it already has a local `Label`, `getAnnotationsByType(Label.class)` returns `[child]`, **not** `[parent-a, parent-b, child]`. The declared method also returns `[child]`.
 
-Đây là khác biệt thực tế với một số kỳ vọng “annotation từ các tầng được gộp tất cả”. Đối với **một loại repeatable annotation**, quy tắc `@Inherited` của truy vấn associated không tự thêm annotation của superclass khi class hiện tại đã có annotation loại đó.
+This is a practical difference from expectations that “annotations from all levels are all merged”. For **one repeatable annotation type**, the `@Inherited` rule of associated queries does not automatically add superclass annotations when the current class already has annotations of that type.
 
-Nếu nghiệp vụ thật sự muốn tập annotation **gộp từ mọi lớp trong hierarchy**, cần tự duyệt `getSuperclass()` và áp dụng chính sách gộp, xung đột, thứ tự theo yêu cầu ứng dụng.
+If business logic truly wants the set of annotations **merged from every class in the hierarchy**, you must walk `getSuperclass()` yourself and apply merging, conflict, and ordering policies as required by the application.
 
-### 4.4. TwoChild: có nhiều annotation cục bộ
+### 4.4. TwoChild: multiple local annotations
 
-`TwoChild` khai báo hai `@Label`. Cả hai API trả đúng hai annotation cục bộ; các nhãn ở `Parent` không được thêm. `getDeclaredAnnotationsByType` trả được cả hai dù class file chứa container chứ không nhất thiết chứa hai annotation `Label` tách rời.
+`TwoChild` declares two `@Label`s. Both APIs return the exact two local annotations; `Parent`'s labels are not added. `getDeclaredAnnotationsByType` returns both even though the class file contains a container rather than two separate `Label` annotations.
 
-### 4.5. ContainerChild: khai báo container cũng được unpack
+### 4.5. ContainerChild: explicit container declarations are also unpacked
 
-`ContainerChild` viết trực tiếp:
+`ContainerChild` writes directly:
 
 ```java
 @Labels({@Label("explicit-a"), @Label("explicit-b")})
 ```
 
-Mỗi `Label` bên trong được xem là *indirectly present* theo luật repeatable. Hai API by-type đều trả `[explicit-a, explicit-b]`. Vì vậy **không nhất thiết** người viết source phải dùng cú pháp `@Label` lặp lại; container hợp lệ cũng được nhận diện.
+Each `Label` inside is considered *indirectly present* under repeatable rules. Both by-type APIs return `[explicit-a, explicit-b]`. Therefore, the source author does **not necessarily** have to use repeated `@Label` syntax; a valid container is also recognized.
 
-### 4.6. Implementation: @Inherited không chạy qua interface
+### 4.6. Implementation: @Inherited does not traverse interfaces
 
-`Contract` là một interface có `@Label("interface-only")`. `Implementation implements Contract` **không** kế thừa annotation qua interface trong luật `@Inherited`. Vì vậy cả hai truy vấn của `Implementation.class` trả mảng rỗng.
+`Contract` is an interface with `@Label("interface-only")`. `Implementation implements Contract` does **not** inherit annotations through interfaces under `@Inherited` rules. Therefore both queries on `Implementation.class` return empty arrays.
 
-`@Inherited` chỉ có hiệu lực khi tìm annotation trên **class**, đi theo quan hệ superclass thích hợp; không biến interface annotation thành annotation mặc định cho mọi class triển khai.
+`@Inherited` only takes effect when looking up annotations on a **class**, following the appropriate superclass relationship; it does not turn interface annotations into default annotations for every implementing class.
 
-### 4.7. Vì sao getDeclaredAnnotation(Label.class) ở Parent trả null?
+### 4.7. Why does getDeclaredAnnotation(Label.class) on Parent return null?
 
-Hai `@Label` trên `Parent` đã được biểu diễn bằng containing annotation `@Labels`. Do đó `Parent.class.getDeclaredAnnotation(Label.class)` không nhìn thấy một annotation `Label` **directly present** đơn lẻ và trả `null`. Nhưng `getDeclaredAnnotation(Labels.class)` trả container thật, nên in `true`.
+The two `@Label`s on `Parent` are represented by the containing annotation `@Labels`. Consequently `Parent.class.getDeclaredAnnotation(Label.class)` does not see a single **directly present** `Label` annotation and returns `null`. However, `getDeclaredAnnotation(Labels.class)` returns the actual container, so it prints `true`.
 
-`Child.class.getAnnotation(Labels.class)` là `true` bởi container `Labels` cũng có `@Inherited`, trong khi `getDeclaredAnnotation(Labels.class)` ở Child là `null`. Cùng một hiện tượng nhưng đối với **loại annotation container**.
+`Child.class.getAnnotation(Labels.class)` is `true` because container `Labels` also has `@Inherited`, while `getDeclaredAnnotation(Labels.class)` on Child is `null`. It is the same phenomenon, applied to the **container annotation type**.
 
-**Cảnh báo:** Nếu chỉ gọi `getAnnotation(Label.class)` khi annotation repeatable xuất hiện hai lần, bạn có thể tưởng rằng annotation không tồn tại. Hãy dùng `getAnnotationsByType(Label.class)` nếu muốn lấy toàn bộ instance của loại repeatable.
+**Warning:** If you only call `getAnnotation(Label.class)` when a repeatable annotation appears twice, you may mistakenly think the annotation does not exist. Use `getAnnotationsByType(Label.class)` if you want all instances of a repeatable type.
 
-## 5. Kiểm tra retention trước khi so sánh hai API
+## 5. Check retention before comparing the two APIs
 
-Cả `Label` và `Labels` trong chương trình đều có `@Retention(RUNTIME)` để runtime Reflection nhìn thấy repeatable annotation. Nếu annotation không có retention runtime phù hợp, cả hai phương thức `ByType` có thể trả mảng rỗng; đó là lỗi về metadata visibility, không chứng tỏ một API xử lý container khác API còn lại. Các quy tắc khai báo container thuộc bài repeatable trước.
+Both `Label` and `Labels` in the program have `@Retention(RUNTIME)` so runtime Reflection sees the repeatable annotations. If an annotation lacks appropriate runtime retention, both `ByType` methods can return empty arrays; that is a metadata visibility error, not proof that one API handles containers differently from the other. Container declaration rules belong to the previous repeatable lesson.
 
-## 6. Phạm vi kế thừa trong hai API `ByType`
+## 6. Inheritance scope in the two `ByType` APIs
 
-`getAnnotationsByType(T.class)` có thể tìm tới superclass **khi phần tử là class**, annotation type `T` có `@Inherited`, và class hiện tại không có annotation loại `T` trực tiếp/gián tiếp. `getDeclaredAnnotationsByType(T.class)` luôn giới hạn ở phần tử hiện tại.
+`getAnnotationsByType(T.class)` can look up to superclasses **when the element is a class**, annotation type `T` has `@Inherited`, and the current class has no direct/indirect annotation of type `T`. `getDeclaredAnnotationsByType(T.class)` is always restricted to the current element.
 
-Điều đó **không** làm annotation từ interface được implements, method được override hoặc field bị hide tự xuất hiện trên phần tử mới. Nếu `getMethod()` trả method gốc khai báo ở superclass, annotation đọc được vẫn thuộc chính `Method` đó. Khi framework muốn gộp từ nhiều lớp/interface hoặc method hierarchy, cần chính sách traversal và giải quyết xung đột riêng.
+That does **not** make annotations from implemented interfaces, overridden methods, or hidden fields appear automatically on the new element. If `getMethod()` returns an original method declared on a superclass, the read annotations still belong to that `Method` itself. When a framework wants to merge across multiple classes/interfaces or a method hierarchy, it needs custom traversal and conflict-resolution policies.
 
-## 7. Quy tắc chọn API theo mục đích
+## 7. Rules for choosing the API by goal
 
-| Nhu cầu thực tế | API phù hợp | Lý do |
+| Practical need | Appropriate API | Reason |
 | --- | --- | --- |
-| Đọc tất cả `@Label` có hiệu lực trên một class, kể cả inherited theo luật Java | `clazz.getAnnotationsByType(Label.class)` | Kết quả associated, hỗ trợ repeatable và `@Inherited` |
-| Chỉ đọc `@Label` viết trên chính class này | `clazz.getDeclaredAnnotationsByType(Label.class)` | Không đi ngược superclass |
-| Tìm tất cả annotation của một loại repeatable ở method hiện tại | `method.getDeclaredAnnotationsByType(Label.class)` hoặc `getAnnotationsByType` tùy ngữ nghĩa | Không tự kế thừa annotation từ method override |
-| Kiểm tra có một annotation **trực tiếp** kiểu `T` hay không | `getDeclaredAnnotation(T.class)` | Nhưng không đủ khi repeatable được đóng trong container |
-| Xem container vật lý của repeatable annotation | `getDeclaredAnnotation(Container.class)` | Kiểm tra container được khai báo |
-| Duyệt toàn bộ annotation metadata được declared, kể cả loại khác | `getDeclaredAnnotations()` | Trả danh sách annotation metadata; không thay thế by-type để unpack |
-| Muốn gộp annotation của **mọi lớp** trong inheritance chain, dù lớp con đã có | Tự duyệt `getSuperclass()` và `getDeclaredAnnotationsByType` | Quy tắc by-type associated không tự gộp các tầng |
-| Muốn lấy annotation từ interface hoặc overridden methods theo chính sách framework | Tự duyệt hierarchy và chọn quy tắc xung đột | `@Inherited` không đáp ứng yêu cầu này |
+| Read all effective `@Label`s on a class, including inherited per Java rules | `clazz.getAnnotationsByType(Label.class)` | Associated result, supports repeatable and `@Inherited` |
+| Read only `@Label`s written on this class itself | `clazz.getDeclaredAnnotationsByType(Label.class)` | Does not walk up superclasses |
+| Find all annotations of a repeatable type on the current method | `method.getDeclaredAnnotationsByType(Label.class)` or `getAnnotationsByType` depending on semantics | Does not auto-inherit annotations from overridden methods |
+| Check if there is a **direct** annotation of type `T` | `getDeclaredAnnotation(T.class)` | Insufficient when repeatable is wrapped in a container |
+| Inspect the physical container of a repeatable annotation | `getDeclaredAnnotation(Container.class)` | Inspects the declared container |
+| Iterate all declared annotation metadata, including other types | `getDeclaredAnnotations()` | Returns the list of annotation metadata; does not replace by-type for unpacking |
+| Want to merge annotations of **every class** in the inheritance chain, even when subclass has its own | Walk `getSuperclass()` manually and call `getDeclaredAnnotationsByType` | By-type associated rules do not auto-merge levels |
+| Want to get annotations from interfaces or overridden methods under framework policy | Walk hierarchy manually and choose conflict rules | `@Inherited` does not satisfy this requirement |
 
-### Mẫu đọc metadata class cục bộ
+### Pattern for reading local class metadata
 
 ```java
 static Label[] localLabels(Class<?> clazz) {
@@ -280,7 +280,7 @@ static Label[] localLabels(Class<?> clazz) {
 }
 ```
 
-### Mẫu đọc các annotation associated
+### Pattern for reading associated annotations
 
 ```java
 static Label[] effectiveLabels(Class<?> clazz) {
@@ -288,13 +288,13 @@ static Label[] effectiveLabels(Class<?> clazz) {
 }
 ```
 
-Hai đoạn là method Java minh họa có thể đặt trong một class thích hợp, sử dụng `Label` được khai báo trong ví dụ chính. Hãy đặt tên `localLabels` hoặc `effectiveLabels` có chủ ý; một tên chung như `findLabels` thường khiến người đọc không biết hàm có bao gồm inherited hay không.
+These two snippets are illustrative Java methods that can be placed inside an appropriate class, using `Label` declared in the main example. Name them `localLabels` or `effectiveLabels` intentionally; a generic name like `findLabels` often leaves readers unsure whether the function includes inherited annotations.
 
-## 8. Nếu muốn kết quả gộp từ tất cả superclass thì phải tự duyệt
+## 8. If you want merged results from all superclasses, you must traverse manually
 
-Nhiều framework muốn **kết hợp** các annotation từ class hiện tại và mọi superclass, ngay cả khi lớp hiện tại có annotation cùng loại. `getAnnotationsByType` **không** đáp ứng đầy đủ quy tắc gộp này.
+Many frameworks want to **combine** annotations from the current class and all superclasses, even when the current class has annotations of the same type. `getAnnotationsByType` does **not** fully satisfy this merging rule.
 
-Ví dụ một tiện ích nhận các instance cục bộ theo thứ tự từ class con lên class cha:
+Example of a utility collecting local instances in order from subclass up to superclass:
 
 ```java
 static java.util.List<Label> collectEveryLevel(Class<?> type) {
@@ -312,18 +312,18 @@ static java.util.List<Label> collectEveryLevel(Class<?> type) {
 }
 ```
 
-Đây là một **phương thức Java minh họa** sử dụng `Label` đã khai báo. Đặt nó trong một class hoặc tiện ích của ứng dụng. Với `OwnChild.class`, tiện ích này thu được `child`, `parent-a`, `parent-b` theo thứ tự tầng và thứ tự các annotation trả về ở mỗi tầng.
+This is an **illustrative Java method** using the declared `Label`. Place it inside a class or application utility. For `OwnChild.class`, this utility collects `child`, `parent-a`, `parent-b` in level order and the order of annotations returned at each level.
 
-Điểm cần ghi nhớ:
+Points to remember:
 
-- Đây là **quy tắc ứng dụng tự định nghĩa**, không phải hành vi mặc định của `getAnnotationsByType`.
-- Có thể cần loại trùng, cho lớp con ưu tiên, cho phép override hoặc hợp nhất giá trị annotation theo domain.
-- Ví dụ trên duyệt superclass, **không** duyệt interface. Muốn interface phải thêm logic riêng, tránh lặp trong đồ thị interface và quyết định thứ tự.
-- Không chọn `getAnnotationsByType` ở mỗi tầng nếu định gộp trực tiếp: annotation inherited có thể bị đếm lại ở nhiều tầng. `getDeclaredAnnotationsByType` thích hợp hơn để thu **chỉ metadata mỗi tầng**.
+- This is a **custom application-defined rule**, not the default behavior of `getAnnotationsByType`.
+- You may need deduplication, giving the subclass priority, allowing overrides, or merging annotation values according to the domain.
+- The example above walks superclasses, **not** interfaces. Supporting interfaces requires separate logic, avoiding cycles in the interface graph, and deciding order.
+- Do not call `getAnnotationsByType` at each level if you intend to merge directly: inherited annotations could be counted repeatedly across levels. `getDeclaredAnnotationsByType` is better suited to collect **only each level's metadata**.
 
-## 9. Phần khác biệt với getDeclaredAnnotations()
+## 9. How it differs from getDeclaredAnnotations()
 
-Khi có một `@Repeatable(Label)`, nhiều người tìm bằng:
+When a `@Repeatable(Label)` exists, many people search using:
 
 ```java
 for (Annotation a : clazz.getDeclaredAnnotations()) {
@@ -331,99 +331,99 @@ for (Annotation a : clazz.getDeclaredAnnotations()) {
 }
 ```
 
-Nếu repeatable `Label` xuất hiện hai lần, danh sách có thể chứa **`Labels`**, là container, chứ không phải hai object `Label` được phẳng hóa. Mặt khác, `getDeclaredAnnotationsByType(Label.class)` được thiết kế để trả hai `Label`.
+If repeatable `Label` appears twice, the list may contain **`Labels`**, the container, rather than two flattened `Label` objects. On the other hand, `getDeclaredAnnotationsByType(Label.class)` is designed to return two `Label`s.
 
-Vì thế:
+Therefore:
 
-- Nếu muốn **mọi annotation metadata loại bất kỳ**, `getDeclaredAnnotations()` hợp lý.
-- Nếu muốn **tất cả instance của một loại repeatable cụ thể**, dùng `getDeclaredAnnotationsByType(T.class)`.
-- Nếu muốn **tất cả instance liên quan tới một loại, bao gồm thừa kế phù hợp**, dùng `getAnnotationsByType(T.class)`.
+- If you want **all annotation metadata of any type**, `getDeclaredAnnotations()` makes sense.
+- If you want **all instances of a specific repeatable type**, use `getDeclaredAnnotationsByType(T.class)`.
+- If you want **all instances associated with a type, including valid inheritance**, use `getAnnotationsByType(T.class)`.
 
-Tương tự, `getAnnotations()` là danh sách các annotation hiện diện theo ngữ nghĩa API đó, **không** phải hàm luôn flatten mọi container repeatable thành các phần tử bên trong. Không dùng `getAnnotations().length` để suy luận chắc chắn số repeatable annotations.
+Similarly, `getAnnotations()` is the list of present annotations under that API's semantics, **not** a function that always flattens every repeatable container into its inner elements. Do not use `getAnnotations().length` to reliably infer the count of repeatable annotations.
 
-## 10. Một số điểm dễ gây hiểu lầm
+## 10. Several easily misunderstood points
 
-### 10.1. Có @Inherited nhưng class con vẫn không thấy annotation
+### 10.1. @Inherited is present yet the subclass still does not see the annotation
 
-Hãy kiểm tra bốn điều:
+Check four things:
 
-1. Annotation thật sự có `@Retention(RUNTIME)` không?
-2. Annotation loại chính có `@Inherited` không? Nếu repeatable, container được khai báo nhất quán chưa?
-3. Phần tử đang truy vấn có thật là **class subclass** theo quan hệ `extends` không, hay chỉ `implements` một interface?
-4. Class con có annotation cùng loại **cục bộ** không? Nếu có, phương thức by-type associated trả tập local, không cộng tập superclass.
+1. Does the annotation genuinely have `@Retention(RUNTIME)`?
+2. Does the primary annotation type have `@Inherited`? If repeatable, is the container declared consistently?
+3. Is the queried element truly a **class subclass** via `extends`, or does it merely `implements` an interface?
+4. Does the subclass have a **local** annotation of the same type? If so, the by-type associated method returns the local set without adding the superclass set.
 
-### 10.2. Có nhiều @Label nhưng getAnnotation(Label.class) trả null
+### 10.2. Multiple @Labels exist yet getAnnotation(Label.class) returns null
 
-Đó là tình huống thường gặp khi compiler dùng container `@Labels` cho repeatable annotation. Dùng `getAnnotationsByType(Label.class)` hoặc `getDeclaredAnnotationsByType(Label.class)` mới là cách truy xuất nhiều instance.
+That is the expected situation when the compiler uses container `@Labels` for repeatable annotations. Using `getAnnotationsByType(Label.class)` or `getDeclaredAnnotationsByType(Label.class)` is the proper way to retrieve multiple instances.
 
-### 10.3. Không có Declared nghĩa là luôn đọc hết mọi ancestor?
+### 10.3. Does lacking Declared mean always reading every ancestor?
 
-**Không.** `getAnnotationsByType` hỗ trợ ngữ nghĩa `@Inherited` của class, nhưng khi có tập annotation cùng loại local, không tự gộp các tập ở superclass. Khi không có `@Inherited`, nó cũng không tự “quét toàn bộ hierarchy” để trả mọi annotation.
+**No.** `getAnnotationsByType` supports class `@Inherited` semantics, but when a local set of the same annotation type exists, it does not auto-merge superclass sets. Without `@Inherited`, it also does not automatically “scan the entire hierarchy” to return all annotations.
 
-### 10.4. getDeclaredAnnotationsByType chỉ đọc annotation không lặp?
+### 10.4. Does getDeclaredAnnotationsByType read only non-repeatable annotations?
 
-**Sai.** Nó cũng hỗ trợ repeatable annotation, gồm annotation **indirectly present** bên trong container. “Declared” giới hạn **phần tử**, không giới hạn **số lượng annotations**.
+**False.** It also supports repeatable annotations, including annotations **indirectly present** inside a container. “Declared” restricts **the element**, not **the number of annotations**.
 
-### 10.5. Thêm @Inherited trên class được annotate là đủ?
+### 10.5. Is adding @Inherited to the annotated class enough?
 
-**Sai.** `@Inherited` là meta-annotation dành cho khai báo loại annotation, không phải modifier tùy ý thêm vào `Child` để kích hoạt kế thừa.
+**False.** `@Inherited` is a meta-annotation for annotation type declarations, not a modifier you randomly add to `Child` to enable inheritance.
 
-### 10.6. @Inherited có tác dụng lên method override?
+### 10.6. Does @Inherited apply to overriding methods?
 
-**Không.** Kế thừa metadata method theo cách tùy chỉnh là công việc của framework. Java Reflection không tự sao chép annotation từ method ở superclass sang method override.
+**No.** Custom inheritance of method metadata is the job of frameworks. Java Reflection does not automatically copy annotations from superclass methods to overriding methods.
 
-### 10.7. Phụ thuộc thứ tự mảng trả về?
+### 10.7. Depending on returned array order?
 
-Với repeatable annotations, thứ tự local có thể mang ý nghĩa theo container/source. Hãy xác định quy tắc thứ tự nếu dùng kết quả cho pipeline. Ví dụ chạy ở phần 4 **sắp xếp** để tạo stdout ổn định, không chứng minh rằng JVM luôn trả mảng theo thứ tự từ điển.
+For repeatable annotations, local order can carry meaning according to the container/source. Define ordering rules if using results for a pipeline. The runnable example in section 4 **sorts** to produce stable stdout, which does not prove the JVM always returns arrays in lexicographical order.
 
-### 10.8. Đã compile có annotation thì Reflection phải thấy?
+### 10.8. If compiled with an annotation, must Reflection see it?
 
-**Không.** Retention `SOURCE`/`CLASS` không đảm bảo runtime Reflection thấy annotation. Nếu số lượng trả về là zero, kiểm tra `@Retention(RUNTIME)` trước khi kết luận API lỗi.
+**No.** `SOURCE`/`CLASS` retention does not guarantee runtime Reflection sees the annotation. If the returned count is zero, check `@Retention(RUNTIME)` before concluding the API has a bug.
 
-## 11. Lưu ý khi thiết kế framework
+## 11. Notes when designing frameworks
 
-Một framework có thể cần hai hành vi khác nhau:
+A framework may need two different behaviors:
 
-**Chính sách A — inherited, ưu tiên class gần nhất:** Lấy `getAnnotationsByType(T.class)` từ class cần xử lý. Đây gần với ngữ nghĩa annotation associated được Java định nghĩa; phù hợp khi muốn class con có thể thay thế metadata parent bằng giá trị cục bộ.
+**Policy A — inherited, nearest class takes priority:** Call `getAnnotationsByType(T.class)` on the target class. This aligns closely with Java-defined associated annotation semantics; suitable when subclasses should be able to replace parent metadata with local values.
 
-**Chính sách B — thu mọi tầng:** Duyệt `getSuperclass()` và lấy `getDeclaredAnnotationsByType(T.class)` trên từng class. Đây là chính sách độc lập của framework; cần quyết định merge, order và override rõ ràng.
+**Policy B — collect all levels:** Walk `getSuperclass()` and call `getDeclaredAnnotationsByType(T.class)` on each class. This is an independent framework policy; merge, order, and override rules must be explicitly decided.
 
-Nếu annotation nằm trên method hoặc interface và framework muốn kế thừa theo kiểu riêng (ví dụ đọc route annotation ở interface), nên viết thuật toán traversal chuyên biệt. Đừng hy vọng rằng `@Inherited` hoặc `getAnnotationsByType` sẽ làm điều đó cho mọi phần tử.
+If annotations sit on methods or interfaces and a framework wants custom inheritance (e.g., reading route annotations on interfaces), write a specialized traversal algorithm. Do not expect `@Inherited` or `getAnnotationsByType` to do that for every element.
 
-Việc “effective annotation” ở một số framework như công cụ dependency injection hoặc web routing có thể có ngữ nghĩa **khác** Java Reflection chuẩn (tìm meta-annotation, composed annotation, alias, multiple levels). Khi cần đúng hành vi framework, dùng API của framework; khi cần đúng luật Java Reflection, dựa trên `AnnotatedElement` và `@Inherited`.
+What counts as an “effective annotation” in some frameworks such as dependency injection or web routing tools can have semantics **different** from standard Java Reflection (searching meta-annotations, composed annotations, aliases, multiple levels). When exact framework behavior is needed, use the framework's API; when exact Java Reflection rules are needed, rely on `AnnotatedElement` and `@Inherited`.
 
-## 12. Tự kiểm tra
+## 12. Self-check
 
-**Câu 1.** Trên một class có hai `@Label`, `getDeclaredAnnotationsByType(Label.class)` có trả cả hai không?
+**Question 1.** On a class with two `@Label`s, does `getDeclaredAnnotationsByType(Label.class)` return both?
 
-**Đáp án:** Có. API mở rộng repeatable container để lấy annotation indirectly present trên chính class.
+**Answer:** Yes. The API expands the repeatable container to retrieve annotations indirectly present on the class itself.
 
-**Câu 2.** `Child extends Parent` không khai báo `Label`, `Label` có `@Inherited`. Hai API trả gì?
+**Question 2.** `Child extends Parent` does not declare `Label`, and `Label` has `@Inherited`. What do the two APIs return?
 
-**Đáp án:** `Child.class.getAnnotationsByType(Label.class)` có thể trả các `Label` từ Parent; `Child.class.getDeclaredAnnotationsByType(Label.class)` trả rỗng.
+**Answer:** `Child.class.getAnnotationsByType(Label.class)` can return the `Label`s from Parent; `Child.class.getDeclaredAnnotationsByType(Label.class)` returns empty.
 
-**Câu 3.** Nếu `Child` tự khai báo một `@Label("child")`, `getAnnotationsByType` có trả cả Label ở Parent không?
+**Question 3.** If `Child` declares a `@Label("child")` itself, does `getAnnotationsByType` also return the Labels on Parent?
 
-**Đáp án:** Không tự gộp. Tập local của Child được ưu tiên cho loại annotation đó.
+**Answer:** Does not auto-merge. Child's local set takes priority for that annotation type.
 
-**Câu 4.** Vì sao `getDeclaredAnnotation(Label.class)` trên Parent có hai `@Label` có thể trả null?
+**Question 4.** Why can `getDeclaredAnnotation(Label.class)` on Parent with two `@Label`s return null?
 
-**Đáp án:** Compiler biểu diễn các annotation lặp lại bằng containing annotation `Labels`; `getDeclaredAnnotation` không phải API flatten nhiều repeatable annotations.
+**Answer:** The compiler represents repeated annotations via the containing annotation `Labels`; `getDeclaredAnnotation` is not an API that flattens multiple repeatable annotations.
 
-**Câu 5.** `Implementation implements Contract` có tự nhận `@Label` từ interface `Contract` nhờ `@Inherited` không?
+**Question 5.** Does `Implementation implements Contract` automatically receive `@Label` from interface `Contract` via `@Inherited`?
 
-**Đáp án:** Không. `@Inherited` không truyền annotation qua `implements`.
+**Answer:** No. `@Inherited` does not propagate annotations across `implements`.
 
-**Câu 6.** Phương thức override có tự kế thừa annotation của method superclass khi gọi `getAnnotationsByType` trên `Method` con không?
+**Question 6.** Does an overriding method automatically inherit superclass method annotations when calling `getAnnotationsByType` on the child `Method`?
 
-**Đáp án:** Không. Quy tắc `@Inherited` của Java Reflection áp dụng cho class, không chuyển annotation của method cha sang method override.
+**Answer:** No. Java Reflection's `@Inherited` rule applies to classes, not transferring parent method annotations to overriding methods.
 
-**Câu 7.** Vì sao có annotation trong source nhưng hai API by-type đều trả mảng rỗng?
+**Question 7.** Why can both by-type APIs return empty arrays even when annotations exist in source code?
 
-**Đáp án:** Có thể annotation thiếu `@Retention(RUNTIME)`, truy vấn nhầm phần tử/loại, class con không có annotation cục bộ và annotation không `@Inherited`, hoặc chỉ tồn tại trên interface/method khác.
+**Answer:** The annotation may lack `@Retention(RUNTIME)`, the wrong element/type may be queried, the subclass may lack local annotations while the annotation lacks `@Inherited`, or it may exist only on another interface/method.
 
-**Câu 8.** Muốn lấy tất cả `Label` ở cả Child và Parent, ngay cả khi Child đã khai báo riêng, dùng gì?
+**Question 8.** To retrieve all `Label`s on both Child and Parent, even when Child has declared its own, what should be used?
 
-**Đáp án:** Duyệt hierarchy theo `getSuperclass()` và lấy `getDeclaredAnnotationsByType(Label.class)` ở mỗi tầng, sau đó áp dụng quy tắc kết hợp của ứng dụng.
+**Answer:** Walk the hierarchy via `getSuperclass()` and call `getDeclaredAnnotationsByType(Label.class)` at each level, then apply the application's combining rules.
 
-**Ghi nhớ:** **Cả `getAnnotationsByType` và `getDeclaredAnnotationsByType` đều hiểu repeatable annotation**. API có `Declared` chỉ trả những annotation trực tiếp hoặc gián tiếp **trên chính phần tử**; API không có `Declared` có thể áp dụng **`@Inherited` theo superclass khi truy vấn class**, nhưng **không mặc định hợp nhất** tập annotation local với tập ở mọi superclass. Muốn gộp theo chính sách khác, hãy duyệt hierarchy có chủ đích.
+**Key takeaway:** **Both `getAnnotationsByType` and `getDeclaredAnnotationsByType` understand repeatable annotations**. The API with `Declared` returns only annotations directly or indirectly **on the element itself**; the API without `Declared` can apply **`@Inherited` along superclasses when querying a class**, but **does not merge by default** the local annotation set with sets on all superclasses. If merging under another policy is desired, walk the hierarchy intentionally.

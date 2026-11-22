@@ -1,26 +1,26 @@
-# Tách bài toán thành các phương thức có trách nhiệm rõ ràng — Java 17+
+# Decomposing Problems into Methods with Clear Responsibilities — Java 17+
 
-## 1. Vì sao cần tách phương thức?
+## 1. Why Separate Methods?
 
-Khi một phương thức vừa kiểm tra đầu vào, vừa tính toán, vừa xếp loại, vừa in kết quả, người đọc phải theo dõi **nhiều mục đích cùng lúc**. Khi yêu cầu thay đổi, dễ sửa nhầm logic không liên quan.
+When one method simultaneously validates input, performs calculations, assigns ratings, and prints output, the reader has to track **multiple purposes at once**. When requirements change, it is easy to accidentally break unrelated logic.
 
-Một phương thức có **trách nhiệm rõ ràng** nên mô tả được bằng một hành động cụ thể: `validateScores` kiểm tra dữ liệu, `calculateAverage` tính trung bình, `classify` xếp loại, `formatReport` tạo chuỗi và `showCase` hiển thị.
+A method with a **clear responsibility** should be describable with one concrete action: `validateScores` checks data, `calculateAverage` computes the average, `classify` assigns a rating, `formatReport` builds a string, and `showCase` displays output.
 
-**Nguyên tắc thực hành:** một phương thức nên có **một lý do chính để thay đổi**, chứ không nhất thiết chỉ có một dòng lệnh. Tách theo ý nghĩa nghiệp vụ, không chia vụn mọi phép gán hay phép cộng.
+**Practical principle:** a method should have **one primary reason to change**, not necessarily just one line of code. Split by business meaning rather than breaking apart every assignment or addition.
 
-Ví dụ bài toán: nhận tên học viên và mảng điểm nguyên (0–100), tính trung bình **lấy phần nguyên**, xếp loại và xuất một dòng báo cáo. Nếu đầu vào sai, báo lỗi rõ ràng.
+Example problem: receive a student's name and an array of integer scores (0–100), compute the **integer-truncated** average, classify it, and output a single report line. If the input is invalid, report a clear error.
 
-## 2. Phân rã bài toán thành các bước
+## 2. Decomposing the Problem into Steps
 
-| Trách nhiệm | Phương thức | Đầu vào → đầu ra |
+| Responsibility | Method | Input → Output |
 |---|---|---|
-| Kiểm tra tên | `requireName` | `String` → `String` đã bỏ khoảng trắng đầu/cuối hoặc ném lỗi |
-| Kiểm tra danh sách điểm | `validateScores` | `int[]` → `void` hoặc ném lỗi |
-| Tính điểm trung bình | `calculateAverage` | `int[]` hợp lệ → `int` |
-| Xếp loại | `classify` | `int average` → `String` |
-| Tạo kết quả | `formatReport` | Tên, số môn, trung bình, xếp loại → `String` |
-| Phối hợp các bước | `buildReport` | Tên + điểm → chuỗi hoàn chỉnh |
-| Hiển thị / xử lý lỗi | `showCase` | Dữ liệu mẫu → in báo cáo hoặc lỗi |
+| Validate name | `requireName` | `String` → trimmed `String` or throw error |
+| Validate score list | `validateScores` | `int[]` → `void` or throw error |
+| Compute average score | `calculateAverage` | Valid `int[]` → `int` |
+| Classify | `classify` | `int average` → `String` |
+| Format result | `formatReport` | Name, subject count, average, level → `String` |
+| Coordinate steps | `buildReport` | Name + scores → complete string |
+| Display / handle errors | `showCase` | Sample data → print report or error |
 
 ~~~mermaid
 flowchart TD
@@ -30,43 +30,43 @@ flowchart TD
     B --> E["calculateAverage"]
     B --> F["classify"]
     B --> G["formatReport"]
-    G --> H["Chuỗi kết quả"]
+    G --> H["Result string"]
     H --> A
     A --> I["System.out.println"]
 ~~~
 
-`buildReport` là phương thức **điều phối**: gọi các phương thức nhỏ theo đúng trình tự, không tự lặp lại công thức tính điểm hoặc xếp loại. Đây là cách tách hợp lý giữa “biết cần làm gì” và “biết một bước làm như thế nào”.
+`buildReport` is the **orchestrating** method: it calls smaller methods in the right sequence without duplicating score calculation or classification formulas. This is a sensible separation between “knowing what needs to be done” and “knowing how one step is done”.
 
-## 3. Xác định hợp đồng của từng phương thức
+## 3. Defining Each Method's Contract
 
-Trước khi code, hãy ghi rõ **đầu vào, đầu ra và tình huống lỗi**:
+Before coding, specify the **inputs, outputs, and error cases**:
 
-- `requireName(name)`: từ chối `null` hoặc chỉ toàn khoảng trắng; tên hợp lệ được `strip()`.
-- `validateScores(scores)`: từ chối `null`, mảng rỗng, điểm ngoài khoảng 0–100; không sửa mảng.
-- `calculateAverage(scores)`: giả định dữ liệu **đã được kiểm tra**, tính tổng bằng `long`, chia nguyên cho số môn. Ví dụ `(70 + 71) / 2 = 70`.
-- `classify(avg)`: `avg >= 80` → `GOOD`; `avg >= 50` → `PASS`; còn lại → `RETRY`.
-- `formatReport(...)`: chỉ ghép chuỗi, không in và không thay dữ liệu.
-- `buildReport(...)`: trả chuỗi; nếu dữ liệu sai, cho phép `IllegalArgumentException` đi lên caller.
+- `requireName(name)`: rejects `null` or whitespace-only strings; valid names are trimmed with `strip()`.
+- `validateScores(scores)`: rejects `null`, empty arrays, and scores outside 0–100; does not mutate the array.
+- `calculateAverage(scores)`: assumes data has **already been validated**, sums with `long`, and performs integer division by the number of subjects. For example, `(70 + 71) / 2 = 70`.
+- `classify(avg)`: `avg >= 80` → `GOOD`; `avg >= 50` → `PASS`; otherwise → `RETRY`.
+- `formatReport(...)`: only formats the string; does not print or mutate data.
+- `buildReport(...)`: returns the string; if data is invalid, lets `IllegalArgumentException` propagate to the caller.
 
-Mỗi phương thức nên có **tên động từ rõ nghĩa**, kiểu trả về đúng công việc, và không thay đổi trạng thái ngoài ý muốn. `validateScores` là `void` vì nhiệm vụ của nó là **xác thực hoặc báo lỗi**, không phải tính tổng.
+Each method should have a **meaningful verb name**, a return type matching its job, and no unintended state mutations. `validateScores` is `void` because its job is to **validate or throw an error**, not compute a sum.
 
-**Cảnh báo về tính toán:** sử dụng `long` để cộng các giá trị `int` hạn chế tràn tổng; với dữ liệu điểm 0–100 và độ dài mảng Java hợp lệ, `long` đủ chứa tổng. Trung bình ở đây là **phép chia nguyên có chủ đích**, không phải làm tròn số thực.
+**Calculation warning:** using `long` to sum `int` values reduces sum overflow risk; for scores 0–100 and valid Java array lengths, `long` easily holds the sum. The average here is **intentional integer division**, not floating-point rounding.
 
-## 4. Tách tính toán khỏi tác dụng phụ
+## 4. Separating Computation from Side Effects
 
-Một hàm như:
+A method like:
 
 ~~~java
 static int classify(int average) {
-    // SAI về ý nghĩa ví dụ: vừa quyết định xếp loại vừa in, khó tái sử dụng.
+    // WRONG in terms of example design: both classifies and prints, hard to reuse.
     System.out.println("classifying");
     return average >= 50 ? 1 : 0;
 }
 ~~~
 
-trộn **kết quả tính toán** với **ghi ra màn hình**. Nó khó dùng khi sau này phải ghi vào file, trả JSON hoặc chạy test không mong đợi stdout.
+mixes **computed results** with **writing to the screen**. It becomes awkward when later you need to write to a file, return JSON, or run tests that do not expect stdout.
 
-Cách tách:
+Separated approach:
 
 ~~~java
 static String classify(int average) {
@@ -75,39 +75,39 @@ static String classify(int average) {
     return "RETRY";
 }
 
-// Gọi: chỉ khi phần giao diện cần hiển thị
+// Call: only when the presentation layer needs to display
 System.out.println(classify(75)); // PASS
 ~~~
 
-`classify` không phụ thuộc `Scanner`, `System.out` hay nơi hiển thị kết quả. Cùng một đầu vào cho cùng kết quả, dễ thử các biên 49/50/79/80.
+`classify` does not depend on `Scanner`, `System.out`, or where results are displayed. The same input produces the same output, making boundary values 49/50/79/80 easy to test.
 
-**Một phương thức không cần “thuần” tuyệt đối mới có trách nhiệm rõ ràng.** Việc in thông báo là trách nhiệm hợp lệ của `showCase`; cần tránh để nó xen lẫn công thức tính.
+**A method does not need to be strictly “pure” to have a clear responsibility.** Printing messages is a valid responsibility of `showCase`; just avoid mixing it into calculation formulas.
 
-## 5. `private`, `static` và việc tái sử dụng
+## 5. `private`, `static`, and Reuse
 
-Trong ví dụ, các bước nội bộ được khai báo `private static`:
+In the example, internal steps are declared `private static`:
 
 ~~~java
 private static int calculateAverage(int[] scores) { /* ... */ }
 ~~~
 
-- `private`: giới hạn nơi có thể gọi từ ngoài lớp, tránh làm lộ chi tiết triển khai thành API.
-- `static`: công việc không cần trạng thái instance, có thể gọi từ phương thức `static` cùng lớp.
-- Kiểu tham số / kiểu trả về tạo **hợp đồng** giúp compiler kiểm tra cách gọi.
+- `private`: restricts calling from outside the class, avoiding exposing implementation details as API.
+- `static`: work needs no instance state and can be called from `static` methods in the same class.
+- Parameter / return types form a **contract** that helps the compiler verify call sites.
 
-Không phải tất cả các phương thức trong mọi chương trình đều nên `static`: khi trách nhiệm thật sự gắn với trạng thái một đối tượng, instance method có thể phù hợp hơn. Bài này dùng `static` vì ví dụ xử lý dữ liệu đầu vào và trả kết quả không cần object chuyên biệt.
+Not all methods in every program should be `static`: when a responsibility genuinely belongs to an object's state, an instance method may be more appropriate. This lesson uses `static` because the example processes input data and returns results without needing a specialized object.
 
-**Tránh trùng lặp:** nếu ba nơi đều kiểm tra `score >= 80`, hãy dùng chung một `classify`; khi đổi ngưỡng, chỉ phải sửa một nơi. Nhưng đừng tạo hàng chục phương thức một dòng chỉ để “đủ số lượng hàm”.
+**Avoid duplication:** if three places check `score >= 80`, share a single `classify`; when the threshold changes, only one place needs updating. However, do not create dozens of one-line methods just to “inflate the method count”.
 
-## 6. Chương trình Java 17+ hoàn chỉnh
+## 6. Complete Java 17+ Program
 
-Lưu file đúng tên **`ClearMethodResponsibilitiesDemo.java`**:
+Save the file with the exact name **`ClearMethodResponsibilitiesDemo.java`**:
 
 ~~~java
 public final class ClearMethodResponsibilitiesDemo {
     private ClearMethodResponsibilitiesDemo() {}
 
-    // Trách nhiệm 1: kiểm tra và chuẩn hóa tên.
+    // Responsibility 1: validate and normalize the name.
     private static String requireName(String name) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("name must not be blank");
@@ -115,7 +115,7 @@ public final class ClearMethodResponsibilitiesDemo {
         return name.strip();
     }
 
-    // Trách nhiệm 2: xác thực điểm, không tính toán.
+    // Responsibility 2: validate scores, without computing.
     private static void validateScores(int[] scores) {
         if (scores == null || scores.length == 0) {
             throw new IllegalArgumentException("scores must not be null or empty");
@@ -128,7 +128,7 @@ public final class ClearMethodResponsibilitiesDemo {
         }
     }
 
-    // Trách nhiệm 3: tính trung bình, giả định đã validate.
+    // Responsibility 3: compute average, assuming already validated.
     private static int calculateAverage(int[] scores) {
         long sum = 0;
         for (int score : scores) {
@@ -137,21 +137,21 @@ public final class ClearMethodResponsibilitiesDemo {
         return (int) (sum / scores.length);
     }
 
-    // Trách nhiệm 4: áp dụng duy nhất quy tắc xếp loại.
+    // Responsibility 4: apply only the classification rule.
     private static String classify(int average) {
         if (average >= 80) return "GOOD";
         if (average >= 50) return "PASS";
         return "RETRY";
     }
 
-    // Trách nhiệm 5: định dạng; không in ra màn hình.
+    // Responsibility 5: format output; do not print to screen.
     private static String formatReport(
             String name, int count, int average, String level) {
         return name + " | count=" + count
                 + " | avg=" + average + " | level=" + level;
     }
 
-    // Điều phối luồng nghiệp vụ, không nhân đôi công thức.
+    // Orchestrates business flow without duplicating formulas.
     public static String buildReport(String name, int[] scores) {
         String cleanName = requireName(name);
         validateScores(scores);
@@ -160,7 +160,7 @@ public final class ClearMethodResponsibilitiesDemo {
         return formatReport(cleanName, scores.length, average, level);
     }
 
-    // Ranh giới hiển thị: in kết quả và xử lý đầu vào không hợp lệ.
+    // Display boundary: print results and handle invalid inputs.
     private static void showCase(String name, int[] scores) {
         try {
             System.out.println(buildReport(name, scores));
@@ -182,7 +182,7 @@ public final class ClearMethodResponsibilitiesDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 trở lên, terminal đặt tại thư mục chứa file. Chương trình chỉ dùng Java chuẩn, không cần thư viện ngoài, Maven/Gradle hoặc preview feature.
+**Requirements:** JDK 17 or later, terminal opened in the directory containing the file. The program uses only standard Java, needing no external libraries, Maven/Gradle, or preview features.
 
 **Bash (Linux/macOS):**
 
@@ -211,23 +211,23 @@ ERROR: scores must not be null or empty
 Giang | count=1 | avg=100 | level=GOOD
 ~~~
 
-Đọc theo luồng: `showCase` gọi `buildReport`, nơi này kiểm tra tên và điểm trước khi tính. Ví dụ `Em` chứa điểm 101 nên bị từ chối **trước** bước tính trung bình; dữ liệu sai không bị âm thầm thay thế bằng giá trị 0.
+Reading the flow: `showCase` calls `buildReport`, which validates name and scores before computing. Example `Em` contains score 101 so it is rejected **before** the averaging step; invalid data is never silently replaced with 0.
 
-## 7. Kiểm thử theo trách nhiệm và trường hợp biên
+## 7. Testing by Responsibility and Edge Cases
 
-Khi đã tách phương thức, có thể kiểm tra mỗi nhóm yêu cầu riêng:
+Once methods are separated, each requirement group can be checked independently:
 
-| Nội dung cần kiểm | Input | Expected |
+| Item to test | Input | Expected |
 |---|---|---|
-| Tên | `" An "` | `"An"` |
-| Điểm hợp lệ | `{90,80,70}` | Average `80`, level `GOOD` |
-| Ngưỡng trên | Average `79` và `80` | `PASS`, `GOOD` |
-| Ngưỡng dưới | Average `49` và `50` | `RETRY`, `PASS` |
-| Điểm trung bình không nguyên | `{70,71}` | `70` theo quy tắc chia nguyên |
-| Mảng rỗng/null | `{}`, `null` | `IllegalArgumentException` |
-| Điểm ngoài biên | `{-1}`, `{101}` | `IllegalArgumentException` |
+| Name | `" An "` | `"An"` |
+| Valid scores | `{90,80,70}` | Average `80`, level `GOOD` |
+| Upper boundary | Average `79` and `80` | `PASS`, `GOOD` |
+| Lower boundary | Average `49` and `50` | `RETRY`, `PASS` |
+| Non-integer average | `{70,71}` | `70` under integer division rule |
+| Empty/null array | `{}`, `null` | `IllegalArgumentException` |
+| Out-of-range score | `{-1}`, `{101}` | `IllegalArgumentException` |
 
-Ví dụ một kiểm tra đơn giản khi đặt trong cùng lớp:
+Example of a simple check when placed in the same class:
 
 ~~~java
 if (!"GOOD".equals(classify(80))) {
@@ -238,54 +238,54 @@ if (!"PASS".equals(classify(50))) {
 }
 ~~~
 
-Đây là các ca kiểm tra logic, không phải ví dụ khác của câu lệnh `assert` (vốn tắt mặc định nếu không dùng `-ea`). Trong dự án lớn có thể sử dụng JUnit và unit test chuyên dụng; ví dụ chính cố ý không cần thư viện ngoài.
+These are logic checks, not another example of the `assert` statement (which is disabled by default unless `-ea` is used). In larger projects, JUnit and dedicated unit tests can be used; the main example intentionally uses no external libraries.
 
-## 8. Mở rộng và lỗi thiết kế cần tránh
+## 8. Extension and Design Mistakes to Avoid
 
-**Khi đổi quy tắc xếp loại** từ 80 thành 85, sửa `classify` và test liên quan, không phải sửa code xác thực hoặc in. Khi đổi giao diện xuất từ console sang web, tái sử dụng `buildReport` rồi thay tầng hiển thị.
+**When changing the classification threshold** from 80 to 85, modify `classify` and its related tests, without touching validation or printing code. When switching output from console to web, reuse `buildReport` and replace the presentation layer.
 
-| Dấu hiệu | Rủi ro | Cách cải thiện |
+| Symptom | Risk | Improvement |
 |---|---|---|
-| Một method dài, gồm validate + tính + in | Khó đọc, khó test, khó sửa | Tách theo các mục tiêu riêng |
-| `calculateAverage` tự gọi `System.out.println` | Phụ thuộc giao diện | Trả giá trị, để caller hiển thị |
-| Nhiều nơi dùng cùng ngưỡng xếp loại | Logic không nhất quán | Tập trung vào `classify` |
-| Method tên `process` không rõ kết quả | Người dùng API khó hiểu | Chọn tên như `buildReport`, `validateScores` |
-| Hàm tính sửa `scores[i]` ngoài ý muốn | Caller nhìn thấy dữ liệu bị đổi | Tránh tác dụng phụ, ghi rõ hợp đồng |
-| Tách mọi dòng lệnh thành một method | Code phân mảnh, phải nhảy liên tục | Tách theo **trách nhiệm thực sự** |
-| Bắt mọi `Exception` trong hàm tính | Có thể che bug | Xử lý lỗi ở ranh giới thích hợp |
-| Không xác định dữ liệu đầu vào hợp lệ | Dễ chia cho 0, trả sai | Kiểm tra trước khi tính |
-| Để mọi helper thành `public` | Mở rộng API không cần thiết | Giữ `private` khi chỉ dùng trong lớp |
+| One long method doing validation + math + printing | Hard to read, test, and modify | Split by separate goals |
+| `calculateAverage` calls `System.out.println` itself | Coupled to UI | Return the value, let caller display it |
+| Multiple places repeat the same classification threshold | Inconsistent logic | Centralize in `classify` |
+| Method named `process` with unclear output | Confusing for API users | Choose names like `buildReport`, `validateScores` |
+| Calculation method mutates `scores[i]` unexpectedly | Caller sees data modified | Avoid side effects, document contract clearly |
+| Splitting every single line into a method | Fragmented code, constant jumping | Split by **real responsibility** |
+| Catching every `Exception` inside a calculation method | Can hide bugs | Handle errors at an appropriate boundary |
+| Not defining valid input requirements | Easy division by 0, wrong results | Validate before computing |
+| Making every helper `public` | Unnecessarily expands API | Keep `private` when only used within the class |
 
-**Điểm cần cân nhắc:** `buildReport` hiện trả một chuỗi phục vụ một định dạng cố định. Khi ứng dụng phải hỗ trợ nhiều đầu ra phức tạp, có thể trả một đối tượng kết quả (ví dụ record Java 17), để tầng hiển thị định dạng sau. Đừng tăng độ phức tạp khi bài toán chưa cần.
+**Consideration:** `buildReport` currently returns a string serving one fixed format. When an application must support multiple complex outputs, it can return a result object (such as a Java 17 record) so the presentation layer formats it later. Do not add complexity before the problem needs it.
 
-## 9. Bài tập và đáp án
+## 9. Exercises and Answers
 
-**Bài A.** Một method vừa nhập dữ liệu từ bàn phím, tính tổng, xếp loại và in. Hãy đề xuất cách tách.
+**Exercise A.** A method reads keyboard input, computes a total, classifies it, and prints it. Propose how to split it.
 
-**Đáp án:** `readInput` đọc dữ liệu; `validateInput` kiểm tra; `calculateTotal` tính; `classify` xếp loại; `formatReport` tạo chuỗi; `main` hoặc `showResult` phối hợp và hiển thị. Có thể gộp bước nhỏ nếu thật sự cùng một mục tiêu rõ ràng.
+**Answer:** `readInput` reads data; `validateInput` validates; `calculateTotal` computes; `classify` classifies; `formatReport` builds the string; `main` or `showResult` coordinates and displays. Small steps can be merged if they truly share one clear goal.
 
-**Bài B.** Nếu thay ngưỡng `GOOD` từ 80 thành 85, nên sửa phương thức nào?
+**Exercise B.** If the `GOOD` threshold changes from 80 to 85, which method should be modified?
 
-**Đáp án:** `classify` và các test của quy tắc mới. Không cần thay `validateScores` hay `formatReport`.
+**Answer:** `classify` and tests for the new rule. No need to change `validateScores` or `formatReport`.
 
-**Bài C.** `buildReport("Mai", new int[]{70,71})` trả giá trị nào?
+**Exercise C.** What does `buildReport("Mai", new int[]{70,71})` return?
 
-**Đáp án:** `Mai | count=2 | avg=70 | level=PASS` vì chia nguyên `141 / 2 = 70`.
+**Answer:** `Mai | count=2 | avg=70 | level=PASS` because integer division gives `141 / 2 = 70`.
 
-**Bài D.** Vì sao tính toán và in kết quả nên được tách? **Đáp án:** cùng phép tính có thể dùng trong CLI, web và test mà không phát sinh stdout; tầng giao diện có thể thay độc lập.
+**Exercise D.** Why should computation and printing results be separated? **Answer:** the same calculation can be used in CLI, web, and tests without producing stdout; the presentation layer can change independently.
 
-## 10. Checklist và kết luận
+## 10. Checklist and Conclusion
 
-- [ ] Có thể mô tả trách nhiệm của mỗi phương thức bằng một câu ngắn.
-- [ ] Đặt tên method phản ánh hành động hoặc kết quả thật.
-- [ ] Biết đầu vào, đầu ra, điều kiện hợp lệ và lỗi có thể ném.
-- [ ] Tách xác thực, tính toán, quy tắc nghiệp vụ, định dạng và hiển thị.
-- [ ] Dùng một phương thức điều phối để giữ luồng xử lý dễ đọc.
-- [ ] Giữ các helper nội bộ `private` khi phù hợp.
-- [ ] Hạn chế thay đổi dữ liệu caller ngoài ý muốn.
-- [ ] Tập trung các quy tắc lặp lại vào một nơi.
-- [ ] Kiểm thử giá trị thông thường, mảng rỗng, null, chỉ số và ngưỡng.
-- [ ] Không tách vụn quá mức thành hàng chục method vô nghĩa.
-- [ ] Chạy `ClearMethodResponsibilitiesDemo.java` bằng JDK 17+ và so sánh exact stdout.
+- [ ] Can describe each method's responsibility in one short sentence.
+- [ ] Name methods to reflect real actions or results.
+- [ ] Know inputs, outputs, validity conditions, and throwable errors.
+- [ ] Separate validation, computation, business rules, formatting, and display.
+- [ ] Use an orchestrating method to keep processing flow readable.
+- [ ] Keep internal helpers `private` where appropriate.
+- [ ] Avoid mutating caller data unintentionally.
+- [ ] Centralize repeated rules in one place.
+- [ ] Test normal values, empty arrays, null, indices, and boundaries.
+- [ ] Do not over-fragment into dozens of meaningless methods.
+- [ ] Run `ClearMethodResponsibilitiesDemo.java` with JDK 17+ and compare exact stdout.
 
-**Kết luận:** Tách bài toán thành các phương thức có trách nhiệm rõ ràng giúp mỗi thay đổi được **khoanh đúng phạm vi**, dễ đọc, dễ kiểm tra và dễ tái sử dụng. Hãy để hàm kiểm tra làm nhiệm vụ kiểm tra, hàm tính trả kết quả, hàm định dạng xây dựng chuỗi và tầng hiển thị chịu trách nhiệm xuất dữ liệu.
+**Conclusion:** Decomposing problems into methods with clear responsibilities keeps every change **well-scoped**, easy to read, easy to test, and reusable. Let validation methods validate, calculation methods return results, formatting methods construct strings, and the presentation layer handle output.

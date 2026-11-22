@@ -1,65 +1,65 @@
-# Phân biệt lọc nhiều kết quả với chọn một kết quả phù hợp
+# Distinguishing Filtering Multiple Results from Looking Up One Matching Result
 
-## 1. Bài toán chọn locale trong ứng dụng Java
+## 1. The Locale Selection Problem in a Java Application
 
-Giả sử ứng dụng có bản địa hóa cho `fr-FR`, `fr-CA`, `en-US`, `en-GB` và `vi-VN`. Người dùng gửi thứ tự ưu tiên:
+Suppose an application has localizations for `fr-FR`, `fr-CA`, `en-US`, `en-GB`, and `vi-VN`. A user sends the preference order:
 
 ```text
 fr-CA, fr;q=0.9, en;q=0.6
 ```
 
-Ứng dụng cần trả lời **hai câu hỏi khác nhau**:
+The application needs to answer **two different questions**:
 
-1. **Có những locale nào đáp ứng các ngôn ngữ người dùng chấp nhận?** Kết quả là *một danh sách*, có thể dùng để hiển thị lựa chọn hoặc thu hẹp danh sách nội dung.
-2. **Nên sử dụng đúng một locale nào cho phiên làm việc hoặc tài nguyên cần trả về?** Kết quả là *một ứng viên tốt nhất theo cơ chế lookup*, hoặc không có ứng viên.
+1. **Which locales satisfy the languages the user accepts?** The result is *a list*, which can be used to display options or narrow down a list of content.
+2. **Which single locale should be used for the session or the resource to return?** The result is *one best candidate under lookup mechanics*, or no candidate.
 
-Java hỗ trợ hai cơ chế trong RFC 4647 — **filtering** và **lookup** — thông qua `java.util.Locale`. Điểm dễ nhầm là tên gọi “lọc” và “chọn” có vẻ giống nhau, nhưng **điều kiện khớp, số lượng kết quả, cách tìm fallback và cách ứng dụng xử lý kết quả** không giống nhau.
+Java supports two mechanisms in RFC 4647 — **filtering** and **lookup** — via `java.util.Locale`. The easy-to-miss trap is that “filter” and “lookup” sound similar, yet **their matching conditions, result counts, fallback behavior, and how the application processes the results** are not the same.
 
-## 2. Hai phương thức chính và kiểu dữ liệu
+## 2. Two Core Methods and Data Types
 
-| Tiêu chí | Filtering — `Locale.filter(...)` | Lookup — `Locale.lookup(...)` |
+| Criterion | Filtering — `Locale.filter(...)` | Lookup — `Locale.lookup(...)` |
 | --- | --- | --- |
-| Mục tiêu | Tìm **tất cả** locale phù hợp với danh sách ưu tiên | Tìm **một** locale phù hợp nhất theo thuật toán lookup |
-| Đầu vào chính | `List<Locale.LanguageRange>` và `Collection<Locale>` | Cùng hai kiểu đầu vào |
-| Kiểu trả về | `List<Locale>` | `Locale` |
-| Khi không có kết quả | Danh sách rỗng | `null` |
-| Khớp theo range | Cho phép ngôn ngữ tổng quát `fr` khớp các tag cụ thể hơn như `fr-FR`, `fr-CA` | Thử range cụ thể theo thứ tự ưu tiên và cắt dần subtag để tìm một **tag khớp theo quy tắc lookup** |
-| Dùng khi | Danh sách các lựa chọn, bộ lọc nhiều bản dịch/ngôn ngữ | Quyết định một locale để phục vụ yêu cầu |
-| Biến thể với chuỗi | `Locale.filterTags(...)` trả `List<String>` | `Locale.lookupTag(...)` trả `String` hoặc `null` |
+| Goal | Find **all** locales matching the priority list | Find **one** best-matching locale per the lookup algorithm |
+| Primary inputs | `List<Locale.LanguageRange>` and `Collection<Locale>` | Same two input types |
+| Return type | `List<Locale>` | `Locale` |
+| When no results | Empty list | `null` |
+| Range matching | Allows a general language `fr` to match more specific tags like `fr-FR`, `fr-CA` | Tries specific ranges in priority order and progressively trims subtags to find a **tag matching per lookup rules** |
+| Use when | Lists of options, filtering multiple translations/languages | Deciding one locale to serve a request |
+| String variant | `Locale.filterTags(...)` returns `List<String>` | `Locale.lookupTag(...)` returns `String` or `null` |
 
-**Không được hiểu `lookup` đơn giản là `filter(...).get(0)`.** RFC 4647 định nghĩa hai cơ chế khớp khác nhau. Vì thế có trường hợp filtering trả một hoặc nhiều locale nhưng lookup lại trả `null` — ví dụ được chứng minh ở phần 5.
+**Never think of `lookup` simply as `filter(...).get(0)`.** RFC 4647 defines two different matching mechanisms. Therefore, there are cases where filtering returns one or more locales while lookup returns `null` — an example is demonstrated in section 5.
 
-Việc `filter` trả nhiều lựa chọn không có nghĩa tất cả bản dịch hoặc chức năng của ứng dụng đều thực sự đã sẵn sàng. Tập ứng viên phải là các locale **mà sản phẩm hỗ trợ**, không tùy tiện thay bằng toàn bộ `Locale.getAvailableLocales()` của JDK.
+The fact that `filter` returns multiple choices does not mean all translations or application features are actually ready. The candidate set must be the locales **supported by the product**, never arbitrarily replaced with the entire `Locale.getAvailableLocales()` from the JDK.
 
-## 3. Đầu vào: language range, danh sách ưu tiên và trọng số
+## 3. Inputs: Language Range, Priority List, and Weights
 
-`Locale.LanguageRange` biểu diễn **phạm vi ngôn ngữ cần khớp**. `Locale.LanguageRange.parse(...)` đọc danh sách ưu tiên ở dạng thường thấy trong giá trị header HTTP `Accept-Language`:
+`Locale.LanguageRange` represents **a language range to match**. `Locale.LanguageRange.parse(...)` reads a priority list in the form commonly seen in the HTTP `Accept-Language` header value:
 
 ```java
 List<Locale.LanguageRange> priority =
         Locale.LanguageRange.parse("fr-CA, fr;q=0.9, en;q=0.6");
 ```
 
-Trong đó:
+Where:
 
-- `fr-CA` là yêu cầu tiếng Pháp tại Canada, mặc định có trọng số `q=1.0`.
-- `fr;q=0.9` là tiếng Pháp nói chung, mức ưu tiên thấp hơn.
-- `en;q=0.6` là tiếng Anh, mức ưu tiên thấp hơn nữa.
-- Trọng số theo cú pháp `q` trong `[0,1]`; giá trị cao hơn được xử lý trước. Nếu cần tự tạo phạm vi: `new Locale.LanguageRange("fr", 0.9)`.
+- `fr-CA` is a request for French in Canada, defaulting to weight `q=1.0`.
+- `fr;q=0.9` is French in general, with lower priority.
+- `en;q=0.6` is English, with even lower priority.
+- Weights follow `q` syntax in `[0,1]`; higher values are processed first. If you need to construct a range manually: `new Locale.LanguageRange("fr", 0.9)`.
 
-Trong ví dụ trên, thứ tự thử theo độ ưu tiên là `fr-CA` → `fr` → `en`. Hai phương thức đều nhận **danh sách range**, nhưng diễn giải cách khớp khác nhau.
+In the example above, the evaluation order by priority is `fr-CA` → `fr` → `en`. Both methods take a **list of ranges**, but interpret matching differently.
 
-**Phân biệt language range với language tag:**
+**Distinguishing a language range from a language tag:**
 
-- `fr`, `fr-CA`, `en` trong danh sách ưu tiên là **các tiêu chí truy vấn**.
-- `fr-FR`, `fr-CA`, `en-GB` trong tập hỗ trợ là **các ứng viên thực tế**.
-- `fr` theo filtering có thể khớp nhiều tag bắt đầu bằng `fr-`; theo lookup, không nên giả định tag `fr` sẽ tự động chọn một biến thể bất kỳ như `fr-FR`.
+- `fr`, `fr-CA`, `en` in the priority list are **query criteria**.
+- `fr-FR`, `fr-CA`, `en-GB` in the supported set are **actual candidates**.
+- `fr` under filtering can match multiple tags starting with `fr-`; under lookup, do not assume the tag `fr` will automatically select an arbitrary variant like `fr-FR`.
 
-Một **basic language range** có thể là `en`, `en-US` hoặc `*`. Những mẫu chứa wildcard ở giữa như `zh-*-TW` là **extended language range**; lựa chọn chế độ lọc được bàn ở phần 7.
+A **basic language range** can be `en`, `en-US`, or `*`. Patterns containing a wildcard in the middle such as `zh-*-TW` are **extended language ranges**; filtering mode choices are discussed in section 7.
 
-## 4. Ví dụ Java 17+: so sánh filtering với lookup trên cùng dữ liệu
+## 4. Java 17+ Example: Comparing Filtering and Lookup on the Same Data
 
-Tạo tệp **`LocaleSelectionDemo.java`**:
+Create the file **`LocaleSelectionDemo.java`**:
 
 ```java
 import java.util.List;
@@ -94,59 +94,59 @@ public class LocaleSelectionDemo {
 }
 ```
 
-Chạy bằng JDK 17 trở lên trong thư mục chứa tệp:
+Run with JDK 17 or later in the directory containing the file:
 
 ```bash
 javac -encoding UTF-8 LocaleSelectionDemo.java
 java -cp . LocaleSelectionDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 filter: fr-CA, fr-FR, en-GB, en-US
 lookup: fr-CA
 ```
 
-**Vì sao filtering trả bốn kết quả?**
+**Why does filtering return four results?**
 
-1. Range `fr-CA` khớp `fr-CA`.
-2. Range `fr` khớp `fr-FR` và `fr-CA`; locale `fr-CA` đã có nên không bị lặp.
-3. Range `en` khớp `en-GB` và `en-US`.
-4. `vi-VN` không khớp range nào nên bị loại. Kết quả ưu tiên các nhóm theo trọng số/range và giữ thứ tự ứng viên thích hợp trong nhóm; **không phải sắp xếp theo alphabet**.
+1. Range `fr-CA` matches `fr-CA`.
+2. Range `fr` matches `fr-FR` and `fr-CA`; locale `fr-CA` is already included, so it is not duplicated.
+3. Range `en` matches `en-GB` and `en-US`.
+4. `vi-VN` matches no range and is excluded. Results order groups by weight/range and preserve the order of matching candidates within each group; **they are not sorted alphabetically**.
 
-`Locale.filter` trả danh sách các locale khớp và bảo đảm locale khớp không xuất hiện trùng. Nó **không tự quyết định** ứng dụng phải sử dụng locale nào.
+`Locale.filter` returns the list of matching locales and ensures matching locales do not appear twice. It **does not decide on its own** which locale the application must use.
 
-**Vì sao lookup chỉ trả `fr-CA`?**
+**Why does lookup return only `fr-CA`?**
 
-Range `fr-CA` có độ ưu tiên cao nhất và tồn tại ứng viên `fr-CA` khớp chính xác. `Locale.lookup` dừng sau khi tìm được kết quả thích hợp đầu tiên theo thuật toán, không cần liệt kê các lựa chọn `fr-FR`, `en-GB`, `en-US`.
+Range `fr-CA` has the highest priority and an exact matching candidate `fr-CA` exists. `Locale.lookup` stops after finding the first suitable result per the algorithm, without listing `fr-FR`, `en-GB`, `en-US`.
 
-### Cách sử dụng kết quả
+### How to Use the Results
 
-Đối với trang “Ngôn ngữ đang có”, hãy dùng danh sách filtering để hiển thị mọi lựa chọn tương thích:
+For an “Available Languages” page, use the filtering list to show all compatible choices:
 
 ```java
 List<Locale> choices = Locale.filter(priorities, supported);
 ```
 
-Đối với quyết định giao diện của một request, hãy chọn một locale và xử lý trường hợp không khớp:
+For deciding the UI language of a request, pick one locale and handle the no-match case:
 
 ```java
 Locale selected = Locale.lookup(priorities, supported);
 if (selected == null) {
-    selected = Locale.forLanguageTag("en-US"); // mặc định của sản phẩm
+    selected = Locale.forLanguageTag("en-US"); // product default
 }
 ```
 
-Hai đoạn trên **chỉ là trích đoạn** dùng các biến `priorities` và `supported` đã tạo trong chương trình hoàn chỉnh; không phải hai tệp Java độc lập.
+The two snippets above are **only excerpts** using the `priorities` and `supported` variables already created in the complete program; they are not two standalone Java files.
 
-## 5. Phản ví dụ quan trọng: filter có kết quả nhưng lookup không có
+## 5. Important Counterexample: Filter Has Results While Lookup Has None
 
-Một lỗi phổ biến là nghĩ `Locale.lookup` luôn chọn phiên bản vùng nào đó nếu người dùng chỉ yêu cầu ngôn ngữ tổng quát.
+A common mistake is thinking `Locale.lookup` will always pick some regional variant if the user only requests a general language.
 
-Giả sử ứng dụng chỉ có `fr-FR`, `en-GB`, `en-US`, và người dùng yêu cầu riêng `fr`. Với **basic filtering**, `fr` khớp `fr-FR` vì tag ứng viên là dạng cụ thể hơn cùng ngôn ngữ. Nhưng **lookup** cần tìm tag phù hợp theo thuật toán tìm kiếm chính xác/cắt subtag của *range*; `fr` không tự mở rộng thành `fr-FR`, nên nếu không có ứng viên tag `fr`, lookup có thể trả `null`.
+Suppose the application only has `fr-FR`, `en-GB`, and `en-US`, and the user specifically requests `fr`. With **basic filtering**, `fr` matches `fr-FR` because the candidate tag is a more specific form of the same language. However, **lookup** searches for a matching tag via exact matching / trimming subtags of the *range*; `fr` does not expand into `fr-FR`, so if there is no candidate tag `fr`, lookup can return `null`.
 
-Tạo **`FilteringVsLookupDemo.java`**:
+Create **`FilteringVsLookupDemo.java`**:
 
 ```java
 import java.util.List;
@@ -179,14 +179,14 @@ public class FilteringVsLookupDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 FilteringVsLookupDemo.java
 java -cp . FilteringVsLookupDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 filter(fr): [fr-FR]
@@ -194,21 +194,21 @@ lookup(fr): null
 lookup(fr-CA, en-US): en-US
 ```
 
-**Phân tích dòng cuối:** `fr-CA` không có trong tập hỗ trợ. Lookup có thể rút range xuống `fr`, nhưng cũng không có tag `fr` để khớp theo quy tắc lookup. Sau đó nó xét range kế tiếp `en-US` và tìm được ứng viên `en-US`. Thuật toán không tự chuyển `fr-CA` sang locale `fr-FR` chỉ vì cùng tiếng Pháp.
+**Analysis of the last line:** `fr-CA` is not in the supported set. Lookup can shorten the range to `fr`, yet there is no `fr` tag to match under lookup rules either. It then examines the next range `en-US` and finds candidate `en-US`. The algorithm does not automatically switch `fr-CA` to locale `fr-FR` just because both are French.
 
-Vì vậy:
+Therefore:
 
-- **Filtering:** `fr` có thể liệt kê mọi bản địa hóa tiếng Pháp như `fr-FR`, `fr-CA`.
-- **Lookup:** `fr` không mặc nhiên chọn một vùng cụ thể chưa được yêu cầu. Muốn chọn `fr-FR` làm bản địa hóa mặc định cho tiếng Pháp, **ứng dụng phải định nghĩa chính sách lựa chọn đó** (hoặc đưa vào danh sách ưu tiên/ứng viên một tag tương ứng).
-- Nếu cần một locale ngay cả khi lookup trả `null`, hãy chọn một **fallback có chủ đích** nằm trong tập hỗ trợ đã được triển khai.
+- **Filtering:** `fr` can list all French localizations such as `fr-FR`, `fr-CA`.
+- **Lookup:** `fr` does not implicitly pick a specific region that was not requested. To pick `fr-FR` as the default localization for French, **the application must define that selection policy** (or include a corresponding tag in the priority list/candidates).
+- If you need a locale even when lookup returns `null`, pick an **intentional fallback** from the deployed supported set.
 
-Đây là khác biệt về **cơ chế khớp**, không phải lỗi của Java.
+This is a difference in **matching mechanism**, not a Java bug.
 
-## 6. Lookup không phải phương thức tự động tạo ra locale hợp lệ của sản phẩm
+## 6. Lookup Does Not Automatically Produce a Valid Product Locale
 
-`Locale.lookup(...)` có thể trả `null`. Nếu ứng dụng gọi ngay `selected.toLanguageTag()`, sẽ có `NullPointerException`. Cần xử lý kết quả rỗng một cách rõ ràng.
+`Locale.lookup(...)` can return `null`. If the application immediately calls `selected.toLanguageTag()`, a `NullPointerException` will occur. Empty results must be handled explicitly.
 
-Một cách triển khai chọn locale cho một request:
+One way to implement locale selection for a request:
 
 ```java
 import java.util.List;
@@ -242,14 +242,14 @@ public class ChooseLocaleDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 ChooseLocaleDemo.java
 java -cp . ChooseLocaleDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 vi-VN
@@ -257,35 +257,35 @@ en-US
 en-US
 ```
 
-**Phạm vi ví dụ:** đây là cách thương lượng đơn giản cho hai locale **cụ thể**. `Locale.lookup` không tự dịch thông điệp và không bảo đảm rằng `ResourceBundle` tương ứng tồn tại. Danh sách `SUPPORTED` phải phản ánh bản dịch và các tính năng mà ứng dụng thực sự cam kết. Trong ứng dụng web, ngoài xử lý `Accept-Language`, thường cần ưu tiên lựa chọn ngôn ngữ đã lưu của người dùng theo chính sách sản phẩm, giới hạn kích thước header và xử lý đầu vào không hợp lệ.
+**Scope of the example:** this is simple negotiation for two **specific** locales. `Locale.lookup` does not translate messages itself and does not guarantee that a corresponding `ResourceBundle` exists. The `SUPPORTED` list must reflect the translations and features the application genuinely commits to. In a web application, beyond handling `Accept-Language`, you usually also need to prioritize the user's saved language choice per product policy, limit header size, and handle invalid input.
 
-Đối với yêu cầu “tiếng Việt” dưới dạng `vi`, nếu tập hỗ trợ chỉ có `vi-VN`, lookup không nhất thiết chọn `vi-VN`. Hãy cân nhắc mapping `vi → vi-VN`, bổ sung locale trung tính `vi` hoặc dùng một quy tắc lựa chọn được định nghĩa rõ. **Không được ngầm giả định** lookup luôn mở rộng language-only tag thành locale có region.
+For a “Vietnamese” request in the form `vi`, if the supported set only has `vi-VN`, lookup will not necessarily pick `vi-VN`. Consider mapping `vi → vi-VN`, adding a neutral `vi` locale, or using a clearly defined selection rule. **Never implicitly assume** lookup always expands a language-only tag into a region-qualified locale.
 
-## 7. Filtering mode, wildcard và các biến thể của API
+## 7. Filtering Modes, Wildcards, and API Variants
 
-### 7.1. Basic filtering và extended filtering
+### 7.1. Basic Filtering and Extended Filtering
 
-Với **basic filtering**, range `en` khớp `en-US` và `en-GB`; range `en-US` khớp `en-US` và các tag có subtag tiếp theo thích hợp, nhưng không khớp `en-GB`. Phép so khớp không phân biệt chữ hoa/thường và phải tôn trọng **ranh giới subtag**, không đơn giản dùng `String.startsWith` cho chuỗi tùy ý.
+With **basic filtering**, range `en` matches `en-US` and `en-GB`; range `en-US` matches `en-US` and tags with appropriate trailing subtags, but does not match `en-GB`. Matching is case-insensitive and must respect **subtag boundaries**, rather than simply using `String.startsWith` on arbitrary strings.
 
-Với **extended filtering**, range có thể chứa wildcard ở một vị trí giữa các subtag, ví dụ `zh-*-TW`. Java cho chỉ định `Locale.FilteringMode`:
+With **extended filtering**, a range can contain a wildcard in a position between subtags, such as `zh-*-TW`. Java lets you specify `Locale.FilteringMode`:
 
-- `AUTOSELECT_FILTERING`: mặc định của overload không có `mode`; tự chọn cách lọc phù hợp với loại range được cung cấp.
-- `EXTENDED_FILTERING`: dùng quy tắc extended filtering.
-- `IGNORE_EXTENDED_RANGES`: bỏ qua extended ranges để xử lý các basic ranges còn lại.
-- `MAP_EXTENDED_RANGES`: chuyển extended ranges sang dạng cơ bản theo quy tắc ánh xạ.
-- `REJECT_EXTENDED_RANGES`: báo lỗi khi danh sách chứa extended range.
+- `AUTOSELECT_FILTERING`: default for the overload without `mode`; automatically chooses the filtering method appropriate to the supplied range types.
+- `EXTENDED_FILTERING`: uses extended filtering rules.
+- `IGNORE_EXTENDED_RANGES`: ignores extended ranges to process the remaining basic ranges.
+- `MAP_EXTENDED_RANGES`: converts extended ranges to basic form according to mapping rules.
+- `REJECT_EXTENDED_RANGES`: throws an error when the list contains an extended range.
 
-Các chế độ này tác động đến **lọc**, không phải tham số của `Locale.lookup`. Không nên thay đổi mode để cố làm lookup có hành vi như filtering.
+These modes affect **filtering**, and are not parameters of `Locale.lookup`. Do not change modes trying to make lookup behave like filtering.
 
-### 7.2. Dấu sao `*`
+### 7.2. The Asterisk `*`
 
-Range `*` trong filtering có thể khớp các ứng viên bất kể ngôn ngữ khi quy tắc lọc cho phép. **Lookup bỏ qua range chỉ gồm `*`**, nên `Locale.lookup(Locale.LanguageRange.parse("*"), supported)` không tự động chọn locale đầu tiên; nếu không có range khác khớp, kết quả là `null`.
+Range `*` in filtering can match candidates regardless of language when filtering rules allow. **Lookup ignores a range consisting solely of `*`**, so `Locale.lookup(Locale.LanguageRange.parse("*"), supported)` does not automatically select the first locale; if no other range matches, the result is `null`.
 
-Điều này quan trọng khi header `Accept-Language` chỉ nêu rằng người dùng chấp nhận ngôn ngữ bất kỳ: ứng dụng cần **chính sách mặc định**, chứ không thể trông chờ lookup luôn trả giá trị.
+This matters when the `Accept-Language` header merely states that the user accepts any language: the application needs a **default policy**, and cannot expect lookup to always return a value.
 
-### 7.3. Các overload làm việc trên language tag dạng chuỗi
+### 7.3. Overloads Working on String Language Tags
 
-Nếu tập ứng viên được lưu dưới dạng chuỗi BCP 47:
+If the candidate set is stored as BCP 47 strings:
 
 ```java
 List<String> tags = List.of("fr-CA", "fr-FR", "en-US");
@@ -296,49 +296,49 @@ List<String> all = Locale.filterTags(ranges, tags);
 String one = Locale.lookupTag(ranges, tags);
 ```
 
-Đây là **trích đoạn** minh họa dùng `List` và `Locale`; cần import `java.util.List` và `java.util.Locale` trong một lớp Java khi sử dụng. `filterTags` trả nhiều tag; `lookupTag` trả một tag hoặc `null`. Chúng vẫn tuân theo hai cơ chế RFC 4647 khác nhau. Dùng API dạng `Locale` khi các phần tiếp theo của chương trình cần `Locale`; dạng tag hữu ích khi dữ liệu đầu vào/đầu ra là chuỗi.
+This is an illustrative **snippet** using `List` and `Locale`; `import java.util.List` and `import java.util.Locale` are required in a Java class when using it. `filterTags` returns multiple tags; `lookupTag` returns one tag or `null`. They still follow two different RFC 4647 mechanisms. Use the `Locale` APIs when downstream parts of the program need `Locale`; the tag forms are useful when input/output data is strings.
 
-## 8. Chọn cách dùng theo yêu cầu nghiệp vụ
+## 8. Choosing the Approach Based on Business Requirements
 
-| Tình huống | Hướng xử lý phù hợp | Lý do |
+| Scenario | Appropriate Approach | Reason |
 | --- | --- | --- |
-| Liệt kê những ngôn ngữ giao diện mà người dùng có thể chọn | `Locale.filter` trên danh sách đã hỗ trợ | Cần **nhiều** ứng viên |
-| Lọc danh sách tài liệu có bản dịch theo các ưu tiên | `Locale.filter` hoặc `filterTags` | Có thể trả nhiều tài liệu/ngôn ngữ |
-| Chọn **một** ngôn ngữ để trả trang web | `Locale.lookup` rồi áp chính sách fallback | Cần một kết quả |
-| Chọn **một** bản dịch email | `Locale.lookup`/`lookupTag` và kiểm tra có template | Không được giả định có template sau khi khớp |
-| Người dùng yêu cầu `fr` nhưng chỉ có `fr-FR`, `fr-CA` | Cần quy tắc sản phẩm quyết định vùng mặc định hoặc hỏi người dùng | Filtering có nhiều ứng viên; lookup có thể không có kết quả |
-| Không có range nào phù hợp | Fallback được định nghĩa rõ trong cấu hình | `filter` trả `[]`, `lookup` trả `null` |
+| Listing UI languages the user can choose from | `Locale.filter` on the supported list | Need **multiple** candidates |
+| Filtering a list of documents with translations by preferences | `Locale.filter` or `filterTags` | May return multiple documents/languages |
+| Choosing **one** language to return a web page | `Locale.lookup` then apply fallback policy | Need one result |
+| Choosing **one** email translation | `Locale.lookup`/`lookupTag` and verify template existence | Cannot assume a template exists after matching |
+| User requests `fr` but only `fr-FR`, `fr-CA` exist | Need a product rule deciding the default region or asking the user | Filtering gives multiple candidates; lookup may return no result |
+| No range matches | Fallback explicitly defined in configuration | `filter` returns `[]`, `lookup` returns `null` |
 
-**Quy trình gợi ý cho ứng dụng thực tế:**
+**Recommended workflow for real applications:**
 
-1. Duy trì tập `supportedLocales` chỉ gồm những locale đã triển khai và kiểm thử, với thứ tự ổn định. Đừng dùng toàn bộ locale JVM làm danh sách “ứng dụng hỗ trợ”.
-2. Xác định thứ tự nguồn ưu tiên: lựa chọn rõ ràng của người dùng, cấu hình tài khoản, tham số được cho phép, `Accept-Language`, mặc định ứng dụng.
-3. Phân tích thành danh sách `LanguageRange` khi đầu vào là các range có trọng số; kiểm tra độ dài/định dạng đầu vào nếu nhận từ HTTP.
-4. Dùng **filter** nếu nghiệp vụ cần trả nhiều lựa chọn; dùng **lookup** nếu cần quyết định một lựa chọn.
-5. Nếu lookup trả `null`, dùng quy tắc fallback có chủ đích; nếu filter trả rỗng, hiển thị danh sách hoặc thông báo phù hợp.
-6. Khi đã chọn locale, tiếp tục kiểm tra **tài nguyên thật** (`ResourceBundle`, bản dịch, mẫu hiển thị) và định dạng số/ngày phù hợp; khớp tag không thay thế bước bản địa hóa.
-7. Kiểm thử các trường hợp: khớp chính xác, nhiều vùng cùng ngôn ngữ, thứ tự trọng số, không khớp, chỉ có `*`, range không hợp lệ và lựa chọn đã lưu của người dùng.
+1. Maintain a `supportedLocales` set containing only deployed and tested locales, with a stable order. Never use all JVM locales as the “application-supported” list.
+2. Define priority source order: the user's explicit choice, account settings, permitted parameters, `Accept-Language`, application default.
+3. Parse into a `LanguageRange` list when the input consists of weighted ranges; validate input length/format if received from HTTP.
+4. Use **filter** if business logic needs multiple choices returned; use **lookup** if a single choice must be decided.
+5. If lookup returns `null`, apply an intentional fallback rule; if filter returns empty, display an appropriate list or message.
+6. Once a locale is chosen, continue verifying **actual resources** (`ResourceBundle`, translations, display templates) and appropriate number/date formatting; tag matching does not replace the localization step.
+7. Test cases: exact match, multiple regions of the same language, weight ordering, no match, `*` only, invalid ranges, and saved user preferences.
 
-## 9. Những lỗi thường gặp
+## 9. Common Pitfalls
 
-**Lỗi 1 — Lấy phần tử đầu của kết quả filtering và gọi đó là lookup.** Hai cơ chế có định nghĩa khớp khác nhau. Với range `fr` và duy nhất ứng viên `fr-FR`, filtering cho ra `[fr-FR]` trong khi lookup có thể là `null`. Không được coi hai cách là tương đương.
+**Pitfall 1 — Taking the first element of a filtering result and calling it lookup.** The two mechanisms have different matching definitions. With range `fr` and sole candidate `fr-FR`, filtering yields `[fr-FR]` whereas lookup can return `null`. Never treat the two as equivalent.
 
-**Lỗi 2 — Dùng một `Locale` để thay cho cả danh sách ưu tiên.** Người dùng có thể chấp nhận `fr-CA`, sau đó `fr`, rồi `en` với trọng số. Nếu chỉ lấy chuỗi đầu tiên thì ứng dụng đánh mất các lựa chọn dự phòng do người dùng công bố.
+**Pitfall 2 — Using a single `Locale` to stand in for an entire priority list.** A user might accept `fr-CA`, then `fr`, then `en` with weights. If you only grab the first string, the application discards the fallback options the user declared.
 
-**Lỗi 3 — Xử lý language range bằng so sánh chuỗi tùy tiện.** `en` và `en-US` có quan hệ subtag, nhưng `startsWith("en")` không tự thực hiện chuẩn RFC 4647, kiểm soát vùng, wildcard hoặc độ ưu tiên. Hãy dùng API matching.
+**Pitfall 3 — Handling language ranges with ad-hoc string comparisons.** `en` and `en-US` have a subtag relationship, yet `startsWith("en")` does not implement the RFC 4647 standard, region control, wildcards, or priorities. Use the matching APIs.
 
-**Lỗi 4 — Tưởng `Locale.lookup` luôn tìm được một kết quả.** Kết quả hợp lệ có thể là `null`; mọi chỗ dùng phải có nhánh xử lý trường hợp này.
+**Pitfall 4 — Assuming `Locale.lookup` always finds a result.** A valid result can be `null`; every call site must have a branch handling this case.
 
-**Lỗi 5 — Dùng tập ứng viên gồm mọi locale JDK biết.** Điều đó chỉ mô tả khả năng locale của runtime, không chứng minh các tệp ngôn ngữ và nội dung của sản phẩm đã có.
+**Pitfall 5 — Using a candidate set of all locales known to the JDK.** That only describes the runtime's locale capabilities, and does not prove the product's language files and content exist.
 
-**Lỗi 6 — Nhầm lựa chọn locale với tải tài nguyên.** `Locale.filter` và `Locale.lookup` chỉ giải quyết **matching**; `ResourceBundle` và hệ thống i18n còn có fallback riêng, cần được kiểm thử.
+**Pitfall 6 — Confusing locale selection with resource loading.** `Locale.filter` and `Locale.lookup` only solve **matching**; `ResourceBundle` and the i18n system have their own fallback rules that must be tested.
 
-**Lỗi 7 — Không kiểm soát trường hợp ưu tiên chỉ có `*`.** Filtering và lookup xử lý wildcard khác nhau; không được tự tin rằng lookup sẽ chọn locale bất kỳ.
+**Pitfall 7 — Not handling preferences containing only `*`.** Filtering and lookup handle wildcards differently; never rely on lookup picking an arbitrary locale.
 
-## 10. Ghi nhớ
+## 10. Takeaways
 
-- `Locale.filter` trả về **danh sách tất cả locale phù hợp**, thích hợp cho bộ lọc hoặc danh sách lựa chọn.
-- `Locale.lookup` trả về **một locale phù hợp nhất** theo cơ chế lookup, hoặc **`null`**. Nó không tương đương lấy phần tử đầu tiên của filtering.
-- `Locale.LanguageRange.parse` giúp biểu diễn danh sách ưu tiên và trọng số (thường từ `Accept-Language`).
-- **Range ngôn ngữ tổng quát `fr` có thể lọc được `fr-FR` nhưng lookup vẫn không chọn `fr-FR` nếu thiếu tag phù hợp theo lookup.** Muốn mặc định một vùng, sản phẩm cần chính sách rõ ràng.
-- Hãy truyền **chỉ các locale ứng dụng thật sự hỗ trợ**, xử lý kết quả rỗng và kiểm thử nội dung sau khi chọn. Matching là bước chọn locale; chất lượng bản địa hóa là trách nhiệm tiếp theo.
+- `Locale.filter` returns **a list of all matching locales**, suitable for filters or option lists.
+- `Locale.lookup` returns **one best-matching locale** per lookup mechanics, or **`null`**. It is not equivalent to taking the first element of filtering.
+- `Locale.LanguageRange.parse` helps represent priority lists and weights (typically from `Accept-Language`).
+- **A general language range `fr` can filter `fr-FR`, yet lookup still will not pick `fr-FR` if a lookup-matching tag is missing.** To default to a region, the product needs an explicit policy.
+- Pass **only the locales the application genuinely supports**, handle empty results, and test content after selection. Matching is the locale selection step; localization quality is the next responsibility.

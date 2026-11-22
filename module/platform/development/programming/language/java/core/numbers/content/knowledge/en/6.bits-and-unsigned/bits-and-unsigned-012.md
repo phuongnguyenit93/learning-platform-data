@@ -1,21 +1,21 @@
-# Phân biệt giá trị số với thứ tự byte khi trao đổi dữ liệu trong Java
+# Distinguishing Numeric Value from Byte Order When Exchanging Data in Java
 
-Một số nguyên có **giá trị** riêng, ví dụ `0x1234_5678` (thập phân `305_419_896`). Nhưng khi gửi số đó qua mạng hoặc lưu thành tệp nhị phân, các bên phải thống nhất **cách biến giá trị thành các byte** và **thứ tự sắp xếp các byte**. Nếu bên ghi dùng big-endian nhưng bên đọc tự coi dữ liệu là little-endian, cùng bốn byte có thể được giải mã thành một giá trị hoàn toàn khác.
+An integer has its own **value**, for example `0x1234_5678` (decimal `305_419_896`). Yet when sending that number over a network or saving it to a binary file, both sides must agree on **how to turn the value into bytes** and **the order in which those bytes are arranged**. If the writer uses big-endian while the reader treats the data as little-endian, the exact same four bytes can be decoded into a completely different value.
 
-Bài học thuộc chủ đề **Bit và số không dấu**: cần tách bạch ba khái niệm **giá trị số**, **mẫu bit có độ rộng xác định**, và **thứ tự byte (endianness)**. Sau đó mới xét cách Java diễn giải mẫu bit đó như `int` có dấu, `long` hoặc một giá trị không dấu.
+This lesson belongs to the topic **Bits and Unsigned Numbers**: we must separate three concepts—**numeric value**, **fixed-width bit pattern**, and **byte order (endianness)**. Only then should we consider how Java interprets that bit pattern as a signed `int`, `long`, or an unsigned value.
 
-## 1. Một giá trị số, nhiều cách biểu diễn
+## 1. One Numeric Value, Multiple Representations
 
-Trong mã nguồn, cùng một giá trị có thể được viết bằng nhiều cơ số:
+In source code, the same value can be written in multiple radices:
 
 ```java
 int decimal = 305_419_896;
 int hexadecimal = 0x1234_5678;
 int binary = 0b0001_0010_0011_0100_0101_0110_0111_1000;
-// Ba biến có cùng giá trị int.
+// All three variables hold the same int value.
 ```
 
-Đây là ba khai báo minh họa có thể đặt trong phương thức Java. Dấu `0x` là **cách viết literal** trong mã nguồn, không phải một byte được tự động gửi ra mạng; dấu `_` chỉ giúp đọc dễ hơn. Con số `0x1234_5678` có mẫu bit 32 bit chia thành bốn nhóm tám bit:
+These are three illustrative declarations that can be placed inside a Java method. The `0x` prefix is a **literal syntax** in source code, not a byte automatically sent over the wire; `_` only improves readability. The number `0x1234_5678` has a 32-bit pattern split into four eight-bit groups:
 
 ```text
 Hex:    12       34       56       78
@@ -23,30 +23,30 @@ Bit:  00010010 00110100 01010110 01111000
 Byte:     1        2        3        4
 ```
 
-Vì một chữ số hex tương ứng 4 bit, **hai chữ số hex tương ứng một byte**. Đây mới là những nhóm byte logic của mẫu số; khi trao đổi dữ liệu, ta còn phải quyết định **byte nào xuất hiện trước**.
+Since one hex digit corresponds to 4 bits, **two hex digits correspond to one byte**. Those are only the logical byte groups of the number; when exchanging data, we must also decide **which byte appears first**.
 
-Không nhầm:
+Do not confuse:
 
-- **Cơ số**: cách con người viết/đọc một giá trị bằng thập phân, nhị phân, hex.
-- **Độ rộng**: số bit dùng biểu diễn, chẳng hạn `int` 32 bit, `long` 64 bit.
-- **Có dấu/không dấu**: cách diễn giải mẫu bit thành giá trị số, nhất là khi bit cao nhất bật.
-- **Thứ tự byte**: trật tự đặt các byte của **một giá trị nhiều byte** vào chuỗi byte trong tệp, gói tin hay bộ đệm.
+- **Radix**: how humans write/read a value in decimal, binary, or hex.
+- **Bit width**: how many bits represent it, such as 32-bit `int` or 64-bit `long`.
+- **Signed/unsigned**: how the bit pattern is interpreted as a numeric value, especially when the highest bit is set.
+- **Byte order**: the sequence in which the bytes of **a multi-byte value** are placed into a byte stream in a file, packet, or buffer.
 
-## 2. Big-endian và little-endian
+## 2. Big-Endian and Little-Endian
 
-Với giá trị 32 bit `0x12345678`:
+For the 32-bit value `0x12345678`:
 
-| Thứ tự | Byte tại offset 0 | Offset 1 | Offset 2 | Offset 3 |
+| Order | Byte at offset 0 | Offset 1 | Offset 2 | Offset 3 |
 | --- | --- | --- | --- | --- |
 | **Big-endian** | `12` | `34` | `56` | `78` |
 | **Little-endian** | `78` | `56` | `34` | `12` |
 
-**Big-endian** đặt **byte có trọng số lớn nhất (most significant byte, MSB)** trước. **Little-endian** đặt **byte có trọng số nhỏ nhất (least significant byte, LSB)** trước. Trong ví dụ, `0x12` chứa các bit trọng số lớn nhất, `0x78` chứa các bit trọng số nhỏ nhất.
+**Big-endian** places the **most significant byte (MSB)** first. **Little-endian** places the **least significant byte (LSB)** first. In the example, `0x12` holds the most significant bits, and `0x78` holds the least significant bits.
 
-Hình dung hai phía:
+Visualizing both sides:
 
 ```text
-Giá trị logic: 0x12345678
+Logical value: 0x12345678
 
 Big-endian:
 offset       0    1    2    3
@@ -57,21 +57,21 @@ offset       0    1    2    3
 bytes       78   56   34   12
 ```
 
-**Không đảo thứ tự bit bên trong từng byte**. Byte `0x12` vẫn là `00010010` ở cả hai dạng; khác biệt nằm ở vị trí các byte trong chuỗi. Không có “bit dấu di chuyển” theo endian: bit có ý nghĩa dấu thuộc vị trí bit của số 32/64 bit **sau khi đã ghép đúng các byte**.
+**Bit order inside each byte is not reversed.** Byte `0x12` remains `00010010` in both forms; the difference lies in the placement of bytes in the sequence. There is no "moving sign bit" caused by endianness: the sign-bearing bit belongs to the bit position of the 32/64-bit integer **after the bytes have been properly assembled**.
 
-Đối với **một byte đơn lẻ**, không có sự khác biệt về thứ tự byte. Endianness chỉ có ý nghĩa khi chuyển một giá trị nhiều byte thành chuỗi byte hoặc ngược lại.
+For a **single byte**, there is no byte-order difference. Endianness only matters when converting a multi-byte value into a byte sequence or vice versa.
 
-## 3. Đọc sai thứ tự làm đổi số, dù các byte không đổi
+## 3. Reading in the Wrong Order Changes the Number, Even Though the Bytes Did Not Change
 
-Giả sử nhận được bốn byte liên tiếp:
+Suppose four consecutive bytes are received:
 
 ```text
 12 34 56 78
 ```
 
-Nếu đặc tả quy định big-endian, giá trị là `0x12345678` = `305419896`. Nếu đọc **chính bốn byte đó** như little-endian, ta nhận `0x78563412` = `2018915346`.
+If the specification prescribes big-endian, the value is `0x12345678` = `305419896`. If **those exact four bytes** are read as little-endian, you get `0x78563412` = `2018915346`.
 
-Với byte `b0`–`b3` được hiểu là các giá trị **không dấu 0..255**, công thức giải mã là:
+With bytes `b0`–`b3` interpreted as **unsigned values 0..255**, the decoding formulas are:
 
 ```text
 Big-endian:
@@ -81,47 +81,47 @@ Little-endian:
 value = (b3 << 24) | (b2 << 16) | (b1 << 8) | b0
 ```
 
-Đây là công thức logic trên bốn giá trị byte **đã chuyển thành không dấu**. Trong Java phải cẩn thận nâng kiểu/mask trước khi dịch để không bị mở rộng dấu ngoài ý muốn; phần thực hành bên dưới thể hiện cách làm an toàn.
+These are logical formulas over four byte values **already converted to unsigned**. In Java, be careful to promote/mask before shifting so unintended sign extension does not occur; the practical section below shows how to do this safely.
 
-Nếu hai đầu giao tiếp không thống nhất endian, chương trình có thể vẫn chạy, vẫn nhận đủ bốn byte, nhưng cho giá trị sai **âm thầm**. Đây là lỗi giao thức, không phải lỗi phép cộng hay tình trạng mất gói dữ liệu.
+If two communicating endpoints disagree on endianness, the program can still run and receive all four bytes, yet **silently** produce the wrong value. That is a protocol bug, not an addition bug or packet loss.
 
-## 4. `int` trong Java có dấu, nhưng dữ liệu trao đổi có thể là unsigned
+## 4. `int` in Java Is Signed, Yet Exchanged Data Can Be Unsigned
 
-Java `int` có **32 bit có dấu**, miền `-2_147_483_648` đến `2_147_483_647`. Có những giao thức quy định trường **unsigned 32 bit**, miền `0` đến `4_294_967_295`. Hai miền cùng dùng **bốn byte**; sự khác biệt là cách diễn giải các bit sau khi ghép byte.
+Java `int` has **32 signed bits**, range `-2_147_483_648` to `2_147_483_647`. Some protocols define an **unsigned 32-bit** field, range `0` to `4_294_967_295`. Both ranges use **four bytes**; the difference is how the bits are interpreted after assembling the bytes.
 
-Ví dụ mẫu bit `0xFEDCBA98`:
+Example with bit pattern `0xFEDCBA98`:
 
 ```text
-Mẫu 32 bit:                FE DC BA 98
-Giá trị int có dấu:        -19088744
-Giá trị unsigned 32 bit:   4275878552
+32-bit pattern:            FE DC BA 98
+Signed int value:          -19088744
+Unsigned 32-bit value:     4275878552
 ```
 
-Nếu bên nhận Java dùng `ByteBuffer.getInt()`, biến nhận `int` là `-19088744`. Điều này **không chứng minh dữ liệu bị sai thứ tự**: mẫu 32 bit vẫn là `FEDCBA98`. Khi giao thức yêu cầu unsigned 32 bit, chuyển cách diễn giải bằng:
+If a Java receiver uses `ByteBuffer.getInt()`, the resulting `int` is `-19088744`. This **does not prove the data has the wrong byte order**: the 32-bit pattern is still `FEDCBA98`. When the protocol requires unsigned 32-bit, switch the interpretation using:
 
 ```java
 int raw = 0xFEDC_BA98;
 long unsigned = Integer.toUnsignedLong(raw); // 4275878552L
 ```
 
-Đây là mảnh mã minh họa trong một phương thức. `Integer.toUnsignedLong` mở rộng bằng số 0 để giữ đúng giá trị **không dấu** 32 bit dưới dạng `long`, thay vì sign-extend. `Integer.toUnsignedString(raw)` có thể biểu diễn kết quả dưới dạng chuỗi.
+This is an illustrative snippet inside a method. `Integer.toUnsignedLong` zero-extends to preserve the exact **unsigned** 32-bit value as a `long`, rather than sign-extending. `Integer.toUnsignedString(raw)` can format the result as a string.
 
-Cần tránh kết luận “số âm thì endian sai”: **signedness và endianness độc lập**. Luôn kiểm tra đúng thứ tự byte trước, rồi mới diễn giải mẫu bit theo hợp đồng signed/unsigned.
+Avoid concluding "negative number means wrong endianness": **signedness and endianness are independent**. Always verify byte order first, and only then interpret the bit pattern according to the signed/unsigned contract.
 
-## 5. `byte` Java có dấu: mask `0xFF` trước khi ghép
+## 5. Java `byte` Is Signed: Mask with `0xFF` Before Combining
 
-Một byte trên dây thường được mô tả trong tài liệu giao thức như `0x00`–`0xFF` (0–255). Nhưng kiểu `byte` Java là **8 bit có dấu**, phạm vi -128 đến 127. Ví dụ:
+A byte on the wire is often described in protocol docs as `0x00`–`0xFF` (0–255). However, Java's `byte` type is **8-bit signed**, ranging from -128 to 127. Example:
 
 ```java
 byte b = (byte) 0xFE;
-int signed = b;                 // -2: mở rộng dấu sang int.
-int unsigned = b & 0xFF;        // 254: giữ tám bit thấp.
+int signed = b;                 // -2: sign-extended to int.
+int unsigned = b & 0xFF;        // 254: keeps low eight bits.
 int alsoUnsigned = Byte.toUnsignedInt(b); // 254.
 ```
 
-Khi `byte` được nâng thành `int` để dịch trái, nếu nó âm thì có thể phát sinh bit 1 mở rộng ở phần cao. Vì vậy phải chuẩn hóa mỗi byte bằng `& 0xFF` hoặc `Byte.toUnsignedInt` **trước khi ghép**.
+When `byte` is promoted to `int` for left shifting, if it is negative it can introduce extended `1` bits in the upper positions. Therefore, normalize each byte with `& 0xFF` or `Byte.toUnsignedInt` **before combining**.
 
-Một hàm đọc unsigned 32-bit big-endian an toàn:
+A safe method to read an unsigned 32-bit big-endian value:
 
 ```java
 static long readUnsigned32BigEndian(byte[] bytes) {
@@ -135,11 +135,11 @@ static long readUnsigned32BigEndian(byte[] bytes) {
 }
 ```
 
-Đây là **phương thức trong một lớp Java**, không phải chương trình đầy đủ. Mỗi byte được chuyển thành miền 0–255, ghép theo big-endian, rồi lưu vào `long` để kết quả unsigned 32 bit luôn là số không âm và không bị tràn `int` có dấu. Tránh `return (bytes[0] << 24) | ...` khi không mask byte: Java sign-extend `byte` âm lên `int`.
+This is a **method inside a Java class**, not a standalone program. Each byte is converted to 0–255, assembled in big-endian order, and stored in a `long` so the unsigned 32-bit result is always non-negative and does not overflow signed `int`. Avoid `return (bytes[0] << 24) | ...` without masking bytes: Java sign-extends negative `byte`s to `int`.
 
-## 6. Java `ByteBuffer`: ghi và đọc theo thứ tự đã thỏa thuận
+## 6. Java `ByteBuffer`: Writing and Reading in Agreed Byte Order
 
-Trong `java.nio`, `ByteBuffer` hỗ trợ cấu hình `ByteOrder.BIG_ENDIAN` và `ByteOrder.LITTLE_ENDIAN`:
+In `java.nio`, `ByteBuffer` supports configuring `ByteOrder.BIG_ENDIAN` and `ByteOrder.LITTLE_ENDIAN`:
 
 ```java
 int value = 0x1234_5678;
@@ -154,9 +154,9 @@ byte[] littleEndian = java.nio.ByteBuffer.allocate(4)
         .array();
 ```
 
-Hai mảng byte lần lượt chứa `12 34 56 78` và `78 56 34 12`. **`value` không thay đổi.** `ByteBuffer.putInt` quyết định cách chia mẫu 32 bit thành 4 byte dựa trên thứ tự byte của buffer.
+The two byte arrays contain `12 34 56 78` and `78 56 34 12`, respectively. **`value` does not change.** `ByteBuffer.putInt` decides how to split the 32-bit pattern into 4 bytes based on the buffer's byte order.
 
-Khi đọc, phải đặt cùng `ByteOrder` theo **hợp đồng dữ liệu**:
+When reading, you must set the same `ByteOrder` per the **data contract**:
 
 ```java
 int fromBig = java.nio.ByteBuffer.wrap(bigEndian)
@@ -168,15 +168,15 @@ int fromLittle = java.nio.ByteBuffer.wrap(littleEndian)
         .getInt(); // 0x12345678
 ```
 
-Một `ByteBuffer` mới tạo có **thứ tự mặc định là `BIG_ENDIAN`**. Tuy nhiên, đừng dựa mù quáng vào mặc định của chương trình khi thiết kế giao thức: gọi `.order(...)` tường minh để thể hiện contract và tránh hiểu sai.
+A newly created `ByteBuffer` has a **default order of `BIG_ENDIAN`**. However, do not blindly rely on the default when designing protocols: call `.order(...)` explicitly to state the contract and avoid misinterpretation.
 
-Hàm `putInt`/ `getInt` xử lý **đúng bốn byte**; `putShort`/ `getShort` xử lý hai byte; `putLong`/ `getLong` xử lý tám byte. `put`/ `get` cho **một byte** không bị endian làm thay đổi. Khi dùng `ByteBuffer.allocate(4)`, `.putInt(...)` đẩy position tới 4; `.array()` lấy mảng lưu trữ. Nếu chuyển từ ghi sang đọc trên **cùng buffer**, thường phải gọi `flip()` trước `getInt()`. Ở ví dụ `wrap(byte[])`, buffer mới có position = 0 nên đọc được ngay.
+`putInt`/`getInt` handle **exactly four bytes**; `putShort`/`getShort` handle two bytes; `putLong`/`getLong` handle eight bytes. `put`/`get` for **a single byte** are unaffected by endianness. With `ByteBuffer.allocate(4)`, `.putInt(...)` advances the position to 4; `.array()` retrieves the backing array. If switching from writing to reading on the **same buffer**, you generally need to call `flip()` before `getInt()`. In the `wrap(byte[])` example, the new buffer starts at position = 0 so it can be read immediately.
 
-Lưu ý `ByteBuffer` có thể direct hoặc read-only và không phải lúc nào cũng có mảng truy cập được bằng `.array()`; ví dụ này chọn buffer heap bằng `allocate(4)` có backing array. Trong ứng dụng thực, có thể ghi vào `ByteBuffer` rồi truyền vùng byte bằng API I/O thay vì giả định luôn gọi được `.array()`.
+Note that a `ByteBuffer` can be direct or read-only and may not always have an accessible backing array via `.array()`; this example uses a heap buffer from `allocate(4)` which has a backing array. In real applications, write to a `ByteBuffer` and transfer its bytes via I/O APIs instead of assuming `.array()` is always callable.
 
-## 7. Ví dụ hoàn chỉnh Java 17+: cùng số, hai thứ tự byte
+## 7. Complete Java 17+ Example: Same Number, Two Byte Orders
 
-Tạo tệp **`ByteOrderDemo.java`** với mã sau:
+Create the file **`ByteOrderDemo.java`** with the following code:
 
 ```java
 import java.nio.ByteBuffer;
@@ -245,14 +245,14 @@ public class ByteOrderDemo {
 }
 ```
 
-Chạy tại thư mục chứa tệp:
+Run from the directory containing the file:
 
 ```bash
 javac --release 17 -encoding UTF-8 ByteOrderDemo.java
 java ByteOrderDemo
 ```
 
-Kết quả stdout chính xác:
+Exact stdout:
 
 ```text
 value=0x12345678
@@ -269,37 +269,37 @@ signedByte=-2
 unsignedByte=254
 ```
 
-Ý nghĩa quan trọng:
+Key takeaways:
 
-- Hai dòng `bigEndian` và `littleEndian` khác nhau ở **thứ tự byte**, còn dòng `value` vẫn chỉ một giá trị `0x12345678`.
-- `readBE` và `readLE` bằng nhau nếu bên đọc dùng **đúng endian của bên ghi**; `wrongOrder=0x78563412` chứng minh đọc sai endian làm đổi số.
-- `signedInt=-19088744` và `unsignedInt=4275878552` có cùng mẫu bit `0xFEDCBA98`. Số âm đến từ cách đọc có dấu, không phải lỗi thứ tự byte.
-- `manualUnsigned=4275878552` xác nhận có thể tự ghép dữ liệu theo big-endian với phép dịch/mask đúng.
-- `signedByte=-2` và `unsignedByte=254` cho thấy cần xử lý tính có dấu của `byte` trước khi ghép số nguyên nhiều byte.
+- The `bigEndian` and `littleEndian` lines differ in **byte order**, while `value` still reflects the single value `0x12345678`.
+- `readBE` and `readLE` match when the reader uses the **exact endianness of the writer**; `wrongOrder=0x78563412` proves reading with the wrong endianness alters the number.
+- `signedInt=-19088744` and `unsignedInt=4275878552` share the same bit pattern `0xFEDCBA98`. The negative number comes from signed reading, not a byte-order error.
+- `manualUnsigned=4275878552` confirms you can assemble big-endian data manually with proper shifts and masks.
+- `signedByte=-2` and `unsignedByte=254` demonstrate the need to handle `byte` signedness before assembling multi-byte integers.
 
-## 8. Khi giao tiếp qua mạng, điều gì phải thống nhất?
+## 8. When Communicating Over a Network, What Must Be Agreed Upon?
 
-Trong nhiều giao thức mạng truyền thống, các trường số nguyên nhiều byte ở **network byte order (big-endian)**. Ví dụ, nhiều trường của header IPv4/TCP sử dụng big-endian. Nhưng **không phải mọi giao thức trên TCP đều tự động dùng big-endian**: giao thức ứng dụng có thể quy định little-endian, byte-order riêng theo từng trường, hoặc biểu diễn văn bản/biến độ dài.
+In many traditional network protocols, multi-byte integer fields use **network byte order (big-endian)**. For instance, many IPv4/TCP header fields use big-endian. However, **not every protocol running over TCP automatically uses big-endian**: application protocols may prescribe little-endian, per-field byte orders, or text/variable-length encodings.
 
-Một hợp đồng dữ liệu cần nêu rõ:
+A data contract should clearly state:
 
-| Thuộc tính | Ví dụ quy ước |
+| Attribute | Example Convention |
 | --- | --- |
-| Kiểu trường | unsigned 32-bit |
-| Số byte | Chính xác 4 |
+| Field type | unsigned 32-bit |
+| Byte count | Exactly 4 |
 | Byte order | Big-endian |
-| Dải hợp lệ | 0 đến 4_294_967_295 |
-| Vị trí trong thông điệp | Offset 0–3 sau header |
-| Cách xử lý dữ liệu thiếu | Chưa đủ 4 byte thì chưa được giải mã trường |
-| Kiểm tra dữ liệu | Từ chối giá trị ngoài phạm vi nghiệp vụ |
+| Valid range | 0 to 4_294_967_295 |
+| Position in message | Offset 0–3 after header |
+| Handling incomplete data | Do not decode field until all 4 bytes arrive |
+| Data validation | Reject values outside business range |
 
-Ví dụ field `length` được quy định là **4 byte unsigned big-endian**. Bên gửi phải ghi 4 byte theo đúng thứ tự; bên nhận phải đọc **đủ 4 byte** trước khi tính giá trị `long` không dấu và kiểm tra giới hạn độ dài tối đa chấp nhận được. Không nên cấp phát vùng nhớ theo chiều dài nhận được trước khi xác minh dải, quota và giới hạn dữ liệu.
+For example, a `length` field is specified as **4-byte unsigned big-endian**. The sender must write 4 bytes in the exact order; the receiver must read **all 4 bytes** before computing the unsigned `long` value and checking against the maximum acceptable length. Do not allocate buffers based on a received length before validating range, quota, and data limits.
 
-**TCP chỉ cung cấp luồng byte**, không đánh dấu “đây là một `int`” hoặc bảo đảm mỗi lần gọi `read` trả về trọn một trường. Phần đóng gói thông điệp, xử lý partial read, kiểu số và endian thuộc trách nhiệm thiết kế giao thức.
+**TCP provides only a byte stream**; it does not mark "this is one `int`" or guarantee that every `read` call returns a complete field. Message framing, handling partial reads, numeric types, and endianness are the responsibility of protocol design.
 
-## 9. `DataInputStream`, `DataOutputStream` và sự khác biệt với `ByteBuffer`
+## 9. `DataInputStream`, `DataOutputStream`, and Differences from `ByteBuffer`
 
-Java `DataOutputStream.writeInt(int)` và `DataInputStream.readInt()` quy định encoding **big-endian** cho giá trị bốn byte. Đây là lựa chọn tiện nếu giao thức của bạn cũng dùng định dạng này.
+Java's `DataOutputStream.writeInt(int)` and `DataInputStream.readInt()` mandate **big-endian** encoding for four-byte values. This is a convenient option if your protocol also uses that format.
 
 ```java
 java.io.ByteArrayOutputStream buffer = new java.io.ByteArrayOutputStream();
@@ -309,56 +309,56 @@ try (java.io.DataOutputStream out = new java.io.DataOutputStream(buffer)) {
 byte[] bytes = buffer.toByteArray(); // 12 34 56 78
 ```
 
-Đây là đoạn mã trong một phương thức Java có xử lý ngoại lệ phù hợp; không phải một chương trình độc lập. Nếu giao thức quy định little-endian, **không dùng `DataOutputStream.writeInt` như thể nó tự chuyển endian**; dùng `ByteBuffer.order(LITTLE_ENDIAN)` hoặc viết byte theo thứ tự được yêu cầu.
+This is a snippet inside a Java method with proper exception handling; it is not a standalone program. If the protocol specifies little-endian, **do not use `DataOutputStream.writeInt` as if it adapts endianness automatically**; use `ByteBuffer.order(LITTLE_ENDIAN)` or write bytes in the required order.
 
-`ByteBuffer.getInt` và `DataInputStream.readInt` đều trả về **`int` có dấu**. Nếu trường thực tế là unsigned 32 bit, kết quả `int` vẫn chứa đúng 32 bit và có thể dùng `Integer.toUnsignedLong` để đọc giá trị không dấu.
+`ByteBuffer.getInt` and `DataInputStream.readInt` both return a **signed `int`**. If the actual field is unsigned 32-bit, the `int` result still holds the exact 32 bits and you can use `Integer.toUnsignedLong` to read the unsigned value.
 
-## 10. Nhầm endian với bit order, ký tự, và số được gửi dưới dạng văn bản
+## 10. Confusing Endianness with Bit Order, Characters, and Text-Encoded Numbers
 
-Endianness chỉ là **thứ tự byte trong biểu diễn nhiều byte**. Không nên trộn nó với ba khái niệm khác:
+Endianness is strictly **byte order in a multi-byte representation**. Do not mix it up with these other concepts:
 
-**Thứ tự bit:** Có những giao thức mô tả bit cao/thấp được truyền trước trong một byte hoặc một khung; đó là một quy tắc ở mức bit. Thay big-endian thành little-endian **không đảo thứ tự các bit trong từng byte**.
+**Bit order:** Some protocols specify whether high or low bits are transmitted first within a byte or frame; that is a bit-level rule. Changing big-endian to little-endian **does not reverse the order of bits within each byte**.
 
-**Mã hóa văn bản:** Khi gửi chuỗi `"305419896"` theo UTF-8, ta gửi **các byte ký tự** (ví dụ byte `0x33` cho ký tự `'3'`), chứ không phải bốn byte nhị phân `12 34 56 78`. Bên nhận phải biết đang nhận chuỗi số hay số nhị phân. Với định dạng JSON, số thường được biểu diễn bằng các ký tự văn bản; byte order của một `int` nhị phân không tự động áp dụng vào đó.
+**Text encoding:** When sending the string `"305419896"` in UTF-8, you send **character bytes** (for example, byte `0x33` for the character `'3'`), not the four binary bytes `12 34 56 78`. The receiver must know whether it is receiving a numeric string or a binary integer. In JSON format, numbers are normally represented as text characters; the byte order of a binary `int` does not apply automatically there.
 
-**Thứ tự code unit của UTF-16:** Một số cách mã hóa chuỗi 16-bit có khái niệm endian riêng. Dù có cùng tên big/little endian, quy tắc mã hóa văn bản vẫn phải được xác định thông qua charset và đặc tả văn bản, không suy ngược từ endian của một trường số nhị phân.
+**UTF-16 code unit order:** Some 16-bit string encodings have their own endianness concept. Despite sharing the big/little endian names, text encoding rules must be determined through the charset and text specification, not inferred backward from a binary numeric field's endianness.
 
-**Độ rộng trường:** Gửi số `1` thành một byte `01`, hai byte `00 01` hoặc bốn byte `00 00 00 01` là ba hợp đồng khác nhau. Chọn endian không thay thế việc thống nhất số byte, độ rộng signed/unsigned và cách đánh dấu đầu/cuối trường.
+**Field width:** Sending the number `1` as one byte `01`, two bytes `00 01`, or four bytes `00 00 00 01` represents three different contracts. Picking an endianness does not replace agreeing on byte count, signed/unsigned width, and field boundaries.
 
-## 11. Lỗi thường gặp khi trao đổi số nhị phân
+## 11. Common Mistakes When Exchanging Binary Numbers
 
-| Lỗi | Hậu quả | Cách tránh |
+| Mistake | Consequence | How to Avoid |
 | --- | --- | --- |
-| Bên gửi ghi big-endian, bên nhận đọc little-endian | `12 34 56 78` thành `0x78563412` | Quy định byte order và cấu hình hai bên tương ứng |
-| Cho rằng `int` âm tức dữ liệu bị đảo byte | Nhầm signedness với endian | Kiểm tra mẫu bit và `Integer.toUnsignedLong` |
-| Ghép `byte` âm mà không mask | Sign extension làm thay đổi các bit cao | Dùng `& 0xFF` hoặc `Byte.toUnsignedInt` |
-| Dùng `byte[]` nhưng không có hợp đồng kiểu | Không xác định được độ dài, signedness và byte order | Định nghĩa schema rõ ràng cho từng trường |
-| Gọi `ByteBuffer.getInt()` sau `putInt` mà không `flip()` | Sai position hoặc buffer underflow | `flip()` khi chuyển từ ghi sang đọc cùng buffer |
-| Cho rằng `DataOutputStream.writeInt` dùng endian của CPU | Luồng ra không khớp định dạng mong muốn | Biết rõ API này ghi big-endian |
-| Dùng `Integer.parseInt` để giải mã bốn byte | Parse nhận chuỗi ký tự số, không phải định dạng nhị phân | Dùng `ByteBuffer`, bit shifts hoặc `DataInputStream` |
-| Dùng `0x12345678` trong văn bản như thể đó là byte truyền đi | Nhầm cú pháp literal và payload thực | Chỉ định encoding nhị phân hoặc văn bản |
-| Tin rằng TCP `read` luôn nhận đủ bốn byte | Giải mã khi dữ liệu chưa đủ | Đọc theo vòng lặp hoặc API readFully |
-| Coi unsigned 32-bit là `int` dương thông thường | Giá trị lớn hơn `Integer.MAX_VALUE` bị hiển thị âm | Dùng `long` và unsigned conversion |
+| Sender writes big-endian, receiver reads little-endian | `12 34 56 78` becomes `0x78563412` | Define byte order and configure both sides to match |
+| Assuming a negative `int` means swapped bytes | Confusing signedness with endianness | Inspect bit pattern and `Integer.toUnsignedLong` |
+| Combining negative `byte`s without masking | Sign extension corrupts upper bits | Use `& 0xFF` or `Byte.toUnsignedInt` |
+| Using `byte[]` with no type contract | Length, signedness, and byte order are undefined | Define an explicit schema for each field |
+| Calling `ByteBuffer.getInt()` after `putInt` without `flip()` | Wrong position or buffer underflow | Call `flip()` when switching from writing to reading on the same buffer |
+| Assuming `DataOutputStream.writeInt` uses CPU endianness | Output stream does not match expected format | Know that this API writes big-endian |
+| Using `Integer.parseInt` to decode four bytes | Parsing expects numeric digit characters, not binary format | Use `ByteBuffer`, bit shifts, or `DataInputStream` |
+| Using `0x12345678` in text as if those were the transmitted bytes | Confusing literal syntax with actual payload | Specify binary or text encoding explicitly |
+| Assuming TCP `read` always returns all four bytes | Decoding incomplete data | Read in a loop or use a `readFully` API |
+| Treating unsigned 32-bit as a plain positive `int` | Values above `Integer.MAX_VALUE` display as negative | Use `long` and unsigned conversion |
 
-## 12. Checklist khi thiết kế và kiểm thử
+## 12. Design and Testing Checklist
 
-Trước khi viết bộ mã hóa/giải mã, xác nhận **mỗi field** có độ rộng 8/16/32/64 bit hoặc kiểu biến độ dài; giá trị signed hay unsigned; big-endian hay little-endian; offset và byte count; dải nghiệp vụ hợp lệ. Với field kiểu unsigned 32-bit, trong Java thường nên dùng `long` làm kiểu API bên ngoài và kiểm tra `0 <= value <= 0xFFFF_FFFFL` trước khi chuyển sang bốn byte.
+Before writing an encoder/decoder, verify for **each field** whether it is 8/16/32/64-bit or variable-length; signed or unsigned; big-endian or little-endian; its offset and byte count; and its valid business range. For unsigned 32-bit fields in Java, prefer `long` as the external API type and validate `0 <= value <= 0xFFFF_FFFFL` before converting to four bytes.
 
-Một bộ test tối thiểu nên có:
+A minimal test suite should include:
 
-1. **Giá trị dễ nhìn:** `0x12345678` để phát hiện đảo byte. Big-endian `12 34 56 78`; little-endian `78 56 34 12`.
-2. **Biên unsigned 32-bit:** `0x00000000`, `0x7FFFFFFF`, `0x80000000`, `0xFFFFFFFF`. Đọc/ghi vẫn phải giữ bit chính xác bất kể `int` tạm thời âm.
-3. **Round-trip:** ghi một giá trị rồi đọc lại với byte order tương ứng, so sánh **bit pattern** và giá trị unsigned nếu đặc tả yêu cầu.
-4. **Sai endian có chủ ý:** đọc bytes big-endian bằng little-endian để chắc chắn test bắt được thay đổi mong đợi.
-5. **Thông điệp thiếu byte:** thử nhận 1–3 byte khi mong đợi 4 byte; bộ giải mã phải chờ đủ hoặc báo thiếu dữ liệu rõ ràng.
-6. **Đầu vào ngoài giới hạn:** thử kích thước quá lớn, giá trị vượt hợp đồng và dữ liệu không hợp lệ, bảo đảm không cấp phát/tiến hành xử lý nguy hiểm.
+1. **Asymmetric recognizable value:** `0x12345678` to detect byte swapping. Big-endian `12 34 56 78`; little-endian `78 56 34 12`.
+2. **Unsigned 32-bit boundaries:** `0x00000000`, `0x7FFFFFFF`, `0x80000000`, `0xFFFFFFFF`. Reading/writing must preserve exact bits regardless of temporary negative `int` values.
+3. **Round-trip:** write a value and read it back with the matching byte order, comparing the **bit pattern** and unsigned value if specified.
+4. **Intentional wrong endianness:** read big-endian bytes as little-endian to ensure the test catches the expected discrepancy.
+5. **Short/incomplete message:** feed 1–3 bytes when expecting 4 bytes; the decoder must wait for more or clearly report missing data.
+6. **Out-of-bounds input:** test overly large lengths, out-of-contract values, and malformed data, ensuring no unsafe allocations or processing proceed.
 
-**Câu hỏi tự kiểm tra:**
+**Self-check questions:**
 
-- Cùng một số `0x12345678`, big-endian và little-endian có giá trị số khác nhau không? **Không**, nếu được giải mã theo đúng quy ước. Chỉ thứ tự bốn byte khi lưu/truyền khác.
-- Byte nào xuất hiện trước trong little-endian? **Byte có trọng số thấp nhất**, ở đây là `0x78`.
-- Vì sao `ByteBuffer.getInt()` có thể trả số âm cho một field unsigned 32-bit? Vì **Java `int` có dấu**; hãy dùng `Integer.toUnsignedLong` để đọc cách diễn giải unsigned.
-- `& 0xFF` dùng để làm gì? Giữ **8 bit thấp** và loại tác động sign extension khi nâng `byte` âm lên kiểu lớn hơn.
-- Nếu giao thức dùng little-endian nhưng lập trình viên dùng `DataOutputStream.writeInt`, điều gì xảy ra? Byte trên dây **không đúng quy ước little-endian**, vì API này ghi big-endian.
+- For the same number `0x12345678`, do big-endian and little-endian have different numeric values? **No**, if decoded under the right convention. Only the order of the four bytes when stored/transmitted differs.
+- Which byte appears first in little-endian? **The least significant byte**, here `0x78`.
+- Why can `ByteBuffer.getInt()` return a negative number for an unsigned 32-bit field? Because **Java `int` is signed**; use `Integer.toUnsignedLong` to read its unsigned interpretation.
+- What is `& 0xFF` used for? Keeping the **low 8 bits** and removing sign-extension effects when promoting a negative `byte` to a wider type.
+- If a protocol uses little-endian yet a developer uses `DataOutputStream.writeInt`, what happens? The bytes on the wire **violate the little-endian convention**, because that API writes big-endian.
 
-**Ghi nhớ:** giá trị số không quyết định thứ tự byte của payload. Endianness là một phần của **hợp đồng serialization**, signedness là cách **diễn giải mẫu bit**, còn `byte` Java có dấu nên phải mask khi ghép byte thủ công. Khi hai phía thống nhất độ rộng, endian, signed/unsigned và kiểm thử cùng các chuỗi byte chuẩn, dữ liệu nhị phân sẽ được trao đổi chính xác.
+**Remember:** numeric value does not dictate payload byte order. Endianness is part of the **serialization contract**, signedness is how a **bit pattern is interpreted**, and Java's `byte` is signed so manual byte assembly requires masking. When both sides agree on width, endianness, and signed/unsigned rules and verify against known byte sequences, binary data is exchanged accurately.

@@ -1,53 +1,53 @@
-# Đánh giá ảnh hưởng khi thêm trường hoặc thay đổi phiên bản lớp
+# Assessing the Impact of Adding Fields or Changing Class Versions
 
-## 1. Vì sao đây là thay đổi hợp đồng, không chỉ là thay đổi cấu trúc?
+## 1. Why Is This a Contract Change, Not Just a Structural Change?
 
-Trong Java, một lớp là tập hợp nhiều **hợp đồng quan sát được**: dữ liệu và phương thức công khai, cách xác định hai đối tượng bằng nhau, cách tạo mã băm, cách sắp xếp, cách biểu diễn thành chuỗi và đôi khi cách lưu/truyền dữ liệu. Thêm trường hoặc phát hành phiên bản lớp mới có thể tác động đến từng hợp đồng với mức độ khác nhau.
+In Java, a class is a bundle of multiple **observable contracts**: public data and methods, how two objects are determined to be equal, how hash codes are computed, how objects are ordered, how they are represented as strings, and sometimes how data is persisted or transmitted. Adding a field or releasing a new class version can affect each contract to a different degree.
 
-Ví dụ, một đối tượng tài khoản có `accountId` và `displayName`. Nếu thêm `membershipTier`, cần trả lời: hai đối tượng cùng `accountId` nhưng khác `membershipTier` còn được xem là cùng tài khoản hay không? Nếu câu trả lời là **có**, trường mới là thuộc tính mô tả và không nên tự động tham gia phép so sánh định danh logic. Nếu câu trả lời là **không**, việc đưa trường mới vào `equals()` là thay đổi **ngữ nghĩa bằng nhau**; mọi mã phụ thuộc vào tập hợp, bản đồ, cache hoặc dữ liệu cũ có thể bị ảnh hưởng.
+For example, an account object has `accountId` and `displayName`. If you add `membershipTier`, you must answer: should two objects with the same `accountId` but different `membershipTier` still be considered the same account? If the answer is **yes**, the new field is a descriptive attribute and should not automatically join the logical identity comparison. If the answer is **no**, adding the new field to `equals()` changes **equality semantics**; any code relying on sets, maps, caches, or legacy data may be affected.
 
-Phân biệt các loại thay đổi:
+Distinguish the types of changes:
 
-- **Thay đổi cấu trúc:** thêm, xóa, đổi tên, đổi kiểu hoặc đổi tính mutable của trường; thêm component của `record`.
-- **Thay đổi API:** đổi constructor, accessor, method, thứ tự tham số hoặc khả năng truy cập.
-- **Thay đổi ngữ nghĩa:** thay đổi điều kiện `equals()`, `hashCode()`, `compareTo()`, comparator hoặc thông tin trong `toString()`.
-- **Thay đổi tương thích dữ liệu:** bản mới đọc dữ liệu do bản cũ ghi thế nào và ngược lại; thay đổi Java serialization, JSON, schema database hoặc cấu trúc cache.
+- **Structural change:** adding, removing, renaming, changing the type of, or changing the mutability of a field; adding a `record` component.
+- **API change:** changing constructors, accessors, methods, parameter order, or visibility.
+- **Semantic change:** changing the conditions of `equals()`, `hashCode()`, `compareTo()`, a comparator, or information in `toString()`.
+- **Data compatibility change:** how a new version reads data written by an old version and vice versa; changes to Java serialization, JSON, database schemas, or cache structures.
 
-Một thay đổi có thể giữ chương trình **biên dịch được** nhưng vẫn làm hành vi nghiệp vụ sai. Do đó, đánh giá hợp đồng cần xét cả mã nguồn, chương trình đã biên dịch, trạng thái runtime và dữ liệu lưu trữ.
+A change can keep the program **compiling** yet still break business behavior. Therefore, contract assessment must examine source code, compiled binaries, runtime state, and persisted data.
 
-## 2. Các bất biến cần giữ khi thay đổi `equals()` và `hashCode()`
+## 2. Invariants to Preserve When Changing `equals()` and `hashCode()`
 
-Với đối tượng không null, `equals` phải tuân theo hợp đồng cơ bản của Java:
+For non-null objects, `equals` must adhere to Java's fundamental contract:
 
-1. **Phản xạ:** `x.equals(x)` là `true`.
-2. **Đối xứng:** `x.equals(y)` và `y.equals(x)` có cùng kết quả.
-3. **Bắc cầu:** nếu `x.equals(y)` và `y.equals(z)` đều đúng, `x.equals(z)` phải đúng.
-4. **Nhất quán:** kết quả không tự đổi khi thông tin dùng để so sánh không thay đổi.
-5. **Với null:** `x.equals(null)` trả `false`.
+1. **Reflexive:** `x.equals(x)` is `true`.
+2. **Symmetric:** `x.equals(y)` and `y.equals(x)` produce the same result.
+3. **Transitive:** if `x.equals(y)` and `y.equals(z)` are both true, `x.equals(z)` must be true.
+4. **Consistent:** the result does not change on its own while the information used for comparison remains unchanged.
+5. **For null:** `x.equals(null)` returns `false`.
 
-`hashCode()` phải nhất quán với `equals()`:
+`hashCode()` must remain consistent with `equals()`:
 
-- Nếu `a.equals(b)` đúng, `a.hashCode() == b.hashCode()` phải đúng.
-- Hai đối tượng **không bằng nhau** vẫn có thể trùng hash code; mã băm không phải định danh duy nhất.
-- Trong phạm vi một lần chạy và khi thông tin dùng cho `equals` không đổi, mã băm phải ổn định theo hợp đồng.
-- Không có yêu cầu hash code của một object phải giữ nguyên giữa các lần chạy Java khác nhau.
+- If `a.equals(b)` is true, `a.hashCode() == b.hashCode()` must be true.
+- Two **unequal** objects may still share a hash code; a hash code is not a unique identifier.
+- Within a single execution and while the information used for `equals` does not change, the hash code must remain stable per contract.
+- There is no requirement that an object's hash code stay identical across different Java executions.
 
-**Điểm kiểm tra khi thêm trường:** nếu trường mới tham gia `equals`, hãy cập nhật `hashCode` theo **cùng tập thông tin tương đương**. Ngược lại, thêm trường chỉ để hiển thị thường không cần thay `equals` và `hashCode`.
+**Checkpoint when adding a field:** if the new field participates in `equals`, update `hashCode` over the **same equivalent set of information**. Conversely, adding a display-only field generally does not require changing `equals` and `hashCode`.
 
-| Cách xử lý trường mới | Ảnh hưởng tới phép bằng nhau | Hệ quả đáng kiểm tra |
+| Handling of New Field | Impact on Equality | Consequences Worth Checking |
 | --- | --- | --- |
-| Không đưa vào `equals`/`hashCode` | Đối tượng cũ và mới vẫn có thể bằng nhau theo khóa đã xác định | Không bỏ qua trường nếu nghiệp vụ thực sự yêu cầu phân biệt |
-| Đưa vào cả hai | Hai đối tượng trước đây bằng nhau có thể thành khác nhau | `HashMap`, `HashSet`, cache key, deduplication, kiểm thử và migration |
-| Đưa vào `equals` nhưng quên `hashCode` | Có nguy cơ vi phạm hợp đồng khi hai đối tượng bằng nhau có hash code khác | Lookup/số lượng phần tử trong cấu trúc băm sai hoặc khó đoán |
-| Đưa vào `hashCode` nhưng bỏ khỏi `equals` | Có thể trực tiếp vi phạm quy tắc hai đối tượng bằng nhau có cùng hash code | Tra cứu khóa bằng đối tượng tương đương thất bại |
+| Excluded from `equals`/`hashCode` | Old and new objects can still be equal by the defined key | Do not omit the field if the business actually requires distinguishing it |
+| Included in both | Previously equal objects may become unequal | `HashMap`, `HashSet`, cache keys, deduplication, tests, and migration |
+| Included in `equals` but forgotten in `hashCode` | Risk of contract violation when two equal objects have different hash codes | Incorrect or unpredictable lookup/element counts in hash structures |
+| Included in `hashCode` but omitted from `equals` | Can directly violate the rule that two equal objects share the same hash code | Key lookup with an equivalent object fails |
 
-Quyết định đưa trường vào phép so sánh phải xuất phát từ **định nghĩa cùng một giá trị/cùng một thực thể logic** của miền nghiệp vụ, không chỉ từ việc lớp vừa có thêm một biến thành viên.
+The decision to include a field in comparison must come from the business domain's **definition of same value/same logical entity**, not simply from the fact that the class gained a new member variable.
 
-## 3. Ví dụ: thêm thuộc tính nhưng giữ nguyên định danh logic
+## 3. Example: Adding an Attribute While Preserving Logical Identity
 
-Một hệ thống dùng `accountId` làm khóa logic. `displayName` và `tier` có thể thay đổi mà vẫn là cùng một tài khoản. Nếu các thuộc tính này chỉ mô tả tài khoản, chúng không nên làm hai bản biểu diễn cùng ID thành hai khóa khác nhau.
+A system uses `accountId` as its logical key. `displayName` and `tier` can change while remaining the same account. If these attributes only describe the account, they should not turn two representations of the same ID into two separate keys.
 
-Tạo file **`AccountContractDemo.java`**:
+Create the file **`AccountContractDemo.java`**:
 
 ```java
 import java.util.HashMap;
@@ -103,14 +103,14 @@ public class AccountContractDemo {
 }
 ```
 
-Chạy bằng JDK 17 trở lên:
+Run with JDK 17 or higher:
 
 ```bash
 javac AccountContractDemo.java
 java AccountContractDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 same instance: false
@@ -120,15 +120,15 @@ status via updated view: ACTIVE
 map size: 1
 ```
 
-Hai lần `new Account(...)` tạo ra **hai instance khác nhau**, nhưng cả hai đại diện cùng khóa logic `A-07`. `HashMap` vẫn tra được giá trị vì `equals` và `hashCode` cùng dựa trên `accountId`.
+Two `new Account(...)` calls create **two different instances**, yet both represent the same logical key `A-07`. `HashMap` still looks up the value because both `equals` and `hashCode` are based on `accountId`.
 
-Ví dụ này chỉ đúng khi miền nghiệp vụ bảo đảm rằng **một `accountId` không tái sử dụng để chỉ tài khoản khác** trong cùng phạm vi cần so sánh. Nếu khóa logic thực tế gồm cả `tenantId` và `accountId`, cả hai phải tham gia `equals` và `hashCode`. Nếu thêm `tenantId` để khắc phục ID trùng giữa các tenant, đó là thay đổi hợp đồng **có chủ đích** và cần kế hoạch chuyển dữ liệu.
+This example is only valid when the business domain guarantees that **one `accountId` is never reused to refer to a different account** within the comparison scope. If the real logical key consists of both `tenantId` and `accountId`, both must participate in `equals` and `hashCode`. If `tenantId` is added to resolve duplicate IDs across tenants, that is an **intentional** contract change requiring a data migration plan.
 
-## 4. Ví dụ phản chứng: sửa trường dùng làm khóa sau khi đã đưa vào `HashMap`
+## 4. Counterexample: Mutating a Key Field After Putting It into a `HashMap`
 
-Với một khóa mà `hashCode` dựa trên trường có thể đổi, sửa giá trị sau khi thêm vào map có thể làm entry trở nên không thể tra cứu theo khóa đó. Đây là rủi ro đặc biệt lớn nếu phiên bản mới chuyển từ so sánh theo ID bất biến sang so sánh thêm trường mutable.
+For a key whose `hashCode` depends on a mutable field, changing the value after adding it to a map can make the entry unreachable by that key. This risk is especially high when a new version switches from comparing an immutable ID to also comparing a mutable field.
 
-Tạo file **`MutableKeyDemo.java`**:
+Create the file **`MutableKeyDemo.java`**:
 
 ```java
 import java.util.HashMap;
@@ -168,14 +168,14 @@ public class MutableKeyDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac MutableKeyDemo.java
 java MutableKeyDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 before mutation: stored
@@ -183,32 +183,32 @@ after mutation: null
 map size: 1
 ```
 
-Entry vẫn tồn tại trong map nhưng phép tra cứu dùng mã băm mới `"B".hashCode()` nên không tìm được entry đặt dưới hash của `"A"`. Không thể chữa gốc lỗi bằng cách chỉ viết lại `hashCode()`: thông tin tham gia khóa phải **ổn định trong thời gian khóa nằm trong collection**. Ưu tiên khóa immutable hoặc xóa entry trước khi thay giá trị và thêm lại theo khóa mới khi có yêu cầu nghiệp vụ rõ ràng.
+The entry still exists in the map, but the lookup uses the new hash code `"B".hashCode()` and therefore cannot find the entry stored under `"A"`'s hash. You cannot fix the root bug simply by rewriting `hashCode()`: information participating in a key must remain **stable while the key is inside the collection**. Prefer immutable keys, or remove the entry before changing its value and re-insert under the new key when there is a clear business requirement.
 
-Ngay cả lớp có các trường `final` vẫn cần xét **tính bất biến sâu**: tham chiếu `final List<String> tags` không thể bị gán lại, nhưng nội dung list vẫn có thể thay đổi. Nếu đưa list mutable vào `equals`/`hashCode`, có rủi ro tương tự. Sao chép phòng vệ và giữ component bất biến khi cần.
+Even a class with `final` fields still needs **deep immutability** review: a `final List<String> tags` reference cannot be reassigned, yet the list's contents can still be mutated. Putting a mutable list into `equals`/`hashCode` carries the same risk. Defensively copy and keep components immutable where needed.
 
-## 5. Bảng ảnh hưởng theo kiểu thay đổi lớp
+## 5. Impact Matrix by Type of Class Change
 
-| Thay đổi | Rủi ro hợp đồng | Việc cần kiểm tra |
+| Change | Contract Risk | What to Check |
 | --- | --- | --- |
-| Thêm trường mô tả không tham gia equality | Thường giữ được value equality hiện tại; `toString` hoặc JSON có thể đổi | Output, logging, serialization, schema |
-| Thêm trường tham gia equality | Các đối tượng trước đây bằng nhau có thể không bằng nhau | `equals`/`hashCode`, collection, key và dữ liệu cũ |
-| Đổi tên trường nhưng giữ nguyên ý nghĩa | Có thể không đổi equality nhưng đứt tên field/API/serialization | Accessor, constructor, JSON property, database column |
-| Đổi kiểu trường, ví dụ `int` sang `long` | Có thể đổi API/bytecode descriptor; coercion và equality | Nguồn gọi, binary linkage, chuyển dữ liệu, giá trị biên |
-| Xóa trường | API và dữ liệu cũ có thể cần trường đã bị xóa | Constructor, getter, dữ liệu lưu, ứng dụng cũ |
-| Biến trường immutable thành mutable | Rủi ro hash key bị thay đổi trong khi đang được sử dụng | `HashMap`/`HashSet`, race condition, defensive copy |
-| Thêm component vào `record` | Equality, hash, chuỗi biểu diễn và canonical constructor thay đổi mặc định | Caller, các so sánh, serialization |
-| Đổi lớp cha hoặc cách xét type | Có thể gây lỗi đối xứng/bắc cầu ở `equals` | Test giữa base/subclass, quy tắc kế thừa |
-| Đổi comparator hoặc `compareTo` | `TreeSet`/`TreeMap` có thể coi hai khóa là cùng phần tử theo ordering | Tính nhất quán với `equals` và thứ tự nghiệp vụ |
-| Đổi `toString` | Mã tích hợp nào parse chuỗi có thể hỏng; log có thể lộ dữ liệu | Không xem `toString` là API máy đọc; kiểm tra dữ liệu nhạy cảm |
+| Add a descriptive field not in equality | Usually preserves current value equality; `toString` or JSON may change | Output, logging, serialization, schema |
+| Add a field participating in equality | Previously equal objects may become unequal | `equals`/`hashCode`, collections, keys, and legacy data |
+| Rename a field while preserving meaning | May not alter equality, yet breaks field name/API/serialization | Accessors, constructors, JSON properties, database columns |
+| Change a field type, e.g. `int` to `long` | Can alter API/bytecode descriptors; coercion and equality | Call sites, binary linkage, data conversion, boundary values |
+| Remove a field | Old APIs and data may expect the removed field | Constructors, getters, persisted data, legacy apps |
+| Make an immutable field mutable | Risk of hash keys changing while in use | `HashMap`/`HashSet`, race conditions, defensive copies |
+| Add a component to a `record` | Equality, hash, string representation, and canonical constructor change by default | Callers, comparisons, serialization |
+| Change superclass or type-check strategy | Can cause symmetry/transitivity bugs in `equals` | Base/subclass tests, inheritance rules |
+| Change comparator or `compareTo` | `TreeSet`/`TreeMap` may treat two keys as the same element under ordering | Consistency with `equals` and business ordering |
+| Change `toString` | Integration code parsing the string may break; logs may leak data | Do not treat `toString` as a machine-readable API; check sensitive data |
 
-Một **trường mới không tự động đòi hỏi đưa vào mọi phương thức**. Hợp đồng từng phương thức được thiết kế độc lập: khóa logic cho equality; thứ tự nghiệp vụ cho ordering; biểu diễn dễ quan sát, không rò rỉ thông tin cho `toString`.
+A **new field does not automatically belong in every method**. Each method's contract is designed independently: logical key for equality; business order for ordering; clear, leak-free representation for `toString`.
 
-## 6. Lưu ý đặc biệt với `record` và mã được sinh
+## 6. Special Considerations for `record` and Generated Code
 
-Với `record`, Java sinh sẵn `equals`, `hashCode` và `toString` dựa trên các record component nếu không được ghi đè. Thêm một component có thể làm thay đổi quan hệ bằng nhau ngay cả khi nhà phát triển **không sửa trực tiếp phương thức `equals`**.
+For `record`, Java automatically generates `equals`, `hashCode`, and `toString` from the record components unless overridden. Adding a component can alter the equality relation even when the developer **did not directly touch `equals`**.
 
-Ví dụ minh họa hai hình dạng dữ liệu trước và sau khi thêm component; tạo file **`RecordEvolutionDemo.java`**:
+Example illustrating two data shapes before and after adding a component; create the file **`RecordEvolutionDemo.java`**:
 
 ```java
 public class RecordEvolutionDemo {
@@ -230,14 +230,14 @@ public class RecordEvolutionDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac RecordEvolutionDemo.java
 java RecordEvolutionDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 V1 equal: true
@@ -246,104 +246,104 @@ V1 text: InvoiceV1[invoiceId=I-1]
 V2 text: InvoiceV2[invoiceId=I-1, label=draft]
 ```
 
-Trong mã thực, việc đổi từ `record Invoice(String invoiceId)` sang `record Invoice(String invoiceId, String label)` còn thay đổi **canonical constructor**: lời gọi `new Invoice("I-1")` cũ không còn hợp lệ ở cấp mã nguồn trừ khi nhà phát triển chủ động cung cấp constructor tương thích. Các class đã biên dịch có thể gặp lỗi liên kết nếu constructor mà chúng gọi không còn tồn tại.
+In real code, changing `record Invoice(String invoiceId)` to `record Invoice(String invoiceId, String label)` also changes the **canonical constructor**: old `new Invoice("I-1")` calls cease to be valid at the source level unless the developer explicitly supplies a compatibility constructor. Already-compiled classes can hit linkage errors if the constructor they invoke no longer exists.
 
-Hai kiểu `InvoiceV1` và `InvoiceV2` ở ví dụ chỉ minh họa **sự thay đổi về cấu trúc và kết quả**, không phải là bằng chứng rằng có thể so sánh trực tiếp object thuộc hai kiểu như cùng một lớp qua hai lần triển khai. Với Java record, cũng không thể dựa vào khả năng kế thừa từ một record để chia sẻ equality giữa các phiên bản: record là final.
+The two types `InvoiceV1` and `InvoiceV2` in the example only illustrate **structural and result changes**, not proof that objects of two types can be compared directly as the same class across deployments. With Java records, you also cannot rely on inheritance from a record to share equality across versions: records are final.
 
-Nếu ý nghĩa equality phải chỉ theo `invoiceId`, có thể cân nhắc ghi đè `equals` và `hashCode` một cách nhất quán, hoặc tốt hơn là tách **kiểu khóa nghiệp vụ ổn định** (chẳng hạn `InvoiceId`) khỏi record mang dữ liệu nhiều phiên bản. Không thay đổi tùy tiện equality của record chỉ vì muốn bỏ qua một khác biệt đang cần phân biệt trong nghiệp vụ.
+If equality semantics must rely solely on `invoiceId`, consider overriding `equals` and `hashCode` consistently, or better yet, separate a **stable business key type** (such as `InvoiceId`) from records carrying multi-version data. Do not arbitrarily alter a record's equality merely to ignore a difference that the business actually needs to distinguish.
 
-## 7. Tương thích nguồn, nhị phân, hành vi và dữ liệu là bốn câu hỏi riêng
+## 7. Source, Binary, Behavioral, and Data Compatibility Are Four Separate Questions
 
-### 7.1. Source compatibility: mã nguồn của caller cũ còn biên dịch?
+### 7.1. Source Compatibility: Does Old Caller Source Code Still Compile?
 
-Xét các trường hợp:
+Consider these cases:
 
-- Thêm trường `private` kèm constructor cũ vẫn tồn tại có thể ít ảnh hưởng tới caller.
-- Thêm tham số bắt buộc vào constructor và **loại bỏ constructor cũ** làm lời gọi trước đây không còn biên dịch.
-- Thay tên getter, thay tên field `public` hoặc thay kiểu trả về có thể làm caller không biên dịch.
-- Thêm component vào record làm thay đổi canonical constructor và thêm accessor mới; constructor cũ chỉ còn nếu được cung cấp tương thích.
-- Đổi generic signature có thể gây lỗi compile tại caller dù JVM type erasure tạo ra một số tình huống đặc biệt; cần kiểm tra thực tế theo API được xuất bản.
+- Adding a `private` field while keeping the old constructor intact may have minimal impact on callers.
+- Adding a required parameter to a constructor and **removing the old constructor** causes prior calls to stop compiling.
+- Renaming a getter, renaming a `public` field, or changing a return type can break caller compilation.
+- Adding a component to a record changes the canonical constructor and adds a new accessor; the old constructor remains only if supplied for compatibility.
+- Changing generic signatures can cause compile errors at callers despite JVM type erasure creating certain special cases; verify directly against the published API.
 
-### 7.2. Binary compatibility: bytecode đã biên dịch còn chạy?
+### 7.2. Binary Compatibility: Does Already-Compiled Bytecode Still Run?
 
-Các module hoặc thư viện triển khai độc lập có thể đang dùng file `.class` được biên dịch trước đó. Nếu xóa/đổi descriptor của field, method, constructor mà bytecode gọi, runtime có thể phát sinh lỗi như `NoSuchFieldError`, `NoSuchMethodError` hoặc `IllegalAccessError` khi liên kết/truy cập.
+Independently deployed modules or libraries may still use previously compiled `.class` files. Removing or changing the descriptor of a field, method, or constructor invoked by bytecode can trigger runtime errors such as `NoSuchFieldError`, `NoSuchMethodError`, or `IllegalAccessError` during linking/access.
 
-Một thay đổi có thể **binary-compatible** nhưng **behavior-incompatible**: ví dụ API vẫn nguyên, song `equals` nay so thêm `tier` khiến số lượng phần tử trong `HashSet` tăng ngoài dự kiến. Đánh giá binary compatibility không đủ để đảm bảo hợp đồng đối tượng.
+A change can be **binary-compatible** yet **behavior-incompatible**: for example, the API remains identical, but `equals` now compares `tier` as well, causing `HashSet` element counts to grow unexpectedly. Checking binary compatibility is not enough to guarantee object contracts.
 
-### 7.3. Behavioral compatibility: kết quả sử dụng object có còn như trước?
+### 7.3. Behavioral Compatibility: Do Object Usage Results Remain the Same?
 
-Đặc biệt cần kiểm tra:
+Specifically verify:
 
-- Kết quả `equals` của hai bản biểu diễn cùng thực thể.
-- Giá trị `hashCode` phù hợp với equality trong cùng phiên bản.
-- Số lượng phần tử của `HashSet`, `TreeSet` và key trùng của `HashMap`, `TreeMap`.
-- Dedupe, cache key, memoization, grouping, batching và idempotency logic dựa vào equality.
-- So sánh giữa lớp cha và lớp con, cũng như qua các proxy/kiểu phát sinh từ framework.
-- Log và `toString` nếu đã bị bên ngoài vô tình sử dụng như định dạng dữ liệu.
+- `equals` results for two instances representing the same entity.
+- `hashCode` values matching equality within the same version.
+- Element counts in `HashSet`, `TreeSet` and duplicate keys in `HashMap`, `TreeMap`.
+- Deduplication, cache keys, memoization, grouping, batching, and idempotency logic relying on equality.
+- Comparisons between superclasses and subclasses, as well as through framework-generated proxies/types.
+- Logs and `toString` if external callers have inadvertently depended on them as a data format.
 
-### 7.4. Data compatibility: bản mới và bản cũ có đọc được dữ liệu của nhau?
+### 7.4. Data Compatibility: Can New and Old Versions Read Each Other's Data?
 
-Cần xét dữ liệu thực tế: Java object serialization (nếu dùng), JSON/XML, cache, database, event/message và snapshot. “Đã thêm một field” không tự trả lời được liệu dữ liệu **cũ thiếu field** có dùng được hay liệu consumer **cũ gặp field lạ** có chấp nhận hay không; điều này tùy thư viện, cấu hình, schema và chính sách xử lý mặc định.
+Examine actual data paths: Java object serialization (if used), JSON/XML, caches, databases, events/messages, and snapshots. "A field was added" does not by itself answer whether **old data missing the field** is usable or whether **old consumers seeing an unknown field** will accept it; that depends on the library, configuration, schema, and default-handling policy.
 
-Làm rõ **hai chiều** tương thích:
+Clarify **both directions** of compatibility:
 
-| Chiều | Câu hỏi |
+| Direction | Question |
 | --- | --- |
-| New reader ← Old data | Khi trường mới vắng mặt, có default/backfill/migration hợp lệ không? |
-| Old reader ← New data | Consumer cũ chấp nhận trường mới hay sẽ báo lỗi? |
-| Old service ↔ New service | Trong lúc rolling deployment, message và khóa logic có ổn định không? |
-| Persistence/cache | Dữ liệu/khóa phiên bản trước có thể bị đọc sai, miss hoặc tạo bản trùng không? |
+| New reader ← Old data | When the new field is absent, is there a valid default/backfill/migration? |
+| Old reader ← New data | Will old consumers accept the new field or fail with an error? |
+| Old service ↔ New service | During rolling deployment, are messages and logical keys stable? |
+| Persistence/cache | Can data/keys from an earlier version be misread, missed, or duplicated? |
 
-Nếu equality/hash code tham gia khóa cache hoặc định dạng ID lưu lâu dài, phải xem xét migration hoặc version của key. `hashCode` của Java **không** phù hợp để lưu làm định danh bền vững giữa các phiên bản hay JVM.
+If equality/hash codes participate in cache keys or long-lived stored ID formats, plan for key migration or versioning. Java's `hashCode` is **not** suitable to store as a durable identifier across versions or JVMs.
 
-## 8. Java serialization: xử lý riêng nếu lớp triển khai `Serializable`
+## 8. Java Serialization: Special Handling If the Class Implements `Serializable`
 
-Java native serialization lưu thông tin dạng object stream và áp dụng quy tắc tương thích phiên bản lớp. Một số điểm quan trọng:
+Native Java serialization stores information as an object stream and enforces class-version compatibility rules. Key points:
 
-- `serialVersionUID` dùng để kiểm tra tương thích phiên bản serialization của các lớp serializable thông thường. Nếu UID nhận từ stream khác UID của lớp cục bộ và quy tắc kiểm tra áp dụng, deserialization có thể ném `InvalidClassException`.
-- Khi không khai báo `serialVersionUID`, JVM tính giá trị mặc định dựa trên cấu trúc lớp; các thay đổi lớp có thể làm giá trị này thay đổi ngoài ý muốn. Nếu có yêu cầu tương thích, khai báo UID rõ ràng ngay từ đầu và kiểm thử với dữ liệu cũ.
-- Với **thay đổi tương thích** và UID phù hợp, stream cũ không có field mới có thể được đọc với giá trị mặc định Java của field mới: `null`, `0`, `false`, v.v. Đây chưa chắc là giá trị **hợp lệ về nghiệp vụ**.
-- Tương thích serialization **không** đồng nghĩa tương thích equality: object khôi phục có trường mới bằng `null` có thể cho kết quả `equals`/`hashCode` khác và có thể khiến mã xử lý bị `NullPointerException`.
-- Đổi kiểu, cấu trúc kế thừa, kiểu đối tượng hay các cơ chế serializing có những ràng buộc riêng; chỉ giữ nguyên UID không biến mọi thay đổi thành tương thích.
-- Java record có cơ chế serialization đặc thù, gồm việc dựng lại bằng canonical constructor; không suy diễn máy móc các quy tắc `serialVersionUID` của lớp thông thường sang record.
+- `serialVersionUID` checks serialization version compatibility for standard serializable classes. If the UID read from the stream differs from the local class's UID and validation applies, deserialization can throw `InvalidClassException`.
+- When `serialVersionUID` is omitted, the JVM computes a default value from the class structure; class changes can cause this value to shift unexpectedly. If compatibility is required, declare the UID explicitly from the start and test against legacy data.
+- With a **compatible change** and matching UID, an old stream lacking a new field can be read with Java's default value for that field: `null`, `0`, `false`, etc. This is not necessarily a **business-valid** value.
+- Serialization compatibility does **not** imply equality compatibility: a restored object whose new field is `null` may yield different `equals`/`hashCode` results and cause processing code to throw `NullPointerException`.
+- Changing types, inheritance hierarchies, object kinds, or custom serialization mechanisms carries distinct constraints; keeping the UID unchanged does not make every change compatible.
+- Java records have specialized serialization mechanics, including reconstruction via the canonical constructor; do not mechanically extrapolate regular class `serialVersionUID` rules to records.
 
-Ví dụ về ý tưởng, **không phải hai phiên bản cùng chạy trong một file**:
+Conceptual example—**not two versions running together in one file**:
 
 ```java
-// Phiên bản cũ:
+// Old version:
 class Profile implements java.io.Serializable {
     private static final long serialVersionUID = 1L;
     String id;
 }
 
-// Phiên bản mới, cùng tên binary của lớp khi được thay thế trong ứng dụng:
+// New version, with the same binary class name when replaced in the application:
 class Profile implements java.io.Serializable {
     private static final long serialVersionUID = 1L;
     String id;
-    String region; // dữ liệu cũ có thể đọc ra null trong trường hợp tương thích
+    String region; // old data may read as null in compatible cases
 }
 ```
 
-Đây là hai **bản phác thảo phiên bản tách biệt** nên không được biên dịch đồng thời dưới cùng tên lớp. Một cách kiểm thử có giá trị là dùng phiên bản cũ ghi ra file fixture, dùng phiên bản mới đọc fixture ấy, rồi kiểm tra giá trị mặc định, bất biến của đối tượng và equality. Làm thêm chiều ngược lại khi hệ thống cần hỗ trợ consumer cũ. Native Java serialization không được khuyến nghị làm định dạng trao đổi dữ liệu mới giữa những dịch vụ không tin cậy; cân nhắc định dạng có schema và chính sách tương thích rõ ràng.
+These are two **separate version sketches** and must not be compiled simultaneously under the same class name. A valuable test is using the old version to write a fixture file, reading that fixture with the new version, and verifying default values, object invariants, and equality. Test the reverse direction as well when the system must support old consumers. Native Java serialization is not recommended as a new data-exchange format between untrusted services; consider formats with explicit schemas and compatibility policies.
 
-## 9. Hợp đồng sắp xếp: `compareTo()` và `Comparator`
+## 9. Ordering Contracts: `compareTo()` and `Comparator`
 
-Thêm trường có thể làm thứ tự hiển thị thay đổi. Đây là vấn đề riêng với equality. Chẳng hạn trước đây sản phẩm sắp theo `sku`, sau đó theo `category` rồi `sku`. Nếu comparator dùng trong `TreeSet` hoặc `TreeMap`, hai khóa được coi là tương đương khi `compare(a, b) == 0`; cấu trúc cây dùng kết quả so sánh thứ tự để xác định tính trùng khóa.
+Adding a field can change display order. This is separate from equality. For instance, products were previously sorted by `sku`, and later by `category` then `sku`. If a comparator is used inside `TreeSet` or `TreeMap`, two keys are considered equivalent when `compare(a, b) == 0`; the tree structure uses ordering results to determine key uniqueness.
 
-Một ví dụ bất nhất: `equals` so `sku` **và** `revision`, nhưng comparator chỉ so `sku`. Hai đối tượng có cùng SKU và khác revision không `equals` nhau, nhưng `TreeSet` dùng comparator ấy chỉ giữ một phần tử cho cùng SKU. Java khuyến nghị natural ordering của `Comparable` nhất quán với `equals` để tuân hợp đồng `Set`/`Map` dễ dự đoán; comparator cố ý khác phải được tài liệu hóa và kiểm tra theo mục đích.
+An example of inconsistency: `equals` compares `sku` **and** `revision`, whereas the comparator compares only `sku`. Two objects with the same SKU and different revisions are not `equals`, yet a `TreeSet` using that comparator keeps only one element per SKU. Java recommends that `Comparable`'s natural ordering be consistent with `equals` for predictable `Set`/`Map` contract behavior; intentionally inconsistent comparators must be documented and tested for their intended purpose.
 
-Để giữ ổn định:
+To maintain stability:
 
-1. Quy định rõ trường nào quyết định **bằng nhau** và trường nào quyết định **thứ tự**.
-2. Với `TreeSet`/`TreeMap`, kiểm tra tác động khi `compareTo` hoặc comparator coi các object khác nhau là cùng khóa.
-3. Nếu cần thứ tự hiển thị riêng, dùng comparator khi sort một collection phù hợp, thay vì mặc nhiên dùng nó làm định nghĩa uniqueness.
-4. Nếu trường dùng để sắp xếp là mutable, thay đổi nó khi object đang nằm trong cấu trúc cây có thể làm bất biến thứ tự nội bộ bị phá vỡ; remove–update–reinsert hoặc dùng khóa immutable.
+1. Specify clearly which fields determine **equality** and which determine **ordering**.
+2. For `TreeSet`/`TreeMap`, check the impact when `compareTo` or a comparator treats different objects as the same key.
+3. If a separate display order is needed, pass a comparator when sorting an appropriate collection rather than using it as the uniqueness definition.
+4. If a field used for sorting is mutable, modifying it while the object is inside a tree structure can break internal ordering invariants; remove–update–reinsert or use immutable keys.
 
-## 10. Kế thừa và thay đổi kiểu: tránh phá tính đối xứng
+## 10. Inheritance and Type Changes: Avoiding Symmetry Violations
 
-Một lớp cha có `equals` cho phép `instanceof Base`, nhưng lớp con lại thêm một trường vào equality, có thể gây ra tình huống `base.equals(child)` đúng trong khi `child.equals(base)` sai. Đây là vi phạm **đối xứng**.
+A superclass whose `equals` allows `instanceof Base`, combined with a subclass adding a field to equality, can create a situation where `base.equals(child)` is true while `child.equals(base)` is false. That is a **symmetry** violation.
 
-Ví dụ về **mẫu thiết kế nguy hiểm** (minh họa, không khuyến nghị dùng làm ứng dụng):
+Example of a **dangerous design pattern** (illustrative, not recommended for application use):
 
 ```java
 class Base {
@@ -382,112 +382,112 @@ class Child extends Base {
 }
 ```
 
-Với `Base b = new Base("X"); Child c = new Child("X", "north");`, biểu thức `b.equals(c)` là `true`, còn `c.equals(b)` là `false`. Tình huống này thường xuất hiện khi phiên bản mới mở rộng hệ phân cấp và quyết định đưa thông tin bổ sung của subtype vào so sánh.
+With `Base b = new Base("X"); Child c = new Child("X", "north");`, the expression `b.equals(c)` is `true`, whereas `c.equals(b)` is `false`. This scenario often arises when a new version extends a hierarchy and decides to include the subtype's extra information in comparisons.
 
-Biện pháp thường dùng: thiết kế value type bất biến và `final` khi phù hợp; quy định chặt chẽ cách so sánh giữa các subtype; hoặc tránh inheritance cho value equality phức tạp và dùng composition. So sánh bằng `getClass()` có thể giữ ranh giới kiểu nghiêm ngặt hơn nhưng cũng có đánh đổi khi cần hỗ trợ proxy/subtype từ framework. Không đổi chiến lược equality toàn bộ hierarchy chỉ để xử lý một trường mới.
+Common remedies: design immutable `final` value types where appropriate; strictly specify how comparisons work across subtypes; or avoid inheritance for complex value equality and use composition. Comparing with `getClass()` enforces stricter type boundaries, though with trade-offs when framework proxies/subtypes must be supported. Do not change the equality strategy of an entire hierarchy just to accommodate one new field.
 
-## 11. Đánh giá ảnh hưởng tới API, cache, dữ liệu và hệ phân tán
+## 11. Assessing Impact on APIs, Caches, Data, and Distributed Systems
 
-Một lần thay đổi class nên đi theo đường phụ thuộc thực tế:
+A class change should be traced along actual dependency paths:
 
 ```text
-Field / constructor / record component thay đổi
+Field / constructor / record component changes
               |
               +--> equals / hashCode ----> HashMap, HashSet, cache, dedupe
               |
-              +--> compareTo / Comparator -> TreeMap, TreeSet, sắp xếp
+              +--> compareTo / Comparator -> TreeMap, TreeSet, sorting
               |
-              +--> toString -------------> logs, diagnostics, biểu diễn
+              +--> toString -------------> logs, diagnostics, representation
               |
               +--> public API -----------> source/binary callers
               |
               +--> serialization --------> file, JSON, event, DB, cache
 ```
 
-Ví dụ hệ thống lưu cache theo một object key với `equals` dựa trên `customerId`. Phiên bản mới bổ sung `country` vào equality. Trong đợt triển khai đồng thời phiên bản cũ/mới:
+For example, a system caches by an object key whose `equals` is based on `customerId`. A new version adds `country` to equality. During a mixed deployment of old and new versions:
 
-- Khóa logic trước đây gom các bản cùng ID có thể phân mảnh theo quốc gia ở phiên bản mới.
-- Cache hit rate và số entry có thể thay đổi, ảnh hưởng bộ nhớ, hiệu năng, kết quả dedupe.
-- Nếu hệ thống dùng key string bền vững do ứng dụng xây dựng từ các trường, định dạng key cũng phải được version hoặc migration.
-- Khi dữ liệu cũ thiếu `country`, cần quy tắc phân loại hợp lệ thay vì tự coi `null` là quốc gia thực.
+- Logical keys that previously grouped records with the same ID may fragment by country in the new version.
+- Cache hit rates and entry counts may shift, affecting memory, performance, and deduplication results.
+- If the system uses durable string keys built from fields, the key format must also be versioned or migrated.
+- When old data lacks `country`, a valid classification rule is needed rather than treating `null` as a real country.
 
-Không trao đổi trực tiếp hash code do JVM tạo như một mã định danh cross-service. Nếu muốn định danh qua dịch vụ, dùng business ID có schema ổn định, hoặc xây dựng khóa định danh được quy định rõ (bao gồm namespace/tenant nếu cần).
+Do not pass JVM-generated hash codes directly as cross-service identifiers. If you need cross-service identity, use a business ID with a stable schema, or build a well-specified identifier key (including namespace/tenant if needed).
 
-## 12. Quy trình thay đổi lớp có kiểm soát
+## 12. Controlled Process for Modifying a Class
 
-### Bước 1 — Ghi rõ tính chất của trường mới
+### Step 1 — State the Nature of the New Field
 
-Chọn một trong các vai trò (có thể có hơn một, cần chỉ ra cụ thể): khóa logic, thuộc tính giá trị, dữ liệu mô tả, trường hiển thị, trạng thái runtime, trường dẫn xuất, giá trị chỉ dùng cho phiên bản giao thức. Hỏi: “Hai object khác nhau chỉ ở trường này có cần được xem là cùng giá trị không?”
+Pick one of the roles (there may be more than one; state specifically): logical key, value attribute, descriptive data, display field, runtime state, derived field, or protocol-version-only value. Ask: "Should two objects differing only in this field be considered the same value?"
 
-### Bước 2 — Liệt kê hợp đồng cần tác động
+### Step 2 — List Affected Contracts
 
-Kiểm tra `equals`, `hashCode`, `compareTo`/comparator, `toString`, constructor, accessor, serialization mapping, schema, cache key, validation và các ràng buộc của entity ORM. Với `record`, rà lại phương thức được compiler sinh. Với class dùng Lombok hoặc thư viện sinh mã, xem cấu hình include/exclude của các trường trong equality/toString và mã thực sự được sinh.
+Review `equals`, `hashCode`, `compareTo`/comparators, `toString`, constructors, accessors, serialization mappings, schemas, cache keys, validation, and ORM entity constraints. For `record`, review compiler-generated methods. For classes using Lombok or code-generation libraries, inspect field include/exclude configurations for equality/toString and the actual generated code.
 
-### Bước 3 — Xác định mức độ tương thích cần giữ
+### Step 3 — Determine the Required Compatibility Level
 
-Phân loại rõ: source, binary, behavioral, data. Đọc yêu cầu rollout: có consumer biên dịch cũ, tiến trình chạy đồng thời nhiều phiên bản, dữ liệu cache cũ, file serialized cũ hoặc message còn tồn đọng không? Chỉ lựa chọn chiến lược tương thích cho các hướng thực sự cần hỗ trợ.
+Classify explicitly: source, binary, behavioral, data. Check rollout requirements: are there previously compiled consumers, multiple versions running concurrently, legacy cache data, legacy serialized files, or in-flight messages? Only build compatibility strategies for the directions you truly need to support.
 
-### Bước 4 — Chuẩn bị migration khi semantics thay đổi
+### Step 4 — Prepare Migration When Semantics Change
 
-Có thể cần chuyển sang khóa logic độc lập, áp default hợp lệ cho field mới, chuyển dữ liệu đã lưu, thay phiên bản cache key, làm mới index, hoặc triển khai thay đổi theo pha để cả producer và consumer hiểu cùng một schema trong giai đoạn chuyển tiếp. Các lựa chọn phụ thuộc hệ thống; **không** có thao tác tự động an toàn cho mọi lớp.
+You may need to extract an independent logical key, apply valid defaults for the new field, migrate stored data, version cache keys, rebuild indexes, or roll out changes in phases so both producers and consumers understand the same schema during transition. The choices depend on the system; there is **no** automatic operation safe for every class.
 
-### Bước 5 — Test hợp đồng và hành vi tích hợp
+### Step 5 — Test Contracts and Integration Behavior
 
-Viết test với dữ liệu cả phiên bản cũ lẫn mới. Test nhất quán của equality/hash, phân biệt immutable và mutable key; đồng thời test tập hợp/map đã được sử dụng trong thực tế. Chạy compatibility fixture với schema/serialized data khi có persistence.
+Write tests with both old and new data versions. Test equality/hash consistency, distinguish immutable and mutable keys, and test actual collections/maps in use. Run compatibility fixtures with schemas/serialized data when persistence exists.
 
-### Bước 6 — Tài liệu hóa và công bố thay đổi
+### Step 6 — Document and Publish Changes
 
-Nếu public library/API thay đổi, ghi migration guide, release notes, default mới, thay đổi constructor, JSON field, hành vi equality. Tăng version theo chính sách phát hành của dự án; không giả định rằng chỉ tăng số phiên bản sẽ tự tạo tương thích.
+If a public library/API changes, write migration guides, release notes, new defaults, constructor changes, JSON fields, and equality behavior. Bump the version according to the project's release policy; never assume bumping a version number creates compatibility on its own.
 
-## 13. Ma trận kiểm thử thực tế
+## 13. Practical Test Matrix
 
-| Trường hợp thử | Mục đích | Kết quả kỳ vọng |
+| Test Case | Purpose | Expected Result |
 | --- | --- | --- |
-| `x.equals(x)`; `x.equals(null)` | Phản xạ/null | `true`; `false` |
-| `x.equals(y)` và `y.equals(x)` | Đối xứng, kể cả base/subclass | Hai kết quả giống nhau |
-| `x == y` nhưng bản sao dữ liệu độc lập | Phân biệt identity/value equality | Quyết định đúng theo contract đã định |
-| `x.equals(y)` đúng | Hợp đồng hash | `x.hashCode() == y.hashCode()` |
-| Chỉ đổi trường mô tả không tham gia equality | Ổn định khóa logic | `equals` không đổi, map vẫn tìm được |
-| Đổi trường thật sự tham gia equality | Xác nhận semantics mới | Cặp object có thể từ bằng thành khác; test có chủ đích |
-| Khóa mutable đã nằm trong map | Phát hiện rủi ro | Không cho phép sửa trực tiếp hoặc có chiến lược reinsert |
-| Thay comparator/`compareTo` | Tương thích với uniqueness của cây | Không mất item sai yêu cầu |
-| Deserialize old fixture bằng lớp mới | Dữ liệu cũ | Default/migration đúng; bất biến không bị phá |
-| Đọc new data bằng old consumer | Rolling deployment | Thành công hoặc chủ động chặn theo chính sách |
-| Biên dịch caller cũ và chạy binary cũ | API/bytecode | Không có lỗi biên dịch/liên kết ngoài phạm vi phá vỡ đã công bố |
-| Ghi log từ `toString` | Dữ liệu bảo mật và quan sát | Không lộ token, mật khẩu, thông tin nhạy cảm |
+| `x.equals(x)`; `x.equals(null)` | Reflexivity/null | `true`; `false` |
+| `x.equals(y)` and `y.equals(x)` | Symmetry, including base/subclass | Both results match |
+| `x == y` vs. independent data copies | Distinguish identity/value equality | Decision matches defined contract |
+| `x.equals(y)` is true | Hash contract | `x.hashCode() == y.hashCode()` |
+| Change only descriptive field excluded from equality | Logical key stability | `equals` unchanged, map still finds key |
+| Change field truly participating in equality | Verify new semantics | Pair can flip from equal to unequal; intentional test |
+| Mutable key already inside a map | Risk detection | Disallow direct mutation or have a reinsert strategy |
+| Change comparator/`compareTo` | Compatibility with tree uniqueness | No unintended loss of items |
+| Deserialize old fixture with new class | Legacy data | Defaults/migration valid; invariants preserved |
+| Read new data with old consumer | Rolling deployment | Succeeds or actively rejected per policy |
+| Compile old callers and run old binaries | API/bytecode | No compile/linkage errors outside announced breaking scope |
+| Log output from `toString` | Security and observability | No leaked tokens, passwords, or sensitive info |
 
-Khi đổi equality, một bài test chỉ kiểm tra `equals` là chưa đủ: cần xác minh cách `HashMap` lấy lại cùng khóa, cách `HashSet` loại phần tử trùng và cách `TreeSet` xác định trùng theo comparator. Nếu ứng dụng dùng cache hay storage, test với dữ liệu thực tế của phiên bản trước quan trọng hơn chỉ tạo test object mới.
+When changing equality, a test checking only `equals` is not enough: verify how `HashMap` retrieves the same key, how `HashSet` deduplicates elements, and how `TreeSet` determines duplicates via its comparator. If the application uses caches or storage, testing with real data from the previous version matters more than only creating new test objects.
 
-## 14. Những nhầm lẫn cần tránh
+## 14. Misconceptions to Avoid
 
-**“Thêm field thì IDE sinh lại `equals/hashCode` với tất cả field.”** Cách sinh mã tự động không thay bạn quyết định identity/value semantics. Nó có thể vô tình biến trường hiển thị, timestamp hay trường mutable thành thành phần khóa.
+**"When adding a field, let the IDE regenerate `equals/hashCode` with all fields."** Auto-generation cannot decide identity/value semantics for you. It can accidentally turn display fields, timestamps, or mutable fields into key components.
 
-**“`serialVersionUID` giữ nguyên thì mọi phiên bản đều tương thích.”** UID không giải quyết mọi thay đổi kiểu/cấu trúc, bất biến nghiệp vụ hoặc thay đổi equality sau khi đọc dữ liệu.
+**"Keeping `serialVersionUID` unchanged makes every version compatible."** UID does not solve every type/structure change, business invariant, or post-deserialization equality change.
 
-**“Không đổi chữ ký phương thức nghĩa là không phá client.”** Client vẫn có thể sai vì `equals` thay đổi, comparator đổi thứ tự hoặc JSON representation khác.
+**"Unchanged method signatures mean clients won't break."** Clients can still break because `equals` changed, a comparator changed order, or JSON representation shifted.
 
-**“Cùng hash code tức là cùng object/cùng giá trị.”** Có thể có va chạm; chỉ kết hợp `equals` theo hợp đồng thích hợp khi so sánh value equality. Với reference identity, dùng `==` và cấu trúc dữ liệu theo identity.
+**"Same hash code means same object/same value."** Collisions can occur; always pair with `equals` per the appropriate contract when comparing value equality. For reference identity, use `==` and identity-based data structures.
 
-**“Mọi field trong record đều là business identity.”** Record mang tính giá trị với equality được sinh trên toàn bộ component theo mặc định; lựa chọn record component phải phù hợp semantics. Có thể tách object mô tả và value key khi không muốn mọi trường tham gia equality.
+**"Every field in a record is business identity."** Records are value-oriented with equality generated across all components by default; component selection must match semantics. Separate descriptive objects from value keys when you do not want every field in equality.
 
-**“Tương thích hai chiều luôn cần thiết.”** Chỉ xây dựng những chiều cần theo sơ đồ deploy và vòng đời dữ liệu; nhưng phải xác định rõ trước khi phát hành. Trong rolling deployment, khả năng chạy đồng thời hai phiên bản thường quan trọng.
+**"Bidirectional compatibility is always required."** Build only the directions needed by the deployment topology and data lifecycle; however, decide them explicitly before release. In rolling deployments, running two versions concurrently is often critical.
 
-## 15. Bài tập tư duy
+## 15. Thought Exercises
 
-**Tình huống 1.** `User` có `id` bất biến và `displayName`. Phiên bản sau thêm `avatarUrl`. Mục tiêu: một ID là một người dùng duy nhất trong cache. Có nên tự động đưa `avatarUrl` vào `equals`/`hashCode`?
+**Scenario 1.** `User` has an immutable `id` and `displayName`. A later version adds `avatarUrl`. Goal: one ID maps to one unique user in the cache. Should `avatarUrl` automatically be added to `equals`/`hashCode`?
 
-**Gợi ý:** Không, nếu business equality xác định theo ID. Trường mô tả có thể đổi thường xuyên; cần bảo đảm contract dùng đúng ID duy nhất trong phạm vi (ví dụ `tenantId + id`).
+**Hint:** No, if business equality is defined by ID. Descriptive fields can change frequently; ensure the contract uses an ID that is truly unique within its scope (for example `tenantId + id`).
 
-**Tình huống 2.** `record Price(String currency, long minorUnits)` được mở rộng thêm `taxCategory` và hệ thống bỗng giữ nhiều price key hơn trong `HashMap`. Điều gì phải kiểm tra trước?
+**Scenario 2.** `record Price(String currency, long minorUnits)` is extended with `taxCategory`, and the system suddenly keeps more price keys in a `HashMap`. What must be checked first?
 
-**Gợi ý:** `record` sinh equality/hash từ các component; xác nhận `taxCategory` có thực sự làm hai giá trị giá khác nhau theo nghiệp vụ không. Nếu có, kết quả phân biệt là đúng và consumer/cache cần cập nhật; nếu không, thiết kế lại biểu diễn giá trị/khóa hoặc triển khai equality một cách có chủ đích.
+**Hint:** `record` generates equality/hash from its components; verify whether `taxCategory` genuinely makes two price values distinct in the business domain. If yes, the distinction is right and consumers/caches need updating; if not, redesign the value/key representation or implement equality deliberately.
 
-**Tình huống 3.** Bản mới của một lớp `Serializable` thêm `region`. Đọc file của bản cũ cho `region == null`, sau đó `equals` gọi `region.equals(...)` và ném `NullPointerException`. Lỗi thuộc lớp tương thích nào?
+**Scenario 3.** A new version of a `Serializable` class adds `region`. Reading an old file gives `region == null`, and then `equals` calls `region.equals(...)` and throws `NullPointerException`. Which compatibility layer failed?
 
-**Gợi ý:** Dù bước đọc có thể tương thích ở mức serialization, **bất biến object và behavioral compatibility** chưa được bảo vệ. Cần migration/default hợp lệ trước khi dùng object trong logic.
+**Hint:** Even though the read step succeeded at the serialization level, **object invariants and behavioral compatibility** were not protected. Valid migration/defaults are needed before using the object in logic.
 
-**Tình huống 4.** Lớp `Task` dùng `hashCode` dựa trên `status`, và status thay đổi từ `QUEUED` thành `DONE` khi task đang là khóa `HashMap`. Có thể giữ thiết kế này không?
+**Scenario 4.** Class `Task` bases `hashCode` on `status`, and `status` changes from `QUEUED` to `DONE` while the task is a `HashMap` key. Can this design be kept?
 
-**Gợi ý:** Không an toàn nếu cần tra cứu lại cùng entry. Thiết kế khóa ổn định (`taskId`) hoặc cấu trúc theo trường trạng thái có quy trình remove–update–reinsert nhất quán.
+**Hint:** Unsafe if the same entry must be looked up again. Design a stable key (`taskId`) or index by status with a consistent remove–update–reinsert workflow.
 
-**Ghi nhớ:** Khi thêm trường hoặc thay đổi phiên bản lớp, hãy trả lời đồng thời: **(1) thế nào là bằng nhau, (2) khóa có ổn định trong collection không, (3) caller cũ còn dùng được API/bytecode không, và (4) dữ liệu cũ/mới được chuyển đổi ra sao**. Đây là những quyết định hợp đồng cần chủ động kiểm thử và truyền đạt.
+**Remember:** when adding fields or changing class versions, answer all four questions together: **(1) what makes objects equal, (2) are keys stable in collections, (3) can old callers still use the API/bytecode, and (4) how is old/new data converted**. These are contract decisions that must be actively tested and communicated.

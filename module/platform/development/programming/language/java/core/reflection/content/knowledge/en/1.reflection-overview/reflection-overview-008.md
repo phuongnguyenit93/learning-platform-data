@@ -1,55 +1,55 @@
-# Kiến thức tiên quyết, phạm vi Java Core và trình tự học Reflection
+# Prerequisites, Java Core Scope, and Learning Sequence for Reflection
 
-## 1. Mục đích của lộ trình
+## 1. Purpose of This Roadmap
 
-Reflection cho phép Java khám phá metadata của một kiểu khi chương trình đang chạy và, khi được phép, tìm constructor, method hoặc field để thao tác động. Chủ đề này nằm ở giao điểm giữa **kiểu dữ liệu**, **cơ chế gọi phương thức**, **quyền truy cập** và **metadata**. Học theo thứ tự hợp lý giúp bạn phân biệt được lúc nào chỉ quan sát cấu trúc, lúc nào chương trình thật sự thực thi hoặc thay đổi trạng thái.
+Reflection allows Java to discover a type's metadata while the program is running and, when permitted, locate constructors, methods, or fields for dynamic manipulation. This topic sits at the intersection of **data types**, **method invocation mechanisms**, **access permissions**, and **metadata**. Learning in a logical order helps you tell apart when you are merely observing structure and when the program is actually executing code or mutating state.
 
-Bài này đóng vai trò **bản đồ học tập**: xác định nền tảng cần có, ranh giới của Reflection trong Java Core, chuỗi bài thực hành và tiêu chí tự đánh giá. Các bài chuyên đề trong chương sẽ giải thích chi tiết từng API, cơ chế generic, annotation và những lựa chọn thiết kế liên quan.
+This lesson serves as a **learning map**: defining the required foundation, the boundaries of Reflection within Java Core, the practice sequence, and self-assessment criteria. The dedicated lessons in this chapter explain each API, generic mechanisms, annotations, and related design choices in detail.
 
-Sau bài này, bạn nên tự trả lời được: “Tôi đã đủ kiến thức bắt đầu chưa?”, “Tôi cần học gì trước khi thử gọi method bằng Reflection?” và “Một bài thực hành thế nào mới chứng minh tôi đã hiểu thay vì chỉ chép mã chạy được?”.
+After this lesson, you should be able to answer for yourself: "Do I have enough background to start?", "What do I need to learn before trying to invoke a method via Reflection?", and "What kind of practice exercise proves I truly understand instead of just copying runnable code?"
 
-## 2. Kiến thức nên có trước khi bắt đầu
+## 2. Recommended Knowledge Before Starting
 
-| Nền tảng | Bạn cần làm được | Liên hệ với Reflection |
+| Foundation | What You Should Be Able to Do | Connection to Reflection |
 | --- | --- | --- |
-| Class và instance | Tạo object, phân biệt biến tham chiếu với đối tượng thật | `Class<?>` đại diện kiểu; object chứa trạng thái |
-| Constructor, field, method | Viết constructor có tham số và method có giá trị trả về | Có các đối tượng metadata `Constructor`, `Field`, `Method` tương ứng |
-| Kế thừa và interface | Phân biệt override với overload, hiểu phương thức kế thừa | Kết quả tìm member phụ thuộc kiểu, chữ ký và quy tắc kế thừa |
-| Phạm vi truy cập | Hiểu `public`, `protected`, package-private, `private`, `static` | Tìm được metadata không đồng nghĩa được phép truy cập |
-| Package, JDK và classpath | Biên dịch/chạy file Java, biết tên lớp đầy đủ | `Class.forName` cần tên nhị phân và class loader phù hợp |
-| Primitive, wrapper, array | Phân biệt `int` với `Integer` và kiểu mảng | Tra cứu constructor/method dùng kiểu tham số chính xác |
-| Exception | Đọc stack trace, nhận biết checked và unchecked exception | Lỗi tra cứu, khởi tạo và gọi động xuất hiện ở các bước khác nhau |
-| Generic và annotation | Biết `List<String>`, wildcard, cú pháp `@Annotation` | Chuẩn bị cho type erasure, `Type` và runtime retention |
+| Classes and instances | Create objects, distinguish reference variables from real objects | `Class<?>` represents a type; objects hold state |
+| Constructors, fields, methods | Write parameterized constructors and methods with return values | Corresponding metadata objects exist: `Constructor`, `Field`, `Method` |
+| Inheritance and interfaces | Distinguish overriding from overloading, understand inherited methods | Member lookup results depend on types, signatures, and inheritance rules |
+| Access scope | Understand `public`, `protected`, package-private, `private`, `static` | Finding metadata does not mean access is permitted |
+| Packages, JDK, and classpath | Compile/run Java files, know fully qualified class names | `Class.forName` needs a binary name and an appropriate class loader |
+| Primitives, wrappers, arrays | Distinguish `int` from `Integer` and array types | Constructor/method lookups require exact parameter types |
+| Exceptions | Read stack traces, recognize checked and unchecked exceptions | Lookup, instantiation, and dynamic-call errors happen at different steps |
+| Generics and annotations | Know `List<String>`, wildcards, `@Annotation` syntax | Prepares you for type erasure, `Type`, and runtime retention |
 
-**Mức tối thiểu:** Bạn có thể bắt đầu phần quan sát metadata nếu biết viết một class, tạo instance và gọi method thông thường. Trước khi đi sâu vào generic/annotation, hãy ôn thêm các khái niệm tương ứng; không nhất thiết thành thạo hai chủ đề này ngay từ bài đầu.
+**Minimum bar:** You can start the metadata observation section if you know how to write a class, create instances, and call regular methods. Before diving into generics/annotations, review the corresponding concepts; mastering both from the very first lesson is not required.
 
-### Bài tự kiểm tra trong 10 phút
+### 10-Minute Self-Check Exercise
 
-Tự viết một lớp `Student` có field `private String name`, constructor `public Student(String name)` và method `public String greet()`. Sau đó, không dùng Reflection, hãy:
+Write a `Student` class yourself with a `private String name` field, a `public Student(String name)` constructor, and a `public String greet()` method. Then, without using Reflection:
 
-1. Tạo hai đối tượng có tên khác nhau và giải thích vì sao chúng cùng kiểu nhưng có trạng thái riêng.
-2. Thêm subclass `GraduateStudent` ghi đè `greet()`. Dự đoán kết quả khi gọi qua biến kiểu `Student`.
-3. Thêm overload `greet(String prefix)` và giải thích cách compiler phân biệt hai chữ ký.
-4. Thử đổi method thành `private` rồi quan sát lỗi khi gọi từ bên ngoài lớp.
+1. Create two objects with different names and explain why they share the same type yet hold separate state.
+2. Add a subclass `GraduateStudent` that overrides `greet()`. Predict the result when calling through a variable of type `Student`.
+3. Add an overload `greet(String prefix)` and explain how the compiler distinguishes the two signatures.
+4. Try changing a method to `private` and observe the error when calling it from outside the class.
 
-Nếu các bước này còn khó, hãy củng cố class/object, đa hình, phạm vi truy cập và exception trước. Đây là nền tảng để hiểu vì sao một `Method` có thể được tìm thấy nhưng lời gọi `invoke` vẫn thất bại.
+If these steps are still difficult, strengthen classes/objects, polymorphism, access scope, and exceptions first. That foundation is essential for understanding why a `Method` can be found yet an `invoke` call can still fail.
 
-## 3. Phạm vi Reflection trong Java Core
+## 3. Scope of Reflection in Java Core
 
-Chương này tập trung vào các API có sẵn trong JDK:
+This chapter focuses on APIs built into the JDK:
 
-- **`java.lang.Class`:** nhận dạng kiểu lúc chạy, tên kiểu, superclass, interface và cách khám phá các member.
-- **`java.lang.reflect`:** `Constructor`, `Method`, `Field`, `Modifier` và `Type` để đọc metadata; chỉ tạo đối tượng, gọi method, đọc/ghi field khi có mục đích và quyền hợp lệ.
-- **Annotation runtime:** đọc annotation theo retention và vị trí khai báo, phân biệt metadata với logic xử lý của framework.
-- **Ranh giới của Reflection:** declared/inherited, access control, Java Platform Module System (JPMS), type erasure, ngoại lệ, hiệu năng và khả năng bảo trì.
+- **`java.lang.Class`:** runtime type identification, type names, superclasses, interfaces, and member discovery.
+- **`java.lang.reflect`:** `Constructor`, `Method`, `Field`, `Modifier`, and `Type` for reading metadata; creating objects, invoking methods, or reading/writing fields only with clear intent and valid permissions.
+- **Runtime annotations:** reading annotations according to retention and declaration location, distinguishing metadata from framework processing logic.
+- **Boundaries of Reflection:** declared/inherited, access control, the Java Platform Module System (JPMS), type erasure, exceptions, performance, and maintainability.
 
-**Không thuộc mục tiêu chính:** tự xây dựng một DI container/ORM hoàn chỉnh, thay đổi bytecode bằng ASM/Byte Buddy, instrumentation agent, JNI, cơ chế ClassLoader phức tạp, hoặc tối ưu nâng cao với `MethodHandle`/`VarHandle`. Những chủ đề này có thể sử dụng hoặc bổ sung Reflection, nhưng không phải điều kiện để làm chủ API cơ bản.
+**Out of primary scope:** building a full DI container/ORM from scratch, bytecode manipulation with ASM/Byte Buddy, instrumentation agents, JNI, complex `ClassLoader` mechanisms, or advanced optimization with `MethodHandle`/`VarHandle`. Those topics may use or complement Reflection, but they are not prerequisites for mastering the core APIs.
 
-Reflection cũng không thay thế interface, đa hình hay lời gọi trực tiếp. Nếu chương trình đã biết kiểu và hành vi lúc biên dịch, hãy ưu tiên API Java thông thường. Khi một thư viện phải quan sát kiểu do ứng dụng khác cung cấp ở runtime, Reflection mới thể hiện rõ giá trị.
+Reflection also does not replace interfaces, polymorphism, or direct calls. If the program already knows the types and behaviors at compile time, prefer normal Java APIs. When a library must inspect types supplied by another application at runtime, that is where Reflection shows its clear value.
 
-## 4. Một điểm xuất phát nhỏ: chỉ đọc metadata
+## 4. A Small Starting Point: Reading Metadata Only
 
-Thực hành đầu tiên nên **quan sát** trước khi khởi tạo hay gọi động. Tạo file `FirstMetadataCheck.java`:
+Your first hands-on step should **observe** before instantiating or calling dynamically. Create the file `FirstMetadataCheck.java`:
 
 ~~~java
 import java.lang.reflect.Method;
@@ -66,14 +66,14 @@ public class FirstMetadataCheck {
 }
 ~~~
 
-Chạy với JDK 17 trở lên:
+Run with JDK 17 or later:
 
 ~~~bash
 javac FirstMetadataCheck.java
 java FirstMetadataCheck
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 java.lang.String
@@ -81,71 +81,71 @@ substring
 String
 ~~~
 
-Bạn vừa lấy một `Class<?>`, tìm metadata của phương thức public có tham số `int` và đọc kiểu trả về của nó. Chưa có đối tượng `String` nào bị sửa, cũng chưa gọi `substring`. Thử thay `int.class` bằng `Integer.class` để quan sát `NoSuchMethodException`: tra cứu chữ ký bằng Reflection không tự coi primitive và wrapper là một kiểu.
+You just obtained a `Class<?>`, looked up metadata for a public method taking an `int` parameter, and read its return type. No `String` object was mutated, nor was `substring` invoked. Try replacing `int.class` with `Integer.class` to observe `NoSuchMethodException`: signature lookup in Reflection does not treat primitives and wrappers as the same type.
 
-Ví dụ này chỉ giới thiệu kỹ năng đầu tiên. Khi chuyển sang gọi phương thức hoặc tạo instance, bạn sẽ dùng `Method.invoke` hoặc `Constructor.newInstance` và cần thêm kiểm tra receiver, quyền truy cập và cách xử lý lỗi.
+This example introduces only the first skill. When moving on to invoking methods or creating instances, you will use `Method.invoke` or `Constructor.newInstance` and will also need receiver checks, access permissions, and error handling.
 
-## 5. Trình tự học: từ hiểu kiểu đến dùng API có kiểm soát
+## 5. Learning Sequence: From Understanding Types to Controlled API Usage
 
-| Chặng | Trọng tâm | Bằng chứng bạn đã hiểu |
+| Stage | Focus | Evidence of Understanding |
 | --- | --- | --- |
-| **0. Ôn Java Core** | Class/object, overload, override, constructor, access modifier và exception | Hoàn thành bài `Student` mà không dùng Reflection |
-| **1. Kiểu tĩnh và kiểu runtime** | `SomeType.class`, `obj.getClass()`, `Class.forName`; phân biệt kiểu biến với lớp thực của object | Giải thích vì sao `Animal a = new Dog()` có hai góc nhìn về kiểu |
-| **2. Khám phá cấu trúc** | `Class` và họ `get...` / `getDeclared...`; tên, modifier, constructor, method, field | Liệt kê được member, ghi rõ declared/public/inherited, không dựa vào thứ tự trả về |
-| **3. Ranh giới quan sát và thực thi** | Metadata so với `Field.get`, `Field.set`, `Method.invoke`, `Constructor.newInstance` | Chỉ ra dòng nào đọc metadata và dòng nào có thể thay đổi trạng thái |
-| **4. Metadata trong quan hệ kiểu** | Kế thừa, generic `Type`, type erasure, annotation runtime và `@Inherited` | Giải thích được metadata khai báo có thể tồn tại dù type argument của instance đã bị erasure |
-| **5. Giới hạn và lỗi** | Sai tên/chữ ký, quyền truy cập, JPMS, exception do method đích ném, input không tin cậy | Chẩn đoán đúng bước hỏng thay vì thêm `setAccessible(true)` bừa bãi |
-| **6. Tích hợp và lựa chọn thiết kế** | Ví dụ plugin, inspector, interface/`ServiceLoader`, đánh đổi về hiệu năng và bảo trì | Biết khi nào Reflection cần thiết và khi nào API trực tiếp đủ dùng |
+| **0. Java Core Review** | Classes/objects, overloading, overriding, constructors, access modifiers, and exceptions | Complete the `Student` exercise without using Reflection |
+| **1. Static and Runtime Types** | `SomeType.class`, `obj.getClass()`, `Class.forName`; distinguishing variable type from object's actual class | Explain why `Animal a = new Dog()` has two type perspectives |
+| **2. Structure Discovery** | `Class` and the `get...` / `getDeclared...` families; names, modifiers, constructors, methods, fields | List members, distinguish declared/public/inherited, without relying on return order |
+| **3. Observation vs. Execution Boundary** | Metadata vs. `Field.get`, `Field.set`, `Method.invoke`, `Constructor.newInstance` | Point out which lines read metadata and which lines can mutate state |
+| **4. Metadata in Type Relationships** | Inheritance, generic `Type`, type erasure, runtime annotations, and `@Inherited` | Explain why declaration metadata can exist even when an instance's type argument is erased |
+| **5. Limits and Errors** | Wrong names/signatures, access permissions, JPMS, exceptions thrown by target methods, untrusted input | Diagnose the exact failing step instead of blindly adding `setAccessible(true)` |
+| **6. Integration and Design Choices** | Plugin example, inspector, interfaces/`ServiceLoader`, performance and maintainability trade-offs | Know when Reflection is necessary and when direct APIs suffice |
 
-Lộ trình không bắt buộc người học thuộc hàng chục tên method. Ở mỗi chặng, hãy ghi lại ba điều: **dữ liệu đầu vào là gì**, **đối tượng/API trả về diễn tả điều gì**, và **khi nào một lời gọi có thể thực thi mã hoặc ném lỗi**.
+This roadmap does not require memorizing dozens of method names. At each stage, note three things: **what the input data is**, **what the returned object/API represents**, and **when a call can execute code or throw an error**.
 
-### Bốn mốc kiểm tra cần vượt qua
+### Four Checkpoints to Pass
 
-**Mốc A — Biết đang xét kiểu nào.** Tạo một biến kiểu cha giữ instance lớp con. So sánh kết quả của `Parent.class` và `instance.getClass()`; giải thích bằng compiler và runtime. Nếu không hiểu khác biệt này, đừng dùng `getDeclaredMethods()` để suy ra “mọi method được phép gọi”.
+**Checkpoint A — Know which type you are inspecting.** Create a superclass-typed variable holding a subclass instance. Compare the outputs of `Parent.class` and `instance.getClass()`; explain them in terms of compiler and runtime. If you do not understand this difference, do not use `getDeclaredMethods()` to infer "every callable method."
 
-**Mốc B — Tách tra cứu khỏi hành động.** Từ một `Class<?>`, chỉ đọc tên, modifier và chữ ký của member; xác nhận chưa gọi method đích. Sau đó thử một lời gọi `invoke` có chủ đích, quan sát thay đổi trạng thái để thấy điểm chuyển pha.
+**Checkpoint B — Separate lookup from action.** From a `Class<?>`, read only member names, modifiers, and signatures; verify that the target method has not been called. Then intentionally perform one `invoke` call and observe the state change to see the transition point.
 
-**Mốc C — Hiểu metadata có giới hạn.** Đọc generic signature của một field `List<String>` và so sánh với `getClass()` của đối tượng `ArrayList`; thử annotation có `RetentionPolicy.RUNTIME`. Giải thích vì sao metadata khai báo không bảo đảm giá trị runtime thỏa mọi ràng buộc generic.
+**Checkpoint C — Understand metadata limits.** Read the generic signature of a `List<String>` field and compare it with `getClass()` of an `ArrayList` object; test an annotation with `RetentionPolicy.RUNTIME`. Explain why declaration metadata does not guarantee that runtime values satisfy every generic constraint.
 
-**Mốc D — Thiết kế có hợp đồng.** Nạp một implementation theo cấu hình, kiểm tra nó thực sự triển khai interface đã công bố, rồi gọi nghiệp vụ qua interface. Đánh giá liệu factory/registry hoặc `ServiceLoader` có giải quyết yêu cầu đơn giản hơn không.
+**Checkpoint D — Contract-based design.** Load an implementation from configuration, verify that it actually implements the published interface, and then invoke business logic through the interface. Evaluate whether a factory/registry or `ServiceLoader` could solve the requirement more simply.
 
-## 6. Bài thực hành tổng hợp: xây ClassInspector
+## 6. Capstone Practice: Building ClassInspector
 
-Sau khi đã học các chặng, hãy viết `ClassInspector` nhận một `Class<?>` và tạo báo cáo về kiểu. Mục tiêu đầu tiên là một **công cụ chỉ đọc**, vì nhiệm vụ khám phá không cần tự động thực thi code nghiệp vụ.
+After completing the stages, write `ClassInspector` that takes a `Class<?>` and generates a report about the type. The first goal is a **read-only tool**, since discovery tasks do not need to automatically execute business code.
 
-Phiên bản đầu cần in tên nhị phân và tên đơn giản, superclass, interface trực tiếp, constructor, method và field cùng modifier. Hãy thử trên ba kiểu: lớp đơn giản, lớp con có method override, và lớp có annotation runtime.
+The initial version should print the binary name and simple name, superclass, direct interfaces, constructors, methods, and fields along with their modifiers. Test it on three types: a simple class, a subclass with overridden methods, and a class with runtime annotations.
 
-Nâng cấp theo từng vòng:
+Enhance iteratively:
 
-1. Cho phép người dùng chọn **chỉ thành viên khai báo** hoặc **thành viên public có thể kế thừa**; ghi rõ lựa chọn cạnh kết quả.
-2. Sắp xếp tên member trước khi hiển thị, vì Reflection không bảo đảm thứ tự mảng mà API trả về.
-3. Đánh dấu method bridge/synthetic khi gặp generic override; không coi mọi phần tử `getDeclaredMethods()` đều là method được gõ trong source.
-4. Chỉ đọc annotation còn hiệu lực ở runtime, phân biệt annotation của class với annotation nằm trên type argument hoặc method.
-5. Nếu cần thêm chế độ thực thi, chỉ cho phép method public đã được duyệt; tách luồng xác thực, tạo đối tượng và gọi method ra khỏi luồng inspector chỉ đọc.
+1. Let the user choose **declared members only** or **inheritable public members**; clearly label the selection alongside the output.
+2. Sort member names before displaying, because Reflection does not guarantee the order of arrays returned by APIs.
+3. Flag bridge/synthetic methods when encountering generic overrides; do not treat every element of `getDeclaredMethods()` as a method typed in source code.
+4. Read only annotations active at runtime, distinguishing class annotations from annotations on type arguments or methods.
+5. If adding an execution mode, allow only approved public methods; separate validation, object creation, and method invocation from the read-only inspector flow.
 
-Khi kiểm thử, cố tình tạo ba lỗi: tên method sai, chữ ký tham số sai và method đích tự ném exception. Trình bày **lỗi ở bước tra cứu** khác **lỗi được bọc khi method chạy**. Đối với member private thuộc module khác, ưu tiên thiết kế quyền truy cập rõ ràng thay vì mặc định có thể mở bằng Reflection.
+When testing, intentionally trigger three errors: a wrong method name, a wrong parameter signature, and a target method throwing an exception itself. Demonstrate how a **lookup-step error** differs from a **wrapped error during method execution**. For private members in another module, prefer explicit access design instead of assuming Reflection can open them.
 
-### Tiêu chí hoàn thành bài tổng hợp
+### Capstone Completion Criteria
 
-- Báo cáo không thay đổi trạng thái object khi chỉ ở chế độ khám phá.
-- Có thể dự đoán đúng member nào xuất hiện trong chế độ declared và public/inherited.
-- Kết quả ổn định sau khi sắp xếp, kể cả khi thứ tự Reflection trả về thay đổi.
-- Nhận diện được giới hạn của annotation và generic metadata.
-- Lỗi được mô tả bằng **class + member + chữ ký + bước thất bại**, có nguyên nhân gốc khi thực thi.
-- Bạn có thể giải thích quyết định giữ Reflection ở ranh giới công cụ và dùng lời gọi thông thường ở phần nghiệp vụ.
+- The report does not mutate object state when in discovery-only mode.
+- You can accurately predict which members appear in declared mode vs. public/inherited mode.
+- Output remains deterministic after sorting, even when the order returned by Reflection varies.
+- Limitations of annotation and generic metadata are clearly identified.
+- Errors are described by **class + member + signature + failing step**, including the root cause during execution.
+- You can explain the decision to keep Reflection at the tooling boundary while using regular calls in business logic.
 
-## 7. Cách tự đánh giá và học tiếp
+## 7. How to Self-Assess and Continue Learning
 
-Không nên chỉ kiểm tra “chạy ra đúng vài dòng console”. Bạn đã nắm một chặng khi có thể **dự đoán kết quả trước khi chạy**, giải thích kết quả sau khi chạy, và sửa một biến thể cố tình sai mà vẫn giữ được ranh giới quyền truy cập.
+Do not stop at checking "a few console lines printed right." You have mastered a stage when you can **predict output before running**, explain output after running, and fix an intentionally broken variant while preserving access boundaries.
 
-Các dấu hiệu nên ôn lại:
+Signs you should review:
 
-- Bạn cho rằng `Class<?>` là instance dữ liệu của lớp được mô tả.
-- Bạn nghĩ `getDeclaredMethod` vừa tìm vừa gọi method hoặc luôn bỏ qua kiểm tra truy cập.
-- Bạn mong `getClass()` khôi phục mọi tham số generic từng có trong biến nguồn.
-- Bạn không phân biệt lỗi `NoSuchMethodException` với nguyên nhân nằm trong `InvocationTargetException.getCause()`.
-- Bạn dùng Reflection cho mọi lời gọi chỉ vì muốn chọn một implementation khác khi chương trình đã có interface chung.
+- You think `Class<?>` is a data instance of the described class.
+- You think `getDeclaredMethod` both finds and invokes a method, or always bypasses access checks.
+- You expect `getClass()` to recover every generic type argument that appeared in the source variable.
+- You do not distinguish `NoSuchMethodException` from the cause inside `InvocationTargetException.getCause()`.
+- You use Reflection for every call merely to pick a different implementation when the program already has a shared interface.
 
-Trình tự đọc phù hợp với chương này là: **Reflection là gì và vấn đề cần giải quyết → thông tin kiểu biên dịch/runtime → metadata khác thực thi/trạng thái → vai trò của Class và java.lang.reflect → kế thừa/generic/annotation → Reflection hay gọi trực tiếp → ví dụ xuyên suốt**. Có thể quay lại bài này để tự đánh dấu mốc học tập.
+The recommended reading order for this chapter is: **What Reflection is and what problem it solves → compile-time vs. runtime type info → metadata vs. execution/state → roles of Class and java.lang.reflect → inheritance/generics/annotations → Reflection vs. direct calls → end-to-end example**. You can return to this lesson to mark your learning milestones.
 
-Nếu hoàn thành `ClassInspector` và giải thích được các giới hạn trên, bạn đã có nền tảng để tìm hiểu ứng dụng Reflection trong test runner, serializer, dependency injection hoặc plugin loader thực tế. Các framework có thể dùng thêm kỹ thuật khác; hãy xác minh cách chúng xử lý metadata và quyền truy cập thay vì mặc định mọi framework đều hoạt động theo đúng ví dụ nhập môn.
+Once you complete `ClassInspector` and can explain the limits above, you have the foundation to study how Reflection is applied in real test runners, serializers, dependency injection containers, or plugin loaders. Frameworks may employ additional techniques; verify how they handle metadata and access permissions rather than assuming every framework works exactly like introductory examples.

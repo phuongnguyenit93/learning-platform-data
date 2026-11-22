@@ -1,31 +1,31 @@
-# `subSequence` và hợp đồng `CharSequence` trong Java
+# `subSequence` and the `CharSequence` Contract in Java
 
-Khi cần lấy một phần của văn bản, Java có cả `String.substring(start, end)` và `subSequence(start, end)`. Điểm đáng học ở `subSequence` không chỉ là hai chỉ số cắt chuỗi: đây là **phương thức của giao diện `CharSequence`**, nên cùng một lời gọi có thể áp dụng cho `String`, `StringBuilder`, `StringBuffer`, `CharBuffer` hoặc lớp khác triển khai giao diện này.
+When you need to extract a portion of text, Java has both `String.substring(start, end)` and `subSequence(start, end)`. What makes `subSequence` worth learning is not just the two slicing indices: it is a **method on the `CharSequence` interface**, so the same call can apply to `String`, `StringBuilder`, `StringBuffer`, `CharBuffer`, or any other class implementing this interface.
 
-Điều quan trọng là phân biệt **hợp đồng chung của `CharSequence`** với **hành vi cụ thể của từng implementation**. Giao diện quy định những ký tự mà đoạn con phải biểu diễn và ý nghĩa của chỉ số; nó **không hứa** rằng kết quả luôn là `String`, luôn là bản sao độc lập, luôn là view hay luôn bất biến.
+It is important to distinguish the **general `CharSequence` contract** from the **specific behavior of each implementation**. The interface specifies which characters the subsequence must represent and what the indices mean; it **does not promise** that the result is always a `String`, always an independent copy, always a view, or always immutable.
 
-## 1. `CharSequence` là gì?
+## 1. What Is `CharSequence`?
 
-`java.lang.CharSequence` là giao diện trừu tượng cho một chuỗi có thể đọc được theo **các đơn vị `char` (UTF-16 code unit)**. Các thao tác cốt lõi là:
+`java.lang.CharSequence` is an abstraction for a readable sequence of **`char` units (UTF-16 code units)**. The core operations are:
 
-| Phương thức | Ý nghĩa |
+| Method | Meaning |
 | --- | --- |
-| `int length()` | Số đơn vị `char` (UTF-16 code unit), không nhất thiết bằng số ký tự Unicode mà người đọc cảm nhận |
-| `char charAt(int index)` | Đọc đơn vị `char` ở chỉ số `index`, đánh số từ 0 |
-| `CharSequence subSequence(int start, int end)` | Lấy một dãy con theo khoảng chỉ số `[start, end)` |
-| `String toString()` | Tạo biểu diễn `String` có các đơn vị ký tự theo đúng thứ tự của dãy |
-| `boolean isEmpty()` | Với Java 17+, kiểm tra `length() == 0`; đây là phương thức mặc định của giao diện |
-| `IntStream chars()` / `IntStream codePoints()` | Duyệt các UTF-16 code unit hoặc Unicode code point; ý nghĩa không giống nhau với ký tự ngoài BMP |
+| `int length()` | Number of `char` units (UTF-16 code units), not necessarily equal to the number of Unicode characters perceived by a reader |
+| `char charAt(int index)` | Reads the `char` unit at `index`, numbered from 0 |
+| `CharSequence subSequence(int start, int end)` | Extracts a subsequence over the index range `[start, end)` |
+| `String toString()` | Produces a `String` representation containing the character units in the sequence's exact order |
+| `boolean isEmpty()` | In Java 17+, checks `length() == 0`; this is a default method on the interface |
+| `IntStream chars()` / `IntStream codePoints()` | Streams UTF-16 code units or Unicode code points; their meanings differ for non-BMP characters |
 
-Các lớp thường gặp:
+Common implementing classes:
 
-- `String`: nội dung bất biến; thích hợp cho kết quả văn bản ổn định.
-- `StringBuilder`: nội dung thay đổi được, không bảo đảm thread-safe.
-- `StringBuffer`: nội dung thay đổi được, nhiều thao tác được đồng bộ hóa; điều này không có nghĩa mọi workflow nhiều bước tự động nguyên tử.
-- `CharBuffer` trong `java.nio`: bộ đệm ký tự, có `position`/`limit` và có thể tạo các đoạn nhìn vào vùng dữ liệu dùng chung.
-- Một lớp do ứng dụng tự viết cũng có thể triển khai `CharSequence`.
+- `String`: immutable content; suitable for stable text values.
+- `StringBuilder`: mutable content, not guaranteed to be thread-safe.
+- `StringBuffer`: mutable content, with many operations synchronized; this does not mean every multi-step workflow is automatically atomic.
+- `CharBuffer` in `java.nio`: character buffer with `position`/`limit`, capable of creating slices that view shared backing data.
+- An application-defined class can also implement `CharSequence`.
 
-Ví dụ phương thức nhận `CharSequence`:
+Example of a method accepting `CharSequence`:
 
 ```java
 static void show(CharSequence text) {
@@ -34,45 +34,45 @@ static void show(CharSequence text) {
 }
 ```
 
-Đây là **đoạn minh họa phương thức**, cần đặt trong một lớp để biên dịch. Lời gọi `show("Java")` hoặc `show(new StringBuilder("Java"))` đều hợp lệ. Khi chỉ cần đọc các ký tự, khai báo tham số là `CharSequence` giúp API nhận nhiều kiểu đầu vào. Nếu cần các tính năng riêng của `String`, hãy khai báo `String` hoặc chuyển đổi có chủ đích.
+This is an **illustrative method snippet** that must be placed inside a class to compile. Calls like `show("Java")` or `show(new StringBuilder("Java"))` are both valid. When you only need to read characters, declaring the parameter as `CharSequence` lets an API accept many input types. If you need `String`-specific features, declare `String` or convert intentionally.
 
-## 2. Hợp đồng của `subSequence(start, end)`
+## 2. The Contract of `subSequence(start, end)`
 
-Trong giao diện, phương thức có chữ ký:
+In the interface, the method signature is:
 
 ```java
 CharSequence subSequence(int start, int end);
 ```
 
-Khoảng được hiểu là **nửa mở** (*half-open interval*):
+The range is defined as a **half-open interval**:
 
-- `start` là chỉ số ký tự **được lấy**, bắt đầu từ 0.
-- `end` là vị trí **dừng, không lấy ký tự tại đó**.
-- Độ dài đoạn con bằng `end - start`.
-- Ký tự thứ `i` của đoạn con tương ứng với ký tự thứ `start + i` của dãy gốc, xét tại thời điểm dữ liệu không có thay đổi gây xung đột.
-- Khoảng hợp lệ cần `0 <= start <= end <= length()`.
-- Nếu chỉ số không hợp lệ, lời gọi ném `IndexOutOfBoundsException` hoặc ngoại lệ con của nó.
-- `start == end` là hợp lệ và tạo dãy con rỗng, kể cả khi cả hai bằng `length()`.
+- `start` is the index of the first character **included**, starting from 0.
+- `end` is the **stopping position; the character there is excluded**.
+- The length of the subsequence equals `end - start`.
+- The `i`-th character of the subsequence corresponds to the `(start + i)`-th character of the original sequence, assuming no conflicting mutations occur at that time.
+- A valid range requires `0 <= start <= end <= length()`.
+- If the indices are invalid, the call throws `IndexOutOfBoundsException` or a subclass of it.
+- `start == end` is valid and produces an empty subsequence, even when both equal `length()`.
 
-Ví dụ với `"ABCDE"`, đánh số:
+Example with `"ABCDE"`, numbered:
 
 ```text
-Ký tự:    A   B   C   D   E
-Chỉ số:   0   1   2   3   4
-Ranh giới:0   1   2   3   4   5
+Chars:    A   B   C   D   E
+Index:    0   1   2   3   4
+Boundary: 0   1   2   3   4   5
 
 subSequence(1, 4) --> "BCD"
 subSequence(0, 5) --> "ABCDE"
 subSequence(2, 2) --> ""
 subSequence(5, 5) --> ""
-subSequence(4, 2) --> lỗi
+subSequence(4, 2) --> error
 ```
 
-Sự nhất quán của khoảng `[start, end)` giúp tính độ dài và cắt các đoạn liên tiếp dễ dàng: `text.subSequence(0, cut)` và `text.subSequence(cut, text.length())` phủ toàn bộ dãy nếu `cut` hợp lệ, không lặp và không bỏ vị trí nào.
+The consistency of the `[start, end)` range makes length calculation and contiguous splitting easy: `text.subSequence(0, cut)` and `text.subSequence(cut, text.length())` cover the entire sequence for a valid `cut`, without duplication and without skipping any position.
 
-### Ví dụ 1: kiểm tra các ranh giới
+### Example 1: Checking Boundaries
 
-Tạo tệp `SubSequenceBoundsDemo.java`:
+Create the file `SubSequenceBoundsDemo.java`:
 
 ```java
 public class SubSequenceBoundsDemo {
@@ -96,14 +96,14 @@ public class SubSequenceBoundsDemo {
 }
 ```
 
-Chạy trên JDK 17 trở lên:
+Run on JDK 17 or later:
 
 ```bash
 javac SubSequenceBoundsDemo.java
 java SubSequenceBoundsDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 BCD
@@ -113,27 +113,27 @@ true
 Invalid range
 ```
 
-Không nên phụ thuộc vào chính xác tên lớp ngoại lệ con hay thông điệp lỗi do `String`, `CharBuffer` hoặc implementation khác tạo ra. Nếu cần tự kiểm tra dữ liệu đầu vào để báo lỗi riêng, điều kiện `0 <= start && start <= end && end <= text.length()` là điều kiện cốt lõi.
+Do not rely on the exact exception subclass name or error message produced by `String`, `CharBuffer`, or another implementation. If you need to validate input yourself to report a custom error, `0 <= start && start <= end && end <= text.length()` is the core condition.
 
-## 3. Với `String`, `subSequence` và `substring` liên quan thế nào?
+## 3. On `String`, How Are `subSequence` and `substring` Related?
 
-`String` triển khai `CharSequence`. Với một `String`, hai phương thức:
+`String` implements `CharSequence`. On a `String`, the two methods:
 
 ```java
 text.substring(start, end)
 text.subSequence(start, end)
 ```
 
-trả về cùng **nội dung** đoạn chuỗi. API `String.subSequence` được quy định hoạt động như `String.substring`; trong Java 17, kết quả thực tế của `subSequence` trên `String` là một đối tượng kiểu `String`, dù chữ ký khai báo trả về `CharSequence`.
+return the same substring **content**. The `String.subSequence` API is specified to behave like `String.substring`; in Java 17, the actual runtime result of `subSequence` on a `String` is a `String` object, even though its declared return type is `CharSequence`.
 
-Điểm khác dễ nhìn thấy nhất ở nơi gọi là **kiểu trả về tại thời điểm biên dịch**:
+The most visible difference at the call site is the **compile-time return type**:
 
-- `String.substring(int, int)` khai báo trả về `String`; có thể gọi tiếp `String` API trực tiếp.
-- `String.subSequence(int, int)` khai báo trả về `CharSequence`; chỉ những thành viên của `CharSequence` và `Object` được nhìn thấy qua kiểu này, trừ khi chuyển đổi kiểu phù hợp.
+- `String.substring(int, int)` is declared to return `String`; you can chain `String` APIs directly.
+- `String.subSequence(int, int)` is declared to return `CharSequence`; only members of `CharSequence` and `Object` are visible through that type, unless converted appropriately.
 
-### Ví dụ 2: nội dung bằng nhau nhưng kiểu khai báo khác nhau
+### Example 2: Equal Content but Different Declared Types
 
-Tạo `StringSubSequenceDemo.java`:
+Create `StringSubSequenceDemo.java`:
 
 ```java
 public class StringSubSequenceDemo {
@@ -159,7 +159,7 @@ javac StringSubSequenceDemo.java
 java StringSubSequenceDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 gram
@@ -169,37 +169,37 @@ true
 GRAM
 ```
 
-Từng bước:
+Step by step:
 
-1. `substring(3, 7)` đọc các chỉ số `3, 4, 5, 6` của `Programming`, cho ra `"gram"`.
-2. `subSequence(3, 7)` trên chính `String` cho ra dãy tương đương.
-3. `bySubstring.equals(bySubSequence)` trả về `true` vì đối tượng thực tế ở phía `bySubSequence` là `String` có cùng nội dung trong ví dụ này.
-4. `instanceof String` đúng **đối với implementation `String` này**. Nó không phải một bảo đảm cho mọi kết quả `CharSequence.subSequence`.
-5. `toString()` cung cấp giá trị `String` nếu nơi sử dụng cần API như `toUpperCase`.
+1. `substring(3, 7)` reads indices `3, 4, 5, 6` of `Programming`, producing `"gram"`.
+2. `subSequence(3, 7)` on the same `String` produces an equivalent sequence.
+3. `bySubstring.equals(bySubSequence)` returns `true` because the actual object behind `bySubSequence` is a `String` with the same content in this example.
+4. `instanceof String` is true **for this `String` implementation**. It is not a guarantee for every `CharSequence.subSequence` result.
+5. `toString()` provides a `String` value when the caller needs APIs like `toUpperCase`.
 
-Dùng `substring` thường trực quan hơn khi biết chắc mình đang thao tác trên `String` và cần một `String`. Dùng `subSequence` khi thiết kế API tổng quát có ý nghĩa trên các lớp triển khai `CharSequence`.
+Using `substring` is usually more direct when you know you are working with a `String` and want a `String`. Use `subSequence` when designing a general API that makes sense across classes implementing `CharSequence`.
 
-## 4. Kết quả có phải bản sao, view hay bất biến không?
+## 4. Is the Result a Copy, a View, or Immutable?
 
-**Không có một câu trả lời chung cho mọi `CharSequence`.** Đây là điểm quan trọng của hợp đồng giao diện.
+**There is no single answer for every `CharSequence`.** This is a key point of the interface contract.
 
-Một số triển khai tạo chuỗi mới, trong khi triển khai khác có thể trả về một đối tượng biểu diễn **vùng nhìn (view)** trên dữ liệu có thể thay đổi. Do vậy, không được suy luận «đã gọi `subSequence` thì dữ liệu chắc chắn tách khỏi nguồn» hoặc «đoạn con luôn phản ánh mọi thay đổi của nguồn».
+Some implementations create a new string, while others may return an object representing a **view** over mutable data. Therefore, you must never deduce “calling `subSequence` guarantees the data is detached from the source” or “the subsequence always reflects all changes to the source”.
 
-Ví dụ về hành vi cụ thể:
+Examples of concrete behavior:
 
-| Đối tượng nguồn | Hành vi đáng biết trong Java 17 | Có thể coi kết quả là bản sao `String` độc lập? |
+| Source Object | Notable Behavior in Java 17 | Can the Result Be Treated as an Independent `String` Copy? |
 | --- | --- | --- |
-| `String` | `subSequence` tương đương `substring` về nội dung, trả về `String` bất biến | Có thể dựa vào nội dung bất biến; không dựa vào identity hoặc cấu trúc bộ nhớ nội bộ |
-| `StringBuilder` | Implementation chuẩn trả về kết quả giống `substring`, là `String` | Có đối với implementation này; đừng áp đặt quy tắc đó cho mọi `CharSequence` |
-| `StringBuffer` | Implementation chuẩn trả về `String` từ đoạn được chỉ định | Có đối với implementation này |
-| `CharBuffer` | `subSequence` tạo buffer mới chia sẻ nội dung với buffer nguồn (view theo vùng tương ứng) | **Không**; nguồn/buffer dùng chung có thể bị sửa |
-| `CharSequence` tự cài đặt | Do implementation quyết định trong giới hạn hợp đồng | Không được giả định nếu chưa biết hợp đồng cụ thể |
+| `String` | `subSequence` is equivalent to `substring` in content, returning an immutable `String` | You can rely on immutable content; do not rely on object identity or internal memory layout |
+| `StringBuilder` | Standard implementation returns a `String` result like `substring` | Yes for this implementation; do not generalize that rule to all `CharSequence`s |
+| `StringBuffer` | Standard implementation returns a `String` from the specified range | Yes for this implementation |
+| `CharBuffer` | `subSequence` creates a new buffer sharing content with the source buffer (a view over the corresponding region) | **No**; the shared source/buffer can be modified |
+| Custom `CharSequence` | Determined by the implementation within contract limits | Do not assume without knowing the specific contract |
 
-**Cẩn thận với tính bất biến:** dù giao diện có chữ `CharSequence`, nó **không đồng nghĩa với `String`**. Tham chiếu có kiểu `CharSequence` có thể trỏ tới một đối tượng mutable.
+**Be careful about immutability:** even though the interface is named `CharSequence`, it is **not synonymous with `String`**. A reference of type `CharSequence` can point to a mutable object.
 
-### Ví dụ 3: `StringBuilder` và `CharBuffer` có thể cho trải nghiệm khác nhau
+### Example 3: `StringBuilder` and `CharBuffer` Can Behave Differently
 
-Tạo `SubSequenceImplementationsDemo.java`:
+Create `SubSequenceImplementationsDemo.java`:
 
 ```java
 import java.nio.CharBuffer;
@@ -229,7 +229,7 @@ javac SubSequenceImplementationsDemo.java
 java SubSequenceImplementationsDemo
 ```
 
-Kết quả trên JDK 17:
+Output on JDK 17:
 
 ```text
 ABxDE
@@ -238,11 +238,11 @@ ABxDE
 BxD
 ```
 
-Với `StringBuilder`, đoạn `builderSlice` là kết quả `String` của lời gọi `subSequence` trước khi builder bị sửa, nên vẫn hiện `BCD`. Với `CharBuffer.wrap(chars)`, buffer giữ vùng dữ liệu dùng chung với `chars`; đoạn `bufferSlice` là một buffer khác nhìn vào một phần vùng dữ liệu ấy. Khi `chars[2]` đổi từ `'C'` thành `'x'`, view cũng thấy `BxD`.
+With `StringBuilder`, `builderSlice` is the `String` result of calling `subSequence` before the builder was mutated, so it still displays `BCD`. With `CharBuffer.wrap(chars)`, the buffer shares its backing storage with `chars`; `bufferSlice` is another buffer viewing a portion of that storage. When `chars[2]` changes from `'C'` to `'x'`, the view also sees `BxD`.
 
-Đừng khái quát kết quả «`builderSlice` giữ nguyên» thành quy tắc bất biến cho toàn giao diện. Cũng đừng khái quát kết quả «`bufferSlice` thay đổi» thành quy tắc mọi `subSequence` đều trả về view.
+Do not generalize “`builderSlice` stayed unchanged” into an immutability rule for the whole interface. Nor should you generalize “`bufferSlice` changed” into a rule that every `subSequence` returns a view.
 
-**Nếu cần một văn bản bất biến ổn định**, chuyển đổi đoạn cần dùng thành `String` ở ranh giới phù hợp:
+**If you need stable immutable text**, convert the slice you need to `String` at an appropriate boundary:
 
 ```java
 static String stableSlice(CharSequence source, int start, int end) {
@@ -250,23 +250,23 @@ static String stableSlice(CharSequence source, int start, int end) {
 }
 ```
 
-Đây là **đoạn minh họa phương thức**, không phải chương trình độc lập. Với `StringBuilder` hoặc `CharBuffer` chuẩn, `toString()` trả về giá trị `String` biểu diễn nội dung tại thời điểm chuyển đổi. Nếu nguồn có thể bị các luồng khác sửa đồng thời, việc tạo snapshot nhất quán cần cơ chế đồng bộ phù hợp với nguồn; giao diện `CharSequence` không tự bảo đảm an toàn luồng.
+This is an **illustrative method snippet**, not a standalone program. With standard `StringBuilder` or `CharBuffer`, `toString()` returns a `String` value representing the content at the time of conversion. If the source can be mutated concurrently by other threads, taking a consistent snapshot requires synchronization appropriate for the source; the `CharSequence` interface itself does not guarantee thread safety.
 
-## 5. Chỉ số `CharSequence` là UTF-16 code unit
+## 5. `CharSequence` Indices Are UTF-16 Code Units
 
-Hợp đồng `CharSequence` mô tả dãy `char`, tức các UTF-16 code unit. `subSequence(start, end)` có thể tạo đoạn chứa surrogate lẻ nếu một biên cắt giữa hai nửa của code point ngoài BMP. Ví dụ, `"A😀B".subSequence(1, 2)` chỉ chứa high surrogate, còn `subSequence(1, 3)` chứa đủ cặp.
+The `CharSequence` contract describes a sequence of `char`s, i.e., UTF-16 code units. `subSequence(start, end)` can produce a slice containing an unpaired surrogate if a boundary cuts between the two halves of a non-BMP code point. For example, `"A😀B".subSequence(1, 2)` contains only the high surrogate, whereas `subSequence(1, 3)` contains the full pair.
 
-Khác với `String`, giao diện `CharSequence` **không cung cấp trực tiếp** `offsetByCodePoints`. Nếu một thuật toán cần ranh giới code point trên đầu vào tổng quát, có thể chuyển nội dung sang `String` rồi dùng API code point của `String`; với nguồn mutable, xác định rõ lúc lấy snapshot và cách đồng bộ khi có truy cập đồng thời. Ranh giới code point vẫn chưa chắc là ranh giới cụm ký tự hiển thị.
+Unlike `String`, the `CharSequence` interface **does not directly provide** `offsetByCodePoints`. If an algorithm needs code point boundaries on a general input, you can convert the content to `String` and use `String`'s code point APIs; for mutable sources, clarify when to take the snapshot and how to synchronize under concurrent access. Code point boundaries are still not guaranteed to be visible character cluster boundaries.
 
-## 6. `CharSequence` không tự quy định cách so sánh nội dung
+## 6. `CharSequence` Does Not Define a Content-Based `equals` Contract
 
-Một sai lầm khác là dùng `equals` của hai đối tượng bất kỳ triển khai `CharSequence` rồi mặc định đây là phép so sánh dãy ký tự. Giao diện `CharSequence` **không đặt ra một hợp đồng `equals` chung dựa trên nội dung** cho mọi implementation.
+Another mistake is calling `equals` on two arbitrary objects implementing `CharSequence` and assuming it compares character sequences. The `CharSequence` interface **does not impose a common content-based `equals` contract** across implementations.
 
-Ví dụ `String` ghi đè `equals` để so sánh với **một `String` khác** có cùng nội dung. Trong khi đó, `StringBuilder` dùng `equals` theo identity (kế thừa từ `Object`).
+For instance, `String` overrides `equals` to compare against **another `String`** with the same content. Meanwhile, `StringBuilder` uses identity-based `equals` (inherited from `Object`).
 
-### Ví dụ 5: cùng nội dung chưa chắc `equals` bằng nhau
+### Example 5: Same Content Does Not Mean `equals` Returns True
 
-Tạo `CharSequenceEqualityDemo.java`:
+Create `CharSequenceEqualityDemo.java`:
 
 ```java
 public class CharSequenceEqualityDemo {
@@ -287,7 +287,7 @@ javac CharSequenceEqualityDemo.java
 java CharSequenceEqualityDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 true
@@ -296,13 +296,13 @@ true
 true
 ```
 
-Hai lần `toString()` tạo ra giá trị `String` có cùng nội dung nên `equals` trả `true`. Nhưng `a.equals(b)` là lời gọi tới `String.equals`, và `b` là `StringBuilder`, nên nhận `false`. `String.contentEquals(CharSequence)` dùng để so sánh nội dung với một `CharSequence`, trả về `true` trong ví dụ.
+Both `toString()` calls produce `String` values with the same content, so `equals` returns `true`. However, `a.equals(b)` calls `String.equals`, and `b` is a `StringBuilder`, so it receives `false`. `String.contentEquals(CharSequence)` compares content against a `CharSequence`, returning `true` in the example.
 
-Chỉ kiểm tra `length()` bằng nhau thì **chưa đủ**: hai dãy có cùng độ dài vẫn có thể chứa ký tự khác nhau. Nếu cần so sánh nội dung của hai `CharSequence` tổng quát, có thể dùng `CharSequence.compare(a, b) == 0` trên Java 17 (so sánh từ điển theo UTF-16 code unit), hoặc chuyển sang `String` và so sánh nội dung khi phù hợp với hiệu năng và mục đích. Cần quy định xử lý `null` riêng.
+Checking only that `length()` is equal is **not enough**: two sequences of the same length can still contain different characters. To compare the content of two general `CharSequence`s, you can use `CharSequence.compare(a, b) == 0` in Java 17 (lexicographical comparison by UTF-16 code units), or convert to `String` and compare content when appropriate for performance and purpose. Handle `null` explicitly.
 
-## 7. Thiết kế API khi muốn nhận `CharSequence`
+## 7. Designing APIs That Accept `CharSequence`
 
-Giả sử cần lấy mã ngắn từ một đầu vào văn bản. Nếu chỉ đọc chiều dài, lấy ký tự và trích đoạn, chữ ký này đủ tổng quát:
+Suppose you need to extract a short code from a text input. If you only read length, access characters, and extract slices, this signature is sufficiently general:
 
 ```java
 static String extractCode(CharSequence text, int start, int end) {
@@ -316,18 +316,18 @@ static String extractCode(CharSequence text, int start, int end) {
 }
 ```
 
-Đây là **phương thức minh họa** có thể đặt trong lớp Java. Các quyết định thiết kế:
+This is an **illustrative method** you can place in a Java class. Design decisions:
 
-1. Nhận `CharSequence` để cho phép `String`, `StringBuilder` và các implementation tương thích.
-2. Kiểm tra đầu vào và khoảng cắt có chủ đích; thông điệp lỗi có thể được tùy chỉnh theo API của ứng dụng.
-3. Trả về `String` nếu hợp đồng của phương thức hứa một **giá trị văn bản bất biến** thay vì một đoạn `CharSequence` có thể phản ánh thay đổi ở dữ liệu nguồn.
-4. Không suy luận rằng implementation của tham số luôn là `String`. Ép kiểu `(String) text.subSequence(...)` có thể ném `ClassCastException` với implementation trả về `CharBuffer` hoặc một loại `CharSequence` khác.
+1. Accept `CharSequence` to allow `String`, `StringBuilder`, and compatible implementations.
+2. Intentionally validate the input and slice range; error messages can be tailored to the application's API.
+3. Return `String` if the method's contract promises an **immutable text value** rather than a `CharSequence` slice that might reflect changes in the source data.
+4. Never assume the parameter's runtime implementation is always `String`. Casting `(String) text.subSequence(...)` can throw `ClassCastException` on implementations that return a `CharBuffer` or another `CharSequence` type.
 
-Nếu API chủ đích giữ một **view** để tránh sao chép, hãy mô tả rõ thời hạn sử dụng, trách nhiệm sở hữu dữ liệu, khả năng thấy thay đổi, và an toàn luồng theo implementation cụ thể. Không hứa hiệu năng O(1), không cấp phát, hoặc tách bộ nhớ cho `subSequence` khi kiểu nguồn chưa được xác định: hợp đồng giao diện không áp đặt các chi tiết đó.
+If an API intentionally returns a **view** to avoid copying, clearly document lifetime, data ownership responsibilities, mutation visibility, and thread safety for the specific implementation. Never promise O(1) performance, zero allocation, or memory isolation for `subSequence` when the source type is unspecified: the interface contract does not enforce those details.
 
-### Ví dụ 6: một phương thức làm việc với nhiều implementation
+### Example 6: One Method Working with Multiple Implementations
 
-Tạo tệp `GenericSubSequenceDemo.java`:
+Create the file `GenericSubSequenceDemo.java`:
 
 ```java
 import java.nio.CharBuffer;
@@ -360,7 +360,7 @@ javac GenericSubSequenceDemo.java
 java GenericSubSequenceDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 4567
@@ -368,33 +368,33 @@ Kết quả:
 4567
 ```
 
-Cùng hợp đồng `CharSequence.subSequence` cho ra dãy ký tự đúng từ các loại đầu vào khác nhau. Việc **chuyển đoạn con sang `String`** ở bước trả kết quả tạo ra cách sử dụng thống nhất, không buộc phía gọi phải quan tâm lớp hiện thực cụ thể của `subSequence`.
+The same `CharSequence.subSequence` contract produces the right character sequence from different input types. **Converting the subsequence to `String`** when returning creates uniform usage, without forcing callers to care about the concrete class implementing `subSequence`.
 
-## 8. Lỗi thường gặp và cách tránh
+## 8. Common Mistakes and How to Avoid Them
 
-**Lỗi 1 — tưởng `end` được lấy:** `subSequence(1, 3)` lấy chỉ số `1` và `2`; không lấy `3`. Kiểm tra bằng độ dài `end - start`.
+**Mistake 1 — assuming `end` is included:** `subSequence(1, 3)` takes indices `1` and `2`; it excludes `3`. Verify with length `end - start`.
 
-**Lỗi 2 — cắt quá giới hạn:** `subSequence(0, text.length() + 1)` không hợp lệ. Nếu vị trí được tính từ dữ liệu ngoài, hãy xác thực điều kiện ranh giới và xử lý ngoại lệ có mục đích.
+**Mistake 2 — slicing past bounds:** `subSequence(0, text.length() + 1)` is invalid. If positions are computed from external data, validate boundary conditions and handle exceptions intentionally.
 
-**Lỗi 3 — giả định mọi kết quả là `String`:** phương thức có kiểu trả về `CharSequence`, và implementation khác nhau có thể trả về các lớp khác nhau. Khi thật sự cần `String`, sử dụng `toString()` theo hợp đồng; không ép kiểu mù.
+**Mistake 3 — assuming every result is a `String`:** the method's return type is `CharSequence`, and different implementations may return different classes. When a `String` is truly needed, use `toString()` per the contract; do not cast blindly.
 
-**Lỗi 4 — giả định mọi kết quả là view:** `StringBuilder` chuẩn có thể trả về `String` snapshot. Không dựa vào thay đổi của nguồn sẽ phản ánh trên đoạn con nếu hợp đồng implementation không nói rõ.
+**Mistake 4 — assuming every result is a view:** standard `StringBuilder` can return a `String` snapshot. Do not rely on source mutations appearing in the subsequence unless the implementation's contract explicitly states so.
 
-**Lỗi 5 — giả định mọi kết quả bất biến:** `CharBuffer` có thể trả về view chia sẻ dữ liệu mutable. Nếu cần giữ văn bản bất biến, chuyển đổi thành `String` và xác định chính sách đồng bộ/ownership phù hợp.
+**Mistake 5 — assuming every result is immutable:** `CharBuffer` can return a view sharing mutable data. If you need to keep immutable text, convert it to `String` and define an appropriate synchronization/ownership policy.
 
-**Lỗi 6 — nhầm độ dài với Unicode code point:** `length()` và chỉ số của `subSequence` theo UTF-16 code unit. Khi xử lý emoji hoặc ký tự ngoài BMP, hãy tính ranh giới code point cẩn thận; grapheme cluster còn có thể phức tạp hơn.
+**Mistake 6 — confusing length with Unicode code points:** `length()` and `subSequence` indices count UTF-16 code units. When handling emojis or non-BMP characters, compute code point boundaries carefully; grapheme clusters can be even more complex.
 
-**Lỗi 7 — dùng `equals` giữa các kiểu `CharSequence` để kết luận hai dãy bằng nhau:** không có hợp đồng equality chung. Dùng `String.contentEquals`, `CharSequence.compare` hay chuyển sang `String` khi phù hợp.
+**Mistake 7 — using `equals` across `CharSequence` types to conclude two sequences are equal:** there is no general equality contract. Use `String.contentEquals`, `CharSequence.compare`, or convert to `String` when appropriate.
 
-**Lỗi 8 — hiểu `subSequence` tự bảo đảm thread-safe:** giao diện không cung cấp bảo đảm đó. Nếu dữ liệu nguồn mutable được sửa bởi luồng khác, phải dựa vào cơ chế đồng bộ và tính chất cụ thể của implementation.
+**Mistake 8 — thinking `subSequence` is automatically thread-safe:** the interface provides no such guarantee. If mutable source data is modified by another thread, you must rely on synchronization mechanisms and implementation-specific properties.
 
-**Lỗi 9 — dùng `subSequence` thay cho `substring` chỉ vì tên «tổng quát hơn»:** khi kiểu nguồn đã là `String` và cần `String`, `substring` thường trực tiếp và rõ hơn; `subSequence` hữu ích khi muốn lập trình theo giao diện.
+**Mistake 9 — using `subSequence` instead of `substring` just because the name sounds “more general”:** when the source type is already `String` and you need a `String`, `substring` is usually more direct and clearer; `subSequence` is useful when programming against the interface.
 
-## 9. Tự kiểm tra
+## 9. Self-Check
 
-### Bài 1 — ranh giới nửa mở
+### Exercise 1 — half-open bounds
 
-Cho `CharSequence s = "spring";`. Dự đoán:
+Given `CharSequence s = "spring";`. Predict:
 
 ```java
 System.out.println(s.subSequence(0, 3));
@@ -402,7 +402,7 @@ System.out.println(s.subSequence(3, 6));
 System.out.println(s.subSequence(6, 6).isEmpty());
 ```
 
-Kết quả:
+Output:
 
 ```text
 spr
@@ -410,11 +410,11 @@ ing
 true
 ```
 
-Chỉ số `end` không được lấy; hai đoạn `[0,3)` và `[3,6)` ghép lại đúng `spring`. Lấy đoạn rỗng ở vị trí cuối là hợp lệ.
+Index `end` is excluded; the two slices `[0,3)` and `[3,6)` combine to form `spring`. Taking an empty slice at the end position is valid.
 
-### Bài 2 — nội dung có ổn định không?
+### Exercise 2 — is the content stable?
 
-Với Java 17:
+In Java 17:
 
 ```java
 StringBuilder builder = new StringBuilder("hello");
@@ -425,18 +425,18 @@ System.out.println(builder);
 System.out.println(sub);
 ```
 
-Kết quả:
+Output:
 
 ```text
 hXYZo
 ell
 ```
 
-Trong implementation `StringBuilder` chuẩn, `subSequence` tạo kết quả `String` của đoạn `"ell"` ở thời điểm gọi. Đừng áp dụng giả định snapshot này cho mọi implementation của `CharSequence`.
+In the standard `StringBuilder` implementation, `subSequence` produces a `String` result of `"ell"` at the time of the call. Do not apply this snapshot assumption to every `CharSequence` implementation.
 
-### Bài 3 — code point và code unit
+### Exercise 3 — code points and code units
 
-Cho:
+Given:
 
 ```java
 String text = "A\uD83D\uDE00B";
@@ -444,21 +444,21 @@ System.out.println(text.length());
 System.out.println(text.subSequence(1, 3).length());
 ```
 
-Kết quả:
+Output:
 
 ```text
 4
 2
 ```
 
-Đoạn `subSequence(1, 3)` chứa một code point U+1F600 nhưng hai UTF-16 code unit.
+The slice `subSequence(1, 3)` contains one code point U+1F600 but two UTF-16 code units.
 
-### Bài 4 — thiết kế chữ ký
+### Exercise 4 — designing a signature
 
-Một phương thức cần chấp nhận `String`, `StringBuilder` và `CharBuffer`, đồng thời trả về một giá trị văn bản bất biến. Nên khai báo gì?
+A method needs to accept `String`, `StringBuilder`, and `CharBuffer`, and return an immutable text value. What should be declared?
 
-**Gợi ý:** tham số `CharSequence source`; kết quả `String`; dùng `source.subSequence(start, end).toString()` sau khi kiểm tra chỉ số. Nếu đầu vào có thể bị sửa đồng thời, phải xác định thêm cách đồng bộ và thời điểm lấy dữ liệu.
+**Hint:** parameter `CharSequence source`; return type `String`; use `source.subSequence(start, end).toString()` after validating indices. If the input can be mutated concurrently, also specify synchronization and snapshot timing.
 
-## Kết luận
+## Conclusion
 
-**`subSequence(start, end)` là hợp đồng đọc một đoạn theo chỉ số UTF-16 nửa mở `[start, end)` trên giao diện `CharSequence`.** Hợp đồng cho biết đoạn con cần chứa những ký tự nào, nhưng không bảo đảm lớp kết quả, snapshot hay view, tính bất biến hoặc chi phí thực hiện. Với `String`, nó tương đương `substring` về nội dung; với các implementation khác, cần dựa vào đặc điểm cụ thể. Thiết kế API đúng phải phân biệt **nội dung đoạn con**, **kiểu trả về**, **quyền sở hữu dữ liệu** và **khả năng thay đổi của nguồn**.
+**`subSequence(start, end)` is a contract for reading a slice over a half-open UTF-16 index range `[start, end)` on the `CharSequence` interface.** The contract specifies which characters the subsequence must contain, but does not guarantee the result class, snapshot vs. view semantics, immutability, or execution cost. On `String`, it is equivalent in content to `substring`; on other implementations, rely on their specific characteristics. Proper API design must distinguish **subsequence content**, **return type**, **data ownership**, and **source mutability**.

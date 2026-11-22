@@ -1,10 +1,10 @@
-# Khoảng trắng không ngắt dòng không luôn được `String.strip()` loại bỏ
+# Non-Breaking Spaces Are Not Always Removed by `String.strip()`
 
-## 1. Mục tiêu và hiện tượng cần nhớ
+## 1. Goal and key phenomenon to remember
 
-Trong Java 11+ (bao gồm Java 17), `String.strip()` xóa các ký tự được `Character.isWhitespace(...)` phân loại là khoảng trắng **ở đầu và cuối chuỗi**. Tên phương thức dễ làm ta hiểu nhầm rằng nó xóa **mọi** loại ký tự trông như dấu cách. Thực tế, một số **dấu cách không ngắt dòng** (*non-breaking spaces*) vẫn được giữ nguyên.
+In Java 11+ (including Java 17), `String.strip()` removes characters classified by `Character.isWhitespace(...)` as whitespace **at the start and end of a string**. The method name easily misleads people into thinking it deletes **every** kind of character that looks like a space. In reality, several **non-breaking spaces** (*non-breaking spaces*) are kept intact.
 
-Ví dụ:
+For example:
 
 ```java
 String text = "\u00A0Java\u00A0"; // NBSP + Java + NBSP
@@ -12,49 +12,49 @@ System.out.println(text.strip().equals(text)); // true
 System.out.println(text.isBlank());             // false
 ```
 
-Hai dấu cách hai bên có mã Unicode **U+00A0 NO-BREAK SPACE**, không phải dấu cách ASCII U+0020. `strip()` giữ nguyên chúng, còn `isBlank()` không coi một chuỗi chỉ chứa NBSP là “blank”.
+The two spaces on either side have Unicode code point **U+00A0 NO-BREAK SPACE**, not the ASCII space U+0020. `strip()` keeps them intact, and `isBlank()` does not treat a string containing only NBSP as “blank.”
 
-Bài học này giúp bạn:
-- Phân biệt **dấu cách nhìn thấy được**, **Unicode space character** và các ký tự mà Java xem là `whitespace`.
-- Hiểu sự khác nhau giữa `strip()`, `trim()`, `isBlank()` và `Character.isSpaceChar()`.
-- Xử lý đúng NBSP, FIGURE SPACE, NARROW NO-BREAK SPACE khi làm sạch văn bản.
-- Chọn chính sách loại bỏ khoảng trắng phù hợp để không làm thay đổi ý nghĩa của dữ liệu.
+This lesson helps you:
+- Distinguish **visible spaces**, **Unicode space characters**, and characters Java treats as `whitespace`.
+- Understand the differences among `strip()`, `trim()`, `isBlank()`, and `Character.isSpaceChar()`.
+- Properly handle NBSP, FIGURE SPACE, and NARROW NO-BREAK SPACE when cleaning text.
+- Choose an appropriate whitespace-removal policy so you do not alter data meaning.
 
-## 2. Dấu cách không ngắt dòng là gì?
+## 2. What are non-breaking spaces?
 
-Trong văn bản được dàn trang, một số khoảng trắng có mục đích **giữ hai phần văn bản trên cùng một dòng**. Ví dụ, khoảng giữa số và đơn vị trong `"10 kg"` đôi khi được viết bằng NBSP để tránh xuống dòng giữa `10` và `kg`.
+In typeset text, some spaces are meant to **keep two pieces of text on the same line**. For instance, the space between a number and its unit in `"10 kg"` is sometimes written with NBSP to prevent a line break between `10` and `kg`.
 
-Ba code point thường gặp:
+Three common code points:
 
-| Code point | Tên Unicode | Đặc điểm |
+| Code point | Unicode name | Characteristics |
 | --- | --- | --- |
-| `U+00A0` | NO-BREAK SPACE (NBSP) | Khoảng trắng không ngắt dòng thông dụng; HTML có thực thể `&nbsp;`. |
-| `U+2007` | FIGURE SPACE | Khoảng trắng có bề rộng liên quan chữ số, không ngắt dòng. |
-| `U+202F` | NARROW NO-BREAK SPACE | Khoảng trắng không ngắt dòng có bề rộng hẹp hơn; xuất hiện trong một số quy ước dàn trang. |
+| `U+00A0` | NO-BREAK SPACE (NBSP) | Common non-breaking space; HTML has the `&nbsp;` entity. |
+| `U+2007` | FIGURE SPACE | Space with the width of a digit, non-breaking. |
+| `U+202F` | NARROW NO-BREAK SPACE | Narrower non-breaking space; appears in certain typesetting conventions. |
 
-Chúng thường khó phân biệt với dấu cách thường bằng mắt. Khi sao chép từ HTML, tài liệu PDF, trình soạn thảo hoặc nội dung đã được dàn trang, chuỗi có thể chứa các code point này dù người dùng nghĩ chỉ có “space”.
+They are often hard to distinguish visually from an ordinary space. When copying from HTML, PDFs, word processors, or typeset content, strings can contain these code points even when users think there is only a “space.”
 
-**Lưu ý:** Các ký tự này là dữ liệu văn bản có ý nghĩa. Tùy nghiệp vụ, việc tự ý xóa hoặc đổi toàn bộ NBSP thành dấu cách thường có thể phá vỡ ý định trình bày hoặc quy tắc định dạng.
+**Note:** These characters are meaningful text data. Depending on business rules, arbitrarily deleting or converting all NBSPs into ordinary spaces can break presentation intent or formatting rules.
 
-## 3. Vì sao `strip()` không loại bỏ mọi dấu cách?
+## 3. Why doesn't `strip()` remove all spaces?
 
-Theo hợp đồng của Java, `String.strip()` xác định ký tự cần loại bỏ bằng **`Character.isWhitespace(int)`**. Trong Java 17, `Character.isWhitespace` trả về `false` đối với ba ký tự không ngắt dòng `U+00A0`, `U+2007` và `U+202F`.
+By Java's contract, `String.strip()` determines which characters to remove using **`Character.isWhitespace(int)`**. In Java 17, `Character.isWhitespace` returns `false` for the three non-breaking characters `U+00A0`, `U+2007`, and `U+202F`.
 
-Điều này khác với `Character.isSpaceChar(int)`, vốn trả về `true` cho các ký tự thuộc nhóm Unicode space separators, bao gồm ba trường hợp trên.
+This differs from `Character.isSpaceChar(int)`, which returns `true` for characters in the Unicode space separator categories, including those three cases.
 
-Bảng kết quả đáng chú ý trên Java 17:
+Notable results table in Java 17:
 
-| Ký tự | `Character.isWhitespace(cp)` | `Character.isSpaceChar(cp)` | `strip()` có thể loại bỏ ở đầu/cuối? |
+| Character | `Character.isWhitespace(cp)` | `Character.isSpaceChar(cp)` | Can `strip()` remove it at start/end? |
 | --- | --- | --- | --- |
-| `U+0020` SPACE | `true` | `true` | Có |
-| `U+0009` TAB | `true` | `false` | Có |
-| `U+00A0` NO-BREAK SPACE | `false` | `true` | **Không** |
-| `U+2007` FIGURE SPACE | `false` | `true` | **Không** |
-| `U+202F` NARROW NO-BREAK SPACE | `false` | `true` | **Không** |
-| `U+2003` EM SPACE | `true` | `true` | Có |
-| `U+3000` IDEOGRAPHIC SPACE | `true` | `true` | Có |
+| `U+0020` SPACE | `true` | `true` | Yes |
+| `U+0009` TAB | `true` | `false` | Yes |
+| `U+00A0` NO-BREAK SPACE | `false` | `true` | **No** |
+| `U+2007` FIGURE SPACE | `false` | `true` | **No** |
+| `U+202F` NARROW NO-BREAK SPACE | `false` | `true` | **No** |
+| `U+2003` EM SPACE | `true` | `true` | Yes |
+| `U+3000` IDEOGRAPHIC SPACE | `true` | `true` | Yes |
 
-Sự khác biệt thể hiện rõ qua ba đoạn mã:
+The difference is clear in these three snippets:
 
 ```java
 System.out.println("\u2003Java\u2003".strip().equals("Java")); // true
@@ -63,9 +63,9 @@ System.out.println("\u00A0Java\u00A0".strip()
         .equals("\u00A0Java\u00A0"));                       // true
 ```
 
-Không thể suy ra rằng `strip()` sẽ loại bỏ một ký tự chỉ vì tên Unicode của nó có từ “SPACE” hoặc vì nó hiển thị giống một khoảng trắng.
+You cannot conclude that `strip()` will remove a character just because its Unicode name contains “SPACE” or because it renders like whitespace.
 
-### Một trường hợp dễ bất ngờ: hỗn hợp SPACE và NBSP
+### A surprising case: mixing SPACE and NBSP
 
 ```java
 String mixed = " \u00A0Java\u00A0 ";
@@ -74,11 +74,11 @@ String result = mixed.strip();
 System.out.println(result.equals("\u00A0Java\u00A0")); // true
 ```
 
-`strip()` bỏ dấu cách ASCII `U+0020` ngoài cùng. Sau đó, khi gặp NBSP `U+00A0` ở đầu và cuối vùng còn lại, nó **dừng lại** vì NBSP không thỏa `Character.isWhitespace`. Bởi vậy, một chuỗi đã gọi `strip()` vẫn có thể bắt đầu hoặc kết thúc bằng dấu cách không ngắt dòng.
+`strip()` removes the outermost ASCII spaces `U+0020`. Then, upon hitting NBSP `U+00A0` at the start and end of the remaining region, it **stops** because NBSP does not satisfy `Character.isWhitespace`. As a result, a string on which `strip()` has been called can still start or end with a non-breaking space.
 
-## 4. Phân biệt các phép kiểm tra khi gặp NBSP
+## 4. Distinguishing checks when encountering NBSP
 
-`strip()` chỉ cắt các code point được `Character.isWhitespace` công nhận ở hai mép; `stripLeading()` và `stripTrailing()` chỉ cắt một phía. `isBlank()` kiểm tra toàn chuỗi nhưng cùng tiêu chí Java whitespace, vì vậy cả `strip()` lẫn `isBlank()` **không coi NBSP là khoảng trắng có thể bỏ qua**. `trim()` lại cắt các đơn vị mã `char <= U+0020`, nên cũng giữ NBSP.
+`strip()` only trims code points recognized by `Character.isWhitespace` at both edges; `stripLeading()` and `stripTrailing()` trim only one side. `isBlank()` inspects the whole string using the same Java whitespace criterion, so neither `strip()` nor `isBlank()` **treats NBSP as ignorable whitespace**. `trim()` trims code units `char <= U+0020`, so it preserves NBSP as well.
 
 ~~~java
 String nbsp = "\u00A0";
@@ -89,13 +89,13 @@ System.out.println(em.strip().isEmpty());   // true
 System.out.println(em.trim().isEmpty());    // false
 ~~~
 
-Hai cặp kết quả giúp phân biệt **khoảng trắng không ngắt dòng** với EM SPACE và giới hạn riêng của `trim()`. Nếu chỉ cần phát hiện dữ liệu rỗng hoặc chỉ có *Java whitespace*, dùng `isBlank()`; nếu yêu cầu chấp nhận hoặc cắt thêm NBSP ở biên, áp dụng predicate theo hợp đồng nghiệp vụ như ở mục 7.
+These two pairs of results help distinguish **non-breaking spaces** from EM SPACE and `trim()`'s specific limitation. If you only need to detect empty or *Java whitespace*-only input, use `isBlank()`; if you need to accept or also trim NBSP at the boundaries, apply a business-contract predicate as shown in Section 7.
 
-## 5. Ví dụ Java 17+ chạy độc lập, hiện rõ code point
+## 5. Standalone Java 17+ example that shows code points clearly
 
-Vì NBSP khó nhìn thấy, ví dụ dưới đây **in mã Unicode** thay vì chỉ in khoảng trắng để có kết quả kiểm chứng được.
+Because NBSP is hard to see visually, the example below **prints Unicode code points** instead of just printing spaces so the result can be verified.
 
-Lưu thành file `NonBreakingSpaceDemo.java`:
+Save as `NonBreakingSpaceDemo.java`:
 
 ```java
 import java.util.stream.Collectors;
@@ -144,14 +144,14 @@ public class NonBreakingSpaceDemo {
 }
 ```
 
-Biên dịch và chạy bằng Java 17 trở lên:
+Compile and run with Java 17 or later:
 
 ```bash
 javac -encoding UTF-8 NonBreakingSpaceDemo.java
 java NonBreakingSpaceDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 ASCII strip = U+004A U+0061 U+0076 U+0061
@@ -169,34 +169,34 @@ U+202F whitespace=false spaceChar=true
 U+2003 whitespace=true spaceChar=true
 ```
 
-**Giải thích:**
-1. Chuỗi có TAB `U+0009`, SPACE `U+0020` và LINE FEED `U+000A` được `strip()` cắt phần trắng ở hai đầu, chỉ còn `Java`.
-2. Chuỗi có NBSP ở hai đầu vẫn chứa hai `U+00A0` sau `strip()`.
-3. EM SPACE `U+2003` được `Character.isWhitespace` nhận diện nên bị cắt.
-4. Với `mixed`, `strip()` bỏ SPACE bên ngoài rồi giữ NBSP ngay sát chữ.
-5. `"\u00A0".isBlank()` là `false` mặc dù trên giao diện chuỗi có thể trông như một khoảng trắng.
+**Explanation:**
+1. The string with TAB `U+0009`, SPACE `U+0020`, and LINE FEED `U+000A` has whitespace at both ends removed by `strip()`, leaving only `Java`.
+2. The string with NBSP at both ends still contains two `U+00A0` code points after `strip()`.
+3. EM SPACE `U+2003` is recognized by `Character.isWhitespace` and is removed.
+4. With `mixed`, `strip()` removes the outer SPACEs and preserves the NBSPs right next to the letters.
+5. `"\u00A0".isBlank()` is `false` even though in the UI the string may look like blank space.
 
-## 6. Khi nào nên giữ nguyên NBSP?
+## 6. When should NBSP be preserved?
 
-NBSP không phải lúc nào cũng là dữ liệu “bẩn”. Nó có thể được dùng để:
-- Giữ số và đơn vị cùng dòng, chẳng hạn `"10 km"` hoặc `"25 °C"`.
-- Giữ tiền tệ và giá trị cùng dòng theo quy ước trình bày.
-- Giữ các phần của một tên riêng hoặc cụm từ được dàn trang có chủ đích.
-- Biểu diễn khoảng trắng không ngắt dòng từ HTML qua thực thể `&nbsp;`.
+NBSP is not always “dirty” data. It can be used to:
+- Keep numbers and units on the same line, such as `"10 km"` or `"25 °C"`.
+- Keep currencies and values on the same line per presentation conventions.
+- Keep parts of a proper name or phrase together as intentionally typeset.
+- Represent non-breaking whitespace from HTML via the `&nbsp;` entity.
 
-Hãy phân biệt hai nhiệm vụ:
+Distinguish two tasks:
 
-**Làm sạch input để tìm giá trị nghiệp vụ:** Nếu biểu mẫu cho phép người dùng dán dữ liệu chứa NBSP ở **đầu/cuối**, có thể chủ đích xem NBSP là khoảng trắng biên và loại bỏ nó.
+**Cleaning input to extract a business value:** If a form allows users to paste data containing NBSP at the **start/end**, you may intentionally treat NBSP as boundary whitespace and remove it.
 
-**Bảo toàn nội dung văn bản:** Nếu ứng dụng xử lý nội dung trình bày, tài liệu hoặc bản ghi cần tính toàn vẹn, nên giữ các dấu cách đặc biệt, trừ khi yêu cầu nói rõ được phép chuẩn hóa chúng.
+**Preserving text content:** If the application processes presentation content, documents, or records requiring integrity, keep special spaces unless requirements explicitly permit normalizing them.
 
-Không có phương thức duy nhất “đúng” cho cả hai mục đích. Trước khi chuẩn hóa cần trả lời: **Ta muốn bỏ khoảng trắng ở biên, hay thay đổi mọi khoảng trắng bên trong?** Việc thay thế bên trong chuỗi có thể thay đổi ý nghĩa dàn trang.
+There is no single “correct” method for both goals. Before normalizing, answer: **Do we want to remove boundary whitespace, or alter all internal whitespace?** Replacing inside the string can change typesetting semantics.
 
-## 7. Cách bỏ cả NBSP ở ranh giới nếu nghiệp vụ yêu cầu
+## 7. How to remove NBSP at boundaries as well if required by business logic
 
-Nếu chính sách là “bỏ tất cả ký tự mà Java xem là whitespace **hoặc** Unicode space character ở hai đầu”, có thể kết hợp `Character.isWhitespace` và `Character.isSpaceChar`.
+If the policy is “remove all characters Java treats as whitespace **or** Unicode space characters at both ends,” you can combine `Character.isWhitespace` and `Character.isSpaceChar`.
 
-Ví dụ phương thức hỗ trợ Java 17:
+Example Java 17 helper methods:
 
 ```java
 static boolean boundarySpace(int codePoint) {
@@ -230,7 +230,7 @@ static String stripBoundarySpaces(String text) {
 }
 ```
 
-Đây là **các phương thức cần đặt trong một lớp Java**, không phải chương trình độc lập có `main`. Ví dụ gọi bên trong `main`:
+These are **methods that must be placed inside a Java class**, not a standalone program with `main`. Example calls inside `main`:
 
 ```java
 String input = "\u00A0\u202FJava\u2007\u00A0";
@@ -244,23 +244,23 @@ System.out.println(stripBoundarySpaces(meaningful)
         .equals(meaningful));                     // true
 ```
 
-**Tại sao dùng `codePointAt` và `codePointBefore`?** Hai phương thức cho phép duyệt hai đầu chuỗi theo code point và dùng `Character.charCount(cp)` để tiến/lùi đúng số `char` UTF-16. Trong các ví dụ NBSP, code point nằm trong BMP, nhưng cách triển khai này thể hiện rõ đơn vị thao tác và có thể dùng cho mọi đầu vào Unicode trong phạm vi chính sách.
+**Why use `codePointAt` and `codePointBefore`?** These two methods allow scanning both ends of the string by code point and using `Character.charCount(cp)` to advance or step back the exact number of UTF-16 `char`s. In the NBSP examples, the code points are in the BMP, yet this implementation makes the unit of operation explicit and works for any Unicode input within the policy's scope.
 
-**Giới hạn cần hiểu:**
-- `isWhitespace || isSpaceChar` là **một chính sách rõ ràng do ứng dụng chọn**; nó không phải định nghĩa duy nhất của “khoảng trắng” trong mọi tiêu chuẩn và mọi ngôn ngữ.
-- Phương thức chỉ bỏ ký tự ở **hai đầu**, không xóa hay thay NBSP **ở giữa** như `"10\u00A0kg"`.
-- Với văn bản chứa các surrogate đơn lẻ (chuỗi UTF-16 không hoàn chỉnh), phương thức không tự sửa các dữ liệu đó.
-- Khi yêu cầu nghiêm ngặt theo một phiên bản Unicode hay tiêu chuẩn bên ngoài, nên xác định trực tiếp tập code point được cho phép và viết kiểm thử cho tập đó.
+**Limitations to understand:**
+- `isWhitespace || isSpaceChar` is **an explicit policy chosen by the application**; it is not the sole definition of “whitespace” across all standards and languages.
+- The method removes characters only at **both ends**; it does not delete or replace NBSP **in the middle**, such as in `"10\u00A0kg"`.
+- For text containing lone surrogates (incomplete UTF-16 strings), the method does not automatically repair such data.
+- When strict adherence to a specific Unicode version or external standard is required, explicitly define the allowed code point set and write tests for that set.
 
-### Nếu chỉ muốn bỏ riêng NBSP thông thường ở hai đầu
+### If you only want to remove regular NBSP at both ends
 
-Bạn có thể chọn một chính sách hẹp hơn `boundarySpace`, ví dụ chỉ coi `U+00A0` bổ sung vào những gì `strip()` vốn đã loại bỏ. Đó là lựa chọn thích hợp nếu ứng dụng cần giữ `U+2007` và `U+202F` vì mục đích dàn trang.
+You can choose a narrower policy than `boundarySpace`, for example treating only `U+00A0` in addition to what `strip()` already removes. That is an appropriate choice if the application needs to keep `U+2007` and `U+202F` for layout purposes.
 
-Không nên vô thức thay toàn bộ dấu cách đặc biệt bằng một dấu cách ASCII chỉ vì người dùng nhìn thấy chúng giống nhau.
+Do not blindly replace all special spaces with an ASCII space just because users see them as looking alike.
 
-## 8. Dùng Unicode regex khi hợp đồng muốn bao gồm NBSP
+## 8. Using Unicode regex when the contract includes NBSP
 
-Nếu chính sách ghi rõ “bỏ các ký tự thuộc Unicode White_Space ở đầu/cuối”, Java regex với cờ `(?U)` là một lựa chọn. Mặc định `\s` không bao phủ NBSP, còn `(?U)\s` nhận diện thêm NBSP và một số ký tự Unicode khác.
+If the policy explicitly states “remove characters belonging to Unicode White_Space at the start/end,” Java regex with the `(?U)` flag is one option. By default `\s` does not cover NBSP, whereas `(?U)\s` also recognizes NBSP and several other Unicode characters.
 
 ~~~java
 String nbsp = "\u00A0Hello\u00A0";
@@ -268,13 +268,13 @@ String cleaned = nbsp.replaceAll("(?U)\\A\\s+|\\s+\\z", "");
 System.out.println(cleaned.equals("Hello")); // true
 ~~~
 
-Hai neo `\A` và `\z` đảm bảo chỉ bỏ ở **hai đầu toàn bộ chuỗi**; không thay NBSP có ý nghĩa nằm giữa các từ. Unicode White_Space cũng khác với phép hợp `Character.isWhitespace || Character.isSpaceChar` ở mục 7: chẳng hạn U+0085 thuộc Unicode White_Space nhưng không được hai API `Character` này nhận diện. Hãy kiểm thử theo chính tập ký tự nghiệp vụ yêu cầu và giữ nguyên dữ liệu gốc khi cần phục hồi.
+The two anchors `\A` and `\z` ensure removal only at **both ends of the entire string**, without replacing meaningful NBSPs between words. Unicode White_Space also differs from the union `Character.isWhitespace || Character.isSpaceChar` in Section 7: for example, U+0085 belongs to Unicode White_Space yet is not recognized by those two `Character` APIs. Test against the exact character set your business logic requires and keep original data if recovery is needed.
 
-## 9. Có nên dùng Unicode normalization để “xóa khoảng trắng”?
+## 9. Should Unicode normalization be used to “remove whitespace”?
 
-`java.text.Normalizer` dùng để chuẩn hóa dạng Unicode, không phải API chuyên xóa khoảng trắng ở đầu/cuối.
+`java.text.Normalizer` is for normalizing Unicode forms, not a dedicated API for stripping leading/trailing whitespace.
 
-Ví dụ, chuẩn hóa tương thích `NFKC` có thể biến NBSP `U+00A0` thành SPACE `U+0020`:
+For example, compatibility normalization `NFKC` can turn NBSP `U+00A0` into SPACE `U+0020`:
 
 ```java
 String nbsp = "\u00A0";
@@ -283,25 +283,25 @@ String nfkc = java.text.Normalizer.normalize(
 System.out.println(nfkc.equals(" ")); // true
 ```
 
-Nhưng **không nên tự động chạy NFKC cho mọi input chỉ để giải quyết NBSP**. Chuẩn hóa tương thích có thể thay đổi nhiều loại ký tự khác và làm mất sự khác biệt kiểu chữ/định dạng mà ứng dụng cần giữ.
+However, **do not automatically run NFKC on every input just to deal with NBSP**. Compatibility normalization can alter many other kinds of characters and erase typographic or formatting distinctions the application needs to keep.
 
-Nếu chỉ cần xử lý khoảng trắng biên, cách thích hợp hơn là định nghĩa tập ký tự biên và loại bỏ **đúng vùng cần loại bỏ**. Nếu yêu cầu nghiệp vụ là chuẩn hóa toàn bộ văn bản theo NFKC, hãy áp dụng như một chính sách riêng và kiểm tra đầy đủ các hệ quả của nó.
+If you only need to handle boundary whitespace, a better approach is to define the boundary character set and strip **only the region that needs stripping**. If business requirements call for normalizing all text with NFKC, apply it as a separate policy and thoroughly test all of its consequences.
 
-## 10. Các sai lầm phổ biến
+## 10. Common pitfalls
 
-| Nhầm lẫn | Vấn đề thực tế | Hướng xử lý |
+| Misconception | Actual problem | How to handle it |
 | --- | --- | --- |
-| “`strip()` xóa tất cả dấu cách.” | `U+00A0`, `U+2007`, `U+202F` vẫn có thể tồn tại ở biên. | Kiểm tra `Character.isWhitespace` và chính sách ứng dụng. |
-| “`trim()` chắc chắn xóa nhiều hơn `strip()`.” | `trim()` chủ yếu dựa trên code unit `<= U+0020`, không xử lý NBSP. | Dùng API theo hợp đồng, không theo tên gọi. |
-| “Có NBSP nên `isBlank()` phải trả `true`.” | `isBlank()` cũng dựa trên `Character.isWhitespace`. | Nếu muốn định nghĩa blank rộng hơn, tự kiểm tra theo predicate được chọn. |
-| “Thấy trống thì chuỗi rỗng.” | NBSP có độ dài thật, ví dụ `"\u00A0".length() == 1`. | In code point khi gỡ lỗi. |
-| “Thay hết NBSP thành SPACE luôn an toàn.” | Có thể mất hành vi không ngắt dòng, ảnh hưởng dàn trang. | Chỉ chuẩn hóa theo chính sách rõ ràng. |
-| “`\s` mặc định trong regex luôn bắt được NBSP.” | Tập ký tự phụ thuộc cờ Unicode của `Pattern`. | Dùng `(?U)` khi cần Unicode regex và đã kiểm thử. |
-| “`NFKC` chỉ thay NBSP.” | Đây là phép chuẩn hóa tương thích ảnh hưởng nhiều ký tự. | Không dùng NFKC như mẹo làm sạch khoảng trắng nếu không cần. |
+| “`strip()` removes all spaces.” | `U+00A0`, `U+2007`, `U+202F` can still remain at edges. | Check `Character.isWhitespace` and application policy. |
+| “`trim()` definitely removes more than `strip()`.” | `trim()` mainly relies on code units `<= U+0020` and does not handle NBSP. | Use APIs by their contract, not their name. |
+| “With NBSP present, `isBlank()` must return `true`.” | `isBlank()` also relies on `Character.isWhitespace`. | If you want a broader blank definition, check using your chosen predicate. |
+| “If it looks empty, the string is empty.” | NBSP has real length, e.g., `"\u00A0".length() == 1`. | Print code points when debugging. |
+| “Replacing all NBSPs with SPACE is always safe.” | Can lose non-breaking behavior, affecting layout. | Normalize only under an explicit policy. |
+| “Default `\s` in regex always catches NBSP.” | The character set depends on `Pattern`'s Unicode flag. | Use `(?U)` when Unicode regex is needed and tested. |
+| “`NFKC` only changes NBSP.” | It is a compatibility normalization affecting many characters. | Do not use NFKC as a whitespace-cleaning trick if unnecessary. |
 
-### Cách chẩn đoán một chuỗi trông như có dấu cách
+### How to diagnose a string that looks like it has spaces
 
-Đừng chỉ in trực tiếp `System.out.println(text)`. Khi cần xác định ký tự đặc biệt, hãy in mã của các code point:
+Do not just print `System.out.println(text)` directly. When you need to identify special characters, print the code point values:
 
 ```java
 String input = "\u00A0Hi\u202F";
@@ -309,7 +309,7 @@ input.codePoints().forEach(cp ->
         System.out.printf("U+%04X%n", cp));
 ```
 
-Đầu ra:
+Output:
 
 ```text
 U+00A0
@@ -318,11 +318,11 @@ U+0069
 U+202F
 ```
 
-Cách kiểm tra này cho biết chính xác tại sao một chuỗi **có vẻ đã được trim/strip nhưng vẫn chứa khoảng trắng ở hai đầu**.
+This inspection shows exactly why a string **appears trimmed/stripped yet still contains whitespace at both ends**.
 
-## 11. Tự kiểm tra kiến thức
+## 11. Self-check quiz
 
-### Câu 1
+### Question 1
 
 ```java
 String s = "\u00A0";
@@ -330,9 +330,9 @@ System.out.println(s.isBlank());
 System.out.println(s.strip().isEmpty());
 ```
 
-**Đáp án:** `false` và `false`. `U+00A0` không thỏa `Character.isWhitespace`, nên `strip()` không xóa nó, và `isBlank()` không xem chuỗi này là blank.
+**Answer:** `false` and `false`. `U+00A0` does not satisfy `Character.isWhitespace`, so `strip()` does not remove it, and `isBlank()` does not consider this string blank.
 
-### Câu 2
+### Question 2
 
 ```java
 String s = "\u2003Java\u2003";
@@ -340,9 +340,9 @@ System.out.println(s.trim().equals(s));
 System.out.println(s.strip().equals("Java"));
 ```
 
-**Đáp án:** `true` và `true`. `trim()` không bỏ EM SPACE `U+2003`, nhưng `strip()` có bỏ vì `Character.isWhitespace(0x2003)` là `true`.
+**Answer:** `true` and `true`. `trim()` does not remove EM SPACE `U+2003`, whereas `strip()` does because `Character.isWhitespace(0x2003)` is `true`.
 
-### Câu 3
+### Question 3
 
 ```java
 String s = " \u00A0A\u00A0 ";
@@ -350,31 +350,31 @@ System.out.println(s.strip()
         .equals("\u00A0A\u00A0"));
 ```
 
-**Đáp án:** `true`. `strip()` bỏ SPACE ASCII ở ngoài nhưng dừng khi gặp NBSP.
+**Answer:** `true`. `strip()` removes the outer ASCII SPACEs and stops upon hitting NBSP.
 
-### Câu 4
+### Question 4
 
-Một sản phẩm cần loại bỏ NBSP ở đầu/cuối trường tên được dán từ HTML, nhưng phải giữ khoảng trắng không ngắt dòng giữa số và đơn vị trong `"10\u00A0kg"`. Nên làm gì?
+A product needs to strip NBSP at the start/end of a name field pasted from HTML, while preserving the non-breaking space between number and unit in `"10\u00A0kg"`. What should be done?
 
-**Đáp án:** Áp dụng quy tắc **chỉ bỏ ở ranh giới** (chẳng hạn hàm `stripBoundarySpaces` ở trên), không dùng `replace("\u00A0", " ")` trên toàn bộ văn bản. Kiểm thử cả trường hợp NBSP ở biên và NBSP có ý nghĩa ở giữa.
+**Answer:** Apply a **boundary-only removal** rule (such as `stripBoundarySpaces` above); do not run `replace("\u00A0", " ")` across the entire text. Test both boundary NBSPs and meaningful internal NBSPs.
 
-### Câu 5
+### Question 5
 
-Trong Java 17, `Character.isSpaceChar(0x00A0)` và `Character.isWhitespace(0x00A0)` có cùng kết quả không?
+In Java 17, do `Character.isSpaceChar(0x00A0)` and `Character.isWhitespace(0x00A0)` return the same result?
 
-**Đáp án:** Không. `isSpaceChar(0x00A0) == true` còn `isWhitespace(0x00A0) == false`. Đây chính là nguyên nhân NBSP không bị `strip()` loại bỏ.
+**Answer:** No. `isSpaceChar(0x00A0) == true` while `isWhitespace(0x00A0) == false`. This is why NBSP is not removed by `strip()`.
 
-## 12. Tổng kết
+## 12. Summary
 
-- `String.strip()` (Java 11+) loại bỏ **`Character.isWhitespace` ở hai đầu**, không phải mọi Unicode space character.
-- Ba dấu cách không ngắt dòng quan trọng là **NBSP `U+00A0`**, **FIGURE SPACE `U+2007`**, **NARROW NO-BREAK SPACE `U+202F`**; trong Java 17 chúng được `isSpaceChar` nhận diện nhưng `isWhitespace` không nhận diện.
-- `trim()` cũng không loại bỏ NBSP; `isBlank()` có thể trả `false` cho chuỗi chỉ chứa NBSP.
-- Nếu yêu cầu nghiệp vụ muốn bỏ thêm các khoảng trắng không ngắt dòng ở **đầu/cuối**, hãy định nghĩa rõ predicate biên hoặc dùng Unicode-aware regex với kiểm thử phù hợp.
-- Không xóa NBSP bên trong chuỗi hoặc áp dụng chuẩn hóa tương thích một cách tùy tiện; dấu cách không ngắt dòng có thể mang ý nghĩa dàn trang.
+- `String.strip()` (Java 11+) removes **`Character.isWhitespace` at both ends**, not every Unicode space character.
+- Three important non-breaking spaces are **NBSP `U+00A0`**, **FIGURE SPACE `U+2007`**, and **NARROW NO-BREAK SPACE `U+202F`**; in Java 17 they are recognized by `isSpaceChar` but not by `isWhitespace`.
+- `trim()` does not remove NBSP either; `isBlank()` can return `false` for a string containing only NBSP.
+- If business requirements call for also removing non-breaking spaces at the **start/end**, explicitly define a boundary predicate or use a Unicode-aware regex with appropriate tests.
+- Do not delete internal NBSPs or apply compatibility normalization arbitrarily; non-breaking spaces may carry layout meaning.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 17 — `String.strip()`, `stripLeading()`, `stripTrailing()` và `isBlank()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html)
-- [Java SE 17 — `Character.isWhitespace` và `Character.isSpaceChar`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html)
-- [Java SE 17 — `Pattern` và `UNICODE_CHARACTER_CLASS`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html)
+- [Java SE 17 — `String.strip()`, `stripLeading()`, `stripTrailing()`, and `isBlank()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html)
+- [Java SE 17 — `Character.isWhitespace` and `Character.isSpaceChar`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html)
+- [Java SE 17 — `Pattern` and `UNICODE_CHARACTER_CLASS`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html)
 - [Unicode Standard — Unicode Character Database](https://www.unicode.org/ucd/)

@@ -1,43 +1,43 @@
-# DateTimeFormatter.ofPattern và khác biệt với mẫu ngày giờ được chọn theo locale
+# DateTimeFormatter.ofPattern and Differences from Locale-Selected Date-Time Patterns
 
-## 1. Vấn đề cần hiểu
+## 1. The Problem to Understand
 
-Trong Java, cùng một ngày **28 tháng 10 năm 2026** có thể được hiển thị dưới nhiều cấu trúc tùy ngôn ngữ và khu vực:
+In Java, the same date **October 28, 2026** can be displayed in multiple structures depending on language and region:
 
-- Ở giao diện tiếng Việt: ngày thường được đặt trước tháng.
-- Ở giao diện tiếng Anh tại Hoa Kỳ: tháng thường được đặt trước ngày trong các kiểu viết ngày phổ biến.
-- Ở một số khu vực khác: năm có thể đứng trước hoặc dấu phân cách có thể khác.
-- Tên thứ, tên tháng, chữ chỉ buổi và một số ký hiệu cũng có thể đổi theo locale.
+- In a Vietnamese UI: the day is usually placed before the month.
+- In a US English UI: the month is usually placed before the day in common date styles.
+- In some other regions: the year may come first, or separators may differ.
+- Day-of-week names, month names, day-period labels, and some symbols can also change by locale.
 
-Khi dùng `java.time.format.DateTimeFormatter`, có hai hướng quan trọng:
+When using `java.time.format.DateTimeFormatter`, there are two major approaches:
 
-1. **`DateTimeFormatter.ofPattern(pattern, locale)`:** người lập trình **tự viết cấu trúc** `pattern`, ví dụ `"dd/MM/uuuu"`. Locale ảnh hưởng các phần phụ thuộc ngôn ngữ như tên tháng hoặc thứ, nhưng **không tự đảo trật tự `dd/MM/uuuu` thành `MM/dd/uuuu`**.
-2. **`DateTimeFormatter.ofLocalizedDate(style).withLocale(locale)`**, `ofLocalizedTime(...)`, `ofLocalizedDateTime(...)`: Java chọn **mẫu hiển thị ngày/giờ phù hợp locale và `FormatStyle`**. Thứ tự các trường, dấu phân cách, tên tháng và mức độ chi tiết có thể khác giữa các locale.
+1. **`DateTimeFormatter.ofPattern(pattern, locale)`:** the programmer **explicitly writes the structure** `pattern`, for example `"dd/MM/uuuu"`. The locale affects language-dependent parts such as month or weekday names, but **does not automatically flip `dd/MM/uuuu` into `MM/dd/uuuu`**.
+2. **`DateTimeFormatter.ofLocalizedDate(style).withLocale(locale)`**, `ofLocalizedTime(...)`, `ofLocalizedDateTime(...)`: Java selects a **date/time display pattern matching the locale and `FormatStyle`**. Field order, separators, month names, and level of detail can differ across locales.
 
-**Đây là điểm cốt lõi của bài:** chọn `Locale` cho một pattern tự viết không đồng nghĩa yêu cầu Java tự tìm mẫu ngày giờ quy ước của vùng đó. Một pattern do người viết chỉ định và một localized pattern được hệ thống chọn là **hai cơ chế khác nhau**.
+**This is the core point of this lesson:** supplying a `Locale` to a custom pattern is not the same as asking Java to look up that region's conventional date-time pattern. A developer-specified pattern and a system-selected localized pattern are **two different mechanisms**.
 
-Bài dùng Java 17+, API `java.time` hiện đại; không trộn cú pháp `DateTimeFormatter` với `java.text.SimpleDateFormat` nếu chưa kiểm tra khác biệt.
+This lesson uses Java 17+ and the modern `java.time` API; do not mix `DateTimeFormatter` syntax with `java.text.SimpleDateFormat` without checking the differences.
 
-## 2. Bốn thành phần cần phân biệt
+## 2. Four Components to Distinguish
 
-| Thành phần | Ví dụ | Quyết định điều gì? |
+| Component | Example | What does it decide? |
 | --- | --- | --- |
-| Giá trị ngày/giờ | `LocalDate.of(2026, 10, 28)` | Ngày nghiệp vụ thực sự |
-| Pattern tự viết | `"dd/MM/uuuu"` | **Thứ tự trường và dấu phân cách cố định** do developer chọn |
-| Locale | `Locale.forLanguageTag("vi-VN")` | Ngôn ngữ tên tháng/thứ và lựa chọn localized pattern |
-| FormatStyle | `SHORT`, `MEDIUM`, `LONG`, `FULL` | Mức chi tiết khi Java tìm mẫu theo locale |
+| Date/time value | `LocalDate.of(2026, 10, 28)` | The actual domain date |
+| Custom pattern | `"dd/MM/uuuu"` | **Fixed field order and separators** chosen by the developer |
+| Locale | `Locale.forLanguageTag("vi-VN")` | Language of month/weekday names and localized pattern lookup |
+| FormatStyle | `SHORT`, `MEDIUM`, `LONG`, `FULL` | Level of detail when Java looks up a pattern by locale |
 
-Múi giờ lại là tham số **độc lập**:
+Time zone is an **independent** parameter:
 
-- `Locale` mô tả ngôn ngữ và quy ước trình bày.
-- `ZoneId` xác định cách một `Instant` được chuyển thành giờ địa phương.
-- `DateTimeFormatter` quyết định cách viết giờ địa phương ra ký tự.
+- `Locale` describes language and presentation conventions.
+- `ZoneId` determines how an `Instant` is converted to local time.
+- `DateTimeFormatter` determines how that local time is written as characters.
 
-Ví dụ người dùng chọn tiếng Việt nhưng đang ở Tokyo: thông điệp có thể bằng tiếng Việt, date pattern theo `vi-VN`, còn giờ sự kiện theo `Asia/Tokyo`. Không suy tự động `ZoneId.of("Asia/Ho_Chi_Minh")` chỉ từ `Locale.forLanguageTag("vi-VN")`.
+For example, a user may choose Vietnamese while located in Tokyo: messages may be in Vietnamese, date patterns per `vi-VN`, and event times in `Asia/Tokyo`. Never automatically infer `ZoneId.of("Asia/Ho_Chi_Minh")` solely from `Locale.forLanguageTag("vi-VN")`.
 
-## 3. `ofPattern`: cấu trúc do developer nắm quyền
+## 3. `ofPattern`: Structure Controlled by the Developer
 
-API phổ biến:
+Common API:
 
 ```java
 DateTimeFormatter formatter = DateTimeFormatter.ofPattern(
@@ -45,47 +45,47 @@ DateTimeFormatter formatter = DateTimeFormatter.ofPattern(
         Locale.forLanguageTag("vi-VN"));
 ```
 
-Với một `LocalDate` như `2026-10-28`, formatter trên tạo chuỗi `28/10/2026`. Đây là pattern số có ngày/tháng/năm cố định; nếu đổi locale thành `Locale.US` mà **không đổi pattern**, kết quả cấu trúc vẫn là `28/10/2026` với bộ ký tự số mặc định.
+With a `LocalDate` such as `2026-10-28`, this formatter produces the string `28/10/2026`. This is a numeric pattern with fixed day/month/year order; if you switch the locale to `Locale.US` **without changing the pattern**, the structural output is still `28/10/2026` using the default digits.
 
-`DateTimeFormatter.ofPattern("dd/MM/uuuu")` (không truyền `Locale`) sử dụng locale mặc định của category `Locale.Category.FORMAT` khi tạo formatter. Trong ứng dụng đa người dùng nên **truyền locale tường minh**, tránh kết quả bị phụ thuộc cấu hình JVM.
+`DateTimeFormatter.ofPattern("dd/MM/uuuu")` (without passing a `Locale`) uses the default `Locale.Category.FORMAT` locale at the time the formatter is created. In multi-user applications, **pass the locale explicitly** to avoid results depending on JVM configuration.
 
-### 3.1. Một số pattern letter quan trọng
+### 3.1. Important Pattern Letters
 
-| Ký tự | Ý nghĩa với `DateTimeFormatter` | Ví dụ / chú ý |
+| Letter | Meaning in `DateTimeFormatter` | Example / notes |
 | --- | --- | --- |
-| `u`, `uuuu` | Năm theo lịch proleptic | `2026`, hữu ích với strict parse ISO |
-| `y`, `yyyy` | Year-of-era | Cần để ý resolver và era trong parse nghiêm ngặt |
-| `M`, `MM` | Tháng dạng số | `10`, dùng `MM` cho đủ 2 chữ số |
-| `MMM`, `MMMM` | Tên tháng dạng text | `Oct` hoặc `October` theo locale |
-| `L` | Tháng dạng độc lập/stand-alone | Có thể khác dạng sử dụng trong câu ở một số ngôn ngữ |
-| `d`, `dd` | Ngày trong tháng | `28` |
-| `D` | Ngày trong năm | **Không** phải ngày trong tháng |
-| `E`, `EEEE` | Tên thứ trong tuần | `Wed` hoặc `Wednesday` theo locale |
-| `e`/`c` | Thứ theo đánh số/tên bản địa | Phụ thuộc locale và độ dài pattern |
-| `H`, `HH` | Giờ 0–23 | `14`, không cần AM/PM |
-| `h`, `hh` | Giờ 1–12 | Thường đi kèm `a` |
-| `m`, `mm` | **Phút** | `05`; rất dễ nhầm với `M` tháng |
-| `s`, `ss` | Giây | `09` |
-| `S`, `SSS` | Chữ số của phần giây | `123` mili-giây trong ví dụ 3 chữ số |
-| `a` | AM/PM | Văn bản theo locale |
-| `X`, `XXX` | Offset ISO-8601 | Ví dụ `+07:00` với `XXX` |
-| `V`, `VV` | Zone ID | Ví dụ `Asia/Ho_Chi_Minh` với `VV` |
-| `z` | Tên múi giờ theo locale | Cần có zone và dữ liệu tên vùng |
-| `Y` | Week-based-year | **Không thay** `u` hoặc `y` cho ngày lịch thông thường |
+| `u`, `uuuu` | Proleptic year | `2026`, useful for strict ISO parsing |
+| `y`, `yyyy` | Year-of-era | Watch out for resolver and era in strict parsing |
+| `M`, `MM` | Numeric month | `10`; use `MM` for 2 digits |
+| `MMM`, `MMMM` | Text month name | `Oct` or `October` depending on locale |
+| `L` | Stand-alone month | May differ from in-context form in some languages |
+| `d`, `dd` | Day of month | `28` |
+| `D` | Day of year | **Not** day of month |
+| `E`, `EEEE` | Day-of-week name | `Wed` or `Wednesday` depending on locale |
+| `e`/`c` | Day of week as number/localized name | Depends on locale and pattern length |
+| `H`, `HH` | Hour 0–23 | `14`, no AM/PM needed |
+| `h`, `hh` | Hour 1–12 | Usually paired with `a` |
+| `m`, `mm` | **Minute** | `05`; very easy to confuse with `M` (month) |
+| `s`, `ss` | Second | `09` |
+| `S`, `SSS` | Fraction of second | `123` milliseconds in the 3-digit example |
+| `a` | AM/PM | Localized text |
+| `X`, `XXX` | ISO-8601 offset | For example `+07:00` with `XXX` |
+| `V`, `VV` | Zone ID | For example `Asia/Ho_Chi_Minh` with `VV` |
+| `z` | Localized time-zone name | Requires a zone and zone-name data |
+| `Y` | Week-based-year | **Do not substitute** for `u` or `y` on normal calendar dates |
 
-Cú pháp dạng `"dd/MM/uuuu HH:mm"` ghép ngày và giờ; dấu `/`, dấu cách, dấu `:` trong pattern là các ký tự literal. Nếu locale khác thường dùng thứ tự hoặc dấu khác, `ofPattern` **không tự sửa chúng**.
+Syntax such as `"dd/MM/uuuu HH:mm"` combines date and time; `/`, space, and `:` in the pattern are literal characters. If another locale normally uses a different order or separator, `ofPattern` **does not rewrite them automatically**.
 
-Đặc biệt nguy hiểm:
+Especially dangerous pitfalls:
 
-- `"MM/dd/uuuu"` và `"dd/MM/uuuu"` có thể cho hai ý nghĩa khác nhau khi parse `03/04/2026`.
-- `"YYYY-MM-dd"` dùng week-based-year, có thể tạo năm **khác** gần đầu/cuối năm. Dùng `"uuuu-MM-dd"` cho lịch ISO khi cần năm thực của ngày.
-- `"mm"` là phút, `"MM"` mới là tháng.
-- `"DD"` là ngày thứ bao nhiêu trong năm, `"dd"` mới là ngày trong tháng.
-- Pattern `"hh:mm"` không chỉ rõ AM/PM, khiến giờ có thể mơ hồ; thêm `a` nếu dùng 12 giờ.
+- `"MM/dd/uuuu"` and `"dd/MM/uuuu"` can give two different meanings when parsing `03/04/2026`.
+- `"YYYY-MM-dd"` uses week-based-year, which can produce a **different** year near the start or end of the year. Use `"uuuu-MM-dd"` for ISO calendar dates when you need the actual calendar year.
+- `"mm"` is minutes; `"MM"` is months.
+- `"DD"` is day of year; `"dd"` is day of month.
+- `"hh:mm"` does not specify AM/PM, making the hour ambiguous; add `a` when using 12-hour format.
 
-### 3.2. Locale tác động đến những phần nào của pattern tùy chỉnh?
+### 3.2. Which Parts of a Custom Pattern Does Locale Affect?
 
-Ví dụ:
+Example:
 
 ```java
 DateTimeFormatter us =
@@ -95,13 +95,13 @@ DateTimeFormatter vi =
                 "EEEE, dd MMMM uuuu", Locale.forLanguageTag("vi-VN"));
 ```
 
-Hai formatter đều giữ **thứ tự: thứ → ngày → tháng → năm**, kèm dấu phẩy và dấu cách theo pattern. Tên thứ và tháng có thể là tiếng Anh hoặc tiếng Việt, tùy locale và dữ liệu được hỗ trợ. Vì tên tháng phụ thuộc dữ liệu CLDR/JDK, không nên cố định mọi chuỗi tháng viết tắt/viết hoa trong unit test chạy đa nền tảng.
+Both formatters preserve **the order: weekday -> day -> month -> year**, along with commas and spaces from the pattern. Weekday and month names can be English or Vietnamese depending on the locale and supported data. Because month names depend on CLDR/JDK data, do not hardcode all abbreviated or capitalized month strings in cross-platform unit tests.
 
-**`Locale` không tự làm cho pattern cố định trở thành quy ước ngày tháng bản địa.** Việc dùng `Locale.US` với `"dd/MM/uuuu"` vẫn giữ ngày đứng trước tháng, dù đó không phải dạng ngắn thông dụng của Hoa Kỳ.
+**`Locale` does not turn a fixed pattern into a local date convention.** Using `Locale.US` with `"dd/MM/uuuu"` still puts day before month, even though that is not the common US short format.
 
-## 4. `ofLocalizedDate`: Java chọn mẫu thay developer
+## 4. `ofLocalizedDate`: Java Selects the Pattern for the Developer
 
-Khi muốn theo quy ước địa phương, dùng các factory localized:
+When you want local conventions, use the localized factories:
 
 ```java
 DateTimeFormatter dateFormat =
@@ -117,38 +117,38 @@ DateTimeFormatter dateTimeFormat =
                 .withLocale(locale);
 ```
 
-Chúng lấy **mẫu định dạng tương ứng với `FormatStyle` và locale**, chứ không phải chỉ đổi tên tháng trên một cấu trúc đã viết sẵn. Theo tài liệu Java 17, localized pattern được tra cứu khi formatter thực sự sử dụng, dựa trên locale và chronology.
+They retrieve the **format pattern corresponding to the `FormatStyle` and locale**, rather than merely translating month names in a pre-written structure. Per the Java 17 documentation, the localized pattern is looked up when the formatter is actually used, based on the locale and chronology.
 
-Các style:
+The styles:
 
-| `FormatStyle` | Ý tưởng | Ghi chú |
+| `FormatStyle` | Idea | Notes |
 | --- | --- | --- |
-| `SHORT` | Ngắn, thường có số và ít trường | Phù hợp bảng/hộp nhỏ; có thể mơ hồ nếu không có ngữ cảnh |
-| `MEDIUM` | Mức chi tiết trung bình | Dễ đọc hơn SHORT trong nhiều locale |
-| `LONG` | Tương đối đầy đủ | Có thể đưa tên tháng, tên vùng khi định dạng giờ |
-| `FULL` | Đầy đủ nhất | Có thể bao gồm thứ và tên múi giờ |
+| `SHORT` | Short, usually numeric with fewer fields | Suitable for tables/compact fields; can be ambiguous without context |
+| `MEDIUM` | Medium detail | Easier to read than SHORT in many locales |
+| `LONG` | Fairly full | May include month names and zone names when formatting times |
+| `FULL` | Most complete | May include weekday and time-zone name |
 
-**Không có pattern duy nhất cho mọi locale.** `FormatStyle.SHORT` không có nghĩa bắt buộc là `"dd/MM/yy"`; dữ liệu mỗi locale quyết định thứ tự và dấu phân cách. `FULL` cũng không được định nghĩa là một chuỗi literal cụ thể dùng chung mọi phiên bản JDK.
+**There is no single pattern across all locales.** `FormatStyle.SHORT` does not necessarily mean `"dd/MM/yy"`; each locale's data decides field order and separators. `FULL` is likewise not defined as one specific literal string shared across all JDK versions.
 
-Đối với định dạng **time-only** và **date-time**, kiểu `FULL` hoặc `LONG` có thể yêu cầu thông tin zone. Nếu dùng `LocalDateTime` (không chứa zone) với style cần tên múi giờ, có thể gặp `DateTimeException`. Dùng `ZonedDateTime` hoặc cung cấp `withZone(zone)` khi phù hợp ngữ nghĩa.
+For **time-only** and **date-time** formatting, `FULL` or `LONG` may require zone information. Using `LocalDateTime` (which has no zone) with a style requiring a time-zone name can throw `DateTimeException`. Use `ZonedDateTime` or supply `withZone(zone)` when semantically appropriate.
 
-### 4.1. Bảng so sánh trực tiếp
+### 4.1. Direct Comparison Table
 
-| Tiêu chí | `ofPattern("dd/MM/uuuu", locale)` | `ofLocalizedDate(SHORT).withLocale(locale)` |
+| Criterion | `ofPattern("dd/MM/uuuu", locale)` | `ofLocalizedDate(SHORT).withLocale(locale)` |
 | --- | --- | --- |
-| Ai chọn thứ tự ngày/tháng/năm? | Developer | Dữ liệu locale/JDK |
-| Ai chọn dấu phân cách? | Developer trong pattern | Mẫu bản địa |
-| Đổi locale có tự đảo vị trí trường? | **Không** | **Có thể**, theo locale |
-| Tên tháng/thứ có thể được bản địa hóa? | Có, nếu pattern chứa `MMM/MMMM/EEEE` | Có, theo localized pattern |
-| Kiểm soát từng ký tự hiển thị? | Rất cao | Ít hơn; dựa trên quy ước locale |
-| Phù hợp | Chuẩn input đặc thù, định dạng thiết kế cố định, file export có contract | Giao diện cho người dùng đa khu vực |
-| Rủi ro | Áp đặt cấu trúc của một nước cho tất cả | Output thay đổi khi dữ liệu locale/JDK thay đổi |
+| Who chooses day/month/year order? | Developer | Locale/JDK data |
+| Who chooses separators? | Developer in the pattern | Localized template |
+| Does changing locale reorder fields? | **No** | **Yes, potentially**, depending on locale |
+| Can month/weekday names be localized? | Yes, if the pattern contains `MMM/MMMM/EEEE` | Yes, per localized pattern |
+| Character-level display control? | Very high | Lower; relies on locale conventions |
+| Suitable for | Specialized input standards, fixed design formats, contract-bound exports | UI for multi-region users |
+| Risk | Imposing one country's structure on everyone | Output changes when locale/JDK data changes |
 
-Nếu sản phẩm muốn **ngày luôn `dd/MM/uuuu` ở mọi thị trường**, hãy chủ động dùng `ofPattern`. Nếu muốn **ngày theo chuẩn người dùng quen đọc**, ưu tiên `ofLocalizedDate` và chọn locale theo user preference.
+If the product requires **dates to always be `dd/MM/uuuu` in every market**, deliberately use `ofPattern`. If you want **dates formatted the way users naturally read them**, prefer `ofLocalizedDate` and select the locale from user preferences.
 
-## 5. Chương trình Java 17 đầu tiên: cùng pattern, hai locale
+## 5. First Java 17 Program: Same Pattern, Two Locales
 
-Tạo tệp `PatternVsLocalizedDemo.java`:
+Create the file `PatternVsLocalizedDemo.java`:
 
 ```java
 import java.time.LocalDate;
@@ -182,7 +182,7 @@ public class PatternVsLocalizedDemo {
                 DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)
                         .withLocale(vi);
 
-        // Dạng SHORT do dữ liệu locale của JDK quyết định:
+        // SHORT format determined by the JDK's locale data:
         System.out.println("localizedUS=" +
                 date.format(localizedUS));
         System.out.println("localizedVI=" +
@@ -191,14 +191,14 @@ public class PatternVsLocalizedDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17+:
+Compile and run with JDK 17+:
 
 ```bash
 javac -encoding UTF-8 PatternVsLocalizedDemo.java
 java PatternVsLocalizedDemo
 ```
 
-**Bốn dòng đầu có thể xác định chính xác:**
+**The first four lines can be determined exactly:**
 
 ```text
 ISO=2026-10-28
@@ -207,15 +207,15 @@ customVI=28/10/2026
 sameCustom=true
 ```
 
-Hai dòng `localizedUS=...` và `localizedVI=...` luôn được in tiếp theo, nhưng **phần giá trị sau dấu `=` phụ thuộc dữ liệu locale/provider của JDK**. Vì thế không đưa ra một stdout literal duy nhất cho các dòng này. Hãy chạy để quan sát cách mẫu SHORT khác nhau theo cấu hình runtime.
+The two lines `localizedUS=...` and `localizedVI=...` are always printed next, but **the values after `=` depend on the JDK's locale/provider data**. Therefore, no single literal stdout is asserted for those lines. Run the program to observe how the SHORT pattern varies by runtime configuration.
 
-Kết luận từ code: **đổi locale của một pattern số tự viết không tự đổi `dd/MM/uuuu` thành `MM/dd/uuuu`**; factory localized được dùng khi cần Java quyết định thứ tự/dấu theo locale.
+Takeaway from the code: **changing the locale of a custom numeric pattern does not turn `dd/MM/uuuu` into `MM/dd/uuuu`**; localized factories are used when you need Java to choose order and separators by locale.
 
-## 6. `withLocale` không có tác dụng giống nhau trên hai kiểu formatter
+## 6. `withLocale` Does Not Have the Same Effect on Both Formatter Types
 
-`DateTimeFormatter` là immutable. `withLocale(locale)` trả về **một formatter mới** có locale mới, không sửa instance hiện tại.
+`DateTimeFormatter` is immutable. `withLocale(locale)` returns **a new formatter** with the new locale without mutating the current instance.
 
-Tình huống A — formatter **tự viết pattern**:
+Case A — formatter with a **custom pattern**:
 
 ```java
 DateTimeFormatter fixed =
@@ -224,9 +224,9 @@ DateTimeFormatter fixedVi =
         fixed.withLocale(Locale.forLanguageTag("vi-VN"));
 ```
 
-`fixedVi` vẫn giữ thứ tự và dấu `dd/MM/uuuu`. Nếu pattern có `MMMM`/`EEEE`, locale mới có thể làm tên tháng/thứ khác; pattern dạng số không có cấu trúc bản địa tự chọn.
+`fixedVi` keeps the `dd/MM/uuuu` order and slashes. If the pattern has `MMMM`/`EEEE`, the new locale can change month/weekday names; numeric patterns have no self-selected localized layout.
 
-Tình huống B — formatter **được tạo theo style**:
+Case B — formatter **created by style**:
 
 ```java
 DateTimeFormatter localized =
@@ -237,21 +237,21 @@ DateTimeFormatter localizedVi =
         localized.withLocale(Locale.forLanguageTag("vi-VN"));
 ```
 
-`localizedVi` vẫn là formatter theo style `LONG` nhưng **mẫu LONG sẽ được tra cứu theo locale mới**. Thứ tự trường và ngôn ngữ có thể thay đổi, không phải chỉ thay nhãn tháng.
+`localizedVi` is still a `LONG` style formatter, but **the `LONG` pattern will be looked up for the new locale**. Field order and language can both change, not just month labels.
 
-### 6.1. `withLocale`, `localizedBy` và `DecimalStyle`
+### 6.1. `withLocale`, `localizedBy`, and `DecimalStyle`
 
-Đừng giả định chỉ cần gọi `withLocale` thì mọi số năm/tháng/ngày sẽ chuyển sang hệ chữ số riêng của locale. Theo Java 17:
+Do not assume that simply calling `withLocale` switches all year/month/day digits into the locale's numbering system. In Java 17:
 
-- `withLocale(locale)` thay locale dùng cho phần cần tra cứu ngôn ngữ và localized pattern.
-- `withDecimalStyle(DecimalStyle.of(locale))` áp dụng ký hiệu thập phân, dấu âm và chữ số bản địa hóa khi cần.
-- `localizedBy(locale)` (Java 10+) có thể áp dụng thêm những thiết lập được chỉ định bởi Unicode locale extensions như numbering system, calendar, region override và timezone, tùy trường hợp.
+- `withLocale(locale)` changes the locale used for language lookup and localized patterns.
+- `withDecimalStyle(DecimalStyle.of(locale))` applies localized decimal symbols, minus sign, and digits when needed.
+- `localizedBy(locale)` (Java 10+) can additionally apply settings specified by Unicode locale extensions such as numbering system, calendar, region override, and time zone, depending on the case.
 
-Đây là những cơ chế khác nhau. Không tự động coi `withLocale` có nghĩa “đã đổi chronology và timezone”. Đối với dữ liệu API có định dạng chuẩn ISO, nhiều trường hợp nên dùng các formatter ISO cố định thay vì định dạng theo ngôn ngữ.
+These are distinct mechanisms. Do not automatically treat `withLocale` as "changed chronology and time zone". For API data with standard ISO formatting, fixed ISO formatters are often preferable to language-based formatting.
 
-## 7. Khi muốn biết localized pattern thực tế là gì?
+## 7. When You Want to Know What the Actual Localized Pattern Is
 
-Java 17 có phương thức:
+Java 17 provides the method:
 
 ```java
 String pattern = DateTimeFormatterBuilder.getLocalizedDateTimePattern(
@@ -261,11 +261,11 @@ String pattern = DateTimeFormatterBuilder.getLocalizedDateTimePattern(
         Locale.US);
 ```
 
-Nó trả **pattern cho phần date** với style, chronology và locale đã chọn. Với time-only, truyền `null` ở date style và một time style; với date-time, truyền cả hai. Không được để **cả date style lẫn time style đều null**.
+It returns **the pattern for the date part** with the selected style, chronology, and locale. For time-only, pass `null` for date style and a time style; for date-time, pass both. You must not leave **both date style and time style null**.
 
-### Ví dụ độc lập: in mẫu SHORT của ba locale
+### Standalone example: printing the SHORT pattern of three locales
 
-Tệp `LocalizedPatternInspection.java`:
+File `LocalizedPatternInspection.java`:
 
 ```java
 import java.time.chrono.IsoChronology;
@@ -295,13 +295,13 @@ javac -encoding UTF-8 LocalizedPatternInspection.java
 java LocalizedPatternInspection
 ```
 
-Chương trình in **ba dòng** theo thứ tự `en-US`, `vi-VN`, `fr-FR`, mỗi dòng chứa pattern dùng theo dữ liệu locale. Nội dung của pattern có thể khác giữa các phiên bản JDK/CLDR và provider; không nên xem một snapshot như quy tắc vĩnh viễn.
+The program prints **three lines** in the order `en-US`, `vi-VN`, `fr-FR`, each containing the pattern used per locale data. The pattern contents can differ across JDK/CLDR versions and providers; do not treat one snapshot as a permanent rule.
 
-**Khi nào hữu ích?** Để chẩn đoán vì sao localized formatter in tháng trước ngày ở locale này nhưng ngày trước tháng ở locale kia, hoặc để viết test theo runtime được cố định. Phương thức này là **công cụ xem mẫu**; không cần phải lấy chuỗi rồi gọi `ofPattern` trong mọi lượt format. Thông thường `ofLocalizedDate(FormatStyle.SHORT).withLocale(locale)` đã là cách rõ nghĩa và phù hợp hơn.
+**When is this useful?** To diagnose why a localized formatter prints month before day in one locale and day before month in another, or to write tests against a pinned runtime. This method is an **inspection tool**; there is no need to extract the string and call `ofPattern` on every format call. Usually `ofLocalizedDate(FormatStyle.SHORT).withLocale(locale)` is clearer and more appropriate.
 
-### 7.1. Không “đóng băng” localized pattern một cách vô ý
+### 7.1. Do Not Accidentally "Freeze" a Localized Pattern
 
-Nếu tại lúc khởi động bạn lấy pattern SHORT của `Locale.US` rồi sử dụng:
+If at startup you fetch the SHORT pattern for `Locale.US` and use it like this:
 
 ```java
 String usPattern =
@@ -313,23 +313,23 @@ DateTimeFormatter fixedFromUS =
         DateTimeFormatter.ofPattern(usPattern, Locale.US);
 ```
 
-Sau đó chỉ gọi `fixedFromUS.withLocale(viLocale)`, formatter mới **không tự lấy pattern SHORT của `vi-VN`**. Pattern `usPattern` đã được chọn và gắn cố định từ lúc tạo `ofPattern`.
+Then calling `fixedFromUS.withLocale(viLocale)` **does not switch to the `vi-VN` SHORT pattern**. `usPattern` was already chosen and frozen when `ofPattern` created the formatter.
 
-Đoạn mã trên là minh họa **trong một method** có biến `viLocale` và import tương ứng. Nếu thực sự cần tự tùy chỉnh mẫu cho nhiều locale, phải quản lý **một pattern rõ cho mỗi locale** và version; còn nếu không cần tùy chỉnh, dùng localized factory.
+The snippet above illustrates code **inside a method** with a `viLocale` variable and the corresponding imports. If you genuinely need to customize patterns for multiple locales, maintain **an explicit pattern per locale** and version; otherwise, use the localized factory.
 
-## 8. Tự viết pattern cho từng locale: có hợp lý không?
+## 8. Writing Patterns Per Locale Manually: Does It Make Sense?
 
-Có. Một sản phẩm có thể cố tình chọn mẫu riêng cho từng ngôn ngữ thay vì dùng mẫu của JDK, chẳng hạn:
+Yes. A product may intentionally choose its own pattern per language rather than relying on the JDK's patterns, for example:
 
-| Locale | Pattern do sản phẩm định nghĩa |
+| Locale | Product-defined pattern |
 | --- | --- |
 | `vi-VN` | `"dd/MM/uuuu"` |
 | `en-US` | `"MM/dd/uuuu"` |
 | `ja-JP` | `"uuuu/MM/dd"` |
 
-Lúc đó lựa chọn locale vẫn quyết định **pattern nào được lấy**, nhưng đây là **logic riêng của sản phẩm**, không phải `ofPattern` tự động biến đổi một pattern duy nhất.
+In that case, the locale still determines **which pattern is selected**, but that is **application-specific logic**, not `ofPattern` transforming a single pattern automatically.
 
-Ví dụ minh họa:
+Illustrative example:
 
 ```java
 String pattern = switch (locale.toLanguageTag()) {
@@ -343,30 +343,30 @@ DateTimeFormatter formatter =
         DateTimeFormatter.ofPattern(pattern, locale);
 ```
 
-Đây là code nằm **trong method** với `locale` đã xác định; Java 17 hỗ trợ switch expression. Pattern mapping này phải được duy trì thủ công, có test, chính sách fallback và có thể không phản ánh toàn bộ quy ước CLDR (chẳng hạn số nhiều, lịch khác ISO, tên thời đại). Một giải pháp dùng `ResourceBundle` lưu mẫu theo locale cũng là lựa chọn có chủ đích, nhưng phải kiểm tra cú pháp tất cả pattern và xử lý fallback đúng.
+This is code **inside a method** with a resolved `locale`; Java 17 supports switch expressions. This pattern mapping must be maintained manually, tested, have a fallback policy, and may not reflect all CLDR conventions (such as plurals, non-ISO calendars, or era names). Storing patterns by locale in a `ResourceBundle` is also a deliberate option, provided all patterns are syntax-checked and fallback is handled properly.
 
-**Khuyến nghị chọn hướng:**
+**Recommendations for choosing an approach:**
 
-- **Pattern máy/API cố định:** ưu tiên formatter ISO chuẩn hoặc `ofPattern` có contract rõ ràng.
-- **Ngày giờ tự nhiên theo người dùng:** `ofLocalizedDate/Time/DateTime(FormatStyle)` với locale tường minh.
-- **Thiết kế UI đòi pattern riêng từng khu vực:** mapping/config/custom pattern do sản phẩm quản lý, vẫn dùng `ofPattern` để biên dịch pattern.
-- **Kịch bản chỉ đổi ngôn ngữ tên tháng/thứ, không đổi layout:** `ofPattern(..., locale)` là phù hợp.
+- **Fixed machine/API pattern:** prefer standard ISO formatters or `ofPattern` with a clear contract.
+- **Natural user-facing dates/times:** `ofLocalizedDate/Time/DateTime(FormatStyle)` with an explicit locale.
+- **UI design requiring custom per-region patterns:** product-managed mapping/config/custom patterns compiled with `ofPattern`.
+- **Scenario changing only month/weekday language, not layout:** `ofPattern(..., locale)` is appropriate.
 
-## 9. Ngày, thời gian và múi giờ: chọn đúng dữ liệu đầu vào
+## 9. Dates, Times, and Time Zones: Choosing the Right Input Data
 
-`LocalDate`, `LocalDateTime`, `Instant` và `ZonedDateTime` có ý nghĩa khác nhau:
+`LocalDate`, `LocalDateTime`, `Instant`, and `ZonedDateTime` have distinct meanings:
 
-- `LocalDate` là ngày trong lịch, không có giờ hay múi giờ; dùng cho ngày sinh, ngày hạn theo lịch.
-- `LocalTime` là giờ trong ngày, không có ngày hoặc múi giờ.
-- `LocalDateTime` có cả ngày/giờ nhưng **chưa chứa vùng hoặc offset**; không xác định duy nhất một thời điểm toàn cầu.
-- `Instant` biểu diễn thời điểm tuyệt đối.
-- `ZonedDateTime` chứa ngày/giờ theo vùng, cho phép dùng pattern có zone và offset.
+- `LocalDate` is a calendar date without time or time zone; use for birthdays or calendar deadlines.
+- `LocalTime` is a time of day without date or time zone.
+- `LocalDateTime` has both date and time, yet **no zone or offset**; it does not uniquely identify a global instant.
+- `Instant` represents an absolute point in time.
+- `ZonedDateTime` holds date/time in a zone, allowing patterns with zone and offset.
 
-Một pattern có `HH:mm` cần dữ liệu có thời gian; định dạng `LocalDate` bằng pattern cần giờ có thể ném `UnsupportedTemporalTypeException`. Một pattern có `XXX` cần offset hoặc một temporal mà formatter có thể cung cấp offset qua zone; không tự đoán từ `LocalDateTime`.
+A pattern with `HH:mm` needs data with time fields; formatting a `LocalDate` with a pattern requiring hours can throw `UnsupportedTemporalTypeException`. A pattern with `XXX` requires an offset or a temporal for which the formatter can supply an offset via a zone; it is not guessed from `LocalDateTime`.
 
-### 9.1. `withZone` đổi góc nhìn thời gian, không đổi locale
+### 9.1. `withZone` Changes the Time Perspective, Not the Locale
 
-Để format một `Instant` thành giờ Việt Nam:
+To format an `Instant` as Vietnam time:
 
 ```java
 Instant instant = Instant.parse("2026-10-28T07:30:00Z");
@@ -378,13 +378,13 @@ DateTimeFormatter formatter =
 String result = formatter.format(instant);
 ```
 
-Kết quả `result` là `2026-10-28 14:30 Asia/Ho_Chi_Minh`. Đây là code minh họa trong method với các import `java.time.Instant`, `ZoneId`, `java.time.format.DateTimeFormatter` và `java.util.Locale`.
+The `result` is `2026-10-28 14:30 Asia/Ho_Chi_Minh`. This is illustrative code inside a method with imports `java.time.Instant`, `ZoneId`, `java.time.format.DateTimeFormatter`, and `java.util.Locale`.
 
-Chuyển từ `ZoneId.of("Asia/Ho_Chi_Minh")` sang `ZoneId.of("Europe/Paris")` làm giờ địa phương thay đổi theo quy tắc múi giờ, không làm `Locale.US` tự biến thành tiếng Pháp. Muốn tiếng Pháp, vẫn phải truyền `Locale.FRANCE` cho formatter hoặc chọn `ofLocalizedDateTime` với locale tương ứng.
+Switching from `ZoneId.of("Asia/Ho_Chi_Minh")` to `ZoneId.of("Europe/Paris")` changes the local time according to time-zone rules; it does not turn `Locale.US` into French. To get French, you still must pass `Locale.FRANCE` to the formatter or choose `ofLocalizedDateTime` with that locale.
 
-### Ví dụ độc lập Java 17: cùng instant, vùng hiển thị khác nhau
+### Standalone Java 17 example: same instant, different display zones
 
-Tệp `InstantZonePatternDemo.java`:
+File `InstantZonePatternDemo.java`:
 
 ```java
 import java.time.Instant;
@@ -419,7 +419,7 @@ javac -encoding UTF-8 InstantZonePatternDemo.java
 java InstantZonePatternDemo
 ```
 
-Stdout xác định:
+Deterministic stdout:
 
 ```text
 instant=2026-10-28T07:30:00Z
@@ -428,13 +428,13 @@ tokyo=2026-10-28 16:30 Asia/Tokyo
 sameLocale=true
 ```
 
-Một instant duy nhất được thể hiện ở hai múi giờ khác nhau. `base` không thay đổi do `DateTimeFormatter` immutable; `withZone` trả một formatter mới.
+A single instant is expressed in two different time zones. `base` is unchanged because `DateTimeFormatter` is immutable; `withZone` returns a new formatter.
 
-## 10. Parsing: `ofPattern` không tự nhận dạng mọi cách ghi ngày
+## 10. Parsing: `ofPattern` Does Not Automatically Recognize Every Date Notation
 
-Một người dùng nhập `03/04/2026`. Không có thêm thông tin, chuỗi này có thể được hiểu là 3 tháng 4 hoặc 4 tháng 3. Chọn `Locale.US` trong `ofPattern("dd/MM/uuuu", Locale.US)` **không** làm Java tự nhận ra cách nhập Hoa Kỳ; pattern vẫn là ngày/tháng/năm do developer quy định.
+A user enters `03/04/2026`. Without additional context, this string could mean April 3 or March 4. Choosing `Locale.US` in `ofPattern("dd/MM/uuuu", Locale.US)` **does not** make Java automatically expect US input order; the pattern is still day/month/year as specified by the developer.
 
-Ví dụ:
+Example:
 
 ```java
 DateTimeFormatter custom =
@@ -442,21 +442,21 @@ DateTimeFormatter custom =
 LocalDate date = LocalDate.parse("03/04/2026", custom);
 ```
 
-`date` là ngày **3 tháng 4 năm 2026**, dù locale là `Locale.US`. Trong code này, **pattern thắng về thứ tự trường**.
+`date` is **April 3, 2026**, even though the locale is `Locale.US`. In this code, **the pattern wins on field order**.
 
-Để parse input UI đúng, cần:
+To parse UI input properly, you must:
 
-1. Quy định hoặc công bố locale/pattern của biểu mẫu.
-2. Parse bằng formatter tương ứng với chính pattern đó (hoặc `ofLocalizedDate(style).withLocale(locale)` khi client và backend cùng có contract).
-3. Xác minh toàn bộ text/kiểu temporal hợp lệ, xử lý ngày không tồn tại.
-4. Chuyển thành `LocalDate`, `LocalTime`, `ZonedDateTime` hoặc kiểu nghiệp vụ phù hợp.
-5. Khi gửi dữ liệu giữa hệ thống, dùng một format máy rõ như `ISO_LOCAL_DATE` thay vì phụ thuộc locale tự do.
+1. Specify or publish the form's locale/pattern.
+2. Parse with a formatter matching that exact pattern (or `ofLocalizedDate(style).withLocale(locale)` when client and backend share the contract).
+3. Validate the full text and temporal type, rejecting nonexistent dates.
+4. Convert into `LocalDate`, `LocalTime`, `ZonedDateTime`, or the appropriate domain type.
+5. When sending data between systems, use a clear machine format such as `ISO_LOCAL_DATE` rather than relying on free-form locales.
 
-### 10.1. ResolverStyle.STRICT và `uuuu`
+### 10.1. ResolverStyle.STRICT and `uuuu`
 
-Mặc định, `DateTimeFormatter` tạo bởi `ofPattern` thường dùng `ResolverStyle.SMART`. SMART có thể điều chỉnh một số ngày ở cuối tháng theo quy tắc giải quyết trường. Nếu sản phẩm cần từ chối ngày sai, dùng `ResolverStyle.STRICT` cùng pattern có năm proleptic `uuuu`:
+By default, a `DateTimeFormatter` created by `ofPattern` uses `ResolverStyle.SMART`. SMART can adjust some end-of-month dates according to field-resolution rules. If the product must reject invalid dates, use `ResolverStyle.STRICT` together with a pattern containing proleptic year `uuuu`:
 
-Tệp `StrictParsingDemo.java`:
+File `StrictParsingDemo.java`:
 
 ```java
 import java.time.LocalDate;
@@ -504,15 +504,15 @@ invalid-date=rejected
 iso=2026-10-28
 ```
 
-Với STRICT, `31/02/2026` là ngày không tồn tại và phải bị từ chối. Pattern dùng `uuuu` giúp giải quyết năm theo proleptic year; nếu dùng `yyyy` (year-of-era) khi parse STRICT mà không có era, có thể không tạo được `LocalDate` như mong đợi. Đừng thay đổi `uuuu` thành `yyyy` mà không hiểu resolver.
+With STRICT, `31/02/2026` is a nonexistent date and must be rejected. Using `uuuu` resolves the year as a proleptic year; using `yyyy` (year-of-era) in STRICT parsing without an era may fail to construct a `LocalDate` as expected. Do not change `uuuu` to `yyyy` without understanding the resolver.
 
-### 10.2. `ofLocalizedDate` có parse được không?
+### 10.2. Can `ofLocalizedDate` Parse?
 
-Có. Formatter localized của Java có thể dùng để parse text theo cấu trúc mà nó chọn cho locale và style. Nhưng nếu client tạo text trên một JDK/CLDR khác backend, cú pháp thực tế có thể khác. Với API công khai, hãy sử dụng hợp đồng ngày ISO chuẩn hoặc một pattern được ghi rõ, và parse nghiêm ngặt; đừng coi chuỗi UI là giao thức trao đổi dữ liệu bền vững.
+Yes. Java's localized formatters can parse text matching the structure they select for the locale and style. However, if the client generates text on a different JDK/CLDR than the backend, the actual syntax may differ. For public APIs, use a standard ISO date contract or a documented fixed pattern with strict parsing; do not treat UI strings as a durable data-exchange protocol.
 
-## 11. Literal, dấu nháy đơn và text trong pattern
+## 11. Literals, Single Quotes, and Text in Patterns
 
-Với `DateTimeFormatter.ofPattern`, chữ cái Latin trong pattern thường có ý nghĩa token, vì vậy muốn thêm văn bản nguyên dạng phải quote bằng dấu nháy đơn. Ví dụ:
+In `DateTimeFormatter.ofPattern`, Latin letters normally carry token meaning, so verbatim text must be quoted with single quotes. Example:
 
 ```java
 DateTimeFormatter formatter =
@@ -521,124 +521,124 @@ DateTimeFormatter formatter =
                 Locale.forLanguageTag("vi-VN"));
 ```
 
-Nếu format một `LocalDateTime` với ngày `2026-10-28` và giờ `14:05`, kết quả `Ngày 28/10/2026 lúc 14:05`. Hai từ “Ngày” và “lúc” là literal, không bị parser hiểu thành pattern letter. Muốn in một apostrophe thật bên trong pattern, dùng `''` theo cú pháp formatter.
+When formatting a `LocalDateTime` with date `2026-10-28` and time `14:05`, the output is `Ngày 28/10/2026 lúc 14:05`. The words "Ngày" and "lúc" are literals and are not interpreted as pattern letters. To print an actual apostrophe inside a pattern, use `''` per formatter syntax.
 
-Điều này khác cú pháp `java.text.SimpleDateFormat` ở một số ký tự/tính năng; dù cả hai có nhiều pattern letter giống nhau, không tự sao chép pattern phức tạp giữa hai thư viện mà không kiểm tra tài liệu.
+This differs from `java.text.SimpleDateFormat` syntax in several letters and features; even though both share many pattern letters, do not copy complex patterns between the two libraries without checking the documentation.
 
-### Trường hợp đặc biệt của `YYYY` và tuần trong năm
+### Special Case of `YYYY` and Week-of-Year
 
-`Y` là **week-based-year**, phụ thuộc quy tắc tuần của locale. Gần ranh giới cuối/đầu năm, nó có thể khác `u`. Ví dụ một ngày cuối tháng 12 có thể thuộc tuần đầu tiên của tuần-năm sau theo hệ thống tuần được dùng; không dùng `YYYY` để xuất ngày ISO mà chỉ mong nó giống `uuuu`. `ofPattern("YYYY-MM-dd", locale)` còn pha trộn week-based-year với tháng/ngày theo lịch, có thể khiến parse sai hoặc tạo chuỗi khó hiểu.
+`Y` is **week-based-year**, which depends on the locale's week rules. Near year boundaries, it can differ from `u`. For instance, a late-December date can fall into the first week of the next week-year under the week system in use; do not use `YYYY` to output ISO dates expecting it to match `uuuu`. `ofPattern("YYYY-MM-dd", locale)` also mixes week-based-year with calendar month/day, which can cause mis-parsing or confusing strings.
 
-Đối với ngày lịch thông thường, `uuuu-MM-dd` hoặc `DateTimeFormatter.ISO_LOCAL_DATE` là lựa chọn rõ hơn.
+For ordinary calendar dates, `uuuu-MM-dd` or `DateTimeFormatter.ISO_LOCAL_DATE` is the clearer choice.
 
-## 12. Chọn formatter theo nhu cầu thực tế
+## 12. Choosing a Formatter for Real-World Needs
 
-| Mục tiêu | Cách làm thường phù hợp | Ghi chú |
+| Goal | Usually suitable approach | Notes |
 | --- | --- | --- |
-| Gửi ngày qua API | `DateTimeFormatter.ISO_LOCAL_DATE` | Contract máy, `2026-10-28` |
-| Hiển thị ngày cho người dùng đa vùng | `ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale)` | Thứ tự và chữ do locale chọn |
-| Hiển thị giờ có time-zone theo locale | `ofLocalizedDateTime(style).withLocale(locale)` với `ZonedDateTime` | Kiểm tra style LONG/FULL cần zone |
-| Export bắt buộc `dd/MM/uuuu` | `ofPattern("dd/MM/uuuu", locale)` | Fixed layout, không tự đổi theo region |
-| Form có pattern do sản phẩm quy định | `ofPattern(patternForLocale, locale)` | Quản lý pattern và validation |
-| Chỉ muốn tên tháng theo ngôn ngữ mới | `ofPattern("dd MMMM uuuu", locale)` | Trật tự cố định, chữ tháng bản địa |
-| Cần biết mẫu runtime dùng | `DateTimeFormatterBuilder.getLocalizedDateTimePattern(...)` | Chẩn đoán, không nên hard-code lâu dài |
-| Format một `Instant` | Formatter có `withZone(zone)` hoặc chuyển sang `ZonedDateTime` | Locale không tự quyết định zone |
+| Send dates over an API | `DateTimeFormatter.ISO_LOCAL_DATE` | Machine contract, `2026-10-28` |
+| Display dates for multi-region users | `ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale)` | Order and wording chosen by locale |
+| Display localized time with time zone | `ofLocalizedDateTime(style).withLocale(locale)` with `ZonedDateTime` | Check whether LONG/FULL require a zone |
+| Export requiring `dd/MM/uuuu` | `ofPattern("dd/MM/uuuu", locale)` | Fixed layout, does not vary by region |
+| Form with product-defined pattern | `ofPattern(patternForLocale, locale)` | Manage patterns and validation |
+| Only want month name in new language | `ofPattern("dd MMMM uuuu", locale)` | Fixed order, localized month name |
+| Inspect the pattern used at runtime | `DateTimeFormatterBuilder.getLocalizedDateTimePattern(...)` | Diagnostic tool, should not be hardcoded long-term |
+| Format an `Instant` | Formatter with `withZone(zone)` or convert to `ZonedDateTime` | Locale does not choose the zone |
 
-### 12.1. Có nên lưu chuỗi localized trong database?
+### 12.1. Should Localized Strings Be Stored in a Database?
 
-Thông thường **không**. Nếu hệ thống lưu `"10/28/2026"` hoặc `"28/10/2026"` mà không lưu quy tắc parse, sẽ khó tránh nhầm ngày. Hãy lưu kiểu ngày trong DB hoặc chuỗi ISO 8601 theo contract. Format theo locale ở ranh giới UI.
+Usually **no**. If a system stores `"10/28/2026"` or `"28/10/2026"` without storing the parsing rules, date confusion is hard to avoid. Store a database date type or an ISO 8601 string per contract. Format for the locale at the UI boundary.
 
-Với thời điểm tuyệt đối, lưu `Instant` hoặc biểu diễn timestamp có offset rõ trong API. Đừng lưu `LocalDateTime` rồi mặc định giờ đó là UTC khi chưa có ngữ nghĩa. Với lịch lặp theo giờ địa phương, phải giữ `ZoneId` và quy tắc lịch nếu nghiệp vụ cần.
+For absolute instants, store `Instant` or a timestamp representation with an explicit offset in the API. Do not store `LocalDateTime` and implicitly treat it as UTC without semantics. For recurring schedules in local time, preserve the `ZoneId` and calendar rules if business logic requires them.
 
-### 12.2. Không sửa default locale theo từng request
+### 12.2. Do Not Mutate Default Locale Per Request
 
-`Locale.setDefault(...)` tác động cấu hình toàn JVM và có thể ảnh hưởng request khác đang chạy. Trong backend đa người dùng, nên truyền `Locale` và `ZoneId` tường minh vào formatter. `DateTimeFormatter` immutable và thread-safe; bạn có thể cache các formatter với pattern/locale cố định nếu cache được quản lý đúng, không cần mỗi request thay đổi default locale.
+`Locale.setDefault(...)` affects JVM-wide configuration and can impact other concurrently running requests. In a multi-user backend, pass `Locale` and `ZoneId` explicitly to the formatter. `DateTimeFormatter` is immutable and thread-safe; you can cache formatters for fixed patterns/locales if the cache is properly managed, without mutating the default locale on each request.
 
-## 13. Các lỗi và hiểu lầm thường gặp
+## 13. Common Mistakes and Misconceptions
 
-| Hiểu lầm | Thực tế |
+| Misconception | Reality |
 | --- | --- |
-| “`ofPattern("dd/MM/uuuu", Locale.US)` tự đổi sang tháng/ngày/năm.” | Không, pattern đã quyết định thứ tự |
-| “`withLocale` luôn chọn pattern mới.” | Chỉ với localized formatter; custom pattern vẫn giữ layout |
-| “`FormatStyle.SHORT` = `dd/MM/yy` ở mọi nơi.” | Mẫu SHORT phụ thuộc locale/CLDR |
-| “`Locale` tự quyết định `ZoneId`.” | Hai thiết lập độc lập |
-| “`ofLocalizedDateTime(FULL)` luôn format được `LocalDateTime`.” | Có thể cần zone; phải dùng temporal/zone phù hợp |
-| “`yyyy` và `uuuu` giống nhau trong STRICT parse.” | Year-of-era khác proleptic-year, cần hiểu resolver |
-| “`YYYY` là năm lịch.” | Đây là tuần-năm; có thể khác năm lịch |
-| “`MM` và `mm` cùng là tháng.” | `MM` là tháng; `mm` là phút |
-| “`dd` và `DD` cùng là ngày trong tháng.” | `DD` là ngày trong năm |
-| “Pattern có `XXX` sẽ tự biết offset từ `LocalDateTime`.” | `LocalDateTime` không chứa offset/zone |
-| “Locale khác nhau thì `ofPattern` luôn đổi chữ số.” | DecimalStyle là một cơ chế riêng |
-| “Snapshot localized output có thể đúng mãi ở mọi JDK.” | Dữ liệu locale/provider có thể thay đổi |
-| “Ngày đã format đủ tốt để lưu thay ngày gốc.” | Chuỗi hiển thị có thể mơ hồ và lệ thuộc locale |
+| "`ofPattern("dd/MM/uuuu", Locale.US)` automatically switches to month/day/year." | No; the pattern already dictates the order |
+| "`withLocale` always selects a new pattern." | Only for localized formatters; custom patterns keep their layout |
+| "`FormatStyle.SHORT` = `dd/MM/yy` everywhere." | SHORT patterns depend on locale/CLDR |
+| "`Locale` automatically determines `ZoneId`." | Two independent settings |
+| "`ofLocalizedDateTime(FULL)` can always format `LocalDateTime`." | May require a zone; must use an appropriate temporal/zone |
+| "`yyyy` and `uuuu` behave identically in STRICT parsing." | Year-of-era differs from proleptic-year; understand the resolver |
+| "`YYYY` is the calendar year." | It is the week-based-year; can differ from calendar year |
+| "`MM` and `mm` are both month." | `MM` is month; `mm` is minute |
+| "`dd` and `DD` are both day of month." | `DD` is day of year |
+| "A pattern with `XXX` will deduce an offset from `LocalDateTime`." | `LocalDateTime` holds no offset/zone |
+| "Different locales mean `ofPattern` always changes digits." | `DecimalStyle` is a separate mechanism |
+| "A localized output snapshot stays valid forever across all JDKs." | Locale/provider data can change |
+| "A formatted date is good enough to store instead of the original date." | Display strings can be ambiguous and locale-dependent |
 
-## 14. Hướng kiểm thử
+## 14. Testing Guidance
 
-**Đối với pattern cố định:**
+**For fixed patterns:**
 
-1. Dùng cùng `LocalDate` và hai locale như `vi-VN`, `en-US`; xác minh `"dd/MM/uuuu"` giữ thứ tự và dấu.
-2. Dùng `MMMM`/`EEEE`, kiểm tra tên tháng/thứ phù hợp ngôn ngữ với JDK/provider được hỗ trợ.
-3. Kiểm tra `uuuu`, `yyyy`, `YYYY` ở những ngày gần ranh giới năm.
-4. Parse `31/02/2026` với `ResolverStyle.STRICT` và xác minh bị từ chối.
-5. Đối chiếu `dd/MM/uuuu` với `MM/dd/uuuu` khi chuỗi như `03/04/2026` có thể mơ hồ.
+1. Use the same `LocalDate` and two locales such as `vi-VN` and `en-US`; verify `"dd/MM/uuuu"` preserves order and slashes.
+2. Use `MMMM`/`EEEE` and verify month/weekday names match the language under supported JDKs/providers.
+3. Test `uuuu`, `yyyy`, and `YYYY` on dates near year boundaries.
+4. Parse `31/02/2026` with `ResolverStyle.STRICT` and verify it is rejected.
+5. Contrast `dd/MM/uuuu` with `MM/dd/uuuu` when strings like `03/04/2026` are ambiguous.
 
-**Đối với localized formatter:**
+**For localized formatters:**
 
-1. Kiểm tra `SHORT`, `MEDIUM`, `LONG` và `FULL` cho những locale được sản phẩm hỗ trợ.
-2. Kiểm tra style cần zone với `ZonedDateTime` và đúng `ZoneId`.
-3. Nếu test exact output, pin phiên bản JDK/CLDR/provider hoặc chấp nhận các biến thể được chính sách sản phẩm cho phép; lưu ý cả dấu cách Unicode.
-4. So sánh `DateTimeFormatterBuilder.getLocalizedDateTimePattern` giữa các locale để giải thích trường hợp thứ tự ngày/tháng khác nhau.
-5. Kiểm tra locale hiển thị đã chọn không bị rút từ locale của máy chủ.
-6. Kiểm tra người dùng có numbering system khác bằng `withDecimalStyle` hoặc `localizedBy` khi sản phẩm hỗ trợ.
+1. Test `SHORT`, `MEDIUM`, `LONG`, and `FULL` for all product-supported locales.
+2. Test styles requiring zones with `ZonedDateTime` and the right `ZoneId`.
+3. If testing exact output, pin the JDK/CLDR/provider version or allow variations permitted by product policy; also account for Unicode whitespace.
+4. Compare `DateTimeFormatterBuilder.getLocalizedDateTimePattern` across locales to explain cases where day/month order differs.
+5. Verify the chosen display locale is not accidentally pulled from the server's locale.
+6. Test users with different numbering systems using `withDecimalStyle` or `localizedBy` when supported by the product.
 
-**Đối với dữ liệu và API:**
+**For data and APIs:**
 
-1. `LocalDate` không bị đổi ngày do “chuyển múi giờ”.
-2. Hai cách format cùng `Instant` tại hai zone quy về một thời điểm gốc.
-3. Round-trip qua API phải dùng contract có kiểu/format rõ, không lệ thuộc pattern UI.
-4. Với form nhập theo locale, validate nghiêm ngặt và xử lý lỗi nhập đã được bản địa hóa.
+1. `LocalDate` never shifts calendar day due to a "time-zone conversion".
+2. Two formatted views of the same `Instant` in two zones refer back to the same underlying instant.
+3. API round-trips use contracts with clear types/formats, independent of UI patterns.
+4. For locale-aware input forms, validate strictly and handle localized input errors properly.
 
-## 15. Bài tập tự luyện và đáp án
+## 15. Practice Exercises and Answers
 
-**Bài 1.** Với `LocalDate.of(2026, 10, 28)` và `DateTimeFormatter.ofPattern("dd/MM/uuuu", Locale.US)`, output là gì? Có tự chuyển thành `10/28/2026` không?
+**Exercise 1.** With `LocalDate.of(2026, 10, 28)` and `DateTimeFormatter.ofPattern("dd/MM/uuuu", Locale.US)`, what is the output? Does it automatically flip to `10/28/2026`?
 
-**Đáp án:** `28/10/2026`, không. Pattern được viết sẵn quyết định thứ tự ngày/tháng/năm, locale không tự đảo.
+**Answer:** `28/10/2026`, no. The written pattern determines day/month/year order; the locale does not reorder it.
 
-**Bài 2.** Muốn cùng một ứng dụng hiển thị ngày theo quy ước địa phương tại `en-US` và `vi-VN` mà không tự quản lý từng pattern thì dùng gì?
+**Exercise 2.** You want the same application to display dates per local conventions in `en-US` and `vi-VN` without managing each pattern manually. What should you use?
 
-**Đáp án:** `DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(locale)` hoặc style khác theo nhu cầu.
+**Answer:** `DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(locale)` or another style as needed.
 
-**Bài 3.** Vì sao `withLocale(viVN)` trên formatter được tạo bằng `ofPattern("MM/dd/uuuu", Locale.US)` không chuyển thành `dd/MM/uuuu`?
+**Exercise 3.** Why doesn't calling `withLocale(viVN)` on a formatter created with `ofPattern("MM/dd/uuuu", Locale.US)` switch it to `dd/MM/uuuu`?
 
-**Đáp án:** `withLocale` đổi locale dùng để tra text/những phần cần bản địa hóa, chứ không viết lại pattern tùy chỉnh. Muốn đổi layout phải chọn pattern khác, hoặc dùng localized factory.
+**Answer:** `withLocale` changes the locale used to look up text and localized parts, rather than rewriting a custom pattern. To change the layout, choose another pattern or use a localized factory.
 
-**Bài 4.** Dùng `"YYYY-MM-dd"` để xuất ngày ISO có rủi ro gì?
+**Exercise 4.** What is the risk of using `"YYYY-MM-dd"` to output ISO dates?
 
-**Đáp án:** `Y` là week-based-year, có thể khác năm lịch `u` ở ranh giới năm; dùng `ISO_LOCAL_DATE` hoặc `"uuuu-MM-dd"` cho ngày ISO.
+**Answer:** `Y` is week-based-year, which can differ from calendar year `u` at year boundaries; use `ISO_LOCAL_DATE` or `"uuuu-MM-dd"` for ISO dates.
 
-**Bài 5.** `Instant.parse("2026-10-28T07:30:00Z")` format theo `Asia/Ho_Chi_Minh` thành giờ nào trong ví dụ?
+**Exercise 5.** `Instant.parse("2026-10-28T07:30:00Z")` formatted in `Asia/Ho_Chi_Minh` produces what time in the example?
 
-**Đáp án:** `14:30` cùng ngày 28/10/2026 theo giờ Việt Nam. Locale quyết định cách viết chuỗi, `ZoneId` quyết định giờ địa phương.
+**Answer:** `14:30` on the same date 2026-10-28 in Vietnam time. Locale determines how the string is written; `ZoneId` determines the local time.
 
-**Bài 6.** `LocalDate.parse("31/02/2026", strictFormatter)` phải làm gì?
+**Exercise 6.** What must `LocalDate.parse("31/02/2026", strictFormatter)` do?
 
-**Đáp án:** Ném `DateTimeParseException` vì ngày không hợp lệ; formatter dùng `"dd/MM/uuuu"` và `ResolverStyle.STRICT`.
+**Answer:** Throw `DateTimeParseException` because the date is invalid; the formatter uses `"dd/MM/uuuu"` and `ResolverStyle.STRICT`.
 
-**Bài 7.** Lấy pattern bằng `getLocalizedDateTimePattern(SHORT, null, IsoChronology.INSTANCE, Locale.US)` rồi tạo `ofPattern(pattern, Locale.US)`. Sau đó `withLocale(viVN)` có đủ để theo pattern SHORT của Việt Nam không?
+**Exercise 7.** You obtain a pattern with `getLocalizedDateTimePattern(SHORT, null, IsoChronology.INSTANCE, Locale.US)` and create `ofPattern(pattern, Locale.US)`. Is calling `withLocale(viVN)` afterward enough to follow Vietnam's SHORT pattern?
 
-**Đáp án:** Không. Chuỗi pattern đã được chọn cho Hoa Kỳ và cố định. Dùng `ofLocalizedDate(SHORT).withLocale(viVN)` hoặc lấy riêng pattern của Việt Nam nếu cần tùy chỉnh.
+**Answer:** No. The pattern string was already selected for the US and fixed. Use `ofLocalizedDate(SHORT).withLocale(viVN)` or look up Vietnam's pattern separately if customization is required.
 
-## 16. Ghi nhớ
+## 16. Key Takeaways
 
-- **`ofPattern` nhận một layout cố định do lập trình viên cung cấp.** Locale có thể đổi tên tháng, thứ và những thành phần text, nhưng không tự viết lại thứ tự trường.
-- **`ofLocalizedDate/Time/DateTime` chọn layout theo locale và `FormatStyle`.** Đây là lựa chọn mặc định hợp lý cho UI đa vùng muốn theo quy ước địa phương.
-- `withLocale` trên custom formatter và localized formatter có tác động khác nhau vì **nguồn pattern khác nhau**.
-- `DateTimeFormatterBuilder.getLocalizedDateTimePattern` hữu ích để xem pattern mà runtime chọn; không nên biến kết quả của một locale thành pattern cố định cho mọi locale.
-- **Locale không phải ZoneId.** Chọn đúng kiểu thời gian và vùng cho dữ liệu nghiệp vụ.
-- Với parsing và API, ưu tiên contract rõ (ISO 8601), `ResolverStyle.STRICT` khi cần; tránh `yyyy`/`YYYY` sai mục đích.
-- Test theo JDK/CLDR/provider thực tế; không giả định mọi localized output bất biến giữa môi trường.
+- **`ofPattern` takes a fixed layout supplied by the developer.** Locale can change month names, weekday names, and textual components, but does not rewrite field order.
+- **`ofLocalizedDate/Time/DateTime` selects a layout by locale and `FormatStyle`.** This is the sensible default for multi-region UIs following local conventions.
+- `withLocale` behaves differently on custom formatters versus localized formatters because **the source of the pattern differs**.
+- `DateTimeFormatterBuilder.getLocalizedDateTimePattern` is useful for inspecting the pattern chosen by the runtime; do not turn one locale's result into a fixed pattern for all locales.
+- **Locale is not ZoneId.** Choose the right temporal type and zone for domain data.
+- For parsing and APIs, prefer clear contracts (ISO 8601) and `ResolverStyle.STRICT` when needed; avoid misusing `yyyy`/`YYYY`.
+- Test against the actual JDK/CLDR/provider; do not assume every localized output is invariant across environments.
 
-### Tài liệu tham khảo chính thức Java 17
+### Official Java 17 References
 
 - [DateTimeFormatter — Oracle JDK 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html)
 - [DateTimeFormatterBuilder — Oracle JDK 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatterBuilder.html)

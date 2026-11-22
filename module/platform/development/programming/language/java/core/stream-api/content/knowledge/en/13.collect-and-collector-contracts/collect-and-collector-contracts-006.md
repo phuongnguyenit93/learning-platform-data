@@ -1,40 +1,40 @@
-# Hợp đồng đơn vị, kết hợp và tính tương đương của Collector
+# Identity, Associativity, and Equivalence Contracts of Collector
 
-Trong Java Stream API, `collect(Collector)` là thao tác kết thúc (*terminal operation*) dùng để **tích lũy các phần tử của Stream thành một kết quả**. Có thể thu thập thành `List`, `Set`, `Map`, thống kê, chuỗi hoặc một đối tượng tổng hợp tự thiết kế. Tuy nhiên, một `Collector` tùy chỉnh chỉ đúng khi tuân thủ **hợp đồng đơn vị (identity)**, **hợp đồng kết hợp (associativity)** và **tính tương đương (equivalence)**. Ba khái niệm này đặc biệt quan trọng khi Stream được xử lý song song, vì runtime được quyền chia dữ liệu thành các phần rồi kết hợp kết quả từng phần.
+In the Java Stream API, `collect(Collector)` is a *terminal operation* used to **accumulate Stream elements into a result**. It can collect into a `List`, `Set`, `Map`, statistics, string, or a custom aggregated object. However, a custom `Collector` is only correct when it obeys the **identity contract**, **associativity contract**, and **equivalence contract**. These three concepts are especially important when a Stream is processed in parallel, because the runtime is entitled to partition data into parts and then combine partial results.
 
-Bài thuộc chương **Cơ chế collect và Collector** của module **JAVA_STREAM_API**. Mục tiêu là hiểu sâu các hợp đồng cần có trước khi tự viết collector, sử dụng `groupingBy` với downstream collector hoặc đánh giá kết quả trên parallel stream. Kiến thức này nối với pipeline lazy, `filter`, `map`, `reduce`, `collect`, `Spliterator` và những giới hạn của thuật toán khi có trạng thái, tài nguyên và yêu cầu hiệu năng.
+This lesson belongs to the **Collect Mechanism and Collector** chapter of the **JAVA_STREAM_API** module. The goal is to deeply understand the contracts required before writing a custom collector, using `groupingBy` with downstream collectors, or evaluating results on a parallel stream. This knowledge connects to lazy pipelines, `filter`, `map`, `reduce`, `collect`, `Spliterator`, and algorithmic limits involving state, resources, and performance requirements.
 
-## 1. Collector gồm những bộ phận nào?
+## 1. What parts make up a Collector?
 
-Giao diện tổng quát là `java.util.stream.Collector<T, A, R>`, với:
+The generic interface is `java.util.stream.Collector<T, A, R>`, with:
 
-- **`T`**: kiểu phần tử đầu vào của Stream.
-- **`A`**: kiểu *bộ tích lũy trung gian* (*mutable accumulation type*).
-- **`R`**: kiểu kết quả trả về sau khi thu thập xong.
+- **`T`**: the input element type of the Stream.
+- **`A`**: the *mutable accumulation type*.
+- **`R`**: the return result type after collection completes.
 
-Một collector mô tả năm thành phần:
+A collector describes five components:
 
-| Thành phần | Kiểu hàm | Trách nhiệm |
+| Component | Functional type | Responsibility |
 |---|---|---|
-| `supplier()` | `Supplier<A>` | Tạo một bộ tích lũy mới ở trạng thái rỗng |
-| `accumulator()` | `BiConsumer<A, T>` | Đưa một phần tử đầu vào vào bộ tích lũy |
-| `combiner()` | `BinaryOperator<A>` | Gộp hai bộ tích lũy trung gian |
-| `finisher()` | `Function<A, R>` | Chuyển bộ tích lũy thành kết quả |
-| `characteristics()` | `Set<Characteristics>` | Công bố tính chất như `UNORDERED`, `CONCURRENT`, `IDENTITY_FINISH` |
+| `supplier()` | `Supplier<A>` | Creates a new accumulator in an empty state |
+| `accumulator()` | `BiConsumer<A, T>` | Incorporates one input element into the accumulator |
+| `combiner()` | `BinaryOperator<A>` | Merges two intermediate accumulators |
+| `finisher()` | `Function<A, R>` | Converts the accumulator into the result |
+| `characteristics()` | `Set<Characteristics>` | Declares properties such as `UNORDERED`, `CONCURRENT`, `IDENTITY_FINISH` |
 
-Ví dụ, collector tạo danh sách có thể:
+For example, a list-creating collector can:
 
-1. Tạo `ArrayList` rỗng bằng supplier.
-2. Thêm từng phần tử vào danh sách của một nhánh bằng accumulator.
-3. Ghép danh sách từ các nhánh bằng combiner.
-4. Trả chính danh sách tích lũy làm kết quả (không cần biến đổi thêm).
+1. Create an empty `ArrayList` via the supplier.
+2. Add each element to a branch's list via the accumulator.
+3. Concatenate lists from branches via the combiner.
+4. Return the accumulated list itself as the result (no further conversion needed).
 
-Với Stream tuần tự, bạn có thể chỉ quan sát thấy một bộ tích lũy và không thấy combiner được gọi. Trên parallel stream, thư viện có quyền tạo nhiều bộ tích lũy, phân chia phần tử rồi gộp lại. **Collector hợp lệ phải cho kết quả tương đương giữa các cách phân hoạch đúng hợp đồng**, không phụ thuộc vào việc một ví dụ nhỏ có gọi combiner hay không.
+With a sequential Stream, you might observe only one accumulator and never see the combiner called. On a parallel stream, the library has the right to create multiple accumulators, split elements, and merge them back. **A valid collector must produce equivalent results across all contract-compliant partitionings**, regardless of whether a small example invokes the combiner or not.
 
 ```text
                      Stream<T>
                          |
-                     chia phần
+                    partitioning
                 /         |         \
            supplier   supplier    supplier
                 |         |         |
@@ -53,19 +53,19 @@ Với Stream tuần tự, bạn có thể chỉ quan sát thấy một bộ tíc
                           R
 ```
 
-Sơ đồ diễn tả **một cách thực thi có thể xảy ra**, không bắt buộc trình tự hoặc số lần gọi của mọi implementation. Với collector có đặc tính `CONCURRENT`, thư viện thậm chí có thể cho nhiều worker tích lũy đồng thời vào cùng một container khi đủ điều kiện.
+The diagram illustrates **one possible execution**, without mandating the exact order or call counts of every implementation. For a collector with the `CONCURRENT` characteristic, the library may even let multiple workers accumulate concurrently into the same container when conditions are met.
 
-## 2. Hợp đồng đơn vị: gộp với container rỗng không làm đổi ý nghĩa
+## 2. Identity contract: merging with an empty container does not change meaning
 
-Giả sử `a` là một bộ tích lũy hợp lệ đã chứa một số phần tử và `e = supplier.get()` là **một bộ tích lũy mới ở trạng thái rỗng**. Hợp đồng đơn vị yêu cầu:
+Suppose `a` is a valid accumulator already holding some elements and `e = supplier.get()` is **a fresh accumulator in the empty state**. The identity contract requires:
 
 ```text
 combiner(a, e)  ≈  a
 ```
 
-Dấu `≈` biểu thị **tương đương về kết quả**, không bắt buộc phải là cùng một tham chiếu đối tượng. Combiner có thể sửa `a` rồi trả nó, hoặc tạo một bộ tích lũy khác, miễn kết quả cuối vẫn mang cùng ý nghĩa.
+The `≈` symbol denotes **equivalence in result**, not necessarily the exact same object reference. The combiner may mutate `a` and return it, or create another accumulator, as long as the final result carries the same meaning.
 
-Ví dụ với danh sách:
+Example with a list:
 
 ```java
 List<String> left = new ArrayList<>(Arrays.asList("A", "B"));
@@ -75,26 +75,26 @@ left.addAll(empty);
 System.out.println(left); // [A, B]
 ```
 
-Thao tác ghép danh sách rỗng không làm thay đổi các phần tử. Một collector có supplier tạo danh sách rỗng và combiner ghép danh sách như vậy có **phần tử đơn vị đúng**.
+Appending an empty list does not alter the elements. A collector whose supplier creates an empty list and whose combiner concatenates lists like this has a **valid identity element**.
 
-### 2.1. Identity của Collector khác identity của Stream.reduce
+### 2.1. Collector's identity differs from Stream.reduce's identity
 
-Trong `stream.reduce(0, Integer::sum)`, `0` là **giá trị khởi đầu của phép cộng**. Trong `Collector`, “đơn vị” thường là **trạng thái tích lũy rỗng do supplier tạo ra**:
+In `stream.reduce(0, Integer::sum)`, `0` is **the initial value of addition**. In `Collector`, the "identity" is typically **the empty accumulation state created by the supplier**:
 
-| Phép tổng hợp | Đơn vị phù hợp |
+| Aggregation | Suitable identity |
 |---|---|
-| `reduce(0, Integer::sum)` | Số `0` |
-| Collector ghép `List` | Danh sách rỗng `[]` |
-| Collector ghép `Set` | Tập hợp rỗng |
-| Collector nối chuỗi | Bộ đệm chuỗi rỗng |
-| Collector đếm và cộng số | Trạng thái `count = 0`, `sum = 0` |
+| `reduce(0, Integer::sum)` | The number `0` |
+| List-joining collector | Empty list `[]` |
+| Set-joining collector | Empty set |
+| String-joining collector | Empty string buffer |
+| Counting and summing collector | State `count = 0`, `sum = 0` |
 
-Không được hiểu rằng supplier **luôn** trả `null` hoặc **luôn** trả số `0`. Nó phải trả một container mới hợp lệ, có trạng thái được combiner xem là đơn vị.
+Do not assume the supplier **always** returns `null` or **always** returns `0`. It must return a valid fresh container whose state is treated as an identity by the combiner.
 
-### 2.2. Ví dụ vi phạm hợp đồng đơn vị
+### 2.2. Example violating the identity contract
 
 ```java
-// SAI: combiner thêm -1 kể cả khi nhánh bên phải rỗng.
+// WRONG: combiner appends -1 even when the right branch is empty.
 Collector<Integer, List<Integer>, List<Integer>> wrong =
         Collector.of(
                 ArrayList::new,
@@ -106,17 +106,17 @@ Collector<Integer, List<Integer>, List<Integer>> wrong =
                 });
 ```
 
-Nếu `left = [10, 20]` và `right = []` thì combiner trả `[10, 20, -1]`, không còn tương đương với `[10, 20]`. Collector này có thể tạo kết quả khác tùy cách Stream bị chia, kể cả khi dữ liệu đầu vào giống nhau.
+If `left = [10, 20]` and `right = []`, the combiner returns `[10, 20, -1]`, which is no longer equivalent to `[10, 20]`. This collector can produce different results depending on how the Stream is split, even for identical input data.
 
-Hợp đồng đơn vị nhấn mạnh **kết quả sau khi gộp**, không chỉ việc supplier tạo thành công một đối tượng.
+The identity contract emphasizes **the result after merging**, not merely that the supplier successfully constructs an object.
 
-## 3. Hợp đồng kết hợp: chia dữ liệu theo cách khác vẫn ra kết quả tương đương
+## 3. Associativity contract: splitting data differently still gives equivalent results
 
-Hợp đồng kết hợp (*associativity*) mạnh hơn việc “combiner có thể ghép hai container”. Nó đòi hỏi **đưa các phần tử vào một container liên tục** và **chia ra nhiều container rồi gộp** phải cho kết quả cuối tương đương.
+The *associativity* contract is stronger than "the combiner can merge two containers". It requires that **putting elements into one container sequentially** and **splitting across multiple containers and merging** must produce equivalent final results.
 
-Giả sử Stream chứa hai phần tử `t1`, `t2` theo thứ tự gặp:
+Suppose a Stream contains two elements `t1`, `t2` in encounter order:
 
-**Cách A — tích lũy liên tiếp**
+**Approach A — sequential accumulation**
 
 ```text
 a = supplier()
@@ -125,7 +125,7 @@ accumulator(a, t2)
 resultA = finisher(a)
 ```
 
-**Cách B — chia thành hai nhánh và kết hợp**
+**Approach B — split into two branches and combine**
 
 ```text
 left  = supplier()
@@ -136,15 +136,15 @@ merged  = combiner(left, right)
 resultB = finisher(merged)
 ```
 
-Yêu cầu:
+Requirement:
 
 ```text
 resultA  ≈  resultB
 ```
 
-Một phép gộp hợp lệ phải tiếp tục giữ tính chất này nếu dữ liệu được chia thành ba, bốn hoặc nhiều phần, với các phép gộp được nhóm khác nhau. Đối với collector **có thứ tự**, việc ghép cần bảo toàn thứ tự tương đối của các phân đoạn theo encounter order.
+A valid merge must continue to preserve this property if data is split into three, four, or more parts, with merges grouped differently. For an **ordered** collector, merging must preserve the relative order of segments according to encounter order.
 
-### 3.1. Ví dụ đúng: nối danh sách theo thứ tự
+### 3.1. Correct example: concatenating lists in order
 
 ```java
 Collector<Integer, List<Integer>, List<Integer>> toOrderedList =
@@ -163,52 +163,52 @@ List<Integer> collected = Stream.of(1, 2, 3, 4)
 System.out.println(collected); // [1, 2, 3, 4]
 ```
 
-Với nguồn có encounter order và collector không công bố `UNORDERED`, kết quả phải giữ thứ tự từ nguồn. Phép nối danh sách theo hướng **trái rồi phải** là kết hợp nhóm về mặt nội dung:
+With a source that has an encounter order and a collector that does not declare `UNORDERED`, the result must preserve the source order. List concatenation in **left-then-right** direction is associative with respect to content:
 
 ```text
 ([1] ++ [2]) ++ [3,4] = [1,2,3,4]
 [1] ++ ([2] ++ [3,4]) = [1,2,3,4]
 ```
 
-Ở đây `++` là phép nối danh sách. Nó **không giao hoán**: `[1] ++ [2]` khác `[2] ++ [1]`. Collector có thứ tự **không cần phép gộp giao hoán**; chỉ cần kết quả nhất quán với encounter order bất kể cách chia nhóm.
+Here `++` denotes list concatenation. It is **not commutative**: `[1] ++ [2]` differs from `[2] ++ [1]`. An ordered collector **does not need a commutative merge**; it only needs results consistent with encounter order regardless of how chunks are grouped.
 
-### 3.2. Ví dụ sai: combiner đánh mất một nhánh
+### 3.2. Wrong example: combiner drops one branch
 
 ```java
 Collector<Integer, List<Integer>, List<Integer>> dropRight =
         Collector.of(
                 ArrayList::new,
                 (list, value) -> list.add(value),
-                (left, right) -> left); // SAI: bỏ toàn bộ phần tử của right.
+                (left, right) -> left); // WRONG: drops all elements of right.
 ```
 
-Tích lũy tuần tự `1` rồi `2` cho `[1, 2]`, nhưng nếu một nhánh chứa `[1]` và nhánh khác chứa `[2]` thì `combiner([1], [2])` chỉ còn `[1]`. Vì thế **không thỏa hợp đồng kết hợp**, dù kiểm thử trên một Stream tuần tự nhỏ có thể tình cờ thành công.
+Accumulating `1` then `2` sequentially yields `[1, 2]`, yet if one branch holds `[1]` and another holds `[2]`, `combiner([1], [2])` leaves only `[1]`. Thus it **fails the associativity contract**, even if tests on a small sequential Stream happen to pass.
 
-### 3.3. Sai lầm hay gặp: gộp trung bình của các nhóm bằng cách lấy trung bình tiếp
+### 3.3. Common mistake: merging group averages by averaging again
 
-Giả sử muốn tính trung bình các số `[10, 20, 30]`. Nếu chia thành `[10]` và `[20, 30]` thì trung bình từng nhóm là `10` và `25`. Lấy tiếp trung bình của hai số này:
+Suppose we want the average of `[10, 20, 30]`. If split into `[10]` and `[20, 30]`, the group averages are `10` and `25`. Taking the average of those two numbers:
 
 ```text
-(10 + 25) / 2 = 17.5    // SAI, vì hai nhóm có kích thước khác nhau.
-(10 + 20 + 30) / 3 = 20 // ĐÚNG.
+(10 + 25) / 2 = 17.5    // WRONG, because the two groups have different sizes.
+(10 + 20 + 30) / 3 = 20 // CORRECT.
 ```
 
-Không thể gộp hai **giá trị trung bình đơn lẻ** thành trung bình chung nếu thiếu **số lượng phần tử của mỗi nhóm**. Thiết kế đúng cần lưu tổng và số lượng:
+You cannot merge two **individual averages** into an overall average without **the element count of each group**. The right design stores both sum and count:
 
 ```text
-left:  sum = 10, count = 1
-right: sum = 50, count = 2
-merge: sum = 60, count = 3
+left:   sum = 10, count = 1
+right:  sum = 50, count = 2
+merge:  sum = 60, count = 3
 finish: 60 / 3 = 20
 ```
 
-Đây là lý do `A` (trạng thái tích lũy trung gian) có thể khác `R` (kết quả cuối). `Collector` được phép giữ thêm thông tin cần thiết để các nhánh được kết hợp chính xác.
+This is why `A` (intermediate accumulation state) can differ from `R` (final result). A `Collector` is meant to retain the extra information needed so branches combine accurately.
 
-## 4. Tính tương đương: kết quả phải giống nhau ở mức nào?
+## 4. Equivalence: to what degree must results match?
 
-Hai cách thực thi không nhất thiết tạo ra **cùng đối tượng trong bộ nhớ**. Điều được yêu cầu là chúng cho kết quả **tương đương theo ý nghĩa của collector**. Tính tương đương được đánh giá trên kết quả sau bước hoàn tất, tức `finisher`, chứ không phải so địa chỉ của hai container.
+Two executions do not have to produce **the same object in memory**. What is required is that they produce results **equivalent under the collector's semantics**. Equivalence is evaluated on the result after the finishing step, i.e., `finisher`, not by comparing the memory addresses of two containers.
 
-Với collector **không công bố `UNORDERED`**, hai kết quả cuối thường được xem là tương đương theo `equals` trong hợp đồng của Collector, vì thứ tự phần tử có thể mang ý nghĩa nghiệp vụ. Ví dụ:
+For a collector **not declaring `UNORDERED`**, two final results are generally considered equivalent under `equals` in the Collector contract, because element order may carry business meaning. For example:
 
 ```java
 List<Integer> a = Arrays.asList(1, 2, 3);
@@ -216,30 +216,30 @@ List<Integer> b = Arrays.asList(1, 2, 3);
 List<Integer> c = Arrays.asList(3, 2, 1);
 
 System.out.println(a.equals(b)); // true
-System.out.println(a.equals(c)); // false: List.equals xét thứ tự.
+System.out.println(a.equals(c)); // false: List.equals checks order.
 ```
 
-Với collector có đặc tính `UNORDERED`, khái niệm tương đương được **nới lỏng đối với khác biệt chỉ do thứ tự**: thứ tự gặp phần tử không đóng góp vào kết quả nghiệp vụ. Ví dụ, tập hợp các mã sản phẩm được xem là cùng kết quả nếu chứa cùng phần tử, dù thứ tự duyệt của tập hợp khác nhau.
+For a collector with the `UNORDERED` characteristic, equivalence is **relaxed with respect to order-only differences**: element encounter order does not contribute to the business result. For instance, a set of product codes is considered the same result if it contains the same elements, even if iteration order of the set differs.
 
-| Collector/đầu ra | Kết quả 1 | Kết quả 2 | Tương đương? |
+| Collector/output | Result 1 | Result 2 | Equivalent? |
 |---|---|---|---|
-| Collector tạo `List` có thứ tự | `[A, B]` | `[A, B]` | Có |
-| Collector tạo `List` có thứ tự | `[A, B]` | `[B, A]` | Không |
-| Collector thực sự `UNORDERED`, kết quả là tập hợp | `{A, B}` | `{B, A}` | Có, vì cùng phần tử |
-| Bất kỳ collector phù hợp | Tổng bằng `100` | Tổng bằng `90` | Không |
-| Bất kỳ collector phù hợp | Ba phần tử hợp lệ | Bị mất một phần tử | Không |
+| Collector creating ordered `List` | `[A, B]` | `[A, B]` | Yes |
+| Collector creating ordered `List` | `[A, B]` | `[B, A]` | No |
+| Truly `UNORDERED` collector, result is a set | `{A, B}` | `{B, A}` | Yes, because elements match |
+| Any valid collector | Sum equals `100` | Sum equals `90` | No |
+| Any valid collector | Three valid elements | One element missing | No |
 
-**Không được dùng `UNORDERED` để hợp thức hóa việc mất dữ liệu hoặc kết quả tính toán sai.** Khác biệt thứ tự là ngoại lệ được cho phép; khác biệt về số phần tử, tổng hoặc thành phần kết quả vẫn là vi phạm.
+**Do not use `UNORDERED` to legitimize data loss or wrong calculations.** Order differences are the allowed exception; differences in element count, sum, or result members are still violations.
 
-### 4.1. UNORDERED không có nghĩa “sắp xếp ngẫu nhiên”
+### 4.1. UNORDERED does not mean "random sorting"
 
-`Characteristics.UNORDERED` có nghĩa collector **không cam kết bảo toàn encounter order**. Nó không yêu cầu đảo thứ tự, xáo trộn dữ liệu hay làm kết quả thay đổi giữa các lần chạy.
+`Characteristics.UNORDERED` means the collector **does not commit to preserving encounter order**. It does not require reversing order, shuffling data, or making results vary across runs.
 
-Nếu viết collector để tạo một danh sách có mục tiêu giữ vị trí, ví dụ báo cáo giao dịch hoặc kết quả phân trang, **không công bố `UNORDERED`** chỉ để hi vọng tăng tốc. Chỉ công bố khi thứ tự thực sự không làm thay đổi ý nghĩa của kết quả.
+If writing a collector to produce a list meant to preserve positions, such as a transaction report or paginated results, **do not declare `UNORDERED`** solely hoping for a speedup. Only declare it when order genuinely does not alter the result's meaning.
 
-## 5. Ví dụ hoàn chỉnh Java 8: Collector tính trung bình theo hợp đồng
+## 5. Complete Java 8 example: contract-compliant averaging Collector
 
-Ví dụ sau thiết kế collector tính trung bình tiền đơn bằng một bộ tích lũy chứa **tổng** và **số lượng**, rồi áp dụng trên Stream tuần tự, song song, nguồn rỗng và từng nhóm. Số tiền dùng `long` theo đơn vị nhỏ nhất; kết quả trung bình trả `OptionalDouble` để phân biệt nguồn rỗng. Đây là ví dụ minh họa về hợp đồng, giả định dữ liệu đủ nhỏ để không tràn `long` và sai số `double` được chấp nhận.
+The following example designs a collector to compute average order amount using an accumulator holding **sum** and **count**, then applies it on a sequential Stream, parallel Stream, empty source, and per group. Amounts use `long` in the smallest currency unit; the average returns `OptionalDouble` to distinguish an empty source. This example illustrates the contracts, assuming numbers are small enough not to overflow `long` and `double` precision error is acceptable.
 
 ```java
 import java.util.Arrays;
@@ -332,19 +332,19 @@ public class CollectorContractsDemo {
 }
 ```
 
-**Vì sao collector này tuân hợp đồng?**
+**Why does this collector obey the contract?**
 
-- **Đơn vị:** `new SumCount()` có `sum = 0` và `count = 0`; `combine(a, empty)` giữ nguyên cặp giá trị của `a`.
-- **Kết hợp:** gộp các cặp bằng cách **cộng tổng với tổng, số lượng với số lượng**. Nếu không tràn `long`, tổng và số lượng cuối cùng không phụ thuộc cách nhóm các phép gộp.
-- **Tương đương:** `finish` lấy `sum / count` khi có dữ liệu, hoặc trả `OptionalDouble.empty()` khi rỗng; trong dữ liệu ví dụ, các cách phân chia cho cùng kết quả số học.
-- **Phân tách trạng thái:** các bộ `SumCount` khác nhau được tạo bằng supplier; collector **không khai báo `CONCURRENT`**, nên runtime xử lý chúng theo quy tắc cô lập container và kết hợp an toàn.
-- **Kiểu trạng thái và kết quả khác nhau:** `A = SumCount`, `R = OptionalDouble`; không khai báo `IDENTITY_FINISH`.
+- **Identity:** `new SumCount()` has `sum = 0` and `count = 0`; `combine(a, empty)` preserves `a`'s pair of values unchanged.
+- **Associativity:** merges pairs by **adding sum to sum, count to count**. Without `long` overflow, the final sum and count do not depend on how merges are parenthesized.
+- **Equivalence:** `finish` computes `sum / count` when data exists, or returns `OptionalDouble.empty()` when empty; for the example data, different partitionings produce the same arithmetic result.
+- **State isolation:** separate `SumCount` instances are created by the supplier; the collector **does not declare `CONCURRENT`**, so the runtime manages them under container isolation and safe merging rules.
+- **Different state and result types:** `A = SumCount`, `R = OptionalDouble`; `IDENTITY_FINISH` is not declared.
 
-Ở đây `SumCount` có thể thay đổi bên trong quá trình thu thập, nhưng không bị lộ cho caller, và mỗi phần tích lũy thuộc về quá trình collect. Khi cần tính số tiền với độ chính xác thập phân cao, hãy cân nhắc `BigDecimal` và chính sách làm tròn tại finisher thay cho `double`.
+Here `SumCount` is mutable during collection, yet never exposed to callers, and each accumulation instance belongs to the collect execution. When calculating money requiring high decimal precision, consider `BigDecimal` and a rounding policy in the finisher instead of `double`.
 
-## 6. Đối chiếu hợp đồng bằng cách tự chia đầu vào
+## 6. Verifying the contract by manually splitting input
 
-Để kiểm tra một collector, có thể tạo hai lối tích lũy tương đương: **một nhánh** và **nhiều nhánh kết hợp**. Đoạn độc lập dưới đây minh họa với collector danh sách hợp lệ; yêu cầu import `java.util.ArrayList`, `java.util.Arrays`, `java.util.List` và `java.util.stream.Collector`.
+To test a collector, you can construct two equivalent accumulation paths: **single-branch** and **multi-branch combined**. The standalone snippet below illustrates this with a valid list collector; it requires importing `java.util.ArrayList`, `java.util.Arrays`, `java.util.List`, and `java.util.stream.Collector`.
 
 ```java
 Collector<Integer, List<Integer>, List<Integer>> collector =
@@ -356,13 +356,13 @@ Collector<Integer, List<Integer>, List<Integer>> collector =
                     return left;
                 });
 
-// Tích lũy liên tục ba phần tử.
+// Accumulate three elements sequentially.
 List<Integer> onePass = collector.supplier().get();
 collector.accumulator().accept(onePass, 1);
 collector.accumulator().accept(onePass, 2);
 collector.accumulator().accept(onePass, 3);
 
-// Tách thành hai nhánh: [1, 2] và [3].
+// Split into two branches: [1, 2] and [3].
 List<Integer> left = collector.supplier().get();
 List<Integer> right = collector.supplier().get();
 collector.accumulator().accept(left, 1);
@@ -371,25 +371,25 @@ collector.accumulator().accept(right, 3);
 List<Integer> combined = collector.combiner().apply(left, right);
 
 System.out.println(onePass.equals(combined)); // true
-// Cả hai đều chứa [1, 2, 3].
+// Both contain [1, 2, 3].
 
-// Gộp với container mới rỗng: hợp đồng đơn vị.
+// Merge with a fresh empty container: identity contract.
 List<Integer> withEmpty =
         collector.combiner().apply(combined, collector.supplier().get());
 System.out.println(withEmpty.equals(onePass)); // true
 ```
 
-Đây là một phép kiểm tra **đại diện**, không chứng minh hợp đồng với mọi dữ liệu và mọi cách phân chia. Để kiểm tra kỹ hơn, nên thử cả nguồn rỗng, một phần tử, nhiều vị trí tách, nhiều cách ghép ba hoặc nhiều nhánh, các phần tử trùng nhau và nguồn có thứ tự.
+This is a **representative** check, not a formal proof of the contract for all inputs and all splits. For thorough testing, also test empty sources, single elements, multiple split points, various ways of merging three or more branches, duplicate elements, and ordered sources.
 
-Nếu collector không có `IDENTITY_FINISH`, phải so sánh **kết quả sau `finisher`** khi kiểm chứng tính tương đương. Đừng chỉ so `A.equals(...)` nếu trạng thái trung gian là một đối tượng không triển khai `equals` theo ý nghĩa kết quả.
+If a collector does not have `IDENTITY_FINISH`, you must compare **results after `finisher`** when verifying equivalence. Do not just compare `A.equals(...)` if the intermediate state is an object that does not implement `equals` according to result semantics.
 
-## 7. Characteristics có thể thay đổi cách runtime thực hiện collect
+## 7. Characteristics can change how the runtime executes collect
 
-`Collector.Characteristics` mô tả các tính chất mà implementation có thể dựa vào để tối ưu. Công bố đặc tính **không đúng thực tế** có thể làm chương trình sai trên parallel stream dù thử tuần tự vẫn chạy.
+`Collector.Characteristics` describes properties that an implementation may rely on to optimize. Declaring a characteristic **contrary to reality** can break a program on parallel streams even when sequential runs succeed.
 
-### 7.1. IDENTITY_FINISH: A chính là R
+### 7.1. IDENTITY_FINISH: A is R itself
 
-`IDENTITY_FINISH` nói rằng finisher thực chất là phép đồng nhất, có thể được bỏ qua: kiểu trạng thái tích lũy `A` có thể dùng trực tiếp như kết quả `R`.
+`IDENTITY_FINISH` states that the finisher is essentially the identity function and may be skipped: accumulation state type `A` can be used directly as result `R`.
 
 ```java
 Collector<String, List<String>, List<String>> listCollector =
@@ -400,90 +400,90 @@ Collector<String, List<String>, List<String>> listCollector =
                     left.addAll(right);
                     return left;
                 });
-// Overload 3 thành phần này có đặc tính IDENTITY_FINISH.
+// This 3-component overload carries the IDENTITY_FINISH characteristic.
 ```
 
-Ví dụ trung bình ở phần 5 **không được** công bố `IDENTITY_FINISH` vì `SumCount` không phải `OptionalDouble`. Nếu khai báo sai, implementation có thể bỏ qua finisher và cố trả trạng thái trung gian như kết quả cuối, dẫn đến lỗi kiểu hoặc kết quả không đúng.
+The averaging example in section 5 **must not** declare `IDENTITY_FINISH` because `SumCount` is not `OptionalDouble`. If declared wrongly, the implementation may skip the finisher and attempt to return the intermediate state as the final result, causing type errors or wrong results.
 
-### 7.2. UNORDERED: kết quả không phụ thuộc encounter order
+### 7.2. UNORDERED: result does not depend on encounter order
 
-`UNORDERED` phù hợp khi ý nghĩa kết quả không dựa vào thứ tự, chẳng hạn thu thập các khóa vào một tập hợp. Nó có thể cho phép thư viện bỏ bớt ràng buộc thứ tự khi giảm song song.
+`UNORDERED` is appropriate when result meaning does not rely on order, such as collecting keys into a set. It can allow the library to drop ordering constraints during parallel reduction.
 
 ```java
 java.util.Set<String> unique = Stream.of("B", "A", "B")
         .parallel()
         .collect(Collectors.toSet());
-// Nội dung tập hợp: {"A", "B"}, không cam kết thứ tự duyệt.
+// Set contents: {"A", "B"}, no guarantee on iteration order.
 ```
 
-`Collectors.toSet()` là collector không có thứ tự (*unordered collector*). Ngược lại, collector tạo danh sách để giữ thứ tự giao dịch **không nên** được đánh dấu `UNORDERED`.
+`Collectors.toSet()` is an *unordered collector*. Conversely, a collector building a list to preserve transaction order **should not** be marked `UNORDERED`.
 
-### 7.3. CONCURRENT: cho phép tích lũy đồng thời vào cùng container
+### 7.3. CONCURRENT: allows concurrent accumulation into the same container
 
-`CONCURRENT` có nghĩa accumulator **được phép gọi đồng thời** bởi nhiều luồng trên cùng một container. Đây là cam kết về an toàn đồng thời mà collector phải thực sự đáp ứng.
+`CONCURRENT` means `accumulator` **is permitted to be called concurrently** by multiple threads on the same container. This is a concurrency-safety commitment that the collector must genuinely satisfy.
 
-Không phải cứ gọi `parallelStream()` thì collector cần `CONCURRENT`. Nếu collector **không concurrent**, framework vẫn có thể chia thành các container riêng, mỗi container được một nhánh xử lý, rồi hợp nhất bằng combiner. Cơ chế đó không yêu cầu mỗi `ArrayList` hay `SumCount` phải là đối tượng thread-safe.
+Calling `parallelStream()` does not mean a collector needs `CONCURRENT`. If a collector is **not concurrent**, the framework can still split into separate containers, each handled by a branch, and then merge via the combiner. That mechanism does not require each `ArrayList` or `SumCount` to be a thread-safe object.
 
-Thông thường framework chỉ thực hiện một **concurrent reduction** trực tiếp vào container dùng chung khi collector có `CONCURRENT` **và** Stream không có encounter order, **hoặc** collector còn có `UNORDERED`. Do đó, hai đặc tính này không thể thêm tùy tiện chỉ để “bật chạy song song”.
+Normally, the framework only performs a **concurrent reduction** directly into a shared container when the collector has `CONCURRENT` **and** either the Stream has no encounter order **or** the collector also has `UNORDERED`. Therefore, these two characteristics cannot be added arbitrarily just to "enable parallel execution".
 
-| Characteristics | Cho phép gì? | Rủi ro nếu công bố sai |
+| Characteristics | What does it allow? | Risk if falsely declared |
 |---|---|---|
-| `IDENTITY_FINISH` | Bỏ qua phép chuyển đổi trạng thái thành kết quả | Trả sai kiểu hoặc bỏ mất bước finisher bắt buộc |
-| `UNORDERED` | Không giữ thứ tự gặp phần tử trong kết quả | Kết quả dạng danh sách/báo cáo bị đổi thứ tự |
-| `CONCURRENT` | Nhiều worker có thể dùng cùng accumulator container đồng thời | Race condition, mất dữ liệu hoặc hỏng cấu trúc |
+| `IDENTITY_FINISH` | Skipping state-to-result conversion | Returns wrong type or drops mandatory finisher step |
+| `UNORDERED` | Not preserving element encounter order in the result | List/report results get reordered |
+| `CONCURRENT` | Multiple workers may use the same accumulator container concurrently | Race conditions, lost data, or corrupted structures |
 
-**Ví dụ sai:** khai báo `CONCURRENT` cho collector sử dụng một `ArrayList` thường mà không đồng bộ hóa hoặc không có cấu trúc dữ liệu concurrent. Khi runtime được phép cùng gọi `list.add(...)` từ nhiều worker, `ArrayList` không bảo đảm an toàn luồng.
+**Wrong example:** declaring `CONCURRENT` on a collector using a plain `ArrayList` without synchronization or a concurrent data structure. When the runtime is permitted to call `list.add(...)` from multiple workers simultaneously, `ArrayList` provides no thread-safety guarantee.
 
-## 8. Những ràng buộc khác của vòng đời tích lũy
+## 8. Other accumulation lifecycle constraints
 
-Ngoài ba hợp đồng chính, cách runtime quản lý container cũng quan trọng:
+Beyond the three main contracts, how the runtime manages containers also matters:
 
-1. `supplier` phải cung cấp các bộ tích lũy mới, hợp lệ, có thể dùng độc lập. Không dùng một biến `static` giữ danh sách chung để mọi lần `supplier.get()` trả lại cùng đối tượng.
-2. `accumulator` cần diễn đạt cách thêm phần tử vào trạng thái, không thay đổi nguồn dữ liệu, không phụ thuộc luồng cụ thể và không tự ý sửa các container của nhánh khác.
-3. `combiner` phải ghép cả hai trạng thái theo đúng ngữ nghĩa và trả một trạng thái dùng được tiếp. Với mẫu mutable phổ biến, sửa container bên trái và trả nó là hợp lệ nếu không làm mất thông tin.
-4. Nếu combiner hoặc finisher **không trả lại chính container được truyền vào**, collector implementation không được tiếp tục sử dụng container đã bị thay thế theo các quy tắc vòng đời. Đừng xây logic trông chờ một container cũ được gọi tích lũy trở lại.
-5. Một container đã được chuyển cho combiner hoặc finisher không được đưa trở lại accumulator; vì thế việc đếm số lần gọi `accumulator` qua tác dụng phụ toàn cục không phải thước đo đáng tin của cách framework phân chia việc.
+1. `supplier` must provide fresh, valid accumulators usable independently. Do not use a `static` field holding a shared list so that every `supplier.get()` returns the same object.
+2. `accumulator` should express how to add an element to the state, without modifying the data source, depending on a specific thread, or arbitrarily mutating another branch's container.
+3. `combiner` must merge both states semantically and return a state usable going forward. In the common mutable pattern, mutating the left container and returning it is valid if no information is lost.
+4. If the combiner or finisher **does not return the exact container passed in**, the collector implementation must not continue using the replaced container under lifecycle rules. Do not write logic expecting an old container to be called for accumulation again.
+5. A container once passed to the combiner or finisher must not be fed back into the accumulator; thus counting `accumulator` invocations via global side effects is not a reliable measure of how the framework splits work.
 
-Các quy tắc này giúp việc tích lũy bằng **trạng thái mutable cục bộ** vẫn an toàn trong parallel stream. Chúng không cấp phép cho accumulator hoặc combiner sửa tùy ý mọi đối tượng mutable bên ngoài pipeline.
+These rules keep accumulation with **local mutable state** safe in parallel streams. They do not license the accumulator or combiner to mutate arbitrary mutable objects outside the pipeline.
 
-## 9. Collector và reduce: giống nhau ở phép kết hợp, khác nhau ở trạng thái
+## 9. Collector and reduce: similar in combination, different in state
 
-`reduce` và `collect` đều là phép rút gọn, nhưng khác về cách quản lý trạng thái:
+`reduce` and `collect` are both reduction operations, but differ in state management:
 
-| Tiêu chí | `reduce` | `collect(Collector)` |
+| Criterion | `reduce` | `collect(Collector)` |
 |---|---|---|
-| Phép tích lũy | Thường trả một giá trị mới hoặc giá trị có sẵn theo phép toán | Có thể sửa container trung gian `A` |
-| Đối tượng tích lũy | Thường cùng kiểu với kết quả hoặc có phiên bản ba tham số cho khác kiểu | `A` có thể khác `R` |
-| Tổ chức song song | Phải có phép accumulator/combiner hợp lệ, tính kết hợp | Supplier tạo container riêng, accumulator và combiner cùng tuân hợp đồng |
-| Ví dụ phù hợp | Tính tổng, tích, min/max theo phép kết hợp thuần | List, Map, nhóm, thống kê nhiều đại lượng, collector tùy chỉnh |
-| Điều cần tránh | Tác dụng phụ hoặc shared mutable identity | Supplier dùng lại chung container, combiner mất dữ liệu, Characteristics khai báo sai |
+| Accumulation operation | Usually returns a new or existing value per operation | Can mutate intermediate container `A` |
+| Accumulation object | Usually same type as result or three-parameter overload for different type | `A` can differ from `R` |
+| Parallel organization | Must have valid, associative accumulator/combiner | Supplier creates separate containers; accumulator and combiner obey contract |
+| Suitable examples | Sums, products, pure associative min/max | Lists, Maps, grouping, multi-metric statistics, custom collectors |
+| What to avoid | Side effects or shared mutable identity | Supplier reusing a shared container, combiner dropping data, wrongly declared Characteristics |
 
-Ví dụ, nối chuỗi lớn bằng `Collectors.joining()` thường phù hợp hơn `reduce(String::concat)` nếu cần giảm chi phí tạo chuỗi trung gian. Tính tổng số nguyên bằng `IntStream.sum()` lại rõ nghĩa hơn cả hai khi chỉ cần một phép cộng.
+For instance, joining large strings with `Collectors.joining()` is usually more suitable than `reduce(String::concat)` when reducing intermediate string allocations matters. Summing integers with `IntStream.sum()` is clearer than both when you only need addition.
 
-**Lưu ý:** tính kết hợp nhóm trong toán học không đảm bảo kết quả dấu phẩy động **giống hệt theo bit** giữa mọi cách gộp, vì phép cộng `double` có sai số làm tròn. Với số tiền hoặc thống kê yêu cầu độ chính xác cao, hãy chọn kiểu số, thuật toán cộng và chính sách làm tròn tương ứng, thay vì coi việc Collector hợp đồng đúng là bảo đảm chính xác tuyệt đối.
+**Note:** mathematical associativity does not guarantee **bit-identical** floating-point results across all merge orders, because `double` addition has rounding error. For money or statistics demanding high precision, choose the appropriate numeric type, summation algorithm, and rounding policy, rather than assuming a contract-compliant Collector guarantees absolute precision.
 
-## 10. Phân biệt lỗi contract và lỗi nghiệp vụ
+## 10. Distinguishing contract errors from business logic errors
 
-| Hiện tượng | Nguyên nhân thường gặp | Hướng khắc phục |
+| Symptom | Common cause | Remedy |
 |---|---|---|
-| Chạy tuần tự đủ phần tử, song song bị mất vài phần tử | Combiner bỏ một nhánh hoặc supplier chia sẻ mutable container | Gộp đầy đủ hai nhánh; supplier tạo trạng thái độc lập |
-| Cùng nguồn nhưng tổng/đếm sai tùy cách chia | Accumulator không tương thích với combiner hoặc dữ liệu tràn số | Thiết kế trạng thái có thể gộp, kiểm soát miền số |
-| Trung bình song song sai khi nhóm có kích thước khác nhau | Gộp trung bình từng nhánh mà không giữ count | Gộp cặp (sum, count), chia ở finisher |
-| Danh sách kết quả đổi thứ tự dù nghiệp vụ cần thứ tự | Đánh dấu `UNORDERED` không đúng | Giữ ràng buộc encounter order, ghép trái rồi phải |
-| Kết quả bị `ClassCastException` hoặc mất bước chuyển kiểu | Đánh dấu `IDENTITY_FINISH` khi `A` khác `R` | Chỉ công bố khi finisher thực sự là identity |
-| `ArrayList` bị hỏng khi thu thập đồng thời | Đánh dấu `CONCURRENT` cho container không an toàn | Bỏ characteristic hoặc dùng thiết kế concurrent thực sự |
-| Nguồn rỗng trả một giá trị không hợp lý | Supplier không tạo trạng thái đơn vị hoặc finisher sai chính sách rỗng | Thiết kế rõ kết quả rỗng và kiểm tra identity |
-| Kết quả khác nhau chỉ vì thứ tự duyệt `Set` | Nghiệp vụ đã phụ thuộc vào thứ tự không có bảo đảm | Sắp xếp rõ ràng hoặc thiết kế kết quả không phụ thuộc thứ tự |
+| Sequential run has all elements, parallel run loses some | Combiner drops one branch or supplier shares a mutable container | Merge both branches completely; supplier creates independent state |
+| Same source yields wrong sum/count depending on split | Accumulator incompatible with combiner or numeric overflow | Design mergeable state, guard numeric range |
+| Parallel average wrong when groups have different sizes | Merging branch averages without keeping count | Merge `(sum, count)` pairs, divide in finisher |
+| Result list reordered though business logic needs order | Incorrectly marked `UNORDERED` | Keep encounter-order constraint, merge left then right |
+| Result throws `ClassCastException` or skips type conversion | Marked `IDENTITY_FINISH` when `A` differs from `R` | Declare only when finisher is truly the identity |
+| `ArrayList` corrupted during concurrent collection | Marked `CONCURRENT` on an unsafe container | Remove characteristic or use a genuinely concurrent design |
+| Empty source returns an unreasonable value | Supplier does not create identity state or finisher has wrong empty policy | Explicitly design empty result and verify identity |
+| Results differ solely due to `Set` iteration order | Business logic depended on an unguaranteed order | Sort explicitly or design order-independent results |
 
-## 11. Bài tập tự kiểm tra có đáp án
+## 11. Self-check exercises with answers
 
-### Bài 1. Phần tử đơn vị của collector cộng số
+### Exercise 1. Identity element of a summing collector
 
-Một collector dùng trạng thái `SumCount(sum, count)`, accumulator tăng `sum` và `count`. Supplier nên trả trạng thái nào?
+A collector uses state `SumCount(sum, count)`, and the accumulator increments `sum` and `count`. What state should the supplier return?
 
-**Đáp án:** `sum = 0` và `count = 0`. Gộp một trạng thái có dữ liệu với trạng thái này giữ nguyên cả tổng lẫn số lượng.
+**Answer:** `sum = 0` and `count = 0`. Merging a populated state with this state preserves both the sum and the count unchanged.
 
-### Bài 2. Lỗi trong combiner
+### Exercise 2. Bug in the combiner
 
 ```java
 (left, right) -> {
@@ -493,42 +493,42 @@ Một collector dùng trạng thái `SumCount(sum, count)`, accumulator tăng `s
 }
 ```
 
-**Câu hỏi:** Nếu `right` rỗng, hợp đồng nào bị vi phạm?
+**Question:** If `right` is empty, which contract is violated?
 
-**Đáp án:** **Đơn vị** vì `combiner(left, empty)` làm xuất hiện thêm `"END"`. Ngoài ra, việc thêm phần tử theo mỗi lần combine còn khiến kết quả phụ thuộc số lần gộp, vi phạm hợp đồng kết hợp.
+**Answer:** **Identity**, because `combiner(left, empty)` introduces an extra `"END"`. Furthermore, adding an element on every combine makes the result depend on merge count, violating the associativity contract.
 
-### Bài 3. Tính kết hợp nhưng không giao hoán
+### Exercise 3. Associative but not commutative
 
-Nối `[A]` với `[B]` cho `[A, B]`, trong khi đảo hai nhánh cho `[B, A]`. Có thể dùng phép nối danh sách để làm combiner cho một collector có thứ tự không?
+Concatenating `[A]` with `[B]` gives `[A, B]`, whereas swapping branches gives `[B, A]`. Can list concatenation serve as the combiner for an ordered collector?
 
-**Đáp án:** **Có**. Phép nối danh sách kết hợp nhóm nhưng không giao hoán. Collector có thứ tự phải ghép các phân đoạn theo encounter order, không yêu cầu tùy ý đảo nhánh.
+**Answer:** **Yes**. List concatenation is associative even though it is not commutative. An ordered collector must merge segments in encounter order, without requiring arbitrary branch swapping.
 
-### Bài 4. Characteristics cho collector tính trung bình
+### Exercise 4. Characteristics for an averaging collector
 
-Một collector có `A = SumCount` và `R = OptionalDouble`, dùng finisher để chia `sum / count`. Có được khai báo `IDENTITY_FINISH` không?
+A collector has `A = SumCount` and `R = OptionalDouble`, using a finisher to divide `sum / count`. May `IDENTITY_FINISH` be declared?
 
-**Đáp án:** **Không**, vì trạng thái trung gian và kết quả khác kiểu, đồng thời phải chạy finisher.
+**Answer:** **No**, because the intermediate state and final result have different types, and the finisher must run.
 
-### Bài 5. Trung bình sau khi chia nhóm
+### Exercise 5. Average after splitting groups
 
-Nhánh A chứa `[10]`, nhánh B chứa `[20, 30]`. Gộp trung bình các nhánh bằng cách lấy trung bình của `10` và `25` có đúng không?
+Branch A contains `[10]`, branch B contains `[20, 30]`. Is merging branch averages by taking the average of `10` and `25` correct?
 
-**Đáp án:** **Sai**, kết quả `17.5`. Cần gộp `(sum=10, count=1)` và `(sum=50, count=2)` thành `(sum=60, count=3)`; kết quả đúng là `20`.
+**Answer:** **Wrong**, giving `17.5`. You must merge `(sum=10, count=1)` and `(sum=50, count=2)` into `(sum=60, count=3)`; the right result is `20`.
 
-### Bài 6. Parallel có bắt buộc CONCURRENT không?
+### Exercise 6. Does parallel require CONCURRENT?
 
-Collector dùng `ArrayList` riêng trên mỗi phân đoạn, combiner ghép danh sách bằng `addAll`. Có cần công bố `CONCURRENT` để dùng `parallelStream().collect(...)` không?
+A collector uses a separate `ArrayList` on each partition, and the combiner merges lists with `addAll`. Do you need to declare `CONCURRENT` to use `parallelStream().collect(...)`?
 
-**Đáp án:** **Không**. Framework có thể tích lũy trên các container độc lập, rồi kết hợp. Chỉ công bố `CONCURRENT` khi thiết kế thực sự cho phép nhiều worker cùng cập nhật một container an toàn.
+**Answer:** **No**. The framework can accumulate on independent containers and combine them afterward. Only declare `CONCURRENT` when the design genuinely allows multiple workers to safely update one container simultaneously.
 
-## 12. Checklist khi tự thiết kế Collector
+## 12. Checklist when designing a custom Collector
 
-Trước khi đưa collector vào ứng dụng, hãy tự kiểm tra:
+Before putting a collector into an application, check:
 
-1. **Đơn vị:** trạng thái do `supplier` tạo ra có thực sự “rỗng” và gộp vào một kết quả đã tích lũy không làm thay đổi ý nghĩa của nó?
-2. **Kết hợp:** mọi cách chia đầu vào hợp lệ, tích lũy rồi gộp có dẫn đến cùng kết quả sau finisher không? Combiner có giữ đủ số phần tử, tổng, count và thứ tự cần thiết không?
-3. **Tương đương:** tiêu chí so sánh kết quả đã rõ chưa? Nếu công bố `UNORDERED`, việc khác thứ tự có thật sự không quan trọng với nghiệp vụ không?
-4. **Kiểu và đặc tính:** `A` khác `R` thì finisher có bắt buộc không? `IDENTITY_FINISH` và `CONCURRENT` có thật sự được bảo đảm không?
-5. **Tài nguyên và trạng thái:** supplier có tạo bộ tích lũy độc lập, các hàm có tránh sửa nguồn và biến chia sẻ, dữ liệu số có thể tràn hoặc mất độ chính xác không?
+1. **Identity:** is the state created by `supplier` truly "empty", and does merging it into an accumulated result leave its meaning unchanged?
+2. **Associativity:** do all valid input splits, accumulations, and merges lead to the same post-finisher result? Does the combiner preserve all elements, sums, counts, and required order?
+3. **Equivalence:** are result comparison criteria clear? If declaring `UNORDERED`, are order differences truly irrelevant to business logic?
+4. **Types and characteristics:** if `A` differs from `R`, is the finisher mandatory? Are `IDENTITY_FINISH` and `CONCURRENT` genuinely guaranteed?
+5. **Resources and state:** does the supplier create independent accumulators, do the functions avoid modifying the source and shared variables, and could numeric data overflow or lose precision?
 
-Hãy bắt đầu với collector có sẵn như `Collectors.toList`, `toSet`, `groupingBy`, `summingLong` hoặc `summarizingLong` nếu chúng đáp ứng yêu cầu. Khi phải tự xây collector, **đơn vị, kết hợp và tương đương** chính là tiêu chuẩn để chương trình giữ đúng kết quả dù cách chia việc và thực thi của Stream thay đổi.
+Start with built-in collectors such as `Collectors.toList`, `toSet`, `groupingBy`, `summingLong`, or `summarizingLong` when they meet requirements. When you must build a custom collector, **identity, associativity, and equivalence** are the standard ensuring your program keeps producing right results even as Stream partitioning and execution change.

@@ -1,12 +1,12 @@
-# Qualified exports tới một module cụ thể
+# Qualified Exports to a Specific Module
 
-Trong Java Platform Module System (JPMS), directive **exports** công bố package của một module để module khác có thể sử dụng các kiểu public bên trong package đó. Khi dùng dạng qualified exports, module chỉ công bố package cho những module được nêu tên rõ ràng.
+In the Java Platform Module System (JPMS), the **exports** directive exposes a module's package so other modules can use the public types inside that package. When using qualified exports, a module exposes a package only to explicitly named modules.
 
-Cú pháp này phù hợp khi một package là API cần chia sẻ giữa một số module nội bộ, adapter hoặc plugin đã biết, nhưng không nên trở thành API chung cho mọi module đọc được module hiện tại. Qualified exports giúp thiết kế ranh giới module hẹp và có chủ đích hơn.
+This syntax is suitable when a package is an API that needs to be shared among certain known internal modules, adapters, or plugins, but should not become a general API for every module that reads the current module. Qualified exports help design narrower, more intentional module boundaries.
 
-## 1. Cú pháp và ý nghĩa
+## 1. Syntax and Meaning
 
-Cú pháp cơ bản:
+Basic syntax:
 
 ~~~java
 module com.example.catalog {
@@ -16,25 +16,25 @@ module com.example.catalog {
 }
 ~~~
 
-Trong ví dụ, module **com.example.catalog** export package **com.example.catalog.api** cho hai module:
+In this example, module **com.example.catalog** exports package **com.example.catalog.api** to two modules:
 
 - **com.example.catalog.ui**
 - **com.example.catalog.reporting**
 
-Một module khác dù khai báo **requires com.example.catalog** vẫn không được truy cập package này nếu tên module đó không nằm trong danh sách sau từ khóa **to**.
+Another module, even if it declares **requires com.example.catalog**, still cannot access this package if its module name is not in the list following the **to** keyword.
 
-Có thể khai báo nhiều module đích, phân tách bằng dấu phẩy. Tên sau **to** là tên module, không phải tên package, tên class hay tên file JAR. Tên module phải khớp với tên được khai báo trong module descriptor của module tiêu thụ.
+Multiple target modules can be declared, separated by commas. The names after **to** are module names, not package names, class names, or JAR file names. The module name must match the name declared in the consuming module's descriptor.
 
-Hai điều kiện cần được thỏa mãn để mã nguồn của module tiêu thụ dùng được một kiểu trong package được qualified export:
+Two conditions must be met for source code in a consuming module to use a type in a qualified-exported package:
 
-1. Module tiêu thụ phải đọc module sở hữu package, thông thường bằng directive **requires**.
-2. Module tiêu thụ phải nằm trong danh sách module đích của qualified exports.
+1. The consuming module must read the module that owns the package, typically via the **requires** directive.
+2. The consuming module must be in the target module list of the qualified exports.
 
-Qualified exports không tự tạo dependency và cũng không thay thế **requires**. Nó quyết định module nào được truy cập package sau khi quan hệ đọc module đã tồn tại.
+Qualified exports do not create a dependency by themselves, nor do they replace **requires**. They determine which modules can access the package after a module readability relationship already exists.
 
-## 2. Ví dụ với module API và hai module tiêu thụ
+## 2. Example with an API Module and Two Consuming Modules
 
-Giả sử ứng dụng có ba module:
+Suppose an application has three modules:
 
 ~~~text
 src/
@@ -49,7 +49,7 @@ src/
     └── com/example/catalog/reporting/Report.java
 ~~~
 
-Module catalog định nghĩa API:
+The catalog module defines the API:
 
 ~~~java
 // src/com.example.catalog/module-info.java
@@ -60,7 +60,7 @@ module com.example.catalog {
 }
 ~~~
 
-Class public nằm trong package được export:
+A public class resides in the exported package:
 
 ~~~java
 // src/com.example.catalog/com/example/catalog/api/Product.java
@@ -73,7 +73,7 @@ public final class Product {
 }
 ~~~
 
-Module giao diện khai báo dependency:
+The UI module declares its dependency:
 
 ~~~java
 // src/com.example.catalog.ui/module-info.java
@@ -82,7 +82,7 @@ module com.example.catalog.ui {
 }
 ~~~
 
-Module giao diện có thể sử dụng API:
+The UI module can use the API:
 
 ~~~java
 // src/com.example.catalog.ui/com/example/catalog/ui/Main.java
@@ -98,7 +98,7 @@ public class Main {
 }
 ~~~
 
-Module reporting cũng được cấp quyền truy cập package:
+The reporting module is also granted access to the package:
 
 ~~~java
 // src/com.example.catalog.reporting/module-info.java
@@ -107,11 +107,11 @@ module com.example.catalog.reporting {
 }
 ~~~
 
-Vì **com.example.catalog.reporting** xuất hiện trong danh sách qualified exports, mã nguồn của module này có thể import và gọi các kiểu public trong package **com.example.catalog.api** theo các quy tắc truy cập Java thông thường.
+Because **com.example.catalog.reporting** appears in the qualified exports list, source code in this module can import and call public types in package **com.example.catalog.api** under normal Java access rules.
 
-## 3. Module không nằm trong danh sách sẽ bị giới hạn
+## 3. Modules Not in the List Will Be Restricted
 
-Thêm một module audit:
+Add an audit module:
 
 ~~~text
 src/com.example.catalog.audit/
@@ -119,7 +119,7 @@ src/com.example.catalog.audit/
 └── com/example/catalog/audit/Audit.java
 ~~~
 
-Descriptor của module audit:
+Descriptor of the audit module:
 
 ~~~java
 module com.example.catalog.audit {
@@ -127,7 +127,7 @@ module com.example.catalog.audit {
 }
 ~~~
 
-Nếu mã nguồn audit cố sử dụng Product:
+If the audit source code tries to use Product:
 
 ~~~java
 package com.example.catalog.audit;
@@ -142,9 +142,9 @@ public class Audit {
 }
 ~~~
 
-Compiler báo package **com.example.catalog.api** không được export tới module **com.example.catalog.audit**. Việc thêm **requires com.example.catalog** chỉ thiết lập khả năng đọc module; nó không cấp quyền truy cập một package đã được export có điều kiện cho module khác.
+The compiler reports that package **com.example.catalog.api** is not exported to module **com.example.catalog.audit**. Adding **requires com.example.catalog** only establishes module readability; it does not grant access to a package that is conditionally exported to other modules.
 
-Nếu audit thực sự cần API này, có thể bổ sung module đó vào danh sách:
+If audit genuinely needs this API, you can add that module to the list:
 
 ~~~java
 module com.example.catalog {
@@ -155,11 +155,11 @@ module com.example.catalog {
 }
 ~~~
 
-Sau khi thay đổi descriptor của module catalog, cần biên dịch lại module đó và các module tiêu thụ liên quan để kiểm tra module graph và quyền truy cập.
+After changing the catalog module's descriptor, you need to recompile that module and the related consuming modules to verify the module graph and access permissions.
 
-## 4. Biên dịch và chạy ví dụ
+## 4. Compiling and Running the Example
 
-Từ thư mục gốc của dự án, có thể biên dịch module catalog và module UI như sau:
+From the project root directory, you can compile the catalog module and the UI module as follows:
 
 ~~~bash
 javac --module-source-path src \
@@ -167,20 +167,20 @@ javac --module-source-path src \
       -m com.example.catalog,com.example.catalog.ui
 ~~~
 
-Sau khi biên dịch, chạy module UI:
+After compiling, run the UI module:
 
 ~~~bash
 java --module-path out \
      -m com.example.catalog.ui/com.example.catalog.ui.Main
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Mechanical Keyboard
 ~~~
 
-Để kiểm tra giới hạn truy cập, hãy thêm module audit vào lệnh biên dịch:
+To test the access restriction, add the audit module to the compile command:
 
 ~~~bash
 javac --module-source-path src \
@@ -188,55 +188,55 @@ javac --module-source-path src \
       -m com.example.catalog,com.example.catalog.ui,com.example.catalog.audit
 ~~~
 
-Nếu mã nguồn audit import **com.example.catalog.api.Product** nhưng audit chưa có trong danh sách qualified exports, compiler sẽ từ chối truy cập package. Đây là kiểm tra quan trọng: quyền truy cập được xác định từ descriptor và module graph, không dựa vào việc file JAR có nằm trên module path hay không.
+If the audit source code imports **com.example.catalog.api.Product** while audit is not yet in the qualified exports list, the compiler will deny access to the package. This is an important check: access permissions are determined from the descriptors and module graph, not based on whether the JAR file is on the module path.
 
-Khi đổi descriptor để thêm audit, hãy biên dịch lại từ source tree đầy đủ. Nếu đang kiểm tra JAR đã đóng gói, cần tạo lại JAR chứa module descriptor mới và dùng đúng JAR đó trên module path.
+When changing the descriptor to add audit, recompile from the full source tree. If testing packaged JARs, rebuild the JAR containing the new module descriptor and use that exact JAR on the module path.
 
-## 5. Qualified exports khác unqualified exports như thế nào?
+## 5. How Do Qualified Exports Differ from Unqualified Exports?
 
-Hai dạng exports có phạm vi khác nhau:
+The two forms of exports have different scopes:
 
 ~~~java
-// Export package cho mọi module đọc module này
+// Export the package to every module reading this module
 exports com.example.catalog.api;
 ~~~
 
 ~~~java
-// Chỉ export package cho các module được nêu tên
+// Export the package only to the named modules
 exports com.example.catalog.api
     to com.example.catalog.ui,
        com.example.catalog.reporting;
 ~~~
 
-| Tiêu chí | Unqualified exports | Qualified exports |
+| Criterion | Unqualified exports | Qualified exports |
 | --- | --- | --- |
-| Cú pháp | exports package; | exports package to moduleA, moduleB; |
-| Phạm vi | Các module đọc module hiện tại có thể truy cập package | Chỉ các module được liệt kê có thể truy cập package |
-| Khả năng mở rộng consumer | Consumer mới có thể sử dụng package khi có quan hệ đọc phù hợp | Consumer mới cần được bổ sung vào danh sách |
-| Phù hợp | API công khai, ổn định cho nhiều module | API nội bộ dùng chung có giới hạn |
-| Công sức bảo trì | Ít phải cập nhật khi thêm consumer | Descriptor phải được cập nhật khi thêm consumer hợp lệ |
+| Syntax | exports package; | exports package to moduleA, moduleB; |
+| Scope | Modules reading the current module can access the package | Only the listed modules can access the package |
+| Consumer extensibility | New consumers can use the package when they have a valid readability relationship | New consumers must be added to the list |
+| Suitability | Public, stable API for many modules | Restricted shared internal API |
+| Maintenance effort | Less updating required when adding consumers | Descriptor must be updated when adding valid consumers |
 
-Unqualified exports thường phù hợp với API mà module chủ động công bố cho hệ sinh thái sử dụng. Qualified exports phù hợp với package chia sẻ giữa một nhóm module đã được xác định, chẳng hạn API dành cho adapter, integration module hoặc một số thành phần trong cùng sản phẩm.
+Unqualified exports are usually suitable for APIs that a module actively exposes for ecosystem use. Qualified exports are suitable for packages shared among an identified group of modules, such as APIs for adapters, integration modules, or certain components within the same product.
 
-Không nên đưa toàn bộ package của module vào danh sách qualified exports chỉ vì một consumer cần một class. JPMS export theo package, không theo từng class hoặc method. Nếu cần công bố một API nhỏ hơn, hãy tách API đó vào package riêng có ranh giới phù hợp.
+You should not put an entire module's packages into a qualified exports list just because one consumer needs a single class. JPMS exports by package, not by individual class or method. If you need to expose a smaller API, separate that API into its own package with an appropriate boundary.
 
-## 6. Qualified exports chỉ công bố API public
+## 6. Qualified Exports Only Expose Public APIs
 
-Qualified exports không biến package thành một vùng mở hoàn toàn. Các quy tắc truy cập Java vẫn được áp dụng:
+Qualified exports do not turn a package into a completely open zone. Java access rules still apply:
 
-- Consumer được phép truy cập các kiểu public trong package đã export.
-- Consumer vẫn phải tuân thủ modifier của class, constructor, field và method.
-- Thành viên private hoặc package-private không trở thành API công khai.
-- Package con là package độc lập; export package cha không tự export các package con.
+- Consumers are allowed to access public types in the exported package.
+- Consumers must still obey class, constructor, field, and method modifiers.
+- Private or package-private members do not become public APIs.
+- Subpackages are independent packages; exporting a parent package does not automatically export subpackages.
 
-Ví dụ, descriptor chỉ export:
+For example, the descriptor only exports:
 
 ~~~java
 exports com.example.catalog.api
     to com.example.catalog.ui;
 ~~~
 
-Nó không tự export:
+It does not automatically export:
 
 ~~~text
 com.example.catalog.api.internal
@@ -244,13 +244,13 @@ com.example.catalog.persistence
 com.example.catalog.admin
 ~~~
 
-Nếu module UI cần truy cập package khác, module sở hữu package đó phải có directive tương ứng. Đây là lý do nên tổ chức package theo ranh giới API thay vì dựa vào giả định rằng export một package sẽ mở toàn bộ cây package bên dưới.
+If the UI module needs to access another package, the module owning that package must have a corresponding directive. This is why packages should be organized along API boundaries rather than relying on the assumption that exporting one package opens the entire package tree underneath.
 
-## 7. Phân biệt exports với opens
+## 7. Distinguishing exports from opens
 
-Qualified exports kiểm soát quyền truy cập API thông thường. Framework dùng reflection sâu có thể cần quyền khác.
+Qualified exports control normal API access. Frameworks using deep reflection may need different permissions.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.example.catalog {
@@ -262,54 +262,54 @@ module com.example.catalog {
 }
 ~~~
 
-Trong descriptor này:
+In this descriptor:
 
-- Module UI được truy cập các kiểu public trong package API.
-- Module persistence được phép deep reflection vào package model theo cơ chế JPMS.
-- Việc export API không tự mở package model.
-- Việc open package model không khiến package API trở thành API có thể import và gọi theo cách thông thường.
+- The UI module can access public types in the API package.
+- The persistence module is allowed deep reflection into the model package under JPMS rules.
+- Exporting the API does not automatically open the model package.
+- Opening the model package does not turn the API package into an API that can be imported and called normally.
 
-Có thể dùng qualified opens khi chỉ một framework hoặc module cần reflection. Cách này thường phù hợp với ORM, serializer hoặc framework cần đọc/ghi field không public. Hãy chỉ mở package thực sự cần thiết.
+Qualified opens can be used when only one framework or module needs reflection. This approach is often suitable for ORMs, serializers, or frameworks that need to read/write non-public fields. Open only the packages that are truly necessary.
 
-## 8. Những trường hợp sử dụng phù hợp
+## 8. Appropriate Use Cases
 
-**API dành cho một số adapter**
+**APIs for specific adapters**
 
-Một module domain có thể công bố package SPI cho module adapter đã biết. Các module khác không thể phụ thuộc trực tiếp vào SPI đó nếu chưa được cấp quyền.
+A domain module can expose an SPI package to known adapter modules. Other modules cannot depend directly on that SPI unless granted access.
 
-**API nội bộ giữa các module cùng sản phẩm**
+**Internal APIs between modules of the same product**
 
-Một module nền tảng có thể cung cấp package cho module giao diện và reporting. Các module ứng dụng khác chỉ sử dụng phần API công khai đã được thiết kế riêng.
+A platform module can provide a package to UI and reporting modules. Other application modules use only the specifically designed public API portion.
 
-**Giới hạn bề mặt tích hợp**
+**Limiting the integration surface**
 
-Một module có thể duy trì package API công khai rộng rãi, đồng thời dùng qualified exports cho một package hỗ trợ tích hợp chỉ cần một số module tiêu thụ.
+A module can maintain a broadly public API package while using qualified exports for an integration support package needed by only a few consuming modules.
 
-**Tách implementation khỏi contract**
+**Separating implementation from contract**
 
-Module triển khai có thể export một package contract cho một nhóm module phối hợp. Các package chứa chi tiết nội bộ và implementation vẫn được giữ đóng.
+An implementation module can export a contract package to a coordinating group of modules. Packages containing internal details and implementations remain closed.
 
-Qualified exports hữu ích nhất khi danh sách consumer có thể quản lý và có lý do kiến trúc rõ ràng. Nếu danh sách module đích thay đổi liên tục hoặc có nhiều consumer bên ngoài không thể dự đoán, một API công khai ổn định có thể là lựa chọn phù hợp hơn.
+Qualified exports are most useful when the consumer list is manageable and there is a clear architectural reason. If the target module list changes constantly or there are many unpredictable external consumers, a stable public API may be a better choice.
 
-## 9. Kiểm tra descriptor và quyền truy cập
+## 9. Inspecting Descriptors and Access Permissions
 
-Khi module đã được đóng gói thành JAR, dùng công cụ jar để xem descriptor:
+When a module has been packaged into a JAR, use the jar tool to view the descriptor:
 
 ~~~bash
 jar --describe-module --file out/com.example.catalog.jar
 ~~~
 
-Thông tin mô tả module cho biết package được export và các module đích của qualified exports. Hãy kiểm tra đúng file JAR đang được đưa lên module path, vì source descriptor và JAR cũ có thể không cùng phiên bản.
+The module description shows the exported packages and the target modules of qualified exports. Make sure to inspect the exact JAR file being placed on the module path, because the source descriptor and an older JAR may not match.
 
-Có thể dùng **jdeps** để phân tích dependency module:
+You can use **jdeps** to analyze module dependencies:
 
 ~~~bash
 jdeps --module-path mods --module com.example.catalog.ui
 ~~~
 
-Lệnh này giúp xem module phụ thuộc vào module nào. Nó không thay thế việc kiểm tra qualified exports: dependency đọc module và quyền truy cập package là hai điều kiện riêng.
+This command helps inspect which modules a module depends on. It does not replace checking qualified exports: module read dependencies and package access permissions are two separate conditions.
 
-Ở runtime, API Module cho phép kiểm tra package có được export tới một module cụ thể hay không:
+At runtime, the Module API lets you check whether a package is exported to a specific module:
 
 ~~~java
 Module owner = Product.class.getModule();
@@ -321,43 +321,43 @@ boolean exported =
 System.out.println("Qualified export available: " + exported);
 ~~~
 
-Lời gọi **isExported(packageName, targetModule)** trả về true khi package được export tới module đích theo cấu hình runtime hiện tại. Nó hữu ích khi debug ứng dụng modular hoặc khi cần xác nhận quan hệ giữa hai module.
+The call **isExported(packageName, targetModule)** returns true when the package is exported to the target module under the current runtime configuration. It is useful when debugging modular applications or when confirming the relationship between two modules.
 
-## 10. Lỗi thường gặp và cách xử lý
+## 10. Common Errors and How to Handle Them
 
 **Package is not visible**
 
-Kiểm tra module tiêu thụ đã requires module sở hữu package chưa. Sau đó kiểm tra package có được export và tên module tiêu thụ có nằm trong danh sách qualified exports không.
+Check whether the consuming module requires the module owning the package. Then check whether the package is exported and whether the consuming module's name is in the qualified exports list.
 
-**Module not found hoặc tên module không khớp**
+**Module not found or module name mismatch**
 
-Kiểm tra tên module trong module-info.java của consumer và danh sách sau **to**. Đối chiếu với descriptor thực tế bằng **jar --describe-module**. Tên file JAR không nhất thiết là tên module.
+Check the module name in the consumer's module-info.java and the list after **to**. Compare against the actual descriptor using **jar --describe-module**. The JAR filename is not necessarily the module name.
 
-**Đã thêm module vào danh sách nhưng vẫn lỗi**
+**Added the module to the list, yet the error persists**
 
-Có thể compiler hoặc runtime đang dùng một bản module khác trên module path. Hãy xác định chính xác thư mục output, JAR và module path mà lệnh đang sử dụng; sau đó build lại module descriptor và chạy với artifact mới.
+The compiler or runtime may be using a different version of the module on the module path. Identify the exact output directory, JAR, and module path the command is using; then rebuild the module descriptor and run with the new artifact.
 
-**Consumer đọc được module nhưng không import được package**
+**Consumer reads the module but cannot import the package**
 
-Đây là trường hợp dễ nhầm giữa **requires** và **exports**. requires tạo khả năng đọc module; exports xác định package nào có thể được truy cập và qualified exports còn giới hạn module nhận quyền.
+This is a common point of confusion between **requires** and **exports**. requires creates module readability; exports specifies which packages can be accessed, and qualified exports further restricts which modules receive access.
 
-**Framework báo lỗi reflection**
+**Framework reports reflection errors**
 
-Kiểm tra package cần truy cập sâu có được open cho module framework không. Bổ sung qualified opens khi cần, thay vì mở rộng qualified exports với mục đích xử lý reflection private.
+Check whether the package needing deep access is opened to the framework module. Add qualified opens when needed, rather than expanding qualified exports to handle private reflection.
 
-**Mã trên classpath không truy cập được package qualified export**
+**Code on the classpath cannot access a qualified-exported package**
 
-Các class trên classpath thuộc unnamed module. Unnamed module không thể được nêu tên như một module đích trong directive qualified exports. Nếu ứng dụng cần dùng package đó từ classpath, hãy cân nhắc thiết kế API unqualified exports hoặc chuyển consumer thành named module có tên ổn định.
+Classes on the classpath belong to the unnamed module. The unnamed module cannot be named as a target module in a qualified exports directive. If the application needs to use that package from the classpath, consider designing an unqualified exports API or converting the consumer into a named module with a stable name.
 
-## 11. Nguyên tắc thiết kế và bảo trì
+## 11. Design and Maintenance Principles
 
-- Chỉ dùng qualified exports khi có danh sách module tiêu thụ cụ thể và có lý do rõ ràng để giới hạn quyền truy cập.
-- Đặt tên module đích chính xác, ổn định và trùng với tên trong descriptor của consumer.
-- Giữ package API nhỏ, tách package implementation và package nội bộ.
-- Nhớ rằng package export là đơn vị truy cập; không có cơ chế export riêng từng class.
-- Cập nhật descriptor khi thêm hoặc bỏ module tiêu thụ, rồi biên dịch và kiểm tra lại toàn bộ module liên quan.
-- Dùng qualified opens cho nhu cầu deep reflection thay vì nhầm lẫn với exports.
-- Kiểm tra JAR thực tế trên module path khi lỗi chỉ xuất hiện sau đóng gói hoặc triển khai.
-- Không coi qualified exports là cơ chế sandbox hay ranh giới bảo mật cho mã không tin cậy.
+- Use qualified exports only when there is a specific list of consuming modules and a clear reason to restrict access.
+- Keep target module names accurate, stable, and matching the names in the consumer descriptors.
+- Keep API packages small, separating implementation and internal packages.
+- Remember that exported packages are the unit of access; there is no mechanism to export individual classes.
+- Update descriptors when adding or removing consuming modules, then recompile and retest all related modules.
+- Use qualified opens for deep reflection needs instead of confusing them with exports.
+- Inspect the actual JAR on the module path when errors appear only after packaging or deployment.
+- Do not treat qualified exports as a sandbox mechanism or security boundary for untrusted code.
 
-Qualified exports giúp module công bố đúng package cho đúng nhóm consumer. Khi kết hợp với requires, exports và opens được thiết kế rõ ràng, ứng dụng có thể duy trì API cần thiết giữa các module mà vẫn giữ những package nội bộ ngoài phạm vi truy cập của các module khác.
+Qualified exports help a module expose the right packages to the right group of consumers. When combined with clearly designed requires, exports, and opens, an application can maintain necessary APIs between modules while keeping internal packages out of reach of other modules.

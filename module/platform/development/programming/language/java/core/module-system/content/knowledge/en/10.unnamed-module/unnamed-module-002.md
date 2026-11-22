@@ -1,57 +1,57 @@
-# Unnamed module đọc mọi named module được export
+# Unnamed module reads all exported named modules
 
-## 1. Unnamed module trong JPMS
+## 1. The unnamed module in JPMS
 
-Khi Java chạy ứng dụng theo classpath, các class của ứng dụng không thuộc một named module có module descriptor. Chúng thuộc **unnamed module** gắn với class loader đã định nghĩa chúng.
+When Java runs an application via the classpath, the application's classes do not belong to a named module with a module descriptor. They belong to the **unnamed module** associated with the class loader that defined them.
 
-Mỗi class loader có unnamed module riêng. Trong ứng dụng thông thường, class loader hệ thống (application class loader) định nghĩa các class trên classpath và có unnamed module tương ứng.
+Each class loader has its own unnamed module. In a typical application, the system class loader (application class loader) defines the classes on the classpath and has a corresponding unnamed module.
 
-Unnamed module có một số đặc điểm quan trọng:
+An unnamed module has several important characteristics:
 
-- Không có tên module và không có module descriptor riêng.
-- Không khai báo requires, exports hoặc opens trong module-info.java.
-- Đọc các named module trong cấu hình module tương ứng.
-- Các package của unnamed module được export và open để những module khác có thể truy cập theo các quy tắc tương ứng.
-- Không thể được một named module tham chiếu bằng chỉ thị requires thông thường vì unnamed module không có tên.
+- It has no module name and no separate module descriptor.
+- It does not declare requires, exports, or opens in module-info.java.
+- It reads the named modules in the corresponding module configuration.
+- Packages of the unnamed module are exported and open so that other modules can access them according to the applicable rules.
+- It cannot be referenced by a named module using a regular requires directive because the unnamed module has no name.
 
-Đặc điểm “đọc mọi named module” giúp ứng dụng cũ trên classpath có thể sử dụng API được công khai bởi các module đã được phân giải. Nhờ đó, ứng dụng có thể tiếp tục chạy theo cách truyền thống trong khi dùng một số thư viện đã chuyển sang JPMS.
+The characteristic of "reading all named modules" allows legacy applications on the classpath to use APIs exposed by resolved modules. As a result, applications can continue running in the traditional manner while using some libraries that have migrated to JPMS.
 
-## 2. Đọc module và truy cập package là hai điều kiện riêng
+## 2. Reading a module and accessing a package are two separate conditions
 
-Trong JPMS, một module đọc được module khác chưa có nghĩa là mọi package của module đó đều có thể truy cập.
+In JPMS, the fact that one module can read another module does not mean every package of that module is accessible.
 
-Để class trong unnamed module sử dụng một type public của named module, cần có các điều kiện chính:
+For a class in an unnamed module to use a public type of a named module, the following main conditions must be met:
 
-1. **Named module phải được phân giải** trong cấu hình module đang chạy.
-2. **Unnamed module phải đọc named module đó** theo quan hệ đọc của cấu hình.
-3. **Package chứa type phải được export tới unnamed module**.
-4. **Type và thành viên cần dùng phải có mức truy cập phù hợp** theo quy tắc Java, thường là public.
+1. **The named module must be resolved** in the running module configuration.
+2. **The unnamed module must read that named module** according to the configuration's readability relationships.
+3. **The package containing the type must be exported to the unnamed module**.
+4. **The type and members being used must have an appropriate access level** under Java rules, typically public.
 
-Có thể hình dung:
+This can be visualized as:
 
 ~~~text
-Ứng dụng trên classpath
+Application on the classpath
         |
         v
 Unnamed module
         |
         | reads
         v
-Named module đã được phân giải
+Resolved named module
         |
         | exports package.api
         v
-Type public trong package.api
+Public type in package.api
         |
         v
-Ứng dụng có thể import và sử dụng
+Application can import and use it
 ~~~
 
-Với một dòng exports không giới hạn, package được công khai cho tất cả module đọc module cung cấp, bao gồm unnamed module. Nếu package không được export, việc unnamed module có khả năng đọc named module vẫn không đủ để truy cập type trong package đó.
+With an unqualified exports clause, the package is exposed to all modules that read the providing module, including the unnamed module. If the package is not exported, the fact that the unnamed module can read the named module is still not enough to access types in that package.
 
-## 3. Named module export package cho unnamed module
+## 3. A named module exports a package to the unnamed module
 
-Giả sử thư viện đã được modular hóa:
+Suppose a library has been modularized:
 
 ~~~text
 com.acme.library/
@@ -68,7 +68,7 @@ module com.acme.library {
 }
 ~~~
 
-Type public:
+Public type:
 
 ~~~java
 package com.acme.library.api;
@@ -80,16 +80,16 @@ public class Greeting {
 }
 ~~~
 
-Dòng exports com.acme.library.api công khai package API. Một ứng dụng nằm trên classpath có thể import Greeting nếu module com.acme.library đã được phân giải trong lần chạy đó.
+The line exports com.acme.library.api exposes the API package. An application on the classpath can import Greeting if the module com.acme.library has been resolved in that run.
 
-Ứng dụng classpath:
+Classpath application:
 
 ~~~text
 app/
 └── com/acme/app/Main.java
 ~~~
 
-Mã ứng dụng:
+Application code:
 
 ~~~java
 package com.acme.app;
@@ -103,13 +103,13 @@ public class Main {
 }
 ~~~
 
-Ứng dụng không cần module-info.java. Khi được chạy từ classpath, Main thuộc unnamed module của application class loader.
+The application does not need module-info.java. When run from the classpath, Main belongs to the unnamed module of the application class loader.
 
-## 4. Kết hợp classpath và module path khi chạy
+## 4. Combining classpath and module path at launch
 
-Classpath và module path có thể cùng xuất hiện trong một lệnh Java. Classpath chứa ứng dụng truyền thống; module path chứa thư viện modular.
+Classpath and module path can appear together in a single Java command. The classpath holds the traditional application; the module path holds modular libraries.
 
-Ví dụ, sau khi biên dịch thư viện thành modular JAR:
+For example, after compiling the library into a modular JAR:
 
 ~~~text
 project/
@@ -119,7 +119,7 @@ project/
     └── com.acme.library.jar
 ~~~
 
-Chạy ứng dụng trên classpath và đưa module thư viện vào cấu hình bằng --add-modules:
+Run the application on the classpath and include the library module in the configuration using --add-modules:
 
 ~~~bash
 java --module-path mods \
@@ -128,18 +128,18 @@ java --module-path mods \
      com.acme.app.Main
 ~~~
 
-Ở đây:
+Here:
 
-- --module-path mods cho Java biết vị trí tìm named module.
-- --add-modules com.acme.library yêu cầu đưa module thư viện vào tập module gốc để được phân giải.
-- -cp app đặt class ứng dụng trên classpath.
-- com.acme.app.Main là lớp main được chạy từ unnamed module.
+- --module-path mods tells Java where to find named modules.
+- --add-modules com.acme.library requests adding the library module to the root module set so it is resolved.
+- -cp app places the application classes on the classpath.
+- com.acme.app.Main is the main class run from the unnamed module.
 
-Nếu module thư viện đã được phân giải và export package API không giới hạn, ứng dụng classpath có thể sử dụng type public trong package đó.
+If the library module has been resolved and exports the API package unconditionally, the classpath application can use public types in that package.
 
-Không nên giả định mọi JAR nằm trên module path đều tự động được phân giải. Một module chỉ có thể được sử dụng nếu nó tham gia cấu hình module của tiến trình. Khi cần xác định rõ một module thư viện, --add-modules là cách tường minh.
+You should not assume every JAR on the module path is automatically resolved. A module can only be used if it participates in the process's module configuration. When you need to explicitly specify a library module, --add-modules is the explicit way.
 
-Có thể dùng ALL-MODULE-PATH với --add-modules để đưa tất cả module quan sát được trên module path vào tập gốc:
+You can use ALL-MODULE-PATH with --add-modules to add all observable modules on the module path to the root set:
 
 ~~~bash
 java --module-path mods \
@@ -148,15 +148,15 @@ java --module-path mods \
      com.acme.app.Main
 ~~~
 
-Đây là lựa chọn rộng. Với ứng dụng có dependency đã biết, nên chỉ định module cần thiết để cấu hình chạy dễ hiểu và dễ kiểm soát.
+This is a broad option. For applications with known dependencies, you should specify the needed modules so the runtime configuration is easy to understand and control.
 
-## 5. Vì sao unnamed module có thể đọc named module?
+## 5. Why can an unnamed module read named modules?
 
-Named module mô tả phụ thuộc bằng requires. Unnamed module không có module descriptor để khai báo từng dependency, nên JPMS áp dụng quy tắc đọc đặc biệt cho nó.
+Named modules describe dependencies using requires. An unnamed module has no module descriptor to declare individual dependencies, so JPMS applies a special readability rule to it.
 
-Nhờ khả năng đọc các named module trong cấu hình tương ứng, ứng dụng classpath có thể tiếp tục sử dụng API modular mà không phải chuyển ngay toàn bộ ứng dụng thành named module.
+Thanks to its ability to read named modules in the corresponding configuration, a classpath application can continue using modular APIs without immediately converting the entire application into a named module.
 
-Ví dụ, nếu module thư viện khai báo:
+For example, if a library module declares:
 
 ~~~java
 module com.acme.format {
@@ -164,42 +164,42 @@ module com.acme.format {
 }
 ~~~
 
-thì class trên classpath có thể import type public thuộc com.acme.format.api khi com.acme.format đã được phân giải và package được export không giới hạn.
+then classes on the classpath can import public types belonging to com.acme.format.api when com.acme.format has been resolved and the package is exported unconditionally.
 
-Cơ chế này hỗ trợ chuyển đổi từng phần:
+This mechanism supports incremental migration:
 
 ~~~text
-Ứng dụng cũ trên classpath
+Legacy application on the classpath
           |
           | unnamed module
           |
-          +------> Named module A (export API)
+          +------> Named module A (exported API)
           |
-          +------> Named module B (export API)
+          +------> Named module B (exported API)
           |
-          +------> Named module C (export API)
+          +------> Named module C (exported API)
 ~~~
 
-Ứng dụng không cần chuyển thành named module chỉ để dùng các thư viện modular. Tuy nhiên, việc giữ ứng dụng trên classpath cũng đồng nghĩa ứng dụng chưa có module descriptor để khai báo phụ thuộc, export API riêng hoặc thiết lập ranh giới package của chính nó.
+The application does not need to be converted to a named module just to use modular libraries. However, keeping the application on the classpath also means the application does not yet have a module descriptor to declare dependencies, export its own APIs, or establish its own package boundaries.
 
-## 6. Phạm vi của unnamed module gắn với class loader
+## 6. The scope of an unnamed module is tied to a class loader
 
-Unnamed module không phải một module toàn cục duy nhất cho mọi class trong JVM. Mỗi class loader có unnamed module riêng.
+The unnamed module is not a single global module for every class in the JVM. Each class loader has its own unnamed module.
 
-Điều này quan trọng trong ứng dụng có plugin hoặc custom class loader:
+This matters in applications with plugins or custom class loaders:
 
-- Class do application class loader định nghĩa thuộc unnamed module của application class loader.
-- Class do một custom class loader định nghĩa thuộc unnamed module gắn với loader đó.
-- Hai class có cùng tên đầy đủ nhưng do hai class loader khác nhau định nghĩa vẫn có thể là hai kiểu khác nhau trong JVM.
-- Khả năng đọc và khả năng tìm class phụ thuộc vào module, layer và class loader liên quan.
+- Classes defined by the application class loader belong to the unnamed module of the application class loader.
+- Classes defined by a custom class loader belong to the unnamed module associated with that loader.
+- Two classes with the same fully qualified name but defined by two different class loaders can still be two distinct types in the JVM.
+- Readability and class lookup depend on the modules, layers, and class loaders involved.
 
-Vì vậy, khi một ứng dụng dùng nhiều class loader, không nên chỉ nhìn vào một classpath chung rồi kết luận mọi class đều có cùng quyền đọc module. Hãy xác định loader nào định nghĩa class consumer và loader/layer nào cung cấp named module.
+Therefore, when an application uses multiple class loaders, you should not just look at a single shared classpath and conclude that every class has the same module readability. Identify which loader defines the consumer class and which loader/layer provides the named module.
 
-## 7. Unnamed module không thể được named module requires trực tiếp
+## 7. An unnamed module cannot be directly required by a named module
 
-Chiều đọc giữa unnamed module và named module không đối xứng.
+The readability direction between an unnamed module and a named module is asymmetric.
 
-Unnamed module có thể đọc named module, nhưng named module không tự động đọc unnamed module. Vì unnamed module không có tên, không thể viết:
+An unnamed module can read named modules, but a named module does not automatically read unnamed modules. Because an unnamed module has no name, you cannot write:
 
 ~~~java
 module com.acme.plugin {
@@ -207,9 +207,9 @@ module com.acme.plugin {
 }
 ~~~
 
-Cú pháp trên không hợp lệ vì không có module tên unnamed để requires.
+The syntax above is invalid because there is no module named unnamed to require.
 
-Nếu named module cần đọc class nằm trên classpath trong một tình huống tương thích, có thể bổ sung quan hệ đọc bằng tùy chọn chạy:
+If a named module needs to read classes located on the classpath in a compatibility scenario, a readability relationship can be added using a runtime option:
 
 ~~~bash
 java --add-reads com.acme.plugin=ALL-UNNAMED \
@@ -219,13 +219,13 @@ java --add-reads com.acme.plugin=ALL-UNNAMED \
      --module com.acme.plugin/com.acme.plugin.Main
 ~~~
 
-Tùy chọn --add-reads source=target bổ sung quan hệ đọc ở runtime. ALL-UNNAMED đại diện cho các unnamed module liên quan trong ngữ cảnh launcher.
+The option --add-reads source=target adds a readability relationship at runtime. ALL-UNNAMED represents the relevant unnamed modules in the launcher context.
 
-Đây là biện pháp tương thích có chủ đích. Thiết kế modular ổn định nên đặt hợp đồng dùng chung trong một named API module để các named module có thể khai báo requires rõ ràng.
+This is an intentional compatibility measure. A stable modular design should place shared contracts in a named API module so named modules can declare requires explicitly.
 
-## 8. Unnamed module chỉ truy cập package được export phù hợp
+## 8. An unnamed module only accesses appropriately exported packages
 
-Một named module có thể export package không giới hạn:
+A named module can export a package unconditionally:
 
 ~~~java
 module com.acme.library {
@@ -233,9 +233,9 @@ module com.acme.library {
 }
 ~~~
 
-Khi đó, unnamed module có thể truy cập type public trong package com.acme.library.api nếu module đã được phân giải.
+In that case, the unnamed module can access public types in package com.acme.library.api if the module has been resolved.
 
-Nhưng nếu module chỉ qualified export cho một named module:
+However, if the module only uses a qualified export to a named module:
 
 ~~~java
 module com.acme.library {
@@ -243,9 +243,9 @@ module com.acme.library {
 }
 ~~~
 
-thì package chỉ được export cho module có tên com.acme.application. Unnamed module không phải module đích có tên com.acme.application, vì vậy không nhận được quyền truy cập từ qualified export này.
+then the package is only exported to the module named com.acme.application. The unnamed module is not the named target module com.acme.application, so it does not receive access from this qualified export.
 
-Nếu ứng dụng classpath cần quyền truy cập package đó trong một tình huống tương thích, launcher có thể bổ sung export tới ALL-UNNAMED:
+If a classpath application needs access to that package in a compatibility scenario, the launcher can add an export to ALL-UNNAMED:
 
 ~~~bash
 java --add-exports com.acme.library/com.acme.library.api=ALL-UNNAMED \
@@ -255,21 +255,21 @@ java --add-exports com.acme.library/com.acme.library.api=ALL-UNNAMED \
      com.acme.app.Main
 ~~~
 
-Cú pháp tổng quát:
+General syntax:
 
 ~~~text
 --add-exports source.module/package=target.module
 ~~~
 
-ALL-UNNAMED là tên đích đặc biệt dành cho các tùy chọn launcher như --add-exports. Nó không phải tên module hợp lệ để ghi vào requires hoặc qualified exports trong module-info.java.
+ALL-UNNAMED is a special target name for launcher options such as --add-exports. It is not a valid module name to write into requires or qualified exports in module-info.java.
 
-Không nên dùng --add-exports=...=ALL-UNNAMED để mở mọi package nội bộ. Chỉ bổ sung package thực sự cần thiết và cân nhắc chuyển API cần dùng sang package được export công khai.
+You should not use --add-exports=...=ALL-UNNAMED to open up all internal packages. Only add the packages that are truly necessary and consider moving the needed API to a publicly exported package.
 
-## 9. Public vẫn phải tuân theo quy tắc truy cập Java
+## 9. Public still follows Java access rules
 
-Ngay cả khi unnamed module đọc named module và package đã được export, các access modifier của Java vẫn có hiệu lực.
+Even when an unnamed module reads a named module and the package is exported, Java access modifiers still apply.
 
-Ví dụ:
+For example:
 
 ~~~java
 package com.acme.library.api;
@@ -290,14 +290,14 @@ public class Greeting {
 }
 ~~~
 
-Từ mã thuộc package khác trên classpath:
+From code in another package on the classpath:
 
-- Có thể gọi hello trên một instance hợp lệ.
-- extensionHook vẫn bị giới hạn bởi quy tắc protected, chẳng hạn phải nằm trong ngữ cảnh subclass phù hợp.
-- reset là package-private nên không thể gọi từ package khác.
-- internalOperation là private nên chỉ có thể truy cập theo quy tắc private của Java.
+- You can call hello on a valid instance.
+- extensionHook is still restricted by protected rules, such as needing to be in an appropriate subclass context.
+- reset is package-private so it cannot be called from another package.
+- internalOperation is private so it can only be accessed according to Java private rules.
 
-Tương tự, type không public không trở thành public chỉ vì package của nó được export:
+Similarly, a non-public type does not become public just because its package is exported:
 
 ~~~java
 package com.acme.library.api;
@@ -306,17 +306,17 @@ class InternalMapper {
 }
 ~~~
 
-Ứng dụng bên ngoài package không thể import InternalMapper. exports mở package ở cấp module; nó không bỏ qua quy tắc truy cập của ngôn ngữ.
+An application outside the package cannot import InternalMapper. exports opens a package at the module level; it does not bypass the language's access rules.
 
-## 10. Phân biệt exports với opens
+## 10. Distinguishing exports from opens
 
-Một unnamed module có thể truy cập API public trong package được export. Điều đó không có nghĩa nó được deep reflection vào private member của module nguồn.
+An unnamed module can access public APIs in an exported package. That does not mean it has deep reflection access into non-public members of the source module.
 
-- **exports** cho phép truy cập Java thông thường vào các type public và thành viên được phép.
-- **opens** cho phép deep reflection vào các thành viên không public của package.
-- **open module** mở tất cả package của module cho deep reflection.
+- **exports** allows normal Java access to public types and permitted members.
+- **opens** allows deep reflection into non-public members of a package.
+- **open module** opens all packages of a module for deep reflection.
 
-Ví dụ module thư viện:
+Library module example:
 
 ~~~java
 module com.acme.library {
@@ -325,9 +325,9 @@ module com.acme.library {
 }
 ~~~
 
-Ứng dụng classpath có thể sử dụng API public trong com.acme.library.api. Nhưng nếu framework cần truy cập field private trong com.acme.library.model, package đó cần được mở phù hợp.
+A classpath application can use public APIs in com.acme.library.api. However, if a framework needs to access private fields in com.acme.library.model, that package needs to be opened appropriately.
 
-Có thể dùng --add-opens để mở package cho unnamed modules trong runtime:
+You can use --add-opens to open a package to unnamed modules at runtime:
 
 ~~~bash
 java --add-opens com.acme.library/com.acme.library.model=ALL-UNNAMED \
@@ -337,11 +337,11 @@ java --add-opens com.acme.library/com.acme.library.model=ALL-UNNAMED \
      com.acme.app.Main
 ~~~
 
-Không dùng exports để thay thế opens khi lỗi thực sự là InaccessibleObjectException do deep reflection.
+Do not use exports as a substitute for opens when the actual error is an InaccessibleObjectException caused by deep reflection.
 
-## 11. Quan sát module và kiểm tra quyền đọc
+## 11. Observing modules and checking readability
 
-Có thể dùng API Module để quan sát module của một class:
+You can use the Module API to inspect a class's module:
 
 ~~~java
 Class<?> type = com.acme.app.Main.class;
@@ -352,9 +352,9 @@ System.out.println("Is named: " + module.isNamed());
 System.out.println("Class loader: " + type.getClassLoader());
 ~~~
 
-Với class thuộc unnamed module, getName() trả về null và isNamed() trả về false. Module descriptor của unnamed module cũng không có giá trị như một named module.
+For a class belonging to an unnamed module, getName() returns null and isNamed() returns false. The module descriptor of an unnamed module also has no value like a named module.
 
-Có thể kiểm tra quan hệ đọc tới module khác:
+You can check the readability relationship to another module:
 
 ~~~java
 Module consumer = Main.class.getModule();
@@ -363,15 +363,15 @@ Module library = com.acme.library.api.Greeting.class.getModule();
 System.out.println(consumer.canRead(library));
 ~~~
 
-Nếu kết quả là true, consumer đọc được module library. Điều đó chưa xác nhận package cụ thể đã được export; cần kiểm tra descriptor của module nguồn hoặc API tương ứng.
+If the result is true, consumer can read module library. That does not yet confirm that a specific package has been exported; you need to check the source module's descriptor or the corresponding API.
 
-Để xem module descriptor của JAR:
+To view the module descriptor of a JAR:
 
 ~~~bash
 jar --describe-module --file mods/com.acme.library.jar
 ~~~
 
-Để xem module nào được phân giải khi khởi chạy:
+To see which modules are resolved at launch:
 
 ~~~bash
 java --show-module-resolution \
@@ -381,43 +381,43 @@ java --show-module-resolution \
      com.acme.app.Main
 ~~~
 
-Hai lệnh hỗ trợ xác định riêng hai vấn đề: module đã được phân giải hay chưa, và package API có được export hay không.
+These two commands help distinguish two separate issues: whether the module has been resolved, and whether the API package is exported.
 
-## 12. Lỗi thường gặp khi ứng dụng classpath dùng named module
+## 12. Common errors when a classpath application uses named modules
 
-**Module không được phân giải**
+**Module not resolved**
 
-JAR có trên module path nhưng module không nằm trong cấu hình chạy. Bổ sung module làm root bằng --add-modules hoặc điều chỉnh cấu hình module phù hợp.
+The JAR is on the module path, but the module is not in the runtime configuration. Add the module as a root using --add-modules or adjust the module configuration accordingly.
 
-**Package không được export**
+**Package not exported**
 
-Unnamed module đọc module nguồn nhưng package chứa type không được export. Cập nhật module descriptor của thư viện nếu package thuộc API công khai; trong trường hợp tương thích tạm thời, cân nhắc --add-exports với phạm vi hẹp.
+The unnamed module reads the source module, but the package containing the type is not exported. Update the library's module descriptor if the package belongs to the public API; in temporary compatibility cases, consider --add-exports with a narrow scope.
 
-**Qualified export chỉ dành cho named module khác**
+**Qualified export is only for another named module**
 
-Package được export tới một module có tên cụ thể, nên unnamed module không nhận quyền. Nếu ứng dụng classpath thật sự cần truy cập, dùng API công khai không giới hạn hoặc cấu hình --add-exports ...=ALL-UNNAMED có chủ đích.
+The package is exported to a specific named module, so the unnamed module does not receive access. If the classpath application genuinely needs access, use an unqualified public API or intentionally configure --add-exports ...=ALL-UNNAMED.
 
-**Type hoặc member không public**
+**Type or member is not public**
 
-Package đã export nhưng class hoặc member cần dùng không có mức truy cập phù hợp. Sửa thiết kế API nếu type đó thực sự cần công khai; không tăng mức truy cập tùy tiện cho chi tiết triển khai.
+The package is exported, but the class or member being used does not have an appropriate access level. Fix the API design if that type truly needs to be public; do not arbitrarily widen access for implementation details.
 
-**Named module cần đọc classpath**
+**Named module needs to read the classpath**
 
-Chiều ngược lại không tự có. Named module không thể requires unnamed module. Nếu cần tương thích, dùng --add-reads module=ALL-UNNAMED hoặc chuyển hợp đồng chung vào một named module.
+The reverse direction is not automatic. A named module cannot requires an unnamed module. If compatibility is needed, use --add-reads module=ALL-UNNAMED or move the shared contract into a named module.
 
-**Framework cần deep reflection**
+**Framework needs deep reflection**
 
-Package được export nhưng không được mở. Bổ sung opens hoặc --add-opens đúng package cho module framework; không mở rộng toàn bộ module nếu không cần.
+The package is exported, but not opened. Add opens or --add-opens for the specific package needed by the framework; do not open the entire module if unnecessary.
 
-## 13. Ghi nhớ
+## 13. Takeaways
 
-- Classpath application được đặt trong unnamed module gắn với class loader đã định nghĩa class.
-- Unnamed module có quan hệ đọc tới các named module trong cấu hình tương ứng, nhưng module phải được phân giải trước.
-- Đọc module và truy cập package là hai điều kiện riêng: package vẫn phải được export phù hợp.
-- Unqualified exports cho phép mọi module đọc nguồn truy cập package; qualified exports chỉ cho các named module đích đã nêu.
-- Named module không tự động đọc unnamed module và không thể requires một unnamed module.
-- --add-modules có thể đưa named module vào tập root; --add-exports và --add-reads bổ sung quyền truy cập có giới hạn khi cần tương thích.
-- public, protected, package-private và private vẫn tuân theo quy tắc Java.
-- exports dành cho API thông thường; opens dành cho deep reflection.
+- A classpath application is placed in the unnamed module associated with the class loader that defined the classes.
+- The unnamed module has readability to named modules in the corresponding configuration, but the module must be resolved first.
+- Reading a module and accessing a package are two separate conditions: the package must still be appropriately exported.
+- Unqualified exports allow any module reading the source module to access the package; qualified exports only grant access to the stated target named modules.
+- A named module does not automatically read unnamed modules and cannot requires an unnamed module.
+- --add-modules can add a named module to the root set; --add-exports and --add-reads add limited access when compatibility is needed.
+- public, protected, package-private, and private still follow Java rules.
+- exports is for normal API access; opens is for deep reflection.
 
-Khi kết hợp ứng dụng classpath với thư viện modular, hãy xác định class consumer thuộc unnamed module nào, module thư viện đã được phân giải chưa, và package API có export tới consumer hay không. Ba thông tin này giúp phân biệt lỗi module resolution với lỗi truy cập package hoặc member.
+When combining a classpath application with modular libraries, determine which unnamed module the consumer class belongs to, whether the library module has been resolved, and whether the API package is exported to the consumer. These three pieces of information help separate module resolution errors from package or member access errors.

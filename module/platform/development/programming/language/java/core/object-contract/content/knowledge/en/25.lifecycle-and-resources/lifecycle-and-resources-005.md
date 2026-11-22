@@ -1,16 +1,16 @@
-# AutoCloseable và try-with-resources: đóng tài nguyên tường minh trong Java
+# AutoCloseable and try-with-resources: Explicit Resource Closing in Java
 
-## 1. Vấn đề: vì sao tài nguyên cần được đóng?
+## 1. Problem: Why Do Resources Need to Be Closed?
 
-Đối tượng Java được Garbage Collector (GC) quản lý bộ nhớ heap, nhưng nhiều đối tượng còn sở hữu tài nguyên **ngoài heap**: file descriptor, socket, kết nối cơ sở dữ liệu, luồng nhập/xuất, handle hệ điều hành hoặc vùng nhớ native. Khi đối tượng không còn được tham chiếu, GC có thể thu hồi bộ nhớ của nó; điều đó **không bảo đảm** tài nguyên ngoài heap được giải phóng đúng thời điểm. Đợi GC để đóng file hay trả kết nối về pool có thể gây cạn tài nguyên, khóa file, giữ kết nối lâu và khiến chương trình khó dự đoán.
+Java objects have their heap memory managed by the Garbage Collector (GC), yet many objects also own **off-heap** resources: file descriptors, sockets, database connections, I/O streams, operating system handles, or native memory regions. When an object is no longer referenced, the GC may reclaim its memory; that **does not guarantee** off-heap resources are released at the right time. Waiting on the GC to close files or return connections to a pool can cause resource exhaustion, locked files, held connections, and unpredictable program behavior.
 
-Với tài nguyên có vòng đời rõ ràng, nguyên tắc là: **mở khi cần, sử dụng trong phạm vi ngắn nhất hợp lý, đóng chắc chắn khi kết thúc phạm vi**. Java cung cấp giao diện **AutoCloseable** và cú pháp **try-with-resources** để diễn đạt nguyên tắc ấy trực tiếp trong mã nguồn.
+For resources with clear lifecycles, the principle is: **open when needed, use within the shortest reasonable scope, close reliably when exiting scope**. Java provides the **AutoCloseable** interface and **try-with-resources** syntax to express that principle directly in source code.
 
-Tài nguyên thường cần đóng: **InputStream**, **OutputStream**, **Reader**, **Writer**, **Scanner** (khi sở hữu nguồn cần đóng), **java.sql.Connection**, **Statement**, **ResultSet**, **java.nio.channels.Channel**, **Files.lines(...)** và các đối tượng tự định nghĩa có phương thức giải phóng tài nguyên. Một đối tượng chỉ nằm trên heap, không nắm tài nguyên hữu hạn bên ngoài, thường không cần tự biến thành AutoCloseable.
+Resources that commonly need closing: **InputStream**, **OutputStream**, **Reader**, **Writer**, **Scanner** (when owning a closeable source), **java.sql.Connection**, **Statement**, **ResultSet**, **java.nio.channels.Channel**, **Files.lines(...)**, and user-defined objects with resource-release methods. An object that lives solely on the heap and holds no finite external resources generally does not need to be made AutoCloseable.
 
-## 2. Hợp đồng của AutoCloseable và Closeable
+## 2. The Contracts of AutoCloseable and Closeable
 
-**java.lang.AutoCloseable** khai báo một phương thức:
+**java.lang.AutoCloseable** declares a single method:
 
 ~~~java
 public interface AutoCloseable {
@@ -18,9 +18,9 @@ public interface AutoCloseable {
 }
 ~~~
 
-Đối tượng triển khai giao diện này có thể đứng trong phần khai báo tài nguyên của **try-with-resources**. Java tự gọi **close()** khi thoát khối, kể cả khi khối hoàn tất bình thường, ném ngoại lệ hoặc thực hiện **return**.
+Objects implementing this interface can appear in the resource declaration header of **try-with-resources**. Java automatically calls **close()** when exiting the block, whether the block completes normally, throws an exception, or executes **return**.
 
-**java.io.Closeable** kế thừa AutoCloseable nhưng thu hẹp kiểu checked exception thành **IOException**:
+**java.io.Closeable** extends AutoCloseable but narrows the checked exception type to **IOException**:
 
 ~~~java
 public interface Closeable extends AutoCloseable {
@@ -28,20 +28,20 @@ public interface Closeable extends AutoCloseable {
 }
 ~~~
 
-Một số khác biệt cần nắm:
+Key differences to know:
 
-| Thuộc tính | AutoCloseable | Closeable |
+| Property | AutoCloseable | Closeable |
 | --- | --- | --- |
-| Phạm vi sử dụng | Giao diện tổng quát cho đối tượng cần cleanup | Truyền thống dùng cho các nguồn/đích I/O |
-| Khai báo close | Có thể ném Exception | Có thể ném IOException |
-| Gọi close nhiều lần | Không bắt buộc idempotent; nên thiết kế an toàn nếu có thể | Hợp đồng yêu cầu lần gọi sau khi đã đóng không có tác dụng |
-| Tương thích try-with-resources | Có | Có |
+| Scope of use | General-purpose interface for objects needing cleanup | Traditionally used for I/O sources/destinations |
+| close declaration | May throw Exception | May throw IOException |
+| Calling close multiple times | Not required to be idempotent; design safely if possible | Contract requires subsequent calls after closing to have no effect |
+| try-with-resources compatibility | Yes | Yes |
 
-**Idempotent** ở đây nghĩa là gọi **close()** thêm lần nữa không làm đổi trạng thái hoặc gây tác dụng phụ mới. Không được suy ra mọi AutoCloseable đều an toàn khi đóng hai lần; hãy đọc hợp đồng của loại tài nguyên cụ thể.
+**Idempotent** here means calling **close()** again neither alters state nor causes new side effects. Do not infer that every AutoCloseable is safe to close twice; read the contract of the specific resource type.
 
-**close()** chỉ có nghĩa là hoàn tất/giải phóng phần việc mà lớp đó cam kết. Nó không đồng nghĩa tuyệt đối với “hủy đối tượng”, “xóa dữ liệu” hay “ngắt kết nối vật lý”: chẳng hạn **Connection.close()** của một connection pool thường trả kết nối về pool theo hợp đồng thư viện.
+**close()** simply means completing/releasing the work that the class promises to clean up. It does not strictly mean “destroy the object”, “delete data”, or “physically disconnect”: for instance, **Connection.close()** on a connection pool typically returns the connection to the pool per the library's contract.
 
-## 3. Cú pháp và vòng đời chuẩn
+## 3. Standard Syntax and Lifecycle
 
 ~~~java
 try (ResourceType resource = acquire()) {
@@ -51,18 +51,18 @@ try (ResourceType resource = acquire()) {
 }
 ~~~
 
-Ở đây **ResourceType** phải triển khai AutoCloseable; **acquire**, **use** và **handle** là tên minh họa chứ chưa phải chương trình Java độc lập. Trình tự thực tế là:
+Here **ResourceType** must implement AutoCloseable; **acquire**, **use**, and **handle** are illustrative names rather than a standalone Java program. The actual sequence is:
 
-1. Đánh giá biểu thức và khởi tạo tài nguyên.
-2. Chạy thân **try**.
-3. Gọi **close()** tự động khi rời thân **try**.
-4. Nếu có **catch** hoặc **finally** gắn với toàn bộ cấu trúc, chúng được thực hiện sau bước đóng tài nguyên, tùy luồng điều khiển và ngoại lệ.
+1. Evaluate expressions and initialize resources.
+2. Run the **try** body.
+3. Call **close()** automatically when leaving the **try** body.
+4. If **catch** or **finally** clauses are attached to the overall construct, they execute after the resource-closing step, depending on control flow and exceptions.
 
-Nếu có nhiều tài nguyên, chúng được tạo theo **thứ tự từ trái sang phải** nhưng đóng theo **thứ tự ngược lại**. Đây là nguyên tắc “vào sau, ra trước”, rất hữu ích khi tài nguyên phía sau phụ thuộc vào tài nguyên phía trước.
+If there are multiple resources, they are created in **left-to-right order** but closed in **reverse order**. This is the “last in, first out” rule, very useful when a later resource depends on an earlier one.
 
-### Ví dụ chạy được: thứ tự mở/đóng
+### Runnable Example: Opening/Closing Order
 
-Tệp **ResourceOrderDemo.java**:
+File **ResourceOrderDemo.java**:
 
 ~~~java
 public class ResourceOrderDemo {
@@ -95,14 +95,14 @@ public class ResourceOrderDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17+:
+Compile and run with JDK 17+:
 
 ~~~bash
 javac ResourceOrderDemo.java
 java ResourceOrderDemo
 ~~~
 
-Kết quả chuẩn:
+Expected output:
 
 ~~~text
 open A
@@ -114,11 +114,11 @@ close A
 done
 ~~~
 
-Không cần gọi **first.close()** hoặc **second.close()** trong thân **try**. Nếu ném ngoại lệ khi đang khởi tạo **second**, **first** vẫn được đóng; tài nguyên nào chưa khởi tạo thành công thì không có lần đóng tương ứng. Nếu thân khối dùng **return**, Java vẫn cố đóng các tài nguyên trước khi phương thức thật sự trả về.
+There is no need to call **first.close()** or **second.close()** inside the **try** body. If an exception is thrown while initializing **second**, **first** is still closed; any resource not yet successfully initialized has no corresponding close call. If the block body uses **return**, Java still attempts to close the resources before the method actually returns.
 
-## 4. Áp dụng với tệp và luồng dữ liệu
+## 4. Applying to Files and Data Streams
 
-Ví dụ dưới đây mở cả nguồn đọc lẫn đích ghi và để Java đóng cả hai. Tệp **CopyTextFile.java**:
+The example below opens both a read source and a write destination and lets Java close both. File **CopyTextFile.java**:
 
 ~~~java
 import java.io.BufferedReader;
@@ -131,7 +131,7 @@ import java.nio.file.Path;
 public class CopyTextFile {
     public static void main(String[] args) throws IOException {
         if (args.length != 2) {
-            System.out.println("Cách dùng: java CopyTextFile <nguồn> <đích>");
+            System.out.println("Usage: java CopyTextFile <source> <destination>");
             return;
         }
 
@@ -149,53 +149,53 @@ public class CopyTextFile {
             }
         }
 
-        System.out.println("Đã sao chép tệp.");
+        System.out.println("File copied.");
     }
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac CopyTextFile.java
 java CopyTextFile input.txt output.txt
 ~~~
 
-Nếu **input.txt** tồn tại, đọc được và không có lỗi ghi, chương trình in:
+If **input.txt** exists, is readable, and there are no write errors, the program prints:
 
 ~~~text
-Đã sao chép tệp.
+File copied.
 ~~~
 
-**Files.newBufferedWriter** với tùy chọn mặc định sẽ tạo tệp đích nếu chưa có hoặc ghi đè nội dung hiện có. Không dùng cùng một đường dẫn cho nguồn và đích trong ví dụ này: việc mở đích có thể cắt ngắn tệp ngay khi nguồn còn đang đọc. Đoạn mã sao chép **dòng văn bản** và chuẩn hóa ký tự xuống dòng theo nền tảng; khi cần sao chép nguyên byte và metadata phù hợp, xem **Files.copy(...)**. Đối với dữ liệu bí mật hoặc quan trọng, cần chủ động thiết kế quy tắc ghi tệp tạm, xác thực kết quả và thay thế tệp đích an toàn.
+**Files.newBufferedWriter** with default options creates the destination file if it does not exist or overwrites existing contents. Do not use the same path for source and destination in this example: opening the destination can truncate the file while the source is still being read. This snippet copies **text lines** and normalizes line separators according to the platform; when copying raw bytes and preserving appropriate metadata is needed, see **Files.copy(...)**. For sensitive or critical data, proactively design rules for writing to a temporary file, verifying the result, and safely replacing the target file.
 
-Phần đóng tài nguyên có thể tự **flush** dữ liệu đệm theo hợp đồng Writer; tuy nhiên lỗi khi flush/close cũng có thể phát sinh. Không được giả định “đến cuối thân try” đồng nghĩa dữ liệu đã được ghi và đóng thành công. Với thao tác ghi quan trọng, để ngoại lệ lan ra hoặc xử lý minh bạch sau khi đóng.
+Closing the resource may automatically **flush** buffered data under the Writer contract; however, errors during flush/close can still occur. Do not assume “reaching the end of the try body” means data has already been written and closed successfully. For critical writes, let exceptions propagate or handle them transparently after closing.
 
-## 5. Ngoại lệ khi đóng: primary và suppressed
+## 5. Exceptions on Close: Primary and Suppressed
 
-Một khác biệt quan trọng giữa **try-with-resources** và khối **finally** viết thủ công là Java giữ được ngoại lệ có ý nghĩa chính khi cả thân **try** và **close()** đều thất bại.
+An important difference between **try-with-resources** and a hand-written **finally** block is that Java preserves the primary meaningful exception when both the **try** body and **close()** fail.
 
-- Nếu thân **try** ném ngoại lệ **A**, rồi **close()** ném ngoại lệ **B**, **A** tiếp tục là ngoại lệ chính; **B** được lưu trong **A.getSuppressed()**.
-- Nếu thân **try** thành công nhưng **close()** thất bại, ngoại lệ từ **close()** được ném ra ngoài.
-- Nếu có nhiều tài nguyên và nhiều lần đóng thất bại, ngoại lệ đóng đầu tiên xảy ra (theo thứ tự đóng ngược) có thể trở thành ngoại lệ chính khi thân **try** chưa thất bại; các ngoại lệ đóng còn lại được thêm dưới dạng suppressed.
-- Nếu tạo tài nguyên tiếp theo thất bại, Java vẫn đóng các tài nguyên đã được tạo trước đó; lỗi đóng bổ sung cũng được gắn suppressed vào lỗi khởi tạo chính.
+- If the **try** body throws exception **A**, and then **close()** throws exception **B**, **A** remains the primary exception; **B** is stored in **A.getSuppressed()**.
+- If the **try** body succeeds but **close()** fails, the exception from **close()** is thrown outward.
+- If there are multiple resources and multiple close calls fail, the first close exception that occurs (in reverse closing order) becomes the primary exception when the **try** body has not failed; the remaining close exceptions are added as suppressed exceptions.
+- If creating a subsequent resource fails, Java still closes the previously created resources; any additional close errors are also attached as suppressed on the primary initialization error.
 
-### Ví dụ chạy được: không làm mất lỗi nghiệp vụ
+### Runnable Example: Avoiding Loss of Business Errors
 
-Tệp **SuppressedDemo.java**:
+File **SuppressedDemo.java**:
 
 ~~~java
 public class SuppressedDemo {
     static final class FailingResource implements AutoCloseable {
         @Override
         public void close() throws Exception {
-            throw new Exception("lỗi đóng");
+            throw new Exception("close error");
         }
     }
 
     public static void main(String[] args) {
         try (FailingResource resource = new FailingResource()) {
-            throw new IllegalStateException("lỗi xử lý");
+            throw new IllegalStateException("processing error");
         } catch (Exception e) {
             System.out.println("primary: " + e.getMessage());
             for (Throwable suppressed : e.getSuppressed()) {
@@ -211,32 +211,32 @@ javac SuppressedDemo.java
 java SuppressedDemo
 ~~~
 
-Kết quả chuẩn:
+Expected output:
 
 ~~~text
-primary: lỗi xử lý
-suppressed: lỗi đóng
+primary: processing error
+suppressed: close error
 ~~~
 
-Trong xử lý lỗi thực tế, nên ghi log đầy đủ **Throwable** hoặc kiểm tra **getSuppressed()** khi điều tra lỗi cleanup. Chỉ in **getMessage()** như ví dụ có thể bỏ mất stack trace. Ngoại lệ từ **close()** phải được quyết định xử lý dựa trên hợp đồng: có thể lan truyền, gói lại với nguyên nhân, báo lỗi cho người gọi hoặc ghi log khi không thể khôi phục. Không nuốt mọi lỗi đóng một cách âm thầm.
+In real error handling, log the full **Throwable** or inspect **getSuppressed()** when investigating cleanup failures. Printing only **getMessage()** as in the example can lose stack traces. Exceptions from **close()** must have a handling policy based on the contract: they may be propagated, wrapped with cause, reported to the caller, or logged when unrecoverable. Do not silently swallow all close errors.
 
-### Vì sao finally thủ công dễ che mất lỗi?
+### Why Does Manual finally Easily Mask Errors?
 
 ~~~java
-// Minh họa vấn đề; không phải chương trình độc lập:
+// Illustrates the issue; not a standalone program:
 Resource resource = acquire();
 try {
-    use(resource);          // có thể ném lỗi A
+    use(resource);          // may throw error A
 } finally {
-    resource.close();       // có thể ném lỗi B, che mất A
+    resource.close();       // may throw error B, masking A
 }
 ~~~
 
-**try-with-resources** xử lý việc bảo toàn lỗi chính và lỗi suppressed một cách nhất quán. Nó cũng tránh quên đóng tài nguyên trên một nhánh **return** hoặc một nhánh ném ngoại lệ. Tuy nhiên, dù tự động đóng, tài nguyên vẫn có thể báo lỗi khi đóng, và chương trình phải chọn chiến lược xử lý đúng.
+**try-with-resources** handles preserving the primary error and suppressed errors consistently. It also prevents forgetting to close a resource on a **return** branch or an exception-throwing branch. However, despite automatic closing, resources can still report errors when closing, and the program must choose the right handling strategy.
 
-## 6. Khai báo nhiều tài nguyên và dùng biến có sẵn
+## 6. Declaring Multiple Resources and Using Existing Variables
 
-### Khai báo nhiều tài nguyên
+### Declaring Multiple Resources
 
 ~~~java
 try (InputStream source = Files.newInputStream(sourcePath);
@@ -245,11 +245,11 @@ try (InputStream source = Files.newInputStream(sourcePath);
 }
 ~~~
 
-Đây là đoạn minh họa trong phạm vi phương thức đã có **sourcePath**, **targetPath** và các import tương ứng. **target** đóng trước **source**. Chỉ dùng khi hai đường dẫn hợp lệ và không trùng nhau; **Files.newOutputStream** mặc định có thể cắt ngắn tệp đích. Với một số wrapper, chỉ cần đóng wrapper ngoài cùng vì việc đóng của nó sẽ đóng luồng bên dưới; cần xác định rõ ai sở hữu luồng gốc.
+This is an illustrative snippet within a method that already has **sourcePath**, **targetPath**, and corresponding imports. **target** closes before **source**. Use only when both paths are valid and distinct; **Files.newOutputStream** may truncate the target file by default. With some wrappers, you only need to close the outermost wrapper because closing it closes the underlying stream; clarify who owns the underlying stream.
 
-### Java 9+: biến final hoặc effectively final
+### Java 9+: final or effectively final Variables
 
-Từ Java 9 có thể dùng biến tài nguyên đã khai báo trước khối, miễn là biến đó **final hoặc effectively final**:
+Since Java 9, you can use a resource variable declared before the block, provided that variable is **final or effectively final**:
 
 ~~~java
 BufferedReader reader = Files.newBufferedReader(path);
@@ -258,29 +258,29 @@ try (reader) {
 }
 ~~~
 
-Đây là đoạn mã minh họa trong một phương thức có **path**, import và xử lý **IOException** phù hợp. Biến **reader** không được gán lại sau khi khởi tạo; nếu gán lại, cú pháp **try (reader)** không hợp lệ. Sau khối **try**, biến có thể vẫn tồn tại về mặt phạm vi nhưng đối tượng đã đóng; không tiếp tục sử dụng nó như tài nguyên đang mở.
+This is an illustrative snippet inside a method with **path**, imports, and appropriate **IOException** handling. The **reader** variable is not reassigned after initialization; if reassigned, the **try (reader)** syntax is invalid. After the **try** block, the variable may still exist in scope, but the object is closed; do not continue using it as an open resource.
 
-Cân nhắc khai báo tài nguyên **ngay trong try** khi có thể: cú pháp ấy cho biết phạm vi sở hữu rõ nhất và dễ kiểm tra hơn khi review.
+Consider declaring resources **directly inside try** whenever possible: that syntax conveys ownership scope most clearly and is easier to inspect during code review.
 
-### Có catch và finally
+### With catch and finally
 
 ~~~java
 try (BufferedReader reader = Files.newBufferedReader(path)) {
     System.out.println(reader.readLine());
 } catch (IOException e) {
-    System.err.println("Không đọc được tệp: " + e.getMessage());
+    System.err.println("Could not read file: " + e.getMessage());
 } finally {
-    System.out.println("Đã kết thúc thao tác đọc");
+    System.out.println("Finished read operation");
 }
 ~~~
 
-Nếu quá trình mở, đọc hay đóng phát sinh **IOException**, nhánh **catch** có thể xử lý ngoại lệ đó. **finally** của câu lệnh chạy sau các lần đóng tài nguyên; không dùng nó để gọi **reader.close()** thêm lần nữa. Nếu đối tượng AutoCloseable cụ thể có phương thức **close()** khai báo kiểu ngoại lệ rộng hơn, kiểu ngoại lệ phải được bắt hoặc khai báo theo quy tắc Java.
+If opening, reading, or closing raises an **IOException**, the **catch** branch can handle that exception. The **finally** block of the statement runs after all resource closes; do not use it to call **reader.close()** a second time. If a specific AutoCloseable object's **close()** method declares a broader exception type, that exception type must be caught or declared according to Java rules.
 
-## 7. Thiết kế lớp AutoCloseable của riêng bạn
+## 7. Designing Your Own AutoCloseable Class
 
-Việc triển khai AutoCloseable hợp lý khi một đối tượng **thực sự sở hữu** một tài nguyên hữu hạn cần đóng theo thời điểm xác định (session, handle native, transaction scope, bộ thu thập dữ liệu...). Lớp nên ghi rõ ai tạo, ai đóng, các phương thức nào còn hợp lệ sau khi đóng và việc đóng nhiều lần có an toàn hay không.
+Implementing AutoCloseable makes sense when an object **truly owns** a finite resource that must be closed at a deterministic time (sessions, native handles, transaction scopes, data collectors, etc.). The class should document who creates it, who closes it, which methods remain valid after closing, and whether closing multiple times is safe.
 
-Tệp **SessionDemo.java** là mô hình tối giản về trạng thái vòng đời; nó không mở kết nối mạng thật:
+File **SessionDemo.java** is a minimal model of lifecycle state; it does not open a real network connection:
 
 ~~~java
 public class SessionDemo {
@@ -289,7 +289,7 @@ public class SessionDemo {
 
         void send(String message) {
             if (closed) {
-                throw new IllegalStateException("Session đã đóng");
+                throw new IllegalStateException("Session closed");
             }
             System.out.println("send: " + message);
         }
@@ -317,7 +317,7 @@ javac SessionDemo.java
 java SessionDemo
 ~~~
 
-Kết quả chuẩn:
+Expected output:
 
 ~~~text
 send: hello
@@ -325,29 +325,29 @@ session closed
 finished
 ~~~
 
-Ví dụ chủ động làm **close()** idempotent. Với tài nguyên thật, **close()** cần giải phóng hoặc bàn giao quyền sở hữu đúng cách; nếu lớp đang giữ nhiều tài nguyên, cần nghĩ tới thứ tự cleanup và xử lý khi một lần đóng thất bại. Nếu có đồng thời nhiều luồng thao tác, boolean **closed** đơn giản như ví dụ chưa đủ bảo đảm thread safety; phải có hợp đồng đồng bộ riêng. Không coi ví dụ mô phỏng như một session mạng production.
+The example intentionally makes **close()** idempotent. With real resources, **close()** needs to release or hand off ownership properly; if the class holds multiple resources, think about cleanup order and handling when one close fails. If multiple threads operate concurrently, a plain boolean **closed** as in the example is insufficient to guarantee thread safety; a separate synchronization contract is required. Do not treat this simulated example as a production network session.
 
-Nếu triển khai **AutoCloseable.close()** không thể phát sinh checked exception, có thể khai báo **public void close()** như ví dụ; người dùng lớp sẽ không phải bắt một **Exception** chung không cần thiết. Nếu có lỗi I/O, cân nhắc **Closeable**, **IOException** hoặc một loại exception cụ thể phù hợp API.
+If your **AutoCloseable.close()** implementation cannot throw a checked exception, you can declare **public void close()** as in the example; callers of the class will not have to catch an unnecessary generic **Exception**. If I/O errors can occur, consider **Closeable**, **IOException**, or a specific exception type fitting the API.
 
-## 8. Ai là chủ tài nguyên? Ranh giới ownership
+## 8. Who Owns the Resource? Ownership Boundaries
 
-Câu hỏi quan trọng nhất trước khi thêm **try-with-resources** là: **đối tượng đang nằm trong phạm vi này có thuộc trách nhiệm đóng của mình không?**
+The most important question before adding **try-with-resources** is: **does the object in this scope belong to my responsibility to close?**
 
-- **Tạo và sở hữu**: phương thức tự gọi **Files.newInputStream** thường có trách nhiệm đóng stream đó, tốt nhất bằng try-with-resources.
-- **Mượn để dùng**: nếu nhận một stream từ caller và hợp đồng nói caller quản lý vòng đời, không tự đóng stream trong helper; việc đóng sẽ làm caller bất ngờ và có thể phá các thao tác tiếp theo.
-- **Chuyển quyền sở hữu**: nếu API trả về một AutoCloseable cho caller, ghi rõ rằng caller phải đóng. Đừng đóng ngay trước khi trả về đối tượng.
-- **Wrapper**: đóng **BufferedReader** hoặc **BufferedInputStream** thông thường sẽ đóng nguồn bên dưới; không đưa thêm nguồn vào cùng try-with-resources chỉ để đóng trùng khi wrapper đã sở hữu nó, trừ khi hợp đồng yêu cầu.
-- **Tài nguyên dùng chung**: không đặt một shared client hoặc shared pool vào try-with-resources của từng request nếu việc đóng có thể ảnh hưởng request khác.
+- **Create and own**: a method that calls **Files.newInputStream** itself is usually responsible for closing that stream, ideally with try-with-resources.
+- **Borrow to use**: if receiving a stream from a caller and the contract states the caller manages its lifecycle, do not close the stream inside the helper; closing it will surprise the caller and can break subsequent operations.
+- **Transfer ownership**: if an API returns an AutoCloseable to the caller, document clearly that the caller must close it. Do not close it right before returning the object.
+- **Wrappers**: closing a **BufferedReader** or **BufferedInputStream** normally closes the underlying source; do not put the source in the same try-with-resources just to close it redundantly when the wrapper already owns it, unless the contract requires it.
+- **Shared resources**: do not put a shared client or shared pool inside a per-request try-with-resources if closing it would affect other requests.
 
-Ví dụ API sở hữu rõ ràng:
+Example of clear ownership APIs:
 
 ~~~java
-// Caller cung cấp stream và tiếp tục sở hữu stream:
+// Caller provides the stream and retains ownership:
 static String firstLine(BufferedReader borrowed) throws IOException {
-    return borrowed.readLine();     // helper không đóng borrowed
+    return borrowed.readLine();     // helper does not close borrowed
 }
 
-// Phương thức tự mở và tự đóng stream:
+// Method opens and closes the stream itself:
 static String firstLine(Path path) throws IOException {
     try (BufferedReader owned = Files.newBufferedReader(path)) {
         return owned.readLine();
@@ -355,13 +355,13 @@ static String firstLine(Path path) throws IOException {
 }
 ~~~
 
-Hai phương thức trên là **các đoạn phương thức minh họa**, cần đặt trong lớp Java với import thích hợp. Chúng có kết quả đọc như nhau nhưng trách nhiệm đóng rất khác. Tránh lập trình “đóng cho chắc” khi chưa xác định ownership.
+The two methods above are **illustrative method snippets**, needing placement inside a Java class with appropriate imports. They produce the same read result, yet their closing responsibilities are completely different. Avoid programming by “closing just in case” without determining ownership.
 
-## 9. Trường hợp quen thuộc ngoài file I/O
+## 9. Familiar Cases Beyond File I/O
 
 ### JDBC
 
-Các loại tài nguyên JDBC chính (**Connection**, **Statement/PreparedStatement**, **ResultSet**) đều có thể được quản lý bằng try-with-resources. Ví dụ khi **dataSource** đã được cung cấp và SQL trả về dữ liệu:
+Core JDBC resource types (**Connection**, **Statement/PreparedStatement**, **ResultSet**) can all be managed with try-with-resources. Example when **dataSource** is already provided and SQL returns data:
 
 ~~~java
 try (Connection connection = dataSource.getConnection();
@@ -377,13 +377,13 @@ try (Connection connection = dataSource.getConnection();
 }
 ~~~
 
-Đây là đoạn mã **minh họa, không phải chương trình độc lập**: cần import **java.sql.***, đối tượng **dataSource**, **userId**, schema tương ứng và xử lý **SQLException**. Thứ tự đóng: ResultSet, PreparedStatement, Connection. Với connection pool, gọi **close()** trên proxy kết nối thường là thao tác trả kết nối về pool, theo hợp đồng pool.
+This is an **illustrative snippet, not a standalone program**: it requires importing **java.sql.***, a **dataSource** object, **userId**, matching schema, and **SQLException** handling. Closing order: ResultSet, PreparedStatement, Connection. With a connection pool, calling **close()** on a connection proxy typically returns the connection to the pool, per the pool's contract.
 
-**Đóng tài nguyên không thay thế quản lý transaction**. Với JDBC giao dịch thủ công, phải xác định rõ lúc **commit/rollback**; không giả định Connection.close() tự commit thay nghiệp vụ. Việc rollback tự động, nếu có, phụ thuộc driver/pool và cấu hình.
+**Closing resources does not replace transaction management**. With manual JDBC transactions, clearly determine when to **commit/rollback**; do not assume Connection.close() automatically commits on behalf of business logic. Automatic rollback, if any, depends on the driver/pool and configuration.
 
-### Files.lines và Stream
+### Files.lines and Stream
 
-**Stream** cũng có cơ chế **close()**, nhưng không phải mọi stream đều nắm tài nguyên ngoài heap. Ví dụ **Files.lines(path)** duy trì nguồn đọc bên dưới nên cần đóng:
+**Stream** also has a **close()** mechanism, though not every stream holds off-heap resources. For example, **Files.lines(path)** maintains an underlying reader source and therefore needs closing:
 
 ~~~java
 try (java.util.stream.Stream<String> lines =
@@ -393,62 +393,62 @@ try (java.util.stream.Stream<String> lines =
 }
 ~~~
 
-Đoạn này thuộc một phương thức có **path**, các import và xử lý **IOException** phù hợp. Trái lại, stream tạo từ **list.stream()** thường không có tài nguyên cần giải phóng. Với stream từ file, tránh trả **Stream** ra ngoài một **try** đã đóng: caller sẽ nhận một stream mà nguồn đọc có thể đã đóng. Nếu cần trả stream, phải chuyển rõ trách nhiệm đóng cho caller hoặc trả dữ liệu đã vật hóa.
+This snippet belongs inside a method with **path**, appropriate imports, and **IOException** handling. By contrast, a stream created from **list.stream()** generally has no resources to release. For file-backed streams, avoid returning a **Stream** out of a closed **try** block: the caller will receive a stream whose underlying source may already be closed. If returning a stream is needed, explicitly transfer closing responsibility to the caller or return materialized data.
 
-### Scanner và System.in
+### Scanner and System.in
 
-**Scanner** triển khai Closeable. Nhưng **new Scanner(System.in)** được đóng sẽ đóng luôn nguồn **System.in** bên dưới. Nếu code chỉ mượn đầu vào chuẩn của cả ứng dụng, đừng tùy tiện đóng nó trong một helper ngắn; quyết định đóng thuộc về tầng quản lý vòng đời ứng dụng.
+**Scanner** implements Closeable. However, closing **new Scanner(System.in)** also closes the underlying **System.in** source. If code merely borrows standard input for the entire application, do not arbitrarily close it inside a short-lived helper; closing decisions belong to the application lifecycle management layer.
 
-## 10. Các lỗi phổ biến và cách tránh
+## 10. Common Mistakes and How to Avoid Them
 
-| Lỗi | Tác động | Cách làm phù hợp |
+| Mistake | Impact | Proper Practice |
 | --- | --- | --- |
-| Mở stream/connection rồi chỉ đóng ở nhánh thành công | Rò rỉ tài nguyên khi có exception/return | Đặt tài nguyên sở hữu trong try-with-resources |
-| Tin GC sẽ tự đóng file đúng lúc | Giữ handle/connection không dự đoán được | Đóng tường minh tại ranh giới sở hữu |
-| Gọi close() trên tài nguyên caller cho mượn | Caller nhận tài nguyên đã đóng | Nêu rõ và tôn trọng ownership |
-| Đóng wrapper và nguồn gốc không rõ hợp đồng | Đóng lặp; lớp AutoCloseable có thể không idempotent | Nắm chuỗi sở hữu, đóng đúng đối tượng |
-| Bắt Exception rồi bỏ qua toàn bộ | Che lỗi nghiệp vụ hoặc lỗi cleanup | Xử lý hoặc lan truyền lỗi có thông tin |
-| Chỉ log ngoại lệ chính | Mất dấu lỗi khi close() thất bại | Kiểm tra suppressed/ghi log stack trace |
-| Trả về tài nguyên sau khi đã kết thúc try | Người nhận dùng đối tượng đã đóng | Trả dữ liệu hoặc chuyển ownership rõ ràng |
-| Giữ connection quá lâu trong khối try | Cạn pool, tăng thời gian giữ lock | Thu hẹp phạm vi sử dụng |
-| Đưa tài nguyên dùng chung vào try từng request | Đóng sớm, hỏng tác vụ khác | Để owner cấp cao quản lý lifecycle |
-| Mở công việc bất đồng bộ rồi rời try ngay | Worker có thể dùng tài nguyên đã đóng | Đợi công việc hoàn thành trong scope hoặc chuyển ownership có kiểm soát |
+| Opening a stream/connection and closing only on the success branch | Resource leak on exception/return | Place owned resources in try-with-resources |
+| Trusting GC to close files on time | Unpredictable retention of handles/connections | Close explicitly at the ownership boundary |
+| Calling close() on a resource lent by the caller | Caller receives an already-closed resource | State and respect ownership clearly |
+| Closing both wrapper and raw source without knowing the contract | Double closing; AutoCloseable class may not be idempotent | Understand ownership chain and close the right object |
+| Catching Exception and ignoring everything | Hides business errors or cleanup errors | Handle or propagate informative errors |
+| Logging only the primary exception | Loses trace of failures when close() fails | Inspect suppressed exceptions / log stack traces |
+| Returning a resource after try has already ended | Recipient uses a closed object | Return data or transfer ownership clearly |
+| Holding a connection too long inside a try block | Pool exhaustion, longer lock hold times | Narrow the usage scope |
+| Putting a shared resource in per-request try blocks | Premature closing, breaks other tasks | Let a higher-level owner manage the lifecycle |
+| Starting async work and immediately exiting try | Worker may use a closed resource | Wait for work to finish within scope or transfer ownership carefully |
 
-### Lưu ý với bất đồng bộ và đa luồng
+### Note on Asynchronous Code and Multithreading
 
-**try-with-resources** quản lý một **phạm vi từ vựng đồng bộ**: nó gọi close khi việc thực thi rời block. Nó **không tự đợi** một **CompletableFuture**, thread mới hoặc callback dùng tài nguyên được khởi chạy trong block. Nếu callback tiếp tục sau khi block thoát, tài nguyên có thể đã đóng. Hãy đặt toàn bộ thời gian sử dụng tài nguyên trong scope hoặc thiết kế một chủ sở hữu sống đủ lâu để đóng khi tác vụ bất đồng bộ thực sự kết thúc. **AutoCloseable** cũng không mặc nhiên bảo đảm việc dùng/đóng đồng thời là an toàn.
+**try-with-resources** manages a **synchronous lexical scope**: it calls close when execution leaves the block. It **does not automatically wait** for a **CompletableFuture**, new thread, or callback using the resource launched inside the block. If a callback continues after the block exits, the resource may already be closed. Keep the entire resource usage duration within scope or design an owner that lives long enough to close when the async task truly finishes. **AutoCloseable** also does not inherently guarantee concurrent use/closing is thread-safe.
 
-## 11. Quy tắc kiểm tra khi review code
+## 11. Code Review Checklist
 
-Khi đọc một đoạn mã Java có tài nguyên, lần lượt xác nhận:
+When reading Java code involving resources, verify in order:
 
-1. **Tài nguyên là gì?** Nó sở hữu file descriptor, socket, cursor, connection hay handle nào cần kết thúc đúng lúc?
-2. **Ai sở hữu?** Code hiện tại tạo, mượn hay nhận chuyển giao ownership?
-3. **Mở có thành công từng phần không?** Nếu mở tài nguyên thứ hai thất bại, tài nguyên thứ nhất đã được dọn chưa?
-4. **Mọi đường thoát đều đóng chưa?** Thành công, **return**, lỗi khởi tạo, lỗi xử lý và lỗi đóng đều cần xét.
-5. **Thứ tự đóng phù hợp không?** Tài nguyên phụ thuộc thường cần đóng trước chủ sở hữu của nó.
-6. **Lỗi close() được thấy không?** Có mất nguyên nhân gốc, có suppressed exception cần quan sát không?
-7. **Phạm vi đủ ngắn và đủ dài chưa?** Đừng giữ tài nguyên vô ích; cũng đừng đóng trước khi tác vụ đang dùng kết thúc.
-8. **Hợp đồng thư viện cụ thể nói gì?** Closeable, JDBC pool, wrapper I/O, stream từ Files và custom AutoCloseable có ngữ nghĩa khác nhau.
+1. **What is the resource?** Does it own a file descriptor, socket, cursor, connection, or handle that needs timely termination?
+2. **Who owns it?** Does the current code create, borrow, or receive transferred ownership?
+3. **Can opening partially succeed?** If opening the second resource fails, is the first resource cleaned up?
+4. **Do all exit paths close it?** Normal completion, **return**, initialization errors, processing errors, and closing errors all need consideration.
+5. **Is the closing order appropriate?** Dependent resources usually need to close before their owners.
+6. **Are close() errors visible?** Is the root cause lost, and are there suppressed exceptions to observe?
+7. **Is the scope short enough and long enough?** Do not hold resources needlessly; nor close before active tasks finish.
+8. **What does the specific library contract say?** Closeable, JDBC pools, I/O wrappers, Streams from Files, and custom AutoCloseable classes have different semantics.
 
-## 12. Bài tập tự kiểm tra
+## 12. Self-Check Exercises
 
-**Bài 1 — Dự đoán thứ tự.** Với hai tài nguyên **A** rồi **B** trong cùng try-with-resources, thân try in **body**. Trình tự liên quan đến đóng là gì?
+**Exercise 1 — Predict the order.** With two resources **A** then **B** in the same try-with-resources, and the try body printing **body**. What is the sequence related to closing?
 
-Đáp án: **body**, rồi **B.close()**, rồi **A.close()**; nếu constructor có in log thì thông báo khởi tạo theo **A** trước **B**.
+Answer: **body**, then **B.close()**, then **A.close()**; if constructors log messages, initialization prints **A** before **B**.
 
-**Bài 2 — Lỗi kép.** Thân try ném **IllegalStateException("business")**, tài nguyên close ném **IOException("close")**. Ngoại lệ nào được ném ra ngoài?
+**Exercise 2 — Dual failure.** The try body throws **IllegalStateException("business")**, and resource close throws **IOException("close")**. Which exception is thrown outward?
 
-Đáp án: **IllegalStateException("business")** là ngoại lệ chính; **IOException("close")** nằm trong **getSuppressed()** của ngoại lệ chính (giả sử không có ngoại lệ bất thường khác).
+Answer: **IllegalStateException("business")** is the primary exception; **IOException("close")** is in **getSuppressed()** of the primary exception (assuming no other abnormal exceptions).
 
-**Bài 3 — Review ownership.** Một helper nhận **InputStream** do caller quản lý, chỉ cần đọc header. Có nên đặt stream vào **try (input)** trong helper không?
+**Exercise 3 — Ownership review.** A helper receives an **InputStream** managed by the caller and only needs to read the header. Should the stream be placed in **try (input)** inside the helper?
 
-Đáp án: Không, nếu hợp đồng nói caller sở hữu. Helper đọc và để caller tự đóng. Chỉ nhận quyền đóng khi API quy định chuyển ownership rõ ràng.
+Answer: No, if the contract states the caller owns it. The helper reads and lets the caller close it. Only take over closing responsibility when the API specifies an explicit ownership transfer.
 
-**Bài 4 — Bất đồng bộ.** Một tác vụ nền còn đọc tệp khi khối try chứa stream vừa kết thúc. Chuyện gì có thể xảy ra?
+**Exercise 4 — Asynchrony.** A background task is still reading a file when the try block containing the stream just finishes. What can happen?
 
-Đáp án: Luồng đọc nền có thể gặp lỗi do nguồn đã đóng. Phải tổ chức vòng đời để đóng sau khi tác vụ hoàn tất.
+Answer: The background reading thread may encounter an error because the source is already closed. You must structure the lifecycle to close after the task completes.
 
-## 13. Ghi nhớ
+## 13. Key Takeaways
 
-**AutoCloseable** là hợp đồng tài nguyên có thể được đóng; **try-with-resources** biến hợp đồng đó thành cleanup tự động, theo thứ tự ngược khi có nhiều tài nguyên và bảo toàn ngoại lệ chính bằng suppressed exception. Dùng nó khi **scope hiện tại sở hữu tài nguyên**, phối hợp xử lý lỗi close, theo dõi vòng đời tài nguyên qua async và tuân theo hợp đồng riêng của từng API. Quản lý bộ nhớ bằng GC không thay thế được quản lý tài nguyên tường minh.
+**AutoCloseable** is the contract for a closeable resource; **try-with-resources** turns that contract into automatic cleanup, in reverse order for multiple resources, while preserving the primary exception via suppressed exceptions. Use it when **the current scope owns the resource**, coordinate close error handling, track resource lifetimes across async boundaries, and follow each API's specific contract. Heap memory management by the GC cannot replace explicit resource management.

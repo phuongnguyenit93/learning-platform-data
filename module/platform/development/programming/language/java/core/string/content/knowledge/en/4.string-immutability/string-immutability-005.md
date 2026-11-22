@@ -1,22 +1,22 @@
-# Gán lại tham chiếu không làm thay đổi chuỗi được chia sẻ
+# Reassigning a Reference Does Not Change a Shared String
 
-Trong Java, nhiều biến có thể cùng tham chiếu đến một đối tượng `String`. Khi **gán lại một biến** sang chuỗi khác, chỉ giá trị tham chiếu lưu trong biến đó thay đổi; các biến còn lại vẫn tham chiếu đến đối tượng cũ. Đây là hệ quả của cơ chế biến tham chiếu trong Java. Với `String`, tính **bất biến (immutability)** còn bảo đảm các thao tác xử lý chuỗi không sửa trực tiếp nội dung đối tượng ban đầu.
+In Java, multiple variables can reference the same `String` object. When **reassigning one variable** to another string, only the reference value stored in that variable changes; the remaining variables still reference the old object. This is a consequence of Java's reference variable mechanism. With `String`, **immutability** further ensures that string-processing operations do not directly modify the original object's content.
 
-Bài này tập trung phân biệt hai hành động hay bị nhầm:
+This lesson focuses on distinguishing two frequently confused actions:
 
-- **Gán lại tham chiếu:** `b = "New"`, `b = a + "!"`, hoặc `b = a.replace(...)`; `b` nhận một tham chiếu được tính ra ở vế phải. Không có lệnh nào trong số đó tự gán lại `a`.
-- **Thay đổi trạng thái đối tượng:** một đối tượng mutable có thể bị sửa thông qua bất kỳ tham chiếu nào trỏ tới nó. `String` không hỗ trợ kiểu sửa nội dung tại chỗ này bằng API thông thường.
+- **Reassigning a reference:** `b = "New"`, `b = a + "!"`, or `b = a.replace(...)`; `b` receives a reference computed on the right-hand side. None of those statements automatically reassign `a`.
+- **Mutating object state:** a mutable object can be modified through any reference pointing to it. `String` does not support this kind of in-place content modification through its standard API.
 
-## 1. Hai biến có thể cùng trỏ đến một `String`
+## 1. Two Variables Can Point to the Same `String`
 
-Xét:
+Consider:
 
 ```java
 String first = "Java";
 String second = first;
 ```
 
-Dòng đầu tạo một biến tham chiếu `first` trỏ đến chuỗi `"Java"`. Dòng sau **sao chép giá trị tham chiếu** từ `first` sang `second`. Vì vậy hai biến trỏ đến cùng một đối tượng `String`:
+The first line creates a reference variable `first` pointing to the string `"Java"`. The second line **copies the reference value** from `first` into `second`. Thus both variables point to the same `String` object:
 
 ```text
 first  ────┐
@@ -24,19 +24,19 @@ first  ────┐
 second ────┘
 ```
 
-Ở thời điểm này, `first == second` trả về `true` vì toán tử `==` so sánh xem hai biến có giữ cùng một tham chiếu đối tượng hay không.
+At this point, `first == second` returns `true` because the `==` operator compares whether two variables hold the same object reference.
 
-Quan trọng: «hai biến chia sẻ chuỗi» nghĩa là **hai tham chiếu đang cùng trỏ tới một đối tượng**. Nó không có nghĩa là hai biến được gắn chặt để mọi phép gán vào biến này tự động cập nhật biến kia.
+Important: "two variables sharing a string" means **two references are pointing to the same object**. It does not mean the two variables are linked so that any assignment to one automatically updates the other.
 
-## 2. Gán lại chỉ đổi tham chiếu của biến nhận phép gán
+## 2. Reassignment Only Changes the Reference of the Assigned Variable
 
-Thêm một dòng:
+Add one line:
 
 ```java
 second = "Kotlin";
 ```
 
-Sau phép gán, sơ đồ trở thành:
+After the assignment, the diagram becomes:
 
 ```text
 first  ─────────────> String "Java"
@@ -44,13 +44,13 @@ first  ─────────────> String "Java"
 second ─────────────> String "Kotlin"
 ```
 
-Không có thao tác nào sửa `String "Java"` thành `"Kotlin"`. Biến `first` vẫn giữ tham chiếu cũ. Biến `second` nhận tham chiếu đến một chuỗi khác; quan hệ cùng trỏ trước đó chấm dứt.
+No operation modified `String "Java"` into `"Kotlin"`. Variable `first` still holds the old reference. Variable `second` receives a reference to another string; the previous sharing relationship ends.
 
-Trong Java, **biến** chứa một giá trị tham chiếu; phép gán `second = ...` thay thế giá trị lưu trong chính `second`. Nó không đi theo tham chiếu để ghi đè nội dung đối tượng mà `second` từng trỏ đến, và cũng không tìm những biến khác để thay đổi chúng.
+In Java, a **variable** holds a reference value; the assignment `second = ...` replaces the value stored inside `second` itself. It does not follow the reference to overwrite the content of the object `second` used to point to, nor does it search for other variables to change them.
 
-### Ví dụ Java 17+ chạy độc lập
+### Standalone Runnable Java 17+ Example
 
-Tạo tệp `ReferenceReassignmentDemo.java`:
+Create `ReferenceReassignmentDemo.java`:
 
 ```java
 public class ReferenceReassignmentDemo {
@@ -73,14 +73,14 @@ public class ReferenceReassignmentDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac ReferenceReassignmentDemo.java
 java ReferenceReassignmentDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Before:
@@ -93,11 +93,11 @@ second = Kotlin
 same object = false
 ```
 
-Ở nửa đầu, `second = first` tạo thêm tên tham chiếu tới cùng `String`. Ở nửa sau, `second = "Kotlin"` chỉ đổi biến `second`. `first` vẫn in `Java`.
+In the first half, `second = first` creates an additional reference name to the same `String`. In the second half, `second = "Kotlin"` only changes the variable `second`. `first` still prints `Java`.
 
-## 3. Ngay cả khi gọi phương thức xử lý chuỗi, đối tượng nguồn vẫn không bị sửa
+## 3. Even When Calling String-Processing Methods, the Source Object Is Not Modified
 
-Một số lệnh trông giống «sửa chuỗi»:
+Some statements look like "modifying a string":
 
 ```java
 String original = "cat";
@@ -107,12 +107,12 @@ alias = alias.toUpperCase();
 alias = alias.replace("A", "O");
 ```
 
-Kết quả là `original` vẫn là `"cat"` còn `alias` là `"COT"`. Lý do gồm **hai bước riêng**:
+The result is that `original` remains `"cat"` while `alias` becomes `"COT"`. The reason consists of **two separate steps**:
 
-1. `toUpperCase()` hoặc `replace(...)` trả về một giá trị `String`, không sửa nội dung `String` nguồn.
-2. Phép gán `alias = ...` thay thế tham chiếu trong biến `alias`; `original` vẫn giữ tham chiếu cũ.
+1. `toUpperCase()` or `replace(...)` returns a `String` value; it does not modify the source `String`'s content.
+2. The assignment `alias = ...` replaces the reference in variable `alias`; `original` still keeps the old reference.
 
-Tạo tệp `ImmutableOperationDemo.java`:
+Create `ImmutableOperationDemo.java`:
 
 ```java
 public class ImmutableOperationDemo {
@@ -139,7 +139,7 @@ javac ImmutableOperationDemo.java
 java ImmutableOperationDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 cat
@@ -149,27 +149,27 @@ cat
 cat!
 ```
 
-Các phương thức như `concat`, `replace`, `toUpperCase` hoặc `substring` không cung cấp phép sửa nội dung tại chỗ cho `String`. Một số phương thức có thể trả lại chính đối tượng cũ nếu kết quả không đổi; điều đó không làm thay đổi tính bất biến của chuỗi.
+Methods such as `concat`, `replace`, `toUpperCase`, or `substring` provide no in-place content modification for `String`. Some methods may return the same old object if the result does not change; that does not alter string immutability.
 
-Đừng nhầm «biến vẫn mang tên cũ» với «đối tượng cũ đã bị sửa». Sau `alias = alias.toUpperCase()`, chính **biến alias** được gán lại; đối tượng `"cat"` không trở thành `"CAT"`.
+Do not confuse "the variable still has the old name" with "the old object was modified." After `alias = alias.toUpperCase()`, it is **the variable `alias`** that was reassigned; the `"cat"` object did not turn into `"CAT"`.
 
-## 4. Bất biến và gán lại tham chiếu là hai khái niệm khác nhau
+## 4. Immutability and Reference Reassignment Are Two Different Concepts
 
-Cần tách bạch:
+Keep them separated:
 
-| Hành động | Điều thay đổi | Điều không bị thay đổi |
+| Action | What changes | What does not change |
 | --- | --- | --- |
-| `String b = a;` | Biến `b` giữ tham chiếu đang có trong `a` | Nội dung đối tượng `String` |
-| `b = "Other";` | Tham chiếu trong biến `b` | Tham chiếu trong `a`, đối tượng cũ |
-| `b = b.concat("!");` | Giá trị tham chiếu trong `b` sau khi có kết quả chuỗi | Nội dung `String` ban đầu |
-| `a = null;` | Tham chiếu trong biến `a` thành `null` | Biến `b` và đối tượng mà `b` đang giữ |
-| `mutable.append("!");` với `StringBuilder` | Nội dung đối tượng mutable | Không có bảo đảm bất biến như `String` |
+| `String b = a;` | Variable `b` holds the reference currently in `a` | Content of the `String` object |
+| `b = "Other";` | Reference in variable `b` | Reference in `a`, the old object |
+| `b = b.concat("!");` | Reference value in `b` after obtaining the string result | Content of the original `String` |
+| `a = null;` | Reference in variable `a` becomes `null` | Variable `b` and the object `b` is holding |
+| `mutable.append("!");` on `StringBuilder` | Content of the mutable object | No immutability guarantee like `String` |
 
-Điểm đáng chú ý: **việc gán lại một biến không tự thay đổi biến khác cũng đúng đối với tham chiếu tới đối tượng mutable**. Khác biệt của mutable là một phép gọi phương thức qua một tham chiếu có thể **sửa chính đối tượng** mà những tham chiếu còn lại cũng quan sát được.
+Worth noting: **reassigning one variable does not automatically change another variable even for references to mutable objects**. The difference with a mutable object is that a method call through one reference can **modify the object itself**, which the remaining references will also observe.
 
-### Phản ví dụ với `StringBuilder`
+### Counterexample with `StringBuilder`
 
-Tạo tệp `MutableContrastDemo.java`:
+Create `MutableContrastDemo.java`:
 
 ```java
 public class MutableContrastDemo {
@@ -195,7 +195,7 @@ javac MutableContrastDemo.java
 java MutableContrastDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Java 21
@@ -206,13 +206,13 @@ Kotlin
 false
 ```
 
-`second.append(" 21")` sửa nội dung của **cùng một `StringBuilder`** mà `first` cũng trỏ đến, nên cả hai in `Java 21`. Trái lại, `second = new StringBuilder("Kotlin")` chỉ đổi tham chiếu của `second`; `first` vẫn trỏ đến builder cũ. Ví dụ cho thấy phải phân biệt **gọi phương thức sửa đối tượng** với **gán lại biến**.
+`second.append(" 21")` modifies the content of **the same `StringBuilder`** that `first` also points to, so both print `Java 21`. By contrast, `second = new StringBuilder("Kotlin")` only changes `second`'s reference; `first` still points to the old builder. The example shows why you must distinguish **calling an object-mutating method** from **reassigning a variable**.
 
-## 5. Điều gì xảy ra khi truyền một `String` vào phương thức?
+## 5. What Happens When Passing a `String` into a Method?
 
-Java dùng **truyền tham trị (pass-by-value)** cho mọi tham số. Với kiểu tham chiếu như `String`, giá trị được sao chép là *tham chiếu tới đối tượng*, không phải bản thân đối tượng và cũng không phải biến gốc của người gọi.
+Java uses **pass-by-value** for all parameters. For reference types like `String`, the value copied is the *reference to the object*, not the object itself and not the caller's original variable.
 
-Xem chương trình `ParameterReassignmentDemo.java`:
+Look at `ParameterReassignmentDemo.java`:
 
 ```java
 public class ParameterReassignmentDemo {
@@ -245,7 +245,7 @@ javac ParameterReassignmentDemo.java
 java ParameterReassignmentDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Inside = Changed
@@ -255,30 +255,30 @@ Updated = JAVA
 Still shared = Java
 ```
 
-Khi gọi `renameLocally(shared)`, tham số `name` là **một biến cục bộ khác** nhận bản sao giá trị tham chiếu trong `shared`. Lệnh `name = "Changed"` chỉ gán lại biến cục bộ đó. Người gọi không bị đổi `shared` và `alias`.
+When calling `renameLocally(shared)`, the parameter `name` is **another local variable** receiving a copy of the reference value in `shared`. The statement `name = "Changed"` only reassigns that local variable. The caller's `shared` and `alias` are not changed.
 
-Nếu muốn người gọi nhận giá trị chuỗi đã biến đổi, một cách dễ hiểu là **trả về kết quả và gán rõ ràng**:
+If you want the caller to receive the transformed string value, a clear way is to **return the result and assign it explicitly**:
 
 ```java
 String shared = "Java";
 String result = shared.toUpperCase();
-// shared vẫn là "Java", result là "JAVA".
+// shared is still "Java", result is "JAVA".
 ```
 
-Hoặc nếu muốn chính biến `shared` đổi giá trị:
+Or if you want the `shared` variable itself to change its value:
 
 ```java
 shared = shared.toUpperCase();
-// Biến shared bây giờ trỏ đến "JAVA".
+// Variable shared now points to "JAVA".
 ```
 
-Cả hai đều không sửa nội dung đối tượng `"Java"` trước đó.
+Neither modifies the previous `"Java"` object's content.
 
-## 6. Một ngoại lệ dễ hiểu nhầm: thay đổi đối tượng chứa trường `String`
+## 6. An Easily Misunderstood Exception: Changing an Object Holding a `String` Field
 
-Giả sử hai biến trỏ tới cùng một đối tượng lớp `Message` có trường `text`. Nếu một biến cập nhật **trường text của đối tượng Message**, biến kia sẽ nhìn thấy giá trị trường mới khi đọc lại. Điều này không hề mâu thuẫn với tính bất biến của `String`: **đối tượng Message mutable**, còn hai chuỗi cũ và mới vẫn là những giá trị `String` bất biến.
+Suppose two variables point to the same instance of a `Message` class that has a `text` field. If one variable updates **the `text` field of the `Message` object**, the other variable will see the new field value when reading it again. This does not contradict `String` immutability at all: **the `Message` object is mutable**, while both the old and new strings remain immutable `String` values.
 
-Tạo tệp `SharedHolderDemo.java`:
+Create `SharedHolderDemo.java`:
 
 ```java
 public class SharedHolderDemo {
@@ -309,7 +309,7 @@ javac SharedHolderDemo.java
 java SharedHolderDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Updated
@@ -317,42 +317,42 @@ Updated
 Original
 ```
 
-`first` và `second` cùng trỏ tới một `Message`, vì vậy việc gán `second.text = "Updated"` làm **trường của đối tượng Message** trỏ đến chuỗi mới. `snapshot` là biến `String` đã nhận tham chiếu đến `"Original"` trước đó nên vẫn không đổi.
+`first` and `second` point to the same `Message`, so assigning `second.text = "Updated"` makes **the `Message` object's field** point to the new string. `snapshot` is a `String` variable that received a reference to `"Original"` earlier, so it stays unchanged.
 
-Phân biệt hai câu:
+Distinguish these two statements:
 
-- «Gán lại một **biến tham chiếu** `second`» — không tự thay đổi biến `first`.
-- «Gán lại **trường của đối tượng dùng chung** `second.text`» — thay đổi trạng thái của đối tượng `Message` mà `first` cũng nhìn thấy.
+- "Reassigning a **reference variable** `second`" — does not automatically change variable `first`.
+- "Reassigning **a field of a shared object** `second.text`" — changes the state of the `Message` object that `first` also sees.
 
-Tương tự, phần tử mảng, phần tử danh sách mutable hay trạng thái trong một đối tượng dùng chung có thể được cập nhật. Tính bất biến của `String` không khiến **đối tượng chứa nó** trở thành bất biến.
+Similarly, array elements, mutable list elements, or state inside a shared object can be updated. `String` immutability does not make **the object containing it** immutable.
 
-## 7. `final` có liên quan thế nào?
+## 7. How Does `final` Relate?
 
-`final String name = "Java";` ngăn **gán lại biến name** sau khi biến đã được khởi tạo:
+`final String name = "Java";` prevents **reassigning the variable `name`** after the variable has been initialized:
 
 ```java
 final String name = "Java";
-// name = "Kotlin"; // Lỗi biên dịch: không thể gán lại biến final.
+// name = "Kotlin"; // Compile error: cannot reassign a final variable.
 ```
 
-Nhưng `final` không phải nguyên nhân làm `String` bất biến: ngay cả `String ordinary = "Java";` không có `final` thì đối tượng `String` vẫn bất biến.
+But `final` is not what makes `String` immutable: even for `String ordinary = "Java";` without `final`, the `String` object is still immutable.
 
-Ngược lại, một tham chiếu `final` tới một đối tượng mutable vẫn có thể dùng để thay đổi **nội dung đối tượng**:
+Conversely, a `final` reference to a mutable object can still be used to change **the object's content**:
 
 ```java
 final StringBuilder builder = new StringBuilder("Java");
-builder.append(" 21"); // Hợp lệ: không gán lại biến builder.
+builder.append(" 21"); // Valid: does not reassign variable builder.
 ```
 
-Do đó:
+Therefore:
 
-- `final` hạn chế gán lại **một biến/trường tham chiếu**.
-- `String` bất biến vì hợp đồng của **kiểu đối tượng** không cho sửa nội dung qua API thông thường.
-- Tính bất biến của `String` và tính cố định tham chiếu nhờ `final` có thể cùng tồn tại, nhưng không thay thế nhau.
+- `final` restricts reassigning **a reference variable/field**.
+- `String` is immutable because the **object type's** contract disallows modifying content through its standard API.
+- `String` immutability and reference stability via `final` can coexist, but they do not replace each other.
 
-## 8. Lưu ý về `==`, `equals` và string pool
+## 8. Notes on `==`, `equals`, and the String Pool
 
-Một câu hỏi khác với chủ đề gán lại là «hai biến còn cùng trỏ tới đối tượng nào?». Ta có thể kiểm tra bằng `==` khi thực sự cần tìm hiểu **identity**, nhưng với nghiệp vụ cần so sánh văn bản nên dùng `equals`.
+Another question related to reassignment is "do two variables still point to the same object?". You can check with `==` when you genuinely need to inspect **identity**, but for business logic needing text comparison you should use `equals`.
 
 ```java
 String a = "Java";
@@ -363,29 +363,29 @@ System.out.println(a == b);       // false
 System.out.println(a.equals(b));   // true
 ```
 
-Ở đây phép gán lại `b` làm hai biến không còn chia sẻ cùng đối tượng. Nội dung vẫn bằng nhau, nên `equals` đúng. Chuỗi literal được intern qua *string pool*, nhưng gọi `new String(...)` tạo một đối tượng `String` có danh tính khác. Sự tồn tại của pool không làm hai biến tự gắn kết khi một bên đổi tham chiếu.
+Here reassigning `b` causes the two variables to no longer share the same object. Their content is still equal, so `equals` is true. String literals are interned via the *string pool*, whereas calling `new String(...)` creates a `String` object with a different identity. The existence of the pool does not keep two variables bound together when one side changes its reference.
 
-Không viết logic nghiệp vụ theo giả định rằng mọi `String` có cùng chữ đều phải `== true`.
+Do not write business logic under the assumption that every `String` with the same text must evaluate to `== true`.
 
-## 9. Những nhầm lẫn và lỗi thường gặp
+## 9. Common Misconceptions and Mistakes
 
-**Nhầm 1 — «Hai biến cùng trỏ nên đổi `b` thì `a` phải đổi».** Sai. `b = ...` chỉ ghi giá trị tham chiếu mới vào biến `b`. Không tồn tại quan hệ đồng bộ phép gán giữa hai biến.
+**Misconception 1 — "Two variables point to the same thing, so changing `b` must change `a`."** False. `b = ...` only writes a new reference value into variable `b`. No assignment-synchronization link exists between two variables.
 
-**Nhầm 2 — «`b = b + "!"` là sửa cùng đối tượng cũ».** Sai với `String`. Phép nối tạo ra giá trị chuỗi kết quả, rồi `b` được gán tham chiếu đến kết quả; chuỗi trước đó không bị sửa.
+**Misconception 2 — "`b = b + "!"` modifies the same old object."** False for `String`. Concatenation produces a resulting string value, and then `b` is assigned the reference to the result; the previous string is not modified.
 
-**Nhầm 3 — «Không chia sẻ tham chiếu thì phải dùng `new String(a)`».** Việc gán lại `a` sẽ không ảnh hưởng biến khác ngay cả khi cùng trỏ đến một `String`. Vì `String` bất biến, hầu như không cần tạo bản sao `new String(a)` để chống thay đổi ngoài ý muốn.
+**Misconception 3 — "To avoid sharing references, you must use `new String(a)`."** Reassigning `a` will not affect another variable even when both point to the same `String`. Because `String` is immutable, there is almost never any need to make a `new String(a)` copy to guard against unintended mutation.
 
-**Nhầm 4 — «Truyền tham chiếu nghĩa là phương thức có thể gán lại biến của người gọi».** Java truyền tham trị. Một hàm nhận bản sao giá trị tham chiếu; gán lại tham số chỉ thay đổi biến tham số của hàm.
+**Misconception 4 — "Passing a reference means the method can reassign the caller's variable."** Java uses pass-by-value. A method receives a copy of the reference value; reassigning the parameter only changes the method's parameter variable.
 
-**Nhầm 5 — «`final` và immutable là một».** `final` áp dụng cho khả năng gán lại biến hoặc trường; bất biến mô tả nội dung của một đối tượng. `final StringBuilder` vẫn có thể `append`.
+**Misconception 5 — "`final` and immutable are the same thing."** `final` applies to the reassignability of a variable or field; immutability describes the content of an object. A `final StringBuilder` can still call `append`.
 
-**Nhầm 6 — «Đối tượng chứa `String` cũng tự động bất biến».** Không. Một trường kiểu `String` có thể được gán giá trị chuỗi khác trong một đối tượng mutable. Các tham chiếu tới chính đối tượng chứa sẽ nhìn thấy trạng thái trường mới.
+**Misconception 6 — "An object containing a `String` is also automatically immutable."** No. A `String` field can be assigned another string value inside a mutable object. References to the containing object itself will observe the new field state.
 
-**Nhầm 7 — «Biến không còn trỏ tới đối tượng cũ thì đối tượng cũ biến mất ngay».** Không nhất thiết. Nếu còn tham chiếu như `first`, đối tượng vẫn có thể được sử dụng. Khi không còn tham chiếu đến đối tượng, JVM mới có thể thu gom nó khi thích hợp; thời điểm thu gom không được bảo đảm.
+**Misconception 7 — "Once a variable no longer points to the old object, the old object disappears immediately."** Not necessarily. If another reference such as `first` remains, the object can still be used. Only when no references to the object remain can the JVM collect it when appropriate; collection timing is not guaranteed.
 
-## 10. Tự luyện tập: dự đoán trước khi chạy
+## 10. Self-Practice: Predict Before Running
 
-### Bài 1: gán lại nhiều lần
+### Exercise 1: multiple reassignments
 
 ```java
 String a = "one";
@@ -400,7 +400,7 @@ System.out.println(b);
 System.out.println(c);
 ```
 
-Kết quả:
+Output:
 
 ```text
 one
@@ -408,9 +408,9 @@ two
 one!
 ```
 
-Ba biến ban đầu có cùng tham chiếu. Sau đó mỗi phép gán chỉ làm thay đổi **biến ở vế trái**: `b` đổi sang `"two"`; `c` nhận kết quả nối từ `"one"` thành `"one!"`. `a` tiếp tục giữ `"one"`.
+The three variables initially share the same reference. Afterward, each assignment only changes **the variable on the left-hand side**: `b` switches to `"two"`; `c` receives the concatenated result from `"one"`, becoming `"one!"`. `a` continues to hold `"one"`.
 
-### Bài 2: biến đổi trong phương thức có được áp dụng không?
+### Exercise 2: does a transformation inside a method take effect?
 
 ```java
 static void update(String value) {
@@ -418,9 +418,9 @@ static void update(String value) {
 }
 ```
 
-Nếu người gọi có `String text = "Java";` rồi gọi `update(text)`, giá trị `text` có đổi không? **Không.** Biến tham số `value` chỉ được gán lại trong phương thức. Muốn nhận kết quả, hãy đổi phương thức trả về `String` và để người gọi tự gán kết quả.
+If the caller has `String text = "Java";` and calls `update(text)`, does the value of `text` change? **No.** Only the parameter variable `value` is reassigned inside the method. To receive the result, change the method to return `String` and let the caller assign the result.
 
-### Bài 3: đối tượng chứa dùng chung
+### Exercise 3: shared holder object
 
 ```java
 class Box {
@@ -434,8 +434,8 @@ String saved = x.value;
 y.value = "B";
 ```
 
-Sau đó `x.value` là `"B"`, `y.value` là `"B"`, nhưng `saved` vẫn là `"A"`. Trường của `Box` dùng chung đã được cập nhật; bản thân hai `String` không bị sửa.
+Afterward `x.value` is `"B"`, `y.value` is `"B"`, while `saved` is still `"A"`. The field of the shared `Box` was updated; the two `String`s themselves were not modified.
 
-## Kết luận cần ghi nhớ
+## Takeaways to Remember
 
-**Gán lại tham chiếu là cập nhật một biến; không phải sửa đối tượng được tham chiếu, càng không phải cập nhật mọi biến đang trỏ đến đối tượng đó.** Với `String`, tính bất biến bảo đảm các phương thức xử lý chuỗi không làm thay đổi nội dung chuỗi ban đầu. Hãy hỏi chính xác «đang gán lại biến nào?» và «đang sửa trạng thái của đối tượng nào?» khi đọc hoặc viết code. Hai câu hỏi đó giúp tránh nhầm lẫn giữa tham chiếu, object identity và tính bất biến của `String`.
+**Reassigning a reference updates one variable; it does not modify the referenced object, much less update every variable pointing to that object.** With `String`, immutability ensures string-processing methods do not alter the original string's content. Ask specifically "which variable is being reassigned?" and "which object's state is being modified?" when reading or writing code. Those two questions help avoid confusion between references, object identity, and `String` immutability.

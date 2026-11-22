@@ -1,36 +1,36 @@
-# Objects.equals cho hai tham chiếu có thể null trong Java
+# Objects.equals for Two Nullable References in Java
 
-## 1. Vấn đề: so sánh khi một hoặc cả hai tham chiếu có thể là null
+## 1. The Problem: Comparing When One or Both References May Be null
 
-Trong Java, **String** là kiểu tham chiếu. Hai biến có thể chứa hai đối tượng String, cùng tham chiếu đến một đối tượng, hoặc chứa **null** (không tham chiếu đến đối tượng nào). Khi dùng **a.equals(b)**, Java phải gọi phương thức trên đối tượng **a**; nếu **a == null**, lệnh này ném **NullPointerException**.
+In Java, **String** is a reference type. Two variables can hold two String objects, point to the same object, or hold **null** (referencing no object). When using **a.equals(b)**, Java must invoke the method on object **a**; if **a == null**, this statement throws **NullPointerException**.
 
 ~~~java
 String first = null;
 String second = "Java";
 
-// Đoạn minh họa lỗi nếu chạy:
+// Illustrative error snippet if executed:
 boolean equal = first.equals(second); // NullPointerException
 ~~~
 
-Lớp **java.util.Objects** cung cấp phương thức tĩnh:
+The **java.util.Objects** class provides a static method:
 
 ~~~java
 boolean result = Objects.equals(first, second);
 ~~~
 
-Phương thức này **so sánh hai tham chiếu an toàn khi có null**. Nó trả về **true** nếu cả hai là null hoặc nếu giá trị thứ nhất khác null và phương thức **equals** của nó đánh giá hai giá trị là bằng nhau. Nếu chỉ một tham chiếu là null, kết quả **false**.
+This method **safely compares two references when null is possible**. It returns **true** if both are null, or if the first value is non-null and its **equals** method evaluates the two values as equal. If only one reference is null, the result is **false**.
 
-**Objects.equals** hữu ích cho String, các đối tượng giá trị, thuộc tính của đối tượng và các phương thức nhận tham số tùy chọn có thể null. Cần **import java.util.Objects**; đây là API có từ Java 7 và hoàn toàn dùng được trong Java 17+.
+**Objects.equals** is useful for Strings, value objects, object properties, and methods taking optional nullable parameters. It requires **import java.util.Objects**; this API has existed since Java 7 and works seamlessly in Java 17+.
 
-## 2. Hợp đồng chính xác của Objects.equals
+## 2. Exact Contract of Objects.equals
 
-Chữ ký:
+Signature:
 
 ~~~java
 public static boolean equals(Object a, Object b)
 ~~~
 
-Hành vi về cơ bản tương đương:
+Its behavior is essentially equivalent to:
 
 ~~~java
 public static boolean nullableEquals(Object a, Object b) {
@@ -38,35 +38,35 @@ public static boolean nullableEquals(Object a, Object b) {
 }
 ~~~
 
-Đoạn trên là **phương thức minh họa**, đặt trong một lớp nếu muốn biên dịch. Thư viện Java sẽ tự chọn phương thức **equals** phù hợp với kiểu thực tế của đối tượng **a**, nhờ cơ chế gọi phương thức động.
+The snippet above is an **illustrative method**; place it inside a class if you want to compile it. The Java runtime automatically dispatches to the **equals** method matching the actual runtime type of **a** via dynamic method dispatch.
 
-| Tham chiếu a | Tham chiếu b | Kết quả | Giải thích |
+| Reference a | Reference b | Result | Explanation |
 | --- | --- | --- | --- |
-| **null** | **null** | **true** | Cùng là null; nhánh **a == b** đúng |
-| **null** | Đối tượng | **false** | **a != null** sai, không gọi phương thức |
-| Đối tượng | **null** | Thường **false** với equals đúng hợp đồng | Gọi **a.equals(null)**; hợp đồng equals yêu cầu trả về false |
-| Cùng một đối tượng | Cùng tham chiếu | **true** | **a == b** đúng |
-| Hai đối tượng khác tham chiếu | Giá trị tương đương theo **a.equals(b)** | **true** | Chẳng hạn hai String có cùng nội dung |
-| Hai đối tượng khác tham chiếu | Giá trị không tương đương | **false** | Kết quả dựa trên **a.equals(b)** |
+| **null** | **null** | **true** | Both are null; the **a == b** branch succeeds |
+| **null** | Object | **false** | **a != null** is false, no method is called |
+| Object | **null** | Usually **false** for well-behaved equals | Calls **a.equals(null)**; the equals contract requires returning false |
+| Same object | Same reference | **true** | **a == b** succeeds |
+| Two objects with different references | Equivalent value per **a.equals(b)** | **true** | For example, two Strings with the same content |
+| Two objects with different references | Non-equivalent value | **false** | Result is based on **a.equals(b)** |
 
-**Lưu ý về điều kiện:** một triển khai **equals** bị viết sai có thể vi phạm hợp đồng của Java, ném ngoại lệ hoặc trả về kết quả không nhất quán. **Objects.equals** chỉ xử lý trường hợp null ở bên ngoài và chuyển tiếp tới **equals** thông thường; nó không sửa các lỗi nghiệp vụ hay tự kiểm chứng sự đối xứng của một phép so sánh.
+**Caveat on the condition:** a poorly written **equals** implementation can violate Java's contract, throw an exception, or return inconsistent results. **Objects.equals** only handles null on the outside and delegates to the normal **equals**; it does not fix business-logic bugs or verify the symmetry of a comparison.
 
-### Vì sao hai null lại được xem là bằng nhau?
+### Why Are Two nulls Considered Equal?
 
-Đây là quy tắc đã được định nghĩa cho phép so sánh giá trị trong **Objects.equals**: hai tham chiếu đều không có đối tượng được xem là tương đương. Quy tắc này thường phù hợp khi kiểm tra “hai trạng thái có giống nhau không”.
+This is the rule defined for value comparisons in **Objects.equals**: two references that both lack an object are treated as equivalent. This rule often fits when checking "are these two states the same?".
 
-Tuy nhiên, **hai trường dữ liệu đều thiếu** không luôn có nghĩa “hai thực thể giống nhau” trong nghiệp vụ. Khi so mã định danh bắt buộc khác null, hãy kiểm tra tính hợp lệ của mã định danh trước khi gọi **Objects.equals**, hoặc yêu cầu cả hai phải khác null:
+However, **two missing data fields** do not always mean "two entities are the same" in business logic. When comparing mandatory non-null identifiers, validate the identifiers before calling **Objects.equals**, or require both to be non-null:
 
 ~~~java
 boolean sameKnownId = idA != null && idB != null
         && idA.equals(idB);
 ~~~
 
-Đây là **đoạn minh họa** trong một phương thức; nó trả về false nếu mã định danh của một trong hai phía không tồn tại. Không nên dùng **Objects.equals(null, null) == true** như bằng chứng rằng hai thực thể không có ID là cùng một thực thể.
+This is an **illustrative snippet** inside a method; it returns false if either side's identifier is missing. Do not use **Objects.equals(null, null) == true** as proof that two entities without IDs are the same entity.
 
-## 3. Ví dụ đầy đủ: hai String có thể null
+## 3. Complete Example: Two Nullable Strings
 
-Lưu mã vào **NullableStringComparisonDemo.java**:
+Save the code to **NullableStringComparisonDemo.java**:
 
 ~~~java
 import java.util.Objects;
@@ -92,7 +92,7 @@ public class NullableStringComparisonDemo {
 }
 ~~~
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ~~~bash
 javac -encoding UTF-8 NullableStringComparisonDemo.java
@@ -113,29 +113,29 @@ false
 true
 ~~~
 
-Giải thích theo thứ tự:
+Explanation in order:
 
-1. Cả hai giá trị **missingA** và **missingB** đều là **null**, kết quả **true**.
-2. So **null** với **"Java"** hoặc ngược lại đều cho **false**.
-3. **literal** và **newObject** chứa nội dung **"Java"** giống nhau nên **Objects.equals** trả về **true**, dù là hai đối tượng khác nhau.
-4. **literal == newObject** là **false** vì **==** kiểm tra tham chiếu.
-5. Hai nội dung **"Java"** và **"Kotlin"** không giống nhau.
-6. **"Java".equals(missingA)** không gây ngoại lệ, vì đối tượng nhận phương thức là literal chắc chắn khác null; kết quả **false**.
-7. **""** là String rỗng thực sự, khác **null**, nhưng hai chuỗi rỗng có nội dung bằng nhau.
+1. Both **missingA** and **missingB** are **null**, so the result is **true**.
+2. Comparing **null** with **"Java"** or vice versa yields **false**.
+3. **literal** and **newObject** have the same **"Java"** content, so **Objects.equals** returns **true**, even though they are two distinct objects.
+4. **literal == newObject** is **false** because **==** checks references.
+5. The contents **"Java"** and **"Kotlin"** are not the same.
+6. **"Java".equals(missingA)** throws no exception because the receiving object is a literal guaranteed to be non-null; the result is **false**.
+7. **""** is a real empty String, distinct from **null**, and two empty strings have equal content.
 
-Đối với hai String, kết quả **Objects.equals(a, b)** vẫn phân biệt chữ hoa/thường. Ví dụ **Objects.equals("java", "Java")** là **false**.
+For two Strings, **Objects.equals(a, b)** remains case-sensitive. For example, **Objects.equals("java", "Java")** is **false**.
 
-## 4. Phân biệt Objects.equals, equals và ==
+## 4. Distinguishing Objects.equals, equals, and ==
 
-| Biểu thức | Mục đích | Khi a null | Kết luận |
+| Expression | Purpose | When a is null | Conclusion |
 | --- | --- | --- | --- |
-| **a == b** | So tham chiếu (với kiểu tham chiếu) | An toàn | Cho biết hai biến có trỏ cùng đối tượng hoặc cùng null hay không |
-| **a.equals(b)** | Gọi phép so sánh do lớp của a định nghĩa | Ném **NullPointerException** | Dùng khi biết a không null |
-| **Objects.equals(a, b)** | So giá trị có xử lý null | An toàn | Phù hợp khi cả hai tham chiếu đều có thể null |
-| **"value".equals(a)** | So nội dung với một giá trị cố định | An toàn | Gọn và rõ khi một vế là hằng String khác null |
-| **Objects.requireNonNull(a)** | Xác thực a bắt buộc khác null | Ném **NullPointerException** | Không phải phép so sánh; dùng để thực thi điều kiện đầu vào |
+| **a == b** | Reference comparison (for reference types) | Safe | Indicates whether two variables point to the same object or are both null |
+| **a.equals(b)** | Calls the comparison defined by a's class | Throws **NullPointerException** | Use when a is known to be non-null |
+| **Objects.equals(a, b)** | Null-safe value comparison | Safe | Suitable when both references can be null |
+| **"value".equals(a)** | Content comparison against a fixed value | Safe | Concise and clear when one side is a non-null String constant |
+| **Objects.requireNonNull(a)** | Validates that a must be non-null | Throws **NullPointerException** | Not a comparison; used to enforce input preconditions |
 
-Phép **==** đặc biệt dễ gây nhầm với String:
+The **==** operator is especially error-prone with Strings:
 
 ~~~java
 String a = "hello";
@@ -146,19 +146,19 @@ System.out.println(a.equals(b));           // true
 System.out.println(Objects.equals(a, b));  // true
 ~~~
 
-Đây là các câu lệnh minh họa đặt trong phương thức có **import java.util.Objects**. Việc một số literal String được JVM tái sử dụng trong **string pool** có thể khiến **==** đôi khi trả về true với hai literal, nhưng không nên dựa vào hiện tượng đó để kiểm tra văn bản. Chọn **equals** hoặc **Objects.equals** để diễn đạt rõ ý định so nội dung.
+These are illustrative statements placed inside a method with **import java.util.Objects**. The fact that some String literals are reused by the JVM in the **string pool** can make **==** occasionally return true for two literals, but you should never rely on that phenomenon to check text. Choose **equals** or **Objects.equals** to clearly express the intent to compare content.
 
-### Khi nào ưu tiên từng cách?
+### When to Prefer Each Approach?
 
-- Nếu **a** đã được bảo đảm khác null theo hợp đồng, dùng **a.equals(b)** là tự nhiên.
-- Nếu **cả hai biến có thể null**, dùng **Objects.equals(a, b)**.
-- Nếu so với một hằng String chắc chắn khác null, **"ACTIVE".equals(status)** là lựa chọn ngắn gọn.
-- Nếu chỉ muốn kiểm tra chính xác **cùng đối tượng**, dùng **==**.
-- Nếu nghiệp vụ quy định không được chấp nhận null, kiểm tra và báo lỗi trước; đừng để **Objects.equals(null, null)** vô tình được coi là trường hợp hợp lệ.
+- If **a** is guaranteed non-null by contract, using **a.equals(b)** is natural.
+- If **both variables may be null**, use **Objects.equals(a, b)**.
+- If comparing against a String constant guaranteed non-null, **"ACTIVE".equals(status)** is a concise choice.
+- If you strictly want to check for the **exact same object**, use **==**.
+- If business rules disallow null, validate and report an error beforehand; do not let **Objects.equals(null, null)** accidentally count as a valid case.
 
-## 5. Những chi tiết về null cần làm rõ
+## 5. Null Details Worth Clarifying
 
-**null khác chuỗi rỗng và chuỗi chỉ chứa khoảng trắng.**
+**null is different from an empty string and a whitespace-only string.**
 
 ~~~java
 String absent = null;
@@ -171,25 +171,25 @@ System.out.println(empty.isEmpty());               // true
 System.out.println(spaces.isBlank());              // true
 ~~~
 
-Các câu lệnh minh họa trong phương thức có import **Objects**. Phương thức **isEmpty()** chỉ kiểm tra độ dài bằng 0; **isBlank()** kiểm tra toàn bộ chuỗi là whitespace theo quy tắc của Java. Việc xem **null**, chuỗi rỗng hoặc chuỗi trắng như nhau phải là **quyết định nghiệp vụ được viết tường minh**, ví dụ bước chuẩn hóa đầu vào trước khi so sánh.
+These illustrative statements are inside a method with **Objects** imported. The **isEmpty()** method only checks for length 0; **isBlank()** checks whether the entire string is whitespace according to Java's rules. Treating **null**, empty strings, or blank strings as identical must be an **explicitly coded business decision**, such as an input-normalization step prior to comparison.
 
-**Không có phép “coi null là chuỗi "null"”** trong **Objects.equals**. Ví dụ:
+**There is no "treat null as the string \"null\"" rule** in **Objects.equals**. For example:
 
 ~~~java
 System.out.println(Objects.equals(null, "null")); // false
 ~~~
 
-Phương thức **String.valueOf((Object) null)** lại tạo ra String có nội dung bốn chữ cái **"null"**; không nên dùng cách này để thay thế phép so sánh null-safe.
+By contrast, **String.valueOf((Object) null)** produces a four-character String with content **"null"**; you should not use that as a substitute for null-safe comparison.
 
-**Thứ tự tham số trong một phép equals chuẩn:** hợp đồng **Object.equals** yêu cầu tính đối xứng: **a.equals(b)** và **b.equals(a)** phải tương đương về giá trị logic khi cả hai khác null. Nếu một lớp triển khai equals sai, **Objects.equals(a, b)** và **Objects.equals(b, a)** có thể khác nhau. Phương thức tĩnh không tự thử cả hai hướng để sửa lỗi.
+**Argument order in a standard equals call:** the **Object.equals** contract requires symmetry: **a.equals(b)** and **b.equals(a)** must be logically equivalent when both are non-null. If a class implements equals improperly, **Objects.equals(a, b)** and **Objects.equals(b, a)** might differ. The static method does not try both directions to fix the bug.
 
-## 6. Objects.equals với các loại đối tượng khác
+## 6. Objects.equals with Other Object Types
 
-**Objects.equals** có tên tổng quát vì nhận hai tham số kiểu **Object**. Kết quả khi cả hai khác null phụ thuộc vào **equals** của loại đối tượng đứng bên trái.
+**Objects.equals** has a general name because it takes two **Object** parameters. When both are non-null, the result depends on the **equals** implementation of the object type on the left.
 
-### String và các lớp giá trị phổ biến
+### String and Common Value Classes
 
-**String**, các lớp wrapper như **Integer**, **Long**, **Boolean**, cùng nhiều lớp giá trị Java khác có định nghĩa **equals** dựa trên dữ liệu có ý nghĩa. Tuy nhiên, một số loại còn yêu cầu **đúng kiểu**:
+**String**, wrapper classes like **Integer**, **Long**, **Boolean**, and many other Java value classes define **equals** based on meaningful data. However, some types also require an **exact type match**:
 
 ~~~java
 Object number = Integer.valueOf(10);
@@ -198,11 +198,11 @@ Object longNumber = Long.valueOf(10L);
 System.out.println(Objects.equals(number, longNumber)); // false
 ~~~
 
-Giá trị số đều biểu diễn “10”, nhưng hai wrapper khác lớp nên **Integer.equals(Long)** trả về false. **Objects.equals** không tự chuyển đổi kiểu số, không bỏ qua khác biệt locale và cũng không tự chuyển chữ hoa/thường.
+Both numeric values represent "10", but the two wrappers are different classes, so **Integer.equals(Long)** returns false. **Objects.equals** does not automatically convert numeric types, ignore locale differences, or ignore case.
 
-### Đối tượng không ghi đè equals
+### Objects That Do Not Override equals
 
-Nếu một lớp chỉ kế thừa **Object.equals** mặc định, phép so sánh về cơ bản dựa trên **cùng đối tượng**. Hai đối tượng mới có cùng dữ liệu trường chưa chắc bằng nhau:
+If a class only inherits the default **Object.equals**, comparison is essentially based on **same object**. Two new objects with identical field values are not necessarily equal:
 
 ~~~java
 class Box {
@@ -212,17 +212,17 @@ class Box {
     }
 }
 
-// Các câu lệnh sau ở bên trong một phương thức:
+// The following statements are inside a method:
 Box first = new Box(7);
 Box second = new Box(7);
 System.out.println(Objects.equals(first, second)); // false
 ~~~
 
-Nếu muốn coi hai **Box** có cùng **value** là tương đương, lớp phải định nghĩa **equals** (và **hashCode**) phù hợp. **Objects.equals** không tự dùng reflection để so tất cả thuộc tính.
+If you want two **Box** instances with the same **value** to be considered equivalent, the class must define an appropriate **equals** (and **hashCode**). **Objects.equals** does not use reflection to compare all fields.
 
-### Array không được so nội dung sâu bằng Objects.equals
+### Arrays Are Not Deeply Compared by Objects.equals
 
-Mảng Java không ghi đè **Object.equals** để so các phần tử. Vì vậy:
+Java arrays do not override **Object.equals** to compare elements. Therefore:
 
 ~~~java
 String[] first = {"a", "b"};
@@ -233,9 +233,9 @@ System.out.println(java.util.Arrays.equals(first, second)); // true
 System.out.println(Objects.deepEquals(first, second)); // true
 ~~~
 
-Đây là đoạn minh họa; cần import **java.util.Objects** nếu dùng tên ngắn. Dùng **Arrays.equals** cho mảng một chiều và **Arrays.deepEquals** hoặc **Objects.deepEquals** trong trường hợp cần so các mảng lồng nhau phù hợp. **Objects.deepEquals** cũng xử lý null, nhưng cần tránh lạm dụng với đồ thị mảng có tham chiếu vòng.
+This is an illustrative snippet; import **java.util.Objects** if using the short name. Use **Arrays.equals** for one-dimensional arrays and **Arrays.deepEquals** or **Objects.deepEquals** when nested arrays need appropriate comparison. **Objects.deepEquals** also handles null, though you should avoid misusing it on array graphs with cyclic references.
 
-Để minh họa đầy đủ, lưu thành **ArrayEqualityDemo.java**:
+For a complete illustration, save as **ArrayEqualityDemo.java**:
 
 ~~~java
 import java.util.Arrays;
@@ -272,13 +272,13 @@ false
 true
 ~~~
 
-**Vì sao?** Mảng **one** và **two** là hai đối tượng khác nhau, nhưng phần tử tương ứng có cùng nội dung. Với **int[][]**, phép **Arrays.equals** ở tầng ngoài lại so các mảng con theo tham chiếu; **Arrays.deepEquals** mới đệ quy so nội dung các mảng con.
+**Why?** Arrays **one** and **two** are two distinct objects, yet their corresponding elements have the same content. For **int[][]**, **Arrays.equals** at the outer level compares the subarrays by reference; **Arrays.deepEquals** recursively compares the contents of the subarrays.
 
-## 7. Viết equals null-safe trong lớp của chính bạn
+## 7. Writing Null-Safe equals in Your Own Classes
 
-Trong lớp giá trị do ứng dụng định nghĩa, có thể dùng **Objects.equals** để so các trường tham chiếu có thể null. Cần ghi đè **hashCode** tương thích nếu ghi đè **equals**.
+In an application-defined value class, you can use **Objects.equals** to compare nullable reference fields. You must override a compatible **hashCode** whenever you override **equals**.
 
-Ví dụ đầy đủ, lưu thành **CustomerEqualityDemo.java**:
+Complete example, save as **CustomerEqualityDemo.java**:
 
 ~~~java
 import java.util.HashSet;
@@ -344,15 +344,15 @@ false
 true
 ~~~
 
-Đây là ví dụ Java 17+ dùng cú pháp **instanceof Customer that**, được Java 16 chuẩn hóa. Hai đối tượng **Customer** có cùng **level** và cùng **email == null** được coi là bằng nhau theo chính sách của lớp. **HashSet.contains(second)** hoạt động đúng vì **equals** và **hashCode** tương thích.
+This Java 17+ example uses the **instanceof Customer that** syntax, standardized in Java 16. Two **Customer** objects with the same **level** and both having **email == null** are considered equal per the class policy. **HashSet.contains(second)** works properly because **equals** and **hashCode** are compatible.
 
-**Cảnh báo về thiết kế:** trong ví dụ, các trường là **final** để dễ bảo đảm bất biến. Nếu các trường tham gia **equals/hashCode** bị thay đổi sau khi đối tượng đã vào **HashSet** hoặc làm key của **HashMap**, việc tìm kiếm có thể thất bại. Với mã định danh bắt buộc có giá trị, hãy kiểm tra tính hợp lệ ở constructor thay vì cho phép null một cách vô điều kiện.
+**Design warning:** in the example, fields are **final** to help guarantee immutability. If fields participating in **equals/hashCode** are mutated after the object enters a **HashSet** or serves as a **HashMap** key, lookups may fail. For identifiers that must have a value, validate them in the constructor instead of unconditionally allowing null.
 
-**Objects.hash(email, level)** tính hash tổng hợp của các trường. Không nhầm với **Objects.hashCode(value)**, tiện ích trả về 0 nếu value null hoặc **value.hashCode()** nếu khác null. Cả hai hỗ trợ việc xây dựng hashCode; lựa chọn phải tương thích với những trường được **equals** sử dụng.
+**Objects.hash(email, level)** computes a combined hash of the fields. Do not confuse it with **Objects.hashCode(value)**, a helper that returns 0 if value is null or **value.hashCode()** if non-null. Both assist in implementing hashCode; the choice must stay consistent with the fields used by **equals**.
 
-### Record trong Java 17
+### Records in Java 17
 
-Một **record** tự tạo **equals/hashCode** dựa trên các thành phần của nó:
+A **record** automatically generates **equals/hashCode** based on its components:
 
 ~~~java
 record Profile(String displayName, int age) {}
@@ -362,13 +362,13 @@ Profile b = new Profile(null, 20);
 System.out.println(Objects.equals(a, b)); // true
 ~~~
 
-Đây là đoạn minh họa trong ngữ cảnh phù hợp với Java 17 và có import **Objects**. **Record** có phép so sánh thành phần theo hợp đồng của Java; tuy vậy, với thành phần kiểu array, không mặc nhiên hiểu rằng record sẽ so sâu nội dung của mảng. Vẫn cần thiết kế rõ semantics của lớp.
+This is an illustrative snippet in a Java 17-compatible context with **Objects** imported. **Record** provides component-wise comparison per Java's contract; however, for an array-typed component, do not assume the record will deeply compare array elements. You still need to design the class semantics clearly.
 
-## 8. Trường hợp ứng dụng thực tế
+## 8. Practical Use Cases
 
-### 8.1. Kiểm tra giá trị cũ/mới để quyết định có cập nhật
+### 8.1. Comparing Old/New Values to Decide Whether to Update
 
-Khi trạng thái cũ và mới đều có thể null, muốn phát hiện thay đổi:
+When both old and new states can be null and you want to detect changes:
 
 ~~~java
 if (!Objects.equals(oldValue, newValue)) {
@@ -376,34 +376,34 @@ if (!Objects.equals(oldValue, newValue)) {
 }
 ~~~
 
-Dùng **!Objects.equals** giúp xử lý các chuyển trạng thái **null → giá trị**, **giá trị → null**, hoặc **giá trị A → giá trị B** một cách nhất quán. Hai giá trị đều null được xem là không thay đổi.
+Using **!Objects.equals** handles transitions **null → value**, **value → null**, or **value A → value B** consistently. Two null values are treated as unchanged.
 
-### 8.2. So khớp tham số bộ lọc có thể null
+### 8.2. Matching a Nullable Filter Parameter
 
 ~~~java
 boolean matches = Objects.equals(requestedCategory, itemCategory);
 ~~~
 
-Biểu thức này có nghĩa **cả hai cùng null cũng là match**. Nếu null trong bộ lọc nghĩa là **“không lọc”**, cần một điều kiện khác:
+This expression means **both being null also counts as a match**. If null in a filter means **"no filter"**, a different condition is needed:
 
 ~~~java
 boolean matches = requestedCategory == null
         || Objects.equals(requestedCategory, itemCategory);
 ~~~
 
-Hai đoạn trên là minh họa trong một phương thức. Chúng thể hiện hai chính sách nghiệp vụ khác nhau; nên chọn dựa trên định nghĩa của API.
+The two snippets above are illustrations inside a method. They represent two different business policies; choose based on the API's definition.
 
-### 8.3. So với một trạng thái cố định
+### 8.3. Comparing Against a Fixed Status
 
 ~~~java
 boolean active = "ACTIVE".equals(status);
 ~~~
 
-Khi **status** có thể null, gọi **equals** trên literal vẫn an toàn và ngắn. **Objects.equals(status, "ACTIVE")** cũng đúng, nhưng không mang thêm lợi ích đáng kể trong trường hợp một vế đã chắc chắn khác null.
+When **status** can be null, calling **equals** on the literal remains safe and concise. **Objects.equals(status, "ACTIVE")** is also valid, but brings no significant benefit when one side is already guaranteed non-null.
 
-### 8.4. Hai tham chiếu nullable cần so không phân biệt hoa/thường
+### 8.4. Two Nullable References Needing Case-Insensitive Comparison
 
-**Objects.equals** không tự thực hiện so sánh bỏ qua chữ hoa/thường. Nếu ứng dụng xác định rõ chính sách **equalsIgnoreCase** cho hai String có thể null:
+**Objects.equals** does not perform case-insensitive comparison on its own. If an application explicitly defines an **equalsIgnoreCase** policy for two nullable Strings:
 
 ~~~java
 static boolean equalsIgnoreCaseNullable(String a, String b) {
@@ -411,50 +411,50 @@ static boolean equalsIgnoreCaseNullable(String a, String b) {
 }
 ~~~
 
-Đây là phương thức minh họa: hai null trả về true, một null trả về false, còn hai String khác null được so không phân biệt hoa/thường theo **String.equalsIgnoreCase**. Nó không tự chuẩn hóa Unicode, không giải quyết đầy đủ so sánh ngôn ngữ tự nhiên theo locale. Nếu yêu cầu là sắp xếp/tìm kiếm tiếng Việt, cần quy tắc normalization, locale và collation tách biệt.
+This is an illustrative method: two nulls return true, one null returns false, and two non-null Strings are compared case-insensitively using **String.equalsIgnoreCase**. It does not normalize Unicode and does not fully address locale-based natural language comparisons. If the requirement is Vietnamese sorting/searching, separate normalization, locale, and collation rules are needed.
 
-## 9. Khi nào Objects.equals chưa đủ?
+## 9. When Is Objects.equals Not Enough?
 
-- **Yêu cầu bắt buộc có dữ liệu:** nếu cả hai null vẫn là trạng thái không hợp lệ, dùng điều kiện kiểm tra tính tồn tại hoặc **Objects.requireNonNull** trước khi so.
-- **Mảng:** dùng phương thức của **Arrays** phù hợp với kiểu mảng và nhu cầu so từng tầng.
-- **So sánh không phân biệt chữ hoa/thường:** dùng **equalsIgnoreCase** hoặc quy tắc so sánh ngôn ngữ phù hợp; **Objects.equals** phân biệt nội dung chính xác theo **equals**.
-- **Unicode normalization:** hai String có hình thức hiển thị giống nhau nhưng khác NFC/NFD vẫn có thể không **equals**. Chuẩn hóa có chủ đích trước khi so nếu nghiệp vụ cần.
-- **So sánh dữ liệu số khác kiểu:** **Integer(10)** và **Long(10L)** không tự quy về cùng kiểu.
-- **Đối tượng nghiệp vụ không ghi đè equals:** **Objects.equals** không tạo ra bình đẳng theo thuộc tính; lớp phải tự định nghĩa và tuân thủ hợp đồng equals/hashCode.
-- **Sắp xếp:** **Objects.equals** chỉ trả về boolean, không cho quan hệ thứ tự. Khi cần thứ tự và null, dùng **Comparator.nullsFirst(...)** hoặc **Comparator.nullsLast(...)** với comparator phù hợp.
-- **Bảo vệ tính bí mật của giá trị:** **Objects.equals** không bảo đảm so sánh thời gian cố định. Với byte bí mật, cần API và thiết kế chuyên dụng phù hợp ngữ cảnh bảo mật.
+- **Mandatory data required:** if both being null is still an invalid state, use a presence check or **Objects.requireNonNull** before comparing.
+- **Arrays:** use **Arrays** methods appropriate for the array type and desired depth of comparison.
+- **Case-insensitive comparison:** use **equalsIgnoreCase** or appropriate language comparison rules; **Objects.equals** compares exact content via **equals**.
+- **Unicode normalization:** two Strings that look identical on screen but differ in NFC/NFD may still fail **equals**. Normalize intentionally before comparing if business rules require it.
+- **Comparing numeric data of different types:** **Integer(10)** and **Long(10L)** are not automatically coerced to the same type.
+- **Business objects that do not override equals:** **Objects.equals** does not manufacture attribute-based equality; the class must define and obey the equals/hashCode contract itself.
+- **Sorting:** **Objects.equals** only returns a boolean, not an ordering relation. When ordering with nulls is needed, use **Comparator.nullsFirst(...)** or **Comparator.nullsLast(...)** with an appropriate comparator.
+- **Protecting secret values:** **Objects.equals** does not guarantee constant-time comparison. For secret bytes, use dedicated APIs and designs suited to the security context.
 
-## 10. Những lỗi thường gặp
+## 10. Common Pitfalls
 
-| Lỗi | Hậu quả | Cách xử lý |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| **nullable.equals(value)** | **NullPointerException** nếu nullable null | **Objects.equals(nullable, value)** hoặc gọi trên hằng khác null |
-| Dùng **==** để so nội dung String | So tham chiếu, kết quả phụ thuộc việc hai biến có cùng đối tượng | Dùng **equals** hoặc **Objects.equals** |
-| Mặc định hai null không bao giờ bằng nhau | Hiểu sai kết quả API | Nhớ **Objects.equals(null, null)** là true; bổ sung điều kiện nghiệp vụ khi cần |
-| Dùng **Objects.equals** trên hai mảng mới | Có thể false dù các phần tử bằng nhau | Dùng **Arrays.equals/deepEquals** |
-| Cho rằng Objects.equals tự so trường của mọi object | Hai object khác nhau thường false nếu dùng **Object.equals** mặc định | Định nghĩa equals/hashCode trong lớp giá trị |
-| Ghi đè **equals** nhưng bỏ quên **hashCode** | Vi phạm hợp đồng, gây lỗi trong HashMap/HashSet | Ghi đè đồng thời, dựa trên các trường so sánh |
-| Xem **null** giống **""** | Mất khác biệt giữa vắng giá trị và chuỗi rỗng | Xác định quy tắc normalize đầu vào riêng |
-| Giả định so sánh bỏ qua chữ hoa/dấu | So sánh có thể false | Dùng logic chuẩn hóa và so sánh riêng theo yêu cầu |
-| Đặt đối tượng có trường equals/hashCode biến đổi vào HashSet | Khó tìm lại object sau khi trường thay đổi | Thiết kế key bất biến hoặc duy trì hợp đồng nhất quán |
+| **nullable.equals(value)** | **NullPointerException** if nullable is null | **Objects.equals(nullable, value)** or call on a non-null constant |
+| Using **==** to compare String content | Compares references; result depends on whether both variables point to the same object | Use **equals** or **Objects.equals** |
+| Assuming two nulls are never equal | Misinterprets API results | Remember **Objects.equals(null, null)** is true; add business conditions when needed |
+| Using **Objects.equals** on two newly created arrays | May return false even when elements match | Use **Arrays.equals/deepEquals** |
+| Assuming Objects.equals compares fields of any object | Two distinct objects usually return false if using default **Object.equals** | Define equals/hashCode in value classes |
+| Overriding **equals** while forgetting **hashCode** | Violates contract, causing bugs in HashMap/HashSet | Override both consistently based on the compared fields |
+| Treating **null** the same as **""** | Loses the distinction between absent value and empty string | Define separate input normalization rules |
+| Assuming comparison ignores case/diacritics | Comparison may return false | Use explicit normalization and comparison logic per requirements |
+| Putting an object with mutable equals/hashCode fields into a HashSet | Difficult to find the object again after fields change | Design immutable keys or maintain a consistent contract |
 
-## 11. Tự kiểm tra kiến thức
+## 11. Self-Check Knowledge Quiz
 
-1. **Objects.equals(null, null)** trả về gì? — **true**, vì hai tham chiếu cùng null.
-2. **Objects.equals(null, "x")** có ném NullPointerException không? — **Không**, nó trả về **false**.
-3. Vì sao **new String("x") == "x"** khác với **Objects.equals(new String("x"), "x")**? — Biểu thức đầu kiểm tra hai tham chiếu (false), biểu thức sau dùng String.equals so nội dung (true).
-4. **Objects.equals(new int[]{1, 2}, new int[]{1, 2})** có trả về true không? — **Không**, hai mảng khác tham chiếu; dùng **Arrays.equals** khi muốn so phần tử.
-5. Khi cả hai ID đều null, **Objects.equals(idA, idB)** trả về true. Có nên coi đó là cùng một tài khoản? — **Không mặc nhiên**; phải áp dụng ràng buộc mã định danh hợp lệ trong nghiệp vụ.
-6. Khi ghi đè **equals** trong lớp có trường String nullable, nên so trường đó bằng gì? — **Objects.equals(this.field, other.field)**, đồng thời bảo đảm **hashCode** phù hợp.
-7. Dùng cách nào nếu chỉ muốn biết trạng thái từ null sang một giá trị mới đã thay đổi? — **!Objects.equals(oldValue, newValue)**.
-8. Hai String cùng nội dung nhưng khác mã hóa dấu tiếng Việt có luôn equals không? — **Không**; nếu cần so canonical equivalence, phải chuẩn hóa Unicode nhất quán trước.
+1. What does **Objects.equals(null, null)** return? — **true**, because both references are null.
+2. Does **Objects.equals(null, "x")** throw NullPointerException? — **No**, it returns **false**.
+3. Why does **new String("x") == "x"** differ from **Objects.equals(new String("x"), "x")**? — The first expression compares two references (false), while the second uses String.equals to compare content (true).
+4. Does **Objects.equals(new int[]{1, 2}, new int[]{1, 2})** return true? — **No**, the two arrays have different references; use **Arrays.equals** to compare elements.
+5. When both IDs are null, **Objects.equals(idA, idB)** returns true. Should they be treated as the same account? — **Not automatically**; business logic must enforce valid identifier constraints.
+6. When overriding **equals** in a class with a nullable String field, how should that field be compared? — **Objects.equals(this.field, other.field)**, while ensuring a compatible **hashCode**.
+7. What approach checks whether a state has changed from null to a new value? — **!Objects.equals(oldValue, newValue)**.
+8. Are two Strings with the same text but different Vietnamese diacritic encodings always equal under equals()? — **No**; if canonical equivalence is needed, normalize Unicode consistently first.
 
-## 12. Ghi nhớ
+## 12. Key Takeaways
 
-**java.util.Objects.equals(a, b)** là cách ngắn gọn và an toàn để so sánh **hai tham chiếu có thể null**. Quy tắc cốt lõi là **(a == b) || (a != null && a.equals(b))**.
+**java.util.Objects.equals(a, b)** is a concise and safe way to compare **two references that may be null**. Its core rule is **(a == b) || (a != null && a.equals(b))**.
 
-Với String, nó so **nội dung**, thay vì dựa vào tính đồng nhất của đối tượng. Nó vẫn tuân theo **equals** do lớp triển khai: không tự chuẩn hóa văn bản, không tự bỏ qua chữ hoa/thường, không tự so sâu mọi mảng, và không tự xác thực rằng **null** là hợp lệ về mặt nghiệp vụ.
+For Strings, it compares **content** rather than relying on object identity. It still follows the **equals** implemented by the class: it does not auto-normalize text, does not ignore case, does not deep-compare arrays, and does not validate that **null** is valid in business terms.
 
-Khi dùng trong lớp của mình, hãy giữ đúng hợp đồng **equals/hashCode**, xác định ý nghĩa của null, và chọn phương thức so sánh tương ứng với loại dữ liệu thực tế.
+When using it in your own classes, uphold the **equals/hashCode** contract, define what null means, and pick the comparison method that matches the actual data type.
 
-**Tài liệu API:** Java SE 17 — **java.util.Objects.equals(Object, Object)**, **java.lang.Object.equals(Object)**, **java.lang.String.equals(Object)**, **java.util.Arrays.equals(...)** và **Arrays.deepEquals(...)**.
+**API Reference:** Java SE 17 — **java.util.Objects.equals(Object, Object)**, **java.lang.Object.equals(Object)**, **java.lang.String.equals(Object)**, **java.util.Arrays.equals(...)**, and **Arrays.deepEquals(...)**.

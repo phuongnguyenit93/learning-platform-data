@@ -1,28 +1,28 @@
-# Định dạng ít chữ số không sửa sai số của giá trị đang lưu trong Java
+# Formatting Fewer Digits Does Not Fix Error in a Stored Java Value
 
-Trong Java, một giá trị `double` có thể **hiển thị** thành `0.30` trong khi giá trị thực sự đang giữ là số dấu phẩy động gần `0.30000000000000004`. Việc yêu cầu `printf`, `String.format` hay `DecimalFormat` in hai chữ số sau dấu thập phân chỉ thay đổi **chuỗi trình bày**. Nó không cập nhật biến, không thay đổi các bit của `double` và không chữa sai số đã xuất hiện trong phép tính.
+In Java, a `double` value can **display** as `0.30` while the actual stored value is a floating-point number near `0.30000000000000004`. Asking `printf`, `String.format`, or `DecimalFormat` to print two digits after the decimal point only changes the **presentation string**. It does not update the variable, does not change the bits of the `double`, and does not cure errors that already occurred during computation.
 
-Bài học thuộc chủ đề **Sai số và ổn định**. Mục tiêu là phân biệt rõ (1) biểu diễn nhị phân được lưu, (2) chuỗi văn bản nhìn thấy, (3) phép làm tròn có chủ đích và (4) tính toán thập phân chính xác bằng `BigDecimal` khi miền nghiệp vụ yêu cầu. Sự khác biệt quyết định cách kiểm thử số thực, cộng dồn, xuất dữ liệu và tính toán tiền tệ.
+This lesson belongs to the **Error and stability** topic. The goal is to clearly distinguish (1) the stored binary representation, (2) the visible text string, (3) intentional rounding, and (4) exact decimal computation with `BigDecimal` when the business domain requires it. This distinction governs how you test floating-point numbers, accumulate sums, export data, and calculate money.
 
-## 1. Ba tầng thường bị đánh đồng
+## 1. Three Layers Often Conflated
 
-| Tầng | Ví dụ | Điều gì thực sự xảy ra? |
+| Layer | Example | What actually happens? |
 | --- | --- | --- |
-| Giá trị đang lưu trong `double` | `double sum = 0.1 + 0.2;` | Máy lưu mẫu bit của một giá trị `double` gần tổng toán học |
-| Chuỗi dùng để hiển thị | `String.format(Locale.ROOT, "%.2f", sum)` | Tạo chuỗi `"0.30"`; **không sửa `sum`** |
-| Giá trị đã được làm tròn/định lượng lại | `Math.round(sum * 100.0) / 100.0` | Tính và gán một **giá trị `double` mới** (nhưng vẫn là binary floating point) |
-| Số thập phân theo chính sách | `new BigDecimal("0.30")` | Lưu số thập phân bằng `BigDecimal`, có thể làm tròn theo `RoundingMode` |
+| Value stored in `double` | `double sum = 0.1 + 0.2;` | Machine stores the bit pattern of a `double` value close to the mathematical sum |
+| String used for display | `String.format(Locale.ROOT, "%.2f", sum)` | Creates string `"0.30"`; **does not modify `sum`** |
+| Re-rounded / quantized value | `Math.round(sum * 100.0) / 100.0` | Computes and assigns a **new `double` value** (still binary floating point) |
+| Policy-based decimal number | `new BigDecimal("0.30")` | Stores a decimal number in `BigDecimal`, roundable via `RoundingMode` |
 
-Hai khái niệm quan trọng:
+Two key concepts:
 
-- **Formatting**: biến đổi *cách thể hiện một giá trị* thành ký tự. Số chữ số in ra không đồng nghĩa số chữ số được lưu.
-- **Rounding**: tạo kết quả số học hoặc thập phân mới theo một quy tắc làm tròn. Nó có thể thay đổi kết quả được giữ nếu bạn thực sự gán lại, nhưng không đảm bảo một `double` trở thành thập phân chính xác.
+- **Formatting**: transforms *how a value is presented* into characters. The number of printed digits does not equal the number of stored digits.
+- **Rounding**: produces a new arithmetic or decimal result according to a rounding rule. It can change the retained result if you actually reassign it, yet it does not guarantee a `double` becomes an exact decimal.
 
-Ngay cả khi màn hình, log, bảng hay JSON được yêu cầu “hiển thị ngắn”, bản thân những phép tính trước đó vẫn đã được thực thi trên giá trị đang lưu.
+Even when a screen, log, table, or JSON payload is asked to "display concisely," the prior calculations were still executed on the stored value itself.
 
-## 2. Vì sao `0.1 + 0.2` không bằng chính xác `0.3`?
+## 2. Why Does `0.1 + 0.2` Not Equal `0.3` Exactly?
 
-`float` và `double` dùng dạng dấu phẩy động nhị phân IEEE 754. Phần lớn phân số thập phân như 0.1, 0.2 và 0.3 có biểu diễn nhị phân **vô hạn tuần hoàn**, nên cần làm tròn về mẫu bit gần nhất khi lưu ở độ rộng hữu hạn. Khi cộng hai toán hạng đã được làm tròn, kết quả tiếp tục được làm tròn theo quy tắc dấu phẩy động.
+`float` and `double` use IEEE 754 binary floating-point representation. Most decimal fractions such as 0.1, 0.2, and 0.3 have **infinite repeating** binary representations, so they must be rounded to the nearest bit pattern when stored in a finite width. When adding two already-rounded operands, the result is rounded again according to floating-point rules.
 
 ~~~java
 double sum = 0.1 + 0.2;
@@ -31,11 +31,11 @@ System.out.println(sum == 0.3);      // false
 System.out.println(sum - 0.3);       // 5.551115123125783E-17
 ~~~
 
-`0.3` dưới dạng literal `double` cũng là số nhị phân xấp xỉ, nhưng biểu diễn đó **khác một khoảng rất nhỏ** so với kết quả `0.1 + 0.2`. Toán tử `==` so sánh hai giá trị dấu phẩy động đang lưu theo quy tắc Java, không tự áp dụng dung sai thập phân.
+`0.3` as a `double` literal is also an approximate binary number, yet its representation **differs by a tiny amount** from the result of `0.1 + 0.2`. The `==` operator compares two stored floating-point values under Java rules and does not automatically apply a decimal tolerance.
 
-Đầu ra mặc định của `Double.toString` và `System.out.println(double)` thường là dạng thập phân ngắn đủ để đọc lại đúng mẫu bit (`shortest round-trip representation`), **không phải bản khai triển thập phân đầy đủ của bit lưu trữ**. Để thấy giá trị thập phân chính xác tương ứng với `double`, có thể dùng `new BigDecimal(sum)` cho mục đích phân tích. Phương pháp đó khác với cách khởi tạo `BigDecimal` được khuyến nghị cho dữ liệu thập phân chính xác.
+The default output of `Double.toString` and `System.out.println(double)` is usually a short decimal form sufficient to read back the exact same bit pattern (`shortest round-trip representation`), **not the full exact decimal expansion of the stored bits**. To see the exact decimal value corresponding to a `double`, you can use `new BigDecimal(sum)` for inspection purposes. That technique differs from the recommended way to construct `BigDecimal` for exact decimal data.
 
-## 3. `String.format` và `printf` chỉ thay đổi những gì được nhìn thấy
+## 3. `String.format` and `printf` Only Change What Is Visible
 
 ~~~java
 double sum = 0.1 + 0.2;
@@ -44,23 +44,23 @@ System.out.println(display); // 0.30
 System.out.println(sum);     // 0.30000000000000004
 ~~~
 
-`%.2f` yêu cầu định dạng cố định với hai chữ số sau dấu thập phân. Formatter tạo chuỗi, **không gán ngược vào biến `sum`**. Tương tự:
+`%.2f` requests fixed formatting with two digits after the decimal point. The formatter produces a string and **does not assign back into `sum`**. Similarly:
 
 ~~~java
-System.out.printf(java.util.Locale.ROOT, "Kết quả: %.2f%n", sum);
-// In: Kết quả: 0.30
-// Không sửa giá trị của sum
+System.out.printf(java.util.Locale.ROOT, "Result: %.2f%n", sum);
+// Prints: Result: 0.30
+// Does not modify the value of sum
 ~~~
 
-Với `DecimalFormat`, một mẫu như `"0.00"` cũng quy định **cách trình bày**. `DecimalFormat` có các quy tắc riêng về locale, pattern và rounding mode; không nên suy đoán rằng mọi formatter có chính sách làm tròn giống nhau trong trường hợp ở đúng điểm giữa.
+With `DecimalFormat`, a pattern like `"0.00"` also specifies **presentation**. `DecimalFormat` has its own rules for locale, pattern, and rounding mode; do not assume every formatter shares the same rounding policy at exact midpoints.
 
-Dấu phân cách thập phân có thể phụ thuộc locale: mặc định của máy tại một quốc gia có thể dùng dấu phẩy. Khi cần xuất văn bản máy đọc hoặc một ví dụ có output xác định, chỉ định `Locale.ROOT` hoặc một locale cố định phù hợp. Khi hiển thị cho người dùng, chọn locale theo yêu cầu giao diện.
+The decimal separator can depend on locale: a machine's default in one country may use a comma. When machine-readable text output or deterministic output in an example is needed, specify `Locale.ROOT` or an appropriate fixed locale. When displaying to users, choose the locale per UI requirements.
 
-**Lỗi tư duy phổ biến:** thấy `0.30` trong log và kết luận phép tính đã chính xác tới hai chữ số. Log chỉ thể hiện một bản rút gọn, có thể giấu chênh lệch đủ lớn để ảnh hưởng so sánh, ngưỡng quyết định hoặc phép tính tiếp theo.
+**Common thinking trap:** seeing `0.30` in logs and concluding the calculation is accurate to two digits. Logs only show a shortened view, which can hide discrepancies large enough to affect comparisons, decision thresholds, or subsequent calculations.
 
-## 4. Ví dụ Java 17+ chạy độc lập
+## 4. Standalone Java 17+ Example
 
-Lưu tệp tên `DisplayVsValue.java`:
+Save the file named `DisplayVsValue.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -104,14 +104,14 @@ public class DisplayVsValue {
 }
 ~~~
 
-Biên dịch và chạy bằng Java 17 hoặc mới hơn:
+Compile and run with Java 17 or newer:
 
 ~~~bash
 javac DisplayVsValue.java
 java DisplayVsValue
 ~~~
 
-Stdout chính xác:
+Exact stdout:
 
 ~~~text
 raw sum = 0.30000000000000004
@@ -130,35 +130,35 @@ rounded double == 0.3 = true
 rounded double exact = 0.299999999999999988897769753748434595763683319091796875
 ~~~
 
-Đối chiếu:
+Comparison:
 
-- Ba dòng đầu cho thấy chuỗi `0.30` **không thay đổi biến gốc**.
-- Sau khi parse chuỗi `"0.30"`, ta nhận `double` được biểu diễn ngắn là `0.3`; giá trị này **khác** kết quả ban đầu `0.1 + 0.2`. Đây là một lần chuyển đổi dữ liệu mới, không phải tác dụng phụ của `String.format`.
-- `BigDecimal.valueOf(result)` thu được số thập phân `0.30000000000000004` dựa trên chuỗi dạng ngắn của `double`, trong khi `new BigDecimal(result)` biểu diễn **chính xác giá trị nhị phân đã lưu dưới dạng thập phân**. Hai cách chuyển đổi có mục đích khác nhau.
-- `setScale(2, HALF_UP)` trả đối tượng `BigDecimal` mới với hai chữ số lẻ và chính sách làm tròn tường minh.
-- `Math.round(...)/100.0` đã tạo một `double` mới bằng với literal `0.3` về bit, **nhưng bản thân `double` đó vẫn không lưu được 0.3 thập phân chính xác**; dòng cuối cho thấy biểu diễn thập phân đầy đủ.
+- The first three lines show that the string `0.30` **does not alter the original variable**.
+- After parsing `"0.30"`, we obtain a `double` whose short representation is `0.3`; this value **differs** from the original `0.1 + 0.2` result. That is a new data conversion, not a side effect of `String.format`.
+- `BigDecimal.valueOf(result)` yields the decimal `0.30000000000000004` based on `double`'s short string form, whereas `new BigDecimal(result)` represents **the exact stored binary value in decimal form**. The two conversions serve different purposes.
+- `setScale(2, HALF_UP)` returns a new `BigDecimal` object with two decimal places and an explicit rounding policy.
+- `Math.round(...)/100.0` created a new `double` matching the `0.3` literal at the bit level, **yet that `double` itself still cannot store exact decimal 0.3**; the last line shows its full decimal representation.
 
-## 5. Định dạng, parse và gán lại là ba hành động khác nhau
+## 5. Formatting, Parsing, and Reassigning Are Three Different Actions
 
-Giả sử:
+Suppose:
 
 ~~~java
 double x = 0.1 + 0.2;
 String text = String.format(java.util.Locale.ROOT, "%.2f", x);
 ~~~
 
-Sau hai dòng, `x` **vẫn bằng** `0.30000000000000004`. Nếu sau đó gọi `Double.parseDouble(text)`, một giá trị `double` **mới** được tính từ chuỗi định dạng. Chỉ khi bạn chủ động dùng giá trị mới, ví dụ `x = Double.parseDouble(text)`, biến `x` mới thay đổi.
+After these two lines, `x` **still equals** `0.30000000000000004`. If you later call `Double.parseDouble(text)`, a **new** `double` value is computed from the formatted string. Only when you explicitly use that new value, e.g., `x = Double.parseDouble(text)`, does the variable `x` change.
 
-Việc format rồi parse không phải phương pháp tổng quát để sửa tính chính xác:
+Formatting and then parsing is not a general-purpose way to fix precision:
 
-1. Bạn đã **loại bỏ thông tin** theo độ dài hiển thị. Hai giá trị thực sự khác nhau có thể cùng thành chuỗi `"0.30"`.
-2. Chuỗi có thể dùng dấu thập phân, dấu nhóm hàng nghìn hoặc chữ số theo locale; `Double.parseDouble` không phải bộ parse tùy locale.
-3. Giá trị parse lại vẫn là `double` nhị phân. Nhiều phân số thập phân vẫn **không biểu diễn được chính xác**.
-4. Việc format/parse trong mỗi bước tính thay đổi thuật toán theo cách khó kiểm soát và có thể tạo sai lệch do làm tròn lặp lại.
+1. You **discard information** according to the display length. Two genuinely different values can turn into the same `"0.30"` string.
+2. Strings may use locale-specific decimal separators, grouping separators, or digits; `Double.parseDouble` is not a locale-aware parser.
+3. The parsed-back value is still a binary `double`. Many decimal fractions still **cannot be represented accurately**.
+4. Formatting/parsing at every calculation step alters the algorithm in hard-to-control ways and can introduce drift from repeated rounding.
 
-Nếu yêu cầu thực tế là lưu giá trị đã lượng tử hóa tới một số chữ số, hãy định nghĩa **quy tắc lượng tử hóa số học** cụ thể, rồi lưu kết quả theo kiểu phù hợp. Nếu chỉ cần hiển thị, chỉ định dạng ở bước xuất dữ liệu.
+If the actual requirement is to store a value quantized to a specific number of digits, define an explicit **arithmetic quantization rule** and store the result in an appropriate type. If only display is needed, format solely at the output step.
 
-## 6. `Math.round` tạo một số khác nhưng không chuyển sang số thập phân chính xác
+## 6. `Math.round` Produces Another Number, Not an Exact Decimal
 
 ~~~java
 double x = 0.1 + 0.2;
@@ -166,23 +166,23 @@ double rounded = Math.round(x * 100.0) / 100.0;
 System.out.println(rounded); // 0.3
 ~~~
 
-Trong ví dụ, `rounded` không còn cùng mẫu bit với `x`. Điều đó khác về bản chất với `String.format`, vì phép tính đã thực sự tạo một số mới. Tuy nhiên kết quả vẫn thuộc **kiểu `double`**, nên không thể biểu diễn chính xác phần lớn phân số thập phân như 0.3.
+In this example, `rounded` no longer shares the same bit pattern as `x`. That differs fundamentally from `String.format`, because the calculation actually produced a new number. However, the result is still of **type `double`**, so it cannot accurately represent most decimal fractions like 0.3.
 
-Biểu thức `Math.round(x * 100.0) / 100.0` cũng **không phải công thức làm tròn thập phân an toàn cho mọi giá trị**. Nó có thể gặp vấn đề với số rất lớn, overflow khi nhân trước, NaN/vô cực, và cách xử lý điểm giữa đối với số âm. `Math.round` làm tròn theo quy tắc riêng của nó; đừng mặc định quy tắc đó phù hợp hóa đơn hay chính sách tài chính.
+The expression `Math.round(x * 100.0) / 100.0` is also **not a safe decimal rounding formula for all values**. It can run into issues with very large numbers, overflow during the initial multiplication, NaN/infinity, and midpoint handling for negative numbers. `Math.round` rounds by its own rule; do not assume that rule matches invoicing or financial policies.
 
-Ví dụ sự khác biệt giữa chính sách làm tròn và hiển thị:
+Example showing the difference between a rounding policy and display:
 
 ~~~java
 BigDecimal amount = new BigDecimal("1.005");
 BigDecimal rounded = amount.setScale(2, RoundingMode.HALF_UP);
-// rounded = 1.01 (số thập phân với scale 2)
+// rounded = 1.01 (decimal number with scale 2)
 ~~~
 
-`setScale` trả **một `BigDecimal` mới** (đối tượng gốc không thay đổi), và `RoundingMode.HALF_UP` mô tả rõ cách xử lý chữ số bị bỏ. Cùng một dữ liệu có thể dùng chính sách khác, ví dụ `HALF_EVEN`, nếu nghiệp vụ yêu cầu. Đừng chọn một chính sách chỉ vì giao diện in hai chữ số.
+`setScale` returns **a new `BigDecimal`** (the original object is unchanged), and `RoundingMode.HALF_UP` explicitly describes how dropped digits are handled. The same data can use a different policy, such as `HALF_EVEN`, if the business requires it. Do not pick a policy just because the UI prints two digits.
 
-## 7. Khi nào nên dùng `BigDecimal`?
+## 7. When Should `BigDecimal` Be Used?
 
-Nếu miền dữ liệu đòi hỏi phép cộng, trừ, nhân và lượng tử hóa **thập phân theo quy tắc chính xác**, chẳng hạn số tiền, giá niêm yết hay đơn vị đo quy đổi có bước thập phân cố định, `BigDecimal` thường phù hợp hơn `double`.
+If the data domain demands **exact rule-based decimal** addition, subtraction, multiplication, and quantization—such as monetary amounts, list prices, or unit conversions with fixed decimal steps—`BigDecimal` is generally more appropriate than `double`.
 
 ~~~java
 BigDecimal first = new BigDecimal("0.10");
@@ -191,29 +191,29 @@ BigDecimal sum = first.add(second);
 System.out.println(sum); // 0.30
 ~~~
 
-Ở đây chuỗi `"0.10"` và `"0.20"` xác định số thập phân chính xác. Điều quan trọng là **xây dựng dữ liệu đúng ngay từ nguồn**:
+Here, the strings `"0.10"` and `"0.20"` specify exact decimal numbers. It is crucial to **construct data properly right at the source**:
 
-- `new BigDecimal("0.1")`: biểu diễn giá trị thập phân 0.1 chính xác.
-- `BigDecimal.valueOf(0.1)`: sử dụng dạng chuỗi chuẩn `Double.toString(0.1)`, tạo `BigDecimal` bằng 0.1. Hữu ích khi nhận giá trị `double` đã tồn tại nhưng **không biết ý định thập phân ban đầu**.
-- `new BigDecimal(0.1)`: nhận chính xác giá trị nhị phân đã lưu của literal `double`, không phải chính xác con số thập phân 0.1 được viết trong mã.
-- `BigDecimal.valueOf(0.1 + 0.2)`: trở thành `0.30000000000000004`, **không tự phục hồi phép cộng thập phân 0.10 + 0.20**.
+- `new BigDecimal("0.1")`: represents the exact decimal value 0.1.
+- `BigDecimal.valueOf(0.1)`: uses the canonical string form `Double.toString(0.1)`, creating a `BigDecimal` equal to 0.1. Useful when receiving an existing `double` value while **not knowing the original decimal intent**.
+- `new BigDecimal(0.1)`: takes the exact stored binary value of the `double` literal, not the exact decimal number 0.1 written in code.
+- `BigDecimal.valueOf(0.1 + 0.2)`: becomes `0.30000000000000004`, **failing to recover the decimal addition 0.10 + 0.20**.
 
-Vì vậy chuyển sang `BigDecimal` **sau** khi sai số đã xuất hiện trong các phép tính `double` không bảo đảm phục hồi giá trị mà người dùng dự định nhập. Khi có thể, parse trực tiếp chuỗi thập phân gốc hoặc nhận `BigDecimal` từ lớp dữ liệu có hợp đồng chính xác, rồi tính toán bằng `BigDecimal` ngay từ đầu.
+Therefore, converting to `BigDecimal` **after** errors have already arisen in `double` calculations does not guarantee recovering the value the user intended to enter. Whenever possible, parse original decimal strings directly or receive `BigDecimal` from a data layer with an exact contract, and perform calculations in `BigDecimal` from the start.
 
-`BigDecimal` cũng cần quy tắc chia: `BigDecimal.ONE.divide(new BigDecimal("3"))` không thể biểu diễn thương thập phân hữu hạn và sẽ ném `ArithmeticException` nếu không chỉ định scale hoặc `MathContext` phù hợp. Kiểu thập phân không loại bỏ nhu cầu thiết kế chính sách làm tròn.
+`BigDecimal` also needs division rules: `BigDecimal.ONE.divide(new BigDecimal("3"))` cannot represent a finite decimal quotient and will throw `ArithmeticException` unless an appropriate scale or `MathContext` is specified. A decimal type does not eliminate the need to design a rounding policy.
 
-## 8. Sai số có thể ảnh hưởng cả so sánh và thuật toán
+## 8. Errors Can Affect Both Comparisons and Algorithms
 
-### So sánh số thực
+### Comparing Floating-Point Numbers
 
 ~~~java
 double x = 0.1 + 0.2;
 if (x == 0.3) {
-    // Nhánh này không chạy trong ví dụ
+    // This branch does not run in the example
 }
 ~~~
 
-In hai giá trị với `%.2f` có thể cho `0.30` ở cả hai phía, dù `x == 0.3` là `false`. Để **so sánh gần bằng**, cần định nghĩa tolerance theo đơn vị và miền giá trị. Ví dụ đơn giản cho số hữu hạn với trị tuyệt đối không quá lớn:
+Printing both values with `%.2f` can show `0.30` on both sides, even though `x == 0.3` is `false`. For **approximate comparison**, define a tolerance based on units and value domain. A simple example for finite numbers whose magnitudes are not overly large:
 
 ~~~java
 static boolean nearlyEqual(double a, double b, double eps) {
@@ -225,60 +225,60 @@ static boolean nearlyEqual(double a, double b, double eps) {
 }
 ~~~
 
-Đây là **phương thức minh họa**, cần đặt bên trong một class. Với các số có độ lớn rất lớn hoặc rất nhỏ, phép trừ có thể mất thông tin, overflow; tolerance tương đối hoặc kiểm tra theo ULP có thể thích hợp hơn tùy bài toán. Không dùng comparator theo epsilon trong `TreeSet`/`TreeMap` vì tính “gần bằng” có thể không bắc cầu, vi phạm hợp đồng sắp thứ tự.
+This is an **illustrative method** to be placed inside a class. For numbers of very large or very small magnitude, subtraction can lose information or overflow; relative tolerance or ULP-based checks may be more suitable depending on the problem. Do not use an epsilon-based comparator in `TreeSet`/`TreeMap`, because "near equality" may not be transitive, violating the ordering contract.
 
-### Mất chính xác do triệt tiêu
+### Loss of Precision Due to Cancellation
 
-Định dạng cũng không thể cứu thông tin đã mất khi cộng/trừ số chênh lệch lớn:
+Formatting also cannot rescue information lost when adding/subtracting numbers of widely differing magnitudes:
 
 ~~~java
 double large = 1e16;
 double difference = (large + 1.0) - large;
-System.out.println(difference); // 0.0, không phải 1.0
+System.out.println(difference); // 0.0, not 1.0
 ~~~
 
-Ở độ lớn `1e16`, một thay đổi bằng `1.0` quá nhỏ để biểu diễn thành một `double` khác ở bước cộng. Bước trừ phía sau không có cách nào phục hồi phần thông tin đã bị làm tròn. In `0.000000` thay vì `0.0` chỉ thay đổi chữ viết của kết quả.
+At magnitude `1e16`, a change of `1.0` is too small to be represented as a distinct `double` at the addition step. The subsequent subtraction has no way to recover the rounded-away information. Printing `0.000000` instead of `0.0` only alters the text written for the result.
 
-Đây là lý do phân biệt **hiển thị số đẹp** với **thuật toán số học ổn định**: sai số và thứ tự phép toán cần được đánh giá ngay trong thiết kế tính toán.
+This is why you must separate **pretty number display** from **numerically stable algorithms**: error and operation order must be evaluated right in the computation design.
 
-## 9. Chọn cách xử lý theo mục đích
+## 9. Choosing the Approach Based on Purpose
 
-| Mục đích | Lựa chọn phù hợp | Điều phải kiểm tra |
+| Purpose | Suitable choice | What must be checked |
 | --- | --- | --- |
-| Chỉ in số dễ đọc cho người dùng | `String.format`, `printf`, `DecimalFormat` | Locale, số chữ số, quy tắc định dạng |
-| Gửi giá trị dùng cho round-trip mà không mất thông tin do rút ngắn tùy ý | `Double.toString` hoặc định dạng có round-trip được bảo đảm | Cách parse tương ứng, NaN/Infinity nếu có |
-| So sánh kết quả số thực gần nhau | Tolerance có hợp đồng rõ | Miền giá trị, finite, lỗi số học, tuyệt đối/tương đối |
-| Lưu số đã định lượng theo bước thập phân | `BigDecimal` và `setScale(..., RoundingMode)` | Scale, rounding policy, nguồn dữ liệu |
-| Tính toán tiền tệ thập phân | `BigDecimal` từ chuỗi gốc hoặc dữ liệu decimal chuẩn | Không đi qua phép tính `double` gây sai số trước đó |
-| Đo đạc/khoa học chấp nhận sai số | `double`/`float` + kiểm soát sai số | Tính ổn định, phạm vi, overflow/underflow |
+| Printing readable numbers for users only | `String.format`, `printf`, `DecimalFormat` | Locale, digit count, formatting rules |
+| Sending values for round-trip without arbitrary truncation loss | `Double.toString` or a round-trip-guaranteed format | Corresponding parsing, NaN/Infinity if present |
+| Comparing close floating-point results | Tolerance with a clear contract | Value range, finiteness, numerical error, absolute/relative |
+| Storing values quantized to decimal steps | `BigDecimal` and `setScale(..., RoundingMode)` | Scale, rounding policy, data source |
+| Decimal monetary calculations | `BigDecimal` from original strings or standard decimal data | Do not pass through `double` computations that introduce prior error |
+| Measurements/science tolerating error | `double`/`float` + error control | Stability, range, overflow/underflow |
 
-**Xuất dữ liệu cũng cần chú ý:** Nếu một hệ thống xuất số `double` dưới dạng chuỗi hai chữ số rồi hệ thống khác parse lại, đó là **thay đổi độ chính xác dữ liệu trao đổi**. Có thể là một quyết định sản phẩm có chủ đích, nhưng không còn là truyền nguyên vẹn cùng giá trị ban đầu. Đặc biệt, độ phân giải nhỏ hơn `0.01` có thể bị mất.
+**Exporting data also requires care:** If one system exports a `double` as a two-digit string and another system parses it back, that is **changing the precision of the exchanged data**. It may be an intentional product decision, yet it is no longer transmitting the exact original value intact. In particular, resolution finer than `0.01` can be lost.
 
-## 10. Lỗi thường gặp
+## 10. Common Pitfalls
 
-1. **Cho rằng chuỗi `"0.30"` chứng minh `sum == 0.3`.** Hai giá trị có thể được in giống nhau dù khác nhau ở các bit thấp.
-2. **Ghi đè log bằng một chuỗi làm tròn rồi mất khả năng chẩn đoán.** Khi cần debug sai số, lưu thêm dạng đủ chính xác (`Double.toString`, bit nếu cần) hoặc nguồn đầu vào.
-3. **Format rồi parse để “chữa” sai số.** Việc này chủ động loại bỏ thông tin và vẫn tạo một `double` xấp xỉ.
-4. **Đồng nhất `Math.round` với định dạng.** `Math.round` thực sự tính giá trị mới, nhưng vẫn giữ loại số nhị phân nếu kết quả cuối là `double` và không phù hợp mọi quy tắc thập phân.
-5. **Chuyển `new BigDecimal(double)` rồi cho rằng nhận được decimal người dùng đã nhập.** Constructor này giữ **chính xác biểu diễn nhị phân** của đối số; cần nguồn chuỗi thập phân ban đầu nếu muốn decimal chính xác.
-6. **Chỉ sửa số chữ số hiển thị để xử lý tích lũy sai số.** Sai số có thể đã ảnh hưởng các nhánh `if`, giới hạn ngưỡng, tổng, trung bình trước thời điểm format.
-7. **Dùng số chữ số in ra làm bằng chứng chính xác nghiệp vụ.** Hai chữ số thập phân trên hóa đơn cần chính sách tính tiền, làm tròn, cộng dồn và thuế được định nghĩa nhất quán.
-8. **Không quy định locale và đầu ra máy đọc.** Dấu phân cách, nhóm chữ số và giá trị đặc biệt có thể khiến việc parse không đúng nếu hai hệ thống dùng quy ước khác nhau.
+1. **Assuming the string `"0.30"` proves `sum == 0.3`.** Two values can print identically while differing in their low-order bits.
+2. **Overwriting logs with a rounded string and losing diagnostic capability.** When debugging numerical errors, also log a sufficiently precise form (`Double.toString`, bits if needed) or the raw input.
+3. **Formatting then parsing to "fix" error.** This actively discards information and still yields an approximate `double`.
+4. **Equating `Math.round` with formatting.** `Math.round` actually computes a new value, yet keeps a binary type if the final result is `double` and does not fit all decimal rules.
+5. **Passing `new BigDecimal(double)` and assuming you get the decimal the user entered.** This constructor preserves **the exact binary representation** of the argument; an original decimal string source is needed if exact decimals are desired.
+6. **Adjusting only displayed digits to address accumulated error.** Errors may have already affected `if` branches, thresholds, sums, and averages prior to formatting.
+7. **Using printed digit count as proof of business accuracy.** Two decimal places on an invoice require consistently defined billing, rounding, summation, and tax policies.
+8. **Failing to specify locale and machine-readable output.** Separators, digit grouping, and special values can cause misparsing if two systems use different conventions.
 
-## 11. Câu hỏi tự kiểm tra
+## 11. Self-Check Questions
 
-1. Nếu `double x = 0.1 + 0.2;` và `String.format(Locale.ROOT, "%.2f", x)` cho `"0.30"`, `x == 0.3` có trở thành `true` không?
-2. `Double.parseDouble("0.30")` có nhất thiết lưu đúng giá trị nhị phân đang có trong `0.1 + 0.2` không?
-3. Sau `double y = Math.round(x * 100) / 100.0;`, `y` đã trở thành số thập phân chính xác chưa?
-4. `new BigDecimal(0.1)` và `new BigDecimal("0.1")` có biểu diễn cùng số thập phân chính xác không?
-5. Khi nào phải dùng `BigDecimal` từ nguồn dữ liệu và khi nào `double` với kiểm soát sai số vẫn hợp lý?
+1. If `double x = 0.1 + 0.2;` and `String.format(Locale.ROOT, "%.2f", x)` produces `"0.30"`, does `x == 0.3` become `true`?
+2. Does `Double.parseDouble("0.30")` necessarily store the exact same binary value currently in `0.1 + 0.2`?
+3. After `double y = Math.round(x * 100) / 100.0;`, has `y` become an exact decimal number?
+4. Do `new BigDecimal(0.1)` and `new BigDecimal("0.1")` represent the exact same decimal number?
+5. When must `BigDecimal` be used from the data source, and when is `double` with error control still reasonable?
 
-**Đáp án:** (1) Không; formatting không thay đổi `x` nên so sánh vẫn `false`. (2) Không; parse chuỗi ngắn tạo mẫu bit cho literal `0.3`, khác bit của `0.1 + 0.2`. (3) Chưa: kết quả là `double` mới, có thể gần một số thập phân tròn nhưng vẫn là biểu diễn nhị phân xấp xỉ. (4) Không; constructor nhận `double` phản ánh chính xác giá trị nhị phân gần 0.1, constructor nhận chuỗi biểu diễn số thập phân 0.1. (5) Dùng `BigDecimal` khi cần số học thập phân và chính sách scale/rounding xác định; `double` thích hợp nhiều phép đo, tính khoa học và thuật toán biết cách kiểm soát sai số.
+**Answers:** (1) No; formatting does not modify `x`, so the comparison remains `false`. (2) No; parsing the short string produces the bit pattern for the `0.3` literal, which differs from the bits of `0.1 + 0.2`. (3) Not yet: the result is a new `double`, which may be close to a round decimal number yet remains an approximate binary representation. (4) No; the `double` constructor reflects the exact binary value near 0.1, while the string constructor represents the decimal number 0.1. (5) Use `BigDecimal` when decimal arithmetic and explicit scale/rounding policies are required; `double` fits many measurements, scientific computations, and algorithms where error is controlled.
 
-## Tài liệu tham khảo
+## References
 
 - [Java Language Specification `4.2.3 — Floating-Point Types](https://docs.oracle.com/javase/specs/jls/se21/html/jls-4.html#jls-4.2.3).
-- [Java SE 21 API — Double](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Double.html): `toString`, `parseDouble` và giá trị dấu phẩy động.
-- [Java SE 21 API — Formatter](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Formatter.html): các dạng format dấu phẩy động, độ chính xác và locale.
-- [Java SE 21 API — BigDecimal](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html): constructor `String`/`double`, `valueOf`, `setScale`.
-- [Java SE 21 API — RoundingMode](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/RoundingMode.html): quy tắc làm tròn.
+- [Java SE 21 API — Double](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Double.html): `toString`, `parseDouble`, and floating-point values.
+- [Java SE 21 API — Formatter](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Formatter.html): floating-point format specifiers, precision, and locale.
+- [Java SE 21 API — BigDecimal](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html): `String`/`double` constructors, `valueOf`, `setScale`.
+- [Java SE 21 API — RoundingMode](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/RoundingMode.html): rounding rules.

@@ -1,46 +1,46 @@
-# Overflow số nguyên và hiện tượng quay vòng trong Java
+# Integer Overflow and Wrap-Around Behavior in Java
 
-Trong Java, **overflow (tràn số nguyên)** xảy ra khi kết quả toán học của một phép tính nằm ngoài phạm vi biểu diễn của kiểu số nguyên đang thực hiện phép tính. Với phép cộng, trừ và nhân thông thường trên `int` hoặc `long`, Java giữ lại mẫu bit có độ rộng cố định. Vì vậy giá trị có thể **quay vòng** từ giá trị dương lớn nhất sang giá trị âm nhỏ nhất, hoặc theo chiều ngược lại, mà **không có ngoại lệ tự động**.
+In Java, **integer overflow** occurs when the mathematical result of an operation falls outside the representable range of the integer type performing the operation. For ordinary addition, subtraction, and multiplication on `int` or `long`, Java retains the fixed-width bit pattern. As a result, the value can **wrap around** from the largest positive value to the smallest negative value, or in the reverse direction, **without an automatic exception**.
 
-Ví dụ tiêu biểu:
+Typical example:
 
 ```java
 int max = Integer.MAX_VALUE; // 2147483647
-int wrapped = max + 1;       // -2147483648, không ném exception
+int wrapped = max + 1;       // -2147483648, does not throw an exception
 ```
 
-Hai khai báo trên là mã minh họa đặt trong phương thức Java. Giá trị toán học đúng của `2_147_483_647 + 1` là `2_147_483_648`, nhưng một phép cộng `int` không thể chứa giá trị ấy. Muốn hiểu tại sao kết quả biến thành số âm, cần nhìn cả **giới hạn kiểu, mẫu bit bù hai và thứ tự chuyển kiểu**.
+The two declarations above are illustrative code placed inside a Java method. The exact mathematical value of `2_147_483_647 + 1` is `2_147_483_648`, but an `int` addition cannot hold that value. To understand why the result turns negative, we need to look at **type limits, two's complement bit patterns, and conversion order**.
 
-## 1. Phạm vi của các kiểu số nguyên
+## 1. Ranges of Integer Types
 
-| Kiểu | Độ rộng | Giá trị nhỏ nhất | Giá trị lớn nhất |
+| Type | Width | Minimum Value | Maximum Value |
 | --- | ---: | ---: | ---: |
-| `byte` | 8 bit có dấu | -128 | 127 |
-| `short` | 16 bit có dấu | -32_768 | 32_767 |
-| `int` | 32 bit có dấu | -2_147_483_648 | 2_147_483_647 |
-| `long` | 64 bit có dấu | -9_223_372_036_854_775_808 | 9_223_372_036_854_775_807 |
+| `byte` | 8-bit signed | -128 | 127 |
+| `short` | 16-bit signed | -32_768 | 32_767 |
+| `int` | 32-bit signed | -2_147_483_648 | 2_147_483_647 |
+| `long` | 64-bit signed | -9_223_372_036_854_775_808 | 9_223_372_036_854_775_807 |
 
-Các kiểu nguyên có dấu của Java dùng **biểu diễn bù hai (two's complement)**. Đối với một kiểu `w` bit, miền giá trị là từ `-2^(w-1)` đến `2^(w-1) - 1`. Một bit được dành cho ý nghĩa dấu; có nhiều hơn một giá trị âm so với giá trị dương.
+Java's signed integer types use **two's complement representation**. For a `w`-bit type, the value range is from `-2^(w-1)` to `2^(w-1) - 1`. One bit is reserved for the sign meaning; there is one more negative value than positive values.
 
-Các hằng số thường dùng để kiểm tra ranh giới gồm `Byte.MIN_VALUE`, `Short.MAX_VALUE`, `Integer.MIN_VALUE`, `Integer.MAX_VALUE`, `Long.MIN_VALUE`, `Long.MAX_VALUE`. `char` cũng là kiểu nguyên thủy 16 bit nhưng **không dấu** (0–65_535), chủ yếu chứa đơn vị mã UTF-16; không được áp dụng nguyên xi phạm vi có dấu của `short` cho `char`.
+Commonly used constants for boundary checks include `Byte.MIN_VALUE`, `Short.MAX_VALUE`, `Integer.MIN_VALUE`, `Integer.MAX_VALUE`, `Long.MIN_VALUE`, and `Long.MAX_VALUE`. `char` is also a 16-bit primitive type, but it is **unsigned** (0–65_535) and mainly holds UTF-16 code units; you must not blindly apply the signed range of `short` to `char`.
 
-**Phạm vi của toán hạng quyết định phép tính**, không phải tên biến nhận kết quả. Vì vậy phải hỏi “phép tính đang chạy ở `int` hay `long`?” trước khi xét biến đích.
+**The range of the operands determines the operation**, not the name of the variable receiving the result. Therefore, you must ask "is the operation running in `int` or `long`?" before considering the target variable.
 
-## 2. Cơ chế quay vòng từ mẫu bit bù hai
+## 2. Wrap-Around Mechanism from Two's Complement Bit Patterns
 
-Ở phép cộng, trừ, nhân nguyên thông thường, Java sử dụng phần thấp của kết quả biểu diễn bằng độ rộng đích; về mặt giá trị không dấu, đây là phép tính theo modulo `2^32` cho `int` và modulo `2^64` cho `long`. Sau đó cùng mẫu bit được diễn giải theo kiểu **có dấu**.
+In ordinary integer addition, subtraction, and multiplication, Java uses the lower bits of the result represented in the target width; in terms of unsigned values, this is arithmetic modulo `2^32` for `int` and modulo `2^64` for `long`. Afterward, that same bit pattern is interpreted according to the **signed** type.
 
-Ví dụ 32 bit tại ranh giới:
+32-bit example at the boundary:
 
 ```text
 Integer.MAX_VALUE =  2147483647 = 0x7FFFFFFF
                      +         1
 ------------------------------------------------
-Mẫu 32 bit mới:                    0x80000000
-Giá trị int có dấu:             -2147483648
+New 32-bit pattern:               0x80000000
+Signed int value:                -2147483648
 ```
 
-Bit cao nhất (bit 31) chuyển từ `0` sang `1`. Với mẫu `0x8000_0000`, hệ bù hai diễn giải đó là `Integer.MIN_VALUE`. Bởi vậy:
+The highest bit (bit 31) flips from `0` to `1`. For the pattern `0x8000_0000`, two's complement interprets it as `Integer.MIN_VALUE`. Therefore:
 
 ```java
 int a = Integer.MAX_VALUE + 1; // Integer.MIN_VALUE
@@ -48,45 +48,45 @@ int b = Integer.MIN_VALUE - 1; // Integer.MAX_VALUE
 int c = -Integer.MIN_VALUE;    // Integer.MIN_VALUE
 ```
 
-Đây là các khai báo minh họa hợp lệ trong phương thức. Trường hợp thứ ba đặc biệt: `int` không có giá trị dương `2_147_483_648`, nên đổi dấu `Integer.MIN_VALUE` bằng toán tử `-` lại nhận chính giá trị ban đầu.
+These are valid illustrative declarations inside a method. The third case is special: `int` has no positive value `2_147_483_648`, so negating `Integer.MIN_VALUE` with the `-` operator yields the original value again.
 
-Một cách mô hình hóa kết quả toán học `R` thành giá trị `int` là: giữ `R` theo modulo `2^32`, rồi nếu bit 31 bằng 1 thì trừ `2^32` để đọc dưới dạng có dấu. Với `long` thay `2^32` bằng `2^64`. Đây là cách **giải thích hành vi quấn vòng**, không có nghĩa Java tự biến `int` thành một kiểu unsigned.
+One way to model a mathematical result `R` becoming an `int` value is: keep `R` modulo `2^32`, and if bit 31 equals 1, subtract `2^32` to read it as signed. For `long`, replace `2^32` with `2^64`. This is a way to **explain the wrap-around behavior**; it does not mean Java automatically turns `int` into an unsigned type.
 
-Trong Java, hiện tượng này được quy định rõ cho số nguyên, chứ không phải một kết quả ngẫu nhiên phụ thuộc máy. Dù vậy, **hành vi được định nghĩa không có nghĩa kết quả đúng theo nghiệp vụ**: tổng tiền, số lượng, kích thước bộ đệm hoặc mốc thời gian bị âm bất ngờ vẫn là lỗi ứng dụng.
+In Java, this phenomenon is well-defined for integers rather than a random machine-dependent outcome. Even so, **defined behavior does not mean a business-correct result**: a monetary total, quantity, buffer size, or timestamp unexpectedly becoming negative is still an application bug.
 
-## 3. Overflow ở phép cộng, trừ, nhân và đổi dấu
+## 3. Overflow in Addition, Subtraction, Multiplication, and Negation
 
-| Phép tính | Kết quả toán học | Kết quả Java kiểu `int` |
+| Operation | Mathematical Result | Java `int` Result |
 | --- | ---: | ---: |
 | `Integer.MAX_VALUE + 1` | 2_147_483_648 | -2_147_483_648 |
 | `Integer.MIN_VALUE - 1` | -2_147_483_649 | 2_147_483_647 |
 | `100_000 * 100_000` | 10_000_000_000 | 1_410_065_408 |
 | `-Integer.MIN_VALUE` | 2_147_483_648 | -2_147_483_648 |
 
-Với phép nhân, biểu thức `100_000 * 100_000` sử dụng hai `int`, vì vậy bản thân phép nhân cũng chạy trong `int`; giá trị đúng 10 tỷ nằm ngoài phạm vi 32 bit. Java giữ mẫu bit thấp, nên phép nhân cho `1_410_065_408`. Nếu ứng dụng lưu số lượng sản phẩm × đơn giá vào `int`, kết quả sẽ sai dù hai toán hạng riêng lẻ hoàn toàn hợp lệ.
+With multiplication, the expression `100_000 * 100_000` uses two `int` values, so the multiplication itself also runs in `int`; the true value of 10 billion lies outside the 32-bit range. Java keeps the lower bit pattern, so the multiplication yields `1_410_065_408`. If an application stores item quantity × unit price in an `int`, the result will be wrong even when both individual operands are completely valid.
 
-Có hiện tượng tương tự ở `long`:
+A similar phenomenon occurs with `long`:
 
 ```java
 long afterMax = Long.MAX_VALUE + 1L; // Long.MIN_VALUE
 long beforeMin = Long.MIN_VALUE - 1L; // Long.MAX_VALUE
 ```
 
-**`long` chỉ tăng phạm vi lên 64 bit**, không loại bỏ overflow vĩnh viễn. Đặc biệt `Math.abs(Integer.MIN_VALUE)` vẫn trả về `Integer.MIN_VALUE` (giá trị âm), vì không có `int` dương tương ứng; tương tự `Math.abs(Long.MIN_VALUE)` trả về `Long.MIN_VALUE`. Nếu cần bắt lỗi, Java 17 có `Math.negateExact` hoặc `Math.absExact` để ném `ArithmeticException` khi không biểu diễn được kết quả.
+**`long` only increases the range to 64 bits**; it does not eliminate overflow permanently. Notably, `Math.abs(Integer.MIN_VALUE)` still returns `Integer.MIN_VALUE` (a negative value), because there is no corresponding positive `int`; similarly, `Math.abs(Long.MIN_VALUE)` returns `Long.MIN_VALUE`. If you need to catch the error, Java 17 provides `Math.negateExact` or `Math.absExact` to throw `ArithmeticException` when the result cannot be represented.
 
-## 4. Gán vào `long` sau phép tính `int` không sửa được kết quả đã tràn
+## 4. Assigning to `long` After an `int` Operation Does Not Fix an Overflowed Result
 
-Một trường hợp hay gây lỗi:
+A common bug-inducing case:
 
 ```java
 long wrong = 2_000_000_000 + 1_000_000_000;
 long right = 2_000_000_000L + 1_000_000_000;
 ```
 
-- Ở dòng `wrong`, **cả hai toán hạng đều là `int`**, phép cộng `int` tràn thành `-1_294_967_296`; sau đó Java mới mở rộng kết quả đó thành `long`. Kết quả vẫn là số âm.
-- Ở dòng `right`, hậu tố `L` khiến một toán hạng là `long`. Toán hạng `int` còn lại được nâng lên `long` trước phép cộng, nên nhận đúng `3_000_000_000L`.
+- On the `wrong` line, **both operands are `int`**, so the `int` addition overflows to `-1_294_967_296`; only afterward does Java widen that result to `long`. The result is still a negative number.
+- On the `right` line, the `L` suffix makes one operand a `long`. The remaining `int` operand is promoted to `long` before the addition, so you get the correct `3_000_000_000L`.
 
-Kết quả còn phụ thuộc **vị trí ép kiểu**:
+The result also depends on **cast placement**:
 
 ```java
 long tooLate = (long) (100_000 * 100_000);  // 1410065408L
@@ -94,40 +94,40 @@ long correct1 = ((long) 100_000) * 100_000; // 10000000000L
 long correct2 = 100_000L * 100_000;        // 10000000000L
 ```
 
-Trong `tooLate`, cặp ngoặc buộc nhân bằng `int` trước; `(long)` chỉ nhận được kết quả đã tràn. Hai dòng `correct` chuyển ít nhất một toán hạng thành `long` **trước khi nhân**.
+In `tooLate`, the parentheses force multiplication in `int` first; `(long)` only receives the already-overflowed result. The two `correct` lines convert at least one operand to `long` **before multiplying**.
 
-Phép cộng, trừ hoặc nhân hai `byte`/`short`/`char` thông thường còn được nâng kiểu lên **`int`**. Ví dụ, `byte a = 127; byte b = 1; int c = a + b;` cho `c == 128`, bởi phép cộng chạy ở `int`. Tuy nhiên, `byte a = 127; a++;` lại đưa `a` về `-128` do phép tăng và chuyển kết quả trở lại kiểu `byte`. Vì thế cần phân biệt overflow khi tính ở `int` với **chuyển hẹp** xuống kiểu nhỏ hơn.
+Ordinary addition, subtraction, or multiplication of two `byte`/`short`/`char` values is also promoted to **`int`**. For example, `byte a = 127; byte b = 1; int c = a + b;` gives `c == 128`, because the addition runs in `int`. However, `byte a = 127; a++;` brings `a` back to `-128` because the increment converts the result back to `byte`. Therefore, you must distinguish overflow when computing in `int` from **narrowing conversion** down to a smaller type.
 
-## 5. Overflow số học, literal ngoài phạm vi và ép kiểu hẹp là ba tình huống khác
+## 5. Arithmetic Overflow, Out-of-Range Literals, and Narrowing Casts Are Three Different Situations
 
-| Tình huống | Ví dụ | Điều xảy ra |
+| Situation | Example | What Happens |
 | --- | --- | --- |
-| Literal thập phân không hợp lệ ngay trong mã nguồn | `long x = 3_000_000_000;` | **Lỗi biên dịch**: literal không có `L` vượt phạm vi `int` |
-| Các toán hạng hợp lệ nhưng phép tính tràn | `int x = Integer.MAX_VALUE + 1;` | **Biên dịch được**, kết quả `Integer.MIN_VALUE` |
-| Phép tính `int` tràn rồi mở rộng | `long x = 2_000_000_000 + 1_000_000_000;` | **Biên dịch được**, nhận giá trị `long` âm đã sai |
-| Ép kiểu hẹp có mất bit | `byte x = (byte) 128;` | **Biên dịch được**, `x == -128` |
-| Chuỗi số vượt phạm vi khi phân tích | `Integer.parseInt("2147483648")` | **Ném `NumberFormatException`**, không tự quay vòng |
+| Invalid decimal literal directly in source code | `long x = 3_000_000_000;` | **Compile error**: literal without `L` exceeds the `int` range |
+| Valid operands whose operation overflows | `int x = Integer.MAX_VALUE + 1;` | **Compiles**, result is `Integer.MIN_VALUE` |
+| `int` operation overflows then widens | `long x = 2_000_000_000 + 1_000_000_000;` | **Compiles**, produces an already-wrong negative `long` value |
+| Narrowing cast losing bits | `byte x = (byte) 128;` | **Compiles**, `x == -128` |
+| Numeric string out of range when parsing | `Integer.parseInt("2147483648")` | **Throws `NumberFormatException`**, does not wrap around |
 
-Bảng này quan trọng khi chẩn đoán: nếu một literal trực tiếp vượt phạm vi thì chương trình **không chạy được**; nhưng khi hai số hợp lệ sinh ra tổng quá lớn thì phép toán nguyên thông thường có thể **chạy và cho giá trị sai**. Trong trường hợp ép hẹp tường minh, Java giữ các bit thấp theo độ rộng đích; đó là chuyển đổi kiểu có thể mất dữ liệu, không phải nguyên nhân giống hệt phép cộng tràn.
+This table is important when diagnosing issues: if a direct literal is out of range, the program **cannot run**; however, when two valid numbers produce a sum that is too large, ordinary integer arithmetic can **run and return a wrong value**. In the case of an explicit narrowing cast, Java keeps the lower bits according to the target width; that is a potentially lossy type conversion, not the exact same cause as addition overflow.
 
-Một điểm khác: **biểu thức hằng** có thể được Java tính từ lúc biên dịch mà vẫn có kết quả quay vòng. Chẳng hạn `int wrapped = 2_147_483_647 + 1;` vẫn hợp lệ và bằng `-2_147_483_648`. Đừng suy rằng “được tính ở compile time” sẽ được báo lỗi overflow. Cách phát hiện tràn chủ động nằm ở bước kiểm tra hoặc các API có kiểm tra.
+Another point: **constant expressions** can be evaluated by Java at compile time and still produce a wrapped-around result. For example, `int wrapped = 2_147_483_647 + 1;` is still valid and equals `-2_147_483_648`. Do not assume that "evaluated at compile time" means an overflow error will be reported. Active overflow detection relies on explicit checks or checked APIs.
 
-## 6. Ngoại lệ quan trọng: phép chia `MIN_VALUE / -1`
+## 6. Important Exception: `MIN_VALUE / -1` Division
 
-Phép chia số nguyên khác phép cộng, trừ, nhân. Thông thường chia cho **0** ném `ArithmeticException`. Tuy nhiên, Java có một trường hợp phép chia **vượt phạm vi nhưng không ném lỗi**:
+Integer division differs from addition, subtraction, and multiplication. Normally, dividing by **0** throws `ArithmeticException`. However, Java has one division case that **exceeds the range without throwing an error**:
 
 ```java
 int q = Integer.MIN_VALUE / -1; // Integer.MIN_VALUE
 long r = Long.MIN_VALUE / -1L;  // Long.MIN_VALUE
 ```
 
-Giá trị toán học của `Integer.MIN_VALUE / -1` là `2_147_483_648`, không biểu diễn được bằng `int`; quy tắc Java trả lại chính `Integer.MIN_VALUE`. Tương tự cho `long`. Phần dư của trường hợp này là **0**.
+The mathematical value of `Integer.MIN_VALUE / -1` is `2_147_483_648`, which cannot be represented as an `int`; Java's rule returns `Integer.MIN_VALUE` itself. The same applies to `long`. The remainder in this case is **0**.
 
-Vì vậy, không nên nói “phép chia số nguyên luôn phát hiện overflow”. Khi tính số nguyên có dấu và đặc biệt khi có `MIN_VALUE`, phải kiểm tra `dividend == MIN_VALUE && divisor == -1` nếu yêu cầu kết quả toán học chính xác và được bảo đảm nằm trong phạm vi. Dùng kiểu rộng hơn (nếu đủ chỗ) hoặc `BigInteger` để biểu diễn thương toán học.
+Therefore, you should not say "integer division always detects overflow." When computing with signed integers—and especially when `MIN_VALUE` can occur—you must check `dividend == MIN_VALUE && divisor == -1` if you require an exact mathematical result guaranteed to be in range. Use a wider type (if there is enough room) or `BigInteger` to represent the mathematical quotient.
 
-## 7. Chương trình Java 17+ có thể biên dịch và chạy độc lập
+## 7. Standalone Compilable and Runnable Java 17+ Program
 
-Tạo tệp **`IntegerOverflowDemo.java`**:
+Create the file **`IntegerOverflowDemo.java`**:
 
 ```java
 import java.math.BigInteger;
@@ -183,14 +183,14 @@ public class IntegerOverflowDemo {
 }
 ```
 
-Biên dịch rồi chạy:
+Compile and run:
 
 ```bash
 javac --release 17 -encoding UTF-8 IntegerOverflowDemo.java
 java IntegerOverflowDemo
 ```
 
-Kết quả stdout (đã đối chiếu khi chạy):
+Stdout output (verified when executed):
 
 ```text
 intMax=2147483647
@@ -213,54 +213,54 @@ toIntExact=overflow detected
 beyondLong=9223372036854775808
 ```
 
-Giải thích các kết quả chính:
+Explanation of the key results:
 
-- `intMaxPlusOne` và `intMinMinusOne` minh họa quay vòng qua hai biên 32 bit; `negatedIntMin` minh họa giá trị âm nhỏ nhất không có đối số dương tương ứng.
-- `productInInt`, `lateWidening` và `earlyLong` cho thấy overflow xảy ra **trong kiểu của phép tính**, không phụ thuộc biến nhận.
-- `longMaxPlusOne` khẳng định phép tính 64 bit cũng có biên; `intMinDivMinusOne` minh họa quy tắc đặc biệt của phép chia.
-- `narrowByte=-128` là ví dụ **chuyển hẹp**; `wrappedBits=80000000` cho thấy mẫu 32 bit sau khi cộng `1` vào số lớn nhất.
-- `unsignedMinusOne=4294967295` chỉ là cách **diễn giải không dấu** của mẫu `int` `-1`, không có thêm dung lượng lưu trữ; `unsignedCompare=1` nghĩa là `-1` được xem là lớn hơn `Integer.MAX_VALUE` **theo thứ tự không dấu**.
-- Bốn phương thức có `Exact` chủ động ném `ArithmeticException` trong các trường hợp không biểu diễn được; `BigInteger` chứa được kết quả lớn hơn `Long.MAX_VALUE`.
+- `intMaxPlusOne` and `intMinMinusOne` illustrate wrapping across both 32-bit boundaries; `negatedIntMin` illustrates that the smallest negative value has no corresponding positive counterpart.
+- `productInInt`, `lateWidening`, and `earlyLong` show that overflow happens **in the operation's type**, independent of the receiving variable.
+- `longMaxPlusOne` confirms that 64-bit arithmetic also has boundaries; `intMinDivMinusOne` illustrates the special division rule.
+- `narrowByte=-128` is an example of **narrowing conversion**; `wrappedBits=80000000` shows the 32-bit pattern after adding `1` to the largest value.
+- `unsignedMinusOne=4294967295` is only an **unsigned interpretation** of the `int` bit pattern `-1`, with no extra storage capacity; `unsignedCompare=1` means `-1` is considered greater than `Integer.MAX_VALUE` **in unsigned order**.
+- The four `Exact` methods actively throw `ArithmeticException` in unrepresentable cases; `BigInteger` can hold results larger than `Long.MAX_VALUE`.
 
-## 8. Phát hiện overflow bằng các phương thức `Math.*Exact`
+## 8. Detecting Overflow with `Math.*Exact` Methods
 
-Khi yêu cầu nghiệp vụ là **phát hiện tràn thay vì nhận kết quả quấn vòng**, hãy dùng các phương thức có kiểm tra:
+When the business requirement is to **detect overflow instead of receiving a wrapped-around result**, use the checked methods:
 
-| API | Khi nào hữu ích |
+| API | When Useful |
 | --- | --- |
-| `Math.addExact(a, b)` | Phát hiện tràn khi cộng `int` hoặc `long` |
-| `Math.subtractExact(a, b)` | Phát hiện tràn khi trừ `int` hoặc `long` |
-| `Math.multiplyExact(a, b)` | Phát hiện tràn khi nhân `int` hoặc `long` |
-| `Math.incrementExact(a)` / `decrementExact(a)` | Tăng/giảm biến đếm nhưng không âm thầm quay vòng |
-| `Math.negateExact(a)` / `absExact(a)` | Xử lý dấu và trị tuyệt đối ở ranh giới âm nhỏ nhất |
-| `Math.toIntExact(longValue)` | Đưa `long` sang `int` nhưng báo lỗi khi ngoài phạm vi |
+| `Math.addExact(a, b)` | Detecting overflow when adding `int` or `long` |
+| `Math.subtractExact(a, b)` | Detecting overflow when subtracting `int` or `long` |
+| `Math.multiplyExact(a, b)` | Detecting overflow when multiplying `int` or `long` |
+| `Math.incrementExact(a)` / `decrementExact(a)` | Incrementing/decrementing a counter without silently wrapping around |
+| `Math.negateExact(a)` / `absExact(a)` | Handling sign negation and absolute value at the smallest negative boundary |
+| `Math.toIntExact(longValue)` | Converting `long` to `int` while reporting an error when out of range |
 
-Các phương thức trên ném **`ArithmeticException`** khi kết quả không biểu diễn được trong kiểu kết quả. Ví dụ:
+These methods throw **`ArithmeticException`** when the result cannot be represented in the return type. For example:
 
 ```java
 int count = 2_147_483_647;
-int next = Math.incrementExact(count); // Ném ArithmeticException.
+int next = Math.incrementExact(count); // Throws ArithmeticException.
 ```
 
-Đây là mảnh mã cần đặt trong phương thức. Nếu ứng dụng cần xử lý lỗi, đặt lời gọi trong `try/catch` hoặc để ngoại lệ được xử lý ở lớp phù hợp. Lưu ý `Math.addExact(int, int)` kiểm tra phạm vi **`int`**, kể cả khi kết quả được gán cho biến `long`. Muốn cộng trong 64 bit, hãy chuyển ít nhất một toán hạng sang `long` **trước khi gọi** overload kiểu `long`:
+This is a snippet to place inside a method. If the application needs error handling, place the call in a `try/catch` block or let the exception be handled at an appropriate layer. Note that `Math.addExact(int, int)` checks the **`int`** range, even when the result is assigned to a `long` variable. To add in 64 bits, convert at least one operand to `long` **before calling** the `long` overload:
 
 ```java
 long sum = Math.addExact(2_000_000_000L, 1_000_000_000L); // 3000000000
 ```
 
-Các phương thức `Exact` chỉ hoạt động trên phép toán được gọi. Nếu một biểu thức con đã tràn trước đó, chúng **không thể khôi phục dữ liệu**:
+The `Exact` methods operate only on the operation being called. If a subexpression has already overflowed earlier, they **cannot recover the data**:
 
 ```java
 long wrong = Math.addExact((long) (Integer.MAX_VALUE + 1), 0L);
-// Kết quả vẫn là -2147483648: tràn int xảy ra trước lời gọi.
+// Result is still -2147483648: int overflow occurred before the call.
 
 long right = Math.addExact((long) Integer.MAX_VALUE, 1L);
-// Kết quả chính xác: 2147483648.
+// Exact result: 2147483648.
 ```
 
-## 9. Kiểm tra biên trước phép tính
+## 9. Checking Boundaries Before the Operation
 
-Nếu không dùng các hàm `Exact`, đôi khi có thể kiểm tra biên trước khi cộng, ví dụ khi **`delta` không âm**:
+If you do not use the `Exact` functions, you can sometimes check boundaries before adding, for example when **`delta` is non-negative**:
 
 ```java
 static int addNonNegativeExact(int current, int delta) {
@@ -274,13 +274,13 @@ static int addNonNegativeExact(int current, int delta) {
 }
 ```
 
-Đây là **phương thức** cần đặt bên trong một lớp Java. Vì `delta` đã được xác nhận không âm, `Integer.MAX_VALUE - delta` là an toàn trong phạm vi `int`; nếu `current` lớn hơn ngưỡng cho phép thì cộng sẽ tràn. Với phép cộng hai số bất kỳ có thể âm/dương, dùng `Math.addExact` thường ít lỗi hơn việc tự xây dựng nhiều điều kiện biên.
+This is a **method** that must be placed inside a Java class. Because `delta` has been verified to be non-negative, `Integer.MAX_VALUE - delta` is safe within the `int` range; if `current` exceeds the allowed threshold, the addition will overflow. For adding two arbitrary numbers that may be negative or positive, using `Math.addExact` is usually less error-prone than constructing multiple boundary conditions yourself.
 
-Các trường hợp thực tế nên coi overflow là lỗi thay vì tình huống quay vòng bình thường: tính tổng tiền, đếm số bản ghi, tính kích thước mảng/buffer, cộng số lượng tồn kho, tính tổng byte, kích thước file hoặc kiểm tra giới hạn đầu vào. Ví dụ, nếu mã tính `items * bytesPerItem` bằng `int` rồi dùng kết quả để cấp phát bộ nhớ, một tích tràn có thể biến thành số âm hoặc một số dương quá nhỏ. Dùng `Math.multiplyExact` và kiểm tra giới hạn thực tế trước khi cấp phát.
+Real-world cases where overflow should be treated as an error rather than normal wrap-around: calculating monetary totals, counting records, calculating array/buffer sizes, summing inventory quantities, totaling bytes, file sizes, or checking input limits. For example, if code computes `items * bytesPerItem` using `int` and then uses the result to allocate memory, an overflowed product can turn into a negative number or a positive number that is too small. Use `Math.multiplyExact` and check practical limits before allocating.
 
-## 10. Khi nên dùng `long`, `BigInteger` hoặc unsigned API?
+## 10. When Should You Use `long`, `BigInteger`, or Unsigned APIs?
 
-**Chọn `long`** khi kết quả có thể vượt phạm vi `int`, nhưng chứng minh được nó vẫn nằm trong phạm vi `long`. Điều kiện quan trọng là chuyển kiểu **trước phép toán**:
+**Choose `long`** when the result can exceed the `int` range, but is provably within the `long` range. The key condition is converting types **before the operation**:
 
 ```java
 int quantity = 100_000;
@@ -288,7 +288,7 @@ int unit = 100_000;
 long total = (long) quantity * unit; // 10000000000
 ```
 
-**Chọn `BigInteger`** khi kết quả có thể lớn hơn `Long.MAX_VALUE` hoặc nhỏ hơn `Long.MIN_VALUE`. Ví dụ:
+**Choose `BigInteger`** when the result can be larger than `Long.MAX_VALUE` or smaller than `Long.MIN_VALUE`. For example:
 
 ```java
 java.math.BigInteger result =
@@ -297,48 +297,48 @@ java.math.BigInteger result =
 // result == 9223372036854775808.
 ```
 
-`BigInteger` lưu số nguyên với độ chính xác tùy dung lượng bộ nhớ; phải dùng các phương thức như `add`, `subtract`, `multiply`, vì toán tử `+` và `*` không được nạp chồng cho đối tượng Java. Nếu chuyển ngược về `long` hoặc `int`, dùng `longValueExact()` / `intValueExact()` khi muốn phát hiện giá trị ngoài phạm vi.
+`BigInteger` stores integers with precision limited only by available memory; you must use methods such as `add`, `subtract`, and `multiply`, because `+` and `*` operators are not overloaded for Java objects. When converting back to `long` or `int`, use `longValueExact()` / `intValueExact()` when you want to detect out-of-range values.
 
-**Dùng `Integer.toUnsignedString`, `Integer.toUnsignedLong`, `Integer.compareUnsigned`, `Long.toUnsignedString`** khi đặc tả đầu vào nói rõ dữ liệu là **mẫu bit unsigned** (ví dụ định dạng nhị phân hoặc giao thức). Các API này thay đổi cách **diễn giải, so sánh, chia hoặc hiển thị** mẫu bit, chứ không làm phép cộng `int` thông thường có khả năng chứa số có dấu lớn hơn. Không nên dùng unsigned chỉ nhằm “che” overflow của phép tính nghiệp vụ có dấu.
+**Use `Integer.toUnsignedString`, `Integer.toUnsignedLong`, `Integer.compareUnsigned`, `Long.toUnsignedString`** when the input specification explicitly states that the data is an **unsigned bit pattern** (for example, binary formats or protocols). These APIs change how a bit pattern is **interpreted, compared, divided, or displayed**, rather than making ordinary `int` addition capable of holding larger signed numbers. You should not use unsigned APIs merely to "mask" overflow in signed business calculations.
 
-## 11. Dấu hiệu overflow trong chương trình thật
+## 11. Signs of Overflow in Real Programs
 
-Hãy nghi ngờ overflow khi quan sát những hành vi như:
+Suspect overflow when you observe behaviors such as:
 
-- Bộ đếm `int` đang tăng bỗng trở thành số âm hoặc số âm nhỏ nhất.
-- Tổng hai số dương trả về số âm hoặc kết quả nhỏ hơn từng số hạng.
-- Tích `quantity * price` khác kết quả kỳ vọng dù dữ liệu đầu vào đều hợp lệ.
-- Biến `long` nhận kết quả âm từ biểu thức gồm **toàn `int`**.
-- Một điều kiện phụ thuộc thứ tự tăng, ví dụ `next > current`, bất ngờ sai ở biên.
-- `Math.abs` với giá trị nhỏ nhất vẫn trả về số âm.
+- An increasing `int` counter suddenly becomes negative or the smallest negative number.
+- The sum of two positive numbers returns a negative number or a result smaller than each term.
+- A product `quantity * price` differs from the expected result even though all input values are valid.
+- A `long` variable receives a negative result from an expression composed **entirely of `int`s**.
+- A condition depending on increasing order, such as `next > current`, unexpectedly fails at the boundary.
+- `Math.abs` on the minimum value still returns a negative number.
 
-Cần phân biệt với tình huống **thiết kế có chủ đích dựa vào modulo**, chẳng hạn một số hàm băm, thuật toán xử lý bit, bộ đếm vòng hoặc giao thức quy định số 32 bit. Khi modulo là yêu cầu thật sự, hãy ghi rõ độ rộng và mẫu bit mong muốn; khi tính toán chính xác là yêu cầu, hãy phát hiện overflow.
+Distinguish these from **deliberate modulo-based designs**, such as certain hash functions, bit-manipulation algorithms, circular counters, or protocols specifying 32-bit integers. When modulo behavior is an actual requirement, document the desired bit width and bit pattern explicitly; when exact arithmetic is required, detect overflow.
 
-Trong kiểm thử, cần thử **ngay bên dưới biên, đúng tại biên và ngay sau phép toán gây vượt biên**. Ví dụ `Integer.MAX_VALUE - 1`, `Integer.MAX_VALUE`, `Integer.MAX_VALUE + 1`; đồng thời thử `Integer.MIN_VALUE`, phép đổi dấu, phép trừ 1, nhân số lớn và giá trị `Long.MAX_VALUE`. Không cần cố viết literal thập phân quá phạm vi để thử overflow: khi đó chỉ đang kiểm tra **lỗi biên dịch literal**, không kiểm tra hành vi chạy của phép toán.
+In testing, you should test **just below the boundary, right at the boundary, and immediately after an operation that crosses the boundary**. For example, `Integer.MAX_VALUE - 1`, `Integer.MAX_VALUE`, and `Integer.MAX_VALUE + 1`; also test `Integer.MIN_VALUE`, negation, subtracting 1, multiplying large numbers, and `Long.MAX_VALUE` values. Do not try to write an out-of-range decimal literal to test overflow: doing so only tests **compile-time literal errors**, not the runtime behavior of operations.
 
-## 12. Những nhầm lẫn phổ biến
+## 12. Common Misconceptions
 
-| Nhầm lẫn | Vì sao sai | Cách xử lý |
+| Misconception | Why It Is Wrong | How to Handle It |
 | --- | --- | --- |
-| `int` tự ném lỗi khi cộng quá giới hạn | `+` thông thường dùng số nguyên độ rộng cố định và quay vòng | Dùng `Math.addExact` khi muốn phát hiện |
-| `long x = a * b;` luôn an toàn nếu `x` là `long` | Nếu `a`, `b` là `int`, phép nhân có thể tràn ở `int` | `long x = (long) a * b;` |
-| Ép `(long)` quanh biểu thức đã tràn sẽ sửa kết quả | Ép kiểu diễn ra sau phép toán bên trong | Ép một toán hạng từ trước |
-| `long` không bao giờ overflow | `long` có độ rộng 64 bit hữu hạn | `Math.*Exact` hoặc `BigInteger` |
-| `Math.abs(Integer.MIN_VALUE)` luôn không âm | Giá trị dương tương ứng vượt `int` | `Math.absExact`, `long` hoặc `BigInteger` theo yêu cầu |
-| Chia cho `-1` luôn biểu diễn được | `MIN_VALUE / -1` vượt phạm vi nhưng trả lại `MIN_VALUE` | Kiểm tra trường hợp đặc biệt |
-| `Integer.parseInt("2147483648")` sẽ quay vòng | Parse kiểm tra phạm vi và báo lỗi | Dùng `Long.parseLong` nếu phù hợp |
-| Ép hẹp `(byte)128` giống lỗi cộng `int` | Đó là chuyển kiểu hẹp giữ bit thấp | Kiểm tra biên hoặc dùng API chuyển đổi chính xác |
-| API unsigned làm `int` rộng hơn | API chỉ đổi cách đọc mẫu bit | Dùng kiểu đủ rộng để tính chính xác |
+| `int` automatically throws an error when adding past the limit | Ordinary `+` uses fixed-width integers and wraps around | Use `Math.addExact` when you want detection |
+| `long x = a * b;` is always safe if `x` is `long` | If `a` and `b` are `int`, the multiplication can overflow in `int` | `long x = (long) a * b;` |
+| Casting `(long)` around an already-overflowed expression fixes the result | The cast happens after the inner operation | Cast one operand beforehand |
+| `long` never overflows | `long` has a finite 64-bit width | `Math.*Exact` or `BigInteger` |
+| `Math.abs(Integer.MIN_VALUE)` is always non-negative | The corresponding positive value exceeds `int` | `Math.absExact`, `long`, or `BigInteger` as required |
+| Dividing by `-1` is always representable | `MIN_VALUE / -1` exceeds the range yet returns `MIN_VALUE` | Check the special case |
+| `Integer.parseInt("2147483648")` wraps around | Parsing checks the range and throws an error | Use `Long.parseLong` if appropriate |
+| Narrowing cast `(byte)128` is the same as an `int` addition bug | That is a narrowing conversion keeping the low bits | Check boundaries or use exact conversion APIs |
+| Unsigned APIs make `int` wider | Those APIs only change how the bit pattern is read | Use a sufficiently wide type for exact calculation |
 
-## 13. Câu hỏi tự kiểm tra
+## 13. Self-Check Questions
 
-1. **`Integer.MAX_VALUE + 1` bằng gì?** `Integer.MIN_VALUE`, do mẫu 32 bit quay vòng sang bit dấu bằng 1.
-2. **`Integer.MIN_VALUE - 1` bằng gì?** `Integer.MAX_VALUE`, do quay vòng qua biên dưới.
-3. **`long total = 2_000_000_000 + 1_000_000_000;` bằng gì?** `-1_294_967_296L`, do phép cộng đã tràn ở `int` trước khi mở rộng.
-4. **Làm sao nhận đúng `3_000_000_000`?** `2_000_000_000L + 1_000_000_000` hoặc chuyển một toán hạng sang `long` trước khi cộng.
-5. **`long x = Long.MAX_VALUE + 1L;` bằng gì?** `Long.MIN_VALUE`; dùng `Math.addExact(Long.MAX_VALUE, 1L)` nếu cần ném lỗi.
-6. **Có phải overflow nào cũng do toán tử `+` không?** Không: phép trừ, nhân, đổi dấu và trường hợp `MIN_VALUE / -1` đều có ranh giới cần xét.
-7. **Một `int` có thể lưu chính xác `2_147_483_648` không?** Không; dùng `long`. Nếu yêu cầu giữ mẫu 32 bit như unsigned, phải thể hiện rõ cách diễn giải.
-8. **Khi nào dùng `BigInteger`?** Khi dải kết quả yêu cầu vượt phạm vi `long` hoặc cần tính số nguyên tùy độ chính xác.
+1. **What is `Integer.MAX_VALUE + 1`?** `Integer.MIN_VALUE`, because the 32-bit pattern wraps around to having the sign bit equal to 1.
+2. **What is `Integer.MIN_VALUE - 1`?** `Integer.MAX_VALUE`, due to wrapping past the lower boundary.
+3. **What is `long total = 2_000_000_000 + 1_000_000_000;`?** `-1_294_967_296L`, because the addition overflowed in `int` before widening.
+4. **How do you get the correct `3_000_000_000`?** `2_000_000_000L + 1_000_000_000` or cast one operand to `long` before adding.
+5. **What is `long x = Long.MAX_VALUE + 1L;`?** `Long.MIN_VALUE`; use `Math.addExact(Long.MAX_VALUE, 1L)` if an exception is needed.
+6. **Is every overflow caused by the `+` operator?** No: subtraction, multiplication, negation, and the `MIN_VALUE / -1` case all have boundaries to consider.
+7. **Can an `int` store `2_147_483_648` directly as a signed value?** No; use `long`. If you need to keep a 32-bit pattern as unsigned, you must make that interpretation explicit.
+8. **When should you use `BigInteger`?** When the required result range exceeds `long` or arbitrary-precision integer arithmetic is needed.
 
-**Ghi nhớ:** trong Java, phép tính nguyên thông thường có thể **quay vòng modulo độ rộng bit mà không báo lỗi**. Để tránh sai số ngoài ý muốn, xác định kiểu của **từng toán hạng trước phép tính**, chọn `long` khi đủ phạm vi, dùng `Math.*Exact` hoặc kiểm tra biên khi cần phát hiện overflow, và dùng `BigInteger` nếu yêu cầu vượt cả `long`.
+**Remember:** in Java, ordinary integer operations can **wrap around modulo the bit width without reporting an error**. To avoid unintended inaccuracies, determine the type of **each operand before the operation**, choose `long` when its range suffices, use `Math.*Exact` or boundary checks when overflow must be detected, and use `BigInteger` if the requirement exceeds even `long`.

@@ -1,21 +1,21 @@
-# Kiểm tra dependency graph trước khi publish
+# Inspecting the dependency graph before publishing
 
-## 1. Vì sao phải kiểm tra dependency graph trước khi phát hành?
+## 1. Why inspect the dependency graph before release?
 
-Với Java Core Module System (JPMS), một thư viện có thể biên dịch thành công ở máy tác giả nhưng vẫn không sử dụng được khi người khác đưa JAR lên module path. Nguyên nhân thường nằm ở những dependency đã được resolve khác nhau, module name không ổn định, package bị che bởi `exports`, dependency thiếu ở runtime hoặc một provider chỉ được phát hiện trong môi trường phát triển.
+With the Java Core Module System (JPMS), a library may compile cleanly on the author's machine yet still be unusable when others place the JAR on the module path. Causes often include differently resolved dependencies, unstable module names, packages hidden by `exports`, missing runtime dependencies, or a provider discovered only in the development environment.
 
-Vì vậy, trước khi publish một modular JAR, không chỉ chạy build rồi upload artifact. Cần kiểm tra ít nhất hai góc nhìn:
+Therefore, before publishing a modular JAR, do not merely run the build and upload the artifact. You must inspect at least two perspectives:
 
-1. **Dependency graph của build tool:** Maven hoặc Gradle đã chọn artifact và phiên bản dependency nào cho từng scope/configuration?
-2. **Module graph của JPMS:** Khi biên dịch và chạy, module nào đọc module nào, module nào được resolve và package/service nào được công bố?
+1. **Build tool dependency graph:** Which artifacts and dependency versions did Maven or Gradle select for each scope/configuration?
+2. **JPMS module graph:** At compile time and runtime, which modules read which modules, which modules are resolved, and which packages/services are exposed?
 
-Một lần kiểm tra đầy đủ cần bổ sung góc nhìn thứ ba: **artifact thực tế được publish**. Dependency graph trong source project chưa chắc giống dependency graph mà consumer nhìn thấy khi tải artifact từ repository.
+A thorough check requires a third perspective: **the actual published artifact**. The dependency graph inside the source project may not match the dependency graph a consumer sees when downloading the artifact from a repository.
 
-Mục tiêu không phải làm graph nhỏ bằng mọi giá. Mục tiêu là một graph có thể giải thích, lặp lại và sử dụng được trong môi trường consumer.
+The goal is not to shrink the graph at all costs. The goal is a graph that is explainable, reproducible, and usable in the consumer's environment.
 
-## 2. Phân biệt build dependency graph với JPMS module graph
+## 2. Distinguishing the build dependency graph from the JPMS module graph
 
-Ví dụ một thư viện quản lý dữ liệu:
+Example data management library:
 
 ~~~text
 com.acme.report.api
@@ -27,25 +27,25 @@ com.acme.report.api
     +-- java.sql
 ~~~
 
-Cần phân biệt các quan hệ:
+Distinguish the relationships:
 
-| Khía cạnh | Được mô tả bằng | Câu hỏi cần trả lời |
+| Aspect | Described by | Question to answer |
 |---|---|---|
-| Build dependencies | `pom.xml`, `build.gradle`, repository metadata | Artifact nào, version nào, scope nào? |
-| JPMS dependencies | `module-info.java` và descriptor đã biên dịch | Module nào cần đọc module khác? |
-| Runtime configuration | Module path, root modules, service binding | Module nào thực sự được resolve khi chạy? |
-| Public API dependencies | Public method signatures, superclass/interface, exported packages | Consumer có cần dependency này để compile không? |
-| Dynamic dependencies | Reflection, `ServiceLoader`, cấu hình, plugin discovery | Có dependency chỉ xuất hiện ở runtime không? |
+| Build dependencies | `pom.xml`, `build.gradle`, repository metadata | Which artifact, which version, which scope? |
+| JPMS dependencies | `module-info.java` and compiled descriptors | Which modules need to read which other modules? |
+| Runtime configuration | Module path, root modules, service binding | Which modules are actually resolved at runtime? |
+| Public API dependencies | Public method signatures, superclasses/interfaces, exported packages | Does the consumer need this dependency to compile? |
+| Dynamic dependencies | Reflection, `ServiceLoader`, configuration, plugin discovery | Are there dependencies that appear only at runtime? |
 
-Một Maven/Gradle dependency không đồng nghĩa một dòng `requires`. Ví dụ thư viện nằm trong classpath truyền thống, dependency thuộc runtimeOnly hoặc dependency chỉ phục vụ annotation processing có thể cần cách xử lý khác khi xây dựng module descriptor.
+A Maven/Gradle dependency does not equate to a `requires` line. For example, libraries on the traditional classpath, `runtimeOnly` dependencies, or annotation-processing-only dependencies may need different handling when writing the module descriptor.
 
-Ngược lại, `requires java.sql;` là quan hệ module với thành phần JDK; nó không nhất thiết xuất hiện như một dependency bên ngoài trong POM hoặc Gradle configuration.
+Conversely, `requires java.sql;` is a module relationship with a JDK component; it does not necessarily appear as an external dependency in POM or Gradle configurations.
 
-**Điểm cần nhớ:** build graph giải thích cách artifact được chọn; JPMS graph giải thích cách các named module được liên kết và kiểm soát truy cập.
+**Key takeaway:** the build graph explains how artifacts are selected; the JPMS graph explains how named modules are linked and how access is controlled.
 
-## 3. Ví dụ modular library và public API dependency
+## 3. Modular library example and public API dependencies
 
-Giả sử module `com.acme.report.api` công bố một API báo cáo:
+Suppose module `com.acme.report.api` exposes a reporting API:
 
 ~~~java
 module com.acme.report.api {
@@ -68,28 +68,28 @@ public interface ReportService {
 }
 ~~~
 
-Từ descriptor trên:
+From the descriptor above:
 
-- `java.sql` nằm trong public contract vì kiểu `Connection` xuất hiện trong method signature.
-- `requires transitive java.sql` cho consumer của module này khả năng đọc `java.sql` qua dependency của API.
-- `com.acme.report.codec` là dependency implementation trong ví dụ, nên chỉ khai báo `requires` nếu public API không phơi bày kiểu thuộc module codec.
-- `com.acme.report.api` là package được export; package codec nội bộ không nhất thiết phải export cho consumer.
+- `java.sql` is part of the public contract because the `Connection` type appears in the method signature.
+- `requires transitive java.sql` gives consumers of this module readability to `java.sql` through the API dependency.
+- `com.acme.report.codec` is an implementation dependency in this example, so declare only `requires` if the public API does not expose types belonging to the codec module.
+- `com.acme.report.api` is the exported package; internal codec packages do not need to be exported to consumers.
 
-Nếu đổi `requires transitive java.sql` thành `requires java.sql`, một consumer chỉ khai báo `requires com.acme.report.api` có thể cần thêm `requires java.sql` khi sử dụng những kiểu SQL trong API.
+If `requires transitive java.sql` were changed to `requires java.sql`, a consumer declaring only `requires com.acme.report.api` might also have to add `requires java.sql` when using SQL types in the API.
 
-Ngược lại, không nên dùng `requires transitive` cho mọi dependency. Nó đưa thêm quan hệ readability tới consumer và làm contract giữa module chặt hơn mức cần thiết.
+Conversely, do not use `requires transitive` for every dependency. It adds extra readability edges to consumers and tightens the contract between modules unnecessarily.
 
-## 4. Kiểm tra graph trên Maven
+## 4. Inspecting the graph in Maven
 
-Với Maven, một bước nền tảng là xem **dependency tree đã resolve**, thay vì chỉ đọc từng dòng trong `pom.xml`.
+With Maven, a foundational step is inspecting the **resolved dependency tree**, rather than merely reading individual lines in `pom.xml`.
 
-Chạy tại module hoặc project cần phát hành:
+Run in the module or project to be released:
 
 ~~~bash
 mvn dependency:tree
 ~~~
 
-Ví dụ output rút gọn:
+Abbreviated example output:
 
 ~~~text
 com.acme:report-api:jar:1.4.0
@@ -98,75 +98,75 @@ com.acme:report-api:jar:1.4.0
 \- org.example:logging-adapter:jar:1.1.0:runtime
 ~~~
 
-Các điểm cần kiểm tra:
+Points to verify:
 
-- Artifact/group/version cuối cùng đã được chọn là gì?
-- Dependency nào được kéo vào qua dependency bắc cầu?
-- Dependency đó có scope `compile`, `runtime`, `test`, `provided` hoặc scope khác?
-- Có phiên bản nào bị thay thế bởi dependency mediation hoặc dependency management không?
-- Có dependency không cần thiết bị xuất hiện trong production artifact metadata không?
+- What are the final selected group/artifact/version coordinates?
+- Which dependencies were pulled in transitively?
+- Does each dependency have `compile`, `runtime`, `test`, `provided`, or another scope?
+- Was any version overridden by dependency mediation or dependency management?
+- Are any unnecessary dependencies appearing in the production artifact metadata?
 
-Maven có thể nhận version từ parent POM hoặc BOM qua `dependencyManagement`. Chỉ nhìn dependency declaration trong một module sẽ bỏ sót các quyết định version ở cấp build cha.
+Maven can inherit versions from a parent POM or BOM via `dependencyManagement`. Looking only at dependency declarations in one module misses version decisions made at the parent build level.
 
-Khi cần xem POM đã hợp nhất với parent, profile và property:
+When you need to inspect the POM merged with parent, profiles, and properties:
 
 ~~~bash
 mvn help:effective-pom
 ~~~
 
-Lệnh này hữu ích khi dependency version không được khai báo trực tiếp trong POM hiện tại.
+This command is useful when dependency versions are not declared directly in the current POM.
 
-Một build phát hành nên dùng version được quản lý rõ ràng và tránh phụ thuộc vào các repository hay profile chỉ tồn tại trên máy tác giả.
+A release build should use explicitly managed versions and avoid relying on repositories or profiles that exist only on the author's machine.
 
-## 5. Maven scope ảnh hưởng tới consumer
+## 5. How Maven scopes affect consumers
 
-Không phải tất cả dependency khai báo trong POM đều cần xuất hiện trong runtime của consumer.
+Not every dependency declared in the POM needs to appear in the consumer's runtime.
 
-Các scope thường gặp:
+Common scopes:
 
-| Scope | Ý định chính | Điều cần rà soát |
+| Scope | Primary intent | What to audit |
 |---|---|---|
-| `compile` | Cần cho biên dịch và thường tham gia dependency của consumer | Có thực sự là API/runtime dependency không? |
-| `runtime` | Không cần để compile source hiện tại nhưng cần khi chạy | Runtime test đã bao phủ chưa? |
-| `test` | Chỉ phục vụ kiểm thử | Không được vô tình đưa thành dependency chính thức |
-| `provided` | Dự kiến môi trường cung cấp khi chạy | Consumer/host có thật sự cung cấp không? |
-| `optional` | Không tự truyền thành dependency bắt buộc cho downstream consumer | Tài liệu đã hướng dẫn người dùng bổ sung khi cần chưa? |
+| `compile` | Needed for compilation and usually included in consumer dependencies | Is it genuinely an API/runtime dependency? |
+| `runtime` | Not needed to compile current sources, yet needed at runtime | Do runtime tests cover it? |
+| `test` | Serves testing only | Must not leak in as a production dependency |
+| `provided` | Expected to be supplied by the runtime environment | Do consumers/hosts genuinely provide it? |
+| `optional` | Not propagated automatically as a mandatory dependency to downstream consumers | Do docs instruct users to add it when needed? |
 
-Ví dụ một API thư viện cần JSON codec khi chạy. Nếu tác giả đánh dấu codec là optional trong POM nhưng không có cơ chế fallback, consumer có thể tải thư viện thành công rồi gặp lỗi khi gọi tính năng.
+For example, a library API needs a JSON codec at runtime. If the author marks the codec as optional in the POM without a fallback mechanism, consumers may download the library cleanly and then hit errors when invoking that feature.
 
-Tương tự, đặt driver JDBC trong `test` scope không có nghĩa driver sẽ có trong runtime của consumer. Hãy phân biệt **dependency được dùng để test** với **dependency cần triển khai thực tế**.
+Similarly, putting a JDBC driver in `test` scope does not mean the driver will exist in the consumer's runtime. Distinguish **dependencies used for testing** from **dependencies required in actual deployment**.
 
-Maven scope và JPMS `requires static` không phải là hai cách viết đồng nghĩa. Một bên điều khiển build dependency resolution, bên kia điều khiển quan hệ module khi compile/runtime. Cần xem cả hai nếu có optional integration.
+Maven scopes and JPMS `requires static` are not two spellings for the same thing. One governs build dependency resolution, while the other governs module relationships at compile/runtime. Inspect both when optional integration exists.
 
-## 6. Kiểm tra dependency graph trên Gradle
+## 6. Inspecting the dependency graph in Gradle
 
-Với Gradle, dependency graph được resolve theo từng **configuration**. Một cấu hình thường dùng:
+With Gradle, dependency graphs are resolved per **configuration**. A commonly used configuration:
 
 ~~~bash
 ./gradlew dependencies --configuration compileClasspath
 ~~~
 
-Và configuration runtime:
+And the runtime configuration:
 
 ~~~bash
 ./gradlew dependencies --configuration runtimeClasspath
 ~~~
 
-Trên Windows có thể dùng:
+On Windows you can use:
 
 ~~~powershell
 .\gradlew.bat dependencies --configuration runtimeClasspath
 ~~~
 
-Hai graph có thể khác nhau, đặc biệt khi dự án sử dụng `implementation`, `api`, `compileOnly`, `runtimeOnly` hoặc các variant riêng.
+The two graphs can differ, especially when the project uses `implementation`, `api`, `compileOnly`, `runtimeOnly`, or custom variants.
 
-Nếu một module có nhiều subproject, thực hiện trên đúng project:
+If a build has multiple subprojects, target the exact project:
 
 ~~~bash
 ./gradlew :report-api:dependencies --configuration runtimeClasspath
 ~~~
 
-Khi cần biết tại sao một thư viện hoặc phiên bản xuất hiện:
+When you need to know why a specific library or version appears:
 
 ~~~bash
 ./gradlew :report-api:dependencyInsight \
@@ -174,13 +174,13 @@ Khi cần biết tại sao một thư viện hoặc phiên bản xuất hiện:
   --dependency json-core
 ~~~
 
-`dependencyInsight` giúp tìm đường phụ thuộc hoặc lý do chọn phiên bản cho một dependency cụ thể, hữu ích khi có conflict resolution.
+`dependencyInsight` helps trace dependency paths and version selection reasons for a specific dependency, useful when resolving conflicts.
 
-Không nên kết luận version đã publish bằng cách chỉ đọc dòng `implementation 'group:artifact:version'`. Resolution strategy, dependency constraints, platform/BOM và các variant có thể tác động đến kết quả cuối cùng.
+Do not conclude the published version solely by reading `implementation 'group:artifact:version'`. Resolution strategies, dependency constraints, platforms/BOMs, and variants can all affect the final outcome.
 
-## 7. Gradle api và implementation có ý nghĩa riêng
+## 7. Gradle api and implementation have distinct meanings
 
-Với plugin `java-library`, Gradle phân biệt:
+With the `java-library` plugin, Gradle distinguishes:
 
 ~~~groovy
 dependencies {
@@ -191,85 +191,85 @@ dependencies {
 }
 ~~~
 
-Theo ý định của Java Library plugin:
+By the design of the Java Library plugin:
 
-- `api` dành cho dependency cần được phơi bày tới compile classpath của consumer.
-- `implementation` dành cho dependency triển khai không cần được phơi bày như compile-time API của consumer.
-- `runtimeOnly` là dependency chỉ cần tại runtime.
-- `testImplementation` không phải dependency production.
+- `api` is for dependencies that must be exposed to consumers' compile classpaths.
+- `implementation` is for implementation dependencies that do not need to be exposed as consumers' compile-time APIs.
+- `runtimeOnly` is for dependencies needed only at runtime.
+- `testImplementation` is not a production dependency.
 
-Với JPMS, việc chọn `api` hay `implementation` **không tự viết** `requires transitive` hoặc `requires` vào `module-info.java`. Cần bảo đảm build metadata và descriptor nhất quán với contract thực tế.
+With JPMS, choosing `api` or `implementation` **does not automatically write** `requires transitive` or `requires` into `module-info.java`. Ensure build metadata and descriptors align with the real contract.
 
-Nếu một public signature dùng type từ module khác nhưng build dependency lại bị giấu ở implementation scope, consumer có thể gặp khó khăn khi biên dịch. Ngược lại, đưa mọi dependency vào `api` sẽ phơi bày graph lớn không cần thiết.
+If a public signature uses a type from another module while the build dependency is hidden in an implementation scope, consumers may run into compilation difficulties. Conversely, putting every dependency in `api` exposes an unnecessarily large graph.
 
-## 8. Kiểm tra module descriptor đã đóng gói
+## 8. Inspecting the packaged module descriptor
 
-Source descriptor chưa phải bằng chứng cuối cùng. Sau khi build, hãy kiểm tra artifact được dự định publish:
+The source descriptor is not the final proof. After building, inspect the artifact intended for publishing:
 
 ~~~bash
 jar --describe-module --file build/libs/report-api-1.4.0.jar
 ~~~
 
-Hoặc với Maven:
+Or with Maven:
 
 ~~~bash
 jar --describe-module --file target/report-api-1.4.0.jar
 ~~~
 
-Kết quả của explicit modular JAR cần xác nhận:
+The output for an explicit modular JAR must confirm:
 
-- Tên module đúng với tên mà consumer sẽ viết trong `requires`.
-- Những `requires` phù hợp với dependency thực tế.
-- Package API được `exports` đúng phạm vi.
-- Qualified exports/opens và service declarations được đóng gói đúng.
-- `module-info.class` thực sự nằm trong artifact.
+- The module name matches what consumers will write in `requires`.
+- `requires` entries match actual dependencies.
+- API packages have the right `exports` scope.
+- Qualified exports/opens and service declarations are packaged properly.
+- `module-info.class` actually resides in the artifact.
 
-Có thể xem file trong JAR:
+You can list files in the JAR:
 
 ~~~bash
 jar --list --file build/libs/report-api-1.4.0.jar
 ~~~
 
-Với modular JAR thông thường, cần thấy:
+For a normal modular JAR, you should see:
 
 ~~~text
 module-info.class
 com/acme/report/api/ReportService.class
 ~~~
 
-Nếu JAR không có descriptor tường minh, khi đặt trên module path nó có thể trở thành automatic module. Khi đó tên module có thể bắt nguồn từ `Automatic-Module-Name` hoặc tên file; đừng mặc định tên JAR tương đương tên module.
+If the JAR lacks an explicit descriptor, placing it on the module path may turn it into an automatic module. In that case, the module name may come from `Automatic-Module-Name` or the filename; never assume the JAR name equals the module name.
 
-## 9. Kiểm tra module graph bằng jdeps
+## 9. Inspecting the module graph with jdeps
 
-`jdeps` là công cụ của JDK dùng để phân tích dependency từ bytecode. Sau khi build, có thể chạy:
+`jdeps` is a JDK tool for analyzing dependencies from bytecode. After building, you can run:
 
 ~~~bash
 jdeps --print-module-deps --module-path libs \
   build/libs/report-api-1.4.0.jar
 ~~~
 
-Hoặc:
+Or:
 
 ~~~bash
 jdeps --list-deps --module-path libs \
   build/libs/report-api-1.4.0.jar
 ~~~
 
-Trong đó:
+Where:
 
-- `--module-path libs` chỉ nơi tìm các modular dependency cần thiết cho phân tích.
-- `--print-module-deps` cho biết danh sách module dependency dạng rút gọn phục vụ các trường hợp như chuẩn bị `jlink`.
-- `--list-deps` báo cáo các dependency module/package được phát hiện.
+- `--module-path libs` points to modular dependencies required for analysis.
+- `--print-module-deps` prints a condensed list of module dependencies useful for cases such as preparing `jlink`.
+- `--list-deps` reports discovered module/package dependencies.
 
-Nếu các dependency được đặt trong những thư mục khác nhau, hãy tạo module path tương ứng. Không nên đoán rằng `jdeps` tự tải các thư viện từ Maven Central hoặc Gradle cache như một build tool.
+If dependencies sit in multiple directories, construct the matching module path. Do not expect `jdeps` to download libraries from Maven Central or Gradle caches like a build tool.
 
-Với JAR dạng multi-release, cần dùng tùy chọn `--multi-release` phù hợp để phân tích biến thể class dành cho phiên bản Java đích.
+For multi-release JARs, pass the appropriate `--multi-release` option to analyze class variants targeting the intended Java version.
 
-Lưu ý quan trọng: `jdeps` chủ yếu dựa trên dependency bytecode tĩnh. Reflection, `ServiceLoader`, class name được đọc từ cấu hình và plugin được nạp động có thể không được phản ánh đầy đủ. Vì thế `jdeps` là công cụ kiểm tra graph, không phải lời cam kết rằng runtime sẽ không cần thêm dependency.
+Important note: `jdeps` relies primarily on static bytecode dependencies. Reflection, `ServiceLoader`, class names read from config files, and dynamically loaded plugins may not be fully reflected. Thus `jdeps` is a graph-checking aid, not a guarantee that runtime will need no further dependencies.
 
-## 10. So sánh requires trong descriptor với dependency thực tế
+## 10. Comparing requires in descriptors with actual dependencies
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.report.api {
@@ -280,23 +280,23 @@ module com.acme.report.api {
 }
 ~~~
 
-Một số câu hỏi cần đặt ra:
+Questions to ask:
 
-1. `com.acme.report.codec` có thật trên module path của consumer không?
-2. Module name thực tế của codec có đúng như descriptor nêu không?
-3. Dependency codec là explicit module hay automatic module?
-4. Public API có sử dụng kiểu từ codec không?
-5. Nếu có, consumer có cần `requires transitive` thay cho `requires`?
-6. Nếu codec là optional feature, liệu module descriptor có đang yêu cầu nó bắt buộc khi chạy không?
-7. Nếu codec chỉ được nạp động qua service/provider, liệu thiết kế có cần trực tiếp `requires` implementation module không?
+1. Is `com.acme.report.codec` actually present on the consumer's module path?
+2. Does the actual module name of codec match what the descriptor states?
+3. Is the codec dependency an explicit module or an automatic module?
+4. Does the public API use types from codec?
+5. If so, do consumers need `requires transitive` instead of `requires`?
+6. If codec is an optional feature, is the module descriptor making it mandatory at runtime?
+7. If codec is loaded dynamically via service/provider, does the design actually need a direct `requires` on the implementation module?
 
-Không xóa `requires` chỉ vì một báo cáo static analysis không nhìn thấy bytecode sử dụng dependency. Một dependency có thể cần cho reflection, service discovery hoặc code chỉ hoạt động theo configuration.
+Do not delete `requires` solely because a static analysis report shows no direct bytecode usage of the dependency. A dependency may be needed for reflection, service discovery, or configuration-driven code paths.
 
-Ngược lại, một dependency còn ở POM nhưng không còn được sử dụng có thể làm tăng graph và tăng rủi ro không cần thiết.
+Conversely, a dependency left over in the POM yet no longer used can bloat the graph and introduce unnecessary risk.
 
-## 11. Kiểm tra module graph tại runtime
+## 11. Inspecting the module graph at runtime
 
-Nếu thư viện có ứng dụng mẫu hoặc consumer smoke test, dùng module path và khả năng quan sát resolution của Java launcher:
+If the library has a sample app or consumer smoke test, use the module path and the Java launcher's resolution diagnostics:
 
 ~~~bash
 java --show-module-resolution \
@@ -304,35 +304,35 @@ java --show-module-resolution \
   -m com.acme.report.demo/com.acme.report.demo.Main
 ~~~
 
-Lệnh hiển thị thông tin về các module được resolve khi JVM chuẩn bị chạy ứng dụng.
+The command prints information about modules resolved as the JVM prepares to launch the application.
 
-Chú ý:
+Pay attention to:
 
-- Root module và dependency theo `requires`.
-- Những module được đưa vào do service binding, nếu có.
-- Dependency từ runtime image như `java.base`, `java.sql` và các module JDK khác.
-- Những module bên thứ ba thực sự được tìm thấy trên module path.
+- Root modules and `requires` dependencies.
+- Modules added by service binding, if any.
+- Dependencies from the runtime image such as `java.base`, `java.sql`, and other JDK modules.
+- Third-party modules actually found on the module path.
 
-Có thể kiểm tra module có thể quan sát bằng:
+You can check observable modules with:
 
 ~~~bash
 java --module-path mods --list-modules
 ~~~
 
-Và xem descriptor của module cụ thể:
+And inspect the descriptor of a specific module:
 
 ~~~bash
 java --module-path mods \
   --describe-module com.acme.report.api
 ~~~
 
-`--list-modules` và `--describe-module` là công cụ khám phá module; một module có thể observable mà chưa chắc đã được resolve trong graph của lần chạy cụ thể. `--show-module-resolution` trả lời câu hỏi về lần chạy cụ thể tốt hơn.
+`--list-modules` and `--describe-module` are module inspection tools; an observable module is not guaranteed to be resolved in a specific run's graph. `--show-module-resolution` answers questions about a specific execution better.
 
-## 12. Không để build thành công che giấu lỗi runtime
+## 12. Do not let a passing build mask runtime errors
 
-Một build có thể thành công vì IDE hoặc test classpath vô tình chứa thêm dependency, trong khi consumer chạy trên module path bị thiếu module.
+A build can succeed because the IDE or test classpath happened to include extra dependencies, while consumers running on the module path hit missing modules.
 
-Một ví dụ thường gặp:
+A common example:
 
 ~~~java
 module com.acme.report.app {
@@ -340,92 +340,92 @@ module com.acme.report.app {
 }
 ~~~
 
-Nhưng `com.acme.report.api` lại có:
+Yet `com.acme.report.api` has:
 
 ~~~java
 requires com.acme.report.codec;
 ~~~
 
-Nếu publisher không công bố hoặc không cung cấp đúng codec artifact, consumer có thể nhận lỗi:
+If the publisher fails to publish or supply the codec artifact properly, consumers may get:
 
 ~~~text
 java.lang.module.FindException:
 Module com.acme.report.codec not found, required by com.acme.report.api
 ~~~
 
-Đây không phải lỗi của `exports`. Đây là lỗi module dependency chưa thể được phân giải.
+This is not an `exports` error. It is an unresolvable module dependency error.
 
-Do đó, trước khi publish, cần thử **tải các artifact dự định phát hành** bằng một project consumer độc lập, sử dụng module path tương tự môi trường downstream. Không chỉ chạy test trên source tree nơi mọi output module đã được IDE làm sẵn.
+Therefore, before publishing, test **downloading the artifacts intended for release** from a separate consumer project using a module path matching downstream environments. Do not rely solely on tests inside the source tree where IDE-prepared module outputs already exist.
 
-## 13. Duplicate module name và split package
+## 13. Duplicate module names and split packages
 
-Hai vấn đề thường gây lỗi khi chuyển dependency từ classpath sang module path:
+Two issues frequently cause failures when moving dependencies from the classpath to the module path:
 
 ### 13.1. Duplicate module name
 
-Hai JAR có thể được nhận diện bằng cùng module name dù file name khác nhau, chẳng hạn:
+Two JARs can be identified by the same module name despite different filenames, for example:
 
 ~~~text
 libs/report-codec-1.0.jar
 libs/report-codec-2.0.jar
 ~~~
 
-Nếu cả hai công bố module name `com.acme.report.codec`, module finder/module path có thể gặp xung đột hoặc một artifact không được chọn như người dùng mong đợi, tùy vị trí và cách cấu hình.
+If both declare module name `com.acme.report.codec`, the module finder/module path may hit a conflict or select an unexpected artifact, depending on placement and configuration.
 
-Hãy bảo đảm module path của consumer không chứa nhiều bản artifact cạnh tranh cho cùng một module. Rà soát những dependency transitive dẫn tới việc trộn version cũ và mới.
+Ensure the consumer's module path does not contain competing artifact versions for the same module. Audit transitive dependencies that pull in mixed old and new versions.
 
-### 13.2. Split package
+### 13.2. Split packages
 
-Giả sử hai named module cùng chứa:
+Suppose two named modules both contain:
 
 ~~~text
 com.acme.report.common
 ~~~
 
-Khi các module này cùng tham gia cấu hình, JPMS có thể phát hiện xung đột package ownership hoặc làm consumer không thể đọc đồng thời những module chứa cùng package đó.
+When these modules participate together in a configuration, JPMS can detect a package ownership conflict or prevent consumers from reading both modules sharing that package simultaneously.
 
-Đừng giải quyết split package bằng cách thay `requires` một cách tùy tiện. Thường cần chỉnh layout source/module để một package thuộc một module xác định, hoặc chuyển contract dùng chung vào module API rõ ràng.
+Do not try to solve split packages by tweaking `requires` arbitrarily. Usually you need to adjust source/module layout so one package belongs to one defined module, or move shared contracts into an explicit API module.
 
-Để hỗ trợ phát hiện vấn đề ở cấu hình module path, có thể chạy:
+To help catch issues in a module path setup, you can run:
 
 ~~~bash
 java --module-path mods --validate-modules
 ~~~
 
-Lệnh này kiểm tra module path ở mức module metadata và báo một số vấn đề như xung đột module/package. Nó không thay thế smoke test runtime và không bao phủ mọi xung đột khi các module được nạp theo cách động khác.
+This command checks the module path at the module metadata level and reports certain issues such as module/package conflicts. It does not replace runtime smoke tests and does not catch all conflicts when modules are loaded dynamically.
 
-## 14. Kiểm tra automatic module và tên module ổn định
+## 14. Checking automatic modules and stable module names
 
-Một JAR chưa có `module-info.class` khi đặt trên module path có thể được coi là automatic module.
+A JAR lacking `module-info.class` placed on the module path may be treated as an automatic module.
 
-Tên automatic module có thể được xác định bởi:
+An automatic module's name may be determined by:
 
-- Manifest attribute `Automatic-Module-Name`, nếu có.
-- Tên file JAR được suy ra thành module name khi không có thuộc tính trên.
+- The `Automatic-Module-Name` manifest attribute, if present.
+- A module name derived from the JAR filename when that attribute is absent.
 
-Ví dụ dependency:
+Example dependency:
 
 ~~~text
 legacy-serializer-2.4.jar
 ~~~
 
-có thể được suy ra tên module từ file. Khi nhà cung cấp đổi tên artifact, module name suy ra có thể thay đổi, làm dòng `requires` của consumer bị ảnh hưởng.
+may have a module name derived from the filename. If the vendor renames the artifact, the derived module name can change, breaking consumers' `requires` lines.
 
-Trước khi publish thư viện phụ thuộc một automatic module:
+Before publishing a library depending on an automatic module:
 
 ~~~bash
 jar --describe-module --file libs/legacy-serializer-2.4.jar
 ~~~
 
-Hãy xác nhận module name đúng như đã dùng trong `module-info.java`.
+Confirm the module name matches what is used in `module-info.java`.
 
-Nếu tự publish một JAR chưa thể chuyển thành explicit module, có thể cân nhắc khai báo `Automatic-Module-Name` ổn định trong manifest để giảm rủi ro tên suy ra từ file. Đây là bước chuyển tiếp; nó không thay thế việc thiết kế descriptor tường minh cho module.
+If publishing a JAR yourself that cannot yet become an explicit module, consider declaring a stable `Automatic-Module-Name` in the manifest to reduce filename-derivation risk. This is a transitional step; it does not replace designing an explicit module descriptor.
 
-## 15. Kiểm tra dependency lộ qua public API
+## 15. Checking dependencies leaked through public APIs
 
-Không chỉ đọc POM/Gradle graph, hãy kiểm tra public signatures nằm trong những package được export.
+Do not read only the POM/Gradle graph; inspect public signatures in exported packages.
 
-Ví dụ:
+Example:
 
 ~~~java
 package com.acme.report.api;
@@ -437,9 +437,9 @@ public interface ReportParser {
 }
 ~~~
 
-Nếu `JsonNode` thuộc một dependency bên ngoài, consumer dùng interface sẽ cần nhìn thấy kiểu đó. Trong JPMS, đây có thể là dấu hiệu cần module readability được truyền tiếp bằng `requires transitive`.
+If `JsonNode` belongs to an external dependency, consumers using the interface will need visibility of that type. In JPMS, this may signal that module readability needs to be propagated via `requires transitive`.
 
-Một giải pháp kiến trúc khác là giữ dependency bên ngoài ở implementation layer và chỉ công bố kiểu do API module sở hữu:
+An alternative architectural solution is keeping external dependencies in the implementation layer and exposing only types owned by the API module:
 
 ~~~java
 package com.acme.report.api;
@@ -448,25 +448,25 @@ public record ReportDocument(String title, String content) {
 }
 ~~~
 
-Nếu API trả về `ReportDocument`, consumer không cần biết thư viện JSON cụ thể được dùng để parse.
+If the API returns `ReportDocument`, consumers do not need to know which JSON library was used for parsing.
 
-Checklist API leak:
+API leak checklist:
 
-- Public return/parameter type có nằm ngoài module API không?
-- Checked exception có thuộc dependency private không?
-- Generic arguments có chứa kiểu implementation không?
-- Exported interfaces có kế thừa API thuộc module mà consumer không thể đọc không?
-- Gradle `api` và Maven dependency metadata có phản ánh đúng những dependency được công bố không?
+- Do public return/parameter types live outside the API module?
+- Do checked exceptions belong to a private dependency?
+- Do generic arguments contain implementation types?
+- Do exported interfaces extend APIs from modules consumers cannot read?
+- Do Gradle `api` and Maven dependency metadata accurately reflect exposed dependencies?
 
-Public API và dependency graph cần tương thích; nếu không, consumer có thể gặp lỗi compile dù publisher vẫn build thành công.
+The public API and dependency graph must be compatible; otherwise consumers can hit compile failures even when the publisher's build passes.
 
-## 16. ServiceLoader, reflection và dependency động
+## 16. ServiceLoader, reflection, and dynamic dependencies
 
-Một graph tĩnh thường không thể giải thích toàn bộ hành vi runtime.
+A static graph rarely explains all runtime behavior.
 
 ### 16.1. ServiceLoader
 
-Consumer có thể khai báo:
+A consumer may declare:
 
 ~~~java
 module com.acme.report.app {
@@ -486,13 +486,13 @@ module com.acme.report.csv {
 }
 ~~~
 
-Provider module cần được đưa vào configuration/layer mà `ServiceLoader` sử dụng. Nếu thư viện công bố service API nhưng không tự cung cấp provider, phải hướng dẫn consumer thêm provider artifact phù hợp.
+The provider module must be included in the configuration/layer used by `ServiceLoader`. If a library exposes a service API without shipping a provider itself, document how consumers should add an appropriate provider artifact.
 
-Không nên thêm `requires com.acme.report.csv` vào API module chỉ để ép một provider cụ thể tồn tại. Điều đó tạo coupling ngược giữa contract và implementation.
+Do not add `requires com.acme.report.csv` to the API module just to force a specific provider to exist. That creates reverse coupling between contract and implementation.
 
 ### 16.2. Reflection
 
-Framework có thể cần `opens` hoặc qualified opens để truy cập model class.
+Frameworks may require `opens` or qualified opens to access model classes.
 
 ~~~java
 module com.acme.report.api {
@@ -501,91 +501,91 @@ module com.acme.report.api {
 }
 ~~~
 
-Cấu hình build có thể chứa Jackson dependency nhưng runtime vẫn lỗi reflection nếu module graph/opens không đúng. Graph kiểm tra trước publish nên được kết hợp với integration test thực tế.
+Build configuration may include the Jackson dependency, yet runtime can still fail reflection if the module graph/opens are wrong. Pre-publish graph checks should be paired with real integration tests.
 
-### 16.3. Dependency chỉ dùng trong configuration
+### 16.3. Configuration-only dependencies
 
-Tên class do plugin system đọc từ file cấu hình có thể không xuất hiện trong `jdeps`. Khi publish, cần tài liệu và test cho tình huống đó thay vì dùng static analysis để loại bỏ dependency động.
+Class names read by a plugin system from configuration files may not show up in `jdeps`. Before publishing, document and test those scenarios instead of using static analysis to strip out dynamic dependencies.
 
-## 17. Quản lý version và tính lặp lại của dependency graph
+## 17. Version management and reproducibility of the dependency graph
 
-Trước khi publish, cần biết graph sẽ được resolve ra sao ở máy khác và ở lần build khác.
+Before publishing, know how the graph will resolve on other machines and in future builds.
 
-Với Maven:
+With Maven:
 
-- Sử dụng version rõ ràng và dependency management nhất quán.
-- Không phụ thuộc vào SNAPSHOT hoặc version thay đổi ngoài ý muốn trong release ổn định.
-- Kiểm tra các active profiles có ảnh hưởng tới dependency.
-- Xem effective POM và dependency tree của đúng release configuration.
+- Use explicit versions and consistent dependency management.
+- Do not depend on SNAPSHOTs or unintended shifting versions in stable releases.
+- Check active profiles that affect dependencies.
+- Inspect the effective POM and dependency tree of the exact release configuration.
 
-Với Gradle:
+With Gradle:
 
-- Kiểm tra resolved graph của `compileClasspath` và `runtimeClasspath`.
-- Cân nhắc dependency locking/verification theo chính sách dự án.
-- Kiểm tra constraints, platforms/BOM và resolution strategy.
-- Tránh để dynamic/changing versions làm thay đổi graph giữa các lần publish.
+- Inspect resolved graphs of `compileClasspath` and `runtimeClasspath`.
+- Consider dependency locking/verification per project policy.
+- Check constraints, platforms/BOMs, and resolution strategies.
+- Avoid dynamic/changing versions that alter the graph between publications.
 
-Version conflict có thể không gây compile error ngay nhưng thay đổi behavior hoặc public ABI khi consumer resolve dependency qua những constraint khác.
+Version conflicts may not cause immediate compile errors, yet can alter behavior or public ABI when consumers resolve dependencies under different constraints.
 
-Khi cần phát hành ổn định, lưu lại phiên bản plugin, JDK/toolchain và các dependency quan trọng trong CI build log hoặc release metadata để có thể tái tạo vấn đề.
+For stable releases, record plugin versions, JDK/toolchains, and key dependencies in CI build logs or release metadata so issues remain reproducible.
 
-## 18. Dependency graph và rủi ro chuỗi cung ứng
+## 18. Dependency graphs and supply-chain risks
 
-Việc kiểm tra graph cũng giúp phát hiện những dependency không cần thiết, phiên bản đã lỗi thời hoặc artifact không rõ nguồn gốc.
+Inspecting the graph also helps catch unnecessary dependencies, outdated versions, or artifacts from unclear sources.
 
-Các bước có ích:
+Helpful steps:
 
-1. Xác định dependency trực tiếp và transitive thực tế.
-2. Loại dependency test/dev khỏi production graph khi không cần.
-3. Kiểm tra license policy và provenance của artifact theo quy định tổ chức.
-4. Chạy quét lỗ hổng trên graph đã resolve bằng công cụ được dự án chấp nhận.
-5. Nếu quy trình release yêu cầu, tạo SBOM cho tập dependency thực sự sử dụng.
-6. Ghi nhận các ngoại lệ tạm thời và owner có trách nhiệm xử lý.
+1. Identify actual direct and transitive dependencies.
+2. Remove test/dev dependencies from production graphs when unneeded.
+3. Verify license policies and artifact provenance per organizational rules.
+4. Run vulnerability scans on the resolved graph with project-approved tools.
+5. If required by the release process, generate an SBOM for the set of dependencies actually used.
+6. Record temporary exceptions and their owning maintainers.
 
-Cần phân biệt quét vulnerability với JPMS resolution. Module graph hợp lệ không chứng minh dependency an toàn; vulnerability scan sạch cũng không chứng minh module name, exports hoặc runtime service binding đúng.
+Distinguish vulnerability scanning from JPMS resolution. A valid module graph does not prove dependencies are secure; a clean vulnerability scan also does not prove module names, exports, or runtime service bindings are accurate.
 
-Đây là những cổng kiểm tra bổ sung, không phải thay thế cho việc chạy ứng dụng trên module path.
+These are complementary quality gates, not replacements for running the application on the module path.
 
-## 19. Kiểm tra artifact publish thay vì chỉ kiểm tra source
+## 19. Inspecting published artifacts instead of only sources
 
-Sau khi build, cần xác nhận nội dung JAR cuối cùng khớp với những gì consumer sẽ tải.
+After building, confirm the final JAR contents match what consumers will download.
 
-Ví dụ với Maven:
+For example, with Maven:
 
 ~~~bash
 mvn -B -ntp clean verify
 ~~~
 
-Với Gradle:
+With Gradle:
 
 ~~~bash
 ./gradlew clean build
 ~~~
 
-Tiếp theo:
+Next:
 
 ~~~bash
 jar --describe-module --file path/to/published-artifact.jar
 jar --list --file path/to/published-artifact.jar
 ~~~
 
-Nếu release dùng một bản copy/staging artifact, kiểm tra **chính file staging** trước khi publish. Tránh tình huống test trên artifact A nhưng upload artifact B do task hoặc profile khác tạo ra.
+If the release uses a copied/staged artifact, inspect **that exact staged file** before publishing. Avoid testing artifact A while uploading artifact B generated by a different task or profile.
 
-Cũng cần kiểm tra metadata xuất bản:
+Also verify publication metadata:
 
-- Maven POM có đúng group/artifact/version không?
-- Dependency scope và optional flags có phản ánh nhu cầu consumer không?
-- Gradle Module Metadata (nếu có) có đúng các variant và dependency không?
-- Artifact và metadata đã được publish cùng version chưa?
-- Có dependency nội bộ chỉ tồn tại trong repository công ty khiến consumer bên ngoài không thể tải không?
+- Does the Maven POM have the right group/artifact/version?
+- Do dependency scopes and optional flags reflect consumer needs?
+- Does Gradle Module Metadata (if present) have accurate variants and dependencies?
+- Are artifacts and metadata published at the same version?
+- Are there internal dependencies existing only in a company repository that external consumers cannot download?
 
-Một modular JAR đúng descriptor nhưng POM thiếu dependency bắt buộc vẫn có thể gây lỗi downstream.
+A modular JAR with a valid descriptor paired with a POM missing required dependencies can still cause downstream failures.
 
-## 20. Consumer smoke test trước publish
+## 20. Consumer smoke test before publishing
 
-Một phép thử rất có giá trị là tạo **consumer project nhỏ nằm ngoài module nguồn**.
+A very valuable check is creating a **small consumer project outside the source modules**.
 
-Ví dụ:
+Example:
 
 ~~~text
 consumer-smoke/
@@ -617,7 +617,7 @@ public final class Main {
 }
 ~~~
 
-Biên dịch với artifact staging và dependency modules:
+Compile against staged artifacts and dependency modules:
 
 ~~~bash
 javac --module-path dist/modules \
@@ -626,7 +626,7 @@ javac --module-path dist/modules \
   consumer-smoke/src/com/acme/smoke/Main.java
 ~~~
 
-Để chạy từ exploded module output, đặt `out/consumer` vào một module path entry thích hợp hoặc đóng gói consumer thành modular JAR. Chẳng hạn:
+To run from exploded module output, put `out/consumer` into an appropriate module path entry or package the consumer as a modular JAR. For example:
 
 ~~~bash
 jar --create --file dist/modules/com.acme.smoke.jar \
@@ -636,85 +636,85 @@ java --module-path dist/modules \
   -m com.acme.smoke/com.acme.smoke.Main
 ~~~
 
-Thư mục `dist/modules` trong ví dụ phải tồn tại và chứa JAR hoặc exploded modules thực sự cần thiết, bao gồm module API và dependency bắt buộc.
+The `dist/modules` directory in the example must exist and contain the actual required JARs or exploded modules, including the API module and mandatory dependencies.
 
-Smoke test cần làm rõ:
+The smoke test should verify:
 
-- Consumer có compile với public API không?
-- Tên module đúng như tài liệu không?
-- Các module dependency có được resolve không?
-- Có lỗi split package/duplicate module name không?
-- Public signature có tham chiếu type mà consumer không đọc được không?
-- Nếu service/reflection là một phần contract, có thể thực thi luồng đó không?
+- Can the consumer compile against the public API?
+- Does the module name match documentation?
+- Do module dependencies resolve?
+- Are there any split package or duplicate module name errors?
+- Do public signatures reference types unreadable by the consumer?
+- If services/reflection are part of the contract, does that flow execute properly?
 
-Ưu tiên dùng artifact đã staging thay vì output trong project nguồn, vì consumer phải đại diện cho cách người dùng thật tải thư viện.
+Prefer staged artifacts over source-project outputs, because the consumer should mirror how real users download the library.
 
-## 21. Checklist CI dành cho modular library
+## 21. CI checklist for modular libraries
 
-Một pipeline phát hành có thể gồm các cổng kiểm tra sau:
+A release pipeline may include the following gates:
 
-| Giai đoạn | Kiểm tra | Bằng chứng mong muốn |
+| Stage | Check | Expected evidence |
 |---|---|---|
-| Build | Compile/package bằng JDK mục tiêu | Build thành công, artifact ổn định |
-| Unit/integration tests | Kiểm thử API và implementation | Test results |
-| Maven/Gradle graph | Resolve compile/runtime dependencies | Dependency tree hoặc configuration report |
-| Artifact descriptor | `jar --describe-module` | Tên module và requires/exports đúng |
-| Module analysis | `jdeps` với module path đã chuẩn bị | Dependency module có thể giải thích |
-| Module validation | `java --validate-modules` | Không có lỗi module path được công cụ phát hiện |
-| Runtime resolution | `--show-module-resolution` với demo app | Module graph khởi động được |
-| Consumer smoke | Compile/run dùng staging artifact | Public API dùng được qua module path |
-| Dynamic behavior | ServiceLoader/reflection/plugin scenarios | Provider và reflection hoạt động nếu được hỗ trợ |
-| Publication metadata | POM/Gradle metadata/version | Downstream có thể tải đúng artifact/dependency |
+| Build | Compile/package with target JDK | Passing build, stable artifacts |
+| Unit/integration tests | Test APIs and implementations | Test results |
+| Maven/Gradle graph | Resolve compile/runtime dependencies | Dependency tree or configuration report |
+| Artifact descriptor | `jar --describe-module` | Accurate module name and requires/exports |
+| Module analysis | `jdeps` with prepared module path | Explainable module dependencies |
+| Module validation | `java --validate-modules` | No module path errors detected by the tool |
+| Runtime resolution | `--show-module-resolution` with demo app | Module graph boots cleanly |
+| Consumer smoke | Compile/run using staged artifacts | Public API works via module path |
+| Dynamic behavior | ServiceLoader/reflection/plugin scenarios | Providers and reflection work if supported |
+| Publication metadata | POM/Gradle metadata/version | Downstream can fetch right artifacts/dependencies |
 
-Không nhất thiết mọi project đều cần một công cụ CI riêng cho từng hàng. Nhưng các rủi ro chính phải được kiểm tra trước publish bằng test hoặc command có thể chạy lại.
+Not every project needs a separate CI tool for every row. However, the key risks must be verified prior to publishing using reproducible tests or commands.
 
-Ví dụ pipeline đơn giản nên tối thiểu build, chạy test, xem dependency graph, kiểm tra descriptor của artifact và thực hiện consumer smoke test. Các phần như security scanning hoặc SBOM tùy chính sách release.
+For example, a minimal pipeline should at least build, run tests, inspect the dependency graph, check artifact descriptors, and execute a consumer smoke test. Items like security scanning or SBOM depend on release policies.
 
-## 22. Triệu chứng thường gặp khi graph không đúng
+## 22. Common symptoms when the graph is wrong
 
-| Triệu chứng | Nguyên nhân có thể | Hướng điều tra |
+| Symptom | Possible cause | Investigation path |
 |---|---|---|
-| `module not found: X` | Dependency bắt buộc thiếu trên module path hoặc module name sai | Xem descriptor, dependency tree và module path |
-| Consumer compile fail dù publisher compile pass | Public API lộ type không đọc được hoặc thiếu metadata dependency | Kiểm tra exported API, `requires transitive`, POM/Gradle variants |
-| `package ... is not visible` | Package không export hoặc consumer chưa đọc module | `requires`, `exports`, qualified exports |
-| Provider không được tìm thấy | Provider module chưa được resolve hoặc thiếu `provides` | `uses`/`provides`, `--show-module-resolution`, `ServiceLoader` |
-| Reflection báo `InaccessibleObjectException` | Package chưa `opens` cho module framework | Xem `opens` và runtime flags |
-| Lỗi split package | Hai named module có package trùng tên | Rà soát package contents và module path |
-| Bị chọn sai phiên bản thư viện | Maven mediation, Gradle resolution hoặc metadata sai | `dependency:tree`, `dependencyInsight` |
-| Works locally, fails after publish | Dependency chỉ có trong IDE/test/source tree hoặc metadata không đầy đủ | Test consumer từ staging artifact |
-| Automatic module name thay đổi | Tên được suy ra từ JAR filename | `jar --describe-module`, manifest, lock module names |
-| Jdeps không thấy dependency động | Reflection, service provider, config-driven class | Runtime/integration tests |
+| `module not found: X` | Required dependency missing on module path or wrong module name | Check descriptor, dependency tree, and module path |
+| Consumer compile fails though publisher build passes | Public API exposes unreadable type or missing dependency metadata | Check exported APIs, `requires transitive`, POM/Gradle variants |
+| `package ... is not visible` | Package not exported or consumer does not read module | `requires`, `exports`, qualified exports |
+| Provider not found | Provider module not resolved or missing `provides` | `uses`/`provides`, `--show-module-resolution`, `ServiceLoader` |
+| Reflection throws `InaccessibleObjectException` | Package not `opens` to framework module | Check `opens` and runtime flags |
+| Split package error | Two named modules share a package name | Audit package contents and module path |
+| Wrong library version selected | Maven mediation, Gradle resolution, or bad metadata | `dependency:tree`, `dependencyInsight` |
+| Works locally, fails after publish | Dependency existed only in IDE/test/source tree or incomplete metadata | Test consumer from staged artifacts |
+| Automatic module name changes | Name derived from JAR filename | `jar --describe-module`, manifest, lock module names |
+| Jdeps misses dynamic dependencies | Reflection, service providers, config-driven classes | Runtime/integration tests |
 
-Đừng sửa mọi lỗi bằng cách thêm tất cả JAR lên classpath hoặc cấp `--add-reads`/`--add-exports` đại trà. Cần xác định graph bị thiếu dependency, sai module name, sai public contract hay bị giới hạn truy cập package.
+Do not fix every error by putting all JARs on the classpath or scattering `--add-reads`/`--add-exports`. Identify whether the graph is missing a dependency, using the wrong module name, breaking a public contract, or blocking package access.
 
-## 23. Quy trình thực hành trước khi nhấn publish
+## 23. Practical workflow before clicking publish
 
-Một quy trình có thể áp dụng cho cả Maven và Gradle:
+A workflow applicable to both Maven and Gradle:
 
-1. **Build sạch bằng JDK dự định hỗ trợ.** Bảo đảm `module-info.class` được tạo.
-2. **Resolve dependency graph.** Xem compile và runtime dependencies của đúng project/version.
-3. **Xác định dependency bắc cầu.** Giải thích nguồn gốc các thư viện quan trọng, nhất là thư viện có nhiều phiên bản.
-4. **Kiểm tra public API.** Những type trong exported packages phải sử dụng được từ consumer.
-5. **Đọc descriptor của artifact cuối.** Xác nhận module name, `requires`, `exports`, `opens`, `uses`, `provides`.
-6. **Dùng `jdeps` phân tích dependency tĩnh.** Cung cấp module path đầy đủ để tránh kết luận sai.
-7. **Kiểm tra module path.** Phát hiện duplicate module name hoặc split package.
-8. **Chạy runtime demo có `--show-module-resolution`.** Xác nhận module graph được phân giải như dự kiến.
-9. **Kiểm thử dependency động.** Provider, reflection và plugin loading nếu sản phẩm có hỗ trợ.
-10. **Chạy consumer smoke test từ staging artifact.** Không dựa vào classpath tiện lợi của IDE.
-11. **Kiểm tra metadata xuất bản.** POM/Gradle variants phải cung cấp dependency phù hợp.
-12. **Lưu bằng chứng release.** Ghi lại JDK/toolchain, resolved graph và các ngoại lệ được chấp nhận.
+1. **Clean build with the target supported JDK.** Ensure `module-info.class` is produced.
+2. **Resolve the dependency graph.** Inspect compile and runtime dependencies of the exact project/version.
+3. **Trace transitive dependencies.** Account for the origin of key libraries, especially those with multiple versions.
+4. **Audit the public API.** Types in exported packages must be usable by consumers.
+5. **Read the final artifact's descriptor.** Confirm module name, `requires`, `exports`, `opens`, `uses`, `provides`.
+6. **Run `jdeps` for static dependency analysis.** Provide the complete module path to avoid false conclusions.
+7. **Validate the module path.** Catch duplicate module names or split packages.
+8. **Run a runtime demo with `--show-module-resolution`.** Confirm the module graph resolves as intended.
+9. **Test dynamic dependencies.** Providers, reflection, and plugin loading if supported by the product.
+10. **Run a consumer smoke test from staged artifacts.** Do not rely on IDE classpath conveniences.
+11. **Inspect publication metadata.** POM/Gradle variants must supply appropriate dependencies.
+12. **Archive release evidence.** Record JDK/toolchain, resolved graph, and accepted exceptions.
 
-Nếu một bước phát hiện thiếu dependency, sửa từ đúng nguồn: descriptor, build configuration, published metadata, service registration hoặc thiết kế API. Sau đó chạy lại quy trình trước khi publish.
+If any step uncovers a missing dependency, fix it at the root source: descriptor, build configuration, published metadata, service registration, or API design. Then rerun the workflow before publishing.
 
-## 24. Ghi nhớ
+## 24. Key takeaways
 
-Kiểm tra dependency graph trước khi publish không chỉ là xem thư viện nào xuất hiện trong `pom.xml` hoặc `build.gradle`. Với JPMS cần đối chiếu đồng thời:
+Inspecting the dependency graph before publishing is more than checking which libraries appear in `pom.xml` or `build.gradle`. With JPMS, reconcile all of these simultaneously:
 
-- **Build graph:** Maven/Gradle đã chọn artifact, version và scope nào?
-- **Module graph:** `module-info.class` khai báo quan hệ `requires` và quyền truy cập gì?
-- **Runtime graph:** JVM thực sự resolve những module nào qua module path?
-- **Published artifact:** Consumer có thể tải, compile và chạy được bằng artifact/metadata được phát hành không?
+- **Build graph:** Which artifacts, versions, and scopes did Maven/Gradle select?
+- **Module graph:** Which `requires` relationships and access rules does `module-info.class` declare?
+- **Runtime graph:** Which modules does the JVM actually resolve via the module path?
+- **Published artifact:** Can consumers download, compile, and run using the released artifacts and metadata?
 
-Dùng `mvn dependency:tree` hoặc Gradle `dependencies`/`dependencyInsight` để hiểu build graph; dùng `jar --describe-module`, `jdeps` và `java --show-module-resolution` để hiểu JPMS; cuối cùng dùng consumer smoke test để xác nhận contract và dependency thực sự dùng được.
+Use `mvn dependency:tree` or Gradle `dependencies`/`dependencyInsight` to understand the build graph; use `jar --describe-module`, `jdeps`, and `java --show-module-resolution` to understand JPMS; and finally use a consumer smoke test to prove the contract and dependencies genuinely work.
 
-**Chỉ nên publish khi dependency graph đã có thể giải thích, module graph có thể resolve, public API không rò rỉ dependency ngoài ý muốn và artifact cuối đã được thử từ góc nhìn consumer.**
+**Publish only when the dependency graph is explainable, the module graph resolves cleanly, the public API leaks no unintended dependencies, and the final artifact has been verified from the consumer's perspective.**

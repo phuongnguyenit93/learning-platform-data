@@ -1,33 +1,33 @@
-# Truyền tham trị cho kiểu nguyên thủy và tham chiếu trong phương thức Java
+# Pass-by-Value for Primitives and References in Java Methods
 
-## 1. Quy tắc cốt lõi: Java luôn truyền tham trị
+## 1. Core Rule: Java Always Passes by Value
 
-Trong Java, khi gọi một phương thức, **giá trị của từng biểu thức đối số** được dùng để khởi tạo **biến tham số riêng của phương thức**. Cơ chế này gọi là *pass-by-value* (truyền tham trị) và áp dụng **cho cả kiểu nguyên thủy lẫn kiểu tham chiếu**.
+In Java, when calling a method, **the value of each argument expression** is used to initialize the **method's own parameter variable**. This mechanism is called *pass-by-value* and applies **to both primitive types and reference types**.
 
-- **Kiểu nguyên thủy** (`int`, `double`, `boolean`, `char`, ...): tham số nhận bản sao của chính giá trị, chẳng hạn `10` hoặc `true`. Thay đổi tham số không thay đổi biến ở nơi gọi.
-- **Kiểu tham chiếu** (`Person`, `String`, `int[]`, ...): tham số nhận bản sao **giá trị tham chiếu** tới đối tượng. Hai biến có thể cùng tham chiếu một đối tượng; thao tác sửa trạng thái đối tượng qua tham số có thể thấy được ở nơi gọi. Tuy nhiên, **gán lại tham số** không làm thay đổi biến tham chiếu của nơi gọi.
+- **Primitive types** (`int`, `double`, `boolean`, `char`, ...): the parameter receives a copy of the value itself, such as `10` or `true`. Modifying the parameter does not change the variable at the call site.
+- **Reference types** (`Person`, `String`, `int[]`, ...): the parameter receives a copy of the **reference value** pointing to the object. Two variables can reference the same object; operations that mutate the object's state through the parameter can be observed at the call site. However, **reassigning the parameter** does not change the caller's reference variable.
 
-Không có cú pháp tham số `ref`, `out` hay “pass-by-reference” trong chữ ký phương thức Java. Cụm từ “truyền tham chiếu” đôi khi được dùng không chính xác để mô tả việc đối số có kiểu tham chiếu. Nói chính xác, Java **truyền bản sao của giá trị tham chiếu**, không truyền chính biến của bên gọi cho phương thức sửa lại.
+There is no `ref`, `out`, or “pass-by-reference” parameter syntax in Java method signatures. The phrase “pass by reference” is sometimes used inaccurately to describe arguments of reference types. Strictly speaking, Java **passes a copy of the reference value**, not the caller's variable itself for the method to reassign.
 
-## 2. Truyền kiểu nguyên thủy: thay đổi tham số chỉ có tác dụng bên trong
+## 2. Passing Primitives: Changing the Parameter Only Takes Effect Inside
 
-Ví dụ dưới đây là đoạn mã minh họa đặt trong một lớp:
+The example below is an illustrative snippet placed inside a class:
 
 ```java
 static void increase(int value) {
-    value += 10; // Chỉ cập nhật tham số cục bộ
+    value += 10; // Only updates the local parameter
 }
 
 int x = 5;
 increase(x);
-// x vẫn bằng 5
+// x is still 5
 ```
 
-Khi gọi `increase(x)`, giá trị `5` được sao chép vào tham số `value`. Câu lệnh `value += 10` biến tham số thành `15`, nhưng biến `x` của nơi gọi không thay đổi.
+When calling `increase(x)`, the value `5` is copied into parameter `value`. The statement `value += 10` turns the parameter into `15`, yet the caller's variable `x` does not change.
 
-Kể cả khi tham số và biến bên gọi trùng tên, chúng vẫn là hai biến khác nhau thuộc phạm vi khác nhau. Giá trị được truyền vào chỉ được xác định **tại lần gọi**; thay đổi tham số sau đó không đồng bộ ngược về biến ban đầu.
+Even when the parameter and the caller's variable have the same name, they are still two distinct variables in different scopes. The passed value is determined only **at the call**; changing the parameter afterward does not sync back to the original variable.
 
-Với các giá trị `byte`, `short`, `char`, `int`, `long`, `float`, `double`, `boolean`, quy tắc là như nhau (có thể có chuyển đổi kiểu thích hợp theo quy tắc gọi phương thức, ví dụ `int` sang `long`). Muốn bên gọi nhận giá trị mới, hãy **trả về rồi gán lại**:
+For `byte`, `short`, `char`, `int`, `long`, `float`, `double`, and `boolean`, the rule is the same (with appropriate type conversions under method invocation rules, such as `int` to `long`). To have the caller receive the new value, **return it and reassign**:
 
 ```java
 static int increased(int value) {
@@ -39,11 +39,11 @@ x = increased(x);
 // x == 15
 ```
 
-Phương thức `void` không tự đưa bản cập nhật của tham số trở lại nơi gọi.
+A `void` method cannot automatically push an update of a parameter back to the caller.
 
-## 3. Truyền tham chiếu: đối tượng chung, biến tham số riêng
+## 3. Passing References: Shared Object, Separate Parameter Variable
 
-Xét một phương thức nhận đối tượng có trạng thái thay đổi được:
+Consider a method taking an object with mutable state:
 
 ```java
 class Person {
@@ -55,43 +55,43 @@ class Person {
 }
 
 static void rename(Person person) {
-    person.name = "Lan"; // Sửa đối tượng chung
+    person.name = "Lan"; // Mutates the shared object
 }
 
 static void replace(Person person) {
-    person = new Person("Hoa"); // Gán lại biến tham số
+    person = new Person("Hoa"); // Reassigns the parameter variable
 }
 ```
 
-Ở nơi gọi:
+At the call site:
 
 ```java
 Person p = new Person("Minh");
-rename(p);  // p.name trở thành "Lan"
-replace(p); // p vẫn trỏ đến đối tượng có name là "Lan"
+rename(p);  // p.name becomes "Lan"
+replace(p); // p still points to the object whose name is "Lan"
 ```
 
-Khi gọi `rename(p)`, giá trị tham chiếu của `p` được sao chép vào tham số `person`. Hai biến cùng chỉ tới một đối tượng, vì vậy `person.name = "Lan"` làm đổi trường `name` trên đối tượng đó.
+When calling `rename(p)`, the reference value of `p` is copied into parameter `person`. Both variables point to the same object, so `person.name = "Lan"` changes the `name` field on that object.
 
-Khi gọi `replace(p)`, gán `person = new Person("Hoa")` chỉ đổi biến `person` **bên trong phương thức** sang đối tượng mới. Biến `p` vẫn giữ tham chiếu cũ. Cũng vì thế, `person = null` không khiến biến `p` ở nơi gọi thành `null`.
+When calling `replace(p)`, assigning `person = new Person("Hoa")` only changes the variable `person` **inside the method** to point to the new object. Variable `p` keeps the old reference. For the same reason, `person = null` does not make the caller's variable `p` become `null`.
 
-Có thể hình dung:
+You can visualize it as:
 
 ```text
-Trước khi gán lại tham số:
+Before reassigning the parameter:
   p -----------+---> Person("Lan")
   person ------+
 
-Sau person = new Person("Hoa"):
+After person = new Person("Hoa"):
   p ----------------> Person("Lan")
   person -----------> Person("Hoa")
 ```
 
-Sơ đồ chỉ mô tả quan hệ tham chiếu, không khẳng định vị trí vật lý cụ thể của biến hay đối tượng trong bộ nhớ.
+The diagram only illustrates reference relationships, without asserting specific physical locations of variables or objects in memory.
 
-## 4. Mảng làm rõ sửa object khác gán lại tham số
+## 4. Arrays Clarify Object Mutation vs. Parameter Reassignment
 
-Mảng `int[]` là **đối tượng**, nên tham số nhận bản sao **tham chiếu mảng**, không tự nhận bản sao từng phần tử.
+An `int[]` array is an **object**, so the parameter receives a copy of the **array reference**, not an automatic copy of each element.
 
 ~~~java
 static void changeFirst(int[] numbers) { numbers[0] = 99; }
@@ -103,12 +103,12 @@ rebind(data);
 System.out.println(java.util.Arrays.toString(data)); // [99, 2].
 ~~~
 
-`changeFirst` sửa object dùng chung; `rebind` chỉ thay biến tham số. Với mảng hai chiều, thay `matrix[1]` là sửa **phần tử của mảng ngoài**, còn gán `matrix = other` là gán lại tham số. Bài tiếp theo phân tích riêng mảng nhiều chiều, alias, `clone()` và hợp đồng sửa mảng/trả mảng.
+`changeFirst` mutates the shared object; `rebind` only changes the parameter variable. With two-dimensional arrays, replacing `matrix[1]` mutates an **element of the outer array**, whereas assigning `matrix = other` reassigns the parameter. The next lesson analyzes multidimensional arrays, aliasing, `clone()`, and array-mutation/return contracts separately.
 
 
-## 5. Ví dụ Java 17+ đầy đủ, chạy và đối chiếu đầu ra
+## 5. Complete Java 17+ Example, Run and Verify Output
 
-Tạo tệp **`PassByValueDemo.java`**:
+Create the file **`PassByValueDemo.java`**:
 
 ```java
 import java.util.Arrays;
@@ -186,14 +186,14 @@ public class PassByValueDemo {
 }
 ```
 
-Mở terminal tại thư mục chứa tệp. Với **JDK 17 trở lên**, chạy như nhau trên Windows (PowerShell/CMD) hoặc Linux/macOS:
+Open a terminal in the directory containing the file. With **JDK 17 or later**, run identically on Windows (PowerShell/CMD) or Linux/macOS:
 
 ```bash
 javac -encoding UTF-8 PassByValueDemo.java
 java PassByValueDemo
 ```
 
-**Kết quả stdout chính xác** (lệnh `javac` thành công không in dòng nào):
+**Exact stdout output** (a successful `javac` command prints no lines):
 
 ```text
 Trong changeNumber: 99
@@ -210,61 +210,61 @@ Mang goc: [99, 2]
 Ban sao gap doi: [198, 4]
 ```
 
-Các cặp kết quả minh họa ba tình huống khác nhau:
+The pairs of results illustrate three different situations:
 
-1. **Sửa biến tham số `int`** trong `changeNumber`: giá trị bên ngoài vẫn `10`.
-2. **Sửa đối tượng được chia sẻ** trong `changeElement` và `rename`: nội dung mảng và trường của `Person` thực sự thay đổi.
-3. **Gán tham số tham chiếu sang đối tượng khác** trong `replaceArray` và `replacePerson`: người gọi tiếp tục dùng đối tượng ban đầu.
+1. **Modifying an `int` parameter variable** in `changeNumber`: the outer value remains `10`.
+2. **Mutating the shared object** in `changeElement` and `rename`: the array contents and `Person` field genuinely change.
+3. **Reassigning a reference parameter to another object** in `replaceArray` and `replacePerson`: the caller continues using the original object.
 
-Phương thức `doubledCopy` minh họa cách tạo bản sao để tính toán mà không sửa mảng đầu vào.
+The `doubledCopy` method illustrates how to create a copy for computation without modifying the input array.
 
-## 6. Vì sao `String` và `Integer` dễ gây hiểu nhầm?
+## 6. Why Do `String` and `Integer` Often Cause Confusion?
 
-`String` là **đối tượng bất biến** (*immutable*). Phép `text.toUpperCase()` tạo/trả về một chuỗi tương ứng và không thay đổi đối tượng `String` đã có; phép `text = ...` sau đó chỉ gán lại **tham số cục bộ**. Vì vậy, sau `changeString(word)`, biến `word` của người gọi vẫn giữ giá trị `"java"`.
+`String` is an **immutable object**. The expression `text.toUpperCase()` creates/returns a corresponding string without modifying the existing `String` object; the subsequent assignment `text = ...` only reassigns the **local parameter**. Therefore, after `changeString(word)`, the caller's variable `word` still holds `"java"`.
 
-`Integer` cũng bất biến; thêm vào đó, Java hỗ trợ **autoboxing/unboxing**, khiến cú pháp trông giống đang sửa đối tượng:
+`Integer` is also immutable; in addition, Java supports **autoboxing/unboxing**, making syntax look as if it mutates the object:
 
 ```java
 static void addOne(Integer value) {
-    value++; // Unboxing, tăng int, boxing thành Integer rồi gán lại tham số
+    value++; // Unboxes, increments int, boxes into Integer, then reassigns parameter
 }
 
 Integer count = 3;
 addOne(count);
-// count vẫn bằng 3
+// count is still 3
 ```
 
-Đây là mã minh họa bên trong lớp/phương thức. Biểu thức `value++` không sửa đối tượng `Integer` ban đầu. Nếu `value` là `null`, thao tác unboxing này ném `NullPointerException`.
+This is illustrative code inside a class/method. The expression `value++` does not modify the original `Integer` object. If `value` is `null`, this unboxing operation throws a `NullPointerException`.
 
-Không nên suy ra rằng “đối số kiểu tham chiếu luôn làm thay đổi biến bên ngoài”: chỉ **phép sửa trạng thái trên cùng đối tượng có thể thay đổi** mới tạo ra ảnh hưởng được quan sát qua tham chiếu khác. Nếu đối tượng bất biến hoặc phương thức chỉ gán lại tham số, đối tượng/biến bên ngoài không đổi.
+Do not infer that “reference-type arguments always change outer variables”: only **state mutation on the same mutable object** produces an effect observable through another reference. If the object is immutable or the method only reassigns the parameter, the outer object/variable does not change.
 
-## 7. Các giới hạn của tham số tham chiếu trong API
+## 7. Limits of Reference Parameters in APIs
 
-`final` cấm **gán lại biến tham số**, không biến object được tham chiếu thành immutable:
+`final` forbids **reassigning the parameter variable**, and does not turn the referenced object into an immutable one:
 
 ~~~java
 static void setFirst(final int[] data) {
-    data[0] = 5;          // Hợp lệ.
-    // data = new int[2]; // Lỗi: final parameter.
+    data[0] = 5;          // Valid.
+    // data = new int[2]; // Error: final parameter.
 }
 ~~~
 
-Đối số `null` cũng được truyền **theo giá trị**; truy cập `person.name` khi tham số null gây `NullPointerException`. Gán `person = new Person(...)` trong method không thay biến caller vốn đang null.
+A `null` argument is also passed **by value**; accessing `person.name` when the parameter is null causes `NullPointerException`. Assigning `person = new Person(...)` inside the method does not change the caller's variable that was null.
 
-Muốn trả kết quả mảng mà không sửa nguồn, tạo bản sao rồi **return**; chẳng hạn `int[] copy = input.clone();` với `int[]` tạo mảng mới chứa giá trị primitive độc lập. Với mảng object, `clone()` chỉ **sao chép nông** các tham chiếu phần tử; `int[][].clone()` vẫn chia sẻ các hàng.
+To return an array result without modifying the source, create a copy and **return** it; for example, `int[] copy = input.clone();` on an `int[]` creates a new array holding independent primitive values. For an object array, `clone()` only **shallow-copies** the element references; `int[][].clone()` still shares the rows.
 
-Tên API như `sortInPlace` và `sortedCopy` nên nói rõ liệu nó **sửa dữ liệu đầu vào** hay **trả về mảng mới**. Chủ đề này giải thích quy tắc chung cho primitive/reference; bài tham số mảng đi sâu cách sửa phần tử, gán lại hàng của mảng nhiều chiều và sao chép an toàn.
+API names like `sortInPlace` and `sortedCopy` should make clear whether they **mutate the input data** or **return a new array**. This topic explains the general rule for primitives/references; the array-parameter lesson goes deeper into mutating elements, reassigning rows of multidimensional arrays, and safe copying.
 
 
-## 8. Lỗi thường gặp và câu hỏi kiểm tra
+## 8. Common Mistakes and Review Questions
 
-| Nhận định | Đúng/Sai | Giải thích |
+| Statement | True/False | Explanation |
 | --- | --- | --- |
-| “Java truyền `int` tham trị, nhưng truyền `Person` tham chiếu.” | **Sai** | Cả hai đều truyền tham trị; với `Person`, giá trị được sao chép là tham chiếu. |
-| “Gán `person = new Person(...)` sẽ thay biến đối số của bên gọi.” | **Sai** | Chỉ gán lại biến tham số riêng. |
-| “`person.name = ...` có thể làm thay đổi đối tượng quan sát ở nơi gọi.” | **Đúng** | Khi cả hai tham chiếu cùng trỏ đến một đối tượng có trạng thái thay đổi được. |
-| “Gán `numbers[0] = 99` khác với gán `numbers = new int[]{...}`.” | **Đúng** | Một thao tác thay phần tử của đối tượng mảng chung, thao tác còn lại chỉ thay tham chiếu cục bộ. |
-| “Tham số `final int[]` cấm sửa phần tử mảng.” | **Sai** | `final` chỉ cấm gán lại biến tham số. |
-| “`String` không đổi sau `text = text.toUpperCase()` trong phương thức vì Java truyền tham trị.” | **Đúng**, với biến bên gọi | `String` bất biến; biến bên gọi vẫn trỏ tới giá trị cũ. |
+| “Java passes `int` by value, but passes `Person` by reference.” | **False** | Both are passed by value; for `Person`, the copied value is the reference. |
+| “Assigning `person = new Person(...)` changes the caller's argument variable.” | **False** | It only reassigns the separate parameter variable. |
+| “`person.name = ...` can change the object observed at the call site.” | **True** | When both references point to the same object with mutable state. |
+| “Assigning `numbers[0] = 99` differs from assigning `numbers = new int[]{...}`.” | **True** | One modifies an element of the shared array object, while the other only changes the local reference. |
+| “A `final int[]` parameter forbids modifying array elements.” | **False** | `final` only forbids reassigning the parameter variable. |
+| “`String` does not change after `text = text.toUpperCase()` in a method because Java passes by value.” | **True**, regarding the caller's variable | `String` is immutable; the caller's variable still points to the old value. |
 
-**Ghi nhớ:** luôn tách ba việc: **(1)** sao chép giá trị của đối số vào tham số, **(2)** sửa trạng thái của đối tượng chung, và **(3)** gán lại chính biến tham số. Chỉ (2) có thể làm dữ liệu được quan sát qua tham chiếu của người gọi thay đổi mà không cần giá trị trả về.
+**Key Takeaway:** Always separate three actions: **(1)** copying the argument's value into the parameter, **(2)** mutating the state of a shared object, and **(3)** reassigning the parameter variable itself. Only (2) can change data observed through the caller's reference without needing a return value.

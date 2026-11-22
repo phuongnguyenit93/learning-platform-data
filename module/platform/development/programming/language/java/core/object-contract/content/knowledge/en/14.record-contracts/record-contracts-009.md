@@ -1,30 +1,30 @@
-# Không dựa vào thuật toán hash hoặc định dạng `toString()` được sinh như một giao thức cố định
+# Do Not Rely on the Generated Hash Algorithm or `toString()` Format as a Fixed Protocol
 
-## Mục tiêu bài học
+## Lesson Objectives
 
-Một khai báo `record` trong Java tự cung cấp các phương thức `equals(Object)`, `hashCode()` và `toString()` nếu lập trình viên không tự khai báo chúng. Những phương thức này rất hữu ích khi làm việc với **đối tượng mang dữ liệu**: so sánh các thành phần, dùng làm khóa trong collection và đọc nhanh trạng thái khi gỡ lỗi.
+A `record` declaration in Java automatically provides `equals(Object)`, `hashCode()`, and `toString()` if the programmer does not declare them explicitly. These methods are very useful when working with **data-carrying objects**: comparing components, using them as collection keys, and quickly reading state while debugging.
 
-Nhưng **hợp đồng hành vi** không đồng nghĩa với **cam kết giữ nguyên chi tiết triển khai hoặc văn bản đầu ra**. Với các phương thức được sinh tự động, Java bảo đảm những thuộc tính quan trọng; Java không hứa một công thức hash số học cụ thể hoặc một chuỗi `toString()` có thể xem như định dạng trao đổi dữ liệu lâu dài.
+However, a **behavioral contract** does not mean a **guarantee to preserve implementation details or exact output text**. For auto-generated methods, Java guarantees important properties; Java does not promise a specific arithmetic hash formula or a `toString()` string that can serve as a long-term data exchange format.
 
-Sau bài học, bạn có thể:
+After this lesson, you can:
 
-- Nêu phần được bảo đảm và phần không được bảo đảm của `equals()`, `hashCode()` và `toString()` tự sinh cho `record`.
-- Tránh lưu `hashCode()` như định danh, checksum hay khóa liên kết bền vững giữa các lần chạy.
-- Tránh parse `toString()` tự sinh để phục hồi record hoặc dùng nó như JSON, CSV, thông điệp API hay định dạng lưu trữ.
-- Thiết kế codec có phiên bản rõ ràng khi cần một định dạng dữ liệu ổn định.
-- Viết kiểm thử hướng vào hợp đồng, đồng thời hiểu các bẫy với component là mảng hoặc đối tượng có thể thay đổi.
+- State what is guaranteed and what is not guaranteed by auto-generated `equals()`, `hashCode()`, and `toString()` for a `record`.
+- Avoid storing `hashCode()` as an identifier, checksum, or persistent correlation key across runs.
+- Avoid parsing auto-generated `toString()` to reconstruct records or using it as JSON, CSV, API messages, or a storage format.
+- Design an explicitly versioned codec when a stable data format is required.
+- Write contract-oriented tests while understanding pitfalls with array or mutable-object components.
 
-## 1. Điều gì được sinh từ một khai báo record?
+## 1. What Is Generated from a Record Declaration?
 
-Ví dụ Java 17+:
+Java 17+ example:
 
 ```java
 record Event(int id, String action) {}
 ```
 
-Khai báo trên tạo một kiểu record có hai component, mỗi component gắn với một trường `private final` và accessor tương ứng `id()`, `action()`. Ngoài constructor chuẩn, record có các phương thức `equals(Object)`, `hashCode()` và `toString()` nếu chưa được cài đặt tường minh.
+The declaration above creates a record type with two components, each backed by a `private final` field and a corresponding `id()`, `action()` accessor. Besides the canonical constructor, the record has `equals(Object)`, `hashCode()`, and `toString()` unless explicitly implemented.
 
-Bạn có thể viết:
+You can write:
 
 ```java
 Event a = new Event(42, "LOGIN");
@@ -36,94 +36,94 @@ System.out.println(a.hashCode() == b.hashCode()); // true
 System.out.println(a.equals(c));                // false
 ```
 
-Đây là những đoạn mã minh họa cần đặt trong phương thức có thể truy cập `Event`; chương trình độc lập nằm ở phần sau.
+These are illustrative code snippets that belong inside a method with access to `Event`; a standalone program appears later.
 
-**Hợp đồng quan trọng:**
+**Key contract:**
 
-- Phương thức `equals()` tự sinh kiểm tra đối số là instance của **cùng lớp record** và các component tương ứng bằng nhau theo quy tắc của từng kiểu component. Với component kiểu tham chiếu, quy tắc tương đương `Objects.equals(...)`; với kiểu nguyên thủy, dùng ngữ nghĩa so sánh phù hợp với wrapper tương ứng.
-- Nếu `a.equals(b)` là `true`, `a.hashCode()` và `b.hashCode()` **phải bằng nhau** khi dữ liệu liên quan không thay đổi.
-- `toString()` tự sinh là biểu diễn dễ đọc, bao gồm tên lớp record, tên các component và biểu diễn chuỗi của giá trị component. **Cú pháp chính xác không được chốt làm giao thức.**
+- The auto-generated `equals()` method checks that the argument is an instance of **the same record class** and corresponding components are equal according to the rules of each component type. For reference-type components, the rule is equivalent to `Objects.equals(...)`; for primitive types, comparison semantics matching the corresponding wrapper class are used.
+- If `a.equals(b)` is `true`, `a.hashCode()` and `b.hashCode()` **must be equal** as long as the relevant data does not change.
+- Auto-generated `toString()` is a human-readable representation including the record class name, component names, and string representations of component values. **The exact syntax is not locked as a protocol.**
 
-Hai record có cùng dữ liệu có thể in ra văn bản giống nhau nhưng điều đó không biến văn bản ấy thành một định dạng lưu trữ chính thức. Khả năng so sánh theo component và khả năng đọc một chuỗi hiển thị là hai nhu cầu khác nhau.
+Two records with identical data may print identical text, yet that does not turn that text into an official storage format. Component-based comparison and reading a display string are two different needs.
 
-## 2. Bảo đảm ngữ nghĩa khác bảo đảm thuật toán
+## 2. Semantic Guarantees vs. Algorithmic Guarantees
 
-Để phân biệt chính xác, xem bảng sau:
+To distinguish accurately, see the following table:
 
-| Khía cạnh | Điều có thể dựa vào | Điều không nên giả định |
+| Aspect | What You Can Rely On | What You Should Not Assume |
 | --- | --- | --- |
-| `equals()` tự sinh | Cùng lớp record, component tương ứng bằng nhau thì record bằng nhau | Mã máy, thứ tự kiểm tra hoặc thuật toán so sánh nội bộ cố định |
-| `hashCode()` tự sinh | Hash được dẫn xuất từ các component; record bằng nhau phải có cùng hash | Một công thức số học, thứ tự kết hợp, giá trị `int` cố định qua các môi trường |
-| `toString()` tự sinh | Biểu diễn có tên record, tên component và chuỗi giá trị component | Dấu ngoặc, dấu phẩy, dấu bằng, khoảng trắng, escape hay bố cục ký tự cố định |
-| Accessor như `id()` | Lấy giá trị component theo kiểu đã khai báo | Đây tự động là định dạng serialization có phiên bản |
+| Auto-generated `equals()` | Same record class and equal corresponding components imply equal records | Machine code, check order, or a fixed internal comparison algorithm |
+| Auto-generated `hashCode()` | Hash is derived from components; equal records must have equal hashes | An arithmetic formula, combining order, or fixed `int` value across environments |
+| Auto-generated `toString()` | Representation containing record name, component names, and component value strings | Fixed brackets, commas, equals signs, spaces, escaping, or character layout |
+| Accessors like `id()` | Retrieving component value with its declared type | That this is automatically a versioned serialization format |
 
-Điều này đặc biệt quan trọng khi nâng cấp JDK: hai bản Java có thể cùng tuân thủ đầy đủ hợp đồng `Record` nhưng vẫn chọn thuật toán tạo hash hoặc trình bày `toString()` khác nhau.
+This is especially important when upgrading JDKs: two Java releases can both fully comply with the `Record` contract while choosing different hash generation algorithms or `toString()` formatting.
 
-Java API mô tả rõ rằng **thuật toán hash chính xác của record là không xác định ở mức đặc tả và có thể thay đổi**, kể cả số hash của cùng dữ liệu giữa các lần thực thi. Với `toString()`, API cũng nói **định dạng chính xác có thể đổi và chương trình không nên phân tích chuỗi ấy để khôi phục component**.
+The Java API explicitly states that **the exact hash algorithm of a record is unspecified and subject to change**, including the hash number for the same data across executions. For `toString()`, the API likewise states **the exact format may change and programs should not parse that string to recover components**.
 
-Vì thế, kiểm thử đúng nên khẳng định **quan hệ và hành vi**, không khóa chặt vào chi tiết mà nền tảng không cam kết.
+Therefore, proper tests should assert **relationships and behavior**, rather than locking onto details the platform does not promise.
 
-## 3. Không coi `record.hashCode()` là một mã định danh ổn định
+## 3. Do Not Treat `record.hashCode()` as a Stable Identifier
 
-Hãy xét:
+Consider:
 
 ```java
 record Order(int orderId, String status) {}
 ```
 
-Trong bộ nhớ, `hashCode()` rất hữu ích cho `HashMap<Order, ...>` hoặc `HashSet<Order>` khi component giữ trạng thái phù hợp với hợp đồng.
+In memory, `hashCode()` is very helpful for `HashMap<Order, ...>` or `HashSet<Order>` when components maintain contract-compliant state.
 
-Tuy nhiên, những cách sử dụng sau không an toàn:
+However, the following uses are unsafe:
 
-- Ghi `order.hashCode()` vào cơ sở dữ liệu và coi nó là khóa chính của đơn hàng.
-- Gửi hash sang một dịch vụ khác làm mã tham chiếu để dịch vụ ấy tự tính lại từ record.
-- Dùng mã hash làm tên tệp cache bền vững mà cần tồn tại đúng qua nâng cấp JDK hay chạy ứng dụng lần khác.
-- So sánh hash của record ở hai JVM hoặc hai bản triển khai như một chứng cứ bắt buộc về dữ liệu giống nhau.
-- Coi một hash 32 bit là checksum đủ mạnh, chữ ký số, bằng chứng toàn vẹn hoặc token bảo mật.
+- Writing `order.hashCode()` to a database and treating it as the order's primary key.
+- Sending the hash to another service as a reference ID for that service to recompute from the record.
+- Using the hash code as a persistent cache filename that must match across JDK upgrades or subsequent application runs.
+- Comparing a record's hash across two JVMs or two implementations as mandatory proof of identical data.
+- Treating a 32-bit hash as a sufficiently strong checksum, digital signature, integrity proof, or security token.
 
-Có hai lý do độc lập.
+There are two independent reasons.
 
-### 3.1. Thuật toán không phải hợp đồng công khai
+### 3.1. The Algorithm Is Not a Public Contract
 
-Java chỉ yêu cầu mã băm được xây dựng phù hợp từ các component và tuân thủ hợp đồng của `Object.hashCode()`. Không có nghĩa compiler phải sử dụng công thức giống `Objects.hash(id, status)`, `31 * id + status.hashCode()` hay bất kỳ công thức giả định nào.
+Java only requires the hash code to be properly derived from the components and obey the `Object.hashCode()` contract. It does not mean the compiler must use a formula like `Objects.hash(id, status)`, `31 * id + status.hashCode()`, or any assumed formula.
 
-Mã nguồn như sau là phản mẫu:
+Code like the following is an anti-pattern:
 
 ```java
 Order order = new Order(10, "PAID");
 
-// Không lưu cố định order.hashCode() thành khóa giao thức.
-// Không kiểm thử rằng order.hashCode() phải bằng một số nguyên đoán trước.
+// Do not permanently store order.hashCode() as a protocol key.
+// Do not assert in tests that order.hashCode() must equal a predicted integer.
 int implementationHash = order.hashCode();
 ```
 
-Kết quả `implementationHash` là một `int` hợp lệ, nhưng từ một giá trị quan sát được ở một JDK không được kết luận rằng mọi phiên bản đều phải cho cùng số.
+The `implementationHash` result is a valid `int`, yet from a value observed on one JDK you must not conclude that every version must return the same number.
 
-Một số component còn có cách tính mã băm phụ thuộc đối tượng chứa bên trong: nếu component là mảng hoặc một kiểu không ghi đè `hashCode()`, hash của component có thể mang tính danh tính đối tượng. Khi đó, hai dữ liệu “trông giống nhau” chưa chắc có hash bằng nhau.
+Some components also compute their hash codes depending on inner objects: if a component is an array or a type that does not override `hashCode()`, the component's hash may reflect object identity. In that case, two pieces of data that "look alike" may not have equal hashes.
 
-### 3.2. Collision luôn có thể xảy ra
+### 3.2. Collisions Can Always Happen
 
-`hashCode()` trả về `int` 32 bit. Nhiều record khác nhau có thể có cùng hash. Hợp đồng chỉ bảo đảm chiều:
+`hashCode()` returns a 32-bit `int`. Many distinct records can share the same hash. The contract only guarantees one direction:
 
 ```text
 a.equals(b) == true
            ⇒ a.hashCode() == b.hashCode()
 ```
 
-Không có chiều đảo ngược:
+There is no converse:
 
 ```text
 a.hashCode() == b.hashCode()
            ⇏ a.equals(b) == true
 ```
 
-Do đó, ngay cả khi bạn tự cố định thuật toán hash, giá trị hash vẫn không tự động trở thành ID duy nhất. Một hệ thống cần định danh ổn định nên có **ID nghiệp vụ rõ ràng**, chẳng hạn `orderId` được quản lý theo yêu cầu hệ thống; việc tạo ID và bảo đảm duy nhất là một phần thiết kế dữ liệu riêng.
+Consequently, even if you fix a hash algorithm yourself, a hash value still does not automatically become a unique ID. A system needing stable identifiers should have an **explicit business ID**, such as an `orderId` managed per system requirements; generating IDs and guaranteeing uniqueness are a separate part of data design.
 
-Nếu thực sự cần khóa tra cứu bền vững từ nội dung, phải định nghĩa **định dạng byte chuẩn hóa** và chiến lược định danh/hash dành cho mục đích đó. Một mã băm nhanh cho collection không thay thế cho định danh hay hàm mật mã.
+If you truly need a durable content-derived lookup key, you must define a **canonical byte format** and an identification/hashing strategy built for that purpose. A fast hash for collections does not replace identifiers or cryptographic functions.
 
-## 4. Không coi `record.toString()` tự sinh là JSON, CSV hoặc wire protocol
+## 4. Do Not Treat Auto-Generated `record.toString()` as JSON, CSV, or a Wire Protocol
 
-Với:
+Given:
 
 ```java
 record Order(int id, String status) {}
@@ -131,46 +131,46 @@ Order order = new Order(10, "PAID");
 System.out.println(order);
 ```
 
-Một bản JDK hiện hành có thể hiển thị dạng tương tự:
+A current JDK release may display something like:
 
 ```text
 Order[id=10, status=PAID]
 ```
 
-**Dòng trên chỉ minh họa cách hiển thị phổ biến, không phải đầu ra ký tự được Java bảo đảm cho mọi phiên bản.** Không viết parser hay test bắt buộc khớp dấu `[`, `]`, dấu `=`, dấu phẩy hoặc khoảng trắng của mẫu hiển thị này.
+**The line above only illustrates a common display style, not character output guaranteed by Java across all versions.** Do not write parsers or tests requiring matches on `[`, `]`, `=`, commas, or whitespace of this display pattern.
 
-Ví dụ sau là **phản mẫu**:
+The following example is an **anti-pattern**:
 
 ```java
 String display = order.toString();
 
-// SAI: cố parse display dựa trên dấu ',' hoặc '=' của toString tự sinh.
-// SAI: gửi display như JSON/CSV hoặc khẳng định nó có schema cố định.
-// SAI: lưu display vào DB rồi dùng split(...) để dựng lại Order.
+// WRONG: trying to parse display based on ',' or '=' of auto-generated toString.
+// WRONG: sending display as JSON/CSV or claiming it has a fixed schema.
+// WRONG: storing display in a DB and using split(...) to reconstruct Order.
 ```
 
-Các vấn đề điển hình:
+Typical problems:
 
-1. **Cú pháp không được cố định.** Java có thể thay đổi cách sắp xếp ký tự, ký hiệu và chi tiết hiển thị khi vẫn thỏa hợp đồng `toString()`.
-2. **Giá trị component không tự được escape theo một giao thức bạn chọn.** Ví dụ chuỗi chứa dấu phẩy, xuống dòng, dấu ngoặc hay `=` làm parser dựa vào dấu phân cách trở nên mong manh.
-3. **Giá trị lồng nhau có thể không phải dữ liệu có thể khôi phục.** Nếu component là mảng, `toString()` của chính mảng không tự in một cấu trúc dữ liệu kiểu JSON; một số giá trị component có thể dùng định dạng phục vụ debug.
-4. **Thông tin nhạy cảm có thể xuất hiện trong log.** Một record chứa token, email hoặc bí mật có thể để lộ nội dung nếu in mặc định mà không kiểm soát.
+1. **The syntax is not fixed.** Java may change character arrangement, symbols, and formatting details while still satisfying the `toString()` contract.
+2. **Component values are not automatically escaped according to a protocol you choose.** For instance, strings containing commas, newlines, brackets, or `=` make delimiter-based parsers fragile.
+3. **Nested values may not be recoverable data.** If a component is an array, the array's own `toString()` does not print a JSON-like data structure; some component values may use debug-oriented formatting.
+4. **Sensitive information can appear in logs.** A record containing tokens, emails, or secrets can expose contents if printed by default without control.
 
-`toString()` rất hữu ích để đọc nhanh trạng thái trong quá trình phát triển. Nếu cần một biểu diễn hiển thị cố định trong UI, hãy có formatter riêng. Nếu cần gửi hoặc lưu dữ liệu, dùng **serialization format với schema rõ ràng**.
+`toString()` is very useful for quickly inspecting state during development. If a fixed UI display format is needed, create a dedicated formatter. If sending or storing data is needed, use a **serialization format with an explicit schema**.
 
-## 5. Ví dụ Java 17+ hoàn chỉnh: so sánh hợp đồng và định dạng có phiên bản
+## 5. Complete Java 17+ Example: Comparing the Contract and a Versioned Format
 
-Chương trình này dùng record `Event` và cố ý **không** dựa vào số hash hay chuỗi `toString()` được sinh tự động để mã hóa dữ liệu.
+This program uses the `Event` record and intentionally does **not** rely on hash numbers or auto-generated `toString()` strings to encode data.
 
-Để có ví dụ độc lập không phụ thuộc thư viện JSON bên ngoài, ta định nghĩa một codec rất nhỏ:
+To keep the example standalone without external JSON libraries, we define a minimal codec:
 
-- Tiền tố `v1` xác định phiên bản định dạng.
-- `id` là số nguyên thập phân.
-- `action` được mã hóa UTF-8 rồi Base64 URL-safe không padding, nên bản thân trường này không chứa ký tự `|`.
+- Prefix `v1` identifies the format version.
+- `id` is a decimal integer.
+- `action` is UTF-8 encoded and then URL-safe Base64 encoded without padding, so this field itself never contains the `|` character.
 
-Định dạng chỉ dành cho ví dụ; trong hệ thống thật, JSON/CBOR/Protobuf hoặc một chuẩn có schema và quy tắc escaping phù hợp thường tiện hơn.
+This format is for demonstration only; in real systems, JSON/CBOR/Protobuf or a standard with proper schema and escaping rules is usually more convenient.
 
-Lưu tệp `RecordProtocolDemo.java`:
+Save the file `RecordProtocolDemo.java`:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -219,21 +219,21 @@ public class RecordProtocolDemo {
         System.out.println("wire: " + wire);
         System.out.println("round trip: " + decode(wire).equals(a));
 
-        // Không dựa vào chữ số hash hoặc định dạng toString().
+        // Do not rely on hash digits or toString() formatting.
         System.out.println("debug text available: "
                 + !a.toString().isBlank());
     }
 }
 ```
 
-Biên dịch và chạy bằng JDK 17+:
+Compile and run with JDK 17+:
 
 ```bash
 javac RecordProtocolDemo.java
 java RecordProtocolDemo
 ```
 
-**Đầu ra xác định của chính chương trình:**
+**Deterministic output of the program itself:**
 
 ```text
 equal records: true
@@ -244,61 +244,61 @@ round trip: true
 debug text available: true
 ```
 
-Giải thích:
+Explanation:
 
-- `a.equals(b)` là `true` vì cùng lớp `Event` và component tương ứng bằng nhau.
-- Mã băm của `a` và `b` bắt buộc bằng nhau theo hợp đồng; ta **chỉ kiểm tra bằng nhau**, không in và không khẳng định một số hash cụ thể.
-- `a` và `c` có `id` khác nhau nên không bằng nhau.
-- `wire` được tạo theo quy tắc do chính chương trình định nghĩa. Chuỗi `LOGIN` mã hóa Base64 URL-safe thành `TE9HSU4`, do đó biểu diễn `v1|42|TE9HSU4` là dự đoán được.
-- `decode(wire)` khôi phục các trường qua codec có phiên bản, không parse `Event.toString()`.
-- `toString()` vẫn dùng được cho mục đích hiển thị; chương trình chỉ xác minh có chuỗi thông tin, không buộc nó theo cú pháp hiển thị cụ thể.
+- `a.equals(b)` is `true` because both are of class `Event` and their corresponding components are equal.
+- The hash codes of `a` and `b` must be equal by contract; we **only test equality**, without printing or asserting a specific hash number.
+- `a` and `c` have different `id`s so they are not equal.
+- `wire` is produced by rules defined by the program itself. The string `LOGIN` encodes in URL-safe Base64 as `TE9HSU4`, so the representation `v1|42|TE9HSU4` is predictable.
+- `decode(wire)` recovers the fields through a versioned codec, without parsing `Event.toString()`.
+- `toString()` remains usable for display purposes; the program only verifies that an informational string is present, without tying it to a specific display syntax.
 
-Codec ví dụ này còn đơn giản: `decode` dùng bộ giải mã UTF-8 mặc định và không định nghĩa đầy đủ các quy tắc kiểm tra dữ liệu độc hại, giới hạn kích thước, schema tiến hóa hoặc tương thích ngược. Trong một giao thức thật, cần bổ sung các ràng buộc ấy và kiểm thử dữ liệu lỗi. Nhưng nó đã thể hiện nguyên tắc quan trọng: **định dạng trao đổi nằm trong hợp đồng do ứng dụng kiểm soát**.
+This example codec is still simple: `decode` uses the default UTF-8 decoder and does not define full rules for validating malicious input, size limits, schema evolution, or backward compatibility. In a real protocol, add those constraints and test malformed data. Still, it demonstrates the key principle: **the exchange format lives inside a contract controlled by the application**.
 
-## 6. Viết kiểm thử đúng trọng tâm
+## 6. Writing Focused Tests
 
-Một kiểm thử tốt cho record tự sinh nên kiểm tra các thuộc tính mà Java bảo đảm:
+A good test for an auto-generated record should verify the properties Java guarantees:
 
 ```java
 Event x = new Event(7, "READY");
 Event y = new Event(7, "READY");
 Event z = new Event(8, "READY");
 
-// Kiểm tra hợp đồng semantic:
+// Check semantic contract:
 boolean sameValue = x.equals(y);                 // true
 boolean equalHash = x.hashCode() == y.hashCode(); // true
 boolean different = !x.equals(z);                // true
 boolean noNullEquality = !x.equals(null);        // true
 
-// Kiểm tra format do chính chương trình định nghĩa:
+// Check format defined by the program itself:
 boolean codecRoundTrip = decode(encode(x)).equals(x); // true
 boolean schemaVersion = encode(x).startsWith("v1|");  // true
 ```
 
-Đây là **đoạn mã minh họa trong lớp `RecordProtocolDemo`**, sử dụng `Event` và `encode/decode` ở ví dụ hoàn chỉnh.
+This is an **illustrative snippet inside the `RecordProtocolDemo` class**, using `Event` and `encode/decode` from the complete example.
 
-Các kiểu assertion không nên viết:
+Types of assertions you should not write:
 
 ```java
-// PHẢN MẪU:
+// ANTI-PATTERN:
 // assertEquals(12345678, x.hashCode());
 // assertEquals("Event[id=7, action=READY]", x.toString());
 ```
 
-Hai assertion trên ràng buộc code vào các chi tiết không phải hợp đồng bắt buộc của việc tự sinh. Chúng có thể vô tình đúng trên JVM hiện tại rồi trở nên không bền vững khi thay đổi triển khai.
+Both assertions above tie code to details that are not guaranteed parts of auto-generation's contract. They may happen to pass on the current JVM and then become brittle when implementations change.
 
-Nếu bạn **tự định nghĩa** một formatter hoặc codec nhằm cung cấp đầu ra cụ thể, kiểm thử chính xác chuỗi/byte do formatter hoặc codec đó tạo ra là hợp lý. Phải phân biệt:
+If you **define your own** formatter or codec intended to produce specific output, testing the exact string/bytes produced by that formatter or codec is appropriate. Distinguish clearly:
 
-- **Kiểm thử contract của Java record:** ngữ nghĩa `equals` và quan hệ với `hashCode`, thông tin có mặt trong biểu diễn `toString`.
-- **Kiểm thử contract của ứng dụng:** chuỗi/byte chính xác của một codec hay formatter được ứng dụng cam kết, bao gồm phiên bản và xử lý ký tự đặc biệt.
+- **Testing Java record contracts:** `equals` semantics and relation with `hashCode`, presence of information in `toString` representation.
+- **Testing application contracts:** exact strings/bytes of a codec or formatter committed to by the application, including versioning and special-character handling.
 
-Khi sản phẩm yêu cầu lưu trữ bền vững, hãy thêm golden test cho codec ứng dụng qua các phiên bản của phần mềm; golden test như vậy thuộc trách nhiệm của schema ứng dụng, không phải nhiệm vụ của `record.toString()`.
+When a product requires durable storage, add golden tests for the application codec across software versions; such golden tests are the responsibility of the application schema, not the job of `record.toString()`.
 
-## 7. Điểm dễ bỏ sót: component là mảng hoặc đối tượng mutable
+## 7. Easy-to-Miss Detail: Array or Mutable Object Components
 
-`record` là **shallowly immutable**: tham chiếu component không thể được gán lại từ bên ngoài, nhưng nội dung của đối tượng mà component trỏ đến vẫn có thể thay đổi.
+`record` is **shallowly immutable**: component references cannot be reassigned from outside, yet the contents of the objects components point to can still change.
 
-Ví dụ:
+Example:
 
 ```java
 record Packet(byte[] data) {}
@@ -309,43 +309,43 @@ Packet second = new Packet(new byte[] {1, 2});
 System.out.println(first.equals(second)); // false
 ```
 
-Đây là đoạn minh họa bên trong phương thức. Mặc dù hai mảng `byte[]` có nội dung giống nhau, record tự sinh dùng quy tắc bằng nhau của **component kiểu tham chiếu**. Mảng không ghi đè `Object.equals()` để so theo phần tử, vì vậy hai mảng riêng biệt không bằng nhau theo tham chiếu.
+This is an illustrative snippet inside a method. Even though both `byte[]` arrays have identical contents, the auto-generated record uses **reference-type component** equality rules. Arrays do not override `Object.equals()` to compare element-by-element, so two distinct arrays are unequal by reference.
 
-Tương tự, hash của record có component mảng sẽ dựa trên hash của component mảng, không mặc nhiên tính `Arrays.hashCode(data)` hoặc `Arrays.deepHashCode(data)`. `toString()` tự sinh có thể chứa biểu diễn của mảng mang tính danh tính, không phải danh sách byte để parse.
+Similarly, the hash of a record with an array component will be based on the array component's hash, not automatically computing `Arrays.hashCode(data)` or `Arrays.deepHashCode(data)`. Auto-generated `toString()` may contain an identity-style representation of the array rather than a parseable list of bytes.
 
-Một sai lầm khác là kỳ vọng `final` trên component giúp nội dung bên trong hoàn toàn bất biến. Đoạn sau vẫn sửa được mảng:
+Another mistake is expecting `final` on a component to make inner contents completely immutable. The following still mutates the array:
 
 ```java
 byte[] bytes = {1, 2};
 Packet packet = new Packet(bytes);
-bytes[0] = 9;                    // Mảng ban đầu bị sửa
-packet.data()[1] = 8;            // Accessor trả về tham chiếu mảng
+bytes[0] = 9;                    // Original array is modified
+packet.data()[1] = 8;            // Accessor returns the array reference
 ```
 
-Điều này không nhất thiết làm hash của record mảng thay đổi theo nội dung mảng, bởi hash mảng mặc định dựa trên danh tính; nhưng nó minh họa lý do **record không tự là một giá trị bất biến sâu**. Với các kiểu component mutable khác có `equals/hashCode` dựa trên trạng thái bên trong, sửa trạng thái có thể làm thay đổi kết quả của `equals/hashCode` trong khi đối tượng đang nằm trong `HashMap` hoặc `HashSet`.
+This does not necessarily change an array record's hash with array contents, because default array hashing is identity-based; yet it illustrates why **a record is not automatically a deeply immutable value**. For other mutable component types whose `equals/hashCode` rely on internal state, mutating state can alter `equals/hashCode` results while the object is inside a `HashMap` or `HashSet`.
 
-Nếu nghiệp vụ cần so sánh mảng theo giá trị, hãy định nghĩa rõ phép so và phép băm tương ứng bằng `Arrays.equals/hashCode` hoặc `Arrays.deepEquals/deepHashCode`, đồng thời cân nhắc **defensive copy** trong constructor/accessor. Đó là một thiết kế riêng: không thể suy ra từ việc record tự sinh phương thức.
+If business logic needs value-based array comparison, explicitly define corresponding comparison and hashing using `Arrays.equals/hashCode` or `Arrays.deepEquals/deepHashCode`, and also consider **defensive copying** in constructor/accessor. That is a separate design decision: it cannot be inferred from a record's auto-generated methods.
 
-## 8. Giao thức ổn định cần quyết định rõ điều gì?
+## 8. What Must a Stable Protocol Explicitly Decide?
 
-Khi record là DTO hoặc mô hình ứng dụng tham gia API, sự tồn tại của record không quyết định thay cho schema bên ngoài. Một giao thức lâu dài cần ít nhất:
+When a record is a DTO or application model participating in an API, the existence of the record does not substitute for an external schema. A long-lived protocol needs at least:
 
-1. **Tên trường và kiểu dữ liệu:** ví dụ `id` là số nguyên, `action` là chuỗi UTF-8; dữ liệu nào là bắt buộc, dữ liệu nào có thể `null`.
-2. **Cấu trúc và encoding:** JSON, CBOR, Protobuf hoặc format có đặc tả; nếu là chuỗi tự định nghĩa, phải chỉ rõ escaping/delimiter/độ dài trường.
-3. **Phiên bản và tương thích:** thêm trường, đổi tên, đổi kiểu, xử lý trường không biết hoặc giá trị thiếu như thế nào.
-4. **Quy tắc chuẩn hóa:** thứ tự trường nếu cần, số thực, timezone, locale, ký tự Unicode, khoảng trắng, encoding và các trường hợp biên.
-5. **Kiểm tra đầu vào:** giới hạn độ dài, giá trị hợp lệ, dữ liệu lỗi, phiên bản không được hỗ trợ.
-6. **Tách biệt định danh và checksum:** ID nghiệp vụ, content digest hoặc chữ ký số phải được chọn theo yêu cầu, không thay bằng `record.hashCode()`.
+1. **Field names and data types:** e.g., `id` is an integer, `action` is a UTF-8 string; which fields are required and which can be `null`.
+2. **Structure and encoding:** JSON, CBOR, Protobuf, or a specified format; if a custom string format, escaping/delimiters/field lengths must be specified.
+3. **Versioning and compatibility:** how adding fields, renaming, changing types, unknown fields, or missing values are handled.
+4. **Normalization rules:** field order if needed, floating-point numbers, timezones, locales, Unicode characters, whitespace, encoding, and edge cases.
+5. **Input validation:** length limits, valid values, malformed data, unsupported versions.
+6. **Separating identifiers and checksums:** business IDs, content digests, or digital signatures must be chosen per requirements, not replaced by `record.hashCode()`.
 
-Chẳng hạn, record:
+For instance, the record:
 
 ```java
 record Payment(long id, String currency, long amountMinor) {}
 ```
 
-có thể ánh xạ sang tài liệu JSON có schema do ứng dụng hoặc thư viện serialization quản lý. Khi cần định dạng JSON ổn định, phải xác định tên các thuộc tính, quy tắc chuỗi, number, versioning, backward compatibility và thư viện/thiết lập serialization. **Không gửi `payment.toString()` và giả định phía nhận có thể diễn giải đó là JSON.**
+can map to a JSON document with a schema managed by the application or a serialization library. When a stable JSON format is needed, define property names, string/number rules, versioning, backward compatibility, and serialization library/settings. **Do not send `payment.toString()` assuming the receiver can interpret it as JSON.**
 
-Có thể tự ghi đè `toString()` để kiểm soát cách trình bày:
+You can manually override `toString()` to control presentation:
 
 ```java
 record Payment(long id, String currency, long amountMinor) {
@@ -356,45 +356,45 @@ record Payment(long id, String currency, long amountMinor) {
 }
 ```
 
-Nhưng đây là **định dạng do tác giả ứng dụng định nghĩa**, không phải cú pháp mặc định của record. Nó phù hợp hơn cho thông điệp người đọc; nếu dùng làm giao thức, vẫn cần đặc tả, escaping, phiên bản và quy tắc tương thích. Việc tự ghi đè một phương thức không tự giải quyết các vấn đề của serialization.
+However, this is an **application-author-defined format**, not the record's default syntax. It is better suited for human-readable messages; if used as a protocol, it still needs a specification, escaping, versioning, and compatibility rules. Overriding one method does not automatically solve serialization concerns.
 
-## 9. Các lỗi thường gặp
+## 9. Common Mistakes
 
-### Lỗi 1 — Gắn chặt test vào số hash cụ thể
+### Mistake 1 — Coupling Tests to a Specific Hash Number
 
-Một bản JDK in `hashCode() == 12345` không tạo ra yêu cầu mọi bản JVM phải trả đúng số đó. Kiểm thử **đối tượng bằng nhau thì hash bằng nhau**, không kiểm thử hash cố định do trình biên dịch sinh.
+Observing `hashCode() == 12345` on one JDK creates no requirement that every JVM must return that exact number. Test that **equal objects have equal hashes**, not fixed compiler-generated hashes.
 
-### Lỗi 2 — Dùng hash như khóa chính hoặc mã giao dịch
+### Mistake 2 — Using Hash as a Primary Key or Transaction Code
 
-Hash có thể va chạm và công thức sinh có thể thay đổi. Dùng ID nghiệp vụ ổn định hoặc cơ chế định danh được thiết kế riêng.
+Hashes can collide and generation formulas can change. Use stable business IDs or a purpose-built identification mechanism.
 
-### Lỗi 3 — Parse `toString()` bằng `split`
+### Mistake 3 — Parsing `toString()` with `split`
 
-Định dạng `toString()` tự sinh không có cam kết cú pháp ổn định; component có thể chứa dấu phân cách hoặc xuống dòng. Dùng codec/serialization có schema.
+Auto-generated `toString()` has no stable syntax guarantee; components may contain delimiters or newlines. Use a schema-backed codec/serialization.
 
-### Lỗi 4 — Giả định `toString()` của record là JSON
+### Mistake 4 — Assuming a Record's `toString()` Is JSON
 
-Biểu diễn gỡ lỗi không đồng nghĩa với JSON. Cú pháp trông gần giống trên một máy không khiến nó thành giao thức được đặc tả.
+A debug representation is not equivalent to JSON. Looking syntactically similar on one machine does not make it a specified protocol.
 
-### Lỗi 5 — Cho rằng record tự sinh phép so sánh sâu
+### Mistake 5 — Thinking Records Auto-Generate Deep Comparison
 
-Record kiểm tra component theo quy tắc kiểu component. Mảng có `equals()` theo danh tính, không tự so sâu nội dung. Nếu cần giá trị sâu, phải cài đặt tường minh và giữ hợp đồng `hashCode`.
+Records check components according to each component type's rules. Arrays have identity-based `equals()`, without automatic deep content comparison. If deep value comparison is needed, implement it explicitly and preserve the `hashCode` contract.
 
-### Lỗi 6 — Nhầm bất biến của trường với bất biến nội dung
+### Mistake 6 — Confusing Field Immutability with Content Immutability
 
-Trường component final không cấm sửa phần tử bên trong một mảng hoặc collection được tham chiếu. Nếu dùng record làm khóa băm, cần xét tính ổn định của dữ liệu tham gia `equals/hashCode`.
+Final component fields do not prohibit mutating elements inside a referenced array or collection. If using a record as a hash key, check the stability of data participating in `equals/hashCode`.
 
-### Lỗi 7 — Dùng `toString()` mặc định trong log có dữ liệu nhạy cảm
+### Mistake 7 — Using Default `toString()` in Logs Containing Sensitive Data
 
-Biểu diễn mặc định có thể đưa chuỗi của component vào log. Đánh giá trường cần ẩn, chọn logger/formatter phù hợp và không in token hoặc bí mật chỉ vì record tự có `toString()`.
+The default representation can put component strings into logs. Assess fields that must be masked, choose an appropriate logger/formatter, and do not print tokens or secrets merely because records come with `toString()`.
 
-### Lỗi 8 — Cho rằng cách cài đặt hiện hành là một phần của đặc tả
+### Mistake 8 — Treating Current Implementation Details as Part of the Specification
 
-Một hành vi được quan sát trong một phiên bản OpenJDK có thể là chi tiết nội bộ, không phải cam kết tương thích lâu dài. Hãy dựa vào Javadoc/JLS để quyết định điều có thể đưa thành hợp đồng ứng dụng.
+Behavior observed in one OpenJDK release can be an internal detail, not a long-term compatibility promise. Rely on Javadoc/JLS when deciding what can become an application contract.
 
-## 10. Bài tập tự kiểm tra
+## 10. Self-Check Exercise
 
-Xét record:
+Consider the record:
 
 ```java
 record Snapshot(int version, String payload) {}
@@ -403,30 +403,30 @@ Snapshot y = new Snapshot(1, "ok");
 Snapshot z = new Snapshot(2, "ok");
 ```
 
-Đây là đoạn mã đặt trong phương thức có thể truy cập `Snapshot`.
+This is a snippet placed inside a method with access to `Snapshot`.
 
-Hãy đánh giá các nhận định:
+Evaluate the statements:
 
-| Nhận định | Đúng/Sai | Lý do |
+| Statement | True/False | Reason |
 | --- | --- | --- |
-| `x.equals(y)` là `true`. | **Đúng** | Cùng lớp và cùng giá trị component. |
-| `x.hashCode() == y.hashCode()` phải là `true`. | **Đúng** | Bảo đảm của hợp đồng hash. |
-| `x.hashCode()` phải là một số nguyên cố định trên mọi JDK. | **Sai** | Thuật toán hash của record tự sinh không được cố định. |
-| `x.equals(z)` là `false`. | **Đúng** | Component `version` khác. |
-| Nếu hash của `x` và `z` trùng nhau thì `x.equals(z)` phải là `true`. | **Sai** | Collision không suy ra equality. |
-| Chuỗi `x.toString()` có thể được parse bằng dấu `[`, `,`, `=` và `]` theo đặc tả Java. | **Sai** | Cú pháp chính xác của `toString()` tự sinh không được bảo đảm. |
-| Có thể dùng `x.toString()` để quan sát trạng thái khi debug. | **Đúng** | Đây là mục đích phù hợp của biểu diễn dễ đọc. |
-| Muốn lưu trữ lâu dài nên xác định format/schema và version thay vì dựa vào `toString()`. | **Đúng** | Ứng dụng kiểm soát hợp đồng dữ liệu của mình. |
+| `x.equals(y)` is `true`. | **True** | Same class and equal component values. |
+| `x.hashCode() == y.hashCode()` must be `true`. | **True** | Guaranteed by the hash contract. |
+| `x.hashCode()` must be a fixed integer across all JDKs. | **False** | The auto-generated record hash algorithm is not fixed. |
+| `x.equals(z)` is `false`. | **True** | The `version` component differs. |
+| If `x` and `z` have matching hashes, then `x.equals(z)` must be `true`. | **False** | Collisions do not imply equality. |
+| The `x.toString()` string can be parsed using `[`, `,`, `=`, and `]` according to the Java spec. | **False** | The exact syntax of auto-generated `toString()` is not guaranteed. |
+| `x.toString()` can be used to inspect state while debugging. | **True** | That is the appropriate purpose of a human-readable representation. |
+| For durable storage, define a format/schema and version instead of relying on `toString()`. | **True** | The application controls its own data contract. |
 
-Bài tập thực hành: giữ record `Snapshot` nhưng thiết kế một codec `v1` có encoding chuỗi tường minh. Thêm một trường vào record trong phiên bản `v2` và định nghĩa cách bộ đọc `v2` chấp nhận dữ liệu `v1`. Viết test round-trip và test phiên bản cũ. Những bài kiểm tra này nên bảo vệ định dạng **do ứng dụng cam kết**, không bảo vệ số hash hay cú pháp debug do JVM tạo ra.
+Hands-on exercise: keep the `Snapshot` record, but design a `v1` codec with explicit string encoding. Add a field to the record in version `v2` and define how the `v2` reader accepts `v1` data. Write round-trip tests and legacy-version tests. These tests should protect the format **committed to by the application**, not JVM-generated hash numbers or debug syntax.
 
-## 11. Tài liệu chuẩn để đối chiếu
+## 11. Official Reference Documentation
 
-- [Java SE 21 — `java.lang.Record`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Record.html): mô tả trực tiếp hợp đồng và giới hạn của `equals()`, `hashCode()`, `toString()`.
-- [Java SE 21 — Record Classes](https://docs.oracle.com/en/java/javase/21/language/records.html): giải thích các thành viên và phương thức được sinh cho record.
+- [Java SE 21 — `java.lang.Record`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Record.html): directly describes the contract and limits of `equals()`, `hashCode()`, and `toString()`.
+- [Java SE 21 — Record Classes](https://docs.oracle.com/en/java/javase/21/language/records.html): explains the members and methods generated for records.
 
-Khi cần biết một hành vi có thể dựa vào lâu dài hay không, ưu tiên **hợp đồng API và Java Language Specification**, thay vì chép lại kết quả của một bản chạy hiện tại rồi xem đó là chuẩn.
+When needing to know whether a behavior can be relied on long-term, prioritize **the API contract and Java Language Specification**, rather than copying output from a current run and treating it as standard.
 
-## Ghi nhớ
+## Key Takeaway
 
-**Với record tự sinh, hãy dựa vào hợp đồng bằng nhau và mã băm, không dựa vào công thức hash hoặc các ký tự chính xác của `toString()`.** Mã băm dành cho các thao tác dựa trên hash trong bộ nhớ; biểu diễn `toString()` dành cho việc đọc và chẩn đoán. Khi cần định dạng ổn định qua phiên bản, máy và tiến trình, hãy thiết kế **schema, codec, encoding và versioning** rõ ràng rồi kiểm thử chính định dạng ấy.
+**With auto-generated records, rely on the equality and hash code contracts, not on the hash formula or the exact characters of `toString()`.** Hash codes are for in-memory hash-based operations; `toString()` representations are for reading and diagnostics. When a format stable across versions, machines, and processes is needed, explicitly design **schema, codec, encoding, and versioning**, and test that exact format.

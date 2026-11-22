@@ -1,24 +1,24 @@
-# Locale không thay thế ZoneId hoặc tự xác định múi giờ người dùng
+# Locale Does Not Replace ZoneId or Determine a User's Time Zone
 
-Trong Java Core, `Locale` mô tả **ngôn ngữ và quy ước trình bày**, còn `ZoneId` mô tả **quy tắc múi giờ**. Hai thông tin này không đồng nghĩa, không thay thế nhau và không thể suy ra chính xác từ nhau. Người dùng có `Locale.forLanguageTag("vi-VN")` vẫn có thể ở New York; người có giao diện `en-US` vẫn có thể đang xem lịch tại TP.HCM.
+In Java Core, `Locale` describes **language and presentation conventions**, whereas `ZoneId` describes **time-zone rules**. These two pieces of information are not synonymous, do not replace each other, and cannot be accurately inferred from one another. A user with `Locale.forLanguageTag("vi-VN")` may still live in New York; someone using an `en-US` interface may be viewing a schedule in Ho Chi Minh City.
 
-Nếu hệ thống cần tính một thời điểm cụ thể, hiển thị giờ đúng vùng, lập lịch hẹn hoặc xử lý giờ mùa hè (DST), nó phải xác định **múi giờ phù hợp với người dùng hoặc sự kiện** từ một nguồn và chính sách rõ ràng. Thẻ ngôn ngữ, quốc gia của locale, HTTP `Accept-Language` hay timezone mặc định máy chủ **không chứng minh** được timezone người dùng.
+When a system must compute a specific instant, display local wall-clock time for a region, schedule appointments, or handle Daylight Saving Time (DST), it must obtain the **appropriate time zone for the user or event** from an explicit source and policy. Language tags, a locale's country code, HTTP `Accept-Language`, or the server's default time zone **do not prove** a user's time zone.
 
-Bài học thuộc nhóm **Mẫu và lịch**, tập trung vào tách `Locale`, `ZoneId`, `Instant`, `LocalDateTime`, cách định dạng thời gian, nguồn xác định timezone, các trường hợp DST và nguyên tắc lưu trữ/lập lịch đúng trong ứng dụng Java 17+.
+This lesson belongs to the **Patterns and Calendars** group, focusing on separating `Locale`, `ZoneId`, `Instant`, and `LocalDateTime`, formatting time, sources for determining time zones, DST edge cases, and proper storage/scheduling principles in Java 17+ applications.
 
-## 1. Phân biệt các đối tượng cốt lõi
+## 1. Distinguishing the Core Types
 
-| Khái niệm | Java API | Vai trò | Điều KHÔNG xác định |
+| Concept | Java API | Role | What It Does NOT Determine |
 | --- | --- | --- | --- |
-| Locale | `java.util.Locale` | Ngôn ngữ, vùng dùng cho định dạng, cách viết tháng/thứ, quy ước hiển thị | Timezone thực tế của người dùng |
-| Zone ID | `java.time.ZoneId` | ID múi giờ, lịch sử offset và quy tắc chuyển giờ của vùng | Ngôn ngữ giao diện |
-| Zone offset | `java.time.ZoneOffset` | Độ lệch UTC ở một thời điểm, ví dụ `+07:00` | Toàn bộ quy tắc DST của vùng |
-| Instant | `java.time.Instant` | Một điểm tuyệt đối trên trục thời gian | Vùng, locale hay cách in |
-| LocalDateTime | `java.time.LocalDateTime` | Ngày và giờ địa phương *chưa có vùng* | Một Instant duy nhất |
-| ZonedDateTime | `java.time.ZonedDateTime` | Ngày giờ đã gắn timezone và offset được giải quyết | Nguồn gốc sở thích của người dùng |
-| Chronology | `java.time.chrono.Chronology` | Hệ lịch dùng để diễn giải các trường ngày | Không phải timezone |
+| Locale | `java.util.Locale` | Language, formatting region, month/weekday names, display conventions | The user's actual time zone |
+| Zone ID | `java.time.ZoneId` | Time-zone ID, offset history, and regional transition rules | UI language |
+| Zone offset | `java.time.ZoneOffset` | UTC offset at a point in time, e.g. `+07:00` | Full regional DST rules |
+| Instant | `java.time.Instant` | An absolute point on the timeline | Region, locale, or string formatting |
+| LocalDateTime | `java.time.LocalDateTime` | Local date and time *without a zone* | A unique `Instant` |
+| ZonedDateTime | `java.time.ZonedDateTime` | Date and time bound to a time zone and resolved offset | Origin of user preferences |
+| Chronology | `java.time.chrono.Chronology` | Calendar system used to interpret date fields | Not a time zone |
 
-Ví dụ với cùng `Instant.parse("2024-01-15T12:00:00Z")`:
+Example with the same `Instant.parse("2024-01-15T12:00:00Z")`:
 
 ~~~text
 Instant:      2024-01-15T12:00:00Z
@@ -26,13 +26,13 @@ New York:     2024-01-15 07:00 America/New_York
 Ho Chi Minh:  2024-01-15 19:00 Asia/Ho_Chi_Minh
 ~~~
 
-Các giờ trên khác nhau nhưng **không phải hai sự kiện khác nhau**. Chúng là hai biểu diễn của cùng một thời điểm. Cả hai đều có thể hiển thị bằng tiếng Việt, tiếng Anh hoặc tiếng Pháp tùy `Locale` đã chọn.
+Those clock times differ, yet they are **not two separate events**. They are two representations of the exact same moment. Either one can be rendered in Vietnamese, English, or French depending on the chosen `Locale`.
 
-### Vì sao vùng của Locale không đủ để chọn ZoneId?
+### Why is a Locale's region insufficient to choose a ZoneId?
 
-`Locale.US` nói rằng các quy ước ngôn ngữ/vùng của Mỹ được yêu cầu; nó không nói người dùng ở New York, Chicago, Denver, Los Angeles, Hawaii hay nơi khác. Một quốc gia có thể chứa nhiều múi giờ. Một người cũng có thể dùng ngôn ngữ của quốc gia khác hoặc đang đi du lịch.
+`Locale.US` indicates that US linguistic/regional formatting conventions are desired; it does not say whether the user is in New York, Chicago, Denver, Los Angeles, Hawaii, or elsewhere. A single country can span multiple time zones. A user can also use another country's language or be traveling.
 
-Ví dụ những cặp hợp lệ:
+Valid combinations include:
 
 ~~~text
 Locale: vi-VN     ZoneId: America/New_York
@@ -41,35 +41,35 @@ Locale: fr-FR     ZoneId: America/Toronto
 Locale: ja-JP     ZoneId: Europe/London
 ~~~
 
-Không có mâu thuẫn logic nào trong các cặp ấy. `Locale.getCountry()` không cung cấp ID timezone IANA, và `ZoneId.of(locale.getCountry())` thường không phải cách chọn múi giờ hợp lệ.
+There is no logical contradiction in any of those pairs. `Locale.getCountry()` does not provide an IANA time-zone ID, and `ZoneId.of(locale.getCountry())` is generally not a valid way to choose a time zone.
 
-## 2. ZoneId vùng địa lý khác offset cố định
+## 2. Regional ZoneId vs. Fixed Offset
 
-Java phân biệt:
+Java distinguishes:
 
 ~~~java
 ZoneId newYork = ZoneId.of("America/New_York");
 ZoneOffset fixed = ZoneOffset.of("-05:00");
 ~~~
 
-Đây là đoạn minh họa Java 17 với import `java.time.*`. `America/New_York` là ID vùng gắn quy tắc thay đổi offset theo ngày và lịch sử; `-05:00` chỉ là độ lệch cố định.
+This is a Java 17 illustrative snippet with `import java.time.*`. `America/New_York` is a region ID tied to offset-change rules over dates and history; `-05:00` is merely a fixed offset.
 
-Tại một số ngày năm 2024:
+On selected dates in 2024:
 
-| Vùng | Tháng 1 | Tháng 7 |
+| Region | January | July |
 | --- | --- | --- |
 | `America/New_York` | `-05:00` | `-04:00` |
 | `Asia/Ho_Chi_Minh` | `+07:00` | `+07:00` |
 
-Bảng thể hiện quy tắc đối với các ngày đã nêu, **không cam kết rằng chính phủ không bao giờ thay đổi múi giờ**. JDK dùng dữ liệu quy tắc timezone (tzdb/provider) có thể được cập nhật.
+This table reflects rules for the stated dates and **does not guarantee governments will never change time-zone rules**. The JDK uses time-zone rule data (tzdb/provider) that can be updated over time.
 
-Nếu bạn lưu lịch “09:00 mỗi thứ Hai tại New York” bằng offset cố định `-05:00`, lịch sẽ không tự chuyển sang `-04:00` ở kỳ có DST. Với sự kiện theo giờ địa phương của vùng, cần giữ `ZoneId`, không chỉ lưu offset.
+If you store a recurring schedule "09:00 every Monday in New York" using a fixed offset `-05:00`, the schedule will fail to shift to `-04:00` during DST. For events tied to a region's local wall-clock time, store `ZoneId`, not just an offset.
 
-Ngược lại, `OffsetDateTime` rất hữu ích khi dữ liệu có offset và bạn cần biểu diễn một thời điểm cụ thể, nhưng offset đơn lẻ không cung cấp quy tắc vùng trong tương lai.
+Conversely, `OffsetDateTime` is very useful when data carries an explicit offset and you need to represent a specific moment in time, though a lone offset provides no future regional rules.
 
-## 3. Đổi múi giờ mà giữ nguyên Instant
+## 3. Switching Time Zones While Preserving Instant
 
-Ví dụ Java:
+Java example:
 
 ~~~java
 Instant instant = Instant.parse("2024-01-15T12:00:00Z");
@@ -82,9 +82,9 @@ ZonedDateTime hcm = instant.atZone(
 boolean same = ny.toInstant().equals(hcm.toInstant()); // true
 ~~~
 
-Đây là đoạn minh họa có import `java.time.*`. Việc chuyển đổi từ `Instant` cho ra giờ đồng hồ địa phương theo vùng tương ứng.
+This is an illustrative snippet with `import java.time.*`. Converting from `Instant` yields the local wall-clock time in the corresponding region.
 
-Hai phương thức có tên gần nhau nhưng ý nghĩa **khác hẳn**:
+Two similarly named methods have **completely different** meanings:
 
 ~~~java
 ZonedDateTime vietnam1 = ny.withZoneSameInstant(
@@ -94,20 +94,20 @@ ZonedDateTime vietnam2 = ny.withZoneSameLocal(
         ZoneId.of("Asia/Ho_Chi_Minh"));
 ~~~
 
-- `withZoneSameInstant`: giữ nguyên thời điểm tuyệt đối, **chuyển giờ trên đồng hồ** theo zone mới.
-- `withZoneSameLocal`: cố giữ nguyên ngày và giờ trên đồng hồ khi đổi zone; kết quả có thể là **một Instant hoàn toàn khác**. Nó còn phải giải quyết gap/overlap nếu giờ địa phương không hợp lệ hoặc không duy nhất.
+- `withZoneSameInstant`: keeps the same absolute instant and **adjusts the wall-clock time** to the new zone.
+- `withZoneSameLocal`: tries to keep the same wall-clock date and time when switching zones; the result can be **a completely different `Instant`**. It must also resolve gaps/overlaps if the local time is invalid or ambiguous.
 
-Khi cùng một cuộc họp được hiển thị cho hai người ở hai vùng khác nhau, dùng `withZoneSameInstant`. Chỉ dùng `withZoneSameLocal` khi nghiệp vụ thật sự cần “giữ 09:00 trên đồng hồ khi chuyển địa điểm tổ chức”.
+When the same meeting is displayed to two people in different regions, use `withZoneSameInstant`. Use `withZoneSameLocal` only when business logic genuinely requires "keeping 09:00 on the clock when moving the venue".
 
-### LocalDateTime không phải Instant
+### LocalDateTime is not an Instant
 
-`LocalDateTime.of(2024, 11, 3, 1, 30)` chỉ là những thành phần trên lịch và đồng hồ. Nếu không có zone, nó chưa xác định được một thời điểm. Ngay cả khi bổ sung zone, một số local time vẫn **không tồn tại** hoặc **tồn tại hai lần** trong ngày chuyển giờ DST.
+`LocalDateTime.of(2024, 11, 3, 1, 30)` is just a set of calendar and clock fields. Without a zone, it does not identify an instant. Even when paired with a zone, some local times **do not exist** or **occur twice** on DST transition days.
 
-Do đó không chuyển `LocalDateTime` sang epoch milliseconds/UTC bằng cách tự giả định offset. Cần biết zone và quy tắc giải quyết.
+Therefore, never convert `LocalDateTime` to epoch milliseconds/UTC by guessing an offset. You need both the zone and resolution rules.
 
-## 4. Định dạng ngày giờ theo Locale và ZoneId độc lập
+## 4. Formatting Date-Time with Locale and ZoneId Independently
 
-`DateTimeFormatter` có thể lấy locale để trình bày tên tháng/thứ hoặc định dạng bản địa, nhưng timezone của sự kiện vẫn đến từ đối tượng thời gian hoặc formatter được gắn zone.
+`DateTimeFormatter` uses a locale for month/weekday names and regional formatting, while the event's time zone comes from the temporal object or a zone attached to the formatter.
 
 ~~~java
 Locale language = Locale.forLanguageTag("vi-VN");
@@ -121,9 +121,9 @@ String text = formatter.format(
         Instant.parse("2024-01-15T12:00:00Z"));
 ~~~
 
-Đây là đoạn Java minh họa, cần import `java.time.*`, `java.time.format.DateTimeFormatter`, `java.util.Locale`. `language` được chọn tường minh và `userZone` cũng vậy. Chuỗi `text` có thể có tên tháng/tên vùng theo dữ liệu locale của JDK; không nên cố định một stdout tiếng Việt cho tất cả bản phát hành.
+This is an illustrative Java snippet requiring imports `java.time.*`, `java.time.format.DateTimeFormatter`, and `java.util.Locale`. Both `language` and `userZone` are specified explicitly. The string `text` may contain month/zone names from JDK locale data; do not hardcode a single Vietnamese stdout string across all releases.
 
-Có thể định dạng một `ZonedDateTime` trực tiếp:
+You can also format a `ZonedDateTime` directly:
 
 ~~~java
 DateTimeFormatter f = DateTimeFormatter
@@ -134,15 +134,15 @@ String rendered = f.format(
         instant.atZone(ZoneId.of("Asia/Ho_Chi_Minh")));
 ~~~
 
-Đây cũng là đoạn minh họa, với biến `instant` và import `java.time.format.FormatStyle` đã có. `Locale` ảnh hưởng cách diễn đạt; `ZoneId` ảnh hưởng giờ thực. Đừng hy vọng `Locale.US` sẽ làm Java tự chọn `America/New_York`.
+This is also an illustrative snippet, assuming `instant` and `import java.time.format.FormatStyle`. `Locale` controls phrasing; `ZoneId` controls the actual clock time. Do not expect `Locale.US` to make Java pick `America/New_York`.
 
-Nếu dùng `LocalDateTime` thay cho `Instant`, `DateTimeFormatter.withZone` không mặc nhiên biết local time đó thuộc vùng nào trong nghiệp vụ. Phải giải quyết ngữ nghĩa vùng trước khi tuyên bố một thời điểm tuyệt đối.
+If you pass a `LocalDateTime` instead of an `Instant`, `DateTimeFormatter.withZone` does not implicitly know which business zone that local time originally belonged to. Resolve zone semantics before asserting an absolute instant.
 
-## 5. Ví dụ Java 17+ độc lập: một Instant, hai ZoneId và DST
+## 5. Standalone Java 17+ Example: One Instant, Two ZoneIds, and DST
 
-Chương trình dưới đây kiểm tra ba ý quan trọng: cùng `Instant` có hai giờ hiển thị theo vùng, một giờ địa phương **không tồn tại** khi DST bắt đầu và một giờ địa phương **bị lặp** khi DST kết thúc.
+The program below verifies three key points: one `Instant` has two display times across zones, one local time **does not exist** when DST starts, and one local time **repeats** when DST ends.
 
-Tạo file **`LocaleZoneDemo.java`**:
+Create the file **`LocaleZoneDemo.java`**:
 
 ~~~java
 import java.time.Instant;
@@ -198,14 +198,14 @@ public class LocaleZoneDemo {
 }
 ~~~
 
-Biên dịch và chạy với Java 17 hoặc mới hơn:
+Compile and run with Java 17 or newer:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 LocaleZoneDemo.java
 java LocaleZoneDemo
 ~~~
 
-Stdout đã được kiểm tra bằng JDK:
+Stdout verified on the JDK:
 
 ~~~text
 Locale: vi-VN
@@ -220,27 +220,27 @@ Later offset: -05:00
 Distinct instants: true
 ~~~
 
-**Giải thích:**
+**Explanation:**
 
-1. Locale hiển thị luôn là `vi-VN` nhưng hai `ZoneId` khác nhau. Vì vậy giờ 07:00 và 19:00 **không** do thay locale.
-2. Cùng `Instant` nên phép so sánh `toInstant()` trả `true`.
-3. Ngày 10/03/2024, New York chuyển sang DST; local time 02:30 nằm trong **gap** và có 0 offset hợp lệ. `atZone` mặc định đẩy sang 03:30 theo cách xử lý của `ZonedDateTime`.
-4. Ngày 03/11/2024, New York kết thúc DST; local time 01:30 có **hai** offset hợp lệ. `atZone` mặc định chọn offset trước của overlap (trong ví dụ là `-04:00`); `withLaterOffsetAtOverlap` chọn `-05:00`.
-5. Hai offset tạo thành **hai Instant khác nhau**, dù cùng hiển thị giờ đồng hồ 01:30. Vì vậy kết quả `Distinct instants: true`.
+1. The display locale is always `vi-VN` while the two `ZoneId` values differ. Hence 07:00 and 19:00 do **not** come from changing the locale.
+2. Because it is the same `Instant`, comparing `toInstant()` returns `true`.
+3. On 2024-03-10, New York enters DST; local time 02:30 lies in a **gap** and has 0 valid offsets. `atZone` defaults to shifting forward to 03:30 per `ZonedDateTime` rules.
+4. On 2024-11-03, New York exits DST; local time 01:30 has **two** valid offsets. `atZone` defaults to the earlier offset of the overlap (`-04:00` here); `withLaterOffsetAtOverlap` selects `-05:00`.
+5. The two offsets yield **two distinct `Instant` values**, even though both display 01:30 on the wall clock. Hence `Distinct instants: true`.
 
-Vì ví dụ dùng ngày lịch sử có quy tắc DST đã xác định, output có thể tái hiện trên JDK với dữ liệu vùng tương ứng. Tuy nhiên, dữ liệu timezone được cập nhật theo thời gian; khi đổi bản JDK/tzdb nên kiểm thử lại những trường hợp nhạy cảm.
+Because the example uses historical dates with established DST rules, output is reproducible on JDKs with matching zone data. However, time-zone data updates over time; when upgrading the JDK/tzdb, re-test sensitive transitions.
 
-## 6. DST: gap và overlap cần chính sách nghiệp vụ
+## 6. DST: Gaps and Overlaps Require Business Policy
 
-Một local time + zone **không luôn cho đúng một instant**. Có ba trường hợp:
+A local time + zone **does not always map to a single instant**. There are three cases:
 
-| Số offset hợp lệ | Ý nghĩa | Cách xử lý có thể chọn |
+| Valid Offsets Count | Meaning | Handling Options |
 | --- | --- | --- |
-| 0 | **Gap**: giờ địa phương không tồn tại | Từ chối giờ, hỏi người dùng, hoặc dịch đến thời điểm hợp lệ và thông báo |
-| 1 | Giờ bình thường | Có thể tạo `ZonedDateTime` theo offset hợp lệ |
-| 2 | **Overlap**: giờ địa phương xuất hiện hai lần | Hỏi chọn offset lần trước/lần sau, hoặc dùng quy tắc đã công bố |
+| 0 | **Gap**: local time does not exist | Reject the time, prompt the user, or shift to a valid time and notify |
+| 1 | Normal time | Construct `ZonedDateTime` directly with the unique valid offset |
+| 2 | **Overlap**: local time occurs twice | Ask the user to pick earlier/later offset, or apply a documented rule |
 
-Java cung cấp:
+Java provides:
 
 ~~~java
 LocalDateTime candidate =
@@ -250,73 +250,73 @@ ZoneId zone = ZoneId.of("America/New_York");
 var validOffsets = zone.getRules().getValidOffsets(candidate);
 ~~~
 
-Đây là đoạn minh họa Java 17 với import `java.time.*`. Đừng chỉ nhìn kiểu dữ liệu `LocalDateTime` rồi nói sự kiện được xác định. Trong overlap, cần biết offset nào người dùng đã chọn.
+This is a Java 17 illustrative snippet with `import java.time.*`. Never look only at the `LocalDateTime` type and declare an event unambiguous. During an overlap, you need to know which offset the user selected.
 
-Với yêu cầu nghiêm ngặt, `ZonedDateTime.ofStrict(localDateTime, offset, zone)` có thể xác nhận offset do người dùng chọn là hợp lệ với vùng ở ngày ấy. Nếu không hợp lệ, API báo lỗi thay vì tự giải quyết. Với gap, cũng có thể dùng `ZoneRules.getTransition(localDateTime)` để giải thích việc đồng hồ chuyển như thế nào.
+For strict validation, `ZonedDateTime.ofStrict(localDateTime, offset, zone)` verifies that a user-chosen offset is valid for that zone on that date. If invalid, it throws rather than silently resolving. For gaps, you can also use `ZoneRules.getTransition(localDateTime)` to explain how the clock jumped.
 
-### Khi nào mặc định điều chỉnh là không đủ?
+### When is default adjustment not enough?
 
-Ứng dụng lịch đơn giản có thể cho phép tự điều chỉnh gap. Nhưng hệ thống đặt lịch khám, ca làm việc, vé tàu hoặc giao dịch có thời hạn chính xác nên **không tự âm thầm đổi 02:30 thành 03:30** nếu chưa có quy định. Phải có thông điệp hoặc chính sách tường minh.
+A casual calendar app might allow automatic gap adjustment. However, medical appointment booking, shift scheduling, train ticketing, or strict deadline systems should **never silently turn 02:30 into 03:30** without an explicit policy. Provide a clear message or documented rule.
 
-Không giả định mọi timezone đều có DST, hay DST luôn đổi 60 phút, hay các vùng luôn đổi vào cùng một ngày. Dữ liệu quy tắc có thể khác theo địa điểm và lịch sử.
+Do not assume every time zone observes DST, that DST always shifts by 60 minutes, or that regions transition on the same date. Transition rules vary by location and history.
 
-## 7. Timezone thực tế của người dùng đến từ đâu?
+## 7. Where Does a User's Actual Time Zone Come From?
 
-Một ứng dụng nên mô hình hóa cả **múi giờ cho hiển thị** và **múi giờ của sự kiện**, vì chúng có thể khác.
+An application should model both **display time zone** and **event time zone**, as they can differ.
 
-Các nguồn có thể có:
+Possible sources:
 
-1. **Lựa chọn trực tiếp trong hồ sơ:** người dùng đặt `Asia/Ho_Chi_Minh`; lưu giá trị như một preference có thể sửa.
-2. **Cấu hình của địa điểm hoặc tổ chức:** cửa hàng, chi nhánh, sân bay hoặc địa điểm sự kiện có timezone rõ ràng. Đối với giờ mở cửa/lịch ca tại nơi đó, dùng zone của địa điểm thay vì thiết bị người xem.
-3. **Múi giờ do thiết bị/browser báo về:** có thể dùng để gợi ý mặc định, nhưng người dùng có thể đang du lịch, dùng máy từ xa hoặc đặt timezone thủ công.
-4. **Mặc định đã công bố của sản phẩm/tenant:** khi chưa có dữ liệu rõ, dùng một timezone đã cấu hình và hiển thị cho người dùng biết; đừng nhầm với “timezone của họ”.
+1. **Direct profile preference:** the user selects `Asia/Ho_Chi_Minh`; store it as an editable preference.
+2. **Venue or organization configuration:** a store, branch, airport, or event venue has an explicit time zone. For opening hours or shifts at that venue, use the venue's zone rather than the viewer's device.
+3. **Device/browser-reported time zone:** useful for suggesting a default, though the user may be traveling, using a remote machine, or overriding their OS zone manually.
+4. **Documented product/tenant default:** when no explicit value exists, use a configured default time zone and surface it to the user; do not confuse it with "their time zone".
 
-Trong browser, JavaScript có thể lấy timezone cấu hình:
+In the browser, JavaScript can read the configured time zone:
 
 ~~~javascript
 const zoneId = Intl.DateTimeFormat().resolvedOptions().timeZone;
-// Ví dụ: "Asia/Ho_Chi_Minh"
+// Example: "Asia/Ho_Chi_Minh"
 ~~~
 
-Đây là đoạn **JavaScript** minh họa, không phải Java. Nó phản ánh cấu hình client, không xác nhận vị trí vật lý hoặc ý muốn nghiệp vụ. Một client có thể gửi zone ID cho backend qua một trường API do sản phẩm định nghĩa.
+This is an illustrative **JavaScript** snippet, not Java. It reflects client configuration, not verified physical location or business intent. A client can send the zone ID to the backend via a product-defined API field.
 
-Ở server Java, kiểm tra giá trị:
+On the Java server, validate the value:
 
 ~~~java
 ZoneId zone;
 try {
     zone = ZoneId.of(zoneIdFromClient);
 } catch (DateTimeException ex) {
-    // Báo dữ liệu không hợp lệ hoặc yêu cầu người dùng chọn lại.
+    // Report invalid data or prompt the user to choose again.
 }
 ~~~
 
-Đây là đoạn Java minh họa có biến `String zoneIdFromClient` đã được khai báo và import `java.time.*`. Trong code thật cần kiểm tra `null`/rỗng, giới hạn độ dài và chính sách chấp nhận ID. `ZoneId.of` có thể nhận ID offset và một số dạng ID khác, nên việc parse thành công **không chứng minh** ID đó là timezone địa lý được sản phẩm chấp thuận cho lập lịch.
+This is an illustrative Java snippet assuming `String zoneIdFromClient` is declared and `import java.time.*`. Production code should check for `null`/empty, length limits, and an allowlist policy. `ZoneId.of` accepts fixed offsets and several other ID forms, so successful parsing **does not prove** the ID is a product-approved regional time zone for scheduling.
 
-**Không suy timezone từ HTTP `Accept-Language`.** Header chỉ truyền ưu tiên ngôn ngữ. Cũng không nên mặc định dùng IP để kết luận timezone chắc chắn; thông tin mạng có sai số và có thể liên quan đến quyền riêng tư.
+**Never infer time zone from HTTP `Accept-Language`.** That header only communicates language preferences. Nor should you blindly rely on IP geolocation as definitive time zone truth; network data has inaccuracies and carries privacy implications.
 
-## 8. Vì sao ZoneId.systemDefault() nguy hiểm trong ứng dụng nhiều người dùng?
+## 8. Why ZoneId.systemDefault() Is Dangerous in Multi-User Applications
 
 ~~~java
 ZoneId defaultZone = ZoneId.systemDefault();
 Locale defaultLocale = Locale.getDefault();
 ~~~
 
-Đây là cấu hình mặc định của **môi trường Java**, không phải hồ sơ người dùng. Server có thể chạy UTC, máy lập trình viên có thể chạy theo nơi họ sống, container có thể bị cấu hình khác với máy chủ vật lý.
+These reflect the defaults of the **Java runtime environment**, not any user's profile. Servers often run in UTC, developer laptops run in their local zones, and containers may be configured differently from physical hosts.
 
-Một ứng dụng dùng chung process Java cho nhiều tài khoản không thể dựa vào **một** giá trị `systemDefault()` để xác định múi giờ của mọi khách hàng.
+A multi-tenant Java process serving multiple accounts cannot rely on **a single** `systemDefault()` value to determine every customer's time zone.
 
-Tương tự:
+Similarly:
 
 ~~~java
 LocalDateTime now = LocalDateTime.now();
 ~~~
 
-Câu lệnh này dùng clock/system zone hiện hành để tạo ngày giờ địa phương, nhưng kết quả **không giữ thông tin ZoneId**. Nếu cần thời điểm hiện tại, dùng `Instant.now(clock)`. Nếu cần ngày ở múi giờ cụ thể, dùng `LocalDate.now(clock.withZone(userZone))` hoặc `LocalDate.now(userZone)`.
+This call uses the current system clock and zone to produce a local date-time, yet the result **retains no `ZoneId`**. When you need the current instant, use `Instant.now(clock)`. When you need today's date in a specific zone, use `LocalDate.now(clock.withZone(userZone))` or `LocalDate.now(userZone)`.
 
-Không gọi `TimeZone.setDefault`, `Locale.setDefault` hoặc sửa timezone toàn JVM theo từng request: đây là trạng thái toàn cục, dễ gây lỗi chéo giữa các luồng.
+Never call `TimeZone.setDefault`, `Locale.setDefault`, or mutate JVM-wide time zone settings per request: that is global mutable state and causes cross-thread interference.
 
-### Sử dụng Clock để kiểm thử
+### Using Clock for testing
 
 ~~~java
 Clock testClock = Clock.fixed(
@@ -328,124 +328,124 @@ LocalDate dayInVietnam = LocalDate.now(
         testClock.withZone(ZoneId.of("Asia/Ho_Chi_Minh")));
 ~~~
 
-Đây là đoạn Java minh họa với import `java.time.*`. `Clock.fixed` giúp kiểm thử lặp lại và chủ động thử sát ranh giới ngày, tháng hoặc DST thay vì phụ thuộc giờ chạy test.
+This is an illustrative Java snippet with `import java.time.*`. `Clock.fixed` enables repeatable tests and lets you deliberately test right across day, month, or DST boundaries instead of depending on when tests run.
 
-## 9. Thiết kế lưu trữ tùy ý nghĩa của thời gian
+## 9. Choosing Storage Models Based on Time Semantics
 
-Không phải mọi sự kiện nên lưu cùng một kiểu.
+Not every event should be stored using the same type.
 
-| Dữ liệu nghiệp vụ | Mô hình nên xem xét | Lý do |
+| Business Data | Model to Consider | Reason |
 | --- | --- | --- |
-| Log giao dịch đã xảy ra | `Instant` hoặc timestamp UTC | Cần thời điểm tuyệt đối |
-| Lịch họp đã xác nhận | `Instant` + `ZoneId` khi cần nhớ vùng tổ chức | Vừa xác định thời điểm, vừa giữ ngữ cảnh vùng |
-| Hẹn lúc 09:00 tại một chi nhánh | `LocalDateTime` + `ZoneId` + quyết định gap/overlap | Giờ đồng hồ của địa điểm là yếu tố nghiệp vụ |
-| Lịch lặp 09:00 thứ Hai hàng tuần | Quy tắc lặp + `LocalTime`/ngày + `ZoneId` | Không thể dùng offset cố định |
-| Sinh nhật, hạn chỉ tính theo ngày | `LocalDate` | Không nên biến ngày thành Instant tùy tiện |
-| Dữ liệu đã chứa offset nhưng chưa rõ vùng | `OffsetDateTime` | Ghi offset của biểu diễn, không suy zone gốc |
+| Historical transaction log | `Instant` or UTC timestamp | Requires an absolute point in time |
+| Confirmed meeting | `Instant` + `ZoneId` when venue zone matters | Fixes the instant while keeping regional context |
+| Appointment at 09:00 at a branch | `LocalDateTime` + `ZoneId` + gap/overlap policy | The venue's wall-clock time is the business fact |
+| Weekly recurring 09:00 Monday | Recurrence rule + `LocalTime`/date + `ZoneId` | Fixed offsets fail across DST |
+| Birthdays, date-only deadlines | `LocalDate` | Do not arbitrarily turn calendar dates into `Instant` |
+| Data already containing offset without zone | `OffsetDateTime` | Preserves the representation's offset without guessing original zone |
 
-**Một Instant không đủ để suy lại ZoneId.** Nhiều vùng có offset giống nhau tại một thời điểm. Muốn hiển thị theo timezone gốc đã chọn hoặc tạo lịch lặp trong tương lai, cần lưu vùng ấy riêng.
+**An `Instant` alone cannot recover the `ZoneId`.** Many regions share the same offset at a given moment. To display in the originally chosen time zone or expand future recurrences, store the zone separately.
 
-**Một LocalDateTime không đủ để xác định Instant.** Thiếu vùng thì không có offset; kể cả có vùng, DST overlap vẫn có thể làm xuất hiện hai Instant khác nhau.
+**A `LocalDateTime` alone cannot determine an `Instant`.** Without a zone there is no offset; even with a zone, DST overlaps can produce two distinct instants.
 
-### Lịch lặp: không cộng 168 giờ khi ý nghĩa là 09:00 địa phương
+### Recurring schedules: do not add 168 hours when meaning 09:00 local
 
-Nếu lịch là “09:00 thứ Hai tại New York”, việc lấy một Instant rồi cộng đúng `Duration.ofDays(7)` cho mọi tuần sẽ giữ **khoảng cách tuyệt đối 168 giờ**, nhưng có thể làm giờ địa phương lệch sang 08:00 hoặc 10:00 khi offset thay đổi.
+If a schedule is "09:00 Monday in New York", taking an `Instant` and adding `Duration.ofDays(7)` every week keeps an **absolute 168-hour spacing**, which shifts the wall-clock time to 08:00 or 10:00 whenever the offset changes.
 
-Thay vào đó, tạo từng ngày hẹn dựa trên **lịch và giờ địa phương của vùng**, rồi áp chính sách xử lý DST cho từng lần. Với tính năng lặp phức tạp, nên có chiến lược tính lịch rõ ràng, kiểm thử biên và thư viện lập lịch phù hợp.
+Instead, compute each occurrence from the **regional local date and time**, then apply the DST resolution policy per occurrence. For complex recurrences, establish an explicit scheduling strategy, test boundaries, and use an appropriate scheduling library.
 
-## 10. Timezone, chronology và locale extension là các trục riêng
+## 10. Time Zone, Chronology, and Locale Extensions Are Independent Axes
 
-Ngoài timezone, một hệ thống còn có thể có:
+Beyond time zones, a system may also involve:
 
 - **Locale:** `vi-VN`, `en-US`, `th-TH`.
 - **ZoneId:** `Asia/Ho_Chi_Minh`, `America/New_York`.
-- **Chronology:** ISO, Japanese, Thai Buddhist..., tùy yêu cầu.
-- **Numbering system:** chữ số Latin hoặc hệ chữ số được locale yêu cầu.
-- **Temporal type:** `Instant`, `LocalDate`, `LocalDateTime` hoặc `ZonedDateTime`.
+- **Chronology:** ISO, Japanese, Thai Buddhist, etc., as required.
+- **Numbering system:** Latin digits or locale-requested numeral systems.
+- **Temporal type:** `Instant`, `LocalDate`, `LocalDateTime`, or `ZonedDateTime`.
 
-Ví dụ một bản ghi hợp lệ:
+Example of a valid record:
 
 ~~~text
-Giao diện: en-US
-Múi giờ xem lịch: Asia/Ho_Chi_Minh
-Hệ lịch: ISO
-Instant của sự kiện: 2024-01-15T12:00:00Z
-Giờ địa phương tại TP.HCM: 2024-01-15 19:00
+UI language: en-US
+Viewing time zone: Asia/Ho_Chi_Minh
+Calendar system: ISO
+Event Instant: 2024-01-15T12:00:00Z
+Local time in Ho Chi Minh City: 2024-01-15 19:00
 ~~~
 
-Các Unicode locale extension có thể ảnh hưởng cách định dạng lịch/chữ số trong những API được hỗ trợ, nhưng **không thể được dùng như bằng chứng về múi giờ thật của người dùng**. `withLocale`, `localizedBy`, `withChronology` và `withZone` của formatter có trách nhiệm không hoàn toàn giống nhau. Nếu sử dụng calendar khác ISO hoặc numbering system khác, cần kiểm tra API cụ thể và kiểm thử output.
+Unicode locale extensions can affect calendar/numeral formatting in supporting APIs, but **cannot be treated as proof of the user's real time zone**. Formatter methods `withLocale`, `localizedBy`, `withChronology`, and `withZone` each have distinct responsibilities. If using a non-ISO calendar or non-Latin numbering system, check the specific API and test the output.
 
-Không trộn các trách nhiệm trên bằng cách tạo một chuỗi locale tự chế và coi đó là toàn bộ ngữ cảnh thời gian.
+Do not conflate these responsibilities by fabricating a custom locale string and treating it as the entire temporal context.
 
-## 11. Bảng lỗi phổ biến
+## 11. Common Mistakes Table
 
-| Sai lầm | Hậu quả | Cách phòng tránh |
+| Mistake | Consequence | Prevention |
 | --- | --- | --- |
-| Suy timezone từ `locale.getCountry()` | Quốc gia không xác định duy nhất vùng thời gian | Lưu `ZoneId` từ nguồn đúng |
-| Dùng `Locale.US` để ngầm chọn giờ New York | Mỹ có nhiều timezone | Chỉ định zone người dùng/sự kiện |
-| Lấy `ZoneId.systemDefault()` cho mọi khách | Sai trên server/container hoặc với khách ở vùng khác | Truyền timezone từng user/request |
-| Cố định `-05:00` cho New York cả năm | Sai tại thời điểm DST | Dùng ID `America/New_York` |
-| Dùng `withZoneSameLocal` để hiển thị một Instant ở zone khác | Có thể đổi thời điểm | Dùng `withZoneSameInstant` |
-| Lưu `LocalDateTime` mà không lưu zone cho giờ hẹn | Không xác định thời điểm | Lưu zone và resolution policy |
-| Không xử lý DST gap | Lịch hẹn có giờ không tồn tại | Kiểm tra `getValidOffsets` |
-| Không xử lý DST overlap | Lịch hẹn mơ hồ giữa hai Instant | Yêu cầu chọn offset hoặc áp chính sách |
-| Dùng `TimeZone.setDefault` mỗi request | Thay đổi toàn cục ảnh hưởng request khác | Dùng `ZoneId` tường minh |
-| Dựa vào timezone browser như GPS | Client có thể cấu hình sai | Cho phép người dùng xác nhận |
-| Cộng 168 giờ cho lịch lặp 09:00 địa phương | Lệch giờ trong tuần DST | Tính mỗi kỳ theo local schedule + zone |
-| Giữ chỉ ISO/UTC nhưng quên zone của sự kiện | Mất thông tin vùng phục vụ lịch lặp | Lưu `ZoneId` bổ sung |
-| Dùng locale để suy hệ lịch, zone và định dạng | Các trục bị đánh đồng | Mô hình hóa riêng |
-| Không thử ngày biên hoặc nâng tzdb | Sai lệch âm thầm | Kiểm thử đa vùng và theo phiên bản |
+| Inferring time zone from `locale.getCountry()` | Country does not uniquely identify a time zone | Obtain `ZoneId` from a proper source |
+| Using `Locale.US` to imply New York time | The US has multiple time zones | Specify the user/event zone explicitly |
+| Using `ZoneId.systemDefault()` for all customers | Wrong on servers/containers or remote users | Pass time zone per user/request |
+| Hardcoding `-05:00` for New York year-round | Wrong during DST | Use region ID `America/New_York` |
+| Using `withZoneSameLocal` to display an `Instant` in another zone | Changes the actual instant | Use `withZoneSameInstant` |
+| Storing `LocalDateTime` without zone for appointments | Ambiguous point in time | Store zone and resolution policy |
+| Ignoring DST gaps | Schedules allow nonexistent wall times | Inspect `getValidOffsets` |
+| Ignoring DST overlaps | Schedules are ambiguous between two instants | Ask for offset or apply documented policy |
+| Calling `TimeZone.setDefault` per request | Global state corrupts concurrent requests | Pass `ZoneId` explicitly |
+| Treating browser time zone as GPS | Client may be misconfigured | Let the user confirm or override |
+| Adding 168 hours for 09:00 local recurrences | Clock time drifts across DST weeks | Compute each occurrence from local schedule + zone |
+| Keeping only ISO/UTC and dropping event zone | Loses regional context for recurrences | Store `ZoneId` alongside |
+| Using locale to infer calendar, zone, and format | Independent axes get conflated | Model each axis separately |
+| Skipping boundary tests or tzdb upgrades | Silent drift | Test multi-zone transitions and runtime updates |
 
-## 12. Checklist kiểm thử ứng dụng
+## 12. Application Testing Checklist
 
-Một bộ test đáng tin nên bao phủ:
+A reliable test suite should verify:
 
-1. Cùng một `Instant` hiển thị theo ít nhất hai `ZoneId`, còn `toInstant()` vẫn bằng nhau.
-2. Cùng một `Locale` nhưng chọn hai zone khác nhau: kết quả giờ khác nhau theo zone.
-3. Cùng zone nhưng hai locale: kết quả trình bày có thể khác trong khi thời điểm không thay đổi.
-4. Khoảng gap có **0** offset hợp lệ; khoảng overlap có **2**; giờ bình thường có **1**.
-5. Lịch đã chốt trong overlap lưu/giữ được offset đã chọn.
-6. Sự kiện sát nửa đêm có thể chuyển sang ngày khác khi xem ở vùng khác.
-7. Lịch lặp giữ giờ địa phương theo lịch khi có DST.
-8. ID zone sai hoặc thiếu được xử lý bằng chính sách tường minh.
-9. Ứng dụng chạy trên JVM có timezone UTC, khác timezone của người dùng.
-10. Cập nhật JDK/tzdb được đánh giá tác động tới lịch tương lai.
-11. Không dùng chuỗi hiển thị theo locale làm giá trị timestamp chuẩn cho dữ liệu trao đổi máy.
-12. Không thu thập vị trí địa lý nếu nghiệp vụ chỉ cần một timezone được người dùng chọn.
+1. One `Instant` renders differently across at least two `ZoneId` values while `toInstant()` remains equal.
+2. One `Locale` with two different zones produces different wall-clock times according to zone.
+3. One zone with two locales changes presentation text without changing the point in time.
+4. A gap has **0** valid offsets; an overlap has **2**; a normal wall time has **1**.
+5. An appointment confirmed during an overlap preserves its selected offset.
+6. Events near midnight can cross onto a different calendar date when viewed in another zone.
+7. Recurring schedules keep their local wall-clock time across DST transitions.
+8. Invalid or missing zone IDs are handled by an explicit policy.
+9. The application runs on a JVM whose default time zone is UTC, distinct from user time zones.
+10. JDK/tzdb updates are evaluated for impact on future schedules.
+11. Locale-formatted strings are never used as canonical timestamps in machine-to-machine exchange.
+12. Physical geolocation is not collected when the domain only needs a user-chosen time zone.
 
-Tách **kỳ vọng nghiệp vụ** (giờ mở cửa, thời điểm cuộc họp, múi giờ sự kiện) khỏi **snapshot của dữ liệu timezone trên một JDK** để khi nâng runtime có thể giải thích khác biệt thay vì tự động chấp nhận mọi thay đổi.
+Separate **business expectations** (opening hours, meeting instant, event time zone) from **a snapshot of time-zone data on a specific JDK**, so when upgrading runtimes you can explain differences rather than blindly accepting every change.
 
-## 13. Bài tập và đáp án
+## 13. Exercises and Answers
 
-**Câu 1.** Người dùng dùng giao diện `en-US` nhưng đang làm việc tại TP.HCM. Có thể mặc định múi giờ New York không?
+**Q1.** A user uses an `en-US` interface while working in Ho Chi Minh City. Should you default their time zone to New York?
 
-**Đáp án:** Không. Locale chỉ là sở thích hiển thị; timezone có thể lấy từ cài đặt người dùng, thiết bị được xác nhận hoặc sự kiện.
+**Answer:** No. Locale is only a display preference; time zone should come from user settings, confirmed device data, or event context.
 
-**Câu 2.** Hai người nhìn cùng cuộc họp ở New York và TP.HCM. Nên dùng `withZoneSameInstant` hay `withZoneSameLocal`?
+**Q2.** Two people view the same meeting in New York and Ho Chi Minh City. Should you use `withZoneSameInstant` or `withZoneSameLocal`?
 
-**Đáp án:** `withZoneSameInstant` để giữ nguyên cuộc họp thực tế.
+**Answer:** `withZoneSameInstant`, to preserve the actual meeting instant.
 
-**Câu 3.** Tại sao `2024-11-03 01:30` ở New York có thể ứng với hai thời điểm khác nhau?
+**Q3.** Why can `2024-11-03 01:30` in New York correspond to two different instants?
 
-**Đáp án:** Đây là giờ trong overlap khi đồng hồ lùi; cùng local time nhưng có hai offset.
+**Answer:** It falls during the fall-back DST overlap when clocks move back; the same local wall-clock time occurs under two different offsets.
 
-**Câu 4.** Tại sao một timestamp UTC không cho biết người đặt lịch đang ở múi giờ nào?
+**Q4.** Why does a UTC timestamp not tell you which time zone the scheduler is in?
 
-**Đáp án:** UTC xác định thời điểm tuyệt đối; nhiều múi giờ và người dùng khác nhau có thể cùng tham chiếu tới thời điểm đó. Cần lưu zone người dùng/sự kiện riêng khi cần.
+**Answer:** UTC identifies an absolute instant; users in many different time zones can reference that exact instant. Store the user/event zone separately when needed.
 
-**Câu 5.** Nếu server đặt timezone UTC, có cần `ZoneId` cho lịch hẹn của khách hàng không?
+**Q5.** If the server's time zone is set to UTC, do customer appointments still need a `ZoneId`?
 
-**Đáp án:** Có. Lịch theo giờ địa phương và DST không thể xác định từ timezone server.
+**Answer:** Yes. Local wall-clock schedules and DST rules cannot be deduced from the server's time zone.
 
-**Bài thực hành:** Viết service nhận `Locale displayLocale`, `ZoneId displayZone` và `Instant instant`, trả chuỗi thời gian theo locale/zone. Bổ sung hàm nhận `LocalDateTime` để kiểm tra `ZoneRules.getValidOffsets`: 0 offset thì báo gap, 1 thì tạo giờ hợp lệ, 2 thì hỏi offset. Kiểm thử bằng hai thời điểm DST của New York trong ví dụ và một ngày bình thường tại TP.HCM.
+**Practice exercise:** Write a service accepting `Locale displayLocale`, `ZoneId displayZone`, and `Instant instant`, returning the formatted time string for that locale and zone. Add a method taking a `LocalDateTime` to inspect `ZoneRules.getValidOffsets`: report a gap when 0 offsets exist, construct a valid time when 1 exists, and prompt for an offset when 2 exist. Test using both New York DST dates from the example and a normal day in Ho Chi Minh City.
 
-## 14. Tài liệu chính thức
+## 14. Official References
 
-- [Locale — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html): ngôn ngữ và quy ước hiển thị.
-- [ZoneId — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/ZoneId.html): ID vùng và timezone rules.
-- [ZoneRules — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/zone/ZoneRules.html): các offset hợp lệ và chuyển đổi DST.
-- [ZonedDateTime — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/ZonedDateTime.html): chuyển zone, gap và overlap.
-- [DateTimeFormatter — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html): định dạng theo locale và zone.
-- [Clock — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/Clock.html): clock kiểm thử.
+- [Locale — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html): language and display conventions.
+- [ZoneId — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/ZoneId.html): zone IDs and time-zone rules.
+- [ZoneRules — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/zone/ZoneRules.html): valid offsets and DST transitions.
+- [ZonedDateTime — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/ZonedDateTime.html): zone conversions, gaps, and overlaps.
+- [DateTimeFormatter — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html): formatting by locale and zone.
+- [Clock — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/Clock.html): testing clocks.
 
-**Kết luận:** `Locale` xác định *cách trình bày*, `ZoneId` xác định *quy tắc đồng hồ của vùng*, `Instant` xác định *thời điểm tuyệt đối*. Không dùng locale, IP hay timezone mặc định JVM để tự tuyên bố múi giờ của người dùng. Hãy chọn zone từ nguồn minh bạch, lưu khi nghiệp vụ cần, kiểm tra DST và chỉ định locale riêng khi định dạng ngày giờ.
+**Conclusion:** `Locale` determines *presentation*, `ZoneId` determines *regional clock rules*, and `Instant` determines *an absolute point in time*. Never use locale, IP address, or JVM default time zone to declare a user's time zone on your own. Choose the zone from an explicit source, store it when business logic requires it, check DST transitions, and pass locale separately when formatting dates and times.

@@ -1,12 +1,12 @@
-# StringBuilder.setLength(): tăng độ dài bằng ký tự NUL (`\\u0000`)
+# StringBuilder.setLength(): Extending Length with the NUL Character (`\\u0000`)
 
-## 1. Vấn đề cốt lõi
+## 1. The Core Issue
 
-`StringBuilder` là một dãy ký tự **có thể thay đổi** (*mutable*) trong Java. Phương thức `setLength(int newLength)` dùng để đặt **độ dài logic** của dãy đó. Khi `newLength` lớn hơn độ dài hiện tại, các vị trí vừa được bổ sung **không phải dấu cách và không phải chuỗi rỗng**: chúng được điền bằng ký tự **NUL**, tức UTF-16 code unit có giá trị `U+0000`, viết trong Java là `'\0'` hoặc `'\u0000'`.
+`StringBuilder` is a **mutable** character sequence in Java. The `setLength(int newLength)` method sets the **logical length** of that sequence. When `newLength` is greater than the current length, the newly added positions are **not spaces and not empty strings**: they are filled with the **NUL** character, i.e. the UTF-16 code unit with value `U+0000`, written in Java as `'\0'` or `'\u0000'`.
 
-Đây là hành vi theo hợp đồng API, không chỉ là một chi tiết cài đặt của JVM. Vì NUL thường không hiện ra khi in lên terminal, lập trình viên dễ tưởng `setLength()` chỉ “dự trữ thêm chỗ” hoặc những vị trí mới chưa tồn tại. Thực tế, **chúng đã là thành phần của nội dung StringBuilder** và được tính trong `length()`, `charAt()`, `toString()`, `append()`, tìm kiếm và so sánh.
+This is API contract behavior, not just a JVM implementation detail. Because NUL often does not show up when printed to a terminal, developers easily assume `setLength()` only "reserves extra space" or that the new positions do not exist yet. In fact, **they are already part of the StringBuilder's content** and are counted in `length()`, `charAt()`, `toString()`, `append()`, searching, and comparisons.
 
-Ví dụ:
+Example:
 
 ~~~java
 StringBuilder sb = new StringBuilder("Hi");
@@ -18,24 +18,24 @@ System.out.println(sb.charAt(4) == '\u0000'); // true
 System.out.println(sb.toString().equals("Hi")); // false
 ~~~
 
-Sau lệnh `setLength(5)`, dãy code unit là:
+After `setLength(5)`, the code unit sequence is:
 
-| Chỉ số | 0 | 1 | 2 | 3 | 4 |
+| Index | 0 | 1 | 2 | 3 | 4 |
 |---|---|---|---|---|---|
-| Giá trị | `'H'` | `'i'` | `U+0000` | `U+0000` | `U+0000` |
+| Value | `'H'` | `'i'` | `U+0000` | `U+0000` | `U+0000` |
 
-Dữ liệu tương đương một chuỗi Java có nội dung `"Hi\u0000\u0000\u0000"` — dài 5 UTF-16 code unit. **Không** tương đương `"Hi"` và cũng **không** tương đương `"Hi   "` (ba dấu cách).
+The data is equivalent to a Java string with content `"Hi\u0000\u0000\u0000"` — 5 UTF-16 code units long. It is **not** equivalent to `"Hi"`, nor is it equivalent to `"Hi   "` (three spaces).
 
-## 2. Độ dài (`length`) khác dung lượng (`capacity`)
+## 2. Length (`length`) Differs from Capacity (`capacity`)
 
-Cần phân biệt rõ hai thuộc tính của `StringBuilder`:
+Two properties of `StringBuilder` must be clearly distinguished:
 
-- **`length()`**: số UTF-16 code unit đang là nội dung logic. Vị trí hợp lệ cho `charAt(i)` nằm từ 0 đến `length() - 1`. NUL được tính là một phần của độ dài.
-- **`capacity()`**: số code unit mà cấu trúc có thể chứa **trước khi cần mở rộng nơi lưu trữ bên trong**. Capacity có thể lớn hơn length, nhưng phần vượt ngoài length **không** được coi là nội dung và không thể đọc bằng `charAt()`.
-- **`ensureCapacity(minimumCapacity)`**: yêu cầu dự trữ dung lượng tối thiểu để giảm khả năng phải cấp phát khi thêm dữ liệu về sau. Nó **không** tăng `length()` và **không** tạo ký tự NUL trong nội dung.
-- **`setLength(newLength)`**: thay đổi số code unit trong nội dung. Nếu dài ra, các vị trí mới được khởi tạo thành NUL; capacity được mở rộng nếu cần.
+- **`length()`**: the number of UTF-16 code units currently constituting the logical content. Valid positions for `charAt(i)` run from 0 to `length() - 1`. NUL is counted as part of the length.
+- **`capacity()`**: the number of code units the structure can hold **before needing to expand its internal storage**. Capacity can exceed length, but the portion beyond length is **not** considered content and cannot be read with `charAt()`.
+- **`ensureCapacity(minimumCapacity)`**: requests reserving at least a minimum capacity to reduce the likelihood of reallocations during future appends. It **does not** increase `length()` and **does not** create NUL characters in the content.
+- **`setLength(newLength)`**: changes the number of code units in the content. If extended, the new positions are initialized to NUL; capacity is expanded if needed.
 
-Ví dụ đối chiếu:
+Comparison example:
 
 ~~~java
 StringBuilder a = new StringBuilder("AB");
@@ -49,21 +49,21 @@ System.out.println(b.length());   // 5
 System.out.println(b.charAt(2) == '\0'); // true
 ~~~
 
-Không nên dùng `setLength(1000)` chỉ để tối ưu số lần cấp phát trước khi `append()`: việc đó tạo **1.000 vị trí nội dung logic** (hoặc nhiều hơn độ dài cũ) với NUL ở phần tăng thêm. Khi chỉ muốn dành chỗ, sử dụng `new StringBuilder(expectedCapacity)` hoặc `ensureCapacity(expectedCapacity)`.
+Do not use `setLength(1000)` just to optimize allocations before `append()`: doing so creates **1,000 logical content positions** (or more than the old length) with NULs in the added portion. When you only want to reserve space, use `new StringBuilder(expectedCapacity)` or `ensureCapacity(expectedCapacity)`.
 
-| Mục tiêu | Lựa chọn phù hợp |
+| Goal | Appropriate Choice |
 |---|---|
-| Dành chỗ cho 1.000 ký tự sẽ được `append()` sau | `new StringBuilder(1000)` hoặc `ensureCapacity(1000)` |
-| Thay đổi chiều dài logic thành 1.000 code unit | `setLength(1000)` |
-| Thêm nội dung ngay sau văn bản hiện có | `append(...)` |
-| Rút ngắn nội dung từ vị trí `n` trở đi | `setLength(n)` với `n` nhỏ hơn độ dài hiện tại |
-| Điền dấu cách cho đến độ dài cần thiết | `append(" ".repeat(...))` hoặc thao tác ghi ký tự có chủ đích, **không** dựa vào mặc định của `setLength()` |
+| Reserve space for 1,000 characters to be `append()`ed later | `new StringBuilder(1000)` or `ensureCapacity(1000)` |
+| Change the logical length to 1,000 code units | `setLength(1000)` |
+| Append content right after existing text | `append(...)` |
+| Truncate content from position `n` onward | `setLength(n)` with `n` smaller than current length |
+| Pad with spaces up to a required length | `append(" ".repeat(...))` or an intentional character-writing operation, **not** relying on `setLength()`'s default |
 
-## 3. Ba trường hợp của `setLength(newLength)`
+## 3. Three Cases of `setLength(newLength)`
 
-### 3.1. `newLength` bằng độ dài hiện tại
+### 3.1. `newLength` Equals Current Length
 
-Về mặt nội dung không có thay đổi:
+Content-wise, nothing changes:
 
 ~~~java
 StringBuilder sb = new StringBuilder("ABC");
@@ -71,9 +71,9 @@ sb.setLength(3);
 System.out.println(sb.toString().equals("ABC")); // true
 ~~~
 
-### 3.2. `newLength` nhỏ hơn độ dài hiện tại: cắt phần đuôi
+### 3.2. `newLength` Less Than Current Length: Truncating the Tail
 
-Khi giảm độ dài, những code unit từ chỉ số `newLength` trở đi không còn thuộc nội dung logic:
+When reducing length, code units from index `newLength` onward no longer belong to the logical content:
 
 ~~~java
 StringBuilder sb = new StringBuilder("ABCDE");
@@ -82,9 +82,9 @@ System.out.println(sb.toString()); // ABC
 System.out.println(sb.length());   // 3
 ~~~
 
-Capacity thường không tự giảm xuống bằng length; đó là một thuộc tính khác. Nếu muốn xem xét giảm bộ nhớ sau khi nội dung ổn định, có `trimToSize()`, nhưng không cần gọi theo thói quen vì hiệu quả và chi phí phụ thuộc tình huống.
+Capacity does not usually shrink automatically to match length; that is a separate property. If you want to consider reducing memory after content stabilizes, `trimToSize()` exists, though it should not be called by habit since effectiveness and cost depend on the situation.
 
-### 3.3. `newLength` lớn hơn độ dài hiện tại: bổ sung NUL
+### 3.3. `newLength` Greater Than Current Length: Padding with NUL
 
 ~~~java
 StringBuilder sb = new StringBuilder("ABC");
@@ -96,13 +96,13 @@ System.out.println(sb.charAt(4) == '\0'); // true
 System.out.println(sb.charAt(5) == '\0'); // true
 ~~~
 
-Nội dung logic mới gồm `A`, `B`, `C`, rồi ba code unit `U+0000`. Các vị trí mới không phải “ô trống” để `append()` tự điền.
+The new logical content consists of `A`, `B`, `C`, followed by three `U+0000` code units. The new positions are not "blank slots" for `append()` to fill automatically.
 
-**Giới hạn:** `setLength(-1)` ném `StringIndexOutOfBoundsException`. Một giá trị tăng rất lớn có thể đòi cấp phát bộ nhớ lớn và gây lỗi tài nguyên, ví dụ `OutOfMemoryError`; cần kiểm tra kích thước dữ liệu được phép trước khi gọi, nhất là khi newLength đến từ bên ngoài.
+**Limits:** `setLength(-1)` throws `StringIndexOutOfBoundsException`. A huge increase may require a large memory allocation and cause resource errors such as `OutOfMemoryError`; validate allowed data sizes before calling, especially when `newLength` comes from external input.
 
-## 4. NUL là ký tự thật, không phải điểm kết thúc chuỗi Java
+## 4. NUL Is a Real Character, Not a Java String Terminator
 
-**NUL** ở đây là Unicode code point `U+0000`, được mã hóa trong `StringBuilder` bằng code unit có giá trị 0. Có thể viết:
+**NUL** here is Unicode code point `U+0000`, encoded in `StringBuilder` as a code unit with value 0. It can be written:
 
 ~~~java
 char nul1 = '\0';
@@ -111,15 +111,15 @@ System.out.println(nul1 == nul2); // true
 System.out.println((int) nul1);    // 0
 ~~~
 
-Điều cần phân biệt:
+Distinctions to keep in mind:
 
-- `'\0'` không đồng nghĩa với `null` (giá trị tham chiếu không trỏ tới đối tượng). `null` không phải ký tự.
-- `'\0'` không đồng nghĩa với `'0'` (chữ số 0, code point U+0030).
-- `'\0'` không đồng nghĩa với `' '` (dấu cách, U+0020).
-- `StringBuilder` và `String` Java **không sử dụng NUL để đánh dấu kết thúc văn bản** như quy ước *null-terminated string* thường thấy trong C. NUL ở giữa hoặc cuối chuỗi vẫn được tính vào độ dài.
-- Khi gửi dữ liệu sang một thư viện native, giao thức mạng, cơ sở dữ liệu hay định dạng có quy tắc riêng, **không được giả định** NUL luôn được hiển thị, bảo toàn hoặc cho phép như văn bản bình thường. Hành vi tùy hệ thống nhận; cần kiểm tra ranh giới chuyển đổi.
+- `'\0'` is not the same as `null` (a reference value pointing to no object). `null` is not a character.
+- `'\0'` is not the same as `'0'` (digit zero, code point U+0030).
+- `'\0'` is not the same as `' '` (space, U+0020).
+- Java `StringBuilder` and `String` **do not use NUL to mark the end of text** like the *null-terminated string* convention commonly seen in C. NUL in the middle or at the end of a string is still counted in the length.
+- When sending data to a native library, network protocol, database, or format with its own rules, **never assume** NUL is always displayed, preserved, or allowed like ordinary text. Behavior depends on the receiving system; check conversion boundaries.
 
-Ví dụ:
+Example:
 
 ~~~java
 StringBuilder sb = new StringBuilder("AB");
@@ -129,13 +129,13 @@ System.out.println(sb.length()); // 5
 System.out.println(sb.charAt(4)); // C
 ~~~
 
-`append('C')` thêm **sau length hiện có** chứ không dò vị trí NUL để ghi đè. Kết quả không phải `"ABC"` mà là một dãy gồm `"AB"`, hai NUL và `"C"`.
+`append('C')` appends **after the current length** rather than scanning for NUL positions to overwrite. The result is not `"ABC"`, but a sequence containing `"AB"`, two NULs, and `"C"`.
 
-## 5. Cách kiểm tra các vị trí NUL mà không bị terminal đánh lừa
+## 5. How to Inspect NUL Positions Without Being Misled by the Terminal
 
-Câu lệnh `System.out.println(sb)` có thể không cho thấy các code unit NUL trong vùng văn bản hiển thị. Không dựa vào hình ảnh output để kết luận length.
+A `System.out.println(sb)` statement may not visibly show NUL code units in the displayed text area. Do not rely on visual output to judge length.
 
-Có thể kiểm tra trực tiếp:
+You can inspect directly:
 
 ~~~java
 StringBuilder sb = new StringBuilder("Hi");
@@ -146,9 +146,9 @@ System.out.println("nul-count=" + sb.chars()
         .count());                                  // nul-count=3
 ~~~
 
-`StringBuilder.chars()` là luồng giá trị `int` tương ứng với từng UTF-16 code unit; các NUL có giá trị 0 nên dễ đếm. Nếu dữ liệu có ký tự Unicode ngoài BMP, `chars()` và `codePoints()` có thể cho cách đếm khác nhau; ở trường hợp NUL đơn lẻ, hai cách vẫn nhận diện được `U+0000`.
+`StringBuilder.chars()` is an `int` stream corresponding to each UTF-16 code unit; NULs have value 0, making them easy to count. If the data contains non-BMP Unicode characters, `chars()` and `codePoints()` can give different counts; in the case of lone NULs, both still identify `U+0000`.
 
-Một cách khác là in ký hiệu đại diện hoặc hex thay vì in trực tiếp NUL:
+Another approach is printing a representation or hex code instead of printing NUL directly:
 
 ~~~java
 for (int i = 0; i < sb.length(); i++) {
@@ -157,7 +157,7 @@ for (int i = 0; i < sb.length(); i++) {
 }
 ~~~
 
-Kết quả cho `"Hi"` sau `setLength(5)`:
+Output for `"Hi"` after `setLength(5)`:
 
 ~~~text
 index=0, unit=U+0048
@@ -167,11 +167,11 @@ index=3, unit=U+0000
 index=4, unit=U+0000
 ~~~
 
-Với dữ liệu được đưa vào log hoặc JSON, một công cụ có thể escape NUL thành `\u0000`, biểu diễn bằng ký hiệu đặc biệt hoặc từ chối ký tự điều khiển. **Cách hiển thị không làm NUL biến thành dữ liệu rỗng**; hãy kiểm tra byte/code unit, độ dài và quy tắc encoding thực tế.
+When data goes into logs or JSON, a tool might escape NUL as `\u0000`, render a special glyph, or reject control characters. **How it renders does not turn NUL into empty data**; check actual bytes/code units, length, and encoding rules.
 
-## 6. Rút ngắn rồi tăng lại: không khôi phục ký tự cũ
+## 6. Shortening Then Re-Extending: Does Not Restore Old Characters
 
-Giả sử builder chứa `"ABCDE"`, sau đó cắt về length 2 rồi kéo dài lên 4:
+Suppose a builder holds `"ABCDE"`, then is truncated to length 2 and extended back to 4:
 
 ~~~java
 StringBuilder sb = new StringBuilder("ABCDE");
@@ -184,36 +184,36 @@ System.out.println(sb.charAt(2) == '\0'); // true
 System.out.println(sb.charAt(3) == '\0'); // true
 ~~~
 
-Giá trị ở chỉ số 2 và 3 **không phải** `'C'` và `'D'`. Việc tăng lại độ dài không làm hồi sinh phần văn bản bị cắt. Những vị trí mới phải được điền bằng NUL, kể cả khi cấu trúc nội bộ còn dung lượng sau lần cắt trước đó.
+The values at indices 2 and 3 are **not** `'C'` and `'D'`. Increasing the length again does not resurrect the truncated text. The new positions must be filled with NUL, even when the internal structure still retains capacity from before the truncation.
 
-Nếu muốn tạm thay đổi độ dài rồi phục hồi nội dung cũ, hãy lưu **một bản sao dữ liệu gốc** trước khi cắt, không chỉ lưu số length:
+If you want to temporarily change the length and later restore the old content, save **a copy of the original data** before truncating, not just the length number:
 
 ~~~java
 StringBuilder sb = new StringBuilder("ABCDE");
 String original = sb.toString();
 sb.setLength(2);
-// ... công việc cần chuỗi rút gọn ...
+// ... work needing the shortened string ...
 sb.setLength(0);
 sb.append(original);
 System.out.println(sb); // ABCDE
 ~~~
 
-## 7. Khi nào nên dùng `setLength()` để tăng độ dài?
+## 7. When Should You Use `setLength()` to Increase Length?
 
-Tăng độ dài chủ động có thể hữu ích trong thuật toán ghi dữ liệu **theo chỉ số**, nếu chương trình hiểu rõ các vị trí NUL tạm thời và bảo đảm điền chúng trước khi đưa văn bản ra ngoài.
+Proactively increasing length can be useful in **index-based** writing algorithms, provided the program clearly accounts for the temporary NUL positions and guarantees overwriting them before exposing the text externally.
 
 ~~~java
 StringBuilder sb = new StringBuilder("AB");
-sb.setLength(5);       // Có thể setCharAt tại chỉ số 2, 3, 4.
+sb.setLength(5);       // Can call setCharAt at indices 2, 3, 4.
 sb.setCharAt(2, '-');
 sb.setCharAt(3, '-');
 sb.setCharAt(4, 'Z');
 System.out.println(sb); // AB--Z
 ~~~
 
-Vì `setCharAt(i, ch)` chỉ hợp lệ khi `0 <= i < length()`, nên tăng length trước có thể cho phép ghi vào các chỉ số mới. Nhưng nếu quy trình bị gián đoạn trước khi điền xong, dữ liệu có thể chứa NUL. Đây là lý do cần viết các đoạn cập nhật rõ phạm vi, có kiểm tra và không công bố kết quả khi còn vị trí chưa được khởi tạo bằng dữ liệu nghiệp vụ.
+Because `setCharAt(i, ch)` is only valid when `0 <= i < length()`, increasing length beforehand allows writing to the new indices. However, if the workflow is interrupted before finishing the fills, the data may contain NULs. That is why such update blocks should have clear bounds, validation, and never publish results while any position remains uninitialized with business data.
 
-Trong phần lớn trường hợp xây dựng chuỗi tuần tự, `append()` là API rõ và an toàn hơn:
+In most sequential string-building cases, `append()` is a clearer and safer API:
 
 ~~~java
 StringBuilder sb = new StringBuilder("AB");
@@ -221,7 +221,7 @@ sb.append("---");
 System.out.println(sb); // AB---
 ~~~
 
-Khi cần **đệm dấu cách** tới độ dài `targetLength`, có thể viết:
+When you need to **pad with spaces** up to `targetLength`, you can write:
 
 ~~~java
 StringBuilder sb = new StringBuilder("AB");
@@ -229,17 +229,17 @@ int targetLength = 5;
 if (targetLength > sb.length()) {
     sb.append(" ".repeat(targetLength - sb.length()));
 }
-System.out.println(sb.equals("AB   ")); // false: equals của StringBuilder không so nội dung
+System.out.println(sb.equals("AB   ")); // false: StringBuilder's equals does not compare content
 System.out.println(sb.toString().equals("AB   ")); // true
 ~~~
 
-Điểm đáng chú ý của hai câu `println` cuối: `StringBuilder` không override `equals()` để so nội dung, nên phải so `String` hoặc dùng phép so nội dung phù hợp. `"AB   ".contentEquals(sb)` cũng có thể trả `true`. Khi mục tiêu là dấu cách, **phải thêm dấu cách thật**, không mong `setLength()` làm việc đó.
+A noteworthy detail in the last two `println` calls: `StringBuilder` does not override `equals()` to compare content, so you must compare `String`s or use an appropriate content comparison. `"AB   ".contentEquals(sb)` can also return `true`. When the goal is spaces, **you must explicitly add actual spaces**, not expect `setLength()` to do it.
 
-## 8. Tác động tới các thao tác String và validation
+## 8. Impact on String Operations and Validation
 
-Khi gọi `toString()` trên builder chứa NUL, `String` kết quả vẫn giữ NUL. Nhiều API kiểm tra nội dung sẽ cho kết quả không giống như khi xử lý văn bản chỉ có dấu cách.
+When `toString()` is called on a builder containing NULs, the resulting `String` keeps the NULs. Many content-inspection APIs will behave differently from how they behave on space-only text.
 
-Ví dụ:
+Example:
 
 ~~~java
 StringBuilder sb = new StringBuilder("Hi");
@@ -255,18 +255,18 @@ System.out.println(text.strip().length());    // 5
 System.out.println(text.trim().length());     // 2
 ~~~
 
-Giải thích:
+Explanation:
 
-- `isEmpty()` kiểm tra độ dài bằng 0; `"Hi\0\0\0"` dài 5, nên false.
-- `isBlank()` (Java 11+) hỏi toàn bộ ký tự có thuộc tập whitespace theo `Character.isWhitespace` hay không. NUL **không** phải whitespace. Ngay cả chuỗi chỉ gồm NUL cũng **không blank**.
-- `strip()` bỏ whitespace ở hai đầu theo `Character.isWhitespace`; NUL không thuộc tập đó nên không bị bỏ.
-- `trim()` là API cũ bỏ code unit có giá trị không lớn hơn U+0020 ở hai đầu; do đó nó có thể bỏ NUL ở cuối chuỗi ví dụ, nhưng **đây không phải cách xử lý NUL đáng tin trong mọi vị trí**. Một NUL ở giữa chuỗi không bị loại bỏ bởi `trim()`.
+- `isEmpty()` checks whether length equals 0; `"Hi\0\0\0"` has length 5, so false.
+- `isBlank()` (Java 11+) asks whether all characters belong to the whitespace set per `Character.isWhitespace`. NUL is **not** whitespace. Even a string consisting solely of NULs is **not blank**.
+- `strip()` removes leading/trailing whitespace per `Character.isWhitespace`; NUL is not in that set, so it is not removed.
+- `trim()` is the legacy API that removes code units with value at most U+0020 from both ends; thus it happens to remove trailing NULs in this example, though **this is not a reliable way to handle NULs in arbitrary positions**. A NUL in the middle of a string is not removed by `trim()`.
 
-Nếu dữ liệu từ `StringBuilder` dùng làm mã định danh, tên tệp, khóa map hoặc giá trị giao thức, những ký tự NUL vô hình có thể gây bug khó phát hiện. Tùy nghiệp vụ, cần **không tạo NUL không cần thiết**, hoặc kiểm tra từ chối các ký tự điều khiển trước khi sử dụng.
+If data from `StringBuilder` is used as an identifier, filename, map key, or protocol value, invisible NUL characters can cause hard-to-spot bugs. Depending on domain requirements, **avoid creating unnecessary NULs**, or validate and reject control characters before use.
 
-### Cảnh báo về cắt giữa surrogate pair
+### Warning About Cutting Inside a Surrogate Pair
 
-`length()` đếm **UTF-16 code unit**, không đếm ký tự hiển thị hay Unicode code point. Ví dụ emoji 🚀 gồm hai code unit trong Java:
+`length()` counts **UTF-16 code units**, not display characters or Unicode code points. For example, the emoji 🚀 consists of two code units in Java:
 
 ~~~java
 StringBuilder sb = new StringBuilder("🚀");
@@ -275,13 +275,13 @@ sb.setLength(1);
 System.out.println(Character.isHighSurrogate(sb.charAt(0))); // true
 ~~~
 
-Lệnh `setLength(1)` có thể cắt đôi một surrogate pair và để lại **high surrogate không ghép cặp**. `StringBuilder` cho phép các dãy UTF-16 code unit như vậy tồn tại; khi chuyển sang encoding khác hoặc gửi qua một giao thức, dữ liệu có thể bị thay thế hoặc từ chối. Không cắt tùy ý theo code unit khi muốn giữ nguyên code point; cần xác định ranh giới hợp lệ, có thể sử dụng `offsetByCodePoints()` với `String` và làm việc cẩn thận với Unicode.
+Calling `setLength(1)` can slice a surrogate pair in half and leave an **unpaired high surrogate**. `StringBuilder` allows such UTF-16 code unit sequences to exist; when converting to another encoding or sending over a protocol, the data may be replaced or rejected. Do not truncate arbitrarily by code units when you want to keep code points intact; determine valid boundaries, using `offsetByCodePoints()` with `String` when needed, and handle Unicode carefully.
 
-## 9. Chương trình Java 17 chạy độc lập
+## 9. Standalone Runnable Java 17 Program
 
-Ví dụ tổng hợp dưới đây chủ động **không in trực tiếp NUL** trong stdout. Thay vào đó, hàm `inspect()` biểu diễn mỗi `char` bằng ký hiệu dễ đọc. Chương trình kiểm tra: mở rộng bằng NUL, việc `append()` không thay NUL, điền `setCharAt()`, rút ngắn/tăng lại, `ensureCapacity()`, Unicode và trường hợp length âm.
+The combined example below intentionally **avoids printing NUL directly** to stdout. Instead, `inspect()` renders each `char` using a readable notation. The program tests: extending with NUL, `append()` not replacing NUL, filling with `setCharAt()`, shortening/re-growing, `ensureCapacity()`, Unicode, and negative length.
 
-Lưu tệp UTF-8 tên **`SetLengthNulDemo.java`**:
+Save the UTF-8 file as **`SetLengthNulDemo.java`**:
 
 ~~~java
 public class SetLengthNulDemo {
@@ -347,14 +347,14 @@ public class SetLengthNulDemo {
 }
 ~~~
 
-Biên dịch và chạy với JDK 17 hoặc mới hơn:
+Compile and run with JDK 17 or newer:
 
 ~~~bash
 javac -encoding UTF-8 SetLengthNulDemo.java
 java SetLengthNulDemo
 ~~~
 
-Stdout dự kiến:
+Expected stdout:
 
 ~~~text
 expanded.length=5
@@ -377,42 +377,42 @@ rocket.length=2
 halfSurrogate=true
 ~~~
 
-Phân tích kết quả:
+Output analysis:
 
-1. `expanded.units` chứng minh ba vị trí tăng thêm là `U+0000`, không phải dấu cách.
-2. `stringLength=5` và `equalsHi=false` chứng minh `toString()` giữ đủ nội dung, kể cả NUL cuối.
-3. `trimLength=2` và `stripLength=5` minh họa hai tiêu chí xử lý đầu/cuối khác nhau; không nên dùng `trim()` như cách che lỗi NUL.
-4. Sau khi dùng `setCharAt()`, dữ liệu `Hi!?.` không còn NUL ở phần được tăng.
-5. Sau khi cắt về `Hi` rồi tăng lại, hai vị trí mới **lại** là NUL. `append('Z')` chỉ thêm `Z` vào sau đó.
-6. `ensureCapacity(100)` có thể tăng dung lượng dự trữ nhưng không tăng length và không sửa chữ `OK`.
-7. `setLength(-1)` bị từ chối; việc cắt emoji xuống một code unit để lại surrogate không ghép cặp.
+1. `expanded.units` proves the three added positions are `U+0000`, not spaces.
+2. `stringLength=5` and `equalsHi=false` prove `toString()` preserves full content, including trailing NULs.
+3. `trimLength=2` and `stripLength=5` illustrate two different leading/trailing handling criteria; do not use `trim()` to mask NUL bugs.
+4. After calling `setCharAt()`, the data `Hi!?.` no longer contains NULs in the extended portion.
+5. After truncating to `Hi` and extending again, the two new positions are **once again** NUL. `append('Z')` simply appends `Z` after them.
+6. `ensureCapacity(100)` can increase reserved capacity without increasing length or changing `OK`.
+7. `setLength(-1)` is rejected; truncating the emoji down to one code unit leaves an unpaired surrogate.
 
-## 10. Những lỗi thường gặp
+## 10. Common Mistakes
 
-| Nhầm lẫn | Thực tế | Cách xử lý |
+| Misconception | Reality | How to Handle |
 |---|---|---|
-| Tăng `setLength()` nghĩa là dự trữ chỗ | Nó **tăng chiều dài logic** và điền NUL vào đoạn mới | Dùng `ensureCapacity()` nếu chỉ muốn dự trữ |
-| Vị trí NUL là ô trống sẽ được `append()` điền vào | `append()` luôn thêm sau length hiện tại | Dùng `setCharAt()` để ghi đè trong phạm vi, hoặc `append()` ngay từ đầu |
-| NUL giống dấu cách | NUL là U+0000, dấu cách U+0020 | Điền dấu cách thật nếu nghiệp vụ cần |
-| NUL làm Java String kết thúc sớm | Java dùng độ dài logic, không dùng NUL terminator | Kiểm tra `length()`, `charAt()` thay vì nhìn output |
-| `setLength()` giảm rồi tăng là khôi phục dữ liệu cũ | Đoạn mới tăng lên được điền NUL | Lưu dữ liệu cũ nếu cần khôi phục |
-| `toString()` bỏ NUL | `String` kết quả giữ NUL | Dùng biểu diễn hex/escape khi debug |
-| `strip()` loại NUL | NUL không phải whitespace theo `Character.isWhitespace()` | Không dựa vào `strip()` để xử lý ký tự điều khiển |
-| `trim()` luôn xóa được NUL | Nó chỉ xử lý code unit <= U+0020 **ở hai đầu**, không phải mọi vị trí | Xây dựng dữ liệu đúng ngay từ đầu hoặc validation riêng |
-| `StringBuilder.equals()` so nội dung | Mặc định so danh tính đối tượng | Dùng `toString().equals(...)` hoặc `String.contentEquals(builder)` |
-| `length()` bằng số ký tự hiển thị | Length đếm UTF-16 code unit | Cân nhắc surrogate pair/code point |
-| `setLength()` âm sẽ thành rỗng | Giá trị âm không hợp lệ | Ràng buộc `newLength >= 0` |
-| Tăng tới chiều dài cực lớn luôn an toàn | Có thể tốn bộ nhớ và thời gian, gây lỗi tài nguyên | Xác thực kích thước và giới hạn input |
+| Increasing `setLength()` means reserving space | It **increases logical length** and fills the new portion with NUL | Use `ensureCapacity()` if you only want to reserve space |
+| NUL positions are empty slots that `append()` will fill | `append()` always adds after current length | Use `setCharAt()` to overwrite in range, or `append()` from the start |
+| NUL is the same as a space | NUL is U+0000; space is U+0020 | Explicitly fill real spaces if business logic requires them |
+| NUL terminates Java Strings early | Java uses logical length, not a NUL terminator | Inspect `length()` and `charAt()` instead of eyeballing output |
+| Decreasing then increasing `setLength()` restores old data | The newly extended portion is filled with NUL | Save the old data if restoration is needed |
+| `toString()` strips NUL | The resulting `String` keeps NUL | Use hex/escape representations when debugging |
+| `strip()` removes NUL | NUL is not whitespace per `Character.isWhitespace()` | Do not rely on `strip()` to handle control characters |
+| `trim()` always removes NUL | It only handles code units <= U+0020 **at the ends**, not arbitrary positions | Construct data properly from the start or validate explicitly |
+| `StringBuilder.equals()` compares content | By default it compares object identity | Use `toString().equals(...)` or `String.contentEquals(builder)` |
+| `length()` equals visible character count | Length counts UTF-16 code units | Account for surrogate pairs / code points |
+| Negative `setLength()` becomes empty | Negative values are invalid | Enforce `newLength >= 0` |
+| Extending to huge lengths is always safe | Can consume memory and time, causing resource errors | Validate size and bound inputs |
 
-## 11. Checklist sử dụng `setLength()` đúng cách
+## 11. Checklist for Using `setLength()` Properly
 
-- [ ] Phân biệt rõ **length** với **capacity**.
-- [ ] Chỉ tăng length khi thực sự muốn các vị trí mới tồn tại; biết chúng được điền **NUL**.
-- [ ] Nếu muốn nối thêm tuần tự, ưu tiên `append()`; nếu chỉ muốn dự trữ, ưu tiên `ensureCapacity()`.
-- [ ] Nếu phải tăng length để ghi theo chỉ số, bảo đảm ghi đè toàn bộ những vị trí NUL tạm trước khi xuất dữ liệu.
-- [ ] Không dựa vào terminal để quan sát NUL; dùng `charAt()`, mã hex hoặc kiểm tra length.
-- [ ] Chú ý `toString()` giữ NUL, và `trim()`/`strip()` có tiêu chí khác nhau.
-- [ ] Đặt giới hạn cho kích thước mới và xử lý `newLength < 0`.
-- [ ] Khi cắt Unicode, tránh chia đôi surrogate pair nếu nghiệp vụ làm việc theo code point.
+- [ ] Clearly distinguish **length** from **capacity**.
+- [ ] Increase length only when you truly want the new positions to exist; know they are filled with **NUL**.
+- [ ] If appending sequentially, prefer `append()`; if only reserving space, prefer `ensureCapacity()`.
+- [ ] If you must increase length for index-based writes, ensure every temporary NUL slot is overwritten before outputting data.
+- [ ] Do not rely on the terminal to spot NUL; use `charAt()`, hex codes, or length checks.
+- [ ] Note that `toString()` preserves NUL, and `trim()`/`strip()` have different criteria.
+- [ ] Put limits on the new size and handle `newLength < 0`.
+- [ ] When truncating Unicode, avoid splitting a surrogate pair if the domain operates on code points.
 
-**Ghi nhớ:** `setLength(newLength)` thay đổi **nội dung logic** của `StringBuilder`: giảm thì cắt đuôi, tăng thì **thêm các ký tự `U+0000` vào cuối**. Nó **khác hoàn toàn** với việc chỉ tăng capacity. NUL là ký tự thật trong chuỗi Java, mặc dù thường vô hình khi hiển thị.
+**Key takeaway:** `setLength(newLength)` changes the **logical content** of `StringBuilder`: decreasing it truncates the tail, while increasing it **appends `U+0000` characters at the end**. It is **completely different** from only increasing capacity. NUL is a real character in a Java string, even though it is usually invisible when printed.

@@ -1,34 +1,34 @@
-# DecimalFormat: phần trăm, phần nghìn và hệ số nhân
+# DecimalFormat: Percent, Per-Mille, and Multipliers
 
-## 1. Mục tiêu và bài toán
+## 1. Objectives and problem statement
 
-Khi ứng dụng Java hiển thị một tỷ lệ, **giá trị dữ liệu** và **chuỗi người dùng nhìn thấy** thường có thang đo khác nhau:
+When a Java application displays a ratio, the **underlying data value** and the **user-visible string** often have different scales:
 
-- Tỷ lệ gốc `0.256` tương ứng `25.6%` (phần trăm).
-- Cũng tỷ lệ gốc đó tương ứng `256‰` (phần nghìn, *per mille*).
-- Nếu dữ liệu gốc đã là `25.6` và biểu thị “25,6 phần trăm” theo hợp đồng API, không được lại nhân 100 khi định dạng: kết quả sẽ sai thành `2560%`.
+- A raw ratio of `0.256` corresponds to `25.6%` (percent).
+- That same raw ratio corresponds to `256‰` (per-mille, *per mille*).
+- If the raw data is already `25.6` meaning "25.6 percent" per the API contract, you must not multiply by 100 again when formatting: the output would wrongly become `2560%`.
 
-`java.text.DecimalFormat` cho phép định dạng số theo mẫu, xử lý dấu phân cách theo `Locale`, làm tròn theo số chữ số hiển thị và **nhân dữ liệu đầu vào bằng hệ số định dạng**. Khi phân tích chuỗi bằng `parse`, formatter thường **chia ngược theo hệ số nhân** để trả về giá trị số.
+`java.text.DecimalFormat` lets you format numbers by pattern, handle `Locale`-specific separators, round to the displayed digits, and **scale input data via a formatting multiplier**. When parsing a string with `parse`, the formatter typically **divides back by the multiplier** to return the underlying numeric value.
 
-Bài này phân biệt ký hiệu `%` và `‰`, cách `DecimalFormat` tự thiết lập multiplier, cách dùng `setMultiplier`, tác động tới `format`/`parse`, giới hạn về độ chính xác, locale và các lỗi thường gặp.
+This lesson distinguishes `%` and `‰`, explains how `DecimalFormat` sets multipliers automatically, how to use `setMultiplier`, effects on `format`/`parse`, precision limits, locales, and common mistakes.
 
-**Điều quan trọng nhất:** `DecimalFormat` tạo biểu diễn phục vụ người đọc; nó **không nên thay đổi đơn vị hoặc ý nghĩa nghiệp vụ** của biến số trong model. Hãy thống nhất trước rằng dữ liệu gốc là **tỷ lệ thập phân** (ví dụ 0.256) hay **số phần trăm đã nhân 100** (ví dụ 25.6).
+**Key principle:** `DecimalFormat` produces a human-readable representation; it **should not change the unit or business meaning** of variables in your model. Decide up front whether raw data is a **decimal ratio** (e.g., 0.256) or an **already-scaled percentage** (e.g., 25.6).
 
-## 2. Từ tỷ lệ thập phân đến phần trăm và phần nghìn
+## 2. From decimal ratios to percent and per-mille
 
-Các đơn vị tỷ lệ cơ bản:
+Basic ratio units:
 
-| Dữ liệu tỷ lệ gốc | Phần trăm (%) | Phần nghìn (‰) | Giải thích |
+| Raw ratio data | Percent (%) | Per-mille (‰) | Explanation |
 | ---: | ---: | ---: | --- |
-| `0` | `0%` | `0‰` | Không có phần nào |
-| `0.001` | `0.1%` | `1‰` | Một phần nghìn |
-| `0.01` | `1%` | `10‰` | Một phần trăm |
-| `0.125` | `12.5%` | `125‰` | Một phần tám |
-| `0.256` | `25.6%` | `256‰` | Giá trị minh họa chính |
-| `1` | `100%` | `1000‰` | Toàn bộ |
-| `1.5` | `150%` | `1500‰` | Có thể hợp lệ khi tỷ lệ vượt 100% |
+| `0` | `0%` | `0‰` | None |
+| `0.001` | `0.1%` | `1‰` | One part per thousand |
+| `0.01` | `1%` | `10‰` | One part per hundred |
+| `0.125` | `12.5%` | `125‰` | One eighth |
+| `0.256` | `25.6%` | `256‰` | Main illustrative value |
+| `1` | `100%` | `1000‰` | Whole |
+| `1.5` | `150%` | `1500‰` | Valid when ratio exceeds 100% |
 
-Công thức:
+Formulas:
 
 ```text
 percentage = ratio × 100
@@ -38,31 +38,31 @@ ratio = percentage ÷ 100
 ratio = perMille ÷ 1000
 ```
 
-Một đơn vị phần trăm tương ứng **10 phần nghìn**: `1% = 10‰`. Trong thống kê, lãi suất hoặc biến động theo thời gian, **điểm phần trăm** là phép trừ giữa hai giá trị phần trăm, không phải phép nhân/định dạng. Chẳng hạn từ `20%` lên `25%` là tăng **5 điểm phần trăm**, còn tăng tương đối là `(25-20)/20 = 25%`. `DecimalFormat` không tự phân biệt hai khái niệm kinh doanh này.
+One percent corresponds to **10 per-mille**: `1% = 10‰`. In statistics, interest rates, or changes over time, **percentage points** represent subtraction between two percentage values, not multiplication/formatting. For instance, moving from `20%` to `25%` is an increase of **5 percentage points**, whereas the relative increase is `(25-20)/20 = 25%`. `DecimalFormat` does not distinguish these two business concepts on its own.
 
-Không nhầm **ký hiệu phần nghìn `‰` (U+2030)** với dấu phân cách hàng nghìn của số, ví dụ dấu phẩy trong `1,000` theo `Locale.US`.
+Do not confuse the **per-mille symbol `‰` (U+2030)** with a numeric thousands grouping separator, such as the comma in `1,000` under `Locale.US`.
 
-## 3. Hai ký hiệu đặc biệt trong pattern
+## 3. Two special symbols in patterns
 
-Khi `DecimalFormat` đọc một **pattern**, `%` và `‰` là ký hiệu mang ý nghĩa đặc biệt, không đơn thuần là ký tự trang trí:
+When `DecimalFormat` parses a **pattern**, `%` and `‰` carry special meaning rather than being decorative characters:
 
-| Mẫu | Hệ số ngầm định | Ý nghĩa trên tỷ lệ gốc `0.256` |
+| Pattern | Implicit multiplier | Effect on raw ratio `0.256` |
 | --- | ---: | --- |
 | `0.0%` | `100` | `25.6%` |
-| `0%` | `100` | `26%` sau khi làm tròn |
+| `0%` | `100` | `26%` after rounding |
 | `0.0‰` | `1000` | `256.0‰` |
-| `0.0` | `1` | `0.3` sau khi làm tròn |
-| `0.0'%'` | `1` | `0.3%`, dấu % chỉ là literal |
+| `0.0` | `1` | `0.3` after rounding |
+| `0.0'%'` | `1` | `0.3%`, `%` sign is literal only |
 
-Với ký hiệu `%` **không nằm trong vùng quote**, pattern khiến `DecimalFormat` dùng multiplier `100`; với `‰` không được quote, multiplier là `1000`. Dấu được in ra theo `DecimalFormatSymbols` của formatter. Trong Java, pattern có thể có prefix/suffix như `0.00 %`; tùy cách đặt và cú pháp quote, ký tự `%` vẫn mang hiệu ứng nhân 100, trong khi khoảng trắng là một phần literal của pattern.
+With an **unquoted** `%` symbol, the pattern makes `DecimalFormat` use a multiplier of `100`; with an unquoted `‰`, the multiplier is `1000`. The printed character comes from the formatter's `DecimalFormatSymbols`. In Java, patterns can include prefixes/suffixes like `0.00 %`; depending on placement and quoting syntax, `%` still carries the 100× effect while the space is a literal part of the pattern.
 
-**Cạm bẫy:** mẫu `0.0'%'` cố tình quote phần trăm thành ký tự bình thường, nên **không nhân 100**. Kết quả `0.3%` từ `0.256` là ký hiệu gây hiểu lầm nếu đọc như “0,3 phần trăm” trong nghiệp vụ. Chỉ dùng cách quote khi thật sự muốn in ký tự `%` mà không có ý nghĩa tỷ lệ.
+**Pitfall:** the pattern `0.0'%'` intentionally quotes the percent sign as an ordinary character, so it **does not multiply by 100**. The output `0.3%` from `0.256` is misleading if read as "0.3 percent" in business contexts. Only use quoting when you truly want to print `%` without ratio scaling.
 
-Pattern `0`, `0.0`, `0.00` kiểm soát số chữ số tối thiểu/tối đa sau dấu thập phân trong các ví dụ này. `#` là chữ số tùy chọn, như `0.##%` (tối đa hai chữ số thập phân). Hãy tách bạch **mẫu độ chính xác hiển thị** với **hệ số nhân**; `0.0%` và `0%` cùng nhân 100 nhưng làm tròn khác nhau.
+Patterns `0`, `0.0`, and `0.00` control minimum/maximum digits after the decimal point in these examples. `#` is an optional digit, as in `0.##%` (at most two decimal digits). Keep **display precision patterns** distinct from **multipliers**; `0.0%` and `0%` both multiply by 100, yet round differently.
 
-## 4. Ví dụ Java 17+ chạy độc lập: định dạng % và ‰
+## 4. Standalone Java 17+ example: formatting % and ‰
 
-Tạo file `PercentPerMilleDemo.java`:
+Create the file `PercentPerMilleDemo.java`:
 
 ```java
 import java.text.DecimalFormat;
@@ -90,7 +90,7 @@ public class PercentPerMilleDemo {
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa file (lưu UTF-8):
+Compile and run from the directory containing the file (saved in UTF-8):
 
 ```bash
 javac -encoding UTF-8 PercentPerMilleDemo.java
@@ -107,19 +107,19 @@ percent factor: 100
 per mille factor: 1000
 ```
 
-Giải thích:
+Explanation:
 
-1. `symbols` lấy từ `Locale.US` để ký tự phân cách và ký hiệu thống nhất với output minh họa.
-2. Constructor `new DecimalFormat("0.0%", symbols)` tạo pattern định dạng có phần trăm và hệ số ngầm `100`.
-3. Constructor `new DecimalFormat("0.0‰", symbols)` tạo pattern có phần nghìn và hệ số ngầm `1000`.
-4. Cả hai nhận **cùng giá trị gốc 0.256**, nhưng hiển thị ở hai đơn vị khác nhau.
-5. `getMultiplier()` là cách kiểm tra hệ số mà formatter hiện đang dùng; giá trị nằm ở object formatter, **không phải ở biến `ratio`**.
+1. `symbols` comes from `Locale.US` so separators and symbols match the illustrative output.
+2. `new DecimalFormat("0.0%", symbols)` creates a percentage pattern with an implicit multiplier of `100`.
+3. `new DecimalFormat("0.0‰", symbols)` creates a per-mille pattern with an implicit multiplier of `1000`.
+4. Both receive **the same raw value 0.256**, yet render in two different units.
+5. `getMultiplier()` inspects the multiplier the formatter is currently using; the value lives on the formatter object, **not on the `ratio` variable**.
 
-Nếu chuỗi `‰` có thể bị lỗi encoding trong trình biên dịch hoặc công cụ soạn thảo, bạn có thể dùng Unicode escape Java `"\u0030\u002e\u0030\u2030"` cho pattern `0.0‰`; nhưng trong dự án Java 17+ thông thường, lưu UTF-8 rõ ràng là cách đọc dễ hiểu hơn.
+If the `‰` character causes encoding issues in a compiler or editor, you can use Java Unicode escape `"\u0030\u002e\u0030\u2030"` for the pattern `0.0‰`; however, in modern Java 17+ projects, saving UTF-8 directly is clearer to read.
 
-## 5. `setMultiplier`: nhân theo một hệ số không kèm ký hiệu đặc biệt
+## 5. `setMultiplier`: scaling by a factor without special symbols
 
-Có thể thiết lập hệ số nhân riêng bằng `setMultiplier(int)`, không cần dùng `%` hoặc `‰`. Ví dụ muốn in **số lượng trên 1.000 đơn vị** mà không có ký hiệu:
+You can set a custom multiplier via `setMultiplier(int)` without using `%` or `‰`. For example, to print **quantity per 1,000 units** without a symbol:
 
 ```java
 import java.text.DecimalFormat;
@@ -143,7 +143,7 @@ public class ManualMultiplierDemo {
 }
 ```
 
-Để biên dịch, ví dụ cần xử lý checked exception `ParseException` của `parse`. Phiên bản hoàn chỉnh, có thể chạy, là:
+To compile, the example must handle the checked exception `ParseException` from `parse`. The complete, runnable version is:
 
 ```java
 import java.text.DecimalFormat;
@@ -167,7 +167,7 @@ public class ManualMultiplierDemo {
 }
 ```
 
-Lưu **chỉ phiên bản hoàn chỉnh thứ hai** vào `ManualMultiplierDemo.java`, rồi chạy:
+Save **only the second complete version** to `ManualMultiplierDemo.java`, then run:
 
 ```bash
 javac -encoding UTF-8 ManualMultiplierDemo.java
@@ -182,15 +182,15 @@ format: 256.00
 parse: 0.256
 ```
 
-Điểm khác với `‰`: formatter ở đây **không tự thêm ký hiệu phần nghìn**. `setMultiplier(1000)` thay đổi cách chuyển đổi giá trị, còn phần biểu diễn hậu tố phụ thuộc pattern. Nếu muốn ký hiệu `‰` ở đầu ra, nên dùng một pattern có `‰` phù hợp ngay từ đầu thay vì tự nối chuỗi sau khi format.
+Difference from `‰`: the formatter here **does not automatically append a per-mille symbol**. `setMultiplier(1000)` alters value scaling, while suffix rendering depends on the pattern. If you want `‰` in the output, use a pattern with `‰` from the start rather than concatenating strings after formatting.
 
-**Cần tránh:** gọi `setMultiplier(1000)` trên một formatter đang dùng pattern `0.0%`. Khi đó formatter có thể in dấu `%` nhưng nhân 1000; kết quả mang ý nghĩa “phần trăm” sai. Hệ số và ký hiệu phải nhất quán với hợp đồng dữ liệu.
+**Avoid:** calling `setMultiplier(1000)` on a formatter using the pattern `0.0%`. The formatter would then print `%` while multiplying by 1000; the result carries a false "percent" meaning. Multiplier and symbol must stay consistent with the data contract.
 
-## 6. Parse chuỗi có dấu % và ‰: vì sao giá trị bị chia ngược?
+## 6. Parsing strings with % and ‰: why is the value divided back?
 
-`DecimalFormat` không chỉ format số thành chuỗi; nó có thể parse chuỗi về số. Với formatter theo phần trăm, parser đọc phần số và ký hiệu rồi tính ra **tỷ lệ gốc** bằng cách chia 100. Tương tự, parser phần nghìn chia 1000.
+`DecimalFormat` does not only format numbers into strings; it can parse strings back into numbers. With a percentage formatter, the parser reads the numeric part and symbol and computes the **original ratio** by dividing by 100. Similarly, a per-mille parser divides by 1000.
 
-Ví dụ độc lập:
+Standalone example:
 
 ```java
 import java.text.DecimalFormat;
@@ -216,7 +216,7 @@ public class ParseScaleDemo {
 }
 ```
 
-Lưu `ParseScaleDemo.java` ở UTF-8, rồi chạy:
+Save `ParseScaleDemo.java` in UTF-8, then run:
 
 ```bash
 javac -encoding UTF-8 ParseScaleDemo.java
@@ -230,27 +230,27 @@ from percent: 0.256
 from per mille: 0.256
 ```
 
-Bảng đối chiếu:
+Comparison table:
 
-| Formatter | Chuỗi để parse | Số thu về |
+| Formatter | String to parse | Returned number |
 | --- | --- | ---: |
 | `0.0%` | `"25.6%"` | `0.256` |
 | `0.0‰` | `"256.0‰"` | `0.256` |
-| `0.00` với multiplier `1000` | `"256.00"` | `0.256` |
+| `0.00` with multiplier `1000` | `"256.00"` | `0.256` |
 
-**Lưu ý về parse:**
+**Parsing notes:**
 
-- `parse(String)` có thể ném `ParseException` khi không phân tích được; code phải xử lý ngoại lệ.
-- Parser phụ thuộc `DecimalFormatSymbols` và cấu trúc pattern; chuỗi dùng dấu thập phân hoặc phần trăm của locale khác có thể bị hiểu sai/không đọc được.
-- `DecimalFormat.parse` theo mặc định **không bắt buộc phải tiêu thụ toàn bộ input**. Nếu đang xác thực dữ liệu người dùng, có thể dùng overload `parse(String, ParsePosition)` và kiểm tra `position.getIndex() == input.length()`, cũng như kiểm tra `errorIndex`, trước khi chấp nhận. Tránh coi việc parse được một prefix là dữ liệu hợp lệ hoàn toàn.
-- `format` có thể làm tròn; vì vậy `parse(format(x))` không nhất thiết bằng `x`. Ví dụ với `0%`, tỷ lệ `0.256` được hiển thị `26%`; parse lại `26%` trả khoảng `0.26`, không phải `0.256`.
-- Nếu dùng tỷ lệ tiền tệ, lãi suất hoặc phép tính đòi hỏi độ chính xác decimal, hãy quản lý dữ liệu bằng `BigDecimal` và kiểm soát rounding. `DecimalFormat` chủ yếu giải quyết biểu diễn.
+- `parse(String)` can throw `ParseException` on failure; code must handle the exception.
+- The parser depends on `DecimalFormatSymbols` and pattern structure; strings using decimal or percent symbols from another locale may be misinterpreted or unreadable.
+- `DecimalFormat.parse` by default **does not require consuming the entire input**. When validating user data, use the `parse(String, ParsePosition)` overload and check `position.getIndex() == input.length()`, as well as `errorIndex`, before accepting. Avoid treating a parsed prefix as completely valid data.
+- `format` can round; hence `parse(format(x))` does not necessarily equal `x`. For instance, with `0%`, ratio `0.256` displays as `26%`; parsing `26%` back yields roughly `0.26`, not `0.256`.
+- When working with currency rates, interest rates, or calculations requiring decimal precision, manage data with `BigDecimal` and control rounding. `DecimalFormat` primarily addresses presentation.
 
-## 7. Phân biệt % được quote và % có tác dụng nhân
+## 7. Distinguishing quoted % from scaling %
 
-Mẫu `"0.0%"` và `"0.0'%'" ` trông gần giống nhau, nhưng hoàn toàn khác nghĩa.
+The patterns `"0.0%"` and `"0.0'%'"` look nearly identical, yet have completely different meanings.
 
-Một chương trình rõ ràng:
+A clear program:
 
 ```java
 import java.text.DecimalFormat;
@@ -275,7 +275,7 @@ public class LiteralPercentDemo {
 }
 ```
 
-Lưu `LiteralPercentDemo.java`, chạy:
+Save `LiteralPercentDemo.java`, run:
 
 ```bash
 javac -encoding UTF-8 LiteralPercentDemo.java
@@ -291,25 +291,25 @@ literal: 0.3%
 literal factor: 1
 ```
 
-Trường hợp quoted percent có thể dùng trong một vài nhãn kỹ thuật đặc biệt, nhưng **không** dùng để hiển thị tỷ lệ phần trăm từ dữ liệu ratio. Số `0.3%` trong kết quả trên thực chất chỉ là số `0.3` sau khi làm tròn cộng thêm dấu `%` theo nghĩa literal; nó không biểu diễn \(0.3\%\) của dữ liệu gốc theo cách hiểu thông thường.
+The quoted percent case may fit a few specialized technical labels, but should **not** be used to display percentages from ratio data. The `0.3%` in the output above is really just the rounded number `0.3` with a literal `%` appended; it does not represent \(0.3\%\) of the original data in the usual sense.
 
-Các ký hiệu ở ngoài dấu nháy đơn của pattern mang ý nghĩa định dạng; bên trong phần quote, chúng trở thành literal. Dấu nháy đơn được dùng trong cú pháp pattern, không phải ký tự Java tự in ra.
+Symbols outside single quotes in a pattern carry formatting meaning; inside quotes, they become literals. Single quotes are part of pattern syntax, not printed by Java automatically.
 
-## 8. Pattern, độ chính xác và làm tròn
+## 8. Patterns, precision, and rounding
 
-Ký hiệu `0` và `#` trong pattern quyết định cách hiển thị chữ số:
+The `0` and `#` symbols in a pattern control digit display:
 
 ```text
-0%       -> làm tròn đến đơn vị phần trăm
-0.0%     -> một chữ số sau dấu thập phân
-0.00%    -> hai chữ số sau dấu thập phân
-0.##%    -> tối đa hai chữ số sau dấu thập phân
-0.0‰     -> một chữ số sau dấu thập phân ở thang phần nghìn
+0%       -> rounds to whole percent units
+0.0%     -> one digit after the decimal point
+0.00%    -> two digits after the decimal point
+0.##%    -> at most two digits after the decimal point
+0.0‰     -> one digit after the decimal point on the per-mille scale
 ```
 
-Với cùng tỷ lệ `0.256`:
+With the same ratio `0.256`:
 
-| Pattern | Kết quả theo Locale.US | Hệ số |
+| Pattern | Result under Locale.US | Multiplier |
 | --- | --- | ---: |
 | `0%` | `26%` | 100 |
 | `0.0%` | `25.6%` | 100 |
@@ -317,21 +317,21 @@ Với cùng tỷ lệ `0.256`:
 | `0.##%` | `25.6%` | 100 |
 | `0.0‰` | `256.0‰` | 1000 |
 
-`DecimalFormat` thường sử dụng `RoundingMode.HALF_EVEN` theo cấu hình mặc định đối với kiểu định dạng này; nhưng **đừng dựa vào mặc định** khi kết quả làm tròn mang ý nghĩa nghiệp vụ. Có thể cấu hình rõ:
+`DecimalFormat` typically uses `RoundingMode.HALF_EVEN` by default for this formatting style; however, **do not rely on the default** when rounding results carry business significance. Configure it explicitly:
 
 ```java
 formatter.setRoundingMode(java.math.RoundingMode.HALF_UP);
 ```
 
-Lệnh trên là một **đoạn mã minh họa** và yêu cầu có đối tượng `formatter` kiểu `DecimalFormat`. Chọn `HALF_UP`, `HALF_EVEN`, `DOWN` hoặc chế độ khác dựa trên quy tắc sản phẩm, không dựa vào “cách nhìn có vẻ đẹp”.
+The statement above is an **illustrative snippet** and requires a `formatter` object of type `DecimalFormat`. Choose `HALF_UP`, `HALF_EVEN`, `DOWN`, or another mode based on product rules, not on "what looks nicer".
 
-**Không làm tròn dữ liệu nguồn chỉ để format UI.** Khi có thể, giữ tỷ lệ gốc đủ chính xác trong tầng tính toán, còn `DecimalFormat` chỉ làm tròn **bản hiển thị**. Nếu lưu ngược giá trị đã format/parse, bạn có thể làm mất thông tin.
+**Do not round source data just for UI formatting.** Whenever possible, preserve sufficient precision in the calculation layer and let `DecimalFormat` round only the **display copy**. Saving formatted/parsed values back can discard information.
 
-## 9. Locale điều khiển dấu số và ký hiệu phần trăm
+## 9. Locale controls numeric separators and percent symbols
 
-Trong `DecimalFormat`, pattern dùng các dấu quy ước (`.`, `,`, `%`, `‰`) nhưng đầu ra được điều khiển thêm bởi `DecimalFormatSymbols` của locale. Vì thế cùng một tỷ lệ và cùng mục đích hiển thị có thể có cách phân cách chữ số, khoảng trắng và ký hiệu khác nhau giữa các locale.
+In `DecimalFormat`, patterns use conventional symbols (`.`, `,`, `%`, `‰`), while output is further governed by the locale's `DecimalFormatSymbols`. Thus, the same ratio and display intent can result in different digit separators, spacing, and symbols across locales.
 
-Cách khởi tạo phổ biến:
+Common initialization:
 
 ```java
 Locale locale = Locale.forLanguageTag("vi-VN");
@@ -341,9 +341,9 @@ DecimalFormat formatter = new DecimalFormat("0.0%", symbols);
 String text = formatter.format(0.256);
 ```
 
-Đoạn trên là **mã minh họa**, giả định import `Locale`, `DecimalFormatSymbols` và `DecimalFormat`. Kết quả định dạng cụ thể có thể tùy locale data/provider của bản JDK. Vì vậy khi giải thích chính xác stdout, các ví dụ độc lập trong bài chủ động dùng `Locale.US`.
+The snippet above is **illustrative code**, assuming imports of `Locale`, `DecimalFormatSymbols`, and `DecimalFormat`. Exact formatted output may vary with the JDK's locale data/provider. That is why standalone examples in this lesson intentionally use `Locale.US` when explaining exact stdout.
 
-Ngoài việc tự tạo `DecimalFormat`, bạn có thể dùng cách tạo formatter tỷ lệ do nền tảng cung cấp:
+Besides constructing `DecimalFormat` directly, you can use the platform-provided ratio formatter factory:
 
 ```java
 java.text.NumberFormat percent =
@@ -351,13 +351,13 @@ java.text.NumberFormat percent =
 String text = percent.format(0.256);
 ```
 
-`NumberFormat.getPercentInstance(locale)` chọn kiểu định dạng phần trăm thích hợp với locale. Kết quả có thể khác một pattern tự viết `0.0%` về số chữ số thập phân, khoảng trắng và vị trí ký hiệu. Không ép cast sang `DecimalFormat` nếu mục tiêu là portable code với các provider khác nhau; `NumberFormat` cung cấp API cần thiết cho `format` và `parse`.
+`NumberFormat.getPercentInstance(locale)` selects the appropriate percent format for the locale. Its output can differ from a hand-written `0.0%` pattern in decimal digits, whitespace, and symbol placement. Do not force-cast to `DecimalFormat` if aiming for portable code across providers; `NumberFormat` provides the needed API for `format` and `parse`.
 
-**Cảnh báo về thang đo:** người dùng nhập `25.6%`, parse bằng formatter phần trăm sẽ ra khoảng `0.256`. Nếu sau đó đưa `0.256` vào formatter `0.0%`, sẽ ra `25.6%`. Nhưng nếu lưu trực tiếp `25.6` rồi format như ratio, kết quả thành `2560.0%`. Thang đo dữ liệu cần được mô tả trong tên trường/API, không thể suy ra chỉ từ formatter.
+**Scale warning:** if a user enters `25.6%`, parsing with a percent formatter produces roughly `0.256`. Passing `0.256` into a `0.0%` formatter then produces `25.6%`. But if you store `25.6` directly and format it as a ratio, the result becomes `2560.0%`. Data scale must be documented in field/API names; it cannot be inferred from the formatter alone.
 
-## 10. `DecimalFormatSymbols` và các ký hiệu tùy chỉnh
+## 10. `DecimalFormatSymbols` and custom symbols
 
-`DecimalFormatSymbols` lưu các ký hiệu được dùng khi format/parse, như dấu thập phân, phân nhóm, ký hiệu phần trăm và phần nghìn. Bạn có thể đọc hoặc tùy chỉnh chúng:
+`DecimalFormatSymbols` stores symbols used during format/parse, such as decimal separator, grouping separator, percent symbol, and per-mille symbol. You can inspect or customize them:
 
 ```java
 DecimalFormatSymbols symbols =
@@ -367,43 +367,43 @@ char percentSymbol = symbols.getPercent();
 char perMilleSymbol = symbols.getPerMill();
 ```
 
-Đó là **đoạn mã minh họa** dùng sau khi import `java.text.DecimalFormatSymbols` và `java.util.Locale`. `getPerMill()` trả ký hiệu phần nghìn, khác với dấu phân tách hàng nghìn (`getGroupingSeparator()`).
+This is an **illustrative snippet** used after importing `java.text.DecimalFormatSymbols` and `java.util.Locale`. `getPerMill()` returns the per-mille symbol, distinct from the thousands grouping separator (`getGroupingSeparator()`).
 
-Những phương thức hữu ích gồm:
+Useful methods include:
 
-| API | Vai trò |
+| API | Role |
 | --- | --- |
-| `getPercent()` / `setPercent(char)` | Ký hiệu phần trăm của formatter |
-| `getPerMill()` / `setPerMill(char)` | Ký hiệu phần nghìn |
-| `getDecimalSeparator()` | Ký tự phân cách phần thập phân |
-| `getGroupingSeparator()` | Ký tự phân nhóm chữ số |
-| `getInstance(locale)` | Tạo symbols theo locale |
+| `getPercent()` / `setPercent(char)` | Formatter's percent symbol |
+| `getPerMill()` / `setPerMill(char)` | Per-mille symbol |
+| `getDecimalSeparator()` | Decimal separator character |
+| `getGroupingSeparator()` | Digit grouping separator character |
+| `getInstance(locale)` | Creates symbols for a locale |
 
-**Phân biệt rõ:** thay ký hiệu bằng `setPercent(char)` không có nghĩa đổi hệ số toán học từ 100 thành một giá trị khác. Tương tự, `setPerMill(char)` chỉ xử lý ký hiệu, không tự đổi cách dùng thang đo nghiệp vụ. Nếu pattern đang chứa `%`, formatter vẫn dùng ngữ nghĩa nhân 100, trừ khi bạn cố ý thay multiplier của chính `DecimalFormat`.
+**Clear distinction:** changing the symbol via `setPercent(char)` does not change the mathematical multiplier from 100 to another value. Likewise, `setPerMill(char)` only handles the symbol and does not alter business scale usage. If the pattern contains `%`, the formatter still uses multiply-by-100 semantics unless you deliberately change `DecimalFormat`'s own multiplier.
 
-Nên hạn chế tùy chỉnh symbols chỉ vì muốn một output “trông giống mong đợi”; thường việc chọn đúng `Locale` và kiểu formatter đã đủ. Symbols có thể được cấu hình riêng khi cần giao thức hoặc kiểu hiển thị đặc thù có đặc tả rõ ràng.
+Avoid customizing symbols merely to make output "look as expected"; usually selecting the right `Locale` and formatter type suffices. Symbols can be configured manually when a specific protocol or display style has an explicit specification.
 
-## 11. `setMultiplier`, `applyPattern` và thứ tự cấu hình
+## 11. `setMultiplier`, `applyPattern`, and configuration order
 
-`DecimalFormat` chứa trạng thái: pattern, ký hiệu, số chữ số, rounding mode và multiplier. Một số lệnh cấu hình có thể ảnh hưởng các thuộc tính khác. Vì vậy đừng trộn lẫn các bước một cách ngẫu nhiên.
+`DecimalFormat` holds state: pattern, symbols, digit counts, rounding mode, and multiplier. Certain configuration calls can affect other properties. Therefore, do not mix steps haphazardly.
 
-Quy tắc thực dụng:
+Practical order:
 
-1. Chọn `Locale` và `DecimalFormatSymbols`.
-2. Tạo formatter với pattern phù hợp với **đơn vị hiển thị**.
-3. Chỉ gọi `setMultiplier` nếu nghiệp vụ cần một hệ số **khác** với hệ số ngầm định của pattern.
-4. Cấu hình số chữ số và rounding mode.
-5. Viết test cho cả `format` và `parse` (nếu ứng dụng cần parse).
+1. Select `Locale` and `DecimalFormatSymbols`.
+2. Create the formatter with a pattern matching the **display unit**.
+3. Call `setMultiplier` only if business logic needs a factor **different** from the pattern's implicit multiplier.
+4. Configure digit counts and rounding mode.
+5. Write tests for both `format` and `parse` (if the application parses).
 
-`applyPattern` thay đổi pattern và có thể thiết lập lại multiplier theo ký hiệu `%`/`‰` có trong pattern mới. Nếu bạn phải dùng multiplier đặc biệt, nên định nghĩa lại thứ tự cấu hình một cách rõ ràng và xác nhận bằng `getMultiplier()`.
+`applyPattern` changes the pattern and can reset the multiplier based on `%`/`‰` symbols in the new pattern. If you must use a custom multiplier, define the configuration sequence explicitly and verify with `getMultiplier()`.
 
-Đặc biệt, **không** dùng pattern `0.0%` kết hợp hệ số `1000` khi mục đích thực sự là phần nghìn: ký hiệu hiển thị và phép biến đổi đã lệch nhau. Muốn phần nghìn, hãy dùng mẫu có `‰` và hệ số mặc định tương ứng.
+In particular, **never** combine the `0.0%` pattern with a multiplier of `1000` when the real intent is per-mille: the displayed symbol and mathematical transform diverge. For per-mille, use a pattern with `‰` and its default multiplier.
 
-## 12. Parse nghiêm ngặt và dữ liệu bên ngoài
+## 12. Strict parsing and external data
 
-Nếu người dùng gửi chuỗi tỷ lệ qua ô nhập liệu, đầu vào có thể chứa khoảng trắng, ký hiệu khác locale hoặc hậu tố không hợp lệ. `parse(String)` có thể chỉ tiêu thụ một phần chuỗi, nên khi cần xác thực toàn bộ cần quản lý vị trí parse.
+When users submit ratio strings through input fields, the input may contain whitespace, symbols from another locale, or invalid suffixes. `parse(String)` may consume only part of a string, so manage parse position when full validation is needed.
 
-Một ví dụ độc lập:
+Standalone example:
 
 ```java
 import java.text.DecimalFormat;
@@ -438,7 +438,7 @@ public class StrictPercentParseDemo {
 }
 ```
 
-Lưu `StrictPercentParseDemo.java` với UTF-8 và chạy:
+Save `StrictPercentParseDemo.java` with UTF-8 and run:
 
 ```bash
 javac -encoding UTF-8 StrictPercentParseDemo.java
@@ -452,69 +452,69 @@ Stdout:
 Invalid percent input
 ```
 
-Điều kiện `pos.getIndex() == input.length()` bảo đảm parser đã đọc hết đầu vào; `number == null` phát hiện không parse được. Tùy chính sách, bạn có thể kiểm tra thêm khoảng giá trị (ví dụ 0 đến 1 đối với một xác suất), `NaN`/vô cực, định dạng bắt buộc hoặc làm tròn. Đó là **kiểm tra nghiệp vụ**, không phải trách nhiệm ngầm của `DecimalFormat`.
+The condition `pos.getIndex() == input.length()` ensures the parser read the entire input; `number == null` catches unparseable strings. Depending on policy, you can also check value bounds (e.g., 0 to 1 for a probability), `NaN`/infinity, mandatory format, or rounding. Those are **business validations**, not implicit duties of `DecimalFormat`.
 
-Trường hợp nhập liệu tài chính có yêu cầu chữ số chính xác, có thể bật `fmt.setParseBigDecimal(true)` và dùng `BigDecimal`, kết hợp kiểm tra format/scale/rounding. Dù vậy, parse thành BigDecimal không thể tự khôi phục những chữ số đã bị làm tròn mất trong chuỗi đầu vào.
+For financial inputs requiring exact digits, you can enable `fmt.setParseBigDecimal(true)` and use `BigDecimal`, combined with format/scale/rounding checks. Even then, parsing into BigDecimal cannot recover digits that were rounded away in the input string.
 
-## 13. Khi nào không nên dùng DecimalFormat để biến đổi dữ liệu?
+## 13. When NOT to use DecimalFormat to transform data?
 
-`DecimalFormat` là formatter **cho trình bày và đọc lại dữ liệu theo locale**. Những trường hợp không nên dựa vào text formatting:
+`DecimalFormat` is a formatter **for locale-aware presentation and re-parsing**. Cases where you should not rely on text formatting:
 
-- **Tính lãi suất và số tiền:** dùng công thức nghiệp vụ và kiểu số phù hợp (`BigDecimal` khi cần), sau đó mới format để hiển thị.
-- **Giao thức máy–máy:** JSON number, CSV theo định dạng chuẩn, API payload, timestamp… cần kiểu dữ liệu và serializer theo đặc tả, không dùng chuỗi đã thêm `%`/ `‰` nếu hợp đồng không cho phép.
-- **So sánh dữ liệu:** không so `"9.9%"` với `"10%"` bằng thứ tự từ điển; so giá trị tỷ lệ gốc.
-- **Thay đổi thang đo lưu trữ:** không lấy kết quả format rồi xóa dấu `%` để lưu thành số mới. Việc chuyển ratio sang percentage points cần công thức dữ liệu được đặt tên tường minh.
-- **Bảo mật và validation:** `DecimalFormat` không phải bộ xác thực toàn bộ input theo ngữ pháp nghiệp vụ, không thay thế kiểm tra phạm vi và kiểm soát nguồn dữ liệu.
+- **Calculating interest and monetary amounts:** use business formulas and appropriate numeric types (`BigDecimal` when needed), then format for display.
+- **Machine-to-machine protocols:** JSON numbers, standard CSVs, API payloads, timestamps, etc. require typed data and serializers per spec, not strings with `%`/`‰` appended unless the contract permits.
+- **Comparing data:** do not compare `"9.9%"` with `"10%"` lexicographically; compare the underlying ratio values.
+- **Changing storage scale:** do not take a formatted result and strip `%` to store it as a new number. Converting ratios to percentage points requires explicitly named data formulas.
+- **Security and validation:** `DecimalFormat` is not a full input validator against business grammar, and does not replace range checks or source validation.
 
-Trong những hệ thống có nhiều locale, code tính toán nên độc lập locale. Chỉ khi hiển thị dữ liệu cho người dùng mới chọn `Locale` và mẫu định dạng phù hợp.
+In multi-locale systems, calculation code should be locale-independent. Only select `Locale` and formatting patterns when presenting data to users.
 
-## 14. Lỗi phổ biến và cách khắc phục
+## 14. Common mistakes and fixes
 
-| Sai lầm | Hệ quả | Cách tránh |
+| Mistake | Consequence | How to avoid |
 | --- | --- | --- |
-| Truyền `25.6` vào `0.0%` khi 25.6 đã là phần trăm | Hiện `2560.0%` | Chuẩn hóa dữ liệu ratio thành `0.256` hoặc đổi hợp đồng hiển thị |
-| Dùng `%` thay cho `‰` | Sai hệ số 10 lần | Dùng đúng ký hiệu và hệ số ngầm định |
-| Nghĩ dấu `‰` là dấu phân cách hàng nghìn | Nhầm ý nghĩa toán học | `‰` là tỷ lệ trên 1000, grouping separator là ký hiệu khác |
-| Quote `%` mà tưởng vẫn nhân 100 | In `0.3%` từ `0.256` | Dùng `0.0%` để thực sự nhân 100 |
-| Gọi `setMultiplier(1000)` trên pattern `%` | Nhân sai dù nhãn vẫn là % | Khớp multiplier với đơn vị/pattern |
-| Tưởng `parse(format(x)) == x` tuyệt đối | Mất chữ số do làm tròn | Giữ giá trị nguồn và kiểm tra scale mong muốn |
-| Chọn `Locale.getDefault()` tùy máy chủ | Chuỗi thay đổi theo môi trường | Truyền locale dự kiến của người dùng |
-| Quên `ParseException` / parse một phần input | Chấp nhận chuỗi không hợp lệ | Xử lý exception và kiểm tra `ParsePosition` |
-| Dùng `double` cho mọi phép tính tài chính | Sai số dấu phẩy động | Dùng `BigDecimal` với quy tắc rounding rõ |
-| Chia sẻ một `DecimalFormat` mutable giữa các luồng | Trạng thái có thể bị thay đổi đồng thời | Tạo instance theo request/call hoặc có chiến lược đồng bộ an toàn |
-| Dùng text đã format làm dữ liệu API | Phụ thuộc locale và ký hiệu | Giữ kiểu số/serializer chuẩn |
+| Passing `25.6` to `0.0%` when 25.6 is already percent | Displays `2560.0%` | Normalize ratio data to `0.256` or change display contract |
+| Using `%` instead of `‰` | Off by a factor of 10 | Use the right symbol and implicit multiplier |
+| Thinking `‰` is a thousands separator | Confuses mathematical meaning | `‰` is ratio per 1000; grouping separator is a different symbol |
+| Quoting `'%'` while expecting 100× multiplication | Prints `0.3%` from `0.256` | Use `0.0%` to actually multiply by 100 |
+| Calling `setMultiplier(1000)` on a `%` pattern | Wrong multiplication even though label says `%` | Match multiplier with unit/pattern |
+| Assuming `parse(format(x)) == x` strictly | Digits lost to rounding | Retain source value and check desired scale |
+| Picking `Locale.getDefault()` based on server | Strings vary across environments | Pass the user's intended locale |
+| Ignoring `ParseException` / partial input parsing | Invalid strings accepted | Handle exceptions and check `ParsePosition` |
+| Using `double` for all financial math | Floating-point errors | Use `BigDecimal` with clear rounding rules |
+| Sharing a mutable `DecimalFormat` across threads | State can be mutated concurrently | Create per request/call or use a safe synchronization strategy |
+| Using formatted text as API data | Dependent on locale and symbols | Keep standard numeric types/serializers |
 
-**Thread safety:** `DecimalFormat` là formatter mutable, không nên chia sẻ tự do giữa nhiều thread khi có thể bị cập nhật đồng thời. Nếu cần cache, cân nhắc bản sao hoặc quản lý thread/concurrency phù hợp.
+**Thread safety:** `DecimalFormat` is a mutable formatter and should not be freely shared across threads when concurrent updates are possible. If caching is needed, consider cloning or appropriate thread/concurrency management.
 
-## 15. Checklist kiểm thử và bài tập
+## 15. Testing checklist and exercises
 
-Một bộ kiểm thử cơ bản cần ít nhất:
+A basic test suite should cover at least:
 
-1. **Các đơn vị:** `0.256` -> `25.6%`, `256.0‰`; `getMultiplier()` bằng `100` và `1000`.
-2. **Ranh giới:** `0`, `0.01`, `1`, `1.5`, số âm nếu nghiệp vụ cho phép.
-3. **Độ chính xác:** `0%`, `0.0%`, `0.00%` cho cùng dữ liệu để thấy rounding khác nhau.
-4. **Quote ký hiệu:** `0.0'%'` phải có multiplier `1`, không phải `100`.
-5. **Custom multiplier:** `setMultiplier(1000)` với `0.00` format/parse nhất quán và không tự thêm dấu `‰`.
-6. **Round-trip có điều kiện:** chỉ kỳ vọng parse ra đúng đến độ chính xác hiển thị; không mất dữ liệu nguồn.
-7. **Locale:** xác minh đầu ra và parse với các locale ứng dụng thực sự hỗ trợ, không hard-code dấu thập phân từ `Locale.US` trong code đa ngôn ngữ.
-8. **Input sai:** ký hiệu thiếu/sai, chuỗi dư hậu tố, ký tự không hợp lệ, giá trị ngoài phạm vi nghiệp vụ.
-9. **Đồng thời:** tránh chia sẻ formatter mutable bị thay pattern giữa các request.
+1. **Units:** `0.256` -> `25.6%`, `256.0‰`; `getMultiplier()` equals `100` and `1000`.
+2. **Boundaries:** `0`, `0.01`, `1`, `1.5`, and negative numbers if business rules permit.
+3. **Precision:** `0%`, `0.0%`, `0.00%` on the same data to observe different rounding.
+4. **Quoted symbols:** `0.0'%'` must have multiplier `1`, not `100`.
+5. **Custom multiplier:** `setMultiplier(1000)` with `0.00` formats/parses consistently and does not add `‰` automatically.
+6. **Conditional round-trip:** only expect parsed output to match up to display precision; do not lose source data.
+7. **Locale:** verify formatting and parsing across all locales the app actually supports; do not hardcode decimal points from `Locale.US` in multilingual code.
+8. **Invalid input:** missing/wrong symbol, trailing characters, invalid characters, out-of-range business values.
+9. **Concurrency:** avoid sharing a mutable formatter whose pattern is changed across requests.
 
-Bài tập thực hành:
+Practice exercises:
 
-- Viết formatter `"0.00%"` cho `ratio = 0.0425`. Dự đoán cách làm tròn và kiểm tra bằng Java.
-- Thay `"0.0‰"` thành `"0‰"` cho `0.2568`; giải thích giá trị hiển thị và lượng thông tin bị bỏ.
-- Tạo `DecimalFormat("0.00", symbols)`, gọi `setMultiplier(100)` và kiểm tra vì sao đầu ra không có `%` nếu pattern thiếu ký hiệu.
-- Parse `"12.5%"` bằng formatter tỷ lệ, rồi nhân ngược 100 một lần để trình bày “số phần trăm”. Giải thích vì sao **không** tiếp tục nhân trong formatter tỷ lệ lần nữa.
-- Tạo một input `"25.6%unexpected"`; kiểm tra `parse(String)` và `parse(String, ParsePosition)` để hiểu parse một phần.
+- Write a `"0.00%"` formatter for `ratio = 0.0425`. Predict how it rounds and verify in Java.
+- Change `"0.0‰"` to `"0‰"` for `0.2568`; explain the displayed value and the information discarded.
+- Create `DecimalFormat("0.00", symbols)`, call `setMultiplier(100)`, and verify why the output lacks `%` when the pattern omits the symbol.
+- Parse `"12.5%"` with a ratio formatter, then multiply by 100 once to present "percentage points". Explain why you should **not** multiply again inside another ratio formatter.
+- Create an input `"25.6%unexpected"`; test `parse(String)` and `parse(String, ParsePosition)` to understand partial parsing.
 
-## 16. Kết luận
+## 16. Conclusion
 
-Trong `DecimalFormat`, ký hiệu `%` và `‰` ở **pattern không được quote** lần lượt đặt hệ số `100` và `1000`. `setMultiplier` cho phép dùng hệ số khác mà không mặc nhiên thêm ký hiệu. Khi format, dữ liệu được nhân rồi hiển thị theo pattern; khi parse, giá trị được đổi ngược về thang gốc theo multiplier. Locale, ký hiệu, số chữ số và rounding cũng ảnh hưởng kết quả.
+In `DecimalFormat`, **unquoted** `%` and `‰` symbols in a pattern set multipliers of `100` and `1000`, respectively. `setMultiplier` allows a different factor without implicitly adding a symbol. When formatting, data is multiplied and then rendered per pattern; when parsing, the value is scaled back to the original unit by the multiplier. Locale, symbols, digit counts, and rounding also affect the result.
 
-Để tránh sai số và sai đơn vị, hãy **định nghĩa thang đo của dữ liệu trước**, chọn pattern phù hợp để hiển thị, parse có validation khi nhận dữ liệu từ bên ngoài, và không dùng chuỗi đã format làm nguồn tính toán.
+To avoid precision errors and unit bugs, **define the data's scale first**, pick an appropriate pattern for display, parse with validation when accepting external input, and never use formatted strings as the source for calculations.
 
-## Tài liệu tham khảo
+## References
 
 - [Oracle Java 21 — DecimalFormat](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/DecimalFormat.html)
 - [Oracle Java 21 — DecimalFormatSymbols](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/DecimalFormatSymbols.html)

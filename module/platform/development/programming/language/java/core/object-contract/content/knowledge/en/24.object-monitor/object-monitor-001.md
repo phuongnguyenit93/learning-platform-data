@@ -1,87 +1,87 @@
-# Monitor của mỗi đối tượng trong Java và cơ chế đồng bộ
+# Per-Object Monitors in Java and the Synchronization Mechanism
 
-Trong Java, **mỗi đối tượng có thể được dùng làm khóa đồng bộ nội tại (intrinsic lock, thường gọi là monitor)**. Khi một luồng đi vào khối `synchronized` gắn với đối tượng đó, nó phải sở hữu monitor của đối tượng trước khi thực thi phần code được bảo vệ. Cơ chế này giúp phối hợp truy cập dữ liệu dùng chung và tạo bảo đảm về khả năng nhìn thấy thay đổi giữa các luồng.
+In Java, **every object can be used as an intrinsic lock (commonly called a monitor)**. When a thread enters a `synchronized` block associated with that object, it must own the object's monitor before executing the protected code. This mechanism helps coordinate access to shared data and provides guarantees about the visibility of changes across threads.
 
-> “Mỗi đối tượng có monitor” là mô hình lập trình và ngữ nghĩa mà Java cung cấp. JVM có thể tối ưu cách biểu diễn và cấp phát khóa ở mức triển khai; không nên suy luận rằng mọi instance đều phải có một cấu trúc monitor riêng được cấp phát sẵn trong bộ nhớ.
+> "Every object has a monitor" is the programming model and semantics that Java provides. The JVM can optimize lock representation and allocation at the implementation level; you should not infer that every instance must have a separate monitor structure pre-allocated in memory.
 
-## 1. Monitor gắn với **đối tượng nào**?
+## 1. **Which object** is a monitor associated with?
 
-Ví dụ:
+Example:
 
 ~~~java
 Object lockA = new Object();
 Object lockB = new Object();
 
 synchronized (lockA) {
-    // Luồng đang giữ monitor của lockA.
+    // The thread holds the monitor of lockA.
 }
 
 synchronized (lockB) {
-    // Một monitor khác, độc lập với lockA.
+    // A different monitor, independent of lockA.
 }
 ~~~
 
-- Hai luồng cùng dùng **chính xác cùng một đối tượng** `lockA` sẽ phải cạnh tranh cùng một intrinsic lock: tại một thời điểm tối đa một luồng sở hữu monitor ấy để thực thi đoạn `synchronized` tương ứng.
-- Một luồng giữ monitor của `lockA` không tự động ngăn luồng khác đi vào `synchronized (lockB)`. Hai khóa khác nhau không bảo vệ lẫn nhau.
-- Mỗi đối tượng Java có thể làm khóa, kể cả instance của lớp do ta tạo, mảng và đối tượng `Class`. `null` không phải đối tượng; `synchronized (null)` gây `NullPointerException`.
-- Biến tham chiếu **không sở hữu monitor riêng**. Hai biến cùng trỏ đến một instance sẽ dùng cùng khóa; hai instance khác nhau có khóa khác nhau.
+- Two threads using **the exact same object** `lockA` will contend for the same intrinsic lock: at any point in time, at most one thread owns that monitor to execute the corresponding `synchronized` section.
+- A thread holding the monitor of `lockA` does not automatically prevent another thread from entering `synchronized (lockB)`. Two different locks do not protect each other.
+- Every Java object can serve as a lock, including instances of user-defined classes, arrays, and `Class` objects. `null` is not an object; `synchronized (null)` throws `NullPointerException`.
+- Reference variables **do not own separate monitors**. Two variables pointing to the same instance share the same lock; two different instances have different locks.
 
-Một ví dụ quan trọng về đối tượng được khóa:
+An important example regarding the locked object:
 
-| Cú pháp | Monitor phải sở hữu |
+| Syntax | Monitor that must be owned |
 | --- | --- |
-| `synchronized (someObject) { ... }` | Đối tượng mà `someObject` trỏ tới |
-| `synchronized void method()` (phương thức instance) | `this` của instance đang gọi |
-| `static synchronized void method()` | Đối tượng `SomeClass.class` tương ứng với lớp khai báo |
+| `synchronized (someObject) { ... }` | The object that `someObject` points to |
+| `synchronized void method()` (instance method) | `this` of the calling instance |
+| `static synchronized void method()` | The `SomeClass.class` object corresponding to the declaring class |
 
-Bởi vậy, phương thức `static synchronized` **không khóa mọi instance** theo nghĩa khóa của `this`. Nó khóa đối tượng `Class`; đồng bộ tĩnh và đồng bộ instance thường là hai monitor khác nhau.
+Therefore, a `static synchronized` method **does not lock all instances** in the sense of locking `this`. It locks the `Class` object; static synchronization and instance synchronization are usually two different monitors.
 
-## 2. Khi đi vào và rời `synchronized` xảy ra điều gì?
+## 2. What happens when entering and exiting `synchronized`?
 
-Giả sử nhiều luồng cùng chạy:
+Suppose multiple threads run concurrently:
 
 ~~~java
 synchronized (lock) {
-    // Truy cập trạng thái dùng chung do lock bảo vệ.
+    // Access shared state protected by lock.
 }
 ~~~
 
-Trình tự logic:
+Logical sequence:
 
-1. Luồng yêu cầu quyền sở hữu monitor của `lock`.
-2. Nếu monitor rảnh, luồng giành khóa và chạy phần thân. Nếu một luồng khác đang giữ nó, luồng hiện tại không thể vào phần thân ngay và có thể chuyển sang trạng thái `BLOCKED`.
-3. Khi rời khối, kể cả khi thoát do exception, luồng nhả khóa theo ngữ nghĩa của `synchronized`; một luồng đang chờ khóa có thể tiếp tục cạnh tranh để giành monitor.
-4. Java **không hứa hẹn công bằng/FIFO** về luồng nào sẽ giành khóa tiếp theo.
+1. The thread requests ownership of `lock`'s monitor.
+2. If the monitor is free, the thread acquires the lock and runs the body. If another thread is holding it, the current thread cannot enter the body immediately and may transition to the `BLOCKED` state.
+3. Upon exiting the block, including when exiting due to an exception, the thread releases the lock according to `synchronized` semantics; a thread waiting for the lock can continue contending to acquire the monitor.
+4. Java **does not promise fairness/FIFO** regarding which thread will acquire the lock next.
 
-Monitor là **reentrant**: một luồng đã sở hữu monitor có thể vào `synchronized` khác trên cùng đối tượng mà không tự chặn chính mình. JVM theo dõi mức lồng nhau và khóa chỉ được nhả hoàn toàn sau khi luồng thoát hết các mức khóa tương ứng.
+Monitors are **reentrant**: a thread that already owns a monitor can enter another `synchronized` section on the same object without blocking itself. The JVM tracks the nesting level, and the lock is fully released only after the thread exits all corresponding lock levels.
 
 ~~~java
 class ReentrantExample {
     synchronized void outer() {
-        inner(); // Cùng luồng tiếp tục đi vào monitor của this.
+        inner(); // The same thread continues to enter the monitor of this.
     }
 
     synchronized void inner() {
-        // Có thể thực hiện dù outer() đang giữ chính monitor này.
+        // Can execute even though outer() is holding this very monitor.
     }
 }
 ~~~
 
-Nhớ rằng chỉ code thực sự dùng **cùng monitor** mới được bảo vệ. Một hàm đọc hoặc ghi trường dùng chung mà bỏ qua khóa sẽ không tự động được an toàn chỉ vì hàm khác có `synchronized`.
+Remember that only code that actually uses **the same monitor** is protected. A method that reads or writes a shared field while bypassing the lock will not automatically become safe just because another method is `synchronized`.
 
-## 3. Monitor giải quyết hai vấn đề: loại trừ tương hỗ và visibility
+## 3. Monitors solve two problems: mutual exclusion and visibility
 
-Giả sử hai luồng cùng tăng một biến:
+Suppose two threads simultaneously increment a variable:
 
 ~~~java
 count++;
 ~~~
 
-Lệnh này về mặt logic gồm đọc giá trị, tính giá trị mới rồi ghi lại. Nó không tự động là một thao tác nguyên tử. Hai luồng có thể cùng đọc một giá trị cũ và làm mất một lần tăng.
+Logically, this statement consists of reading the value, computing the new value, and writing it back. It is not automatically an atomic operation. Two threads can read the same stale value and lose an increment.
 
-Ví dụ hoàn chỉnh, chạy với Java 17 trở lên:
+Complete example, runnable with Java 17 or later:
 
-**Tệp `MonitorCounterDemo.java`**
+**File `MonitorCounterDemo.java`**
 
 ~~~java
 public class MonitorCounterDemo {
@@ -114,57 +114,57 @@ public class MonitorCounterDemo {
         first.join();
         second.join();
 
-        System.out.println("So lan tang: " + counter.get());
+        System.out.println("Increment count: " + counter.get());
     }
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac MonitorCounterDemo.java
 java MonitorCounterDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
-So lan tang: 20000
+Increment count: 20000
 ~~~
 
-Cả hai luồng gọi `increment()` trên **cùng instance `counter`**, nên chúng phải lần lượt nắm monitor của instance đó. `count++` được bảo vệ như một vùng tới hạn; không bị mất cập nhật giữa hai luồng này. `get()` cũng đi qua monitor ấy. `join()` bảo đảm main chờ cả hai luồng kết thúc trước khi in kết quả.
+Both threads call `increment()` on **the same `counter` instance**, so they must take turns holding that instance's monitor. `count++` is protected as a critical section; no updates are lost between these two threads. `get()` also goes through that monitor. `join()` ensures `main` waits for both threads to finish before printing the result.
 
-Ngoài loại trừ tương hỗ, `synchronized` có quy tắc **happens-before** của Java Memory Model: thao tác **mở khóa một monitor** happens-before thao tác **khóa lại chính monitor đó** xảy ra sau. Nhờ đó, các ghi trước khi nhả khóa được nhìn thấy đúng qua lần giành khóa tiếp theo cùng monitor. Điều kiện “cùng monitor” rất quan trọng; khóa một đối tượng khác không tạo ra quan hệ này.
+In addition to mutual exclusion, `synchronized` has a **happens-before** rule in the Java Memory Model: an **unlock of a monitor** happens-before every subsequent **lock of that same monitor**. As a result, writes performed before releasing the lock are properly visible through the next acquisition of the same monitor. The "same monitor" condition is critical; locking a different object does not establish this relationship.
 
-Không nên quy mọi hiệu ứng visibility cho monitor nếu ví dụ còn dùng `Thread.start()`/`Thread.join()`: bản thân các thao tác vòng đời luồng này cũng có quy tắc happens-before riêng. Điều cốt lõi của `synchronized` là code đọc và ghi dữ liệu chung tuân thủ **cùng một chính sách khóa**.
+Do not attribute every visibility effect to the monitor if an example also uses `Thread.start()`/`Thread.join()`: these thread lifecycle operations have their own happens-before rules as well. The core of `synchronized` is that code reading and writing shared data follows **the same locking policy**.
 
-## 4. Monitor còn cho phép **chờ một điều kiện** qua `wait` / `notify` / `notifyAll`
+## 4. Monitors also allow **waiting for a condition** via `wait` / `notify` / `notifyAll`
 
-Ngoài quyền sở hữu khóa, mỗi đối tượng cung cấp các thao tác phối hợp luồng kế thừa từ `java.lang.Object`:
+Beyond lock ownership, every object provides thread-coordination operations inherited from `java.lang.Object`:
 
-- `wait()`: luồng hiện tại chờ tín hiệu/điều kiện trên đối tượng, **tạm nhả monitor của chính đối tượng đó** trong thời gian chờ.
-- `notify()`: đánh thức **một** luồng đang chờ trên đối tượng đó, nếu có; không đảm bảo chọn luồng nào.
-- `notifyAll()`: đánh thức **tất cả** luồng đang chờ trên đối tượng đó để chúng có cơ hội kiểm tra điều kiện.
+- `wait()`: the current thread waits for a signal/condition on the object, **temporarily releasing the monitor of that very object** while waiting.
+- `notify()`: wakes up **one** thread waiting on that object, if any; there is no guarantee which thread is chosen.
+- `notifyAll()`: wakes up **all** threads waiting on that object so they have a chance to recheck the condition.
 
-Muốn gọi các phương thức này trên `obj`, luồng gọi phải **đang sở hữu monitor của `obj`** (ví dụ đang ở trong `synchronized (obj)` hay synchronized instance method của `obj`). Nếu không, `IllegalMonitorStateException` được ném ra. Có được monitor của **đối tượng khác** là chưa đủ.
+To invoke these methods on `obj`, the calling thread must **currently own the monitor of `obj`** (for example, inside `synchronized (obj)` or a synchronized instance method of `obj`). Otherwise, `IllegalMonitorStateException` is thrown. Holding the monitor of **another object** is not enough.
 
-Luồng gọi `wait()` phải lấy lại monitor của đối tượng trước khi thoát khỏi `wait()` và tiếp tục chạy. `notify()` và `notifyAll()` **không lập tức nhả khóa**: luồng được đánh thức chỉ có thể tiếp tục sau khi monitor sẵn có để giành lại.
+A thread calling `wait()` must reacquire the object's monitor before exiting `wait()` and continuing execution. `notify()` and `notifyAll()` **do not immediately release the lock**: a woken thread can only proceed after the monitor becomes available to reacquire.
 
-Có thể hình dung hai lý do chờ khác nhau:
+You can distinguish two different reasons for waiting:
 
-| Tình huống | Ý nghĩa |
+| Situation | Meaning |
 | --- | --- |
-| Luồng muốn vào `synchronized` nhưng monitor đang bị giữ | Chờ **giành khóa**; thường quan sát ở trạng thái `BLOCKED` |
-| Luồng đã có monitor rồi gọi `wait()` | Nhả monitor tương ứng và chờ **điều kiện/tín hiệu**; `WAITING` hoặc `TIMED_WAITING` với wait có timeout |
-| Luồng được `notifyAll()` đánh thức | Phải **giành lại monitor**; có thể tạm `BLOCKED` trước khi thoát `wait()` |
+| A thread wants to enter `synchronized` while the monitor is held | Waiting to **acquire the lock**; typically observed in the `BLOCKED` state |
+| A thread already holds the monitor and calls `wait()` | Releases that monitor and waits for a **condition/signal**; `WAITING`, or `TIMED_WAITING` for timed wait |
+| A thread is woken by `notifyAll()` | Must **reacquire the monitor**; may temporarily be `BLOCKED` before exiting `wait()` |
 
-Các trạng thái trên giúp đọc thread dump; thứ tự scheduling cụ thể vẫn phụ thuộc JVM/hệ điều hành.
+These states help when reading thread dumps; the exact scheduling order still depends on the JVM/operating system.
 
-## 5. Ví dụ điều kiện thực tế: hộp thư một phần tử
+## 5. Practical condition example: a single-element mailbox
 
-Một luồng gửi giá trị, luồng khác nhận. Cả `send()` và `receive()` đồng bộ trên **chính instance `Mailbox`**. Điều kiện được biểu diễn bằng `message == null`:
+One thread sends a value, another receives it. Both `send()` and `receive()` synchronize on **the `Mailbox` instance itself**. The condition is represented by `message == null`:
 
-**Tệp `MonitorWaitNotifyDemo.java`**
+**File `MonitorWaitNotifyDemo.java`**
 
 ~~~java
 public class MonitorWaitNotifyDemo {
@@ -173,19 +173,19 @@ public class MonitorWaitNotifyDemo {
 
         synchronized void send(int value) throws InterruptedException {
             while (message != null) {
-                wait();             // Chờ hộp thư trống; nhả monitor của this.
+                wait();             // Wait for mailbox to be empty; releases monitor of this.
             }
             message = value;
-            notifyAll();            // Báo trạng thái hộp thư đã thay đổi.
+            notifyAll();            // Signal that the mailbox state has changed.
         }
 
         synchronized int receive() throws InterruptedException {
             while (message == null) {
-                wait();             // Chờ có dữ liệu; nhả monitor của this.
+                wait();             // Wait for data; releases monitor of this.
             }
             int result = message;
             message = null;
-            notifyAll();            // Báo hộp thư lại trống.
+            notifyAll();            // Signal that the mailbox is empty again.
             return result;
         }
     }
@@ -206,68 +206,68 @@ public class MonitorWaitNotifyDemo {
         mailbox.send(42);
         reader.join();
 
-        System.out.println("Nhan duoc: " + received[0]);
+        System.out.println("Received: " + received[0]);
     }
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac MonitorWaitNotifyDemo.java
 java MonitorWaitNotifyDemo
 ~~~
 
-Kết quả khi không có yêu cầu ngắt luồng:
+Output when there is no thread interruption request:
 
 ~~~text
-Nhan duoc: 42
+Received: 42
 ~~~
 
-Giải thích luồng chạy:
+Execution flow explanation:
 
-1. Nếu `reader` vào `receive()` trước, nó thấy `message == null` rồi `wait()`; việc chờ nhả monitor để luồng main có thể vào `send()`.
-2. `send(42)` lưu giá trị và gọi `notifyAll()` trong khi giữ monitor. Khi `send()` rời phương thức, nó nhả monitor; `reader` lấy lại monitor, kiểm tra điều kiện và nhận `42`.
-3. Nếu main chạy `send(42)` trước, `reader` sẽ thấy dữ liệu đã sẵn có nên không cần đợi. Vì trạng thái điều kiện được lưu trong `message`, tín hiệu không phải vật chứa dữ liệu.
-4. Sau `reader.join()`, main đọc kết quả đã ghi. Kết quả in ra độc lập với thứ tự hai luồng được lập lịch trong trường hợp không bị ngắt.
+1. If `reader` enters `receive()` first, it sees `message == null` and calls `wait()`; waiting releases the monitor so the `main` thread can enter `send()`.
+2. `send(42)` stores the value and calls `notifyAll()` while holding the monitor. When `send()` exits the method, it releases the monitor; `reader` reacquires the monitor, checks the condition, and receives `42`.
+3. If `main` runs `send(42)` first, `reader` will see that data is already available and will not need to wait. Because the condition state is stored in `message`, the signal is not the data container.
+4. After `reader.join()`, `main` reads the written result. The printed output is independent of the scheduling order of the two threads in the non-interrupted case.
 
-**Vì sao phải dùng `while` thay cho `if` quanh `wait()`?** Một luồng có thể thức dậy mà chưa có điều kiện mong muốn (*spurious wakeup*), hoặc luồng khác đã thay đổi điều kiện trong khoảng thời gian luồng đang tìm cách giành lại monitor. Luôn kiểm tra lại **predicate của trạng thái** dưới cùng monitor. Với nhiều kiểu người chờ/điều kiện, `notifyAll()` thường dễ lập luận đúng hơn `notify()`, dù có thể làm nhiều luồng thức dậy kiểm tra rồi lại chờ.
+**Why must `while` be used instead of `if` around `wait()`?** A thread can wake up without the desired condition being true (*spurious wakeup*), or another thread may have changed the condition during the interval while the thread was trying to reacquire the monitor. Always recheck the **state predicate** under the same monitor. With multiple waiter types/conditions, `notifyAll()` is usually easier to reason about correctly than `notify()`, even though it may cause multiple threads to wake up, check, and wait again.
 
-Khi `wait()` bị ngắt, nó ném `InterruptedException` sau khi lấy lại monitor theo ngữ nghĩa API; ứng dụng nên truyền ngoại lệ lên nơi điều phối hoặc xử lý hủy tác vụ rõ ràng. Ví dụ trên khôi phục cờ ngắt cho luồng con ở ranh giới `Runnable`. Trong ứng dụng thực tế, nên có đường đi xử lý kết quả bị hủy/thất bại thay vì mặc định nhận được một thông điệp.
+When `wait()` is interrupted, it throws `InterruptedException` after reacquiring the monitor according to the API semantics; the application should propagate the exception to the coordinator or handle task cancellation explicitly. The example above restores the interrupt flag for the child thread at the `Runnable` boundary. In a real application, there should be a path to handle canceled/failed outcomes rather than assuming a message is always received.
 
-## 6. Phân biệt rõ `wait`, `notify`, `sleep` và tranh chấp khóa
+## 6. Clearly distinguishing `wait`, `notify`, `sleep`, and lock contention
 
-| Hoạt động | Cần sở hữu monitor? | Có nhả monitor đang giữ? | Mục đích |
+| Operation | Requires monitor ownership? | Releases held monitor? | Purpose |
 | --- | --- | --- | --- |
-| Vào `synchronized (obj)` | Phải giành monitor `obj` | Không | Bảo vệ vùng tới hạn |
-| `obj.wait()` | Có, của `obj` | Có, **chỉ monitor của `obj`** | Chờ điều kiện trên `obj` |
-| `obj.notify()` / `notifyAll()` | Có, của `obj` | Không | Thông báo cho luồng đang chờ |
-| `Thread.sleep(...)` | Không | Không | Tạm ngừng theo thời gian |
+| Entering `synchronized (obj)` | Must acquire `obj`'s monitor | No | Protect critical section |
+| `obj.wait()` | Yes, of `obj` | Yes, **only `obj`'s monitor** | Wait for a condition on `obj` |
+| `obj.notify()` / `notifyAll()` | Yes, of `obj` | No | Notify waiting thread(s) |
+| `Thread.sleep(...)` | No | No | Pause for a duration of time |
 
-Một lưu ý dễ bỏ sót: nếu luồng đang giữ nhiều monitor lồng nhau, `obj.wait()` chỉ nhả monitor của `obj`, **không nhả các monitor khác** mà luồng đó đang giữ. Việc giữ các khóa khác trong lúc chờ có thể làm chương trình bế tắc.
+An easily overlooked detail: if a thread holds multiple nested monitors, `obj.wait()` only releases `obj`'s monitor and **does not release other monitors** that the thread is holding. Holding other locks while waiting can cause the program to deadlock.
 
-Các biến thể `wait(long timeout)` / `wait(long timeout, int nanos)` có thể kết thúc khi hết thời gian, được thông báo hoặc bị đánh thức không có lý do xác định; vì vậy vẫn cần vòng `while` kiểm tra điều kiện. `wait(0)` là chờ vô thời hạn, không phải “chờ 0 mili giây rồi trả về”.
+The `wait(long timeout)` / `wait(long timeout, int nanos)` variants can finish upon timeout, notification, or waking up for no specific reason; therefore a `while` loop checking the condition is still required. `wait(0)` means wait indefinitely, not "wait 0 milliseconds and return."
 
-## 7. Những sai lầm phổ biến và cách tránh
+## 7. Common mistakes and how to avoid them
 
-**Sai: khóa một đối tượng mới mỗi lần gọi.**
+**Wrong: locking a new object on every call.**
 
 ~~~java
 synchronized (new Object()) {
-    // Mỗi lần thường là một khóa mới, không phối hợp với các lời gọi khác.
+    // Each call usually creates a new lock, providing no coordination with other calls.
 }
 ~~~
 
-Muốn phối hợp giữa các luồng, chia sẻ cùng một lock ổn định, chẳng hạn trường `private final Object lock = new Object();`. Tránh khóa trên chuỗi literal, đối tượng `Class` công khai hoặc đối tượng mà code bên ngoài có thể tự ý khóa nếu điều đó gây tranh chấp ngoài dự kiến.
+To coordinate between threads, share the same stable lock, such as a `private final Object lock = new Object();` field. Avoid locking on string literals, public `Class` objects, or objects that external code can arbitrarily lock if that causes unexpected contention.
 
-**Sai: gọi `wait()` khi không sở hữu khóa của đúng đối tượng.**
+**Wrong: calling `wait()` without owning the lock of the exact object.**
 
 ~~~java
 Object lock = new Object();
-lock.wait(); // IllegalMonitorStateException khi chạy.
+lock.wait(); // IllegalMonitorStateException at runtime.
 ~~~
 
-Cách dùng đúng (đoạn dưới chỉ minh họa cú pháp; muốn chương trình hữu ích phải có điều kiện và luồng gửi tín hiệu):
+Correct usage (the snippet below only illustrates syntax; a useful program must have a condition and a signaling thread):
 
 ~~~java
 synchronized (lock) {
@@ -277,26 +277,26 @@ synchronized (lock) {
 }
 ~~~
 
-Ở đây `conditionIsTrue()` là tên **minh họa**, không phải phương thức đã được định nghĩa trong ví dụ runnable ở trên.
+Here `conditionIsTrue()` is an **illustrative** name, not a method defined in the runnable example above.
 
-**Sai: tưởng `notify()` chuyển ngay khóa sang luồng nhận.** Luồng báo vẫn giữ monitor cho tới khi rời `synchronized`; luồng nhận phải cạnh tranh lại để giành khóa.
+**Wrong: thinking `notify()` immediately transfers the lock to the receiving thread.** The signaling thread retains the monitor until it exits `synchronized`; the receiving thread must contend again to acquire the lock.
 
-**Sai: đặt `wait()` trong `if` hoặc phụ thuộc hoàn toàn vào “tín hiệu”.** Tín hiệu không lưu trữ thành một “vé” cho người đến sau. Phải có trạng thái điều kiện được bảo vệ, cập nhật trạng thái trước khi báo và kiểm tra trong `while`.
+**Wrong: putting `wait()` inside `if` or relying solely on "signals".** A signal is not stored as a "ticket" for latecomers. There must be protected condition state, updated before signaling and checked inside `while`.
 
-**Sai: đọc/ghi dữ liệu chung bằng các khóa khác nhau.** Nếu người viết dùng `lockA` nhưng người đọc dùng `lockB`, chúng không bảo đảm loại trừ tương hỗ hoặc happens-before qua hai monitor ấy. Thiết kế một quy ước “trường nào được bảo vệ bởi khóa nào” rồi áp dụng nhất quán, bao gồm cả đọc.
+**Wrong: reading/writing shared data using different locks.** If writers use `lockA` while readers use `lockB`, they do not guarantee mutual exclusion or happens-before across those two monitors. Design a convention for "which field is protected by which lock" and apply it consistently, including for reads.
 
-**Sai: giữ khóa trong lúc chạy tác vụ chậm, I/O hoặc gọi code không kiểm soát.** Các luồng khác phải chờ lâu hơn; nếu các luồng lấy nhiều khóa theo thứ tự ngược nhau, còn có nguy cơ deadlock. Thu hẹp vùng tới hạn và cố định thứ tự giành nhiều khóa khi cần.
+**Wrong: holding a lock while running slow tasks, I/O, or calling uncontrolled code.** Other threads have to wait longer; if threads acquire multiple locks in opposite orders, there is also a risk of deadlock. Keep critical sections narrow and fix the acquisition order of multiple locks when needed.
 
-**Sai: cho rằng monitor tự bảo đảm mọi thứ.** Intrinsic lock không mặc nhiên bảo đảm fairness, phát hiện deadlock, timeout khi giành khóa bằng `synchronized`, hay đánh thức đúng một loại người chờ khi nhiều điều kiện dùng chung wait-set. Với hàng đợi, ứng dụng thực tế thường thuận tiện hơn khi dùng `BlockingQueue`; với nhu cầu khóa có timeout/interruptible acquisition hoặc nhiều condition queue riêng, cân nhắc `ReentrantLock` và `Condition` từ `java.util.concurrent.locks`. Đây là các công cụ bổ sung, không làm thay đổi cơ chế monitor của `Object`.
+**Wrong: assuming monitors automatically guarantee everything.** Intrinsic locks do not by default guarantee fairness, deadlock detection, timeouts when acquiring a lock with `synchronized`, or waking up only one specific type of waiter when multiple conditions share a wait-set. For queues, real-world applications usually find `BlockingQueue` more convenient; for lock acquisition with timeouts/interruptible acquisition or multiple separate condition queues, consider `ReentrantLock` and `Condition` from `java.util.concurrent.locks`. These are complementary tools and do not alter the monitor mechanism of `Object`.
 
-## 8. Tự kiểm tra hiểu biết
+## 8. Self-check understanding
 
-1. Hai biến `a` và `b` cùng trỏ đến một instance: `synchronized(a)` và `synchronized(b)` có tranh chấp cùng khóa không? **Có**, vì khóa gắn với đối tượng, không gắn với tên biến.
-2. Hai instance của cùng lớp có mặc nhiên chặn nhau khi gọi `synchronized` instance method? **Không**; mỗi instance có monitor riêng. `static synchronized` lại dùng đối tượng `Class`.
-3. Tại sao chỉ dùng `volatile` cho `count` chưa đủ để thực hiện `count++` an toàn? **Vì** visibility không biến thao tác đọc–sửa–ghi nhiều bước thành nguyên tử.
-4. Sau `notifyAll()`, luồng đang `wait()` có chạy tiếp ngay không? **Không**; nó còn phải lấy lại monitor và kiểm tra lại điều kiện.
-5. Dùng `Thread.sleep()` ở trong `synchronized` có giúp luồng khác giành monitor ấy không? **Không**; `sleep` không nhả khóa.
+1. Two variables `a` and `b` point to the same instance: do `synchronized(a)` and `synchronized(b)` contend for the same lock? **Yes**, because the lock is attached to the object, not to the variable name.
+2. Do two instances of the same class automatically block each other when calling a `synchronized` instance method? **No**; each instance has its own monitor. `static synchronized` instead uses the `Class` object.
+3. Why is using `volatile` alone on `count` insufficient to perform `count++` safely? **Because** visibility does not turn a multi-step read–modify–write operation into an atomic one.
+4. After `notifyAll()`, does a thread in `wait()` continue executing immediately? **No**; it still has to reacquire the monitor and recheck the condition.
+5. Does calling `Thread.sleep()` inside `synchronized` help another thread acquire that monitor? **No**; `sleep` does not release the lock.
 
-## Kết luận
+## Conclusion
 
-Monitor là cơ chế đồng bộ nội tại gắn với **danh tính một đối tượng Java**. `synchronized` dùng monitor ấy để bảo vệ vùng tới hạn và thiết lập quy tắc visibility; `wait`/`notify`/`notifyAll` dùng cùng monitor để phối hợp theo điều kiện. Khi thiết kế code đa luồng, hãy xác định rõ **đối tượng khóa nào được chia sẻ, trạng thái nào do khóa đó bảo vệ, và điều kiện nào phải kiểm tra lại dưới khóa**.
+A monitor is an intrinsic synchronization mechanism attached to **the identity of a Java object**. `synchronized` uses that monitor to protect critical sections and establish visibility rules; `wait`/`notify`/`notifyAll` use the same monitor to coordinate on conditions. When designing multithreaded code, clearly identify **which lock object is shared, which state is protected by that lock, and which condition must be rechecked under the lock**.

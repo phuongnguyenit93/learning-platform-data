@@ -1,12 +1,12 @@
-# Dấu phân cách và phần tử rỗng khi ghép nhiều chuỗi trong Java
+# Delimiters and Empty Elements When Joining Multiple Strings in Java
 
-## 1. Vấn đề cần giải quyết
+## 1. The Problem to Solve
 
-Khi ghép nhiều phần tử thành một chuỗi, thông thường ta đặt **dấu phân cách** (*delimiter/separator*) giữa hai phần tử liên tiếp. Nhưng điều gì xảy ra nếu một phần tử là chuỗi rỗng `""`, nằm ở đầu, giữa hoặc cuối danh sách? Nếu toàn bộ danh sách không có phần tử thì kết quả ra sao? Và có nên tự động bỏ các phần tử rỗng trước khi ghép?
+When joining multiple elements into one string, you normally place a **delimiter** (*separator*) between two consecutive elements. But what happens if one element is an empty string `""`, located at the start, middle, or end of the list? What is the result if the entire list has no elements? And should empty elements be automatically removed before joining?
 
-Các câu hỏi này quan trọng trong việc tạo dòng dữ liệu, nối tham số, hiển thị danh sách, xây chuỗi log hoặc trao đổi thông tin với hệ thống khác. Một dấu phân cách thừa hoặc thiếu có thể làm thay đổi **số lượng và vị trí của trường dữ liệu**.
+These questions matter when generating data lines, concatenating arguments, displaying lists, building log strings, or exchanging information with other systems. One extra or missing delimiter can change the **number and positions of data fields**.
 
-Xét ba chuỗi đầu vào:
+Consider three input strings:
 
 ```java
 String a = "Java";
@@ -17,13 +17,13 @@ String result = String.join("|", a, b, c);
 System.out.println(result); // Java||String
 ```
 
-Hai dấu `|` liền nhau **không phải lỗi**: chúng thể hiện rằng có **một phần tử rỗng ở giữa**. Nếu bỏ `b` trước khi ghép, kết quả `Java|String` mang cấu trúc khác.
+Two adjacent `|` characters are **not a bug**: they represent that there is **an empty element in the middle**. If you removed `b` before joining, the result `Java|String` would have a different structure.
 
-Nguyên tắc nền tảng: **phần tử rỗng không đồng nghĩa với phần tử không tồn tại**.
+Core principle: **an empty element is not the same as a non-existent element**.
 
-## 2. `String.join` đặt dấu phân cách như thế nào?
+## 2. How Does `String.join` Place Delimiters?
 
-Từ Java 8, `String.join` có hai overload phổ biến:
+Since Java 8, `String.join` has two common overloads:
 
 ```java
 String.join(CharSequence delimiter, CharSequence... elements);
@@ -31,15 +31,15 @@ String.join(CharSequence delimiter,
             Iterable<? extends CharSequence> elements);
 ```
 
-Đây là **chữ ký API để tham khảo**, không phải khai báo chương trình độc lập. `delimiter` là chuỗi phân cách, còn `elements` là dãy phần tử theo thứ tự do bạn cung cấp hoặc thứ tự mà `Iterable` duyệt được.
+These are **API signatures for reference**, not standalone program declarations. `delimiter` is the separator string, and `elements` is the sequence of elements in the order you supply or the order iterated by the `Iterable`.
 
-Với `n` phần tử, nếu `n >= 1`, quy tắc ghép là:
+With `n` elements, if `n >= 1`, the joining rule is:
 
 ```text
 element[0] + delimiter + element[1] + ... + delimiter + element[n-1]
 ```
 
-Nói cách khác, có **n − 1 lần chèn delimiter giữa các phần tử**, không tự chèn thêm ở đầu hay cuối. Khi `n = 0`, kết quả là chuỗi rỗng `""`.
+In other words, there are **n − 1 delimiter insertions between elements**, with nothing automatically added at the start or end. When `n = 0`, the result is the empty string `""`.
 
 ```java
 System.out.println(String.join(", ", "A", "B", "C")); // A, B, C
@@ -47,44 +47,44 @@ System.out.println(String.join(" / ", "A"));         // A
 System.out.println(String.join(", ", new String[0]).isEmpty()); // true
 ```
 
-**Lưu ý:** Dấu phân cách có thể là một hoặc nhiều ký tự, thậm chí chuỗi rỗng `""`. Dấu phân cách được sao chép dưới dạng văn bản **literal**; `String.join` không dùng biểu thức chính quy (*regex*) để hiểu delimiter.
+**Note:** The delimiter can be one or more characters, or even the empty string `""`. The delimiter is copied as **literal** text; `String.join` does not use regular expressions (*regex*) to interpret the delimiter.
 
-### Bảng hành vi của phần tử rỗng
+### Behavior Table for Empty Elements
 
-Trong bảng sau, dấu `<...>` chỉ để **nhìn thấy ranh giới kết quả**, không phải ký tự do `String.join` tự thêm.
+In the following table, `<...>` only serves to **make the result boundaries visible**, not characters automatically added by `String.join`.
 
-| Các phần tử đầu vào | Delimiter | Kết quả nhìn trong dấu `<...>` | Ý nghĩa |
+| Input elements | Delimiter | Result shown inside `<...>` | Meaning |
 | --- | --- | --- | --- |
-| Không có phần tử: `[]` | `","` | `<>` | Không có gì để ghép |
-| Một phần tử: `["A"]` | `","` | `<A>` | Không cần dấu phân cách |
-| Một phần tử rỗng: `[""]` | `","` | `<>` | Có phần tử, nhưng nội dung rỗng |
-| Hai phần tử rỗng: `["", ""]` | `","` | `<,>` | Delimiter nằm giữa hai chuỗi rỗng |
-| `["A", "", "B"]` | `","` | `<A,,B>` | Giữ phần tử rỗng ở giữa |
-| `["", "A"]` | `","` | `<,A>` | Delimiter ở đầu **do phần tử đầu rỗng** |
-| `["A", ""]` | `","` | `<A,>` | Delimiter ở cuối **do phần tử cuối rỗng** |
-| `["", "A", ""]` | `","` | `<,A,>` | Giữ cả hai phần tử rỗng hai đầu |
-| `["A", "", "B"]` | `""` | `<AB>` | Không có ký tự nào thể hiện ranh giới |
+| No elements: `[]` | `","` | `<>` | Nothing to join |
+| One element: `["A"]` | `","` | `<A>` | No delimiter needed |
+| One empty element: `[""]` | `","` | `<>` | An element exists, but its content is empty |
+| Two empty elements: `["", ""]` | `","` | `<,>` | Delimiter sits between two empty strings |
+| `["A", "", "B"]` | `","` | `<A,,B>` | Preserves the empty element in the middle |
+| `["", "A"]` | `","` | `<,A>` | Leading delimiter **because the first element is empty** |
+| `["A", ""]` | `","` | `<A,>` | Trailing delimiter **because the last element is empty** |
+| `["", "A", ""]` | `","` | `<,A,>` | Preserves both empty elements at the ends |
+| `["A", "", "B"]` | `""` | `<AB>` | No character marks the boundary |
 
-**Phân biệt:** `String.join(",", new String[0])` và `String.join(",", "")` đều trả về `""`. Chỉ nhìn chuỗi kết quả **không thể phân biệt danh sách rỗng với danh sách có đúng một phần tử rỗng**. Đây là hạn chế thông tin của cách mã hóa dạng nối đơn giản, không phải lỗi API.
+**Distinction:** `String.join(",", new String[0])` and `String.join(",", "")` both return `""`. Looking solely at the resulting string **cannot distinguish an empty list from a list containing a single empty element**. This is an information limit of simple delimiter-based encoding, not an API bug.
 
-## 3. Ba khái niệm khác nhau: không có phần tử, phần tử rỗng và `null`
+## 3. Three Distinct Concepts: No Elements, an Empty Element, and `null`
 
-Trong Java, ba trường hợp sau không giống nhau:
+In Java, the following three cases are not the same:
 
-- **Không có phần tử:** danh sách/array dài 0; ví dụ `List.of()`.
-- **Có một phần tử rỗng:** danh sách dài 1, chứa `""`. Đây là một giá trị `String` hợp lệ với `length() == 0`.
-- **Có một phần tử `null`:** danh sách dài 1, chứa tham chiếu `null`; nó không phải đối tượng `String` và không phải chuỗi `"null"`.
+- **No elements:** a list/array of length 0; e.g., `List.of()`.
+- **One empty element:** a list of length 1 containing `""`. This is a valid `String` value with `length() == 0`.
+- **One `null` element:** a list of length 1 containing a `null` reference; it is not a `String` object and not the string `"null"`.
 
-Theo hợp đồng của `String.join`, nếu **một phần tử** là `null`, API sẽ thêm văn bản `"null"` vào kết quả:
+By the `String.join` contract, if **an element** is `null`, the API appends the text `"null"` to the result:
 
 ```java
 String joined = String.join("|", "A", null, "B");
 System.out.println(joined); // A|null|B
 ```
 
-Điều này tạo nên điểm cần cân nhắc: phần tử tham chiếu `null` và phần tử **literal `"null"`** sẽ cho cùng cách biểu diễn sau khi nối. Nếu dữ liệu cần phân biệt giá trị vắng mặt và chuỗi bốn ký tự `"null"`, bạn phải có **quy tắc biểu diễn riêng** (ví dụ định dạng dữ liệu có hỗ trợ giá trị null), không dựa vào `String.join`.
+This creates an important consideration: a `null` reference element and a **literal `"null"`** element produce the exact same representation after joining. If your data needs to distinguish an absent value from the four-character string `"null"`, you must use a **separate representation rule** (such as a data format that supports null values) rather than relying on `String.join`.
 
-Bên cạnh đó:
+Additionally:
 
 ```java
 String.join(",", "A", null);                // "A,null"
@@ -93,11 +93,11 @@ String.join(",", new String[0]);           // ""
 String.join(",", new String[]{null});      // "null"
 ```
 
-Các dòng trên là **biểu thức minh họa**. Tên `"null"` được viết ra khi **element null** xuất hiện; nhưng truyền **delimiter null** hoặc chính mảng/`Iterable` `elements == null` sẽ ném `NullPointerException`. Đừng nhầm “phần tử null được chuyển thành văn bản” với “mọi đối số null đều được chấp nhận”.
+The lines above are **illustrative expressions**. The text `"null"` is written when a **null element** appears; however, passing a **null delimiter** or a `null` `elements` array/`Iterable` itself throws `NullPointerException`. Do not confuse "a null element is converted to text" with "all null arguments are accepted."
 
-## 4. Dấu phân cách ở vị trí đầu/cuối có thể hoàn toàn đúng
+## 4. Leading or Trailing Delimiters Can Be Completely Valid
 
-Một tình huống phổ biến là muốn nối ba trường theo thứ tự, trong đó trường đầu hoặc cuối được phép rỗng:
+A common scenario is wanting to join three fields in order, where the first or last field is allowed to be empty:
 
 ```java
 String first = "";
@@ -108,25 +108,25 @@ String line = String.join("|", first, middle, last);
 System.out.println("<" + line + ">"); // <|java|>
 ```
 
-Đầu dòng có `|` vì **trước trường `middle` còn một trường rỗng**. Cuối dòng có `|` vì **sau `middle` còn một trường rỗng**. Đây không phải “delimiter được chèn thừa”.
+There is a `|` at the start of the line because **there is an empty field before `middle`**. There is a `|` at the end of the line because **there is an empty field after `middle`**. This is not an "extra delimiter inserted by mistake."
 
-Nếu yêu cầu dữ liệu là giữ nguyên cả ba vị trí, việc tự ý xóa dấu đầu/cuối bằng `strip()` hoặc logic cắt ký tự có thể phá vỡ thông tin. `strip()` cũng không được thiết kế để loại bỏ delimiter; nó loại bỏ một số khoảng trắng đầu/cuối theo `Character.isWhitespace`.
+If the data requirement is to preserve all three positions, blindly stripping leading/trailing characters with `strip()` or substring logic can destroy information. Nor is `strip()` designed to remove delimiters; it removes leading/trailing whitespace according to `Character.isWhitespace`.
 
-Trái lại, trong trường hợp **hiển thị một danh sách tên** mà phần tử rỗng vốn là dữ liệu không có ý nghĩa, bạn có thể chọn loại chúng **trước khi gọi join**. Đây phải là một quyết định theo hợp đồng bài toán, không phải hành vi mặc định mà ta gán cho API.
+Conversely, when **displaying a list of names** where empty elements represent meaningless data, you may choose to drop them **before calling join**. This must be a deliberate decision based on the problem contract, not a default behavior attributed to the API.
 
-## 5. Khi nào giữ phần tử rỗng, khi nào lọc bỏ?
+## 5. When to Keep Empty Elements vs. Filter Them Out?
 
-Hãy định nghĩa rõ ràng mục tiêu dữ liệu:
+Define the data goal clearly:
 
-| Mục tiêu | Chính sách đối với `""` | Ví dụ |
+| Goal | Policy for `""` | Example |
 | --- | --- | --- |
-| Dữ liệu dạng cột, mỗi vị trí ứng với một trường | **Giữ** phần tử rỗng | `["A", "", "B"]` → `A||B` |
-| Tạo nhãn hiển thị từ các phần **tùy chọn** | Có thể bỏ `""` nếu phần bỏ trống không mang ý nghĩa | `["Lan", "", "Nguyen"]` → `Lan Nguyen` |
-| Biểu diễn số ô trống trong bản ghi cố định | **Giữ** cả rỗng ở đầu và cuối | `["", "A", ""]` → `|A|` |
-| Tạo đường dẫn, URL, câu lệnh giao thức | Theo **đặc tả tương ứng**, không tự lọc | Dấu phân cách có thể mang ngữ nghĩa |
-| Log hoặc thông điệp để con người đọc | Quyết định rõ liệu muốn giữ trường hay chỉ giữ giá trị có nội dung | Không được gây nhầm mất trường |
+| Columnar data where each position corresponds to a field | **Keep** empty elements | `["A", "", "B"]` → `A||B` |
+| Building a display label from **optional** parts | Can drop `""` if blank parts carry no meaning | `["Lan", "", "Nguyen"]` → `Lan Nguyen` |
+| Representing blank cells in a fixed record | **Keep** empty elements at the start and end too | `["", "A", ""]` → `|A|` |
+| Building paths, URLs, protocol commands | Follow the **corresponding specification**; do not auto-filter | Delimiters can carry semantics |
+| Human-readable logs or messages | Decide explicitly whether to preserve fields or only non-empty values | Must not mislead about missing fields |
 
-Ví dụ lọc **chỉ chuỗi rỗng**:
+Example filtering **only empty strings**:
 
 ```java
 import java.util.List;
@@ -143,11 +143,11 @@ System.out.println("<" + keepAll + ">");  // <Lan  Nguyen>
 System.out.println("<" + skipEmpty + ">"); // <Lan Nguyen>
 ```
 
-Đây là **đoạn minh họa**; khi dùng `List.of`, phần tử không được là `null`. Lọc bằng `!s.isEmpty()` chỉ loại `""`, **không** loại chuỗi `" "` hoặc `"\t"`. Nếu yêu cầu là bỏ những phần tử toàn khoảng trắng, có thể xem xét `!s.isBlank()` (Java 11+), nhưng `isBlank` và `isEmpty` có ngữ nghĩa khác nhau và không nên tráo đổi tùy tiện.
+This is an **illustrative snippet**; when using `List.of`, elements cannot be `null`. Filtering with `!s.isEmpty()` only removes `""`, **not** `" "` or `"\t"`. If the requirement is to drop whitespace-only elements, you can consider `!s.isBlank()` (Java 11+), though `isBlank` and `isEmpty` have different semantics and should not be swapped casually.
 
-### Với `null`: xác định chính sách rõ ràng
+### For `null`: Define an Explicit Policy
 
-Nếu `null` nghĩa là “không có phần cần hiển thị”, có thể chủ động bỏ chúng:
+If `null` means "no part to display," you can intentionally filter it out:
 
 ```java
 import java.util.Arrays;
@@ -163,13 +163,13 @@ String joined = items.stream()
 System.out.println(joined); // A||B
 ```
 
-Ở đây lọc `null` nhưng **giữ** phần tử rỗng, nên vẫn có hai delimiter liên tiếp. Nếu cũng muốn bỏ rỗng, phải thêm chính sách lọc thích hợp **sau khi** đã loại `null` để tránh `NullPointerException`.
+Here `null` is filtered out while empty elements are **kept**, so two consecutive delimiters still appear. If you also want to remove empty elements, add the appropriate filter policy **after** removing `null` to avoid a `NullPointerException`.
 
-Việc bỏ `null` thích hợp với một số danh sách hiển thị, nhưng có thể **không đúng** với bản ghi có số trường cố định; đối với trường bắt buộc, nên **báo lỗi hoặc dùng format có null riêng**.
+Dropping `null` works for some display lists, but may be **incorrect** for fixed-field records; for required fields, you should **fail with an error or use a format that represents null explicitly**.
 
-## 6. `StringJoiner`: kiểm soát delimiter, prefix, suffix và giá trị khi chưa có phần tử
+## 6. `StringJoiner`: Controlling Delimiter, Prefix, Suffix, and Empty Value
 
-`java.util.StringJoiner` là công cụ mutable phục vụ **tích lũy** các phần tử, chèn delimiter giữa chúng và (nếu cần) thêm tiền tố/hậu tố.
+`java.util.StringJoiner` is a mutable utility for **accumulating** elements, inserting a delimiter between them, and (if needed) adding a prefix/suffix.
 
 ```java
 import java.util.StringJoiner;
@@ -179,9 +179,9 @@ joiner.add("A").add("").add("B");
 System.out.println(joiner); // [A, , B]
 ```
 
-`StringJoiner.add("")` vẫn được tính là **đã thêm một phần tử**. Nó không bỏ qua chuỗi rỗng. Tương tự, `add(null)` thêm chữ `"null"`.
+`StringJoiner.add("")` still counts as **having added an element**. It does not skip empty strings. Similarly, `add(null)` appends the text `"null"`.
 
-### Chưa thêm gì khác với đã thêm `""`
+### Nothing Added Yet vs. Added `""`
 
 ```java
 StringJoiner joiner = new StringJoiner(", ", "[", "]");
@@ -196,15 +196,15 @@ joiner.add("B");
 System.out.println(joiner); // [, B]
 ```
 
-Trước `add(...)`, `StringJoiner` chưa có phần tử và dùng `prefix + suffix`, hoặc **empty value** do `setEmptyValue(...)` đặt ra. Sau `add("")`, nó **không còn được xem là empty** dù nội dung phần tử là `""`: nó trở lại biểu diễn thông thường là `prefix + "" + suffix`, ở đây là `[]`. Khi thêm `B`, delimiter xuất hiện giữa phần tử rỗng và `B`.
+Before `add(...)`, `StringJoiner` has no elements and uses `prefix + suffix`, or the **empty value** set by `setEmptyValue(...)`. After `add("")`, it is **no longer considered empty** even though the element's content is `""`: it reverts to the normal representation `prefix + "" + suffix`, which here is `[]`. When `B` is added, the delimiter appears between the empty element and `B`.
 
-**Lưu ý:** Nếu chưa có phần tử, `new StringJoiner(",")` không prefix/suffix trả về `""`. Nếu muốn hiển thị khác giữa danh sách không có phần tử và danh sách có phần tử rỗng, dùng cơ chế `setEmptyValue` hoặc lưu riêng **số lượng phần tử**, nhưng không thể mong chuỗi kết quả của `String.join` tự giữ metadata đó.
+**Note:** When no elements have been added, `new StringJoiner(",")` without prefix/suffix returns `""`. If you want to distinguish visually between a list with zero elements and a list with an empty element, use `setEmptyValue` or track the **element count** separately; you cannot expect the string returned by `String.join` to carry that metadata automatically.
 
-`StringJoiner` hữu ích khi số phần tử chưa biết trước hoặc thêm dần trong vòng lặp. Với danh sách có sẵn, `String.join` thường đơn giản hơn.
+`StringJoiner` is useful when the number of elements is not known upfront or when adding incrementally in a loop. For an existing list, `String.join` is usually simpler.
 
-## 7. `Collectors.joining`: ghép từ Stream mà vẫn giữ phần tử rỗng
+## 7. `Collectors.joining`: Joining from a Stream While Keeping Empty Elements
 
-Đối với `Stream<String>`, Java cung cấp các collector:
+For `Stream<String>`, Java provides these collectors:
 
 ```java
 import java.util.stream.Collectors;
@@ -216,17 +216,17 @@ String result = Stream.of("A", "", "B")
 System.out.println(result); // A||B
 ```
 
-Các dạng thường dùng:
+Common forms:
 
-| API | Ý nghĩa |
+| API | Meaning |
 | --- | --- |
-| `Collectors.joining()` | Ghép trực tiếp, không có delimiter |
-| `Collectors.joining(delimiter)` | Chèn delimiter giữa các phần tử |
-| `Collectors.joining(delimiter, prefix, suffix)` | Chèn delimiter và thêm prefix/suffix cho kết quả |
+| `Collectors.joining()` | Concatenate directly with no delimiter |
+| `Collectors.joining(delimiter)` | Insert delimiter between elements |
+| `Collectors.joining(delimiter, prefix, suffix)` | Insert delimiter and wrap result with prefix/suffix |
 
-Một stream **không có phần tử** với `Collectors.joining("|")` cho `""`; stream có **một phần tử `""`** cũng cho `""`. Với collector có prefix/suffix, biểu diễn rỗng theo `StringJoiner`: ví dụ `Collectors.joining(", ", "[", "]")` trên stream rỗng trả về `"[]"`.
+An **empty** stream with `Collectors.joining("|")` yields `""`; a stream with **one `""` element** also yields `""`. With the prefix/suffix collector, the empty representation follows `StringJoiner`: for example, `Collectors.joining(", ", "[", "]")` on an empty stream returns `"[]"`.
 
-Nếu cần bỏ phần tử rỗng, **lọc trước khi collect**:
+If empty elements need to be dropped, **filter before collecting**:
 
 ```java
 String display = Stream.of("A", "", "B")
@@ -236,11 +236,11 @@ String display = Stream.of("A", "", "B")
 System.out.println(display); // A|B
 ```
 
-Trước khi dùng pipeline với các phần tử có thể `null`, hãy xác định chính sách và bổ sung `filter(Objects::nonNull)` khi phù hợp. `Collectors.joining` không tự mang ý nghĩa “lọc giá trị thiếu”; thông thường, `null` được biểu diễn như chữ `"null"` khi đi qua `StringJoiner`.
+Before using a pipeline with potentially `null` elements, establish a policy and add `filter(Objects::nonNull)` when appropriate. `Collectors.joining` does not imply "filter out missing values"; normally, `null` is rendered as `"null"` when passed through `StringJoiner`.
 
-## 8. Chương trình Java 17 hoàn chỉnh
+## 8. Complete Java 17 Program
 
-Lưu nội dung sau vào tệp `JoinEmptyDemo.java`. Các dấu `<...>` được in ra **chỉ để nhìn rõ** khi chuỗi bắt đầu/kết thúc bằng delimiter hoặc hoàn toàn rỗng.
+Save the following content to `JoinEmptyDemo.java`. The `<...>` markers are printed **only to make boundaries visible** when a string starts/ends with a delimiter or is completely empty.
 
 ```java
 import java.util.Arrays;
@@ -290,14 +290,14 @@ public class JoinEmptyDemo {
 }
 ```
 
-Biên dịch/chạy bằng **JDK 17 hoặc mới hơn**:
+Compile and run with **JDK 17 or newer**:
 
 ```bash
 javac JoinEmptyDemo.java
 java JoinEmptyDemo
 ```
 
-Kết quả đã kiểm tra với Java 21 (đồng thời tương thích Java 17):
+Verified output on Java 21 (also Java 17 compatible):
 
 ```text
 joined=<|java||core|>
@@ -319,17 +319,17 @@ joiner two elements=[, B]
 stream=<a||b>
 ```
 
-**Cách đọc kết quả:**
+**How to read the output:**
 
-- `joined=<|java||core|>` chứng minh phần tử rỗng ở đầu, giữa và cuối được giữ.
-- `restored count=5` và `restored same=true` chứng minh ở **trường hợp dữ liệu này** dùng `split(..., -1)` khôi phục đủ năm phần tử.
-- `default split count=4` cho thấy `split(regex)` không giữ phần tử rỗng **cuối** theo mặc định.
-- `empty collection=<>` và `one empty=<>` cho ra cùng chuỗi; số lượng phần tử ban đầu đã không còn nhận biết được.
-- `joiner custom empty=[none]` nhưng sau `add("")` trở thành `[]` vì joiner đã có một phần tử dù rỗng.
+- `joined=<|java||core|>` confirms that empty elements at the start, middle, and end are preserved.
+- `restored count=5` and `restored same=true` confirm that for **this data case**, `split(..., -1)` restores all five elements.
+- `default split count=4` shows that `split(regex)` does not preserve **trailing** empty elements by default.
+- `empty collection=<>` and `one empty=<>` produce the same string; the original element count can no longer be distinguished.
+- `joiner custom empty=[none]`, yet after `add("")` it becomes `[]` because the joiner now has one element, albeit empty.
 
-## 9. Ghép rồi tách lại: vì sao phần tử rỗng dễ bị mất?
+## 9. Joining Then Splitting Back: Why Are Empty Elements Easily Lost?
 
-Nếu bạn dùng delimiter để **mã hóa nhiều trường**, việc giải mã bằng `String.split` phải được hiểu rõ.
+If you use a delimiter to **encode multiple fields**, decoding with `String.split` must be well understood.
 
 ```java
 String text = "A,,B,";
@@ -340,18 +340,18 @@ System.out.println(withoutLimit.length); // 3
 System.out.println(keepTrailing.length); // 4
 ```
 
-`split(regex)` tương đương `split(regex, 0)`: Java loại bỏ **các phần tử rỗng ở cuối** của mảng kết quả. `split(regex, -1)` giữ các phần tử rỗng ở cuối, vì `limit` âm cho phép áp dụng mẫu không giới hạn và không loại bỏ phần tử rỗng kết thúc.
+`split(regex)` is equivalent to `split(regex, 0)`: Java discards **trailing empty elements** from the resulting array. `split(regex, -1)` preserves trailing empty elements because a negative `limit` applies the pattern without limit and does not discard trailing empty strings.
 
-Ở giữa chuỗi, phần tử rỗng vẫn có thể giữ lại:
+In the middle of the string, empty elements can still be preserved:
 
 ```java
 String[] middle = "A,,B".split(",", -1);
-// Nội dung logic: ["A", "", "B"]
+// Logical contents: ["A", "", "B"]
 ```
 
-### Delimiter của `join` là văn bản; delimiter của `split` là regex
+### `join`'s Delimiter Is Literal Text; `split`'s Delimiter Is a Regex
 
-Đây là khác biệt đặc biệt quan trọng:
+This is an especially important distinction:
 
 ```java
 String joined = String.join("|", "A", "", "B"); // A||B
@@ -359,24 +359,24 @@ String[] parts = joined.split(
         java.util.regex.Pattern.quote("|"), -1);
 ```
 
-`String.join("|", ...)` coi `|` là delimiter nguyên văn. Nhưng `split("|")` không hiểu `|` theo nghĩa đó: trong regex, `|` là toán tử lựa chọn (*alternation*). Dùng `Pattern.quote("|")` hoặc biểu thức regex escape phù hợp để tách **đúng delimiter literal**. Nếu delimiter là dữ liệu cấu hình động như `".", "|", "||"`, `Pattern.quote(delimiter)` thường giúp tránh lỗi do ký tự đặc biệt regex.
+`String.join("|", ...)` treats `|` as a literal delimiter. However, `split("|")` does not interpret `|` that way: in regex, `|` is the *alternation* operator. Use `Pattern.quote("|")` or an appropriately escaped regex to split on the **exact literal delimiter**. When the delimiter comes from dynamic configuration such as `"."`, `"|"`, or `"||"`, `Pattern.quote(delimiter)` usually prevents errors caused by regex metacharacters.
 
-### `split(..., -1)` vẫn không bảo đảm hoàn nguyên mọi đầu vào
+### `split(..., -1)` Still Does Not Guarantee Round-Trip Recovery for All Inputs
 
-Ngay cả khi đã giữ phần tử rỗng cuối, `join` + `split` **không phải phép mã hóa hoàn nguyên tổng quát**:
+Even when trailing empty elements are preserved, `join` + `split` is **not a general lossless encoding**:
 
-1. **Danh sách rỗng và danh sách có một chuỗi rỗng cùng ra `""`.** Tách `""` theo delimiter không rỗng với `limit=-1` cho một chuỗi rỗng, không thể biết ban đầu có 0 hay 1 phần tử.
-2. **Phần tử tự chứa delimiter sẽ gây nhập nhằng.** Ví dụ `["A,B", "C"]` và `["A", "B", "C"]` đều ghép với dấu `,` thành `"A,B,C"`.
-3. **`null` và literal `"null"` mất sự khác biệt** vì `String.join` chuyển cả hai thành chữ `"null"`.
-4. **Delimiter rỗng `""` không giữ ranh giới.** `["AB"]` và `["A", "B"]` đều có thể trở thành `"AB"` nếu nối bằng delimiter rỗng.
+1. **An empty list and a list containing a single empty string both produce `""`.** Splitting `""` by a non-empty delimiter with `limit=-1` yields a single empty string, making it impossible to tell whether there were 0 or 1 elements originally.
+2. **Elements that contain the delimiter introduce ambiguity.** For example, `["A,B", "C"]` and `["A", "B", "C"]` both join with `,` to produce `"A,B,C"`.
+3. **`null` and literal `"null"` lose their distinction** because `String.join` converts both to the text `"null"`.
+4. **An empty delimiter `""` preserves no boundaries.** `["AB"]` and `["A", "B"]` both become `"AB"` when joined with an empty delimiter.
 
-Do đó `String.join` rất tốt cho **biểu diễn đơn giản**, nhưng không phải serializer mang đủ thông tin trường, escaping, null và ranh giới.
+Therefore, `String.join` is great for **simple representation**, not as a serializer that preserves full field metadata, escaping, nullness, and boundaries.
 
-## 10. Không tự dùng `String.join` như CSV/TSV serializer tổng quát
+## 10. Do Not Use `String.join` as a General CSV/TSV Serializer
 
-CSV có những quy tắc riêng liên quan đến delimiter, dấu ngoặc kép, escape, dòng mới và chính sách đối với các trường rỗng. Nếu trường dữ liệu chứa dấu phẩy, ngoặc kép hoặc ký tự xuống dòng, chỉ `String.join(",", fields)` **không đủ** để xuất CSV đúng trong mọi trường hợp.
+CSV has its own rules covering delimiters, double quotes, escaping, newlines, and empty-field policies. If a data field contains commas, double quotes, or newline characters, `String.join(",", fields)` alone is **not sufficient** to produce valid CSV in all cases.
 
-Ví dụ:
+For example:
 
 ```java
 String[] fields = {"Nguyen, Lan", "Java"};
@@ -384,56 +384,56 @@ System.out.println(String.join(",", fields));
 // Nguyen, Lan,Java
 ```
 
-Nếu chỉ `split(",")` sau đó, kết quả sẽ có **ba đoạn** thay vì hai trường ban đầu. Với CSV đúng chuẩn, trường có dấu phẩy thường phải được quote, và dấu quote bên trong trường cũng phải được escape theo định dạng tương ứng. Nên dùng thư viện/parser CSV thích hợp khi dữ liệu cần lưu trữ hoặc truyền hệ thống. Các định dạng như JSON cũng có quy tắc rõ về mảng rỗng, `null`, chuỗi rỗng và escaping.
+If you simply call `split(",")` afterward, the result has **three pieces** instead of the original two fields. In standard CSV, a field containing a comma typically must be quoted, and quotes inside the field must also be escaped according to the format. Use an appropriate CSV library/parser when data must be persisted or exchanged between systems. Formats like JSON also define clear rules for empty arrays, `null`, empty strings, and escaping.
 
-**Lựa chọn thực tế:**
+**Practical choices:**
 
-- **Nhóm nhãn hiển thị:** `String.join`, có thể lọc phần tử rỗng theo nhu cầu hiển thị.
-- **Ghép nội dung log đơn giản:** `StringJoiner` hoặc `Collectors.joining`; bảo đảm không mất trường quan trọng khi debug.
-- **Dòng bản ghi cố định và delimiter không xuất hiện trong trường:** giữ đủ số trường, dùng delimiter literal, `split(Pattern.quote(delimiter), -1)` khi tách; vẫn phải xử lý trường hợp danh sách 0/1 rỗng.
-- **Dữ liệu cấu trúc tổng quát:** định dạng/serializer có escaping, null và độ dài trường rõ ràng.
+- **Grouping display labels:** `String.join`, optionally filtering empty elements for display needs.
+- **Simple log concatenation:** `StringJoiner` or `Collectors.joining`; ensure critical fields are not silently dropped when debugging.
+- **Fixed-record lines where delimiters cannot appear in fields:** keep all fields, use a literal delimiter, and `split(Pattern.quote(delimiter), -1)` when splitting; still handle the 0 vs. 1 empty-element case.
+- **General structured data:** use a format/serializer with explicit escaping, null representation, and field boundaries.
 
-## 11. Lỗi thường gặp
+## 11. Common Mistakes
 
-1. **Tưởng `String.join` tự bỏ `""`.** Không: mỗi phần tử rỗng vẫn chiếm một vị trí và làm xuất hiện delimiter theo số lượng phần tử.
-2. **Tưởng delimiter ở đầu/cuối là do join thêm sai.** Nếu phần tử đầu/cuối rỗng, delimiter có thể xuất hiện ở biên kết quả một cách hoàn toàn đúng.
-3. **Không phân biệt danh sách rỗng và một phần tử rỗng.** Hai trường hợp đều có thể mã hóa thành `""`, nhưng một bên có 0 phần tử, bên kia có 1 phần tử.
-4. **Nhầm phần tử `null` với delimiter `null`.** Phần tử null được chuyển thành chữ `"null"`; delimiter null hoặc tập phần tử null ném `NullPointerException`.
-5. **Gọi `split(",")` rồi mất các trường rỗng cuối.** Nếu cần giữ chúng, dùng `split(",", -1)`.
-6. **Dùng `split("|")` để tách dấu `|` literal.** `split` nhận regex; hãy dùng `Pattern.quote("|")`.
-7. **Lọc rỗng trong dữ liệu có vị trí cột cố định.** Việc lọc khiến các giá trị sau bị dịch cột; không được đánh đổi cấu trúc chỉ để chuỗi nhìn gọn hơn.
-8. **Đánh đồng `isEmpty()` với `isBlank()`.** `""` rỗng; `" "` không rỗng nhưng có thể blank. Chính sách loại bỏ của chúng khác nhau.
-9. **Dùng `join` rồi `split` như cơ chế mã hóa không mất mát.** Dữ liệu có delimiter, null hoặc danh sách 0/1 rỗng làm đảo chiều không còn đáng tin.
-10. **Tự tạo CSV bằng cách nối dấu phẩy mà không escape.** CSV/TSV hay giao thức dữ liệu có thể yêu cầu quote, escape và quy tắc về dòng mới; hãy dùng công cụ đúng định dạng.
+1. **Thinking `String.join` automatically skips `""`.** No: each empty element still occupies a slot and produces delimiters according to the element count.
+2. **Thinking a leading/trailing delimiter means `join` added an extra one.** If the first or last element is empty, a delimiter at the boundary of the result is completely accurate.
+3. **Failing to distinguish an empty list from a single empty element.** Both can encode to `""`, yet one has 0 elements and the other has 1 element.
+4. **Confusing a `null` element with a `null` delimiter.** A null element becomes the text `"null"`; a null delimiter or null element collection throws `NullPointerException`.
+5. **Calling `split(",")` and losing trailing empty fields.** If you need to keep them, use `split(",", -1)`.
+6. **Using `split("|")` to split on a literal `|`.** `split` expects a regex; use `Pattern.quote("|")`.
+7. **Filtering empty elements in positional column data.** Filtering shifts subsequent values into earlier columns; never sacrifice structure just to make a string look cleaner.
+8. **Equating `isEmpty()` with `isBlank()`.** `""` is empty; `" "` is not empty, though it may be blank. Their filtering policies differ.
+9. **Using `join` then `split` as a lossless encoding.** Data containing delimiters, nulls, or 0/1 empty lists makes round-tripping unreliable.
+10. **Building CSV by joining with commas without escaping.** CSV/TSV and data protocols may require quoting, escaping, and newline handling; use format-appropriate tools.
 
-## 12. Bài tập tự kiểm tra
+## 12. Self-Check Exercises
 
-Hãy tính hai chuỗi sau mà **không chạy code**:
+Evaluate the following two strings **without running code**:
 
 ```java
 String first = String.join("-", "", "A", "", "B", "");
 String second = String.join("-", "A", "B");
 ```
 
-Đáp án:
+Answer:
 
 ```text
 first  = -A--B-
 second = A-B
 ```
 
-Có năm phần tử trong `first` nên có **bốn dấu `-` phân cách**, kể cả khi các phần tử ngoài cùng rỗng. `second` có hai phần tử nên chỉ có một dấu phân cách.
+There are five elements in `first`, so there are **four `-` delimiters**, even though the outer elements are empty. `second` has two elements, so there is only one delimiter.
 
-Tiếp theo, với `String value = "A||B|"`, hỏi:
+Next, given `String value = "A||B|"`, consider:
 
-- `value.split(java.util.regex.Pattern.quote("|"))` có **3** phần tử (`"A"`, `""`, `"B"`) vì phần tử rỗng cuối bị bỏ.
-- `value.split(java.util.regex.Pattern.quote("|"), -1)` có **4** phần tử, gồm phần tử rỗng cuối.
-- Không thể biết chỉ từ một chuỗi `"A||B|"` liệu dữ liệu ban đầu đã được tạo bằng một cách mã hóa với escaping hay không; muốn đảm bảo tái tạo toàn bộ đầu vào cần một hợp đồng biểu diễn phù hợp.
+- `value.split(java.util.regex.Pattern.quote("|"))` produces **3** elements (`"A"`, `""`, `"B"`) because the trailing empty element is discarded.
+- `value.split(java.util.regex.Pattern.quote("|"), -1)` produces **4** elements, including the trailing empty element.
+- From the string `"A||B|"` alone, you cannot tell whether the original data was produced by an encoding with escaping; guaranteeing full input reconstruction requires an appropriate representation contract.
 
-**Ghi nhớ:** `String.join` chèn dấu phân cách **giữa các phần tử**, không mặc định bỏ chuỗi rỗng. Hãy quyết định rõ chính sách giữ/lọc `""` và `null` trước khi ghép; nếu muốn tách lại, nhớ regex của `split` và `limit=-1`, nhưng đừng xem nối chuỗi đơn giản là một định dạng dữ liệu hoàn nguyên.
+**Takeaway:** `String.join` inserts delimiters **between elements** and does not drop empty strings by default. Decide explicitly on your policy for keeping/filtering `""` and `null` before joining; if you need to split back, remember `split`'s regex behavior and `limit=-1`, and do not treat plain string joining as a lossless data format.
 
-### Tài liệu API Java 17
+### Java 17 API References
 
-- [`String.join` và `String.split` — Oracle Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html)
+- [`String.join` and `String.split` — Oracle Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html)
 - [`StringJoiner` — Oracle Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/StringJoiner.html)
-- [`Pattern.quote` và giới hạn của `split` — Oracle Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html)
+- [`Pattern.quote` and `split` limits — Oracle Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html)

@@ -1,26 +1,26 @@
-# Điều kiện một type được access từ module khác trong Java Module System
+# Conditions for a Type to Be Accessed from Another Module in the Java Module System
 
-## 1. Mục tiêu bài học
+## 1. Lesson Objectives
 
-Kể từ Java 9, Java Platform Module System (JPMS) bổ sung ranh giới truy cập ở cấp **module**. Một kiểu dữ liệu (`class`, `interface`, `enum`, `record` hoặc annotation type) có khai báo `public` chưa đủ để mã trong một **named module** khác có thể sử dụng trực tiếp kiểu đó.
+Since Java 9, the Java Platform Module System (JPMS) has added access boundaries at the **module** level. Having a `public` declaration on a type (`class`, `interface`, `enum`, `record`, or annotation type) is no longer enough for code in another **named module** to use that type directly.
 
-Bài này tập trung vào câu hỏi: **Một type ở module A cần thỏa điều kiện gì để mã ở module B truy cập được?**
+This lesson focuses on the question: **What conditions must a type in module A satisfy for code in module B to access it?**
 
-Sau khi học, bạn có thể:
+After completing this lesson, you will be able to:
 
-- Giải thích ba tầng kiểm soát truy cập: **module readability**, **package exports** và **Java accessibility**.
-- Tự dựng hai named module để quan sát cả trường hợp truy cập thành công lẫn bị trình biên dịch từ chối.
-- Phân biệt `requires`, `requires transitive`, `exports`, `exports ... to`, `opens` và các tùy chọn bổ sung quyền.
-- Xác định điều kiện truy cập của lớp lồng nhau, thành viên, kiểu trả về và kiểu tham số trong API.
-- Chẩn đoán nguyên nhân lỗi khi một `public` type “tồn tại nhưng không thể import”.
+- Explain the three layers of access control: **module readability**, **package exports**, and **Java accessibility**.
+- Build two named modules yourself to observe both successful access cases and cases rejected by the compiler.
+- Distinguish `requires`, `requires transitive`, `exports`, `exports ... to`, `opens`, and options for adding access permissions.
+- Determine the access conditions for nested classes, members, return types, and parameter types in an API.
+- Diagnose the root cause when a `public` type "exists but cannot be imported".
 
-## 2. Mô hình ba điều kiện truy cập
+## 2. The Three-Condition Access Model
 
-Giả sử module `consumer.app` muốn sử dụng type `org.example.library.api.Greeting` trong module `library.core`. Khi nói tới **truy cập thông thường từ mã Java** ở một named module khác, phải xét đồng thời:
+Suppose module `consumer.app` wants to use the type `org.example.library.api.Greeting` in module `library.core`. When referring to **normal access from Java code** in another named module, you must simultaneously consider:
 
-**Điều kiện 1 — Module B đọc được module A (readability).**
+**Condition 1 — Module B can read module A (readability).**
 
-`consumer.app` cần có quan hệ đọc tới `library.core`. Cách thông dụng là khai báo:
+`consumer.app` needs a reads relationship to `library.core`. The common way is to declare:
 
 ~~~java
 module consumer.app {
@@ -28,11 +28,11 @@ module consumer.app {
 }
 ~~~
 
-Quan hệ đọc cũng có thể đến từ một số cơ chế JPMS khác, chẳng hạn `requires transitive` từ module trung gian hoặc cấu hình bổ sung `--add-reads`. Tự biết tên module A hoặc đặt JAR của A trên module path chưa mặc nhiên thay thế quan hệ đọc.
+A reads relationship can also come from certain other JPMS mechanisms, such as `requires transitive` from an intermediate module or the `--add-reads` configuration option. Simply knowing module A's name or placing module A's JAR on the module path does not automatically establish a reads relationship.
 
-**Điều kiện 2 — Package chứa type được module A export cho B.**
+**Condition 2 — The package containing the type is exported by module A to B.**
 
-Trong descriptor của `library.core` phải có một trong hai dạng phù hợp:
+In the descriptor of `library.core`, there must be one of the two appropriate forms:
 
 ~~~java
 module library.core {
@@ -40,7 +40,7 @@ module library.core {
 }
 ~~~
 
-Hoặc chỉ mở package cho module nhận quyền cụ thể:
+Or opening the package only to specific authorized modules:
 
 ~~~java
 module library.core {
@@ -48,41 +48,41 @@ module library.core {
 }
 ~~~
 
-`exports` là khai báo ở **cấp package**, không cấp từng class. Export `org.example.library.api` không tự export `org.example.library.internal` hay các package con có tên bắt đầu giống nhau.
+`exports` is declared at the **package level**, not per individual class. Exporting `org.example.library.api` does not automatically export `org.example.library.internal` or subpackages whose names start with the same prefix.
 
-**Điều kiện 3 — Bản thân type accessible theo Java Language Specification.**
+**Condition 3 — The type itself is accessible according to the Java Language Specification.**
 
-Nếu hai package ở hai module khác nhau, một top-level type muốn được gọi trực tiếp từ bên ngoài phải là `public`. Nếu đó là nested type, còn phải xét accessibility của lớp bao ngoài và của chính nested type. Đối với trường hợp gọi constructor, field hoặc method, phải kiểm tra thêm accessibility của **thành viên** tương ứng.
+If the two packages are in two different modules, a top-level type must be `public` to be referenced directly from outside. If it is a nested type, you must also consider the accessibility of the enclosing class and of the nested type itself. When calling a constructor, field, or method, you must additionally check the accessibility of the corresponding **member**.
 
-Ba điều kiện kết hợp:
+Combining the three conditions:
 
 ~~~text
-Mã tại consumer.app
+Code in consumer.app
          |
-         | 1. consumer.app đọc được library.core?
+         | 1. Does consumer.app read library.core?
          v
    Module library.core
          |
-         | 2. Package của Greeting được exports tới consumer.app?
+         | 2. Is Greeting's package exported to consumer.app?
          v
  org.example.library.api
          |
-         | 3. Greeting là public / accessible theo Java?
+         | 3. Is Greeting public / accessible under Java rules?
          v
-   Sử dụng Greeting được
+   Can use Greeting
 ~~~
 
-Có thể diễn đạt ngắn gọn:
+This can be expressed concisely as:
 
-> **Access qua biên giới named module = readability phù hợp + package được export cho module gọi + access modifier hợp lệ.**
+> **Access across a named module boundary = appropriate readability + package exported to the calling module + valid access modifiers.**
 
-Đây là mô hình cho **truy cập thông thường** tới kiểu trong các named modules. Truy cập qua reflection, module tự động và code chạy trên classpath có các chi tiết riêng, được đề cập bên dưới.
+This is the model for **normal access** to types in named modules. Access via reflection, automatic modules, and code running on the classpath have their own details, covered below.
 
-## 3. Ví dụ chạy được: hai named modules
+## 3. Runnable Example: Two Named Modules
 
-Ta tạo module thư viện `library.core` và module sử dụng `consumer.app`.
+Let us create the library module `library.core` and the consumer module `consumer.app`.
 
-### 3.1. Cấu trúc thư mục
+### 3.1. Directory Structure
 
 ~~~text
 project/
@@ -95,10 +95,10 @@ project/
 │   └── consumer.app/
 │       ├── module-info.java
 │       └── org/example/app/Main.java
-└── out/                    # javac tạo ra sau khi biên dịch
+└── out/                    # generated by javac after compilation
 ~~~
 
-### 3.2. Module cung cấp type
+### 3.2. Module Providing the Type
 
 File `src/library.core/module-info.java`:
 
@@ -138,9 +138,9 @@ public final class TextFormatter {
 }
 ~~~
 
-`TextFormatter` là một top-level class `public`, nhưng package `internal` **không được export**. `Greeting` vẫn gọi được `TextFormatter` vì cả hai nằm trong cùng module `library.core` và access modifier cho phép.
+`TextFormatter` is a `public` top-level class, but the `internal` package is **not exported**. `Greeting` can still call `TextFormatter` because both reside in the same module `library.core` and the access modifiers allow it.
 
-### 3.3. Module tiêu thụ type
+### 3.3. Module Consuming the Type
 
 File `src/consumer.app/module-info.java`:
 
@@ -164,53 +164,53 @@ public final class Main {
 }
 ~~~
 
-Từ thư mục `project`, biên dịch các module:
+From the `project` directory, compile the modules:
 
 ~~~shell
 javac --module-source-path src -d out -m library.core,consumer.app
 ~~~
 
-Chạy module ứng dụng:
+Run the application module:
 
 ~~~shell
 java --module-path out -m consumer.app/org.example.app.Main
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Hello, Java!
 ~~~
 
-Giải thích:
+Explanation:
 
-1. `consumer.app` có `requires library.core;` nên đọc được `library.core`.
-2. `library.core` export package `org.example.library.api` không giới hạn.
-3. `Greeting` và `sayHello` là `public`; tên type và thành viên phù hợp với luật truy cập Java.
+1. `consumer.app` has `requires library.core;`, so it reads `library.core`.
+2. `library.core` exports the package `org.example.library.api` unconditionally.
+3. `Greeting` and `sayHello` are `public`; the type and member names satisfy Java access rules.
 
-Tất cả điều kiện cần đều thỏa mãn nên chương trình chạy được.
+All necessary conditions are met, so the program runs.
 
-## 4. Thiếu một điều kiện thì điều gì xảy ra?
+## 4. What Happens When One Condition Is Missing?
 
-### 4.1. Module không đọc được module cung cấp
+### 4.1. The Module Cannot Read the Provider Module
 
-Bỏ dòng `requires library.core;` trong descriptor của `consumer.app`, nhưng vẫn giữ lệnh `import org.example.library.api.Greeting;`.
+Remove the `requires library.core;` line from `consumer.app`'s descriptor, while keeping `import org.example.library.api.Greeting;`.
 
-Trình biên dịch không cho phép consumer truy cập package qua module chưa được đọc. Chẩn đoán thường nhắc rằng package nằm trong module `library.core` nhưng `consumer.app` không đọc module đó.
+The compiler does not allow the consumer to access a package from a module it does not read. The diagnostic typically mentions that the package is in module `library.core`, which `consumer.app` does not read.
 
-Điểm cần nhớ: package có `exports` vẫn chưa đủ. Module sử dụng cần **readability** đến module cung cấp. Đặt module lên module path giúp hệ thống tìm kiếm module, nhưng không tự động làm mọi named module đọc được nhau.
+Key takeaway: having `exports` on the package is still not enough. The consuming module needs **readability** to the provider module. Placing a module on the module path helps the system locate the module, but it does not automatically make all named modules read one another.
 
-### 4.2. Module đọc được nhau nhưng package không được export
+### 4.2. The Modules Read Each Other, but the Package Is Not Exported
 
-Giữ `requires library.core;`, sửa descriptor thư viện:
+Keep `requires library.core;`, and modify the library descriptor:
 
 ~~~java
 module library.core {
-    // Không exports org.example.library.api
+    // Does not export org.example.library.api
 }
 ~~~
 
-Khi `Main` cố `import Greeting`, javac thường báo lỗi dạng:
+When `Main` tries to `import Greeting`, `javac` typically reports an error like:
 
 ~~~text
 package org.example.library.api is not visible
@@ -218,13 +218,13 @@ package org.example.library.api is not visible
  which does not export it)
 ~~~
 
-Vì package chưa export, việc `Greeting` được khai báo `public` không giải quyết được lỗi.
+Because the package is not exported, declaring `Greeting` as `public` does not resolve the error.
 
-Tình huống này xảy ra nhiều khi người viết thư viện nhầm tưởng rằng mọi `public class` trong một JAR đều đương nhiên là public API của named module.
+This situation often happens when a library author mistakenly assumes that every `public class` in a JAR is automatically part of a named module's public API.
 
-### 4.3. Package đã export nhưng top-level type không public
+### 4.3. The Package Is Exported, but the Top-Level Type Is Not Public
 
-Giữ `exports org.example.library.api;`, nhưng đổi khai báo:
+Keep `exports org.example.library.api;`, but change the declaration:
 
 ~~~java
 package org.example.library.api;
@@ -234,13 +234,13 @@ final class Greeting {
 }
 ~~~
 
-Khi đó `Greeting` chỉ có quyền package-private theo ngôn ngữ Java. Module khác không thể dùng nó trực tiếp dù package được export.
+In this case, `Greeting` only has package-private visibility under the Java language rules. Another module cannot use it directly even though the package is exported.
 
-Vì vậy `exports` không nâng một type package-private lên `public` và không nâng quyền thành viên `private` hay package-private.
+Therefore, `exports` does not elevate a package-private type to `public`, nor does it elevate `private` or package-private members.
 
-### 4.4. Có đủ quyền truy cập class nhưng không đủ quyền gọi thành viên
+### 4.4. Sufficient Access to the Class, but Insufficient Access to a Member
 
-Ví dụ:
+Example:
 
 ~~~java
 package org.example.library.api;
@@ -248,10 +248,10 @@ package org.example.library.api;
 public class Counter {
     private int value;
 
-    Counter() {             // constructor package-private
+    Counter() {             // package-private constructor
     }
 
-    void increment() {      // method package-private
+    void increment() {      // package-private method
         value++;
     }
 
@@ -261,24 +261,24 @@ public class Counter {
 }
 ~~~
 
-Module khác có thể tham chiếu đến type `Counter` nếu ba điều kiện ở mục 2 thỏa, nhưng **không thể** gọi `new Counter()` từ package khác, không thể gọi `increment()` và không thể truy cập `value` trực tiếp. Khả năng truy cập type và khả năng gọi từng member là hai câu hỏi khác nhau.
+Another module can reference the type `Counter` if the three conditions in section 2 are met, but it **cannot** call `new Counter()` from another package, cannot call `increment()`, and cannot access `value` directly. Type accessibility and individual member accessibility are two separate checks.
 
-## 5. Ma trận quyết định quyền access
+## 5. Access Decision Matrix
 
-| Module tiêu thụ đọc được module cung cấp? | Package export tới module tiêu thụ? | Top-level type public? | Truy cập type trực tiếp? |
+| Does the consumer module read the provider module? | Is the package exported to the consumer module? | Is the top-level type public? | Direct type access? |
 |---|---|---|---|
-| Có | Có | Có | Có, nếu các điều kiện Java khác cũng hợp lệ |
-| Không | Có | Có | Không |
-| Có | Không | Có | Không |
-| Có | Có | Không | Không, nếu gọi từ package khác |
-| Có | Chỉ export tới module khác | Có | Không |
-| Có | Có | Có, nhưng member cần gọi là private | Type có thể truy cập; member đó không |
+| Yes | Yes | Yes | Yes, if other Java rules are also satisfied |
+| No | Yes | Yes | No |
+| Yes | No | Yes | No |
+| Yes | Yes | No | No, if called from another package |
+| Yes | Exported only to another module | Yes | No |
+| Yes | Yes | Yes, but the target member is private | Type is accessible; that member is not |
 
-Bảng này giả định mã sử dụng nằm ở **một named module khác**. Các trường hợp diễn giải cùng module hoặc reflection không nên áp dụng máy móc kết luận của bảng.
+This table assumes the calling code is in **another named module**. Cases involving the same module or reflection should not mechanically apply this table's conclusions.
 
-## 6. Export không giới hạn và qualified exports
+## 6. Unqualified Exports and Qualified Exports
 
-Mở cho mọi module có khả năng đọc module cung cấp:
+Opening a package to every module that can read the provider module:
 
 ~~~java
 module library.core {
@@ -286,7 +286,7 @@ module library.core {
 }
 ~~~
 
-Mở cho đúng một hoặc một số named module được chỉ định:
+Opening a package only to one or more specified named modules:
 
 ~~~java
 module library.core {
@@ -294,18 +294,18 @@ module library.core {
 }
 ~~~
 
-Ý nghĩa của dạng thứ hai:
+Meaning of the second form:
 
-- `consumer.app` và `admin.tool` có thể sử dụng những type accessible ở package `api` nếu chúng đọc được `library.core`.
-- Các named module khác không được quyền truy cập trực tiếp package `api` nhờ khai báo này.
-- Tên sau `to` là **tên module**, không phải package hay tên class.
-- Qualified export không tự tạo `requires` ở phía tiêu thụ; mỗi module nhận quyền vẫn cần quan hệ đọc phù hợp.
+- `consumer.app` and `admin.tool` can use accessible types in the `api` package if they read `library.core`.
+- Other named modules are not granted direct access to the `api` package by this declaration.
+- The names after `to` are **module names**, not package names or class names.
+- A qualified export does not automatically create `requires` on the consumer side; each authorized module still needs an appropriate reads relationship.
 
-Dạng qualified export hữu ích với API chỉ dành cho công cụ quản trị hoặc một module tích hợp đã xác định. Nhưng nếu đó là API dùng chung cho nhiều ứng dụng độc lập, `exports p;` thường rõ ràng và dễ duy trì hơn.
+The qualified export form is useful for APIs intended only for an admin tool or a known integration module. However, if an API is shared across many independent applications, `exports p;` is usually clearer and easier to maintain.
 
-## 7. `requires`, `requires transitive` và cách truyền readability
+## 7. `requires`, `requires transitive`, and How Readability Propagates
 
-Thông thường:
+Normally:
 
 ~~~java
 module consumer.app {
@@ -313,15 +313,15 @@ module consumer.app {
 }
 ~~~
 
-Nghĩa là `consumer.app` đọc `library.core`. Tuy nhiên, quan hệ đọc có thể được hình thành gián tiếp.
+This means `consumer.app` reads `library.core`. However, readability can also be established indirectly.
 
-Giả sử có ba module:
+Suppose there are three modules:
 
 ~~~text
 app.frontend --> service.facade --> model.api
 ~~~
 
-Nếu `service.facade` khai báo:
+If `service.facade` declares:
 
 ~~~java
 module service.facade {
@@ -330,7 +330,7 @@ module service.facade {
 }
 ~~~
 
-Và `app.frontend` khai báo:
+And `app.frontend` declares:
 
 ~~~java
 module app.frontend {
@@ -338,21 +338,21 @@ module app.frontend {
 }
 ~~~
 
-Thì `app.frontend` cũng đọc được `model.api` nhờ `requires transitive`. Đây là cơ chế phù hợp khi public API của facade dùng các kiểu công khai từ module `model.api`.
+Then `app.frontend` also reads `model.api` thanks to `requires transitive`. This mechanism is appropriate when the facade's public API exposes public types from module `model.api`.
 
-Nhưng **readability được truyền không đồng nghĩa exports được truyền**: package chứa type trong `model.api` vẫn phải được export tới `app.frontend`. Nếu package chỉ export cho một module khác, `requires transitive` không mở được package đó cho ứng dụng.
+However, **propagated readability does not mean propagated exports**: the package containing the type in `model.api` must still be exported to `app.frontend`. If the package is only exported to another module, `requires transitive` does not open that package to the application.
 
-Một số lưu ý:
+A few notes:
 
-- Mọi named module đều đọc module `java.base` theo mặc định; không cần `requires java.base;`.
-- `requires static` là dependency bắt buộc lúc biên dịch nhưng có thể không hiện diện khi chạy. Nó không là cách bỏ qua giới hạn exports và cần cân nhắc trước khi dùng kiểu của dependency trong đường chạy thực tế.
-- `requires` chỉ là khai báo quan hệ đọc. Nó không thay đổi `public`, `protected`, `private` hay exports của module đích.
+- Every named module reads the `java.base` module by default; `requires java.base;` is not needed.
+- `requires static` is a dependency required at compile time that may be absent at runtime. It is not a way to bypass export restrictions, and you should think carefully before using the dependency's types on actual runtime execution paths.
+- `requires` only declares a reads relationship. It does not change `public`, `protected`, `private`, or the target module's exports.
 
-## 8. Nested type, interface, record, enum và API signature
+## 8. Nested Types, Interfaces, Records, Enums, and API Signatures
 
-Quy tắc JPMS không chỉ áp dụng cho `class`. Một `public interface`, `public enum`, `public record` hoặc `public @interface` trong package không export cũng không tự động accessible từ module khác.
+JPMS rules do not apply only to `class`. A `public interface`, `public enum`, `public record`, or `public @interface` in a non-exported package is likewise not automatically accessible from another module.
 
-Với **nested type**, cần quan tâm cả lớp bao ngoài:
+For **nested types**, you must also consider the enclosing class:
 
 ~~~java
 package org.example.library.api;
@@ -366,7 +366,7 @@ public class Container {
 }
 ~~~
 
-Nếu package được export và consumer đọc được module cung cấp, `Container.Nested` có thể được sử dụng theo luật Java thông thường. Ngược lại:
+If the package is exported and the consumer reads the provider module, `Container.Nested` can be used under normal Java rules. Conversely:
 
 ~~~java
 package org.example.library.api;
@@ -377,12 +377,12 @@ class Container {
 }
 ~~~
 
-`Nested` dù có `public` vẫn không trở thành một type bên ngoài có thể dùng theo tên `Container.Nested`: lớp bao ngoài `Container` không accessible.
+Even though `Nested` is `public`, it does not become an external type usable as `Container.Nested`: the enclosing class `Container` is not accessible.
 
-Với API public chứa tham số hoặc kiểu trả về từ package không export, người tiêu thụ có thể gặp lỗi khi sử dụng API:
+When a public API has parameter or return types from a non-exported package, consumers may encounter errors when using the API:
 
 ~~~java
-// Package: org.example.library.api, được exports
+// Package: org.example.library.api, exported
 package org.example.library.api;
 
 import org.example.library.internal.TextFormatter;
@@ -392,7 +392,7 @@ public interface FormatterFactory {
 }
 ~~~
 
-Điều đó làm hợp đồng công khai bị phụ thuộc vào kiểu nội bộ không accessible. Người thiết kế module nên đặt kiểu giao diện hoặc DTO phù hợp vào package API:
+That makes the public contract depend on an inaccessible internal type. Module designers should place appropriate interface or DTO types in the API package:
 
 ~~~java
 // Package: org.example.library.api
@@ -416,18 +416,18 @@ public final class Formatters {
 }
 ~~~
 
-Mã ngoài module chỉ cần nhìn thấy `Formatter` và `Formatters`. Chi tiết triển khai có thể nằm trong package không export.
+Code outside the module only needs to see `Formatter` and `Formatters`. Implementation details can remain in a non-exported package.
 
-## 9. `exports` khác `opens` ra sao?
+## 9. How Does `exports` Differ from `opens`?
 
-Đây là điểm thường gây nhầm lẫn khi thảo luận về “access”:
+This is a frequent point of confusion when discussing "access":
 
-- `exports p;` cho phép truy cập thông thường, cả compile time và runtime, tới những public type và public member accessible trong package `p`, tùy readability và luật Java.
-- `opens p;` mở package `p` cho **reflection ở runtime**, bao gồm deep reflection khi hợp lệ. Nó không tạo quyền `import` kiểu trong mã Java từ module khác.
-- `opens p to framework.module;` chỉ mở package cho module được chỉ định.
-- `open module x { ... }` mở các package để hỗ trợ reflection ở runtime; điều đó không đồng nghĩa xuất tất cả package cho truy cập mã nguồn thông thường.
+- `exports p;` allows normal access, at both compile time and runtime, to accessible public types and public members in package `p`, subject to readability and Java rules.
+- `opens p;` opens package `p` for **runtime reflection**, including deep reflection where permitted. It does not grant permission to `import` types in Java source code from another module.
+- `opens p to framework.module;` opens the package only to the specified module.
+- `open module x { ... }` opens the module's packages to support runtime reflection; it does not export all packages for normal source-code access.
 
-Ví dụ:
+Example:
 
 ~~~java
 module library.core {
@@ -436,13 +436,13 @@ module library.core {
 }
 ~~~
 
-`consumer.app` không thể sử dụng câu lệnh `import org.example.library.internal.TextFormatter;` chỉ vì package `internal` được mở cho `reflection.tool`. Ngay cả `reflection.tool`, với khai báo `opens` đó, cũng không nhận quyền import thông thường chỉ từ `opens`.
+`consumer.app` cannot use `import org.example.library.internal.TextFormatter;` merely because the `internal` package is opened to `reflection.tool`. Even `reflection.tool`, with that `opens` declaration, does not receive normal import permission from `opens` alone.
 
-Khi gặp `InaccessibleObjectException` do deep reflection, kiểm tra `opens`. Khi gặp lỗi compile do type trong package không visible, kiểm tra `requires` và `exports`. Hai loại sự cố có cơ chế xử lý khác nhau.
+When you encounter `InaccessibleObjectException` due to deep reflection, check `opens`. When you encounter a compile error because a type in a package is not visible, check `requires` and `exports`. The two categories of issues have different mechanisms.
 
-## 10. Kiểm tra readability và exports ở runtime
+## 10. Checking Readability and Exports at Runtime
 
-Có thể dùng API `java.lang.Module` để quan sát module sở hữu type và quan hệ giữa các module. Đặt đoạn dưới đây trong phương thức `main` của ví dụ đang hoạt động:
+You can use the `java.lang.Module` API to inspect which module owns a type and the relationships between modules. Place the snippet below inside the `main` method of the working example:
 
 ~~~java
 Module consumer = Main.class.getModule();
@@ -459,7 +459,7 @@ System.out.println(
 );
 ~~~
 
-Với descriptor ban đầu ở mục 3, kết quả tương ứng là:
+With the initial descriptors from section 3, the output is:
 
 ~~~text
 consumer.app
@@ -469,143 +469,143 @@ true
 false
 ~~~
 
-`canRead` trả lời câu hỏi **module consumer đọc được provider không?** `isExported(packageName, consumer)` trả lời câu hỏi **package đó được export tới consumer không?** Hai phương thức này không thay việc kiểm tra quyền `public`/package-private của từng type hay member.
+`canRead` answers the question: **Does the consumer module read the provider?** `isExported(packageName, consumer)` answers the question: **Is that package exported to the consumer?** Neither method replaces checking `public`/package-private access of each individual type or member.
 
-Cũng có thể xem descriptor đã biên dịch bằng JDK:
+You can also inspect a compiled descriptor using the JDK:
 
 ~~~shell
 java --module-path out --describe-module library.core
 ~~~
 
-Trong đầu ra, quan sát các package được export và những package chỉ được chứa bên trong module.
+In the output, observe which packages are exported and which are merely contained inside the module.
 
-## 11. Trường hợp module tự động và unnamed module
+## 11. Automatic Modules and the Unnamed Module
 
-Ba điều kiện trên dễ thấy nhất khi cả bên cung cấp lẫn bên sử dụng đều là **explicit named modules**. Trong thực tế, cần phân biệt thêm:
+The three conditions above are clearest when both provider and consumer are **explicit named modules**. In practice, you also need to distinguish:
 
-**Automatic module.** Một JAR nằm trên module path nhưng không có `module-info.class` có thể được xử lý như automatic module. Automatic module có quy tắc đặc biệt: nhìn chung các package của nó được export, và nó đọc được các module khác theo cơ chế automatic module. Điều này hỗ trợ chuyển tiếp từ thư viện cũ, nhưng không thể giả định mọi thuộc tính của explicit named module đều giống automatic module.
+**Automatic module.** A JAR placed on the module path without a `module-info.class` can be treated as an automatic module. Automatic modules follow special rules: generally their packages are exported, and they read other modules according to automatic-module rules. This supports transitioning legacy libraries, but you cannot assume every property of an explicit named module matches an automatic module.
 
-**Unnamed module (classpath).** Mã đặt trên classpath thuộc unnamed module và có cơ chế readability riêng. Khi muốn mã đó truy cập một package nội bộ của **named module**, yêu cầu export vẫn có ý nghĩa; một package không export không bỗng trở thành public API chỉ vì caller chạy trên classpath.
+**Unnamed module (classpath).** Code placed on the classpath belongs to the unnamed module and has its own readability rules. When that code wants to access an internal package of a **named module**, the export requirement still matters; a non-exported package does not suddenly become public API just because the caller runs on the classpath.
 
-**Cùng module.** Với hai package thuộc cùng một named module, khai báo `exports` không cần thiết cho việc một class `public` của package này được class ở package kia sử dụng. Luật truy cập Java vẫn áp dụng. Ranh giới `exports` đặc biệt quan trọng khi **đi qua biên giới module**.
+**Same module.** For two packages belonging to the same named module, an `exports` declaration is not required for a `public` class in one package to be used by a class in the other package. Java access rules still apply. The `exports` boundary is specifically enforced when **crossing a module boundary**.
 
-Nhờ các trường hợp này, khi chẩn đoán lỗi trước hết nên xác định: class đang chạy ở module nào, đó là explicit named, automatic hay unnamed module và quá trình chạy đặt JAR ở module path hay classpath.
+Because of these cases, when diagnosing an error, first determine: which module the running class is in, whether it is an explicit named, automatic, or unnamed module, and whether the JAR was placed on the module path or classpath during execution.
 
-## 12. Các cờ bổ sung quyền khi cần di trú
+## 12. Flags for Granting Additional Access During Migration
 
-Có trường hợp công cụ cũ hoặc bài kiểm thử cần truy cập một package vốn không export. JDK cung cấp các tùy chọn để bổ sung quan hệ đọc hoặc quyền truy cập mà không sửa descriptor gốc.
+Sometimes legacy tools or tests need to access a package that is not exported. The JDK provides options to supplement reads relationships or access permissions without modifying the original descriptor.
 
-**`--add-reads`**: thêm quan hệ đọc, ví dụ:
+**`--add-reads`**: adds a reads relationship, for example:
 
 ~~~shell
 java --add-reads consumer.app=library.core --module-path out -m consumer.app/org.example.app.Main
 ~~~
 
-Cờ này chỉ giải quyết readability. Nếu package chưa export cho consumer, cờ trên vẫn chưa đủ.
+This flag only addresses readability. If the package is not exported to the consumer, this flag alone is not enough.
 
-**`--add-exports`**: export bổ sung một package cho module cụ thể. Với biến thể `Main` trực tiếp import `TextFormatter`, cần cấu hình thích hợp lúc biên dịch và chạy:
+**`--add-exports`**: additionally exports a package to a specific module. For a variant where `Main` directly imports `TextFormatter`, appropriate configuration is needed at both compile time and runtime:
 
 ~~~shell
 javac --module-source-path src -d out -m library.core,consumer.app --add-exports library.core/org.example.library.internal=consumer.app
 java --module-path out --add-exports library.core/org.example.library.internal=consumer.app -m consumer.app/org.example.app.Main
 ~~~
 
-Ví dụ chỉ dùng khi bạn đã sửa `Main` để gọi trực tiếp type nội bộ và đang thử nghiệm hành vi. Trong ứng dụng thực tế, đặt các tùy chọn compiler/JVM đúng theo công cụ build đang sử dụng.
+This example only applies when you have modified `Main` to call the internal type directly and are testing the behavior. In real applications, place the compiler/JVM options according to your build tool.
 
-**`--add-opens`**: bổ sung quyền mở package cho deep reflection lúc chạy:
+**`--add-opens`**: additionally opens a package for deep reflection at runtime:
 
 ~~~shell
 java --module-path out --add-opens library.core/org.example.library.internal=consumer.app -m consumer.app/org.example.app.Main
 ~~~
 
-`--add-opens` không thay thế `--add-exports` cho quyền import ở compile time.
+`--add-opens` does not replace `--add-exports` for compile-time import access.
 
-Với mã trên classpath, một mục tiêu thường gặp của `--add-exports` hoặc `--add-opens` là `ALL-UNNAMED`. Các cờ này chủ yếu hữu ích cho tương thích, kiểm thử hoặc di trú. API ổn định nên được thể hiện trong `module-info.java` và thiết kế package thay vì yêu cầu ứng dụng phụ thuộc lâu dài vào những ngoại lệ.
+For code on the classpath, a common target of `--add-exports` or `--add-opens` is `ALL-UNNAMED`. These flags are mainly useful for compatibility, testing, or migration. A stable API should be expressed in `module-info.java` and package design rather than requiring applications to rely permanently on such exceptions.
 
-## 13. Những lỗi phổ biến và cách xác định nguyên nhân
+## 13. Common Errors and How to Identify Their Causes
 
 ### `package ... is not visible`
 
-Có thể do module caller không đọc được module sở hữu package hoặc package không được export cho caller. Đọc kỹ phần giải thích kèm lỗi để phân biệt nguyên nhân.
+This can occur because the caller module does not read the module owning the package, or because the package is not exported to the caller. Read the accompanying diagnostic details carefully to distinguish the cause.
 
-Cách xử lý: kiểm tra `requires`, tên module, tên package, `exports` và giới hạn `exports ... to`.
+How to fix: check `requires`, module names, package names, `exports`, and `exports ... to` restrictions.
 
 ### `cannot find symbol`
 
-Có thể do sai tên type/import, thiếu class trong bản build, thay đổi API hoặc lỗi cấu hình nguồn. Không nên quy mọi `cannot find symbol` thành lỗi exports.
+This can be caused by a misspelled type/import name, a missing class in the build, an API change, or a source configuration error. Do not attribute every `cannot find symbol` error to an exports issue.
 
-Cách xử lý: xác minh class tồn tại trong artifact đang biên dịch và package/type name đúng.
+How to fix: verify that the class exists in the compiled artifact and that the package/type name is correct.
 
 ### `module not found`
 
-Module cung cấp chưa được tìm thấy trong đường tìm kiếm module hoặc tên `requires` không khớp với tên module.
+The provider module was not found on the module search path, or the `requires` name does not match the module name.
 
-Cách xử lý: kiểm tra `--module-path`, tên module trong descriptor hay metadata của JAR, và cấu hình build.
+How to fix: check `--module-path`, the module name in the descriptor or JAR metadata, and the build configuration.
 
 ### `IllegalAccessError`
 
-Có thể xuất hiện lúc runtime nếu bytecode đang tham chiếu đến class/member mà quyền truy cập hiện tại không cho phép, chẳng hạn khi cấu hình module dùng lúc build và lúc chạy khác nhau.
+This can occur at runtime if bytecode references a class/member that current access rules do not permit, for example when the module configuration differs between build time and runtime.
 
-Cách xử lý: đối chiếu module graph và quyền export của đúng phiên bản đang chạy.
+How to fix: compare the module graph and export permissions of the exact version being executed.
 
-### `InaccessibleObjectException` khi reflection
+### `InaccessibleObjectException` During Reflection
 
-Thường liên quan đến deep reflection vào package chưa mở cho module thực hiện reflection.
+Usually related to deep reflection into a package that is not open to the module performing reflection.
 
-Cách xử lý: xem xét `opens`, `opens ... to` hoặc một ngoại lệ runtime có kiểm soát bằng `--add-opens`.
+How to fix: check `opens`, `opens ... to`, or a controlled runtime exception using `--add-opens`.
 
-Lưu ý thêm: JPMS kiểm tra khả năng truy cập theo **module/package**, nhưng còn có các lỗi độc lập như split packages, xung đột dependency, thiếu module được resolve hoặc sai phiên bản lớp. Hãy dùng chẩn đoán thực tế để xác định đúng tầng lỗi.
+Additional note: JPMS checks accessibility by **module/package**, but there are also independent errors such as split packages, dependency conflicts, unresolved missing modules, or wrong class versions. Use actual diagnostics to identify the exact layer of the error.
 
-## 14. Quy trình kiểm tra nhanh cho một type cụ thể
+## 14. Quick Checklist for a Specific Type
 
-Khi được hỏi “Vì sao `SomeType` không access được từ module này?”, có thể thực hiện lần lượt:
+When asked "Why is `SomeType` not accessible from this module?", you can go through these steps in order:
 
-1. **Xác định type đầy đủ:** ví dụ `org.example.library.api.Greeting` và module chứa nó.
-2. **Xác định caller:** class đang nằm trong named module nào? Nếu chạy trên classpath, có phải unnamed module không?
-3. **Kiểm tra module resolution/readability:** module caller có thể đọc module chứa type không? Nếu là named module, xem `requires` và `requires transitive`.
-4. **Kiểm tra đúng package:** module cung cấp có `exports` package đó cho caller không? Qualified export có liệt kê đúng tên module caller không?
-5. **Kiểm tra luật Java:** type có `public` không? Nếu nested type, enclosing types có accessible không? Constructor/member cần dùng có accessible không?
-6. **Phân biệt cách truy cập:** dùng import/bytecode thông thường hay reflection? Với deep reflection, xem xét `opens` riêng.
-7. **Kiểm tra cấu hình build và runtime:** có đang dùng phiên bản module khác hoặc các cờ `--add-reads`, `--add-exports`, `--add-opens` khác nhau không?
+1. **Identify the full type:** for example `org.example.library.api.Greeting` and the module containing it.
+2. **Identify the caller:** which named module is the class in? If running on the classpath, is it in the unnamed module?
+3. **Check module resolution/readability:** can the caller module read the module containing the type? If it is a named module, check `requires` and `requires transitive`.
+4. **Check the exact package:** does the provider module `exports` that package to the caller? Does a qualified export list the exact caller module name?
+5. **Check Java rules:** is the type `public`? If it is a nested type, are enclosing types accessible? Are the constructor/members being used accessible?
+6. **Distinguish the access mechanism:** normal import/bytecode or reflection? For deep reflection, check `opens` separately.
+7. **Check build and runtime configuration:** are different module versions or different `--add-reads`, `--add-exports`, `--add-opens` flags being used?
 
-Có thể ghi nhớ ba câu hỏi để phân tích nhanh:
+You can remember three questions for quick analysis:
 
 ~~~text
 WHO CAN READ?   consumer.canRead(provider)
 WHICH PACKAGE?  provider.isExported(packageName, consumer)
-WHICH MEMBER?   public/protected/package-private/private theo Java
+WHICH MEMBER?   public/protected/package-private/private under Java rules
 ~~~
 
-## 15. Bài tập tự kiểm tra
+## 15. Self-Check Exercises
 
-**Bài 1.** Module `catalog.data` export `example.catalog.api`. Trong package này có `public class Product`. `checkout.app` có `requires catalog.data;`. Có thể import `Product` không?
+**Exercise 1.** Module `catalog.data` exports `example.catalog.api`. Inside this package is `public class Product`. `checkout.app` has `requires catalog.data;`. Can `Product` be imported?
 
-**Đáp án:** Có, nếu class ở vị trí và cấu hình biên dịch hợp lệ. Cả readability, exports và access modifier đều thỏa.
+**Answer:** Yes, provided the class is in the right location and the compilation configuration is valid. Readability, exports, and access modifiers are all satisfied.
 
-**Bài 2.** Trong cùng module `catalog.data`, package `example.catalog.impl` chứa `public class SqlProductRepository` nhưng package không export. `checkout.app` có import được class này không?
+**Exercise 2.** In the same module `catalog.data`, package `example.catalog.impl` contains `public class SqlProductRepository`, but the package is not exported. Can `checkout.app` import this class?
 
-**Đáp án:** Không. `public` không thay thế được việc export package qua biên giới named module.
+**Answer:** No. `public` does not substitute for exporting a package across a named module boundary.
 
-**Bài 3.** Module `catalog.data` khai báo `exports example.catalog.impl to catalog.admin;`. `checkout.app` có được import `SqlProductRepository` không?
+**Exercise 3.** Module `catalog.data` declares `exports example.catalog.impl to catalog.admin;`. Can `checkout.app` import `SqlProductRepository`?
 
-**Đáp án:** Không; quyền export chỉ cấp cho `catalog.admin`. Nếu `catalog.admin` muốn dùng type đó, nó vẫn phải đọc `catalog.data` và đáp ứng luật Java.
+**Answer:** No; export permission is only granted to `catalog.admin`. If `catalog.admin` wants to use that type, it must still read `catalog.data` and satisfy Java rules.
 
-**Bài 4.** Trong package đã export, một `public class X` có constructor `private X()`. Module tiêu thụ có gọi `new X()` được không?
+**Exercise 4.** In an exported package, a `public class X` has a constructor `private X()`. Can a consumer module call `new X()`?
 
-**Đáp án:** Không. Type `X` có thể accessible, nhưng constructor `private` không accessible với caller ngoài class.
+**Answer:** No. Type `X` may be accessible, but the `private` constructor is not accessible to callers outside the class.
 
-**Bài 5.** `client.app` đọc `facade.api`; `facade.api` khai báo `requires transitive model.types;`. `model.types` không export `model.internal`. `client.app` có import public type từ `model.internal` không?
+**Exercise 5.** `client.app` reads `facade.api`; `facade.api` declares `requires transitive model.types;`. `model.types` does not export `model.internal`. Can `client.app` import a public type from `model.internal`?
 
-**Đáp án:** Không. `requires transitive` hỗ trợ readability, không thay đổi package exports của `model.types`.
+**Answer:** No. `requires transitive` supports readability; it does not alter the package exports of `model.types`.
 
-**Bài 6.** Nếu thêm `opens example.catalog.impl to checkout.app;`, ứng dụng có quyền import các public class từ package đó không?
+**Exercise 6.** If `opens example.catalog.impl to checkout.app;` is added, does the application gain permission to import public classes from that package?
 
-**Đáp án:** Không. `opens` dành cho reflection ở runtime, không cấp quyền truy cập mã nguồn thông thường.
+**Answer:** No. `opens` is for runtime reflection, not for granting normal source-code access.
 
-## 16. Kết luận kiến thức
+## 16. Summary
 
-- Khi hai bên là **named modules**, một public type muốn được tham chiếu trực tiếp từ module khác cần: **module caller đọc được module cung cấp; package chứa type được export tới caller; type accessible theo luật Java**.
-- `exports` làm lộ các type accessible trong **đúng package được khai báo**; nó không tự mở package con và không thay đổi access modifier.
-- `requires transitive` chuyển tiếp quan hệ đọc; `exports ... to` giới hạn module được cấp quyền; `opens` phục vụ reflection ở runtime.
-- Truy cập được type không có nghĩa truy cập được mọi constructor, method hay field của type.
-- Khi thiết kế thư viện, export các package API ổn định, giữ package triển khai nội bộ không export và tránh để các type nội bộ xuất hiện trong hợp đồng công khai.
+- When both sides are **named modules**, for a public type to be referenced directly from another module: **the caller module must read the provider module; the package containing the type must be exported to the caller; the type must be accessible under Java rules**.
+- `exports` exposes accessible types in **the exact declared package**; it does not automatically open subpackages and does not alter access modifiers.
+- `requires transitive` propagates readability; `exports ... to` restricts which modules are granted access; `opens` serves runtime reflection.
+- Having access to a type does not mean having access to every constructor, method, or field of that type.
+- When designing a library, export stable API packages, keep internal implementation packages unexported, and avoid letting internal types appear in public contracts.

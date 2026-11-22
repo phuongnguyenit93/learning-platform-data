@@ -1,28 +1,28 @@
-# Phân biệt danh tính, giá trị và thứ tự của đối tượng trong Java
+# Distinguishing Object Identity, Value Equality, and Ordering in Java
 
-Khi làm việc với một object, ba câu hỏi tưởng giống nhau thực ra có ý nghĩa khác nhau:
+When working with an object, three seemingly similar questions actually have different meanings:
 
-1. **Danh tính (identity):** Hai biến có trỏ đến **cùng một object** trong bộ nhớ hay không?
-2. **Giá trị (value equality):** Hai object có được xem là **tương đương theo quy tắc của kiểu dữ liệu hoặc nghiệp vụ** hay không?
-3. **Thứ tự (ordering):** Object nào đứng trước, đứng sau hoặc ngang hàng **theo tiêu chí sắp xếp**?
+1. **Identity:** Do two variables point to **the same object** in memory?
+2. **Value equality:** Are two objects considered **equivalent according to the data type's or business rules**?
+3. **Ordering:** Which object comes before, after, or ranks equal to another **according to a sorting criterion**?
 
-Trong Java, ba khái niệm này lần lượt liên quan đến `==`, `equals()`/`hashCode()` và `Comparable`/`Comparator`. Chọn nhầm có thể làm `HashSet`, `HashMap`, `TreeSet`, `TreeMap` hoạt động khác mong đợi.
+In Java, these three concepts correspond respectively to `==`, `equals()`/`hashCode()`, and `Comparable`/`Comparator`. Choosing the wrong one can make `HashSet`, `HashMap`, `TreeSet`, and `TreeMap` behave differently from expectations.
 
-## 1. Bảng phân biệt
+## 1. Comparison Table
 
-| Khía cạnh | Câu hỏi | Công cụ | Kết quả |
+| Aspect | Question | Tool | Result |
 |---|---|---|---|
-| Identity | Có phải cùng một object? | `a == b` với hai tham chiếu | `boolean` |
-| Equality | Có cùng giá trị theo định nghĩa của kiểu? | `a.equals(b)`, `Objects.equals(a,b)` | `boolean` |
-| Băm giá trị | Hai giá trị bằng nhau có cùng mã băm? | `hashCode()` đi cùng `equals()` | `int`, không phải phép thử bằng nhau |
-| Thứ tự tự nhiên | Đối tượng nào đứng trước theo mặc định? | `Comparable<T>.compareTo(T)` | Số âm, `0`, số dương |
-| Thứ tự tùy chọn | Đối tượng nào đứng trước theo tiêu chí được chọn? | `Comparator<T>.compare(a,b)` | Số âm, `0`, số dương |
+| Identity | Is it the same object? | `a == b` for two references | `boolean` |
+| Equality | Same value per the type's definition? | `a.equals(b)`, `Objects.equals(a,b)` | `boolean` |
+| Value hashing | Do two equal values have the same hash code? | `hashCode()` paired with `equals()` | `int`, not an equality test |
+| Natural ordering | Which object comes first by default? | `Comparable<T>.compareTo(T)` | Negative, `0`, positive |
+| Custom ordering | Which object comes first by a chosen criterion? | `Comparator<T>.compare(a,b)` | Negative, `0`, positive |
 
-**`a == b`, `a.equals(b)` và `compare(a,b) == 0` không mặc nhiên tương đương.** Hai sách có thể là hai instance khác nhau nhưng cùng thông tin; hai sách khác nhau có thể được xếp ngang nhau khi comparator chỉ xét năm xuất bản.
+**`a == b`, `a.equals(b)`, and `compare(a,b) == 0` are not inherently equivalent.** Two books can be two different instances with the same information; two different books can rank equal when a comparator only considers publication year.
 
-## 2. Danh tính: cùng object hay khác object?
+## 2. Identity: Same Object or Different Object?
 
-Với **kiểu tham chiếu**, `==` trả `true` khi hai biến trỏ đến cùng instance (hoặc cả hai đều `null`). Phép này không đọc thuộc tính bên trong object.
+For **reference types**, `==` returns `true` when two variables point to the same instance (or both are `null`). This operation does not inspect attributes inside the object.
 
 ~~~java
 String first = new String("java");
@@ -34,47 +34,47 @@ System.out.println(first == alias);       // true
 System.out.println(first.equals(second)); // true
 ~~~
 
-Đây là **đoạn mã minh họa** có thể đặt trong `main`, không phải một file Java độc lập. Hai lần `new String` tạo hai instance; `alias` trỏ đến cùng instance với `first`. `String.equals` so sánh chuỗi ký tự nên hai instance vẫn bằng nhau về nội dung.
+This is an **illustrative snippet** that can be placed inside `main`, not a standalone Java file. Two `new String` calls create two instances; `alias` points to the same instance as `first`. `String.equals` compares the character sequences, so the two instances are still equal in content.
 
-Với **kiểu nguyên thủy** (`int`, `boolean`, `char`...), `==` so sánh giá trị nguyên thủy. Đừng dùng kết quả tình cờ của string interning hay bộ nhớ đệm wrapper (`Integer`) để suy ra rằng `==` so sánh nội dung object: các cơ chế này có thể tái sử dụng instance trong một số trường hợp.
+For **primitive types** (`int`, `boolean`, `char`...), `==` compares primitive values. Do not use incidental outcomes of string interning or wrapper caching (`Integer`) to conclude that `==` compares object contents: those mechanisms may reuse instances in certain cases.
 
-Identity hữu ích khi thuật toán thật sự cần biết **cùng đối tượng trong bộ nhớ**, chẳng hạn kiểm tra alias hoặc duyệt đồ thị đối tượng theo identity. `IdentityHashMap` là cấu trúc chuyên biệt dùng identity cho khóa; `HashMap` thông thường dùng equality theo giá trị. `System.identityHashCode(x)` có ích khi chẩn đoán nhưng **không phải ID duy nhất** và không chứng minh hai object giống nhau, vì vẫn có thể xảy ra va chạm hash.
+Identity is useful when an algorithm genuinely needs to know **whether it is the same object in memory**, such as checking aliases or traversing an object graph by identity. `IdentityHashMap` is a specialized structure that uses identity for keys; a regular `HashMap` uses value equality. `System.identityHashCode(x)` is helpful for diagnostics, but it is **not a unique ID** and does not prove two objects are the same, because hash collisions can still occur.
 
-## 3. Giá trị: `equals()` và `hashCode()`
+## 3. Value: `equals()` and `hashCode()`
 
-`Object.equals()` mặc định có nghĩa như identity. Các kiểu như `String`, `BigDecimal` và nhiều value object định nghĩa lại equality theo nội dung. Cần quyết định rõ **thuộc tính nào tham gia định nghĩa bằng nhau**:
+`Object.equals()` defaults to meaning identity. Types such as `String`, `BigDecimal`, and many value objects redefine equality based on content. You must clearly decide **which attributes participate in defining equality**:
 
-- **Value object** như tọa độ hoặc một lượng tiền: thường bằng nhau khi mọi thành phần có ý nghĩa đều bằng nhau; tính bất biến giúp sử dụng làm khóa.
-- **Entity** như đơn hàng: thường cần phân biệt theo mã định danh ổn định; trường mô tả có thể thay đổi mà entity vẫn là một. Phải cẩn thận với ID chưa gán hoặc có thể đổi.
-- **`record`**: Java tự sinh `equals()`/`hashCode()` từ các component. Record **không tự sinh `Comparable`**. Nếu component là array, so sánh component đó vẫn theo equality mặc định của array (identity), không tự so sánh sâu từng phần tử.
+- **Value objects** such as coordinates or a monetary amount: usually equal when all meaningful components are equal; immutability helps when used as keys.
+- **Entities** such as orders: usually need to be distinguished by a stable identifier; descriptive fields may change while the entity remains the same. Care must be taken with unassigned or mutable IDs.
+- **`record`**: Java automatically generates `equals()`/`hashCode()` from its components. A record **does not automatically generate `Comparable`**. If a component is an array, comparing that component still uses the array's default equality (identity), rather than deeply comparing each element.
 
-Hợp đồng của `equals()` yêu cầu:
+The `equals()` contract requires:
 
-1. **Phản xạ:** `x.equals(x)` luôn đúng.
-2. **Đối xứng:** `x.equals(y)` và `y.equals(x)` cho cùng kết quả.
-3. **Bắc cầu:** `x.equals(y)` và `y.equals(z)` đúng thì `x.equals(z)` phải đúng.
-4. **Nhất quán:** khi dữ liệu dùng để xét equality không thay đổi, các lần gọi có cùng kết quả.
-5. **Khác `null`:** với `x` khác `null`, `x.equals(null)` trả `false`.
+1. **Reflexive:** `x.equals(x)` is always true.
+2. **Symmetric:** `x.equals(y)` and `y.equals(x)` yield the same result.
+3. **Transitive:** if `x.equals(y)` and `y.equals(z)` are true, then `x.equals(z)` must be true.
+4. **Consistent:** when the data used to check equality does not change, repeated calls return the same result.
+5. **Non-null:** for non-`null` `x`, `x.equals(null)` returns `false`.
 
-Nếu `a` có thể `null`, gọi `a.equals(b)` sẽ có nguy cơ `NullPointerException`; dùng `Objects.equals(a,b)` cho so sánh an toàn với `null`. Khi tự triển khai equality, `Objects.equals` có thể hỗ trợ các trường, còn `Arrays.equals`/`Arrays.deepEquals` hữu ích nếu cần so sánh nội dung mảng.
+If `a` can be `null`, calling `a.equals(b)` risks a `NullPointerException`; use `Objects.equals(a,b)` for null-safe comparison. When implementing equality manually, `Objects.equals` can help with fields, while `Arrays.equals`/`Arrays.deepEquals` are useful if array contents need to be compared.
 
-### Vì sao `hashCode()` đi cùng `equals()`?
+### Why Does `hashCode()` Go Together With `equals()`?
 
-Quy tắc bắt buộc là: **nếu `x.equals(y)` thì `x.hashCode() == y.hashCode()`.** Chiều ngược lại không bắt buộc: hai object khác nhau vẫn có thể trùng hash. Khi ghi đè `equals()` phải ghi đè `hashCode()` tương ứng. Các collection dựa trên hash sử dụng hash để chọn vùng tra cứu và equality để phân biệt khóa cụ thể.
+The mandatory rule is: **if `x.equals(y)`, then `x.hashCode() == y.hashCode()`.** The converse is not required: two different objects can still share the same hash. When overriding `equals()`, you must override `hashCode()` accordingly. Hash-based collections use the hash to select a lookup bucket and equality to distinguish specific keys.
 
-Nếu object đã nằm trong `HashSet` hoặc làm khóa `HashMap`, việc đổi các trường tham gia equality/hash có thể khiến tra cứu hoặc xóa không tìm được phần tử nữa. Ưu tiên dùng khóa bất biến. Với kế thừa, thiết kế equality cần tránh phá tính đối xứng hoặc bắc cầu.
+If an object is already in a `HashSet` or used as a `HashMap` key, changing fields that participate in equality/hash can prevent lookups or removals from finding the element again. Prefer immutable keys. With inheritance, equality design must avoid breaking symmetry or transitivity.
 
-## 4. Thứ tự: `Comparable` và `Comparator`
+## 4. Ordering: `Comparable` and `Comparator`
 
-Kết quả của phép so sánh thứ tự chỉ cần xét **dấu**:
+The result of an ordering comparison only requires checking the **sign**:
 
-- **Âm:** vế trái đứng trước vế phải.
-- **`0`:** hai vế ngang hàng **theo tiêu chí sắp xếp**.
-- **Dương:** vế trái đứng sau vế phải.
+- **Negative:** the left operand comes before the right operand.
+- **`0`:** the two operands rank equal **according to the sorting criterion**.
+- **Positive:** the left operand comes after the right operand.
 
-Không được giả định kết quả chỉ là `-1`, `0` hoặc `1`.
+You must not assume the result is only `-1`, `0`, or `1`.
 
-**`Comparable<T>`** được cài trong kiểu qua `compareTo` khi kiểu có một thứ tự tự nhiên hợp lý. **`Comparator<T>`** là quy tắc bên ngoài, có thể chọn khác nhau tại từng điểm dùng: theo tên, theo tuổi, theo giá... Ví dụ một comparator tăng theo độ dài chuỗi, rồi tăng theo chữ cái nếu bằng độ dài:
+**`Comparable<T>`** is implemented inside a type via `compareTo` when the type has a sensible natural order. **`Comparator<T>`** is an external rule that can be chosen differently at each call site: by name, by age, by price... For example, a comparator sorting ascending by string length, then alphabetically when lengths are equal:
 
 ~~~java
 Comparator<String> byLengthThenText =
@@ -85,15 +85,15 @@ System.out.println(byLengthThenText.compare("an", "be") < 0);  // true
 System.out.println(byLengthThenText.compare("a", "bbb") < 0); // true
 ~~~
 
-Đây là đoạn minh họa đặt trong `main` với `import java.util.Comparator;`. Phương thức `thenComparing` giúp **phá hòa** khi tiêu chí đầu bằng nhau. Có thể dùng `reversed()`, `nullsFirst`, `nullsLast`, `comparingInt`, `comparingLong` khi phù hợp. Nếu giá trị có thể `null`, phải chọn chính sách rõ ràng thay vì để comparator tự ném exception ngoài ý muốn.
+This is an illustrative snippet placed inside `main` with `import java.util.Comparator;`. The `thenComparing` method acts as a **tie-breaker** when the first criterion is equal. `reversed()`, `nullsFirst`, `nullsLast`, `comparingInt`, and `comparingLong` can be used when appropriate. If values can be `null`, an explicit policy must be chosen rather than letting the comparator throw an unexpected exception.
 
-Hợp đồng thứ tự yêu cầu dấu của `compare(a,b)` đảo so với `compare(b,a)`, quan hệ trước/sau có tính **bắc cầu**, và khi `compare(a,b) == 0`, so sánh `a` và `b` với cùng một `z` phải có cùng dấu. Tránh `return a.score - b.score;` vì phép trừ có thể tràn `int`; dùng `Integer.compare(a.score, b.score)` hoặc `Comparator.comparingInt(...)`.
+The ordering contract requires that the sign of `compare(a,b)` be the opposite of `compare(b,a)`, the before/after relation be **transitive**, and when `compare(a,b) == 0`, comparing `a` and `b` against the same `z` must produce the same sign. Avoid `return a.score - b.score;` because subtraction can overflow `int`; use `Integer.compare(a.score, b.score)` or `Comparator.comparingInt(...)`.
 
-## 5. Một chương trình Java 17 chứng minh cả ba khái niệm
+## 5. A Java 17 Program Demonstrating All Three Concepts
 
-Trong ví dụ này, `Book` là record có equality theo cả `isbn` và `title`. Thứ tự tự nhiên cũng xét đúng hai thành phần đó, nên **với Book**, `compareTo(...) == 0` nhất quán với `equals()`. `Ticket` dùng comparator ngoài để minh họa một bộ so sánh có thể gom hai object khác nhau vào cùng nhóm thứ tự. Cuối cùng, `BigDecimal` cho thấy ngoại lệ của một thứ tự tự nhiên không nhất quán với `equals()`.
+In this example, `Book` is a record whose equality is based on both `isbn` and `title`. Its natural ordering also checks those exact two components, so **for Book**, `compareTo(...) == 0` is consistent with `equals()`. `Ticket` uses an external comparator to illustrate a comparator that can group two different objects into the same ordering equivalence group. Finally, `BigDecimal` shows an exception where a natural ordering is inconsistent with `equals()`.
 
-Lưu chương trình đầy đủ dưới tên **`ObjectContractDemo.java`**:
+Save the complete program as **`ObjectContractDemo.java`**:
 
 ~~~java
 import java.math.BigDecimal;
@@ -165,14 +165,14 @@ public class ObjectContractDemo {
 }
 ~~~
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ~~~bash
 javac ObjectContractDemo.java
 java ObjectContractDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 Book ==: false
@@ -192,70 +192,70 @@ HashSet<BigDecimal>: 2
 TreeSet<BigDecimal>: 1
 ~~~
 
-**Phân tích kết quả:**
+**Result analysis:**
 
-1. `first` và `equalValue` là hai instance (`== false`) nhưng bằng nhau về giá trị. Record tạo `equals` và `hashCode` tương ứng; `compareTo` của `Book` cũng trả `0`.
-2. `HashSet<Book>` dựa vào equality/hash; `TreeSet<Book>` dựa vào natural ordering. Cả hai giữ đúng hai sách phân biệt.
-3. Hai `Ticket` có ID khác nhau nên `equals` là `false`, nhưng comparator chỉ nhìn `priority` nên trả `0`. `TreeSet` xem chúng như **một khóa** và chỉ giữ một phần tử. Khi phá hòa thêm `id`, cả hai được giữ lại.
-4. `BigDecimal("2.0")` khác `BigDecimal("2.00")` theo `equals`, vì `equals` xét cả **scale** (1 so với 2). Tuy nhiên `compareTo` so giá trị số nên trả `0`. Vì vậy hash set giữ 2, còn tree set giữ 1. **Thứ tự tự nhiên của `BigDecimal` nổi tiếng là không nhất quán với `equals`.**
+1. `first` and `equalValue` are two instances (`== false`) yet equal in value. The record generates matching `equals` and `hashCode`; `Book`'s `compareTo` also returns `0`.
+2. `HashSet<Book>` relies on equality/hash; `TreeSet<Book>` relies on natural ordering. Both keep the exact two distinct books.
+3. The two `Ticket` instances have different IDs so `equals` is `false`, but the comparator only inspects `priority` and returns `0`. `TreeSet` treats them as **one key** and keeps only one element. When adding `id` as a tie-breaker, both are retained.
+4. `BigDecimal("2.0")` differs from `BigDecimal("2.00")` according to `equals`, because `equals` also considers **scale** (1 versus 2). However, `compareTo` compares numerical value and returns `0`. Therefore, the hash set keeps 2 while the tree set keeps 1. **`BigDecimal`'s natural ordering is famously inconsistent with `equals`.**
 
-## 6. `compare == 0` không đồng nghĩa cùng giá trị
+## 6. `compare == 0` Does Not Imply Same Value
 
-Comparator xác định các **nhóm tương đương theo sắp xếp**. Một bộ so sánh chỉ theo điểm thi có thể xem hai sinh viên khác mã là ngang hàng. Điều này không sai khi dùng để sắp xếp một danh sách nhưng ảnh hưởng lớn nếu dùng comparator làm định nghĩa khóa.
+A comparator defines **equivalence groups for sorting**. A comparator that only looks at exam scores may treat two students with different student IDs as tied. This is fine when sorting a list, but has a major impact if the comparator is used to define keys.
 
-| Cấu trúc/thao tác | Quy tắc equality hoặc thứ tự |
+| Structure/operation | Equality or ordering rule |
 |---|---|
-| `HashSet`, `HashMap` | `equals()` kết hợp `hashCode()` |
-| `TreeSet`, `TreeMap` | `compareTo()` hoặc `Comparator.compare()`; `0` là cùng khóa |
-| `List.sort()`, `Collections.sort()`, `Stream.sorted()` | Sắp theo comparator, **không tự loại các phần tử ngang hàng** |
-| `List.contains()` | Kiểm tra bằng `equals()` |
+| `HashSet`, `HashMap` | `equals()` combined with `hashCode()` |
+| `TreeSet`, `TreeMap` | `compareTo()` or `Comparator.compare()`; `0` means the same key |
+| `List.sort()`, `Collections.sort()`, `Stream.sorted()` | Sorts according to the comparator, **does not automatically remove tied elements** |
+| `List.contains()` | Checks using `equals()` |
 
-Với những object dùng làm khóa trong sorted set/map, **nên** chọn thứ tự nhất quán với equality nếu khả thi: `compare(a,b) == 0` khi và chỉ khi `a.equals(b)`. Nếu cố ý dùng comparator để gom các nhóm theo điểm hoặc mức ưu tiên, hãy mô tả rõ ý nghĩa đó và chấp nhận rằng set/map chỉ giữ một khóa trong mỗi nhóm.
+For objects used as keys in a sorted set/map, you **should** choose an ordering consistent with equality if feasible: `compare(a,b) == 0` if and only if `a.equals(b)`. If you intentionally use a comparator to group items by score or priority, clearly document that meaning and accept that the set/map will keep only one key per group.
 
-Tính nhất quán phải xét cả những object có **cùng equality nhưng khác dữ liệu dùng để sắp xếp**. Ví dụ nếu equality của entity chỉ xét ID, comparator theo `name` rồi ID chưa chắc nhất quán: hai bản thể có cùng ID nhưng tên khác nhau có thể cho kết quả khác `0`. Khi thiết kế cơ chế khóa, phải quyết định liệu entity có bất biến và theo những trường nào.
+Consistency must also account for objects that have **the same equality but different data used for sorting**. For example, if an entity's equality only checks ID, a comparator by `name` then ID is not necessarily consistent: two instances with the same ID but different names may yield a non-`0` result. When designing a key mechanism, you must decide whether the entity is immutable and on which fields.
 
-Không thay đổi trường tham gia comparator khi object đang nằm trong `TreeSet`/`TreeMap`: vị trí sắp xếp của node đã được xây dựng từ giá trị cũ, khiến tra cứu, xóa hoặc phát hiện trùng khó tin cậy.
+Do not mutate fields involved in a comparator while an object is inside a `TreeSet`/`TreeMap`: the node's sorted position was built from the old value, making lookup, removal, or duplicate detection unreliable.
 
-## 7. Cách chọn trong tình huống thực tế
+## 7. How to Choose in Practical Scenarios
 
-| Yêu cầu | Phép/thiết kế phù hợp | Điều cần lưu ý |
+| Requirement | Appropriate operation/design | Things to note |
 |---|---|---|
-| Kiểm tra cùng instance | `a == b` | Chỉ là identity với tham chiếu |
-| So nội dung chuỗi hoặc value object | `Objects.equals(a,b)` | An toàn khi có `null` |
-| Tạo khóa cho hash map/set | `equals` + `hashCode` cùng logic | Trường khóa nên bất biến |
-| Sắp theo thứ tự mặc định | `Comparable` | Không phải mọi kiểu đều có natural ordering |
-| Sắp theo nhiều tiêu chí chọn lúc chạy | `Comparator`, `thenComparing` | Phá hòa nếu cần trật tự xác định |
-| Giữ nhiều phần tử có cùng điểm trong `List` | `List.sort(comparator)` | Không cần phá hòa để giữ phần tử |
-| Giữ nhiều phần tử trong `TreeSet` | Comparator phân biệt theo khóa phù hợp | `compare == 0` bị coi là một phần tử |
-| So độ lớn `BigDecimal` bỏ qua scale | `compareTo(...) == 0` | `equals` xét scale |
-| So nội dung các mảng | `Arrays.equals` hoặc `Arrays.deepEquals` | `array.equals` mặc định so identity |
+| Check same instance | `a == b` | Identity only for references |
+| Compare string or value object content | `Objects.equals(a,b)` | Safe when `null` is present |
+| Create keys for hash map/set | `equals` + `hashCode` with same logic | Key fields should be immutable |
+| Sort by default order | `Comparable` | Not every type has a natural ordering |
+| Sort by multiple criteria chosen at runtime | `Comparator`, `thenComparing` | Tie-break if deterministic order is needed |
+| Keep multiple elements with the same score in `List` | `List.sort(comparator)` | No tie-breaker needed to retain elements |
+| Keep multiple elements in `TreeSet` | Comparator distinguishing by appropriate keys | `compare == 0` is treated as one element |
+| Compare `BigDecimal` magnitude ignoring scale | `compareTo(...) == 0` | `equals` considers scale |
+| Compare array contents | `Arrays.equals` or `Arrays.deepEquals` | `array.equals` defaults to identity |
 
-Quy trình thiết kế: **(1)** xác định entity hay value object; **(2)** định nghĩa trường tham gia equality; **(3)** giữ hợp đồng hash; **(4)** chọn thứ tự tự nhiên và/hoặc comparator; **(5)** kiểm tra xem quan hệ `compare == 0` có phù hợp với các collection định dùng hay không; **(6)** kiểm thử tính đối xứng, bắc cầu và tính ổn định của quy tắc.
+Design workflow: **(1)** determine whether it is an entity or a value object; **(2)** define the fields participating in equality; **(3)** preserve the hash contract; **(4)** choose a natural ordering and/or comparator; **(5)** verify whether `compare == 0` fits the intended collections; **(6)** test symmetry, transitivity, and rule stability.
 
-## 8. Lỗi phổ biến cần tránh
+## 8. Common Mistakes to Avoid
 
-1. **Dùng `==` để so hai `String` hoặc wrapper:** nhận kết quả phụ thuộc instance hoặc cơ chế cache thay vì nội dung.
-2. **Override `equals` nhưng không override `hashCode`:** phá hợp đồng trong hash set/map.
-3. **Coi hash trùng là giá trị bằng nhau:** hash collision là hợp lệ, không phải chứng minh equality.
-4. **Chỉ so một trường không duy nhất trong comparator của `TreeSet`:** vô tình bỏ mất các phần tử khác nhau.
-5. **So số nguyên bằng phép trừ:** overflow có thể đảo sai trật tự.
-6. **Comparator không bắc cầu hoặc phụ thuộc dữ liệu đang đổi:** kết quả sắp xếp và cây có thể bất ổn, vi phạm hợp đồng.
-7. **Sửa trường equality/hash/order của khóa đã thêm vào set/map:** có thể không tra cứu hoặc xóa được.
-8. **Tưởng record luôn so sâu mảng:** component kiểu mảng vẫn có equality mặc định theo tham chiếu.
-9. **Coi `compareTo == 0` luôn bằng `equals == true`:** phản ví dụ điển hình là `BigDecimal`.
+1. **Using `==` to compare two `String` or wrapper objects:** yields results depending on instances or caching mechanisms instead of content.
+2. **Overriding `equals` without overriding `hashCode`:** breaks the contract in hash sets/maps.
+3. **Treating matching hashes as equal values:** hash collisions are valid, not proof of equality.
+4. **Comparing only one non-unique field in a `TreeSet` comparator:** accidentally drops distinct elements.
+5. **Comparing integers by subtraction:** overflow can invert the ordering.
+6. **Non-transitive comparator or one depending on mutating data:** sorting results and trees can become unstable, violating the contract.
+7. **Modifying equality/hash/order fields of a key already added to a set/map:** may fail to look up or remove it.
+8. **Assuming a record always deep-compares arrays:** array-typed components still use default reference equality.
+9. **Assuming `compareTo == 0` always implies `equals == true`:** the classic counterexample is `BigDecimal`.
 
-## 9. Câu hỏi tự kiểm tra
+## 9. Self-Check Questions
 
-**1.** Hai biến cùng trỏ đến một instance; giá trị của một trường mutable thay đổi. Kết quả `==` giữa hai biến có thay đổi không?  
-**Đáp án:** Không. Chúng vẫn trỏ cùng object; equality với object *khác* có thể đổi tùy cách triển khai.
+**1.** Two variables point to the same instance; the value of a mutable field changes. Does the result of `==` between the two variables change?  
+**Answer:** No. They still point to the same object; equality with *another* object may change depending on the implementation.
 
-**2.** `a.equals(b) == false` nhưng hai `hashCode()` bằng nhau có hợp lệ không?  
-**Đáp án:** Có, vì hash collision được phép. Chiều bắt buộc là equality đúng thì hash phải bằng nhau.
+**2.** Is `a.equals(b) == false` with equal `hashCode()` values valid?  
+**Answer:** Yes, because hash collisions are allowed. The mandatory direction is that when equality is true, hashes must be equal.
 
-**3.** Hai đơn hàng có ID khác nhau nhưng cùng ngày tạo, comparator chỉ xét ngày và trả `0`. Thêm cả hai vào `TreeSet` thì sao?  
-**Đáp án:** Set chỉ giữ một phần tử theo comparator; muốn phân biệt theo ID thì cần tiêu chí bổ sung phù hợp.
+**3.** Two orders have different IDs but the same creation date, and a comparator only compares dates and returns `0`. What happens when adding both to a `TreeSet`?  
+**Answer:** The set keeps only one element according to the comparator; to distinguish by ID, an appropriate additional criterion is needed.
 
-**4.** Muốn sắp danh sách nhân viên theo tuổi nhưng vẫn giữ tất cả người cùng tuổi, có bắt buộc phá hòa theo ID không?  
-**Đáp án:** Không. Sắp xếp `List` không loại phần tử. Phá hòa cần khi muốn thứ tự xác định giữa các trường hợp cùng tuổi, hoặc khi dùng comparator làm nghĩa của khóa trong sorted set/map.
+**4.** When sorting a list of employees by age while keeping everyone of the same age, is it mandatory to tie-break by ID?  
+**Answer:** No. Sorting a `List` does not remove elements. Tie-breaking is needed when you want deterministic ordering among equal-age cases, or when using the comparator to define key identity in a sorted set/map.
 
-**Ghi nhớ:** **Identity** trả lời *cùng object?*; **equality** trả lời *cùng giá trị theo quy tắc nào?*; **ordering** trả lời *đứng trước/sau/ngang hàng theo tiêu chí gì?* Thiết kế và kiểm thử từng quan hệ riêng biệt.
+**Takeaway:** **Identity** answers *same object?*; **equality** answers *same value per what rules?*; **ordering** answers *before/after/equal by what criteria?* Design and test each relationship separately.

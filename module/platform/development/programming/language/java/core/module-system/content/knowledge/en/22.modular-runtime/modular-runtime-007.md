@@ -1,43 +1,43 @@
-# Main class trong module descriptor hoặc command line
+# Main Class in the Module Descriptor or on the Command Line
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you can:
 
-- Xác định main class dùng để khởi chạy một named module.
-- Phân biệt main class được lưu trong module descriptor với main class truyền trực tiếp trên command line.
-- Dùng `jar --main-class` để đặt entry point cho modular JAR.
-- Khởi chạy module bằng `java -m` hoặc `java --module`.
-- Hiểu cách command line ghi đè main class đã được lưu trong module.
-- Phân biệt module main class với thuộc tính `Main-Class` trong manifest khi chạy `java -jar`.
+- Identify the main class used to launch a named module.
+- Distinguish between a main class stored in the module descriptor and a main class passed directly on the command line.
+- Use `jar --main-class` to set the entry point for a modular JAR.
+- Launch a module with `java -m` or `java --module`.
+- Understand how the command line overrides a main class already stored in the module.
+- Distinguish the module main class from the `Main-Class` attribute in the manifest when running `java -jar`.
 
-## 1. Main class của một named module
+## 1. The Main Class of a Named Module
 
-Một ứng dụng Java cần một entry point để launcher biết class nào sẽ được gọi đầu tiên. Với cách chạy truyền thống trên classpath, bạn thường chỉ rõ fully qualified class name:
+A Java application needs an entry point so the launcher knows which class to invoke first. With the traditional classpath approach, you usually specify the fully qualified class name:
 
 ~~~bash
 java -cp out com.example.app.Main
 ~~~
 
-Khi ứng dụng được tổ chức thành named module, bạn có thể khởi chạy bằng module name. Launcher cần biết module nào là module khởi đầu và main class nào cần gọi.
+When an application is organized as a named module, you can launch it by module name. The launcher needs to know which module is the starting module and which main class to invoke.
 
-Ví dụ, ứng dụng có module name là `com.example.app` và main class là `com.example.app.Main`:
+For example, an application has module name `com.example.app` and main class `com.example.app.Main`:
 
 ~~~bash
 java --module-path out \
      --module com.example.app/com.example.app.Main
 ~~~
 
-Có hai nơi có thể cung cấp main class:
+There are two places that can provide the main class:
 
-1. Module descriptor có thể lưu một module main class.
-2. Command line có thể chỉ rõ main class sau dấu `/` trong cú pháp `module/mainclass`.
+1. The module descriptor can store a module main class.
+2. The command line can explicitly specify the main class after a `/` in the `module/mainclass` syntax.
 
-Nếu command line chỉ cung cấp module name, launcher sử dụng main class đã lưu trong module descriptor. Nếu command line cung cấp cả module name và main class, class trên command line được dùng; nó có thể ghi đè main class đã lưu.
+If the command line provides only the module name, the launcher uses the main class stored in the module descriptor. If the command line provides both the module name and the main class, the class on the command line is used; it can override the stored main class.
 
-## 2. Module descriptor không có directive main-class
+## 2. Module Descriptors Do Not Have a main-class Directive
 
-Một module descriptor source thông thường được viết trong `module-info.java`:
+A typical module descriptor source is written in `module-info.java`:
 
 ~~~java
 module com.example.app {
@@ -46,23 +46,23 @@ module com.example.app {
 }
 ~~~
 
-Java không có cú pháp directive `main-class` trong `module-info.java`. Bạn không viết một dòng như `main-class com.example.app.Main;` trong module declaration.
+Java does not have a `main-class` directive syntax in `module-info.java`. You do not write a line such as `main-class com.example.app.Main;` in the module declaration.
 
-Thông tin main class được lưu ở dạng binary attribute có tên `ModuleMainClass` trong file `module-info.class`. Đây là metadata của module descriptor, không phải một directive Java source.
+Main class information is stored as a binary attribute named `ModuleMainClass` in the `module-info.class` file. This is metadata in the module descriptor, not a Java source directive.
 
-API `java.lang.module.ModuleDescriptor` cung cấp phương thức:
+The `java.lang.module.ModuleDescriptor` API provides the method:
 
 ~~~java
 Optional<String> mainClass = descriptor.mainClass();
 ~~~
 
-Phương thức `mainClass()` trả về tên đầy đủ của module main class nếu descriptor có khai báo; nếu không có thì trả về `Optional.empty()`.
+The `mainClass()` method returns the fully qualified name of the module main class if the descriptor declares one; otherwise, it returns `Optional.empty()`.
 
-Trong quy trình build thông thường, bạn có thể dùng JDK `jar` tool để thêm thông tin này vào modular JAR bằng option `--main-class`.
+In a typical build workflow, you can use the JDK `jar` tool to add this information to a modular JAR with the `--main-class` option.
 
-## 3. Chuẩn bị module và main class
+## 3. Preparing the Module and Main Class
 
-Giả sử project có cấu trúc:
+Suppose the project has the following structure:
 
 ~~~text
 project/
@@ -98,13 +98,13 @@ public class Main {
 }
 ~~~
 
-Main class dùng method entry point chuẩn:
+The main class uses the standard entry point method:
 
 ~~~java
 public static void main(String[] args)
 ~~~
 
-Compile module bằng module source path:
+Compile the module using the module source path:
 
 ~~~bash
 javac --module-source-path src \
@@ -112,7 +112,7 @@ javac --module-source-path src \
       -m com.example.app
 ~~~
 
-Sau khi compile, output có dạng:
+After compilation, the output looks like:
 
 ~~~text
 out/
@@ -124,23 +124,23 @@ out/
                 └── Main.class
 ~~~
 
-Ở thời điểm này, `module-info.class` có module descriptor nhưng chưa có module main class do ta chưa thiết lập metadata đó bằng công cụ đóng gói. Bạn vẫn có thể chạy ứng dụng bằng cách chỉ rõ main class trên command line.
+At this point, `module-info.class` has a module descriptor, but does not yet have a module main class because we have not set that metadata with the packaging tool. You can still run the application by specifying the main class on the command line.
 
-## 4. Chỉ định main class trên command line
+## 4. Specifying the Main Class on the Command Line
 
-Cú pháp khởi chạy một module:
+Syntax to launch a module:
 
 ~~~text
 java [options] -m module[/mainclass] [args...]
 ~~~
 
-Hoặc dùng dạng dài:
+Or using the long form:
 
 ~~~text
 java [options] --module module[/mainclass] [args...]
 ~~~
 
-Với ví dụ trên:
+Using the example above:
 
 ~~~bash
 java --module-path out \
@@ -148,32 +148,32 @@ java --module-path out \
      hello world
 ~~~
 
-Giải thích:
+Explanation:
 
-- `--module-path out` chỉ vị trí chứa các named module.
-- `--module` hoặc `-m` yêu cầu launcher chạy một module.
-- `com.example.app` là tên module.
-- `com.example.app.Main` là fully qualified name của main class.
-- `hello world` là hai argument được chuyển vào `main(String[] args)`.
+- `--module-path out` points to the location containing the named modules.
+- `--module` or `-m` instructs the launcher to run a module.
+- `com.example.app` is the module name.
+- `com.example.app.Main` is the fully qualified name of the main class.
+- `hello world` are two arguments passed into `main(String[] args)`.
 
-Bạn có thể viết ngắn hơn:
+You can write this more concisely:
 
 ~~~bash
 java -p out -m com.example.app/com.example.app.Main hello world
 ~~~
 
-`-p` là dạng rút gọn của `--module-path`; `-m` là dạng rút gọn của `--module`.
+`-p` is the short form of `--module-path`; `-m` is the short form of `--module`.
 
-Cách này phù hợp khi:
+This approach is suitable when:
 
-- Chạy exploded module trong thư mục build.
-- Muốn chọn entry point khác nhau cho từng lần chạy.
-- Module descriptor chưa lưu module main class.
-- Muốn override main class mặc định mà modular JAR đã khai báo.
+- Running exploded modules in a build directory.
+- Wanting to select a different entry point per run.
+- The module descriptor does not yet store a module main class.
+- Wanting to override the default main class declared by a modular JAR.
 
-## 5. Lưu main class trong module descriptor bằng jar --main-class
+## 5. Storing the Main Class in the Module Descriptor with `jar --main-class`
 
-Khi đóng gói module thành modular JAR, dùng option `--main-class` của `jar`:
+When packaging a module into a modular JAR, use the `--main-class` option of `jar`:
 
 ~~~bash
 jar --create \
@@ -182,9 +182,9 @@ jar --create \
     -C out/com.example.app .
 ~~~
 
-Option `--main-class` (viết ngắn là `-e`) chỉ định entry point cho ứng dụng được đóng gói trong modular JAR. Với modular JAR, `jar` ghi thông tin module main class vào module descriptor nhị phân.
+The `--main-class` option (short form `-e`) specifies the entry point for an application packaged in a modular JAR. For a modular JAR, `jar` writes the module main class information into the binary module descriptor.
 
-Có thể cập nhật một JAR đã tồn tại:
+You can update an existing JAR:
 
 ~~~bash
 jar --update \
@@ -192,13 +192,13 @@ jar --update \
     --main-class com.example.app.Main
 ~~~
 
-Để kiểm tra descriptor sau khi đóng gói:
+To inspect the descriptor after packaging:
 
 ~~~bash
 jar --describe-module --file dist/com.example.app.jar
 ~~~
 
-Kết quả sẽ có thông tin tương tự:
+The output will show information similar to:
 
 ~~~text
 com.example.app
@@ -206,9 +206,9 @@ requires java.base mandated
 main-class com.example.app.Main
 ~~~
 
-Dòng `main-class` cho biết module descriptor đã lưu entry point.
+The `main-class` line indicates that the module descriptor has stored the entry point.
 
-Giờ đây có thể chạy module mà không phải viết tên class:
+Now you can run the module without typing the class name:
 
 ~~~bash
 java --module-path dist \
@@ -216,59 +216,59 @@ java --module-path dist \
      hello world
 ~~~
 
-Launcher đọc module descriptor, lấy module main class và gọi method `main` của class đó.
+The launcher reads the module descriptor, retrieves the module main class, and invokes that class's `main` method.
 
-## 6. Command line có thể ghi đè main class đã lưu
+## 6. The Command Line Can Override the Stored Main Class
 
-Giả sử module descriptor lưu `com.example.app.Main`, nhưng ứng dụng cũng có class `com.example.app.AdminMain` với method main hợp lệ.
+Suppose the module descriptor stores `com.example.app.Main`, but the application also has a `com.example.app.AdminMain` class with a valid `main` method.
 
-Có thể chọn class thứ hai khi chạy:
+You can select the second class at launch time:
 
 ~~~bash
 java --module-path dist \
      --module com.example.app/com.example.app.AdminMain
 ~~~
 
-Trong trường hợp này, launcher sử dụng class được ghi trên command line thay cho module main class đã lưu.
+In this case, the launcher uses the class specified on the command line instead of the stored module main class.
 
-Bảng hành vi:
+Behavior table:
 
-| Lệnh | Kết quả |
+| Command | Result |
 |---|---|
-| `java -p dist -m com.example.app` | Dùng main class trong module descriptor |
-| `java -p dist -m com.example.app/com.example.app.Main` | Chạy `Main` được chỉ định tường minh |
-| `java -p dist -m com.example.app/com.example.app.AdminMain` | Chạy `AdminMain`, ghi đè entry point mặc định |
-| `java -p out -m com.example.app/com.example.app.Main` | Chạy main class tường minh, dù descriptor không lưu main class |
+| `java -p dist -m com.example.app` | Uses the main class in the module descriptor |
+| `java -p dist -m com.example.app/com.example.app.Main` | Runs the explicitly specified `Main` |
+| `java -p dist -m com.example.app/com.example.app.AdminMain` | Runs `AdminMain`, overriding the default entry point |
+| `java -p out -m com.example.app/com.example.app.Main` | Runs the explicit main class, even though the descriptor stores no main class |
 
-Nếu module descriptor không có main class và command line cũng chỉ cung cấp module name, launcher không có entry point để gọi và lệnh khởi chạy sẽ thất bại. Khi đó, hãy chỉ rõ `module/mainclass` hoặc đóng gói module với `--main-class`.
+If the module descriptor has no main class and the command line also provides only the module name, the launcher has no entry point to invoke and the launch command fails. In that case, specify `module/mainclass` explicitly or package the module with `--main-class`.
 
-## 7. Phân biệt module main class và manifest Main-Class
+## 7. Distinguishing Module Main Class and Manifest `Main-Class`
 
-Hai cơ chế thường bị nhầm lẫn:
+Two mechanisms are frequently confused:
 
-- `ModuleMainClass` là attribute trong binary module descriptor `module-info.class`.
-- `Main-Class` là manifest attribute trong `META-INF/MANIFEST.MF`, được launcher sử dụng khi chạy `java -jar`.
+- `ModuleMainClass` is an attribute in the binary module descriptor `module-info.class`.
+- `Main-Class` is a manifest attribute in `META-INF/MANIFEST.MF`, used by the launcher when running `java -jar`.
 
-So sánh:
+Comparison:
 
-| Cách chạy | Nguồn lấy main class |
+| Launch Method | Source of Main Class |
 |---|---|
-| `java -m module` | Module main class trong module descriptor |
-| `java -m module/mainclass` | Main class được chỉ định trên command line |
-| `java -jar app.jar` | `Main-Class` trong JAR manifest |
-| `java -cp out package.Main` | Class name được chỉ định trực tiếp trên command line |
+| `java -m module` | Module main class in the module descriptor |
+| `java -m module/mainclass` | Main class specified on the command line |
+| `java -jar app.jar` | `Main-Class` in the JAR manifest |
+| `java -cp out package.Main` | Class name specified directly on the command line |
 
-`java -jar` và `java -m` là hai chế độ khởi chạy khác nhau. Khi dùng `-jar`, launcher lấy entry point từ manifest. Khi dùng `-m`, launcher lấy module main class từ descriptor nếu command line không cung cấp class.
+`java -jar` and `java -m` are two different launch modes. When using `-jar`, the launcher obtains the entry point from the manifest. When using `-m`, the launcher obtains the module main class from the descriptor if the command line does not provide a class.
 
-Option `jar --main-class` là cách thuận tiện để đóng gói một modular JAR có entry point. Nếu cần kiểm tra hai metadata sau khi đóng gói, có thể xem module descriptor bằng `jar --describe-module` và xem manifest bằng:
+The `jar --main-class` option is a convenient way to package a modular JAR with an entry point. If you need to inspect both pieces of metadata after packaging, you can view the module descriptor with `jar --describe-module` and inspect the manifest with:
 
 ~~~bash
 jar --extract --file dist/com.example.app.jar META-INF/MANIFEST.MF
 ~~~
 
-## 8. Kiểm tra main class bằng Java API
+## 8. Inspecting the Main Class with the Java API
 
-Nếu ứng dụng hoặc công cụ build cần đọc metadata của module, có thể dùng `ModuleDescriptor`:
+If an application or build tool needs to read module metadata, you can use `ModuleDescriptor`:
 
 ~~~java
 import java.lang.module.ModuleDescriptor;
@@ -294,36 +294,36 @@ public class InspectModule {
 }
 ~~~
 
-Ở ví dụ này:
+In this example:
 
-1. `ModuleFinder.of(...)` đọc module từ modular JAR.
-2. `find(...)` tìm module theo tên.
-3. `descriptor()` lấy module descriptor.
-4. `mainClass()` trả về `Optional<String>`.
-5. `ifPresentOrElse(...)` xử lý trường hợp descriptor có hoặc không có main class.
+1. `ModuleFinder.of(...)` reads the module from the modular JAR.
+2. `find(...)` looks up the module by name.
+3. `descriptor()` retrieves the module descriptor.
+4. `mainClass()` returns an `Optional<String>`.
+5. `ifPresentOrElse(...)` handles whether or not the descriptor has a main class.
 
-Đây là cách kiểm tra metadata mà không cần giải nén `module-info.class` hoặc tự phân tích class-file attribute.
+This is a way to inspect metadata without extracting `module-info.class` or manually parsing class-file attributes.
 
-## 9. Lỗi thường gặp
+## 9. Common Errors
 
-| Triệu chứng | Nguyên nhân thường gặp | Cách xử lý |
+| Symptom | Common Cause | Resolution |
 |---|---|---|
-| Không tìm thấy main class khi chỉ truyền module name | Descriptor chưa lưu entry point | Dùng `-m module/mainclass` hoặc đóng gói với `jar --main-class` |
-| `Could not find or load main class` | Sai fully qualified class name hoặc class không nằm trong module | Kiểm tra package, tên class và module output |
-| `Module ... not found` | Module path không chứa module cần chạy | Kiểm tra `--module-path` và tên module |
-| `Main method not found` hoặc method không hợp lệ | Main class không có entry point được launcher chấp nhận | Kiểm tra chữ ký `public static void main(String[] args)` |
-| `java -jar` không dùng main class mong đợi | Manifest thiếu hoặc đặt sai `Main-Class` | Kiểm tra `META-INF/MANIFEST.MF` |
-| `java -m` chạy class khác với mong đợi | Command line đã chỉ rõ `/mainclass` và override metadata | Kiểm tra lại phần sau dấu `/` |
+| Main class not found when passing only module name | Descriptor has not stored an entry point | Use `-m module/mainclass` or package with `jar --main-class` |
+| `Could not find or load main class` | Incorrect fully qualified class name or class is not inside the module | Check package, class name, and module output |
+| `Module ... not found` | Module path does not contain the module to run | Check `--module-path` and module name |
+| `Main method not found` or invalid method | Main class lacks an entry point accepted by the launcher | Check the `public static void main(String[] args)` signature |
+| `java -jar` does not use the expected main class | Manifest is missing or sets the wrong `Main-Class` | Check `META-INF/MANIFEST.MF` |
+| `java -m` runs a different class than expected | Command line specified `/mainclass` and overrode the metadata | Recheck the part after the `/` |
 
-Hãy luôn kiểm tra module name và fully qualified class name. Module name không nhất thiết trùng package name hoặc tên JAR file.
+Always verify the module name and fully qualified class name. A module name does not necessarily match the package name or the JAR filename.
 
-## 10. Tóm tắt
+## 10. Summary
 
-Một named module có thể lưu main class trong binary module descriptor thông qua `ModuleMainClass` attribute. `module-info.java` không có directive `main-class`; với modular JAR, dùng `jar --main-class` để ghi entry point vào descriptor.
+A named module can store its main class in the binary module descriptor via the `ModuleMainClass` attribute. `module-info.java` has no `main-class` directive; for a modular JAR, use `jar --main-class` to write the entry point into the descriptor.
 
-Khi chạy, `java -m module` sử dụng main class đã lưu trong descriptor. Nếu command line chỉ rõ `module/mainclass`, class được chỉ định sẽ được chạy và có thể ghi đè giá trị mặc định. Còn `java -jar` sử dụng `Main-Class` trong manifest. Hiểu rõ ba nơi lưu/chọn entry point này giúp build và chạy modular application nhất quán.
+At launch time, `java -m module` uses the main class stored in the descriptor. If the command line explicitly specifies `module/mainclass`, the specified class is run and can override the default value. Meanwhile, `java -jar` uses `Main-Class` in the manifest. Understanding these three places where an entry point is stored/selected helps build and run modular applications consistently.
 
-Tài liệu tham khảo:
+References:
 
 - [The java Command — Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html)
 - [The jar Command — Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jar.html)

@@ -1,82 +1,82 @@
-# `byte`, `short`, `int` và `long` trong Java
+# `byte`, `short`, `int`, and `long` in Java
 
-Java có bốn kiểu số nguyên nguyên thủy (*primitive integer types*) có dấu: **`byte` (8 bit), `short` (16 bit), `int` (32 bit), `long` (64 bit)**. Chúng lưu số nguyên chính xác **trong miền giá trị của từng kiểu**, nhưng có thể gặp tràn số khi kết quả phép toán vượt miền. Để dùng đúng, cần hiểu giới hạn, literal, chuyển kiểu, cơ chế nâng kiểu khi tính toán và các phép chia số nguyên.
+Java has four signed primitive integer types: **`byte` (8-bit), `short` (16-bit), `int` (32-bit), `long` (64-bit)**. They store integers accurately **within each type's value range**, but can overflow when an operation's result exceeds the range. To use them correctly, you need to understand their bounds, literals, type conversions, promotion rules during calculations, and integer division operations.
 
-## 1. Độ rộng, phạm vi và bản chất của bốn kiểu
+## 1. Width, Range, and Nature of the Four Types
 
-| Kiểu | Độ rộng | Nhỏ nhất | Lớn nhất | Wrapper |
+| Type | Width | Minimum | Maximum | Wrapper |
 | --- | ---: | ---: | ---: | --- |
-| `byte` | 8 bit | -128 | 127 | `Byte` |
-| `short` | 16 bit | -32.768 | 32.767 | `Short` |
-| `int` | 32 bit | -2.147.483.648 | 2.147.483.647 | `Integer` |
-| `long` | 64 bit | -9.223.372.036.854.775.808 | 9.223.372.036.854.775.807 | `Long` |
+| `byte` | 8-bit | -128 | 127 | `Byte` |
+| `short` | 16-bit | -32,768 | 32,767 | `Short` |
+| `int` | 32-bit | -2,147,483,648 | 2,147,483,647 | `Integer` |
+| `long` | 64-bit | -9,223,372,036,854,775,808 | 9,223,372,036,854,775,807 | `Long` |
 
-Kiểu số nguyên có dấu gồm `n` bit có miền `-2^(n-1)` đến `2^(n-1)-1`. Chẳng hạn, `byte` có miền từ `-2^7 = -128` đến `2^7-1 = 127`. Phần âm có thêm một giá trị vì miền không âm phải chứa cả số 0.
+A signed integer type of `n` bits has a range from `-2^(n-1)` to `2^(n-1)-1`. For example, `byte` has a range from `-2^7 = -128` to `2^7-1 = 127`. The negative side has one extra value because the non-negative range must also include 0.
 
-Java quy định bốn kiểu này dùng biểu diễn **bù hai (two's complement)** cho các phép toán nguyên có dấu. Giá trị `-1` có tất cả bit bằng 1 ở độ rộng đang dùng. Số bit của từng kiểu **không thay đổi** giữa máy 32 bit và 64 bit. Trong các kiểu nguyên có dấu, `int` thường là lựa chọn mặc định cho biến đếm và tính toán thông thường; `long` dùng khi cần miền lớn hơn.
+Java specifies that these four types use **two's complement** representation for signed integer operations. The value `-1` has all bits equal to 1 across the width being used. The bit width of each type **does not change** between 32-bit and 64-bit machines. Among the signed integer types, `int` is usually the default choice for counters and general arithmetic; `long` is used when a larger range is needed.
 
-Các hằng của wrapper giúp tra giới hạn an toàn: `Byte.MIN_VALUE`, `Short.MAX_VALUE`, `Integer.MIN_VALUE`, `Long.MAX_VALUE`. Không nên nhầm độ rộng giá trị với dung lượng thực tế của một object trong bộ nhớ: object header, căn chỉnh, boxing và cấu trúc collection có chi phí bổ sung. Với `int[]` hoặc `byte[]`, dữ liệu là primitive nhưng mảng vẫn có phần quản lý của JVM.
+Wrapper constants help look up bounds safely: `Byte.MIN_VALUE`, `Short.MAX_VALUE`, `Integer.MIN_VALUE`, `Long.MAX_VALUE`. Do not confuse the value width with the actual size of an object in memory: object headers, alignment, boxing, and collection structures have additional overhead. With `int[]` or `byte[]`, the elements are primitives, but the array itself still has JVM management overhead.
 
-Cần phân biệt `char`: dù có 16 bit, nó biểu diễn một đơn vị mã UTF-16 **không dấu**, không thuộc bốn kiểu số nguyên có dấu ở đây. `boolean` cũng không phải kiểu số nguyên.
+You should distinguish `char`: although it is 16-bit, it represents an **unsigned** UTF-16 code unit and is not one of the four signed integer types discussed here. `boolean` is not an integer type either.
 
-## 2. Khai báo biến, giá trị mặc định và literal
+## 2. Variable Declaration, Default Values, and Literals
 
 ```java
 byte level = 25;
 short year = 2026;
 int users = 100_000_000;
 long count = 3_000_000_000L;
-long smallCount = 100;  // literal int 100 được mở rộng chính xác thành long
+long smallCount = 100;  // int literal 100 is widened accurately to long
 ```
 
-Literal số nguyên **thập phân** không có hậu tố thường là `int` nếu nằm trong miền `int`. Nếu số lớn hơn `Integer.MAX_VALUE` và cần kiểu `long`, thêm `L` viết hoa:
+An unsuffixed **decimal** integer literal is normally `int` if it fits within the `int` range. If the number is larger than `Integer.MAX_VALUE` and needs the `long` type, append an uppercase `L`:
 
 ```java
 long ok = 5_000_000_000L;
-// long wrong = 5_000_000_000; // Lỗi: literal thập phân vượt miền int
+// long wrong = 5_000_000_000; // Error: decimal literal exceeds int range
 ```
 
-Dùng `L` thay vì `l` thường để tránh nhìn nhầm chữ `l` với số `1`. Dấu `_` bên trong các chữ số giúp dễ đọc mà không thay đổi giá trị; không được tùy tiện đặt ở đầu/cuối literal hoặc ngay trước hậu tố.
+Use uppercase `L` instead of lowercase `l` to avoid confusing the letter `l` with the digit `1`. Underscores `_` between digits improve readability without changing the value; they cannot be placed arbitrarily at the start/end of a literal or immediately before a suffix.
 
-Java còn có literal nhị phân `0b1010`, bát phân `012` và thập lục phân `0x0A`; cả ba ví dụ đều có giá trị **10**. Riêng `012` là bát phân: số 0 ở đầu literal nguyên có ý nghĩa cú pháp, không phải cách viết thập phân bình thường.
+Java also has binary literals `0b1010`, octal literals `012`, and hexadecimal literals `0x0A`; all three examples have the value **10**. Note `012` is octal: a leading 0 on an integer literal has syntactic meaning, not normal decimal notation.
 
-Field primitive và phần tử mảng primitive được khởi tạo mặc định bằng **0** (`long` có giá trị 0L). Biến cục bộ trong phương thức **không được tự động gán 0 để có thể đọc ngay**; Java yêu cầu nó đã được gán chắc chắn trước khi sử dụng.
+Primitive fields and primitive array elements are initialized to **0** by default (`long` has value 0L). Local variables in a method **are not automatically initialized to 0 so they can be read right away**; Java requires them to be definitely assigned before use.
 
-Với hằng `final`, trình biên dịch có thể áp dụng quy tắc hằng số tại thời điểm biên dịch. Ví dụ:
+For `final` constants, the compiler can apply compile-time constant assignment rules. For example:
 
 ```java
-byte first = 127;          // Hợp lệ: hằng int 127 nằm trong miền byte
+byte first = 127;          // Valid: int constant 127 is within byte range
 final int LIMIT = 100;
-byte second = LIMIT;       // Hợp lệ: constant expression trong miền byte
+byte second = LIMIT;       // Valid: constant expression within byte range
 int variable = 100;
-// byte third = variable; // Không hợp lệ: int thông thường không tự thu về byte
-// byte fourth = 128;    // Không hợp lệ: ngoài miền byte
+// byte third = variable; // Invalid: ordinary int does not automatically narrow to byte
+// byte fourth = 128;    // Invalid: outside byte range
 ```
 
-Đây là **quy tắc gán hằng số có điều kiện**, không phải mọi chuyển kiểu `int → byte` đều tự động.
+This is a **conditional constant assignment rule**, not that every `int → byte` conversion is automatic.
 
-## 3. Mở rộng kiểu (widening): không mất số nguyên trong bốn kiểu
+## 3. Widening Conversion: No Integer Loss Among the Four Types
 
-Chuỗi mở rộng điển hình là:
+The typical widening chain is:
 
 ```text
 byte → short → int → long
 ```
 
-Mọi giá trị của kiểu bên trái đều biểu diễn được bởi kiểu bên phải:
+Every value of a type on the left can be represented by the types on the right:
 
 ```java
 byte original = -100;
 short a = original;
 int b = a;
-long c = b;        // c vẫn bằng -100
+long c = b;        // c is still -100
 ```
 
-Chuyển mở rộng giữa **`byte`, `short`, `int` và `long`** là ngầm định và giữ chính xác giá trị. Tuy nhiên, đừng suy diễn rằng chuyển một `long` lớn sang `double` cũng luôn giữ chính xác mọi chữ số nguyên: độ chính xác phần trị của số dấu phẩy động hữu hạn.
+Widening conversions among **`byte`, `short`, `int`, and `long`** are implicit and preserve the exact value. However, do not assume that converting a large `long` to `double` also always preserves every integer digit accurately: the significand precision of floating-point numbers is finite.
 
-## 4. Thu hẹp kiểu (narrowing): cast có thể đổi giá trị
+## 4. Narrowing Conversion: Casting Can Change the Value
 
-Muốn gán từ kiểu lớn về kiểu nhỏ, Java thường yêu cầu ép kiểu tường minh:
+To assign from a larger type to a smaller type, Java generally requires an explicit cast:
 
 ```java
 int number = 130;
@@ -86,79 +86,79 @@ long huge = 3_000_000_000L;
 int changed = (int) huge;   // -1294967296
 ```
 
-Với các chuyển kiểu số nguyên thu hẹp, Java giữ **các bit thấp**, bỏ các bit cao rồi diễn giải kết quả theo kiểu đích có dấu. Ví dụ 130 có tám bit thấp là `1000_0010`, nên khi đọc theo `byte` có dấu, giá trị nhận được là -126. Cast **không làm tròn**, **không kẹp tại `MIN_VALUE`/`MAX_VALUE`**, và **không tự báo lỗi** nếu số vượt miền đích.
+For narrowing integer conversions, Java keeps **the low-order bits**, discards the high-order bits, and then interprets the result according to the signed target type. For example, 130 has the low eight bits `1000_0010`, so when read as a signed `byte`, the resulting value is -126. Casting **does not round**, **does not clamp at `MIN_VALUE`/`MAX_VALUE`**, and **does not automatically throw an error** if the number exceeds the target range.
 
-Nếu cần chuyển `long` sang `int` và phát hiện giá trị nằm ngoài miền, dùng `Math.toIntExact(value)`: nó ném `ArithmeticException` khi không thể biểu diễn trong `int`. Với `int` sang `byte` hoặc `short`, hãy kiểm tra giới hạn kiểu đích trước khi cast.
+If you need to convert a `long` to `int` and detect out-of-range values, use `Math.toIntExact(value)`: it throws `ArithmeticException` when the value cannot be represented in `int`. For `int` to `byte` or `short`, check the target type's bounds before casting.
 
-## 5. Quy tắc nâng kiểu trong biểu thức số học
+## 5. Promotion Rules in Arithmetic Expressions
 
-Trong nhiều phép toán hai ngôi như `+`, `-`, `*`, `/`, `%`, các toán hạng `byte` hoặc `short` được nâng lên **`int`** trước khi tính (*binary numeric promotion*). Khi một toán hạng là `long` và toán hạng còn lại là kiểu số nguyên trong bốn kiểu này, phép toán được thực hiện theo `long`.
+In many binary operations such as `+`, `-`, `*`, `/`, and `%`, `byte` or `short` operands are promoted to **`int`** before calculation (*binary numeric promotion*). When one operand is `long` and the other is one of these four integer types, the operation is performed as `long`.
 
 ```java
 byte a = 10;
 byte b = 20;
-int sum = a + b;            // Đúng: kiểu biểu thức là int
-// byte wrong = a + b;      // Lỗi biên dịch: int không tự thu về byte
+int sum = a + b;            // Valid: expression type is int
+// byte wrong = a + b;      // Compile error: int does not automatically narrow to byte
 byte smallSum = (byte) (a + b);
 
 int x = 1_000_000;
-long wrongProduct = x * x;          // Phép nhân int tràn trước khi gán long
+long wrongProduct = x * x;          // int multiplication overflows before assigning to long
 long correctProduct = (long) x * x; // 1_000_000_000_000L
 ```
 
-**Kiểu của biến nhận không quyết định kiểu trung gian của biểu thức**. `long wrongProduct = x * x` vẫn nhân theo `int`. Ép một toán hạng thành `long` **trước phép tính** mới giúp biểu thức nhân theo `long`; sau đó vẫn phải bảo đảm kết quả nằm trong giới hạn `long`.
+**The type of the receiving variable does not determine the intermediate type of the expression**. `long wrongProduct = x * x` still multiplies as `int`. Casting one operand to `long` **before the operation** is what makes the multiplication run as `long`; even then, you must still ensure the result fits within `long` bounds.
 
-Các phép toán đơn ngôi `+`, `-`, `~` nâng `byte`/`short` lên `int`. Với dịch bit `<<`, `>>`, `>>>`, toán hạng trái sau nâng kiểu quyết định kiểu kết quả (`int` hoặc `long`).
+Unary operators `+`, `-`, and `~` promote `byte`/`short` to `int`. For bit shifts `<<`, `>>`, and `>>>`, the promoted left-hand operand determines the result type (`int` or `long`).
 
-### Tại sao `byte counter += 1` lại biên dịch?
+### Why does `byte counter += 1` compile?
 
 ```java
 byte counter = 127;
-counter += 1;             // Hợp lệ, kết quả sẽ là -128
-// counter = counter + 1;  // Lỗi: counter + 1 có kiểu int
+counter += 1;             // Valid, result will be -128
+// counter = counter + 1;  // Error: counter + 1 has type int
 ```
 
-Phép gán rút gọn `counter += 1` bao gồm chuyển kiểu về `byte` một cách ngầm định (tương tự `counter = (byte) (counter + 1)`, trừ việc biểu thức bên trái chỉ được đánh giá một lần). Điều đó thuận tiện về cú pháp nhưng **không bảo vệ khỏi overflow**.
+The compound assignment `counter += 1` includes an implicit cast back to `byte` (similar to `counter = (byte) (counter + 1)`, except the left-hand expression is evaluated only once). This is syntactically convenient, but **does not protect against overflow**.
 
-## 6. Tràn số (overflow) và phép toán an toàn
+## 6. Overflow and Safe Arithmetic
 
-Nếu kết quả toán học vượt miền giá trị, phép cộng/trừ/nhân trên kiểu số nguyên nguyên thủy có kết quả theo độ rộng bit cố định. Ví dụ:
+If the mathematical result exceeds the value range, addition/subtraction/multiplication on primitive integer types produces a result within the fixed bit width. For example:
 
-- `Integer.MAX_VALUE + 1` cho `Integer.MIN_VALUE`.
-- `Long.MAX_VALUE + 1L` cho `Long.MIN_VALUE`.
-- `Math.abs(Integer.MIN_VALUE)` vẫn cho `Integer.MIN_VALUE` vì không thể biểu diễn giá trị đối dương tương ứng trong `int`.
+- `Integer.MAX_VALUE + 1` gives `Integer.MIN_VALUE`.
+- `Long.MAX_VALUE + 1L` gives `Long.MIN_VALUE`.
+- `Math.abs(Integer.MIN_VALUE)` still gives `Integer.MIN_VALUE` because the corresponding positive value cannot be represented in `int`.
 
-Các phép cộng, trừ, nhân thông thường **không tự ném ngoại lệ khi tràn**. Nếu cần phát hiện thay vì nhận kết quả đã quấn vòng, dùng `Math.addExact`, `Math.subtractExact`, `Math.multiplyExact`, `Math.incrementExact`, `Math.decrementExact`, `Math.negateExact` hoặc kiểm tra miền. Chúng ném `ArithmeticException` với các trường hợp overflow mà API xử lý. `Math.toIntExact` hữu ích riêng cho đổi `long` sang `int`.
+Ordinary addition, subtraction, and multiplication **do not automatically throw an exception on overflow**. If you need to detect overflow rather than receive a wrapped result, use `Math.addExact`, `Math.subtractExact`, `Math.multiplyExact`, `Math.incrementExact`, `Math.decrementExact`, `Math.negateExact`, or perform range checks. They throw `ArithmeticException` for the overflow cases handled by the API. `Math.toIntExact` is specifically useful for converting `long` to `int`.
 
-Muốn tính với số nguyên vượt cả 64 bit, sử dụng `java.math.BigInteger`. `BigInteger` không có độ rộng cố định như `long` nhưng vẫn chịu giới hạn bộ nhớ và thời gian xử lý.
+To compute with integers beyond 64 bits, use `java.math.BigInteger`. `BigInteger` does not have a fixed width like `long`, though it is still subject to memory and processing time limits.
 
-## 7. Phép chia nguyên, phép lấy dư và chia cho 0
+## 7. Integer Division, Remainder, and Division by Zero
 
-Phép chia hai số nguyên cho kết quả số nguyên, **cắt phần phân số về phía 0**:
+Dividing two integers produces an integer result, **truncating the fractional part toward 0**:
 
 - `7 / 3 == 2`.
-- `-7 / 3 == -2`, không phải -3.
+- `-7 / 3 == -2`, not -3.
 - `7 % 3 == 1`.
-- `-7 % 3 == -1` (số dư khác 0 cùng dấu với số bị chia).
+- `-7 % 3 == -1` (a non-zero remainder has the same sign as the dividend).
 
-Nếu mẫu số là 0, `x / 0` và `x % 0` với các toán hạng kiểu nguyên gây `ArithmeticException`. Trường hợp đặc biệt `Integer.MIN_VALUE / -1` trả về `Integer.MIN_VALUE` theo quy tắc kết quả số nguyên cố định, không tự ném ngoại lệ.
+If the divisor is 0, `x / 0` and `x % 0` with integer operands throw `ArithmeticException`. As a special case, `Integer.MIN_VALUE / -1` returns `Integer.MIN_VALUE` according to the fixed-width integer rule, without throwing an exception.
 
-Khi nghiệp vụ cần phép chia **làm tròn về âm vô cực**, `Math.floorDiv` và `Math.floorMod` có quy tắc khác `/`, `%` khi số âm tham gia. Những API này không thay thế cho kiểm tra overflow tổng quát.
+When business logic requires division **rounded toward negative infinity**, `Math.floorDiv` and `Math.floorMod` follow different rules from `/` and `%` when negative numbers are involved. These APIs do not replace general overflow checks.
 
-## 8. Có kiểu nguyên không dấu (unsigned) không?
+## 8. Are There Unsigned Integer Types?
 
-Bốn primitive đang xét đều **có dấu**. Tuy nhiên, Java có API giúp **diễn giải các bit như giá trị không dấu** trong giao thức hoặc file nhị phân:
+All four primitives discussed here are **signed**. However, Java provides APIs to **interpret the bits as unsigned values** in protocols or binary files:
 
-- `Byte.toUnsignedInt(b)`: đọc mẫu 8 bit của `byte` như số từ 0 đến 255, trả về `int`.
-- `Short.toUnsignedInt(s)`: đọc mẫu 16 bit như số 0..65535.
-- `Integer.toUnsignedLong(i)`: đọc mẫu 32 bit như số 0..4294967295 dưới dạng `long`.
-- `Integer.compareUnsigned`, `Integer.divideUnsigned`, `Long.compareUnsigned` và `Long.toUnsignedString`: hỗ trợ thao tác/biểu diễn theo ngữ nghĩa không dấu.
+- `Byte.toUnsignedInt(b)`: reads the 8-bit pattern of a `byte` as a number from 0 to 255, returning an `int`.
+- `Short.toUnsignedInt(s)`: reads the 16-bit pattern as a number 0..65535.
+- `Integer.toUnsignedLong(i)`: reads the 32-bit pattern as a number 0..4294967295 as a `long`.
+- `Integer.compareUnsigned`, `Integer.divideUnsigned`, `Long.compareUnsigned`, and `Long.toUnsignedString`: support operations and representations with unsigned semantics.
 
-Ví dụ, `Integer.toUnsignedLong(-1)` bằng `4_294_967_295L` do 32 bit của -1 đều bằng 1. Biến `int` ban đầu **vẫn là -1**; đây là sự thay đổi cách diễn giải bit, không phải một kiểu `unsigned int` primitive mới.
+For example, `Integer.toUnsignedLong(-1)` equals `4_294_967_295L` because all 32 bits of -1 are 1. The original `int` variable **is still -1**; this is a change in bit interpretation, not a new `unsigned int` primitive type.
 
-## 9. Ví dụ hoàn chỉnh chạy trên Java 17+
+## 9. Complete Example Running on Java 17+
 
-Lưu tệp `IntegerTypesDemo.java`:
+Save the file `IntegerTypesDemo.java`:
 
 ```java
 public class IntegerTypesDemo {
@@ -193,14 +193,14 @@ public class IntegerTypesDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac IntegerTypesDemo.java
 java IntegerTypesDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 byte: -128 .. 127
@@ -217,53 +217,53 @@ addExact: overflow detected
 unsigned view of -1: 4294967295
 ```
 
-**Giải thích:** Tổng hai `byte` được xử lý theo `int`; cộng `Integer.MAX_VALUE + 1` tràn miền `int`; nâng một toán hạng lên `long` trước khi cộng giữ được `2147483648`; cast `3_000_000_000L` về `int` bỏ bit cao; chia âm cắt phần dư thập phân về 0; `Math.addExact` chủ động phát hiện overflow; `Integer.toUnsignedLong` chỉ đổi cách hiểu bit.
+**Explanation:** Adding two `byte` values is processed as `int`; adding `Integer.MAX_VALUE + 1` overflows the `int` range; promoting one operand to `long` before adding preserves `2147483648`; casting `3_000_000_000L` to `int` drops the high bits; negative division truncates the fractional remainder toward 0; `Math.addExact` proactively detects overflow; `Integer.toUnsignedLong` only changes how the bits are interpreted.
 
-## 10. Tiện ích của wrapper và boxing
+## 10. Wrapper Utilities and Boxing
 
-| Việc cần làm | API | Lưu ý |
+| Task | API | Notes |
 | --- | --- | --- |
-| Đọc giới hạn | `Integer.MIN_VALUE`, `Long.MAX_VALUE` | Tránh số cố định khó kiểm chứng |
-| Đổi chuỗi thành số | `Integer.parseInt("42")`, `Long.parseLong("3000000000")` | `NumberFormatException` nếu sai định dạng hoặc vượt miền |
-| Đổi số thành chuỗi | `Integer.toString(x)`, `Long.toString(y)` | Không mở rộng phạm vi dữ liệu |
-| So sánh | `Integer.compare(x, y)`, `Long.compare(x, y)` | An toàn hơn cách so sánh dựa vào dấu của `x-y` khi phép trừ có thể tràn |
-| Kiểm tra phép tính | `Math.addExact`, `Math.multiplyExact`, `Math.toIntExact` | Phát hiện một số lỗi overflow |
-| Chuyển cách hiểu bit | `Byte.toUnsignedInt`, `Integer.toUnsignedLong` | Hữu ích cho binary/network protocol |
+| Read bounds | `Integer.MIN_VALUE`, `Long.MAX_VALUE` | Avoid hard-coded magic numbers that are hard to verify |
+| Parse string to number | `Integer.parseInt("42")`, `Long.parseLong("3000000000")` | `NumberFormatException` if malformed or out of range |
+| Convert number to string | `Integer.toString(x)`, `Long.toString(y)` | Does not expand the data range |
+| Compare | `Integer.compare(x, y)`, `Long.compare(x, y)` | Safer than comparing using the sign of `x-y` when subtraction can overflow |
+| Checked arithmetic | `Math.addExact`, `Math.multiplyExact`, `Math.toIntExact` | Detects certain overflow errors |
+| Bitwise interpretation | `Byte.toUnsignedInt`, `Integer.toUnsignedLong` | Useful for binary/network protocols |
 
-`Byte`, `Short`, `Integer` và `Long` là **wrapper reference types**, khác với `byte`, `short`, `int` và `long` primitive. `List<Integer>` chứa wrapper, có boxing/unboxing. Wrapper có thể là `null`, và **unboxing `null` gây `NullPointerException`**. Đối với mảng `int[]`, phần tử là giá trị primitive, không phải object `Integer` riêng lẻ.
+`Byte`, `Short`, `Integer`, and `Long` are **wrapper reference types**, unlike primitive `byte`, `short`, `int`, and `long`. `List<Integer>` holds wrappers, involving boxing/unboxing. A wrapper can be `null`, and **unboxing `null` throws `NullPointerException`**. For an `int[]` array, the elements are primitive values, not individual `Integer` objects.
 
-## 11. Chọn kiểu phù hợp
+## 11. Choosing the Right Type
 
-| Nhu cầu | Kiểu gợi ý | Vì sao |
+| Need | Suggested Type | Why |
 | --- | --- | --- |
-| Số lượng, bộ đếm, vòng lặp, chỉ số mảng, số học thông thường | `int` | Đủ cho phần lớn số nguyên thông thường và phù hợp cơ chế nâng kiểu |
-| Timestamp, khoảng thời gian theo mili giây, bộ đếm rất lớn | `long` | Miền rộng hơn `int`; vẫn cần kiểm tra tràn phép tính |
-| Một byte dữ liệu trong file, buffer hoặc giao thức | `byte`/`byte[]` | Phù hợp đơn vị dữ liệu 8 bit; có thể diễn giải unsigned khi cần |
-| Dữ liệu nguồn thực sự yêu cầu số nguyên 16 bit có dấu | `short` | Thể hiện chính xác giới hạn/định dạng 16 bit |
-| Số nguyên vượt miền 64 bit | `BigInteger` | Không giới hạn ở 64 bit cố định |
+| Counts, counters, loops, array indices, general arithmetic | `int` | Sufficient for most everyday integers and aligns with promotion rules |
+| Timestamps, millisecond durations, very large counters | `long` | Wider range than `int`; arithmetic overflow still needs checking |
+| A byte of data in a file, buffer, or protocol | `byte`/`byte[]` | Matches the 8-bit data unit; can be interpreted as unsigned when needed |
+| Source data specifically requiring a signed 16-bit integer | `short` | Accurately reflects 16-bit bounds/format |
+| Integers exceeding the 64-bit range | `BigInteger` | Not restricted to a fixed 64-bit width |
 
-Đừng dùng `byte` hoặc `short` chỉ vì nghĩ phép toán sẽ hiệu quả hơn; nhiều toán tử Java vẫn nâng chúng lên `int`. Nếu dữ liệu nguồn cho phép tới 255, một `byte` có dấu **không** biểu diễn trực tiếp mọi giá trị 0..255 theo ngữ nghĩa có dấu. Hãy xác định đơn vị, miền giá trị và cách chuyển đổi trước khi chọn kiểu.
+Do not use `byte` or `short` just thinking arithmetic will be more efficient; many Java operators still promote them to `int`. If source data allows values up to 255, a signed `byte` **cannot** directly represent every value 0..255 under signed semantics. Determine the unit, value range, and conversion rules before choosing a type.
 
-## 12. Lỗi thường gặp và cách tránh
+## 12. Common Mistakes and How to Avoid Them
 
-1. **Nhầm `int` là 64 bit trên máy 64 bit:** Java giữ độ rộng cố định 32/64 bit.
-2. **Quên `L` với literal thập phân lớn:** `long x = 3_000_000_000;` không hợp lệ; cần `3_000_000_000L`.
-3. **Gán `byte + byte` về `byte`:** kết quả biểu thức là `int`; phải đổi khai báo đích hoặc cast sau khi kiểm tra miền.
-4. **Ép kiểu sau khi biểu thức đã tràn:** `long r = (long) (x * y);` không phục hồi bit mất; nâng toán hạng trước phép nhân.
-5. **Cho rằng cast tự báo lỗi/kẹp giới hạn:** `(byte) 130` bằng `-126`, không phải 127.
-6. **Cho rằng cộng nguyên tự ném overflow:** cộng/trừ/nhân thường quấn vòng; dùng các hàm `Exact` khi cần.
-7. **Chia số nguyên và mong ra số lẻ:** `1 / 2` bằng 0; cần dùng phép toán kiểu số thực hoặc biểu diễn số thập phân theo yêu cầu khác.
-8. **Cho rằng `-7 / 3` bằng -3:** phép chia nguyên `/` cắt về 0 nên bằng -2.
-9. **Dùng `x - y` để lấy dấu so sánh:** hiệu có thể tràn; dùng phép so sánh hoặc `Integer.compare`.
-10. **Cho rằng `byte` là số nguyên 0..255:** đó là cách diễn giải không dấu; `byte` primitive có dấu là -128..127.
+1. **Mistaking `int` for 64-bit on a 64-bit machine:** Java keeps fixed 32/64-bit widths.
+2. **Forgetting `L` on large decimal literals:** `long x = 3_000_000_000;` is invalid; `3_000_000_000L` is required.
+3. **Assigning `byte + byte` back to `byte`:** the expression's result is `int`; change the target declaration or cast after range checking.
+4. **Casting after the expression has already overflowed:** `long r = (long) (x * y);` does not recover lost bits; widen an operand before multiplication.
+5. **Assuming casting automatically throws an error or clamps to bounds:** `(byte) 130` equals `-126`, not 127.
+6. **Assuming integer addition automatically throws on overflow:** addition/subtraction/multiplication normally wrap around; use the `Exact` methods when needed.
+7. **Dividing integers and expecting a fractional result:** `1 / 2` equals 0; use floating-point operations or decimal representations as required.
+8. **Assuming `-7 / 3` equals -3:** integer division `/` truncates toward 0, so it equals -2.
+9. **Using `x - y` to get the comparison sign:** the difference can overflow; use relational comparisons or `Integer.compare`.
+10. **Assuming `byte` is an integer from 0..255:** that is the unsigned interpretation; primitive signed `byte` is -128..127.
 
-## 13. Tự kiểm tra
+## 13. Self-Check
 
-- `short` có chứa 40.000 không? **Không**, vì tối đa là 32.767.
-- `long id = 5_000_000_000;` có biên dịch không? **Không**; literal thập phân phải có `L`.
-- `byte a = 5, b = 6;` thì `a + b` có kiểu gì? **`int`**.
-- `int x = 1_500_000_000; long y = x * 2;` có cho 3 tỷ không? **Không**, biểu thức nhân kiểu `int` đã tràn. Dùng `x * 2L`.
-- `Math.addExact(Integer.MAX_VALUE, 1)` có trả một `int` bị quấn vòng không? **Không**; nó ném `ArithmeticException`.
-- `Integer.toUnsignedLong(-1)` là bao nhiêu? **4_294_967_295L**, trong khi biến `int` đầu vào vẫn là -1.
+- Can `short` hold 40,000? **No**, because its maximum is 32,767.
+- Does `long id = 5_000_000_000;` compile? **No**; the decimal literal must have `L`.
+- If `byte a = 5, b = 6;`, what type does `a + b` have? **`int`**.
+- Does `int x = 1_500_000_000; long y = x * 2;` give 3 billion? **No**, the `int` multiplication expression overflowed. Use `x * 2L`.
+- Does `Math.addExact(Integer.MAX_VALUE, 1)` return a wrapped `int`? **No**; it throws `ArithmeticException`.
+- What is `Integer.toUnsignedLong(-1)`? **4_294_967_295L**, while the input `int` variable remains -1.
 
-**Ghi nhớ:** `byte`/`short`/`int`/`long` đều lưu chính xác số nguyên **trong phạm vi của mình**. Khác biệt cốt lõi là **8 / 16 / 32 / 64 bit**. Trước khi tính toán, xác định kiểu của **literal và toán hạng**; trước khi thu hẹp, kiểm tra phạm vi; khi cần phát hiện tràn, dùng API kiểm tra phù hợp.
+**Remember:** `byte`/`short`/`int`/`long` all store integers accurately **within their own ranges**. The core difference is **8 / 16 / 32 / 64 bits**. Before computing, check the types of **literals and operands**; before narrowing, check the range; when overflow detection is needed, use the appropriate checking API.

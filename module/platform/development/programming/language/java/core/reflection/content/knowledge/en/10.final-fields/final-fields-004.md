@@ -1,35 +1,35 @@
-# Final field trong record và hidden class: giới hạn Reflection ở Java 17+
+# Final Fields in Records and Hidden Classes: Reflection Limits in Java 17+
 
-## 1. Vấn đề cần hiểu
+## 1. The Problem to Understand
 
-Một sai lầm khi học Java Reflection là cho rằng: **nếu `Field.setAccessible(true)` thành công thì bất kỳ trường `final` nào cũng có thể bị sửa**. Điều này **không đúng**.
+A common mistake when learning Java Reflection is assuming that: **if `Field.setAccessible(true)` succeeds, any `final` field can be modified**. This is **false**.
 
-Kể từ Java 17 (và trong các API tương ứng đã có ở những phiên bản trước), Java phân biệt một nhóm **non-modifiable final fields**. Ba nhóm quan trọng theo tài liệu `java.lang.reflect.Field` và `AccessibleObject` là:
+Since Java 17 (and in corresponding APIs already present in earlier versions), Java distinguishes a group of **non-modifiable final fields**. The three key groups according to the `java.lang.reflect.Field` and `AccessibleObject` documentation are:
 
-1. Mọi trường `static final` được khai báo ở bất kỳ class/interface nào.
-2. Mọi trường `final` được khai báo trong **record class**.
-3. Mọi trường `final` được khai báo trong **hidden class**.
+1. All `static final` fields declared in any class/interface.
+2. All `final` fields declared in a **record class**.
+3. All `final` fields declared in a **hidden class**.
 
-Với nhóm này, kể cả khi mã gọi đã bật thành công quyền truy cập sâu bằng `setAccessible(true)` hoặc `trySetAccessible()`, Reflection chỉ có thể **bỏ qua kiểm tra quyền truy cập để đọc**; nó **không cấp quyền ghi** lên trường đó.
+For this group, even if the calling code has successfully enabled deep access with `setAccessible(true)` or `trySetAccessible()`, Reflection can only **bypass access-control checks in order to read**; it **does not grant write permission** on those fields.
 
-Ví dụ ý tưởng:
+Conceptual example:
 
 ```java
 Field field = SomeRecord.class.getDeclaredField("name");
-field.setAccessible(true);      // Có thể thành công nếu module cho phép.
-Object value = field.get(obj);  // Có thể đọc được.
-field.set(obj, "changed");      // IllegalAccessException: final field không sửa được.
+field.setAccessible(true);      // May succeed if the module allows it.
+Object value = field.get(obj);  // Can be read.
+field.set(obj, "changed");      // IllegalAccessException: final field cannot be modified.
 ```
 
-Đây là các dòng minh họa cần có định nghĩa `SomeRecord` và đối tượng `obj` tương ứng, không phải chương trình Java độc lập. Chương trình biên dịch/chạy đầy đủ ở mục 7 sẽ chứng minh quy tắc bằng cả record và hidden class.
+These illustrative lines require a corresponding `SomeRecord` definition and `obj` instance, and do not form a standalone Java program. The complete compilable/runnable program in section 7 will demonstrate the rule using both a record and a hidden class.
 
-Bài này tập trung vào **quyền ghi của `Field` khi declaring class là record hoặc hidden class**. Cần phân biệt với hai khái niệm khác: các mức truy cập Java (`private`/`public`) và field hiding (lớp con khai báo trường trùng tên với lớp cha). **Hidden class** là loại class do runtime định nghĩa theo cơ chế riêng; nó không có nghĩa “field bị class khác che khuất”.
+This lesson focuses on **write permissions of `Field` when the declaring class is a record or a hidden class**. This must be distinguished from two other concepts: Java access levels (`private`/`public`) and field hiding (a subclass declaring a field with the same name as a superclass). A **hidden class** is a kind of class defined by the runtime via a specialized mechanism; it does not mean "a field hidden by another class".
 
-## 2. Tại sao `final` quan trọng, và vì sao Reflection có ngoại lệ?
+## 2. Why `final` Matters, and Why Reflection Has Exceptions
 
-### 2.1. `final` trong lập trình Java thông thường
+### 2.1. `final` in ordinary Java programming
 
-Trường instance `final` thường được gán khi khởi tạo đối tượng và không thể gán lại bằng cú pháp Java thông thường sau khi đã khởi tạo hợp lệ. Ví dụ:
+An instance `final` field is normally assigned when the object is initialized and cannot be reassigned with ordinary Java syntax after valid initialization. Example:
 
 ```java
 final class Ticket {
@@ -45,51 +45,51 @@ final class Ticket {
 }
 ```
 
-`Ticket.code` là trường `private final`: phía bên ngoài không được gán bằng `ticket.code = "x"`. Điều đó không nhất thiết có nghĩa **mọi** thao tác phản chiếu vào mọi trường final instance thông thường đều bị cấm ở cấp API.
+`Ticket.code` is a `private final` field: external code cannot assign `ticket.code = "x"`. That does not necessarily mean **every** reflective operation on every ordinary instance final field is forbidden at the API level.
 
-Trên Java 17, tài liệu `Field.set` vẫn ghi nhận trường hợp rất hẹp mà Reflection có thể ghi một **instance final field trong lớp thông thường** khi `setAccessible(true)` đã thành công. Việc đó chủ yếu có ý nghĩa trong quy trình khôi phục/deserialization đối tượng có blank final field **trước khi** đối tượng được công bố cho phần khác của chương trình. Nếu thay đổi final field sau đó, kết quả quan sát có thể không dự đoán được vì tối ưu hóa và các bảo đảm đặc biệt của mô hình bộ nhớ Java.
+On Java 17, the `Field.set` documentation still notes a very narrow case where Reflection can write an **instance final field in an ordinary class** when `setAccessible(true)` has succeeded. That is primarily meaningful during object restoration/deserialization workflows involving blank final fields **before** the object is published to other parts of the program. If a final field is modified afterward, observed results can become unpredictable due to optimizations and the special guarantees of the Java memory model.
 
-**Không dùng khả năng lịch sử này làm cơ sở thiết kế API sửa immutable object.** Quy tắc record và hidden class còn chặt hơn: trường `final` do các class này khai báo là **non-modifiable**, dù kiểm tra truy cập đã được bỏ qua thành công.
+**Do not use this historical capability as a basis for designing APIs that mutate immutable objects.** The rules for records and hidden classes are even stricter: `final` fields declared by these classes are **non-modifiable**, even when access checks have been bypassed successfully.
 
-### 2.2. Cùng là `final` nhưng điều kiện ghi khác nhau
+### 2.2. Same `final` keyword, different write conditions
 
-| Declaring class / loại field | Có thể xin bypass kiểm tra quyền để đọc? | `Field.set(...)` có được ghi field `final`? |
+| Declaring class / field type | Can access checks be bypassed to read? | Can `Field.set(...)` write the `final` field? |
 |---|---|---|
-| Trường `static final` trong class/interface bất kỳ | Có, nếu được runtime cho phép | **Không** |
-| Trường instance `final` khai báo ở `record` | Có, nếu được runtime cho phép | **Không** |
-| Trường `final` khai báo ở `hidden class` | Có, nếu được runtime cho phép | **Không** |
-| Trường instance `final` của class thông thường, không phải record/hidden | Có, tùy quyền/module | Trên Java 17 có điều kiện hỗ trợ rất hẹp khi suppress access checks; không nên dùng để cập nhật đối tượng đang hoạt động |
-| Trường instance **không** `final` | Có, tùy quyền/module | Có thể ghi nếu các điều kiện khác (receiver, kiểu dữ liệu, quyền...) hợp lệ |
+| `static final` field in any class/interface | Yes, if allowed by the runtime | **No** |
+| `final` instance field declared in a `record` | Yes, if allowed by the runtime | **No** |
+| `final` field declared in a `hidden class` | Yes, if allowed by the runtime | **No** |
+| `final` instance field of an ordinary class, not record/hidden | Yes, depending on permissions/modules | On Java 17, supported under very narrow conditions when suppressing access checks; should not be used to update live objects |
+| **Non-`final`** instance field | Yes, depending on permissions/modules | Writable if other conditions (receiver, data type, permissions, etc.) are valid |
 
-Bảng diễn tả hành vi của **Java 17 Reflection API**; nó không bảo đảm quyền truy cập thành công giữa các named modules hoặc quyền ghi vào những loại field không final. Với instance field, receiver phải là đối tượng tương thích; với static field, `Field.set` bỏ qua receiver và có thể truyền `null`.
+This table describes the behavior of the **Java 17 Reflection API**; it does not guarantee successful access across named modules or write capability for non-final field kinds. For instance fields, the receiver must be a compatible object; for static fields, `Field.set` ignores the receiver and `null` may be passed.
 
-Lưu ý phạm vi quy tắc: ở **hidden class**, chỉ **field có modifier `final`** thuộc nhóm không được phép ghi; các field không final trong hidden class không tự động trở thành bất biến chỉ vì class là hidden.
+Scope note for the rule: in a **hidden class**, only **fields with the `final` modifier** belong to the non-writable group; non-final fields in a hidden class do not automatically become immutable just because the class is hidden.
 
-## 3. Record: component tạo ra private final field
+## 3. Record: Components Produce `private final` Fields
 
-### 3.1. Record là gì trong phạm vi bài này?
+### 3.1. What is a Record within the scope of this lesson?
 
-Record là dạng khai báo class dành cho dữ liệu có cấu trúc; các **record components** nằm trong header. Ví dụ:
+A record is a class declaration form for structured data; **record components** appear in its header. Example:
 
 ```java
 record UserId(long value, String source) {
 }
 ```
 
-Với `UserId`, compiler tạo ra các thành phần tương ứng với record component, trong đó có:
+For `UserId`, the compiler generates members corresponding to the record components, including:
 
-- Hai **private final instance fields** tương ứng với `value` và `source`.
-- Hai accessor methods `value()` và `source()`.
-- Canonical constructor nhận các tham số tương ứng với record header (nếu không tự khai báo hình thức hợp lệ khác).
-- Các triển khai cho `equals`, `hashCode` và `toString` theo contract của record.
+- Two **private final instance fields** corresponding to `value` and `source`.
+- Two accessor methods `value()` and `source()`.
+- A canonical constructor accepting parameters matching the record header (unless another valid form is explicitly declared).
+- Implementations of `equals`, `hashCode`, and `toString` per the record contract.
 
-Record là một class `final`, không thể làm superclass để kế thừa theo cách thông thường, và record không được tùy ý khai báo thêm instance fields ngoài những trường tương ứng với components theo luật ngôn ngữ. Record có thể có static fields và methods riêng. Các component field là `private final` bất kể syntax header chỉ ghi `record UserId(long value, ...)`.
+A record is a `final` class, cannot serve as a superclass for inheritance in the usual way, and cannot arbitrarily declare additional instance fields beyond those corresponding to its components under the language rules. A record may have its own static fields and methods. Component fields are `private final` even though the header syntax simply writes `record UserId(long value, ...)`.
 
-Record cung cấp **shallow immutability** ở mức component references: không thể gán lại component field sau khi khởi tạo, nhưng nếu một component giữ tham chiếu tới đối tượng mutable như `List`, trạng thái bên trong đối tượng được tham chiếu vẫn có thể thay đổi nếu không được sao chép/bảo vệ. Bất biến của field và bất biến sâu của toàn bộ object graph là hai điều khác nhau.
+Records provide **shallow immutability** at the component-reference level: a component field cannot be reassigned after initialization, but if a component holds a reference to a mutable object such as a `List`, the internal state of the referenced object can still change unless copied/protected. Field immutability and deep immutability of the entire object graph are two different things.
 
-### 3.2. Reflection thấy record field như thế nào?
+### 3.2. How does Reflection view record fields?
 
-`Class.isRecord()` trả `true` với record class. Đối tượng `Class` còn hỗ trợ `getRecordComponents()` để liệt kê các component ở mức semantic của record.
+`Class.isRecord()` returns `true` for a record class. The `Class` object also provides `getRecordComponents()` to list components at the record's semantic level.
 
 ```java
 record UserId(long value, String source) {}
@@ -102,24 +102,24 @@ System.out.println(field.getName());        // source
 System.out.println(Modifier.isFinal(field.getModifiers())); // true
 ```
 
-Đoạn ví dụ này giả định các import `java.lang.reflect.Field` và `java.lang.reflect.Modifier`, và có xử lý `NoSuchFieldException`. Nó minh họa việc tìm metadata mà chưa thực hiện đọc/ghi giá trị.
+This example snippet assumes imports of `java.lang.reflect.Field` and `java.lang.reflect.Modifier`, and handling of `NoSuchFieldException`. It illustrates looking up metadata without yet reading or writing values.
 
-Có hai con đường đọc thông tin:
+There are two ways to read the information:
 
-- **Theo API record:** `userId.source()` hoặc method accessor trả giá trị; đây là cách thuận tiện trong code ứng dụng.
-- **Theo Reflection:** `getDeclaredField("source")` rồi `Field.get(userId)` nếu quyền truy cập cho phép.
+- **Via the record API:** `userId.source()` or the accessor method returns the value; this is the convenient approach in application code.
+- **Via Reflection:** `getDeclaredField("source")` followed by `Field.get(userId)` if access permissions allow.
 
-Dùng `getRecordComponents()` khi muốn biết **record components theo đúng thứ tự khai báo**, loại dữ liệu, accessor và annotation liên quan. Dùng `getDeclaredFields()` khi thực sự cần metadata của các trường: một record còn có thể có trường static không phải component. Không giả định `getDeclaredFields()` bằng `getRecordComponents()` theo cả nội dung lẫn thứ tự.
+Use `getRecordComponents()` when you want **record components in exact declaration order**, along with their types, accessors, and associated annotations. Use `getDeclaredFields()` when you genuinely need field metadata: a record can also contain static fields that are not components. Do not assume `getDeclaredFields()` matches `getRecordComponents()` in either contents or order.
 
-### 3.3. Tại sao `setAccessible(true)` không sửa record component?
+### 3.3. Why doesn't `setAccessible(true)` modify a record component?
 
-Giả sử có record:
+Suppose we have a record:
 
 ```java
 record Person(String name, int age) {}
 ```
 
-`name` và `age` là những final fields do record class khai báo. Dù có metadata và quyền truy cập phù hợp:
+`name` and `age` are final fields declared by the record class. Even with metadata and appropriate access permissions:
 
 ```java
 Person p = new Person("An", 25);
@@ -127,46 +127,46 @@ Field nameField = Person.class.getDeclaredField("name");
 
 if (nameField.trySetAccessible()) {
     System.out.println(nameField.get(p)); // An
-    nameField.set(p, "Bình");             // IllegalAccessException
+    nameField.set(p, "Binh");             // IllegalAccessException
 }
 ```
 
-Đây là đoạn minh họa trong ngữ cảnh đã import `Field` và xử lý checked exceptions. `trySetAccessible() == true` chỉ cho thấy runtime cho phép **bỏ qua kiểm tra mức truy cập**. Nó không biến final field trong record thành writable.
+This is an illustrative snippet in a context where `Field` is imported and checked exceptions are handled. `trySetAccessible() == true` only indicates that the runtime permits **bypassing access-level checks**. It does not make a final field in a record writable.
 
-**Cách đúng khi cần giá trị mới** là tạo instance record mới thông qua constructor/factory hợp lệ:
+**The right way when a new value is needed** is to create a new record instance through a valid constructor/factory:
 
 ```java
-Person updated = new Person("Bình", p.age());
+Person updated = new Person("Binh", p.age());
 ```
 
-Record là một cách truyền dữ liệu theo giá trị component, không phải cơ chế cập nhật trường riêng lẻ sau khởi tạo. Nếu lưu record trong một collection/map, hãy thay reference tới record bằng instance mới theo thiết kế của ứng dụng.
+A record is a way of passing data by component values, not a mechanism for updating individual fields after initialization. If a record is stored in a collection/map, replace the reference to the record with a new instance according to your application's design.
 
-## 4. Hidden class: runtime định nghĩa class nhưng không cho ghi final field
+## 4. Hidden Class: Runtime-Defined Class That Still Disallows Writing Final Fields
 
-### 4.1. Hidden class không phải private class
+### 4.1. A Hidden Class is not a `private` class
 
-**Hidden class** được giới thiệu qua cơ chế Java runtime/Method Handles, phục vụ triển khai động (chẳng hạn những class nội bộ do framework hoặc runtime tạo), nơi class không cần được tìm qua tên nhị phân theo cơ chế bình thường.
+A **hidden class** is introduced through Java runtime / Method Handles mechanisms, supporting dynamic implementations (such as internal classes generated by frameworks or the runtime), where the class does not need to be discoverable by binary name through ordinary mechanisms.
 
-Các điểm khác với class khai báo và nạp thông thường:
+Differences from ordinarily declared and loaded classes:
 
-- Có thể được định nghĩa từ class-file bytes qua `MethodHandles.Lookup.defineHiddenClass(byte[], boolean, ClassOption...)`.
-- `Class.isHidden()` trả `true` với hidden class.
-- Hidden class **không được phát hiện bằng cơ chế tra cứu thông thường dựa trên binary name**, ví dụ không thể dựa vào `Class.forName(className)` để tìm hidden class theo cách tìm class thông thường.
-- Nó vẫn có đối tượng `Class<?>`, có constructors, methods và fields mà code giữ tham chiếu tới class có thể dùng Reflection/Method Handles để khảo sát.
-- Hidden class được định nghĩa trong ngữ cảnh package/module/lookup phù hợp và có những quy tắc riêng về discoverability, liên kết và vòng đời; không tự động đồng nghĩa với `private` hoặc với việc mã ngoài không thể cầm `Class<?>` của nó.
+- Can be defined from class-file bytes via `MethodHandles.Lookup.defineHiddenClass(byte[], boolean, ClassOption...)`.
+- `Class.isHidden()` returns `true` for a hidden class.
+- A hidden class **is not discoverable via ordinary binary-name lookup mechanisms**; for example, you cannot rely on `Class.forName(className)` to find a hidden class the way ordinary classes are found.
+- It still has a `Class<?>` object, constructors, methods, and fields that code holding a reference to the class can inspect using Reflection/Method Handles.
+- A hidden class is defined within an appropriate package/module/lookup context and has its own rules for discoverability, linkage, and lifecycle; it is not automatically synonymous with `private` or with external code being unable to hold its `Class<?>`.
 
-Hidden class khác hoàn toàn với:
+A hidden class is completely different from:
 
-- **Nested class**: class khai báo bên trong class khác.
-- **Anonymous class**: class không có tên đơn giản trong source.
-- **Field hiding**: class con định nghĩa field cùng tên với class cha.
-- **`private` member/class**: quyền truy cập ngôn ngữ.
+- **Nested class**: a class declared inside another class.
+- **Anonymous class**: a class without a simple name in source code.
+- **Field hiding**: a subclass defining a field with the same name as its superclass.
+- **`private` member/class**: language-level access control.
 
-Một nested class bình thường **không tự động là hidden class**; ví dụ `Outer.Inner.class.isHidden()` thông thường trả `false`. Muốn có hidden class thật sự phải sử dụng cơ chế định nghĩa phù hợp hoặc được runtime/framework tạo.
+An ordinary nested class **is not automatically a hidden class**; for example, `Outer.Inner.class.isHidden()` normally returns `false`. To obtain an actual hidden class, an appropriate definition mechanism must be used, or the class must be created by the runtime/framework.
 
-### 4.2. Tại sao final field của hidden class không sửa được?
+### 4.2. Why can't a hidden class's final field be modified?
 
-Java Reflection coi mọi `final field` **khai báo trong hidden class** là non-modifiable. Điều kiện “hidden” áp dụng cho **declaring class của field**: hãy kiểm tra `field.getDeclaringClass().isHidden()` thay vì chỉ xem class của object đang được truyền làm receiver.
+Java Reflection treats every `final field` **declared in a hidden class** as non-modifiable. The "hidden" condition applies to the **declaring class of the field**: check `field.getDeclaringClass().isHidden()` rather than only inspecting the class of the object passed as the receiver.
 
 ```java
 Field f = hiddenClass.getDeclaredField("token");
@@ -175,100 +175,100 @@ System.out.println(f.getDeclaringClass().isHidden()); // true
 System.out.println(Modifier.isFinal(f.getModifiers())); // true
 ```
 
-Nếu `token` là final, dù `f.setAccessible(true)` thành công theo điều kiện truy cập, `f.set(hiddenObject, "new")` sẽ ném `IllegalAccessException`. Dòng này minh họa metadata; cách tạo hidden class và `hiddenObject` đầy đủ sẽ có ở mục 7.
+If `token` is final, even if `f.setAccessible(true)` succeeds under access conditions, `f.set(hiddenObject, "new")` will throw `IllegalAccessException`. These lines illustrate metadata; the full way to create a hidden class and `hiddenObject` appears in section 7.
 
-Ràng buộc này giúp runtime dựa vào ý nghĩa ổn định của các trường final trong class được tạo động. Các class động thường tham gia thực thi tối ưu hóa hoặc liên kết đặc biệt, nên việc cho phép Reflection tự ý gán lại những giá trị final đã khởi tạo sẽ phá vỡ giả định triển khai.
+This constraint lets the runtime rely on the stable semantics of final fields in dynamically generated classes. Dynamic classes frequently participate in execution optimizations or specialized linkage, so allowing Reflection to arbitrarily reassign initialized final values would break implementation assumptions.
 
-Đối với **non-final field** khai báo trong hidden class, việc có thể `Field.set` hay không vẫn phải xét quyền truy cập, receiver và kiểu dữ liệu. Không coi `isHidden()` là một lệnh cấm tất cả thao tác với field.
+For a **non-final field** declared in a hidden class, whether `Field.set` succeeds still depends on access permissions, receiver, and data type. Do not treat `isHidden()` as a blanket ban on all field operations.
 
-### 4.3. Khởi tạo hidden class và sử dụng class-file bytes
+### 4.3. Creating a hidden class and using class-file bytes
 
-`Lookup.defineHiddenClass` yêu cầu:
+`Lookup.defineHiddenClass` requires:
 
-- Class-file bytes hợp lệ, phù hợp với package của lookup class và các ràng buộc của API.
-- Một `MethodHandles.Lookup` có đủ quyền (full privilege access).
-- Lựa chọn khởi tạo và các `ClassOption` nếu cần. `NESTMATE` cho phép định nghĩa hidden class là nestmate của lookup class theo API.
+- Valid class-file bytes matching the package of the lookup class and the API's constraints.
+- A `MethodHandles.Lookup` with sufficient privileges (full privilege access).
+- Initialization choice and `ClassOption` values if needed. `NESTMATE` allows defining the hidden class as a nestmate of the lookup class per the API.
 
-API trả một `Lookup` tương ứng với hidden class đã định nghĩa; `lookupClass()` lấy đối tượng `Class<?>` của hidden class đó. Chỉ gọi `Class.isHidden()` trên **class thực sự trả về từ `defineHiddenClass`** mới kiểm tra đúng trường hợp này. Không đánh đồng template class mà mình dùng để lấy bytes với hidden class mới được VM định nghĩa.
+The API returns a `Lookup` corresponding to the defined hidden class; `lookupClass()` retrieves the `Class<?>` object of that hidden class. Only calling `Class.isHidden()` on **the class actually returned by `defineHiddenClass`** properly verifies this case. Do not conflate the template class used to obtain the bytes with the newly VM-defined hidden class.
 
-## 5. Quyền truy cập và quyền ghi là hai điều kiện độc lập
+## 5. Access Permission and Write Permission Are Two Independent Conditions
 
-### 5.1. `trySetAccessible` có ý nghĩa gì?
+### 5.1. What does `trySetAccessible` mean?
 
-`Field` kế thừa `AccessibleObject`. Một số API thường gặp:
+`Field` extends `AccessibleObject`. Some common APIs:
 
-| API | Vai trò |
+| API | Role |
 |---|---|
-| `field.canAccess(receiver)` | Hỏi hiện tại có thể truy cập field bằng receiver phù hợp không; không đổi trạng thái |
-| `field.trySetAccessible()` | Thử bật access-check suppression; trả boolean thành công/thất bại |
-| `field.setAccessible(true)` | Yêu cầu bật access-check suppression; có thể ném `InaccessibleObjectException` nếu không được mở |
-| `field.get(receiver)` | Đọc giá trị khi được phép |
-| `field.set(receiver, value)` | Yêu cầu ghi giá trị, còn chịu các hạn chế riêng cho final field |
+| `field.canAccess(receiver)` | Checks whether the field can currently be accessed with an appropriate receiver; does not change state |
+| `field.trySetAccessible()` | Attempts to enable access-check suppression; returns a boolean indicating success/failure |
+| `field.setAccessible(true)` | Requests enabling access-check suppression; may throw `InaccessibleObjectException` if not opened |
+| `field.get(receiver)` | Reads the value when permitted |
+| `field.set(receiver, value)` | Requests writing the value, also subject to specific restrictions for final fields |
 
-Với final field non-modifiable, `setAccessible(true)` **không bật khả năng ghi**. Đây không phải mâu thuẫn: **bỏ qua kiểm tra quyền truy cập Java** và **được phép sửa trường final** là hai điều kiện khác nhau.
+For a non-modifiable final field, `setAccessible(true)` **does not enable write capability**. This is not a contradiction: **bypassing Java access-permission checks** and **being allowed to modify a final field** are two different conditions.
 
-Một trình tự điển hình:
+A typical flow:
 
 ```text
 getDeclaredField(...)                    -> Field metadata
    |
-   +-- trySetAccessible() == false       -> không mở được access-check suppression
+   +-- trySetAccessible() == false       -> cannot enable access-check suppression
    |
-   +-- trySetAccessible() == true        -> có thể bypass Java access checks
+   +-- trySetAccessible() == true        -> can bypass Java access checks
            |
-           +-- get(receiver)             -> có thể đọc
+           +-- get(receiver)             -> can read
            |
            +-- set(receiver, newValue)
                   |
-                  +-- field final trong record/hidden?
+                  +-- final field in record/hidden?
                          |
-                         +-- Có          -> IllegalAccessException
-                         +-- Không       -> xét tiếp static final, loại field,
-                                          receiver, kiểu dữ liệu, điều kiện khác
+                         +-- Yes         -> IllegalAccessException
+                         +-- No          -> check static final, field kind,
+                                          receiver, data type, other conditions
 ```
 
-Sơ đồ chỉ minh họa nhánh quyền ghi liên quan bài học, không liệt kê mọi ngoại lệ/validation của Reflection. Một lần `get` còn có thể thất bại nếu receiver sai hoặc chương trình gọi không có quyền; một lần `set` vào trường không final cũng cần kiểm tra kiểu và receiver.
+The diagram only illustrates the write-permission branch relevant to this lesson, and does not list every Reflection exception/validation. A `get` call can still fail if the receiver is wrong or the calling program lacks permission; a `set` call on a non-final field also requires type and receiver checks.
 
-### 5.2. Module boundary vẫn có hiệu lực
+### 5.2. Module boundaries remain in effect
 
-Java Platform Module System (JPMS) có cơ chế strong encapsulation. Với class ở named module khác, `trySetAccessible()` có thể trả `false` nếu package không `opens` thích hợp cho module của caller. Khi `setAccessible(true)` không thể bật, nó có thể ném `InaccessibleObjectException`.
+The Java Platform Module System (JPMS) enforces strong encapsulation. For a class in another named module, `trySetAccessible()` may return `false` if the package is not appropriately opened via `opens` to the caller's module. When `setAccessible(true)` cannot enable suppression, it may throw `InaccessibleObjectException`.
 
-Với code ví dụ chạy trên classpath trong **unnamed module**, gọi `trySetAccessible()` trên private field cùng module có thể thành công. Nhưng không nên suy rộng rằng mọi framework truy cập private field của mọi module đều thành công.
+For example code running on the classpath in the **unnamed module**, calling `trySetAccessible()` on a private field in the same module may succeed. However, do not generalize that every framework accessing private fields across any module will succeed.
 
-Điểm rất quan trọng: **kể cả package đã được `opens` đầy đủ**, field `final` do record hoặc hidden class khai báo vẫn không trở thành writable bằng `Field.set`.
+Crucially: **even when a package is fully `opens`**, a `final` field declared by a record or hidden class still does not become writable via `Field.set`.
 
-## 6. Quy tắc chính xác của `Field.set` trên Java 17
+## 6. Exact Rules of `Field.set` on Java 17
 
-Theo hợp đồng của `Field.set(Object, Object)`, một field final chỉ có thể được cấp quyền ghi theo đường Reflection này nếu đồng thời thỏa tất cả điều kiện:
+According to the contract of `Field.set(Object, Object)`, a final field can only be granted write permission via this Reflection path if all of the following conditions hold simultaneously:
 
-1. `setAccessible(true)` (hoặc `trySetAccessible` thành công với hiệu quả tương đương) đã bật suppression trên **chính đối tượng `Field` đó**.
-2. Field **không phải `static`**.
-3. Declaring class của field **không phải hidden class**.
-4. Declaring class của field **không phải record class**.
+1. `setAccessible(true)` (or `trySetAccessible` succeeding with equivalent effect) has enabled suppression on **that exact `Field` object**.
+2. The field is **not `static`**.
+3. The declaring class of the field is **not a hidden class**.
+4. The declaring class of the field is **not a record class**.
 
-Nếu một trong các điều kiện trên không thỏa, `Field.set` ném `IllegalAccessException` cho final field. Những điều kiện này tách biệt khỏi kiểm tra object receiver và khả năng chuyển kiểu giá trị đầu vào.
+If any of the conditions above is not satisfied, `Field.set` throws `IllegalAccessException` for a final field. These conditions are separate from checking the receiver object and whether the input value can be converted.
 
-| Kiểm tra | Ví dụ | Kết luận |
+| Check | Example | Conclusion |
 |---|---|---|
-| `Modifier.isFinal(f.getModifiers())` | `true` | Field có modifier final |
-| `Modifier.isStatic(f.getModifiers())` | `true` | Final + static là non-modifiable |
-| `f.getDeclaringClass().isRecord()` | `true` | Final field trong record là non-modifiable |
-| `f.getDeclaringClass().isHidden()` | `true` | Final field trong hidden class là non-modifiable |
-| `f.trySetAccessible()` | `true` | Có thể suppression access checks; **không** suy ra quyền ghi |
+| `Modifier.isFinal(f.getModifiers())` | `true` | The field has the final modifier |
+| `Modifier.isStatic(f.getModifiers())` | `true` | Final + static is non-modifiable |
+| `f.getDeclaringClass().isRecord()` | `true` | A final field in a record is non-modifiable |
+| `f.getDeclaringClass().isHidden()` | `true` | A final field in a hidden class is non-modifiable |
+| `f.trySetAccessible()` | `true` | Access checks can be suppressed; **does not** imply write permission |
 
-Có thể dùng các kiểm tra trên để xác định trước rằng code của mình **không nên gọi `set`**. Tuy nhiên mã ứng dụng vẫn nên xử lý exception nếu có thao tác Reflection thật, vì metadata, quyền module, kiểu receiver và môi trường chạy có thể tạo thêm lỗi.
+You can use these checks to determine beforehand that your code **should not call `set`**. Nevertheless, application code should still handle exceptions when performing real Reflection operations, because metadata, module permissions, receiver types, and runtime environments can produce additional errors.
 
-## 7. Chương trình Java 17+ đầy đủ: đọc được nhưng không sửa được
+## 7. Complete Java 17+ Program: Readable but Not Modifiable
 
-Ví dụ này **thực sự tạo hidden class**, không chỉ đặt tên một class bình thường là "Hidden". Nó chứa:
+This example **actually creates a hidden class**, rather than merely naming an ordinary class "Hidden". It contains:
 
-- `Order` là record với component `label`, từ đó compiler tạo final field.
-- `HiddenTemplate` là static nested class thường, dùng **class-file bytes** để tạo một **hidden class mới** qua `Lookup.defineHiddenClass`.
-- `Ordinary` để so sánh metadata: một class thông thường có private final field nhưng không phải record/hidden class.
+- `Order` as a record with component `label`, from which the compiler generates a final field.
+- `HiddenTemplate` as an ordinary static nested class, whose **class-file bytes** are used to define a **new hidden class** via `Lookup.defineHiddenClass`.
+- `Ordinary` for metadata comparison: an ordinary class with a private final field that is neither a record nor a hidden class.
 
-### 7.1. Mã nguồn
+### 7.1. Source code
 
-Lưu thành file **`RecordHiddenFinalDemo.java`**:
+Save as **`RecordHiddenFinalDemo.java`**:
 
 ```java
 import java.io.InputStream;
@@ -358,16 +358,16 @@ public class RecordHiddenFinalDemo {
 }
 ```
 
-Chạy trong thư mục chứa file bằng JDK 17+:
+Run in the directory containing the file using JDK 17+:
 
 ```bash
 javac --release 17 RecordHiddenFinalDemo.java
 java RecordHiddenFinalDemo
 ```
 
-Lệnh `javac` tạo các class files cần thiết trong cùng thư mục. Khi chạy trực tiếp với classpath hiện hành, resource `RecordHiddenFinalDemo$HiddenTemplate.class` sẽ tồn tại để `getResourceAsStream` đọc bytes. Nếu đóng gói ứng dụng theo cách đặc biệt, bạn phải bảo đảm class-file resource đó được phân phối và đọc được.
+The `javac` command creates the necessary class files in the same directory. When run directly with the current classpath, the resource `RecordHiddenFinalDemo$HiddenTemplate.class` will exist for `getResourceAsStream` to read its bytes. If packaging the application in a special way, you must ensure that class-file resource is distributed and readable.
 
-### 7.2. Kết quả chuẩn
+### 7.2. Expected output
 
 ```text
 record class: true
@@ -385,52 +385,52 @@ ordinary hidden: false
 ordinary final: true
 ```
 
-Đầu ra trên được kiểm chứng bằng cách biên dịch mã nguồn với `--release 17` và chạy trên JDK tương thích. Nó giả định môi trường classpath/unnamed module thông thường, không thêm SecurityManager hoặc cơ chế đặc biệt chặn quyền Reflection.
+The output above was verified by compiling the source code with `--release 17` and running on a compatible JDK. It assumes a normal classpath/unnamed module environment, without adding a SecurityManager or special mechanism blocking Reflection permissions.
 
-### 7.3. Giải thích kỹ luồng record
+### 7.3. Detailed explanation of the record flow
 
-- `Order.class.isRecord()` trả `true` vì `Order` là record.
-- `getDeclaredField("label")` tìm trường do record khai báo, có modifier `final`.
-- `trySetAccessible()` trả `true` trong ví dụ này vì caller có điều kiện truy cập phù hợp (cùng unnamed module).
-- `get(order)` đọc thành công `"ready"`.
-- `set(order, "updated")` vẫn ném `IllegalAccessException` do quy tắc **non-modifiable final field của record**. Lỗi **không phải** vì không tìm được trường, không phải vì sai kiểu `String` và không phải vì `trySetAccessible()` trả `false`.
+- `Order.class.isRecord()` returns `true` because `Order` is a record.
+- `getDeclaredField("label")` locates the field declared by the record, which has the `final` modifier.
+- `trySetAccessible()` returns `true` in this example because the caller meets the access conditions (same unnamed module).
+- `get(order)` successfully reads `"ready"`.
+- `set(order, "updated")` still throws `IllegalAccessException` due to the **non-modifiable final field rule for records**. The error is **not** because the field could not be found, not because of a wrong `String` type, and not because `trySetAccessible()` returned `false`.
 
-### 7.4. Giải thích kỹ luồng hidden class
+### 7.4. Detailed explanation of the hidden class flow
 
-- `HiddenTemplate` khi khai báo trong source chỉ là nested class thông thường; nó **không** phải hidden class.
-- `getResourceAsStream` lấy chính bytecode đã biên dịch của template. `defineHiddenClass` dùng bytes này để tạo một class mới, trả một `Lookup`; `lookupClass()` là **hidden class thực sự**.
-- `hidden.isHidden()` trả `true`. Khác biệt này chứng minh ví dụ đang thao tác với hidden class, không phải chỉ class có tên chứa chữ “Hidden”.
-- Constructor được gọi qua Reflection để tạo `hiddenObject`. Field `code` được khai báo với `private final` trong class tương ứng.
-- `hiddenField.trySetAccessible()` thành công, `get(hiddenObject)` đọc được `"sealed"`.
-- `set(hiddenObject, "updated")` ném `IllegalAccessException` vì declaring class của final field là **hidden class**.
+- `HiddenTemplate` when declared in source code is just an ordinary nested class; it is **not** a hidden class.
+- `getResourceAsStream` retrieves the compiled bytecode of the template itself. `defineHiddenClass` uses those bytes to create a new class and returns a `Lookup`; `lookupClass()` is the **actual hidden class**.
+- `hidden.isHidden()` returns `true`. This distinction proves the example operates on a hidden class, not merely a class whose name contains the word "Hidden".
+- The constructor is invoked via Reflection to create `hiddenObject`. The field `code` is declared as `private final` in that class.
+- `hiddenField.trySetAccessible()` succeeds, and `get(hiddenObject)` reads `"sealed"`.
+- `set(hiddenObject, "updated")` throws `IllegalAccessException` because the declaring class of the final field is a **hidden class**.
 
-### 7.5. So sánh với class thường
+### 7.5. Comparison with an ordinary class
 
-`Ordinary` có `private final String code`, nhưng `isRecord()` và `isHidden()` đều trả `false`. Chương trình **không thử sửa field** của `Ordinary` vì việc phản chiếu sửa final field của class thường sau khởi tạo không phải kỹ thuật nên áp dụng trong mã nghiệp vụ. Mục đích của nó là làm rõ: **`final` thôi chưa diễn tả đầy đủ những hạn chế đặc biệt trong record/hidden class**.
+`Ordinary` has `private final String code`, but both `isRecord()` and `isHidden()` return `false`. The program **does not attempt to modify the field** of `Ordinary` because reflectively mutating a final field of an ordinary class after initialization is not a technique to use in business code. Its purpose is to make clear: **`final` alone does not fully describe the special restrictions in records/hidden classes**.
 
-## 8. Những trường hợp biên và ngoại lệ cần phân biệt
+## 8. Edge Cases and Exceptions to Distinguish
 
-### 8.1. Lỗi tra cứu khác lỗi ghi
+### 8.1. Lookup errors vs. write errors
 
-| Tình huống | Kết quả thường gặp |
+| Situation | Typical result |
 |---|---|
-| Tên field không tồn tại trong kiểu được yêu cầu | `NoSuchFieldException` khi `getDeclaredField` |
-| Đã tìm thấy field nhưng không có quyền truy cập thông thường | `IllegalAccessException` ở `Field.get/set` |
-| Package module khác không cho mở deep reflection | `trySetAccessible()` có thể trả `false`; `setAccessible(true)` có thể ném `InaccessibleObjectException` |
-| Final field thuộc record/hidden class, access suppression đã bật | `Field.set(...)` vẫn ném `IllegalAccessException` |
-| Instance field nhưng receiver là `null` | `NullPointerException` |
-| Receiver không phải instance tương thích của declaring class | `IllegalArgumentException` |
-| Value sai kiểu hoặc không chuyển được theo quy tắc `Field.set` | `IllegalArgumentException` |
+| Field name does not exist in the requested type | `NoSuchFieldException` on `getDeclaredField` |
+| Field found, but lacks normal access permission | `IllegalAccessException` on `Field.get/set` |
+| Another module's package does not allow deep reflection | `trySetAccessible()` may return `false`; `setAccessible(true)` may throw `InaccessibleObjectException` |
+| Final field in a record/hidden class, access suppression enabled | `Field.set(...)` still throws `IllegalAccessException` |
+| Instance field but receiver is `null` | `NullPointerException` |
+| Receiver is not a compatible instance of the declaring class | `IllegalArgumentException` |
+| Value has wrong type or cannot be converted per `Field.set` rules | `IllegalArgumentException` |
 
-Việc `Field.set` thất bại với record final field **không có nghĩa** class record không tìm được bằng Reflection. Tương tự, hidden class vẫn có thể được khảo sát qua `Class<?>` của nó ngay cả khi cơ chế lookup bằng binary name không áp dụng.
+The fact that `Field.set` fails for a record final field **does not mean** the record class cannot be found via Reflection. Likewise, a hidden class can still be inspected via its `Class<?>` even though binary-name lookup mechanisms do not apply.
 
-### 8.2. Final field và static field
+### 8.2. Final fields and static fields
 
-Một record có thể khai báo static fields hợp lệ. Nếu field là `static final`, nó cũng bị cấm sửa qua `Field.set` theo quy tắc chung áp dụng cho mọi class. Với non-final static fields, Reflection có thể ghi trong điều kiện được phép, nhưng điều đó **không liên quan trực tiếp** đến việc ghi component fields của record.
+A record can validly declare static fields. If a field is `static final`, it is also forbidden from being modified via `Field.set` under the general rule applying to all classes. For non-final static fields, Reflection can write under permitted conditions, but that is **not directly related** to writing record component fields.
 
-### 8.3. Đọc có đồng nghĩa thay được cấu trúc bất biến?
+### 8.3. Does reading imply being able to mutate an immutable structure?
 
-Không. `Field.get` trả giá trị của field. Với field kiểu tham chiếu, giá trị này có thể là tham chiếu tới một đối tượng mutable. Ví dụ:
+No. `Field.get` returns the field's value. For reference-type fields, that value may be a reference to a mutable object. Example:
 
 ```java
 record Team(java.util.List<String> members) {}
@@ -438,11 +438,11 @@ record Team(java.util.List<String> members) {}
 var names = new java.util.ArrayList<String>();
 names.add("An");
 Team team = new Team(names);
-names.add("Bình");
+names.add("Binh");
 System.out.println(team.members().size()); // 2
 ```
 
-Record component `members` là final và không thể gán lại bằng Reflection, nhưng `ArrayList` mà nó trỏ tới vẫn mutable. Nếu muốn record có ý nghĩa bất biến sâu hơn, dùng defensive copy, ví dụ trong compact canonical constructor:
+The record component `members` is final and cannot be reassigned via Reflection, but the `ArrayList` it points to remains mutable. If you want the record to have deeper immutability semantics, use a defensive copy, for instance in a compact canonical constructor:
 
 ```java
 record SafeTeam(java.util.List<String> members) {
@@ -452,102 +452,102 @@ record SafeTeam(java.util.List<String> members) {
 }
 ```
 
-Đây là các đoạn minh họa độc lập về **shallow immutability**, không phải thao tác ghi Field. `List.copyOf` tạo danh sách không hỗ trợ sửa qua API mutator và từ chối phần tử `null`; nếu các phần tử bản thân là đối tượng mutable thì còn cần cơ chế riêng để bảo đảm deep immutability.
+These are standalone illustrative snippets about **shallow immutability**, not Field write operations. `List.copyOf` creates a list that does not support modification via mutator APIs and rejects `null` elements; if the elements themselves are mutable objects, additional mechanisms are still needed to ensure deep immutability.
 
-## 9. Có thể dùng `VarHandle` hoặc Method Handles để sửa final field này không?
+## 9. Can `VarHandle` or Method Handles Modify These Final Fields?
 
-Không nên hiểu rằng một API reflection khác sẽ tự động cung cấp quyền ghi mà `Field.set` đã cấm.
+Do not assume that another reflection API will automatically grant write permission where `Field.set` has forbidden it.
 
-- `VarHandle` dùng để truy cập biến theo các access modes được hỗ trợ. Một VarHandle cho final field thường chỉ có các mode đọc; `set` và các mode ghi không được hỗ trợ. Có thể dùng `isAccessModeSupported(...)` để kiểm tra trước.
-- `MethodHandles.Lookup` giúp truy cập method/field theo quyền lookup, nhưng không nên dựa vào việc tạo setter cho final field của record/hidden class. Tham chiếu lookup không phải giấy phép sửa mọi final field.
-- Bỏ qua kiểm tra truy cập Java (`setAccessible`) khác với bỏ qua đặc tính **non-modifiable** của field.
-- API nội bộ/unsupported hoặc sửa bộ nhớ ngoài cơ chế chuẩn có thể phá vỡ giả định của runtime, gây hỏng dữ liệu và không tạo thành contract ổn định cho ứng dụng.
+- `VarHandle` accesses variables according to supported access modes. A VarHandle for a final field typically supports only read modes; `set` and write modes are unsupported. You can check beforehand with `isAccessModeSupported(...)`.
+- `MethodHandles.Lookup` enables accessing methods/fields according to lookup permissions, but you should not rely on creating a setter for a final field of a record/hidden class. A lookup reference is not a license to mutate any final field.
+- Bypassing Java access checks (`setAccessible`) is different from bypassing a field's **non-modifiable** property.
+- Internal/unsupported APIs or mutating memory outside standard mechanisms can break runtime assumptions, corrupt data, and do not form a stable contract for applications.
 
-Nếu cần “cập nhật record”, **tạo record mới** từ dữ liệu cũ và dữ liệu cần thay đổi:
+If you need to "update a record", **create a new record** from the old data and the data to change:
 
 ```java
 record Position(int x, int y) {}
 
 Position p1 = new Position(2, 3);
 Position p2 = new Position(8, p1.y());
-// p1 vẫn là Position(2, 3); p2 là Position(8, 3).
+// p1 is still Position(2, 3); p2 is Position(8, 3).
 ```
 
-Đối với hidden class, hãy thiết kế factory/constructor và các trạng thái mutable được khai báo rõ ràng từ đầu nếu cần thay đổi sau tạo; không biến final field thành nơi cập nhật ngầm.
+For hidden classes, design explicit factories/constructors and clearly declared mutable state from the beginning if post-creation changes are needed; do not turn final fields into hidden mutation targets.
 
-## 10. Khi nào giới hạn này ảnh hưởng framework?
+## 10. When Does This Limit Affect Frameworks?
 
-### 10.1. Serialization và deserialization
+### 10.1. Serialization and deserialization
 
-Nhiều thư viện truyền thống tạo instance rỗng rồi gán trường qua `Field.set`. Chiến lược đó không thể áp dụng nguyên xi cho **record components final**.
+Many traditional libraries create an empty instance and then assign fields via `Field.set`. That strategy cannot be applied unchanged to **final record components**.
 
-Với record, serializer/deserializer hiện đại thường cần:
+For records, modern serializers/deserializers typically need to:
 
-1. Đọc danh sách `RecordComponent`, tên và kiểu.
-2. Thu thập các giá trị constructor arguments từ dữ liệu đầu vào.
-3. Gọi **canonical constructor** của record theo đúng thứ tự/kiểu component.
-4. Dùng accessor hoặc read-only Reflection khi xuất dữ liệu.
+1. Read the list of `RecordComponent`, their names, and their types.
+2. Collect constructor argument values from the input data.
+3. Invoke the record's **canonical constructor** in the right component order/types.
+4. Use accessors or read-only Reflection when exporting data.
 
-Cơ chế cụ thể tùy thư viện; cần kiểm tra tài liệu phiên bản đang dùng. Không tự sửa `private final` record fields sau khi constructor đã chạy.
+Exact mechanisms depend on the library; check the documentation for the version in use. Do not manually modify `private final` record fields after the constructor has run.
 
 ### 10.2. Dependency injection, ORM, bytecode tooling
 
-Công cụ tiêm phụ thuộc bằng cách gán field trực tiếp cần nhận biết final fields. Nếu field thuộc record hoặc hidden class thì không thể kỳ vọng `Field.set` hoạt động chỉ vì access suppression đã bật.
+Tools that inject dependencies by directly assigning fields need to recognize final fields. If a field belongs to a record or hidden class, `Field.set` cannot be expected to work merely because access suppression has been enabled.
 
-Với record, ưu tiên **constructor injection** hoặc biến đổi mô hình thành đối tượng mới theo hợp đồng bất biến. Với hidden class, framework tạo bytecode nên quyết định rõ dữ liệu nào là final trong quá trình định nghĩa, constructor/factory nào khởi tạo nó và dữ liệu nào thực sự mutable.
+For records, prefer **constructor injection** or transforming the model into a new object under an immutability contract. For hidden classes, bytecode-generating frameworks should clearly decide during definition which data is final, which constructor/factory initializes it, and which data is genuinely mutable.
 
-### 10.3. Công cụ khảo sát và debug
+### 10.3. Inspection and debugging tools
 
-Nếu công cụ chỉ cần **hiển thị metadata** như tên, modifiers, kiểu hoặc declaring class, dùng `getDeclaredFields()` và các phương thức metadata. Không gọi `setAccessible` chỉ để lấy tên field.
+If a tool only needs to **display metadata** such as name, modifiers, type, or declaring class, use `getDeclaredFields()` and metadata methods. Do not call `setAccessible` just to retrieve field names.
 
-Nếu cần đọc private final field, kiểm tra quyền truy cập và phạm vi module. Nếu không được phép, báo rõ **access blocked**. Nếu cần sửa final field của record/hidden class, nên báo **non-modifiable by Reflection** thay vì tiếp tục thử những biến thể `Field.set` khác nhau.
+If reading a private final field is needed, check access permissions and module scope. If disallowed, report **access blocked** clearly. If modifying a final field of a record/hidden class is requested, report **non-modifiable by Reflection** rather than continuing to try different `Field.set` variants.
 
-## 11. Những hiểu nhầm phổ biến
+## 11. Common Misconceptions
 
-**Hiểu nhầm 1: “Có `Field` là sửa được.”** Sai. Có metadata chỉ chứng minh thành viên tồn tại. Khả năng đọc/ghi còn phụ thuộc quyền, receiver, kiểu và quy tắc của final field.
+**Misconception 1: "Having a `Field` means it can be modified."** False. Having metadata only proves the member exists. Read/write capability also depends on permissions, receiver, type, and final-field rules.
 
-**Hiểu nhầm 2: “`setAccessible(true)` thành công nghĩa là được ghi.”** Sai. Nó chỉ suppress kiểm tra truy cập theo ngôn ngữ Java trong giới hạn runtime; nhóm non-modifiable final fields vẫn chỉ có thể được đọc.
+**Misconception 2: "`setAccessible(true)` succeeding means it can be written."** False. It only suppresses Java-language access checks within runtime limits; the group of non-modifiable final fields can still only be read.
 
-**Hiểu nhầm 3: “Record là class final, nên chỉ có class mới final.”** Sai. Record components còn tương ứng với các private final instance fields; chính các fields này là trọng tâm hạn chế Reflection.
+**Misconception 3: "A record is a final class, so only the class is final."** False. Record components also correspond to private final instance fields; those fields are the focus of the Reflection restriction.
 
-**Hiểu nhầm 4: “Hidden class là class có tên bí mật/private.”** Sai. Hidden class là kiểu do runtime định nghĩa qua cơ chế riêng, có `isHidden() == true` và đặc tính lookup riêng.
+**Misconception 4: "A hidden class is a class with a secret/private name."** False. A hidden class is a runtime-defined type created through a specialized mechanism, with `isHidden() == true` and distinct lookup characteristics.
 
-**Hiểu nhầm 5: “Chỉ `static final` bị cấm sửa.”** Sai. Trên Java 17, final fields do record và hidden class khai báo cũng bị cấm ghi qua `Field.set`, kể cả field instance.
+**Misconception 5: "Only `static final` is forbidden from being modified."** False. On Java 17, final fields declared by records and hidden classes are also forbidden from being written via `Field.set`, including instance fields.
 
-**Hiểu nhầm 6: “Mọi field của hidden class đều không sửa được.”** Sai. Ràng buộc đặc biệt nói đến **final fields**; non-final fields vẫn xét theo các quy tắc truy cập và gán thông thường.
+**Misconception 6: "All fields of a hidden class cannot be modified."** False. The special restriction refers to **final fields**; non-final fields are still governed by normal access and assignment rules.
 
-**Hiểu nhầm 7: “Record bảo đảm mọi thứ bên trong hoàn toàn immutable.”** Sai. Component reference final không tự đóng băng mutable object mà nó trỏ tới; có thể cần defensive copying.
+**Misconception 7: "Records guarantee everything inside is completely immutable."** False. A final component reference does not automatically freeze a mutable object it points to; defensive copying may be needed.
 
-**Hiểu nhầm 8: “`getDeclaringClass()` trả class của receiver là đủ.”** Sai. Field có thể được tìm qua kiểu con nhưng khai báo ở kiểu cha. Quy tắc record/hidden class dựa vào **declaring class của field**.
+**Misconception 8: "`getDeclaringClass()` returning the receiver's class is enough."** False. A field can be found through a subtype while declared in a supertype. The record/hidden-class rule is based on the **declaring class of the field**.
 
-**Hiểu nhầm 9: “Có thể khắc phục bằng `--add-opens`.”** Sai đối với đặc tính non-modifiable. Mở package có thể giải quyết quyền deep reflection qua ranh giới module, nhưng không cho phép `Field.set` ghi final fields của record/hidden class.
+**Misconception 9: "It can be fixed with `--add-opens`."** False with respect to the non-modifiable property. Opening a package can resolve deep reflection access across module boundaries, but it does not allow `Field.set` to write final fields of records/hidden classes.
 
-**Hiểu nhầm 10: “`IllegalAccessException` lúc ghi final nghĩa là chương trình không được quyền đọc.”** Không nhất thiết. Ví dụ chạy được phía trên đã đọc thành công rồi mới bị từ chối ghi.
+**Misconception 10: "`IllegalAccessException` when writing final means the program lacked read permission."** Not necessarily. The runnable example above read successfully first and only then was denied the write.
 
-## 12. Checklist thực hành và câu hỏi tự kiểm tra
+## 12. Practical Checklist and Self-Check Questions
 
-Khi viết công cụ xử lý Reflection fields, có thể làm theo trình tự:
+When writing tools that process Reflection fields, you can follow this sequence:
 
-1. Tìm `Field` theo class và tên phù hợp, ví dụ `getDeclaredField(name)`.
-2. Đọc `f.getDeclaringClass()` để xác định **lớp thực sự khai báo** field.
-3. Dùng `Modifier.isFinal(f.getModifiers())` và `Modifier.isStatic(...)` để xác định modifier.
-4. Nếu `final` và (static hoặc `getDeclaringClass().isRecord()` hoặc `getDeclaringClass().isHidden()`), coi field là **non-modifiable qua `Field.set`**.
-5. Nếu chỉ cần đọc giá trị, xét `canAccess(receiver)` và dùng `trySetAccessible()` nếu thật sự cần, nhưng tôn trọng ranh giới module.
-6. Ưu tiên accessor/constructor/factory của record và API chính thức của đối tượng; không mặc định đọc/ghi private field.
-7. Nếu một framework cần cập nhật, thiết kế lại quá trình tạo instance; đừng dựa vào mutation sau khởi tạo của final field.
-8. Phân loại ngoại lệ chính xác: không tìm thấy field, không được mở quyền, receiver sai, hoặc field cố định không thể ghi.
+1. Find the `Field` by appropriate class and name, e.g., `getDeclaredField(name)`.
+2. Read `f.getDeclaringClass()` to identify **the class that actually declares** the field.
+3. Use `Modifier.isFinal(f.getModifiers())` and `Modifier.isStatic(...)` to determine modifiers.
+4. If `final` and (static or `getDeclaringClass().isRecord()` or `getDeclaringClass().isHidden()`), treat the field as **non-modifiable via `Field.set`**.
+5. If you only need to read the value, check `canAccess(receiver)` and use `trySetAccessible()` when genuinely needed, while respecting module boundaries.
+6. Prefer record accessors/constructors/factories and the object's official API; do not default to reading/writing private fields.
+7. If a framework needs updates, redesign object instantiation; do not rely on post-initialization mutation of final fields.
+8. Classify exceptions accurately: field not found, access not opened, wrong receiver, or fixed field cannot be written.
 
-**Câu hỏi tự kiểm tra:**
+**Self-check questions:**
 
-- `Field.setAccessible(true)` thành công có bảo đảm `Field.set` thành công trên `record Point(int x)` không? Vì sao?
-- Sự khác biệt giữa `Class.isRecord()` và `Class.isHidden()` là gì?
-- Một field `private int counter` trong hidden class (không `final`) có bị cấm sửa chỉ vì class là hidden không?
-- Vì sao class `HiddenTemplate` được khai báo trong source không tự trở thành hidden class? Dòng nào tạo hidden class thật?
-- `getDeclaredField` thành công nhưng `set` ném `IllegalAccessException` có thể do những nguyên nhân nào?
-- `opens package` có bỏ được cấm ghi final component của record không?
-- Làm thế nào đổi `Person("An", 25)` thành một bản ghi mới mang tên `"Bình"` mà không sửa field cũ?
-- Tại sao một record có component kiểu `List<String>` vẫn có thể quan sát thấy thay đổi bên trong danh sách đó?
+- Does a successful `Field.setAccessible(true)` guarantee `Field.set` will succeed on `record Point(int x)`? Why?
+- What is the difference between `Class.isRecord()` and `Class.isHidden()`?
+- Is a `private int counter` field in a hidden class (not `final`) forbidden from modification merely because the class is hidden?
+- Why does the `HiddenTemplate` class declared in source code not automatically become a hidden class? Which line creates the real hidden class?
+- If `getDeclaredField` succeeds but `set` throws `IllegalAccessException`, what might the causes be?
+- Can `opens package` remove the prohibition on writing a record's final component?
+- How do you change `Person("An", 25)` into a new record with name `"Binh"` without modifying the old field?
+- Why can a record with a `List<String>` component still exhibit changes inside that list?
 
-**Kết luận học tập:** Record và hidden class bảo vệ ý nghĩa của **final fields** bằng một hạn chế Reflection riêng. Có thể nhìn thấy, mở quyền để đọc và đọc được field nhưng **`Field.set` vẫn không được ghi**. Hãy xác định declaring class, modifier và mục đích thao tác trước khi chọn phương thức Reflection.
+**Learning conclusion:** Records and hidden classes protect the meaning of **final fields** with a dedicated Reflection restriction. You can see them, enable access to read them, and read the field, yet **`Field.set` still cannot write to them**. Identify the declaring class, modifiers, and operation intent before choosing a Reflection method.
 
-Tài liệu chuẩn để đối chiếu: [Java SE 17 — `Field`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html), [`AccessibleObject`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html), [`Class`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html), [`MethodHandles.Lookup`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodHandles.Lookup.html) và [`RecordComponent`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/RecordComponent.html).
+Standard references for verification: [Java SE 17 — `Field`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html), [`AccessibleObject`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html), [`Class`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html), [`MethodHandles.Lookup`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodHandles.Lookup.html), and [`RecordComponent`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/RecordComponent.html).

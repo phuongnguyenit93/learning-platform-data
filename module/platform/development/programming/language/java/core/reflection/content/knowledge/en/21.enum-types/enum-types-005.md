@@ -1,25 +1,25 @@
-# Enum có thân riêng trên hằng: getClass và getDeclaringClass
+# Enums with constant-specific class bodies: getClass and getDeclaringClass
 
-## 1. Một kiểu enum có thể có nhiều lớp thực tế
+## 1. One enum type can have multiple runtime classes
 
-Một enum có thể khai báo hành vi chung và cho một số hằng ghi đè hành vi bằng **thân lớp riêng của hằng (constant-specific class body)**. Ví dụ một phép biến đổi mặc định giữ nguyên số, còn các hằng khác nhân đôi hoặc nhân ba.
+An enum can declare shared behavior and let some constants override behavior using a **constant-specific class body**. For example, a default transformation leaves a number unchanged, while other constants double or triple it.
 
-Các hằng ấy vẫn thuộc cùng một kiểu enum. Tuy nhiên, một hằng có thân lớp riêng được thực hiện bằng một lớp con ẩn danh của enum. Vì thế, **lớp thực tế của đối tượng** và **lớp enum khai báo hằng** có thể khác nhau.
+Those constants still belong to the same enum type. However, a constant with a constant-specific class body is implemented by an anonymous subclass of the enum. Therefore, the **runtime class of the object** and the **enum class declaring the constant** can differ.
 
-Java cung cấp hai API trả lời hai câu hỏi đó:
+Java provides two APIs that answer those two questions:
 
-| Lời gọi trên một hằng enum | Câu hỏi được trả lời |
+| Call on an enum constant | Question answered |
 | --- | --- |
-| `constant.getClass()` | Đối tượng hằng này có lớp thực tế nào lúc chạy? |
-| `constant.getDeclaringClass()` | Hằng này thuộc enum được khai báo nào? |
+| `constant.getClass()` | Which runtime class does this constant object have? |
+| `constant.getDeclaringClass()` | Which declared enum does this constant belong to? |
 
-`getClass()` được kế thừa từ `Object`. `getDeclaringClass()` trong bảng là phương thức của `Enum`. Cả hai đều là phương thức `final`; người viết enum không ghi đè chúng để thay đổi kết quả.
+`getClass()` is inherited from `Object`. `getDeclaringClass()` in the table is the method on `Enum`. Both are `final` methods; enum authors do not override them to change the result.
 
-Sự phân biệt này có giá trị khi một bộ chuyển đổi, bộ kiểm tra dữ liệu hoặc nơi lưu cấu hình dùng `Class` làm khóa. Nếu các quy tắc được đăng ký cho kiểu enum chung, dùng lớp riêng của từng hằng để tra cứu có thể làm mất cấu hình.
+This distinction is valuable when a converter, data validator, or configuration store uses `Class` as a key. If rules are registered for the common enum type, using each constant's specific class for lookup can miss the configuration.
 
-## 2. Thân riêng tạo lớp con, còn hằng vẫn thuộc enum ban đầu
+## 2. A constant-specific body creates a subclass, while the constant still belongs to the original enum
 
-Xét cấu trúc:
+Consider the structure:
 
 ~~~java
 enum Transform {
@@ -37,23 +37,23 @@ enum Transform {
 }
 ~~~
 
-Đây là một khai báo enum hoàn chỉnh, có thể đặt trong một lớp hoặc trong tệp nguồn phù hợp; chưa phải chương trình có `main`.
+This is a complete enum declaration that can be placed inside a class or an appropriate source file; it is not yet a program with `main`.
 
-- `IDENTITY` không có thân riêng, nên dùng phần thực hiện `apply` trong `Transform`.
-- `DOUBLE` có thân riêng và ghi đè `apply`.
-- Lớp thực tế của `IDENTITY` là `Transform`.
-- Lớp thực tế của `DOUBLE` là lớp con ẩn danh của `Transform`.
-- Cả hai đều có `getDeclaringClass() == Transform.class`.
+- `IDENTITY` has no constant-specific body, so it uses the `apply` implementation in `Transform`.
+- `DOUBLE` has a constant-specific body and overrides `apply`.
+- The runtime class of `IDENTITY` is `Transform`.
+- The runtime class of `DOUBLE` is an anonymous subclass of `Transform`.
+- Both have `getDeclaringClass() == Transform.class`.
 
-Không cần có phương thức ghi đè thì thân riêng mới tạo lớp con: ngay cả một thân `{}` rỗng trên hằng cũng có ý nghĩa về lớp như vậy.
+An overriding method is not required for a constant-specific body to create a subclass: even an empty `{}` body on a constant carries the same class semantics.
 
-Đây là cơ chế Java dành riêng cho khai báo hằng enum. Nó không cho phép mã ứng dụng tùy ý viết một lớp khác `extends Transform` để bổ sung hằng. Các hằng vẫn là tập giá trị được khai báo của enum.
+This is a Java mechanism reserved for enum constant declarations. It does not allow application code to arbitrarily write another class `extends Transform` to add constants. The constants remain the declared value set of the enum.
 
-Trên Java 17, enum không có thân riêng trên hằng là `final` ngầm định; enum có ít nhất một thân như vậy là `sealed` ngầm định. Vì vậy, một công cụ Reflection không nên dựa vào giả định “mọi lớp enum đều có modifier final” để nhận diện enum; hãy dùng API đúng mục đích như `Class.isEnum()`.
+On Java 17, an enum without constant-specific bodies is implicitly `final`; an enum with at least one such body is implicitly `sealed`. Therefore, a Reflection tool should not rely on the assumption "every enum class has the final modifier" to recognize enums; use the purpose-built API such as `Class.isEnum()`.
 
-## 3. Ví dụ chạy được: cùng kiểu enum, khác lớp thực tế
+## 3. Runnable example: same enum type, different runtime classes
 
-Lưu thành `EnumBodyIdentityDemo.java`:
+Save as `EnumBodyIdentityDemo.java`:
 
 ~~~java
 public class EnumBodyIdentityDemo {
@@ -110,14 +110,14 @@ public class EnumBodyIdentityDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ~~~bash
 javac --release 17 EnumBodyIdentityDemo.java
 java EnumBodyIdentityDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 IDENTITY value=4 exact=true enumClass=true
@@ -131,30 +131,30 @@ sameDeclaring=true
 sameConstant=false
 ~~~
 
-Hãy đọc kết quả thành ba lớp thông tin:
+Read the output in three layers of information:
 
-1. **Hành vi:** cùng một lời gọi `apply(4)` chọn phần thực hiện tương ứng với hằng. Đó là đa hình thông thường.
-2. **Lớp thực tế:** `DOUBLE` và `TRIPLE` có hai lớp riêng khác nhau; `IDENTITY` dùng trực tiếp lớp `Transform`.
-3. **Kiểu enum:** cả ba đều là hằng của `Transform`. Có cùng lớp khai báo enum không có nghĩa là hai hằng bằng nhau.
+1. **Behavior:** the same `apply(4)` call selects the implementation corresponding to the constant. That is standard polymorphism.
+2. **Runtime class:** `DOUBLE` and `TRIPLE` have two different specific classes; `IDENTITY` uses the `Transform` class directly.
+3. **Enum type:** all three are constants of `Transform`. Having the same declaring enum class does not mean two constants are equal.
 
-Chương trình không in tên nhị phân của các lớp ẩn danh. Tên do trình biên dịch tạo ra thường chứa `$` và số, nhưng không phải dữ liệu nghiệp vụ ổn định. So sánh đối tượng `Class` và hỏi đúng API giúp ví dụ không phụ thuộc các tên ấy.
+The program does not print the binary names of the anonymous classes. Compiler-generated names often contain `$` and numbers, yet are not stable business data. Comparing `Class` objects and calling the right APIs keeps the example independent of those names.
 
-## 4. Vì sao getClass().isEnum() có thể trả false?
+## 4. Why can getClass().isEnum() return false?
 
-`Class.isEnum()` nhận diện lớp được khai báo là enum. Lớp riêng của một hằng là lớp con ẩn danh; nó không phải chính khai báo enum ban đầu.
+`Class.isEnum()` identifies a class declared as an enum. A constant's own class is an anonymous subclass; it is not the original enum declaration itself.
 
-Do đó, với ví dụ vừa chạy:
+Therefore, in the example just run:
 
 ~~~java
 Transform.DOUBLE.getClass().isEnum()          // false
 Transform.DOUBLE.getDeclaringClass().isEnum() // true
 ~~~
 
-Hai biểu thức trên là các dòng minh họa trong phạm vi lớp `EnumBodyIdentityDemo`.
+The two expressions above are illustrative lines within the scope of the `EnumBodyIdentityDemo` class.
 
-Kết quả `false` ở dòng đầu không làm `DOUBLE` mất tư cách hằng enum. Nó chỉ mô tả đúng lớp đang được hỏi.
+The `false` result on the first line does not cause `DOUBLE` to lose its status as an enum constant. It simply describes the exact class being queried.
 
-Khi nhận một đối tượng bất kỳ, có thể kiểm tra:
+When receiving an arbitrary object, you can check:
 
 ~~~java
 if (value instanceof Enum<?> constant) {
@@ -163,15 +163,15 @@ if (value instanceof Enum<?> constant) {
 }
 ~~~
 
-Đây là đoạn bên trong một phương thức có tham số `Object value`. `instanceof` kiểm tra đối tượng có thuộc hệ kiểu `Enum` hay không, nên bao gồm cả hằng có lớp riêng. Với `null`, điều kiện là `false`.
+This is a snippet inside a method with parameter `Object value`. `instanceof` checks whether the object belongs to the `Enum` type hierarchy, so it includes constants with their own classes. For `null`, the condition is `false`.
 
-Không dùng `value.getClass().isEnum()` thay thế điều kiện trên nếu mục tiêu là nhận diện mọi đối tượng hằng enum. Cũng không dùng riêng `Enum.class.isAssignableFrom(type)` để khẳng định `type` là một khai báo enum: quan hệ kế thừa rộng hơn điều kiện `isEnum()`, và bản thân `Enum.class` cũng thỏa kiểm tra quan hệ với chính nó.
+Do not use `value.getClass().isEnum()` in place of the condition above if the goal is to recognize all enum constant objects. Also do not use `Enum.class.isAssignableFrom(type)` alone to assert that `type` is an enum declaration: the inheritance relationship is broader than the `isEnum()` condition, and `Enum.class` itself satisfies the relation with itself.
 
-## 5. Áp dụng: chuẩn hóa khóa cấu hình theo kiểu enum
+## 5. Application: normalizing configuration keys by enum type
 
-Giả sử cấu hình được đăng ký một lần cho enum `Shipping`. Mỗi hằng, kể cả hằng có thân riêng, đều phải tìm được cùng cấu hình ấy.
+Suppose configuration is registered once for the `Shipping` enum. Every constant, including constants with their own bodies, must locate that same configuration.
 
-Lưu thành `EnumTypeRegistryDemo.java`:
+Save as `EnumTypeRegistryDemo.java`:
 
 ~~~java
 import java.util.Map;
@@ -229,14 +229,14 @@ public class EnumTypeRegistryDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac --release 17 EnumTypeRegistryDemo.java
 java EnumTypeRegistryDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 wrong=null
@@ -250,88 +250,88 @@ anonymousClassAccessor=null
 knownName=PRIORITY
 ~~~
 
-Khóa `Shipping.class` và lớp riêng của `PRIORITY` là hai đối tượng `Class` khác nhau. Vì vậy, phép tra cứu đầu trả `null`. Lấy `getDeclaringClass()` cho đúng khóa enum đã được đăng ký.
+The `Shipping.class` key and `PRIORITY`'s own class are two distinct `Class` objects. Therefore, the first lookup returns `null`. Calling `getDeclaringClass()` yields the exact enum key that was registered.
 
-Một lỗi như vậy có thể khó phát hiện khi chỉ thử hằng không có thân riêng: với `BASIC`, `getClass()` tình cờ trả chính `Shipping.class`, nên phép tra cứu có vẻ hoạt động.
+A bug like this can be hard to spot when testing only constants without their own bodies: for `BASIC`, `getClass()` happens to return `Shipping.class` itself, so the lookup appears to work.
 
-Hàm `enumTypeOf` xác định hợp đồng rõ ràng: chỉ nhận một đối tượng hằng enum, từ chối `null` và các đối tượng khác. Không nên âm thầm lấy một lớp cha bất kỳ cho đầu vào không phải enum.
+The `enumTypeOf` method defines a clear contract: accept only an enum constant object, rejecting `null` and other objects. Do not silently take an arbitrary superclass for non-enum inputs.
 
-Nếu mục tiêu là kiểm tra một đối tượng có gán được cho kiểu đích hay không, `Shipping.class.isInstance(value)` phản ánh quan hệ kiểu phù hợp, bao gồm lớp con của hằng. Kiểm tra `value.getClass() == Shipping.class` đòi hỏi lớp thực tế phải trùng tuyệt đối và sẽ từ chối hằng có thân riêng.
+If the goal is to check whether an object is assignable to the target type, `Shipping.class.isInstance(value)` reflects the appropriate type relationship, including a constant's subclass. Checking `value.getClass() == Shipping.class` requires the runtime class to match strictly and will reject constants with their own bodies.
 
-## 6. Hai phương thức cùng tên getDeclaringClass không có cùng ngữ nghĩa
+## 6. Two methods named getDeclaringClass do not have the same semantics
 
-Đây là điểm dễ đọc nhầm khi viết chuỗi lời gọi Reflection:
+This is an easy spot to misread when writing chained Reflection calls:
 
-| Biểu thức trong ví dụ Shipping | Đối tượng nhận lời gọi | Ý nghĩa |
+| Expression in the Shipping example | Receiver object | Meaning |
 | --- | --- | --- |
-| `value.getDeclaringClass()` | Một hằng kiểu `Enum<?>` | Lấy lớp enum `Shipping` |
-| `Shipping.class.getDeclaringClass()` | Một đối tượng `Class` | Lấy lớp chứa khai báo lớp thành viên `Shipping` |
-| `value.getClass().getDeclaringClass()` | Một đối tượng `Class` của lớp thực tế | Hỏi lớp khai báo của lớp thực tế ấy |
+| `value.getDeclaringClass()` | A constant of type `Enum<?>` | Gets the enum class `Shipping` |
+| `Shipping.class.getDeclaringClass()` | A `Class` object | Gets the class enclosing the member class declaration `Shipping` |
+| `value.getClass().getDeclaringClass()` | A `Class` object of the runtime class | Queries the declaring class of that runtime class |
 
-Trong chương trình, `Shipping` là enum thành viên của `EnumTypeRegistryDemo`, nên `Shipping.class.getDeclaringClass()` trả lớp ngoài `EnumTypeRegistryDemo`.
+In the program, `Shipping` is a member enum of `EnumTypeRegistryDemo`, so `Shipping.class.getDeclaringClass()` returns the enclosing class `EnumTypeRegistryDemo`.
 
-Ngược lại, lớp ẩn danh của `PRIORITY` không phải một lớp thành viên có tên; `Class.getDeclaringClass()` trả `null` cho lớp ẩn danh. Vì vậy, thêm `getClass()` trước lời gọi đã làm đổi API và đổi câu hỏi.
+Conversely, the anonymous class of `PRIORITY` is not a named member class; `Class.getDeclaringClass()` returns `null` for an anonymous class. Therefore, inserting `getClass()` before the call changed the API and changed the question.
 
-Khi đọc mã, hãy nhìn kiểu của đối tượng đứng trước dấu chấm:
+When reading code, look at the type of the object before the dot:
 
-- `Enum.getDeclaringClass()` xác định **kiểu enum của hằng**.
-- `Class.getDeclaringClass()` xác định **lớp khai báo một lớp thành viên**.
+- `Enum.getDeclaringClass()` determines the **enum type of the constant**.
+- `Class.getDeclaringClass()` determines the **class declaring a member class**.
 
-Không thay thế hai API này cho nhau dù tên phương thức giống nhau. Với một enum ở mức cao nhất của tệp, `Class.getDeclaringClass()` cũng không phải cách tìm lại enum ấy; nó trả `null` vì không có lớp chứa khai báo thành viên.
+Do not substitute these two APIs for each other even though their method names are identical. For a top-level enum in a file, `Class.getDeclaringClass()` is also not a way to find that enum again; it returns `null` because there is no enclosing class declaring a member.
 
-## 7. Chọn lớp nào khi đọc metadata?
+## 7. Which class to choose when reading metadata?
 
-Chọn `Class` theo thông tin thực sự cần:
+Choose the `Class` according to the information actually needed:
 
-**Muốn xử lý kiểu enum chung:** lấy `constant.getDeclaringClass()`. Đây là điểm bắt đầu phù hợp để lấy danh sách hằng bằng `getEnumConstants()`, tra cấu hình theo kiểu, hoặc tìm các khai báo chung của enum.
+**To process the common enum type:** take `constant.getDeclaringClass()`. This is the proper starting point for getting the constant list via `getEnumConstants()`, looking up type-keyed configuration, or finding shared declarations of the enum.
 
-**Muốn điều tra phần thực hiện riêng của một hằng:** dùng `constant.getClass()`. Khi đó, việc thấy một lớp ẩn danh và các phương thức ghi đè là dữ liệu mong muốn.
+**To investigate a constant's own implementation:** use `constant.getClass()`. In that case, seeing an anonymous class and overridden methods is the expected data.
 
-Hai hướng không thể tùy ý tráo đổi. Chẳng hạn, `getDeclaredMethods()` hỏi các phương thức được khai báo trực tiếp trong lớp đang xét. Hỏi lớp riêng của `DOUBLE` sẽ nhìn vào phần khai báo riêng của hằng; hỏi `Transform.class` sẽ nhìn vào khai báo enum chung.
+The two directions cannot be swapped arbitrarily. For example, `getDeclaredMethods()` queries methods declared directly in the class being inspected. Querying `DOUBLE`'s own class looks at the constant's specific declarations; querying `Transform.class` looks at the shared enum declaration.
 
-Một phương thức chỉ được thêm trong thân riêng của hằng không tự trở thành phương thức chung có thể gọi qua mọi biến kiểu enum. Khi thiết kế hành vi đa hình, nên khai báo phương thức trong enum rồi ghi đè ở hằng cần thay đổi, như `apply` trong ví dụ.
+A method added only inside a constant's own body does not automatically become a shared method callable through any enum-typed variable. When designing polymorphic behavior, declare the method in the enum and override it in the constants that need to change, like `apply` in the example.
 
-Nếu enum khai báo một phương thức `abstract`, mỗi hằng phải cung cấp phần thực hiện theo quy tắc của enum. Khi tất cả hằng có thân riêng, có thể không có hằng nào mang trực tiếp lớp thực tế của enum. Vì vậy, chọn một hằng bất kỳ làm “mẫu” rồi lấy `getClass()` vẫn không xác định đúng kiểu enum chung.
+If an enum declares an `abstract` method, every constant must provide an implementation according to enum rules. When all constants have their own bodies, there may be no constant whose runtime class is the enum itself. Therefore, picking an arbitrary constant as a "sample" and calling `getClass()` still fails to identify the common enum type.
 
-Không cần `setAccessible(true)`, sửa field nội bộ hoặc tìm constructor để phân biệt hai loại lớp này. Các API công khai đã cung cấp quan hệ cần thiết.
+There is no need for `setAccessible(true)`, modifying internal fields, or looking up constructors to distinguish these two kinds of classes. Public APIs already provide the necessary relationships.
 
-## 8. Những cách suy đoán dễ sai
+## 8. Error-prone assumptions
 
-| Cách làm | Vì sao dễ sai | Cách phù hợp |
+| Approach | Why it is error-prone | Suitable approach |
 | --- | --- | --- |
-| `constant.getClass() == ExpectedEnum.class` để nhận mọi hằng của enum | Không nhận lớp riêng của hằng | So sánh `getDeclaringClass()` hoặc dùng `ExpectedEnum.class.isInstance` theo mục đích |
-| Lấy `getSuperclass()` đúng một lần cho mọi hằng | Hằng thường có lớp cha là `Enum`; hằng có thân riêng có lớp cha là enum cụ thể | Dùng `Enum.getDeclaringClass()` |
-| Cắt tên lớp tại dấu `$` | Dấu này còn xuất hiện trong tên lớp lồng; tên lớp ẩn danh không phải khóa nghiệp vụ | Giữ đối tượng `Class` trả từ API |
-| Dựa vào một hằng để đoán lớp của mọi hằng | Enum có thể trộn hằng có và không có thân riêng | Chuẩn hóa từng hằng về lớp enum khi cần |
-| Nghĩ hai hằng khác lớp thực tế là khác kiểu enum | Lẫn lớp triển khai với kiểu enum khai báo | Kiểm tra `getDeclaringClass()` |
-| Nghĩ cùng lớp enum nghĩa là cùng hằng | Các hằng khác nhau cùng thuộc một enum | So sánh hằng hoặc dùng `name()` theo hợp đồng |
-| Gọi `getClass().getDeclaringClass()` thay cho `getDeclaringClass()` | Đã chuyển sang API trên `Class` | Gọi trực tiếp phương thức của `Enum` |
+| `constant.getClass() == ExpectedEnum.class` to accept all constants of the enum | Fails to recognize constants with their own class bodies | Compare `getDeclaringClass()` or use `ExpectedEnum.class.isInstance` as appropriate |
+| Calling `getSuperclass()` exactly once for every constant | Regular constants have `Enum` as superclass; constants with bodies have the specific enum | Use `Enum.getDeclaringClass()` |
+| Splitting the class name at `$` | `$` also appears in nested class names; anonymous class names are not business keys | Keep the `Class` object returned by the API |
+| Relying on one constant to guess the class of all constants | An enum can mix constants with and without custom bodies | Normalize each constant to the enum class when needed |
+| Thinking two constants with different runtime classes are different enum types | Confuses implementation class with declaring enum type | Check `getDeclaringClass()` |
+| Thinking same enum class means same constant | Different constants belong to the same enum | Compare constants or use `name()` per contract |
+| Calling `getClass().getDeclaringClass()` instead of `getDeclaringClass()` | Switches to the API on `Class` | Call the method directly on `Enum` |
 
-Ngoài ra, tên lớp giống nhau không bảo đảm đó là cùng kiểu nếu chúng được nạp bởi các bộ nạp lớp khác nhau. Khi lưu metadata trong phạm vi JVM, dùng đối tượng `Class` làm khóa giúp giữ đúng danh tính kiểu mà các API trả về; không tự rút gọn thành tên đơn giản rồi giả định mọi tên trùng nhau là cùng kiểu.
+In addition, identical class names do not guarantee the same type if they are loaded by different class loaders. When storing metadata within a JVM, using `Class` objects as keys preserves the exact type identity returned by the APIs; do not simplify down to simple names and assume all matching names are the same type.
 
-## 9. Tự kiểm tra
+## 9. Self-check
 
-1. Nếu `RED` và `BLUE` cùng có thân riêng trong enum `Color`, `RED.getClass() == BLUE.getClass()` có đúng không?
-2. Hai hằng ấy có cùng `getDeclaringClass()` không?
-3. Nếu một hằng không có thân riêng, vì sao lấy một lần `getSuperclass()` không phải cách chuẩn hóa tổng quát?
-4. `value.getClass().getDeclaringClass()` có tương đương `value.getDeclaringClass()` không?
-5. Một nơi lưu cấu hình đăng ký theo `Color.class` nên dùng API nào để lấy khóa từ một hằng?
-6. Có cần in hoặc phân tích các tên lớp dạng có dấu `$` để trả lời các câu hỏi trên không?
+1. If both `RED` and `BLUE` have constant-specific bodies in enum `Color`, is `RED.getClass() == BLUE.getClass()` true?
+2. Do those two constants have the same `getDeclaringClass()`?
+3. If a constant has no custom body, why is calling `getSuperclass()` once not a general normalization method?
+4. Is `value.getClass().getDeclaringClass()` equivalent to `value.getDeclaringClass()`?
+5. Which API should a configuration store keyed by `Color.class` use to get the key from a constant?
+6. Is it necessary to print or parse class names containing `$` to answer the questions above?
 
-Đáp án:
+Answers:
 
-1. Không. Mỗi thân riêng tương ứng với một lớp con ẩn danh riêng.
-2. Có; cả hai đều trả `Color.class`.
-3. Lớp thực tế của hằng thường chính là enum, nên lớp cha của nó là `Enum`, không phải enum cần tìm.
-4. Không. Một lời gọi hỏi quan hệ khai báo của `Class`; lời gọi còn lại hỏi kiểu enum của hằng.
+1. No. Each constant-specific body corresponds to its own anonymous subclass.
+2. Yes; both return `Color.class`.
+3. A regular constant's runtime class is the enum itself, so its superclass is `Enum`, not the enum being sought.
+4. No. One call queries the declaring relationship of a `Class`; the other queries the enum type of the constant.
 5. `constant.getDeclaringClass()`.
-6. Không. Các đối tượng `Class` và API quan hệ kiểu đã trả lời trực tiếp.
+6. No. `Class` objects and type-relationship APIs answer directly.
 
-Khi viết mã Reflection xử lý enum, hãy quyết định rõ đang cần lớp thực hiện hành vi của một hằng hay cần kiểu enum chung. Quyết định đó xác định lựa chọn giữa `getClass()` và `Enum.getDeclaringClass()`.
+When writing Reflection code that processes enums, decide clearly whether you need the class implementing one constant's behavior or the common enum type. That decision determines the choice between `getClass()` and `Enum.getDeclaringClass()`.
 
-## Tài liệu đối chiếu
+## Reference documentation
 
 - [Java 17 — Object.getClass](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#getClass()).
 - [Java 17 — Enum.getDeclaringClass](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Enum.html#getDeclaringClass()).
 - [Java 17 — Class.getDeclaringClass](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#getDeclaringClass()).
-- [JLS 17 — Khai báo enum và thân riêng trên hằng](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.9).
+- [JLS 17 — Enum declarations and constant-specific class bodies](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.9).

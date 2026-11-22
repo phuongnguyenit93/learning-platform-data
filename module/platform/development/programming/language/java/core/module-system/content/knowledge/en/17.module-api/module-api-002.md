@@ -1,23 +1,23 @@
-# ModuleDescriptor: đọc metadata của module
+# ModuleDescriptor: reading module metadata
 
-## 1. Vai trò của ModuleDescriptor
+## 1. The role of ModuleDescriptor
 
-Từ Java 9, Java Platform Module System (JPMS) cho phép một ứng dụng được chia thành các module có tên, khai báo phụ thuộc và kiểm soát package nào được module khác truy cập. Các khai báo này được viết trong file nguồn `module-info.java`, sau đó được biên dịch thành metadata trong `module-info.class`.
+Since Java 9, the Java Platform Module System (JPMS) allows an application to be split into named modules, declare dependencies, and control which packages can be accessed by other modules. These declarations are written in the `module-info.java` source file, and then compiled into metadata in `module-info.class`.
 
-`java.lang.module.ModuleDescriptor` là API biểu diễn metadata đó dưới dạng đối tượng Java bất biến. Ta có thể dùng nó để đọc tên module, modifier, phiên bản, các module phụ thuộc, package được export hoặc open, các service module sử dụng và các implementation service module cung cấp.
+`java.lang.module.ModuleDescriptor` is the API that represents that metadata as an immutable Java object. You can use it to read the module name, modifiers, version, module dependencies, exported or opened packages, services the module uses, and service implementations the module provides.
 
-`ModuleDescriptor` nằm trong package `java.lang.module`, thuộc module nền tảng `java.base`. API này phù hợp khi cần introspection, viết công cụ kiểm tra module, hiển thị dependency hoặc phân tích cấu hình JPMS mà không phải tự đọc cấu trúc nhị phân của `module-info.class`.
+`ModuleDescriptor` resides in the `java.lang.module` package, belonging to the foundational `java.base` module. This API is well suited when you need introspection, to write module inspection tools, display dependencies, or analyze JPMS configurations without manually parsing the binary structure of `module-info.class`.
 
-Cần phân biệt hai khái niệm:
+Two concepts must be distinguished:
 
-- `Module` (`java.lang.Module`) đại diện cho một module đang tồn tại trong JVM.
-- `ModuleDescriptor` (`java.lang.module.ModuleDescriptor`) mô tả metadata khai báo của module đó.
+- `Module` (`java.lang.Module`) represents a module existing in the JVM.
+- `ModuleDescriptor` (`java.lang.module.ModuleDescriptor`) describes the declared metadata of that module.
 
-Descriptor mô tả các khai báo của module. Nó không phải bản ghi đầy đủ về mọi thay đổi truy cập được thực hiện động trong JVM.
+A descriptor describes the module's declarations. It is not a complete record of every access change made dynamically in the JVM.
 
-## 2. Lấy ModuleDescriptor từ module đang chạy
+## 2. Obtaining ModuleDescriptor from a running module
 
-Nếu đã có một class thuộc module cần kiểm tra, gọi `Class.getModule()` để lấy đối tượng `Module`, sau đó gọi `Module.getDescriptor()`.
+If you already have a class belonging to the module you want to inspect, call `Class.getModule()` to obtain the `Module` object, then call `Module.getDescriptor()`.
 
 ~~~java
 import java.lang.module.ModuleDescriptor;
@@ -28,7 +28,7 @@ public class CurrentModuleInfo {
         ModuleDescriptor descriptor = module.getDescriptor();
 
         if (descriptor == null) {
-            System.out.println("Class đang thuộc unnamed module");
+            System.out.println("Class belongs to the unnamed module");
             return;
         }
 
@@ -38,23 +38,23 @@ public class CurrentModuleInfo {
 }
 ~~~
 
-Với một named module, `getDescriptor()` thường trả về descriptor tương ứng. Nếu class chạy trên classpath và thuộc unnamed module, phương thức này trả về `null`, vì unnamed module không có module descriptor như named module. Vì vậy, luôn kiểm tra kết quả trước khi truy cập các thuộc tính.
+For a named module, `getDescriptor()` typically returns the corresponding descriptor. If the class runs on the classpath and belongs to an unnamed module, this method returns `null`, because an unnamed module does not have a module descriptor like a named module. Therefore, always check the result before accessing its properties.
 
-Có thể lấy module của một class bất kỳ, ví dụ:
+You can obtain the module of any class, for example:
 
 ~~~java
 ModuleDescriptor descriptor = String.class.getModule().getDescriptor();
 ~~~
 
-Trong trường hợp này, descriptor mô tả module `java.base`, vì `String` thuộc module đó.
+In this case, the descriptor describes the `java.base` module, because `String` belongs to that module.
 
-## 3. Tìm descriptor bằng ModuleFinder
+## 3. Finding a descriptor with ModuleFinder
 
-Không cần module phải được load vào JVM mới có thể đọc metadata. Package `java.lang.module` cung cấp `ModuleFinder` để tìm module trên module path hoặc trong các module hệ thống. Kết quả `find(name)` là `Optional<ModuleReference>`; từ `ModuleReference` có thể lấy descriptor bằng `descriptor()`.
+A module does not need to be loaded into the JVM in order to read its metadata. The `java.lang.module` package provides `ModuleFinder` to find modules on the module path or among system modules. The result of `find(name)` is an `Optional<ModuleReference>`; from a `ModuleReference` you can obtain the descriptor via `descriptor()`.
 
-### 3.1. Đọc một module hệ thống
+### 3.1. Reading a system module
 
-Ví dụ sau tìm module `java.sql` trong các module hệ thống của JDK:
+The following example finds the `java.sql` module among the JDK's system modules:
 
 ~~~java
 import java.lang.module.ModuleDescriptor;
@@ -67,7 +67,7 @@ public class FindSystemModule {
                 .find("java.sql")
                 .map(ModuleReference::descriptor)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("Không tìm thấy module java.sql"));
+                        new IllegalArgumentException("Module java.sql not found"));
 
         System.out.println(descriptor.name());
         System.out.println(descriptor.requires());
@@ -75,11 +75,11 @@ public class FindSystemModule {
 }
 ~~~
 
-`ModuleFinder.ofSystem()` tìm các module thuộc runtime image của JDK. Tên truyền vào `find()` là tên module, chẳng hạn `java.sql`, không phải tên package như `java.sql` trong một câu lệnh import được hiểu như package.
+`ModuleFinder.ofSystem()` finds modules belonging to the JDK runtime image. The name passed to `find()` is the module name, such as `java.sql`, not a package name like `java.sql` in an import statement interpreted as a package.
 
-### 3.2. Đọc module từ module path
+### 3.2. Reading a module from the module path
 
-Khi có một thư mục chứa các modular JAR hoặc module đã được biên dịch, dùng `ModuleFinder.of(Path...)`:
+When you have a directory containing modular JARs or compiled modules, use `ModuleFinder.of(Path...)`:
 
 ~~~java
 import java.lang.module.ModuleDescriptor;
@@ -95,94 +95,94 @@ public class FindApplicationModule {
                 .find("com.acme.catalog")
                 .map(ModuleReference::descriptor)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("Không tìm thấy com.acme.catalog"));
+                        new IllegalArgumentException("com.acme.catalog not found"));
 
         System.out.println("Found: " + descriptor.name());
     }
 }
 ~~~
 
-Đường dẫn truyền vào `ModuleFinder.of()` có thể trỏ đến thư mục module hoặc modular JAR. Nếu kết quả rỗng, hãy kiểm tra tên module thực tế trong `module-info.java`, vị trí file JAR và module path đang sử dụng.
+The path passed to `ModuleFinder.of()` can point to a module directory or a modular JAR. If the result is empty, check the actual module name in `module-info.java`, the JAR file location, and the module path being used.
 
-`ModuleFinder` đọc và mô tả module mà không yêu cầu khởi tạo class của module đó. Đây là lựa chọn phù hợp cho công cụ phân tích dependency, kiểm tra cấu trúc bản phân phối hoặc tạo báo cáo trước khi khởi chạy ứng dụng.
+`ModuleFinder` reads and describes modules without requiring initialization of classes in that module. This is a good choice for dependency analysis tools, inspecting distribution structures, or generating reports before launching an application.
 
-## 4. Những metadata quan trọng
+## 4. Important metadata
 
-Các phương thức của `ModuleDescriptor` trả về metadata ở dạng có kiểu rõ ràng. Phần lớn tập hợp được trả về là các collection không thể sửa đổi; không nên giả định thứ tự phần tử của chúng. Nếu cần kết quả ổn định khi in báo cáo, hãy sắp xếp trước khi hiển thị.
+`ModuleDescriptor` methods return metadata in strongly typed forms. Most returned sets are unmodifiable collections; you should not assume any element order. If you need deterministic output when printing reports, sort before displaying.
 
-| Phương thức | Ý nghĩa |
+| Method | Meaning |
 | --- | --- |
-| `name()` | Tên module, ví dụ `java.sql` hoặc `com.acme.catalog`. |
-| `modifiers()` | Các modifier của module như `OPEN`, `AUTOMATIC`, `SYNTHETIC`, `MANDATED`. |
-| `version()` | Phiên bản đã được parse, trả về `Optional<ModuleDescriptor.Version>`. |
-| `rawVersion()` | Chuỗi phiên bản gốc, trả về `Optional<String>`. |
-| `requires()` | Các module mà module này khai báo phụ thuộc. |
-| `exports()` | Các package được export cho module khác. |
-| `opens()` | Các package được mở cho truy cập reflection. |
-| `uses()` | Tên các service mà module cần sử dụng. |
-| `provides()` | Các service cùng danh sách provider implementation mà module cung cấp. |
-| `packages()` | Tập hợp tên package thuộc module theo metadata descriptor. |
-| `mainClass()` | Tên lớp main nếu descriptor khai báo, trả về `Optional<String>`. |
-| `isOpen()` | Cho biết module được khai báo là open module. |
-| `isAutomatic()` | Cho biết đây là automatic module. |
+| `name()` | Module name, for example `java.sql` or `com.acme.catalog`. |
+| `modifiers()` | Module modifiers such as `OPEN`, `AUTOMATIC`, `SYNTHETIC`, `MANDATED`. |
+| `version()` | Parsed version, returning `Optional<ModuleDescriptor.Version>`. |
+| `rawVersion()` | Raw version string, returning `Optional<String>`. |
+| `requires()` | Modules on which this module declares dependencies. |
+| `exports()` | Packages exported to other modules. |
+| `opens()` | Packages opened for reflection access. |
+| `uses()` | Names of services that the module needs to consume. |
+| `provides()` | Services along with the list of provider implementations the module supplies. |
+| `packages()` | Set of package names belonging to the module according to the descriptor metadata. |
+| `mainClass()` | Main class name if declared by the descriptor, returning `Optional<String>`. |
+| `isOpen()` | Indicates whether the module is declared as an open module. |
+| `isAutomatic()` | Indicates whether this is an automatic module. |
 
-### 4.1. Tên, modifier và phiên bản
+### 4.1. Name, modifiers, and version
 
-`name()` trả về tên module. `modifiers()` cho biết những thuộc tính đặc biệt của descriptor. Hai trạng thái thường cần kiểm tra riêng là:
+`name()` returns the module name. `modifiers()` indicates special attributes of the descriptor. Two states that often need separate checking are:
 
-- `isOpen()`: module được khai báo bằng cú pháp `open module`, nghĩa là các package của module được mở cho truy cập reflection theo quy tắc của JPMS.
-- `isAutomatic()`: module là automatic module, thường được suy ra từ một JAR không có `module-info.class` khi JAR đó được đặt trên module path.
+- `isOpen()`: the module is declared using the `open module` syntax, meaning the module's packages are open for reflection access according to JPMS rules.
+- `isAutomatic()`: the module is an automatic module, typically inferred from a JAR without `module-info.class` when that JAR is placed on the module path.
 
-Không phải module nào cũng khai báo version hoặc main class. Do đó, `version()`, `rawVersion()` và `mainClass()` trả về `Optional`; chỉ đọc giá trị khi có mặt.
+Not every module declares a version or main class. Therefore, `version()`, `rawVersion()`, and `mainClass()` return `Optional`; only read the value when present.
 
-### 4.2. requires — dependency của module
+### 4.2. requires — module dependencies
 
-Mỗi phần tử trong `requires()` là một `ModuleDescriptor.Requires`. Có thể đọc tên module phụ thuộc bằng `name()` và modifier bằng `modifiers()`.
+Each element in `requires()` is a `ModuleDescriptor.Requires`. You can read the dependent module's name with `name()` and its modifiers with `modifiers()`.
 
-Các modifier quan trọng:
+Important modifiers:
 
-- `TRANSITIVE`: dependency được truyền tiếp cho module phụ thuộc vào module hiện tại.
-- `STATIC`: dependency được yêu cầu khi biên dịch nhưng có thể không bắt buộc ở runtime.
-- `SYNTHETIC` và `MANDATED`: metadata được đánh dấu là synthetic hoặc mandated bởi công cụ/ngôn ngữ.
+- `TRANSITIVE`: the dependency is passed along to modules that depend on the current module.
+- `STATIC`: the dependency is required at compile time but may not be mandatory at runtime.
+- `SYNTHETIC` and `MANDATED`: metadata marked as synthetic or mandated by tools/the language.
 
-Ví dụ, khai báo `requires transitive com.acme.domain;` sẽ tạo một dependency có modifier `TRANSITIVE`. Một descriptor cũng có thể chứa dependency `java.base` với modifier `MANDATED`, dù ta không viết trực tiếp dòng `requires java.base;` trong source. Vì vậy, không nên coi mọi phần tử trong `requires()` đều là một dòng khai báo tường minh do người viết module thêm vào.
+For example, declaring `requires transitive com.acme.domain;` creates a dependency with the `TRANSITIVE` modifier. A descriptor can also contain the `java.base` dependency with the `MANDATED` modifier, even if you did not directly write `requires java.base;` in source. Therefore, do not treat every element in `requires()` as an explicit declaration line added by the module author.
 
-### 4.3. exports — package được công khai
+### 4.3. exports — exposed packages
 
-Mỗi phần tử trong `exports()` là một `ModuleDescriptor.Exports`. Dùng `source()` để lấy tên package được export.
+Each element in `exports()` is a `ModuleDescriptor.Exports`. Use `source()` to get the exported package name.
 
-- Export không giới hạn module đích cho phép các module khác đọc public API của package.
-- Qualified export chỉ cho phép các module có tên nằm trong `targets()` truy cập package đó.
-- `isQualified()` cho biết export có giới hạn module đích hay không.
+- An unqualified export allows other modules to read the package's public API.
+- A qualified export only allows modules whose names are in `targets()` to access that package.
+- `isQualified()` indicates whether the export restricts target modules.
 
-Export điều khiển khả năng truy cập các public type ở cấp module. Nó không biến mọi thành phần package thành public; quy tắc truy cập của Java như `public`, `protected`, package-private và `private` vẫn có hiệu lực.
+Export controls accessibility of public types at the module level. It does not make every package member public; Java's access rules such as `public`, `protected`, package-private, and `private` remain in effect.
 
-### 4.4. opens — package mở cho reflection
+### 4.4. opens — packages open for reflection
 
-Mỗi phần tử trong `opens()` là một `ModuleDescriptor.Opens`. Cấu trúc tương tự `Exports`, gồm package nguồn, modifier và danh sách module đích.
+Each element in `opens()` is a `ModuleDescriptor.Opens`. Its structure is similar to `Exports`, consisting of the source package, modifiers, and list of target modules.
 
-`opens` phục vụ deep reflection, chẳng hạn framework cần truy cập field hoặc constructor không public. Nó khác với `exports`: export phục vụ truy cập API theo quy tắc truy cập Java thông thường, còn open cho phép reflection sâu theo quy tắc module.
+`opens` serves deep reflection, such as when a framework needs to access non-public fields or constructors. It differs from `exports`: export serves API access under standard Java access rules, whereas open permits deep reflection under module rules.
 
-Một module có khai báo `open module` sẽ mở tất cả package cho reflection. Với module thông thường, có thể chỉ mở một số package bằng các chỉ thị `opens` riêng lẻ. `isOpen()` kiểm tra trạng thái open ở cấp toàn module; `opens()` liệt kê các chỉ thị mở package trong descriptor.
+A module declared with `open module` opens all packages for reflection. For a normal module, you can open specific packages with individual `opens` directives. `isOpen()` checks the open state at the whole-module level; `opens()` lists the package-opening directives in the descriptor.
 
-### 4.5. uses và provides — ServiceLoader
+### 4.5. uses and provides — ServiceLoader
 
-JPMS tích hợp cơ chế service:
+JPMS integrates the service mechanism:
 
-- `uses()` chứa tên interface hoặc abstract service mà module tiêu thụ.
-- `provides()` chứa các `ModuleDescriptor.Provides`; `service()` trả về tên service, còn `providers()` trả về tên các lớp triển khai.
+- `uses()` contains the names of interface or abstract services that the module consumes.
+- `provides()` contains `ModuleDescriptor.Provides`; `service()` returns the service name, and `providers()` returns the names of the implementation classes.
 
-Metadata này tương ứng với các chỉ thị `uses` và `provides ... with ...` trong `module-info.java`. Nó giúp công cụ kiểm tra cấu hình plugin/service mà không phải tự phân tích source code.
+This metadata corresponds to the `uses` and `provides ... with ...` directives in `module-info.java`. It helps tools inspect plugin/service configurations without parsing source code themselves.
 
-### 4.6. packages và mainClass
+### 4.6. packages and mainClass
 
-`packages()` cung cấp tập hợp tên package mà descriptor ghi nhận. Không nên dùng riêng `exports()` để suy ra toàn bộ package của module, vì một module có thể chứa package nội bộ không export.
+`packages()` provides the set of package names recorded by the descriptor. You should not use `exports()` alone to infer all packages of a module, because a module can contain internal unexported packages.
 
-`mainClass()` trả về tên lớp main nếu metadata có khai báo. Giá trị này hữu ích khi kiểm tra module có entry point được chỉ định hay không; nó không tự khởi chạy lớp đó.
+`mainClass()` returns the main class name if metadata declares it. This value is useful when checking whether a module has a specified entry point; it does not launch that class by itself.
 
-## 5. Ví dụ đọc toàn bộ metadata
+## 5. Example reading full metadata
 
-Giả sử module có descriptor như sau:
+Suppose a module has the following descriptor:
 
 ~~~java
 module com.acme.catalog {
@@ -200,7 +200,7 @@ module com.acme.catalog {
 }
 ~~~
 
-Ta có thể dùng đoạn chương trình sau để đọc descriptor của module hệ thống `java.sql`. Đổi `ModuleFinder.ofSystem()` thành `ModuleFinder.of(Path.of("mods"))` và đổi tên module nếu muốn kiểm tra module ứng dụng.
+You can use the following program snippet to read the descriptor of the `java.sql` system module. Change `ModuleFinder.ofSystem()` to `ModuleFinder.of(Path.of("mods"))` and change the module name if you want to inspect an application module.
 
 ~~~java
 import java.lang.module.ModuleDescriptor;
@@ -274,11 +274,11 @@ public class ModuleDescriptorInspector {
 }
 ~~~
 
-Kết quả thực tế phụ thuộc descriptor của module được tìm thấy và phiên bản JDK. Ví dụ này sắp xếp các tập hợp theo tên để log dễ đọc và có thứ tự ổn định. Với module `com.acme.catalog`, các nhóm metadata sẽ phản ánh dependency, package API công khai, package mở cho Jackson và service provider đã khai báo trong ví dụ.
+Actual output depends on the found module's descriptor and the JDK version. This example sorts the sets by name so logs are readable and deterministically ordered. For the `com.acme.catalog` module, the metadata groups will reflect the dependencies, public API packages, package opened to Jackson, and service provider declared in the example.
 
-## 6. Đọc trực tiếp file module-info.class
+## 6. Reading a module-info.class file directly
 
-Khi đã có đường dẫn đến file `module-info.class` đã biên dịch, có thể dùng `ModuleDescriptor.read(InputStream)`:
+When you already have the path to a compiled `module-info.class` file, you can use `ModuleDescriptor.read(InputStream)`:
 
 ~~~java
 import java.io.IOException;
@@ -297,13 +297,13 @@ public class ReadModuleInfoClass {
 }
 ~~~
 
-Phương thức này đọc bytecode descriptor đã biên dịch; nó không đọc file nguồn `module-info.java` và cũng không nhận nguyên một JAR như thể đó là luồng `module-info.class`. Nếu descriptor nằm trong modular JAR hoặc module path, `ModuleFinder` thường thuận tiện hơn vì nó xử lý việc tìm module và cung cấp `ModuleReference`.
+This method reads compiled bytecode descriptors; it does not read `module-info.java` source files and also does not accept an entire JAR as if it were a `module-info.class` stream. If the descriptor resides inside a modular JAR or module path, `ModuleFinder` is usually more convenient because it handles finding modules and provides a `ModuleReference`.
 
-Dữ liệu không phải descriptor hợp lệ có thể làm thao tác đọc thất bại. Khi đọc từ file, cần xử lý `IOException`; descriptor sai định dạng có thể phát sinh `InvalidModuleDescriptorException`.
+Invalid descriptor data can cause the read operation to fail. When reading from a file, handle `IOException`; malformed descriptors can throw `InvalidModuleDescriptorException`.
 
-## 7. Tạo descriptor bằng Builder
+## 7. Creating a descriptor with Builder
 
-Ngoài việc đọc metadata có sẵn, API còn cho phép tạo một `ModuleDescriptor` trong bộ nhớ bằng builder:
+In addition to reading existing metadata, the API also lets you create a `ModuleDescriptor` in memory using a builder:
 
 ~~~java
 import java.lang.module.ModuleDescriptor;
@@ -323,28 +323,28 @@ public class BuildDescriptor {
 }
 ~~~
 
-Builder hữu ích khi viết test hoặc công cụ cần tạo một descriptor để xử lý tiếp. Đối tượng được tạo chỉ là metadata trong bộ nhớ; gọi `build()` không tự tạo file `module-info.class`, không ghi JAR và không thêm module vào một `ModuleLayer`.
+The builder is useful when writing tests or tools that need to construct a descriptor for further processing. The created object is only in-memory metadata; calling `build()` does not create a `module-info.class` file, does not write a JAR, and does not add a module to a `ModuleLayer`.
 
-## 8. Giới hạn và những nhầm lẫn thường gặp
+## 8. Limitations and common misconceptions
 
-1. **Descriptor có thể không tồn tại.** `Module.getDescriptor()` trả về `null` đối với unnamed module. Hãy kiểm tra null trước khi đọc metadata.
-2. **Descriptor phản ánh khai báo.** Các thao tác động như `Module.addReads()`, `addExports()` hoặc `addOpens()` có thể thay đổi khả năng truy cập ở runtime. Những thay đổi đó không biến descriptor ban đầu thành một bản ghi trạng thái runtime đầy đủ.
-3. **Không đồng nhất exports với opens.** `exports` công khai package theo quy tắc truy cập module; `opens` cho phép deep reflection. Một framework cần reflection sâu có thể cần package được mở dù package đó không phải public API.
-4. **Không đồng nhất isOpen() với opens().** `isOpen()` cho biết module được khai báo là open module. `opens()` mô tả các chỉ thị mở package trong descriptor của module thông thường.
-5. **Không phải mọi dependency đều được viết tường minh.** `requires()` có thể có các dependency được đánh dấu `MANDATED`, ví dụ `java.base`. Hãy đọc modifier trước khi kết luận về nguồn gốc khai báo.
-6. **Không giả định có version hoặc main class.** Hai thuộc tính này là optional; code phải xử lý trường hợp không có giá trị.
-7. **Không dựa vào thứ tự Set.** `requires()`, `exports()`, `opens()`, `uses()`, `provides()` và `packages()` là các tập hợp. Sắp xếp khi cần log, snapshot hoặc báo cáo ổn định.
-8. **Tên module khác tên package.** `ModuleFinder.find()` nhận tên module, ví dụ `java.sql` hoặc `com.acme.catalog`; nó không tìm theo tên một package bất kỳ.
+1. **A descriptor may not exist.** `Module.getDescriptor()` returns `null` for an unnamed module. Check for null before reading metadata.
+2. **A descriptor reflects declarations.** Dynamic operations such as `Module.addReads()`, `addExports()`, or `addOpens()` can change accessibility at runtime. Those changes do not turn the original descriptor into a full record of runtime state.
+3. **Do not equate exports with opens.** `exports` exposes a package according to module access rules; `opens` permits deep reflection. A framework needing deep reflection may need a package opened even if that package is not public API.
+4. **Do not equate isOpen() with opens().** `isOpen()` indicates whether the module is declared as an open module. `opens()` describes package-opening directives in the descriptor of a normal module.
+5. **Not every dependency is explicitly written.** `requires()` can include dependencies marked `MANDATED`, such as `java.base`. Read the modifiers before drawing conclusions about the declaration's origin.
+6. **Do not assume a version or main class exists.** Both properties are optional; code must handle the case where no value is present.
+7. **Do not rely on Set ordering.** `requires()`, `exports()`, `opens()`, `uses()`, `provides()`, and `packages()` are sets. Sort them when needing deterministic logs, snapshots, or reports.
+8. **Module names differ from package names.** `ModuleFinder.find()` accepts a module name, such as `java.sql` or `com.acme.catalog`; it does not search by an arbitrary package name.
 
-## 9. Chọn API phù hợp
+## 9. Choosing the right API
 
-| Nhu cầu | API nên dùng |
+| Need | API to use |
 | --- | --- |
-| Đọc descriptor của module chứa một class đang chạy | `SomeClass.class.getModule().getDescriptor()` |
-| Tìm metadata của module JDK | `ModuleFinder.ofSystem().find(name)` |
-| Tìm metadata của modular JAR/thư mục module | `ModuleFinder.of(path...).find(name)` |
-| Đọc byte của một file `module-info.class` đã biên dịch | `ModuleDescriptor.read(inputStream)` |
-| Tạo descriptor tạm trong bộ nhớ | `ModuleDescriptor.newModule(name)` hoặc builder tương ứng |
-| Kiểm tra khả năng truy cập thực tế giữa các module lúc runtime | Các phương thức của `Module`, chẳng hạn `canRead()`, `isExported()`, `isOpen()` |
+| Read the descriptor of the module containing a running class | `SomeClass.class.getModule().getDescriptor()` |
+| Find metadata of a JDK module | `ModuleFinder.ofSystem().find(name)` |
+| Find metadata of a modular JAR/module directory | `ModuleFinder.of(path...).find(name)` |
+| Read bytes of a compiled `module-info.class` file | `ModuleDescriptor.read(inputStream)` |
+| Create a temporary descriptor in memory | `ModuleDescriptor.newModule(name)` or its corresponding builder |
+| Check actual accessibility between modules at runtime | `Module` methods, such as `canRead()`, `isExported()`, `isOpen()` |
 
-Khi viết công cụ phân tích JPMS, nên dùng `ModuleDescriptor` để đọc cấu trúc khai báo và dùng `Module` khi câu hỏi liên quan đến trạng thái truy cập thực tế của một module đang chạy. Kết hợp đúng hai API giúp tránh nhầm lẫn giữa metadata được biên dịch và trạng thái runtime của JVM.
+When writing JPMS analysis tools, use `ModuleDescriptor` to read declared structure and use `Module` when the question concerns the actual access state of a running module. Combining the two APIs properly helps avoid confusing compiled metadata with JVM runtime state.

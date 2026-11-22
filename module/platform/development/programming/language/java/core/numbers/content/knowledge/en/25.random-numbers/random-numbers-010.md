@@ -1,42 +1,42 @@
-# `SecureRandom` cho yêu cầu không thể dự đoán trong Java
+# `SecureRandom` for Unpredictability Requirements in Java
 
-## 1. Vì sao “ngẫu nhiên” chưa đủ cho bảo mật?
+## 1. Why is “random” not enough for security?
 
-Một số tác vụ chỉ cần dữ liệu **trông có vẻ ngẫu nhiên**: xáo trộn câu hỏi luyện tập, giả lập tung xúc xắc, sinh dữ liệu kiểm thử. Nhưng một số tác vụ đòi hỏi kẻ tấn công **không thể dự đoán khả thi** giá trị kế tiếp, kể cả khi họ đã nhìn thấy nhiều giá trị trước đó. Đó là yêu cầu phổ biến khi sinh:
+Some tasks only need data that **looks random**: shuffling practice questions, simulating die rolls, generating test data. Other tasks require that an attacker **cannot feasibly predict** the next value, even after observing many previous values. That is a common requirement when generating:
 
-- Token đặt lại mật khẩu hoặc xác minh email chứa bí mật.
-- Session token, API token, nonce bí mật, mã truy cập ngẫu nhiên.
-- OTP được sinh bởi máy chủ (kèm kiểm soát số lần thử).
-- Vật liệu ngẫu nhiên dành cho một số thao tác mật mã.
+- Password reset tokens or email verification tokens containing secrets.
+- Session tokens, API tokens, secret nonces, random access codes.
+- Server-generated OTPs (paired with attempt rate limiting).
+- Random material for cryptographic operations.
 
-Trong Java, `java.security.SecureRandom` là API sinh số ngẫu nhiên dành cho bối cảnh bảo mật. Nó lấy đầu ra từ một bộ sinh được cung cấp qua **security provider**; với triển khai mật mã phù hợp và nguồn seed đủ entropy, đầu ra được thiết kế để chống dự đoán bằng phương pháp tính toán.
+In Java, `java.security.SecureRandom` is the random number generation API intended for security contexts. It draws output from a generator supplied via a **security provider**; with an appropriate cryptographic implementation and sufficiently high-entropy seeding, outputs are designed to resist computational prediction.
 
-`java.util.Random`, `Math.random()` và `ThreadLocalRandom` có ích cho mô phỏng hay ứng dụng thông thường, nhưng **không đáp ứng hợp đồng cần tính không thể dự đoán của bí mật bảo mật**. Một bộ sinh có thống kê phân bố “đẹp” vẫn có thể bị dự đoán nếu biết trạng thái hoặc seed. Ngược lại, `SecureRandom` ưu tiên thuộc tính bảo mật; không nên lấy một vài kết quả trông hỗn loạn để chứng minh thuật toán an toàn.
+`java.util.Random`, `Math.random()`, and `ThreadLocalRandom` are useful for simulations or general applications, yet **do not meet the unpredictability contract required for security secrets**. A generator with “nice” distribution statistics can still be predicted if its state or seed is known. Conversely, `SecureRandom` prioritizes security properties; do not cite a few chaotic-looking outputs as proof that an algorithm is secure.
 
-Sau bài học, bạn có thể chọn đúng API, tạo token dạng byte và mã OTP bằng `SecureRandom`, hiểu nguồn seed/provider, tránh modulo bias, và kết hợp token với các kiểm soát vận hành phù hợp.
+After this lesson, you will be able to pick the right API, generate byte tokens and OTP codes with `SecureRandom`, understand seed/provider sources, avoid modulo bias, and pair tokens with appropriate operational controls.
 
-## 2. Mô hình tư duy: random thông thường và cryptographic random
+## 2. Mental model: general random vs. cryptographic random
 
-| Tiêu chí | `Random`, `ThreadLocalRandom`, `Math.random()` | `SecureRandom` |
+| Criterion | `Random`, `ThreadLocalRandom`, `Math.random()` | `SecureRandom` |
 |---|---|---|
-| Mục tiêu chính | Mô phỏng, phân bố thống kê, tốc độ | Giá trị khó dự đoán về mặt tính toán |
-| Dùng cho token bí mật | **Không nên** | **Nên**, với độ dài và quản lý token phù hợp |
-| Seed cố định để tái hiện test | Thường hữu ích với `new Random(seed)` | Không phải cách phù hợp để tạo bí mật thật |
-| Thuộc tính đầu ra | Phụ thuộc thuật toán, không cam kết an toàn mật mã | Theo thuật toán/provider mật mã đã chọn |
-| Hiệu năng | Thường phù hợp cho lượng lớn dữ liệu mô phỏng | Có thể tốn chi phí khởi tạo hoặc lấy entropy hơn |
-| Kết quả có luôn duy nhất? | Không | **Cũng không**; ngẫu nhiên khác với đảm bảo duy nhất |
+| Primary goal | Simulation, statistical distribution, speed | Computationally unpredictable values |
+| Use for secret tokens | **Do not use** | **Use**, with proper length and token management |
+| Fixed seed to reproduce tests | Often useful with `new Random(seed)` | Not an appropriate way to generate real secrets |
+| Output guarantees | Algorithm-dependent, no cryptographic security promise | Per chosen cryptographic algorithm/provider |
+| Performance | Usually suited for large simulation volumes | May incur higher initialization or entropy cost |
+| Always unique outputs? | No | **Also no**; randomness differs from uniqueness guarantees |
 
-**Không thể dự đoán** không đồng nghĩa **không bao giờ trùng**. Ngay cả token dài 256 bit cũng có xác suất va chạm khác 0; nếu hệ thống bắt buộc khóa duy nhất, cần ràng buộc dữ liệu tương ứng và xử lý va chạm hiếm gặp.
+**Unpredictable** does not mean **never collides**. Even 256-bit tokens have a nonzero collision probability; if the system mandates unique keys, enforce appropriate data constraints and handle rare collisions.
 
-Về mặt triển khai, nhiều thuật toán `SecureRandom` là **CSPRNG** (*cryptographically secure pseudorandom number generator*): trạng thái bên trong và seed hỗ trợ tạo ra chuỗi đầu ra có đặc tính chống dự đoán. Điều này không có nghĩa từng byte phải được đọc trực tiếp từ phần cứng ở mỗi lần gọi. Một số provider còn có cơ chế RNG khác; hợp đồng `SecureRandom` trừu tượng hóa lựa chọn này.
+In implementation terms, many `SecureRandom` algorithms are **CSPRNGs** (*cryptographically secure pseudorandom number generators*): internal state and seeding support producing output streams resistant to prediction. That does not mean every byte is read directly from hardware on every call. Some providers also use other RNG mechanisms; the `SecureRandom` contract abstracts over this choice.
 
-### Khi nào phải dùng `SecureRandom`?
+### When must `SecureRandom` be used?
 
-Đặt câu hỏi: “Nếu người ngoài đoán được giá trị tiếp theo, họ có thể chiếm tài khoản, bỏ qua xác minh, giả mạo yêu cầu hay tiếp cận tài nguyên không?” Nếu câu trả lời là **có**, đây là trường hợp điển hình cần `SecureRandom` (và các biện pháp bảo vệ khác), thay vì generator phục vụ mô phỏng.
+Ask: “If an outsider guesses the next value, can they take over an account, bypass verification, forge a request, or access protected resources?” If the answer is **yes**, this is a classic case requiring `SecureRandom` (alongside other safeguards) rather than a simulation generator.
 
-## 3. API quan trọng và cách khởi tạo
+## 3. Essential APIs and initialization
 
-Bắt đầu bằng cách đơn giản, không tự cấu hình seed:
+Start simply, without manually configuring a seed:
 
 ```java
 import java.security.SecureRandom;
@@ -44,28 +44,28 @@ import java.security.SecureRandom;
 SecureRandom secureRandom = new SecureRandom();
 ```
 
-Đây là đoạn mã minh họa đặt trong lớp hoặc phương thức. Constructor không tham số chọn một thuật toán và provider mặc định theo cấu hình Java đang chạy. Đừng giả định tất cả máy hoặc phiên bản JDK đều chọn cùng thuật toán.
+This is an illustrative snippet placed inside a class or method. The no-argument constructor picks a default algorithm and provider according to the running Java configuration. Never assume all machines or JDK versions choose the exact same algorithm.
 
-Một số phương thức cần nắm:
+Key methods to know:
 
-| API | Ý nghĩa |
+| API | Meaning |
 |---|---|
-| `new SecureRandom()` | Lấy bộ sinh mặc định do Java/provider chọn |
-| `nextBytes(byte[] bytes)` | Điền byte ngẫu nhiên vào mảng đã cấp |
-| `nextInt(int bound)` | Số `int` phân bố đều trong `[0, bound)`; `bound > 0` |
-| `nextLong()` | Lấy giá trị `long` ngẫu nhiên |
-| `generateSeed(int numBytes)` | Tạo các byte dành cho **seed**, chủ yếu cho bộ sinh khác |
-| `getAlgorithm()`, `getProvider()` | Cho biết thuật toán/provider thực tế, hữu ích khi chẩn đoán |
-| `SecureRandom.getInstance("DRBG")` | Yêu cầu thuật toán cụ thể; có thể ném `NoSuchAlgorithmException` nếu môi trường không hỗ trợ |
-| `SecureRandom.getInstanceStrong()` | Chọn theo cấu hình `securerandom.strongAlgorithms`; có thể có chi phí/chờ entropy tùy provider |
+| `new SecureRandom()` | Obtains the default generator chosen by Java/provider |
+| `nextBytes(byte[] bytes)` | Fills the allocated array with random bytes |
+| `nextInt(int bound)` | Uniformly distributed `int` in `[0, bound)`; `bound > 0` |
+| `nextLong()` | Draws a random `long` value |
+| `generateSeed(int numBytes)` | Generates **seed** bytes, primarily for seeding other generators |
+| `getAlgorithm()`, `getProvider()` | Reports the actual algorithm/provider, useful for diagnostics |
+| `SecureRandom.getInstance("DRBG")` | Requests a specific algorithm; can throw `NoSuchAlgorithmException` if unsupported |
+| `SecureRandom.getInstanceStrong()` | Selects based on `securerandom.strongAlgorithms`; may incur cost/entropy blocking per provider |
 
-**Lựa chọn mặc định:** Đối với token thông thường trong ứng dụng Java hiện đại, `new SecureRandom()` cùng `nextBytes()` thường là điểm bắt đầu hợp lý. Nếu tổ chức có yêu cầu cụ thể về thuật toán, compliance, DRBG, FIPS hoặc provider, hãy cấu hình và kiểm chứng riêng theo môi trường triển khai. Tên `getInstanceStrong()` không có nghĩa cứ đổi sang đó là hệ thống an toàn hơn trong mọi trường hợp; thuật toán được chọn, khả năng chờ và hiệu năng phụ thuộc cấu hình.
+**Default choice:** For typical tokens in modern Java applications, `new SecureRandom()` with `nextBytes()` is usually a sensible starting point. If your organization has specific algorithm, compliance, DRBG, FIPS, or provider requirements, configure and verify specifically for your deployment environment. The name `getInstanceStrong()` does not mean switching to it makes every system more secure; the selected algorithm, blocking behavior, and performance depend on configuration.
 
-## 4. Ví dụ hoàn chỉnh: token bí mật 32 byte an toàn cho URL
+## 4. Complete example: URL-safe 32-byte secret token
 
-**Mục tiêu:** Sinh **32 byte ngẫu nhiên** (256 bit đầu ra), rồi mã hóa sang Base64 URL-safe **không padding**. Dạng này có thể dùng làm bí mật trong đường dẫn hoặc tham số truyền nếu được xử lý cẩn thận. Base64 chỉ **mã hóa biểu diễn**, không mã hóa bảo mật; giá trị token vẫn là bí mật phải bảo vệ.
+**Goal:** Generate **32 random bytes** (256 output bits), then encode to URL-safe Base64 **without padding**. This format can be used as a secret in URLs or parameters if handled carefully. Base64 only **encodes representation**, not cryptographic encryption; the token value itself remains a secret to protect.
 
-**Tệp `SecureTokenDemo.java` — Java 17+:**
+**File `SecureTokenDemo.java` — Java 17+:**
 
 ```java
 import java.security.SecureRandom;
@@ -87,7 +87,7 @@ public class SecureTokenDemo {
     public static void main(String[] args) {
         String token = newToken();
 
-        // Chỉ in thuộc tính kiểm thử, không in bí mật thật.
+        // Print only verification properties, do not print the real secret.
         System.out.println("tokenLength=" + token.length());
         System.out.println("decodedBytes="
                 + Base64.getUrlDecoder().decode(token).length);
@@ -97,14 +97,14 @@ public class SecureTokenDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac SecureTokenDemo.java
 java SecureTokenDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 tokenLength=43
@@ -112,27 +112,27 @@ decodedBytes=32
 urlSafe=true
 ```
 
-Kết quả in ra ổn định vì chương trình kiểm tra **hình dạng**, không in nội dung token ngẫu nhiên. Giá trị token thay đổi giữa các lần chạy, nhưng **không cam kết mọi lần đều khác nhau tuyệt đối**.
+Printed output is stable because the program checks **shape**, without printing random token contents. Token values change between runs, though **absolute uniqueness across every run is not guaranteed by contract**.
 
-Giải thích từng bước:
+Step-by-step explanation:
 
-1. `new byte[32]` cấp đúng 32 byte.
-2. `RANDOM.nextBytes(bytes)` điền các byte không thể dự đoán khả thi theo cam kết của provider bảo mật.
-3. `Base64.getUrlEncoder()` dùng bảng ký tự `A–Z`, `a–z`, `0–9`, `-`, `_`, phù hợp để đưa vào URL hơn Base64 thông thường dùng `+` và `/`.
-4. `withoutPadding()` bỏ dấu `=` cuối; **32 byte cho chuỗi Base64URL không padding dài 43 ký tự**.
-5. Khi cần khôi phục byte ban đầu, `Base64.getUrlDecoder().decode(token)` giải mã lại đúng 32 byte.
+1. `new byte[32]` allocates exactly 32 bytes.
+2. `RANDOM.nextBytes(bytes)` fills computationally unpredictable bytes per the security provider's guarantees.
+3. `Base64.getUrlEncoder()` uses characters `A–Z`, `a–z`, `0–9`, `-`, `_`, better suited for URLs than standard Base64's `+` and `/`.
+4. `withoutPadding()` strips trailing `=`; **32 bytes produce an unpadded 43-character Base64URL string**.
+5. When restoring original bytes is needed, `Base64.getUrlDecoder().decode(token)` decodes back to exactly 32 bytes.
 
-Nếu mỗi byte có entropy lý tưởng, 32 byte tương ứng không gian khoảng `2^256` giá trị. Tuy nhiên, **độ dài 256 bit không tự động bảo đảm toàn bộ hệ thống an toàn 256 bit**: phải có nguồn entropy/provider tốt, không rò rỉ token và xử lý vòng đời bí mật đúng cách. Việc cắt chuỗi kết quả xuống vài ký tự sẽ làm giảm đáng kể không gian đoán.
+If every byte has ideal entropy, 32 bytes correspond to a space of about `2^256` values. However, **a 256-bit length does not automatically make the whole system 256-bit secure**: you still need a good entropy/provider source, no token leaks, and proper secret lifecycle handling. Truncating the resulting string to a few characters drastically shrinks the guessing space.
 
-### Vì sao không in token ra console?
+### Why not print tokens to the console?
 
-Token reset hoặc session là **bearer secret**: bất kỳ ai sở hữu token hợp lệ trong thời gian có hiệu lực đều có thể sử dụng quyền mà token đại diện. Log, telemetry, lịch sử URL, hệ thống theo dõi lỗi và analytics đều có thể vô tình giữ lại giá trị bí mật. Ví dụ trên cố ý chỉ in các thuộc tính kiểm tra, không in token.
+Reset or session tokens are **bearer secrets**: anyone holding a valid token within its lifetime can exercise the privileges it represents. Logs, telemetry, URL history, error trackers, and analytics can inadvertently retain secret values. The example above intentionally prints only verification attributes, not the token itself.
 
-## 5. Tạo mã OTP sáu chữ số: ngẫu nhiên mạnh vẫn cần bảo vệ bổ sung
+## 5. Generating a six-digit OTP code: strong randomness still needs extra protection
 
-OTP dạng `000000`–`999999` chỉ có **1.000.000 giá trị khả dĩ**. `SecureRandom` giúp kẻ tấn công khó dự đoán chuỗi phát sinh, nhưng **không làm tăng không gian đoán** của một mã sáu chữ số. Mã ngắn bắt buộc phải đi kèm TTL ngắn, hạn chế lượt thử, xác minh một lần và ràng buộc vào phiên/yêu cầu/người nhận.
+An OTP in `000000`–`999999` has only **1,000,000 possible values**. `SecureRandom` makes the generated sequence hard for an attacker to predict, yet **does not expand the guessing space** of a six-digit code. Short codes must be paired with short TTLs, attempt limits, single-use verification, and binding to the session/request/recipient.
 
-**Tệp `SecureOtpDemo.java`:**
+**File `SecureOtpDemo.java`:**
 
 ```java
 import java.security.SecureRandom;
@@ -160,56 +160,56 @@ javac SecureOtpDemo.java
 java SecureOtpDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 otpLength=6
 onlyDigits=true
 ```
 
-Các chi tiết dễ bị bỏ qua:
+Details often overlooked:
 
-- `nextInt(1_000_000)` trả số từ **0 đến 999999**, không gồm 1000000; giới hạn phải dương.
-- `%06d` giữ **đủ 6 chữ số**, kể cả trường hợp giá trị ngẫu nhiên là `000042`.
-- Với một OTP cho phép bắt đầu bằng `0`, không dùng `100_000 + RANDOM.nextInt(900_000)`: cách đó bỏ mất toàn bộ các mã bắt đầu bằng 0 và chỉ còn 900.000 khả năng.
-- Nếu chính sách **cấm số 0 đứng đầu**, lúc đó mới dùng miền `100000`–`999999`; đây là quy tắc nghiệp vụ khác.
-- **Không** sinh số bằng `Math.abs(RANDOM.nextInt()) % 1_000_000`: modulo không bảo đảm phân bố đều, `Math.abs(Integer.MIN_VALUE)` vẫn âm do tràn, và việc lấy phần dư không xử lý được điều kiện bảo mật.
+- `nextInt(1_000_000)` returns a number from **0 to 999999**, excluding 1000000; the bound must be positive.
+- `%06d` preserves **all 6 digits**, even when the random value is `000042`.
+- For an OTP allowed to start with `0`, do not use `100_000 + RANDOM.nextInt(900_000)`: that drops all zero-prefixed codes, leaving only 900,000 possibilities.
+- Only use the `100000`–`999999` range if policy **forbids leading zeros**; that is a different business rule.
+- **Never** generate the number with `Math.abs(RANDOM.nextInt()) % 1_000_000`: modulo does not guarantee uniformity, `Math.abs(Integer.MIN_VALUE)` stays negative due to overflow, and taking remainders ignores security requirements.
 
-Đối với miền có giới hạn, dùng trực tiếp `nextInt(bound)` để API chọn giá trị phân bố đều mà không tự viết phép chia dư có bias. Ví dụ chọn chỉ số trong danh sách 10 phần tử: `RANDOM.nextInt(10)` trả các giá trị `0`–`9`.
+For a bounded range, call `nextInt(bound)` directly so the API picks uniformly without writing biased modulo logic. For example, picking an index in a 10-element list: `RANDOM.nextInt(10)` returns `0`–`9`.
 
-### OTP được bảo vệ như thế nào ở hệ thống thật?
+### How are OTPs protected in real systems?
 
-Cần kết hợp các ràng buộc: mã có hiệu lực ngắn; giới hạn số lượt thử theo tài khoản/yêu cầu/IP phù hợp; khóa hoặc vô hiệu hóa sau quá nhiều lần thử; buộc mã gắn với đúng thao tác, người nhận và thời điểm; mỗi mã chỉ được dùng thành công một lần. Nếu có nhiều request đồng thời, trạng thái “đã dùng” phải được cập nhật **nguyên tử** để ngăn sử dụng lặp. Tất cả kiểm tra cần thực hiện ở máy chủ.
+Combine multiple controls: short code validity; appropriate attempt rate limits per account/request/IP; locking or invalidating after too many attempts; binding the code to the exact action, recipient, and time; and single-use consumption per code. Under concurrent requests, the “used” flag must be updated **atomically** to prevent reuse. All validation must occur on the server.
 
-## 6. Vòng đời của token: sinh tốt mới chỉ là bước đầu
+## 6. Token lifecycle: good generation is only the first step
 
-Một luồng token đặt lại mật khẩu điển hình:
+A typical password-reset token flow:
 
 ```text
-Máy chủ
+Server
   |
   | SecureRandom.nextBytes(32)
   v
-Token bí mật (Base64URL) ------> Gửi riêng cho chủ tài khoản
+Secret token (Base64URL) ------> Sent privately to account owner
   |
-  | SHA-256(token) / hash mật mã thích hợp
+  | SHA-256(token) / appropriate cryptographic hash
   v
-Lưu hash + accountId + purpose + expiresAt + used=false
+Store hash + accountId + purpose + expiresAt + used=false
   |
-  | Khi người dùng gửi token quay lại
+  | When user submits token back
   v
-Hash token được gửi -> so khớp với bản lưu
+Hash submitted token -> compare with stored record
   |
-  +-- sai / hết hạn / sai mục đích / đã dùng: từ chối
+  +-- wrong / expired / wrong purpose / already used: reject
   |
-  +-- đúng: thực hiện tác vụ và đánh dấu used=true theo giao dịch an toàn
+  +-- valid: perform action and mark used=true in a safe transaction
 ```
 
-Trong ứng dụng thật, lưu **hash** của token ngẫu nhiên dài (thay vì giữ token gốc ở dạng plaintext trong cơ sở dữ liệu) có thể hạn chế tác động khi bảng token bị lộ. Với token có entropy cao, hàm băm SHA-256 thường phù hợp để làm dấu đối chiếu; mã OTP sáu chữ số có entropy thấp thì **không thể dựa vào SHA-256 đơn thuần để chống dò offline nếu bị lộ bản hash**. OTP đòi hỏi mô hình lưu trữ và kiểm soát riêng, có thể dùng HMAC với khóa bí mật của máy chủ cùng giới hạn lượt thử và thời hạn.
+In real applications, storing a **hash** of a long random token (instead of keeping the raw token in plaintext in the database) limits exposure if the token table leaks. For high-entropy tokens, SHA-256 is commonly appropriate as a lookup digest; low-entropy six-digit OTPs **cannot rely on plain SHA-256 to resist offline brute-forcing if the hash leaks**. OTPs demand dedicated storage and controls, such as server-secret HMACs alongside attempt limits and expiration.
 
-Đoạn code độc lập sau minh họa cách chỉ lưu/so sánh digest cho token entropy cao, **chưa thay thế đầy đủ** tầng xác thực, TTL hay cập nhật “used” nguyên tử.
+The following standalone code illustrates storing/comparing digests for high-entropy tokens and **does not replace** full authentication layers, TTL checks, or atomic “used” updates.
 
-**Tệp `TokenDigestDemo.java`:**
+**File `TokenDigestDemo.java`:**
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -254,72 +254,72 @@ digestBytes=32
 match=true
 ```
 
-`SHA-256` tạo digest 32 byte; `MessageDigest.isEqual` là API so sánh mảng byte thích hợp cho giá trị nhạy cảm về thời gian so sánh. Ở ví dụ này, `token` là giá trị riêng tư trong chương trình nhưng không được in ra; trong ứng dụng thật, máy chủ lưu `storedDigest` và chỉ chuyển token gốc đến người dùng qua kênh được bảo vệ.
+`SHA-256` produces a 32-byte digest; `MessageDigest.isEqual` is the appropriate byte-array comparison API for timing-sensitive values. In this example, `token` is a private value inside the program and is never printed; in a real application, the server stores `storedDigest` and sends the raw token to the user only over a protected channel.
 
-**Không nhầm SHA-256 với thuật toán hash mật khẩu người dùng.** Mật khẩu do người dùng chọn có thể bị đoán, nên thường cần thuật toán KDF chuyên dụng như Argon2id, scrypt hoặc PBKDF2 với tham số phù hợp. Token ngẫu nhiên dài và OTP ngắn là hai tình huống lưu trữ có mô hình rủi ro khác nhau.
+**Do not confuse SHA-256 with user password hashing algorithms.** User-chosen passwords can be guessed, so they usually require specialized KDF algorithms such as Argon2id, scrypt, or PBKDF2 with suitable parameters. Long random tokens and short OTPs are two storage scenarios with different threat models.
 
-## 7. Seed, entropy, provider và `getInstanceStrong()`
+## 7. Seeds, entropy, providers, and `getInstanceStrong()`
 
-### 7.1. Seed quyết định khả năng chống dự đoán
+### 7.1. Seeds govern unpredictability
 
-CSPRNG cần trạng thái khởi tạo có entropy đủ mạnh. Một `SecureRandom` mặc định thường tự khởi tạo bằng cơ chế/provider thích hợp khi cần dùng; lập trình viên không phải tự tạo seed từ đồng hồ.
+A CSPRNG needs an initial state with sufficiently strong entropy. A default `SecureRandom` typically self-seeds via an appropriate mechanism/provider when needed; developers do not need to manually seed it from the clock.
 
-**Tránh:**
+**Avoid:**
 
 ```java
-// Minh họa cách không nên dùng để tạo token bảo mật.
+// Illustrates what should not be used to generate security tokens.
 byte[] guessableSeed = {
         1, 2, 3, 4
 };
 SecureRandom random = new SecureRandom(guessableSeed);
 ```
 
-Seed cố định hoặc đoán được từ thời gian, PID, tên tài khoản, mã học viên... có thể làm giảm thuộc tính không thể dự đoán. Cũng không có cơ sở để cho rằng chỉ vì tham số kiểu `byte[]` dài thì seed đã có entropy cao. Tùy provider, việc cung cấp seed và hành vi reseed khác nhau; **không dùng seed tự chế để tạo hoặc kiểm thử token thật**.
+Fixed seeds or seeds predictable from time, PID, username, or student ID can undermine unpredictability. Nor is there any basis to assume that merely passing a long `byte[]` gives high entropy. Depending on the provider, seed provisioning and reseed behavior vary; **never use homemade seeds to generate or test real tokens**.
 
-Một điểm API: `setSeed(...)` trên `SecureRandom` có thể bổ sung entropy vào trạng thái hiện có, chứ không nhất thiết thay thế seed như một cơ chế khởi tạo `Random` thông thường. Không nên dựa vào seed cố định để tái tạo cùng chuỗi `SecureRandom` giữa các JDK, provider hay máy chạy. Trong kiểm thử logic phụ thuộc nguồn ngẫu nhiên, có thể **tiêm giao diện nguồn dữ liệu giả** (fake) cho test, còn môi trường production phải dùng CSPRNG thật.
+One API detail: `setSeed(...)` on `SecureRandom` may supplement entropy into the existing state rather than necessarily replacing the seed like initializing a regular `Random`. Do not rely on a fixed seed to reproduce the exact same `SecureRandom` sequence across JDKs, providers, or machines. When testing logic that depends on a random source, you can **inject a fake source interface** in tests while keeping a real CSPRNG in production.
 
-### 7.2. `getInstanceStrong()` có luôn là lựa chọn tốt hơn?
+### 7.2. Is `getInstanceStrong()` always a better choice?
 
-`SecureRandom.getInstanceStrong()` đọc cấu hình các thuật toán được ưu tiên mạnh tại thuộc tính bảo mật `securerandom.strongAlgorithms`. Phương thức có thể ném `NoSuchAlgorithmException`, và một số nguồn entropy/provider có thể chặn trong khi khởi tạo hoặc sinh dữ liệu.
+`SecureRandom.getInstanceStrong()` reads preferred strong algorithms configured in the `securerandom.strongAlgorithms` security property. It can throw `NoSuchAlgorithmException`, and some entropy sources/providers may block during initialization or data generation.
 
-Đối với endpoint chịu nhiều truy cập và cần token ngắn hạn, không nên tự động thay mọi lệnh `new SecureRandom()` bằng `getInstanceStrong()` mà chưa đánh giá thuật toán, cấu hình triển khai, tốc độ và độ trễ. Nếu yêu cầu tổ chức bắt buộc dùng DRBG hoặc provider cụ thể, hãy chọn tường minh theo quy định và kiểm thử trên đúng runtime, bao gồm trường hợp thiếu provider.
+For high-traffic endpoints needing short-lived tokens, do not blindly replace every `new SecureRandom()` with `getInstanceStrong()` without evaluating the algorithm, deployment configuration, throughput, and latency. If organizational policy requires a specific DRBG or provider, select it explicitly per policy and test on the target runtime, including missing-provider handling.
 
-### 7.3. `nextBytes` và `generateSeed` khác nhau
+### 7.3. `nextBytes` vs. `generateSeed`
 
-Để **sinh token sử dụng ngay**, phương thức tiêu chuẩn là `nextBytes(byte[])`. `generateSeed(int)` có mục đích tạo byte seed, chẳng hạn để khởi tạo một RNG khác; nó có đặc điểm lấy entropy và hiệu năng phụ thuộc provider. Không bắt buộc phải gọi `generateSeed` trước `nextBytes` khi dùng `new SecureRandom()`.
+To **generate tokens for immediate use**, the standard method is `nextBytes(byte[])`. `generateSeed(int)` is intended to produce seed bytes, such as for initializing another RNG; its entropy collection and performance depend on the provider. You do not have to call `generateSeed` before `nextBytes` when using `new SecureRandom()`.
 
-### 7.4. Dùng cùng một đối tượng `SecureRandom`
+### 7.4. Sharing a single `SecureRandom` instance
 
-Trong Java hiện đại, `SecureRandom` được tài liệu hóa là an toàn khi nhiều thread sử dụng chung; lớp có thể đồng bộ hoạt động với provider không công bố hỗ trợ thread safety. Vì vậy, cách đặt `private static final SecureRandom RANDOM = new SecureRandom();` trong ví dụ là một mô hình hợp lệ cho nhiều ứng dụng.
+In modern Java, `SecureRandom` is documented as thread-safe when shared across threads; the class can synchronize operations with providers that do not declare thread safety. Thus, keeping `private static final SecureRandom RANDOM = new SecureRandom();` in the examples is a valid pattern for many applications.
 
-Nếu throughput rất cao, vẫn nên đo đạc trên provider thực tế: mức contention, entropy và khởi tạo có thể ảnh hưởng hiệu năng. Không tạo lại `SecureRandom` bên trong mỗi vòng lặp chỉ để hy vọng kết quả “ngẫu nhiên hơn”.
+Under very high throughput, benchmark on your actual provider: contention, entropy, and initialization can affect performance. Do not recreate `SecureRandom` inside every loop iteration hoping for “more random” outputs.
 
-## 8. Các lỗi thường gặp
+## 8. Common mistakes
 
-| Lỗi | Tác hại | Cách làm phù hợp |
+| Mistake | Impact | Proper practice |
 |---|---|---|
-| Dùng `Math.random()` cho token reset mật khẩu | Không có hợp đồng chống dự đoán của CSPRNG | Dùng `SecureRandom.nextBytes` |
-| Dùng `new Random(System.currentTimeMillis())` cho OTP | Seed đồng hồ có thể đoán | Dùng `SecureRandom.nextInt(bound)` |
-| Tạo token rất ngắn rồi tin rằng `SecureRandom` là đủ | Không gian đoán thấp | Dùng đủ số byte và bảo vệ vòng đời |
-| Dùng `Math.abs(nextInt()) % bound` | Có thể bias và gặp `Integer.MIN_VALUE` | `nextInt(bound)` |
-| Dùng Base64 rồi cho rằng đã mã hóa bí mật | Base64 dễ dàng giải mã | Coi chuỗi Base64URL là bearer secret |
-| Ghi token thô vào log hoặc analytics | Rò rỉ bí mật | Chỉ ghi metadata không nhạy cảm |
-| Dùng mã OTP không TTL/không giới hạn thử | Có thể brute force online | TTL, rate limit, khóa/thay mã và một lần dùng |
-| Mặc định `getInstanceStrong()` luôn nhanh và không chặn | Có thể tăng độ trễ/khác provider | Đánh giá môi trường triển khai |
-| Tạo seed từ timestamp hoặc một chuỗi hằng | Seed kém entropy | Để provider cung cấp entropy thích hợp |
-| Cho rằng token ngẫu nhiên luôn duy nhất | Va chạm tuy hiếm vẫn có thể xảy ra | Kiểm tra/ràng buộc uniqueness nếu cần |
-| In thử vài token rồi kết luận an toàn | Đầu ra “không lặp” không chứng minh chống dự đoán | Dựa vào thuật toán/provider phù hợp và kiểm thử hệ thống |
+| Using `Math.random()` for password-reset tokens | Lacks CSPRNG unpredictability contract | Use `SecureRandom.nextBytes` |
+| Using `new Random(System.currentTimeMillis())` for OTPs | Clock-based seed is predictable | Use `SecureRandom.nextInt(bound)` |
+| Creating very short tokens thinking `SecureRandom` is enough | Small guessing space | Use enough bytes and protect lifecycle |
+| Using `Math.abs(nextInt()) % bound` | Possible bias and `Integer.MIN_VALUE` bug | `nextInt(bound)` |
+| Encoding with Base64 and assuming the secret is encrypted | Base64 is trivially decoded | Treat the Base64URL string as a bearer secret |
+| Writing raw tokens to logs or analytics | Secret leakage | Log only non-sensitive metadata |
+| Issuing OTPs without TTL or attempt limits | Vulnerable to online brute force | TTL, rate limits, lockout/rotation, and single-use |
+| Assuming `getInstanceStrong()` is always fast and non-blocking | Possible latency spikes/provider differences | Evaluate in the deployment environment |
+| Seeding from timestamps or constant strings | Low-entropy seed | Let the provider supply appropriate entropy |
+| Assuming random tokens are always unique | Rare collisions can still occur | Check/enforce uniqueness when required |
+| Printing a few tokens and declaring security | “Non-repeating” output does not prove unpredictability | Rely on proper algorithms/providers and system testing |
 
-## 9. Cách kiểm thử đúng khi kết quả phải thay đổi
+## 9. How to test properly when outputs must vary
 
-Vì đầu ra của CSPRNG không có giá trị cố định, không viết test dạng:
+Because CSPRNG output has no fixed value, do not write tests like:
 
 ```java
-// KHÔNG đúng: không thể kỳ vọng một giá trị token cố định.
+// WRONG: cannot expect a fixed token value.
 assert token.equals("abc123");
 ```
 
-Thay vào đó, kiểm thử những thuộc tính tất định:
+Instead, test deterministic properties:
 
 ```java
 String token = SecureTokenDemo.newToken();
@@ -331,41 +331,41 @@ if (token.length() != 43
 }
 ```
 
-Đây là đoạn mã minh họa dùng cùng lớp `SecureTokenDemo` đã định nghĩa ở mục 4; cần import `java.util.Base64` khi đặt trong tệp riêng. Có thể kiểm tra bổ sung việc token bị sửa hoặc đã dùng sẽ bị từ chối và cách xử lý sau khi hết hạn.
+This snippet uses the `SecureTokenDemo` class defined in section 4; add `import java.util.Base64` if placed in a separate file. You can also test that tampered or already-used tokens are rejected and verify behavior after expiration.
 
-Các **bài kiểm tra phân bố thống kê** không chứng minh tính không thể dự đoán của một RNG. Tránh viết test dễ flake kiểu “100 token chắc chắn khác nhau” rồi xem đó là bằng chứng mật mã. Khi cần bảo đảm thuật toán tuân thủ tiêu chuẩn hoặc cấu hình provider, hãy dựa vào thư viện/provider được đánh giá, môi trường runtime được quản lý và test tích hợp đối với đường xử lý bí mật.
+**Statistical distribution tests** do not prove an RNG is unpredictable. Avoid writing flaky tests like “100 tokens must all be distinct” and treating them as cryptographic proof. To ensure algorithms meet standards or provider configurations, rely on vetted libraries/providers, managed runtime environments, and integration tests covering the secret-handling path.
 
-## 10. Câu hỏi tự kiểm tra
+## 10. Self-check questions
 
-1. **Ứng dụng xáo trộn câu hỏi trắc nghiệm, kết quả không dùng làm bí mật. Có bắt buộc `SecureRandom` không?**  
-   Không. `Random` hoặc một nguồn ngẫu nhiên thông thường có thể đủ nếu không có yêu cầu bảo mật.
+1. **An app shuffles multiple-choice questions; results are not used as secrets. Is `SecureRandom` mandatory?**  
+   No. `Random` or an ordinary random source can suffice when there are no security requirements.
 
-2. **Ứng dụng phát token reset mật khẩu, người ngoài thấy token của vài người dùng khác. Nên dùng gì?**  
-   Một CSPRNG như `SecureRandom`, tạo đủ byte entropy và bảo vệ token khi truyền, lưu, dùng và hết hạn.
+2. **An app issues password-reset tokens where outsiders can see a few other users' tokens. What should be used?**  
+   A CSPRNG like `SecureRandom`, generating enough entropy bytes and protecting tokens during transit, storage, use, and expiration.
 
-3. **`RANDOM.nextInt(6)` có trả số 6 không?**  
-   Không. Nó trả một trong `0, 1, 2, 3, 4, 5`.
+3. **Can `RANDOM.nextInt(6)` return `6`?**  
+   No. It returns one of `0, 1, 2, 3, 4, 5`.
 
-4. **Vì sao `%06d` quan trọng trong OTP sáu chữ số?**  
-   Vì số ngẫu nhiên `42` phải được biểu diễn thành `000042` nếu miền cho phép số 0 đứng đầu.
+4. **Why does `%06d` matter in a six-digit OTP?**  
+   Because a random integer `42` must be formatted as `000042` when leading zeros are allowed.
 
-5. **Base64URL biến token thành dữ liệu đã mã hóa bảo mật hay chưa?**  
-   Chưa. Đây chỉ là cách biểu diễn byte thành chuỗi có thể đọc/truyền; người nhận có thể giải mã mà không cần khóa.
+5. **Does Base64URL turn a token into cryptographically encrypted data?**  
+   No. It only encodes bytes into a readable/transmittable string; anyone receiving it can decode it without a key.
 
-6. **Vì sao OTP `000000`–`999999` vẫn có thể bị brute force dù sinh bằng `SecureRandom`?**  
-   Vì chỉ có 1.000.000 khả năng; cần TTL, giới hạn lượt thử, ràng buộc phiên và cơ chế sử dụng một lần.
+6. **Why can a `000000`–`999999` OTP still be brute-forced even when generated with `SecureRandom`?**  
+   Because there are only 1,000,000 possibilities; you still need TTL, attempt limits, session binding, and single-use enforcement.
 
-7. **Có nên dùng `SecureRandom.getInstanceStrong()` cho mọi request mà không kiểm tra provider?**  
-   Không nên. Việc chọn thuật toán và chi phí/lúc chờ entropy phụ thuộc cấu hình, cần được đánh giá theo runtime.
+7. **Should `SecureRandom.getInstanceStrong()` be used on every request without checking the provider?**  
+   No. Algorithm choice and entropy blocking/cost depend on configuration and must be evaluated on the target runtime.
 
-8. **`SecureRandom` có đảm bảo hai lần sinh 32 byte không bao giờ giống nhau không?**  
-   Không có bảo đảm tuyệt đối. Xác suất va chạm rất nhỏ nếu triển khai và entropy tốt, nhưng ràng buộc duy nhất phải được xử lý riêng khi nghiệp vụ yêu cầu.
+8. **Does `SecureRandom` guarantee that two 32-byte draws will never match?**  
+   There is no absolute guarantee. Collision probability is tiny with proper implementation and entropy, yet uniqueness constraints must be handled explicitly if business logic requires them.
 
-## 11. Ghi nhớ và tài liệu tham khảo
+## 11. Key takeaway and references
 
-Khi nhiệm vụ yêu cầu **khó dự đoán**, sử dụng `SecureRandom` với provider đáng tin cậy và seed từ nguồn entropy phù hợp. Dùng `nextBytes` cho secret token dài; dùng `nextInt(bound)` khi cần giá trị trong một miền; không tự modulo để tạo OTP. `SecureRandom` là thành phần **sinh bí mật**, không thay thế xác thực, giới hạn lượt thử, TTL, lưu trữ bí mật an toàn hay khả năng phát hiện lạm dụng.
+Whenever a task requires **unpredictability**, use `SecureRandom` with a trusted provider and an appropriate entropy source. Use `nextBytes` for long secret tokens; use `nextInt(bound)` for bounded values; never use manual modulo to construct OTPs. `SecureRandom` is the **secret-generation** component—it does not replace authentication, rate limiting, TTLs, secure secret storage, or abuse detection.
 
-Javadoc và tài liệu chính thức:
+Javadoc and official references:
 
 - [Java 21: `java.security.SecureRandom`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/SecureRandom.html)
 - [Java 21: `java.util.Base64`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Base64.html)

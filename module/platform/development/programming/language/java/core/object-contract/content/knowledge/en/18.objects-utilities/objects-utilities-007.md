@@ -1,14 +1,14 @@
-# `Objects.requireNonNullElse()` và `Objects.requireNonNullElseGet()` trong Java
+# `Objects.requireNonNullElse()` and `Objects.requireNonNullElseGet()` in Java
 
-Hai phương thức tĩnh `java.util.Objects.requireNonNullElse()` và `Objects.requireNonNullElseGet()` giúp chọn **một giá trị thay thế khi giá trị chính là `null`**. Cả hai đều bảo đảm kết quả trả về **khác `null`**, nhưng khác nhau về **thời điểm tạo giá trị dự phòng**: `requireNonNullElse()` nhận sẵn một giá trị, còn `requireNonNullElseGet()` nhận một `Supplier` và chỉ gọi `get()` khi thực sự cần.
+The two static methods `java.util.Objects.requireNonNullElse()` and `Objects.requireNonNullElseGet()` help select **a replacement value when the primary value is `null`**. Both guarantee that the returned result is **non-`null`**, yet they differ in **when the fallback value is created**: `requireNonNullElse()` accepts a pre-evaluated value, whereas `requireNonNullElseGet()` accepts a `Supplier` and calls `get()` only when actually needed.
 
-Đây là khác biệt có ý nghĩa khi việc tạo dự phòng tốn thời gian, cấp phát bộ nhớ, đọc cấu hình, gọi dịch vụ hoặc có tác dụng phụ. Hiểu đúng quy tắc đánh giá đối số và kiểm tra `null` giúp tránh lỗi khó thấy ngay cả khi giá trị chính luôn tồn tại.
+This difference matters when creating the fallback takes time, allocates memory, reads configuration, calls a service, or has side effects. Understanding the argument evaluation rules and `null` checks helps prevent subtle bugs even when the primary value is always present.
 
-Hai API có từ **Java 9** và sử dụng bình thường trên Java 17+.
+Both APIs have existed since **Java 9** and work normally on Java 17+.
 
-## 1. Chữ ký và hợp đồng trả về
+## 1. Signatures and return contract
 
-Chữ ký khái quát:
+General signatures:
 
 ```java
 public static <T> T requireNonNullElse(T obj, T defaultObj);
@@ -17,73 +17,73 @@ public static <T> T requireNonNullElseGet(
         T obj, Supplier<? extends T> supplier);
 ```
 
-`Supplier` nằm trong `java.util.function.Supplier`. Cả hai phương thức trả **tham chiếu đã nhận** hoặc **tham chiếu dự phòng**, không thực hiện sao chép đối tượng và không thay đổi trạng thái của tham số chính.
+`Supplier` lives in `java.util.function.Supplier`. Both methods return **the received reference** or **the fallback reference**, without copying objects or mutating the primary parameter's state.
 
-| Trường hợp | `requireNonNullElse(obj, defaultObj)` | `requireNonNullElseGet(obj, supplier)` |
+| Case | `requireNonNullElse(obj, defaultObj)` | `requireNonNullElseGet(obj, supplier)` |
 | --- | --- | --- |
-| `obj != null` | Trả `obj` | Trả `obj`; không gọi `supplier.get()` |
-| `obj == null` | Trả `defaultObj` nếu khác `null` | Gọi `supplier.get()` và trả kết quả nếu khác `null` |
-| `obj == null`, dự phòng là `null` | Ném `NullPointerException` | Ném `NullPointerException` nếu supplier là `null` hoặc `get()` trả `null` |
-| `obj != null`, dự phòng được truyền là `null` | Vẫn trả `obj` | Vẫn trả `obj`, kể cả khi supplier được truyền là `null` |
-| Dự phòng tốn chi phí để *tạo* | Biểu thức tạo đối số được đánh giá trước khi phương thức chạy | Thân `get()` chỉ chạy nếu `obj == null` |
-| Gọi lại nhiều lần khi `obj == null` | Dùng đối tượng dự phòng được truyền ở lần gọi đó | Có thể chạy lại `get()` mỗi lần gọi; không tự cache |
+| `obj != null` | Returns `obj` | Returns `obj`; does not call `supplier.get()` |
+| `obj == null` | Returns `defaultObj` if non-`null` | Calls `supplier.get()` and returns the result if non-`null` |
+| `obj == null`, fallback is `null` | Throws `NullPointerException` | Throws `NullPointerException` if supplier is `null` or `get()` returns `null` |
+| `obj != null`, passed fallback is `null` | Still returns `obj` | Still returns `obj`, even when the passed supplier is `null` |
+| Fallback is expensive to *create* | The argument-creating expression is evaluated before the method runs | The `get()` body runs only if `obj == null` |
+| Called repeatedly when `obj == null` | Uses the fallback object passed in that call | May re-run `get()` on every call; does not auto-cache |
 
-**Lưu ý về trường hợp dùng `null`:** Chính giá trị dự phòng không null là điều kiện bắt buộc **khi cần sử dụng nó**. Nếu `obj` đã khác `null`, cả hai phương thức đều có thể trả kết quả mà không kiểm tra tính hợp lệ của fallback không được sử dụng.
+**Note on `null` handling:** A non-null fallback value is required **when it needs to be used**. If `obj` is already non-`null`, both methods can return the result without validating the unused fallback.
 
-`requireNonNullElseGet()` không phải “phiên bản đồng bộ”, không phải API cache và cũng không tự xử lý `Optional`. Nó chỉ trì hoãn việc gọi `Supplier.get()`.
+`requireNonNullElseGet()` is not a "synchronized version", not a caching API, and does not automatically handle `Optional`. It simply defers calling `Supplier.get()`.
 
-## 2. `requireNonNullElse()` — giá trị dự phòng có sẵn
+## 2. `requireNonNullElse()` — a ready-made fallback value
 
-Ví dụ đơn giản:
+Simple example:
 
 ```java
 String displayName =
-        Objects.requireNonNullElse(userName, "Khách");
+        Objects.requireNonNullElse(userName, "Guest");
 ```
 
-Đây là **mảnh code minh họa**, giả định `userName` là biến `String` và đã import `java.util.Objects`. Nếu `userName` khác `null`, phương thức trả chính chuỗi đó; nếu bằng `null`, trả `"Khách"`.
+This is an **illustrative code snippet**, assuming `userName` is a `String` variable and `java.util.Objects` has been imported. If `userName` is non-`null`, the method returns that string itself; if it is `null`, it returns `"Guest"`.
 
-Cần phân biệt hai điều:
+Two things must be distinguished:
 
-1. **Tham số `defaultObj` là một giá trị, không phải một phép tính bị hoãn.** Theo quy tắc Java, mọi biểu thức đối số của lời gọi phương thức được đánh giá trước khi phương thức bắt đầu thực thi.
-2. **Việc có trả fallback hay không vẫn phụ thuộc `obj`.** Giá trị dự phòng có thể được tạo ra nhưng không được sử dụng.
+1. **The `defaultObj` parameter is a value, not a deferred computation.** By Java's rules, every argument expression of a method call is evaluated before the method begins executing.
+2. **Whether the fallback is returned still depends on `obj`.** The fallback value may be created and then unused.
 
-Ví dụ:
+Example:
 
 ```java
 String value = Objects.requireNonNullElse(
-        "Có sẵn", createExpensiveDefault());
+        "Available", createExpensiveDefault());
 ```
 
-Ở đây `createExpensiveDefault()` **vẫn chạy** để tạo đối số thứ hai, ngay cả khi kết quả `value` là `"Có sẵn"`. Nếu hàm tạo dự phòng phát sinh ngoại lệ, ngoại lệ xảy ra **trước khi** `requireNonNullElse()` có cơ hội chọn giá trị chính.
+Here `createExpensiveDefault()` **still runs** to produce the second argument, even though the resulting `value` is `"Available"`. If the fallback-creating function throws an exception, the exception occurs **before** `requireNonNullElse()` even gets a chance to pick the primary value.
 
-Điều này không có nghĩa truyền `"Khách"` hay một hằng số rẻ luôn là vấn đề. `requireNonNullElse()` thường là lựa chọn **đơn giản nhất** nếu fallback đã tồn tại hoặc rất rẻ.
+This does not mean passing `"Guest"` or a cheap constant is always a problem. `requireNonNullElse()` is usually the **simplest** choice when the fallback already exists or is very cheap.
 
-## 3. `requireNonNullElseGet()` — tính dự phòng khi cần
+## 3. `requireNonNullElseGet()` — computing fallback when needed
 
-Cú pháp tương ứng:
+Corresponding syntax:
 
 ```java
 String displayName = Objects.requireNonNullElseGet(
         userName, () -> createExpensiveDefault());
 ```
 
-Đây cũng là **mảnh code minh họa**. Java vẫn **đánh giá biểu thức tạo `Supplier`** trước lời gọi (ví dụ tạo đối tượng lambda hoặc gọi một hàm trả về supplier); nhưng **phần thân lambda**, tức `createExpensiveDefault()`, không chạy nếu `userName != null`.
+This is also an **illustrative code snippet**. Java still **evaluates the `Supplier`-creating expression** before the call (for instance, creating the lambda object or calling a function that returns a supplier); however, **the lambda body**, i.e., `createExpensiveDefault()`, does not run if `userName != null`.
 
-Có thể truyền method reference:
+A method reference can be passed:
 
 ```java
 String name = Objects.requireNonNullElseGet(
         userName, ConfigDefaults::loadDefaultName);
 ```
 
-`ConfigDefaults::loadDefaultName` là ví dụ dạng cú pháp, giả định lớp `ConfigDefaults` có phương thức phù hợp trả `String` không null. Method reference chỉ giúp mô tả một phép gọi bị hoãn; nó không tự động cache hay xác thực kết quả cho đến khi gọi `get()`.
+`ConfigDefaults::loadDefaultName` is a syntax example, assuming class `ConfigDefaults` has a suitable method returning a non-null `String`. The method reference only describes a deferred call; it does not automatically cache or validate the result until `get()` is called.
 
-**Quy tắc chọn:** nếu dữ liệu dự phòng cần tính toán và có thể bỏ qua khi giá trị chính hiện diện, `requireNonNullElseGet()` thể hiện rõ ý định *lazy fallback*.
+**Selection rule:** if the fallback data needs computation and can be skipped when the primary value is present, `requireNonNullElseGet()` clearly expresses *lazy fallback* intent.
 
-## 4. Chương trình Java 17+ chứng minh eager và lazy
+## 4. Java 17+ program demonstrating eager and lazy evaluation
 
-Lưu toàn bộ chương trình vào **`ElseTimingDemo.java`**:
+Save the entire program into **`ElseTimingDemo.java`**:
 
 ```java
 import java.util.Objects;
@@ -121,14 +121,14 @@ public class ElseTimingDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac ElseTimingDemo.java
 java ElseTimingDemo
 ```
 
-Kết quả chính xác:
+Exact output:
 
 ```text
 eager present: provided
@@ -139,37 +139,37 @@ lazy absent: fallback-3
 calls after absent: 3
 ```
 
-**Giải thích:**
+**Explanation:**
 
-- Lần đầu, `"provided"` không null, nhưng biểu thức `fallback(calls)` của `requireNonNullElse()` vẫn chạy: bộ đếm lên `1`. Kết quả hàm vẫn là `"provided"`.
-- `requireNonNullElseGet("provided", () -> fallback(calls))` không gọi `get()`, nên bộ đếm giữ nguyên.
-- Khi tham số chính null, cả hai API phải có giá trị dự phòng. Lần gọi eager tính chuỗi `"fallback-2"` trước, lần gọi lazy tính `"fallback-3"` bên trong supplier.
-- Mã dùng `AtomicInteger` để đếm lời gọi theo cách dễ quan sát; **đây không phải bằng chứng `Objects` tự đồng bộ việc tạo fallback**. Không có lời gọi đa luồng trong ví dụ.
+- The first time, `"provided"` is non-null, yet the `fallback(calls)` expression of `requireNonNullElse()` still runs: the counter increases to `1`. The method result is still `"provided"`.
+- `requireNonNullElseGet("provided", () -> fallback(calls))` does not call `get()`, so the counter stays unchanged.
+- When the primary argument is null, both APIs must obtain a fallback value. The eager call computes `"fallback-2"` beforehand, and the lazy call computes `"fallback-3"` inside the supplier.
+- The code uses `AtomicInteger` to count calls in an easily observable way; **this is not proof that `Objects` automatically synchronizes fallback creation**. There are no multithreaded calls in this example.
 
-Nếu chỉ truyền hằng số hoặc một biến fallback có sẵn, `requireNonNullElse()` vẫn đúng và dễ đọc. Chọn `requireNonNullElseGet()` chủ yếu vì chi phí hoặc tác dụng phụ của phép tính dự phòng, không phải vì nó mặc nhiên “hiện đại hơn”.
+If you are only passing a constant or an already available fallback variable, `requireNonNullElse()` remains correct and readable. Choose `requireNonNullElseGet()` mainly because of the cost or side effects of computing the fallback, not because it is inherently "more modern".
 
-## 5. Kiểm tra `null`: cả hai API đều yêu cầu kết quả cuối không null
+## 5. `null` checks: both APIs require a non-null final result
 
-Hai phương thức có từ `requireNonNull` trong tên vì **giá trị sau lựa chọn phải khác `null`**. Những kết quả dễ nhầm:
-
-```java
-Objects.requireNonNullElse("ready", null); // Trả "ready".
-Objects.requireNonNullElse(null, null);    // Ném NullPointerException.
-```
-
-Tương tự:
+Both methods have `requireNonNull` in their names because **the value after selection must be non-`null`**. Easily confused results:
 
 ```java
-Objects.requireNonNullElseGet("ready", null); // Trả "ready".
-Objects.requireNonNullElseGet(null, null);    // Ném NullPointerException.
-Objects.requireNonNullElseGet(null, () -> null); // Ném NullPointerException.
+Objects.requireNonNullElse("ready", null); // Returns "ready".
+Objects.requireNonNullElse(null, null);    // Throws NullPointerException.
 ```
 
-Các dòng trên là **những biểu thức minh họa độc lập**; một số lời gọi chỉ có literal `null` cần gán kiểu tường minh trong chương trình thực tế để tránh lỗi suy luận kiểu hoặc overload. Phần dưới dùng cast rõ ràng và bắt ngoại lệ.
+Similarly:
 
-### 5.1. Chương trình thử các trường hợp null
+```java
+Objects.requireNonNullElseGet("ready", null); // Returns "ready".
+Objects.requireNonNullElseGet(null, null);    // Throws NullPointerException.
+Objects.requireNonNullElseGet(null, () -> null); // Throws NullPointerException.
+```
 
-Tạo file **`NullFallbackDemo.java`**:
+The lines above are **standalone illustrative expressions**; some calls with only `null` literals need explicit typing in real programs to avoid type inference or overload errors. The section below uses explicit casts and catches exceptions.
+
+### 5.1. Program testing null cases
+
+Create the file **`NullFallbackDemo.java`**:
 
 ```java
 import java.util.Objects;
@@ -209,7 +209,7 @@ public class NullFallbackDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac NullFallbackDemo.java
@@ -226,39 +226,39 @@ needed null supplier: NPE
 supplier returned null: NPE
 ```
 
-**Phân tích:** khi `"ready"` tồn tại, không cần fallback, nên cả `null` fallback lẫn `null` supplier không gây lỗi. Khi tham số chính không có, cả hai API không chấp nhận trả `null`; supplier cũng phải hiện diện và tạo ra kết quả không null.
+**Analysis:** when `"ready"` exists, no fallback is needed, so neither a `null` fallback nor a `null` supplier causes an error. When the primary argument is missing, neither API permits returning `null`; the supplier must also be present and produce a non-null result.
 
-Trên JDK hiện đại, `NullPointerException` có thể kèm thông báo chi tiết, nhưng không nên viết logic dựa trên nội dung message hoặc giả định thông điệp lỗi giống nhau ở mọi runtime. Kiểu ngoại lệ quan trọng hơn message.
+On modern JDKs, `NullPointerException` may include a detailed message, but you should not write logic depending on message contents or assume identical error messages across every runtime. The exception type matters more than the message.
 
-**Khác với toán tử `?:` hoặc `if`:** hai API vừa chọn fallback vừa **khẳng định non-null**. Nếu ứng dụng muốn kết quả có thể tiếp tục null, hãy dùng nhánh điều kiện hoặc API có hợp đồng chấp nhận null, thay vì cố tình trả null qua `requireNonNullElseGet()`.
+**Difference from `?:` or `if`:** both APIs select a fallback and **assert non-null**. If the application wants the result to remain allowed to be null, use a conditional branch or an API whose contract accepts null, instead of trying to return null via `requireNonNullElseGet()`.
 
-## 6. Khi fallback có ngoại lệ hoặc tác dụng phụ
+## 6. When the fallback has exceptions or side effects
 
-Giả sử `loadDefaultFromNetwork()` gọi mạng, đọc file cấu hình hoặc lấy dữ liệu trong cache. Khi đó hành vi chọn phương thức ảnh hưởng trực tiếp đến chi phí và tính đúng đắn:
+Suppose `loadDefaultFromNetwork()` makes a network call, reads a config file, or fetches data from cache. Then the choice of method directly affects cost and correctness:
 
-| Tình huống | `requireNonNullElse(value, load())` | `requireNonNullElseGet(value, () -> load())` |
+| Scenario | `requireNonNullElse(value, load())` | `requireNonNullElseGet(value, () -> load())` |
 | --- | --- | --- |
-| `value` khác null, `load()` tốn thời gian | **Vẫn chạy** trước lời gọi | **Không chạy** phần thân supplier |
-| `value` khác null, `load()` ném runtime exception | Lời gọi thất bại trước khi vào `Objects` | Không phát sinh ngoại lệ từ `load()` |
-| `value` bằng null, `load()` trả hợp lệ | Dùng kết quả đã tính | Gọi `get()` rồi dùng kết quả |
-| `value` bằng null, `load()` ném exception | Ngoại lệ từ `load()` lan ra | Ngoại lệ từ `get()` lan ra |
-| `value` bằng null, `load()` trả null | `Objects` ném `NullPointerException` | `Objects` ném `NullPointerException` sau `get()` |
-| `value` bằng null trong nhiều lời gọi | Mỗi biểu thức đối số có thể được tính lại | Mỗi lần gọi có thể gọi lại `get()` |
+| `value` is non-null, `load()` is slow | **Still runs** before the call | **Does not run** the supplier body |
+| `value` is non-null, `load()` throws a runtime exception | The call fails before entering `Objects` | No exception arises from `load()` |
+| `value` is null, `load()` returns validly | Uses the already computed result | Calls `get()` and uses the result |
+| `value` is null, `load()` throws an exception | Exception from `load()` propagates | Exception from `get()` propagates |
+| `value` is null, `load()` returns null | `Objects` throws `NullPointerException` | `Objects` throws `NullPointerException` after `get()` |
+| `value` is null across multiple calls | Each argument expression may be evaluated again | Each call may invoke `get()` again |
 
-`Supplier.get()` không tự xử lý retry, không nuốt exception và không áp đặt chính sách timeout. Nếu fallback là I/O, nên quyết định rõ hành vi khi dịch vụ không sẵn sàng. `Supplier.get()` cũng không khai báo checked exception, nên thao tác có checked exception cần được bắt, đóng gói hoặc thiết kế API khác một cách minh bạch.
+`Supplier.get()` does not handle retries automatically, does not swallow exceptions, and does not enforce timeout policies. If the fallback involves I/O, decide clearly how to behave when the service is unavailable. `Supplier.get()` also declares no checked exceptions, so operations throwing checked exceptions must be caught, wrapped, or designed under a different API transparently.
 
-Lưu ý tinh tế: biểu thức **tạo supplier** vẫn được đánh giá dù giá trị chính không null:
+Subtle note: the expression **creating the supplier** is still evaluated even if the primary value is non-null:
 
 ```java
 Supplier<String> supplier = createSupplier();
 String result = Objects.requireNonNullElseGet(value, supplier);
 ```
 
-Nếu `createSupplier()` tốn chi phí hoặc có tác dụng phụ, nó đã chạy **trước** `requireNonNullElseGet()`. Kỹ thuật lazy ở đây chỉ trì hoãn **lời gọi `get()`**, không có phép màu trì hoãn mọi biểu thức dùng làm đối số.
+If `createSupplier()` is expensive or has side effects, it already ran **before** `requireNonNullElseGet()`. The laziness here only defers **calling `get()`**, with no magic that defers every expression used as an argument.
 
-## 7. `requireNonNullElseGet()` không tự cache và không tự thread-safe
+## 7. `requireNonNullElseGet()` does not auto-cache and is not auto-thread-safe
 
-Ví dụ:
+Example:
 
 ```java
 String first = Objects.requireNonNullElseGet(
@@ -267,39 +267,39 @@ String second = Objects.requireNonNullElseGet(
         null, () -> new String("fallback"));
 ```
 
-Mỗi lời gọi có thể tạo đối tượng mới vì supplier được gọi ở **mỗi lời gọi cần fallback**. Hai kết quả có thể bằng nhau theo `equals()` nhưng không phải cùng tham chiếu. Đoạn này chỉ minh họa hành vi API, không phải kỹ thuật tạo `String` nên dùng: thông thường có thể trả literal `"fallback"`.
+Each call can create a new object because the supplier is invoked on **every call needing a fallback**. Two results may be equal by `equals()` yet not be the same reference. This snippet only illustrates API behavior, not a `String` creation technique to use: normally you can return the literal `"fallback"`.
 
-Nếu nhiều luồng gọi trên dữ liệu null:
+If multiple threads call this on null data:
 
-- Mỗi luồng có thể gọi supplier của nó; `Objects` **không bảo đảm chỉ một lần khởi tạo trên toàn ứng dụng**.
-- Mọi shared state mà supplier đọc/ghi cần cơ chế đồng bộ phù hợp. Bản thân lambda hoặc method reference không làm thao tác bên trong thread-safe.
-- Nếu dữ liệu tạo mặc định phải được chia sẻ hoặc cache một lần, cần thiết kế thành phần cache/khởi tạo riêng (`synchronized`, cơ chế lazy holder, hoặc cấu trúc phù hợp), rồi supplier lấy dữ liệu từ thành phần đó.
-- Không được kỳ vọng lời gọi `Objects.requireNonNullElseGet()` giải quyết race giữa một giá trị đang thay đổi và việc truy cập nó: tại thời điểm gọi, Java chỉ nhận **giá trị của biểu thức đối số**. Đồng bộ trạng thái nguồn vẫn là trách nhiệm của ứng dụng.
+- Each thread can invoke its supplier; `Objects` **does not guarantee single-time initialization across the entire application**.
+- Any shared state read/written by the supplier requires an appropriate synchronization mechanism. A lambda or method reference itself does not make internal operations thread-safe.
+- If default-created data must be shared or cached once, design a separate caching/initialization component (`synchronized`, lazy holder pattern, or suitable structure), and have the supplier fetch data from that component.
+- Do not expect `Objects.requireNonNullElseGet()` to resolve a race between a mutating value and reading it: at call time, Java simply receives **the value of the argument expression**. Synchronizing source state remains the application's responsibility.
 
-Khi lambda bắt biến cục bộ bên ngoài, những biến đó phải `final` hoặc **effectively final** theo quy tắc Java. Với trường đối tượng có thể thay đổi, cần tiếp tục xem xét thread safety và thời điểm quan sát trạng thái.
+When a lambda captures outer local variables, those variables must be `final` or **effectively final** per Java rules. For mutable object fields, continue considering thread safety and state observation timing.
 
-## 8. Quan hệ với `Objects.requireNonNull()` và `Optional`
+## 8. Relationship with `Objects.requireNonNull()` and `Optional`
 
-Ba phương thức của `Objects` phục vụ ý định khác nhau:
+The three `Objects` methods serve different intents:
 
-| API | Ý định |
+| API | Intent |
 | --- | --- |
-| `Objects.requireNonNull(value)` | **Bắt buộc chính `value` tồn tại**, nếu null thì ném `NullPointerException` |
-| `Objects.requireNonNullElse(value, fallback)` | Cho phép giá trị chính null, dùng fallback **đã được đánh giá**, kết quả cuối khác null |
-| `Objects.requireNonNullElseGet(value, supplier)` | Cho phép giá trị chính null, tạo fallback **khi cần**, kết quả cuối khác null |
+| `Objects.requireNonNull(value)` | **Requires `value` itself to exist**; if null, throws `NullPointerException` |
+| `Objects.requireNonNullElse(value, fallback)` | Allows primary value to be null, uses **already evaluated** fallback, final result non-null |
+| `Objects.requireNonNullElseGet(value, supplier)` | Allows primary value to be null, creates fallback **when needed**, final result non-null |
 
-`Optional.ofNullable(value).orElse(fallback)` và `.orElseGet(supplier)` có nét tương đồng về **eager/lazy**, nhưng không hoàn toàn thay thế:
+`Optional.ofNullable(value).orElse(fallback)` and `.orElseGet(supplier)` have similarities regarding **eager/lazy**, yet are not exact drop-in replacements:
 
-- `Optional.orElse(...)` trả giá trị đã truyền và `Optional.orElseGet(...)` trả kết quả supplier khi optional rỗng; chúng **có thể trả null** nếu fallback là null.
-- Hai phương thức `Objects.requireNonNullElse*()` **không cho phép kết quả cuối là null**.
-- `Optional` phù hợp khi API đã mô hình hóa sự có/vắng mặt bằng `Optional<T>` hoặc cần các phép biến đổi khác; `Objects` gọn hơn nếu chỉ chọn giá trị thay thế cho một tham chiếu có thể null.
-- `Optional.ofNullable(value).orElseGet(supplier)` cũng không tự cache; nó chỉ gọi supplier khi giá trị rỗng.
+- `Optional.orElse(...)` returns the passed value and `Optional.orElseGet(...)` returns the supplier's result when the optional is empty; they **can return null** if the fallback is null.
+- The two `Objects.requireNonNullElse*()` methods **do not allow the final result to be null**.
+- `Optional` fits when an API already models presence/absence with `Optional<T>` or needs other transformations; `Objects` is leaner when only picking a replacement value for a nullable reference.
+- `Optional.ofNullable(value).orElseGet(supplier)` also does not auto-cache; it simply calls the supplier when the value is empty.
 
-Không dùng `Objects.requireNonNullElse(value, fallback)` để biến **chuỗi rỗng**, chuỗi chỉ có khoảng trắng, danh sách rỗng hoặc số 0 thành giá trị mặc định. Những giá trị ấy **khác `null`**, nên được giữ nguyên. Nếu nghiệp vụ muốn xử lý chuỗi trống hoặc blank, cần viết điều kiện riêng.
+Do not use `Objects.requireNonNullElse(value, fallback)` to convert **empty strings**, whitespace-only strings, empty lists, or 0 into default values. Those values are **non-`null`**, so they are kept as-is. If business rules want to handle empty or blank strings, write a separate condition.
 
-## 9. Generic type và ví dụ thực tế với collection
+## 9. Generic types and practical collection example
 
-Hai phương thức đều generic theo `<T>`. `requireNonNullElseGet()` nhận `Supplier<? extends T>`, cho phép supplier tạo kiểu con của kiểu kết quả mong muốn:
+Both methods are generic over `<T>`. `requireNonNullElseGet()` takes `Supplier<? extends T>`, allowing the supplier to produce a subtype of the desired result type:
 
 ```java
 import java.util.ArrayList;
@@ -313,41 +313,41 @@ List<String> items = Objects.requireNonNullElseGet(
 items.add("Java");
 ```
 
-Đây là **mảnh code minh họa**, không phải file Java độc lập vì các câu lệnh nằm ngoài phương thức. Khi `existing` null, method reference `ArrayList::new` tạo `ArrayList<String>` phù hợp `List<String>`. Nếu `existing` không null, nó được trả lại nguyên tham chiếu.
+This is an **illustrative code snippet**, not a standalone Java file since statements appear outside a method. When `existing` is null, the method reference `ArrayList::new` creates an `ArrayList<String>` compatible with `List<String>`. If `existing` is non-null, its reference is returned intact.
 
-Tuy nhiên, việc trả một `ArrayList` mutable không phải quyết định mặc định an toàn cho mọi API. Nếu caller không được phép sửa collection, dùng fallback bất biến như `List::of` (khi kiểu phù hợp), đồng thời tài liệu hóa rõ tính mutable/immutable của giá trị trả về. Nếu `existing` có thể là list mutable nhưng fallback immutable, API có thể có **hai chế độ mutability khác nhau** tùy null; cần cân nhắc hợp đồng thiết kế.
+However, returning a mutable `ArrayList` is not a safe default decision for every API. If callers are not allowed to modify the collection, use an immutable fallback such as `List::of` (when the type fits), while clearly documenting the mutability/immutability of the returned value. If `existing` may be a mutable list while the fallback is immutable, the API could have **two different mutability modes** depending on null; consider the design contract carefully.
 
-Ví dụ dùng một singleton fallback có sẵn:
+Example using an existing singleton fallback:
 
 ```java
 List<String> safeItems = Objects.requireNonNullElse(
         existing, List.of());
 ```
 
-`List.of()` trả collection bất biến; mặc dù biểu thức đối số vẫn được đánh giá trước lời gọi, Java có thể dùng instance chia sẻ cho danh sách rỗng. Tính eager/lazy nói về **thời điểm đánh giá biểu thức**, không khẳng định nhất thiết có cấp phát bộ nhớ mỗi lần gọi.
+`List.of()` returns an immutable collection; although the argument expression is still evaluated before the call, Java may use a shared instance for an empty list. Eager/lazy describes **when an expression is evaluated**, not a claim that memory is necessarily allocated on every call.
 
-## 10. Những lỗi thường gặp
+## 10. Common mistakes
 
-1. **Dùng `requireNonNullElse(value, expensive())` rồi tưởng `expensive()` chỉ chạy khi null.** Mọi đối số của lời gọi Java được đánh giá trước; dùng supplier nếu cần trì hoãn phần tính.
-2. **Tin rằng `requireNonNullElseGet()` tự đảm bảo phép tính mặc định chỉ chạy một lần.** Nó có thể gọi `get()` ở từng lần gọi, kể cả song song giữa các luồng.
-3. **Cho supplier trả `null` vì tưởng API giữ nguyên null.** Khi fallback cần dùng, kết quả null bị từ chối bằng `NullPointerException`.
-4. **Cho rằng supplier null luôn gây lỗi ngay.** Nếu giá trị chính không null, supplier không được sử dụng và có thể là null mà vẫn trả chính giá trị ấy.
-5. **Bỏ qua tác dụng phụ của việc tạo supplier.** Thân `get()` được trì hoãn; biểu thức tạo supplier vẫn đánh giá theo quy tắc Java.
-6. **Giả định lambda đồng nghĩa thread-safe.** Nội dung supplier có thể đọc/ghi trạng thái chia sẻ và vẫn cần đồng bộ.
-7. **Dùng để chuẩn hóa chuỗi rỗng hoặc collection rỗng.** Hai API chỉ kiểm tra `null`, không kiểm tra trạng thái rỗng.
-8. **Dùng fallback mutable mà không nói rõ.** Kết quả có thể là chính đối tượng cũ hoặc một đối tượng mutable mới; API không sao chép và không tự bảo vệ dữ liệu.
-9. **Che giấu lỗi nghiệp vụ bằng default vô điều kiện.** Nếu dữ liệu bắt buộc phải có, `Objects.requireNonNull(value)` có thể đúng hơn việc âm thầm dùng fallback.
-10. **Đổi từ eager sang lazy mà quên thay đổi hành vi ngoại lệ.** Nếu fallback trước đây luôn chạy và ném lỗi ngay cả khi không dùng, `requireNonNullElseGet()` sẽ bỏ qua lỗi đó khi `obj` khác null; đây là thay đổi hành vi cần chủ động đánh giá.
+1. **Using `requireNonNullElse(value, expensive())` and assuming `expensive()` only runs when null.** Every argument in a Java call is evaluated beforehand; use a supplier if computation needs to be deferred.
+2. **Believing `requireNonNullElseGet()` ensures the default computation runs only once.** It can invoke `get()` on every call, including concurrently across threads.
+3. **Letting the supplier return `null` assuming the API preserves null.** When the fallback is needed, a null result is rejected with `NullPointerException`.
+4. **Assuming a null supplier always fails immediately.** If the primary value is non-null, the supplier is unused and may be null while still returning that primary value.
+5. **Ignoring side effects of creating the supplier.** The `get()` body is deferred; the expression creating the supplier is still evaluated under Java rules.
+6. **Assuming a lambda implies thread-safe.** The supplier's body can read/write shared state and still requires synchronization.
+7. **Using these to normalize empty strings or empty collections.** Both APIs only check for `null`, not emptiness.
+8. **Using a mutable fallback without stating it clearly.** The result may be the old object itself or a new mutable object; the API neither copies nor protects data automatically.
+9. **Hiding business errors with unconditional defaults.** If data is mandatory, `Objects.requireNonNull(value)` may be more accurate than silently using a fallback.
+10. **Switching from eager to lazy while forgetting exception behavior changes.** If the fallback previously always ran and threw errors even when unused, `requireNonNullElseGet()` skips that error when `obj` is non-`null`; this is a behavioral change that must be evaluated deliberately.
 
-## 11. Checklist lựa chọn nhanh
+## 11. Quick selection checklist
 
-- [ ] Có chấp nhận `value == null` không? Nếu không, dùng `requireNonNull(value)`.
-- [ ] Nếu chấp nhận, fallback có được đảm bảo **khác `null`** không? Nếu không, hai `requireNonNullElse*()` không phù hợp.
-- [ ] Fallback đã tồn tại hoặc tính rất rẻ? Ưu tiên `requireNonNullElse(value, fallback)`.
-- [ ] Fallback tốn I/O, tính toán, cấp phát hoặc có tác dụng phụ? Ưu tiên `requireNonNullElseGet(value, () -> computeFallback())`.
-- [ ] Supplier có thể ném exception, dùng shared state hoặc trả mutable object? Xác định chính sách và bảo đảm đồng bộ nếu cần.
-- [ ] Có cần kết quả được cache/dùng chung hay không? Thiết kế cơ chế riêng, vì `Objects` không cache.
-- [ ] Có kiểm thử các trường hợp `value != null`, `value == null`, fallback null, supplier null và supplier trả null?
-- [ ] Có đang nhầm `null` với chuỗi rỗng/danh sách rỗng hoặc đang muốn một phép chuẩn hóa khác không?
+- [ ] Is `value == null` acceptable? If not, use `requireNonNull(value)`.
+- [ ] If acceptable, is the fallback guaranteed **non-`null`**? If not, the two `requireNonNullElse*()` methods are unsuitable.
+- [ ] Does the fallback already exist or cost very little to compute? Prefer `requireNonNullElse(value, fallback)`.
+- [ ] Does the fallback involve I/O, computation, allocation, or side effects? Prefer `requireNonNullElseGet(value, () -> computeFallback())`.
+- [ ] Can the supplier throw exceptions, access shared state, or return a mutable object? Define the policy and ensure synchronization if needed.
+- [ ] Does the result need to be cached/shared? Design a dedicated mechanism, because `Objects` does not cache.
+- [ ] Have you tested `value != null`, `value == null`, null fallback, null supplier, and supplier returning null?
+- [ ] Are you confusing `null` with empty strings/empty lists or actually wanting a different normalization rule?
 
-**Ghi nhớ:** `Objects.requireNonNullElse(value, fallback)` dùng một **giá trị dự phòng đã được đánh giá**; `Objects.requireNonNullElseGet(value, supplier)` chỉ **gọi supplier khi `value == null`**. Cả hai bảo đảm **kết quả trả về không null** hoặc ném `NullPointerException` khi không thể tạo kết quả hợp lệ. Chọn phương thức dựa vào chi phí, tác dụng phụ và hợp đồng của fallback.
+**Key takeaway:** `Objects.requireNonNullElse(value, fallback)` uses an **already-evaluated fallback value**; `Objects.requireNonNullElseGet(value, supplier)` **invokes the supplier only when `value == null`**. Both guarantee a **non-null return value** or throw `NullPointerException` when a valid result cannot be produced. Choose the method based on the cost, side effects, and contract of the fallback.

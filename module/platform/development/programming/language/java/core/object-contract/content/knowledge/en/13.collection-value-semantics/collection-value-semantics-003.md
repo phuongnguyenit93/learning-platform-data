@@ -1,61 +1,61 @@
-# Map.equals() xét cùng các ánh xạ khóa, giá trị
+# Map.equals() Compares the Same Key–Value Mappings
 
-## 1. Khi nào hai Map được coi là bằng nhau?
+## 1. When Are Two Maps Considered Equal?
 
-Trong Java, `Map<K, V>` biểu diễn tập hợp các **ánh xạ từ khóa tới giá trị** (key–value mappings). Hai `Map` được xem là bằng nhau khi chúng chứa **cùng những ánh xạ khóa–giá trị**, dù có thể được tạo từ các lớp triển khai khác nhau hoặc thêm dữ liệu theo thứ tự khác nhau.
+In Java, `Map<K, V>` represents a collection of **key–value mappings**. Two `Map` instances are considered equal when they contain **the same key–value mappings**, even if they were created from different implementation classes or populated in different orders.
 
-Có thể diễn đạt hợp đồng của `Map.equals(Object)` theo quy tắc:
+The `Map.equals(Object)` contract can be stated by these rules:
 
 ```text
-m1.equals(m2) là true nếu:
-  1. m2 cũng là một Map;
-  2. m1 và m2 có cùng số lượng ánh xạ;
-  3. với mỗi khóa trong m1, m2 chứa khóa tương đương
-     và giá trị gắn với khóa đó cũng tương đương.
+m1.equals(m2) is true if:
+  1. m2 is also a Map;
+  2. m1 and m2 have the same number of mappings;
+  3. for every key in m1, m2 contains an equivalent key
+     and the value associated with that key is also equivalent.
 ```
 
-Theo đặc tả `Map`, cách định nghĩa chính thức liên hệ với tập các entry: hai map có `entrySet()` bằng nhau thì hai map bằng nhau. Một **entry** là cặp khóa–giá trị.
+According to the `Map` specification, the formal definition relates to the set of entries: two maps are equal if their `entrySet()` views are equal. An **entry** is a key–value pair.
 
-Ví dụ, hai map cùng chứa `"A" -> 10` và `"B" -> 20` là bằng nhau. Nếu một map đổi `"B" -> 21`, chúng không còn bằng nhau. Nếu có giá trị 20 nhưng gắn với một khóa khác, chúng cũng không bằng nhau.
+For example, two maps both containing `"A" -> 10` and `"B" -> 20` are equal. If one map changes `"B" -> 21`, they are no longer equal. If the value 20 is present but associated with a different key, they are also not equal.
 
-**Mấu chốt:** `Map.equals()` so sánh **nội dung ánh xạ**, không so sánh hai tham chiếu có trỏ tới cùng một object hay không, không chỉ so danh sách khóa và cũng không chỉ so danh sách giá trị.
+**Key point:** `Map.equals()` compares **mapping contents**, not whether two references point to the same object, not just the list of keys, and not just the list of values.
 
-## 2. Phân biệt ba tình huống thường bị nhầm
+## 2. Distinguishing Three Commonly Confused Cases
 
-| Tình huống | `Map.equals()` | Giải thích |
+| Case | `Map.equals()` | Explanation |
 | --- | --- | --- |
-| Cùng các khóa và cùng giá trị tương ứng, thứ tự thêm khác | `true` | Thứ tự thêm không thuộc tiêu chí equality của `Map` |
-| Cùng tập khóa nhưng một giá trị khác | `false` | Đã khác một ánh xạ khóa → giá trị |
-| Cùng tập giá trị nhưng giá trị gắn với khóa khác | `false` | Quan hệ ánh xạ khác nhau |
-| Cùng cặp ánh xạ nhưng `HashMap` và `LinkedHashMap` | `true` | Khác implementation không làm đổi equality, nếu tuân thủ hợp đồng `Map` |
-| Một map có thêm một entry | `false` | Số lượng ánh xạ khác |
-| Hai biến tham chiếu tới cùng một map | `true` | Cùng object thì luôn bằng chính nó nếu hợp đồng `equals` được tuân thủ |
+| Same keys and same corresponding values, different insertion order | `true` | Insertion order is not part of `Map` equality criteria |
+| Same set of keys but one value differs | `false` | A key → value mapping differs |
+| Same set of values but values are bound to different keys | `false` | The mapping relationships differ |
+| Same mapping pairs, but `HashMap` and `LinkedHashMap` | `true` | Different implementations do not change equality, provided they obey the `Map` contract |
+| One map has an extra entry | `false` | Number of mappings differs |
+| Two variables referencing the same map | `true` | An object is always equal to itself if the `equals` contract is followed |
 
-Các collection có thứ tự như `LinkedHashMap` có thể giữ thứ tự chèn khi duyệt, và `TreeMap` có thể duyệt theo thứ tự khóa. Nhưng **thứ tự duyệt không phải thành phần trực tiếp của hợp đồng `Map.equals()`**. Đừng dùng `map.toString()` hoặc kết quả duyệt entry làm tiêu chí equality của map.
+Ordered collections such as `LinkedHashMap` can preserve insertion order when iterating, and `TreeMap` can iterate in key order. However, **iteration order is not a direct component of the `Map.equals()` contract**. Do not use `map.toString()` or entry iteration output as the criterion for map equality.
 
-## 3. Map.equals() phối hợp equals() của khóa và giá trị ra sao?
+## 3. How `Map.equals()` Coordinates with Key and Value `equals()`
 
-Một cách hiểu hữu ích: một ánh xạ `(key, value)` được coi là tương đương với `(otherKey, otherValue)` khi:
+A helpful way to view it: a mapping `(key, value)` is considered equivalent to `(otherKey, otherValue)` when:
 
 ```java
 Objects.equals(key, otherKey)
         && Objects.equals(value, otherValue)
 ```
 
-Đây là **đoạn biểu thức minh họa**, không phải chương trình độc lập; cần `import java.util.Objects;`. `Objects.equals(a, b)` xử lý được `null`: cả hai cùng `null` thì bằng nhau; nếu chỉ một đối tượng `null`, kết quả là `false`; còn lại dùng `a.equals(b)`.
+This is an **illustrative expression snippet**, not a standalone program; it requires `import java.util.Objects;`. `Objects.equals(a, b)` handles `null`: if both are `null`, they are equal; if only one object is `null`, the result is `false`; otherwise, it uses `a.equals(b)`.
 
-Khi khóa hoặc giá trị là kiểu do bạn tạo:
+When keys or values are custom types you define:
 
-- Hai đối tượng khóa **khác instance** vẫn có thể đại diện cho cùng khóa logic nếu `equals(Object)` xác định chúng bằng nhau.
-- Hai đối tượng giá trị **khác instance** vẫn có thể tương đương nếu `equals(Object)` của kiểu giá trị trả `true`.
-- Nếu hai map có cùng khóa nhưng giá trị không bằng nhau, toàn bộ hai map không bằng nhau.
-- `equals(Object)` và `hashCode()` của các kiểu dùng làm khóa phải tuân thủ hợp đồng Java; nếu không, map dựa trên băm có thể hoạt động sai kỳ vọng.
+- Two key objects that are **different instances** can still represent the same logical key if `equals(Object)` determines they are equal.
+- Two value objects that are **different instances** can still be equivalent if the value type's `equals(Object)` returns `true`.
+- If two maps share the same keys but their values are not equal, the two maps as a whole are not equal.
+- The `equals(Object)` and `hashCode()` methods of types used as keys must obey the Java contract; otherwise, hash-based maps may behave unexpectedly.
 
-Lưu ý: hai cặp có **cùng giá trị nhưng khác khóa** không trở thành cùng ánh xạ. Map biểu diễn quan hệ “khóa này gắn với giá trị nào”, không phải một tập giá trị độc lập.
+Note: two pairs with the **same value but different keys** do not become the same mapping. A map represents the relationship "which value is bound to this key", not an independent set of values.
 
-## 4. Ví dụ Java 17+: cùng nội dung dù khác implementation và thứ tự
+## 4. Java 17+ Example: Same Content Despite Different Implementations and Order
 
-Tạo tệp `MapEqualityDemo.java`:
+Create the file `MapEqualityDemo.java`:
 
 ```java
 import java.util.HashMap;
@@ -98,14 +98,14 @@ public class MapEqualityDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac MapEqualityDemo.java
 java MapEqualityDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 true
@@ -119,21 +119,21 @@ true
 false
 ```
 
-Giải thích:
+Explanation:
 
-1. `first`, `second` và `third` đều có `A -> 10`, `B -> 20`. Dù lớp triển khai và thứ tự thêm khác nhau, `equals` vẫn trả `true` giữa chúng.
-2. Hai map bằng nhau phải có cùng `hashCode()`. Vì vậy phép so sánh mã băm trả `true`. Chiều ngược lại không đúng: cùng hash chưa chứng minh hai map bằng nhau.
-3. Đổi `B` từ 20 thành 21 làm một entry khác đi, nên `first.equals(second)` thành `false`.
-4. Khôi phục giá trị `B` rồi xóa entry `A` khiến map còn một entry; kích thước khác nhau nên vẫn `false`.
-5. `withNull.get("missing") == null` là `true`, nhưng `containsKey("missing")` cũng là `true`: map có entry `"missing" -> null`. Map rỗng `Map.of()` không bằng map chứa một entry này.
+1. `first`, `second`, and `third` all have `A -> 10`, `B -> 20`. Despite different implementation classes and insertion orders, `equals` returns `true` between them.
+2. Two equal maps must have the same `hashCode()`. Therefore, the hash code comparison returns `true`. The converse is not true: having the same hash does not prove two maps are equal.
+3. Changing `B` from 20 to 21 alters one entry, so `first.equals(second)` becomes `false`.
+4. Restoring `B`'s value and removing entry `A` leaves the map with one entry; the sizes differ, so it remains `false`.
+5. `withNull.get("missing") == null` is `true`, yet `containsKey("missing")` is also `true`: the map has the entry `"missing" -> null`. The empty map `Map.of()` does not equal this map containing one entry.
 
-Ví dụ dùng `HashMap`, `LinkedHashMap`, `TreeMap` với khóa `String` theo thứ tự tự nhiên. Một `TreeMap` dùng comparator **không nhất quán với `equals` của khóa** có thể phá các kỳ vọng equality khi so sánh chéo các implementation; xem phần lưu ý phía dưới.
+The example uses `HashMap`, `LinkedHashMap`, and `TreeMap` with `String` keys in natural order. A `TreeMap` using a comparator that is **inconsistent with key `equals`** can break equality expectations when comparing across implementations; see the caveats section below.
 
-## 5. Nếu khóa và giá trị đều là đối tượng tự định nghĩa
+## 5. When Both Keys and Values Are Custom Objects
 
-Java record có thể biểu diễn một kiểu giá trị bất biến đơn giản và tự cung cấp `equals(Object)` cùng `hashCode()` theo các thành phần record.
+A Java record can represent a simple immutable value type and automatically provide `equals(Object)` and `hashCode()` based on its record components.
 
-Tạo tệp `MapObjectValueDemo.java`:
+Create the file `MapObjectValueDemo.java`:
 
 ```java
 import java.util.HashMap;
@@ -172,7 +172,7 @@ public class MapObjectValueDemo {
 }
 ```
 
-Chạy trên JDK 17+:
+Run on JDK 17+:
 
 ```bash
 javac MapObjectValueDemo.java
@@ -190,26 +190,26 @@ false
 false
 ```
 
-`keyOne` và `keyTwo` là hai object khác tham chiếu (dòng đầu `false`) nhưng cùng `code`, nên bình đẳng theo giá trị (`true`). `priceOne` và `priceTwo` tương tự. Vì hai map chứa cùng ánh xạ logic `P-001 -> (120, VND)`, `left.equals(right)` là `true`.
+`keyOne` and `keyTwo` are two distinct object references (first line `false`) with the same `code`, so they are equal by value (`true`). `priceOne` and `priceTwo` behave the same way. Because both maps contain the same logical mapping `P-001 -> (120, VND)`, `left.equals(right)` is `true`.
 
-Đổi giá trị tương ứng thành 130 khiến hai map khác nhau. Tiếp theo, dù lại dùng giá trị `priceOne`, thay khóa bằng `P-002` vẫn làm hai map khác nhau. Qua đó thấy rõ điều kiện equality gồm **cả khóa và giá trị gắn với khóa đó**.
+Changing the corresponding value to 130 makes the two maps unequal. Next, even though the value `priceOne` is used again, replacing the key with `P-002` still makes the two maps unequal. This clearly shows that equality requires **both the key and the value associated with that key**.
 
-Record không tự biến các thành phần mutable được chứa bên trong thành bất biến sâu. Ví dụ `record DataKey(List<String> parts) {}` vẫn giữ tham chiếu tới danh sách có thể thay đổi. Khi dùng record làm khóa, cần bảo đảm trạng thái tham gia `equals/hashCode` ổn định khi đang nằm trong map.
+A record does not automatically make mutable components stored inside it deeply immutable. For example, `record DataKey(List<String> parts) {}` still holds a reference to a mutable list. When using a record as a key, ensure that state participating in `equals/hashCode` remains stable while stored in the map.
 
-## 6. Map.hashCode() cũng dựa trên các entry
+## 6. `Map.hashCode()` Is Also Based on Entries
 
-Theo hợp đồng `Map.hashCode()`, mã băm của map bằng **tổng các mã băm của entry** trong `entrySet()`. Mã băm của một `Map.Entry` theo hợp đồng là:
+According to the `Map.hashCode()` contract, the hash code of a map equals the **sum of the hash codes of the entries** in `entrySet()`. The hash code of a `Map.Entry` by contract is:
 
 ```text
 entryHash = hashCode(key) XOR hashCode(value)
-            (null được tính là 0)
+            (null is treated as 0)
 
-mapHash = tổng entryHash của tất cả entry
+mapHash = sum of entryHash for all entries
 ```
 
-Điều này giải thích vì sao hai map bằng nhau phải có cùng hash **mà không phụ thuộc thứ tự duyệt entry**: phép cộng không phụ thuộc thứ tự. Tuy vậy, hai map khác nhau vẫn có thể trùng hash do collision; tuyệt đối không dùng `map1.hashCode() == map2.hashCode()` thay cho `map1.equals(map2)`.
+This explains why two equal maps must have the same hash **regardless of entry iteration order**: addition is order-independent. Nevertheless, two unequal maps can still have matching hashes due to collisions; never use `map1.hashCode() == map2.hashCode()` as a substitute for `map1.equals(map2)`.
 
-Có thể kiểm chứng hợp đồng trên một map đơn giản:
+You can verify this contract on a simple map:
 
 ```java
 Map<String, Integer> m = Map.of("A", 10, "B", 20);
@@ -219,80 +219,80 @@ int sumOfEntries = m.entrySet().stream()
 boolean sameHash = m.hashCode() == sumOfEntries;
 ```
 
-Đây là **đoạn mã minh họa**, cần `import java.util.Map;`. `sameHash` phải là `true` với một implementation tuân thủ hợp đồng `Map`.
+This is an **illustrative code snippet**, requiring `import java.util.Map;`. `sameHash` must be `true` for an implementation that complies with the `Map` contract.
 
-Mã băm của một map không phải ID duy nhất, chữ ký số hay giá trị bền vững để lưu vào hệ thống khác. Nếu khóa hoặc giá trị mutable thay đổi những trường tham gia equality, mã băm map cũng có thể thay đổi.
+A map's hash code is not a unique ID, digital signature, or durable value to persist in another system. If mutable keys or values change fields participating in equality, the map's hash code can also change.
 
-## 7. Null, map rỗng và sự khác biệt giữa “không có khóa” và “có khóa ánh xạ tới null”
+## 7. Null, Empty Maps, and the Difference Between "Missing Key" and "Key Mapped to Null"
 
-Ba map sau không bằng nhau:
+The following three maps are not equal:
 
 ```text
-{}                   (không có entry)
-{"x" -> null}        (một entry có value null)
-{null -> "x"}        (một entry có key null)
+{}                   (no entries)
+{"x" -> null}        (one entry with a null value)
+{null -> "x"}        (one entry with a null key)
 ```
 
-`HashMap` cho phép tối đa một khóa `null` và có thể có nhiều khóa khác nhau mang giá trị `null`. `Map.of(...)` và `Map.ofEntries(...)` không cho phép khóa hay giá trị `null`; nhiều implementation khác cũng có chính sách riêng.
+`HashMap` allows at most one `null` key and can have multiple distinct keys carrying a `null` value. `Map.of(...)` and `Map.ofEntries(...)` do not allow `null` keys or values; many other implementations also have their own policies.
 
-- `get(key) == null` **không phân biệt** một khóa không tồn tại và một khóa đang ánh xạ đến `null`.
-- `containsKey(key)` trả lời khóa có tồn tại hay không.
-- Hai map chỉ bằng nhau khi tình trạng **tồn tại khóa** và **giá trị đi kèm** tương ứng. Một entry `"x" -> null` phải được so với entry có cùng khóa và cũng có giá trị `null`.
+- `get(key) == null` **does not distinguish** between a non-existent key and a key mapped to `null`.
+- `containsKey(key)` answers whether the key exists.
+- Two maps are equal only when both **key presence** and the **associated value** match. An entry `"x" -> null` must be matched against an entry with the same key that also has the value `null`.
 
-Khi cần xử lý `null`, dựa vào hợp đồng của implementation cụ thể trước khi gọi `put(null, value)` hoặc `put(key, null)`. Đừng suy rằng mọi `Map` đều hỗ trợ null chỉ vì `HashMap` hỗ trợ.
+When handling `null`, check the specific implementation's contract before calling `put(null, value)` or `put(key, null)`. Do not assume every `Map` supports null just because `HashMap` does.
 
-## 8. Map khác List và Set về điều kiện equality
+## 8. How `Map` Differs from `List` and `Set` in Equality Conditions
 
-Mỗi collection có hợp đồng equality riêng:
+Each collection has its own equality contract:
 
-| Kiểu | Điều kiện bằng nhau chính | Thứ tự có quan trọng? |
+| Type | Primary Equality Condition | Does Order Matter? |
 | --- | --- | --- |
-| `List` | Cùng độ dài, các phần tử cùng vị trí tương đương | **Có** |
-| `Set` | Cùng các phần tử logic | Thông thường **không** |
-| `Map` | Cùng các ánh xạ khóa–giá trị | **Không** theo hợp đồng Map |
+| `List` | Same length, equivalent elements at matching positions | **Yes** |
+| `Set` | Same logical elements | Normally **no** |
+| `Map` | Same key–value mappings | **No** under the Map contract |
 
-Ví dụ, `List.of("A", "B")` không bằng `List.of("B", "A")`. Nhưng một map chứa `A -> 1` rồi `B -> 2` vẫn bằng map tạo `B -> 2` rồi `A -> 1`.
+For example, `List.of("A", "B")` does not equal `List.of("B", "A")`. However, a map containing `A -> 1` then `B -> 2` still equals a map built with `B -> 2` then `A -> 1`.
 
-Đồng thời, map **không chỉ là tập khóa**: hai map có cùng keySet nhưng các value khác nhau thì không bằng nhau. Nó cũng không chỉ là một tập value: nếu đổi hai giá trị giữa hai khóa thì các ánh xạ đã thay đổi.
+At the same time, a map is **not merely a set of keys**: two maps with the same `keySet` but different values are not equal. Nor is it merely a collection of values: swapping two values between two keys changes the mappings.
 
-## 9. Những ngoại lệ và tình huống cần cẩn trọng
+## 9. Exceptions and Situations Requiring Care
 
-### Comparator không nhất quán với equals
+### Comparator Inconsistent with `equals`
 
-`TreeMap` dùng comparator hoặc natural ordering để xác định hai khóa được xem là cùng vị trí trong cấu trúc cây. Nếu comparator trả 0 cho hai khóa mà `equals` lại trả `false`, map có thể coi chúng là cùng khóa trong thao tác `put/get` nhưng các map dùng equality thông thường lại phân biệt chúng.
+`TreeMap` uses a comparator or natural ordering to determine when two keys occupy the same position in the tree structure. If the comparator returns 0 for two keys while `equals` returns `false`, the map may treat them as the same key during `put/get`, whereas maps using standard equality distinguish them.
 
-Ví dụ comparator không phân biệt chữ hoa/thường có thể xem `"A"` và `"a"` tương đương về thứ tự, trong khi `String.equals` phân biệt chúng. JavaDoc của `TreeMap` yêu cầu thứ tự phải **nhất quán với equals** nếu muốn tuân thủ đúng hợp đồng `Map` khi so sánh giữa các implementation.
+For instance, a case-insensitive comparator may treat `"A"` and `"a"` as equal in ordering, while `String.equals` distinguishes them. The `TreeMap` Javadoc requires that the ordering be **consistent with equals** if full compliance with the `Map` contract is desired when comparing across implementations.
 
-Một `TreeMap<BigDecimal, ...>` dùng thứ tự tự nhiên cũng cần cân nhắc tương tự, vì `new BigDecimal("2.0").compareTo(new BigDecimal("2.00")) == 0`, trong khi `equals` trả `false`.
+A `TreeMap<BigDecimal, ...>` using natural ordering requires the same consideration, because `new BigDecimal("2.0").compareTo(new BigDecimal("2.00")) == 0`, whereas `equals` returns `false`.
 
-### IdentityHashMap không dùng equality thông thường
+### `IdentityHashMap` Does Not Use Standard Equality
 
-`IdentityHashMap` chủ ý xem hai khóa bằng nhau khi **cùng tham chiếu (`==`)** thay vì `equals`. Đây là implementation đặc biệt mà tài liệu Java nói rõ là **không tuân thủ hợp đồng chung của `Map` về equality theo đối tượng**. Vì vậy không nên dùng nó như một lựa chọn thay thế trực tiếp cho `HashMap` nếu mã gọi dựa vào `Map.equals()` theo giá trị.
+`IdentityHashMap` intentionally considers two keys equal only when they share the **same reference (`==`)** rather than `equals`. This is a specialized implementation whose Java documentation explicitly states that it **violates `Map`'s general contract for object equality**. Therefore, it should not be used as a drop-in replacement for `HashMap` if callers rely on value-based `Map.equals()`.
 
-### Giá trị mutable và key mutable
+### Mutable Values and Mutable Keys
 
-Hai map hiện tại có thể bằng nhau nhưng về sau trở thành không bằng nhau nếu một đối tượng value bên trong bị sửa làm `equals` thay đổi. Nếu đối tượng key bị sửa làm `hashCode` hoặc `equals` thay đổi sau khi đã thêm vào `HashMap`, việc tra cứu và `Map.equals()` cũng có thể không còn đáng tin cậy theo ý định ban đầu.
+Two maps may be equal now and later become unequal if an internal value object is mutated in a way that changes `equals`. If a key object is mutated in a way that changes `hashCode` or `equals` after being added to a `HashMap`, lookups and `Map.equals()` can also become unreliable relative to the original intent.
 
-Đặc biệt, tránh **đưa chính map làm khóa hoặc giá trị của nó theo một cấu trúc tự tham chiếu** rồi trông chờ các phương thức `equals/hashCode/toString` xử lý an toàn; một số phép toán có thể không còn được định nghĩa tốt với cấu trúc đệ quy này.
+In particular, avoid **putting a map itself as its own key or value in a self-referential structure** and expecting `equals/hashCode/toString` to handle it safely; some operations may no longer be well-defined on such recursive structures.
 
-## 10. Cách áp dụng trong code và kiểm thử
+## 10. How to Apply This in Code and Testing
 
-1. **Định nghĩa bình đẳng của khóa:** nếu hai key được coi là cùng thực thể logic, cài `equals(Object)` và `hashCode()` tương thích. Cân nhắc dùng record hoặc kiểu bất biến cho khóa.
-2. **Định nghĩa bình đẳng của giá trị:** kiểm tra xem `equals` của value có phản ánh đúng điều kiện nghiệp vụ hay không. Ví dụ `BigDecimal.equals` phân biệt scale; `List.equals` phân biệt thứ tự.
-3. **Kiểm thử khác thứ tự chèn:** tạo `HashMap` và `LinkedHashMap` với cùng mapping theo thứ tự ngược nhau; chúng vẫn phải bằng nhau.
-4. **Kiểm thử thay đổi một thành phần:** đổi value của một key hoặc thay key, xác minh `Map.equals` trở thành `false`.
-5. **Kiểm thử null và thiếu khóa:** phân biệt map có `"x" -> null` với map rỗng; dùng `containsKey` khi cần.
-6. **Kiểm tra hash:** hai map bằng nhau phải có cùng `hashCode`; không dùng hash bằng nhau để suy ra map bằng nhau.
-7. **Kiểm tra collection có comparator đặc biệt:** tránh giả định comparator trả 0 có nghĩa `equals` của khóa cũng trả `true`.
-8. **Không so bằng chuỗi hiển thị:** thay vì so `map.toString()`, hãy dùng `map.equals(other)` khi mục đích là cùng nội dung ánh xạ.
-9. **Giữ trạng thái ổn định khi so sánh:** không thay đổi map hoặc object khóa/giá trị đồng thời trong lúc thao tác equality; các collection thông thường không tự thread-safe.
+1. **Define key equality:** if two keys are considered the same logical entity, implement compatible `equals(Object)` and `hashCode()`. Consider using records or immutable types for keys.
+2. **Define value equality:** verify whether the value's `equals` accurately reflects business conditions. For example, `BigDecimal.equals` distinguishes scale; `List.equals` distinguishes order.
+3. **Test different insertion orders:** create a `HashMap` and a `LinkedHashMap` with the same mappings in reverse order; they must still be equal.
+4. **Test single-component changes:** change the value of a key or swap a key, and verify `Map.equals` becomes `false`.
+5. **Test null and missing keys:** distinguish a map with `"x" -> null` from an empty map; use `containsKey` when needed.
+6. **Check hashes:** two equal maps must have the same `hashCode`; do not use matching hashes to infer map equality.
+7. **Check collections with custom comparators:** avoid assuming a comparator returning 0 means key `equals` also returns `true`.
+8. **Do not compare via display strings:** instead of comparing `map.toString()`, use `map.equals(other)` when the goal is identical mapping content.
+9. **Keep state stable during comparison:** do not mutate the map or key/value objects concurrently during equality operations; standard collections are not thread-safe by default.
 
-**Tự kiểm tra:**
+**Self-check:**
 
-- Hai map có `A -> 1`, `B -> 2` nhưng thứ tự chèn ngược nhau có bằng nhau không? **Có.**
-- Hai map có cùng `keySet()` nhưng một map chứa `B -> 3` thay vì `B -> 2` có bằng nhau không? **Không.**
-- Hai map có cùng danh sách giá trị nhưng ánh xạ sang khóa khác nhau có bằng nhau không? **Không.**
-- Một map chứa entry `A -> null` có bằng map rỗng không? **Không.**
-- Hai map bằng nhau có bắt buộc `hashCode()` bằng nhau không? **Có.**
+- Are two maps with `A -> 1`, `B -> 2` inserted in opposite orders equal? **Yes.**
+- Are two maps with the same `keySet()`, where one has `B -> 3` instead of `B -> 2`, equal? **No.**
+- Are two maps with the same list of values mapped to different keys equal? **No.**
+- Does a map containing the entry `A -> null` equal an empty map? **No.**
+- Must two equal maps have equal `hashCode()`? **Yes.**
 
-**Ghi nhớ:** `Map.equals(Object)` biểu thị **sự tương đương của toàn bộ các ánh xạ khóa–giá trị**. Cùng số entry, cùng khóa logic và giá trị tương ứng bằng nhau mới làm hai map bằng nhau; thứ tự chèn, thứ tự duyệt và lớp triển khai thông thường không quyết định kết quả.
+**Takeaway:** `Map.equals(Object)` expresses **equivalence across all key–value mappings**. Having the same number of entries, the same logical keys, and equal corresponding values makes two maps equal; insertion order, iteration order, and typical implementation classes do not determine the result.

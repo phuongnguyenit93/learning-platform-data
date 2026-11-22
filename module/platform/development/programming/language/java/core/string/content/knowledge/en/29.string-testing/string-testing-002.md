@@ -1,59 +1,59 @@
-# Kiểm thử chỉ số đầu–cuối và khoảng trích xuất trong Java String
+# Testing Start–End Indices and Extraction Ranges in Java String
 
-## 1. Mục tiêu và vấn đề cần kiểm thử
+## 1. Objective and Testing Problem
 
-Khi tách một phần văn bản bằng `substring`, `subSequence`, `charAt` hoặc chép ký tự với `getChars`, chỉ cần lệch một đơn vị chỉ số là có thể thu được nội dung sai, làm mất ký tự hoặc phát sinh ngoại lệ. Lỗi thường không xuất hiện ở trường hợp bình thường mà lộ ra với chuỗi rỗng, chỉ số bằng độ dài, khoảng có hai đầu bằng nhau hoặc ký tự Unicode dùng nhiều UTF-16 code unit.
+When extracting part of a text with `substring`, `subSequence`, `charAt`, or copying characters with `getChars`, being off by a single index unit can yield wrong content, drop characters, or throw an exception. Bugs often stay hidden on normal cases and surface on empty strings, indices equal to length, equal-endpoint ranges, or Unicode characters that span multiple UTF-16 code units.
 
-Bài này hướng dẫn cách **định nghĩa khoảng chỉ số**, **tạo bộ ca kiểm thử bao phủ ranh giới**, **kiểm tra cả kết quả lẫn ngoại lệ**, và **kiểm thử một hàm trích xuất tự viết**. Đối tượng nghiên cứu chính là `java.lang.String` trên Java 17+, có mở rộng sang `CharSequence` và các thao tác liên quan khi cần.
+This lesson walks through how to **define index ranges**, **build a boundary-covering test suite**, **assert both return values and exceptions**, and **test a custom extraction function**. The primary subject is `java.lang.String` on Java 17+, extending to `CharSequence` and related operations where appropriate.
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-- Diễn giải chính xác quy ước `[beginIndex, endIndex)`.
-- Phân biệt phạm vi hợp lệ của `substring`, `charAt`, `codePointAt` và `getChars`.
-- Thiết kế các ca kiểm thử cho **đầu, giữa, cuối, rỗng, vượt biên, đảo đầu–cuối**.
-- Đối chiếu độ dài theo **UTF-16 code unit** với Unicode code point.
-- Viết chương trình kiểm thử độc lập, mở rộng thành unit test JUnit và suy luận các thuộc tính đúng cho một khoảng trích xuất.
+- Accurately interpret the `[beginIndex, endIndex)` convention.
+- Distinguish valid ranges of `substring`, `charAt`, `codePointAt`, and `getChars`.
+- Design test cases for **start, middle, end, empty, out-of-bounds, and reversed start–end**.
+- Contrast lengths in **UTF-16 code units** versus Unicode code points.
+- Write a standalone test program, extend it into JUnit unit tests, and reason about invariants for an extracted range.
 
-## 2. Cơ sở: chỉ số trong String là chỉ số UTF-16
+## 2. Foundation: String Indices Are UTF-16 Indices
 
-Trong Java, `String.length()` trả **số UTF-16 code unit**. Với văn bản ASCII như `"ABCDE"`, mỗi ký tự chiếm một code unit:
+In Java, `String.length()` returns the **number of UTF-16 code units**. For ASCII text such as `"ABCDE"`, each character occupies one code unit:
 
 ```text
-Chuỗi:     A  B  C  D  E
-Chỉ số:    0  1  2  3  4
-Ranh giới: 0  1  2  3  4  5
+String:   A  B  C  D  E
+Index:    0  1  2  3  4
+Boundary: 0  1  2  3  4  5
                                  length() = 5
 ```
 
-Phần tử tại chỉ số `i` được truy cập bằng `charAt(i)`; chỉ số cuối cùng có thể truy cập là `length() - 1` khi chuỗi không rỗng. Trong khi đó, một **ranh giới cắt** hoàn toàn có thể nằm tại vị trí `length()` (ngay sau ký tự cuối).
+The element at index `i` is accessed via `charAt(i)`; the last accessible index is `length() - 1` when the string is non-empty. Meanwhile, a **cut boundary** can legitimately sit at position `length()` (immediately after the last character).
 
-Không được đồng nhất hai loại chỉ số:
-- **Chỉ số phần tử:** phải có `0 <= i < length()`.
-- **Chỉ số ranh giới khoảng:** có thể có `0 <= boundary <= length()`.
+Do not conflate these two kinds of indices:
+- **Element index:** must satisfy `0 <= i < length()`.
+- **Range boundary index:** may satisfy `0 <= boundary <= length()`.
 
-Chính vì vậy `"ABCDE".charAt(5)` không hợp lệ nhưng `"ABCDE".substring(5, 5)` lại hợp lệ và trả `""`.
+That is why `"ABCDE".charAt(5)` is invalid whereas `"ABCDE".substring(5, 5)` is valid and returns `""`.
 
-**UTF-16 không đồng nhất với ký tự người dùng nhìn thấy.** Một code point ngoài Basic Multilingual Plane, chẳng hạn emoji `😀`, cần **hai code unit** (cặp surrogate). Kết quả của `length()` và vị trí mà `substring` nhận vào đều tính theo code unit, không tính theo số code point hay grapheme cluster.
+**UTF-16 is not identical to user-perceived characters.** A code point outside the Basic Multilingual Plane, such as emoji `😀`, requires **two code units** (a surrogate pair). Both `length()` and the positions passed to `substring` are measured in code units, not code points or grapheme clusters.
 
-## 3. Hợp đồng API quan trọng
+## 3. Key API Contracts
 
 ### 3.1. substring(beginIndex, endIndex)
 
-Chữ ký:
+Signature:
 
 ```java
 public String substring(int beginIndex, int endIndex);
 ```
 
-Khoảng được lấy là **nửa mở**, ký hiệu toán học `[beginIndex, endIndex)`: **bao gồm beginIndex, loại trừ endIndex**.
+The extracted range is **half-open**, written mathematically as `[beginIndex, endIndex)`: **inclusive of `beginIndex`, exclusive of `endIndex`**.
 
-Điều kiện hợp lệ:
+Validity condition:
 
 ```text
 0 <= beginIndex <= endIndex <= s.length()
 ```
 
-Kết quả chứa `endIndex - beginIndex` UTF-16 code unit, bắt đầu ở `beginIndex` và dừng trước `endIndex`.
+The result contains `endIndex - beginIndex` UTF-16 code units, starting at `beginIndex` and stopping before `endIndex`.
 
 ```java
 String s = "ABCDE";
@@ -64,38 +64,38 @@ System.out.println(s.substring(3, 3).isEmpty()); // true
 System.out.println(s.substring(5, 5).isEmpty()); // true
 ```
 
-`substring(1, 4)` lấy vị trí 1, 2, 3; **không lấy** vị trí 4. Nếu muốn lấy cả phần tử cuối ở vị trí 4, truyền `endIndex = 5`.
+`substring(1, 4)` takes positions 1, 2, and 3; it **excludes** position 4. To include the last element at position 4, pass `endIndex = 5`.
 
-Một khoảng **rỗng** như `[3, 3)` hoàn toàn hợp lệ; kết quả là `""`. Hai đầu bằng nhau không phải lỗi.
+An **empty** range such as `[3, 3)` is completely valid; the result is `""`. Equal endpoints are not an error.
 
 ### 3.2. substring(beginIndex)
 
-Overload một tham số:
+Single-argument overload:
 
 ```java
 public String substring(int beginIndex);
 ```
 
-Lấy từ `beginIndex` đến hết chuỗi:
+Takes from `beginIndex` to the end of the string:
 
 ```java
 String s = "ABCDE";
 
 System.out.println(s.substring(2));  // CDE
-System.out.println(s.substring(5));  // Dòng trống vì kết quả là ""
+System.out.println(s.substring(5));  // Empty line because the result is ""
 ```
 
-Điều kiện hợp lệ: `0 <= beginIndex <= s.length()`. Giá trị bằng `length()` được phép và trả chuỗi rỗng; giá trị lớn hơn `length()` hoặc âm thì không hợp lệ.
+Validity condition: `0 <= beginIndex <= s.length()`. A value equal to `length()` is allowed and returns an empty string; values greater than `length()` or negative are invalid.
 
 ### 3.3. subSequence(start, end)
 
-`String` triển khai `CharSequence` và hỗ trợ:
+`String` implements `CharSequence` and supports:
 
 ```java
 public CharSequence subSequence(int start, int end);
 ```
 
-Phạm vi **`[start, end)`** giống `substring(start, end)`. Khi gọi trên đối tượng `String`, nội dung kết quả bằng với nội dung được `substring` trả về:
+The range **`[start, end)`** matches `substring(start, end)`. When called on a `String` object, the resulting content equals what `substring` returns:
 
 ```java
 String s = "ABCDE";
@@ -103,11 +103,11 @@ CharSequence part = s.subSequence(1, 4);
 System.out.println(part); // BCD
 ```
 
-Tuy nhiên, biến `part` có kiểu khai báo `CharSequence`; phương thức của những lớp cài đặt `CharSequence` khác không nhất thiết có cùng cách lưu bộ nhớ hoặc vòng đời như `String`. Kiểm thử theo **hợp đồng của đối tượng thực sự đang dùng**.
+However, the variable `part` has declared type `CharSequence`; methods on other `CharSequence` implementations do not necessarily share the same memory representation or lifecycle as `String`. Test against the **contract of the actual object in use**.
 
 ### 3.4. charAt(index)
 
-`charAt` truy cập một UTF-16 code unit **tại một vị trí**, không trích xuất khoảng:
+`charAt` accesses a single UTF-16 code unit **at one position**, rather than extracting a range:
 
 ```java
 String s = "ABCDE";
@@ -116,42 +116,42 @@ System.out.println(s.charAt(4)); // E
 // s.charAt(5); // StringIndexOutOfBoundsException
 ```
 
-Điều kiện hợp lệ là `0 <= index < s.length()`. Trên chuỗi rỗng, không có chỉ số hợp lệ cho `charAt`.
+The validity condition is `0 <= index < s.length()`. On an empty string, there is no valid index for `charAt`.
 
-### 3.5. Ngoại lệ khi chỉ số không hợp lệ
+### 3.5. Exceptions for Invalid Indices
 
-`substring` và những thao tác liên quan thuộc họ ngoại lệ `IndexOutOfBoundsException` khi biên vượt phạm vi. OpenJDK/HotSpot thường ném `StringIndexOutOfBoundsException` đối với nhiều lỗi `String`, nhưng **bài kiểm thử portable** có thể kiểm tra lớp ngoại lệ theo hợp đồng API (`IndexOutOfBoundsException`) thay vì phụ thuộc từng chi tiết thông báo.
+`substring` and related operations belong to the `IndexOutOfBoundsException` family when bounds are out of range. OpenJDK/HotSpot typically throws `StringIndexOutOfBoundsException` for many `String` errors, yet a **portable test** can assert the API contract's exception type (`IndexOutOfBoundsException`) instead of depending on message wording details.
 
-Thông báo của ngoại lệ (ví dụ `begin 6, end 5, length 5`) có thể thay đổi theo phiên bản JDK. Không nên so khớp nguyên văn exception message khi chỉ cần xác nhận ranh giới sai bị từ chối.
+Exception messages (for example, `begin 6, end 5, length 5`) can change across JDK versions. Do not match exact exception message text when you only need to verify that invalid bounds are rejected.
 
-## 4. Ma trận ca kiểm thử chuẩn cho substring
+## 4. Standard Test Case Matrix for substring
 
-Dùng chuỗi `"ABCDE"` có `length() = 5` để đối chiếu:
+Use `"ABCDE"` with `length() = 5` as the reference string:
 
-| Trường hợp | Lời gọi | Kỳ vọng |
+| Case | Call | Expected |
 | --- | --- | --- |
-| Đầu chuỗi | `substring(0, 1)` | `"A"` |
-| Giữa chuỗi | `substring(1, 4)` | `"BCD"` |
-| Ký tự cuối | `substring(4, 5)` | `"E"` |
-| Toàn bộ chuỗi | `substring(0, 5)` | `"ABCDE"` |
-| Khoảng rỗng đầu | `substring(0, 0)` | `""` |
-| Khoảng rỗng giữa | `substring(3, 3)` | `""` |
-| Khoảng rỗng cuối | `substring(5, 5)` | `""` |
-| Suffix từ giữa | `substring(2)` | `"CDE"` |
-| Suffix rỗng | `substring(5)` | `""` |
-| Begin âm | `substring(-1, 2)` | Ném `IndexOutOfBoundsException` |
-| End âm | `substring(0, -1)` | Ném `IndexOutOfBoundsException` |
-| Begin lớn hơn end | `substring(4, 3)` | Ném `IndexOutOfBoundsException` |
-| End lớn hơn length | `substring(1, 6)` | Ném `IndexOutOfBoundsException` |
-| Begin lớn hơn length | `substring(6)` | Ném `IndexOutOfBoundsException` |
+| Start of string | `substring(0, 1)` | `"A"` |
+| Middle of string | `substring(1, 4)` | `"BCD"` |
+| Last character | `substring(4, 5)` | `"E"` |
+| Whole string | `substring(0, 5)` | `"ABCDE"` |
+| Empty range at start | `substring(0, 0)` | `""` |
+| Empty range in middle | `substring(3, 3)` | `""` |
+| Empty range at end | `substring(5, 5)` | `""` |
+| Suffix from middle | `substring(2)` | `"CDE"` |
+| Empty suffix | `substring(5)` | `""` |
+| Negative begin | `substring(-1, 2)` | Throws `IndexOutOfBoundsException` |
+| Negative end | `substring(0, -1)` | Throws `IndexOutOfBoundsException` |
+| Begin greater than end | `substring(4, 3)` | Throws `IndexOutOfBoundsException` |
+| End greater than length | `substring(1, 6)` | Throws `IndexOutOfBoundsException` |
+| Begin greater than length | `substring(6)` | Throws `IndexOutOfBoundsException` |
 
-Ma trận phải có **hai loại kiểm tra**: kết quả chính xác cho khoảng hợp lệ và ngoại lệ cho khoảng sai. Việc chỉ kiểm tra “không bị lỗi” chưa đủ để phát hiện lệch một ký tự.
+The matrix must include **two kinds of checks**: exact return values for valid ranges and exceptions for invalid ranges. Checking only “no error thrown” is insufficient to catch an off-by-one bug.
 
-Một cách tổ chức thực tế là luôn chọn các giá trị quanh biên `0` và `length()`: `-1`, `0`, `1`, `length()-1`, `length()`, `length()+1` (khi chúng có ý nghĩa). Với chuỗi rỗng, `length()-1 = -1` là chỉ số bất hợp lệ; đây chính là ca cần kiểm thử.
+A practical pattern is to always pick values around boundaries `0` and `length()`: `-1`, `0`, `1`, `length()-1`, `length()`, `length()+1` (whenever meaningful). For an empty string, `length()-1 = -1` is an invalid index; that is precisely a case worth testing.
 
-## 5. Chuỗi rỗng và các khoảng có hai đầu trùng nhau
+## 5. Empty Strings and Coincident-Endpoint Ranges
 
-Đây là nguồn lỗi phổ biến khi code tự thêm hoặc bớt `1`:
+This is a common source of bugs when code manually adds or subtracts `1`:
 
 ```java
 String empty = "";
@@ -159,22 +159,22 @@ String empty = "";
 System.out.println(empty.substring(0, 0).isEmpty()); // true
 System.out.println(empty.substring(0).isEmpty());    // true
 
-// empty.charAt(0);      // Không hợp lệ: không có phần tử
-// empty.substring(0, 1); // Không hợp lệ: end > length
+// empty.charAt(0);      // Invalid: no elements
+// empty.substring(0, 1); // Invalid: end > length
 ```
 
-Với một chuỗi bất kỳ `s`, tất cả khoảng dạng `s.substring(i, i)` đều cho chuỗi rỗng **nếu** `0 <= i <= s.length()`. Điều này có nghĩa khoảng rỗng ở cuối chuỗi có thể hợp lệ.
+For any string `s`, every range of the form `s.substring(i, i)` yields an empty string **provided** `0 <= i <= s.length()`. That means an empty range at the end of the string can be valid.
 
-Cần phân biệt **khoảng rỗng** với **giá trị nguồn rỗng**:
-- `"ABCDE".substring(2, 2)` rỗng dù nguồn không rỗng.
-- `"".substring(0, 0)` rỗng vì cả nguồn lẫn khoảng rỗng.
-- `"".substring(1, 1)` vẫn sai vì ranh giới 1 nằm ngoài độ dài 0.
+Distinguish an **empty range** from an **empty source value**:
+- `"ABCDE".substring(2, 2)` is empty even though the source is not empty.
+- `"".substring(0, 0)` is empty because both source and range are empty.
+- `"".substring(1, 1)` is still invalid because boundary 1 lies beyond length 0.
 
-Hàm tạo slice có thể cho phép khoảng rỗng (thường hợp lý), hoặc cấm theo quy tắc nghiệp vụ. Nếu cấm, phải ghi rõ đó là **ràng buộc riêng của hàm nghiệp vụ**, không gán nhầm cho `String.substring`.
+A custom slicing function may allow empty ranges (often sensible), or forbid them per business rules. If forbidden, document clearly that this is a **domain-specific constraint**, rather than attributing it to `String.substring`.
 
-## 6. Tự viết một hàm trích xuất với quy tắc kiểm tra rõ ràng
+## 6. Writing a Custom Extraction Function with Clear Validation
 
-Giả sử muốn viết hàm `slice` xử lý theo khoảng `[begin, end)`:
+Suppose you want to write a `slice` function operating on `[begin, end)`:
 
 ```java
 static String slice(String source, int begin, int end) {
@@ -193,22 +193,22 @@ static String slice(String source, int begin, int end) {
 }
 ```
 
-Đây là **đoạn phương thức minh họa**, cần đặt bên trong một lớp Java trước khi biên dịch. Hàm chủ động ném `IllegalArgumentException` khi `source == null`. Quyết định này thuộc thiết kế `slice`; bản thân `String.substring` được gọi trên một tham chiếu null sẽ gặp `NullPointerException` trước khi vào phương thức.
+This is an **illustrative method snippet** that must be placed inside a Java class before compiling. The function explicitly throws `IllegalArgumentException` when `source == null`. That decision belongs to `slice`'s design; calling `String.substring` itself on a null reference fails with `NullPointerException` before entering the method.
 
-Điều kiện kiểm tra gộp chính xác ba lỗi:
-- `begin < 0`: chỉ số bắt đầu âm.
-- `end < begin`: khoảng bị đảo ngược; cũng bao phủ một số giá trị end âm.
-- `end > length`: điểm kết thúc vượt khỏi chuỗi; đồng thời ngăn begin lớn hơn length nếu `end >= begin`.
+The check combines three errors accurately:
+- `begin < 0`: negative start index.
+- `end < begin`: reversed range; also covers some negative end values.
+- `end > length`: end point past the string; also prevents begin exceeding length when `end >= begin`.
 
-Có thể kiểm tra tường minh thêm `begin > length` để thông báo dễ hiểu, nhưng về tính hợp lệ, ba mệnh đề trên đã đủ do điều kiện `begin <= end`.
+You can add an explicit `begin > length` check for a clearer message, though for validity the three clauses above suffice because of `begin <= end`.
 
-Lưu ý quan trọng khi **tự tạo hàm chuyển khoảng inclusive thành exclusive**: nếu end-inclusive bằng `Integer.MAX_VALUE`, cộng `1` có thể tràn số nguyên. Cần xác nhận end nằm trong phạm vi chuỗi **trước khi cộng** hoặc dùng cách kiểm tra không gây overflow.
+Important note when **writing a helper that converts inclusive ranges to exclusive**: if an inclusive end equals `Integer.MAX_VALUE`, adding `1` can overflow the integer. Validate that end is within string bounds **before adding** or use an overflow-safe check.
 
-## 7. Chương trình Java 17+ kiểm thử tự động, độc lập
+## 7. Standalone Automated Java 17+ Test Program
 
-Ví dụ sau có bộ kiểm thử nhỏ không phụ thuộc JUnit. Nó giúp thấy rõ cách kiểm tra giá trị trả về, ngoại lệ và độ dài Unicode.
+The following example provides a small test suite with no JUnit dependency. It shows clearly how to assert return values, exceptions, and Unicode lengths.
 
-Tạo tệp `StringRangeTest.java`, lưu bằng UTF-8:
+Create `StringRangeTest.java`, saved as UTF-8:
 
 ```java
 import java.util.Objects;
@@ -285,51 +285,51 @@ public class StringRangeTest {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 StringRangeTest.java
 java StringRangeTest
 ```
 
-Kết quả stdout nếu mọi kiểm tra thành công:
+Stdout if all checks pass:
 
 ```text
 PASS: 17 tests
 ```
 
-Chương trình sử dụng bộ so sánh `Objects.equals` để kiểm tra cả giá trị trả về, dùng `throwsType` để chấp nhận ngoại lệ **đúng họ** và dùng `check` cho thuộc tính Unicode. Không cần bật cờ `-ea`, vì các helper chủ động ném `AssertionError` khi thất bại.
+The program uses `Objects.equals` to check return values, `throwsType` to accept exceptions of the **right family**, and `check` for Unicode properties. You do not need the `-ea` flag, because the helpers explicitly throw `AssertionError` on failure.
 
-Một test bị lỗi sẽ ném `AssertionError` và dừng chương trình, nhờ đó kết quả “PASS” không che giấu sai lệch ở các bước trước. Trên dự án thật, nên sử dụng framework unit test (ví dụ JUnit 5) để thu thập báo cáo đầy đủ và chạy tự động trong CI.
+A failing test throws `AssertionError` and halts the program, ensuring a “PASS” line never hides earlier failures. In real projects, use a unit testing framework (such as JUnit 5) to collect full reports and run automatically in CI.
 
-## 8. Kiểm thử UTF-16 và khoảng cắt qua surrogate pair
+## 8. Testing UTF-16 and Slicing Across a Surrogate Pair
 
-Xét chuỗi chứa emoji ngoài BMP:
+Consider a string containing a non-BMP emoji:
 
 ```java
 String text = "A😀B";
 System.out.println(text.length()); // 4
 ```
 
-Vị trí UTF-16 như sau:
+UTF-16 positions are as follows:
 
 ```text
 index 0 : 'A'
-index 1 : high surrogate của 😀
-index 2 : low surrogate của 😀
+index 1 : high surrogate of 😀
+index 2 : low surrogate of 😀
 index 3 : 'B'
 boundary: 0 | 1 | 2 | 3 | 4
 ```
 
-Vì vậy:
-- `text.substring(1, 3)` lấy **đủ hai code unit** và biểu diễn emoji hoàn chỉnh.
-- `text.substring(1, 2)` lấy **một high surrogate đơn lẻ**. Lời gọi hợp lệ về mặt chỉ số, nhưng kết quả chứa một surrogate chưa ghép cặp.
-- `text.substring(2, 3)` chỉ lấy low surrogate, cũng tạo chuỗi không hoàn chỉnh về mặt cặp surrogate.
-- `text.substring(3, 4)` lấy `"B"`.
+Therefore:
+- `text.substring(1, 3)` captures **both code units** and represents the complete emoji.
+- `text.substring(1, 2)` captures **an isolated high surrogate**. The call is valid in terms of indices, but the result contains an unpaired surrogate.
+- `text.substring(2, 3)` captures only the low surrogate, also producing an incomplete surrogate sequence.
+- `text.substring(3, 4)` returns `"B"`.
 
-**Java String cho phép chứa các surrogate đơn lẻ.** `substring` chỉ thực thi hợp đồng chỉ số UTF-16, không tự xác minh rằng điểm cắt trùng với ranh giới code point hay ranh giới ký tự hiển thị.
+**Java `String` allows unpaired surrogates.** `substring` only enforces the UTF-16 index contract; it does not verify that cut points align with code point boundaries or visible character boundaries.
 
-Nếu yêu cầu là “lấy hai Unicode code point đầu” thay vì “lấy hai code unit đầu”, hãy đổi chỉ số theo code point:
+If the requirement is “take the first two Unicode code points” rather than “take the first two code units,” convert indices by code points:
 
 ```java
 String text = "A😀B";
@@ -340,11 +340,11 @@ System.out.println(end); // 3
 System.out.println(firstTwoCodePoints); // A😀
 ```
 
-`offsetByCodePoints(beginIndex, codePointOffset)` giúp dịch một số lượng code point thành một chỉ số UTF-16. Thao tác này vẫn **không đồng nghĩa tách grapheme cluster**: ký tự + dấu kết hợp, chuỗi emoji có ZWJ hoặc cờ emoji có thể gồm nhiều code point nhưng được hiển thị như một cụm. Với yêu cầu theo *ký tự người dùng nhìn thấy*, cần thuật toán phân đoạn văn bản phù hợp với Unicode, locale và nhu cầu thực tế.
+`offsetByCodePoints(beginIndex, codePointOffset)` translates a code point count into a UTF-16 index. This is still **not equivalent to splitting grapheme clusters**: a base character plus combining marks, ZWJ emoji sequences, or flag emojis can span multiple code points yet render as a single cluster. When requirements are in terms of *user-perceived characters*, use text segmentation suited to Unicode, locale, and actual product needs.
 
-## 9. getChars: kiểm tra khoảng nguồn và vị trí đích
+## 9. getChars: Checking Both Source Range and Destination Position
 
-Ngoài `substring`, `String.getChars(srcBegin, srcEnd, dst, dstBegin)` chép **vùng `[srcBegin, srcEnd)`** sang mảng đích:
+In addition to `substring`, `String.getChars(srcBegin, srcEnd, dst, dstBegin)` copies the **range `[srcBegin, srcEnd)`** into a destination array:
 
 ```java
 String s = "ABCDE";
@@ -355,26 +355,26 @@ s.getChars(1, 4, dst, 1);
 System.out.println(String.valueOf(dst)); // _BCD_
 ```
 
-Khoảng nguồn `[1,4)` dài **3**; nó được chép vào `dst[1]`, `dst[2]` và `dst[3]`. Kiểm thử `getChars` phải xét **cả hai hệ chỉ số**:
+The source range `[1,4)` has length **3**; it is copied into `dst[1]`, `dst[2]`, and `dst[3]`. Testing `getChars` must examine **both index systems**:
 
-- Nguồn: `0 <= srcBegin <= srcEnd <= s.length()`.
-- Đích: `dstBegin >= 0` và `dstBegin + (srcEnd - srcBegin) <= dst.length`, với phép cộng được thực hiện an toàn để không tràn số nếu tự viết hàm kiểm tra.
-- Mảng `dst` phải tồn tại; nếu null, việc sử dụng mảng có thể gây `NullPointerException`.
+- Source: `0 <= srcBegin <= srcEnd <= s.length()`.
+- Destination: `dstBegin >= 0` and `dstBegin + (srcEnd - srcBegin) <= dst.length`, performing addition safely without integer overflow if you write your own check.
+- The `dst` array must exist; if null, accessing the array can cause `NullPointerException`.
 
-Để tránh tràn số trong logic kiểm tra tự viết, sau khi xác nhận `0 <= dstBegin <= dst.length` có thể kiểm tra `copyCount <= dst.length - dstBegin`.
+To avoid overflow in custom validation logic, after confirming `0 <= dstBegin <= dst.length`, you can check `copyCount <= dst.length - dstBegin`.
 
-Các ca kiểm thử đáng có:
-1. Sao chép vào giữa mảng và xác nhận các vị trí ngoài vùng không bị thay đổi.
-2. Sao chép vùng rỗng với `srcBegin == srcEnd`.
-3. `srcEnd > s.length()` hoặc `srcBegin < 0`.
-4. `dstBegin < 0` hoặc vùng đích không đủ sức chứa.
-5. Kết quả với surrogate pair, vì `getChars` cũng chép theo UTF-16 code unit.
+Worthwhile test cases:
+1. Copy into the middle of an array and verify positions outside the written region remain unchanged.
+2. Copy an empty range with `srcBegin == srcEnd`.
+3. `srcEnd > s.length()` or `srcBegin < 0`.
+4. `dstBegin < 0` or destination lacks sufficient capacity.
+5. Behavior with surrogate pairs, since `getChars` also copies by UTF-16 code unit.
 
-Điểm khác biệt: `substring` tạo ra một kết quả `String`, trong khi `getChars` **thay đổi nội dung mảng đích** theo vùng chọn. Vì vậy phải kiểm tra cả tính chính xác của vùng chép và tính toàn vẹn của những ô mảng nằm ngoài vùng.
+Key difference: `substring` creates a `String` result, whereas `getChars` **mutates the destination array** across the selected span. Therefore, verify both the accuracy of the copied slice and the integrity of array elements outside that span.
 
-## 10. Trích xuất dựa trên indexOf: đừng tự tạo lỗi +1/-1
+## 10. indexOf-Based Extraction: Don't Introduce +1/-1 Bugs Yourself
 
-Trường hợp thực tế thường tìm ranh giới động:
+Real-world code often locates boundaries dynamically:
 
 ```java
 String input = "user=alice;role=admin";
@@ -385,9 +385,9 @@ String user = input.substring(begin, end);
 System.out.println(user); // alice
 ```
 
-Ví dụ hoạt động với định dạng cụ thể này, nhưng **không an toàn cho mọi đầu vào**. Nếu không có dấu `=`, `indexOf('=')` trả `-1` và cộng 1 thành `0`; lỗi thiếu delimiter có thể bị che khuất. Nếu thiếu dấu `;`, `end = -1` và `substring` ném ngoại lệ.
+This example works for this specific format, but it is **unsafe for arbitrary inputs**. If `=` is missing, `indexOf('=')` returns `-1` and adding 1 yields `0`; a missing-delimiter bug can be masked. If `;` is missing, `end = -1` and `substring` throws an exception.
 
-Thiết kế kiểm tra trước khi trích xuất:
+Validate before extracting:
 
 ```java
 static String extractBeforeSemicolon(String input) {
@@ -410,21 +410,21 @@ static String extractBeforeSemicolon(String input) {
 }
 ```
 
-Đây là phương thức minh họa, cần đặt bên trong lớp Java. Với quy tắc này, đầu vào `"user=;role=admin"` cho chuỗi rỗng hợp lệ vì `begin == end`; nếu nghiệp vụ cấm giá trị rỗng thì phải thêm kiểm tra riêng.
+This is an illustrative method that needs to sit inside a Java class. Under this rule, `"user=;role=admin"` validly yields an empty string because `begin == end`; if business rules forbid empty values, add a dedicated check.
 
-Nên kiểm thử:
-- Delimiter ở vị trí bình thường.
-- `=` ngay trước `;` (giá trị rỗng).
-- Thiếu `=`, thiếu `;`.
-- Dấu `;` xuất hiện trước `=`: nhờ `indexOf(';', begin)`, hàm tìm dấu kết thúc **sau** dấu `=`.
-- Đầu vào không có ký tự hoặc `null`.
-- Có nhiều dấu `=` hoặc `;`: xác định rõ quy tắc chọn delimiter đầu tiên/hợp lệ của nghiệp vụ.
+Cases to test:
+- Delimiters in normal positions.
+- `=` immediately followed by `;` (empty value).
+- Missing `=`, missing `;`.
+- `;` appearing before `=`: thanks to `indexOf(';', begin)`, the method searches for the closing delimiter **after** `=`.
+- Empty or `null` input.
+- Multiple `=` or `;` characters: explicitly define the business rule for picking the first/valid delimiter.
 
-Đừng viết test chỉ cho một chuỗi “đẹp”; điều cần xác minh là **giả định về vị trí delimiter** trước khi truyền chỉ số cho `substring`.
+Do not write tests only for a “pretty” string; what needs verification are the **assumptions about delimiter positions** before passing indices to `substring`.
 
-## 11. Unit test với JUnit 5
+## 11. Unit Testing with JUnit 5
 
-Trong dự án có **JUnit Jupiter** trên test classpath, có thể dùng `assertEquals`, `assertThrows` và `assertAll`:
+In a project with **JUnit Jupiter** on the test classpath, you can use `assertEquals`, `assertThrows`, and `assertAll`:
 
 ```java
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -465,32 +465,32 @@ class StringBoundsTest {
 }
 ```
 
-Đây là **lớp test dành cho dự án đã cấu hình JUnit 5**, không phải một chương trình độc lập chỉ cần `javac` mặc định. JUnit phải có trong dependencies/classpath và test được chạy bằng Maven, Gradle hoặc IDE theo thiết lập của dự án. Phần Java chạy độc lập không cần dependency đã có tại mục 7.
+This is a **test class for a project already configured with JUnit 5**, not a standalone program you compile with plain `javac` alone. JUnit must be in dependencies/classpath and tests run via Maven, Gradle, or your IDE per project setup. A standalone Java example with no dependencies is already provided in section 7.
 
-Kiểm thử tham số hóa với `@ParameterizedTest` và `@CsvSource` phù hợp khi cùng một quy tắc được áp dụng cho nhiều cặp begin/end. Tuy nhiên, hãy giữ riêng nhóm **ca hợp lệ** và **ca ném ngoại lệ**, để thông báo thất bại rõ ràng.
+Parameterized tests with `@ParameterizedTest` and `@CsvSource` fit well when the same rule applies to many begin/end pairs. However, keep **valid cases** and **exception-throwing cases** separate so failure messages remain clear.
 
-## 12. Kiểm thử theo thuộc tính (property-based thinking)
+## 12. Property-Based Thinking
 
-Ngoài các ví dụ đơn lẻ, hãy kiểm tra những **bất biến** sau cho mọi `String s` và mọi cặp `begin, end` hợp lệ:
+Beyond isolated examples, verify the following **invariants** for any `String s` and any valid `begin, end` pair:
 
-1. **Độ dài:** `s.substring(begin, end).length() == end - begin`.
-2. **Phần tử khớp vị trí:** với mọi `i` trong `[0, end - begin)`, `slice.charAt(i) == s.charAt(begin + i)`.
-3. **Khoảng rỗng:** `s.substring(i, i).isEmpty()` cho mọi `0 <= i <= s.length()`.
-4. **Ghép lại giữ nội dung:** `s.substring(0, begin) + s.substring(begin, end) + s.substring(end)` bằng `s` về nội dung.
-5. **Khoảng toàn bộ:** `s.substring(0, s.length()).equals(s)`.
-6. **Bảo toàn chuỗi nguồn:** gọi `substring` không sửa `s` vì `String` immutable.
+1. **Length:** `s.substring(begin, end).length() == end - begin`.
+2. **Position-matching elements:** for every `i` in `[0, end - begin)`, `slice.charAt(i) == s.charAt(begin + i)`.
+3. **Empty range:** `s.substring(i, i).isEmpty()` for every `0 <= i <= s.length()`.
+4. **Reassembly preserves content:** `s.substring(0, begin) + s.substring(begin, end) + s.substring(end)` equals `s` in content.
+5. **Full range:** `s.substring(0, s.length()).equals(s)`.
+6. **Source preservation:** calling `substring` does not mutate `s` because `String` is immutable.
 
-Các thuộc tính này cũng áp dụng cho chuỗi có surrogate pair nếu đo và chọn ranh giới theo **UTF-16 code unit**. Chúng không đảm bảo mọi lát cắt có cặp surrogate đầy đủ, vì đó là yêu cầu bổ sung ở tầng Unicode.
+These properties also hold for strings with surrogate pairs when measuring and choosing boundaries by **UTF-16 code unit**. They do not guarantee that every slice has complete surrogate pairs, as that is an additional Unicode-level requirement.
 
-Có thể tạo các ca **randomized tests** với generator sinh `String` và hai chỉ số hợp lệ, ví dụ chọn `begin` trong `[0, length]` rồi chọn `end` trong `[begin, length]`. Với ca bất hợp lệ, hãy sinh các cặp ra ngoài phạm vi. Khi dùng random, lưu seed khi phát hiện lỗi để tái lập được.
+You can generate **randomized tests** with a generator producing a `String` and two valid indices, e.g., picking `begin` in `[0, length]` and then `end` in `[begin, length]`. For invalid cases, generate out-of-range pairs. When using randomness, log or fix the seed on failure so it is reproducible.
 
-Để tránh bài test “kiểm tra bằng chính hàm đang kiểm tra”, phần lớn các thuộc tính nên được xác minh độc lập bằng `length()`, `charAt()` và một mô hình oracle đơn giản, hoặc đối chiếu với quy tắc dữ liệu ban đầu. Không cần dùng random cho một hàm cực nhỏ nếu ma trận biên đã đủ; đây là kỹ thuật bổ sung hữu ích cho bộ tách nội dung tự viết.
+To avoid tests that “verify the function using the function itself,” most properties should be checked independently using `length()`, `charAt()`, and a simple oracle model, or compared against the original data rules. There is no need to use randomness for a tiny function when a boundary matrix suffices; it is a helpful supplemental technique for custom text splitters.
 
-## 13. Chỉ số inclusive của nghiệp vụ và API exclusive của Java
+## 13. Business Inclusive Indices vs. Java Exclusive APIs
 
-Một số tài liệu nghiệp vụ nói “lấy từ vị trí 2 **đến cả** vị trí 4”. Nếu hai đầu đều inclusive thì cần chuyển sang Java `substring(2, 5)`, không phải `substring(2, 4)`.
+Some business specifications say “take from position 2 **through** position 4.” When both endpoints are inclusive, convert to Java `substring(2, 5)`, not `substring(2, 4)`.
 
-Ví dụ:
+Example:
 
 ```java
 String s = "ABCDEFG";
@@ -501,18 +501,18 @@ String result = s.substring(firstInclusive, lastInclusive + 1);
 // CDE
 ```
 
-Cách cộng 1 chỉ an toàn sau khi xác nhận `lastInclusive` là vị trí ký tự hợp lệ, nghĩa là `0 <= lastInclusive < s.length()`. Kiểm thử logic chuyển đổi phải bao gồm:
-- `firstInclusive == lastInclusive` (lấy đúng một ký tự).
-- `lastInclusive == s.length() - 1` (lấy đến ký tự cuối).
-- `firstInclusive > lastInclusive` (phạm vi sai).
-- `lastInclusive < 0` hoặc `lastInclusive >= s.length()` (ngoài phạm vi).
-- Chuỗi rỗng: **không có phần tử** nào để áp dụng khoảng inclusive gồm ít nhất một ký tự.
+Adding 1 is only safe after verifying `lastInclusive` is a valid character position, i.e. `0 <= lastInclusive < s.length()`. Testing the conversion logic must include:
+- `firstInclusive == lastInclusive` (extracts exactly one character).
+- `lastInclusive == s.length() - 1` (extracts through the last character).
+- `firstInclusive > lastInclusive` (invalid range).
+- `lastInclusive < 0` or `lastInclusive >= s.length()` (out of bounds).
+- Empty string: **no element** exists to apply a non-empty inclusive range of at least one character.
 
-Một nguồn lỗi tương tự là **đếm vị trí từ 1** trong tài liệu hoặc giao diện, trong khi Java dùng chỉ số từ 0. Nếu người dùng chọn “ký tự thứ 3 đến thứ 5” theo cách đếm 1-based và bao gồm cả hai đầu, khoảng Java tương ứng là `substring(2, 5)`. Các quy tắc quy đổi phải được viết rõ trong API và test.
+A similar source of error is **1-based counting** in documents or UIs, while Java uses 0-based indexing. If a user selects “3rd to 5th character” using 1-based inclusive counting, the corresponding Java range is `substring(2, 5)`. Conversion rules must be clearly documented in both the API and tests.
 
-## 14. Phân biệt khoảng nguồn và khoảng mảng, offset/count
+## 14. Distinguishing Source/Array Ranges and Offset/Count
 
-Không phải mọi API Java dùng cặp `begin, end`. Một số API dùng **offset và count**: điểm bắt đầu và **số phần tử**. Ví dụ:
+Not all Java APIs use a `begin, end` pair. Some APIs use **offset and count**: a starting position and a **number of elements**. For example:
 
 ```java
 char[] chars = {'A', 'B', 'C', 'D', 'E'};
@@ -521,64 +521,64 @@ String a = String.valueOf(chars, 1, 3); // "BCD"
 String b = new String(chars, 1, 3);      // "BCD"
 ```
 
-Ở hai lệnh trên, tham số thứ ba là `count = 3`, **không phải `endIndex = 3`. Nếu nhầm hai quy ước, một bài test có thể đậu ngẫu nhiên ở trường hợp `offset = 0` nhưng hỏng ngay khi `offset > 0`.
+In both calls above, the third argument is `count = 3`, **not `endIndex = 3`**. Confusing the two conventions can let a test pass by coincidence when `offset = 0`, only to break immediately when `offset > 0`.
 
-| API | Tham số chỉ số | Ý nghĩa |
+| API | Index Parameters | Meaning |
 | --- | --- | --- |
-| `s.substring(begin, end)` | `begin, end` | Chọn `[begin, end)` |
-| `s.subSequence(start, end)` | `start, end` | Chọn `[start, end)` |
-| `s.getChars(srcBegin, srcEnd, dst, dstBegin)` | `srcBegin, srcEnd` | Chọn `[srcBegin, srcEnd)` của nguồn |
-| `String.valueOf(chars, offset, count)` | `offset, count` | Chọn `count` ký tự từ `offset` |
-| `new String(chars, offset, count)` | `offset, count` | Chọn `count` ký tự từ `offset` |
-| `s.charAt(index)` | `index` | Chọn một UTF-16 code unit tại `index` |
+| `s.substring(begin, end)` | `begin, end` | Selects `[begin, end)` |
+| `s.subSequence(start, end)` | `start, end` | Selects `[start, end)` |
+| `s.getChars(srcBegin, srcEnd, dst, dstBegin)` | `srcBegin, srcEnd` | Selects `[srcBegin, srcEnd)` of source |
+| `String.valueOf(chars, offset, count)` | `offset, count` | Selects `count` characters from `offset` |
+| `new String(chars, offset, count)` | `offset, count` | Selects `count` characters from `offset` |
+| `s.charAt(index)` | `index` | Selects one UTF-16 code unit at `index` |
 
-Khi thiết kế test, trước hết xác định **tham số thứ hai mang ý nghĩa gì**; không lấy công thức `end - begin` áp dụng cho `count` hoặc ngược lại.
+When designing tests, first identify **what the second index/size parameter means**; do not apply `end - begin` logic to `count` or vice versa.
 
-## 15. Sai lầm phổ biến trong bài kiểm thử chỉ số
+## 15. Common Mistakes in Index Testing
 
-**1. Tưởng `endIndex` được bao gồm.** Điều này làm mất phần tử cuối hoặc gây `end + 1` sai. Với `substring`, điểm cuối luôn **exclusive**.
+**1. Assuming `endIndex` is inclusive.** This drops the last element or causes wrong `end + 1` adjustments. For `substring`, the end point is always **exclusive**.
 
-**2. Nghĩ `substring(length, length)` là lỗi.** Đây là khoảng rỗng hợp lệ. Nhưng `charAt(length)` vẫn là lỗi.
+**2. Thinking `substring(length, length)` is an error.** It is a valid empty range. However, `charAt(length)` is still an error.
 
-**3. Bỏ qua nguồn rỗng.** Trên `""`, chỉ `substring(0, 0)` hoặc `substring(0)` là các cách lấy khoảng rỗng hợp lệ trong phạm vi này.
+**3. Ignoring empty sources.** On `""`, only `substring(0, 0)` or `substring(0)` are valid ways to obtain an empty range within this scope.
 
-**4. Test chỉ trường hợp có dữ liệu.** Lệch `+1/-1` thường lộ ở biên, khoảng một ký tự hoặc khoảng rỗng.
+**4. Testing only populated cases.** Off-by-one `+1/-1` errors usually appear at boundaries, single-character spans, or empty ranges.
 
-**5. So sánh thông báo exception nguyên văn.** Dạng message có thể khác giữa JDK; ưu tiên kiểm tra kiểu ngoại lệ theo hợp đồng và điều kiện gây lỗi.
+**5. Comparing exception messages verbatim.** Message formatting can differ across JDKs; prefer asserting the exception type per contract and the failing condition.
 
-**6. Dùng `length()` như số ký tự người dùng nhìn thấy.** Đây là số UTF-16 code unit. Cắt giữa hai surrogate hợp lệ về mặt index nhưng có thể hỏng dữ liệu hiển thị.
+**6. Treating `length()` as visible character count.** It is the UTF-16 code unit count. Splitting between two surrogates is index-valid yet can corrupt displayed data.
 
-**7. Không kiểm tra `indexOf` trả `-1`.** Cộng 1 quá sớm biến `-1` thành `0`, khiến một số lỗi thiếu delimiter trở nên khó phát hiện.
+**7. Not checking for `indexOf` returning `-1`.** Adding 1 too early turns `-1` into `0`, making missing-delimiter bugs harder to notice.
 
-**8. Bỏ qua null.** `source.substring(...)` trên tham chiếu null ném `NullPointerException` trước khi kiểm tra khoảng. Hàm wrapper có thể chủ động xác định ngoại lệ/giá trị mặc định riêng.
+**8. Ignoring null.** `source.substring(...)` on a null reference throws `NullPointerException` before any range check. A wrapper function can explicitly define its own exception or default value.
 
-**9. Nhầm offset/count với begin/end.** Truyền `String.valueOf(chars, 2, 5)` như thể muốn đến chỉ số 5 thực ra yêu cầu lấy **5** phần tử từ 2, có thể vượt biên.
+**9. Confusing offset/count with begin/end.** Passing `String.valueOf(chars, 2, 5)` thinking it stops at index 5 actually asks for **5** elements starting at 2, which can go out of bounds.
 
-**10. Kiểm tra ngoại lệ quá rộng.** Bắt mọi `Exception` có thể che lỗi hoàn toàn khác. Khi kiểm thử hành vi cụ thể, kiểm tra họ ngoại lệ thích hợp và không bỏ qua sai lệch.
+**10. Catching exceptions too broadly.** Catching any `Exception` can mask an unrelated failure. When testing specific behavior, assert the appropriate exception family and do not overlook mismatches.
 
-## 16. Checklist kiểm thử trước khi hoàn thành
+## 16. Pre-Completion Testing Checklist
 
-Với mỗi hàm tách chuỗi, xác nhận các câu hỏi dưới đây:
+For each string-slicing function, confirm these questions:
 
-- Khoảng sử dụng **`[begin, end)`**, **inclusive/inclusive** hay **offset/count**?
-- `length()` được hiểu là UTF-16 code unit hay chương trình thực sự yêu cầu code point/grapheme?
-- Các mốc **`0`**, **`length()`**, **`length()-1`** đã được kiểm tra đúng vị trí chưa?
-- Có test cho chuỗi rỗng, khoảng rỗng đầu/giữa/cuối, ký tự đầu/cuối và toàn chuỗi không?
-- Đã test begin âm, end vượt biên, begin lớn hơn end, và ô đầu vào null nếu API nhận tham chiếu chưa?
-- Nếu ranh giới được tính từ delimiter, đã kiểm tra kết quả `indexOf == -1` và delimiter trùng nhau/chồng lấn chưa?
-- Nếu mảng đích bị thay đổi, đã kiểm tra **nội dung ngoài vùng ghi vẫn giữ nguyên** chưa?
-- Nếu cần Unicode chính xác, đã test surrogate pair và định nghĩa đơn vị “ký tự” chưa?
-- Khi sai phạm vi, test kiểm tra **kiểu lỗi phù hợp**, và khi hợp lệ, test so sánh **nội dung chính xác** chứ không chỉ “không lỗi” chưa?
+- Does the range use **`[begin, end)`**, **inclusive/inclusive**, or **offset/count**?
+- Is `length()` interpreted as UTF-16 code units, or does the program truly require code points/graphemes?
+- Have **`0`**, **`length()`**, and **`length()-1`** been checked at the right positions?
+- Are there tests for an empty string, empty ranges at start/middle/end, first/last character, and the full string?
+- Have negative begin, out-of-bounds end, begin greater than end, and null input (if accepted by the API) been tested?
+- If boundaries are computed from delimiters, have `indexOf == -1` and duplicate/overlapping delimiters been tested?
+- If a destination array is mutated, have **elements outside the written region been verified untouched**?
+- If Unicode correctness matters, have surrogate pairs been tested and the “character” unit defined?
+- For invalid ranges, do tests check the **appropriate error type**, and for valid ranges, do tests compare **exact content** rather than just “no error”?
 
-## 17. Ghi nhớ
+## 17. Takeaway
 
-- Java `String.substring(begin, end)`, `subSequence(start, end)` và `getChars(srcBegin, srcEnd, ...)` dùng **khoảng nửa mở `[begin, end)`**.
-- **Khoảng hợp lệ:** `0 <= begin <= end <= length()`. **Ký tự hợp lệ:** `0 <= index < length()`.
-- `end == length()` và `begin == end` là các trường hợp **hợp lệ** của `substring`; dữ liệu trả có thể rỗng.
-- Kiểm thử phải bao phủ **kết quả đúng** và **ngoại lệ đúng** ở cả hai đầu phạm vi.
-- Chỉ số của `String` dựa trên **UTF-16 code unit**; một emoji có thể dài 2 code unit và có thể bị cắt giữa cặp surrogate.
-- Các API dùng `offset, count` phải được kiểm thử khác với API dùng `begin, end`.
-- Khi tính biên từ `indexOf`, luôn xử lý giá trị `-1` trước khi cắt.
-- Với hàm trích xuất tự viết, dùng các thuộc tính như độ dài `end - begin`, bảo toàn nội dung và kiểm tra ngoại lệ để ngăn lỗi lệch một đơn vị.
+- Java's `String.substring(begin, end)`, `subSequence(start, end)`, and `getChars(srcBegin, srcEnd, ...)` use the **half-open range `[begin, end)`**.
+- **Valid range:** `0 <= begin <= end <= length()`. **Valid character index:** `0 <= index < length()`.
+- `end == length()` and `begin == end` are **valid** cases for `substring`; the returned value may be empty.
+- Tests must cover **correct results** and **expected exceptions** at both ends of the range.
+- `String` indices are based on **UTF-16 code units**; an emoji can be 2 code units long and can be split mid-surrogate.
+- APIs using `offset, count` must be tested differently from APIs using `begin, end`.
+- When computing bounds from `indexOf`, always handle `-1` before slicing.
+- For custom extraction functions, use invariants such as length `end - begin`, content preservation, and exception checks to prevent off-by-one bugs.
 
-Tài liệu tham khảo chính thức: [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html), [Java SE 17 — CharSequence](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/CharSequence.html), [Java SE 17 — Character](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html), [JUnit 5 User Guide](https://junit.org/junit5/docs/current/user-guide/).
+Official references: [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html), [Java SE 17 — CharSequence](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/CharSequence.html), [Java SE 17 — Character](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html), [JUnit 5 User Guide](https://junit.org/junit5/docs/current/user-guide/).

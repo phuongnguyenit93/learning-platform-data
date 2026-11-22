@@ -1,20 +1,20 @@
-# Externalizable, writeExternal và readExternal trong Java Serialization
+# Externalizable, writeExternal, and readExternal in Java Serialization
 
-## 1. Tổng quan và mục tiêu
+## 1. Overview and Objectives
 
-Trong Java Core I/O, `java.io.Externalizable` là một cơ chế tuần tự hóa đối tượng cho phép **chính lớp đối tượng chủ động ghi và đọc biểu diễn dữ liệu của mình**. Nó mở rộng `Serializable` nhưng khác đáng kể với serialization mặc định:
+In Java Core I/O, `java.io.Externalizable` is an object serialization mechanism that allows **the object's own class to actively write and read its data representation**. It extends `Serializable` but differs significantly from default serialization:
 
-- `Serializable` thông thường: `ObjectOutputStream` có thể tự ghi các instance field đủ điều kiện, trừ `static` và `transient`, theo quy tắc Java serialization.
-- `Externalizable`: runtime gọi **`writeExternal(ObjectOutput)`** khi ghi và **`readExternal(ObjectInput)`** khi đọc. Lập trình viên quyết định cần ghi gì, ghi theo thứ tự nào và khôi phục ra sao.
-- Khi deserialize một class `Externalizable` thông thường, Java cần **constructor `public` không tham số** để tạo instance trước khi gọi `readExternal`.
-- Việc tự quản lý dữ liệu **không làm mất cơ chế quản lý object handles** của `ObjectOutputStream` khi bạn gọi `writeObject`/`readObject`. Đồ thị tham chiếu và alias có thể được giữ nguyên, kể cả chu trình, nếu thiết kế giao thức đúng.
-- `Externalizable` vẫn là **Java native object serialization**, không phải cơ chế giải mã dữ liệu không tin cậy an toàn.
+- Standard `Serializable`: `ObjectOutputStream` can automatically write eligible instance fields, except `static` and `transient`, according to Java serialization rules.
+- `Externalizable`: the runtime calls **`writeExternal(ObjectOutput)`** when writing and **`readExternal(ObjectInput)`** when reading. The programmer decides what to write, in what order to write it, and how to restore it.
+- When deserializing a normal `Externalizable` class, Java requires a **`public` no-argument constructor** to create an instance before calling `readExternal`.
+- Managing data yourself **does not eliminate the object handle mechanism** of `ObjectOutputStream` when you call `writeObject`/`readObject`. Reference graphs and aliases can be preserved, including cycles, if the protocol is designed properly.
+- `Externalizable` is still **Java native object serialization**, not a safe mechanism for decoding untrusted data.
 
-Sau bài này, bạn sẽ hiểu hợp đồng API, viết được ví dụ Java 17+ chạy độc lập, kiểm thử thứ tự/phiên bản của biểu diễn dữ liệu, xử lý reference graph và biết khi nào không nên sử dụng cơ chế này.
+After this lesson, you will understand the API contract, write a standalone runnable Java 17+ example, test ordering/versioning of the data representation, handle reference graphs, and know when not to use this mechanism.
 
-## 2. Externalizable là gì?
+## 2. What Is Externalizable?
 
-Khai báo giao diện:
+Interface declaration:
 
 ```java
 public interface Externalizable extends Serializable {
@@ -25,24 +25,24 @@ public interface Externalizable extends Serializable {
 }
 ```
 
-Đây là hình thức khai báo API rút gọn để giải thích; Java đã có interface này trong `java.io`, **không tự định nghĩa lại nó trong dự án**.
+This is an abbreviated API declaration for explanation; Java already provides this interface in `java.io`—**do not redefine it in your project**.
 
-Hai phương thức quan trọng:
+The two key methods:
 
-| Phương thức | Lúc nào chạy? | Chức năng |
+| Method | When Does It Run? | Role |
 |---|---|---|
-| `writeExternal(ObjectOutput out)` | Khi `ObjectOutputStream` ghi instance Externalizable mới | Tự viết field/phiên bản/record theo thứ tự bạn chọn |
-| `readExternal(ObjectInput in)` | Sau khi instance được tạo để giải tuần tự hóa | Đọc đúng biểu diễn do `writeExternal` tạo và dựng lại trạng thái |
+| `writeExternal(ObjectOutput out)` | When `ObjectOutputStream` writes a new Externalizable instance | Manually writes fields/version/record in the order you choose |
+| `readExternal(ObjectInput in)` | After the instance is created for deserialization | Reads the exact representation produced by `writeExternal` and rebuilds state |
 
-`ObjectOutput` có các thao tác `writeInt`, `writeLong`, `writeBoolean`, `writeUTF`, `writeObject` và `write(byte[])`. `ObjectInput` có các thao tác đối xứng `readInt`, `readLong`, `readBoolean`, `readUTF`, `readObject`, `readFully`, v.v.
+`ObjectOutput` has operations such as `writeInt`, `writeLong`, `writeBoolean`, `writeUTF`, `writeObject`, and `write(byte[])`. `ObjectInput` has symmetric operations `readInt`, `readLong`, `readBoolean`, `readUTF`, `readObject`, `readFully`, etc.
 
-**Không được coi `ObjectOutput` là bộ ghi JSON.** Bạn đang tạo một trình tự giá trị byte theo hợp đồng của chính ứng dụng, nằm trong object serialization stream của Java.
+**Do not treat `ObjectOutput` as a JSON writer.** You are creating a sequence of byte values according to your application's own contract, inside Java's object serialization stream.
 
-### Externalizable không có nghĩa class được ghi hoàn toàn ngoài Java serialization
+### Externalizable Does Not Mean the Class Is Written Completely Outside Java Serialization
 
-`ObjectOutputStream.writeObject(externalizableObject)` vẫn quản lý luồng object, class descriptor, identity handles và cơ chế giải mã liên quan. `writeExternal` chịu trách nhiệm payload trạng thái của class, không thay thế toàn bộ định dạng stream hay việc tìm class theo tên lúc đọc.
+`ObjectOutputStream.writeObject(externalizableObject)` still manages the object stream, class descriptors, identity handles, and related decoding mechanisms. `writeExternal` is responsible for the class's state payload, not replacing the entire stream format or looking up classes by name when reading.
 
-## 3. Ví dụ tối giản một class Externalizable
+## 3. Minimal Example of an Externalizable Class
 
 ```java
 import java.io.Externalizable;
@@ -56,7 +56,7 @@ public class Product implements Externalizable {
     private String code;
     private int quantity;
 
-    // BẮT BUỘC public và không tham số cho cơ chế deserialization.
+    // REQUIRED: public and no-argument for the deserialization mechanism.
     public Product() {
     }
 
@@ -85,65 +85,65 @@ public class Product implements Externalizable {
 }
 ```
 
-Lưu `Product.java` nếu muốn biên dịch class này riêng. Đoạn trên là **định nghĩa lớp**, chưa có `main` để chạy. Giả định `code` không null và vừa giới hạn của `writeUTF`; ví dụ nâng cao cần kiểm tra dữ liệu đầu vào.
+Save as `Product.java` if you want to compile this class separately. The snippet above is a **class definition**, without a `main` method to run. It assumes `code` is non-null and within `writeUTF` limits; advanced examples need input data validation.
 
-Điều bạn phải tự bảo đảm:
+What you must guarantee yourself:
 
-1. `writeExternal` ghi `code` **trước** `quantity`.
-2. `readExternal` đọc `code` bằng `readUTF` **trước** `quantity` bằng `readInt`.
-3. Nếu đổi thứ tự hoặc đổi kiểu của một thành phần mà không cập nhật giao thức đọc, có thể đọc sai, ném exception, hoặc âm thầm tạo trạng thái không hợp lệ.
-4. Không có cơ chế tự động lưu thêm field mới chỉ vì bạn thêm một field vào class.
-5. Constructor `public Product()` được dùng khi giải tuần tự hóa; constructor hai tham số không tự chạy trong quá trình ấy.
+1. `writeExternal` writes `code` **before** `quantity`.
+2. `readExternal` reads `code` with `readUTF` **before** `quantity` with `readInt`.
+3. Changing the order or type of a component without updating the reading protocol can result in misreading data, throwing an exception, or silently producing invalid state.
+4. There is no mechanism that automatically saves a new field just because you added a field to the class.
+5. The `public Product()` constructor is used during deserialization; the two-argument constructor does not run automatically during that process.
 
-## 4. So sánh Serializable và Externalizable
+## 4. Comparing Serializable and Externalizable
 
-| Khía cạnh | `Serializable` mặc định | `Externalizable` |
+| Aspect | Default `Serializable` | `Externalizable` |
 |---|---|---|
-| Interface | Marker interface, không có method bắt buộc | Mở rộng Serializable; có hai method bắt buộc |
-| Ai quyết định field được lưu? | Cơ chế serialization mặc định, có thể tùy chỉnh qua hook | Chính `writeExternal` |
-| Ai đọc trạng thái? | Cơ chế mặc định, có thể tùy chỉnh `readObject` | Chính `readExternal` |
-| Constructor khi restore class thông thường | Không gọi constructor thông thường của class Serializable như `new` | Gọi constructor `public` không tham số của class Externalizable |
-| `transient` và `static` | Không lưu theo quy tắc field mặc định | Không tự quyết định; có thể ghi giá trị tường minh |
-| Thay đổi thứ tự field trong mã nguồn | Không tự buộc bạn ghi/đọc thủ công theo thứ tự đó | Giao thức đã ghi phụ thuộc thứ tự/type do tác giả lựa chọn |
-| Thêm field mới | Quy tắc tương thích của serialization mặc định có thể hỗ trợ một số thay đổi | Phải tự thiết kế cách nhận biết và đọc phiên bản cũ/mới |
-| Object identity/cycle qua `writeObject` | Có cơ chế handles | Vẫn có khi dùng cơ chế object stream phù hợp |
-| Tính linh hoạt | Ít mã hơn cho model đơn giản | Chủ động encoding, validation và chọn data fields |
-| Rủi ro | Versioning, object graph, input không tin cậy | Các rủi ro tương tự **cộng thêm lỗi giao thức do tự viết** |
+| Interface | Marker interface, no required methods | Extends Serializable; has two required methods |
+| Who decides which fields are saved? | Default serialization mechanism, customizable via hooks | `writeExternal` itself |
+| Who reads the state? | Default mechanism, customizable via `readObject` | `readExternal` itself |
+| Constructor when restoring a normal class | Does not invoke the Serializable class's regular constructor like `new` | Invokes the `public` no-arg constructor of the Externalizable class |
+| `transient` and `static` | Not saved by default field rules | Not decided automatically; values can be written explicitly |
+| Reordering fields in source code | Does not force you to manually read/write in that order | Written protocol depends on the order/types chosen by the author |
+| Adding a new field | Default serialization compatibility rules may support some changes | Must manually design how to recognize and read old/new versions |
+| Object identity/cycles via `writeObject` | Has handle mechanism | Still present when using the appropriate object stream mechanism |
+| Flexibility | Less code for simple models | Full control over encoding, validation, and data field selection |
+| Risks | Versioning, object graph, untrusted input | Similar risks **plus protocol bugs from manual implementation** |
 
-**Externalizable không mặc định nhanh hơn, nhỏ hơn, an toàn hơn Serializable.** Nó có thể giảm payload nếu chủ động không ghi những field thừa, nhưng vẫn có metadata/handle của Java serialization và thêm công sức bảo trì mã hóa thủ công. Cần benchmark nếu hiệu năng quan trọng.
+**Externalizable is not automatically faster, smaller, or safer than Serializable.** It can reduce payload size if you intentionally omit unnecessary fields, yet it still carries Java serialization metadata/handles and adds maintenance effort for manual encoding. Benchmark if performance matters.
 
-## 5. Tại sao cần constructor public không tham số?
+## 5. Why Is a Public No-Argument Constructor Required?
 
-Khác với class `Serializable` thông thường, Java deserialization của Externalizable thực hiện về mặt ý tưởng:
+Unlike regular `Serializable` classes, Java deserialization of Externalizable works conceptually as follows:
 
 ```text
-Đọc metadata class từ object stream
+Read class metadata from object stream
         |
         v
-Tìm/nạp class tương thích
+Find/load compatible class
         |
         v
-Gọi constructor public không tham số
+Call public no-argument constructor
         |
         v
-Instance đã được tạo
+Instance is created
         |
         v
-Gọi readExternal(ObjectInput)
+Call readExternal(ObjectInput)
         |
         v
-Instance đã khôi phục trạng thái
+Instance with restored state
 ```
 
-Vì constructor chạy thực sự:
+Because the constructor actually runs:
 
-- Các field initializer và logic trong constructor không tham số có thể chạy.
-- Sau đó `readExternal` có thể ghi đè các giá trị vừa khởi tạo.
-- Nếu một field **không được đọc** trong `readExternal`, nó có thể giữ giá trị do constructor đặt (hoặc giá trị mặc định khi constructor không gán).
-- Constructor có side effect (kết nối DB, tạo thread, ghi file, thay global state...) sẽ gây rủi ro khi deserialize. **Giữ constructor này đơn giản và side-effect-free** là khuyến nghị quan trọng.
-- Nếu class không có constructor public không tham số có thể truy cập như API yêu cầu, quá trình đọc sẽ thất bại, thường là `InvalidClassException` hoặc lỗi liên quan.
+- Field initializers and logic inside the no-argument constructor can execute.
+- Afterward, `readExternal` can overwrite the initialized values.
+- If a field is **not read** in `readExternal`, it can retain the value set by the constructor (or the default value if the constructor does not assign it).
+- A constructor with side effects (DB connections, spawning threads, writing files, mutating global state...) poses risks during deserialization. **Keeping this constructor simple and side-effect-free** is an important recommendation.
+- If the class lacks an accessible public no-argument constructor as required by the API, reading will fail, typically with `InvalidClassException` or a related error.
 
-Ví dụ **sai**:
+**Incorrect** example:
 
 ```java
 class Bad implements Externalizable {
@@ -167,15 +167,15 @@ class Bad implements Externalizable {
 }
 ```
 
-Class trên thiếu constructor `public Bad()`. Đoạn minh họa giả định import `Externalizable`, `ObjectOutput`, `ObjectInput` và `IOException`. Ghi instance vẫn có thể tạo bytes, nhưng đọc lại qua Java serialization không có constructor cần thiết.
+The class above lacks `public Bad()`. This illustrative snippet assumes imports for `Externalizable`, `ObjectOutput`, `ObjectInput`, and `IOException`. Writing an instance may still produce bytes, but reading it back via Java serialization lacks the required constructor.
 
-### Nested class cũng cần chú ý
+### Nested Classes Also Require Attention
 
-Nếu viết class Externalizable bên trong class khác, **`public static class ... implements Externalizable`** thường rõ ràng hơn inner class không static. Inner class không static mang reference ngầm tới outer instance và cơ chế constructor có tham số outer ngầm, khiến yêu cầu constructor không tham số dễ bị vi phạm.
+When writing an Externalizable class inside another class, **`public static class ... implements Externalizable`** is usually clearer than a non-static inner class. A non-static inner class carries an implicit reference to the outer instance and an implicit outer-parameter constructor mechanism, making the no-argument constructor requirement easy to violate.
 
-## 6. Mọi dữ liệu nằm trong giao thức do bạn viết
+## 6. All Data Lives in the Protocol You Write
 
-Với `Serializable` mặc định:
+With default `Serializable`:
 
 ```java
 private int age;
@@ -183,53 +183,53 @@ private String name;
 private transient String token;
 ```
 
-cơ chế serialization mặc định biết xử lý `age` và `name`, bỏ `token`.
+the default serialization mechanism knows to handle `age` and `name`, skipping `token`.
 
-Với `Externalizable`, bạn quyết định:
+With `Externalizable`, you decide:
 
 ```java
 @Override
 public void writeExternal(ObjectOutput out) throws IOException {
     out.writeInt(age);
     out.writeUTF(name);
-    // token không được ghi vì ta KHÔNG gọi write cho nó.
+    // token is not written because we do NOT call write for it.
 }
 ```
 
-`transient` **không tự động chặn** việc bạn trực tiếp viết field trong `writeExternal`:
+`transient` **does not automatically block** you from writing a field directly inside `writeExternal`:
 
 ```java
 private transient String token;
 
 @Override
 public void writeExternal(ObjectOutput out) throws IOException {
-    out.writeUTF(token); // VẪN đưa token vào luồng nếu được gọi!
+    out.writeUTF(token); // STILL puts token into the stream if called!
 }
 ```
 
-Vì vậy, không dùng `transient` như biện pháp an toàn tuyệt đối trước dữ liệu nhạy cảm khi class Externalizable có custom protocol. Kiểm tra mã `writeExternal` thực sự đã ghi những gì.
+Therefore, do not rely on `transient` as an absolute safeguard against sensitive data leaks when an Externalizable class has a custom protocol. Inspect the `writeExternal` code to see what is actually written.
 
-Tương tự, `static` không phải instance state mặc định, nhưng lập trình viên vẫn **có thể** đọc static field và ghi giá trị của nó một cách thủ công. Điều đó không có nghĩa nên làm như vậy: state dùng chung thường không phù hợp lưu dưới dạng từng object.
+Similarly, `static` is not default instance state, yet a programmer **can** manually read a static field and write its value. That does not mean you should do so: shared state is usually unsuitable to store per-object.
 
-## 7. Primitive, String và Object: chọn cặp phương thức
+## 7. Primitives, Strings, and Objects: Choosing Method Pairs
 
-| Ghi bằng ObjectOutput | Đọc bằng ObjectInput | Kiểu dữ liệu |
+| Write with ObjectOutput | Read with ObjectInput | Data Type |
 |---|---|---|
-| `writeInt(value)` | `readInt()` | 4 byte mã hóa int theo giao thức DataOutput/DataInput |
+| `writeInt(value)` | `readInt()` | 4 bytes encoding an int per DataOutput/DataInput protocol |
 | `writeLong(value)` | `readLong()` | long |
 | `writeBoolean(value)` | `readBoolean()` | boolean |
 | `writeDouble(value)` | `readDouble()` | double |
-| `writeUTF(value)` | `readUTF()` | Chuỗi dùng **modified UTF-8** có tiền tố độ dài |
+| `writeUTF(value)` | `readUTF()` | String using **modified UTF-8** with length prefix |
 | `writeObject(ref)` | `readObject()` | Java object/reference graph |
-| `write(byte[])` | `readFully(byte[])` | Dãy byte với kích thước **đã biết trước** |
+| `write(byte[])` | `readFully(byte[])` | Byte sequence with a **known prior** size |
 
-Một số cặp API có thể **không đối xứng** nếu dùng sai. Ví dụ `writeUTF(name)` **không** tương đương `writeObject(name)`, dù cả hai truyền cùng nội dung chuỗi.
+Some API pairs can be **asymmetric** if misused. For example, `writeUTF(name)` is **not** equivalent to `writeObject(name)`, even though both transmit the same string content.
 
-### writeUTF không phải “ghi UTF-8 tùy độ dài”
+### writeUTF Is Not "Write Arbitrary-Length UTF-8"
 
-`DataOutput.writeUTF` sử dụng **modified UTF-8** của Java cùng độ dài giới hạn bằng 16-bit unsigned. Chuỗi có biểu diễn modified UTF-8 dài quá 65.535 byte có thể làm `writeUTF` ném `UTFDataFormatException`. Nếu cần chuỗi rất lớn, bạn nên tự quy định encoding UTF-8, length prefix bằng `int`/`long` có giới hạn, rồi ghi byte; lúc đọc kiểm tra độ dài trước khi cấp phát.
+`DataOutput.writeUTF` uses Java's **modified UTF-8** with a 16-bit unsigned length limit. A string whose modified UTF-8 representation exceeds 65,535 bytes can cause `writeUTF` to throw `UTFDataFormatException`. If you need very large strings, define your own UTF-8 encoding, a bounded `int`/`long` length prefix, and write raw bytes; on read, check the length before allocating.
 
-Ví dụ một schema text lớn (minh họa, không phải method độc lập):
+Example of a large text schema (illustrative, not a standalone method):
 
 ```java
 byte[] utf8 = name.getBytes(StandardCharsets.UTF_8);
@@ -239,7 +239,7 @@ if (utf8.length > MAX_NAME_BYTES) {
 out.writeInt(utf8.length);
 out.write(utf8);
 
-// Khi đọc:
+// On read:
 int length = in.readInt();
 if (length < 0 || length > MAX_NAME_BYTES) {
     throw new InvalidObjectException("Invalid name length");
@@ -249,11 +249,11 @@ in.readFully(raw);
 name = new String(raw, StandardCharsets.UTF_8);
 ```
 
-Ở đây `name`, `out`, `in`, `MAX_NAME_BYTES` phải được khai báo trong class. Ví dụ dùng `new String(..., UTF_8)` có thể thay byte UTF-8 lỗi bằng ký tự thay thế theo hành vi decoder. Nếu giao thức cần **từ chối Unicode lỗi**, dùng `CharsetDecoder` với `CodingErrorAction.REPORT` và bắt lỗi.
+Here `name`, `out`, `in`, and `MAX_NAME_BYTES` must be declared in the class. The example uses `new String(..., UTF_8)`, which may replace malformed UTF-8 bytes with replacement characters per decoder behavior. If the protocol must **reject malformed Unicode**, use `CharsetDecoder` with `CodingErrorAction.REPORT` and handle errors.
 
-### Null handling
+### Null Handling
 
-`writeUTF(null)` không phải cách ghi một chuỗi null hợp lệ. Chọn schema như:
+`writeUTF(null)` is not a valid way to write a null string. Choose a schema such as:
 
 ```java
 out.writeBoolean(name != null);
@@ -261,16 +261,16 @@ if (name != null) {
     out.writeUTF(name);
 }
 
-// Đọc theo đúng thứ tự:
+// Read in the exact same order:
 boolean exists = in.readBoolean();
 name = exists ? in.readUTF() : null;
 ```
 
-Hoặc sử dụng `writeObject`/`readObject` cho một reference kiểu String, nơi null được object stream xử lý tự nhiên. Chọn theo yêu cầu kích thước, biểu diễn và kiểm soát kiểu.
+Or use `writeObject`/`readObject` for a String reference, where null is handled naturally by the object stream. Choose based on size, representation, and type control requirements.
 
-## 8. Thứ tự là một phần hợp đồng dữ liệu
+## 8. Ordering Is Part of the Data Contract
 
-Giả sử writer:
+Suppose the writer does:
 
 ```java
 out.writeInt(version);
@@ -279,7 +279,7 @@ out.writeLong(timestamp);
 out.writeBoolean(active);
 ```
 
-Reader **phải đọc cùng thứ tự và cách biểu diễn**:
+The reader **must read in the same order and representation**:
 
 ```java
 int version = in.readInt();
@@ -288,23 +288,23 @@ long timestamp = in.readLong();
 boolean active = in.readBoolean();
 ```
 
-Nếu reader lại gọi `readLong()` ở vị trí đang lưu String, stream sẽ bị diễn giải sai; kết quả có thể là exception hoặc một giá trị rác trước khi gặp lỗi ở phần sau.
+If the reader calls `readLong()` at the position storing the String, the stream will be misinterpreted; the result may be an exception or garbage values before failing later.
 
-Một file Java object serialization có thể được đọc bởi class version khác với class đã ghi trước đó. Chính tác giả `Externalizable` phải xây giao thức cho compatibility. Không được tự dựa vào thứ tự khai báo field hay việc thêm field ở cuối class như với một số trường hợp serialization mặc định.
+A Java object serialization file may be read by a different class version than the one that wrote it earlier. The `Externalizable` author must build compatibility into the protocol themselves. Do not rely on field declaration order or appending fields at the end of a class as with some default serialization cases.
 
-## 9. Chương trình Java 17+ hoàn chỉnh: chu trình Externalizable + object graph
+## 9. Complete Java 17+ Program: Externalizable Cycle + Object Graph
 
-Ví dụ tiếp theo chứng minh đồng thời:
+The following example simultaneously demonstrates:
 
-1. `writeExternal`/`readExternal` tự viết/đọc version, tên và reference.
-2. Public constructor không tham số được gọi khi giải tuần tự hóa.
-3. `transient cache` **không được ghi**, nhưng giữ giá trị do constructor đọc tạo.
-4. Hai node tạo vòng `A → B → A`; vòng được bảo toàn.
-5. Ghi cùng một root **hai lần** trên cùng ObjectOutputStream rồi đọc hai lần vẫn có thể trả cùng reference nhờ handle của stream.
-6. Các object restored là instance khác với object ban đầu ở JVM.
-7. Dữ liệu tự tạo trong bộ nhớ, **không** nhận từ nguồn không tin cậy.
+1. `writeExternal`/`readExternal` manually writing/reading version, name, and reference.
+2. Public no-arg constructor being called during deserialization.
+3. `transient cache` **not being written**, while keeping the value created by the constructor during reading.
+4. Two nodes forming a cycle `A → B → A`; the cycle is preserved.
+5. Writing the same root **twice** on the same ObjectOutputStream and reading twice can still return the same reference via stream handles.
+6. Restored objects are different instances from the original objects in the JVM.
+7. Data generated in memory, **not** received from an untrusted source.
 
-Lưu đúng tên **`ExternalizableGraphDemo.java`**:
+Save with the exact filename **`ExternalizableGraphDemo.java`**:
 
 ```java
 import java.io.ByteArrayInputStream;
@@ -330,7 +330,7 @@ public class ExternalizableGraphDemo {
         private Node next;
         private transient String cache;
 
-        // Bắt buộc public và không tham số.
+        // Required: public and no-arg.
         public Node() {
             publicNoArgCalls++;
             cache = "from-no-arg";
@@ -343,9 +343,9 @@ public class ExternalizableGraphDemo {
 
         @Override
         public void writeExternal(ObjectOutput out) throws IOException {
-            out.writeInt(1);        // Version của custom protocol.
+            out.writeInt(1);        // Version of custom protocol.
             out.writeUTF(name);
-            out.writeObject(next);  // Giữ cơ chế object identity/handles.
+            out.writeObject(next);  // Preserves object identity/handles mechanism.
         }
 
         @Override
@@ -370,7 +370,7 @@ public class ExternalizableGraphDemo {
             name = restoredName;
             next = (Node) restoredNext;
 
-            // cache vẫn là "from-no-arg": không được ghi/đọc ở đây.
+            // cache remains "from-no-arg": not written/read here.
         }
     }
 
@@ -384,7 +384,7 @@ public class ExternalizableGraphDemo {
         try (ByteArrayOutputStream memory = new ByteArrayOutputStream();
              ObjectOutputStream output = new ObjectOutputStream(memory)) {
             output.writeObject(a);
-            output.writeObject(a); // Cùng instance root.
+            output.writeObject(a); // Same root instance.
             output.flush();
             bytes = memory.toByteArray();
         }
@@ -410,14 +410,14 @@ public class ExternalizableGraphDemo {
 }
 ```
 
-Biên dịch và chạy tại thư mục chứa mã:
+Compile and run in the directory containing the code:
 
 ```bash
 javac ExternalizableGraphDemo.java
 java ExternalizableGraphDemo
 ```
 
-**Stdout dự kiến chính xác trong một JVM chạy chương trình độc lập:**
+**Exact expected stdout in a single JVM running the standalone program:**
 
 ```text
 Name: A
@@ -428,22 +428,22 @@ Transient cache: from-no-arg
 Restored differs: true
 ```
 
-Phân tích chi tiết:
+Detailed analysis:
 
-- `new Node("A")` và `new Node("B")` gọi constructor có tham số, **không** tăng biến đếm `publicNoArgCalls`.
-- Serialization root A gọi `writeExternal(A)` → ghi version 1, tên A và reference tới B; với B, `writeExternal(B)` ghi version 1, tên B và reference ngược tới A.
-- `ObjectOutputStream` có cơ chế handle cho object A, nên reference B→A không khiến code lặp vô hạn.
-- Khi đọc lại, A và B là hai instance Externalizable mới; constructor `public Node()` được gọi cho từng instance, nên biến đếm trở thành 2.
-- `readExternal` đặt `name` và `next` theo stream; nó **không ghi đè** `cache`, nên giá trị khởi tạo từ constructor được giữ nguyên.
-- `restoredFirst.next.next == restoredFirst` xác nhận chu trình đã khôi phục.
-- Lần `output.writeObject(a)` thứ hai trên cùng stream sử dụng lại handle của A; hai lần `readObject` trả cùng root restored, nên `restoredFirst == restoredSecond`.
-- `restoredFirst != a` cho thấy object restored không cùng identity với object gốc.
+- `new Node("A")` and `new Node("B")` call the parameterized constructor, **not** incrementing `publicNoArgCalls`.
+- Serializing root A calls `writeExternal(A)` → writes version 1, name A, and a reference to B; for B, `writeExternal(B)` writes version 1, name B, and a reference back to A.
+- `ObjectOutputStream` has a handle mechanism for object A, so the B→A reference does not cause infinite recursion.
+- On read, A and B are two new Externalizable instances; the `public Node()` constructor is called for each instance, so the counter becomes 2.
+- `readExternal` sets `name` and `next` from the stream; it **does not overwrite** `cache`, so the value initialized by the constructor is preserved.
+- `restoredFirst.next.next == restoredFirst` confirms the cycle was restored.
+- The second `output.writeObject(a)` on the same stream reuses A's handle; the two `readObject` calls return the same restored root, so `restoredFirst == restoredSecond`.
+- `restoredFirst != a` shows the restored object does not share identity with the original object.
 
-**Đừng dùng static counter như một phép đo chung cho nhiều tiến trình hoặc nhiều lượt chạy song song trong production.** Ở ví dụ độc lập, nó minh họa constructor; trong ứng dụng thật, constructor có side effect hoặc state toàn cục dễ gây lỗi concurrency/reentrancy.
+**Do not use a static counter as a shared metric across multiple processes or concurrent runs in production.** In this standalone example, it illustrates the constructor; in real applications, constructors with side effects or global state easily cause concurrency/reentrancy bugs.
 
-## 10. Cơ chế bảo toàn tham chiếu và vòng
+## 10. Reference and Cycle Preservation Mechanism
 
-Khi `Externalizable.writeExternal` gọi `out.writeObject(reference)`, ObjectOutputStream tiếp tục sử dụng cơ chế lưu object handles. Điều này đặc biệt quan trọng cho:
+When `Externalizable.writeExternal` calls `out.writeObject(reference)`, ObjectOutputStream continues using its object handles mechanism. This is especially important for:
 
 ```text
 A.next = B
@@ -456,31 +456,31 @@ writeObject(A)
   │      └── writeObject(B)
   │             └── writeExternal(B)
   │                    └── writeObject(A) -> reference/handle
-  └── hoàn tất root A
+  └── complete root A
 ```
 
-Khi đọc, Java tạo instance và quản lý reference đủ để tái tạo đồ thị có chu trình theo quy tắc của stream. Tuy nhiên, **logic `readExternal` phải tránh thao tác tùy tiện lên những object mà trạng thái chưa được đọc xong**. Trong chu trình, một tham chiếu có thể trỏ tới object đang được xây dựng dở. Ví dụ nếu `B.readExternal` cố đọc `A.name` trước khi `A.readExternal` hoàn tất, tên của A có thể vẫn chưa được gán.
+When reading, Java creates instances and manages references enough to reconstruct cyclic graphs according to stream rules. However, **`readExternal` logic must avoid arbitrary operations on objects whose state has not finished reading**. In a cycle, a reference may point to an object still partially constructed. For example, if `B.readExternal` tries to read `A.name` before `A.readExternal` finishes, A's name may still be unassigned.
 
-Do đó:
+Therefore:
 
-- Ghi reference bằng `writeObject` và đọc bằng `readObject` để tận dụng handle tracking.
-- Trong `readExternal`, ưu tiên lưu các reference và xác thực kiểu hợp lý, tránh gọi nghiệp vụ phức tạp trên graph chưa hoàn tất.
-- Không giả định tất cả object được tham chiếu đã hoàn tất validation ở thời điểm một reference được gán.
-- Nếu cần kiểm tra invariant xuyên nhiều node, có thể tổ chức bước validation sau khi toàn bộ graph root đã được đọc xong.
-- Nếu thay `writeObject` bằng logic đệ quy thủ công tự gọi `next.writeExternal(out)`, bạn có thể bỏ qua handle tracking và **tạo đệ quy vô hạn** cho đồ thị có vòng.
+- Write references with `writeObject` and read with `readObject` to leverage handle tracking.
+- Inside `readExternal`, prefer storing references and validating appropriate types, avoiding complex business calls on an incomplete graph.
+- Do not assume all referenced objects have finished validation at the moment a reference is assigned.
+- If you need to validate invariants across multiple nodes, organize a validation step after the entire root graph has finished reading.
+- If you replace `writeObject` with manual recursive calls like `next.writeExternal(out)`, you can bypass handle tracking and **create infinite recursion** for cyclic graphs.
 
-### Object identity khác object equality
+### Object Identity Differs from Object Equality
 
-Khi kiểm tra bảo toàn tham chiếu:
+When checking reference preservation:
 
-- `a == b`: cùng instance trong JVM không?
-- `a.equals(b)`: giá trị có tương đương theo logic của class không?
+- `a == b`: are they the exact same instance in the JVM?
+- `a.equals(b)`: are their values equivalent per the class's logic?
 
-Hai instance có cùng `name` vẫn có thể không phải một object. Hãy dùng `==` để test alias/cycle, không chỉ dùng `equals`.
+Two instances with the same `name` may still not be the same object. Use `==` to test aliasing/cycles, not just `equals`.
 
-## 11. Externalizable không tự động ghi mọi field
+## 11. Externalizable Does Not Automatically Write Every Field
 
-Một class có:
+A class has:
 
 ```java
 private String id;
@@ -489,30 +489,30 @@ private List<String> tags;
 private transient String sessionToken;
 ```
 
-Nếu `writeExternal` chỉ gọi:
+If `writeExternal` only calls:
 
 ```java
 out.writeUTF(id);
 out.writeInt(count);
 ```
 
-thì:
+then:
 
-- `id` và `count` được ghi theo schema tùy chỉnh.
-- `tags` không được ghi; sau deserialize, giá trị của nó phụ thuộc constructor `public` và logic `readExternal`.
-- `sessionToken` không được ghi **vì tác giả không gọi write cho field này**. Nếu tác giả ghi nó thủ công dù transient, dữ liệu vẫn xuất hiện trong stream.
-- Việc thêm `tags` vào class Java không khiến stream tự có thêm tags.
+- `id` and `count` are written according to the custom schema.
+- `tags` is not written; after deserialization, its value depends on the `public` constructor and `readExternal` logic.
+- `sessionToken` is not written **because the author did not call write for this field**. If the author writes it manually despite `transient`, the data still appears in the stream.
+- Adding `tags` to the Java class does not make the stream automatically include tags.
 
-Trong trường hợp cần persist tags, bạn có thể chủ động ghi số lượng có giới hạn và từng phần tử, hoặc `out.writeObject(tags)` (chỉ khi kiểu và đồ thị an toàn, tin cậy, cùng phiên bản). Phương án ghi tự định dạng thường kiểm soát migration và kích thước tốt hơn; phương án `writeObject` dễ dùng nhưng kéo thêm class/graph Java serialization.
+When `tags` needs to be persisted, you can explicitly write a bounded count and each element, or `out.writeObject(tags)` (only when the types and graph are safe, trusted, and same-version). Explicit custom encoding usually controls migration and size better; `writeObject` is convenient but pulls in Java serialization classes/graphs.
 
-## 12. Versioning tường minh: tự quản lý giao thức
+## 12. Explicit Versioning: Managing the Protocol Yourself
 
-Khi dùng `Externalizable`, **`serialVersionUID` và phiên bản payload riêng là hai tầng khác nhau**:
+When using `Externalizable`, **`serialVersionUID` and your custom payload version are two distinct layers**:
 
-- `serialVersionUID` dùng trong Java serialization để kiểm tra một phần tính tương thích class khi đọc object descriptor.
-- `formatVersion` do bạn ghi bằng `writeInt` là một thành phần trong custom protocol của `writeExternal`.
+- `serialVersionUID` is used by Java serialization to partially check class compatibility when reading the object descriptor.
+- `formatVersion` written by you via `writeInt` is a component inside `writeExternal`'s custom protocol.
 
-Ví dụ V1:
+V1 example:
 
 ```java
 out.writeInt(1);
@@ -520,7 +520,7 @@ out.writeUTF(code);
 out.writeInt(quantity);
 ```
 
-V2 muốn thêm `price`:
+V2 wants to add `price`:
 
 ```java
 out.writeInt(2);
@@ -529,7 +529,7 @@ out.writeInt(quantity);
 out.writeLong(priceInCents);
 ```
 
-Reader V2 có thể đọc cả hai:
+A V2 reader can read both:
 
 ```java
 int version = in.readInt();
@@ -542,73 +542,73 @@ quantity = in.readInt();
 priceInCents = version >= 2 ? in.readLong() : 0L;
 ```
 
-Đây là **các mảnh mã minh họa của cùng custom format**, không đặt hai phiên bản writer vào một class cùng lúc. Tất cả biến cần được khai báo; reader nên validate code/quantity/price ngay sau khi đọc. Cẩn thận rằng nếu dữ liệu đã được ghi bởi V2 rồi một reader V1 đọc nó, reader V1 **có thể không biết xử lý v2** và cần từ chối thay vì đọc lầm byte.
+These are **illustrative snippets of the same custom format**, not two writer versions placed in one class at the same time. All variables must be declared; the reader should validate code/quantity/price immediately after reading. Note that if data was written by V2 and a V1 reader reads it, the V1 reader **may not know how to handle v2** and should reject it rather than misreading bytes.
 
-### Gắn serialVersionUID thế nào?
+### How to Attach serialVersionUID?
 
-Với Externalizable vẫn nên khai báo:
+With Externalizable, you should still declare:
 
 ```java
 @Serial
 private static final long serialVersionUID = 1L;
 ```
 
-`@Serial` dùng trong Java 17. UID tương ứng phải là `static final long` đúng tên. Khi đổi schema payload mà vẫn muốn một class nhận các phiên bản cũ theo logic `readExternal`, có thể giữ UID tương thích và dùng `formatVersion` để phân nhánh. Nếu cố tình thay đổi class không tương thích, UID mới có thể khiến đọc stream cũ bị từ chối với `InvalidClassException`.
+`@Serial` is available in Java 17. The corresponding UID must be `static final long` with that exact name. When changing the payload schema while still wanting one class to accept older versions via `readExternal` logic, you can keep a compatible UID and branch on `formatVersion`. If you intentionally make an incompatible class change, a new UID can cause older streams to be rejected with `InvalidClassException`.
 
-**Giữ UID cũ không tự bảo đảm schema V1/V2 tương thích.** Reader cần thực sự phân tích đúng mọi phiên bản được hứa hỗ trợ, kiểm thử file thực tế và xử lý giá trị mặc định/validation.
+**Keeping the old UID does not automatically guarantee V1/V2 schema compatibility.** The reader must actually parse every promised supported version correctly, test real files, and handle defaults/validation.
 
-### Kiểm tra lỗi version phải sớm
+### Check Version Errors Early
 
-Đọc `version` trước rồi kiểm tra miền hỗ trợ trước khi xử lý phần còn lại giúp tránh đọc sai kiểu trong một schema hoàn toàn khác. Không nên bỏ qua version không biết rồi đoán các byte còn lại theo format hiện tại.
+Reading `version` first and validating the supported range before processing the rest avoids misreading types under an entirely different schema. Do not ignore an unknown version and guess the remaining bytes under the current format.
 
-## 13. Thứ tự dữ liệu và lỗi khó phát hiện
+## 13. Data Ordering and Subtle Bugs
 
-Sai thứ tự có thể tạo lỗi khó chẩn đoán. Giả sử writer `writeInt(5)` rồi `writeLong(7L)`, còn reader lại `readLong()` rồi `readInt()`:
+Wrong ordering can produce hard-to-diagnose errors. Suppose the writer calls `writeInt(5)` then `writeLong(7L)`, while the reader calls `readLong()` then `readInt()`:
 
-- Không nhất thiết exception xảy ra ngay tại byte đầu.
-- Các giá trị có thể bị ghép từ bytes của hai field.
-- Vị trí đọc tiếp theo không còn ở ranh giới mong muốn.
-- Lỗi thật có thể xuất hiện rất muộn khi type token, length hoặc trailer bị diễn giải sai.
+- An exception does not necessarily occur at the first byte.
+- Values can be stitched together from bytes of two fields.
+- Subsequent read positions are no longer aligned to expected boundaries.
+- The actual error may appear much later when a type token, length, or trailer is misinterpreted.
 
-**Viết unit test round-trip là cần nhưng chưa đủ.** Nếu writer và reader cùng mắc lỗi tương ứng, một test round-trip cùng phiên bản có thể vẫn pass. Cần kiểm tra cross-version bằng **golden files** được lưu từ các phiên bản cũ và test các input không hợp lệ.
+**Writing a round-trip unit test is necessary but not sufficient.** If both writer and reader make the same corresponding mistake, a same-version round-trip test can still pass. You need cross-version verification using **golden files** saved from previous versions and tests for invalid inputs.
 
-Checklist kiểm thử:
+Testing checklist:
 
-1. Object tối thiểu và object đầy đủ.
-2. Null, chuỗi rỗng, Unicode, chuỗi rất dài.
-3. Số âm, số lớn, overflow, boundary values.
-4. Reference graph có cùng object xuất hiện nhiều lần.
-5. Graph có chu trình.
-6. Stream bị cắt giữa primitive hoặc giữa object.
-7. `formatVersion` không hỗ trợ.
-8. Class có/không có public no-arg constructor.
-9. Lỗi khi ghi nhiều object liên tiếp trong cùng stream.
-10. Các phiên bản cũ/mới và độ ổn định của UID.
+1. Minimal object and full object.
+2. Null, empty strings, Unicode, very long strings.
+3. Negative numbers, large numbers, overflow, boundary values.
+4. Reference graph with the same object appearing multiple times.
+5. Graph with cycles.
+6. Stream truncated mid-primitive or mid-object.
+7. Unsupported `formatVersion`.
+8. Class with/without public no-arg constructor.
+9. Errors when writing multiple consecutive objects in the same stream.
+10. Old/new versions and UID stability.
 
-## 14. writeExternal/readExternal có thể ném exception gì?
+## 14. What Exceptions Can writeExternal/readExternal Throw?
 
-| Tình huống | Exception/nhóm lỗi |
+| Scenario | Exception/Error Category |
 |---|---|
-| Stream hỏng, file bị cắt hoặc lỗi transport | `IOException`, `EOFException`, `StreamCorruptedException` tùy ngữ cảnh |
-| Payload format tự đặt không hợp lệ | Có thể chủ động ném `InvalidObjectException` |
-| `readObject()` gặp class không có trong classpath | `ClassNotFoundException` |
-| Class Externalizable không đáp ứng yêu cầu constructor | Thường `InvalidClassException` hoặc lỗi tương ứng |
-| `writeObject(ref)` gặp object không Serializable | `NotSerializableException` |
-| Class descriptor/UID không tương thích | `InvalidClassException` |
-| Dữ liệu modified UTF-8 không hợp lệ/quá dài | `UTFDataFormatException` |
-| Ép kiểu object sai sau `readObject` | `ClassCastException` (unchecked) |
-| Java input filter từ chối class/graph | Có thể dẫn đến `InvalidClassException` |
+| Corrupted stream, truncated file, or transport error | `IOException`, `EOFException`, `StreamCorruptedException` depending on context |
+| Invalid custom payload format | Can explicitly throw `InvalidObjectException` |
+| `readObject()` encounters a class missing from classpath | `ClassNotFoundException` |
+| Externalizable class fails constructor requirement | Typically `InvalidClassException` or related error |
+| `writeObject(ref)` encounters a non-Serializable object | `NotSerializableException` |
+| Incompatible class descriptor/UID | `InvalidClassException` |
+| Invalid/overlong modified UTF-8 data | `UTFDataFormatException` |
+| Wrong object cast after `readObject` | `ClassCastException` (unchecked) |
+| Java input filter rejects class/graph | Can result in `InvalidClassException` |
 
-Khi `readExternal` ném lỗi:
+When `readExternal` throws an error:
 
-- Không dùng object mới dựng dở như object nghiệp vụ hợp lệ.
-- Không cố tiếp tục đọc bằng một vị trí tự đoán nếu không có giao thức phục hồi rõ ràng.
-- Ghi log hoặc trả lỗi có ngữ cảnh file/request/format version, nhưng không in dữ liệu nhạy cảm.
-- Nếu đang đọc từ nguồn không tin cậy, ưu tiên **không dùng native deserialization**; exception handling không loại bỏ rủi ro tạo object trước khi lỗi xuất hiện.
+- Do not use the partially constructed new object as a valid domain object.
+- Do not try to continue reading from a guessed position without a clear recovery protocol.
+- Log or return an error with file/request/format version context, without printing sensitive data.
+- If reading from an untrusted source, prefer **not using native deserialization**; exception handling does not eliminate risks from object creation before the error occurs.
 
-## 15. Custom format và giới hạn tài nguyên
+## 15. Custom Formats and Resource Limits
 
-Tính chủ động của Externalizable cho phép bạn kiểm tra dữ liệu trước khi cấp phát:
+The control of Externalizable lets you check data before allocating:
 
 ```java
 int itemCount = in.readInt();
@@ -621,37 +621,37 @@ for (int i = 0; i < itemCount; i++) {
 }
 ```
 
-Đây là đoạn minh họa, cần imports `ArrayList`, `List`, `InvalidObjectException`, `ObjectInput` và khai báo `in`. Việc giới hạn count trước khi tạo `ArrayList` là tốt, nhưng:
+This is an illustrative snippet requiring imports for `ArrayList`, `List`, `InvalidObjectException`, `ObjectInput` and declaration of `in`. Bounding the count before creating `ArrayList` is good, but:
 
-- Mỗi `String` vẫn có thể lớn; cần chính sách tổng số byte/string.
-- Nếu giao thức cho phép nested objects, cần kiểm soát depth/reference count.
-- Nhiều requests đọc đồng thời có thể cộng dồn bộ nhớ lớn; giới hạn concurrency.
-- I/O từ stream mạng có thể chậm, cần timeout/backpressure và đóng tài nguyên khi vượt quota.
-- Input bị cắt phải báo lỗi rõ, không mặc định khôi phục danh sách còn thiếu.
-- `readUTF` có giới hạn riêng; giao thức tự ghi raw UTF-8 cần giới hạn rõ ràng hơn.
+- Each `String` can still be large; you need a policy for total bytes/strings.
+- If the protocol allows nested objects, you must control depth/reference count.
+- Many concurrent read requests can add up to large memory usage; limit concurrency.
+- I/O from network streams can be slow, requiring timeouts/backpressure and closing resources when quotas are exceeded.
+- Truncated input must report an error clearly rather than silently restoring an incomplete list.
+- `readUTF` has its own limit; protocols writing raw UTF-8 manually need explicit bounds.
 
-## 16. Khác gì với hook readObject/writeObject của Serializable?
+## 16. How Does This Differ from Serializable's readObject/writeObject Hooks?
 
-Có hai mô hình thường bị nhầm:
+Two models are often confused:
 
-### A. Serializable với custom hooks
+### A. Serializable with Custom Hooks
 
 ```java
 private void writeObject(ObjectOutputStream out) throws IOException {
     out.defaultWriteObject();
-    // Ghi phần custom nếu có.
+    // Write custom part if any.
 }
 
 private void readObject(ObjectInputStream in)
         throws IOException, ClassNotFoundException {
     in.defaultReadObject();
-    // Kiểm tra/khôi phục phần custom nếu có.
+    // Validate/restore custom part if any.
 }
 ```
 
-Các phương thức `private` đặc biệt này thuộc class `Serializable` thông thường, được nhận diện theo cơ chế serialization; bạn có thể giữ phần field mặc định thông qua `defaultWriteObject`/`defaultReadObject`.
+These special `private` methods belong to regular `Serializable` classes and are recognized by the serialization mechanism; you can preserve default fields via `defaultWriteObject`/`defaultReadObject`.
 
-### B. Externalizable với public contract
+### B. Externalizable with a Public Contract
 
 ```java
 @Override
@@ -671,48 +671,48 @@ public void readExternal(ObjectInput in)
 }
 ```
 
-`writeExternal`/`readExternal` phải là **public** vì chúng implement methods của interface. Bạn quyết định payload được ghi; **`defaultWriteObject` không phải bước bắt buộc của Externalizable**, và `ObjectOutput` interface không cung cấp `defaultWriteObject()` như `ObjectOutputStream`.
+`writeExternal`/`readExternal` must be **public** because they implement interface methods. You decide the payload written; **`defaultWriteObject` is not a required step of Externalizable**, and the `ObjectOutput` interface does not provide `defaultWriteObject()` like `ObjectOutputStream`.
 
-**Không đặt phương thức `private readExternal` và nghĩ runtime sẽ gọi giống `readObject`.** Đó không phải implementation hợp lệ của interface.
+**Do not declare `private readExternal` expecting the runtime to call it like `readObject`.** That is not a valid implementation of the interface.
 
-### Khi nào chọn mô hình nào?
+### When to Choose Which Model?
 
-- Model đơn giản với nhiều field, cần ít code: `Serializable` mặc định có thể đủ trong môi trường nội bộ tin cậy.
-- Cần thêm vài validations/hook mà vẫn muốn phần lớn field mặc định: custom `readObject/writeObject` có thể hợp lý.
-- Muốn kiểm soát chặt thứ tự, version và encoding của payload bên trong Java object stream: `Externalizable`.
-- Cần định dạng đa ngôn ngữ, version lâu dài hoặc nhận input từ client không tin cậy: **không nên mặc định chọn cả hai**; ưu tiên DTO/schema và serializer phù hợp.
+- Simple model with many fields needing minimal code: default `Serializable` may suffice in trusted internal environments.
+- Need a few validations/hooks while keeping most default fields: custom `readObject/writeObject` can make sense.
+- Want tight control over ordering, versioning, and encoding of the payload inside a Java object stream: `Externalizable`.
+- Need a cross-language format, long-term versioning, or input from untrusted clients: **do not default to either**; prefer DTOs/schemas and an appropriate serializer.
 
-## 17. Security: Externalizable không an toàn trước byte độc hại
+## 17. Security: Externalizable Is Not Safe Against Malicious Bytes
 
-`Externalizable` có thể khiến người viết tưởng “tự đọc field nên sẽ an toàn hơn”. Nhưng nó **vẫn được kích hoạt qua `ObjectInputStream.readObject()`**, với class descriptors, việc tạo instance và các hook liên quan. Điều đó vẫn mang rủi ro native Java deserialization.
+`Externalizable` can mislead authors into thinking "manual field reading is safer." Yet it **is still triggered via `ObjectInputStream.readObject()`**, with class descriptors, instance instantiation, and related hooks. That still carries native Java deserialization risks.
 
-Tình huống nguy hiểm:
+Dangerous scenario:
 
 ```java
-// KHÔNG LÀM với bytes do client không tin cậy gửi.
+// DO NOT DO THIS with bytes sent by an untrusted client.
 try (ObjectInputStream in = new ObjectInputStream(networkInput)) {
     Object value = in.readObject();
 }
 ```
 
-Lý do:
+Reasons:
 
-- Việc giải mã có thể tạo các class trên classpath với hành vi không mong muốn.
-- Public no-arg constructor của Externalizable có thể chạy và gây side effect trước khi payload được validate.
-- `readExternal` có thể gọi `in.readObject()` và kéo theo toàn bộ graph phức tạp.
-- Dữ liệu có thể bị cố ý thiết kế để tiêu thụ CPU, bộ nhớ hoặc gây stack/resource exhaustion.
-- Kiểm tra `instanceof` sau `readObject` có thể đã quá muộn để chặn hành vi trong giai đoạn deserialize.
+- Decoding can instantiate classes on the classpath with unintended behavior.
+- An Externalizable's public no-arg constructor can run and cause side effects before the payload is validated.
+- `readExternal` can call `in.readObject()` and pull in an entire complex graph.
+- Data can be crafted to consume CPU, memory, or cause stack/resource exhaustion.
+- Checking `instanceof` after `readObject` can be too late to block behavior during the deserialization phase.
 
-Nguyên tắc:
+Principles:
 
-1. Tránh Java native deserialization ở **trust boundary**: HTTP payload công khai, dữ liệu do bên ngoài gửi, file từ người không đáng tin.
-2. Ưu tiên format dữ liệu đơn giản, DTO/schema, parser được kiểm soát, giới hạn byte/độ sâu/đối tượng.
-3. Nếu có legacy dữ liệu Java serialization từ nguồn tin cậy, giới hạn class/array/depth/references qua `ObjectInputFilter` khi phù hợp.
-4. Kiểm tra bất biến dữ liệu và kiểm soát version trong `readExternal`, không dựa vào riêng constructor.
-5. Không để constructor hoặc `readExternal` thực hiện side effect không thể đảo ngược khi payload chưa được kiểm chứng.
-6. Bảo vệ nguồn file và quyền truy cập, có checksum/chữ ký mật mã nếu cần xác thực tính toàn vẹn với bên ngoài; CRC/hash thường không tự chứng minh nguồn đáng tin.
+1. Avoid Java native deserialization at **trust boundaries**: public HTTP payloads, externally submitted data, files from untrusted parties.
+2. Prefer simple data formats, DTOs/schemas, controlled parsers, and limits on bytes/depth/objects.
+3. If legacy Java serialization data comes from a trusted source, restrict classes/arrays/depth/references via `ObjectInputFilter` where appropriate.
+4. Validate data invariants and check versions in `readExternal`, not relying solely on the constructor.
+5. Do not let constructors or `readExternal` perform irreversible side effects while the payload is unverified.
+6. Protect file sources and access permissions, with checksums/cryptographic signatures if external integrity verification is needed; CRC/hashes alone usually do not prove a trusted source.
 
-### Ví dụ ObjectInputFilter (chỉ để nhận biết API)
+### ObjectInputFilter Example (for API Awareness Only)
 
 ```java
 ObjectInputFilter filter = ObjectInputFilter.Config.createFilter(
@@ -725,15 +725,15 @@ try (ObjectInputStream in = new ObjectInputStream(source)) {
 }
 ```
 
-Đây là đoạn minh họa, cần `ObjectInputFilter`, `ObjectInputStream`, một `InputStream source` và xử lý exceptions. Package `com.example.model` chỉ là ví dụ; với một đồ thị chứa `ArrayList`/`String`/các class JDK khác, allowlist thực tế cần xác định từ model và được kiểm thử theo semantics filter.
+This is an illustrative snippet requiring `ObjectInputFilter`, `ObjectInputStream`, an `InputStream source`, and exception handling. Package `com.example.model` is just an example; for a graph containing `ArrayList`/`String`/other JDK classes, the real allowlist must be determined from the model and tested against filter semantics.
 
-Filter giúp **giảm** rủi ro trong một số kịch bản, nhưng **không chứng minh mọi input không tin cậy là an toàn**. Nó cũng không thay thế giới hạn nguồn I/O, quota theo request, timeout hay các cơ chế bảo mật tầng ứng dụng.
+A filter helps **reduce** risk in certain scenarios, but **does not prove any untrusted input is safe**. Nor does it replace I/O source limits, per-request quotas, timeouts, or application-layer security controls.
 
-## 18. Tác động của inheritance và state của superclass
+## 18. Impact of Inheritance and Superclass State
 
-Một class Externalizable có thể kế thừa field và behavior từ superclass. Nhưng **`writeExternal` phải quyết định cách lưu các field cần persist**, kể cả state được sở hữu bởi superclass mà class có thể truy cập qua API hợp lệ.
+An Externalizable class can inherit fields and behavior from a superclass. However, **`writeExternal` must decide how to store all fields that need to persist**, including state owned by the superclass that the class can access through a valid API.
 
-Ví dụ:
+Example:
 
 ```java
 class Base {
@@ -768,13 +768,13 @@ public class Child extends Base implements Externalizable {
 }
 ```
 
-Đây là ví dụ class minh họa; đặt `Child` vào file `Child.java` cùng `Base` phù hợp và import interfaces/exceptions. `Base` không Serializable nhưng constructor `Base()` chạy thông qua `Child()` khi object Externalizable được dựng. Sau đó `readExternal` khôi phục `id` từ stream. Nếu `Child.writeExternal` **không** ghi `id`, phần state đó chỉ còn giá trị constructor đã khởi tạo hoặc logic khác của ứng dụng.
+This is an illustrative class example; put `Child` in `Child.java` alongside a suitable `Base` and import interfaces/exceptions. `Base` is not Serializable, yet `Base()` runs via `Child()` when the Externalizable object is constructed. Then `readExternal` restores `id` from the stream. If `Child.writeExternal` **does not** write `id`, that state only retains the value initialized by the constructor or other application logic.
 
-Điều này khác với việc giả định superclass state được tự động lưu đầy đủ theo serialization mặc định. Với các superclass có invariant phức tạp, nên có API rõ ràng để lấy/đặt trạng thái được phép persist.
+This differs from assuming superclass state is automatically saved completely as in default serialization. For superclasses with complex invariants, provide clear APIs to get/set persistable state.
 
-## 19. Ghi và đọc nhiều Externalizable object trong một stream
+## 19. Writing and Reading Multiple Externalizable Objects in One Stream
 
-`ObjectOutputStream` quản lý bảng handle **trên phạm vi stream**, không chỉ một lần gọi:
+`ObjectOutputStream` manages a **stream-scoped** handle table, not just per call:
 
 ```java
 try (ObjectOutputStream out = new ObjectOutputStream(output)) {
@@ -784,7 +784,7 @@ try (ObjectOutputStream out = new ObjectOutputStream(output)) {
 }
 ```
 
-Khi đọc theo đúng thứ tự:
+When reading in the exact same order:
 
 ```java
 try (ObjectInputStream in = new ObjectInputStream(input)) {
@@ -795,11 +795,11 @@ try (ObjectInputStream in = new ObjectInputStream(input)) {
 }
 ```
 
-Đây là hai đoạn minh họa độc lập, với `output` và `input` là cặp stream tương ứng; `a`/`b` cần được khai báo. Nếu cùng instance A được ghi lại mà không reset cơ chế handle, object thứ ba có thể là reference tới object thứ nhất, nên phép so sánh identity trả true.
+These are two standalone illustrative snippets, with `output` and `input` as matching streams; `a`/`b` must be declared. If the same instance A is written again without resetting the handle mechanism, the third object may be a reference to the first object, so the identity check returns true.
 
-### Bẫy thay đổi object rồi ghi lại
+### Trap of Mutating an Object and Writing It Again
 
-Giả sử:
+Suppose:
 
 ```java
 out.writeObject(person);
@@ -807,15 +807,15 @@ person.setName("New name");
 out.writeObject(person);
 ```
 
-Trong cùng stream, lần ghi thứ hai có thể **chỉ ghi reference** và không gọi lại `writeExternal` để lưu bản cập nhật. Đừng xây append log snapshot bằng cách lặp `writeObject(sameInstance)` rồi hy vọng mỗi lần đều ghi full state.
+In the same stream, the second write may **write only a reference** and not call `writeExternal` again to save the updated version. Do not build an append snapshot log by repeating `writeObject(sameInstance)` hoping each call writes full state.
 
-Nếu muốn một giai đoạn độc lập về handle trong cùng ObjectOutputStream, `out.reset()` có thể được dùng có chủ đích; tương tác với reader và versioned format phải được thiết kế rõ. `writeUnshared`/`readUnshared` là API khác có semantics đặc thù, không tự động deep-clone mọi reference bên trong graph.
+If you want a fresh handle-independent phase within the same ObjectOutputStream, `out.reset()` can be used deliberately; interaction with the reader and versioned format must be explicitly designed. `writeUnshared`/`readUnshared` are different APIs with specific semantics and do not automatically deep-clone every reference inside the graph.
 
-## 20. Độ bền file và atomicity không nằm trong Externalizable
+## 20. File Durability and Atomicity Are Not Inside Externalizable
 
-Serialization thành công không đồng nghĩa file đã được lưu bền hoặc “cập nhật snapshot” nguyên tử.
+Successful serialization does not mean a file is durably saved or an "atomic snapshot update" occurred.
 
-Nếu ghi trực tiếp:
+If writing directly:
 
 ```java
 try (ObjectOutputStream out =
@@ -824,137 +824,137 @@ try (ObjectOutputStream out =
 }
 ```
 
-một lỗi giữa chừng có thể làm file đích cũ bị cắt hoặc chứa object stream dang dở. Đối với dữ liệu quan trọng:
+a failure midway can leave the old target file truncated or containing an incomplete object stream. For important data:
 
-1. Tạo file tạm độc lập, tốt nhất trong cùng thư mục với đích.
-2. Ghi toàn bộ graph và đóng ObjectOutputStream thành công.
-3. Nếu bài toán cần độ bền cao, đồng bộ dữ liệu/metadata theo cơ chế filesystem phù hợp và hiểu giới hạn.
-4. Validate định dạng/snapshot cần thiết trước khi công bố.
-5. Thay thế đích bằng move/rename theo hỗ trợ atomic của provider; nếu atomic là yêu cầu bắt buộc, **không tự động fallback** sang cách không atomic rồi giữ nguyên lời hứa.
-6. Có backup/recovery và xử lý file tạm còn sót khi tiến trình sập.
+1. Create a separate temporary file, ideally in the same directory as the target.
+2. Write the entire graph and close ObjectOutputStream successfully.
+3. If the task requires high durability, sync data/metadata using an appropriate filesystem mechanism and understand its limits.
+4. Validate the required format/snapshot before publishing.
+5. Replace the target using move/rename per provider atomic support; if atomicity is a strict requirement, **do not silently fall back** to a non-atomic approach while keeping the same guarantee.
+6. Have backup/recovery and cleanup for leftover temp files if the process crashes.
 
-`close()` của ObjectOutputStream không phải lệnh fsync toàn hệ thống; `Files.move(..., ATOMIC_MOVE)` chỉ giải quyết một phần tính nguyên tử cập nhật tên nếu được hỗ trợ và còn các giới hạn về durability/multi-writer.
+`ObjectOutputStream.close()` is not a system-wide fsync command; `Files.move(..., ATOMIC_MOVE)` only addresses part of name-update atomicity if supported and still has durability/multi-writer limitations.
 
-## 21. Kiểm thử và cách chọn Externalizable
+## 21. Testing and How to Choose Externalizable
 
-Chọn `Externalizable` khi **đã có lý do cụ thể**:
+Choose `Externalizable` when **you have a specific reason**:
 
-- Cần điều khiển chính xác dữ liệu trạng thái được lưu vào native Java object stream.
-- Muốn tránh lưu những phần graph lớn không cần thiết.
-- Muốn một custom payload có version, length và validation do chính class chịu trách nhiệm.
-- Cần xử lý compatibility với dữ liệu do một ứng dụng Java nội bộ đáng tin đã lưu.
+- Need exact control over state data written into a native Java object stream.
+- Want to avoid saving unnecessary large graph parts.
+- Want a custom payload with versioning, lengths, and validation owned by the class itself.
+- Need compatibility with data saved by a trusted internal Java application.
 
-Không nên chọn chỉ vì:
+Do not choose it merely because:
 
-- Muốn truyền payload mạng công khai.
-- Mong tương thích đa ngôn ngữ.
-- Nghĩ rằng writeExternal luôn nén tốt hơn, an toàn hơn hoặc nhanh hơn.
-- Muốn “mã hóa” dữ liệu (serialization không phải encryption).
-- Muốn database có transaction, query, migration hoặc indexing.
+- You want to transmit public network payloads.
+- You expect cross-language compatibility.
+- You assume writeExternal always compresses better, is safer, or is faster.
+- You want to "encrypt" data (serialization is not encryption).
+- You want a database with transactions, queries, migrations, or indexing.
 
-### Checklist code review
+### Code Review Checklist
 
-- [ ] Class thực sự triển khai `Externalizable`, có **public no-arg constructor**.
-- [ ] `writeExternal` và `readExternal` đều `public` với chữ ký đúng.
-- [ ] Ghi và đọc **đúng thứ tự cùng kiểu dữ liệu**.
-- [ ] Có `formatVersion` tường minh khi yêu cầu tương thích lâu dài.
-- [ ] Có `serialVersionUID` cố định có chủ đích.
-- [ ] Xử lý `null`, empty, UTF, độ dài và giá trị ngoài miền.
-- [ ] Không vô ý ghi field nhạy cảm dù nó được đánh dấu transient.
-- [ ] Có validation/invariants sau đọc, và không side-effect nguy hiểm từ constructor.
-- [ ] Có test graph alias/cycle và trường hợp reference đến class không Serializable.
-- [ ] Xử lý `IOException`, `ClassNotFoundException`, `InvalidClassException` và stream lỗi.
-- [ ] Không deserialize dữ liệu không tin cậy; giới hạn nguồn/graph khi dùng legacy dữ liệu tin cậy.
-- [ ] Nếu persist vào file, có chiến lược ghi, commit và recovery tách biệt.
+- [ ] Does the class actually implement `Externalizable`, with a **public no-arg constructor**?
+- [ ] Are both `writeExternal` and `readExternal` `public` with exact signatures?
+- [ ] Are writes and reads in the **exact same order with matching data types**?
+- [ ] Is there an explicit `formatVersion` when long-term compatibility is required?
+- [ ] Is there an intentionally fixed `serialVersionUID`?
+- [ ] Are `null`, empty values, UTF, lengths, and out-of-range values handled?
+- [ ] Are sensitive fields prevented from being inadvertently written even if marked transient?
+- [ ] Are there validation/invariants after reading, and no dangerous side effects from the constructor?
+- [ ] Are alias/cycle graphs and references to non-Serializable classes tested?
+- [ ] Are `IOException`, `ClassNotFoundException`, `InvalidClassException`, and corrupted streams handled?
+- [ ] Is untrusted data not deserialized; are sources/graphs restricted when using trusted legacy data?
+- [ ] If persisting to files, are write, commit, and recovery strategies separated?
 
-## 22. Các lỗi thường gặp
+## 22. Common Mistakes
 
-1. **Thiếu constructor public không tham số:** deserialization Externalizable thất bại.
-2. **Định nghĩa readExternal/writeExternal private:** không implement đúng interface.
-3. **Nhầm readExternal với private readObject hook:** hai giao thức/điểm mở rộng khác nhau.
-4. **Không ghi đủ field cần phục hồi:** giá trị sau đọc có thể là mặc định/constructor state.
-5. **Cho rằng transient tự ngăn writer custom ghi token:** tự gọi `writeUTF(token)` vẫn lưu token.
-6. **Đọc sai thứ tự primitive/object:** dữ liệu sai hoặc stream không thể decode.
-7. **Dùng writeUTF cho chuỗi quá dài:** có giới hạn modified UTF-8 độ dài 65.535 byte.
-8. **Quên ghi rõ null:** `writeUTF(null)` không phải encoding của null.
-9. **Không kiểm tra phiên bản custom payload:** reader mới/cũ đọc sai schema.
-10. **Tưởng UID khớp là đủ tương thích:** reader vẫn phải hiểu payload bytes.
-11. **Tự đệ quy writeExternal trên reference graph có vòng:** bỏ qua object handles của stream và có thể vô hạn.
-12. **Không quản lý graph đang xây dựng:** readExternal có thể thấy reference tới object chưa hoàn tất.
-13. **Nghĩ đọc object đã được validation đầy đủ:** cần kiểm tra invariant/snapshot sau khi restore.
-14. **Viết cùng một instance nhiều lần và mong mỗi lần là snapshot mới:** bảng handles có thể ghi tham chiếu.
-15. **Để constructor thực hiện I/O/side effects khi deserialize:** nguy hiểm về bảo mật và lifecycle.
-16. **Nhận byte native serialization từ client không tin cậy:** rủi ro security và cạn tài nguyên.
-17. **Ghi đè file snapshot duy nhất trực tiếp:** crash có thể làm mất dữ liệu cũ.
-18. **Không kiểm thử cross-version/golden files:** đổi code reader/writer cùng lúc có thể che lỗi.
-19. **Cho rằng performance tốt vì ít field:** cần đo với object graph thực tế, không suy đoán.
-20. **Coi Externalizable là format trao đổi tiêu chuẩn ngoài Java:** vẫn lệ thuộc Java object serialization.
+1. **Missing public no-arg constructor:** Externalizable deserialization fails.
+2. **Defining readExternal/writeExternal as private:** does not properly implement the interface.
+3. **Confusing readExternal with the private readObject hook:** two different protocols/extension points.
+4. **Failing to write all fields needed for restoration:** values after reading may stay at default/constructor state.
+5. **Assuming transient prevents a custom writer from writing a token:** calling `writeUTF(token)` still stores the token.
+6. **Reading primitives/objects out of order:** corrupted data or undecodable stream.
+7. **Using writeUTF for overly long strings:** has a 65,535-byte modified UTF-8 length limit.
+8. **Forgetting to encode null explicitly:** `writeUTF(null)` is not a valid null encoding.
+9. **Not checking the custom payload version:** new/old readers misread the schema.
+10. **Assuming a matching UID suffices for compatibility:** the reader must still understand the payload bytes.
+11. **Manually recursing writeExternal on cyclic reference graphs:** bypasses stream object handles and can loop infinitely.
+12. **Not managing partially constructed graphs:** readExternal can see references to incomplete objects.
+13. **Thinking reading an object means full validation already occurred:** invariants/snapshots must be checked after restoration.
+14. **Writing the same instance multiple times expecting each to be a fresh snapshot:** the handle table may write references.
+15. **Letting constructors perform I/O/side effects during deserialization:** dangerous for security and lifecycle.
+16. **Accepting native serialization bytes from untrusted clients:** security and resource exhaustion risk.
+17. **Overwriting a single snapshot file directly:** a crash can destroy old data.
+18. **Not testing cross-version/golden files:** editing reader/writer code together can mask bugs.
+19. **Assuming good performance just from fewer fields:** measure on realistic object graphs instead of guessing.
+20. **Treating Externalizable as a standard interchange format outside Java:** it remains tied to Java object serialization.
 
-## 23. Bài tập thực hành
+## 23. Practice Exercises
 
-**Bài 1 — Tự viết protocol cho một Record.** Tạo class `Report implements Externalizable` có `id`, `createdAtEpochMillis`, `status`. Ghi version 1, String id và long timestamp, một mã byte đại diện status. Đọc lại và xác thực miền của status; thử stream sai version.
+**Exercise 1 — Write a custom protocol for a Record.** Create a class `Report implements Externalizable` with `id`, `createdAtEpochMillis`, `status`. Write version 1, String id and long timestamp, and a byte code representing status. Read it back and validate the status domain; test a wrong-version stream.
 
-**Bài 2 — Thêm trường ở version 2.** Thêm `source` tùy chọn. Định nghĩa V1 không có source, V2 ghi thêm source với boolean presence flag. Reader V2 phải đọc được bytes V1 và V2, không đọc thừa V1.
+**Exercise 2 — Add a field in version 2.** Add an optional `source`. Define V1 without source, and V2 writing source with a boolean presence flag. The V2 reader must read both V1 and V2 bytes without over-reading V1.
 
-**Bài 3 — Kiểm tra constructor.** Gán một field transient là `"initialized"` trong public no-arg constructor; không ghi nó trong `writeExternal`. Sau deserialize, kiểm tra giá trị giữ nguyên. Bỏ constructor và dự đoán ngoại lệ.
+**Exercise 3 — Test the constructor.** Assign `"initialized"` to a transient field in the public no-arg constructor; do not write it in `writeExternal`. After deserialization, verify the value remains intact. Remove the constructor and predict the exception.
 
-**Bài 4 — Object graph chia sẻ.** Một `Group` có hai field cùng trỏ một `Node`. Ghi cả hai qua `out.writeObject`, đọc lại và kiểm tra `first == second`. Sau đó tạo vòng hai Node để kiểm tra cycle.
+**Exercise 4 — Shared object graph.** A `Group` has two fields pointing to the same `Node`. Write both via `out.writeObject`, read them back, and verify `first == second`. Then form a two-Node cycle to test cycles.
 
-**Bài 5 — Lỗi thứ tự.** Ghi `int` rồi `long`, nhưng cố đọc theo thứ tự ngược. Quan sát lỗi hoặc giá trị bất hợp lý; sửa protocol và viết test golden bytes thay vì chỉ test writer/reader cùng source.
+**Exercise 5 — Ordering bug.** Write `int` then `long`, but attempt to read in reverse order. Observe the error or nonsensical values; fix the protocol and write a golden-bytes test rather than only testing writer/reader from the same source.
 
-**Bài 6 — Input không hợp lệ.** Ghi `count=-1` hoặc `count` rất lớn vào custom format. Reader phải phát hiện trước khi cấp phát list. Tiếp tục kiểm tra chuỗi dài, version không hỗ trợ và truncated stream.
+**Exercise 6 — Invalid input.** Write `count=-1` or a huge `count` into a custom format. The reader must detect it before allocating the list. Continue testing long strings, unsupported versions, and truncated streams.
 
-**Bài 7 — Đánh giá thay thế.** Thiết kế DTO có 5 trường để lưu cấu hình. So sánh native Java Externalizable với JSON hoặc Protocol Buffers về versioning, khả năng review diff, rủi ro bảo mật và tương thích ngôn ngữ.
+**Exercise 7 — Evaluate alternatives.** Design a 5-field DTO to store configuration. Compare native Java Externalizable against JSON or Protocol Buffers in terms of versioning, diff reviewability, security risk, and language compatibility.
 
-## 24. Câu hỏi tự kiểm tra
+## 24. Self-Check Questions
 
-**Câu 1.** `Externalizable` khác `Serializable` marker ở điểm nào?  
-**Đáp án:** `Externalizable` khai báo `writeExternal` và `readExternal` để class chủ động ghi/đọc payload; nó vẫn extends `Serializable`.
+**Question 1.** How does `Externalizable` differ from the `Serializable` marker?  
+**Answer:** `Externalizable` declares `writeExternal` and `readExternal` so the class actively writes/reads its payload; it still extends `Serializable`.
 
-**Câu 2.** Vì sao class Externalizable cần constructor public không tham số?  
-**Đáp án:** Deserialization sử dụng constructor đó để tạo instance trước khi gọi `readExternal`.
+**Question 2.** Why does an Externalizable class need a public no-arg constructor?  
+**Answer:** Deserialization uses that constructor to instantiate the object before calling `readExternal`.
 
-**Câu 3.** `writeExternal` không ghi field `age`; sau đọc nó có tự được phục hồi bằng cơ chế field mặc định không?  
-**Đáp án:** Không. Giá trị tùy constructor/initializer và logic `readExternal`, vì Externalizable không tự ghi field mặc định.
+**Question 3.** `writeExternal` omits the `age` field; after reading, is it automatically restored by the default field mechanism?  
+**Answer:** No. The value depends on the constructor/initializers and `readExternal` logic, because Externalizable does not automatically write default fields.
 
-**Câu 4.** Field `transient password` có thể bị ghi ra stream không?  
-**Đáp án:** Có, nếu `writeExternal` chủ động ghi nó. Transient không phải cơ chế chặn writer custom.
+**Question 4.** Can a `transient password` field still be written to the stream?  
+**Answer:** Yes, if `writeExternal` explicitly writes it. `transient` is not a mechanism that blocks a custom writer.
 
-**Câu 5.** Viết `out.writeInt(12)` thì phải đọc bằng `readLong` để giữ đủ byte không?  
-**Đáp án:** Không. Phải đọc đúng `readInt` và đúng thứ tự schema.
+**Question 5.** If you wrote `out.writeInt(12)`, should you read it with `readLong` to preserve enough bytes?  
+**Answer:** No. You must read with the matching `readInt` and the exact schema order.
 
-**Câu 6.** Có thể bảo toàn A→B→A bằng Externalizable không?  
-**Đáp án:** Có, nếu dùng `out.writeObject`/`in.readObject` cho reference và hợp đồng serialization phù hợp; cơ chế handle quản lý cycle.
+**Question 6.** Can A→B→A cycles be preserved with Externalizable?  
+**Answer:** Yes, if using `out.writeObject`/`in.readObject` for references and a suitable serialization contract; the handle mechanism manages cycles.
 
-**Câu 7.** Nếu `readExternal` trong B đọc reference tới A đang được phục hồi, mọi field của A đã hoàn tất chưa?  
-**Đáp án:** Không nhất thiết. Không dựa vào trạng thái hoàn chỉnh của object trong lúc giải đồ thị vòng.
+**Question 7.** If `readExternal` in B reads a reference to A currently being restored, are all fields of A necessarily complete?  
+**Answer:** Not necessarily. Do not rely on complete object state while resolving cyclic graphs.
 
-**Câu 8.** `serialVersionUID=1L` và `formatVersion=2` có mâu thuẫn không?  
-**Đáp án:** Không. UID thuộc lớp tương thích Java object stream; formatVersion là phiên bản payload tự định nghĩa.
+**Question 8.** Do `serialVersionUID=1L` and `formatVersion=2` conflict with each other?  
+**Answer:** No. The UID belongs to Java object stream class compatibility; formatVersion is your custom payload version.
 
-**Câu 9.** Vì sao không dùng Externalizable để deserialize request từ internet?  
-**Đáp án:** Nó vẫn dựa trên Java native deserialization, có thể dựng class và chạy constructor/hook nguy hiểm từ byte không tin cậy.
+**Question 9.** Why not use Externalizable to deserialize requests from the internet?  
+**Answer:** It still relies on Java native deserialization, which can construct classes and run dangerous constructors/hooks from untrusted bytes.
 
-**Câu 10.** `ObjectOutputStream.writeObject(a)` hai lần luôn ghi snapshot state mới ở lần sau không?  
-**Đáp án:** Không. Stream có handle table; lần sau có thể chỉ ghi một reference.
+**Question 10.** Does calling `ObjectOutputStream.writeObject(a)` twice always write a fresh state snapshot the second time?  
+**Answer:** No. The stream has a handle table; the second call may write only a reference.
 
-**Câu 11.** `ObjectOutputStream.close()` có bảo đảm snapshot file được flush bền qua mất điện không?  
-**Đáp án:** Không. Cần chiến lược durability, atomic replacement và recovery theo filesystem.
+**Question 11.** Does `ObjectOutputStream.close()` guarantee the snapshot file is durably flushed across power loss?  
+**Answer:** No. You need filesystem-level durability, atomic replacement, and recovery strategies.
 
-**Câu 12.** Khi nào Externalizable hợp lý hơn định dạng tự mô tả công khai?  
-**Đáp án:** Khi ứng dụng Java nội bộ tin cậy có lý do cần kiểm soát payload trong Java object serialization; không phải mặc định cho API công khai/đa ngôn ngữ.
+**Question 12.** When does Externalizable make more sense than a public self-describing format?  
+**Answer:** When a trusted internal Java application has a specific reason to control payloads inside Java object serialization; it is not the default for public/cross-language APIs.
 
-## 25. Ghi nhớ
+## 25. Key Takeaways
 
-- **`Externalizable` mở rộng `Serializable` và yêu cầu public `writeExternal(ObjectOutput)` + `readExternal(ObjectInput)`.**
-- **Constructor `public` không tham số là bắt buộc** để khôi phục instance thông thường.
-- **Mọi field cần persist phải được ghi/đọc do class quyết định**; `transient`/`static` không ngăn writer custom ghi dữ liệu.
-- **Thứ tự, kiểu và version của payload là hợp đồng của chính ứng dụng.** `serialVersionUID` không thay thế custom format version.
-- **Đồ thị đối tượng, alias và cycle vẫn có thể được bảo toàn** qua `writeObject`/`readObject` và handles của ObjectOutputStream.
-- **Không dùng native Java deserialization cho byte không tin cậy.** Validation, ObjectInputFilter và giới hạn tài nguyên là bổ sung, không thay thế thiết kế trust boundary.
-- Externalizable **không phải database, transaction, format đa ngôn ngữ hoặc mã hóa bảo mật**; lựa chọn API phải dựa trên nhu cầu thực tế.
+- **`Externalizable` extends `Serializable` and requires public `writeExternal(ObjectOutput)` + `readExternal(ObjectInput)`.**
+- **A `public` no-argument constructor is required** to restore a normal instance.
+- **Every field to persist must be explicitly written/read by the class**; `transient`/`static` do not stop a custom writer from writing data.
+- **Payload ordering, types, and versioning are the application's own contract.** `serialVersionUID` does not replace a custom format version.
+- **Object graphs, aliases, and cycles can still be preserved** via `writeObject`/`readObject` and ObjectOutputStream handles.
+- **Do not use native Java deserialization for untrusted bytes.** Validation, ObjectInputFilter, and resource limits are complementary, not a substitute for trust-boundary design.
+- Externalizable **is not a database, transaction engine, cross-language format, or security encryption**; API choices must be grounded in actual requirements.
 
-### Tài liệu API Java SE 17
+### Java SE 17 API Documentation
 
 - [Externalizable](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/Externalizable.html)
 - [ObjectOutput](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/ObjectOutput.html)

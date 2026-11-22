@@ -1,64 +1,64 @@
-# Class.forName với tên nhị phân trong Java Reflection
+# Class.forName with Binary Names in Java Reflection
 
-## 1. Mục tiêu và ngữ cảnh
+## 1. Objectives and context
 
-Trong Java Reflection, **`Class.forName(String name)`** tìm một lớp hoặc interface theo tên tại thời điểm chạy và trả về đối tượng `Class<?>` biểu diễn kiểu đó. Điểm quan trọng là chuỗi truyền vào phải theo **tên nhị phân (binary name)** của lớp/interface thông thường; tên bạn viết trong mã Java đôi khi khác tên này. Riêng mảng có cú pháp biểu diễn đặc biệt, còn primitive không tra cứu bằng `Class.forName("int")`.
+In Java Reflection, **`Class.forName(String name)`** looks up a class or interface by name at runtime and returns the `Class<?>` object representing that type. The crucial point is that the string passed in must follow the **binary name** of an ordinary class/interface; the name you write in Java code sometimes differs from this name. Arrays in particular have a special representation syntax, while primitives cannot be looked up with `Class.forName("int")`.
 
-Sau bài học, bạn có thể phân biệt tên đơn giản, canonical name và binary name; tra cứu chính xác top-level class, member class và array; giải thích quá trình nạp/khởi tạo; chọn overload/class loader phù hợp; và xử lý những lỗi tra cứu điển hình.
+After this lesson, you can distinguish simple names, canonical names, and binary names; accurately look up top-level classes, member classes, and arrays; explain the loading/initialization process; choose the appropriate overload/class loader; and handle typical lookup errors.
 
-## 2. Binary name khác canonical name như thế nào?
+## 2. How does a binary name differ from a canonical name?
 
-**Binary name** là tên dùng để định danh lớp/interface trong biểu diễn nhị phân của Java, được quy định trong JLS §13.1. Với một lớp top-level, tên thường là tên package cộng tên lớp, ví dụ `java.lang.String`. Với một **lớp hoặc interface thành viên** nằm bên trong kiểu khác, binary name dùng dấu **`$`** giữa các cấp lớp, ví dụ `java.util.Map$Entry`, trong khi source Java viết `java.util.Map.Entry`.
+A **binary name** is the name used to identify a class/interface in Java's binary representation, as specified in JLS §13.1. For a top-level class, the name is typically the package name plus the class name, such as `java.lang.String`. For a **member class or interface** nested inside another type, the binary name uses **`$`** between nesting levels, such as `java.util.Map$Entry`, whereas Java source writes `java.util.Map.Entry`.
 
-| Kiểu | Tên trong Java source / canonical name | Tên phù hợp với `Class.forName` |
+| Type | Name in Java source / canonical name | Name suitable for `Class.forName` |
 | --- | --- | --- |
 | Top-level class | `java.lang.String` | `java.lang.String` |
 | Top-level interface | `java.util.List` | `java.util.List` |
 | Member interface | `java.util.Map.Entry` | `java.util.Map$Entry` |
 | Nested member class | `com.example.Outer.Inner` | `com.example.Outer$Inner` |
-| Lồng nhiều cấp | `com.example.Outer.Middle.Inner` | `com.example.Outer$Middle$Inner` |
-| Mảng `String[]` | `java.lang.String[]` | `[Ljava.lang.String;` |
-| Mảng `String[][]` | `java.lang.String[][]` | `[[Ljava.lang.String;` |
-| Mảng `int[]` | `int[]` | `[I` |
-| Primitive `int` | `int` | Dùng `int.class`, không dùng `Class.forName("int")` |
+| Multi-level nesting | `com.example.Outer.Middle.Inner` | `com.example.Outer$Middle$Inner` |
+| Array `String[]` | `java.lang.String[]` | `[Ljava.lang.String;` |
+| Array `String[][]` | `java.lang.String[][]` | `[[Ljava.lang.String;` |
+| Array `int[]` | `int[]` | `[I` |
+| Primitive `int` | `int` | Use `int.class`, do not use `Class.forName("int")` |
 
-Ba API lấy tên từ đối tượng `Class`:
+Three APIs for getting names from a `Class` object:
 
-- `getSimpleName()`: tên ngắn, chẳng hạn `Inner`; không mang đủ thông tin package/outer class.
-- `getCanonicalName()`: tên theo cú pháp source, chẳng hạn `com.example.Outer.Inner`. Local class và anonymous class thường không có canonical name, nên có thể trả về `null`.
-- `getName()`: với class/interface thường trả về binary name, chẳng hạn `com.example.Outer$Inner`; với mảng trả về tên dạng đặc biệt như `[Ljava.lang.String;`; với primitive trả về `int`, `boolean`...
+- `getSimpleName()`: the short name, such as `Inner`; does not carry enough package/outer class information.
+- `getCanonicalName()`: the name in source syntax, such as `com.example.Outer.Inner`. Local classes and anonymous classes usually have no canonical name, so this can return `null`.
+- `getName()`: for ordinary classes/interfaces, returns the binary name, such as `com.example.Outer$Inner`; for arrays, returns the special form like `[Ljava.lang.String;`; for primitives, returns `int`, `boolean`, etc.
 
-**Quy tắc thực hành:** Khi đã có `SomeType.class`, lấy `SomeType.class.getName()` để tạo chuỗi cho các kiểu class/interface và array, thay vì tự biến đổi dấu chấm thành `$`. Ngoại lệ là primitive hoặc `void`, vì chuỗi `getName()` của chúng không dùng để nạp lại qua `Class.forName`.
+**Practical rule:** When you already have `SomeType.class`, take `SomeType.class.getName()` to produce the string for class/interface and array types instead of manually converting dots to `$`. The exceptions are primitives or `void`, because their `getName()` strings cannot be used to load them back via `Class.forName`.
 
-## 3. Cú pháp chính xác theo loại kiểu
+## 3. Exact syntax by type kind
 
-### 3.1. Lớp/interface top-level
+### 3.1. Top-level classes and interfaces
 
 ```java
 Class<?> stringType = Class.forName("java.lang.String");
 Class<?> listType = Class.forName("java.util.List");
 ```
 
-Chuỗi là tên đầy đủ có package. Khác với compiler xử lý tên `String` trong mã nguồn, `Class.forName("String")` không tự thêm package `java.lang`. Nó thử tìm lớp đúng tên đã truyền.
+The string is the fully qualified name including the package. Unlike how the compiler resolves `String` in source code, `Class.forName("String")` does not automatically prepend the `java.lang` package. It attempts to find a class with the exact name passed.
 
-### 3.2. Member class và member interface
+### 3.2. Member classes and member interfaces
 
 ```java
 Class<?> entry = Class.forName("java.util.Map$Entry");
 Class<?> nested = Class.forName("com.example.Outer$Inner");
 ```
 
-Dòng thứ hai chỉ thành công khi class `com.example.Outer$Inner` thực sự tồn tại và thấy được bởi loader. Ví dụ này minh họa cú pháp, không giả định project có class đó. Trong `com.example.Outer$Inner`, dấu chấm phân cách package và kiểu top-level; dấu `$` phân cách outer/inner type. Không thay tất cả dấu chấm thành `$`.
+The second line only succeeds when the class `com.example.Outer$Inner` actually exists and is visible to the loader. This example illustrates the syntax and does not assume the project contains that class. In `com.example.Outer$Inner`, dots separate the package and the top-level type; `$` separates the outer and inner types. Do not replace all dots with `$`.
 
-Quy tắc đặt tên trên cũng áp dụng cho **non-static inner class**. Tuy vậy, tra cứu được `Class` không đồng nghĩa có thể tạo instance inner class bằng constructor không tham số: constructor của inner class thường cần tham chiếu ngầm đến đối tượng outer.
+The naming rule above also applies to **non-static inner classes**. However, looking up the `Class` does not mean you can create an instance of an inner class using a no-argument constructor: an inner class constructor typically requires an implicit reference to the outer object.
 
-### 3.3. Kiểu mảng sử dụng tên dạng descriptor
+### 3.3. Array types using descriptor-style names
 
-Với mảng, chuỗi `Class.forName` chấp nhận gồm một ký tự `[` cho mỗi chiều và mã của kiểu thành phần:
+For arrays, the string accepted by `Class.forName` consists of one `[` character per dimension and the code for the component type:
 
-- Với thành phần là class/interface: `L` + binary name + `;`, ví dụ `[Ljava.lang.String;`.
-- Với primitive: dùng mã `Z` = boolean, `B` = byte, `C` = char, `D` = double, `F` = float, `I` = int, `J` = long, `S` = short.
-- Với mảng hai chiều, thêm một dấu `[`: `[[I` cho `int[][]`, `[[Ljava.lang.String;` cho `String[][]`.
+- For a class/interface component: `L` + binary name + `;`, for example `[Ljava.lang.String;`.
+- For primitives: use codes `Z` = boolean, `B` = byte, `C` = char, `D` = double, `F` = float, `I` = int, `J` = long, `S` = short.
+- For two-dimensional arrays, add another `[`: `[[I` for `int[][]`, `[[Ljava.lang.String;` for `String[][]`.
 
 ```java
 Class<?> strings = Class.forName("[Ljava.lang.String;");
@@ -67,17 +67,17 @@ Class<?> matrix = Class.forName("[[I");
 Class<?> entries = Class.forName("[Ljava.util.Map$Entry;");
 ```
 
-Không dùng `"java.lang.String[]"` hoặc `"int[]"` với overload nhận tên. Đây là **dạng tên mảng**, không phải tên nhị phân của top-level class; cách lấy tên chắc chắn nhất là `String[].class.getName()` hay `int[].class.getName()`. Nạp lớp mảng không tự khởi tạo lớp thành phần của mảng.
+Do not use `"java.lang.String[]"` or `"int[]"` with the name-taking overload. These are **array type names**, not binary names of top-level classes; the most reliable way to get the name is `String[].class.getName()` or `int[].class.getName()`. Loading an array class does not automatically initialize the array's element class.
 
-### 3.4. Primitive, generic, local và anonymous class
+### 3.4. Primitives, generics, local, and anonymous classes
 
-`Class.forName("int")`, `Class.forName("void")` không phải cách lấy đối tượng `Class` của primitive/void; dùng `int.class`, `void.class`, `Integer.TYPE`. Cũng không truyền cú pháp generic `"java.util.List<java.lang.String>"`: tham số kiểu generic không nằm trong binary name của raw class `java.util.List`.
+`Class.forName("int")` and `Class.forName("void")` are not ways to get the `Class` object of primitives/void; use `int.class`, `void.class`, `Integer.TYPE`. Also do not pass generic syntax `"java.util.List<java.lang.String>"`: generic type arguments are not part of the binary name of the raw class `java.util.List`.
 
-Tên local class hoặc anonymous class có thể chứa số thứ tự do compiler sinh, chẳng hạn `Outer$1Local` và `Outer$1`. Các tên này có thể thay đổi khi sửa/biên dịch lại code. Đừng lưu cứng chúng vào cấu hình; nếu cần reflection với loại class này, ưu tiên `instance.getClass()` và sử dụng `Class` hiện có.
+Names of local or anonymous classes can include compiler-generated sequence numbers, such as `Outer$1Local` and `Outer$1`. These names can change when code is edited or recompiled. Do not hardcode them into configuration; if reflection is needed on such classes, prefer `instance.getClass()` and use the existing `Class`.
 
-## 4. Chương trình Java 17+ minh họa binary name
+## 4. Java 17+ program demonstrating binary names
 
-Tạo tệp **`BinaryNameDemo.java`** với nội dung đầy đủ:
+Create the file **`BinaryNameDemo.java`** with the complete contents:
 
 ```java
 public class BinaryNameDemo {
@@ -111,7 +111,7 @@ public class BinaryNameDemo {
 }
 ```
 
-Tại thư mục chứa tệp, chạy:
+In the directory containing the file, run:
 
 ```bash
 javac BinaryNameDemo.java
@@ -131,25 +131,25 @@ Canonical lookup: ClassNotFoundException
 Primitive lookup: ClassNotFoundException
 ```
 
-Ở đây `BinaryNameDemo.Nested` là canonical name có ích trong source Java, còn `BinaryNameDemo$Nested` là binary name để tìm lớp. Vì chương trình không khai báo package, phần đầu binary name chỉ là `BinaryNameDemo`. Nếu file nằm trong `package demo;`, chuỗi tra cứu sẽ là `demo.BinaryNameDemo$Nested`.
+Here `BinaryNameDemo.Nested` is the canonical name useful in Java source, whereas `BinaryNameDemo$Nested` is the binary name for looking up the class. Because the program declares no package, the leading part of the binary name is just `BinaryNameDemo`. If the file were in `package demo;`, the lookup string would be `demo.BinaryNameDemo$Nested`.
 
-Ví dụ cũng minh họa `Class.forName` **không tự biến** tên array trong mã nguồn `String[]` thành dạng JVM và **không tự biến** chuỗi `int` thành primitive `Class`.
+The example also illustrates that `Class.forName` **does not automatically convert** the source array name `String[]` into JVM form and **does not automatically convert** the string `int` into a primitive `Class`.
 
-## 5. Nạp kiểu bằng tên và thời điểm khởi tạo
+## 5. Loading types by name and initialization timing
 
-`Class.forName(String)` tìm theo tên và **yêu cầu khởi tạo** lớp đích khi cần. `Class.forName(name, false, loader)` vẫn nạp/liên kết lớp nhưng **không chủ động khởi tạo** nó; `ClassLoader.loadClass(name)` thông thường cũng chưa yêu cầu khởi tạo. Đây là các thao tác khác với gọi constructor để tạo instance.
+`Class.forName(String)` looks up by name and **requests initialization** of the target class when needed. `Class.forName(name, false, loader)` still loads/links the class but **does not actively initialize** it; a regular `ClassLoader.loadClass(name)` also does not request initialization yet. These operations are distinct from calling a constructor to create an instance.
 
-| Lời gọi | Kết quả cần lưu ý |
+| Call | Notable result |
 | --- | --- |
-| `Class.forName("demo.Widget")` | Tìm theo tên và yêu cầu chạy static initialization của `Widget` nếu chưa diễn ra. |
-| `Class.forName("demo.Widget", false, loader)` | Lấy metadata để khám phá kiểu trước khi chủ động sử dụng. |
-| `Class.forName("[Ldemo.Widget;")` | Tìm kiểu mảng; không vì thế mà tự khởi tạo lớp phần tử `Widget`. |
+| `Class.forName("demo.Widget")` | Looks up by name and requests running static initialization of `Widget` if it has not happened yet. |
+| `Class.forName("demo.Widget", false, loader)` | Retrieves metadata to inspect the type before actively using it. |
+| `Class.forName("[Ldemo.Widget;")` | Looks up the array type; does not thereby initialize the element class `Widget`. |
 
-Tên đúng vẫn có thể không tìm được nếu loader không thấy định nghĩa. Lớp tìm thấy cũng có thể lỗi khi liên kết hoặc khởi tạo. Bài về overload ba đối số đi sâu vào việc chọn loader và cờ `initialize`; bài về vòng đời lớp phân tích riêng các thời điểm JVM chạy `static`.
+A valid name can still fail to be found if the loader cannot see the definition. A found class can also fail during linking or initialization. The lesson on the three-argument overload goes deeper into choosing the loader and the `initialize` flag; the lesson on class lifecycle analyzes separately the moments when the JVM runs `static` initialization.
 
-## 6. Tìm được `Class` chưa phải đã có đối tượng
+## 6. Finding `Class` does not mean you have an object
 
-`Class.forName` chỉ trả về metadata của kiểu, không tự tạo instance. Khi muốn khởi tạo đối tượng bằng reflection, cần tìm constructor phù hợp:
+`Class.forName` only returns type metadata; it does not create an instance automatically. When you want to instantiate an object via reflection, you must locate the appropriate constructor:
 
 ```java
 Class<?> type = Class.forName("java.util.ArrayList");
@@ -157,30 +157,30 @@ Object instance = type.getDeclaredConstructor().newInstance();
 System.out.println(instance.getClass().getName());
 ```
 
-Đây là **fragment** đặt trong phương thức đã xử lý/khai báo `ReflectiveOperationException`; output là `java.util.ArrayList`. `ArrayList` có constructor không tham số; không phải lớp nào cũng có. Một constructor có thể không public hoặc bị hạn chế truy cập bởi module system; `getDeclaredConstructor().newInstance()` không bảo đảm thành công cho mọi kiểu vừa nạp.
+This is a **fragment** placed inside a method that handles/declares `ReflectiveOperationException`; the output is `java.util.ArrayList`. `ArrayList` has a no-argument constructor; not every class does. A constructor might not be public or might have access restricted by the module system; `getDeclaredConstructor().newInstance()` is not guaranteed to succeed for every newly loaded type.
 
-Với kiểu biết sẵn lúc biên dịch, `SomeType.class` thường ngắn gọn và an toàn kiểu hơn; `Class.forName` phù hợp khi tên kiểu đến từ cấu hình hoặc cơ chế plugin, framework hay lập trình động.
+For types known at compile time, `SomeType.class` is usually shorter and more type-safe; `Class.forName` fits when the type name comes from configuration or a plugin, framework, or dynamic programming mechanism.
 
-## 7. Chẩn đoán lỗi
+## 7. Error diagnosis
 
-| Triệu chứng | Nguyên nhân thường gặp | Cách xử lý |
+| Symptom | Common cause | How to handle |
 | --- | --- | --- |
-| `ClassNotFoundException` với `java.util.Map.Entry` | Nhầm canonical name với binary name | Dùng `java.util.Map$Entry`. |
-| `ClassNotFoundException` với `String` | Thiếu tên package | Dùng `java.lang.String`. |
-| `ClassNotFoundException` với `java.lang.String[]` | Nhầm cách viết array trong source | Dùng `[Ljava.lang.String;` hoặc `String[].class`. |
-| `ClassNotFoundException` với `int` | Primitive không được loader tìm như class | Dùng `int.class`. |
-| Tên đúng vẫn không tìm thấy | Sai classpath, module path hoặc class loader | Kiểm tra dependency runtime và loader. |
-| `ExceptionInInitializerError` | Static initialization thất bại | Xem nguyên nhân gốc trong static initializer. |
-| `NoClassDefFoundError` | Lớp/dependency cần khi liên kết hoặc sử dụng bị thiếu, hoặc lớp từng khởi tạo thất bại | Xem lỗi đầu tiên trong log và chuỗi nguyên nhân. |
-| `LinkageError` khác | Lỗi xác minh/liên kết hoặc bytecode không tương thích | Kiểm tra dependency và phiên bản thư viện. |
+| `ClassNotFoundException` with `java.util.Map.Entry` | Confusing canonical name with binary name | Use `java.util.Map$Entry`. |
+| `ClassNotFoundException` with `String` | Missing package name | Use `java.lang.String`. |
+| `ClassNotFoundException` with `java.lang.String[]` | Confusing source array syntax | Use `[Ljava.lang.String;` or `String[].class`. |
+| `ClassNotFoundException` with `int` | Primitives are not looked up as classes by a loader | Use `int.class`. |
+| Correct name still not found | Wrong classpath, module path, or class loader | Check runtime dependencies and loader. |
+| `ExceptionInInitializerError` | Static initialization failed | Inspect the root cause in the static initializer. |
+| `NoClassDefFoundError` | Class/dependency needed during linking or usage is missing, or the class previously failed initialization | Check the first error in logs and the cause chain. |
+| Other `LinkageError` | Verification/linking error or incompatible bytecode | Check dependencies and library versions. |
 
-`ClassNotFoundException` là **checked exception**, thường liên quan tới tra cứu lớp theo tên. `ExceptionInInitializerError`, `NoClassDefFoundError` là các **Error**, không được xử lý chỉ bằng `catch (ClassNotFoundException)`. Tránh bắt `Error` một cách đại trà để che lỗi triển khai/môi trường.
+`ClassNotFoundException` is a **checked exception**, usually related to looking up a class by name. `ExceptionInInitializerError` and `NoClassDefFoundError` are **Errors**, which are not handled merely by `catch (ClassNotFoundException)`. Avoid catching `Error` broadly to hide deployment/environment failures.
 
-## 8. Áp dụng an toàn với tên lớp động
+## 8. Safe application with dynamic class names
 
-Khi đọc tên class từ cấu hình, hãy lưu binary name chính xác nếu có thể, ví dụ dùng `Plugin.class.getName()` ở nơi tạo dữ liệu. Không tự chuyển toàn bộ `.` thành `$`, vì dấu chấm trong package phải giữ nguyên. Nếu cần class loader riêng (plugin hoặc application server), dùng overload ba tham số và giữ đúng loader của plugin.
+When reading class names from configuration, store the exact binary name if possible—for example, using `Plugin.class.getName()` where the data is produced. Do not blindly replace every `.` with `$`, because dots in package names must be preserved. If a dedicated class loader is needed (plugins or application servers), use the three-argument overload and retain the plugin's proper loader.
 
-Việc nạp và khởi tạo lớp có thể thực thi mã trong static initializer. Nếu tên đến từ dữ liệu bên ngoài, cần giới hạn lớp cho phép, kiểm tra kiểu cha/interface dự kiến và chỉ tạo instance theo hợp đồng rõ ràng. Chẳng hạn, sau khi xác định `binaryName` đã được phép:
+Loading and initializing a class can execute code in static initializers. If the name comes from external data, restrict allowed classes, verify the expected superclass/interface, and only instantiate according to an explicit contract. For example, once `binaryName` has been verified as permitted:
 
 ```java
 Class<?> loaded = Class.forName(binaryName, false, pluginClassLoader);
@@ -190,14 +190,14 @@ if (!Runnable.class.isAssignableFrom(loaded)) {
 Class<? extends Runnable> taskType = loaded.asSubclass(Runnable.class);
 ```
 
-Đây là **fragment** dùng hai biến có sẵn `String binaryName` và `ClassLoader pluginClassLoader`; nó mới kiểm tra subtype, chưa tạo instance. Dù đã dùng `initialize=false`, việc thao tác tiếp theo với class có thể làm JVM khởi tạo nó. Chỉ kiểm tra subtype không thay thế danh sách class được phép và đánh giá mức độ tin cậy của nguồn.
+This is a **fragment** using two existing variables `String binaryName` and `ClassLoader pluginClassLoader`; it only checks the subtype and has not yet created an instance. Even though `initialize=false` was used, subsequent operations on the class can cause the JVM to initialize it. Checking only the subtype does not replace an allowlist of permitted classes and evaluating the trustworthiness of the source.
 
-## 9. Câu hỏi tự kiểm tra
+## 9. Self-check questions
 
-1. Source có `package demo;` và `Outer` chứa `static class Inner`. Chuỗi nào để tra cứu inner type? **`"demo.Outer$Inner"`**, không phải `"demo.Outer.Inner"`.
-2. Để tìm `String[][]`, dùng tên nào? **`"[[Ljava.lang.String;"`**: hai dấu `[` cho hai chiều, `Ljava.lang.String;` cho thành phần reference type.
-3. Vì sao `Class.forName("int")` không thay `int.class`? **Primitive không phải lớp được loader định nghĩa theo binary name**.
-4. Muốn lấy `Class` mà chưa yêu cầu chạy static initializer, dùng gì? **`Class.forName(binaryName, false, loader)`**, đồng thời hiểu các thao tác về sau có thể khởi tạo lớp.
-5. Tại sao tên đúng vẫn tìm thất bại? **Class loader hoặc classpath/module path runtime không chứa/không nhìn thấy class phù hợp**.
+1. Source has `package demo;` and `Outer` contains `static class Inner`. What string looks up the inner type? **`"demo.Outer$Inner"`**, not `"demo.Outer.Inner"`.
+2. To look up `String[][]`, which name is used? **`"[[Ljava.lang.String;"`**: two `[` characters for two dimensions, `Ljava.lang.String;` for the reference component type.
+3. Why doesn't `Class.forName("int")` replace `int.class`? **Primitives are not classes defined by a loader under a binary name**.
+4. To get `Class` without requesting the static initializer to run yet, what do you use? **`Class.forName(binaryName, false, loader)`**, while understanding that later operations can initialize the class.
+5. Why can a valid name still fail lookup? **The runtime class loader or classpath/module path does not contain or cannot see the matching class**.
 
-**Ghi nhớ:** Đối với lớp/interface thông thường, dùng **binary name**; với member type sử dụng dấu `$`. Đối với mảng, dùng tên kiểu `[L...;` hoặc `[I`. Đối với primitive, dùng class literal. Luôn phân biệt tra cứu, khởi tạo và tạo instance để hiểu đúng hành vi của `Class.forName`.
+**Remember:** For ordinary classes/interfaces, use the **binary name**; for member types use `$`. For arrays, use names like `[L...;` or `[I`. For primitives, use class literals. Always distinguish lookup, initialization, and instantiation to properly understand how `Class.forName` behaves.

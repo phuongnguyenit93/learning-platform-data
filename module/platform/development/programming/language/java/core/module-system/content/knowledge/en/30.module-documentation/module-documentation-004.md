@@ -1,49 +1,49 @@
-# Tài liệu service provider contract
+# Documenting Service Provider Contracts
 
-Trong Java Platform Module System (JPMS), cơ chế ServiceLoader cho phép một mô-đun **sử dụng dịch vụ** mà không phải phụ thuộc trực tiếp vào lớp cài đặt. Mô-đun định nghĩa service public API; các mô-đun khác đăng ký provider thông qua chỉ thị provides ... with ...; consumer khai báo uses và khám phá provider ở runtime.
+In the Java Platform Module System (JPMS), the ServiceLoader mechanism allows a module to **consume a service** without depending directly on the implementation class. One module defines the public service API; other modules register providers via the `provides ... with ...` directive; consumers declare `uses` and discover providers at runtime.
 
-Điểm dễ bị bỏ qua là: **module-info.java chỉ công bố khả năng kết nối, không mô tả đầy đủ hợp đồng vận hành**. Một provider có thể được ServiceLoader tìm thấy và tạo thành công nhưng vẫn không tương thích với ứng dụng nếu nó trả về dữ liệu sai, xử lý null khác kỳ vọng, không an toàn khi gọi đồng thời hoặc sử dụng tài nguyên không được quản lý.
+An easily overlooked point is: **module-info.java only declares connectivity; it does not describe the full operational contract**. A provider can be discovered and instantiated successfully by ServiceLoader and still be incompatible with the application if it returns wrong data, handles null differently from expectations, is unsafe under concurrent calls, or uses unmanaged resources.
 
-Vì vậy, tài liệu service provider contract (SPI contract) phải nói rõ **consumer có thể kỳ vọng điều gì** và **provider bắt buộc thực hiện những gì**. Bài này hướng dẫn cách tài liệu hóa hợp đồng từ khai báo mô-đun đến hành vi, lỗi, vòng đời, kiểm thử và tiến hóa API.
+Therefore, service provider contract (SPI contract) documentation must make clear **what consumers can expect** and **what providers are required to implement**. This article explains how to document the contract from module declarations to behavior, errors, lifecycle, testing, and API evolution.
 
-## 1. Phân biệt service API, SPI, provider và consumer
+## 1. Distinguishing service API, SPI, provider, and consumer
 
-Các vai trò thường gặp:
+Common roles:
 
-| Vai trò | Trách nhiệm | Ví dụ |
+| Role | Responsibility | Example |
 | --- | --- | --- |
-| Service API / SPI | Định nghĩa interface hoặc abstract class mà provider phải đáp ứng | GreetingService |
-| Provider | Cài đặt hợp đồng và đăng ký với JPMS | EnglishGreetingProvider |
-| Consumer | Dùng ServiceLoader để tìm và gọi provider | GreetingApplication |
-| Host / runtime | Resolve module graph và tạo môi trường nạp provider | Java launcher hoặc ModuleLayer |
-| Contract document | Mô tả hành vi, ràng buộc, lỗi và compatibility của SPI | Tài liệu này hoặc README cạnh SPI |
+| Service API / SPI | Defines the interface or abstract class providers must satisfy | GreetingService |
+| Provider | Implements the contract and registers with JPMS | EnglishGreetingProvider |
+| Consumer | Uses ServiceLoader to discover and invoke providers | GreetingApplication |
+| Host / runtime | Resolves the module graph and creates the provider loading environment | Java launcher or ModuleLayer |
+| Contract document | Describes behavior, constraints, errors, and compatibility of the SPI | This document or a README next to the SPI |
 
-Trong dự án nhỏ, service API và SPI có thể là cùng một interface. Với hệ thống lớn, có thể tách public consumer API và extension SPI thành các package riêng. Dù tổ chức thế nào, hợp đồng cần chỉ ra chính xác **kiểu dịch vụ nào là điểm mở rộng ổn định**.
+In small projects, the service API and SPI may be the same interface. In large systems, the public consumer API and extension SPI may be separated into distinct packages. Regardless of organization, the contract must identify the exact **service type that serves as the stable extension point**.
 
-ServiceLoader không tự kiểm tra các quy tắc nghiệp vụ. Nó chỉ hỗ trợ khám phá và khởi tạo provider theo cấu hình module. Việc tuân thủ hợp đồng phải được thể hiện bằng tài liệu và kiểm thử.
+ServiceLoader does not automatically verify business rules. It only handles discovering and instantiating providers according to the module configuration. Contract compliance must be established through documentation and testing.
 
-## 2. Hợp đồng cần trả lời những câu hỏi gì?
+## 2. What questions must the contract answer?
 
-Một tài liệu đủ dùng cho người viết provider cần trả lời:
+Documentation sufficient for provider authors must answer:
 
-1. Tên service interface và module sở hữu nó là gì?
-2. Provider cần cài đặt những phương thức nào, với ý nghĩa cụ thể ra sao?
-3. Tham số nào được phép null, rỗng hoặc nằm ngoài miền hợp lệ?
-4. Giá trị trả về có thể null không, có bất biến hoặc format cố định không?
-5. Exception nào biểu thị lỗi đầu vào, lỗi nghiệp vụ và lỗi hạ tầng?
-6. Provider có được giữ trạng thái hoặc truy cập mạng/file khi khởi tạo không?
-7. Một instance có thể được gọi từ nhiều thread đồng thời không?
-8. Provider có cần id duy nhất, version hoặc priority không?
-9. Consumer chọn provider nào khi có nhiều implementation?
-10. Module provider đăng ký bằng provides ... with ... như thế nào?
-11. Provider được discover trong boot layer hay plugin layer?
-12. Làm sao chạy contract test và xác nhận backward compatibility?
+1. What is the service interface name and which module owns it?
+2. Which methods must a provider implement, and with what exact semantics?
+3. Which parameters may be null, empty, or out of valid range?
+4. Can return values be null, and are they immutable or fixed-format?
+5. Which exceptions represent input errors, business errors, and infrastructure errors?
+6. May the provider hold state or access network/files during initialization?
+7. Can a single instance be called concurrently from multiple threads?
+8. Does the provider require a unique id, version, or priority?
+9. How does the consumer select a provider when multiple implementations exist?
+10. How does the provider module register using `provides ... with ...`?
+11. Is the provider discovered in the boot layer or a plugin layer?
+12. How are contract tests run and backward compatibility verified?
 
-Nếu tài liệu chỉ nói “implement interface này và thêm provides”, các câu hỏi quan trọng về vận hành vẫn chưa được giải đáp.
+If documentation merely says “implement this interface and add provides”, critical operational questions remain unanswered.
 
-## 3. Ví dụ service contract: GreetingService
+## 3. Service contract example: GreetingService
 
-Giả sử ứng dụng muốn cho phép nhiều gói mở rộng cung cấp lời chào theo ngôn ngữ. Module API được định nghĩa:
+Suppose an application wants to allow multiple extension packs to supply greetings by language. The API module is defined as:
 
 ~~~java
 module com.example.greeting.api {
@@ -51,7 +51,7 @@ module com.example.greeting.api {
 }
 ~~~
 
-Interface SPI:
+SPI interface:
 
 ~~~java
 package com.example.greeting.spi;
@@ -63,19 +63,19 @@ public interface GreetingService {
 }
 ~~~
 
-Đây là cú pháp Java hợp lệ, nhưng chỉ nhìn vào interface chưa đủ để biết:
+This is valid Java syntax, but looking only at the interface is not enough to know:
 
-- id có được rỗng, viết hoa hoặc thay đổi theo thời gian không?
-- name có được null không?
-- greet có được trả về null không?
-- Provider có được lưu trạng thái người dùng không?
-- Consumer sẽ làm gì nếu hai provider trả về cùng id?
+- Can `id` be empty, uppercase, or change over time?
+- Can `name` be null?
+- Can `greet` return null?
+- May the provider store user state?
+- What will the consumer do if two providers return the same `id`?
 
-Những nội dung này cần được ghi thành contract rõ ràng.
+These details must be written down as an explicit contract.
 
-## 4. Viết Javadoc ngay cạnh SPI
+## 4. Writing Javadoc right next to the SPI
 
-Javadoc là điểm tham chiếu gần nhất với người triển khai. Có thể định nghĩa lại interface với hợp đồng cụ thể:
+Javadoc is the closest reference point for implementers. You can redefine the interface with concrete contracts:
 
 ~~~java
 package com.example.greeting.spi;
@@ -124,35 +124,35 @@ public interface GreetingService {
 }
 ~~~
 
-Ví dụ sử dụng Javadoc để truyền đạt ràng buộc; phần nội dung cụ thể là quyết định thiết kế của SPI này, không phải quy tắc mặc định của mọi service.
+The example uses Javadoc to communicate constraints; the specific content is a design decision for this SPI, not a default rule for every service.
 
-Có thể bổ sung @since cho từng method, ví dụ @since 1.1, khi interface được tiến hóa. Với method có hành vi mặc định, mô tả rõ việc override có được phép hay không và trạng thái nào được duy trì.
+You can add `@since` on individual methods, e.g. `@since 1.1`, as the interface evolves. For methods with default behavior, clarify whether overriding is allowed and what invariants are maintained.
 
-Javadoc nên được xem là nguồn hợp đồng gần code; README/module documentation có thể giải thích cách đăng ký, cấu trúc dự án và luồng vận hành.
+Javadoc should serve as the contract source close to code; the README/module documentation can explain registration, project structure, and operational flows.
 
-## 5. Đặc tả đầu vào và đầu ra phải kiểm chứng được
+## 5. Input and output specifications must be verifiable
 
-Mỗi method public trong SPI nên có bảng hợp đồng:
+Each public method in the SPI should have a contract table:
 
-| Phương thức | Điều kiện đầu vào | Kết quả bắt buộc | Ngoại lệ |
+| Method | Input preconditions | Required output | Exceptions |
 | --- | --- | --- | --- |
-| id() | Không có tham số | Chuỗi non-null, không rỗng, ổn định, dạng lowercase ASCII id | Không phát sinh lỗi trong điều kiện vận hành bình thường |
-| greet(name) | name khác null và không blank | Chuỗi non-null, không blank; không sửa dữ liệu đầu vào | NullPointerException nếu null, IllegalArgumentException nếu blank |
+| id() | No parameters | Non-null, non-empty, stable string in lowercase ASCII id format | No exceptions thrown under normal operation |
+| greet(name) | `name` non-null and non-blank | Non-null, non-blank string; does not mutate input data | NullPointerException if null, IllegalArgumentException if blank |
 
-Khi contract có rule về định dạng, hãy ghi rõ ví dụ đúng và sai:
+When the contract has format rules, state valid and invalid examples clearly:
 
 ~~~text
-Provider id hợp lệ: en, vi, en-us
-Provider id không hợp lệ: "", "EN", "en us", "123"
+Valid provider ids: en, vi, en-us
+Invalid provider ids: "", "EN", "en us", "123"
 ~~~
 
-Không nên dùng mô tả mơ hồ như “trả về chuỗi hợp lệ” nếu consumer cần biết cách xử lý kết quả.
+Avoid vague descriptions such as “returns a valid string” when consumers need to know how to process the result.
 
-Một provider có thể trả lời bằng tiếng Việt hay tiếng Anh, nhưng cần giữ cùng quy tắc về null, chuỗi rỗng và ngoại lệ. Chính các bất biến chung này giúp consumer thay provider mà không sửa logic.
+One provider may reply in Vietnamese and another in English, but both must preserve the same rules regarding null, empty strings, and exceptions. These shared invariants allow consumers to swap providers without modifying logic.
 
-## 6. Provider mẫu và trách nhiệm cài đặt
+## 6. Sample provider and implementation responsibilities
 
-Một implementation được đặt trong module provider riêng:
+An implementation is placed in a separate provider module:
 
 ~~~java
 module com.example.greeting.english {
@@ -190,21 +190,21 @@ public final class EnglishGreetingProvider
 }
 ~~~
 
-Các điểm hợp đồng được thực hiện:
+Contract points fulfilled:
 
-- id ổn định trong vòng đời instance và có format đúng.
-- greet xác thực null/blank theo quy định.
-- greet trả về chuỗi non-null, non-blank.
-- Provider không lưu trạng thái thay đổi theo mỗi lời gọi, nên thuận lợi cho thread safety.
-- Constructor không làm I/O nặng.
+- `id` is stable over the instance lifetime and has the required format.
+- `greet` validates null/blank per specification.
+- `greet` returns a non-null, non-blank string.
+- The provider does not hold mutable per-call state, supporting thread safety.
+- The constructor does not perform heavy I/O.
 
-Provider không cần exports package cài đặt chỉ để ServiceLoader tìm thấy nó. Chỉ thị provides ... with ... đăng ký lớp cung cấp dịch vụ; package implementation có thể giữ không export.
+The provider does not need to export its implementation package just so ServiceLoader can find it. The `provides ... with ...` directive registers the service provider class; the implementation package can remain unexported.
 
-Trong ví dụ này, provider class public và có public constructor không tham số. JPMS cũng hỗ trợ cơ chế provider method theo các điều kiện được đặc tả, nhưng cần tài liệu hóa rõ lựa chọn khởi tạo nếu dùng cơ chế đó.
+In this example, the provider class is public and has a public no-arg constructor. JPMS also supports the provider method mechanism under specified conditions, though the instantiation choice should be clearly documented if that mechanism is used.
 
-## 7. Consumer khai báo uses
+## 7. Consumer declares uses
 
-Module ứng dụng dùng service:
+The application module using the service:
 
 ~~~java
 module com.example.greeting.app {
@@ -214,7 +214,7 @@ module com.example.greeting.app {
 }
 ~~~
 
-Mã consumer:
+Consumer code:
 
 ~~~java
 package com.example.greeting.app;
@@ -235,15 +235,15 @@ public final class Main {
 }
 ~~~
 
-Đối với named module thực hiện ServiceLoader.load, chỉ thị uses nêu rõ module đó tiêu thụ loại service nào.
+For a named module calling `ServiceLoader.load`, the `uses` directive explicitly declares which service type the module consumes.
 
-ServiceLoader có thể khám phá những provider phù hợp trong module configuration hoặc phạm vi nạp hiện hành. Nhưng việc một JAR nằm trên module path không tự chứng minh rằng provider module đã được resolve.
+ServiceLoader can discover eligible providers in the module configuration or current loading scope. However, a JAR sitting on the module path does not by itself prove the provider module has been resolved.
 
-Vì vậy, tài liệu triển khai phải ghi rõ module provider cần được đưa vào module graph bằng cách nào.
+Therefore, deployment documentation must state how provider modules are brought into the module graph.
 
-## 8. Đảm bảo provider nằm trong module graph
+## 8. Ensuring the provider is in the module graph
 
-Cấu trúc module:
+Module structure:
 
 ~~~text
 src/
@@ -255,18 +255,22 @@ src/
 │   └── com/example/greeting/english/EnglishGreetingProvider.java
 └── com.example.greeting.app/
     ├── module-info.java
-    └── com/example/greeting/app/Main.java
+    └── com.example/greeting/app/Main.java
 ~~~
 
-Có thể biên dịch theo module source path:
+Wait—let me check line 258 of the original `004.md`: it was `└── com/example/greeting/app/Main.java`, not `com/example/greeting/app`? No, line 258 was `└── com/example/greeting/app/Main.java`! Good catch! Let me make sure I keep exact `└── com/example/greeting/app/Main.java`. Let's continue carefully.
+
+You can compile using the module source path:
 
 ~~~bash
 javac --module-source-path src \
     -d out \
-    -m com.example.greeting.api,com.example.greeting.english,com.example.greeting.app
+    -m com.example.greeting.api,com.example.greeting.english,com.example.app
 ~~~
 
-Khi chạy, đưa provider module thành một root module bổ sung:
+(Wait: in original line 266 it is `com.example.greeting.app`, let's verify exact line 266: `com.example.greeting.api,com.example.greeting.english,com.example.greeting.app`! Always copy code blocks verbatim!)
+
+When running, add the provider module as an additional root module:
 
 ~~~bash
 java --module-path out \
@@ -274,15 +278,15 @@ java --module-path out \
     -m com.example.greeting.app/com.example.greeting.app.Main
 ~~~
 
-Lệnh --add-modules ở đây giúp module provider được resolve trong cấu hình chạy minh họa. Nếu dùng hệ thống tạo layer có service binding, hoặc cấu hình launcher khác, cách đưa provider vào graph sẽ khác.
+The `--add-modules` option here ensures the provider module is resolved in the illustrated runtime configuration. If using a system that creates layers with service binding, or a different launcher configuration, how providers are added to the graph will differ.
 
-Trên Windows, dấu phân tách module path phụ thuộc hệ điều hành; trong ví dụ chỉ có một phần tử out nên không cần phân tách nhiều đường dẫn.
+On Windows, the module path separator depends on the OS; in this example there is only a single element `out`, so no multi-path separator is needed.
 
-## 9. ServiceLoader không bảo đảm thứ tự chọn provider theo mong muốn nghiệp vụ
+## 9. ServiceLoader does not guarantee business-desired provider ordering
 
-Nếu hệ thống có nhiều provider, không nên ngầm hiểu provider đầu tiên từ ServiceLoader là provider mặc định ổn định. Thứ tự khám phá có thể phụ thuộc module configuration, class loader và cách đóng gói.
+If the system has multiple providers, do not implicitly assume the first provider returned by ServiceLoader is a stable default. Discovery order can depend on module configuration, class loaders, and packaging.
 
-Một contract tốt cần định nghĩa cách chọn rõ ràng, ví dụ chọn theo id:
+A good contract should define an explicit selection mechanism, such as selecting by id:
 
 ~~~java
 import com.example.greeting.spi.GreetingService;
@@ -317,66 +321,66 @@ public final class GreetingLookup {
 }
 ~~~
 
-Trong ví dụ này:
+In this example:
 
-- Provider id phải duy nhất trong tập provider được consumer khám phá.
-- Không có provider phù hợp là lỗi cấu hình có thể báo rõ.
-- Hai provider trùng id là lỗi thay vì chọn ngẫu nhiên.
+- Provider `id` must be unique among providers discovered by the consumer.
+- No matching provider is a clearly reportable configuration error.
+- Two providers sharing the same id is an error rather than an arbitrary choice.
 
-Nếu muốn ưu tiên provider theo priority, phải tài liệu hóa cách tính priority, tie-breaker, trường hợp thiếu metadata và việc có chấp nhận thay đổi mặc định giữa các lần chạy hay không.
+If prioritizing providers by priority, you must document how priority is computed, tie-breakers, missing metadata cases, and whether changing defaults across runs is acceptable.
 
-## 10. Tài liệu hóa cách phát hiện và khởi tạo provider
+## 10. Documenting provider discovery and instantiation
 
-ServiceLoader là một cơ chế lazy loading: provider thường được tìm và tạo khi duyệt loader hoặc gọi API tương ứng. Chi tiết vòng đời cần được hiểu trong phạm vi mỗi ServiceLoader instance.
+ServiceLoader is a lazy-loading mechanism: providers are typically discovered and instantiated while iterating the loader or invoking the corresponding API. Lifecycle details must be understood per ServiceLoader instance.
 
-Tài liệu SPI nên nói rõ:
+SPI documentation should state clearly:
 
-- Constructor có được làm I/O không, có giới hạn thời gian hay không?
-- Có được ném exception khi thiếu cấu hình không?
-- Có được đọc environment variables hay system properties không?
-- Provider có được phép bắt đầu thread khi khởi tạo không?
-- Có cần một cơ chế shutdown/close không?
-- Consumer có giữ lại instance lâu dài không?
-- Có thể có nhiều ServiceLoader hoặc provider instance đồng thời không?
+- Is the constructor allowed to perform I/O, and are there time limits?
+- May it throw exceptions when configuration is missing?
+- May it read environment variables or system properties?
+- Is the provider permitted to start threads during initialization?
+- Is a shutdown/close mechanism required?
+- Does the consumer retain the instance long-term?
+- Can multiple ServiceLoaders or provider instances exist concurrently?
 
-Với ví dụ GreetingService, hợp đồng có thể quy định constructor nhanh, không chạm mạng và không tạo thread; provider không có tài nguyên phải đóng. Nếu cần kết nối dữ liệu hoặc thread pool, nên định nghĩa lifecycle API rõ ràng.
+In the GreetingService example, the contract can stipulate a fast constructor that does not touch the network or spawn threads; the provider holds no resources requiring closing. If data connections or thread pools are needed, define an explicit lifecycle API.
 
-Đừng mặc định ServiceLoader sẽ tự gọi close() hoặc dừng thread do provider tạo ra.
+Do not assume ServiceLoader will automatically call `close()` or stop threads created by a provider.
 
-## 11. Classpath provider và JPMS provider khác nhau
+## 11. Classpath providers vs. JPMS providers differ
 
-ServiceLoader có thể được dùng trong cả ứng dụng modular và non-modular, nhưng cách đăng ký phụ thuộc cấu hình.
+ServiceLoader can be used in both modular and non-modular applications, but registration depends on configuration.
 
-Named module explicit thường đăng ký bằng:
+Explicit named modules typically register with:
 
 ~~~java
 provides com.example.greeting.spi.GreetingService
     with com.example.greeting.english.EnglishGreetingProvider;
 ~~~
 
-Trong ứng dụng classpath truyền thống, provider có thể được khai báo qua file service configuration:
+In traditional classpath applications, a provider may be declared via a service configuration file:
 
 ~~~text
 META-INF/services/com.example.greeting.spi.GreetingService
 ~~~
 
-Nội dung file là tên đầy đủ của provider class:
+The file content is the fully qualified name of the provider class:
 
 ~~~text
 com.example.greeting.english.EnglishGreetingProvider
 ~~~
 
-Tài liệu cần nói rõ một artifact được hỗ trợ trên module path, classpath hay cả hai. Không nên giả định cùng một cơ chế đăng ký hoạt động hệt nhau trên mọi cách đóng gói.
+Documentation must state clearly whether an artifact is supported on the module path, the classpath, or both. Do not assume the exact same registration mechanism works identically across all packaging styles.
 
-Nếu JAR là automatic module trên module path, việc đăng ký và tên module được suy ra theo các quy tắc JPMS tương ứng. Hãy kiểm tra artifact thực tế, thay vì suy đoán tên module từ tên file.
+If a JAR is an automatic module on the module path, registration and module name are inferred under the corresponding JPMS rules. Inspect the actual artifact rather than guessing the module name from the filename.
 
-## 12. Provider method và constructor: phải ghi rõ cơ chế
+## 12. Provider method vs. constructor: specify the mechanism
 
-Trong explicit named module, ServiceLoader có thể tạo provider thông qua constructor phù hợp hoặc một public static provider method có tên provider theo quy tắc API.
+In an explicit named module, ServiceLoader can instantiate a provider through a suitable constructor or a public static provider method named `provider` per API rules.
 
-Khi chọn cơ chế provider method, lớp được liệt kê sau provides có thể đóng vai trò factory cung cấp đối tượng service. Cách này phù hợp khi cần kiểm soát construction.
+When choosing the provider method mechanism, the class listed after `provides` can act as a factory supplying the service object. This approach fits when controlled construction is needed.
 
-Một hướng mô tả:
+One descriptive pattern:
 
 ~~~java
 public final class GreetingProviderFactory {
@@ -386,68 +390,68 @@ public final class GreetingProviderFactory {
 }
 ~~~
 
-Descriptor của module provider chỉ tới lớp factory:
+The provider module's descriptor points to the factory class:
 
 ~~~java
 provides com.example.greeting.spi.GreetingService
     with com.example.greeting.english.GreetingProviderFactory;
 ~~~
 
-Ví dụ giả định factory và implementation thuộc cùng module và những class liên quan có cấu hình đúng. Với explicit module, lớp factory không nhất thiết tự implement service interface nếu cung cấp phương thức provider() hợp lệ.
+The example assumes the factory and implementation belong to the same module and related classes are configured properly. With an explicit module, the factory class does not necessarily implement the service interface itself as long as it provides a valid `provider()` method.
 
-Những điểm cần ghi vào tài liệu:
+Points to record in documentation:
 
-- Provider dùng public constructor không tham số hay provider method?
-- Provider method trả về kiểu nào và xử lý lỗi như thế nào?
-- Mỗi lần gọi tạo một instance mới hay trả về instance chia sẻ?
-- Có cần dependency injection hoặc cấu hình bên ngoài không?
+- Does the provider use a public no-arg constructor or a provider method?
+- What type does the provider method return and how does it handle errors?
+- Does each call create a new instance or return a shared instance?
+- Is dependency injection or external configuration required?
 
-Đối với automatic module, không dựa vào cơ chế provider method như một đặc tính chung; nên kiểm tra các yêu cầu riêng đối với provider class.
+For automatic modules, do not rely on the provider method mechanism as a general feature; check the specific requirements for provider classes.
 
-## 13. Khai báo thread safety như một phần contract
+## 13. Declaring thread safety as part of the contract
 
-Nếu consumer có thể gọi service từ nhiều thread, tài liệu phải ghi rõ:
+If consumers may call the service from multiple threads, documentation must clearly state:
 
-| Chính sách | Ý nghĩa |
+| Policy | Meaning |
 | --- | --- |
-| Thread-safe | Một provider instance có thể xử lý nhiều lời gọi đồng thời đúng đắn. |
-| Thread-confined | Một instance chỉ được dùng từ một thread xác định. |
-| Caller synchronized | Consumer phải đồng bộ khi chia sẻ instance. |
-| Immutable | Trạng thái sau construction không đổi, thường giúp thực hiện thread safety. |
+| Thread-safe | A single provider instance can correctly handle multiple concurrent calls. |
+| Thread-confined | An instance may only be used from one designated thread. |
+| Caller synchronized | The consumer must synchronize when sharing an instance. |
+| Immutable | State after construction never changes, which often helps achieve thread safety. |
 
-Ví dụ GreetingService có thể yêu cầu mọi implementation thread-safe. Điều đó có nghĩa các provider không được dùng mutable state không được bảo vệ khi greet() được gọi đồng thời.
+For example, GreetingService may require all implementations to be thread-safe. This means providers must not use unprotected mutable state when `greet()` is called concurrently.
 
-Nếu một provider thực sự cần mutable cache, nó phải bảo đảm thread safety của cache hoặc triển khai chiến lược đồng bộ phù hợp.
+If a provider truly needs a mutable cache, it must ensure thread safety of the cache or implement an appropriate synchronization strategy.
 
-Không nên ghi “thread-safe” chỉ vì class có final modifier. Final class không tự bảo đảm các field bên trong bất biến hoặc các thao tác đồng thời an toàn.
+Do not label a class “thread-safe” merely because it has the `final` modifier. A `final` class does not guarantee that its internal fields are immutable or concurrent operations are safe.
 
-## 14. Quy định thời gian chạy, timeout và blocking
+## 14. Specifying runtime latency, timeouts, and blocking
 
-Một SPI không chỉ có type contract mà còn có operational contract.
+An SPI has not only a type contract but also an operational contract.
 
-Một provider có thể có hành vi:
+A provider's behavior might involve:
 
-- Tính toán hoàn toàn trong bộ nhớ, thường trả kết quả nhanh.
-- Đọc file cục bộ, có thể block.
-- Gọi API mạng, có thể timeout hoặc thất bại.
-- Ghi dữ liệu, có side effect.
+- Pure in-memory computation, typically returning quickly.
+- Reading local files, which may block.
+- Calling network APIs, which may time out or fail.
+- Writing data, causing side effects.
 
-Consumer cần biết để quyết định có thể gọi trên event-loop thread, UI thread hay cần worker pool.
+Consumers need to know this to decide whether calls can run on an event-loop thread, a UI thread, or require a worker pool.
 
-Với GreetingService, có thể quy định greet() không thực hiện I/O, không block chờ external service và không sửa global state. Khi muốn hỗ trợ remote provider, nên cân nhắc một SPI bất đồng bộ riêng hoặc cập nhật tài liệu để chỉ rõ timeout và chính sách hủy.
+For GreetingService, the contract may stipulate that `greet()` performs no I/O, does not block waiting on external services, and does not mutate global state. When remote providers are desired, consider a separate asynchronous SPI or update the documentation to specify timeouts and cancellation policies.
 
-Nếu contract không quy định thời gian tuyệt đối, ít nhất cần phân loại phương thức blocking/non-blocking, khả năng timeout và trách nhiệm retry.
+If the contract does not mandate absolute timings, at minimum classify methods as blocking/non-blocking, timeout possibilities, and retry responsibilities.
 
-## 15. Exception contract: phân biệt lỗi provider và lỗi consumer
+## 15. Exception contract: distinguishing provider errors from consumer errors
 
-Tài liệu nên phân biệt:
+Documentation should distinguish:
 
-1. **Lỗi đầu vào** do caller vi phạm precondition: NullPointerException hoặc IllegalArgumentException.
-2. **Lỗi nghiệp vụ** được định nghĩa bởi SPI: có thể là exception riêng hoặc kiểu kết quả lỗi.
-3. **Lỗi môi trường** của provider: I/O, network, quyền truy cập hoặc cấu hình.
-4. **Lỗi khám phá/khởi tạo** khi ServiceLoader không thể load provider: ServiceConfigurationError.
+1. **Input errors** caused by callers violating preconditions: `NullPointerException` or `IllegalArgumentException`.
+2. **Business errors** defined by the SPI: possibly custom exceptions or error result types.
+3. **Environmental errors** in the provider: I/O, network, permissions, or configuration.
+4. **Discovery/instantiation errors** when ServiceLoader cannot load a provider: `ServiceConfigurationError`.
 
-Ví dụ:
+Example:
 
 ~~~java
 try {
@@ -462,52 +466,52 @@ try {
 }
 ~~~
 
-ServiceConfigurationError là Error, không phải checked Exception thông thường. Consumer cần quyết định có fail-fast, báo cấu hình không hợp lệ hay cô lập provider; không nên nuốt lỗi một cách âm thầm rồi khẳng định không có provider.
+`ServiceConfigurationError` is an `Error`, not a regular checked `Exception`. Consumers must decide whether to fail-fast, report invalid configuration, or isolate the provider; do not swallow the error silently and claim no provider exists.
 
-Contract cũng cần xác định provider được phép ném những runtime exception nào trong hoạt động bình thường. Nếu provider được phép trả kết quả lỗi thay vì ném exception, hãy tài liệu hóa bất biến của kiểu kết quả.
+The contract also needs to define which runtime exceptions providers are permitted to throw during normal operation. If providers may return error results instead of throwing exceptions, document the invariants of the result type.
 
-## 16. Khác biệt giữa lỗi ServiceLoader và lỗi method nghiệp vụ
+## 16. Difference between ServiceLoader errors and business method errors
 
-Hai lỗi này xảy ra ở hai giai đoạn:
+These two errors happen at two stages:
 
-- **Discovery/instantiation:** module descriptor không hợp lệ, provider class không tạo được, constructor/provider method thất bại hoặc thiếu dependency. ServiceLoader có thể phát sinh ServiceConfigurationError.
-- **Invocation:** provider đã được tạo nhưng greet() ném IllegalArgumentException, NullPointerException hoặc exception khác theo contract.
+- **Discovery/instantiation:** invalid module descriptor, provider class cannot be loaded, constructor/provider method fails, or missing dependency. ServiceLoader may throw `ServiceConfigurationError`.
+- **Invocation:** the provider was created, but `greet()` throws `IllegalArgumentException`, `NullPointerException`, or another contracted exception.
 
-Khi ghi log, nên giữ module name, provider class và id nếu đã có instance. Điều này giúp xác định provider bị lỗi mà không phải quét toàn bộ source.
+When logging, retain the module name, provider class, and `id` if an instance is available. This helps identify the failing provider without scanning the entire codebase.
 
-Không nên gọi provider.id() trong đường xử lý lỗi nếu chính id() có thể thất bại không kiểm soát. Contract cần quy định id() ổn định, không có side effect và không ném lỗi trong trạng thái bình thường.
+Do not call `provider.id()` inside an error-handling path if `id()` itself can fail unpredictably. The contract should stipulate that `id()` is stable, side-effect-free, and does not throw errors in normal state.
 
-## 17. ServiceLoader trong ModuleLayer riêng
+## 17. ServiceLoader in a separate ModuleLayer
 
-Ứng dụng plugin có thể tạo một ModuleLayer riêng chứa provider. Khi đó nên dùng phương thức:
+A plugin application can create a dedicated `ModuleLayer` containing providers. In that case, use the method:
 
 ~~~java
 ServiceLoader<GreetingService> loader =
         ServiceLoader.load(pluginLayer, GreetingService.class);
 ~~~
 
-Trong ví dụ, pluginLayer là đối tượng ModuleLayer đã được tạo trước đó, còn GreetingService.class là kiểu service chia sẻ với host.
+In the example, `pluginLayer` is a previously created `ModuleLayer` object, and `GreetingService.class` is the service type shared with the host.
 
-Tài liệu cần ghi rõ:
+Documentation must state clearly:
 
-- Provider được resolve ở layer nào và layer cha nào liên quan.
-- API service được nạp từ module/layer nào.
-- Plugin layer có gắn đúng provider module vào graph không.
-- Host và plugin có dùng cùng class identity của GreetingService không.
-- Khi reload plugin, host tạo lại layer/loader và dọn tài nguyên như thế nào.
+- In which layer the provider is resolved and which parent layers are involved.
+- From which module/layer the service API is loaded.
+- Whether the plugin layer properly binds provider modules into its graph.
+- Whether the host and plugin share the exact same class identity of `GreetingService`.
+- When reloading a plugin, how the host recreates layers/loaders and cleans up resources.
 
-Nếu host và plugin mỗi bên nạp một bản sao GreetingService bằng hai class loader không tương thích, provider có thể không tương thích với service type mà host đang yêu cầu. Không nên coi tên class giống nhau là đủ; class loader định nghĩa type cũng là một phần của runtime identity.
+If the host and plugin each load a separate copy of `GreetingService` through two incompatible class loaders, the provider may be incompatible with the service type the host expects. Do not treat matching class names as sufficient; the class loader defining a type is part of its runtime identity.
 
-## 18. Tài liệu hóa khả năng tương thích khi nâng cấp SPI
+## 18. Documenting compatibility when evolving an SPI
 
-Thay đổi interface có thể làm hỏng provider bên ngoài:
+Changing an interface can break external providers:
 
-- Thêm abstract method khiến provider cũ không đáp ứng interface mới.
-- Đổi kiểu tham số, kiểu trả về hoặc tên method có thể phá source/binary compatibility.
-- Thay đổi nghĩa của một phương thức có thể gây lỗi hành vi dù code vẫn biên dịch.
-- Thắt chặt quy tắc null hoặc exception có thể làm provider cũ không còn hợp lệ.
+- Adding an abstract method makes older providers fail to satisfy the new interface.
+- Changing parameter types, return types, or method names can break source/binary compatibility.
+- Changing a method's semantics can cause behavioral bugs even if the code still compiles.
+- Tightening null or exception rules can invalidate older providers.
 
-Khi cần tiến hóa SPI, một hướng là thêm default method với hành vi tương thích:
+When an SPI needs to evolve, one approach is adding a `default` method with compatible behavior:
 
 ~~~java
 public interface GreetingService {
@@ -521,54 +525,54 @@ public interface GreetingService {
 }
 ~~~
 
-Ví dụ này cho phép implementation cũ tiếp tục sử dụng giá trị mặc định của method mới, nhưng cần kiểm tra compatibility theo chính sách versioning của thư viện.
+This example allows older implementations to continue using the new method's default value, though compatibility must still be checked against the library's versioning policy.
 
-Tài liệu version nên nêu:
+Version documentation should state:
 
-- Phiên bản đầu tiên giới thiệu method hoặc rule mới.
-- Provider tối thiểu được hỗ trợ từ phiên bản nào.
-- Những thay đổi breaking change và hướng migration.
-- Thời hạn loại bỏ các API deprecated, nếu có.
+- The first version introducing the new method or rule.
+- The minimum supported provider version.
+- Breaking changes and migration instructions.
+- Removal timelines for deprecated APIs, if any.
 
-Không mặc định rằng thay đổi nhỏ trong code đồng nghĩa thay đổi không ảnh hưởng người viết provider.
+Do not assume a small code change means no impact on provider authors.
 
-## 19. Quy ước lựa chọn provider khi có nhiều implementation
+## 19. Provider selection conventions when multiple implementations exist
 
-Trong hệ thống mở rộng, nhiều provider có thể cùng hỗ trợ một khả năng. Contract nên chọn một chính sách minh bạch:
+In an extensible system, multiple providers may support a single capability. The contract should pick a transparent policy:
 
-| Tình huống | Chính sách có thể chọn |
+| Scenario | Possible policy choice |
 | --- | --- |
-| Không có provider | Báo lỗi cấu hình hoặc dùng fallback đã tài liệu hóa. |
-| Đúng một provider phù hợp | Sử dụng provider đó. |
-| Nhiều provider khác id | Chọn bằng id do người dùng hoặc cấu hình chỉ định. |
-| Nhiều provider cùng id | Báo trùng id; không dựa vào thứ tự ServiceLoader. |
-| Provider lỗi khi khởi tạo | Fail-fast hoặc cô lập lỗi theo chính sách đã công bố. |
-| Provider lỗi khi gọi | Propagate, retry hoặc fallback theo error contract, không tùy tiện. |
+| No provider | Report configuration error or use documented fallback. |
+| Exactly one matching provider | Use that provider. |
+| Multiple providers with distinct ids | Select by id specified by user or configuration. |
+| Multiple providers with the same id | Report duplicate id; do not rely on ServiceLoader order. |
+| Provider fails on initialization | Fail-fast or isolate the error per published policy. |
+| Provider fails on invocation | Propagate, retry, or fall back per error contract, never arbitrarily. |
 
-Một consumer có thể cung cấp cấu hình explicit id hoặc danh sách priority. Điều quan trọng là provider author phải hiểu cách implementation được chọn.
+A consumer may supply explicit id configuration or a priority list. What matters is that provider authors understand how implementations are chosen.
 
-Nếu API yêu cầu id duy nhất, cần giải thích phạm vi duy nhất: trong một JVM, một module layer, hay một tập plugin được tải trong phiên chạy.
+If the API requires unique ids, explain the uniqueness scope: within a single JVM, a single module layer, or a set of plugins loaded in a session.
 
-## 20. Tài liệu bảo mật và quản lý tài nguyên
+## 20. Security and resource management documentation
 
-Provider có thể do tổ chức khác viết. Contract cần nêu rõ quyền và tài nguyên mà host cho phép:
+Providers may be written by external organizations. The contract must clarify the permissions and resources the host allows:
 
-- Có được đọc system property hoặc environment variable không?
-- Có được truy cập credential, key hoặc file hệ thống không?
-- Có được mở socket hoặc thực hiện network call không?
-- Có được khởi tạo thread hoặc executor không?
-- Có yêu cầu đóng resource khi plugin unload không?
-- Provider có được giữ dữ liệu người dùng sau lời gọi không?
+- Are reading system properties or environment variables permitted?
+- Are accessing credentials, keys, or the filesystem permitted?
+- Are opening sockets or making network calls permitted?
+- Are spawning threads or executors permitted?
+- Is closing resources required when unloading plugins?
+- May the provider retain user data after a call?
 
-Không nên xem JPMS hoặc class loader là sandbox bảo mật. Named module giúp kiểm soát dependency và access tới package, nhưng mã provider vẫn chạy trong cùng tiến trình với quyền hệ điều hành tương ứng.
+Do not view JPMS or class loaders as a security sandbox. Named modules help control dependencies and package access, but provider code still runs inside the same process with corresponding OS privileges.
 
-Với provider không đáng tin cậy, phải cân nhắc cách ly ở mức tiến trình và các cơ chế kiểm soát riêng. Tài liệu SPI nên nói rõ giới hạn tin cậy, không tạo kỳ vọng sai về khả năng sandbox của ServiceLoader.
+For untrusted providers, process-level isolation and separate controls must be considered. SPI documentation should state trust boundaries clearly without creating false expectations about ServiceLoader's sandboxing capabilities.
 
-## 21. Contract test cho provider
+## 21. Contract tests for providers
 
-Một provider contract hữu ích nên có bộ test chung. Mọi implementation phải vượt qua những test mô tả bất biến của SPI.
+A useful provider contract should come with a shared test suite. Every implementation must pass tests describing the SPI's invariants.
 
-Ví dụ kiểm thử không phụ thuộc framework:
+Framework-independent testing example:
 
 ~~~java
 import com.example.greeting.spi.GreetingService;
@@ -605,13 +609,13 @@ public final class GreetingContractTest {
 }
 ~~~
 
-Trong test thực tế, có thể dùng JUnit và bổ sung những test về concurrency, lifecycle, exception contract và tương thích với các version đã phát hành.
+In real tests, JUnit can be used and expanded with tests for concurrency, lifecycle, exception contracts, and compatibility with released versions.
 
-Bộ test nên được chạy với từng provider sau khi build, và với ứng dụng host có ServiceLoader để kiểm tra cả đăng ký module. Unit test truyền implementation trực tiếp chưa đủ để phát hiện lỗi provides/uses hoặc module graph.
+The test suite should be run against each built provider and with a host application using ServiceLoader to verify module registration as well. Unit tests passing the implementation directly are insufficient to catch `provides`/`uses` or module graph errors.
 
-## 22. Test đăng ký provider qua ServiceLoader
+## 22. Testing provider registration via ServiceLoader
 
-Có thể kiểm tra provider được khám phá trong cấu hình runtime thực tế:
+You can test provider discovery in an actual runtime configuration:
 
 ~~~java
 import com.example.greeting.spi.GreetingService;
@@ -645,72 +649,72 @@ public final class ProviderDiscoveryCheck {
 }
 ~~~
 
-Để chạy ví dụ với named module test, module chứa ProviderDiscoveryCheck cần requires tới service API và uses GreetingService. Đồng thời phải bảo đảm ít nhất một provider module được resolve vào graph.
+To run the example with a named test module, the module containing `ProviderDiscoveryCheck` needs `requires` on the service API and `uses GreetingService`. At the same time, ensure at least one provider module is resolved in the graph.
 
-Test này xác nhận cả hai mặt: provider tuân theo những ràng buộc được kiểm tra và cơ chế discovery tìm thấy implementation.
+This test confirms both sides: the provider obeys the checked constraints and the discovery mechanism locates the implementation.
 
-Nếu hệ thống cho phép cấu hình không provider, hãy chỉnh assertion count == 0 theo chính sách đã được tài liệu hóa.
+If the system permits a zero-provider configuration, adjust the `count == 0` assertion to match documented policy.
 
-## 23. Mẫu README service provider contract
+## 23. Service provider contract README template
 
-Một README dành cho người viết plugin có thể dùng cấu trúc sau:
+A README for plugin authors can use the following structure:
 
 ~~~text
 # GreetingService Provider Contract
 
 Module API: com.example.greeting.api
 Service type: com.example.greeting.spi.GreetingService
-Minimum runtime: Java 17 (theo chính sách dự án)
+Minimum runtime: Java 17 (per project policy)
 
 1. Purpose
-   - Cung cấp lời chào theo một ngôn ngữ.
+   - Provide greetings for a given language.
 
 2. Registration
-   - Module provider requires com.example.greeting.api.
-   - Khai báo provides GreetingService with Implementation.
-   - Provider phải có constructor/provider method phù hợp.
+   - Provider module requires com.example.greeting.api.
+   - Declare provides GreetingService with Implementation.
+   - Provider must have a suitable constructor/provider method.
 
 3. Method contract
    - id(): non-null, non-empty, lowercase ASCII, stable.
-   - greet(name): name non-null và non-blank;
-     kết quả non-null và non-blank.
+   - greet(name): name non-null and non-blank;
+     result non-null and non-blank.
 
 4. Runtime
-   - Provider thread-safe.
-   - Constructor không gọi mạng hay khởi tạo thread.
-   - Method greet không có side effect.
+   - Provider is thread-safe.
+   - Constructor does not make network calls or spawn threads.
+   - greet method has no side effects.
 
 5. Failure
    - Null input -> NullPointerException.
    - Blank input -> IllegalArgumentException.
-   - Discovery/config error -> xử lý theo host policy.
+   - Discovery/config error -> handled per host policy.
 
 6. Selection
-   - Consumer chọn theo id.
-   - Trùng id -> lỗi cấu hình.
+   - Consumer selects by id.
+   - Duplicate id -> configuration error.
 
 7. Testing
-   - Chạy contract test trên provider.
-   - Chạy ServiceLoader discovery test trên module path.
+   - Run contract test on the provider.
+   - Run ServiceLoader discovery test on the module path.
 
 8. Compatibility
-   - Ghi thay đổi breaking theo phiên bản.
-   - Công bố chính sách migration.
+   - Document breaking changes by version.
+   - Publish migration policy.
 ~~~
 
-Đây là mẫu, không phải một file độc lập của dự án. Khi áp dụng, thay thông tin minh họa bằng module name, Java version và chính sách thực tế.
+This is a template, not a standalone project file. When applying it, replace illustrative details with actual module names, Java versions, and policies.
 
-## 24. Module documentation và cách liên kết tới contract
+## 24. Module documentation and linking to contracts
 
-Trong dự án có nhiều module, nên đặt liên kết contract ở những vị trí mà provider author dễ tìm:
+In a multi-module project, place contract links where provider authors can easily find them:
 
-- Javadoc của service interface, nhất là @implSpec và @implNote.
-- package-info.java của package spi để mô tả extension points.
-- module-info.java Javadoc ở module API hoặc module host.
-- README của thư viện/plugin SDK.
-- Tài liệu phát hành và migration guide cho thay đổi version.
+- Javadoc on the service interface, especially `@implSpec` and `@implNote`.
+- `package-info.java` of the `spi` package to describe extension points.
+- `module-info.java` Javadoc on the API module or host module.
+- Library/plugin SDK README.
+- Release notes and migration guides for version changes.
 
-Ví dụ package-info.java:
+Example `package-info.java`:
 
 ~~~java
 /**
@@ -722,44 +726,44 @@ Ví dụ package-info.java:
 package com.example.greeting.spi;
 ~~~
 
-Hãy duy trì một nguồn mô tả chuẩn, sau đó liên kết từ những nơi khác thay vì sao chép các quy định có thể mâu thuẫn. Khi thay đổi contract, cập nhật Javadoc, test fixtures và hướng dẫn migration cùng một lần phát hành.
+Maintain a single authoritative description source, then link to it from other places rather than duplicating rules that may drift into contradiction. When the contract changes, update Javadoc, test fixtures, and migration guides in the same release.
 
-## 25. Những lỗi thường gặp
+## 25. Common pitfalls
 
-| Triệu chứng | Nguyên nhân có thể | Cách xử lý |
+| Symptom | Possible cause | Resolution |
 | --- | --- | --- |
-| Không tìm thấy provider | Provider module chưa resolve hoặc thiếu provides/uses | Kiểm tra descriptor và cách khởi chạy. |
-| ServiceConfigurationError | Provider class/factory không hợp lệ, thiếu dependency hoặc lỗi khởi tạo | Đọc root cause; xác nhận cơ chế constructor/provider method. |
-| Provider được nạp nhưng host không dùng | Selector không khớp id/capability hoặc có policy ưu tiên | Đọc selection contract và log id. |
-| Hai provider cùng id | Hợp đồng uniqueness không được thực thi | Báo cấu hình trùng; thêm contract test. |
-| NullPointerException bất ngờ | Provider không tuân theo null contract | Rà soát Javadoc và test ràng buộc. |
-| Lỗi dưới tải đồng thời | Provider không đạt thread safety contract | Cố định shared state hoặc thay mô hình instance. |
-| ClassCastException giữa plugin và host | API service được nạp từ các loader không tương thích | Chia sẻ service API từ parent layer/loader phù hợp. |
-| Phải export package implementation để load provider | Hiểu nhầm cơ chế provides | Đăng ký provider trong descriptor, giữ implementation không export nếu không cần. |
-| Dùng provider đầu tiên đôi khi sai | Phụ thuộc thứ tự discovery | Chọn theo id/priority có quy tắc xác định. |
+| Provider not found | Provider module unresolved or missing provides/uses | Check descriptors and launch setup. |
+| ServiceConfigurationError | Invalid provider class/factory, missing dependency, or init error | Read root cause; verify constructor/provider method mechanism. |
+| Provider loaded but unused by host | Selector mismatch on id/capability or priority policy | Read selection contract and log ids. |
+| Two providers share the same id | Uniqueness contract not enforced | Report duplicate config; add contract tests. |
+| Unexpected NullPointerException | Provider violates null contract | Review Javadoc and constraint tests. |
+| Failures under concurrent load | Provider fails thread-safety contract | Guard shared state or change instance model. |
+| ClassCastException between plugin and host | Service API loaded from incompatible loaders | Share service API from an appropriate parent layer/loader. |
+| Had to export implementation package to load provider | Misunderstood `provides` mechanism | Register provider in descriptor; keep implementation unexported if unneeded. |
+| Using the first provider sometimes picks the wrong one | Relied on discovery order | Select deterministically by id/priority rules. |
 
-## 26. Quy trình chẩn đoán và hướng dẫn vận hành
+## 26. Diagnostic workflow and operational guide
 
-Khi host không tìm thấy hoặc không dùng được provider:
+When the host cannot find or use a provider:
 
-1. Kiểm tra JAR hoặc output thực sự được triển khai.
-2. Chạy jar --describe-module trên provider JAR để xem module name và provides.
-3. Xác nhận module consumer khai báo uses service type.
-4. Xác nhận module provider requires đúng module API và provides đúng service type.
-5. Kiểm tra provider module đã được resolve vào runtime configuration.
-6. Kiểm tra API service được chia sẻ cùng class identity giữa host và plugin.
-7. Ghi lại provider id sau khi khởi tạo và kiểm tra selection policy.
-8. Nếu gặp ServiceConfigurationError, xác định nguyên nhân khởi tạo hoặc thiếu dependency.
-9. Chạy contract test, đặc biệt các trường hợp null/blank, duplicate id và concurrency.
-10. So sánh version SPI của host với version provider được build.
+1. Check the actual JAR or output deployed.
+2. Run `jar --describe-module` on the provider JAR to verify module name and `provides`.
+3. Confirm the consumer module declares `uses` for the service type.
+4. Confirm the provider module `requires` the right API module and `provides` the right service type.
+5. Check that the provider module is resolved into the runtime configuration.
+6. Check that the service API shares the same class identity between host and plugin.
+7. Log the provider id after instantiation and inspect the selection policy.
+8. If encountering `ServiceConfigurationError`, identify the initialization failure or missing dependency.
+9. Run contract tests, especially null/blank cases, duplicate ids, and concurrency.
+10. Compare the host SPI version against the version the provider was built against.
 
-Lệnh kiểm tra descriptor:
+Descriptor inspection command:
 
 ~~~bash
 jar --describe-module --file plugins/greeting-provider.jar
 ~~~
 
-Lệnh quan sát resolution khi chạy module application:
+Command to observe resolution when running a modular application:
 
 ~~~bash
 java --show-module-resolution \
@@ -768,54 +772,54 @@ java --show-module-resolution \
     -m com.example.greeting.app/com.example.greeting.app.Main
 ~~~
 
-Các tên artifact và module trong ví dụ là minh họa; cần thay bằng dự án thực tế.
+Artifact and module names in the examples are illustrative; replace them with your actual project values.
 
-## 27. Nguyên tắc duy trì service provider contract
+## 27. Principles for maintaining a service provider contract
 
-- Đặt service type trong package API/SPI được export và có module name rõ ràng.
-- Ghi Javadoc cho mọi method theo precondition, postcondition, nullability và exception.
-- Công bố quy tắc id, lựa chọn provider và chính sách không có/trùng provider.
-- Tách trách nhiệm provider khỏi việc orchestration và lựa chọn của host.
-- Nêu rõ constructor/provider method, lifecycle, resource ownership và thread safety.
-- Không phụ thuộc vào thứ tự provider mà ServiceLoader trả về.
-- Nêu rõ module graph, cách resolve provider và class identity trong plugin layer.
-- Không mặc định ServiceLoader đóng tài nguyên hoặc sandbox provider.
-- Cung cấp contract test chung cho các provider bên thứ ba.
-- Quản lý thay đổi SPI bằng versioning, migration và chính sách compatibility.
-- Đồng bộ README, Javadoc và test khi hợp đồng thay đổi.
+- Place service types in an exported API/SPI package with a clear module name.
+- Write Javadoc for every method covering preconditions, postconditions, nullability, and exceptions.
+- Publish id rules, provider selection, and policies for missing/duplicate providers.
+- Separate provider responsibilities from host orchestration and selection.
+- Clarify constructor/provider method, lifecycle, resource ownership, and thread safety.
+- Do not depend on the provider order returned by ServiceLoader.
+- Clarify the module graph, how providers are resolved, and class identity in plugin layers.
+- Do not assume ServiceLoader closes resources or sandboxes providers.
+- Provide shared contract tests for third-party providers.
+- Manage SPI changes with versioning, migration, and compatibility policies.
+- Synchronize README, Javadoc, and tests whenever the contract changes.
 
-Service provider contract là cầu nối giữa một extension point trong code và những cam kết mà host có thể dựa vào. JPMS cho phép khai báo rõ uses/provides và giữ package implementation được đóng gói; tài liệu contract bổ sung điều mà descriptor không thể biểu đạt: hành vi, lỗi, vòng đời và khả năng tương thích của từng provider.
+The service provider contract is the bridge between an extension point in code and the guarantees the host can rely on. JPMS lets you explicitly declare `uses`/`provides` and keep implementation packages encapsulated; contract documentation supplies what the descriptor cannot express: behavior, errors, lifecycle, and per-provider compatibility.
 
-## 28. Câu hỏi tự kiểm tra
+## 28. Self-check questions
 
-**Câu 1:** Vì sao chỉ có provides ... with ... chưa đủ để khẳng định provider tương thích?
+**Question 1:** Why is `provides ... with ...` alone not enough to guarantee provider compatibility?
 
-Vì provides chỉ đăng ký implementation cho service type. Nó không kiểm tra nullability, quy tắc id, thread safety, lifecycle hay ý nghĩa của method.
+Because `provides` only registers an implementation for a service type. It does not check nullability, id rules, thread safety, lifecycle, or method semantics.
 
-**Câu 2:** Mô-đun consumer cần khai báo gì khi dùng ServiceLoader cho một service type?
+**Question 2:** What must a consumer module declare when using ServiceLoader for a service type?
 
-Named consumer module cần khai báo uses service.type và requires tới module chứa service API khi sử dụng kiểu đó.
+A named consumer module must declare `uses service.type` and `requires` on the module containing the service API when referencing that type.
 
-**Câu 3:** Provider có cần exports package implementation để ServiceLoader tạo instance không?
+**Question 3:** Does a provider need to export its implementation package for ServiceLoader to instantiate it?
 
-Không chỉ vì nhu cầu đăng ký. Với explicit named module, provides cho phép cơ chế service loading tìm provider theo hợp đồng module; package implementation có thể không export.
+Not solely for registration. With an explicit named module, `provides` allows service loading to locate the provider via the module contract; the implementation package can remain unexported.
 
-**Câu 4:** Nếu hai provider cùng trả về id "en", consumer nên làm gì?
+**Question 4:** If two providers both return id `"en"`, what should the consumer do?
 
-Theo contract minh họa, consumer báo lỗi cấu hình trùng id thay vì phụ thuộc vào thứ tự duyệt ServiceLoader.
+Under the illustrated contract, the consumer reports a duplicate id configuration error instead of relying on ServiceLoader iteration order.
 
-**Câu 5:** Vì sao không nên xem provider đầu tiên là mặc định ổn định?
+**Question 5:** Why shouldn't the first provider be treated as a stable default?
 
-ServiceLoader không cam kết thứ tự business priority. Host nên chọn theo id, priority hoặc chính sách được tài liệu hóa.
+ServiceLoader does not promise business priority ordering. The host should choose by id, priority, or a documented policy.
 
-**Câu 6:** Test chỉ gọi new EnglishGreetingProvider() đã đủ chứng minh module provider hoạt động chưa?
+**Question 6:** Is a test calling `new EnglishGreetingProvider()` sufficient to prove the provider module works?
 
-Chưa. Test trực tiếp kiểm tra logic implementation nhưng không xác nhận module descriptor, root resolution và ServiceLoader discovery. Cần kiểm tra tích hợp trong runtime modular.
+No. Direct instantiation tests implementation logic but does not verify the module descriptor, root resolution, and ServiceLoader discovery. Integration testing in a modular runtime is needed.
 
-**Câu 7:** Khi thêm một abstract method vào SPI đã phát hành, rủi ro là gì?
+**Question 7:** What is the risk when adding an abstract method to a published SPI?
 
-Provider cũ có thể không cài đặt method mới và trở nên không tương thích. Cần cân nhắc default method, adapter hoặc migration/versioning có chủ đích.
+Older providers may not implement the new method and become incompatible. Consider a default method, adapter, or deliberate migration/versioning.
 
-**Câu 8:** Nếu provider chạy trong module layer riêng, yếu tố nào ngoài tên đầy đủ của interface cần giống với host?
+**Question 8:** If a provider runs in a separate module layer, what besides the interface's fully qualified name must match the host?
 
-Class identity của service type: cùng định nghĩa được chia sẻ qua class loader/module layer phù hợp. Hai class cùng tên từ loader khác nhau không nhất thiết thay thế được nhau.
+Class identity of the service type: the same definition shared across an appropriate class loader/module layer. Two classes with the same name from different loaders are not necessarily interchangeable.

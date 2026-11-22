@@ -1,33 +1,33 @@
-# Pattern và Matcher cho nhiều lần xử lý trong Java
+# Pattern and Matcher for Repeated Processing in Java
 
-Trong Java, lớp **java.util.regex.Pattern** biểu diễn một biểu thức chính quy đã được biên dịch; lớp **java.util.regex.Matcher** dùng Pattern đó để kiểm tra, tìm kiếm, trích xuất hoặc thay thế nội dung trên một chuỗi đầu vào. Khi cần xử lý nhiều chuỗi hoặc tìm nhiều kết quả trong một chuỗi, hãy **biên dịch Pattern một lần và tạo Matcher phù hợp cho từng lượt xử lý**. Đây là cách sử dụng tự nhiên, dễ kiểm soát trạng thái và tránh biên dịch lại cùng một regex không cần thiết.
+In Java, the **java.util.regex.Pattern** class represents a compiled regular expression; the **java.util.regex.Matcher** class uses that Pattern to validate, search, extract, or replace content on an input string. When you need to process multiple strings or find multiple matches within a single string, **compile the Pattern once and create an appropriate Matcher for each processing pass**. This is the natural usage, makes state easy to control, and avoids unnecessarily recompiling the same regex.
 
-Bài này tập trung vào xử lý lặp: một regex dùng với nhiều đầu vào, một đầu vào chứa nhiều kết quả, tái sử dụng Matcher theo tuần tự, kiểm soát trạng thái và những lỗi thường gặp.
+This lesson focuses on repeated processing: one regex used with multiple inputs, one input containing multiple matches, reusing a Matcher sequentially, controlling state, and common pitfalls.
 
-## 1. Phân biệt vai trò của Pattern và Matcher
+## 1. Distinguishing the Roles of Pattern and Matcher
 
-| Thành phần | Chức năng | Trạng thái và khả năng chia sẻ |
+| Component | Function | State and Shareability |
 | --- | --- | --- |
-| Pattern | Lưu regex đã biên dịch và các cờ (flags). Tạo Matcher bằng matcher(input). | Bất biến (immutable), an toàn để nhiều luồng cùng dùng. |
-| Matcher | Thực thi regex trên CharSequence; giữ đầu vào, vùng tìm kiếm, vị trí khớp vừa tìm, nhóm bắt, vị trí cho lần tìm tiếp theo. | Có trạng thái thay đổi (mutable), **không an toàn để dùng chung đồng thời giữa các luồng**. |
-| PatternSyntaxException | Báo regex không hợp lệ tại thời điểm biên dịch. | Cần xử lý khi regex được nhập hoặc cấu hình động. |
+| Pattern | Stores a compiled regex and flags. Creates a Matcher via matcher(input). | Immutable, safe for multiple threads to use concurrently. |
+| Matcher | Executes the regex on a CharSequence; holds the input, search region, last match position, capturing groups, and position for the next search. | Has mutable state, **not safe to share concurrently across threads**. |
+| PatternSyntaxException | Reports an invalid regex at compile time. | Must be handled when regexes are dynamically entered or configured. |
 
-Ví dụ minh họa ý tưởng (đoạn mã, chưa phải chương trình chạy độc lập):
+Example illustrating the idea (code snippet, not a standalone runnable program):
 
 ~~~java
-Pattern pattern = Pattern.compile("\\d+");   // Biên dịch một lần
-Matcher first = pattern.matcher("Mã 17");    // Matcher cho đầu vào thứ nhất
-Matcher second = pattern.matcher("Mã 42");   // Matcher khác cho đầu vào thứ hai
+Pattern pattern = Pattern.compile("\\d+");   // Compile once
+Matcher first = pattern.matcher("Code 17");  // Matcher for the first input
+Matcher second = pattern.matcher("Code 42"); // Another Matcher for the second input
 
 System.out.println(first.find());            // true
 System.out.println(second.find());           // true
 ~~~
 
-Hai Matcher độc lập có thể tiến qua đầu vào của mình mà không làm thay đổi trạng thái của nhau. Nếu cùng một regex được dùng thường xuyên, có thể lưu Pattern dưới dạng hằng số static final, trong một service hoặc trong một đối tượng được tái sử dụng.
+Two independent Matchers can advance through their own inputs without altering each other's state. If the same regex is used frequently, the Pattern can be stored as a static final constant, in a service, or in a reused object.
 
-### Vì sao không biên dịch trong mỗi vòng lặp?
+### Why Not Compile Inside Every Loop Iteration?
 
-Cách sau biên dịch lại regex mỗi lần duyệt phần tử:
+The following approach recompiles the regex on every element iteration:
 
 ~~~java
 for (String line : lines) {
@@ -36,7 +36,7 @@ for (String line : lines) {
 }
 ~~~
 
-Nên chuyển phần biên dịch ra ngoài:
+You should move the compilation outside:
 
 ~~~java
 Pattern idPattern = Pattern.compile("\\bID-\\d{3}\\b");
@@ -46,13 +46,13 @@ for (String line : lines) {
 }
 ~~~
 
-Tương tự, String.matches(regex) và Pattern.matches(regex, input) phù hợp khi kiểm tra nhanh một lần, nhưng chúng biên dịch regex cho mỗi lần gọi. Trong xử lý lặp với cùng regex, Pattern đã biên dịch cùng matcher(input).matches() tránh việc đó. Lợi ích thực tế phụ thuộc độ phức tạp regex và tần suất gọi; tối ưu quan trọng nhất vẫn là tính đúng của regex.
+Similarly, String.matches(regex) and Pattern.matches(regex, input) are suitable for quick one-off checks, but they compile the regex on every call. In repeated processing with the same regex, a precompiled Pattern with matcher(input).matches() avoids that overhead. The practical benefit depends on regex complexity and call frequency; the most important optimization is still the correctness of the regex.
 
-## 2. Một Pattern xử lý nhiều dòng, mỗi dòng có nhiều kết quả
+## 2. One Pattern Processing Multiple Lines, Each with Multiple Matches
 
-Yêu cầu: tìm tất cả mã đúng định dạng ID- theo sau bởi **đúng ba chữ số**, xuất mã, phần số và vị trí. Từ ranh giới \b giúp không nhận mã dính sát ký tự thuộc từ; ký hiệu (?<number>...) đặt tên cho nhóm bắt số.
+Requirement: find all codes matching the format ID- followed by **exactly three digits**, and output the code, the numeric part, and the position. The word boundary \b prevents matching codes attached to adjacent word characters; the syntax (?<number>...) names the digit-capturing group.
 
-Tệp **RegexReuseDemo.java** (Java 17+):
+File **RegexReuseDemo.java** (Java 17+):
 
 ~~~java
 import java.util.List;
@@ -65,15 +65,15 @@ public class RegexReuseDemo {
 
     public static void main(String[] args) {
         List<String> lines = List.of(
-                "Đơn ID-123, ID-045; mã ID-7 không hợp lệ.",
-                "ID-999 kết thúc; xid-111 không khớp."
+                "Row ID-123, ID-045; invalid ID-7.",
+                "ID-999 ends; xid-111 does not match."
         );
 
         for (String line : lines) {
             Matcher matcher = ID_PATTERN.matcher(line);
             while (matcher.find()) {
                 System.out.printf(
-                        "%s | mã=%s | vị trí=[%d,%d)%n",
+                        "%s | code=%s | pos=[%d,%d)%n",
                         matcher.group(),
                         matcher.group("number"),
                         matcher.start(),
@@ -85,36 +85,36 @@ public class RegexReuseDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 RegexReuseDemo.java
 java RegexReuseDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
-ID-123 | mã=123 | vị trí=[4,10)
-ID-045 | mã=045 | vị trí=[12,18)
-ID-999 | mã=999 | vị trí=[0,6)
+ID-123 | code=123 | pos=[4,10)
+ID-045 | code=045 | pos=[12,18)
+ID-999 | code=999 | pos=[0,6)
 ~~~
 
-Giải thích:
+Explanation:
 
-1. **ID_PATTERN** chỉ biên dịch một lần khi lớp được khởi tạo. Mỗi dòng nhận một Matcher mới bằng matcher(line).
-2. **find()** tìm kết quả tiếp theo. Gọi liên tiếp trong vòng while duyệt các kết quả không chồng lấn từ trái sang phải; khi hết kết quả, find() trả về false.
-3. **group()** (hay group(0)) là toàn bộ đoạn khớp; **group("number")** là nội dung của nhóm được đặt tên.
-4. **start()** là vị trí bắt đầu, **end()** là vị trí *ngay sau* ký tự cuối. Vì vậy khoảng vị trí là [start, end). Chỉ số tính theo đơn vị char/UTF-16 của Java, không nhất thiết tương đương số ký tự người đọc thấy nếu có ký tự Unicode bổ sung.
-5. ID-7 không đủ ba chữ số. xid-111 không khớp vì chữ ID viết hoa trong regex và không nằm tại ranh giới từ thích hợp.
+1. **ID_PATTERN** is compiled only once when the class is initialized. Each line receives a new Matcher via matcher(line).
+2. **find()** finds the next match. Calling it repeatedly in a while loop iterates over non-overlapping matches from left to right; when no matches remain, find() returns false.
+3. **group()** (or group(0)) is the entire matched substring; **group("number")** is the content of the named group.
+4. **start()** is the starting index, and **end()** is the index *immediately after* the last character. Thus the index range is [start, end). Indices are counted in Java char/UTF-16 units, which do not necessarily equal the number of visible characters if supplementary Unicode characters are present.
+5. ID-7 does not have three digits. xid-111 does not match because ID is uppercase in the regex and it is not at an appropriate word boundary.
 
-Dấu ngoặc nhọn \d{3} quy định số lượng, còn \b định nghĩa ranh giới từ; nếu quy tắc nghiệp vụ yêu cầu một mã đứng độc lập theo cách khác (chẳng hạn dấu gạch dưới, ký tự Unicode hoặc quy tắc mã riêng), cần thiết kế ranh giới đúng yêu cầu. Regex trên minh họa một định dạng cụ thể, không phải bộ kiểm tra mọi loại mã định danh.
+The braces \d{3} specify the count, while \b defines the word boundary; if business rules require a code to stand alone in a different way (such as underscores, Unicode characters, or custom code rules), you must design boundaries that match the requirement. The regex above illustrates a specific format, not a validator for every kind of identifier.
 
-## 3. Tái sử dụng chính đối tượng Matcher bằng reset()
+## 3. Reusing the Same Matcher Object with reset()
 
-Trong một luồng xử lý tuần tự, khi muốn giảm số Matcher được tạo ra, có thể giữ một Matcher và gọi **reset(newInput)** trước mỗi đầu vào. Matcher sẽ quên kết quả tìm kiếm trước đó và bắt đầu lại trên chuỗi mới.
+In a sequential processing flow, when you want to reduce the number of Matcher objects created, you can keep one Matcher and call **reset(newInput)** before each input. The Matcher discards its previous search results and starts over on the new string.
 
-Tệp **MatcherResetDemo.java**:
+File **MatcherResetDemo.java**:
 
 ~~~java
 import java.util.List;
@@ -136,14 +136,14 @@ public class MatcherResetDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 MatcherResetDemo.java
 java MatcherResetDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 A: 17, B: 22 -> 17
@@ -151,42 +151,42 @@ A: 17, B: 22 -> 22
 C: 8 -> 8
 ~~~
 
-Có hai kiểu reset thường gặp:
+There are two common reset forms:
 
-- **reset()**: dùng lại đầu vào hiện tại, bắt đầu tìm lại từ đầu.
-- **reset(CharSequence input)**: đổi sang đầu vào mới, đặt lại trạng thái tìm kiếm và vùng tìm kiếm mặc định về toàn bộ đầu vào mới.
+- **reset()**: reuses the current input and restarts searching from the beginning.
+- **reset(CharSequence input)**: switches to a new input, resetting the search state and the default search region to the entire new input.
 
-Sau reset, nhóm bắt và vị trí khớp trước đó không còn hợp lệ. Chỉ gọi group(), start(), end() sau khi matches(), lookingAt() hoặc find() đã trả về true. Nếu chưa có kết quả khớp hợp lệ, các phương thức này ném IllegalStateException.
+After a reset, previous capturing groups and match positions are no longer valid. Only call group(), start(), and end() after matches(), lookingAt(), or find() has returned true. If there is no valid match result, these methods throw IllegalStateException.
 
-**Lựa chọn mặc định:** dùng Pattern chung + Matcher mới cho từng đầu vào vì mã rõ ràng, ít lỗi trạng thái. Chỉ tái sử dụng chính Matcher khi xử lý tuần tự, kiểm soát vòng đời của nó và có lý do đo đạc được. Không chia sẻ một Matcher tái sử dụng cho các tác vụ chạy song song.
+**Default choice:** use a shared Pattern + a new Matcher per input because the code is clearer and less prone to state bugs. Reuse the same Matcher only when processing sequentially, controlling its lifecycle, and having a measurable reason to do so. Do not share a reused Matcher across parallel tasks.
 
-## 4. Chọn phương thức khi tái sử dụng Pattern
+## 4. Choosing a Method When Reusing a Pattern
 
-Một `Pattern` đã biên dịch có thể dùng cho cả ba cách kiểm tra; **phương thức gọi trên Matcher** quyết định câu hỏi của từng lượt xử lý:
+A compiled `Pattern` can be used for all three matching modes; **the method called on the Matcher** determines what question each pass asks:
 
-| Phương thức | Với regex `\d+` và input `"123abc456"` | Dùng khi |
+| Method | With regex `\d+` and input `"123abc456"` | Use when |
 | --- | --- | --- |
-| `matches()` | `false`: còn phần `abc456` ngoài mẫu | Xác thực toàn bộ vùng dữ liệu |
-| `lookingAt()` | `true`: tiền tố `"123"` khớp | Nhận diện token ở đầu vùng |
-| `find()` | `true`: tìm `"123"`, lần kế tiếp tìm `"456"` | Duyệt nhiều đoạn khớp liên tiếp |
+| `matches()` | `false`: `abc456` remains outside the pattern | Validating the entire data region |
+| `lookingAt()` | `true`: prefix `"123"` matches | Recognizing a token at the start of the region |
+| `find()` | `true`: finds `"123"`, next call finds `"456"` | Iterating through consecutive matching substrings |
 
-Khi kiểm tra các chế độ **độc lập**, hãy gọi `digits.matcher(input)` để tạo Matcher riêng cho mỗi phép thử. Khi cần thu mọi kết quả của `find()`, giữ **một Matcher xuyên suốt vòng lặp** để vị trí tìm kiếm tiến đúng; chỉ `reset()` nếu cố ý bắt đầu lại. Phân biệt phạm vi của ba phương thức là nền tảng, còn trọng tâm của bài này là quản lý vòng đời `Pattern` và trạng thái `Matcher` trong xử lý nhiều lần.
+When testing **independent** modes, call `digits.matcher(input)` to create a separate Matcher for each test. When collecting all matches with `find()`, keep **one Matcher across the loop** so the search position advances properly; only call `reset()` if you intentionally want to start over. Distinguishing the scope of the three methods is foundational, while the focus of this lesson is managing `Pattern` lifecycle and `Matcher` state during repeated processing.
 
-## 5. Làm việc với các nhóm và vị trí khi lặp find()
+## 5. Working with Groups and Positions in a find() Loop
 
-- group(0) hoặc group(): toàn bộ đoạn khớp.
-- group(1), group(2), ...: các nhóm bắt theo thứ tự dấu ngoặc tròn mở. group("name") truy cập nhóm đặt tên.
-- start(), end() là vị trí của toàn bộ đoạn khớp; start(1), end(1) là vị trí nhóm số 1; tương tự có phiên bản nhận tên nhóm.
-- Một nhóm bắt là tùy chọn có thể không tham gia vào lần khớp: group tương ứng trả về null, còn start/end của nhóm trả về -1. Điều này khác với nhóm tham gia nhưng khớp chuỗi rỗng.
-- Dùng (?:...) khi chỉ cần gom biểu thức mà **không muốn tạo nhóm bắt**; điều này giúp chỉ số nhóm ổn định và dễ đọc hơn.
+- group(0) or group(): the entire matched substring.
+- group(1), group(2), ...: capturing groups numbered by the order of opening parentheses. group("name") accesses a named group.
+- start(), end() are the positions of the entire match; start(1), end(1) are the positions of group 1; analogous overloads accept a group name.
+- An optional capturing group might not participate in a match: the corresponding group returns null, while start/end for that group return -1. This differs from a group that participates and matches an empty string.
+- Use (?:...) when you only need to group an expression **without creating a capturing group**; this keeps group indices stable and easier to read.
 
-Ví dụ ý tưởng: regex (ID)-(\\d{3}) có group(1) là "ID" và group(2) là ba chữ số; regex (?:ID)-(\\d{3}) chỉ có một nhóm bắt số. Với dữ liệu trích xuất theo nhiều nhóm, kiểm tra sự hiện diện của nhóm tùy chọn trước khi chuyển đổi kiểu hoặc thao tác chuỗi.
+Conceptual example: the regex (ID)-(\\d{3}) has group(1) as "ID" and group(2) as the three digits; the regex (?:ID)-(\\d{3}) has only one digit-capturing group. When extracting data across multiple groups, check for the presence of optional groups before converting types or performing string operations.
 
-Cẩn thận với biểu thức có thể khớp **chuỗi rỗng** (chẳng hạn .* hoặc các lượng từ tùy chọn). find() xử lý việc tiến tới vị trí tiếp theo cho các lần khớp độ dài bằng không, nhưng đoạn mã tự cập nhật chỉ số quét bằng end() có thể mắc vòng lặp nếu không xử lý trường hợp start() == end(). Đừng mặc định mọi lần find() đều tiêu thụ ít nhất một ký tự.
+Be careful with expressions that can match an **empty string** (such as .* or optional quantifiers). find() handles advancing to the next position for zero-length matches, but code that manually updates a scan index using end() can enter an infinite loop if it does not handle the start() == end() case. Do not assume every find() match consumes at least one character.
 
-## 6. Các cờ biên dịch và cách thoát ký tự
+## 6. Compilation Flags and Escaping Characters
 
-Có thể khai báo cờ ở thời điểm biên dịch:
+Flags can be specified at compile time:
 
 ~~~java
 Pattern keyword = Pattern.compile(
@@ -195,13 +195,13 @@ Pattern keyword = Pattern.compile(
 );
 ~~~
 
-- **CASE_INSENSITIVE**: khớp không phân biệt hoa/thường; kết hợp UNICODE_CASE khi cần đối chiếu chữ cái Unicode theo quy tắc case-insensitive của Java.
-- **MULTILINE**: thay đổi cách ^ và $ nhận diện đầu/cuối dòng trong một chuỗi nhiều dòng; không biến matches() thành thao tác tìm từng dòng.
-- **DOTALL**: dấu chấm . có thể khớp cả ký tự xuống dòng. Không liên quan trực tiếp đến việc tái sử dụng Matcher.
+- **CASE_INSENSITIVE**: case-insensitive matching; combine with UNICODE_CASE when matching Unicode letters according to Java's case-insensitive rules.
+- **MULTILINE**: changes how ^ and $ recognize the start/end of lines in a multiline string; does not turn matches() into a line-by-line search.
+- **DOTALL**: allows the dot . to match newline characters as well. Not directly related to Matcher reuse.
 
-Trong **chuỗi Java**, một dấu gạch chéo ngược của cú pháp regex thường phải viết thành hai dấu: regex \d được truyền vào Pattern từ chuỗi Java "\\d"; regex \b từ "\\b". Nếu viết "\b" đơn lẻ bên trong chuỗi Java, đó là ký tự backspace của Java, không phải biểu thức ranh giới từ của regex.
+In a **Java string**, a backslash in regex syntax usually must be written as two backslashes: the regex \d is passed to Pattern from the Java string "\\d"; the regex \b from "\\b". If you write a single "\b" inside a Java string, that is a Java backspace character, not a regex word boundary expression.
 
-Nếu đầu vào của người dùng phải được tìm **theo nghĩa văn bản nguyên trạng**, dùng Pattern.quote(text) thay vì ghép trực tiếp vào regex; nếu nội dung thay thế có ký tự $ hoặc \, dùng Matcher.quoteReplacement(replacement) để giữ nguyên nghĩa. Đoạn mã minh họa sau giả định đã có ba biến kiểu String:
+If user input must be searched **literally**, use Pattern.quote(text) instead of concatenating it directly into the regex; if the replacement content contains $ or \, use Matcher.quoteReplacement(replacement) to preserve its literal meaning. The following illustrative snippet assumes three String variables already exist:
 
 ~~~java
 Pattern literal = Pattern.compile(Pattern.quote(searchText));
@@ -209,11 +209,11 @@ Matcher matcher = literal.matcher(sourceText);
 String result = matcher.replaceAll(Matcher.quoteReplacement(replacementText));
 ~~~
 
-Nếu không quote, ký tự đặc biệt trong searchText có thể trở thành toán tử regex; ký tự $ hoặc dấu \ trong replacementText có thể được hiểu là tham chiếu nhóm hoặc cú pháp thoát. Khi cần thay thế có chủ đích theo nhóm, hãy dùng đúng cú pháp tham chiếu nhóm của Matcher thay vì quoteReplacement.
+Without quoting, special characters in searchText can become regex operators; $ or \ in replacementText can be interpreted as group references or escape syntax. When you intentionally need group-based replacement, use Matcher's group reference syntax instead of quoteReplacement.
 
-## 7. Xử lý nhiều lần trong chương trình và ứng dụng đa luồng
+## 7. Repeated Processing in Programs and Multithreaded Applications
 
-Với API/service nhận nhiều request hoặc worker chạy song song, Pattern có thể dùng chung an toàn:
+For an API/service handling many requests or workers running in parallel, a Pattern can be shared safely:
 
 ~~~java
 private static final Pattern TOKEN = Pattern.compile("[A-Za-z0-9]+");
@@ -223,31 +223,31 @@ static boolean containsToken(String input) {
 }
 ~~~
 
-Mỗi lần gọi containsToken tạo Matcher cục bộ. Vì Matcher giữ vị trí duyệt và tham chiếu đến chuỗi đang xử lý, không lưu một Matcher duy nhất vào biến static hoặc chia sẻ nó giữa các request. Đồng bộ hóa có thể ngăn truy cập đồng thời nhưng thường tạo ra thiết kế khó hiểu và không cần thiết; Pattern bất biến + Matcher cục bộ là đủ cho đa số trường hợp.
+Each call to containsToken creates a local Matcher. Because a Matcher holds the traversal position and a reference to the string being processed, do not store a single Matcher in a static field or share it across requests. Synchronization can prevent concurrent access but usually produces a confusing and unnecessary design; an immutable Pattern + a local Matcher is sufficient for most cases.
 
-Khi regex được người dùng cung cấp, nên xác thực và kiểm soát cấu hình: Pattern.compile có thể ném PatternSyntaxException; một số biểu thức bị backtracking mạnh có thể tốn nhiều CPU trên dữ liệu dài hoặc cố ý gây khó. Việc **cache Pattern** chỉ tránh biên dịch lặp, **không loại bỏ** rủi ro regex xử lý chậm. Với regex động, cần cân nhắc số mẫu cache, giới hạn kích thước dữ liệu, thử nghiệm tình huống xấu và thiết kế biểu thức tránh các nhánh lặp mơ hồ.
+When regexes are supplied by users, validate and control the configuration: Pattern.compile can throw PatternSyntaxException; some expressions with heavy backtracking can consume significant CPU on long or adversarial data. **Caching a Pattern** only avoids repeated compilation; it **does not eliminate** the risk of slow regex processing. For dynamic regexes, consider the number of cached patterns, input size limits, worst-case testing, and designing expressions that avoid ambiguous repetitive branches.
 
-## 8. Những lỗi dễ gặp và cách sửa
+## 8. Common Mistakes and Fixes
 
-| Tình huống | Nguyên nhân | Cách làm phù hợp |
+| Situation | Cause | Appropriate Practice |
 | --- | --- | --- |
-| Chỉ thu được kết quả đầu tiên | Dùng một lần if (matcher.find()) rồi dừng. | Dùng while (matcher.find()) khi cần toàn bộ kết quả. |
-| Không tìm lại được từ đầu | Matcher đã tiến đến cuối sau nhiều lần find(). | Gọi reset() trước một lượt quét mới hoặc tạo matcher(input) khác. |
-| Kết quả dòng mới sai / không có | Tái sử dụng Matcher mà quên reset(newInput). | Reset đúng đầu vào trước mỗi lượt. |
-| group()/start()/end() ném IllegalStateException | Chưa có lần khớp thành công đang hợp lệ, hoặc đã reset. | Chỉ truy cập sau kết quả true và trước khi làm mất trạng thái đó. |
-| Xác thực toàn chuỗi nhưng vẫn chấp nhận đoạn con | Dùng find() thay vì matches(). | Dùng matches() cho toàn bộ đầu vào. |
-| Chậm khi lặp hàng nghìn dòng | Gọi Pattern.compile hoặc String.matches lặp lại với cùng regex; hoặc regex gây backtracking nặng. | Biên dịch Pattern một lần, đo hiệu năng và điều chỉnh biểu thức nếu cần. |
-| Lỗi khi chạy song song | Nhiều luồng dùng chung một Matcher mutable. | Chia sẻ Pattern, tạo Matcher riêng theo mỗi tác vụ. |
-| Tìm chuỗi ký tự literal sai | Nội dung nhập chứa ., +, [, (, ... và bị hiểu là regex. | Dùng Pattern.quote() cho mẫu literal. |
-| Thay thế có $ hoặc \ bị lỗi | Chuỗi thay thế bị hiểu thành cú pháp nhóm/escape. | Dùng Matcher.quoteReplacement() cho phần thay thế literal. |
+| Only the first match is collected | Using if (matcher.find()) once and stopping. | Use while (matcher.find()) when all matches are needed. |
+| Cannot search again from the beginning | The Matcher has already reached the end after several find() calls. | Call reset() before a new scan or create another matcher(input). |
+| Wrong / missing results on the next line | Reusing a Matcher while forgetting reset(newInput). | Reset with the proper input before each pass. |
+| group()/start()/end() throws IllegalStateException | No valid successful match yet, or already reset. | Only access after a true result and before invalidating that state. |
+| Validating the full string still accepts substrings | Using find() instead of matches(). | Use matches() for the entire input. |
+| Slow when looping over thousands of lines | Repeatedly calling Pattern.compile or String.matches with the same regex; or a regex causing heavy backtracking. | Compile Pattern once, measure performance, and adjust the expression if needed. |
+| Errors when running concurrently | Multiple threads sharing one mutable Matcher. | Share Pattern, create a separate Matcher per task. |
+| Literal string search behaves unexpectedly | Input contains ., +, [, (, ... and is parsed as regex. | Use Pattern.quote() for literal patterns. |
+| Replacement containing $ or \ fails | The replacement string is parsed as group/escape syntax. | Use Matcher.quoteReplacement() for literal replacements. |
 
-## 9. Cách chọn thiết kế cho từng nhu cầu
+## 9. Choosing a Design for Each Need
 
-- **Cùng regex, nhiều chuỗi:** biên dịch Pattern một lần; với mỗi chuỗi, gọi pattern.matcher(input).
-- **Một chuỗi, nhiều đoạn khớp:** một Matcher với while (matcher.find()); đọc group/start/end ngay trong mỗi lần lặp.
-- **Một Matcher quét lại hoặc đổi đầu vào theo thứ tự:** gọi reset() hoặc reset(newInput) trước lần quét tiếp theo.
-- **Chỉ xác thực một chuỗi:** gọi matcher(input).matches(); đừng nhầm với find().
-- **Cùng Pattern trên nhiều luồng:** chia sẻ Pattern; Matcher thuộc về từng luồng/từng tác vụ.
-- **Regex hoặc nội dung thay thế từ bên ngoài:** kiểm tra lỗi cú pháp, quote nội dung literal đúng cách và đánh giá rủi ro hiệu năng.
+- **Same regex, many strings:** compile Pattern once; for each string, call pattern.matcher(input).
+- **One string, many matches:** one Matcher with while (matcher.find()); read group/start/end immediately in each iteration.
+- **One Matcher rescanning or switching inputs sequentially:** call reset() or reset(newInput) before the next scan.
+- **Validating a single string:** call matcher(input).matches(); do not confuse with find().
+- **Same Pattern across multiple threads:** share Pattern; each thread/task owns its Matcher.
+- **External regex or replacement content:** check syntax errors, quote literal content properly, and assess performance risks.
 
-Điểm cần nắm vững là **Pattern giữ quy tắc; Matcher giữ trạng thái của một lượt xử lý**. Quản lý hai vòng đời này đúng giúp mã regex vừa rõ ràng vừa ổn định khi phải xử lý nhiều chuỗi và nhiều kết quả.
+The key takeaway is that **Pattern holds the rule; Matcher holds the state of one processing pass**. Managing these two lifecycles properly keeps regex code both clear and reliable when processing multiple strings and multiple matches.

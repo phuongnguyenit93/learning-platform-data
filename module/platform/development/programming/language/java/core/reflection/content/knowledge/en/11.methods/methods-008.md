@@ -1,28 +1,28 @@
-# Phân biệt gọi virtual với mong muốn gọi riêng triển khai super trong Java Reflection
+# Distinguishing virtual calls from intending to invoke only a super implementation in Java Reflection
 
-## 1. Vấn đề: đã lấy Method của lớp cha, sao vẫn chạy code lớp con?
+## 1. Problem: already obtained the superclass Method, why does subclass code still run?
 
-Một người dùng Reflection có thể lấy đối tượng `Method` được khai báo ở lớp cha rồi gọi nó trên đối tượng của lớp con:
+A Reflection user might obtain a `Method` object declared on a superclass and then invoke it on an instance of a subclass:
 
 ~~~java
 Method method = Parent.class.getDeclaredMethod("message");
 Object result = method.invoke(new Child());
 ~~~
 
-Nếu `Child` **override** `message()`, kết quả là phần triển khai của `Child`, **không phải** phần triển khai trong `Parent`. Đây là hành vi đúng của `Method.invoke` đối với phương thức instance có cơ chế gọi ảo (virtual dispatch).
+If `Child` **overrides** `message()`, the result comes from `Child`'s implementation, **not** the implementation in `Parent`. This is the expected behavior of `Method.invoke` for instance methods using virtual dispatch.
 
-Điều cần phân biệt:
+What must be distinguished:
 
-- **Method được tìm ở đâu?** `Parent.class.getDeclaredMethod(...)` trả về metadata của phương thức khai báo trong `Parent`.
-- **Method được gọi trên đối tượng nào?** Đối tượng truyền vào `invoke(receiver)` có kiểu runtime là `Child`.
-- **JVM chọn thân phương thức nào?** Với phương thức instance có thể override, `Method.invoke` sử dụng **dynamic method lookup**; lớp con override sẽ được chọn.
-- **Làm sao cố ý gọi triển khai `super`?** Câu lệnh `super.message()` trong mã lớp con, hoặc `MethodHandles.Lookup.findSpecial(...)` / `unreflectSpecial(...)` trong ngữ cảnh caller có đủ quyền, mới biểu đạt ý định tương tự `invokespecial`.
+- **Where was the Method found?** `Parent.class.getDeclaredMethod(...)` returns metadata for the method declared in `Parent`.
+- **On which object is the Method invoked?** The object passed to `invoke(receiver)` has runtime type `Child`.
+- **Which method body does the JVM choose?** For an overridable instance method, `Method.invoke` uses **dynamic method lookup**; the subclass override is selected.
+- **How to intentionally call the `super` implementation?** A `super.message()` statement inside subclass code, or `MethodHandles.Lookup.findSpecial(...)` / `unreflectSpecial(...)` in a caller context with sufficient privileges, expresses intent analogous to `invokespecial`.
 
-Đây là bài học thuộc nhóm **Method của Java Reflection**, tập trung vào dispatch và cách gọi đúng thân phương thức, thay vì chỉ cách lấy tên hoặc annotation của method.
+This lesson belongs to the **Method group in Java Reflection**, focusing on dispatch and how to invoke the right method body rather than just retrieving method names or annotations.
 
-## 2. Mô hình nền tảng: kiểu biên dịch và kiểu runtime
+## 2. Foundational model: compile-time type vs. runtime type
 
-Ví dụ:
+Example:
 
 ~~~java
 class Parent {
@@ -43,7 +43,7 @@ class Child extends Parent {
 }
 ~~~
 
-Với:
+With:
 
 ~~~java
 Parent p = new Child();
@@ -52,59 +52,59 @@ System.out.println(((Parent) p).message()); // Child.message
 System.out.println(((Child) p).callSuper()); // Parent.message
 ~~~
 
-**Vì sao?** Biểu thức có kiểu khai báo `Parent` và phép cast `(Parent)` chỉ chi phối việc kiểm tra/giải quyết lời gọi tại thời điểm biên dịch; đối tượng thực vẫn là `Child`. Với lời gọi virtual, JVM lựa chọn override phù hợp theo lớp thực tế của receiver. Phép cast không chuyển object thành một instance `Parent` mới.
+**Why?** A declared type `Parent` on an expression and the `(Parent)` cast only govern compile-time checking/call resolution; the actual object is still `Child`. For a virtual call, the JVM selects the appropriate override according to the actual class of the receiver. Casting does not turn the object into a new `Parent` instance.
 
-Ngược lại, `super.message()` là một lời gọi đặc biệt xuất hiện trong **mã của lớp con**. Java dùng ngữ nghĩa gọi thành viên lớp cha trong ngữ cảnh đó, bỏ qua override đang có ở lớp con. `super` không phải giá trị đối tượng có thể truyền cho `Method.invoke`; bạn không thể viết `method.invoke(super)` ở chỗ bình thường vì `super` không phải biểu thức biến độc lập như `this`.
+Conversely, `super.message()` is a special call appearing inside **subclass code**. Java uses superclass member-call semantics in that context, bypassing any override present in the subclass. `super` is not an object value that can be passed to `Method.invoke`; you cannot write `method.invoke(super)` in ordinary code because `super` is not a standalone variable expression like `this`.
 
-### Minh họa đường đi
+### Path illustration
 
 ~~~text
 Parent p = new Child()
         |
         +-- p.message()
         |       |
-        |       +-- virtual dispatch theo receiver thực: Child.message()
+        |       +-- virtual dispatch by actual receiver: Child.message()
         |
         +-- Parent.class.getMethod("message").invoke(p)
         |       |
-        |       +-- Method mô tả Parent.message
-        |       +-- Method.invoke vẫn dispatch: Child.message()
+        |       +-- Method describes Parent.message
+        |       +-- Method.invoke still dispatches: Child.message()
         |
         +-- ((Child) p).callSuper()
                 |
-                +-- mã trong Child gọi super.message(): Parent.message()
+                +-- code inside Child calls super.message(): Parent.message()
 ~~~
 
-Một điểm quan trọng về từ “virtual”: trong Java, các phương thức instance có khả năng override thường dùng dynamic dispatch. Không áp dụng quy tắc đó một cách máy móc cho mọi method như `static`, `private`, constructor hay các phương thức không thể override.
+An important note on the word "virtual": in Java, overridable instance methods normally use dynamic dispatch. Do not apply that rule mechanically to all methods such as `static`, `private`, constructors, or non-overridable methods.
 
-## 3. Những API tìm Method KHÔNG quyết định thân hàm được chạy
+## 3. Method lookup APIs do NOT decide which body runs
 
-| Cách lấy Method | Method metadata có thể đại diện cho | Khi `invoke(child)` với override hợp lệ |
+| How Method is obtained | What method metadata may represent | When `invoke(child)` with a valid override |
 | --- | --- | --- |
-| `Parent.class.getMethod("message")` | Method public của `Parent` | Chạy `Child.message` |
-| `Parent.class.getDeclaredMethod("message")` | Method khai báo trực tiếp trong `Parent` | Chạy `Child.message` |
-| `Child.class.getMethod("message")` | Method public mà tra cứu từ `Child` thấy | Chạy `Child.message` |
-| `Child.class.getDeclaredMethod("message")` | Method khai báo trực tiếp trong `Child` nếu có | Chạy `Child.message` |
-| `Parent.class.getSuperclass()` | Trả về lớp cha của `Parent`, không phải một lệnh gọi method | Không tác động đến dispatch |
+| `Parent.class.getMethod("message")` | Public method of `Parent` | Runs `Child.message` |
+| `Parent.class.getDeclaredMethod("message")` | Method declared directly in `Parent` | Runs `Child.message` |
+| `Child.class.getMethod("message")` | Public method visible when looking up from `Child` | Runs `Child.message` |
+| `Child.class.getDeclaredMethod("message")` | Method declared directly in `Child` if present | Runs `Child.message` |
+| `Parent.class.getSuperclass()` | Returns `Parent`'s superclass, not a method call | Has no effect on dispatch |
 
-Các điểm kỹ thuật:
+Technical points:
 
-1. `getMethod` tìm phương thức `public` theo quy tắc của `Class`, trong đó có thể bao gồm phương thức kế thừa.
-2. `getDeclaredMethod` tìm khai báo ở **chính lớp/interface được hỏi**, bất kể `public`, `protected`, package-private hay `private`; không tự đi tìm khai báo trong superclass.
-3. `Method.getDeclaringClass()` cho biết **lớp khai báo Method**, không cho biết override nào sẽ được chọn khi chạy.
-4. Truyền đúng danh sách `Class<?>` của tham số vào `getMethod/getDeclaredMethod` khi method có tham số hoặc overload.
-5. Dùng `setAccessible(true)` hoặc `trySetAccessible()` (khi được cho phép) để thay đổi **kiểm tra quyền truy cập**, không thay đổi virtual dispatch. Mở quyền cho một Method khai báo ở Parent không có nghĩa JVM phải chọn thân Parent.
+1. `getMethod` looks up `public` methods according to `Class` rules, which may include inherited methods.
+2. `getDeclaredMethod` searches for declarations on the **queried class/interface itself**, regardless of `public`, `protected`, package-private, or `private`; it does not automatically look in superclasses.
+3. `Method.getDeclaringClass()` tells **which class declared the Method**, not which override will be selected at runtime.
+4. Pass the exact `Class<?>` list of parameters to `getMethod/getDeclaredMethod` when the method has parameters or overloads.
+5. Using `setAccessible(true)` or `trySetAccessible()` (when allowed) changes **access control checks**, not virtual dispatch. Opening access for a Method declared in Parent does not force the JVM to select Parent's body.
 
-Tài liệu Java SE 17 về `Method.invoke` xác nhận rằng, với phương thức instance, JVM dùng dynamic method lookup; việc override dựa trên kiểu runtime của đối tượng đích vẫn diễn ra.
+The Java SE 17 documentation for `Method.invoke` confirms that, for instance methods, the JVM uses dynamic method lookup; overriding based on the runtime type of the target object still takes place.
 
-### Hai mục tiêu khác nhau
+### Two different goals
 
-- **Mục tiêu A — gọi hành vi đa hình trên receiver hiện tại:** dùng `Method.invoke(receiver, args...)` hoặc method handle có ngữ nghĩa virtual.
-- **Mục tiêu B — gọi riêng phần triển khai của superclass:** cần một vị trí gọi có quyền thực hiện `super`/`invokespecial`; cách đó không thể tạo ra bằng cách đổi mỗi đối tượng `Method` hoặc ép kiểu receiver.
+- **Goal A — invoke polymorphic behavior on the current receiver:** use `Method.invoke(receiver, args...)` or a method handle with virtual semantics.
+- **Goal B — invoke the superclass implementation specifically:** requires a call site with privileges to perform `super`/`invokespecial`; that cannot be achieved merely by changing the `Method` object or casting the receiver.
 
-## 4. Ví dụ Java 17+ độc lập: nhìn thấy mọi kết quả trong một lần chạy
+## 4. Standalone Java 17+ example: seeing all outcomes in one run
 
-Đặt toàn bộ mã sau vào tệp **`VirtualDispatchDemo.java`**. Chương trình dùng nested class để dễ biên dịch, đồng thời thực hiện `findSpecial` từ **bên trong `Child`**, nơi lookup được tạo với quyền truy cập phù hợp.
+Place all the following code in **`VirtualDispatchDemo.java`**. The program uses nested classes for easy compilation, while performing `findSpecial` from **inside `Child`**, where the lookup is created with appropriate access privileges.
 
 ~~~java
 import java.lang.invoke.MethodHandle;
@@ -167,14 +167,14 @@ public class VirtualDispatchDemo {
 }
 ~~~
 
-Biên dịch và chạy tại thư mục chứa tệp bằng JDK 17 trở lên:
+Compile and run in the file's directory with JDK 17 or later:
 
 ~~~bash
 javac --release 17 VirtualDispatchDemo.java
 java VirtualDispatchDemo
 ~~~
 
-**Stdout chính xác của ví dụ đã được biên dịch và chạy bằng OpenJDK 21 với `--release 17`:**
+**Exact stdout of the example compiled and run with OpenJDK 21 using `--release 17`:**
 
 ~~~text
 normal: Child.message
@@ -188,40 +188,40 @@ static Parent method: Parent.category
 final Parent method: Parent.fixed
 ~~~
 
-### Phân tích từng kết quả
+### Analysis of each result
 
-- `normal`: biến `parentRef` có kiểu khai báo `Parent` nhưng trỏ vào `Child`; lời gọi ảo chọn `Child.message`.
-- `declared by`: chính đối tượng `Method` thuộc `Parent`, xác nhận lookup ở lớp cha, nhưng nó **không khóa** dispatch vào Parent.
-- `parent Method.invoke` và `child Method.invoke`: cả hai chạy `Child.message`; điều này tách bạch metadata của Method với lựa chọn triển khai tại runtime.
-- `super in Child`: phương thức `directSuper` trong Child dùng đúng từ khóa `super` nên thực thi `Parent.message`.
-- `findSpecial from Child`: tạo method handle có ngữ nghĩa gọi đặc biệt từ lookup đủ quyền của Child, bỏ qua override và chạy `Parent.message`.
-- `findVirtual`: method handle tạo bằng `findVirtual` vẫn dùng virtual dispatch khi nhận Child, nên chạy `Child.message`.
-- `static Parent method`: `static` dùng method hiding chứ không override; Reflection gọi đúng phương thức static mô tả ở Parent; receiver có thể là `null`.
-- `final Parent method`: `final` không thể được Child override; gọi trên Child vẫn dùng thân `Parent.fixed`.
+- `normal`: variable `parentRef` has declared type `Parent` yet points to `Child`; virtual invocation picks `Child.message`.
+- `declared by`: the `Method` object itself belongs to `Parent`, confirming lookup on the superclass, yet it **does not lock** dispatch to Parent.
+- `parent Method.invoke` and `child Method.invoke`: both execute `Child.message`; this separates Method metadata from runtime implementation selection.
+- `super in Child`: `directSuper` inside Child uses the `super` keyword directly and thus executes `Parent.message`.
+- `findSpecial from Child`: creates a method handle with special-invocation semantics from Child's privileged lookup, bypassing the override and running `Parent.message`.
+- `findVirtual`: a method handle created with `findVirtual` still uses virtual dispatch when receiving Child, so it runs `Child.message`.
+- `static Parent method`: `static` uses method hiding rather than overriding; Reflection calls the static method described on Parent; the receiver can be `null`.
+- `final Parent method`: `final` cannot be overridden by Child; invoking on Child still uses `Parent.fixed`'s body.
 
-Ví dụ chạy bằng classpath, không cần tùy chọn JVM đặc biệt. Nếu sửa ví dụ để chia thành các **named module** có quyền truy cập hạn chế, hành vi tạo method handle còn phụ thuộc JPMS và quyền của lookup.
+The example runs on the classpath without special JVM options. If modified to split into **named modules** with restricted access, method handle creation behavior also depends on JPMS and lookup privileges.
 
-## 5. Giới hạn của `Method.invoke` trong bài toán gọi super
+## 5. Limitations of `Method.invoke` for calling super
 
-Trong ví dụ ở mục 4, `fromParent.getDeclaringClass()` vẫn là `Parent.class`, nhưng `fromParent.invoke(child)` gọi `Child.message()`. Đây là **virtual dispatch**, giống lời gọi instance bình thường. Thay `getMethod` bằng `getDeclaredMethod`, ép `child` về `Parent`, hoặc bật `setAccessible(true)` đều **không** đổi cơ chế chọn override.
+In section 4's example, `fromParent.getDeclaringClass()` remains `Parent.class`, yet `fromParent.invoke(child)` calls `Child.message()`. This is **virtual dispatch**, just like a normal instance call. Replacing `getMethod` with `getDeclaredMethod`, casting `child` to `Parent`, or enabling `setAccessible(true)` all **do not** change the override selection mechanism.
 
-`Method.invoke` nhận receiver và đối số; API này **không có tùy chọn “gọi riêng thân super”**. Nếu chỉ cần hành vi đa hình thì tiếp tục dùng `invoke`; khi thực sự muốn gọi triển khai lớp cha, cần cơ chế special invocation có quyền phù hợp, được trình bày dưới đây.
+`Method.invoke` takes a receiver and arguments; this API **has no option to "invoke only the super body"**. If polymorphic behavior is what you want, keep using `invoke`; when you truly need to call the superclass implementation, you need a special-invocation mechanism with suitable privileges, described below.
 
-## 6. Khi nào gọi được triển khai super bằng MethodHandles?
+## 6. When can a super implementation be invoked using MethodHandles?
 
-Java cung cấp `java.lang.invoke.MethodHandle` và `MethodHandles.Lookup`. Một method handle có thể biểu diễn cách gọi tương tự một số lệnh bytecode JVM, trong đó có:
+Java provides `java.lang.invoke.MethodHandle` and `MethodHandles.Lookup`. A method handle can represent invocation styles analogous to certain JVM bytecode instructions, including:
 
-| API | Loại gọi được nhấn mạnh | Khi receiver là Child override Parent |
+| API | Emphasized invocation kind | When receiver is Child overriding Parent |
 | --- | --- | --- |
-| `Method.invoke` trên method instance của Parent | Dynamic lookup theo receiver | Child override |
-| `Lookup.findVirtual(Parent.class, "message", type)` | Gọi ảo tương tự `invokevirtual` | Child override |
-| `Lookup.findSpecial(Parent.class, "message", type, Child.class)` từ lookup đủ quyền của Child | Gọi đặc biệt tương tự `invokespecial` | Triển khai Parent, theo quy tắc `invokespecial` |
-| `Lookup.unreflectSpecial(parentMethod, Child.class)` từ lookup đủ quyền của Child | Tạo handle gọi đặc biệt từ Method metadata | Có thể gọi triển khai Parent |
-| `super.message()` trong mã Child | Cú pháp ngôn ngữ cho lời gọi superclass | Triển khai Parent |
+| `Method.invoke` on Parent's instance method | Dynamic lookup by receiver | Child override |
+| `Lookup.findVirtual(Parent.class, "message", type)` | Virtual call similar to `invokevirtual` | Child override |
+| `Lookup.findSpecial(Parent.class, "message", type, Child.class)` from Child's privileged lookup | Special call similar to `invokespecial` | Parent implementation, per `invokespecial` rules |
+| `Lookup.unreflectSpecial(parentMethod, Child.class)` from Child's privileged lookup | Creates a special-invocation handle from Method metadata | Can call Parent implementation |
+| `super.message()` in Child code | Language syntax for superclass call | Parent implementation |
 
-### 6.1. `findSpecial` và các tham số
+### 6.1. `findSpecial` and its parameters
 
-Trong ví dụ:
+In the example:
 
 ~~~java
 MethodHandle handle = MethodHandles.lookup().findSpecial(
@@ -232,20 +232,20 @@ MethodHandle handle = MethodHandles.lookup().findSpecial(
 String result = (String) handle.invoke(this);
 ~~~
 
-- `Parent.class`: lớp mà method đặc biệt được tra cứu.
-- `"message"`: tên method cần gọi.
-- `MethodType.methodType(String.class)`: kiểu trả về và các kiểu tham số của method; không chứa receiver.
-- `Child.class`: **special caller**, tức lớp được phép thực hiện kiểu gọi `invokespecial` trong ngữ cảnh này.
-- `MethodHandles.lookup()`: sinh ra bên trong phương thức của `Child`, nên lookup class đúng là `Child` và có quyền truy cập để kiểm tra lời gọi này.
-- `this`: receiver mà handle cần để thực thi. Với method instance, kiểu handle bao gồm một tham số receiver phía trước các tham số method.
+- `Parent.class`: the class where the special method is looked up.
+- `"message"`: the name of the method to call.
+- `MethodType.methodType(String.class)`: the return type and parameter types of the method; does not include the receiver.
+- `Child.class`: the **special caller**, i.e., the class authorized to perform an `invokespecial`-style call in this context.
+- `MethodHandles.lookup()`: created inside a method of `Child`, so the lookup class is indeed `Child` and holds access privileges to validate this call.
+- `this`: the receiver the handle needs to execute. For an instance method, the handle's type includes a receiver parameter before the method parameters.
 
-`findSpecial` không chỉ là một cách viết khác của `findVirtual`. Nó mang **ngữ nghĩa gọi không thông qua override thông thường** và chỉ được tạo khi lookup có quyền tương ứng. Theo API, nếu `specialCaller` không phù hợp với lookup class hoặc lookup thiếu quyền private cần thiết, thao tác có thể thất bại bằng `IllegalAccessException`.
+`findSpecial` is not merely another way of writing `findVirtual`. It carries **semantics that bypass ordinary overriding** and can only be created when the lookup has corresponding privileges. Per the API, if `specialCaller` does not match the lookup class or the lookup lacks required private access, the operation can fail with `IllegalAccessException`.
 
-Một ví dụ không hợp lệ về kỳ vọng: đưa đoạn `MethodHandles.lookup().findSpecial(Parent.class, ..., Child.class)` ra mã bất kỳ ngoài Child rồi cho rằng mọi caller đều được quyền gọi phần `super` của Child. Ngữ nghĩa `super` gắn với **vị trí/lớp gọi được cấp quyền**, không phải với một chuỗi tên lớp tự khai báo.
+An invalid expectation example: placing `MethodHandles.lookup().findSpecial(Parent.class, ..., Child.class)` in arbitrary code outside Child and assuming any caller is allowed to invoke `super` on Child. `super` semantics are tied to an **authorized call site/class**, not just a declared class literal.
 
-### 6.2. `unreflectSpecial` khi đã có Method
+### 6.2. `unreflectSpecial` when you already have a Method
 
-Nếu đã lấy Method bằng Reflection, từ mã trong `Child` có thể dùng:
+If you already obtained a `Method` via Reflection, from inside `Child` you can use:
 
 ~~~java
 Method parent = Parent.class.getDeclaredMethod("message");
@@ -254,13 +254,13 @@ MethodHandle special = MethodHandles.lookup()
 String result = (String) special.invoke(this);
 ~~~
 
-Đây là đoạn mã **để đặt trong một phương thức instance của `Child`**, với `Parent`/`Child` theo phần 4; cần khai báo/lan truyền các checked exception và `Throwable` thích hợp. `unreflectSpecial` tái sử dụng Method metadata để tạo một method handle có ngữ nghĩa gọi đặc biệt. Nó **không** biến bản thân `parent.invoke(child)` thành lời gọi super.
+This is a code snippet **to be placed inside an instance method of `Child`**, with `Parent`/`Child` as in section 4; appropriate checked exceptions and `Throwable` must be declared/propagated. `unreflectSpecial` reuses `Method` metadata to create a method handle with special-invocation semantics. It **does not** turn `parent.invoke(child)` itself into a super call.
 
-Việc có thể đọc một `Method` bằng Reflection không tự cấp phép cho `unreflectSpecial`. API vẫn kiểm tra quyền của lookup và giới hạn truy cập. `privateLookupIn` cũng không phải một cơ chế “đột nhập” tùy ý: việc chuyển sang lookup có quyền private chịu ràng buộc bởi quyền caller và sự mở package của module liên quan.
+Being able to read a `Method` via Reflection does not automatically authorize `unreflectSpecial`. The API still checks lookup privileges and access limits. `privateLookupIn` is also not an arbitrary "break-in" mechanism: switching to a lookup with private privileges is constrained by caller privileges and module package openness.
 
-### 6.3. Lý do nên ưu tiên `super` trực tiếp khi kiểm soát mã lớp con
+### 6.3. Why prefer direct `super` when controlling subclass code
 
-Khi chính bạn viết Child, cách đơn giản, rõ nghĩa và ổn định nhất là:
+When you write `Child` yourself, the simplest, clearest, and most stable way is:
 
 ~~~java
 @Override
@@ -269,29 +269,29 @@ public String message() {
 }
 ~~~
 
-Cách này thực hiện trực tiếp lời gọi superclass trong ngữ cảnh mà Java cho phép, không phải tạo Reflection hay method handle. Nếu một thư viện muốn cho client bên ngoài gọi phần logic của cha, có thể cung cấp một **phương thức tường minh** của Child (ví dụ `callParentMessage()`) thay vì buộc client dùng quyền truy cập đặc biệt.
+This directly performs the superclass call in a Java-authorized context, without creating Reflection or method handles. If a library wants external clients to call the parent's logic, it can expose an **explicit method** on `Child` (for example `callParentMessage()`) rather than forcing clients to obtain special access privileges.
 
-`findSpecial` có ích khi viết framework, bộ máy gọi động hoặc tích hợp cần kiểm soát cách dispatch, nhưng nó phức tạp hơn `super` và có giới hạn quyền rõ ràng.
+`findSpecial` is useful when writing frameworks, dynamic invocation engines, or integrations needing dispatch control, yet it is more complex than `super` and has strict privilege boundaries.
 
-## 7. Những trường hợp không theo mô hình override thông thường
+## 7. Cases that do not follow the normal override model
 
-| Loại method | Có bị override theo cách của method instance thông thường? | Hành vi cần nhớ |
+| Method kind | Overridden like a normal instance method? | Behavior to remember |
 | --- | --- | --- |
-| Instance method có thể override | Có | `Method.invoke` chọn override phù hợp với receiver runtime |
-| `static` | Không; cùng tên/chữ ký là **hiding** | Reflection gọi đúng static Method đã tìm, receiver bị bỏ qua |
-| `private` | Không bị override | Method private của cha là thành viên riêng; khai báo cùng chữ ký trong con không phải override nó |
-| `final` instance | Không thể override | Receiver là subclass vẫn chỉ có phần triển khai final kế thừa |
-| Constructor | Không là Method, không được kế thừa/override | Dùng `Constructor.newInstance`; không áp dụng virtual dispatch như `Method.invoke` |
-| Method `abstract` ở cha hoặc interface | Có thể được triển khai ở con | `Method.invoke` với receiver cụ thể sẽ đi đến triển khai hợp lệ, nếu có |
-| Interface default method | Có thể được override | `Method.invoke` trên receiver có override thường đi đến override; muốn gọi riêng default cần ngữ nghĩa gọi đặc biệt hợp lệ |
+| Overridable instance method | Yes | `Method.invoke` selects the override matching the runtime receiver |
+| `static` | No; same name/signature is **hiding** | Reflection calls the exact static Method found; receiver is ignored |
+| `private` | Not overridden | Parent's private method is a private member; declaring the same signature in child does not override it |
+| `final` instance | Cannot be overridden | Subclass receiver still only gets the inherited final implementation |
+| Constructor | Not a Method, not inherited/overridden | Use `Constructor.newInstance`; no virtual dispatch like `Method.invoke` |
+| `abstract` method on parent or interface | Can be implemented in child | `Method.invoke` with a concrete receiver reaches the valid implementation, if any |
+| Interface default method | Can be overridden | `Method.invoke` on an overriding receiver normally reaches the override; calling only the default requires valid special invocation semantics |
 
-Đặc biệt với private method, đừng thấy hai phương thức cùng tên rồi kết luận “Child override private method của Parent”. Java không cho override một private member như vậy. Nếu Reflection gọi đúng private method của Parent trên một Child instance và có quyền truy cập, thân của Parent được gọi vì nó không có dynamic override tương ứng — **đó không phải là kỹ thuật gọi `super` của một method public/protected có thể override**.
+Especially for private methods, do not see two methods with the same name and conclude "Child overrides Parent's private method". Java does not allow overriding a private member that way. If Reflection invokes Parent's private method on a Child instance with access permission, Parent's body runs because it has no corresponding dynamic override — **that is not a technique for calling `super` on an overridable public/protected method**.
 
-Tương tự, khi method là `static`, gọi `Parent.class.getMethod("category").invoke(null)` chạy `Parent.category`; `Child` có thể khai báo `category` cùng tên nhưng chỉ ẩn method static của Parent. Không lấy kết quả đó làm bằng chứng rằng phương thức instance thông thường có thể gọi đúng super qua `Method.invoke`.
+Similarly, when a method is `static`, calling `Parent.class.getMethod("category").invoke(null)` runs `Parent.category`; `Child` can declare `category` with the same name yet only hides Parent's static method. Do not take that result as proof that normal instance methods can call super via `Method.invoke`.
 
-### Phương thức mặc định (default) của interface
+### Interface default methods
 
-Ví dụ khái niệm:
+Conceptual example:
 
 ~~~java
 interface Greeting {
@@ -308,132 +308,132 @@ class Friendly implements Greeting {
 }
 ~~~
 
-Nếu lấy `Greeting.class.getMethod("hello")` rồi gọi `invoke(new Friendly())`, kết quả phản ánh override `Friendly.hello`. Muốn gọi trực tiếp default từ `Friendly`, cú pháp `Greeting.super.hello()` biểu đạt rõ ý định. Với method handle, trường hợp default cũng liên quan đến lookup đặc biệt nhưng phải tuân thủ quy tắc special caller/interface phù hợp; đừng dùng một `findSpecial` tùy ý từ mã ngoài class rồi cho rằng chắc chắn hợp lệ. Đây là đoạn mã minh họa, không phải chương trình Java độc lập có `main`.
+If you obtain `Greeting.class.getMethod("hello")` and call `invoke(new Friendly())`, the result reflects the override `Friendly.hello`. To call the default directly from `Friendly`, `Greeting.super.hello()` expresses the intent clearly. With method handles, the default case also involves special lookup yet must obey appropriate special-caller/interface rules; do not use an arbitrary `findSpecial` from outside the class and assume it is valid. This is an illustrative code snippet, not a standalone Java program with `main`.
 
-## 8. Quyền truy cập và module là vấn đề riêng với dispatch
+## 8. Access rights and modules are separate from dispatch
 
-Ba câu hỏi sau phải được xét riêng:
+Three questions must be evaluated separately:
 
-1. **Có tìm được metadata không?** `getMethod` chỉ tra cứu public Method phù hợp; `getDeclaredMethod` tìm khai báo trực tiếp, kể cả private.
-2. **Có quyền gọi hoặc tạo special handle không?** Kiểm tra Java access control, quyền lookup và ranh giới JPMS khi dùng named module.
-3. **Thân phương thức nào được chọn khi đã gọi hợp lệ?** Với `Method.invoke` cho method instance có override, vẫn là virtual dispatch; với handle hợp lệ được tạo qua `findSpecial` thì theo quy tắc lời gọi đặc biệt.
+1. **Can metadata be found?** `getMethod` only looks up matching public Methods; `getDeclaredMethod` searches direct declarations, including private ones.
+2. **Do you have permission to invoke or create a special handle?** Check Java access control, lookup privileges, and JPMS boundaries when using named modules.
+3. **Which method body is chosen once validly invoked?** With `Method.invoke` for overridable instance methods, it is still virtual dispatch; with a valid handle created via `findSpecial`, it follows special-invocation rules.
 
-Vì thế, `method.setAccessible(true)` (nếu runtime cho phép) **chỉ xử lý kiểm tra truy cập**. Nó không đổi đối tượng receiver, không xóa override và không buộc Parent chạy. Đối với các named module, một package không được `opens` phù hợp có thể khiến nỗ lực bỏ kiểm tra quyền bị `InaccessibleObjectException` hoặc `trySetAccessible() == false`.
+Therefore, `method.setAccessible(true)` (if permitted by the runtime) **only addresses access checks**. It does not change the receiver object, does not remove overrides, and does not force Parent to run. For named modules, a package not properly `opens`-ed can cause attempts to suppress access checks to fail with `InaccessibleObjectException` or `trySetAccessible() == false`.
 
-Phân biệt lỗi:
+Distinguishing errors:
 
-| Dấu hiệu | Vấn đề có khả năng nhất |
+| Symptom | Most likely issue |
 | --- | --- |
-| `NoSuchMethodException` | Tên/chữ ký sai, chọn `getMethod` thay cho `getDeclaredMethod`, hoặc lớp tra cứu không khai báo method |
-| `IllegalArgumentException` từ `Method.invoke` | Receiver không tương thích với lớp khai báo Method hoặc danh sách/kiểu đối số không hợp lệ |
-| `NullPointerException` với instance `Method.invoke(null)` | Không có receiver instance |
-| `IllegalAccessException` từ `Method.invoke` | Caller không có quyền truy cập method |
-| `InvocationTargetException` | Bản thân thân phương thức đích ném ngoại lệ; đọc `getCause()` |
-| `IllegalAccessException` khi `findSpecial` / `unreflectSpecial` | Lookup hoặc special caller không đủ quyền cho ngữ nghĩa gọi đặc biệt |
-| `WrongMethodTypeException` khi gọi `MethodHandle.invokeExact` | Kiểu tại call site không khớp chính xác với method handle |
-| Chạy thành công nhưng ra `Child.message` thay vì `Parent.message` | **Không phải lỗi Reflection**; đây chính là virtual dispatch |
+| `NoSuchMethodException` | Wrong name/signature, choosing `getMethod` instead of `getDeclaredMethod`, or lookup class does not declare the method |
+| `IllegalArgumentException` from `Method.invoke` | Receiver incompatible with Method's declaring class or invalid argument list/types |
+| `NullPointerException` with instance `Method.invoke(null)` | Missing receiver instance |
+| `IllegalAccessException` from `Method.invoke` | Caller lacks access permission for the method |
+| `InvocationTargetException` | Target method body itself threw an exception; read `getCause()` |
+| `IllegalAccessException` during `findSpecial` / `unreflectSpecial` | Lookup or special caller lacks privileges for special-invocation semantics |
+| `WrongMethodTypeException` when calling `MethodHandle.invokeExact` | Call-site type does not match the method handle's type exactly |
+| Runs successfully yet produces `Child.message` instead of `Parent.message` | **Not a Reflection bug**; this is virtual dispatch |
 
-`MethodHandle.invoke`/`invokeExact` có quy tắc kiểm tra/adapt kiểu khác với `Method.invoke`. Đặc biệt, `invokeExact` yêu cầu kiểu call site chính xác; `invoke` có một số cơ chế thích nghi kiểu theo API. Tránh nhầm lỗi kiểu của method handle với lỗi phân giải quyền hoặc dispatch.
+`MethodHandle.invoke`/`invokeExact` have different type checking/adaptation rules than `Method.invoke`. Specifically, `invokeExact` requires an exact call-site type; `invoke` performs certain type adaptations per the API. Avoid confusing method handle type errors with permission resolution or dispatch errors.
 
-## 9. Những cách thử sai phổ biến
+## 9. Common wrong attempts
 
-### Sai 1 — Ép receiver về Parent
+### Mistake 1 — Casting the receiver to Parent
 
 ~~~java
 Child child = new Child();
 Method m = Parent.class.getMethod("message");
-System.out.println(m.invoke((Parent) child)); // vẫn Child.message
+System.out.println(m.invoke((Parent) child)); // still Child.message
 ~~~
 
-Cast chỉ cho cùng object một góc nhìn khác ở compile time, không tạo thêm object Parent và không vô hiệu hóa override.
+Casting only gives the same object a different compile-time view; it does not create a Parent object and does not disable overriding.
 
-### Sai 2 — Dùng getDeclaredMethod để “khóa” khai báo ở superclass
+### Mistake 2 — Using getDeclaredMethod to "lock" the declaration in the superclass
 
 ~~~java
 Method m = Parent.class.getDeclaredMethod("message");
-System.out.println(m.invoke(new Child())); // vẫn Child.message
+System.out.println(m.invoke(new Child())); // still Child.message
 ~~~
 
-`Declared` nghĩa là metadata khai báo tại Parent; không có nghĩa “chạy đúng thân khai báo của Parent”.
+`Declared` means metadata declared at Parent; it does not mean "run the exact body declared in Parent".
 
-### Sai 3 — Gọi setAccessible(true) để tránh override
+### Mistake 3 — Calling setAccessible(true) to avoid overriding
 
 ~~~java
 Method m = Parent.class.getDeclaredMethod("message");
 m.setAccessible(true);
-System.out.println(m.invoke(new Child())); // vẫn Child.message
+System.out.println(m.invoke(new Child())); // still Child.message
 ~~~
 
-Đoạn này có thể chạy với các class trong ví dụ classpath, nhưng ở named module quyền truy cập sâu có thể không được cấp. Dù bật thành công, virtual dispatch vẫn giữ nguyên.
+This snippet may run for classes in a classpath example, yet in named modules deep access may not be granted. Even when enabled successfully, virtual dispatch remains intact.
 
-### Sai 4 — Tạo Lookup ở vị trí tùy ý nhưng khai specialCaller là Child
+### Mistake 4 — Creating a Lookup anywhere while specifying specialCaller as Child
 
 ~~~java
-// Minh họa kỳ vọng sai khi đặt trong một lớp gọi không có quyền tương ứng:
+// Illustrating a wrong expectation when placed in a calling class without matching privileges:
 MethodHandles.lookup().findSpecial(
         Parent.class, "message",
         MethodType.methodType(String.class), Child.class);
 ~~~
 
-Chỉ việc gõ `Child.class` ở tham số không biến lookup của lớp gọi thành lookup có quyền của Child. Ngữ cảnh tạo lookup và các kiểm tra đặc biệt mới là yếu tố quyết định. Đặt lời gọi trong Child như ví dụ phần 4 hoặc thiết kế một phương thức ủy quyền hợp pháp.
+Merely typing `Child.class` in the parameter does not turn the calling class's lookup into a lookup with Child's privileges. The context creating the lookup and the special checks are what determine validity. Place the call inside Child as in section 4's example or design a legitimate delegating method.
 
-### Sai 5 — Gọi phần super trong framework để bỏ qua mọi logic của lớp con
+### Mistake 5 — Calling super in a framework to skip all subclass logic
 
-Một framework cố tình bỏ qua override có thể phá vỡ invariant mà Child duy trì (kiểm tra input, đồng bộ, transaction, logging, bảo mật hay cache). Chỉ gọi superclass trực tiếp khi hợp đồng API thật sự cho phép. Trong nhiều tình huống, gọi đa hình là hành vi đúng và an toàn hơn.
+A framework that intentionally skips overrides can break invariants maintained by Child (input validation, synchronization, transactions, logging, security, or caching). Only call the superclass directly when the API contract genuinely permits it. In many situations, polymorphic invocation is the right and safer behavior.
 
-## 10. Quy trình lựa chọn trong một tình huống thực tế
+## 10. Workflow for choosing in a real-world scenario
 
-Giả sử bạn đang viết bộ chạy lệnh dựa vào annotation:
+Suppose you are writing an annotation-based command runner:
 
-1. **Muốn chạy hành vi của đối tượng thực:** tìm `Method` hợp lệ và `invoke(receiver)`; giữ đa hình nếu method có thể override.
-2. **Muốn đọc annotation hoặc chữ ký trên superclass:** dùng `Parent.class.getDeclaredMethod(...)` và kiểm tra metadata; đừng suy ra từ đó thân Parent sẽ được gọi.
-3. **Muốn đóng gói logic của Parent để Child chủ động gọi:** viết lời gọi `super.foo()` trong Child hoặc một phương thức forwarding rõ nghĩa.
-4. **Cần cơ chế gọi động có ngữ nghĩa super và có quyền của Child:** cân nhắc `Lookup.findSpecial` hoặc `unreflectSpecial` từ lookup hợp lệ, kiểm thử quyền trong môi trường module thực tế.
-5. **Không kiểm soát Child hoặc thiếu quyền lookup:** đừng dựa vào việc đổi `getDeclaredMethod`, cast hay `setAccessible` để lách dispatch. Xem lại thiết kế và cung cấp API được chủ sở hữu lớp cho phép.
+1. **Want to run the actual object's behavior:** find a valid `Method` and `invoke(receiver)`; keep polymorphism if the method is overridable.
+2. **Want to read annotations or signatures on the superclass:** use `Parent.class.getDeclaredMethod(...)` and inspect metadata; do not infer from that that Parent's body will be called.
+3. **Want to wrap Parent's logic for Child to call intentionally:** write a `super.foo()` call inside Child or an explicit forwarding method.
+4. **Need dynamic invocation with super semantics and Child's privileges:** consider `Lookup.findSpecial` or `unreflectSpecial` from a valid lookup, testing privileges in a real module environment.
+5. **Do not control Child or lack lookup privileges:** do not rely on switching to `getDeclaredMethod`, casting, or `setAccessible` to bypass dispatch. Revisit the design and provide an API permitted by the class owner.
 
-Nếu mục tiêu là chẩn đoán một kết quả lạ, hãy ghi lại cả **`method.getDeclaringClass()`** và **`receiver.getClass()`**, tên method, signature và kiểu lời gọi (`invoke`, `findVirtual` hay `findSpecial`). Hai kiểu class này là chứng cứ quan trọng nhưng cần hiểu chúng giữ vai trò khác nhau.
+If the goal is to diagnose an unexpected result, log both **`method.getDeclaringClass()`** and **`receiver.getClass()`**, the method name, signature, and invocation type (`invoke`, `findVirtual`, or `findSpecial`). Both class types are important evidence, provided you understand their distinct roles.
 
-## 11. Bài tập tự kiểm tra (kèm đáp án)
+## 11. Self-check exercises (with answers)
 
-**Bài 1.** `Parent p = new Child();`, `Method m = Parent.class.getMethod("message");`. `m.invoke(p)` chạy gì?
+**Exercise 1.** `Parent p = new Child();`, `Method m = Parent.class.getMethod("message");`. What does `m.invoke(p)` run?
 
-**Đáp án:** `Child.message` vì receiver thật là Child và method có override hợp lệ.
+**Answer:** `Child.message` because the actual receiver is Child and the method has a valid override.
 
-**Bài 2.** Đổi `getMethod` thành `getDeclaredMethod` nhưng giữ receiver Child. Kết quả có khác không?
+**Exercise 2.** Switch `getMethod` to `getDeclaredMethod` while keeping the Child receiver. Does the result change?
 
-**Đáp án:** Không; thay cơ chế tìm Method metadata không thay virtual dispatch.
+**Answer:** No; changing the Method metadata lookup mechanism does not change virtual dispatch.
 
-**Bài 3.** Có thể viết `((Parent) child).message()` để thực hiện `Parent.message` không?
+**Exercise 3.** Can you write `((Parent) child).message()` to execute `Parent.message`?
 
-**Đáp án:** Không. Ép kiểu tham chiếu không thay lớp runtime của object, nên lời gọi ảo vẫn chọn `Child.message`.
+**Answer:** No. Casting the reference does not change the object's runtime class, so the virtual call still picks `Child.message`.
 
-**Bài 4.** `setAccessible(true)` của `Parent.message` đã thành công. Điều đó có buộc Reflection gọi thân Parent không?
+**Exercise 4.** `setAccessible(true)` on `Parent.message` succeeded. Does that force Reflection to call Parent's body?
 
-**Đáp án:** Không. Quyền truy cập và dispatch là hai cơ chế riêng.
+**Answer:** No. Access permissions and dispatch are two separate mechanisms.
 
-**Bài 5.** Trong `Child` muốn gọi phần triển khai của `Parent` một cách đơn giản nhất thì dùng gì?
+**Exercise 5.** Inside `Child`, what is the simplest way to call `Parent`'s implementation?
 
-**Đáp án:** `super.message()` trong phương thức instance của Child có quyền gọi. Khi phải tạo lời gọi động, `findSpecial` từ lookup đủ quyền mới phù hợp.
+**Answer:** `super.message()` inside an instance method of Child with calling access. When a dynamic call must be constructed, `findSpecial` from a privileged lookup is appropriate.
 
-**Bài 6.** `Parent.category` và `Child.category` đều là `static`. Gọi `Parent.class.getMethod("category").invoke(null)` chạy phương thức nào?
+**Exercise 6.** `Parent.category` and `Child.category` are both `static`. Which method does `Parent.class.getMethod("category").invoke(null)` run?
 
-**Đáp án:** `Parent.category`, vì static method không có override theo kiểu instance; đây là hiding.
+**Answer:** `Parent.category`, because static methods do not have instance-style overriding; this is hiding.
 
-**Bài 7.** Method của Parent là `final`. Có thể viết override cùng chữ ký trong Child để Reflection chọn Child không?
+**Exercise 7.** Parent's method is `final`. Can you write an override with the same signature in Child so Reflection picks Child?
 
-**Đáp án:** Không. Java cấm override phương thức final; gọi method hợp lệ trên Child dùng phần triển khai final được kế thừa.
+**Answer:** No. Java forbids overriding final methods; calling the valid method on Child uses the inherited final implementation.
 
-**Bài 8.** Một tool ở module khác tạo `findSpecial(Parent.class, "message", ..., Child.class)` nhưng nhận `IllegalAccessException`. Có nên dùng `setAccessible(true)` trên một Method bất kỳ để sửa?
+**Exercise 8.** A tool in another module creates `findSpecial(Parent.class, "message", ..., Child.class)` yet receives `IllegalAccessException`. Should you call `setAccessible(true)` on an arbitrary `Method` to fix it?
 
-**Đáp án:** Không. Phải xét ngữ cảnh lookup, quyền của specialCaller và ranh giới module; `setAccessible` trên `Method` không tự cấp quyền để tạo special handle hay thay ngữ nghĩa dispatch.
+**Answer:** No. You must examine the lookup context, `specialCaller` privileges, and module boundaries; `setAccessible` on a `Method` does not grant privileges to create a special handle or alter dispatch semantics.
 
-## 12. Ghi nhớ và nguồn tham khảo
+## 12. Takeaway and reference sources
 
-**Quy tắc trọng tâm:** `Method.invoke` với phương thức instance có thể override vẫn dùng **virtual dispatch**; một `Method` khai báo ở Parent không bảo đảm thực thi thân Parent trên Child receiver. Để cố ý gọi triển khai superclass, dùng `super` trong mã có quyền, hoặc method handle **special** được tạo với lookup hợp lệ. `getDeclaredMethod`, ép kiểu receiver và `setAccessible` không phải cách thay đổi dispatch.
+**Core rule:** `Method.invoke` on an overridable instance method still uses **virtual dispatch**; a `Method` declared on Parent does not guarantee running Parent's body on a Child receiver. To intentionally invoke a superclass implementation, use `super` in authorized code, or a **special** method handle created with a valid lookup. `getDeclaredMethod`, casting the receiver, and `setAccessible` are not ways to change dispatch.
 
-Tài liệu chính thức Java SE 17:
+Official Java SE 17 documentation:
 
-- [`java.lang.reflect.Method` — mục `invoke`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html): dynamic method lookup theo kiểu runtime và ngoại lệ khi gọi bằng Reflection.
-- [`MethodHandles.Lookup` — `findVirtual`, `findSpecial`, `unreflectSpecial`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodHandles.Lookup.html): các kiểu handle, quyền lookup và caller đặc biệt.
-- [JLS `15.12.4.4 — Locate Method to Invoke](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.12.4.4): quy tắc xác định method đích khi gọi.
-- [JVMS `6.5 — `invokevirtual` và `invokespecial`](https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-6.html): ngữ nghĩa chỉ thị gọi ở JVM.
+- [`java.lang.reflect.Method` — `invoke` section](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html): dynamic method lookup by runtime type and exceptions during Reflection invocation.
+- [`MethodHandles.Lookup` — `findVirtual`, `findSpecial`, `unreflectSpecial`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodHandles.Lookup.html): handle kinds, lookup privileges, and special callers.
+- [JLS `15.12.4.4 — Locate Method to Invoke](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.12.4.4): rules for locating the target method on invocation.
+- [JVMS `6.5 — `invokevirtual` and `invokespecial`](https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-6.html): semantics of invocation instructions in the JVM.

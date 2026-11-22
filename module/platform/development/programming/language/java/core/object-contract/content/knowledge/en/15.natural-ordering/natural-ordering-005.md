@@ -1,74 +1,74 @@
-# Hai giá trị `compareTo()` bằng `0` phải được so sánh nhất quán với giá trị thứ ba
+# Two Values with `compareTo() == 0` Must Compare Consistently Against a Third Value
 
-## 1. Quy tắc của thứ tự tự nhiên trong Java
+## 1. The rule of natural ordering in Java
 
-Trong Java, một lớp triển khai `Comparable<T>` định nghĩa **thứ tự tự nhiên** (natural ordering) qua phương thức `int compareTo(T other)`. Phương thức trả một số nguyên:
+In Java, a class implementing `Comparable<T>` defines **natural ordering** via the method `int compareTo(T other)`. The method returns an integer:
 
-- **Âm** nếu đối tượng hiện tại đứng trước `other`.
-- **`0`** nếu hai giá trị được coi là tương đương theo **thứ tự tự nhiên**.
-- **Dương** nếu đối tượng hiện tại đứng sau `other`.
+- **Negative** if the current object comes before `other`.
+- **`0`** if the two values are considered equivalent under **natural ordering**.
+- **Positive** if the current object comes after `other`.
 
-Các giá trị trả về không bắt buộc là `-1`, `0`, `1`; chỉ **dấu** mới có ý nghĩa đối với hợp đồng. Ví dụ `String.compareTo` có thể trả một số âm hoặc dương có trị tuyệt đối lớn hơn `1`.
+Return values are not required to be `-1`, `0`, `1`; only the **sign** matters to the contract. For instance, `String.compareTo` can return a negative or positive number with an absolute value greater than `1`.
 
-Điểm quan trọng của bài học: Nếu `x.compareTo(y) == 0`, thì **với mọi `z` có thể so sánh hợp lệ**, dấu của `x.compareTo(z)` và `y.compareTo(z)` phải giống nhau. Nghĩa là, một đối tượng thứ ba không được thấy `x` đứng trước nó nhưng `y` lại đứng sau nó.
+Key point of this lesson: If `x.compareTo(y) == 0`, then **for every valid comparable `z`**, the signs of `x.compareTo(z)` and `y.compareTo(z)` must be the same. That is, a third object must never see `x` coming before it while `y` comes after it.
 
-Viết chính xác bằng ký hiệu:
+Written precisely in notation:
 
 ```text
 x.compareTo(y) == 0
     => signum(x.compareTo(z)) == signum(y.compareTo(z))
-       với mọi z thuộc cùng miền so sánh hợp lệ
+       for all z in the same valid comparison domain
 ```
 
-`signum(n)` là dấu của `n`: âm thành `-1`, bằng không thành `0`, dương thành `1`. Trong Java dùng `Integer.signum(n)` để kiểm tra. Hợp đồng **không yêu cầu** `x.compareTo(z)` bằng đúng giá trị số nguyên trả về bởi `y.compareTo(z)`, mà chỉ yêu cầu hai giá trị trả về có **cùng dấu**.
+`signum(n)` is the sign of `n`: negative becomes `-1`, zero becomes `0`, positive becomes `1`. In Java, use `Integer.signum(n)` to check it. The contract **does not require** `x.compareTo(z)` to equal the exact integer returned by `y.compareTo(z)`, only that the two returned values have the **same sign**.
 
-Quy tắc này còn được gọi là **tính thay thế của các giá trị tương đương theo thứ tự**: đã coi `x` và `y` cùng vị trí trong thứ tự, ta phải có thể dùng chúng thay cho nhau trong mọi phép so sánh với `z`.
+This rule is also called **substitutability of ordering-equivalent values**: once `x` and `y` are treated as occupying the same position in ordering, we must be able to use them interchangeably in any comparison with `z`.
 
-## 2. Vì sao cần so sánh nhất quán với giá trị thứ ba?
+## 2. Why is consistent comparison against a third value required?
 
-Hãy tưởng tượng có ba giá trị `x`, `y`, `z`:
+Imagine having three values `x`, `y`, `z`:
 
 ```text
-x.compareTo(y) == 0    // x và y được xếp cùng vị trí
-x.compareTo(z) < 0     // x đứng trước z
-y.compareTo(z) > 0     // y đứng sau z
+x.compareTo(y) == 0    // x and y are placed at the same position
+x.compareTo(z) < 0     // x comes before z
+y.compareTo(z) > 0     // y comes after z
 ```
 
-Ba kết luận trên **mâu thuẫn**: nếu `x` và `y` tương đương theo thứ tự, chúng không thể cùng lúc ở hai phía đối nghịch của `z`. Những thuật toán sắp xếp, tìm nhị phân, cây cân bằng (`TreeSet`, `TreeMap`) và các cấu trúc dùng thứ tự dựa trên giả định rằng các phép so sánh tạo nên một thứ tự hợp lệ.
+The three conclusions above are **contradictory**: if `x` and `y` are equivalent in ordering, they cannot simultaneously lie on opposite sides of `z`. Sorting algorithms, binary search, balanced trees (`TreeSet`, `TreeMap`), and ordered structures rely on the assumption that comparisons form a valid order.
 
-Không tuân thủ có thể làm kết quả phụ thuộc đường đi của thuật toán: giá trị vừa chèn lại khó tìm, kết quả `contains()` bất ngờ, hoặc những thao tác sắp xếp phức tạp gặp lỗi do hợp đồng so sánh bị vi phạm. Không nên suy đoán một thứ tự cụ thể của `TreeSet` khi triển khai `compareTo` đã sai.
+Failing to obey this can make results depend on the algorithm's execution path: a newly inserted value becomes hard to find, `contains()` produces surprising results, or complex sort operations fail due to a violated comparison contract. Do not try to predict a specific `TreeSet` order when the `compareTo` implementation is already broken.
 
-## 3. Những yêu cầu liên quan của `Comparable`
+## 3. Related requirements of `Comparable`
 
-Quy tắc về giá trị thứ ba thuộc hợp đồng lớn hơn. Với các `x`, `y`, `z` cùng miền so sánh hợp lệ:
+The third-value rule belongs to a broader contract. For `x`, `y`, `z` in the same valid comparison domain:
 
-**Đối xứng về dấu:**
+**Sign symmetry:**
 
 ```text
 signum(x.compareTo(y)) == -signum(y.compareTo(x))
 ```
 
-**Bắc cầu:** Nếu `x > y` và `y > z` theo `compareTo`, thì `x > z`; tương tự phía nhỏ hơn.
+**Transitivity:** If `x > y` and `y > z` under `compareTo`, then `x > z`; similarly for the less-than side.
 
 ```text
 x.compareTo(y) > 0  &&  y.compareTo(z) > 0
     => x.compareTo(z) > 0
 ```
 
-**Nhất quán của lớp tương đương với giá trị thứ ba:**
+**Equivalence-class consistency with a third value:**
 
 ```text
 x.compareTo(y) == 0
     => signum(x.compareTo(z)) == signum(y.compareTo(z))
 ```
 
-Từ các tính chất này, quan hệ `compareTo() == 0` có vai trò một **quan hệ tương đương** trong phép xếp thứ tự: các thành viên trong cùng một nhóm không thể bị một giá trị thứ ba phân biệt về vị trí.
+From these properties, the `compareTo() == 0` relation acts as an **equivalence relation** in ordering: members of the same group cannot be separated in position by a third value.
 
-Đừng dùng `return this.score - other.score` để cài đặt so sánh số nguyên: phép trừ có thể **tràn số**, làm đảo dấu và vi phạm hợp đồng. Hãy dùng `Integer.compare(this.score, other.score)` (tương tự với `Long.compare`, `Double.compare` khi phù hợp).
+Do not use `return this.score - other.score` to implement integer comparison: subtraction can **overflow**, flipping the sign and breaking the contract. Use `Integer.compare(this.score, other.score)` (and similarly `Long.compare`, `Double.compare` when appropriate).
 
-## 4. Ví dụ sai: coi cùng tên là bằng nhau nhưng so tên khác theo tuổi
+## 4. Bad example: treating equal names as equal while comparing different names by age
 
-Giả sử lớp `BadPerson` viết `compareTo` như sau:
+Suppose class `BadPerson` writes `compareTo` as follows:
 
 ```java
 @Override
@@ -80,27 +80,27 @@ public int compareTo(BadPerson other) {
 }
 ```
 
-Đây là **một phương thức minh họa trong lớp** có các trường `name` và `age`; chưa phải chương trình độc lập. Ý định có vẻ hợp lý: cùng tên thì như nhau, khác tên thì xếp theo tuổi. Nhưng tiêu chí hai nhánh không tạo ra một thứ tự nhất quán.
+This is **an illustrative method inside a class** with fields `name` and `age`; it is not a standalone program. The intent sounds reasonable: same name means equal, different names get sorted by age. Yet the two-branch criterion fails to produce a consistent order.
 
-Xét ba người:
+Consider three people:
 
 - `x = ("An", 20)`
 - `y = ("An", 30)`
 - `z = ("Binh", 25)`
 
-Kết quả so sánh:
+Comparison results:
 
-| Phép so sánh | Kết quả | Lý do |
+| Comparison | Result | Reason |
 | --- | --- | --- |
-| `x.compareTo(y)` | `0` | Cùng tên `"An"` |
-| `x.compareTo(z)` | `-1` | Khác tên và `20 < 25` |
-| `y.compareTo(z)` | `1` | Khác tên và `30 > 25` |
+| `x.compareTo(y)` | `0` | Same name `"An"` |
+| `x.compareTo(z)` | `-1` | Different name and `20 < 25` |
+| `y.compareTo(z)` | `1` | Different name and `30 > 25` |
 
-Vì `x` và `y` đã so sánh bằng `0`, cả hai **phải có cùng dấu khi so với `z`**. Một bên `-1`, một bên `1`: đây là lỗi hợp đồng, **dù từng phép so sánh riêng trông có lý**. Lỗi gốc là điều kiện nhận diện “tương đương” dùng tên, còn thứ tự tương quan với người khác lại dùng tuổi.
+Because `x` and `y` compared to `0`, both **must have the same sign when compared against `z`**. One gives `-1`, the other `1`: this is a contract bug, **even though each individual comparison looks plausible**. The root bug is that the condition identifying "equivalence" uses name, while the relative ordering against others uses age.
 
-## 5. Hai cách sửa tùy theo mục tiêu
+## 5. Two ways to fix depending on the goal
 
-**Cách A — muốn cùng tên được xem như một nhóm theo thứ tự:** Hãy so sánh **chỉ theo tên** trong mọi trường hợp:
+**Option A — wanting people with the same name treated as one group in ordering:** Compare **only by name** in every case:
 
 ```java
 @Override
@@ -109,9 +109,9 @@ public int compareTo(BadPerson other) {
 }
 ```
 
-Giờ `("An", 20)` và `("An", 30)` cùng cho `0`, còn khi so với `("Binh", 25)`, cả hai đều có dấu âm. Điều kiện với phần tử thứ ba được giữ vững. Tuy nhiên, nếu `equals()` của lớp vẫn xét cả tuổi, thì cách này có thể **không nhất quán với `equals()`** — cần xem phần 7.
+Now `("An", 20)` and `("An", 30)` both yield `0`, and when compared against `("Binh", 25)`, both have a negative sign. The third-element condition is preserved. However, if the class's `equals()` still checks age, then this approach can be **inconsistent with `equals()`** — see section 7.
 
-**Cách B — muốn phân biệt cả tên và tuổi:** Dùng thứ tự ghép tiêu chí một cách thống nhất: so tên trước; nếu tên bằng nhau, so tuổi.
+**Option B — wanting to distinguish both name and age:** Use a uniform composite ordering: compare name first; if names are equal, compare age.
 
 ```java
 @Override
@@ -124,11 +124,11 @@ public int compareTo(GoodPerson other) {
 }
 ```
 
-Khi đó `("An", 20)` và `("An", 30)` **không** còn so sánh bằng `0`, vì tuổi khác nhau. Nếu hai đối tượng có cùng tên **và** cùng tuổi, chúng so sánh bằng `0` và cho dấu như nhau với mọi người thứ ba. Đây cũng là cách làm mà `Comparator.comparing(Person::name).thenComparingInt(Person::age)` thể hiện.
+Then `("An", 20)` and `("An", 30)` **no longer** compare to `0`, because their ages differ. If two objects have the same name **and** the same age, they compare to `0` and give the same sign against any third person. This is also the approach expressed by `Comparator.comparing(Person::name).thenComparingInt(Person::age)`.
 
-## 6. Chương trình Java 17+ hoàn chỉnh
+## 6. Complete Java 17+ program
 
-Lưu mã sau vào `CompareToThirdDemo.java`:
+Save the following code to `CompareToThirdDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -205,14 +205,14 @@ public class CompareToThirdDemo {
 }
 ```
 
-Chạy trong thư mục chứa tệp bằng JDK 17 trở lên:
+Run in the directory containing the file with JDK 17 or newer:
 
 ```bash
 javac CompareToThirdDemo.java
 java CompareToThirdDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 bad x-y: 0
@@ -231,37 +231,37 @@ TreeSet size: 1
 HashSet size: 2
 ```
 
-Ở `BadPerson`, phép so sánh bằng `0` nhưng hai dấu khi so với `z` khác nhau. Ở `GoodPerson`, những đối tượng trùng cả tên lẫn tuổi được xem là tương đương theo `compareTo` và cũng bằng nhau theo `record.equals()`. Khi so với `c`, dấu đều là `-1`; thuật toán nhất quán.
+In `BadPerson`, the comparison returns `0`, yet the two signs when compared to `z` differ. In `GoodPerson`, objects matching in both name and age are considered equivalent by `compareTo` and also equal by `record.equals()`. When compared to `c`, both signs are `-1`; the algorithm is consistent.
 
-`BigDecimal` trong ví dụ vừa đảm bảo **quy tắc so sánh với giá trị thứ ba** (`2.0` và `2.00` đều nhỏ hơn `3.0`) vừa là trường hợp quan trọng về **khác biệt giữa `compareTo()` và `equals()`**.
+`BigDecimal` in the example both satisfies **the third-value comparison rule** (`2.0` and `2.00` are both less than `3.0`) and serves as an important case of **difference between `compareTo()` and `equals()`**.
 
-## 7. So với equals: hai yêu cầu có mức bắt buộc khác nhau
+## 7. Versus equals: two requirements with different strictness
 
-**Bắt buộc theo `Comparable`:** nếu `x.compareTo(y) == 0`, mọi `z` hợp lệ phải nhận **cùng dấu** từ `x.compareTo(z)` và `y.compareTo(z)`. Đây là điều kiện đang được minh họa bằng `BadPerson` và `GoodPerson`.
+**Mandatory per `Comparable`:** if `x.compareTo(y) == 0`, every valid `z` must receive the **same sign** from `x.compareTo(z)` and `y.compareTo(z)`. This is the condition illustrated by `BadPerson` and `GoodPerson`.
 
-**Khuyến nghị mạnh:** `x.compareTo(y) == 0` nên tương đương `x.equals(y)`. `BigDecimal("2.0")` và `BigDecimal("2.00")` có `compareTo == 0` và `equals == false`, nhưng cả hai vẫn có cùng dấu khi so với `3.0`. Vì vậy, bất nhất với `equals` tự nó **không** vi phạm quy tắc bắt buộc về giá trị thứ ba. Bài tiếp theo xét rủi ro của sự bất nhất này trong `TreeSet` và `TreeMap`.
+**Strongly recommended:** `x.compareTo(y) == 0` should be equivalent to `x.equals(y)`. `BigDecimal("2.0")` and `BigDecimal("2.00")` have `compareTo == 0` and `equals == false`, yet both still have the same sign when compared against `3.0`. Therefore, inconsistency with `equals` by itself does **not** violate the mandatory third-value rule. The next lesson examines the risks of this inconsistency in `TreeSet` and `TreeMap`.
 
-## 8. Hậu quả thực tế đối với `TreeSet`, `TreeMap`, sắp xếp và tìm kiếm
+## 8. Practical consequences for `TreeSet`, `TreeMap`, sorting, and searching
 
-Với `TreeSet`/`TreeMap`, phép so sánh của `Comparable` (hoặc `Comparator` được cung cấp) phục vụ cả **thứ tự** lẫn việc tìm vị trí một khoá:
+With `TreeSet`/`TreeMap`, the comparison of `Comparable` (or a provided `Comparator`) serves both **ordering** and locating a key:
 
-- Nếu hai khoá được so sánh bằng `0`, cấu trúc cây xem chúng là cùng khoá theo thứ tự; `TreeMap.put()` có thể cập nhật giá trị gắn với khoá tương đương, còn `TreeSet.add()` có thể không thêm phần tử thứ hai.
-- Nếu phép so sánh không bắc cầu hoặc vi phạm quy tắc của giá trị thứ ba, cấu trúc cây có thể có hành vi truy vấn bất ngờ vì việc điều hướng dựa trên các phép so sánh mâu thuẫn.
-- Nếu thứ tự không nhất quán với `equals()`, `TreeSet` và `HashSet` có thể đánh giá số phần tử khác nhau dù dùng cùng các đối tượng.
-- Thuật toán sắp xếp (`Collections.sort`, `List.sort`, `Arrays.sort`) đòi quan hệ thứ tự đúng hợp đồng; vi phạm có thể khiến kết quả không đáng tin cậy hoặc ném `IllegalArgumentException` trong một số trường hợp.
+- If two keys compare to `0`, the tree structure treats them as the same key by ordering; `TreeMap.put()` may update the value attached to the equivalent key, while `TreeSet.add()` may not add the second element.
+- If the comparison is non-transitive or violates the third-value rule, the tree structure can exhibit unexpected query behavior because navigation relies on contradictory comparisons.
+- If the ordering is inconsistent with `equals()`, `TreeSet` and `HashSet` may evaluate different element counts even when using the same objects.
+- Sorting algorithms (`Collections.sort`, `List.sort`, `Arrays.sort`) demand a contract-compliant ordering relation; violations can make results unreliable or throw `IllegalArgumentException` in some cases.
 
-Không nên kiểm thử tính đúng của `compareTo` chỉ bằng việc chạy `TreeSet` trên vài phần tử rồi quan sát kết quả: thuật toán có thể tình cờ không đi qua trường hợp mâu thuẫn. Hãy **kiểm tra trực tiếp hợp đồng** trên những bộ ba giá trị đại diện.
+Do not test the correctness of `compareTo` merely by running `TreeSet` on a few elements and observing the output: the algorithm might happen not to traverse a contradictory case. **Directly verify the contract** on representative triples of values.
 
-## 9. Cách thiết kế và kiểm tra `compareTo()`
+## 9. How to design and test `compareTo()`
 
-1. **Xác định tiêu chí nhận diện bằng `0`.** Ví dụ: cùng mã định danh, hay cùng cả tên và tuổi? Những đối tượng có `compareTo == 0` phải hoàn toàn thay thế được nhau trong các phép so sánh tiếp theo.
-2. **Chọn thứ tự tiêu chí cố định.** Nếu so theo tên rồi tuổi, dùng tên là tiêu chí đầu tiên; chỉ khi tên bằng nhau mới xét tuổi. Không đổi qua lại giữa hai tiêu chí tùy theo cặp giá trị đang so.
-3. **Sử dụng các phương thức so sánh có sẵn.** Chọn `Integer.compare`, `Long.compare`, `String.compareTo`, `Comparator.comparing(...).thenComparing(...)`; tránh tự trừ số nguyên hoặc tự xử lý dấu thủ công khi không cần.
-4. **Thống nhất ngữ nghĩa `null`.** `Comparable.compareTo(null)` thông thường phải ném `NullPointerException`; nếu dùng `Comparator`, có thể chủ động chọn quy tắc `Comparator.nullsFirst(...)`/`nullsLast(...)` ở nơi cần hỗ trợ `null`.
-5. **Ưu tiên nhất quán với `equals()` khi thiết kế lớp giá trị**, đặc biệt nếu cùng đối tượng làm khoá cho cả collection băm và collection sắp xếp.
-6. **Thử bộ ba giá trị.** Với mọi bộ kiểm thử `(x, y, z)` mà `x.compareTo(y) == 0`, xác nhận `Integer.signum(x.compareTo(z)) == Integer.signum(y.compareTo(z))`. Cũng kiểm tra đối xứng dấu và bắc cầu.
+1. **Define the criterion for returning `0`.** For example: same identifier, or same name and age? Objects with `compareTo == 0` must be completely substitutable in subsequent comparisons.
+2. **Choose a fixed criterion order.** If comparing by name then age, make name the first criterion; only check age when names are equal. Never switch back and forth between the two criteria depending on the pair being compared.
+3. **Use built-in comparison methods.** Choose `Integer.compare`, `Long.compare`, `String.compareTo`, `Comparator.comparing(...).thenComparing(...)`; avoid subtracting integers manually or handling signs by hand when unnecessary.
+4. **Standardize `null` semantics.** `Comparable.compareTo(null)` must normally throw `NullPointerException`; if using `Comparator`, you can explicitly choose `Comparator.nullsFirst(...)`/`nullsLast(...)` where `null` needs support.
+5. **Prefer consistency with `equals()` when designing value classes**, especially if the same object serves as a key for both hash collections and sorted collections.
+6. **Test triples of values.** For every test triple `(x, y, z)` where `x.compareTo(y) == 0`, confirm `Integer.signum(x.compareTo(z)) == Integer.signum(y.compareTo(z))`. Also verify sign symmetry and transitivity.
 
-Ví dụ kiểm tra giản lược trong một phương thức Java:
+Simplified check example inside a Java method:
 
 ```java
 static <T extends Comparable<? super T>> boolean samePositionToThird(
@@ -272,25 +272,25 @@ static <T extends Comparable<? super T>> boolean samePositionToThird(
 }
 ```
 
-Phương thức trên **chỉ kiểm tra điều kiện với một bộ ba đầu vào**, không chứng minh hợp đồng đúng với *mọi* giá trị có thể có. Biểu thức `x.compareTo(y) != 0` làm điều kiện trở nên đúng theo logic khi tiền đề không thỏa. Cần thêm dữ liệu biên (giá trị trùng, khác nhau, cực trị số nguyên, tiêu chí phụ, chuỗi Unicode, v.v.) và các kiểm tra bắc cầu/đối xứng.
+The method above **checks the condition only for a single input triple**; it does not prove the contract holds for *all* possible values. The expression `x.compareTo(y) != 0` makes the condition logically true when the premise is unmet. You need boundary data (duplicate values, distinct values, integer extremes, secondary criteria, Unicode strings, etc.) along with transitivity and symmetry checks.
 
-## 10. Các nhầm lẫn thường gặp
+## 10. Common misconceptions
 
-| Nhầm lẫn | Giải thích đúng |
+| Misconception | Correct explanation |
 | --- | --- |
-| `compareTo()` chỉ có thể trả `-1`, `0`, `1` | Kết quả có thể là bất kỳ `int`; quy tắc dùng **dấu** |
-| `x.compareTo(y) == 0` chỉ có nghĩa là cặp `x`, `y` tình cờ bằng nhau | Còn bắt buộc phải **cùng dấu so sánh với mọi `z`** |
-| Cùng tên thì trả `0`, khác tên thì so tuổi là hợp lý | Tạo ra thứ tự mâu thuẫn khi hai người cùng tên nhưng khác tuổi |
-| `compareTo == 0` luôn bắt buộc `equals() == true` | Tính nhất quán với `equals()` được khuyến nghị mạnh, nhưng không tuyệt đối bắt buộc (ví dụ `BigDecimal`) |
-| `TreeSet` luôn dùng `equals()` để bỏ trùng | Nó dùng `compareTo` hoặc `Comparator` để xác định vị trí tương đương |
-| Có thể `return a - b` với mọi số nguyên | Phép trừ có thể tràn và đảo dấu; dùng `Integer.compare(a, b)` |
-| Chỉ kiểm tra xếp thứ tự hai phần tử là đủ | Cần kiểm tra cả quan hệ với **phần tử thứ ba**, bắc cầu và đối xứng |
+| `compareTo()` can only return `-1`, `0`, `1` | Results can be any `int`; rules use the **sign** |
+| `x.compareTo(y) == 0` only means the pair `x`, `y` happens to be equal | It also requires **the same comparison sign against every `z`** |
+| Same name returns `0`, different names compare age is reasonable | Creates contradictory ordering when two people share a name but differ in age |
+| `compareTo == 0` always mandates `equals() == true` | Consistency with `equals()` is strongly recommended, not strictly mandatory (e.g. `BigDecimal`) |
+| `TreeSet` always uses `equals()` to deduplicate | It uses `compareTo` or `Comparator` to determine equivalent position |
+| You can `return a - b` for all integers | Subtraction can overflow and flip the sign; use `Integer.compare(a, b)` |
+| Testing ordering of two elements is enough | Must also check the relation to a **third element**, transitivity, and symmetry |
 
-## 11. Tự kiểm tra
+## 11. Self-check
 
-1. Nếu `x.compareTo(y) == 0`, `x.compareTo(z) == -7` và `y.compareTo(z) == -1`, có vi phạm? **Không**, vì cả hai đều âm.
-2. Nếu `x.compareTo(y) == 0`, `x.compareTo(z) < 0` nhưng `y.compareTo(z) > 0`, có hợp lệ? **Không**, vì chúng mâu thuẫn về vị trí của `z`.
-3. Nếu `new BigDecimal("2.0").compareTo(new BigDecimal("2.00")) == 0` nhưng `equals()` là `false`, điều đó có tự động vi phạm quy tắc giá trị thứ ba không? **Không**. `compareTo` của `BigDecimal` vẫn đặt cả hai cùng vị trí tương quan với mọi số `z`.
-4. Vì sao so tên trước, rồi so tuổi nếu tên bằng nhau tốt hơn việc cùng tên trả `0`, khác tên so tuổi? **Vì tiêu chí luôn được áp dụng theo một thứ tự thống nhất, cho phép định nghĩa thứ tự hợp lệ.**
+1. If `x.compareTo(y) == 0`, `x.compareTo(z) == -7`, and `y.compareTo(z) == -1`, is there a violation? **No**, because both are negative.
+2. If `x.compareTo(y) == 0`, `x.compareTo(z) < 0`, yet `y.compareTo(z) > 0`, is it valid? **No**, because they contradict each other regarding the position of `z`.
+3. If `new BigDecimal("2.0").compareTo(new BigDecimal("2.00")) == 0` yet `equals()` is `false`, does that automatically violate the third-value rule? **No**. `BigDecimal`'s `compareTo` still places both in the same relative position against every number `z`.
+4. Why is comparing name first, then age if names are equal, better than returning `0` on equal names and comparing age otherwise? **Because criteria are always applied in a uniform order, enabling a valid ordering definition.**
 
-**Ghi nhớ:** `compareTo(x, y) == 0` (viết theo phương thức thể hiện là `x.compareTo(y) == 0`) tạo ra một nhóm **tương đương theo thứ tự**. Mọi thành viên trong nhóm phải so sánh với bất kỳ giá trị thứ ba `z` bằng **cùng một dấu**. Đây là yêu cầu bắt buộc của hợp đồng `Comparable`, độc lập với khuyến nghị `compareTo() == 0` nên nhất quán với `equals()`.
+**Remember:** `compareTo(x, y) == 0` (written as an instance method call `x.compareTo(y) == 0`) forms an **ordering-equivalence** group. Every member of the group must compare against any third value `z` with **the exact same sign**. This is a mandatory requirement of the `Comparable` contract, independent of the recommendation that `compareTo() == 0` should be consistent with `equals()`.

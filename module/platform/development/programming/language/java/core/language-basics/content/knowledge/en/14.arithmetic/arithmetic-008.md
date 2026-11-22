@@ -1,8 +1,8 @@
-# Sai số nhị phân khi tính với `float` hoặc `double` — Java 17+
+# Binary Representation Error When Computing with `float` or `double` — Java 17+
 
-## 1. Hiện tượng: vì sao 0.1 + 0.2 không bằng đúng 0.3?
+## 1. The Phenomenon: Why Isn't 0.1 + 0.2 Exactly Equal to 0.3?
 
-Trong Java, `float` và `double` lưu trữ số thực theo định dạng **dấu phẩy động nhị phân IEEE 754**. Nhiều phân số thập phân hữu hạn — như `0.1`, `0.2` và `0.3` — **không thể biểu diễn chính xác bằng một số bit nhị phân hữu hạn**.
+In Java, `float` and `double` store floating-point numbers in **IEEE 754 binary floating-point** format. Many finite decimal fractions — such as `0.1`, `0.2`, and `0.3` — **cannot be represented exactly with a finite number of binary bits**.
 
 ~~~java
 double a = 0.1;
@@ -13,54 +13,54 @@ System.out.println(sum);         // 0.30000000000000004
 System.out.println(sum == 0.3);  // false
 ~~~
 
-Kết quả **không phải bug của Java**. Các giá trị đầu vào đã được làm tròn tới số nhị phân biểu diễn được; phép cộng cũng tuân theo quy tắc làm tròn của dấu phẩy động. Vì vậy kết quả biểu diễn của `0.1 + 0.2` khác một chút so với biểu diễn của literal `0.3`.
+The result **is not a Java bug**. The input values were already rounded to representable binary numbers; addition also follows floating-point rounding rules. Therefore the represented result of `0.1 + 0.2` differs slightly from the representation of the literal `0.3`.
 
-Ba điều cần nắm:
+Three things to grasp:
 
-1. **Số toán học** `0.1` khác với **giá trị nhị phân gần nhất** được lưu trong `double`.
-2. `double` có **nhiều độ chính xác hơn `float`**, nhưng vẫn không biểu diễn chính xác mọi phân số thập phân.
-3. Sai số có thể **lan truyền, tích lũy hoặc bị khuếch đại** qua các phép toán. Nếu cần tính decimal chính xác theo nghiệp vụ, nên chọn mô hình dữ liệu phù hợp thay vì chỉ tăng số chữ số hiển thị.
+1. **The mathematical number** `0.1` differs from **the closest binary value** stored in `double`.
+2. `double` has **more precision than `float`**, yet still does not represent every decimal fraction exactly.
+3. Error can **propagate, accumulate, or be amplified** across operations. If business logic requires exact decimal calculations, choose an appropriate data model rather than merely increasing displayed decimal digits.
 
-## 2. Vì sao có sai số? Mô hình nhị phân hữu hạn
+## 2. Why Does Error Occur? Finite Binary Representation
 
-Một phân số có biểu diễn hữu hạn trong cơ số 2 khi mẫu số sau khi rút gọn chỉ có thừa số nguyên tố **2**. Ví dụ:
+A fraction has a finite representation in base 2 when its reduced denominator has only **2** as a prime factor. For example:
 
-| Phân số toán học | Trong hệ nhị phân | Có biểu diễn hữu hạn cơ số 2? |
+| Mathematical Fraction | In Binary | Has Finite Base-2 Representation? |
 |---|---|---|
-| `1/2 = 0.5` | `0.1₂` | Có |
-| `1/4 = 0.25` | `0.01₂` | Có |
-| `3/8 = 0.375` | `0.011₂` | Có |
-| `1/10 = 0.1` | Chuỗi bit lặp vô hạn | Không |
-| `1/5 = 0.2` | Chuỗi bit lặp vô hạn | Không |
-| `3/10 = 0.3` | Chuỗi bit lặp vô hạn | Không |
+| `1/2 = 0.5` | `0.1₂` | Yes |
+| `1/4 = 0.25` | `0.01₂` | Yes |
+| `3/8 = 0.375` | `0.011₂` | Yes |
+| `1/10 = 0.1` | Infinite repeating bit sequence | No |
+| `1/5 = 0.2` | Infinite repeating bit sequence | No |
+| `3/10 = 0.3` | Infinite repeating bit sequence | No |
 
-Chẳng hạn, `0.1` trong cơ số 2 phải dùng các bit lặp vô hạn. `float` và `double` có số bit hữu hạn nên lưu **giá trị xấp xỉ gần nhất** theo quy tắc làm tròn áp dụng.
+For instance, `0.1` in base 2 requires infinitely repeating bits. `float` and `double` have a finite number of bits, so they store **the closest approximation** according to the applicable rounding rule.
 
 ~~~mermaid
 flowchart TD
-    A["Literal thập phân: 0.1"] --> B["Chuyển sang giá trị nhị phân biểu diễn được gần nhất"]
-    B --> C["Lưu vào float hoặc double hữu hạn bit"]
-    C --> D["Thực hiện phép tính dấu phẩy động"]
-    D --> E["Làm tròn kết quả theo định dạng"]
-    E --> F["In số thập phân đủ để round-trip"]
+    A["Decimal literal: 0.1"] --> B["Convert to closest representable binary value"]
+    B --> C["Store in finite-bit float or double"]
+    C --> D["Perform floating-point arithmetic"]
+    D --> E["Round result according to format"]
+    E --> F["Print enough decimal digits for round-trip"]
 ~~~
 
-**Lưu ý:** dòng in `0.1` không có nghĩa máy lưu **chính xác** số thập phân 0.1. Java dùng chuyển đổi chuỗi sao cho có thể đọc lại thành cùng giá trị `double`/`float`, nên chuỗi biểu diễn có thể ngắn hơn khai triển thập phân chính xác của giá trị nhị phân bên trong.
+**Note:** printing `0.1` does not mean the machine stores **the exact** decimal number 0.1. Java uses a string conversion that can be parsed back into the exact same `double`/`float` value, so the printed string can be shorter than the exact decimal expansion of the internal binary value.
 
-## 3. `float` và `double`: số bit và độ chính xác
+## 3. `float` and `double`: Bit Counts and Precision
 
-| Đặc điểm | `float` | `double` |
+| Property | `float` | `double` |
 |---|---|---|
-| Định dạng | IEEE 754 binary32 | IEEE 754 binary64 |
-| Tổng số bit | 32 | 64 |
-| Bit phần mũ | 8 | 11 |
-| Độ chính xác significand | 24 bit, gồm bit ẩn với số chuẩn hóa | 53 bit, gồm bit ẩn với số chuẩn hóa |
-| Số chữ số thập phân chính xác xấp xỉ | 6–9 chữ số có nghĩa | 15–17 chữ số có nghĩa |
-| Literal thông dụng | `0.1f` | `0.1`, `0.1d` |
-| Hằng mô tả bit | `Float.SIZE` | `Double.SIZE` |
-| Phù hợp | Dữ liệu cho phép sai số lớn hơn/tiết kiệm lưu trữ | Tính toán dấu phẩy động thông dụng cần độ chính xác cao hơn |
+| Format | IEEE 754 binary32 | IEEE 754 binary64 |
+| Total bits | 32 | 64 |
+| Exponent bits | 8 | 11 |
+| Significand precision | 24 bits, including implicit bit for normalized numbers | 53 bits, including implicit bit for normalized numbers |
+| Approximate exact decimal digits | 6–9 significant digits | 15–17 significant digits |
+| Common literals | `0.1f` | `0.1`, `0.1d` |
+| Bit-size constant | `Float.SIZE` | `Double.SIZE` |
+| Best suited for | Data tolerating larger error / saving storage | General floating-point math needing higher precision |
 
-`double` **không** nghĩa là “độ chính xác tuyệt đối”, và `float` cũng không phải luôn sai: cả hai có miền ứng dụng khi dung sai được xác định.
+`double` does **not** mean "absolute precision," and `float` is not always wrong: both have valid domains when tolerances are defined.
 
 ~~~java
 float f = 0.1f;
@@ -70,58 +70,58 @@ System.out.println((double) f); // 0.10000000149011612
 System.out.println(d);          // 0.1
 ~~~
 
-Khi đổi `float` sang `double`, bạn **mở rộng khả năng biểu diễn nhưng không khôi phục** giá trị thập phân 0.1 vốn đã được làm tròn thành giá trị `float`. Chuỗi của `double d` in là 0.1 nhưng giá trị nhị phân lưu trong `d` cũng chỉ xấp xỉ 0.1.
+When converting `float` to `double`, you **widen the representational capacity without restoring** the decimal value 0.1 that was already rounded into a `float` value. The string of `double d` prints as 0.1, yet the binary value stored in `d` is also only an approximation of 0.1.
 
-## 4. Literal, phép tính và kiểu biểu thức ảnh hưởng sai số
+## 4. Literals, Operations, and Expression Types Affect Error
 
 ~~~java
-var a = 0.1;     // Suy luận double
-var b = 0.1f;    // Suy luận float
-var c = 0.1d;    // double tường minh
+var a = 0.1;     // Inferred as double
+var b = 0.1f;    // Inferred as float
+var c = 0.1d;    // Explicit double
 
 System.out.println(a + 0.2); // 0.30000000000000004
 ~~~
 
-Trong biểu thức số học hỗn hợp, Java áp dụng *binary numeric promotion*. Ví dụ:
+In mixed arithmetic expressions, Java applies *binary numeric promotion*. For example:
 
 ~~~java
 float f = 0.1f;
 double d = 0.2;
-double mixed = f + d; // float được mở rộng sang double rồi cộng
+double mixed = f + d; // float is widened to double, then added
 ~~~
 
-`mixed` có kiểu `double`, nhưng toán hạng `f` **vẫn mang sai số từng có khi được lưu dưới dạng float**. Không được suy rằng “kiểu kết quả là double” nên cả hai đầu vào bỗng có 53 bit độ chính xác từ đầu.
+`mixed` has type `double`, yet the operand `f` **still carries the error it had when stored as a float**. Do not assume that because "the result type is double," both inputs suddenly had 53 bits of precision from the start.
 
-Với số nguyên lớn, conversion sang floating-point cũng có thể mất chi tiết:
+For large integers, conversion to floating-point can also lose detail:
 
 ~~~java
 double exactLimit = 9_007_199_254_740_992d; // 2^53
 System.out.println(exactLimit + 1.0 == exactLimit); // true
 ~~~
 
-Ở cỡ `2^53`, `double` không còn phân biệt được mọi cặp số nguyên liên tiếp; phép cộng 1 được làm tròn trở lại cùng giá trị.
+At magnitude `2^53`, `double` can no longer distinguish every pair of consecutive integers; adding 1 rounds right back to the same value.
 
-## 5. ULP và độ phân giải phụ thuộc độ lớn
+## 5. ULP and Magnitude-Dependent Resolution
 
-**ULP** (*unit in the last place*) biểu thị khoảng cách giữa các giá trị dấu phẩy động lân cận ở một vùng nhất định. Khi độ lớn của số tăng, khoảng cách biểu diễn thường tăng tương ứng.
+**ULP** (*unit in the last place*) denotes the spacing between adjacent floating-point values in a given region. As a number's magnitude grows, the representational spacing generally grows accordingly.
 
 ~~~java
 System.out.println(Math.ulp(1.0));          // 2.220446049250313E-16
 System.out.println(Math.ulp(16_777_216f));  // 2.0
 ~~~
 
-`Math.ulp(1.0)` mô tả bước `double` tại 1.0. Với `float`, quanh giá trị `2^24 = 16_777_216`, bước là 2, nên cộng 1 có thể không làm giá trị thay đổi:
+`Math.ulp(1.0)` describes the `double` step at 1.0. For `float`, around `2^24 = 16_777_216`, the step is 2, so adding 1 may leave the value unchanged:
 
 ~~~java
 float x = 16_777_216f;
 System.out.println(x + 1f == x); // true
 ~~~
 
-**Không có một epsilon cố định bảo đảm đủ tốt cho mọi phạm vi số.** Với giá trị rất lớn, chênh lệch tuyệt đối hợp lệ có thể lớn; với giá trị rất gần 0, so sánh chỉ theo sai số tương đối có thể không phù hợp.
+**No single fixed epsilon is guaranteed to work well across all numeric ranges.** For very large values, valid absolute differences can be large; for values very close to 0, comparing strictly by relative error may be inappropriate.
 
-`Float.MIN_VALUE`/`Double.MIN_VALUE` còn là giá trị **dương nhỏ nhất khác 0**, không phải số âm nhỏ nhất. Muốn giới hạn độ lớn hữu hạn hãy xem `MAX_VALUE`; muốn xét âm thì có thể dùng `-MAX_VALUE`.
+Also, `Float.MIN_VALUE`/`Double.MIN_VALUE` is the **smallest positive non-zero** value, not the most negative number. To bound finite magnitude, look at `MAX_VALUE`; for negative bounds, you can use `-MAX_VALUE`.
 
-## 6. `==`: so đúng giá trị nhị phân, không so độ gần
+## 6. `==`: Compares Exact Binary Values, Not Proximity
 
 ~~~java
 double calculated = 0.1 + 0.2;
@@ -131,19 +131,19 @@ System.out.println(calculated == expected); // false
 System.out.println(calculated - expected);  // 5.551115123125783E-17
 ~~~
 
-Toán tử `==` so **giá trị dấu phẩy động theo quy tắc ngôn ngữ**, không có “dung sai ngầm” dành cho sai số tính toán.
+The `==` operator compares **floating-point values per language rules**, with no "implicit tolerance" for computational error.
 
-Nhưng **không** được tuyên bố rằng mọi phép so `==` trên số thực đều sai:
+However, you must **not** claim that every `==` comparison on floating-point numbers is wrong:
 
-- So với một **hằng đặc biệt có ý nghĩa chính xác** (ví dụ `value == 0.0` khi thật sự muốn đúng zero) có thể là một yêu cầu hợp lệ, nhưng cần xem cách dữ liệu được tạo ra.
-- So tính đồng nhất của **giá trị biểu diễn** đôi khi là chủ ý của thuật toán.
-- Nếu cần **“gần bằng nhau” về mặt đo lường hoặc nghiệp vụ**, phải định nghĩa ngưỡng sai số phù hợp thay vì `==`.
+- Comparing against a **special constant with exact meaning** (such as `value == 0.0` when you genuinely want exact zero) can be a valid requirement, though you should check how the data is produced.
+- Comparing equality of **represented values** is sometimes intentional in an algorithm.
+- If you need **"nearly equal" for measurements or business logic**, you must define an appropriate error threshold instead of `==`.
 
-**Đừng lấy một ngưỡng tùy tiện như `1e-9` rồi cho rằng mọi miền số đều đúng.** Ngưỡng phải phản ánh đơn vị, độ lớn, sai số đầu vào và yêu cầu của hệ thống.
+**Do not pick an arbitrary threshold like `1e-9` and assume it works for every numeric domain.** A threshold must reflect units, magnitude, input error, and system requirements.
 
-## 7. So sánh xấp xỉ: dung sai tuyệt đối và tương đối
+## 7. Approximate Comparison: Absolute and Relative Tolerance
 
-Một hàm minh họa cho bài toán cần so **gần bằng nhau**:
+An illustrative helper for problems needing **"nearly equal"** comparison:
 
 ~~~java
 static boolean nearlyEqual(
@@ -153,10 +153,10 @@ static boolean nearlyEqual(
         throw new IllegalArgumentException("invalid tolerance");
     }
     if (a == b) {
-        return true; // Bao gồm +0.0/-0.0 và hai infinity cùng dấu
+        return true; // Covers +0.0/-0.0 and two infinities of the same sign
     }
     if (!Double.isFinite(a) || !Double.isFinite(b)) {
-        return false; // NaN hoặc hai giá trị hữu hạn/vô cực không bằng nhau
+        return false; // NaN or mismatched finite/infinite values
     }
     double diff = Math.abs(a - b);
     double scale = Math.max(Math.abs(a), Math.abs(b));
@@ -164,20 +164,20 @@ static boolean nearlyEqual(
 }
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~java
 System.out.println(nearlyEqual(0.1 + 0.2, 0.3, 1e-12, 1e-12)); // true
 System.out.println(nearlyEqual(1.0, 1.1, 1e-12, 1e-12));       // false
 ~~~
 
-**Hiểu giới hạn của hàm mẫu:** phép trừ `a-b` và phép nhân `relTol*scale` cũng là số học `double`, có thể overflow/underflow ở các cực trị; hàm này phù hợp để minh họa, không phải thư viện số học tổng quát. Với giá trị Infinity, chính sách trả `true` khi cùng Infinity ở dòng `a == b` là **lựa chọn có chủ đích**, có thể đổi thành false nếu nghiệp vụ chỉ cho phép so dữ liệu hữu hạn.
+**Understand the sample method's limits:** the subtraction `a-b` and multiplication `relTol*scale` are also `double` arithmetic, which can overflow/underflow at extremes; this method is suitable for illustration, not as a general-purpose numerical library. For Infinity values, returning `true` for identical Infinities on the `a == b` line is an **intentional policy choice**, which can be changed to false if business rules only permit comparing finite data.
 
-Với các phép so độ chính xác nghiêm ngặt (khoa học, mô phỏng, thống kê), nên xác định rõ *error budget* và chọn thuật toán so sánh phù hợp — đôi khi dùng ULP, sai số tương đối, sai số tuyệt đối, hoặc kết hợp.
+For strict precision comparisons (science, simulation, statistics), explicitly determine an *error budget* and pick a suitable comparison algorithm — sometimes using ULP, relative error, absolute error, or a combination.
 
-## 8. Sai số tích lũy qua vòng lặp
+## 8. Error Accumulated Across Loops
 
-Một phép cộng riêng lẻ có sai số nhỏ; nhiều lần cộng có thể tích lũy sai số:
+A single addition has a small error; many additions can accumulate error:
 
 ~~~java
 double total = 0.0;
@@ -188,18 +188,18 @@ System.out.println(total); // 0.9999999999999999
 System.out.println(0.1 * 10); // 1.0
 ~~~
 
-Hai phép toán khác nhau về đường làm tròn:
+The two operations differ in their rounding paths:
 
-- **Cộng 10 lần:** mỗi lần cộng có thể làm tròn giá trị tạm.
-- **Nhân một lần:** dùng một phép nhân dấu phẩy động, nên chỉ có trình tự làm tròn khác.
+- **Adding 10 times:** each addition may round the intermediate value.
+- **Multiplying once:** uses a single floating-point multiplication, so it has a different rounding sequence.
 
-Không được suy rằng phép nhân luôn chính xác hơn phép cộng cho mọi tập dữ liệu; đây là ví dụ về **thuật toán và thứ tự tính** ảnh hưởng sai số.
+Do not conclude that multiplication is always more accurate than addition for every dataset; this is an example of **algorithm and calculation order** affecting error.
 
-Với tổng lớn hoặc nhiều số có độ lớn khác nhau, hãy xem xét **thuật toán cộng có bù** (*compensated summation*, như Kahan) hoặc các hàm/thư viện số phù hợp, rồi kiểm thử trên dữ liệu đại diện.
+For large sums or many numbers of varying magnitudes, consider **compensated summation** algorithms (such as Kahan summation) or appropriate numerical libraries/functions, and test on representative data.
 
-## 9. Phép cộng floating-point không hoàn toàn có tính kết hợp
+## 9. Floating-Point Addition Is Not Fully Associative
 
-Trong số học toán học: `(a+b)+c = a+(b+c)`. Với `double` hữu hạn, quy tắc làm tròn sau từng bước có thể khiến hai cách nhóm trả kết quả khác nhau:
+In mathematical arithmetic: `(a+b)+c = a+(b+c)`. With finite `double`, step-by-step rounding rules can cause the two groupings to return different results:
 
 ~~~java
 double left = (1.0e16 + -1.0e16) + 1.0;
@@ -209,16 +209,16 @@ System.out.println(left);  // 1.0
 System.out.println(right); // 0.0
 ~~~
 
-Lý do:
+Reason:
 
-1. Vế `left` triệt tiêu hai số lớn thành 0 trước, rồi cộng 1.
-2. Vế `right` cộng 1 vào `-1e16`; giá trị 1 quá nhỏ so với khoảng cách các số double quanh `1e16` nên bị làm tròn mất, rồi cộng `1e16` thành 0.
+1. The `left` side cancels the two large numbers to 0 first, then adds 1.
+2. The `right` side adds 1 to `-1e16`; the value 1 is too small compared to the spacing between `double` numbers around `1e16`, so it is rounded away, and then adding `1e16` yields 0.
 
-**Đừng tùy ý thay đổi thứ tự cộng** khi refactor một thuật toán số thực với giả định phép cộng hoàn toàn có tính kết hợp. Thứ tự, dấu ngoặc và thuật toán cộng đều có thể ảnh hưởng kết quả.
+**Do not arbitrarily change addition order** when refactoring a floating-point algorithm under the assumption that addition is completely associative. Order, parentheses, and summation algorithms can all affect the result.
 
-## 10. Triệt tiêu chữ số có nghĩa (*catastrophic cancellation*)
+## 10. Loss of Significant Digits (*Catastrophic Cancellation*)
 
-Một kiểu sai số khác xuất hiện khi **trừ hai số gần nhau nhưng rất lớn**:
+Another type of error appears when **subtracting two very large numbers that are close together**:
 
 ~~~java
 double a = 1.0e16 + 1.0;
@@ -227,13 +227,13 @@ double b = 1.0e16;
 System.out.println(a - b); // 0.0
 ~~~
 
-Về toán học, nếu `a` thực sự là `10^16 + 1` và `b` là `10^16`, hiệu sẽ là 1. Nhưng **khi `a` được tính và lưu trong double**, giá trị cộng 1 đã bị làm tròn mất, nên `a` và `b` có cùng biểu diễn, trừ ra 0.
+Mathematically, if `a` were truly `10^16 + 1` and `b` were `10^16`, the difference would be 1. But **when `a` was computed and stored in a double**, the added 1 was already rounded away, so `a` and `b` have the same representation and subtract to 0.
 
-Tình huống này thường quan trọng khi tính độ chênh của các đại lượng rất lớn, gần nhau. **Không thể khôi phục chữ số đã mất chỉ bằng cách ép `double` sang kiểu khác sau đó.** Cần cân nhắc thay đổi công thức, chuẩn hóa giá trị, dùng độ chính xác cao hơn từ **đầu vào**, hoặc mô hình số khác.
+This situation often matters when computing differences of very large, nearly equal quantities. **You cannot recover lost digits merely by casting `double` to another type afterward.** Consider changing the formula, normalizing values, using higher precision from **the input**, or choosing another numeric model.
 
-## 11. Kiểm tra kết quả số thực đặc biệt trước khi so sánh
+## 11. Check Special Floating-Point Results Before Comparing
 
-`double` còn có `NaN`, `Infinity`, `-Infinity` và hai dạng zero có dấu. Chúng có thể xuất hiện do chia cho 0 hoặc phép toán vượt miền hữu hạn:
+`double` also has `NaN`, `Infinity`, `-Infinity`, and two signed zero forms. They can appear from dividing by 0 or operations exceeding the finite range:
 
 ~~~java
 System.out.println(Double.isNaN(0.0 / 0.0));    // true
@@ -241,9 +241,9 @@ System.out.println(Double.isFinite(1.0 / 0.0)); // false
 System.out.println(0.0 == -0.0);                // true
 ~~~
 
-`Double.isFinite` **không kiểm tra độ chính xác**: `0.1 + 0.2` vẫn hữu hạn nhưng xấp xỉ. Khi kiểm tra giá trị đầu vào, cần phân biệt dữ liệu bất hợp lệ với sai số cho phép. Bài trước đã trình bày đầy đủ quy tắc NaN, so sánh wrapper, dấu zero và underflow.
+`Double.isFinite` **does not check precision**: `0.1 + 0.2` is still finite, yet approximate. When validating inputs, separate invalid data from acceptable error. The previous lesson covered NaN rules, wrapper comparison, zero signs, and underflow in detail.
 
-## 12. Định dạng hiển thị không sửa giá trị đã tính
+## 12. Display Formatting Does Not Fix the Computed Value
 
 ~~~java
 double sum = 0.1 + 0.2;
@@ -252,19 +252,19 @@ System.out.println(sum); // 0.30000000000000004
 System.out.printf(java.util.Locale.ROOT, "%.2f%n", sum); // 0.30
 ~~~
 
-`printf("%.2f")` hoặc `String.format` chỉ **làm tròn biểu diễn văn bản** theo định dạng đã chọn. Biến `sum` vẫn chứa giá trị `double` ban đầu.
+`printf("%.2f")` or `String.format` only **rounds the text representation** according to the chosen format. The `sum` variable still holds the original `double` value.
 
-Các nhầm lẫn cần tránh:
+Mistakes to avoid:
 
-- Hiển thị `0.30` **không** có nghĩa số được lưu chính xác bằng 0.30 toán học.
-- Gọi `Math.round(...)` không thay thế một mô hình tính tiền theo số thập phân.
-- Ép `float` thành `double` **sau khi** sai số xuất hiện không khôi phục dữ liệu đã mất.
+- Displaying `0.30` does **not** mean the stored number equals mathematical 0.30 exactly.
+- Calling `Math.round(...)` does not replace a decimal-based monetary calculation model.
+- Casting `float` to `double` **after** error has occurred does not recover lost data.
 
-Hãy phân biệt **số được lưu**, **quy tắc tính toán** và **cách định dạng đầu ra**.
+Distinguish between **the stored number**, **the calculation rules**, and **the output formatting**.
 
-## 13. Từ sai số binary floating-point đến mô hình decimal exact
+## 13. From Binary Floating-Point Error to an Exact Decimal Model
 
-Khi nghiệp vụ cần `0.1 + 0.2` thành **0.3 đúng thập phân**, giữ nguồn thập phân chính xác ngay từ đầu:
+When business logic needs `0.1 + 0.2` to be **decimally exact 0.3**, preserve exact decimal sources from the beginning:
 
 ~~~java
 java.math.BigDecimal a = new java.math.BigDecimal("0.1");
@@ -272,13 +272,13 @@ java.math.BigDecimal b = new java.math.BigDecimal("0.2");
 System.out.println(a.add(b)); // 0.3.
 ~~~
 
-Nguồn tạo đối tượng quyết định giá trị đầu vào:
+How the object is constructed determines the input value:
 
-| Cách tạo | Ý nghĩa |
+| Construction | Meaning |
 | --- | --- |
-| `new BigDecimal("0.1")` | Lưu số thập phân đúng 0.1 |
-| `BigDecimal.valueOf(0.1)` | Dựa vào dạng thập phân của `Double.toString(0.1)` |
-| `new BigDecimal(0.1)` | Lưu **chính xác giá trị nhị phân xấp xỉ** đang ở `double` |
+| `new BigDecimal("0.1")` | Stores the exact decimal number 0.1 |
+| `BigDecimal.valueOf(0.1)` | Based on the decimal form of `Double.toString(0.1)` |
+| `new BigDecimal(0.1)` | Stores the **exact approximate binary value** currently held in `double` |
 
 ~~~java
 System.out.println(
@@ -286,7 +286,7 @@ System.out.println(
                 .compareTo(new java.math.BigDecimal(0.1)) == 0); // false.
 ~~~
 
-`BigDecimal` cũng không khiến mọi phép chia tự kết thúc. `1/3` có khai triển thập phân vô hạn, nên cần chỉ định scale/rounding hoặc `MathContext`:
+`BigDecimal` also does not make every division terminate on its own. `1/3` has an infinite decimal expansion, so you must specify scale/rounding or a `MathContext`:
 
 ~~~java
 java.math.BigDecimal third = java.math.BigDecimal.ONE.divide(
@@ -295,29 +295,29 @@ java.math.BigDecimal third = java.math.BigDecimal.ONE.divide(
 System.out.println(third); // 0.33.
 ~~~
 
-`BigDecimal.equals` xét **giá trị và scale**: `new BigDecimal("1.00").equals(new BigDecimal("1.0"))` trả false; `compareTo` của cặp đó trả 0. Phần ranh giới này đủ để hiểu **vì sao không thể phục hồi decimal chính xác từ một `double` đã sai số**; bài `Math.*Exact`/`BigDecimal` cuối chương đi sâu về scale, precision, làm tròn, phép chia và chuyển đổi exact.
+`BigDecimal.equals` checks **both value and scale**: `new BigDecimal("1.00").equals(new BigDecimal("1.0"))` returns false; `compareTo` on that pair returns 0. This boundary is enough to understand **why you cannot recover exact decimals from an already-imprecise `double`**; the `Math.*Exact`/`BigDecimal` lesson at the end of the chapter goes deeper into scale, precision, rounding, division, and exact conversions.
 
-`BigDecimal` không mặc định tốt hơn `double` trong mọi ứng dụng. Tính toán khoa học chấp nhận sai số có thể ưu tiên `double` và thuật toán ổn định. Hãy chọn theo miền, độ chính xác, đơn vị và chính sách làm tròn.
+`BigDecimal` is not automatically better than `double` in every application. Scientific computations that tolerate approximation may prefer `double` and stable algorithms. Choose based on domain, precision, units, and rounding policy.
 
 
-## 14. Quy trình chọn kiểu số theo bài toán
+## 14. Process for Choosing Numeric Types by Problem
 
-| Nhu cầu | Lựa chọn thường phù hợp | Điểm phải kiểm tra |
+| Need | Usually Appropriate Choice | Points to Check |
 |---|---|---|
-| Bộ đếm nguyên trong miền 32 bit | `int` | Tràn số nguyên |
-| Bộ đếm lớn hơn 32 bit | `long` | Vẫn có giới hạn 64 bit |
-| Đo đạc khoa học, phép tính chấp nhận sai số | `double` | Dung sai, NaN, Infinity, thuật toán |
-| Dữ liệu float cho API/phần cứng yêu cầu binary32 | `float` | Độ chính xác ~24 bit significand |
-| Tiền lưu bằng đơn vị nhỏ nhất cố định | `long` khi miền đủ | Đơn vị, quy đổi và overflow |
-| Giá trị thập phân phải chính xác | `BigDecimal` | Tạo từ text, scale, rounding |
-| Tổng rất nhiều số thực | `double` + thuật toán phù hợp | Sai số tích lũy và thứ tự tính |
-| Kiểm tra gần bằng nhau | Dung sai theo nghiệp vụ | Sai số tuyệt đối/tương đối, cực trị |
+| Integer counter within 32-bit range | `int` | Integer overflow |
+| Counter larger than 32-bit | `long` | Still has a 64-bit limit |
+| Scientific measurement, error-tolerant math | `double` | Tolerance, NaN, Infinity, algorithm |
+| Float data for API/hardware requiring binary32 | `float` | ~24-bit significand precision |
+| Money stored in a fixed smallest unit | `long` when range suffices | Unit, conversion, and overflow |
+| Decimal values that must be exact | `BigDecimal` | Construct from text, scale, rounding |
+| Sum of very many floating-point numbers | `double` + suitable algorithm | Accumulated error and calculation order |
+| Checking approximate equality | Business-driven tolerance | Absolute/relative error, extremes |
 
-**Không có “kiểu đúng cho mọi số thực”.** Quy tắc thiết kế là xác định **miền giá trị, độ chính xác yêu cầu, đơn vị đo, dung sai và quy tắc làm tròn**, rồi mới chọn kiểu và thuật toán.
+**There is no "right type for every real number."** The design rule is to identify **value range, required precision, units of measurement, tolerance, and rounding rules**, and only then choose the type and algorithm.
 
-## 15. Ví dụ Java 17 chạy độc lập
+## 15. Standalone Runnable Java 17 Example
 
-Tạo file chính xác **`BinaryFloatingPointErrorDemo.java`**:
+Create the exact file **`BinaryFloatingPointErrorDemo.java`**:
 
 ~~~java
 import java.math.BigDecimal;
@@ -407,7 +407,7 @@ public final class BinaryFloatingPointErrorDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 trở lên, terminal đang ở thư mục chứa tệp. Không cần Maven, Gradle hoặc thư viện ngoài JDK.
+**Requirements:** JDK 17 or later, terminal in the directory containing the file. No Maven, Gradle, or libraries outside the JDK needed.
 
 **Bash (Linux/macOS):**
 
@@ -456,39 +456,39 @@ BigDecimal equals=false
 BigDecimal compare=true
 ~~~
 
-### Đọc kết quả theo từng nhóm
+### Reading the Output by Group
 
-1. `double sum` và `difference` cho thấy sai lệch nhỏ nhưng có thể quan sát được; `Double.toHexString` biểu diễn giá trị lưu trong dạng hex floating-point.
-2. `float 0.1 as double` cho thấy nâng một giá trị float sang double **không phục hồi** số thập phân ban đầu.
-3. `float ulp at 2^24` và `double loses one` minh họa độ phân giải giảm theo độ lớn số.
-4. Tổng cộng 0.1 mười lần khác với nhân 0.1 một lần; thứ tự và số lần làm tròn ảnh hưởng kết quả.
-5. `group left/right` và `cancellation` minh họa không kết hợp hoàn toàn và mất chữ số có nghĩa.
-6. `nearlyEqual` chỉ trả true cho hai số gần nhau theo dung sai minh họa; nó **không phải so sánh chính xác toán học**.
-7. `NaN`, Infinity và signed zero có những quy tắc đặc biệt cần xử lý tường minh.
-8. `formatted=0.30` chỉ là chuỗi hiển thị; `BigDecimal` từ chuỗi mới thực hiện phép cộng thập phân chính xác trong ví dụ.
-9. Hai kết quả cuối nhắc rằng `BigDecimal.equals` phân biệt scale, còn `compareTo` so giá trị số.
+1. `double sum` and `difference` show small yet observable discrepancies; `Double.toHexString` represents the stored value in hex floating-point form.
+2. `float 0.1 as double` shows that widening a float value to double **does not restore** the original decimal number.
+3. `float ulp at 2^24` and `double loses one` illustrate resolution shrinking as magnitude grows.
+4. Adding 0.1 ten times differs from multiplying 0.1 once; order and rounding steps affect the result.
+5. `group left/right` and `cancellation` illustrate non-associativity and loss of significant digits.
+6. `nearlyEqual` only returns true for two numbers close within the illustrative tolerance; it is **not an exact mathematical comparison**.
+7. `NaN`, Infinity, and signed zero have special rules requiring explicit handling.
+8. `formatted=0.30` is only a display string; `BigDecimal` constructed from strings performs exact decimal addition in the example.
+9. The last two results remind you that `BigDecimal.equals` distinguishes scale, whereas `compareTo` compares numeric value.
 
-## 16. Lỗi thường gặp và cách khắc phục
+## 16. Common Mistakes and Fixes
 
-| Ngộ nhận / lỗi | Vấn đề | Cách xử lý |
+| Misconception / Error | Issue | How to Handle It |
 |---|---|---|
-| `0.1 + 0.2 == 0.3` phải true | Các số decimal không biểu diễn chính xác trong binary64 | Dùng dung sai nếu bài toán cho phép, hoặc decimal exact |
-| Đổi `float` sang `double` là hết sai số | Giá trị float đã làm tròn | Chọn độ chính xác phù hợp **từ đầu** |
-| In `0.1` nghĩa là lưu đúng thập phân 0.1 | `toString` dùng chuỗi round-trip | Phân biệt chuỗi hiển thị với giá trị nhị phân |
-| `double` lưu được mọi số nguyên lớn | Quá 2^53 không phân biệt mọi số nguyên kề nhau | Dùng `long`/`BigInteger` theo miền |
-| Một `epsilon` phù hợp mọi bài toán | Sai số phụ thuộc đơn vị và độ lớn | Xác định absolute/relative tolerance |
-| Cộng 0.1 nhiều lần luôn bằng nhân một lần | Các bước làm tròn khác nhau | Kiểm thử thuật toán tổng và độ chính xác |
-| Có thể đổi nhóm phép cộng số thực tùy ý | Floating-point không kết hợp hoàn toàn | Giữ thứ tự/nghiệp vụ của thuật toán |
-| `(1e16 + 1) - 1e16` luôn là 1 | Mất 1 khi cộng số quá lớn | Chọn thuật toán/kiểu khác từ trước |
-| NaN so bằng `==` với chính nó | `NaN == NaN` là false | Dùng `Double.isNaN` |
-| Formatter `%.2f` sửa sai số tính toán | Chỉ đổi biểu diễn text | Quy định kiểu dữ liệu và rounding thực |
-| `new BigDecimal(0.1)` cho decimal 0.1 | Constructor đọc chính xác giá trị double xấp xỉ | `new BigDecimal("0.1")` hoặc `valueOf` |
-| `BigDecimal.divide(1/3)` luôn tự chạy | Decimal vô hạn cần quy tắc rounding | Dùng scale/MathContext phù hợp |
-| `BigDecimal("1.00").equals(BigDecimal("1.0"))` | `equals` xét cả scale | `compareTo == 0` nếu muốn so giá trị |
+| `0.1 + 0.2 == 0.3` must be true | Decimal numbers are not exactly represented in binary64 | Use tolerance if the problem allows it, or exact decimal |
+| Switching `float` to `double` removes error | The float value is already rounded | Choose appropriate precision **from the start** |
+| Printing `0.1` means decimal 0.1 is stored exactly | `toString` uses a round-trip string | Distinguish display string from binary value |
+| `double` stores every large integer | Above 2^53 it does not distinguish all adjacent integers | Use `long`/`BigInteger` per range |
+| One `epsilon` fits every problem | Error depends on units and magnitude | Define absolute/relative tolerance |
+| Adding 0.1 many times always equals multiplying once | Different rounding steps | Test summation algorithm and accuracy |
+| Floating-point additions can be regrouped arbitrarily | Floating-point is not fully associative | Preserve algorithm order/business semantics |
+| `(1e16 + 1) - 1e16` is always 1 | 1 is lost when added to a huge number | Choose another algorithm/type beforehand |
+| Comparing NaN to itself with `==` | `NaN == NaN` is false | Use `Double.isNaN` |
+| Formatter `%.2f` fixes calculation error | Only changes text representation | Specify actual data type and rounding |
+| `new BigDecimal(0.1)` gives decimal 0.1 | The constructor reads the exact approximate double value | `new BigDecimal("0.1")` or `valueOf` |
+| `BigDecimal.divide(1/3)` always runs automatically | Infinite decimals require rounding rules | Use appropriate scale/MathContext |
+| `BigDecimal("1.00").equals(BigDecimal("1.0"))` | `equals` checks scale as well | `compareTo == 0` if you want to compare numeric value |
 
-## 17. Bài tập và đáp án
+## 17. Exercises and Answers
 
-### Bài A — quan sát sai số cơ bản
+### Exercise A — Observing Basic Error
 
 ~~~java
 double a = 0.1 + 0.2;
@@ -496,14 +496,14 @@ System.out.println(a);
 System.out.println(a == 0.3);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 0.30000000000000004
 false
 ~~~
 
-### Bài B — `float` không chính xác hơn khi cast
+### Exercise B — `float` Does Not Become More Accurate When Cast
 
 ~~~java
 float value = 0.1f;
@@ -511,18 +511,18 @@ double promoted = value;
 System.out.println(promoted);
 ~~~
 
-**Đáp án:** `0.10000000149011612`. Chuyển sang double giữ nguyên giá trị xấp xỉ đang có trong float.
+**Answer:** `0.10000000149011612`. Converting to double preserves the approximate value already held in float.
 
-### Bài C — số nguyên lớn
+### Exercise C — Large Integers
 
 ~~~java
 double x = 9_007_199_254_740_992d;
 System.out.println(x + 1.0 == x);
 ~~~
 
-**Đáp án:** `true`. Tại `2^53`, binary64 không biểu diễn được mọi số nguyên kề nhau.
+**Answer:** `true`. At `2^53`, binary64 cannot represent every adjacent integer.
 
-### Bài D — dùng thập phân exact
+### Exercise D — Using Exact Decimals
 
 ~~~java
 java.math.BigDecimal a = new java.math.BigDecimal("0.1");
@@ -530,49 +530,49 @@ java.math.BigDecimal b = new java.math.BigDecimal("0.2");
 System.out.println(a.add(b));
 ~~~
 
-**Đáp án:** `0.3`.
+**Answer:** `0.3`.
 
-### Bài E — tại sao `BigDecimal` chia cần rounding?
+### Exercise E — Why Does `BigDecimal` Division Need Rounding?
 
 ~~~java
 // new BigDecimal("1").divide(new BigDecimal("3"))
 ~~~
 
-**Đáp án:** `1/3` là thập phân vô hạn; không thể biểu diễn thành số thập phân hữu hạn chính xác. Chỉ định scale và `RoundingMode`, hoặc `MathContext`, theo yêu cầu nghiệp vụ.
+**Answer:** `1/3` is an infinite decimal; it cannot be represented as an exact finite decimal. Specify scale and `RoundingMode`, or `MathContext`, per business requirements.
 
-### Bài F — dấu ngoặc số thực
+### Exercise F — Floating-Point Parentheses
 
 ~~~java
 System.out.println((1e16 + -1e16) + 1.0);
 System.out.println(1e16 + (-1e16 + 1.0));
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 1.0
 0.0
 ~~~
 
-Sự khác biệt đến từ việc làm tròn ở các bước trung gian.
+The difference comes from rounding at intermediate steps.
 
-## 18. Checklist và kết luận
+## 18. Checklist and Conclusion
 
-- [ ] Hiểu `float`/`double` biểu diễn **nhị phân hữu hạn**, không phải số thập phân tùy ý.
-- [ ] Biết `0.1` và `0.2` không có biểu diễn nhị phân hữu hạn chính xác.
-- [ ] Phân biệt binary32 (float) và binary64 (double), độ chính xác hữu hạn.
-- [ ] Biết literal `0.1f` là float, `0.1` là double.
-- [ ] Hiểu chuyển từ float sang double **không phục hồi** sai số đã phát sinh.
-- [ ] Hiểu ý nghĩa ULP và việc số lớn có bước biểu diễn lớn hơn.
-- [ ] Không so số đo/tính gần bằng bằng `==` nếu yêu cầu có dung sai.
-- [ ] Biết chọn dung sai tuyệt đối/tương đối theo miền và đơn vị nghiệp vụ.
-- [ ] Nhận diện sai số tích lũy và kết quả phụ thuộc thứ tự cộng.
-- [ ] Nhận diện catastrophic cancellation khi trừ số gần nhau.
-- [ ] Xử lý NaN/Infinity/signed zero rõ ràng khi cần.
-- [ ] Biết định dạng số chỉ tác động **chuỗi hiển thị**.
-- [ ] Biết tạo `BigDecimal` từ String khi cần decimal chính xác.
-- [ ] Biết `BigDecimal.divide` cần rounding khi thương không kết thúc.
-- [ ] Phân biệt `BigDecimal.equals` với `compareTo` về scale.
-- [ ] Biên dịch và chạy `BinaryFloatingPointErrorDemo.java` trên JDK 17+, đối chiếu exact expected output.
+- [ ] Understand that `float`/`double` represent **finite binary numbers**, not arbitrary decimal numbers.
+- [ ] Know that `0.1` and `0.2` have no exact finite binary representation.
+- [ ] Distinguish binary32 (float) and binary64 (double), and their finite precision.
+- [ ] Know that literal `0.1f` is float and `0.1` is double.
+- [ ] Understand that converting from float to double **does not restore** error that already occurred.
+- [ ] Understand the meaning of ULP and that larger numbers have larger representation steps.
+- [ ] Do not compare measurements/approximate calculations with `==` if a tolerance is required.
+- [ ] Know how to choose absolute/relative tolerances according to business domain and units.
+- [ ] Recognize accumulated error and results that depend on addition order.
+- [ ] Recognize catastrophic cancellation when subtracting nearly equal numbers.
+- [ ] Handle NaN/Infinity/signed zero explicitly when needed.
+- [ ] Know that number formatting affects only the **display string**.
+- [ ] Know how to construct `BigDecimal` from String when exact decimals are needed.
+- [ ] Know that `BigDecimal.divide` needs rounding when the quotient does not terminate.
+- [ ] Distinguish `BigDecimal.equals` from `compareTo` regarding scale.
+- [ ] Compile and run `BinaryFloatingPointErrorDemo.java` on JDK 17+, and compare against exact expected output.
 
-**Kết luận:** Sai số của `float`/`double` là hệ quả tự nhiên của biểu diễn dấu phẩy động nhị phân hữu hạn, không phải Java tính toán ngẫu nhiên. Hãy chọn kiểu dữ liệu theo **mức chính xác và miền giá trị**, tránh so gần bằng bằng `==` một cách máy móc, cân nhắc tác động của thứ tự phép tính, và dùng `BigDecimal`/số nguyên theo đơn vị cố định nếu nghiệp vụ đòi hỏi số thập phân chính xác.
+**Conclusion:** Errors in `float`/`double` are a natural consequence of finite binary floating-point representation, not Java computing randomly. Choose data types based on **precision level and value range**, avoid comparing approximate numbers mechanically with `==`, consider the effect of operation order, and use `BigDecimal` or fixed-unit integers when business logic demands exact decimal numbers.

@@ -1,62 +1,62 @@
-# Giới hạn đóng gói của classpath
+# Encapsulation limits of the classpath
 
-Trong Java truyền thống, ứng dụng thường đặt các class và JAR trên **classpath**. Khi chạy theo cách này, các class không thuộc named module được gom vào **unnamed module** của class loader tương ứng. Unnamed module có các quy tắc truy cập rất rộng: nó đọc các module khác, đồng thời các package của nó được xem là đã export và open cho module system.
+In traditional Java, applications typically place classes and JARs on the **classpath**. When run this way, classes that do not belong to a named module are grouped into the **unnamed module** of the corresponding class loader. The unnamed module has very permissive access rules: it reads other modules, and its packages are considered exported and open to the module system.
 
-Điều đó khiến classpath thiếu ranh giới đóng gói ở cấp module. Java vẫn áp dụng các access modifier như `private`, package-private, `protected` và `public`, nhưng không có module descriptor để giới hạn package nào được module khác đọc hoặc mở cho reflection.
+This means the classpath lacks encapsulation boundaries at the module level. Java still applies access modifiers such as `private`, package-private, `protected`, and `public`, but there is no module descriptor to restrict which packages can be read by other modules or opened for reflection.
 
-## 1. Classpath và unnamed module
+## 1. Classpath and the unnamed module
 
-Classpath là danh sách thư mục và JAR mà Java dùng để tìm class, resource và một số tài nguyên khác. Ví dụ:
+The classpath is the list of directories and JARs that Java uses to locate classes, resources, and certain other assets. For example:
 
     java -cp "app.jar;libs/*" com.example.app.Main
 
-Trên Windows, dấu phân cách các mục classpath thường là dấu chấm phẩy. Trên Linux và macOS, dấu phân cách là dấu hai chấm.
+On Windows, the separator between classpath entries is typically a semicolon. On Linux and macOS, the separator is a colon.
 
-Khi ứng dụng chạy trên classpath, các class được nạp vào unnamed module của class loader. Unnamed module không có tên module và không có file `module-info.java` để khai báo:
+When an application runs on the classpath, classes are loaded into the class loader's unnamed module. An unnamed module has no module name and no `module-info.java` file to declare:
 
-- `requires`: module cần đọc.
-- `exports`: package được công bố cho module khác.
-- `opens`: package được mở cho deep reflection.
-- `uses` và `provides`: quan hệ sử dụng và cung cấp service.
+- `requires`: modules that need to be read.
+- `exports`: packages exposed to other modules.
+- `opens`: packages opened for deep reflection.
+- `uses` and `provides`: service consumption and provision relationships.
 
-Mỗi class loader có unnamed module riêng. Trong ứng dụng thông thường, các class trên application classpath thuộc unnamed module của application class loader. Vì unnamed module không có tên ổn định, module descriptor không thể viết `requires` tới unnamed module đó.
+Each class loader has its own unnamed module. In a typical application, classes on the application classpath belong to the unnamed module of the application class loader. Because an unnamed module has no stable name, a module descriptor cannot write `requires` pointing to that unnamed module.
 
-## 2. Vì sao classpath có ranh giới đóng gói yếu?
+## 2. Why does the classpath have weak encapsulation boundaries?
 
-Trong unnamed module, các package được export và open theo quy tắc của module system. Vì vậy, một named module có thể đọc các package của unnamed module; đồng thời mã trên classpath có thể đọc các named module đã được resolve theo các quy tắc runtime.
+In an unnamed module, packages are exported and open according to module system rules. Consequently, a named module can read packages of the unnamed module; at the same time, code on the classpath can read resolved named modules according to runtime rules.
 
-Với classpath, không có danh sách export rõ ràng như:
+With the classpath, there is no explicit export list such as:
 
     module com.example.billing {
         exports com.example.billing.api;
     }
 
-Mọi package trong unnamed module đều được xem là export ở cấp module. Điều này không biến mọi class thành `public`: quy tắc truy cập của ngôn ngữ Java vẫn được áp dụng. Một class package-private vẫn không thể được import và sử dụng tùy ý từ package khác; một field `private` vẫn là private khi truy cập trực tiếp bằng mã Java.
+All packages in an unnamed module are considered exported at the module level. This does not make every class `public`: Java language access rules still apply. A package-private class still cannot be arbitrarily imported and used from another package; a `private` field remains private when accessed directly in Java code.
 
-Điểm khác biệt nằm ở **ranh giới module**: classpath không có module descriptor để giới hạn module khác đọc package nào, hoặc package nào được phép deep reflection.
+The difference lies in **module boundaries**: the classpath has no module descriptor to restrict which packages another module can read, or which packages allow deep reflection.
 
-## 3. Access modifier vẫn tồn tại trên classpath
+## 3. Access modifiers still exist on the classpath
 
-Đóng gói ở cấp ngôn ngữ Java vẫn hoạt động:
+Encapsulation at the Java language level still works:
 
-| Access modifier | Ý nghĩa cơ bản |
+| Access modifier | Basic meaning |
 |---|---|
-| `private` | Chỉ truy cập trong phạm vi class lồng nhau theo quy tắc Java |
-| package-private | Truy cập trong cùng runtime package |
-| `protected` | Truy cập trong cùng package hoặc qua quy tắc kế thừa |
-| `public` | Truy cập từ nơi có thể đọc và tham chiếu kiểu đó |
+| `private` | Accessible only within the enclosing class scope according to Java rules |
+| package-private | Accessible within the same runtime package |
+| `protected` | Accessible within the same package or through inheritance rules |
+| `public` | Accessible from anywhere that can read and reference that type |
 
-Classpath không xóa các quy tắc này. Tuy nhiên, package-private có thể tạo ra một ranh giới yếu hơn nhiều người nghĩ: các class cùng runtime package và cùng class loader có thể truy cập thành viên package-private của nhau, kể cả khi chúng nằm trong các JAR khác nhau.
+The classpath does not remove these rules. However, package-private can create a weaker boundary than many people expect: classes in the same runtime package and the same class loader can access each other's package-private members, even if they reside in different JARs.
 
-Ví dụ, hai JAR cùng chứa class thuộc package `com.example.internal`. Nếu chúng được application class loader nạp vào cùng runtime package, các class có thể tương tác qua thành viên package-private. Ranh giới JAR không phải là ranh giới package hoặc module.
+For example, two JARs both contain classes in the package `com.example.internal`. If they are loaded by the application class loader into the same runtime package, those classes can interact via package-private members. A JAR boundary is not a package or module boundary.
 
-Một runtime package được xác định bởi tên package và class loader định nghĩa class. Vì vậy, hai class cùng tên package nhưng được hai class loader khác nhau định nghĩa không nhất thiết thuộc cùng runtime package.
+A runtime package is identified by the package name and the class loader that defined the class. Therefore, two classes with the same package name defined by two different class loaders do not necessarily belong to the same runtime package.
 
-## 4. Reflection trên classpath
+## 4. Reflection on the classpath
 
-Reflection cho phép chương trình xem metadata của class và truy cập thành viên theo các quy tắc runtime. Với class thuộc unnamed module, mọi package được mở cho deep reflection. Vì vậy, chương trình trên classpath thường có thể bật truy cập sâu vào field hoặc method private của class khác bằng `setAccessible(true)` hoặc `trySetAccessible()`, miễn là không vướng các hạn chế khác của Java runtime.
+Reflection allows a program to inspect class metadata and access members according to runtime rules. For classes belonging to an unnamed module, all packages are open for deep reflection. Therefore, a program on the classpath can typically enable deep access to private fields or methods of another class using `setAccessible(true)` or `trySetAccessible()`, provided it does not hit other Java runtime restrictions.
 
-Ví dụ:
+Example:
 
     package com.example.domain;
 
@@ -64,7 +64,7 @@ Ví dụ:
         private final String number = "ACC-001";
     }
 
-Một class khác trên classpath có thể dùng reflection:
+Another class on the classpath can use reflection:
 
     package com.example.app;
 
@@ -83,13 +83,13 @@ Một class khác trên classpath có thể dùng reflection:
         }
     }
 
-Với các class thuộc unnamed module, package đã được mở ở cấp module system nên thao tác deep reflection này thường được phép. Điều đó không có nghĩa mã Java bình thường được phép viết `account.number`: truy cập trực tiếp vẫn vi phạm `private`.
+For classes belonging to an unnamed module, the package is already open at the module system level, so this deep reflection operation is typically permitted. That does not mean normal Java code is allowed to write `account.number`: direct access still violates `private`.
 
-Khi class chuyển sang named module, package mặc định không được mở cho module khác. Framework dựa vào reflection có thể bắt đầu gặp `InaccessibleObjectException`. Khi đó cần xem xét `opens` cho đúng package hoặc `open module` nếu thực sự cần mở tất cả package.
+When a class moves into a named module, packages are not open to other modules by default. Frameworks relying on reflection may start encountering `InaccessibleObjectException`. At that point, you need to consider `opens` for the appropriate packages or `open module` if opening all packages is genuinely required.
 
-## 5. Split package trên classpath
+## 5. Split packages on the classpath
 
-Một hạn chế khác của classpath là nhiều JAR có thể đóng góp class vào cùng package. Ví dụ:
+Another limitation of the classpath is that multiple JARs can contribute classes to the same package. For example:
 
     legacy-a.jar
       com.example.shared.util.MoneyFormatter
@@ -97,82 +97,82 @@ Một hạn chế khác của classpath là nhiều JAR có thể đóng góp cl
     legacy-b.jar
       com.example.shared.util.DateFormatter
 
-Khi cả hai JAR nằm trên classpath, các class có thể được nạp vào cùng unnamed module của class loader. Vì thế, split package vốn có thể tồn tại trong ứng dụng cũ.
+When both JARs are on the classpath, the classes can be loaded into the same unnamed module of the class loader. Thus, split packages could exist in legacy applications.
 
-Khi chuyển hai JAR thành hai named module riêng trên module path, package `com.example.shared.util` bị chia giữa hai named module. Cấu hình module có thể bị từ chối vì một package không thể có hai chủ sở hữu named module trong cùng module configuration.
+When converting the two JARs into two separate named modules on the module path, the package `com.example.shared.util` is split between two named modules. The module configuration may be rejected because a single package cannot have two named module owners in the same module configuration.
 
-Một vấn đề khác là hai JAR có thể chứa cùng một binary class name, chẳng hạn cả hai đều có `com.example.shared.util.Helper`. Với application class loader tiêu chuẩn, thứ tự classpath có thể quyết định bản class nào được tìm thấy trước. Điều này dễ tạo hành vi khó dự đoán khi thứ tự dependency thay đổi.
+Another issue is that two JARs may contain the same binary class name, such as both having `com.example.shared.util.Helper`. With the standard application class loader, classpath order can determine which version of the class is found first. This easily causes unpredictable behavior when dependency order changes.
 
-Do đó, việc ứng dụng chạy được trên classpath không chứng minh rằng cấu trúc package đó đã phù hợp để chuyển sang module path.
+Therefore, the fact that an application runs on the classpath does not prove that its package structure is ready to move to the module path.
 
-## 6. So sánh classpath và named module
+## 6. Comparing classpath and named modules
 
-| Khía cạnh | Classpath / unnamed module | Named module |
+| Aspect | Classpath / unnamed module | Named module |
 |---|---|---|
-| Module descriptor | Không cần `module-info.java` | Có tên module và descriptor |
-| Khai báo phụ thuộc | Dựa vào classpath và build tool | Khai báo `requires` |
-| Quyền đọc package | Unnamed module đọc các module khác; package của nó được export rộng | Phụ thuộc quan hệ readability |
-| Export package | Tất cả package của unnamed module được export ở cấp module | Chỉ package được export mới công khai cho module khác |
-| Deep reflection | Các package của unnamed module được mở | Cần `opens` hoặc `open module` cho package cần thiết |
-| Split package | Có thể xảy ra giữa các JAR trên classpath | Không được chia giữa các named module trong cùng configuration |
-| Service declaration | Thường dùng `META-INF/services` | Có thể dùng `uses` và `provides` trong descriptor |
+| Module descriptor | No `module-info.java` needed | Has a module name and descriptor |
+| Dependency declaration | Relies on classpath and build tool | Declares `requires` |
+| Package readability | Unnamed module reads other modules; its packages are broadly exported | Depends on readability relationships |
+| Package exports | All packages of the unnamed module are exported at the module level | Only exported packages are exposed to other modules |
+| Deep reflection | Packages of the unnamed module are open | Requires `opens` or `open module` for needed packages |
+| Split packages | Can occur across JARs on the classpath | Cannot be split across named modules in the same configuration |
+| Service declaration | Typically uses `META-INF/services` | Can use `uses` and `provides` in the descriptor |
 
-Named module cho phép tác giả xác định API công khai, phụ thuộc và quyền reflection một cách tường minh. Classpath linh hoạt hơn trong việc ghép JAR nhưng không cung cấp cùng mức kiểm soát ở cấp module.
+Named modules allow authors to explicitly define public APIs, dependencies, and reflection permissions. The classpath is more flexible for assembling JARs, but does not provide the same level of module-level control.
 
-## 7. Điều gì xảy ra khi trộn classpath và module path?
+## 7. What happens when mixing classpath and module path?
 
-Một ứng dụng có thể chạy đồng thời với classpath và module path. Các module trên module path được resolve theo module system; class trên classpath thuộc unnamed module của class loader.
+An application can run with both the classpath and module path simultaneously. Modules on the module path are resolved by the module system; classes on the classpath belong to the class loader's unnamed module.
 
-Unnamed module đọc mọi named module đã được resolve. Tuy nhiên, một named module không thể khai báo `requires` tới unnamed module vì unnamed module không có tên. Nếu mã trong named module cần một thư viện classpath, đây thường là dấu hiệu cần đưa thư viện đó lên module path, tạo automatic module phù hợp hoặc điều chỉnh kiến trúc.
+The unnamed module reads all resolved named modules. However, a named module cannot declare `requires` to an unnamed module because an unnamed module has no name. If code in a named module needs a classpath library, that is usually a sign that the library should be moved to the module path, made into an appropriate automatic module, or addressed through architectural adjustments.
 
-Khi classpath code truy cập package không được export của một named module, thao tác đó bị module system chặn. Có thể dùng tùy chọn JVM `--add-exports` để cấp quyền truy cập kiểu public cho package cụ thể, hoặc `--add-opens` nếu cần deep reflection. Hai tùy chọn này phục vụ hai mục đích khác nhau.
+When classpath code accesses an unexported package of a named module, the operation is blocked by the module system. You can use the JVM option `--add-exports` to grant public type access for a specific package, or `--add-opens` if deep reflection is needed. These two options serve two different purposes.
 
-Ví dụ:
+Example:
 
     java --module-path mods
          --add-exports com.example.internal/com.example.internal.api=ALL-UNNAMED
          -cp app.jar com.example.app.Main
 
-Tùy chọn trên cho phép unnamed module truy cập kiểu public trong package được chỉ định của module `com.example.internal`. Nó không tự mở private member cho reflection; trường hợp đó cần `--add-opens`.
+The option above allows the unnamed module to access public types in the specified package of module `com.example.internal`. It does not open private members for reflection; that case requires `--add-opens`.
 
-## 8. Automatic module không giống unnamed module
+## 8. An automatic module is not the same as an unnamed module
 
-Một JAR không có `module-info.class` khi được đặt trên module path có thể trở thành automatic module. Nó vẫn có tên module (được suy ra từ tên JAR hoặc `Automatic-Module-Name`) và tham gia module resolution.
+A JAR without `module-info.class`, when placed on the module path, can become an automatic module. It still has a module name (derived from the JAR filename or `Automatic-Module-Name`) and participates in module resolution.
 
-Automatic module khác unnamed module:
+An automatic module differs from an unnamed module:
 
-- **Unnamed module:** classpath, không có tên module, không thể được tham chiếu bằng `requires`.
-- **Automatic module:** JAR trên module path, có tên module và có thể được module khác yêu cầu bằng `requires`.
-- Automatic module đọc các module khác và export rộng các package của nó, nhưng vẫn là named module và chịu các quy tắc package uniqueness của module configuration.
+- **Unnamed module:** classpath, has no module name, cannot be referenced by `requires`.
+- **Automatic module:** JAR on the module path, has a module name, and can be requested by another module using `requires`.
+- An automatic module reads other modules and broadly exports its packages, yet it is still a named module and is subject to the package uniqueness rules of the module configuration.
 
-Automatic module thường hữu ích như bước chuyển tiếp khi modularize thư viện cũ, nhưng nó không thay thế thiết kế module descriptor tường minh về lâu dài.
+Automatic modules are often useful as a transitional step when modularizing legacy libraries, though they do not replace explicit module descriptor design in the long term.
 
-## 9. Cách giảm rủi ro khi chuyển classpath sang JPMS
+## 9. How to reduce risk when migrating from classpath to JPMS
 
-Trước khi chuyển một ứng dụng lớn sang named modules, hãy:
+Before migrating a large application to named modules:
 
-1. Liệt kê các JAR và package mà mỗi JAR chứa.
-2. Tìm split package, đặc biệt các package `.internal`, `.common` hoặc `.util` đang được nhiều artifact cùng đóng góp.
-3. Xác định package nào là API công khai và package nào chỉ dùng nội bộ.
-4. Gom package dùng chung vào một module có trách nhiệm rõ ràng, hoặc tách package theo miền nghiệp vụ.
-5. Thêm `module-info.java` với các directive `requires`, `exports`, `opens`, `uses` và `provides` phù hợp.
-6. Kiểm tra automatic modules và thư viện chưa modularize.
-7. Biên dịch, resolve và chạy ứng dụng trên module path; kiểm tra lại các framework dùng reflection.
+1. List all JARs and the packages each JAR contains.
+2. Find split packages, especially `.internal`, `.common`, or `.util` packages contributed by multiple artifacts.
+3. Identify which packages are public APIs and which are strictly internal.
+4. Consolidate shared packages into a module with clear responsibility, or separate packages by business domain.
+5. Add `module-info.java` with appropriate `requires`, `exports`, `opens`, `uses`, and `provides` directives.
+6. Check automatic modules and unmodularized libraries.
+7. Compile, resolve, and run the application on the module path; re-test frameworks that use reflection.
 
-Không nên thêm `module-info.java` hàng loạt trước khi kiểm tra package ownership. Làm như vậy có thể biến các dependency vốn chạy trên classpath thành một module graph không hợp lệ.
+Do not add `module-info.java` en masse before checking package ownership. Doing so can turn dependencies that used to run on the classpath into an invalid module graph.
 
-## 10. Những nhầm lẫn thường gặp
+## 10. Common misconceptions
 
-- **Tưởng package uniqueness có nghĩa toàn bộ ứng dụng chỉ được có một package name.** Quy tắc áp dụng cho các named module trong cùng module configuration; unnamed module và các class loader có quy tắc riêng.
-- **Tưởng hai module không có class trùng tên thì không thể split package.** Chỉ cần cùng khai báo một package, dù class khác tên, vẫn có thể xung đột.
-- **Tưởng package con trùng với package cha.** `com.example.api` và `com.example.api.internal` là hai package riêng.
-- **Tưởng exports tạo quyền sở hữu package.** Module sở hữu package dựa trên nội dung module; exports chỉ điều khiển khả năng truy cập.
-- **Tưởng classpath và module path có cùng quy tắc đóng gói.** Classpath gom class vào unnamed module; named module có descriptor và package ownership chặt chẽ hơn.
-- **Tưởng automatic module là unnamed module.** Automatic module có tên và được resolve như một named module.
-- **Tưởng thêm `--add-exports` sẽ sửa split package.** Tùy chọn này điều chỉnh quyền truy cập, không hợp nhất package hoặc thay đổi module sở hữu.
+- **Thinking package uniqueness means the whole application can only have one package name.** The rule applies to named modules within the same module configuration; unnamed modules and class loaders have their own rules.
+- **Thinking two modules without identically named classes cannot form a split package.** Simply declaring the same package, even with differently named classes, can still conflict.
+- **Thinking a subpackage collides with a parent package.** `com.example.api` and `com.example.api.internal` are two separate packages.
+- **Thinking exports creates package ownership.** A module owns a package based on module contents; exports only controls accessibility.
+- **Thinking classpath and module path have the same encapsulation rules.** The classpath groups classes into an unnamed module; named modules have descriptors and stricter package ownership.
+- **Thinking an automatic module is an unnamed module.** An automatic module has a name and is resolved as a named module.
+- **Thinking adding `--add-exports` fixes a split package.** That option adjusts access permissions; it does not merge packages or change module ownership.
 
-## Ghi nhớ
+## Takeaways
 
-Classpath gom các JAR vào unnamed module nên nhiều artifact có thể cùng đóng góp class vào một package. Khi chuyển sang named modules, package phải có chủ sở hữu rõ ràng trong module configuration; split package giữa các named module sẽ gây xung đột.
+The classpath groups JARs into an unnamed module, so multiple artifacts can contribute classes to the same package. When migrating to named modules, a package must have a clear owner in the module configuration; split packages across named modules will cause conflicts.
 
-Nếu nhiều module cần dùng chung một package, hãy đưa package đó về một module shared. Nếu các class thuộc trách nhiệm riêng, hãy tách package theo module. Kiểm tra package ownership là một bước quan trọng trước khi chuyển một hệ thống cũ từ classpath sang module path.
+If multiple modules need to share a package, move that package into a shared module. If the classes belong to separate responsibilities, separate the packages by module. Auditing package ownership is an important step before migrating a legacy system from the classpath to the module path.

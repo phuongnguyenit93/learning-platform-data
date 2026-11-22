@@ -1,12 +1,12 @@
-# Giới thiệu Math: trị tuyệt đối, lũy thừa và làm tròn trong Java
+# Introduction to Math: Absolute Value, Powers, and Rounding in Java
 
-> **Java core — language-basics / Số học**  
-> **Môi trường:** Java 17+, chỉ dùng thư viện chuẩn.  
-> **Mục tiêu:** Dùng đúng `Math.abs`, `Math.pow`, `Math.round`, `Math.floor` và `Math.ceil`; hiểu kiểu trả về, cách xử lý số âm, giới hạn kiểu nguyên và sai số số thực.
+> **Java core — language-basics / Arithmetic**  
+> **Environment:** Java 17+, standard library only.  
+> **Objectives:** Correctly use `Math.abs`, `Math.pow`, `Math.round`, `Math.floor`, and `Math.ceil`; understand return types, negative number handling, integer type limits, and floating-point precision error.
 
-## 1. Lớp `Math` dùng như thế nào?
+## 1. How Is the `Math` Class Used?
 
-`java.lang.Math` cung cấp các phương thức `static` cho tính toán số học; không cần tạo đối tượng `Math` hay viết lệnh `import`:
+`java.lang.Math` provides `static` methods for arithmetic computations; you do not need to instantiate a `Math` object or write an `import` statement:
 
 ~~~java
 int distance = Math.abs(-12);         // 12
@@ -16,11 +16,11 @@ double below = Math.floor(2.7);      // 2.0
 double above = Math.ceil(2.7);       // 3.0
 ~~~
 
-**Quan trọng:** `Math.pow`, `Math.floor` và `Math.ceil` trả `double`. `Math.round(float)` trả `int`, còn `Math.round(double)` trả `long`. Phương thức `Math.abs` có các overload cho `int`, `long`, `float`, `double` và trả kiểu tương ứng.
+**Important:** `Math.pow`, `Math.floor`, and `Math.ceil` return `double`. `Math.round(float)` returns `int`, while `Math.round(double)` returns `long`. The `Math.abs` method has overloads for `int`, `long`, `float`, and `double`, returning the corresponding type.
 
-## 2. Trị tuyệt đối với `Math.abs`
+## 2. Absolute Value with `Math.abs`
 
-Trị tuyệt đối thể hiện độ lớn không xét dấu:
+Absolute value expresses magnitude without sign:
 
 ~~~java
 Math.abs(-8);     // int 8
@@ -28,44 +28,44 @@ Math.abs(-3.25);  // double 3.25
 Math.abs(0);      // int 0
 ~~~
 
-Dùng trong tính khoảng cách hoặc sai lệch, nhưng lưu ý **ngoại lệ về miền giá trị nguyên**. `int` có miền từ `-2147483648` đến `2147483647`, nên trị tuyệt đối toán học của `Integer.MIN_VALUE` không chứa được trong `int`:
+Used when computing distances or differences, but note the **exception regarding integer value ranges**. `int` ranges from `-2147483648` to `2147483647`, so the mathematical absolute value of `Integer.MIN_VALUE` cannot fit in `int`:
 
 ~~~java
-Math.abs(Integer.MIN_VALUE); // Vẫn là -2147483648, không ném lỗi!
+Math.abs(Integer.MIN_VALUE); // Still -2147483648, throws no error!
 ~~~
 
-Tương tự, `Math.abs(Long.MIN_VALUE)` vẫn âm. Nếu muốn **phát hiện trường hợp không biểu diễn được**, Java 17 hỗ trợ `Math.absExact(int)` và `Math.absExact(long)`, ném `ArithmeticException` khi gặp giá trị nhỏ nhất. Nếu cần trị tuyệt đối của một `int` dưới dạng `long`, hãy **chuyển kiểu trước**:
+Similarly, `Math.abs(Long.MIN_VALUE)` stays negative. If you want to **detect the unrepresentable case**, Java 17 supports `Math.absExact(int)` and `Math.absExact(long)`, throwing `ArithmeticException` on the minimum value. If you need the absolute value of an `int` as a `long`, **cast beforehand**:
 
 ~~~java
 long safe = Math.abs((long) Integer.MIN_VALUE); // 2147483648.
 ~~~
 
-Đừng ép kiểu sau `Math.abs(Integer.MIN_VALUE)` vì phép tính ở kiểu `int` đã cho kết quả ngoài mong đợi.
+Do not cast after `Math.abs(Integer.MIN_VALUE)` because the calculation in `int` has already produced the unexpected result.
 
-## 3. Lũy thừa với `Math.pow`
+## 3. Exponentiation with `Math.pow`
 
-`Math.pow(base, exponent)` trả `double`, kể cả khi truyền vào hai số nguyên:
+`Math.pow(base, exponent)` returns `double`, even when two integers are passed:
 
 ~~~java
 Math.pow(2, 3);    // 8.0
 Math.pow(10, 2);   // 100.0
 Math.pow(4, -1);   // 0.25
-Math.pow(9, 0.5);  // 3.0: tương đương căn bậc hai của 9.
+Math.pow(9, 0.5);  // 3.0: equivalent to the square root of 9.
 ~~~
 
-| Trường hợp | Kết quả và lưu ý |
+| Case | Result and Notes |
 | --- | --- |
-| `Math.pow(2, 10)` | `1024.0`, kiểu `double` |
-| `Math.pow(4, -1)` | `0.25`, số mũ âm |
-| `Math.pow(-2, 0.5)` | `NaN`: không có kết quả thực |
+| `Math.pow(2, 10)` | `1024.0`, type `double` |
+| `Math.pow(4, -1)` | `0.25`, negative exponent |
+| `Math.pow(-2, 0.5)` | `NaN`: no real result |
 | `Math.pow(2, 0)` | `1.0` |
-| `Math.sqrt(81)` | `9.0`, API chuyên dụng để lấy căn bậc hai |
+| `Math.sqrt(81)` | `9.0`, dedicated API for square roots |
 
-`Math.pow` tính bằng số thực, **không bảo đảm chính xác tuyệt đối** đối với số nguyên lớn. Tránh chuyển thẳng kết quả `double` về `int`/`long` để tính lũy thừa nguyên lớn. Nếu cần phép lũy thừa nguyên chính xác, dùng `BigInteger.pow(int)` khi miền số có thể vượt kiểu nguyên; nếu cần phát hiện tràn trong phép nhân nguyên, xem `Math.multiplyExact`.
+`Math.pow` computes in floating-point and **does not guarantee absolute exactness** for large integers. Avoid directly casting a `double` result to `int`/`long` for computing large integer powers. If exact integer exponentiation is needed, use `BigInteger.pow(int)` when the range may exceed primitive integer types; if overflow detection in integer multiplication is needed, see `Math.multiplyExact`.
 
-## 4. Làm tròn: `round`, `floor`, `ceil` và `rint`
+## 4. Rounding: `round`, `floor`, `ceil`, and `rint`
 
-| Đầu vào | `Math.round(double)` | `Math.floor(double)` | `Math.ceil(double)` |
+| Input | `Math.round(double)` | `Math.floor(double)` | `Math.ceil(double)` |
 | --- | ---: | ---: | ---: |
 | `2.2` | `2` | `2.0` | `3.0` |
 | `2.5` | `3` | `2.0` | `3.0` |
@@ -73,16 +73,16 @@ Math.pow(9, 0.5);  // 3.0: tương đương căn bậc hai của 9.
 | `-2.5` | `-2` | `-3.0` | `-2.0` |
 | `-2.7` | `-3` | `-3.0` | `-2.0` |
 
-- **`Math.floor(x)`:** số nguyên lớn nhất không vượt quá `x`, nhưng **kiểu trả về là `double`**. Với số âm, `floor(-2.7) == -3.0`.
-- **`Math.ceil(x)`:** số nguyên nhỏ nhất không nhỏ hơn `x`, kiểu trả về `double`. Với số âm, `ceil(-2.7) == -2.0`.
-- **`Math.round(x)`:** làm tròn về số nguyên gần nhất; khi đúng giữa hai số nguyên, chọn số **về phía dương**. Vì vậy `round(2.5) == 3` nhưng `round(-2.5) == -2`, không phải -3.
-- **`Math.rint(x)`:** trả `double`, trường hợp đúng nửa chọn **số nguyên chẵn gần nhất** (*ties to even*): `rint(2.5) == 2.0` và `rint(3.5) == 4.0`.
+- **`Math.floor(x)`:** the largest integer not exceeding `x`, yet **the return type is `double`**. For negative numbers, `floor(-2.7) == -3.0`.
+- **`Math.ceil(x)`:** the smallest integer not less than `x`, return type `double`. For negative numbers, `ceil(-2.7) == -2.0`.
+- **`Math.round(x)`:** rounds to the nearest integer; when halfway between two integers, picks the number **toward positive infinity**. Hence `round(2.5) == 3` whereas `round(-2.5) == -2`, not -3.
+- **`Math.rint(x)`:** returns `double`; at exact halves, picks the **nearest even integer** (*ties to even*): `rint(2.5) == 2.0` and `rint(3.5) == 4.0`.
 
-Không nhầm `Math.round` với cách làm tròn luôn ra xa số 0. Giá trị `Double.NaN` và vô cực có xử lý đặc biệt trong `round`; nếu nghiệp vụ cần số hữu hạn, kiểm tra `Double.isFinite` trước.
+Do not confuse `Math.round` with rounding always away from 0. `Double.NaN` and infinity have special handling in `round`; if business logic requires finite numbers, check `Double.isFinite` first.
 
-## 5. Chương trình Java 17+ chạy được
+## 5. Runnable Java 17+ Program
 
-Tạo file **MathBasicsDemo.java**:
+Create the file **MathBasicsDemo.java**:
 
 ~~~java
 import java.math.BigDecimal;
@@ -132,14 +132,14 @@ public final class MathBasicsDemo {
 }
 ~~~
 
-Mở terminal tại thư mục chứa file và chạy (Bash, PowerShell hoặc Command Prompt):
+Open a terminal in the directory containing the file and run (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 MathBasicsDemo.java
 java MathBasicsDemo
 ~~~
 
-**Expected output chính xác:**
+**Exact expected output:**
 
 ~~~text
 absInt=17
@@ -165,35 +165,35 @@ moneyHalfUp=2.35
 moneyHalfEven=2.34
 ~~~
 
-Giải thích các dòng dễ nhầm: `absMinInt` vẫn âm vì không có `int` dương tương ứng; `absExact` chủ động phát hiện tràn; `negativeRootNaN` là true vì lũy thừa có cơ số âm và số mũ phân số không cho giá trị thực; `roundNegative=-2` do quy tắc chọn phía dương tại điểm chính giữa. Hai kiểu làm tròn `BigDecimal` thể hiện chính sách khác nhau với chữ số 5.
+Explaining easily confused lines: `absMinInt` stays negative because there is no corresponding positive `int`; `absExact` proactively detects overflow; `negativeRootNaN` is true because a negative base with a fractional exponent yields no real value; `roundNegative=-2` comes from the rule choosing the positive direction at exact halves. The two `BigDecimal` rounding modes show different policies for the digit 5.
 
-## 6. Khi nào nên dùng API nào?
+## 6. Which API Should You Use When?
 
-| Bài toán | API gợi ý | Cần kiểm tra thêm |
+| Problem | Suggested API | Additional Checks Needed |
 | --- | --- | --- |
-| Độ lớn sai lệch, bỏ dấu | `Math.abs` | `MIN_VALUE` của `int`/`long` |
-| Trị tuyệt đối nguyên, không chấp nhận tràn | `Math.absExact` | Bắt/đưa tiếp `ArithmeticException` |
-| Lũy thừa thực | `Math.pow` | `NaN`, vô cực, sai số `double` |
-| Căn bậc hai số không âm | `Math.sqrt` | Đầu vào âm cho `NaN` |
-| Làm tròn gần nhất theo `Math` | `Math.round` | Quy tắc nửa về phía dương, kiểu trả về |
-| Luôn làm tròn xuống / lên | `Math.floor` / `Math.ceil` | Số âm và kiểu `double` |
-| Nửa chọn số nguyên chẵn | `Math.rint` | Kiểu trả về `double` |
-| Tiền tệ cần quy định số chữ số thập phân | `BigDecimal.setScale` | Chọn `RoundingMode` theo nghiệp vụ |
+| Magnitude of difference, drop sign | `Math.abs` | `MIN_VALUE` of `int`/`long` |
+| Integer absolute value, overflow unacceptable | `Math.absExact` | Catch/propagate `ArithmeticException` |
+| Floating-point power | `Math.pow` | `NaN`, infinity, `double` precision error |
+| Square root of non-negative number | `Math.sqrt` | Negative input gives `NaN` |
+| Round to nearest per `Math` | `Math.round` | Half-toward-positive rule, return type |
+| Always round down / up | `Math.floor` / `Math.ceil` | Negative numbers and `double` type |
+| Half-to-even rounding | `Math.rint` | Return type `double` |
+| Currency requiring fixed decimal places | `BigDecimal.setScale` | Choose `RoundingMode` per business logic |
 
-**Đừng chuyển `double` sang `int` để “làm tròn”**: ép kiểu số thực sang số nguyên bỏ phần lẻ theo hướng về 0, không tương đương với `Math.round` hay `Math.floor`. Tính tiền hoặc số liệu cần thập phân chính xác phải quy định rõ độ chính xác, không chỉ gọi `Math.round(x * 100) / 100.0` rồi mặc định tránh được sai số nhị phân.
+**Do not cast `double` to `int` to "round"**: casting a floating-point number to an integer truncates the fractional part toward 0, which is not equivalent to `Math.round` or `Math.floor`. Monetary or exact-decimal calculations must explicitly specify precision, rather than merely calling `Math.round(x * 100) / 100.0` and assuming binary error is avoided.
 
-## 7. Bài tập tự luyện
+## 7. Practice Exercises
 
-**Bài 1.** Tính `Math.abs(-25)` và `Math.abs(-3.75)`. Chúng trả về kiểu nào?
+**Exercise 1.** Compute `Math.abs(-25)` and `Math.abs(-3.75)`. What types do they return?
 
-**Bài 2.** Vì sao `Math.abs(Integer.MIN_VALUE)` vẫn âm? Viết hai cách xử lý: chuyển sang `long` trước, hoặc phát hiện lỗi bằng `Math.absExact`.
+**Exercise 2.** Why does `Math.abs(Integer.MIN_VALUE)` stay negative? Write two ways to handle it: converting to `long` beforehand, or detecting the error with `Math.absExact`.
 
-**Bài 3.** Dự đoán `Math.pow(2, 5)`, `Math.pow(4, -1)` và `Math.pow(-2, 0.5)`. Kết quả thuộc kiểu gì?
+**Exercise 3.** Predict `Math.pow(2, 5)`, `Math.pow(4, -1)`, and `Math.pow(-2, 0.5)`. What type are the results?
 
-**Bài 4.** So sánh `Math.round(-2.5)`, `Math.floor(-2.5)`, `Math.ceil(-2.5)` và `Math.rint(2.5)`. Chú ý quy tắc tại giá trị đúng nửa.
+**Exercise 4.** Compare `Math.round(-2.5)`, `Math.floor(-2.5)`, `Math.ceil(-2.5)`, and `Math.rint(2.5)`. Pay attention to the rule at exact half values.
 
-**Bài 5.** Chọn một `RoundingMode` thích hợp cho báo giá thập phân có hai chữ số; nêu vì sao phải ghi rõ chính sách làm tròn trước khi cài đặt.
+**Exercise 5.** Choose an appropriate `RoundingMode` for decimal price quotes with two decimal places; explain why the rounding policy must be documented before implementation.
 
-### Ghi nhớ
+### Key Takeaways
 
-`Math.abs` tính trị tuyệt đối nhưng có ngoại lệ với giá trị nhỏ nhất của `int`/`long`; `Math.pow` trả `double` và có thể mang sai số/`NaN`. `Math.round` làm tròn gần nhất (đúng nửa chọn phía dương), còn `Math.floor` và `Math.ceil` luôn về phía âm/dương vô cực; `Math.rint` chọn số chẵn khi đúng nửa. Hãy chọn hàm theo **kiểu dữ liệu và chính sách làm tròn** thật sự cần.
+`Math.abs` computes absolute value but has an exception for the minimum value of `int`/`long`; `Math.pow` returns `double` and can carry error/`NaN`. `Math.round` rounds to nearest (exact halves toward positive infinity), while `Math.floor` and `Math.ceil` always go toward negative/positive infinity; `Math.rint` picks the even integer at exact halves. Choose the method according to the **data type and rounding policy** you actually need.

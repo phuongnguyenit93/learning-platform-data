@@ -1,48 +1,48 @@
-# Parent configuration trong quá trình resolve
+# Parent Configuration During Resolution
 
-Trong Java Platform Module System (JPMS), một ứng dụng có thể phân giải module theo nhiều giai đoạn. Ví dụ, host khởi động trước với một tập module nền tảng và module API, sau đó mới nạp plugin. Khi phân giải plugin, Java cần biết những module nào đã được giải quyết ở giai đoạn trước để có thể tái sử dụng dependency thay vì tìm và định nghĩa lại chúng.
+In the Java Platform Module System (JPMS), an application can resolve modules in multiple stages. For example, a host starts up first with a set of foundational modules and API modules, and plugins are loaded afterward. When resolving a plugin, Java needs to know which modules were already resolved in the earlier stage so it can reuse dependencies instead of finding and redefining them again.
 
-Đó là vai trò của **parent configuration** trong quá trình resolution. Một `Configuration` con giữ tham chiếu tới configuration cha, sử dụng các module đã có ở cha để thỏa mãn dependency của module mới, đồng thời phân giải thêm những module được tìm thấy từ các `ModuleFinder` được cung cấp.
+That is the role of the **parent configuration** during resolution. A child `Configuration` retains references to parent configurations, uses modules already present in the parent to satisfy dependencies of new modules, and resolves any additional modules found from the supplied `ModuleFinder` instances.
 
-Parent configuration là nền tảng cho mô hình nhiều tầng của JPMS: module dùng chung nằm trong cấu hình cha; module bổ sung như plugin được phân giải trong cấu hình con; sau đó một `ModuleLayer` được tạo để định nghĩa các module mới ở runtime.
+Parent configurations are the foundation for JPMS's layered model: shared modules live in the parent configuration; additional modules such as plugins are resolved in child configurations; and then a `ModuleLayer` is created to define the new modules at runtime.
 
-## 1. Configuration là gì?
+## 1. What Is a Configuration?
 
-`java.lang.module.Configuration` biểu diễn kết quả của quá trình phân giải module. Nó chứa các module đã được resolution chọn, các dependency giữa chúng và một hoặc nhiều parent configuration.
+`java.lang.module.Configuration` represents the result of the module resolution process. It contains the modules selected by resolution, the dependencies between them, and one or more parent configurations.
 
-Configuration là metadata của module graph đã phân giải. Nó chưa phải là các module object đang chạy trong JVM. Để định nghĩa module vào runtime, ứng dụng dùng `ModuleLayer` từ configuration đó.
+A configuration is metadata for the resolved module graph. It is not yet the running module objects in the JVM. To define modules into the runtime, the application creates a `ModuleLayer` from that configuration.
 
-Có thể hình dung:
+You can picture it as:
 
 ```text
 ModuleFinder(s)
      |
-     | khám phá module
+     | discover modules
      v
 Configuration.resolve(...)
      |
-     | tạo module graph đã phân giải
+     | produce resolved module graph
      v
 Configuration
      |
      | ModuleLayer.defineModules...
      v
-ModuleLayer và các Module runtime
+ModuleLayer and runtime Modules
 ```
 
-Ba khái niệm có trách nhiệm khác nhau:
+The three concepts have distinct responsibilities:
 
-- `ModuleFinder` tìm module từ runtime image, thư mục module hoặc JAR.
-- `Configuration` xác định module nào cần thiết và dependency được đáp ứng ra sao.
-- `ModuleLayer` định nghĩa các module đã phân giải trong runtime và gắn chúng với class loader.
+- `ModuleFinder` locates modules from the runtime image, module directories, or JARs.
+- `Configuration` determines which modules are needed and how dependencies are satisfied.
+- `ModuleLayer` defines the resolved modules in the runtime and associates them with class loaders.
 
-Không phải cứ tìm thấy một JAR là module đó đã được phân giải. Nó cần được chọn bởi resolution, trực tiếp như root hoặc gián tiếp như dependency.
+Simply finding a JAR does not mean the module has been resolved. It must be selected by resolution, either directly as a root or indirectly as a dependency.
 
-## 2. Parent configuration là gì?
+## 2. What Is a Parent Configuration?
 
-Một configuration có thể có một hoặc nhiều parent configuration. Parent chứa module graph đã được phân giải trước đó. Khi phân giải một configuration mới, resolver có thể dùng các module trong parent để đáp ứng dependency của module mới.
+A configuration can have one or more parent configurations. A parent holds a previously resolved module graph. When resolving a new configuration, the resolver can use modules in the parent to satisfy dependencies of the new modules.
 
-Ví dụ một ứng dụng plugin:
+Example of a plugin application:
 
 ```text
 Boot Configuration
@@ -54,11 +54,11 @@ Host Configuration
 Plugin Configuration
 ```
 
-Host configuration có thể chứa module API dùng chung. Plugin configuration chứa module plugin được nạp sau. Nếu plugin khai báo `requires com.example.host.api;`, resolver có thể dùng module API đã có trong parent configuration.
+The host configuration may contain shared API modules. The plugin configuration contains plugin modules loaded later. If a plugin declares `requires com.example.host.api;`, the resolver can use the API module already present in the parent configuration.
 
-Điều này giúp tránh việc mỗi plugin phải mang theo một bản sao module API và tránh định nghĩa lại cùng một module trong nhiều layer.
+This avoids forcing each plugin to bundle its own copy of the API module and avoids redefining the same module in multiple layers.
 
-Một configuration con không phải bản sao đầy đủ của configuration cha. Nó có các module được phân giải trong chính nó và tham chiếu tới parent configuration(s). Có thể xem cấu trúc cha qua:
+A child configuration is not a full copy of the parent configuration. It contains the modules resolved in itself and references to its parent configuration(s). You can inspect the parent structure via:
 
 ```java
 Configuration configuration = ModuleLayer.boot().configuration();
@@ -68,19 +68,19 @@ for (Configuration parent : configuration.parents()) {
 }
 ```
 
-Với configuration con, `parents()` cho biết các configuration cha trực tiếp. Quan hệ này là cơ sở để resolution tra cứu module đã có trước đó.
+For a child configuration, `parents()` reveals its direct parent configurations. This relationship is the basis for resolution to look up previously resolved modules.
 
-## 3. Parent configuration được dùng khi nào?
+## 3. When Is a Parent Configuration Used?
 
-Parent configuration đặc biệt hữu ích trong các tình huống phân giải theo từng giai đoạn:
+Parent configurations are especially useful in staged resolution scenarios:
 
-- Host application được khởi động trước, plugin được nạp sau.
-- Một runtime layer chứa API và dịch vụ dùng chung.
-- Nhiều nhóm module cần tái sử dụng dependency nền tảng đã được định nghĩa.
-- Ứng dụng tạo nhiều plugin layer độc lập nhưng cùng dùng một module API.
-- Công cụ cần phân giải một nhóm module mới dựa trên module graph đã tồn tại.
+- A host application starts first, and plugins are loaded later.
+- A runtime layer contains shared APIs and services.
+- Multiple module groups need to reuse foundational dependencies that have already been defined.
+- An application creates multiple independent plugin layers that all use the same API module.
+- A tool needs to resolve a new group of modules based on an existing module graph.
 
-Ví dụ, host có module:
+For example, the host has the module:
 
 ```java
 module com.example.host.api {
@@ -88,7 +88,7 @@ module com.example.host.api {
 }
 ```
 
-Plugin khai báo:
+The plugin declares:
 
 ```java
 module com.example.plugin.alpha {
@@ -96,11 +96,11 @@ module com.example.plugin.alpha {
 }
 ```
 
-Khi resolve plugin, parent configuration cung cấp module `com.example.host.api`. Plugin không cần đóng gói một bản sao module API trong thư mục plugin. Module API được tham chiếu từ parent configuration và có thể được dùng để thỏa mãn dependency.
+When resolving the plugin, the parent configuration supplies the `com.example.host.api` module. The plugin does not need to package a copy of the API module in the plugin directory. The API module is referenced from the parent configuration and can be used to satisfy the dependency.
 
-## 4. API resolve của Configuration
+## 4. Configuration's resolve API
 
-Một configuration đã có thể được dùng làm parent để phân giải thêm module. Phương thức instance thường dùng là:
+An existing configuration can be used as a parent to resolve additional modules. The commonly used instance method is:
 
 ```java
 Configuration childConfiguration =
@@ -111,15 +111,15 @@ Configuration childConfiguration =
         );
 ```
 
-Các tham số:
+The parameters are:
 
-- `beforeFinder`: tìm module từ nguồn này trước khi tìm trong parent configurations.
-- `afterFinder`: tìm module từ nguồn này sau khi tìm trong parent configurations.
-- `roots`: tên các module root cần phân giải cho configuration mới.
+- `beforeFinder`: locates modules from this source before searching parent configurations.
+- `afterFinder`: locates modules from this source after searching parent configurations.
+- `roots`: names of the root modules to resolve for the new configuration.
 
-Phương thức instance dùng configuration hiện tại làm parent. Kết quả là configuration mới có các module được phân giải trong giai đoạn hiện tại cùng liên kết tới parent configuration.
+The instance method uses the current configuration as the parent. The result is a new configuration containing the modules resolved in the current stage along with a link to the parent configuration.
 
-Ngoài phương thức instance, có phương thức static nhận danh sách parent configuration:
+In addition to the instance method, there is a static method that accepts a list of parent configurations:
 
 ```java
 Configuration childConfiguration =
@@ -131,19 +131,19 @@ Configuration childConfiguration =
         );
 ```
 
-Dạng static hữu ích khi cần chỉ định nhiều parent configuration hoặc muốn kiểm soát rõ tập parent. Với một parent đơn, phương thức instance thường dễ đọc hơn.
+The static form is useful when specifying multiple parent configurations or when wanting explicit control over the parent set. For a single parent, the instance method is usually easier to read.
 
-### 4.1. Vì sao có beforeFinder và afterFinder?
+### 4.1. Why Are There beforeFinder and afterFinder?
 
-Resolution có thể tìm module từ ba nơi theo thứ tự:
+Resolution can look up modules from three places in order:
 
-1. Finder được truyền ở vị trí `beforeFinder`.
-2. Các parent configuration.
-3. Finder được truyền ở vị trí `afterFinder`.
+1. The finder passed in the `beforeFinder` position.
+2. The parent configurations.
+3. The finder passed in the `afterFinder` position.
 
-Thứ tự này quan trọng khi cùng một tên module có thể xuất hiện ở nhiều nguồn. Finder trước parent có độ ưu tiên khám phá trước; finder sau parent chỉ được xét sau khi resolver đã tìm trong các parent configuration.
+This order matters when the same module name may appear in multiple sources. A finder before the parent has discovery precedence first; a finder after the parent is only considered after the resolver has checked the parent configurations.
 
-Trong cấu hình plugin thông thường, thường muốn tái sử dụng module đã có ở parent. Có thể truyền finder plugin ở vị trí `beforeFinder` hoặc `afterFinder` tùy chính sách chọn module. Ví dụ phổ biến:
+In a typical plugin setup, you usually want to reuse modules already in the parent. You can pass the plugin finder in either the `beforeFinder` or `afterFinder` position depending on your module selection policy. A common example:
 
 ```java
 Configuration pluginConfiguration =
@@ -154,18 +154,18 @@ Configuration pluginConfiguration =
         );
 ```
 
-Ở đây:
+Here:
 
-- `pluginFinder` tìm các module plugin.
-- `ModuleFinder.of()` là finder rỗng cho nguồn sau parent.
-- `hostConfiguration` là parent configuration.
-- `com.example.plugin.alpha` là root module.
+- `pluginFinder` locates plugin modules.
+- `ModuleFinder.of()` is an empty finder for the post-parent source.
+- `hostConfiguration` is the parent configuration.
+- `com.example.plugin.alpha` is the root module.
 
-Với cách này, plugin finder được xét trước parent configuration. Nếu hệ thống cần ưu tiên module đã có ở parent khi trùng tên, cần thiết kế nguồn finder và thứ tự tìm kiếm phù hợp, đồng thời tránh cung cấp hai phiên bản cùng tên trong cùng cấu hình.
+With this approach, the plugin finder is checked before the parent configuration. If the system needs to prioritize modules already in the parent when names collide, you should design the finder sources and search order accordingly, while avoiding providing two versions with the same name within the same configuration.
 
-## 5. Resolution sử dụng module trong parent như thế nào?
+## 5. How Does Resolution Use Modules in the Parent?
 
-Giả sử parent configuration đã có:
+Suppose the parent configuration already contains:
 
 ```text
 com.example.host.api
@@ -173,14 +173,14 @@ java.base
 java.logging
 ```
 
-Finder plugin có:
+The plugin finder contains:
 
 ```text
 com.example.plugin.alpha
 com.example.plugin.beta
 ```
 
-Plugin alpha có descriptor:
+Plugin alpha has the descriptor:
 
 ```java
 module com.example.plugin.alpha {
@@ -189,21 +189,21 @@ module com.example.plugin.alpha {
 }
 ```
 
-Khi resolver xử lý root `com.example.plugin.alpha`, nó kiểm tra các dependency:
+When the resolver processes the root `com.example.plugin.alpha`, it checks the dependencies:
 
-- `com.example.host.api` đã có trong parent configuration nên có thể được dùng để thỏa mãn dependency.
-- `java.logging` nếu đã có trong parent configuration cũng có thể được dùng từ parent.
-- Các dependency chưa có trong parent sẽ tiếp tục được tìm ở các finder theo thứ tự resolution.
+- `com.example.host.api` is already in the parent configuration, so it can be used to satisfy the dependency.
+- `java.logging`, if already in the parent configuration, can also be used from the parent.
+- Dependencies not yet in the parent will continue to be looked up in the finders according to resolution order.
 
-Kết quả child configuration chứa module plugin mới và các dependency mới cần phân giải. Module đã có ở parent vẫn thuộc parent configuration, không bị sao chép thành một module khác chỉ vì child cần đọc nó.
+The resulting child configuration contains the new plugin module and any newly resolved dependencies. Modules already in the parent remain part of the parent configuration and are not duplicated into separate modules simply because the child needs to read them.
 
-Nếu dependency không có trong parent và cũng không tìm thấy từ finder, resolution thất bại. Đây là lỗi module graph, không phải lỗi import trong mã nguồn.
+If a dependency is neither in the parent nor found by any finder, resolution fails. This is a module graph error, not a source code import error.
 
-## 6. Ví dụ đầy đủ: resolve plugin từ host configuration
+## 6. Complete Example: Resolving a Plugin from a Host Configuration
 
-Giả sử host API đã được biên dịch thành exploded module trong thư mục `mods`, còn plugin JAR nằm trong `plugins`.
+Suppose the host API has been compiled into an exploded module in the `mods` directory, while the plugin JAR resides in `plugins`.
 
-Cấu trúc:
+Structure:
 
 ```text
 application/
@@ -215,7 +215,7 @@ application/
     └── com.example.plugin.alpha.jar
 ```
 
-Module host API:
+Host API module:
 
 ```java
 module com.example.host.api {
@@ -223,7 +223,7 @@ module com.example.host.api {
 }
 ```
 
-Module plugin:
+Plugin module:
 
 ```java
 module com.example.plugin.alpha {
@@ -231,9 +231,9 @@ module com.example.plugin.alpha {
 }
 ```
 
-### Bước 1: Tạo parent configuration
+### Step 1: Create the parent configuration
 
-Có thể bắt đầu từ boot configuration và phân giải host API:
+You can start from the boot configuration and resolve the host API:
 
 ```java
 import java.lang.module.Configuration;
@@ -254,18 +254,18 @@ Configuration hostConfiguration =
                 );
 ```
 
-Host configuration dùng boot configuration làm parent. Root là module host API; các dependency của host API được resolution từ parent hoặc finder.
+The host configuration uses the boot configuration as its parent. The root is the host API module; dependencies of the host API are resolved from the parent or finder.
 
-### Bước 2: Khám phá plugin
+### Step 2: Discover the plugin
 
 ```java
 ModuleFinder pluginFinder =
         ModuleFinder.of(Path.of("plugins"));
 ```
 
-Finder này tìm các module trong thư mục plugin. Nó có thể nhận diện modular JAR và automatic module theo quy tắc module path.
+This finder locates modules in the plugin directory. It can recognize modular JARs and automatic modules according to module path rules.
 
-### Bước 3: Resolve plugin dựa trên parent configuration
+### Step 3: Resolve the plugin based on the parent configuration
 
 ```java
 Configuration pluginConfiguration =
@@ -276,9 +276,9 @@ Configuration pluginConfiguration =
         );
 ```
 
-Ở bước này, `hostConfiguration` là parent. Khi plugin khai báo `requires com.example.host.api;`, resolver có thể đáp ứng dependency từ parent configuration.
+In this step, `hostConfiguration` is the parent. When the plugin declares `requires com.example.host.api;`, the resolver can satisfy the dependency from the parent configuration.
 
-### Bước 4: Kiểm tra kết quả
+### Step 4: Inspect the result
 
 ```java
 pluginConfiguration.modules().stream()
@@ -287,13 +287,13 @@ pluginConfiguration.modules().stream()
         .forEach(System.out::println);
 ```
 
-`modules()` trả về các module được phân giải trực tiếp trong configuration hiện tại. Các module thuộc parent không được lặp lại như module mới trong tập này. Muốn xem parent, dùng `parents()`.
+`modules()` returns the modules resolved directly in the current configuration. Modules belonging to the parent are not repeated as new modules in this set. To inspect parents, use `parents()`.
 
-## 7. Parent configuration và parent ModuleLayer liên hệ ra sao?
+## 7. How Are Parent Configuration and Parent ModuleLayer Related?
 
-Configuration là kết quả resolution; ModuleLayer là runtime structure được định nghĩa từ configuration.
+Configuration is the result of resolution; ModuleLayer is the runtime structure defined from a configuration.
 
-Khi định nghĩa layer con, layer cha phải tương ứng với parent configuration đã dùng để resolve. Cách thông thường là gọi phương thức trên parent layer:
+When defining a child layer, the parent layer must correspond to the parent configuration used for resolution. The usual way is to call the method on the parent layer:
 
 ```java
 ModuleLayer hostLayer =
@@ -310,45 +310,45 @@ ModuleLayer pluginLayer =
         );
 ```
 
-Ở đây:
+Here:
 
-- `hostLayer` được tạo từ host configuration, với boot layer làm parent.
-- `pluginLayer` được tạo từ plugin configuration, với host layer làm parent.
-- Plugin layer có thể tham chiếu module API đã được định nghĩa trong host layer khi dependency đã được resolve đúng.
+- `hostLayer` is created from the host configuration, with the boot layer as its parent.
+- `pluginLayer` is created from the plugin configuration, with the host layer as its parent.
+- The plugin layer can reference the API module already defined in the host layer once dependencies have been resolved properly.
 
-Không nên resolve plugin từ một parent configuration rồi định nghĩa nó dưới một layer không tương ứng. Parent configuration và parent layer cần khớp với nhau để module graph runtime nhất quán.
+You should not resolve a plugin from one parent configuration and then define it under an unrelated layer. The parent configuration and parent layer must match so the runtime module graph remains consistent.
 
-## 8. Parent configuration không tự cấp readability
+## 8. Parent Configuration Does Not Automatically Grant Readability
 
-Đây là điểm cần nhớ khi debug.
+This is an important point to remember when debugging.
 
-Giả sử module `com.example.plugin.alpha` nằm trong child configuration và `com.example.host.api` nằm trong parent configuration. Quan hệ parent không tự động khiến plugin đọc host API.
+Suppose module `com.example.plugin.alpha` is in the child configuration and `com.example.host.api` is in the parent configuration. The parent relationship does not automatically make the plugin read the host API.
 
-Plugin vẫn cần:
+The plugin still needs:
 
 ```java
 requires com.example.host.api;
 ```
 
-Ngoài ra, module host API phải export package chứa kiểu plugin muốn dùng:
+In addition, the host API module must export the package containing the types the plugin wants to use:
 
 ```java
 exports com.example.host.api;
 ```
 
-Hai điều kiện có vai trò riêng:
+The conditions play distinct roles:
 
-- Parent configuration giúp resolver tìm thấy module API đã phân giải trước đó.
-- `requires` tạo quan hệ readability từ plugin tới API.
-- `exports` cho phép plugin truy cập package API theo quy tắc JPMS.
+- The parent configuration helps the resolver find the previously resolved API module.
+- `requires` establishes the readability relationship from the plugin to the API.
+- `exports` allows the plugin to access the API package under JPMS rules.
 
-Readability không đồng nghĩa với quyền truy cập mọi package. Một module có thể đọc module khác nhưng vẫn không truy cập được package chưa export hoặc chưa mở cho reflection.
+Readability does not equate to access to every package. One module can read another module and still be unable to access a package that has not been exported or opened for reflection.
 
-## 9. Nhiều parent configurations
+## 9. Multiple Parent Configurations
 
-JPMS hỗ trợ configuration có nhiều parent. Điều này hữu ích khi một layer mới cần tái sử dụng module từ nhiều nhánh layer đã được phân giải độc lập.
+JPMS supports configurations with multiple parents. This is useful when a new layer needs to reuse modules from multiple independently resolved layer branches.
 
-Ví dụ cấu trúc:
+Example structure:
 
 ```text
              Boot Configuration
@@ -360,7 +360,7 @@ Ví dụ cấu trúc:
              Plugin Configuration
 ```
 
-Có thể dùng overload static của `Configuration.resolve`:
+You can use the static overload of `Configuration.resolve`:
 
 ```java
 Configuration pluginConfiguration =
@@ -372,18 +372,18 @@ Configuration pluginConfiguration =
         );
 ```
 
-Resolver có thể dùng các module trong parent configurations để thỏa mãn dependency của plugin.
+The resolver can use modules in the parent configurations to satisfy the plugin's dependencies.
 
-Tuy nhiên, nhiều parent làm cấu trúc phức tạp hơn. Cần bảo đảm không có xung đột tên module và các parent configuration có thể cùng tham gia một configuration graph hợp lệ. Nếu cùng một module name xuất hiện ở nhiều parent với nội dung hoặc identity không tương thích, resolution có thể thất bại hoặc cấu trúc layer không đáp ứng thiết kế mong muốn.
+However, multiple parents make the structure more complex. You must ensure there are no module name conflicts and that the parent configurations can participate together in a valid configuration graph. If the same module name appears in multiple parents with incompatible contents or identities, resolution may fail or the layer structure may not meet the intended design.
 
-## 10. resolve và resolveAndBind khi có parent
+## 10. resolve and resolveAndBind with a Parent
 
-Configuration có hai nhóm phương thức resolution thường gặp:
+Configuration has two common groups of resolution methods:
 
-- `resolve(...)` xử lý các root và dependency được khai báo bằng `requires`.
-- `resolveAndBind(...)` làm thêm service binding dựa trên `uses` và `provides`.
+- `resolve(...)` handles roots and dependencies declared with `requires`.
+- `resolveAndBind(...)` additionally performs service binding based on `uses` and `provides`.
 
-Nếu plugin sử dụng ServiceLoader và muốn provider module được tìm tự động trong các nguồn có thể quan sát, có thể dùng:
+If a plugin uses ServiceLoader and you want provider modules to be discovered automatically from observable sources, you can use:
 
 ```java
 Configuration pluginConfiguration =
@@ -394,27 +394,27 @@ Configuration pluginConfiguration =
         );
 ```
 
-Service binding có thể bổ sung provider module và dependency của provider vào child configuration. Các module đã có trong parent configuration vẫn có thể được dùng để thỏa mãn dependency.
+Service binding can add provider modules and their dependencies to the child configuration. Modules already present in the parent configuration can still be used to satisfy dependencies.
 
-Cần phân biệt việc provider được tìm thấy với việc provider được khởi tạo. Resolution đưa module provider vào configuration; ModuleLayer định nghĩa module; ServiceLoader mới thực hiện việc tìm và khởi tạo provider theo phạm vi loader hoặc layer được chọn.
+Distinguish between a provider being found and a provider being instantiated. Resolution adds the provider module to the configuration; ModuleLayer defines the module; ServiceLoader is what locates and instantiates providers within the chosen loader or layer scope.
 
-## 11. Cách quan sát parent configuration và module graph
+## 11. How to Inspect Parent Configurations and the Module Graph
 
-Một số API giúp kiểm tra cấu trúc configuration:
+Several APIs help inspect the configuration structure:
 
-| API | Ý nghĩa |
+| API | Meaning |
 |---|---|
-| `Configuration.parents()` | Các parent configuration trực tiếp |
-| `Configuration.modules()` | Module được phân giải trong configuration hiện tại |
-| `Configuration.findModule(name)` | Tìm module trong configuration graph |
-| `Configuration.resolve(...)` | Phân giải root và dependency |
-| `Configuration.resolveAndBind(...)` | Resolution kèm service binding |
-| `ModuleLayer.configuration()` | Configuration dùng để định nghĩa layer |
-| `ModuleLayer.parents()` | Parent layer runtime |
-| `ModuleLayer.modules()` | Module được định nghĩa trực tiếp trong layer |
-| `Module.canRead(other)` | Kiểm tra readability giữa hai module runtime |
+| `Configuration.parents()` | Direct parent configurations |
+| `Configuration.modules()` | Modules resolved in the current configuration |
+| `Configuration.findModule(name)` | Finds a module in the configuration graph |
+| `Configuration.resolve(...)` | Resolves roots and dependencies |
+| `Configuration.resolveAndBind(...)` | Resolution with service binding |
+| `ModuleLayer.configuration()` | Configuration used to define the layer |
+| `ModuleLayer.parents()` | Runtime parent layers |
+| `ModuleLayer.modules()` | Modules defined directly in the layer |
+| `Module.canRead(other)` | Checks readability between two runtime modules |
 
-Ví dụ kiểm tra parent và module hiện tại:
+Example inspecting parents and current modules:
 
 ```java
 System.out.println("Child modules:");
@@ -434,66 +434,66 @@ for (Configuration parent : pluginConfiguration.parents()) {
 }
 ```
 
-Lưu ý `Configuration.findModule(name)` có thể tìm trong configuration hiện tại và các parent configuration. Trong khi đó, `modules()` chỉ liệt kê module được phân giải trực tiếp trong configuration đó.
+Note that `Configuration.findModule(name)` can search in the current configuration and its parent configurations. Meanwhile, `modules()` only lists modules resolved directly in that configuration.
 
-Để kiểm tra readability sau khi layer đã được định nghĩa, lấy hai `Module` object rồi gọi `canRead`:
+To verify readability after layers have been defined, obtain both `Module` objects and call `canRead`:
 
 ```java
 boolean readable = pluginModule.canRead(hostApiModule);
 System.out.println(readable);
 ```
 
-Đây là kiểm tra runtime thực tế. Nếu chỉ kiểm tra configuration, hãy xem dependency trong descriptor và kết quả resolution.
+This is an actual runtime check. If you are only inspecting the configuration, check the dependencies in the descriptors and the resolution result.
 
-## 12. Lỗi thường gặp khi dùng parent configuration
+## 12. Common Errors When Using Parent Configurations
 
-**Dependency có trong thư mục nhưng resolution vẫn báo thiếu module.**
+**A dependency is in the directory, yet resolution still reports a missing module.**
 
-Finder có thể chưa trỏ tới đúng thư mục hoặc module chưa được phân giải vào parent configuration. Kiểm tra module path, tên module và tập root.
+The finder may not be pointing to the right directory, or the module may not have been resolved into the parent configuration. Check the module path, module name, and root set.
 
-**Tưởng module trong parent tự động được đọc.**
+**Assuming modules in the parent are automatically read.**
 
-Parent configuration giúp module được tìm thấy để thỏa mãn dependency, nhưng plugin vẫn cần `requires` để có readability.
+The parent configuration allows the module to be found to satisfy dependencies, but the plugin still needs `requires` to obtain readability.
 
-**Dùng sai thứ tự beforeFinder và afterFinder.**
+**Using the wrong order for beforeFinder and afterFinder.**
 
-Finder trước parent được ưu tiên tìm trước; finder sau parent được xét sau. Nếu có module cùng tên ở nhiều nguồn, thứ tự này có thể làm thay đổi module được chọn. Tránh cung cấp nhiều bản cùng tên không cần thiết.
+The finder before the parent is searched with priority first; the finder after the parent is checked afterward. If modules with the same name exist in multiple sources, this order can change which module is selected. Avoid supplying unnecessary duplicates with the same name.
 
-**Resolve child từ boot configuration thay vì host configuration.**
+**Resolving the child from the boot configuration instead of the host configuration.**
 
-Nếu module API chỉ được phân giải trong host configuration, dùng boot configuration làm parent cho plugin sẽ không cung cấp module đó. Hãy resolve child từ đúng parent configuration.
+If the API module was only resolved in the host configuration, using the boot configuration as the parent for the plugin will not provide that module. Resolve the child from the proper parent configuration.
 
-**Định nghĩa layer với parent không khớp configuration.**
+**Defining a layer with a parent that does not match the configuration.**
 
-Configuration được resolve từ một parent graph nên được định nghĩa dưới layer tương ứng. Nếu ghép sai, cấu trúc runtime có thể không hợp lệ.
+A configuration resolved from a parent graph should be defined under the corresponding layer. Mismatching them can lead to an invalid runtime structure.
 
-**Cho rằng parent layer cho phép truy cập package nội bộ.**
+**Assuming a parent layer grants access to internal packages.**
 
-Readability và exports vẫn được kiểm tra. Nếu cần reflection sâu, cần opens riêng; parent relationship không bỏ qua encapsulation.
+Readability and exports are still enforced. If deep reflection is needed, separate opens are required; a parent relationship does not bypass encapsulation.
 
-**Nhầm configuration với layer.**
+**Confusing configuration with layer.**
 
-Configuration mô tả module graph đã resolve. Layer chứa các module object được định nghĩa trong runtime và gắn với class loader. Một configuration chưa được dùng để define layer thì chưa tạo ra module runtime mới.
+A configuration describes the resolved module graph. A layer contains the module objects defined in the runtime and associated with class loaders. A configuration that has not been used to define a layer has not created new runtime modules yet.
 
-## 13. Nguyên tắc thiết kế parent configuration
+## 13. Design Principles for Parent Configurations
 
-Khi thiết kế hệ thống phân giải module theo nhiều giai đoạn:
+When designing a multi-stage module resolution system:
 
-1. **Đặt API dùng chung ở parent:** các interface và kiểu hợp đồng ổn định nên được phân giải trước plugin.
-2. **Giữ dependency tường minh:** plugin khai báo `requires` tới module API mà nó thực sự sử dụng.
-3. **Dùng đúng parent configuration:** child resolution cần dựa trên configuration tương ứng với parent layer dự định.
-4. **Chọn finder có chủ đích:** quyết định nguồn module nào được ưu tiên trước parent và nguồn nào được tìm sau.
-5. **Tránh trùng tên module:** chỉ có một module phù hợp cho mỗi tên trong configuration graph.
-6. **Phân biệt resolution và definition:** resolve xong mới define layer; không coi finder là loader.
-7. **Kiểm tra exports:** dependency có thể resolve nhưng package vẫn phải được export để mã nguồn truy cập.
-8. **Dùng resolveAndBind khi cần service:** chỉ bật service binding khi mô hình provider yêu cầu.
-9. **Quan sát configuration trước khi define layer:** kiểm tra root, module được phân giải và parent để dễ chẩn đoán.
-10. **Giữ layer graph đơn giản:** chỉ tạo nhiều parent khi có yêu cầu tái sử dụng module thực sự.
+1. **Place shared APIs in the parent:** stable interfaces and contract types should be resolved before plugins.
+2. **Keep dependencies explicit:** plugins declare `requires` on the API modules they actually use.
+3. **Use the right parent configuration:** child resolution must be based on the configuration corresponding to the intended parent layer.
+4. **Choose finders deliberately:** decide which module sources take precedence before the parent and which are searched afterward.
+5. **Avoid duplicate module names:** there should be only one matching module for each name in the configuration graph.
+6. **Distinguish resolution and definition:** resolve first, then define the layer; do not treat a finder as a loader.
+7. **Check exports:** a dependency may resolve, yet packages still must be exported for source code access.
+8. **Use resolveAndBind when services are needed:** enable service binding only when the provider model requires it.
+9. **Inspect the configuration before defining the layer:** check roots, resolved modules, and parents for easier diagnosis.
+10. **Keep the layer graph simple:** introduce multiple parents only when there is a genuine requirement to reuse modules.
 
-## Kết luận
+## Conclusion
 
-Parent configuration cung cấp module graph đã được phân giải ở giai đoạn trước để resolver dùng khi tạo configuration mới. Khi child module khai báo `requires` tới một module đã có trong parent, dependency có thể được đáp ứng từ parent thay vì tìm và phân giải một bản mới.
+A parent configuration supplies a previously resolved module graph for the resolver to use when creating a new configuration. When a child module declares `requires` on a module already in the parent, the dependency can be satisfied from the parent instead of locating and resolving a new copy.
 
-`Configuration.resolve` và `resolveAndBind` nhận finder, parent configuration và root module để xây dựng graph. Thứ tự tìm kiếm giữa `beforeFinder`, parent configurations và `afterFinder` có ý nghĩa khi nhiều nguồn chứa module cùng tên. Sau resolution, configuration con được dùng để định nghĩa layer con tương ứng.
+`Configuration.resolve` and `resolveAndBind` take finders, parent configurations, and root modules to build the graph. The search order across `beforeFinder`, parent configurations, and `afterFinder` matters when multiple sources contain modules with the same name. After resolution, the child configuration is used to define the corresponding child layer.
 
-Parent configuration không tự cấp readability hoặc quyền truy cập package. Plugin vẫn cần `requires`, module sở hữu cần `exports`, và các quy tắc access modifier của Java tiếp tục áp dụng. Hiểu rõ sự phân biệt giữa discovery, resolution, parent configuration và ModuleLayer giúp xây dựng plugin system có dependency rõ ràng, tái sử dụng module dùng chung và dễ kiểm tra hơn.
+A parent configuration does not automatically grant readability or package access. The plugin still needs `requires`, the owning module needs `exports`, and Java's access modifier rules continue to apply. Understanding the distinction between discovery, resolution, parent configurations, and ModuleLayer helps build plugin systems with clear dependencies, shared module reuse, and easier diagnostics.

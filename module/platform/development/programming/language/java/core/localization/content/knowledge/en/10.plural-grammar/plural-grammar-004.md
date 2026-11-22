@@ -1,71 +1,71 @@
-# Kết hợp ChoiceFormat với MessageFormat
+# Combining ChoiceFormat with MessageFormat
 
-## 1. Bài toán: số lượng làm thay đổi cả câu
+## 1. The Problem: Quantities Change the Entire Sentence
 
-Trong ứng dụng đa ngôn ngữ, nội dung thông báo thường phụ thuộc số lượng:
+In multilingual applications, message content often depends on quantity:
 
-- Không có tệp nào.
-- Có một tệp.
-- Có 2 tệp.
+- No files.
+- One file.
+- 2 files.
 
-Với tiếng Anh, ví dụ tương ứng là “No files”, “One file”, “2 files”. Một cách triển khai thiếu linh hoạt là ghép số lượng với một danh từ đã dịch:
+In English, the corresponding examples are “No files”, “One file”, “2 files”. An inflexible implementation concatenates the count with a translated noun:
 
 ```java
 String text = "You have " + count + " files.";
 ```
 
-Câu này không đúng khi `count == 1`: “You have 1 files.”. Thêm điều kiện `if (count == 1)` chỉ xử lý một vài trường hợp tiếng Anh, trong khi ngữ pháp của ngôn ngữ khác có thể thay đổi cả động từ, danh từ, lời xưng hô hoặc dấu câu.
+This sentence is wrong when `count == 1`: “You have 1 files.”. Adding `if (count == 1)` only handles a few English cases, whereas the grammar of another language can change verbs, nouns, forms of address, or punctuation.
 
-Java có hai API trong `java.text` giúp xử lý **một số dạng câu thay đổi theo khoảng giá trị số**:
+Java has two APIs in `java.text` that help handle **certain sentence forms that vary by numeric value ranges**:
 
-- **`ChoiceFormat`** chọn một nhánh văn bản dựa trên các ngưỡng số. Ví dụ, từ 0 trở xuống chọn câu A, đúng 1 chọn câu B, lớn hơn 1 chọn câu C.
-- **`MessageFormat`** chèn tham số vào một **câu hoàn chỉnh** có cú pháp `{0}`, `{1}`, …; khi nhánh `choice` chứa một placeholder lồng nhau, `MessageFormat` có thể diễn giải tiếp nhánh đó để chèn số lượng.
+- **`ChoiceFormat`** selects a text branch based on numeric thresholds. For example, 0 and below selects sentence A, exactly 1 selects sentence B, and greater than 1 selects sentence C.
+- **`MessageFormat`** inserts parameters into a **complete sentence** with `{0}`, `{1}`, … syntax; when a `choice` branch contains a nested placeholder, `MessageFormat` can further interpret that branch to insert the quantity.
 
-Kết hợp hai API cho phép viết một thông điệp duy nhất với các lựa chọn:
+Combining both APIs allows writing a single message with choices:
 
 ```text
 You have {0,choice,0#no files|1#one file|1<{0,number,integer} files}.
 ```
 
-Với `0` là “You have no files.”, `1` là “You have one file.” và `2` là “You have 2 files.”. Những phần văn bản thay đổi được giữ trong cùng mẫu thay vì ép người dịch ghép từng mảnh.
+With `0` it produces “You have no files.”, with `1` “You have one file.”, and with `2` “You have 2 files.”. The varying text parts stay inside the same template rather than forcing translators to piece fragments together.
 
-**Phạm vi quan trọng:** `ChoiceFormat` là cơ chế **chọn theo ngưỡng số**, không phải bộ giải đầy đủ quy tắc số nhiều của mọi ngôn ngữ. Điều này ảnh hưởng cách thiết kế bài toán thực tế.
+**Important scope:** `ChoiceFormat` is a **numeric-threshold selection** mechanism, not a complete solver for plural rules of every language. This affects how real-world problems are designed.
 
-## 2. ChoiceFormat hoạt động thế nào?
+## 2. How Does ChoiceFormat Work?
 
-`java.text.ChoiceFormat` biểu diễn một dãy ngưỡng và những chuỗi tương ứng. Với giá trị số đầu vào, nó tìm nhánh có giới hạn phù hợp theo các khoảng được khai báo. Các giới hạn phải có thứ tự tăng.
+`java.text.ChoiceFormat` represents a sequence of thresholds and corresponding strings. Given an input numeric value, it finds the branch whose limit matches the declared intervals. Limits must be in ascending order.
 
-Mẫu `ChoiceFormat` cơ bản:
+Basic `ChoiceFormat` pattern:
 
 ```text
 0#No files|1#One file|1<Many files
 ```
 
-Ý nghĩa cú pháp:
+Syntax meaning:
 
-| Thành phần | Ý nghĩa |
+| Component | Meaning |
 | --- | --- |
-| `0`, `1` | Mốc số dùng để chọn nhánh |
-| `#` | Nhánh áp dụng **từ mốc đó trở lên**, gồm chính mốc |
-| `<` | Nhánh áp dụng cho giá trị **lớn hơn** mốc, không gồm mốc |
-| `|` | Ký tự phân cách các lựa chọn |
-| Văn bản sau dấu phân cách mốc | Giá trị trả về khi chọn nhánh đó |
+| `0`, `1` | Numeric thresholds used to select a branch |
+| `#` | Branch applies **from that threshold upward**, including the threshold itself |
+| `<` | Branch applies to values **greater than** the threshold, excluding the threshold |
+| `|` | Separator character between choices |
+| Text after the threshold delimiter | Value returned when that branch is selected |
 
-Với `0#No files|1#One file|1<Many files`:
+With `0#No files|1#One file|1<Many files`:
 
-- `0` chọn `No files`.
-- `1` chọn `One file`.
-- `2` chọn `Many files`.
+- `0` selects `No files`.
+- `1` selects `One file`.
+- `2` selects `Many files`.
 
-Ở nhánh `1<`, mốc số lớn hơn 1 bắt đầu ngay sau `1` trong biểu diễn `double`; các giá trị `1.1` cũng nằm trong nhánh này. Vì thế cách phân nhánh này **chỉ phù hợp** khi hợp đồng chấp nhận các đầu vào được dùng, ví dụ số lượng nguyên không âm.
+In the `1<` branch, the threshold greater than 1 starts immediately after `1` in `double` representation; values like `1.1` also fall into this branch. Therefore, this branching **is only appropriate** when the contract accepts the inputs used, such as non-negative integer counts.
 
-**Một lỗi tinh vi:** nếu giá trị nhỏ hơn mốc đầu tiên, `ChoiceFormat` vẫn chọn lựa chọn đầu. Vì vậy mẫu bắt đầu từ `0#` có thể hiển thị “No files” cho một số âm. Nếu số âm là dữ liệu không hợp lệ, hãy kiểm tra đầu vào trước khi định dạng, thay vì hy vọng ChoiceFormat tự chặn.
+**A subtle bug:** if a value is smaller than the first threshold, `ChoiceFormat` still selects the first choice. Thus a pattern starting at `0#` can display “No files” for a negative number. If negative numbers are invalid data, validate inputs before formatting rather than hoping ChoiceFormat rejects them automatically.
 
-Một `ChoiceFormat` có thể được tạo từ chuỗi pattern hoặc từ hai mảng cùng kích thước: `double[] limits` và `String[] formats`. Đây là hai cách tạo ra cùng một cơ chế chọn nhánh theo ngưỡng.
+A `ChoiceFormat` can be created from a pattern string or from two equal-sized arrays: `double[] limits` and `String[] formats`. These are two ways of constructing the same threshold-based branch selector.
 
-## 3. MessageFormat bổ sung điều gì?
+## 3. What Does MessageFormat Add?
 
-`MessageFormat` có cú pháp tham số:
+`MessageFormat` has parameter syntax:
 
 ```text
 {argumentIndex}
@@ -73,41 +73,41 @@ Một `ChoiceFormat` có thể được tạo từ chuỗi pattern hoặc từ h
 {argumentIndex,formatType,formatStyle}
 ```
 
-Ví dụ:
+Examples:
 
-- `{0}`: dùng đối số thứ nhất.
-- `{0,number,integer}`: trình bày đối số thứ nhất như số nguyên.
-- `{0,choice,0#none|1#one|1<many}`: chọn nhánh theo số.
-- `{1}`: dùng đối số thứ hai, có thể là tên người nhận thông báo.
+- `{0}`: uses the first argument.
+- `{0,number,integer}`: formats the first argument as an integer.
+- `{0,choice,0#none|1#one|1<many}`: selects a branch based on the number.
+- `{1}`: uses the second argument, such as the message recipient's name.
 
-Khi `MessageFormat` xử lý tham số `choice`:
+When `MessageFormat` processes a `choice` argument:
 
-1. Lấy đối số số học tương ứng.
-2. Đưa giá trị đó cho `ChoiceFormat`.
-3. Chọn văn bản của một nhánh.
-4. Nếu văn bản nhánh chứa placeholder kiểu `{0,number,integer}`, `MessageFormat` xử lý nhánh như một **mẫu thông điệp lồng nhau** với cùng danh sách đối số.
+1. Retrieves the corresponding numeric argument.
+2. Passes that value to `ChoiceFormat`.
+3. Selects the text of one branch.
+4. If the branch text contains a placeholder like `{0,number,integer}`, `MessageFormat` processes the branch as a **nested message pattern** with the same argument list.
 
-Nhờ bước thứ tư, nhánh “nhiều” có thể chứa **số lượng thực**; nếu chỉ gọi trực tiếp `ChoiceFormat.format(2)`, chuỗi `{0,number,integer} files` chỉ là đầu ra văn bản chưa được MessageFormat diễn giải tiếp.
+Thanks to the fourth step, the “many” branch can include the **actual quantity**; if you only call `ChoiceFormat.format(2)` directly, the string `{0,number,integer} files` is just raw text not yet interpreted by MessageFormat.
 
-Ví dụ mẫu:
+Example pattern (Vietnamese):
 
 ```text
 Có {0,choice,0#không có tệp nào|1#một tệp|1<{0,number,integer} tệp}.
 ```
 
-Người dùng nhìn thấy:
+What the user sees:
 
-| Đầu vào `count` | Kết quả |
+| Input `count` | Output |
 | ---: | --- |
 | 0 | `Có không có tệp nào.` |
 | 1 | `Có một tệp.` |
 | 2 | `Có 2 tệp.` |
 
-Mẫu trên **đúng về cơ chế nhưng không tự nhiên ở câu 0** (“Có không có tệp nào”). Đây là bài học quan trọng: thuật toán chọn nhánh có thể đúng mà **toàn câu vẫn sai ngữ pháp**. Người dịch cần được phép thay **cả mệnh đề** trong mỗi nhánh, không bị trói vào một prefix cứng.
+The pattern above is **mechanically valid yet unnatural for the 0 case** (“Có không có tệp nào”). This is an important lesson: the branch-selection algorithm can be right while **the whole sentence is still grammatically wrong**. Translators need to be allowed to replace **the entire clause** in each branch, without being locked into a rigid prefix.
 
-## 4. Ví dụ hoàn chỉnh: mỗi nhánh là một câu tự nhiên
+## 4. Complete Example: Each Branch Is a Natural Sentence
 
-Đặt nguyên thông điệp vào từng nhánh, để ngữ pháp được điều chỉnh trọn vẹn:
+Put the full message inside each branch so grammar can be adjusted completely:
 
 ```java
 import java.text.MessageFormat;
@@ -128,7 +128,7 @@ public class ChoiceMessageDemo {
 }
 ```
 
-Lưu thành tệp `ChoiceMessageDemo.java` với UTF-8. Chạy trên JDK 17+:
+Save as `ChoiceMessageDemo.java` with UTF-8. Run on JDK 17+:
 
 ```bash
 javac -encoding UTF-8 ChoiceMessageDemo.java
@@ -144,20 +144,20 @@ Có 2 tệp.
 Có 5 tệp.
 ```
 
-Giải thích:
+Explanation:
 
-- `0#` là nhánh đầu, bao gồm giá trị `0`.
-- `1#` dành cho giá trị `1`.
-- `1<` dành cho các giá trị lớn hơn `1`.
-- `{0,number,integer}` ở nhánh cuối được xử lý tiếp sau khi `ChoiceFormat` chọn nhánh, nên kết quả chứa chính con số đầu vào.
+- `0#` is the first branch, covering the value `0`.
+- `1#` is for the value `1`.
+- `1<` is for values greater than `1`.
+- `{0,number,integer}` in the last branch is processed after `ChoiceFormat` selects the branch, so the output contains the actual input number.
 
-Đây là ví dụ cho **số đếm nguyên không âm**, nơi những câu trên phù hợp. Trước khi áp dụng trong ứng dụng, cần quyết định rõ ứng xử với số âm, số thập phân và giá trị lớn. Nếu người dùng nhập `-2` mà hệ thống hiển thị “Không có tệp nào”, đó là lỗi quy tắc nghiệp vụ cần xử lý trước khi render.
+This is an example for **non-negative integer counts**, where these sentences fit. Before using this in an application, clearly decide behavior for negative numbers, decimals, and large values. If a user enters `-2` and the system displays “Không có tệp nào”, that is a business rule bug to handle before rendering.
 
-## 5. Không phải lúc nào cũng cần nhúng choice trực tiếp trong pattern
+## 5. You Do Not Always Need to Embed Choice Directly in the Pattern
 
-Có hai cách kết hợp thường dùng:
+There are two common ways to combine them:
 
-**Cách A — cú pháp `choice` nằm trong MessageFormat pattern**
+**Approach A — `choice` syntax inside the MessageFormat pattern**
 
 ```java
 MessageFormat message = new MessageFormat(
@@ -165,7 +165,7 @@ MessageFormat message = new MessageFormat(
         Locale.US);
 ```
 
-**Cách B — tạo `ChoiceFormat` bằng Java rồi gắn vào một argument của `MessageFormat`**
+**Approach B — create `ChoiceFormat` in Java and attach it to a `MessageFormat` argument**
 
 ```java
 ChoiceFormat choice = new ChoiceFormat(limits, labels);
@@ -173,9 +173,9 @@ MessageFormat message = new MessageFormat("{0}", Locale.US);
 message.setFormatByArgumentIndex(0, choice);
 ```
 
-Cả hai đều dùng `MessageFormat` để xử lý tham số. Cách A thuận tiện khi pattern được bản địa hóa trong file tài nguyên; cách B phù hợp khi các mốc chọn nhánh được xây dựng từ chính sách do code kiểm soát. Tuy nhiên, nếu muốn người dịch thay đổi cấu trúc câu, nên giữ **mẫu hoàn chỉnh** trong tệp bản dịch thay vì cố định mọi nhánh trong Java.
+Both use `MessageFormat` to handle parameters. Approach A is convenient when patterns are localized in resource files; Approach B fits when branching thresholds are built from code-controlled policies. However, if you want translators to change sentence structure, keep the **complete template** in translation files instead of hardcoding all branches in Java.
 
-### Ví dụ chạy được với ChoiceFormat tạo từ mảng
+### Runnable example with ChoiceFormat created from arrays
 
 ```java
 import java.text.ChoiceFormat;
@@ -206,7 +206,7 @@ public class ProgrammaticChoiceDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 ProgrammaticChoiceDemo.java
@@ -222,13 +222,13 @@ Result: 2 files.
 Result: 5 files.
 ```
 
-Ở đây `limits` có ba mốc 0, 1, 2. Với đầu vào 2 hoặc 5, `ChoiceFormat` chọn phần tử cuối trong `labels`. `MessageFormat` sau đó nhận thấy chuỗi đã chọn chứa `{0,number,integer}`, nên chèn số lượng thực.
+Here `limits` has three thresholds 0, 1, 2. For inputs 2 or 5, `ChoiceFormat` selects the last element in `labels`. `MessageFormat` then sees that the selected string contains `{0,number,integer}`, so it inserts the actual count.
 
-**Phân biệt:** khi dùng mảng với `new ChoiceFormat(limits, labels)`, mỗi mốc của mảng là **giới hạn đầu khoảng có bao gồm chính giới hạn đó**. Với pattern dạng text, `1<` là cách biểu đạt mốc mở, thích hợp cho đầu vào lớn hơn 1. Không nên thay `1<` thành `2#` nếu có thể nhận số thực 1.5; chúng chỉ tương đương khi hợp đồng đầu vào đã giới hạn số nguyên.
+**Distinction:** when using arrays with `new ChoiceFormat(limits, labels)`, each array threshold is the **inclusive lower bound of that interval**. With text patterns, `1<` expresses an open bound, suitable for inputs greater than 1. Do not replace `1<` with `2#` if floating-point inputs like `1.5` can occur; they are only equivalent when the input contract restricts values to integers.
 
-## 6. Kết hợp thêm tham số khác, như tên người nhận
+## 6. Combining Additional Parameters, Such as Recipient Name
 
-Thông báo thường chứa cả số lượng và tên người dùng. Có thể dùng `{0}` cho số lượng, `{1}` cho tên:
+Messages often contain both a quantity and a user name. You can use `{0}` for the count and `{1}` for the name:
 
 ```java
 import java.text.MessageFormat;
@@ -237,7 +237,7 @@ import java.util.Locale;
 public class NamedChoiceDemo {
     public static void main(String[] args) {
         String pattern =
-                "{1}, {0,choice,0#bạn không có tin nhắn mới.|1#bạn có một tin nhắn mới.|1<bạn có nhiều tin nhắn mới.}";
+                "{1}, {0,choice,0#you have no new messages.|1#you have one new message.|1<you have many new messages.}";
         MessageFormat message = new MessageFormat(pattern, Locale.US);
 
         System.out.println(message.format(new Object[] {0, "Mai"}));
@@ -246,17 +246,17 @@ public class NamedChoiceDemo {
 }
 ```
 
-Ví dụ này in hai trường hợp số lượng 0 và 1. Nhánh `1<` hợp lệ cho mọi số lượng lớn hơn 1; nếu muốn hiện số lượng thực tế ở nhánh đó, dùng mẫu đầy đủ sau:
+This example prints the two cases for counts 0 and 1. The `1<` branch is valid for any count greater than 1; if you want to show the actual count in that branch, use the following complete pattern:
 
 ```text
-{1}, {0,choice,0#bạn không có tin nhắn mới.|1#bạn có một tin nhắn mới.|1<bạn có {0,number,integer} tin nhắn mới.}
+{1}, {0,choice,0#you have no new messages.|1#you have one new message.|1<you have {0,number,integer} new messages.}
 ```
 
-Dữ liệu động có thể xuất hiện ở vị trí khác nhau theo ngôn ngữ. Điều này đặc biệt quan trọng khi câu có nhiều tham số. Một bản dịch khác có thể đặt tên `{1}` ở cuối câu, hoặc lược bỏ lời xưng hô nếu phù hợp ngữ cảnh. **Đừng chia bản dịch thành các mảnh rồi nối cố định ở Java.**
+Dynamic data can appear in different positions depending on the language. This is especially important when a sentence has multiple parameters. Another translation might place the name `{1}` at the end of the sentence, or omit the greeting if contextually appropriate. **Do not split translations into fragments and concatenate them rigidly in Java.**
 
-## 7. Tách pattern theo locale qua ResourceBundle
+## 7. Separating Patterns by Locale via ResourceBundle
 
-Trong dự án đa ngôn ngữ, mỗi locale nên có **toàn bộ thông điệp**, bao gồm các nhánh của `ChoiceFormat`. Ví dụ tổ chức tệp:
+In a multilingual project, each locale should have the **entire message**, including the `ChoiceFormat` branches. Example file layout:
 
 ```text
 src/main/resources/
@@ -265,25 +265,25 @@ src/main/resources/
 └── messages_vi.properties
 ```
 
-Nội dung `messages_en.properties`:
+Contents of `messages_en.properties`:
 
 ```properties
 files.summary={0,choice,0#No files.|1#One file.|1<{0,number,integer} files.}
 ```
 
-Nội dung `messages_vi.properties`:
+Contents of `messages_vi.properties`:
 
 ```properties
 files.summary={0,choice,0#Không có tệp nào.|1#Có một tệp.|1<Có {0,number,integer} tệp.}
 ```
 
-Nội dung bundle gốc `messages.properties` nên có key cùng ý nghĩa và một mẫu dự phòng đầy đủ:
+The base bundle `messages.properties` should have the same semantic key and a complete fallback template:
 
 ```properties
 files.summary={0,choice,0#No files.|1#One file.|1<{0,number,integer} files.}
 ```
 
-Java lấy pattern theo key và định dạng:
+Java retrieves the pattern by key and formats it:
 
 ```java
 import java.text.MessageFormat;
@@ -309,7 +309,7 @@ public class BundleChoiceDemo {
 }
 ```
 
-Đặt `BundleChoiceDemo.java` cạnh ba tệp tài nguyên để chạy độc lập:
+Place `BundleChoiceDemo.java` alongside the three resource files to run standalone:
 
 ```bash
 javac -encoding UTF-8 BundleChoiceDemo.java
@@ -325,62 +325,62 @@ Không có tệp nào.
 Có 2 tệp.
 ```
 
-Trong dự án Maven hoặc Gradle, khi `messages*.properties` nằm ở `src/main/resources`, build tool thường đưa chúng vào classpath. Chạy `ResourceBundle.getBundle("messages", locale)` tại root classpath không cần tự mở file bằng `FileInputStream`.
+In a Maven or Gradle project, when `messages*.properties` live in `src/main/resources`, the build tool normally puts them on the classpath. Running `ResourceBundle.getBundle("messages", locale)` at the classpath root does not require opening files manually with `FileInputStream`.
 
-**Hai nhiệm vụ tách biệt:** `ResourceBundle` chọn **mẫu văn bản** theo locale và key; `MessageFormat`/ `ChoiceFormat` chọn **nhánh và chèn tham số**. Nếu bộ tài nguyên thiếu locale hoặc key, quy tắc fallback/`MissingResourceException` của ResourceBundle vẫn áp dụng; `ChoiceFormat` không giải quyết việc chọn bản dịch.
+**Two separate responsibilities:** `ResourceBundle` selects the **text template** by locale and key; `MessageFormat`/`ChoiceFormat` selects the **branch and inserts parameters**. If the resource set is missing a locale or key, ResourceBundle's fallback/`MissingResourceException` rules still apply; `ChoiceFormat` does not solve translation lookup.
 
-## 8. Tại sao phải dịch cả các nhánh, không dịch từng từ?
+## 8. Why Translate Whole Branches Instead of Individual Words?
 
-Một số cách tiếp cận sai:
+A flawed approach:
 
 ```java
-// Mẫu phụ thuộc cấu trúc tiếng Anh.
+// Template dependent on English structure.
 String result = count + " " + bundle.getString("file.label")
         + bundle.getString("files.suffix");
 ```
 
-Cách này giả định thứ tự **số → danh từ → phần còn lại** giống nhau ở mọi ngôn ngữ. Ngay cả khi dịch `file.label`, hệ thống vẫn không có quyền thay đổi cả câu hoặc động từ.
+This assumes the order **number → noun → remainder** is identical in every language. Even if `file.label` is translated, the system still cannot change the full sentence or verb.
 
-Cách tốt hơn: một key `files.summary` có toàn bộ pattern, và mỗi nhánh chứa mệnh đề tự nhiên. Tiếng Anh có “No files”, “One file”, “2 files”; tiếng Việt có thể dùng “Không có tệp nào”, “Có một tệp”, “Có 2 tệp”. Các chi tiết như vị trí chủ ngữ, đại từ, dấu câu và hình thức danh từ được xử lý bên trong bản dịch.
+A better approach: a single `files.summary` key holds the entire pattern, and each branch contains a natural clause. English has “No files”, “One file”, “2 files”; Vietnamese can use “Không có tệp nào”, “Có một tệp”, “Có 2 tệp”. Details like subject placement, pronouns, punctuation, and noun forms are handled inside the translation.
 
-Người dịch cần biết:
+Translators need to know:
 
-- `{0}` là số lượng tệp, phải là số nguyên không âm.
-- `0#`, `1#`, `1<` là **cú pháp điều khiển nhánh**, không được tùy tiện đổi.
-- `{0,number,integer}` là placeholder của Java, không phải một phần câu để dịch.
-- Những đoạn văn nằm sau các dấu `#` hoặc `<` có thể được dịch sao cho ngữ pháp hoàn chỉnh.
-- Nếu ngôn ngữ cần các nhóm số khác 0/1/nhiều, phải báo cho người thiết kế giải pháp i18n, không cố ép một mẫu tiếng Anh.
+- `{0}` is the file count and must be a non-negative integer.
+- `0#`, `1#`, `1<` are **branch-control syntax** and must not be altered arbitrarily.
+- `{0,number,integer}` is a Java placeholder, not sentence text to translate.
+- Text segments following `#` or `<` can be translated so grammar is complete.
+- If a language requires number groups other than 0/1/many, they must notify the i18n designer rather than forcing an English template.
 
-Cần có **ngữ cảnh dịch** cho key, ví dụ vị trí hiển thị, đơn vị của số lượng, kiểu dữ liệu đầu vào, yêu cầu dấu câu và những giá trị thử nghiệm. Pattern hợp lệ về cú pháp vẫn có thể sai ngữ pháp.
+**Translation context** is needed for the key, such as display location, quantity unit, input data type, punctuation requirements, and test values. A syntactically valid pattern can still be grammatically wrong.
 
-## 9. Các giới hạn ngữ pháp của ChoiceFormat
+## 9. Grammatical Limitations of ChoiceFormat
 
-`ChoiceFormat` chủ yếu dựa trên **các khoảng số tăng dần**. Điều đó đủ cho các thông điệp có nhánh:
+`ChoiceFormat` is primarily based on **ascending numeric intervals**. That suffices for messages with branches:
 
-- Không có kết quả (`count == 0`).
-- Đúng một kết quả (`count == 1`).
-- Nhiều hơn một kết quả (`count > 1`).
+- No results (`count == 0`).
+- Exactly one result (`count == 1`).
+- More than one result (`count > 1`).
 
-Nhưng quy tắc số nhiều của các ngôn ngữ không phải lúc nào cũng chia thành các khoảng liên tục.
+However, plural rules of languages do not always partition into contiguous intervals.
 
-Ví dụ, một số ngôn ngữ sử dụng dạng danh từ khác nhau tùy chữ số cuối cùng hoặc hai chữ số cuối của số đếm. Khi ấy hai số xa nhau có thể thuộc cùng một loại ngữ pháp, trong khi hai số kề nhau thuộc loại khác. `ChoiceFormat` dạng ngưỡng thuần túy khó biểu diễn chính xác loại quy tắc theo modulo đó. Một số ngôn ngữ còn cần nhiều plural category như `zero`, `one`, `two`, `few`, `many`, `other`; quy tắc không thể suy ra chỉ từ tiếng Anh.
+For instance, some languages use different noun forms depending on the last digit or last two digits of the count. Two distant numbers may then belong to the same grammatical category while adjacent numbers belong to different categories. Pure threshold-based `ChoiceFormat` cannot accurately express such modulo-based rules. Some languages also require multiple plural categories such as `zero`, `one`, `two`, `few`, `many`, `other`; rules cannot be inferred from English alone.
 
-**Không được kết luận rằng mẫu `0#...|1#...|1<...` là “cách làm số nhiều cho mọi locale”.** Nó là một **quy tắc nghiệp vụ cụ thể dựa trên ngưỡng**, được kiểm tra với số lượng nguyên không âm và những ngôn ngữ thực sự hỗ trợ.
+**Do not conclude that `0#...|1#...|1<...` is “the pluralization method for every locale”.** It is a **specific threshold-based business rule**, verified for non-negative integer counts and the languages actually supported.
 
-Khi dự án có nhiều ngôn ngữ với plural/gender phức tạp:
+When a project involves multiple languages with complex plurals/gender:
 
-1. Xác định các ngôn ngữ và quy tắc plural thực tế.
-2. Tham khảo quy tắc CLDR, ví dụ số 0/1/2/5/11/21/101 có thể cần các nhánh khác nhau tùy ngôn ngữ.
-3. Cân nhắc thư viện i18n hỗ trợ plural rules như ICU4J hoặc cơ chế framework đã được kiểm chứng.
-4. Vẫn để **toàn bộ mệnh đề** trong từng nhánh và kiểm thử bằng người hiểu ngôn ngữ đó.
+1. Identify the actual languages and plural rules.
+2. Consult CLDR rules; for example, numbers 0/1/2/5/11/21/101 may need different branches depending on the language.
+3. Consider an i18n library supporting plural rules such as ICU4J or a proven framework mechanism.
+4. Still keep **entire clauses** inside each branch and test with people fluent in that language.
 
-Đây không phải lý do loại bỏ ChoiceFormat: API rất hữu ích với các lựa chọn dựa trên ngưỡng như số kết quả, khoảng điểm, mức cảnh báo hoặc nhóm số đơn giản. Chỉ cần không dùng nó vượt phạm vi ngữ pháp mà nó biểu diễn được.
+This is not a reason to discard ChoiceFormat: the API is very useful for threshold-based selections such as result counts, score bands, alert levels, or simple number groups. Simply avoid using it beyond the grammatical scope it can express.
 
-## 10. Giá trị biên, số thực và độ chính xác
+## 10. Boundary Values, Floating-Point Numbers, and Precision
 
-### 10.1. Giá trị âm
+### 10.1. Negative values
 
-Một `ChoiceFormat` bắt đầu bằng `0#No files` cũng có thể chọn nhánh đầu nếu đầu vào nhỏ hơn 0. Nếu phép đếm phải không âm, hãy kiểm tra:
+A `ChoiceFormat` starting with `0#No files` can still select the first branch if the input is less than 0. If a count must be non-negative, validate it:
 
 ```java
 if (count < 0) {
@@ -388,37 +388,37 @@ if (count < 0) {
 }
 ```
 
-Đây là **đoạn mã minh họa**, phải đặt trong hàm có biến `count`. Không nên gọi `Math.max(0, count)` theo thói quen vì làm mất khả năng phát hiện dữ liệu nghiệp vụ không hợp lệ.
+This is an **illustrative code snippet** that must be placed inside a method with a `count` variable. Do not habitually call `Math.max(0, count)` because that hides invalid business data.
 
-### 10.2. Số không nguyên
+### 10.2. Non-integer numbers
 
-`1<` áp dụng cho mọi số lớn hơn 1, gồm `1.5`, không chỉ `2, 3, 4`. Nếu thông điệp nói “tệp”, “người”, “sản phẩm” và đầu vào phải là số đếm, nên dùng `int`/`long` và kiểm tra phạm vi hợp lệ.
+`1<` applies to every number greater than 1, including `1.5`, not just `2, 3, 4`. If the message talks about “files”, “people”, “products” and the input must be a count, use `int`/`long` and validate the allowed range.
 
-### 10.3. Số rất lớn
+### 10.3. Very large numbers
 
-`ChoiceFormat` xử lý các mốc theo `double`; không nên dựa vào phép chọn ngưỡng khi số lượng nguyên vượt phạm vi có thể biểu diễn chính xác của `double` (khoảng `2^53`). Nếu nghiệp vụ đòi hỏi số nguyên lớn, cần thiết kế phân loại bằng kiểu dữ liệu và điều kiện chính xác hơn ở tầng logic, rồi chọn mẫu câu phù hợp.
+`ChoiceFormat` processes thresholds as `double`; do not rely on threshold selection when integer counts exceed the exact representable range of `double` (around `2^53`). If business logic requires large integers, design classification using more precise data types and conditions at the logic layer, then choose the corresponding sentence template.
 
-### 10.4. NaN và vô cực
+### 10.4. NaN and infinity
 
-Kết quả chọn nhánh cho `NaN` hoặc vô cực không nên được xem là cách xác nhận dữ liệu hợp lệ. Với đầu vào là số lượng, hãy chặn `NaN` và giá trị không hữu hạn nếu kiểu dữ liệu có thể chứa chúng. Dùng kiểu nguyên khi bài toán đếm là số nguyên.
+Branch selection results for `NaN` or infinity should not be treated as a way to validate input data. For count inputs, reject `NaN` and non-finite values if the data type can hold them. Use integer types when the counting problem is integer-based.
 
-### 10.5. Các mốc và giá trị ngang nhau
+### 10.5. Thresholds and equal values
 
-Pattern chọn nhánh phải có các giới hạn được sắp theo thứ tự tăng. Đổi thứ tự hay làm trùng những mốc sẽ dẫn đến mẫu không như dự định hoặc lỗi cú pháp. Với dữ liệu số thực, phân biệt `1#` (bao gồm 1) và `1<` (lớn hơn 1); với các mốc 0, 1, 2 trong mảng constructor, từng mốc được tính từ giới hạn đó trở lên.
+A choice pattern must have limits ordered in ascending order. Reordering or duplicating thresholds leads to unintended patterns or syntax errors. For floating-point data, distinguish `1#` (includes 1) from `1<` (greater than 1); with thresholds 0, 1, 2 in the array constructor, each threshold applies from that limit upward.
 
-## 11. Dấu nháy, dấu phân cách và pattern lồng nhau
+## 11. Quotes, Delimiters, and Nested Patterns
 
-`MessageFormat` dùng dấu nháy đơn `'` để quote literal, và dấu `''` để biểu diễn một dấu nháy đơn. `ChoiceFormat` còn dùng các ký tự `|`, `#`, `<` để phân tách nhánh và ngưỡng.
+`MessageFormat` uses a single quote `'` to quote literals, and `''` to represent a single quote. `ChoiceFormat` also uses `|`, `#`, `<` to separate branches and thresholds.
 
-Vì vậy khi đặt ChoiceFormat vào MessageFormat:
+Therefore, when placing ChoiceFormat inside MessageFormat:
 
-- Pattern có **hai tầng cú pháp**: phần chọn nhánh và mẫu thông điệp.
-- Không tự chèn dấu `'` để “escape” theo cách của Java string; quy tắc quote trong runtime pattern khác với escaping trong Java source.
-- Nếu dịch giả cần in ra dấu `|` hoặc dấu ngoặc nhọn, phải dùng cơ chế quote thích hợp và kiểm thử đầu ra sau khi cả hai tầng parser xử lý.
-- Tránh ghép dữ liệu người dùng vào phần **pattern**; hãy truyền dữ liệu đó dưới dạng **argument**. Người dùng không nên quyết định quy tắc parser.
-- Khi pattern nằm trong `.properties`, còn phải kiểm tra cú pháp `.properties` và encoding. Dấu `#` ở **giữa value** không phải comment bắt đầu dòng, nhưng dấu `\\` và ký tự escape vẫn có ý nghĩa theo quy tắc properties.
+- The pattern has **two syntax layers**: the branch selector and the message template.
+- Do not insert `'` to “escape” in the manner of Java strings; quoting rules in runtime patterns differ from escaping in Java source code.
+- If a translator needs to output `|` or braces, use the proper quoting mechanism and test the output after both parser layers process it.
+- Avoid concatenating user data into the **pattern**; pass that data as an **argument**. Users should not control parser rules.
+- When patterns live in `.properties`, also check `.properties` syntax and encoding. A `#` in the **middle of a value** is not a line-start comment, but `\\` and escape characters still have meaning under properties rules.
 
-Một ví dụ không cần ChoiceFormat nhưng nhấn mạnh quoting:
+An example without ChoiceFormat that highlights quoting:
 
 ```java
 MessageFormat formatter =
@@ -426,83 +426,83 @@ MessageFormat formatter =
 System.out.println(formatter.format(new Object[] {"Mai"}));
 ```
 
-Kết quả:
+Output:
 
 ```text
 You're invited, Mai!
 ```
 
-Nếu viết `You're invited, {0}!` với một dấu nháy trong pattern, `MessageFormat` có thể coi phần sau dấu nháy là literal và không thay `{0}` đúng như mong muốn.
+If you write `You're invited, {0}!` with a single quote in the pattern, `MessageFormat` can treat everything after the quote as a literal and fail to substitute `{0}` as intended.
 
-## 12. Thread safety và hiệu năng
+## 12. Thread Safety and Performance
 
-`MessageFormat` và `ChoiceFormat` là các đối tượng formatter có trạng thái và có phương thức chỉnh pattern/định dạng. Không nên coi một instance mutable dùng chung giữa nhiều request là mặc nhiên an toàn cho mọi thao tác đồng thời.
+`MessageFormat` and `ChoiceFormat` are stateful formatter objects with methods that modify patterns/formats. A shared mutable instance across multiple requests should not be assumed safe for all concurrent operations.
 
-Ví dụ trong API service, lựa chọn đơn giản là tạo formatter từ pattern và locale cho một thao tác render; khi tối ưu hiệu năng, có thể cân nhắc cache **pattern bất biến** hoặc quản lý bản sao formatter một cách có kiểm soát. Nếu các định dạng được tái cấu hình bằng `applyPattern`, `setFormat` hoặc `setFormatByArgumentIndex`, cần tránh chia sẻ trạng thái đang thay đổi giữa các luồng.
+For example, in an API service, a simple option is creating a formatter from pattern and locale per render operation; when optimizing performance, consider caching **immutable patterns** or managing formatter copies in a controlled way. If formats are reconfigured via `applyPattern`, `setFormat`, or `setFormatByArgumentIndex`, avoid sharing mutable state across threads.
 
-Không dùng `Locale.setDefault` để chuyển ngôn ngữ của từng request: đó là trạng thái JVM dùng chung. Hãy truyền locale cụ thể trong `new MessageFormat(pattern, locale)` và dùng locale đã chọn khi lấy ResourceBundle.
+Do not call `Locale.setDefault` to switch language per request: that is shared JVM state. Pass the explicit locale into `new MessageFormat(pattern, locale)` and use the selected locale when retrieving the ResourceBundle.
 
-## 13. Kiểm thử ChoiceFormat + MessageFormat
+## 13. Testing ChoiceFormat + MessageFormat
 
-Các ca kiểm thử tối thiểu cho mẫu `0#...|1#...|1<...`:
+Minimal test cases for the `0#...|1#...|1<...` pattern:
 
-| Đầu vào | Kỳ vọng | Mục tiêu |
+| Input | Expected | Objective |
 | ---: | --- | --- |
-| 0 | Câu “không có” | Đúng nhánh đầu |
-| 1 | Câu “một” | Đúng nhánh thứ hai |
-| 2 | Câu “nhiều” có số 2 | Đúng mốc mở và chèn số |
-| 5 | Câu “nhiều” có số 5 | Không cố định thành số 2 |
-| -1 | Bị business validation từ chối | Tránh chọn nhầm nhánh đầu |
-| 1.5 | Được xử lý theo chính sách rõ ràng | Nhận biết `1<` không chỉ áp dụng số nguyên |
+| 0 | “No” sentence | Correct first branch |
+| 1 | “One” sentence | Correct second branch |
+| 2 | “Many” sentence with number 2 | Correct open bound and number insertion |
+| 5 | “Many” sentence with number 5 | Not hardcoded to number 2 |
+| -1 | Rejected by business validation | Avoid accidentally selecting first branch |
+| 1.5 | Handled by clear policy | Recognize `1<` does not apply only to integers |
 
-Thử bổ sung:
+Additional checks to run:
 
-1. **Đổi locale:** hiển thị tiếng Việt và tiếng Anh từ ResourceBundle với cùng `count`, xác minh mỗi câu hoàn chỉnh, đúng dấu câu.
-2. **Tham số lồng nhau:** nhánh `1<` chứa `{0,number,integer}` và hiển thị đúng giá trị, đặc biệt khi có phân tách hàng nghìn theo locale.
-3. **Thiếu key:** nếu `files.summary` không có trong bundle/parent, kiểm chứng lỗi `MissingResourceException` hoặc fallback do sản phẩm quyết định.
-4. **Ký tự đặc biệt:** apostrophe, `|`, dấu `{`, `}`, dấu xuống dòng, chuỗi Unicode từ file.
-5. **Ngữ pháp:** kiểm tra bằng người hiểu ngôn ngữ mục tiêu, không chỉ so sánh những chuỗi máy tạo ra.
-6. **Dữ liệu động:** tên người chứa dấu nháy hoặc ký tự HTML; `MessageFormat` không tự HTML-escape, nên tầng web phải escape theo ngữ cảnh đầu ra.
-7. **Bất biến đa luồng:** nếu formatter được cache hoặc dùng chung, kiểm tra chiến lược quản lý instance; không cập nhật pattern của một instance đang được dùng ở thread khác.
+1. **Locale switching:** render Vietnamese and English from ResourceBundle with the same `count`, verifying each sentence is complete with proper punctuation.
+2. **Nested parameters:** the `1<` branch contains `{0,number,integer}` and displays the value accurately, especially with locale-specific thousands separators.
+3. **Missing keys:** if `files.summary` is absent from the bundle/parent, verify `MissingResourceException` or the product's chosen fallback.
+4. **Special characters:** apostrophes, `|`, `{`, `}`, newlines, Unicode strings from files.
+5. **Grammar:** verify with people fluent in the target language, rather than only comparing machine-generated strings.
+6. **Dynamic data:** user names containing quotes or HTML characters; `MessageFormat` does not HTML-escape automatically, so the web layer must escape according to the output context.
+7. **Multithreaded immutability:** if formatters are cached or shared, verify the instance management strategy; never update a pattern on an instance being used by another thread.
 
-Với Java test, có thể giữ các pattern nhỏ dễ hiểu và kiểm tra từng mốc. Đừng chỉ kiểm thử `count = 2`, vì trường hợp `0`, `1` và giá trị không hợp lệ mới dễ bộc lộ lỗi ranh giới.
+In Java tests, keep patterns small and easy to understand, checking every threshold. Do not test only `count = 2`, because `0`, `1`, and invalid values are what reveal boundary bugs.
 
-## 14. Những hiểu lầm thường gặp
+## 14. Common Misconceptions
 
-1. **“ChoiceFormat tự dịch đúng số nhiều của mọi ngôn ngữ.”** Sai; nó chỉ chọn theo khoảng giá trị số. Quy tắc plural phức tạp thường cần CLDR/ICU hoặc logic riêng đã xác minh.
-2. **“Cứ nối số + danh từ đã dịch là được.”** Sai; thay đổi có thể ảnh hưởng cả mệnh đề và dấu câu.
-3. **“ChoiceFormat chọn trực tiếp nhánh có `{0}` thì số tự được thay.”** Không với `ChoiceFormat.format` đơn thuần. Việc diễn giải placeholder lồng nhau diễn ra khi ChoiceFormat được sử dụng trong `MessageFormat`.
-4. **“Nhánh `1<` là số nguyên từ 2.”** Với số thực, `1.1` cũng lớn hơn 1. Chỉ tương đương “từ 2” khi đầu vào đã là số nguyên.
-5. **“Các mốc không cần tăng dần.”** ChoiceFormat dựa trên các giới hạn có thứ tự; pattern sai thứ tự có thể bị từ chối hoặc hoạt động không đúng ý định.
-6. **“Đầu vào âm sẽ tự lỗi.”** Một giá trị dưới mốc đầu có thể chọn nhánh đầu tiên; business validation cần xử lý.
-7. **“Đặt pattern vào ResourceBundle là đủ.”** Cần thêm kiểm tra key, fallback, syntax, dấu nháy, plural và ngữ pháp của từng locale.
-8. **“MessageFormat sẽ HTML-escape dữ liệu.”** Không; đó là formatter, không phải cơ chế encode an toàn cho HTML hay SQL.
-9. **“Mỗi ngôn ngữ phải dùng cùng một thứ tự từ.”** Không; mỗi bản dịch được phép tổ chức lại mệnh đề và vị trí các placeholder.
-10. **“Có thể dùng chung một formatter mutable và chỉnh pattern theo request.”** Không an toàn khi nhiều luồng cùng sử dụng; cần quản lý trạng thái đúng cách.
+1. **“ChoiceFormat automatically translates plurals correctly for every language.”** False; it only selects by numeric value ranges. Complex plural rules usually require CLDR/ICU or verified custom logic.
+2. **“Just concatenate number + translated noun.”** False; changes can affect the entire clause and punctuation.
+3. **“If ChoiceFormat directly selects a branch containing `{0}`, the number is substituted automatically.”** Not with standalone `ChoiceFormat.format`. Nested placeholder interpretation occurs when ChoiceFormat is used inside `MessageFormat`.
+4. **“The `1<` branch means integers from 2.”** With floating-point numbers, `1.1` is also greater than 1. It is equivalent to “from 2” only when inputs are already integers.
+5. **“Thresholds do not need to be ascending.”** ChoiceFormat relies on ordered limits; out-of-order patterns may be rejected or behave unexpectedly.
+6. **“Negative inputs will automatically error.”** A value below the first limit can select the first branch; business validation must handle it.
+7. **“Putting patterns in ResourceBundle is enough.”** You also need to verify keys, fallback, syntax, quotes, plurals, and grammar for each locale.
+8. **“MessageFormat will HTML-escape data.”** No; it is a formatter, not a safe encoding mechanism for HTML or SQL.
+9. **“Every language must use the same word order.”** No; each translation is allowed to reorganize clauses and placeholder positions.
+10. **“You can share a mutable formatter and change its pattern per request.”** Not safe under concurrent use by multiple threads; state must be managed properly.
 
-## 15. Khi nào chọn ChoiceFormat và khi nào chọn giải pháp khác?
+## 15. When to Choose ChoiceFormat and When to Choose Another Solution?
 
-`ChoiceFormat` phù hợp khi bạn có **một số điều kiện theo ngưỡng số**: ví dụ 0 kết quả, 1 kết quả, nhiều kết quả; các mức đánh giá dựa trên điểm; hoặc các nhánh thông điệp đơn giản mà ngôn ngữ thực tế hỗ trợ có thể diễn đạt chính xác.
+`ChoiceFormat` fits when you have **a few conditions by numeric thresholds**: such as 0 results, 1 result, many results; rating tiers by score; or simple message branches that the supported languages can express accurately.
 
-Với pluralization phức tạp theo ngôn ngữ, hãy tra cứu quy tắc của locale cụ thể và cân nhắc công cụ i18n hỗ trợ phân loại số nhiều và biến thể ngữ pháp. Dù dùng ChoiceFormat, ICU4J hay một cơ chế khác, ý tưởng ổn định là:
+For complex language-specific pluralization, consult the rules of the specific locale and consider an i18n tool supporting plural categorization and grammatical variants. Whether using ChoiceFormat, ICU4J, or another mechanism, the stable principles are:
 
-- **Giữ toàn câu trong tài nguyên dịch.**
-- **Cho người dịch ngữ cảnh và quyền đổi vị trí tham số.**
-- **Phân biệt giá trị nghiệp vụ và pattern điều khiển định dạng.**
-- **Kiểm tra các mốc, giá trị biên và tính tự nhiên của câu.**
-- **Chọn locale và fallback ở tầng ứng dụng một cách tường minh.**
+- **Keep entire sentences in translation resources.**
+- **Give translators context and freedom to reorder parameters.**
+- **Separate business values from formatting-control patterns.**
+- **Test thresholds, boundary values, and sentence naturalness.**
+- **Select locale and fallback explicitly at the application layer.**
 
-## 16. Bài tập áp dụng
+## 16. Practice Exercises
 
-1. Chạy `ChoiceMessageDemo` với `count` lần lượt là 0, 1, 2 và 5. Giải thích vì sao `1<` chọn nhánh cuối khi `count=2`.
-2. Thay `1<` bằng `2#`, chạy với `count=1.5` kiểu `double`, quan sát sự khác biệt và xác định điều kiện để hai mẫu được coi là tương đương.
-3. Lấy `ProgrammaticChoiceDemo` và đổi các giới hạn thành `{0,1,2,10}`, viết thêm nhánh cho từ 10 trở lên. Kiểm chứng thứ tự tăng của các giới hạn.
-4. Chuyển pattern thành key `files.summary` trong `messages_en.properties` và `messages_vi.properties`, xác nhận code chỉ gọi một key cho cả hai locale.
-5. Dịch thông điệp có tên người nhận và số lượng, để một ngôn ngữ đặt tên ở đầu, ngôn ngữ khác ở cuối; giữ nguyên danh sách argument của Java.
-6. Kiểm tra đầu vào âm và `NaN` ở ranh giới nghiệp vụ trước khi format. Giải thích vì sao kết quả “không có” không được dùng để che giấu lỗi dữ liệu.
-7. Chọn một ngôn ngữ có plural categories phức tạp trong CLDR. Phân tích vì sao `0#|1#|1<` không đủ và đề xuất cách quản lý mẫu dịch với công cụ hỗ trợ plural rules.
+1. Run `ChoiceMessageDemo` with `count` equal to 0, 1, 2, and 5. Explain why `1<` selects the last branch when `count=2`.
+2. Replace `1<` with `2#`, run with `count=1.5` of type `double`, observe the difference, and identify the condition under which the two patterns are considered equivalent.
+3. Take `ProgrammaticChoiceDemo` and change the limits to `{0,1,2,10}`, adding a branch for 10 and above. Verify the ascending order of limits.
+4. Move the pattern to the `files.summary` key in `messages_en.properties` and `messages_vi.properties`, confirming the Java code calls only one key for both locales.
+5. Translate a message with recipient name and count so one language places the name at the start and another places it at the end; keep the Java argument list unchanged.
+6. Check negative inputs and `NaN` at the business boundary before formatting. Explain why a “none” output must not be used to mask data errors.
+7. Pick a language with complex plural categories in CLDR. Analyze why `0#|1#|1<` is insufficient and propose how to manage translation templates with a tool that supports plural rules.
 
-## Tài liệu chính thức
+## Official Documentation
 
 - [Oracle JDK 21 — ChoiceFormat](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/ChoiceFormat.html)
 - [Oracle JDK 21 — MessageFormat](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/MessageFormat.html)

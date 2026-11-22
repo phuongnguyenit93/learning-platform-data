@@ -1,23 +1,23 @@
-# Tràn số khi tính tổng số nguyên và cách lựa chọn kiểu
+# Integer Overflow When Summing and How to Choose Types
 
-Khi dùng Java Stream API để cộng số lượng, doanh thu hoặc điểm số, cú pháp `sum()` rất ngắn nhưng **không tự bảo đảm tổng chính xác**. Phép cộng trên `int` và `long` có miền giá trị hữu hạn. Nếu tổng vượt phạm vi cho phép, Java có thể tạo ra giá trị âm hoặc một giá trị dương sai mà không ném ngoại lệ.
+When using the Java Stream API to sum quantities, revenue, or scores, the `sum()` syntax is concise but **does not automatically guarantee an exact sum**. Addition on `int` and `long` has a finite value range. If a sum exceeds the allowed range, Java can produce a negative number or an incorrect positive number without throwing an exception.
 
-Bài học thuộc chương **Độ chính xác khi tổng hợp số** của mô-đun **JAVA_STREAM_API**. Mục tiêu là hiểu khi nào `IntStream.sum()`, `LongStream.sum()`, `reduce()` và các collector có thể tràn số; biết **mở rộng kiểu trước khi tính**, dùng `Math.addExact` khi muốn phát hiện tràn số, chọn `BigInteger` khi cần tổng số nguyên không bị giới hạn bởi `long`, và đánh giá các lựa chọn theo dữ liệu thực tế. Các nguyên tắc này cũng áp dụng cho `filter`, `map`, `groupingBy`, collector tùy chỉnh và pipeline song song.
+This lesson belongs to the **Numeric Aggregation Accuracy** chapter of the **JAVA_STREAM_API** module. The goal is to understand when `IntStream.sum()`, `LongStream.sum()`, `reduce()`, and collectors can overflow; learn to **widen types before computing**, use `Math.addExact` when you want overflow detection, choose `BigInteger` when an integer sum must not be bounded by `long`, and evaluate these choices against real data. These principles also apply to `filter`, `map`, `groupingBy`, custom collectors, and parallel pipelines.
 
-## 1. Tràn số nguyên là gì?
+## 1. What Is Integer Overflow?
 
-Java dùng số nguyên nguyên thủy có độ rộng cố định:
+Java uses fixed-width primitive integers:
 
-| Kiểu | Số bit | Giá trị nhỏ nhất | Giá trị lớn nhất |
+| Type | Bits | Minimum value | Maximum value |
 | --- | ---: | ---: | ---: |
 | `byte` | 8 | -128 | 127 |
-| `short` | 16 | -32.768 | 32.767 |
-| `int` | 32 | -2.147.483.648 | 2.147.483.647 |
-| `long` | 64 | -9.223.372.036.854.775.808 | 9.223.372.036.854.775.807 |
+| `short` | 16 | -32,768 | 32,767 |
+| `int` | 32 | -2,147,483,648 | 2,147,483,647 |
+| `long` | 64 | -9,223,372,036,854,775,808 | 9,223,372,036,854,775,807 |
 
-`IntStream` tính tổng dưới kiểu `int`, còn `LongStream` tính tổng dưới kiểu `long`. Nếu phép cộng vượt giới hạn, Java giữ các bit thấp theo ngữ nghĩa số nguyên bù hai; kết quả “quay vòng” (*wraparound*). Phép cộng nguyên thủy thông thường **không tự ném `ArithmeticException` khi tràn số**.
+`IntStream` computes its sum as `int`, while `LongStream` computes its sum as `long`. If addition exceeds the limit, Java keeps the low bits under two's-complement integer semantics; the result wraps around (*wraparound*). Ordinary primitive addition **does not automatically throw `ArithmeticException` on overflow**.
 
-Ví dụ:
+Example:
 
 ```java
 int intMax = Integer.MAX_VALUE;
@@ -27,9 +27,9 @@ System.out.println(intMax + 1);  // -2147483648
 System.out.println(longMax + 1); // -9223372036854775808
 ```
 
-Trong toán học, hai tổng phải lớn hơn giá trị tối đa. Kết quả trong Java khác vì kiểu lưu trữ không chứa được giá trị cần biểu diễn.
+Mathematically, both sums must be greater than the maximum value. The Java results differ because the storage type cannot hold the value to be represented.
 
-### 1.1. Tràn số xảy ra ngay cả khi pipeline trông hợp lệ
+### 1.1. Overflow Occurs Even When the Pipeline Looks Valid
 
 ```java
 import java.util.stream.IntStream;
@@ -54,11 +54,11 @@ public class OverflowBasics {
 }
 ```
 
-`asLongStream()` mở rộng từng `int` sang `long` **trước khi cộng**, nên tổng `2.147.483.648` được giữ chính xác. Tuy vậy, `long` cũng có giới hạn và không giải quyết được mọi trường hợp.
+`asLongStream()` widens each `int` to `long` **before adding**, so the sum `2,147,483,648` is preserved accurately. Even so, `long` also has a limit and does not solve every case.
 
-## 2. Phân biệt kiểu dữ liệu đầu vào và kiểu của phép tổng
+## 2. Distinguish the Input Data Type from the Sum Operation Type
 
-Một lỗi phổ biến là chỉ nhìn **kiểu của biến nhận kết quả**:
+A common mistake is looking only at **the type of the variable receiving the result**:
 
 ```java
 import java.util.stream.IntStream;
@@ -66,12 +66,12 @@ import java.util.stream.IntStream;
 long total = IntStream.of(1_500_000_000, 1_500_000_000)
     .sum();
 
-System.out.println(total); // -1294967296 (sai với tổng toán học)
+System.out.println(total); // -1294967296 (wrong compared to the mathematical sum)
 ```
 
-`IntStream.sum()` trả về `int`. Phép cộng `int` đã tràn **trước khi** kết quả được gán sang biến `long`. Việc khai báo `long total` chỉ mở rộng **giá trị sai** sau tràn; nó không sửa được phép tính trước đó.
+`IntStream.sum()` returns `int`. The `int` addition has already overflowed **before** the result is assigned to the `long` variable. Declaring `long total` only widens the **already-wrong value** after overflow; it does not fix the earlier calculation.
 
-Muốn nhận tổng đúng, cần chuyển kiểu **trước phép tổng**:
+To get the correct sum, you must convert the type **before summing**:
 
 ```java
 long total = IntStream.of(1_500_000_000, 1_500_000_000)
@@ -81,7 +81,7 @@ long total = IntStream.of(1_500_000_000, 1_500_000_000)
 System.out.println(total); // 3000000000
 ```
 
-Cách tương đương là ánh xạ sang `long`:
+An equivalent approach is mapping to `long`:
 
 ```java
 long total = IntStream.of(1_500_000_000, 1_500_000_000)
@@ -89,9 +89,9 @@ long total = IntStream.of(1_500_000_000, 1_500_000_000)
     .sum();
 ```
 
-### 2.1. `Stream<Integer>` cũng cần chọn phép cộng thích hợp
+### 2.1. `Stream<Integer>` Also Needs the Right Addition Operation
 
-Danh sách `List<Integer>` tạo `Stream<Integer>`. Nếu dùng `reduce` với kiểu nhận là `Integer`, tổng vẫn theo kiểu `int`:
+A `List<Integer>` produces a `Stream<Integer>`. If you use `reduce` with an `Integer` target type, the sum still runs in `int`:
 
 ```java
 import java.util.List;
@@ -109,13 +109,13 @@ System.out.println(wrong);   // -1294967296
 System.out.println(correct); // 3000000000
 ```
 
-`mapToLong(Integer::longValue)` chuyển mỗi `Integer` sang `long` rồi thực hiện tổng ở `LongStream`. Đây là cách thuận tiện khi dữ liệu nguồn có kiểu wrapper nhưng phép tổng phải có phạm vi lớn hơn.
+`mapToLong(Integer::longValue)` converts each `Integer` to `long` and then performs the sum on a `LongStream`. This is convenient when the source data uses wrapper types while the sum requires a larger range.
 
-Nếu `List<Integer>` có thể chứa `null`, `Integer::longValue` sẽ ném `NullPointerException`. Hãy xác định chính sách xử lý giá trị thiếu trước khi unboxing, chẳng hạn `filter(Objects::nonNull)` nếu nghiệp vụ cho phép bỏ qua phần tử thiếu.
+If `List<Integer>` can contain `null`, `Integer::longValue` will throw `NullPointerException`. Define a policy for missing values before unboxing, such as `filter(Objects::nonNull)` if the business logic allows skipping missing elements.
 
-### 2.2. Mở rộng kiểu phải xảy ra trước cả phép nhân
+### 2.2. Type Widening Must Happen Before Multiplication Too
 
-Giả sử mỗi dòng hóa đơn có `int quantity` và `int unitPrice`. Viết `mapToLong(x -> x.quantity() * x.unitPrice())` **vẫn có thể sai**, vì hai toán hạng là `int` nên phép nhân thực hiện theo `int`, rồi kết quả mới được chuyển sang `long`.
+Suppose each invoice line has `int quantity` and `int unitPrice`. Writing `mapToLong(x -> x.quantity() * x.unitPrice())` **can still be wrong**, because both operands are `int`, so the multiplication executes in `int`, and only afterward is the result converted to `long`.
 
 ```java
 record Item(int quantity, int unitPriceVnd) {}
@@ -130,7 +130,7 @@ System.out.println(wrong);   // -1794967296
 System.out.println(correct); // 2500000000
 ```
 
-Đúng trong pipeline:
+Correct in a pipeline:
 
 ```java
 import java.util.List;
@@ -144,32 +144,32 @@ long revenue = items.stream()
 System.out.println(revenue); // 2500000000
 ```
 
-**Nguyên tắc:** Hãy kiểm tra kiểu ở **từng phép toán trung gian**, không chỉ ở `sum()` hoặc biến nhận kết quả.
+**Rule:** Check the type at **every intermediate operation**, not just at `sum()` or the receiving variable.
 
-## 3. Chọn kiểu theo miền giá trị của bài toán
+## 3. Choose Types According to the Problem's Value Domain
 
-Việc chọn kiểu nên xuất phát từ số lượng phần tử tối đa, phạm vi mỗi giá trị và các phép tính trung gian.
+Type selection should start from the maximum number of elements, the range of each value, and the intermediate calculations.
 
-Giả sử có tối đa `N` giá trị nguyên, mỗi giá trị có độ lớn tuyệt đối không vượt quá `M`. Khi đó, độ lớn của tổng không vượt `N × M`. Có thể dùng giới hạn này để đánh giá kiểu số, miễn là việc **tính chính giới hạn** cũng không bị tràn.
+Suppose there are at most `N` integer values, each with absolute magnitude at most `M`. Then the magnitude of the sum does not exceed `N × M`. You can use this bound to evaluate numeric types, provided **computing the bound itself** does not overflow.
 
-Ví dụ: hệ thống có nhiều nhất một triệu bản ghi, mỗi bản ghi có số lượng sản phẩm không quá một triệu. Tổng lớn nhất là `10^12`; lớn hơn giới hạn `int` nhưng nằm trong `long`. Vì thế `mapToLong` hoặc `LongStream` thích hợp hơn `IntStream.sum()`.
+For example: a system has at most one million records, and each record has a product quantity of at most one million. The largest sum is `10^12`; that exceeds the `int` limit but fits within `long`. Therefore `mapToLong` or `LongStream` is more appropriate than `IntStream.sum()`.
 
-Với tổng có giá trị âm và dương, cần chú ý cả giới hạn dưới lẫn giới hạn trên của kiểu. Ngay cả khi **tổng cuối cùng** nằm trong giới hạn, các tổng trung gian vẫn có thể vượt giới hạn nếu dữ liệu được cộng theo thứ tự bất lợi.
+For sums containing both negative and positive values, pay attention to both the lower and upper bounds of the type. Even when the **final sum** fits within the range, intermediate sums can still exceed the bounds if data is added in an unfavorable order.
 
-| Nhu cầu | Kiểu/chiến lược phù hợp | Điểm cần nhớ |
+| Need | Suitable type/strategy | Key point to remember |
 | --- | --- | --- |
-| Giá trị và mọi tổng trung gian bảo đảm nằm trong 32 bit | `int` / `IntStream.sum()` | Dễ đọc, gọn, nhưng không có kiểm tra tràn mặc định. |
-| Các giá trị là `int`, tổng cần miền 64 bit | `IntStream.asLongStream().sum()` hoặc `Stream<T>.mapToLong(...).sum()` | Mở rộng **trước khi cộng**. |
-| Dữ liệu vốn là `long` và chắc chắn không vượt 64 bit | `LongStream.sum()` | Cộng `long` vẫn có thể tràn nếu giả định sai. |
-| Phải báo lỗi nếu cộng vượt kiểu đã chọn | `Math.addExact` kết hợp `reduce` hoặc phép lặp | Ngoại lệ xảy ra tại phép cộng trung gian bị tràn. |
-| Tổng có thể vượt `Long.MAX_VALUE` hoặc cần kết quả số nguyên tuyệt đối | `BigInteger` | Chính xác theo số nguyên, đổi lại chi phí đối tượng/bộ nhớ. |
-| Tiền có phần thập phân hoặc phép tính cần quy tắc làm tròn thập phân | `BigDecimal` | Chọn `scale` và cách làm tròn theo nghiệp vụ. |
+| Values and all intermediate sums are guaranteed to fit in 32 bits | `int` / `IntStream.sum()` | Readable and concise, but has no default overflow check. |
+| Values are `int`, sum needs 64-bit range | `IntStream.asLongStream().sum()` or `Stream<T>.mapToLong(...).sum()` | Widen **before adding**. |
+| Data is already `long` and guaranteed not to exceed 64 bits | `LongStream.sum()` | `long` addition can still overflow if assumptions fail. |
+| Must fail if addition exceeds the chosen type | `Math.addExact` with `reduce` or a loop | Exception occurs at the intermediate addition that overflows. |
+| Sum may exceed `Long.MAX_VALUE` or needs an unbounded exact integer result | `BigInteger` | Exact integer arithmetic, at the cost of object/memory overhead. |
+| Money with fractional parts or calculations requiring decimal rounding rules | `BigDecimal` | Choose `scale` and rounding mode according to business rules. |
 
-Không dùng `double` chỉ để tránh giới hạn của `long`: `double` không bảo đảm biểu diễn chính xác mọi số nguyên lớn. Các số nguyên chỉ được bảo đảm chính xác liên tiếp đến `2^53`; lớn hơn mức này, một số giá trị khác nhau có cùng biểu diễn `double`.
+Do not use `double` just to avoid the limits of `long`: `double` does not guarantee exact representation of every large integer. Consecutive integers are only guaranteed to be exact up to `2^53`; beyond that level, distinct values share the same `double` representation.
 
-## 4. Phát hiện tràn số bằng `Math.addExact`
+## 4. Detecting Overflow With `Math.addExact`
 
-`Math.addExact(int, int)` và `Math.addExact(long, long)` thực hiện phép cộng và **ném `ArithmeticException` nếu kết quả vượt phạm vi kiểu tương ứng**.
+`Math.addExact(int, int)` and `Math.addExact(long, long)` perform addition and **throw `ArithmeticException` if the result exceeds the range of the corresponding type**.
 
 ```java
 int safe = Math.addExact(1_000_000, 2_000_000);
@@ -179,11 +179,11 @@ try {
     int overflow = Math.addExact(Integer.MAX_VALUE, 1);
     System.out.println(overflow);
 } catch (ArithmeticException exception) {
-    System.out.println("Tổng vượt phạm vi int");
+    System.out.println("Sum exceeds int range");
 }
 ```
 
-Trong Stream, có thể truyền `Math::addExact` vào `reduce`:
+In a Stream, you can pass `Math::addExact` to `reduce`:
 
 ```java
 import java.util.stream.IntStream;
@@ -194,7 +194,7 @@ int exactSum = IntStream.of(100, 200, 300)
 System.out.println(exactSum); // 600
 ```
 
-Nếu tổng trung gian bị tràn, `reduce` sẽ ném ngoại lệ:
+If an intermediate sum overflows, `reduce` will throw the exception:
 
 ```java
 try {
@@ -203,11 +203,11 @@ try {
 
     System.out.println(total);
 } catch (ArithmeticException exception) {
-    System.out.println("Phát hiện tràn số trong quá trình reduce");
+    System.out.println("Overflow detected during reduce");
 }
 ```
 
-Tương tự với `LongStream`:
+Similarly with `LongStream`:
 
 ```java
 import java.util.stream.LongStream;
@@ -218,22 +218,22 @@ long total = LongStream.of(1_000_000_000L, 2_000_000_000L)
 System.out.println(total); // 3000000000
 ```
 
-### 4.1. `Math.addExact` không “nới rộng” phạm vi
+### 4.1. `Math.addExact` Does Not “Widen” the Range
 
-`Math.addExact` **phát hiện lỗi**, chứ không tự chuyển tổng sang kiểu lớn hơn. Nếu tổng hợp lệ về toán học nhưng vượt phạm vi `int`, cần chọn `long` hoặc `BigInteger` tùy yêu cầu.
+`Math.addExact` **detects errors**; it does not automatically promote the sum to a larger type. If a sum is mathematically valid yet exceeds `int`, you must choose `long` or `BigInteger` depending on requirements.
 
-Ví dụ, phép cộng `Integer.MAX_VALUE + 1` chính xác trong `long`, nên nếu nghiệp vụ cho phép tổng đó, `asLongStream().sum()` có ý nghĩa hơn việc cố cộng `int` và bắt ngoại lệ.
+For instance, `Integer.MAX_VALUE + 1` is exact in `long`, so if business rules allow that sum, `asLongStream().sum()` makes more sense than attempting `int` addition and catching an exception.
 
-### 4.2. Tổng cuối vừa kiểu vẫn có thể có trung gian vượt kiểu
+### 4.2. A Final Sum That Fits Can Still Overflow Intermediately
 
-Xem dãy:
+Consider the sequence:
 
 ```text
 [2_147_483_647, 1, -1]
-Tổng toán học cuối cùng = 2_147_483_647
+Final mathematical sum = 2_147_483_647
 ```
 
-Nếu cộng từ trái sang phải bằng `Math.addExact`, phép tính `2_147_483_647 + 1` ném ngoại lệ **trước khi** cộng `-1`, dù tổng cuối cùng có thể biểu diễn bằng `int`.
+When adding left to right with `Math.addExact`, the step `2_147_483_647 + 1` throws an exception **before** `-1` is added, even though the final sum is representable as an `int`.
 
 ```java
 import java.util.stream.IntStream;
@@ -243,17 +243,17 @@ try {
         .reduce(0, Math::addExact);
     System.out.println(total);
 } catch (ArithmeticException exception) {
-    System.out.println("Một tổng trung gian đã vượt phạm vi int");
+    System.out.println("An intermediate sum exceeded the int range");
 }
 ```
 
-Khi sử dụng `parallel()`, các nhóm phần tử có thể được cộng và kết hợp theo thứ tự khác nhau; với `Math.addExact`, việc có phát hiện tràn trung gian hay không có thể phụ thuộc cách nhóm. Vì vậy, nếu yêu cầu là **kết quả cuối cùng chính xác theo số nguyên toán học rồi mới kiểm tra có nằm trong `int` hay không**, hãy tích lũy bằng kiểu đủ rộng hoặc `BigInteger`, sau đó chuyển về kiểu đích bằng phép chuyển đổi có kiểm tra.
+When using `parallel()`, chunks of elements may be summed and combined in different orders; with `Math.addExact`, whether an intermediate overflow is triggered can depend on the grouping. Therefore, if the requirement is **an exact mathematical integer final result checked afterward to see if it fits in `int`**, accumulate with a sufficiently wide type or `BigInteger`, then convert back to the target type using a checked conversion.
 
-## 5. Tính tổng không giới hạn 64 bit bằng `BigInteger`
+## 5. Summing Beyond 64 Bits With `BigInteger`
 
-`BigInteger` trong `java.math` biểu diễn số nguyên có độ chính xác tùy ý, bị giới hạn chủ yếu bởi bộ nhớ và nguồn lực thực thi. Nó không phải kiểu nguyên thủy và **không có `BigIntegerStream` chuẩn** trong Java Stream API.
+`BigInteger` in `java.math` represents arbitrary-precision integers, bounded mainly by memory and execution resources. It is not a primitive type, and **there is no built-in `BigIntegerStream`** in the Java Stream API.
 
-Có thể bắt đầu từ `LongStream`, chuyển mỗi `long` thành `BigInteger`, rồi giảm bằng phép cộng:
+You can start from a `LongStream`, convert each `long` into a `BigInteger`, and reduce by addition:
 
 ```java
 import java.math.BigInteger;
@@ -270,9 +270,9 @@ public class BigIntegerSumDemo {
 }
 ```
 
-`mapToObj(BigInteger::valueOf)` tạo `Stream<BigInteger>` từ các giá trị `long`. `reduce(BigInteger.ZERO, BigInteger::add)` sử dụng `ZERO` làm phần tử trung hòa và `add` để tổng hợp. Các phép cộng trên `BigInteger` không tràn như kiểu `long`; dữ liệu lớn sẽ tăng chi phí tính toán và bộ nhớ.
+`mapToObj(BigInteger::valueOf)` creates a `Stream<BigInteger>` from `long` values. `reduce(BigInteger.ZERO, BigInteger::add)` uses `ZERO` as the identity element and `add` for aggregation. Addition on `BigInteger` does not overflow like `long`; larger datasets increase computation and memory cost.
 
-Ví dụ tương tự với đối tượng nghiệp vụ:
+A similar example with a domain object:
 
 ```java
 record Entry(long amountVnd) {}
@@ -287,7 +287,7 @@ BigInteger total = java.util.List.of(
 System.out.println(total); // 9223372036854775808
 ```
 
-Nếu các giá trị đầu vào **đã vượt `long`**, không thể lưu chúng trong `long` rồi mới chuyển thành `BigInteger`. Cần đọc và lưu đúng từ đầu, ví dụ:
+If input values **already exceed `long`**, you cannot store them in a `long` first and convert to `BigInteger` afterward. You must read and store them properly from the start, for example:
 
 ```java
 BigInteger huge = new BigInteger("123456789012345678901234567890");
@@ -297,9 +297,9 @@ System.out.println(answer);
 // 123456789012345678901234567891
 ```
 
-### 5.1. Chuyển kết quả về kiểu nhỏ hơn sau khi kiểm tra
+### 5.1. Converting the Result Back to a Smaller Type After Checking
 
-`BigInteger` có các phương thức `intValueExact()` và `longValueExact()`. Chúng ném `ArithmeticException` nếu không thể biểu diễn giá trị chính xác trong kiểu đích.
+`BigInteger` provides `intValueExact()` and `longValueExact()`. They throw `ArithmeticException` if the value cannot be represented exactly in the target type.
 
 ```java
 BigInteger sum = BigInteger.valueOf(Integer.MAX_VALUE)
@@ -312,17 +312,17 @@ try {
     int asInt = sum.intValueExact();
     System.out.println(asInt);
 } catch (ArithmeticException exception) {
-    System.out.println("Tổng chính xác nhưng vượt phạm vi int");
+    System.out.println("Exact sum exceeds int range");
 }
 ```
 
-Phương pháp này hữu ích khi đầu vào có dấu âm/dương bù trừ khiến tổng cuối nằm trong giới hạn, nhưng cần bảo đảm không mất thông tin do tổng trung gian tràn.
+This approach is useful when inputs have offsetting positive and negative signs so the final sum stays within bounds, while ensuring no information is lost from intermediate overflow.
 
-## 6. Tràn số trong `reduce`, `collect` và thống kê
+## 6. Overflow in `reduce`, `collect`, and Statistics
 
-Tên phương thức `sum` không phải dấu hiệu duy nhất của rủi ro. Bất kỳ phép tổng hợp nào cộng bằng kiểu hữu hạn đều cần được xem xét.
+The method name `sum` is not the only sign of risk. Any aggregation that adds using a finite type needs to be examined.
 
-### 6.1. `reduce` không tự động kiểm tra tràn
+### 6.1. `reduce` Does Not Automatically Check Overflow
 
 ```java
 import java.util.List;
@@ -335,11 +335,11 @@ int totalWithReduce = values.stream()
 System.out.println(totalWithReduce); // -2147483648
 ```
 
-`Integer::sum` cộng bằng `int` và có cùng giới hạn như phép `+`. Phần tử trung hòa `0` không làm phép cộng trở nên chính xác hơn.
+`Integer::sum` adds as `int` and has the same limit as the `+` operator. The identity `0` does not make addition any more accurate.
 
-### 6.2. `Collectors.summingInt` và `summingLong`
+### 6.2. `Collectors.summingInt` and `summingLong`
 
-`Collectors.summingInt` trả về `Integer`; `Collectors.summingLong` trả về `Long`. Chúng cũng có thể tràn số nếu tổng vượt phạm vi tương ứng.
+`Collectors.summingInt` returns `Integer`; `Collectors.summingLong` returns `Long`. They can also overflow if the sum exceeds their respective ranges.
 
 ```java
 import java.util.List;
@@ -348,8 +348,8 @@ import java.util.stream.Collectors;
 record Expense(String category, int amountVnd) {}
 
 List<Expense> expenses = List.of(
-    new Expense("Thiết bị", 1_500_000_000),
-    new Expense("Thiết bị", 1_500_000_000)
+    new Expense("Equipment", 1_500_000_000),
+    new Expense("Equipment", 1_500_000_000)
 );
 
 int wrong = expenses.stream()
@@ -362,11 +362,11 @@ System.out.println(wrong);             // -1294967296
 System.out.println(correctWithinLong); // 3000000000
 ```
 
-Trong biểu thức `summingLong`, ánh xạ trả về `long`, nên dữ liệu được mở rộng trước khi tổng hợp.
+In the `summingLong` expression, the mapper returns `long`, so values are widened before aggregation.
 
-### 6.3. Phân biệt `IntStream.sum()` và `IntSummaryStatistics.getSum()`
+### 6.3. Distinguishing `IntStream.sum()` from `IntSummaryStatistics.getSum()`
 
-Một điểm dễ bỏ sót: `IntStream.sum()` trả về `int`, trong khi `IntSummaryStatistics.getSum()` trả về `long`.
+An easily overlooked detail: `IntStream.sum()` returns `int`, whereas `IntSummaryStatistics.getSum()` returns `long`.
 
 ```java
 import java.util.IntSummaryStatistics;
@@ -385,13 +385,13 @@ System.out.println(overflowed); // -1294967296
 System.out.println(widened);     // 3000000000
 ```
 
-`IntSummaryStatistics` cộng các giá trị `int` vào bộ tích lũy `long`; điều này giải quyết ví dụ trên, nhưng **không có nghĩa tổng `long` sẽ luôn an toàn**. `LongSummaryStatistics.getSum()` cũng trả về `long` và có thể tràn khi vượt 64 bit.
+`IntSummaryStatistics` adds `int` values into a `long` accumulator; this solves the example above, but **does not mean a `long` sum is always safe**. `LongSummaryStatistics.getSum()` also returns `long` and can overflow beyond 64 bits.
 
-Tương tự, `Collectors.summarizingInt(...)` trả về `IntSummaryStatistics`, nên `getSum()` là `long`; đừng nhầm với `Collectors.summingInt(...)` trả về `Integer`.
+Similarly, `Collectors.summarizingInt(...)` returns `IntSummaryStatistics`, so `getSum()` is `long`; do not confuse it with `Collectors.summingInt(...)` which returns `Integer`.
 
-### 6.4. Gom nhóm bằng `groupingBy` vẫn phải chọn kiểu tổng
+### 6.4. Grouping With `groupingBy` Still Requires Choosing the Sum Type
 
-Giả sử muốn báo cáo tổng theo khu vực. Nếu tổng nhóm có thể lớn hơn `int` nhưng nằm trong `long`, dùng:
+Suppose you want to report totals by region. If a group total may exceed `int` while fitting within `long`, use:
 
 ```java
 import java.util.Map;
@@ -400,9 +400,9 @@ import java.util.stream.Collectors;
 record Sale(String region, int amountVnd) {}
 
 List<Sale> sales = List.of(
-    new Sale("Bắc", 1_500_000_000),
-    new Sale("Bắc", 1_500_000_000),
-    new Sale("Nam", 100_000_000)
+    new Sale("North", 1_500_000_000),
+    new Sale("North", 1_500_000_000),
+    new Sale("South", 100_000_000)
 );
 
 Map<String, Long> totals = sales.stream()
@@ -411,11 +411,11 @@ Map<String, Long> totals = sales.stream()
         Collectors.summingLong(sale -> (long) sale.amountVnd())
     ));
 
-System.out.println(totals.get("Bắc")); // 3000000000
-System.out.println(totals.get("Nam")); // 100000000
+System.out.println(totals.get("North")); // 3000000000
+System.out.println(totals.get("South")); // 100000000
 ```
 
-Nếu tổng nhóm có thể vượt `long`, dùng `BigInteger` trong một collector thích hợp:
+If a group total may exceed `long`, use `BigInteger` inside an appropriate collector:
 
 ```java
 import java.math.BigInteger;
@@ -425,8 +425,8 @@ import java.util.stream.Collectors;
 record LargeSale(String region, long amountVnd) {}
 
 List<LargeSale> largeSales = List.of(
-    new LargeSale("Bắc", Long.MAX_VALUE),
-    new LargeSale("Bắc", 1L)
+    new LargeSale("North", Long.MAX_VALUE),
+    new LargeSale("North", 1L)
 );
 
 Map<String, BigInteger> exactTotals = largeSales.stream()
@@ -439,17 +439,17 @@ Map<String, BigInteger> exactTotals = largeSales.stream()
         )
     ));
 
-System.out.println(exactTotals.get("Bắc"));
+System.out.println(exactTotals.get("North"));
 // 9223372036854775808
 ```
 
-`Collectors.reducing` cho phép chọn rõ **kiểu của bộ tích lũy và phép kết hợp**. Collector tùy chỉnh có thể phù hợp với các phép tổng hợp phức tạp hơn, nhưng không cần thiết nếu `reducing` giải quyết đủ yêu cầu.
+`Collectors.reducing` lets you explicitly choose **both the accumulator type and the combining function**. A custom collector may fit more complex aggregations, but is unnecessary when `reducing` satisfies the requirement.
 
-## 7. Tràn số ở phép nhân trước khi tổng hợp
+## 7. Overflow in Multiplication Before Aggregation
 
-Bài toán thực tế thường tính `đơn giá × số lượng` trước khi cộng các dòng. Mỗi phép nhân phải được bảo vệ giống phép cộng.
+Real-world problems often compute `unit price × quantity` before summing lines. Every multiplication must be protected just like addition.
 
-Ví dụ lỗi:
+Buggy example:
 
 ```java
 record Purchase(int quantity, int unitPriceVnd) {}
@@ -461,7 +461,7 @@ long wrong = purchase.quantity() * purchase.unitPriceVnd();
 System.out.println(wrong); // -1794967296
 ```
 
-Để dùng `long` từ đầu:
+To use `long` from the start:
 
 ```java
 long lineTotal = (long) purchase.quantity()
@@ -470,7 +470,7 @@ long lineTotal = (long) purchase.quantity()
 System.out.println(lineTotal); // 2500000000
 ```
 
-Nếu sản phẩm vẫn có nguy cơ vượt phạm vi `long`, dùng `Math.multiplyExact(long, long)` để phát hiện hoặc `BigInteger.multiply` để tính chính xác.
+If the product still risks exceeding `long`, use `Math.multiplyExact(long, long)` to detect it or `BigInteger.multiply` to compute it exactly.
 
 ```java
 long price = 4_000_000_000L;
@@ -480,7 +480,7 @@ long safeProduct = Math.multiplyExact(price, quantity);
 System.out.println(safeProduct); // 12000000000
 ```
 
-Khi đơn giá và số lượng lớn hơn nhiều, biểu thức như `Math.multiplyExact(Long.MAX_VALUE, 2L)` sẽ ném ngoại lệ. `BigInteger` hỗ trợ phép nhân lớn:
+When unit price and quantity are much larger, an expression such as `Math.multiplyExact(Long.MAX_VALUE, 2L)` will throw an exception. `BigInteger` supports large multiplication:
 
 ```java
 BigInteger exactProduct = BigInteger.valueOf(Long.MAX_VALUE)
@@ -489,23 +489,23 @@ BigInteger exactProduct = BigInteger.valueOf(Long.MAX_VALUE)
 System.out.println(exactProduct); // 18446744073709551614
 ```
 
-Vì vậy, đối với quy trình `filter → mapToLong → sum`, phải kiểm tra **cả phép ánh xạ tạo ra giá trị số** lẫn tổng cuối cùng.
+Therefore, in a `filter → mapToLong → sum` pipeline, you must check **both the mapping expression that produces numeric values** and the final sum.
 
-## 8. Tiền tệ có phần thập phân: không thay bằng `double`
+## 8. Money With Fractional Parts: Do Not Substitute `double`
 
-Nếu dữ liệu là tiền có phần thập phân, dùng `double` để tránh tràn số nguyên có thể tạo ra lỗi biểu diễn nhị phân.
+If the data represents money with fractional parts, using `double` to avoid integer overflow can introduce binary representation errors.
 
 ```java
 double result = 0.1 + 0.2;
 System.out.println(result); // 0.30000000000000004
 ```
 
-Với tiền tệ, lựa chọn thông thường là:
+For currency, the usual choices are:
 
-- Dùng `long` lưu **đơn vị nhỏ nhất** như đồng, xu, cent, nếu giới hạn và quy tắc làm tròn đã xác định.
-- Dùng `BigDecimal` khi có số thập phân, cần phép tính theo số thập phân và quy tắc làm tròn rõ ràng.
+- Use `long` to store the **smallest unit** such as dong, xu, or cents, if bounds and rounding rules are well defined.
+- Use `BigDecimal` when fractional decimals exist and decimal arithmetic with explicit rounding rules is required.
 
-Ví dụ `BigDecimal`:
+`BigDecimal` example:
 
 ```java
 import java.math.BigDecimal;
@@ -522,17 +522,17 @@ BigDecimal total = amounts.stream()
 System.out.println(total); // 0.30
 ```
 
-Ví dụ sử dụng chuỗi thập phân để xây giá trị `BigDecimal` chính xác theo dữ liệu đầu vào. Tránh `new BigDecimal(0.1)` nếu ý định là số thập phân đúng `0.1`, vì đối số `double` đã mang biểu diễn nhị phân xấp xỉ. Cần đặt quy định về `scale` và `RoundingMode` khi tính phần trăm, thuế hoặc phép chia.
+This example uses decimal strings to construct `BigDecimal` values matching the exact input data. Avoid `new BigDecimal(0.1)` if you intend the exact decimal `0.1`, because the `double` argument already carries an approximate binary representation. Specify rules for `scale` and `RoundingMode` when calculating percentages, taxes, or division.
 
-`BigDecimal` giải quyết bài toán số thập phân; `BigInteger` giải quyết bài toán số nguyên có độ lớn tùy ý. Hãy chọn theo **ý nghĩa nghiệp vụ**, không chỉ vì muốn một kiểu “lớn hơn”.
+`BigDecimal` solves decimal arithmetic; `BigInteger` solves arbitrarily large integer arithmetic. Choose based on **business semantics**, not just because you want a “bigger” type.
 
-## 9. Ví dụ hoàn chỉnh: tổng hợp doanh thu an toàn
+## 9. Complete Example: Safe Revenue Aggregation
 
-Đoạn mã Java 17+ dưới đây cho thấy ba chiến lược rõ ràng:
+The Java 17+ snippet below shows three clear strategies:
 
-1. `long` cho tổng thường gặp mà phạm vi đã được kiểm soát.
-2. `Math.multiplyExact` và `Math.addExact` để phát hiện tràn số ở kiểu `long`.
-3. `BigInteger` nếu muốn cộng chính xác cả khi tổng có thể vượt `long`.
+1. `long` for common sums whose range is controlled.
+2. `Math.multiplyExact` and `Math.addExact` to detect overflow in `long`.
+3. `BigInteger` when you want exact addition even if the sum can exceed `long`.
 
 ```java
 import java.math.BigInteger;
@@ -573,7 +573,7 @@ public class SafeRevenueAggregation {
         System.out.println(totalWithLong(regularOrders));
         System.out.println(totalWithExactChecks(regularOrders));
         System.out.println(totalWithBigInteger(regularOrders));
-        // Cả ba đều in: 9000000000
+        // All three print: 9000000000
 
         List<Order> hugeOrders = List.of(
             new Order("O-03", Long.MAX_VALUE, 1L),
@@ -581,42 +581,42 @@ public class SafeRevenueAggregation {
         );
 
         System.out.println(totalWithLong(hugeOrders));
-        // -9223372036854775808: giá trị tràn, không dùng cho nghiệp vụ.
+        // -9223372036854775808: overflowed value, unusable for business logic.
 
         try {
             System.out.println(totalWithExactChecks(hugeOrders));
         } catch (ArithmeticException exception) {
-            System.out.println("Tổng vượt phạm vi long");
+            System.out.println("Sum exceeds long range");
         }
 
         System.out.println(totalWithBigInteger(hugeOrders));
-        // 9223372036854775808: tổng chính xác.
+        // 9223372036854775808: exact sum.
     }
 }
 ```
 
-**Phân tích:** `totalWithLong` chỉ phù hợp khi có bằng chứng rằng **cả từng phép nhân và phép cộng** nằm trong `long`. `totalWithExactChecks` bảo vệ phép nhân và cộng bằng ngoại lệ; nếu chính sách là từ chối dữ liệu vượt giới hạn, đó là cách dễ hiểu. `totalWithBigInteger` nhận chi phí đối tượng và số học độ chính xác tùy ý để giữ kết quả chính xác về mặt số nguyên.
+**Analysis:** `totalWithLong` is suitable only when there is evidence that **both every multiplication and the addition** fit within `long`. `totalWithExactChecks` guards multiplication and addition with exceptions; if the policy is to reject out-of-range data, that is straightforward to follow. `totalWithBigInteger` accepts object and arbitrary-precision arithmetic overhead to keep an exact integer result.
 
-Không dùng kết quả sai do tràn số để lưu hóa đơn, quyết toán hoặc giới hạn tín dụng. Cần chọn chiến lược phù hợp ngay ở ranh giới dữ liệu và kiểm tra giới hạn trong các bước trung gian.
+Never use an overflowed result to store invoices, settlements, or credit limits. Select the right strategy at the data boundary and validate bounds across intermediate steps.
 
-## 10. Tính lazy, song song và tính đúng của phép cộng
+## 10. Laziness, Parallelism, and Correctness of Addition
 
-`filter`, `map`, `mapToLong` và `mapToObj` là thao tác trung gian, thường được thực thi khi terminal operation `sum()` hoặc `reduce()` tiêu thụ pipeline. Một Stream chỉ được tiêu thụ một lần.
+`filter`, `map`, `mapToLong`, and `mapToObj` are intermediate operations, typically executed when a terminal operation such as `sum()` or `reduce()` consumes the pipeline. A Stream can only be consumed once.
 
 ```java
 import java.util.stream.LongStream;
 
 var amounts = LongStream.of(100L, 200L)
-    .filter(value -> value > 0L); // Chưa tính tổng.
+    .filter(value -> value > 0L); // Sum not computed yet.
 
 long total = amounts.sum(); // 300
 
-// amounts.count(); // Không được dùng lại Stream đã tiêu thụ.
+// amounts.count(); // Cannot reuse an already-consumed Stream.
 ```
 
-### 10.1. Song song không khắc phục tràn số
+### 10.1. Parallelism Does Not Fix Overflow
 
-`parallel()` chia xử lý thành nhiều phần, sau đó kết hợp kết quả. Nó **không mở rộng kiểu số**:
+`parallel()` splits processing into chunks and combines the results. It **does not widen numeric types**:
 
 ```java
 int wrong = java.util.stream.IntStream
@@ -627,87 +627,87 @@ int wrong = java.util.stream.IntStream
 System.out.println(wrong); // -2147483648
 ```
 
-Phép cộng `int` vẫn là phép cộng `int`. Với số nguyên bù hai, kết quả tràn theo kiểu modular; dù pipeline chạy tuần tự hay song song, kết quả đó vẫn **không phải tổng toán học chính xác**.
+`int` addition is still `int` addition. With two's-complement integers, overflow wraps modulo the bit width; whether the pipeline runs sequentially or in parallel, that result is still **not the exact mathematical sum**.
 
-`BigInteger::add` là phép cộng kết hợp (associative), nên thích hợp về mặt ngữ nghĩa cho `reduce` song song khi không có tác dụng phụ và dùng phần tử trung hòa `BigInteger.ZERO`. Tuy nhiên, xử lý song song có chi phí chia/ghép và cấp phát; không mặc định nhanh hơn với tập dữ liệu nhỏ.
+`BigInteger::add` is associative, making it semantically suitable for parallel `reduce` when there are no side effects and `BigInteger.ZERO` is used as the identity element. However, parallel processing carries splitting/combining and allocation overhead; it is not automatically faster on small datasets.
 
-### 10.2. `Math.addExact` và thứ tự gom nhóm
+### 10.2. `Math.addExact` and Grouping Order
 
-Như mục 4.2, `Math.addExact` ném ngoại lệ ở phép cộng trung gian bị tràn. Với xử lý song song, cách chia nhóm ảnh hưởng tổng trung gian được tạo ra; vì thế không nên dùng chiến lược này như một cách chứng minh độc lập với thứ tự rằng “tổng toán học cuối nằm trong giới hạn”.
+As in section 4.2, `Math.addExact` throws an exception on an overflowing intermediate addition. Under parallel execution, how chunks are grouped affects which intermediate sums are formed; therefore, this strategy should not be used as an order-independent proof that “the final mathematical sum fits in bounds”.
 
-Khi cần kiểm tra **chỉ tổng cuối** (cho phép giá trị trung gian vượt giới hạn), dùng `BigInteger` rồi gọi `intValueExact()` hoặc `longValueExact()` ở cuối. Khi mục tiêu là **không bao giờ thực hiện phép toán vượt miền `long`**, kiểm tra `Math.addExact`/`Math.multiplyExact` là phù hợp.
+When you need to check **only the final sum** (allowing intermediate values to exceed bounds), use `BigInteger` and call `intValueExact()` or `longValueExact()` at the end. When the goal is **never performing an operation that exceeds the `long` range**, checking with `Math.addExact`/`Math.multiplyExact` is appropriate.
 
-### 10.3. Trạng thái chia sẻ trong pipeline
+### 10.3. Shared State in Pipelines
 
-Không tự cộng tiền vào một biến ngoài lambda:
+Do not accumulate money manually into a variable outside a lambda:
 
 ```java
 long[] total = {0L};
 
 orders.parallelStream().forEach(order ->
     total[0] += order.unitPriceVnd() * order.quantity()
-); // Không an toàn: có thể race condition.
+); // Unsafe: potential race condition.
 ```
 
-Hãy dùng `mapToLong(...).sum()` khi miền `long` đã đủ, dùng `reduce(0L, Math::addExact)` để phát hiện tràn, hoặc `reduce(BigInteger.ZERO, BigInteger::add)` để có tổng nguyên chính xác. Các phương thức gom nhóm/collector cũng phải tuân thủ quy tắc về bộ tích lũy an toàn khi song song.
+Use `mapToLong(...).sum()` when the `long` range suffices, `reduce(0L, Math::addExact)` to detect overflow, or `reduce(BigInteger.ZERO, BigInteger::add)` for an exact integer sum. Grouping/collector methods must also follow parallel-safe accumulator rules.
 
-Nếu hiệu năng ảnh hưởng quyết định thiết kế, hãy đo bằng dữ liệu đại diện với công cụ phù hợp như JMH. `BigInteger` có thể tốn thêm bộ nhớ, còn `long` có thể nhanh hơn nếu tính đúng đã được bảo đảm. Hiệu năng chỉ có ý nghĩa khi **cả hai phương án đều trả về kết quả đúng theo yêu cầu**.
+If performance influences design decisions, benchmark with representative data using an appropriate tool such as JMH. `BigInteger` may consume more memory, whereas `long` can be faster once correctness is guaranteed. Performance only matters when **both options return the correct result required**.
 
-## 11. Các lỗi thường gặp
+## 11. Common Mistakes
 
-| Sai lầm | Hệ quả | Cách sửa |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Gán kết quả `IntStream.sum()` vào biến `long` và tưởng đã an toàn | `int` đã tràn trước khi gán | Dùng `asLongStream()` hoặc `mapToLong` trước `sum()`. |
-| Viết `mapToLong(x -> x.intA() * x.intB())` | Nhân theo kiểu `int` rồi mới mở rộng | Ép một toán hạng sang `long` trước phép nhân. |
-| Dùng `Integer::sum` trong `reduce` với tổng lớn | Tràn `int` âm thầm | Dùng `mapToLong`, `Math.addExact` hoặc `BigInteger` theo mục tiêu. |
-| Cho rằng `Collectors.summingLong` không bao giờ tràn | Vẫn giới hạn trong `long` | Kiểm tra biên hoặc gom bằng `BigInteger`. |
-| Dùng `Math.addExact` rồi nghĩ có thể nhận tổng lớn hơn kiểu | Ném ngoại lệ, không tạo số lớn hơn | Chọn `long` hoặc `BigInteger`. |
-| Dùng `long` để nhân số đã tính bằng `int` | Tổn thất thông tin xảy ra trước phép gán | Chuyển kiểu trước phép toán. |
-| Dùng `double` để lưu tổng số nguyên rất lớn | Có thể mất giá trị nguyên chính xác | Giữ `long` nếu đủ hoặc dùng `BigInteger`. |
-| Dùng `new BigDecimal(0.1)` để thể hiện đúng 0,1 | Mang xấp xỉ nhị phân từ `double` | Dùng chuỗi thập phân hoặc giá trị đã được chuẩn hóa. |
-| Chỉ xem tổng cuối mà bỏ qua các phép nhân/phép cộng trung gian | Trung gian đã tràn, kết quả không đáng tin | Kiểm tra toàn bộ pipeline và các biểu thức ánh xạ. |
-| Tưởng `parallel()` sẽ giúp tính tổng chính xác hơn | Không thay đổi miền giá trị | Chọn kiểu số và phép cộng chính xác trước. |
+| Assigning `IntStream.sum()` to a `long` variable and assuming it is safe | `int` already overflowed before assignment | Use `asLongStream()` or `mapToLong` before `sum()`. |
+| Writing `mapToLong(x -> x.intA() * x.intB())` | Multiplies in `int` before widening | Cast one operand to `long` before multiplication. |
+| Using `Integer::sum` in `reduce` for large sums | Silent `int` overflow | Use `mapToLong`, `Math.addExact`, or `BigInteger` depending on the goal. |
+| Assuming `Collectors.summingLong` never overflows | Still bounded by `long` | Check bounds or aggregate with `BigInteger`. |
+| Using `Math.addExact` expecting a sum larger than the type | Throws an exception instead of producing a larger number | Choose `long` or `BigInteger`. |
+| Using `long` to multiply numbers already computed in `int` | Information loss happened before assignment | Convert types before the operation. |
+| Using `double` to store very large integer sums | May lose exact integer precision | Keep `long` if sufficient, or use `BigInteger`. |
+| Using `new BigDecimal(0.1)` to represent exact 0.1 | Carries binary approximation from `double` | Use a decimal string or normalized value. |
+| Inspecting only the final sum while ignoring intermediate multiplications/additions | Intermediates already overflowed; result is unreliable | Audit the entire pipeline and mapping expressions. |
+| Thinking `parallel()` makes summing more accurate | Does not change value ranges | Choose exact numeric types and operations first. |
 
-## 12. Bài tập thực hành
+## 12. Practice Exercises
 
-### Bài 1: Tràn `IntStream.sum()`
+### Exercise 1: `IntStream.sum()` Overflow
 
-Với `IntStream.of(1_200_000_000, 1_200_000_000)`, dự đoán kết quả của `sum()`. Viết lại bằng `asLongStream().sum()` và giải thích vì sao việc gán kết quả của `sum()` ban đầu sang `long` không thể sửa sai.
+Given `IntStream.of(1_200_000_000, 1_200_000_000)`, predict the result of `sum()`. Rewrite it using `asLongStream().sum()` and explain why assigning the original `sum()` result to `long` cannot fix the bug.
 
-### Bài 2: Tính tiền theo dòng hóa đơn
+### Exercise 2: Computing Invoice Line Totals
 
-Mỗi dòng có `quantity` và `unitPriceVnd` kiểu `int`, mỗi trường có giá trị `60_000`. Viết `Stream<Item>.mapToLong(...).sum()` để tổng hợp 100 dòng đúng. Thử viết `item.quantity() * item.unitPriceVnd()` trước khi ép kiểu và quan sát sự khác biệt.
+Each line has `quantity` and `unitPriceVnd` of type `int`, each set to `60_000`. Write `Stream<Item>.mapToLong(...).sum()` to aggregate 100 lines correctly. Try writing `item.quantity() * item.unitPriceVnd()` before casting and observe the difference.
 
-### Bài 3: Phát hiện thay vì chấp nhận tràn
+### Exercise 3: Detecting Rather Than Accepting Overflow
 
-Tạo `IntStream.of(Integer.MAX_VALUE, 1)`. So sánh `sum()` với `reduce(0, Math::addExact)`. Khi nào nên ném ngoại lệ, khi nào nên mở rộng sang `long`?
+Create `IntStream.of(Integer.MAX_VALUE, 1)`. Compare `sum()` with `reduce(0, Math::addExact)`. When should you throw an exception, and when should you widen to `long`?
 
-### Bài 4: Tổng cuối trong phạm vi nhưng trung gian vượt phạm vi
+### Exercise 4: Final Sum Within Range While Intermediates Exceed Range
 
-Thử dãy `[Integer.MAX_VALUE, 1, -1]` với `reduce(0, Math::addExact)`. Sau đó đổi thành pipeline `mapToObj(BigInteger::valueOf)` (từ `IntStream`), `reduce(BigInteger.ZERO, BigInteger::add)` và `intValueExact()`. Giải thích sự khác biệt về ý nghĩa của hai chiến lược.
+Test the sequence `[Integer.MAX_VALUE, 1, -1]` with `reduce(0, Math::addExact)`. Then change the pipeline to `mapToObj(BigInteger::valueOf)` (from `IntStream`), `reduce(BigInteger.ZERO, BigInteger::add)`, and `intValueExact()`. Explain the semantic difference between the two strategies.
 
-### Bài 5: Tổng theo nhóm bằng `BigInteger`
+### Exercise 5: Grouped Sums With `BigInteger`
 
-Cho nhiều đơn hàng có `region` và `amountVnd` kiểu `long`. Hãy dùng `Collectors.groupingBy` kết hợp `Collectors.reducing` để tạo `Map<String, BigInteger>`. Chạy thử nhóm có hai phần tử `Long.MAX_VALUE` và `1L`.
+Given multiple orders with `region` and `amountVnd` of type `long`, use `Collectors.groupingBy` combined with `Collectors.reducing` to build a `Map<String, BigInteger>`. Test a group containing two elements `Long.MAX_VALUE` and `1L`.
 
-### Bài 6: Giới hạn và kế hoạch hiệu năng
+### Exercise 6: Bounds and Performance Planning
 
-Giả sử một ngày có thể có hai triệu giao dịch, giá trị mỗi giao dịch nằm trong khoảng -2 triệu đến +2 triệu đơn vị. Hãy tính biên tổng về mặt toán học, chọn kiểu phù hợp cho `sum()` và chỉ ra những giả định cần có. Nếu khối lượng tăng lên vài tỷ giao dịch, hãy đánh giá lại biên và nêu phép thử cần thực hiện.
+Suppose a day can have two million transactions, each valued between -2 million and +2 million units. Compute the mathematical bounds of the sum, pick a suitable type for `sum()`, and state the required assumptions. If volume grows to several billion transactions, re-evaluate the bounds and describe the checks needed.
 
-### Bài 7: Tiền có phần thập phân
+### Exercise 7: Money With Fractional Parts
 
-Tổng hợp `0.10` và `0.20` bằng `double` và `BigDecimal`. So sánh kết quả, sau đó giải thích khi nào hệ thống nên lưu tiền theo đơn vị nhỏ nhất bằng `long` và khi nào cần dùng `BigDecimal`.
+Aggregate `0.10` and `0.20` using `double` and `BigDecimal`. Compare the results, then explain when a system should store money in the smallest unit using `long` and when it needs `BigDecimal`.
 
-## 13. Tự kiểm tra kiến thức
+## 13. Self-Check Questions
 
-- `IntStream.sum()` trả về kiểu gì, và giới hạn của kiểu đó là bao nhiêu?
-- Vì sao `long total = intStream.sum()` không tránh được tràn `int`?
-- Cần ép kiểu vào thời điểm nào nếu phép nhân giữa hai `int` có thể vượt phạm vi?
-- `Math.addExact` có tác dụng phát hiện hay mở rộng số? Khi nào nó ném ngoại lệ?
-- Vì sao một dãy có tổng cuối vừa `int` vẫn có thể ném lỗi khi cộng bằng `Math.addExact`?
-- `IntSummaryStatistics.getSum()` khác `IntStream.sum()` ở kiểu trả về ra sao?
-- Khi nào `BigInteger` phù hợp hơn `long`, và cách kiểm tra khi chuyển ngược kiểu?
-- Vì sao `parallelStream()` không chữa được tràn số hay các tác dụng phụ chia sẻ?
-- Với tiền thập phân, `BigDecimal` giải quyết vấn đề nào mà `BigInteger` không trực tiếp mô tả?
+- What type does `IntStream.sum()` return, and what is the range of that type?
+- Why does `long total = intStream.sum()` fail to prevent `int` overflow?
+- At what point must casting happen if multiplying two `int` values can exceed the range?
+- Does `Math.addExact` detect overflow or widen numbers? When does it throw an exception?
+- Why can a sequence whose final sum fits in `int` still throw an error when summed with `Math.addExact`?
+- How does `IntSummaryStatistics.getSum()` differ from `IntStream.sum()` in return type?
+- When is `BigInteger` better suited than `long`, and how do you check when converting back?
+- Why does `parallelStream()` not cure overflow or shared side effects?
+- For decimal money, what problem does `BigDecimal` solve that `BigInteger` does not directly model?
 
-**Ghi nhớ:** Độ chính xác của phép tổng phụ thuộc vào **kiểu của từng phép tính**, không phụ thuộc vào kiểu biến nhận kết quả cuối cùng. Mở rộng sang `long` **trước khi cộng hoặc nhân** nếu miền 64 bit đủ; dùng `Math.addExact`/`Math.multiplyExact` để báo lỗi khi tràn; chọn `BigInteger` khi tổng nguyên có thể vượt `long`. Với Java Stream API, hãy kiểm tra kỹ cả `map`, `reduce`, `sum`, collector và tác động của xử lý song song để giữ kết quả nghiệp vụ đúng.
+**Key takeaway:** The accuracy of a sum depends on **the type of each operation**, not on the type of the variable receiving the final result. Widen to `long` **before adding or multiplying** if 64 bits suffice; use `Math.addExact`/`Math.multiplyExact` to fail on overflow; choose `BigInteger` when integer sums may exceed `long`. With the Java Stream API, carefully inspect `map`, `reduce`, `sum`, collectors, and the impact of parallel processing to keep business results accurate.

@@ -1,39 +1,39 @@
-# Chữ số, chữ cái và thuộc tính Unicode qua Character
+# Digits, Letters, and Unicode Properties via `Character`
 
-Trong Java, `java.lang.Character` không chỉ xử lý các chữ cái Latin như `A–Z` hay các chữ số ASCII như `0–9`. Nó cung cấp nhiều API để hỏi một **ký tự Unicode** thuộc loại nào: có phải **chữ cái**, **chữ số thập phân**, **ký tự có giá trị số**, **chữ hoa/chữ thường**, **dấu kết hợp**, **khoảng trắng**, **ký tự thuộc hệ chữ viết nào**, hoặc có những **thuộc tính Unicode** nào khác.
+In Java, `java.lang.Character` does not only handle Latin letters like `A–Z` or ASCII digits like `0–9`. It provides many APIs to query what kind of **Unicode character** a value is: whether it is a **letter**, a **decimal digit**, a **character with a numeric value**, **uppercase/lowercase**, a **combining mark**, **whitespace**, **which writing script it belongs to**, or what other **Unicode properties** it has.
 
-Điểm cần nắm từ đầu: **ký tự Java kiểu `char` không đồng nghĩa với một Unicode code point**, và **“có giá trị số” không đồng nghĩa “là chữ số thập phân”**. Một ký tự số La Mã có thể được xem là alphabetic nhưng không phải letter/digit theo nghĩa của `isLetter` và `isDigit`. Một chữ cái ngoài Basic Multilingual Plane (BMP) cần **hai `char` UTF-16**, nhưng chỉ là **một Unicode code point**.
+Key point to grasp from the start: **a Java `char` is not synonymous with a Unicode code point**, and **"having a numeric value" is not synonymous with "being a decimal digit"**. A Roman numeral character can be considered alphabetic yet is neither a letter nor a digit in the sense of `isLetter` and `isDigit`. A letter outside the Basic Multilingual Plane (BMP) requires **two UTF-16 `char`s**, yet is only **one Unicode code point**.
 
-Bài học này sử dụng Java 17+ để phân biệt:
-- `Character.isDigit`, `isLetter`, `isLetterOrDigit` và `isAlphabetic`;
-- `Character.digit` và `getNumericValue`;
-- `Character.getType`, các category, `UnicodeScript` và `UnicodeBlock`;
-- `char` so với code point `int`;
-- chữ hoa/chữ thường, dấu kết hợp, khoảng trắng và các giới hạn khi kiểm tra dữ liệu địa phương hóa.
+This lesson uses Java 17+ to distinguish:
+- `Character.isDigit`, `isLetter`, `isLetterOrDigit`, and `isAlphabetic`;
+- `Character.digit` and `getNumericValue`;
+- `Character.getType`, categories, `UnicodeScript`, and `UnicodeBlock`;
+- `char` versus `int` code points;
+- letter casing, combining marks, whitespace, and limitations when validating localized data.
 
-Mục tiêu là áp dụng đúng trong **Java core - localization**, đồng thời tránh những giả định ASCII hoặc giả định rằng chỉ một lệnh `Character.isLetterOrDigit` đủ cho mọi yêu cầu xác thực văn bản.
+The goal is to apply these properly in **Java core - localization**, while avoiding ASCII assumptions or the assumption that a single `Character.isLetterOrDigit` check suffices for all text validation requirements.
 
-## 1. Ba cấp độ: đơn vị UTF-16, code point và ký tự người dùng nhìn thấy
+## 1. Three Levels: UTF-16 Unit, Code Point, and User-Perceived Character
 
-Java lưu nội dung `String` dưới dạng **UTF-16**. Ba khái niệm cần phân biệt:
+Java stores `String` content as **UTF-16**. Three concepts to distinguish:
 
-| Cấp độ | Ý nghĩa | API thường gặp |
+| Level | Meaning | Common APIs |
 | --- | --- | --- |
-| **Code unit** | Một đơn vị UTF-16 16 bit, kiểu `char` | `charAt`, `length` |
-| **Code point** | Một giá trị mã Unicode, kiểu `int` | `codePointAt`, `codePoints`, `Character.isLetter(int)` |
-| **Grapheme cluster** | Một cụm ký tự mà người dùng thường cảm nhận là một đơn vị | Cần cơ chế phân đoạn văn bản, không chỉ `charAt` |
+| **Code unit** | A 16-bit UTF-16 unit, type `char` | `charAt`, `length` |
+| **Code point** | A Unicode code value, type `int` | `codePointAt`, `codePoints`, `Character.isLetter(int)` |
+| **Grapheme cluster** | A cluster of characters a user typically perceives as one unit | Requires text segmentation mechanisms, not just `charAt` |
 
-Ví dụ chữ **é** có thể được biểu diễn bằng:
-- Một code point **U+00E9** (LATIN SMALL LETTER E WITH ACUTE).
-- Hai code point **U+0065 + U+0301** (chữ e và COMBINING ACUTE ACCENT).
+For example, the letter **é** can be represented by:
+- One code point **U+00E9** (LATIN SMALL LETTER E WITH ACUTE).
+- Two code points **U+0065 + U+0301** (letter `e` and COMBINING ACUTE ACCENT).
 
-Hai biểu diễn có thể nhìn giống nhau nhưng **số code point khác nhau**. Chúng chưa chắc bằng nhau theo `String.equals` nếu chưa chuẩn hóa.
+The two representations can look identical yet have **different code point counts**. They are not guaranteed to compare equal under `String.equals` unless normalized.
 
-Ngoài ra, chữ **Deseret U+10400** ở ngoài BMP được mã hóa bằng **một surrogate pair**, tức **hai `char`**. Vì vậy `String.length()` có thể là 2 trong khi `codePointCount(...)` là 1.
+Additionally, the **Deseret letter U+10400** outside the BMP is encoded as **one surrogate pair**, i.e., **two `char`s**. Thus `String.length()` can be 2 while `codePointCount(...)` is 1.
 
-### Quy tắc thực hành
+### Practical Rule
 
-Khi phân loại ký tự Unicode, ưu tiên overload nhận **`int codePoint`**:
+When classifying Unicode characters, prefer overloads taking **`int codePoint`**:
 
 ~~~java
 Character.isLetter(codePoint);
@@ -41,26 +41,26 @@ Character.isDigit(codePoint);
 Character.getType(codePoint);
 ~~~
 
-Khi lặp qua một chuỗi Unicode tùy ý, ưu tiên `String.codePoints()` hoặc duyệt bằng `codePointAt` và `Character.charCount`. Không mặc định mỗi lần `charAt(i)` lấy được một ký tự hoàn chỉnh.
+When iterating through an arbitrary Unicode string, prefer `String.codePoints()` or traverse with `codePointAt` and `Character.charCount`. Do not assume each `charAt(i)` retrieves a complete character.
 
-## 2. `Character.isDigit`: chữ số thập phân Unicode
+## 2. `Character.isDigit`: Unicode Decimal Digits
 
-`Character.isDigit(int codePoint)` trả `true` nếu code point thuộc Unicode general category **DECIMAL_DIGIT_NUMBER (Nd)**.
+`Character.isDigit(int codePoint)` returns `true` if the code point belongs to the Unicode general category **DECIMAL_DIGIT_NUMBER (Nd)**.
 
-Điều đó bao gồm nhiều hệ chữ số thập phân, không chỉ ASCII:
+That includes many decimal numeral systems, not only ASCII:
 
-| Unicode code point | Ví dụ | `isDigit` | `getNumericValue` |
+| Unicode code point | Example | `isDigit` | `getNumericValue` |
 | --- | --- | --- | ---: |
 | U+0035 | `5` ASCII | `true` | 5 |
 | U+0665 | `٥` Arabic-Indic | `true` | 5 |
 | U+096B | `५` Devanagari | `true` | 5 |
 | U+FF15 | `５` Fullwidth | `true` | 5 |
-| U+216B | `Ⅻ` số La Mã 12 | `false` | 12 |
-| U+00B2 | `²` số mũ 2 | `false` | 2 |
+| U+216B | `Ⅻ` Roman numeral 12 | `false` | 12 |
+| U+00B2 | `²` superscript 2 | `false` | 2 |
 
-**Quan trọng:** `isDigit` không có nghĩa “ký tự chỉ được phép trong số điện thoại/mã OTP/ID của sản phẩm”. Nó có nghĩa **là chữ số thập phân theo dữ liệu Unicode mà JDK sử dụng**.
+**Important:** `isDigit` does not mean "a character allowed in your product's phone numbers/OTP codes/IDs". It means **it is a decimal digit according to the Unicode data used by the JDK**.
 
-Ví dụ runnable **`UnicodeDigitDemo.java`**:
+Runnable example **`UnicodeDigitDemo.java`**:
 
 ~~~java
 public class UnicodeDigitDemo {
@@ -91,7 +91,7 @@ javac UnicodeDigitDemo.java
 java UnicodeDigitDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 U+0035 digit=true numeric=5
@@ -102,11 +102,11 @@ U+216B digit=false numeric=12
 U+00B2 digit=false numeric=2
 ~~~
 
-Ở hai dòng cuối, các ký tự có **giá trị số** nhưng không thuộc category **Nd**, nên `isDigit` vẫn là `false`. Nếu chỉ cần chữ số ASCII cho một giao thức cố định, điều kiện đúng thường là `cp >= '0' && cp <= '9'`, không phải `Character.isDigit(cp)`.
+On the last two lines, the characters have **numeric values** yet do not belong to category **Nd**, so `isDigit` remains `false`. If you only want ASCII digits for a fixed protocol, the proper condition is usually `cp >= '0' && cp <= '9'`, not `Character.isDigit(cp)`.
 
-## 3. `Character.isLetter`: chữ cái thuộc Unicode
+## 3. `Character.isLetter`: Unicode Letters
 
-`Character.isLetter(int)` trả `true` nếu code point thuộc một trong những Unicode category sau:
+`Character.isLetter(int)` returns `true` if the code point belongs to one of these Unicode categories:
 
 - `UPPERCASE_LETTER (Lu)`;
 - `LOWERCASE_LETTER (Ll)`;
@@ -114,11 +114,11 @@ U+00B2 digit=false numeric=2
 - `MODIFIER_LETTER (Lm)`;
 - `OTHER_LETTER (Lo)`.
 
-Vì vậy “letter” không chỉ là chữ Latin. Ví dụ chữ Hán `中` (U+4E2D), nhiều chữ thuộc hệ Ả Rập, Hy Lạp, Cyrillic, v.v. đều có thể được xác định là chữ cái.
+Thus "letter" does not mean only Latin letters. For instance, the Han character `中` (U+4E2D) and many letters from Arabic, Greek, Cyrillic, etc. can all be identified as letters.
 
-Một số code point trông giống chữ hay biểu tượng chữ **không thuộc nhóm letter** theo quy tắc này. Chẳng hạn số La Mã `Ⅻ` (U+216B) thuộc **LETTER_NUMBER**, không phải năm category letter vừa liệt kê. Nó được `Character.isAlphabetic` chấp nhận nhưng `isLetter` không chấp nhận.
+Some code points that look like letters or letter symbols **do not belong to the letter group** under this rule. For instance, the Roman numeral `Ⅻ` (U+216B) belongs to **LETTER_NUMBER**, not the five letter categories listed above. It is accepted by `Character.isAlphabetic`, yet `isLetter` rejects it.
 
-Ví dụ **`UnicodeLetterDemo.java`**:
+Example **`UnicodeLetterDemo.java`**:
 
 ~~~java
 public class UnicodeLetterDemo {
@@ -141,7 +141,7 @@ javac UnicodeLetterDemo.java
 java UnicodeLetterDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 true
@@ -150,29 +150,29 @@ false
 false
 ~~~
 
-Dấu kết hợp U+0301 tự nó không phải letter. Nhưng một tên chứa **chữ e + combining acute accent** vẫn có thể là tên người hợp lệ. Điều này dẫn tới giới hạn quan trọng khi xác thực chuỗi: **“mọi code point phải là letter” có thể loại bỏ những văn bản tự nhiên đúng**.
+The combining mark U+0301 by itself is not a letter. Yet a name containing **letter e + combining acute accent** can still be a valid personal name. This leads to an important limitation when validating strings: requiring **"every code point must be a letter"** can reject valid natural text.
 
-## 4. `isAlphabetic` và `isLetter` không giống nhau
+## 4. `isAlphabetic` and `isLetter` Are Not the Same
 
-`Character.isAlphabetic(int)` xét thuộc tính Unicode **Alphabetic**. Nó bao gồm các chữ cái thuộc những category letter, đồng thời có thể chấp nhận một số code point khác được Unicode đánh dấu là alphabetic.
+`Character.isAlphabetic(int)` checks the Unicode **Alphabetic** property. It includes letters from the letter categories, and can also accept certain other code points marked as alphabetic by Unicode.
 
-Vì vậy, hai biểu thức này **không luôn tương đương**:
+Therefore, these two expressions are **not always equivalent**:
 
 ~~~java
 Character.isLetter(cp);
 Character.isAlphabetic(cp);
 ~~~
 
-Trường hợp minh họa U+216B (`Ⅻ`):
+Illustrative case U+216B (`Ⅻ`):
 
 ~~~text
-isLetter   = false
+isLetter     = false
 isAlphabetic = true
 ~~~
 
-Mặc dù đây là một **số La Mã**, Unicode vẫn coi nó có thuộc tính alphabetic. `isAlphabetic` không có nghĩa “chắc chắn là chữ cái trong bảng chữ cái Latin”; tên gọi API chỉ nói nó tuân theo một thuộc tính Unicode cụ thể.
+Even though it is a **Roman numeral**, Unicode still treats it as having the alphabetic property. `isAlphabetic` does not mean "definitely a letter in the Latin alphabet"; the API name simply reflects following a specific Unicode property.
 
-Tạo **`AlphabeticDifferenceDemo.java`**:
+Create **`AlphabeticDifferenceDemo.java`**:
 
 ~~~java
 public class AlphabeticDifferenceDemo {
@@ -192,7 +192,7 @@ javac AlphabeticDifferenceDemo.java
 java AlphabeticDifferenceDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 false
@@ -201,13 +201,13 @@ false
 12
 ~~~
 
-Khi tạo bộ lọc đầu vào, hãy chọn thuộc tính **khớp chính sách sản phẩm**, không chọn `isAlphabetic` chỉ vì tên nghe có vẻ rộng hoặc an toàn hơn.
+When building an input filter, pick the property that **matches the product policy**—do not pick `isAlphabetic` merely because the name sounds broader or safer.
 
-## 5. `isLetterOrDigit`: phép hợp, không phải “mọi ký tự chữ hoặc có số”
+## 5. `isLetterOrDigit`: A Union, Not "Any Letter or Numeric Character"
 
-`Character.isLetterOrDigit(cp)` tương đương về ý nghĩa với **`isLetter(cp) || isDigit(cp)`**. Nó không tự bao gồm mọi category number hay các dấu kết hợp.
+`Character.isLetterOrDigit(cp)` is semantically equivalent to **`isLetter(cp) || isDigit(cp)`**. It does not automatically include every number category or combining marks.
 
-Ví dụ:
+Examples:
 
 | Code point | `isLetter` | `isDigit` | `isLetterOrDigit` |
 | --- | --- | --- | --- |
@@ -219,21 +219,21 @@ Ví dụ:
 | U+0301 combining accent | false | false | false |
 | Emoji U+1F600 | false | false | false |
 
-Một ứng dụng cho phép **tên người** không thể chỉ dùng `isLetterOrDigit` rồi coi đã đúng: tên có thể chứa khoảng trắng, gạch nối, apostrophe, dấu kết hợp, ký tự khác theo văn hóa, v.v. Ngược lại, mã kỹ thuật có thể cần **ASCII-only**, và `isLetterOrDigit` lại quá rộng vì chấp nhận nhiều hệ chữ viết.
+An application accepting **personal names** cannot simply use `isLetterOrDigit` and call it correct: names can contain spaces, hyphens, apostrophes, combining marks, culturally specific characters, etc. Conversely, a technical code may need **ASCII-only**, and `isLetterOrDigit` is too broad because it accepts many writing systems.
 
-Cần xác định trước **mục đích dữ liệu**: người dùng nhập nội dung tự nhiên, định danh kỹ thuật, số thập phân, mã xác thực hay dữ liệu từ OCR. Mỗi loại cần chính sách khác nhau.
+Determine the **data purpose** first: natural user input, technical identifier, decimal number, verification code, or OCR data. Each kind requires a different policy.
 
-## 6. `getNumericValue`: giá trị số của một code point
+## 6. `getNumericValue`: Numeric Value of a Code Point
 
-`Character.getNumericValue(cp)` cố gắng lấy **giá trị số nguyên** gắn với code point theo Unicode. Nó có thể trả:
+`Character.getNumericValue(cp)` attempts to obtain the **integer numeric value** associated with a code point per Unicode. It can return:
 
-- **Số nguyên không âm**, ví dụ `5` hoặc `12`;
-- **`-1`** nếu không có giá trị số được hỗ trợ;
-- **`-2`** nếu có giá trị số nhưng **không thể biểu diễn bằng một `int` không âm** theo hợp đồng API, chẳng hạn một phân số.
+- A **non-negative integer**, e.g., `5` or `12`;
+- **`-1`** if no numeric value is supported;
+- **`-2`** if it has a numeric value that **cannot be represented as a non-negative `int`** per the API contract, such as a fraction.
 
-Vì vậy `getNumericValue` **không phải** công cụ kiểm tra “có phải chữ số thập phân” và cũng không thay thế parser số.
+Therefore `getNumericValue` is **not** a check for "is a decimal digit" and does not replace a number parser.
 
-Ví dụ **`NumericValueDemo.java`**:
+Example **`NumericValueDemo.java`**:
 
 ~~~java
 public class NumericValueDemo {
@@ -252,7 +252,7 @@ javac NumericValueDemo.java
 java NumericValueDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 7
@@ -262,15 +262,15 @@ Kết quả:
 -1
 ~~~
 
-U+00BD là ký tự **½**, có giá trị số phân số, nên trả `-2`. Dùng `getNumericValue` để hiểu một thuộc tính Unicode; nếu cần đọc một biểu thức như `"12.5"` hoặc `"Ⅻ"` theo quy tắc nghiệp vụ, cần parser chuyên dụng và chính sách đầu vào cụ thể.
+U+00BD is the character **½**, which has a fractional numeric value and thus returns `-2`. Use `getNumericValue` to inspect a Unicode property; if you need to parse expressions like `"12.5"` or `"Ⅻ"` according to business rules, use a dedicated parser and explicit input policy.
 
-**Cảnh báo với input số:** `getNumericValue('A')` có thể trả giá trị 10 theo bảng ký số mở rộng, nên **không** được xem mọi giá trị số không âm là bằng chứng ký tự ban đầu là chữ số hợp lệ cho số thập phân.
+**Warning for numeric input:** `getNumericValue('A')` can return 10 under extended digit tables, so **do not** treat every non-negative numeric value as proof that the original character is a valid decimal digit.
 
-## 7. `Character.digit` và cơ số
+## 7. `Character.digit` and Radix
 
-`Character.digit(codePoint, radix)` hỏi code point có thể biểu diễn **một chữ số theo cơ số được yêu cầu** hay không, rồi trả giá trị số hợp lệ hoặc `-1`.
+`Character.digit(codePoint, radix)` asks whether a code point can represent **a digit in the requested radix**, returning the valid numeric value or `-1`.
 
-Ví dụ:
+Examples:
 
 ~~~java
 Character.digit('9', 10);       // 9
@@ -280,9 +280,9 @@ Character.digit(0x0665, 10);   // 5
 Character.digit(0x216B, 10);   // -1
 ~~~
 
-Đây là snippet đặt trong phương thức, không phải chương trình độc lập.
+This is a snippet placed inside a method, not a standalone program.
 
-Một ví dụ runnable:
+A runnable example:
 
 **`DigitRadixDemo.java`**
 
@@ -302,7 +302,7 @@ javac DigitRadixDemo.java
 java DigitRadixDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 15
@@ -311,15 +311,15 @@ Kết quả:
 -1
 ~~~
 
-Với các cơ số được hỗ trợ, chữ Latin `A–Z` có thể đóng vai trò chữ số giá trị 10–35, nhưng việc cho phép chúng ở vị trí chữ số phụ thuộc `radix`. Không dùng `getNumericValue` rồi tự giả định mọi ký tự có numeric value đều thuộc cú pháp số của một cơ số.
+In supported radices, Latin letters `A–Z` can act as digits with values 10–35, though whether they are permitted as digits depends on `radix`. Do not call `getNumericValue` and assume every character with a numeric value belongs to the digit syntax of a radix.
 
-`Integer.parseInt` và các parser số khác có quy tắc riêng. Với Java, một số chữ số Unicode dạng Nd có thể được parser số nguyên chấp nhận, nên yêu cầu “chỉ số ASCII” phải được xác thực **trước** khi parse.
+`Integer.parseInt` and other number parsers have their own rules. In Java, certain Unicode Nd digits can be accepted by integer parsers, so an "ASCII digits only" requirement must be validated **before** parsing.
 
-## 8. Java parser có thể nhận chữ số không phải ASCII
+## 8. Java Parsers Can Accept Non-ASCII Digits
 
-Ví dụ thay vì gõ trực tiếp các ký tự có khả năng bị lỗi encoding trên console, ta dựng chuỗi bằng code point U+0661 và U+0662, tương ứng hai chữ số Arabic-Indic có giá trị `1` và `2`.
+For example, instead of typing characters directly that might suffer console encoding issues, we construct a string from code points U+0661 and U+0662, corresponding to two Arabic-Indic digits with values `1` and `2`.
 
-Tạo **`UnicodeParseDemo.java`**:
+Create **`UnicodeParseDemo.java`**:
 
 ~~~java
 public class UnicodeParseDemo {
@@ -344,7 +344,7 @@ javac UnicodeParseDemo.java
 java UnicodeParseDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 2
@@ -352,13 +352,13 @@ Kết quả:
 false
 ~~~
 
-**Diễn giải:** Parser có thể hiểu những chữ số đó thành số nguyên `12`, nhưng chuỗi đầu vào không chứa chữ số ASCII. Nếu API nhận mã OTP, mã hóa đơn hoặc giá trị có định dạng giao thức ASCII bắt buộc, phải kiểm tra **ASCII policy**, không chỉ gọi `parseInt` thành công.
+**Interpretation:** The parser can interpret those digits as the integer `12`, yet the input string does not contain ASCII digits. If an API receives an OTP code, invoice code, or value with a mandatory ASCII protocol format, it must enforce an **ASCII policy**, not merely check whether `parseInt` succeeds.
 
-Ngược lại, trong giao diện đa ngôn ngữ hướng tới người dùng, việc chấp nhận chữ số địa phương có thể là yêu cầu đúng. Phải xác định đó là quyết định của sản phẩm, không suy đoán từ một API duy nhất.
+Conversely, in a multilingual user-facing UI, accepting localized digits might be a valid requirement. That must be an explicit product decision, not inferred from a single API.
 
-## 9. Unicode general category qua `Character.getType`
+## 9. Unicode General Category via `Character.getType`
 
-`Character.getType(codePoint)` trả về **mã số int** của general category Unicode của code point, tương ứng những hằng như:
+`Character.getType(codePoint)` returns the **int code** of the code point's Unicode general category, corresponding to constants such as:
 
 - `Character.UPPERCASE_LETTER`;
 - `Character.LOWERCASE_LETTER`;
@@ -372,9 +372,9 @@ Ngược lại, trong giao diện đa ngôn ngữ hướng tới người dùng,
 - `Character.FORMAT`;
 - `Character.UNASSIGNED`.
 
-Đây là category Unicode, không phải thứ tự xếp hạng hay giá trị số của ký tự. Ví dụ `getType('5')` trả category `DECIMAL_DIGIT_NUMBER`, chứ không trả số 5. Muốn giá trị của chữ số, dùng `digit` hoặc `getNumericValue`.
+This is a Unicode category, not a sort rank or numeric value of the character. For example, `getType('5')` returns the category `DECIMAL_DIGIT_NUMBER`, not the number 5. To get the digit's value, use `digit` or `getNumericValue`.
 
-Tạo **`UnicodeCategoryDemo.java`**:
+Create **`UnicodeCategoryDemo.java`**:
 
 ~~~java
 public class UnicodeCategoryDemo {
@@ -401,7 +401,7 @@ javac UnicodeCategoryDemo.java
 java UnicodeCategoryDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 true
@@ -410,29 +410,29 @@ true
 true
 ~~~
 
-General category thường hữu ích hơn một điều kiện Boolean khi ứng dụng cần giải thích **tại sao một code point được chấp nhận hoặc bị từ chối**. Ví dụ một bộ lọc tên riêng có thể chủ động cho phép letter, combining mark và một số dấu câu, thay vì chỉ cho phép `isLetter`.
+General categories are often more useful than a Boolean check when an application needs to explain **why a code point was accepted or rejected**. For instance, a proper-name filter might explicitly allow letters, combining marks, and certain punctuation, instead of allowing only `isLetter`.
 
-### Category không phải luật ngữ pháp của một ngôn ngữ
+### A Category Is Not a Grammar Rule of a Language
 
-Không có general category nào nói rằng một từ tiếng Việt, tiếng Pháp hay tiếng Ả Rập “hợp lệ về ngữ pháp”. Category là thuộc tính Unicode của **code point riêng lẻ**, không có toàn bộ ngữ cảnh từ/câu.
+No general category says whether a Vietnamese, French, or Arabic word is "grammatically valid". A category is a Unicode property of an **individual code point**, without full word/sentence context.
 
-Đối với kiểm tra chính tả, phân đoạn từ, xử lý văn bản hai chiều hoặc plural, cần cơ chế ngôn ngữ chuyên biệt hơn `Character.getType`.
+For spellchecking, word segmentation, bidirectional text handling, or plurals, you need specialized linguistic tools beyond `Character.getType`.
 
-## 10. `UnicodeScript` và `UnicodeBlock`: hai khái niệm khác nhau
+## 10. `UnicodeScript` and `UnicodeBlock`: Two Different Concepts
 
-Java cung cấp:
+Java provides:
 
 ~~~java
 Character.UnicodeScript.of(codePoint);
 Character.UnicodeBlock.of(codePoint);
 ~~~
 
-- **`UnicodeScript`** phản ánh thuộc tính script của code point, ví dụ `LATIN`, `CYRILLIC`, `ARABIC`, `HAN`, `DEVANAGARI`.
-- **`UnicodeBlock`** phản ánh **khối mã Unicode**, một dải mã được đặt tên trong bảng mã.
+- **`UnicodeScript`** reflects the script property of a code point, e.g., `LATIN`, `CYRILLIC`, `ARABIC`, `HAN`, `DEVANAGARI`.
+- **`UnicodeBlock`** reflects a **Unicode code block**, a named code range in the code chart.
 
-Script và block không đồng nghĩa. Một script có thể trải trên nhiều block, và một block có thể chứa những ký tự với script `COMMON`, `INHERITED` hoặc những cách phân loại khác.
+Script and block are not synonymous. One script can span multiple blocks, and one block can contain characters with `COMMON`, `INHERITED`, or other script classifications.
 
-Ví dụ runnable **`UnicodeScriptDemo.java`**:
+Runnable example **`UnicodeScriptDemo.java`**:
 
 ~~~java
 public class UnicodeScriptDemo {
@@ -452,7 +452,7 @@ javac UnicodeScriptDemo.java
 java UnicodeScriptDemo
 ~~~
 
-Kết quả với bộ Unicode được JDK 17 hỗ trợ:
+Output with the Unicode version supported by JDK 17:
 
 ~~~text
 U+0041 script=LATIN
@@ -461,22 +461,22 @@ U+0665 script=ARABIC
 U+0301 script=INHERITED
 ~~~
 
-Dấu kết hợp U+0301 có script `INHERITED` vì nó phụ thuộc ngữ cảnh ký tự đi cùng. Các chữ số hoặc dấu câu có thể mang script `COMMON`, `ARABIC` hoặc script khác tùy thuộc chính code point.
+The combining mark U+0301 has script `INHERITED` because it depends on the context of the accompanying character. Digits or punctuation can carry script `COMMON`, `ARABIC`, or another script depending on the specific code point.
 
-**Không dùng `UnicodeBlock` như bộ kiểm tra “có phải chữ Latin”**. Cũng không kết luận một chuỗi toàn chữ thuộc cùng script là chắc chắn an toàn hay có nghĩa: kiểm tra tên định danh chống nhầm lẫn ký tự (*confusables*) cần nhiều quy tắc hơn.
+**Do not use `UnicodeBlock` as a "is Latin letter" check**. Likewise, do not conclude that a string of characters all in the same script is necessarily safe or meaningful: checking identifiers against lookalike characters (*confusables*) requires more rules.
 
-## 11. Code point ngoài BMP: tại sao overload `char` có thể sai?
+## 11. Non-BMP Code Points: Why Can the `char` Overload Be Wrong?
 
-Các API `Character` có nhiều overload:
+`Character` APIs have multiple overloads:
 
 ~~~java
 Character.isLetter(char ch);
 Character.isLetter(int codePoint);
 ~~~
 
-`char` chỉ chứa một đơn vị UTF-16. Với ký tự ngoài BMP, một code point được mã hóa bởi **hai surrogate code units**, nên mỗi `char` riêng lẻ không phải toàn bộ ký tự.
+A `char` holds only one UTF-16 unit. For a non-BMP character, a single code point is encoded by **two surrogate code units**, so each individual `char` is not the whole character.
 
-Ví dụ chữ Deseret U+10400:
+Example Deseret letter U+10400:
 
 **`SupplementaryLetterDemo.java`**
 
@@ -501,7 +501,7 @@ javac SupplementaryLetterDemo.java
 java SupplementaryLetterDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 2
@@ -511,13 +511,13 @@ false
 true
 ~~~
 
-Dòng `isLetter(text.charAt(0))` chỉ nhận **high surrogate**, không phải chữ Deseret thực sự. Dòng `isLetter(text.codePointAt(0))` nhận đúng U+10400 nên trả `true`.
+The line `isLetter(text.charAt(0))` receives only the **high surrogate**, not the actual Deseret letter. The line `isLetter(text.codePointAt(0))` receives U+10400 properly and returns `true`.
 
-Khi chương trình cần hỗ trợ mọi hệ chữ viết Unicode, việc lặp qua `String` bằng `for (char ch : text.toCharArray())` rồi `isLetter(ch)` có thể vô tình loại bỏ chữ cái ngoài BMP. Dùng code point để kiểm tra.
+When a program must support all Unicode scripts, iterating over a `String` with `for (char ch : text.toCharArray())` and calling `isLetter(ch)` can accidentally reject non-BMP letters. Use code points to check.
 
-### Lặp qua code point
+### Iterating Over Code Points
 
-Đây là ví dụ snippet trong một method:
+Here is an example snippet inside a method:
 
 ~~~java
 String text = new String(Character.toChars(0x10400)) + "A";
@@ -527,45 +527,45 @@ text.codePoints().forEach(cp -> {
 });
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 true
 true
 ~~~
 
-Hoặc duyệt thủ công:
+Or manual iteration:
 
 ~~~java
 for (int i = 0; i < text.length();) {
     int cp = text.codePointAt(i);
-    // Xử lý một code point hoàn chỉnh tại đây.
+    // Process one complete code point here.
     i += Character.charCount(cp);
 }
 ~~~
 
-Đoạn thứ hai là snippet có biến `text` đã khai báo. Hãy nhớ **chỉ số `i` vẫn là chỉ số UTF-16 code unit**, vì `String.codePointAt` nhận vị trí theo `char`; còn `cp` là một code point.
+The second snippet assumes variable `text` is already declared. Remember **index `i` is still a UTF-16 code unit index**, because `String.codePointAt` accepts a position in `char`s; `cp` is one code point.
 
-## 12. `String.length()` không đo số “ký tự người dùng thấy”
+## 12. `String.length()` Does Not Measure "User-Perceived Characters"
 
-Với `String` trong Java:
+For `String` in Java:
 
-- `length()` trả số **UTF-16 code units**;
-- `codePointCount(0, length())` đếm **Unicode code points**;
-- cả hai **không nhất thiết bằng số grapheme clusters**.
+- `length()` returns the number of **UTF-16 code units**;
+- `codePointCount(0, length())` counts **Unicode code points**;
+- neither **necessarily equals the number of grapheme clusters**.
 
-Ví dụ một chữ `e` theo sau dấu kết hợp U+0301 có hai code point, nhưng nhiều giao diện xem đó như **một ký tự hiển thị**. Emoji có thể bao gồm nhiều code point nối bằng zero-width joiner; cắt giữa cụm đó có thể phá vỡ hình thức hiển thị.
+For example, a letter `e` followed by combining mark U+0301 has two code points, yet many interfaces treat it as **one visible character**. An emoji can comprise multiple code points linked by a zero-width joiner; slicing in the middle of that cluster can break its visual form.
 
-Do đó:
-- Để phân loại code point, dùng `Character` + `codePoints()`.
-- Để giới hạn số byte khi gửi dữ liệu, đo byte sau khi encode, ví dụ UTF-8.
-- Để giới hạn “số ký tự người dùng nhìn thấy”, cần thuật toán **grapheme segmentation** theo chuẩn phù hợp, không chỉ `String.length()` hay `codePointCount()`.
+Therefore:
+- To classify code points, use `Character` + `codePoints()`.
+- To limit byte count when transmitting data, measure bytes after encoding, e.g., UTF-8.
+- To limit the "number of user-perceived characters", you need a **grapheme segmentation** algorithm following an appropriate standard, not just `String.length()` or `codePointCount()`.
 
-Không nên gộp ba quy tắc đếm thành một trong các màn hình nhập liệu đa ngôn ngữ.
+Do not collapse these three counting rules into one in multilingual input screens.
 
-## 13. Chữ hoa, chữ thường và Unicode case mapping
+## 13. Uppercase, Lowercase, and Unicode Case Mapping
 
-`Character` có những phương thức:
+`Character` has methods:
 
 ~~~java
 Character.isUpperCase(cp);
@@ -576,11 +576,11 @@ Character.toLowerCase(cp);
 Character.toTitleCase(cp);
 ~~~
 
-Chúng xử lý hoặc nhận diện thuộc tính của **một code point**. Trong khi đó, chuyển toàn bộ `String` theo ngôn ngữ người dùng có thể cần **case mapping có ngữ cảnh và locale**, thậm chí sinh ra nhiều code point.
+These inspect or map properties of **a single code point**. Meanwhile, converting an entire `String` for a user's language may require **context- and locale-sensitive case mapping**, and can even produce multiple code points.
 
-Ví dụ chữ Latin `I` thường được đổi thành `i` trong ánh xạ đơn giản; nhưng trong tiếng Thổ Nhĩ Kỳ, chữ hoa `I` đổi thành **ı** (dotless i).
+For example, the Latin letter `I` usually maps to `i` under simple mapping; however, in Turkish, uppercase `I` maps to **ı** (dotless i).
 
-Ví dụ **`LocaleCaseDemo.java`**:
+Example **`LocaleCaseDemo.java`**:
 
 ~~~java
 import java.util.Locale;
@@ -607,7 +607,7 @@ javac LocaleCaseDemo.java
 java LocaleCaseDemo
 ~~~
 
-Kết quả trên Java 17:
+Output on Java 17:
 
 ~~~text
 true
@@ -616,19 +616,19 @@ true
 true
 ~~~
 
-Đối với chữ `ß`, `String.toUpperCase(Locale.GERMAN)` có thể mở rộng thành **hai chữ S**, còn `Character.toUpperCase(int)` không thể biểu diễn phép mở rộng thành hai code point bằng một `int`.
+For the letter `ß`, `String.toUpperCase(Locale.GERMAN)` can expand into **two S letters**, whereas `Character.toUpperCase(int)` cannot represent a two-code-point expansion with a single `int`.
 
-**Vì vậy:**
-- Dùng `Character` cho phép kiểm tra/ánh xạ một code point khi yêu cầu đó là đúng.
-- Dùng `String.toLowerCase(locale)` / `toUpperCase(locale)` cho chuyển đổi chuỗi có ngữ nghĩa ngôn ngữ.
-- Với mã giao thức hoặc khóa kỹ thuật cần chuẩn hóa chữ hoa/thường không phụ thuộc người dùng, cân nhắc `Locale.ROOT`.
-- Không coi chuyển đổi case là phép so sánh Unicode an toàn cho mọi định danh; còn có vấn đề normalization và các dạng tương đương.
+**Therefore:**
+- Use `Character` for single-code-point checks/mappings when that is the exact requirement.
+- Use `String.toLowerCase(locale)` / `toUpperCase(locale)` for string conversions with linguistic semantics.
+- For protocol codes or technical keys needing locale-independent case normalization, consider `Locale.ROOT`.
+- Do not treat case conversion as safe Unicode comparison for all identifiers; normalization and equivalence forms still apply.
 
-## 14. Dấu kết hợp và `Normalizer`
+## 14. Combining Marks and `Normalizer`
 
-Một tiếng Việt hoặc tiếng Pháp có dấu có thể được biểu diễn bằng code point dựng sẵn hoặc **chuỗi base letter + combining mark**. Phương thức `Character.isLetter` áp dụng **riêng từng code point**, nên sẽ trả `false` với dấu kết hợp `NON_SPACING_MARK` dù toàn bộ cụm là một chữ hợp lệ.
+An accented Vietnamese or French word can be represented using a precomposed code point or a **sequence of base letter + combining mark**. `Character.isLetter` applies **to each code point individually**, so it returns `false` for a combining mark `NON_SPACING_MARK` even though the whole cluster is a valid letter.
 
-Ví dụ:
+Example:
 
 **`UnicodeNormalizationDemo.java`**
 
@@ -666,7 +666,7 @@ javac UnicodeNormalizationDemo.java
 java UnicodeNormalizationDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 false
@@ -675,20 +675,20 @@ false
 true
 ~~~
 
-`Normalizer.Form.NFC` thực hiện chuẩn hóa canonical composition phù hợp Unicode; nó **không dịch ngôn ngữ** và không tự quyết định một tên là hợp lệ. Các dạng NFD, NFKC, NFKD có mục đích khác nhau, đặc biệt compatibility normalization có thể làm thay đổi cách diễn giải những ký tự trình bày.
+`Normalizer.Form.NFC` performs Unicode canonical composition normalization; it **does not translate languages** and does not decide on its own whether a name is valid. The NFD, NFKC, and NFKD forms serve different purposes—especially compatibility normalization, which can alter how presentation characters are interpreted.
 
-**Hệ quả thực tiễn:** Nếu bộ kiểm tra tên chỉ chấp nhận `Character.isLetter` cho từng code point, nó có thể chấp nhận `é` dựng sẵn nhưng từ chối `e + U+0301` mặc dù hai chuỗi nhìn giống nhau. Cần thiết kế chính sách Unicode rõ ràng và xét normalization/combining marks khi phù hợp.
+**Practical consequence:** If a name validator only accepts `Character.isLetter` per code point, it might accept precomposed `é` yet reject `e + U+0301` even though both strings look identical. Design a clear Unicode policy and consider normalization/combining marks when appropriate.
 
-## 15. Khoảng trắng: `isWhitespace` và `isSpaceChar`
+## 15. Whitespace: `isWhitespace` and `isSpaceChar`
 
-Trong văn bản địa phương hóa, khoảng trắng không chỉ là `U+0020`. Java có:
+In localized text, whitespace is not only `U+0020`. Java provides:
 
 - `Character.isWhitespace(cp)`;
 - `Character.isSpaceChar(cp)`.
 
-Hai phương thức **không có cùng tập kết quả**. Chẳng hạn U+00A0 **NO-BREAK SPACE** được xem là **space character** nhưng `isWhitespace` trả `false`.
+The two methods **do not produce the same result set**. For example, U+00A0 **NO-BREAK SPACE** is considered a **space character**, yet `isWhitespace` returns `false`.
 
-Tạo **`UnicodeSpaceDemo.java`**:
+Create **`UnicodeSpaceDemo.java`**:
 
 ~~~java
 public class UnicodeSpaceDemo {
@@ -709,7 +709,7 @@ javac UnicodeSpaceDemo.java
 java UnicodeSpaceDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 true
@@ -718,43 +718,43 @@ false
 true
 ~~~
 
-Một bộ lọc chỉ dùng `String.trim()` hoặc `Character.isWhitespace` có thể không xử lý tất cả loại khoảng trắng Unicode mà ứng dụng cần. Ngược lại, xóa mọi khoảng trắng Unicode cũng có thể phá cách trình bày hợp lệ, ví dụ số tiền dùng khoảng trắng không ngắt để giữ ký hiệu và số trên cùng một dòng.
+A filter using only `String.trim()` or `Character.isWhitespace` may miss Unicode whitespace types the application needs to handle. Conversely, stripping all Unicode spaces can break valid formatting, such as currency amounts using a non-breaking space to keep the symbol and number on the same line.
 
-**Không tự tuyên bố mọi khoảng trắng “lạ” là dữ liệu độc hại**. Hãy xác định yêu cầu đầu vào, cách hiển thị và các thuộc tính Unicode cần cho từng loại văn bản.
+**Do not automatically declare every "unusual" space to be malicious data.** Define input requirements, display expectations, and required Unicode properties for each text type.
 
-## 16. Chữ số, số La Mã và ký hiệu: category khác cảm nhận
+## 16. Digits, Roman Numerals, and Symbols: Category Differs from Perception
 
-Một số ký tự có ý nghĩa số hoặc hình dạng giống số nhưng không phải `DECIMAL_DIGIT_NUMBER`:
+Some characters carry numeric meaning or resemble numbers yet are not `DECIMAL_DIGIT_NUMBER`:
 
-- `Ⅻ` thuộc **LETTER_NUMBER**, có numeric value `12`;
-- `²` thuộc **OTHER_NUMBER**, có numeric value `2`;
-- `½` có giá trị số `1/2` và `getNumericValue` trả `-2`;
-- Một biểu tượng emoji có thể nằm ở **OTHER_SYMBOL**;
-- Chữ Hán hoặc ký tự alphabetic có thể có những thuộc tính số, dấu hoặc script khác nhau theo code point.
+- `Ⅻ` belongs to **LETTER_NUMBER**, with numeric value `12`;
+- `²` belongs to **OTHER_NUMBER**, with numeric value `2`;
+- `½` has numeric value `1/2` and `getNumericValue` returns `-2`;
+- An emoji symbol may fall under **OTHER_SYMBOL**;
+- Han characters or alphabetic characters can have different numeric, mark, or script properties depending on the code point.
 
-Do đó, không có một lệnh duy nhất trả lời đúng cả:
-1. “Đây có phải chữ số thập phân không?”
-2. “Đây có mang giá trị số không?”
-3. “Đây có thể là chữ số trong một cơ số không?”
-4. “Đây có phải token số hợp lệ theo cú pháp sản phẩm không?”
+Thus, no single call answers all of these accurately:
+1. "Is this a decimal digit?"
+2. "Does this carry a numeric value?"
+3. "Can this be a digit in a given radix?"
+4. "Is this a valid numeric token under product syntax?"
 
-Ánh xạ phù hợp:
+Appropriate mapping:
 
-| Nhu cầu | Gợi ý API |
+| Need | Suggested API |
 | --- | --- |
-| Chữ số Unicode dạng decimal | `Character.isDigit(cp)` |
-| Chữ số ASCII bắt buộc | `cp >= '0' && cp <= '9'` |
-| Một chữ số theo cơ số 16 | `Character.digit(cp, 16)` |
-| Numeric value Unicode của một code point | `Character.getNumericValue(cp)` |
-| Đọc số nguyên đầy đủ | Parser số + xác thực policy |
-| Đọc số theo locale người dùng | `NumberFormat`/`DecimalFormat` với locale và xác thực đầu vào |
-| Biết category thực tế | `Character.getType(cp)` |
+| Unicode decimal digit | `Character.isDigit(cp)` |
+| Mandatory ASCII digit | `cp >= '0' && cp <= '9'` |
+| Digit in radix 16 | `Character.digit(cp, 16)` |
+| Unicode numeric value of a code point | `Character.getNumericValue(cp)` |
+| Parsing a full integer | Number parser + policy validation |
+| Parsing numbers by user locale | `NumberFormat`/`DecimalFormat` with locale and input validation |
+| Knowing the actual category | `Character.getType(cp)` |
 
-Trong giao tiếp máy giữa các hệ thống, thường nên lưu/trao đổi số ở dạng cấu trúc hoặc ký pháp không phụ thuộc locale. Dạng chữ số địa phương phù hợp cho **hiển thị hoặc đầu vào người dùng** khi sản phẩm chủ động hỗ trợ.
+In machine-to-machine communication, numbers should generally be stored/exchanged in a structured or locale-independent notation. Localized digits are appropriate for **display or user input** when the product intentionally supports them.
 
-## 17. Thuộc tính định danh: không đồng nghĩa với chữ cái/digit
+## 17. Identifier Properties: Not Synonymous with Letters/Digits
 
-Java cung cấp:
+Java provides:
 
 ~~~java
 Character.isJavaIdentifierStart(cp);
@@ -764,29 +764,29 @@ Character.isUnicodeIdentifierPart(cp);
 Character.isIdentifierIgnorable(cp);
 ~~~
 
-Các API này trả lời câu hỏi về **khả năng tham gia một định danh theo quy tắc Java/Unicode**, không phải “người dùng có được phép đặt username này không”.
+These APIs answer whether a code point can **participate in an identifier under Java/Unicode rules**, not "is a user allowed to pick this username".
 
-Chẳng hạn có những code point không phải letter/digit nhưng vẫn được Java cho phép tham gia định danh (ví dụ underscore) và có những code point có tính chất khác nhau giữa `isJavaIdentifierStart` và `isUnicodeIdentifierStart`.
+For instance, some code points are neither letters nor digits yet are allowed by Java in identifiers (such as underscore), and some code points behave differently between `isJavaIdentifierStart` and `isUnicodeIdentifierStart`.
 
-Không dùng `isJavaIdentifierPart` trực tiếp làm bộ lọc mật khẩu, username hoặc tên người:
-- Một số ký tự hợp lệ cho Java source code lại không phù hợp cho định danh công khai.
-- Một số tên người hợp lệ theo ngôn ngữ tự nhiên có thể không được phép trong Java identifier.
-- Một chuỗi thỏa Java identifier chưa chắc an toàn trước tấn công **homoglyph/confusable**, bi-directional control hay spoofing.
-- `Character.isIdentifierIgnorable` mô tả một thuộc tính liên quan định danh, không nói rằng mọi ký tự trả `true` đều an toàn để bỏ qua trong văn bản.
+Do not use `isJavaIdentifierPart` directly as a filter for passwords, usernames, or personal names:
+- Some characters valid in Java source code are unsuitable for public identifiers.
+- Some valid natural-language personal names may not be allowed in a Java identifier.
+- A string satisfying Java identifier rules is not necessarily safe against **homoglyph/confusable** attacks, bidirectional controls, or spoofing.
+- `Character.isIdentifierIgnorable` describes an identifier-related property; it does not mean every character returning `true` is safe to ignore in text.
 
-Khi thiết kế định danh công khai, cần policy sản phẩm cụ thể, normalization, kiểm soát mixed scripts và các phép kiểm tra chống giả mạo phù hợp. Chỉ dựa vào một Boolean từ `Character` sẽ không đủ.
+When designing public identifiers, apply product-specific policies, normalization, mixed-script controls, and appropriate anti-spoofing checks. Relying on a single Boolean from `Character` is insufficient.
 
-## 18. Thuộc tính hướng văn bản, ký tự mirror và ký tự control
+## 18. Text Direction, Mirrored Characters, and Control Characters
 
-`Character` còn nhiều API hữu ích khi xử lý Unicode:
+`Character` has several more useful APIs for Unicode handling:
 
-- `Character.getDirectionality(cp)` — loại thuộc tính hướng văn bản theo dữ liệu Unicode;
-- `Character.isMirrored(cp)` — ký tự có thuộc tính mirrored trong ngữ cảnh viết hai chiều;
-- `Character.isISOControl(cp)` — một số ký tự điều khiển ISO;
-- `Character.isDefined(cp)` — code point đã được định nghĩa trong dữ liệu Unicode của JDK;
-- `Character.getName(cp)` — tên Unicode của code point khi có.
+- `Character.getDirectionality(cp)` — text directionality property per Unicode data;
+- `Character.isMirrored(cp)` — whether the character has the mirrored property in bidirectional writing contexts;
+- `Character.isISOControl(cp)` — certain ISO control characters;
+- `Character.isDefined(cp)` — whether the code point is defined in the JDK's Unicode data;
+- `Character.getName(cp)` — Unicode name of the code point when available.
 
-Ví dụ:
+Example:
 
 ~~~java
 System.out.println(Character.isMirrored('('));
@@ -794,32 +794,32 @@ System.out.println(Character.getDirectionality('A')
         == Character.DIRECTIONALITY_LEFT_TO_RIGHT);
 ~~~
 
-Đây là snippet trong phương thức. Kết quả:
+This is a snippet inside a method. Output:
 
 ~~~text
 true
 true
 ~~~
 
-Những thuộc tính trên giúp **phát hiện/classify** ký tự, nhưng chúng **không tự thực hiện toàn bộ thuật toán hiển thị văn bản hai chiều**. Khi xử lý tiếng Ả Rập hoặc tiếng Do Thái, còn cần khả năng render/bi-directional algorithm của giao diện hoặc thư viện phù hợp.
+These properties help **detect/classify** characters, yet they **do not perform the full bidirectional text display algorithm**. When handling Arabic or Hebrew, you also need the UI or a suitable library's rendering/bidirectional algorithm.
 
-Đừng tự “đảo chuỗi” để hỗ trợ RTL; đảo code unit có thể phá surrogate pair và dấu kết hợp, trong khi thứ tự hiển thị chịu chi phối bởi thuật toán bidi, không phải phép đảo chuỗi đơn giản.
+Do not manually "reverse the string" to support RTL; reversing code units can break surrogate pairs and combining marks, while visual display order is governed by the bidi algorithm, not simple string reversal.
 
-## 19. Phiên bản Unicode của JDK và dữ liệu thay đổi
+## 19. JDK Unicode Version and Changing Data
 
-`Character` dựa trên một **phiên bản dữ liệu Unicode** được JDK triển khai. Khi nâng JDK, một số code point mới có thể được gán category, script hoặc thuộc tính khác; những phương thức như `isLetter`, `isDigit` hoặc `isDefined` có thể cho kết quả mới với code point từng chưa được hỗ trợ.
+`Character` relies on a **Unicode data version** implemented by the JDK. When upgrading JDKs, newly assigned code points can receive categories, scripts, or other properties; methods like `isLetter`, `isDigit`, or `isDefined` may return new results for previously unsupported code points.
 
-Vì vậy:
-- Không suy ra mọi phiên bản Java nhận diện cùng một bộ chữ mới nhất.
-- Nếu dùng Unicode classification để quyết định **chính sách bảo mật hoặc xác thực định danh**, phải kiểm thử khi cập nhật JDK.
-- Nếu cần tương thích chặt chẽ giữa các dịch vụ chạy các runtime khác nhau, có thể phải cố định chính sách dữ liệu và phiên bản Unicode hoặc dùng một thư viện được quản lý thống nhất.
-- Không viết test kiểu “tất cả code point hiện chưa được định nghĩa mãi mãi sẽ `false`”.
+Therefore:
+- Do not assume all Java versions recognize the exact same latest script set.
+- If using Unicode classification to enforce **security policies or identifier validation**, re-test when updating the JDK.
+- If strict compatibility is needed across services running on different runtimes, pin data policies and Unicode versions or use a centrally managed library.
+- Do not write tests assuming "all currently undefined code points will remain `false` forever".
 
-Đối với bài học Java core, hãy coi các ví dụ U+0035, U+0665, U+216B, U+00B2, U+0301 và U+10400 là các tình huống đã được Java 17 nhận diện, và chủ động kiểm tra trên JDK triển khai của bạn khi logic phụ thuộc category/script.
+For this Java core lesson, treat examples U+0035, U+0665, U+216B, U+00B2, U+0301, and U+10400 as scenarios recognized in Java 17, and proactively verify on your deployed JDK whenever logic depends on categories/scripts.
 
-## 20. Ví dụ tổng hợp: phân loại chuỗi theo code point
+## 20. Comprehensive Example: Classifying a String by Code Point
 
-Tạo tệp **`UnicodeClassifier.java`**:
+Create the file **`UnicodeClassifier.java`**:
 
 ~~~java
 public class UnicodeClassifier {
@@ -860,7 +860,7 @@ javac UnicodeClassifier.java
 java UnicodeClassifier
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 U+0041 LETTER
@@ -870,13 +870,13 @@ U+00B2 NUMERIC_OTHER
 U+1F600 OTHER
 ~~~
 
-Ví dụ minh họa cách các thuộc tính có **tập giao nhau và khác nhau**; nhãn `ALPHABETIC_OTHER` là nhãn do chương trình đặt, không phải một category Unicode chính thức.
+This example demonstrates how properties have **overlapping and distinct sets**; the label `ALPHABETIC_OTHER` is a custom label chosen by the program, not an official Unicode category.
 
-**Giới hạn ví dụ:** Phân loại một code point không thể quyết định toàn bộ quy tắc chấp nhận tên, mật khẩu, số tiền hay văn bản. Nếu ứng dụng cần chấp nhận combining mark, xem ngữ cảnh các code point đứng trước và sau, normalization, script và bộ quy tắc sản phẩm.
+**Example limitation:** Classifying a single code point cannot decide full acceptance rules for names, passwords, monetary amounts, or text. If an application needs to allow combining marks, consider the context of preceding and following code points, normalization, scripts, and product rules.
 
-## 21. Ví dụ xác thực số ASCII và chữ cái Unicode một cách có chủ đích
+## 21. Deliberate Validation Examples for ASCII Digits and Unicode Letters
 
-Một mã tham chiếu kỹ thuật yêu cầu **chính xác sáu chữ số ASCII**:
+A technical reference code requiring **exactly six ASCII digits**:
 
 ~~~java
 public static boolean isSixAsciiDigits(String input) {
@@ -887,9 +887,9 @@ public static boolean isSixAsciiDigits(String input) {
 }
 ~~~
 
-Đây là **snippet trong class**. `String.chars()` ở đây phù hợp **vì policy đã giới hạn ASCII**, mỗi ký tự hợp lệ đều dùng một UTF-16 code unit. Nếu policy cho phép **Unicode decimal digits**, cần dùng code points và tiêu chí khác.
+This is a **snippet inside a class**. `String.chars()` is appropriate here **because the policy restricts to ASCII**, where every valid character uses one UTF-16 code unit. If a policy allows **Unicode decimal digits**, you must use code points and different criteria.
 
-Một bộ lọc thô cho **chữ cái Unicode hoặc combining mark** có thể viết:
+A coarse filter for **Unicode letters or combining marks** can be written as:
 
 ~~~java
 public static boolean isLetterOrMark(int cp) {
@@ -901,11 +901,11 @@ public static boolean isLetterOrMark(int cp) {
 }
 ~~~
 
-Đây là snippet trong class, **chưa phải bộ validator tên người hoàn chỉnh**. Nếu chỉ chấp nhận mọi dấu kết hợp ở mọi vị trí, một tên bắt đầu bằng dấu lẻ cũng có thể lọt qua. Cần bổ sung logic theo vị trí, dấu cách/dấu nối cho phép, chính sách chiều dài và kiểm soát nội dung theo nhu cầu.
+This is a snippet inside a class, **not yet a complete personal name validator**. If you allow combining marks in any position, a name starting with an orphaned mark could slip through. You need additional positional logic, allowed spaces/hyphens, length policies, and content controls as needed.
 
-### Chương trình kiểm tra hai chính sách khác nhau
+### Program Testing Two Different Policies
 
-Tạo **`UnicodeValidationDemo.java`**:
+Create **`UnicodeValidationDemo.java`**:
 
 ~~~java
 public class UnicodeValidationDemo {
@@ -940,7 +940,7 @@ javac UnicodeValidationDemo.java
 java UnicodeValidationDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 true
@@ -949,99 +949,99 @@ false
 true
 ~~~
 
-Hai cách kiểm tra đều đúng **trong phạm vi chính sách mà chúng công bố**, nhưng không thể thay thế cho nhau. Khi xác nhận số liệu nghiệp vụ, còn phải kiểm tra độ dài, giá trị hợp lệ, tràn số và kiểu dữ liệu sau parse.
+Both checks are correct **within the scope of their declared policies**, yet they are not interchangeable. When validating business numeric values, also verify length, valid value range, overflow, and post-parse data types.
 
-## 22. Các lỗi thường gặp
+## 22. Common Mistakes
 
-| Sai lầm | Hậu quả | Cách xử lý |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Xem `char` là mọi ký tự Unicode | Bỏ sót code point ngoài BMP | Dùng overload `int` và `String.codePoints()` |
-| Coi `String.length()` là số chữ người dùng thấy | Đếm sai surrogate pair và grapheme cluster | Chọn phép đếm đúng yêu cầu |
-| Coi `isDigit` là ASCII-only | Chấp nhận chữ số từ nhiều hệ chữ số | Kiểm tra `'0'..'9'` nếu policy chỉ ASCII |
-| Coi `getNumericValue>=0` là decimal digit | Chấp nhận số La Mã/số mũ, thậm chí chữ Latin trong một số trường hợp | Dùng `isDigit` hoặc `digit` theo mục đích |
-| Coi `isLetter` và `isAlphabetic` tương đương | Phân loại khác nhau với letter-number | Chọn đúng thuộc tính |
-| Coi `isLetterOrDigit` là validator tên người | Loại bỏ dấu kết hợp, khoảng trắng và dấu nối hợp lệ | Thiết kế validation theo ngữ cảnh |
-| Coi `UnicodeBlock` là script | Sai khi một script có nhiều block | Dùng `UnicodeScript` khi cần script |
-| Dùng `Character.toUpperCase` cho toàn chuỗi cần locale | Bỏ qua chuyển đổi nhiều ký tự và quy tắc ngôn ngữ | Dùng `String.toUpperCase(locale)` |
-| So sánh hai chuỗi Unicode nhìn giống nhau bằng `equals` rồi kết luận khác văn bản | Dạng composed/decomposed có thể khác bytes | Xem xét `Normalizer` |
-| Coi mọi Unicode whitespace là `isWhitespace=true` | Bỏ sót NBSP | Phân biệt `isWhitespace`/`isSpaceChar` |
-| Tin `isJavaIdentifierPart` là đủ cho username an toàn | Bỏ sót spoofing/mixed scripts/control | Policy định danh và kiểm tra chuyên biệt |
-| Đảo chuỗi để hỗ trợ RTL | Phá Unicode và sai thuật toán bidi | Dùng engine bidi/render thích hợp |
-| Nâng JDK mà không kiểm tra thuộc tính Unicode | Kết quả phân loại có thể thay đổi | Kiểm thử/ghi nhận phiên bản Unicode |
+| Treating `char` as every Unicode character | Misses non-BMP code points | Use `int` overloads and `String.codePoints()` |
+| Treating `String.length()` as user-perceived character count | Miscounts surrogate pairs and grapheme clusters | Pick the counting method matching the requirement |
+| Treating `isDigit` as ASCII-only | Accepts digits from multiple numeral systems | Check `'0'..'9'` if policy is ASCII-only |
+| Treating `getNumericValue>=0` as decimal digit | Accepts Roman numerals/superscripts, even Latin letters in some cases | Use `isDigit` or `digit` depending on intent |
+| Treating `isLetter` and `isAlphabetic` as equivalent | Differing classification for letter-numbers | Pick the exact property |
+| Treating `isLetterOrDigit` as a personal name validator | Rejects valid combining marks, spaces, and hyphens | Design context-aware validation |
+| Treating `UnicodeBlock` as script | Wrong when a script spans multiple blocks | Use `UnicodeScript` when script is needed |
+| Using `Character.toUpperCase` on whole strings needing locale | Misses multi-character conversions and linguistic rules | Use `String.toUpperCase(locale)` |
+| Comparing visually identical Unicode strings with `equals` and concluding they are different text | Composed/decomposed forms may have different bytes | Consider `Normalizer` |
+| Assuming all Unicode whitespace has `isWhitespace=true` | Misses NBSP | Distinguish `isWhitespace`/`isSpaceChar` |
+| Assuming `isJavaIdentifierPart` suffices for safe usernames | Misses spoofing/mixed scripts/controls | Dedicated identifier policy and checks |
+| Reversing strings to support RTL | Corrupts Unicode and violates the bidi algorithm | Use an appropriate bidi/rendering engine |
+| Upgrading the JDK without checking Unicode properties | Classification results can change | Test/pin Unicode version |
 
-## 23. Checklist kiểm thử trong ứng dụng localization
+## 23. Testing Checklist for Localization Applications
 
-Một bộ kiểm thử thực tế nên bao quát:
+A practical test suite should cover:
 
-1. **ASCII Latin và số**: `A`, `z`, `0`, `9`.
-2. **Chữ số địa phương**: Arabic-Indic, Devanagari, fullwidth.
-3. **Numeric không phải digit**: `Ⅻ`, `²`, `½`.
-4. **Chữ thuộc nhiều script**: Latin, Han, Cyrillic, Ả Rập.
-5. **Chữ ngoài BMP**: một code point dạng surrogate pair, ví dụ U+10400.
-6. **Dấu kết hợp**: chuỗi dựng sẵn và chuỗi base + combining mark.
-7. **Khoảng trắng đặc biệt**: NBSP và narrow NBSP.
-8. **Case theo locale**: ít nhất tiếng Thổ Nhĩ Kỳ và trường hợp `ß`.
-9. **Mixed scripts/confusables** nếu dùng định danh công khai.
-10. **Ký tự control và bidi** khi dữ liệu được hiển thị trong log/UI nhạy cảm.
-11. **Runtime Unicode version** khi nâng JDK.
-12. **Parser số và ranh giới ASCII** nếu giao thức yêu cầu ký pháp cố định.
+1. **ASCII Latin and digits**: `A`, `z`, `0`, `9`.
+2. **Localized digits**: Arabic-Indic, Devanagari, fullwidth.
+3. **Numeric non-digits**: `Ⅻ`, `²`, `½`.
+4. **Characters from multiple scripts**: Latin, Han, Cyrillic, Arabic.
+5. **Non-BMP characters**: a surrogate-pair code point, e.g., U+10400.
+6. **Combining marks**: precomposed strings and base + combining mark strings.
+7. **Special spaces**: NBSP and narrow NBSP.
+8. **Locale-specific casing**: at least Turkish and `ß`.
+9. **Mixed scripts/confusables** if using public identifiers.
+10. **Control and bidi characters** when data is displayed in sensitive logs/UIs.
+11. **Runtime Unicode version** when upgrading the JDK.
+12. **Number parsers and ASCII boundaries** if protocols require fixed notation.
 
-Khi test, ưu tiên biểu diễn code point bằng `0xXXXX` hoặc `U+XXXX` thay vì phụ thuộc font/console có hiển thị đúng mọi hệ chữ viết hay không. `System.out.printf("U+%04X", cp)` giúp đối chiếu chính xác giá trị mã.
+When testing, prefer representing code points with `0xXXXX` or `U+XXXX` rather than relying on whether a font/console renders every script properly. `System.out.printf("U+%04X", cp)` helps verify exact code values.
 
-## 24. Bài tập có đáp án
+## 24. Exercises with Answers
 
-**Câu 1.** `Character.isDigit(0x0665)` trả gì? Có đảm bảo đây là chữ số ASCII không?
+**Question 1.** What does `Character.isDigit(0x0665)` return? Does it guarantee this is an ASCII digit?
 
-**Đáp án:** Trả `true`, nhưng U+0665 là Arabic-Indic digit five, **không phải ASCII**.
+**Answer:** Returns `true`, yet U+0665 is Arabic-Indic digit five, **not ASCII**.
 
-**Câu 2.** Vì sao `Character.isDigit(0x216B)` trả `false` mà `getNumericValue(0x216B)` trả `12`?
+**Question 2.** Why does `Character.isDigit(0x216B)` return `false` while `getNumericValue(0x216B)` returns `12`?
 
-**Đáp án:** U+216B là số La Mã thuộc category `LETTER_NUMBER`, không phải chữ số decimal `Nd`.
+**Answer:** U+216B is a Roman numeral in category `LETTER_NUMBER`, not decimal digit `Nd`.
 
-**Câu 3.** `isLetter(0x216B)` và `isAlphabetic(0x216B)` có cùng kết quả không?
+**Question 3.** Do `isLetter(0x216B)` and `isAlphabetic(0x216B)` return the same result?
 
-**Đáp án:** Không. Lần lượt là `false` và `true`.
+**Answer:** No. They return `false` and `true`, respectively.
 
-**Câu 4.** Vì sao `Character.isLetter(text.charAt(0))` có thể sai cho một chữ ngoài BMP?
+**Question 4.** Why can `Character.isLetter(text.charAt(0))` be wrong for a non-BMP letter?
 
-**Đáp án:** `charAt(0)` chỉ lấy một surrogate code unit, không phải toàn bộ code point. Dùng `codePointAt(0)` và overload `int`.
+**Answer:** `charAt(0)` retrieves only a single surrogate code unit, not the complete code point. Use `codePointAt(0)` and the `int` overload.
 
-**Câu 5.** `Character.getNumericValue(0x00BD)` trả `-2` nghĩa là gì?
+**Question 5.** What does `Character.getNumericValue(0x00BD)` returning `-2` mean?
 
-**Đáp án:** Ký tự `½` có giá trị số phân số không biểu diễn được bằng một `int` không âm theo cách API này trả về.
+**Answer:** The character `½` has a fractional numeric value that cannot be represented by a non-negative `int` as returned by this API.
 
-**Câu 6.** Tại sao một tên chứa `e` + U+0301 có thể bị `isLetter` từ chối ở code point thứ hai?
+**Question 6.** Why can a name containing `e` + U+0301 be rejected by `isLetter` on the second code point?
 
-**Đáp án:** U+0301 là `NON_SPACING_MARK`, không thuộc Unicode letter category; validation tên cần xét dấu kết hợp/normalization.
+**Answer:** U+0301 is a `NON_SPACING_MARK`, which does not belong to Unicode letter categories; name validation must consider combining marks/normalization.
 
-**Câu 7.** Dùng `Character.isLetterOrDigit` để cho phép tất cả tên người có hợp lý không?
+**Question 7.** Is using `Character.isLetterOrDigit` to allow all personal names reasonable?
 
-**Đáp án:** Không; tên người có thể chứa dấu cách, dấu nối, apostrophe hoặc combining mark, và một số quy tắc tên không thể phân biệt chỉ qua category từng code point.
+**Answer:** No; personal names can contain spaces, hyphens, apostrophes, or combining marks, and some name rules cannot be determined solely from individual code point categories.
 
-**Câu 8.** Khi chuyển chữ hoa toàn chuỗi cho người dùng Thổ Nhĩ Kỳ, nên dùng `Character` hay `String.toUpperCase(locale)`?
+**Question 8.** When uppercasing an entire string for Turkish users, should you use `Character` or `String.toUpperCase(locale)`?
 
-**Đáp án:** Dùng phép chuyển đổi chuỗi có `Locale` đúng ngôn ngữ, vì case mapping có thể phụ thuộc locale/ngữ cảnh và có thể thay đổi độ dài chuỗi.
+**Answer:** Use the string conversion taking the right `Locale` for the language, because case mapping can depend on locale/context and can change string length.
 
-**Câu 9.** Vì sao `Character.isWhitespace(0x00A0)` là `false` nhưng `isSpaceChar(0x00A0)` là `true`?
+**Question 9.** Why is `Character.isWhitespace(0x00A0)` `false` while `isSpaceChar(0x00A0)` is `true`?
 
-**Đáp án:** Chúng kiểm tra những tập thuộc tính Unicode khác nhau; NBSP thuộc loại space character nhưng bị loại khỏi định nghĩa whitespace của API.
+**Answer:** They inspect different Unicode property sets; NBSP is a space character yet is excluded from the API's whitespace definition.
 
-**Câu 10.** Nếu bộ lọc mã OTP yêu cầu chính xác sáu chữ số ASCII, nên dùng `Character.isDigit` không?
+**Question 10.** If an OTP code filter requires exactly six ASCII digits, should you use `Character.isDigit`?
 
-**Đáp án:** Không dùng riêng `isDigit`. Kiểm tra chính xác độ dài và từng code point trong phạm vi `'0'` đến `'9'`.
+**Answer:** Do not use `isDigit` alone. Check exact length and verify each code point is in the range `'0'` to `'9'`.
 
-## 25. Quy trình ứng dụng vào hệ thống Java thực tế
+## 25. Workflow for Applying This in Real-World Java Systems
 
-1. **Xác định yêu cầu dữ liệu**, đừng bắt đầu bằng cách chọn đại một phương thức `Character`.
-2. **Chọn cấp độ xử lý**: code unit UTF-16, code point Unicode, hay grapheme cluster.
-3. **Chọn thuộc tính chính xác**: `isDigit`, `isLetter`, `isAlphabetic`, general category, script hoặc một tổ hợp phù hợp.
-4. **Nếu là dữ liệu số**, xác định ASCII-only, Unicode decimal digits hay parser theo locale; kiểm tra toàn chuỗi sau parse.
-5. **Nếu là tên/định danh**, xét normalization, combining marks, dấu câu, mixed scripts và spoofing theo chính sách sản phẩm.
-6. **Nếu chuyển case**, truyền `Locale` phù hợp hoặc dùng `Locale.ROOT` cho ngữ cảnh kỹ thuật cần độc lập locale.
-7. **Nếu lưu/hiển thị**, tách bước phân loại ký tự khỏi encoding/escaping ở đầu ra; `Character` không tự bảo đảm an toàn HTML, SQL hay log.
-8. **Nếu dùng thuộc tính Unicode trong luật bảo mật**, kiểm thử lại khi nâng Java/Unicode data.
-9. **Nếu cần hỗ trợ RTL và grapheme cluster**, dùng công cụ thuật toán phù hợp thay vì đảo chuỗi hoặc cắt theo `char`.
+1. **Identify data requirements**, rather than starting by picking an arbitrary `Character` method.
+2. **Choose the processing level**: UTF-16 code unit, Unicode code point, or grapheme cluster.
+3. **Pick the exact property**: `isDigit`, `isLetter`, `isAlphabetic`, general category, script, or an appropriate combination.
+4. **If handling numeric data**, clarify ASCII-only, Unicode decimal digits, or locale-aware parser; validate the whole string after parsing.
+5. **If handling names/identifiers**, consider normalization, combining marks, punctuation, mixed scripts, and spoofing per product policy.
+6. **If changing case**, pass the appropriate `Locale` or use `Locale.ROOT` for technical contexts needing locale independence.
+7. **If storing/displaying**, separate character classification from output encoding/escaping; `Character` does not automatically guarantee HTML, SQL, or log safety.
+8. **If using Unicode properties in security rules**, re-test when upgrading Java/Unicode data.
+9. **If RTL and grapheme clusters are needed**, use appropriate algorithmic tools instead of reversing strings or slicing by `char`.
 
-**Ghi nhớ:** Trong Java, `Character` hỗ trợ **Unicode classification**, không chỉ ASCII. `isDigit` khác `getNumericValue`; `isLetter` khác `isAlphabetic`; `char` khác **code point**; và kiểm tra thuộc tính từng code point khác với việc xác thực **một chuỗi có ý nghĩa trong ngôn ngữ tự nhiên**. Kết hợp đúng API với `Locale`, `Normalizer`, parser và chính sách sản phẩm là nền tảng để xử lý văn bản đa ngôn ngữ đáng tin cậy.
+**Takeaway:** In Java, `Character` supports **Unicode classification**, not just ASCII. `isDigit` differs from `getNumericValue`; `isLetter` differs from `isAlphabetic`; `char` differs from **code point**; and checking properties per code point differs from validating **a meaningful string in natural language**. Combining the right APIs with `Locale`, `Normalizer`, parsers, and product policies is the foundation for reliable multilingual text processing.
 
-**Tài liệu Java SE 17:** [Character](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html), [String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html), [Normalizer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Normalizer.html).
+**Java SE 17 Documentation:** [Character](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html), [String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html), [Normalizer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Normalizer.html).

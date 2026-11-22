@@ -1,58 +1,58 @@
-# requires java.base ngầm định
+# Implicit requires java.base
 
-Trong Java Platform Module System (JPMS), mọi named module đều có quan hệ phụ thuộc trực tiếp tới module nền tảng `java.base`, ngoại trừ chính `java.base`. Nếu `module-info.java` không viết directive `requires java.base;`, Java compiler tự bổ sung directive này vào module descriptor đã biên dịch. Vì vậy, mã nguồn module thường không cần khai báo `java.base` một cách tường minh.
+In the Java Platform Module System (JPMS), every named module has a direct dependency relationship to the foundational module `java.base`, except `java.base` itself. If `module-info.java` does not explicitly write the directive `requires java.base;`, the Java compiler automatically adds this directive into the compiled module descriptor. Therefore, module source code usually does not need to declare `java.base` explicitly.
 
-Đây là dependency nền tảng của hệ sinh thái Java. Các kiểu cơ bản như `Object`, `String`, `System`, `Class`, `Throwable`, các collection, I/O cơ bản, thời gian và nhiều API phổ biến đều nằm trong `java.base`. Mọi module đều cần khả năng đọc module này để sử dụng các kiểu nền tảng đó.
+This is the foundational dependency of the Java ecosystem. Fundamental types such as `Object`, `String`, `System`, `Class`, `Throwable`, collections, basic I/O, date/time, and many common APIs reside in `java.base`. Every module needs readability to this module in order to use those foundational types.
 
-## 1. java.base là module nền tảng
+## 1. java.base is the foundational module
 
-`java.base` là module cốt lõi của Java SE. Nó chứa những package được dùng rộng rãi trong hầu hết chương trình, ví dụ:
+`java.base` is the core module of Java SE. It contains packages widely used across almost all programs, for example:
 
-| Package | Ví dụ API |
+| Package | API Examples |
 |---|---|
 | `java.lang` | `Object`, `String`, `System`, `Math`, `Class`, `Throwable` |
 | `java.util` | `List`, `Map`, `Set`, `Optional`, `Collections` |
 | `java.io` | `InputStream`, `OutputStream`, `File`, `Serializable` |
-| `java.nio` và `java.nio.file` | `ByteBuffer`, `Path`, `Files` |
+| `java.nio` and `java.nio.file` | `ByteBuffer`, `Path`, `Files` |
 | `java.time` | `LocalDate`, `Instant`, `Duration` |
 | `java.math` | `BigInteger`, `BigDecimal` |
 | `java.util.concurrent` | `ExecutorService`, `CompletableFuture`, `ConcurrentHashMap` |
 
-Package `java.lang` còn được Java import ngầm vào mọi compilation unit, nên chương trình có thể dùng `String` hoặc `System` mà không cần viết câu lệnh `import`. Đây là quy tắc import của ngôn ngữ Java; nó khác với quy tắc module readability. Khả năng đọc `java.base` là điều kiện ở cấp module để mã trong module sử dụng các API thuộc module nền tảng.
+The `java.lang` package is also implicitly imported by Java into every compilation unit, so programs can use `String` or `System` without writing an `import` statement. That is an import rule of the Java language; it differs from module readability rules. Readability to `java.base` is the module-level condition for code in a module to use APIs belonging to the foundational module.
 
-## 2. Vì sao requires java.base được thêm ngầm định?
+## 2. Why is requires java.base added implicitly?
 
-Một module thông thường có thể bắt đầu với descriptor rất ngắn:
+A typical module can start with a very short descriptor:
 
 ```java
 module com.acme.app {
 }
 ```
 
-Dù không có dòng `requires`, module `com.acme.app` vẫn đọc được `java.base`. Theo quy tắc của JPMS, nếu khai báo module không chứa `requires java.base;`, compiler ngầm thêm quan hệ phụ thuộc này khi tạo module descriptor. Trong file `module-info.class`, dependency được đánh dấu là `mandated` (bắt buộc theo quy tắc nền tảng).
+Even without a `requires` line, the `com.acme.app` module can still read `java.base`. According to JPMS rules, if a module declaration does not contain `requires java.base;`, the compiler implicitly adds this dependency when generating the module descriptor. In the `module-info.class` file, the dependency is marked as `mandated` (mandatory by platform rules).
 
-Có thể hiểu hai hình thức sau có cùng ý nghĩa về khả năng đọc `java.base`:
+The following two forms can be understood as having the same meaning regarding readability to `java.base`:
 
 ```java
-// Nguồn thông thường: không cần khai báo java.base
+// Typical source: no need to declare java.base
 module com.acme.app {
 }
 ```
 
 ```java
-// Mô tả tường minh về quan hệ nền tảng
+// Explicit description of the foundational relationship
 module com.acme.app {
     requires java.base;
 }
 ```
 
-Trong dự án thực tế, nên để compiler xử lý dependency ngầm định thay vì thêm một dòng thừa vào mọi `module-info.java`. Điểm quan trọng là dependency vẫn tồn tại trong module descriptor đã biên dịch, dù không xuất hiện trong mã nguồn.
+In real-world projects, you should let the compiler handle this implicit dependency rather than adding an unnecessary line to every `module-info.java`. The key point is that the dependency still exists in the compiled module descriptor, even though it does not appear in the source code.
 
-Module `java.base` không thể tự khai báo phụ thuộc vào chính nó. Nó là nền móng mà các module Java SE khác dựa vào, tránh tạo vòng phụ thuộc ở tầng thấp nhất của nền tảng.
+The `java.base` module cannot declare a dependency on itself. It is the foundation on which other Java SE modules rely, avoiding creating a dependency cycle at the lowest layer of the platform.
 
-## 3. Ví dụ: dùng API java.base mà không khai báo requires
+## 3. Example: Using java.base APIs without declaring requires
 
-Cấu trúc dự án modular:
+Modular project structure:
 
 ```text
 src/
@@ -69,7 +69,7 @@ module com.acme.app {
 }
 ```
 
-Class sử dụng nhiều API thuộc `java.base`:
+Class using several APIs from `java.base`:
 
 ```java
 // src/com.acme.app/com/acme/app/Main.java
@@ -89,53 +89,53 @@ public class Main {
 }
 ```
 
-Biên dịch và chạy từ thư mục dự án:
+Compile and run from the project directory:
 
 ```shell
 javac --module-source-path src -d out -m com.acme.app
 java --module-path out -m com.acme.app/com.acme.app.Main
 ```
 
-Mã nguồn không khai báo `requires java.base;` nhưng vẫn dùng được `List`, `LocalDate`, `String` và `System`. Các kiểu này đều thuộc `java.base`, và module `com.acme.app` đã đọc module nền tảng nhờ directive ngầm định.
+The source code does not declare `requires java.base;`, yet it can still use `List`, `LocalDate`, `String`, and `System`. These types all belong to `java.base`, and the `com.acme.app` module reads the foundational module thanks to the implicit directive.
 
-## 4. Kiểm tra dependency ngầm định trong module descriptor
+## 4. Inspecting the implicit dependency in the module descriptor
 
-Có thể xem descriptor của module sau khi biên dịch bằng `javap`:
+You can inspect a compiled module's descriptor using `javap`:
 
 ```shell
 javap -v out/com.acme.app/module-info.class
 ```
 
-Trong phần `Module:`, tìm mục `requires`. Kết quả sẽ thể hiện module `java.base` cùng cờ `mandated`, dù file nguồn `module-info.java` không có dòng tương ứng. Cờ này cho biết directive được bổ sung theo quy tắc của nền tảng.
+In the `Module:` section, look for the `requires` entry. The output will show the `java.base` module along with the `mandated` flag, even though the `module-info.java` source file has no corresponding line. This flag indicates that the directive was added according to platform rules.
 
-Một cách khác là đóng gói module thành JAR rồi xem descriptor:
+Another approach is to package the module into a JAR and then inspect its descriptor:
 
 ```shell
 jar --create --file com.acme.app.jar -C out/com.acme.app .
 jar --describe-module --file com.acme.app.jar
 ```
 
-Kết quả mô tả module sẽ liệt kê dependency `java.base` là `mandated`. Bạn cũng có thể xem module nền tảng của JDK đang sử dụng:
+The module description output will list the `java.base` dependency as `mandated`. You can also inspect the foundational module of the JDK currently in use:
 
 ```shell
 java --describe-module java.base
 ```
 
-Những lệnh này hữu ích khi kiểm tra artifact thực tế, đặc biệt khi cấu hình build tạo ra module descriptor khác với điều người đọc suy ra từ mã nguồn.
+These commands are useful when inspecting actual artifacts, especially when a build configuration produces a module descriptor different from what a reader might infer from the source code.
 
-## 5. java.base không chứa toàn bộ Java SE
+## 5. java.base does not contain all of Java SE
 
-Không nên hiểu `java.base` là toàn bộ thư viện chuẩn của Java. Java SE được chia thành nhiều module để phân tách chức năng. Một số API quen thuộc nằm ngoài `java.base`:
+You should not view `java.base` as the entirety of the Java standard library. Java SE is split into multiple modules to separate functionality. Several familiar APIs reside outside `java.base`:
 
-| Module | Chức năng tiêu biểu |
+| Module | Typical Functionality |
 |---|---|
-| `java.sql` | JDBC và API truy cập cơ sở dữ liệu |
-| `java.desktop` | AWT, Swing và đồ họa desktop |
-| `java.xml` | API xử lý XML |
+| `java.sql` | JDBC and database access APIs |
+| `java.desktop` | AWT, Swing, and desktop graphics |
+| `java.xml` | XML processing APIs |
 | `java.logging` | Java Logging API |
 | `java.net.http` | HTTP Client API |
 
-Nếu module ứng dụng sử dụng các API thuộc module khác, cần khai báo dependency tương ứng. Ví dụ:
+If an application module uses APIs belonging to other modules, it must declare the corresponding dependencies. For example:
 
 ```java
 module com.acme.reporting {
@@ -143,45 +143,45 @@ module com.acme.reporting {
 }
 ```
 
-Ở đây, `requires java.sql;` là cần thiết nếu mã trong module sử dụng API JDBC. Dependency ngầm định tới `java.base` không tự động làm ứng dụng đọc mọi module của JDK.
+Here, `requires java.sql;` is necessary if code in the module uses JDBC APIs. The implicit dependency on `java.base` does not automatically make an application read every module in the JDK.
 
-Cũng cần phân biệt package có tên gần nhau: `java.net` cơ bản thuộc `java.base`, trong khi HTTP Client hiện đại nằm trong module riêng `java.net.http`. Hãy tra module sở hữu package thay vì suy luận chỉ từ tiền tố tên package.
+You should also distinguish packages with similar names: basic `java.net` belongs to `java.base`, whereas the modern HTTP Client resides in a separate module `java.net.http`. Always look up the module that owns a package rather than inferring solely from package name prefixes.
 
-## 6. Dependency ngầm định không phải exports hay requires transitive
+## 6. The implicit dependency is neither exports nor requires transitive
 
-Directive ngầm định `requires java.base` tạo quan hệ readability từ module hiện tại tới `java.base`. Nó không thực hiện những việc sau:
+The implicit `requires java.base` directive creates a readability relationship from the current module to `java.base`. It does not do any of the following:
 
-- Không export package của module ứng dụng cho module khác.
-- Không khiến module hiện tại tự động đọc tất cả module còn lại trong JDK.
-- Không thay thế `requires` cho dependency như `java.sql`, `java.desktop` hoặc `java.xml`.
-- Không có nghĩa các module phụ thuộc vào ứng dụng sẽ tự động đọc mọi dependency của ứng dụng.
+- It does not export the application module's packages to other modules.
+- It does not make the current module automatically read all other modules in the JDK.
+- It does not replace `requires` for dependencies such as `java.sql`, `java.desktop`, or `java.xml`.
+- It does not mean modules that depend on the application will automatically read all of the application's dependencies.
 
-`requires` và `exports` giải quyết hai hướng khác nhau: `requires` khai báo module hiện tại cần đọc module nào; `exports` công bố package nào để module khác có thể truy cập. Dependency ngầm định tới `java.base` không làm thay đổi ranh giới API của module ứng dụng.
+`requires` and `exports` address two different directions: `requires` declares which modules the current module needs to read; `exports` exposes which packages other modules can access. The implicit dependency on `java.base` does not alter the API boundaries of the application module.
 
-## 7. Những hiểu nhầm thường gặp
+## 7. Common Misconceptions
 
-**“Không có requires trong module-info.java thì module không dùng được String.”**
+**"Without requires in module-info.java, a module cannot use String."**
 
-Sai. Mọi named module thông thường đều có dependency ngầm định tới `java.base`, nơi chứa `String`.
+False. Every regular named module has an implicit dependency on `java.base`, which contains `String`.
 
-**“java.base chứa tất cả class trong JDK.”**
+**"java.base contains all classes in the JDK."**
 
-Sai. Nhiều API được tách thành các module như `java.sql`, `java.desktop`, `java.xml` và `java.net.http`. Các module này vẫn cần được khai báo khi ứng dụng sử dụng chúng.
+False. Many APIs are separated into modules such as `java.sql`, `java.desktop`, `java.xml`, and `java.net.http`. These modules still need to be declared when an application uses them.
 
-**“Compiler không ghi requires java.base vì dependency không tồn tại.”**
+**"The compiler doesn't write requires java.base because the dependency doesn't exist."**
 
-Sai. Dependency được thêm vào module descriptor đã biên dịch và có thể quan sát bằng `javap -v` hoặc `jar --describe-module`.
+False. The dependency is added into the compiled module descriptor and can be observed with `javap -v` or `jar --describe-module`.
 
-**“Có thể bỏ java.base để tạo runtime nhỏ hơn.”**
+**"java.base can be omitted to create a smaller runtime."**
 
-Không thể loại bỏ module nền tảng khỏi một Java runtime hợp lệ. Khi tạo runtime image bằng `jlink`, `java.base` là module gốc bắt buộc; việc tối ưu image tập trung vào các module bổ sung mà ứng dụng thực sự cần.
+The foundational module cannot be removed from a valid Java runtime. When creating a runtime image with `jlink`, `java.base` is a mandatory root module; image optimization focuses on the additional modules that the application actually needs.
 
-## 8. Cách áp dụng khi thiết kế module
+## 8. How to apply when designing modules
 
-- Để `module-info.java` ngắn gọn; không cần khai báo `requires java.base;` trong module thông thường.
-- Khai báo rõ các module JDK khác khi dùng API của chúng, chẳng hạn `java.sql` hoặc `java.logging`.
-- Khi gặp lỗi `module ... does not read ...`, xác định module chứa package đang dùng và bổ sung `requires` phù hợp; đừng mặc định mọi API đều thuộc `java.base`.
-- Khi kiểm tra artifact, xem module descriptor đã biên dịch thay vì chỉ đọc file nguồn.
-- Khi tạo runtime image bằng `jlink`, giữ `java.base` và chỉ đưa thêm các module cần thiết cho ứng dụng.
+- Keep `module-info.java` concise; do not declare `requires java.base;` in regular modules.
+- Explicitly declare other JDK modules when using their APIs, such as `java.sql` or `java.logging`.
+- When encountering the error `module ... does not read ...`, identify the module containing the package in use and add the appropriate `requires`; do not assume all APIs belong to `java.base`.
+- When inspecting artifacts, examine the compiled module descriptor rather than reading only the source file.
+- When creating a runtime image with `jlink`, keep `java.base` and include only the modules needed by the application.
 
-`requires java.base` ngầm định giúp mọi module Java có sẵn nền tảng ngôn ngữ và thư viện cốt lõi. Nhờ quy tắc này, người viết module có thể tập trung khai báo các dependency đặc thù của ứng dụng, còn quan hệ nền tảng luôn được đảm bảo bởi JPMS.
+The implicit `requires java.base` provides every Java module with the core language foundation and essential libraries. Thanks to this rule, module authors can focus on declaring application-specific dependencies, while the foundational relationship is always guaranteed by JPMS.

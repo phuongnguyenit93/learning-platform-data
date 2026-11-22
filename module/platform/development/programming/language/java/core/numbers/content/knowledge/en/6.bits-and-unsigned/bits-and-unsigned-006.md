@@ -1,47 +1,47 @@
-# Byte.toUnsignedInt, Short.toUnsignedInt và Integer.toUnsignedLong
+# `Byte.toUnsignedInt`, `Short.toUnsignedInt`, and `Integer.toUnsignedLong`
 
-Java có các kiểu số nguyên `byte` (8 bit), `short` (16 bit), `int` (32 bit) với biểu diễn **có dấu** (bù hai). Tuy nhiên, nhiều định dạng ảnh, tệp nhị phân, ID và giao thức mạng định nghĩa trường dữ liệu theo số nguyên **không dấu**. Ba phương thức tĩnh sau giúp đọc toàn bộ mẫu bit thành giá trị không âm bằng kiểu rộng hơn, thay vì hiểu nhầm bit dấu:
+Java has the integer types `byte` (8 bits), `short` (16 bits), and `int` (32 bits) with **signed** (two's complement) representation. However, many image formats, binary files, IDs, and network protocols define data fields as **unsigned** integers. The following three static methods read the full bit pattern as a non-negative value in a wider type, rather than misinterpreting the sign bit:
 
-- `Byte.toUnsignedInt(byte value)`: giữ 8 bit thấp, trả `int` từ **0 đến 255**.
-- `Short.toUnsignedInt(short value)`: giữ 16 bit thấp, trả `int` từ **0 đến 65.535**.
-- `Integer.toUnsignedLong(int value)`: giữ 32 bit thấp, trả `long` từ **0 đến 4.294.967.295**.
+- `Byte.toUnsignedInt(byte value)`: keeps the low 8 bits, returns an `int` from **0 to 255**.
+- `Short.toUnsignedInt(short value)`: keeps the low 16 bits, returns an `int` from **0 to 65,535**.
+- `Integer.toUnsignedLong(int value)`: keeps the low 32 bits, returns a `long` from **0 to 4,294,967,295**.
 
-Các API có từ Java 8, dùng được trong Java 17+. Chúng diễn giải lại cùng bit dữ liệu bằng một **giá trị có kiểu rộng hơn**; không thay đổi biến đầu vào, không tạo thêm kiểu nguyên thủy `unsigned byte`, `unsigned short` hoặc `unsigned int` trong Java.
+These APIs have been available since Java 8 and work in Java 17+. They reinterpret the same data bits using a **value of a wider type**; they do not modify the input variable and do not introduce primitive `unsigned byte`, `unsigned short`, or `unsigned int` types in Java.
 
-## 1. Vì sao phải chuyển sang giá trị không dấu?
+## 1. Why Convert to an Unsigned Value?
 
-Mẫu `1111_1111` (hex `0xFF`) có hai cách diễn giải:
+The bit pattern `1111_1111` (hex `0xFF`) has two interpretations:
 
-- `byte` Java: **−1**, vì bit cao nhất là bit dấu trong bù hai.
-- Số nguyên không dấu 8 bit: **255**, vì cả tám bit đều mang trọng số dương.
+- Java `byte`: **−1**, because the highest bit is the sign bit in two's complement.
+- 8-bit unsigned integer: **255**, because all eight bits carry positive weight.
 
-Sự khác nhau tương tự xảy ra với `short` và `int`. Ví dụ `0xFFFF` là `short -1` nhưng là unsigned 16 bit `65535`; `0xFFFF_FFFF` là `int -1` nhưng là unsigned 32 bit `4294967295`.
+The same distinction occurs with `short` and `int`. For example, `0xFFFF` is `short -1` yet unsigned 16-bit `65535`; `0xFFFF_FFFF` is `int -1` yet unsigned 32-bit `4294967295`.
 
-| Phương thức | Đầu vào | Miền có dấu của đầu vào | Kiểu kết quả | Miền không dấu của kết quả |
+| Method | Input | Signed Input Range | Result Type | Unsigned Result Range |
 | --- | --- | ---: | --- | ---: |
-| `Byte.toUnsignedInt(b)` | `byte` (8 bit) | −128…127 | `int` | 0…255 |
-| `Short.toUnsignedInt(s)` | `short` (16 bit) | −32.768…32.767 | `int` | 0…65.535 |
-| `Integer.toUnsignedLong(i)` | `int` (32 bit) | −2.147.483.648…2.147.483.647 | `long` | 0…4.294.967.295 |
+| `Byte.toUnsignedInt(b)` | `byte` (8 bits) | −128…127 | `int` | 0…255 |
+| `Short.toUnsignedInt(s)` | `short` (16 bits) | −32,768…32,767 | `int` | 0…65,535 |
+| `Integer.toUnsignedLong(i)` | `int` (32 bits) | −2,147,483,648…2,147,483,647 | `long` | 0…4,294,967,295 |
 
-Phải chọn hàm dựa trên **độ rộng của kiểu dữ liệu gốc**. Hàm `Byte.toUnsignedInt` không thay thế cho `Short.toUnsignedInt` khi đang có 16 bit; `Integer.toUnsignedLong` không đơn thuần là cách viết khác của ép `int` sang `long`.
+You must choose the method based on **the width of the original data type**. `Byte.toUnsignedInt` does not substitute for `Short.toUnsignedInt` when you have 16 bits; `Integer.toUnsignedLong` is not merely another way of casting `int` to `long`.
 
-## 2. Cơ chế zero extension và các mặt nạ bit
+## 2. Zero Extension Mechanism and Bitmasks
 
-Việc ép `byte` âm thành `int` hoặc `int` âm thành `long` theo Java thực hiện **sign extension**: những bit mới bên trái sao chép bit dấu (1 đối với số âm). Ba hàm ở trên muốn giữ giá trị **unsigned** của đúng 8/16/32 bit ban đầu, nên loại các bit 1 do mở rộng dấu gây ra.
+Casting a negative `byte` to `int` or a negative `int` to `long` in Java performs **sign extension**: the new bits on the left copy the sign bit (1 for negative numbers). The three methods above aim to preserve the **unsigned** value of the exact original 8/16/32 bits, so they discard the `1` bits introduced by sign extension.
 
-Có thể hiểu kết quả tương đương với phép AND sau đây:
+The result can be understood as equivalent to the following bitwise AND operations:
 
 ~~~java
-int u8 = Byte.toUnsignedInt(b);        // bằng b & 0xFF
-int u16 = Short.toUnsignedInt(s);     // bằng s & 0xFFFF
-long u32 = Integer.toUnsignedLong(i); // bằng ((long) i) & 0xFFFF_FFFFL
+int u8 = Byte.toUnsignedInt(b);        // equals b & 0xFF
+int u16 = Short.toUnsignedInt(s);     // equals s & 0xFFFF
+long u32 = Integer.toUnsignedLong(i); // equals ((long) i) & 0xFFFF_FFFFL
 ~~~
 
-Đoạn trên là **mã minh họa**: giả định `b`, `s`, `i` đã được khai báo lần lượt là `byte`, `short`, `int`. Với `b & 0xFF`, phép AND giữ 8 bit thấp sau khi `byte` được nâng lên `int`. Với `s & 0xFFFF`, giữ 16 bit thấp. Với `i`, mặt nạ phải mang kiểu `long` (hậu tố `L`) để cho ra một số dương chứa đủ 32 bit.
+The snippet above is **illustrative code**: it assumes `b`, `s`, and `i` have already been declared as `byte`, `short`, and `int`, respectively. With `b & 0xFF`, the AND keeps the low 8 bits after `byte` is promoted to `int`. With `s & 0xFFFF`, it keeps the low 16 bits. With `i`, the mask must have type `long` (suffix `L`) to produce a positive number wide enough to hold 32 bits.
 
-Nếu đầu vào vốn không âm, kết quả bằng chính giá trị đầu vào. Nếu đầu vào âm, kết quả số học không dấu bằng giá trị signed cộng `2^8`, `2^16` hoặc `2^32` tương ứng. Đây là quy tắc **diễn giải giá trị**, không phải phép toán trực tiếp sửa biến gốc.
+If the input is already non-negative, the result equals the input value itself. If the input is negative, the unsigned arithmetic result equals the signed value plus `2^8`, `2^16`, or `2^32`, respectively. This is a **value interpretation** rule, not an operation that mutates the original variable.
 
-| Biểu thức | Giá trị signed tương ứng | Kết quả unsigned |
+| Expression | Corresponding Signed Value | Unsigned Result |
 | --- | ---: | ---: |
 | `Byte.toUnsignedInt((byte) 0x80)` | −128 | 128 |
 | `Byte.toUnsignedInt((byte) 0xFF)` | −1 | 255 |
@@ -50,11 +50,11 @@ Nếu đầu vào vốn không âm, kết quả bằng chính giá trị đầu 
 | `Integer.toUnsignedLong(0x8000_0000)` | −2147483648 | 2147483648 |
 | `Integer.toUnsignedLong(0xFFFF_FFFF)` | −1 | 4294967295 |
 
-Lưu ý: `Byte`, `Short`, `Integer` là các **lớp wrapper**; tên phương thức là `static`, vì vậy gọi trực tiếp như bảng trên, không cần `new Byte(...)`.
+Note: `Byte`, `Short`, and `Integer` are **wrapper classes**; these methods are `static`, so call them directly as shown in the table above without `new Byte(...)`.
 
-## 3. Ví dụ Java 17+ có thể biên dịch và chạy
+## 3. Compilable and Runnable Java 17+ Example
 
-Tạo tệp `UnsignedConversionsDemo.java`:
+Create the file `UnsignedConversionsDemo.java`:
 
 ~~~java
 public class UnsignedConversionsDemo {
@@ -94,14 +94,14 @@ public class UnsignedConversionsDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac UnsignedConversionsDemo.java
 java UnsignedConversionsDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 byte signed: -1
@@ -118,42 +118,42 @@ signed compare: true
 unsigned compare: true
 ~~~
 
-Giải thích:
+Explanation:
 
-- `0xFF` có 8 bit đều bằng 1. Với `byte` nó bằng `-1`; qua `Byte.toUnsignedInt` là `255`.
-- `0x8001` có bit dấu 16 bit bằng 1. Với `short` nó bằng `-32767`; qua `Short.toUnsignedInt` là `32769`.
-- `0xFFFF_FFFE` dưới dạng `int` là `-2`; qua `Integer.toUnsignedLong` là `4294967294L`.
-- Các dòng `mask` cho thấy phép AND đúng kiểu cho kết quả bằng các API tường minh. Việc biểu diễn bằng hàm thường dễ đọc và thể hiện rõ ý định hơn.
+- `0xFF` has all 8 bits equal to 1. As a `byte` it equals `-1`; via `Byte.toUnsignedInt` it is `255`.
+- `0x8001` has the 16-bit sign bit equal to 1. As a `short` it equals `-32767`; via `Short.toUnsignedInt` it is `32769`.
+- `0xFFFF_FFFE` as an `int` is `-2`; via `Integer.toUnsignedLong` it is `4294967294L`.
+- The `mask` lines show that properly typed bitwise AND gives the same results as the explicit APIs. Expressing this with the method calls is often easier to read and states intent more clearly.
 
-## 4. Đọc trường nhị phân từ byte array
+## 4. Reading Binary Fields from a Byte Array
 
-Giả sử một giao thức mô tả ID **unsigned 32 bit, big-endian** gồm bốn byte `FE DC BA 98`. `byte[]` Java vẫn giữ đủ bit, nhưng những phần tử bắt đầu bằng bit 1 sẽ in ra số âm.
+Suppose a protocol specifies an **unsigned 32-bit, big-endian** ID consisting of four bytes `FE DC BA 98`. A Java `byte[]` still holds all the bits, yet elements starting with a 1 bit will print as negative numbers.
 
-Trong ví dụ:
+In the example:
 
-1. `Byte.toUnsignedInt(packet[k])` biến từng phần tử thành số 0–255 trước khi ghép.
-2. Các toán tử `<< 24`, `<< 16`, `<< 8` đặt byte ở đúng vị trí và `|` ghép đủ 32 bit. `raw32` có mẫu bit `0xFEDCBA98` (có thể âm nếu in ra như `int` signed).
-3. `Integer.toUnsignedLong(raw32)` đưa mẫu 32 bit này về `long` dương `4275878552L`, phù hợp với định nghĩa ID không dấu của giao thức.
+1. `Byte.toUnsignedInt(packet[k])` turns each element into a number 0–255 before combining.
+2. `<< 24`, `<< 16`, and `<< 8` position each byte properly, and `|` combines all 32 bits. `raw32` has the bit pattern `0xFEDCBA98` (which can look negative if printed as a signed `int`).
+3. `Integer.toUnsignedLong(raw32)` converts this 32-bit pattern to a positive `long` `4275878552L`, matching the protocol's unsigned ID definition.
 
-Trường 16 bit big-endian cũng có thể ghép:
+A 16-bit big-endian field can also be assembled:
 
 ~~~java
-// byte[] data chứa ít nhất hai phần tử, theo thứ tự big-endian.
+// byte[] data contains at least two elements, in big-endian order.
 int unsigned16 = (Byte.toUnsignedInt(data[0]) << 8)
                | Byte.toUnsignedInt(data[1]);
 ~~~
 
-Đây là mã minh họa phụ thuộc `data`. Nếu đã đọc nguyên trường bằng `ByteBuffer.getShort()`, hãy dùng `Short.toUnsignedInt(shortValue)`; nếu đọc bằng `ByteBuffer.getInt()`, dùng `Integer.toUnsignedLong(intValue)`. Hướng byte **big-endian/little-endian** do định dạng dữ liệu quy định; các phương thức `toUnsigned...` không tự đảo thứ tự byte.
+This is illustrative code depending on `data`. If you already read the whole field with `ByteBuffer.getShort()`, use `Short.toUnsignedInt(shortValue)`; if read with `ByteBuffer.getInt()`, use `Integer.toUnsignedLong(intValue)`. The byte order (**big-endian/little-endian**) is dictated by the data format; the `toUnsigned...` methods do not reverse byte order automatically.
 
-Trong phép `<< 24` ở ví dụ, kết quả trung gian kiểu `int` có thể âm nhưng vẫn giữ đúng bit để ghép; bước `Integer.toUnsignedLong` sau đó mới diễn giải cả trường thành số không dấu. Không cần cố ép từng byte thành `long` chỉ vì bit cao nhất của `raw32` bằng 1.
+In the `<< 24` operation in the example, the intermediate `int` result may be negative yet still retains the exact bits for combining; the subsequent `Integer.toUnsignedLong` step then interprets the entire field as an unsigned number. There is no need to force each byte to `long` just because the highest bit of `raw32` is 1.
 
-## 5. So sánh, tính toán và giới hạn miền unsigned
+## 5. Comparing, Computing, and Unsigned Range Limits
 
-Với unsigned 8/16 bit, một `int` đủ rộng để chứa trọn kết quả. Với unsigned 32 bit, cần `long` vì `int` signed chỉ tối đa `2147483647`.
+For unsigned 8/16-bit values, an `int` is wide enough to hold the entire result. For unsigned 32-bit values, you need `long` because signed `int` maxes out at `2147483647`.
 
-Ví dụ `Integer.toUnsignedLong(-1) + 1` cho `4294967296L`, phép cộng hợp lệ trên `long`; tuy nhiên con số ấy đã **vượt miền unsigned 32 bit**. Nếu ghi trả về một trường 32 bit, hãy kiểm tra `0 <= value && value <= 0xFFFF_FFFFL` đối với biến `long value` trước khi ép `(int) value`. Ép xuống `int` lấy 32 bit thấp, kết quả có thể âm khi in ra theo cách signed của Java. Ép giá trị `4294967296L` thành `int` cho `0`: đây là **mất dữ liệu** nếu chưa kiểm tra miền.
+For example, `Integer.toUnsignedLong(-1) + 1` gives `4294967296L`, a valid `long` addition; however, that number has **exceeded the unsigned 32-bit range**. If writing back to a 32-bit field, check `0 <= value && value <= 0xFFFF_FFFFL` for the `long value` variable before casting `(int) value`. Casting down to `int` takes the low 32 bits, and the result can appear negative when printed using Java's signed representation. Casting `4294967296L` to `int` produces `0`: this is **data loss** if you did not validate the range first.
 
-So sánh signed và unsigned cũng khác nhau:
+Signed and unsigned comparisons also differ:
 
 ~~~java
 int a = -1;
@@ -164,13 +164,13 @@ boolean sameViaLong =
         Integer.toUnsignedLong(a) > Integer.toUnsignedLong(b); // true
 ~~~
 
-Đây là mã minh họa độc lập trong một khối/phương thức hợp lệ. Signed `-1` nhỏ hơn `1`, nhưng bit `0xFFFF_FFFF` tương ứng unsigned 32 bit `4294967295` lớn hơn `1`. Đừng sử dụng toán tử `<` giữa hai `int` signed khi giao thức yêu cầu thứ tự **unsigned**.
+This is standalone illustrative code inside a valid block/method. Signed `-1` is less than `1`, but the bits `0xFFFF_FFFF` representing unsigned 32-bit `4294967295` are greater than `1`. Do not use the `<` operator between two signed `int`s when the protocol requires **unsigned** ordering.
 
-Khi dữ liệu thực sự có ý nghĩa signed (chênh lệch âm, nhiệt độ âm, số signed trong đặc tả), giữ nguyên cách diễn giải signed. Chuyển đổi không dấu là lựa chọn dựa trên **ngữ nghĩa dữ liệu nguồn**, chứ không phải mẹo làm mọi số âm biến mất.
+When data genuinely has signed semantics (negative deltas, negative temperatures, signed numbers in a specification), keep the signed interpretation. Unsigned conversion is a choice driven by **source data semantics**, not a trick to make all negative numbers disappear.
 
-## 6. Lỗi phổ biến và cách tránh
+## 6. Common Mistakes and How to Avoid Them
 
-### 6.1. Nhầm ép kiểu với unsigned conversion
+### 6.1. Confusing Casting with Unsigned Conversion
 
 ~~~java
 byte b = (byte) 0xFF;
@@ -182,9 +182,9 @@ long signedInt = (long) i;                   // -1
 long unsignedInt = Integer.toUnsignedLong(i); // 4294967295
 ~~~
 
-Ép `byte` sang `int` và `int` sang `long` giữ **giá trị có dấu**. Các đoạn trong mục lỗi phổ biến là ví dụ nội tuyến, không phải chương trình Java độc lập.
+Casting `byte` to `int` and `int` to `long` preserves the **signed value**. The snippets in the common-mistakes section are inline examples, not standalone Java programs.
 
-### 6.2. Đặt hậu tố mặt nạ sai chỗ
+### 6.2. Placing the Mask Suffix in the Wrong Spot
 
 ~~~java
 int i = -1;
@@ -193,49 +193,49 @@ long correct = ((long) i) & 0xFFFF_FFFFL; // 4294967295
 long preferred = Integer.toUnsignedLong(i); // 4294967295
 ~~~
 
-`0xFFFF_FFFF` không có `L` là hằng `int` có toàn bit 1, tức `-1`. Phép `i & -1` vẫn ra `i`; chỉ ép lên `long` sau đó sẽ mở rộng dấu. Dùng mặt nạ `long` `0xFFFF_FFFFL`, hoặc đơn giản dùng `Integer.toUnsignedLong`.
+`0xFFFF_FFFF` without `L` is an `int` constant with all 1 bits, i.e., `-1`. `i & -1` still yields `i`; casting to `long` afterward still sign-extends. Use the `long` mask `0xFFFF_FFFFL`, or simply use `Integer.toUnsignedLong`.
 
-### 6.3. Dịch bit trước khi xử lý sign extension
+### 6.3. Shifting Bits Before Handling Sign Extension
 
-Với `byte` âm, Java nâng toán hạng sang `int` trước phép dịch. `>>` điền thêm bit dấu 1; `>>>` điền bit 0 nhưng **không tự tạo ra kiểu unsigned nguyên thủy**. Cách dễ hiểu để lấy nibble cao của một byte là:
+For a negative `byte`, Java promotes the operand to `int` before shifting. `>>` shifts in `1` sign bits; `>>>` shifts in `0` bits yet **does not automatically create a primitive unsigned type**. A clear way to extract the high nibble of a byte is:
 
 ~~~java
 byte encoded = (byte) 0xF0;
 int highNibble = Byte.toUnsignedInt(encoded) >>> 4; // 15
 ~~~
 
-Nếu dịch một `byte` âm rồi dùng kết quả ngay mà không mask đúng số bit, các bit 1 do sign extension có thể ảnh hưởng. Hãy kiểm soát 8 bit trước khi thao tác.
+If you shift a negative `byte` and use the result immediately without masking the right number of bits, the `1` bits from sign extension can interfere. Control the 8 bits before manipulating them.
 
-### 6.4. Không kiểm tra dữ liệu khi thu hẹp trở lại
+### 6.4. Failing to Validate Data When Narrowing Back
 
-Ba hàm này tạo giá trị chứa được toàn bộ miền unsigned nhờ **mở rộng kiểu**. Không có điều gì ngăn bạn thực hiện cộng, nhân hoặc ép kiểu khiến kết quả vượt phạm vi mong muốn. Khi lưu về 8/16/32 bit, tự kiểm tra giá trị có phù hợp đặc tả hay không; phép cast tự nó có thể cắt các bit cao.
+These three methods produce values that accommodate the entire unsigned range via **type widening**. Nothing stops you from performing additions, multiplications, or casts that push the result outside the intended range. When storing back into 8/16/32 bits, validate whether the value matches the specification; a cast by itself can truncate high bits.
 
-### 6.5. Nhầm unsigned 32 bit với unsigned 64 bit
+### 6.5. Confusing Unsigned 32-Bit with Unsigned 64-Bit
 
-`Integer.toUnsignedLong` chuyển unsigned **32 bit** sang một `long` dương, còn `long` Java vẫn là kiểu **signed 64 bit**. Nó không tạo giá trị dương để chứa trọn unsigned 64 bit; trường hợp đó có thể cần `Long.compareUnsigned`, `Long.toUnsignedString` hoặc `BigInteger`.
+`Integer.toUnsignedLong` converts an unsigned **32-bit** value to a positive `long`, while Java's `long` is still a **signed 64-bit** type. It does not produce a positive value wide enough to hold the entire unsigned 64-bit range; for that case you may need `Long.compareUnsigned`, `Long.toUnsignedString`, or `BigInteger`.
 
-`char` có miền số nguyên 0–65535 nhưng mang ngữ nghĩa **ký tự UTF-16**. Một trường dữ liệu 16 bit không dấu đã nằm trong `short` vẫn nên đọc rõ ý định bằng `Short.toUnsignedInt`.
+`char` has an integer range of 0–65535 but carries **UTF-16 character** semantics. An unsigned 16-bit data field already stored in a `short` should still be read with clear intent using `Short.toUnsignedInt`.
 
-## 7. Câu hỏi tự luyện
+## 7. Self-Practice Questions
 
-**1.** Nếu `byte b = (byte) 0x80`, `(int) b` và `Byte.toUnsignedInt(b)` là gì?  
-**Đáp án:** `-128` và `128`. Cùng 8 bit thấp, khác cách mở rộng và diễn giải.
+**1.** If `byte b = (byte) 0x80`, what are `(int) b` and `Byte.toUnsignedInt(b)`?  
+**Answer:** `-128` and `128`. Same low 8 bits, different extension and interpretation.
 
-**2.** Nếu `short s = (short) 0xFFFF`, kết quả `Short.toUnsignedInt(s)`?  
-**Đáp án:** `65535`, vì cả 16 bit đều là 1.
+**2.** If `short s = (short) 0xFFFF`, what is the result of `Short.toUnsignedInt(s)`?  
+**Answer:** `65535`, because all 16 bits are 1.
 
-**3.** `Integer.toUnsignedLong(Integer.MIN_VALUE)` bằng bao nhiêu?  
-**Đáp án:** `2147483648L`, ứng với duy nhất bit 31 bằng 1 trong unsigned 32 bit.
+**3.** What does `Integer.toUnsignedLong(Integer.MIN_VALUE)` equal?  
+**Answer:** `2147483648L`, corresponding to only bit 31 being 1 in unsigned 32-bit.
 
-**4.** Vì sao `(long) (i & 0xFFFF_FFFF)` có thể sai khi `i` âm?  
-**Đáp án:** Mask là `int -1` nên không xóa bit dấu; ép `long` sau đó vẫn mở rộng dấu. Hãy dùng `0xFFFF_FFFFL` với `long` hoặc `Integer.toUnsignedLong(i)`.
+**4.** Why can `(long) (i & 0xFFFF_FFFF)` be wrong when `i` is negative?  
+**Answer:** The mask is `int -1`, so it does not clear the sign bit; casting to `long` afterward still sign-extends. Use `0xFFFF_FFFFL` with `long` or `Integer.toUnsignedLong(i)`.
 
-**5.** Dữ liệu byte `FE DC BA 98` big-endian có thể lấy số không dấu bằng API nào?  
-**Đáp án:** Dùng `Byte.toUnsignedInt` với từng byte để ghép 32 bit, sau đó `Integer.toUnsignedLong` để diễn giải cả trường thành `4275878552L`.
+**5.** Which APIs can extract an unsigned number from big-endian byte data `FE DC BA 98`?  
+**Answer:** Use `Byte.toUnsignedInt` on each byte to assemble the 32 bits, then `Integer.toUnsignedLong` to interpret the whole field as `4275878552L`.
 
-## 8. Điểm cần nhớ
+## 8. Key Takeaways
 
-- Bắt đầu từ **độ rộng dữ liệu gốc**: `byte` → `Byte.toUnsignedInt`; `short` → `Short.toUnsignedInt`; `int` → `Integer.toUnsignedLong`.
-- Kết quả là **giá trị không âm trong kiểu rộng hơn**, không đổi biến đầu vào hoặc biểu diễn bit thấp.
-- Khi thao tác bit, phân biệt sign extension với mask; với unsigned 32 bit, dùng hằng mặt nạ `long` nếu không dùng API.
-- Khi đọc định dạng nhị phân, tuân thủ độ rộng và endian trong đặc tả; khi so sánh hoặc ghi lại, kiểm tra miền unsigned và chọn phép so sánh phù hợp.
+- Start from the **original data width**: `byte` → `Byte.toUnsignedInt`; `short` → `Short.toUnsignedInt`; `int` → `Integer.toUnsignedLong`.
+- The result is a **non-negative value in a wider type**, without changing the input variable or the low-bit representation.
+- When manipulating bits, distinguish sign extension from masking; for unsigned 32-bit values, use a `long` mask constant if not using the API.
+- When reading binary formats, follow the width and endianness in the specification; when comparing or writing back, validate the unsigned range and choose the appropriate comparison method.

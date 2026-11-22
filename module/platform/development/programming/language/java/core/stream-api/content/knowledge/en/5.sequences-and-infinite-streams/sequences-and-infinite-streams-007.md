@@ -1,41 +1,41 @@
-# Sinh dãy phục vụ mô phỏng và kiểm thử có thể tái lập
+# Generating Sequences for Reproducible Simulation and Testing
 
-Trong **Java Stream API**, nguồn dữ liệu không nhất thiết là một `List`, mảng hoặc tệp có sẵn. Ta có thể **sinh dãy theo quy tắc** bằng `IntStream.range`, `Stream.iterate`, `Stream.generate` hay các phương thức sinh số của `Random`. Khả năng này hữu ích khi cần tạo dữ liệu mô phỏng, thử nhiều kịch bản, kiểm tra thuật toán hoặc tái hiện một lỗi.
+In the **Java Stream API**, a data source does not have to be an existing `List`, array, or file. You can **generate sequences by rule** using `IntStream.range`, `Stream.iterate`, `Stream.generate`, or the number-generating methods of `Random`. This capability is useful when you need to create simulation data, test multiple scenarios, verify algorithms, or reproduce a bug.
 
-Điều kiện quan trọng là **có thể tái lập** (*reproducible*): với cùng cấu hình đầu vào, ta chủ động tạo lại cùng chuỗi dữ liệu và cùng kết quả cần kiểm chứng. Việc dùng stream vô hạn, số giả ngẫu nhiên, phép toán lazy hoặc xử lý song song đều ảnh hưởng đến khả năng này.
+An important requirement is **reproducibility**: given the same input configuration, you can deliberately regenerate the same data sequence and the same verifiable result. Using infinite streams, pseudorandom numbers, lazy operations, or parallel processing all affect this capability.
 
-## 1. “Có thể tái lập” nghĩa là gì?
+## 1. What Does "Reproducible" Mean?
 
-Cần phân biệt ba tình huống:
+We should distinguish three situations:
 
-| Loại dãy | Ví dụ | Điều kiện để tái lập |
+| Sequence type | Example | Condition for reproducibility |
 | --- | --- | --- |
-| **Xác định hoàn toàn** | `0, 2, 4, 6, ...`; mô hình cập nhật trạng thái bằng một công thức | Giữ nguyên giá trị bắt đầu, quy tắc biến đổi, số bước và thứ tự xử lý. |
-| **Giả ngẫu nhiên có seed** | Nhiệt độ, tỷ lệ lỗi, tọa độ mẫu trong một mô phỏng | Giữ nguyên seed, thuật toán sinh số, số lượng và thứ tự các lần lấy số. |
-| **Phụ thuộc trạng thái bên ngoài** | `Math.random()`, thời gian hiện tại, I/O, bộ đếm dùng chung | Phải kiểm soát hoặc thay thế các phụ thuộc; nếu không, kết quả thường khó tái lập. |
+| **Fully deterministic** | `0, 2, 4, 6, ...`; a model updating state via a formula | Keep the initial value, transition rule, step count, and processing order the same. |
+| **Seeded pseudorandom** | Temperatures, failure rates, sample coordinates in a simulation | Keep the seed, number generation algorithm, sample count, and draw order the same. |
+| **External-state dependent** | `Math.random()`, current time, I/O, shared counter | Must control or replace dependencies; otherwise, results are usually hard to reproduce. |
 
-**Seed** là trạng thái khởi đầu của bộ sinh số giả ngẫu nhiên. Nó giúp tái tạo một chuỗi, **không** làm chuỗi trở thành ngẫu nhiên thật và **không** bảo đảm những phép toán phụ thuộc lịch chạy của nhiều luồng sẽ cho kết quả như nhau.
+A **seed** is the initial state of a pseudorandom number generator. It helps reproduce a sequence, **does not** make the sequence truly random, and **does not** guarantee that operations depending on multi-threaded scheduling will yield the same result.
 
-Trong bài này, “tái lập” được xét theo từng mức: cùng dữ liệu sinh ra, cùng kết quả thống kê và cùng hành vi kiểm thử. Một vài phép tính dấu phẩy động có thể chênh lệch nhỏ khi thay đổi thứ tự gộp kết quả hoặc môi trường thực thi.
+In this lesson, "reproducibility" is considered at multiple levels: identical generated data, identical statistical results, and identical test behavior. A few floating-point computations may differ slightly when changing the reduction order or execution environment.
 
-## 2. Chọn nguồn sinh dãy thích hợp
+## 2. Choosing the Appropriate Sequence Source
 
-Các API sau tạo stream từ một quy tắc sinh phần tử, không cần cấp phát trước một collection chứa toàn bộ dữ liệu:
+The following APIs create a stream from an element-generation rule without pre-allocating a collection holding all the data:
 
-| API | Kiểu kết quả | Hữu hạn / không giới hạn | Trường hợp dùng |
+| API | Result type | Finite / unbounded | When to use |
 | --- | --- | --- | --- |
-| `IntStream.range(start, end)` | `IntStream` | Hữu hạn, không gồm `end` | Chỉ số lượt chạy, vòng lặp mô phỏng có số bước xác định. |
-| `IntStream.rangeClosed(start, end)` | `IntStream` | Hữu hạn, gồm `end` | Các mốc nguyên trong đoạn đóng. |
-| `Stream.iterate(seed, next)` | `Stream<T>` | Có khả năng vô hạn | Trạng thái sau phụ thuộc trạng thái trước. |
-| `IntStream.iterate(seed, next)` | `IntStream` | Có khả năng vô hạn | Dãy số nguyên theo công thức truy hồi. |
-| `Stream.iterate(seed, hasNext, next)` | `Stream<T>` | Dừng theo điều kiện, Java 9+ | Mô hình có điều kiện kết thúc rõ ràng. |
-| `Stream.generate(supplier)` | `Stream<T>` | Có khả năng vô hạn, unordered | Lấy mẫu được sinh theo nhu cầu. |
-| `new Random(seed).ints(n, min, max)` | `IntStream` | Hữu hạn, đúng `n` phần tử | Dữ liệu nguyên giả ngẫu nhiên theo seed. |
-| `new Random(seed).doubles(n, min, max)` | `DoubleStream` | Hữu hạn, đúng `n` phần tử | Mô phỏng đại lượng liên tục trong một khoảng. |
+| `IntStream.range(start, end)` | `IntStream` | Finite, excludes `end` | Trial indices, simulation loops with a fixed step count. |
+| `IntStream.rangeClosed(start, end)` | `IntStream` | Finite, includes `end` | Integer checkpoints in a closed interval. |
+| `Stream.iterate(seed, next)` | `Stream<T>` | Potentially infinite | Next state depends on previous state. |
+| `IntStream.iterate(seed, next)` | `IntStream` | Potentially infinite | Integer sequence by recurrence formula. |
+| `Stream.iterate(seed, hasNext, next)` | `Stream<T>` | Stops by condition, Java 9+ | Model with an explicit termination condition. |
+| `Stream.generate(supplier)` | `Stream<T>` | Potentially infinite, unordered | Samples generated on demand. |
+| `new Random(seed).ints(n, min, max)` | `IntStream` | Finite, exact `n` elements | Seeded pseudorandom integer data. |
+| `new Random(seed).doubles(n, min, max)` | `DoubleStream` | Finite, exact `n` elements | Simulating continuous quantities in a range. |
 
-`Stream.iterate` là nguồn có thứ tự gặp phần tử (*encounter order*); `Stream.generate` tạo stream không có thứ tự được bảo đảm. Các phép toán trung gian như `map` và `filter` là **lazy**; quá trình sinh phần tử thường bắt đầu khi có phép toán kết thúc như `toArray`, `count`, `collect` hoặc `findFirst`.
+`Stream.iterate` is a source with an *encounter order*; `Stream.generate` creates a stream with no guaranteed order. Intermediate operations such as `map` and `filter` are **lazy**; element generation typically begins when a terminal operation like `toArray`, `count`, `collect`, or `findFirst` is invoked.
 
-### Dãy số xác định bằng chỉ số
+### Sequence Determined by Index
 
 ```java
 import java.util.Arrays;
@@ -49,9 +49,9 @@ System.out.println(Arrays.toString(values));
 // [3, 7, 11, 15, 19, 23]
 ```
 
-Phần tử tại vị trí `i` được tính trực tiếp từ `i`, không cần nhớ phần tử trước. Đây là dạng thuận lợi khi cần kiểm thử độc lập từng lượt mô phỏng, kể cả khi phân chia công việc song song.
+The element at position `i` is computed directly from `i`, without needing to remember the previous element. This form is convenient when each simulation trial needs to be tested independently, including when splitting work in parallel.
 
-### Dãy xác định bằng quy tắc truy hồi
+### Sequence Determined by a Recurrence Rule
 
 ```java
 import java.util.Arrays;
@@ -65,29 +65,29 @@ System.out.println(Arrays.toString(values));
 // [3, 7, 11, 15, 19, 23]
 ```
 
-Kết quả giống ví dụ `range`, nhưng ý nghĩa khác: `iterate` tính giá trị sau từ giá trị trước. Khi quy luật thực sự có trạng thái tuần tự, đây là biểu diễn tự nhiên hơn.
+The output matches the `range` example, but the meaning differs: `iterate` computes the next value from the previous value. When the rule genuinely has sequential state, this is the more natural representation.
 
-Với Java 9 trở lên, có thể gắn điều kiện dừng ngay vào nguồn:
+With Java 9 and above, you can attach the stopping condition directly to the source:
 
 ```java
 import java.util.stream.IntStream;
 
 IntStream.iterate(3, value -> value < 25, value -> value + 4)
     .forEachOrdered(System.out::println);
-// In lần lượt: 3, 7, 11, 15, 19, 23
+// Prints in order: 3, 7, 11, 15, 19, 23
 ```
 
-Điều kiện `hasNext` được xét trên phần tử ứng viên **trước khi** đưa phần tử đó vào stream; giá trị đầu tiên không thỏa điều kiện sẽ không xuất hiện. Với quy luật có thể tràn `int` hoặc `long`, cần thiết kế giới hạn phù hợp, vì phép cộng nguyên của Java có thể tràn mà không ném ngoại lệ.
+The `hasNext` condition is checked on the candidate element **before** admitting it into the stream; the first value that fails the condition will not appear. For rules that can overflow `int` or `long`, design appropriate bounds, because integer addition in Java can overflow silently without throwing an exception.
 
-## 3. Mô phỏng quá trình theo thời gian bằng `iterate`
+## 3. Simulating a Time-Based Process with `iterate`
 
-Xét một vật thể có nhiệt độ ban đầu là 100°C, ở môi trường 20°C. Sau mỗi bước thời gian, nhiệt độ tiến thêm 25% khoảng cách tới nhiệt độ môi trường:
+Consider an object with an initial temperature of 100°C in a 20°C environment. After each time step, its temperature moves 25% of the remaining distance toward the ambient temperature:
 
 \[
 T_{k+1} = T_k + 0.25(20-T_k)
 \]
 
-Ta có thể lưu quy tắc này trong dãy `DoubleStream`:
+We can express this rule in a `DoubleStream`:
 
 ```java
 import java.util.Arrays;
@@ -104,18 +104,18 @@ System.out.println(Arrays.toString(temperatures));
 // [100.0, 80.0, 65.0, 53.75, 45.3125]
 ```
 
-Mỗi phần tử biểu diễn **trạng thái ở một mốc**, tính cả trạng thái ban đầu. Việc gọi lại cùng pipeline với cùng số bước sẽ cho cùng dãy, khi công thức và môi trường tính toán không thay đổi. Dãy là lazy cho đến khi gọi `toArray()`, và `limit(5)` xác định rõ có bao nhiêu trạng thái được lấy.
+Each element represents the **state at a point in time**, including the initial state. Running the same pipeline again with the same number of steps produces the exact same sequence, provided the formula and execution environment do not change. The sequence is lazy until `toArray()` is called, and `limit(5)` clearly specifies how many states are taken.
 
-Một số lưu ý khi áp dụng thực tế:
+Some practical notes when applying this:
 
-- Quy tắc cập nhật nên chỉ phụ thuộc vào trạng thái hiện tại và các tham số mô hình; tránh đọc đồng hồ hệ thống hoặc thay đổi biến toàn cục trong lambda.
-- `iterate` có phụ thuộc dữ liệu giữa các bước. Thêm `parallel()` không loại bỏ phụ thuộc này và thường không mang lại lợi ích như phân chia các lượt chạy độc lập.
-- Với nhiều biến trạng thái như vị trí, vận tốc và năng lượng, có thể dùng một kiểu dữ liệu bất biến làm phần tử của `Stream.iterate`, để mỗi bước trả về **trạng thái mới**.
-- `DoubleStream` giúp tránh boxing của `Double` khi chỉ cần thao tác trên số thực.
+- The update rule should depend only on the current state and model parameters; avoid reading the system clock or mutating global variables inside the lambda.
+- `iterate` has a data dependency between steps. Adding `parallel()` does not remove this dependency and usually does not bring the same benefit as splitting independent trials.
+- With multiple state variables like position, velocity, and energy, you can use an immutable data type as the element of `Stream.iterate`, so each step returns a **new state**.
+- `DoubleStream` avoids `Double` boxing when you only need to work on floating-point numbers.
 
-## 4. Tạo dữ liệu giả ngẫu nhiên có seed cố định
+## 4. Generating Seeded Pseudorandom Data
 
-Trong mô phỏng, ta thường cần dữ liệu có vẻ ngẫu nhiên nhưng có thể tạo lại để so sánh thuật toán hoặc tái hiện lỗi. `java.util.Random` cho phép cung cấp seed rõ ràng:
+In simulations, we often need data that looks random yet can be regenerated to compare algorithms or reproduce bugs. `java.util.Random` lets you provide an explicit seed:
 
 ```java
 import java.util.Arrays;
@@ -132,14 +132,14 @@ int[] run2 = new Random(seed)
     .toArray();
 
 System.out.println(Arrays.equals(run1, run2)); // true
-System.out.println(Arrays.toString(run1));      // Hai lần tạo lại đều giống nhau
+System.out.println(Arrays.toString(run1));      // Both regenerations are identical
 ```
 
-`ints(8, 0, 100)` yêu cầu **8** số trong khoảng `[0, 100)`: gồm 0 và không gồm 100. `Random` trong Java có thuật toán xác định được đặc tả; với cùng seed và **cùng chuỗi lời gọi phương thức** trong ngữ cảnh tuần tự, nó sinh cùng chuỗi kết quả.
+`ints(8, 0, 100)` requests **8** numbers in the range `[0, 100)`: inclusive of 0 and exclusive of 100. `Random` in Java uses a deterministic specified algorithm; with the same seed and the **same sequence of method calls** in a sequential context, it produces the same result sequence.
 
-Điều này không có nghĩa mọi cách dùng `Random` đều tái lập. Nếu dùng chung một `Random` rồi gọi `nextInt`, `nextDouble` từ các nơi khác nhau, thứ tự gọi thay đổi sẽ khiến chuỗi quan sát được thay đổi. Để mỗi ca kiểm thử độc lập, nên tạo bộ sinh riêng từ seed được lưu kèm ca kiểm thử.
+This does not mean every usage of `Random` is reproducible. If you share one `Random` instance and call `nextInt` or `nextDouble` from different places, changing the call order changes the observed sequence. To keep each test case independent, create a dedicated generator from a seed stored with the test case.
 
-### Sinh mẫu rồi tính thống kê
+### Sampling and Computing Statistics
 
 ```java
 import java.util.Random;
@@ -153,12 +153,12 @@ long failures = new Random(seed)
     .filter(value -> value < failureProbability)
     .count();
 
-System.out.println("Số lần lỗi: " + failures);
+System.out.println("Failure count: " + failures);
 ```
 
-Mỗi mẫu `value` được đối chiếu với ngưỡng 2%. Khi chạy lại cùng cấu hình, số lần lỗi được tái tạo. **Không** thể suy ra rằng cứ 10.000 lượt là có đúng 200 lỗi: 2% là xác suất mô hình, không phải chỉ tiêu chính xác cho một lần lấy mẫu.
+Each sample `value` is compared against a 2% threshold. When re-running with the same configuration, the failure count is reproduced. You **cannot** conclude that every 10,000 trials will have exactly 200 failures: 2% is a model probability, not an exact quota for a single sample run.
 
-Nếu cần sinh mẫu theo `Supplier`, có thể dùng:
+If you need to generate samples via a `Supplier`, you can use:
 
 ```java
 import java.util.Random;
@@ -172,34 +172,34 @@ double[] values = Stream.<Double>generate(random::nextDouble)
     .toArray();
 ```
 
-Supplier `random::nextDouble` đọc và thay đổi trạng thái của một generator. Cách dùng này chỉ dễ tái lập khi **duyệt tuần tự**, tạo generator mới cùng seed trước mỗi lần chạy và giữ nguyên chuỗi yêu cầu lấy mẫu. Đừng chia sẻ generator có trạng thái giữa các tác vụ rồi dựa vào thứ tự gọi hàm để gán kết quả cho từng lượt.
+The `random::nextDouble` supplier reads and mutates the state of a generator. This usage is easily reproducible only when **traversed sequentially**, creating a new generator with the same seed before each run and keeping the exact same sampling request sequence. Do not share a stateful generator across tasks and then rely on call order to assign results to individual trials.
 
-### Những API không phù hợp làm nguồn tái lập mặc định
+### APIs Unsuitable as a Default Reproducible Source
 
-`Math.random()` không nhận seed làm đối số, còn `ThreadLocalRandom.current()` được thiết kế cho sử dụng giữa nhiều luồng và không cung cấp cách đặt seed trực tiếp như `new Random(seed)`. Vì vậy, chúng không phải lựa chọn thuận tiện khi cần tái tạo đúng một ca kiểm thử.
+`Math.random()` accepts no seed argument, and `ThreadLocalRandom.current()` is designed for multi-threaded use without offering a direct way to set a seed like `new Random(seed)`. Therefore, they are not convenient choices when an exact test case must be reproduced.
 
-`SplittableRandom` có thể hữu ích cho tính toán song song vì hỗ trợ tách generator qua `split()`, nhưng tính tái lập vẫn cần chiến lược phân chia và gắn seed ổn định; việc chia theo lịch thực thi của luồng có thể làm các lượt chạy nhận mẫu khác nhau. Ngoài ra, không nên dùng `Random` hoặc `SplittableRandom` để tạo khóa bí mật hoặc token bảo mật; bài toán mật mã cần API `SecureRandom` và yêu cầu kiểm thử riêng.
+`SplittableRandom` can be useful for parallel computation because it supports splitting generators via `split()`, yet reproducibility still requires a stable splitting and seeding strategy; splitting based on thread scheduling can cause different runs to receive different samples. Also, do not use `Random` or `SplittableRandom` to generate secret keys or security tokens; cryptographic tasks require the `SecureRandom` API and separate testing requirements.
 
-## 5. Phân biệt ba mức tái lập khi chạy song song
+## 5. Distinguishing Three Levels of Reproducibility in Parallel Runs
 
-Một nguồn có seed cố định **chưa đủ** để bảo đảm kết quả tái lập khi áp dụng `parallel()`. Hãy tách ba yêu cầu:
+A fixed-seed source is **not enough** to guarantee reproducible results when applying `parallel()`. Separate three requirements:
 
-1. **Dữ liệu của từng lượt mô phỏng không đổi:** lượt `i` luôn nhận cùng đầu vào, bất kể thread thực thi.
-2. **Kết quả tổng hợp không đổi:** các lượt độc lập được gộp bằng phép toán phù hợp với parallel reduction.
-3. **Thứ tự hiệu ứng phụ không đổi:** in log, ghi tệp hoặc cập nhật biến dùng chung theo một thứ tự cố định.
+1. **Unchanged data per simulation trial:** trial `i` always receives the same input, regardless of which thread executes it.
+2. **Unchanged aggregated result:** independent trials are combined using an operation compatible with parallel reduction.
+3. **Unchanged side-effect order:** logging, writing files, or updating shared variables occurs in a fixed order.
 
-Hai yêu cầu đầu có thể đạt được nếu ánh xạ mỗi lượt sang dữ liệu xác định và gộp kết quả đúng. Yêu cầu thứ ba khó bảo đảm bằng `parallel().forEach(...)`; thời điểm chạy mỗi lambda do bộ lập lịch quyết định.
+The first two requirements can be achieved by mapping each trial to deterministic data and combining results properly. The third requirement is hard to guarantee with `parallel().forEach(...)`; when each lambda runs is decided by the scheduler.
 
-### Ví dụ: mô phỏng Monte Carlo có thể chạy tuần tự hoặc song song
+### Example: Monte Carlo Simulation Runnable Sequentially or in Parallel
 
-Ta ước lượng số π bằng cách sinh `n` điểm trong hình vuông đơn vị, đếm số điểm nằm trong một phần tư hình tròn bán kính 1. Để **lượt chạy `i` luôn có cùng điểm**, mỗi lượt nhận seed riêng được suy ra từ `baseSeed` và chỉ số `i`:
+We estimate π by generating `n` points in a unit square and counting how many fall inside a quarter-circle of radius 1. To ensure **trial `i` always gets the same point**, each trial receives its own seed derived from `baseSeed` and index `i`:
 
 ```java
 import java.util.Random;
 import java.util.stream.IntStream;
 
 public class ReproducibleMonteCarlo {
-    // Trộn bit theo một công thức xác định để tạo seed cho từng lượt.
+    // Mix bits using a deterministic formula to derive a seed for each trial.
     static long mix64(long z) {
         z = (z ^ (z >>> 30)) * 0xbf58476d1ce4e5b9L;
         z = (z ^ (z >>> 27)) * 0x94d049bb133111ebL;
@@ -229,29 +229,29 @@ public class ReproducibleMonteCarlo {
 
         System.out.println(sequential == parallel); // true
         double pi = 4.0 * sequential / trials;
-        System.out.println("Ước lượng pi = " + pi);
+        System.out.println("Estimated pi = " + pi);
     }
 }
 ```
 
-Ở đây, mỗi predicate chỉ sử dụng `index`, `baseSeed` và generator **cục bộ**. Không có đối tượng `Random` dùng chung để các luồng cùng tiêu thụ. `count()` gộp số nguyên một cách xác định, nên số điểm nằm trong hình tròn giống nhau giữa hai chế độ trên cùng thuật toán và dữ liệu. Hàm `mix64` là phép trộn bit xác định để phân tán seed; nó **không chứng minh** tính độc lập thống kê của các mẫu và không có mục đích mật mã.
+Here, each predicate only uses `index`, `baseSeed`, and a **local** generator. There is no shared `Random` object consumed concurrently across threads. `count()` aggregates integers deterministically, so the count of points inside the circle is identical between both modes for the same algorithm and data. The `mix64` function is a deterministic bit-mixing step to disperse seeds; it **does not prove** statistical independence of samples and has no cryptographic purpose.
 
-Giải pháp này cũng có chi phí: tạo một `Random` cho **mỗi** lượt mô phỏng. Với bài toán cần hiệu năng rất cao, có thể thiết kế nguồn sinh số theo chỉ số hoặc chia công việc thành các khối có seed được gán trước, nhưng phải kiểm chứng lại tính tái lập và chất lượng thống kê.
+This approach also has a cost: allocating a `Random` for **every** simulation trial. For problems requiring very high performance, you can design an index-based number generator or partition work into chunks with pre-assigned seeds, though you must re-verify reproducibility and statistical quality.
 
-**Không nên** thay `sampleRandom` bằng một `Random` dùng chung trong đoạn mã trên. Dù bộ sinh được đồng bộ để tránh hỏng trạng thái, việc lượt `i` nhận số nào còn phụ thuộc thứ tự các thread gọi generator. Cũng không nên trông đợi `parallel().forEach(System.out::println)` in cùng thứ tự giữa các lần chạy; nếu cần giữ encounter order để hiển thị, xem xét `forEachOrdered`, chấp nhận chi phí phối hợp.
+You **should not** replace `sampleRandom` with a shared `Random` in the snippet above. Even if the generator is synchronized to prevent state corruption, which numbers trial `i` receives would still depend on the order in which threads call the generator. Nor should you expect `parallel().forEach(System.out::println)` to print in the same order across runs; if you must preserve encounter order for display, consider `forEachOrdered`, accepting the coordination overhead.
 
-### Lưu ý về phép toán trên số thực
+### Note on Floating-Point Arithmetic
 
-`count()` trong ví dụ cho kết quả nguyên chính xác. Nhưng phép cộng `double` không có tính kết hợp toán học tuyệt đối do làm tròn nhị phân. Vì thế, `parallel().mapToDouble(...).sum()` hoặc `reduce` trên số thực có thể cho sai khác rất nhỏ so với tuần tự khi thứ tự gộp thay đổi. Khi kiểm thử kết quả số thực, xác định một ngưỡng sai số phù hợp thay vì luôn yêu cầu hai bit pattern bằng nhau.
+`count()` in the example yields an exact integer result. However, `double` addition is not strictly associative mathematically due to binary rounding. Therefore, `parallel().mapToDouble(...).sum()` or `reduce` on floating-point numbers can produce tiny differences compared to sequential execution when reduction order changes. When testing floating-point results, define an appropriate tolerance threshold rather than always requiring identical bit patterns.
 
-## 6. Giới hạn dãy để bảo đảm chương trình có thể kết thúc
+## 6. Bounding Sequences to Guarantee Program Termination
 
-`Stream.iterate(seed, next)` và `Stream.generate(supplier)` có thể tạo nguồn vô hạn. Những terminal operation như `count()`, `collect(...)`, `toArray()` muốn biết **toàn bộ dữ liệu** sẽ không thể kết thúc nếu không có ranh giới hữu hạn.
+`Stream.iterate(seed, next)` and `Stream.generate(supplier)` can create infinite sources. Terminal operations like `count()`, `collect(...)`, and `toArray()` that need **all data** cannot terminate without a finite boundary.
 
 ```java
 import java.util.stream.IntStream;
 
-// Dừng sau đúng 100 mẫu.
+// Stop after exactly 100 samples.
 long count = IntStream.iterate(0, n -> n + 1)
     .limit(100)
     .count();
@@ -259,7 +259,7 @@ long count = IntStream.iterate(0, n -> n + 1)
 System.out.println(count); // 100
 ```
 
-Đối với nguồn xác định độ dài, `IntStream.range(0, 100)` thường rõ nghĩa hơn `iterate(...).limit(100)`. Khi giới hạn theo nội dung dãy, Java 9+ cung cấp `takeWhile` hoặc overload ba tham số của `iterate`. Cần hiểu rõ sự khác nhau giữa `filter` và `takeWhile`:
+For fixed-length sources, `IntStream.range(0, 100)` is usually clearer than `iterate(...).limit(100)`. When bounding by sequence content, Java 9+ provides `takeWhile` or the three-argument overload of `iterate`. Understand clearly the difference between `filter` and `takeWhile`:
 
 ```java
 import java.util.stream.IntStream;
@@ -267,26 +267,26 @@ import java.util.stream.IntStream;
 int[] prefix = IntStream.of(2, 4, 7, 8, 10)
     .takeWhile(n -> n % 2 == 0)
     .toArray();
-// [2, 4] — dừng lấy tiền tố ở 7.
+// [2, 4] — stops taking prefix at 7.
 
 int[] allEven = IntStream.of(2, 4, 7, 8, 10)
     .filter(n -> n % 2 == 0)
     .toArray();
-// [2, 4, 8, 10] — xét cả các phần tử sau 7.
+// [2, 4, 8, 10] — also inspects elements after 7.
 ```
 
-**Một phép toán có khả năng ngắn mạch không bảo đảm lúc nào cũng kết thúc.** Ví dụ, `Stream.generate(() -> 0).filter(n -> n == 1).findFirst()` sẽ tiếp tục tìm mà không bao giờ gặp phần tử cần thiết. `sorted()` trước `limit()` có thể buộc đọc toàn bộ nguồn để sắp xếp; vì vậy `infiniteStream.sorted().limit(10)` không phải cách sinh 10 giá trị an toàn.
+**A short-circuiting operation does not always guarantee termination.** For example, `Stream.generate(() -> 0).filter(n -> n == 1).findFirst()` will keep searching without ever encountering the required element. `sorted()` before `limit()` may force reading the entire source to sort; thus `infiniteStream.sorted().limit(10)` is not a safe way to produce 10 values.
 
-Với mô phỏng dài, chỉ lưu các thống kê cần thiết thay vì `toArray()` toàn bộ mẫu. Một stream hữu hạn nhưng chứa hàng trăm triệu phần tử vẫn có thể gây hết bộ nhớ khi thu gom hết vào collection.
+For long simulations, store only the necessary statistics instead of calling `toArray()` on all samples. A finite stream containing hundreds of millions of elements can still cause an out-of-memory error if collected entirely into a collection.
 
-## 7. Thiết kế kiểm thử tái lập, không bị ngẫu nhiên làm “flaky”
+## 7. Designing Reproducible Tests That Randomness Won't Make "Flaky"
 
-Một ca kiểm thử dữ liệu mô phỏng nên lưu được **seed, số bước, tham số mô hình và kỳ vọng**. Có hai kiểu kỳ vọng phổ biến:
+A simulation data test should record the **seed, step count, model parameters, and expectations**. There are two common types of expectations:
 
-- **Kết quả chính xác:** chạy cùng seed và pipeline để xác nhận kết quả được sinh ra giống nhau; phù hợp để tái hiện một lỗi cụ thể.
-- **Bất biến của mô hình:** mọi giá trị nằm trong khoảng hợp lệ, số lượt không âm, số lượt thành công không vượt quá tổng số lượt; hữu ích để kiểm tra nhiều seed mà không gắn kỳ vọng vào một chuỗi ngẫu nhiên cụ thể.
+- **Exact results:** run the same seed and pipeline to verify identical generated output; suitable for reproducing a specific bug.
+- **Model invariants:** all values fall within a valid range, counts are non-negative, success counts do not exceed total trials; useful for testing many seeds without tying expectations to a single random sequence.
 
-Ví dụ kiểm thử độc lập với thư viện test:
+Example test independent of any testing library:
 
 ```java
 import java.util.Arrays;
@@ -303,21 +303,21 @@ public class ReproducibleDataTest {
         int[] second = samples(seed);
 
         if (!Arrays.equals(first, second)) {
-            throw new AssertionError("Cùng seed nhưng dữ liệu khác");
+            throw new AssertionError("Same seed but different data");
         }
         if (first.length != 100) {
-            throw new AssertionError("Sai số lượng mẫu");
+            throw new AssertionError("Wrong sample count");
         }
         if (Arrays.stream(first).anyMatch(x -> x < 0 || x >= 50)) {
-            throw new AssertionError("Có giá trị ngoài [0, 50)");
+            throw new AssertionError("Value outside [0, 50)");
         }
     }
 }
 ```
 
-Không nên yêu cầu một mẫu ngẫu nhiên nhỏ phải có tỷ lệ lỗi, trung bình hay tần suất **đúng bằng** kỳ vọng xác suất: một kiểm thử như vậy có thể thất bại dù thuật toán hợp lệ. Khi kiểm định tính chất thống kê, cần chọn cỡ mẫu, khoảng chấp nhận và mức tin cậy phù hợp; khi kiểm thử hồi quy, có thể dùng một tập seed cố định.
+Do not require a small random sample to have an error rate, mean, or frequency **exactly equal** to the probabilistic expectation: such a test can fail even when the algorithm is valid. When testing statistical properties, choose an appropriate sample size, acceptance interval, and confidence level; for regression testing, you can use a fixed set of seeds.
 
-Nếu phát hiện lỗi ở seed cụ thể, hãy ghi lại:
+If a bug is discovered with a specific seed, record:
 
 ```text
 baseSeed=20261118
@@ -327,37 +327,37 @@ mode=sequential
 modelVersion=1
 ```
 
-Đây là **ví dụ cấu hình**, không phải đầu ra của chương trình. Với những mô hình phức tạp hơn, cần ghi cả dữ liệu đầu vào, thứ tự xử lý, tham số và phiên bản runtime hoặc thư viện có liên quan.
+This is a **configuration example**, not program output. For more complex models, also record input data, processing order, parameters, and relevant runtime or library versions.
 
-## 8. Các lỗi thường gặp và cách phòng tránh
+## 8. Common Errors and How to Prevent Them
 
-| Hiện tượng | Nguyên nhân có thể | Cách xử lý |
+| Symptom | Possible cause | How to handle |
 | --- | --- | --- |
-| Chạy lại một test nhưng dữ liệu khác | Dùng `new Random()` không truyền seed, `Math.random()`, đồng hồ hoặc trạng thái ngoài | Cố định seed và đầu vào; tạo generator mới cho mỗi ca. |
-| Cùng seed nhưng kết quả theo từng chỉ số khác khi chuyển sang `parallel()` | Nhiều lượt lấy mẫu từ một generator dùng chung theo thứ tự không cố định | Sinh dữ liệu độc lập theo chỉ số hoặc gán seed trước cho từng khối. |
-| Stream chạy mãi không ra kết quả | Dãy vô hạn đi với `count`, `collect` hoặc điều kiện ngắn mạch không bao giờ đúng | Dùng nguồn hữu hạn, `limit` hoặc điều kiện dừng thật sự đạt được. |
-| Test kiểm tra tỷ lệ ngẫu nhiên lúc đúng lúc sai | Kiểm tra xác suất bằng đẳng thức chính xác hoặc ngưỡng quá chặt | Kiểm tra bất biến; dùng thống kê và khoảng sai số hợp lý. |
-| Dữ liệu hoặc tổng thay đổi do thứ tự xử lý | Hiệu ứng phụ trong `map`, `peek`, `forEach`; phép gộp không kết hợp | Dùng lambda thuần hàm và reduction đúng hợp đồng. |
-| `limit` trả tập mẫu khác mong đợi | Thứ tự gặp phần tử không được bảo đảm hoặc dùng `unordered()` | Gắn chỉ số mẫu rõ ràng, giữ encounter order khi nghiệp vụ cần. |
-| Vòng lặp `iterate` bị lặp giá trị bất ngờ | Tràn số nguyên, bước tiến bằng 0 hoặc quy tắc không đạt điểm dừng | Giới hạn số bước và kiểm tra điều kiện kết thúc, khoảng giá trị. |
-| Hết bộ nhớ khi lấy mẫu | Thu toàn bộ stream thành mảng hoặc danh sách rất lớn | Xử lý theo luồng và tính thống kê bằng terminal operation thích hợp. |
+| Re-running a test produces different data | Using `new Random()` without a seed, `Math.random()`, system clock, or external state | Fix the seed and inputs; create a new generator per test case. |
+| Same seed yields different per-index results when switching to `parallel()` | Multiple trials drawing from a shared generator in non-deterministic order | Generate data independently by index or pre-assign seeds per chunk. |
+| Stream runs forever without output | Infinite sequence paired with `count`, `collect`, or an unreachable short-circuit condition | Use a finite source, `limit`, or an actually reachable stopping condition. |
+| Test checking random rates passes intermittently | Checking probability with exact equality or overly tight thresholds | Check invariants; use statistics and reasonable error margins. |
+| Data or sum changes due to processing order | Side effects in `map`, `peek`, `forEach`; non-associative combiner | Use pure lambdas and contract-compliant reductions. |
+| `limit` returns an unexpected sample set | Unstable encounter order or using `unordered()` | Assign sample indices explicitly, preserve encounter order when business logic requires it. |
+| `iterate` loop unexpectedly repeats values | Integer overflow, zero step size, or rule failing to reach stopping point | Bound step count and verify termination condition and value range. |
+| Out of memory during sampling | Collecting the entire stream into a huge array or list | Stream-process elements and compute statistics with an appropriate terminal operation. |
 
-### Bộ câu hỏi tự rà soát trước khi chạy mô phỏng
+### Self-Review Checklist Before Running a Simulation
 
-1. Mỗi lượt chạy được xác định bằng chỉ số hay bằng trạng thái trước đó?
-2. Seed và thuật toán sinh số có được truyền rõ ràng, có thể lưu lại không?
-3. Stream có giới hạn số phần tử hoặc điều kiện dừng thật sự đạt được không?
-4. Các lambda có phụ thuộc đồng hồ, I/O, biến chia sẻ hoặc thứ tự lập lịch thread không?
-5. Có cần giữ thứ tự kết quả, và phép tổng hợp có an toàn khi song song không?
-6. Phần nào cần so sánh bằng giá trị chính xác, phần nào phải chấp nhận sai số số thực hoặc độ dao động thống kê?
-7. Có thể tái tạo một ca lỗi chỉ từ seed, tham số, số bước và phiên bản mô hình không?
+1. Is each trial determined by its index or by the previous state?
+2. Are the seed and generation algorithm passed explicitly and saved?
+3. Does the stream have an element limit or a genuinely reachable stopping condition?
+4. Do any lambdas depend on the clock, I/O, shared variables, or thread scheduling order?
+5. Does result ordering need to be preserved, and is the aggregation safe in parallel?
+6. Which parts must be compared for exact equality, and which must allow floating-point error or statistical variance?
+7. Can a failing case be reproduced solely from the seed, parameters, step count, and model version?
 
-## 9. Bài thực hành nhỏ
+## 9. Mini Practice Exercises
 
-**Bài 1 — Dãy xác định.** Sinh 20 số nguyên dạng `5 + 3 * i` bằng `IntStream.range`, sau đó tạo lại bằng `IntStream.iterate` kết hợp `limit`. So sánh hai mảng bằng `Arrays.equals`. Giải thích vì sao công thức theo chỉ số thuận tiện hơn nếu mỗi phần tử được tính độc lập.
+**Exercise 1 — Deterministic Sequence.** Generate 20 integers of the form `5 + 3 * i` using `IntStream.range`, then recreate them using `IntStream.iterate` combined with `limit`. Compare the two arrays with `Arrays.equals`. Explain why an index-based formula is more convenient when each element is computed independently.
 
-**Bài 2 — Tái hiện lỗi.** Viết `samples(seed)` sinh 1.000 số nguyên trong khoảng `[0, 100)`. Chạy với seed `42L` hai lần và xác nhận hai mảng bằng nhau; thay seed rồi quan sát kết quả. Đừng viết test với giả định rằng hai seed bất kỳ **bắt buộc** tạo hai mảng khác nhau, vì API không cung cấp bảo đảm đó.
+**Exercise 2 — Reproducing a Bug.** Write `samples(seed)` to generate 1,000 integers in `[0, 100)`. Run it twice with seed `42L` and verify the two arrays are equal; change the seed and observe the result. Do not write a test assuming that any two different seeds **must** produce different arrays, because the API provides no such guarantee.
 
-**Bài 3 — Mô phỏng độc lập.** Từ ví dụ `ReproducibleMonteCarlo`, thử `10_000` và `100_000` lượt. Kiểm tra `countInside(n, seed, false) == countInside(n, seed, true)` cho cùng `n` và seed, đồng thời xác nhận số điểm đếm được luôn nằm trong `[0, n]`. Quan sát rằng ước lượng π có thể khác khi đổi `n` hay seed.
+**Exercise 3 — Independent Simulation.** From the `ReproducibleMonteCarlo` example, test `10_000` and `100_000` trials. Verify `countInside(n, seed, false) == countInside(n, seed, true)` for the same `n` and seed, and confirm the point count is always within `[0, n]`. Observe that the estimate of π can vary when changing `n` or the seed.
 
-**Điểm cần nhớ:** Java Stream API giúp mô tả dãy mô phỏng bằng các pipeline lazy, từ nguồn hữu hạn đến nguồn vô hạn. Để kiểm thử có thể tái lập, hãy làm rõ nguồn sinh, seed, số bước, tính độc lập của từng mẫu, điều kiện dừng và hợp đồng của phép gộp. Những điều đó quyết định khả năng tái hiện kết quả, hơn là việc chỉ sử dụng một lời gọi `parallel()` hay một seed cố định.
+**Key takeaway:** The Java Stream API helps express simulation sequences with lazy pipelines, from finite to infinite sources. For reproducible testing, make explicit the generator source, seed, step count, independence of each sample, stopping condition, and reduction contract. Those factors determine reproducibility far more than merely calling `parallel()` or setting a fixed seed alone.

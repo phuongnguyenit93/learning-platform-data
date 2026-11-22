@@ -1,58 +1,58 @@
-# Toán tử `==` và `!=` trên tham chiếu trong Java
+# The `==` and `!=` Operators on References in Java
 
-## Mục tiêu bài học
+## Lesson Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you can:
 
-- Giải thích sự khác nhau giữa **danh tính đối tượng (identity)** và **bằng nhau về giá trị hoặc trạng thái (logical equality)**.
-- Dự đoán kết quả của `==` và `!=` khi hai biến tham chiếu trỏ đến cùng đối tượng, hai đối tượng khác nhau hoặc `null`.
-- Chọn `==`, `!=`, `equals()` hay `Objects.equals()` đúng tình huống.
-- Nhận ra các trường hợp dễ nhầm với `String`, kiểu bao (wrapper), mảng, `enum` và `record`.
+- Explain the difference between **object identity** and **logical equality (equality by value or state)**.
+- Predict the result of `==` and `!=` when two reference variables point to the same object, two different objects, or `null`.
+- Choose `==`, `!=`, `equals()`, or `Objects.equals()` for the right situation.
+- Recognize common pitfalls with `String`, wrapper types, arrays, `enum`, and `record`.
 
-## 1. Tham chiếu là gì và `==` thực sự so sánh điều gì?
+## 1. What Is a Reference and What Does `==` Actually Compare?
 
-Một biến kiểu tham chiếu có thể giữ tham chiếu đến một đối tượng hoặc giá trị `null`. Hai biến có thể cùng trỏ đến **một đối tượng**, dù chúng có hai tên khác nhau. Ngược lại, hai đối tượng có thể có dữ liệu hoàn toàn giống nhau nhưng vẫn là **hai đối tượng riêng biệt**.
+A reference-type variable can hold a reference to an object or the value `null`. Two variables can point to **one object**, even though they have two different names. Conversely, two objects can have completely identical data yet still be **two separate objects**.
 
-Với hai toán hạng kiểu tham chiếu tương thích:
+For two compatible reference-type operands:
 
-- `a == b` trả về `true` nếu cả hai cùng tham chiếu đến **chính một đối tượng**, hoặc **cả hai đều là `null`**; ngược lại trả về `false`.
-- `a != b` là kết quả phủ định của `a == b`: trả về `true` khi hai tham chiếu không đồng nhất.
-- Kết quả là kiểu nguyên thủy `boolean`. Không có việc gọi `equals()` ngầm khi dùng `==` hoặc `!=` trên hai tham chiếu.
-- Gán một biến tham chiếu sang biến khác **sao chép giá trị tham chiếu**, không sao chép đối tượng.
+- `a == b` returns `true` if both reference **the exact same object**, or **both are `null`**; otherwise it returns `false`.
+- `a != b` is the negation of `a == b`: it returns `true` when the two references are not identical.
+- The result is the primitive type `boolean`. There is no implicit call to `equals()` when using `==` or `!=` on two references.
+- Assigning one reference variable to another **copies the reference value**, not the object.
 
-Ví dụ:
+Example:
 
 ```java
 Object original = new Object();
-Object alias = original;       // Cùng đối tượng
-Object another = new Object(); // Đối tượng khác
+Object alias = original;       // Same object
+Object another = new Object(); // Different object
 
 System.out.println(original == alias);   // true
 System.out.println(original == another); // false
 System.out.println(original != another); // true
 ```
 
-Dù hai lần tạo `new Object()` có thể tạo đối tượng cùng kiểu và không có dữ liệu riêng để phân biệt, chúng vẫn mang danh tính khác nhau. Sự so sánh này không dựa vào nội dung trường, địa chỉ bộ nhớ hiển thị, tên biến hay kết quả `hashCode()`.
+Even though two `new Object()` creations produce objects of the same type with no distinct fields to tell them apart, they still have different identities. This comparison does not rely on field contents, displayed memory addresses, variable names, or `hashCode()` results.
 
-### `==` với kiểu nguyên thủy là phép so sánh khác
+### `==` with Primitive Types Is a Different Comparison
 
-Khi cả hai toán hạng là giá trị nguyên thủy phù hợp, chẳng hạn `int` hoặc `boolean`, `==` so sánh **giá trị**. Vì thế, luôn xác định kiểu của hai toán hạng trước khi suy luận:
+When both operands are compatible primitive values, such as `int` or `boolean`, `==` compares **values**. Therefore, always determine the types of both operands before reasoning about the result:
 
 ```java
 int x = 42;
 int y = 42;
-System.out.println(x == y); // true: so sánh giá trị int
+System.out.println(x == y); // true: compares int values
 
 Integer boxedX = 42;
 Integer boxedY = 42;
-System.out.println(boxedX == boxedY); // true: hai tham chiếu tới Integer được cache
+System.out.println(boxedX == boxedY); // true: two references to a cached Integer
 ```
 
-Hai dòng cùng in `true` nhưng do **hai cơ chế khác nhau**. Phần về wrapper bên dưới sẽ chỉ rõ giới hạn của việc cache.
+Both lines print `true`, but due to **two different mechanisms**. The wrapper section below clarifies the limits of caching.
 
-## 2. Ví dụ hoàn chỉnh, biên dịch và chạy bằng Java 17+
+## 2. Complete Example, Compiled and Run with Java 17+
 
-Lưu nội dung sau vào tệp `IdentityOperatorsDemo.java`. Đây là một chương trình độc lập, trong đó `Pair` là một `record` lồng bên trong lớp.
+Save the following content to `IdentityOperatorsDemo.java`. This is a standalone program in which `Pair` is a `record` nested inside the class.
 
 ```java
 import java.util.Arrays;
@@ -74,7 +74,7 @@ public class IdentityOperatorsDemo {
 
         String s1 = "java";
         String s2 = "java";
-        String s3 = new String("java"); // Chỉ dùng để minh họa danh tính
+        String s3 = new String("java"); // Used only to demonstrate identity
         System.out.println("literal == literal: " + (s1 == s2));
         System.out.println("literal == new: " + (s1 == s3));
         System.out.println("literal.equals(new): " + s1.equals(s3));
@@ -94,14 +94,14 @@ public class IdentityOperatorsDemo {
 }
 ```
 
-Trong terminal (đã cài JDK 17 trở lên):
+In the terminal (with JDK 17 or higher installed):
 
 ```bash
 javac IdentityOperatorsDemo.java
 java IdentityOperatorsDemo
 ```
 
-Kết quả chuẩn:
+Standard output:
 
 ```text
 same object: true
@@ -118,60 +118,60 @@ record ==: false
 record.equals: true
 ```
 
-Đối chiếu từng nhóm: `alias` và `arrayAlias` dùng lại đối tượng đã có; mỗi lệnh `new` tạo đối tượng mới; `equals()` của `String` so sánh chuỗi ký tự; `Arrays.equals` so sánh phần tử của hai mảng `int[]`; còn `record` tự cung cấp phép `equals()` dựa trên các thành phần của nó. Trong trường hợp `s1`/`s2`, hai chuỗi literal cùng nội dung được Java dùng chung qua cơ chế intern.
+Comparing each group: `alias` and `arrayAlias` reuse an existing object; each `new` statement creates a new object; `String`'s `equals()` compares character sequences; `Arrays.equals` compares elements of two `int[]` arrays; and `record` automatically provides `equals()` based on its components. In the `s1`/`s2` case, two string literals with the same content are shared by Java via interning.
 
-## 3. So sánh với `null` và kiểm tra trước khi truy cập đối tượng
+## 3. Comparing with `null` and Checking Before Accessing an Object
 
-`null` biểu thị không có đối tượng được tham chiếu. Kiểm tra `a == null` hoặc `a != null` hợp lệ và **không tự gây `NullPointerException`**; chúng chỉ so sánh tham chiếu. `null == null` là `true`; `null != null` là `false`.
+`null` indicates no object is referenced. Checking `a == null` or `a != null` is valid and **does not itself throw `NullPointerException`**; they only compare references. `null == null` is `true`; `null != null` is `false`.
 
 ```java
 String name = null;
 
 if (name == null) {
-    System.out.println("Chưa có tên");
+    System.out.println("No name yet");
 }
 if (name != null && !name.isBlank()) {
     System.out.println(name);
 }
 ```
 
-Trong điều kiện thứ hai, `&&` đánh giá từ trái sang phải và ngắn mạch: nếu `name != null` là `false` thì `name.isBlank()` không được gọi. Ngược lại, gọi `name.equals("A")` khi `name` là `null` sẽ ném `NullPointerException`.
+In the second condition, `&&` evaluates from left to right and short-circuits: if `name != null` is `false`, `name.isBlank()` is not called. Conversely, calling `name.equals("A")` when `name` is `null` throws `NullPointerException`.
 
-Khi muốn so sánh **nội dung** mà một hoặc cả hai giá trị có thể `null`, dùng `Objects.equals(a, b)` (cần `import java.util.Objects;`). Hàm trả về `true` nếu hai tham chiếu cùng một đối tượng, cả hai `null`, hoặc nếu `a` khác `null` và `a.equals(b)` là `true`.
+When you want to compare **content** where one or both values may be `null`, use `Objects.equals(a, b)` (requires `import java.util.Objects;`). It returns `true` if both references point to the same object, both are `null`, or `a` is non-`null` and `a.equals(b)` is `true`.
 
 ```java
 import java.util.Objects;
 
-// Phần thân một phương thức:
+// Inside a method body:
 String a = null;
 String b = "Java";
-boolean sameContent = Objects.equals(a, b); // false, an toàn với null
+boolean sameContent = Objects.equals(a, b); // false, null-safe
 boolean bothAbsent = Objects.equals(null, null); // true
 ```
 
-Đây là **đoạn mã minh họa đặt trong một phương thức**, không phải tệp Java độc lập vì có các lệnh bên ngoài khai báo lớp và một lệnh `import`.
+This is an **illustrative snippet placed inside a method**, not a standalone Java file because it contains statements outside a class declaration and an `import` statement.
 
-## 4. Vì sao `String` là bẫy thường gặp?
+## 4. Why Is `String` a Common Trap?
 
-`String` là kiểu tham chiếu, dù cú pháp literal như `"Java"` trông giống giá trị. Java dùng cơ chế **string interning** để các literal cùng nội dung dùng chung một đối tượng `String`. Vì vậy:
+`String` is a reference type, even though literal syntax like `"Java"` looks value-like. Java uses **string interning** so literals with identical content share a single `String` object. Therefore:
 
 ```java
 String a = "Java";
 String b = "Java";
 String c = new String("Java");
 
-System.out.println(a == b);      // true: cùng đối tượng literal được intern
-System.out.println(a == c);      // false: new tạo đối tượng khác
-System.out.println(a.equals(c));  // true: cùng nội dung ký tự
+System.out.println(a == b);      // true: same interned literal object
+System.out.println(a == c);      // false: new creates a different object
+System.out.println(a.equals(c));  // true: same character content
 ```
 
-Mục tiêu ở đây là chứng minh `==` phụ thuộc **danh tính**, không chứng minh nội dung. Không viết logic nghiệp vụ phụ thuộc vào việc hai chuỗi bất kỳ có dùng chung đối tượng hay không. Dùng `a.equals(b)` khi `a` chắc chắn khác `null`; dùng `Objects.equals(a, b)` khi có thể `null`. `equalsIgnoreCase` là lựa chọn riêng khi cần so sánh chuỗi không phân biệt hoa/thường, với quy tắc so sánh riêng của `String`.
+The goal here is to prove that `==` depends on **identity**, not to check content. Do not write business logic that depends on whether any two strings share the same object. Use `a.equals(b)` when `a` is guaranteed non-`null`; use `Objects.equals(a, b)` when it can be `null`. `equalsIgnoreCase` is a separate option when case-insensitive string comparison is needed, with `String`'s own comparison rules.
 
-Lệnh `new String("Java")` chỉ có ý nghĩa giảng dạy ở đây; trong mã ứng dụng, thường không cần tạo bản sao từ một literal. Nếu chủ động gọi `intern()`, bạn đang nhận chuỗi đại diện canonical của nội dung đó, nhưng không nên dùng thao tác này làm cách thay thế tổng quát cho so sánh nội dung.
+`new String("Java")` is only meant for teaching here; in application code, there is usually no need to create a copy from a literal. If you explicitly call `intern()`, you obtain the canonical string representation for that content, but you should not use that operation as a general replacement for content comparison.
 
-## 5. Wrapper và autoboxing: cần xét kiểu của từng toán hạng
+## 5. Wrappers and Autoboxing: Consider the Type of Each Operand
 
-`Integer`, `Long`, `Boolean` và các wrapper khác là lớp, nên nếu **cả hai toán hạng đều là tham chiếu wrapper**, `==` xét danh tính. Với `Integer`, Java bảo đảm việc boxing/`Integer.valueOf` dùng chung đối tượng cho các giá trị từ **-128 đến 127**. Hành vi cache cho các giá trị lớn hơn có thể khác giữa môi trường triển khai và cấu hình, nên không được dựa vào `==` để so sánh giá trị số của wrapper.
+`Integer`, `Long`, `Boolean`, and other wrappers are classes, so if **both operands are wrapper references**, `==` checks identity. For `Integer`, Java guarantees that boxing/`Integer.valueOf` shares objects for values from **-128 to 127**. Caching behavior for larger values can differ across deployment environments and configurations, so you must not rely on `==` to compare numeric values of wrappers.
 
 ```java
 Integer a = 127;
@@ -179,91 +179,91 @@ Integer b = 127;
 Integer c = 1_000;
 Integer d = 1_000;
 
-System.out.println(a == b);      // true: bảo đảm cho giá trị 127
-System.out.println(c.equals(d));  // true: cùng giá trị 1000
-// Không suy luận c == d luôn là false trên mọi môi trường.
+System.out.println(a == b);      // true: guaranteed for value 127
+System.out.println(c.equals(d));  // true: same value 1000
+// Do not infer that c == d is always false across all environments.
 ```
 
-Nếu một toán hạng là `Integer` và toán hạng kia là `int`, phép so sánh số có thể **unbox** wrapper về `int`, sau đó so sánh giá trị:
+If one operand is `Integer` and the other is `int`, numeric comparison can **unbox** the wrapper to `int`, then compare values:
 
 ```java
 Integer boxed = 5;
 int primitive = 5;
 
-System.out.println(boxed == primitive); // true: unboxing rồi so sánh int
+System.out.println(boxed == primitive); // true: unboxes then compares int
 ```
 
-Nhưng unboxing một tham chiếu wrapper `null` gây `NullPointerException`:
+However, unboxing a `null` wrapper reference causes `NullPointerException`:
 
 ```java
 Integer boxed = null;
 int primitive = 5;
-// boolean result = boxed == primitive; // Ném NullPointerException khi chạy
+// boolean result = boxed == primitive; // Throws NullPointerException at runtime
 ```
 
-Do đó đừng áp dụng một quy tắc máy móc kiểu “hễ có wrapper thì `==` luôn so sánh tham chiếu”; **kiểu thực tế của hai toán hạng** quyết định liệu có chuyển đổi/unboxing hay không. Khi muốn so sánh hai wrapper theo giá trị và chấp nhận `null`, `Objects.equals(a, b)` thường rõ ràng hơn.
+Therefore, do not apply a mechanical rule like “whenever there is a wrapper, `==` always compares references”; **the actual types of both operands** determine whether conversion/unboxing occurs. When you want to compare two wrappers by value and allow `null`, `Objects.equals(a, b)` is usually clearer.
 
-## 6. Mảng, `record` và `enum`
+## 6. Arrays, `record`, and `enum`
 
-**Mảng:** Hai mảng có cùng phần tử vẫn là hai đối tượng khác nhau. `arr1 == arr2` chỉ xác định liệu chúng có cùng là một mảng hay không. Với mảng một chiều chứa kiểu nguyên thủy, dùng `Arrays.equals(arr1, arr2)` để so sánh phần tử; với mảng đa chiều, cân nhắc `Arrays.deepEquals`. Với mảng đối tượng, `Arrays.equals` so sánh các phần tử theo `equals()` với xử lý `null`, và không tự so sánh sâu cấu trúc lồng nhau.
+**Arrays:** Two arrays with the same elements are still two different objects. `arr1 == arr2` only determines whether they are the exact same array. For one-dimensional arrays of primitives, use `Arrays.equals(arr1, arr2)` to compare elements; for multidimensional arrays, consider `Arrays.deepEquals`. For object arrays, `Arrays.equals` compares elements using `equals()` with `null` handling, and does not automatically deep-compare nested structures.
 
-**`record`:** Hai bản ghi cùng giá trị thành phần nhưng tạo bởi hai lệnh `new` là hai đối tượng riêng. `==` trả về `false`; `equals()` do `record` sinh ra kiểm tra các thành phần theo hợp đồng của record. Ví dụ `new Pair(1, 2).equals(new Pair(1, 2))` là `true` với khai báo `Pair` ở phần 2.
+**`record`:** Two records with the same component values created by two `new` expressions are two separate objects. `==` returns `false`; the `equals()` generated by `record` checks the components according to the record contract. For example, `new Pair(1, 2).equals(new Pair(1, 2))` is `true` with the `Pair` declaration in section 2.
 
-**`enum`:** Mỗi enum constant là một thực thể duy nhất của kiểu enum đó; do vậy `==` rất phù hợp khi so sánh các constant và không cần gọi `equals()`. Ví dụ sau dùng được trong thân một phương thức:
+**`enum`:** Each enum constant is a unique instance of that enum type; hence `==` is well suited for comparing constants and there is no need to call `equals()`. The following example works inside a method body:
 
 ```java
 enum Status { NEW, DONE }
 
-// Trong phương thức:
+// Inside a method:
 Status current = Status.NEW;
 boolean isNew = current == Status.NEW; // true
 boolean isDone = current != Status.DONE; // true
 ```
 
-Đoạn cuối minh họa cú pháp và ý nghĩa; để chạy riêng, hãy đặt khai báo `enum` trong phạm vi cho phép và các lệnh biến vào phương thức.
+The final snippet illustrates syntax and meaning; to run it separately, place the `enum` declaration in an allowed scope and the variable statements inside a method.
 
-## 7. Kiểu tham chiếu phải tương thích khi viết phép so sánh
+## 7. Reference Types Must Be Compatible When Writing Comparisons
 
-Java kiểm tra tính hợp lệ của phép `==`/`!=` ngay lúc biên dịch. Hai toán hạng tham chiếu phải thỏa các quy tắc kiểu của phép so sánh bằng; không phải hai kiểu tham chiếu bất kỳ đều được đặt cạnh `==`. Ví dụ:
+Java checks the validity of `==`/`!=` at compile time. Two reference operands must satisfy the type rules for equality comparison; not just any two reference types can be placed next to `==`. For example:
 
 ```java
 String text = "1";
 Integer number = 1;
-// boolean wrong = text == number; // Lỗi biên dịch: kiểu không thể so sánh
+// boolean wrong = text == number; // Compile-time error: incomparable types
 Object o = text;
-boolean allowed = o == number;    // Hợp lệ về kiểu, trả về false ở đây
+boolean allowed = o == number;    // Type-valid, returns false here
 ```
 
-Trường hợp `o == number` hợp lệ vì biểu thức có thể được xem là các tham chiếu đối tượng tương thích cho phép so sánh; không có nghĩa hai giá trị được chuyển thành chuỗi hay số để so sánh nội dung. Nếu cần so sánh dữ liệu khác kiểu, hãy xác định quy tắc chuyển đổi rõ ràng trước khi so sánh **giá trị**.
+The `o == number` case is valid because the expressions can be treated as compatible object references for comparison; it does not mean the two values are converted to strings or numbers to compare content. If you need to compare data of different types, define clear conversion rules before comparing **values**.
 
-## 8. Chọn phép so sánh theo câu hỏi cần trả lời
+## 8. Choosing a Comparison Based on the Question to Answer
 
-| Câu hỏi | Cách viết phù hợp | Ý nghĩa |
+| Question | Appropriate Syntax | Meaning |
 | --- | --- | --- |
-| Hai tham chiếu có trỏ cùng đối tượng? | `a == b` | Identity; cả hai `null` cũng cho `true` |
-| Hai tham chiếu có trỏ khác đối tượng? | `a != b` | Phủ định identity |
-| Biến có vắng mặt? | `a == null` | Kiểm tra `null` an toàn |
-| Biến có đối tượng? | `a != null` | Kiểm tra trước khi truy cập |
-| Hai `String` có cùng nội dung? | `a.equals(b)` | Dùng khi `a` không `null` |
-| Hai giá trị tham chiếu có bằng nhau theo `equals`, kể cả `null`? | `Objects.equals(a, b)` | So sánh logic an toàn với `null` |
-| Hai mảng có phần tử tương ứng bằng nhau? | `Arrays.equals(a, b)` | So sánh nội dung mảng một chiều |
-| Hai enum constant có giống nhau? | `status == Status.NEW` | So sánh identity tự nhiên cho `enum` |
+| Do two references point to the same object? | `a == b` | Identity; both `null` also gives `true` |
+| Do two references point to different objects? | `a != b` | Negated identity |
+| Is the variable absent? | `a == null` | Safe `null` check |
+| Does the variable have an object? | `a != null` | Check before accessing |
+| Do two `String`s have the same content? | `a.equals(b)` | Use when `a` is non-`null` |
+| Are two reference values equal by `equals`, including `null`? | `Objects.equals(a, b)` | Null-safe logical comparison |
+| Do two arrays have equal corresponding elements? | `Arrays.equals(a, b)` | Content comparison for one-dimensional arrays |
+| Are two enum constants the same? | `status == Status.NEW` | Natural identity comparison for `enum` |
 
-Lưu ý: `equals()` là **phương thức**, có thể được lớp ghi đè để định nghĩa bằng nhau theo trạng thái; `==` là **toán tử của ngôn ngữ** và không được overload. Nếu lớp không ghi đè `Object.equals()`, phương thức mặc định dùng identity tương đương với `==`. Khi ghi đè `equals()`, cần tuân thủ hợp đồng bằng nhau và ghi đè `hashCode()` nhất quán; đó là chủ đề sâu hơn của hợp đồng đối tượng.
+Note: `equals()` is a **method** that a class can override to define equality by state; `==` is a **language operator** and cannot be overloaded. If a class does not override `Object.equals()`, the default method uses identity equivalent to `==`. When overriding `equals()`, you must follow the equality contract and override `hashCode()` consistently; that is a deeper topic of the object contract.
 
-## 9. Lỗi thường gặp và cách tránh
+## 9. Common Errors and How to Avoid Them
 
-1. **Dùng `==` để so sánh đầu vào `String`.** Các chuỗi trông giống nhau có thể là đối tượng khác nhau. Chọn `equals()` hoặc `Objects.equals()` nếu cần so nội dung.
-2. **Cho rằng hai đối tượng cùng trường thì `==` là `true`.** Hai lần `new` tạo hai danh tính riêng; nội dung thuộc phạm vi `equals()` do kiểu quy định.
-3. **Dùng `==` trên hai `Integer` chỉ vì một vài test cho kết quả đúng.** Cache có thể che lỗi. Dùng so sánh giá trị.
-4. **Quên `null` khi gọi `equals()` hoặc unboxing.** Kiểm tra `null`, dùng `Objects.equals`, hoặc thiết kế dữ liệu không nhận `null` khi hợp lý.
-5. **Nhầm `==` với `Arrays.equals`.** `==` hỏi có cùng đối tượng mảng, không hỏi các phần tử có trùng.
-6. **Suy luận identity qua `hashCode()`, `System.identityHashCode()` hoặc địa chỉ hiển thị.** Giá trị hash không bảo đảm duy nhất cho mỗi đối tượng. Muốn biết hai tham chiếu có cùng đối tượng, dùng `==`.
-7. **Quên quy tắc tương thích kiểu.** Phép so sánh `==` giữa hai tham chiếu có kiểu không thể so sánh có thể không biên dịch, dù ta nghĩ kết quả hiển nhiên là `false`.
+1. **Using `==` to compare `String` input.** Strings that look identical can be different objects. Choose `equals()` or `Objects.equals()` if you need content comparison.
+2. **Assuming two objects with the same fields have `==` equal to `true`.** Two `new` calls create two separate identities; content belongs to `equals()` as defined by the type.
+3. **Using `==` on two `Integer`s just because a few tests pass.** Caching can hide bugs. Use value comparison.
+4. **Forgetting `null` when calling `equals()` or unboxing.** Check `null`, use `Objects.equals`, or design data not to accept `null` where reasonable.
+5. **Confusing `==` with `Arrays.equals`.** `==` asks whether it is the same array object, not whether the elements match.
+6. **Inferring identity from `hashCode()`, `System.identityHashCode()`, or displayed addresses.** Hash values are not guaranteed unique per object. To know whether two references point to the same object, use `==`.
+7. **Forgetting type compatibility rules.** A `==` comparison between two references of incomparable types may fail to compile, even if you think the result is obviously `false`.
 
-## 10. Tự kiểm tra
+## 10. Self-Check
 
-Hãy dự đoán các biểu thức sau trước khi xem giải thích:
+Predict the following expressions before looking at the explanation:
 
 ```java
 Object a = new Object();
@@ -282,6 +282,6 @@ boolean q4 = x.equals(y);
 boolean q5 = n == null;
 ```
 
-**Đáp án:** `q1 = true` vì `a` và `b` là hai bí danh của một đối tượng; `q2 = true` vì `c` là đối tượng mới; `q3 = false` vì có hai đối tượng `String` được tạo bằng `new`; `q4 = true` do nội dung chuỗi giống nhau; `q5 = true` vì `n` là tham chiếu `null` và ở đây không có unboxing.
+**Answer:** `q1 = true` because `a` and `b` are two aliases for one object; `q2 = true` because `c` is a new object; `q3 = false` because two `String` objects were created with `new`; `q4 = true` because the string content is identical; `q5 = true` because `n` is a `null` reference and there is no unboxing here.
 
-**Ghi nhớ:** với hai toán hạng tham chiếu, `==`/`!=` trả lời câu hỏi **“có cùng đối tượng hay không?”**. Khi cần so sánh dữ liệu, phải dựa vào hợp đồng `equals()` của kiểu hoặc API so sánh nội dung thích hợp.
+**Remember:** for two reference operands, `==`/`!=` answers the question **“is it the same object?”**. When you need to compare data, you must rely on the type's `equals()` contract or an appropriate content-comparison API.

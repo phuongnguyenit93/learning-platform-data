@@ -1,114 +1,114 @@
-# Cú pháp chỉ số đối số, cờ, độ rộng, độ chính xác và kiểu chuyển trong Java
+# Argument Index, Flags, Width, Precision, and Conversion Syntax in Java
 
-Khi dùng `String.format(...)`, `System.out.printf(...)` hoặc `Formatter`, ta mô tả hình thức của dữ liệu bằng **format string**. Một ký hiệu bắt đầu bằng `%` được gọi là *format specifier*: nó chọn đối số, quyết định cách căn lề/điền ký tự, giới hạn độ chính xác và chọn kiểu hiển thị. Hiểu đúng thứ tự các thành phần giúp tạo bảng, thông báo, số tiền, ngày tháng và báo cáo có kết quả nhất quán.
+When using `String.format(...)`, `System.out.printf(...)`, or `Formatter`, we describe the appearance of data using a **format string**. A symbol beginning with `%` is called a *format specifier*: it selects an argument, determines alignment/character padding, limits precision, and chooses the display type. Understanding the exact order of components helps produce tables, messages, monetary amounts, dates, and reports with consistent results.
 
-Bài học tập trung vào **cú pháp của một format specifier trong Java 17+**, đặc biệt là chỉ số đối số (`argument index`), cờ (`flags`), độ rộng (`width`), độ chính xác (`precision`), và kiểu chuyển (`conversion`). Các quy tắc này thuộc `java.util.Formatter`; `String.format` và `printf` sử dụng cùng hệ cú pháp.
+This lesson focuses on the **syntax of a format specifier in Java 17+**, specifically `argument index`, `flags`, `width`, `precision`, and `conversion`. These rules belong to `java.util.Formatter`; `String.format` and `printf` use the same syntax system.
 
-## 1. Bắt đầu với một chuỗi định dạng
+## 1. Starting with a Format String
 
 ```java
 String message = String.format("Hello %s, you have %d messages", "An", 3);
 // "Hello An, you have 3 messages"
 ```
 
-- `Hello `, dấu phẩy và ` you have ` là văn bản giữ nguyên.
-- `%s` lấy đối số tương ứng và hiển thị dưới dạng chuỗi.
-- `%d` lấy đối số số nguyên và hiển thị dạng thập phân.
-- `String.format(...)` **trả về** một `String`; `System.out.printf(...)` **ghi** văn bản ra luồng đầu ra (và trả về `PrintStream`).
+- `Hello `, the comma, and ` you have ` are literal text kept as-is.
+- `%s` takes the corresponding argument and displays it as a string.
+- `%d` takes an integer argument and displays it in decimal form.
+- `String.format(...)` **returns** a `String`; `System.out.printf(...)` **writes** text to the output stream (and returns `PrintStream`).
 
-Ví dụ `String.format(Locale.US, "%,.2f", 12345.5)` trả về `"12,345.50"`. `Locale.US` được chỉ định chủ động để cố định dấu thập phân và dấu phân nhóm trong kết quả.
+For example, `String.format(Locale.US, "%,.2f", 12345.5)` returns `"12,345.50"`. `Locale.US` is specified intentionally to fix the decimal point and grouping separator in the result.
 
-## 2. Công thức cú pháp đầy đủ
+## 2. The Complete Syntax Formula
 
-Với kiểu chuyển thông thường (chuỗi, ký tự, số nguyên và số thực), cú pháp là:
+For regular conversions (strings, characters, integers, and floating-point numbers), the syntax is:
 
 ```text
 %[argument_index$][flags][width][.precision]conversion
 ```
 
-Dấu ngoặc vuông trong dòng **mô tả ngữ pháp** chỉ nghĩa là “thành phần tùy chọn”; **không gõ ngoặc vuông** vào format string thật. Những thành phần được viết theo đúng thứ tự sau:
+Square brackets in the **grammar description** line only mean "optional component"; **do not type square brackets** into an actual format string. The components are written in this exact order:
 
-| Thành phần | Ý nghĩa | Ví dụ |
+| Component | Meaning | Example |
 | --- | --- | --- |
-| `%` | Bắt đầu một format specifier. | `%s` |
-| `argument_index$` | Chọn vị trí đối số, tính từ **1**; có dấu `$`. | `%2$s` |
-| `flags` | Các cờ điều khiển căn lề, dấu âm/dương, điền `0`, nhóm số... | `%-10s`, `%+d` |
-| `width` | **Độ rộng tối thiểu** của trường đầu ra. | `%10s` |
-| `.precision` | Độ chính xác hoặc giới hạn chiều dài, tùy kiểu chuyển; có dấu chấm. | `%.2f`, `%.4s` |
-| `conversion` | Chỉ kiểu chuyển và quy tắc biểu diễn. | `s`, `d`, `f`, `x` |
+| `%` | Starts a format specifier. | `%s` |
+| `argument_index$` | Selects the argument position, **1-based**; includes the `$` sign. | `%2$s` |
+| `flags` | Flags controlling alignment, +/- signs, `0`-padding, digit grouping, etc. | `%-10s`, `%+d` |
+| `width` | **Minimum width** of the output field. | `%10s` |
+| `.precision` | Precision or length limit, depending on the conversion; includes a dot. | `%.2f`, `%.4s` |
+| `conversion` | Indicates the conversion type and representation rules. | `s`, `d`, `f`, `x` |
 
-**Đọc biểu thức `%2$-12.4s` từ trái sang phải:**
+**Reading the expression `%2$-12.4s` from left to right:**
 
-1. `%`: bắt đầu chỉ thị.
-2. `2$`: lấy **đối số thứ hai**.
-3. `-`: căn trái.
-4. `12`: trường rộng **ít nhất 12** ký tự.
-5. `.4`: với `s`, chỉ lấy **tối đa 4** ký tự của nội dung chuỗi.
-6. `s`: chuyển đối số thành chuỗi.
+1. `%`: starts the specifier.
+2. `2$`: takes the **second argument**.
+3. `-`: left-aligns.
+4. `12`: field is **at least 12** characters wide.
+5. `.4`: for `s`, takes **at most 4** characters of the string content.
+6. `s`: converts the argument to a string.
 
-Ví dụ `String.format("%2$-12.4s", 99, "Notebook")` tạo văn bản `"Note        "`: bốn ký tự `Note` theo sau bởi tám dấu cách. Nếu bỏ `-`, các dấu cách sẽ nằm **bên trái**.
+For example, `String.format("%2$-12.4s", 99, "Notebook")` produces the text `"Note        "`: the four characters `Note` followed by eight spaces. If `-` is omitted, the spaces are placed **on the left**.
 
-Lưu ý có **hai nhánh cú pháp đặc biệt**:
+Note that there are **two special syntax branches**:
 
-- Ngày/giờ: `%[argument_index$][flags][width]tX` hoặc `...TX`, trong đó `t`/`T` được theo sau bởi **ký tự chỉ thành phần thời gian**, ví dụ `%1$tF`, `%1$tY`; không có `.precision`.
-- Ký hiệu không nhận đối số: `%%` (một dấu phần trăm thật) và `%n` (ký tự xuống dòng theo nền tảng). Các chỉ thị này không tiêu thụ đối số dữ liệu.
+- Date/time: `%[argument_index$][flags][width]tX` or `...TX`, where `t`/`T` is followed by a **character specifying the time component**, such as `%1$tF`, `%1$tY`; there is no `.precision`.
+- Symbols that take no arguments: `%%` (a literal percent sign) and `%n` (platform-specific newline character). These directives do not consume data arguments.
 
-Không phải flag, width hay precision nào cũng hợp lệ với mọi conversion; Java sẽ ném ngoại lệ nếu tổ hợp sai thay vì lặng lẽ bỏ qua.
+Not every flag, width, or precision is valid with every conversion; Java will throw an exception on an invalid combination rather than silently ignoring it.
 
-## 3. Argument index: chọn và dùng lại đối số
+## 3. Argument Index: Selecting and Reusing Arguments
 
-### 3.1. Không ghi chỉ số: lấy đối số theo thứ tự
+### 3.1. No Index Specified: Taking Arguments in Order
 
 ```java
 String value = String.format("%s has %d points", "Mai", 42);
 // "Mai has 42 points"
 ```
 
-Trong ví dụ này, `%s` dùng đối số thứ nhất, `%d` dùng đối số thứ hai.
+In this example, `%s` uses the first argument, and `%d` uses the second argument.
 
-### 3.2. Chỉ số tường minh: `1$`, `2$`...
+### 3.2. Explicit Index: `1$`, `2$`...
 
 ```java
 String value = String.format("%2$d points belong to %1$s", "Mai", 42);
 // "42 points belong to Mai"
 ```
 
-`%2$d` lấy phần tử thứ hai của danh sách đối số và hiển thị số nguyên; `%1$s` lấy phần tử thứ nhất và hiển thị chuỗi. Chỉ số **bắt đầu từ 1**, không từ 0. Có thể tham chiếu một đối số nhiều lần:
+`%2$d` takes the second element of the argument list and displays it as an integer; `%1$s` takes the first element and displays it as a string. Indices **start from 1**, not 0. An argument can be referenced multiple times:
 
 ```java
 String value = String.format("%1$s / %1$S", "java");
 // "java / JAVA"
 ```
 
-`%S` dùng cách chuyển thành chữ hoa (theo locale). Đây là cách dùng cùng đối số hai lần mà vẫn định dạng khác nhau.
+`%S` applies uppercase conversion (according to the locale). This is a way to use the same argument twice while formatting it differently.
 
-### 3.3. Cờ `<`: dùng lại đối số của specifier trước
+### 3.3. The `<` Flag: Reusing the Previous Specifier's Argument
 
 ```java
 String value = String.format("%s -> %<S", "java");
 // "java -> JAVA"
 ```
 
-Ở `%<S`, `<` **không phải dấu so sánh**: đó là cờ “dùng lại đối số của specifier ngay trước có đối số”, còn `S` là conversion. Nếu dùng `%<s` mà chưa có đối số trước để tham chiếu, sẽ phát sinh `MissingFormatArgumentException`.
+In `%<S`, `<` **is not a comparison operator**: it is the flag for "reuse the argument of the immediately preceding specifier that had an argument", and `S` is the conversion. Using `%<s` when there is no preceding argument to reference will cause a `MissingFormatArgumentException`.
 
-**Quy tắc dễ nhầm:** chỉ số tường minh (`%2$s`) và chỉ số tuần tự mặc định (`%s`) có cách theo dõi riêng; xen kẽ cả hai trong một mẫu dễ gây khó đọc. Ưu tiên dùng toàn bộ chỉ số tường minh khi cần đổi thứ tự, hoặc toàn bộ dạng tuần tự nếu không cần đổi thứ tự. Cờ `<` hữu ích để trình bày **cùng một đối số** theo nhiều cách, nhất là ngày tháng.
+**Commonly confused rule:** explicit indices (`%2$s`) and default sequential indices (`%s`) are tracked separately; mixing both in one template makes it hard to read. Prefer using all explicit indices when reordering is needed, or all sequential specifiers when reordering is not needed. The `<` flag is useful for presenting **the same argument** in multiple ways, especially dates.
 
-## 4. Flags: thay đổi cách hiển thị
+## 4. Flags: Changing How Values Are Displayed
 
-Các cờ có thể xuất hiện liên tiếp **sau chỉ số đối số và trước width**. Chúng có ý nghĩa khác nhau tùy conversion.
+Flags may appear consecutively **after the argument index and before width**. They have different meanings depending on the conversion.
 
-| Flag | Tác dụng điển hình | Ví dụ và ý nghĩa |
+| Flag | Typical Effect | Example and Meaning |
 | --- | --- | --- |
-| `-` | Căn trái trong trường có width; mặc định thường căn phải. | `%-8s` |
-| `+` | Luôn hiển thị dấu số: `+` hoặc `-`. | `%+d`, `%+.2f` |
-| ` ` (dấu cách) | Dành vị trí trống trước số dương; với số âm vẫn có dấu trừ. | `% d` |
-| `0` | Điền số `0` vào bên trái phần số để đủ width. | `%08d` |
-| `,` | Nhóm chữ số theo locale, với các phép chuyển số thích hợp. | `%,d`, `%,.2f` |
-| `(` | Bao số âm bằng dấu ngoặc đơn thay cho dấu trừ ở các kiểu số phù hợp. | `%(d`, `%(,.2f` |
-| `#` | Dạng biểu diễn thay thế khi conversion hỗ trợ. | `%#x` tạo tiền tố `0x` |
-| `<` | Dùng lại đối số trước. | `%s %<S` |
+| `-` | Left-aligns within a field with width; default is usually right-aligned. | `%-8s` |
+| `+` | Always displays the numeric sign: `+` or `-`. | `%+d`, `%+.2f` |
+| ` ` (space) | Reserves a blank space before positive numbers; negative numbers still have a minus sign. | `% d` |
+| `0` | Pads with `0` digits on the left of the numeric part to fill width. | `%08d` |
+| `,` | Groups digits according to locale, for appropriate numeric conversions. | `%,d`, `%,.2f` |
+| `(` | Encloses negative numbers in parentheses instead of a minus sign for compatible numeric types. | `%(d`, `%(,.2f` |
+| `#` | Alternate representation when supported by the conversion. | `%#x` produces prefix `0x` |
+| `<` | Reuses the previous argument. | `%s %<S` |
 
-Với `Locale.US`:
+With `Locale.US`:
 
 ```java
 String a = String.format(Locale.US, "%08d", -42);      // "-0000042"
@@ -119,84 +119,84 @@ String d = String.format(Locale.US, "%(,.2f", -1234.5);
 String e = String.format(Locale.US, "%#x", 255);      // "0xff"
 ```
 
-**Cẩn thận với tổ hợp cờ:** `-` (căn trái) và `0` (đệm số 0) không dùng chung trong các conversion số có áp dụng hai cờ này; `+` và cờ dấu cách cũng xung đột. Với `%s` thông thường, các cờ số như `0` hoặc `,` không phù hợp. Một số flag chỉ áp dụng cho vài conversion: chẳng hạn `,` có thể dùng với `d` và nhiều dạng số thực, nhưng không dùng như cờ phân nhóm cho `x`.
+**Be careful with flag combinations:** `-` (left-align) and `0` (zero-pad) cannot be used together in numeric conversions where both apply; `+` and the space flag also conflict. With regular `%s`, numeric flags like `0` or `,` are incompatible. Some flags only apply to certain conversions: for example, `,` can be used with `d` and several floating-point formats, but not as a grouping flag for `x`.
 
-## 5. Width: độ rộng **tối thiểu**
+## 5. Width: **Minimum** Width
 
-Với `%8s` và nội dung `"AB"`, kết quả có sáu dấu cách rồi đến `AB`. Với `%-8s`, kết quả là `AB` rồi sáu dấu cách:
+With `%8s` and the content `"AB"`, the result has six spaces followed by `AB`. With `%-8s`, the result is `AB` followed by six spaces:
 
 ```java
 String right = String.format("|%8s|", "AB");  // "|      AB|"
 String left  = String.format("|%-8s|", "AB"); // "|AB      |"
 ```
 
-Width không làm ngắn một giá trị vốn dài hơn trường:
+Width does not shorten a value that is already longer than the field:
 
 ```java
 String value = String.format("|%3s|", "Hello");
-// "|Hello|" (không cắt xuống 3 ký tự)
+// "|Hello|" (not truncated to 3 characters)
 ```
 
-**Width là số ký tự của trường kết quả, gồm cả dấu cộng/trừ, tiền tố số và dấu phân cách đã định dạng khi áp dụng.** Khi đệm `0` cho số âm, các chữ số 0 được chèn **sau dấu trừ**: `%08d` với `-42` cho `-0000042`.
+**Width is the character count of the resulting field, including plus/minus signs, numeric prefixes, and formatted separators when applicable.** When padding `0` for negative numbers, the zeros are inserted **after the minus sign**: `%08d` with `-42` produces `-0000042`.
 
-Không nhầm `-` đứng trước width là số âm. Trong `%-10s`, dấu `-` là **flag căn trái**, còn `10` vẫn là width dương. Một số flag đòi hỏi width, ví dụ `%-s` không có độ rộng nên không hợp lệ.
+Do not mistake `-` before width for a negative number. In `%-10s`, the `-` sign is the **left-alignment flag**, and `10` is still a positive width. Some flags require a width; for example, `%-s` has no width and is therefore invalid.
 
-## 6. Precision: không giống nhau giữa chuỗi và số
+## 6. Precision: Different Between Strings and Numbers
 
-Precision được viết `.N`, với `N` là số nguyên không âm. Nó được áp dụng tùy conversion:
+Precision is written `.N`, where `N` is a non-negative integer. It is applied depending on the conversion:
 
-| Conversion | Ý nghĩa của precision | Ví dụ |
+| Conversion | Meaning of Precision | Example |
 | --- | --- | --- |
-| `s` / `S` (văn bản thông thường) | Số ký tự **tối đa** được hiển thị trước khi áp dụng width. | `%.3s` với `"abcdef"` → `"abc"` |
-| `f` | Số chữ số sau dấu thập phân. | `%.2f` với `12.5` → `"12.50"` |
-| `e` / `E` | Số chữ số sau dấu thập phân trong dạng khoa học. | `%.2e` |
-| `g` / `G` | Số **chữ số có nghĩa** của trị số sau khi làm tròn. | `%.3g` |
-| `d`, `x`, `c`, `tF` | **Không hỗ trợ precision**. | `%.2d` không hợp lệ |
+| `s` / `S` (regular text) | **Maximum** number of characters displayed before applying width. | `%.3s` with `"abcdef"` → `"abc"` |
+| `f` | Number of digits after the decimal point. | `%.2f` with `12.5` → `"12.50"` |
+| `e` / `E` | Number of digits after the decimal point in scientific notation. | `%.2e` |
+| `g` / `G` | Number of **significant digits** of the value after rounding. | `%.3g` |
+| `d`, `x`, `c`, `tF` | **Precision is not supported**. | `%.2d` is invalid |
 
-Ví dụ kết hợp width và precision:
+Examples combining width and precision:
 
 ```java
 String a = String.format(Locale.US, "|%8.3s|", "abcdef");
-// "|     abc|" — cắt còn 3 ký tự rồi căn phải trong 8 vị trí
+// "|     abc|" — truncated to 3 characters then right-aligned in 8 positions
 
 String b = String.format(Locale.US, "|%-8.3s|", "abcdef");
-// "|abc     |" — cắt còn 3 ký tự rồi căn trái
+// "|abc     |" — truncated to 3 characters then left-aligned
 
 String c = String.format(Locale.US, "|%8.2f|", 12.5);
-// "|   12.50|" — làm tròn/hiển thị 2 chữ số sau dấu thập phân,
-// rồi đệm khoảng trắng đến width 8
+// "|   12.50|" — rounded/displayed with 2 digits after decimal point,
+// then padded with spaces to width 8
 ```
 
-Với số thực nhị phân (`double`/`float`), kết quả làm tròn ở những giá trị ranh giới có thể chịu ảnh hưởng của cách lưu trữ số thực. Nếu là giá trị tiền tệ cần độ chính xác thập phân chặt chẽ, xem xét `BigDecimal` và quy tắc làm tròn nghiệp vụ; `%.2f` chỉ là cách **hiển thị** chứ không thay đổi dữ liệu gốc.
+For binary floating-point numbers (`double`/`float`), rounding results at boundary values can be affected by floating-point storage. If dealing with monetary values requiring strict decimal precision, consider `BigDecimal` and business rounding rules; `%.2f` is only a **display** format and does not alter the original data.
 
-## 7. Conversion: chọn kiểu dữ liệu đầu ra
+## 7. Conversion: Choosing the Output Data Type
 
-| Conversion | Loại giá trị thường dùng | Ví dụ/ý nghĩa |
+| Conversion | Common Value Types | Example / Meaning |
 | --- | --- | --- |
-| `s` / `S` | Đối tượng bất kỳ, lấy biểu diễn chuỗi; `S` chuyển thành chữ hoa. | `%s`, `%S` |
-| `b` / `B` | Boolean; `null` thành `false`, đối tượng khác `Boolean` nếu không null thành `true`. | `%b` |
-| `h` / `H` | Dạng thập lục phân của hash code (không phải địa chỉ bộ nhớ). | `%h` |
-| `c` / `C` | Ký tự Unicode hợp lệ (ví dụ `char`; hoặc code point trong `int`). | `%c` |
-| `d` | Số nguyên thập phân. | `%d` |
-| `o` | Số nguyên bát phân. | `%o` |
-| `x` / `X` | Số nguyên thập lục phân, dùng chữ thường/chữ hoa. | `%x` |
-| `f` | Số thực dạng thập phân cố định. | `%.2f` |
-| `e` / `E` | Số thực dạng khoa học. | `%e` |
-| `g` / `G` | Số thực dạng tổng quát theo số chữ số có nghĩa. | `%g` |
-| `a` / `A` | Biểu diễn số thực thập lục phân (phù hợp `float`/`double`). | `%a` |
-| `tX` / `TX` | Ngày giờ, **X là ký tự thành phần ngày/giờ**, ví dụ `F`, `Y`, `m`, `d`, `H`. | `%tF`, `%1$tY` |
-| `%` trong `%%` | Dấu phần trăm thật; không nhận đối số. | `100%%` → `100%` |
-| `n` trong `%n` | Xuống dòng theo hệ điều hành; không nhận đối số. | `Line 1%nLine 2` |
+| `s` / `S` | Any object, takes string representation; `S` converts to uppercase. | `%s`, `%S` |
+| `b` / `B` | Boolean; `null` becomes `false`, any other non-null non-`Boolean` object becomes `true`. | `%b` |
+| `h` / `H` | Hexadecimal form of hash code (not memory address). | `%h` |
+| `c` / `C` | Valid Unicode character (e.g., `char`; or code point in `int`). | `%c` |
+| `d` | Decimal integer. | `%d` |
+| `o` | Octal integer. | `%o` |
+| `x` / `X` | Hexadecimal integer, using lowercase/uppercase letters. | `%x` |
+| `f` | Fixed-point decimal floating-point number. | `%.2f` |
+| `e` / `E` | Floating-point number in scientific notation. | `%e` |
+| `g` / `G` | General floating-point format by significant digits. | `%g` |
+| `a` / `A` | Hexadecimal floating-point representation (suitable for `float`/`double`). | `%a` |
+| `tX` / `TX` | Date/time, **where X is a date/time component character**, such as `F`, `Y`, `m`, `d`, `H`. | `%tF`, `%1$tY` |
+| `%` in `%%` | Literal percent sign; takes no argument. | `100%%` → `100%` |
+| `n` in `%n` | OS-specific newline; takes no argument. | `Line 1%nLine 2` |
 
-**Tương thích kiểu dữ liệu:** `%d` không nhận một `String` có nội dung `"42"` thay cho số nguyên; `%f` dành cho số thực như `double`, `float` và `BigDecimal`; `%c` không nhận một `String` nhiều ký tự thay cho một ký tự. Các phép chuyển không tương thích thường gây `IllegalFormatConversionException`.
+**Type compatibility:** `%d` does not accept a `String` containing `"42"` instead of an integer; `%f` is for floating-point numbers such as `double`, `float`, and `BigDecimal`; `%c` does not accept a multi-character `String` instead of a single character. Incompatible conversions typically cause `IllegalFormatConversionException`.
 
-Một số định dạng ngày thường dùng (với `LocalDate` hoặc giá trị thời gian tương thích `TemporalAccessor`):
+Commonly used date formats (with `LocalDate` or a compatible `TemporalAccessor` value):
 
-- `%tF`: ngày ISO dạng `yyyy-MM-dd`.
-- `%tY`: năm bốn chữ số; `%tm`: tháng hai chữ số; `%td`: ngày trong tháng hai chữ số.
-- `%tH`: giờ (00–23); `%tM`: phút, **chỉ dùng với giá trị có trường giờ/phút**, chẳng hạn `LocalDateTime`.
+- `%tF`: ISO date in `yyyy-MM-dd` form.
+- `%tY`: four-digit year; `%tm`: two-digit month; `%td`: two-digit day of month.
+- `%tH`: hour (00–23); `%tM`: minute, **only used with values having hour/minute fields**, such as `LocalDateTime`.
 
-Vì `tF` gồm **hai ký tự conversion** `t` và `F`, không được đọc `F` là một flag hay width. Để tái sử dụng cùng ngày:
+Because `tF` consists of **two conversion characters** `t` and `F`, do not read `F` as a flag or width. To reuse the same date:
 
 ```java
 LocalDate date = LocalDate.of(2026, 10, 23);
@@ -205,11 +205,11 @@ String value = String.format(Locale.US,
 // "23/10/2026"
 ```
 
-Đây là đoạn minh họa, cần import `java.time.LocalDate` và `java.util.Locale`.
+This is an illustrative snippet; it requires importing `java.time.LocalDate` and `java.util.Locale`.
 
-## 8. Ví dụ Java 17+ chạy độc lập
+## 8. Standalone Runnable Java 17+ Example
 
-Lưu tệp tên `FormatSyntaxDemo.java` với mã:
+Save a file named `FormatSyntaxDemo.java` with the code:
 
 ```java
 import java.time.LocalDate;
@@ -221,19 +221,19 @@ public class FormatSyntaxDemo {
         int quantity = 7;
         double price = 12.5;
 
-        // Chỉ số đối số 1-based và đổi thứ tự.
+        // 1-based argument index and reordering.
         System.out.println(String.format(Locale.US,
                 "Name: %1$s; qty: %2$d", product, quantity));
         System.out.println(String.format(Locale.US,
                 "Reordered: %2$d / %1$s", product, quantity));
 
-        // Căn trái, cắt chuỗi, căn phải, định dạng số thực.
+        // Left alignment, string truncation, right alignment, floating-point formatting.
         System.out.println(String.format(Locale.US,
                 "|%1$-12.4s|", product));
         System.out.println(String.format(Locale.US,
                 "|%1$10.2f|", price));
 
-        // Kết hợp các cờ + và 0 với width, precision, conversion f.
+        // Combining + and 0 flags with width, precision, and f conversion.
         System.out.println(String.format(Locale.US,
                 "%1$+010.2f", price));
 
@@ -242,32 +242,32 @@ public class FormatSyntaxDemo {
         System.out.println(String.format(Locale.US,
                 "%#x", 255));
 
-        // < lặp lại đối số của specifier trước; S viết chữ hoa.
+        // < repeats the previous specifier's argument; S converts to uppercase.
         System.out.println(String.format(Locale.US,
                 "%1$s -> %<S", "java"));
 
         System.out.println(String.format(Locale.US,
                 "%b", (Object) null));
 
-        // Date/time conversion tF; không có precision.
+        // Date/time conversion tF; no precision.
         System.out.println(String.format(Locale.US,
                 "%tF", LocalDate.of(2026, 10, 23)));
 
-        // %% là phần trăm thực; %n là xuống dòng theo hệ thống.
+        // %% is a literal percent; %n is a system newline.
         System.out.print(String.format(Locale.US,
                 "100%% done%n"));
     }
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 FormatSyntaxDemo.java
 java FormatSyntaxDemo
 ```
 
-Đầu ra chính xác của chương trình:
+Exact output of the program:
 
 ```text
 Name: Notebook; qty: 7
@@ -283,11 +283,11 @@ false
 100% done
 ```
 
-Những điểm cần quan sát: `%1$-12.4s` chọn đối số một, cắt `Notebook` còn `Note` rồi điền tám khoảng trắng bên phải để có width 12; `%1$10.2f` hiển thị `12.50` và thêm năm khoảng trắng bên trái; `%1$+010.2f` hiển thị dấu `+`, điền số 0 sau dấu và đạt tổng độ rộng 10. Các dấu cách bên trong cặp `|...|` ở stdout là một phần của kết quả, không phải lỗi trình bày.
+Points to observe: `%1$-12.4s` selects argument one, truncates `Notebook` to `Note`, then fills eight spaces on the right to reach width 12; `%1$10.2f` displays `12.50` and adds five spaces on the left; `%1$+010.2f` displays the `+` sign, pads zeros after the sign, and reaches total width 10. The spaces inside `|...|` in stdout are part of the result, not a formatting glitch.
 
-## 9. Locale, các API liên quan và việc thoát ký tự
+## 9. Locale, Related APIs, and Escaping Characters
 
-### 9.1. Locale quyết định một phần định dạng
+### 9.1. Locale Controls Part of Formatting
 
 ```java
 double value = 12345.5;
@@ -297,20 +297,20 @@ String de = String.format(Locale.GERMANY, "%,.2f", value);
 // "12.345,50"
 ```
 
-Khi không truyền `Locale`, định dạng dùng locale mặc định phục vụ việc format của môi trường chạy. Kết quả có thể khác nhau giữa máy phát triển và máy triển khai. Nếu đầu ra là dữ liệu giao tiếp giữa các hệ thống hoặc bài kiểm tra cần stdout xác định, truyền locale tường minh như `Locale.US`. Với giao diện người dùng, chọn locale theo ngôn ngữ/khu vực thích hợp.
+When `Locale` is not passed, formatting uses the runtime environment's default formatting locale. Results can differ between a developer's machine and a deployment server. If output is data communicated between systems or tests requiring deterministic stdout, pass an explicit locale such as `Locale.US`. For user interfaces, choose a locale matching the appropriate language/region.
 
-### 9.2. `String.format`, `formatted`, `printf` và `Formatter`
+### 9.2. `String.format`, `formatted`, `printf`, and `Formatter`
 
-- `String.format(Locale.US, "%d", 7)` tạo chuỗi `"7"`.
-- `"%d".formatted(7)` cũng tạo chuỗi `"7"` (API có từ Java 15, dùng được ở Java 17+).
-- `System.out.printf("%d%n", 7)` ghi trực tiếp ra màn hình.
-- `Formatter` cho phép định dạng vào một `Appendable`, chẳng hạn `StringBuilder`, khi cần kiểm soát nơi nhận kết quả.
+- `String.format(Locale.US, "%d", 7)` produces the string `"7"`.
+- `"%d".formatted(7)` also produces the string `"7"` (API available since Java 15, usable in Java 17+).
+- `System.out.printf("%d%n", 7)` writes directly to the screen.
+- `Formatter` allows formatting into an `Appendable`, such as `StringBuilder`, when you need control over where the result goes.
 
-Cú pháp các specifier về cơ bản chung giữa các API trên; khác biệt chính là phương thức trả về giá trị chuỗi hay ghi ra đích.
+Specifier syntax is essentially shared across these APIs; the main difference is whether the method returns a string value or writes to a destination.
 
-### 9.3. Phân biệt dấu phần trăm trong format và dữ liệu
+### 9.3. Distinguishing Percent Signs in Format Strings vs. Data
 
-Trong chính **format string**, muốn in dấu phần trăm thật phải viết `%%`. Nhưng khi dữ liệu `"50%"` được truyền như đối số cho `%s`, **không phải nhân đôi** dấu phần trăm bên trong dữ liệu:
+Inside a **format string** itself, to print a literal percent sign you must write `%%`. However, when data `"50%"` is passed as an argument for `%s`, **do not double** the percent sign inside the data:
 
 ```java
 String result = String.format("Progress: %s", "50%");
@@ -320,39 +320,39 @@ String another = String.format("Progress: 50%%");
 // "Progress: 50%"
 ```
 
-Không lấy văn bản do người dùng cung cấp trực tiếp làm **format string** khi mục đích chỉ là hiển thị nguyên văn, vì ký hiệu `%` trong đó có thể bị phân tích như format specifier. Hãy dùng mẫu cố định như `"%s"` và truyền văn bản đó thành đối số.
+Do not use user-provided text directly as a **format string** when the goal is merely verbatim display, because `%` symbols in it can be parsed as format specifiers. Use a fixed template such as `"%s"` and pass that text as an argument.
 
-## 10. Lỗi phổ biến và cách chẩn đoán
+## 10. Common Errors and How to Diagnose Them
 
-| Mẫu sai hoặc tình huống | Hậu quả thường gặp | Cách xử lý |
+| Invalid Template or Situation | Common Consequence | How to Fix |
 | --- | --- | --- |
-| `String.format("%d", "42")` | `IllegalFormatConversionException`: chuỗi không phải số nguyên. | Parse sang số nếu phù hợp, hoặc dùng `%s` để hiển thị chuỗi. |
-| `String.format("%.2d", 42)` | `IllegalFormatPrecisionException`: số nguyên `d` không hỗ trợ precision. | Dùng width/flag số như `%04d` nếu cần điền 0. |
-| `String.format("%-s", "A")` | `MissingFormatWidthException`: `-` đòi hỏi width. | Dùng `%-8s` chẳng hạn. |
-| `String.format("%2$s", "A")` | `MissingFormatArgumentException`: không có đối số thứ hai. | Kiểm tra vị trí theo chỉ số bắt đầu từ 1. |
-| `String.format("%<s", "A")` | `MissingFormatArgumentException`: chưa có đối số trước để dùng lại. | Đặt một specifier có đối số trước `%<s`. |
-| `String.format("%q", "A")` | `UnknownFormatConversionException`: `q` không phải conversion hợp lệ. | Chọn conversion trong bảng hỗ trợ. |
-| Trộn `%s` và `%2$s` tùy tiện | Kết quả có thể khác thứ tự dự đoán. | Chọn một cách đánh chỉ số rõ ràng, kiểm tra thứ tự đối số. |
-| Cho rằng `%8.3s` có nghĩa “lấy 8 ký tự, đệm 3” | Đọc sai width/precision. | Với `s`: lấy tối đa 3 ký tự, rồi đệm đến width tối thiểu 8. |
-| Cho rằng `%n` là chữ `n` hoặc luôn bằng `\n` | Nhầm về ký tự xuống dòng phụ thuộc nền tảng. | Dùng `%n` cho đầu ra định dạng theo hệ thống; `\n` khi thật sự yêu cầu LF. |
+| `String.format("%d", "42")` | `IllegalFormatConversionException`: string is not an integer. | Parse to a number if appropriate, or use `%s` to display a string. |
+| `String.format("%.2d", 42)` | `IllegalFormatPrecisionException`: integer `d` does not support precision. | Use numeric width/flag like `%04d` if zero-padding is needed. |
+| `String.format("%-s", "A")` | `MissingFormatWidthException`: `-` requires a width. | Use e.g. `%-8s`. |
+| `String.format("%2$s", "A")` | `MissingFormatArgumentException`: there is no second argument. | Check positions using 1-based indexing. |
+| `String.format("%<s", "A")` | `MissingFormatArgumentException`: no previous argument to reuse. | Place a specifier with an argument before `%<s`. |
+| `String.format("%q", "A")` | `UnknownFormatConversionException`: `q` is not a valid conversion. | Choose a conversion from the supported table. |
+| Mixing `%s` and `%2$s` arbitrarily | Output may differ from expected order. | Pick one clear indexing style and verify argument order. |
+| Assuming `%8.3s` means "take 8 characters, pad 3" | Misreading width/precision. | For `s`: take at most 3 characters, then pad to minimum width 8. |
+| Assuming `%n` is the letter `n` or always equals `\n` | Confusion about platform-dependent newline characters. | Use `%n` for system-formatted output; `\n` when LF is strictly required. |
 
-Trong thực tế, các ngoại lệ trên thuộc họ `IllegalFormatException` và thường chỉ xuất hiện khi format string được phân tích lúc chạy. Tránh xây format string động nếu có thể; nếu phải làm vậy, kiểm tra đầu vào và thử các đường chạy đại diện.
+In practice, these exceptions belong to the `IllegalFormatException` family and usually appear only when the format string is parsed at runtime. Avoid building format strings dynamically if possible; if you must, validate inputs and test representative execution paths.
 
-## 11. Quy trình đọc bất kỳ specifier nào
+## 11. Procedure for Reading Any Specifier
 
-Gặp một biểu thức như `%3$-14.5S`, hãy trả lời lần lượt:
+When encountering an expression like `%3$-14.5S`, answer in sequence:
 
-1. **Đối số nào?** `3$` lấy đối số thứ ba.
-2. **Có flags gì?** `-` yêu cầu căn trái.
-3. **Width bao nhiêu?** `14` là mức rộng tối thiểu.
-4. **Precision là gì với conversion này?** `.5` với `S` là tối đa năm ký tự.
-5. **Conversion gì?** `S` chuyển chuỗi sang chữ hoa theo locale.
+1. **Which argument?** `3$` takes the third argument.
+2. **What flags?** `-` requests left alignment.
+3. **How wide is width?** `14` is the minimum width.
+4. **What is precision for this conversion?** `.5` for `S` means at most five characters.
+5. **What conversion?** `S` converts the string to uppercase according to the locale.
 
-Khi gặp `%1$+010.2f`, câu trả lời sẽ là: đối số thứ nhất, luôn ghi dấu, điền 0, rộng tối thiểu 10 ký tự, hai chữ số sau dấu thập phân, kiểu số thực `f`. Khi gặp `%1$tF`, đọc thành: đối số thứ nhất, kiểu ngày giờ `t` với hậu tố `F`, **không có precision**.
+When encountering `%1$+010.2f`, the answers are: first argument, always show sign, zero-pad, minimum width 10 characters, two digits after the decimal point, floating-point type `f`. When encountering `%1$tF`, read it as: first argument, date/time type `t` with suffix `F`, **no precision**.
 
-## 12. Tự luyện tập
+## 12. Self-Practice
 
-Cho đối số `"abcdef"`, giá trị `7` và số thực `12.5`, dự đoán:
+Given the argument `"abcdef"`, value `7`, and floating-point number `12.5`, predict:
 
 ```java
 String a = String.format("|%1$8.3s|", "abcdef");
@@ -361,8 +361,8 @@ String c = String.format(Locale.US, "%1$+.1f", 12.5);
 String d = String.format("%2$s-%1$s", "first", "second");
 ```
 
-Đáp án: `a` là `"|     abc|"` (năm dấu cách trước `abc`), `b` là `"0007"`, `c` là `"+12.5"`, còn `d` là `"second-first"`.
+Answers: `a` is `"|     abc|"` (five spaces before `abc`), `b` is `"0007"`, `c` is `"+12.5"`, and `d` is `"second-first"`.
 
-**Điểm cần nhớ:** đọc specifier theo thứ tự **chỉ số → flags → width → precision → conversion**, đồng thời kiểm tra xem conversion có hỗ trợ những thành phần đã yêu cầu hay không. Với ngày giờ, xử lý thêm ký tự theo sau `t`/`T`; với `%%` và `%n`, không lấy đối số.
+**Key takeaway:** read specifiers in the order **index → flags → width → precision → conversion**, while checking whether the conversion supports the requested components. For date/time, also handle the character following `t`/`T`; for `%%` and `%n`, no argument is consumed.
 
-Tài liệu tham khảo chính thức: [`java.util.Formatter` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Formatter.html).
+Official reference: [`java.util.Formatter` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Formatter.html).

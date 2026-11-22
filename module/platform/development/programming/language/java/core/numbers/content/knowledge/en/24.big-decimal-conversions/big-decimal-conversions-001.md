@@ -1,27 +1,27 @@
-# BigDecimal.toString() và dạng khoa học khi phù hợp
+# BigDecimal.toString() and Scientific Notation When Appropriate
 
-## Mục tiêu
+## Objectives
 
-Khi chuyển một `BigDecimal` thành chuỗi trong Java, phương thức `toString()` không phải lúc nào cũng tạo ra một số viết đầy đủ theo dạng thập phân thông thường. Nó có thể chọn **dạng khoa học** (*scientific notation*) như `1E-7` hoặc `1E+6`. Hành vi này có quy tắc rõ ràng, phụ thuộc vào **giá trị không chia tỷ lệ**, **scale** và **precision** của `BigDecimal`.
+When converting a `BigDecimal` to a string in Java, the `toString()` method does not always produce a number written out in full standard decimal form. It may choose **scientific notation** such as `1E-7` or `1E+6`. This behavior follows clear rules depending on the **unscaled value**, **scale**, and **precision** of the `BigDecimal`.
 
-Sau bài này, bạn có thể giải thích khi nào `toString()` sinh dạng khoa học, chọn đúng giữa `toString()`, `toPlainString()` và `toEngineeringString()`, và hiểu tác động của việc chuyển chuỗi ngược lại thành `BigDecimal`.
+After this lesson, you will be able to explain when `toString()` produces scientific notation, choose correctly between `toString()`, `toPlainString()`, and `toEngineeringString()`, and understand the impact of parsing the string back into a `BigDecimal`.
 
-## 1. BigDecimal lưu giá trị như thế nào?
+## 1. How Does BigDecimal Store Values?
 
-`BigDecimal` biểu diễn một số bằng hai thành phần chính:
+`BigDecimal` represents a number using two main components:
 
-- **Unscaled value**: số nguyên chứa các chữ số có nghĩa, lấy bằng `unscaledValue()`.
-- **Scale**: số chữ số thập phân về mặt biểu diễn, lấy bằng `scale()`. Scale có thể dương, bằng 0 hoặc âm.
+- **Unscaled value**: an integer containing the significant digits, retrieved via `unscaledValue()`.
+- **Scale**: the number of decimal digits in the representation, retrieved via `scale()`. The scale can be positive, zero, or negative.
 
-Giá trị số học được tính theo công thức:
+The numeric value is calculated by the formula:
 
 \[
 \text{value} = \text{unscaledValue} \times 10^{-\text{scale}}
 \]
 
-Ví dụ:
+Examples:
 
-| Chuỗi tạo BigDecimal | Unscaled value | Scale | Giá trị |
+| String Creating BigDecimal | Unscaled value | Scale | Value |
 |---|---:|---:|---|
 | `"123.4500"` | `1234500` | `4` | `123.4500` |
 | `"0.000001"` | `1` | `6` | `0.000001` |
@@ -29,57 +29,57 @@ Ví dụ:
 | `"1E+3"` | `1` | `-3` | `1000` |
 | `"1000"` | `1000` | `0` | `1000` |
 
-Hai đối tượng `new BigDecimal("1E+3")` và `new BigDecimal("1000")` **bằng nhau về giá trị số học**, nhưng khác scale và unscaled value. Vì vậy `compareTo()` có thể trả `0` trong khi `equals()` trả `false`.
+The two objects `new BigDecimal("1E+3")` and `new BigDecimal("1000")` are **equal in numeric value**, but differ in scale and unscaled value. Therefore, `compareTo()` can return `0` while `equals()` returns `false`.
 
-**Precision** là số chữ số trong giá trị không chia tỷ lệ nếu không tính dấu và số 0 dẫn đầu (riêng giá trị 0 có precision bằng 1). Ví dụ `123.4500` có precision `7`, scale `4`; `1E+3` có precision `1`, scale `-3`. Đừng nhầm precision với số chữ số sau dấu thập phân.
+**Precision** is the number of digits in the unscaled value, excluding the sign and leading zeros (specifically, the value 0 has a precision of 1). For example, `123.4500` has precision `7`, scale `4`; `1E+3` has precision `1`, scale `-3`. Do not confuse precision with the number of digits after the decimal point.
 
-## 2. toString() sinh dạng thập phân hay dạng khoa học?
+## 2. Does toString() Produce Decimal Form or Scientific Notation?
 
-`BigDecimal.toString()` tạo **biểu diễn chuỗi chuẩn (canonical)** của cặp unscaled value và scale. Phương thức bảo toàn giá trị, scale và các số 0 cuối có ý nghĩa đối với biểu diễn; nó **không làm tròn** và không chuyển qua `double`.
+`BigDecimal.toString()` produces the **canonical string representation** of the unscaled value and scale pair. The method preserves the value, scale, and trailing zeros that are significant to the representation; it **does not round** and does not convert through `double`.
 
-Để hiểu quy tắc hiển thị, xét **adjusted exponent** của `BigDecimal`:
+To understand the display rules, consider the **adjusted exponent** of `BigDecimal`:
 
 \[
 \text{adjustedExponent} = \text{precision} - \text{scale} - 1
 \]
 
-Với `BigDecimal` khác 0, adjusted exponent cho biết lũy thừa của 10 ứng với chữ số có nghĩa đầu tiên. Cơ chế chuẩn của `toString()` chọn:
+For a non-zero `BigDecimal`, the adjusted exponent indicates the power of 10 corresponding to the first significant digit. The canonical mechanism of `toString()` chooses:
 
-1. **Dạng thập phân thông thường** nếu **scale không âm** (`scale >= 0`) **và adjusted exponent từ -6 trở lên** (`adjustedExponent >= -6`).
-2. **Dạng khoa học** trong các trường hợp còn lại, với một chữ số có nghĩa đứng trước dấu chấm, phần còn lại (nếu có) đứng sau, rồi ký hiệu `E` và số mũ.
+1. **Standard decimal form** if the **scale is non-negative** (`scale >= 0`) **and the adjusted exponent is -6 or greater** (`adjustedExponent >= -6`).
+2. **Scientific notation** in all remaining cases, with one significant digit before the decimal point, the remaining digits (if any) after it, followed by the `E` symbol and the exponent.
 
-Với số mũ dương, Java thêm dấu `+` sau `E`, chẳng hạn `1E+3`. Với số mũ âm, Java dùng dấu `-` như `1E-7`. Ở dạng thông thường, dấu thập phân là `.`, không phụ thuộc thiết lập ngôn ngữ của máy.
+For positive exponents, Java adds a `+` sign after `E`, such as `1E+3`. For negative exponents, Java uses a `-` sign like `1E-7`. In standard form, the decimal separator is `.`, independent of the machine's locale settings.
 
-Hai ví dụ sát ngưỡng rất đáng nhớ:
+Two threshold examples are well worth remembering:
 
-- `new BigDecimal("0.000001").toString()` tạo `"0.000001"`: precision `1`, scale `6`, adjusted exponent `-6`, nên giữ dạng thông thường.
-- `new BigDecimal("0.0000001").toString()` tạo `"1E-7"`: precision `1`, scale `7`, adjusted exponent `-7`, nên chuyển sang dạng khoa học.
+- `new BigDecimal("0.000001").toString()` produces `"0.000001"`: precision `1`, scale `6`, adjusted exponent `-6`, so it keeps standard form.
+- `new BigDecimal("0.0000001").toString()` produces `"1E-7"`: precision `1`, scale `7`, adjusted exponent `-7`, so it switches to scientific notation.
 
-Quy tắc còn phụ thuộc **scale**, không chỉ độ lớn của số. `new BigDecimal("1000000").toString()` là `"1000000"` vì scale `0`; `new BigDecimal("1E+6").toString()` là `"1E+6"` vì scale `-6`. Giá trị số học của chúng giống nhau.
+The rule also depends on **scale**, not just the magnitude of the number. `new BigDecimal("1000000").toString()` is `"1000000"` because scale is `0`; `new BigDecimal("1E+6").toString()` is `"1E+6"` because scale is `-6`. Their numeric values are identical.
 
-### Chuỗi khoa học có nghĩa gì?
+### What Does a Scientific String Mean?
 
-Trong cú pháp Java `BigDecimal`:
+In Java `BigDecimal` syntax:
 
-- `1E-7` nghĩa là \(1 \times 10^{-7}\), tức `0.0000001`.
-- `1.23E+4` nghĩa là \(1.23 \times 10^4\), tức `12300`.
-- `1E+6` nghĩa là \(1 \times 10^6\), tức `1000000`.
+- `1E-7` means \(1 \times 10^{-7}\), i.e. `0.0000001`.
+- `1.23E+4` means \(1.23 \times 10^4\), i.e. `12300`.
+- `1E+6` means \(1 \times 10^6\), i.e. `1000000`.
 
-`E` là ký hiệu số mũ cơ số 10, không phải phép tính bằng hằng số toán học Euler. Trong Java, có thể dựng lại giá trị bằng `new BigDecimal("1E-7")`.
+`E` denotes a base-10 exponent, not a calculation involving Euler's mathematical constant. In Java, the value can be reconstructed using `new BigDecimal("1E-7")`.
 
-## 3. Phân biệt toString(), toPlainString(), toEngineeringString()
+## 3. Distinguishing toString(), toPlainString(), and toEngineeringString()
 
-Cả ba phương thức **chỉ tạo chuỗi**, không sửa hoặc làm tròn đối tượng `BigDecimal`.
+All three methods **only produce a string**; they do not modify or round the `BigDecimal` object.
 
-| Phương thức | Mục đích | Ví dụ với `new BigDecimal("0.0000001")` |
+| Method | Purpose | Example with `new BigDecimal("0.0000001")` |
 |---|---|---|
-| `toString()` | Chuỗi chuẩn, có thể dùng dạng khoa học tùy scale và adjusted exponent | `"1E-7"` |
-| `toPlainString()` | Chuỗi dạng thập phân đầy đủ, **không có ký hiệu E** | `"0.0000001"` |
-| `toEngineeringString()` | Khi viết dưới dạng số mũ, chọn **số mũ là bội số của 3**; hệ số có thể có 1–3 chữ số trước dấu thập phân | `"100E-9"` |
+| `toString()` | Canonical string, may use scientific notation depending on scale and adjusted exponent | `"1E-7"` |
+| `toPlainString()` | Full decimal string, **without E notation** | `"0.0000001"` |
+| `toEngineeringString()` | When written in exponential form, chooses an **exponent that is a multiple of 3**; the significand can have 1–3 digits before the decimal point | `"100E-9"` |
 
-Ví dụ dễ gặp:
+Common examples:
 
-| Giá trị được tạo | `toString()` | `toPlainString()` | `toEngineeringString()` |
+| Created Value | `toString()` | `toPlainString()` | `toEngineeringString()` |
 |---|---|---|---|
 | `"123.4500"` | `123.4500` | `123.4500` | `123.4500` |
 | `"0.000001"` | `0.000001` | `0.000001` | `0.000001` |
@@ -89,19 +89,19 @@ Ví dụ dễ gặp:
 | `"1000000"` | `1000000` | `1000000` | `1000000` |
 | `"1000000.00"` | `1000000.00` | `1000000.00` | `1000000.00` |
 
-`100E-9` và `1E-7` có cùng giá trị vì \(100 \times 10^{-9} = 10^{-7}\). Dạng kỹ thuật có ích khi trình bày bậc độ lớn theo nhóm nghìn, triệu, tỷ; còn dạng khoa học tiêu chuẩn của `toString()` ưu tiên một chữ số trước dấu chấm.
+`100E-9` and `1E-7` have the same value because \(100 \times 10^{-9} = 10^{-7}\). Engineering notation is useful when presenting orders of magnitude in groups of thousands, millions, and billions; whereas the standard scientific notation of `toString()` prioritizes a single digit before the decimal point.
 
-### Chọn phương thức nào?
+### Which Method Should You Choose?
 
-- **Ghi lại biểu diễn BigDecimal để có thể đọc lại chính xác cả value/scale**: dùng `toString()`. Chuỗi chuẩn chứa đủ thông tin để `new BigDecimal(original.toString()).equals(original)` là `true`.
-- **Giao diện, log hoặc trường văn bản yêu cầu không có E**: dùng `toPlainString()`, nhưng kiểm tra độ dài vì số có scale rất lớn về độ lớn tuyệt đối có thể tạo chuỗi dài.
-- **Hiển thị số mũ theo bội của 3**: dùng `toEngineeringString()` nếu đây là quy tắc trình bày mong muốn.
+- **Recording a BigDecimal representation so it can be read back with the exact value and scale**: use `toString()`. The canonical string contains enough information so that `new BigDecimal(original.toString()).equals(original)` is `true`.
+- **UI, logs, or text fields requiring no E**: use `toPlainString()`, but check the length because a number with a very large absolute scale can produce a very long string.
+- **Displaying exponents as multiples of 3**: use `toEngineeringString()` if this is the desired presentation rule.
 
-Với số lượng tiền có cách hiển thị cố định, phải xác định **scale/làm tròn** riêng trước khi tạo chuỗi. `toPlainString()` chỉ đổi cách biểu diễn, không tự áp dụng hai chữ số phần lẻ. Ví dụ `new BigDecimal("12.345").toPlainString()` vẫn là `"12.345"`.
+For monetary amounts with a fixed display format, you must determine the **scale/rounding** separately before converting to a string. `toPlainString()` only changes the representation; it does not automatically enforce two fractional digits. For example, `new BigDecimal("12.345").toPlainString()` is still `"12.345"`.
 
-## 4. Chương trình Java 17+ có thể chạy ngay
+## 4. Runnable Java 17+ Program
 
-Lưu dưới tên **`BigDecimalStringDemo.java`**:
+Save as **`BigDecimalStringDemo.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -148,14 +148,14 @@ public class BigDecimalStringDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac BigDecimalStringDemo.java
 java BigDecimalStringDemo
 ```
 
-Kết quả chính xác:
+Exact output:
 
 ```text
 input | toString | plain | engineering | precision | scale
@@ -172,16 +172,16 @@ plain equals: false
 plain compareTo: 0
 ```
 
-**Cách đọc kết quả:** Dòng `0.0000001` cho thấy `toString()` có thể tự chọn dạng mũ khi adjusted exponent nhỏ hơn `-6`. Dòng `1E+3` cho thấy `toPlainString()` biến giá trị thành `1000` nhưng **không giữ scale âm** sau khi parse chuỗi trở lại. Dòng `stripTrailingZeros` minh họa rằng cùng giá trị `1000000` có thể được biểu diễn bằng dạng mũ khi scale thay đổi.
+**How to read the output:** The `0.0000001` line shows that `toString()` can automatically choose exponential notation when the adjusted exponent is less than `-6`. The `1E+3` line shows that `toPlainString()` turns the value into `1000` but **does not preserve the negative scale** after parsing the string back. The `stripTrailingZeros` line illustrates that the same value `1000000` can be represented in exponential notation when the scale changes.
 
-## 5. Vì sao toPlainString() không luôn phù hợp với round-trip của BigDecimal?
+## 5. Why Isn't toPlainString() Always Suitable for BigDecimal Round-Trips?
 
-Đối với `BigDecimal`, có hai cách so sánh khác nhau:
+For `BigDecimal`, there are two different ways to compare:
 
-- `compareTo()` so sánh **giá trị số học**; `new BigDecimal("1E+3").compareTo(new BigDecimal("1000")) == 0`.
-- `equals()` yêu cầu cùng **giá trị số học và scale**; hai đối tượng trên không `equals` vì scale lần lượt `-3` và `0`.
+- `compareTo()` compares **numeric value**; `new BigDecimal("1E+3").compareTo(new BigDecimal("1000")) == 0`.
+- `equals()` requires the same **numeric value and scale**; the two objects above are not `equals` because their scales are `-3` and `0`, respectively.
 
-Xét:
+Consider:
 
 ```java
 BigDecimal original = new BigDecimal("1E+3");
@@ -195,15 +195,15 @@ System.out.println(original.equals(parsedPlain)); // false
 System.out.println(original.compareTo(parsedPlain) == 0); // true
 ```
 
-`toString()` là lựa chọn chuẩn khi cần **round-trip tái lập cùng biểu diễn BigDecimal**, bao gồm scale. `toPlainString()` phù hợp hơn khi cần chuỗi dễ đọc không có ký hiệu khoa học. Nếu ứng dụng chỉ quan tâm đến giá trị số học, `compareTo()` phản ánh quan hệ số học phù hợp hơn `equals()`; nếu scale là một phần hợp đồng dữ liệu, hãy giữ thông tin scale hoặc dùng `toString()`.
+`toString()` is the standard choice when you need a **round-trip that reproduces the exact same BigDecimal representation**, including scale. `toPlainString()` is more suitable when you need a human-readable string without scientific notation. If the application only cares about numeric value, `compareTo()` reflects the numerical relationship more appropriately than `equals()`; if scale is part of the data contract, preserve the scale information or use `toString()`.
 
-Chú ý `System.out.println(number)`, phép ghép chuỗi `"x=" + number` và `String.valueOf(number)` đều gọi `toString()` đối với `BigDecimal` không null. Vì vậy các cách in đó **vẫn có thể hiện dạng khoa học**. Gọi `toPlainString()` trực tiếp nếu đích hiển thị cần dạng đầy đủ.
+Note that `System.out.println(number)`, string concatenation `"x=" + number`, and `String.valueOf(number)` all invoke `toString()` on a non-null `BigDecimal`. Therefore, those printing approaches **can still display scientific notation**. Call `toPlainString()` directly if the display target requires the full plain form.
 
-## 6. stripTrailingZeros() có thể làm xuất hiện E
+## 6. stripTrailingZeros() Can Cause E to Appear
 
-`stripTrailingZeros()` trả về một `BigDecimal` tương đương về **giá trị số học** nhưng bỏ các số 0 tận cùng trong biểu diễn unscaled value khi có thể. Kết quả có thể có **scale âm**, làm `toString()` đổi sang dạng khoa học.
+`stripTrailingZeros()` returns a `BigDecimal` that is equivalent in **numeric value** but removes trailing zeros from the unscaled value representation where possible. The result can have a **negative scale**, causing `toString()` to switch to scientific notation.
 
-Ví dụ:
+Example:
 
 ```java
 BigDecimal before = new BigDecimal("1000000.00");
@@ -216,44 +216,44 @@ System.out.println(after.scale());      // -6
 System.out.println(after.toPlainString()); // 1000000
 ```
 
-Đây **không phải sai số và không phải phép làm tròn**. Giá trị vẫn bằng một triệu; chính biểu diễn unscaled value/scale đã thay đổi. `stripTrailingZeros()` cũng không sửa đối tượng `before` vì `BigDecimal` bất biến.
+This is **not an error and not a rounding operation**. The value is still one million; it is the unscaled value/scale representation itself that has changed. `stripTrailingZeros()` also does not modify the `before` object because `BigDecimal` is immutable.
 
-Điều này hay gây nhầm lẫn khi một hàm chuẩn hóa dữ liệu gọi `stripTrailingZeros()` rồi nơi khác vô tình dùng `toString()` để xuất kết quả. Nếu yêu cầu đầu ra là chuỗi không E, chọn `toPlainString()` sau khi có đối tượng kết quả. Nếu yêu cầu giữ nguyên số chữ số thập phân ban đầu (ví dụ `1000000.00`), **đừng bỏ trailing zeros trước khi lưu biểu diễn**.
+This often causes confusion when a data normalization function calls `stripTrailingZeros()` and somewhere else inadvertently uses `toString()` to output the result. If the output requirement is a string without E, choose `toPlainString()` after obtaining the result object. If the requirement is to keep the original number of decimal places (e.g., `1000000.00`), **do not strip trailing zeros before storing the representation**.
 
-## 7. Các trường hợp biên và sai lầm thường gặp
+## 7. Edge Cases and Common Pitfalls
 
-### Coi dạng khoa học là mất giá trị hoặc mất độ chính xác
+### Treating Scientific Notation as Loss of Value or Precision
 
-`1E-7` và `0.0000001` đều là giá trị thập phân chính xác \(10^{-7}\). `toString()` không rút gọn chữ số có nghĩa theo một precision mới. Nó chỉ chọn cách viết tương ứng với unscaled value/scale hiện có. Đừng dùng `doubleValue()` rồi chuyển sang chuỗi để “né E”: `double` có miền biểu diễn và độ chính xác nhị phân khác `BigDecimal`.
+`1E-7` and `0.0000001` are both the exact decimal value \(10^{-7}\). `toString()` does not truncate significant digits to a new precision. It simply chooses the notation corresponding to the existing unscaled value/scale. Do not use `doubleValue()` and convert to a string to "avoid E": `double` has a different representation range and binary precision than `BigDecimal`.
 
-### Nghĩ rằng BigDecimal lớn tự động phải in khoa học
+### Assuming Large BigDecimals Must Automatically Print in Scientific Notation
 
-`new BigDecimal("1000000")` in `1000000`; `new BigDecimal("1E+6")` in `1E+6` dù giá trị bằng nhau. Điều kiện của `toString()` là **scale và adjusted exponent**, không phải một ngưỡng giá trị tuyệt đối duy nhất.
+`new BigDecimal("1000000")` prints `1000000`; `new BigDecimal("1E+6")` prints `1E+6` even though their values are equal. The condition in `toString()` is based on **scale and adjusted exponent**, not a single absolute value threshold.
 
-### Xóa số 0 cuối rồi kỳ vọng cùng scale
+### Removing Trailing Zeros and Expecting the Same Scale
 
-`new BigDecimal("12.3400").toString()` là `"12.3400"` vì scale `4` vẫn được bảo toàn. `stripTrailingZeros()` có thể thay đổi scale; `toPlainString()` không tự khôi phục số 0 biểu diễn ban đầu. Nếu dữ liệu yêu cầu đúng số chữ số, dùng `setScale(scale, roundingMode)` theo quy định nghiệp vụ trước khi xuất chuỗi. Phương thức `setScale` có thể cần làm tròn và yêu cầu `RoundingMode`; khác về chức năng so với ba phương thức chỉ tạo chuỗi.
+`new BigDecimal("12.3400").toString()` is `"12.3400"` because scale `4` is still preserved. `stripTrailingZeros()` can change the scale; `toPlainString()` does not restore the original representation's trailing zeros. If the data requires an exact number of digits, use `setScale(scale, roundingMode)` according to business rules before outputting the string. The `setScale` method may require rounding and takes a `RoundingMode`; it differs functionally from the three string-conversion-only methods.
 
-### Dùng chuỗi để quyết định số nào lớn hơn
+### Using Strings to Decide Which Number Is Larger
 
-So sánh chuỗi `"1E+3"` và `"900"` theo thứ tự từ điển không tương đương so sánh số. Hãy so sánh chính các đối tượng `BigDecimal` bằng `compareTo()` trước, rồi chuyển sang chuỗi khi cần hiển thị hoặc truyền dữ liệu.
+Comparing the strings `"1E+3"` and `"900"` lexicographically is not equivalent to numeric comparison. Compare the `BigDecimal` objects themselves using `compareTo()` first, then convert to strings when needed for display or data transmission.
 
-### Quên yêu cầu định dạng theo vùng miền
+### Forgetting Locale-Specific Formatting Requirements
 
-`toString()`, `toPlainString()` và `toEngineeringString()` đều dùng ký hiệu thập phân kiểu Java (dấu chấm và ký hiệu E khi có), **không tự đổi** thành dấu phẩy theo locale hoặc thêm dấu phân cách hàng nghìn. Nếu giao diện cần quy tắc trình bày theo vùng miền, dùng cơ chế định dạng như `NumberFormat`/`DecimalFormat`, cấu hình locale và làm tròn phù hợp. Việc định dạng để hiển thị cần được phân biệt với biểu diễn chuẩn dùng để lưu/đọc lại BigDecimal.
+`toString()`, `toPlainString()`, and `toEngineeringString()` all use Java-style decimal notation (a period and E notation when applicable), and **do not automatically switch** to a comma based on locale or add thousands separators. If the UI requires locale-specific presentation rules, use formatting mechanisms like `NumberFormat`/`DecimalFormat`, configured with the appropriate locale and rounding. Formatting for display should be kept distinct from the canonical representation used for storing/reading back BigDecimal values.
 
-### Không chú ý kích thước đầu ra
+### Ignoring Output Size
 
-`toPlainString()` luôn cố tạo dạng đầy đủ; với scale có độ lớn rất lớn, chuỗi có thể chứa số lượng chữ số hoặc số 0 rất lớn. Chỉ chọn dạng đầy đủ khi thật sự cần và dữ liệu đầu vào có giới hạn phù hợp. Dạng mũ của `toString()` ngắn hơn trong nhiều trường hợp, nhưng không phải cơ chế giới hạn dung lượng đầu ra.
+`toPlainString()` always attempts to build the full plain form; with a scale of very large magnitude, the string may contain an enormous number of digits or zeros. Choose the full plain form only when genuinely needed and when input data has appropriate bounds. The exponential form of `toString()` is shorter in many cases, though it is not an output size-limiting mechanism.
 
-## 8. Quy trình chọn cách chuyển chuỗi
+## 8. Process for Choosing a String Conversion Method
 
-1. **Cần lưu và khôi phục chính xác đối tượng BigDecimal, kể cả scale?** Dùng `toString()` rồi đọc bằng `new BigDecimal(text)`. Đây là biểu diễn chuẩn phù hợp cho round-trip.
-2. **Cần hiển thị đầy đủ, không được có E?** Dùng `toPlainString()`; tự quy định scale/làm tròn và độ dài đầu ra nếu nghiệp vụ đòi hỏi.
-3. **Cần ký pháp lũy thừa với số mũ theo bội của 3?** Dùng `toEngineeringString()`.
-4. **Bất ngờ thấy E sau một bước chuẩn hóa?** Kiểm tra `stripTrailingZeros()` và `scale()` trước/sau.
-5. **Hai chuỗi khác nhau nhưng mô tả cùng một số?** Kiểm tra cả `compareTo()` và `scale()`; không mặc định `equals()` phản ánh riêng giá trị số học.
+1. **Need to store and restore the exact BigDecimal object, including its scale?** Use `toString()`, then parse with `new BigDecimal(text)`. This is the canonical representation suitable for round-trips.
+2. **Need full display, with no E allowed?** Use `toPlainString()`; specify scale/rounding and output length yourself if business rules demand it.
+3. **Need exponential notation with exponents as multiples of 3?** Use `toEngineeringString()`.
+4. **Unexpectedly seeing E after a normalization step?** Check `stripTrailingZeros()` and `scale()` before/after.
+5. **Two different strings describing the same number?** Check both `compareTo()` and `scale()`; do not assume `equals()` reflects only the numeric value.
 
-**Tự kiểm tra:** Tại sao `new BigDecimal("0.000001").toString()` là `"0.000001"`, còn `new BigDecimal("0.0000001").toString()` là `"1E-7"`? Vì adjusted exponent lần lượt là `-6` và `-7`, trong khi scale đều không âm. Và tại sao `new BigDecimal("1E+3").toPlainString()` tạo `"1000"` nhưng đọc lại có thể `equals() == false`? Vì chuỗi thông thường làm mất scale âm `-3`, đối tượng đọc lại có scale `0` dù giá trị số học không đổi.
+**Self-check:** Why is `new BigDecimal("0.000001").toString()` equal to `"0.000001"`, while `new BigDecimal("0.0000001").toString()` is `"1E-7"`? Because their adjusted exponents are `-6` and `-7` respectively, while both scales are non-negative. And why does `new BigDecimal("1E+3").toPlainString()` produce `"1000"` yet reading it back can yield `equals() == false`? Because the plain string loses the negative scale `-3`; the parsed object has scale `0` even though the numeric value is unchanged.
 
-**Ghi nhớ:** `BigDecimal.toString()` chọn dạng khoa học dựa trên scale và adjusted exponent, bảo toàn biểu diễn để round-trip; `toPlainString()` bảo đảm không có E; `toEngineeringString()` dùng số mũ theo bội số của 3. Cả ba **không thực hiện làm tròn**.
+**Takeaway:** `BigDecimal.toString()` chooses scientific notation based on scale and adjusted exponent, preserving the representation for round-trips; `toPlainString()` guarantees no E; `toEngineeringString()` uses exponents in multiples of 3. None of the three **perform rounding**.

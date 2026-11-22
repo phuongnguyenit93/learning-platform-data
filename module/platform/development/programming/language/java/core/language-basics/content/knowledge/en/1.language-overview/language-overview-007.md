@@ -1,8 +1,8 @@
-# Phân biệt cú pháp đúng với kết quả nghiệp vụ đúng
+# Distinguishing Valid Syntax from Correct Business Results
 
-## 1. Vì sao một chương trình chạy được vẫn có thể sai?
+## 1. Why Can a Runnable Program Still Be Wrong?
 
-Xét hai đoạn Java sau:
+Consider the following two Java snippets:
 
 ~~~java
 int quantity = 3;
@@ -18,70 +18,70 @@ int subtotal = quantity + unitPrice;
 System.out.println(subtotal); // 100003
 ~~~
 
-Cả hai đoạn đều **đúng cú pháp**, hợp lệ về kiểu và có thể biên dịch. Nhưng nếu yêu cầu là **thành tiền = số lượng × đơn giá**, chỉ đoạn đầu thực hiện đúng nghiệp vụ.
+Both snippets are **syntactically valid**, well-typed, and compile cleanly. Yet if the requirement is **subtotal = quantity × unit price**, only the first snippet implements the business rule correctly.
 
-Điều quan trọng cần nhớ: **`javac` có thể kiểm tra nhiều quy tắc của ngôn ngữ Java, nhưng không tự biết người dùng muốn tính gì**. Một chương trình có thể biên dịch thành công, không ném exception, vẫn trả kết quả sai, tính sai tiền hoặc vi phạm điều kiện của bài toán.
+The crucial point to remember: **`javac` can check many rules of the Java language, but it does not automatically know what the user wants to compute**. A program can compile successfully and throw no exceptions while still returning wrong results, miscalculating money, or violating the problem's constraints.
 
-Bài này tập trung vào cách đi từ **yêu cầu bằng lời** đến **quy tắc kiểm chứng được**, viết mã Java đúng và kiểm thử kết quả. Không cần framework hay cơ sở dữ liệu để thực hành.
+This lesson focuses on how to go from a **verbal requirement** to **verifiable rules**, write correct Java code, and test the results. No framework or database is needed to practice.
 
-## 2. Bốn lớp kiểm tra tính đúng
+## 2. Four Layers of Correctness Checking
 
-| Lớp kiểm tra | Câu hỏi | Ví dụ vấn đề | Cách phát hiện |
+| Check Layer | Question | Example Issue | How It Is Detected |
 |---|---|---|---|
-| **Cú pháp (syntax)** | Mã có tuân ngữ pháp Java? | Thiếu dấu `;`, ngoặc chưa đóng | `javac` báo lỗi biên dịch |
-| **Ngữ nghĩa tĩnh / kiểu (static semantics)** | Biến, phép toán, kiểu trả về có hợp lệ? | `int n = "ba";` | Trình biên dịch kiểm tra kiểu |
-| **Hành vi lúc chạy (runtime)** | Khi chạy có exception hoặc sự cố? | Chia số nguyên cho 0, truy cập mảng quá chỉ số | Chạy thử, test, log, stack trace |
-| **Tính đúng nghiệp vụ (business correctness)** | Kết quả và hành vi có đúng quy tắc đã thống nhất? | Giảm giá sai đối tượng, miễn phí ship sai ngưỡng | Acceptance tests, ví dụ kỳ vọng, đối chiếu yêu cầu |
+| **Syntax** | Does the code follow Java grammar? | Missing `;`, unclosed brace | `javac` reports a compile error |
+| **Static semantics / types** | Are variables, operations, and return types valid? | `int n = "ba";` | Compiler type checking |
+| **Runtime behavior** | Do exceptions or failures occur when running? | Integer division by 0, out-of-bounds array access | Running, testing, logs, stack trace |
+| **Business correctness** | Do the results and behavior match the agreed rules? | Wrong customer discount, wrong free-shipping threshold | Acceptance tests, expected examples, requirement verification |
 
-Cả ba điều kiện đầu đều cần thiết trong nhiều ứng dụng, nhưng **chưa đủ để bảo đảm điều kiện thứ tư**.
+All first three conditions are necessary in many applications, yet **they are not sufficient to guarantee the fourth condition**.
 
 ~~~mermaid
 flowchart TD
-    A["Yêu cầu nghiệp vụ"] --> B["Quy tắc có thể kiểm chứng"]
-    B --> C["Viết mã Java"]
-    C --> D{"Biên dịch thành công?"}
-    D -->|"Không"| E["Sửa cú pháp / kiểu"]
+    A["Business requirement"] --> B["Verifiable rules"]
+    B --> C["Write Java code"]
+    C --> D{"Compiles successfully?"}
+    D -->|"No"| E["Fix syntax / types"]
     E --> C
-    D -->|"Có"| F["Thực thi và kiểm thử"]
-    F --> G{"Kết quả khớp quy tắc?"}
-    G -->|"Không"| H["Tìm lỗi logic / giả định / dữ liệu"]
+    D -->|"Yes"| F["Execute and test"]
+    F --> G{"Results match rules?"}
+    G -->|"No"| H["Find logic / assumption / data bug"]
     H --> B
-    G -->|"Có"| I["Đạt các ca đã kiểm; tiếp tục review và kiểm thử thêm"]
+    G -->|"Yes"| I["Passed checked cases; continue review and further testing"]
 ~~~
 
-Ngay cả khi một bộ test đều xanh, điều đó chỉ chứng minh chương trình **đạt các trường hợp đã kiểm**, không chứng minh mọi đầu vào và mọi môi trường đều đúng.
+Even when a test suite is all green, that only proves the program **passes the checked cases**, not that every input and every environment are error-free.
 
-## 3. Biến yêu cầu bằng lời thành một hợp đồng rõ ràng
+## 3. Turning Verbal Requirements into a Clear Contract
 
-Giả sử cửa hàng bán hàng hóa theo **đồng Việt Nam nguyên đơn vị** và đưa ra chính sách sau:
+Suppose a store sells goods in **whole Vietnamese dong** and sets the following policy:
 
-- **BR-01 – Dữ liệu hợp lệ:** đơn giá phải **lớn hơn 0**; số lượng phải **lớn hơn 0**.
-- **BR-02 – Tiền hàng:** `subtotal = unitPrice × quantity`.
-- **BR-03 – Giảm giá:** khách là **thành viên đang hoạt động** và tiền hàng ban đầu **từ 200.000 đồng trở lên** được giảm **10% tiền hàng**. Các trường hợp khác không giảm.
-- **BR-04 – Làm tròn:** phần tiền giảm được **lấy phần nguyên theo đơn vị đồng** (làm tròn xuống); đầu vào và kết quả đều không âm.
-- **BR-05 – Vận chuyển:** nếu **tiền hàng sau giảm giá** từ **300.000 đồng trở lên**, phí vận chuyển bằng 0; nếu thấp hơn, phí là **30.000 đồng**.
-- **BR-06 – Tổng thanh toán:** `payable = subtotal − discount + shipping`.
-- **BR-07 – Quá giới hạn số:** nếu phép tính vượt miền `long`, phải báo lỗi thay vì âm thầm tạo số tiền sai.
+- **BR-01 – Valid data:** unit price must be **greater than 0**; quantity must be **greater than 0**.
+- **BR-02 – Goods subtotal:** `subtotal = unitPrice × quantity`.
+- **BR-03 – Discount:** customers who are **active members** with an initial subtotal **of 200,000 dong or more** receive a **10% discount on the subtotal**. All other cases receive no discount.
+- **BR-04 – Rounding:** the discount amount **takes the integer part in dong** (rounded down); inputs and results are non-negative.
+- **BR-05 – Shipping:** if the **subtotal after discount** is **300,000 dong or more**, shipping is 0; if lower, the fee is **30,000 dong**.
+- **BR-06 – Total payable:** `payable = subtotal − discount + shipping`.
+- **BR-07 – Numeric overflow:** if any calculation exceeds the `long` range, it must report an error instead of silently producing a wrong amount.
 
-**Điểm dễ nhầm:** ngưỡng giảm giá xét trên `subtotal` **trước giảm**, nhưng ngưỡng miễn phí vận chuyển xét trên số tiền **sau giảm**. Cả hai ngưỡng đều dùng “**từ ... trở lên**”, nghĩa là dùng `>=`, không phải `>`.
+**Easy-to-miss detail:** the discount threshold checks `subtotal` **before discount**, whereas the free-shipping threshold checks the amount **after discount**. Both thresholds use “**from ... or more**”, meaning `>=`, not `>`.
 
-Quy tắc làm tròn là một phần của yêu cầu: với giảm giá 10% và tiền nguyên đồng không âm, `subtotal / 10` (chia nguyên) cho phần tiền giảm đã làm tròn xuống. Nếu chính sách đổi sang 7,5% hoặc tính thuế, công thức và quy tắc làm tròn phải được xác nhận lại.
+Rounding rules are part of the requirement: for a 10% discount and non-negative whole dong, `subtotal / 10` (integer division) gives the discount rounded down. If the policy changes to 7.5% or adds taxes, the formula and rounding rules must be re-confirmed.
 
-### Bảng dự đoán trước khi viết mã
+### Prediction Table Before Writing Code
 
-| Tiền hàng | Thành viên hoạt động? | Giảm giá | Sau giảm | Ship | Tổng trả |
+| Subtotal | Active member? | Discount | After discount | Shipping | Total payable |
 |---:|---|---:|---:|---:|---:|
-| 199.999 | Có | 0 | 199.999 | 30.000 | 229.999 |
-| 200.000 | Có | 20.000 | 180.000 | 30.000 | 210.000 |
-| 300.000 | Có | 30.000 | 270.000 | 30.000 | 300.000 |
-| 300.000 | Không | 0 | 300.000 | 0 | 300.000 |
-| 400.000 | Có | 40.000 | 360.000 | 0 | 360.000 |
+| 199,999 | Yes | 0 | 199,999 | 30,000 | 229,999 |
+| 200,000 | Yes | 20,000 | 180,000 | 30,000 | 210,000 |
+| 300,000 | Yes | 30,000 | 270,000 | 30,000 | 300,000 |
+| 300,000 | No | 0 | 300,000 | 0 | 300,000 |
+| 400,000 | Yes | 40,000 | 360,000 | 0 | 360,000 |
 
-Bảng này là **test oracle**: kết quả mong đợi được suy ra từ quy tắc trước khi xem chương trình trả về gì.
+This table is a **test oracle**: expected results are derived from the rules before seeing what the program returns.
 
-## 4. Một đoạn Java hợp lệ nhưng vi phạm nghiệp vụ
+## 4. A Valid Java Snippet That Violates Business Rules
 
-Đoạn sau có cú pháp hợp lệ, nhưng tính phí vận chuyển theo tiền hàng **trước** giảm:
+The following snippet is syntactically valid, yet checks the shipping fee using the subtotal **before** discount:
 
 ~~~java
 long subtotal = 300_000L;
@@ -91,15 +91,15 @@ long discount = activeMember && subtotal >= 200_000L
         ? subtotal / 10
         : 0L;
 
-long shipping = subtotal >= 300_000L ? 0L : 30_000L; // SAI QUY TẮC
+long shipping = subtotal >= 300_000L ? 0L : 30_000L; // VIOLATES RULE
 long payable = subtotal - discount + shipping;
 
 System.out.println(payable); // 270000
 ~~~
 
-Theo BR-05, đúng ra phải xét `subtotal - discount = 270000`, vì vậy phí vận chuyển là `30000` và tổng đúng là **300000**. `javac` không thể biết quy tắc BR-05 từ một đoạn mã.
+According to BR-05, it must check `subtotal - discount = 270000`, so the shipping fee is `30000` and the right total is **300000**. `javac` cannot infer rule BR-05 from a snippet of code.
 
-Sửa tối thiểu:
+Minimal fix:
 
 ~~~java
 long afterDiscount = subtotal - discount;
@@ -108,11 +108,11 @@ long payable = afterDiscount + shipping;
 System.out.println(payable); // 300000
 ~~~
 
-**Cảnh báo:** các snippet trên tập trung minh họa bug logic; khi triển khai hoàn chỉnh vẫn cần bảo vệ đầu vào, kiểm tra tràn số và kiểm thử ngưỡng.
+**Warning:** the snippets above focus on illustrating logic bugs; a complete implementation still needs input guards, overflow checks, and threshold tests.
 
-## 5. Chương trình Java 17 độc lập và có thể chạy
+## 5. A Standalone, Runnable Java 17 Program
 
-Tạo tệp chính xác tên **`BusinessCorrectnessDemo.java`**:
+Create a file named exactly **`BusinessCorrectnessDemo.java`**:
 
 ~~~java
 public final class BusinessCorrectnessDemo {
@@ -122,7 +122,7 @@ public final class BusinessCorrectnessDemo {
 
     private BusinessCorrectnessDemo() {}
 
-    // Record chỉ lưu kết quả; toàn bộ số tiền tính theo đồng nguyên.
+    // Record only stores the result; all amounts are in whole dong.
     record Quote(long subtotal, long discount,
                  long shipping, long payable) {}
 
@@ -135,10 +135,10 @@ public final class BusinessCorrectnessDemo {
             throw new IllegalArgumentException("So luong phai duong");
         }
 
-        // Phát hiện tràn long trước khi có số tiền hàng.
+        // Detect long overflow before obtaining subtotal.
         long subtotal = Math.multiplyExact(unitPrice, (long) quantity);
 
-        // 10% và làm tròn xuống đồng, chỉ khi đủ cả hai điều kiện.
+        // 10% and rounded down to whole dong, only when both conditions hold.
         long discount = activeMember && subtotal >= DISCOUNT_MIN
                 ? subtotal / 10
                 : 0L;
@@ -217,14 +217,14 @@ public final class BusinessCorrectnessDemo {
 }
 ~~~
 
-Chương trình cần **JDK 17 trở lên** do dùng `record`. Mở terminal trong thư mục chứa tệp và chạy:
+The program requires **JDK 17 or later** because it uses `record`. Open a terminal in the directory containing the file and run:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 BusinessCorrectnessDemo.java
 java BusinessCorrectnessDemo
 ~~~
 
-**Đầu ra kỳ vọng:**
+**Expected output:**
 
 ~~~text
 A -> 300000 VND
@@ -237,91 +237,91 @@ Overflow: PASS
 ALL CASES PASS
 ~~~
 
-Mã dùng `if`, `&&`, toán tử điều kiện `?:`, các phép toán số nguyên và method để kiểm chứng quy tắc. Các câu lệnh `throw` ở đầu vào chỉ từ chối dữ liệu sai; chúng không thay cho việc kiểm thử công thức tiền hàng.
+The code uses `if`, `&&`, the ternary operator `?:`, integer arithmetic, and methods to verify the rules. The `throw` statements at the input boundary only reject bad data; they do not replace testing the subtotal formula.
 
-**Lưu ý về kiểm thử:** phương thức `expect` tự ném `AssertionError` khi phát hiện sai, nên không phụ thuộc vào cờ `-ea`. Các kết quả trong bài là **kỳ vọng để người học tự chạy đối chiếu**, không phải báo cáo đã thực thi code trên máy của người học.
+**Note on testing:** the `expect` method throws `AssertionError` directly on mismatch, so it does not depend on the `-ea` flag. The outputs shown in this lesson are **expectations for learners to run and verify themselves**, not a claim that code was executed on the learner's machine.
 
-## 6. Đọc mã đúng theo thứ tự nghiệp vụ
+## 6. Reading Code in Business Order
 
-Hãy theo dấu trường hợp `unitPrice = 100000`, `quantity = 3`, `activeMember = true`:
+Trace the case `unitPrice = 100000`, `quantity = 3`, `activeMember = true`:
 
-| Bước | Phép tính/điều kiện | Kết quả |
+| Step | Calculation/Condition | Result |
 |---|---|---:|
-| 1 | Kiểm tra đơn giá và số lượng dương | Hợp lệ |
+| 1 | Check that unit price and quantity are positive | Valid |
 | 2 | `100000 × 3` | `subtotal = 300000` |
-| 3 | Thành viên active và `300000 >= 200000` | Đủ điều kiện |
+| 3 | Active member and `300000 >= 200000` | Eligible |
 | 4 | `300000 / 10` | `discount = 30000` |
 | 5 | `300000 - 30000` | `afterDiscount = 270000` |
-| 6 | `270000 >= 300000` | Sai |
-| 7 | Cộng phí ship `30000` | `payable = 300000` |
+| 6 | `270000 >= 300000` | False |
+| 7 | Add shipping fee `30000` | `payable = 300000` |
 
-Ở bước 6, nếu ai đó vô tình dùng `subtotal` thay vì `afterDiscount`, chương trình vẫn đúng cú pháp và đúng kiểu, nhưng sai BR-05.
+In step 6, if someone accidentally uses `subtotal` instead of `afterDiscount`, the program remains syntactically valid and well-typed, yet violates BR-05.
 
-**Nguyên tắc quan trọng:** đặt tên biến thể hiện đúng **ý nghĩa và thời điểm** của dữ liệu. `subtotal` và `afterDiscount` đều là `long`, nhưng không thể thay thế nhau trong mọi công thức chỉ vì chúng cùng kiểu Java.
+**Important principle:** choose variable names that reflect the **meaning and stage** of the data. `subtotal` and `afterDiscount` are both `long`, yet they cannot substitute for each other in every formula merely because they share the same Java type.
 
-## 7. Kiểm thử ngưỡng và edge cases
+## 7. Testing Thresholds and Edge Cases
 
-Các lỗi nghiệp vụ thường xuất hiện tại **ranh giới điều kiện**, trong trường hợp dữ liệu không hợp lệ hoặc lúc các điều kiện kết hợp.
+Business bugs frequently appear at **condition boundaries**, on invalid data, or when conditions combine.
 
-| Tình huống | Dữ liệu kiểm thử | Kết quả cần xác nhận |
+| Situation | Test Data | Result to Confirm |
 |---|---|---|
-| Ngay dưới ngưỡng giảm giá | `subtotal = 199999`, member=true | Không giảm |
-| Đúng ngưỡng giảm giá | `subtotal = 200000`, member=true | Có giảm 10% |
-| Cùng mức tiền nhưng không là thành viên | `subtotal = 200000`, member=false | Không giảm |
-| Sau giảm ngay dưới ngưỡng ship | `subtotal = 300000`, member=true | Sau giảm 270000, phí 30000 |
-| Đúng ngưỡng ship | `subtotal = 300000`, member=false | Ship 0 |
-| Tổng sau giảm vượt ngưỡng ship | `subtotal = 400000`, member=true | Ship 0 |
-| Số lượng 0 hoặc âm | `quantity <= 0` | Từ chối đầu vào |
-| Đơn giá 0 hoặc âm | `unitPrice <= 0` | Từ chối đầu vào |
-| Tràn phép nhân | `unitPrice = Long.MAX_VALUE`, `quantity = 2` | `ArithmeticException` |
-| Tiền hàng 200.001 và member=true | `subtotal = 200001` | Giảm 20000 đồng (lấy phần nguyên) |
+| Just below discount threshold | `subtotal = 199999`, member=true | No discount |
+| Exactly at discount threshold | `subtotal = 200000`, member=true | 10% discount applies |
+| Same amount, non-member | `subtotal = 200000`, member=false | No discount |
+| After discount just below shipping threshold | `subtotal = 300000`, member=true | After discount 270000, fee 30000 |
+| Exactly at shipping threshold | `subtotal = 300000`, member=false | Shipping 0 |
+| After discount above shipping threshold | `subtotal = 400000`, member=true | Shipping 0 |
+| Zero or negative quantity | `quantity <= 0` | Input rejected |
+| Zero or negative unit price | `unitPrice <= 0` | Input rejected |
+| Multiplication overflow | `unitPrice = Long.MAX_VALUE`, `quantity = 2` | `ArithmeticException` |
+| Subtotal 200,001 and member=true | `subtotal = 200001` | Discount 20,000 dong (integer part) |
 
-Khi kiểm thử ngưỡng `T`, thường chọn **`T - 1`, `T`, `T + 1`** theo đơn vị có ý nghĩa. Với BR-05, nhớ tạo dữ liệu sao cho **số tiền sau giảm** nằm ở những điểm này; chỉ kiểm thử số tiền trước giảm có thể bỏ lọt bug.
+When testing a threshold `T`, people commonly pick **`T - 1`, `T`, `T + 1`** in meaningful units. For BR-05, make sure to construct data so that the **after-discount amount** lands on these points; testing only the pre-discount subtotal can let bugs slip through.
 
-### Thuộc tính có thể kiểm thử thêm
+### Additional Properties That Can Be Checked
 
-Với đầu vào hợp lệ và không tràn số, mọi kết quả phải thỏa:
+For valid inputs without numeric overflow, every result must satisfy:
 
 - `subtotal > 0`.
 - `0 <= discount <= subtotal`.
-- `shipping == 0` hoặc `shipping == 30000`.
+- `shipping == 0` or `shipping == 30000`.
 - `payable == subtotal - discount + shipping`.
-- Nếu `activeMember == false` thì `discount == 0`.
-- Nếu `afterDiscount >= 300000` thì `shipping == 0`, nếu nhỏ hơn thì `shipping == 30000`.
+- If `activeMember == false`, then `discount == 0`.
+- If `afterDiscount >= 300000`, then `shipping == 0`; if smaller, then `shipping == 30000`.
 
-Các thuộc tính này rất hữu ích để rà soát nhiều ca; nhưng một implementation sai có thể vẫn giữ vài thuộc tính, nên phải kết hợp với **ví dụ kết quả cụ thể được xác nhận từ nghiệp vụ**.
+These properties are great for reviewing many cases; however, a buggy implementation might still preserve several properties, so combine them with **concrete example outputs confirmed from the business rules**.
 
-## 8. Những bẫy Java khiến kết quả nghiệp vụ sai
+## 8. Java Pitfalls That Cause Incorrect Business Results
 
-### 8.1. Chia nguyên và làm tròn không rõ ràng
+### 8.1. Integer Division and Unclear Rounding
 
 ~~~java
 int percent = 15;
 int amount = 101;
-int discount = amount * percent / 100; // 15, phần lẻ bị bỏ
+int discount = amount * percent / 100; // 15, remainder is truncated
 ~~~
 
-Công thức có thể đúng **hoặc sai** tùy quy tắc làm tròn được yêu cầu. Với tiền, phải thống nhất đơn vị, phép chia, thứ tự làm tròn và chính sách rounding. `double` có thể không biểu diễn chính xác nhiều số thập phân; số nguyên theo đơn vị nhỏ nhất hoặc `BigDecimal` thường dễ kiểm soát hơn.
+This formula can be right **or wrong** depending on the required rounding policy. For money, you must agree on units, division, rounding order, and rounding policy. `double` cannot represent many decimal numbers exactly; whole numbers in the smallest unit or `BigDecimal` are usually easier to control.
 
-### 8.2. Tràn số vẫn đúng kiểu `long`
+### 8.2. Numeric Overflow Is Still Type-Valid `long`
 
 ~~~java
 long price = Long.MAX_VALUE;
-long total = price * 2; // Tràn long nếu nhân thông thường
+long total = price * 2; // long overflow with ordinary multiplication
 ~~~
 
-Java không tự ném exception khi mọi phép toán nguyên thông thường bị tràn. Dùng `Math.multiplyExact`/`Math.addExact` hoặc giới hạn miền dữ liệu rõ ràng khi tràn không được phép.
+Java does not automatically throw an exception when ordinary integer operations overflow. Use `Math.multiplyExact`/`Math.addExact` or enforce explicit data bounds when overflow is disallowed.
 
-### 8.3. Nhầm `>` với `>=`
+### 8.3. Confusing `>` with `>=`
 
 ~~~java
-boolean eligible = subtotal > 200_000;  // Sai khi subtotal đúng 200000
-boolean correct = subtotal >= 200_000; // Đúng với "từ 200000"
+boolean eligible = subtotal > 200_000;  // Wrong when subtotal is exactly 200000
+boolean correct = subtotal >= 200_000; // Correct for "from 200000"
 ~~~
 
-Một ký tự khác nhau có thể làm sai hàng nghìn giao dịch sát ngưỡng.
+A single character difference can cause thousands of near-threshold transactions to fail.
 
-### 8.4. `==` không kiểm tra nội dung hai chuỗi
+### 8.4. `==` Does Not Compare the Contents of Two Strings
 
 ~~~java
 String role = new String("MEMBER");
@@ -329,55 +329,55 @@ System.out.println(role == "MEMBER");      // false
 System.out.println("MEMBER".equals(role));  // true
 ~~~
 
-Nếu điều kiện giảm giá dựa trên role lấy từ input, dùng `==` với `String` có thể làm sai logic dù biên dịch và chạy bình thường. Gọi `"MEMBER".equals(role)` cũng an toàn khi `role == null`.
+If a discount condition relies on a role read from input, using `==` with `String` can break logic even though it compiles and runs normally. Calling `"MEMBER".equals(role)` is also safe when `role == null`.
 
-### 8.5. `&&` và `&` không hoàn toàn như nhau
+### 8.5. `&&` and `&` Are Not Completely Identical
 
 ~~~java
 String memberId = null;
 boolean valid = memberId != null && !memberId.isBlank(); // false
 ~~~
 
-`&&` ngắn mạch: khi vế trái sai, vế phải không được đánh giá. Đổi sang `&` trên boolean sẽ đánh giá cả hai vế, ở đây gây `NullPointerException`.
+`&&` short-circuits: when the left side is false, the right side is not evaluated. Switching to `&` on booleans evaluates both sides, which here causes `NullPointerException`.
 
-### 8.6. Điều kiện đúng nhưng kiểm tra sai thời điểm
+### 8.6. Right Condition, Checked at the Wrong Stage
 
-Quy tắc “ship miễn phí từ 300.000 đồng **sau giảm**” cần dùng `afterDiscount`. Dù `subtotal`, `afterDiscount` và `payable` cùng kiểu `long`, chúng đại diện cho các giai đoạn khác nhau. Tên biến và thứ tự phép tính phải phản ánh chính sách.
+The rule “free shipping from 300,000 dong **after discount**” must use `afterDiscount`. Even though `subtotal`, `afterDiscount`, and `payable` all have type `long`, they represent different stages. Variable names and calculation order must reflect the policy.
 
-### 8.7. Kiểm tra đầu vào không thay cho kiểm tra kết quả
+### 8.7. Input Validation Does Not Replace Output Verification
 
-Đơn giá và số lượng đều dương **không bảo đảm** phép nhân an toàn khỏi tràn. Ngược lại, có tổng tiền tính được cũng không chứng minh người mua đủ điều kiện giảm giá. Cần kiểm tra **cả điều kiện đầu vào, ranh giới số học và kết quả theo nghiệp vụ**.
+Positive unit price and quantity **do not guarantee** that multiplication will not overflow. Conversely, obtaining a total amount does not prove the buyer qualified for a discount. You must verify **input conditions, arithmetic boundaries, and business results**.
 
-## 9. Quy trình tìm lỗi khi test thất bại
+## 9. Debugging Process When a Test Fails
 
-Khi kết quả không khớp yêu cầu, đừng sửa ngẫu nhiên cho tới khi test xanh. Thử lần lượt:
+When results do not match requirements, do not tweak things randomly until tests turn green. Try step by step:
 
-1. **Đọc lại câu yêu cầu**: xác định ngưỡng, dấu bằng, đối tượng được áp dụng, thời điểm tính, đơn vị và cách làm tròn.
-2. **Viết expected result bằng tay** từ quy tắc. Với bài toán có nhiều điều kiện, lập bảng quyết định.
-3. **Tái hiện bằng ca nhỏ nhất**: ví dụ `subtotal=300000`, member=true đủ để phát hiện nhầm ngưỡng phí ship.
-4. **Theo dõi giá trị trung gian**: `subtotal`, `discount`, `afterDiscount`, `shipping`, `payable`.
-5. **Kiểm tra toán tử, kiểu và thứ tự tính**: đặc biệt `>=`, `&&`, chia nguyên và overflow.
-6. **Sửa đúng quy tắc bị vi phạm**, thêm test hồi quy cho ca vừa tìm được và chạy lại các ca cũ.
+1. **Re-read the requirement sentence:** identify thresholds, inclusive equality, eligible parties, calculation stage, units, and rounding rules.
+2. **Write the expected result by hand** from the rules. For problems with multiple conditions, draw a decision table.
+3. **Reproduce with the smallest case:** for instance, `subtotal=300000`, member=true is enough to catch using the pre-discount shipping threshold.
+4. **Inspect intermediate values:** `subtotal`, `discount`, `afterDiscount`, `shipping`, `payable`.
+5. **Check operators, types, and evaluation order:** especially `>=`, `&&`, integer division, and overflow.
+6. **Fix the exact rule that was violated**, add a regression test for the case just found, and re-run existing cases.
 
-Một lỗi có thể đến từ chính **đặc tả chưa rõ**. Nếu yêu cầu không nói giảm giá làm tròn như thế nào, người lập trình không nên tự giả định rồi xem kết quả là đúng; cần làm rõ với người phụ trách nghiệp vụ.
+A bug can also stem from an **unclear specification**. If the requirement does not state how discounts are rounded, the programmer should not assume one way and treat the result as correct; clarify with the business owner.
 
-## 10. Bộ công cụ kiểm chứng: mỗi công cụ trả lời một câu hỏi
+## 10. Verification Toolkit: Each Tool Answers One Question
 
-| Hoạt động | Xác minh được | Không tự bảo đảm |
+| Activity | What It Verifies | What It Does Not Guarantee |
 |---|---|---|
-| `javac` | Cú pháp, kiểu, tên, điều kiện biên dịch | Công thức tiền đã đúng |
-| Chạy chương trình | Quan sát hành vi ở dữ liệu đã chạy | Đúng ở mọi dữ liệu khác |
-| Unit test / assertion rõ ràng | Một quy tắc cụ thể với input và expected | Bao phủ toàn bộ nghiệp vụ |
-| Boundary testing | Các trường hợp ngay dưới, đúng và trên ngưỡng | Mọi quy tắc tổ hợp |
-| Code review đối chiếu BR | Rà lại đơn vị, công thức, nhánh, ngoại lệ | Tự thay cho chạy test |
-| Static analysis / lint | Một số mẫu lỗi và vấn đề chất lượng | Hiểu hết quy định kinh doanh |
-| Integration/acceptance test | Các thành phần phối hợp và kịch bản thực tế | Bao phủ vô hạn trạng thái hệ thống |
+| `javac` | Syntax, types, names, compilation rules | That the pricing formula is right |
+| Running the program | Behavior observed on the executed inputs | Correctness on all other inputs |
+| Unit tests / explicit assertions | One specific rule with given inputs and expected values | Full business coverage |
+| Boundary testing | Cases just below, at, and above thresholds | All combinations of rules |
+| Code review against BR | Re-checking units, formulas, branches, exceptions | Replacing actual test runs |
+| Static analysis / lint | Certain bug patterns and quality issues | Understanding all business policies |
+| Integration/acceptance tests | Components working together and realistic scenarios | Covering infinitely many system states |
 
-Dùng `assert` của ngôn ngữ Java trong chương trình thông thường cần nhớ assertions có thể **bị vô hiệu hóa** nếu không bật `-ea`. Vì vậy ví dụ dùng `AssertionError` trực tiếp trong phương thức kiểm tra để luôn phát hiện kết quả không khớp khi chạy demo. Trong dự án thực tế, nên dùng framework kiểm thử với assertions được quản lý rõ ràng.
+When using Java's `assert` keyword in ordinary programs, remember assertions can be **disabled** unless `-ea` is enabled. Therefore, the example uses `AssertionError` directly in its test methods so mismatches are always caught when running the demo. In real projects, use a testing framework with properly managed assertions.
 
-## 11. Bài tập thực hành kèm đáp án
+## 11. Practice Exercises with Answers
 
-### Bài A — tìm lỗi nghiệp vụ trong mã hợp lệ
+### Exercise A — Find the Business Bug in Valid Code
 
 ~~~java
 long subtotal = 300_000;
@@ -386,49 +386,49 @@ long shipping = subtotal >= 300_000 ? 0 : 30_000;
 long payable = subtotal - discount + shipping;
 ~~~
 
-**Hỏi:** mã có biên dịch được không (khi nằm trong method hợp lệ)? Kết quả có đúng BR-05 không?
+**Question:** Does the code compile (when placed inside a valid method)? Does the result satisfy BR-05?
 
-**Đáp án:** mã đúng cú pháp/kiểu; `payable=270000`, nhưng BR-05 yêu cầu phí ship dựa trên `270000` sau giảm, nên tổng đúng là `300000`. Sửa điều kiện thành `subtotal - discount >= 300_000` hoặc đặt tên `afterDiscount` rồi dùng biến ấy.
+**Answer:** the code has valid syntax and types; `payable=270000`, yet BR-05 requires the shipping fee to be based on `270000` after discount, so the right total is `300000`. Fix the condition to `subtotal - discount >= 300_000` or introduce a variable named `afterDiscount` and use it.
 
-### Bài B — xét ranh giới
+### Exercise B — Check Boundaries
 
-Cùng một khách active, hãy tính kết quả với tiền hàng `199999`, `200000`, `200001`.
+For the same active customer, compute the results for subtotals `199999`, `200000`, and `200001`.
 
-**Đáp án:** lần lượt:
+**Answer:** respectively:
 
-- 199999: discount 0, ship 30000, payable **229999**.
-- 200000: discount 20000, sau giảm 180000, ship 30000, payable **210000**.
-- 200001: discount 20000 sau làm tròn xuống, sau giảm 180001, ship 30000, payable **210001**.
+- 199999: discount 0, shipping 30000, payable **229999**.
+- 200000: discount 20000, after discount 180000, shipping 30000, payable **210000**.
+- 200001: discount 20000 after rounding down, after discount 180001, shipping 30000, payable **210001**.
 
-### Bài C — phát hiện kiểm thử thiếu
+### Exercise C — Spot Missing Tests
 
-Nhóm chỉ thử `subtotal=400000` và thấy thành viên được giảm giá, miễn ship, tổng đúng. Liệu đã chứng minh BR-05 chưa?
+A team only tested `subtotal=400000` and saw that a member got a discount, free shipping, and the right total. Has BR-05 been proven?
 
-**Đáp án:** chưa. Cần ca `subtotal=300000, activeMember=true`: sau giảm còn 270000, do đó **không được miễn ship**. Đây là ca bắt lỗi “ship tính trước giảm”.
+**Answer:** not yet. You need the case `subtotal=300000, activeMember=true`: after discount it becomes 270000, so **free shipping does not apply**. This is the case that catches “shipping checked before discount”.
 
-### Bài D — thử dữ liệu sai và tràn số
+### Exercise D — Test Invalid Data and Overflow
 
-Chạy `calculate(0,1,false)`, `calculate(100,0,true)`, `calculate(Long.MAX_VALUE,2,true)`.
+Run `calculate(0,1,false)`, `calculate(100,0,true)`, `calculate(Long.MAX_VALUE,2,true)`.
 
-**Đáp án:** hai ca đầu ném `IllegalArgumentException` vì vi phạm BR-01; ca cuối ném `ArithmeticException` do `Math.multiplyExact` phát hiện tràn. Không được thay lỗi bằng giá âm rồi tiếp tục tính phí.
+**Answer:** the first two cases throw `IllegalArgumentException` for violating BR-01; the last case throws `ArithmeticException` because `Math.multiplyExact` detects overflow. You must not replace errors with negative prices and keep calculating fees.
 
-### Bài E — thay đổi chính sách
+### Exercise E — Policy Change
 
-Chủ cửa hàng đổi điều kiện: “miễn phí vận chuyển từ 300.000 đồng **trước giảm**”. Cần sửa gì?
+The store owner changes the condition: “free shipping from 300,000 dong **before discount**”. What needs to be updated?
 
-**Đáp án:** trong BR-05 mới, ngưỡng dùng `subtotal` thay cho `afterDiscount`. Phải sửa code, expected ở các ca chịu ảnh hưởng (đặc biệt tiền hàng 300000 có giảm giá), và lưu sự thay đổi của đặc tả. Một bản sửa theo BR mới có thể **cố tình khác** kết quả của bộ test cũ: test cũng phải được cập nhật có căn cứ, không sửa ngầm để làm xanh.
+**Answer:** in the new BR-05, the threshold uses `subtotal` instead of `afterDiscount`. You must update the code, the expected values in affected cases (especially subtotal 300000 with a discount), and record the specification change. A fix for a new BR may **intentionally differ** from the old test suite's results: tests must also be updated with justification, never silently tweaked just to make them green.
 
-## 12. Checklist nghiệm thu và ghi nhớ
+## 12. Acceptance Checklist and Takeaways
 
-- [ ] Phân biệt được **compile-time error**, **runtime error** và **lỗi logic nghiệp vụ**.
-- [ ] Viết được quy tắc kinh doanh thành điều kiện đầu vào, công thức và kết quả kỳ vọng.
-- [ ] Biết xác định giá trị nào là trước/sau một bước xử lý.
-- [ ] Kiểm tra đúng các ngưỡng `<`, `<=`, `>`, `>=` và tổ hợp điều kiện.
-- [ ] Dùng loại số và đơn vị tiền phù hợp; xác định quy tắc làm tròn.
-- [ ] Bảo vệ đầu vào sai, overflow và nhánh có thể gây exception.
-- [ ] Biên dịch và chạy `BusinessCorrectnessDemo.java`, đối chiếu đầu ra.
-- [ ] Có các ca **dưới ngưỡng, đúng ngưỡng, trên ngưỡng**, trường hợp thành viên và không thành viên.
-- [ ] Có test hồi quy chứng minh một bug nghiệp vụ đã sửa không xuất hiện trở lại.
-- [ ] Không xem “`javac` không báo lỗi” hoặc “chạy không crash” là bằng chứng đủ về tính đúng nghiệp vụ.
+- [ ] Distinguish **compile-time errors**, **runtime errors**, and **business logic bugs**.
+- [ ] Turn business rules into input preconditions, formulas, and expected results.
+- [ ] Know how to identify which values belong before vs. after a processing step.
+- [ ] Verify thresholds `<`, `<=`, `>`, `>=` and condition combinations accurately.
+- [ ] Use appropriate numeric types and currency units; define rounding rules.
+- [ ] Guard against invalid inputs, overflow, and exception-prone branches.
+- [ ] Compile and run `BusinessCorrectnessDemo.java`, verifying the output.
+- [ ] Include cases **below threshold, at threshold, above threshold**, for both members and non-members.
+- [ ] Have regression tests proving that a fixed business bug does not return.
+- [ ] Never treat “`javac` reported no error” or “ran without crashing” as sufficient proof of business correctness.
 
-**Kết luận:** Java quyết định **mã có hợp lệ theo ngôn ngữ hay không**; còn các quy tắc nghiệp vụ xác định **kết quả nào mới là đúng**. Muốn có phần mềm đáng tin cậy, phải nối hai phía bằng ví dụ đầu vào/đầu ra, phép tính có ý nghĩa rõ ràng, xử lý edge cases và kiểm thử đối chiếu yêu cầu.
+**Conclusion:** Java decides **whether code is valid according to the language**; business rules define **which results are right**. To build reliable software, bridge both sides with input/output examples, clearly named calculations, edge-case handling, and tests verified against requirements.

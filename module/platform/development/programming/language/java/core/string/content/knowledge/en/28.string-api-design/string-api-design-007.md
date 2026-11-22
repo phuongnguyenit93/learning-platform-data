@@ -1,61 +1,61 @@
-# Dùng bộ xử lý đúng định dạng cho JSON, CSV, đường dẫn hoặc URI
+# Using Format-Specific Processors for JSON, CSV, Paths, or URIs
 
-## 1. Một String có thể chứa nhiều ngôn ngữ dữ liệu khác nhau
+## 1. A String can contain many different data languages
 
-Trong Java, kiểu `String` chỉ lưu một dãy ký tự. Nó **không tự cho biết** dãy đó là JSON, bản ghi CSV, đường dẫn tệp hay URI. Mỗi định dạng có **ngữ pháp và quy tắc escape riêng**. Nếu lấy thao tác chuỗi phổ thông như `split`, `substring`, `replace` hoặc regex để thay thế bộ phân tích định dạng, kết quả thường chỉ đúng với dữ liệu đơn giản.
+In Java, the `String` type merely stores a sequence of characters. It **does not by itself tell you** whether that sequence is JSON, a CSV record, a file path, or a URI. Each format has **its own grammar and escaping rules**. If you use general-purpose string operations such as `split`, `substring`, `replace`, or regex in place of a format parser, the result will usually only work for simple inputs.
 
-Ví dụ bốn chuỗi nhìn có vẻ dễ xử lý:
+Consider four strings that appear easy to handle:
 
 ```text
 {"message":"Lan said \"Hello\"","count":2}
-"Lan, A.","Dòng đầu
-Dòng thứ hai"
+"Lan, A.","First line
+Second line"
 reports/2026/../summary.csv
 https://example.com/search?q=Java%20%26%20Spring#results
 ```
 
-- JSON có chuỗi được quote, ký tự escape, kiểu số, `null`, array và object.
-- CSV có dấu phân cách nằm **bên trong trường được quote**, dấu nháy kép được escape bằng hai dấu nháy liên tiếp, thậm chí một trường có thể chứa newline.
-- Đường dẫn có phân đoạn, quy tắc tương đối/tuyệt đối, hệ thống tệp và các ký hiệu `.`, `..`.
-- URI có scheme, authority, path, query, fragment, percent-encoding và ký tự dành riêng.
+- JSON has quoted strings, escape characters, number types, `null`, arrays, and objects.
+- CSV has delimiters **inside quoted fields**, double quotes escaped by two consecutive quotes, and a field can even contain a newline.
+- Paths have segments, relative/absolute rules, file-system semantics, and `.`, `..` symbols.
+- URIs have scheme, authority, path, query, fragment, percent-encoding, and reserved characters.
 
-Một API tốt cần nói rõ **đầu vào thuộc định dạng nào**, dùng bộ xử lý phù hợp để tạo ra kiểu dữ liệu có cấu trúc, rồi mới thực hiện logic nghiệp vụ. Không nên biến mọi thứ thành `String.split(...)` chỉ vì mọi đầu vào đều bắt đầu từ chuỗi.
+A good API must clearly state **which format the input belongs to**, use the appropriate processor to produce structured data types, and only then execute business logic. Do not turn everything into `String.split(...)` merely because every input starts out as a string.
 
-## 2. Bảng chọn API theo loại dữ liệu
+## 2. API selection table by data type
 
-| Dữ liệu | Công cụ phù hợp trong Java | Đầu ra mong đợi | Tránh cách làm |
+| Data | Appropriate Java Tool | Expected Output | Avoid Doing |
 | --- | --- | --- | --- |
-| JSON | Jackson `ObjectMapper`, Gson hoặc thư viện JSON tương thích | Object/record, cây JSON, hoặc luồng token | Tự tách theo dấu phẩy, dấu hai chấm hay dấu ngoặc |
-| CSV | Apache Commons CSV, OpenCSV hoặc parser có cấu hình đúng dialect | Bản ghi và các trường, kể cả giá trị rỗng | `split(",")` hoặc `split("\n")` mù quáng |
-| Đường dẫn tệp | `java.nio.file.Path`, `Files` | Các phân đoạn đường dẫn, đối tượng truy cập file | Tự nối đường dẫn bằng `"/"` hoặc `"\\"` |
-| URI | `java.net.URI` và URI builder phù hợp | Scheme, host, path, query, fragment | Cắt chuỗi dựa trên `"://"`, `"/"`, `"?"`, `"&"` |
-| Query tham số form | URL/form encoder hoặc URI builder ở đúng ngữ cảnh | Giá trị query được encode đúng | Dùng `URLEncoder` cho mọi thành phần URI |
+| JSON | Jackson `ObjectMapper`, Gson, or a compatible JSON library | Object/record, JSON tree, or token stream | Manually splitting on commas, colons, or braces |
+| CSV | Apache Commons CSV, OpenCSV, or a dialect-configured parser | Records and fields, including empty values | Blindly calling `split(",")` or `split("\n")` |
+| File path | `java.nio.file.Path`, `Files` | Path segments, file access handle | Manually concatenating paths with `"/"` or `"\\"` |
+| URI | `java.net.URI` and an appropriate URI builder | Scheme, host, path, query, fragment | Slicing strings based on `"://"`, `"/"`, `"?"`, `"&"` |
+| Form query parameters | Context-appropriate URL/form encoder or URI builder | Properly encoded query values | Using `URLEncoder` for every URI component |
 
-**Chọn parser là một phần của hợp đồng API**, không chỉ là vấn đề tiện lợi. Nó giúp xử lý đúng dữ liệu hợp lệ phức tạp, phân biệt input sai, và tránh việc mã hóa hai lần hoặc làm mất thông tin.
+**Choosing a parser is part of the API contract**, not merely a matter of convenience. It helps handle complex valid data accurately, distinguish malformed inputs, and avoid double encoding or information loss.
 
-## 3. JSON: parser hiểu cấu trúc, kiểu dữ liệu và escaping
+## 3. JSON: parsers understand structure, data types, and escaping
 
-### 3.1. Vì sao split theo dấu phẩy hoặc dấu hai chấm sẽ sai?
+### 3.1. Why splitting on commas or colons fails
 
-Ví dụ:
+Example:
 
 ```json
 {
   "name": "Lan, A.",
-  "address": {"city": "Hà Nội"},
+  "address": {"city": "Hanoi"},
   "tags": ["Java", "Spring"],
   "enabled": true,
   "note": null
 }
 ```
 
-Nếu gọi `split(",")`, dấu phẩy trong `"Lan, A."` sẽ bị coi là dấu phân cách trường, trong khi nó chỉ là **nội dung chuỗi**. Dấu phẩy giữa các phần tử của array cũng không nằm ở cùng cấp với dấu phẩy giữa các thuộc tính của object. Tương tự, `split(":")` không phân biệt dấu hai chấm của thuộc tính với ký tự bên trong giá trị chuỗi.
+If you call `split(",")`, the comma inside `"Lan, A."` will be treated as a field separator, even though it is just **string content**. Commas between array elements are also not at the same level as commas between object properties. Likewise, `split(":")` cannot distinguish property colons from colons inside string values.
 
-JSON còn có escape `\"`, `\\`, `\n`, `\uXXXX`; phân biệt `42` (number) với `"42"` (string), `true` (boolean), `null` và trường không tồn tại. Việc tự viết một loạt `replace` hiếm khi xử lý đủ các trường hợp.
+JSON also has escapes `\"`, `\\`, `\n`, `\uXXXX`; it distinguishes `42` (number) from `"42"` (string), `true` (boolean), `null`, and absent fields. Writing a chain of `replace` calls rarely covers all cases.
 
-### 3.2. Parse bằng Jackson
+### 3.2. Parsing with Jackson
 
-Với ứng dụng có thư viện Jackson Databind trong classpath, có thể ánh xạ JSON vào một kiểu Java:
+In applications with Jackson Databind on the classpath, JSON can be mapped to a Java type:
 
 ```java
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -75,23 +75,23 @@ String serialized = mapper.writeValueAsString(product);
 System.out.println(serialized); // {"sku":"SKU-01","quantity":3}
 ```
 
-**Đây là đoạn minh họa để đặt trong một lớp/phương thức Java**, không phải tệp độc lập. Cần khai báo dependency `com.fasterxml.jackson.core:jackson-databind` với phiên bản phù hợp do dự án quản lý; Java 17 **không có Jackson sẵn trong JDK**. Record cần phiên bản Jackson có hỗ trợ Java records.
+**This is an illustrative snippet to place inside a Java class/method**, not a standalone file. You must declare the `com.fasterxml.jackson.core:jackson-databind` dependency at an appropriate project-managed version; Java 17 **does not bundle Jackson in the JDK**. Records require a Jackson version that supports Java records.
 
-Jackson cũng hỗ trợ `JsonNode` để duyệt JSON linh hoạt, hoặc streaming API cho đầu vào lớn. Khi dữ liệu có schema cố định, chuyển thành record/class giúp logic nghiệp vụ có kiểu rõ ràng; khi cấu trúc động, cây JSON thường phù hợp hơn.
+Jackson also supports `JsonNode` for flexible JSON traversal, or a streaming API for large inputs. When data has a fixed schema, converting to a record/class gives business logic clear types; when the structure is dynamic, a JSON tree is often more suitable.
 
-Lưu ý: **deserialize thành công chưa thay thế kiểm tra nghiệp vụ**. Ví dụ `quantity` có thể cần lớn hơn 0; định dạng JSON hợp lệ chưa bảo đảm giá trị hợp lệ. Các tùy chọn Jackson về field thiếu, field lạ và ép kiểu (coercion) phải phù hợp hợp đồng API; không nên dựa vào giá trị mặc định của trường primitive rồi im lặng chấp nhận thiếu trường.
+Note: **successful deserialization does not replace business validation**. For example, `quantity` may need to be greater than 0; valid JSON syntax does not guarantee valid values. Jackson options for missing fields, unknown fields, and coercion must align with the API contract; do not rely on primitive default values and silently accept missing fields.
 
-### 3.3. Tạo JSON bằng serializer, không tự ghép dấu nháy
+### 3.3. Generating JSON with a serializer, not by concatenating quotes
 
-Cách ghép chuỗi thủ công:
+Manual string concatenation:
 
 ```java
 String json = "{\"message\":\"" + userText + "\"}";
 ```
 
-sẽ sai khi `userText` có dấu nháy kép, backslash hoặc các ký tự điều khiển. Nếu nguồn dữ liệu không đáng tin cậy, việc ghép JSON sai còn gây lỗi dữ liệu hoặc làm thay đổi cấu trúc.
+will break when `userText` contains double quotes, backslashes, or control characters. If the data source is untrusted, broken JSON assembly can also corrupt data or alter structure.
 
-Thay vào đó, để serializer chịu trách nhiệm escape:
+Instead, let the serializer handle escaping:
 
 ```java
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -101,28 +101,28 @@ ObjectMapper mapper = new ObjectMapper();
 String result = mapper.writeValueAsString(
         Map.of("message", "Lan said \"Hello\"")
 );
-// result là JSON hợp lệ với dấu nháy trong giá trị được escape.
+// result is valid JSON with quotes inside the value properly escaped.
 ```
 
-Đây cũng là đoạn minh họa có dependency Jackson. Khi output bắt buộc hợp lệ theo một schema, hãy kết hợp serializer với schema validation hoặc kiểm tra domain trước khi gửi.
+This is also an illustrative snippet requiring the Jackson dependency. When output must conform to a schema, combine the serializer with schema validation or domain checks before sending.
 
-## 4. CSV: tách bản ghi và trường theo đúng dialect
+## 4. CSV: splitting records and fields according to the proper dialect
 
-### 4.1. Dấu phẩy chưa chắc là dấu phân cách
+### 4.1. A comma is not always a delimiter
 
-CSV thường được mô tả ngắn là “các giá trị cách nhau bằng dấu phẩy”, nhưng trường được đặt trong dấu nháy kép có thể **chứa dấu phẩy, newline hoặc dấu nháy**. Ví dụ CSV sau có một dòng tiêu đề và một dòng dữ liệu:
+CSV is often briefly described as "comma-separated values", yet a field enclosed in double quotes can **contain commas, newlines, or quotes**. The following CSV example has one header line and one data line:
 
 ```csv
 name,note
 "Lan, A.","Said ""hello"""
 ```
 
-Bản ghi dữ liệu có **hai trường**:
+The data record has **two fields**:
 
 1. `Lan, A.`
 2. `Said "hello"`
 
-`split(",")` sẽ tách sai trường đầu. Một ví dụ khác:
+`split(",")` will split the first field incorrectly. Another example:
 
 ```csv
 id,note
@@ -130,13 +130,13 @@ id,note
 Second line"
 ```
 
-Trường `note` chứa newline, nhưng vẫn thuộc **một bản ghi CSV**. Vì vậy, `split("\n")` để đếm số dòng rồi `split(",")` để lấy trường không phải bộ đọc CSV tổng quát.
+The `note` field contains a newline, yet still belongs to **one CSV record**. Therefore, calling `split("\n")` to count lines and then `split(",")` to extract fields is not a general CSV reader.
 
-Các file mang đuôi `.csv` còn có thể dùng dấu chấm phẩy `;`, tab, escape riêng, encoding và quy tắc header khác nhau. Cần xác định **dialect** (delimiter, quote, escape, header, record separator, chính sách ô rỗng) từ nguồn dữ liệu.
+Files with a `.csv` extension may also use semicolons `;`, tabs, custom escapes, encodings, and different header rules. You must determine the **dialect** (delimiter, quote, escape, header, record separator, empty-cell policy) from the data source.
 
-### 4.2. Parse bằng Apache Commons CSV
+### 4.2. Parsing with Apache Commons CSV
 
-Khi dự án đã thêm dependency `org.apache.commons:commons-csv`, có thể dùng:
+When the project includes the `org.apache.commons:commons-csv` dependency, you can use:
 
 ```java
 import java.io.StringReader;
@@ -157,29 +157,29 @@ try (CSVParser parser =
 }
 ```
 
-Đây là **đoạn minh họa** đặt trong một phương thức có thể xử lý `IOException`, và cần thư viện Commons CSV trên classpath. Nó đọc cả dòng tiêu đề như bản ghi đầu tiên; nếu muốn truy cập cột theo **tên header**, cần cấu hình header theo API của phiên bản Commons CSV đang sử dụng.
+This is an **illustrative snippet** placed inside a method that can handle `IOException`, and requires the Commons CSV library on the classpath. It reads the header line as the first record; if you want to access columns by **header name**, configure headers according to the API of the Commons CSV version in use.
 
-Cấu hình đúng phụ thuộc nguồn CSV: không phải mọi tập tin đều tuân thủ RFC 4180, và không nên giả định mọi dấu `;` hoặc tab trong dữ liệu đều là sai.
+Proper configuration depends on the CSV source: not every file conforms to RFC 4180, and you should not assume every `;` or tab in data is an error.
 
-### 4.3. Ghi CSV bằng printer và giữ đủ trường
+### 4.3. Writing CSV with a printer and preserving all fields
 
-Khi xuất CSV, hãy dùng chức năng ghi của thư viện để quote và escape trường. Không tự ghép:
+When exporting CSV, use the library's writer to quote and escape fields. Do not concatenate manually:
 
 ```java
-String line = name + "," + note; // Có thể làm hỏng CSV.
+String line = name + "," + note; // Can corrupt the CSV.
 ```
 
-Các bộ ghi CSV chuyên dụng biết khi nào phải thêm dấu nháy và biến dấu `"` bên trong thành `""`. Nếu số cột là cố định, phải kiểm tra số trường sau khi parser xử lý, kể cả trường rỗng ở cuối.
+Dedicated CSV writers know when to add quotes and turn internal `"` characters into `""`. If the column count is fixed, validate the number of fields after parsing, including trailing empty fields.
 
-Ví dụ `A,B,` biểu thị **ba trường** trong mô hình CSV có dấu phân cách literal: `A`, `B` và trường cuối rỗng. Dùng `"A,B,".split(",")` trong Java sẽ bỏ trường rỗng cuối; `split(",", -1)` giữ được trường đó với **CSV cực kỳ đơn giản**, nhưng vẫn **không xử lý** các trường quoted, embedded comma hoặc newline. `-1` không biến `split` thành CSV parser.
+For example, `A,B,` represents **three fields** in a literal-delimiter CSV model: `A`, `B`, and an empty final field. Calling `"A,B,".split(",")` in Java drops the trailing empty field; `split(",", -1)` preserves it for **extremely simple CSV**, yet still **does not handle** quoted fields, embedded commas, or newlines. `-1` does not turn `split` into a CSV parser.
 
-Khi xuất CSV cho ứng dụng bảng tính, cần xem xét dữ liệu người dùng bắt đầu bằng `=`, `+`, `-` hoặc `@`: một số phần mềm có thể diễn giải chúng như **công thức** khi mở tệp. Việc CSV được quote đúng cú pháp không đồng nghĩa an toàn khi hiển thị trong spreadsheet; cần chính sách xuất dữ liệu theo ứng dụng đích để giảm nguy cơ công thức được thực thi.
+When exporting CSV for spreadsheet applications, consider user data starting with `=`, `+`, `-`, or `@`: some software may interpret them as **formulas** upon opening the file. Syntactically quoted CSV does not automatically mean safe rendering in spreadsheets; apply an export policy tailored to the target application to mitigate formula execution risk.
 
-## 5. Đường dẫn: dùng Path thay cho nối chuỗi
+## 5. Paths: use Path instead of string concatenation
 
-### 5.1. Đường dẫn là cấu trúc của hệ thống tệp
+### 5.1. A path is a file-system structure
 
-Trong Java 17, `java.nio.file.Path` biểu diễn đường dẫn tệp theo **file-system provider** đang dùng. Nó hỗ trợ phân đoạn, resolve, normalize, truy xuất tên tệp và thao tác thông qua `Files`:
+In Java 17, `java.nio.file.Path` represents file paths according to the active **file-system provider**. It supports segments, resolving, normalizing, extracting file names, and operations via `Files`:
 
 ```java
 import java.nio.file.Path;
@@ -190,17 +190,17 @@ Path target = root.resolve(Path.of("2026", "summary.csv"));
 System.out.println(target.getFileName()); // summary.csv
 ```
 
-Tránh tự nối:
+Avoid manual concatenation:
 
 ```java
 String path = rootText + "/" + fileName;
 ```
 
-vì dấu phân cách và cách biểu diễn ổ đĩa/thư mục gốc phụ thuộc nền tảng; nhiều dấu `/`, `\\`, đường dẫn tuyệt đối hoặc các phân đoạn `..` còn có thể làm ý nghĩa đường dẫn khác dự định.
+because separators and drive/root representations depend on the platform; multiple `/`, `\\`, absolute paths, or `..` segments can also alter the path's meaning unexpectedly.
 
-Cùng một đường dẫn có thể được biểu diễn bằng nhiều cách text khác nhau. `Path.normalize()` loại các thành phần `.` và xử lý các cặp phân đoạn `name/..` **theo cú pháp**, chưa cần truy cập hệ thống tệp.
+The same path can be written in multiple text forms. `Path.normalize()` removes `.` components and resolves `name/..` segment pairs **syntactically**, without accessing the file system.
 
-### 5.2. Dùng resolve và normalize đúng mục đích
+### 5.2. Use resolve and normalize for the right purpose
 
 ```java
 Path root = Path.of("documents").toAbsolutePath().normalize();
@@ -211,7 +211,7 @@ System.out.println(target.getFileName()); // report.csv
 System.out.println(target.startsWith(root)); // true
 ```
 
-Nếu người dùng cung cấp `../secret.txt` và ứng dụng chỉ cho phép đặt tệp dưới `root`, cần kiểm tra:
+If a user supplies `../secret.txt` and the application only permits files under `root`, check:
 
 ```java
 Path attempt = root.resolve(Path.of("..", "secret.txt")).normalize();
@@ -219,38 +219,38 @@ boolean inside = attempt.startsWith(root);
 System.out.println(inside); // false
 ```
 
-`Path.startsWith(Path)` so sánh **các thành phần đường dẫn**, khác với `String.startsWith`. Ví dụ đường dẫn `/data/reports-other` không nằm trong root `/data/reports` dù chuỗi ký tự có chung tiền tố.
+`Path.startsWith(Path)` compares **path components**, unlike `String.startsWith`. For example, `/data/reports-other` is not inside root `/data/reports` even though the character strings share a prefix.
 
-**Lưu ý bảo mật quan trọng:** kiểm tra `normalize()`/`startsWith(root)` chỉ là **kiểm tra cấu trúc đường dẫn theo cú pháp**. Nó không ngăn trường hợp symlink bên trong root trỏ đến một vị trí bên ngoài, và không tự khắc phục race condition giữa kiểm tra với lúc mở tệp. Với yêu cầu giới hạn truy cập nghiêm ngặt, cần thiết kế quy trình filesystem phù hợp: kiểm tra đường dẫn thực bằng `toRealPath` khi có tệp, xử lý symlink và quyền truy cập, cân nhắc thao tác gắn với directory handle/secure directory stream tùy hệ thống tệp. Không dùng một phép kiểm tra text đơn lẻ như bằng chứng “đã chống mọi path traversal”.
+**Important security note:** checking `normalize()`/`startsWith(root)` is only a **syntactic path structure check**. It does not prevent a symlink inside root from pointing to an outside location, and does not by itself resolve race conditions between checking and opening the file. For strict access containment, design an appropriate filesystem workflow: verify the real path via `toRealPath` when the file exists, handle symlinks and permissions, and consider directory-handle/secure-directory-stream operations depending on the filesystem. Never treat a single text check as proof against "all path traversal".
 
-### 5.3. File Path không đồng nghĩa URI
+### 5.3. File Path is not equivalent to URI
 
-`Path.of("data", "report.csv")` là đường dẫn tệp tương đối. `URI.create("https://example.com/report.csv")` là URI HTTPS. Chúng có cú pháp và cơ chế truy cập khác nhau.
+`Path.of("data", "report.csv")` is a relative file path. `URI.create("https://example.com/report.csv")` is an HTTPS URI. They have different syntaxes and access mechanisms.
 
-`Path.of(uri)` được dùng cho URI chỉ hệ thống tệp được provider hỗ trợ, phổ biến là `file:`, **không dùng để chuyển URL HTTP/HTTPS thành đường dẫn cục bộ**. Nếu cần tải tài nguyên HTTP, dùng HTTP client (`java.net.http.HttpClient`) hoặc thư viện phù hợp, rồi lưu kết quả bằng `Files` dưới một `Path` do ứng dụng kiểm soát.
+`Path.of(uri)` is used for URIs targeting a supported file-system provider, commonly `file:`, **not to convert HTTP/HTTPS URLs into local paths**. If you need to fetch an HTTP resource, use an HTTP client (`java.net.http.HttpClient`) or suitable library, then save the result via `Files` under an application-controlled `Path`.
 
-## 6. URI: phân tách thành phần và mã hóa theo ngữ cảnh
+## 6. URI: parse components and encode by context
 
-### 6.1. URI có cấu trúc riêng
+### 6.1. URIs have their own structure
 
-Ví dụ:
+Example:
 
 ```text
 https://example.com/search?q=Java%20%26%20Spring#results
 └scheme └authority┘ └path┘ └────query─────┘ └fragment
 ```
 
-Các thành phần có ý nghĩa khác nhau:
+Each component has a distinct purpose:
 
-| Thành phần | Mục đích |
+| Component | Purpose |
 | --- | --- |
-| Scheme | `https`, `http`, `file`, v.v. |
-| Authority | Có thể chứa user info, host và port. |
-| Path | Các phân đoạn tài nguyên. |
-| Query | Phần sau `?` theo cú pháp của dịch vụ. |
-| Fragment | Phần sau `#`; không phải phần request path gửi máy chủ theo nghĩa thông thường. |
+| Scheme | `https`, `http`, `file`, etc. |
+| Authority | May contain user info, host, and port. |
+| Path | Resource segments. |
+| Query | Portion after `?` per service syntax. |
+| Fragment | Portion after `#`; normally not part of the request path sent to the server. |
 
-Java cung cấp `java.net.URI` để parse và xử lý cú pháp URI:
+Java provides `java.net.URI` to parse and work with URI syntax:
 
 ```java
 import java.net.URI;
@@ -265,13 +265,13 @@ System.out.println(uri.getRawQuery());  // q=Java%20%26%20Spring
 System.out.println(uri.getFragment());  // results
 ```
 
-`getRawQuery()` giữ percent-encoding; `getQuery()` trả dữ liệu query đã được decode theo quy tắc của `URI`. Nhưng `URI` **không tự biến một query thành map nhiều tham số theo chuẩn riêng của ứng dụng**.
+`getRawQuery()` preserves percent-encoding; `getQuery()` returns query data decoded per `URI` rules. However, `URI` **does not automatically turn a query into a multi-parameter map according to application-specific conventions**.
 
-### 6.2. Mã hóa query value không giống mã hóa path segment
+### 6.2. Encoding a query value differs from encoding a path segment
 
-Trong chuỗi `?q=Java%20%26%20Spring`, `%26` thể hiện ký tự `&` thuộc **giá trị tham số**, không phải dấu phân tách hai tham số. Nếu ghép `?q=` với text tùy ý chưa encode, một dấu `&` trong dữ liệu có thể bị hiểu thành phần cú pháp query.
+In `?q=Java%20%26%20Spring`, `%26` represents the `&` character belonging to the **parameter value**, not a separator between two parameters. If you concatenate `?q=` with arbitrary unencoded text, an `&` in the data may be interpreted as query syntax.
 
-Với **giá trị query được mã hóa theo application/x-www-form-urlencoded**, có thể dùng:
+For **query values encoded as application/x-www-form-urlencoded**, you can use:
 
 ```java
 import java.net.URI;
@@ -286,11 +286,11 @@ System.out.println(search.getRawQuery());
 // q=Java+%26+Spring
 ```
 
-Dấu cách được form-encode thành `+`, dấu `&` thành `%26`. Đây là cách mã hóa phù hợp cho **form-style query parameter value**; không dùng `URLEncoder` cho toàn bộ URL hoặc toàn bộ path. Trong URI path, ký tự `+` có thể mang nghĩa literal, còn `/` phân tách path segment. Để tạo URI với nhiều path segments và query params tùy ý, dùng URI builder đáng tin cậy, biết encode **từng thành phần đúng ngữ cảnh**.
+Spaces are form-encoded as `+`, and `&` becomes `%26`. This encoding is appropriate for **form-style query parameter values**; do not use `URLEncoder` for an entire URL or an entire path. In a URI path, `+` can carry literal meaning, while `/` separates path segments. To construct URIs with arbitrary path segments and query params, use a reliable URI builder that encodes **each component for its proper context**.
 
-Nếu dùng `new URI(scheme, authority, path, query, fragment)`, vẫn phải phân biệt các dấu reserved có ý nghĩa bên trong thành phần: constructor mã hóa ký tự bất hợp lệ nhưng không thể đoán rằng dấu `/` trong một path string là dữ liệu thuộc **một segment** hay dấu phân tách segment. Mã hóa đúng theo **ý nghĩa thành phần** vẫn là trách nhiệm của API gọi.
+If using `new URI(scheme, authority, path, query, fragment)`, you still must distinguish reserved characters that have meaning inside a component: the constructor encodes illegal characters but cannot guess whether `/` inside a path string is data belonging to **one segment** or a segment separator. Encoding according to **component semantics** remains the responsibility of the calling API.
 
-### 6.3. URI.resolve: xây đường dẫn tương đối, nhưng kiểm tra nguồn
+### 6.3. URI.resolve: building relative paths, while checking the target
 
 ```java
 URI base = URI.create("https://example.com/api/");
@@ -300,13 +300,13 @@ System.out.println(userEndpoint.getPath());
 // /api/users/42
 ```
 
-Dấu `/` cuối ở base ảnh hưởng cách resolve đường dẫn tương đối. Nếu base là `https://example.com/api` (không có slash cuối), chuỗi `users/42` có thể thay phân đoạn `api` thay vì được thêm dưới nó.
+A trailing `/` on base affects how relative paths resolve. If base is `https://example.com/api` (without a trailing slash), `users/42` may replace the `api` segment instead of being appended beneath it.
 
-**Không dùng `base.resolve(userSuppliedUri)` rồi mặc định đích vẫn nằm trên cùng host**. Chuỗi đầu vào bắt đầu bằng `https://...` hoặc `//other-host/...` có thể dẫn đến URI đích khác. Khi xây dựng URL cho request ra ngoài, phải kiểm tra scheme, host, port, path và các chính sách truy cập sau khi resolve; khi theo redirect còn cần xem lại đích mới. Việc parser tạo thành công `URI` không bảo đảm URL an toàn để gọi mạng.
+**Do not call `base.resolve(userSuppliedUri)` and assume the target remains on the same host.** Input starting with `https://...` or `//other-host/...` can resolve to a different target URI. When constructing URLs for outbound requests, validate scheme, host, port, path, and access policies after resolution; when following redirects, re-check the new target as well. Successful `URI` parsing does not guarantee the URL is safe for network calls.
 
-## 7. Ví dụ Java 17 độc lập, không cần thư viện ngoài
+## 7. Standalone Java 17 example without external libraries
 
-Tạo tệp `StructuredFormatDemo.java`:
+Create the file `StructuredFormatDemo.java`:
 
 ```java
 import java.net.URI;
@@ -347,14 +347,14 @@ public class StructuredFormatDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac StructuredFormatDemo.java
 java StructuredFormatDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 query: q=Java+%26+Spring
@@ -366,21 +366,21 @@ uri absolute: true
 naive CSV parts: 2
 ```
 
-Các dòng đầu xác nhận việc mã hóa giá trị query và sử dụng `URI.resolve`, `Path.resolve`/`normalize` đúng ngữ cảnh. Dòng cuối cố tình cho thấy `split(",")` tạo hai đoạn vì nó gặp một dấu phẩy nằm trong chuỗi quoted; với CSV hợp lệ `Lan,"said ""hello"""`, dấu phẩy là delimiter, nhưng các đoạn thô do `split` để lại **chưa được giải mã quote/escape** và không phải các giá trị trường CSV đúng nghĩa. Với một trường quoted chứa dấu phẩy như `"Lan, A.","hello"`, `split(",")` còn tạo **sai số lượng trường**.
+The first lines confirm context-appropriate query value encoding and use of `URI.resolve` and `Path.resolve`/`normalize`. The last line intentionally shows that `split(",")` produces two pieces because it encounters a comma outside the quoted string; for valid CSV `Lan,"said ""hello"""`, the comma is the delimiter, yet the raw pieces left by `split` **have not had quotes/escapes unquoted** and are not true CSV field values. For a quoted field containing a comma like `"Lan, A.","hello"`, `split(",")` even produces **the wrong number of fields**.
 
-Ví dụ `escape rejected: true` chỉ chứng minh thao tác kiểm tra đường dẫn **về mặt cú pháp**; để kiểm tra đường dẫn thật trên hệ thống tệp vẫn cần xét symlink và các vấn đề truy cập nêu ở mục 5.
+The `escape rejected: true` example only demonstrates **syntactic** path checking; checking real paths on a file system still requires accounting for symlinks and access issues mentioned in section 5.
 
-## 8. Thiết kế API: nhận dữ liệu có ý nghĩa, trả kiểu có cấu trúc
+## 8. API design: accept meaningful data, return structured types
 
-Hạn chế tối đa việc để các tầng nghiệp vụ phải đoán định dạng của một chuỗi chung chung.
+Minimize forcing business layers to guess the format of a generic string.
 
-Thay vì API mơ hồ như:
+Instead of a vague API like:
 
 ```java
 void process(String data);
 ```
 
-hãy thiết kế đường đi rõ ràng, ví dụ:
+design a clear pipeline, for example:
 
 ```text
 HTTP body JSON --JSON parser--> OrderRequest --validation--> domain command
@@ -389,60 +389,60 @@ Path input ----Path/Files-----> normalized/checkable file path
 URI input -----URI parser-----> URI components -> validated outbound request
 ```
 
-Tại ranh giới hệ thống, nên tách thành các bước:
+At system boundaries, separate into steps:
 
-1. **Xác định định dạng** từ hợp đồng, Content-Type hoặc cấu hình đáng tin, không đoán bằng `contains(",")` hay `startsWith("{")`.
-2. **Parse bằng bộ xử lý đúng** để tôn trọng quoting, escape, nested structures và cú pháp thành phần.
-3. **Kiểm tra tính hợp lệ về cấu trúc và nghiệp vụ**: trường bắt buộc, kiểu, số cột, giới hạn độ dài, phạm vi giá trị, path root hoặc destination host.
-4. **Sử dụng kiểu dữ liệu có ý nghĩa** trong phần còn lại của chương trình, thay vì đưa raw string đi khắp nơi.
-5. **Serialize/encode khi xuất** bằng đúng công cụ cho định dạng đích; tránh tự ghép lại dữ liệu bằng dấu phân cách.
+1. **Identify the format** from the contract, Content-Type, or trusted configuration—do not guess with `contains(",")` or `startsWith("{")`.
+2. **Parse with the right processor** to respect quoting, escaping, nested structures, and component syntax.
+3. **Validate structure and business rules**: required fields, types, column count, length limits, value ranges, root path, or destination host.
+4. **Use meaningful data types** throughout the rest of the program instead of passing raw strings everywhere.
+5. **Serialize/encode on output** with the proper tool for the target format; avoid manually reassembling data with delimiters.
 
-Ở bước parse, lỗi phải được chuyển thành thông báo rõ ràng cho người gọi, ví dụ “JSON sai cú pháp”, “CSV thiếu cột”, “đường dẫn nằm ngoài thư mục cho phép”, “URI có scheme không được chấp nhận”. Không nuốt mọi ngoại lệ rồi trả một chuỗi rỗng, vì chuỗi rỗng đôi khi lại là dữ liệu hợp lệ.
+During parsing, convert errors into clear messages for the caller, such as "JSON syntax error", "CSV missing columns", "path outside allowed directory", or "URI has disallowed scheme". Never swallow exceptions and return an empty string, because an empty string can sometimes be valid data.
 
-## 9. Những bẫy thiết kế thường gặp
+## 9. Common design pitfalls
 
-### 9.1. Dùng một regex cho định dạng có cấu trúc lồng nhau
+### 9.1. Using a single regex for nested structured formats
 
-Regex vẫn hữu ích để kiểm tra **mẫu đơn giản**, tìm token hoặc xác nhận một trường văn bản có pattern hẹp. Nhưng JSON có object/array lồng nhau và escape; CSV có quote/newline và trạng thái parser; URI có nhiều thành phần độc lập. Khi vấn đề là **phân tích toàn bộ định dạng**, chọn parser thay vì liên tục bổ sung regex cho từng phản ví dụ.
+Regex remains useful for checking **simple patterns**, finding tokens, or validating a text field with a narrow pattern. However, JSON has nested objects/arrays and escapes; CSV has quotes/newlines and parser state; URIs have multiple independent components. When the task is **parsing an entire format**, choose a parser rather than endlessly patching a regex for each counterexample.
 
-### 9.2. Nhầm escaping của định dạng này với định dạng khác
+### 9.2. Confusing one format's escaping with another's
 
-- JSON escape dấu `"` và `\` theo luật JSON.
-- CSV escape dấu `"` trong quoted field bằng `""` ở dialect thông dụng.
-- URI percent-encode theo vị trí và quy tắc từng thành phần.
-- File path dùng quy tắc phân đoạn của file system; một số ký tự hợp lệ trên hệ này lại không hợp lệ trên hệ khác.
+- JSON escapes `"` and `\` according to JSON rules.
+- CSV escapes `"` inside quoted fields using `""` in common dialects.
+- URIs percent-encode per component position and rules.
+- File paths use file-system segment rules; characters valid on one OS may be invalid on another.
 
-`String.replace("\"", "\\\"")` chỉ xử lý một trường hợp của JSON, không tạo serializer JSON hoàn chỉnh; `URLEncoder` không tạo đường dẫn file hợp lệ; `Pattern.quote` chỉ phục vụ regex literal, không tạo CSV hay JSON hợp lệ.
+`String.replace("\"", "\\\"")` handles only one case of JSON and does not make a complete JSON serializer; `URLEncoder` does not produce valid file paths; `Pattern.quote` is only for regex literals and does not produce valid CSV or JSON.
 
-### 9.3. Nhầm parse thành công với dữ liệu đáng tin cậy
+### 9.3. Confusing successful parsing with trustworthy data
 
-Một object JSON parse được vẫn có thể có giá trị bất hợp lệ; một CSV có cấu trúc hợp lệ vẫn có thể chứa công thức khi xuất vào bảng tính; một `Path` parse được vẫn có thể trỏ ngoài vùng được phép; một `URI` hợp lệ vẫn có thể trỏ tới đích mạng bị cấm.
+A parsed JSON object can still contain invalid values; a structurally valid CSV can still contain formulas when opened in a spreadsheet; a parsed `Path` can still point outside an allowed region; a valid `URI` can still point to a forbidden network destination.
 
-Parser trả lời “**cú pháp có hiểu được không?**”. Việc dữ liệu có được phép xử lý hay không là **quyết định kiểm tra tiếp theo** dựa trên hợp đồng nghiệp vụ và chính sách truy cập.
+A parser answers "**is the syntax understandable?**". Whether the data is permitted to be processed is a **subsequent validation decision** based on business contracts and access policies.
 
-### 9.4. Không kiểm soát kích thước và tài nguyên
+### 9.4. Failing to control size and resources
 
-JSON/CSV rất lớn có thể tiêu tốn bộ nhớ, thời gian xử lý và tài nguyên I/O. Đặt giới hạn kích thước input, số trường/cột, độ sâu cấu trúc, thời gian xử lý theo nhu cầu; với luồng lớn ưu tiên parser dạng streaming. Khi mở reader, parser hoặc file, dùng `try-with-resources` nếu đối tượng giữ tài nguyên cần đóng.
+Very large JSON/CSV inputs can exhaust memory, CPU time, and I/O resources. Set limits on input size, field/column count, nesting depth, and processing time as needed; for large streams prefer streaming parsers. When opening readers, parsers, or files, use `try-with-resources` if the object holds closeable resources.
 
-### 9.5. Dựa vào phần mở rộng tệp hoặc chuỗi URL để suy đoán
+### 9.5. Guessing based on file extensions or URL prefixes
 
-Tên tệp `.json` hoặc `.csv` chưa chứng minh nội dung đúng định dạng. Đuôi file chỉ là gợi ý, không thay thế parser và xác thực. Tương tự, kiểm tra `url.startsWith("https://trusted.example")` bằng text có thể đánh đồng host hợp lệ với `trusted.example.evil.test`. Hãy parse URI, so sánh host/scheme theo cấu trúc và áp dụng chính sách kết nối phù hợp.
+A `.json` or `.csv` filename does not prove the content matches the format. File extensions are only hints and do not replace parsing and validation. Likewise, text-checking `url.startsWith("https://trusted.example")` can conflate a legitimate host with `trusted.example.evil.test`. Parse the URI, compare host/scheme structurally, and apply appropriate connection policies.
 
-## 10. Bài tập vận dụng
+## 10. Practice exercises
 
-**Bài 1 — JSON:** Tạo record `Order(String id, int quantity)`; dùng JSON parser để đọc một JSON hợp lệ, sau đó thử giá trị `quantity` âm, thiếu trường và một chuỗi chứa dấu nháy/Unicode. Phân biệt lỗi parse với lỗi nghiệp vụ.
+**Exercise 1 — JSON:** Create a record `Order(String id, int quantity)`; use a JSON parser to read valid JSON, then test a negative `quantity`, a missing field, and a string containing quotes/Unicode. Distinguish parse errors from business errors.
 
-**Bài 2 — CSV:** Dùng CSV parser đọc bản ghi có `"Lan, A."`, trường `"said ""hello"""` và một trường chứa newline. In **đúng số cột** cùng giá trị đã bỏ quoting. Thử file có header và field rỗng cuối.
+**Exercise 2 — CSV:** Use a CSV parser to read a record containing `"Lan, A."`, a `"said ""hello"""` field, and a field containing a newline. Print the **exact column count** along with unquoted values. Try a file with headers and a trailing empty field.
 
-**Bài 3 — Path:** Nhận tên tệp tương đối do người dùng nhập, resolve từ một root cố định, kiểm tra cấu trúc phân đoạn, sau đó thảo luận cách symlink ảnh hưởng kiểm tra truy cập thực tế. Thử `summary.csv`, `2026/summary.csv`, `../outside.txt` và một absolute path.
+**Exercise 3 — Path:** Accept a user-entered relative filename, resolve it against a fixed root, check segment structure, and then discuss how symlinks affect real access checks. Test `summary.csv`, `2026/summary.csv`, `../outside.txt`, and an absolute path.
 
-**Bài 4 — URI:** Xây URI tìm kiếm từ từ khóa `"Java & Spring"` và xác nhận `&` nằm trong **giá trị** query. Thử resolve một relative path và một absolute URI; xác nhận scheme/host của kết quả trước khi gửi request.
+**Exercise 4 — URI:** Build a search URI from the keyword `"Java & Spring"` and verify `&` resides inside the query **value**. Try resolving a relative path and an absolute URI; verify the resulting scheme/host before sending a request.
 
-## 11. Ghi nhớ
+## 11. Takeaways
 
-- **String chỉ là phương tiện chứa ký tự; định dạng mới quyết định cách parse**.
-- JSON cần JSON parser/serializer; CSV cần CSV parser/printer được cấu hình đúng dialect.
-- File path dùng `Path`, `resolve`, `normalize`, `Files`; kiểm tra root theo cú pháp chưa loại hết rủi ro symlink.
-- URI dùng `URI` và URI builder/encoder phù hợp **từng thành phần**; `URLEncoder` dành cho form-style query value, không dành cho toàn URL.
-- `split` và `replace` hữu ích cho chuỗi đơn giản nhưng không thay thế công cụ hiểu quoting, escape, nested structure, encoding hay semantics của định dạng.
-- Sau bước parse vẫn cần kiểm tra nghiệp vụ, giới hạn tài nguyên và chính sách truy cập; khi xuất dữ liệu hãy dùng serializer/encoder đúng định dạng đích.
+- **String is merely a medium for holding characters; the format determines how to parse it**.
+- JSON needs a JSON parser/serializer; CSV needs a CSV parser/printer configured with the right dialect.
+- File paths use `Path`, `resolve`, `normalize`, `Files`; syntactic root checks alone do not eliminate symlink risks.
+- URIs use `URI` and appropriate **per-component** URI builders/encoders; `URLEncoder` is for form-style query values, not entire URLs.
+- `split` and `replace` are useful for simple strings but do not replace tools that understand quoting, escaping, nested structures, encoding, or format semantics.
+- After parsing, business validation, resource limits, and access policies are still required; when outputting data, use the serializer/encoder matching the target format.

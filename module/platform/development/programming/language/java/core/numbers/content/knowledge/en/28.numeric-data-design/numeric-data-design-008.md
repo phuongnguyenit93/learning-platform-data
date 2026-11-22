@@ -1,34 +1,34 @@
-# Tách định dạng hiển thị khỏi tính toán và trao đổi dữ liệu số trong Java
+# Separating Display Formatting from Calculation and Exchange of Numeric Data in Java
 
-## 1. Một giá trị số, ba trách nhiệm khác nhau
+## 1. One Numeric Value, Three Different Responsibilities
 
-Một số tiền có giá trị toán học là 12348.17 có thể xuất hiện với nhiều cách viết:
+A monetary amount with the mathematical value 12348.17 can appear in several written forms:
 
-- **Trong tính toán:** đối tượng `BigDecimal` giữ giá trị thập phân để cộng, trừ, nhân, chia theo quy tắc nghiệp vụ.
-- **Trên giao diện cho người dùng:** `12.348,17` ở một số locale sử dụng dấu phẩy thập phân, hoặc `12,348.17` ở locale dùng dấu chấm thập phân.
-- **Khi trao đổi giữa hệ thống:** `12348.17` là một biểu diễn trung lập về locale nếu hợp đồng API chọn chuỗi thập phân có dấu chấm và không có phân nhóm.
+- **In calculations:** a `BigDecimal` object holds the decimal value for addition, subtraction, multiplication, and division per business rules.
+- **In the user interface:** `12.348,17` in some locales that use a decimal comma, or `12,348.17` in locales using a decimal point.
+- **When exchanging between systems:** `12348.17` is a locale-neutral representation if the API contract chooses a dot-decimal string with no grouping separators.
 
-Ba cách biểu diễn có mục đích khác nhau. **Giá trị dùng để tính toán không nên thay đổi chỉ vì locale hoặc kiểu trình bày thay đổi.** Chuỗi đã thêm dấu phân nhóm, dấu tiền tệ hay chữ viết tắt để hiển thị không mặc nhiên hợp lệ để đưa trở lại công thức hoặc truyền qua API.
+The three representations serve different purposes. **The value used for calculation must not change merely because the locale or presentation style changes.** A string formatted with grouping separators, currency symbols, or abbreviations for display is not automatically valid to feed back into formulas or transmit over an API.
 
-Một mô hình đơn giản:
+A simple model:
 
 ~~~text
-Chuỗi nhập từ người dùng
-    │ kiểm tra định dạng theo locale đã chọn
+User input string
+    │ validate format per selected locale
     ▼
-Giá trị miền dữ liệu (BigDecimal + đơn vị/tiền tệ)
-    │ tính toán theo chính sách precision, scale và rounding
+Domain value (BigDecimal + unit/currency)
+    │ compute per precision, scale, and rounding policy
     ▼
-Giá trị kết quả BigDecimal
-    ├──> Format bằng locale/currency --> Giao diện người dùng
-    └──> Serialize bằng hợp đồng ổn định --> JSON/CSV/API/lưu trữ
+Result BigDecimal value
+    ├──> Format by locale/currency --> User interface
+    └──> Serialize by stable contract --> JSON/CSV/API/storage
 ~~~
 
-Nếu chuỗi vào vốn là một giá trị chuẩn từ hệ thống khác, parse theo **hợp đồng trao đổi** thay vì parse theo locale của người đang đăng nhập. Nếu chuỗi vào đến từ form người dùng, parse theo định dạng mà form yêu cầu. **Điều kiện nhận đầu vào** khác với **định dạng hiển thị đầu ra** và khác với **hợp đồng trao đổi**.
+If the incoming string is already a canonical value from another system, parse according to the **exchange contract** rather than the logged-in user's locale. If the incoming string comes from a user form, parse according to the format that form requires. **Input acceptance rules** differ from **output display formatting** and from **exchange contracts**.
 
-## 2. Lớp tính toán: giữ số, không ghép ký tự định dạng
+## 2. Calculation Layer: Keep Numbers, Do Not Embed Formatting Characters
 
-Khi dữ liệu là số thập phân nghiệp vụ cần chính xác, `BigDecimal` thường phù hợp hơn `double`. Hãy dựng đối tượng từ nguồn thập phân như chuỗi:
+When data is a business decimal requiring exactness, `BigDecimal` is generally more suitable than `double`. Construct the object from a decimal source such as a string:
 
 ~~~java
 BigDecimal price = new BigDecimal("12345.67");
@@ -38,38 +38,38 @@ BigDecimal total = price.add(fee);
 System.out.println(total.toPlainString()); // 12348.17
 ~~~
 
-Đây là **đoạn mã minh họa**, cần import `java.math.BigDecimal` và đặt trong phương thức hoặc chương trình Java thích hợp. Cả `price`, `fee` và `total` đều là dữ liệu số, chưa mang dấu phân cách hàng nghìn hay ký hiệu tiền tệ.
+This is an **illustrative snippet**, requiring `import java.math.BigDecimal` and placement inside an appropriate Java method or program. `price`, `fee`, and `total` are all numeric data, carrying neither thousands separators nor currency symbols.
 
-Điểm cần phân biệt:
+Key distinctions:
 
-- `new BigDecimal("0.1")` biểu diễn chính xác số thập phân 0.1.
-- `new BigDecimal(0.1)` nhận giá trị nhị phân `double` gần với 0.1, nên có thể chứa một biểu diễn thập phân dài không mong muốn.
-- `BigDecimal.valueOf(0.1)` dựa vào dạng chuỗi thập phân của `double`; thường hữu dụng nếu dữ liệu đã ở dạng `double`, nhưng không khôi phục được văn bản thập phân ban đầu chưa biết.
-- `BigDecimal` giữ giá trị, scale và precision theo quy tắc kiểu số; **không giữ locale, ký hiệu tiền tệ hay dấu phân nhóm của văn bản nguồn**.
+- `new BigDecimal("0.1")` represents the exact decimal 0.1.
+- `new BigDecimal(0.1)` receives the binary `double` value closest to 0.1, so it can contain an unexpectedly long decimal expansion.
+- `BigDecimal.valueOf(0.1)` relies on `double`'s decimal string form; often useful if the data is already a `double`, yet cannot recover an unknown original decimal text.
+- `BigDecimal` retains value, scale, and precision per numeric rules; **it does not retain the source text's locale, currency symbol, or grouping separators**.
 
-Với số tiền, đơn vị là một phần của mô hình nghiệp vụ. Giá trị `100.00` USD và `100.00` EUR không tự động là cùng một lượng tiền có thể cộng. Giữ **mã tiền tệ hoặc đơn vị** trong thuộc tính miền dữ liệu riêng và xác nhận hai đại lượng có cùng đơn vị trước khi cộng.
+For money, the unit is part of the business model. Values of `100.00` USD and `100.00` EUR are not automatically addable amounts. Store the **currency code or unit** in a dedicated domain attribute and verify two quantities share the same unit before adding.
 
-Một thiết kế minh họa:
+An illustrative design:
 
 ~~~java
 record Amount(BigDecimal value, String currencyCode) {}
 ~~~
 
-`record` trên chỉ minh họa ranh giới kiểu dữ liệu, chưa triển khai kiểm tra giá trị hợp lệ hoặc quy tắc chuyển đổi tiền tệ. Để dùng thực tế, cần xác thực mã tiền tệ, null, miền giá trị và các phép toán tương thích đơn vị.
+The `record` above only illustrates the data-type boundary; it does not yet implement value validation or currency conversion rules. For production use, validate currency codes, null, value ranges, and unit-compatible operations.
 
-## 3. Lớp hiển thị: locale, dấu phân nhóm và độ dài chữ số
+## 3. Display Layer: Locale, Grouping Separators, and Digit Length
 
-Cùng một `BigDecimal` có thể hiển thị khác nhau theo khu vực:
+The same `BigDecimal` can display differently by region:
 
-| Giá trị `BigDecimal` | Hiển thị kiểu US | Hiển thị kiểu Đức |
+| `BigDecimal` Value | US Display | German Display |
 | --- | --- | --- |
 | 12348.17 | `12,348.17` | `12.348,17` |
 | 1000.50 | `1,000.50` | `1.000,50` |
 | 0.50 | `0.50` | `0,50` |
 
-Bảng sử dụng quy tắc định dạng **cụ thể đã chọn**: có dấu nhóm hàng nghìn và đúng hai chữ số sau dấu thập phân. Đó không phải quy tắc bắt buộc cho mọi ứng dụng, mọi kiểu số và mọi locale.
+This table uses a **chosen concrete formatting rule**: thousands grouping separators and exactly two digits after the decimal mark. That is not a mandatory rule for all applications, numeric types, and locales.
 
-Java cung cấp `NumberFormat` và `DecimalFormat` trong `java.text`. Ví dụ:
+Java provides `NumberFormat` and `DecimalFormat` in `java.text`. Example:
 
 ~~~java
 import java.math.BigDecimal;
@@ -86,13 +86,13 @@ german.setRoundingMode(RoundingMode.HALF_UP);
 System.out.println(german.format(total)); // 12.348,17
 ~~~
 
-Pattern `#,##0.00` trong ví dụ quy định dấu phân nhóm và hai chữ số thập phân. `DecimalFormatSymbols` cung cấp dấu phân nhóm và dấu thập phân theo `Locale.GERMANY`. Đây là đoạn minh họa sử dụng bên trong phương thức.
+The pattern `#,##0.00` in the example specifies grouping separators and two decimal digits. `DecimalFormatSymbols` supplies grouping and decimal marks per `Locale.GERMANY`. This is an illustrative snippet used inside a method.
 
-**Format trả về `String`, không biến đối tượng `BigDecimal` đầu vào thành giá trị mới.** Hai người dùng có thể nhìn thấy cách trình bày khác nhau mà vẫn tính trên cùng một số.
+**Formatting returns a `String`; it does not mutate the input `BigDecimal` into a new value.** Two users can view different presentations while computing on the exact same number.
 
-### 3.1. Chính sách làm tròn khi hiển thị
+### 3.1. Rounding Policy at Display Time
 
-Một `DecimalFormat` có thể giới hạn số chữ số được in ra. Nếu độ chính xác nguồn lớn hơn, chuỗi hiển thị có thể bị làm tròn:
+A `DecimalFormat` can limit the number of printed digits. If source precision is higher, the displayed string may be rounded:
 
 ~~~java
 BigDecimal precise = new BigDecimal("1.005");
@@ -104,41 +104,41 @@ System.out.println(display.format(precise)); // 1,01
 System.out.println(precise.toPlainString()); // 1.005
 ~~~
 
-`display.format` chỉ quyết định người dùng **nhìn thấy** gì; giá trị `precise` vẫn chính xác là 1.005. Vì vậy **chuỗi hiển thị đã bị làm tròn không được dùng thay cho giá trị tính toán nếu chính sách nghiệp vụ chưa cho phép làm tròn tại đó**.
+`display.format` only controls what the user **sees**; the value `precise` remains exact at 1.005. Therefore, **a rounded display string must not be used in place of a calculation value unless business policy allows rounding at that point**.
 
-Ví dụ hai khoản `1.005`:
+Example of two `1.005` items:
 
-| Cách xử lý | Kết quả |
+| Handling | Result |
 | --- | --- |
-| Hiển thị từng khoản với hai chữ số và `HALF_UP` | `1,01` và `1,01` |
-| Tổng chính xác `1.005 + 1.005` | `2.010` |
-| Hiển thị tổng chính xác ở hai chữ số | `2,01` |
-| Cộng hai chuỗi hiển thị đã làm tròn như hai số `1.01` | `2.02` |
+| Display each item to two digits with `HALF_UP` | `1,01` and `1,01` |
+| Exact sum `1.005 + 1.005` | `2.010` |
+| Display exact sum at two digits | `2,01` |
+| Add two rounded display strings as two `1.01` numbers | `2.02` |
 
-Đây **không tự động là lỗi phần mềm**: nếu hóa đơn quy định phải làm tròn từng dòng trước khi cộng, `2.02` có thể là kết quả hợp đồng. Nếu quy định cộng các số chính xác rồi làm tròn tổng, `2.01` mới đúng. Điều quan trọng là **tách chính sách tính toán ra khỏi cách hiển thị**, không để thao tác format âm thầm quyết định thuật toán cộng.
+This is **not automatically a software bug**: if an invoice specifies rounding each line item before summing, `2.02` may be the contracted result. If it specifies summing exact values and then rounding the total, `2.01` is right. What matters is **separating calculation policy from display presentation**, never letting formatting silently dictate the addition algorithm.
 
-### 3.2. Tiền tệ không chỉ là dấu tiền
+### 3.2. Currency Is More Than a Currency Symbol
 
-`NumberFormat.getCurrencyInstance(locale)` có thể dùng cho giao diện trình bày tiền tệ, nhưng một `Locale` **không thay thế thuộc tính `Currency` của giá trị miền**. Locale mô tả thói quen hiển thị; đơn vị tiền là dữ liệu nghiệp vụ. Người dùng ở Việt Nam vẫn có thể xem một khoản USD. Hãy truyền currency của khoản tiền vào formatter thích hợp, không mặc định suy ra đơn vị từ vị trí người xem.
+`NumberFormat.getCurrencyInstance(locale)` can be used for currency UI presentation, yet a `Locale` **does not replace the `Currency` attribute of a domain value**. Locale describes display conventions; currency unit is business data. A user in Vietnam can still view a USD amount. Pass the amount's currency to an appropriate formatter instead of inferring the unit from the viewer's location.
 
-Số chữ số thập phân “mặc định” của một tiền tệ cũng không thay thế các yêu cầu cụ thể về quy tắc làm tròn của giao dịch, thuế, phí hoặc thanh toán.
+A currency's "default" number of decimal places also does not replace concrete rounding requirements for transactions, taxes, fees, or settlement.
 
-### 3.3. Formatter là đối tượng có trạng thái
+### 3.3. Formatters Are Stateful Objects
 
-`NumberFormat`/`DecimalFormat` có các thuộc tính có thể thay đổi, như maximum fraction digits, grouping và rounding mode. Chúng **không bảo đảm thread-safe khi chia sẻ và dùng đồng thời**. Trong ứng dụng nhiều luồng, thường tạo formatter theo từng lần dùng/yêu cầu hoặc bảo đảm cơ chế sử dụng có kiểm soát. Không chia sẻ một `static DecimalFormat` rồi thay `Locale`/pattern từ nhiều request mà không có thiết kế đồng bộ.
+`NumberFormat`/`DecimalFormat` have mutable properties, such as maximum fraction digits, grouping, and rounding mode. They are **not guaranteed thread-safe when shared and used concurrently**. In multi-threaded applications, typically create a formatter per use/request or manage usage in a controlled manner. Never share a `static DecimalFormat` and mutate `Locale`/pattern from concurrent requests without synchronization design.
 
-## 4. Lớp trao đổi: hợp đồng ổn định và độc lập với người xem
+## 4. Exchange Layer: Stable and Viewer-Independent Contracts
 
-Chuỗi ở giao diện ví dụ `12.348,17` có nghĩa ở locale Đức, nhưng hệ thống khác có thể hiểu dấu chấm là dấu thập phân và dấu phẩy là dấu nhóm. **Không đưa trực tiếp chuỗi hiển thị vào JSON, CSV hoặc API nếu hợp đồng nhận không định nghĩa cách parse chuỗi đó.**
+A UI string like `12.348,17` makes sense in a German locale, yet another system may interpret the dot as a decimal point and the comma as a grouping separator. **Never pass display strings directly into JSON, CSV, or APIs unless the receiving contract defines how to parse that string.**
 
-Một hợp đồng trao đổi dữ liệu số thập phân có thể quy định:
+A decimal data exchange contract may specify:
 
-- Giá trị là **chuỗi thập phân**, dấu thập phân là `.`, không dùng dấu phân nhóm; ví dụ `"12348.17"`.
-- Dấu âm là `-`; đơn vị hoặc mã tiền tệ là trường riêng; scale/precision/miền giá trị được mô tả rõ.
-- Phía nhận dùng `BigDecimal` hoặc kiểu decimal tương thích để parse, thay vì tự ép qua `double`.
-- Các thay đổi làm tròn phải xảy ra theo chính sách nghiệp vụ, không do locale của máy gửi hoặc máy nhận.
+- The value is a **decimal string**, decimal mark is `.`, no grouping separators; e.g., `"12348.17"`.
+- Negative sign is `-`; unit or currency code is a separate field; scale/precision/range are clearly documented.
+- The receiving side uses `BigDecimal` or a compatible decimal type to parse, instead of casting through `double`.
+- Rounding changes must follow business policy, not the sender's or receiver's machine locale.
 
-Ví dụ một **hợp đồng JSON do ứng dụng tự thiết kế** cho số tiền:
+Example of an **application-designed JSON contract** for money:
 
 ~~~json
 {
@@ -147,9 +147,9 @@ Ví dụ một **hợp đồng JSON do ứng dụng tự thiết kế** cho số
 }
 ~~~
 
-Ở đây `amount` cố ý là **JSON string** để phía nhận có thể tái dựng `BigDecimal` từ chuỗi mà không phải đi qua `double`. Đây là một lựa chọn thiết kế, không phải yêu cầu rằng JSON phải luôn mã hóa số thập phân thành string. JSON cũng có cú pháp number `12348.17`, nhưng một số thư viện/consumer có thể đưa JSON number vào kiểu nhị phân `double`; nếu hợp đồng cần độ chính xác thập phân, phải quy định kiểu xử lý ở cả hai phía.
+Here `amount` is intentionally a **JSON string** so the receiver can reconstruct `BigDecimal` from the string without passing through `double`. This is a design choice, not a rule that JSON must always encode decimals as strings. JSON also has number syntax `12348.17`, yet some libraries/consumers parse JSON numbers into binary `double`; if the contract needs decimal precision, specify how both sides handle the type.
 
-### 4.1. Biểu diễn chuẩn từ `BigDecimal`
+### 4.1. Canonical Representation from `BigDecimal`
 
 ~~~java
 BigDecimal total = new BigDecimal("12348.17");
@@ -158,45 +158,45 @@ String transportValue = total.toPlainString(); // "12348.17"
 BigDecimal received = new BigDecimal(transportValue);
 ~~~
 
-`toPlainString()` trả biểu diễn không dùng ký pháp mũ, phù hợp khi hợp đồng chọn **chuỗi thập phân dạng thường**. Ví dụ `new BigDecimal("1E+3").toPlainString()` trả `"1000"`. Tuy nhiên, `toPlainString()` không giữ nguyên mọi thông tin về scale trong các trường hợp như scale âm; một phép round-trip qua nó có thể giữ **giá trị** nhưng không giữ **biểu diễn scale ban đầu**. Nếu scale là dữ liệu bắt buộc, hãy định nghĩa thêm trường scale hoặc quy định biểu diễn có thể round-trip theo nhu cầu.
+`toPlainString()` returns a representation without exponent notation, suitable when the contract chooses **plain decimal strings**. For example, `new BigDecimal("1E+3").toPlainString()` returns `"1000"`. However, `toPlainString()` does not preserve all scale metadata in cases like negative scale; a round-trip through it may preserve **value** without preserving the **original scale representation**. If scale is mandatory data, define an additional scale field or specify a round-trippable representation as needed.
 
-`BigDecimal.toString()` cũng độc lập locale nhưng có thể dùng ký pháp mũ, ví dụ `1E+3`. Nếu hợp đồng API cho phép ký pháp mũ, nó có thể phù hợp; nếu cấm, phải dùng hoặc xây dựng biểu diễn theo hợp đồng. Đừng thay `toPlainString()` cho `toString()` chỉ vì sở thích nếu hợp đồng và chi phí biểu diễn có ràng buộc đặc biệt.
+`BigDecimal.toString()` is also locale-independent, yet may use scientific notation such as `1E+3`. If the API contract allows scientific notation, it may be suitable; if forbidden, use or construct the contracted representation. Do not substitute `toPlainString()` for `toString()` solely out of preference if the contract and representation size have special constraints.
 
-### 4.2. Không format theo locale rồi parse trở lại để tính
+### 4.2. Never Format by Locale and Re-Parse for Calculation
 
-Tránh chuỗi thao tác:
+Avoid this chain of operations:
 
 ~~~text
-BigDecimal -> DecimalFormat.format -> String hiển thị
-           -> parser theo locale khác -> tính toán hoặc trao đổi
+BigDecimal -> DecimalFormat.format -> Display String
+           -> parser under another locale -> calculate or exchange
 ~~~
 
-Rủi ro gồm mất chữ số do format, hiểu sai dấu nhóm/dấu thập phân, xử lý không thống nhất của ký hiệu tiền, và lỗi do locale máy chủ thay đổi. Khi cần làm tròn số trước khi lưu hoặc truyền, gọi **phép toán số** có quy tắc tường minh:
+Risks include losing digits during formatting, misinterpreting grouping/decimal marks, inconsistent handling of currency symbols, and bugs when server locale changes. When rounding a number before saving or transmitting, invoke a **numeric operation** with an explicit rule:
 
 ~~~java
 BigDecimal accepted = total.setScale(2, RoundingMode.HALF_EVEN);
 String transport = accepted.toPlainString();
 ~~~
 
-Đây là việc **thay đổi giá trị theo hợp đồng**, khác với format giao diện thuần túy. Nếu cấm làm tròn, dùng `setScale(2, RoundingMode.UNNECESSARY)` để báo `ArithmeticException` khi giá trị không biểu diễn chính xác ở scale 2.
+This is **changing a value per contract**, unlike pure UI formatting. If rounding is forbidden, use `setScale(2, RoundingMode.UNNECESSARY)` to throw `ArithmeticException` when the value cannot be represented exactly at scale 2.
 
-## 5. Nhận dữ liệu: chuỗi người dùng và chuỗi giao thức có cách parse khác nhau
+## 5. Receiving Data: User Strings and Protocol Strings Have Different Parsers
 
-### 5.1. Chuỗi chuẩn do API gửi
+### 5.1. Canonical Strings Sent by APIs
 
-Nếu hợp đồng trao đổi gửi `"12348.17"` theo dạng thập phân dấu chấm, dùng:
+If an exchange contract sends `"12348.17"` in dot-decimal form, use:
 
 ~~~java
 BigDecimal amount = new BigDecimal("12348.17");
 ~~~
 
-Constructor nhận `String` dùng cú pháp số thập phân của `BigDecimal`, **không đọc locale người dùng**. Chuỗi `"12.348,17"` hoặc `"12,348.17"` có dấu nhóm không phải chuỗi đầu vào hợp lệ cho constructor này.
+The `String` constructor uses `BigDecimal`'s decimal syntax, **not the user's locale**. Strings `"12.348,17"` or `"12,348.17"` with grouping separators are not valid inputs for this constructor.
 
-Đừng gọi `Double.parseDouble` trước rồi tạo `BigDecimal` từ `double` nếu mục tiêu là giữ chính xác giá trị thập phân nguồn.
+Never call `Double.parseDouble` first and then create `BigDecimal` from `double` if the goal is preserving the exact source decimal value.
 
-### 5.2. Chuỗi gõ theo locale của giao diện
+### 5.2. Locale-Formatted Strings Typed in UI
 
-Khi một người dùng nhập `12.348,17` với quy ước Đức, formatter/parser theo `Locale.GERMANY` mới có ý nghĩa. Ví dụ parser trả kết quả số thập phân:
+When a user types `12.348,17` under German conventions, a formatter/parser configured for `Locale.GERMANY` makes sense. Example parser returning a decimal number:
 
 ~~~java
 DecimalFormat parser = new DecimalFormat(
@@ -209,25 +209,25 @@ ParsePosition pos = new ParsePosition(0);
 Number parsed = parser.parse(input, pos);
 
 if (parsed == null || pos.getIndex() != input.length()) {
-    throw new IllegalArgumentException("Sai dinh dang so");
+    throw new IllegalArgumentException("Invalid number format");
 }
 BigDecimal value = (BigDecimal) parsed;
 // value = 12348.17
 ~~~
 
-`setParseBigDecimal(true)` yêu cầu `DecimalFormat.parse` trả `BigDecimal` trong trường hợp số thông thường, tránh đưa giá trị thập phân qua `double`. `ParsePosition` giúp kiểm tra parser đã đọc **hết chuỗi**, bởi nhiều parser có thể đọc thành công chỉ một tiền tố hợp lệ.
+`setParseBigDecimal(true)` instructs `DecimalFormat.parse` to return a `BigDecimal` for normal numbers, avoiding routing decimal values through `double`. `ParsePosition` checks that the parser consumed **the entire string**, because many parsers succeed after reading only a valid prefix.
 
-**Giới hạn:** Kiểm tra đã tiêu thụ hết chuỗi không tự bảo đảm mọi nhóm chữ số đều theo định dạng chặt mà ứng dụng yêu cầu. `DecimalFormat` có thể linh hoạt với vị trí dấu nhóm ở một số trường hợp. Nếu dữ liệu nhập phải tuân thủ chuẩn nghiêm ngặt, hãy bổ sung bước xác minh pattern/nhóm/ký tự được phép, khoảng trắng và miền giá trị trước khi chấp nhận. Không dùng việc parse thành công để ngầm hợp thức hóa mọi chuỗi.
+**Limitation:** Checking that the entire string was consumed does not automatically guarantee that every digit group strictly follows the format your application demands. `DecimalFormat` can be lenient about grouping separator positions in some cases. If inputs must obey a strict grammar, add explicit checks for pattern/grouping/allowed characters, whitespace, and range before accepting. Do not let successful parsing implicitly validate arbitrary strings.
 
-### 5.3. Tránh suy diễn locale từ chuỗi
+### 5.3. Avoid Guessing Locale from Strings
 
-Chuỗi `1,234` có thể là một nghìn hai trăm ba mươi bốn theo một quy ước hoặc là một phẩy hai ba bốn theo quy ước khác. Nếu không biết locale, **không thể luôn tự động xác định ý định người nhập**.
+The string `1,234` could mean one thousand two hundred thirty-four under one convention or one point two three four under another. Without knowing the locale, **you cannot always automatically infer the user's intent**.
 
-Hệ thống nên chọn một trong các cách: form quy định locale rõ ràng; hiển thị ví dụ ngay cạnh ô nhập; dùng input tách phần nguyên/phần lẻ; hoặc bắt người dùng xác nhận khi giá trị không rõ ràng. Với API giữa các dịch vụ, tốt nhất công bố cú pháp duy nhất trong schema và từ chối chuỗi trái hợp đồng.
+The system should choose one approach: explicitly specify locale on the form; display an example beside the input box; use separate inputs for integer and fractional parts; or ask the user to confirm ambiguous values. For service-to-service APIs, it is best to publish a single syntax in the schema and reject non-conforming strings.
 
-## 6. Chương trình hoàn chỉnh với Java 17+
+## 6. Complete Program with Java 17+
 
-Tạo tệp **NumericBoundariesDemo.java**:
+Create the file **NumericBoundariesDemo.java**:
 
 ~~~java
 import java.math.BigDecimal;
@@ -290,14 +290,14 @@ public class NumericBoundariesDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac NumericBoundariesDemo.java
 java NumericBoundariesDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 calculation: 12348.17
@@ -311,25 +311,25 @@ wire decimal: 12348.17
 roundtrip exact: true
 ~~~
 
-Ba điểm quan trọng được chương trình chứng minh:
+Three key points demonstrated by the program:
 
-1. **Một tổng chính xác** `BigDecimal` có thể có **nhiều chuỗi hiển thị** khác nhau theo locale, trong khi dữ liệu tính toán không đổi.
-2. **Format có làm tròn**: chuỗi hiển thị `1,01` của từng khoản `1.005` không phải giá trị dùng để cộng; tổng chính xác vẫn là `2.010`.
-3. **Trao đổi dùng hợp đồng riêng**: chuỗi `12348.17` được đọc lại bởi `new BigDecimal(wire)` cho giá trị toán học giống nguồn, không phụ thuộc locale.
+1. **One exact `BigDecimal` sum** can have **multiple different display strings** by locale, while the calculation data stays unchanged.
+2. **Formatting can round**: the display string `1,01` of each `1.005` item is not the value used for adding; the exact sum remains `2.010`.
+3. **Exchange uses its own contract**: the string `12348.17` read back via `new BigDecimal(wire)` produces the same mathematical value as the source, independent of locale.
 
-Đây là một chương trình Java thuần chỉ dùng Java standard library, không yêu cầu Spring Boot hay thư viện ngoài.
+This is a pure Java program using only the Java standard library, requiring no Spring Boot or external libraries.
 
-## 7. Tách ranh giới trong thiết kế ứng dụng
+## 7. Separating Boundaries in Application Design
 
-Một tổ chức mã dễ kiểm soát thường có ba lớp trách nhiệm:
+A maintainable code organization typically has three layers of responsibility:
 
-| Lớp | Nhận dữ liệu | Trả dữ liệu | Có nên dùng locale? |
+| Layer | Receives | Returns | Should Use Locale? |
 | --- | --- | --- | --- |
-| Domain/tính toán | `BigDecimal`, đơn vị, quy tắc số học | `BigDecimal` kết quả | Thường không |
-| UI/hiển thị | Giá trị domain + `Locale` + tùy chọn hiển thị | Chuỗi để hiển thị | Có |
-| API/serialization | Giá trị domain + schema/hợp đồng | JSON/CSV/protocol chuẩn | Theo hợp đồng; tránh dựa vào locale của người dùng |
+| Domain/calculation | `BigDecimal`, unit, arithmetic rules | Result `BigDecimal` | Usually no |
+| UI/display | Domain value + `Locale` + display options | String for display | Yes |
+| API/serialization | Domain value + schema/contract | Standard JSON/CSV/protocol | Per contract; avoid relying on user locale |
 
-Gợi ý giao diện phương thức theo trách nhiệm:
+Suggested method signatures by responsibility:
 
 ~~~java
 BigDecimal calculateTotal(List<BigDecimal> amounts);
@@ -339,13 +339,13 @@ BigDecimal parseWireDecimal(String wireValue);
 BigDecimal parseLocalizedDecimal(String text, Locale inputLocale);
 ~~~
 
-Đây chỉ là **chữ ký gợi ý để đặt vào một API thiết kế riêng**, không phải chương trình runnable độc lập. Trong hiện thực, cần xác định các chính sách null, rounding, validation, giới hạn đầu vào và đơn vị tiền tệ. Nên viết test riêng cho các ranh giới để phát hiện lỗi do locale hoặc serialization.
+These are only **suggested signatures to place into a custom API design**, not a standalone runnable program. In actual implementation, define null policies, rounding, validation, input limits, and currency units. Write dedicated tests at the boundaries to catch locale or serialization bugs.
 
-### 7.1. Dữ liệu qua DTO và JSON
+### 7.1. Data via DTOs and JSON
 
-Nếu DTO sử dụng `BigDecimal`, thư viện JSON có thể hỗ trợ serialize/deserialize thành số JSON hoặc chuỗi tùy cấu hình. **Không mặc định rằng consumer khác ngôn ngữ sẽ giữ độ chính xác tương đương**. Một consumer đọc number vào `double` có thể mất chữ số dù phía gửi dùng `BigDecimal`. Cần xác định rõ contract JSON và kiểm thử cả producer lẫn consumer.
+If a DTO uses `BigDecimal`, a JSON library may serialize/deserialize to JSON numbers or strings depending on configuration. **Do not assume consumers in other languages preserve equivalent precision.** A consumer reading a number into `double` can lose digits even if the sender used `BigDecimal`. Clearly define the JSON contract and test both producer and consumer.
 
-Ví dụ contract dùng string:
+Example contract using strings:
 
 ~~~json
 {
@@ -356,58 +356,58 @@ Ví dụ contract dùng string:
 }
 ~~~
 
-Nếu có nghiệp vụ làm tròn theo dòng hoặc theo tổng, cần quy định số `total` đã được tính thế nào. Hiển thị thành `2,01` chỉ là một phép format; **không đủ để xác định số tiền đã được làm tròn theo dòng hay theo tổng**.
+If there is line-level or total-level rounding logic, specify how `total` was computed. Displaying `2,01` is only a formatting step; **it is not enough to tell whether the amount was rounded per line or per total**.
 
-### 7.2. Dữ liệu trong cơ sở dữ liệu
+### 7.2. Data in Databases
 
-Với số thập phân cần chính xác, thường dùng cột `DECIMAL`/`NUMERIC` có precision và scale phù hợp. Java đọc/ghi qua `BigDecimal` để tránh chuyển trung gian sang `float`/`double`. Thao tác database có thể áp ràng buộc scale, precision và quy tắc làm tròn riêng; cần kiểm tra schema và hành vi của database/driver cụ thể.
+For decimals requiring exactness, typically use `DECIMAL`/`NUMERIC` columns with appropriate precision and scale. Java reads/writes via `BigDecimal` to avoid intermediate conversion to `float`/`double`. Database operations may apply their own scale, precision, and rounding constraints; verify the schema and specific database/driver behavior.
 
-Không lưu những chuỗi như `"12.348,17 EUR"` vào cột giá trị số khi cần truy vấn tổng, lọc và so sánh số. Ký hiệu tiền, nhóm hàng nghìn, dấu thập phân locale là thông tin trình bày; lưu giá trị số và đơn vị theo schema.
+Do not store strings like `"12.348,17 EUR"` in numeric columns when you need to query sums, filter, and compare numbers. Currency symbols, thousands grouping, and locale decimal marks are presentation details; store numeric values and units per schema.
 
-### 7.3. Báo cáo và CSV
+### 7.3. Reports and CSV
 
-Một tập tin CSV có thể dùng dấu phẩy phân cột, nên chuỗi hiển thị `"12,348.17"` có dấu phẩy cũng có thể đòi hỏi quoting/escaping. Cách an toàn hơn cho trao đổi máy là thống nhất **delimiter, dấu thập phân, encoding, quy tắc quoting và locale** trong hợp đồng xuất dữ liệu. Không giả định một CSV “dễ đọc bằng Excel ở máy mình” luôn được dịch vụ khác hiểu như nhau.
+A CSV file may use commas as column delimiters, so a display string `"12,348.17"` containing a comma would also require quoting/escaping. A safer approach for machine exchange is agreeing on **delimiter, decimal mark, encoding, quoting rules, and locale** in the data export contract. Never assume a CSV that is "easy to read in Excel on my machine" is understood identically by another service.
 
-Với báo cáo dành cho con người, có thể tạo một bản CSV tương thích locale cụ thể; với dữ liệu trao đổi, hãy đưa ra một định dạng có thể parse nhất quán và tài liệu hóa.
+For human-facing reports, you can generate a CSV tailored to a specific locale; for data exchange, provide a consistently parseable format and document it.
 
-## 8. Kiểm tra và thử nghiệm bắt buộc theo ranh giới
+## 8. Mandatory Boundary Checks and Testing
 
-Các tình huống nên có trong kiểm thử:
+Scenarios that should be in tests:
 
-- **Cùng giá trị, nhiều locale:** 12348.17 hiển thị ở US và Đức khác chuỗi nhưng kết quả domain không đổi.
-- **Làm tròn hiển thị:** 1.005 format còn 2 chữ số khác với giá trị domain ban đầu.
-- **Cộng trước hoặc sau làm tròn:** hai lần 1.005 cho kết quả khác nếu cộng hai chuỗi đã làm tròn; so với hợp đồng nghiệp vụ.
-- **Đọc chuỗi giao thức:** `"12348.17"` parse chính xác; từ chối `"12,348.17"` nếu contract chỉ cho phép dạng chuẩn không phân nhóm.
-- **Đọc chuỗi locale:** parse `"12.348,17"` với locale phù hợp; phát hiện phần dư không được parser tiêu thụ, kiểm tra group nếu yêu cầu nghiêm ngặt.
-- **Scale, precision và số âm:** giá trị `0.10`, `1000`, `1E+3`, số âm, số rất lớn, hoặc nhiều chữ số sau dấu thập phân.
-- **Round-trip:** gửi và nhận có bảo toàn **giá trị toán học** không? Nếu cần bảo toàn **scale**, phải kiểm tra thêm scale hoặc sử dụng contract hỗ trợ.
+- **Same value, multiple locales:** 12348.17 displays differently in US vs. Germany while the domain value stays unchanged.
+- **Display rounding:** 1.005 formatted to 2 digits differs from the original domain value.
+- **Adding before vs. after rounding:** two `1.005` values give a different result if two rounded strings are added; verify against the business contract.
+- **Reading protocol strings:** `"12348.17"` parses accurately; reject `"12,348.17"` if the contract allows only ungrouped canonical form.
+- **Reading localized strings:** parse `"12.348,17"` with the right locale; detect unconsumed trailing text, validate grouping if strictness is required.
+- **Scale, precision, and negatives:** values `0.10`, `1000`, `1E+3`, negative numbers, very large numbers, or many decimal digits.
+- **Round-trip:** do sending and receiving preserve **mathematical value**? If preserving **scale** is required, test scale as well or use a supporting contract.
 
-Không dùng phép so sánh chuỗi hiển thị làm phép kiểm tra bằng nhau của số. So sánh giá trị `BigDecimal` bằng `compareTo` nếu chỉ xét giá trị toán học; dùng `equals` nếu còn yêu cầu scale giống nhau.
+Never compare display strings to test numeric equality. Compare `BigDecimal` values using `compareTo` when checking mathematical value alone; use `equals` when identical scale is also required.
 
-## 9. Lỗi phổ biến và cách tránh
+## 9. Common Mistakes and How to Avoid Them
 
-| Hiện tượng | Nguyên nhân | Cách xử lý |
+| Symptom | Cause | Fix |
 | --- | --- | --- |
-| API gửi `"12.348,17"` rồi hệ thống nhận parse lỗi | Chuỗi hiển thị gắn với locale | Gửi dạng chuẩn `"12348.17"` theo contract |
-| Số tiền thay đổi khi đổi ngôn ngữ UI | Code dùng chuỗi đã format làm nguồn tính | Giữ `BigDecimal` domain, format chỉ ở lớp trình bày |
-| Hai dòng `1.005` hiển thị `1,01`, tổng hiển thị `2,01` | Tổng được cộng chính xác rồi làm tròn một lần | Xác định chính sách làm tròn theo dòng hoặc theo tổng; giải thích nhất quán |
-| `Double.parseDouble("1,25")` thất bại | Parser chuẩn không đọc dấu phẩy decimal theo locale | Parse input UI với `DecimalFormat` cấu hình locale |
-| `NumberFormat.parse` chỉ đọc được một phần | Parser có thể chấp nhận tiền tố hợp lệ | Dùng `ParsePosition` và kiểm tra cuối chuỗi; xác minh định dạng chặt nếu cần |
-| Giá trị từ JSON mất chữ số | Consumer trung gian đọc vào `double` | Định nghĩa schema và kiểu decimal tương thích; dùng chuỗi khi contract yêu cầu |
-| Số thập phân được nhân/chia rồi ghi dạng chuỗi theo UI | Chính sách làm tròn bị trộn với format | Áp `setScale`/`MathContext` khi tính theo nghiệp vụ, serialize độc lập |
-| Code dùng formatter `static` chia sẻ giữa các request | `DecimalFormat` có trạng thái và không được bảo đảm thread-safe | Tạo formatter theo phạm vi request hoặc quản lý concurrency tường minh |
-| Bản ghi chỉ còn `"100.00"` nhưng mất loại tiền | Đơn vị bị xử lý như trang trí | Lưu currency/unit trong domain và contract |
-| Chuỗi `"1,234"` được tự đoán tùy máy | Locale không rõ | Chỉ định locale/form input rõ hoặc dùng format chuẩn máy |
+| API sends `"12.348,17"` and receiver fails to parse | Locale-bound display string sent | Send canonical `"12348.17"` per contract |
+| Monetary amounts change when UI language changes | Code uses formatted strings as calculation source | Keep domain `BigDecimal`; format only at presentation |
+| Two `1.005` lines show `1,01`, total shows `2,01` | Sum computed exactly then rounded once | Define line-level or total-level rounding policy; explain consistently |
+| `Double.parseDouble("1,25")` fails | Standard parser does not read locale decimal commas | Parse UI input with locale-configured `DecimalFormat` |
+| `NumberFormat.parse` reads only part of input | Parser can accept a valid prefix | Use `ParsePosition` and check end of string; validate strict format if needed |
+| Values from JSON lose digits | Intermediate consumer reads into `double` | Define schema and compatible decimal type; use strings when contract requires |
+| Decimals multiplied/divided then written as UI-formatted strings | Rounding policy mixed with formatting | Apply `setScale`/`MathContext` per business logic, serialize independently |
+| Code uses a shared `static` formatter across requests | `DecimalFormat` is stateful and not thread-safe | Create formatters per request scope or manage concurrency explicitly |
+| Record retains `"100.00"` yet loses currency | Unit treated as decoration | Store currency/unit in domain and contract |
+| String `"1,234"` guessed by machine | Locale unclear | Specify form locale/input clearly or use machine-standard format |
 
-## 10. Tự kiểm tra
+## 10. Self-Check
 
-1. **Khi đổi locale từ Mỹ sang Đức, nên thay đổi số đang tính không?** Không. Chỉ chuỗi hiển thị thay đổi, giá trị `BigDecimal` phải giữ nguyên.
-2. **Tại sao `"12.348,17"` không nên là mặc định của một API machine-to-machine?** Nó phụ thuộc locale và có thể bị parse khác nhau. Chọn một contract xác định như chuỗi thập phân dấu chấm, không dấu nhóm.
-3. **Vì sao không cộng trực tiếp `"1,01" + "1,01"` khi hai chuỗi vốn là biểu diễn của `1.005`?** Vì formatter đã làm tròn mất thông tin; nghiệp vụ phải chỉ rõ cộng trước hay làm tròn từng khoản.
-4. **`BigDecimal.toPlainString()` có luôn giữ scale ban đầu không?** Không trong mọi trường hợp, đặc biệt với scale âm; nó bảo toàn giá trị thập phân để đọc lại, còn scale cần contract riêng nếu quan trọng.
-5. **Nếu form nhập theo locale Đức nhưng API nhận dấu chấm thì có mâu thuẫn không?** Không. Hai ranh giới có trách nhiệm khác nhau: parse locale ở UI, rồi serialize chuẩn ở tầng API.
-6. **Vì sao `setParseBigDecimal(true)` hữu ích với `DecimalFormat`?** Nó giúp lấy `BigDecimal` trực tiếp từ số thập phân được parse, tránh trung gian `double` đối với trường hợp số thông thường.
-7. **Một số được format với `HALF_UP` có làm thay đổi `BigDecimal` gốc không?** Không. `format` tạo chuỗi; thay đổi giá trị để lưu phải là thao tác tính toán được quy định rõ.
-8. **Phải ghi gì trong hợp đồng trao đổi số thập phân?** Kiểu biểu diễn (JSON number hay string), dấu thập phân, nhóm chữ số, kiểu nhận ở hai phía, precision/scale, đơn vị và quy tắc làm tròn.
+1. **When switching locale from US to Germany, should the number being calculated change?** No. Only the display string changes; the `BigDecimal` value must stay unchanged.
+2. **Why shouldn't `"12.348,17"` be the default in a machine-to-machine API?** It is locale-dependent and can be parsed differently. Choose a deterministic contract such as dot-decimal strings without grouping separators.
+3. **Why shouldn't you directly add `"1,01" + "1,01"` when both strings represent `1.005`?** Because the formatter rounded and lost information; business rules must specify whether to add first or round each item.
+4. **Does `BigDecimal.toPlainString()` always preserve the original scale?** Not in all cases, especially with negative scales; it preserves the decimal value for re-parsing, while scale needs its own contract if important.
+5. **If an input form uses German locale while the API expects dot-decimal, is that a contradiction?** No. The two boundaries have different responsibilities: parse localized input at the UI, then serialize canonically at the API layer.
+6. **Why is `setParseBigDecimal(true)` useful with `DecimalFormat`?** It yields `BigDecimal` directly from parsed decimal numbers, avoiding an intermediate `double` for normal numbers.
+7. **Does formatting a number with `HALF_UP` mutate the original `BigDecimal`?** No. `format` produces a string; changing a stored value must be an explicitly defined calculation operation.
+8. **What must be documented in a decimal exchange contract?** Representation type (JSON number or string), decimal mark, digit grouping, receiver/sender types, precision/scale, unit, and rounding rules.
 
-**Ghi nhớ:** **Tính trên số; hiển thị theo locale; trao đổi theo contract.** `BigDecimal` là giá trị miền, `NumberFormat`/`DecimalFormat` tạo chuỗi cho người dùng, còn `toPlainString` hoặc serializer được cấu hình theo schema tạo dạng trao đổi. Không đưa kết quả format hiển thị trở lại phép tính hay mạng dữ liệu nếu chưa có bước parse và chính sách nghiệp vụ phù hợp.
+**Key takeaway:** **Calculate on numbers; display by locale; exchange by contract.** `BigDecimal` is the domain value, `NumberFormat`/`DecimalFormat` produces strings for users, and `toPlainString` or schema-configured serializers produce exchange formats. Never feed display-formatted results back into calculations or data pipelines without proper parsing and business policy.

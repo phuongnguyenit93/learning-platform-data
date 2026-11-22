@@ -1,34 +1,34 @@
-# Đối chiếu hiệu năng các cách ghép chuỗi trên cùng dữ liệu trong Java
+# Comparing Performance of String Concatenation Approaches on Identical Data in Java
 
-## 1. Mục tiêu thực hành
+## 1. Practice goal
 
-Trong Java, có nhiều cách tạo một chuỗi từ nhiều phần: toán tử `+`/`+=`, `StringBuilder`, `StringJoiner`, `String.join` và `Collectors.joining`. Những API này có cùng khả năng tạo kết quả văn bản, nhưng **số lần tạo đối tượng, thao tác sao chép, lượng cấp phát, overhead của luồng xử lý và khả năng tối ưu của JVM** có thể khác nhau.
+In Java, there are multiple ways to build one string from multiple parts: `+`/`+=` operators, `StringBuilder`, `StringJoiner`, `String.join`, and `Collectors.joining`. These APIs can produce identical text output, yet **object allocation counts, copying work, total allocation volume, pipeline overhead, and JVM optimization behavior** can differ.
 
-Một bài so sánh đáng tin cần trả lời **hai câu hỏi tách biệt**:
+A trustworthy comparison must answer **two separate questions**:
 
-1. **Đúng chức năng không?** Các cách ghép phải tạo *cùng một chuỗi*, cùng dấu phân cách, cùng thứ tự, xử lý giống nhau với mảng rỗng/một phần tử và các giá trị đầu vào đã định nghĩa.
-2. **Hiệu năng có khác không?** Đo nhiều lần trong môi trường kiểm soát được, trên cùng dữ liệu, cùng công việc và cùng điều kiện chạy; phân biệt thời gian với lượng cấp phát.
+1. **Is it functionally identical?** Every approach must produce *the exact same string*, with the same delimiter, same order, and identical handling of empty/single-element arrays and defined inputs.
+2. **Does performance differ?** Measure repeatedly in a controlled environment on the same data, same work, and same runtime conditions; distinguish elapsed time from allocation volume.
 
-**Mục tiêu bài này:** xây dựng bộ dữ liệu tái lập được, triển khai sáu cách ghép, xác nhận kết quả đồng nhất, sau đó đưa vào benchmark JMH để tự đối chiếu. Không có một con số “`StringBuilder` luôn nhanh hơn X lần” đúng cho mọi Java/JVM/kích thước dữ liệu.
+**Goal of this lesson:** build a reproducible dataset, implement six concatenation approaches, verify identical outputs, and then feed them into a JMH benchmark to compare yourself. There is no universal constant like "`StringBuilder` is always X times faster" across all Java versions, JVMs, and data sizes.
 
-## 2. Chọn đúng bài toán chung trước khi so sánh
+## 2. Defining a shared problem before comparing
 
-Ta có mảng `String[] values` không chứa `null`, gồm các phần tử có định dạng `v0_0`, `v1_1`, ... Đầu ra mong muốn là:
+Given a `null`-free `String[] values` array with elements formatted like `v0_0`, `v1_1`, ..., the desired output is:
 
 ```text
 values = ["v0_0", "v1_1", "v2_2"]
 result = "v0_0|v1_1|v2_2"
 ```
 
-Quy tắc cố định:
+Fixed rules:
 
-- Dùng dấu `|` **chỉ giữa hai phần tử**; không có dấu phân cách ở đầu hoặc cuối.
-- Giữ đúng thứ tự ban đầu và toàn bộ ký tự của từng phần tử.
-- Mảng rỗng cho `""`; mảng một phần tử cho chính phần tử đó.
-- Bài thực hành dùng phần tử **không null**; cách xử lý `null` trong dữ liệu thật phải được quy định riêng, không được để một phương pháp có chính sách khác mà vẫn tính là “cùng công việc”.
-- Không tính thời gian **sinh mảng dữ liệu** vào thời gian ghép. Với `StringBuilder` có dung lượng ước tính, phải nói rõ chi phí tính dung lượng được tính trong bài thử chức năng hay được chuẩn bị trước trong benchmark.
+- Place `|` **only between adjacent elements**; no leading or trailing delimiter.
+- Preserve the original order and all characters of each element.
+- An empty array produces `""`; a single-element array produces that element itself.
+- This practice uses **non-null** elements; how `null` is handled in real data must be specified separately, and one method must not use a different policy while still claiming to do "the same work."
+- Do not include **array generation time** in concatenation timing. For pre-sized `StringBuilder`, state explicitly whether capacity calculation is part of the functional test or precomputed in benchmark setup.
 
-Đầu vào được tạo theo công thức xác định, không lấy ngẫu nhiên trong đoạn mã đo thời gian:
+Inputs are generated deterministically rather than randomly inside the timed code:
 
 ```java
 static String[] input(int size) {
@@ -40,26 +40,26 @@ static String[] input(int size) {
 }
 ```
 
-Đây là phương thức minh họa, được đưa vào chương trình độc lập ở phần sau. Việc mọi phương pháp cùng đọc một mảng `String[]` giúp loại bỏ khác biệt do đọc file, truy vấn cơ sở dữ liệu, tạo chuỗi ngẫu nhiên hoặc chuẩn hóa dữ liệu.
+This is an illustrative method included in the standalone program below. Having every approach read the same `String[]` removes noise from file I/O, database queries, random string generation, or data normalization.
 
-## 3. Sáu phương pháp được đối chiếu
+## 3. Six approaches compared
 
-| Cách | Cơ chế chính | Điểm cần chú ý khi đo |
+| Approach | Core mechanism | Measurement considerations |
 | --- | --- | --- |
-| `+=` trong vòng lặp | Mỗi bước yêu cầu một giá trị `String` mới theo ngữ nghĩa nối | Có thể sao chép lại phần kết quả tích lũy qua nhiều bước |
-| `StringBuilder` mặc định | Thêm nhiều đoạn vào bộ đệm chuỗi có thể thay đổi | Bộ đệm có thể mở rộng nhiều lần |
-| `StringBuilder` có `capacity` | Chuẩn bị sức chứa dự kiến rồi `append` | Cần biết/ước tính đúng dung lượng; tính toán capacity cũng có chi phí |
-| `StringJoiner` | Thêm các phần tử với delimiter do API quản lý | Khớp trực tiếp bài toán “nối có phân cách” |
-| `String.join` | API tiện lợi trên mảng/`Iterable` | Có thể có overhead riêng tùy JVM và triển khai |
-| `Arrays.stream(...).collect(Collectors.joining(...))` | Đường ống stream, collector ghép chuỗi | Có thể phát sinh thêm chi phí tạo và vận hành stream |
+| `+=` in a loop | Each step requires a new `String` value per concatenation semantics | May repeatedly copy the accumulated prefix across steps |
+| Default `StringBuilder` | Appends segments into a mutable character buffer | Buffer may resize multiple times |
+| Pre-sized `StringBuilder` with `capacity` | Pre-allocates expected capacity then calls `append` | Requires knowing/estimating capacity; computing capacity has its own cost |
+| `StringJoiner` | Adds elements with API-managed delimiter | Directly matches the "delimited joining" task |
+| `String.join` | Convenience API for arrays/`Iterable` | May have implementation-specific overhead depending on JVM |
+| `Arrays.stream(...).collect(Collectors.joining(...))` | Stream pipeline with string-joining collector | May incur stream and collector setup overhead |
 
-**Quan trọng:** `StringBuilder` là **mutable**, còn `String` là **immutable**. Nhưng từ bytecode `invokedynamic` (trên `javac` Java 9+) không thể suy ra chính xác lượng cấp phát của mọi phép `+`. JVM có thể tối ưu mạnh trong các ngữ cảnh nhất định; cần benchmark thay vì kết luận hoàn toàn bằng trực giác.
+**Important:** `StringBuilder` is **mutable**, while `String` is **immutable**. However, you cannot deduce exact allocation counts for every `+` solely from `invokedynamic` bytecode (on `javac` Java 9+). The JVM can optimize aggressively in certain contexts; benchmark rather than relying purely on intuition.
 
-Trong một biểu thức ngắn như `"id=" + id + ",name=" + name`, compiler hiện đại thường có khả năng tối ưu tốt. **`+=` lặp nhiều lần để tăng một chuỗi tích lũy** là bài toán khác, thường có nguy cơ lặp lại công việc sao chép khi kích thước kết quả tăng.
+In a short single expression like `"id=" + id + ",name=" + name`, modern compilers usually optimize well. **Repeatedly appending with `+=` in a loop to grow an accumulator string** is a different workload, often risking repeated copying as the result grows.
 
-## 4. Chương trình Java 17+ xác minh tất cả phương pháp cho cùng kết quả
+## 4. Java 17+ program verifying all methods produce identical output
 
-Tạo tệp `ConcatCases.java`:
+Create the file `ConcatCases.java`:
 
 ```java
 import java.util.Arrays;
@@ -136,14 +136,14 @@ public class ConcatCases {
 }
 ```
 
-Chạy tại thư mục chứa file:
+Run from the directory containing the file:
 
 ```bash
 javac --release 17 -encoding UTF-8 ConcatCases.java
 java ConcatCases
 ```
 
-Kết quả **đã kiểm chứng bằng biên dịch và thực thi**, không phải số liệu benchmark:
+Output **verified by compiling and running**, not benchmark timing data:
 
 ```text
 n=0 methods=6 identical=true chars=0
@@ -153,44 +153,44 @@ n=128 methods=6 identical=true chars=834
 n=1024 methods=6 identical=true chars=7501
 ```
 
-Chương trình báo `methods=6 identical=true` vì **sáu cách đều cho giá trị `String` khớp từng ký tự** với kết quả chuẩn ở từng kích thước. Điều này loại được lỗi phổ biến như dấu `|` thừa ở cuối, sai thứ tự phần tử hoặc bỏ qua phần tử đầu tiên. Đây là *kiểm tra chức năng*, chưa phải chứng cứ cách nào nhanh nhất.
+The program reports `methods=6 identical=true` because **all six approaches produce character-for-character identical `String` values** matching the reference output at each size. This rules out common bugs such as trailing `|`, wrong element order, or skipping the first element. This is a *functional check*, not evidence of which is fastest.
 
-### Vì sao phải kiểm tra cả `n = 0` và `n = 1`?
+### Why test `n = 0` and `n = 1` as well?
 
-- `n=0` có kết quả `""`. Một hàm ghép sai có thể tự thêm delimiter dù không có phần tử.
-- `n=1` không được thêm bất cứ delimiter nào. Một số cách triển khai ghép thủ công dễ để thừa dấu `|` ở đầu/cuối.
-- `n=8` giúp quan sát khối dữ liệu nhỏ thường gặp trong biểu mẫu, thông báo hoặc một dòng log.
-- `n=128` và `n=1024` kiểm tra khi kết quả dài dần, phát hiện chi phí tích lũy và thay đổi cấu trúc bộ đệm.
+- `n=0` yields `""`. A buggy joiner might emit a delimiter even with zero elements.
+- `n=1` must add no delimiter at all. Manual loops easily leave a stray leading or trailing `|`.
+- `n=8` illustrates small payloads typical of forms, messages, or a single log line.
+- `n=128` and `n=1024` test longer outputs, exposing cumulative copying costs and buffer growth.
 
-Khi dữ liệu thực tế có `null`, Unicode dài, dấu phân cách bên trong giá trị hay giới hạn chiều dài, cần thêm lớp test tương ứng và **thống nhất kết quả mong muốn** giữa các phương pháp trước khi đo.
+When real data includes `null`, long Unicode strings, delimiters inside values, or length caps, add matching test cases and **align expected outputs** across all approaches before measuring.
 
-## 5. Vì sao kết quả nối đúng chưa đủ để so hiệu năng?
+## 5. Why identical results are not enough to compare performance
 
-Một cách ghép có thể cho cùng kết quả nhưng:
+Two approaches can yield identical output yet differ because one:
 
-- Tốn nhiều CPU hơn để sao chép đoạn kết quả tích lũy.
-- Tạo nhiều đối tượng trung gian hoặc bộ đệm hơn, làm tăng áp lực garbage collector (GC).
-- Phải mở rộng dung lượng bộ đệm theo từng giai đoạn.
-- Có overhead do tạo stream, collector hoặc lớp điều phối API.
-- Được JIT tối ưu khác nhau sau khi chạy nóng; cách đo quá ngắn dễ đánh giá sai.
+- Spends more CPU copying accumulated prefixes.
+- Allocates more intermediate objects or buffers, increasing garbage collector (GC) pressure.
+- Has to grow buffer capacity in stages.
+- Pays overhead for creating streams, collectors, or API wrappers.
+- Is optimized differently by the JIT after warming up; overly short runs easily misjudge performance.
 
-Có thể hình dung với `n` đoạn có độ dài tương tự, nếu mỗi bước nối `+=` phải sao chép lại toàn bộ nội dung đã tích lũy, lượng dữ liệu cần sao chép có thể tăng theo tổng:
+Conceptually, with `n` chunks of similar length, if each `+=` step must copy all accumulated content so far, total characters copied can grow like the sum:
 
 \[
 1 + 2 + \cdots + n = \frac{n(n+1)}{2}
 \]
 
-Đây là giải thích trực quan cho nguy cơ tăng **xấp xỉ bậc hai theo số phần tử** trong cách nối tích lũy ngây thơ, khi độ dài mỗi phần tử tương tự nhau. Nó **không phải một cam kết về độ phức tạp thực tế của mọi trình biên dịch và JVM**: compiler/JIT có thể thực hiện một số tối ưu, đặc biệt trong ngữ cảnh xác định được.
+This intuitively explains the risk of **roughly quadratic growth in elements** for naive cumulative concatenation when element lengths are similar. It is **not a guarantee of actual complexity across every compiler and JVM**: compilers and JITs can apply optimizations, especially in predictable contexts.
 
-Trong khi đó, `StringBuilder` có thể tích lũy vào một vùng đệm rồi tạo `String` kết quả, nên thường hạn chế việc tạo lại toàn bộ chuỗi qua từng bước. Khi đặt `capacity` đủ lớn trước, nó còn tránh một số lần mở rộng buffer. Nhưng nếu phải quét tất cả giá trị để tính độ dài, lần quét đó cũng là **chi phí**; không nên tính toàn bộ chi phí cho một phương pháp mà lại loại khỏi phương pháp khác khi mục tiêu là so tổng chi phí công việc từ đầu đến cuối.
+Meanwhile, `StringBuilder` accumulates into a buffer and creates the resulting `String` at the end, typically avoiding recreating the whole string at every step. Pre-sizing `capacity` large enough also avoids buffer resizes. However, if you have to scan all values to compute length, that scan is also a **cost**; do not include it for one method while omitting it for another when the goal is comparing total end-to-end work.
 
-## 6. Đo có kiểm soát với JMH
+## 6. Controlled measurement with JMH
 
-Để so hiệu năng microbenchmark trong Java, nên dùng **JMH (Java Microbenchmark Harness)** thay vì lấy hiệu `System.nanoTime()` quanh một lần nối. JMH hỗ trợ warmup, nhiều phép đo, fork JVM và tiêu thụ kết quả hợp lý để giảm tác động của dead-code elimination và tối ưu không mong muốn.
+For Java microbenchmarks, use **JMH (Java Microbenchmark Harness)** instead of subtracting `System.nanoTime()` around a single loop. JMH provides warm-up, multiple iterations, JVM forks, and proper result consumption to reduce dead-code elimination and unwanted optimizations.
 
-### Tạo dự án JMH
+### Creating a JMH project
 
-Cần cài JDK và Maven, dùng archetype JMH (ví dụ phiên bản `1.37`):
+With JDK and Maven installed, use the JMH archetype (e.g., version `1.37`):
 
 ```bash
 mvn archetype:generate -DinteractiveMode=false \
@@ -202,9 +202,9 @@ mvn archetype:generate -DinteractiveMode=false \
   -Dversion=1.0
 ```
 
-Khối lệnh trên dùng ký hiệu nối dòng `\` của shell POSIX (Linux/macOS). Trên PowerShell, có thể viết **một dòng duy nhất** với các tham số tương tự và bỏ dấu `\` nối dòng. Archetype thiết lập phần cần thiết để JMH chạy như một dự án Maven. Đặt class benchmark `ConcatBenchmark.java` trong `concat-bench/src/main/java/org/example/`, dùng package `org.example` như ví dụ sau.
+The command block above uses POSIX shell line continuation `\` (Linux/macOS). On PowerShell, write it on **a single line** with the same arguments and omit `\`. The archetype sets up the scaffolding to run JMH as a Maven project. Place `ConcatBenchmark.java` under `concat-bench/src/main/java/org/example/`, using package `org.example` as shown next.
 
-### Class JMH benchmark đầy đủ
+### Complete JMH benchmark class
 
 ```java
 package org.example;
@@ -298,99 +298,99 @@ public class ConcatBenchmark {
 }
 ```
 
-Điểm thiết kế quan trọng của benchmark:
+Key benchmark design choices:
 
-- `@State(Scope.Thread)` cung cấp dữ liệu cho từng thread benchmark.
-- `@Param` chạy cả ba kích thước dữ liệu trong các trường hợp đo riêng.
-- `@Setup(Level.Trial)` tạo mảng và tính `exactCapacity` **ngoài đoạn đo**. Nhờ vậy đo riêng chi phí nối, không lẫn việc tạo dữ liệu.
-- `builderSized()` được dùng một dung lượng đã biết trước, phản ánh kịch bản có thể biết trước chiều dài kết quả. Đây là **lợi thế có điều kiện**: nếu ứng dụng thực phải quét mảng tính dung lượng, hãy tạo thêm benchmark end-to-end tính cả chi phí đó.
-- Mỗi `@Benchmark` trả về `String` kết quả, giúp harness quan sát giá trị trả về và tránh một số hình thức loại bỏ phép tính khi kết quả không được dùng.
-- `@Fork(2)` chạy ở hai JVM fork độc lập; `@Warmup` và `@Measurement` giảm sự nhiễu của giai đoạn khởi động JIT.
-- Không in console, đọc file, sinh mảng hoặc tạo dữ liệu ngẫu nhiên trong phương thức benchmark, vì đó không phải chi phí đang cần đo.
+- `@State(Scope.Thread)` provides state per benchmark thread.
+- `@Param` runs all three dataset sizes as separate benchmark cases.
+- `@Setup(Level.Trial)` builds the array and computes `exactCapacity` **outside the timed section**. This isolates concatenation cost rather than data generation.
+- `builderSized()` receives a precomputed capacity, modeling scenarios where final length is already known. This is a **conditional advantage**: if the real application must scan the array to compute capacity, add an end-to-end benchmark that includes that scan.
+- Each `@Benchmark` returns the resulting `String`, letting JMH observe the return value and prevent forms of dead-code elimination.
+- `@Fork(2)` runs two independent JVM forks; `@Warmup` and `@Measurement` reduce JIT warm-up noise.
+- Do not print to console, read files, allocate the input array, or generate random data inside benchmark methods, as those are not what you want to measure.
 
-### Chạy JMH
+### Running JMH
 
-Từ thư mục dự án `concat-bench`:
+From the `concat-bench` project directory:
 
 ```bash
 mvn clean verify
 java -jar target/benchmarks.jar ConcatBenchmark
 ```
 
-Mỗi combination giữa kích thước và phương pháp sẽ cho thống kê thời gian riêng. Các tùy chọn `@Warmup`, `@Measurement` và `@Fork` ở trên tương đối tốn thời gian vì cần làm nóng và đo nhiều lượt; khi thử nhanh có thể giảm số lần bằng tùy chọn command line, rồi dùng cấu hình đầy đủ cho báo cáo chính thức.
+Each combination of size and method reports its own timing statistics. The `@Warmup`, `@Measurement`, and `@Fork` settings above take noticeable time because multiple warm-up and measurement runs are needed; during quick sanity checks you can reduce counts via command-line flags, then use the full config for final reporting.
 
-Ví dụ chạy thêm **GC allocation profiling**:
+Example adding **GC allocation profiling**:
 
 ```bash
 java -jar target/benchmarks.jar ConcatBenchmark -prof gc
 ```
 
-Tùy profiler/JDK, output có thể gồm `gc.alloc.rate.norm` (byte cấp phát chuẩn hóa trên mỗi operation) và các metric GC liên quan. Số liệu cấp phát có thể phản ánh tối ưu của JIT và độ lớn output; không nên suy ra tổng heap retained chỉ từ số byte cấp phát. Nếu profiler không khả dụng trong môi trường đang dùng, chỉ báo phần này chưa đo, không tự điền số.
+Depending on profiler/JDK, output may include `gc.alloc.rate.norm` (normalized bytes allocated per operation) and related GC metrics. Allocation figures can reflect JIT optimizations (such as escape analysis) and output size; do not infer retained heap size solely from allocated bytes. If the profiler is unavailable in your environment, report it as unmeasured rather than filling in numbers.
 
-**Không đưa số μs/op cố định vào bài học**: JMH phải chạy trên máy, JDK, heap, CPU, trạng thái GC và workload cụ thể. Một bảng “kết quả” điền số trước khi đo sẽ khiến người học tin vào thứ hạng không được chứng minh.
+**Do not hardcode fixed `μs/op` numbers into the lesson**: JMH must run on a specific machine, JDK, heap, CPU, GC state, and workload. A pre-filled "results" table before measuring leads learners to trust unverified rankings.
 
-## 7. Cách trình bày bảng đối chiếu kết quả
+## 7. How to present comparison tables
 
-Sau khi chạy, hãy ghi rõ ít nhất `java -version`, loại CPU, JMH version, JVM options, số fork, số lần warmup/measurement, dataset, độ dài kết quả và đơn vị đo. Dùng một bảng cho **cùng một `n`**:
+After running, record at least `java -version`, CPU model, JMH version, JVM options, fork count, warm-up/measurement counts, dataset, output length, and measurement units. Use one table per **fixed `n`**:
 
-| Phương pháp | Avg time (μs/op) | Error/CI | Alloc (B/op) nếu có | Ghi chú |
+| Method | Avg time (`μs/op`) | Error/CI | Alloc (`B/op`) if available | Notes |
 | --- | ---: | ---: | ---: | --- |
-| `plusLoop` | Điền từ JMH | Điền từ JMH | Điền từ `-prof gc` | Nối tích lũy `+=` |
-| `builder` | Điền từ JMH | Điền từ JMH | Điền từ `-prof gc` | Dung lượng mặc định |
-| `builderSized` | Điền từ JMH | Điền từ JMH | Điền từ `-prof gc` | Dung lượng chuẩn bị sẵn |
-| `joiner` | Điền từ JMH | Điền từ JMH | Điền từ `-prof gc` | API delimiter |
-| `joining` | Điền từ JMH | Điền từ JMH | Điền từ `-prof gc` | API `String.join` |
-| `streamJoining` | Điền từ JMH | Điền từ JMH | Điền từ `-prof gc` | Stream + collector |
+| `plusLoop` | Fill from JMH | Fill from JMH | Fill from `-prof gc` | Cumulative `+=` concatenation |
+| `builder` | Fill from JMH | Fill from JMH | Fill from `-prof gc` | Default capacity |
+| `builderSized` | Fill from JMH | Fill from JMH | Fill from `-prof gc` | Precomputed capacity |
+| `joiner` | Fill from JMH | Fill from JMH | Fill from `-prof gc` | Delimiter API |
+| `joining` | Fill from JMH | Fill from JMH | Fill from `-prof gc` | `String.join` API |
+| `streamJoining` | Fill from JMH | Fill from JMH | Fill from `-prof gc` | Stream + collector |
 
-Đây là **mẫu bảng kết quả cần đo**, không phải phép đo giả lập. Với chế độ `AverageTime`, số `μs/op` **thấp hơn** nghĩa là tốn ít thời gian hơn trong workload đo. Cột độ bất định hoặc error giúp tránh suy luận từ khác biệt rất nhỏ nằm trong sai số.
+This is a **template for measured results**, not simulated data. Under `AverageTime` mode, **lower** `μs/op` means less time per operation in that workload. The error/uncertainty column prevents over-interpreting tiny differences inside measurement noise.
 
-Khi so nhiều kích thước `n=8`, `128` và `1024`, không gộp tất cả thành một con số “trung bình” để xếp hạng. Xu hướng có thể đổi khi kích thước thay đổi: một cách ngắn gọn với chi phí khởi tạo nhỏ có thể phù hợp dữ liệu ít phần tử, trong khi cách tích lũy vào một buffer thường có lợi thế hơn ở workload dài.
+When comparing multiple sizes (`n=8`, `128`, `1024`), do not collapse all sizes into a single "average" to rank methods. Trends can shift with size: a concise method with low setup overhead can fit small element counts, while buffering approaches typically pull ahead on larger workloads.
 
-### Ví dụ đọc kết quả cho đúng
+### Example of reading results accurately
 
-Giả sử một kết quả thực nghiệm cụ thể cho thấy `builderSized` ít μs/op hơn `builder` khi `n=1024`, bạn có thể kết luận **trong benchmark đó**, dung lượng đã biết trước giúp giảm chi phí. Chưa thể kết luận toàn bộ ứng dụng sẽ nhanh hơn, vì thực tế có thể phải tính capacity, parse input, truy cập mạng hoặc ghi file.
+Suppose an empirical run shows `builderSized` taking fewer `μs/op` than `builder` at `n=1024`; you may conclude that **in that benchmark**, pre-knowing capacity reduced overhead. You cannot conclude the whole application will speed up, because real code may spend time computing capacity, parsing input, hitting the network, or writing files.
 
-Nếu `streamJoining` gần bằng `joining` trong cùng sai số, không đủ căn cứ gọi một cách nhanh hơn. Cũng đừng suy luận chỉ số `B/op` thấp luôn đồng nghĩa latency thấp; CPU, cấp phát, bộ nhớ và GC liên quan nhưng không phải cùng một đại lượng.
+If `streamJoining` and `joining` fall within each other's error margin, there is insufficient evidence to declare one faster. Nor should you assume lower `B/op` always means lower latency; CPU, allocation, memory bandwidth, and GC are related but distinct quantities.
 
-## 8. Những cái bẫy làm benchmark thiếu công bằng
+## 8. Traps that make benchmarks unfair
 
-1. **Không cùng đầu ra:** một phiên bản có delimiter cuối, một phiên bản không; hoặc một phiên bản bỏ qua phần tử rỗng. Phải so khớp kết quả trước khi đo.
-2. **Tạo dữ liệu trong một benchmark nhưng tạo sẵn ở benchmark khác:** sẽ vô tình đo cả sinh dữ liệu, làm sai phép so.
-3. **Một bên biết trước capacity, bên kia phải tự đi tính:** có thể là hai kịch bản hợp lệ, nhưng phải tách rõ benchmark đo **chỉ phép nối** với benchmark đo **tổng chi phí tạo output**.
-4. **Dùng `System.nanoTime()` một lần rồi xếp hạng:** nhiễu từ JIT compilation, class loading, GC, scheduler và CPU có thể lớn hơn sự khác biệt thực.
-5. **Không tiêu thụ kết quả:** JVM có thể loại bỏ phép tính không ảnh hưởng đến hành vi quan sát được. JMH hỗ trợ return value hoặc `Blackhole`.
-6. **Để console I/O trong đoạn đo:** lệnh `System.out.println` có chi phí lớn, làm phép so không còn tập trung vào nối chuỗi.
-7. **Benchmark trên mảng quá ngắn hoặc quá dài mà không đại diện ứng dụng:** chỉ một kích thước chưa đủ để rút ra quy luật.
-8. **Lẫn độ dài String và byte UTF-8:** `String.length()` đo UTF-16 code units; số byte UTF-8 thay đổi theo nội dung. Nếu workload có Unicode thực tế, tạo tập dữ liệu tương ứng.
-9. **Chỉ nhìn trung bình mà bỏ sai số và GC:** cần quan sát độ biến thiên, allocation/GC và lặp lại với cấu hình hợp lý.
-10. **Thay một biểu thức `+` ngắn thành nối trong vòng lặp:** đó là hai workload khác nhau. Không dùng benchmark `+=` trong vòng lặp để kết luận mọi toán tử `+` đều chậm.
-11. **Quên cấu hình JVM/JDK:** compiler phát bytecode và JIT runtime ảnh hưởng lớn. Nên ghi version của cả JDK biên dịch và JDK chạy benchmark.
-12. **Kết luận từ một lần chạy trên máy đang tải nặng:** chạy các fork độc lập, ưu tiên môi trường ổn định, báo rõ giới hạn khi có nhiễu.
+1. **Different outputs:** one implementation has a trailing delimiter and another does not, or one skips empty elements. Verify output equality before measuring.
+2. **Generating data inside one benchmark but precomputing in another:** accidentally measures data generation, skewing the comparison.
+3. **One side knows capacity upfront while the other computes it:** both can be valid scenarios, yet you must separate benchmarks measuring **pure concatenation** from those measuring **total output-creation cost**.
+4. **Using `System.nanoTime()` once and ranking:** noise from JIT compilation, class loading, GC, OS scheduling, and CPU frequency scaling can exceed real differences.
+5. **Not consuming the result:** the JVM may eliminate computations with no observable side effects. JMH supports return values or `Blackhole`.
+6. **Putting console I/O inside timed code:** `System.out.println` is expensive and shifts measurement away from string concatenation.
+7. **Benchmarking only tiny or only huge arrays unrepresentative of your app:** a single size is insufficient to establish trends.
+8. **Confusing `String` length with UTF-8 bytes:** `String.length()` counts UTF-16 code units; UTF-8 byte length varies by content. If your workload has real Unicode, use a representative dataset.
+9. **Looking only at the mean while ignoring error and GC:** inspect variance, allocation/GC stats, and repeat with proper settings.
+10. **Generalizing a short `+` expression to loop concatenation:** those are two different workloads. Do not use a loop `+=` benchmark to claim every `+` operator is slow.
+11. **Omitting JVM/JDK versions:** bytecode emission by the compiler and runtime JIT behavior matter greatly. Record both compile JDK and runtime JDK versions.
+12. **Drawing conclusions from a single run on a heavily loaded machine:** use independent forks, prefer a quiet environment, and note limitations when noise exists.
 
-### Đối chiếu cả đầu ra lẫn độ phức tạp
+### Comparing both output and scaling
 
-Khi kết quả tương đương, hãy hỏi thêm về chuỗi kết quả **dài thêm như thế nào**. Một vòng lặp `+=` với `n` giá trị càng dài có thể khiến lượng nội dung trung gian cần sao chép tăng mạnh. Với `StringBuilder`, nhiều `append` thường làm việc trên một vùng đệm có thể tăng kích thước; do đó mức tăng chi phí thường dễ kiểm soát hơn. Nhưng những mô tả này là **mô hình giải thích**, không thay cho số liệu JMH của ứng dụng đang sử dụng.
+Once outputs match, ask how the resulting string **scales as it grows**. A `+=` loop over `n` progressively longer strings can sharply increase intermediate bytes copied. With `StringBuilder`, repeated `append` calls operate on a resizable buffer, so cost growth is usually easier to keep predictable. Still, these descriptions are **explanatory models**, not substitutes for JMH numbers on your actual application.
 
-## 9. Nên chọn cách nào trong mã Java thật?
+## 9. Which approach should you choose in real Java code?
 
-- **Nối vài biểu thức cố định:** ưu tiên `+` vì dễ đọc. `javac` Java 9+ thường biểu diễn nhiều phép nối động qua `invokedynamic` và `StringConcatFactory`; không tự chuyển sang `StringBuilder` nếu chưa có lý do.
-- **Tích lũy nhiều phần trong vòng lặp:** `StringBuilder` là lựa chọn rõ ràng, tránh phụ thuộc vào việc JVM nhận diện và tối ưu được phép `+=` lặp.
-- **Có delimiter và danh sách/mảng sẵn:** `String.join(delimiter, values)` rất dễ đọc; `StringJoiner` phù hợp khi thêm từng phần tử theo quá trình xử lý.
-- **Đang ở pipeline stream:** `Collectors.joining(delimiter)` tích hợp tự nhiên; cần đo nếu đoạn này là hot path, đặc biệt khi chỉ nối các phần tử mà không có bước biến đổi stream khác.
-- **Đã biết tương đối chính xác độ dài kết quả:** có thể đặt capacity cho `StringBuilder` để giảm mở rộng bộ đệm; tính luôn chi phí chuẩn bị capacity khi đánh giá end-to-end.
-- **Dữ liệu rất lớn:** cân nhắc streaming output trực tiếp vào `Writer`/`OutputStream` theo charset phù hợp nếu không bắt buộc tạo toàn bộ `String` trong bộ nhớ. Đây là bài toán khác với trả về một chuỗi duy nhất và phải benchmark riêng.
+- **Joining a few fixed expressions:** prefer `+` for readability. Java 9+ `javac` often compiles dynamic concatenations via `invokedynamic` and `StringConcatFactory`; do not manually rewrite to `StringBuilder` without reason.
+- **Accumulating many parts in a loop:** `StringBuilder` is the clear choice, avoiding reliance on whether the JVM detects and optimizes repeated `+=`.
+- **Delimited joining from a ready list or array:** `String.join(delimiter, values)` is very readable; `StringJoiner` fits when adding elements incrementally during processing.
+- **Already inside a stream pipeline:** `Collectors.joining(delimiter)` integrates naturally; measure if it sits on a hot path, especially when joining elements with no other stream transformations.
+- **Result length is known fairly accurately:** pre-size `StringBuilder` capacity to reduce buffer resizes; include capacity-calculation cost when evaluating end-to-end performance.
+- **Very large outputs:** consider streaming directly to a `Writer`/`OutputStream` with an explicit charset instead of materializing the whole `String` in memory. That is a different problem from returning one string and must be benchmarked separately.
 
-Người đọc mã nên ưu tiên **đúng ngữ nghĩa, dễ bảo trì, rồi đo các đoạn thực sự là bottleneck**. JMH giúp nhìn rõ ảnh hưởng của từng kỹ thuật, nhưng một tối ưu nhỏ của nối chuỗi không cứu được thiết kế vốn tốn phần lớn thời gian ở I/O, truy vấn hoặc xử lý khác.
+Code readers should prioritize **correct semantics and maintainability, then measure real bottlenecks**. JMH illuminates the impact of each technique, yet a micro-optimization in string concatenation will not save a design spending most of its time in I/O, queries, or other work.
 
-## 10. Checklist hoàn thành bài thực hành
+## 10. Practice completion checklist
 
-- Sáu cách đều nhận **cùng mảng dữ liệu** và tạo chính xác một chuỗi có `|` giữa các phần tử.
-- Đã xác nhận `n=0`, `1`, `8`, `128`, `1024` cho cùng nội dung, không chỉ cùng độ dài.
-- Dataset được tạo ngoài đoạn đo JMH; mọi thử nghiệm có chung logic tạo phần tử.
-- Có các lần warmup, measurement, fork JVM và phương thức tiêu thụ kết quả.
-- Báo cáo riêng từng kích thước, đơn vị `μs/op`, độ bất định và nếu có thì `B/op`.
-- Phân biệt benchmark `builderSized` có capacity biết trước với kịch bản phải tính capacity trong mỗi lần xử lý.
-- Tránh suy luận hiệu năng của mọi biểu thức `+` từ benchmark `+=` trong vòng lặp.
-- Chỉ kết luận nhanh/chậm theo **bằng chứng đo thực tế**, có môi trường và giới hạn rõ ràng.
+- All six methods receive **the same input array** and produce the exact string with `|` between elements.
+- Verified `n=0`, `1`, `8`, `128`, `1024` yield identical content, not merely identical length.
+- Dataset is built outside the timed JMH benchmark; all trials share the same element-generation logic.
+- Warm-up, measurement iterations, JVM forks, and result consumption are configured.
+- Results are reported per size, in `μs/op`, with error bounds and `B/op` if collected.
+- Pre-sized `builderSized` is clearly distinguished from scenarios that must compute capacity per call.
+- Avoid generalizing loop `+=` benchmarks to every `+` expression.
+- Fast/slow claims are grounded solely in **empirical measurements**, with environment and caveats stated clearly.
 
-**Ghi nhớ:** một phép so sánh hiệu năng ghép chuỗi chỉ có ý nghĩa khi **sáu phương pháp cho đầu ra giống nhau trước khi đo**. Với công việc nối nhiều phần, `StringBuilder` và các API nối có delimiter là lựa chọn thực tế cần đối chiếu; `+=` trong vòng lặp có nguy cơ tốn chi phí sao chép đáng kể. Thứ hạng và mức chênh lệch cuối cùng phải được xác nhận bằng benchmark đúng cách trên workload phù hợp.
+**Takeaway:** a string concatenation performance comparison is meaningful only after **all six methods produce identical output before timing**. For multi-part accumulation, `StringBuilder` and delimiter-joining APIs are the practical candidates to compare; `+=` in loops risks substantial copying overhead. Final rankings and margins must be verified with proper benchmarks on a representative workload.

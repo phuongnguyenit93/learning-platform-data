@@ -1,10 +1,10 @@
-# Tạo Stream từ khóa, giá trị và entry của Map
+# Creating a Stream from Map Keys, Values, and Entries
 
-## 1. Vì sao không gọi trực tiếp `map.stream()`?
+## 1. Why Can't We Call `map.stream()` Directly?
 
-Trong **Java Stream API**, một pipeline gồm nguồn dữ liệu, các thao tác trung gian như `filter`, `map`, `sorted` và một thao tác kết thúc như `toList`, `count`, `reduce` hoặc `collect`. Phần lớn thao tác trung gian chạy **lười** (*lazy*): pipeline chỉ thực sự duyệt dữ liệu khi thao tác kết thúc được gọi.
+In the **Java Stream API**, a pipeline consists of a data source, intermediate operations such as `filter`, `map`, `sorted`, and a terminal operation such as `toList`, `count`, `reduce`, or `collect`. Most intermediate operations run **lazily**: the pipeline only actually traverses the data when the terminal operation is called.
 
-Một `Map<K, V>` lưu quan hệ **khóa → giá trị**, không phải một chuỗi phần tử duy nhất. Vì vậy, giao diện `Map` **không có** phương thức `stream()` trực tiếp. Ta phải quyết định muốn duyệt phần nào của Map:
+A `Map<K, V>` stores **key → value** mappings, not a single sequence of elements. Therefore, the `Map` interface **does not have** a direct `stream()` method. We must decide which part of the Map we want to traverse:
 
 ```text
                          Map<K, V>
@@ -18,20 +18,20 @@ Một `Map<K, V>` lưu quan hệ **khóa → giá trị**, không phải một c
               Stream<K>  Stream<V> Stream<Map.Entry<K,V>>
 ```
 
-Ba nguồn này đều là **view được liên kết với Map gốc**, không tự tạo bản sao dữ liệu. Chọn nguồn nào sẽ quyết định những thông tin mà mỗi phần tử trong pipeline mang theo.
+All three sources are **views backed by the original Map**; they do not automatically create a copy of the data. Which source you choose determines what information each element in the pipeline carries.
 
-Sau bài này, bạn sẽ biết cách:
+After this lesson, you will know how to:
 
-- Tạo Stream từ `keySet()`, `values()` và `entrySet()`; chọn đúng cách theo yêu cầu nghiệp vụ.
-- Lọc, biến đổi, sắp xếp, tính tổng và gom nhóm dữ liệu lấy từ Map.
-- Chuyển kết quả Stream về `List` hoặc Map mới và xử lý khóa trùng khi `Collectors.toMap`.
-- Nhận diện những vấn đề về thứ tự duyệt, view có thể thay đổi, nguồn concurrent và giới hạn hiệu năng.
+- Create a Stream from `keySet()`, `values()`, and `entrySet()`; choose the right one for your business requirement.
+- Filter, transform, sort, sum, and group data retrieved from a Map.
+- Convert Stream results into a `List` or a new Map and handle duplicate keys in `Collectors.toMap`.
+- Identify issues with traversal order, mutable views, concurrent sources, and performance limits.
 
-Các ví dụ dùng Java 17 trở lên để có `record`, `Map.of` và `Stream.toList()`. Những thao tác nguồn `keySet()`/`values()`/`entrySet()` cùng `stream()` có từ Java 8.
+The examples use Java 17 or later for `record`, `Map.of`, and `Stream.toList()`. The source operations `keySet()`/`values()`/`entrySet()` together with `stream()` have been available since Java 8.
 
-## 2. Ví dụ khởi đầu: một Map với ba góc nhìn
+## 2. Introductory Example: One Map with Three Perspectives
 
-Xét kho hàng, trong đó khóa là mã sản phẩm và giá trị là số lượng tồn:
+Consider an inventory where keys are product codes and values are stock quantities:
 
 ```java
 import java.util.LinkedHashMap;
@@ -43,19 +43,19 @@ stock.put("BUT", 8);
 stock.put("VO", 2);
 ```
 
-Dùng `LinkedHashMap` để giữ thứ tự chèn trong ví dụ, nhờ vậy kết quả minh họa có thứ tự dễ kiểm tra.
+`LinkedHashMap` is used to preserve insertion order in the examples, making the illustrated results have an easy-to-verify order.
 
-| Nguồn | Kiểu phần tử Stream | Phần tử lấy được | Phù hợp khi |
+| Source | Stream element type | Retrieved elements | Best when |
 | --- | --- | --- | --- |
-| `stock.keySet().stream()` | `String` | `"SACH"`, `"BUT"`, `"VO"` | Chỉ cần mã sản phẩm/khóa. |
-| `stock.values().stream()` | `Integer` | `3`, `8`, `2` | Chỉ cần số lượng/giá trị. |
-| `stock.entrySet().stream()` | `Map.Entry<String, Integer>` | `("SACH", 3)`, … | Cần đồng thời khóa **và** giá trị. |
+| `stock.keySet().stream()` | `String` | `"SACH"`, `"BUT"`, `"VO"` | Only product codes/keys are needed. |
+| `stock.values().stream()` | `Integer` | `3`, `8`, `2` | Only quantities/values are needed. |
+| `stock.entrySet().stream()` | `Map.Entry<String, Integer>` | `("SACH", 3)`, … | Both key **and** value are needed. |
 
-Trong một `Map`, mỗi khóa là duy nhất. Giá trị thì **có thể trùng nhau**, nên `values()` trả về `Collection<V>` thay vì `Set<V>`. Nếu có hai sản phẩm cùng tồn 3 chiếc, `values().stream()` vẫn chứa hai phần tử có giá trị 3.
+In a `Map`, every key is unique. Values, however, **can be duplicated**, so `values()` returns a `Collection<V>` rather than a `Set<V>`. If two products both have a stock of 3 items, `values().stream()` still contains two elements with value 3.
 
-## 3. Stream từ `keySet()`: xử lý danh sách khóa
+## 3. Stream from `keySet()`: Processing the List of Keys
 
-`keySet()` cung cấp tập hợp tất cả khóa. Mỗi bước trong pipeline chỉ nhận khóa, nên đây là lựa chọn gọn khi điều kiện lọc không phụ thuộc giá trị.
+`keySet()` provides the set of all keys. Each step in the pipeline receives only the key, so this is a clean choice when filtering conditions do not depend on values.
 
 ```java
 List<String> codes = stock.keySet().stream()
@@ -66,7 +66,7 @@ List<String> codes = stock.keySet().stream()
 System.out.println(codes); // [sach]
 ```
 
-Một vài trường hợp khác:
+A few other cases:
 
 ```java
 long numberOfShortCodes = stock.keySet().stream()
@@ -78,15 +78,15 @@ List<String> sortedCodes = stock.keySet().stream()
         .toList(); // [BUT, SACH, VO]
 ```
 
-**Có cần truy cập giá trị không?** Có thể gọi `stock.get(code)` từ Stream khóa, nhưng khi điều kiện xử lý cần cả khóa lẫn giá trị thì `entrySet().stream()` thường biểu đạt ý định rõ hơn và tránh tra cứu Map lặp lại:
+**Do you need to access the value?** You can call `stock.get(code)` from a key Stream, but when the processing condition needs both key and value, `entrySet().stream()` usually expresses the intent more clearly and avoids repeated Map lookups:
 
 ```java
-// Chạy được, nhưng phải tra cứu lại giá trị theo từng khóa.
+// Works, but has to look up the value again for each key.
 List<String> lowStockCodes = stock.keySet().stream()
         .filter(code -> stock.get(code) < 5)
         .toList();
 
-// Phù hợp hơn khi cần cả khóa và giá trị.
+// Better suited when both key and value are needed.
 List<String> lowStockCodesFromEntries = stock.entrySet().stream()
         .filter(entry -> entry.getValue() < 5)
         .map(Map.Entry::getKey)
@@ -95,11 +95,11 @@ List<String> lowStockCodesFromEntries = stock.entrySet().stream()
 System.out.println(lowStockCodesFromEntries); // [SACH, VO]
 ```
 
-Không nên giả định mọi Map đều có thao tác `get` với chi phí như `HashMap`. Hơn nữa, nếu có thread khác đang cập nhật Map, gọi `get` độc lập không tạo nên một bản đọc nguyên tử gắn với khóa đang được duyệt.
+Do not assume every Map has the same `get` cost as `HashMap`. Moreover, if another thread is updating the Map, an independent `get` call does not constitute an atomic read tied to the key currently being traversed.
 
-## 4. Stream từ `values()`: phân tích chỉ giá trị
+## 4. Stream from `values()`: Analyzing Only Values
 
-`values()` trả về các giá trị trong Map. Nếu không cần biết giá trị thuộc khóa nào, nguồn này trực tiếp và dễ đọc hơn `entrySet()`.
+`values()` returns the values in the Map. If you do not need to know which key a value belongs to, this source is more direct and readable than `entrySet()`.
 
 ```java
 int totalStock = stock.values().stream()
@@ -120,9 +120,9 @@ System.out.println(averageStock);         // 4.333333333333333
 System.out.println(nearlyEmptyProducts);  // 2
 ```
 
-`mapToInt` tạo một `IntStream` để dùng `sum`, `average`, `min`, `max` hoặc `summaryStatistics` mà không phải tự viết vòng cộng dồn. Với Map rỗng, `average()` trả về `OptionalDouble.empty()`; trong ví dụ trên, `orElse(0.0)` xác định kết quả mặc định.
+`mapToInt` creates an `IntStream` to use `sum`, `average`, `min`, `max`, or `summaryStatistics` without writing an accumulation loop manually. On an empty Map, `average()` returns `OptionalDouble.empty()`; in the example above, `orElse(0.0)` defines the default result.
 
-Có thể thống kê tần suất giá trị, bao gồm các giá trị giống nhau:
+You can compute value frequency statistics, including duplicate values:
 
 ```java
 Map<Integer, Long> frequency = stock.values().stream()
@@ -131,10 +131,10 @@ Map<Integer, Long> frequency = stock.values().stream()
                 Collectors.counting()
         ));
 
-// Với stock hiện tại: {2=1, 3=1, 8=1}, thứ tự hiển thị không được bảo đảm.
+// With current stock: {2=1, 3=1, 8=1}, display order is not guaranteed.
 ```
 
-Đối với Map cho phép giá trị `null`, mã sử dụng `Integer::intValue` sẽ gây `NullPointerException` khi gặp `null`. `Collectors.groupingBy` cũng không chấp nhận khóa nhóm `null` trong cách dùng trên. Nếu nghiệp vụ cần bỏ qua những giá trị trống, hãy lọc rõ ràng:
+For Maps that allow `null` values, code using `Integer::intValue` will cause a `NullPointerException` upon encountering `null`. `Collectors.groupingBy` also does not accept a `null` grouping key in the usage above. If business logic requires skipping missing values, filter explicitly:
 
 ```java
 int safeTotal = stock.values().stream()
@@ -143,23 +143,23 @@ int safeTotal = stock.values().stream()
         .sum();
 ```
 
-Các đoạn mã nhỏ ở trên sử dụng `List`, `Collectors`, `Function` và `Objects` từ các gói `java.util` và `java.util.stream`; ví dụ hoàn chỉnh có `import` ở mục 10.
+The short snippets above use `List`, `Collectors`, `Function`, and `Objects` from the `java.util` and `java.util.stream` packages; a complete example with `import` statements is in section 10.
 
-## 5. Stream từ `entrySet()`: cần cả khóa lẫn giá trị
+## 5. Stream from `entrySet()`: Needing Both Key and Value
 
-`entrySet()` trả về tập `Map.Entry<K, V>`. Mỗi entry cho phép lấy `getKey()` và `getValue()` từ cùng một cặp.
+`entrySet()` returns a set of `Map.Entry<K, V>`. Each entry lets you retrieve `getKey()` and `getValue()` from the same pair.
 
 ```java
 List<String> warnings = stock.entrySet().stream()
         .filter(entry -> entry.getValue() < 5)
-        .map(entry -> entry.getKey() + " chỉ còn " + entry.getValue())
+        .map(entry -> entry.getKey() + " has only " + entry.getValue())
         .toList();
 
 System.out.println(warnings);
-// [SACH chỉ còn 3, VO chỉ còn 2]
+// [SACH has only 3, VO has only 2]
 ```
 
-Có thể kết hợp `filter`, `map` với việc chọn một đối tượng có giá trị lớn nhất:
+You can combine `filter` and `map` with selecting an object that has the maximum value:
 
 ```java
 Optional<Map.Entry<String, Integer>> mostStocked = stock.entrySet().stream()
@@ -170,11 +170,11 @@ mostStocked.ifPresent(entry ->
 ); // BUT: 8
 ```
 
-`max` trả về `Optional` vì Map có thể rỗng. Với các giá trị bằng nhau, ví dụ trên không xác định quy tắc ưu tiên khóa; nếu cần kết quả ổn định, thêm quy tắc phụ.
+`max` returns an `Optional` because the Map might be empty. For equal values, the example above does not specify a key tie-breaking rule; if a deterministic result is needed, add a secondary rule.
 
-### Sắp xếp theo giá trị
+### Sorting by Value
 
-Thứ tự mặc định của `TreeMap` dựa theo **khóa**. Muốn sắp xếp theo **giá trị**, sử dụng Stream trên `entrySet`:
+The default order of `TreeMap` is based on the **key**. To sort by **value**, use a Stream on `entrySet`:
 
 ```java
 List<Map.Entry<String, Integer>> smallestFirst = stock.entrySet().stream()
@@ -189,7 +189,7 @@ smallestFirst.forEach(entry ->
 // BUT -> 8
 ```
 
-Để có thứ tự nhất quán kể cả khi tồn kho trùng nhau, thêm một so sánh phụ theo khóa:
+To obtain a consistent order even when stock quantities tie, add a secondary comparison by key:
 
 ```java
 List<Map.Entry<String, Integer>> sorted = stock.entrySet().stream()
@@ -198,13 +198,13 @@ List<Map.Entry<String, Integer>> sorted = stock.entrySet().stream()
         .toList();
 ```
 
-Lưu ý `sorted` tạo **thứ tự trên Stream kết quả**, không sắp xếp lại Map gốc. Phép so sánh tự nhiên cần giá trị có thể so sánh và không phải `null`, hoặc cần cung cấp comparator có quy tắc xử lý `null`.
+Note that `sorted` establishes an **order on the resulting Stream**; it does not re-sort the original Map. Natural comparison requires values to be comparable and non-`null`, or you must supply a comparator with a `null`-handling rule.
 
-## 6. Thu thập Stream entry thành một Map mới
+## 6. Collecting an Entry Stream into a New Map
 
-Một pipeline thường kết thúc bằng `collect` để tạo Map khác: lọc phần tử, thay đổi giá trị, đổi kiểu khóa, hoặc giữ thứ tự đã sắp xếp.
+A pipeline often ends with `collect` to create another Map: filtering elements, changing values, changing key types, or preserving a sorted order.
 
-Ví dụ tạo một Map chứa các sản phẩm tồn ít:
+Example of creating a Map containing low-stock products:
 
 ```java
 Map<String, Integer> lowStock = stock.entrySet().stream()
@@ -214,11 +214,11 @@ Map<String, Integer> lowStock = stock.entrySet().stream()
                 Map.Entry::getValue
         ));
 
-// Các cặp khóa/giá trị là SACH=3 và VO=2.
-// Map kết quả từ toMap dạng đơn giản không cam kết thứ tự hay kiểu Map.
+// The key/value pairs are SACH=3 and VO=2.
+// The resulting Map from simple toMap does not guarantee order or Map type.
 ```
 
-Nếu cần giữ **thứ tự sau `sorted`** trong Map kết quả, yêu cầu `LinkedHashMap` qua overload bốn tham số của `toMap`:
+If you need to preserve the **order after `sorted`** in the resulting Map, request a `LinkedHashMap` via the four-argument overload of `toMap`:
 
 ```java
 Map<String, Integer> sortedByQuantity = stock.entrySet().stream()
@@ -235,11 +235,11 @@ System.out.println(sortedByQuantity);
 // {VO=2, SACH=3, BUT=8}
 ```
 
-Overload này nhận lần lượt `keyMapper`, `valueMapper`, hàm xử lý **khóa trùng** và factory tạo Map. Vì các entry của Map nguồn có khóa duy nhất và ví dụ không đổi khóa, hàm merge sẽ không được gọi, nhưng vẫn bắt buộc có khi muốn chỉ rõ loại Map.
+This overload takes `keyMapper`, `valueMapper`, a merge function for **duplicate keys**, and a Map factory in order. Because entries from the source Map have unique keys and the example does not alter keys, the merge function will not be called, yet it is still required when specifying the Map type.
 
-### Khóa trùng sau khi biến đổi là một lỗi dễ bỏ sót
+### Duplicate Keys After Transformation Is an Easy Bug to Miss
 
-Map ban đầu có khóa khác nhau nhưng thao tác `map` có thể biến chúng thành cùng khóa:
+The initial Map has distinct keys, but a `map` operation can turn them into the same key:
 
 ```java
 Map<String, Integer> original = Map.of(
@@ -247,7 +247,7 @@ Map<String, Integer> original = Map.of(
         "vip", 20
 );
 
-// SAI: hai khóa khác nhau cùng thành "vip", toMap ném IllegalStateException.
+// WRONG: two distinct keys both become "vip", toMap throws IllegalStateException.
 Map<String, Integer> broken = original.entrySet().stream()
         .collect(Collectors.toMap(
                 entry -> entry.getKey().toLowerCase(Locale.ROOT),
@@ -255,7 +255,7 @@ Map<String, Integer> broken = original.entrySet().stream()
         ));
 ```
 
-Nếu muốn gộp số liệu thay vì từ chối khóa trùng, truyền quy tắc merge:
+If you want to merge numbers instead of rejecting duplicate keys, pass a merge rule:
 
 ```java
 Map<String, Integer> merged = original.entrySet().stream()
@@ -268,26 +268,26 @@ Map<String, Integer> merged = original.entrySet().stream()
 System.out.println(merged); // {vip=30}
 ```
 
-Không nên dựa vào `(oldValue, newValue) -> oldValue` hoặc phép ghi đè `newValue` khi thứ tự nguồn không được bảo đảm: phần tử nào đến trước có thể không xác định được. Với logic nghiệp vụ thực tế, hãy định nghĩa phép gộp phù hợp (cộng số, chọn giá trị lớn nhất, hoặc báo trùng một cách tường minh).
+Do not rely on `(oldValue, newValue) -> oldValue` or overwriting with `newValue` when source order is not guaranteed: which element arrives first may be indeterminate. For real business logic, define an appropriate merge rule (sum numbers, pick the maximum value, or explicitly report duplicates).
 
-`Collectors.toMap` không chấp nhận giá trị kết quả là `null` trong các triển khai Java thông dụng. Nếu Map nguồn có giá trị `null`, hãy lọc, thay thế hoặc chọn phương thức thu thập hỗ trợ dữ liệu đó theo yêu cầu của bài toán.
+`Collectors.toMap` does not accept a `null` resulting value in standard Java implementations. If the source Map has `null` values, filter, replace, or choose a collection method that supports such data as required by the problem.
 
-## 7. Gom nhóm Map entry theo thuộc tính của giá trị
+## 7. Grouping Map Entries by a Value's Property
 
-Khi mỗi giá trị là một đối tượng, `entrySet()` cho phép gom theo thuộc tính của đối tượng mà vẫn giữ được mã khóa.
+When each value is an object, `entrySet()` lets you group by an attribute of the object while still keeping the key code.
 
-Giả sử Map chứa `Product`:
+Suppose the Map holds `Product`:
 
 ```java
 record Product(String category, int stock) {}
 
 Map<String, Product> products = new LinkedHashMap<>();
-products.put("P-01", new Product("Văn phòng phẩm", 3));
-products.put("P-02", new Product("Sách", 8));
-products.put("P-03", new Product("Văn phòng phẩm", 2));
+products.put("P-01", new Product("Stationery", 3));
+products.put("P-02", new Product("Books", 8));
+products.put("P-03", new Product("Stationery", 2));
 ```
 
-Thống kê tổng tồn theo nhóm:
+Aggregating total stock by category:
 
 ```java
 Map<String, Integer> stockByCategory = products.values().stream()
@@ -297,10 +297,10 @@ Map<String, Integer> stockByCategory = products.values().stream()
         ));
 
 System.out.println(stockByCategory);
-// {Văn phòng phẩm=5, Sách=8}, không cam kết thứ tự nhóm.
+// {Stationery=5, Books=8}, group order not guaranteed.
 ```
 
-Ở đây **chỉ cần giá trị**, nên `values()` là đủ. Nhưng nếu muốn lấy **mã sản phẩm theo nhóm**, phải dùng `entrySet()`:
+Here **only values are needed**, so `values()` suffices. However, if you want to get **product codes by category**, you must use `entrySet()`:
 
 ```java
 Map<String, List<String>> codesByCategory = products.entrySet().stream()
@@ -312,17 +312,17 @@ Map<String, List<String>> codesByCategory = products.entrySet().stream()
                 )
         ));
 
-// Văn phòng phẩm -> [P-01, P-03]
-// Sách -> [P-02]
+// Stationery -> [P-01, P-03]
+// Books -> [P-02]
 ```
 
-Đây là một cách lựa chọn nguồn Stream theo thông tin cần giữ lại: khi đã dùng `values().stream()`, pipeline không còn trực tiếp biết mã khóa của từng giá trị.
+This is a way to choose the Stream source based on the information that needs to be retained: once `values().stream()` is used, the pipeline no longer directly knows the key code of each value.
 
-## 8. View của Map liên kết với nguồn: tránh sửa Map trong lúc Stream chạy
+## 8. Map Views Are Backed by the Source: Avoid Modifying the Map While a Stream Runs
 
-`keySet()`, `values()` và `entrySet()` của các Map thông thường là **backed views**: khi Map thay đổi, nội dung view cũng thay đổi. Xóa thông qua một view có thể làm thay đổi Map gốc. Các collection view đó không được coi là bản snapshot.
+`keySet()`, `values()`, and `entrySet()` of ordinary Maps are **backed views**: when the Map changes, the view contents change too. Removing through a view can mutate the original Map. Those collection views must not be treated as snapshots.
 
-Ví dụ sai:
+Wrong example:
 
 ```java
 Map<String, Integer> items = new HashMap<>();
@@ -331,21 +331,21 @@ items.put("B", 0);
 
 items.entrySet().stream()
         .filter(entry -> entry.getValue() == 0)
-        .forEach(entry -> items.remove(entry.getKey())); // SAI
+        .forEach(entry -> items.remove(entry.getKey())); // WRONG
 ```
 
-Pipeline đang duyệt `items.entrySet()` nhưng lại xóa phần tử trong `items`. Với `HashMap`, hành vi có thể dẫn đến `ConcurrentModificationException`; không được xem exception là cơ chế phát hiện lỗi duy nhất.
+The pipeline is traversing `items.entrySet()` while removing elements from `items`. With `HashMap`, this behavior can lead to `ConcurrentModificationException`; the exception should not be regarded as the sole error detection mechanism.
 
-Ngay cả việc gọi `entry.setValue(...)` cũng có thể thay đổi **giá trị trong Map nguồn**, dù không thay đổi số lượng phần tử:
+Even calling `entry.setValue(...)` can modify the **value in the source Map**, even though it does not change the number of elements:
 
 ```java
 items.entrySet().stream()
-        .forEach(entry -> entry.setValue(entry.getValue() + 1)); // Tránh: sửa nguồn khi duyệt
+        .forEach(entry -> entry.setValue(entry.getValue() + 1)); // Avoid: modifying source while traversing
 ```
 
-Không phải entry nào cũng cho phép `setValue`: entry từ Map bất biến có thể ném `UnsupportedOperationException`. Còn với entry sửa được, việc không phát sinh exception cũng không làm cách dùng trên trở thành mô hình Stream an toàn.
+Not every entry permits `setValue`: an entry from an immutable Map can throw `UnsupportedOperationException`. And for mutable entries, not throwing an exception still does not make that usage a safe Stream pattern.
 
-Để lọc và xóa dữ liệu, tách hai giai đoạn:
+To filter and remove data, separate into two phases:
 
 ```java
 List<String> outOfStock = items.entrySet().stream()
@@ -353,23 +353,23 @@ List<String> outOfStock = items.entrySet().stream()
         .map(Map.Entry::getKey)
         .toList();
 
-// Terminal operation đã kết thúc, giờ mới sửa Map.
+// Terminal operation has finished; now modify the Map.
 outOfStock.forEach(items::remove);
 ```
 
-Nếu **chỉ** muốn xóa theo điều kiện, không cần Stream:
+If you **only** want to remove conditionally, no Stream is needed:
 
 ```java
 items.entrySet().removeIf(entry -> entry.getValue() == 0);
 ```
 
-`removeIf` thực hiện việc cập nhật Map có chủ đích. Cách này phù hợp với Map cho phép sửa và khi không có luồng khác cùng truy cập gây vi phạm an toàn. Map bất biến như `Map.of(...)` không cho phép thao tác xóa.
+`removeIf` performs an intentional Map update. This approach suits modifiable Maps when no other thread is concurrently accessing them in a way that violates safety. Immutable Maps like `Map.of(...)` do not allow removal operations.
 
-### Tính lazy và vòng đời
+### Laziness and Lifecycle
 
-Giống các nguồn Stream khác, lời gọi `items.entrySet().stream().filter(...)` mới xây dựng pipeline; thao tác kết thúc mới kích hoạt duyệt. Các Stream được tạo từ những Map có bộ duyệt **late-binding** có thể phản ánh thay đổi diễn ra trước khi bắt đầu terminal operation. Tuy nhiên, không phải mọi Map có cùng ràng buộc thời điểm đọc; đừng dựa vào tính chất này nếu cần snapshot ổn định.
+Like other Stream sources, calling `items.entrySet().stream().filter(...)` only builds the pipeline; the terminal operation triggers traversal. Streams created from Maps with **late-binding** spliterators may reflect changes made before the terminal operation begins. However, not all Maps have the same read-timing guarantees; do not rely on this property if you need a stable snapshot.
 
-Muốn xử lý trên một tập cặp khóa/giá trị đã chốt, tạo bản sao **trước** khi chạy Stream, khi nguồn đang ổn định:
+To process over a fixed set of key/value pairs, create a copy **before** running the Stream, while the source is stable:
 
 ```java
 Map<String, Integer> snapshot = new HashMap<>(items);
@@ -379,23 +379,23 @@ List<String> names = snapshot.entrySet().stream()
         .toList();
 ```
 
-Đây là bản sao **nông**: các đối tượng giá trị có thể vẫn được chia sẻ. Đồng thời, việc tạo bản sao từ Map đang bị thay đổi không cung cấp snapshot nguyên tử; nếu có truy cập concurrent, cần đồng bộ hoặc dùng cơ chế snapshot phù hợp trước khi sao chép.
+This is a **shallow** copy: value objects may still be shared. Furthermore, creating a copy from a Map currently being modified does not provide an atomic snapshot; if concurrent access exists, synchronize or use an appropriate snapshot mechanism before copying.
 
-## 9. Thứ tự duyệt, Map concurrent và xử lý song song
+## 9. Traversal Order, Concurrent Maps, and Parallel Processing
 
-Không nên nhìn thứ tự hiện tại của một Map rồi giả định Stream luôn dùng thứ tự đó.
+Do not look at the current order of a Map and assume a Stream always uses that order.
 
-| Kiểu Map | Thứ tự duyệt | Lưu ý khi tạo Stream |
+| Map type | Traversal order | Notes when creating a Stream |
 | --- | --- | --- |
-| `HashMap` | Không cam kết thứ tự | Muốn kết quả nhất quán thì `sorted` theo tiêu chí rõ ràng. |
-| `LinkedHashMap` | Thường theo thứ tự chèn | Có chế độ *access-order*; gọi `get` có thể đổi thứ tự duyệt. |
-| `TreeMap` | Theo bộ so sánh khóa | Muốn thứ tự theo giá trị thì vẫn phải `sorted` entry. |
-| `Map.of(...)` | Không cam kết thứ tự | Map bất biến, không cho thêm/xóa và không cho khóa/giá trị `null`. |
-| `ConcurrentHashMap` | Không cam kết thứ tự cố định | Bộ duyệt *weakly consistent* hỗ trợ cập nhật đồng thời, nhưng không tạo snapshot. |
+| `HashMap` | Order not guaranteed | If consistent results are needed, `sorted` by explicit criteria. |
+| `LinkedHashMap` | Usually insertion order | Has *access-order* mode; calling `get` can change traversal order. |
+| `TreeMap` | By key comparator | To order by value, you still must call `sorted` on entries. |
+| `Map.of(...)` | Order not guaranteed | Immutable Map, does not allow add/remove or `null` keys/values. |
+| `ConcurrentHashMap` | No fixed order guaranteed | *Weakly consistent* iterator supports concurrent updates, but does not create a snapshot. |
 
-### Với `parallelStream()`
+### With `parallelStream()`
 
-Có thể tạo pipeline song song từ một view:
+You can create a parallel pipeline from a view:
 
 ```java
 long available = stock.entrySet().parallelStream()
@@ -403,9 +403,9 @@ long available = stock.entrySet().parallelStream()
         .count();
 ```
 
-Nhưng `parallelStream()` **không biến `HashMap` hoặc `LinkedHashMap` thành collection an toàn để sửa đồng thời**. Đối với Map mutable thông thường, giữ nguồn ổn định trong lúc duyệt; các lambda nên *stateless*, không sửa nguồn và tránh dùng bộ tích lũy bên ngoài không đồng bộ.
+However, `parallelStream()` **does not turn `HashMap` or `LinkedHashMap` into a collection safe for concurrent modification**. For ordinary mutable Maps, keep the source stable during traversal; lambdas should be *stateless*, not modify the source, and avoid unsynchronized external accumulators.
 
-`ConcurrentHashMap` có bộ duyệt hỗ trợ sửa đổi đồng thời, song kết quả khi có thread đang cập nhật phụ thuộc thời điểm quan sát:
+`ConcurrentHashMap` has traversal supporting concurrent modifications, yet the result when another thread is updating depends on observation timing:
 
 ```java
 ConcurrentHashMap<String, Integer> live = new ConcurrentHashMap<>();
@@ -418,13 +418,13 @@ List<String> seen = live.entrySet().parallelStream()
         .toList();
 ```
 
-Nếu một thread khác thay đổi `live`, danh sách `seen` không nhất thiết phản ánh toàn bộ Map tại một thời điểm duy nhất. Nguồn concurrent giúp việc duyệt chấp nhận cập nhật đồng thời theo hợp đồng của nó; yêu cầu nhất quán nghiệp vụ cần được thiết kế riêng.
+If another thread modifies `live`, the `seen` list does not necessarily reflect the entire Map at a single point in time. Concurrent sources allow traversal to tolerate concurrent updates according to their contract; business consistency requirements must be designed separately.
 
-Về hiệu năng, `entrySet()` thường hợp lý khi cần cả khóa và giá trị vì không phải gọi `get` cho từng khóa. Với Map nhỏ hoặc phép xử lý rẻ, chi phí phân luồng, chia tách và kết hợp của `parallelStream()` có thể lớn hơn lợi ích; hãy đo trên dữ liệu và yêu cầu thực tế. Các thao tác `sorted`, `distinct` hoặc gom nhóm có thể tạo thêm bộ nhớ trung gian.
+Regarding performance, `entrySet()` is usually sensible when both key and value are needed because it avoids calling `get` for each key. For small Maps or cheap processing, the thread partitioning, splitting, and combining overhead of `parallelStream()` can outweigh the benefits; measure on real data and requirements. Operations like `sorted`, `distinct`, or grouping can allocate extra intermediate memory.
 
-## 10. Ví dụ hoàn chỉnh: báo cáo và xử lý hàng tồn
+## 10. Complete Example: Reporting and Processing Inventory
 
-Chương trình sau minh họa cả ba nguồn Stream trên cùng một `Map`, rồi cập nhật nguồn **sau** khi toàn bộ phép tính Stream kết thúc.
+The following program demonstrates all three Stream sources on the same `Map`, then updates the source **after** all Stream computations finish.
 
 ```java
 import java.util.ArrayList;
@@ -438,23 +438,23 @@ public class MapStreamsDemo {
 
     public static void main(String[] args) {
         Map<String, Product> catalog = new LinkedHashMap<>();
-        catalog.put("P-01", new Product("Sách", 5, true));
-        catalog.put("P-02", new Product("Bút", 0, false));
-        catalog.put("P-03", new Product("Sách", 7, true));
-        catalog.put("P-04", new Product("Vở", 2, true));
+        catalog.put("P-01", new Product("Books", 5, true));
+        catalog.put("P-02", new Product("Pens", 0, false));
+        catalog.put("P-03", new Product("Books", 7, true));
+        catalog.put("P-04", new Product("Notebooks", 2, true));
 
-        // keySet: chỉ dùng mã sản phẩm.
+        // keySet: only product codes are used.
         List<String> codes = catalog.keySet().stream()
                 .filter(code -> code.startsWith("P-0"))
                 .toList();
 
-        // values: cộng số lượng theo thuộc tính của Product.
+        // values: sum quantities by Product property.
         int totalQuantity = catalog.values().stream()
                 .filter(Product::active)
                 .mapToInt(Product::quantity)
                 .sum();
 
-        // entrySet: cần mã sản phẩm gắn với số lượng của chính nó.
+        // entrySet: need product code paired with its own quantity.
         List<String> depletedCodes = catalog.entrySet().stream()
                 .filter(entry -> entry.getValue().quantity() == 0)
                 .map(Map.Entry::getKey)
@@ -470,38 +470,38 @@ public class MapStreamsDemo {
         System.out.println(codes);              // [P-01, P-02, P-03, P-04]
         System.out.println(totalQuantity);      // 14
         System.out.println(depletedCodes);      // [P-02]
-        System.out.println(quantityByCategory); // {Sách=12, Bút=0, Vở=2}
+        System.out.println(quantityByCategory); // {Books=12, Pens=0, Notebooks=2}
 
-        // Các terminal operation đã xong: bây giờ mới thay đổi Map nguồn.
+        // Terminal operations have completed: now modify the source Map.
         depletedCodes.forEach(catalog::remove);
         System.out.println(catalog.keySet());   // [P-01, P-03, P-04]
     }
 }
 ```
 
-Ở đây:
+Here:
 
-1. `keySet()` thích hợp vì chỉ lọc theo mã sản phẩm.
-2. `values()` thích hợp vì tổng tồn và phân nhóm chỉ phụ thuộc thuộc tính `Product`.
-3. `entrySet()` thích hợp để tìm **mã** của các sản phẩm có lượng tồn bằng 0.
-4. `Collectors.groupingBy` tích lũy vào Map kết quả riêng. `LinkedHashMap::new` giữ thứ tự gặp nhóm của pipeline tuần tự này.
-5. Việc xóa mã hết hàng diễn ra sau terminal operation, nên không can thiệp vào nguồn đang được xử lý.
+1. `keySet()` is appropriate because filtering is only by product code.
+2. `values()` is appropriate because total stock and grouping depend only on `Product` properties.
+3. `entrySet()` is appropriate for finding the **codes** of products with zero stock.
+4. `Collectors.groupingBy` accumulates into a separate result Map. `LinkedHashMap::new` preserves the group encounter order of this sequential pipeline.
+5. Removing out-of-stock codes occurs after the terminal operation, so it does not interfere with the source being processed.
 
-## 11. Những lỗi thường gặp
+## 11. Common Mistakes
 
-| Hiện tượng | Nguyên nhân thường gặp | Cách khắc phục |
+| Symptom | Common cause | Fix |
 | --- | --- | --- |
-| Gọi `map.stream()` không biên dịch | `Map` không triển khai `Collection` và không có `stream()` | Chọn `keySet()`, `values()` hoặc `entrySet()`. |
-| Đã dùng `values()` nhưng lại cần khóa | Stream chỉ còn phần tử kiểu `V` | Dùng `entrySet()` ngay từ đầu. |
-| `Collectors.toMap` ném `IllegalStateException` | Phép biến đổi tạo khóa trùng | Cung cấp hàm merge hoặc định nghĩa lại khóa. |
-| Map thu được không giữ thứ tự sau `sorted` | `toMap` mặc định không cam kết loại Map | Chọn `LinkedHashMap::new` ở overload bốn tham số. |
-| `ConcurrentModificationException` khi đang `forEach` | Pipeline sửa Map nguồn trong lúc duyệt | Thu thập kết quả trước; cập nhật Map sau, hoặc dùng API sửa trực tiếp. |
-| Kết quả thay đổi giữa các lần chạy | Dựa vào thứ tự `HashMap`/`Map.of` hoặc nguồn đang bị cập nhật | Sắp xếp tường minh; có snapshot nhất quán khi cần. |
-| `NullPointerException` khi tính tổng/sắp xếp | Giá trị `null` không được xử lý | Lọc `null` hoặc cung cấp quy tắc rõ ràng. |
+| Calling `map.stream()` does not compile | `Map` does not implement `Collection` and has no `stream()` | Choose `keySet()`, `values()`, or `entrySet()`. |
+| Used `values()` but then need the key | Stream only has elements of type `V` | Use `entrySet()` from the start. |
+| `Collectors.toMap` throws `IllegalStateException` | Transformation produces duplicate keys | Provide a merge function or redefine the key. |
+| Resulting Map does not keep order after `sorted` | Default `toMap` does not guarantee Map type | Choose `LinkedHashMap::new` in the four-argument overload. |
+| `ConcurrentModificationException` during `forEach` | Pipeline mutates source Map while traversing | Collect results first; update Map afterward, or use a direct mutation API. |
+| Results vary between runs | Relying on `HashMap`/`Map.of` order or a source being updated concurrently | Sort explicitly; take a consistent snapshot when needed. |
+| `NullPointerException` when summing/sorting | `null` values are not handled | Filter out `null` or provide an explicit rule. |
 
-## 12. Bài tập thực hành
+## 12. Practice Exercise
 
-Cho danh sách điểm theo mã sinh viên:
+Given a list of scores by student ID:
 
 ```java
 Map<String, Integer> scores = new LinkedHashMap<>();
@@ -511,14 +511,14 @@ scores.put("SV03", 9);
 scores.put("SV04", 5);
 ```
 
-**Yêu cầu:**
+**Requirements:**
 
-1. Lấy danh sách mã sinh viên bắt đầu bằng `SV0`.
-2. Tính điểm trung bình bằng Stream trên **giá trị**.
-3. Lấy danh sách mã đạt điểm từ 8 trở lên, sắp xếp theo điểm giảm dần, rồi theo mã tăng dần nếu hòa điểm.
-4. Tạo Map `passOrFail` gồm mã sinh viên và chuỗi `"PASS"` nếu điểm từ 5 trở lên, `"FAIL"` nếu thấp hơn. Không sửa `scores`.
+1. Get the list of student IDs starting with `SV0`.
+2. Compute the average score using a Stream over **values**.
+3. Get the list of IDs with score 8 or higher, sorted by score descending, then by ID ascending on ties.
+4. Create a Map `passOrFail` with student IDs and the string `"PASS"` if score is 5 or higher, `"FAIL"` if lower. Do not modify `scores`.
 
-**Gợi ý lời giải:**
+**Suggested solution:**
 
 ```java
 List<String> studentCodes = scores.keySet().stream()
@@ -549,12 +549,12 @@ Map<String, String> passOrFail = scores.entrySet().stream()
 // {SV01=PASS, SV02=PASS, SV03=PASS, SV04=PASS}
 ```
 
-Đoạn lời giải dùng thêm `Comparator` từ `java.util`. Khi làm bài tương tự, hãy tự trả lời hai câu hỏi trước khi viết code: **mỗi phần tử Stream cần chứa thông tin gì?** và **kết quả phải là List, số liệu tổng hợp hay Map mới?**
+The solution additionally uses `Comparator` from `java.util`. When solving similar exercises, ask yourself two questions before writing code: **what information does each Stream element need to carry?** and **should the result be a List, an aggregated number, or a new Map?**
 
-## Ghi nhớ
+## Key Takeaways
 
-- Dùng `keySet().stream()` khi chỉ cần khóa; dùng `values().stream()` khi chỉ cần giá trị; dùng `entrySet().stream()` khi cần **cả khóa và giá trị**.
-- Ba collection view của Map thông thường liên kết với Map gốc. Không sửa nguồn trong lúc một Stream đang duyệt nguồn đó.
-- `sorted` chỉ sắp thứ tự các phần tử Stream; muốn Map kết quả giữ thứ tự phải chọn implementation thích hợp, chẳng hạn `LinkedHashMap`.
-- `Collectors.toMap` cần chính sách rõ ràng khi các khóa **sau biến đổi** có thể trùng. `groupingBy` và `summingInt` phù hợp với báo cáo tổng hợp.
-- Không giả định thứ tự `HashMap`, độ nhất quán snapshot của `ConcurrentHashMap` hoặc lợi ích hiệu năng của `parallelStream()`. Lựa chọn dựa trên hợp đồng nguồn và nhu cầu nghiệp vụ.
+- Use `keySet().stream()` when only keys are needed; use `values().stream()` when only values are needed; use `entrySet().stream()` when **both key and value** are needed.
+- The three collection views of an ordinary Map are backed by the original Map. Do not modify the source while a Stream is traversing it.
+- `sorted` only orders the Stream elements; if the resulting Map must preserve order, pick an appropriate implementation such as `LinkedHashMap`.
+- `Collectors.toMap` needs an explicit policy when **transformed** keys can collide. `groupingBy` and `summingInt` fit summary reports.
+- Do not assume `HashMap` ordering, `ConcurrentHashMap` snapshot consistency, or `parallelStream()` performance gains. Base choices on source contracts and business needs.

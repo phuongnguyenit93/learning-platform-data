@@ -1,78 +1,78 @@
-# Phân biệt Comparator dùng cho hiển thị với quan hệ bằng nhau của đối tượng
+# Distinguishing Display Comparators from Object Equality
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Trong Java, **thứ tự hiển thị** và **quan hệ bằng nhau của đối tượng** là hai khái niệm độc lập. `Comparator<T>` định nghĩa thứ tự để sắp danh sách: theo tên, điểm số, thời gian, mức độ ưu tiên hoặc giá tiền. Ngược lại, `equals(Object)` xác định hai đối tượng có được xem là bằng nhau theo hợp đồng của lớp hay không. Một comparator dùng để hiển thị có thể coi hai đối tượng là **tương đương theo thứ tự** dù chúng là hai bản ghi nghiệp vụ khác nhau.
+In Java, **display order** and **object equality** are two independent concepts. `Comparator<T>` defines an ordering to sort a list: by name, score, timestamp, priority, or price. Conversely, `equals(Object)` determines whether two objects are considered equal under the class's contract. A comparator used for display may consider two objects **order-equivalent** even when they are two distinct business records.
 
-Bài này giúp bạn:
+This lesson helps you:
 
-- Phân biệt `Comparator.compare(a, b) == 0`, `a.equals(b)`, `a == b` và `a.hashCode()`.
-- Giải thích trường hợp hai đối tượng có cùng khóa sắp xếp nhưng không bằng nhau.
-- Hiểu vì sao `List.sort` giữ mọi phần tử, còn `TreeSet`/`TreeMap` dùng `compare == 0` để xác định phần tử hoặc khóa tương đương.
-- Dùng `thenComparing` để tạo tie-breaker, nhưng không nhầm nó với hợp đồng `equals`.
-- Thiết kế đồng thời quy tắc bằng nhau nghiệp vụ và thứ tự hiển thị, đặc biệt với ID, tên trùng nhau, null, chữ hoa/thường và phân trang.
+- Distinguish `Comparator.compare(a, b) == 0`, `a.equals(b)`, `a == b`, and `a.hashCode()`.
+- Explain cases where two objects share the same sort key yet are not equal.
+- Understand why `List.sort` keeps every element, while `TreeSet`/`TreeMap` use `compare == 0` to identify equivalent elements or keys.
+- Use `thenComparing` to create a tie-breaker without confusing it with the `equals` contract.
+- Co-design business equality rules and display ordering, especially with IDs, duplicate names, null, case sensitivity, and pagination.
 
-## 1. Các phép kiểm tra có ý nghĩa khác nhau
+## 1. Checks with Different Meanings
 
-| Biểu thức | Ý nghĩa |
+| Expression | Meaning |
 | --- | --- |
-| `a == b` | Hai tham chiếu cùng chỉ tới **một đối tượng** hay không |
-| `a.equals(b)` | Hai đối tượng có **bằng nhau theo hợp đồng lớp** hay không |
-| `comparator.compare(a, b) == 0` | Hai đối tượng có **cùng vị trí trong thứ tự** mà comparator định nghĩa hay không |
-| `a.hashCode() == b.hashCode()` | Hai đối tượng có cùng mã băm hay không; điều này **không chứng minh bằng nhau** |
+| `a == b` | Whether two references point to **the exact same object** |
+| `a.equals(b)` | Whether two objects are **equal per the class contract** |
+| `comparator.compare(a, b) == 0` | Whether two objects occupy **the same position in the order** defined by the comparator |
+| `a.hashCode() == b.hashCode()` | Whether two objects share the same hash code; this **does not prove equality** |
 
-`compare(a, b)` trả số **âm**, `0` hoặc số **dương** tương ứng `a` đứng trước, tương đương về thứ tự hoặc đứng sau `b`. Không dựa vào trị tuyệt đối cụ thể: chỉ nên xét dấu kết quả.
+`compare(a, b)` returns a **negative** number, `0`, or a **positive** number corresponding to `a` coming before, being order-equivalent to, or coming after `b`. Do not rely on specific absolute values: only examine the sign of the result.
 
-Một comparator được gọi là **nhất quán với equals** (*consistent with equals*) khi với các phần tử liên quan:
+A comparator is said to be **consistent with equals** when, for the relevant elements:
 
 ```text
 comparator.compare(a, b) == 0  ⇔  a.equals(b)
 ```
 
-Dấu tương đương hai chiều có nghĩa:
+The bidirectional equivalence means:
 
-1. Nếu comparator trả `0` thì `equals` trả `true`.
-2. Nếu `equals` trả `true` thì comparator trả `0`.
+1. If the comparator returns `0`, then `equals` returns `true`.
+2. If `equals` returns `true`, then the comparator returns `0`.
 
-Một comparator dùng **chỉ để sắp xếp giao diện** có thể không nhất quán với `equals` mà vẫn hợp lệ, miễn đáp ứng hợp đồng thứ tự của `Comparator`. Tuy nhiên, khi đưa comparator ấy vào `TreeSet` hoặc `TreeMap`, sự khác biệt này có thể làm mất bản ghi hoặc thay giá trị khóa.
+A comparator used **solely for UI sorting** can be inconsistent with `equals` and still be valid, provided it satisfies the `Comparator` ordering contract. However, when that comparator is placed into a `TreeSet` or `TreeMap`, this divergence can drop records or overwrite map values.
 
-**Không nhầm `Comparator.equals(Object)`:** Đây là phương thức trên **bản thân đối tượng comparator**, không phải cách kiểm tra hai phần tử dữ liệu. `compare(a,b) == 0` mới là cách comparator thể hiện hai phần tử tương đương về thứ tự.
+**Do not confuse `Comparator.equals(Object)`:** That is a method on **the comparator object itself**, not a way to compare two data elements. `compare(a,b) == 0` is how a comparator expresses that two elements are order-equivalent.
 
-## 2. Một khóa hiển thị có thể đại diện cho nhiều đối tượng
+## 2. One Display Key Can Represent Multiple Objects
 
-Xét danh sách thành viên:
+Consider a list of members:
 
-| ID | Tên | Điểm |
+| ID | Name | Score |
 | ---: | --- | ---: |
 | 101 | An | 90 |
 | 102 | An | 90 |
-| 103 | Bình | 80 |
+| 103 | Binh | 80 |
 
-Giao diện xếp hạng theo điểm giảm dần và tên tăng dần. Hai thành viên ID `101` và `102` có cùng khóa hiển thị: điểm `90` và tên `"An"`. Vì thế comparator chỉ so điểm và tên sẽ trả `0`.
+The UI ranks by descending score and ascending name. Two members with IDs `101` and `102` share the same display key: score `90` and name `"An"`. Therefore, a comparator checking only score and name will return `0`.
 
-Nhưng đó vẫn có thể là hai người khác nhau. Nếu lớp biểu diễn một thành viên bằng record:
+Yet they can still be two different people. If a class models a member as a record:
 
 ```java
 record Member(int id, String name, int score) {}
 ```
 
-`equals` mặc định của record so **tất cả thành phần**. ID khác nhau làm `equals` trả `false` dù khóa hiển thị trùng nhau.
+A record's default `equals` compares **all components**. Differing IDs make `equals` return `false` even when display keys collide.
 
-Sơ đồ:
+Diagram:
 
 ```text
-Thành viên 101 ── điểm 90, tên An ──┐
-                                    ├── cùng vị trí theo Comparator
-Thành viên 102 ── điểm 90, tên An ──┘
+Member 101 ── score 90, name An ──┐
+                                  ├── same position per Comparator
+Member 102 ── score 90, name An ──┘
 
-equals của record: khác nhau vì ID khác nhau
+Record's equals: different because IDs differ
 ```
 
-Đây là tình huống hợp lý trong bảng xếp hạng: **cùng thứ hạng hoặc cùng tiêu chí sắp xếp không đồng nghĩa cùng danh tính**.
+This is a normal situation in leaderboards: **same rank or same sort criteria does not mean same identity**.
 
-## 3. Ví dụ chạy được: List và TreeSet cho kết quả khác nhau
+## 3. Runnable Example: `List` and `TreeSet` Produce Different Results
 
-Tạo tệp **`DisplayComparatorDemo.java`** (Java 17+):
+Create the file **`DisplayComparatorDemo.java`** (Java 17+):
 
 ```java
 import java.util.ArrayList;
@@ -126,14 +126,14 @@ public class DisplayComparatorDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac DisplayComparatorDemo.java
 java DisplayComparatorDemo
 ```
 
-**Đầu ra chính xác:**
+**Exact output:**
 
 ```text
 same object: false
@@ -147,35 +147,35 @@ TreeSet contains anotherAn: true
 HashSet contains anotherAn: false
 ```
 
-**Giải thích:**
+**Explanation:**
 
-- `List.sort(forDisplay)` chỉ thay đổi **thứ tự** phần tử trong danh sách, không loại phần tử có comparator trả `0`. Vì vậy danh sách vẫn có ba thành viên.
-- `List.sort` trong Java là sắp xếp **ổn định** (*stable*). Hai phần tử được comparator xem là ngang nhau giữ thứ tự tương đối như trước khi sắp: ở đây `101` trước `102`.
-- `HashSet` dùng `equals` và `hashCode` của `Member`. Khác ID nên `an101` và `an102` đều được giữ.
-- `TreeSet` được tạo bằng `forDisplay` dùng `compare(a,b) == 0` để xác định phần tử tương đương, vì thế gộp hai thành viên khác ID nhưng cùng tên/điểm.
-- `treeSet.contains(new Member(999,"An",90))` trả `true` vì tiêu chí so sánh xem phần tử đó tương đương với một phần tử đã có. `HashSet.contains` trả `false` vì ID khác.
+- `List.sort(forDisplay)` only changes the **order** of elements in the list; it does not drop elements for which the comparator returns `0`. Hence the list still has three members.
+- `List.sort` in Java is a **stable** sort. Two elements considered tied by the comparator keep their relative order from before sorting: here `101` before `102`.
+- `HashSet` uses `Member`'s `equals` and `hashCode`. Because IDs differ, both `an101` and `an102` are retained.
+- `TreeSet` constructed with `forDisplay` uses `compare(a,b) == 0` to determine equivalent elements, thus merging two members with different IDs but the same name/score.
+- `treeSet.contains(new Member(999,"An",90))` returns `true` because the comparison rule considers that element equivalent to an existing element. `HashSet.contains` returns `false` because the ID differs.
 
-**Điểm rút ra:** Comparator hiển thị phù hợp với việc sắp một `List`; nếu dùng nó để định nghĩa tập hợp có thứ tự, hãy hiểu rõ các phần tử có thể bị coi là trùng.
+**Takeaway:** A display comparator fits sorting a `List`; if used to define an ordered set, be fully aware that elements may be treated as duplicates.
 
-## 4. Cấu trúc dữ liệu sử dụng quy tắc nào?
+## 4. Which Structure Uses Which Rule?
 
-| Cấu trúc / thao tác | Quy tắc được dùng | Hệ quả khi `compare == 0` nhưng `equals == false` |
+| Structure / Operation | Rule used | Consequence when `compare == 0` but `equals == false` |
 | --- | --- | --- |
-| `List.sort(comparator)` | Comparator chỉ quyết định thứ tự | Giữ cả hai phần tử |
-| `Collections.sort(list, comparator)` | Comparator chỉ quyết định thứ tự | Giữ cả hai phần tử |
-| `stream.sorted(comparator)` | Comparator quyết định thứ tự kết quả | Không tự loại phần tử |
-| `HashSet` | `equals` và `hashCode` | Không dùng comparator; hai đối tượng có thể đều tồn tại |
-| `HashMap` | `equals` và `hashCode` trên khóa | Không dùng comparator; hai khóa khác nhau theo `equals` có thể cùng tồn tại |
-| `TreeSet(comparator)` | `compare == 0` xác định tương đương | Chỉ giữ một đại diện |
-| `TreeMap(comparator)` | `compare == 0` xác định khóa tương đương | `put` khóa sau có thể cập nhật giá trị của mục trước |
+| `List.sort(comparator)` | Comparator determines order only | Keeps both elements |
+| `Collections.sort(list, comparator)` | Comparator determines order only | Keeps both elements |
+| `stream.sorted(comparator)` | Comparator determines result order | Does not automatically drop elements |
+| `HashSet` | `equals` and `hashCode` | Does not use comparator; both objects can coexist |
+| `HashMap` | `equals` and `hashCode` on keys | Does not use comparator; two keys differing by `equals` can coexist |
+| `TreeSet(comparator)` | `compare == 0` determines equivalence | Keeps only one representative |
+| `TreeMap(comparator)` | `compare == 0` determines key equivalence | `put` of a later key can update the previous entry's value |
 
-Một comparator chỉ so một phần của đối tượng rất phổ biến khi dùng cho UI: tên, điểm, giá, thời điểm… Nhưng khi chọn `TreeSet`/`TreeMap`, comparator trở thành một phần của **ngữ nghĩa nhận diện phần tử/khóa** chứ không đơn thuần là công cụ sắp xếp.
+A comparator comparing only part of an object is very common for UI display: name, score, price, timestamp… But when choosing `TreeSet`/`TreeMap`, the comparator becomes part of **element/key identification semantics** rather than merely a sorting tool.
 
-Tài liệu Java yêu cầu thứ tự dùng bởi sorted set/map nên **consistent with equals** để các cấu trúc này đáp ứng đúng hợp đồng chung của `Set`/`Map`. Chúng vẫn có hành vi được xác định theo comparator nếu không nhất quán, nhưng dễ gây bất ngờ cho mã khách.
+Java documentation specifies that the ordering used by a sorted set/map should be **consistent with equals** so these structures properly fulfill the general `Set`/`Map` contracts. They still have well-defined behavior under the comparator when inconsistent, but can easily surprise client code.
 
-## 5. Ví dụ TreeMap: khóa hiển thị trùng có thể ghi đè giá trị
+## 5. `TreeMap` Example: Colliding Display Keys Can Overwrite Values
 
-Giả sử ứng dụng hiển thị nội dung theo tiêu đề không phân biệt chữ hoa/chữ thường. Một comparator phù hợp cho mục tiêu trình bày là:
+Suppose an application displays content by case-insensitive title. A suitable comparator for presentation purposes is:
 
 ```java
 Comparator<Article> byDisplayTitle =
@@ -184,11 +184,11 @@ Comparator<Article> byDisplayTitle =
                 String.CASE_INSENSITIVE_ORDER);
 ```
 
-Đây là đoạn minh họa, giả định kiểu `Article` có accessor `title()`. Comparator coi tiêu đề `"Java"` và `"JAVA"` tương đương, dù hai bài viết có ID khác nhau.
+This is an illustrative snippet, assuming type `Article` has accessor `title()`. The comparator considers titles `"Java"` and `"JAVA"` equivalent, even though the two articles have different IDs.
 
-Chạy ví dụ đầy đủ sau.
+Run the following full example.
 
-**Tệp `ComparatorMapDemo.java`:**
+**File `ComparatorMapDemo.java`:**
 
 ```java
 import java.util.Comparator;
@@ -260,7 +260,7 @@ javac ComparatorMapDemo.java
 java ComparatorMapDemo
 ```
 
-**Đầu ra chính xác:**
+**Exact output:**
 
 ```text
 a.equals(b): false
@@ -273,28 +273,28 @@ display TreeMap get(a): second
 HashMap size: 2
 ```
 
-Vì `displayOrder` chỉ so tiêu đề không phân biệt hoa/thường, `a` và `b` được `TreeSet` coi là tương đương; `TreeMap.put(b,"second")` tìm thấy khóa tương đương và thay giá trị `"first"` bằng `"second"`. `HashMap` vẫn giữ hai khóa vì record có ID và title khác nhau theo `equals`.
+Because `displayOrder` compares only case-insensitive titles, `a` and `b` are treated as equivalent by `TreeSet`; `TreeMap.put(b,"second")` finds the equivalent key and replaces `"first"` with `"second"`. `HashMap` still retains both keys because the records differ in ID and title under `equals`.
 
-`strictOrder` có ba cấp:
+`strictOrder` has three levels:
 
-1. Tiêu đề không phân biệt hoa/thường.
-2. Tiêu đề phân biệt hoa/thường.
+1. Case-insensitive title.
+2. Case-sensitive title.
 3. ID.
 
-Với record `Article(int id, String title)` trong ví dụ và tiêu đề không `null`, `strictOrder.compare(a,b) == 0` chỉ khi **cả hai thành phần ID và title giống nhau**. Điều này nhất quán với `equals` mặc định của record, nên `strictSet` giữ cả ba bài.
+With the `Article(int id, String title)` record in the example and non-`null` titles, `strictOrder.compare(a,b) == 0` holds only when **both ID and title components match**. This is consistent with the record's default `equals`, so `strictSet` keeps all three articles.
 
-**Cảnh báo quan trọng:** Thêm ID ở cuối comparator không tự động bảo đảm nhất quán với `equals` cho mọi lớp. Cần kiểm tra chính xác trường nào quyết định bằng nhau của lớp đó.
+**Important warning:** Appending ID at the end of a comparator does not automatically guarantee consistency with `equals` for every class. You must check precisely which fields determine equality for that class.
 
-## 6. Chiều ngược lại: equals true nhưng Comparator khác 0
+## 6. The Opposite Direction: `equals` True Yet `Comparator` Non-Zero
 
-Không nhất quán có thể xuất hiện theo **hai hướng**:
+Inconsistency can occur in **both directions**:
 
-- `compare(a,b) == 0` nhưng `a.equals(b) == false`: sorted set/map có thể coi hai bản ghi khác nhau là một khóa.
-- `a.equals(b) == true` nhưng `compare(a,b) != 0`: sorted set/map có thể giữ hai đại diện mà `equals` coi là bằng nhau.
+- `compare(a,b) == 0` yet `a.equals(b) == false`: a sorted set/map may treat two distinct records as one key.
+- `a.equals(b) == true` yet `compare(a,b) != 0`: a sorted set/map may retain two representatives that `equals` considers equal.
 
-Ví dụ: một entity `Product` định nghĩa bằng nhau **chỉ bằng ID**, còn tên là thuộc tính hiển thị. Hai phiên bản của cùng ID có tên khác nhau vẫn bằng nhau theo `equals` nhưng khác nhau khi comparator chỉ so tên.
+Example: a `Product` entity defines equality **solely by ID**, while name is a display attribute. Two versions of the same ID with different names are still equal under `equals` yet differ under a comparator that compares only names.
 
-**Tệp `IdEqualityComparatorDemo.java`:**
+**File `IdEqualityComparatorDemo.java`:**
 
 ```java
 import java.util.Comparator;
@@ -373,7 +373,7 @@ javac IdEqualityComparatorDemo.java
 java IdEqualityComparatorDemo
 ```
 
-**Đầu ra chính xác:**
+**Exact output:**
 
 ```text
 equals by id: true
@@ -384,13 +384,13 @@ TreeSet by display size: 2
 TreeSet by id size: 1
 ```
 
-Ở đây `forDisplay` vẫn có ích để **sắp danh sách theo tên**. Nhưng nếu dùng nó trong `TreeSet`, tập hợp có thể nhận hai đại diện cùng ID. `byIdentity` mới nhất quán với `equals` của lớp `Product` vì cả hai chỉ quan tâm ID.
+Here `forDisplay` is still useful for **sorting a list by name**. However, if used in a `TreeSet`, the set can accept two representatives with the same ID. `byIdentity` is the one consistent with `Product`'s `equals`, because both care only about ID.
 
-Muốn vừa **duy nhất theo ID**, vừa **hiển thị theo tên**, có thể giữ bản ghi trong `Map<Long,Product>` (ID là khóa), lấy các giá trị thành một danh sách rồi sắp danh sách theo tên. Hai trách nhiệm được thực hiện tách biệt, dễ kiểm tra hơn.
+To have both **uniqueness by ID** and **display by name**, you can hold records in a `Map<Long,Product>` (keyed by ID), extract the values into a list, and sort the list by name. The two responsibilities are cleanly separated and easier to test.
 
-## 7. Tie-breaker giúp thứ tự xác định nhưng không thay thế equals
+## 7. Tie-Breakers Make Order Deterministic Without Replacing `equals`
 
-`thenComparing`, `thenComparingInt`, `thenComparingLong` dùng để bổ sung thứ tự khi các tiêu chí trước bằng nhau. Ví dụ với `Member`:
+`thenComparing`, `thenComparingInt`, and `thenComparingLong` add secondary ordering when preceding criteria tie. Example with `Member`:
 
 ```java
 Comparator<Member> ranking =
@@ -400,55 +400,55 @@ Comparator<Member> ranking =
                 .thenComparingInt(Member::id);
 ```
 
-Đoạn này là minh họa khi `Member` đã được khai báo như ở mục 3. Nó sắp theo điểm giảm dần, sau đó tên tăng dần, cuối cùng ID tăng dần.
+This is an illustrative snippet assuming `Member` is declared as in section 3. It sorts by descending score, then ascending name, and finally ascending ID.
 
-Nếu kiểu `Member` là record gồm đúng `id`, `name`, `score` và tên không `null`, comparator trên nhất quán với `equals` của record: `compare == 0` khi và chỉ khi cả ba thành phần bằng nhau.
+If `Member` is a record consisting of exactly `id`, `name`, and `score` with non-`null` names, the comparator above is consistent with the record's `equals`: `compare == 0` if and only if all three components match.
 
-Tuy nhiên, với lớp entity có `equals` **chỉ xét ID**, comparator so tên trước rồi ID **không nhất thiết** nhất quán: hai entity cùng ID nhưng đổi tên vẫn có thể bị so khác nhau. Hãy luôn xét hợp đồng lớp cụ thể, không áp dụng mẹo “thêm ID cuối cùng” cho mọi trường hợp.
+However, for an entity class whose `equals` **checks only ID**, a comparator checking name first then ID is **not necessarily** consistent: two entities with the same ID after a name change can still compare non-zero. Always examine the specific class's contract instead of applying a blanket "append ID at the end" trick everywhere.
 
-**Khi nào không cần tie-breaker?** Khi UI cố ý hiển thị hai người cùng điểm/tên với cùng thứ hạng hoặc chấp nhận thứ tự gốc. Khi đó giữ comparator hiển thị và dùng `List.sort` là hợp lý.
+**When is no tie-breaker needed?** When the UI intentionally displays two people with the same score/name at the same rank or accepts the original order. In that case, keeping the display comparator and using `List.sort` makes sense.
 
-**Khi nào nên có tie-breaker?** Khi muốn thứ tự tái lập giữa nhiều lần tải dữ liệu, xuất báo cáo hoặc phân trang. Một khóa ổn định như ID có thể đảm bảo thứ tự ngay cả khi nhiều phần tử trùng tên và điểm.
+**When should a tie-breaker be used?** When you want reproducible ordering across multiple data loads, report exports, or pagination. A stable key like ID guarantees deterministic order even when multiple elements share the same name and score.
 
-### 7.1. Stable sort khác thứ tự xác định toàn cục
+### 7.1. Stable sort differs from globally deterministic order
 
-`List.sort` giữ thứ tự tương đối của các phần tử có `compare == 0` trong **danh sách nguồn**. Nhưng nếu danh sách đầu vào lấy từ nguồn có thứ tự không đảm bảo (như tập hợp hash), thứ tự các phần tử ngang nhau cũng không nhất thiết ổn định giữa nhiều lần tải dữ liệu.
+`List.sort` preserves the relative order of elements with `compare == 0` in the **source list**. However, if the input list comes from a source without a guaranteed order (such as a hash set), the order of tied elements is not necessarily stable across separate data fetches.
 
-Nếu cần phân trang nhất quán, bổ sung tiêu chí phụ đủ xác định thứ tự. Đây là vấn đề **thứ tự**, không phải lý do để thay đổi `equals`.
+If consistent pagination is required, add a secondary criterion sufficient to determine order. That is an **ordering** concern, not a reason to change `equals`.
 
-## 8. Comparator không quyết định hashCode
+## 8. Comparator Does Not Determine `hashCode`
 
-Hợp đồng `hashCode` gắn với `equals`:
+The `hashCode` contract is tied to `equals`:
 
 ```text
 a.equals(b) == true
     ⇒ a.hashCode() == b.hashCode()
 ```
 
-Comparator chỉ dùng để hiển thị không làm thay đổi phương thức `hashCode`. Hai bản ghi trùng khóa sắp xếp có thể có hash khác nhau nếu chúng không bằng nhau theo `equals`. Không có quy tắc bắt buộc `compare(a,b) == 0` phải kéo theo `hashCode` bằng nhau.
+A comparator used solely for display does not alter the `hashCode` method. Two records sharing a sort key may have different hash codes if they are not equal under `equals`. There is no rule requiring `compare(a,b) == 0` to imply equal `hashCode`.
 
-`TreeSet` và `TreeMap` cũng **không sử dụng hashCode** khi quyết định phần tử/khóa tương đương; chúng dựa vào `compare == 0`. Vì thế sửa `hashCode` không thể chữa lỗi TreeSet gộp những ID khác nhau do comparator chỉ xem tên.
+`TreeSet` and `TreeMap` also **do not use `hashCode`** when deciding element/key equivalence; they rely on `compare == 0`. Hence changing `hashCode` cannot fix a bug where a `TreeSet` accidentally merges different IDs because a comparator looks only at name.
 
-Phân biệt rõ:
+Make the distinction clear:
 
 ```text
-Sắp xếp giao diện        -> Comparator với List.sort / Stream.sorted
-Bằng nhau của đối tượng  -> equals
-Tập hợp hoặc map băm     -> equals + hashCode
-Tập hợp hoặc map có thứ tự -> Comparator / Comparable
+UI sorting               -> Comparator with List.sort / Stream.sorted
+Object equality          -> equals
+Hash set or hash map     -> equals + hashCode
+Ordered set or map       -> Comparator / Comparable
 ```
 
-## 9. Những vấn đề thường gặp với Comparator dùng cho UI
+## 9. Common Issues with Comparators Used for UI
 
-### 9.1. Sắp chuỗi không phân biệt hoa/thường
+### 9.1. Case-insensitive string sorting
 
-`String.CASE_INSENSITIVE_ORDER` giúp sắp tên theo thứ tự không phân biệt chữ hoa/thường. Nhưng `"java"` và `"JAVA"` có thể bị coi tương đương trong `TreeSet<String>` nếu dùng comparator ấy, dù `String.equals` của chúng trả `false`.
+`String.CASE_INSENSITIVE_ORDER` sorts names case-insensitively. Yet `"java"` and `"JAVA"` can be treated as equivalent in a `TreeSet<String>` using that comparator, even though `String.equals` returns `false`.
 
-Nếu UI phải theo quy tắc ngôn ngữ, cân nhắc `java.text.Collator` với `Locale` phù hợp. Một collator cũng có thể coi các chuỗi khác nhau là tương đương ở một mức so sánh nhất định, nên hãy xác định rõ nó chỉ dùng sắp hiển thị hay còn được phép quyết định khóa.
+If the UI must follow linguistic rules, consider `java.text.Collator` with an appropriate `Locale`. A collator can also treat different strings as equivalent at a given comparison strength, so specify clearly whether it is used solely for display sorting or also allowed to govern keys.
 
-### 9.2. Giá trị null
+### 9.2. Null values
 
-Khi khóa sắp xếp có thể `null`, nhiều comparator được tạo bằng `Comparator.comparing` cần một bộ so sánh hỗ trợ null. Ví dụ:
+When sort keys can be `null`, many comparators built with `Comparator.comparing` need a null-supporting comparator. Example:
 
 ```java
 Comparator<Article> byTitle =
@@ -457,81 +457,81 @@ Comparator<Article> byTitle =
                 Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
 ```
 
-Đây là minh họa dùng record `Article` từ mục 5. Tiêu đề `null` được xếp cuối, nhưng nhiều bản ghi có `null` vẫn có thể cùng khóa sắp xếp. Điều đó không sao khi sắp `List`, nhưng cần thận trọng khi dùng làm comparator cho `TreeSet`.
+This is an illustration using the `Article` record from section 5. Null titles sort last, yet multiple records with `null` still share the same sort key. That is fine when sorting a `List`, but requires caution when used as a comparator for `TreeSet`.
 
-### 9.3. So sánh số
+### 9.3. Numeric comparisons
 
-Tránh viết comparator số nguyên bằng phép trừ:
+Avoid writing integer comparators using subtraction:
 
 ```java
-// Có thể overflow với các giá trị int lớn:
+// Can overflow for large int values:
 (a, b) -> a - b
 ```
 
-Dùng `Integer.compare(a,b)` hoặc `Comparator.comparingInt(...)` để giữ đúng thứ tự. Với `double`, dùng `Double.compare` hoặc `comparingDouble` và hiểu quy tắc NaN/signed zero khi cần. Comparator không tự biến phép so sánh số thực thành kiểm tra gần đúng.
+Use `Integer.compare(a,b)` or `Comparator.comparingInt(...)` to preserve proper order. For `double`, use `Double.compare` or `comparingDouble` and understand the NaN/signed-zero rules when needed. A comparator does not turn floating-point comparison into an approximate tolerance check.
 
-### 9.4. Trường mutable
+### 9.4. Mutable fields
 
-Nếu một đối tượng được thêm vào `TreeSet`/`TreeMap` rồi trường quyết định thứ tự bị thay đổi, cấu trúc cây có thể không còn tra cứu đúng theo vị trí khóa ban đầu. Nên tránh sửa trường tham gia comparator khi khóa đang nằm trong cấu trúc có thứ tự. Với danh sách, có thể cập nhật dữ liệu và sắp lại theo yêu cầu giao diện.
+If an object is added to a `TreeSet`/`TreeMap` and a field governing its order is later mutated, the tree structure may no longer look up the entry correctly at its initial key position. Avoid modifying fields used by the comparator while the key resides in an ordered structure. With a list, you can update data and re-sort as required by the UI.
 
-## 10. Quy trình chọn giải pháp
+## 10. Workflow for Choosing a Solution
 
-1. **Xác định quan hệ bằng nhau từ nghiệp vụ:** ID duy nhất, toàn bộ record component, mã SKU, tổ hợp trường giá trị hay quy tắc rõ ràng khác.
-2. **Xác định khóa hiển thị độc lập:** điểm, tên, ngày, giá tiền, trạng thái… và chiều tăng/giảm.
-3. **Chọn collection:** `List` để hiển thị đầy đủ; `HashSet`/`HashMap` nếu muốn duy nhất theo `equals/hashCode`; `TreeSet`/`TreeMap` khi thật sự muốn dùng quan hệ tương đương theo comparator.
-4. **Xem xét tie-breaker:** thêm khóa ổn định nếu cần thứ tự xác định, đặc biệt cho phân trang.
-5. **Kiểm tra hai chiều nhất quán** nếu dùng sorted set/map: trường hợp `compare == 0` nhưng `equals == false`, và `equals == true` nhưng `compare != 0`.
-6. **Kiểm tra dữ liệu biên:** khóa `null`, khác hoa/thường, trùng tên, thay đổi trạng thái hoặc nguồn không có thứ tự ổn định.
+1. **Define equality from business semantics:** unique ID, all record components, SKU code, combination of value fields, or another explicit rule.
+2. **Define display keys independently:** score, name, date, price, status… and ascending/descending direction.
+3. **Choose the collection:** `List` for full display; `HashSet`/`HashMap` for uniqueness by `equals/hashCode`; `TreeSet`/`TreeMap` only when you truly want equivalence per the comparator.
+4. **Consider a tie-breaker:** add a stable key if deterministic ordering is needed, especially for pagination.
+5. **Check both consistency directions** if using a sorted set/map: the case `compare == 0` yet `equals == false`, and `equals == true` yet `compare != 0`.
+6. **Test edge data:** `null` keys, varying case, duplicate names, state mutations, or inputs without a stable source order.
 
-| Nhu cầu | Cách triển khai phù hợp |
+| Need | Suitable implementation |
 | --- | --- |
-| Xếp danh sách thành viên theo điểm/tên, giữ mọi ID | `List.sort(displayComparator)` |
-| Sắp kết quả có thứ tự tái lập | Thêm tie-breaker đủ ổn định |
-| Duy nhất sản phẩm theo ID | Dùng ID làm khóa map hoặc định nghĩa `equals/hashCode` theo ID |
-| Tập hợp duy nhất theo `equals` | `HashSet` |
-| Tập hợp có thứ tự và duy nhất theo cùng `equals` | `TreeSet` với comparator consistent-with-equals |
-| Cố ý gộp chuỗi theo so sánh không phân biệt hoa/thường | `TreeSet`/`TreeMap` với comparator ấy khi chính sách gộp được chấp nhận |
-| Nhóm đối tượng cùng khóa hiển thị mà không mất bản ghi | `Map<GroupKey, List<Item>>` hoặc thao tác grouping tương đương |
+| Sort member list by score/name, keep all IDs | `List.sort(displayComparator)` |
+| Reproducible sorted output | Add a sufficiently stable tie-breaker |
+| Unique products by ID | Use ID as map key or define `equals/hashCode` by ID |
+| Unique set by `equals` | `HashSet` |
+| Ordered set unique by the same `equals` | `TreeSet` with a consistent-with-equals comparator |
+| Intentionally merge strings case-insensitively | `TreeSet`/`TreeMap` with that comparator when merging policy is accepted |
+| Group objects sharing a display key without losing records | `Map<GroupKey, List<Item>>` or an equivalent grouping operation |
 
-## 11. Các lỗi tư duy dễ gặp
+## 11. Common Conceptual Pitfalls
 
-| Nhầm lẫn | Cách hiểu đúng |
+| Misconception | Correct understanding |
 | --- | --- |
-| “Comparator trả `0` nghĩa là `equals` trả `true`.” | Chỉ đúng với comparator **consistent with equals**. |
-| “Hai phần tử cùng khóa sắp xếp là một đối tượng.” | Chúng có thể là hai ID khác nhau. |
-| “`List.sort` loại bản ghi trùng thứ hạng.” | Không, nó chỉ thay đổi thứ tự. |
-| “`TreeSet` dùng `equals` để kiểm tra trùng.” | Nó dùng `compare == 0` theo comparator/natural ordering. |
-| “Thêm ID ở cuối luôn tạo comparator đúng với equals.” | Còn phụ thuộc trường nào quyết định `equals` của lớp. |
-| “Nếu comparator dùng cho hiển thị, TreeMap cũng chỉ sắp thứ tự.” | Với `TreeMap`, comparator còn quyết định khóa tương đương, có thể thay giá trị. |
-| “Sửa `hashCode` sẽ sửa lỗi TreeSet gộp nhầm.” | TreeSet không dùng hashCode để xác định phần tử trùng. |
-| “Muốn sort theo tên thì phải ghi đè equals theo tên.” | Không, comparator có thể định nghĩa độc lập mà không đổi equality. |
+| "Comparator returning `0` means `equals` returns `true`." | Only true for a comparator **consistent with equals**. |
+| "Two elements with the same sort key are the same object." | They can have two different IDs. |
+| "`List.sort` drops tied records." | No, it only changes order. |
+| "`TreeSet` uses `equals` to check duplicates." | It uses `compare == 0` via comparator/natural ordering. |
+| "Appending ID at the end always creates a comparator consistent with equals." | It depends on which fields govern the class's `equals`. |
+| "If a comparator is for display, TreeMap also just sorts." | In `TreeMap`, the comparator also defines key equivalence and can overwrite values. |
+| "Fixing `hashCode` fixes TreeSet over-merging." | TreeSet does not use hashCode to detect duplicate elements. |
+| "To sort by name, you must override equals by name." | No, a comparator can be defined independently without changing equality. |
 
-## 12. Tự kiểm tra
+## 12. Self-Check
 
-**Câu 1.** Hai nhân viên khác ID nhưng cùng điểm và tên. Comparator theo điểm/tên trả `0`. Có được kết luận `equals` bằng `true` không?
+**Question 1.** Two employees have different IDs but the same score and name. A score/name comparator returns `0`. Can we conclude `equals` is `true`?
 
-**Đáp án:** Không. Comparator chỉ xác nhận cùng khóa thứ tự hiển thị; `equals` tùy hợp đồng lớp.
+**Answer:** No. The comparator only confirms they share the display sort key; `equals` depends on the class contract.
 
-**Câu 2.** Sắp `List` theo điểm, hai người cùng điểm có bị mất một người không?
+**Question 2.** When sorting a `List` by score, will one of two people with the same score be lost?
 
-**Đáp án:** Không. `List.sort` giữ mọi phần tử, đồng thời stable nên giữ thứ tự tương đối của những phần tử comparator trả `0`.
+**Answer:** No. `List.sort` retains every element, and because it is stable, it preserves the relative order of elements for which the comparator returns `0`.
 
-**Câu 3.** Tại sao `TreeSet` có thể chỉ có một phần tử sau khi thêm hai đối tượng khác nhau theo `equals`?
+**Question 3.** Why can a `TreeSet` end up with only one element after adding two objects that differ under `equals`?
 
-**Đáp án:** Vì comparator của TreeSet có thể trả `0` cho cả hai, khiến TreeSet coi chúng là một phần tử tương đương.
+**Answer:** Because the TreeSet's comparator may return `0` for both, causing TreeSet to treat them as one equivalent element.
 
-**Câu 4.** Một `TreeMap` so khóa bài viết theo tiêu đề không phân biệt hoa/thường. Thêm `"Java"` rồi `"JAVA"` sẽ như thế nào?
+**Question 4.** A `TreeMap` compares article keys by case-insensitive title. What happens when inserting `"Java"` and then `"JAVA"`?
 
-**Đáp án:** Nếu comparator chỉ so tiêu đề không phân biệt hoa/thường, hai khóa tương đương; `put` thứ hai cập nhật giá trị mục đã có, không tạo mục thứ hai.
+**Answer:** If the comparator compares only case-insensitive titles, the two keys are equivalent; the second `put` updates the existing entry's value without creating a second entry.
 
-**Câu 5.** `Product.equals` chỉ so ID; comparator so tên rồi ID. Nó có nhất quán với equals không?
+**Question 5.** `Product.equals` compares only ID; the comparator compares name then ID. Is it consistent with equals?
 
-**Đáp án:** Không nhất thiết. Hai phiên bản có cùng ID nhưng khác tên bằng nhau theo `equals`, trong khi comparator có thể trả khác `0`.
+**Answer:** Not necessarily. Two versions with the same ID but different names are equal under `equals`, whereas the comparator can return non-`0`.
 
-**Câu 6.** Ứng dụng cần duy nhất sản phẩm theo ID và hiển thị theo tên. Nên xử lý ra sao?
+**Question 6.** An application needs products unique by ID and displayed sorted by name. How should this be handled?
 
-**Đáp án:** Quản lý khóa bằng ID trong map hoặc collection phù hợp, rồi tạo danh sách dữ liệu để sắp theo tên. Nếu cần phân trang ổn định, thêm ID vào tiêu chí sắp danh sách.
+**Answer:** Manage keys by ID in a map or suitable collection, then create a list of data to sort by name. If stable pagination is needed, append ID to the list sorting criteria.
 
-## Kết luận
+## Conclusion
 
-**`Comparator` xác định thứ tự, còn `equals` xác định sự bằng nhau của đối tượng.** Comparator dùng để hiển thị có thể trả `0` cho các bản ghi khác nhau theo `equals` mà không gây mất dữ liệu nếu chỉ dùng với `List.sort`. Nhưng `TreeSet`/`TreeMap` lấy `compare == 0` làm quan hệ tương đương của phần tử/khóa, do đó comparator hiển thị có thể làm gộp bản ghi hoặc cập nhật nhầm giá trị. Khi cần một sorted set/map tuân thủ quan hệ bằng nhau của đối tượng, phải kiểm tra cả hai chiều của điều kiện **consistent with equals**. Hãy tách chính sách bình đẳng nghiệp vụ khỏi yêu cầu sắp xếp giao diện.
+**`Comparator` defines ordering, while `equals` defines object equality.** A comparator used for display can return `0` for records that differ under `equals` without data loss if used solely with `List.sort`. However, `TreeSet`/`TreeMap` treat `compare == 0` as element/key equivalence, so a display comparator can merge records or unintentionally update values. Whenever you need a sorted set/map that respects object equality, check both directions of the **consistent with equals** condition. Keep business equality policy separate from UI sorting requirements.

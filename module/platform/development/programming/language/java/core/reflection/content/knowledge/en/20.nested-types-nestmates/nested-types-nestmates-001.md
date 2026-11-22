@@ -1,29 +1,29 @@
-# `getClasses()` khác `getDeclaredClasses()` trong Java Reflection
+# How `getClasses()` Differs from `getDeclaredClasses()` in Java Reflection
 
-## 1. Hai phương thức trả về điều gì?
+## 1. What do the two methods return?
 
-Khi dùng Reflection, mỗi đối tượng `Class<?>` mô tả một kiểu Java. Hai phương thức sau đều trả về `Class<?>[]` đại diện cho **kiểu thành viên lồng bên trong** (member class/member interface) của kiểu đang xét:
+When using Reflection, each `Class<?>` object describes a Java type. Both of the following methods return `Class<?>[]` representing the **nested member types** (member class/member interface) of the type under inspection:
 
-- `clazz.getClasses()`: lấy **các kiểu thành viên `public`** được khai báo ở chính kiểu đó **và các kiểu thành viên `public` được kế thừa từ lớp cha**.
-- `clazz.getDeclaredClasses()`: lấy **tất cả kiểu thành viên khai báo trực tiếp** trong kiểu đó, bất kể `public`, `protected`, package-private hay `private`; **không lấy kiểu thành viên được kế thừa**.
+- `clazz.getClasses()`: retrieves **the `public` member types** declared in that type itself **and the `public` member types inherited from superclasses**.
+- `clazz.getDeclaredClasses()`: retrieves **all member types declared directly** in that type, regardless of whether they are `public`, `protected`, package-private, or `private`; **it does not retrieve inherited member types**.
 
-Tên phương thức có ý nghĩa quan trọng: `getClasses()` hướng tới *public members* nhìn theo lớp hiện tại; `getDeclaredClasses()` hướng tới *declarations* trực tiếp ở lớp hiện tại. Cả hai trả về **kiểu thành viên** (nested types), không phải mọi lớp mà chương trình sử dụng, mọi kiểu trong package hay tất cả lớp đã được JVM nạp.
+The method names are significant: `getClasses()` focuses on *public members* viewed from the current class; `getDeclaredClasses()` focuses on *declarations* directly in the current class. Both return **member types** (nested types), not every class the program uses, every type in the package, or all classes loaded by the JVM.
 
-| Tiêu chí | `getClasses()` | `getDeclaredClasses()` |
+| Criterion | `getClasses()` | `getDeclaredClasses()` |
 | --- | --- | --- |
-| Điều kiện truy cập | Chỉ thành viên `public` | Mọi mức truy cập |
-| Thành viên khai báo trực tiếp | Có, nếu `public` | Có, không phân biệt mức truy cập |
-| Thành viên từ lớp cha | Có, nếu là thành viên `public` được kế thừa | Không |
-| Lớp local trong phương thức | Không | Không |
-| Lớp anonymous tạo trong phương thức | Không | Không |
-| Kiểu lồng trong một kiểu thành viên khác | Không tự đệ quy | Không tự đệ quy |
-| Kiểu dữ liệu trả về | `Class<?>[]` | `Class<?>[]` |
+| Access condition | Only `public` members | All access levels |
+| Directly declared members | Yes, if `public` | Yes, regardless of access level |
+| Members from superclass | Yes, if inherited `public` member | No |
+| Local class inside a method | No | No |
+| Anonymous class created inside a method | No | No |
+| Type nested inside another member type | Does not recurse automatically | Does not recurse automatically |
+| Return type | `Class<?>[]` | `Class<?>[]` |
 
-**Member type** là kiểu được khai báo trực tiếp trong phần thân của một class hoặc interface. Nhóm này có thể gồm nested class, nested interface, enum, record và annotation interface. Nested class có thể là `static` hoặc inner class không `static`; sự khác biệt giữa hai phương thức ở đây dựa vào **quyền truy cập và nơi khai báo**, không dựa vào việc lớp lồng có `static` hay không.
+A **member type** is a type declared directly in the body of a class or interface. This group can include nested classes, nested interfaces, enums, records, and annotation interfaces. A nested class can be `static` or a non-`static` inner class; the difference between the two methods here is based on **access level and where it is declared**, not on whether the nested class is `static` or not.
 
-## 2. Ví dụ chạy được trên Java 17+
+## 2. Runnable example on Java 17+
 
-Lưu toàn bộ chương trình dưới tên **`NestedReflectionDemo.java`**:
+Save the entire program as **`NestedReflectionDemo.java`**:
 
 ```java
 import java.util.Arrays;
@@ -67,14 +67,14 @@ public class NestedReflectionDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac NestedReflectionDemo.java
 java NestedReflectionDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 getClasses() -> [BasePublic, Key, Marker, OwnPublic, State]
@@ -82,21 +82,21 @@ getDeclaredClasses() -> [Key, Marker, OwnPackage, OwnPrivate, OwnProtected, OwnP
 Base.getDeclaredClasses() -> [BasePrivate, BaseProtected, BasePublic]
 ```
 
-Chương trình cố ý dùng `sorted()` trước khi in vì **API không cam kết thứ tự phần tử** trong các mảng trả về. Kết quả đã được kiểm tra khi biên dịch và chạy; các tên được in theo thứ tự chữ cái.
+The program intentionally uses `sorted()` before printing because **the API does not guarantee the order of elements** in the returned arrays. The output has been verified by compiling and running; the names are printed in alphabetical order.
 
-### Giải thích kết quả
+### Explaining the output
 
-1. `Derived.class.getClasses()` có `OwnPublic`, `Marker`, `State`, `Key` vì chúng là kiểu thành viên `public` khai báo tại `Derived`. Nó còn có `BasePublic` vì kiểu này là thành viên `public` được kế thừa từ `Base`.
-2. `Derived.class.getClasses()` **không có** `OwnProtected`, `OwnPackage`, `OwnPrivate`, `BaseProtected` hoặc `BasePrivate`: các kiểu đó không phải thành viên `public` được trả về.
-3. `Derived.class.getDeclaredClasses()` có đầy đủ bảy kiểu thành viên khai báo trực tiếp tại `Derived`, từ `public` đến `private`; **không có** `BasePublic` vì `BasePublic` được khai báo ở `Base`.
-4. `Base.class.getDeclaredClasses()` cho thấy cả ba kiểu được khai báo trực tiếp tại `Base`. Việc kiểu đó `private` hay `protected` không khiến nó bị loại khỏi kết quả của `getDeclaredClasses()`.
-5. `Local` và lớp anonymous trong `sample()` không xuất hiện trong hai kết quả: chúng nằm trong phương thức, không phải member type khai báo trực tiếp trong thân `Derived`.
+1. `Derived.class.getClasses()` includes `OwnPublic`, `Marker`, `State`, and `Key` because they are `public` member types declared in `Derived`. It also includes `BasePublic` because this type is a `public` member inherited from `Base`.
+2. `Derived.class.getClasses()` **does not include** `OwnProtected`, `OwnPackage`, `OwnPrivate`, `BaseProtected`, or `BasePrivate`: those types are not `public` members to be returned.
+3. `Derived.class.getDeclaredClasses()` includes all seven member types declared directly in `Derived`, from `public` to `private`; it **does not include** `BasePublic` because `BasePublic` is declared in `Base`.
+4. `Base.class.getDeclaredClasses()` shows all three types declared directly in `Base`. Being `private` or `protected` does not cause a type to be excluded from the result of `getDeclaredClasses()`.
+5. `Local` and the anonymous class in `sample()` do not appear in either result: they are inside a method, not member types declared directly in the body of `Derived`.
 
-**Điểm dễ nhầm:** `getDeclaredClasses()` cho phép *nhìn thấy metadata* của kiểu `private`, nhưng điều này không tự động cho phép truy cập constructor, field hay method không công khai của kiểu đó. Quyền truy cập khi thao tác sâu hơn bằng Reflection vẫn chịu các quy tắc truy cập và giới hạn module của Java.
+**Common pitfall:** `getDeclaredClasses()` allows *seeing metadata* of a `private` type, but this does not automatically grant access to non-public constructors, fields, or methods of that type. Access rights when operating further with Reflection are still subject to Java's access rules and module boundaries.
 
-## 3. Phạm vi khai báo và phạm vi kế thừa
+## 3. Declaration scope and inheritance scope
 
-Xét cấu trúc:
+Consider the structure:
 
 ```text
 Base
@@ -114,11 +114,11 @@ Base
    └── public Key (record)
 ```
 
-- Muốn biết `Derived` **tự khai báo** những nested types nào, dùng `Derived.class.getDeclaredClasses()`.
-- Muốn biết các **public member types của `Derived`**, bao gồm loại được kế thừa từ superclass, dùng `Derived.class.getClasses()`.
-- Muốn khảo sát **mọi nested type được khai báo trong từng lớp của chuỗi kế thừa**, phải duyệt từng lớp rồi gọi `getDeclaredClasses()` riêng. Kết quả khảo sát như vậy **không đồng nghĩa** với các thành viên thực sự có thể kế thừa/truy cập ở lớp con; ví dụ, thành viên `private` của lớp cha vẫn xuất hiện khi khảo sát trực tiếp lớp cha.
+- To find out which nested types `Derived` **declares itself**, use `Derived.class.getDeclaredClasses()`.
+- To find the **`public` member types of `Derived`**, including those inherited from a superclass, use `Derived.class.getClasses()`.
+- To inspect **every nested type declared in each class of the inheritance chain**, you must traverse each class and call `getDeclaredClasses()` individually. Such an inspection result **is not equivalent** to the members that can actually be inherited/accessed in the subclass; for example, a `private` member of the superclass still appears when inspecting the superclass directly.
 
-Ví dụ minh họa cách duyệt lớp cha (đoạn dưới là fragment đặt trong một phương thức có sẵn biến `Class<?> target`):
+Example illustrating how to traverse superclasses (the snippet below is a fragment placed inside a method that already has the variable `Class<?> target`):
 
 ```java
 for (Class<?> current = target;
@@ -130,49 +130,49 @@ for (Class<?> current = target;
 }
 ```
 
-Vòng lặp này chỉ đi theo **superclass chain** và in ra những khai báo trực tiếp của từng lớp; nó không tự duyệt superinterface hay các kiểu lồng nhiều tầng. Khi cần xử lý interface hoặc nested type đệ quy, phải xác định rõ tiêu chí tìm kiếm và bổ sung việc duyệt tương ứng.
+This loop only walks the **superclass chain** and prints the direct declarations of each class; it does not automatically traverse superinterfaces or multi-level nested types. When you need to handle interfaces or nested types recursively, you must clearly define the search criteria and add the corresponding traversal.
 
-## 4. Không nhầm với các API liên quan
+## 4. Do not confuse with related APIs
 
-- `getDeclaringClass()`: từ một kiểu thành viên, tìm kiểu **khai báo trực tiếp** nó. Ví dụ, `Derived.OwnPublic.class.getDeclaringClass()` trả về `Derived.class`.
-- `getEnclosingClass()`: tìm lớp bao quanh về mặt khai báo; hữu ích cả với một số trường hợp local/anonymous class. Đây là câu hỏi khác với việc liệt kê member types.
-- `getNestHost()` và `getNestMembers()`: nói về **nestmate** của JVM, liên quan đến quy tắc truy cập private giữa các lớp cùng nest. Danh sách nestmate không phải là kết quả tương đương của `getDeclaredClasses()` hay `getClasses()`.
-- `getDeclaredMethods()`, `getDeclaredFields()` và `getDeclaredConstructors()`: liệt kê các loại thành viên khác, không thay thế cho việc tìm nested class/interface.
+- `getDeclaringClass()`: given a member type, finds the type that **directly declares** it. For example, `Derived.OwnPublic.class.getDeclaringClass()` returns `Derived.class`.
+- `getEnclosingClass()`: finds the enclosing class in terms of declaration; also useful for some cases of local/anonymous classes. This is a different question from listing member types.
+- `getNestHost()` and `getNestMembers()`: deal with JVM **nestmates**, related to private access rules between classes in the same nest. A nestmate list is not equivalent to the result of `getDeclaredClasses()` or `getClasses()`.
+- `getDeclaredMethods()`, `getDeclaredFields()`, and `getDeclaredConstructors()`: list other kinds of members, not a substitute for finding nested classes/interfaces.
 
-Hai phương thức chính đều chỉ xét **một cấp member type**. Nếu `Outer` khai báo `Inner` và `Inner` lại khai báo `Deep`, thì `Outer.class.getDeclaredClasses()` có thể chứa `Inner`, nhưng **không trực tiếp chứa `Deep`**. Muốn tìm `Deep`, tiếp tục xét `Inner.class.getDeclaredClasses()`.
+Both main methods only inspect **one level of member types**. If `Outer` declares `Inner` and `Inner` in turn declares `Deep`, then `Outer.class.getDeclaredClasses()` can contain `Inner`, but **does not directly contain `Deep`**. To find `Deep`, continue inspecting `Inner.class.getDeclaredClasses()`.
 
-## 5. Chọn phương thức trong thực tế
+## 5. Choosing a method in practice
 
-| Nhu cầu | Lựa chọn và lý do |
+| Need | Choice and reason |
 | --- | --- |
-| Hiển thị các nested type `public` mà một lớp cung cấp cho người dùng API, kể cả loại kế thừa | `getClasses()` |
-| Viết công cụ phân tích cấu trúc khai báo của một lớp, kể cả nested type `private` | `getDeclaredClasses()` |
-| Tìm tất cả khai báo nested type ở nhiều lớp trong chuỗi kế thừa | Duyệt superclass và gọi `getDeclaredClasses()` trên từng lớp |
-| Tìm lớp local, anonymous hoặc mọi class đã nạp | Hai phương thức trên không giải quyết trực tiếp |
-| Tìm thành viên của nested type ở độ sâu lớn hơn một cấp | Tự duyệt đệ quy từ các member type tìm được |
+| Display `public` nested types that a class exposes to API users, including inherited ones | `getClasses()` |
+| Write a tool to analyze the declared structure of a class, including `private` nested types | `getDeclaredClasses()` |
+| Find all nested type declarations across multiple classes in an inheritance chain | Traverse superclasses and call `getDeclaredClasses()` on each class |
+| Find local classes, anonymous classes, or every loaded class | Neither method solves this directly |
+| Find members of nested types deeper than one level | Traverse recursively from the discovered member types |
 
-Khi xây dựng bộ quét metadata, có thể cần xử lý kiểu trùng tên đơn giản ở nhiều lớp. Để định danh chắc chắn, nên dùng `Class.getName()` hoặc so sánh chính đối tượng `Class<?>`, thay vì chỉ dựa vào `getSimpleName()`. Cũng không nên dựa vào vị trí phần tử trong mảng vì thứ tự không được bảo đảm.
+When building a metadata scanner, you may need to handle types with the same simple name across multiple classes. To identify them reliably, use `Class.getName()` or compare `Class<?>` objects directly, rather than relying only on `getSimpleName()`. You should also not rely on element positions in the array because order is not guaranteed.
 
-## 6. Những lỗi hiểu sai thường gặp
+## 6. Common misconceptions
 
-1. **“`getDeclaredClasses()` lấy cả kiểu của cha vì nó lấy mọi mức truy cập.”** Sai. “Declared” giới hạn vào những member types **khai báo trực tiếp tại kiểu nhận lệnh gọi**.
-2. **“`getClasses()` lấy tất cả nested class của lớp hiện tại.”** Sai. Nó chỉ trả về **public member types**; `protected`, package-private và `private` bị loại.
-3. **“Hai API chỉ nhận `static nested class`.”** Sai. Inner member class không `static` cũng là một kiểu thành viên và được xử lý theo cùng quy tắc về nơi khai báo/quyền truy cập.
-4. **“`getDeclaredClasses()` trả về lớp local và anonymous.”** Sai. Chúng không phải member classes khai báo trực tiếp trong thân kiểu đang xét.
-5. **“Phần tử đầu tiên luôn là kiểu khai báo đầu tiên.”** Sai. Không có hợp đồng về thứ tự; phải sắp xếp trước khi cần output ổn định.
-6. **“Thấy `private nested class` trong kết quả có nghĩa gọi được constructor private.”** Sai. Liệt kê metadata và quyền truy cập để tạo đối tượng/gọi thành viên là hai vấn đề khác nhau.
+1. **“`getDeclaredClasses()` gets superclass types too because it gets all access levels.”** False. “Declared” restricts it to member types **declared directly on the target type**.
+2. **“`getClasses()` gets all nested classes of the current class.”** False. It only returns **public member types**; `protected`, package-private, and `private` are excluded.
+3. **“The two APIs only recognize `static nested class`.”** False. A non-`static` inner member class is also a member type and follows the same rules regarding declaration location and access level.
+4. **“`getDeclaredClasses()` returns local and anonymous classes.”** False. They are not member classes declared directly in the body of the type under inspection.
+5. **“The first element is always the first declared type.”** False. There is no ordering contract; sort first when stable output is needed.
+6. **“Seeing a `private nested class` in the result means you can call its private constructor.”** False. Listing metadata and having access permission to instantiate objects or invoke members are two separate issues.
 
-## 7. Tự kiểm tra
+## 7. Self-check
 
-**Câu hỏi:** Nếu `Parent` có `public static class Shared` và `private static class Secret`, còn `Child extends Parent` có `private static class Internal`, thì:
+**Question:** If `Parent` has `public static class Shared` and `private static class Secret`, and `Child extends Parent` has `private static class Internal`, then:
 
-- `Child.class.getClasses()` có kiểu nào trong ba kiểu trên?
-- `Child.class.getDeclaredClasses()` có kiểu nào trong ba kiểu trên?
-- Cách nào tìm được `Secret` bằng Reflection?
+- Which of the three types are in `Child.class.getClasses()`?
+- Which of the three types are in `Child.class.getDeclaredClasses()`?
+- How can `Secret` be found using Reflection?
 
-**Đáp án:** `getClasses()` của `Child` có `Shared`; `getDeclaredClasses()` của `Child` có `Internal`; muốn liệt kê metadata của `Secret` thì gọi `Parent.class.getDeclaredClasses()`. Đây là ví dụ điển hình cho việc **`public` + kế thừa** khác với **khai báo trực tiếp + mọi mức truy cập**.
+**Answer:** `Child`'s `getClasses()` contains `Shared`; `Child`'s `getDeclaredClasses()` contains `Internal`; to list `Secret`'s metadata, call `Parent.class.getDeclaredClasses()`. This is a classic example of how **`public` + inherited** differs from **directly declared + all access levels**.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 21 — `java.lang.Class`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html): hợp đồng của `getClasses()`, `getDeclaredClasses()` và các phương thức liên quan.
-- [Java Language Specification, `8.5 — Member Class and Interface Declarations`](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.5): định nghĩa member classes và member interfaces.
+- [Java SE 21 — `java.lang.Class`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html): contract of `getClasses()`, `getDeclaredClasses()`, and related methods.
+- [Java Language Specification, `8.5 — Member Class and Interface Declarations`](https://docs.oracle.com/en/java/javase/specs/jls/se21/html/jls-8.html#jls-8.5): definition of member classes and member interfaces.

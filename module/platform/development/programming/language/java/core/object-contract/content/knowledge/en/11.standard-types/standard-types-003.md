@@ -1,19 +1,19 @@
-# Float và Double trong Java: NaN, +0.0 và -0.0
+# Float and Double in Java: NaN, +0.0, and -0.0
 
-## 1. Tại sao quan trọng với hợp đồng đối tượng?
+## 1. Why does this matter for object contracts?
 
-Java có hai kiểu dấu chấm động nguyên thủy là **float** (32 bit) và **double** (64 bit), cùng hai lớp bao tương ứng **Float** và **Double**. Ngay cả khi hai giá trị mang ý nghĩa số học giống nhau, phép so sánh **nguyên thủy bằng ==** có thể khác với phương thức **equals(Object)** của lớp bao, đặc biệt ở **NaN** và **số không có dấu**.
+Java has two primitive floating-point types, **float** (32-bit) and **double** (64-bit), along with two corresponding wrapper classes, **Float** and **Double**. Even when two values carry the same arithmetic meaning, **primitive comparison with ==** can differ from the wrapper class's **equals(Object)** method, especially for **NaN** and **signed zeros**.
 
-- **NaN (Not a Number):** hai giá trị NaN so bằng == trên số thực nguyên thủy cho kết quả false, nhưng các lớp bao Float/Double coi các NaN là bằng nhau theo equals.
-- **+0.0 và -0.0:** số thực nguyên thủy coi chúng bằng nhau theo ==, nhưng lớp bao phân biệt chúng trong equals.
-- Phương thức compare/compareTo của Float/Double được thiết kế nhất quán với equals lớp bao, chứ không chỉ dùng toán tử < hoặc > trên số thực.
-- Các phương thức hashCode của lớp bao tuân theo đúng quy tắc equals, vì HashSet/HashMap phụ thuộc vào hợp đồng equals–hashCode.
+- **NaN (Not a Number):** two NaN values compared with == on primitive floating-point numbers yield false, whereas the Float/Double wrapper classes consider NaNs equal under equals.
+- **+0.0 and -0.0:** primitive floating-point numbers consider them equal under ==, whereas wrapper classes distinguish them in equals.
+- The compare/compareTo methods of Float/Double are designed to be consistent with wrapper equals, rather than merely using the < or > operators on floating-point numbers.
+- The hashCode methods of the wrapper classes follow the exact rules of equals, because HashSet/HashMap depend on the equals–hashCode contract.
 
-Vì vậy, khi tự viết equals và hashCode cho đối tượng có trường float/double, cần quyết định **quan hệ bằng nhau mong muốn** và xử lý cả NaN lẫn signed zero. Các ví dụ bên dưới dùng Java 17+.
+Therefore, when writing equals and hashCode for an object with a float/double field, you must decide on the **desired equality relation** and handle both NaN and signed zero. The examples below use Java 17+.
 
-## 2. NaN: giá trị đặc biệt và toán tử số thực nguyên thủy
+## 2. NaN: special value and primitive floating-point operators
 
-NaN biểu thị một kết quả không phải số thực xác định theo IEEE 754. Ví dụ:
+NaN denotes a result that is not a defined real number according to IEEE 754. For example:
 
 ~~~java
 double a = 0.0d / 0.0d;
@@ -21,11 +21,11 @@ double b = Math.sqrt(-1.0d);
 float c = 0.0f / 0.0f;
 ~~~
 
-Những phép tính dấu chấm động trên tạo NaN; chúng không ném ArithmeticException như phép chia số nguyên cho 0. Hằng sẵn có: **Double.NaN** và **Float.NaN**.
+Those floating-point operations produce NaN; they do not throw ArithmeticException like integer division by 0. Built-in constants: **Double.NaN** and **Float.NaN**.
 
-Với một giá trị double n = Double.NaN:
+For a double value n = Double.NaN:
 
-| Biểu thức | Kết quả |
+| Expression | Result |
 | --- | --- |
 | n == n | false |
 | n != n | true |
@@ -35,25 +35,25 @@ Với một giá trị double n = Double.NaN:
 | n >= 1.0 | false |
 | Double.isNaN(n) | true |
 
-Bất kỳ so sánh thứ tự nguyên thủy nào có NaN cũng trả false. Đây là lý do các biểu thức phủ định của phép so sánh không đủ để suy ra thứ tự khi dữ liệu có thể chứa NaN.
+Any primitive ordering comparison involving NaN also returns false. This is why negated comparison expressions are not sufficient to infer ordering when data may contain NaN.
 
-**Nhận biết NaN đúng mục đích:**
+**Detecting NaN purposefully:**
 
 ~~~java
 boolean isDoubleNaN = Double.isNaN(a);
 boolean isFloatNaN = Float.isNaN(c);
 ~~~
 
-Có thể dùng a != a để nhận biết NaN ở số nguyên thủy, nhưng Double.isNaN/Float.isNaN truyền đạt chủ ý rõ ràng hơn. NaN không phải vô cực; dùng Double.isInfinite/Float.isInfinite khi cần xác định Infinity hoặc -Infinity.
+You can use a != a to detect NaN for primitives, but Double.isNaN/Float.isNaN communicates intent more clearly. NaN is not infinity; use Double.isInfinite/Float.isInfinite when you need to identify Infinity or -Infinity.
 
-## 3. Số không có dấu: +0.0 và -0.0
+## 3. Signed zero: +0.0 and -0.0
 
-IEEE 754 có hai biểu diễn số không, khác nhau ở bit dấu:
+IEEE 754 has two representations of zero, differing in the sign bit:
 
-- **+0.0**: bit dấu 0.
-- **-0.0**: bit dấu 1.
+- **+0.0**: sign bit 0.
+- **-0.0**: sign bit 1.
 
-Với các toán hạng số thực nguyên thủy, hai giá trị này được coi là bằng nhau:
+For primitive floating-point operands, these two values are considered equal:
 
 ~~~java
 System.out.println(+0.0d == -0.0d); // true
@@ -61,9 +61,9 @@ System.out.println(1.0d / +0.0d);    // Infinity
 System.out.println(1.0d / -0.0d);    // -Infinity
 ~~~
 
-Chúng bằng nhau theo == nhưng phép chia có thể cho vô cực khác dấu. Đây là lý do phần biểu diễn dấu không phải chi tiết vô nghĩa trong mọi ứng dụng.
+They are equal under ==, yet division can produce infinities of opposite signs. This is why the sign representation is not a meaningless detail in every application.
 
-Có thể quan sát bit bằng các API:
+You can inspect the bits using these APIs:
 
 ~~~java
 Double.doubleToRawLongBits(+0.0d); // 0L
@@ -72,28 +72,28 @@ Float.floatToRawIntBits(+0.0f);   // 0
 Float.floatToRawIntBits(-0.0f);   // Integer.MIN_VALUE
 ~~~
 
-Các đoạn này minh họa biểu thức trong một ngữ cảnh Java; chưa phải một lớp chương trình đầy đủ. Hai phương thức có chữ Raw giữ nguyên bit của biểu diễn. Phương thức không có chữ Raw cũng giữ khác biệt signed zero, nhưng chuẩn hóa các mẫu bit NaN.
+These snippets illustrate expressions in a Java context; they are not a complete program class. The two methods with Raw preserve the representation bits as-is. The methods without Raw also preserve the signed zero difference, but normalize NaN bit patterns.
 
-## 4. Float.equals() và Double.equals() có quy tắc riêng
+## 4. Float.equals() and Double.equals() have their own rules
 
-Hợp đồng của lớp bao là:
+The contract of the wrapper classes is:
 
-- **Double.equals(Object)** chỉ true khi đối số cũng là Double và hai giá trị có cùng bit theo **Double.doubleToLongBits**.
-- **Float.equals(Object)** chỉ true khi đối số cũng là Float và hai giá trị có cùng bit theo **Float.floatToIntBits**.
+- **Double.equals(Object)** is true only when the argument is also a Double and both values have the same bits according to **Double.doubleToLongBits**.
+- **Float.equals(Object)** is true only when the argument is also a Float and both values have the same bits according to **Float.floatToIntBits**.
 
-Hai hàm chuyển bit **chuẩn hóa mọi giá trị NaN** thành một biểu diễn NaN quy ước. Vì vậy các NaN khác payload vẫn được equals coi là bằng nhau. Riêng +0.0 và -0.0 có bit dấu khác nên **không bằng nhau theo wrapper equals**.
+The two bit-conversion functions **normalize all NaN values** to a canonical NaN representation. Thus, NaNs with different payloads are still considered equal by equals. By contrast, +0.0 and -0.0 have different sign bits, so they are **not equal under wrapper equals**.
 
-| Cặp số cùng kiểu | == trên nguyên thủy | equals của lớp bao |
+| Same-type number pair | == on primitives | Wrapper equals |
 | --- | --- | --- |
-| 1.5 và 1.5 | true | true |
-| NaN và NaN | false | true |
-| +0.0 và -0.0 | true | false |
-| +0.0 và +0.0 | true | true |
-| -0.0 và -0.0 | true | true |
-| Infinity và Infinity | true | true |
-| Infinity và -Infinity | false | false |
+| 1.5 and 1.5 | true | true |
+| NaN and NaN | false | true |
+| +0.0 and -0.0 | true | false |
+| +0.0 and +0.0 | true | true |
+| -0.0 and -0.0 | true | true |
+| Infinity and Infinity | true | true |
+| Infinity and -Infinity | false | false |
 
-Ví dụ:
+Example:
 
 ~~~java
 double n1 = Double.NaN;
@@ -107,20 +107,20 @@ System.out.println(pz == nz); // true
 System.out.println(Double.valueOf(pz).equals(Double.valueOf(nz))); // false
 ~~~
 
-Cần phân biệt thêm **== giữa hai tham chiếu lớp bao**: nếu cả hai toán hạng là đối tượng Double (hoặc Float), == so sánh **danh tính đối tượng**, không phải giá trị. Nếu một toán hạng nguyên thủy, Java có thể thực hiện unboxing, và unboxing giá trị null gây NullPointerException. Khi đọc biểu thức, luôn xem chính xác kiểu của hai vế.
+You also need to distinguish **== between two wrapper references**: if both operands are Double (or Float) objects, == compares **object identity**, not value. If one operand is primitive, Java can perform unboxing, and unboxing a null value throws NullPointerException. When reading an expression, always check the exact types of both sides.
 
-**Float.equals không thể coi Double là bằng nhau**, và ngược lại, kể cả hai đối tượng có cách hiển thị gần giống nhau. Đây là hai lớp khác kiểu.
+**Float.equals cannot consider a Double equal**, and vice versa, even if the two objects have nearly identical printed representations. They are two classes of different types.
 
-## 5. So sánh thứ tự: compare và compareTo
+## 5. Ordering comparisons: compare and compareTo
 
-**Double.compare(x, y)** và **Float.compare(x, y)** dùng một thứ tự đầy đủ tương thích với equals lớp bao:
+**Double.compare(x, y)** and **Float.compare(x, y)** use a total order compatible with wrapper equals:
 
-1. Mọi NaN cùng kiểu được coi tương đương nhau khi so sánh: compare(NaN, NaN) bằng 0.
-2. NaN đứng lớn hơn mọi giá trị số, kể cả +Infinity.
-3. -0.0 đứng nhỏ hơn +0.0.
-4. Với số thông thường và các vô cực, thứ tự số học tự nhiên được duy trì.
+1. All NaNs of the same type are treated as equivalent when comparing: compare(NaN, NaN) equals 0.
+2. NaN ranks greater than every numeric value, including +Infinity.
+3. -0.0 ranks less than +0.0.
+4. For ordinary numbers and infinities, natural numeric ordering is preserved.
 
-Ví dụ:
+Example:
 
 ~~~java
 Double.compare(Double.NaN, Double.NaN);             // 0
@@ -129,37 +129,37 @@ Double.compare(-0.0d, +0.0d);                        // -1
 Float.compare(-0.0f, +0.0f);                        // -1
 ~~~
 
-Các hàm compare trả số âm, 0 hoặc số dương; với các cặp ghi ở đây, kết quả Java cụ thể lần lượt là 0, 1, -1, -1. CompareTo của lớp bao dùng cùng quy tắc.
+The compare functions return a negative number, 0, or a positive number; for the pairs listed here, the specific Java results are 0, 1, -1, and -1, respectively. The wrapper classes' compareTo uses the same rules.
 
-Để sắp xếp Double/Float, ưu tiên các comparator rõ ràng:
+To sort Double/Float, prefer explicit comparators:
 
 ~~~java
-// Chỉ là khai báo minh họa, yêu cầu import java.util.Comparator.
+// Illustrative declarations only; requires import java.util.Comparator.
 Comparator<Double> doubleComparator = Double::compare;
 Comparator<Float> floatComparator = Float::compare;
 ~~~
 
-**Lỗi thường gặp:**
+**Common mistake:**
 
 ~~~java
-// Sai: mất phần thập phân, lỗi với NaN và signed zero.
+// Wrong: loses fractional part, fails with NaN and signed zero.
 Comparator<Double> bad = (a, b) -> (int) (a - b);
 
-// Cũng không phù hợp với wrapper equals khi chứa NaN/signed zero.
+// Also inconsistent with wrapper equals when NaN/signed zero are present.
 Comparator<Double> bad2 = (a, b) -> a < b ? -1 : a > b ? 1 : 0;
 ~~~
 
-Bộ so sánh thứ hai có thể trả 0 dù một bên NaN và bên còn lại là số bình thường; hoặc trả 0 cho hai signed zero. Với **TreeSet** hoặc **TreeMap**, comparator quyết định xem hai khóa có cùng vị trí logic hay không qua kết quả compare == 0, nên comparator khác quy tắc equals có thể gây hành vi ngạc nhiên so với HashSet/HashMap.
+The second comparator can return 0 even when one side is NaN and the other is a normal number, or return 0 for the two signed zeros. With **TreeSet** or **TreeMap**, the comparator decides whether two keys occupy the same logical slot via compare == 0, so a comparator that differs from equals rules can cause surprising behavior compared to HashSet/HashMap.
 
-## 6. HashCode của Float và Double: tính tương thích bắt buộc
+## 6. HashCode of Float and Double: mandatory compatibility
 
-Hai đối tượng bằng nhau theo equals phải có cùng hashCode. Các phương thức **Double.hashCode(double)** và **Float.hashCode(float)** được thiết kế tương thích với quy tắc lớp bao:
+Two objects that are equal under equals must have the same hashCode. The methods **Double.hashCode(double)** and **Float.hashCode(float)** are designed to be compatible with the wrapper rules:
 
-- Mọi NaN cùng kiểu được chuẩn hóa nên có hash giống nhau.
-- +0.0 và -0.0 có bit dấu khác nên hash khác nhau.
-- Không yêu cầu hai giá trị không bằng nhau phải có hash khác nhau: va chạm băm vẫn hợp lệ.
+- All NaNs of the same type are normalized and therefore have the same hash.
+- +0.0 and -0.0 have different sign bits and therefore have different hashes.
+- Two unequal values are not required to have different hashes: hash collisions are still valid.
 
-Một số kết quả cụ thể:
+Some concrete results:
 
 ~~~java
 Double.hashCode(+0.0d); // 0
@@ -168,27 +168,27 @@ Float.hashCode(+0.0f);  // 0
 Float.hashCode(-0.0f);  // Integer.MIN_VALUE
 ~~~
 
-Điều này nhất quán với Double.equals/Float.equals vì các phương thức equals **phân biệt** signed zero.
+This is consistent with Double.equals/Float.equals because the equals methods **distinguish** signed zeros.
 
-Ví dụ bộ sưu tập:
+Collection example:
 
 ~~~java
-// Đoạn minh họa trong ngữ cảnh đã import Set và HashSet.
+// Illustrative snippet assuming Set and HashSet are already imported.
 Set<Double> values = new HashSet<>();
 values.add(Double.NaN);
-values.add(Double.NaN); // Trùng theo Double.equals.
+values.add(Double.NaN); // Duplicate under Double.equals.
 values.add(+0.0d);
-values.add(-0.0d);       // Khác theo Double.equals.
+values.add(-0.0d);       // Distinct under Double.equals.
 System.out.println(values.size()); // 3
 ~~~
 
-HashSet có một phần tử NaN và hai phần tử số không khác dấu. Nếu thay bằng HashSet<Float> thì nguyên tắc tương tự.
+The HashSet contains one NaN element and two zero elements of opposite signs. If replaced with HashSet<Float>, the same principle applies.
 
-**Không nên** dùng Double.doubleToRawLongBits hoặc Float.floatToRawIntBits trực tiếp làm nền để tự băm đối tượng mà equals lại gộp mọi NaN; các NaN mang bit thô khác nhau có thể tạo hash khác nhau dù equals true. Các hàm doubleToLongBits/floatToIntBits chuẩn hóa NaN và phù hợp hơn nếu thực hiện quy tắc lớp bao.
+**Do not** use Double.doubleToRawLongBits or Float.floatToRawIntBits directly as the basis for hashing an object whose equals merges all NaNs; NaNs with different raw bits could produce different hashes even though equals is true. The doubleToLongBits/floatToIntBits functions normalize NaN and are appropriate when following wrapper rules.
 
-## 7. Chương trình Java 17+ có thể biên dịch/chạy
+## 7. Compilable/runnable Java 17+ program
 
-Lưu đúng tên **FloatingEqualityDemo.java**:
+Save with the exact name **FloatingEqualityDemo.java**:
 
 ~~~java
 import java.util.Arrays;
@@ -262,14 +262,14 @@ public class FloatingEqualityDemo {
 }
 ~~~
 
-Chạy từ thư mục chứa tệp:
+Run from the directory containing the file:
 
 ~~~bash
 javac -encoding UTF-8 FloatingEqualityDemo.java
 java FloatingEqualityDemo
 ~~~
 
-**Stdout dự kiến chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 double NaN == NaN: false
@@ -293,21 +293,21 @@ Float.compare(-0,+0): -1
 Float zero hashes differ: true
 ~~~
 
-Giải thích:
+Explanation:
 
-1. Hai NaN không bằng nhau theo == nguyên thủy, nhưng bằng nhau theo wrapper equals, có compare bằng 0 và hash giống nhau.
-2. Hai signed zero bằng nhau theo == nhưng khác theo wrapper equals, compare và hash.
-3. HashSet<Double> chỉ chứa một NaN (bất kể cách tạo) và hai số không khác dấu.
-4. **Arrays.equals(double[], double[])** và bản float[] sử dụng quy tắc so sánh phần tử phù hợp với các bit chuẩn hóa: các NaN tương đương nhau, hai signed zero khác nhau. Không thể hiểu rằng mọi trường hợp so sánh mảng số thực đều áp dụng == nguyên thủy.
+1. Two NaNs are not equal under primitive ==, but are equal under wrapper equals, have compare equal to 0, and have the same hash.
+2. Two signed zeros are equal under ==, but differ under wrapper equals, compare, and hash.
+3. HashSet<Double> holds only one NaN (regardless of how it was created) and two zeros of opposite signs.
+4. **Arrays.equals(double[], double[])** and the float[] overload use element comparison rules matching the normalized bits: NaNs are equivalent to each other, and the two signed zeros are distinct. You cannot assume that every floating-point array comparison applies primitive ==.
 
-Chương trình này là ví dụ độc lập; các khối mã ngắn ở những phần trước chỉ minh họa cách hoạt động của API.
+This program is a standalone example; the short code blocks in earlier sections only illustrate how the API works.
 
-## 8. Viết equals/hashCode cho lớp có trường double hoặc float
+## 8. Writing equals/hashCode for a class with a double or float field
 
-Nếu lớp **Sample** có trường double value và muốn quan hệ bằng nhau giống Double.equals, nên dùng cặp:
+If the **Sample** class has a double value field and wants an equality relation like Double.equals, use this pair:
 
 ~~~java
-// Đặt trong lớp Sample, giả định lớp final và có trường double value.
+// Placed inside class Sample, assuming a final class with a double value field.
 @Override
 public boolean equals(Object obj) {
     if (this == obj) {
@@ -325,19 +325,19 @@ public int hashCode() {
 }
 ~~~
 
-Đây là trích đoạn trong lớp, không phải chương trình chạy độc lập. Với float, dùng **Float.compare** và **Float.hashCode** tương ứng. Kiểm tra cùng tham chiếu, null và loại đối tượng vẫn quan trọng; với hệ phân cấp có kế thừa, còn cần xử lý quan hệ đối xứng/bắc cầu khi mở rộng equals.
+This is an excerpt inside a class, not a standalone runnable program. For float, use **Float.compare** and **Float.hashCode** respectively. Same-reference, null, and object-type checks remain important; in inheritance hierarchies with subclassing, you also need to handle symmetry/transitivity when extending equals.
 
-**Vì sao không dùng == trong equals rồi Double.hashCode trong hashCode?** Nếu equals xét primitive value == other.value, hai đối tượng chứa +0.0 và -0.0 sẽ bằng nhau nhưng nhận hashCode khác nhau. Như vậy vi phạm điều kiện **equals true kéo theo hash bằng nhau**.
+**Why not use == in equals and Double.hashCode in hashCode?** If equals checks primitive value == other.value, two objects containing +0.0 and -0.0 will be equal yet receive different hashCodes. That violates the requirement that **equals true implies equal hashes**.
 
-Với NaN, phép == luôn false, nên một cài đặt ngây thơ thiếu bước cùng tham chiếu còn có thể khiến một đối tượng chứa NaN **không bằng chính nó**, vi phạm phản xạ của equals.
+With NaN, == is always false, so a naive implementation missing the same-reference check can even cause an object containing NaN **not to equal itself**, violating reflexivity of equals.
 
-### 8.1. Khi nghiệp vụ muốn gộp +0.0 và -0.0
+### 8.1. When business logic wants to merge +0.0 and -0.0
 
-Không phải mọi lớp giá trị bắt buộc phải giữ chính sách signed zero của Double.equals. Nếu bài toán coi +0.0 và -0.0 cùng một giá trị, cần chuẩn hóa **trước cả so sánh lẫn băm**:
+Not every value class is required to keep Double.equals's signed-zero policy. If the problem treats +0.0 and -0.0 as the same value, normalize **before both comparison and hashing**:
 
 ~~~java
-// Các phương thức minh họa bên trong lớp Measurement final
-// có trường double value không đổi.
+// Illustrative methods inside a final Measurement class
+// with an immutable double value field.
 private static double normalizeZero(double x) {
     return x == 0.0d ? 0.0d : x;
 }
@@ -360,60 +360,60 @@ public int hashCode() {
 }
 ~~~
 
-Quy tắc tùy chỉnh này gộp hai signed zero và vẫn coi mọi NaN là bằng nhau. Việc chuẩn hóa ở **cả hai phương thức** giữ đúng hợp đồng hash. Nếu cần sắp xếp những đối tượng Measurement này, comparator cũng phải dùng cùng quy tắc nếu muốn compare == 0 tương đương với equals.
+This custom rule merges the two signed zeros while still treating all NaNs as equal. Normalizing in **both methods** preserves the hash contract. If you need to sort these Measurement objects, the comparator must also use the same rule if you want compare == 0 to be equivalent to equals.
 
-Nếu dùng một **record** có component float/double, Java sinh ra equals/hashCode theo quy tắc phân biệt signed zero và coi NaN tương đương. Khi cần equality tùy biến, không được chỉ thay đổi equals mà bỏ quên hashCode.
+If you use a **record** with a float/double component, Java generates equals/hashCode following the rule that distinguishes signed zeros and treats NaNs as equivalent. When custom equality is needed, never change only equals and forget hashCode.
 
-### 8.2. Tránh dùng so sánh gần đúng làm equals
+### 8.2. Avoid using approximate comparison as equals
 
-Công thức kiểu trị tuyệt đối của hiệu nhỏ hơn epsilon thường hữu ích để kiểm tra *gần bằng nhau* trong tính toán. Nhưng nếu dùng trực tiếp làm Object.equals, nó có thể vi phạm **tính bắc cầu**: a gần b, b gần c nhưng a không gần c. Cách kiểm tra gần đúng cũng cần xử lý NaN/vô cực và tràn số thích hợp.
+A formula like the absolute value of the difference being less than epsilon is often useful to check *near-equality* in calculations. However, if used directly as Object.equals, it can violate **transitivity**: a is close to b, b is close to c, yet a is not close to c. Approximate checks also need to handle NaN/infinity and overflow appropriately.
 
-Hãy tạo phương thức riêng như **approximatelyEqual(a, b, tolerance)** cho nhu cầu dung sai, hoặc định nghĩa phép lượng tử hóa thành các nhóm giá trị có quan hệ bằng nhau và hash phù hợp nếu thực sự cần đối tượng làm khóa băm.
+Create a separate method such as **approximatelyEqual(a, b, tolerance)** for tolerance needs, or define quantization into value buckets with a proper equality relation and hash if you genuinely need the objects as hash keys.
 
-## 9. Cách chọn API theo nhu cầu
+## 9. Choosing the right API for the need
 
-| Nhu cầu | Công cụ phù hợp |
+| Need | Appropriate tool |
 | --- | --- |
-| Xác định có phải NaN | Double.isNaN / Float.isNaN |
-| Kiểm tra nguyên thủy theo toán tử IEEE | ==, !=, <, > với float/double |
-| So sánh đối tượng wrapper | Double.equals / Float.equals |
-| Xếp thứ tự tương thích với wrapper equals | Double.compare / Float.compare |
-| Băm phù hợp wrapper | Double.hashCode / Float.hashCode |
-| So sánh mảng float[]/double[] | Arrays.equals |
-| Băm mảng theo phần tử | Arrays.hashCode |
-| Phân biệt bit dấu số không | doubleToRawLongBits / floatToRawIntBits |
-| Gộp signed zero theo yêu cầu nghiệp vụ | Chuẩn hóa thống nhất trong equals, hashCode và comparator |
-| Kiểm tra số thực gần nhau theo dung sai | Phương thức riêng, không tùy tiện thay cho Object.equals |
+| Check whether a value is NaN | Double.isNaN / Float.isNaN |
+| Primitive check using IEEE operators | ==, !=, <, > with float/double |
+| Compare wrapper objects | Double.equals / Float.equals |
+| Ordering compatible with wrapper equals | Double.compare / Float.compare |
+| Hashing compatible with wrappers | Double.hashCode / Float.hashCode |
+| Compare float[]/double[] arrays | Arrays.equals |
+| Hash arrays by elements | Arrays.hashCode |
+| Distinguish zero sign bits | doubleToRawLongBits / floatToRawIntBits |
+| Merge signed zeros per business rules | Normalize consistently in equals, hashCode, and comparator |
+| Check floating-point numbers within a tolerance | Separate method, do not arbitrarily replace Object.equals |
 
-## 10. Những nhầm lẫn cần tránh
+## 10. Misconceptions to avoid
 
-**“Hai NaN là hai giá trị khác nhau trong mọi ngữ cảnh.”** Không đúng: == nguyên thủy trả false, nhưng wrapper equals trả true cho mọi NaN cùng kiểu và compare trả 0.
+**"Two NaNs are different values in every context."** Incorrect: primitive == returns false, but wrapper equals returns true for any NaNs of the same type and compare returns 0.
 
-**“+0.0 và -0.0 bằng nhau nên hai Double phải equals.”** Không đúng: == nguyên thủy trả true, Double.equals phân biệt dấu để tạo ra quy tắc đối tượng ổn định với hash và thứ tự.
+**"+0.0 and -0.0 are equal so two Doubles must be equals."** Incorrect: primitive == returns true, while Double.equals distinguishes the sign to provide an object rule stable with hashing and ordering.
 
-**“Nếu Double.compare(x, y) == 0 thì x == y trên số nguyên thủy.”** Không đúng với NaN. Cặp compare == 0 tương đương quan hệ wrapper equals của cùng kiểu.
+**"If Double.compare(x, y) == 0 then x == y on primitives."** Incorrect for NaN. A pair with compare == 0 corresponds to the wrapper equals relation of the same type.
 
-**“Nếu khác nhau theo equals thì hashCode phải khác.”** Không đúng: collision được phép. Nhưng hai giá trị bằng nhau theo equals bắt buộc có cùng hash.
+**"If unequal under equals, hashCode must differ."** Incorrect: collisions are allowed. However, two values equal under equals must have the same hash.
 
-**“Tự băm bit thô sẽ luôn đúng.”** Không đúng nếu equals gộp các NaN khác payload hoặc gộp signed zero. Chỉ dùng một cách băm nhất quán với quan hệ bằng nhau đã chọn.
+**"Hashing raw bits directly will always work."** Incorrect if equals merges NaNs with different payloads or merges signed zeros. Always use a hashing scheme consistent with the chosen equality relation.
 
-**“Bỏ kiểm tra cùng tham chiếu không gây sao vì chỉ có trường số.”** Nguy hiểm nếu equals dùng == với NaN, làm mất tính phản xạ.
+**"Skipping the same-reference check does no harm because there are only numeric fields."** Dangerous if equals uses == with NaN, breaking reflexivity.
 
-**“Dùng Comparator tùy ý không ảnh hưởng collection.”** Không đúng đối với TreeSet/TreeMap: compare == 0 quyết định đồng nhất khóa trong tập/sơ đồ có thứ tự, đôi khi khác với equals.
+**"Using an arbitrary Comparator does not affect collections."** Incorrect for TreeSet/TreeMap: compare == 0 determines key identity in an ordered set/map, which can sometimes differ from equals.
 
-## 11. Checklist kiểm thử
+## 11. Testing checklist
 
-Khi kiểm thử lớp chứa float/double, nên kiểm tra tất cả tình huống:
+When testing a class containing float/double, check all of these scenarios:
 
-1. **Tự so sánh:** x.equals(x) luôn true, kể cả khi x chứa NaN.
-2. **Hai đối tượng có NaN:** kết quả theo quy tắc đã công bố; nếu dùng wrapper semantics thì true.
-3. **Hai signed zero:** kết quả theo quy tắc đã công bố; wrapper semantics phân biệt, custom normalized semantics thì gộp.
-4. **Tính băm:** mọi cặp equals true đều phải có hashCode bằng nhau.
-5. **So sánh thứ tự:** nếu có comparator/Comparable, xem compare == 0 có phản ánh cùng quan hệ bằng nhau như thiết kế không.
-6. **Collection:** thêm NaN và hai signed zero vào HashSet/TreeSet rồi kiểm tra số phần tử phù hợp quy tắc so sánh.
-7. **Giữ nguyên dữ liệu:** equals/hashCode không cho kết quả ngẫu nhiên khi trạng thái so sánh không đổi.
-8. **Phân biệt kiểu:** Float.equals(Double) luôn false; không suy luận bằng nhau từ chuỗi in ra giống nhau.
-9. **Số thường, vô cực, null:** kiểm tra trường hợp không có NaN hoặc signed zero vẫn tuân thủ hợp đồng.
-10. **Đối tượng bất biến:** tránh thay đổi trường dùng trong equals/hashCode sau khi dùng làm khóa HashMap/HashSet.
+1. **Self-comparison:** x.equals(x) is always true, even when x contains NaN.
+2. **Two objects with NaN:** result matches the documented rule; true if using wrapper semantics.
+3. **Two signed zeros:** result matches the documented rule; wrapper semantics distinguish them, custom normalized semantics merge them.
+4. **Hashing:** every pair where equals is true must have equal hashCodes.
+5. **Ordering comparison:** if a comparator/Comparable exists, check whether compare == 0 reflects the same equality relation as designed.
+6. **Collections:** insert NaN and both signed zeros into HashSet/TreeSet and verify the element count matches the comparison rules.
+7. **State stability:** equals/hashCode must not return random results when comparison state has not changed.
+8. **Type distinction:** Float.equals(Double) is always false; do not infer equality from identical printed strings.
+9. **Normal numbers, infinities, null:** verify cases without NaN or signed zero still obey the contract.
+10. **Immutability:** avoid mutating fields used in equals/hashCode after using the object as a HashMap/HashSet key.
 
-**Ghi nhớ:** với số thực nguyên thủy, NaN không bằng NaN và +0.0 bằng -0.0 theo ==; với wrapper Float/Double, **NaN bằng NaN còn hai signed zero khác nhau**. Thiết kế equals, hashCode và comparator theo cùng một quy tắc để bộ sưu tập và phép so sánh hoạt động nhất quán.
+**Remember:** for primitive floating-point numbers, NaN does not equal NaN and +0.0 equals -0.0 under ==; for Float/Double wrappers, **NaN equals NaN while the two signed zeros differ**. Design equals, hashCode, and comparator under the same rule so collections and comparisons behave consistently.

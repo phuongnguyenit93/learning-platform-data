@@ -1,12 +1,12 @@
-# Tính lười và thời điểm pipeline thực sự được thực thi
+# Laziness and When a Pipeline Actually Executes
 
-Trong Java Stream API, một pipeline thường có ba phần: **nguồn dữ liệu (source)**, các **phép toán trung gian (intermediate operations)** và một **phép toán kết thúc (terminal operation)**. Điểm quyết định cách Stream hoạt động là **tính lười (laziness)**: phần lớn công việc xử lý từng phần tử được trì hoãn cho đến khi có nhu cầu lấy kết quả.
+In the Java Stream API, a pipeline typically has three parts: a **data source (source)**, **intermediate operations**, and a **terminal operation**. What determines how a Stream works is **laziness**: most element-by-element processing work is deferred until there is a demand to obtain a result.
 
-Chủ đề này thuộc chương **Hợp đồng và vòng đời pipeline** của **JAVA_STREAM_API**. Nắm được thời điểm thực thi giúp ta viết các chuỗi `filter`, `map`, `reduce` và `collect` đúng ý nghĩa, tận dụng khả năng dừng sớm, tránh tác dụng phụ khó đoán và quản lý tài nguyên an toàn.
+This topic belongs to the **Pipeline Contracts and Lifecycle** chapter of **JAVA_STREAM_API**. Understanding execution timing helps us write chains of `filter`, `map`, `reduce`, and `collect` with the right semantics, take advantage of short-circuiting, avoid unpredictable side effects, and manage resources safely.
 
-## 1. Khai báo pipeline khác với chạy pipeline
+## 1. Declaring a pipeline is different from running a pipeline
 
-Xét biểu thức:
+Consider the expression:
 
 ```java
 Stream<String> pipeline = names.stream()
@@ -14,29 +14,29 @@ Stream<String> pipeline = names.stream()
     .map(String::toUpperCase);
 ```
 
-Tại thời điểm gán biến `pipeline`, Java đã tạo các đối tượng mô tả pipeline. Tuy nhiên, **`filter` và `map` chưa phải xử lý lần lượt tất cả phần tử trong `names`**. Chúng là các phép toán trung gian trả về một Stream để có thể ghép thêm bước tiếp theo.
+At the moment the `pipeline` variable is assigned, Java has already created the objects describing the pipeline. However, **`filter` and `map` have not yet had to process all elements in `names` one by one**. They are intermediate operations that return a Stream so that additional subsequent steps can be chained.
 
-Đến khi viết:
+When writing:
 
 ```java
 List<String> result = pipeline.collect(Collectors.toList());
 ```
 
-`collect` là phép toán kết thúc, yêu cầu kết quả và kéo dữ liệu đi qua các bước trước đó. Với một Stream tuần tự thông thường, quá trình này thường xử lý từng phần tử qua các bước có thể kết hợp, thay vì tạo một danh sách tạm sau mỗi `filter` hay `map`.
+`collect` is a terminal operation, requesting the result and pulling data through the preceding steps. With a typical sequential Stream, this process usually processes each element through combinable steps, rather than creating a temporary list after each `filter` or `map`.
 
-| Thành phần | Ví dụ | Khi gọi, điều gì xảy ra? |
+| Component | Example | What happens when called? |
 | --- | --- | --- |
-| Nguồn | `list.stream()`, `Stream.of(...)`, `Files.lines(...)` | Tạo nguồn cho pipeline; có thể khởi tạo tài nguyên hoặc đánh giá đối số ngay tại đây. |
-| Trung gian không trạng thái | `filter`, `map`, `flatMap` | Ghép thêm quy tắc biến đổi/lọc; thường chưa duyệt phần tử. |
-| Trung gian có trạng thái | `sorted`, `distinct` | Ghép thêm bước cần quan sát hoặc lưu thông tin về các phần tử; khi chạy có thể cần bộ đệm. |
-| Trung gian giới hạn luồng | `limit`, `skip`, `takeWhile` | Mô tả cách chọn phạm vi phần tử; một số có thể góp phần dừng sớm khi tiêu thụ. |
-| Kết thúc | `collect`, `reduce`, `sum`, `forEach`, `findFirst`, `count` | Kích hoạt việc đánh giá cần thiết để cho ra kết quả hoặc tác dụng của phép toán. |
+| Source | `list.stream()`, `Stream.of(...)`, `Files.lines(...)` | Creates the source for the pipeline; may initialize resources or evaluate arguments right here. |
+| Stateless intermediate | `filter`, `map`, `flatMap` | Appends transformation/filtering rules; usually does not traverse elements yet. |
+| Stateful intermediate | `sorted`, `distinct` | Appends a step that needs to observe or store information about elements; at runtime it may require a buffer. |
+| Stream-limiting intermediate | `limit`, `skip`, `takeWhile` | Describes how to select a range of elements; some can contribute to early termination upon consumption. |
+| Terminal | `collect`, `reduce`, `sum`, `forEach`, `findFirst`, `count` | Triggers the evaluation needed to produce the result or effect of the operation. |
 
-> **Phân biệt quan trọng:** “Lười” không có nghĩa là mọi biểu thức Java ở bước tạo nguồn đều bị hoãn. Chẳng hạn, trong `Stream.of(expensiveCall())`, Java gọi `expensiveCall()` để tính đối số *trước* khi tạo Stream. Tương tự, `Files.lines(path)` có thể mở tệp ngay lúc tạo Stream, dù việc duyệt các dòng diễn ra về sau.
+> **Important distinction:** "Lazy" does not mean every Java expression at the source-creation step is deferred. For example, in `Stream.of(expensiveCall())`, Java calls `expensiveCall()` to compute the argument *before* creating the Stream. Similarly, `Files.lines(path)` may open the file right when creating the Stream, even though iterating through the lines happens later.
 
-## 2. Quan sát chính xác thời điểm thực thi
+## 2. Observing exact execution timing
 
-Ví dụ sau chạy được với các API Stream có từ Java 8:
+The following example runs with Stream APIs available since Java 8:
 
 ```java
 import java.util.Arrays;
@@ -58,17 +58,17 @@ public class LazyPipelineDemo {
                 return name.toUpperCase();
             });
 
-        System.out.println("Pipeline đã được khai báo");
+        System.out.println("Pipeline declared");
         List<String> result = pipeline.collect(Collectors.toList());
-        System.out.println("Kết quả: " + result);
+        System.out.println("Result: " + result);
     }
 }
 ```
 
-Đầu ra với pipeline tuần tự và danh sách có thứ tự:
+Output with a sequential pipeline and an ordered list:
 
 ```text
-Pipeline đã được khai báo
+Pipeline declared
 filter: An
 filter: Binh
 map: Binh
@@ -76,46 +76,46 @@ filter: Chi
 map: Chi
 filter: Dung
 map: Dung
-Kết quả: [BINH, CHI, DUNG]
+Result: [BINH, CHI, DUNG]
 ```
 
-Có hai điều cần chú ý:
+There are two things to note:
 
-1. Dòng “Pipeline đã được khai báo” xuất hiện **trước** mọi dòng `filter`/`map`. Việc khai báo các phép toán trung gian chưa duyệt danh sách.
-2. `filter: Binh` được theo sau ngay bởi `map: Binh`, chứ không phải đợi lọc hết bốn tên rồi mới chạy `map`. Đây là cách các bước **không trạng thái** thường được kết hợp khi Stream tuần tự được tiêu thụ. `map` cũng không chạy với `An` vì phần tử này bị loại ở `filter`.
+1. The line "Pipeline declared" appears **before** any `filter`/`map` lines. Declaring intermediate operations has not traversed the list yet.
+2. `filter: Binh` is immediately followed by `map: Binh`, rather than waiting to filter all four names before running `map`. This is how **stateless** steps are typically fused when a sequential Stream is consumed. `map` also does not run for `An` because this element is filtered out at `filter`.
 
-Không nên suy ra rằng mọi pipeline đều có thứ tự gọi hàm giống hệt ví dụ. `sorted`, `distinct`, xử lý song song và các tối ưu hóa của terminal operation có thể làm thay đổi cách phần tử được yêu cầu hoặc được đệm.
+Do not infer that every pipeline has the exact same function-call order as the example. `sorted`, `distinct`, parallel processing, and terminal operation optimizations can change how elements are requested or buffered.
 
-## 3. Terminal operation yêu cầu bao nhiêu dữ liệu?
+## 3. How much data does a terminal operation request?
 
-Một phép toán kết thúc **bắt đầu quá trình đánh giá**, nhưng không nhất thiết buộc Stream duyệt hết nguồn. Nhu cầu thực tế phụ thuộc vào phép toán và các bước trước nó.
+A terminal operation **initiates the evaluation process**, but does not necessarily force the Stream to traverse the entire source. The actual demand depends on the operation and the steps preceding it.
 
-| Phép toán kết thúc | Nhu cầu thông thường | Lưu ý |
+| Terminal operation | Typical demand | Notes |
 | --- | --- | --- |
-| `collect(Collectors.toList())` | Thu thập tất cả phần tử còn lại | Pipeline có thể đã bị giới hạn bằng `limit` hoặc `takeWhile`. |
-| `reduce(...)`, `sum()`, `max()` | Thường cần xem toàn bộ phần tử phù hợp | Kết quả tổng hợp phụ thuộc vào dữ liệu chưa xem. |
-| `findFirst()` | Dừng khi xác định được phần tử đầu tiên theo encounter order | Có thể phải đọc nhiều phần tử nếu các bước lọc chưa cho kết quả. |
-| `findAny()` | Có thể dừng khi tìm thấy một phần tử bất kỳ | Đặc biệt hữu ích với nguồn song song; không hứa phần tử đầu tiên. |
-| `anyMatch(...)`, `allMatch(...)`, `noneMatch(...)` | Có khả năng dừng sớm khi kết quả đã chắc chắn | `anyMatch` gặp một phần tử đúng là đủ; `allMatch` gặp một phần tử sai là đủ. |
-| `count()` | Trả về số phần tử của pipeline | Có thể tối ưu bằng kích thước nguồn và bỏ qua duyệt; xem mục 5. |
+| `collect(Collectors.toList())` | Collects all remaining elements | The pipeline may already have been limited using `limit` or `takeWhile`. |
+| `reduce(...)`, `sum()`, `max()` | Usually needs to inspect all matching elements | The aggregated result depends on unseen data. |
+| `findFirst()` | Stops once the first element in encounter order is determined | May have to read many elements if filtering steps have not yet produced a result. |
+| `findAny()` | Can stop as soon as any single element is found | Especially useful with parallel sources; does not promise the first element. |
+| `anyMatch(...)`, `allMatch(...)`, `noneMatch(...)` | Capable of short-circuiting once the result is certain | `anyMatch` needs only one matching element; `allMatch` needs only one failing element. |
+| `count()` | Returns the number of elements in the pipeline | Can optimize using the source size and skip traversal; see section 5. |
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.stream.IntStream;
 
 int firstEven = IntStream.rangeClosed(1, 100)
-    .peek(n -> System.out.println("Đã lấy: " + n))
+    .peek(n -> System.out.println("Fetched: " + n))
     .filter(n -> n % 2 == 0)
     .findFirst()
     .orElse(-1);
 
-System.out.println("Số chẵn đầu tiên: " + firstEven);
+System.out.println("First even number: " + firstEven);
 ```
 
-Với pipeline **tuần tự** trên, đầu ra chỉ gồm `Đã lấy: 1`, `Đã lấy: 2` rồi `Số chẵn đầu tiên: 2`. `findFirst` có kết quả ngay sau khi gặp `2` nên không cần kiểm tra tiếp các số từ `3` đến `100`.
+With the **sequential** pipeline above, the output consists only of `Fetched: 1`, `Fetched: 2`, and then `First even number: 2`. `findFirst` has its result immediately after encountering `2`, so there is no need to continue checking numbers from `3` to `100`.
 
-`limit` là **phép toán trung gian** nhưng cũng có thể cho phép dừng sớm:
+`limit` is an **intermediate operation** but can also enable early termination:
 
 ```java
 List<Integer> firstTwoEvens = IntStream.rangeClosed(1, 10)
@@ -125,7 +125,7 @@ List<Integer> firstTwoEvens = IntStream.rangeClosed(1, 10)
     .collect(Collectors.toList()); // [2, 4]
 ```
 
-`limit(2)` ở đây lấy **hai phần tử đã vượt qua `filter`**, nên pipeline phải xem đến số `4`. Nếu chuyển `limit(2)` lên trước `filter`, chỉ hai số đầu `1` và `2` được đưa qua bộ lọc, kết quả sẽ là `[2]`:
+`limit(2)` here takes **two elements that have passed `filter`**, so the pipeline must inspect up to the number `4`. If `limit(2)` is moved before `filter`, only the first two numbers `1` and `2` are passed through the filter, and the result will be `[2]`:
 
 ```java
 List<Integer> different = IntStream.rangeClosed(1, 10)
@@ -135,13 +135,13 @@ List<Integer> different = IntStream.rangeClosed(1, 10)
     .collect(Collectors.toList()); // [2]
 ```
 
-**Thứ tự các phép toán là một phần của ý nghĩa bài toán**; việc hoán đổi bước để “tối ưu” có thể đổi kết quả.
+**The order of operations is part of the problem's semantics**; swapping steps to "optimize" can change the result.
 
-## 4. Tính lười không loại bỏ chi phí của phép toán có trạng thái
+## 4. Laziness does not eliminate the cost of stateful operations
 
-Một phép toán trung gian có thể được *khai báo* một cách lười nhưng khi bắt đầu chạy lại cần tiêu thụ nhiều dữ liệu trước khi đưa ra kết quả đầu tiên.
+An intermediate operation can be *declared* lazily, yet when execution starts it still needs to consume a large amount of data before producing the first result.
 
-Ví dụ với `sorted`:
+Example with `sorted`:
 
 ```java
 List<Integer> smallestTwo = Stream.of(9, 1, 8, 2, 7)
@@ -155,31 +155,31 @@ List<Integer> firstTwoSorted = Stream.of(9, 1, 8, 2, 7)
     .collect(Collectors.toList()); // [1, 9]
 ```
 
-Trong biểu thức thứ nhất, để biết hai phần tử nhỏ nhất, bước `sorted` của Stream tuần tự phải tiếp nhận toàn bộ năm giá trị rồi mới có thể phát ra dữ liệu theo thứ tự đã sắp xếp. Trong biểu thức thứ hai, `limit` chỉ đưa hai giá trị ban đầu vào `sorted`.
+In the first expression, to know the two smallest elements, the `sorted` step of a sequential Stream must accept all five values before it can emit data in sorted order. In the second expression, `limit` passes only the first two values into `sorted`.
 
-Một vài hệ quả:
+A few consequences:
 
-- `sorted` thường cần lưu nhiều phần tử, nên `sorted().findFirst()` không có khả năng dừng sớm như `filter().findFirst()` trên nguồn có thứ tự.
-- `distinct` cần ghi nhận các giá trị đã gặp để loại trùng; tùy pipeline và encounter order, nó có thể phát kết quả dần nhưng vẫn có chi phí trạng thái.
-- Với nguồn **vô hạn**, `Stream.iterate(0, n -> n + 1).sorted().findFirst()` không thể hoàn tất theo cách đánh giá thông thường vì `sorted` phải nhận hết đầu vào. Đặt một giới hạn hữu hạn **trước** `sorted` khi bài toán thực sự chỉ xét một số phần tử đầu.
+- `sorted` usually needs to store many elements, so `sorted().findFirst()` cannot short-circuit like `filter().findFirst()` on an ordered source.
+- `distinct` needs to record seen values to remove duplicates; depending on the pipeline and encounter order, it may emit results incrementally but still has state cost.
+- With an **infinite** source, `Stream.iterate(0, n -> n + 1).sorted().findFirst()` cannot complete under normal evaluation because `sorted` must receive the entire input. Place a finite limit **before** `sorted` when the problem actually considers only a certain number of initial elements.
 
-Từ Java 9, `takeWhile` có thể dừng khi gặp phần tử đầu tiên **không thỏa điều kiện** trên Stream có encounter order; `dropWhile` loại phần đầu thỏa điều kiện rồi tiếp tục truyền phần còn lại. Chúng cũng cần được đặt đúng vị trí trong pipeline.
+Since Java 9, `takeWhile` can stop when encountering the first element that **does not satisfy the condition** on a Stream with encounter order; `dropWhile` discards the initial prefix that satisfies the condition and then continues passing the rest. They also need to be placed in the right position in the pipeline.
 
-## 5. Có terminal nhưng không phải lambda nào cũng được gọi
+## 5. Having a terminal operation does not mean every lambda is called
 
-Một điểm dễ gây lỗi là cho rằng sau khi gọi `count()` thì mọi `map` hoặc `peek` chắc chắn sẽ chạy. Điều này **không thuộc hợp đồng của Stream**.
+A common source of bugs is assuming that after calling `count()`, every `map` or `peek` will definitely run. This is **not part of the Stream contract**.
 
 ```java
 long size = Stream.of("A", "BB", "CCC")
     .peek(System.out::println)
     .count();
 
-System.out.println("Số phần tử: " + size); // 3
+System.out.println("Element count: " + size); // 3
 ```
 
-Nguồn `Stream.of(...)` biết sẵn có ba phần tử; `peek` không thay đổi số lượng. Trên các bản JDK có tối ưu hóa `count` (từ Java 9), việc duyệt nguồn và gọi `peek` có thể bị bỏ qua hoàn toàn. Vì vậy **không được dựa vào tác dụng phụ trong `peek`, `map` hay lambda trung gian để bảo đảm một hành động quan trọng đã xảy ra**.
+The `Stream.of(...)` source already knows there are three elements; `peek` does not change the count. On JDK versions that optimize `count` (since Java 9), traversing the source and calling `peek` may be skipped entirely. Therefore, **never rely on side effects in `peek`, `map`, or intermediate lambdas to guarantee that an important action has occurred**.
 
-Khác với ví dụ trên, `filter` có thể thay đổi số phần tử:
+Unlike the example above, `filter` can change the number of elements:
 
 ```java
 long longerThanOne = Stream.of("A", "BB", "CCC")
@@ -187,26 +187,26 @@ long longerThanOne = Stream.of("A", "BB", "CCC")
     .count(); // 2
 ```
 
-Ở đây, bộ lọc cần được đánh giá để xác định số phần tử còn lại, trừ khi có một tối ưu hóa khác bảo toàn đúng ngữ nghĩa mà việc cài đặt áp dụng.
+Here, the filter needs to be evaluated to determine the number of remaining elements, unless another semantics-preserving optimization is applied by the implementation.
 
-**Quy tắc sử dụng:** coi `map`, `filter` và `peek` là các bước biểu diễn phép tính. Nếu mục đích là tạo một kết quả, dùng terminal phù hợp; nếu mục đích là thực hiện hành động có tác dụng phụ, cần làm rõ hành động đó tại ranh giới tiêu thụ thay vì “giấu” trong `peek`. `peek` hữu ích để quan sát khi gỡ lỗi, nhưng không phải một cơ chế kiểm toán chắc chắn.
+**Usage rule:** treat `map`, `filter`, and `peek` as steps representing computations. If the goal is to produce a result, use an appropriate terminal operation; if the goal is to perform an action with side effects, make that action explicit at the consumption boundary rather than "hiding" it inside `peek`. `peek` is useful for observing during debugging, but it is not a guaranteed auditing mechanism.
 
-## 6. Vòng đời: pipeline chỉ được tiêu thụ một lần
+## 6. Lifecycle: a pipeline can only be consumed once
 
-Sau khi pipeline đã được dùng cho một phép toán kết thúc, không thể dùng lại chính Stream đó để thực hiện truy vấn khác:
+Once a pipeline has been used for a terminal operation, that same Stream cannot be reused to perform another query:
 
 ```java
 Stream<Integer> values = Stream.of(10, 20, 30);
 
 long count = values.count(); // 3
 
-// Không hợp lệ: Stream đã được tiêu thụ.
+// Invalid: the Stream has already been consumed.
 // int first = values.findFirst().orElse(-1);
 ```
 
-Lần gọi thứ hai thường gây `IllegalStateException`. Việc phát hiện tái sử dụng không được bảo đảm cho mọi cách xây pipeline, vì vậy phải luôn tuân thủ quy tắc **một pipeline, một lượt tiêu thụ**.
+The second call typically throws `IllegalStateException`. Reuse detection is not guaranteed for every way of constructing a pipeline, so you must always follow the **one pipeline, one consumption** rule.
 
-Khi cần hai phép tính độc lập trên cùng dữ liệu có thể duyệt lại, hãy tạo hai Stream mới từ nguồn:
+When you need two independent computations on the same re-traversable data, create two new Streams from the source:
 
 ```java
 List<Integer> numbers = Arrays.asList(10, 20, 30);
@@ -215,7 +215,7 @@ long count = numbers.stream().count();
 int total = numbers.stream().mapToInt(Integer::intValue).sum();
 ```
 
-Khi nguồn gắn với tài nguyên, việc kết thúc terminal operation **không đồng nghĩa Stream tự đóng tài nguyên**. Ví dụ, `Files.lines` mở tài nguyên liên quan đến tệp, cần đóng bằng `try-with-resources`:
+When a source is backed by a resource, finishing a terminal operation **does not mean the Stream automatically closes the resource**. For example, `Files.lines` opens a file-related resource and must be closed using `try-with-resources`:
 
 ```java
 import java.io.IOException;
@@ -233,13 +233,13 @@ public static long countNonBlankLines(Path path) throws IOException {
 }
 ```
 
-Khối `try` đảm bảo gọi `close()` kể cả khi xử lý ném ngoại lệ. Với nguồn trong bộ nhớ như `List.stream()`, thông thường không có tài nguyên ngoài cần đóng.
+The `try` block guarantees calling `close()` even if processing throws an exception. With in-memory sources like `List.stream()`, there is normally no external resource to close.
 
-> **Ngoại lệ về thời điểm duyệt:** `iterator()` và `spliterator()` được phân loại là terminal operation vì chúng kết thúc khả năng ghép thêm bước pipeline, nhưng chúng trả về một đối tượng để duyệt; phần tử có thể chỉ thực sự được kéo qua các bước trung gian khi đối tượng đó được sử dụng. Vì vậy, phát biểu chính xác là terminal operation **kích hoạt hoặc thiết lập việc tiêu thụ**, không phải mọi terminal đều duyệt hết dữ liệu ngay trong lời gọi.
+> **Exception regarding traversal timing:** `iterator()` and `spliterator()` are classified as terminal operations because they terminate the ability to chain further pipeline steps, yet they return an object for traversal; elements may only actually be pulled through intermediate steps when that object is used. Therefore, the accurate statement is that a terminal operation **triggers or sets up consumption**, not that every terminal operation traverses all data immediately within the call.
 
-## 7. Khi chuyển sang parallel stream, không dựa vào lịch chạy
+## 7. When switching to a parallel stream, do not rely on execution schedule
 
-Tính lười vẫn tồn tại khi gọi `parallel()`; việc ghép pipeline chưa tự thực thi trên nhiều luồng. Tuy nhiên, lúc terminal operation tiêu thụ dữ liệu, các phần tử có thể được xử lý đồng thời, không bảo đảm các thông báo từ `peek` hoặc thao tác bên trong `map` xuất hiện theo thứ tự nguồn.
+Laziness still exists when calling `parallel()`; assembling the pipeline does not automatically execute it across multiple threads. However, when the terminal operation consumes data, elements may be processed concurrently, with no guarantee that messages from `peek` or operations inside `map` appear in source order.
 
 ```java
 List<Integer> result = IntStream.rangeClosed(1, 8)
@@ -248,29 +248,29 @@ List<Integer> result = IntStream.rangeClosed(1, 8)
     .boxed()
     .collect(Collectors.toList());
 
-// Với nguồn có encounter order, kết quả vẫn theo thứ tự: [2, 4, ..., 16].
-// Không suy ra các lời gọi map đã diễn ra theo thứ tự 1, 2, ..., 8.
+// For a source with encounter order, the result is still in order: [2, 4, ..., 16].
+// Do not infer that the map calls occurred in the order 1, 2, ..., 8.
 ```
 
-`findFirst` bảo toàn khái niệm “đầu tiên” trên nguồn có encounter order, còn `findAny` được phép trả về phần tử bất kỳ. `forEach` trên Stream song song không đảm bảo thứ tự; `forEachOrdered` bảo đảm encounter order khi thứ tự tồn tại, nhưng có thể giảm lợi ích song song. Các bước có trạng thái và ràng buộc thứ tự (chẳng hạn `sorted`, `distinct`, `limit` trên nguồn có thứ tự) cũng có thể làm chi phí đồng bộ/bộ đệm tăng lên.
+`findFirst` preserves the concept of "first" on a source with encounter order, whereas `findAny` is allowed to return any element. `forEach` on a parallel Stream does not guarantee order; `forEachOrdered` guarantees encounter order when an order exists, but may reduce the benefit of parallelism. Stateful and order-constrained steps (such as `sorted`, `distinct`, `limit` on an ordered source) can also increase synchronization/buffering overhead.
 
-Vì vậy, hãy ưu tiên lambda **không có trạng thái chia sẻ và không phụ thuộc vào thứ tự thực thi**. Đừng đếm số lần chạy lambda hoặc ghi dữ liệu chia sẻ không đồng bộ để suy ra số phần tử đã xử lý.
+Therefore, prefer lambdas **without shared state and independent of execution order**. Do not count how many times a lambda runs or write to unsynchronized shared data to infer how many elements were processed.
 
-## 8. Những nhầm lẫn thường gặp
+## 8. Common misconceptions
 
-| Nhầm lẫn | Cách hiểu đúng |
+| Misconception | Correct understanding |
 | --- | --- |
-| “Gọi `filter` nghĩa là danh sách đã được lọc.” | `filter` thường chỉ thêm một bước vào pipeline; terminal mới yêu cầu dữ liệu. |
-| “`map` chạy hết rồi `filter` mới chạy.” | Với các bước không trạng thái trong pipeline tuần tự, xử lý thường được kết hợp theo từng phần tử và theo thứ tự khai báo. |
-| “Terminal luôn duyệt hết nguồn.” | Terminal như `findFirst` và `anyMatch` có thể dừng sớm; trung gian `limit` cũng có thể giảm số phần tử cần lấy. |
-| “`sorted` vẫn lấy được kết quả đầu tiên ngay.” | Sắp xếp thông thường phải quan sát toàn bộ đầu vào hữu hạn trước khi phát phần tử đầu tiên. |
-| “Đã gọi `count` thì `peek` chắc chắn in ra.” | `count` có thể dùng kích thước đã biết và bỏ qua bước trung gian không ảnh hưởng số lượng. |
-| “Có thể gọi `count` rồi `collect` trên cùng Stream.” | Stream đã tiêu thụ không được tái sử dụng; tạo Stream mới từ nguồn có thể duyệt lại. |
-| “Terminal tự đóng file Stream.” | Phải đóng các Stream gắn với tài nguyên bằng `close` hoặc `try-with-resources`. |
+| "Calling `filter` means the list has already been filtered." | `filter` usually only adds a step to the pipeline; the terminal operation is what requests the data. |
+| "`map` runs completely before `filter` runs." | For stateless steps in a sequential pipeline, processing is typically fused element by element in declaration order. |
+| "A terminal operation always traverses the entire source." | Terminal operations like `findFirst` and `anyMatch` can short-circuit; the intermediate `limit` can also reduce the number of elements needed. |
+| "`sorted` can still get the first result immediately." | Sorting typically must observe the entire finite input before emitting the first element. |
+| "Calling `count` guarantees `peek` will print." | `count` can use a known size and skip intermediate steps that do not affect the count. |
+| "You can call `count` and then `collect` on the same Stream." | A consumed Stream cannot be reused; create a new Stream from a re-traversable source. |
+| "A terminal operation automatically closes a file Stream." | Resource-backed Streams must be closed using `close` or `try-with-resources`. |
 
-## 9. Tự kiểm tra
+## 9. Self-check
 
-**Tình huống A.** Đoạn mã sau in ra gì, và dòng `"map"` xuất hiện vào lúc nào?
+**Scenario A.** What does the following code print, and when does the `"map"` line appear?
 
 ```java
 Stream<Integer> s = Stream.of(1, 2, 3)
@@ -283,16 +283,16 @@ int value = s.findFirst().orElse(-1);
 System.out.println(value);
 ```
 
-**Đáp án:** Với Stream tuần tự và có thứ tự, in `ready`, `map 1`, `10`. Trước `findFirst()`, bước `map` chưa xử lý phần tử nào. `findFirst()` chỉ cần phần tử đầu tiên, nên không cần ánh xạ `2` và `3`.
+**Answer:** With a sequential and ordered Stream, it prints `ready`, `map 1`, `10`. Before `findFirst()`, the `map` step has not processed any elements yet. `findFirst()` only needs the first element, so there is no need to map `2` and `3`.
 
-**Tình huống B.** Muốn lấy ba số nhỏ nhất từ một danh sách hữu hạn, nên đặt `limit(3)` trước hay sau `sorted()`?
+**Scenario B.** To get the three smallest numbers from a finite list, should `limit(3)` be placed before or after `sorted()`?
 
-**Đáp án:** Đặt `sorted().limit(3)` để xét toàn bộ đầu vào rồi chọn ba số nhỏ nhất. `limit(3).sorted()` chỉ sắp xếp ba phần tử đầu của nguồn, có thể cho kết quả khác.
+**Answer:** Place `sorted().limit(3)` to examine the entire input and then select the three smallest numbers. `limit(3).sorted()` only sorts the first three elements of the source, which can give a different result.
 
-**Tình huống C.** Vì sao đoạn `Stream.generate(supplier).limit(5).collect(Collectors.toList())` có thể kết thúc dù nguồn không có điểm dừng tự nhiên?
+**Scenario C.** Why can `Stream.generate(supplier).limit(5).collect(Collectors.toList())` terminate even though the source has no natural stopping point?
 
-**Đáp án:** `limit(5)` chỉ cho tối đa năm phần tử đi tiếp; khi terminal đã lấy đủ năm phần tử, pipeline không cần gọi `supplier` thêm. Nếu đặt một bước phải tiêu thụ toàn bộ nguồn, chẳng hạn `sorted()`, **trước** `limit(5)` thì khả năng kết thúc này mất đi.
+**Answer:** `limit(5)` lets at most five elements pass through; once the terminal operation has taken five elements, the pipeline does not need to call `supplier` anymore. If a step that must consume the entire source, such as `sorted()`, is placed **before** `limit(5)`, this ability to terminate is lost.
 
-## Ghi nhớ
+## Key takeaway
 
-Tính lười giúp Java Stream API **khai báo trước cách xử lý, chỉ thực hiện phần cần thiết khi có nhu cầu tiêu thụ**. Để suy luận một pipeline, hãy tự hỏi theo thứ tự: nguồn được tạo khi nào; bước trung gian nào có thể cần trạng thái; terminal cần bao nhiêu dữ liệu; có dừng sớm hoặc tối ưu hóa bỏ qua bước nào không; Stream đã được tiêu thụ hoặc cần đóng tài nguyên chưa. Trả lời được các câu hỏi ấy là nền tảng để dùng `filter`, `map`, `reduce` và `collect` đúng hợp đồng vòng đời của Stream.
+Laziness enables the Java Stream API to **declare how to process upfront, and execute only what is necessary when consumption is demanded**. To reason about a pipeline, ask yourself in order: when is the source created; which intermediate steps might need state; how much data does the terminal operation need; are there any short-circuiting or step-skipping optimizations; has the Stream already been consumed or does it need resource closing? Answering these questions is the foundation for using `filter`, `map`, `reduce`, and `collect` in accordance with the Stream lifecycle contract.

@@ -1,12 +1,12 @@
-# Phân biệt `char`, `String` và mảng `char` trong Java 17+
+# Distinguishing `char`, `String`, and `char` Arrays in Java 17+
 
-## 1. Ba cách biểu diễn ký tự: không thể dùng thay thế tùy ý
+## 1. Three ways to represent characters: not interchangeable at will
 
-Java có ba dạng thường gặp khi làm việc với văn bản:
+Java has three common forms when working with text:
 
-- **`char`**: một giá trị nguyên thủy 16 bit, biểu diễn **một đơn vị mã UTF-16**. Viết literal bằng dấu nháy đơn, ví dụ `'A'`.
-- **`String`**: một đối tượng chuỗi ký tự **bất biến** (*immutable*), biểu diễn một dãy đơn vị mã UTF-16. Viết literal bằng dấu nháy kép, ví dụ `"Java"`.
-- **`char[]`**: một **mảng có độ dài cố định** gồm các phần tử `char`, có thể thay đổi phần tử bằng phép gán.
+- **`char`**: a 16-bit primitive value representing **one UTF-16 code unit**. Written as a literal with single quotes, for example `'A'`.
+- **`String`**: an **immutable** character sequence object representing a sequence of UTF-16 code units. Written as a literal with double quotes, for example `"Java"`.
+- **`char[]`**: a **fixed-length array** consisting of `char` elements, whose elements can be modified via assignment.
 
 ~~~java
 char initial = 'J';
@@ -14,23 +14,23 @@ String word = "Java";
 char[] letters = {'J', 'a', 'v', 'a'};
 ~~~
 
-Ba biến trên khác nhau về **kiểu**, **cách truy cập**, **khả năng sửa dữ liệu** và **cách sao chép**.
+These three variables differ in **type**, **access syntax**, **mutability**, and **copy semantics**.
 
-| Thuộc tính | `char` | `String` | `char[]` |
+| Property | `char` | `String` | `char[]` |
 |---|---|---|---|
-| Phân loại | Primitive | Class `java.lang.String` | Array object |
-| Nội dung | Một UTF-16 code unit | Dãy UTF-16 code units | Các phần tử `char` |
-| Cách khởi tạo ví dụ | `'J'` | `"Java"` | `{'J','a','v','a'}` |
-| Lấy độ dài | Không có thuộc tính độ dài | `word.length()` | `letters.length` |
-| Truy cập vị trí | Không có chỉ số | `word.charAt(i)` | `letters[i]` |
-| Sửa nội dung tại vị trí | Không áp dụng | **Không thể** sửa tại chỗ | `letters[i] = 'K'` |
-| Giá trị `null` | Không nhận được | Có thể là `null` | Có thể là `null` |
+| Category | Primitive | Class `java.lang.String` | Array object |
+| Content | One UTF-16 code unit | Sequence of UTF-16 code units | `char` elements |
+| Example initialization | `'J'` | `"Java"` | `{'J','a','v','a'}` |
+| Getting length | No length property | `word.length()` | `letters.length` |
+| Accessing by position | No index | `word.charAt(i)` | `letters[i]` |
+| Modifying content at index | Not applicable | **Cannot** modify in place | `letters[i] = 'K'` |
+| `null` value | Cannot hold `null` | Can be `null` | Can be `null` |
 
-**Cần nhớ:** `String` **không phải** là cách viết khác của `char[]`; chúng là hai loại đối tượng khác nhau với API và tính bất biến khác nhau.
+**Remember:** `String` is **not** just another syntax for `char[]`; they are two different object types with different APIs and mutability.
 
-## 2. `char`: một đơn vị mã UTF-16, không nhất thiết là một ký tự người nhìn thấy
+## 2. `char`: one UTF-16 code unit, not necessarily a visible character
 
-`char` dùng nháy đơn:
+`char` uses single quotes:
 
 ~~~java
 char letter = 'A';
@@ -39,11 +39,11 @@ char newline = '\n';
 char backslash = '\\';
 
 System.out.println(letter);           // A
-System.out.println((int) digit);      // 53: mã UTF-16 của '5'
+System.out.println((int) digit);      // 53: UTF-16 code of '5'
 System.out.println((int) newline);    // 10: LF
 ~~~
 
-`'5'` là **ký tự chữ số**, không phải số nguyên `5`. Ép `char` sang `int` cho giá trị số của code unit đó:
+`'5'` is the **digit character**, not the integer `5`. Casting `char` to `int` gives the numeric value of that code unit:
 
 ~~~java
 char value = 'A';
@@ -51,28 +51,28 @@ int codeUnit = value;
 System.out.println(codeUnit); // 65
 ~~~
 
-Java `char` có miền giá trị từ 0 đến 65535 (`Character.MIN_VALUE` đến `Character.MAX_VALUE`). Đó là **giá trị UTF-16 code unit**, không phải toàn bộ miền Unicode code point.
+Java `char` has a value range from 0 to 65535 (`Character.MIN_VALUE` to `Character.MAX_VALUE`). That is the **UTF-16 code unit value**, not the entire Unicode code point range.
 
-Các ký tự Unicode ngoài **Basic Multilingual Plane** (BMP) như emoji thường được biểu diễn bằng **cặp surrogate** gồm hai `char`. Vì thế:
+Unicode characters outside the **Basic Multilingual Plane** (BMP), such as emoji, are typically represented by a **surrogate pair** consisting of two `char`s. Therefore:
 
-- Một Unicode code point có thể cần **hai `char`**.
-- Một ký tự hiển thị như cụm chữ có dấu hoặc emoji có thể gồm **nhiều code point**.
-- Không nên mặc định `char` = một chữ người dùng nhìn thấy.
+- One Unicode code point may require **two `char`s**.
+- A visible character such as an accented character sequence or emoji may consist of **multiple code points**.
+- You should not assume `char` = one user-visible character.
 
-### Cú pháp sai dễ gặp
+### Common syntax mistakes
 
 ~~~java
-// char empty = '';    // Sai: char literal rỗng
-// char two = 'AB';    // Sai: có hai ký tự thông thường
-// char text = "A";    // Sai kiểu: String không tự thành char
-// char missing = null; // Sai: null không gán được cho primitive char
+// char empty = '';    // Invalid: empty char literal
+// char two = 'AB';    // Invalid: two regular characters
+// char text = "A";    // Type mismatch: String does not automatically become char
+// char missing = null; // Invalid: null cannot be assigned to primitive char
 ~~~
 
-Khi cần một chữ cái từ chuỗi, dùng `charAt(index)` và kiểm tra rằng chuỗi không rỗng và index hợp lệ.
+When you need a single letter from a string, use `charAt(index)` and check that the string is non-empty and the index is valid.
 
-## 3. `String`: chuỗi bất biến với API xử lý văn bản
+## 3. `String`: immutable sequence with a text-processing API
 
-`String` là **kiểu tham chiếu** trong `java.lang`:
+`String` is a **reference type** in `java.lang`:
 
 ~~~java
 String label = "Java";
@@ -81,7 +81,7 @@ System.out.println(label.charAt(0)); // J
 System.out.println(label.substring(1, 3)); // av
 ~~~
 
-Các phương thức như `replace`, `toUpperCase`, `concat` hoặc `substring` **không sửa nội dung của đối tượng String cũ**. Chúng trả kết quả chuỗi phù hợp, có thể là cùng instance hoặc instance khác theo hợp đồng API; điểm cần quan tâm là **giá trị chuỗi ban đầu không đổi**.
+Methods such as `replace`, `toUpperCase`, `concat`, or `substring` **do not modify the content of the old String object**. They return the appropriate string result, which may be the same instance or a different instance according to the API contract; the key point is that **the original string value remains unchanged**.
 
 ~~~java
 String title = "Java";
@@ -91,27 +91,27 @@ System.out.println(title);    // Java
 System.out.println(modified); // Lava
 ~~~
 
-Muốn biến `title` giữ kết quả mới, bạn **gán lại biến**:
+If you want the variable `title` to hold the new result, you **reassign the variable**:
 
 ~~~java
 title = title.replace('J', 'L');
 System.out.println(title); // Lava
 ~~~
 
-Ở đây biến tham chiếu được gán một giá trị tham chiếu khác; đối tượng `String` ban đầu không bị sửa.
+Here the reference variable is assigned a different reference value; the original `String` object is not modified.
 
-Một `String` có thể chứa `null` nếu chưa có dữ liệu (khi bạn gán `null` cho biến); nhưng `null` không phải chuỗi rỗng `""`. Cần phân biệt:
+A `String` can hold `null` if there is no data yet (when you assign `null` to the variable); however, `null` is not the empty string `""`. Be sure to distinguish them:
 
 ~~~java
 String missing = null;
 String empty = "";
 System.out.println(empty.length()); // 0
-// missing.length(); // Nếu chạy: NullPointerException
+// missing.length(); // If executed: NullPointerException
 ~~~
 
-## 4. `char[]`: mảng có thể sửa từng phần tử
+## 4. `char[]`: array with mutable individual elements
 
-Mảng `char` có kích thước được xác định lúc tạo và **không thể đổi chiều dài ngay trên cùng một array object**. Nhưng có thể sửa phần tử:
+A `char` array has its size fixed at creation time and **cannot change length on the same array object**. However, its elements can be modified:
 
 ~~~java
 char[] letters = {'J', 'a', 'v', 'a'};
@@ -121,15 +121,15 @@ System.out.println(new String(letters)); // Kava
 System.out.println(letters.length);      // 4
 ~~~
 
-Với mảng rỗng hoặc mảng khởi tạo bằng kích thước:
+For an empty array or an array initialized with a size:
 
 ~~~java
 char[] buffer = new char[3];
 System.out.println(buffer.length); // 3
-System.out.println((int) buffer[0]); // 0: giá trị mặc định '\u0000'
+System.out.println((int) buffer[0]); // 0: default value '\u0000'
 ~~~
 
-Mảng là **đối tượng tham chiếu**; một biến mảng có thể được gán sang mảng khác:
+An array is a **reference object**; an array variable can be reassigned to another array:
 
 ~~~java
 char[] data = {'A'};
@@ -137,9 +137,9 @@ data = new char[] {'B', 'C'};
 System.out.println(data.length); // 2
 ~~~
 
-Câu lệnh trên **không kéo dài mảng cũ**; nó thay giá trị tham chiếu trong biến `data` để trỏ đến một mảng khác.
+The statement above **does not extend the old array**; it replaces the reference value in the `data` variable to point to a different array.
 
-### `length()` khác `length`
+### `length()` vs `length`
 
 ~~~java
 String word = "cat";
@@ -149,11 +149,11 @@ System.out.println(word.length()); // 3
 System.out.println(chars.length);  // 3
 ~~~
 
-`String.length()` là lời gọi method; `char[].length` là **field độ dài** của array. Viết `chars.length()` hoặc `word.length` sẽ không biên dịch.
+`String.length()` is a method call; `char[].length` is the array's **length field**. Writing `chars.length()` or `word.length` will not compile.
 
-## 5. Chuyển đổi qua lại: `String` và `char[]`
+## 5. Converting back and forth: `String` and `char[]`
 
-Hai API thực dụng nhất:
+The two most practical APIs:
 
 ~~~java
 String word = "Java";
@@ -161,7 +161,7 @@ char[] chars = word.toCharArray(); // String -> char[]
 String restored = new String(chars); // char[] -> String
 ~~~
 
-Các phép chuyển đổi này hữu ích vì tạo dữ liệu riêng để xử lý:
+These conversions are useful because they create separate data to process:
 
 ~~~java
 String original = "Java";
@@ -172,9 +172,9 @@ System.out.println(new String(copy)); // Kava
 System.out.println(original);         // Java
 ~~~
 
-`toCharArray()` cung cấp **một mảng mới** chứa các code unit của chuỗi; sửa mảng đó không làm biến đổi `String` nguồn.
+`toCharArray()` provides **a new array** containing the string's code units; modifying that array does not mutate the source `String`.
 
-Ở chiều ngược lại, `new String(chars)` lấy **bản sao nội dung** mảng tại thời điểm tạo chuỗi:
+In the opposite direction, `new String(chars)` takes a **copy of the array's content** at the time the string is created:
 
 ~~~java
 char[] buffer = {'A', 'B'};
@@ -185,14 +185,14 @@ System.out.println(snapshot);          // AB
 System.out.println(new String(buffer)); // ZB
 ~~~
 
-**Không có liên kết đồng bộ tự động giữa mảng và String.** Sau khi chuyển đổi, mỗi bên giữ nội dung theo quy tắc của loại đối tượng đó.
+**There is no automatic synchronization link between the array and the String.** After conversion, each side keeps its content according to the rules of its object type.
 
-Các lựa chọn khác:
+Other options:
 
-- `String.valueOf(chars)` tạo `String` từ mảng ký tự.
-- `String.valueOf(oneChar)` tạo chuỗi một phần tử từ `char`.
-- `String.valueOf(chars, offset, count)` chọn một đoạn của mảng, nhưng phải kiểm tra phạm vi hợp lệ.
-- `Character.toString(ch)` chuyển một `char` thành `String`.
+- `String.valueOf(chars)` creates a `String` from a character array.
+- `String.valueOf(oneChar)` creates a single-element string from a `char`.
+- `String.valueOf(chars, offset, count)` selects a slice of the array, though valid bounds must be checked.
+- `Character.toString(ch)` converts a `char` into a `String`.
 
 ~~~java
 char initial = 'J';
@@ -200,9 +200,9 @@ String oneLetter = String.valueOf(initial);
 System.out.println(oneLetter); // J
 ~~~
 
-## 6. So sánh: nội dung chuỗi và nội dung mảng
+## 6. Comparing: string content and array content
 
-Với `String`, thường dùng **`equals`** để so sánh nội dung:
+With `String`, you normally use **`equals`** to compare content:
 
 ~~~java
 String first = new String(new char[] {'o', 'k'});
@@ -212,9 +212,9 @@ System.out.println(first.equals(second)); // true
 System.out.println(first == second);      // false
 ~~~
 
-`==` ở ví dụ kiểm tra **hai tham chiếu có trỏ cùng object không**, không phải hai chuỗi có cùng ký tự không.
+`==` in the example checks **whether two references point to the same object**, not whether two strings have the same characters.
 
-Với `char[]`, **mảng không tự so sánh phần tử bằng `equals`**. Sử dụng `java.util.Arrays.equals`:
+With `char[]`, **arrays do not compare elements by `equals`**. Use `java.util.Arrays.equals`:
 
 ~~~java
 char[] a = {'o', 'k'};
@@ -224,7 +224,7 @@ System.out.println(a == b);                 // false
 System.out.println(java.util.Arrays.equals(a, b)); // true
 ~~~
 
-Để so sánh một mảng với một chuỗi, có thể chuyển đổi và gọi `equals`, hoặc thiết kế API nhận cùng một biểu diễn ngay từ đầu:
+To compare an array with a string, you can convert and call `equals`, or design the API to accept the same representation from the start:
 
 ~~~java
 String expected = "ok";
@@ -232,37 +232,37 @@ char[] actual = {'o', 'k'};
 System.out.println(expected.equals(new String(actual))); // true
 ~~~
 
-**Lưu ý với dữ liệu nhạy cảm:** chuyển `char[]` chứa thông tin bí mật thành `String` có thể để lại bản sao bất biến khó xóa khỏi bộ nhớ. Khi bảo mật là yêu cầu, tránh tạo những bản sao không cần thiết; việc xóa mảng chỉ làm sạch chính mảng đó và **không đảm bảo xóa mọi bản sao dữ liệu**.
+**Note on sensitive data:** converting a `char[]` containing confidential information into a `String` can leave behind an immutable copy that is hard to clear from memory. When security is a requirement, avoid creating unnecessary copies; clearing an array only zeroes out that array itself and **does not guarantee wiping every copy of the data**.
 
-## 7. Cách in `char[]` và bẫy overload
+## 7. How `char[]` prints and the overload trap
 
-`PrintStream` có overload `println(char[])` nên ví dụ:
+`PrintStream` has a `println(char[])` overload, so for example:
 
 ~~~java
 char[] data = {'J', 'a', 'v', 'a'};
 System.out.println(data);
 ~~~
 
-sẽ in:
+will print:
 
 ~~~text
 Java
 ~~~
 
-Điều này **không** có nghĩa bản thân array tự biến thành String. Đối với một mảng tham chiếu được xem là `Object`, cách chọn overload và biểu diễn mặc định có thể khác; không nên dựa vào `toString()` của mảng để lấy nội dung văn bản.
+This does **not** mean the array itself automatically turns into a String. For an array reference viewed as `Object`, overload selection and default representation may differ; you should not rely on an array's `toString()` to obtain text content.
 
-Khi mục tiêu là rõ ràng, viết:
+When clarity is the goal, write:
 
 ~~~java
 System.out.println(new String(data));          // Java
 System.out.println(java.util.Arrays.toString(data)); // [J, a, v, a]
 ~~~
 
-`Arrays.toString(char[])` là biểu diễn danh sách các phần tử để **debug**, trong khi `new String(data)` là **nội dung văn bản**.
+`Arrays.toString(char[])` is a list-of-elements representation for **debugging**, whereas `new String(data)` is **text content**.
 
-## 8. Ranh giới Unicode khi chuyển giữa String và char[]
+## 8. Unicode boundaries when converting between String and char[]
 
-Cả `String.length()` lẫn `char[].length` đều tính **đơn vị mã UTF-16**, nên một Unicode code point ngoài BMP có thể chiếm hai `char`. Việc chuyển `String` sang `char[]` **không tự tách thành các Unicode code point**:
+Both `String.length()` and `char[].length` count **UTF-16 code units**, so a Unicode code point outside the BMP can occupy two `char`s. Converting `String` to `char[]` **does not automatically split into Unicode code points**:
 
 ~~~java
 int emoji = 0x1F600; // U+1F600.
@@ -274,12 +274,12 @@ System.out.println(symbol.length()); // 2
 System.out.println(symbol.codePointCount(0, symbol.length())); // 1
 ~~~
 
-Nếu sửa riêng một phần tử của `twoUnits`, có thể phá **surrogate pair**. Khi mục tiêu là xử lý code point, dùng `codePoints()` hoặc `codePointAt` ở biên UTF-16 hợp lệ; nếu mục tiêu là ký tự người dùng nhìn thấy, một **grapheme cluster** đôi khi còn gồm nhiều code point. Bài này tập trung lựa chọn `char`, `String`, `char[]` và quy tắc copy/mutability; các vị trí surrogate, công thức ghép và cách cắt an toàn được kiểm chứng chi tiết trong bài về UTF-16.
+If you modify a single element of `twoUnits` on its own, you can break the **surrogate pair**. When the goal is processing code points, use `codePoints()` or `codePointAt` at valid UTF-16 boundaries; if the goal is user-perceived characters, a **grapheme cluster** can sometimes even consist of multiple code points. This lesson focuses on choosing between `char`, `String`, `char[]` and copy/mutability rules; surrogate positions, combining formulas, and safe slicing are verified in detail in the lesson on UTF-16.
 
 
-## 9. Chương trình Java 17 chạy độc lập và expected output
+## 9. Standalone Java 17 runnable program and expected output
 
-Tạo tệp **`CharStringArrayDemo.java`**:
+Create the file **`CharStringArrayDemo.java`**:
 
 ~~~java
 import java.util.Arrays;
@@ -337,7 +337,7 @@ public final class CharStringArrayDemo {
 }
 ~~~
 
-Yêu cầu **JDK 17+**; mở terminal tại thư mục chứa source.
+Requires **JDK 17+**; open a terminal in the directory containing the source file.
 
 **Bash (Linux/macOS):**
 
@@ -380,60 +380,60 @@ supplementary codepoints: 1
 high surrogate: true
 ~~~
 
-**Kiểm chứng cốt lõi:**
+**Key verifications:**
 
-- Sửa `letters[0]` chỉ thay đổi **mảng**, không thay đổi `snapshot` hoặc `word`.
-- Sửa mảng do `toCharArray()` trả về cũng **không tác động** đến `word`.
-- `replace` tạo giá trị chuỗi mới, không sửa `word` ban đầu.
-- `'A' + 'B'` là phép cộng số với các giá trị `char`, tạo `int` **131**; biểu thức `"A" + 'B'` nối chuỗi thành **AB**.
-- Code point U+1F600 có hai UTF-16 code units nhưng chỉ là một Unicode code point.
+- Modifying `letters[0]` only changes the **array**, not `snapshot` or `word`.
+- Modifying the array returned by `toCharArray()` also **does not affect** `word`.
+- `replace` produces a new string value without modifying the original `word`.
+- `'A' + 'B'` is numeric addition on `char` values, producing `int` **131**; the expression `"A" + 'B'` concatenates into the string **AB**.
+- Code point U+1F600 has two UTF-16 code units but is only one Unicode code point.
 
-## 10. Lỗi thường gặp và cách khắc phục
+## 10. Common mistakes and fixes
 
-| Trường hợp | Sai ở đâu? | Cách đúng |
+| Case | What is wrong? | Correct approach |
 |---|---|---|
-| `char ch = "A";` | Literal `"A"` là `String` | `char ch = 'A';` |
-| `String s = 'A';` | Không gán trực tiếp `char` cho `String` | `String s = String.valueOf('A');` |
-| `word[0]` | String không có toán tử lập chỉ số `[]` | `word.charAt(0)` |
-| `letters.charAt(0)` | Mảng không có method `charAt` | `letters[0]` |
-| `word.length` | String không có field public `length` | `word.length()` |
-| `letters.length()` | Mảng dùng field `length` | `letters.length` |
-| `word.charAt(0) = 'K';` | Không thể gán cho kết quả method; String bất biến | Tạo String mới hoặc sửa mảng rồi chuyển lại |
-| `a.equals(b)` với hai `char[]` khác nhau | Mảng không so sánh từng phần tử | `Arrays.equals(a, b)` |
-| `str1 == str2` để so nội dung | So sánh tham chiếu | `str1.equals(str2)` khi không null |
-| Một emoji có `length() == 2` | `length` tính UTF-16 units | Dùng API code point theo mục đích |
-| `chars.toString()` | Không chuyển mảng thành văn bản như mong đợi | `new String(chars)` |
-| `String s = null; s.length()` | Gọi method trên null | Kiểm tra null trước khi truy cập |
+| `char ch = "A";` | Literal `"A"` is a `String` | `char ch = 'A';` |
+| `String s = 'A';` | Cannot directly assign `char` to `String` | `String s = String.valueOf('A');` |
+| `word[0]` | String does not have the indexing operator `[]` | `word.charAt(0)` |
+| `letters.charAt(0)` | Array does not have a `charAt` method | `letters[0]` |
+| `word.length` | String does not have a public `length` field | `word.length()` |
+| `letters.length()` | Array uses the `length` field | `letters.length` |
+| `word.charAt(0) = 'K';` | Cannot assign to a method result; String is immutable | Create a new String or edit an array then convert back |
+| `a.equals(b)` with two different `char[]` | Arrays do not compare element-by-element | `Arrays.equals(a, b)` |
+| `str1 == str2` to compare content | Reference comparison | `str1.equals(str2)` when non-null |
+| An emoji has `length() == 2` | `length` counts UTF-16 units | Use code point APIs as appropriate |
+| `chars.toString()` | Does not convert array to text as expected | `new String(chars)` |
+| `String s = null; s.length()` | Calling a method on null | Check for null before accessing |
 
-### Lỗi vượt chỉ số
+### Index out-of-bounds errors
 
-Cả hai cách truy cập đều cần chỉ số không âm và **nhỏ hơn độ dài**:
+Both access forms require a non-negative index **less than the length**:
 
 ~~~java
 String text = "ABC";
 char[] array = {'A', 'B', 'C'};
 
-// text.charAt(3); // StringIndexOutOfBoundsException nếu chạy
-// char c = array[3]; // ArrayIndexOutOfBoundsException nếu chạy
+// text.charAt(3); // StringIndexOutOfBoundsException if executed
+// char c = array[3]; // ArrayIndexOutOfBoundsException if executed
 ~~~
 
-Với đoạn code trên, chỉ số hợp lệ là 0, 1, 2. Java **không** tự trả `'\0'` khi đọc vượt cuối.
+With the code above, valid indices are 0, 1, 2. Java does **not** automatically return `'\0'` when reading past the end.
 
-## 11. Chọn biểu diễn phù hợp với công việc
+## 11. Choosing the right representation for the job
 
-| Nhiệm vụ | Nên cân nhắc |
+| Task | What to consider |
 |---|---|
-| Lưu nhãn, tên, thông báo, đoạn văn bản thông thường | `String` |
-| So sánh/chuyển đổi/chia đoạn văn bản bằng các API chuẩn | `String` |
-| Xử lý một code unit UTF-16 đơn lẻ | `char` |
-| Cần buffer có thể sửa từng code unit tại chỉ số | `char[]` |
-| Xây dựng chuỗi bằng nhiều lần thêm/nối/sửa | `StringBuilder` thường tiện hơn thao tác mảng |
-| Duyệt ký tự Unicode ngoài BMP đúng code point | `String.codePoints()` và API `Character` |
-| Xử lý dữ liệu bí mật cần chủ động xóa buffer sau dùng | Có thể dùng `char[]` cùng quy trình hạn chế bản sao; không phải bảo đảm tuyệt đối |
+| Storing labels, names, messages, ordinary text | `String` |
+| Comparing/transforming/splitting text with standard APIs | `String` |
+| Handling a single UTF-16 code unit | `char` |
+| Needing a buffer to modify individual code units by index | `char[]` |
+| Building a string through many appends/concatenations/edits | `StringBuilder` is usually more convenient than array manipulation |
+| Iterating Unicode characters outside the BMP by true code point | `String.codePoints()` and `Character` APIs |
+| Handling confidential data needing active buffer clearing after use | `char[]` may be used with a copy-limiting process; not an absolute guarantee |
 
-Một lựa chọn tốt không chỉ dựa vào kích thước bộ nhớ: hãy cân nhắc **tính bất biến**, API mà thư viện yêu cầu, khả năng sửa dữ liệu và đúng đơn vị Unicode mà nghiệp vụ quan tâm.
+A good choice does not depend only on memory size: consider **immutability**, the APIs required by libraries, mutability needs, and the exact Unicode unit your business logic cares about.
 
-### Về `StringBuilder` khi cần sửa nhiều lần
+### About `StringBuilder` when many edits are needed
 
 ~~~java
 StringBuilder builder = new StringBuilder();
@@ -444,11 +444,11 @@ String result = builder.toString();
 System.out.println(result); // Kava
 ~~~
 
-`StringBuilder` là đối tượng mutable chuyên hỗ trợ xây dựng và chỉnh sửa chuỗi hiệu quả; **nó không phải kiểu `String` và cũng không phải `char[]`**. Sau khi gọi `toString()`, giá trị chuỗi trả về có tính bất biến như các `String` khác.
+`StringBuilder` is a mutable object specialized for building and editing strings efficiently; **it is neither a `String` type nor a `char[]`**. After calling `toString()`, the returned string value is immutable just like any other `String`.
 
-## 12. Bài tập kèm đáp án
+## 12. Exercises with answers
 
-### Bài A — phân loại kiểu
+### Exercise A — classify the types
 
 ~~~java
 char a = 'X';
@@ -456,9 +456,9 @@ String b = "X";
 char[] c = {'X'};
 ~~~
 
-**Đáp án:** `a` là primitive char; `b` là String object; `c` là mảng object một phần tử char. Dù cùng thể hiện chữ X, chúng không phải cùng kiểu.
+**Answer:** `a` is a primitive char; `b` is a String object; `c` is a one-element char array object. Although all represent the letter X, they are not the same type.
 
-### Bài B — chuỗi có đổi theo mảng không?
+### Exercise B — does the string change with the array?
 
 ~~~java
 char[] data = {'a', 'b'};
@@ -468,16 +468,16 @@ System.out.println(s);
 System.out.println(new String(data));
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 ab
 zb
 ~~~
 
-`new String(data)` lấy bản sao nội dung tại thời điểm tạo.
+`new String(data)` takes a copy of the content at the time of creation.
 
-### Bài C — khác biệt `length()` và `length`
+### Exercise C — difference between `length()` and `length`
 
 ~~~java
 String word = "cat";
@@ -486,9 +486,9 @@ System.out.println(word.length());
 System.out.println(data.length);
 ~~~
 
-**Đáp án:** lần lượt `3` và `3`. Cú pháp khác nhau vì String dùng method, array dùng field.
+**Answer:** `3` and `3` respectively. The syntax differs because String uses a method while array uses a field.
 
-### Bài D — so sánh hai mảng
+### Exercise D — comparing two arrays
 
 ~~~java
 char[] first = {'o', 'k'};
@@ -497,14 +497,14 @@ System.out.println(first == second);
 System.out.println(java.util.Arrays.equals(first, second));
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 false
 true
 ~~~
 
-### Bài E — một code point ngoài BMP chiếm bao nhiêu char?
+### Exercise E — how many chars does a supplementary code point occupy?
 
 ~~~java
 String s = new String(Character.toChars(0x1F600));
@@ -512,26 +512,26 @@ System.out.println(s.length());
 System.out.println(s.codePointCount(0, s.length()));
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 2
 1
 ~~~
 
-Java String được lập chỉ số theo UTF-16 code units. Một code point ngoài BMP thường cần surrogate pair gồm hai `char`.
+Java String is indexed by UTF-16 code units. A code point outside the BMP typically requires a surrogate pair of two `char`s.
 
-## 13. Checklist trước khi áp dụng
+## 13. Pre-application checklist
 
-- [ ] Phân biệt `char` primitive, `String` immutable và `char[]` mutable.
-- [ ] Dùng nháy đơn cho `char`, nháy kép cho `String`.
-- [ ] Nhớ `String.length()` và `char[].length` khác cú pháp.
-- [ ] Dùng `charAt(i)` cho String, `[i]` cho mảng.
-- [ ] Biết `new String(chars)` và `toCharArray()` tạo dữ liệu không bị sửa theo bên còn lại.
-- [ ] Dùng `String.equals` cho chuỗi và `Arrays.equals` cho mảng.
-- [ ] Hiểu `char` là UTF-16 code unit, không phải mọi Unicode code point.
-- [ ] Phân biệt phép cộng số `'A' + 'B'` với nối chuỗi `"A" + 'B'`.
-- [ ] Kiểm tra null và chỉ số trước các phép truy cập.
-- [ ] Biên dịch và chạy `CharStringArrayDemo.java` trên JDK 17+ rồi đối chiếu output.
+- [ ] Distinguish primitive `char`, immutable `String`, and mutable `char[]`.
+- [ ] Use single quotes for `char` and double quotes for `String`.
+- [ ] Remember that `String.length()` and `char[].length` have different syntax.
+- [ ] Use `charAt(i)` for String and `[i]` for arrays.
+- [ ] Know that `new String(chars)` and `toCharArray()` create data unaffected by edits to the other side.
+- [ ] Use `String.equals` for strings and `Arrays.equals` for arrays.
+- [ ] Understand `char` is a UTF-16 code unit, not every Unicode code point.
+- [ ] Distinguish numeric addition `'A' + 'B'` from string concatenation `"A" + 'B'`.
+- [ ] Check for null and valid indices before accessing elements.
+- [ ] Compile and run `CharStringArrayDemo.java` on JDK 17+ and compare the output.
 
-**Kết luận:** `char` giữ một đơn vị mã UTF-16; `String` giữ dãy ký tự **bất biến**; `char[]` giữ dãy `char` **có thể sửa tại từng chỉ số**. Lựa chọn đúng kiểu và hiểu rõ quy tắc copy/chuyển đổi giúp tránh lỗi vô tình thay dữ liệu, so sánh sai và xử lý Unicode không chính xác.
+**Conclusion:** `char` holds one UTF-16 code unit; `String` holds an **immutable** character sequence; `char[]` holds a sequence of `char`s **modifiable at each index**. Choosing the right type and understanding copy/conversion rules helps avoid accidental data mutation, wrong comparisons, and inaccurate Unicode handling.

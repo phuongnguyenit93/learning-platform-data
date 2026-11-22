@@ -1,11 +1,11 @@
-# Nối chuỗi bằng `+` và chuyển giá trị thành văn bản trong Java 17+
+# String Concatenation with `+` and Converting Values to Text in Java 17+
 
-## 1. Mục tiêu và quy tắc cơ bản
+## 1. Goal and basic rule
 
-Trong Java, toán tử `+` có **hai vai trò khác nhau**:
+In Java, the `+` operator has **two different roles**:
 
-- **Cộng số** khi các toán hạng là kiểu số và không có ngữ cảnh nối chuỗi.
-- **Nối chuỗi** (*string concatenation*) khi **ít nhất một toán hạng của phép `+` đang xét là `String`**. Toán hạng còn lại được chuyển thành dạng văn bản rồi ghép vào chuỗi.
+- **Numeric addition** when the operands are numeric types and there is no string concatenation context.
+- **String concatenation** when **at least one operand of the `+` operation being evaluated is a `String`**. The other operand is converted into text form and appended to the string.
 
 ~~~java
 int quantity = 3;
@@ -16,19 +16,19 @@ System.out.println("quantity=" + quantity);  // quantity=3
 System.out.println("total=" + quantity * price); // total=120
 ~~~
 
-Nối chuỗi trả về một **`String`**, không thay đổi kiểu dữ liệu của biến gốc. Ví dụ `quantity` vẫn là `int` sau khi tham gia biểu thức `"quantity=" + quantity`.
+String concatenation returns a **`String`** without changing the data type of the original variables. For example, `quantity` remains an `int` after participating in the expression `"quantity=" + quantity`.
 
-**Lưu ý:** quy tắc `+` áp dụng khi biểu thức đã được phân tích theo **thứ tự toán tử và dấu ngoặc**; không phải cứ trong cùng một dòng có `String` thì toàn bộ các phép `+` đều trở thành nối chuỗi.
+**Note:** the `+` rule applies once the expression has been parsed according to **operator precedence and parentheses**; having a `String` on the same line does not automatically turn every `+` into string concatenation.
 
-## 2. Khi một biểu thức có cả số và chuỗi
+## 2. When an expression mixes numbers and strings
 
-`"sum=" + a + b` nối lần lượt hai giá trị số vào nhãn, còn `"sum=" + (a + b)` cộng hai số trước rồi mới chuyển tổng thành văn bản. Nếu có nhiều bước tính toán, tách thành `int sum = a + b;` giúp cả phép tính lẫn thông báo dễ kiểm tra hơn.
+`"sum=" + a + b` concatenates the two numeric values onto the label one by one, whereas `"sum=" + (a + b)` adds the two numbers first and then converts the sum to text. If there are multiple calculation steps, extracting `int sum = a + b;` makes both the math and the message easier to verify.
 
-Quy tắc có `String` áp dụng cho **từng phép `+` sau khi nhóm biểu thức**, không tự biến mọi phép cộng số trên cùng một dòng thành phép nối. Bài tiếp theo phân tích sâu tính kết hợp trái, độ ưu tiên, thứ tự đánh giá có tác dụng phụ và sự khác biệt giữa `+=` với phép gán thông thường.
+The rule of having a `String` applies to **each `+` after expression grouping**, not by turning every numeric addition on the same line into concatenation. The next lesson analyzes left-associativity, precedence, evaluation order with side effects, and the difference between `+=` and ordinary assignment in depth.
 
-## 3. Chuyển primitive thành văn bản
+## 3. Converting primitives to text
 
-Khi nối với `String`, Java thực hiện **string conversion** để biểu diễn giá trị còn lại:
+When concatenated with a `String`, Java performs **string conversion** to represent the other value:
 
 ~~~java
 int count = 7;
@@ -44,7 +44,7 @@ System.out.println("enabled=" + enabled); // enabled=true
 System.out.println("grade=" + grade);   // grade=A
 ~~~
 
-Với kiểu nguyên thủy, các method `String.valueOf(...)` tương ứng là cách chuyển **tường minh** và dễ dùng lại:
+For primitive types, the corresponding `String.valueOf(...)` methods are an **explicit** and reusable way to convert:
 
 ~~~java
 String countText = String.valueOf(7);
@@ -56,23 +56,23 @@ System.out.println(flagText);  // false
 System.out.println(gradeText); // A
 ~~~
 
-**Phân biệt giá trị và định dạng:** `String.valueOf(1.5)` cho `"1.5"`, không tự thêm đơn vị, phần trăm hay làm tròn thành hai chữ số sau dấu phẩy. Cách hiển thị theo quy tắc nghiệp vụ là một công việc riêng.
+**Distinguish value from formatting:** `String.valueOf(1.5)` produces `"1.5"`, without automatically adding units, percentages, or rounding to two decimal places. Displaying values according to business rules is a separate concern.
 
-Đối với `char`, phép `+` **không phải lúc nào cũng nối ký tự**:
+For `char`, `+` **does not always concatenate characters**:
 
 ~~~java
 System.out.println('A' + 'B');         // 131
 System.out.println("chars=" + 'A' + 'B'); // chars=AB
 ~~~
 
-Biểu thức `'A' + 'B'` là phép **cộng số** trên hai giá trị `char` (được nâng thành `int`): 65 + 66 = 131. Ở dòng sau, mỗi `char` tham gia phép `+` có toán hạng `String` nên được nối thành văn bản.
+The expression `'A' + 'B'` is **numeric addition** on two `char` values (widened to `int`): 65 + 66 = 131. On the next line, each `char` participates in a `+` that has a `String` operand, so they are concatenated as text.
 
-## 4. `null`, đối tượng và phương thức `toString()`
+## 4. `null`, objects, and the `toString()` method
 
-Khi một giá trị tham chiếu được nối vào chuỗi:
+When a reference value is concatenated into a string:
 
-- Nếu tham chiếu là `null`, văn bản nhận được là `"null"`.
-- Nếu không phải `null`, Java chuyển giá trị thành dạng chuỗi phù hợp với ngữ nghĩa string conversion, thường dựa vào `toString()` của object.
+- If the reference is `null`, the resulting text is `"null"`.
+- If it is not `null`, Java converts the value to string form according to string conversion semantics, typically relying on the object's `toString()`.
 
 ~~~java
 String missing = null;
@@ -82,7 +82,7 @@ System.out.println("missing=" + missing); // missing=null
 System.out.println("item=" + item);       // item=null
 ~~~
 
-Với kiểu đối tượng do bạn tự định nghĩa, **ghi đè `toString()`** nếu muốn một mô tả rõ nghĩa:
+For types you define yourself, **override `toString()`** if you want a meaningful description:
 
 ~~~java
 final class Product {
@@ -98,36 +98,36 @@ final class Product {
     }
 }
 
-// Trong method:
+// Inside a method:
 Product product = new Product(7);
 System.out.println("product=" + product); // product=Product#7
 ~~~
 
-Không nên dựa vào `Object.toString()` mặc định để tạo văn bản hướng tới người dùng: kết quả thường có tên class và mã hash dạng hex, không phải nội dung nghiệp vụ ổn định.
+You should not rely on the default `Object.toString()` to produce user-facing text: the result usually contains the class name and a hexadecimal hash code, not stable business content.
 
-**`null` không trở thành chuỗi bằng chính nó.** `String missing = null;` là một tham chiếu null; chỉ khi nối/convert, chuỗi `"null"` mới xuất hiện. Vì vậy cần quyết định theo yêu cầu liệu nên hiển thị `"null"`, chuỗi rỗng, dấu gạch ngang hay thông báo “chưa có dữ liệu”.
+**`null` does not become a string on its own.** `String missing = null;` is a null reference; only upon concatenation/conversion does the string `"null"` appear. Therefore, decide according to requirements whether to display `"null"`, an empty string, a dash, or a “no data” message.
 
-Một ví dụ chuyển tường minh an toàn:
+A safe explicit conversion example:
 
 ~~~java
 Object value = null;
 System.out.println(String.valueOf(value)); // null
 ~~~
 
-Ở đây chọn overload `String.valueOf(Object)`. Không nên viết `String.valueOf(null)` thiếu kiểu trong code ví dụ: overload `String.valueOf(char[])` là một chi tiết dễ gây nhầm và có thể dẫn tới ngoại lệ khi truyền mảng null.
+Here the `String.valueOf(Object)` overload is selected. Do not write an untyped `String.valueOf(null)` in example code: the `String.valueOf(char[])` overload is a subtle detail that can cause confusion and throw an exception when passed a null array.
 
-## 5. Nối mảng: cần hiển thị nội dung, không phải tham chiếu
+## 5. Concatenating arrays: display elements, not references
 
-Một lỗi thường gặp là ghép mảng trực tiếp vào `String` rồi mong nhìn thấy các phần tử:
+A common mistake is concatenating an array directly into a `String` and expecting to see its elements:
 
 ~~~java
 int[] numbers = {2, 4, 6};
-System.out.println("numbers=" + numbers); // Không phải "numbers=[2, 4, 6]"
+System.out.println("numbers=" + numbers); // Not "numbers=[2, 4, 6]"
 ~~~
 
-Mảng là object; biểu diễn `toString()` mặc định của mảng thường có dạng ký hiệu kiểu mảng và hash, ví dụ `[I@...`. Phần hash phụ thuộc lần chạy; **không** đưa nó vào expected output cố định.
+An array is an object; the default `toString()` representation of an array usually looks like an array type descriptor and a hash, such as `[I@...`. The hash part depends on the run; **do not** include it in fixed expected output.
 
-Để hiển thị nội dung mảng một chiều, dùng `java.util.Arrays.toString`:
+To display the contents of a one-dimensional array, use `java.util.Arrays.toString`:
 
 ~~~java
 int[] numbers = {2, 4, 6};
@@ -135,9 +135,9 @@ System.out.println("numbers=" + java.util.Arrays.toString(numbers));
 // numbers=[2, 4, 6]
 ~~~
 
-Với mảng nhiều chiều, có thể cần `Arrays.deepToString` khi phần tử là các mảng object tương ứng.
+For multidimensional arrays, `Arrays.deepToString` may be needed when elements are nested object arrays.
 
-**Trường hợp đặc biệt `char[]`:**
+**Special case `char[]`:**
 
 ~~~java
 char[] letters = {'J', 'a', 'v', 'a'};
@@ -145,13 +145,13 @@ System.out.println(String.valueOf(letters)); // Java
 System.out.println(java.util.Arrays.toString(letters)); // [J, a, v, a]
 ~~~
 
-`String.valueOf(char[])` có overload riêng tạo văn bản từ **nội dung các phần tử**. Trong khi đó, phép `"text=" + letters` là string concatenation trên mảng tham chiếu và **không nên được dùng** nếu mục tiêu là chuyển cả mảng thành văn bản `Java`.
+`String.valueOf(char[])` has a dedicated overload that creates text from **the contents of the elements**. Meanwhile, `"text=" + letters` is string concatenation on an array reference and **should not be used** if the goal is converting the entire array into the text `Java`.
 
-Đáng chú ý, `System.out.println(letters)` cũng có overload nhận `char[]` nên có thể in `Java`; điều này **không** có nghĩa mọi cách nối với mảng đều có hành vi giống nhau. Hãy gọi API chuyển đổi có chủ đích.
+Notably, `System.out.println(letters)` also has an overload taking `char[]` so it can print `Java`; this does **not** mean every concatenation with an array behaves the same way. Call the conversion API intentionally.
 
-## 6. Nối chuỗi không thay đổi đối tượng String cũ
+## 6. Concatenation does not modify old String objects
 
-`String` là immutable. Biểu thức `message + "!"` tạo giá trị văn bản mới; `message += "!"` còn **gán lại biến** `message` để giữ kết quả đó:
+`String` is immutable. The expression `message + "!"` produces a new text value; `message += "!"` also **reassigns the `message` variable** to hold that result:
 
 ~~~java
 String original = "Hi";
@@ -160,12 +160,12 @@ System.out.println(original); // Hi
 System.out.println(updated);  // Hi!
 ~~~
 
-Với `final String name = "Lan";`, `name += "!";` là lỗi biên dịch vì cố gán lại biến `final`. Compiler/JVM có thể tối ưu ghép trong một biểu thức, nên không quy định rằng mỗi dấu `+` bắt buộc tạo một số đối tượng cụ thể. Bài về tính bất biến phân biệt chi tiết nội dung đối tượng với phép gán lại tham chiếu.
+With `final String name = "Lan";`, `name += "!";` is a compile error because it attempts to reassign a `final` variable. The compiler/JVM may optimize concatenation within an expression, so Java does not prescribe that each `+` must allocate a specific number of objects. The lesson on immutability distinguishes object content from reference reassignment in detail.
 
 
-## 7. Khi cần xây văn bản qua nhiều bước
+## 7. When building text across multiple steps
 
-Một phép ghép ngắn bằng `+` dễ đọc. Khi nội dung tăng qua nhiều vòng lặp hoặc điều kiện, có thể dùng `StringBuilder` rồi kết thúc bằng `toString()`:
+A short concatenation with `+` is easy to read. When content grows across loops or branches, you can use `StringBuilder` and finish with `toString()`:
 
 ~~~java
 StringBuilder builder = new StringBuilder();
@@ -178,12 +178,12 @@ for (int i = 1; i <= 3; i++) {
 System.out.println(builder.toString()); // item1|item2|item3
 ~~~
 
-`append` thay đổi builder mà không phải gán lại một `String` sau mỗi lần nối. Builder thích hợp khi cần xây văn bản nhiều bước, nhưng không phải lựa chọn bắt buộc cho mọi biểu thức `+`. Phần API sửa chuỗi, so sánh chi phí và `String.join` là trọng tâm riêng của bài `StringBuilder`.
+`append` mutates the builder without reassigning a `String` on every step. A builder is well-suited when building text across many steps, though it is not mandatory for every `+` expression. The editing API, cost comparison, and `String.join` are the dedicated focus of the `StringBuilder` lesson.
 
 
-## 8. Định dạng có quy tắc: String.format và Locale
+## 8. Rule-based formatting: String.format and Locale
 
-`String.valueOf` và `+` làm nhiệm vụ chuyển/ghép giá trị, **không phải công cụ điều khiển chính xác định dạng báo cáo**. Nếu cần số chữ số thập phân, căn lề hoặc quy tắc hiển thị, có thể dùng `String.format`:
+`String.valueOf` and `+` handle converting/joining values, **not precision control over report formatting**. If you need a specific number of decimal places, alignment, or display rules, you can use `String.format`:
 
 ~~~java
 String twoDecimals = String.format(
@@ -191,21 +191,21 @@ String twoDecimals = String.format(
 System.out.println(twoDecimals); // 12.50
 ~~~
 
-Ở đây `%.2f` yêu cầu hiển thị **hai chữ số sau dấu thập phân**. `Locale.ROOT` giúp chọn quy tắc định dạng ổn định cho ví dụ; nếu là giao diện người dùng, hãy chọn `Locale` theo đối tượng sử dụng thay vì mặc định bỏ qua bản địa hóa.
+Here `%.2f` requests displaying **two digits after the decimal point**. `Locale.ROOT` selects a stable formatting rule for the example; for a user interface, choose a `Locale` appropriate for the target audience rather than ignoring localization by default.
 
-| Cách viết | Ví dụ | Ý nghĩa |
+| Syntax | Example | Meaning |
 |---|---|---|
-| `"count=" + count` | `count=7` | Nối chuỗi đơn giản |
-| `String.valueOf(count)` | `7` | Chuyển giá trị thành chuỗi |
-| `String.format(Locale.ROOT, "%.2f", 12.5)` | `12.50` | Chỉ định số chữ số hiển thị |
-| `Arrays.toString(numbers)` | `[2, 4, 6]` | Hiển thị phần tử mảng một chiều |
-| `builder.append(...).toString()` | Văn bản được xây từng bước | Ghép nhiều lần |
+| `"count=" + count` | `count=7` | Simple string concatenation |
+| `String.valueOf(count)` | `7` | Convert value to string |
+| `String.format(Locale.ROOT, "%.2f", 12.5)` | `12.50` | Specify number of displayed decimal digits |
+| `Arrays.toString(numbers)` | `[2, 4, 6]` | Display elements of a 1D array |
+| `builder.append(...).toString()` | Text built step by step | Multiple appends |
 
-Định dạng hiển thị **không biến số thực dấu phẩy động thành số thập phân chính xác tuyệt đối**. Ví dụ `0.1 + 0.2` vẫn có sai số nhị phân dù bạn định dạng kết quả thành `0.30`. Nếu cần tính tiền tệ chính xác theo decimal, nên xem xét `BigDecimal` hoặc kiểu số nguyên đại diện đơn vị nhỏ nhất, kèm quy tắc làm tròn.
+Display formatting **does not turn binary floating-point numbers into exact decimal numbers**. For example, `0.1 + 0.2` still has binary representation error even if you format the result as `0.30`. If exact decimal currency calculations are required, consider `BigDecimal` or an integer type representing the smallest unit, along with rounding rules.
 
-## 9. Chuyển dữ liệu thành văn bản khác với parse văn bản
+## 9. Converting data to text vs parsing text
 
-Hai chiều chuyển đổi không giống nhau:
+The two conversion directions are not the same:
 
 ~~~java
 int number = 42;
@@ -216,9 +216,9 @@ System.out.println(text);              // 42
 System.out.println(restored + 1);      // 43
 ~~~
 
-`Integer.parseInt("42")` có thể chuyển dữ liệu hợp lệ thành số, nhưng `Integer.parseInt("forty-two")` ném `NumberFormatException`. Khi đọc input từ người dùng, cần validation/exception handling riêng.
+`Integer.parseInt("42")` can convert valid data into a number, whereas `Integer.parseInt("forty-two")` throws `NumberFormatException`. When reading user input, separate validation/exception handling is required.
 
-Điều này quan trọng khi biểu thức `+` bị hiểu nhầm:
+This matters when `+` expressions are misunderstood:
 
 ~~~java
 String x = "10";
@@ -228,11 +228,11 @@ System.out.println(x + y); // 1020
 System.out.println(Integer.parseInt(x) + Integer.parseInt(y)); // 30
 ~~~
 
-Nối hai chuỗi chứa chữ số không làm chúng tự trở thành số. Java không có quy tắc “tự parse số” chỉ vì văn bản trông giống một con số.
+Concatenating two strings containing digits does not automatically turn them into numbers. Java has no rule to “auto-parse numbers” just because text looks like a number.
 
-## 10. Ví dụ Java 17 đầy đủ, chạy độc lập
+## 10. Complete, standalone Java 17 example
 
-Lưu nội dung dưới đây vào tệp **`StringConcatDemo.java`**:
+Save the content below into the file **`StringConcatDemo.java`**:
 
 ~~~java
 import java.util.Arrays;
@@ -301,7 +301,7 @@ public final class StringConcatDemo {
 }
 ~~~
 
-Dùng **JDK 17 trở lên** và mở terminal trong thư mục có tệp.
+Use **JDK 17 or later** and open a terminal in the directory containing the file.
 
 **Bash (Linux/macOS):**
 
@@ -339,30 +339,30 @@ format=12.50
 floating sum=0.30000000000000004
 ~~~
 
-Chương trình chỉ dùng JDK; kết quả trên là đầu ra dự kiến có thể đối chiếu khi chạy trên Java 17+. Nó không phụ thuộc hash object ngẫu nhiên, đầu vào bàn phím hoặc locale mặc định của hệ thống.
+The program uses only the JDK; the output above is the expected output you can compare against when running on Java 17+. It does not depend on random object hashes, keyboard input, or the system default locale.
 
-## 11. Lỗi thường gặp và cách sửa
+## 11. Common mistakes and fixes
 
-| Đoạn mã / hiện tượng | Vấn đề | Cách đúng |
+| Code / symptom | Problem | Correct approach |
 |---|---|---|
-| `"sum=" + a + b` cho `sum=340` | `+` nối từ trái sang phải sau `String` | `"sum=" + (a + b)` |
-| `"value=" + 1 + 2` cho `value=12` | `1` và `2` đã được ghép vào chuỗi | `"value=" + (1 + 2)` nếu muốn phép cộng |
-| `'A' + 'B'` cho 131 | Cộng code unit `char`, không nối văn bản | `"" + 'A' + 'B'` hoặc dùng String |
-| `"items=" + intArray` | Biểu diễn tham chiếu mảng, không phải phần tử | `Arrays.toString(intArray)` |
-| `"word=" + charArray` | Nối mảng tham chiếu không phải overload `valueOf(char[])` | `String.valueOf(charArray)` |
-| `String.valueOf(null)` không như mong đợi | Overload với `char[]` dễ gây bất ngờ | Chỉ rõ `(Object) null` nếu muốn `"null"` |
-| `name += "!"` với biến `final` | `+=` gán lại biến | Tạo biến kết quả khác |
-| Nối trong vòng lặp hàng nghìn lần | Nhiều kết quả trung gian, khó kiểm soát chi phí | `StringBuilder` |
-| `"10" + "20"` cho `1020` | Chuỗi không tự parse số | Parse input rồi cộng `int` |
-| Dùng `+` để bắt hiển thị đúng 2 chữ số thập phân | Nối chuỗi không kiểm soát định dạng | `String.format(Locale, "%.2f", value)` |
-| `String.valueOf(someObject)` không có thông tin hữu ích | Object không ghi đè `toString()` thích hợp | Định nghĩa văn bản rõ nghĩa bằng method/API |
-| `"value=" + nullable` hiển thị `null` cho người dùng | Cơ chế chuyển chuỗi khác mong đợi UI | Xử lý null thành placeholder theo nghiệp vụ |
+| `"sum=" + a + b` produces `sum=340` | `+` concatenates left-to-right after `String` | `"sum=" + (a + b)` |
+| `"value=" + 1 + 2` produces `value=12` | `1` and `2` were appended to the string | `"value=" + (1 + 2)` if addition is intended |
+| `'A' + 'B'` produces 131 | Adds `char` code units, does not join text | `"" + 'A' + 'B'` or use String |
+| `"items=" + intArray` | Array reference representation, not elements | `Arrays.toString(intArray)` |
+| `"word=" + charArray` | Concatenating array reference is not the `valueOf(char[])` overload | `String.valueOf(charArray)` |
+| `String.valueOf(null)` behaves unexpectedly | `char[]` overload can surprise callers | Specify `(Object) null` if `"null"` is wanted |
+| `name += "!"` on a `final` variable | `+=` reassigns the variable | Create another result variable |
+| Concatenating inside a loop thousands of times | Many intermediate results, hard-to-control cost | `StringBuilder` |
+| `"10" + "20"` produces `1020` | Strings do not auto-parse into numbers | Parse input then add `int`s |
+| Using `+` to force 2 decimal digits | String concatenation does not control formatting | `String.format(Locale, "%.2f", value)` |
+| `String.valueOf(someObject)` lacks useful info | Object does not override `toString()` properly | Define meaningful text via method/API |
+| `"value=" + nullable` displays `null` to users | String conversion differs from UI expectations | Handle null into a business placeholder |
 
-**Đừng che lỗi dữ liệu bằng biểu diễn văn bản:** nếu `int` đã tràn trước khi nối, `"total=" + overflowed` chỉ in ra **kết quả đã sai**. Hãy kiểm tra miền/kiểu toán hạng trước khi tính và định dạng sau cùng.
+**Do not mask data errors with text representation:** if an `int` has already overflowed before concatenation, `"total=" + overflowed` simply prints the **already wrong result**. Check operand ranges/types before computing and format last.
 
-## 12. Bài tập kèm đáp án
+## 12. Exercises with answers
 
-### Bài A — ưu tiên và kết hợp của `+`
+### Exercise A — precedence and associativity of `+`
 
 ~~~java
 System.out.println("x=" + 10 + 20);
@@ -370,7 +370,7 @@ System.out.println("x=" + (10 + 20));
 System.out.println(10 + 20 + " items");
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 x=1020
@@ -378,32 +378,32 @@ x=30
 30 items
 ~~~
 
-### Bài B — `char` cộng số hay nối chữ?
+### Exercise B — `char` numeric addition or character concatenation?
 
 ~~~java
 System.out.println('A' + 1);
 System.out.println("A" + 1);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 66
 A1
 ~~~
 
-Ký tự `'A'` là `char` có giá trị số 65 nên cộng `1` ra 66; `"A"` là `String` nên nối số thành `A1`.
+`'A'` is a `char` with numeric value 65 so adding `1` gives 66; `"A"` is a `String` so it concatenates the number to `A1`.
 
-### Bài C — in danh sách số nguyên
+### Exercise C — printing an integer list
 
 ~~~java
 int[] scores = {7, 8};
 System.out.println("scores=" + java.util.Arrays.toString(scores));
 ~~~
 
-**Đáp án:** `scores=[7, 8]`. Dùng `Arrays.toString` chứ không nối trực tiếp mảng.
+**Answer:** `scores=[7, 8]`. Use `Arrays.toString` rather than concatenating the array directly.
 
-### Bài D — `null` và hiển thị
+### Exercise D — `null` and display
 
 ~~~java
 Object value = null;
@@ -411,22 +411,22 @@ System.out.println("value=" + value);
 System.out.println(String.valueOf(value));
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 value=null
 null
 ~~~
 
-Nếu ứng dụng không muốn chữ `null`, hãy xử lý trường hợp thiếu dữ liệu trước khi hiển thị, thay vì trông chờ phép `+` tự chọn placeholder.
+If the application does not want the word `null`, handle missing data before displaying instead of expecting `+` to choose a placeholder automatically.
 
-### Bài E — nhiều lần ghép
+### Exercise E — multiple concatenations
 
-Hãy tạo chuỗi `A-B-C` từ các giá trị `"A"`, `"B"`, `"C"`.
+Create the string `A-B-C` from the values `"A"`, `"B"`, `"C"`.
 
-**Đáp án đơn giản:** `String joined = "A" + "-" + "B" + "-" + "C";`.
+**Simple answer:** `String joined = "A" + "-" + "B" + "-" + "C";`.
 
-**Đáp án khi cần lặp:**
+**Answer when looping is needed:**
 
 ~~~java
 String[] parts = {"A", "B", "C"};
@@ -440,19 +440,19 @@ for (String part : parts) {
 System.out.println(sb); // A-B-C
 ~~~
 
-## 13. Checklist tự đánh giá
+## 13. Self-assessment checklist
 
-- [ ] Biết khi nào `+` là cộng số, khi nào là nối `String`.
-- [ ] Hiểu `+` kết hợp trái và dùng ngoặc để cộng trước khi nối.
-- [ ] Biết cách chuyển `int`, `double`, `boolean`, `char` thành văn bản.
-- [ ] Phân biệt nối chuỗi với `String.valueOf(...)`.
-- [ ] Biết `null` thành văn bản `"null"` nhưng không tự là `String`.
-- [ ] Biết object nên có `toString()` phù hợp khi cần mô tả.
-- [ ] Dùng `Arrays.toString` cho mảng và `String.valueOf(char[])` cho mảng ký tự.
-- [ ] Hiểu `String` bất biến và `+=` là gán lại biến.
-- [ ] Chọn `StringBuilder` cho nhiều lần ghép, không tối ưu sớm mọi phép `+`.
-- [ ] Dùng `String.format` với `Locale` phù hợp khi cần định dạng rõ.
-- [ ] Phân biệt chuyển số sang chuỗi với parse chuỗi thành số.
-- [ ] Biên dịch/chạy `StringConcatDemo.java` bằng `javac`/`java`, đối chiếu toàn bộ đầu ra.
+- [ ] Know when `+` is numeric addition and when it is `String` concatenation.
+- [ ] Understand `+` is left-associative and use parentheses to add before concatenating.
+- [ ] Know how to convert `int`, `double`, `boolean`, `char` to text.
+- [ ] Distinguish string concatenation from `String.valueOf(...)`.
+- [ ] Know `null` becomes text `"null"` but is not itself a `String`.
+- [ ] Know objects should have an appropriate `toString()` when a description is needed.
+- [ ] Use `Arrays.toString` for arrays and `String.valueOf(char[])` for character arrays.
+- [ ] Understand `String` is immutable and `+=` reassigns the variable.
+- [ ] Choose `StringBuilder` for repeated concatenation without prematurely optimizing every `+`.
+- [ ] Use `String.format` with an appropriate `Locale` when explicit formatting is required.
+- [ ] Distinguish converting numbers to strings from parsing strings into numbers.
+- [ ] Compile and run `StringConcatDemo.java` with `javac`/`java`, comparing all output.
 
-**Kết luận:** Toán tử `+` rất tiện để ghép giá trị thành `String`, nhưng phải đọc đúng **thứ tự tính toán** để không nhầm cộng số với nối văn bản. Dùng `String.valueOf`, `Arrays.toString`, `toString()`, `StringBuilder` và `String.format` khi chúng làm mục đích chuyển đổi, xây dựng hoặc định dạng trở nên rõ ràng và có thể kiểm chứng.
+**Conclusion:** The `+` operator is convenient for combining values into a `String`, but you must read the **evaluation order** properly so you do not confuse numeric addition with text concatenation. Use `String.valueOf`, `Arrays.toString`, `toString()`, `StringBuilder`, and `String.format` when they make the intent of conversion, building, or formatting clear and verifiable.

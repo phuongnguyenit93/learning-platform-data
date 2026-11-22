@@ -1,9 +1,9 @@
-# `break` và `continue` không nhãn — Java 17+
+# Unlabeled `break` and `continue` — Java 17+
 
-Hai lệnh `break;` và `continue;` giúp đổi luồng thực thi bên trong vòng lặp mà **không cần đặt nhãn (label)**.
+The two statements `break;` and `continue;` change the execution flow inside loops **without needing labels**.
 
-- **`break;`**: kết thúc **vòng lặp hoặc `switch` gần nhất** đang bao quanh lệnh.
-- **`continue;`**: bỏ phần còn lại của **lượt hiện tại của vòng lặp gần nhất**, chuyển sang bước chuẩn bị lượt tiếp theo. Nó **không** chuyển sang nhánh `case` kế tiếp của `switch`.
+- **`break;`**: terminates the **nearest enclosing loop or `switch`**.
+- **`continue;`**: skips the rest of the **current iteration of the nearest loop**, moving to the preparation step for the next iteration. It does **not** move to the next `case` branch of a `switch`.
 
 ~~~java
 for (int i = 0; i < 5; i++) {
@@ -11,28 +11,28 @@ for (int i = 0; i < 5; i++) {
     if (i % 2 == 0) continue;
     System.out.println(i);
 }
-// Chỉ in 1.
+// Prints only 1.
 ~~~
 
-Với `i = 0` và `i = 2`, `continue` bỏ lệnh in; với `i = 3`, `break` kết thúc hẳn vòng lặp.
+For `i = 0` and `i = 2`, `continue` skips the print statement; for `i = 3`, `break` terminates the entire loop.
 
-## 1. Khác nhau ở đâu?
+## 1. Where Do They Differ?
 
-| Tiêu chí | `break;` không nhãn | `continue;` không nhãn |
+| Criterion | Unlabeled `break;` | Unlabeled `continue;` |
 | --- | --- | --- |
-| Đích tác động | Vòng lặp hoặc `switch` gần nhất | **Vòng lặp** gần nhất |
-| Thân hiện tại | Dừng ngay | Bỏ các câu lệnh còn lại trong lượt hiện tại |
-| Sau lệnh | Đi đến câu lệnh phía sau cấu trúc bị thoát | Chuẩn bị lượt tiếp theo của vòng lặp |
-| Trong basic `for` | Không chạy phần cập nhật của vòng vừa thoát | **Có chạy phần cập nhật** rồi mới kiểm tra điều kiện |
-| Trong `while` | Thoát vòng | Quay lại kiểm tra điều kiện |
-| Trong `do-while` | Thoát vòng | Tới bước kiểm tra điều kiện ở cuối |
-| Trong `switch` | Thoát `switch` gần nhất | Chỉ hợp lệ nếu bên ngoài có vòng lặp thích hợp; chuyển sang lượt lặp |
+| Target | Nearest enclosing loop or `switch` | Nearest enclosing **loop** |
+| Current body | Stops immediately | Skips remaining statements in the current iteration |
+| After statement | Proceeds to the statement after the exited construct | Prepares the next iteration of the loop |
+| In basic `for` | Does not run the update part of the exited loop | **Runs the update part** and then checks the condition |
+| In `while` | Exits the loop | Returns to check the condition |
+| In `do-while` | Exits the loop | Goes to the condition check at the bottom |
+| In `switch` | Exits the nearest `switch` | Only valid if there is a suitable outer loop; advances to the next loop iteration |
 
-**Quan trọng:** `if` không phải đích của `break` hay `continue`. Khi viết `if (condition) break;`, lệnh `break` tác động đến vòng lặp/`switch` bao quanh, không chỉ kết thúc khối `if`.
+**Important:** `if` is not a target of `break` or `continue`. When writing `if (condition) break;`, the `break` statement affects the enclosing loop/`switch`, not merely ending the `if` block.
 
-## 2. Demo Java 17+ tự chứa
+## 2. Self-Contained Java 17+ Demo
 
-Tạo file UTF-8 **`UnlabeledBreakContinueDemo.java`**:
+Create a UTF-8 file **`UnlabeledBreakContinueDemo.java`**:
 
 ~~~java
 public class UnlabeledBreakContinueDemo {
@@ -66,7 +66,7 @@ public class UnlabeledBreakContinueDemo {
     static void continueWhile() {
         int n = 0;
         while (n < 4) {
-            n++;  // Tiến triển trước khi có thể continue.
+            n++;  // Advance before a possible continue.
             if (n % 2 == 0) {
                 System.out.println("skipEven=" + n);
                 continue;
@@ -111,10 +111,10 @@ public class UnlabeledBreakContinueDemo {
             switch (value) {
                 case 0:
                     System.out.println("caseZero");
-                    break; // Chỉ thoát switch.
+                    break; // Only exits switch.
                 case 1:
                     System.out.println("continueLoop");
-                    continue; // Chuyển sang lượt for tiếp theo.
+                    continue; // Moves to the next for iteration.
                 case 2:
                     System.out.println("caseTwo");
                     break;
@@ -148,7 +148,7 @@ public class UnlabeledBreakContinueDemo {
 }
 ~~~
 
-Dùng **JDK 17 trở lên**, mở PowerShell hoặc Bash tại thư mục chứa file:
+Using **JDK 17 or higher**, open PowerShell or Bash in the directory containing the file:
 
 ~~~bash
 java -version
@@ -157,7 +157,7 @@ javac -encoding UTF-8 UnlabeledBreakContinueDemo.java
 java UnlabeledBreakContinueDemo
 ~~~
 
-**Exact expected stdout** của riêng lệnh `java UnlabeledBreakContinueDemo`:
+**Exact expected stdout** of the `java UnlabeledBreakContinueDemo` command alone:
 
 ~~~text
 == break for ==
@@ -206,9 +206,9 @@ afterSwitch=3
 done
 ~~~
 
-`java -version` và `javac -version` cho thông tin khác nhau theo môi trường JDK và không nằm trong stdout cố định. Ví dụ không cần thư viện ngoài.
+`java -version` and `javac -version` display different details depending on the JDK environment and are not part of the fixed stdout. The example requires no external libraries.
 
-## 3. `break`: thoát hoàn toàn vòng lặp gần nhất
+## 3. `break`: Completely Exits the Nearest Loop
 
 ~~~java
 int[] numbers = {2, 4, -1, 8};
@@ -218,14 +218,14 @@ for (int n : numbers) {
     }
     System.out.println(n);
 }
-// In: 2, 4. Giá trị 8 không được xử lý.
+// Prints: 2, 4. Value 8 is not processed.
 ~~~
 
-Gặp `-1` thì `break` lập tức thoát vòng; vòng không được khởi động lượt tiếp theo. Nếu cần tìm phần tử đầu tiên phù hợp, thoát sớm bằng `break` thường tiết kiệm các bước thừa.
+Upon encountering `-1`, `break` immediately exits the loop; no subsequent iteration is started. When looking for the first matching element, exiting early with `break` often saves unnecessary steps.
 
-`break` không kết thúc phương thức đang chứa nó: Java tiếp tục chạy các câu lệnh **sau vòng lặp**. Muốn kết thúc hẳn phương thức, dùng `return` thích hợp.
+`break` does not terminate the containing method: Java continues running the statements **after the loop**. To terminate the method itself, use `return` appropriately.
 
-Trong các vòng **lồng nhau**, `break;` không nhãn chỉ thoát **vòng trong gần nhất**:
+In **nested** loops, an unlabeled `break;` exits only the **nearest inner loop**:
 
 ~~~java
 for (int row = 0; row < 2; row++) {
@@ -234,12 +234,12 @@ for (int row = 0; row < 2; row++) {
         System.out.println(row + ":" + col);
     }
 }
-// In 0:0 rồi 1:0.
+// Prints 0:0 then 1:0.
 ~~~
 
-Vòng ngoài vẫn chạy lượt tiếp theo. Nếu nghiệp vụ muốn thoát nhiều tầng, cần thiết kế lại luồng (ví dụ dùng phương thức hỗ trợ trả `boolean` hoặc `return`); trường hợp dùng `break` có nhãn là một chủ đề riêng, không phải hành vi của `break;` không nhãn.
+The outer loop still executes its next iteration. If the business logic requires exiting multiple levels, redesign the control flow (for example, using a helper method returning a `boolean` or `return`); labeled `break` is a separate topic, not the behavior of unlabeled `break;`.
 
-## 4. `continue`: bỏ phần còn lại của lượt hiện tại
+## 4. `continue`: Skips the Remainder of the Current Iteration
 
 ~~~java
 int[] values = {3, -1, 5};
@@ -249,24 +249,24 @@ for (int value : values) {
     }
     System.out.println(value);
 }
-// In 3 rồi 5.
+// Prints 3 then 5.
 ~~~
 
-Lệnh `continue` **không thoát vòng hoàn toàn**: nó chỉ bỏ các câu lệnh nằm sau nó trong thân *của lượt hiện tại*. Vòng sẽ tiếp tục nếu còn lượt và điều kiện cho phép.
+The `continue` statement **does not exit the loop completely**: it only skips the statements placed after it in the body *of the current iteration*. The loop continues if more iterations remain and the condition permits.
 
-**Điểm dễ quên:** với basic `for`, `continue` vẫn chạy phần cập nhật:
+**Easy-to-forget detail:** with basic `for`, `continue` still executes the update clause:
 
 ~~~java
 for (int i = 0; i < 3; i++) {
     if (i == 1) continue;
     System.out.println(i);
 }
-// In 0 rồi 2, kết thúc bình thường.
+// Prints 0 then 2, terminates normally.
 ~~~
 
-Trong chương trình đầy đủ, hàm `step(i)` in log, chứng minh rằng cả lượt có `continue` tại `i == 1` vẫn tạo dòng `update=1`.
+In the full program, `step(i)` logs output, proving that even the iteration with `continue` at `i == 1` still produces the line `update=1`.
 
-Với `while`, `continue` quay thẳng về điều kiện, nên phải bảo đảm biến điều khiển **đã tiến triển**:
+With `while`, `continue` jumps straight back to the condition, so you must ensure the control variable **has already advanced**:
 
 ~~~java
 int i = 0;
@@ -275,21 +275,21 @@ while (i < 3) {
     if (i == 2) continue;
     System.out.println(i);
 }
-// In 1 rồi 3.
+// Prints 1 then 3.
 ~~~
 
-Nếu để `i++` sau `continue`, rất dễ tạo vòng lặp vô hạn. Với `do-while`, `continue` chuyển tới **bước kiểm tra điều kiện sau thân**, không nhảy lên đầu thân một cách vô điều kiện.
+If `i++` is placed after `continue`, it is very easy to create an infinite loop. With `do-while`, `continue` jumps to **the condition check after the body**, rather than jumping unconditionally to the top of the body.
 
-## 5. `switch` nằm trong vòng lặp: đích có thể khác nhau
+## 5. `switch` Inside a Loop: Targets Can Differ
 
 ~~~java
 for (int i = 0; i < 3; i++) {
     switch (i) {
         case 0:
             System.out.println("zero");
-            break;    // Thoát switch, KHÔNG thoát for.
+            break;    // Exits switch, NOT for.
         case 1:
-            continue; // Đến lượt for kế tiếp.
+            continue; // Moves to the next for iteration.
         default:
             System.out.println("other");
     }
@@ -297,69 +297,69 @@ for (int i = 0; i < 3; i++) {
 }
 ~~~
 
-Với `i == 0`, lệnh `break` đi tới câu lệnh `after-switch` **trong cùng lượt for**. Với `i == 1`, `continue` bỏ luôn lệnh `after-switch`, cập nhật `i++` rồi xét lượt kế. Với `i == 2`, nhánh `default` được chạy và sau đó in `after-switch`.
+When `i == 0`, the `break` statement goes to the `after-switch` statement **within the same for iteration**. When `i == 1`, `continue` skips `after-switch` altogether, updates `i++`, and evaluates the next iteration. When `i == 2`, the `default` branch runs and then prints `after-switch`.
 
-Đây là khác biệt quan trọng giữa hai từ khóa:
+Here is the key difference between the two keywords:
 
-| Vị trí câu lệnh | `break;` | `continue;` |
+| Statement Position | `break;` | `continue;` |
 | --- | --- | --- |
-| Trong `for`, không có `switch` bao quanh | Thoát `for` | Lượt tiếp theo của `for` |
-| Trong `switch` nằm trong `for` | Thoát `switch` | Lượt tiếp theo của `for` |
-| Trong vòng trong của hai vòng lồng nhau | Thoát vòng trong | Lượt tiếp theo của vòng trong |
-| Trong `switch` độc lập, không nằm trong vòng lặp | Hợp lệ, thoát `switch` | **Không hợp lệ**, không có vòng lặp để tiếp tục |
+| Inside `for`, without an enclosing `switch` | Exits `for` | Next iteration of `for` |
+| Inside `switch` nested inside `for` | Exits `switch` | Next iteration of `for` |
+| Inside the inner loop of two nested loops | Exits inner loop | Next iteration of inner loop |
+| Inside a standalone `switch`, not in a loop | Valid, exits `switch` | **Invalid**, no loop to continue |
 
-Không nhầm `break` của `switch` dạng `case:` với ngữ nghĩa `case ->`: rule dùng dấu mũi tên tự tách nhánh, còn lệnh `break;` không nhãn vẫn dùng để thoát vòng lặp hoặc switch thích hợp.
+Do not confuse `break` of a `case:` style `switch` with `case ->` semantics: arrow-style rules automatically separate branches, while unlabeled `break;` is still used to exit an appropriate loop or switch.
 
-## 6. Phân biệt với `return` và tác động đến dọn dẹp tài nguyên
+## 6. Comparison with `return` and Effect on Resource Cleanup
 
-| Lệnh | Ý nghĩa chính |
+| Statement | Primary Meaning |
 | --- | --- |
-| `break;` | Thoát vòng lặp / switch gần nhất |
-| `continue;` | Bỏ phần còn lại của lượt lặp gần nhất |
-| `return;` hoặc `return value;` | Rời **phương thức** đang chạy |
-| `throw ...;` | Ném ngoại lệ, chuyển theo cơ chế xử lý ngoại lệ |
+| `break;` | Exits nearest loop / switch |
+| `continue;` | Skips the remainder of the nearest loop iteration |
+| `return;` or `return value;` | Exits the currently executing **method** |
+| `throw ...;` | Throws an exception, transferring to the exception handling mechanism |
 
-Dù `break` hoặc `continue` đổi điểm đến, các khối `finally` cần chạy theo quy tắc Java vẫn được thực thi khi thoát qua chúng; không dùng hai lệnh này để né đóng tài nguyên. Với stream/file, ưu tiên `try-with-resources` khi cần bảo đảm đóng.
+Even though `break` or `continue` changes the destination, `finally` blocks that are required to execute under Java rules still run when exiting through them; do not use these two statements to bypass resource cleanup. For streams/files, prefer `try-with-resources` when guaranteed closing is required.
 
-Nếu có vòng vô hạn chủ đích, có thể dùng `while (true)` cộng điều kiện `break`. Còn nếu mục tiêu chỉ là bỏ qua một giá trị không hợp lệ trong các lượt duyệt tiếp, `continue` thường sát ý định hơn.
+If an intentional infinite loop is needed, you can use `while (true)` combined with a `break` condition. If the goal is merely to skip an invalid value across iterations, `continue` usually expresses the intent more accurately.
 
-## 7. Các lỗi thường gặp
+## 7. Common Mistakes
 
-| Hiểu nhầm | Cách đúng |
+| Misconception | Correct Behavior |
 | --- | --- |
-| “`break` trong vòng lồng nhau thoát cả hai vòng.” | Không nhãn chỉ thoát cấu trúc gần nhất thích hợp |
-| “`continue` kết thúc toàn bộ vòng lặp.” | Chỉ kết thúc **lượt hiện tại** |
-| “`continue` trong `for` bỏ luôn `i++`.” | Phần cập nhật vẫn chạy nếu `continue` nhắm vào `for` đó |
-| “`continue` trong `while` tự tăng biến đếm.” | Không; tự bảo đảm tiến triển |
-| “`break` trong `switch` nằm trong vòng sẽ thoát vòng.” | Chỉ thoát `switch` gần nhất |
-| “`continue` chuyển sang `case` kế.” | Nó chuyển sang lượt của **vòng lặp**, không phải nhãn `case` |
-| “Chỉ cần nằm trong `if` là có thể dùng `break`.” | Phải có vòng lặp hoặc switch thích hợp bao quanh |
-| “`continue` dùng được trong `switch` độc lập.” | Không; phải nằm trong vòng lặp phù hợp |
+| "`break` inside nested loops exits both loops." | Unlabeled `break` only exits the nearest applicable construct |
+| "`continue` ends the entire loop." | It only ends the **current iteration** |
+| "`continue` in `for` also skips `i++`." | The update part still runs if `continue` targets that `for` loop |
+| "`continue` in `while` automatically increments the counter." | No; ensure progress manually |
+| "`break` in a `switch` inside a loop exits the loop." | It only exits the nearest `switch` |
+| "`continue` advances to the next `case`." | It advances to the next **loop** iteration, not a `case` label |
+| "Being inside an `if` is enough to use `break`." | There must be a suitable enclosing loop or switch |
+| "`continue` can be used in a standalone `switch`." | No; it must be inside an appropriate loop |
 
-## 8. Bài tập tự kiểm tra
+## 8. Self-Check Exercises
 
-1. `for (int i=0; i<4; i++) { if (i==2) break; print(i); }` in gì?  
-   *Đáp án:* 0, 1.
-2. Thay `break` bằng `continue` ở câu trên thì in gì?  
-   *Đáp án:* 0, 1, 3.
-3. Hai vòng lồng nhau, `break;` trong vòng trong có làm vòng ngoài dừng luôn không?  
-   *Đáp án:* Không.
-4. `continue;` trong basic `for` có chạy phần cập nhật không?  
-   *Đáp án:* Có.
-5. `break;` trong `switch` nằm trong `while` thoát cấu trúc nào?  
-   *Đáp án:* `switch` gần nhất.
-6. `continue;` trong `switch` nằm trong `while` chuyển đến đâu?  
-   *Đáp án:* Bước kiểm tra điều kiện của `while` gần nhất.
-7. Vì sao `continue` trước lệnh cập nhật trong `while` nguy hiểm?  
-   *Đáp án:* Biến điều khiển có thể không đổi và khiến vòng lặp vô hạn.
+1. `for (int i=0; i<4; i++) { if (i==2) break; print(i); }` — what does it print?  
+   *Answer:* 0, 1.
+2. Replacing `break` with `continue` above — what does it print?  
+   *Answer:* 0, 1, 3.
+3. With two nested loops, does `break;` in the inner loop stop the outer loop as well?  
+   *Answer:* No.
+4. Does `continue;` in a basic `for` run the update part?  
+   *Answer:* Yes.
+5. Which construct does `break;` inside a `switch` within a `while` exit?  
+   *Answer:* The nearest `switch`.
+6. Where does `continue;` inside a `switch` within a `while` jump?  
+   *Answer:* To the condition check step of the nearest `while`.
+7. Why is `continue` before the update statement dangerous in a `while` loop?  
+   *Answer:* The control variable may never change, causing an infinite loop.
 
 ## Checklist
 
-- [ ] `break;` thoát vòng lặp hoặc switch gần nhất, không tự kết thúc phương thức.
-- [ ] `continue;` bỏ phần còn lại của lượt hiện tại của vòng gần nhất.
-- [ ] Nắm khác biệt về cập nhật của basic `for`, `while` và `do-while`.
-- [ ] Xác định đúng vòng **bên trong** khi có các vòng lồng nhau.
-- [ ] Phân biệt `break` của `switch` và `continue` hướng tới vòng lặp bao ngoài.
-- [ ] Bảo đảm điều kiện tiến triển và tài nguyên được xử lý đúng.
+- [ ] `break;` exits the nearest loop or switch, without automatically ending the method.
+- [ ] `continue;` skips the remainder of the current iteration of the nearest loop.
+- [ ] Understand update differences across basic `for`, `while`, and `do-while`.
+- [ ] Identify the **inner** loop accurately when loops are nested.
+- [ ] Distinguish `break` for `switch` from `continue` targeting an outer enclosing loop.
+- [ ] Ensure progress conditions and proper resource handling.
 
-**Kết luận:** `break;` không nhãn là **thoát cấu trúc lặp/`switch` gần nhất**, còn `continue;` không nhãn là **bỏ phần còn lại của lượt trong vòng lặp gần nhất**. Luôn xác định chính xác cấu trúc bao quanh và bước cập nhật tiếp theo để tránh dừng sai hoặc lặp vô hạn.
+**Conclusion:** Unlabeled `break;` **exits the nearest loop/`switch` construct**, while unlabeled `continue;` **skips the rest of the iteration in the nearest loop**. Always identify the exact enclosing construct and next update step to avoid stopping at the wrong level or creating an infinite loop.

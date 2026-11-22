@@ -1,10 +1,10 @@
-# Pattern.quote: tìm dữ liệu nguyên văn khi làm việc với regex trong Java
+# Pattern.quote: Matching Literal Data When Working with Regex in Java
 
-## 1. Vấn đề: dữ liệu cần tìm có thể bị hiểu thành biểu thức chính quy
+## 1. Problem: Search Data Can Be Interpreted as a Regular Expression
 
-Trong Java, các API như `Pattern.compile(regex)`, `String.matches(regex)`, `String.split(regex)` và `String.replaceAll(regex, replacement)` nhận **biểu thức chính quy** (regular expression). Nhưng chuỗi do người dùng nhập thường chỉ là **văn bản cần tìm nguyên văn**.
+In Java, APIs such as `Pattern.compile(regex)`, `String.matches(regex)`, `String.split(regex)`, and `String.replaceAll(regex, replacement)` accept a **regular expression**. Yet a string entered by a user is often just **plain text to match literally**.
 
-Ví dụ người dùng nhập `a.b` vì họ muốn tìm đúng ba ký tự: `a`, dấu chấm `.`, rồi `b`. Nếu viết:
+For example, a user enters `a.b` because they want to find those exact three characters: `a`, a dot `.`, then `b`. If you write:
 
 ```java
 Pattern pattern = Pattern.compile("a.b");
@@ -12,11 +12,11 @@ System.out.println(pattern.matcher("a.b").matches()); // true
 System.out.println(pattern.matcher("axb").matches()); // true
 ```
 
-Cả hai lần kiểm tra đều trả về `true`. Lý do: trong regex, `.` mang nghĩa “một ký tự bất kỳ” (ngoại trừ một số ký tự kết thúc dòng theo chế độ mặc định). Nếu dữ liệu là `file[1].txt`, dấu ngoặc vuông và dấu chấm còn khiến biểu thức được hiểu khác hẳn chuỗi gốc.
+Both checks return `true`. The reason: in regex, `.` means "any single character" (excluding certain line terminators by default). If the input is `file[1].txt`, the square brackets and dot cause the expression to be interpreted very differently from the original string.
 
-Các ký tự như `.`, `*`, `+`, `?`, `^`, `$`, `(`, `)`, `[`, `]`, `{`, `}`, `|` và `\` có vai trò đặc biệt trong cú pháp regex tùy ngữ cảnh. Một dữ liệu đầu vào như `[` còn có thể làm `Pattern.compile` ném `PatternSyntaxException` vì regex không hợp lệ.
+Characters such as `.`, `*`, `+`, `?`, `^`, `$`, `(`, `)`, `[`, `]`, `{`, `}`, `|`, and `\` have special roles in regex syntax depending on context. An input like `[` can even cause `Pattern.compile` to throw `PatternSyntaxException` because the regex is invalid.
 
-**Giải pháp:** khi cần tìm hoặc khớp **nguyên văn** một chuỗi bên trong API regex, dùng `Pattern.quote(text)`:
+**Solution:** when you need to search for or match a string **literally** inside a regex API, use `Pattern.quote(text)`:
 
 ```java
 import java.util.regex.Pattern;
@@ -28,21 +28,21 @@ System.out.println(literalPattern.matcher("a.b").matches()); // true
 System.out.println(literalPattern.matcher("axb").matches()); // false
 ```
 
-Ở đây `Pattern.quote(keyword)` khiến toàn bộ `keyword` được hiểu là dữ liệu literal; dấu chấm không còn là toán tử regex.
+Here `Pattern.quote(keyword)` causes the entire `keyword` to be treated as literal data; the dot is no longer a regex operator.
 
-## 2. Pattern.quote hoạt động như thế nào?
+## 2. How Does Pattern.quote Work?
 
-Khai báo API:
+API signature:
 
 ```text
 java.util.regex.Pattern.quote(String s) → String
 ```
 
-Đây là cách ghi chữ ký để giải thích: trong mã Java thực tế, gọi `Pattern.quote(s)`; không khai báo lại phương thức đó.
+This notation documents the signature for explanation: in actual Java code, call `Pattern.quote(s)`; do not redeclare the method.
 
-`Pattern.quote(s)` trả về một **chuỗi biểu thức chính quy** có thể khớp đúng các ký tự trong `s` theo nghĩa nguyên văn. Phương thức **không thay đổi `s`**, không tìm dữ liệu và không tự biên dịch `Pattern`. Bạn đưa chuỗi kết quả vào `Pattern.compile(...)` hoặc một API có nhận regex.
+`Pattern.quote(s)` returns a **regular expression string** that matches the exact characters in `s` literally. The method **does not modify `s`**, does not search data, and does not itself compile a `Pattern`. You pass the resulting string to `Pattern.compile(...)` or an API that expects a regex.
 
-Với dữ liệu thông thường, chuỗi regex được tạo có dạng `\Q...\E`: trong cú pháp regex Java, `\Q` bắt đầu vùng được coi là literal, `\E` kết thúc vùng đó.
+For typical inputs, the generated regex string has the form `\Q...\E`: in Java regex syntax, `\Q` starts a literal-quoted region and `\E` ends it.
 
 ```java
 String literal = "a.b";
@@ -50,26 +50,26 @@ String safeRegex = Pattern.quote(literal);
 System.out.println(safeRegex); // \Qa.b\E
 ```
 
-Không cần tự ghép `"\Q"` và `"\E"` vào dữ liệu. Nếu chuỗi gốc chứa chính dãy ký tự `\E`, `Pattern.quote` vẫn xử lý đúng để giữ nguyên ý nghĩa literal. Ví dụ:
+There is no need to manually concatenate `"\Q"` and `"\E"` around data. If the original string itself contains the sequence `\E`, `Pattern.quote` still handles it properly to preserve literal meaning. For example:
 
 ```java
-String input = "\\E"; // Hai ký tự thực tế: dấu \ và chữ E
+String input = "\\E"; // Two actual characters: \ and E
 boolean matches = Pattern.compile(Pattern.quote(input))
         .matcher(input)
         .matches();
 System.out.println(matches); // true
 ```
 
-Lưu ý hai tầng cú pháp:
+Note the two syntax layers:
 
-- **Java string literal:** `"\\E"` biểu diễn chuỗi runtime `\E`; dấu `\` phải được escape khi viết mã Java.
-- **Java regex:** `Pattern.quote` xử lý tiếp chuỗi runtime đó để regex engine không diễn giải nó như một lệnh điều khiển regex.
+- **Java string literal:** `"\\E"` represents the runtime string `\E`; `\` must be escaped in Java source code.
+- **Java regex:** `Pattern.quote` further processes that runtime string so the regex engine does not interpret it as a regex control command.
 
-**Quy tắc cốt lõi:** `Pattern.quote` là công cụ **escape chuỗi tìm kiếm (pattern)**. Nó không phải công cụ escape chuỗi **thay thế (replacement)**.
+**Core rule:** `Pattern.quote` is a tool for **escaping a search pattern**. It is not a tool for escaping a **replacement string**.
 
-## 3. Ví dụ Java 17+ có thể biên dịch và chạy
+## 3. Compilable and Runnable Java 17+ Example
 
-Tạo tệp `PatternQuoteDemo.java` với toàn bộ mã dưới đây:
+Create the file `PatternQuoteDemo.java` with all of the code below:
 
 ```java
 import java.util.Arrays;
@@ -81,11 +81,11 @@ public class PatternQuoteDemo {
         String text = "a.b | axb | a.b";
         String keyword = "a.b";
 
-        // Không quote: "." được hiểu là ký tự bất kỳ.
+        // Unquoted: "." is interpreted as any character.
         System.out.println("raw matches axb: " +
                 Pattern.compile(keyword).matcher("axb").matches());
 
-        // Quote: chỉ khớp đúng chuỗi literal "a.b".
+        // Quoted: matches only the literal string "a.b".
         Pattern literal = Pattern.compile(Pattern.quote(keyword));
         System.out.println("literal matches axb: " +
                 literal.matcher("axb").matches());
@@ -98,20 +98,20 @@ public class PatternQuoteDemo {
         }
         System.out.println("count: " + count);
 
-        // Dấu "|" là ký tự đặc biệt của regex; giữ trường rỗng cuối.
+        // "|" is a regex special character; keep trailing empty fields.
         String[] fields = "red|green||".split(Pattern.quote("|"), -1);
         System.out.println("fields: " + Arrays.toString(fields));
         System.out.println("fields count: " + fields.length);
 
-        // Pattern.quote bảo vệ phần cần tìm;
-        // Matcher.quoteReplacement bảo vệ phần thay thế.
+        // Pattern.quote protects the search part;
+        // Matcher.quoteReplacement protects the replacement part.
         String replacement = "$5\\path";
         String changed = Pattern.compile(Pattern.quote("a.b"))
                 .matcher("a.b and a.b")
                 .replaceAll(Matcher.quoteReplacement(replacement));
         System.out.println("replaced: " + changed);
 
-        // Trường hợp chuỗi gốc chứa chính dấu kết thúc vùng quote.
+        // Case where the original string contains the quote-closing sequence itself.
         String special = "\\E";
         System.out.println("embedded E: " +
                 Pattern.compile(Pattern.quote(special))
@@ -120,14 +120,14 @@ public class PatternQuoteDemo {
 }
 ```
 
-Chạy bằng JDK 17 trở lên:
+Run with JDK 17 or newer:
 
 ```bash
 javac PatternQuoteDemo.java
 java PatternQuoteDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 raw matches axb: true
@@ -141,28 +141,28 @@ replaced: $5\path and $5\path
 embedded E: true
 ```
 
-Khi đọc kết quả:
+When reading the output:
 
-1. Không quote, regex `a.b` nhận cả `axb`; có quote, `a.b` chỉ khớp đúng `a.b`.
-2. `matcher.find()` quét lần lượt các vùng khớp bên trong chuỗi dài. Trong `"a.b | axb | a.b"` có đúng **hai** lần xuất hiện literal `a.b`.
-3. `split(Pattern.quote("|"), -1)` tách theo đúng dấu `|`; `-1` là tham số riêng của `split` để giữ hai trường rỗng ở cuối.
-4. Chuỗi thay thế chứa cả `$` và `\` vẫn được chèn nguyên văn nhờ `Matcher.quoteReplacement`.
-5. Trường hợp `\E` cũng khớp nguyên văn, chứng tỏ không cần tự xử lý thủ công dấu kết thúc vùng quote.
+1. Without quoting, the regex `a.b` accepts `axb`; with quoting, `a.b` matches only `a.b`.
+2. `matcher.find()` scans sequentially for matching spans inside a longer string. In `"a.b | axb | a.b"` there are **two** literal occurrences of `a.b`.
+3. `split(Pattern.quote("|"), -1)` splits strictly on `|`; `-1` is `split`'s own argument to retain the two trailing empty fields.
+4. The replacement containing both `$` and `\` is still inserted literally thanks to `Matcher.quoteReplacement`.
+5. The `\E` case also matches literally, showing that you do not need to manually handle the quote-end marker.
 
-## 4. Chọn phương thức tìm kiếm đúng mục đích
+## 4. Choosing the Right Search Method for the Goal
 
-Sau khi tạo `Pattern` từ literal, việc nhận kết quả phụ thuộc cách kiểm tra:
+After creating a `Pattern` from a literal, how you check results depends on the matching method:
 
-| Mục đích | API | Hành vi |
+| Goal | API | Behavior |
 | --- | --- | --- |
-| Tìm xem chuỗi có chứa dữ liệu nguyên văn hay không | `text.contains(keyword)` | Tìm literal, không cần regex. |
-| Tìm một hay nhiều vị trí xuất hiện literal bằng regex | `Pattern.compile(Pattern.quote(keyword)).matcher(text).find()` | `find()` tìm một vùng khớp bên trong chuỗi. |
-| Yêu cầu **toàn bộ** chuỗi bằng literal | `Pattern.compile(Pattern.quote(keyword)).matcher(text).matches()` | `matches()` chỉ đúng khi khớp toàn bộ đầu vào. |
-| Xác định phần đầu của chuỗi bằng regex | `matcher.lookingAt()` | Kiểm tra một vùng khớp bắt đầu tại đầu input. |
-| Tách theo dấu phân cách literal | `text.split(Pattern.quote(separator), -1)` | Dấu phân cách được hiểu nguyên văn; `-1` giữ trường rỗng cuối. |
-| Thay toàn bộ chuỗi con literal | `text.replace(oldText, newText)` | Cả hai đối số đều là literal; không cần quote. |
+| Check whether a string contains literal text | `text.contains(keyword)` | Literal search, no regex needed. |
+| Find one or more literal occurrences with regex | `Pattern.compile(Pattern.quote(keyword)).matcher(text).find()` | `find()` locates a matching region inside the string. |
+| Require the **entire** string to equal the literal | `Pattern.compile(Pattern.quote(keyword)).matcher(text).matches()` | `matches()` is true only when the full input matches. |
+| Match the beginning of the string with regex | `matcher.lookingAt()` | Checks for a match starting at the beginning of the input. |
+| Split by a literal delimiter | `text.split(Pattern.quote(separator), -1)` | Delimiter is treated literally; `-1` keeps trailing empty fields. |
+| Replace all literal substrings | `text.replace(oldText, newText)` | Both arguments are literal; no quoting needed. |
 
-Ví dụ phân biệt `find()` với `matches()`:
+Example distinguishing `find()` from `matches()`:
 
 ```java
 Pattern p = Pattern.compile(Pattern.quote("api.v1"));
@@ -173,15 +173,15 @@ System.out.println(p.matcher("prefix-api.v1-suffix").matches()); // false
 System.out.println(p.matcher("api.v1").matches()); // true
 ```
 
-Đoạn mã trên là một ví dụ đặt trong một phương thức có `import java.util.regex.Pattern;` và `import java.util.regex.Matcher;`.
+The snippet above is an example inside a method with `import java.util.regex.Pattern;` and `import java.util.regex.Matcher;`.
 
-Đặc biệt, **không bắt buộc phải dùng regex** để kiểm tra chuỗi con nguyên văn. `String.contains` hoặc `String.indexOf` thường rõ ràng hơn cho việc tìm đơn giản. Dùng `Pattern.quote` khi thật sự đang làm việc với regex, ví dụ cần `Matcher` để lấy vị trí, cần ghép regex với dữ liệu literal, hoặc API yêu cầu đối số regex.
+In particular, **regex is not mandatory** for checking literal substrings. `String.contains` or `String.indexOf` is usually clearer for simple searches. Use `Pattern.quote` when you are genuinely working with regex—such as needing `Matcher` for positions, combining regex syntax with literal data, or calling an API that requires a regex parameter.
 
-## 5. Ghép phần literal vào regex có chủ đích
+## 5. Intentionally Combining a Literal Part into a Regex
 
-Không phải mọi bài toán đều muốn biến **toàn bộ** biểu thức thành literal. Đôi khi ta muốn giữ một số thành phần regex (anchor, khoảng trắng linh hoạt, nhóm bắt) nhưng tên hoặc nhãn do người dùng cung cấp phải được tìm đúng nguyên văn.
+Not every task wants to turn the **entire** expression into a literal. Sometimes you want to keep certain regex features (anchors, flexible whitespace, capturing groups) while ensuring a user-supplied name or label is matched literally.
 
-Giả sử một dòng cấu hình có dạng `"status[0]: ACTIVE"`, trong đó `status[0]` là nhãn đầu vào:
+Suppose a config line has the form `"status[0]: ACTIVE"`, where `status[0]` is an input label:
 
 ```java
 String label = "status[0]";
@@ -196,25 +196,25 @@ if (matcher.matches()) {
 }
 ```
 
-Ý nghĩa của từng đoạn:
+Meaning of each piece:
 
-- `^` và `$`: các anchor do người lập trình chủ động đặt ở đầu/cuối regex.
-- `Pattern.quote(label)`: nhãn `status[0]` được khớp nguyên văn; `[0]` không biến thành character class.
-- `\\s*:\\s*` trong mã Java: regex cho phép 0 hoặc nhiều ký tự khoảng trắng ở hai bên dấu hai chấm.
-- `(.+)`: nhóm bắt nội dung ở cuối; `group(1)` lấy giá trị `ACTIVE`.
+- `^` and `$`: anchors intentionally placed by the programmer at the start/end of the regex.
+- `Pattern.quote(label)`: the label `status[0]` is matched literally; `[0]` does not become a character class.
+- `\\s*:\\s*` in Java code: regex allowing 0 or more whitespace characters on both sides of the colon.
+- `(.+)`: capturing group for the trailing content; `group(1)` retrieves `ACTIVE`.
 
-Nếu quote **toàn bộ** biểu thức `"^" + label + "\\s*:\\s*(.+)$"` thì các dấu `^`, `$`, `\s*` và `(.+)` cũng biến thành ký tự literal và mất chức năng regex. Chỉ quote **đoạn dữ liệu cần khớp nguyên văn**, giữ nguyên các thành phần regex có chủ đích.
+If you quoted the **entire** expression `"^" + label + "\\s*:\\s*(.+)$"`, then `^`, `$`, `\s*`, and `(.+)` would also turn into literal characters and lose their regex functionality. Only quote **the data portion that must match literally**, leaving intentional regex constructs intact.
 
-## 6. Pattern.quote và Matcher.quoteReplacement là hai việc khác nhau
+## 6. Pattern.quote and Matcher.quoteReplacement Are Two Different Jobs
 
-Với các API như `Matcher.replaceAll(replacement)`, chuỗi thay thế có cú pháp riêng:
+With APIs like `Matcher.replaceAll(replacement)`, the replacement string has its own syntax:
 
-- `$1`, `$2`… có thể tham chiếu đến nhóm bắt.
-- `\` được dùng làm ký tự escape trong replacement.
+- `$1`, `$2`, ... can reference capturing groups.
+- `\` is used as an escape character in the replacement.
 
-Nếu replacement do người dùng nhập là `"$5\path"`, đưa trực tiếp vào `Matcher.replaceAll` có thể gây lỗi khi `$5` bị diễn giải như một tham chiếu nhóm không tồn tại, hoặc khiến dấu `\` không được giữ nguyên như mong muốn.
+If a user-supplied replacement is `"$5\path"`, passing it directly to `Matcher.replaceAll` can fail when `$5` is interpreted as a nonexistent group reference, or prevent `\` from being preserved as intended.
 
-Để thay một literal bằng một literal thông qua regex:
+To replace one literal with another literal via regex:
 
 ```java
 String original = "key[0] and key[0]";
@@ -229,26 +229,26 @@ System.out.println(result);
 // $5\path and $5\path
 ```
 
-Sơ đồ trách nhiệm:
+Responsibility diagram:
 
 ```text
-Dữ liệu cần tìm      --Pattern.quote--------> regex pattern literal
-Dữ liệu cần thay thế --Matcher.quoteReplacement--> replacement literal
+Search data          --Pattern.quote------------> literal regex pattern
+Replacement data     --Matcher.quoteReplacement--> literal replacement
                                       |
                      Matcher.replaceAll(replacement)
 ```
 
-Nếu chỉ cần thay chuỗi con literal, dùng API ngắn hơn và tự nhiên hơn:
+If you only need to replace a literal substring, use the shorter and more natural API:
 
 ```java
 String result = original.replace(fromUser, replacement);
 ```
 
-`String.replace(CharSequence, CharSequence)` thay chuỗi literal; còn `String.replaceAll(String, String)` nhận regex và replacement có ngữ nghĩa đặc biệt. Đừng nhầm tên `replace` với `replaceAll`.
+`String.replace(CharSequence, CharSequence)` replaces literal strings; `String.replaceAll(String, String)` takes a regex and a replacement with special semantics. Do not confuse `replace` with `replaceAll`.
 
-## 7. Pattern.LITERAL có thay được Pattern.quote không?
+## 7. Can Pattern.LITERAL Replace Pattern.quote?
 
-Java cung cấp cờ `Pattern.LITERAL`:
+Java provides the `Pattern.LITERAL` flag:
 
 ```java
 String keyword = "file[1].txt";
@@ -260,32 +260,32 @@ System.out.println(byQuote.matcher(keyword).matches()); // true
 System.out.println(byFlag.matcher(keyword).matches());  // true
 ```
 
-Cả hai cách đều khiến nội dung `keyword` được hiểu là literal trong ví dụ trên. Khác biệt trong cách dùng:
+Both approaches treat `keyword`'s content as literal in the example above. The difference in usage:
 
-- `Pattern.quote(keyword)` trả về **một chuỗi regex**; phù hợp khi cần chèn dữ liệu literal vào một regex lớn hơn, như `"^" + Pattern.quote(keyword) + "$"`.
-- `Pattern.compile(keyword, Pattern.LITERAL)` áp dụng cách hiểu literal cho **toàn bộ** chuỗi pattern được biên dịch. Nếu đưa cả `"^"` hoặc `".*"` vào chuỗi với cờ này, các ký tự đó cũng sẽ được tìm như ký tự thường.
+- `Pattern.quote(keyword)` returns **a regex string**; suited when embedding literal data inside a larger regex, such as `"^" + Pattern.quote(keyword) + "$"`.
+- `Pattern.compile(keyword, Pattern.LITERAL)` applies literal interpretation to the **entire** pattern string being compiled. If you include `"^"` or `".*"` in the string with this flag, those characters are also matched as ordinary characters.
 
-Khi chỉ cần biên dịch một pattern hoàn toàn literal, cả hai là lựa chọn hợp lệ. Khi cần pha trộn literal và cú pháp regex, `Pattern.quote` cho từng phần dữ liệu thuận tiện hơn.
+When compiling a completely literal pattern, either is a valid choice. When mixing literals with regex syntax, `Pattern.quote` on individual data parts is more convenient.
 
-## 8. Lỗi phổ biến và trường hợp biên
+## 8. Common Mistakes and Edge Cases
 
-### 8.1. Tự escape từng ký tự đặc biệt
+### 8.1. Manually Escaping Individual Special Characters
 
-Ví dụ thủ công thay mọi dấu chấm bằng `\\.` có thể giải quyết riêng dấu chấm, nhưng chưa giải quyết `[`, `|`, `\` và nhiều ký tự khác. Regex còn có quy tắc escape khác nhau tùy vị trí; càng nhiều lần biến đổi thủ công càng dễ dẫn đến escape thiếu hoặc thừa.
+For example, manually replacing every dot with `\\.` might handle dots, yet fails to handle `[`, `|`, `\`, and many other characters. Regex also has position-dependent escaping rules; the more manual transformations you perform, the easier it is to underescape or overescape.
 
-Hãy dùng `Pattern.quote` cho **nguyên một giá trị literal**. Nếu đầu vào có thể chứa `\E`, hàm này cũng xử lý được; không tự ghép `\Q`/`\E` rồi hy vọng đầu vào luôn “đơn giản”.
+Use `Pattern.quote` for **an entire literal value**. Even if the input contains `\E`, this method handles it; do not manually concatenate `\Q`/`\E` and hope the input is always "simple".
 
-### 8.2. Nhầm giá trị literal với regex hợp lệ do người dùng cố ý nhập
+### 8.2. Confusing a Literal Value with an Intentional User-Entered Regex
 
-Nếu chức năng sản phẩm là **“Tìm theo regex”**, việc áp dụng `Pattern.quote` lên toàn bộ mẫu đầu vào sẽ khiến các toán tử regex không còn hoạt động. Ví dụ người dùng cố ý nhập `a.*b` để khớp nhiều ký tự thì sau quote chương trình chỉ tìm văn bản `a.*b`.
+If a product feature is **"Search by regex"**, applying `Pattern.quote` to the whole input pattern disables all regex operators. For example, if the user intentionally types `a.*b` to match across characters, quoting makes the program search only for the literal text `a.*b`.
 
-Ngược lại, với chức năng **“Tìm nguyên văn”**, không quote dữ liệu rồi đưa trực tiếp cho regex engine sẽ tạo hành vi sai hoặc lỗi `PatternSyntaxException`. Phải xác định đúng chế độ tìm kiếm dựa trên yêu cầu.
+Conversely, for a **"Literal search"** feature, failing to quote data before passing it to the regex engine causes incorrect behavior or `PatternSyntaxException`. Choose the right mode based on the requirement.
 
-### 8.3. Nhầm quote với kiểm soát phân biệt chữ hoa/thường
+### 8.3. Confusing Quoting with Case Sensitivity Control
 
-`Pattern.quote` chỉ xử lý cú pháp regex, không tự chuyển chữ hoa/thường. Mặc định, tìm `"Java"` không đồng nghĩa tìm `"java"`.
+`Pattern.quote` only handles regex syntax; it does not control letter case. By default, matching `"Java"` does not match `"java"`.
 
-Nếu cần tìm không phân biệt chữ hoa/thường bằng regex, có thể dùng cờ thích hợp:
+If case-insensitive matching via regex is needed, use the appropriate flags:
 
 ```java
 Pattern pattern = Pattern.compile(
@@ -295,26 +295,26 @@ Pattern pattern = Pattern.compile(
 System.out.println(pattern.matcher("java").matches()); // true
 ```
 
-Các cờ này ảnh hưởng quy tắc khớp, còn `Pattern.quote` vẫn chịu trách nhiệm xem đầu vào là literal. Với yêu cầu Unicode phức tạp, cần kiểm tra rõ chính sách so sánh văn bản của ứng dụng.
+These flags affect matching rules, while `Pattern.quote` remains responsible for treating the input as literal. For complex Unicode requirements, explicitly verify the application's text-comparison policy.
 
-### 8.4. Đầu vào `null` hoặc rỗng
+### 8.4. `null` or Empty Input
 
-`Pattern.quote(null)` không tạo ra regex hợp lệ để tìm, mà ném `NullPointerException`. Với chuỗi rỗng `""`, việc quote là hợp lệ, nhưng mẫu rỗng có thể khớp ở các vị trí độ dài 0; ví dụ `find()` có thể trả về `true` ngay cả khi người dùng chưa gõ từ khóa.
+`Pattern.quote(null)` does not produce a valid regex to match; it throws `NullPointerException`. For an empty string `""`, quoting is valid, but an empty pattern can match at zero-length positions; for example, `find()` can return `true` even when the user has not typed a keyword.
 
-Nếu chức năng yêu cầu từ khóa có ít nhất một ký tự, hãy kiểm tra trước:
+If the feature requires a keyword of at least one character, check beforehand:
 
 ```java
 if (keyword == null || keyword.isEmpty()) {
-    throw new IllegalArgumentException("Từ khóa phải có nội dung");
+    throw new IllegalArgumentException("Keyword must not be empty");
 }
 Pattern pattern = Pattern.compile(Pattern.quote(keyword));
 ```
 
-Không tùy tiện gọi `trim()` hoặc `strip()` nếu khoảng trắng đầu/cuối là một phần dữ liệu người dùng thực sự muốn tìm.
+Do not arbitrarily call `trim()` or `strip()` if leading/trailing spaces are part of the data the user genuinely wants to match.
 
-### 8.5. Quote pattern không điều khiển cách split giữ phần tử rỗng
+### 8.5. Quoting the Pattern Does Not Control How split Keeps Empty Elements
 
-`Pattern.quote("|")` quyết định **dấu `|` là dấu phân cách literal**; nó không quyết định mảng kết quả có giữ trường rỗng cuối hay không.
+`Pattern.quote("|")` establishes that **`|` is a literal delimiter**; it does not determine whether the resulting array retains trailing empty fields.
 
 ```java
 String s = "a|b||";
@@ -325,11 +325,11 @@ System.out.println(Arrays.toString(s.split(Pattern.quote("|"), -1)));
 // [a, b, , ]
 ```
 
-Ở đây `-1` là lựa chọn của `String.split` để giữ mọi phần tử rỗng cuối. Ví dụ này cần đặt trong phương thức có `import java.util.Arrays;` và `import java.util.regex.Pattern;`.
+Here `-1` is the `String.split` option to preserve all trailing empty elements. This example belongs inside a method with `import java.util.Arrays;` and `import java.util.regex.Pattern;`.
 
-### 8.6. Biên dịch Pattern nhiều lần không cần thiết
+### 8.6. Unnecessarily Compiling Pattern Multiple Times
 
-`Pattern` là đối tượng đã biên dịch regex và có thể được dùng lại cho nhiều lần so khớp. Nếu cùng một từ khóa được tìm nhiều lần, có thể biên dịch một lần rồi gọi `pattern.matcher(text)` cho từng chuỗi:
+`Pattern` is a compiled regex object and can be reused across many match operations. If the same keyword is searched repeatedly, compile it once and call `pattern.matcher(text)` for each string:
 
 ```java
 Pattern pattern = Pattern.compile(Pattern.quote(keyword));
@@ -341,28 +341,28 @@ for (String line : lines) {
 }
 ```
 
-Đây là đoạn mã minh họa giả sử `keyword` là `String` và `lines` là tập hợp dòng văn bản đã có. `Pattern` có thể tái sử dụng; không chia sẻ cùng một đối tượng `Matcher` đang thay đổi trạng thái giữa các luồng mà không đồng bộ.
+This illustrative snippet assumes `keyword` is a `String` and `lines` is an existing collection of text lines. `Pattern` is reusable; do not share the same stateful `Matcher` object across threads without synchronization.
 
-## 9. Tự kiểm tra
+## 9. Self-Check
 
-Hãy xác định câu lệnh nào trả về `true`:
+Determine which expressions return `true`:
 
-| Biểu thức | Kết quả | Giải thích |
+| Expression | Result | Explanation |
 | --- | --- | --- |
-| `Pattern.compile("a.b").matcher("axb").matches()` | `true` | Dấu chấm là toán tử regex. |
-| `Pattern.compile(Pattern.quote("a.b")).matcher("axb").matches()` | `false` | Dấu chấm phải là ký tự thật. |
-| `Pattern.compile(Pattern.quote("a.b")).matcher("x-a.b-y").find()` | `true` | `find()` tìm trong một phần của chuỗi. |
-| `Pattern.compile(Pattern.quote("a.b")).matcher("x-a.b-y").matches()` | `false` | `matches()` yêu cầu toàn bộ chuỗi khớp. |
-| `Pattern.compile(Pattern.quote("[0]")).matcher("[0]").matches()` | `true` | Dấu ngoặc vuông được hiểu literal. |
-| `Pattern.compile(Pattern.quote("a|b")).matcher("a").matches()` | `false` | `|` không còn là toán tử lựa chọn. |
+| `Pattern.compile("a.b").matcher("axb").matches()` | `true` | The dot is a regex operator. |
+| `Pattern.compile(Pattern.quote("a.b")).matcher("axb").matches()` | `false` | The dot must be a literal character. |
+| `Pattern.compile(Pattern.quote("a.b")).matcher("x-a.b-y").find()` | `true` | `find()` searches within part of the string. |
+| `Pattern.compile(Pattern.quote("a.b")).matcher("x-a.b-y").matches()` | `false` | `matches()` requires the entire string to match. |
+| `Pattern.compile(Pattern.quote("[0]")).matcher("[0]").matches()` | `true` | Square brackets are interpreted literally. |
+| `Pattern.compile(Pattern.quote("a|b")).matcher("a").matches()` | `false` | `|` is no longer an alternation operator. |
 
-Một bài tập thực hành: xây dựng chức năng nhận một từ khóa bất kỳ từ người dùng, tìm mọi vị trí xuất hiện của từ khóa đó trong một câu rồi in `matcher.start()` và `matcher.end()`. Thử lần lượt với `a.b`, `[0]`, `C:\temp`, `.*` và `\E`. Nếu đây là chế độ tìm nguyên văn, cả năm chuỗi phải được xử lý như dữ liệu, không phải mã lệnh regex.
+A practice exercise: build a feature that takes an arbitrary keyword from a user, finds every occurrence of that keyword in a sentence, and prints `matcher.start()` and `matcher.end()`. Test it sequentially with `a.b`, `[0]`, `C:\temp`, `.*`, and `\E`. In literal search mode, all five strings must be treated as data, not regex instructions.
 
-## 10. Ghi nhớ
+## 10. Key Takeaways
 
-- **`Pattern.quote(input)` biến dữ liệu thành regex literal**; dùng khi API đang yêu cầu regex nhưng người dùng muốn tìm nguyên văn.
-- **`find()` tìm vùng khớp**, **`matches()` khớp toàn bộ đầu vào**; quote không thay đổi khác biệt này.
-- Khi cần kết hợp dữ liệu nguyên văn với cú pháp regex, chỉ quote **phần dữ liệu**, ví dụ `"^" + Pattern.quote(label) + "$"`.
-- Với chuỗi **thay thế**, dùng `Matcher.quoteReplacement(replacement)` nếu gọi `Matcher.replaceAll`; `Pattern.quote` không giải quyết vấn đề replacement.
-- Với tìm hoặc thay thế literal đơn giản, ưu tiên `String.contains`, `String.indexOf` hoặc `String.replace` vì chúng diễn đạt trực tiếp ý định.
-- `Pattern.LITERAL` là lựa chọn hợp lệ khi muốn coi **toàn bộ pattern** là văn bản nguyên văn.
+- **`Pattern.quote(input)` turns data into a literal regex**; use it when an API expects a regex but the user wants a literal search.
+- **`find()` finds a matching span**, **`matches()` matches the entire input**; quoting does not change this distinction.
+- When combining literal data with regex syntax, quote only **the data portion**, e.g., `"^" + Pattern.quote(label) + "$"`.
+- For **replacement** strings, use `Matcher.quoteReplacement(replacement)` when calling `Matcher.replaceAll`; `Pattern.quote` does not handle replacement syntax.
+- For simple literal searching or replacing, prefer `String.contains`, `String.indexOf`, or `String.replace` because they express intent directly.
+- `Pattern.LITERAL` is a valid option when you want to treat the **entire pattern** as literal text.

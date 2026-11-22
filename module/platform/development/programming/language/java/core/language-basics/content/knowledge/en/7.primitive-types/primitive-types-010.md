@@ -1,29 +1,29 @@
-# Nhận diện vấn đề tràn số và độ chính xác trước khi viết phép tính — Java 17+
+# Identifying Overflow and Precision Issues Before Writing Arithmetic — Java 17+
 
-Một phép tính **biên dịch thành công** chưa chắc có **kết quả đúng**. Với kiểu nguyên thủy Java, hai nhóm rủi ro quan trọng là:
+An operation that **compiles successfully** does not necessarily produce the **right result**. With Java primitive types, two major risk categories are:
 
-- **Tràn số nguyên (*integer overflow*)**: phép toán vượt miền biểu diễn của kiểu `int` hoặc `long` và kết quả có thể quay vòng thành số khác.
-- **Sai số số thực (*floating-point rounding/precision*)**: `float` và `double` dùng biểu diễn nhị phân hữu hạn, nên nhiều số thập phân không thể lưu chính xác.
+- **Integer overflow**: an operation exceeds the representable range of `int` or `long`, and the result can wrap around to a different number.
+- **Floating-point rounding/precision error**: `float` and `double` use finite binary representations, so many decimal numbers cannot be stored exactly.
 
-Cách phòng ngừa hiệu quả nhất không phải sửa lỗi sau khi xảy ra, mà là **ước lượng miền đầu vào, miền kết quả trung gian và độ chính xác yêu cầu trước khi chọn kiểu hoặc viết phép tính**.
+The most effective prevention is not fixing bugs after they happen, but **estimating the input range, intermediate result range, and required precision before choosing types or writing arithmetic**.
 
-## 1. Bảng tự kiểm tra trước khi lập trình
+## 1. Pre-Coding Self-Check Table
 
-| Câu hỏi cần trả lời | Ví dụ rủi ro | Hướng xử lý |
+| Question to answer | Example risk | How to handle |
 | --- | --- | --- |
-| Đầu vào lớn nhất và nhỏ nhất là bao nhiêu? | Cộng vào `Integer.MAX_VALUE` | Kiểm tra giới hạn, dùng `long` hoặc phép toán có kiểm tra |
-| **Tích/tổng trung gian** có vượt miền kiểu toán hạng? | `int * int` rồi gán vào `long` | Chuyển sang `long` **trước khi nhân** |
-| Phép chia cần lấy phần thập phân? | `5 / 2` cho `2` | Chọn `5 / 2.0` hoặc ép kiểu trước chia |
-| Cần giá trị thập phân **chính xác**? | `0.1 + 0.2` không bằng đúng `0.3` ở kiểu `double` | Dùng `BigDecimal` từ chuỗi hoặc đơn vị nguyên phù hợp |
-| Có phép chuyển kiểu thu hẹp? | Ép `130` sang `byte` cho `-126` | Kiểm tra miền trước khi cast |
-| Phép số thực có thể vượt miền hoặc không xác định? | `Double.MAX_VALUE * 2`, `0.0 / 0.0` | Xử lý `Infinity`, `NaN` khi phù hợp |
-| Có số nguyên rất lớn chuyển sang `double`? | `2^53 + 1` không giữ nguyên chính xác | Giữ `long` khi cần đúng từng đơn vị |
+| What are the largest and smallest inputs? | Adding to `Integer.MAX_VALUE` | Check bounds, use `long` or checked arithmetic |
+| Could the **intermediate product/sum** exceed the operand type range? | `int * int` then assigning to `long` | Convert to `long` **before multiplying** |
+| Does division need the fractional part? | `5 / 2` yields `2` | Choose `5 / 2.0` or cast before dividing |
+| Are **exact** decimal values needed? | `0.1 + 0.2` does not exactly equal `0.3` in `double` | Use `BigDecimal` from strings or appropriate integer units |
+| Is there a narrowing conversion? | Casting `130` to `byte` yields `-126` | Check range before casting |
+| Could floating-point operations exceed range or be undefined? | `Double.MAX_VALUE * 2`, `0.0 / 0.0` | Handle `Infinity` and `NaN` as appropriate |
+| Are very large integers converted to `double`? | `2^53 + 1` is not preserved exactly | Keep `long` when unit-level accuracy is needed |
 
-Giới hạn hay gặp trên Java 17: `byte` từ −128 đến 127; `short` từ −32.768 đến 32.767; `int` từ −2.147.483.648 đến 2.147.483.647; `long` từ −9.223.372.036.854.775.808 đến 9.223.372.036.854.775.807.
+Common limits on Java 17: `byte` from −128 to 127; `short` from −32,768 to 32,767; `int` from −2,147,483,648 to 2,147,483,647; `long` from −9,223,372,036,854,775,808 to 9,223,372,036,854,775,807.
 
-## 2. Chương trình Java 17+ runnable
+## 2. Runnable Java 17+ Program
 
-Lưu tệp **`NumericSafetyDemo.java`**:
+Save the file **`NumericSafetyDemo.java`**:
 
 ~~~java
 import java.math.BigDecimal;
@@ -77,7 +77,7 @@ public class NumericSafetyDemo {
 }
 ~~~
 
-Mở PowerShell (Windows) hoặc Bash (Linux/macOS) ở thư mục chứa tệp. Dùng JDK 17 trở lên:
+Open PowerShell (Windows) or Bash (Linux/macOS) in the directory containing the file. Use JDK 17 or later:
 
 ~~~bash
 java -version
@@ -105,28 +105,28 @@ floatingOverflow=Infinity
 nan=NaN
 ~~~
 
-## 3. Vì sao kết quả tràn số nguyên?
+## 3. Why Do Integer Results Overflow?
 
-`int` dùng 32 bit có dấu. Khi cộng vượt `Integer.MAX_VALUE`, phép toán `int` thông thường **không tự ném ngoại lệ**, mà giữ kết quả theo quy tắc tràn của số nguyên Java:
+`int` uses 32 signed bits. When adding beyond `Integer.MAX_VALUE`, ordinary `int` operations **do not automatically throw an exception**, and instead keep the result under Java's integer overflow rules:
 
 ~~~java
 int max = Integer.MAX_VALUE;
 int wrapped = max + 1; // -2147483648.
 ~~~
 
-Nếu tràn là **lỗi nghiệp vụ**, nên phát hiện thay vì nhận giá trị đã quay vòng:
+If overflow is a **business error**, detect it instead of accepting the wrapped-around value:
 
 ~~~java
 int checked = Math.addExact(100, 200); // 300.
 int product = Math.multiplyExact(10, 20); // 200.
 
 // Math.addExact(Integer.MAX_VALUE, 1)
-// nem ArithmeticException khi ket qua vuot mien int.
+// throws ArithmeticException when the result exceeds int range.
 ~~~
 
-`Math.addExact` và `Math.multiplyExact` có overload cho `int`/`long`, ném `ArithmeticException` khi kết quả không biểu diễn được trong kiểu tương ứng. Chúng không tự làm kết quả lớn hơn; muốn chứa số vượt `long`, cân nhắc `BigInteger`.
+`Math.addExact` and `Math.multiplyExact` have overloads for `int`/`long`, throwing `ArithmeticException` when the result cannot be represented in the respective type. They do not automatically make the result type larger; to hold numbers beyond `long`, consider `BigInteger`.
 
-### Bẫy: đổi sang `long` sau phép nhân là quá muộn
+### Trap: Switching to `long` After Multiplication Is Too Late
 
 ~~~java
 int unit = 80_000;
@@ -136,13 +136,13 @@ long wrong = (long) (unit * quantity); // -1494967296.
 long right = (long) unit * quantity;   // 2800000000.
 ~~~
 
-Ở dòng `wrong`, `unit * quantity` được tính bằng `int` **trước khi cast**, nên đã tràn. `(long)` chỉ mở rộng **giá trị sai**. Dòng `right` chuyển một toán hạng thành `long` **trước phép nhân**; Java thực hiện phép nhân kiểu `long`.
+On the `wrong` line, `unit * quantity` is computed in `int` **before the cast**, so it has already overflowed. `(long)` only widens the **wrong value**. The `right` line converts one operand to `long` **before the multiplication**; Java then performs `long` multiplication.
 
-Tuy nhiên, `long` cũng có giới hạn; nếu tích có thể vượt `Long.MAX_VALUE`, tiếp tục cần kiểm tra hoặc kiểu số nguyên tùy ý `BigInteger`.
+However, `long` also has a limit; if the product can exceed `Long.MAX_VALUE`, you still need checks or the arbitrary-precision integer type `BigInteger`.
 
-## 4. Sai số không giống tràn số
+## 4. Precision Error Is Not the Same as Overflow
 
-`float` (32 bit) và `double` (64 bit) dùng biểu diễn nhị phân IEEE 754. Nhiều phân số thập phân như `0.1` và `0.2` **không biểu diễn chính xác**. Vì vậy:
+`float` (32 bits) and `double` (64 bits) use IEEE 754 binary representation. Many decimal fractions such as `0.1` and `0.2` **are not represented exactly**. Therefore:
 
 ~~~java
 double sum = 0.1 + 0.2;
@@ -150,27 +150,27 @@ System.out.println(sum);        // 0.30000000000000004
 System.out.println(sum == 0.3); // false
 ~~~
 
-`double` thường chính xác hơn `float`, nhưng **không biến phép toán thập phân thành chính xác tuyệt đối**.
+`double` is typically more accurate than `float`, yet it **does not make decimal arithmetic strictly exact**.
 
-| Yêu cầu | Cách chọn |
+| Requirement | How to choose |
 | --- | --- |
-| Tính toán khoa học, đồ họa và thống kê chấp nhận sai số | `double` thông thường; `float` khi định dạng/hiệu năng yêu cầu |
-| Tiền tệ với đơn vị nhỏ nhất cố định | Số nguyên biểu diễn cents/đồng, kèm kiểm tra miền |
-| Phép tính thập phân cần giữ chữ số chính xác | `BigDecimal`, khởi tạo từ `String` |
-| Đếm chính xác vượt miền `long` | `BigInteger` |
-| Kiểm tra gần bằng nhau ở miền số thực | Dùng sai số tuyệt đối/tương đối theo đặc tả bài toán |
+| Scientific, graphics, and statistical calculations accepting rounding error | `double` normally; `float` when format/performance requires it |
+| Currency with fixed smallest unit | Integers representing cents/dong, with range checking |
+| Decimal calculations needing exact digits preserved | `BigDecimal`, initialized from `String` |
+| Exact counting beyond `long` range | `BigInteger` |
+| Approximate equality checks in floating-point domain | Use absolute/relative error per problem specification |
 
-Để giữ giá trị thập phân `0.1`, viết:
+To preserve the decimal value `0.1`, write:
 
 ~~~java
-BigDecimal amount = new BigDecimal("0.1"); // Chinh xac 0.1.
+BigDecimal amount = new BigDecimal("0.1"); // Exact 0.1.
 ~~~
 
-Tránh `new BigDecimal(0.1)` nếu mục tiêu là giá trị thập phân chính xác 0,1, vì constructor đó nhận **giá trị `double` đã được làm tròn trong hệ nhị phân**. Khi so sánh giá trị số `BigDecimal`, `compareTo` có thể phù hợp hơn `equals` vì `equals` còn xét **scale** (`1.0` khác `1.00` theo `equals`).
+Avoid `new BigDecimal(0.1)` if the goal is the exact decimal value 0.1, because that constructor receives the **binary-rounded `double` value**. When comparing numeric values of `BigDecimal`, `compareTo` can be more appropriate than `equals` because `equals` also checks **scale** (`1.0` differs from `1.00` under `equals`).
 
-### Số nguyên lớn chuyển sang `double` cũng có thể mất chính xác
+### Converting Large Integers to `double` Can Also Lose Precision
 
-`double` có 53 bit độ chính xác cho phần định trị; không thể giữ chính xác **mọi** số nguyên rất lớn:
+`double` has 53 bits of significand precision; it cannot hold **every** very large integer accurately:
 
 ~~~java
 long big = 9_007_199_254_740_993L; // 2^53 + 1.
@@ -178,52 +178,52 @@ double rounded = big;
 System.out.println((long) rounded != big); // true
 ~~~
 
-Một phép chuyển kiểu được Java cho phép **không có nghĩa giá trị vẫn chính xác**.
+A conversion allowed by Java **does not mean the value stays exact**.
 
-## 5. Các bẫy cần kiểm tra trước khi viết công thức
+## 5. Traps to Check Before Writing Formulas
 
-**Chia số nguyên:** `double result = 5 / 2;` cho `2.0`, không phải `2.5`, vì phép chia đã thực hiện bằng `int`. Viết `5 / 2.0` hoặc `(double) 5 / 2` nếu cần phần thập phân.
+**Integer division:** `double result = 5 / 2;` produces `2.0`, not `2.5`, because the division already ran in `int`. Write `5 / 2.0` or `(double) 5 / 2` if the fractional part is needed.
 
-**Thu hẹp:** `(byte) 130` cho `-126` do giữ 8 bit thấp rồi diễn giải là số có dấu. Hãy so sánh với miền đích trước khi cast.
+**Narrowing:** `(byte) 130` yields `-126` by keeping the low 8 bits and interpreting them as signed. Compare against the target range before casting.
 
-**Phép chia cho 0:** `1 / 0` trên kiểu số nguyên ném `ArithmeticException` nếu được thực thi; ngược lại `1.0 / 0.0` cho `Infinity`, `0.0 / 0.0` cho `NaN`. Kiểm tra mẫu số và tính hợp lệ của kết quả theo yêu cầu.
+**Division by zero:** `1 / 0` on integer types throws `ArithmeticException` if executed; conversely, `1.0 / 0.0` yields `Infinity` and `0.0 / 0.0` yields `NaN`. Check denominators and result validity per requirements.
 
-**`NaN` không bằng chính nó:** `Double.NaN == Double.NaN` trả `false`; dùng `Double.isNaN(value)` để phát hiện. Dùng `Double.isFinite(value)` để kiểm tra kết quả hữu hạn nếu bài toán không chấp nhận `NaN` hay vô cực.
+**`NaN` does not equal itself:** `Double.NaN == Double.NaN` returns `false`; use `Double.isNaN(value)` to detect it. Use `Double.isFinite(value)` to check for a finite result if the problem does not accept `NaN` or infinity.
 
-**Đừng dùng một epsilon cố định cho mọi bài toán:** so sánh xấp xỉ cần xét thang đo, sai số tuyệt đối/tương đối và rủi ro `NaN`. Với dữ liệu có yêu cầu **chính xác tuyệt đối**, hãy thay đổi biểu diễn thay vì chỉ tăng ngưỡng sai số.
+**Do not use one fixed epsilon for every problem:** approximate comparisons must account for scale, absolute/relative error, and `NaN` risks. For data requiring **strict exactness**, change the representation rather than merely increasing the error threshold.
 
-## 6. Checklist thiết kế phép tính
+## 6. Arithmetic Design Checklist
 
-Trước khi viết một công thức, hãy trả lời:
+Before writing a formula, answer:
 
-1. **Đầu vào/đầu ra lớn nhất và nhỏ nhất?** Ví dụ số lượng tối đa nhân đơn giá tối đa là bao nhiêu?
-2. **Trung gian tính bằng kiểu nào?** Cast trước hay sau toán tử? Có phép cộng/nhân `int` tràn trước khi gán `long`?
-3. **Chia lấy nguyên hay thập phân?** Kiểu của từng toán hạng là gì?
-4. **Cho phép sai số bao nhiêu?** Nếu là tiền hoặc định danh số nguyên, có cần biểu diễn chính xác?
-5. **Có thu hẹp kiểu hoặc chuyển nguyên lớn sang số thực?** Giá trị nào có thể bị mất?
-6. **Kết quả bất thường xử lý thế nào?** Ném lỗi bằng `Math.*Exact`, kiểm tra mẫu số, `NaN` và `Infinity`.
-7. **Đã thử giá trị biên?** Kiểm tra 0, số âm, giới hạn min/max, tích lớn, phân số nhỏ và dữ liệu ngoài phạm vi.
+1. **Largest and smallest inputs/outputs?** For example, what is maximum quantity times maximum unit price?
+2. **Which type computes the intermediates?** Cast before or after the operator? Could `int` addition/multiplication overflow before assigning to `long`?
+3. **Integer or floating-point division?** What is the type of each operand?
+4. **How much error is acceptable?** If it is money or numeric identifiers, is exact representation required?
+5. **Are there narrowing conversions or large integer-to-float conversions?** Which values could be lost?
+6. **How are abnormal results handled?** Throw errors with `Math.*Exact`, check denominators, `NaN`, and `Infinity`.
+7. **Have boundary values been tested?** Test 0, negative numbers, min/max limits, large products, small fractions, and out-of-range data.
 
-## 7. Bài tập ngắn
+## 7. Short Exercises
 
-**Bài 1.** Vì sao `long x = 100_000 * 100_000;` cho kết quả không đúng 10.000.000.000? Sửa thế nào?
+**Exercise 1.** Why does `long x = 100_000 * 100_000;` produce a result different from 10,000,000,000? How do you fix it?
 
-*Đáp án:* Hai toán hạng là `int` nên tích `int` tràn trước khi gán. Dùng `100_000L * 100_000` hoặc `(long) 100_000 * 100_000`.
+*Answer:* Both operands are `int`, so the `int` product overflows before assignment. Use `100_000L * 100_000` or `(long) 100_000 * 100_000`.
 
-**Bài 2.** `Math.addExact(Integer.MAX_VALUE, 1)` trả số âm hay ném lỗi?
+**Exercise 2.** Does `Math.addExact(Integer.MAX_VALUE, 1)` return a negative number or throw an error?
 
-*Đáp án:* Ném `ArithmeticException`; phép `+` thông thường mới quay vòng.
+*Answer:* It throws `ArithmeticException`; ordinary `+` is what wraps around.
 
-**Bài 3.** Tại sao `double x = 7 / 2;` cho `3.0`, còn `double y = 7 / 2.0;` cho `3.5`?
+**Exercise 3.** Why does `double x = 7 / 2;` yield `3.0`, whereas `double y = 7 / 2.0;` yields `3.5`?
 
-*Đáp án:* Kiểu toán hạng quyết định phép chia nguyên hay số thực **trước khi gán**.
+*Answer:* Operand types determine integer vs. floating-point division **before assignment**.
 
-**Bài 4.** Tính chính xác `0.1 + 0.2` theo thập phân. Nên dùng cách nào?
+**Exercise 4.** Compute `0.1 + 0.2` exactly in decimal. Which approach should you use?
 
-*Đáp án:* `new BigDecimal("0.1").add(new BigDecimal("0.2"))` cho đúng `0.3`.
+*Answer:* `new BigDecimal("0.1").add(new BigDecimal("0.2"))` yields `0.3` accurately.
 
-**Bài 5.** `Double.MAX_VALUE * 2` và `0.0 / 0.0` cho gì?
+**Exercise 5.** What do `Double.MAX_VALUE * 2` and `0.0 / 0.0` produce?
 
-*Đáp án:* Lần lượt `Infinity` và `NaN`, không giống tràn số nguyên.
+*Answer:* `Infinity` and `NaN` respectively, unlike integer overflow.
 
-**Kết luận:** Trước khi viết phép tính Java, hãy kiểm tra **miền dữ liệu**, **kiểu của mỗi kết quả trung gian** và **độ chính xác mong muốn**. Dùng kiểu rộng **trước phép tính**, kiểm tra tràn bằng `Math.*Exact`, và chọn `BigDecimal`/`BigInteger` khi các giới hạn của primitive không đáp ứng yêu cầu.
+**Conclusion:** Before writing Java arithmetic, check the **data range**, the **type of each intermediate result**, and the **desired precision**. Use a wider type **before the operation**, check overflow with `Math.*Exact`, and choose `BigDecimal`/`BigInteger` when primitive limits do not meet requirements.

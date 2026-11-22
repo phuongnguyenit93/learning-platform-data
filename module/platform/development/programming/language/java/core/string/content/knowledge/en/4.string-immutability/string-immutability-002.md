@@ -1,66 +1,66 @@
-# Phân biệt `final` của biến với tính bất biến của đối tượng trong Java
+# Distinguishing `final` on Variables from Object Immutability in Java
 
-Một nhầm lẫn rất phổ biến khi học Java là cho rằng thêm `final` vào biến sẽ khiến **đối tượng** mà biến tham chiếu đến trở nên bất biến. Trên thực tế, `final` của **biến** và *immutability* của **đối tượng** kiểm soát hai việc khác nhau:
+A very common misconception when learning Java is thinking that adding `final` to a variable will make the **object** referenced by that variable immutable. In reality, `final` on a **variable** and *immutability* of an **object** control two different things:
 
-- **`final` của biến**: sau khi biến được gán giá trị hợp lệ, bạn không thể gán lại biến đó. Với biến tham chiếu, điều này cố định **tham chiếu** được lưu trong biến.
-- **Đối tượng immutable (bất biến)**: trạng thái quan sát được của chính đối tượng không thay đổi sau khi tạo, bất kể có bao nhiêu biến cùng tham chiếu đến nó.
+- **`final` on a variable**: once the variable has been assigned a valid value, you cannot reassign that variable. For a reference variable, this fixes the **reference** stored in the variable.
+- **Immutable object**: the observable state of the object itself does not change after creation, regardless of how many variables reference it.
 
-Hãy ghi nhớ câu ngắn: **`final` giữ ổn định giá trị của biến; immutable giữ ổn định trạng thái của đối tượng.**
+Keep this short sentence in mind: **`final` keeps the value of a variable fixed; immutability keeps the state of an object fixed.**
 
-## 1. Hai tầng cần phân biệt: biến và đối tượng
+## 1. Two Layers to Distinguish: Variable and Object
 
-Xét lệnh:
+Consider the statement:
 
 ```java
 final StringBuilder builder = new StringBuilder("Java");
 ```
 
-Có hai thành phần:
+There are two components:
 
-1. **Biến tham chiếu `builder`** chứa một tham chiếu đến đối tượng `StringBuilder`. Từ khóa `final` cấm gán một tham chiếu khác vào biến này.
-2. **Đối tượng `StringBuilder`** tồn tại riêng. Nó là loại đối tượng *mutable*: phương thức `append()`, `insert()`, `delete()`… có thể thay đổi nội dung.
+1. **The reference variable `builder`** holds a reference to a `StringBuilder` object. The `final` keyword forbids assigning a different reference into this variable.
+2. **The `StringBuilder` object** exists separately. It is a *mutable* kind of object: methods `append()`, `insert()`, `delete()`, etc. can change its content.
 
-Vì vậy:
-
-```java
-builder.append(" 17"); // Hợp lệ: đối tượng đang được tham chiếu thay đổi.
-// builder = new StringBuilder("Kotlin"); // Lỗi biên dịch: không thể gán lại biến final.
-```
-
-Trái lại:
+Therefore:
 
 ```java
-String language = "Java"; // Không khai báo final.
-language = language.concat(" 17"); // Hợp lệ: biến trỏ đến kết quả mới.
+builder.append(" 17"); // Valid: the referenced object is modified.
+// builder = new StringBuilder("Kotlin"); // Compile error: cannot reassign a final variable.
 ```
 
-Đối tượng `String` có nội dung `"Java"` vẫn **bất biến**, dù biến `language` không có `final` và có thể được gán lại.
+In contrast:
 
-| Trường hợp | Có thể gán lại biến? | Có thể sửa nội dung đối tượng qua API của nó? |
+```java
+String language = "Java"; // Not declared final.
+language = language.concat(" 17"); // Valid: the variable points to a new result.
+```
+
+The `String` object with content `"Java"` remains **immutable**, even though the variable `language` does not have `final` and can be reassigned.
+
+| Case | Can the variable be reassigned? | Can the object's content be modified through its API? |
 | --- | --- | --- |
-| `int x = 1` | Có | Không có đối tượng: `int` là primitive. |
-| `final int x = 1` | Không | Không có đối tượng: `int` là primitive. |
-| `String s = "A"` | Có | Không, vì `String` bất biến. |
-| `final String s = "A"` | Không | Không, vì `String` bất biến. |
-| `StringBuilder b = new StringBuilder("A")` | Có | Có, bằng `append()`, `setCharAt()`… |
-| `final StringBuilder b = new StringBuilder("A")` | Không | Có, tương tự trường hợp trên. |
-| `final int[] a = {1, 2}` | Không thể cho `a` trỏ tới mảng khác | Có, ví dụ `a[0] = 9`. |
+| `int x = 1` | Yes | No object: `int` is a primitive. |
+| `final int x = 1` | No | No object: `int` is a primitive. |
+| `String s = "A"` | Yes | No, because `String` is immutable. |
+| `final String s = "A"` | No | No, because `String` is immutable. |
+| `StringBuilder b = new StringBuilder("A")` | Yes | Yes, via `append()`, `setCharAt()`, etc. |
+| `final StringBuilder b = new StringBuilder("A")` | No | Yes, same as the case above. |
+| `final int[] a = {1, 2}` | Cannot make `a` point to another array | Yes, for example `a[0] = 9`. |
 
-Điểm cần chú ý: dấu `=` trong `s = "B"` thay đổi **giá trị biến `s`**; lời gọi `b.append("B")` thay đổi **đối tượng mà `b` đang tham chiếu**. Đó là hai thao tác có bản chất khác nhau.
+Note carefully: the `=` in `s = "B"` changes **the value of variable `s`**; the call `b.append("B")` changes **the object that `b` is referencing**. Those are two fundamentally different operations.
 
-## 2. `final` trên kiểu nguyên thủy (primitive)
+## 2. `final` on Primitive Types
 
-Với `int`, `long`, `double`, `boolean`, `char`… biến giữ trực tiếp giá trị primitive. Khi khai báo `final`, biến không thể nhận giá trị mới:
+For `int`, `long`, `double`, `boolean`, `char`, etc., the variable holds the primitive value directly. When declared `final`, the variable cannot receive a new value:
 
 ```java
 final int maxRetries = 3;
 System.out.println(maxRetries); // 3
 
-// maxRetries = 4; // Lỗi biên dịch.
-// maxRetries++;    // Lỗi biên dịch: phép tăng cũng phải gán giá trị mới.
+// maxRetries = 4; // Compile error.
+// maxRetries++;    // Compile error: incrementing also requires assigning a new value.
 ```
 
-Một biến `final` chỉ được **gán một lần theo từng đường chạy hợp lệ**. Nó có thể được khai báo trước rồi gán sau, miễn trình biên dịch chứng minh việc gán diễn ra đúng một lần:
+A `final` variable can only be **assigned once along each valid execution path**. It can be declared first and assigned later, as long as the compiler can prove the assignment happens exactly once:
 
 ```java
 final int port;
@@ -75,36 +75,36 @@ if (isProduction) {
 System.out.println(port); // 443
 ```
 
-Đây là ví dụ đoạn mã đặt trong phương thức; kết quả phụ thuộc giá trị `isProduction` đã đặt là `true`. Các trường `final` trong lớp cũng có quy tắc khởi tạo riêng: instance field thường được khởi tạo tại nơi khai báo hoặc trong constructor của mọi đường khởi tạo; `static final` được khởi tạo theo quy tắc trường tĩnh. Không nên diễn đạt `final` là “luôn là compile-time constant”: chỉ một số biểu thức primitive/`String` `final` thỏa điều kiện *constant variable* của Java Language Specification.
+This is a snippet placed inside a method; the result depends on `isProduction` being set to `true`. `final` fields in a class also have their own initialization rules: instance fields are typically initialized at declaration or in constructors along every initialization path; `static final` fields are initialized according to static field rules. You should not describe `final` as "always a compile-time constant": only certain primitive/`String` `final` expressions satisfy the *constant variable* conditions of the Java Language Specification.
 
-## 3. `final` trên biến tham chiếu: không đổi đích trỏ, vẫn có thể đổi trạng thái
+## 3. `final` on Reference Variables: Target Cannot Change, State Still Can
 
-Tham chiếu `final` không thể trỏ sang đối tượng mới, nhưng đối tượng hiện tại vẫn có thể sửa được nếu loại của nó cho phép.
+A `final` reference cannot point to a new object, but the current object can still be modified if its type permits.
 
-### Mảng
+### Arrays
 
 ```java
 final int[] scores = {10, 20};
-scores[0] = 99;            // Hợp lệ.
+scores[0] = 99;            // Valid.
 System.out.println(scores[0]); // 99
 
-// scores = new int[] {1, 2}; // Lỗi biên dịch: gán lại biến scores.
+// scores = new int[] {1, 2}; // Compile error: reassigning variable scores.
 ```
 
-Bản thân **mảng Java là mutable**: `final` trên biến không đóng băng các phần tử.
+**Java arrays themselves are mutable**: `final` on the variable does not freeze the elements.
 
-### Collection và đối tượng tùy biến
+### Collections and Custom Mutable Objects
 
 ```java
 final java.util.List<String> names = new java.util.ArrayList<>();
-names.add("An");           // Hợp lệ: sửa trạng thái ArrayList.
+names.add("An");           // Valid: modifies the state of the ArrayList.
 names.add("Binh");
 System.out.println(names); // [An, Binh]
 
-// names = new java.util.ArrayList<>(); // Lỗi biên dịch.
+// names = new java.util.ArrayList<>(); // Compile error.
 ```
 
-Nếu hai biến cùng trỏ đến một đối tượng mutable, việc sửa qua biến này sẽ được quan sát qua biến kia:
+If two variables point to the same mutable object, a modification through one variable will be observed through the other:
 
 ```java
 final StringBuilder original = new StringBuilder("A");
@@ -114,11 +114,11 @@ alias.append("B");
 System.out.println(original); // AB
 ```
 
-`final` **không loại bỏ aliasing** (nhiều tham chiếu tới cùng một đối tượng) và không ngăn thay đổi trạng thái thông qua alias.
+`final` **does not eliminate aliasing** (multiple references to the same object) and does not prevent state changes through an alias.
 
-## 4. Đối tượng immutable: có thể đổi tham chiếu, không thể sửa giá trị cũ
+## 4. Immutable Objects: Reference Can Change, Old Value Cannot Be Modified
 
-`String` là ví dụ điển hình của một lớp có hợp đồng bất biến. Không có thao tác công khai kiểu `append()` hoặc `setCharAt()` thay đổi trực tiếp nội dung của một instance `String`. Các lời gọi như `concat()`, `replace()` hoặc `toUpperCase()` trả về kết quả mới về **giá trị**; chuỗi ban đầu vẫn giữ nguyên. Cài đặt có thể trả về chính instance cũ khi kết quả không thay đổi, nên “immutable” không đồng nghĩa “mọi thao tác đều cấp phát instance mới”.
+`String` is a classic example of a class with an immutability contract. There are no public operations like `append()` or `setCharAt()` that directly change the content of a `String` instance. Calls like `concat()`, `replace()`, or `toUpperCase()` return a new result in terms of **value**; the original string stays intact. Implementations may return the same old instance when the result does not change, so "immutable" does not mean "every operation allocates a new instance."
 
 ```java
 String title = "Java";
@@ -130,21 +130,21 @@ System.out.println(title);    // Java 17
 System.out.println(oldTitle); // Java
 ```
 
-Ở đây, `title` được gán sang kết quả `"Java 17"`, còn `oldTitle` vẫn tham chiếu tới đối tượng `"Java"`. Không có thao tác nào “sửa chuỗi Java thành Java 17”.
+Here, `title` is reassigned to the result `"Java 17"`, while `oldTitle` still references the `"Java"` object. No operation "modifies the string Java into Java 17."
 
-Nếu thêm `final` vào `title`:
+If `final` is added to `title`:
 
 ```java
 final String title = "Java";
-String another = title.concat(" 17"); // Hợp lệ, title vẫn là "Java".
-// title = another; // Lỗi biên dịch vì title là final.
+String another = title.concat(" 17"); // Valid, title is still "Java".
+// title = another; // Compile error because title is final.
 ```
 
-Tính bất biến vẫn như cũ; điểm mới duy nhất là không thể gán lại biến `title`.
+Immutability remains the same; the only new thing is that the variable `title` cannot be reassigned.
 
-## 5. Ví dụ Java 17+ chạy độc lập: đối chiếu cả bốn tình huống
+## 5. Standalone Runnable Java 17+ Example: Contrasting All Four Scenarios
 
-Lưu mã sau vào tệp `FinalVsImmutableDemo.java`:
+Save the following code to `FinalVsImmutableDemo.java`:
 
 ```java
 import java.util.ArrayList;
@@ -152,12 +152,12 @@ import java.util.List;
 
 public class FinalVsImmutableDemo {
     public static void main(String[] args) {
-        // (1) final + primitive: không thể gán lại biến.
+        // (1) final + primitive: cannot reassign the variable.
         final int limit = 3;
         System.out.println("limit = " + limit);
 
-        // (2) final + mutable object: không gán lại được tham chiếu,
-        // nhưng nội dung đối tượng vẫn thay đổi được.
+        // (2) final + mutable object: cannot reassign the reference,
+        // but the object's content can still be changed.
         final StringBuilder buffer = new StringBuilder("Ja");
         buffer.append("va");
         System.out.println("buffer = " + buffer);
@@ -170,15 +170,15 @@ public class FinalVsImmutableDemo {
         names.add("Binh");
         System.out.println("names = " + names);
 
-        // (3) Tham chiếu KHÔNG final + immutable String:
-        // biến đổi đích trỏ, đối tượng chuỗi cũ không đổi.
+        // (3) NON-final reference + immutable String:
+        // the variable changes what it points to, the old string object does not change.
         String first = "Java";
         String oldFirst = first;
         first = first.concat(" 17");
         System.out.println("first = " + first);
         System.out.println("oldFirst = " + oldFirst);
 
-        // (4) final + immutable String: cả hai bảo đảm cùng tồn tại.
+        // (4) final + immutable String: both guarantees coexist.
         final String greeting = "Hi";
         String newGreeting = greeting.concat("!");
         System.out.println("greeting = " + greeting);
@@ -187,14 +187,14 @@ public class FinalVsImmutableDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac FinalVsImmutableDemo.java
 java FinalVsImmutableDemo
 ```
 
-Kết quả chính xác:
+Exact output:
 
 ```text
 limit = 3
@@ -207,29 +207,29 @@ greeting = Hi
 newGreeting = Hi!
 ```
 
-**Diễn giải:** những dòng cập nhật `StringBuilder`, mảng và `ArrayList` thay đổi nội dung đối tượng dù biến là `final`; phép nối `String` không thay đổi instance cũ dù biến `first` có thể được gán lại. Nếu bỏ dấu chú thích ở các phép gán lại biến `final` trong các ví dụ trước, lỗi xảy ra **lúc biên dịch**, không phải lúc chạy.
+**Explanation:** the lines updating the `StringBuilder`, array, and `ArrayList` change the object's content even though the variables are `final`; `String` concatenation does not change the old instance even though the variable `first` can be reassigned. If you uncomment the reassignments of `final` variables in the earlier examples, the error occurs **at compile time**, not at runtime.
 
-## 6. `final` ở những vị trí khác không có cùng ý nghĩa với immutable
+## 6. `final` in Other Positions Does Not Mean Immutable
 
-### Tham số `final`
+### `final` Parameters
 
 ```java
 static void addTag(final StringBuilder target) {
-    target.append("-ok"); // Hợp lệ: sửa đối tượng.
-    // target = new StringBuilder(); // Lỗi biên dịch: gán lại tham số.
+    target.append("-ok"); // Valid: modifies the object.
+    // target = new StringBuilder(); // Compile error: reassigning parameter.
 }
 ```
 
-`final` cấm thay đổi **biến tham số bên trong phương thức**. Java vẫn truyền **giá trị của tham chiếu** vào tham số; caller và callee có thể trỏ tới cùng đối tượng mutable. `final` không biến lời gọi thành deep copy hay chặn cập nhật đối tượng.
+`final` forbids changing **the parameter variable inside the method**. Java still passes **the value of the reference** into the parameter; caller and callee can point to the same mutable object. `final` does not turn the call into a deep copy or block object updates.
 
-### Trường `final` trong lớp
+### `final` Fields in a Class
 
 ```java
 class MessageBuffer {
     private final StringBuilder content = new StringBuilder();
 
     void write(String text) {
-        content.append(text); // Hợp lệ.
+        content.append(text); // Valid.
     }
 
     String read() {
@@ -238,7 +238,7 @@ class MessageBuffer {
 }
 ```
 
-Trường `content` không được gán lại sau khởi tạo, nhưng trạng thái đối tượng `StringBuilder` vẫn thay đổi. Vì thế **“mọi field đều `final`” không chứng minh cả lớp là immutable**.
+The `content` field cannot be reassigned after initialization, but the state of the `StringBuilder` object still changes. Therefore **"every field is `final`" does not prove the whole class is immutable**.
 
 ### `final class`
 
@@ -247,7 +247,7 @@ final class MutableCounter {
     private int value;
 
     void increment() {
-        value++; // Vẫn sửa được state.
+        value++; // Still able to modify state.
     }
 
     int get() {
@@ -256,34 +256,34 @@ final class MutableCounter {
 }
 ```
 
-`final class` cấm kế thừa, không cấm thay đổi trạng thái. Một thiết kế bất biến thường dùng `final class` để tránh lớp con phá vỡ hợp đồng, nhưng chỉ riêng từ khóa này chưa đủ để tạo tính bất biến. Tương tự, `final` trên **phương thức** cấm override phương thức đó chứ không làm phương thức thành read-only.
+`final class` forbids inheritance, not state changes. An immutable design often uses `final class` to prevent subclasses from breaking the contract, but this keyword alone is not enough to achieve immutability. Similarly, `final` on a **method** forbids overriding that method rather than making the method read-only.
 
-### Biến *effectively final*
+### *Effectively Final* Variables
 
-Biến local không viết `final` nhưng được gán một lần và không bị gán lại có thể được trình biên dịch coi là *effectively final*, cho phép lambda/lớp nội bộ truy cập:
+A local variable not written with `final` that is assigned once and never reassigned can be treated by the compiler as *effectively final*, allowing lambdas/inner classes to access it:
 
 ```java
 String prefix = "Hello, ";
 Runnable task = () -> System.out.println(prefix + "Java");
 task.run(); // Hello, Java
 
-// prefix = "Hi, "; // Nếu thêm lệnh gán lại này,
-//                   // lambda ở trên không còn hợp lệ để biên dịch.
+// prefix = "Hi, "; // If this reassignment is added,
+//                   // the lambda above is no longer valid to compile.
 ```
 
-*Effectively final* là quy tắc về **giá trị của biến được capture**, không phải tính bất biến của đối tượng mà biến tham chiếu.
+*Effectively final* is a rule about **the value of a captured variable**, not the immutability of the object the variable references.
 
-## 7. Cần gì để tạo một đối tượng thực sự bất biến?
+## 7. What Does It Take to Create a Truly Immutable Object?
 
-Một lớp tự viết chỉ nên được gọi là immutable khi **trạng thái quan sát được sau khởi tạo không thể bị thay đổi** thông qua các đường truy cập mà lớp cung cấp, kể cả khi đối tượng được chia sẻ. Các nguyên tắc phổ biến:
+A custom class should only be called immutable when **its observable state after initialization cannot be changed** through any access path the class exposes, even when the object is shared. Common principles:
 
-1. Khởi tạo đầy đủ giá trị trong constructor hoặc phương thức tạo; không mở setter làm thay đổi trạng thái.
-2. Dùng `private final` cho các trường trạng thái khi thích hợp: chặn thay thế giá trị trường sau khởi tạo, nhưng phải kiểm tra sâu hơn nếu trường trỏ tới object mutable.
-3. Không làm rò rỉ tham chiếu tới bộ dữ liệu mutable nội bộ. **Sao chép phòng vệ** (*defensive copy*) khi nhận dữ liệu mutable và khi trả dữ liệu mutable.
-4. Nếu trường chứa collection, xem xét tính mutable của **bản thân collection lẫn từng phần tử**; sao chép một danh sách không tự làm từng phần tử bất biến.
-5. Ngăn lớp con làm suy yếu hợp đồng bất biến, chẳng hạn dùng `final class` hoặc một thiết kế kế thừa có kiểm soát; không để `this` thoát ra khi chưa khởi tạo xong.
+1. Fully initialize values in the constructor or factory method; do not expose setters that mutate state.
+2. Use `private final` for state fields where appropriate: this blocks replacing the field value after initialization, though you must inspect further if the field points to a mutable object.
+3. Do not leak references to internal mutable data structures. Make a **defensive copy** when receiving mutable data and when returning mutable data.
+4. If a field holds a collection, consider the mutability of **both the collection itself and each element**; copying a list does not automatically make each element immutable.
+5. Prevent subclasses from weakening the immutability contract, for example by using `final class` or a controlled inheritance design; do not let `this` escape before initialization completes.
 
-Ví dụ thiết kế snapshot bất biến với các phần tử `String` (vốn bất biến). Tạo tệp `ImmutableRosterDemo.java`:
+Example designing an immutable snapshot with `String` elements (which are already immutable). Create `ImmutableRosterDemo.java`:
 
 ```java
 import java.util.ArrayList;
@@ -306,7 +306,7 @@ public class ImmutableRosterDemo {
         List<String> input = new ArrayList<>(List.of("An"));
         Roster roster = new Roster(input);
 
-        input.add("Binh"); // Sửa nguồn sau khi tạo roster.
+        input.add("Binh"); // Modify source after creating roster.
         System.out.println("input = " + input);
         System.out.println("roster = " + roster.members());
 
@@ -321,14 +321,14 @@ public class ImmutableRosterDemo {
 }
 ```
 
-Lệnh chạy:
+Command to run:
 
 ```bash
 javac ImmutableRosterDemo.java
 java ImmutableRosterDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 input = [An, Binh]
@@ -337,18 +337,18 @@ roster members cannot be modified
 roster after attempt = [An]
 ```
 
-Tại sao `Roster` đạt tính bất biến trong ví dụ này?
+Why does `Roster` achieve immutability in this example?
 
-- Trường `members` là `private final`: không thể gán lại một list khác sau khởi tạo.
-- `List.copyOf(source)` tạo một danh sách không hỗ trợ chỉnh sửa cấu trúc, độc lập với thay đổi sau đó của `ArrayList` nguồn trong ví dụ. Nó không cho thêm, xóa hoặc thay thế phần tử thông qua API của list.
-- Từng phần tử là `String` vốn bất biến, nên ở đây không có object mutable bên trong có thể bị thay đổi thông qua alias.
-- Lớp `Roster` là `final` và không cung cấp setter hoặc đường truy cập nội bộ có thể ghi.
+- The `members` field is `private final`: another list cannot be reassigned after initialization.
+- `List.copyOf(source)` creates a list that does not support structural modification, independent of subsequent changes to the source `ArrayList` in the example. It does not allow adding, removing, or replacing elements through the list API.
+- Each element is a `String`, which is inherently immutable, so here there is no mutable object inside that could be modified through an alias.
+- The `Roster` class is `final` and exposes no setters or writable internal access paths.
 
-**Giới hạn quan trọng:** `List.copyOf` là sao chép **nông** (*shallow*) theo phần tử; nó không sao chép sâu các đối tượng đang nằm trong list. Ví dụ nếu sử dụng `List<StringBuilder>`, một bên giữ `StringBuilder` cũ vẫn có thể `append()` để thay đổi nội dung phần tử mà danh sách bản sao tham chiếu. Muốn bất biến sâu phải dùng các phần tử bất biến hoặc tạo bản sao phù hợp của những phần tử mutable. `List.copyOf` cũng không chấp nhận phần tử `null`.
+**Important limitation:** `List.copyOf` is a **shallow** copy of the elements; it does not deep-copy objects inside the list. For example, if using `List<StringBuilder>`, someone holding an old `StringBuilder` can still call `append()` to change the content of an element referenced by the copied list. Deep immutability requires using immutable elements or making appropriate copies of mutable elements. `List.copyOf` also does not accept `null` elements.
 
-### Phân biệt bản sao và view không cho sửa
+### Distinguishing a Copy from an Unmodifiable View
 
-Hai khái niệm dễ bị nhầm:
+Two easily confused concepts:
 
 ```java
 List<String> source = new ArrayList<>(List.of("A"));
@@ -360,49 +360,49 @@ System.out.println(view);     // [A, B]
 System.out.println(snapshot); // [A]
 ```
 
-Đoạn mã trên là **fragment** cần đặt trong phương thức, với các import `java.util.ArrayList`, `java.util.Collections` và `java.util.List`. `Collections.unmodifiableList(source)` tạo *view* không cho sửa **thông qua view**, nhưng nguồn `source` vẫn có thể sửa và view sẽ phản ánh thay đổi. Ngược lại, `List.copyOf(source)` cho danh sách snapshot không bị ảnh hưởng bởi các thay đổi cấu trúc về sau của `source` trong ví dụ trên.
+The snippet above is a **fragment** to place inside a method, with imports `java.util.ArrayList`, `java.util.Collections`, and `java.util.List`. `Collections.unmodifiableList(source)` creates a *view* that disallows modification **through the view**, but the `source` can still be modified and the view will reflect the changes. In contrast, `List.copyOf(source)` gives a snapshot list unaffected by subsequent structural changes to `source` in the example above.
 
-Khi cần bảo vệ một mảng, có thể áp dụng cả hai hướng sao chép:
+When needing to protect an array, copying can be applied in both directions:
 
 ```java
 final class SafeBytes {
     private final byte[] data;
 
     SafeBytes(byte[] input) {
-        this.data = input.clone(); // Không giữ mảng mutable của caller.
+        this.data = input.clone(); // Do not keep the caller's mutable array.
     }
 
     byte[] copyData() {
-        return data.clone();       // Không lộ mảng nội bộ để caller sửa.
+        return data.clone();       // Do not expose internal array for caller to mutate.
     }
 }
 ```
 
-Nếu chỉ dùng `private final byte[] data = input;` mà giữ trực tiếp mảng ngoài, caller vẫn có thể sửa `input[0]` và làm thay đổi trạng thái đang được quan sát của `SafeBytes`.
+If you only used `private final byte[] data = input;` and kept the external array directly, the caller could still modify `input[0]` and alter the observable state of `SafeBytes`.
 
-## 8. Tác động đến chia sẻ và đa luồng
+## 8. Impact on Sharing and Multithreading
 
-- **Biến tham chiếu `final` không khiến đối tượng tự an toàn đa luồng.** Chẳng hạn, hai luồng cùng gọi `append()` trên cùng một `StringBuilder` vẫn có vấn đề truy cập đồng thời; `final StringBuilder shared` không giải quyết race condition đó.
-- **Đối tượng immutable có thể được nhiều luồng đọc chung một cách thuận tiện.** Ví dụ, sau khi tham chiếu được công bố đúng cách giữa các luồng, nhiều luồng có thể dùng một đối tượng `String` hoặc `Roster` bất biến mà không cần khóa chỉ để ngăn việc sửa *nội dung*.
-- **Gán lại một biến chứa tham chiếu đến các đối tượng immutable vẫn là thay đổi trạng thái của nơi chứa biến.** Nếu nhiều luồng thay đổi một trường `String status`, còn cần xem xét cơ chế công bố và đồng bộ (`volatile`, `synchronized`, atomic reference…) tùy thao tác.
-- Các trường `final` có một số đảm bảo về mô hình bộ nhớ Java khi đối tượng được xây dựng đúng, nhưng **không** có nghĩa mọi object reachable từ trường `final` cũng bất biến hoặc mọi thao tác sử dụng chúng đều an toàn đa luồng.
+- **A `final` reference variable does not make an object automatically thread-safe.** For instance, two threads calling `append()` on the same `StringBuilder` still have concurrent access issues; `final StringBuilder shared` does not resolve that race condition.
+- **Immutable objects can be conveniently read concurrently by multiple threads.** For example, once the reference is properly published across threads, multiple threads can use an immutable `String` or `Roster` object without needing locks solely to prevent *content* mutation.
+- **Reassigning a variable that holds references to immutable objects is still a state change to the variable's holder.** If multiple threads change a `String status` field, you must still consider publication and synchronization mechanisms (`volatile`, `synchronized`, atomic reference, etc.) depending on the operation.
+- `final` fields provide certain guarantees under the Java Memory Model when the object is properly constructed, but that does **not** mean every object reachable from a `final` field is also immutable or that all operations using them are thread-safe.
 
-## 9. Những ngộ nhận cần tránh
+## 9. Misconceptions to Avoid
 
-| Nhận định | Kết luận |
+| Claim | Conclusion |
 | --- | --- |
-| “Đối tượng gắn với biến `final` không thể sửa.” | **Sai.** `final` chỉ cấm gán lại biến; `ArrayList`, mảng, `StringBuilder` vẫn mutable. |
-| “Biến không `final` thì đối tượng chắc chắn mutable.” | **Sai.** `String s = "A"` không `final`, nhưng đối tượng `String` vẫn immutable. |
-| “Mọi field là `final` nên toàn bộ class immutable.” | **Sai.** Phần tử mảng, collection, và object mutable được tham chiếu vẫn có thể đổi. |
-| “`final class` tức là immutable class.” | **Sai.** Nó chỉ cấm tạo subclass; lớp final vẫn có thể cung cấp setter. |
-| “`static final List` là danh sách không thay đổi được.” | **Sai.** `static` và `final` ràng buộc trường, không chặn `add/remove` trên list mutable. |
-| “`record` luôn bất biến sâu.” | **Sai.** Component của record không thể gán lại, nhưng component có kiểu mảng/list mutable vẫn có thể chứa trạng thái thay đổi; cần thiết kế sao chép phòng vệ. |
-| “`Collections.unmodifiableList` tạo snapshot bất biến.” | **Sai.** Đây là view; sửa backing list sẽ xuất hiện trong view. |
-| “Đối tượng immutable đồng nghĩa biến trỏ tới nó không bao giờ đổi.” | **Sai.** Một biến không `final` có thể được gán sang đối tượng immutable khác. |
+| "An object attached to a `final` variable cannot be modified." | **False.** `final` only forbids reassigning the variable; `ArrayList`, arrays, and `StringBuilder` remain mutable. |
+| "If a variable is not `final`, the object is definitely mutable." | **False.** `String s = "A"` is not `final`, yet the `String` object is still immutable. |
+| "Every field is `final`, so the entire class is immutable." | **False.** Array elements, collections, and referenced mutable objects can still change. |
+| "`final class` means an immutable class." | **False.** It only forbids subclassing; a final class can still provide setters. |
+| "`static final List` is an unchangeable list." | **False.** `static` and `final` constrain the field, not `add/remove` on a mutable list. |
+| "A `record` is always deeply immutable." | **False.** Record components cannot be reassigned, but components of mutable array/list types can still hold changing state; defensive copying must be designed. |
+| "`Collections.unmodifiableList` creates an immutable snapshot." | **False.** It is a view; modifying the backing list shows up in the view. |
+| "An immutable object means the variable pointing to it never changes." | **False.** A non-`final` variable can be reassigned to another immutable object. |
 
-## 10. Tự kiểm tra
+## 10. Self-Check
 
-**Câu 1.** Đoạn nào trong mã sau gây lỗi biên dịch?
+**Question 1.** Which line in the following code causes a compile error?
 
 ```java
 final StringBuilder b = new StringBuilder("X");
@@ -410,9 +410,9 @@ b.append("Y");
 // b = new StringBuilder("Z");
 ```
 
-Trả lời: dòng gán lại `b` (đang được chú thích) gây lỗi biên dịch nếu bỏ chú thích; `append("Y")` hợp lệ và đối tượng trở thành `"XY"`.
+Answer: the line reassigning `b` (currently commented out) causes a compile error if uncommented; `append("Y")` is valid and the object becomes `"XY"`.
 
-**Câu 2.** `name` không được khai báo `final` thì chuỗi có còn bất biến không?
+**Question 2.** If `name` is not declared `final`, is the string still immutable?
 
 ```java
 String name = "An";
@@ -421,17 +421,17 @@ name = "Binh";
 System.out.println(remembered);
 ```
 
-Kết quả là `An`. Hai đối tượng `String` giữ nguyên giá trị; chỉ biến `name` nhận tham chiếu mới.
+The output is `An`. Both `String` objects retain their values; only the variable `name` receives a new reference.
 
-**Câu 3.** Có cần `final` trên biến để dùng `String` làm khóa `HashMap` không?
+**Question 3.** Is `final` required on a variable to use a `String` as a `HashMap` key?
 
-Không. Tính bất biến của **chính đối tượng `String`** đã giữ ổn định nội dung dùng cho `equals()` và `hashCode()`; biến chứa tham chiếu khóa không nhất thiết là `final`. `final` có thể giúp chương trình dễ đọc hơn khi muốn đảm bảo biến không bị gán lại, nhưng đó là bảo đảm bổ sung ở cấp biến.
+No. The immutability of **the `String` object itself** already keeps the content used for `equals()` and `hashCode()` stable; the variable holding the key reference does not have to be `final`. `final` can make the program more readable when you want to ensure the variable is not reassigned, but that is an additional guarantee at the variable level.
 
-**Điểm cốt lõi:** khi đọc code, hãy luôn hỏi hai câu riêng: **(1) Biến này có được gán lại không? (2) Đối tượng mà nó trỏ tới có thể thay đổi trạng thái không?** Chỉ từ `final` trên biến, bạn trả lời được câu thứ nhất; để trả lời câu thứ hai, phải xem hợp đồng và thiết kế của loại đối tượng.
+**Key takeaway:** when reading code, always ask two separate questions: **(1) Can this variable be reassigned? (2) Can the object it points to change state?** From `final` on the variable alone, you can answer the first question; to answer the second, you must examine the contract and design of the object's type.
 
-## Tài liệu tham khảo
+## References
 
-- [Java Language Specification §4.12.4 — `final` Variables](https://docs.oracle.com/javase/specs/jls/se21/html/jls-4.html#jls-4.12.4) — ràng buộc phép gán và khái niệm effectively final.
-- [Java SE 21 API — `String`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html) — tính bất biến và API thao tác chuỗi.
-- [Java SE 21 API — `List.copyOf`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html#copyOf(java.util.Collection)) — snapshot không thể sửa cấu trúc và tính chất shallow của phần tử.
-- [Java SE 21 API — `Collections.unmodifiableList`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Collections.html#unmodifiableList(java.util.List)) — view không cho sửa và liên hệ với backing list.
+- [Java Language Specification §4.12.4 — `final` Variables](https://docs.oracle.com/javase/specs/jls/se21/html/jls-4.html#jls-4.12.4) — assignment restrictions and the effectively final concept.
+- [Java SE 21 API — `String`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html) — immutability and string manipulation APIs.
+- [Java SE 21 API — `List.copyOf`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html#copyOf(java.util.Collection)) — structurally unmodifiable snapshots and shallow element semantics.
+- [Java SE 21 API — `Collections.unmodifiableList`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Collections.html#unmodifiableList(java.util.List)) — unmodifiable views and their relation to the backing list.

@@ -1,40 +1,40 @@
-# Cách chương trình bắt đầu, gọi phương thức và kết thúc
+# How a Program Starts, Calls Methods, and Terminates
 
-## 1. Từ lệnh java đến phương thức main
+## 1. From the `java` Command to the `main` Method
 
-Với **Java 17+** chạy ứng dụng ở chế độ class đã biên dịch, lệnh `java TenLop` chọn **lớp điểm vào**, khởi động JVM và gọi phương thức `main` phù hợp. Trước khi chạy thân `main`, JVM cần tải, liên kết và khởi tạo những lớp cần thiết. Các bộ khởi tạo `static` có thể in thông báo **trước** câu lệnh đầu tiên trong `main`.
+In **Java 17+** running an application in compiled class mode, the command `java ClassName` selects the **entry-point class**, starts the JVM, and calls the matching `main` method. Before executing the body of `main`, the JVM needs to load, link, and initialize the required classes. `static` initializers can print messages **before** the first statement inside `main`.
 
-Điểm vào thông dụng trên Java 17:
+The common entry point on Java 17:
 
 ~~~java
 public static void main(String[] args) {
-    // Chương trình bắt đầu xử lý từ đây
+    // Program starts processing from here
 }
 ~~~
 
-Một lần chạy đơn giản diễn ra theo thứ tự: JVM khởi tạo lớp → gọi `main` → `main` gọi các method → các method trả về → `main` hoàn tất. Nếu có ngoại lệ hoặc các luồng đang chạy, đường đi có thể khác.
+A simple run proceeds in order: JVM initializes class → calls `main` → `main` calls methods → methods return → `main` finishes. If exceptions occur or other threads are running, the path can differ.
 
 ~~~mermaid
 flowchart TD
-    A["java FlowDemo"] --> B["Khởi tạo lớp cần thiết"]
+    A["java FlowDemo"] --> B["Initialize required classes"]
     B --> C["main(String[] args)"]
-    C --> D["Gọi phương thức"]
-    D --> E{"Phương thức kết thúc?"}
-    E -->|"return"| F["Quay lại bên gọi"]
-    E -->|"throw"| G["Tìm catch trên chuỗi lời gọi"]
-    F --> H["main tiếp tục"]
+    C --> D["Call method"]
+    D --> E{"How does method end?"}
+    E -->|"return"| F["Return to caller"]
+    E -->|"throw"| G["Search for catch up the call chain"]
+    F --> H["main continues"]
     G --> H
-    G --> I["Không được xử lý: luồng kết thúc bất thường"]
-    H --> J["main hoàn tất"]
-    J --> K["JVM kiểm tra các luồng non-daemon còn sống"]
+    G --> I["Uncaught: thread terminates abnormally"]
+    H --> J["main finishes"]
+    J --> K["JVM checks remaining live non-daemon threads"]
     I --> K
 ~~~
 
-Sơ đồ mô tả luồng khái quát, không khẳng định mọi lỗi đều được bắt hoặc mọi tiến trình JVM đều kết thúc ngay sau `main`.
+The diagram illustrates the high-level flow; it does not imply every error is caught or every JVM process terminates immediately after `main`.
 
-## 2. Chương trình thực hành có đầu ra dự đoán được
+## 2. Practice Program with Predictable Output
 
-Tạo tệp đúng tên **`FlowDemo.java`**:
+Create the file with the exact name **`FlowDemo.java`**:
 
 ~~~java
 public final class FlowDemo {
@@ -73,7 +73,7 @@ public final class FlowDemo {
 }
 ~~~
 
-Tại thư mục chứa file, kiểm tra JDK rồi biên dịch/chạy.
+In the directory containing the file, check your JDK and compile/run.
 
 **Bash (Linux/macOS):**
 
@@ -95,7 +95,7 @@ java -cp . FlowDemo
 java -cp . FlowDemo 5
 ~~~
 
-**Đầu ra lần không có đối số:**
+**Output with no arguments:**
 
 ~~~text
 0. Khoi tao lop
@@ -108,7 +108,7 @@ java -cp . FlowDemo 5
 7. Het main
 ~~~
 
-**Đầu ra khi truyền `5`:**
+**Output when passing `5`:**
 
 ~~~text
 0. Khoi tao lop
@@ -121,46 +121,46 @@ java -cp . FlowDemo 5
 7. Het main
 ~~~
 
-Mỗi lệnh `java` trong ví dụ khởi động một JVM mới nên phần `static` in dòng `0` trong **mỗi lần chạy**.
+Each `java` command in the example starts a new JVM, so the `static` block prints line `0` on **every run**.
 
 
-## 3. Đối số của `main` tham gia luồng thực thi thế nào?
+## 3. How Do `main` Arguments Participate in Execution Flow?
 
-Với `java -cp . FlowDemo 5`, launcher chọn lớp `FlowDemo` và truyền chuỗi `"5"` vào `args[0]`. Phương thức `main` dùng `Integer.parseInt(args[0])` để chuyển chuỗi thành `int` trước khi gọi `twice`. Nếu không có đối số, biểu thức `args.length == 0 ? 3 : ...` chọn số mặc định `3`.
+With `java -cp . FlowDemo 5`, the launcher selects the `FlowDemo` class and passes the string `"5"` into `args[0]`. The `main` method uses `Integer.parseInt(args[0])` to convert the string into an `int` before calling `twice`. If no argument is supplied, the expression `args.length == 0 ? 3 : ...` chooses the default number `3`.
 
-Trên Java 17, điểm vào truyền thống là `public static void main(String[] args)`: launcher gọi phương thức `static` đó mà không tạo đối tượng; `args` là mảng các chuỗi đối số ứng dụng. Phân tích từng thành phần chữ ký và quy tắc kiểm tra `args.length` nằm ở bài **Vai trò của public static void main(String[] args)**. Tại đây, hãy quan sát **thời điểm** chuyển dữ liệu: truyền `abc` khiến `Integer.parseInt` ném `NumberFormatException` ngay trong `main`, trước cả khi `twice` được gọi.
+On Java 17, the traditional entry point is `public static void main(String[] args)`: the launcher invokes that `static` method without creating an object; `args` is an array of application argument strings. Breakdown of each part of the signature and the rules for checking `args.length` are covered in **Role of public static void main(String[] args)**. Here, observe **when** data conversion happens: passing `abc` causes `Integer.parseInt` to throw `NumberFormatException` right inside `main`, even before `twice` is called.
 
-Lệnh `java -cp . FlowDemo.class` không hợp lệ trong class mode; launcher nhận tên lớp `FlowDemo`. Nếu lớp nằm trong package, cần tên lớp đầy đủ và classpath root phù hợp, chẳng hạn `java -cp out demo.Entry`.
+The command `java -cp . FlowDemo.class` is invalid in class mode; the launcher takes the class name `FlowDemo`. If the class is in a package, the fully qualified class name and matching classpath root are required, such as `java -cp out demo.Entry`.
 
-## 4. Cơ chế gọi method: ai chạy trước và ai nhận kết quả?
+## 4. Method Call Mechanics: Who Runs First and Who Receives the Result?
 
-Trong ví dụ `FlowDemo`, `main` gặp biểu thức:
+In the `FlowDemo` example, `main` reaches the expression:
 
 ~~~java
 int answer = twice(input);
 ~~~
 
-Lúc đó:
+At that point:
 
-1. Java đánh giá đối số `input` rồi thực hiện lời gọi `twice`.
-2. Thân `twice` chạy từ đầu cho tới `return` hoặc khi ném exception.
-3. `return value;` làm lời gọi `twice` **hoàn tất bình thường** và chuyển giá trị `int` về biểu thức ở bên gọi.
-4. `main` gán giá trị đó vào `answer` rồi mới in dòng `5`.
-5. `main` gọi `display(answer)`. Vì `display` trả `void`, nó không gửi lại một giá trị có thể gán.
-6. Khi `display` kết thúc, `main` chạy tiếp dòng `7`.
+1. Java evaluates the argument `input` and then performs the call to `twice`.
+2. The body of `twice` executes from the start until `return` or until an exception is thrown.
+3. `return value;` makes the `twice` call **complete normally** and passes the `int` value back to the expression at the caller.
+4. `main` assigns that value to `answer` and only then prints line `5`.
+5. `main` calls `display(answer)`. Because `display` returns `void`, it sends back no assignable value.
+6. When `display` finishes, `main` continues with line `7`.
 
-| Dòng in | Method đang hoạt động | Vì sao xuất hiện lúc đó? |
+| Printed line | Active method | Why does it appear at that moment? |
 |---|---|---|
-| 0 | Bộ khởi tạo static | JVM khởi tạo lớp trước khi gọi main |
-| 1, 2 | `main` | Các lệnh đầu trong main |
-| 3, 4 | `twice` | `main` đã gọi twice và đang chờ kết quả |
-| 5 | `main` | twice đã return |
-| 6 | `display` | main gọi display |
-| 7 | `main` | display hoàn tất, main tiếp tục |
+| 0 | Static initializer | JVM initializes the class before calling `main` |
+| 1, 2 | `main` | First statements inside `main` |
+| 3, 4 | `twice` | `main` called `twice` and is waiting for the result |
+| 5 | `main` | `twice` has returned |
+| 6 | `display` | `main` calls `display` |
+| 7 | `main` | `display` finishes, `main` continues |
 
-**Khai báo một method phía trên `main` trong file không khiến nó chạy trước `main`.** Method chạy vì có lời gọi, không vì vị trí được viết trong source.
+**Declaring a method above `main` in the file does not make it run before `main`.** A method runs because it is called, not because of where it is written in the source file.
 
-### return chỉ thoát phương thức hiện tại
+### `return` only exits the current method
 
 ~~~java
 static void printIfPositive(int value) {
@@ -170,30 +170,30 @@ static void printIfPositive(int value) {
     System.out.println(value);
 }
 
-// Đặt trong một main:
+// Placed inside a main method:
 printIfPositive(0);
 System.out.println("main van tiep tuc");
 ~~~
 
-Kết quả chỉ là `main van tiep tuc`. `return;` ở `printIfPositive` **không** kết thúc `main`, càng không phải lệnh tắt JVM.
+The output is just `main van tiep tuc`. `return;` inside `printIfPositive` **does not** terminate `main`, let alone shut down the JVM.
 
-## 5. Call stack: đường đi xuống và quay trở lại
+## 5. Call Stack: Descending and Returning
 
-Mỗi luồng Java có **call stack** gồm các frame của những lời gọi method đang thực thi. Khi gọi method mới, ngữ cảnh của bên gọi được giữ lại để có thể tiếp tục sau khi method con trả về.
+Each Java thread has a **call stack** containing frames for the active method invocations. When a new method is called, the caller's context is preserved so execution can resume after the callee returns.
 
 ~~~text
-Khi main đang chạy:           Khi main gọi twice:
+While main is running:        When main calls twice:
 +-----------------------+     +-----------------------+
-| main(args)            |     | twice(number=3)       |  <-- đang chạy
+| main(args)            |     | twice(number=3)       |  <-- currently running
 +-----------------------+     +-----------------------+
                               | main(args)            |
                               +-----------------------+
-Sau return: chỉ còn main tiếp tục tại câu lệnh sau lời gọi.
+After return: only main remains, continuing at the statement after the call.
 ~~~
 
-Đây là mô hình giải thích, không phải sơ đồ địa chỉ bộ nhớ thực tế của mọi JVM.
+This is an explanatory model, not an actual memory-address layout for every JVM.
 
-Thử thêm chương trình **`CallChain.java`**:
+Try another program, **`CallChain.java`**:
 
 ~~~java
 public class CallChain {
@@ -221,14 +221,14 @@ public class CallChain {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac --release 17 CallChain.java
 java -cp . CallChain
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 main starts
@@ -239,11 +239,11 @@ value = 7
 main ends
 ~~~
 
-Thứ tự lời gọi đi xuống là `main → outer → middle → inner`. Kết quả đi lên là `inner` trả `6`, `middle` trả `7`, rồi `outer` in `7`. Vì vậy `main ends` chỉ xuất hiện sau khi `outer` kết thúc.
+The downward call sequence is `main → outer → middle → inner`. Results flow back up as `inner` returns `6`, `middle` returns `7`, and `outer` prints `7`. Thus `main ends` only appears after `outer` finishes.
 
-## 6. Tham số: Java luôn truyền theo giá trị
+## 6. Parameters: Java Always Passes by Value
 
-Khi gọi method, Java **sao chép giá trị đối số** vào tham số. Với primitive, đó là giá trị như `int`. Với đối tượng, đó là **giá trị tham chiếu**, nên cả bên gọi và bên được gọi có thể trỏ đến cùng object.
+When calling a method, Java **copies the argument's value** into the parameter. For primitives, that is the value itself, such as an `int`. For objects, that is the **reference value**, so both the caller and the callee can point to the same object.
 
 ~~~java
 static void change(int n, StringBuilder box) {
@@ -252,7 +252,7 @@ static void change(int n, StringBuilder box) {
     box = new StringBuilder("Khac");
 }
 
-// Trong main:
+// Inside main:
 int count = 3;
 StringBuilder text = new StringBuilder("Hi");
 change(count, text);
@@ -260,13 +260,13 @@ System.out.println(count); // 3
 System.out.println(text);  // Hi!
 ~~~
 
-Gán `n = 99` không đổi biến `count` bên gọi. `box.append("!")` thay đổi **trạng thái object dùng chung**, nên `text` thấy `Hi!`. Gán lại `box` không làm `text` trỏ sang đối tượng mới.
+Assigning `n = 99` does not change the caller's `count` variable. `box.append("!")` mutates the **shared object's state**, so `text` sees `Hi!`. Reassigning `box` does not make `text` point to the new object.
 
-Không diễn giải Java là “pass-by-reference” chỉ vì một object mutable có thể bị thay đổi qua tham số.
+Do not describe Java as "pass-by-reference" merely because a mutable object can be modified through a parameter.
 
-## 7. Ném exception khác với return
+## 7. Throwing an Exception Differs from `return`
 
-Trong `twice`, số âm sẽ bị từ chối:
+In `twice`, negative numbers are rejected:
 
 ~~~java
 if (number < 0) {
@@ -274,13 +274,13 @@ if (number < 0) {
 }
 ~~~
 
-Thử:
+Try:
 
 ~~~bash
 java -cp . FlowDemo -1
 ~~~
 
-Trước stack trace, chương trình in:
+Before the stack trace, the program prints:
 
 ~~~text
 0. Khoi tao lop
@@ -289,7 +289,7 @@ Trước stack trace, chương trình in:
 3. Vao twice(-1)
 ~~~
 
-Sau đó `IllegalArgumentException` lan từ `twice` lên `main` do không có `catch` phù hợp. Stack trace thường chứa thông tin dạng:
+Then `IllegalArgumentException` propagates from `twice` up to `main` because there is no matching `catch`. The stack trace typically looks like:
 
 ~~~text
 Exception in thread "main" java.lang.IllegalArgumentException: number must be >= 0
@@ -297,17 +297,17 @@ Exception in thread "main" java.lang.IllegalArgumentException: number must be >=
     at FlowDemo.main(FlowDemo.java:...)
 ~~~
 
-Số dòng trong dấu `...` tùy file. Các dòng `4` đến `7` không in vì lời gọi không hoàn tất theo đường bình thường.
+The line numbers in `...` depend on the file. Lines `4` through `7` are not printed because the call did not complete along the normal path.
 
-Với:
+With:
 
 ~~~bash
 java -cp . FlowDemo abc
 ~~~
 
-`Integer.parseInt("abc")` ném `NumberFormatException` khi tính `input`, **trước** dòng `2` và trước lời gọi `twice`. Chỉ dòng `0`, `1` xuất hiện trước thông báo lỗi.
+`Integer.parseInt("abc")` throws `NumberFormatException` while computing `input`, **before** line `2` and before `twice` is called. Only lines `0` and `1` appear before the error message.
 
-Để phục hồi từ một exception dự kiến, bên gọi có thể xử lý:
+To recover from an expected exception, the caller can handle it:
 
 ~~~java
 try {
@@ -319,23 +319,23 @@ try {
 System.out.println("Tiep tuc");
 ~~~
 
-Khi đặt snippet trong một method hợp lệ, nó in `3. Vao twice(-1)`, rồi `Input sai: number must be >= 0`, sau đó `Tiep tuc`. Câu lệnh `System.out.println(answer)` bên trong `try` không chạy vì exception đã chuyển luồng đến `catch`.
+When placed inside a valid method, it prints `3. Vao twice(-1)`, then `Input sai: number must be >= 0`, and then `Tiep tuc`. The `System.out.println(answer)` statement inside `try` does not execute because the exception transferred control to `catch`.
 
-Exception chưa xử lý có thể làm **luồng main** kết thúc bất thường; điều đó không phải lời gọi `System.exit` và không bảo đảm không còn các luồng khác.
+An uncaught exception can cause the **main thread** to terminate abnormally; that is not a `System.exit` call and does not guarantee no other threads remain.
 
-## 8. Khi nào một ứng dụng Java thật sự dừng?
+## 8. When Does a Java Application Truly Stop?
 
-Phân biệt ba tình huống:
+Distinguish three situations:
 
-| Trường hợp | Hệ quả |
+| Case | Consequence |
 |---|---|
-| `main` chạy tới hết hoặc `return;` | Luồng main hoàn thành |
-| `main` thoát vì exception chưa xử lý | Luồng main kết thúc bất thường; thường có stack trace |
-| `System.exit(status)` | Yêu cầu JVM thực hiện trình tự shutdown với mã trạng thái |
+| `main` runs to the end or executes `return;` | The main thread finishes |
+| `main` exits due to an uncaught exception | The main thread terminates abnormally; usually prints a stack trace |
+| `System.exit(status)` | Requests the JVM to run its shutdown sequence with the status code |
 
-Trong ứng dụng đơn luồng như `FlowDemo`, `main` kết thúc bình thường, JVM thường dừng với **exit code 0**. Nhưng nếu còn **luồng non-daemon** sống, JVM thông thường vẫn tiếp tục chạy sau khi `main` hoàn tất.
+In a single-threaded application like `FlowDemo`, when `main` finishes normally, the JVM typically exits with **exit code 0**. However, if any **non-daemon thread** is still alive, the JVM normally keeps running after `main` completes.
 
-Thử **`ThreadExitDemo.java`**:
+Try **`ThreadExitDemo.java`**:
 
 ~~~java
 public class ThreadExitDemo {
@@ -354,20 +354,20 @@ public class ThreadExitDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac --release 17 ThreadExitDemo.java
 java -cp . ThreadExitDemo
 ~~~
 
-Bạn sẽ thấy cả `main finished` và `worker finished`. Thứ tự in là kết quả của lịch chạy các luồng, không nên xem là hợp đồng cố định; JVM vẫn chờ worker non-daemon hoàn tất trước khi shutdown bình thường.
+You will see both `main finished` and `worker finished`. The print order is the result of thread scheduling and should not be treated as a fixed contract; the JVM still waits for the non-daemon worker to complete before shutting down normally.
 
-`System.exit(2)` yêu cầu dừng **cả JVM** với status 2 (thường quy ước khác 0 nghĩa là lỗi). Nó không tương đương `return;`, và **không bảo đảm các block `finally` của luồng đang bị dừng chạy như khi rời method bình thường**. Tránh gọi `System.exit` trong các method thư viện; để tầng khởi chạy quyết định cách báo lỗi và dừng ứng dụng.
+`System.exit(2)` requests stopping the **entire JVM** with status 2 (by convention, non-zero indicates failure). It is not equivalent to `return;`, and **it does not guarantee that `finally` blocks of stopped threads run as they would on normal method exit**. Avoid calling `System.exit` in library methods; let the startup layer decide how to report errors and terminate the application.
 
-## 9. finally trong đường return
+## 9. `finally` on a `return` Path
 
-Method có `return` trong `try` vẫn thực hiện `finally` trước khi trả quyền điều khiển về bên gọi, nếu JVM rời block theo cơ chế bình thường:
+A method with `return` inside `try` still executes `finally` before returning control to the caller, assuming the JVM exits the block normally:
 
 ~~~java
 static int compute() {
@@ -379,12 +379,12 @@ static int compute() {
     }
 }
 
-// Gọi trong main:
+// Called in main:
 int value = compute();
 System.out.println("C. value = " + value);
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 A. try
@@ -392,36 +392,36 @@ B. finally
 C. value = 10
 ~~~
 
-Không đặt `return` trong `finally` để tránh che mất exception hoặc thay đổi kết quả của `try`. Nếu quản lý tài nguyên như file/stream, dùng `try-with-resources` khi phù hợp thay vì trông chờ JVM sắp kết thúc.
+Do not put `return` inside `finally` so you do not mask exceptions or alter the result of `try`. When managing resources such as files or streams, use `try-with-resources` where appropriate instead of relying on the JVM being about to exit.
 
-## 10. Bảng chẩn đoán thường gặp
+## 10. Common Troubleshooting Table
 
-| Hiện tượng | Nguyên nhân có thể có | Bước kiểm tra |
+| Symptom | Possible cause | What to check |
 |---|---|---|
-| `Main method not found` | Class không có entry point theo Java 17 | Chữ ký `public static void main(String[] args)` |
-| `Could not find or load main class` | Sai package, classpath hoặc tên class | Classpath root, file `.class`, tên đầy đủ |
-| Không in dòng sau lời gọi method | `throw`, `return` sớm hoặc nhánh không chạy | Trace lời gọi và stack trace |
-| `NumberFormatException` | `args[0]` không phải số nguyên hợp lệ | Xác thực và xử lý input |
-| `ArithmeticException` tại `multiplyExact` | Kết quả nhân vượt miền `int` | Kiểm tra miền giá trị/kiểu dữ liệu |
-| Chạy xong main mà terminal chưa trả dấu nhắc | Vẫn còn worker non-daemon hoặc tác vụ chờ | Quan sát trạng thái threads, blocking I/O |
-| Dòng log không theo thứ tự đoán giữa hai threads | Lịch chạy không cố định | Đồng bộ khi cần thứ tự, đừng suy luận từ log ngẫu nhiên |
+| `Main method not found` | Class lacks a Java 17 entry point | Signature `public static void main(String[] args)` |
+| `Could not find or load main class` | Wrong package, classpath, or class name | Classpath root, `.class` file, fully qualified name |
+| Lines after a method call do not print | `throw`, early `return`, or branch did not execute | Trace calls and stack trace |
+| `NumberFormatException` | `args[0]` is not a valid integer | Validate and handle input |
+| `ArithmeticException` in `multiplyExact` | Multiplication result exceeds `int` range | Check value range/data type |
+| `main` finished but terminal has not returned prompt | Non-daemon worker or blocking task still active | Inspect thread states and blocking I/O |
+| Log lines between two threads appear out of predicted order | Non-deterministic scheduling | Synchronize when order matters; do not infer from incidental logs |
 
-## 11. Bài tập với đáp án
+## 11. Exercises with Answers
 
-### Bài A — lần theo lời gọi
+### Exercise A — follow the call
 
 ~~~java
 static int addOne(int x) {
     System.out.println("B");
     return x + 1;
 }
-// Trong main:
+// In main:
 System.out.println("A");
 int y = addOne(4);
 System.out.println("C:" + y);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 A
@@ -429,48 +429,48 @@ B
 C:5
 ~~~
 
-Vì bên gọi chỉ in `C:5` khi `addOne` đã hoàn thành và trả về `5`.
+Because the caller only prints `C:5` once `addOne` has completed and returned `5`.
 
-### Bài B — return có tắt JVM không?
+### Exercise B — does `return` stop the JVM?
 
-Nếu `validate()` gặp `return;` nhưng `main` còn `System.out.println("done");` phía sau lời gọi, điều gì xảy ra?
+If `validate()` hits `return;` while `main` still has `System.out.println("done");` after the call, what happens?
 
-**Đáp án:** `validate` kết thúc; `main` vẫn in `done` nếu không có exception hoặc đường rẽ khác ngăn cản.
+**Answer:** `validate` finishes; `main` still prints `done` unless an exception or another branch prevents it.
 
-### Bài C — dự đoán đầu ra khi nhập sai
+### Exercise C — predict output on invalid input
 
-Với `FlowDemo`, chạy:
+With `FlowDemo`, run:
 
 ~~~bash
 java -cp . FlowDemo -1
 ~~~
 
-**Đáp án:** chương trình in các dòng `0`, `1`, `2`, `3` rồi báo `IllegalArgumentException`; không in `4` đến `7`.
+**Answer:** the program prints lines `0`, `1`, `2`, `3` and then reports `IllegalArgumentException`; it does not print `4` through `7`.
 
-### Bài D — tràn số ở phương thức con
+### Exercise D — overflow in a helper method
 
 ~~~bash
 java -cp . FlowDemo 2147483647
 ~~~
 
-**Đáp án:** `Math.multiplyExact` ném `ArithmeticException` do vượt miền `int`; không có giá trị trả về hợp lệ để `main` gán cho `answer`.
+**Answer:** `Math.multiplyExact` throws `ArithmeticException` due to `int` overflow; no valid return value is produced for `main` to assign to `answer`.
 
-### Bài E — main đã hết nhưng worker còn chạy
+### Exercise E — `main` ended while a worker is still running
 
-Ứng dụng còn một thread non-daemon đang xử lý. JVM có buộc phải dừng ngay khi `main` return không?
+An application still has one non-daemon thread processing work. Must the JVM stop immediately when `main` returns?
 
-**Đáp án:** Không. Kết thúc luồng main khác với kết thúc toàn bộ tiến trình JVM; bình thường JVM còn đợi worker non-daemon.
+**Answer:** No. The main thread finishing is different from the entire JVM process terminating; normally the JVM waits for non-daemon workers.
 
 ## 12. Checklist
 
-- [ ] Biết chữ ký điểm vào `main` thông dụng trên Java 17.
-- [ ] Chạy đúng lệnh `javac` và `java`, hiểu `args[0]`.
-- [ ] Giải thích vì sao static initializer có thể chạy trước thân main.
-- [ ] Theo dõi được `main → method → return → main`.
-- [ ] Hiểu frame của call stack và truyền tham số theo giá trị.
-- [ ] Phân biệt `return`, `throw` và `System.exit`.
-- [ ] Biết đọc stack trace và vị trí phát sinh lỗi.
-- [ ] Nhận diện được trường hợp `main` kết thúc nhưng JVM còn chạy.
-- [ ] Hiểu `finally` trong đường `return` và rủi ro dừng JVM cưỡng bức.
+- [ ] Know the common `main` entry-point signature on Java 17.
+- [ ] Run `javac` and `java` commands properly and understand `args[0]`.
+- [ ] Explain why a static initializer can run before the body of `main`.
+- [ ] Trace `main → method → return → main`.
+- [ ] Understand call stack frames and pass-by-value parameter passing.
+- [ ] Distinguish `return`, `throw`, and `System.exit`.
+- [ ] Read a stack trace and locate where an error originated.
+- [ ] Recognize cases where `main` finishes while the JVM keeps running.
+- [ ] Understand `finally` on a `return` path and the risks of forcing JVM termination.
 
-**Kết luận:** Launcher chọn class có điểm vào; JVM khởi tạo lớp cần thiết rồi gọi `main`. Lời gọi method chuyển điều khiển vào thân phương thức, `return` đưa kết quả về caller, còn exception có thể đi theo đường khác. `main` kết thúc không đồng nghĩa JVM luôn dừng ngay: vòng đời tiến trình còn phụ thuộc các luồng non-daemon và cơ chế shutdown.
+**Conclusion:** The launcher selects the class with the entry point; the JVM initializes required classes and calls `main`. A method call transfers control into the method body, `return` sends a result back to the caller, while an exception can follow a different path. `main` finishing does not mean the JVM always stops immediately: process lifetime also depends on non-daemon threads and shutdown mechanisms.

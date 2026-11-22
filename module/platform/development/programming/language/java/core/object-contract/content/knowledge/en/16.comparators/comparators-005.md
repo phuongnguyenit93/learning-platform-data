@@ -1,15 +1,15 @@
-# `Comparator.reversed()` và vị trí áp dụng trong chuỗi so sánh
+# `Comparator.reversed()` and Where to Apply It in a Comparison Chain
 
-## 1. Quy tắc cốt lõi
+## 1. The Core Rule
 
-`Comparator<T>` mô tả thứ tự so sánh của các đối tượng kiểu `T`. Trong Java, phương thức **`reversed()` trả về một comparator mới đảo chiều thứ tự của chính comparator mà nó được gọi trên đó**. Điều này đặc biệt quan trọng khi kết hợp nhiều tiêu chí bằng `thenComparing(...)` hoặc `thenComparingInt(...)`.
+`Comparator<T>` describes the comparison order of objects of type `T`. In Java, **`reversed()` returns a new comparator that reverses the order of the comparator on which it is called**. This is especially important when combining multiple criteria with `thenComparing(...)` or `thenComparingInt(...)`.
 
-Ví dụ, sắp xếp nhân viên theo:
+For example, sorting employees by:
 
-1. `department` (phòng ban), tăng dần.
-2. Nếu cùng phòng ban, `age` (tuổi), tăng dần.
+1. `department`, ascending.
+2. Within the same department, `age`, ascending.
 
-Ta có thể viết:
+You can write:
 
 ~~~java
 Comparator<Employee> byDepartment =
@@ -20,37 +20,37 @@ Comparator<Employee> byAge =
 Comparator<Employee> base = byDepartment.thenComparing(byAge);
 ~~~
 
-Đây là **đoạn minh họa**, giả định lớp hoặc record `Employee` có hai accessor `department()` và `age()`. `thenComparing` chỉ dùng tiêu chí tiếp theo **khi comparator trước đó trả về `0`**. Đây là kiểu so sánh từ trái sang phải (*lexicographic ordering*).
+This is an **illustrative snippet**, assuming class or record `Employee` has two accessors `department()` and `age()`. `thenComparing` uses the next criterion **only when the preceding comparator returns `0`**. This is left-to-right comparison (*lexicographic ordering*).
 
-Điểm dễ nhầm là `reversed()` **đảo toàn bộ comparator đã được xây dựng đến vị trí lời gọi**, chứ không chỉ mặc định đảo tiêu chí đứng ngay cạnh nó. Hãy nghĩ theo cách đặt dấu ngoặc:
+An easy point of confusion is that `reversed()` **reverses the entire comparator built up to the call site**, rather than defaulting to reversing only the criterion immediately adjacent to it. Think of it in terms of parentheses:
 
 ~~~text
 (c1.thenComparing(c2)).reversed()
-    -> đảo thứ tự của cả chuỗi c1 rồi c2
+    -> reverses the order of the entire chain c1 then c2
 
 c1.reversed().thenComparing(c2)
-    -> đảo c1; nếu hòa ở c1, c2 vẫn giữ chiều cũ
+    -> reverses c1; if tied on c1, c2 keeps its original direction
 
 c1.thenComparing(c2.reversed())
-    -> giữ c1; nếu hòa ở c1, đảo riêng c2
+    -> keeps c1; if tied on c1, reverses only c2
 ~~~
 
-**Thứ tự lời gọi phương thức quyết định phạm vi đảo chiều.** `reversed()` không biến đổi dữ liệu gốc, không tự sắp xếp danh sách, và không thay đổi cách `equals()` của các đối tượng hoạt động.
+**The method call order determines the scope of reversal.** `reversed()` does not mutate the original data, does not sort any list by itself, and does not change how `equals()` behaves on objects.
 
-## 2. Hiểu dấu của `compare(a, b)`
+## 2. Understanding the Sign of `compare(a, b)`
 
-Theo hợp đồng `Comparator.compare(a, b)`:
+By the `Comparator.compare(a, b)` contract:
 
-- Trả về **số âm**: `a` đứng trước `b`.
-- Trả về **`0`**: hai đối tượng tương đương theo comparator đang xét; `thenComparing` mới cần kiểm tra tiêu chí tiếp theo.
-- Trả về **số dương**: `a` đứng sau `b`.
+- Returns a **negative number**: `a` comes before `b`.
+- Returns **`0`**: the two objects are equivalent under the current comparator; only then does `thenComparing` need to check the next criterion.
+- Returns a **positive number**: `a` comes after `b`.
 
-Nếu `c` là comparator tăng dần và `r = c.reversed()`, về mặt thứ tự `r.compare(a, b)` đảo dấu so sánh so với `c.compare(a, b)`. Có thể hình dung thông qua việc hoán đổi hai đối số khi so sánh. **Không nên tự đảo bằng phép trừ hoặc bằng cách đổi dấu nguyên vẹn giá trị `compare`**: giá trị `int` nhỏ nhất (`Integer.MIN_VALUE`) có thể gây tràn khi lấy đối, còn hợp đồng chỉ dựa vào dấu của kết quả.
+If `c` is an ascending comparator and `r = c.reversed()`, in terms of ordering `r.compare(a, b)` flips the comparison sign relative to `c.compare(a, b)`. You can picture this as swapping the two arguments when comparing. **Do not reverse manually using subtraction or by negating the raw integer return value of `compare`**: the smallest `int` value (`Integer.MIN_VALUE`) can overflow when negated, and the contract relies only on the sign of the result.
 
-Với tiêu chí đầu tiên `c1`, thứ hai `c2`, comparator ghép hoạt động về mặt logic như sau:
+With first criterion `c1` and second `c2`, the combined comparator logically works as follows:
 
 ~~~java
-// Minh họa thuật toán, giả sử có Comparator<T> c1 và c2.
+// Algorithmic illustration, assuming Comparator<T> c1 and c2 exist.
 int result = c1.compare(a, b);
 if (result != 0) {
     return result;
@@ -58,40 +58,40 @@ if (result != 0) {
 return c2.compare(a, b);
 ~~~
 
-`thenComparing` không “trộn” các điểm số với nhau. Tiêu chí đầu tiên có **ưu tiên cao hơn**: chỉ khi bằng nhau theo tiêu chí trước mới đi đến tiêu chí kế tiếp.
+`thenComparing` does not "blend" scores together. The first criterion has **higher priority**: only when tied under the preceding criterion do we proceed to the next criterion.
 
-## 3. Bốn cách đặt `reversed()`, bốn thứ tự khác nhau
+## 3. Four Ways to Place `reversed()`, Four Different Orders
 
-Giả sử mỗi đối tượng có ba thành phần:
+Suppose each object has three components:
 
-- `name`: nhãn để quan sát đầu ra.
-- `group`: một trong hai giá trị `A` hoặc `B`.
-- `score`: `10` hoặc `20`.
+- `name`: label to observe output.
+- `group`: one of two values `A` or `B`.
+- `score`: `10` or `20`.
 
-Ta muốn sắp xếp theo `group` trước, rồi theo `score`.
+We want to sort by `group` first, then by `score`.
 
-| Cách tạo comparator | Group | Score trong cùng group | Ý nghĩa |
+| How the comparator is built | Group | Score within the same group | Meaning |
 | --- | --- | --- | --- |
-| `byGroup.thenComparing(byScore)` | A → B | 10 → 20 | Cả hai tăng dần |
-| `byGroup.thenComparing(byScore).reversed()` | B → A | 20 → 10 | Đảo **toàn chuỗi** đã tạo |
-| `byGroup.reversed().thenComparing(byScore)` | B → A | 10 → 20 | Đảo **group** trước khi gắn score |
-| `byGroup.thenComparing(byScore.reversed())` | A → B | 20 → 10 | Chỉ đảo **score** làm tiêu chí phụ |
+| `byGroup.thenComparing(byScore)` | A → B | 10 → 20 | Both ascending |
+| `byGroup.thenComparing(byScore).reversed()` | B → A | 20 → 10 | Reverses the **entire chain** built so far |
+| `byGroup.reversed().thenComparing(byScore)` | B → A | 10 → 20 | Reverses **group** before attaching score |
+| `byGroup.thenComparing(byScore.reversed())` | A → B | 20 → 10 | Reverses only **score** as the secondary criterion |
 
-Chú ý: `byGroup.reversed().thenComparing(byScore)` là một comparator mới được xây dựng theo thứ tự *group giảm, score tăng*. Nếu gọi thêm `.reversed()` **sau toàn bộ chuỗi này**, bạn lại đảo cả hai tiêu chí đang có, trở thành *group tăng, score giảm*.
+Note: `byGroup.reversed().thenComparing(byScore)` is a new comparator built in the order *group descending, score ascending*. If you call `.reversed()` **after this whole chain**, you reverse both criteria currently present, turning it into *group ascending, score descending*.
 
-Một cách diễn đạt toán học tiện nhớ:
+A handy mathematical notation to remember:
 
 ~~~text
 (c1 + c2).reversed()  ≈  c1.reversed() + c2.reversed()
-c1.reversed() + c2    =  c1 giảm, rồi c2 theo chiều ban đầu
-c1 + c2.reversed()    =  c1 theo chiều ban đầu, rồi c2 giảm
+c1.reversed() + c2    =  c1 descending, then c2 in its original direction
+c1 + c2.reversed()    =  c1 in its original direction, then c2 descending
 ~~~
 
-Dấu `+` ở đây chỉ cách ghép comparator bằng `thenComparing`, **không phải phép cộng Java**. Dấu `≈` diễn tả **tương đương về thứ tự so sánh**, không khẳng định hai đối tượng comparator có cùng tham chiếu hay cùng cấu trúc triển khai.
+The `+` sign here merely denotes chaining comparators with `thenComparing`, **not Java addition**. The `≈` sign expresses **equivalence in comparison order**, not claiming that the two comparator objects share the same reference or internal implementation structure.
 
-## 4. Chương trình Java 17+ chạy độc lập
+## 4. Standalone Runnable Java 17+ Program
 
-Tạo tệp **`ComparatorReversedDemo.java`**:
+Create the file **`ComparatorReversedDemo.java`**:
 
 ~~~java
 import java.util.Comparator;
@@ -146,14 +146,14 @@ public class ComparatorReversedDemo {
 }
 ~~~
 
-Biên dịch và chạy với **JDK 17 trở lên**:
+Compile and run with **JDK 17 or later**:
 
 ~~~bash
 javac ComparatorReversedDemo.java
 java ComparatorReversedDemo
 ~~~
 
-Đầu ra xác định:
+Deterministic output:
 
 ~~~text
 group ASC, score ASC: [a10, a20, b10, b20]
@@ -163,24 +163,24 @@ group ASC, score DESC: [a20, a10, b20, b10]
 reverse with equal keys: [x, m1, m2]
 ~~~
 
-**Giải thích từng dòng:**
+**Line-by-line explanation:**
 
-1. `allAsc` là chuỗi tăng dần theo `group` rồi tăng dần theo `score`: các dòng nhóm `A` đứng trước nhóm `B`; trong mỗi nhóm điểm `10` đứng trước `20`.
-2. `allDesc` gọi `reversed()` **sau khi `thenComparing` đã gắn cả hai tiêu chí**. Vì thế nhóm `B` đứng trước `A`, đồng thời điểm `20` đứng trước `10` trong từng nhóm.
-3. `groupDescScoreAsc` gọi `reversed()` khi comparator mới chỉ có `byGroup`. Sau đó `thenComparing(byScore)` gắn tiêu chí điểm **giữ nguyên tăng dần**.
-4. `groupAscScoreDesc` đảo đúng comparator `byScore` trước khi đưa vào `thenComparing`. Nhóm vẫn tăng dần, điểm bên trong nhóm giảm dần.
-5. Hai dòng `m1` và `m2` có cùng `group = A` và `score = 10`, nên `allDesc.compare(m1, m2) == 0`. `Stream.sorted` giữ tính ổn định (*stable*) đối với stream có thứ tự như `List.stream()`, nên hai dòng hòa vẫn xuất hiện theo thứ tự nhập ban đầu: `m1` trước `m2`.
+1. `allAsc` is the ascending chain by `group` then ascending by `score`: group `A` rows come before group `B`; within each group, score `10` comes before `20`.
+2. `allDesc` calls `reversed()` **after `thenComparing` has attached both criteria**. Thus group `B` comes before `A`, and score `20` comes before `10` within each group.
+3. `groupDescScoreAsc` calls `reversed()` when the comparator has only `byGroup`. Then `thenComparing(byScore)` attaches the score criterion **remaining ascending**.
+4. `groupAscScoreDesc` reverses only the `byScore` comparator before passing it to `thenComparing`. Groups stay ascending while scores within a group are descending.
+5. Both `m1` and `m2` have `group = A` and `score = 10`, so `allDesc.compare(m1, m2) == 0`. `Stream.sorted` preserves stability (*stable*) for ordered streams such as `List.stream()`, so the tied rows still appear in their original input order: `m1` before `m2`.
 
-**Bài học quan trọng:** đảo comparator **không đồng nghĩa đảo ngược toàn bộ danh sách đã sắp xếp**. Nếu các phần tử có khóa so sánh bằng nhau, sort ổn định giữ thứ tự tương đối của chúng; còn lệnh đảo danh sách như `Collections.reverse(list)` sẽ đổi cả thứ tự các phần tử hòa đó.
+**Important lesson:** reversing a comparator **is not synonymous with reversing an already-sorted list**. If elements have equal comparison keys, a stable sort preserves their relative order; whereas a list-reversal call like `Collections.reverse(list)` flips the order of those tied elements as well.
 
-## 5. Vị trí `reversed()` khi có ba tiêu chí
+## 5. Placing `reversed()` with Three Criteria
 
-Giả sử cần sắp xếp theo ba khóa lần lượt: **phòng ban, lương, tên**. Từ trái sang phải, `thenComparing` chỉ được dùng khi toàn bộ tiêu chí trước đó cho kết quả hòa.
+Suppose you need to sort by three keys in sequence: **department, salary, name**. From left to right, `thenComparing` is only consulted when all preceding criteria result in a tie.
 
-### A. Đảo mọi tiêu chí đã ghép
+### A. Reverse all chained criteria
 
 ~~~java
-// Đoạn minh họa trong ngữ cảnh có lớp Employee và các accessor.
+// Illustrative snippet in a context with an Employee class and accessors.
 Comparator<Employee> allDescending =
         Comparator.comparing(Employee::department)
                 .thenComparingInt(Employee::salary)
@@ -188,9 +188,9 @@ Comparator<Employee> allDescending =
                 .reversed();
 ~~~
 
-Thứ tự là **phòng ban giảm → lương giảm → tên giảm**. `reversed()` nằm ở cuối nên bao trùm **toàn bộ ba khóa**.
+The order is **department descending -> salary descending -> name descending**. `reversed()` is at the end, so it covers **all three keys**.
 
-### B. Đảo tiêu chí thứ nhất, các tiêu chí sau tăng dần
+### B. Reverse the first criterion, keep subsequent criteria ascending
 
 ~~~java
 Comparator<Employee> departmentDescThenOthersAsc =
@@ -200,7 +200,7 @@ Comparator<Employee> departmentDescThenOthersAsc =
                 .thenComparing(Employee::name);
 ~~~
 
-Ở đây chỉ đảo việc so sánh `department` ngay khi tạo comparator gốc, rồi gắn các tiêu chí phụ giữ nguyên. Một biểu thức có thứ tự tương đương là:
+Here only the `department` comparison is reversed right when creating the base comparator, and secondary criteria are attached unchanged. An expression with equivalent ordering is:
 
 ~~~java
 Comparator<Employee> byDepartment =
@@ -212,9 +212,9 @@ Comparator<Employee> departmentDescThenOthersAsc =
                 .thenComparing(Employee::name);
 ~~~
 
-Đây là **hai phương án thay thế**, không đặt cả hai khai báo biến trùng tên trong cùng một scope.
+These are **two alternative approaches**; do not place both variable declarations with the same name in the same scope.
 
-### C. Chỉ đảo tiêu chí ở giữa
+### C. Reverse only the middle criterion
 
 ~~~java
 Comparator<Employee> middleDescending =
@@ -225,9 +225,9 @@ Comparator<Employee> middleDescending =
                 .thenComparing(Employee::name);
 ~~~
 
-Thứ tự: **phòng ban tăng → lương giảm → tên tăng**.
+Order: **department ascending -> salary descending -> name ascending**.
 
-Nếu Java gặp vấn đề suy luận kiểu với một lambda hoặc method reference phức tạp ở comparator bên trong, tách biến với kiểu tường minh:
+If Java runs into type inference issues with a complex lambda or method reference in the inner comparator, extract a variable with an explicit type:
 
 ~~~java
 Comparator<Employee> salaryDesc =
@@ -239,9 +239,9 @@ Comparator<Employee> middleDescending =
                 .thenComparing(Employee::name);
 ~~~
 
-Mỗi đoạn đều là **minh họa**, giả định `Employee` có `department()` và `name()` trả về `String`, `salary()` trả về `int`, đồng thời đã import `java.util.Comparator`. Chỉ chương trình trong mục 4 là tệp Java hoàn chỉnh để chạy độc lập.
+Each snippet is **illustrative**, assuming `Employee` has `department()` and `name()` returning `String`, `salary()` returning `int`, and `import java.util.Comparator` is present. Only the program in section 4 is a complete standalone runnable Java file.
 
-### D. Đảo phần tiền tố rồi thêm tiêu chí mới
+### D. Reverse a prefix then append a new criterion
 
 ~~~java
 Comparator<Employee> prefixDescNameAsc =
@@ -251,15 +251,15 @@ Comparator<Employee> prefixDescNameAsc =
                 .thenComparing(Employee::name);
 ~~~
 
-Thứ tự: **phòng ban giảm → lương giảm → tên tăng**. `reversed()` đảo *hai tiêu chí đã ghép trước đó*, còn `thenComparing(Employee::name)` được thêm **sau bước đảo** nên vẫn tăng dần.
+Order: **department descending -> salary descending -> name ascending**. `reversed()` reverses *the two previously chained criteria*, while `thenComparing(Employee::name)` is added **after the reversal step**, so it remains ascending.
 
-Đây là khác biệt quan trọng so với việc chuyển `reversed()` xuống cuối cùng: khi chuyển xuống cuối, tên cũng sẽ giảm dần.
+This is a critical difference from moving `reversed()` to the very end: when moved to the end, name becomes descending too.
 
-## 6. Hai cách viết “đảo một tiêu chí”
+## 6. Two Ways to Write "Reverse One Criterion"
 
-Khi muốn đảo một khóa cụ thể, có hai lựa chọn thường rõ ràng hơn việc đặt `reversed()` vào giữa chuỗi dài:
+When you want to reverse a specific key, two options are usually clearer than placing `reversed()` mid-way in a long chain:
 
-**Cách 1: truyền comparator dành riêng cho khóa vào `comparing` / `thenComparing`.**
+**Approach 1: pass a key-specific comparator into `comparing` / `thenComparing`.**
 
 ~~~java
 Comparator<Employee> byDepartmentDescThenNameAsc =
@@ -268,9 +268,9 @@ Comparator<Employee> byDepartmentDescThenNameAsc =
                 .thenComparing(Employee::name);
 ~~~
 
-`Comparator.reverseOrder()` tạo comparator theo thứ tự ngược lại **thứ tự tự nhiên** của kiểu giá trị khóa. Với `String`, thứ tự tự nhiên là từ điển theo giá trị Unicode; với `Integer`, đó là thứ tự số tăng dần. Vì `department` trả về `String` nên cách này đảo riêng khóa phòng ban.
+`Comparator.reverseOrder()` creates a comparator opposite to the **natural order** of the key's value type. For `String`, natural order is lexicographical by Unicode value; for `Integer`, it is ascending numeric order. Since `department` returns `String`, this reverses only the department key.
 
-**Cách 2: tạo comparator con rồi gọi `reversed()` đúng vào comparator con.**
+**Approach 2: create a sub-comparator and call `reversed()` directly on that sub-comparator.**
 
 ~~~java
 Comparator<Employee> bySalaryDesc =
@@ -281,13 +281,13 @@ Comparator<Employee> byDepartmentAscSalaryDesc =
                 .thenComparing(bySalaryDesc);
 ~~~
 
-Cách này đặc biệt dễ đọc khi khóa phụ là số nguyên thủy: `comparingInt` dùng bộ trích xuất `int`, rồi `reversed()` đảo comparator kết quả.
+This approach is particularly readable when the secondary key is a primitive number: `comparingInt` uses an `int` extractor, then `reversed()` reverses the resulting comparator.
 
-**Lưu ý:** `Comparator.reverseOrder()` là phương thức `static` tạo comparator ngược với thứ tự tự nhiên của **chính kiểu khóa**; `someComparator.reversed()` là phương thức của comparator hiện có, đảo thứ tự do **comparator đó định nghĩa**, kể cả khi nó gồm nhiều khóa hoặc quy tắc tùy biến.
+**Note:** `Comparator.reverseOrder()` is a `static` method creating a comparator opposite to the natural order of the **key type itself**; `someComparator.reversed()` is an instance method of an existing comparator, reversing the order defined by **that comparator**, even when it consists of multiple keys or custom rules.
 
-## 7. `reversed()` không làm mất ưu tiên của `thenComparing`
+## 7. `reversed()` Does Not Break `thenComparing` Precedence
 
-Xét:
+Consider:
 
 ~~~java
 Comparator<Employee> cmp =
@@ -295,22 +295,22 @@ Comparator<Employee> cmp =
                 .thenComparingInt(Employee::salary);
 ~~~
 
-Nếu hai nhân viên khác phòng ban, kết quả so sánh đã được quyết định tại `department`; lương của họ không được dùng làm tiêu chí để “vượt qua” thứ tự phòng ban. Gọi `cmp.reversed()` chỉ đảo thứ tự phân nhóm và đảo cách phân thứ tự lương **trong cùng phòng ban**.
+If two employees are in different departments, the comparison result is already decided at `department`; their salaries are never used to "jump ahead" of the department order. Calling `cmp.reversed()` only reverses the grouping order and reverses how salary is ordered **within the same department**.
 
-Tương tự, nếu viết `cmp.reversed().thenComparing(Employee::name)`, tiêu chí `name` chỉ hoạt động khi **cả phòng ban và lương** không phân biệt được hai nhân viên. Nó không thay thế, cũng không chen lên trước các tiêu chí đó.
+Similarly, if you write `cmp.reversed().thenComparing(Employee::name)`, the `name` criterion only activates when **both department and salary** fail to distinguish two employees. It neither replaces nor cuts ahead of those criteria.
 
-Vì vậy, khi kết quả sort khác mong muốn, hãy đọc chuỗi comparator như một **danh sách tiêu chí ưu tiên**: “so sánh khóa 1; nếu hòa thì khóa 2; nếu vẫn hòa thì khóa 3”. Sau đó xác định chính xác `reversed()` đã bao phủ những tiêu chí nào vào thời điểm gọi.
+Therefore, when a sort result differs from expectations, read the comparator chain as a **priority list of criteria**: "compare key 1; if tied, key 2; if still tied, key 3." Then determine precisely which criteria `reversed()` covered at the point it was called.
 
-## 8. Các trường hợp cần lưu ý
+## 8. Cases to Watch Out For
 
-### Khóa `null` và vị trí `nullsFirst`/`nullsLast`
+### `null` keys and `nullsFirst`/`nullsLast` placement
 
-Khi có khóa có thể là `null`, `Comparator.naturalOrder()` và `Comparator.reverseOrder()` thông thường không tự cho phép `null`. Có thể dùng `Comparator.nullsFirst(...)` hoặc `Comparator.nullsLast(...)` để định nghĩa vị trí của `null`.
+When keys can be `null`, `Comparator.naturalOrder()` and `Comparator.reverseOrder()` do not allow `null` by themselves. You can use `Comparator.nullsFirst(...)` or `Comparator.nullsLast(...)` to define where `null` goes.
 
-Ví dụ:
+Example:
 
 ~~~java
-// Đoạn minh họa với giá trị kiểu String.
+// Illustrative snippet with String values.
 Comparator<String> nullLastAsc =
         Comparator.nullsLast(Comparator.naturalOrder());
 
@@ -320,45 +320,45 @@ Comparator<String> nullLastDesc =
         Comparator.nullsLast(Comparator.reverseOrder());
 ~~~
 
-- `nullLastAsc`: các chuỗi không null tăng dần; `null` đứng cuối.
-- `nullFirstDesc`: đảo **toàn bộ** `nullLastAsc`; chuỗi không null giảm dần **và `null` chuyển lên đầu**.
-- `nullLastDesc`: các chuỗi không null giảm dần nhưng **`null` vẫn đứng cuối**.
+- `nullLastAsc`: non-null strings ascending; `null` at the end.
+- `nullFirstDesc`: reverses the **entire** `nullLastAsc`; non-null strings descending **and `null` moves to the front**.
+- `nullLastDesc`: non-null strings descending, yet **`null` stays at the end**.
 
-Điều này minh họa thêm rằng `reversed()` đảo thứ tự của **cả comparator hiện tại**, bao gồm quy tắc dành cho `null` nếu quy tắc đó đã được bọc vào comparator trước lúc đảo.
+This further illustrates that `reversed()` reverses the order of the **entire current comparator**, including any `null` rule wrapped into the comparator before the reversal.
 
-### `compare(...) == 0` và các tập hợp có thứ tự
+### `compare(...) == 0` and ordered collections
 
-Hai đối tượng khác nhau theo `equals()` vẫn có thể có `comparator.compare(a, b) == 0` nếu mọi khóa được chọn đều bằng nhau. `TreeSet` và `TreeMap` dựa trên comparator để xác định hai phần tử hoặc khóa tương đương trong cấu trúc; vì vậy chúng có thể coi hai đối tượng khác nhau về mặt `equals()` là cùng khóa nếu comparator trả về `0`.
+Two objects that differ under `equals()` can still have `comparator.compare(a, b) == 0` if all selected keys are equal. `TreeSet` and `TreeMap` rely on the comparator to determine whether two elements or keys are equivalent in the structure; thus they can treat two objects that are distinct under `equals()` as the same key if the comparator returns `0`.
 
-Nếu muốn giữ các đối tượng phân biệt theo một khóa định danh, thêm `thenComparing(Employee::id)` hoặc tiêu chí kết thúc phù hợp với ngữ nghĩa dữ liệu. Chú ý: việc thêm tiêu chí kết thúc **trước hay sau `reversed()`** tiếp tục quyết định chiều của tiêu chí đó.
+If you want to keep objects distinct by an identifier key, append `thenComparing(Employee::id)` or a terminal criterion matching the data semantics. Note: adding the terminal criterion **before or after `reversed()`** continues to determine that criterion's direction.
 
-### Comparator có thứ tự không hợp lệ
+### Comparators with invalid ordering
 
-Một comparator phải tuân thủ hợp đồng về dấu đối xứng, tính bắc cầu và nhất quán. Chẳng hạn viết `return a.score() - b.score();` có nguy cơ tràn số nguyên, khiến dấu không phản ánh thứ tự số thực. Nên dùng `Comparator.comparingInt(Employee::score)` hoặc `Integer.compare(a.score(), b.score())`.
+A comparator must obey the contract of sign symmetry, transitivity, and consistency. For instance, writing `return a.score() - b.score();` risks integer overflow, causing the sign not to reflect true numeric order. Use `Comparator.comparingInt(Employee::score)` or `Integer.compare(a.score(), b.score())`.
 
-`reversed()` không thể sửa một comparator gốc đã vi phạm hợp đồng. Một comparator sai có thể khiến các thuật toán sắp xếp hoặc cấu trúc có thứ tự hoạt động không như mong muốn.
+`reversed()` cannot fix an underlying comparator that already violates the contract. A broken comparator can cause sorting algorithms or ordered structures to behave unexpectedly.
 
-### Chữ hoa, chữ thường và Locale
+### Case sensitivity and Locale
 
-`Comparator.comparing(Employee::name)` dùng thứ tự tự nhiên của `String`, không tự động áp dụng quy tắc ngôn ngữ cho tên người. Nếu cần thứ tự dành cho một ngôn ngữ, hãy chọn comparator khóa phù hợp (chẳng hạn `Collator` được cấu hình đúng) rồi mới đảo chiều khi cần. Việc đảo một comparator ngôn ngữ áp dụng cho **chính thứ tự mà comparator đó tạo ra**.
+`Comparator.comparing(Employee::name)` uses `String`'s natural order, which does not automatically apply linguistic rules for personal names. If an order for a specific language is needed, choose a suitable key comparator (such as a properly configured `Collator`) before reversing if needed. Reversing a linguistic comparator applies to **the exact order that comparator produces**.
 
-## 9. So sánh nhanh các biểu thức thường gặp
+## 9. Quick Comparison of Common Expressions
 
-| Biểu thức | Tiêu chí thứ nhất | Tiêu chí thứ hai |
+| Expression | First criterion | Second criterion |
 | --- | --- | --- |
-| `c1.thenComparing(c2)` | Chiều c1 | Chiều c2 |
-| `c1.thenComparing(c2).reversed()` | Ngược c1 | Ngược c2 |
-| `c1.reversed().thenComparing(c2)` | Ngược c1 | Chiều c2 |
-| `c1.thenComparing(c2.reversed())` | Chiều c1 | Ngược c2 |
-| `c1.reversed().thenComparing(c2).reversed()` | Chiều c1 | Ngược c2 |
+| `c1.thenComparing(c2)` | c1 direction | c2 direction |
+| `c1.thenComparing(c2).reversed()` | Reverse c1 | Reverse c2 |
+| `c1.reversed().thenComparing(c2)` | Reverse c1 | c2 direction |
+| `c1.thenComparing(c2.reversed())` | c1 direction | Reverse c2 |
+| `c1.reversed().thenComparing(c2).reversed()` | c1 direction | Reverse c2 |
 
-Trong bảng, `c1` và `c2` là các comparator hợp lệ cho **cùng kiểu phần tử**. “Chiều” được hiểu theo quy tắc do từng comparator gốc xác định, không nhất thiết là thứ tự tự nhiên. Ví dụ dòng cuối: bước đảo thứ nhất tác động vào `c1`, sau đó ghép `c2`; bước đảo cuối cùng đảo toàn bộ chuỗi đang có, nên `c1` quay về chiều ban đầu còn `c2` trở thành ngược chiều.
+In the table, `c1` and `c2` are valid comparators for the **same element type**. "Direction" means the rule defined by each base comparator, not necessarily natural order. For example, in the last row: the first reversal affects `c1`, then `c2` is chained; the final reversal reverses the entire chain built so far, returning `c1` to its original direction while `c2` becomes reversed.
 
-Khi chuỗi dài, thường nên **đặt tên các comparator con** thay vì liên tiếp gọi nhiều `reversed()`. Tên như `byGroupDesc`, `byScoreAsc` giúp kiểm tra trực tiếp yêu cầu nghiệp vụ.
+When chains get long, it is usually better to **name the sub-comparators** rather than chaining multiple `reversed()` calls in a row. Names like `byGroupDesc` and `byScoreAsc` make it easy to verify directly against business requirements.
 
-## 10. Bài tập tự kiểm tra
+## 10. Self-Check Exercises
 
-**Câu 1.** Kết quả của chuỗi sau theo khóa phòng ban và tuổi là gì?
+**Exercise 1.** What is the result of the following chain by department and age keys?
 
 ~~~java
 Comparator<Employee> cmp =
@@ -367,9 +367,9 @@ Comparator<Employee> cmp =
                 .thenComparingInt(Employee::age);
 ~~~
 
-**Đáp án:** Phòng ban **giảm dần**, sau đó tuổi **tăng dần** trong cùng phòng ban.
+**Answer:** Department **descending**, then age **ascending** within the same department.
 
-**Câu 2.** Muốn cả phòng ban và tuổi cùng giảm dần thì viết thế nào?
+**Exercise 2.** How do you write it if you want both department and age descending?
 
 ~~~java
 Comparator<Employee> cmp =
@@ -378,9 +378,9 @@ Comparator<Employee> cmp =
                 .reversed();
 ~~~
 
-**Đáp án:** Đặt `reversed()` sau khi đã ghép cả hai tiêu chí như trên, hoặc đảo từng comparator con rồi ghép lại.
+**Answer:** Place `reversed()` after chaining both criteria as above, or reverse each sub-comparator individually and then chain them.
 
-**Câu 3.** Muốn phòng ban tăng dần, tuổi giảm dần, tên tăng dần thì làm sao?
+**Exercise 3.** How do you make department ascending, age descending, and name ascending?
 
 ~~~java
 Comparator<Employee> ageDesc =
@@ -392,19 +392,19 @@ Comparator<Employee> cmp =
                 .thenComparing(Employee::name);
 ~~~
 
-**Đáp án:** Đảo comparator `ageDesc` trước khi gắn làm tiêu chí thứ hai; `department` và `name` vẫn theo chiều tự nhiên.
+**Answer:** Reverse the `ageDesc` comparator before attaching it as the second criterion; `department` and `name` remain in natural order.
 
-**Câu 4.** `cmp.reversed()` có giống `Collections.reverse(sortedList)` không?
+**Exercise 4.** Is `cmp.reversed()` the same as `Collections.reverse(sortedList)`?
 
-**Đáp án:** Không hoàn toàn. Đảo comparator rồi sắp xếp lại tạo thứ tự ngược theo các khóa so sánh, nhưng các đối tượng mà comparator coi là bằng nhau có thể giữ nguyên thứ tự tương đối khi dùng thuật toán sắp xếp ổn định. `Collections.reverse` đảo vị trí tất cả phần tử, kể cả các phần tử hòa.
+**Answer:** Not completely. Reversing the comparator and re-sorting produces the reverse order by the comparison keys, but objects considered equal by the comparator can preserve their relative order when using a stable sorting algorithm. `Collections.reverse` flips the positions of all elements, including tied elements.
 
-**Câu 5.** Nếu `Comparator.nullsLast(Comparator.naturalOrder()).reversed()` được dùng, vị trí `null` là ở đâu?
+**Exercise 5.** If `Comparator.nullsLast(Comparator.naturalOrder()).reversed()` is used, where is `null` placed?
 
-**Đáp án:** `null` chuyển lên **đầu**, vì `reversed()` đảo cả chính sách null đã được gắn trong comparator.
+**Answer:** `null` moves to the **front**, because `reversed()` also reverses the null policy wrapped inside the comparator.
 
-**Ghi nhớ:** `reversed()` tác động đến **toàn bộ comparator đã hình thành tại điểm gọi**. Muốn đảo mọi khóa đã ghép, gọi ở cuối. Muốn đảo riêng một khóa, đảo comparator con của khóa ấy trước khi ghép hoặc cung cấp comparator đảo chiều trong `comparing`/`thenComparing`. Luôn kiểm tra thứ tự ưu tiên khi có nhiều tiêu chí.
+**Takeaway:** `reversed()` affects the **entire comparator formed up to the call point**. To reverse all chained keys, call it at the end. To reverse a single key, reverse that key's sub-comparator before chaining or supply a reversed comparator in `comparing`/`thenComparing`. Always double-check precedence order when multiple criteria are involved.
 
-## Tham khảo
+## References
 
 - [Java SE 17 — `Comparator` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Comparator.html)
 - [Java SE 17 — `Stream.sorted` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/stream/Stream.html#sorted(java.util.Comparator))

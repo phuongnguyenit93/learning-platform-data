@@ -1,60 +1,60 @@
-# Sao chép đầu vào `char[]` và tính độc lập của `String.toCharArray()` trong Java
+# Copying `char[]` Input and the Independence of `String.toCharArray()` in Java
 
-## 1. Hai chiều chuyển đổi, cùng một nguyên tắc: bảo vệ tính bất biến của `String`
+## 1. Two Conversion Directions, One Principle: Protecting `String` Immutability
 
-Trong Java, `char[]` là mảng **có thể thay đổi**: phần tử `array[i]` có thể được gán lại. Ngược lại, `String` biểu diễn **giá trị văn bản bất biến**. Để hai kiểu này làm việc với nhau an toàn, API Java duy trì ranh giới sao chép dữ liệu ở cả hai chiều:
+In Java, `char[]` is a **mutable** array: element `array[i]` can be reassigned. In contrast, `String` represents an **immutable text value**. For these two types to interoperate safely, the Java API maintains a data-copying boundary in both directions:
 
-1. **`char[]` → `String`:** `new String(charArray)` lấy nội dung các phần tử mảng tại thời điểm tạo chuỗi. Sửa mảng nguồn **sau khi constructor hoàn tất** không làm thay đổi chuỗi đã tạo.
-2. **`String` → `char[]`:** `string.toCharArray()` trả một **mảng mới** chứa các đơn vị ký tự của chuỗi. Sửa mảng nhận về không làm thay đổi `String` nguồn.
-3. Các API như `String.valueOf(char[])`, `String.copyValueOf(char[])`, `new String(char[], offset, count)` và `String.getChars(...)` cũng có hợp đồng chuyển/copy dữ liệu tương ứng; cần phân biệt rõ nơi nào chứa bản sao và nơi nào vẫn chia sẻ mảng.
+1. **`char[]` → `String`:** `new String(charArray)` captures the contents of the array elements at the moment the string is created. Modifying the source array **after the constructor finishes** does not change the created string.
+2. **`String` → `char[]`:** `string.toCharArray()` returns a **new array** containing the string's character units. Modifying the returned array does not change the source `String`.
+3. APIs such as `String.valueOf(char[])`, `String.copyValueOf(char[])`, `new String(char[], offset, count)`, and `String.getChars(...)` also have corresponding transfer/copy contracts; you should clearly distinguish where a copy lives and where an array is still shared.
 
-Hình dung theo quan hệ sở hữu nội dung, sau khi đã tạo `String`:
+Visualized by content ownership, once the `String` has been created:
 
 ```text
-char[] input = {'J','a','v','a'}  [MẢNG THAY ĐỔI ĐƯỢC]
+char[] input = {'J','a','v','a'}  [MUTABLE ARRAY]
         │
-        │ new String(input): chụp giá trị các phần tử
+        │ new String(input): snapshots element values
         ▼
-String text = "Java"             [GIÁ TRỊ BẤT BIẾN]
+String text = "Java"             [IMMUTABLE VALUE]
         │
-        │ text.toCharArray(): tạo mảng mới
+        │ text.toCharArray(): creates a new array
         ▼
-char[] output = {'J','a','v','a'} [MẢNG THAY ĐỔI ĐƯỢC, ĐỘC LẬP]
+char[] output = {'J','a','v','a'} [MUTABLE, INDEPENDENT ARRAY]
 
-input[0] = 'K'  → text vẫn "Java", output vẫn "Java"
-output[0] = 'X' → text vẫn "Java", input vẫn "Kava"
+input[0] = 'K'  → text is still "Java", output is still "Java"
+output[0] = 'X' → text is still "Java", input is still "Kava"
 ```
 
-Sơ đồ chỉ mô tả **hợp đồng về dữ liệu**. Nó không khẳng định `String` phải dùng `char[]` làm cấu trúc lưu trữ bên trong. Chi tiết biểu diễn bộ nhớ của `String` có thể thay đổi theo phiên bản hoặc triển khai JDK; điều đáng tin cậy là tính bất biến và sự độc lập quan sát được qua API.
+The diagram only describes the **data contract**. It does not assert that `String` must use `char[]` as its internal storage structure. Memory representation details of `String` may vary across JDK versions or implementations; what you can rely on is immutability and the independence observable through the API.
 
-## 2. `char[]` mutable; phép gán mảng thông thường không tạo bản sao
+## 2. `char[]` Is Mutable; Plain Array Assignment Does Not Make a Copy
 
-Một biến kiểu `char[]` giữ **tham chiếu tới một đối tượng mảng**. Gán tham chiếu sang biến khác không nhân đôi phần tử:
+A variable of type `char[]` holds a **reference to an array object**. Assigning that reference to another variable does not duplicate the elements:
 
 ```java
 char[] input = {'J', 'a', 'v', 'a'};
-char[] alias = input; // Hai biến trỏ cùng một mảng.
+char[] alias = input; // Two variables point to the same array.
 alias[0] = 'K';
 
 System.out.println(new String(input)); // Kava
 System.out.println(input == alias);     // true
 ```
 
-Đây là **snippet minh họa**, các dòng `System.out.println` đặt trong phương thức như `main`. `alias[0] = 'K'` thay đổi chính mảng mà `input` đang tham chiếu. Khác biệt cốt lõi là:
+This is an **illustrative snippet**; the `System.out.println` lines belong inside a method such as `main`. `alias[0] = 'K'` modifies the exact array that `input` references. The core difference is:
 
-| Biểu thức | Có tạo bản sao dữ liệu? | Sau khi sửa mảng nguồn |
+| Expression | Creates a data copy? | After modifying the source array |
 | --- | --- | --- |
-| `char[] b = a;` | Không, chỉ sao chép tham chiếu | `b` quan sát thay đổi ở `a` |
-| `char[] b = a.clone();` | Có, tạo mảng mới với các phần tử được sao chép | `b` giữ nội dung riêng |
-| `char[] b = Arrays.copyOf(a, a.length);` | Có, tạo mảng mới | `b` giữ nội dung riêng |
-| `String s = new String(a);` | Có, tạo giá trị chuỗi từ nội dung mảng | `s` không đổi |
-| `char[] b = s.toCharArray();` | Có, trả mảng mới từ chuỗi | Sửa `b` không đổi `s` |
+| `char[] b = a;` | No, only copies the reference | `b` observes changes in `a` |
+| `char[] b = a.clone();` | Yes, creates a new array with copied elements | `b` keeps its own content |
+| `char[] b = Arrays.copyOf(a, a.length);` | Yes, creates a new array | `b` keeps its own content |
+| `String s = new String(a);` | Yes, creates a string value from array content | `s` does not change |
+| `char[] b = s.toCharArray();` | Yes, returns a new array from the string | Modifying `b` does not change `s` |
 
-Đối với `char[]`, clone là sao chép đủ sâu để độc lập về **phần tử**, vì mỗi phần tử `char` là giá trị nguyên thủy, không phải tham chiếu tới đối tượng có thể thay đổi bên trong.
+For `char[]`, `clone` is a deep enough copy to be independent in terms of **elements**, because each `char` element is a primitive value, not a reference to an internally mutable object.
 
-## 3. Constructor `new String(char[])` sao chép nội dung đầu vào
+## 3. Constructor `new String(char[])` Copies the Input Content
 
-Cách trực tiếp để tạo chuỗi bất biến từ mảng ký tự là:
+The direct way to create an immutable string from a character array is:
 
 ```java
 char[] source = {'H', 'e', 'l', 'l', 'o'};
@@ -65,12 +65,12 @@ System.out.println(new String(source)); // Yello
 System.out.println(text);               // Hello
 ```
 
-Cách đọc đúng:
-- Khi `new String(source)` hoàn tất, `text` có nội dung `"Hello"` và nội dung đó được bảo vệ trước sửa đổi tiếp theo của mảng nguồn.
-- `source[0] = 'Y'` thay đổi phần tử thứ nhất của mảng nguồn; `text` không giữ một view mutable trỏ ngược tới mảng.
-- Không cần `source.clone()` trước `new String(source)` chỉ để bảo vệ `String` khỏi thay đổi *sau đó*: constructor đã đáp ứng hợp đồng độc lập cần thiết. Việc chủ động clone chỉ có ý nghĩa khi ứng dụng còn cần sở hữu riêng **một mảng khác**.
+How to read this properly:
+- Once `new String(source)` completes, `text` has content `"Hello"` and that content is protected from subsequent modifications to the source array.
+- `source[0] = 'Y'` changes the first element of the source array; `text` does not hold a mutable view pointing back to the array.
+- You do not need `source.clone()` before `new String(source)` solely to protect the `String` from *later* changes: the constructor already satisfies the required independence contract. Explicitly cloning only makes sense when the application also needs to own **another separate array**.
 
-Các overload có ý nghĩa tương tự:
+Overloads with equivalent semantics:
 
 ```java
 char[] chars = {'J', 'a', 'v', 'a'};
@@ -80,21 +80,21 @@ String b = String.valueOf(chars);
 String c = String.copyValueOf(chars);
 ```
 
-Cả ba đều tạo nội dung `"Java"` độc lập với các thay đổi tiếp theo của `chars`. `String.copyValueOf(char[])` có tác dụng tương đương `String.valueOf(char[])`; tên `copyValueOf` không có nghĩa rằng `valueOf(char[])` sẽ giữ mảng bằng tham chiếu.
+All three produce `"Java"` content independent of subsequent changes to `chars`. `String.copyValueOf(char[])` has behavior equivalent to `String.valueOf(char[])`; the name `copyValueOf` does not imply that `valueOf(char[])` keeps the array by reference.
 
-**Điểm dễ nhầm về overload:** `String.valueOf(char[])` và `String.valueOf(Object)` là hai overload khác nhau. Ép mảng thành `Object` làm Java chọn overload `Object`, vốn dùng cách biểu diễn đối tượng của mảng:
+**Common overload pitfall:** `String.valueOf(char[])` and `String.valueOf(Object)` are two different overloads. Casting the array to `Object` makes Java choose the `Object` overload, which uses the array's object representation:
 
 ```java
 char[] chars = {'O', 'K'};
 System.out.println(String.valueOf(chars));          // OK
-System.out.println(String.valueOf((Object) chars)); // Dạng [C@..., không phải "OK"
+System.out.println(String.valueOf((Object) chars)); // Form [C@..., not "OK"
 ```
 
-Đoạn này là snippet minh họa, không phải file lớp độc lập. Dạng `[C@...` gồm ký hiệu kiểu mảng `char[]` và phần định danh không ổn định; không được dựa vào nội dung đầy đủ của nó.
+This is an illustrative snippet, not a standalone class file. The `[C@...` form consists of the `char[]` array type tag and an unstable identifier portion; you must not rely on its full contents.
 
-## 4. `toCharArray()` luôn trao một mảng ký tự để người gọi sở hữu và sửa
+## 4. `toCharArray()` Always Hands Over a Character Array for the Caller to Own and Mutate
 
-Phương thức `String.toCharArray()` trả một `char[]` **mới** có nội dung tại thời điểm gọi. Người gọi có thể sửa, sắp xếp, điền lại hoặc chuyển mảng đi mà không thể sửa `String` nguồn qua mảng đó.
+`String.toCharArray()` returns a **new** `char[]` containing the content at the time of the call. The caller can edit, sort, refill, or pass the array around without being able to mutate the source `String` through that array.
 
 ```java
 String text = "Java";
@@ -110,13 +110,13 @@ System.out.println(new String(second)); // JOva
 System.out.println(first == second);    // false
 ```
 
-Hai lệnh `toCharArray()` trả hai mảng khác nhau. Cả hai đều không phải “cửa hậu” để thay đổi chuỗi gốc. Khi cần nội dung của `String` ở dạng `char[]`, đây là cách chuẩn để **chủ động tạo dữ liệu mutable**.
+Two calls to `toCharArray()` return two distinct arrays. Neither is a "backdoor" to alter the original string. When you need the content of a `String` as a `char[]`, this is the standard way to **explicitly create mutable data**.
 
-Không nên hiểu nhầm rằng `String` luôn chứa sẵn một `char[]` mà `toCharArray()` chỉ trả lại; giả định đó sẽ khiến người học viết code lệ thuộc cấu trúc nội bộ và đi ngược hợp đồng API.
+Do not mistakenly assume `String` always contains a pre-existing `char[]` that `toCharArray()` simply hands back; that assumption leads learners to write code that depends on internal structure and goes against the API contract.
 
-### Chương trình chạy đầy đủ: hai chiều sao chép
+### Complete Runnable Program: Two-Way Copying
 
-Lưu dưới tên `CharArrayCopyDemo.java`:
+Save as `CharArrayCopyDemo.java`:
 
 ```java
 public class CharArrayCopyDemo {
@@ -128,7 +128,7 @@ public class CharArrayCopyDemo {
         String byValueOf = String.valueOf(input);
         String byCopyValueOf = String.copyValueOf(input);
 
-        alias[0] = 'K'; // input cũng đổi: alias và input là một mảng.
+        alias[0] = 'K'; // input also changes: alias and input are one array.
         System.out.println(new String(input));
         System.out.println(byConstructor);
         System.out.println(byValueOf);
@@ -146,14 +146,14 @@ public class CharArrayCopyDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 CharArrayCopyDemo.java
 java CharArrayCopyDemo
 ```
 
-Kết quả chuẩn:
+Expected output:
 
 ```text
 Kava
@@ -166,15 +166,15 @@ false
 Java
 ```
 
-Giải thích từ kết quả:
-- `alias[0]` sửa mảng gốc; cả ba chuỗi đã tạo từ mảng vẫn là `Java`.
-- `extracted[0]` chỉ sửa mảng đầu tiên do `toCharArray()` trả về.
-- `byConstructor` không đổi và lần gọi `toCharArray()` tiếp theo mang lại nội dung gốc.
-- `extracted == extractedAgain` là `false` vì đây là **hai mảng** được tạo bởi hai lần gọi riêng biệt.
+Explanation from the output:
+- `alias[0]` modifies the original array; all three strings created from the array remain `Java`.
+- `extracted[0]` only modifies the first array returned by `toCharArray()`.
+- `byConstructor` does not change, and the next call to `toCharArray()` yields the original content again.
+- `extracted == extractedAgain` is `false` because these are **two arrays** created by two separate calls.
 
-## 5. Chỉ sao chép một đoạn mảng: `new String(char[], offset, count)`
+## 5. Copying Only a Slice of an Array: `new String(char[], offset, count)`
 
-Không phải lúc nào cả mảng nguồn cũng thuộc về phần văn bản cần lưu. Constructor `new String(char[] value, int offset, int count)` dùng **đoạn liên tiếp** bắt đầu tại chỉ số `offset` và gồm `count` phần tử `char`:
+Not always does the entire source array belong to the text to be stored. The constructor `new String(char[] value, int offset, int count)` uses a **contiguous slice** starting at index `offset` and consisting of `count` `char` elements:
 
 ```java
 char[] frame = {'[', 'J', 'a', 'v', 'a', ']'};
@@ -185,25 +185,25 @@ System.out.println(inner);              // Java
 System.out.println(new String(frame));  // [Xava]
 ```
 
-Khoảng được sao chép là `[offset, offset + count)`: điểm đầu tính, điểm cuối loại trừ. Với mảng ví dụ, phần tử ở chỉ số 1, 2, 3, 4 tạo nội dung `Java`, không chứa hai dấu ngoặc. Dữ liệu trong `inner` độc lập với cả mảng `frame`, kể cả các vị trí nằm trong đoạn đã copy.
+The copied range is `[offset, offset + count)`: start inclusive, end exclusive. For the example array, elements at indices 1, 2, 3, 4 form the content `Java`, excluding the two brackets. The data inside `inner` is independent of the entire `frame` array, including the positions inside the copied slice.
 
-Điều kiện hợp lệ: `offset >= 0`, `count >= 0` và `offset + count <= value.length` (diễn đạt theo điều kiện giới hạn chỉ số; triển khai kiểm tra theo cách tránh tràn số). Giá trị `count == 0` hợp lệ nếu `offset` ở phạm vi phù hợp, kể cả `offset == value.length`. Offset/count sai gây `IndexOutOfBoundsException`; truyền mảng `null` gây `NullPointerException`.
+Validity conditions: `offset >= 0`, `count >= 0`, and `offset + count <= value.length` (expressed as index bound conditions; implementations check in a way that avoids integer overflow). `count == 0` is valid if `offset` is within the valid range, including `offset == value.length`. Invalid offset/count throws `IndexOutOfBoundsException`; passing a `null` array throws `NullPointerException`.
 
-Phân biệt với `Arrays.copyOfRange(array, from, to)`:
-- `new String(array, offset, count)` trả **`String`**, tham số thứ ba là **số lượng** phần tử.
-- `Arrays.copyOfRange(array, from, to)` trả **`char[]`**, tham số thứ ba là **chỉ số kết thúc loại trừ**; với một số đầu vào có `to` vượt chiều dài mảng, phương thức còn có quy tắc đệm phần tử mặc định. Không đổi chỗ hai quy tắc.
+Distinguish from `Arrays.copyOfRange(array, from, to)`:
+- `new String(array, offset, count)` returns **`String`**, and the third parameter is the **count** of elements.
+- `Arrays.copyOfRange(array, from, to)` returns **`char[]`**, and the third parameter is the **exclusive end index**; for some inputs where `to` exceeds array length, the method also has default-padding element rules. Do not swap the two rules.
 
-## 6. Sao chép từ `String` vào mảng có sẵn: `getChars`
+## 6. Copying from `String` into an Existing Array: `getChars`
 
-Nếu đã có mảng đích, `String.getChars(srcBegin, srcEnd, dst, dstBegin)` sao chép ký tự của chuỗi sang **mảng đó**. Phương thức không trả một mảng mới; `dst` là đối tượng mà người gọi cấp. Nó vẫn không tạo đường sửa ngược lại vào `String`.
+If you already have a destination array, `String.getChars(srcBegin, srcEnd, dst, dstBegin)` copies characters from the string into **that array**. The method does not return a new array; `dst` is an object supplied by the caller. It still provides no path to mutate back into the `String`.
 
-Định nghĩa các tham số:
-- `srcBegin`: chỉ số bắt đầu của chuỗi, tính vào đoạn.
-- `srcEnd`: chỉ số kết thúc chuỗi, không tính vào đoạn.
-- `dst`: mảng nhận dữ liệu.
-- `dstBegin`: chỉ số bắt đầu ghi vào mảng đích.
+Parameter definitions:
+- `srcBegin`: starting index in the string, inclusive.
+- `srcEnd`: ending index in the string, exclusive.
+- `dst`: destination array receiving the data.
+- `dstBegin`: starting index to write into the destination array.
 
-Ví dụ đầy đủ, lưu `SliceCopyDemo.java`:
+Complete example, saved as `SliceCopyDemo.java`:
 
 ```java
 public class SliceCopyDemo {
@@ -212,7 +212,7 @@ public class SliceCopyDemo {
         String inner = new String(frame, 1, 4);
 
         char[] destination = {'_', '_', '_', '_', '_', '_'};
-        inner.getChars(1, 3, destination, 2); // Sao chép "av" vào vị trí 2, 3.
+        inner.getChars(1, 3, destination, 2); // Copy "av" into positions 2, 3.
 
         frame[1] = 'X';
         destination[2] = 'Z';
@@ -237,15 +237,15 @@ __Zv__
 Java
 ```
 
-Vì `srcEnd` là chỉ số **loại trừ**, `getChars(1,3,...)` sao chép hai ký tự `a` và `v`, đặt vào `destination[2]` và `destination[3]`. Sau khi sửa đích thành `Z`, mảng `destination` in ra `__Zv__`; chuỗi `inner` vẫn là `Java`. Phải cấp mảng đích đủ lớn và sử dụng chỉ số hợp lệ, nếu không sẽ có ngoại lệ biên; `dst == null` cũng không hợp lệ.
+Because `srcEnd` is an **exclusive** index, `getChars(1,3,...)` copies the two characters `a` and `v`, placing them into `destination[2]` and `destination[3]`. After changing the destination character to `Z`, `destination` prints `__Zv__`; the string `inner` remains `Java`. You must allocate a large enough destination array and use valid indices, otherwise bounds exceptions occur; `dst == null` is also invalid.
 
-Dùng `getChars` khi cần điền một phần dữ liệu vào một mảng do người gọi quản lý; dùng `toCharArray()` khi muốn nhận mảng mới chứa **toàn bộ** chuỗi.
+Use `getChars` when you need to fill part of an array managed by the caller; use `toCharArray()` when you want a new array containing the **entire** string.
 
-## 7. Tính bất biến, bản chụp nội dung và thiết kế API phòng thủ
+## 7. Immutability, Snapshots, and Defensive API Design
 
-Giả sử một lớp nhận dữ liệu `char[]` của người gọi để lưu thành giá trị văn bản. Nếu lớp giữ thẳng tham chiếu mảng vào một trường `char[]`, bên gọi vẫn có thể sửa dữ liệu từ bên ngoài. Nếu lớp chỉ cần dữ liệu chuỗi, chuyển sang `String` trong constructor sẽ tạo giá trị văn bản bất biến; khi cần trả mảng mutable, hãy tạo mảng qua `toCharArray()`.
+Suppose a class accepts a caller's `char[]` data to store as a text value. If the class stores the array reference directly in a `char[]` field, the caller can still modify the data from outside. If the class only needs string data, converting to `String` in the constructor creates an immutable text value; when needing to return a mutable array, create the array via `toCharArray()`.
 
-Lưu `ImmutableLabel.java`:
+Save `ImmutableLabel.java`:
 
 ```java
 import java.util.Objects;
@@ -292,21 +292,21 @@ HXllo
 Hello
 ```
 
-Trường `value` là `final`, tức không thể gán lại tham chiếu sau constructor, đồng thời giá trị `String` mà nó tham chiếu bất biến. Dù người gọi sửa `source` hoặc mảng `exported`, nội dung `label.text()` vẫn là `Hello`. Đây là một dạng **defensive copy** tại ranh giới nhận/trả dữ liệu; trong ví dụ, hai thao tác sao chép do chính API `String` bảo đảm.
+The `value` field is `final`, meaning the reference cannot be reassigned after the constructor, while the `String` value it references is immutable. Even though the caller modifies `source` or the `exported` array, `label.text()` remains `Hello`. This is a form of **defensive copy** at the input/output boundary; in the example, both copy operations are guaranteed by the `String` API itself.
 
-Nếu cần tiếp tục giữ mảng mutable ở bên trong một lớp (ví dụ vì thuật toán đòi hỏi sửa ký tự tại chỗ), có thể nhận `input.clone()` và khi trả mảng thì trả bản sao. Nhưng trường mảng `private final char[]` **không tự biến nội dung mảng thành bất biến**: `final` chỉ khóa tham chiếu của trường, không khóa `array[i]`.
+If a class needs to keep a mutable array internally (for example, because an algorithm requires in-place character edits), it can accept `input.clone()` and return a copy when returning the array. However, a `private final char[]` field **does not automatically make array contents immutable**: `final` only locks the field's reference, not `array[i]`.
 
-### Vì sao thời điểm copy có ý nghĩa?
+### Why Does Copy Timing Matter?
 
-Một `String` được tạo từ mảng là **bản chụp giá trị vào thời điểm constructor đọc mảng**, không phải liên kết động. Sau thời điểm đó, việc sửa mảng không tác động chuỗi. Ngược lại, nếu một luồng khác đang **đồng thời thay đổi mảng trong lúc chương trình sao chép**, không nên giả định lần copy cho ra ảnh chụp nhất quán theo một thời điểm duy nhất: cần kiểm soát đồng bộ, quyền sở hữu dữ liệu hoặc tránh cập nhật chồng lấn. Tính bất biến của chuỗi sau khi tạo **không thay thế** cơ chế đồng bộ khi dữ liệu đầu vào đang bị sửa.
+A `String` created from an array is a **snapshot of values at the moment the constructor reads the array**, not a live link. After that point, modifying the array does not affect the string. Conversely, if another thread is **concurrently modifying the array while the program is copying it**, you must not assume the copy produces a consistent point-in-time snapshot: you need synchronization control, data ownership, or avoidance of overlapping updates. Immutability of the string after creation **does not replace** synchronization mechanisms when the input data is actively being mutated.
 
-## 8. UTF-16: sao chép `char[]` không đồng nghĩa sao chép “ký tự hiển thị”
+## 8. UTF-16: Copying `char[]` Does Not Mean Copying "Visible Characters"
 
-`char` là một **đơn vị mã UTF-16** (16 bit). `String.length()` và độ dài mảng `string.toCharArray().length` đều đo số đơn vị mã UTF-16, không nhất thiết là số Unicode code point hay số ký tự hiển thị (*grapheme cluster*).
+`char` is a **UTF-16 code unit** (16 bits). Both `String.length()` and `string.toCharArray().length` measure the number of UTF-16 code units, not necessarily the number of Unicode code points or user-perceived characters (*grapheme clusters*).
 
-Ví dụ, emoji `🙂` nằm ngoài BMP và được biểu diễn bằng **hai** phần tử `char` (cặp surrogate). `toCharArray()` giữ nguyên hai đơn vị mã đó theo đúng thứ tự; `new String(array)` xây dựng lại nội dung chuỗi tương ứng.
+For example, the emoji `🙂` lies outside the BMP and is represented by **two** `char` elements (a surrogate pair). `toCharArray()` preserves those two code units in order; `new String(array)` reconstructs the corresponding string content.
 
-Lưu `UnicodeCopyDemo.java` ở mã hóa UTF-8:
+Save `UnicodeCopyDemo.java` in UTF-8 encoding:
 
 ```java
 public class UnicodeCopyDemo {
@@ -341,35 +341,35 @@ A🙂B
 X🙂B
 ```
 
-Ba Unicode code point (`A`, `🙂`, `B`) chiếm bốn `char`. Sao chép sang mảng và ngược lại bảo toàn chuỗi, nhưng nếu sửa riêng **một nửa** cặp surrogate, có thể tạo dãy UTF-16 không hợp lệ. Khi muốn xử lý Unicode theo code point, cần xem `codePoints()`, `codePointAt()`, `offsetByCodePoints()` hoặc API thích hợp; việc dùng `char[]` không tự giải quyết được ranh giới code point.
+Three Unicode code points (`A`, `🙂`, `B`) occupy four `char`s. Copying to an array and back preserves the string, yet modifying **one half** of a surrogate pair by itself can produce an invalid UTF-16 sequence. When you want to handle Unicode by code point, look at `codePoints()`, `codePointAt()`, `offsetByCodePoints()`, or appropriate APIs; using `char[]` does not resolve code point boundaries on its own.
 
-## 9. Chi phí sao chép, hiệu năng và dữ liệu nhạy cảm
+## 9. Copy Cost, Performance, and Sensitive Data
 
-Hai chiều chuyển đổi có chi phí tỉ lệ với kích thước dữ liệu về mặt thao tác sao chép. Nếu vòng lặp liên tục đổi `String` ↔ `char[]`, có thể tạo thêm đối tượng, tăng cấp phát và gây áp lực bộ thu gom rác. Trước khi tối ưu, hãy chọn mô hình dữ liệu theo công việc thực tế:
-- Nếu chỉ cần đọc và lưu chuỗi, tiếp tục sử dụng `String`; đừng gọi `toCharArray()` chỉ vì muốn duyệt từng ký tự khi `charAt`/`codePoints` có thể phù hợp.
-- Nếu cần biến đổi hàng loạt ký tự, tạo mảng một lần, xử lý rồi tạo `String` một lần khi xong (hoặc xem xét `StringBuilder` tùy thao tác).
-- Nếu một API nhận `char[]` nhưng người gọi chỉ có `String`, `toCharArray()` là chuyển đổi chuẩn; nhận thức rằng nó tạo dữ liệu mới cần được quản lý.
-- Nếu một API nhận `String` nhưng người gọi sở hữu `char[]`, `new String(chars)` thể hiện rõ ý định tạo giá trị văn bản độc lập.
+Both conversion directions have cost proportional to data size in terms of copying operations. If a loop repeatedly converts `String` ↔ `char[]`, it can create extra objects, increase allocations, and add garbage-collector pressure. Before optimizing, choose the data model that fits the actual job:
+- If you only need to read and store strings, keep using `String`; do not call `toCharArray()` just to iterate characters when `charAt`/`codePoints` may suffice.
+- If you need bulk character transformations, create the array once, process it, and create the `String` once when finished (or consider `StringBuilder` depending on the operation).
+- If an API takes `char[]` while the caller only has `String`, `toCharArray()` is the standard conversion; be aware it creates new data to manage.
+- If an API takes `String` while the caller owns `char[]`, `new String(chars)` clearly expresses the intent to create an independent text value.
 
-Trong một số bối cảnh bảo mật, mật khẩu hoặc dữ liệu bí mật được giữ ở `char[]` nhằm cho phép ghi đè **mảng mà ứng dụng sở hữu** sau khi sử dụng, ví dụ `Arrays.fill(secret, '\0')`. Khi chuyển sang `String`, ứng dụng không có cơ chế API tương đương để xóa nội dung chuỗi bất biến theo yêu cầu; vì vậy không tạo `String` chỉ để tiện xử lý nếu cần kiểm soát vòng đời dữ liệu nhạy cảm. Ngay cả khi ghi đè mảng, cũng không thể khẳng định mọi bản sao trong JVM/hệ thống đã được xóa sạch.
+In some security contexts, passwords or secrets are kept in `char[]` to allow overwriting **the array the application owns** after use, such as `Arrays.fill(secret, '\0')`. Once converted to `String`, the application has no equivalent API mechanism to wipe the immutable string's content on demand; therefore do not create a `String` merely for convenience if you need lifecycle control over sensitive data. Even when overwriting an array, you cannot guarantee every copy across the JVM/system has been erased.
 
-## 10. Lỗi phổ biến và cách tự kiểm tra
+## 10. Common Mistakes and Self-Check
 
-| Nhầm lẫn | Hậu quả | Cách sửa |
+| Misconception | Consequence | Fix |
 | --- | --- | --- |
-| `char[] alias = source` là sao chép nội dung | Sửa qua `alias` đổi `source` | Dùng `clone`/`Arrays.copyOf` khi muốn mảng mới |
-| `new String(source)` còn chia sẻ `char[]` nguồn | Lo lắng sai về biến đổi chuỗi | Tin vào hợp đồng copy của constructor |
-| `toCharArray()` trả mảng lưu trữ bên trong `String` | Cố dùng mảng để sửa chuỗi gốc | Hiểu đây là mảng mới, sửa độc lập |
-| `String.valueOf(char[])` giữ nguyên mảng | Nhầm với một dạng view | Đây là chuyển đổi thành chuỗi độc lập |
-| `String.valueOf((Object) chars)` giống `String.valueOf(chars)` | Nhận văn bản dạng `[C@...` | Truyền đúng kiểu `char[]` |
-| `new String(arr, from, to)` xem `to` là chỉ số cuối | Chép sai phạm vi | Tham số thứ ba là `count` |
-| `getChars` tạo mảng mới | Hiểu sai nơi dữ liệu được ghi | Tự cung cấp `dst` đủ dung lượng |
-| `final char[]` là mảng bất biến | Lộ thay đổi phần tử qua alias | Sao chép mảng khi nhận/trả hoặc dùng `String` |
-| `toCharArray().length` bằng số ký tự người dùng nhìn thấy | Cắt sai cặp surrogate hoặc grapheme | Xem đơn vị UTF-16/code point/grapheme |
+| `char[] alias = source` copies content | Modifying through `alias` changes `source` | Use `clone`/`Arrays.copyOf` when you want a new array |
+| `new String(source)` still shares source `char[]` | Unfounded worry about string mutation | Trust the constructor's copy contract |
+| `toCharArray()` returns `String`'s internal backing array | Trying to use the array to mutate the original string | Understand it is a new array, edited independently |
+| `String.valueOf(char[])` keeps the array | Mistaking it for a kind of view | It is a conversion to an independent string |
+| `String.valueOf((Object) chars)` matches `String.valueOf(chars)` | Produces text like `[C@...` | Pass the proper `char[]` type |
+| `new String(arr, from, to)` treats `to` as end index | Copies the wrong range | The third parameter is `count` |
+| `getChars` creates a new array | Misunderstanding where data is written | Supply a `dst` with sufficient capacity |
+| `final char[]` is an immutable array | Element changes leak through aliases | Copy the array on input/output or use `String` |
+| `toCharArray().length` equals visible character count | Splits surrogate pairs or graphemes | Account for UTF-16 units/code points/graphemes |
 
-### Tự kiểm tra bằng dự đoán output
+### Self-Check by Predicting Output
 
-Hãy dự đoán kết quả trước khi đọc giải thích:
+Predict the output before reading the explanation:
 
 ```java
 char[] data = {'a', 'b'};
@@ -383,7 +383,7 @@ System.out.println(text);
 System.out.println(new String(out));
 ```
 
-Đây là snippet đặt trong `main`, không phải lớp độc lập. Kết quả là:
+This is a snippet placed in `main`, not a standalone class. The output is:
 
 ```text
 xb
@@ -391,19 +391,19 @@ ab
 ay
 ```
 
-Ba giá trị khác nhau vì mảng nguồn, đối tượng `String` và mảng trả về từ `toCharArray()` giữ nội dung riêng. Sửa một trong hai mảng sau khi tạo chuỗi không lan truyền sang chuỗi hay mảng còn lại.
+The three values differ because the source array, the `String` object, and the array returned by `toCharArray()` each hold separate contents. Modifying either array after creating the string does not propagate to the string or the other array.
 
-## 11. Ghi nhớ khi lập trình
+## 11. Programming Takeaways
 
-- `new String(char[])`, `String.valueOf(char[])` và `String.copyValueOf(char[])` tạo chuỗi có nội dung **độc lập** với các thay đổi tiếp theo của mảng nguồn.
-- `String.toCharArray()` tạo mảng **mới**; người gọi sửa mảng thoải mái mà không sửa chuỗi nguồn.
-- `char[] b = a` chỉ là **alias**, không phải sao chép; `a.clone()` hoặc `Arrays.copyOf` mới tạo mảng riêng.
-- `new String(chars, offset, count)` sao chép một đoạn theo **offset và số phần tử**; `getChars(begin, end, dst, dstBegin)` sao chép vào **mảng đích sẵn có** với điểm cuối loại trừ.
-- Sao chép bảo toàn các đơn vị UTF-16, nhưng không biến một `char` thành khái niệm Unicode code point hay ký tự hiển thị.
-- Tính độc lập của bản sao đặc biệt hữu ích khi xây dựng API bất biến, nhưng phải cân nhắc chi phí sao chép, thời điểm đồng bộ và dữ liệu nhạy cảm theo ngữ cảnh.
+- `new String(char[])`, `String.valueOf(char[])`, and `String.copyValueOf(char[])` create a string whose content is **independent** of subsequent changes to the source array.
+- `String.toCharArray()` creates a **new** array; callers can freely modify that array without modifying the source string.
+- `char[] b = a` is only an **alias**, not a copy; `a.clone()` or `Arrays.copyOf` creates a separate array.
+- `new String(chars, offset, count)` copies a slice by **offset and element count**; `getChars(begin, end, dst, dstBegin)` copies into an **existing destination array** with an exclusive end index.
+- Copying preserves UTF-16 code units, but does not turn a `char` into a Unicode code point or visible character.
+- Copy independence is especially useful when building immutable APIs, though copy cost, synchronization timing, and sensitive data must be weighed in context.
 
-## Tài liệu API Java SE 17
+## Java SE 17 API References
 
-- [`String(char[])`, `String(char[], int, int)`, `toCharArray()` và `getChars()` — Oracle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html)
+- [`String(char[])`, `String(char[], int, int)`, `toCharArray()`, and `getChars()` — Oracle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html)
 - [`Arrays.copyOf` — Oracle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Arrays.html)
-- [`Character` và mã Unicode — Oracle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html)
+- [`Character` and Unicode — Oracle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html)

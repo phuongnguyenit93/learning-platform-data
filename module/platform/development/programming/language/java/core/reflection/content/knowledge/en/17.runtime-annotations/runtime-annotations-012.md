@@ -1,8 +1,8 @@
-# Annotation không tự thực thi validation hay hành vi nghiệp vụ
+# Annotations Do Not Automatically Execute Validation or Business Behavior
 
-## 1. Annotation là metadata, không phải lệnh tự chạy
+## 1. Annotations are metadata, not self-executing commands
 
-Java annotation dùng để **gắn thông tin có cấu trúc** lên chương trình: class, field, method, constructor, parameter và các phần tử khác được `@Target` cho phép. Ví dụ:
+Java annotations are used to **attach structured information** to programs: classes, fields, methods, constructors, parameters, and other elements permitted by `@Target`. Example:
 
 ~~~java
 class Registration {
@@ -14,27 +14,27 @@ class Registration {
 }
 ~~~
 
-Đoạn code trên chỉ là minh họa, với hai annotation tự định nghĩa `@RequiredText` và `@Minimum` sẽ được trình bày đầy đủ trong ví dụ runnable phía dưới.
+The snippet above is illustrative only, using two custom annotations `@RequiredText` and `@Minimum` that will be presented in full in the runnable example below.
 
-Khi class được tạo hoặc field được gán giá trị, Java **không tự động** đọc `@RequiredText`, tự kiểm tra chuỗi trắng, đọc `@Minimum(18)` rồi từ chối tuổi nhỏ hơn 18. Annotation chỉ mô tả một *quy tắc tiềm năng*. Muốn quy tắc đó có hiệu lực, **phải có thành phần hiểu metadata và thực thi hành vi**:
+When the class is instantiated or a field is assigned a value, Java does **not automatically** read `@RequiredText`, check for blank strings, read `@Minimum(18)`, and reject an age under 18. An annotation only describes a *potential rule*. For that rule to take effect, **there must be a component that understands the metadata and executes behavior**:
 
-- Compiler hoặc annotation processor đọc annotation tại thời điểm biên dịch, khi được thiết kế để làm việc đó.
-- Framework/container/runner đọc annotation ở runtime rồi gọi một validation engine, interceptor, mapper, test runner hoặc logic nghiệp vụ thích hợp.
-- Chính ứng dụng dùng Reflection để tra cứu annotation và **chủ động** chạy mã kiểm tra/tác động.
+- A compiler or annotation processor reads annotations at compile time, when designed to do so.
+- A framework/container/runner reads annotations at runtime and invokes an appropriate validation engine, interceptor, mapper, test runner, or business logic.
+- The application itself uses Reflection to look up annotations and **explicitly** runs checking/enforcement code.
 
-Cần tách ba tầng khái niệm:
+Three conceptual layers must be separated:
 
-1. **Khai báo**: `@Minimum(18)` đính kèm giá trị 18 vào metadata.
-2. **Đọc metadata**: `field.getAnnotation(Minimum.class)` trả thông tin annotation nếu nó có thể được truy cập ở runtime.
-3. **Áp dụng quy tắc**: code đọc `minimum.value()`, so sánh giá trị field, quyết định chấp nhận/từ chối và xử lý hậu quả.
+1. **Declaration**: `@Minimum(18)` attaches the value 18 to metadata.
+2. **Reading metadata**: `field.getAnnotation(Minimum.class)` returns the annotation information if it is accessible at runtime.
+3. **Enforcing the rule**: code reads `minimum.value()`, compares the field value, decides to accept/reject, and handles the outcome.
 
-Chỉ có tầng 1 không tự sinh ra tầng 3. Ngay cả tầng 2 cũng không làm validation chạy nếu chương trình không dùng metadata để ra quyết định.
+Layer 1 alone does not automatically produce layer 3. Even layer 2 does not make validation run if the program does not use the metadata to make decisions.
 
-**Nói chính xác:** Bản thân một annotation tự định nghĩa không chứa cơ chế “kích hoạt khi giá trị thay đổi”. Java có một số annotation chuẩn được compiler hay công cụ hiểu theo nghĩa riêng, như `@Override` (compiler kiểm tra phương thức override) hoặc `@Deprecated` (cảnh báo sử dụng API). Đây vẫn là **công cụ khác xử lý metadata**, không phải annotation tự chạy một hàm validate ở runtime.
+**To be precise:** A custom annotation itself contains no “trigger when value changes” mechanism. Java has several standard annotations understood in specific ways by the compiler or tools, such as `@Override` (compiler checks method overriding) or `@Deprecated` (warns on API usage). Those are still **other tools processing metadata**, not an annotation running a validate method by itself at runtime.
 
-## 2. `@Retention(RUNTIME)` giúp đọc được annotation, nhưng không tạo hành vi
+## 2. `@Retention(RUNTIME)` makes annotations readable, but creates no behavior
 
-Để Reflection đọc được annotation từ class file, kiểu annotation thường cần `@Retention(RetentionPolicy.RUNTIME)`:
+For Reflection to read an annotation from a class file, the annotation type normally needs `@Retention(RetentionPolicy.RUNTIME)`:
 
 ~~~java
 import java.lang.annotation.ElementType;
@@ -48,21 +48,21 @@ import java.lang.annotation.Target;
 }
 ~~~
 
-Đây là định nghĩa annotation có thể được Reflection đọc ở runtime; **nó chưa kiểm tra bất cứ giá trị nào**.
+This is an annotation definition that can be read by Reflection at runtime; **it does not check any value yet**.
 
-| Retention policy | Ý nghĩa | `getAnnotation(...)` runtime |
+| Retention policy | Meaning | Runtime `getAnnotation(...)` |
 | --- | --- | --- |
-| `SOURCE` | Annotation chỉ thuộc phạm vi mã nguồn, không lưu vào class file | Không thấy |
-| `CLASS` | Annotation có thể nằm trong class file nhưng không được lưu để Reflection truy cập ở runtime | Không thấy |
-| `RUNTIME` | Metadata được giữ để Reflection có thể tra cứu ở runtime | Có thể thấy nếu annotation tồn tại tại phần tử được tra cứu |
+| `SOURCE` | Annotation belongs only to source scope, not stored in the class file | Not visible |
+| `CLASS` | Annotation may reside in the class file but is not retained for runtime Reflection access | Not visible |
+| `RUNTIME` | Metadata is retained so Reflection can look it up at runtime | Visible if the annotation exists on the queried element |
 
-`@Target(ElementType.FIELD)` giới hạn vị trí được phép đặt `@RequiredText` lên **field**, không tuyên bố field nào bắt buộc phải chứa chuỗi khác rỗng. Nếu đặt nhầm lên method, compiler có thể từ chối vì `@Target`; đó là quy tắc cú pháp/metadata chứ không phải validation dữ liệu người dùng.
+`@Target(ElementType.FIELD)` restricts where `@RequiredText` may be placed to **fields**; it does not declare that any field must contain a non-empty string. If placed mistakenly on a method, the compiler may reject it because of `@Target`; that is a syntax/metadata rule, not user-data validation.
 
-Khi một kiểu annotation không khai báo `@Retention`, mặc định là `RetentionPolicy.CLASS`. Vì thế, nếu viết annotation chỉ để runtime Reflection xử lý, cần xem rõ retention. Tuy nhiên, **`RUNTIME` chỉ là điều kiện để đọc metadata, không phải trigger** kích hoạt engine.
+When an annotation type omits `@Retention`, the default is `RetentionPolicy.CLASS`. Therefore, if writing an annotation meant for runtime Reflection processing, check retention explicitly. However, **`RUNTIME` is only a condition for reading metadata, not a trigger** activating an engine.
 
-## 3. Ví dụ Java 17+ chạy độc lập: có annotation nhưng vẫn phải gọi validator
+## 3. Standalone runnable Java 17+ example: annotations exist yet a validator must still be called
 
-Tạo một file duy nhất tên **`AnnotationValidationDemo.java`**:
+Create a single file named **`AnnotationValidationDemo.java`**:
 
 ~~~java
 import java.lang.annotation.ElementType;
@@ -104,7 +104,7 @@ public class AnnotationValidationDemo {
         List<String> errors = new ArrayList<>();
         Field[] fields = bean.getClass().getDeclaredFields();
 
-        // Thứ tự getDeclaredFields() không được bảo đảm.
+        // getDeclaredFields() order is not guaranteed.
         Arrays.sort(fields, Comparator.comparing(Field::getName));
 
         for (Field field : fields) {
@@ -128,7 +128,7 @@ public class AnnotationValidationDemo {
     }
 
     static void register(Signup signup) {
-        // Chỉ mô phỏng một hành vi nghiệp vụ bằng cách in thông báo.
+        // Only simulates a business action by printing a message.
         System.out.println("registered username="
                 + signup.username.trim() + ", age=" + signup.age);
     }
@@ -159,7 +159,7 @@ public class AnnotationValidationDemo {
 }
 ~~~
 
-Từ thư mục chứa file, biên dịch và chạy:
+From the directory containing the file, compile and run:
 
 ~~~bash
 javac --release 17 AnnotationValidationDemo.java
@@ -177,67 +177,67 @@ rejected by explicit validator
 registered username=Lan, age=23
 ~~~
 
-### Phân tích chính xác điều vừa xảy ra
+### Exact analysis of what just happened
 
-1. `@RequiredText` và `@Minimum(18)` chỉ là các annotation đã khai báo trên hai field. Đối tượng `Signup("  ", 16)` vẫn được khởi tạo bình thường: constructor không tự gọi validator.
-2. `isAnnotationPresent(RequiredText.class)` trả `true` vì annotation trên field có retention `RUNTIME`. **Nhưng phép đọc metadata này không kiểm tra giá trị `username`**.
-3. `register(invalid)` được gọi trực tiếp **trước** khi validation. Nó vẫn chạy, dù `username` toàn khoảng trắng và `age` nhỏ hơn 18. Hàm `register` trong ví dụ chỉ in thông điệp; nếu là nghiệp vụ thật, đây có thể là điểm tạo dữ liệu sai.
-4. Chỉ khi code chủ động gọi `validate(invalid)`, validator mới duyệt các field, tra cứu annotation, đọc giá trị bằng Reflection và thực hiện `if`/so sánh.
-5. `Minimum.value()` trả giá trị cấu hình **18**; code `value < minimum.value()` mới là **điều kiện kiểm tra**. Nếu điều kiện đúng, validator chủ động thêm thông báo lỗi.
-6. `RequiredText` không có member nào, nhưng validator quy ước rằng field được đánh dấu phải là `String` không-null và không chỉ chứa khoảng trắng. Quy tắc nằm trong **code của validator**, không tự sinh ra từ tên annotation.
-7. `getDeclaredFields()` không hứa thứ tự trả về. Ví dụ sắp xếp field theo tên trước khi validate nên danh sách lỗi có thứ tự xác định: `age` rồi `username`.
-8. Khi truyền object hợp lệ `Signup("Lan", 23)` và validator trả danh sách rỗng, chương trình mới gọi `register(valid)`. Chính nhánh điều khiển `if (errors.isEmpty())` quyết định cho phép thực hiện nghiệp vụ.
+1. `@RequiredText` and `@Minimum(18)` are merely annotations declared on the two fields. The object `Signup("  ", 16)` is still instantiated normally: the constructor does not automatically invoke a validator.
+2. `isAnnotationPresent(RequiredText.class)` returns `true` because the annotation on the field has `RUNTIME` retention. **However, this metadata lookup does not validate the value of `username`.**
+3. `register(invalid)` is called directly **before** validation. It still executes, even though `username` is all whitespace and `age` is less than 18. The `register` method in the example only prints a message; in real business logic, this could be a point that creates corrupt data.
+4. Only when code explicitly calls `validate(invalid)` does the validator iterate fields, look up annotations, read values via Reflection, and perform `if`/comparisons.
+5. `Minimum.value()` returns the configuration value **18**; the code `value < minimum.value()` is the actual **check condition**. If the condition holds, the validator explicitly adds an error message.
+6. `RequiredText` has no members, yet the validator establishes the convention that the marked field must be a non-null `String` containing more than whitespace. The rule lives in **the validator's code**, not generated automatically from the annotation's name.
+7. `getDeclaredFields()` promises no return order. The example sorts fields by name before validating so the error list has a deterministic order: `age` then `username`.
+8. Only when passing a valid object `Signup("Lan", 23)` and getting an empty list from the validator does the program call `register(valid)`. The control branch `if (errors.isEmpty())` decides whether to allow the business action.
 
-Logic tương đương đã được kiểm tra bằng Java 17 API trên JDK, cho đúng kết quả ở trên. Các field trong ví dụ là public để tập trung vào hành vi annotation; với private field, validator còn phải tuân thủ **Reflection access check** và ranh giới module.
+Equivalent logic was verified with Java 17 APIs on the JDK, producing the exact output above. The fields in the example are public to focus on annotation behavior; for private fields, a validator must also comply with **Reflection access checks** and module boundaries.
 
-## 4. Vì sao metadata không tự bảo vệ bất biến của object?
+## 4. Why doesn't metadata automatically protect object invariants?
 
-Annotation được gắn trên **phần tử khai báo**; nó không tự biến phép gán thành setter có điều kiện, không tự thay constructor, và không tự cài interceptor vào mọi lời gọi Java.
+Annotations are attached to **declaration elements**; they do not automatically turn field assignments into conditional setters, replace constructors, or install interceptors on every Java call.
 
-Ví dụ có thể tạo và thay đổi object ở nhiều đường:
+For example, objects can be created and mutated via multiple paths:
 
 ~~~java
 Signup user = new Signup("Lan", 23);
-user.age = -1;                   // Field vẫn nhận giá trị -1.
-user.username = "  ";           // Annotation không chặn phép gán.
+user.age = -1;                   // The field still accepts -1.
+user.username = "  ";           // The annotation does not block assignment.
 ~~~
 
-Đây là đoạn minh họa sử dụng class `Signup` từ chương trình trên, không phải file độc lập. Bởi vì `Signup` khai báo field public và setter/constructor không kiểm tra, mọi caller có quyền Java đều có thể gán giá trị sai, dù annotation tồn tại.
+This is an illustrative snippet using the `Signup` class from the program above, not a standalone file. Because `Signup` declares public fields and its constructor/setters perform no checks, any caller with Java access can assign invalid values, even though the annotations exist.
 
-Một validation engine chỉ có hiệu lực **tại những điểm được gọi**. Nếu bạn kiểm tra object trước khi lưu nhưng về sau object bị thay đổi hoặc một luồng code khác bỏ qua bước kiểm tra, dữ liệu xấu vẫn có thể đi qua. Validation ở **ranh giới tin cậy và điểm ghi dữ liệu** quan trọng hơn việc chỉ gắn annotation.
+A validation engine takes effect **only at the points where it is invoked**. If you validate an object before saving it, yet later the object is mutated or another code path skips the check, bad data can still slip through. Validation at **trust boundaries and data-write points** matters more than simply placing annotations.
 
-Trong thiết kế production, thường nên:
+In production design, it is generally best to:
 
-- Tạo bất biến trực tiếp trong constructor/factory, setter hoặc domain method khi đó là điều kiện luôn phải đúng.
-- Gọi validation có chủ đích ở API boundary và trước tác vụ nhạy cảm (ghi database, chuyển tiền, cấp quyền, tạo tài nguyên...).
-- Kết hợp ràng buộc cơ sở dữ liệu khi thích hợp, ví dụ `NOT NULL`, `CHECK` hoặc unique constraint. Annotation ở mã Java **không thay thế** những kiểm soát của database.
-- Không giả định một đối tượng hợp lệ ở thời điểm kiểm tra sẽ mãi hợp lệ nếu sau đó cho phép mutation.
+- Enforce invariants directly in constructors/factories, setters, or domain methods when they are conditions that must always hold.
+- Invoke validation intentionally at API boundaries and before sensitive operations (DB writes, money transfers, privilege grants, resource creation, etc.).
+- Combine with database constraints where appropriate, such as `NOT NULL`, `CHECK`, or unique constraints. Annotations in Java code **do not replace** database-level controls.
+- Never assume an object valid at check time will remain valid if subsequent mutation is permitted.
 
-Điểm khác nhau về vai trò: **annotation biểu diễn chính sách; engine/logic mới thi hành chính sách**.
+The difference in roles: **annotations express policy; engines/logic enforce policy**.
 
-## 5. Java Reflection đọc annotation bằng API nào?
+## 5. Which APIs does Java Reflection use to read annotations?
 
-Một vài API tiêu biểu của `java.lang.reflect.AnnotatedElement` và `Field`:
+Some representative APIs of `java.lang.reflect.AnnotatedElement` and `Field`:
 
-| API | Công dụng | Có tự chạy validation không? |
+| API | Purpose | Automatically runs validation? |
 | --- | --- | --- |
-| `field.isAnnotationPresent(RequiredText.class)` | Hỏi annotation có hiện diện theo quy tắc Reflection không | Không |
-| `field.getAnnotation(Minimum.class)` | Lấy annotation instance hoặc `null` | Không |
-| `field.getAnnotations()` | Lấy annotation runtime hiện diện trên phần tử theo quy tắc API | Không |
-| `field.getDeclaredAnnotations()` | Lấy annotation khai báo trực tiếp trên phần tử | Không |
-| `clazz.getDeclaredFields()` | Liệt kê field khai báo trực tiếp trong class | Không |
-| `minimum.value()` | Đọc giá trị cấu hình của annotation `@Minimum(...)` | Không |
-| `field.get(bean)` / `field.getInt(bean)` | Đọc giá trị runtime của field | Không tự so sánh với annotation |
+| `field.isAnnotationPresent(RequiredText.class)` | Asks whether the annotation is present under Reflection rules | No |
+| `field.getAnnotation(Minimum.class)` | Gets the annotation instance or `null` | No |
+| `field.getAnnotations()` | Gets runtime annotations present on the element under API rules | No |
+| `field.getDeclaredAnnotations()` | Gets annotations declared directly on the element | No |
+| `clazz.getDeclaredFields()` | Lists fields declared directly in the class | No |
+| `minimum.value()` | Reads the configuration value of `@Minimum(...)` | No |
+| `field.get(bean)` / `field.getInt(bean)` | Reads the runtime value of a field | Does not compare against annotation automatically |
 
-Annotation có các **element** như `int value();` — đây là thuộc tính cấu hình, không phải thân một hàm xử lý nghiệp vụ. Trong ví dụ `@Minimum(18)`, lời gọi `minimum.value()` đơn thuần trả `18`. Nếu code không thực hiện `if (age < 18)` hoặc tương đương, không có hành vi từ chối.
+Annotations have **elements** such as `int value();` — these are configuration attributes, not bodies of business-processing methods. In `@Minimum(18)`, calling `minimum.value()` simply returns `18`. If code does not execute `if (age < 18)` or equivalent, no rejection behavior occurs.
 
-Lưu ý về inheritance: `@Inherited` chỉ liên quan đến một số quy tắc tìm annotation trên **class**, không có nghĩa annotation đặt trên field/method của superclass tự sao chép sang field/method ở subclass. Một annotation scanner phải quyết định có duyệt superclass, interface, method override hoặc nested object hay không; JVM không tự xây traversal cho nghiệp vụ của ứng dụng.
+Note on inheritance: `@Inherited` relates only to certain lookup rules for annotations on **classes**; it does not mean annotations placed on superclass fields/methods are automatically copied to subclass fields/methods. An annotation scanner must decide whether to traverse superclasses, interfaces, overriding methods, or nested objects; the JVM does not build application-specific traversal automatically.
 
-## 6. Compiler, annotation processor và runtime framework đóng vai trò gì?
+## 6. What roles do the compiler, annotation processors, and runtime frameworks play?
 
-### 6.1 Compiler nhận biết một số annotation chuẩn
+### 6.1 Compiler recognizes certain standard annotations
 
-Ví dụ:
+Example:
 
 ~~~java
 class Parent {
@@ -250,73 +250,73 @@ class Child extends Parent {
 }
 ~~~
 
-Với `@Override`, compiler kiểm tra phương thức thật sự override/implement method phù hợp. Nếu sai, code có thể không biên dịch. Đó là hành vi của **compiler hiểu annotation chuẩn**; `@Override` không cung cấp một thân method được tự chạy ở runtime. `@Deprecated` cũng được công cụ dùng để cảnh báo các API không khuyến khích.
+With `@Override`, the compiler verifies that the method genuinely overrides/implements an eligible method. If wrong, the code fails to compile. That is behavior of **the compiler understanding a standard annotation**; `@Override` does not supply a method body that runs automatically at runtime. `@Deprecated` is likewise used by tools to warn about discouraged APIs.
 
-### 6.2 Annotation processor lúc compile time
+### 6.2 Compile-time annotation processors
 
-Một annotation processor được đăng ký và kích hoạt có thể đọc annotation rồi kiểm tra mã, phát diagnostic hoặc tạo source/resource. Ví dụ framework có thể cung cấp processor cho `@GenerateBuilder`, nhưng việc **chỉ định nghĩa** `@GenerateBuilder` không tự tạo builder nếu không có processor/build pipeline xử lý nó.
+A registered and enabled annotation processor can read annotations and check code, emit diagnostics, or generate sources/resources. For instance, a framework may provide a processor for `@GenerateBuilder`, yet **merely defining** `@GenerateBuilder` will not generate a builder unless a processor/build pipeline processes it.
 
-Processor thường làm việc trên mô hình compiler (`javax.annotation.processing`, `javax.lang.model`), không phải bằng cách gọi method nghiệp vụ đang chạy. Retention `SOURCE` hoặc `CLASS` có thể đủ cho một số công cụ compile-time; không phải mọi annotation đều cần `RUNTIME`.
+Processors typically operate on the compiler model (`javax.annotation.processing`, `javax.lang.model`), not by invoking running business methods. `SOURCE` or `CLASS` retention may suffice for some compile-time tools; not every annotation needs `RUNTIME`.
 
-### 6.3 Runtime framework/container
+### 6.3 Runtime frameworks/containers
 
-Framework có thể đọc metadata lúc khởi tạo hoặc tại từng lời gọi và tổ chức:
+A framework can read metadata at startup or on each invocation and wire up:
 
-- Validator cho các constraint annotations.
-- Interceptor/proxy cho transaction, logging, metrics hoặc security.
-- Bộ ánh xạ JSON/ORM để liên kết field/property với dữ liệu.
-- Test runner tìm các method đánh dấu bằng test annotation rồi chủ động chạy.
+- Validators for constraint annotations.
+- Interceptors/proxies for transactions, logging, metrics, or security.
+- JSON/ORM mappers to bind fields/properties to data.
+- Test runners that locate methods marked with test annotations and explicitly invoke them.
 
-Ví dụ `@Transactional` ở một framework cụ thể chỉ có ý nghĩa khi framework tạo và quản lý cơ chế transaction tương ứng. Nếu tự tạo instance bằng `new` ở ngoài container, gọi method từ một đường không đi qua proxy/interceptor, hoặc không cài/chạy framework cần thiết, hiệu ứng mong đợi có thể không xuất hiện. Hành vi chính xác phụ thuộc framework và cấu hình, không phải quy tắc tự chạy chung của Java annotations.
+For example, `@Transactional` in a specific framework is meaningful only when the framework creates and manages the corresponding transaction mechanism. If you instantiate with `new` outside the container, call a method along a path that bypasses the proxy/interceptor, or omit/misconfigure the required framework, the expected effect may not occur. Exact behavior depends on the framework and configuration, not a universal self-execution rule of Java annotations.
 
-Không nên suy rằng một annotation có tên mang tính mệnh lệnh (như `@Validate`, `@Cacheable`, `@Secure`, `@Audit`) sẽ tự động thực hiện mệnh lệnh ấy.
+Do not assume an annotation with an imperative-sounding name (such as `@Validate`, `@Cacheable`, `@Secure`, `@Audit`) will automatically carry out that command.
 
-## 7. Liên hệ với Bean Validation / Jakarta Validation
+## 7. Relation to Bean Validation / Jakarta Validation
 
-Trong hệ sinh thái Java, các annotation như `@NotNull`, `@NotBlank`, `@Size`, `@Min` thường gắn với **Jakarta Bean Validation**. Nhưng để các constraint có tác dụng phải có **validation provider/engine** và một điểm thực sự gọi hoặc tích hợp engine.
+In the Java ecosystem, annotations such as `@NotNull`, `@NotBlank`, `@Size`, and `@Min` are commonly associated with **Jakarta Bean Validation**. Yet for constraints to take effect, there must be a **validation provider/engine** and a point that actually invokes or integrates the engine.
 
-Quy trình khái niệm:
+Conceptual flow:
 
 ~~~text
-Đối tượng có constraint annotations
+Object with constraint annotations
            |
            v
-Validation provider đọc metadata
+Validation provider reads metadata
            |
            v
-Engine kiểm tra các giá trị hiện tại
+Engine checks current values
            |
        +---+---+
        |       |
-      hợp lệ   lỗi
+     valid   error
        |       |
        v       v
-tiếp tục     trả violations / báo lỗi
+  continue   return violations / report error
 ~~~
 
-Nếu sử dụng Jakarta Validation trong ứng dụng, có thể gọi một `Validator` do provider cung cấp, ví dụ dưới đây là **mã minh họa cần Jakarta Validation API và provider tương ứng**, không phải chương trình Java SE chạy độc lập:
+If using Jakarta Validation in an application, you can call a `Validator` supplied by a provider; the example below is **illustrative code requiring the Jakarta Validation API and a corresponding provider**, not a standalone Java SE program:
 
 ~~~java
-// jakarta.validation.Validator validator = ...; // do provider cấp
+// jakarta.validation.Validator validator = ...; // supplied by provider
 // Set<ConstraintViolation<UserInput>> errors = validator.validate(input);
 // if (!errors.isEmpty()) {
-//     // Dừng/ báo lỗi có chủ đích.
+//     // Stop / report error intentionally.
 // }
 ~~~
 
-Trong Java SE thuần, không có quy tắc rằng tên annotation tự chế `@RequiredText` hoặc `@Minimum` tương đương constraint chuẩn của Jakarta. Ví dụ `AnnotationValidationDemo` ở mục 3 dùng **validator riêng**. Còn framework như Spring có thể tích hợp validation tại những điểm cụ thể (ví dụ xử lý request, method validation khi đã bật và cấu hình hợp lệ). Không được suy từ việc gắn annotation rằng mọi direct method call hoặc assignment trong toàn ứng dụng đều tự được kiểm tra.
+In plain Java SE, there is no rule that custom-named annotations `@RequiredText` or `@Minimum` equate to standard Jakarta constraints. The `AnnotationValidationDemo` example in section 3 uses a **custom validator**. Meanwhile frameworks such as Spring may integrate validation at specific points (e.g., request handling, method validation when enabled and properly configured). You must not infer from attaching annotations that every direct method call or assignment across the entire application is automatically validated.
 
-Đặc biệt cần phân biệt:
+In particular, distinguish:
 
-- **Định nghĩa annotation constraint**: nêu điều kiện cần đạt.
-- **Cài validator**: xác định thuật toán đánh giá.
-- **Kích hoạt validation**: quyết định *khi nào*, *đối tượng nào*, *nhóm nào* được kiểm tra và *làm gì khi lỗi*.
+- **Constraint annotation definition**: states the condition to satisfy.
+- **Validator implementation**: defines the evaluation algorithm.
+- **Validation invocation**: decides *when*, *which objects*, *which groups* are checked, and *what to do on failure*.
 
-Ba phần phải phối hợp mới tạo thành cơ chế validation thực sự.
+All three parts must work together to form a real validation mechanism.
 
-## 8. Từ validation đến hành vi nghiệp vụ: annotation không thay người điều phối
+## 8. From validation to business behavior: annotations do not replace the orchestrator
 
-Validation và nghiệp vụ không đồng nhất. Một annotation có thể mô tả điều kiện đầu vào, nhưng **kể cả dữ liệu hợp lệ**, hệ thống vẫn cần tự quyết định nghiệp vụ:
+Validation and business logic are not identical. An annotation can describe an input condition, yet **even with valid data**, the system still has to orchestrate business decisions itself:
 
 ~~~java
 List<String> errors = validate(signup);
@@ -326,65 +326,65 @@ if (!errors.isEmpty()) {
 register(signup);
 ~~~
 
-Đây là đoạn minh họa dùng lại `validate`, `register` và `Signup` từ chương trình đầy đủ. Nếu bỏ nhánh `if` hoặc caller gọi thẳng `register`, logic nghiệp vụ vẫn có thể thực hiện trên dữ liệu không hợp lệ.
+This is an illustrative snippet reusing `validate`, `register`, and `Signup` from the complete program. If the `if` branch is omitted or a caller invokes `register` directly, business logic can still run on invalid data.
 
-Một số câu hỏi phải do thiết kế ứng dụng/engine trả lời, annotation không tự quyết định:
+Several questions must be answered by application/engine design; annotations do not decide them automatically:
 
-1. Kiểm tra khi nhận HTTP request, trước khi ghi DB, trước khi gửi sự kiện, hay mọi thời điểm?
-2. Trả lỗi thế nào: exception, HTTP 400/422, danh sách vi phạm, hay tích hợp UI?
-3. Validation failure có rollback transaction, hủy event hoặc giữ audit log không?
-4. Có cần kiểm tra cross-field (`startDate <= endDate`), quyền theo user, dữ liệu bên ngoài và trạng thái hiện hành không?
-5. Nếu dữ liệu được tạo qua job, import, message queue hoặc Reflection thay vì HTTP, có phải gọi lại validator không?
+1. Validate upon receiving an HTTP request, before DB write, before emitting an event, or at every step?
+2. How to report errors: exception, HTTP 400/422, violation list, or UI integration?
+3. Does validation failure roll back a transaction, cancel an event, or keep an audit log?
+4. Do we also need cross-field checks (`startDate <= endDate`), per-user permissions, external data, and current state?
+5. If data is created via a job, import, message queue, or Reflection rather than HTTP, must the validator be called again?
 
-Framework có thể cung cấp câu trả lời mặc định hoặc extension points, nhưng **câu trả lời đến từ framework và cấu hình**. Không phải thuộc tính tự nhiên của mọi annotation.
+A framework may offer default answers or extension points, but **the answers come from the framework and configuration**. They are not inherent properties of every annotation.
 
-## 9. Các lỗi thường gặp
+## 9. Common mistakes
 
-| Hiểu lầm / lỗi | Thực tế | Cách khắc phục |
+| Misconception / bug | Reality | Fix |
 | --- | --- | --- |
-| “Đã đánh dấu `@RequiredText` thì constructor tự chặn null/blank.” | Annotation metadata không chặn phép gán/khởi tạo. | Gọi validator rõ ràng hoặc kiểm tra invariant trong constructor/factory. |
-| “Có `@Retention(RUNTIME)` là validation tự chạy.” | `RUNTIME` chỉ giúp Reflection đọc annotation. | Viết/cấu hình component xử lý và một điểm gọi thích hợp. |
-| “Đọc `getAnnotation(...)` sẽ làm rule có hiệu lực.” | `getAnnotation` chỉ trả metadata. | Đọc các element rồi thực thi kiểm tra và xử lý kết quả. |
-| “`@Min(18)` tự chặn mọi phép gán vào field.” | Field vẫn có thể thay đổi nếu code có quyền gán. | Kiểm tra ở ranh giới ghi hoặc áp dụng invariant trong domain model. |
-| “Cài thư viện annotations đủ rồi, không cần provider.” | Constraint cần engine và đường kích hoạt. | Kiểm tra dependency, provider, tích hợp framework và invocation path. |
-| “`@Transactional` luôn hoạt động trong mọi direct call.” | Nhiều framework dùng proxy/interceptor và chỉ áp dụng ở đường gọi được quản lý. | Hiểu cơ chế intercept, cấu hình và lifecycle đối tượng. |
-| “Annotation khai báo ở superclass chắc chắn được quét ở subclass.” | Quy tắc kế thừa annotation tùy loại phần tử/API và scanner. | Xem `@Inherited` đúng phạm vi, duyệt class hierarchy nếu cần. |
-| “Validation đã chạy một lần thì object không thể sai nữa.” | Mutable object có thể thay đổi sau kiểm tra. | Thiết kế immutable/invariant và validate tại điểm tin cậy. |
-| “Dữ liệu đã validate là được quyền xử lý nghiệp vụ.” | Hợp lệ kiểu dữ liệu không đồng nghĩa đủ thẩm quyền hay đáp ứng điều kiện business. | Tách input validation, authorization, business rules và transaction. |
+| “Once `@RequiredText` is added, the constructor automatically blocks null/blank.” | Annotation metadata does not block assignments/instantiation. | Call a validator explicitly or check invariants in constructor/factory. |
+| “Having `@Retention(RUNTIME)` makes validation run automatically.” | `RUNTIME` only lets Reflection read the annotation. | Write/configure a processing component and an appropriate call site. |
+| “Reading `getAnnotation(...)` enforces the rule.” | `getAnnotation` only returns metadata. | Read the elements, then run checks and handle results. |
+| “`@Min(18)` automatically blocks every assignment to the field.” | The field can still change if code has write access. | Validate at write boundaries or enforce invariants in the domain model. |
+| “Installing the annotations library is enough; no provider needed.” | Constraints need an engine and an activation path. | Check dependencies, provider, framework integration, and invocation paths. |
+| “`@Transactional` always works in every direct call.” | Many frameworks use proxies/interceptors and apply only on managed call paths. | Understand interception mechanisms, configuration, and object lifecycles. |
+| “Annotations declared on a superclass are definitely scanned on subclasses.” | Annotation inheritance rules depend on element/API kind and scanner. | Review `@Inherited` scope accurately; traverse class hierarchy if needed. |
+| “Once validation has run once, the object can never be invalid.” | Mutable objects can change after checking. | Design immutable/invariant types and validate at trust boundaries. |
+| “Validated data is authorized for business processing.” | Data-format validity does not imply sufficient authority or business eligibility. | Separate input validation, authorization, business rules, and transactions. |
 
-### Lưu ý về Reflection access
+### Note on Reflection access
 
-Nếu validator quét private field, `Field.get(bean)` vẫn chịu kiểm tra truy cập Java. `getDeclaredFields()` có thể tìm được metadata, nhưng không bảo đảm caller được đọc field. `trySetAccessible()` có thể thất bại khi ranh giới named module không mở cho deep reflection. **Không** khắc phục lỗi quyền truy cập bằng cách bỏ validation một cách âm thầm; nên thiết kế public accessor/API hoặc điều chỉnh cấu hình module phù hợp, nếu có thẩm quyền.
+If a validator scans private fields, `Field.get(bean)` is still subject to Java access checks. `getDeclaredFields()` can find the metadata, yet does not guarantee the caller may read the field. `trySetAccessible()` can fail when named module boundaries are not open for deep reflection. **Do not** work around access errors by silently skipping validation; design public accessors/APIs or adjust module configuration appropriately, if authorized.
 
-### Lưu ý về nguồn tin cậy và bảo mật
+### Note on trust boundaries and security
 
-Không dùng annotation và validator do ứng dụng tự gọi như **lớp bảo vệ duy nhất** cho permission, tiền bạc, số lượng tồn kho hoặc integrity. Hệ thống cần kiểm tra quyền, trạng thái giao dịch và các ràng buộc ở đúng nơi không thể bị bypass bởi các luồng vào khác. Annotation mô tả có thể là một phần kiến trúc đó, nhưng không có bảo đảm hệ thống sẽ tự thực thi chúng.
+Do not use annotations and application-invoked validators as the **sole protection layer** for permissions, money, inventory counts, or data integrity. The system must verify permissions, transaction state, and constraints at points that cannot be bypassed by other entry paths. Descriptive annotations can be part of that architecture, but there is no guarantee the system enforces them automatically.
 
-## 10. Checklist khi thiết kế annotation runtime
+## 10. Checklist when designing runtime annotations
 
-1. Xác định annotation dành cho compile-time, runtime hay tooling; nếu runtime Reflection cần đọc, chọn `@Retention(RUNTIME)`.
-2. Xác định vị trí đặt với `@Target`: class, field, method, parameter, constructor, v.v.
-3. Định nghĩa rõ ý nghĩa các element, giá trị mặc định, cách xử lý khi dữ liệu null/sai kiểu và thông báo lỗi.
-4. Xây dựng hoặc chọn engine đọc metadata; nếu dùng custom annotation, phải có mã xử lý thực tế.
-5. Chỉ rõ **điểm gọi**: constructor/factory, HTTP boundary, service method, transaction boundary, trước lưu DB, test runner, v.v.
-6. Bảo đảm mọi đường vào cần thiết đều đi qua validation; không để direct call hoặc mutation quan trọng bypass.
-7. Định nghĩa kết quả khi vi phạm (throw, return violations, reject/rollback, ghi log) và phân biệt với lỗi nghiệp vụ khác.
-8. Kiểm thử cả trường hợp annotation **có mặt nhưng engine không chạy** và trường hợp engine chạy rồi từ chối đúng dữ liệu.
-9. Kiểm tra Reflection access/module và class file cuối cùng trong môi trường triển khai.
-10. Không trông chờ tên annotation, retention hay Reflection metadata tự tạo side effect.
+1. Determine whether the annotation is for compile-time, runtime, or tooling; if runtime Reflection must read it, choose `@Retention(RUNTIME)`.
+2. Specify placement with `@Target`: class, field, method, parameter, constructor, etc.
+3. Clearly define element meanings, defaults, handling of null/mismatched types, and error messages.
+4. Build or choose a metadata-reading engine; if using custom annotations, real handling code must exist.
+5. Specify **call sites**: constructor/factory, HTTP boundary, service method, transaction boundary, pre-DB save, test runner, etc.
+6. Ensure every required entry path goes through validation; do not let direct calls or critical mutations bypass it.
+7. Define violation outcomes (throw, return violations, reject/rollback, log) and distinguish them from other business errors.
+8. Test both when the annotation **is present without the engine running** and when the engine runs and properly rejects invalid data.
+9. Verify Reflection/module access and final class files in the deployment environment.
+10. Do not expect annotation names, retention, or Reflection metadata to produce side effects on their own.
 
-## 11. Tự kiểm tra
+## 11. Self-check
 
-**Câu 1:** `@Minimum(18)` có nghĩa JVM tự ném exception khi field `age` được đặt thành 16 không? **Không.** Chỉ có engine hoặc logic thực tế được gọi mới đánh giá và từ chối.
+**Question 1:** Does `@Minimum(18)` mean the JVM automatically throws an exception when field `age` is set to 16? **No.** Only an invoked engine or real logic evaluates and rejects it.
 
-**Câu 2:** `field.isAnnotationPresent(Minimum.class)` trả `true`. Chứng minh validation đã chạy chưa? **Chưa.** Nó chỉ xác nhận có metadata runtime tương ứng.
+**Question 2:** `field.isAnnotationPresent(Minimum.class)` returns `true`. Does that prove validation ran? **No.** It only confirms matching runtime metadata exists.
 
-**Câu 3:** `@Retention(RUNTIME)` khác `@Target(FIELD)` thế nào? **`Retention`** điều khiển mức lưu giữ annotation; **`Target`** điều khiển vị trí hợp lệ của annotation.
+**Question 3:** How does `@Retention(RUNTIME)` differ from `@Target(FIELD)`? **`Retention`** controls how long the annotation is retained; **`Target`** controls valid locations for the annotation.
 
-**Câu 4:** Tại sao trong chương trình ví dụ object tuổi 16 vẫn được “registered” ở lần gọi đầu? **Vì chương trình gọi nghiệp vụ trực tiếp trước khi gọi validator.** Không có cơ chế tự chạy validation do riêng annotation sinh ra.
+**Question 4:** Why was the age-16 object still “registered” on the first call in the example program? **Because the program called the business method directly before calling the validator.** No automatic validation mechanism is generated by the annotation alone.
 
-**Câu 5:** Nếu dùng constraint của Jakarta Validation nhưng quên chạy/tích hợp provider thì điều gì xảy ra? **Annotation có thể vẫn tồn tại, nhưng không có bảo đảm constraint tự được đánh giá** trên mọi object hay mọi phép gán.
+**Question 5:** If using Jakarta Validation constraints while forgetting to run/integrate a provider, what happens? **The annotations may still exist, yet there is no guarantee constraints are automatically evaluated** on every object or assignment.
 
-**Câu 6:** Annotation có thể tác động tới chương trình không? **Có, khi compiler, processor, framework hoặc chính ứng dụng được thiết kế để đọc và xử lý nó.** Không nên nhầm “không tự thực thi” với “không có tác dụng khi được công cụ tích hợp”.
+**Question 6:** Can annotations influence a program? **Yes, when a compiler, processor, framework, or the application itself is designed to read and process them.** Do not confuse “does not execute by itself” with “has no effect when integrated with tooling”.
 
-**Ghi nhớ:** Annotation là **metadata về quy tắc hoặc ý định**. `@Retention(RUNTIME)` làm metadata có thể được Reflection quan sát; `getAnnotation` đọc metadata; **engine/caller** mới đánh giá validation, chặn dữ liệu và thực hiện hành vi nghiệp vụ.
+**Key takeaway:** Annotations are **metadata about rules or intent**. `@Retention(RUNTIME)` makes metadata observable to Reflection; `getAnnotation` reads metadata; **the engine/caller** is what evaluates validation, blocks invalid data, and performs business behavior.

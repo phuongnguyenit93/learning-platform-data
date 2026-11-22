@@ -1,21 +1,21 @@
-# Phân biệt `int[]` với `Integer[]` và khả năng gán qua `Object` trong Java
+# Distinguishing `int[]` from `Integer[]` and Assignability via `Object` in Java
 
-## 1. Hai kiểu mảng khác nhau
+## 1. Two Different Array Types
 
-Trong Java, `int[]` và `Integer[]` đều là **kiểu tham chiếu trỏ đến đối tượng mảng**, nhưng **kiểu phần tử** khác nhau:
+In Java, both `int[]` and `Integer[]` are **reference types pointing to array objects**, but their **element types** differ:
 
-| Tiêu chí | `int[]` | `Integer[]` |
+| Criterion | `int[]` | `Integer[]` |
 | --- | --- | --- |
-| Kiểu phần tử | Nguyên thủy `int` | Tham chiếu đến đối tượng `java.lang.Integer` |
-| Giá trị mặc định của phần tử trong mảng mới | `0` | `null` |
-| Một phần tử có thể là `null`? | Không | Có |
-| Gán phần tử từ giá trị `int` | Trực tiếp | Autoboxing `int` thành `Integer` |
-| Đọc một phần tử vào biến `int` | Trực tiếp | Unboxing; có thể gây `NullPointerException` khi phần tử `null` |
-| Gán cả mảng cho `Object` | Được | Được |
-| Gán cả mảng cho `Object[]` | **Không được** | **Được** |
-| Đổi trực tiếp `int[]` thành `Integer[]` bằng cast/autoboxing | Không | Không áp dụng |
+| Element type | Primitive `int` | Reference to a `java.lang.Integer` object |
+| Default element value in a new array | `0` | `null` |
+| Can an element be `null`? | No | Yes |
+| Assigning an element from an `int` value | Direct | Autoboxing `int` to `Integer` |
+| Reading an element into an `int` variable | Direct | Unboxing; can throw `NullPointerException` if the element is `null` |
+| Assigning the whole array to `Object` | Allowed | Allowed |
+| Assigning the whole array to `Object[]` | **Not allowed** | **Allowed** |
+| Directly converting `int[]` to `Integer[]` via cast/autoboxing | No | Not applicable |
 
-Mỗi đối tượng mảng có `length` cố định sau khi khởi tạo. `int[]` thường tiết kiệm bộ nhớ và tránh boxing khi xử lý dữ liệu số; `Integer[]` phù hợp khi cần phần tử `null` hoặc một API yêu cầu tham chiếu `Integer`. Không thể coi hai kiểu mảng này là hoán đổi cho nhau.
+Every array object has a fixed `length` after initialization. `int[]` usually saves memory and avoids boxing when processing numeric data; `Integer[]` is appropriate when `null` elements are needed or an API requires `Integer` references. These two array types cannot be treated as interchangeable.
 
 ```java
 int[] primitive = new int[3];     // [0, 0, 0]
@@ -25,79 +25,79 @@ primitive[0] = 10;
 wrappers[0] = 10; // autoboxing: Integer.valueOf(10)
 
 int a = primitive[0]; // 10
-int b = wrappers[0];  // unboxing: intValue(), kết quả 10
+int b = wrappers[0];  // unboxing: intValue(), result 10
 ```
 
-Các lệnh trên là **đoạn minh họa đặt bên trong phương thức**, không phải chương trình độc lập. Nếu `wrappers[1]` đang là `null`, phép gán `int x = wrappers[1]` gây `NullPointerException`.
+The statements above are **illustrative snippets placed inside a method**, not a standalone program. If `wrappers[1]` is `null`, the assignment `int x = wrappers[1]` throws `NullPointerException`.
 
-## 2. Vì sao cả hai đều gán được cho `Object`, nhưng chỉ một loại gán được cho `Object[]`?
+## 2. Why Both Are Assignable to `Object`, Yet Only One Is Assignable to `Object[]`
 
-Trong Java, **bản thân mảng luôn là đối tượng**: mọi kiểu mảng, kể cả mảng chứa phần tử nguyên thủy, đều có thể gán cho `Object`. Chúng còn triển khai `Cloneable` và `java.io.Serializable`.
+In Java, **an array itself is always an object**: every array type, including arrays of primitive elements, can be assigned to `Object`. They also implement `Cloneable` and `java.io.Serializable`.
 
 ```java
 int[] a = {1, 2};
 Integer[] b = {1, 2};
 
-Object oa = a; // Hợp lệ: Object giữ tham chiếu tới int[]
-Object ob = b; // Hợp lệ: Object giữ tham chiếu tới Integer[]
+Object oa = a; // Valid: Object holds a reference to int[]
+Object ob = b; // Valid: Object holds a reference to Integer[]
 
-Object[] refs = b; // Hợp lệ: Integer là kiểu tham chiếu
-// Object[] invalid = a; // LỖI BIÊN DỊCH: int[] không phải Object[]
+Object[] refs = b; // Valid: Integer is a reference type
+// Object[] invalid = a; // COMPILE ERROR: int[] is not Object[]
 ```
 
-`Object[]` là mảng có **các phần tử là tham chiếu đối tượng**. `Integer[]` là mảng của các tham chiếu `Integer` (một kiểu con của `Object`), nên có thể gán cho `Object[]`. Ngược lại, phần tử của `int[]` là giá trị nguyên thủy; `int` **không phải kiểu con** của `Object`, vì vậy `int[]` không thể gán cho `Object[]`.
+`Object[]` is an array whose **elements are object references**. `Integer[]` is an array of `Integer` references (a subtype of `Object`), so it can be assigned to `Object[]`. Conversely, the elements of `int[]` are primitive values; `int` **is not a subtype** of `Object`, so `int[]` cannot be assigned to `Object[]`.
 
-Một phép gán mảng sang `Object` **không biến đổi các phần tử**:
+Assigning an array to `Object` **does not convert its elements**:
 
-- `Object o = new int[]{1, 2};` chỉ lưu tham chiếu đến **chính mảng `int[]`**.
-- `(int[]) o` trả lại tham chiếu theo kiểu `int[]` khi đối tượng thực sự có kiểu đó.
-- `(Integer[]) o` không chuyển kiểu từng phần tử; nếu `o` thực sự trỏ tới `int[]`, phép cast này gây `ClassCastException`.
-- Autoboxing `int` → `Integer` và unboxing `Integer` → `int` áp dụng cho **giá trị riêng lẻ**, không tự chuyển toàn bộ `int[]` ↔ `Integer[]`.
+- `Object o = new int[]{1, 2};` only stores a reference to **the `int[]` array itself**.
+- `(int[]) o` restores a reference of type `int[]` when the object actually has that type.
+- `(Integer[]) o` does not convert each element's type; if `o` actually points to an `int[]`, this cast throws `ClassCastException`.
+- Autoboxing `int` → `Integer` and unboxing `Integer` → `int` apply to **individual values**, not automatically converting an entire `int[]` ↔ `Integer[]`.
 
-## 3. Mảng nhiều chiều: `int[][]` lại có thể gán cho `Object[]`
+## 3. Multidimensional Arrays: `int[][]` Can Be Assigned to `Object[]`
 
-Đây là điểm đặc biệt dễ nhầm trong chủ đề mảng nhiều chiều. Trong Java, `int[][]` là một **mảng ngoài**, mỗi phần tử của nó là **một tham chiếu tới `int[]`**. Vì `int[]` là một đối tượng nên phần tử của mảng ngoài là kiểu tham chiếu.
+This is a particularly easy point of confusion in multidimensional arrays. In Java, `int[][]` is an **outer array**, each element of which is **a reference to an `int[]`**. Because `int[]` is an object, the outer array's elements are of a reference type.
 
 ```java
 int[][] matrix = {{10, 20}, {30}};
-Object asObject = matrix;   // Hợp lệ: mọi mảng đều là Object
-Object[] rows = matrix;     // Hợp lệ: mỗi phần tử của matrix là int[]
-Object first = rows[0];     // Đối tượng thật là int[]
+Object asObject = matrix;   // Valid: every array is an Object
+Object[] rows = matrix;     // Valid: each element of matrix is an int[]
+Object first = rows[0];     // Actual object is int[]
 int[] firstRow = (int[]) first;
 int item = firstRow[1];     // 20
 
-// Object[][] invalid = matrix; // LỖI: int[][] không phải Object[][]
+// Object[][] invalid = matrix; // ERROR: int[][] is not Object[][]
 ```
 
-So sánh ba tầng:
+Comparing three levels:
 
-| Kiểu biểu thức | Bản chất đối tượng mảng | Gán được cho `Object[]`? |
+| Expression type | Nature of the array object | Assignable to `Object[]`? |
 | --- | --- | --- |
-| `int[]` | Các phần tử là `int` nguyên thủy | Không |
-| `Integer[]` | Các phần tử là tham chiếu `Integer` | Có |
-| `int[][]` | Các phần tử là tham chiếu `int[]` | Có |
+| `int[]` | Elements are primitive `int` | No |
+| `Integer[]` | Elements are `Integer` references | Yes |
+| `int[][]` | Elements are `int[]` references | Yes |
 
-Độ sâu quan trọng: `int[][]` là `Object[]`, nhưng mỗi hàng `matrix[i]` vẫn có kiểu `int[]` và **không thể** gán trực tiếp cho `Object[]`. Tương tự, `Integer[][]` có thể gán cho `Object[][]`, vì mỗi hàng `Integer[]` là một `Object[]`.
+Important depth distinction: `int[][]` is an `Object[]`, yet each row `matrix[i]` still has type `int[]` and **cannot** be assigned directly to `Object[]`. Similarly, `Integer[][]` can be assigned to `Object[][]` because each `Integer[]` row is an `Object[]`.
 
-## 4. Tính hiệp biến và kiểm tra kiểu khi ghi qua `Object[]`
+## 4. Covariance and Type Checking When Writing Through `Object[]`
 
-Mảng các kiểu tham chiếu trong Java **hiệp biến** (*covariant*): nếu `Integer` là kiểu con của `Number` và `Object`, thì `Integer[]` gán được cho `Number[]` và `Object[]`.
+Reference arrays in Java are **covariant** (*covariant*): since `Integer` is a subtype of `Number` and `Object`, `Integer[]` can be assigned to `Number[]` and `Object[]`.
 
 ```java
 Integer[] numbers = {1, 2};
 Number[] asNumbers = numbers;
 Object[] asObjects = numbers;
-asObjects[0] = Integer.valueOf(10); // Hợp lệ
-// asObjects[1] = "hello";          // Biên dịch được, nhưng lỗi khi chạy
+asObjects[0] = Integer.valueOf(10); // Valid
+// asObjects[1] = "hello";          // Compiles, but fails at runtime
 ```
 
-Do `asObjects` và `numbers` cùng trỏ tới **mảng thực có kiểu `Integer[]`**, JVM kiểm tra kiểu đối tượng lúc gán phần tử. Dù biến có kiểu `Object[]`, gán `String` vào mảng thực `Integer[]` sẽ ném **`ArrayStoreException`**. Điều này cũng áp dụng cho `Object[] rows = new int[2][]`: chỉ có thể lưu `int[]` hoặc `null` vào từng phần tử, không thể lưu `Integer[]`.
+Because `asObjects` and `numbers` both point to **an actual array of type `Integer[]`**, the JVM checks the object type when assigning elements. Even though the variable has type `Object[]`, assigning a `String` into an actual `Integer[]` array throws **`ArrayStoreException`**. The same applies to `Object[] rows = new int[2][]`: only `int[]` or `null` can be stored in each element, never an `Integer[]`.
 
-Đừng nhầm `ArrayStoreException` khi gán sai kiểu cho **phần tử mảng tham chiếu** với `ClassCastException` khi **ép kiểu chính đối tượng mảng**.
+Do not confuse `ArrayStoreException` when assigning the wrong type to a **reference array element** with `ClassCastException` when **casting the array object itself**.
 
-## 5. Chương trình Java 17+ có thể chạy độc lập
+## 5. Standalone Runnable Java 17+ Program
 
-Tạo tệp **`ArrayTypeDemo.java`**:
+Create the file **`ArrayTypeDemo.java`**:
 
 ```java
 import java.util.Arrays;
@@ -114,11 +114,11 @@ public class ArrayTypeDemo {
         System.out.println("wrapped la Object[]: " + (wrappedAsObject instanceof Object[]));
 
         Object[] elements = wrapped;
-        elements[0] = 99;  // Autoboxing; thay đổi mảng wrapped gốc
+        elements[0] = 99;  // Autoboxing; mutates the original wrapped array
         System.out.println("wrapped: " + Arrays.toString(wrapped));
 
         try {
-            elements[1] = "wrong"; // JVM chặn do mảng thực là Integer[]
+            elements[1] = "wrong"; // JVM rejects because the actual array is Integer[]
         } catch (ArrayStoreException ex) {
             System.out.println("Gan sai kieu: ArrayStoreException");
         }
@@ -131,7 +131,7 @@ public class ArrayTypeDemo {
         System.out.println("Hang thu 2: " + Arrays.toString(matrix[1]));
 
         try {
-            rows[0] = new Integer[]{7}; // Phần tử thực phải là int[]
+            rows[0] = new Integer[]{7}; // Actual element must be int[]
         } catch (ArrayStoreException ex) {
             System.out.println("Gan sai hang: ArrayStoreException");
         }
@@ -148,14 +148,14 @@ public class ArrayTypeDemo {
 }
 ```
 
-Trong thư mục chứa tệp, sử dụng JDK 17 trở lên:
+In the directory containing the file, using JDK 17 or higher:
 
 ```bash
 javac -encoding UTF-8 ArrayTypeDemo.java
 java ArrayTypeDemo
 ```
 
-Kết quả stdout chính xác (biên dịch thành công không in thông báo):
+Exact stdout output (a successful compilation prints no messages):
 
 ```text
 raw la Object: true
@@ -173,43 +173,43 @@ Boxed: [1, 2, 3]
 Unboxed: [1, 2, 3]
 ```
 
-Giải thích: `elements` là tham chiếu kiểu `Object[]` đến cùng đối tượng `Integer[]` với `wrapped`, nên sửa `elements[0]` ảnh hưởng `wrapped[0]`. `rows` trỏ tới cùng mảng ngoài `matrix`, vì vậy thay `rows[1]` làm đổi hàng thứ hai của `matrix`. Cả hai phép ghi sai kiểu đều bị JVM chặn tại thời điểm chạy.
+Explanation: `elements` is an `Object[]` reference to the same `Integer[]` object as `wrapped`, so modifying `elements[0]` affects `wrapped[0]`. `rows` points to the same outer array `matrix`, so replacing `rows[1]` changes the second row of `matrix`. Both invalid write operations are blocked by the JVM at runtime.
 
-## 6. Chuyển đổi nội dung mảng khi thật sự cần
+## 6. Converting Array Contents When Truly Needed
 
-Vì không có phép chuyển toàn mảng tự động, hãy **tạo mảng mới** và chuyển từng phần tử.
+Because there is no automatic whole-array conversion, **create a new array** and convert each element.
 
-**Từ `int[]` sang `Integer[]`:**
+**From `int[]` to `Integer[]`:**
 
 ```java
 int[] source = {5, 6};
 Integer[] boxed = java.util.Arrays.stream(source)
                                   .boxed()
                                   .toArray(Integer[]::new);
-// boxed có nội dung [5, 6]
+// boxed has contents [5, 6]
 ```
 
-**Từ `Integer[]` sang `int[]`:**
+**From `Integer[]` to `int[]`:**
 
 ```java
 Integer[] source = {5, 6};
 int[] plain = java.util.Arrays.stream(source)
                               .mapToInt(Integer::intValue)
                               .toArray();
-// plain có nội dung [5, 6]
+// plain has contents [5, 6]
 ```
 
-Hai đoạn là mã minh họa bên trong phương thức; ví dụ ở mục 5 là chương trình chạy hoàn chỉnh. Nếu `Integer[]` chứa `null`, phép unboxing tại `Integer::intValue` gây `NullPointerException`. Phải quyết định cách xử lý `null` tùy bài toán trước khi chuyển (ví dụ từ chối dữ liệu, bỏ qua, hoặc thay bằng giá trị mặc định có chủ đích).
+These two snippets are illustrative code inside a method; the example in section 5 is a complete runnable program. If `Integer[]` contains `null`, unboxing at `Integer::intValue` throws `NullPointerException`. You must decide how to handle `null` according to the problem before converting (for example, reject the data, skip it, or substitute an intentional default value).
 
-**Một lỗi API liên quan:** `Arrays.asList(raw)` với `raw` là `int[]` tạo danh sách có **một phần tử là cả mảng `int[]`**; `Arrays.asList(wrapped)` với `wrapped` là `Integer[]` tạo danh sách các `Integer` theo từng phần tử. Trong ví dụ chạy, kích thước lần lượt là `1` và `3`. Để lấy `List<Integer>` từ `int[]`, dùng `Arrays.stream(raw).boxed().toList()` (Java 16+); kết quả này là danh sách các giá trị đã boxing.
+**A related API pitfall:** `Arrays.asList(raw)` where `raw` is `int[]` creates a list with **one element, which is the entire `int[]` array**; `Arrays.asList(wrapped)` where `wrapped` is `Integer[]` creates a list of `Integer` elements one by one. In the runnable example, the sizes are `1` and `3` respectively. To obtain a `List<Integer>` from `int[]`, use `Arrays.stream(raw).boxed().toList()` (Java 16+); this result is a list of boxed values.
 
-## 7. Lỗi phổ biến và cách ghi nhớ
+## 7. Common Mistakes and Takeaways
 
-- `int[]` là mảng **chứa nguyên thủy**, nhưng bản thân **vẫn là đối tượng**, do đó gán được cho `Object`.
-- `Object[]` yêu cầu **kiểu phần tử là tham chiếu**: nhận `Integer[]`, `String[]`, `int[][]`; **không nhận** `int[]`.
-- Không dùng `(Integer[]) someIntArray` để boxing cả mảng; phép cast không chuyển phần tử, cần tạo mảng mới.
-- Tránh unboxing `Integer` chứa `null` mà không kiểm tra.
-- Qua biến `Object[]`, phép ghi vẫn bị kiểm tra theo kiểu mảng thật ở runtime; `ArrayStoreException` bảo vệ tính đúng đắn của mảng.
-- Với mảng nhiều chiều, luôn xem **kiểu phần tử của tầng đang xét**: `int[][]` chứa phần tử `int[]` (tham chiếu), còn `int[]` chứa phần tử `int` (nguyên thủy).
+- `int[]` is an array **containing primitives**, yet it **is still an object**, so it can be assigned to `Object`.
+- `Object[]` requires **a reference element type**: it accepts `Integer[]`, `String[]`, `int[][]`; it **does not accept** `int[]`.
+- Do not use `(Integer[]) someIntArray` to box an entire array; casting does not convert elements, so you must create a new array.
+- Avoid unboxing an `Integer` that may be `null` without checking.
+- Even through an `Object[]` variable, writes are still checked against the actual runtime array type; `ArrayStoreException` protects the array's type integrity.
+- With multidimensional arrays, always inspect **the element type at the level under consideration**: `int[][]` contains `int[]` elements (references), whereas `int[]` contains `int` elements (primitives).
 
-**Quy tắc cốt lõi:** loại dữ liệu của **phần tử mảng** quyết định mảng đó có thể là `Object[]` hay không; sự thật “mảng là đối tượng” chỉ đủ để gán **cả mảng** cho `Object`.
+**Core rule:** the data type of **the array's elements** determines whether that array can be an `Object[]`; the fact that "an array is an object" is only enough to assign **the array itself** to `Object`.

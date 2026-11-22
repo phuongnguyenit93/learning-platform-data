@@ -1,33 +1,33 @@
-# Mảng là đối tượng chứa số phần tử cố định cùng kiểu thành phần trong Java
+# Arrays Are Objects Holding a Fixed Number of Elements of the Same Component Type in Java
 
-> **Java core — language-basics / Mảng một chiều**  
-> **Phiên bản:** Java 17+, chương trình một file, không cần thư viện ngoài JDK.  
-> **Mục tiêu:** Hiểu vì sao mảng là **đối tượng** có độ dài cố định và **kiểu thành phần runtime** xác định; phân biệt mảng nguyên thủy với mảng tham chiếu, quan sát cơ chế covariance và `ArrayStoreException`.
+> **Java core — language-basics / One-Dimensional Arrays**  
+> **Version:** Java 17+, single-file program, no libraries outside the JDK required.  
+> **Goal:** Understand why an array is an **object** with a fixed length and a defined **runtime component type**; distinguish primitive arrays from reference arrays, and observe covariance and `ArrayStoreException`.
 
-## 1. Mảng một chiều là một đối tượng
+## 1. A one-dimensional array is an object
 
-Trong Java, mảng (`array`) là đối tượng dùng để lưu **một số lượng vị trí cố định**, mỗi vị trí có cùng **kiểu thành phần** (*component type*).
+In Java, an `array` is an object used to store **a fixed number of slots**, each having the same **component type**.
 
 ~~~java
-int[] scores = new int[3]; // Đối tượng mảng int gồm 3 vị trí.
+int[] scores = new int[3]; // An int array object with 3 slots.
 scores[0] = 7;
 scores[1] = 8;
 scores[2] = 9;
 ~~~
 
-- `int[]` là **kiểu mảng**, `int` là **kiểu thành phần**. `String[]` tương tự nhưng các phần tử giữ tham chiếu `String`.
-- `new int[3]` tạo **một đối tượng mảng** có `length == 3`. Các vị trí được đánh số **0, 1, 2**.
-- Biến `scores` giữ **tham chiếu** tới đối tượng mảng. Có thể gán tham chiếu đó cho biến khác, truyền vào phương thức hoặc đặt bằng `null`.
-- Mảng là đối tượng nên có thể gán cho biến kiểu `Object`. Mảng cũng thực hiện `Cloneable` và `java.io.Serializable`.
-- Số vị trí của **chính đối tượng mảng** không thay đổi sau khi tạo; nhưng giá trị lưu trong các vị trí có thể thay đổi.
+- `int[]` is the **array type**, and `int` is the **component type**. `String[]` is similar, except its elements hold `String` references.
+- `new int[3]` creates **an array object** with `length == 3`. The slots are indexed **0, 1, 2**.
+- The variable `scores` holds a **reference** to the array object. That reference can be assigned to another variable, passed to a method, or set to `null`.
+- Because an array is an object, it can be assigned to a variable of type `Object`. Arrays also implement `Cloneable` and `java.io.Serializable`.
+- The number of slots of **the array object itself** cannot change after creation; however, the values stored in those slots can change.
 
-Một `int[]` chỉ giữ các giá trị `int`, còn `String[]` giữ `null` hoặc tham chiếu tới các đối tượng thích hợp với kiểu thành phần `String`. Một mảng tham chiếu có kiểu thành phần là lớp/interface cha có thể chứa đối tượng thuộc các lớp con khác nhau; không bắt buộc mọi phần tử có **cùng lớp runtime**.
+An `int[]` only holds `int` values, whereas a `String[]` holds `null` or references to objects compatible with the `String` component type. A reference array whose component type is a superclass or interface can hold objects of different subclasses; it is not required that all elements have **the same runtime class**.
 
-Phần tiếp theo tập trung vào **kiểu thành phần và ràng buộc kiểu lúc chạy**. Việc khai báo bằng `new`, duyệt chỉ số, giá trị mặc định, mảng rỗng và sao chép sẽ được thực hành ở các bài tương ứng trong chương.
+The next section focuses on **the component type and runtime type checking**. Declaring with `new`, index-based traversal, default values, empty arrays, and copying will be practiced in their respective lessons in this chapter.
 
-## 2. Kiểu thành phần và kiểm tra kiểu tại runtime
+## 2. Component type and runtime type checking
 
-Mảng có kiểu runtime thực, ngay cả khi được tham chiếu qua `Object`:
+An array has an actual runtime type, even when referenced through `Object`:
 
 ~~~java
 int[] values = {1, 2};
@@ -39,28 +39,28 @@ System.out.println(obj instanceof Object[]);  // false
 System.out.println(values.getClass().getComponentType().getTypeName()); // int
 ~~~
 
-`int[]` là một đối tượng nhưng **không phải `Object[]`**, vì phần tử của mảng là giá trị primitive `int`, không phải tham chiếu đối tượng.
+`int[]` is an object, yet it is **not an `Object[]`**, because the array's elements are primitive `int` values, not object references.
 
-Mảng tham chiếu có quy tắc **covariance**: `String[]` có thể dùng ở nơi cần `Object[]`, nhưng Java vẫn bảo vệ kiểu thành phần **thật** của đối tượng mảng:
+Reference arrays follow **covariance** rules: `String[]` can be used where `Object[]` is expected, while Java still protects the **actual** component type of the array object:
 
 ~~~java
 String[] words = {"a", "b"};
-Object[] objects = words; // Hợp lệ: covariance.
-objects[0] = "X";         // Hợp lệ: String.
+Object[] objects = words; // Valid: covariance.
+objects[0] = "X";         // Valid: String.
 try {
-    objects[1] = Integer.valueOf(42); // Không phải String!
+    objects[1] = Integer.valueOf(42); // Not a String!
 } catch (ArrayStoreException ex) {
     System.out.println("ArrayStoreException");
 }
 ~~~
 
-`objects` có kiểu tĩnh `Object[]` nhưng mảng runtime vẫn là `String[]`. Gán `Integer` vào vị trí này ném `ArrayStoreException` — đây là lỗi khác với `ArrayIndexOutOfBoundsException`.
+`objects` has static type `Object[]`, while the runtime array is still `String[]`. Assigning an `Integer` to this slot throws `ArrayStoreException` — this is a different error from `ArrayIndexOutOfBoundsException`.
 
-**Cùng kiểu thành phần** nghĩa là các vị trí tuân theo **kiểu thành phần của đối tượng mảng**, không phải mọi phần tử đều có cùng kiểu runtime. Ví dụ `Number[]` có thể giữ `Integer` và `Double`, vì cả hai đều là subtype của `Number`.
+**Same component type** means the slots conform to **the array object's component type**, not that every element has the exact same runtime class. For example, `Number[]` can hold both `Integer` and `Double`, because both are subtypes of `Number`.
 
-## 3. Chương trình Java 17+ chạy độc lập
+## 3. Standalone Java 17+ program
 
-Tạo file **OneDimensionalArrayDemo.java**:
+Create the file **OneDimensionalArrayDemo.java**:
 
 ~~~java
 import java.util.Arrays;
@@ -139,14 +139,14 @@ public final class OneDimensionalArrayDemo {
 }
 ~~~
 
-Trong thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+In the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 OneDimensionalArrayDemo.java
 java OneDimensionalArrayDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 intDefaults=[0, 0, 0]
@@ -171,31 +171,31 @@ negativeLength=NegativeArraySizeException
 nullArray=NullPointerException
 ~~~
 
-Những dòng `oldAliasLength=3` và `resizedNewLength=5` chứng minh tạo mảng mới chứ không đổi chiều dài mảng cũ. `covariantStore` thể hiện ràng buộc kiểu thành phần được kiểm tra tại runtime; `badIndex` và `negativeLength` là lỗi khác nhau.
+The lines `oldAliasLength=3` and `resizedNewLength=5` prove that a new array is created rather than changing the length of the old array. `covariantStore` demonstrates that the component type constraint is checked at runtime; `badIndex` and `negativeLength` are distinct errors.
 
-## 4. Lỗi phổ biến và bài tập
+## 4. Common pitfalls and exercises
 
-| Hiểu lầm / lỗi | Cách hiểu hoặc xử lý đúng |
+| Misconception / error | Correct understanding or handling |
 | --- | --- |
-| Gọi `array.length()` | Dùng trường `array.length` |
-| Cho rằng chỉ số bắt đầu từ 1 | Mảng bắt đầu từ chỉ số 0 |
-| Gán `array.length = n` | Không hợp lệ; tạo mảng mới nếu cần số vị trí khác |
-| Dùng `array[array.length]` | Vượt phạm vi; chỉ số cuối là `array.length - 1` khi không rỗng |
-| Đồng nhất mảng rỗng và `null` | Rỗng có `length == 0`; null không có đối tượng |
-| Gán mảng cho biến khác rồi nghĩ đã sao chép | Đó chỉ là alias; dùng `clone()` hoặc `Arrays.copyOf` khi cần mảng mới |
-| Cho rằng `int[]` là `Object[]` | `int[]` là Object nhưng các phần tử là primitive |
-| Gán sai kiểu qua alias `Object[]` trỏ tới `String[]` | Runtime ném `ArrayStoreException` |
+| Calling `array.length()` | Use the `array.length` field |
+| Thinking indices start at 1 | Arrays start at index 0 |
+| Assigning `array.length = n` | Invalid; create a new array if a different number of slots is needed |
+| Using `array[array.length]` | Out of bounds; the last index is `array.length - 1` when non-empty |
+| Equating an empty array with `null` | An empty array has `length == 0`; `null` refers to no object |
+| Assigning an array to another variable and thinking it was copied | That only creates an alias; use `clone()` or `Arrays.copyOf` when a new array is needed |
+| Thinking `int[]` is an `Object[]` | `int[]` is an `Object`, but its elements are primitives |
+| Storing the wrong type through an `Object[]` alias pointing to a `String[]` | Throws `ArrayStoreException` at runtime |
 
-**Bài 1.** Tạo mảng `boolean[3]` và `String[2]`, dự đoán giá trị mặc định, sau đó in bằng `Arrays.toString`.
+**Exercise 1.** Create a `boolean[3]` array and a `String[2]` array, predict their default values, and then print them with `Arrays.toString`.
 
-**Bài 2.** Với `int[] a = {2, 4}; int[] b = a;`, thay `b[0]` và giải thích vì sao `a[0]` cũng đổi. Sau đó dùng `clone()` để tạo mảng độc lập.
+**Exercise 2.** Given `int[] a = {2, 4}; int[] b = a;`, change `b[0]` and explain why `a[0]` also changes. Then use `clone()` to create an independent array.
 
-**Bài 3.** Dùng `Arrays.copyOf` mở rộng mảng từ 2 lên 4 phần tử, giải thích các giá trị thêm vào và trạng thái tham chiếu cũ.
+**Exercise 3.** Use `Arrays.copyOf` to expand an array from 2 to 4 elements, and explain the added values and the state of any old reference.
 
-**Bài 4.** Thử `Number[] values = {Integer.valueOf(1), Double.valueOf(2.5)};`; vì sao hai đối tượng có lớp runtime khác nhau vẫn có thể nằm trong cùng mảng?
+**Exercise 4.** Try `Number[] values = {Integer.valueOf(1), Double.valueOf(2.5)};`; why can two objects with different runtime classes reside in the same array?
 
-**Bài 5.** Tạo `String[]`, gán vào `Object[]` rồi thử lưu `Integer`; dự đoán lỗi. Nêu khác biệt với lỗi chỉ số và kích thước âm.
+**Exercise 5.** Create a `String[]`, assign it to an `Object[]`, and then try to store an `Integer`; predict the error. State how it differs from index errors and negative size errors.
 
-### Ghi nhớ
+### Key takeaways
 
-**Mảng là đối tượng có kiểu thành phần và `length` được ấn định khi tạo.** Ta có thể sửa phần tử nhưng không sửa số vị trí của đối tượng mảng. Mảng primitive giữ giá trị primitive; mảng tham chiếu giữ `null` hoặc đối tượng tương thích với kiểu thành phần runtime. Khi cần mở rộng, tạo mảng mới; khi chia sẻ tham chiếu, thay đổi phần tử có thể được nhìn thấy qua mọi alias.
+**An array is an object whose component type and `length` are fixed at creation.** You can modify elements, but you cannot change the number of slots of the array object. A primitive array holds primitive values; a reference array holds `null` or objects compatible with its runtime component type. When you need to resize, create a new array; when sharing a reference, element changes can be seen through every alias.

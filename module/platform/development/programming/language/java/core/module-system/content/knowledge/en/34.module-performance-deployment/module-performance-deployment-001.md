@@ -1,69 +1,69 @@
-# Chi phí resolve module graph lúc khởi động
+# Module Graph Resolution Cost at Startup
 
-## 1. Module resolution nằm ở đâu trong startup?
+## 1. Where Does Module Resolution Sit in Startup?
 
-Khi chạy một ứng dụng modular, Java cần xây dựng **module graph** trước khi nạp main class và thực thi ứng dụng. Từ root module, resolver tìm các module cần thiết qua directive `requires`, kiểm tra quan hệ readability, tính nhất quán package và các ràng buộc của module system. Kết quả là một `Configuration` được dùng để tạo hoặc xác định module layer.
+When running a modular application, Java needs to build the **module graph** before loading the main class and executing the application. Starting from the root modules, the resolver finds the required modules via `requires` directives, checks readability relationships, package consistency, and module system constraints. The result is a `Configuration` used to create or define a module layer.
 
-Đây là một phần của startup, nhưng không phải toàn bộ startup. Cần phân biệt:
+This is one part of startup, but not the entirety of startup. It is important to distinguish:
 
-1. **Module discovery và resolution:** tìm module trên module path, đọc metadata, giải quyết dependency và kiểm tra graph.
-2. **Module layer creation:** tạo layer và class loader cho các module được resolve.
-3. **Class loading và linking:** nạp, xác minh và liên kết class cần dùng.
-4. **Service discovery và provider initialization:** tìm, khởi tạo provider khi ứng dụng duyệt `ServiceLoader`.
-5. **Application initialization:** chạy static initializer, tạo object, mở kết nối, đọc cấu hình và thực hiện công việc của ứng dụng.
+1. **Module discovery and resolution:** finding modules on the module path, reading metadata, resolving dependencies, and validating the graph.
+2. **Module layer creation:** creating the layer and class loaders for the resolved modules.
+3. **Class loading and linking:** loading, verifying, and linking the required classes.
+4. **Service discovery and provider initialization:** finding and initializing providers when the application iterates over `ServiceLoader`.
+5. **Application initialization:** running static initializers, creating objects, opening connections, reading configuration, and performing application work.
 
-Nếu thời gian khởi động tăng, không nên mặc định nguyên nhân là module resolution. Một ứng dụng có graph nhỏ vẫn có thể startup chậm vì class loading, framework initialization, I/O hoặc kết nối bên ngoài.
+If startup time increases, you should not assume the cause is module resolution by default. An application with a small graph can still start slowly due to class loading, framework initialization, I/O, or external connections.
 
-## 2. Những yếu tố ảnh hưởng đến chi phí resolution
+## 2. Factors That Affect Resolution Cost
 
-### Số lượng module có thể quan sát
+### Number of Observable Modules
 
-Resolver cần tìm các module trong nguồn được cung cấp, chẳng hạn runtime image và module path. Module path chứa nhiều JAR hoặc thư mục module không liên quan có thể làm tăng công việc discovery và metadata inspection, tùy cách finder và filesystem hoạt động.
+The resolver needs to search for modules in the provided sources, such as the runtime image and the module path. A module path containing many unrelated JARs or module directories can increase discovery and metadata inspection work, depending on how the finder and filesystem operate.
 
-Giữ module path rõ ràng, chỉ chứa artifact cần cho runtime. Tránh đưa cả kho thư viện, thư mục build trung gian hoặc nhiều phiên bản dependency vào cùng module path.
+Keep the module path clean, containing only the artifacts needed for runtime. Avoid placing an entire library repository, intermediate build directories, or multiple versions of dependencies on the same module path.
 
-### Độ rộng của dependency graph
+### Breadth of the Dependency Graph
 
-Resolver bắt đầu từ root modules rồi lần theo dependency `requires`. Graph càng rộng hoặc sâu thì càng có nhiều module và quan hệ cần xử lý, kiểm tra.
+The resolver starts from root modules and follows `requires` dependencies. The wider or deeper the graph, the more modules and relationships need to be processed and validated.
 
-Các nguyên nhân làm graph phình ra gồm:
+Causes of graph bloat include:
 
-- Thêm root module không cần thiết.
-- Dùng `--add-modules ALL-MODULE-PATH` khiến nhiều module trên module path trở thành root.
-- Dependency bắc cầu lớn hoặc một module facade truyền readability qua nhiều dependency.
-- Các module provider và dependency của chúng được đưa vào graph qua service binding.
-- Framework hoặc ứng dụng tạo nhiều module layer với các cấu hình riêng.
+- Adding unnecessary root modules.
+- Using `--add-modules ALL-MODULE-PATH`, which turns many modules on the module path into roots.
+- Large transitive dependencies or a facade module propagating readability across many dependencies.
+- Provider modules and their dependencies being pulled into the graph via service binding.
+- Frameworks or applications creating multiple module layers with their own configurations.
 
-Số lượng JAR không phải thước đo duy nhất. Một module có nhiều dependency bắc cầu có thể tạo graph lớn hơn nhiều module nhỏ nhưng không được resolve.
+The number of JARs is not the only metric. A single module with many transitive dependencies can produce a larger graph than many small modules that are not resolved.
 
-### Service binding
+### Service Binding
 
-Với configuration được tạo bằng `Configuration.resolveAndBind`, module system còn xét service type được các module trong graph khai báo qua `uses`, tìm module có `provides` phù hợp và bổ sung provider cùng dependency của chúng.
+For a configuration created with `Configuration.resolveAndBind`, the module system also inspects service types declared by modules in the graph via `uses`, finds modules with matching `provides`, and adds those providers along with their dependencies.
 
-Điều này hữu ích cho SPI nhưng có thể làm graph rộng hơn. Một provider được thêm vào cũng có thể có dependency và service use riêng, khiến quá trình binding tiếp tục mở rộng graph.
+This is useful for SPI, but it can widen the graph. An added provider may also have its own dependencies and service uses, causing the binding process to keep expanding the graph.
 
-Cần phân biệt việc đưa provider module vào graph với việc khởi tạo provider. Resolution/service binding xử lý module graph; `ServiceLoader` mới thực hiện việc tìm và khởi tạo implementation khi ứng dụng duyệt provider.
+Distinguish between pulling a provider module into the graph and instantiating the provider. Resolution/service binding handles the module graph; `ServiceLoader` is what actually finds and instantiates implementations when the application iterates over providers.
 
-### Tạo module layer lặp lại
+### Repeated Module Layer Creation
 
-Một ứng dụng plugin có thể tạo custom `ModuleLayer` trong lúc chạy. Mỗi lần resolve configuration và define layer đều có chi phí riêng, ngoài chi phí boot layer ban đầu.
+A plugin application may create custom `ModuleLayer` instances at runtime. Each time a configuration is resolved and a layer is defined, it incurs its own cost in addition to the initial boot layer cost.
 
-Nếu ứng dụng liên tục tạo layer giống nhau cho cùng một tập module, chi phí discovery, resolution, class loader và khởi tạo có thể lặp lại. Khi semantics và vòng đời cho phép, hãy tái sử dụng layer đã tạo thay vì xây lại cho mỗi request.
+If the application repeatedly creates the same layer for the same set of modules, the costs of discovery, resolution, class loaders, and initialization can repeat. When semantics and lifecycle permit, reuse the created layer instead of rebuilding it on every request.
 
-## 3. Đo startup trước khi tối ưu
+## 3. Measure Startup Before Optimizing
 
-Đo thời gian từ lúc tiến trình bắt đầu tới một mốc sẵn sàng có ý nghĩa với ứng dụng, chẳng hạn log `READY` sau khi hoàn tất khởi tạo cần thiết. Thời gian từ lúc gọi `java` tới khi main method bắt đầu không phản ánh đầy đủ thời điểm ứng dụng có thể phục vụ request.
+Measure the time from process start to a meaningful readiness milestone for the application, such as a `READY` log line after completing necessary initialization. The time from invoking `java` until the main method begins does not fully reflect when the application can serve requests.
 
-Thiết kế phép đo:
+Measurement design:
 
-- Dùng đúng JDK, JVM flags, module path, cấu hình và dữ liệu như môi trường mục tiêu.
-- Chạy nhiều lần bằng tiến trình mới; ghi nhận median và p95 thay vì chỉ một lần.
-- Tách cold start và warm filesystem cache nếu cả hai đều quan trọng.
-- Giữ ổn định CPU, dung lượng heap, container limits và tải nền.
-- Đo riêng thời điểm process start, main start và application ready nếu có thể.
-- Không trộn thời gian build, tải artifact hoặc khởi tạo hạ tầng bên ngoài vào phép đo resolution nếu mục tiêu là hiểu riêng module graph.
+- Use the exact same JDK, JVM flags, module path, configuration, and data as the target environment.
+- Run multiple times in fresh processes; record the median and p95 instead of a single run.
+- Separate cold start and warm filesystem cache if both matter.
+- Keep CPU, heap size, container limits, and background load stable.
+- Measure process start, main start, and application ready separately if possible.
+- Do not mix build time, artifact download, or external infrastructure initialization into resolution measurements if the goal is to understand the module graph alone.
 
-Ví dụ trên Linux:
+Example on Linux:
 
 ```bash
 /usr/bin/time -f 'elapsed=%e s' \\
@@ -71,7 +71,7 @@ Ví dụ trên Linux:
   -m com.acme.app/com.acme.app.Main
 ```
 
-Trên PowerShell:
+On PowerShell:
 
 ```powershell
 Measure-Command {
@@ -79,13 +79,13 @@ Measure-Command {
 }
 ```
 
-Các lệnh này đo thời gian tổng của process. Để đo thời điểm application ready, nên để ứng dụng phát một mốc log/metric rõ ràng và dùng harness bên ngoài ghi thời gian từ khi khởi chạy tới mốc đó.
+These commands measure total process time. To measure application ready time, have the application emit a clear log/metric milestone and use an external harness to record the time from launch to that milestone.
 
-Không so sánh hai cấu hình nếu một cấu hình bật log debug, JFR hoặc in module resolution còn cấu hình kia không bật. Công cụ chẩn đoán có thể tạo thêm I/O và overhead.
+Do not compare two configurations if one enables debug logging, JFR, or module resolution printing while the other does not. Diagnostic tools can introduce additional I/O and overhead.
 
-## 4. Quan sát module graph thực tế
+## 4. Observing the Actual Module Graph
 
-Bật `--show-module-resolution` để xem module nào được chọn làm root, module nào được resolve qua `requires` và module nào được bind qua service:
+Enable `--show-module-resolution` to see which modules are selected as roots, which are resolved via `requires`, and which are bound via services:
 
 ```bash
 java --show-module-resolution \\
@@ -93,7 +93,7 @@ java --show-module-resolution \\
   -m com.acme.app/com.acme.app.Main
 ```
 
-Đầu ra minh họa:
+Illustrative output:
 
 ```text
 root com.acme.app file:///opt/app/mods/com.acme.app.jar
@@ -102,60 +102,60 @@ com.acme.api requires java.logging jrt:/java.logging
 com.acme.app binds com.acme.provider.json file:///opt/app/mods/com.acme.provider.json.jar
 ```
 
-Cách đọc:
+How to read it:
 
-- `root`: module được chọn làm điểm bắt đầu của resolution.
-- `requires`: dependency được đưa vào graph theo module descriptor.
-- `binds`: provider module được bổ sung qua service binding.
+- `root`: module chosen as a starting point for resolution.
+- `requires`: dependency brought into the graph according to the module descriptor.
+- `binds`: provider module added through service binding.
 
-Output này giúp nhận diện module không mong muốn, dependency bắc cầu lớn và provider được bind. Nó không phải báo cáo thời gian cho từng bước resolution; không thể nhìn một dòng `binds` rồi kết luận provider đó tốn bao nhiêu mili giây.
+This output helps identify unwanted modules, large transitive dependencies, and bound providers. It is not a timing report for individual resolution steps; you cannot look at a `binds` line and conclude how many milliseconds that provider cost.
 
-Có thể dùng `--list-modules` để xem module mà launcher có thể liệt kê trong cấu hình hiện tại:
+You can use `--list-modules` to see the modules the launcher can list in the current configuration:
 
 ```bash
 java --module-path mods --list-modules
 ```
 
-Đây là danh sách module có thể quan sát, không đồng nghĩa tất cả module đều được resolve vào graph của ứng dụng.
+This is the list of observable modules; it does not mean all of them are resolved into the application's graph.
 
-## 5. Dùng jdeps để giảm dependency không cần thiết
+## 5. Using jdeps to Reduce Unnecessary Dependencies
 
-`jdeps` phân tích dependency tĩnh của class files và JAR. Nó giúp hiểu vì sao module graph cần các module nhất định và phát hiện dependency không còn cần thiết.
+`jdeps` analyzes static dependencies of class files and JARs. It helps explain why the module graph needs certain modules and detect dependencies that are no longer needed.
 
-Tóm tắt dependency:
+Summarize dependencies:
 
 ```bash
 jdeps --module-path mods --summary mods/com.acme.app.jar
 ```
 
-Liệt kê module dependency:
+List module dependencies:
 
 ```bash
 jdeps --module-path mods --list-deps mods/com.acme.app.jar
 ```
 
-In danh sách tên module phân tách bằng dấu phẩy:
+Print comma-separated list of module names:
 
 ```bash
 jdeps --module-path mods \\
   --print-module-deps mods/com.acme.app.jar
 ```
 
-Kiểm tra descriptor:
+Check descriptor:
 
 ```bash
 jdeps --module-path mods --check com.acme.app
 ```
 
-Các kết quả giúp tìm dependency tĩnh không cần thiết hoặc module descriptor quá rộng. Tuy nhiên, jdeps không thể luôn phát hiện class được nạp qua reflection, tên class trong cấu hình, plugin động hoặc mọi service provider. Không xóa `uses`, `provides` hay dependency chỉ vì chúng không xuất hiện trong báo cáo bytecode.
+These results help find unnecessary static dependencies or overly broad module descriptors. However, jdeps cannot always detect classes loaded via reflection, class names in configuration, dynamic plugins, or all service providers. Do not remove `uses`, `provides`, or dependencies solely because they do not appear in bytecode reports.
 
-## 6. Tối ưu module path và root modules
+## 6. Optimizing Module Path and Root Modules
 
-### Chỉ đưa dependency cần thiết vào module path
+### Put Only Required Dependencies on the Module Path
 
-Tổ chức thư mục runtime riêng, chứa đúng phiên bản JAR được triển khai. Không dùng một thư mục chung có nhiều phiên bản hoặc artifact build thử nghiệm.
+Organize a dedicated runtime directory containing the exact JAR versions being deployed. Do not use a shared directory with multiple versions or experimental build artifacts.
 
-Ví dụ:
+Example:
 
 ```text
 runtime/
@@ -167,27 +167,27 @@ runtime/
     └── com.acme.provider.json.jar
 ```
 
-Giữ module path ổn định giữa các môi trường để tránh resolution phải xử lý tập artifact khác nhau và giảm lỗi do trùng tên module.
+Keep the module path consistent across environments to avoid resolution having to process different sets of artifacts and to reduce errors from duplicate module names.
 
-### Tránh thêm tất cả module làm root khi không cần
+### Avoid Adding All Modules as Roots When Unnecessary
 
-`--add-modules ALL-MODULE-PATH` có thể hữu ích cho kiểm tra hoặc một số môi trường plugin, nhưng biến tất cả module trên module path thành root có thể mở rộng graph đáng kể.
+`--add-modules ALL-MODULE-PATH` can be useful for testing or certain plugin environments, but turning every module on the module path into a root can significantly expand the graph.
 
-Trong production, chỉ thêm các root module thực sự cần. Module cần thiết qua `requires` sẽ được resolver tìm theo dependency closure.
+In production, only add the root modules you actually need. Modules required via `requires` will be found by the resolver following the dependency closure.
 
-### Duy trì dependency rõ ràng
+### Maintain Explicit Dependencies
 
-Ưu tiên module descriptor thể hiện dependency thực tế. Tránh thêm `requires transitive` nếu API công khai không cần truyền readability cho consumer. Dependency bắc cầu rộng có thể làm các module phía sau phải đọc thêm module không cần thiết.
+Prefer module descriptors that reflect actual dependencies. Avoid adding `requires transitive` if the public API does not need to propagate readability to consumers. Broad transitive dependencies can force downstream modules to read additional unnecessary modules.
 
-Automatic module hữu ích trong giai đoạn chuyển đổi, nhưng explicit module descriptor giúp kiểm soát rõ hơn `requires`, `exports`, `uses` và `provides`. Việc chuyển sang explicit module không bảo đảm tự động nhanh hơn; lợi ích chính là graph và API boundary rõ ràng hơn.
+Automatic modules are helpful during migration, but explicit module descriptors give clearer control over `requires`, `exports`, `uses`, and `provides`. Converting to explicit modules does not guarantee automatic speedup; the main benefit is a clearer graph and API boundaries.
 
-## 7. Kiểm soát service binding và provider
+## 7. Controlling Service Binding and Providers
 
-Nếu ứng dụng sử dụng SPI, kiểm tra provider nào thực sự cần được đưa vào runtime. Không để module path chứa nhiều provider thử nghiệm hoặc plugin không được sử dụng.
+If the application uses SPI, check which providers actually need to be included at runtime. Do not leave experimental providers or unused plugins on the module path.
 
-Với `jlink`, tùy chọn `--bind-services` yêu cầu linker liên kết service provider cùng dependency của chúng. Điều này có thể làm runtime image chứa thêm module provider. Chỉ bật khi ứng dụng cần các provider đó.
+With `jlink`, the `--bind-services` option instructs the linker to link service providers along with their dependencies. This can cause the runtime image to include extra provider modules. Only enable it when the application needs those providers.
 
-Ví dụ:
+Example:
 
 ```bash
 jlink \\
@@ -197,15 +197,15 @@ jlink \\
   --output runtime-image
 ```
 
-Nếu không cần tất cả provider có thể quan sát, hãy xem xét tập module và service mà ứng dụng thực sự sử dụng trước khi bật service binding trong image. Cần kiểm thử để bảo đảm không vô tình loại provider cần thiết.
+If you do not need all observable providers, review the set of modules and services the application actually uses before enabling service binding in the image. Testing is needed to ensure required providers are not accidentally omitted.
 
-Ở runtime, tránh tạo nhiều custom layer hoặc duyệt và khởi tạo tất cả provider khi chỉ cần một implementation. Nếu service cần một provider được cấu hình rõ ràng, áp dụng chính sách lựa chọn phù hợp thay vì phụ thuộc vào thứ tự duyệt.
+At runtime, avoid creating multiple custom layers or iterating and initializing all providers when only one implementation is needed. If a service needs an explicitly configured provider, apply an appropriate selection policy instead of relying on iteration order.
 
-## 8. Dùng jlink để tạo runtime image gọn
+## 8. Using jlink to Build a Lean Runtime Image
 
-`jlink` tạo runtime image chứa tập module được chọn và dependency cần thiết. Image nhỏ hơn có thể giảm lượng module hệ thống cần triển khai và giúp môi trường runtime ổn định hơn.
+`jlink` creates a runtime image containing the selected set of modules and their required dependencies. A smaller image can reduce the number of system modules that need to be deployed and make the runtime environment more stable.
 
-Ví dụ cơ bản:
+Basic example:
 
 ```bash
 jlink \\
@@ -214,7 +214,7 @@ jlink \\
   --output runtime-image
 ```
 
-Chạy bằng image:
+Running with the image:
 
 ```bash
 runtime-image/bin/java \\
@@ -222,72 +222,72 @@ runtime-image/bin/java \\
   -m com.acme.app/com.acme.app.Main
 ```
 
-Trên Windows, executable là `runtime-image\\bin\\java.exe` và dấu phân cách các entry trong module path là dấu chấm phẩy.
+On Windows, the executable is `runtime-image\\bin\\java.exe` and the separator for entries in the module path is a semicolon.
 
-`jlink` thực hiện phần lớn công việc lựa chọn module ở build time và tạo runtime image tùy biến. Nó không loại bỏ mọi chi phí resolution của ứng dụng khi khởi chạy, vì application modules và layer vẫn cần được xử lý. Tác động thực tế tới startup phụ thuộc vào kích thước image, module graph, filesystem và cách ứng dụng chạy.
+`jlink` performs most of the module selection work at build time and produces a custom runtime image. It does not eliminate all application resolution costs at launch, because application modules and layers still need to be processed. The actual impact on startup depends on image size, module graph, filesystem, and how the application runs.
 
-Dùng `jdeps --print-module-deps` để hỗ trợ xác định dependency tĩnh, nhưng bổ sung module được dùng qua reflection, service binding hoặc cấu hình động trước khi link image. Kiểm thử image bằng các luồng chức năng thực tế.
+Use `jdeps --print-module-deps` to help identify static dependencies, but add modules used via reflection, service binding, or dynamic configuration before linking the image. Test the image with realistic functional flows.
 
-## 9. Phân biệt resolution với class loading và CDS
+## 9. Distinguishing Resolution from Class Loading and CDS
 
-Nếu startup chậm, có thể phần tốn thời gian nằm sau module resolution:
+If startup is slow, the time-consuming part may lie after module resolution:
 
-- Class loading và verification của nhiều class.
-- Static initializer chạy nhiều công việc.
-- Framework scan classpath/module path hoặc annotation.
-- Khởi tạo logging, dependency injection và serializer.
-- Kết nối database, DNS, TLS hoặc remote service.
-- JIT compilation và warm-up của code.
+- Class loading and verification of many classes.
+- Static initializers doing heavy work.
+- Frameworks scanning the classpath/module path or annotations.
+- Initializing logging, dependency injection, and serializers.
+- Connecting to databases, DNS, TLS, or remote services.
+- JIT compilation and code warm-up.
 
-Class Data Sharing (CDS) có thể giảm một phần chi phí khởi tạo JVM và nạp class bằng cách chia sẻ metadata/class data đã được archive. CDS không thay thế module resolution và không làm dependency graph biến mất.
+Class Data Sharing (CDS) can reduce part of JVM initialization and class loading cost by sharing archived metadata/class data. CDS does not replace module resolution and does not make the dependency graph disappear.
 
-Khi thử CDS, đo riêng cấu hình có và không có archive, giữ các yếu tố khác giống nhau. Không kết luận module resolution đã nhanh hơn chỉ từ việc tổng startup giảm; mức giảm có thể đến từ class loading hoặc các phần khác.
+When testing CDS, measure configurations with and without the archive separately, keeping all other factors identical. Do not conclude that module resolution became faster solely because total startup decreased; the reduction may come from class loading or other stages.
 
-## 10. Đo và so sánh từng thay đổi
+## 10. Measure and Compare Each Change
 
-Nên thay đổi từng yếu tố để biết tác động:
+Change one factor at a time to see its impact:
 
-| Thí nghiệm | Điều cần giữ cố định | Điều cần quan sát |
+| Experiment | What to Keep Constant | What to Observe |
 |---|---|---|
-| Giảm số JAR trên module path | JDK, root, application code | Discovery và tổng startup |
-| Bỏ root không cần thiết | Module path và service behavior | Kích thước graph, startup |
-| Giảm dependency bắc cầu | API behavior và test | Module được resolve và compatibility |
-| Giảm provider được bind | Service contract và output | Số provider/module trong graph |
-| Tái sử dụng custom layer | Plugin lifecycle và semantics | Thời gian tạo layer, startup/request latency |
-| Dùng jlink image | JDK version và chức năng | Image size, startup, deployment behavior |
-| Bật CDS | Cùng module graph và workload | Class loading và tổng startup |
+| Reduce number of JARs on module path | JDK, roots, application code | Discovery and total startup |
+| Remove unnecessary roots | Module path and service behavior | Graph size, startup |
+| Reduce transitive dependencies | API behavior and tests | Resolved modules and compatibility |
+| Reduce bound providers | Service contract and output | Number of providers/modules in graph |
+| Reuse custom layers | Plugin lifecycle and semantics | Layer creation time, startup/request latency |
+| Use jlink image | JDK version and functionality | Image size, startup, deployment behavior |
+| Enable CDS | Same module graph and workload | Class loading and total startup |
 
-Mỗi cấu hình nên được chạy nhiều lần trong tiến trình mới. Ghi lại JDK vendor/version, OS, CPU, container memory/CPU limits, module path, JVM flags, số module resolve và mốc application ready.
+Each configuration should be run multiple times in fresh processes. Record JDK vendor/version, OS, CPU, container memory/CPU limits, module path, JVM flags, number of resolved modules, and the application ready milestone.
 
-Dùng median và p95 để tránh kết luận từ một lần chạy bất thường. Nếu chỉ đo tổng startup, hãy gọi kết quả là tổng startup; không gán toàn bộ chênh lệch cho module resolution nếu chưa có bằng chứng.
+Use median and p95 to avoid drawing conclusions from an anomalous single run. If you only measure total startup, call the result total startup; do not attribute the entire difference to module resolution without evidence.
 
-## 11. Những sai lầm khi tối ưu
+## 11. Common Optimization Mistakes
 
-- **Bật `--limit-modules` chỉ để mong startup nhanh hơn:** tùy chọn này thay đổi universe module observable và có thể làm thiếu dependency hoặc provider. Nó không phải nút tăng tốc chung; chỉ dùng khi tập module được giới hạn đã được xác định và kiểm thử.
-- **Dùng `ALL-MODULE-PATH` trong production mà không cần:** tùy chọn này có thể mở rộng tập root và graph.
-- **Xóa module theo output của jdeps mà không kiểm tra reflection/SPI:** có thể làm plugin hoặc provider biến mất.
-- **Tạo layer mới cho mỗi request:** làm lặp lại chi phí resolve và define layer.
-- **Bật log chẩn đoán trong benchmark:** output console có thể làm sai lệch số đo.
-- **Cho rằng jlink loại bỏ hoàn toàn resolution:** image nhỏ hơn nhưng ứng dụng vẫn cần khởi tạo module graph/layer cần thiết.
-- **Tối ưu số module mà bỏ qua initialization:** framework scan, I/O và static initializer thường có thể chiếm phần đáng kể của startup.
+- **Enabling `--limit-modules` just hoping for faster startup:** this option changes the observable module universe and can cause missing dependencies or providers. It is not a general speedup switch; only use it when the limited module set has been identified and tested.
+- **Using `ALL-MODULE-PATH` in production unnecessarily:** this option can expand the root set and graph.
+- **Removing modules based on jdeps output without checking reflection/SPI:** this can make plugins or providers disappear.
+- **Creating a new layer for every request:** repeats resolution and layer definition costs.
+- **Enabling diagnostic logging in benchmarks:** console output can skew measurements.
+- **Assuming jlink eliminates resolution completely:** the image is smaller, but the application still needs to initialize the required module graph/layers.
+- **Optimizing module count while ignoring initialization:** framework scanning, I/O, and static initializers can often account for a significant portion of startup.
 
-## 12. Quy trình tối ưu thực tế
+## 12. Practical Optimization Workflow
 
-1. Đo baseline từ process start tới application ready với cấu hình production.
-2. Chạy lại với `--show-module-resolution` để hiểu root, dependency và service binding.
-3. Dùng `jdeps` để tìm dependency tĩnh không cần thiết và kiểm tra descriptor.
-4. Kiểm tra module path, root modules và provider có được đưa vào graph đúng nhu cầu không.
-5. Xem có custom layer hoặc service provider nào bị khởi tạo lặp lại không.
-6. Nếu runtime image lớn, thử `jlink` với tập module đã xác định và test đầy đủ.
-7. Phân tích class loading, framework initialization và I/O nếu tổng startup vẫn chậm.
-8. Chạy lại cùng benchmark và so sánh median/p95 trước khi chấp nhận thay đổi.
+1. Measure the baseline from process start to application ready with production configuration.
+2. Re-run with `--show-module-resolution` to understand roots, dependencies, and service bindings.
+3. Use `jdeps` to find unnecessary static dependencies and validate descriptors.
+4. Check whether the module path, root modules, and providers included in the graph match actual needs.
+5. Check whether any custom layer or service provider is being initialized repeatedly.
+6. If the runtime image is large, try `jlink` with the identified module set and test thoroughly.
+7. Analyze class loading, framework initialization, and I/O if total startup is still slow.
+8. Re-run the same benchmark and compare median/p95 before accepting changes.
 
-## Ghi nhớ
+## Takeaways
 
-- Module resolution là một phần startup, tách biệt với layer creation, class loading, provider initialization và application initialization.
-- Chi phí phụ thuộc vào module discovery, độ rộng dependency graph, service binding và số custom layer được tạo.
-- `--show-module-resolution` giúp quan sát graph nhưng không đo thời gian cho từng bước.
-- `jdeps` giúp giảm dependency tĩnh; phải bổ sung các dependency động và service.
-- Giữ module path nhỏ, root rõ ràng, provider cần thiết và tái sử dụng layer khi phù hợp.
-- `jlink` và CDS có thể giảm các phần chi phí khác nhau; đo riêng để xác định hiệu quả thực tế.
-- Không gán mọi cải thiện startup cho module resolution nếu phép đo chưa tách được các giai đoạn.
+- Module resolution is one part of startup, separate from layer creation, class loading, provider initialization, and application initialization.
+- Cost depends on module discovery, dependency graph breadth, service binding, and the number of custom layers created.
+- `--show-module-resolution` helps observe the graph but does not measure timing for each step.
+- `jdeps` helps reduce static dependencies; dynamic and service dependencies must be added manually.
+- Keep the module path small, roots explicit, providers limited to what is needed, and reuse layers where appropriate.
+- `jlink` and CDS can reduce different parts of the cost; measure separately to determine actual effectiveness.
+- Do not attribute every startup improvement to module resolution if measurements have not isolated the stages.

@@ -1,45 +1,45 @@
-# Xử lý `null` trong `switch` và phân biệt với `default` — Java 17+
+# Handling `null` in `switch` and Distinguishing It from `default` — Java 17+
 
-**`default` không phải nhánh xử lý `null`.** Trong `switch` Java 17 sử dụng tính năng chuẩn, nếu biểu thức chọn (*selector*) có giá trị `null`, chương trình ném `NullPointerException` **trước khi đi vào bất kỳ nhãn `case` hoặc `default` nào**.
+**`default` is not a `null`-handling branch.** In standard Java 17 `switch` features, if the selector expression (*selector*) evaluates to `null`, the program throws `NullPointerException` **before entering any `case` or `default` label**.
 
 ~~~java
 String status = null;
 
-// Đoạn này sẽ ném NullPointerException tại runtime:
+// This snippet will throw NullPointerException at runtime:
 // switch (status) {
 //     case "ON" -> System.out.println("enabled");
 //     default -> System.out.println("unknown");
 // }
 ~~~
 
-Ngược lại, `default` chạy khi selector **không null**, nhưng không trùng với bất cứ nhãn `case` nào:
+Conversely, `default` runs when the selector is **non-null**, yet does not match any `case` label:
 
 ~~~java
 String status = "PAUSE";
 switch (status) {
     case "ON" -> System.out.println("enabled");
     case "OFF" -> System.out.println("disabled");
-    default -> System.out.println("unknown"); // Chạy nhánh này.
+    default -> System.out.println("unknown"); // Runs this branch.
 }
 ~~~
 
-## 1. Phân biệt trường hợp không khớp và `null`
+## 1. Distinguishing Non-Matching Cases from `null`
 
-| Giá trị selector `String` | Có khớp `case "ON"`? | `default` chạy? | Hành vi |
+| `String` selector value | Matches `case "ON"`? | Does `default` run? | Behavior |
 | --- | --- | --- | --- |
-| `"ON"` | Có | Không | Chạy `case "ON"` |
-| `"OFF"` | Không, nhưng khớp case khác | Không | Chạy `case "OFF"` |
-| `"PAUSE"` | Không | Có | Chạy `default` |
-| `""` (chuỗi rỗng) | Không | Có | Chạy `default` |
-| `null` | Không xét case | **Không** | Ném `NullPointerException` |
+| `"ON"` | Yes | No | Runs `case "ON"` |
+| `"OFF"` | No, but matches another case | No | Runs `case "OFF"` |
+| `"PAUSE"` | No | Yes | Runs `default` |
+| `""` (empty string) | No | Yes | Runs `default` |
+| `null` | Does not check cases | **No** | Throws `NullPointerException` |
 
-Chuỗi rỗng `""` là **một đối tượng `String` không null**, nên hoàn toàn có thể được xử lý bởi `default`. `null` thì không trỏ tới đối tượng `String` nào.
+The empty string `""` is **a non-null `String` object**, so it can perfectly well be handled by `default`. `null` references no `String` object at all.
 
-Điều này áp dụng cho cả **switch statement** và **switch expression** trong Java 17 tiêu chuẩn, kể cả khi đã khai báo `default` đầy đủ.
+This applies to both **switch statements** and **switch expressions** in standard Java 17, even when `default` is declared.
 
-## 2. Cách an toàn: kiểm tra `null` trước `switch`
+## 2. The Safe Approach: Check `null` Before `switch`
 
-### Trả kết quả riêng cho dữ liệu thiếu
+### Return a separate result for missing data
 
 ~~~java
 static String describe(String status) {
@@ -54,15 +54,15 @@ static String describe(String status) {
 }
 ~~~
 
-- `"missing"`: đầu vào **không tồn tại**.
-- `"unknown"`: đầu vào **có tồn tại**, nhưng không phải `"ON"` hay `"OFF"`.
-- Các nhánh `case`: những giá trị hợp lệ được nhận diện.
+- `"missing"`: the input **does not exist**.
+- `"unknown"`: the input **exists**, but is neither `"ON"` nor `"OFF"`.
+- `case` branches: recognized valid values.
 
-Đây là hai trạng thái nghiệp vụ khác nhau. Không tự động gộp `null` với `default` nếu ứng dụng cần phân biệt “chưa nhập” và “đã nhập nhưng không hợp lệ”.
+These are two distinct business states. Do not automatically merge `null` with `default` if the application needs to distinguish "not provided" from "provided but unrecognized".
 
-### Báo lỗi thay vì tạo giá trị thay thế
+### Reject with an error instead of substituting a value
 
-Nếu `null` vi phạm hợp đồng phương thức, có thể từ chối rõ ràng:
+If `null` violates the method's contract, reject it explicitly:
 
 ~~~java
 static String requireStatus(String status) {
@@ -76,11 +76,11 @@ static String requireStatus(String status) {
 }
 ~~~
 
-`IllegalArgumentException` ở đây thể hiện chính sách **do chương trình lựa chọn**. Còn `NullPointerException` tự phát sinh từ `switch(null)` thường khiến nơi gặp lỗi khó giải thích ý nghĩa nghiệp vụ hơn.
+Here `IllegalArgumentException` expresses a policy **chosen by the program**. By contrast, an automatic `NullPointerException` from `switch(null)` often makes it harder for callers to understand the business meaning of the error.
 
-## 3. Ví dụ Java 17+ độc lập, runnable CLI
+## 3. Standalone Java 17+ Example, Runnable CLI
 
-Tạo file UTF-8 **`SwitchNullDemo.java`**:
+Create UTF-8 file **`SwitchNullDemo.java`**:
 
 ~~~java
 public class SwitchNullDemo {
@@ -218,7 +218,7 @@ public class SwitchNullDemo {
 }
 ~~~
 
-Dùng **JDK 17 trở lên**, mở PowerShell hoặc Bash tại thư mục chứa tệp:
+Using **JDK 17 or higher**, open PowerShell or Bash in the directory containing the file:
 
 ~~~bash
 java -version
@@ -227,7 +227,7 @@ javac -encoding UTF-8 SwitchNullDemo.java
 java SwitchNullDemo
 ~~~
 
-**Exact expected stdout** từ riêng lệnh `java SwitchNullDemo`:
+**Exact expected stdout** from `java SwitchNullDemo` alone:
 
 ~~~text
 == String guard ==
@@ -256,24 +256,24 @@ required=enabled
 ternary=missing
 ~~~
 
-Đầu ra của hai lệnh `-version` phụ thuộc bản JDK trên máy; chúng không thuộc khối stdout cố định.
+The output of the two `-version` commands depends on the JDK installed on the machine; they are not part of the fixed stdout block.
 
-## 4. `String`, wrapper và `enum` đều cần chú ý `null`
+## 4. `String`, Wrappers, and `enum` All Require Attention to `null`
 
-| Kiểu selector trong Java 17 | Selector không null | Selector null |
+| Selector type in Java 17 | Non-null selector | Null selector |
 | --- | --- | --- |
-| `String` | Khớp theo **nội dung** với nhãn chuỗi | Ném `NullPointerException` |
-| `Integer`, `Byte`, `Short`, `Character` | Giá trị wrapper được xử lý theo quy tắc `switch` số nguyên | Ném `NullPointerException` |
-| `enum` | Khớp tên hằng enum | Ném `NullPointerException` |
-| `int`, `byte`, `short`, `char` | Dùng giá trị nguyên thủy | **Không thể** là null |
+| `String` | Matches by **content** against string labels | Throws `NullPointerException` |
+| `Integer`, `Byte`, `Short`, `Character` | Wrapper value is handled per integer `switch` rules | Throws `NullPointerException` |
+| `enum` | Matches enum constant name | Throws `NullPointerException` |
+| `int`, `byte`, `short`, `char` | Uses primitive value | **Cannot** be null |
 
-Trong demo, `rawNumber(null)` gây lỗi do selector wrapper không có giá trị để dùng; `rawMode(null)` cũng không được `default` “bắt hộ”.
+In the demo, `rawNumber(null)` fails because the wrapper selector has no value to unbox; `rawMode(null)` is also not "caught on its behalf" by `default`.
 
-**Không nhầm `default` với `case null`.** Trong Java 17 biên dịch thông thường (không bật preview), không viết `case null -> ...` cho switch theo cú pháp chuẩn. Các ví dụ về `case null` trong tài liệu Java mới hơn thường thuộc **pattern matching for switch**, được chuẩn hóa từ Java 21; Java 17 chỉ có tính năng liên quan ở dạng preview với yêu cầu cấu hình riêng, **không áp dụng vào bài chạy CLI tiêu chuẩn này**.
+**Do not confuse `default` with `case null`.** In Java 17 compiled normally (without preview enabled), do not write `case null -> ...` for switch under standard syntax. Examples of `case null` in newer Java documentation belong to **pattern matching for switch**, standardized in Java 21; Java 17 only has related features in preview requiring special configuration, **not applicable to this standard CLI exercise**.
 
-## 5. Khi nào cần `default`?
+## 5. When Is `default` Needed?
 
-`default` dành cho **giá trị hợp lệ về kiểu nhưng không khớp case**:
+`default` is for **type-valid values that do not match any case**:
 
 ~~~java
 String code = "MAYBE";
@@ -284,23 +284,23 @@ String result = switch (code) {
 };
 ~~~
 
-Với `"MAYBE"`, kết quả là `"unrecognized"`.
+With `"MAYBE"`, the result is `"unrecognized"`.
 
-Với **switch expression**, trình biên dịch yêu cầu các trường hợp được bao phủ đầy đủ (*exhaustive*). Với `String` hay `int`, điều này thường đòi hỏi `default`. Với một `enum`, liệt kê đủ hằng số có thể không cần `default`, ví dụ `switch(Mode)` trong chương trình.
+For a **switch expression**, the compiler requires cases to be covered completely (*exhaustive*). For `String` or `int`, this typically requires `default`. For an `enum`, listing all constants can avoid `default`, as in `switch(Mode)` in the program.
 
-Tính đầy đủ đó **không đồng nghĩa chấp nhận null**. Biểu thức switch trên enum liệt kê đủ hằng vẫn gây lỗi nếu selector là `null`.
+That exhaustiveness **does not mean accepting null**. A switch expression over an enum listing all constants still throws an error if the selector is `null`.
 
-## 6. Chọn chính sách xử lý rõ ràng
+## 6. Choosing an Explicit Handling Policy
 
-Ba chính sách phổ biến:
+Three common policies:
 
-| Chính sách | Khi `null` | Khi không khớp case |
+| Policy | When `null` | When no case matches |
 | --- | --- | --- |
-| Trả kết quả riêng | `"missing"` | `"unknown"` |
-| Từ chối dữ liệu | `throw IllegalArgumentException` | `throw` hoặc `default` báo lỗi khác |
-| Chuyển sang giá trị thay thế | Chỉ khi có quy ước nghiệp vụ rõ ràng | `default` theo quy ước |
+| Return a separate result | `"missing"` | `"unknown"` |
+| Reject the input | `throw IllegalArgumentException` | `throw` or `default` reports another error |
+| Map to a fallback value | Only when there is a clear business convention | `default` per convention |
 
-Có thể viết kiểm tra ngắn bằng toán tử `?:`:
+A short check can be written with the `?:` operator:
 
 ~~~java
 String result = code == null
@@ -311,44 +311,44 @@ String result = code == null
         };
 ~~~
 
-Do `?:` chỉ đánh giá nhánh được chọn, nếu `code == null` thì `switch` **không được đánh giá**. Nhưng nếu kiểm tra nhiều điều kiện hoặc cần nhiều lệnh, phương thức có guard `if (code == null)` thường dễ đọc hơn.
+Because `?:` evaluates only the selected branch, if `code == null`, `switch` **is not evaluated**. However, if checking multiple conditions or needing multiple statements, a method with an `if (code == null)` guard is usually easier to read.
 
-Không dùng một “giá trị giả” như `""` để thay null mà không cân nhắc va chạm với dữ liệu hợp lệ: chuỗi rỗng có thể mang ý nghĩa riêng.
+Do not use a "dummy value" like `""` to replace null without considering collisions with valid data: an empty string may carry its own meaning.
 
-## 7. Những lỗi thường gặp
+## 7. Common Mistakes
 
-| Hiểu nhầm | Cách đúng |
+| Misconception | Correct understanding |
 | --- | --- |
-| “`default` chạy khi selector null.” | Sai với switch Java 17 tiêu chuẩn; ném NPE |
-| “`case "ON"` so sánh bằng tham chiếu `==`.” | Switch `String` khớp theo nội dung chuỗi |
-| “Một wrapper null sẽ tự đổi thành số 0.” | Null không có giá trị để unbox |
-| “`enum` đã liệt kê đủ case thì null tự được xử lý.” | Không; vẫn cần guard nếu có thể null |
-| “`""` chính là null.” | Chuỗi rỗng là `String` không null |
-| “Java 17 chuẩn có thể dùng `case null` như Java 21.” | Không nếu biên dịch bình thường không bật preview |
-| “Dùng `default` là đã xác thực đầu vào.” | Chỉ bao phủ nhãn không khớp, không thay thế kiểm tra hợp lệ nghiệp vụ |
+| "`default` runs when the selector is null." | False in standard Java 17 switch; throws NPE |
+| "`case "ON"` compares by reference `==`." | `String` switch matches by string content |
+| "A null wrapper automatically becomes 0." | Null has no value to unbox |
+| "If an `enum` lists all cases, null is handled automatically." | No; a guard is still needed if it can be null |
+| "`""` is the same as null." | The empty string is a non-null `String` |
+| "Standard Java 17 can use `case null` like Java 21." | Not when compiled normally without preview enabled |
+| "Using `default` already validates the input." | It only covers unmatched labels, not full business validation |
 
-## 8. Bài tập tự kiểm tra
+## 8. Self-Check Exercises
 
-1. `switch("UNKNOWN")` có `default` thì sao?  
-   *Đáp án:* Chạy `default` nếu không case nào khác khớp.
-2. `switch((String) null)` có `default` thì sao trong Java 17 tiêu chuẩn?  
-   *Đáp án:* `NullPointerException` trước khi chạy default.
-3. `String s = "";` có được default xử lý không?  
-   *Đáp án:* Có, nếu không có nhãn khớp chuỗi rỗng.
-4. `Integer n = null; switch(n) {...}` có tự hiểu n bằng 0 không?  
-   *Đáp án:* Không; ném NPE.
-5. Switch expression liệt kê đủ mọi hằng enum nhưng không có default có xử lý null không?  
-   *Đáp án:* Không.
-6. Khi dữ liệu thiếu và dữ liệu không nhận diện là hai trạng thái khác nhau, nên làm gì?  
-   *Đáp án:* Kiểm tra null trước switch, trả kết quả riêng cho hai tình huống.
+1. What happens with `switch("UNKNOWN")` that has `default`?  
+   *Answer:* Runs `default` if no other case matches.
+2. What happens with `switch((String) null)` that has `default` in standard Java 17?  
+   *Answer:* `NullPointerException` before running default.
+3. Is `String s = "";` handled by default?  
+   *Answer:* Yes, if no label matches the empty string.
+4. Does `Integer n = null; switch(n) {...}` treat `n` as 0?  
+   *Answer:* No; throws NPE.
+5. Does a switch expression listing all enum constants without default handle null?  
+   *Answer:* No.
+6. When missing data and unrecognized data are two distinct states, what should you do?  
+   *Answer:* Check for null before switching and return separate results for the two situations.
 
 ## Checklist
 
-- [ ] `default` xử lý **không khớp case**, không tự xử lý `null`.
-- [ ] Kiểm tra `null` trước switch Java 17 đối với `String`, wrapper và enum có thể thiếu.
-- [ ] Phân biệt switch statement và switch expression nhưng nhớ cả hai đều cần kiểm soát selector null.
-- [ ] Chọn chính sách trả kết quả hoặc ném ngoại lệ rõ ràng.
-- [ ] Không dùng `case null` trong ví dụ Java 17 tiêu chuẩn không có preview.
-- [ ] Dùng `default` để bao phủ trường hợp còn lại, không xem đó là kiểm tra toàn bộ tính hợp lệ của đầu vào.
+- [ ] `default` handles **unmatched cases**, not `null`.
+- [ ] Check for `null` before a Java 17 switch for nullable `String`, wrapper, and enum selectors.
+- [ ] Distinguish switch statements from switch expressions, while remembering both require guarding against null selectors.
+- [ ] Choose an explicit policy for returning results or throwing exceptions.
+- [ ] Do not use `case null` in standard non-preview Java 17 examples.
+- [ ] Use `default` to cover remaining values, not as a substitute for full input validation.
 
-**Kết luận:** Trong Java 17 tiêu chuẩn, `default` có nghĩa **“không case nào khớp với một selector hợp lệ, không null”**, chứ không có nghĩa **“mọi trường hợp còn lại kể cả null”**. Kiểm tra `null` trước, rồi dùng `case` và `default` để xử lý giá trị có mặt.
+**Conclusion:** In standard Java 17, `default` means **"no case matched a valid, non-null selector"**, not **"all remaining cases including null"**. Check for `null` first, then use `case` and `default` to handle present values.

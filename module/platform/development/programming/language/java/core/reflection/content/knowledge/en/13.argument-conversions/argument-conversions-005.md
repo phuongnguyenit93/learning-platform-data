@@ -1,12 +1,12 @@
-# Số lượng đối số và IllegalArgumentException khi gọi Java Reflection
+# Argument Count and IllegalArgumentException When Calling Java Reflection
 
-Khi gọi method hoặc constructor bằng Reflection, số lượng và kiểu đối số phải khớp **đúng chữ ký đã chọn**. Trong mã nguồn Java thông thường, trình biên dịch có thể phân giải overload, đóng gói varargs và kiểm tra nhiều phép chuyển đổi. Nhưng với `java.lang.reflect.Method.invoke(...)` và `Constructor.newInstance(...)`, bạn đã chọn một executable cụ thể rồi mới truyền dữ liệu. Reflection không tự tìm lại overload, không tự parse String sang số, không bỏ đối số thừa và không tự thêm đối số bị thiếu.
+When invoking a method or constructor via Reflection, the number and types of arguments must match **the exact selected signature**. In normal Java source code, the compiler can resolve overloads, pack varargs, and check multiple conversions. With `java.lang.reflect.Method.invoke(...)` and `Constructor.newInstance(...)`, however, you have already selected a specific executable before passing data. Reflection does not re-search overloads, does not automatically parse Strings into numbers, does not drop extra arguments, and does not supply missing arguments.
 
-Bài này tập trung vào cách kiểm tra **số lượng đối số**, nguyên nhân dẫn đến `IllegalArgumentException`, quy tắc chuyển đổi cho từng formal parameter và cách phân biệt lỗi của Reflection với lỗi ném từ thân method đích.
+This lesson focuses on how to check **argument count**, causes of `IllegalArgumentException`, conversion rules for each formal parameter, and how to distinguish Reflection errors from errors thrown by the target method body.
 
-## 1. Bước tìm method khác bước invoke
+## 1. The method lookup step differs from the invoke step
 
-Ví dụ method đích:
+Example target method:
 
 ```java
 class Calculator {
@@ -16,55 +16,55 @@ class Calculator {
 }
 ```
 
-Bước tra cứu:
+Lookup step:
 
 ```java
 java.lang.reflect.Method method =
         Calculator.class.getMethod("add", int.class, long.class);
 ```
 
-Bước thực thi:
+Execution step:
 
 ```java
 Calculator calculator = new Calculator();
 Object value = method.invoke(calculator, 2, 5L); // Long(7)
 ```
 
-Các đoạn trên là code minh họa ghép với nhau, cần xử lý `NoSuchMethodException`, `IllegalAccessException` và `InvocationTargetException` tại phương thức gọi. Hai kiểu formal parameter là `int` và `long`, vì vậy method nhận **chính xác hai đối số** sau receiver. `Method.invoke` có chữ ký:
+The snippets above are illustrative code put together; `NoSuchMethodException`, `IllegalAccessException`, and `InvocationTargetException` must be handled at the calling method. The two formal parameter types are `int` and `long`, so the method takes **exactly two arguments** after the receiver. `Method.invoke` has the signature:
 
 ```java
 Object invoke(Object obj, Object... args)
         throws IllegalAccessException, InvocationTargetException;
 ```
 
-Trong đó:
+Where:
 
-- `obj` là **receiver** cho instance method; nó **không tính vào** số formal parameter của method. Với static method có thể truyền `null` làm receiver.
-- `args` là một mảng các đối số thực tế; mỗi phần tử ứng với một formal parameter theo thứ tự. Kiểu return là `Object`; giá trị primitive được boxed, method trả `void` cho kết quả `null`.
-- `Method.getParameterCount()` trả về số formal parameter, còn `Method.getParameterTypes()` trả về các kiểu theo thứ tự. Với `add(int,long)`, hai giá trị này tương ứng `2` và mảng `[int.class,long.class]`.
+- `obj` is the **receiver** for an instance method; it **does not count toward** the method's formal parameter count. For a static method, `null` may be passed as the receiver.
+- `args` is an array of actual arguments; each element corresponds to a formal parameter in order. The return type is `Object`; primitive values are boxed, and a `void` method yields `null`.
+- `Method.getParameterCount()` returns the number of formal parameters, while `Method.getParameterTypes()` returns their types in order. For `add(int,long)`, these two values are `2` and the array `[int.class,long.class]` respectively.
 
-Nếu không tìm thấy chữ ký ở bước `getMethod(...)`, ngoại lệ là `NoSuchMethodException`. Khi đã tìm ra method nhưng truyền sai đối số cho `invoke(...)`, ngoại lệ thường là `IllegalArgumentException`. Hai lỗi thuộc hai bước khác nhau.
+If the signature is not found during `getMethod(...)`, the exception is `NoSuchMethodException`. Once the method is found, passing invalid arguments to `invoke(...)` typically raises `IllegalArgumentException`. The two errors belong to two different steps.
 
-## 2. Sai số lượng: thiếu một, thừa một hoặc nhầm receiver
+## 2. Wrong count: missing one, one extra, or confusing the receiver
 
-Với `add(int,long)`:
+For `add(int,long)`:
 
-| Lời gọi | Kết quả | Lý do |
+| Call | Result | Reason |
 | --- | --- | --- |
-| `method.invoke(calculator, 2, 5L)` | Hợp lệ, trả `Long(7)` | Hai slot đúng kiểu |
-| `method.invoke(calculator, 2)` | `IllegalArgumentException` | Thiếu một slot |
-| `method.invoke(calculator, 2, 5L, 8L)` | `IllegalArgumentException` | Thừa một slot |
-| `method.invoke(new Object(), 2, 5L)` | `IllegalArgumentException` | Receiver không tương thích với declaring class |
-| `method.invoke(null, 2, 5L)` | `NullPointerException` | Receiver null cho instance method |
-| `method.invoke(calculator, 2, "5")` | `IllegalArgumentException` | String không tự parse sang `long` |
+| `method.invoke(calculator, 2, 5L)` | Valid, returns `Long(7)` | Two slots with matching types |
+| `method.invoke(calculator, 2)` | `IllegalArgumentException` | Missing one slot |
+| `method.invoke(calculator, 2, 5L, 8L)` | `IllegalArgumentException` | One extra slot |
+| `method.invoke(new Object(), 2, 5L)` | `IllegalArgumentException` | Receiver incompatible with declaring class |
+| `method.invoke(null, 2, 5L)` | `NullPointerException` | Null receiver for an instance method |
+| `method.invoke(calculator, 2, "5")` | `IllegalArgumentException` | String is not automatically parsed into `long` |
 
-Các lời gọi trên đều là code minh họa khi `method` và `calculator` đã được khai báo. **Số lượng receiver + số đối số không phải số formal parameters**: `getParameterCount()` của `add` vẫn là 2, mặc dù `Method.invoke` xuất hiện thêm receiver ở vị trí đầu.
+All calls above are illustrative code assuming `method` and `calculator` are already declared. **Receiver count + argument count is not the formal parameter count**: `getParameterCount()` of `add` is still 2, even though `Method.invoke` shows an additional receiver in the first position.
 
-Method đích không có parameter cần `method.invoke(receiver)` hoặc cung cấp mảng actual args rỗng. Trong khi đó, `method.invoke(receiver, (Object) null)` **truyền một slot chứa null**, không phải zero slot.
+A target method with no parameters requires `method.invoke(receiver)` or providing an empty actual args array. Meanwhile, `method.invoke(receiver, (Object) null)` **passes one slot containing null**, not zero slots.
 
-## 3. Ví dụ Java 17+ chạy được, có đầu ra chính xác
+## 3. Runnable Java 17+ example with exact output
 
-Lưu toàn bộ chương trình sau dưới tên `ReflectionArgumentDemo.java`:
+Save the entire program below as `ReflectionArgumentDemo.java`:
 
 ```java
 import java.lang.reflect.InvocationTargetException;
@@ -129,7 +129,7 @@ public class ReflectionArgumentDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac ReflectionArgumentDemo.java
@@ -154,24 +154,24 @@ spread -> IllegalArgumentException
 target throws -> target IllegalArgumentException
 ```
 
-Giải thích kết quả:
+Result explanation:
 
-1. `correct`: Integer unbox thành int, Long unbox thành long; method trả primitive long và Reflection boxing kết quả vào `Long`.
-2. `missing`, `extra`: không đúng số lượng formal parameters, nên Reflection không gọi method.
-3. `string`: Reflection không chạy `Long.parseLong("5")`.
-4. `null primitive`: không thể unbox null thành primitive int.
-5. `narrowing`: truyền `Long` vào vị trí `int` cần phép thu hẹp không được hỗ trợ.
-6. `widening`: Byte unbox rồi widen đến int; Integer unbox rồi widen đến long; trả 7.
-7. `wrong receiver`: `new Object()` không là instance `Calculator`.
-8. `packed`: slot cuối chứa một `String[]` đúng kiểu formal parameter của method varargs.
-9. `spread`: đưa ba slot cho method thực tế có hai formal parameters; Reflection không tự pack.
-10. `target throws`: thân method `fail` **đã được gọi** và tự ném `IllegalArgumentException`, được `Method.invoke` bọc trong `InvocationTargetException`. Vì thế helper in thêm tiền tố `target` để phân biệt.
+1. `correct`: Integer unboxes to int, Long unboxes to long; the method returns primitive long and Reflection boxes the result into `Long`.
+2. `missing`, `extra`: wrong number of formal parameters, so Reflection does not invoke the method.
+3. `string`: Reflection does not run `Long.parseLong("5")`.
+4. `null primitive`: cannot unbox null to primitive int.
+5. `narrowing`: passing `Long` into an `int` slot requires unsupported narrowing.
+6. `widening`: Byte unboxes then widens to int; Integer unboxes then widens to long; returns 7.
+7. `wrong receiver`: `new Object()` is not an instance of `Calculator`.
+8. `packed`: the last slot contains a `String[]` matching the formal parameter type of the varargs method.
+9. `spread`: supplies three slots for a method that actually has two formal parameters; Reflection does not pack them automatically.
+10. `target throws`: the `fail` method body **was invoked** and threw `IllegalArgumentException` itself, which `Method.invoke` wrapped in `InvocationTargetException`. Hence the helper prints the `target` prefix to distinguish it.
 
-## 4. Constructor.newInstance có quy tắc tương tự
+## 4. Constructor.newInstance has similar rules
 
-Đối với constructor được chọn qua `Class.getConstructor(...)` hoặc `getDeclaredConstructor(...)`, gọi `Constructor.newInstance(Object... initargs)` cần đúng số lượng và kiểu theo formal parameters của constructor.
+For a constructor selected via `Class.getConstructor(...)` or `getDeclaredConstructor(...)`, calling `Constructor.newInstance(Object... initargs)` requires the exact count and types matching the constructor's formal parameters.
 
-Ví dụ minh họa:
+Illustrative example:
 
 ```java
 public static class Ticket {
@@ -188,7 +188,7 @@ public static class Ticket {
 }
 ```
 
-Lớp lồng static này cần đặt trong một outer class khi biên dịch. Gọi:
+This static nested class must be placed inside an outer class when compiling. Calling:
 
 ```java
 java.lang.reflect.Constructor<Ticket> ctor =
@@ -198,57 +198,57 @@ Ticket ticket = ctor.newInstance(7);
 System.out.println(ticket); // Ticket(7)
 ```
 
-`ctor.newInstance()` thiếu đối số; `ctor.newInstance("7")` sai kiểu; `ctor.newInstance(7L)` cần thu hẹp long xuống int. Những trường hợp đó đều dẫn tới `IllegalArgumentException` trực tiếp từ Reflection.
+`ctor.newInstance()` is missing an argument; `ctor.newInstance("7")` has the wrong type; `ctor.newInstance(7L)` requires narrowing long to int. All of those cases result in `IllegalArgumentException` directly from Reflection.
 
-Nếu code trong constructor **tự ném exception**, `Constructor.newInstance` bọc exception gốc bằng `InvocationTargetException`. Nếu class là abstract, khởi tạo bằng constructor có thể gây `InstantiationException`; nếu không được phép truy cập constructor, có thể gặp `IllegalAccessException`.
+If code inside the constructor **itself throws an exception**, `Constructor.newInstance` wraps the original exception in `InvocationTargetException`. If the class is abstract, instantiating via a constructor can cause `InstantiationException`; if access to the constructor is not permitted, `IllegalAccessException` can occur.
 
-Trường hợp **non-static inner class** đáng chú ý: một constructor có thể cần tham số ẩn biểu diễn enclosing instance. Vì vậy công cụ tổng quát không nên đếm parameter chỉ bằng mắt trên source; hãy dùng `Constructor.getParameterCount()` và `getParameterTypes()` của executable thực tế.
+A notable case is **non-static inner classes**: a constructor may require a hidden parameter representing the enclosing instance. Therefore, general-purpose tools should not count parameters merely by eyeballing source code; use `Constructor.getParameterCount()` and `getParameterTypes()` on the actual executable.
 
-## 5. Phân biệt ngoại lệ khi khám phá, chuẩn bị và gọi
+## 5. Distinguishing exceptions during discovery, preparation, and invocation
 
-| Ngoại lệ | Nguồn điển hình | Cách xử lý |
+| Exception | Typical source | How to handle |
 | --- | --- | --- |
-| `NoSuchMethodException` | Tra cứu bằng tên/chữ ký thất bại trước lúc invoke | Kiểm tra tên method, `Class<?>`, mức truy cập và formal parameter types |
-| `IllegalArgumentException` trực tiếp | Sai số slot, kiểu, unboxing/widening hoặc receiver sai loại | So sánh actual args với metadata executable |
-| `NullPointerException` | Receiver null của instance method hoặc lỗi khác ở mã người gọi | Kiểm tra receiver; không nhầm với lỗi do thân method |
-| `IllegalAccessException` | Thành viên không có quyền truy cập hợp lệ | Kiểm tra accessibility và JPMS |
-| `InaccessibleObjectException` | Cố bật deep reflection bằng `setAccessible(true)` nhưng module không mở | Dùng API public hoặc khai báo `opens` hợp lệ cho code sở hữu |
-| `InvocationTargetException` | Method/constructor **đã thực thi** và ném exception | Xem `getCause()` |
-| `ExceptionInInitializerError` | Khởi tạo class trong lúc gọi thất bại | Kiểm tra static initializer và cause |
-| `ClassCastException` | Code người gọi ép sai kiểu `Object` đã trả về | Kiểm tra return type và cast |
+| `NoSuchMethodException` | Lookup by name/signature failed before invoke | Check method name, `Class<?>`, visibility, and formal parameter types |
+| Direct `IllegalArgumentException` | Wrong slot count, type, unboxing/widening, or wrong receiver kind | Compare actual args with executable metadata |
+| `NullPointerException` | Null receiver for instance method or another bug in caller code | Check receiver; do not confuse with errors from method body |
+| `IllegalAccessException` | Member lacks valid access permission | Check accessibility and JPMS |
+| `InaccessibleObjectException` | Attempted to enable deep reflection via `setAccessible(true)` but module is not open | Use public API or declare valid `opens` for owned code |
+| `InvocationTargetException` | Method/constructor **executed** and threw an exception | Inspect `getCause()` |
+| `ExceptionInInitializerError` | Class initialization failed during invocation | Check static initializer and cause |
+| `ClassCastException` | Caller code cast the returned `Object` to the wrong type | Check return type and cast |
 
-Nhấn mạnh khác biệt quan trọng:
+Emphasizing a critical distinction:
 
 ```java
-// Truyền sai tham số: Reflection trực tiếp ném IllegalArgumentException.
+// Passing invalid parameter: Reflection directly throws IllegalArgumentException.
 method.invoke(receiver, "not-an-int");
 
-// Đúng tham số nhưng code của method đích tự ném IllegalArgumentException:
-// Method.invoke sẽ ném InvocationTargetException chứa cause đó.
+// Valid parameter but target method code itself throws IllegalArgumentException:
+// Method.invoke will throw InvocationTargetException containing that cause.
 ```
 
-Đây là code minh họa, giả định `method` yêu cầu một tham số int. Nếu chỉ bắt `IllegalArgumentException` trực tiếp từ `invoke`, bạn không tự động bắt được `IllegalArgumentException` do method đích ném. Muốn ghi nhận lỗi nghiệp vụ, bắt `InvocationTargetException` và xem `getCause()`.
+This is illustrative code, assuming `method` requires one int parameter. If you only catch `IllegalArgumentException` directly from `invoke`, you do not automatically catch an `IllegalArgumentException` thrown by the target method. To record business errors, catch `InvocationTargetException` and inspect `getCause()`.
 
-Với `Method.invoke`, code xử lý cơ bản:
+With `Method.invoke`, basic handling code:
 
 ```java
 try {
     Object result = method.invoke(receiver, actualArgs);
 } catch (IllegalArgumentException ex) {
-    // Lỗi receiver hoặc danh sách actual arguments.
+    // Error in receiver or actual arguments list.
 } catch (IllegalAccessException ex) {
-    // Lỗi quyền truy cập Reflection.
+    // Reflection access permission error.
 } catch (java.lang.reflect.InvocationTargetException ex) {
     Throwable targetFailure = ex.getCause();
-    // Lỗi xảy ra bên trong method đã được gọi.
+    // Error occurred inside the invoked method.
 }
 ```
 
-Đây là đoạn minh họa, phụ thuộc `method`, `receiver`, `actualArgs` do ứng dụng cung cấp. Code production nên giữ stack trace/cause thay vì chỉ in tên exception.
+This is an illustrative snippet, depending on `method`, `receiver`, and `actualArgs` supplied by the application. Production code should preserve stack trace/cause rather than merely printing the exception name.
 
-## 6. Kiểm tra trước khi invoke nhưng không tái hiện bừa bãi compiler
+## 6. Pre-checking before invoke without recklessly replicating the compiler
 
-Có thể kiểm tra arity sớm:
+Arity can be checked early:
 
 ```java
 int formalCount = method.getParameterCount();
@@ -262,30 +262,30 @@ if (actualArgs.length != formalCount) {
 }
 ```
 
-Đây là đoạn minh họa dùng method `add`. Thực tế phải xử lý mảng `actualArgs` có thể null, kiểm tra từng vị trí và xác nhận receiver tương thích. Khi formal type là reference, có thể xét `expectedType.isInstance(value)`; khi formal type là primitive, `Class.isInstance(wrapper)` không thay cho quy tắc unboxing/widening, nên cần mapping nếu chủ động validate.
+This is an illustrative snippet using method `add`. In practice, you must handle `actualArgs` possibly being null, check each position, and verify receiver compatibility. When the formal type is a reference, you can evaluate `expectedType.isInstance(value)`; when the formal type is a primitive, `Class.isInstance(wrapper)` does not substitute for unboxing/widening rules, so a mapping is needed if validating proactively.
 
-Kiểm tra trước quan trọng nhưng không thay thế hoàn toàn `invoke`: một receiver có thể null, quyền truy cập có thể bị từ chối, hoặc method đích có thể ném exception. Một adapter nhận dữ liệu từ CLI/HTTP/JSON nên tự parse và validate trước, sau đó **chọn overload rõ ràng** theo chữ ký mong muốn.
+Pre-checking is important but does not completely replace `invoke`: a receiver can be null, access can be denied, or the target method can throw an exception. An adapter receiving data from CLI/HTTP/JSON should parse and validate on its own first, then **select an explicit overload** matching the desired signature.
 
-Khi tạo thông báo lỗi cho người dùng, nên ghi cụ thể tên method, số lượng cần/có, vị trí tham số và kiểu mong đợi. Không nên phụ thuộc chính xác `IllegalArgumentException.getMessage()` của JDK, vì thông điệp có thể khác giữa các bản runtime.
+When crafting error messages for users, include the specific method name, expected/actual counts, parameter position, and expected type. Do not rely on the exact `IllegalArgumentException.getMessage()` of the JDK, as messages may differ across runtime versions.
 
-## 7. Câu hỏi tự kiểm tra
+## 7. Self-check questions
 
-Giả sử `Method m` đại diện `Calculator.add(int,long)` ở mục 3:
+Suppose `Method m` represents `Calculator.add(int,long)` from section 3:
 
-- `m.invoke(c, 1, 2L)`: **hợp lệ**, kết quả `Long(3)`.
-- `m.invoke(c, 1)`: **IllegalArgumentException**, vì thiếu một đối số.
-- `m.invoke(c, 1, 2L, 3L)`: **IllegalArgumentException**, vì thừa một đối số.
-- `m.invoke(c, 1, "2")`: **IllegalArgumentException**, vì String không tự parse thành long.
-- `m.invoke(c, (byte)1, 2)`: **hợp lệ** nhờ primitive widening.
-- `m.invoke(c, 1L, 2L)`: **IllegalArgumentException**, vì formal parameter đầu cần int và không tự narrow long.
-- `m.invoke(null, 1, 2L)`: **NullPointerException**, do method không static mà receiver null.
-- `Calculator.fail(4)` tự ném `IllegalArgumentException`: Reflection bọc trong **InvocationTargetException**.
-- `Calculator.join(String,String...)` cần mấy formal parameters? **Hai**: String và String[].
-- Muốn truyền array cho method đích varargs bằng Reflection, cách nào rõ ràng? **`(Object) new String[] {"A","B"}`** ở slot array cuối.
+- `m.invoke(c, 1, 2L)`: **valid**, result `Long(3)`.
+- `m.invoke(c, 1)`: **IllegalArgumentException**, because one argument is missing.
+- `m.invoke(c, 1, 2L, 3L)`: **IllegalArgumentException**, because there is one extra argument.
+- `m.invoke(c, 1, "2")`: **IllegalArgumentException**, because String is not automatically parsed to long.
+- `m.invoke(c, (byte)1, 2)`: **valid** due to primitive widening.
+- `m.invoke(c, 1L, 2L)`: **IllegalArgumentException**, because the first formal parameter requires int and long does not automatically narrow.
+- `m.invoke(null, 1, 2L)`: **NullPointerException**, because the method is non-static and the receiver is null.
+- `Calculator.fail(4)` throws `IllegalArgumentException` itself: Reflection wraps it in **InvocationTargetException**.
+- How many formal parameters does `Calculator.join(String,String...)` require? **Two**: String and String[].
+- To pass an array to a varargs target method via Reflection, what is the clear way? **`(Object) new String[] {"A","B"}`** in the final array slot.
 
-**Ghi nhớ:** xác định đúng executable, đếm đúng **formal parameters**, kiểm tra **receiver**, tính tương thích của từng đối số và tự đóng gói mảng varargs. Khi xảy ra lỗi, phân biệt `IllegalArgumentException` trực tiếp do Reflection phát hiện đối số không hợp lệ với `InvocationTargetException` chứa lỗi từ method/constructor đích.
+**Takeaway:** identify the exact executable, count **formal parameters** accurately, verify the **receiver**, check compatibility of each argument, and pack varargs arrays yourself. When errors occur, distinguish a direct `IllegalArgumentException` where Reflection detects invalid arguments from an `InvocationTargetException` wrapping a failure from the target method/constructor.
 
-### Tài liệu chính thức
+### Official references
 
 - [Java SE 17 — Method.invoke](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html)
 - [Java SE 17 — Constructor.newInstance](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Constructor.html)

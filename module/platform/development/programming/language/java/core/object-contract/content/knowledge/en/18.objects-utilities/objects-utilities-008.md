@@ -1,21 +1,21 @@
-# Objects.compare() với Comparator được cung cấp trong Java
+# Objects.compare() with a provided Comparator in Java
 
-## 1. Mục đích và ý nghĩa
+## 1. Purpose and meaning
 
-**java.util.Objects.compare(T a, T b, Comparator<? super T> c)** là phương thức tĩnh giúp so sánh hai tham chiếu bằng một **Comparator do người gọi cung cấp**. Đây là tiện ích hữu ích khi một kiểu có nhiều cách sắp xếp: theo tên, theo mức ưu tiên, theo thời gian, hoặc theo nhiều trường kết hợp.
+**java.util.Objects.compare(T a, T b, Comparator<? super T> c)** is a static method for comparing two references using a **caller-provided Comparator**. This utility is useful when a type has multiple ways of ordering: by name, by priority, by time, or by multiple combined fields.
 
-Quy tắc cơ bản:
+Basic rules:
 
-- Nếu a và b **là cùng một tham chiếu** (a == b), Objects.compare trả **0** ngay lập tức, không gọi Comparator.
-- Nếu a và b **là hai tham chiếu khác nhau**, kết quả là **c.compare(a, b)**, do Comparator quyết định.
-- Dấu của giá trị int trả về diễn đạt thứ tự: **âm** nghĩa là a đứng trước b, **0** nghĩa là tương đương theo Comparator, **dương** nghĩa là a đứng sau b.
-- Comparator được truyền vào **không bắt buộc là thứ tự tự nhiên** của kiểu đối tượng. Chính người gọi chọn chính sách so sánh.
+- If a and b **are the same reference** (a == b), Objects.compare returns **0** immediately, without calling the Comparator.
+- If a and b **are two different references**, the result is **c.compare(a, b)**, decided by the Comparator.
+- The sign of the returned int expresses order: **negative** means a comes before b, **0** means equivalent under the Comparator, **positive** means a comes after b.
+- The passed Comparator **does not have to be the natural ordering** of the object type. The caller chooses the comparison policy.
 
-Trong hợp đồng Comparator, không bắt buộc chỉ trả -1, 0, 1; mọi số int mang dấu phù hợp đều hợp lệ. Do vậy hãy kiểm tra result < 0, result == 0 và result > 0 khi xử lý kết quả.
+Under the Comparator contract, it is not required to return only -1, 0, or 1; any int with the appropriate sign is valid. Therefore, check result < 0, result == 0, and result > 0 when handling the result.
 
-## 2. Chữ ký API và cơ chế thực thi
+## 2. API signature and execution mechanism
 
-Chữ ký tổng quát của Java:
+General Java signature:
 
 ~~~java
 public static <T> int compare(
@@ -24,80 +24,80 @@ public static <T> int compare(
         Comparator<? super T> c)
 ~~~
 
-Cách hình dung hành vi, tương đương với logic API:
+Way to picture the behavior, equivalent to the API logic:
 
 ~~~java
-// Mã mô phỏng cơ chế, không phải phương thức độc lập để dán vào lớp.
+// Mechanism simulation snippet, not a standalone method to paste into a class.
 return (a == b) ? 0 : c.compare(a, b);
 ~~~
 
-Kiểm tra a == b **so sánh danh tính tham chiếu**, không gọi a.equals(b). Điều này tạo điểm khác biệt đáng chú ý: hai đối tượng cùng giá trị theo equals nhưng **không cùng tham chiếu** vẫn được chuyển tới Comparator.
+The a == b check **compares reference identity**, without calling a.equals(b). This creates a notable distinction: two objects with equal value under equals yet **different references** are still forwarded to the Comparator.
 
-Ví dụ:
+Example:
 
 ~~~java
 String x = new String("java");
 String y = new String("java");
 
-// x.equals(y) true nhưng x == y false.
-// String.CASE_INSENSITIVE_ORDER vẫn được gọi:
+// x.equals(y) is true, yet x == y is false.
+// String.CASE_INSENSITIVE_ORDER is still called:
 int result = Objects.compare(x, y, String.CASE_INSENSITIVE_ORDER);
 ~~~
 
-Kết quả result là 0 vì Comparator xét hai chuỗi bằng nhau không phân biệt hoa/thường. Trong ví dụ này, kết quả bằng 0 đến từ Comparator, **không phải** nhánh tối ưu a == b.
+The result is 0 because the Comparator treats the two strings as equal case-insensitively. In this example, the 0 result comes from the Comparator, **not** from the a == b optimization branch.
 
-Cần import java.util.Objects và java.util.Comparator cho các đoạn ví dụ riêng ở phần này.
+Both java.util.Objects and java.util.Comparator must be imported for the isolated snippets in this section.
 
-### Vai trò của tham số kiểu
+### Role of the type parameters
 
-- T là kiểu của hai giá trị được so sánh.
-- Comparator<? super T> cho phép dùng Comparator của T hoặc kiểu cha phù hợp.
-- Phương thức trả về int; số nguyên này chỉ biểu đạt **dấu so sánh**, không phải độ đo khoảng cách.
-- Khi cần dùng nhiều quy tắc sắp xếp cho một loại đối tượng, truyền Comparator khác nhau vào cùng phương thức Objects.compare.
+- T is the type of the two values being compared.
+- Comparator<? super T> allows using a Comparator for T or an appropriate supertype.
+- The method returns an int; this integer expresses only **the comparison sign**, not a distance metric.
+- When multiple sorting rules are needed for one kind of object, pass different Comparators to the same Objects.compare method.
 
-## 3. So sánh cùng tham chiếu và khác tham chiếu
+## 3. Comparing same reference vs. different references
 
-Xét ba tình huống:
+Consider three scenarios:
 
-| Hai đối số | Nhánh xử lý | Kết quả |
+| Two arguments | Execution branch | Result |
 | --- | --- | --- |
-| a và b trỏ chính xác cùng một đối tượng | Không gọi c.compare | Trả 0 |
-| a và b là hai đối tượng riêng, dù a.equals(b) là true | Gọi c.compare(a, b) | Phụ thuộc Comparator |
-| a và b là hai đối tượng riêng, a.equals(b) là false | Gọi c.compare(a, b) | Phụ thuộc Comparator |
+| a and b point to the exact same object | Does not call c.compare | Returns 0 |
+| a and b are two separate objects, even if a.equals(b) is true | Calls c.compare(a, b) | Depends on the Comparator |
+| a and b are two separate objects, a.equals(b) is false | Calls c.compare(a, b) | Depends on the Comparator |
 
-Hành vi trả 0 khi cùng tham chiếu thể hiện một tối ưu hợp lý với Comparator tuân thủ hợp đồng: một đối tượng không đứng trước hoặc sau chính nó.
+Returning 0 on identical references represents a sensible optimization for a contract-compliant Comparator: an object cannot come before or after itself.
 
-Tuy nhiên **Objects.compare không sửa được một Comparator sai hợp đồng**. Nếu Comparator ngẫu nhiên, phi bắc cầu hoặc trả kết quả trái chiều cho các cặp khác nhau, Objects.compare vẫn chuyển kết quả sai đó trở về người gọi. Việc bỏ qua lời gọi Comparator khi cùng tham chiếu cũng có nghĩa các tác dụng phụ hoặc bộ đếm bên trong Comparator không chạy trong trường hợp này. Comparator lý tưởng nên thuần túy và không phụ thuộc số lần được gọi.
+However, **Objects.compare cannot fix a contract-violating Comparator**. If a Comparator is random, non-transitive, or returns contradictory results for different pairs, Objects.compare simply forwards that wrong result back to the caller. Skipping the Comparator call on identical references also means side effects or counters inside the Comparator do not execute in that case. An ideal Comparator should be pure and independent of how many times it is called.
 
-**Khác biệt với Objects.equals:** Objects.equals(a, b) kiểm tra bằng nhau theo Object.equals một cách an toàn với null; Objects.compare(a, b, c) xác định **thứ tự theo Comparator được cung cấp**. Giá trị compare == 0 không tự động có nghĩa equals == true.
+**Difference from Objects.equals:** Objects.equals(a, b) checks equality via Object.equals in a null-safe manner; Objects.compare(a, b, c) determines **ordering under the provided Comparator**. Having compare == 0 does not automatically mean equals == true.
 
-## 4. Trường hợp null: cần hiểu ranh giới xử lý
+## 4. Null cases: understanding handling boundaries
 
-Objects.compare có một tình huống đặc biệt:
+Objects.compare has one special case:
 
 ~~~java
 Objects.compare(null, null, comparator); // 0
 ~~~
 
-Khi cả hai đối số đều null, chúng có cùng tham chiếu, nên phương thức trả 0 ngay, **không gọi Comparator**.
+When both arguments are null, they share the same reference, so the method returns 0 immediately, **without calling the Comparator**.
 
-Nhưng với đúng một đối số null:
+However, with exactly one null argument:
 
 ~~~java
 Objects.compare(null, item, comparator);
 Objects.compare(item, null, comparator);
 ~~~
 
-Khi đó a != b và Comparator được gọi với một đối số null. Objects.compare **không tự chọn null đứng trước hay sau**, cũng không tự bảo đảm null được hỗ trợ. Nếu Comparator không chấp nhận null thì có thể ném NullPointerException.
+Here a != b and the Comparator is invoked with a null argument. Objects.compare **does not automatically decide whether null comes first or last**, nor does it guarantee null is supported. If the Comparator does not accept null, it may throw NullPointerException.
 
-Cách chủ động đặt chính sách null:
+How to explicitly set a null policy:
 
 ~~~java
-// null trước mọi giá trị khác null:
+// null before any non-null value:
 Comparator<String> nullFirst =
         Comparator.nullsFirst(String.CASE_INSENSITIVE_ORDER);
 
-// null sau mọi giá trị khác null:
+// null after any non-null value:
 Comparator<String> nullLast =
         Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER);
 
@@ -106,13 +106,13 @@ int lastResult = Objects.compare(null, "A", nullLast);   // 1
 int bothNull = Objects.compare(null, null, nullFirst);   // 0
 ~~~
 
-Các kết quả minh họa -1, 1, 0 này là xác định đối với Comparator.nullsFirst/nullsLast chuẩn; điều tổng quát cần dựa vào vẫn là dấu.
+These illustrative results -1, 1, 0 are deterministic for standard Comparator.nullsFirst/nullsLast; in general, you should still rely on the sign.
 
-Nếu truyền c = null, **đừng xem đó là cơ chế chọn thứ tự mặc định**. Với hai tham chiếu khác nhau, phương thức sẽ cố gọi c.compare và phát sinh NullPointerException. Với hai tham chiếu giống nhau, nhánh trả 0 có thể không đụng đến c, nhưng đó không phải cách sử dụng có ý nghĩa để thay thế Comparator.
+If c = null is passed, **do not treat it as a mechanism to select natural ordering**. With two different references, the method will attempt to call c.compare and throw NullPointerException. With two identical references, the return-0 branch may avoid touching c, but that is not a meaningful substitute for a Comparator.
 
-## 5. Java 17+: chương trình đầy đủ và kết quả
+## 5. Java 17+: full program and output
 
-Lưu vào tệp **ObjectsCompareDemo.java**:
+Save into **`ObjectsCompareDemo.java`**:
 
 ~~~java
 import java.util.ArrayList;
@@ -192,14 +192,14 @@ public class ObjectsCompareDemo {
 }
 ~~~
 
-Biên dịch và chạy ở thư mục chứa tệp:
+Compile and run from the directory containing the file:
 
 ~~~bash
 javac -encoding UTF-8 ObjectsCompareDemo.java
 java ObjectsCompareDemo
 ~~~
 
-Stdout chính xác:
+Exact stdout:
 
 ~~~text
 same reference: 0
@@ -220,36 +220,36 @@ calls after same reference: 0
 calls after different reference: 1
 ~~~
 
-**Đọc kết quả:**
+**Reading the output:**
 
-1. Hai tham chiếu first/first cùng đối tượng nên Objects.compare trả 0. Hai tham chiếu first/sameValue khác đối tượng, dù record equals true, nên vẫn phải gọi Comparator; kết quả 0 do cùng priority và code.
-2. Comparator theo priority rồi code trả âm khi first đứng trước second, dương ở chiều ngược lại. Với priority bằng nhau, String.compareTo giữa "Z" và "A" trả 25: minh chứng không giới hạn -1/0/1.
-3. byPriorityOnly trả 0 cho first và laterCode vì cùng priority, trong khi hai record có code khác nhau nên equals false. Comparator định nghĩa **tương đương theo thứ tự**, không tự động là bằng nhau về mọi thuộc tính.
-4. null/null trả 0; nullsFirst và nullsLast tạo chính sách null tường minh. Comparator đảo chiều làm first đứng sau second theo thứ tự ngược.
-5. Danh sách sắp tăng dần theo Comparator từ priority thấp tới cao.
-6. CountingComparator là công cụ quan sát lời gọi: với first/first, count vẫn 0; với first/sameValue, count tăng lên 1 dù equals true. Trong code nghiệp vụ, tránh để logic so sánh phụ thuộc bộ đếm/tác dụng phụ này.
+1. References first/first point to the same object, so Objects.compare returns 0. References first/sameValue are different objects, even though record equals is true, so the Comparator still must be called; the result 0 comes from having the same priority and code.
+2. The Comparator by priority then code returns negative when first comes before second, and positive in the reverse direction. With equal priority, String.compareTo between "Z" and "A" returns 25: proving it is not restricted to -1/0/1.
+3. byPriorityOnly returns 0 for first and laterCode because they share the same priority, while the two records have different codes so equals is false. A Comparator defines **ordering equivalence**, not automatically equality across all attributes.
+4. null/null returns 0; nullsFirst and nullsLast create explicit null policies. Reversing the Comparator makes first come after second in the opposite order.
+5. The list is sorted ascending by the Comparator from low priority to high.
+6. CountingComparator is a call-observation tool: for first/first, count stays 0; for first/sameValue, count increments to 1 even though equals is true. In business code, avoid letting comparison logic depend on such counters/side effects.
 
-## 6. Comparator được cung cấp quyết định quan hệ bằng nhau theo thứ tự
+## 6. The provided Comparator determines ordering equivalence
 
-Giả sử hai Ticket có cùng priority = 1 nhưng code khác nhau:
+Suppose two Tickets have the same priority = 1 yet different codes:
 
-- Với Comparator.comparingInt(Ticket::priority), compare trả 0: chúng **tương đương khi sắp theo priority**.
-- Với Comparator.comparingInt(...).thenComparing(Ticket::code), compare khác 0: code trở thành khóa phá hòa.
-- Object.equals của record Ticket dùng cả priority và code, nên hai Ticket khác code không bằng nhau theo equals.
+- With Comparator.comparingInt(Ticket::priority), compare returns 0: they are **equivalent when ordered by priority**.
+- With Comparator.comparingInt(...).thenComparing(Ticket::code), compare is non-zero: code acts as a tie-breaker.
+- Record Ticket's Object.equals uses both priority and code, so two Tickets with different codes are not equal under equals.
 
-Điều này quan trọng trong các collection:
+This matters in collections:
 
-**List.sort(comparator)** sắp xếp danh sách theo Comparator và **không loại** phần tử có kết quả compare == 0.
+**List.sort(comparator)** sorts the list using the Comparator and **does not remove** elements whose compare == 0.
 
-**TreeSet(comparator)** hoặc **TreeMap(comparator)** dùng compare == 0 để xác định hai khóa tương đương, nên một Comparator chỉ dựa trên priority có thể gộp hai Ticket khác code thành một khóa.
+**TreeSet(comparator)** or **TreeMap(comparator)** uses compare == 0 to determine whether two keys are equivalent, so a priority-only Comparator can collapse two Tickets with different codes into a single key.
 
-**HashSet** và **HashMap** dùng equals/hashCode; cùng priority nhưng code khác nhau thì hai record Ticket là hai giá trị khác nhau.
+**HashSet** and **HashMap** use equals/hashCode; with the same priority yet different codes, the two Ticket records are two distinct values.
 
-Nếu dùng Comparator tùy chỉnh cho TreeSet/TreeMap, hãy xác định liệu compare == 0 có được kỳ vọng tương đương với equals hay không. Một Comparator hợp lệ vẫn có thể không nhất quán với equals; hệ quả là cách tập có thứ tự nhận diện khóa có thể khác so với tập băm.
+If using a custom Comparator for TreeSet/TreeMap, decide whether compare == 0 is expected to match equals. A valid Comparator can still be inconsistent with equals; consequently, how an ordered collection recognizes keys can differ from a hash-based collection.
 
-## 7. Kết hợp nhiều khóa và chiều sắp xếp
+## 7. Combining multiple keys and sort directions
 
-Các nhà máy Comparator giúp truyền một quy tắc rõ ràng vào Objects.compare:
+Comparator factories make it easy to pass a clear rule into Objects.compare:
 
 ~~~java
 Comparator<Ticket> ascending =
@@ -261,9 +261,9 @@ Comparator<Ticket> descending = ascending.reversed();
 int result = Objects.compare(a, b, descending);
 ~~~
 
-Đây là đoạn mã đặt trong ngữ cảnh có kiểu Ticket, đối tượng a và b, không phải chương trình độc lập. ascending so priority tăng rồi code tăng. descending đảo toàn bộ kết quả so sánh; nếu chỉ muốn đảo priority mà vẫn giữ code tăng, cần kết hợp từng tiêu chí theo mong muốn.
+This snippet is placed in a context that has the Ticket type and objects a and b, not a standalone program. ascending compares priority ascending then code ascending. descending reverses the entire comparison result; if you only want priority reversed while keeping code ascending, combine each criterion as desired.
 
-Ví dụ khi so sánh String:
+Example when comparing Strings:
 
 ~~~java
 int caseSensitive =
@@ -272,78 +272,78 @@ int ignoreCase =
         Objects.compare("java", "JAVA", String.CASE_INSENSITIVE_ORDER);
 ~~~
 
-caseSensitive là số **dương** do ký tự thường đứng sau chữ hoa theo thứ tự String; ignoreCase là **0**. Điều này không có nghĩa String.equals mặc định coi "java" và "JAVA" là bằng nhau; đây là hai quan hệ do hai Comparator khác nhau tạo ra.
+caseSensitive is **positive** because lowercase characters come after uppercase characters in String order; ignoreCase is **0**. This does not mean default String.equals treats "java" and "JAVA" as equal; these are two relations produced by two different Comparators.
 
-Khi trường khóa là số, ưu tiên Comparator.comparingInt, comparingLong, comparingDouble hoặc các hàm Integer.compare/Long.compare. Đừng tự tính hiệu số để quyết định thứ tự vì phép trừ có thể tràn số, nhất là với int/long cực trị.
+When a key field is numeric, prefer Comparator.comparingInt, comparingLong, comparingDouble, or Integer.compare/Long.compare. Do not manually compute a difference to decide ordering because subtraction can overflow, especially with extreme int/long values.
 
-## 8. Hợp đồng Comparator vẫn phải được duy trì
+## 8. The Comparator contract must still be upheld
 
-Objects.compare **không xác minh** Comparator hợp lệ. Comparator do bạn cung cấp vẫn cần thỏa các điều kiện:
+Objects.compare **does not validate** that a Comparator is valid. The Comparator you provide must still satisfy the requirements:
 
-1. **Đối xứng về dấu:** dấu của compare(a, b) phải ngược dấu của compare(b, a).
-2. **Bắc cầu:** nếu a > b và b > c thì a > c.
-3. **Tính ổn định của nhóm tương đương:** nếu compare(a, b) == 0 thì so a với z và b với z phải cho cùng dấu.
-4. **Dữ liệu so sánh ổn định:** kết quả không được dao động tùy thời gian, ngẫu nhiên, hay bộ đếm khi thông tin so sánh không đổi.
-5. **Quy tắc null rõ ràng:** nếu Comparator hỗ trợ null, phải áp dụng nhất quán và phù hợp các điều kiện trên.
+1. **Sign symmetry:** the sign of compare(a, b) must be the opposite sign of compare(b, a).
+2. **Transitivity:** if a > b and b > c, then a > c.
+3. **Stability of equivalence classes:** if compare(a, b) == 0, comparing a against z and b against z must yield **the same result sign**.
+4. **Stable comparison data:** results must not fluctuate with time, randomness, or counters when the compared information has not changed.
+5. **Clear null rules:** if the Comparator supports null, it must apply them consistently and satisfy all conditions above.
 
-Đặc biệt, không nên viết một Comparator chỉ kiểm tra dấu bằng biểu thức a.priority - b.priority khi các trường là int; phép trừ có thể tràn làm đảo quan hệ. Hãy dùng Integer.compare hoặc Comparator.comparingInt.
+In particular, do not write a Comparator that only checks sign via a.priority - b.priority when fields are int; subtraction can overflow and invert the relation. Use Integer.compare or Comparator.comparingInt.
 
-Khi Comparator không tương thích với Object.equals, điều này có thể là lựa chọn chủ ý để nhóm theo một trường; tuy nhiên phải hiểu ảnh hưởng đến sorted collection và không tuyên bố compare == 0 chắc chắn kéo theo equals true.
+When a Comparator is inconsistent with Object.equals, this may be an intentional choice to group by one field; however, understand the impact on sorted collections and never claim compare == 0 automatically implies equals true.
 
-## 9. Các lỗi thường gặp
+## 9. Common mistakes
 
-| Lỗi | Hậu quả | Cách sửa |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Nghĩ Objects.compare tự dùng thứ tự tự nhiên | Thiếu Comparator và hiểu sai hành vi | Luôn cung cấp Comparator phù hợp |
-| Nghĩ Objects.compare dùng a.equals(b) để bỏ qua so sánh | Hai đối tượng equals true nhưng khác tham chiếu vẫn đi qua Comparator | Nhớ nhánh tối ưu là a == b |
-| Truyền Comparator không hỗ trợ null khi một đối số null | Có thể ném NullPointerException | Dùng Comparator.nullsFirst/nullsLast |
-| Cho rằng Objects.compare(null, null, c) gọi c.compare | Thực tế trả 0 sớm | Đừng dựa vào tác dụng phụ của Comparator |
-| Xem compare == 0 là equals true | Sai nếu Comparator chỉ xét một phần dữ liệu | Tách quan hệ so sánh và equals |
-| Kiểm tra result == -1 hoặc result == 1 | Có thể bỏ sót -25 hoặc 25 | Kiểm tra dấu result < 0 / > 0 |
-| Dùng phép trừ int/long trong comparator | Tràn số và đảo dấu | Integer.compare/Long.compare |
-| Comparator thay đổi theo trạng thái ngoài | Sort và TreeSet/TreeMap khó bảo đảm ổn định | Comparator thuần túy, dữ liệu khóa ổn định |
-| Dùng Objects.compare để thay thế Objects.equals | So sánh thứ tự thay vì equality | Dùng API đúng mục tiêu |
+| Thinking Objects.compare automatically uses natural ordering | Missing Comparator and misunderstood behavior | Always supply an appropriate Comparator |
+| Thinking Objects.compare uses a.equals(b) to skip comparison | Two objects with equals true yet different references still go through the Comparator | Remember the optimization branch is a == b |
+| Passing a non-null-safe Comparator when one argument is null | May throw NullPointerException | Use Comparator.nullsFirst/nullsLast |
+| Assuming Objects.compare(null, null, c) calls c.compare | Actually returns 0 early | Do not rely on Comparator side effects |
+| Treating compare == 0 as equals true | Wrong if the Comparator inspects only part of the data | Separate ordering relation from equals |
+| Checking result == -1 or result == 1 | Can miss values like -25 or 25 | Check sign result < 0 / > 0 |
+| Using int/long subtraction inside a comparator | Overflow and sign inversion | Integer.compare/Long.compare |
+| Comparator changes with external state | Sort and TreeSet/TreeMap cannot guarantee stability | Pure Comparator, stable key data |
+| Using Objects.compare to replace Objects.equals | Compares ordering instead of equality | Use the right API for the goal |
 
-Lưu ý: Objects.compare trả 0 khi cùng tham chiếu ngay cả nếu Comparator được viết bất thường; không nên tận dụng hành vi đó để né lỗi của một Comparator sai hợp đồng. Hãy sửa Comparator để quan hệ so sánh nhất quán đối với mọi cặp hợp lệ.
+Note: Objects.compare returns 0 on identical references even if the Comparator is written abnormally; do not exploit that behavior to dodge bugs in a contract-violating Comparator. Fix the Comparator so the comparison relation is consistent across all valid pairs.
 
-## 10. Kiểm thử có ý nghĩa
+## 10. Meaningful testing
 
-Để kiểm tra cách dùng Objects.compare, cần thử:
+To test Objects.compare usage, check:
 
-- **Cùng tham chiếu:** Objects.compare(x, x, c) trả 0.
-- **Khác tham chiếu nhưng cùng giá trị:** Comparator được dùng và cho kết quả phù hợp, thông thường là 0 nếu chính sách xét cùng thuộc tính.
-- **Nhỏ hơn/lớn hơn:** kiểm tra dấu âm hoặc dương ở cả hai chiều, không ép đúng -1/1.
-- **Bằng nhau theo tiêu chí phụ:** cùng priority nhưng khác code; thử comparator chỉ priority và comparator có khóa phụ.
-- **Một/both null:** với Comparator hỗ trợ null, xác nhận thứ tự; với Comparator không hỗ trợ null, xác nhận lỗi theo hợp đồng ứng dụng.
-- **Đảo chiều:** reversed đảo dấu đối với các cặp không tương đương.
-- **Bộ sưu tập:** List.sort giữ đủ phần tử; TreeSet có thể gộp theo compare == 0.
-- **Ổn định:** cùng dữ liệu so sánh, các lần gọi nên giữ kết quả tương đương.
+- **Same reference:** Objects.compare(x, x, c) returns 0.
+- **Different references with same value:** the Comparator is invoked and produces the right result, typically 0 if the policy checks the same attributes.
+- **Less than / greater than:** verify negative or positive sign in both directions, without forcing exact -1/1.
+- **Equal on secondary criterion:** same priority yet different code; test a priority-only comparator and a comparator with a tie-breaker key.
+- **One/both null:** with a null-supporting Comparator, verify ordering; with a non-null-supporting Comparator, verify the failure matches the application contract.
+- **Reversal:** reversed flips the sign for non-equivalent pairs.
+- **Collections:** List.sort preserves all elements; TreeSet may merge on compare == 0.
+- **Stability:** with unchanged comparison data, repeated calls should keep equivalent results.
 
-Ví dụ assertion trong ngữ cảnh có đối tượng x, y và Comparator c:
+Assertion example in a context having objects x, y and Comparator c:
 
 ~~~java
 int forward = Objects.compare(x, y, c);
 int backward = Objects.compare(y, x, c);
 if (Integer.signum(forward) != -Integer.signum(backward)) {
-    throw new AssertionError("Dấu so sánh không đối xứng");
+    throw new AssertionError("Comparison sign is not symmetric");
 }
 ~~~
 
-Đoạn này minh họa một phép kiểm tra, không phải chương trình đứng riêng; để kiểm tra bắc cầu cần thêm đối tượng thứ ba và dữ liệu thích hợp. Không so sánh forward == -backward bằng số học tuyệt đối vì có thể có kết quả Integer.MIN_VALUE không đổi được dấu an toàn theo phép trừ int; Integer.signum cho phép chỉ xét dấu.
+This snippet illustrates a check, not a standalone program; testing transitivity requires adding a third object and appropriate data. Do not compare forward == -backward using raw arithmetic negation because Integer.MIN_VALUE cannot be safely negated under int arithmetic; Integer.signum lets you examine only the sign.
 
-## 11. Khi nào nên dùng và khi nào không?
+## 11. When to use and when not to?
 
-**Nên dùng** Objects.compare khi cần một tiện ích ngắn để so hai tham chiếu theo Comparator rõ ràng, đặc biệt nếu muốn nhánh trả 0 nhanh cho hai tham chiếu trùng nhau, hoặc nếu code đang dùng đồng bộ các tiện ích java.util.Objects.
+**Use** Objects.compare when you want a concise utility to compare two references with an explicit Comparator, especially if you want the fast return-0 branch for identical references, or if the codebase consistently uses java.util.Objects utilities.
 
-**Có thể gọi trực tiếp** c.compare(a, b) nếu chính sách đã rõ và muốn mọi lần so sánh đều đi qua Comparator; hai lối gọi có thể khác nhau ở trường hợp cùng tham chiếu và tác dụng phụ của Comparator. Comparator hợp lệ thông thường vẫn phải trả 0 khi so một đối tượng với chính nó.
+**You can call directly** c.compare(a, b) if the policy is clear and you want every comparison to go through the Comparator; the two call styles can differ in the same-reference case and Comparator side effects. An ordinary valid Comparator must still return 0 when comparing an object with itself.
 
-**Không nên dùng** Objects.compare như phương thức tự động kiểm tra equality sâu, thay thế Objects.equals, hoặc tự phát hiện chính sách null/thứ tự tự nhiên. Nếu không có Comparator và kiểu có Comparable, gọi compareTo trực tiếp trong trường hợp thích hợp hoặc dùng Comparator.naturalOrder() khi cần một Comparator.
+**Do not use** Objects.compare as a method to automatically check deep equality, replace Objects.equals, or auto-discover null policies/natural ordering. If there is no Comparator and the type implements Comparable, call compareTo directly when appropriate or use Comparator.naturalOrder() when a Comparator is needed.
 
-## 12. Ghi nhớ
+## 12. Key takeaways
 
-**Objects.compare(a, b, c)** có đúng hai nhánh thực thi cốt lõi:
+**Objects.compare(a, b, c)** has exactly two core execution branches:
 
-1. a == b: trả 0 ngay.
-2. a != b: trả nguyên kết quả c.compare(a, b).
+1. a == b: returns 0 immediately.
+2. a != b: returns the exact result of c.compare(a, b).
 
-Dấu âm/0/dương luôn được hiểu **theo Comparator được cung cấp**. Hai đối tượng khác tham chiếu, dù equals true, vẫn đi qua Comparator. Không có cơ chế xử lý null toàn diện tích hợp ngoài trường hợp cùng tham chiếu; khi một đối số null, hãy chọn Comparator.nullsFirst hoặc Comparator.nullsLast nếu nghiệp vụ cho phép null. Đừng suy diễn compare == 0 luôn đồng nghĩa Object.equals true, nhất là khi dùng Comparator tùy chỉnh cùng TreeSet/TreeMap.
+Negative/0/positive signs are always interpreted **according to the provided Comparator**. Two objects with different references, even if equals is true, still go through the Comparator. There is no built-in comprehensive null-handling mechanism beyond the same-reference case; when one argument is null, choose Comparator.nullsFirst or Comparator.nullsLast if business logic permits null. Do not infer that compare == 0 always implies Object.equals is true, especially when using custom Comparators with TreeSet/TreeMap.

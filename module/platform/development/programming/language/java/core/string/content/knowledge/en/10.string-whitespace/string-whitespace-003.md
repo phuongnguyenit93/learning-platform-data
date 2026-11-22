@@ -1,20 +1,20 @@
-# String.strip(), stripLeading() và stripTrailing() trong Java
+# String.strip(), stripLeading(), and stripTrailing() in Java
 
-Trong Java, khi nhận tên người dùng, tiêu đề, nội dung biểu mẫu hay các giá trị văn bản, ta thường cần loại bỏ **ký tự khoảng trắng ở rìa chuỗi**. Từ Java 11, lớp `java.lang.String` có ba phương thức: `strip()`, `stripLeading()` và `stripTrailing()`. Chúng đều trả về một `String` và sử dụng khái niệm **whitespace của Java** thông qua `Character.isWhitespace(...)`.
+In Java, when receiving usernames, titles, form contents, or text values, we often need to remove **whitespace characters at the edges of a string**. Since Java 11, the `java.lang.String` class provides three methods: `strip()`, `stripLeading()`, and `stripTrailing()`. All three return a `String` and use **Java's concept of whitespace** via `Character.isWhitespace(...)`.
 
-Điểm cần nắm: **ba phương thức khác nhau ở phía của chuỗi được xử lý**; không phương thức nào có nhiệm vụ xóa khoảng trắng ở giữa nội dung. Chúng cũng khác `trim()` về tiêu chí nhận diện ký tự khoảng trắng, đặc biệt đối với Unicode.
+Key point to grasp: **the three methods differ in which side of the string they process**; none of them is meant to remove whitespace in the middle of the content. They also differ from `trim()` in how they identify whitespace characters, especially for Unicode.
 
-## 1. So sánh ba phương thức
+## 1. Comparing the three methods
 
-| Phương thức | Tác động | Ví dụ đầu vào | Kết quả |
+| Method | Effect | Example input | Result |
 |---|---|---|---|
-| `s.strip()` | Bỏ whitespace ở **cả đầu lẫn cuối** | `"  Hello  "` | `"Hello"` |
-| `s.stripLeading()` | Bỏ whitespace **chỉ ở đầu** | `"  Hello  "` | `"Hello  "` |
-| `s.stripTrailing()` | Bỏ whitespace **chỉ ở cuối** | `"  Hello  "` | `"  Hello"` |
+| `s.strip()` | Removes whitespace at **both start and end** | `"  Hello  "` | `"Hello"` |
+| `s.stripLeading()` | Removes whitespace **at the start only** | `"  Hello  "` | `"Hello  "` |
+| `s.stripTrailing()` | Removes whitespace **at the end only** | `"  Hello  "` | `"  Hello"` |
 
-Chữ *leading* nghĩa là phần đầu; *trailing* nghĩa là phần đuôi. Trong ví dụ bảng, các ký tự khoảng trắng đều là dấu cách ASCII `U+0020` nên có thể quan sát trực tiếp. Với tab, xuống dòng và các ký tự trắng Unicode, đầu ra trên terminal không phải lúc nào cũng có dấu hiệu trực quan rõ ràng.
+*Leading* means the beginning; *trailing* means the end. In the table examples, the whitespace characters are all ASCII spaces `U+0020`, so they can be observed directly. With tabs, newlines, and Unicode whitespace characters, terminal output does not always show clear visual indicators.
 
-Cú pháp API:
+API syntax:
 
 ```java
 String both = source.strip();
@@ -22,97 +22,97 @@ String left = source.stripLeading();
 String right = source.stripTrailing();
 ```
 
-Đoạn trên là mã minh họa, giả sử `source` đã được khai báo. Cả ba phương thức **không nhận tham số**, có từ **Java 11**, và không ném lỗi khi `source` là chuỗi rỗng hay chỉ có whitespace. Tuy nhiên, nếu biến tham chiếu là `null`, gọi `source.strip()` sẽ gây `NullPointerException`.
+The snippet above is illustrative code, assuming `source` has already been declared. All three methods **take no parameters**, have existed since **Java 11**, and do not throw errors when `source` is empty or contains only whitespace. However, if the reference variable is `null`, calling `source.strip()` throws a `NullPointerException`.
 
-## 2. Chuỗi được xử lý từ đâu đến đâu?
+## 2. Where is the string processed?
 
-Giả sử một chuỗi có ba vùng:
+Suppose a string has three regions:
 
 ```text
-[ whitespace đầu ][ NỘI DUNG ][ whitespace cuối ]
-  stripLeading()      giữ lại        stripTrailing()
-             \         |         /
-              \----- strip() ---/
+[ leading whitespace ][ CONTENT ][ trailing whitespace ]
+   stripLeading()     preserved     stripTrailing()
+              \           |           /
+               \------- strip() -----/
 ```
 
-Các phương thức chỉ quét các ký tự **liên tiếp** thuộc nhóm whitespace từ rìa được xét, và dừng khi gặp nội dung **không phải whitespace**. Chúng không “tìm và xóa mọi whitespace” trong cả chuỗi.
+The methods only scan **consecutive** characters in the whitespace group from the target edge, and stop as soon as they encounter content that is **not whitespace**. They do not “find and delete all whitespace” throughout the entire string.
 
-Ví dụ:
+For example:
 
 ```java
 String input = " \tJava  Core\n";
 System.out.println(input.strip().equals("Java  Core")); // true
 ```
 
-`strip()` bỏ dấu cách và tab ở đầu, bỏ newline ở cuối, nhưng **giữ nguyên hai dấu cách ở giữa** `Java` và `Core`. Nếu mục tiêu là chuẩn hóa khoảng trắng giữa các từ, đó là tác vụ khác với việc cắt khoảng trắng ở hai mép.
+`strip()` removes the leading space and tab and the trailing newline, but **preserves the two spaces in the middle** between `Java` and `Core`. If the goal is to normalize whitespace between words, that is a separate task from stripping whitespace at the edges.
 
-Một số ca biên:
+Some edge cases:
 
-- `"".strip()` trả `""`.
-- `"   ".strip()` trả `""` vì toàn bộ nội dung là whitespace.
-- `"   ".stripLeading()` và `"   ".stripTrailing()` cũng trả chuỗi rỗng.
-- `"abc".strip()` có cùng nội dung `"abc"`.
-- `" a  b ".strip()` là `"a  b"`: vẫn còn **hai** dấu cách giữa `a` và `b`.
-- `"a\nb".strip()` vẫn có newline **bên trong** vì nó không nằm ở rìa chuỗi.
+- `"".strip()` returns `""`.
+- `"   ".strip()` returns `""` because the entire content is whitespace.
+- `"   ".stripLeading()` and `"   ".stripTrailing()` also return the empty string.
+- `"abc".strip()` has the same content `"abc"`.
+- `" a  b ".strip()` is `"a  b"`: **two** spaces remain between `a` and `b`.
+- `"a\nb".strip()` still contains the newline **inside** because it is not at an edge of the string.
 
-Có thể kết hợp `stripLeading()` và `stripTrailing()` theo thứ tự nào cũng được để đạt **giá trị chuỗi** tương đương `strip()`. Dùng trực tiếp `strip()` khi cần xử lý hai phía là cách rõ ý hơn.
+You can chain `stripLeading()` and `stripTrailing()` in either order to achieve the same **string value** as `strip()`. Calling `strip()` directly when you need both sides processed expresses intent more clearly.
 
-## 3. “Whitespace” theo Java là gì?
+## 3. What is “whitespace” according to Java?
 
-Theo API `String`, các phương thức `strip...` nhận diện whitespace dựa trên `Character.isWhitespace(int codePoint)`. Đây là một quy tắc Unicode cụ thể do Java cung cấp, **không phải tất cả những ký tự trông giống khoảng trống trên màn hình**.
+According to the `String` API, the `strip...` methods identify whitespace based on `Character.isWhitespace(int codePoint)`. This is a specific Unicode rule provided by Java, **not every character that looks like blank space on screen**.
 
-Những ví dụ thường gặp:
+Common examples:
 
-| Ký tự | Mã Unicode | `Character.isWhitespace` | `strip()` ở rìa |
+| Character | Unicode code | `Character.isWhitespace` | `strip()` at edges |
 |---|---|---|---|
-| Dấu cách thông thường | `U+0020` (SPACE) | `true` | Bỏ |
-| Tab ngang | `U+0009` (TAB) | `true` | Bỏ |
-| Line feed | `U+000A` (LF) | `true` | Bỏ |
-| Carriage return | `U+000D` (CR) | `true` | Bỏ |
-| Em Space | `U+2003` | `true` | Bỏ |
-| Ideographic Space | `U+3000` | `true` | Bỏ |
-| Non-Breaking Space | `U+00A0` (NBSP) | `false` | **Giữ lại** |
-| Figure Space | `U+2007` | `false` | **Giữ lại** |
-| Narrow No-Break Space | `U+202F` | `false` | **Giữ lại** |
-| Zero Width Space | `U+200B` | `false` | Giữ lại |
-| Byte Order Mark (khi là ký tự trong văn bản) | `U+FEFF` | `false` | Giữ lại |
+| Regular space | `U+0020` (SPACE) | `true` | Removed |
+| Horizontal tab | `U+0009` (TAB) | `true` | Removed |
+| Line feed | `U+000A` (LF) | `true` | Removed |
+| Carriage return | `U+000D` (CR) | `true` | Removed |
+| Em Space | `U+2003` | `true` | Removed |
+| Ideographic Space | `U+3000` | `true` | Removed |
+| Non-Breaking Space | `U+00A0` (NBSP) | `false` | **Preserved** |
+| Figure Space | `U+2007` | `false` | **Preserved** |
+| Narrow No-Break Space | `U+202F` | `false` | **Preserved** |
+| Zero Width Space | `U+200B` | `false` | Preserved |
+| Byte Order Mark (when present as a character in text) | `U+FEFF` | `false` | Preserved |
 
-Bảng đưa ra những ca thực tế để **minh họa**, không phải toàn bộ bảng Unicode. Cách phân loại dựa trên quy tắc `Character.isWhitespace` của phiên bản Java bạn dùng; khi nâng cấp JDK, dữ liệu Unicode có thể được cập nhật.
+The table gives practical cases for **illustration**, not the entire Unicode table. Classification is based on the `Character.isWhitespace` rules of the Java version you use; when upgrading the JDK, Unicode data may be updated.
 
-Đặc biệt, tên **Non-Breaking Space** có chữ *Space* nhưng Java cố ý **không coi đây là whitespace theo `isWhitespace`**. Do đó, đoạn sau **không** loại bỏ NBSP:
+In particular, **Non-Breaking Space** has the word *Space* in its name, yet Java intentionally **does not treat it as whitespace under `isWhitespace`**. Consequently, the following snippet **does not** remove NBSP:
 
 ```java
 String data = "\u00A0Hello\u00A0";
-System.out.println(data.strip().length()); // 7: NBSP + 5 chữ + NBSP
+System.out.println(data.strip().length()); // 7: NBSP + 5 letters + NBSP
 ```
 
-Nếu nghiệp vụ cần coi NBSP như một dấu cách có thể xóa, phải chỉ định chính sách chuyển đổi hoặc chuẩn hóa riêng; không nên giả định rằng `strip()` tự làm điều này.
+If business logic needs to treat NBSP as a removable space, you must specify a separate conversion or normalization policy; do not assume `strip()` does this automatically.
 
-### Vì sao NBSP có thể gây lỗi tưởng như “không strip được”?
+### Why can NBSP cause a bug that looks like “unable to strip”?
 
-Một chuỗi hiển thị giống `" Hello "` có thể thực ra bắt đầu hoặc kết thúc bằng `U+00A0`. Vì `Character.isWhitespace(0x00A0)` là `false`, `strip()` sẽ dừng tại ký tự đó ở rìa.
+A string displayed like `" Hello "` may actually start or end with `U+00A0`. Because `Character.isWhitespace(0x00A0)` is `false`, `strip()` stops at that character at the edge.
 
-Ví dụ: `"\u00A0  Hello  "` bắt đầu bằng NBSP, nên `stripLeading()` **không** vượt qua NBSP để xóa hai dấu cách đứng sau nó. Ở phía phải, `stripTrailing()` vẫn có thể xóa các dấu cách thông thường liên tiếp ở cuối. Nguyên tắc quét từ mép giải thích chính xác hành vi này.
+For example: `"\u00A0  Hello  "` starts with NBSP, so `stripLeading()` **does not** skip past NBSP to remove the two spaces behind it. On the right side, `stripTrailing()` can still remove the consecutive trailing regular spaces. The edge-scanning rule explains this exact behavior.
 
-Khi debug, hãy in **code point** hoặc biểu diễn từng ký tự bằng ký hiệu rõ ràng thay vì chỉ nhìn khoảng trống trong output.
+When debugging, print the **code points** or represent each character with an explicit symbol instead of just looking at blank space in the output.
 
-## 4. `strip()` khác `trim()` như thế nào?
+## 4. How does `strip()` differ from `trim()`?
 
-`String.trim()` là phương thức có từ các phiên bản Java cũ. Nó dùng tiêu chí dựa trên **giá trị đơn vị mã không vượt quá `U+0020`** ở hai rìa (các ký tự có giá trị `<= '\u0020'`). Tiêu chí này không đồng nhất với Unicode whitespace của `Character.isWhitespace`.
+`String.trim()` is a method from older Java versions. It uses a criterion based on **code unit values not exceeding `U+0020`** at both edges (characters with value `<= '\u0020'`). This criterion is not identical to the Unicode whitespace of `Character.isWhitespace`.
 
-| Vấn đề | `trim()` | `strip()` |
+| Aspect | `trim()` | `strip()` |
 |---|---|---|
-| Xuất hiện từ | Java rất lâu trước Java 11 | Java 11 |
-| Tiêu chí chính | Giá trị đầu/cuối `<= U+0020` | `Character.isWhitespace` |
-| SPACE `U+0020`, TAB `U+0009`, LF `U+000A` | Loại bỏ | Loại bỏ |
-| EM SPACE `U+2003` | **Giữ lại** | **Loại bỏ** |
-| IDEOGRAPHIC SPACE `U+3000` | **Giữ lại** | **Loại bỏ** |
-| NBSP `U+00A0` | Giữ lại | Giữ lại |
-| NULL `U+0000` ở rìa | Có thể loại bỏ vì `U+0000 <= U+0020` | Không thuộc whitespace nên giữ lại |
+| Introduced in | Java long before Java 11 | Java 11 |
+| Primary criterion | Leading/trailing value `<= U+0020` | `Character.isWhitespace` |
+| SPACE `U+0020`, TAB `U+0009`, LF `U+000A` | Removed | Removed |
+| EM SPACE `U+2003` | **Preserved** | **Removed** |
+| IDEOGRAPHIC SPACE `U+3000` | **Preserved** | **Removed** |
+| NBSP `U+00A0` | Preserved | Preserved |
+| NULL `U+0000` at edges | May be removed because `U+0000 <= U+0020` | Not whitespace, so preserved |
 
-Điều đó có nghĩa **`strip()` không đơn giản là một “`trim()` mạnh hơn” trên mọi dữ liệu**. Với những đơn vị mã điều khiển có giá trị nhỏ mà Java không coi là whitespace, `trim()` có thể loại bỏ trong khi `strip()` giữ nguyên. Khi mục tiêu thực sự là loại bỏ **Unicode whitespace ở rìa**, nên ưu tiên `strip()` trong Java 11+.
+That means **`strip()` is not simply a “stronger `trim()`” on all data**. For small-valued control code units that Java does not treat as whitespace, `trim()` can remove them while `strip()` preserves them. When the actual goal is to remove **leading/trailing Unicode whitespace**, prefer `strip()` in Java 11+.
 
-Một ví dụ dễ thấy bằng mã nguồn:
+An easy-to-see code example:
 
 ```java
 String text = "\u2003 Java \u2003";
@@ -120,13 +120,13 @@ System.out.println(text.strip().equals("Java")); // true
 System.out.println(text.trim().equals(text));     // true
 ```
 
-`trim()` nhìn thấy Em Space ở mép là ký tự `> U+0020` nên dừng ngay; `strip()` nhận ra Em Space là whitespace và loại bỏ nó cùng các dấu cách kề bên.
+`trim()` sees Em Space at the edge as a character `> U+0020` and stops immediately; `strip()` recognizes Em Space as whitespace and removes it along with the adjacent spaces.
 
-## 5. Ví dụ Java 17+: nhìn rõ kết quả khi có TAB, Em Space, NBSP
+## 5. Java 17+ example: clearly seeing results with TAB, Em Space, and NBSP
 
-Vì tab và khoảng trắng Unicode khó phân biệt trong console, ví dụ dùng hàm `visible` để **chỉ phục vụ in log**. Nó hiển thị TAB thành `<TAB>`, Em Space thành `<EM>`, NBSP thành `<NBSP>` và dấu cách ASCII thành ký hiệu `_`. Hàm này không tham gia vào việc cắt chuỗi; nó chỉ giúp người học quan sát kết quả.
+Because tabs and Unicode spaces are hard to tell apart in the console, the example uses a `visible` helper **solely for log printing**. It displays TAB as `<TAB>`, Em Space as `<EM>`, NBSP as `<NBSP>`, and ASCII space as `_`. This helper does not participate in trimming the string; it only helps the learner observe the results.
 
-Lưu toàn bộ vào **`StripWhitespaceDemo.java`**:
+Save the whole file as **`StripWhitespaceDemo.java`**:
 
 ```java
 public class StripWhitespaceDemo {
@@ -165,14 +165,14 @@ public class StripWhitespaceDemo {
 }
 ```
 
-Biên dịch và chạy với **JDK 17 trở lên**:
+Compile and run with **JDK 17 or later**:
 
 ```bash
 javac -encoding UTF-8 StripWhitespaceDemo.java
 java StripWhitespaceDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 source: [<TAB><EM>_Hello_<TAB>]
@@ -188,21 +188,21 @@ all strip empty: true
 middle unchanged: true
 ```
 
-Diễn giải:
+Explanation:
 
-1. Đầu vào có TAB, Em Space và một dấu cách ở phía đầu; phía cuối có dấu cách và TAB.
-2. `strip()` bỏ hết các ký tự được xem là whitespace ở **cả hai** mép: `"Hello"`.
-3. `stripLeading()` chỉ bỏ phần đầu: `"Hello \t"`.
-4. `stripTrailing()` chỉ bỏ phần cuối: `"\t\u2003 Hello"`.
-5. `trim()` chỉ bỏ TAB ngoài cùng ở đầu, rồi gặp Em Space nên dừng. Ở cuối, nó vẫn bỏ TAB và dấu cách vì các ký tự đó `<= U+0020`; kết quả còn Em Space và dấu cách ở đầu: `"\u2003 Hello"`.
-6. `NBSP` đứng ở hai đầu vẫn tồn tại sau `strip()` vì `isWhitespace` trả `false` cho NBSP.
-7. `allWhitespace.isBlank()` là `true`, và `strip()` biến chuỗi chỉ chứa whitespace thành `""`. Đây là hai cách kiểm tra nội dung trắng có liên quan, nhưng mục đích sử dụng khác nhau.
+1. The input has TAB, Em Space, and a space at the start; the end has a space and TAB.
+2. `strip()` removes all characters treated as whitespace at **both** edges: `"Hello"`.
+3. `stripLeading()` removes only the start: `"Hello \t"`.
+4. `stripTrailing()` removes only the end: `"\t\u2003 Hello"`.
+5. `trim()` removes only the outermost TAB at the start, then hits Em Space and stops. At the end, it still removes TAB and space because those characters are `<= U+0020`; the result retains Em Space and the space at the start: `"\u2003 Hello"`.
+6. `NBSP` at both ends still remains after `strip()` because `isWhitespace` returns `false` for NBSP.
+7. `allWhitespace.isBlank()` is `true`, and `strip()` turns a whitespace-only string into `""`. These are two related ways of checking blank content, but they serve different purposes.
 
-Hãy chú ý `<TAB>`, `<EM>`, `<NBSP>` và `_` chỉ là ký hiệu để **hiển thị kết quả trong chương trình demo**. Chúng không phải các ký tự mà `strip()` chèn vào chuỗi.
+Note that `<TAB>`, `<EM>`, `<NBSP>`, and `_` are only symbols for **displaying results in the demo program**. They are not characters that `strip()` inserts into the string.
 
-## 6. `strip` có thay đổi chuỗi gốc không?
+## 6. Does `strip` modify the original string?
 
-Không. `String` trong Java là **immutable**: các phương thức `strip()`, `stripLeading()` và `stripTrailing()` trả về giá trị `String`; chúng không thay đổi nội dung của đối tượng `String` đang được tham chiếu bởi biến ban đầu.
+No. `String` in Java is **immutable**: `strip()`, `stripLeading()`, and `stripTrailing()` return a `String` value; they do not mutate the contents of the `String` object referenced by the original variable.
 
 ```java
 String name = "  Mai  ";
@@ -213,18 +213,18 @@ name = name.strip();
 System.out.println("[" + name + "]"); // [Mai]
 ```
 
-Lời gọi `name.strip()` đầu tiên chỉ tính và trả kết quả rồi bị bỏ qua. Muốn dùng nội dung đã được cắt, cần **gán lại** cho biến hoặc lưu vào một biến mới:
+The first call `name.strip()` computes and returns a result that is immediately discarded. To use the stripped content, you must **reassign** the variable or save it into a new variable:
 
 ```java
 String raw = "  Mai  ";
 String normalized = raw.strip();
 ```
 
-Ở đây `raw` vẫn là `"  Mai  "`; `normalized` là `"Mai"`. Đừng dựa vào `==` để kiểm tra “đã strip chưa”: đặc tả quan tâm đến **giá trị văn bản**, không bảo đảm một quy tắc identity có ích cho nghiệp vụ. Dùng `equals()` khi so sánh nội dung.
+Here `raw` is still `"  Mai  "`; `normalized` is `"Mai"`. Do not rely on `==` to test “whether it was stripped”: the specification cares about **text value**, and does not guarantee a business-useful identity rule. Use `equals()` when comparing content.
 
-## 7. `strip()` liên quan thế nào tới `isBlank()`?
+## 7. How does `strip()` relate to `isBlank()`?
 
-`String.isBlank()`, cũng được thêm từ Java 11, trả `true` nếu chuỗi **rỗng hoặc chỉ gồm các code point được `Character.isWhitespace` nhận diện**.
+`String.isBlank()`, also added in Java 11, returns `true` if the string is **empty or consists solely of code points recognized by `Character.isWhitespace`**.
 
 ```java
 System.out.println(" \t\u2003 ".isBlank()); // true
@@ -233,13 +233,13 @@ System.out.println("".isBlank());          // true
 System.out.println("\u00A0".isBlank());    // false
 ```
 
-Với các chuỗi Java thông thường, nhận xét sau rất hữu ích về mặt giá trị: nếu `s` chỉ gồm Unicode whitespace theo đúng tiêu chí `isBlank()` thì `s.strip()` là chuỗi rỗng. Tuy vậy, nên chọn API phù hợp với **ý định**:
+For normal Java strings, the following observation is useful in terms of value: if `s` consists only of Unicode whitespace matching `isBlank()`'s criteria, then `s.strip()` is the empty string. Still, choose the API that matches your **intent**:
 
-- **`isBlank()`:** câu hỏi “chuỗi chỉ có whitespace hay không?”; trả `boolean`.
-- **`strip()`:** yêu cầu tạo **giá trị văn bản mới** không còn whitespace ở hai đầu; trả `String`.
-- **`isEmpty()`:** hỏi chiều dài chuỗi bằng 0 hay không, **không** đồng nghĩa chỉ chứa whitespace. `" ".isEmpty()` là `false`.
+- **`isBlank()`:** asks “does the string contain only whitespace?”; returns `boolean`.
+- **`strip()`:** requests a **new text value** with leading and trailing whitespace removed; returns `String`.
+- **`isEmpty()`:** asks whether the string length is 0, which is **not** synonymous with containing only whitespace. `" ".isEmpty()` is `false`.
 
-Một cách kiểm tra đầu vào phổ biến:
+A common input check:
 
 ```java
 static boolean hasMeaningfulText(String input) {
@@ -247,61 +247,61 @@ static boolean hasMeaningfulText(String input) {
 }
 ```
 
-Đoạn mã là phương thức minh họa, không phải chương trình độc lập. Nếu yêu cầu lưu một giá trị đã cắt rìa, dùng `input.strip()` khi đã kiểm tra `input != null`.
+This snippet is an illustrative method, not a standalone program. If you need to store an edge-stripped value, call `input.strip()` after confirming `input != null`.
 
-## 8. Dùng đúng phương thức trong từng tình huống
+## 8. Using the right method in each scenario
 
-### Chuẩn hóa dữ liệu biểu mẫu
+### Normalizing form input
 
 ```java
 String username = rawUsername.strip();
 ```
 
-Nếu yêu cầu là xóa whitespace Unicode ở hai mép tên người dùng, `strip()` diễn đạt ý định tốt. Tuy nhiên, phải quy định rõ chính sách với NBSP và các ký tự định dạng vô hình: **strip không tự xóa mọi thứ trông như khoảng trắng**. Nếu hệ thống coi NBSP là khoảng trắng cần loại bỏ, quyết định đó thuộc quy tắc kiểm tra dữ liệu, không phải bảo đảm mặc định của API.
+If the requirement is to remove Unicode whitespace from both edges of a username, `strip()` expresses the intent well. However, you must define a clear policy for NBSP and invisible formatting characters: **`strip` does not automatically remove everything that looks like whitespace**. If the system treats NBSP as whitespace to remove, that decision belongs to the data validation rules, not a default guarantee of the API.
 
-### Giữ indentation bên trái, bỏ trailing whitespace
+### Keeping left indentation, removing trailing whitespace
 
 ```java
 String cleanedLine = sourceLine.stripTrailing();
 ```
 
-Hữu ích khi cần giữ thụt lề có ý nghĩa (ví dụ mã nguồn hoặc văn bản căn lề) nhưng bỏ khoảng trắng không mong muốn ở cuối. Với file có nhiều dòng, muốn xử lý từng dòng thì phải tách/duyệt từng dòng và áp dụng đúng chính sách, vì `stripTrailing()` trên toàn chuỗi chỉ xử lý **mép cuối của toàn chuỗi**, không tự làm sạch cuối **mọi dòng**.
+Useful when you need to preserve meaningful indentation (e.g., source code or indented text) while removing unwanted whitespace at the end. For multi-line files, if you want to process each line, you must split/iterate line by line and apply the appropriate policy, because `stripTrailing()` on the whole string only processes the **trailing edge of the entire string**, not the end of **every line**.
 
-### Bỏ phần thụt lề đầu nhưng giữ ký tự cuối
+### Removing leading indentation while preserving trailing characters
 
 ```java
 String lineWithoutIndent = line.stripLeading();
 ```
 
-Dùng khi indentation đầu là thứ cần bỏ nhưng whitespace cuối phải được giữ. Lưu ý text block của Java có thêm các phương thức khác liên quan indentation; không đồng nhất `stripLeading()` với `stripIndent()` hoặc `indent()`, vì chúng có những quy tắc riêng và mục tiêu khác.
+Use when leading indentation is what needs to be removed while trailing whitespace must be preserved. Note that Java text blocks have additional indentation-related methods; do not conflate `stripLeading()` with `stripIndent()` or `indent()`, as they have distinct rules and goals.
 
-### Phân biệt làm sạch rìa với sửa nội dung trong chuỗi
+### Distinguishing edge cleanup from modifying internal content
 
 ```java
 String data = " a   b ";
 System.out.println(data.strip()); // a   b
 ```
 
-Bài toán biến nhiều khoảng trắng giữa `a` và `b` thành một khoảng trắng cần bước xử lý riêng. Nếu phải giữ nguyên định dạng bên trong (tên nhiều thành phần, mã định danh, văn bản có cấu trúc), đừng tự động thay đổi whitespace nội bộ.
+Turning multiple spaces between `a` and `b` into a single space requires a separate processing step. If internal formatting must be preserved (multi-part names, identifiers, structured text), do not automatically alter internal whitespace.
 
-## 9. Các lỗi thường gặp
+## 9. Common mistakes
 
-| Lỗi hoặc hiểu nhầm | Hậu quả | Cách xử lý |
+| Mistake or misconception | Consequence | How to handle it |
 |---|---|---|
-| Cho rằng `strip()` xóa mọi whitespace trong chuỗi | Các dấu cách/tab ở giữa vẫn còn | `strip()` chỉ áp dụng ở **rìa** |
-| Cho rằng `stripLeading()` cũng bỏ phần đuôi | Kết quả vẫn có trailing whitespace | Dùng `strip()` hoặc kết hợp thêm `stripTrailing()` |
-| Gọi `s.strip()` rồi vẫn dùng `s` mà không gán | Dữ liệu gốc không thay đổi | Gán lại hoặc lưu kết quả |
-| Dùng `trim()` thay `strip()` khi đầu vào có Em Space | Không loại bỏ `U+2003` ở mép | Dùng `strip()` trong Java 11+ |
-| Tưởng NBSP chắc chắn bị `strip()` xóa | Chuỗi vẫn có `U+00A0` | Kiểm tra code point và quy tắc chuẩn hóa |
-| Cho rằng `Character.isSpaceChar` và `Character.isWhitespace` giống nhau | Nhận diện sai tập ký tự trắng | Áp dụng đúng `Character.isWhitespace` theo API `String.strip` |
-| Dùng `strip()` để làm sạch trailing whitespace từng dòng trong văn bản nhiều dòng | Chỉ phần cuối **toàn chuỗi** bị xử lý | Duyệt dòng theo quy tắc mong muốn |
-| Gọi `strip()` trên `null` | `NullPointerException` | Kiểm tra null hoặc xác định trước hợp đồng đầu vào |
-| Dùng `strip()` để đo chuỗi có rỗng hay không mà không quan tâm kết quả | Cấp phát/xử lý không cần thiết trong một số ca | Dùng `isBlank()` khi chỉ cần `boolean` |
-| Giả định mọi phiên bản Java đều có ba API | Không biên dịch trên Java 8 | Nâng JDK lên 11+ hoặc viết cách xử lý phù hợp với phiên bản cũ |
+| Assuming `strip()` removes all whitespace in the string | Spaces/tabs in the middle remain | `strip()` applies only to the **edges** |
+| Assuming `stripLeading()` also removes the trailing part | Result still has trailing whitespace | Use `strip()` or combine with `stripTrailing()` |
+| Calling `s.strip()` and continuing to use `s` without assigning | Original data does not change | Reassign or store the result |
+| Using `trim()` instead of `strip()` when input has Em Space | Fails to remove `U+2003` at edges | Use `strip()` in Java 11+ |
+| Thinking NBSP is definitely removed by `strip()` | String still contains `U+00A0` | Check code points and normalization rules |
+| Assuming `Character.isSpaceChar` and `Character.isWhitespace` are identical | Misidentifies the whitespace set | Apply `Character.isWhitespace` per `String.strip` API |
+| Using `strip()` to clean trailing whitespace per line in multi-line text | Only the end of the **entire string** is processed | Iterate lines according to the desired rule |
+| Calling `strip()` on `null` | `NullPointerException` | Check for `null` or define the input contract upfront |
+| Using `strip()` just to check if a string is blank while ignoring the result | Unnecessary allocation/processing in some cases | Use `isBlank()` when you only need a `boolean` |
+| Assuming every Java version has all three APIs | Does not compile on Java 8 | Upgrade JDK to 11+ or write logic compatible with older versions |
 
-## 10. Bài tập tự kiểm tra
+## 10. Self-check exercises
 
-Cho dữ liệu:
+Given the data:
 
 ```java
 String a = "\t abc \t";
@@ -311,25 +311,25 @@ String d = "   ";
 String e = " a  b ";
 ```
 
-Hãy dự đoán:
+Predict:
 
-1. `a.strip()`, `a.stripLeading()` và `a.stripTrailing()` giữ lại phía nào?
-2. Vì sao `b.strip().equals("abc")` là `true` trong khi `b.trim().equals("abc")` là `false`?
-3. `c.strip().equals("abc")` có trả về `true` không?
-4. `d.strip().isEmpty()` và `d.isBlank()` có cùng kết quả không?
-5. `e.strip()` còn mấy dấu cách ở giữa `a` và `b`?
+1. Which side does each of `a.strip()`, `a.stripLeading()`, and `a.stripTrailing()` preserve?
+2. Why is `b.strip().equals("abc")` `true` while `b.trim().equals("abc")` is `false`?
+3. Does `c.strip().equals("abc")` return `true`?
+4. Do `d.strip().isEmpty()` and `d.isBlank()` produce the same result?
+5. How many spaces remain between `a` and `b` in `e.strip()`?
 
-**Đáp án:**
+**Answers:**
 
-1. `a.strip()` là `"abc"`; `stripLeading()` là `"abc \t"`, `stripTrailing()` là `"\t abc"`.
-2. `U+2003` được Java nhận diện là whitespace; `trim()` chỉ loại đơn vị mã `<= U+0020`.
-3. **Không**. NBSP `U+00A0` không thuộc nhóm được `Character.isWhitespace` chấp nhận, nên vẫn ở đầu và cuối.
-4. Cả hai biểu thức đều là `true`; `strip()` trả chuỗi rỗng, `isBlank()` trực tiếp kiểm tra chỉ chứa whitespace.
-5. Vẫn còn **hai** dấu cách ở giữa vì `strip()` không sửa nội dung bên trong.
+1. `a.strip()` is `"abc"`; `stripLeading()` is `"abc \t"`, `stripTrailing()` is `"\t abc"`.
+2. `U+2003` is recognized by Java as whitespace; `trim()` only removes code units `<= U+0020`.
+3. **No**. NBSP `U+00A0` is not accepted by `Character.isWhitespace`, so it remains at both start and end.
+4. Both expressions are `true`; `strip()` returns the empty string, while `isBlank()` directly checks for whitespace-only content.
+5. **Two** spaces remain in the middle because `strip()` does not modify internal content.
 
-## 11. Tài liệu chính thức
+## 11. Official documentation
 
-- [Java SE 17 — `String.strip()`, `stripLeading()`, `stripTrailing()`, `trim()` và `isBlank()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html)
+- [Java SE 17 — `String.strip()`, `stripLeading()`, `stripTrailing()`, `trim()`, and `isBlank()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html)
 - [Java SE 17 — `Character.isWhitespace(int)`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html#isWhitespace(int))
 
-**Ghi nhớ:** Dùng `strip()` để bỏ Java whitespace ở **hai mép**, `stripLeading()` chỉ ở **đầu**, `stripTrailing()` chỉ ở **cuối**. Chúng dùng quy tắc Unicode `Character.isWhitespace`, không đồng nghĩa “mọi ký tự trông trắng”, và không sửa khoảng trắng ở giữa. So với `trim()`, sự khác nhau nằm ở **tập ký tự được coi là có thể loại bỏ**, không chỉ ở tên phương thức.
+**Key takeaway:** Use `strip()` to remove Java whitespace from **both edges**, `stripLeading()` at the **start only**, and `stripTrailing()` at the **end only**. They use the Unicode `Character.isWhitespace` rule—which is not synonymous with “every character that looks blank”—and do not modify whitespace in the middle. Compared with `trim()`, the difference lies in the **set of characters considered removable**, not just the method name.

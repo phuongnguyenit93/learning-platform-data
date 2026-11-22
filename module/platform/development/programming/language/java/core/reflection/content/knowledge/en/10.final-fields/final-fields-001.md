@@ -1,12 +1,12 @@
-# Phân biệt đọc `final` field với thay đổi `final` field trong Java Reflection
+# Distinguishing Reading a `final` Field from Modifying a `final` Field in Java Reflection
 
-`final` thể hiện ý định **giá trị của một biến không được gán lại sau khi hoàn tất khởi tạo theo quy tắc ngôn ngữ Java**. Khi dùng Reflection, người học thường nhầm rằng nếu đã đọc được một field `private final` bằng `Field#get(...)` thì cũng có thể thay đổi nó bằng `Field#set(...)`. Hai thao tác này có các điều kiện và giới hạn khác nhau.
+`final` expresses the intent that **the value of a variable is not reassigned after initialization completes according to the Java language rules**. When using Reflection, learners often mistakenly assume that if a `private final` field can be read using `Field#get(...)`, it can also be modified using `Field#set(...)`. These two operations have different conditions and limits.
 
-**Trọng tâm của bài:** Reflection có thể cho phép **đọc** field `final` sau khi thỏa quy tắc truy cập; điều đó **không chứng minh** Reflection được phép **ghi** field `final`. Một số nhóm field `final` luôn thuộc loại không cho ghi thông qua `Field#set` dù đã bật quyền truy cập, còn việc ghi `final` instance thông thường là khả năng đặc biệt bị hạn chế ngày càng chặt hơn từ JDK 26.
+**Core takeaway of this lesson:** Reflection may allow **reading** a `final` field once access rules are satisfied; that **does not prove** Reflection is allowed to **write** a `final` field. Several categories of `final` fields are always non-modifiable via `Field#set` even when accessibility has been enabled, while writing an ordinary instance `final` field is a special capability that becomes increasingly restricted starting in JDK 26.
 
-## 1. `final` đảm bảo gì ở mức khai báo Java?
+## 1. What does `final` guarantee at the Java declaration level?
 
-Một field được khai báo `final` chỉ có thể được gán theo các quy tắc khởi tạo cho phép:
+A field declared `final` can only be assigned according to the permitted initialization rules:
 
 ~~~java
 class Configuration {
@@ -23,55 +23,55 @@ class Configuration {
 }
 ~~~
 
-Đây là **đoạn mã minh họa**, không có `main` độc lập. Sau khi constructor `Configuration` kết thúc, Java source thông thường không được viết `configuration.timeoutSeconds = 10;` vì field này là `final`.
+This is an **illustrative snippet**, without a standalone `main`. After the `Configuration` constructor finishes, ordinary Java source code cannot write `configuration.timeoutSeconds = 10;` because this field is `final`.
 
-Phân biệt:
+Distinctions:
 
-- **`final` instance field:** mỗi instance có trạng thái riêng; giá trị thường được xác lập trong field initializer, instance initializer hoặc constructor.
-- **`static final` field:** gắn với lớp thay vì một instance; chỉ được khởi tạo theo quy tắc cho static field.
-- **`private` và `final` độc lập:** `private` chi phối quyền truy cập ở cấp Java, còn `final` chi phối khả năng gán. Một field có thể là `public final`, `private final`, `static final`, v.v.
-- **`final` không làm đối tượng được tham chiếu trở nên bất biến sâu:** `private final List<String> names` giữ cố định **tham chiếu** sau khởi tạo bằng Java source, nhưng nếu danh sách có thể thay đổi thì `names.add(...)` vẫn có thể sửa nội dung.
+- **`final` instance field:** each instance has its own state; the value is normally established in a field initializer, an instance initializer, or a constructor.
+- **`static final` field:** attached to the class rather than an instance; initialized only according to the rules for static fields.
+- **`private` and `final` are independent:** `private` governs access at the Java language level, whereas `final` governs assignability. A field can be `public final`, `private final`, `static final`, etc.
+- **`final` does not make the referenced object deeply immutable:** `private final List<String> names` keeps the **reference** fixed after initialization in Java source, but if the list is mutable then `names.add(...)` can still modify its contents.
 
-Các đảm bảo của Java Memory Model dành cho `final` field giúp chương trình có mô hình khởi tạo đáng tin cậy. Việc thay đổi `final` bằng Reflection sau khởi tạo có thể phá vỡ các giả định của compiler/JVM và của những luồng đang đọc dữ liệu. Vì vậy không nên xem kỹ thuật mutation là cách cập nhật cấu hình thông thường.
+The Java Memory Model guarantees for `final` fields help programs have a reliable initialization model. Mutating `final` via Reflection after initialization can break assumptions made by the compiler/JVM and by threads reading the data. Therefore, mutation techniques should not be treated as a normal way to update configuration.
 
-## 2. Hai thao tác Reflection: đọc và ghi
+## 2. Two Reflection operations: reading and writing
 
-Đối tượng `java.lang.reflect.Field` hỗ trợ cả metadata lẫn thao tác với giá trị:
+A `java.lang.reflect.Field` object supports both metadata and value operations:
 
-| Nhu cầu | API | Điểm cần kiểm tra |
+| Need | API | What to check |
 | --- | --- | --- |
-| Nhận biết field có `final` | `Modifier.isFinal(field.getModifiers())` | Chỉ đọc modifier, **không** cho biết có thể ghi hay không |
-| Tìm field không `public` | `type.getDeclaredField("name")` | Chỉ tìm metadata của field khai báo trực tiếp, không tự cấp quyền |
-| Kiểm tra quyền truy cập hiện tại | `field.canAccess(target)` | Instance dùng object; static dùng `null` |
-| Thử bật bỏ qua kiểm tra truy cập Java | `field.trySetAccessible()` | Trả `true`/`false`; không bảo đảm khả năng ghi field `final` |
-| Đọc một field | `field.get(target)`, `getInt(target)`... | Cần đáp ứng quyền truy cập; trả giá trị tương ứng |
-| Thử ghi một field | `field.set(target, value)`, `setInt(target, n)`... | Cần quyền ghi thực tế; `final` có thêm hạn chế và quy tắc phụ thuộc phiên bản JDK |
+| Check whether a field has `final` | `Modifier.isFinal(field.getModifiers())` | Only reads the modifier; **does not** indicate whether it can be written |
+| Look up a non-`public` field | `type.getDeclaredField("name")` | Only looks up metadata of a directly declared field; does not grant access by itself |
+| Check current access permission | `field.canAccess(target)` | Instance uses an object; static uses `null` |
+| Try enabling suppression of Java access checks | `field.trySetAccessible()` | Returns `true`/`false`; does not guarantee write capability for a `final` field |
+| Read a field | `field.get(target)`, `getInt(target)`... | Requires access permission; returns the corresponding value |
+| Try writing a field | `field.set(target, value)`, `setInt(target, n)`... | Requires actual write permission; `final` has additional restrictions and JDK-version-dependent rules |
 
-*Ghi nhớ:* có ít nhất **hai câu hỏi** khi dùng `Field`: có được **truy cập** thành viên qua Reflection hay không, và có được **sửa** chính field này hay không. Hai câu trả lời có thể lần lượt là "có" và "không".
+*Remember:* there are at least **two questions** when using `Field`: whether you are allowed to **access** the member via Reflection, and whether you are allowed to **modify** this specific field. The two answers can respectively be "yes" and "no".
 
-### `getDeclaredField` chỉ tra cứu, chưa thao tác giá trị
+### `getDeclaredField` only looks up metadata, without manipulating values
 
 ~~~java
 Field field = SomeType.class.getDeclaredField("value");
 boolean isFinal = Modifier.isFinal(field.getModifiers());
 ~~~
 
-Đây là **đoạn minh họa**, giả sử `SomeType` có field `value` và đã import `Field`, `Modifier`. Lời gọi `getDeclaredField` có thể trả đối tượng `Field` đại diện cho field `private final`. Nhưng `Field` là metadata, nên **không tự suy ra** rằng `get` hay `set` sau đó đã được cấp quyền.
+This is an **illustrative snippet**, assuming `SomeType` has a `value` field and `Field` and `Modifier` are imported. Calling `getDeclaredField` can return the `Field` object representing a `private final` field. However, `Field` is metadata, so it **does not automatically imply** that a subsequent `get` or `set` has been granted permission.
 
-## 3. Đọc `final` instance và `static final` field
+## 3. Reading `final` instance and `static final` fields
 
-Đọc field `final` qua Reflection về cơ bản tuân theo quy tắc truy cập của `Field`:
+Reading a `final` field via Reflection essentially follows the access rules of `Field`:
 
-1. Lấy `Field` đúng đối tượng `Class<?>`. Dùng `getDeclaredField` nếu cần field `private` được khai báo trực tiếp.
-2. Với **instance field**, truyền instance đúng loại vào `canAccess`/`get`. Với **static field**, truyền `null`.
-3. Nếu chưa được phép truy cập theo trạng thái hiện tại, kiểm tra khả năng bật quyền bằng `trySetAccessible()` khi thật sự cần.
-4. Khi đã được phép, gọi `get`, `getInt`, `getLong` hoặc phương thức đọc chuyên biệt. Đọc một field `final` **không làm thay đổi** giá trị của nó.
+1. Obtain the `Field` from the right `Class<?>` object. Use `getDeclaredField` if you need a directly declared `private` field.
+2. For an **instance field**, pass an instance of the right type to `canAccess`/`get`. For a **static field**, pass `null`.
+3. If access is not yet allowed in the current state, check whether permission can be enabled using `trySetAccessible()` when genuinely needed.
+4. Once permitted, call `get`, `getInt`, `getLong`, or a specialized read method. Reading a `final` field **does not change** its value.
 
-Lưu ý về Java modules: từ Java 9, `trySetAccessible()` có thể bị từ chối bởi ranh giới JPMS. Trong ví dụ của bài, tất cả lớp nằm trong **unnamed module của cùng class loader**, nên việc bật quyền sâu vào lớp ứng dụng được phép. Không nên mặc định kết quả này khi chuyển `Field` tới helper ở module khác hoặc truy cập module thư viện chưa mở package.
+Note on Java modules: since Java 9, `trySetAccessible()` can be rejected by JPMS boundaries. In this lesson's example, all classes reside in the **unnamed module of the same class loader**, so enabling deep access into application classes is allowed. Do not assume the same outcome when passing a `Field` to a helper in another module or accessing a library module that has not opened its package.
 
-### Ví dụ chạy được: đọc ba loại `final` field
+### Runnable example: reading three kinds of `final` fields
 
-Tạo tệp **`ReadFinalDemo.java`**, dùng Java 17+:
+Create the file **`ReadFinalDemo.java`**, using Java 17+:
 
 ~~~java
 import java.lang.reflect.Field;
@@ -115,14 +115,14 @@ public class ReadFinalDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac --release 17 ReadFinalDemo.java
 java ReadFinalDemo
 ~~~
 
-**Stdout (đã kiểm chứng trên JDK 21):**
+**Stdout (verified on JDK 21):**
 
 ~~~text
 Instance final: true
@@ -137,49 +137,49 @@ Open record: true
 Record value: 42
 ~~~
 
-**Phân tích:**
+**Analysis:**
 
-- `Modifier.isFinal(...)` đọc cờ modifier của `count`, `LABEL` và field backing cho thành phần record `value`; cả ba đều là `final`.
-- `count` là `private final` của một lớp khác `ReadFinalDemo`, nên `canAccess(data)` ban đầu là `false`. Sau khi `trySetAccessible()` thành công, `getInt(data)` đọc được số `7`.
-- `LABEL` là `static final`: truyền `null` vào `get(null)` vì field gắn với lớp, không gắn với instance.
-- Thành phần `value` của record cũng có field `private final` do compiler tạo; ví dụ đọc field đó sau khi bật quyền.
-- Chương trình **không dùng `Field#set`**. Sự thành công của cả ba thao tác đọc **không cung cấp bằng chứng** rằng ba field có thể được ghi bằng Reflection.
+- `Modifier.isFinal(...)` reads the modifier flags of `count`, `LABEL`, and the backing field for the record component `value`; all three are `final`.
+- `count` is a `private final` field of a class different from `ReadFinalDemo`, so `canAccess(data)` is initially `false`. After `trySetAccessible()` succeeds, `getInt(data)` reads the number `7`.
+- `LABEL` is `static final`: pass `null` to `get(null)` because the field belongs to the class, not an instance.
+- The record component `value` also has a compiler-generated `private final` field; the example reads that field after enabling access.
+- The program **does not use `Field#set`**. The success of all three read operations **provides no evidence** that the three fields can be written using Reflection.
 
-**Tại sao ví dụ không dùng lớp lồng bên trong `ReadFinalDemo`?** Các lớp lồng có thể là *nestmates*, có quyền truy cập `private` của nhau theo quy tắc Java, khiến `canAccess(...)` ban đầu trả `true` và che mất ý nghĩa của việc thử mở quyền. Các lớp cấp cao nhất `FinalData` và `ReadFinalDemo` trong ví dụ là hai nest khác nhau.
+**Why doesn't the example use nested classes inside `ReadFinalDemo`?** Nested classes can be *nestmates*, having mutual access to each other's `private` members under Java rules, which causes `canAccess(...)` to return `true` initially and obscures the point of trying to enable access. The top-level classes `FinalData` and `ReadFinalDemo` in the example are in two separate nests.
 
-## 4. Đọc thành công không cấp quyền ghi
+## 4. Successful reading does not grant write permission
 
-Ví dụ ở mục 3 đã chứng minh có thể đọc ba field `final` khác nhau. Để quyết định có nên gọi `Field.set`, còn phải xét **loại field** và **runtime đang chạy**. `trySetAccessible()` chỉ xử lý bước xin bỏ qua kiểm tra truy cập Java; nó không loại bỏ giới hạn ghi của `final`.
+The example in section 3 demonstrated that three different `final` fields can be read. To decide whether `Field.set` should be called, you must also consider the **field category** and the **running runtime**. `trySetAccessible()` only handles requesting to bypass Java access checks; it does not remove the write restrictions of `final`.
 
-| Field | `Field.get` khi đủ quyền | `Field.set` sau khi mở quyền |
+| Field | `Field.get` with sufficient access | `Field.set` after enabling access |
 | --- | --- | --- |
-| Instance `final` của class thông thường | Có thể đọc | Trên JDK 17–25 có đường ghi đặc biệt khi đủ điều kiện; không phải API cập nhật trạng thái |
-| `static final` | Có thể đọc | Không được ghi qua setter Reflection |
-| `final` trong record | Có thể đọc | Không được ghi qua setter Reflection |
-| `final` trong hidden class | Có thể đọc | Không được ghi qua setter Reflection |
-| Field không `final` | Có thể đọc | Có thể ghi nếu quyền truy cập, receiver và kiểu dữ liệu phù hợp |
+| Instance `final` of an ordinary class | Can be read | On JDK 17–25 there is a special write path when conditions are met; not a state-updating API |
+| `static final` | Can be read | Cannot be written via Reflection setter |
+| `final` in a record | Can be read | Cannot be written via Reflection setter |
+| `final` in a hidden class | Can be read | Cannot be written via Reflection setter |
+| Non-`final` field | Can be read | Can be written if access permission, receiver, and data type match |
 
-**Cách diễn giải:** nếu `label.trySetAccessible()` thành công rồi `label.get(null)` trả về `"fixed"`, ta mới biết thao tác **đọc** trên `static final LABEL` là hợp lệ trong ngữ cảnh đó. Thử `label.set(null, "changed")` vẫn bị từ chối bằng `IllegalAccessException`. Tương tự, record có thể cho đọc component field nhưng không cho viết lại field ấy.
+**How to interpret this:** if `label.trySetAccessible()` succeeds and then `label.get(null)` returns `"fixed"`, we only know that the **read** operation on `static final LABEL` is valid in that context. Attempting `label.set(null, "changed")` is still rejected with `IllegalAccessException`. Similarly, a record may allow reading its component field but does not allow overwriting that field.
 
-JDK 26 bổ sung chính sách JEP 500 cho việc ghi **ordinary final instance field** bằng deep reflection: thao tác không được cấp phép có thể phát cảnh báo hoặc bị chặn tùy cấu hình. Các tùy chọn đó không biến `static final`, record-final hay hidden-class-final thành writable. Vì vậy đừng lấy kết quả ghi từ một JDK để đoán cho mọi JDK khác.
+JDK 26 adds the JEP 500 policy for writing **ordinary final instance fields** via deep reflection: unauthorized operations may emit warnings or be blocked depending on configuration. Those options do not turn `static final`, record-final, or hidden-class-final into writable fields. Therefore, do not take a write result from one JDK and assume it holds across every other JDK.
 
-## 5. Chọn cách đọc phù hợp
+## 5. Choosing the appropriate way to read
 
-- Nếu lớp đã có **getter/accessor public**, hãy ưu tiên nó. Với record, accessor như `recordValue.value()` thể hiện rõ contract của đối tượng.
-- Nếu cần **metadata**, dùng `getDeclaredField`, `getModifiers` hoặc `getDeclaredFields` mà không cần tự ý mở quyền đọc giá trị.
-- Nếu công cụ thật sự cần đọc **private field**, xác định đúng declaring class, receiver (instance hoặc `null` cho static) và quyền truy cập qua module. `trySetAccessible() == false` có thể là kết quả hợp lệ khi package không mở cho caller.
-- Nếu yêu cầu thật sự là **cập nhật giá trị**, đừng chuyển quy trình đọc thành lời gọi `set` theo quán tính. Tìm constructor/factory, phương thức cập nhật hoặc tạo instance mới; các bài tiếp theo sẽ phân tích sâu các giới hạn và lựa chọn đó.
+- If the class already provides a **public getter/accessor**, prefer it. For records, an accessor such as `recordValue.value()` clearly expresses the object's contract.
+- If you need **metadata**, use `getDeclaredField`, `getModifiers`, or `getDeclaredFields` without unnecessarily opening value read access.
+- If a tool genuinely needs to read a **private field**, identify the correct declaring class, receiver (an instance or `null` for static), and module access permissions. `trySetAccessible() == false` can be a valid outcome when a package is not open to the caller.
+- If the real requirement is to **update a value**, do not turn a read workflow into a `set` call out of habit. Look for a constructor/factory, an update method, or create a new instance; subsequent lessons will analyze those limits and alternatives in depth.
 
-## 6. Tự kiểm tra
+## 6. Self-check
 
-1. `getDeclaredField("count")` trả về một `Field` cho `private final int count`. Có thể khẳng định `getInt(data)` sẽ chạy ngay không? **Không**; cần kiểm tra quyền truy cập của caller.
-2. `trySetAccessible()` trả `true` cho `private static final String LABEL`. Có thể `Field.set(null, "new")` không? **Không**; `static final` không có quyền ghi bằng cách mở accessible.
-3. Đọc `record FinalRecord(int value)` qua `getInt(record)` thành công, có thể suy ra sửa component field không? **Không**; record final field thuộc loại không thể ghi qua `Field.set`.
-4. `final List<String>` trỏ tới một `ArrayList`. Nếu gọi `add` thành công, có phải vừa gán lại field không? **Không**; chỉ nội dung object được tham chiếu thay đổi.
+1. `getDeclaredField("count")` returns a `Field` for `private final int count`. Can you assert that `getInt(data)` will run immediately? **No**; you must check the caller's access permission.
+2. `trySetAccessible()` returns `true` for `private static final String LABEL`. Can you call `Field.set(null, "new")`? **No**; `static final` does not gain write permission by enabling accessible.
+3. Reading `record FinalRecord(int value)` via `getInt(record)` succeeds; can you infer that modifying the component field is possible? **No**; record final fields belong to the category that cannot be written via `Field.set`.
+4. `final List<String>` points to an `ArrayList`. If calling `add` succeeds, did you just reassign the field? **No**; only the contents of the referenced object changed.
 
-**Điều cần nhớ:** tra cứu metadata, xin mở quyền, đọc và ghi là **bốn thao tác khác nhau**. Bài này dạy đường **đọc** và cách nhận ra ranh giới sang **ghi**; khi cần ghi, phải kiểm tra riêng từng loại `final` cùng phiên bản Java trước khi quyết định thiết kế.
+**Key takeaway:** looking up metadata, requesting access, reading, and writing are **four distinct operations**. This lesson teaches the **read** path and how to recognize the boundary toward **writing**; when writing is needed, you must inspect each `final` category together with the Java version separately before deciding on a design.
 
-### Tài liệu tham khảo
+### References
 
 - [Java SE 17 — Field API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html)
 - [Java SE 17 — AccessibleObject API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html)
